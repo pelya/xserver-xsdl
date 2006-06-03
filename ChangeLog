@@ -1,6 +1,9 @@
 2006-06-03  Daniel Stone  <daniel@freedesktop.org>
 
 	* configure.ac:
+	Bump to 1.1.99.2.
+	
+	* configure.ac:
 	* hw/xfree86/os-support/bus/Pci.h:
 	Add support for kFreeBSD systems.  (Robert Millan, Aurelien Jarno)
 
