@@ -272,7 +272,7 @@ static loader_funcs funcs[] = {
      DLResolveSymbols,
      DLCheckForUnresolved,
      ARCHIVEAddressToSection,
-     DLUnloadModule, {0, 0}},
+     DLUnloadModule},
 };
 
 int numloaders = sizeof(funcs) / sizeof(loader_funcs);
@@ -842,18 +842,6 @@ _LoaderHandleUnresolved(char *symbol, char *module)
 /*
  * Relocation list manipulation routines
  */
-
-/*
- * _LoaderGetRelocations() Return the list of outstanding relocations
- */
-LoaderRelocPtr
-_LoaderGetRelocations(void *mod)
-{
-    loader_funcs *formatrec = (loader_funcs *) mod;
-
-    return &(formatrec->pRelocs);
-}
-
 
 /*
  * Public Interface to the loader.

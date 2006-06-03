@@ -83,11 +83,6 @@
 #define HASHDIV 10
 #define HASHSIZE (1<<HASHDIV)
 
-typedef struct _LoaderReloc {
-    int modtype;
-    struct _LoaderReloc *next;
-} LoaderRelocRec, *LoaderRelocPtr;
-
 typedef struct _loader_item *itemPtr;
 typedef struct _loader_item {
     char *name;
@@ -187,7 +182,6 @@ typedef struct _loader_funcs {
     CheckForUnresolvedProcPtr CheckForUnresolved;
     AddressToSectionProcPtr AddressToSection;
     LoaderUnloadProcPtr LoaderUnload;
-    LoaderRelocRec pRelocs;	/* type specific relocations */
 } loader_funcs;
 
 /* Each module loaded has a loaderRec */
@@ -247,11 +241,6 @@ int LoaderHandleOpen(int);
 void *_LoaderFileToMem(int fd, unsigned long offset, int size, char *label);
 void _LoaderFreeFileMem(void *addr, int size);
 int _LoaderFileRead(int fd, unsigned int offset, void *addr, int size);
-
-/*
- * Relocation list manipulation routines
- */
-LoaderRelocPtr _LoaderGetRelocations(void *);
 
 /*
  * object to name lookup routines
