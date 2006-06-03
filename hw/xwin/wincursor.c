@@ -41,6 +41,8 @@
 #include <mipointrst.h>
 #include <servermd.h>
 
+extern Bool	g_fSoftwareCursor;
+
 
 #ifndef MIN
 #define MIN(x,y) ((x)<(y)?(x):(y))
@@ -438,8 +440,6 @@ winLoadCursor (ScreenPtr pScreen, CursorPtr pCursor, int screen)
 static Bool
 winRealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
 {
-  WIN_DEBUG_MSG("winRealizeCursor: cursor=%p\n", pCursor); 
-
   if(pCursor == NULL || pCursor->bits == NULL)
     return FALSE;
   
@@ -456,7 +456,6 @@ winRealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
 static Bool
 winUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
 {
-  WIN_DEBUG_MSG("winUnrealizeCursor: cursor=%p\n", pCursor); 
   return TRUE;
 }
 
@@ -508,7 +507,7 @@ winSetCursor (ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
     {
       if (pScreenPriv->cursor.visible)
 	{
-	  if (!bInhibit)
+	  if (!bInhibit && g_fSoftwareCursor)
 	    ShowCursor (FALSE);
 	  pScreenPriv->cursor.visible = FALSE;
 	}
@@ -531,7 +530,7 @@ winSetCursor (ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
 
       if (!pScreenPriv->cursor.visible)
 	{
-	  if (!bInhibit)
+	  if (!bInhibit && g_fSoftwareCursor)
 	    ShowCursor (TRUE);
 	  pScreenPriv->cursor.visible = TRUE;
 	}

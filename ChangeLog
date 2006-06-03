@@ -12,6 +12,12 @@
 	Bug #6956: Fix crash when removing session leader before its children.
 	(Rich Coe)
 
+	* hw/xwin/wincursor.c:
+	* hw/xwin/winresource.h:
+	* hw/xwin/winwndproc.c:
+	* hw/xwin/XWin.rc:
+	Bug #6619: Fix disappearing hardware cursor.  (Colin Harrison)
+
 2006-06-01  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xf86Init.c:

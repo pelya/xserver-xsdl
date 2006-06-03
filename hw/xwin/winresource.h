@@ -46,7 +46,6 @@
 #define ID_APP_HIDE_ROOT	201
 #define ID_APP_ALWAYS_ON_TOP	202
 #define ID_APP_ABOUT		203
-#define ID_APP_SHOWCURSOR		204
 
 #define ID_ABOUT_UG		300
 #define ID_ABOUT_FAQ		301
