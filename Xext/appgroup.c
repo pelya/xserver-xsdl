@@ -100,7 +100,7 @@ int XagAppGroupFree(
 
     if (pAppGrp->leader)
 	for (i = 0; i < pAppGrp->nclients; i++) {
-	    pAppGrp->clients[i]->appgroup = NULL;
+	    if (pAppGrp->clients[i] == NULL) continue;
 	    CloseDownClient (pAppGrp->clients[i]);
 	}
 
@@ -134,6 +134,7 @@ void XagClientStateChange(
     ClientPtr pClient = pci->client;
     AppGroupPtr pAppGrp;
     XID authId = 0;
+    int slot;
 
     if (!pClient->appgroup) {
 	switch (pClient->clientState) {
@@ -195,16 +196,22 @@ void XagClientStateChange(
 
     case ClientStateInitial: 
     case ClientStateCheckedSecurity:
+	slot = -1;
 	/* see the comment above about Initial vs. CheckedSecurity */
-	{
+	if (pAppGrp->nclients != 0) {
 	    /* if this client already in AppGroup, don't add it again */
 	    int i;
 	    for (i = 0; i < pAppGrp->nclients; i++)
 		if (pClient == pAppGrp->clients[i]) return;
+		if (slot == -1 && pAppGrp->clients[i] == NULL)
+			slot = i;
 	}
-	pAppGrp->clients = (ClientPtr*) xrealloc (pAppGrp->clients, 
-				++pAppGrp->nclients * sizeof (ClientPtr));
-	pAppGrp->clients[pAppGrp->nclients - 1] = pClient;
+	if (slot == -1) {
+	    slot = pAppGrp->nclients++;
+	    pAppGrp->clients = (ClientPtr*) xrealloc (pAppGrp->clients, 
+				pAppGrp->nclients * sizeof (ClientPtr));
+	}
+	pAppGrp->clients[slot] = pClient;
 	pClient->appgroup = pAppGrp;
 	break;
 
@@ -217,10 +224,6 @@ void XagClientStateChange(
 		    pAppGrp->clients[i] = NULL;
 		    break;
 		}
-	    for (i = 0; i < pAppGrp->nclients; i++)
-		if (pAppGrp->clients[i] == NULL && i + 1 < pAppGrp->nclients)
-		    pAppGrp->clients[i] = pAppGrp->clients[i + 1];
-	    pAppGrp->nclients--;
 	}
 	pClient->appgroup = NULL; /* redundant, pClient will be freed */
 	break;

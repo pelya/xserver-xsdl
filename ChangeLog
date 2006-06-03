@@ -8,6 +8,10 @@
 	* hw/xfree86/loader/loader.c:
 	Completely remove relocation pointer tables.
 
+	* Xext/appgroup.c:
+	Bug #6956: Fix crash when removing session leader before its children.
+	(Rich Coe)
+
 2006-06-01  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xf86Init.c:
