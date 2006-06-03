@@ -1,3 +1,9 @@
+2006-06-03  Daniel Stone  <daniel@freedesktop.org>
+
+	* configure.ac:
+	* hw/xfree86/os-support/bus/Pci.h:
+	Add support for kFreeBSD systems.  (Robert Millan, Aurelien Jarno)
+
 2006-06-01  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/common/xf86Init.c:

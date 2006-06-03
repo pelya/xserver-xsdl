@@ -248,7 +248,10 @@ KDRIVE_HW=no
 dnl it would be nice to autodetect these *CONS_SUPPORTs
 case $host_os in
   *freebsd*)
-	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
+	case $host_os in
+		kfreebsd*-gnu) ;;
+		*) AC_DEFINE(CSRG_BASED, 1, [System is BSD-like]) ;;
+	esac
 	AC_DEFINE(PCCONS_SUPPORT, 1, [System has PC console])
 	AC_DEFINE(PCVT_SUPPORT, 1, [System has PCVT console])
 	AC_DEFINE(SYSCONS_SUPPORT, 1, [System has syscons console])
@@ -1056,7 +1059,7 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 			;;
 		esac
 		;;
-	  freebsd*)
+	  freebsd* | kfreebsd*-gnu)
 	  	XORG_OS="freebsd"
 		XORG_OS_SUBDIR="bsd"
 		XORG_OS_KBD="BSD"
@@ -1156,7 +1159,7 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 		;;
 	  powerpc*)
 		case $host_os in
-		  linux*|freebsd*|netbsd*|openbsd*)
+		  linux*|freebsd*|netbsd*|openbsd*|kfreebsd*-gnu)
 			;;
 		  *)
 			xorg_bus_ppcpci="yes"
@@ -1169,7 +1172,7 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 		;;
 	  x86_64*|amd64*)
 		case $host_os in
-		  freebsd*)
+		  freebsd*|kfreebsd*-gnu)
 			# FreeBSD uses the system pci interface
 			;;
 		  *)
@@ -1509,7 +1512,7 @@ case $host_os in
 	cygwin*) ;;
 	solaris*) ;;
         darwin*) ;;
-	*bsd*) ;;
+	freebsd*|netbsd*|openbsd*) ;;
 	*) 
 		AC_DEFINE(_POSIX_SOURCE, 1, [POSIX-compliant source])
 		AC_DEFINE(_XOPEN_SOURCE, 500, [X/Open-compliant source])

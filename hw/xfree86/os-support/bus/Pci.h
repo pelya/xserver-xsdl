@@ -332,7 +332,7 @@
 #  define ARCH_PCI_PCI_BRIDGE sparcPciPciBridge
 # endif
 #elif defined(__amd64__) || defined(__amd64)
-# if defined(__FreeBSD__)
+# if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 #  define ARCH_PCI_INIT freebsdPciInit
 # else
 #  define ARCH_PCI_INIT ix86PciInit
