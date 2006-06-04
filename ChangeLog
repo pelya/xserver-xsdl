@@ -1,3 +1,8 @@
+2006-06-04  Adam Jackson  <ajax@freedesktop.org>
+
+	* hw/xfree86/loader/dixsym.c:
+	Remove a stray LBX reference.
+
 2006-06-03  Daniel Stone  <daniel@freedesktop.org>
 
 	* configure.ac:

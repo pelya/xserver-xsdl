@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/loader/dixsym.c,v 1.20 2006/01/08 23:43:53 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/loader/dixsym.c,v 1.21 2006/03/24 20:50:13 fredrik Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.63 2003/12/03
  * 17:11:29 tsi Exp $ */
 
@@ -370,9 +370,6 @@ LOOKUP dixLookupTab[] = {
 #endif
 #ifdef GLXEXT
     SYMVAR(noGlxExtension)
-#endif
-#ifdef LBX
-    SYMVAR(noLbxExtension)
 #endif
 #ifdef SCREENSAVER
     SYMVAR(noScreenSaverExtension)
