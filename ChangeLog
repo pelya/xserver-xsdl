@@ -1,3 +1,9 @@
+2006-06-05  Keith Packard  <keithp@keithp.com>
+
+	* acinclude.m4:
+	Update AC_DEFINE_DIR to version compatible with CVS autoconf
+	which requires double eval to avoid leaving ${prefix} in output
+
 2006-06-04  Adam Jackson  <ajax@freedesktop.org>
 
 	* hw/xfree86/loader/dixsym.c:
