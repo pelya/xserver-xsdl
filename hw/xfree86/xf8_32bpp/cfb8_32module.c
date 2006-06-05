@@ -1,11 +1,6 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfb8_32module.c,v 1.5 1999/01/24 13:32:42 dawes Exp $ */
-
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
-
-#ifdef XFree86LOADER
 
 #include "xf86Module.h"
 
@@ -25,7 +20,11 @@ static XF86ModuleVersionInfo VersRec =
         {0,0,0,0}       /* signature, to be patched into the file by a tool */
 };
 
-XF86ModuleData xf8_32bppModuleData = { &VersRec, xf8_32bppSetup, NULL };
+_X_EXPORT XF86ModuleData xf8_32bppModuleData = {
+    &VersRec,
+    xf8_32bppSetup,
+    NULL
+};
 
 static pointer
 xf8_32bppSetup(pointer module, pointer opts, int *errmaj, int *errmin)
@@ -38,5 +37,3 @@ xf8_32bppSetup(pointer module, pointer opts, int *errmaj, int *errmin)
         return NULL;
     return (pointer)1;  /* non-NULL required to indicate success */
 }
-
-#endif

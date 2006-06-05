@@ -1,11 +1,6 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/shadowfb/sfbmodule.c,v 1.1 1999/01/31 12:38:06 dawes Exp $ */
-
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
-
-#ifdef XFree86LOADER
 
 #include "xf86Module.h"
 
@@ -23,6 +18,4 @@ static XF86ModuleVersionInfo VersRec =
         {0,0,0,0}       /* signature, to be patched into the file by a tool */
 };
 
-XF86ModuleData shadowfbModuleData = { &VersRec, NULL, NULL };
-
-#endif
+_X_EXPORT XF86ModuleData shadowfbModuleData = { &VersRec, NULL, NULL };

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbmodule.c,v 1.8 1999/01/26 05:53:48 dawes Exp $ */
 /*
  * Copyright (C) 1998 The XFree86 Project, Inc.  All Rights Reserved.
  *
@@ -31,8 +30,6 @@
 
 #define PSZ 8
 
-#ifdef XFree86LOADER
-
 #include "xf86Module.h"
 #include "cfb.h"
 
@@ -52,7 +49,7 @@ static XF86ModuleVersionInfo VersRec =
 	{0,0,0,0}       /* signature, to be patched into the file by a tool */
 };
 
-XF86ModuleData cfbModuleData = { &VersRec, cfbSetup, NULL };
+_X_EXPORT XF86ModuleData cfbModuleData = { &VersRec, cfbSetup, NULL };
 
 static pointer
 cfbSetup(pointer module, pointer opts, int *errmaj, int *errmin)
@@ -61,5 +58,3 @@ cfbSetup(pointer module, pointer opts, int *errmaj, int *errmin)
     return LoadSubModule(module, "mfb", NULL, NULL, NULL, NULL,
 			 errmaj, errmin);
 }
-
-#endif

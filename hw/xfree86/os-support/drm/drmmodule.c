@@ -24,9 +24,6 @@
  * DEALINGS IN THE SOFTWARE.
  * 
  * Authors: Rickard E. (Rik) Faith <faith@valinux.com>
- *
- * $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/drm/drmmodule.c,v 1.2 2000/02/23 04:47:22 martin Exp $
- * 
  */
 
 #ifdef HAVE_XORG_CONFIG_H
@@ -51,7 +48,7 @@ static XF86ModuleVersionInfo VersRec =
         {0,0,0,0}
 };
 
-XF86ModuleData drmModuleData = { &VersRec, drmSetup, NULL };
+_X_EXPORT XF86ModuleData drmModuleData = { &VersRec, drmSetup, NULL };
 
 static pointer
 drmSetup(pointer module, pointer opts, int *errmaj, int *errmin)

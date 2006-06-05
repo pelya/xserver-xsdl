@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/scanpci/xf86ScanPci.c,v 1.13 2003/08/24 17:37:10 dawes Exp $ */
 /*
  * Display the Subsystem Vendor Id and Subsystem Id in order to identify
  * the cards installed in this computer
@@ -75,8 +74,6 @@
 #include "xf86PciIds.h"
 #include "xf86ScanPci.h"
 
-#ifdef XFree86LOADER
-
 #include "xf86Module.h"
 
 #ifdef PCIDATA
@@ -94,7 +91,7 @@ static XF86ModuleVersionInfo pciDataVersRec = {
 	{0, 0, 0, 0}
 };
 
-XF86ModuleData pcidataModuleData = { &pciDataVersRec, NULL, NULL };
+_X_EXPORT XF86ModuleData pcidataModuleData = { &pciDataVersRec, NULL, NULL };
 
 #else 
 
@@ -111,11 +108,9 @@ static XF86ModuleVersionInfo scanPciVersRec = {
 	{0, 0, 0, 0}
 };
 
-XF86ModuleData scanpciModuleData = { &scanPciVersRec, NULL, NULL };
+_X_EXPORT XF86ModuleData scanpciModuleData = { &scanPciVersRec, NULL, NULL };
 
 #endif /* PCIDATA */
-
-#endif /* XFree86LOADER */
 
 /* Initialisation/Close hooks, in case they're ever needed. */
 Bool

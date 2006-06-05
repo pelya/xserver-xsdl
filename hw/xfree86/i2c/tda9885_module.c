@@ -6,7 +6,6 @@
 
 static MODULESETUPPROTO(tda9885Setup);
 
-
 static XF86ModuleVersionInfo tda9885VersRec =
 {
         "tda9885",

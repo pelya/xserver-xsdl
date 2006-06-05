@@ -5,8 +5,6 @@
  *      (c) 1998 Gerd Knorr <kraxel@cs.tu-berlin.de>
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/i2c/xf86i2cmodule.c,v 1.6 1999/01/26 05:54:10 dawes Exp $ */
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
@@ -29,7 +27,7 @@ static XF86ModuleVersionInfo i2cVersRec =
         {0,0,0,0}
 };
 
-XF86ModuleData i2cModuleData = { &i2cVersRec, i2cSetup, NULL };
+_X_EXPORT XF86ModuleData i2cModuleData = { &i2cVersRec, i2cSetup, NULL };
 
 static pointer
 i2cSetup(pointer module, pointer opts, int *errmaj, int *errmin) {

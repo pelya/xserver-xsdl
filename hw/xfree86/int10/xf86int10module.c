@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/int10/xf86int10module.c,v 1.3 1999/12/03 19:17:41 eich Exp $ */
 /*
  *                   XFree86 int10 module
  *   execute BIOS int 10h calls in x86 real mode environment
@@ -12,10 +11,6 @@
 #include "xf86str.h"
 #include "xf86Pci.h"
 #include "xf86int10.h"
-
-
-#ifdef XFree86LOADER
-
 
 #ifndef MOD_NAME
 # define MOD_NAME int10
@@ -43,7 +38,11 @@ static XF86ModuleVersionInfo NAME(VersRec) =
     {0,0,0,0}
 };
 
-XF86ModuleData NAME(ModuleData) = { &NAME(VersRec), NAME(Setup), NULL };
+_X_EXPORT XF86ModuleData NAME(ModuleData) = {
+    &NAME(VersRec),
+    NAME(Setup),
+    NULL
+};
 
 static pointer
 NAME(Setup)(pointer module, pointer opts, int *errmaj, int *errmin)
@@ -63,5 +62,3 @@ NAME(Setup)(pointer module, pointer opts, int *errmaj, int *errmin)
      */
     return (pointer)1;
 }
-
-#endif

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/afb/afbmodule.c,v 1.1 1999/06/13 13:47:38 dawes Exp $ */
 /*
  * Copyright (C) 1998 The XFree86 Project, Inc.  All Rights Reserved.
  *
@@ -29,8 +28,6 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef XFree86LOADER
-
 #include "xf86Module.h"
 #include "afb.h"
 
@@ -50,7 +47,7 @@ static XF86ModuleVersionInfo VersRec =
 	{0,0,0,0}       /* signature, to be patched into the file by a tool */
 };
 
-XF86ModuleData afbModuleData = { &VersRec, afbSetup, NULL };
+_X_EXPORT XF86ModuleData afbModuleData = { &VersRec, afbSetup, NULL };
 
 static pointer
 afbSetup(pointer module, pointer opts, int *errmaj, int *errmin)
@@ -59,5 +56,3 @@ afbSetup(pointer module, pointer opts, int *errmaj, int *errmin)
     return LoadSubModule(module, "mfb", NULL, NULL, NULL, NULL,
                          errmaj, errmin);
 }
-
-#endif

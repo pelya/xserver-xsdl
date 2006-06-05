@@ -6,7 +6,6 @@
 
 static MODULESETUPPROTO(msp3430Setup);
 
-
 static XF86ModuleVersionInfo msp3430VersRec =
 {
         "msp3430",

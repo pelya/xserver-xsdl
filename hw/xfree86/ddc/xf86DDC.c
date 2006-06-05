@@ -1,5 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/xf86DDC.c,v 1.26 2003/08/22 17:56:24 dawes Exp $ */
-
 /* xf86DDC.c 
  * 
  * Copyright 1998,1999 by Egbert Eich <Egbert.Eich@Physik.TU-Darmstadt.DE>
@@ -15,9 +13,7 @@
 #include "ddcPriv.h"
 #include <string.h>
 
-#ifdef XFree86LOADER
 static const OptionInfoRec *DDCAvailableOptions(void *unused);
-#endif
 
 const char *i2cSymbols[] = {
     "xf86CreateI2CDevRec",
@@ -27,8 +23,6 @@ const char *i2cSymbols[] = {
     "xf86DestroyI2CDevRec",
     NULL
 };
-
-#ifdef XFree86LOADER
 
 static MODULESETUPPROTO(ddcSetup);
 
@@ -46,7 +40,7 @@ static XF86ModuleVersionInfo ddcVersRec =
     {0,0,0,0}
 };
 
-XF86ModuleData ddcModuleData = { &ddcVersRec, ddcSetup, NULL };
+_X_EXPORT XF86ModuleData ddcModuleData = { &ddcVersRec, ddcSetup, NULL };
 
 ModuleInfoRec DDC = {
     1,
@@ -63,9 +57,6 @@ ddcSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 
     if (!setupDone) {
 	setupDone = TRUE;
-#ifndef REMOVE_LOADER_CHECK_MODULE_INFO
-	if (xf86LoaderCheckSymbol("xf86AddModuleInfo"))
-#endif
 	xf86AddModuleInfo(&DDC, module);
 	/*
 	 * Tell the loader about symbols from other modules that this module
@@ -80,8 +71,6 @@ ddcSetup(pointer module, pointer opts, int *errmaj, int *errmin)
      */
     return (pointer)1;
 }
-
-#endif
 
 #define RETRIES 4
 

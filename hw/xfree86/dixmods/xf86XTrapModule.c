@@ -1,6 +1,4 @@
-/* $XFree86$ */
-/*  This is the xf86 module code for the DEC_XTRAP extension.
- */
+/*  This is the xf86 module code for the DEC_XTRAP extension. */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -12,11 +10,9 @@
 
 extern void DEC_XTRAPInit(INITARGS);
 
-#ifdef XFree86LOADER
-
 static MODULESETUPPROTO(xtrapSetup);
 
-ExtensionModule xtrapExt =
+static ExtensionModule xtrapExt =
 {
     DEC_XTRAPInit,
     XTrapExtName,
@@ -39,7 +35,7 @@ static XF86ModuleVersionInfo xtrapVersRec =
     {0,0,0,0}
 };
 
-XF86ModuleData xtrapModuleData = { &xtrapVersRec, xtrapSetup, NULL };
+_X_EXPORT XF86ModuleData xtrapModuleData = { &xtrapVersRec, xtrapSetup, NULL };
 
 static pointer
 xtrapSetup(pointer module, pointer opts, int *errmaj, int *errmin) {
@@ -47,5 +43,3 @@ xtrapSetup(pointer module, pointer opts, int *errmaj, int *errmin) {
     /* Need a non-NULL return value to indicate success */
     return (pointer)1;
 }
-
-#endif /* XFree86LOADER */

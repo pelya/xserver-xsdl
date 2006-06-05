@@ -46,7 +46,6 @@ cfb8_16ScreenInit(ScreenPtr pScreen, pointer pbits16, pointer pbits8,
                                    dpix, dpiy, width16, width8, 16, 8, 16, 8));
 }
 
-#ifdef XFree86LOADER
 #include "xf86Module.h"
 
 static MODULESETUPPROTO(xf8_16bppSetup);
@@ -76,4 +75,3 @@ xf8_16bppSetup(pointer module, pointer opts, int *errmaj, int *errmin)
     return (pointer)LoadSubModule(module, "fb", NULL, NULL, NULL, NULL,
 			          errmaj, errmin);
 }
-#endif

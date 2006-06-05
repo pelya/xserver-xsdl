@@ -6,7 +6,6 @@
 
 static MODULESETUPPROTO(tda8425Setup);
 
-
 static XF86ModuleVersionInfo tda8425VersRec =
 {
         "tda8425",

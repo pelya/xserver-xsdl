@@ -23,16 +23,15 @@
  * dealings in this Software without prior written authorization from the
  * XFree86 Project.
  */
-/* $XFree86: xc/lib/font/FreeType/module/ftmodule.c,v 1.18 2003/11/02 04:30:57 dawes Exp $ */
+
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 
 #include "misc.h"
 
 #include <X11/fonts/fontmod.h>
 #include "xf86Module.h"
-
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
 
 static MODULESETUPPROTO(freetypeSetup);
 
@@ -55,11 +54,11 @@ static XF86ModuleVersionInfo VersRec =
 	{0,0,0,0}       /* signature, to be patched into the file by a tool */
 };
 
-XF86ModuleData freetypeModuleData = { &VersRec, freetypeSetup, NULL };
+_X_EXPORT XF86ModuleData freetypeModuleData = { &VersRec, freetypeSetup, NULL };
 
 extern void FreeTypeRegisterFontFileFunctions(void);
 
-FontModule freetypeModule = {
+static FontModule freetypeModule = {
     FreeTypeRegisterFontFileFunctions,
     "FreeType",
     NULL

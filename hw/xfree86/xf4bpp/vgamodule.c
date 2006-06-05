@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/vgamodule.c,v 1.8 1999/01/26 05:54:20 dawes Exp $ */
 /*
  * Copyright (C) 1998 The XFree86 Project, Inc.  All Rights Reserved.
  *
@@ -29,7 +28,6 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef XFree86LOADER
 #include "xf86Module.h"
 
 static MODULESETUPPROTO(xf4bppSetup);
@@ -48,7 +46,7 @@ static XF86ModuleVersionInfo VersRec =
         {0,0,0,0}       /* signature, to be patched into the file by a tool */
 };
 
-XF86ModuleData xf4bppModuleData = { &VersRec, xf4bppSetup, NULL };
+_X_EXPORT XF86ModuleData xf4bppModuleData = { &VersRec, xf4bppSetup, NULL };
 
 static pointer
 xf4bppSetup(pointer module, pointer opts, int *errmaj, int *errmin)
@@ -57,5 +55,3 @@ xf4bppSetup(pointer module, pointer opts, int *errmaj, int *errmin)
     return LoadSubModule(module, "xf1bpp", NULL, NULL, NULL, NULL,
 			 errmaj, errmin);
 }
-
-#endif

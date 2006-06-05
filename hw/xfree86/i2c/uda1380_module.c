@@ -6,7 +6,6 @@
 
 static MODULESETUPPROTO(uda1380Setup);
 
-
 static XF86ModuleVersionInfo uda1380VersRec =
 {
         "uda1380",

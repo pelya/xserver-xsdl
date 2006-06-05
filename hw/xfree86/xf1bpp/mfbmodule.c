@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf1bpp/mfbmodule.c,v 1.6 1999/01/26 05:54:19 dawes Exp $ */
 /*
  * Copyright (C) 1997 The XFree86 Project, Inc.  All Rights Reserved.
  *
@@ -29,9 +28,7 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef XFree86LOADER
 #include "xf86Module.h"
-
 
 static XF86ModuleVersionInfo VersRec =
 {
@@ -47,6 +44,4 @@ static XF86ModuleVersionInfo VersRec =
         {0,0,0,0}       /* signature, to be patched into the file by a tool */
 };
 
-XF86ModuleData xf1bppModuleData = { &VersRec, NULL, NULL };
-
-#endif
+_X_EXPORT XF86ModuleData xf1bppModuleData = { &VersRec, NULL, NULL };

@@ -1,6 +1,4 @@
 /*
- * $XFree86$
- *
  * Copyright © 2000 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -25,8 +23,6 @@
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
-
-#ifdef XFree86LOADER
 
 #include "xf86Module.h"
 #include    <X11/X.h>
@@ -55,6 +51,4 @@ static XF86ModuleVersionInfo VersRec =
 	{0,0,0,0}       /* signature, to be patched into the file by a tool */
 };
 
-XF86ModuleData shadowModuleData = { &VersRec, NULL, NULL };
-
-#endif
+_X_EXPORT XF86ModuleData shadowModuleData = { &VersRec, NULL, NULL };

@@ -6,7 +6,6 @@
 
 static MODULESETUPPROTO(fi1236Setup);
 
-
 static XF86ModuleVersionInfo fi1236VersRec =
 {
         "fi1236",

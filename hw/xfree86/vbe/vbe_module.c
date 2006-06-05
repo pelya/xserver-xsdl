@@ -1,5 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/vbe/vbe_module.c,v 1.4 2002/09/16 18:06:15 eich Exp $ */
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
@@ -9,8 +7,6 @@
 #include "vbe.h"
 
 extern const char *vbe_ddcSymbols[];
-
-#ifdef XFree86LOADER
 
 static MODULESETUPPROTO(vbeSetup);
 
@@ -28,7 +24,7 @@ static XF86ModuleVersionInfo vbeVersRec =
     {0,0,0,0}
 };
 
-XF86ModuleData vbeModuleData = { &vbeVersRec, vbeSetup, NULL };
+_X_EXPORT XF86ModuleData vbeModuleData = { &vbeVersRec, vbeSetup, NULL };
 
 static pointer
 vbeSetup(pointer module, pointer opts, int *errmaj, int *errmin)
@@ -49,6 +45,3 @@ vbeSetup(pointer module, pointer opts, int *errmaj, int *errmin)
      */
     return (pointer)1;
 }
-
-#endif
-

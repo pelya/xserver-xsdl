@@ -24,7 +24,6 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 **************************************************************************/
-/* $XFree86: xc/programs/Xserver/GL/glxmodule.c,v 1.11 2001/06/15 21:22:38 dawes Exp $ */
 
 /*
  * Authors:
@@ -59,7 +58,7 @@ static MODULESETUPPROTO(glxSetup);
 
 static const char *initdeps[] = { "DOUBLE-BUFFER", NULL };
 
-ExtensionModule GLXExt =
+static ExtensionModule GLXExt =
 {
     GlxExtensionInit,
     "GLX",
@@ -82,7 +81,7 @@ static XF86ModuleVersionInfo VersRec =
         {0,0,0,0}
 };
 
-XF86ModuleData glxModuleData = { &VersRec, glxSetup, NULL };
+_X_EXPORT XF86ModuleData glxModuleData = { &VersRec, glxSetup, NULL };
 
 /* We do a little proxy dance here, so we can avoid loading GLcore
  * unless we really need to.*/

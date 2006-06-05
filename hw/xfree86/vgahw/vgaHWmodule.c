@@ -1,5 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/vgahw/vgaHWmodule.c,v 1.6 1999/01/26 05:54:18 dawes Exp $ */
-
 /*
  * Copyright 1998 by The XFree86 Project, Inc
  */
@@ -8,10 +6,7 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef XFree86LOADER
-
 #include "xf86Module.h"
-
 
 static XF86ModuleVersionInfo VersRec = {
 	"vgahw",
@@ -26,6 +21,4 @@ static XF86ModuleVersionInfo VersRec = {
 	{0, 0, 0, 0}
 };
 
-XF86ModuleData vgahwModuleData = { &VersRec, NULL, NULL };
-
-#endif
+_X_EXPORT XF86ModuleData vgahwModuleData = { &VersRec, NULL, NULL };

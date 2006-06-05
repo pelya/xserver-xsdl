@@ -168,9 +168,9 @@ static XF86ModuleVersionInfo exaVersRec =
 	{0,0,0,0}
 };
 
-XF86ModuleData exaModuleData = { &exaVersRec, exaSetup, NULL };
+_X_EXPORT XF86ModuleData exaModuleData = { &exaVersRec, exaSetup, NULL };
 
-ModuleInfoRec EXA = {
+static ModuleInfoRec EXA = {
     1,
     "EXA",
     NULL,
@@ -186,9 +186,6 @@ exaSetup(pointer Module, pointer Options, int *ErrorMajor, int *ErrorMinor)
 
     if (!Initialised) {
 	Initialised = TRUE;
-#ifndef REMOVE_LOADER_CHECK_MODULE_INFO
-	if (xf86LoaderCheckSymbol("xf86AddModuleInfo"))
-#endif
 	xf86AddModuleInfo(&EXA, Module);
     }
 

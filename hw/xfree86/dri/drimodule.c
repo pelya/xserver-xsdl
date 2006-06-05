@@ -1,4 +1,3 @@
-/* $XdotOrg: xc/programs/Xserver/GL/dri/drimodule.c,v 1.2 2004/04/23 18:44:36 eich Exp $ */
 /**************************************************************************
 
 Copyright 1999 Precision Insight, Inc., Cedar Park, Texas.
@@ -25,7 +24,6 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 **************************************************************************/
-/* $XFree86: xc/programs/Xserver/GL/dri/drimodule.c,v 1.5 2001/06/15 21:22:39 dawes Exp $ */
 
 /*
  * Authors:
@@ -61,7 +59,7 @@ extern void XFree86DRIExtensionInit(INITARGS);
 #define _XF86DRI_SERVER_
 #include "xf86dristr.h"
 
-ExtensionModule XF86DRIExt =
+static ExtensionModule XF86DRIExt =
 {
     XFree86DRIExtensionInit,
     XF86DRINAME,
@@ -96,7 +94,7 @@ static const char *drmSymbols[] = {
     NULL
 };
 
-XF86ModuleData driModuleData = { &VersRec, driSetup, NULL };
+_X_EXPORT XF86ModuleData driModuleData = { &VersRec, driSetup, NULL };
 
 static pointer
 driSetup(pointer module, pointer opts, int *errmaj, int *errmin)

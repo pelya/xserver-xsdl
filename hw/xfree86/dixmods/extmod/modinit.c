@@ -1,7 +1,4 @@
-/* $XFree86: xc/programs/Xserver/Xext/extmod/modinit.c,v 1.16 2002/03/06 21:12:33 mvojkovi Exp $ */
-
 /*
- *
  * Copyright (c) 1997 Matthieu Herrb
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -27,8 +24,6 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef XFree86LOADER
-
 #include "xf86Module.h"
 #include "xf86Opt.h"
 
@@ -42,7 +37,7 @@ static MODULESETUPPROTO(extmodSetup);
 /*
  * Array describing extensions to be initialized
  */
-ExtensionModule extensionModules[] = {
+static ExtensionModule extensionModules[] = {
 #ifdef SHAPE
     {
 	ShapeExtensionInit,
@@ -229,7 +224,7 @@ static XF86ModuleVersionInfo VersRec =
 /*
  * Data for the loader
  */
-XF86ModuleData extmodModuleData = { &VersRec, extmodSetup, NULL };
+_X_EXPORT XF86ModuleData extmodModuleData = { &VersRec, extmodSetup, NULL };
 
 static pointer
 extmodSetup(pointer module, pointer opts, int *errmaj, int *errmin)
@@ -259,5 +254,3 @@ extmodSetup(pointer module, pointer opts, int *errmaj, int *errmin)
     /* Need a non-NULL return */
     return (pointer)1;
 }
-
-#endif /* XFree86LOADER */

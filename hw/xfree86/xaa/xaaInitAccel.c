@@ -1,5 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaInitAccel.c,v 1.35tsi Exp $ */
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
@@ -18,9 +16,7 @@
 #include "xf86fbman.h"
 #include "servermd.h"
 
-#ifdef XFree86LOADER
 static const OptionInfoRec *XAAAvailableOptions(void *unused);
-#endif
 
 /*
  * XAA Config options
@@ -97,7 +93,6 @@ static const OptionInfoRec XAAOptions[] = {
 				OPTV_NONE,	{0}, FALSE }
 };
 
-#ifdef XFree86LOADER
 static MODULESETUPPROTO(xaaSetup);
 
 static XF86ModuleVersionInfo xaaVersRec =
@@ -114,7 +109,7 @@ static XF86ModuleVersionInfo xaaVersRec =
 	{0,0,0,0}
 };
 
-XF86ModuleData xaaModuleData = { &xaaVersRec, xaaSetup, NULL };
+_X_EXPORT XF86ModuleData xaaModuleData = { &xaaVersRec, xaaSetup, NULL };
 
 ModuleInfoRec XAA = {
     1,
@@ -132,9 +127,6 @@ xaaSetup(pointer Module, pointer Options, int *ErrorMajor, int *ErrorMinor)
 
     if (!Initialised) {
 	Initialised = TRUE;
-#ifndef REMOVE_LOADER_CHECK_MODULE_INFO
-	if (xf86LoaderCheckSymbol("xf86AddModuleInfo"))
-#endif
 	xf86AddModuleInfo(&XAA, Module);
     }
 
@@ -147,7 +139,6 @@ XAAAvailableOptions(void *unused)
 {
     return (XAAOptions);
 }
-#endif
 
 Bool
 XAAInitAccel(ScreenPtr pScreen, XAAInfoRecPtr infoRec)

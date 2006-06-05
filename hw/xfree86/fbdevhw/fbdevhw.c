@@ -1,5 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/fbdevhw/fbdevhw.c,v 1.32 2003/08/26 10:57:03 daenzer Exp $ */
-
 /* all driver need this */
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -42,8 +40,6 @@
 
 /* -------------------------------------------------------------------- */
 
-#ifdef XFree86LOADER
-
 static MODULESETUPPROTO(fbdevhwSetup);
 
 static XF86ModuleVersionInfo fbdevHWVersRec =
@@ -60,7 +56,11 @@ static XF86ModuleVersionInfo fbdevHWVersRec =
 	{0,0,0,0}
 };
 
-XF86ModuleData fbdevhwModuleData = { &fbdevHWVersRec, fbdevhwSetup, NULL };
+_X_EXPORT XF86ModuleData fbdevhwModuleData = {
+    &fbdevHWVersRec,
+    fbdevhwSetup,
+    NULL
+};
 
 static pointer
 fbdevhwSetup(pointer module, pointer opts, int *errmaj, int *errmin)
@@ -80,7 +80,6 @@ fbdevhwSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 		return (pointer)1;
 	}
 }
-#endif /* XFree86LOADER */
 
 #include <fcntl.h>
 #include <errno.h>

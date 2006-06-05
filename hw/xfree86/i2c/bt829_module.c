@@ -6,7 +6,6 @@
 
 static MODULESETUPPROTO(bt829Setup);
 
-
 static XF86ModuleVersionInfo bt829VersRec =
 {
         "bt829",

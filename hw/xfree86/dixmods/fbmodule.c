@@ -23,13 +23,10 @@
  * dealings in this Software without prior written authorization from the
  * XFree86 Project.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbmodule.c,v 1.3 2000/02/14 19:20:29 dawes Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
-
-#ifdef XFree86LOADER
 
 #include "xf86Module.h"
 #include "fb.h"
@@ -48,6 +45,4 @@ static XF86ModuleVersionInfo VersRec =
 	{0,0,0,0}       /* signature, to be patched into the file by a tool */
 };
 
-XF86ModuleData fbModuleData = { &VersRec, NULL, NULL };
-
-#endif
+_X_EXPORT XF86ModuleData fbModuleData = { &VersRec, NULL, NULL };

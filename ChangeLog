@@ -3,6 +3,51 @@
 	* hw/xfree86/loader/dixsym.c:
 	Remove a stray LBX reference.
 
+	* hw/xfree86/ddc/xf86DDC.c:
+	* hw/xfree86/dixmods/GLcoremodule.c:
+	* hw/xfree86/dixmods/afbmodule.c:
+	* hw/xfree86/dixmods/cfb32module.c:
+	* hw/xfree86/dixmods/cfbmodule.c:
+	* hw/xfree86/dixmods/dbemodule.c:
+	* hw/xfree86/dixmods/fbmodule.c:
+	* hw/xfree86/dixmods/ftmodule.c:
+	* hw/xfree86/dixmods/glxmodule.c:
+	* hw/xfree86/dixmods/mfbmodule.c:
+	* hw/xfree86/dixmods/recordmod.c:
+	* hw/xfree86/dixmods/shmodule.c:
+	* hw/xfree86/dixmods/type1mod.c:
+	* hw/xfree86/dixmods/xf86XTrapModule.c:
+	* hw/xfree86/dixmods/extmod/modinit.c:
+	* hw/xfree86/dri/drimodule.c:
+	* hw/xfree86/exa/examodule.c:
+	* hw/xfree86/fbdevhw/fbdevhw.c:
+	* hw/xfree86/i2c/bt829_module.c:
+	* hw/xfree86/i2c/fi1236_module.c:
+	* hw/xfree86/i2c/msp3430_module.c:
+	* hw/xfree86/i2c/tda8425_module.c:
+	* hw/xfree86/i2c/tda9850_module.c:
+	* hw/xfree86/i2c/tda9885_module.c:
+	* hw/xfree86/i2c/uda1380_module.c:
+	* hw/xfree86/i2c/xf86i2cmodule.c:
+	* hw/xfree86/int10/xf86int10module.c:
+	* hw/xfree86/os-support/drm/drmmodule.c:
+	* hw/xfree86/rac/xf86RACmodule.c:
+	* hw/xfree86/ramdac/xf86RamDacMod.c:
+	* hw/xfree86/scanpci/xf86ScanPci.c:
+	* hw/xfree86/shadowfb/sfbmodule.c:
+	* hw/xfree86/vbe/vbe_module.c:
+	* hw/xfree86/vgahw/vgaHWmodule.c:
+	* hw/xfree86/xaa/xaaInitAccel.c:
+	* hw/xfree86/xf1bpp/mfbmodule.c:
+	* hw/xfree86/xf4bpp/vgamodule.c:
+	* hw/xfree86/xf8_16bpp/xf8_16module.c:
+	* hw/xfree86/xf8_32bpp/cfb8_32module.c:
+	Ensure all *ModuleData symbols are marked _X_EXPORT.  Start removing
+	XFree86LOADER ifdefs, non-loadable hasn't been supported for a while
+	now.  Remove completely gratuitious REMOVE_LOADER_CHECK_MODULE_INFO
+	ifdefs surrounding a call to a function added in XFree86 4.1 (!).
+	Miscellaneous static markings.
+
 2006-06-03  Daniel Stone  <daniel@freedesktop.org>
 
 	* configure.ac:
