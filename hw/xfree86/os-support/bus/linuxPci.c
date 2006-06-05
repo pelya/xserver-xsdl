@@ -108,6 +108,9 @@ static pciBusInfo_t linuxPci0 = {
 /* bridge      */	NULL
 };
 
+/* from lnx_pci.c. */
+extern int lnxPciInit(void);
+
 void
 linuxPciInit()
 {
@@ -123,6 +126,7 @@ linuxPciInit()
 	pciFindFirstFP = pciGenFindFirst;
 	pciFindNextFP  = pciGenFindNext;
 	pciSetOSBIOSPtr(linuxPciHandleBIOS);
+        xf86MaxPciDevs = lnxPciInit();
 }
 
 static int

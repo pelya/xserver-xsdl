@@ -1,3 +1,13 @@
+2006-06-05  Daniel Stone  <daniel@freedesktop.org>
+
+	* hw/xfree86/os-support/bus/Pci.c:
+	* hw/xfree86/os-support/bus/Pci.h:
+	* hw/xfree86/os-support/bus/linuxPci.c:
+	* hw/xfree86/os-support/linux/lnx_pci.c:
+	When we can, bound the maximum number of PCI devices to attempt to
+	scan, by the number found on the system.  Only implemented for Linux
+	right now.
+
 2006-06-05  Keith Packard  <keithp@keithp.com>
 
 	* acinclude.m4:
@@ -58,7 +68,7 @@
 
 	* configure.ac:
 	Bump to 1.1.99.2.
-	
+
 	* configure.ac:
 	* hw/xfree86/os-support/bus/Pci.h:
 	Add support for kFreeBSD systems.  (Robert Millan, Aurelien Jarno)

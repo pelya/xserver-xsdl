@@ -439,6 +439,8 @@ extern int    pciDevNum;
 extern int    pciFuncNum;
 extern PCITAG pciDeviceTag;
 
+extern int    xf86MaxPciDevs;
+
 extern pciBusInfo_t  *pciBusInfo[];
 
 #endif /* _PCI_H */

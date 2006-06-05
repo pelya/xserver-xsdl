@@ -238,6 +238,8 @@ static int readPciBios( PCITAG Tag, CARD8* tmp, ADDRESS hostbase,
 
 static int (*pciOSHandleBIOS)(PCITAG Tag, int basereg, unsigned char *buf, int len);
 
+int xf86MaxPciDevs = MAX_PCI_DEVICES;
+
 /*
  * Platform specific PCI function pointers.
  *
@@ -938,7 +940,7 @@ xf86scanpci(int flags)
     xf86MsgVerb(X_INFO, 2, "PCI: PCI scan (all values are in hex)\n");
 #endif
 
-    while (idx < MAX_PCI_DEVICES && tag != PCI_NOT_FOUND) {
+    while (idx < xf86MaxPciDevs && tag != PCI_NOT_FOUND) {
 	devp = xcalloc(1, sizeof(pciDevice));
 	if (!devp) {
 	    xf86Msg(X_ERROR,
@@ -1001,6 +1003,8 @@ xf86scanpci(int flags)
 #endif
 
 	pci_devp[idx++] = devp;
+        if (idx == xf86MaxPciDevs)
+            break;
 	tag = pciFindNext();
 
 #ifdef DEBUGPCI

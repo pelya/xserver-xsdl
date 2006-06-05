@@ -23,6 +23,8 @@
 #define PCIADDR_FMT		"%lx"
 #endif
 
+int lnxPciInit(void);
+
 struct pci_dev {
     unsigned int bus;
     unsigned int devfn;
@@ -32,6 +34,7 @@ struct pci_dev {
 };
 
 struct pci_dev *xf86OSLinuxPCIDevs = NULL;
+int xf86OSLinuxNumPciDevs = 0;
 
 static struct pci_dev *xf86OSLinuxGetPciDevs(void) {
     char c[0x200];
@@ -42,6 +45,8 @@ static struct pci_dev *xf86OSLinuxGetPciDevs(void) {
     
     file = fopen("/proc/bus/pci/devices", "r");
     if (!file) return NULL;
+
+    xf86OSLinuxNumPciDevs = 0;
     
     do {
         res = fgets(c, 0x1ff, file);
@@ -78,10 +83,19 @@ static struct pci_dev *xf86OSLinuxGetPciDevs(void) {
                 tmp->next = ret;
             }
             ret = tmp;
+            xf86OSLinuxNumPciDevs++;
         }
     } while (res);
     fclose(file);
     return ret;
+}
+
+/* not to be confused with linuxPciInit (i.e. ARCH_PCI_INIT), found in
+ * os-support/bus/linuxPci.c. */
+int lnxPciInit(void) {
+    if (!xf86OSLinuxPCIDevs)
+        xf86OSLinuxPCIDevs = xf86OSLinuxGetPciDevs();
+    return xf86OSLinuxNumPciDevs;
 }
 
 Bool
@@ -198,5 +212,4 @@ xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
     };
 
     return 0;
-
 }
