@@ -36,6 +36,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #ifndef _DRI_H_
 
+#include <pciaccess.h>
+
 #include "scrnintstr.h"
 #include "xf86dri.h"
 
@@ -338,7 +340,7 @@ extern void DRIMoveBuffersHelper(ScreenPtr pScreen,
                                  int *ydir, 
                                  RegionPtr reg);
 
-extern char *DRICreatePCIBusID(pciVideoPtr PciInfo);
+extern char *DRICreatePCIBusID(const struct pci_device *PciInfo);
 
 #define _DRI_H_
 

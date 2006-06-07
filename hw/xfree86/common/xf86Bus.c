@@ -53,6 +53,7 @@
 #include "xf86_OSproc.h"
 
 #include "xf86RAC.h"
+#include "Pci.h"
 
 /* Entity data */
 EntityPtr *xf86Entities = NULL;	/* Bus slots claimed by drivers */
@@ -1402,7 +1403,9 @@ xf86AddRangesToList(resPtr list, resRange *pRange, int entityIndex)
 void
 xf86ResourceBrokerInit(void)
 {
+#if 0
     resPtr resPci;
+#endif
 
     osRes = NULL;
 
@@ -1417,8 +1420,12 @@ xf86ResourceBrokerInit(void)
     xf86PrintResList(3, osRes);
 
     /* Bus dep initialization */
+#if 0
     resPci = ResourceBrokerInitPci(&osRes);
     Acc = xf86JoinResLists(xf86DupResList(osRes), resPci);
+#else
+    Acc = xf86DupResList( osRes );
+#endif
     
     xf86MsgVerb(X_INFO, 3, "All system resource ranges:\n");
     xf86PrintResList(3, Acc);
@@ -1806,7 +1813,7 @@ xf86GetResourcesImplicitly(int entityIndex)
     case BUS_SBUS:
 	return NULL;
     case BUS_PCI:
-	return GetImplicitPciResources(entityIndex);
+	return NULL;
     case BUS_last:
 	return NULL;
     }
@@ -1888,31 +1895,32 @@ xf86RegisterResources(int entityIndex, resList list, unsigned long access)
 }
 
 static void
-busTypeSpecific(EntityPtr pEnt, xf86State state, xf86AccessPtr *acc_mem,
-		xf86AccessPtr *acc_io, xf86AccessPtr *acc_mem_io)
+busTypeSpecific( EntityPtr pEnt, xf86AccessPtr *acc_mem,
+		 xf86AccessPtr *acc_io, xf86AccessPtr *acc_mem_io )
 {
-    pciAccPtr *ppaccp;
-    
     switch (pEnt->bus.type) {
     case BUS_ISA:
     case BUS_SBUS:
-	    *acc_mem = *acc_io = *acc_mem_io = &AccessNULL;
-	    break;
+	*acc_mem = *acc_io = *acc_mem_io = &AccessNULL;
 	break;
-    case BUS_PCI:
-	ppaccp = xf86PciAccInfo;
-	while (*ppaccp) {
-	    if ((*ppaccp)->busnum == pEnt->pciBusId.bus
-		&& (*ppaccp)->devnum == pEnt->pciBusId.device
-		&& (*ppaccp)->funcnum == pEnt->pciBusId.func) {
-		*acc_io = &(*ppaccp)->ioAccess;
-		*acc_mem = &(*ppaccp)->memAccess;
-		*acc_mem_io = &(*ppaccp)->io_memAccess;
-		break;
+    case BUS_PCI: {
+	struct pci_device * dev = 
+	  pci_device_find_by_slot( PCI_DOM_FROM_BUS( pEnt->pciBusId.bus ),
+				   PCI_BUS_NO_DOMAIN( pEnt->pciBusId.bus ),
+				   pEnt->pciBusId.device,
+				   pEnt->pciBusId.func );
+
+	if ( dev != NULL ) {
+	    pciAccPtr paccp = (pciAccPtr) dev->user_data;
+	    
+	    if ( paccp != NULL ) {
+		*acc_io = & paccp->ioAccess;
+		*acc_mem = & paccp->memAccess;
+		*acc_mem_io = & paccp->io_memAccess;
 	    }
-	    ppaccp++;
 	}
 	break;
+    }
     default:
 	*acc_mem = *acc_io = *acc_mem_io = NULL;
 	break;
@@ -1928,7 +1936,7 @@ setAccess(EntityPtr pEnt, xf86State state)
     xf86AccessPtr org_mem = NULL, org_io = NULL, org_mem_io = NULL;
     int prop;
     
-    busTypeSpecific(pEnt,state,&acc_mem,&acc_io,&acc_mem_io);
+    busTypeSpecific( pEnt, &acc_mem, &acc_io, &acc_mem_io );
 
     /* The replacement function needs to handle _all_ shared resources */
     /* unless they are handeled locally and disabled otherwise         */
@@ -2481,15 +2489,6 @@ xf86PostProbe(void)
 #endif
     }
     xf86FreeResList(acc);
-#if !(defined(__alpha__) && defined(linux)) && \
-    !(defined(__ia64__) && defined(linux)) && \
-    !(defined(__sparc64__) && defined(__OpenBSD__))
-    /* 
-     * No need to validate on Alpha Linux or OpenBSD/sparc64, 
-     * trust the kernel.
-     */
-    ValidatePci();
-#endif
     
     xf86MsgVerb(X_INFO, 3, "resource ranges after probing:\n");
     xf86PrintResList(3, Acc);

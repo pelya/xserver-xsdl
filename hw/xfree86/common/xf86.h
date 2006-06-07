@@ -37,6 +37,8 @@
 #ifndef _XF86_H
 #define _XF86_H
 
+#include <pciaccess.h>
+
 #include "xf86str.h"
 #include "xf86Opt.h"
 #include <X11/Xfuncproto.h>
@@ -94,16 +96,13 @@ extern CARD32 xf86DummyVar3;
 
 /* xf86Bus.c */
 
-Bool xf86CheckPciSlot(int bus, int device, int func);
-int xf86ClaimPciSlot(int bus, int device, int func, DriverPtr drvp,
+Bool xf86CheckPciSlot( const struct pci_device * );
+int xf86ClaimPciSlot( struct pci_device *, DriverPtr drvp,
 		     int chipset, GDevPtr dev, Bool active);
 Bool xf86ParsePciBusString(const char *busID, int *bus, int *device,
 			   int *func);
 Bool xf86ComparePciBusString(const char *busID, int bus, int device, int func);
 void xf86FormatPciBusNumber(int busnum, char *buffer);
-pciVideoPtr *xf86GetPciVideoInfo(void);
-pciConfigPtr *xf86GetPciConfigInfo(void);
-void xf86SetPciVideo(pciVideoPtr, resType);
 void xf86PrintResList(int verb, resPtr list);
 resPtr xf86AddRangesToList(resPtr list, resRange *pRange, int entityIndex);
 int xf86ClaimIsaSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active);
@@ -114,7 +113,7 @@ int xf86ClaimFbSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active);
 int xf86ClaimNoSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active);
 void xf86EnableAccess(ScrnInfoPtr pScrn);
 void xf86SetCurrentAccess(Bool Enable, ScrnInfoPtr pScrn);
-Bool xf86IsPrimaryPci(pciVideoPtr pPci);
+Bool xf86IsPrimaryPci(struct pci_device * pPci);
 Bool xf86IsPrimaryIsa(void);
 /* new RAC */
 resPtr xf86AddResToList(resPtr rlist, resRange *Range, int entityIndex);
@@ -130,19 +129,17 @@ int xf86GetNumEntityInstances(int entityIndex);
 GDevPtr xf86GetDevFromEntity(int entityIndex, int instance);
 void xf86RemoveEntityFromScreen(ScrnInfoPtr pScrn, int entityIndex);
 EntityInfoPtr xf86GetEntityInfo(int entityIndex);
-pciVideoPtr xf86GetPciInfoForEntity(int entityIndex);
+struct pci_device * xf86GetPciInfoForEntity(int entityIndex);
 int xf86GetPciEntity(int bus, int dev, int func);
 Bool xf86SetEntityFuncs(int entityIndex, EntityProc init,
 			EntityProc enter, EntityProc leave, pointer);
 void xf86DeallocateResourcesForEntity(int entityIndex, unsigned long type);
 resPtr xf86RegisterResources(int entityIndex, resList list,
 			     unsigned long Access);
-Bool xf86CheckPciMemBase(pciVideoPtr pPci, memType base);
+Bool xf86CheckPciMemBase(struct pci_device * pPci, memType base);
 void xf86SetAccessFuncs(EntityInfoPtr pEnt, xf86SetAccessFuncPtr funcs,
 			xf86SetAccessFuncPtr oldFuncs);
 Bool xf86IsEntityPrimary(int entityIndex);
-Bool xf86FixPciResource(int entityIndex, int prt, memType alignment,
-			unsigned long type);
 resPtr xf86ReallocatePciResources(int entityIndex, resPtr pRes);
 resPtr xf86SetOperatingState(resList list, int entityIndex, int mask);
 void xf86EnterServerState(xf86State state);
@@ -153,17 +150,13 @@ resRange xf86GetSparse(unsigned long type, memType fixed_bits,
 		       memType decode_mask, memType address_mask,
 		       resPtr avoid);
 memType xf86ChkConflict(resRange *rgp, int entityIndex);
-Bool xf86IsPciDevPresent(int bus, int dev, int func);
 ScrnInfoPtr xf86FindScreenForEntity(int entityIndex);
 Bool xf86NoSharedResources(int screenIndex, resType res);
 resPtr xf86FindIntersectOfLists(resPtr l1, resPtr l2);
-pciVideoPtr xf86FindPciDeviceVendor(CARD16 vendorID, CARD16 deviceID,
-				    char n, pciVideoPtr pvp_exclude);
-pciVideoPtr xf86FindPciClass(CARD8 intf, CARD8 subClass, CARD16 class,
-			     char n, pciVideoPtr pvp_exclude);
-#ifdef INCLUDE_DEPRECATED
-void xf86EnablePciBusMaster(pciVideoPtr pPci, Bool enable);
-#endif
+struct pci_device * xf86FindPciDeviceVendor(CARD16 vendorID, CARD16 deviceID,
+    char n, const struct pci_device * pvp_exclude);
+struct pci_device * xf86FindPciClass(CARD8 intf, CARD8 subClass, CARD16 class,
+    char n, const struct pci_device * pvp_exclude);
 void xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg);
 Bool xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func);
 #ifdef async
@@ -185,8 +178,8 @@ DevUnion *xf86GetEntityPrivate(int entityIndex, int privIndex);
 /* xf86Configure.c */
 GDevPtr xf86AddBusDeviceToConfigure(const char *driver, BusType bus,
 				    void *busData, int chipset);
-GDevPtr xf86AddDeviceToConfigure(const char *driver, pciVideoPtr pVideo,
-				 int chipset);
+GDevPtr xf86AddDeviceToConfigure( const char *driver,
+    struct pci_device * pVideo, int chipset );
 
 /* xf86Cursor.c */
 

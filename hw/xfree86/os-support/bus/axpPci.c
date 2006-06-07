@@ -229,9 +229,6 @@ axpPciInit()
 
 	pciNumBuses = bus + 1;
     }
-
-    pciFindFirstFP = pciGenFindFirst;
-    pciFindNextFP  = pciGenFindNext;
 }
 
 /*

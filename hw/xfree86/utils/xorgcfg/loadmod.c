@@ -70,15 +70,13 @@ void xf86Msg(int, const char*, ...);
 void xf86MsgVerb(int, int, const char*, ...);
 void xf86PrintChipsets(const char*, const char*, SymTabPtr);
 void xf86ErrorFVerb(int verb, const char *format, ...);
-pciVideoPtr *xf86GetPciVideoInfo(void);
 int xf86MatchDevice(const char*, GDevPtr**);
 int xf86MatchPciInstances(const char*, int, SymTabPtr, PciChipsets*, GDevPtr*, int, DriverPtr,int**);
 int xf86MatchIsaInstances(const char*, SymTabPtr, pointer*, DriverPtr, pointer, GDevPtr*, int, int**);
 void *xf86LoadDrvSubModule(DriverPtr drv, const char*);
 void xf86DrvMsg(int, int, const char*, ...);
-pciConfigPtr *xf86GetPciConfigInfo(void);
 Bool xf86IsPrimaryPci(pcVideoPtr*);
-Bool xf86CheckPciSlot(int bus, int device, int func);
+Bool xf86CheckPciSlot( const struct pci_device * );
 #endif
 
 extern char *loaderPath, **loaderList, **ploaderList;
@@ -307,14 +305,12 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(ErrorF)
     SYMFUNC(xf86PrintChipsets)
     SYMFUNC(xf86ErrorFVerb)
-    SYMFUNC(xf86GetPciVideoInfo)
     SYMFUNC(xf86MatchDevice)
     SYMFUNC(xf86MatchPciInstances)
     SYMFUNC(xf86MatchIsaInstances)
     SYMFUNC(Xfree)
     SYMFUNC(xf86LoadDrvSubModule)
     SYMFUNC(xf86DrvMsg)
-    SYMFUNC(xf86GetPciConfigInfo)
     SYMFUNC(xf86IsPrimaryPci)
     SYMFUNC(xf86CheckPciSlot)
     SYMFUNC(XNFalloc)
@@ -608,17 +604,6 @@ xf86PrintChipsets(const char *name, const char *msg, SymTabPtr chipsets)
     chips = chipsets;
 }
 
-_X_EXPORT pciVideoPtr *
-xf86GetPciVideoInfo(void)
-{
-    static pciVideoRec pci_video;
-    static pciVideoPtr pci_video_ptr[2] = { &pci_video };
-
-    memset(&pci_video, 0, sizeof(pciVideoRec));
-
-    return (pci_video_ptr);
-}
-
 _X_EXPORT int
 xf86MatchDevice(const char *name, GDevPtr **gdev)
 {
@@ -662,12 +647,6 @@ xf86LoadDrvSubModule(DriverPtr drv, const char *name)
     return (ret);
 }
 
-_X_EXPORT pciConfigPtr *
-xf86GetPciConfigInfo(void)
-{
-    return (NULL);
-}
-
 _X_EXPORT Bool
 xf86IsPrimaryPci(pciVideoPtr pPci)
 {
@@ -675,8 +654,9 @@ xf86IsPrimaryPci(pciVideoPtr pPci)
 }
 
 _X_EXPORT Bool 
-xf86CheckPciSlot(int bus, int device, int func)
+xf86CheckPciSlot( const struct pci_device * d )
 {
+    (void) d;
     return (False);
 }
 #endif

@@ -176,7 +176,8 @@ xf86AutoConfig(void)
 {
     const char **p;
     char buf[1024];
-    pciVideoPtr *pciptr, info = NULL;
+    struct pci_device ** pciptr;
+    struct pci_device * info = NULL;
     char *driver = NULL;
     FILE *gp = NULL;
     ConfigStatus ret;
@@ -267,8 +268,8 @@ xf86AutoConfig(void)
 	}
 	strcat(searchPath, GETCONFIG_DIR);
 
-	ErrorF("xf86AutoConfig: Primary PCI is %d:%d:%d\n",
-	       info->bus, info->device, info->func);
+	ErrorF("xf86AutoConfig: Primary PCI is %u@%u:%u:%u\n",
+	       info->domain, info->bus, info->dev, info->func);
 
 	snprintf(buf, sizeof(buf), "%s"
 #ifdef DEBUG
@@ -281,9 +282,9 @@ xf86AutoConfig(void)
 		 path,
 		 (unsigned int)xorgGetVersion(),
 		 searchPath,
-		 info->vendor, info->chipType, info->chipRev,
-		 info->subsysVendor, info->subsysCard,
-		 info->class << 8 | info->subclass);
+		 info->vendor_id, info->device_id, info->revision,
+		 info->subvendor_id, info->subdevice_id,
+		 info->device_class >> 8);
 	ErrorF("Running \"%s\"\n", buf);
 	gp = Popen(buf, "r");
 	if (gp) {
@@ -365,4 +366,3 @@ xf86AutoConfig(void)
 	return FALSE;
     }
 }
-

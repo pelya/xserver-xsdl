@@ -472,6 +472,8 @@ static CARD32 PciCfg1Addr = 0;
 
 #define TAG(Cfg1Addr) (Cfg1Addr & 0xffff00)
 #define OFFSET(Cfg1Addr) (Cfg1Addr & 0xff)
+#define _BUS(x) (((x) >> 16) & 0x0ff)
+#define _DEV(x) (((x) >>  8) & 0x0ff)
 
 static int
 pciCfg1in(CARD16 addr, CARD32 *val)
@@ -481,7 +483,12 @@ pciCfg1in(CARD16 addr, CARD32 *val)
 	return 1;
     }
     if (addr == 0xCFC) {
-	*val = pciReadLong(TAG(PciCfg1Addr), OFFSET(PciCfg1Addr));
+	struct pci_device * dev = pci_device_find_by_slot(0,
+							  _BUS(PciCfg1Addr),
+							  _DEV(PciCfg1Addr),
+							  0);
+
+	pci_device_cfg_read_u32(dev, val, OFFSET(PciCfg1Addr));
 	return 1;
     }
     return 0;
@@ -495,7 +502,12 @@ pciCfg1out(CARD16 addr, CARD32 val)
 	return 1;
     }
     if (addr == 0xCFC) {
-	pciWriteLong(TAG(PciCfg1Addr), OFFSET(PciCfg1Addr), val);
+	struct pci_device * dev = pci_device_find_by_slot(0,
+							  _BUS(PciCfg1Addr),
+							  _DEV(PciCfg1Addr),
+							  0);
+
+	pci_device_cfg_write_u32(dev, & val, OFFSET(PciCfg1Addr));
 	return 1;
     }
     return 0;
@@ -504,7 +516,7 @@ pciCfg1out(CARD16 addr, CARD32 val)
 static int
 pciCfg1inw(CARD16 addr, CARD16 *val)
 {
-    int offset, shift;
+    int shift;
 
     if ((addr >= 0xCF8) && (addr <= 0xCFB)) {
 	shift = (addr - 0xCF8) * 8;
@@ -512,8 +524,13 @@ pciCfg1inw(CARD16 addr, CARD16 *val)
 	return 1;
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
-	offset = addr - 0xCFC;
-	*val = pciReadWord(TAG(PciCfg1Addr), OFFSET(PciCfg1Addr) + offset);
+	const unsigned offset = addr - 0xCFC;
+	struct pci_device * dev = pci_device_find_by_slot(0,
+							  _BUS(PciCfg1Addr),
+							  _DEV(PciCfg1Addr),
+							  0);
+
+	pci_device_cfg_read_u16(dev, val, OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }
     return 0;
@@ -522,7 +539,7 @@ pciCfg1inw(CARD16 addr, CARD16 *val)
 static int
 pciCfg1outw(CARD16 addr, CARD16 val)
 {
-    int offset, shift;
+    int shift;
 
     if ((addr >= 0xCF8) && (addr <= 0xCFB)) {
 	shift = (addr - 0xCF8) * 8;
@@ -531,8 +548,13 @@ pciCfg1outw(CARD16 addr, CARD16 val)
 	return 1;
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
-	offset = addr - 0xCFC;
-	pciWriteWord(TAG(PciCfg1Addr), OFFSET(PciCfg1Addr) + offset, val);
+	const unsigned offset = addr - 0xCFC;
+	struct pci_device * dev = pci_device_find_by_slot(0,
+							  _BUS(PciCfg1Addr),
+							  _DEV(PciCfg1Addr),
+							  0);
+
+	pci_device_cfg_write_u16(dev, & val, OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }
     return 0;
@@ -541,7 +563,7 @@ pciCfg1outw(CARD16 addr, CARD16 val)
 static int
 pciCfg1inb(CARD16 addr, CARD8 *val)
 {
-    int offset, shift;
+    int shift;
 
     if ((addr >= 0xCF8) && (addr <= 0xCFB)) {
 	shift = (addr - 0xCF8) * 8;
@@ -549,8 +571,13 @@ pciCfg1inb(CARD16 addr, CARD8 *val)
 	return 1;
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
-	offset = addr - 0xCFC;
-	*val = pciReadByte(TAG(PciCfg1Addr), OFFSET(PciCfg1Addr) + offset);
+	const unsigned offset = addr - 0xCFC;
+	struct pci_device * dev = pci_device_find_by_slot(0,
+							  _BUS(PciCfg1Addr),
+							  _DEV(PciCfg1Addr),
+							  0);
+
+	pci_device_cfg_read_u8(dev, val, OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }
     return 0;
@@ -559,7 +586,7 @@ pciCfg1inb(CARD16 addr, CARD8 *val)
 static int
 pciCfg1outb(CARD16 addr, CARD8 val)
 {
-    int offset, shift;
+    int shift;
 
     if ((addr >= 0xCF8) && (addr <= 0xCFB)) {
 	shift = (addr - 0xCF8) * 8;
@@ -568,8 +595,13 @@ pciCfg1outb(CARD16 addr, CARD8 val)
 	return 1;
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
-	offset = addr - 0xCFC;
-	pciWriteByte(TAG(PciCfg1Addr), OFFSET(PciCfg1Addr) + offset, val);
+	const unsigned offset = addr - 0xCFC;
+	struct pci_device * dev = pci_device_find_by_slot(0,
+							  _BUS(PciCfg1Addr),
+							  _DEV(PciCfg1Addr),
+							  0);
+
+	pci_device_cfg_write_u8(dev, & val, OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }
     return 0;

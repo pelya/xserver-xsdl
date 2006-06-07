@@ -422,24 +422,9 @@ void          pciCfgMech1Write(PCITAG tag, int offset, CARD32 val);
 void          pciCfgMech1SetBits(PCITAG tag, int offset, CARD32 mask,
 				 CARD32 val);
 CARD32        pciByteSwap(CARD32);
-Bool          pciMfDev(int, int);
 ADDRESS       pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS);
 
-extern void pciSetOSBIOSPtr(int (*bios_fn)(PCITAG Tag, int basereg, unsigned char * buf, int len));
-extern PCITAG (*pciFindFirstFP)(void);
-extern PCITAG (*pciFindNextFP)(void);
-
-extern CARD32 pciDevid;
-extern CARD32 pciDevidMask;
-
 extern int    pciMaxBusNum;
-
-extern int    pciBusNum;
-extern int    pciDevNum;
-extern int    pciFuncNum;
-extern PCITAG pciDeviceTag;
-
-extern int    xf86MaxPciDevs;
 
 extern pciBusInfo_t  *pciBusInfo[];
 

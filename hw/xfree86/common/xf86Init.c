@@ -1,5 +1,5 @@
 /* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Init.c,v 3.212 2004/01/27 01:31:45 dawes Exp $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.36 2006/06/01 18:47:01 daniels Exp $ */
+/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.37 2006/06/01 19:37:53 ajax Exp $ */
 
 /*
  * Loosely based on code bearing the following copyright:
@@ -112,13 +112,6 @@ extern void os2ServerVideoAccess();
 
 #ifdef XF86PM
 void (*xf86OSPMClose)(void) = NULL;
-#endif
-
-#ifdef XFree86LOADER
-static char *baseModules[] = {
-	"pcidata",
-	NULL
-};
 #endif
 
 /* Common pixmap formats */
@@ -267,6 +260,53 @@ PostConfigInit(void)
     OsInitColors();
 }
 
+
+/**
+ * Call the driver's correct probe function.
+ *
+ * If the driver implements the \c DriverRec::PciProbe entry-point and an
+ * appropriate PCI device (with matching Device section in the xorg.conf file)
+ * is found, it is called.  If \c DriverRec::PciProbe or no devices can be
+ * successfully probed with it (e.g., only non-PCI devices are available),
+ * the driver's \c DriverRec::Probe function is called.
+ * 
+ * \param drv   Driver to probe
+ * 
+ * \return
+ * If a device can be successfully probed by the driver, \c TRUE is
+ * returned.  Otherwise, \c FALSE is returned.
+ */
+Bool
+xf86CallDriverProbe( DriverPtr drv, Bool detect_only )
+{
+    Bool     foundScreen = FALSE;
+
+    if ( drv->PciProbe != NULL ) {
+	if ( xf86DoProbe ) {
+	    assert( detect_only );
+	    foundScreen = check_for_matching_devices( drv );
+	}
+	else if ( xf86DoConfigure && xf86DoConfigurePass1 ) {
+	    assert( detect_only );
+	    foundScreen = add_matching_devices_to_configure_list( drv );
+	}
+	else {
+	    assert( ! detect_only );
+	    foundScreen = probe_devices_from_device_sections( drv );
+	}
+    }
+
+    if ( ! foundScreen && (drv->Probe != NULL) ) {
+	xf86Msg( X_WARNING, "Falling back to old probe method for %s\n",
+		 drv->driverName );
+	foundScreen = (*drv->Probe)( drv, (detect_only) ? PROBE_DETECT 
+				     : PROBE_DEFAULT );
+    }
+
+    return foundScreen;
+}
+
+
 void
 InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 {
@@ -372,11 +412,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	LoaderFreeDirList(list);
     }
 #endif
-	
-    /* Force load mandatory base modules */
-    if (!xf86LoadModules(baseModules, NULL))
-	FatalError("Unable to load required base modules, Exiting...\n");
-    
 #endif
 
     xf86OpenConsole();
@@ -501,16 +536,8 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 		|| NEED_IO_ENABLED(flags)) 
 		continue;
 	}
-	    
-	if (xf86DriverList[i]->Probe != NULL)
-	    xf86DriverList[i]->Probe(xf86DriverList[i], PROBE_DEFAULT);
-	else {
-	    xf86MsgVerb(X_WARNING, 0,
-			"Driver `%s' has no Probe function (ignoring)\n",
-			xf86DriverList[i]->driverName
-			? xf86DriverList[i]->driverName : "noname");
-	}
-	xf86SetPciVideo(NULL,NONE);
+
+	xf86CallDriverProbe( xf86DriverList[i], FALSE );
     }
 
     /*

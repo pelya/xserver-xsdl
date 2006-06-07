@@ -44,6 +44,8 @@
 #include "xf86Opt.h"
 #include "xf86Pci.h"
 
+#include <pciaccess.h>
+
 /*
  * memType is of the size of the addressable memory (machine size)
  * usually unsigned long.
@@ -301,6 +303,9 @@ typedef struct {
     int			refCount;
 } DriverRec1;
 
+struct _SymTabRec;
+struct _PciChipsets;
+
 typedef struct _DriverRec {
     int			driverVersion;
     char *		driverName;
@@ -310,6 +315,10 @@ typedef struct _DriverRec {
     pointer		module;
     int			refCount;
     xorgDriverFuncProc  *driverFunc;
+
+    const struct pci_id_match * supported_devices;
+    Bool (*PciProbe)( struct _DriverRec * drv, int entity_num,
+        struct pci_device * dev, intptr_t match_data );
 } DriverRec, *DriverPtr;
 
 /*
@@ -425,29 +434,6 @@ typedef struct {
    pointer		 	commonOptions;
    pointer			extraOptions;
 } IDevRec, *IDevPtr;
-
-typedef struct {
-    int			vendor;
-    int			chipType;
-    int			chipRev;
-    int			subsysVendor;
-    int			subsysCard;
-    int			bus;
-    int			device;
-    int			func;
-    int			class;
-    int			subclass;
-    int			interface;
-    memType  	        memBase[6];
-    memType  	        ioBase[6];
-    int			size[6];
-    unsigned char	type[6];
-    memType   	        biosBase;
-    int			biosSize;
-    pointer		thisCard;
-    Bool                validSize;
-    Bool                validate;
-} pciVideoRec, *pciVideoPtr;
 
 typedef struct {
     int			frameX0;
@@ -731,7 +717,7 @@ typedef struct {
     resRange *resList;
 } IsaChipsets;
 
-typedef struct {
+typedef struct _PciChipsets {
     /**
      * Key used to match this device with its name in an array of
      * \c SymTabRec.
@@ -1060,7 +1046,7 @@ typedef struct {
    );
 } DGAFunctionRec, *DGAFunctionPtr;
 
-typedef struct {
+typedef struct _SymTabRec {
     int			token;		/* id of the token */
     const char *	name;		/* token name */
 } SymTabRec, *SymTabPtr;

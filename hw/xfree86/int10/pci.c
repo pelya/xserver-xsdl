@@ -19,11 +19,8 @@
 int
 mapPciRom(int pciEntity, unsigned char * address)
 {
-    PCITAG tag;
-    unsigned char *mem, *ptr;
-    int length;
-    
-    pciVideoPtr pvp = xf86GetPciInfoForEntity(pciEntity);
+    struct pci_device * pvp = xf86GetPciInfoForEntity(pciEntity);
+    int err;
 
     if (pvp == NULL) {
 #ifdef DEBUG
@@ -32,19 +29,11 @@ mapPciRom(int pciEntity, unsigned char * address)
 	return 0;
     }
 
-    tag = pciTag(pvp->bus,pvp->device,pvp->func);
-    length = 1 << pvp->biosSize;
-
     /* Read in entire PCI ROM */
-    mem = ptr = xnfcalloc(length, 1);
-    length = xf86ReadPciBIOS(0, tag, -1, ptr, length);
-    if (length > 0)
-	memcpy(address, ptr, length);
-    /* unmap/close/disable PCI bios mem */
-    xfree(mem);
+    err = pci_device_read_rom( pvp, address );
 
 #ifdef DEBUG
-    if (!length)
+    if ( err != 0 )
 	ErrorF("mapPciRom: no BIOS found\n");
 #ifdef PRINT_PCI
     else
@@ -52,5 +41,5 @@ mapPciRom(int pciEntity, unsigned char * address)
 #endif
 #endif
 
-    return length;
+    return pvp->rom_size;
 }

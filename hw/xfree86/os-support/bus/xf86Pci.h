@@ -651,7 +651,7 @@ typedef union pci_cfg_spc {
  * Data structure returned by xf86scanpci including contents of
  * PCI config space header
  */
-typedef struct pci_device {
+typedef struct {
     PCITAG    tag;
     int	      busnum;
     int	      devnum;
@@ -661,6 +661,7 @@ typedef struct pci_device {
     Bool      minBasesize;
     pointer   businfo;		/* pointer to secondary's bus info structure */
     Bool      fakeDevice;	/* Device added by system chipset support */
+    struct pci_device * dev;
 } pciDevice, *pciConfigPtr;
 
 typedef enum {
@@ -676,7 +677,7 @@ typedef enum {
 
 #define pci_device_vendor	      cfgspc.regs.dv_id.device_vendor
 #define pci_vendor		      cfgspc.regs.dv_id.dv.vendor
-#define pci_device		      cfgspc.regs.dv_id.dv.device
+#define _pci_device		      cfgspc.regs.dv_id.dv.device
 #define pci_status_command	      cfgspc.regs.stat_cmd.status_command
 #define pci_command		      cfgspc.regs.stat_cmd.sc.command
 #define pci_status		      cfgspc.regs.stat_cmd.sc.status
@@ -753,26 +754,10 @@ typedef enum {
 } PciBiosType;
 
 /* Public PCI access functions */
-void	      pciInit(void);
-PCITAG	      pciFindFirst(CARD32 id, CARD32 mask);
-PCITAG	      pciFindNext(void);
-CARD32	      pciReadLong(PCITAG tag, int offset);
-CARD16	      pciReadWord(PCITAG tag, int offset);
-CARD8	      pciReadByte(PCITAG tag, int offset);
-void	      pciWriteLong(PCITAG tag, int offset, CARD32 val);
-void	      pciWriteWord(PCITAG tag, int offset, CARD16 val);
-void	      pciWriteByte(PCITAG tag, int offset, CARD8 val);
-void	      pciSetBitsLong(PCITAG tag, int offset, CARD32 mask, CARD32 val);
-void	      pciSetBitsByte(PCITAG tag, int offset, CARD8 mask, CARD8 val);
 ADDRESS	      pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr);
 ADDRESS	      pciHostAddrToBusAddr(PCITAG tag, PciAddrType type, ADDRESS addr);
 PCITAG	      pciTag(int busnum, int devnum, int funcnum);
 int	      pciGetBaseSize(PCITAG tag, int indx, Bool destructive, Bool *min);
-CARD32	      pciCheckForBrokenBase(PCITAG tag,int basereg);
-pointer	      xf86MapPciMem(int ScreenNum, int Flags, PCITAG Tag,
-				ADDRESS Base, unsigned long Size);
-int	      xf86ReadPciBIOS(unsigned long Offset, PCITAG Tag, int basereg,
-				unsigned char *Buf, int Len);
 pciConfigPtr *xf86scanpci(int flags);
 pciConfigPtr xf86GetPciConfigFromTag(PCITAG Tag);
 

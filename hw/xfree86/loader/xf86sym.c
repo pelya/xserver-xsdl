@@ -49,8 +49,6 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-#define INCLUDE_DEPRECATED 1
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
@@ -308,10 +306,7 @@ LOOKUP xfree86LookupTab[] = {
     /* xf86Bus.c */
     SYMFUNC(xf86CheckPciSlot)
     SYMFUNC(xf86ClaimPciSlot)
-    SYMFUNC(xf86GetPciVideoInfo)
     SYMFUNC(xf86GetPciEntity)
-    SYMFUNC(xf86GetPciConfigInfo)
-    SYMFUNC(xf86SetPciVideo)
     SYMFUNC(xf86ClaimIsaSlot)
     SYMFUNC(xf86ClaimFbSlot)
     SYMFUNC(xf86ClaimNoSlot)
@@ -342,20 +337,14 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86CheckPciMemBase)
     SYMFUNC(xf86SetAccessFuncs)
     SYMFUNC(xf86IsEntityPrimary)
-    SYMFUNC(xf86FixPciResource)
     SYMFUNC(xf86SetOperatingState)
     SYMFUNC(xf86EnterServerState)
     SYMFUNC(xf86GetBlock)
     SYMFUNC(xf86GetSparse)
-    SYMFUNC(xf86ReallocatePciResources)
     SYMFUNC(xf86ChkConflict)
-    SYMFUNC(xf86IsPciDevPresent)
     SYMFUNC(xf86FindScreenForEntity)
     SYMFUNC(xf86FindPciDeviceVendor)
     SYMFUNC(xf86FindPciClass)
-#ifdef INCLUDE_DEPRECATED
-    SYMFUNC(xf86EnablePciBusMaster)
-#endif
     SYMFUNC(xf86RegisterStateChangeNotificationCallback)
     SYMFUNC(xf86DeregisterStateChangeNotificationCallback)
     SYMFUNC(xf86NoSharedResources)
@@ -729,21 +718,10 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86STimestamp)
 #endif
 
-    SYMFUNC(pciFindFirst)
-    SYMFUNC(pciFindNext)
-    SYMFUNC(pciWriteByte)
-    SYMFUNC(pciWriteWord)
-    SYMFUNC(pciWriteLong)
-    SYMFUNC(pciReadByte)
-    SYMFUNC(pciReadWord)
-    SYMFUNC(pciReadLong)
-    SYMFUNC(pciSetBitsLong)
     SYMFUNC(pciTag)
     SYMFUNC(pciBusAddrToHostAddr)
     SYMFUNC(pciHostAddrToBusAddr)
-    SYMFUNC(xf86MapPciMem)
     SYMFUNC(xf86scanpci)
-    SYMFUNC(xf86ReadPciBIOS)
 
     /* Loader functions */
     SYMFUNC(LoaderDefaultFunc)

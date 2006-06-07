@@ -17,6 +17,7 @@
 #define _INT10_PRIVATE
 #include "xf86int10.h"
 #include "int10Defines.h"
+#include "Pci.h"
 
 #define ALLOC_ENTRIES(x) ((V_RAM / x) - 1)
 
@@ -75,7 +76,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     void* base = 0;
     void* vbiosMem = 0;
     void* options = NULL;
-    pciVideoPtr pvp;
+    struct pci_device * pvp;
     int screen;
     legacyVGARec vga;
     xf86int10BiosLocation bios;
@@ -105,7 +106,10 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     base = INTPriv(pInt)->base = xnfalloc(SYS_BIOS);
 
     pvp = xf86GetPciInfoForEntity(entityIndex);
-    if (pvp) pInt->Tag = ((pciConfigPtr)(pvp->thisCard))->tag;
+    if (pvp != NULL) {
+	pInt->Tag = PCI_MAKE_TAG(PCI_MAKE_BUS(pvp->domain, pvp->bus),
+				 pvp->dev, pvp->func);
+    }
 
     /*
      * we need to map video RAM MMIO as some chipsets map mmio
@@ -288,16 +292,18 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     vbiosMem = (char *)base + V_BIOS;
     (void)memset(vbiosMem, 0, 2 * V_BIOS_SIZE);
     if (xf86ReadDomainMemory(pInt->Tag, V_BIOS, V_BIOS_SIZE, vbiosMem) <
-	V_BIOS_SIZE)
+	V_BIOS_SIZE) {
 	xf86DrvMsg(screen, X_WARNING,
-	    "Unable to retrieve all of segment 0x0C0000.\n");
+		   "Unable to retrieve all of segment 0x0C0000.\n");
+    }
     else if ((((unsigned char *)vbiosMem)[0] == 0x55) &&
 	     (((unsigned char *)vbiosMem)[1] == 0xAA) &&
-	     (((unsigned char *)vbiosMem)[2] > 0x80))
-    if (xf86ReadDomainMemory(pInt->Tag, V_BIOS + V_BIOS_SIZE, V_BIOS_SIZE,
-	    (unsigned char *)vbiosMem + V_BIOS_SIZE) < V_BIOS_SIZE)
-	xf86DrvMsg(screen, X_WARNING,
-	    "Unable to retrieve all of segment 0x0D0000.\n");
+	     (((unsigned char *)vbiosMem)[2] > 0x80)) {
+	if (xf86ReadDomainMemory(pInt->Tag, V_BIOS + V_BIOS_SIZE, V_BIOS_SIZE,
+				 (unsigned char *)vbiosMem + V_BIOS_SIZE) < V_BIOS_SIZE)
+	  xf86DrvMsg(screen, X_WARNING,
+		     "Unable to retrieve all of segment 0x0D0000.\n");
+    }
 
     /*
      * If this adapter is the primary, use its post-init BIOS (if we can find

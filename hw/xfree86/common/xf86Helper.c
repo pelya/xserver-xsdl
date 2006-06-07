@@ -40,6 +40,9 @@
 #include <xorg-config.h>
 #endif
 
+#include <pciaccess.h>
+#include "Pci.h"
+
 #include <X11/X.h>
 #include "os.h"
 #include "servermd.h"
@@ -1591,13 +1594,199 @@ xf86MatchDevice(const char *drivername, GDevPtr **sectlist)
 }
 
 struct Inst {
-    pciVideoPtr	pci;
+    struct pci_device *	pci;
     GDevPtr		dev;
     Bool		foundHW;  /* PCIid in list of supported chipsets */
     Bool		claimed;  /* BusID matches with a device section */
     int 		chip;
     int 		screen;
 };
+
+
+#define END_OF_MATCHES(m) \
+    (((m).vendor_id == 0) && ((m).device_id == 0) && ((m).subvendor_id == 0))
+
+Bool
+probe_devices_from_device_sections( DriverPtr drvp )
+{
+    int i, j;
+    struct pci_device * pPci;
+    struct pci_device **ppPci;
+    Bool foundScreen = FALSE;
+    const struct pci_id_match * const devices = drvp->supported_devices;
+    GDevPtr *devList;
+    const unsigned numDevs = xf86MatchDevice( drvp->driverName, & devList );
+
+
+    for ( i = 0 ; i < numDevs ; i++ ) {
+	unsigned device_id;
+
+
+	/* Find the pciVideoRec associated with this device section.
+	 */
+	pPci = NULL;
+	for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
+	    pPci = *ppPci;
+
+	    if ( devList[i]->busID && *devList[i]->busID ) {
+		if (xf86ComparePciBusString(devList[i]->busID, 
+					    ((pPci->domain << 8)
+					     | pPci->bus),
+					    pPci->dev,
+					    pPci->func)) {
+		    break;
+		}
+	    }
+	    else if ( xf86IsPrimaryPci( pPci ) ) {
+		break;
+	    }
+	}
+
+	if ( pPci == NULL ) {
+	    continue;
+	}
+	
+	device_id = (devList[i]->chipID > 0)
+	  ? devList[i]->chipID : pPci->device_id;
+
+
+	/* Once the pciVideoRec is found, determine if the device is supported
+	 * by the driver.  If it is, probe it!
+	 */
+	for ( j = 0 ; ! END_OF_MATCHES( devices[j] ) ; j++ ) {
+	    if ( PCI_ID_COMPARE( devices[j].vendor_id, pPci->vendor_id )
+		 && PCI_ID_COMPARE( devices[j].device_id, device_id )
+		 && ((devices[j].device_class_mask & pPci->device_class)
+		      == devices[j].device_class) ) {
+		int  entry;
+
+		/* Allow the same entity to be used more than once for
+		 * devices with multiple screens per entity.  This assumes
+		 * implicitly that there will be a screen == 0 instance.
+		 *
+		 * FIXME Need to make sure that two different drivers don't
+		 * FIXME claim the same screen > 0 instance.
+		 */
+		if ( (devList[i]->screen == 0) && !xf86CheckPciSlot( pPci ) )
+		  continue;
+
+#ifdef DEBUG
+		ErrorF("%s: card at %d:%d:%d is claimed by a Device section\n",
+		       drvp->driverName, pPci->bus, pPci->device, pPci->func);
+#endif
+	
+		/* Allocate an entry in the lists to be returned */
+		entry = xf86ClaimPciSlot( pPci, drvp, device_id,
+					  devList[i], devList[i]->active );
+
+		if ( (entry == -1) && (devList[i]->screen > 0) ) {
+		    unsigned k;
+
+		    for ( k = 0; k < xf86NumEntities; k++ ) {
+			EntityPtr pEnt = xf86Entities[k];
+			if (pEnt->busType != BUS_PCI)
+			  continue;
+
+			if (pEnt->pciBusId.bus == PCI_MAKE_BUS( pPci->domain, pPci->bus ) &&
+			    pEnt->pciBusId.device == pPci->dev &&
+			    pEnt->pciBusId.func == pPci->func) {
+			    entry = k;
+			    xf86AddDevToEntity( k, devList[i] );
+			    break;
+			}
+		    }
+		}
+		
+		if ( entry != -1 ) {
+		    if ( (*drvp->PciProbe)( drvp, entry, pPci,
+					    devices[j].match_data ) ) {
+			foundScreen = TRUE;
+		    }
+		}
+
+		break;
+	    }
+	}
+    }
+
+	
+    return foundScreen;
+}
+
+
+Bool
+add_matching_devices_to_configure_list( DriverPtr drvp )
+{
+    const struct pci_id_match * const devices = drvp->supported_devices;
+    int j;
+    struct pci_device ** ppPci;
+    int numFound = 0;
+
+
+    for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
+	const struct pci_device * pPci = *ppPci;
+
+
+	/* Determine if this device is supported by the driver.  If it is,
+	 * add it to the list of devices to configure.
+	 */
+	for ( j = 0 ; ! END_OF_MATCHES( devices[j] ) ; j++ ) {
+	    if ( PCI_ID_COMPARE( devices[j].vendor_id, pPci->vendor_id )
+		 && PCI_ID_COMPARE( devices[j].device_id, pPci->device_id )
+		 && ((devices[j].device_class_mask & pPci->device_class)
+		     == devices[j].device_class) ) {
+		if ( xf86CheckPciSlot( pPci ) ) {
+		    GDevPtr pGDev = 
+		      xf86AddDeviceToConfigure( drvp->driverName, pPci, -1 );
+		    if ( pGDev != NULL ) {
+			/* After configure pass 1, chipID and chipRev are
+			 * treated as over-rides, so clobber them here.
+			 */
+			pGDev->chipID = -1;
+			pGDev->chipRev = -1;
+		    }
+
+		    numFound++;
+		}
+
+		break;
+	    }
+	}
+    }
+
+
+    return (numFound != 0);
+}
+
+
+Bool
+check_for_matching_devices( DriverPtr drvp )
+{
+    const struct pci_id_match * const devices = drvp->supported_devices;
+    int j;
+    struct pci_device ** ppPci;
+
+
+    for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
+	const struct pci_device * pPci = *ppPci;
+
+
+	/* Determine if this device is supported by the driver.  If it is,
+	 * add it to the list of devices to configure.
+	 */
+	for ( j = 0 ; ! END_OF_MATCHES( devices[j] ) ; j++ ) {
+	    if ( PCI_ID_COMPARE( devices[j].vendor_id, pPci->vendor_id )
+		 && PCI_ID_COMPARE( devices[j].device_id, pPci->device_id )
+		 && ((devices[j].device_class_mask & pPci->device_class)
+		     == devices[j].device_class) ) {
+		return TRUE;
+	    }
+	}
+    }
+
+
+    return FALSE;
+}
 
 
 /**
@@ -1639,7 +1828,8 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 		      int **foundEntities)
 {
     int i,j;
-    pciVideoPtr pPci, *ppPci;
+    struct pci_device * pPci;
+    struct pci_device ** ppPci;
     struct Inst *instances = NULL;
     int numClaimedInstances = 0;
     int allocatedInstances = 0;
@@ -1667,8 +1857,7 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
     }
 
     for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
-	unsigned device_class = ((*ppPci)->class << 16)
-	    | ((*ppPci)->subclass << 8) | ((*ppPci)->interface);
+	unsigned device_class = (*ppPci)->device_class;
 	Bool foundVendor = FALSE;
 
 
@@ -1698,7 +1887,7 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	    const unsigned device_id = (id->PCIid & 0x0000FFFF);
 	    const unsigned match_class = 0x00030000 | id->PCIid;
 
-	    if ( (vendor_id == pPci->vendor)
+	    if ( (vendor_id == pPci->vendor_id)
 		 || ((vendorID == PCI_VENDOR_GENERIC) && (match_class == device_class)) ) {
 		if ( !foundVendor && (instances != NULL) ) {
 		    ++allocatedInstances;
@@ -1707,9 +1896,11 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 		    instances[allocatedInstances - 1].claimed = FALSE;
 		    instances[allocatedInstances - 1].foundHW = FALSE;
 		    instances[allocatedInstances - 1].screen = 0;
-		    foundVendor = TRUE;
 		}
-		if ( (device_id == pPci->chipType)
+
+		foundVendor = TRUE;
+
+		if ( (device_id == pPci->device_id)
 		     || ((vendorID == PCI_VENDOR_GENERIC) 
 			 && (match_class == device_class)) ) {
 		    if ( instances != NULL ) {
@@ -1719,8 +1910,7 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 
 
 		    if ( xf86DoConfigure && xf86DoConfigurePass1 ) {
-			if ( xf86CheckPciSlot(pPci->bus, pPci->device,
-					      pPci->func) ) {
+			if ( xf86CheckPciSlot( pPci ) ) {
 			    GDevPtr pGDev = 
 			      xf86AddDeviceToConfigure( drvp->driverName,
 							pPci, -1 );
@@ -1783,8 +1973,9 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	    && *devList[j]->busID) {
 	    for (i = 0; i < allocatedInstances; i++) {
 	        pPci = instances[i].pci;
-	        if (xf86ComparePciBusString(devList[j]->busID, pPci->bus,
-					    pPci->device,
+	        if (xf86ComparePciBusString(devList[j]->busID, 
+					    PCI_MAKE_BUS( pPci->domain, pPci->bus ),
+					    pPci->dev,
 					    pPci->func)) {
 		    allocatedInstances++;
 		    instances[allocatedInstances - 1] = instances[i];
@@ -1804,9 +1995,10 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	pPci = instances[i].pci;
 	for (j = 0; j < numDevs; j++) {
 	    if (devList[j]->busID && *devList[j]->busID) {
-		if (xf86ComparePciBusString(devList[j]->busID, pPci->bus,
-					   pPci->device,
-					   pPci->func) &&
+		if (xf86ComparePciBusString(devList[j]->busID, 
+					    PCI_MAKE_BUS( pPci->domain, pPci->bus ),
+					    pPci->dev,
+					    pPci->func) &&
 		    devList[j]->screen == instances[i].screen) {
 		   
 		    if (devBus)
@@ -1837,10 +2029,11 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	}
 	if (devBus) dev = devBus;  /* busID preferred */ 
 	if (!dev) {
-	    if (xf86CheckPciSlot(pPci->bus, pPci->device, pPci->func)) {
+	    if ( xf86CheckPciSlot( pPci ) ) {
 		xf86MsgVerb(X_WARNING, 0, "%s: No matching Device section "
-			    "for instance (BusID PCI:%i:%i:%i) found\n",
-			    driverName, pPci->bus, pPci->device, pPci->func);
+			    "for instance (BusID PCI:%u@%u:%u:%u) found\n",
+			    driverName, pPci->domain, pPci->bus, pPci->dev,
+			    pPci->func);
 	    }
 	} else {
 	    numClaimedInstances++;
@@ -1951,30 +2144,28 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	 * XXX Need to make sure that two different drivers don't claim
 	 * the same screen > 0 instance.
 	 */
-        if (instances[i].screen == 0 &&
-	    !xf86CheckPciSlot(pPci->bus, pPci->device, pPci->func))
+        if (instances[i].screen == 0 && !xf86CheckPciSlot( pPci ))
 	    continue;
 
 #ifdef DEBUG
 	ErrorF("%s: card at %d:%d:%d is claimed by a Device section\n",
-	       driverName, pPci->bus, pPci->device, pPci->func);
+	       driverName, pPci->bus, pPci->dev, pPci->func);
 #endif
 	
 	/* Allocate an entry in the lists to be returned */
 	numFound++;
 	retEntities = xnfrealloc(retEntities, numFound * sizeof(int));
-	retEntities[numFound - 1]
-	    = xf86ClaimPciSlot(pPci->bus, pPci->device,
-			       pPci->func,drvp,	instances[i].chip,
-			       instances[i].dev,instances[i].dev->active ?
-			       TRUE : FALSE);
+	retEntities[numFound - 1] = xf86ClaimPciSlot( pPci, drvp,
+						      instances[i].chip,
+						      instances[i].dev,
+						      instances[i].dev->active);
         if (retEntities[numFound - 1] == -1 && instances[i].screen > 0) {
 	    for (j = 0; j < xf86NumEntities; j++) {
 	        EntityPtr pEnt = xf86Entities[j];
 	        if (pEnt->busType != BUS_PCI)
 		    continue;
-	        if (pEnt->pciBusId.bus == pPci->bus &&
-		    pEnt->pciBusId.device == pPci->device &&
+	        if (pEnt->pciBusId.bus == PCI_MAKE_BUS( pPci->domain, pPci->bus ) &&
+		    pEnt->pciBusId.device == pPci->dev &&
 		    pEnt->pciBusId.func == pPci->func) {
 		    retEntities[numFound - 1] = j;
 		    xf86AddDevToEntity(j, instances[i].dev);

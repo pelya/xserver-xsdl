@@ -124,7 +124,7 @@ typedef struct x_BusAccRec {
 	struct {
 	    int bus;
 	    int primary_bus;
-	    PCITAG acc;
+	    struct pci_device * dev;
 	    pciBridgesSave save;
 	} pci;
     } busdep;

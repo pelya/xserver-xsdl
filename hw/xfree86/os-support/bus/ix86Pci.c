@@ -688,8 +688,6 @@ ix86PciInit()
     /* Initialize pciBusInfo[] array and function pointers */
     pciNumBuses    = 1;
     pciBusInfo[0]  = &ix86Pci0;
-    pciFindFirstFP = pciGenFindFirst;
-    pciFindNextFP  = pciGenFindNext;
 
     /* Make sure that there is a PCI bus present. */
     ix86PciSelectCfgmech();
