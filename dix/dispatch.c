@@ -115,7 +115,9 @@ int ProcInitialConnection();
 #include <X11/extensions/Xagsrv.h>
 #endif
 #ifdef XKB
+#ifndef XKB_IN_SERVER
 #define XKB_IN_SERVER
+#endif
 #include "inputstr.h"
 #include <X11/extensions/XKBsrv.h>
 #endif

@@ -66,7 +66,9 @@ SOFTWARE.
 #include "cursorstr.h"
 #include "dixstruct.h"
 #include "site.h"
+#ifndef XKB_IN_SERVER
 #define	XKB_IN_SERVER
+#endif
 #ifdef XKB
 #include <X11/extensions/XKBsrv.h>
 #endif
