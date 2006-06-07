@@ -236,13 +236,6 @@ int LoaderOpen(const char *, const char *, int, int *, int *, int *, int);
 int LoaderHandleOpen(int);
 
 /*
- * File interface functions
- */
-void *_LoaderFileToMem(int fd, unsigned long offset, int size, char *label);
-void _LoaderFreeFileMem(void *addr, int size);
-int _LoaderFileRead(int fd, unsigned int offset, void *addr, int size);
-
-/*
  * object to name lookup routines
  */
 char *_LoaderHandleToName(int handle);
