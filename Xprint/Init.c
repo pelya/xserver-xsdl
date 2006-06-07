@@ -288,10 +288,6 @@ static const char configFilePath[] =
 
 static const char printServerConfigDir[] = "XPSERVERCONFIGDIR";
 
-static int printScreenPrivIndex,
-	   printWindowPrivIndex,
-	   printGCPrivIndex;
-static unsigned long printGeneration = 0;
 static char *configFileName = (char *)NULL;
 static Bool freeDefaultFontPath = FALSE;
 static char *origFontPath = (char *)NULL;
@@ -806,7 +802,6 @@ GetConfigFileName(void)
 static PrinterDbPtr
 BuildPrinterDb(void)
 {
-    char *printerList, *augmentCmd = (char *)NULL;
     Bool defaultAugment = TRUE, freeConfigFileName;
 
     if(configFileName && access(configFileName, R_OK) != 0)
@@ -1156,8 +1151,8 @@ AddToFontPath(
 static void
 AugmentFontPath(void)
 {
-    char *newPath, *modelID, **allIDs = (char **)NULL;
-    PrinterDbPtr pDb, pDbEntry;
+    char *modelID, **allIDs = (char **)NULL;
+    PrinterDbPtr pDbEntry;
     int numModels, i;
 
     if(!origFontPath)
@@ -1649,10 +1644,9 @@ GenericScreenInit(
      int argc,
      char **argv)
 {
-    int i;
     float fWidth, fHeight, maxWidth, maxHeight;
     unsigned short width, height;
-    PrinterDbPtr pDb, pDb2;
+    PrinterDbPtr pDb;
     int res, maxRes;
     
     /*
@@ -1799,7 +1793,7 @@ GetPrinterListInfo(
     int localeLen,
     char *locale)
 {
-    PrinterDbPtr pDb, pDb2;
+    PrinterDbPtr pDb;
 
     for(pDb = printerDb; pDb != (PrinterDbPtr)NULL; pDb = pDb->next)
     {
@@ -1848,7 +1842,7 @@ XpDiGetPrinterList(
     if(!nameLen || name == (char *)NULL)
     {
 	int i;
-        PrinterDbPtr pDb, pDb2;
+        PrinterDbPtr pDb;
 
         for(pDb = printerDb, i = 0; pDb != (PrinterDbPtr)NULL; 
 	    pDb = pDb->next, i++)
@@ -1898,7 +1892,6 @@ WindowPtr
 XpDiValidatePrinter(char *printerName, int printerNameLen)
 {
     PrinterDbPtr pCurEntry;
-    WindowPtr pWin;
 
     for(pCurEntry = printerDb;
 	pCurEntry != (PrinterDbPtr)NULL; pCurEntry = pCurEntry->next)
