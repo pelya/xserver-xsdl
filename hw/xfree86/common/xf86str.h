@@ -127,6 +127,7 @@ typedef enum {
                                /* built-in mode - configure CRTC and clock */
 # define M_T_DEFAULT 0x10	/* (VESA) default modes */
 # define M_T_USERDEF 0x20	/* One of the modes from the config file */
+# define M_T_EDID    0x40	/* Mode from the EDID info from the monitor */
 
 /* Video mode */
 typedef struct _DisplayModeRec {
