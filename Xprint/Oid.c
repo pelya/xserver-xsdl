@@ -1655,8 +1655,6 @@ TrayMediumListValidate(XpOidTrayMediumList* me,
 		       const XpOidMediumSS* msss)
 {
     int i_mss, i_ds, i_itm;
-    XpOidMediumDiscreteSizeList* ds_list;
-    int tray_count;
     XpOid current_tray, current_medium;
     XpOidMediumDiscreteSizeList* unspecified_tray_ds;
     XpOidMediumDiscreteSizeList* tray_ds;
