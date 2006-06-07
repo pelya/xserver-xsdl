@@ -1049,7 +1049,6 @@ ProcXineramaIsActive(ClientPtr client)
     {
 	/* The following hack fools clients into thinking that Xinerama
 	 * is disabled even though it is not. */
-	extern Bool PanoramiXExtensionDisabledHack;
 	rep.state = !noPanoramiXExtension && !PanoramiXExtensionDisabledHack;
     }
 #else

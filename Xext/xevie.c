@@ -104,7 +104,7 @@ typedef struct {
 } xevieKeycQueueRec, *xevieKeycQueuePtr;
 
 #define KEYC_QUEUE_SIZE	    100
-xevieKeycQueueRec keycq[KEYC_QUEUE_SIZE] = {0, NULL};
+xevieKeycQueueRec keycq[KEYC_QUEUE_SIZE] = {{0, NULL}};
 static int keycqHead = 0, keycqTail = 0;
 
 static int              ProcDispatch (ClientPtr), SProcDispatch (ClientPtr);
@@ -165,7 +165,6 @@ void ResetProc (ExtensionEntry *extEntry)
 static 
 int ProcQueryVersion (register ClientPtr client)
 {
-    REQUEST (xXevieQueryVersionReq);
     xXevieQueryVersionReply rep;
 
     REQUEST_SIZE_MATCH (xXevieQueryVersionReq);
@@ -181,7 +180,6 @@ int ProcQueryVersion (register ClientPtr client)
 static
 int ProcStart (register ClientPtr client)
 {
-    REQUEST (xXevieStartReq);
     xXevieStartReply rep;
 
     REQUEST_SIZE_MATCH (xXevieStartReq);
