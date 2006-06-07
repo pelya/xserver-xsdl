@@ -694,6 +694,9 @@ extern int TryClientEvents(
 
 extern void WindowsRestructured(void);
 
+#ifdef PANORAMIX
+extern void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff);
+#endif
 
 #ifdef RANDR
 void
