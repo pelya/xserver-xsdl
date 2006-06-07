@@ -523,6 +523,9 @@ exaDriverInit (ScreenPtr		pScreen,
                ExaDriverPtr	pScreenInfo)
 {
     ExaScreenPrivPtr pExaScr;
+#ifdef RENDER
+    PictureScreenPtr ps;
+#endif
 
     if (pScreenInfo->exa_major != EXA_VERSION_MAJOR ||
 	pScreenInfo->exa_minor > EXA_VERSION_MINOR)
@@ -536,7 +539,7 @@ exaDriverInit (ScreenPtr		pScreen,
     }
 
 #ifdef RENDER
-    PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
+    ps = GetPictureScreenIfSet(pScreen);
 #endif
     if (exaGeneration != serverGeneration)
     {
