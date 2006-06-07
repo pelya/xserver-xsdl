@@ -516,6 +516,12 @@ extern void FreeAllAtoms(void);
 
 extern void InitAtoms(void);
 
+/* main.c */
+
+extern void SetVendorRelease(int release);
+
+extern void SetVendorString(char *string);
+
 /* events.c */
 
 extern void SetMaskForEvent(

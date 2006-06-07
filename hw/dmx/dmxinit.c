@@ -78,9 +78,6 @@ extern void GlxSetVisualConfigs(
 );
 #endif /* GLXEXT */
 
-extern void SetVendorRelease(int release); /* in dix/main.c */
-extern void SetVendorString(char *string); /* in dix/main.c */
-
 /* Global variables available to all Xserver/hw/dmx routines. */
 int             dmxNumScreens;
 DMXScreenInfo  *dmxScreens;
