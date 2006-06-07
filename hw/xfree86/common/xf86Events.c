@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Events.c,v 3.159 2003/11/22 04:22:11 dawes Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany.
  *
@@ -47,9 +46,6 @@
  * the sale, use or other dealings in this Software without prior written
  * authorization from the copyright holder(s) and author(s).
  */
-
-/* $XConsortium: xf86Events.c /main/46 1996/10/25 11:36:30 kaleb $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Events.c,v 1.22 2006/03/25 19:52:03 ajax Exp $ */
 
 /* [JCH-96/01/21] Extended std reverse map to four buttons. */
 
@@ -1461,13 +1457,6 @@ xf86SigHandler(int signo)
   xf86Info.caughtSignal = TRUE;
 #ifdef XF86BIGFONT
   XF86BigfontCleanup();
-#endif
-#if defined(XFree86LOADER)
-  if (xf86Initialising)
-      LoaderCheckUnresolved(LD_RESOLV_IFDONE);
-  ErrorF("\n"
-	 "   *** If unresolved symbols were reported above, they might not\n"
-	 "   *** be the reason for the server aborting.\n");
 #endif
 
   xorg_backtrace();
