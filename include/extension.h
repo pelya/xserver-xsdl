@@ -56,6 +56,10 @@ extern unsigned short StandardMinorOpcode(ClientPtr /*client*/);
 
 extern unsigned short MinorOpcodeOfRequest(ClientPtr /*client*/);
 
+extern Bool EnableDisableExtension(char *name, Bool enable);
+
+extern void EnableDisableExtensionError(char *name, Bool enable);
+
 extern void InitExtensions(int argc, char **argv);
 
 extern void InitVisualWrap(void);
