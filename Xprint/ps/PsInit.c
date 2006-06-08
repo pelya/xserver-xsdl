@@ -119,8 +119,6 @@ InitializePsDriver(ndx, pScreen, argc, argv)
   int               maxRes, maxDim, numBytes;
   PsScreenPrivPtr   pPriv;
 #endif
-  char            **printerNames;
-  int               numPrinters;
   int               nv,       /* total number of visuals */
                     nv_1bit,  /* number of 8bit visuals */
                     nv_8bit,  /* number of 8bit visuals */
