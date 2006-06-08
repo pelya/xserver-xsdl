@@ -427,6 +427,9 @@ extern void PsSetSpans(DrawablePtr pDrawable, GCPtr pGC, char *pSrc,
 extern void PsPutScaledImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
                        int x, int y, int w, int h, int leftPad, int format,
                        int imageRes, char *pImage);
+extern void PsPutScaledImageIM(DrawablePtr pDrawable, GCPtr pGC, int depth,
+                               int x, int y, int w, int h, int leftPad,
+                               int format, int imageRes, char *pImage);
 extern void PsPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
                        int x, int y, int w, int h, int leftPad, int format,
                        char *pImage);
