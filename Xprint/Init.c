@@ -373,7 +373,6 @@ PrinterOptions(
     char **argv,
     int i)
 {
-    extern void ddxUseMsg(void);
     if(strcmp(argv[i], "-XpFile") == 0)
     {
 	if ((i + 1) >= argc) {
