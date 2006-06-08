@@ -14,6 +14,7 @@
 #define _INT10_PRIVATE
 #include "xf86int10.h"
 #include "int10Defines.h"
+#include "Pci.h"
 
 #define REG pInt
 
@@ -24,8 +25,7 @@ static int int1A_handler(xf86Int10InfoPtr pInt);
 static int int42_handler(xf86Int10InfoPtr pInt);
 #endif
 static int intE6_handler(xf86Int10InfoPtr pInt);
-static struct pci_device * findPci( xf86Int10InfoPtr pInt,
-    unsigned short bx );
+static struct pci_device *findPci(xf86Int10InfoPtr pInt, unsigned short bx);
 static CARD32 pciSlotBX( const struct pci_device * pvp );
 
 int
@@ -764,7 +764,7 @@ findPci(xf86Int10InfoPtr pInt, unsigned short bx)
     const unsigned dev =  (bx >> 3) & 0x001F;
     const unsigned func = (bx     ) & 0x0007;
 
-    return pci_device_find_by_slot( domain, bus, dev, func );
+    return pci_device_find_by_slot(domain, bus, dev, func);
 }
 
 static CARD32
