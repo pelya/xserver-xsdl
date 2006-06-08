@@ -105,6 +105,9 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     pInt->scrnIndex = screen;
     base = INTPriv(pInt)->base = xnfalloc(SYS_BIOS);
 
+    /* FIXME: Shouldn't this be a failure case?  Leaving Tag as 0 seems like
+     * FIXME: an error
+     */
     pvp = xf86GetPciInfoForEntity(entityIndex);
     if (pvp != NULL) {
 	pInt->Tag = PCI_MAKE_TAG(PCI_MAKE_BUS(pvp->domain, pvp->bus),
