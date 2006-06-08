@@ -317,7 +317,7 @@ PsBmClearImageCacheList(
 }
 
 void
-PsBmClearImageCache()
+PsBmClearImageCache(void)
 {
    PsBmClearImageCacheList(bm_cache);
 

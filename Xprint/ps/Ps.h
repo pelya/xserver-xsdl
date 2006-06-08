@@ -357,6 +357,14 @@ extern Bool InitializePsDriver(int ndx, ScreenPtr pScreen, int argc,
 extern XpContextPtr PsGetContextFromWindow(WindowPtr win);
 
 /*
+ *  Functions in PsCache.c
+ */
+
+extern int PsBmIsImageCached(int gWidth, int gHeight, char *pBuffer);
+extern int PsBmPutImageInCache(int gWidth, int gHeight, char *pBuffer);
+extern void PsBmClearImageCache(void);
+
+/*
  *  Functions in PsPrint.c
  */
 
