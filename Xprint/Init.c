@@ -1693,6 +1693,7 @@ GenericScreenInit(
 					   (unsigned short)(maxHeight + 0.5);
 }
 
+#if 0   /* No one uses this anymore... */
 /*
  * QualifyName - takes an unqualified file name such as X6printers and
  * a colon-separated list of directory path names such as 
@@ -1741,6 +1742,7 @@ QualifyName(char *fileName, char *searchPath)
     }
     return NULL;
 }
+#endif
 
 /*
  * FillPrinterListEntry fills in a single XpDiListEntry element with data
