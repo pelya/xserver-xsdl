@@ -118,7 +118,6 @@ PsPutScaledImage(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
   {
     int          i, j;
     int          r, c;
-    char        *pt;
     PsOutPtr     psOut;
     ColormapPtr  cMap;
     int          pageRes, sw, sh;
@@ -230,7 +229,6 @@ PsPutScaledImageIM(DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
   {
     int          i, j;
     int          r, c;
-    char        *pt;
     PsOutPtr     psOut;
     ColormapPtr  cMap;
     int          pageRes, sw, sh;

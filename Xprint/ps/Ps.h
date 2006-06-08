@@ -357,6 +357,14 @@ extern Bool InitializePsDriver(int ndx, ScreenPtr pScreen, int argc,
 extern XpContextPtr PsGetContextFromWindow(WindowPtr win);
 
 /*
+ *  Functions in PsCache.c
+ */
+
+extern int PsBmIsImageCached(int gWidth, int gHeight, char *pBuffer);
+extern int PsBmPutImageInCache(int gWidth, int gHeight, char *pBuffer);
+extern void PsBmClearImageCache(void);
+
+/*
  *  Functions in PsPrint.c
  */
 
@@ -427,6 +435,9 @@ extern void PsSetSpans(DrawablePtr pDrawable, GCPtr pGC, char *pSrc,
 extern void PsPutScaledImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
                        int x, int y, int w, int h, int leftPad, int format,
                        int imageRes, char *pImage);
+extern void PsPutScaledImageIM(DrawablePtr pDrawable, GCPtr pGC, int depth,
+                               int x, int y, int w, int h, int leftPad,
+                               int format, int imageRes, char *pImage);
 extern void PsPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
                        int x, int y, int w, int h, int leftPad, int format,
                        char *pImage);
@@ -569,6 +580,7 @@ extern PixmapPtr PsCreatePixmap(ScreenPtr pScreen, int width, int height,
 extern void PsScrubPixmap(PixmapPtr pPixmap);
 extern Bool PsDestroyPixmap(PixmapPtr pPixmap);
 extern DisplayListPtr PsGetFreeDisplayBlock(PsPixmapPrivPtr priv);
+extern void PsReplay(DisplayElmPtr elm, DrawablePtr pDrawable);
 extern void PsReplayPixmap(PixmapPtr pix, DrawablePtr pDrawable);
 extern int PsCloneDisplayElm(PixmapPtr dst,
 			     DisplayElmPtr elm, DisplayElmPtr newElm,

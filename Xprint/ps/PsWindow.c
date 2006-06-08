@@ -96,6 +96,7 @@ extern WindowPtr *WindowTable;
  * placed on the screen's root window if the property was defined in
  * the start-up configuration resource database.
  */
+#if 0
 static char *propStrings[] = {
 	DT_PRINT_JOB_HEADER,
 	DT_PRINT_JOB_TRAILER,
@@ -107,7 +108,7 @@ static char *propStrings[] = {
 	DT_PRINT_PAGE_COMMAND,
 	(char *)NULL
 };
-
+#endif
 
 /*
  * PsCreateWindow - watch for the creation of the root window.
@@ -222,7 +223,6 @@ PsPaintWindow(
   RegionPtr pRegion,
   int       what)
 {
-  int       status;
   WindowPtr pRoot;
 
 #define FUNCTION        0

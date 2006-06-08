@@ -191,7 +191,6 @@ Bool
 PsDestroyPixmap(PixmapPtr pPixmap)
 {
   PsPixmapPrivPtr priv = (PsPixmapPrivPtr)pPixmap->devPrivate.ptr;
-  DisplayListPtr  disp = priv->dispList;
 
   if( --pPixmap->refcnt ) return TRUE;
 
@@ -512,6 +511,8 @@ PsCreateFillElementList(PixmapPtr pix, int *nElms)
         case PolyFillArcCmd:
           *nElms += elm->c.arcs.nArcs;
           break;
+        default: /* keep the compiler happy with unhandled enums */
+          break;
       }
     }
   }
@@ -573,6 +574,8 @@ PsCreateFillElementList(PixmapPtr pix, int *nElms)
                 elms[*nElms].c.arc.style = styl;
                 *nElms += 1;
               }
+              break;
+            default:  /* keep the compiler happy with unhandled enums */
               break;
           }
         }

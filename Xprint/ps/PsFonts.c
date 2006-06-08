@@ -286,9 +286,8 @@ char *getFontFilename(FontPtr pFont)
   const char        *dlfnam;
   FILE              *file;
   struct stat        statb;
-  int                count, i, status;
   char               buf[512];
-  char              *front, *end, *fn;
+  char              *front, *fn;
   char               font_dir_fname[PATH_MAX],  /* Full path of fonts.dir */
                      font_file_fname[PATH_MAX]; /* Name of font file (excluding path) */
 
@@ -592,7 +591,6 @@ PsFontTypeInfoRec *PsCreateFontTypeInfoRec(DrawablePtr pDrawable, FontPtr pFont)
 {
   char              *dlfnam;
   PsFontTypeInfoRec *rec;
-  char              *psname;
   
   if (!(dlfnam = PsGetFontName(pFont)))
     return NULL;

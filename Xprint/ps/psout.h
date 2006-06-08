@@ -267,6 +267,7 @@ extern void S_OutTok(PsOutPtr self, char *tok, int cr);
 typedef struct PsOutRec_ *PsOutPtr;
 #endif /* USE_PSOUT_PRIVATE */
 
+extern FILE * PsOut_ChangeFile(PsOutPtr self, FILE *fp);
 extern PsOutPtr PsOut_BeginFile(FILE *fp, char *title, int orient, int count, int plex,
                                 int res, int wd, int ht, Bool raw);
 extern void PsOut_EndFile(PsOutPtr self, int closeFile);

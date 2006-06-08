@@ -181,7 +181,6 @@ PsContextPrivPtr
 PsGetPsContextPriv( DrawablePtr pDrawable )
 {
   XpContextPtr     pCon;
-  PsContextPrivPtr cPriv;
 
   switch(pDrawable->type)
   {
