@@ -76,8 +76,6 @@ InitOutput(
     char         **argv)
 
 {
-    int i;
-
     pScreenInfo->imageByteOrder = IMAGE_BYTE_ORDER;
     pScreenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
     pScreenInfo->bitmapScanlinePad = BITMAP_SCANLINE_PAD;
