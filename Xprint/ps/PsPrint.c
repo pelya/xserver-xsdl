@@ -292,13 +292,10 @@ PsStartPage(
 {
   int                iorient, iplex, icount, ires;
   unsigned short     iwd, iht;
-  register WindowPtr pChild;
   PsContextPrivPtr   pConPriv =
      (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
   PsWindowPrivPtr    pWinPriv =
      (PsWindowPrivPtr)pWin->devPrivates[PsWindowPrivateIndex].ptr;
-  char               s[80];
-  xEvent event;
 
 /*
  * Put a pointer to the context in the window private structure
