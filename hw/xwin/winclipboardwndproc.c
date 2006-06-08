@@ -35,6 +35,8 @@
 #include <sys/time.h>
 #include "winclipboard.h"
 
+extern void		winFixClipboardChain();
+
 
 /*
  * Constants
@@ -181,28 +183,10 @@ winClipboardWindowProc (HWND hwnd, UINT message,
 
     case WM_CHANGECBCHAIN:
       {
-	static Bool s_fProcessingChangeCBChain = FALSE;
 	winDebug ("winClipboardWindowProc - WM_CHANGECBCHAIN: wParam(%x) "
 		  "lParam(%x) s_hwndNextViewer(%x)\n", 
 		  wParam, lParam, s_hwndNextViewer);
 
-
-	/*
-	 * We've occasionally seen a loop in the clipboard chain.  Break
-	 * it on the first hint of recursion.
-	 */
-	if (! s_fProcessingChangeCBChain) 
-	  {
-	    s_fProcessingChangeCBChain = TRUE;
-	  }
-	else
-	  {
-	    winErrorFVerb (1, "winClipboardWindowProc - WM_CHANGECBCHAIN - "
-			   "Nested calls detected.  Bailing.\n");
-	    winDebug ("winClipboardWindowProc - WM_CHANGECBCHAIN: Exit\n");
-	    return 0;
-	  }
-	
 	if ((HWND) wParam == s_hwndNextViewer)
 	  {
 	    s_hwndNextViewer = (HWND) lParam;
@@ -217,7 +201,6 @@ winClipboardWindowProc (HWND hwnd, UINT message,
 	  SendMessage (s_hwndNextViewer, message,
 		       wParam, lParam);
 
-	s_fProcessingChangeCBChain = FALSE;
       }
       winDebug ("winClipboardWindowProc - WM_CHANGECBCHAIN: Exit\n");
       return 0;
@@ -274,8 +257,8 @@ winClipboardWindowProc (HWND hwnd, UINT message,
 	winDebug ("winClipboardWindowProc - WM_DRAWCLIPBOARD: Enter\n");
 
 	/*
-	 * We've occasionally seen a loop in the clipboard chain.  Break
-	 * it on the first hint of recursion.
+	 * We've occasionally seen a loop in the clipboard chain.
+	 * Try and fix it on the first hint of recursion.
 	 */
 	if (! s_fProcessingDrawClipboard) 
 	  {
@@ -283,16 +266,17 @@ winClipboardWindowProc (HWND hwnd, UINT message,
 	  }
 	else
 	  {
+	    /* Attempt to break the nesting by getting out of the chain, twice?, and then fix and bail */
+	    s_fCBCInitialized = FALSE;
+	    ChangeClipboardChain (hwnd, s_hwndNextViewer);
+	    winFixClipboardChain();
 	    winErrorFVerb (1, "winClipboardWindowProc - WM_DRAWCLIPBOARD - "
-			   "Nested calls detected.  Bailing.\n");
+			   "Nested calls detected.  Re-initing.\n");
 	    winDebug ("winClipboardWindowProc - WM_DRAWCLIPBOARD: Exit\n");
+	    s_fProcessingDrawClipboard = FALSE;
 	    return 0;
 	  }
 
-	/* Pass the message on the next window in the clipboard viewer chain */
-	if (s_hwndNextViewer)
-	  SendMessage (s_hwndNextViewer, message, 0, 0);
-	
 	/* Bail on first message */
 	if (!s_fCBCInitialized)
 	  {
@@ -318,6 +302,8 @@ winClipboardWindowProc (HWND hwnd, UINT message,
 		    "We own the clipboard, returning.\n");
 	    winDebug ("winClipboardWindowProc - WM_DRAWCLIPBOARD: Exit\n");
 	    s_fProcessingDrawClipboard = FALSE;
+	    if (s_hwndNextViewer)
+		SendMessage (s_hwndNextViewer, message, wParam, lParam);
 	    return 0;
 	  }
 
@@ -379,6 +365,8 @@ winClipboardWindowProc (HWND hwnd, UINT message,
 
 	    winDebug ("winClipboardWindowProc - WM_DRAWCLIPBOARD: Exit\n");
 	    s_fProcessingDrawClipboard = FALSE;
+	    if (s_hwndNextViewer)
+		SendMessage (s_hwndNextViewer, message, wParam, lParam);
 	    return 0;
 	  }
 
@@ -422,6 +410,9 @@ winClipboardWindowProc (HWND hwnd, UINT message,
 	s_fProcessingDrawClipboard = FALSE;
       }
       winDebug ("winClipboardWindowProc - WM_DRAWCLIPBOARD: Exit\n");
+      /* Pass the message on the next window in the clipboard viewer chain */
+      if (s_hwndNextViewer)
+	SendMessage (s_hwndNextViewer, message, wParam, lParam);
       return 0;
 
 
