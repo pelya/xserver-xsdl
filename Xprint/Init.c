@@ -378,7 +378,7 @@ PrinterOptions(
     char **argv,
     int i)
 {
-    extern void ddxUseMsg();
+    extern void ddxUseMsg(void);
     if(strcmp(argv[i], "-XpFile") == 0)
     {
 	if ((i + 1) >= argc) {
@@ -693,7 +693,7 @@ StoreDriverNames(void)
  * from the printerDb is store in the attribute store for the printer.
  */
 static void
-StoreDescriptors()
+StoreDescriptors(void)
 {
     PrinterDbPtr pEntry;
 
@@ -1709,9 +1709,7 @@ GenericScreenInit(
  * freeing the associated memory.
  */
 static char *
-QualifyName(fileName, searchPath)
-    char *fileName;
-    char *searchPath;
+QualifyName(char *fileName, char *searchPath)
 {
     char * curPath = searchPath;
     char * nextPath;

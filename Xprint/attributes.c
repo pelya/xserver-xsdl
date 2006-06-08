@@ -158,7 +158,7 @@ static char NULL_STRING[] = "\0";
  * where the print server configuration directory is localed.
  */
 static
-char *XpGetConfigDirBase()
+char *XpGetConfigDirBase(void)
 {
     char *configDir;
 
