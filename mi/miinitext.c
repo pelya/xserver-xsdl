@@ -85,6 +85,7 @@ SOFTWARE.
 #include "misc.h"
 #include "extension.h"
 #include "micmap.h"
+#include "globals.h"
 
 #if defined(QNX4) /* sleaze for Watcom on QNX4 ... */
 #undef GLXEXT
@@ -124,9 +125,6 @@ extern Bool noBigReqExtension;
 #endif
 #ifdef COMPOSITE
 extern Bool noCompositeExtension;
-#endif
-#ifdef DAMAGE
-extern Bool noDamageExtension;
 #endif
 #ifdef DBE
 extern Bool noDbeExtension;

@@ -308,10 +308,7 @@ void PrinterInitGlobals(void)
      * https://bugs.freedesktop.org/show_bug.cgi?id=1660) ...
      * (you can enable the DAMAGE extension explicitly via
      * % X +extension DAMAGE ... #) ;-( */
-    {
-      extern Bool noDamageExtension;
-      noDamageExtension = TRUE;
-    }
+    noDamageExtension = TRUE;
 #endif /* DAMAGE */
 
 #ifdef SMART_SCHEDULE
