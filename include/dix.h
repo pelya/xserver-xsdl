@@ -294,6 +294,7 @@ extern ClientPtr requestingClient;
 extern ClientPtr *clients;
 extern ClientPtr serverClient;
 extern int currentMaxClients;
+extern char dispatchExceptionAtReset;
 
 typedef int HWEventQueueType;
 typedef HWEventQueueType* HWEventQueuePtr;

@@ -300,8 +300,6 @@ static Bool xprintInitGlobalsCalled = FALSE;
  */
 void PrinterInitGlobals(void)
 {
-    extern char dispatchExceptionAtReset; /* defined in Xserver/dix/dispatch.c */
-
     xprintInitGlobalsCalled = TRUE;
 
 #ifdef DAMAGE

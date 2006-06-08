@@ -287,8 +287,6 @@ int userdefinedfontpath = 0;
 
 char *dev_tty_from_init = NULL;		/* since we need to parse it anyway */
 
-extern char dispatchExceptionAtReset;
-
 /* Extension enable/disable in miinitext.c */
 extern Bool EnableDisableExtension(char *name, Bool enable);
 extern void EnableDisableExtensionError(char *name, Bool enable);
