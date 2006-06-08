@@ -569,6 +569,7 @@ extern PixmapPtr PsCreatePixmap(ScreenPtr pScreen, int width, int height,
 extern void PsScrubPixmap(PixmapPtr pPixmap);
 extern Bool PsDestroyPixmap(PixmapPtr pPixmap);
 extern DisplayListPtr PsGetFreeDisplayBlock(PsPixmapPrivPtr priv);
+extern void PsReplay(DisplayElmPtr elm, DrawablePtr pDrawable);
 extern void PsReplayPixmap(PixmapPtr pix, DrawablePtr pDrawable);
 extern int PsCloneDisplayElm(PixmapPtr dst,
 			     DisplayElmPtr elm, DisplayElmPtr newElm,
