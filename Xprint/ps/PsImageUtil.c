@@ -33,6 +33,7 @@ copyright holders.
 #include <dix-config.h>
 #endif
 
+#include "Ps.h"
 #include "gcstruct.h"
 #include "windowstr.h"
 #include "servermd.h"
