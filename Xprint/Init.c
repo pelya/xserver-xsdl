@@ -1601,7 +1601,7 @@ InitPrintDrivers(
 	    }
 	    if(callInit == TRUE)
 	    {
-	        Bool (*initFunc)();
+	        Bool (*initFunc)(BFuncArgs);
 	        initFunc = GetInitFunc(pDb->driverName);
 	        if(initFunc(index, pScreen, argc, argv) == FALSE)
 	        {
