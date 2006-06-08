@@ -67,6 +67,7 @@
 #include "xf86_OSlib.h"
 
 #include "globals.h"
+#include "extension.h"
 
 #ifdef XINPUT
 #include "xf86Xinput.h"
@@ -2523,9 +2524,6 @@ configDRI(XF86ConfDRIPtr drip)
     return TRUE;
 }
 #endif
-
-/* Extension enable/disable in miinitext.c */
-extern Bool EnableDisableExtension(char *name, Bool enable);
 
 static Bool
 configExtensions(XF86ConfExtensionsPtr conf_ext)

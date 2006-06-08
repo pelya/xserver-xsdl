@@ -76,8 +76,6 @@ InitOutput(
     char         **argv)
 
 {
-    int i;
-
     pScreenInfo->imageByteOrder = IMAGE_BYTE_ORDER;
     pScreenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
     pScreenInfo->bitmapScanlinePad = BITMAP_SCANLINE_PAD;
@@ -179,7 +177,7 @@ InitInput(
      int       argc,
      char **argv)
 {
-    DevicePtr ptr, kbd;
+    DeviceIntPtr ptr, kbd;
 
     ptr = AddInputDevice((DeviceProc)PointerProc, TRUE);
     kbd = AddInputDevice((DeviceProc)KeyboardProc, TRUE);
@@ -239,11 +237,13 @@ OsVendorFatalError(void)
 }
 #endif
 
+#ifdef DDXBEFORERESET
 void
 ddxBeforeReset(void)
 {
     return;
 }
+#endif
 
 #ifdef DDXTIME
 CARD32

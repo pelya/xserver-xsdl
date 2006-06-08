@@ -288,10 +288,6 @@ static const char configFilePath[] =
 
 static const char printServerConfigDir[] = "XPSERVERCONFIGDIR";
 
-static int printScreenPrivIndex,
-	   printWindowPrivIndex,
-	   printGCPrivIndex;
-static unsigned long printGeneration = 0;
 static char *configFileName = (char *)NULL;
 static Bool freeDefaultFontPath = FALSE;
 static char *origFontPath = (char *)NULL;
@@ -304,8 +300,6 @@ static Bool xprintInitGlobalsCalled = FALSE;
  */
 void PrinterInitGlobals(void)
 {
-    extern char dispatchExceptionAtReset; /* defined in Xserver/dix/dispatch.c */
-
     xprintInitGlobalsCalled = TRUE;
 
 #ifdef DAMAGE
@@ -314,10 +308,7 @@ void PrinterInitGlobals(void)
      * https://bugs.freedesktop.org/show_bug.cgi?id=1660) ...
      * (you can enable the DAMAGE extension explicitly via
      * % X +extension DAMAGE ... #) ;-( */
-    {
-      extern Bool noDamageExtension;
-      noDamageExtension = TRUE;
-    }
+    noDamageExtension = TRUE;
 #endif /* DAMAGE */
 
 #ifdef SMART_SCHEDULE
@@ -382,7 +373,6 @@ PrinterOptions(
     char **argv,
     int i)
 {
-    extern void ddxUseMsg();
     if(strcmp(argv[i], "-XpFile") == 0)
     {
 	if ((i + 1) >= argc) {
@@ -697,7 +687,7 @@ StoreDriverNames(void)
  * from the printerDb is store in the attribute store for the printer.
  */
 static void
-StoreDescriptors()
+StoreDescriptors(void)
 {
     PrinterDbPtr pEntry;
 
@@ -806,7 +796,6 @@ GetConfigFileName(void)
 static PrinterDbPtr
 BuildPrinterDb(void)
 {
-    char *printerList, *augmentCmd = (char *)NULL;
     Bool defaultAugment = TRUE, freeConfigFileName;
 
     if(configFileName && access(configFileName, R_OK) != 0)
@@ -1156,8 +1145,8 @@ AddToFontPath(
 static void
 AugmentFontPath(void)
 {
-    char *newPath, *modelID, **allIDs = (char **)NULL;
-    PrinterDbPtr pDb, pDbEntry;
+    char *modelID, **allIDs = (char **)NULL;
+    PrinterDbPtr pDbEntry;
     int numModels, i;
 
     if(!origFontPath)
@@ -1612,7 +1601,7 @@ InitPrintDrivers(
 	    }
 	    if(callInit == TRUE)
 	    {
-	        Bool (*initFunc)();
+	        Bool (*initFunc)(BFuncArgs);
 	        initFunc = GetInitFunc(pDb->driverName);
 	        if(initFunc(index, pScreen, argc, argv) == FALSE)
 	        {
@@ -1649,10 +1638,9 @@ GenericScreenInit(
      int argc,
      char **argv)
 {
-    int i;
     float fWidth, fHeight, maxWidth, maxHeight;
     unsigned short width, height;
-    PrinterDbPtr pDb, pDb2;
+    PrinterDbPtr pDb;
     int res, maxRes;
     
     /*
@@ -1705,6 +1693,7 @@ GenericScreenInit(
 					   (unsigned short)(maxHeight + 0.5);
 }
 
+#if 0   /* No one uses this anymore... */
 /*
  * QualifyName - takes an unqualified file name such as X6printers and
  * a colon-separated list of directory path names such as 
@@ -1715,9 +1704,7 @@ GenericScreenInit(
  * freeing the associated memory.
  */
 static char *
-QualifyName(fileName, searchPath)
-    char *fileName;
-    char *searchPath;
+QualifyName(char *fileName, char *searchPath)
 {
     char * curPath = searchPath;
     char * nextPath;
@@ -1755,6 +1742,7 @@ QualifyName(fileName, searchPath)
     }
     return NULL;
 }
+#endif
 
 /*
  * FillPrinterListEntry fills in a single XpDiListEntry element with data
@@ -1799,7 +1787,7 @@ GetPrinterListInfo(
     int localeLen,
     char *locale)
 {
-    PrinterDbPtr pDb, pDb2;
+    PrinterDbPtr pDb;
 
     for(pDb = printerDb; pDb != (PrinterDbPtr)NULL; pDb = pDb->next)
     {
@@ -1848,7 +1836,7 @@ XpDiGetPrinterList(
     if(!nameLen || name == (char *)NULL)
     {
 	int i;
-        PrinterDbPtr pDb, pDb2;
+        PrinterDbPtr pDb;
 
         for(pDb = printerDb, i = 0; pDb != (PrinterDbPtr)NULL; 
 	    pDb = pDb->next, i++)
@@ -1898,7 +1886,6 @@ WindowPtr
 XpDiValidatePrinter(char *printerName, int printerNameLen)
 {
     PrinterDbPtr pCurEntry;
-    WindowPtr pWin;
 
     for(pCurEntry = printerDb;
 	pCurEntry != (PrinterDbPtr)NULL; pCurEntry = pCurEntry->next)

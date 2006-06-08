@@ -30,3 +30,6 @@ include/xkb-config.h
 include/xorg-config.h
 include/xorg-server.h
 include/xwin-config.h
+hw/dmx/config/parser.c
+hw/dmx/config/parser.h
+hw/dmx/config/scanner.c

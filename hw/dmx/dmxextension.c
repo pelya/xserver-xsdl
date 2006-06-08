@@ -374,9 +374,6 @@ void dmxUpdateScreenResources(ScreenPtr pScreen, int x, int y, int w, int h)
 #ifdef PANORAMIX
 #include "panoramiXsrv.h"
 
-/* Defined in dix/events.c */
-extern void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff);
-
 /** Change the "screen" window attributes by resizing the actual window
  *  on the back-end display (if necessary). */
 static void dmxConfigureScreenWindow(int idx,

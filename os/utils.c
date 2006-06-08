@@ -72,6 +72,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include "input.h"
 #include "dixfont.h"
 #include "osdep.h"
+#include "extension.h"
 #ifdef X_POSIX_C_SOURCE
 #define _POSIX_C_SOURCE X_POSIX_C_SOURCE
 #include <signal.h>
@@ -286,12 +287,6 @@ int userdefinedfontpath = 0;
 #endif /* sgi */
 
 char *dev_tty_from_init = NULL;		/* since we need to parse it anyway */
-
-extern char dispatchExceptionAtReset;
-
-/* Extension enable/disable in miinitext.c */
-extern Bool EnableDisableExtension(char *name, Bool enable);
-extern void EnableDisableExtensionError(char *name, Bool enable);
 
 OsSigHandlerPtr
 OsSignal(sig, handler)

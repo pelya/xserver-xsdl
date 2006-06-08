@@ -294,6 +294,7 @@ extern ClientPtr requestingClient;
 extern ClientPtr *clients;
 extern ClientPtr serverClient;
 extern int currentMaxClients;
+extern char dispatchExceptionAtReset;
 
 typedef int HWEventQueueType;
 typedef HWEventQueueType* HWEventQueuePtr;
@@ -694,6 +695,9 @@ extern int TryClientEvents(
 
 extern void WindowsRestructured(void);
 
+#ifdef PANORAMIX
+extern void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff);
+#endif
 
 #ifdef RANDR
 void
