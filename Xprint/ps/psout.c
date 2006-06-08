@@ -683,7 +683,6 @@ void
 PsOut_EndFile(PsOutPtr self, int closeFile)
 {
   char coms[50];
-  int  i;
   
   if (!self)
     return;
@@ -1592,7 +1591,8 @@ PsOut_BeginPattern(PsOutPtr self, void *tag, int w, int h, PsFillEnum type,
   switch(type) {
     case PsTile:   key[1] = 't'; break;
     case PsStip:   key[1] = 's'; break;
-    case PsOpStip: key[1] = 'o'; break; }
+    case PsOpStip: key[1] = 'o'; break;
+    default: break; }
   S_OutTok(self, key, 0);
   S_OutTok(self, "db/PatternType 1 d/PaintType 1 d", 0);
   S_OutTok(self, "/TilingType 1 d/BBox[0 0", 0);
@@ -1637,7 +1637,8 @@ PsOut_SetPattern(PsOutPtr self, void *tag, PsFillEnum type)
   switch(type) {
     case PsTile:   key[0] = 't'; break;
     case PsStip:   key[0] = 's'; break;
-    case PsOpStip: key[0] = 'o'; break; }
+    case PsOpStip: key[0] = 'o'; break;
+    default: break; }
   S_OutTok(self, key, 0);
   S_OutTok(self, "spt", 1);
   self->CurColor = PSOUTCOLOR_NOCOLOR;
@@ -1663,7 +1664,6 @@ typedef enum PsDownfontFontType_
 int
 PsOut_DownloadType1(PsOutPtr self, const char *auditmsg, const char *name, const char *fname)
 {
-  int     i;
   int     stt;
   char    buf[256];
   FILE   *fp;
