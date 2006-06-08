@@ -177,7 +177,7 @@ InitInput(
      int       argc,
      char **argv)
 {
-    DevicePtr ptr, kbd;
+    DeviceIntPtr ptr, kbd;
 
     ptr = AddInputDevice((DeviceProc)PointerProc, TRUE);
     kbd = AddInputDevice((DeviceProc)KeyboardProc, TRUE);
