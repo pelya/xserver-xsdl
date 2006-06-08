@@ -237,11 +237,13 @@ OsVendorFatalError(void)
 }
 #endif
 
+#ifdef DDXBEFORERESET
 void
 ddxBeforeReset(void)
 {
     return;
 }
+#endif
 
 #ifdef DDXTIME
 CARD32
