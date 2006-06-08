@@ -196,6 +196,9 @@ void XpPutTrayMediumListAttr(XpContextPtr pContext,
 			     XPAttributes pool,
 			     XpOid oid,
 			     const XpOidTrayMediumList* tm);
+void XpValidatePrinterMediaAttrs(XpContextPtr pContext,
+				 const XpOidList* valid_trays,
+				 const XpOidList* valid_sizes);
 /*
  * Attribute pool validation
  */
@@ -204,6 +207,7 @@ void XpValidateAttributePool(XpContextPtr pContext,
 			     const XpValidatePoolsRec* vpr);
 void XpValidatePrinterPool(XpContextPtr pContext,
 			   const XpValidatePoolsRec* vpr);
+void XpValidateNotificationProfile(XpContextPtr pContext);
 void XpValidateJobPool(XpContextPtr pContext,
 		       const XpValidatePoolsRec* vpr);
 void XpValidateDocumentPool(XpContextPtr pContext,
