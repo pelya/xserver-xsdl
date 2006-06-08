@@ -329,11 +329,7 @@ PsPolyText16(
     {
         PsOutPtr       psOut;
         ColormapPtr    cMap;
-        unsigned short c,
-                       c_hiByte,
-                       c_lowByte,
-                       fontPage;
-        int            i;
+        unsigned short fontPage;
         
 	if( PsUpdateDrawableGC(pGC, pDrawable, &psOut, &cMap)==FALSE ) 
 	    return x; 
