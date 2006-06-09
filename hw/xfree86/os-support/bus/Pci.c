@@ -220,12 +220,8 @@
 pciBusInfo_t  *pciBusInfo[MAX_PCI_BUSES] = { NULL, };
 _X_EXPORT int            pciNumBuses = 0;     /* Actual number of PCI buses */
 int            pciMaxBusNum = MAX_PCI_BUSES;
-static Bool    inProbe = FALSE;
 
 static pciConfigPtr pci_devp[MAX_PCI_DEVICES + 1] = {NULL, };
-
-static int readPciBios( PCITAG Tag, CARD8* tmp, ADDRESS hostbase,
-			unsigned char * buf, int len, PciBiosType BiosType );
 
 
 /*
