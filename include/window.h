@@ -256,6 +256,8 @@ void ResizeChildrenWinSize(
     int /*dw*/,
     int /*dh*/);
 
+extern void ShapeExtensionInit(void);
+
 extern void SendShapeNotify(
     WindowPtr /* pWin */,
     int /* which */ );
