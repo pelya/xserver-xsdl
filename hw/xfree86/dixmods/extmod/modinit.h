@@ -10,7 +10,6 @@
 #endif
 
 #ifdef SHAPE
-extern void ShapeExtensionInit(INITARGS);
 #define _SHAPE_SERVER_  /* don't want Xlib structures */
 #include <X11/extensions/shapestr.h>
 #endif

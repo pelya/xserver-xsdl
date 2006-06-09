@@ -56,6 +56,7 @@
 #ifndef _LOADERPROCS_H
 #define _LOADERPROCS_H
 
+#undef IN_LOADER
 #define IN_LOADER
 #include "xf86Module.h"
 #include <X11/fonts/fontmod.h>

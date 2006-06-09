@@ -202,9 +202,6 @@ XkbError:
 			       xnestBell, xnestChangeKeyboardControl);
 #ifdef XKB
       } else {
-	FILE *file;
-	XkbConfigRtrnRec config;
-
 	XkbComponentNamesRec names;
 	char *rules, *model, *layout, *variants, *options;
 

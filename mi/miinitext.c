@@ -258,9 +258,6 @@ typedef void (*InitExtension)(INITARGS);
 #endif
 
 /* FIXME: this whole block of externs should be from the appropriate headers */
-#ifdef SHAPE
-extern void ShapeExtensionInit(INITARGS);
-#endif
 #ifdef EVI
 extern void EVIExtensionInit(INITARGS);
 #endif

@@ -82,6 +82,7 @@ in this Software without prior written authorization from The Open Group.
 #include <stdio.h>
 #include "os.h"
 #define USE_PSOUT_PRIVATE 1
+#include "Ps.h"
 #include "psout.h"
 #ifdef XP_USE_FREETYPE
 #include <ft2build.h>
@@ -89,9 +90,6 @@ in this Software without prior written authorization from The Open Group.
 #endif /* XP_USE_FREETYPE */
 /* For VENDOR_STRING and VENDOR_RELEASE */
 #include "site.h"
-
-extern PsElmPtr PsCloneFillElementList(int nElms, PsElmPtr elms);
-extern void PsDestroyFillElementList(int nElms, PsElmPtr elms);
 
 /*
  *  Standard definitions

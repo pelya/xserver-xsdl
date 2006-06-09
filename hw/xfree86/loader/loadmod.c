@@ -434,8 +434,6 @@ FindModule(const char *module, const char *dir, const char **subdirlist,
 	strcat(buf, *s);
 	/*xf86Msg(X_INFO,"OS2DIAG: FindModule: buf=%s\n",buf); */
         if ((stat(buf, &stat_buf) == 0) && S_ISDIR(stat_buf.st_mode)) {
-	    int i;
-	
             if (buf[dirlen - 1] != '/') {
                 buf[dirlen++] = '/';
             }
