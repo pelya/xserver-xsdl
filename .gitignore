@@ -30,6 +30,14 @@ include/xkb-config.h
 include/xorg-config.h
 include/xorg-server.h
 include/xwin-config.h
+Xprint/dpmsstubs-wrapper.c
+Xprint/miinitext-wrapper.c
 hw/dmx/config/parser.c
 hw/dmx/config/parser.h
 hw/dmx/config/scanner.c
+hw/xfree86/utils/ioport/inb
+hw/xfree86/utils/ioport/inl
+hw/xfree86/utils/ioport/inw
+hw/xfree86/utils/ioport/outb
+hw/xfree86/utils/ioport/outl
+hw/xfree86/utils/ioport/outw
