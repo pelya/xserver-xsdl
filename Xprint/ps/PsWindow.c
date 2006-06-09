@@ -89,8 +89,6 @@ in this Software without prior written authorization from The Open Group.
 
 #include "Ps.h"
 
-extern WindowPtr *WindowTable;
-
 /*
  * The following list of strings defines the properties which will be
  * placed on the screen's root window if the property was defined in
