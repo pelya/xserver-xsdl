@@ -295,8 +295,7 @@ ddxProcessArgument (
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
-
-extern  int     BadDevice;
+#include "exglobals.h"
 
 int
 ChangePointerDevice (
