@@ -298,12 +298,13 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 	(*pExaScr->info->Solid) (pDstPix,
 				 pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
 				 pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
+	exaDrawableDirty (pDst->pDrawable,
+			  pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
+			  pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
 	pbox++;
     }
-
     (*pExaScr->info->DoneSolid) (pDstPix);
     exaMarkSync(pDst->pDrawable->pScreen);
-    exaDrawableDirty (pDst->pDrawable);
 
     REGION_UNINIT(pDst->pDrawable->pScreen, &region);
     return 1;
@@ -437,12 +438,13 @@ exaTryDriverComposite(CARD8		op,
 				     pbox->y1 + dst_off_y,
 				     pbox->x2 - pbox->x1,
 				     pbox->y2 - pbox->y1);
+	exaDrawableDirty (pDst->pDrawable,
+			  pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
+			  pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
 	pbox++;
     }
-
     (*pExaScr->info->DoneComposite) (pDstPix);
     exaMarkSync(pDst->pDrawable->pScreen);
-    exaDrawableDirty (pDst->pDrawable);
 
     REGION_UNINIT(pDst->pDrawable->pScreen, &region);
     return 1;
@@ -648,6 +650,8 @@ exaRasterizeTrapezoid (PicturePtr pPicture, xTrapezoid  *trap,
 
     exaPrepareAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
     fbRasterizeTrapezoid(pPicture, trap, x_off, y_off);
+    exaDrawableDirty(pPicture->pDrawable, 0, 0,
+		     pPicture->pDrawable->width, pPicture->pDrawable->height);
     exaFinishAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
 }
 
@@ -669,6 +673,8 @@ exaAddTriangles (PicturePtr pPicture, INT16 x_off, INT16 y_off, int ntri,
     exaPrepareAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
     fbAddTriangles(pPicture, x_off, y_off, ntri, tris);
     exaFinishAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+    exaDrawableDirty(pPicture->pDrawable, 0, 0,
+		     pPicture->pDrawable->width, pPicture->pDrawable->height);
 }
 
 /**
@@ -958,7 +964,8 @@ exaGlyphs (CARD8	op,
 		exaCopyArea (&pScratchPixmap->drawable, &pPixmap->drawable, pGC,
 			     0, 0, glyph->info.width, glyph->info.height, 0, 0);
 	    } else {
-		exaDrawableDirty (&pPixmap->drawable);
+		exaDrawableDirty (&pPixmap->drawable, 0, 0,
+				  glyph->info.width, glyph->info.height);
 	    }
 
 	    if (maskFormat)

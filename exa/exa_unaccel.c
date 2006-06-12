@@ -23,6 +23,26 @@
 
 #include "exa_priv.h"
 
+#define TRIM_BOX(box, pGC) if (pGC->pCompositeClip) { \
+	    BoxPtr extents = &pGC->pCompositeClip->extents;\
+	    if(box.x1 < extents->x1) box.x1 = extents->x1; \
+	    if(box.x2 > extents->x2) box.x2 = extents->x2; \
+	    if(box.y1 < extents->y1) box.y1 = extents->y1; \
+	    if(box.y2 > extents->y2) box.y2 = extents->y2; \
+	    }
+
+#define TRANSLATE_BOX(box, pDrawable) { \
+	    box.x1 += pDrawable->x; \
+	    box.x2 += pDrawable->x; \
+	    box.y1 += pDrawable->y; \
+	    box.y2 += pDrawable->y; \
+	    }
+
+#define TRIM_AND_TRANSLATE_BOX(box, pDrawable, pGC) { \
+	    TRANSLATE_BOX(box, pDrawable); \
+	    TRIM_BOX(box, pGC); \
+	    }
+
 /*
  * These functions wrap the low-level fb rendering functions and
  * synchronize framebuffer/accelerated drawing by stalling until
@@ -200,11 +220,35 @@ ExaCheckPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
 		     int nrect, xRectangle *prect)
 {
     EXA_FALLBACK(("to %p (%c)\n", pDrawable, exaDrawableLocation(pDrawable)));
-    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
-    exaPrepareAccessGC (pGC);
-    fbPolyFillRect (pDrawable, pGC, nrect, prect);
-    exaFinishAccessGC (pGC);
-    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
+
+    if (nrect) {
+	BoxRec box = { .x1 = max(prect->x,0),
+		       .x2 = min(prect->x + prect->width,pDrawable->width),
+		       .y1 = max(prect->y,0),
+		       .y2 = min(prect->y + prect->height,pDrawable->height) };
+
+	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+	exaPrepareAccessGC (pGC);
+	fbPolyFillRect (pDrawable, pGC, nrect, prect);
+	exaFinishAccessGC (pGC);
+	exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
+
+	/* Only track bounding box of damage, as this path can degenerate to
+	 * zillions of damage boxes
+	 */
+	while (--nrect)
+	{
+	    prect++;
+	    box.x1 = min(box.x1, prect->x);
+	    box.x2 = max(box.x2, prect->x + prect->width);
+	    box.y1 = min(box.y1, prect->y);
+	    box.y2 = max(box.y2, prect->y + prect->height);
+	}
+
+	TRIM_AND_TRANSLATE_BOX(box, pDrawable, pGC);
+
+	exaDrawableDirty (pDrawable, box.x1, box.x2, box.y1, box.y2);
+    }
 }
 
 void

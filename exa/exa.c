@@ -122,13 +122,22 @@ exaGetDrawablePixmap(DrawablePtr pDrawable)
  * optimizations in pixmap migration when no changes have occurred.
  */
 void
-exaDrawableDirty (DrawablePtr pDrawable)
+exaDrawableDirty (DrawablePtr pDrawable, int x1, int y1, int x2, int y2)
 {
     ExaPixmapPrivPtr pExaPixmap;
+    RegionPtr pDamageReg;
+    BoxRec box = { max(x1,0), max(y1,0), min(x2,pDrawable->width), min(y2,pDrawable->height) };
+    RegionRec region;
 
     pExaPixmap = ExaGetPixmapPriv(exaGetDrawablePixmap (pDrawable));
-    if (pExaPixmap != NULL)
-	pExaPixmap->dirty = TRUE;
+    if (!pExaPixmap || box.x1 >= box.x2 || box.y1 >= box.y2)
+	return;
+	
+    pDamageReg = DamageRegion(pExaPixmap->pDamage);
+
+    REGION_INIT(pScreen, &region, &box, 1);
+    REGION_UNION(pScreen, pDamageReg, pDamageReg, &region);
+    REGION_UNINIT(pScreen, &region);
 }
 
 static Bool
@@ -149,6 +158,7 @@ exaDestroyPixmap (PixmapPtr pPixmap)
 	    pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
 	    pPixmap->devKind = pExaPixmap->sys_pitch;
 	}
+	REGION_UNINIT(pPixmap->drawable.pScreen, &pExaPixmap->validReg);
     }
     return fbDestroyPixmap (pPixmap);
 }
@@ -216,7 +226,20 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 	return NULL;
     }
 
-    pExaPixmap->dirty = FALSE;
+    /* Set up damage tracking */
+    pExaPixmap->pDamage = DamageCreate (NULL, NULL, DamageReportNone, TRUE,
+					pScreen, pPixmap);
+
+    if (pExaPixmap->pDamage == NULL) {
+	fbDestroyPixmap (pPixmap);
+	return NULL;
+    }
+
+    DamageRegister (&pPixmap->drawable, pExaPixmap->pDamage);
+    DamageSetReportAfterOp (pExaPixmap->pDamage, TRUE);
+
+    /* None of the pixmap bits are valid initially */
+    REGION_NULL(pScreen, &pExaPixmap->validReg);
 
     return pPixmap;
 }
@@ -334,8 +357,7 @@ exaPrepareAccess(DrawablePtr pDrawable, int index)
 /**
  * exaFinishAccess() is EXA's wrapper for the driver's FinishAccess() handler.
  *
- * It deals with marking drawables as dirty, and calling the driver's
- * FinishAccess() only if necessary.
+ * It deals with calling the driver's FinishAccess() only if necessary.
  */
 void
 exaFinishAccess(DrawablePtr pDrawable, int index)
@@ -344,9 +366,6 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
     ExaScreenPriv  (pScreen);
     PixmapPtr	    pPixmap;
     ExaPixmapPrivPtr pExaPixmap;
-
-    if (index == EXA_PREPARE_DEST)
-	exaDrawableDirty (pDrawable);
 
     pPixmap = exaGetDrawablePixmap (pDrawable);
 
@@ -373,7 +392,7 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
  * accelerated or may sync the card and fall back to fb.
  */
 static void
-exaValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
+exaValidateGC (GCPtr pGC, unsigned long changes, DrawablePtr pDrawable)
 {
     /* fbValidateGC will do direct access to pixmaps if the tiling has changed.
      * Preempt fbValidateGC by doing its work and masking the change out, so
@@ -404,6 +423,7 @@ exaValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
 		exaPrepareAccess(&pOldTile->drawable, EXA_PREPARE_SRC);
 		pNewTile = fb24_32ReformatTile (pOldTile,
 						pDrawable->bitsPerPixel);
+		exaDrawableDirty(&pNewTile->drawable, 0, 0, pNewTile->drawable.width, pNewTile->drawable.height);
 		exaFinishAccess(&pOldTile->drawable, EXA_PREPARE_SRC);
 	    }
 	    if (pNewTile)
@@ -419,9 +439,14 @@ exaValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
 	if (!pGC->tileIsPixel && FbEvenTile (pGC->tile.pixmap->drawable.width *
 					     pDrawable->bitsPerPixel))
 	{
-	    exaPrepareAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
+	    /* XXX This fixes corruption with tiled pixmaps, but may just be a
+	     * workaround for broken drivers
+	     */
+	    exaMoveOutPixmap(pGC->tile.pixmap);
 	    fbPadPixmap (pGC->tile.pixmap);
-	    exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
+	    exaDrawableDirty(&pGC->tile.pixmap->drawable, 0, 0,
+			     pGC->tile.pixmap->drawable.width,
+			     pGC->tile.pixmap->drawable.height);
 	}
 	/* Mask out the GCTile change notification, now that we've done FB's
 	 * job for it.

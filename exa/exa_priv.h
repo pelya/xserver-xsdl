@@ -51,6 +51,7 @@
 #ifdef RENDER
 #include "fbpict.h"
 #endif
+#include "damage.h"
 
 #define DEBUG_TRACE_FALL	0
 #define DEBUG_MIGRATE		0
@@ -168,16 +169,16 @@ typedef struct {
     unsigned int    fb_size;	/**< size of pixmap in framebuffer memory */
 
     /**
-     * If area is NULL, then dirty == TRUE means that the pixmap has been
-     * modified, so the contents are defined.  Used to avoid uploads of
-     * undefined data.
-     *
-     * If area is non-NULL, then dirty == TRUE means that the pixmap data at
-     * pPixmap->devPrivate.ptr (either fb_ptr or sys_ptr) has been changed
-     * compared to the copy in the other location.  This is used to avoid
-     * uploads/downloads of unmodified data.
+     * The damage record contains the areas of the pixmap's current location
+     * (framebuffer or system) that have been damaged compared to the other
+     * location.
      */
-    Bool	    dirty;
+    DamagePtr	    pDamage;
+    /**
+     * The valid region marks the valid bits of a drawable (at least, as it's
+     * derived from damage, which may be overreported).
+     */
+    RegionRec	    validReg;
 } ExaPixmapPrivRec, *ExaPixmapPrivPtr;
  
 typedef struct _ExaMigrationRec {
@@ -323,7 +324,7 @@ ExaCheckComposite (CARD8      op,
 		  CARD16     height);
 #endif
 
-/* exaoffscreen.c */
+/* exa_offscreen.c */
 void
 ExaOffscreenMarkUsed (PixmapPtr pPixmap);
 
@@ -347,7 +348,7 @@ void
 exaFinishAccess(DrawablePtr pDrawable, int index);
 
 void
-exaDrawableDirty(DrawablePtr pDrawable);
+exaDrawableDirty(DrawablePtr pDrawable, int x1, int y1, int x2, int y2);
 
 Bool
 exaDrawableIsOffscreen (DrawablePtr pDrawable);
