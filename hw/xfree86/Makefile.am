@@ -43,6 +43,9 @@ XORG_LIBS = \
 	    dixmods/libdixmods.la \
             @XORG_LIBS@
 
+Xorg_DEPENDENCIES = \
+	$(XORG_LIBS)
+
 Xorg_LDADD = $(XORG_LIBS) \
              @XSERVER_LIBS@ \
 	     dixmods/libxorgxkb.la
