@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include "gcstruct.h"
+#include "pixmapstr.h"
 #include "cw.h"
 
 #define SETUP_BACKING_DST(_pDst, _pGC) \
@@ -43,6 +44,9 @@
 	&src_off_y)
 
 #define PROLOGUE(pGC) do { \
+    if (pBackingGC->serialNumber != pBackingDst->serialNumber) { \
+	ValidateGC(pBackingDst, pBackingGC); \
+    } \
     pGC->funcs = pGCPrivate->wrapFuncs;\
     pGC->ops = pGCPrivate->wrapOps;\
 } while (0)
