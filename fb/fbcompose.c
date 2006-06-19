@@ -267,11 +267,11 @@ fbFetch_a4b4g4r4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
         CARD32  r,g,b, a;
 
         a = ((p & 0xf000) | ((p & 0xf000) >> 4)) << 16;
-        b = ((p & 0x0f00) | ((p & 0x0f00) >> 4)) << 12;
+        b = ((p & 0x0f00) | ((p & 0x0f00) >> 4)) >> 4;
         g = ((p & 0x00f0) | ((p & 0x00f0) >> 4)) << 8;
-        r = ((p & 0x000f) | ((p & 0x000f) << 4));
+        r = ((p & 0x000f) | ((p & 0x000f) << 4)) << 16;
         *buffer++ = (a | r | g | b);
-	}
+    }
 }
 
 static FASTCALL void
@@ -283,11 +283,11 @@ fbFetch_x4b4g4r4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
         CARD32  p = *pixel++;
         CARD32  r,g,b;
 
-        b = ((p & 0x0f00) | ((p & 0x0f00) >> 4)) << 12;
+        b = ((p & 0x0f00) | ((p & 0x0f00) >> 4)) >> 4;
         g = ((p & 0x00f0) | ((p & 0x00f0) >> 4)) << 8;
-        r = ((p & 0x000f) | ((p & 0x000f) << 4));
+        r = ((p & 0x000f) | ((p & 0x000f) << 4)) << 16;
         *buffer++ = (0xff000000 | r | g | b);
-	}
+    }
 }
 
 static FASTCALL void
@@ -758,9 +758,9 @@ fbFetchPixel_a4b4g4r4 (const FbBits *bits, int offset, miIndexedPtr indexed)
     CARD32  a,r,g,b;
 
     a = ((pixel & 0xf000) | ((pixel & 0xf000) >> 4)) << 16;
-    b = ((pixel & 0x0f00) | ((pixel & 0x0f00) >> 4)) << 12;
+    b = ((pixel & 0x0f00) | ((pixel & 0x0f00) >> 4)) >> 4;
     g = ((pixel & 0x00f0) | ((pixel & 0x00f0) >> 4)) << 8;
-    r = ((pixel & 0x000f) | ((pixel & 0x000f) << 4));
+    r = ((pixel & 0x000f) | ((pixel & 0x000f) << 4)) << 16;
     return (a | r | g | b);
 }
 
@@ -770,9 +770,9 @@ fbFetchPixel_x4b4g4r4 (const FbBits *bits, int offset, miIndexedPtr indexed)
     CARD32  pixel = ((CARD16 *) bits)[offset];
     CARD32  r,g,b;
 
-    b = ((pixel & 0x0f00) | ((pixel & 0x0f00) >> 4)) << 12;
+    b = ((pixel & 0x0f00) | ((pixel & 0x0f00) >> 4)) >> 4;
     g = ((pixel & 0x00f0) | ((pixel & 0x00f0) >> 4)) << 8;
-    r = ((pixel & 0x000f) | ((pixel & 0x000f) << 4));
+    r = ((pixel & 0x000f) | ((pixel & 0x000f) << 4)) << 16;
     return (0xff000000 | r | g | b);
 }
 
