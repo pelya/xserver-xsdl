@@ -849,6 +849,14 @@ fbFetchPixel_c8 (const FbBits *bits, int offset, miIndexedPtr indexed)
     return indexed->rgba[pixel];
 }
 
+static FASTCALL CARD32
+fbFetchPixel_x4a4 (const FbBits *bits, int offset, miIndexedPtr indexed)
+{
+    CARD32   pixel = ((CARD8 *) bits)[offset];
+
+    return ((pixel & 0xf) | ((pixel & 0xf) << 4)) << 24;
+}
+
 #define Fetch8(l,o)    (((CARD8 *) (l))[(o) >> 2])
 #if IMAGE_BYTE_ORDER == MSBFirst
 #define Fetch4(l,o)    ((o) & 2 ? Fetch8(l,o) & 0xf : Fetch8(l,o) >> 4)
@@ -988,6 +996,7 @@ static fetchPixelProc fetchPixelProcForPicture (PicturePtr pict)
     case PICT_a2b2g2r2: return fbFetchPixel_a2b2g2r2;
     case PICT_c8: return  fbFetchPixel_c8;
     case PICT_g8: return  fbFetchPixel_c8;
+    case PICT_x4a4: return fbFetchPixel_x4a4;
 
         /* 4bpp formats */
     case PICT_a4: return  fbFetchPixel_a4;
