@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libps.la
 
-INCLUDES = -I$(top_srcdir)/Xprint
+INCLUDES = -I$(top_srcdir)/hw/xprint
 
 AM_CFLAGS = @SERVER_DEFINES@ @DIX_CFLAGS@ @XPRINT_CFLAGS@ @FREETYPE_CFLAGS@ \
 	-D_XP_PRINT_SERVER_ -DPSZ=8 -DXP_PSTEXT
