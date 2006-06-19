@@ -170,7 +170,7 @@ static ClientList cmd_clients;   /* Linked-list of clients using command key */
 /*----------------------------*
  *  Forward Declarations
  *----------------------------*/
-static void _SwapProc (int (**f1 )(), int (**f2 )());
+static void _SwapProc (int (**f1 )(void), int (**f2 )(void));
 static void sXETrapEvent (xETrapDataEvent *from , xETrapDataEvent *to );
 static int add_accelerator_node (ClientPtr client , ClientList *accel );
 static void remove_accelerator_node (ClientPtr client , ClientList *accel );
@@ -886,14 +886,14 @@ int XETrapConfig(xXTrapConfigReq *request, ClientPtr client)
                 {   /* Client wants the XTrap rtn */
                     if (++(vectored_requests[i]) <= 1L)
                     {   /* first client, so do it */
-                        _SwapProc(&(XETrapProcVector[i]), &(ProcVector[i]));
+                        _SwapProc(&(XETrapProcVector[i]), (int_function *)&(ProcVector[i]));
                     }
                 }
                 else
                 {   /* Client wants the *real* rtn */
                     if (--(vectored_requests[i]) <= 0L)
                     {   /* No more clients using, so do it */
-                        _SwapProc(&(XETrapProcVector[i]), &(ProcVector[i]));
+                        _SwapProc(&(XETrapProcVector[i]), (int_function *)&(ProcVector[i]));
                     }
                 }
                 if (status == Success)
@@ -1787,9 +1787,9 @@ static void update_protocol(xXTrapGetReq *reqptr, ClientPtr client)
  * lint from complaining about mixed types. It seems to work, but I would
  * probably classify this as a hack.
  */
-static void _SwapProc( register int (**f1)(), register int (**f2)())
+static void _SwapProc( register int (**f1)(void), register int (**f2)(void))
 {
-    register int (*t1)() = *f1;
+    register int (*t1)(void) = *f1;
     *f1 = *f2;
     *f2 = t1;
 
