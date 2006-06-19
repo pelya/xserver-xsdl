@@ -38,6 +38,7 @@ XORG_LIBS = \
             common/libinit.a \
             loader/libloader.a \
             libosandcommon.la \
+	    rac/librac.a \
             parser/libxf86config.a \
             dummylib/libdummy.a \
 	    dixmods/libdixmods.la \

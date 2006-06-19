@@ -1,5 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/rac/xf86RAC.c,v 1.5 1999/06/12 17:30:21 dawes Exp $ */
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
@@ -243,12 +241,12 @@ static void RACCompositeRects(CARD8 op, PicturePtr pDst, xRenderColor *color,
 			      int nRect, xRectangle *rects);
 #endif
 
-GCFuncs RACGCFuncs = {
+static GCFuncs RACGCFuncs = {
     RACValidateGC, RACChangeGC, RACCopyGC, RACDestroyGC,
     RACChangeClip, RACDestroyClip, RACCopyClip
 };
 
-GCOps RACGCOps = {
+static GCOps RACGCOps = {
     RACFillSpans, RACSetSpans, RACPutImage, RACCopyArea, 
     RACCopyPlane, RACPolyPoint, RACPolylines, RACPolySegment, 
     RACPolyRectangle, RACPolyArc, RACFillPolygon, RACPolyFillRect, 
@@ -257,13 +255,13 @@ GCOps RACGCOps = {
     {NULL}		/* devPrivate */
 };
 
-miPointerSpriteFuncRec RACSpriteFuncs = {
+static miPointerSpriteFuncRec RACSpriteFuncs = {
     RACSpriteRealizeCursor, RACSpriteUnrealizeCursor, RACSpriteSetCursor,
     RACSpriteMoveCursor
 };
 
-int RACScreenIndex = -1;
-int RACGCIndex = -1;
+static int RACScreenIndex = -1;
+static int RACGCIndex = -1;
 static unsigned long RACGeneration = 0;
 
 

@@ -1,6 +1,5 @@
-module_LTLIBRARIES = librac.la
-librac_la_LDFLAGS = -avoid-version
-librac_la_SOURCES = xf86RACmodule.c xf86RAC.c
+module_LIBRARIES = librac.a
+librac_a_SOURCES = xf86RAC.c
 
 sdk_HEADERS = xf86RAC.h
 
