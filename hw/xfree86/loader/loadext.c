@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/loadext.c,v 1.8 2003/10/15 16:29:04 dawes Exp $ */
 /*
  * Copyright (c) 2000 by The XFree86 Project, Inc.
  *
@@ -37,6 +36,10 @@
 #include "misc.h"
 #include "xf86.h"
 
+/*
+ * This should be static, but miinitext wants it.  FIXME: make extension
+ * initialization not completely terrible.
+ */
 ExtensionModule *ExtensionModuleList = NULL;
 static int numExtensionModules = 0;
 
