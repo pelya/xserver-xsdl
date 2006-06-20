@@ -129,7 +129,7 @@ typedef union _SourcePict {
 typedef struct _Picture {
     DrawablePtr	    pDrawable;
     PictFormatPtr   pFormat;
-    CARD32	    format;	    /* PICT_FORMAT */
+    PictFormatShort format;	    /* PICT_FORMAT */
     int		    refcnt;
     CARD32	    id;
     PicturePtr	    pNext;	    /* chain on same drawable */
