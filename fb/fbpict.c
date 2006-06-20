@@ -925,6 +925,8 @@ fbComposite (CARD8      op,
 #endif
 				func = fbCompositeSolidMask_nx8x8888;
 			    break;
+			default:
+			    break;
 			}
 			break;
 		    case PICT_a8r8g8b8:
@@ -946,6 +948,8 @@ fbComposite (CARD8      op,
 				else
 #endif
 				    func = fbCompositeSolidMask_nx8888x0565C;
+				break;
+			    default:
 				break;
 			    }
 			}
@@ -970,6 +974,8 @@ fbComposite (CARD8      op,
 #endif
 				    func = fbCompositeSolidMask_nx8888x0565C;
 				break;
+			    default:
+				break;
 			    }
 			}
 			break;
@@ -985,9 +991,15 @@ fbComposite (CARD8      op,
 			case PICT_x8b8g8r8:
 			    func = fbCompositeSolidMask_nx1xn;
 			    break;
+			default:
+			    break;
 			}
 			break;
+		    default:
+			break;
 		    }
+		default:
+		    break;
 		}
 	    }
 	    else if (! srcRepeat) /* has mask and non-repeating source */
@@ -1016,7 +1028,11 @@ fbComposite (CARD8      op,
 				    func = fbCompositeSrc_8888RevNPx0565mmx;
 #endif
 				break;
+			    default:
+				break;
 			    }
+			    break;
+			default:
 			    break;
 			}
 			break;
@@ -1038,9 +1054,15 @@ fbComposite (CARD8      op,
 				    func = fbCompositeSrc_8888RevNPx0565mmx;
 #endif
 				break;
+			    default:
+				break;
 			    }
 			    break;
+			default:
+			    break;
 			}
+			break;
+		    default:
 			break;
 		    }
 		    break;
@@ -1094,7 +1116,11 @@ fbComposite (CARD8      op,
 			}
 #endif
 			break;
+		    default:
+			break;
 		    }
+		    break;
+		default:
 		    break;
 		}
 	    }
@@ -1118,6 +1144,8 @@ fbComposite (CARD8      op,
 		    case PICT_r5g6b5:
 			func = fbCompositeSrc_8888x0565;
 			break;
+		    default:
+			break;
 		    }
 		    break;
 		case PICT_x8r8g8b8:
@@ -1129,6 +1157,8 @@ fbComposite (CARD8      op,
 			    func = fbCompositeCopyAreammx;
 #endif
 			break;
+		    default:
+			break;
 		    }
 		case PICT_x8b8g8r8:
 		    switch (pDst->format) {
@@ -1138,6 +1168,8 @@ fbComposite (CARD8      op,
 			if (fbHaveMMX())
 			    func = fbCompositeCopyAreammx;
 #endif
+			break;
+		    default:
 			break;
 		    }
 		    break;
@@ -1158,12 +1190,16 @@ fbComposite (CARD8      op,
 		    case PICT_b5g6r5:
 			func = fbCompositeSrc_8888x0565;
 			break;
+		    default:
+			break;
 		    }
 		    break;
 		case PICT_r5g6b5:
 		    switch (pDst->format) {
 		    case PICT_r5g6b5:
 			func = fbCompositeSrc_0565x0565;
+			break;
+		    default:
 			break;
 		    }
 		    break;
@@ -1172,7 +1208,11 @@ fbComposite (CARD8      op,
 		    case PICT_b5g6r5:
 			func = fbCompositeSrc_0565x0565;
 			break;
+		    default:
+			break;
 		    }
+		    break;
+		default:
 		    break;
 		}
 	    }
@@ -1192,6 +1232,8 @@ fbComposite (CARD8      op,
 #endif
 			func = fbCompositeSrcAdd_8888x8888;
 		    break;
+		default:
+		    break;
 		}
 		break;
 	    case PICT_a8b8g8r8:
@@ -1203,6 +1245,8 @@ fbComposite (CARD8      op,
 		    else
 #endif
 			func = fbCompositeSrcAdd_8888x8888;
+		    break;
+		default:
 		    break;
 		}
 		break;
@@ -1216,6 +1260,8 @@ fbComposite (CARD8      op,
 #endif
 			func = fbCompositeSrcAdd_8000x8000;
 		    break;
+		default:
+		    break;
 		}
 		break;
 	    case PICT_a1:
@@ -1223,7 +1269,11 @@ fbComposite (CARD8      op,
 		case PICT_a1:
 		    func = fbCompositeSrcAdd_1000x1000;
 		    break;
+		default:
+		    break;
 		}
+		break;
+	    default:
 		break;
 	    }
 	}

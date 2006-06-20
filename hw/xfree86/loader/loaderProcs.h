@@ -1,7 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/loaderProcs.h,v 1.21 2003/10/15 16:29:04 dawes Exp $ */
-
 /*
- *
  * Copyright 1995-1998 by Metro Link, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -79,9 +76,7 @@ typedef struct module_desc {
     const XF86ModuleVersionInfo *VersionInfo;
 } ModuleDesc, *ModuleDescPtr;
 
-/*
- * Extenal API for the loader 
- */
+/* External API for the loader */
 
 void LoaderInit(void);
 

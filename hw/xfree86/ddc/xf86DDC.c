@@ -130,6 +130,17 @@ DDCAvailableOptions(void *unused)
 }
 #endif
 
+/**
+ * Attempts to probe the monitor for EDID information, if NoDDC and NoDDC1 are
+ * unset.  EDID information blocks are interpreted and the results returned in
+ * an xf86MonPtr.
+ *
+ * This function does not affect the list of modes used by drivers -- it is up
+ * to the driver to decide policy on what to do with EDID information.
+ *
+ * @return pointer to a new xf86MonPtr containing the EDID information.
+ * @return NULL if no monitor attached or failure to interpret the EDID.
+ */
 xf86MonPtr 
 xf86DoEDID_DDC1(
     int scrnIndex, DDC1SetSpeedProc DDC1SetSpeed, 
@@ -170,6 +181,17 @@ xf86DoEDID_DDC1(
 	return tmp;
 }
 
+/**
+ * Attempts to probe the monitor for EDID information, if NoDDC and NoDDC2 are
+ * unset.  EDID information blocks are interpreted and the results returned in
+ * an xf86MonPtr.
+ *
+ * This function does not affect the list of modes used by drivers -- it is up
+ * to the driver to decide policy on what to do with EDID information.
+ *
+ * @return pointer to a new xf86MonPtr containing the EDID information.
+ * @return NULL if no monitor attached or failure to interpret the EDID.
+ */
 xf86MonPtr
 xf86DoEDID_DDC2(int scrnIndex, I2CBusPtr pBus)
 {

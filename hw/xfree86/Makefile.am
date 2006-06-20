@@ -36,12 +36,16 @@ DISTCLEANFILES = osandcommon.c xorg.c
 XORG_LIBS = \
             @XORG_CORE_LIBS@ \
             common/libinit.a \
-            loader/libloader.a \
             libosandcommon.la \
+	    rac/librac.a \
             parser/libxf86config.a \
             dummylib/libdummy.a \
 	    dixmods/libdixmods.la \
+            loader/libloader.a \
             @XORG_LIBS@
+
+Xorg_DEPENDENCIES = \
+	$(XORG_LIBS)
 
 Xorg_LDADD = $(XORG_LIBS) \
              @XSERVER_LIBS@ \

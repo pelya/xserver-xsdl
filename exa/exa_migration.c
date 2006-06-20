@@ -435,6 +435,8 @@ exaAssertNotDirty (PixmapPtr pPixmap)
 	if (memcmp(dst, src, data_row_bytes) != 0) {
 	     abort();
 	}
+	dst += dst_pitch;
+	src += src_pitch;
     }
     exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
 }

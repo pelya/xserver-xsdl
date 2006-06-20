@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/loadfont.c,v 1.4 2003/10/15 16:29:04 dawes Exp $ */
 /*
  * Copyright (c) 1998 by The XFree86 Project, Inc.
  *
@@ -37,6 +36,7 @@
 #include "misc.h"
 #include "xf86.h"
 
+/* XXX this should be static, but xorgcfg needs it, nngh */
 FontModule *FontModuleList = NULL;
 static int numFontModules = 0;
 

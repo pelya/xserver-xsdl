@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Bus.c,v 1.80 2004/02/05 18:24:59 eich Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
  *
@@ -2576,17 +2575,13 @@ xf86PostPreInit()
     if (xf86NumScreens > 1)
 	needRAC = TRUE;
 
-#ifdef XFree86LOADER
     xf86MsgVerb(X_INFO, 3, "do I need RAC?");
     
     if (needRAC) {
 	xf86ErrorFVerb(3, "  Yes, I do.\n");
-	
-	if (!xf86LoadOneModule("rac",NULL))
-	    FatalError("Cannot load RAC module\n");
-    } else
+    } else {
 	xf86ErrorFVerb(3, "  No, I don't.\n");
-#endif    
+    }
  	
     xf86MsgVerb(X_INFO, 3, "resource ranges after preInit:\n");
     xf86PrintResList(3, Acc);
@@ -2599,22 +2594,12 @@ xf86PostScreenInit(void)
     ScreenPtr pScreen;
     unsigned int flags;
     int nummem = 0, numio = 0;
-#ifdef XFree86LOADER
-	pointer xf86RACInit = NULL;
-#endif
 
-	if (doFramebufferMode) {
-	    SetSIGIOForState(OPERATING);
-	    return;
-	}
+    if (doFramebufferMode) {
+	SetSIGIOForState(OPERATING);
+	return;
+    }
 
-#ifdef XFree86LOADER
-	if (needRAC) {
-	    xf86RACInit = LoaderSymbol("xf86RACInit");
-	    if (!xf86RACInit)
-		FatalError("Cannot resolve symbol \"xf86RACInit\"\n");
-	}
-#endif
 #ifdef DEBUG
     ErrorF("PostScreenInit  generation: %i\n",serverGeneration);
 #endif
@@ -2693,12 +2678,7 @@ xf86PostScreenInit(void)
 		xf86ErrorFVerb(3, "Screen %d is using RAC for io\n", i);
 	    }
 	    
-#ifdef XFree86LOADER
-		((Bool(*)(ScreenPtr,unsigned int))xf86RACInit)
-		    (pScreen,flags);
-#else
 	    xf86RACInit(pScreen,flags);
-#endif
 	}
     }
     

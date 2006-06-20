@@ -1028,7 +1028,7 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
 	XORG_INCS="$XORG_DDXINCS $XORG_OSINCS"
 	XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
-	XORG_LIBS="$MI_LIB $FIXES_LIB $XEXTXORG_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
+	XORG_LIBS="$COMPOSITE_LIB $MI_LIB $FIXES_LIB $XEXTXORG_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XPSTUBS_LIB $OS_LIB"
 
 	AC_CHECK_LIB([dl], [dlopen], XORG_LIBS="$XORG_LIBS -ldl")
 
@@ -1727,41 +1727,41 @@ hw/kdrive/smi/Makefile
 hw/kdrive/src/Makefile
 hw/kdrive/vesa/Makefile
 hw/kdrive/via/Makefile
-Xprint/Makefile
-Xprint/doc/Makefile
-Xprint/pcl/Makefile
-Xprint/pcl-mono/Makefile
-Xprint/raster/Makefile
-Xprint/ps/Makefile
-Xprint/etc/Makefile
-Xprint/etc/Xsession.d/Makefile
-Xprint/etc/init.d/Makefile
-Xprint/etc/profile.d/Makefile
-XpConfig/Makefile
-XpConfig/C/print/attributes/Makefile
-XpConfig/C/print/ddx-config/Makefile
-XpConfig/C/print/ddx-config/raster/Makefile
-XpConfig/C/print/models/CANONBJ10E-GS/Makefile
-XpConfig/C/print/models/PSdefault/fonts/Makefile
-XpConfig/C/print/models/PSdefault/Makefile
-XpConfig/C/print/models/PSspooldir/Makefile
-XpConfig/C/print/models/SPSPARC2/Makefile
-XpConfig/C/print/models/SPSPARC2/fonts/Makefile
-XpConfig/C/print/models/GSdefault/Makefile
-XpConfig/C/print/models/HPLJ4050-PS/Makefile
-XpConfig/C/print/models/HPLJ4050-PS/fonts/Makefile
-XpConfig/C/print/models/Makefile
-XpConfig/C/print/models/PS2PDFspooldir-GS/Makefile
-XpConfig/C/print/models/CANONC3200-PS/Makefile
-XpConfig/C/print/models/CANONC3200-PS/fonts/Makefile
-XpConfig/C/print/models/HPLJ4family/fonts/Makefile
-XpConfig/C/print/models/HPLJ4family/Makefile
-XpConfig/C/print/models/HPDJ1600C/Makefile
-XpConfig/C/print/models/HPDJ1600C/fonts/Makefile
-XpConfig/C/print/Makefile
-XpConfig/C/Makefile
-XpConfig/en_US/print/attributes/Makefile
-XpConfig/en_US/print/Makefile
-XpConfig/en_US/Makefile
+hw/xprint/Makefile
+hw/xprint/doc/Makefile
+hw/xprint/pcl/Makefile
+hw/xprint/pcl-mono/Makefile
+hw/xprint/raster/Makefile
+hw/xprint/ps/Makefile
+hw/xprint/etc/Makefile
+hw/xprint/etc/Xsession.d/Makefile
+hw/xprint/etc/init.d/Makefile
+hw/xprint/etc/profile.d/Makefile
+hw/xprint/config/Makefile
+hw/xprint/config/C/print/attributes/Makefile
+hw/xprint/config/C/print/ddx-config/Makefile
+hw/xprint/config/C/print/ddx-config/raster/Makefile
+hw/xprint/config/C/print/models/CANONBJ10E-GS/Makefile
+hw/xprint/config/C/print/models/PSdefault/fonts/Makefile
+hw/xprint/config/C/print/models/PSdefault/Makefile
+hw/xprint/config/C/print/models/PSspooldir/Makefile
+hw/xprint/config/C/print/models/SPSPARC2/Makefile
+hw/xprint/config/C/print/models/SPSPARC2/fonts/Makefile
+hw/xprint/config/C/print/models/GSdefault/Makefile
+hw/xprint/config/C/print/models/HPLJ4050-PS/Makefile
+hw/xprint/config/C/print/models/HPLJ4050-PS/fonts/Makefile
+hw/xprint/config/C/print/models/Makefile
+hw/xprint/config/C/print/models/PS2PDFspooldir-GS/Makefile
+hw/xprint/config/C/print/models/CANONC3200-PS/Makefile
+hw/xprint/config/C/print/models/CANONC3200-PS/fonts/Makefile
+hw/xprint/config/C/print/models/HPLJ4family/fonts/Makefile
+hw/xprint/config/C/print/models/HPLJ4family/Makefile
+hw/xprint/config/C/print/models/HPDJ1600C/Makefile
+hw/xprint/config/C/print/models/HPDJ1600C/fonts/Makefile
+hw/xprint/config/C/print/Makefile
+hw/xprint/config/C/Makefile
+hw/xprint/config/en_US/print/attributes/Makefile
+hw/xprint/config/en_US/print/Makefile
+hw/xprint/config/en_US/Makefile
 xorg-server.pc
 ])

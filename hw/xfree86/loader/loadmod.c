@@ -1,7 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/loadmod.c,v 1.73 2003/11/03 05:11:51 tsi Exp $ */
-
 /*
- *
  * Copyright 1995-1998 by Metro Link, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -73,7 +70,7 @@
 #include <dirent.h>
 #include <limits.h>
 
-extern int check_unresolved_sema;
+#define TestFree(a) if (a) { xfree (a); a = NULL; }
 
 typedef struct _pattern {
     const char *pattern;
@@ -93,7 +90,7 @@ static ModuleDescPtr doLoadModule(const char *, const char *, const char **,
 				  const XF86ModReqInfo *, int *, int *,
 				  int flags);
 
-ModuleVersions LoaderVersionInfo = {
+const ModuleVersions LoaderVersionInfo = {
     XORG_VERSION_CURRENT,
     ABI_ANSIC_VERSION,
     ABI_VIDEODRV_VERSION,
@@ -101,17 +98,6 @@ ModuleVersions LoaderVersionInfo = {
     ABI_EXTENSION_VERSION,
     ABI_FONT_VERSION
 };
-
-#if 0
-void
-LoaderFixups(void)
-{
-    /* Need to call LRS here because the frame buffers get loaded last,
-     * and the drivers depend on them. */
-
-    LoaderResolveSymbols();
-}
-#endif
 
 static void
 FreeStringList(char **paths)
@@ -225,15 +211,15 @@ static const char *stdSubdirs[] = {
 /*
  * Standard set of module name patterns to check, in order of preference
  * These are regular expressions (suitable for use with POSIX regex(3)).
+ *
+ * This list assumes that you're an ELFish platform and therefore your
+ * shared libraries are named something.so.  If we're ever nuts enough
+ * to port this DDX to, say, Darwin, we'll need to fix this.
  */
 static PatternRec stdPatterns[] = {
     {"^lib(.*)\\.so$",},
-    {"^lib(.*)\\.a$",},
     {"(.*)_drv\\.so$",},
-    {"(.*)_drv\\.o$",},
     {"(.*)\\.so$",},
-    {"(.*)\\.a$",},
-    {"(.*)\\.o$",},
     {NULL,}
 };
 
@@ -432,7 +418,6 @@ FindModule(const char *module, const char *dir, const char **subdirlist,
 	    continue;
 	strcpy(buf, dirpath);
 	strcat(buf, *s);
-	/*xf86Msg(X_INFO,"OS2DIAG: FindModule: buf=%s\n",buf); */
         if ((stat(buf, &stat_buf) == 0) && S_ISDIR(stat_buf.st_mode)) {
             if (buf[dirlen - 1] != '/') {
                 buf[dirlen++] = '/';
@@ -728,19 +713,11 @@ CheckVersion(const char *module, XF86ModuleVersionInfo * data,
 	    /* XXX Maybe this should be the other way around? */
 	    if (min > reqmin) {
 		xf86MsgVerb(X_WARNING, 2, "module ABI minor version (%d) "
-			    "is new than that available (%d)\n", min, reqmin);
+			    "is newer than that available (%d)\n", min, reqmin);
 		return FALSE;
 	    }
 	}
     }
-#ifdef NOTYET
-    if (data->checksum) {
-	/* verify the checksum field */
-	/* TO BE DONE */
-    } else {
-	ErrorF("\t*** Checksum field is 0 - this module is untrusted!\n");
-    }
-#endif
     return TRUE;
 }
 
@@ -867,7 +844,6 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
     int noncanonical = 0;
     char *m = NULL;
 
-    /*xf86Msg(X_INFO,"OS2DIAG: LoadModule: %s\n",module); */
     xf86MsgVerb(X_INFO, 3, "LoadModule: \"%s\"", module);
 
     patterns = InitPatterns(patternlist);
@@ -1306,7 +1282,7 @@ LoaderErrorMsg(const char *name, const char *modname, int errmaj, int errmin)
 	msg = "module-specific error";
 	break;
     default:
-	msg = "uknown error";
+	msg = "unknown error";
     }
     if (name)
 	xf86Msg(type, "%s: Failed to load module \"%s\" (%s, %d)\n",

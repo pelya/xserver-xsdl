@@ -623,6 +623,10 @@ exaDriverInit (ScreenPtr		pScreen,
 
         pExaScr->SavedDestroyPixmap = pScreen->DestroyPixmap;
 	pScreen->DestroyPixmap = exaDestroyPixmap;
+
+	LogMessage(X_INFO, "EXA(%d): Offscreen pixmap area of %d bytes\n",
+		   pScreen->myNum,
+		   pExaScr->info->memorySize - pExaScr->info->offScreenBase);
     }
     else
     {
@@ -639,6 +643,22 @@ exaDriverInit (ScreenPtr		pScreen,
                        pScreen->myNum);
             return FALSE;
         }
+    }
+
+    LogMessage(X_INFO, "EXA(%d): Driver registered support for the following"
+	       " operations:\n", pScreen->myNum);
+    assert(pScreenInfo->PrepareSolid != NULL);
+    LogMessage(X_INFO, "        Solid\n");
+    assert(pScreenInfo->PrepareCopy != NULL);
+    LogMessage(X_INFO, "        Copy\n");
+    if (pScreenInfo->PrepareComposite != NULL) {
+	LogMessage(X_INFO, "        Composite (RENDER acceleration)\n");
+    }
+    if (pScreenInfo->UploadToScreen != NULL) {
+	LogMessage(X_INFO, "        UploadToScreen\n");
+    }
+    if (pScreenInfo->DownloadFromScreen != NULL) {
+	LogMessage(X_INFO, "        DownloadFromScreen\n");
     }
 
     return TRUE;
