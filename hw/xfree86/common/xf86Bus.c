@@ -1895,8 +1895,8 @@ xf86RegisterResources(int entityIndex, resList list, unsigned long access)
 }
 
 static void
-busTypeSpecific( EntityPtr pEnt, xf86AccessPtr *acc_mem,
-		 xf86AccessPtr *acc_io, xf86AccessPtr *acc_mem_io )
+busTypeSpecific(EntityPtr pEnt, xf86AccessPtr *acc_mem,
+		xf86AccessPtr *acc_io, xf86AccessPtr *acc_mem_io)
 {
     switch (pEnt->bus.type) {
     case BUS_ISA:
@@ -1904,20 +1904,26 @@ busTypeSpecific( EntityPtr pEnt, xf86AccessPtr *acc_mem,
 	*acc_mem = *acc_io = *acc_mem_io = &AccessNULL;
 	break;
     case BUS_PCI: {
-	struct pci_device * dev = 
+	struct pci_device * const dev = 
 	  pci_device_find_by_slot( PCI_DOM_FROM_BUS( pEnt->pciBusId.bus ),
 				   PCI_BUS_NO_DOMAIN( pEnt->pciBusId.bus ),
 				   pEnt->pciBusId.device,
 				   pEnt->pciBusId.func );
 
-	if ( dev != NULL ) {
-	    pciAccPtr paccp = (pciAccPtr) dev->user_data;
+	if ((dev != NULL) && ((void *)dev->user_data != NULL)) {
+	    pciAccPtr const paccp = (pciAccPtr) dev->user_data;
 	    
-	    if ( paccp != NULL ) {
-		*acc_io = & paccp->ioAccess;
-		*acc_mem = & paccp->memAccess;
-		*acc_mem_io = & paccp->io_memAccess;
-	    }
+	    *acc_io = & paccp->ioAccess;
+	    *acc_mem = & paccp->memAccess;
+	    *acc_mem_io = & paccp->io_memAccess;
+	}
+	else {
+	    /* FIXME: This is an error path.  We should probably have an
+	     * FIXME: assertion here or something.
+	     */
+	    *acc_io = NULL;
+	    *acc_mem = NULL;
+	    *acc_mem_io = NULL;
 	}
 	break;
     }
@@ -1936,7 +1942,7 @@ setAccess(EntityPtr pEnt, xf86State state)
     xf86AccessPtr org_mem = NULL, org_io = NULL, org_mem_io = NULL;
     int prop;
     
-    busTypeSpecific( pEnt, &acc_mem, &acc_io, &acc_mem_io );
+    busTypeSpecific(pEnt, &acc_mem, &acc_io, &acc_mem_io);
 
     /* The replacement function needs to handle _all_ shared resources */
     /* unless they are handeled locally and disabled otherwise         */
