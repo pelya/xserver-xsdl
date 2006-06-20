@@ -2,10 +2,12 @@ Makefile
 Makefile.in
 .deps
 .libs
+.msg
 *.lo
 *.la
 *.a
 *.o
+*~
 aclocal.m4
 autom4te.cache
 compile
