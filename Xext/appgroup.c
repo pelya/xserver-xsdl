@@ -77,10 +77,6 @@ static int		ProcXagDispatch(ClientPtr client);
 static int              SProcXagDispatch(ClientPtr client);
 static void		XagResetProc(ExtensionEntry* extEntry);
 
-#if 0
-static unsigned char	XagReqCode = 0;
-static int		XagErrorBase;
-#endif
 static int		XagCallbackRefCount = 0;
 
 static RESTYPE		RT_APPGROUP;
@@ -233,19 +229,6 @@ void XagClientStateChange(
 void
 XagExtensionInit(INITARGS)
 {
-#if 0
-    ExtensionEntry* extEntry;
-
-    if ((extEntry = AddExtension (XAGNAME,
-				0,
-				XagNumberErrors,
-				ProcXagDispatch,
-				SProcXagDispatch,
-				XagResetProc,
-				StandardMinorOpcode))) {
-	XagReqCode = (unsigned char)extEntry->base;
-	XagErrorBase = extEntry->errorBase;
-#else
     if (AddExtension (XAGNAME,
 		      0,
 		      XagNumberErrors,
@@ -253,7 +236,6 @@ XagExtensionInit(INITARGS)
 		      SProcXagDispatch,
 		      XagResetProc,
 		      StandardMinorOpcode)) {
-#endif
 	RT_APPGROUP = CreateNewResourceType (XagAppGroupFree);
     }
 }
