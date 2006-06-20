@@ -3280,8 +3280,8 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
         xFixed *params = pict->filter_params;
         INT32 cwidth = xFixedToInt(params[0]);
         INT32 cheight = xFixedToInt(params[1]);
-        int xoff = params[0] >> 1;
-        int yoff = params[1] >> 1;
+        int xoff = (params[0] - xFixed1) >> 1;
+	int yoff = (params[1] - xFixed1) >> 1;
         params += 2;
         for (i = 0; i < width; ++i) {
             if (!v.vector[2]) {
@@ -3324,6 +3324,11 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         p++;
                     }
                 }
+
+		satot >>= 16;
+		srtot >>= 16;
+		sgtot >>= 16;
+		sbtot >>= 16;
 
                 if (satot < 0) satot = 0; else if (satot > 0xff) satot = 0xff;
                 if (srtot < 0) srtot = 0; else if (srtot > 0xff) srtot = 0xff;
