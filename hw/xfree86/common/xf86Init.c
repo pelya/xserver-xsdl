@@ -1896,7 +1896,11 @@ xf86RunVtInit(void)
           FatalError("xf86RunVtInit: fork failed (%s)\n", strerror(errno));
           break;
       case 0:  /* child */
-          setuid(getuid());
+	  if (setuid(getuid()) == -1) {
+	      xf86Msg(X_ERROR, "xf86RunVtInit: setuid failed (%s)\n",
+			 strerror(errno));
+	      exit(255);
+	  }
           /* set stdin, stdout to the consoleFd */
           for (i = 0; i < 2; i++) {
             if (xf86Info.consoleFd != i) {
