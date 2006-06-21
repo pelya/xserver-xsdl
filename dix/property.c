@@ -61,8 +61,7 @@ SOFTWARE.
 #include "dispatch.h"
 #include "swaprep.h"
 #ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
+#include "securitysrv.h"
 #endif
 
 /*****************************************************************

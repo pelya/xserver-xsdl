@@ -73,8 +73,7 @@ SOFTWARE.
 #include <X11/extensions/XKBsrv.h>
 #endif
 #ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
+#include "securitysrv.h"
 #endif
 
 #include "dispatch.h"
