@@ -247,7 +247,7 @@ typedef void (*InitExtension)(INITARGS);
 #include "xace.h"
 #endif
 #ifdef XCSECURITY
-#define _SECURITY_SERVER
+#include "securitysrv.h"
 #include <X11/extensions/securstr.h>
 #endif
 #ifdef PANORAMIX

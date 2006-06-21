@@ -45,8 +45,7 @@ from The Open Group.
 #include <X11/extensions/Xagstr.h>
 #include <X11/extensions/Xagsrv.h>
 #include "xacestr.h"
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
+#include "securitysrv.h"
 #include <X11/Xfuncproto.h>
 
 #define XSERV_t
