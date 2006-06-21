@@ -127,7 +127,7 @@ Equipment Corporation.
 #include "globals.h"
 
 #ifdef XAPPGROUP
-#include <X11/extensions/Xagsrv.h>
+#include "appgroup.h"
 #endif
 #ifdef XCSECURITY
 #include "securitysrv.h"
