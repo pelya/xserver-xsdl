@@ -45,7 +45,7 @@ in this Software without prior written authorization from The Open Group.
 #include <assert.h>
 #include <stdarg.h>
 #ifdef XAPPGROUP
-#include <X11/extensions/Xagsrv.h>
+#include "appgroup.h"
 #endif
 #include <stdio.h>  /* for file reading operations */
 #include <X11/Xatom.h>  /* for XA_STRING */

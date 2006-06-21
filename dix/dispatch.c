@@ -111,7 +111,7 @@ int ProcInitialConnection();
 #include "xace.h"
 #endif
 #ifdef XAPPGROUP
-#include <X11/extensions/Xagsrv.h>
+#include "appgroup.h"
 #endif
 #ifdef XKB
 #ifndef XKB_IN_SERVER

@@ -41,6 +41,7 @@ copyright holders.
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
+#include <X11/fonts/fontstruct.h>
 
 #ifndef _XpDiPrint_H_
 #define _XpDiPrint_H_ 1
@@ -73,6 +74,10 @@ extern void PrinterUseMsg(void);
 extern void PrinterInitGlobals(void);
 
 extern void PrinterInitOutput(ScreenInfo *pScreenInfo, int argc, char **argv);
+
+extern Bool XpClientIsPrintClient(ClientPtr client, FontPathElementPtr fpe);
+
+extern Bool XpClientIsBitmapClient(ClientPtr client);
 
 extern void _XpVoidNoop(void);
 

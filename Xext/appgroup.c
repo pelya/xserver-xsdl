@@ -43,7 +43,6 @@ from The Open Group.
 #include "servermd.h"
 #define _XAG_SERVER_
 #include <X11/extensions/Xagstr.h>
-#include <X11/extensions/Xagsrv.h>
 #include "xacestr.h"
 #include "securitysrv.h"
 #include <X11/Xfuncproto.h>
