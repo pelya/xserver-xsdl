@@ -70,7 +70,7 @@ typedef struct _ExtensionEntry {
     pointer extPrivate;
     unsigned short (* MinorOpcode)(	/* called for errors */
 	ClientPtr /* client */);
-#ifdef XCSECURITY
+#ifdef XACE
     pointer securityState[4];		/* 4 slots for use */
 #endif
 } ExtensionEntry;
