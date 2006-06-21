@@ -35,6 +35,9 @@ from The Open Group.
 #include <X11/fonts/font.h>
 #ifdef XPRINT
 #include "DiPrint.h"
+#else
+extern Bool XpClientIsBitmapClient(ClientPtr client);
+extern Bool XpClientIsPrintClient(ClientPtr client, FontPathElementPtr fpe);
 #endif
 
 Bool
