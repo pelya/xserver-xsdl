@@ -2097,7 +2097,7 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
     Mask		plane = 0;
     char		*pBuf;
     xGetImageReply	xgi;
-#ifdef XCSECURITY
+#ifdef XACE
     RegionPtr pVisibleRegion = NULL;
 #endif
 
