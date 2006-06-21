@@ -131,7 +131,7 @@ xf86FormatPciBusNumber(int busnum, char *buffer)
 static void
 FindPCIVideoInfo(void)
 {
-    int i = 0, j, k;
+    int i = 0, k;
     int num = 0;
     struct pci_device * info;
     struct pci_slot_match   m;
@@ -180,6 +180,8 @@ FindPCIVideoInfo(void)
 	    if ((PCISHAREDIOCLASSES( info->device_class ))
 		&& (pcrp->pci_command & PCI_CMD_IO_ENABLE) 
 		&& (pcrp->pci_prog_if == 0)) {
+		int j;
+
 		/*
 		 * Attempt to ensure that VGA is actually routed to this
 		 * adapter on entry.  This needs to be fixed when we finally
