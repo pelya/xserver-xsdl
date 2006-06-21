@@ -516,7 +516,10 @@ XAAComposite (CARD8      op,
        (!pSrc->repeat || (xSrc >= 0 && ySrc >= 0 &&
 			  xSrc+width<=pSrc->pDrawable->width &&
 			  ySrc+height<=pSrc->pDrawable->height)) &&
-       ((op == PictOpSrc && pSrc->format == pDst->format) ||
+       ((op == PictOpSrc &&
+	 ((pSrc->format==pDst->format) ||
+	  (pSrc->format==PICT_a8r8g8b8 && pDst->format==PICT_x8r8g8b8) ||
+	  (pSrc->format==PICT_a8b8g8r8 && pDst->format==PICT_x8b8g8r8))) ||
 	(op == PictOpOver && !pSrc->alphaMap && !pDst->alphaMap &&
 	 pSrc->format==pDst->format &&
 	 (pSrc->format==PICT_x8r8g8b8 || pSrc->format==PICT_x8b8g8r8))))

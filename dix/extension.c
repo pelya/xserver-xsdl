@@ -62,8 +62,7 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "dispatch.h"
 #ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
+#include "securitysrv.h"
 #endif
 
 #define EXTENSION_BASE  128

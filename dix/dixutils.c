@@ -98,8 +98,7 @@ Author:  Adobe Systems Incorporated
 #define  XK_LATIN1
 #include <X11/keysymdef.h>
 #ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
+#include "securitysrv.h"
 #endif
 
 /*
