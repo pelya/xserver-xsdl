@@ -2726,8 +2726,9 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
         xFixed_32_32 l;
         xFixed_48_16 dx, dy, a, b, off;
 
-        v.vector[0] = IntToxFixed(x);
-        v.vector[1] = IntToxFixed(y);
+        /* reference point is the center of the pixel */
+        v.vector[0] = IntToxFixed(x) + xFixed1/2;
+        v.vector[1] = IntToxFixed(y) + xFixed1/2;
         v.vector[2] = xFixed1;
         if (pict->transform) {
             if (!PictureTransformPoint3d (pict->transform, &v))
@@ -2793,8 +2794,9 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 
         if (pict->transform) {
             PictVector v;
-            v.vector[0] = IntToxFixed(x);
-            v.vector[1] = IntToxFixed(y);
+            /* reference point is the center of the pixel */
+            v.vector[0] = IntToxFixed(x) + xFixed1/2;
+            v.vector[1] = IntToxFixed(y) + xFixed1/2;
             v.vector[2] = xFixed1;
             if (!PictureTransformPoint3d (pict->transform, &v))
                 return;
@@ -2914,8 +2916,9 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
     dx = pict->pDrawable->x;
     dy = pict->pDrawable->y;
 
-    v.vector[0] = IntToxFixed(x - dx);
-    v.vector[1] = IntToxFixed(y - dy);
+    /* reference point is the center of the pixel */
+    v.vector[0] = IntToxFixed(x - dx) + xFixed1 / 2;
+    v.vector[1] = IntToxFixed(y - dy) + xFixed1 / 2;
     v.vector[2] = xFixed1;
 
     /* when using convolution filters one might get here without a transform */
@@ -3020,6 +3023,12 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             }
         }
     } else if (pict->filter == PictFilterBilinear) {
+        /* adjust vector for maximum contribution at 0.5, 0.5 of each texel. */
+        v.vector[0] -= v.vector[2] / 2;
+        v.vector[1] -= v.vector[2] / 2;
+        unit.vector[0] -= unit.vector[2] / 2;
+        unit.vector[1] -= unit.vector[2] / 2;
+
         if (pict->repeatType == RepeatNormal) {
             if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
                 for (i = 0; i < width; ++i) {
