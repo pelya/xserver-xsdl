@@ -41,6 +41,9 @@ from The Open Group.
 
 #include <stdio.h>
 #include <X11/X.h>
+#define XSERV_t
+#define TRANS_SERVER
+#define TRANS_REOPEN
 #include <X11/Xtrans/Xtrans.h>
 #include "os.h"
 #include "osdep.h"
@@ -153,9 +156,9 @@ XdmAuthenticationInit (char *cookie, int cookie_len)
     XdmcpRegisterAuthentication (XdmAuthenticationName, XdmAuthenticationNameLen,
 				 (unsigned char *)&rho,
 				 sizeof (rho),
-				 XdmAuthenticationValidator,
-				 XdmAuthenticationGenerator,
-				 XdmAuthenticationAddAuth);
+				 (ValidatorFunc)XdmAuthenticationValidator,
+				 (GeneratorFunc)XdmAuthenticationGenerator,
+				 (AddAuthorFunc)XdmAuthenticationAddAuth);
 }
 
 #endif /* XDMCP */
