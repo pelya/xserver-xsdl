@@ -302,6 +302,9 @@
 /* unaligned word accesses behave as expected */
 #undef WORKING_UNALIGNED_INT
 
+/* Build X-ACE extension */
+#undef XACE
+
 /* Support XCMisc extension */
 #undef XCMISC
 

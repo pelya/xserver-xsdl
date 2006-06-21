@@ -412,7 +412,8 @@ AC_ARG_ENABLE(dri,            AS_HELP_STRING([--enable-dri], [Build DRI extensio
 AC_ARG_ENABLE(xinerama,	      AS_HELP_STRING([--disable-xinerama], [Build Xinerama extension (default: enabled)]), [XINERAMA=$enableval], [XINERAMA=yes])
 AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF86VidMode extension (default: enabled)]), [XF86VIDMODE=$enableval], [XF86VIDMODE=yes])
 AC_ARG_ENABLE(xf86misc,       AS_HELP_STRING([--disable-xf86misc], [Build XF86Misc extension (default: enabled)]), [XF86MISC=$enableval], [XF86MISC=yes])
-AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Security extension (default: enabled)]), [XCSECURITY=$enableval], [XCSECURITY=yes])
+AC_ARG_ENABLE(xace,     AS_HELP_STRING([--disable-xace], [Build X-ACE extension (default: enabled)]), [XACE=$enableval], [XACE=yes])
+AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Security extension (default: enabled)]), [XCSECURITY=$enableval], [XCSECURITY=$XACE])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--disable-xevie], [Build XEvIE extension (default: enabled)]), [XEVIE=$enableval], [XEVIE=yes])
 AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: enabled)]), [APPGROUP=$enableval], [APPGROUP=yes])
 AC_ARG_ENABLE(cup,            AS_HELP_STRING([--disable-cup], [Build TOG-CUP extension (default: enabled)]), [CUP=$enableval], [CUP=yes])
@@ -618,8 +619,16 @@ if test "x$XINERAMA" = xyes; then
 	REQUIRED_MODULES="$REQUIRED_MODULES xineramaproto"
 fi
 
+AM_CONDITIONAL(XACE, [test "x$XACE" = xyes])
+if test "x$XACE" = xyes; then
+	AC_DEFINE(XACE, 1, [Build X-ACE extension])
+fi
+
 AM_CONDITIONAL(XCSECURITY, [test "x$XCSECURITY" = xyes])
 if test "x$XCSECURITY" = xyes; then
+	if test "x$XACE" != xyes; then
+		AC_MSG_ERROR([cannot build Security extension without X-ACE])
+	fi
 	AC_DEFINE(XCSECURITY, 1, [Build Security extension])
 fi
 

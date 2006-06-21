@@ -65,6 +65,13 @@ if XINERAMA
 BUILTIN_SRCS += $(XINERAMA_SRCS)
 endif
 
+# X-ACE extension: provides hooks for building security policy extensions
+# like XC-Security, X-SELinux & XTSol
+XACE_SRCS = xace.c xace.h xacestr.h
+if XACE
+BUILTIN_SRCS += $(XACE_SRCS)
+endif
+
 # Security extension: multi-level security to protect clients from each other
 XCSECURITY_SRCS = security.c
 if XCSECURITY   
@@ -149,6 +156,7 @@ EXTRA_DIST = \
 	$(XV_SRCS) \
 	$(RES_SRCS) \
 	$(SCREENSAVER_SRCS) \
+	$(XACE_SRCS) \
 	$(XCSECURITY_SRCS) \
 	$(XINERAMA_SRCS) \
 	$(XEVIE_SRCS) \
