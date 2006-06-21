@@ -594,14 +594,19 @@ int42_handler(xf86Int10InfoPtr pInt)
 #define DEVICE_NOT_FOUND        0x86
 #define BAD_REGISTER_NUMBER     0x87
 
+/**
+ * \todo
+ * Eliminate the reliance on \c xf86FindPciDeviceVendor and
+ * \c xf86FindPciDeviceClass in this function.  Create new functions in this
+ * file that directly use libpciaccess to replace them.
+ */
 static int
 int1A_handler(xf86Int10InfoPtr pInt)
 {
-    PCITAG tag;
-    struct pci_device * pvp;
+    struct pci_device * const pvp = xf86GetPciInfoForEntity(pInt->entityIndex);
     struct pci_device * dev;
 
-    if (!(pvp = xf86GetPciInfoForEntity(pInt->entityIndex)))
+    if (pvp == NULL)
 	return 0; /* oops */
 
 #ifdef PRINT_INT
@@ -631,10 +636,10 @@ int1A_handler(xf86Int10InfoPtr pInt)
 	}
 #ifdef SHOW_ALL_DEVICES
 	else
-	if ((pvp = xf86FindPciDeviceVendor(X86_EDX, X86_ECX, X86_ESI, pvp))) {
+	if ((dev = xf86FindPciDeviceVendor(X86_EDX, X86_ECX, X86_ESI, pvp))) {
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
-	    X86_EBX = pciSlotBX(pvp);
+	    X86_EBX = pciSlotBX(dev);
 	}
 #endif
 	else {
@@ -652,12 +657,12 @@ int1A_handler(xf86Int10InfoPtr pInt)
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	}
 #ifdef SHOW_ALL_DEVICES
-	else if ((pvp = xf86FindPciClass(X86_CL, X86_CH,
+	else if ((dev = xf86FindPciClass(X86_CL, X86_CH,
 					 (X86_ECX & 0xffff0000) >> 16,
 					 X86_ESI, pvp))) {
-	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
+p	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
-	    X86_EBX = pciSlotBX(pvp);
+	    X86_EBX = pciSlotBX(dev);
 	}
 #endif
 	else {
@@ -670,7 +675,7 @@ int1A_handler(xf86Int10InfoPtr pInt)
 	return 1;
     case 0xb108:
 	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
-	    pci_device_cfg_read_u8( dev, & X86_CL, X86_EDI );
+	    pci_device_cfg_read_u8(dev, & X86_CL, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
@@ -683,7 +688,7 @@ int1A_handler(xf86Int10InfoPtr pInt)
 	return 1;
     case 0xb109:
 	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
-	    pci_device_cfg_read_u16( dev, & X86_CX, X86_EDI );
+	    pci_device_cfg_read_u16(dev, & X86_CX, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
@@ -696,7 +701,7 @@ int1A_handler(xf86Int10InfoPtr pInt)
 	return 1;
     case 0xb10a:
 	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
-	    pci_device_cfg_read_u32( dev, & X86_ECX, X86_EDI );
+	    pci_device_cfg_read_u32(dev, & X86_ECX, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
@@ -709,7 +714,7 @@ int1A_handler(xf86Int10InfoPtr pInt)
 	return 1;
     case 0xb10b:
 	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
-	    pci_device_cfg_write_u8( dev, & X86_CL, X86_EDI );
+	    pci_device_cfg_write_u8(dev, & X86_CL, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
@@ -722,7 +727,7 @@ int1A_handler(xf86Int10InfoPtr pInt)
 	return 1;
     case 0xb10c:
 	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
-	    pci_device_cfg_write_u16( dev, & X86_CX, X86_EDI );
+	    pci_device_cfg_write_u16(dev, & X86_CX, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
@@ -735,7 +740,7 @@ int1A_handler(xf86Int10InfoPtr pInt)
 	return 1;
     case 0xb10d:
 	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
-	    pci_device_cfg_write_u32( dev, & X86_ECX, X86_EDI );
+	    pci_device_cfg_write_u32(dev, & X86_ECX, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
