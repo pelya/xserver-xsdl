@@ -162,7 +162,7 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(QueueWorkProc)
     SYMFUNC(RegisterBlockAndWakeupHandlers)
     SYMFUNC(RemoveBlockAndWakeupHandlers)
-#ifdef XCSECURITY
+#ifdef XACE
     SYMFUNC(SecurityLookupDrawable)
     SYMFUNC(SecurityLookupWindow)
 #endif
@@ -283,7 +283,7 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(LookupIDByType)
     SYMFUNC(LookupIDByClass)
     SYMFUNC(LegalNewID)
-#ifdef XCSECURITY
+#ifdef XACE
     SYMFUNC(SecurityLookupIDByClass)
     SYMFUNC(SecurityLookupIDByType)
 #endif
