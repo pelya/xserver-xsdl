@@ -1036,7 +1036,7 @@ dnl has it in libc), or if libdl is needed to get it.
 		AC_CHECK_LIB([dl], [dlopen], XORG_LIBS="$XORG_LIBS -ldl"))
 
 	PKG_CHECK_MODULES([PCIACCESS], [pciaccess >= 0.3.0])
-	XORG_LIBS="$XORG_LIBS $PCIACCESS_LIBS"
+	XSERVER_LIBS="$XSERVER_LIBS $PCIACCESS_LIBS"
 	XORG_CFLAGS="$XORG_CFLAGS $PCIACCESS_CFLAGS"
 
 	case $host_os in
