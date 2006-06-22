@@ -1,6 +1,8 @@
 noinst_LIBRARIES = libloader.a
 
-INCLUDES = $(XORG_INCS) -I$(srcdir)/../parser
+INCLUDES = $(XORG_INCS) -I$(srcdir)/../parser -I$(srcdir)/../dixmods/extmod \
+	   -I$(srcdir)/../vbe -I$(top_srcdir)/miext/cw -I$(srcdir)/../int10 \
+	   -I$(srcdir)/../ddc -I$(srcdir)/../i2c
 
 #AM_LDFLAGS = -r
 AM_CFLAGS = -DIN_LOADER $(XORG_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
@@ -23,4 +25,9 @@ libloader_a_SOURCES = \
 	loadfont.c \
         dlloader.c \
 	os.c \
+	dixsym.c \
+	extsym.c \
+	fontsym.c \
+	misym.c \
+	xf86sym.c \
 	$(SPARC_SOURCES)

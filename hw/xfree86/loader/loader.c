@@ -73,8 +73,8 @@
 #include "loaderProcs.h"
 #include "xf86.h"
 #include "xf86Priv.h"
-
 #include "compiler.h"
+#include "sym.h"
 
 #if defined(Lynx) && defined(sun)
 /* Cross build machine doesn;t have strerror() */
@@ -90,85 +90,6 @@
 #define HANDLE_USED 1
 static char freeHandles[MAX_HANDLE];
 static int refCount[MAX_HANDLE];
-
-#if defined(__sparc__) && defined(__GNUC__) && !defined(__FreeBSD__)
-# define SYMFUNCDOT(func) { "." #func, (funcptr)&__sparc_dot_ ## func },
-# if !defined(__OpenBSD__)
-# define SYMFUNCDOT89(func) { "." #func, (funcptr)&func ## _sparcv89 },
-# define DEFFUNCDOT(func) 					\
-extern void __sparc_dot_ ## func (void) __asm__ ("." #func);	\
-extern void func ## _sparcv89 (void);
-# else
-# define SYMFUNCDOT(func) { "." #func, (funcptr)&__sparc_dot_ ## func },
-# define DEFFUNCDOT(func) 					\
-extern void __sparc_dot_ ## func (void) __asm__ ("." #func);
-#endif
-DEFFUNCDOT(rem)
-DEFFUNCDOT(urem)
-DEFFUNCDOT(mul)
-DEFFUNCDOT(umul)
-DEFFUNCDOT(div)
-DEFFUNCDOT(udiv)
-
-#ifdef linux
-#if defined(__GNUC__) && defined(__GLIBC__)
-#define HWCAP_SPARC_MULDIV	8
-extern unsigned long int _dl_hwcap;
-#endif
-
-static int
-sparcUseHWMulDiv(void)
-{
-    FILE *f;
-    char buffer[1024];
-    char *p;
-
-#if defined(__GNUC__) && defined(__GLIBC__)
-    unsigned long *hwcap;
-
-    __asm(".weak _dl_hwcap");
-
-    hwcap = &_dl_hwcap;
-  __asm("": "=r"(hwcap):"0"(hwcap));
-    if (hwcap) {
-	if (*hwcap & HWCAP_SPARC_MULDIV)
-	    return 1;
-	else
-	    return 0;
-    }
-#endif
-    f = fopen("/proc/cpuinfo", "r");
-    if (!f)
-	return 0;
-    while (fgets(buffer, 1024, f) != NULL) {
-	if (!strncmp(buffer, "type", 4)) {
-	    p = strstr(buffer, "sun4");
-	    if (p && (p[4] == 'u' || p[4] == 'd')) {
-		fclose(f);
-		return 1;
-	    } else if (p && p[4] == 'm') {
-		fclose(f);
-		f = fopen("/proc/cpuinfo","r");
-		if (!f) return 0;
-		while (fgets(buffer, 1024, f) != NULL) {
-		    if (!strncmp (buffer, "MMU type", 8)) {
-		      p = strstr (buffer, "Cypress");
-		      if (p) {
-			fclose(f);
-			return 1;
-		      }
-		    }
-		}
-	        fclose(f);
-	        return 0;
-	    }
-	}
-    }
-    fclose(f);
-    return 0;
-}
-#endif
-#endif
 
 /*
  * modules are used to identify compilation units (ie object modules).
@@ -206,6 +127,10 @@ LoaderInit(void)
         xf86Msg(X_ERROR, "LD_BIND_NOW is set, dlloader will NOT work!\n");
     }
 
+    xf86MsgVerb(X_INFO, 2, "Loader magic: %p\n", (void *)
+		((long)dixLookupTab ^ (long)extLookupTab
+	        ^ (long)fontLookupTab ^ (long)miLookupTab
+		^ (long)xfree86LookupTab));
     xf86MsgVerb(X_INFO, 2, "Module ABI versions:\n");
     xf86ErrorFVerb(2, "\t%s: %d.%d\n", ABI_CLASS_ANSIC,
 		   GET_ABI_MAJOR(LoaderVersionInfo.ansicVersion),
