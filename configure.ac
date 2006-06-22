@@ -414,8 +414,8 @@ AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF8
 AC_ARG_ENABLE(xf86misc,       AS_HELP_STRING([--disable-xf86misc], [Build XF86Misc extension (default: enabled)]), [XF86MISC=$enableval], [XF86MISC=yes])
 AC_ARG_ENABLE(xace,     AS_HELP_STRING([--disable-xace], [Build X-ACE extension (default: enabled)]), [XACE=$enableval], [XACE=yes])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Security extension (default: enabled)]), [XCSECURITY=$enableval], [XCSECURITY=$XACE])
+AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: enabled)]), [APPGROUP=$enableval], [APPGROUP=$XCSECURITY])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--disable-xevie], [Build XEvIE extension (default: enabled)]), [XEVIE=$enableval], [XEVIE=yes])
-AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: enabled)]), [APPGROUP=$enableval], [APPGROUP=yes])
 AC_ARG_ENABLE(cup,            AS_HELP_STRING([--disable-cup], [Build TOG-CUP extension (default: enabled)]), [CUP=$enableval], [CUP=yes])
 AC_ARG_ENABLE(evi,            AS_HELP_STRING([--disable-evi], [Build Extended-Visual-Information extension (default: enabled)]), [EVI=$enableval], [EVI=yes])
 AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Multibuffer extension (default: disabled)]), [MULTIBUFFER=$enableval], [MULTIBUFFER=no])
@@ -638,12 +638,11 @@ if test "x$XEVIE" = xyes; then
 	REQUIRED_MODULES="$REQUIRED_MODULES evieproto"
 fi
 
-if test "x$APPGROUP" = xyes && test "x$XCSECURITY" != xyes; then
-	AC_MSG_NOTICE([Disabling APPGROUP extension])
-	APPGROUP=no
-fi
 AM_CONDITIONAL(APPGROUP, [test "x$APPGROUP" = xyes])
 if test "x$APPGROUP" = xyes; then
+	if test "x$XACE" != xyes || test "x$XCSECURITY" != xyes; then
+		AC_MSG_ERROR([cannot build APPGROUP extension without X-ACE and XC-SECURITY])
+	fi
 	AC_DEFINE(XAPPGROUP, 1, [Build APPGROUP extension])
 fi
 
