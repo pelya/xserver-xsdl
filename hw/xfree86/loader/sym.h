@@ -1,7 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/sym.h,v 1.6 2000/10/24 00:06:55 anderson Exp $ */
-
 /*
- *
  * Copyright 1995,96 by Metro Link, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -30,21 +27,15 @@
 #ifndef _SYM_H
 #define _SYM_H
 
-/*
- * This structure is used to pass in symbol information that is being
- * added to the symbol table.
- */
+extern void *dixLookupTab[];
+extern void *extLookupTab[];
+extern void *fontLookupTab[];
+extern void *miLookupTab[];
+extern void *xfree86LookupTab[];
 
-typedef void (*funcptr) (void);
-
-typedef struct {
-    char *symName;
-    funcptr offset;
-} LOOKUP;
-
-#define SYMFUNC( func ) { #func, (funcptr)&func },
-#define SYMFUNCALIAS( name, func ) { name, (funcptr)&func },
-#define SYMVAR( var ) { #var, (funcptr)&var },
-#define SYMVARALIAS( name, var ) { name, (funcptr)&var },
+#define SYMFUNC( func ) &func,
+#define SYMFUNCALIAS( name, func ) &func,
+#define SYMVAR( var ) &var,
+#define SYMVARALIAS( name, var ) &var,
 
 #endif /* _SYM_H */
