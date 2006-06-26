@@ -144,6 +144,8 @@ hw/xfree86/doc/man/Xorg.1x
 hw/xfree86/doc/man/Xorg.man
 hw/xfree86/doc/man/xorg.conf.5x
 hw/xfree86/doc/man/xorg.conf.man
+hw/xfree86/exa/exa.4
+hw/xfree86/exa/exa.man
 hw/xfree86/fbdevhw/fbdevhw.4x
 hw/xfree86/fbdevhw/fbdevhw.man
 hw/xfree86/getconfig/cfg.man

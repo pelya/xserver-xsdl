@@ -573,9 +573,9 @@ static fetchProc fetchProcForPicture (PicturePtr pict)
         /* 1bpp formats */
     case PICT_a1: return  fbFetch_a1;
     case PICT_g1: return  fbFetch_g1;
-    default:
-        return NULL;
     }
+
+    return NULL;
 }
 
 /*
@@ -1010,9 +1010,9 @@ static fetchPixelProc fetchPixelProcForPicture (PicturePtr pict)
         /* 1bpp formats */
     case PICT_a1: return  fbFetchPixel_a1;
     case PICT_g1: return  fbFetchPixel_g1;
-    default:
-        return NULL;
     }
+
+    return NULL;
 }
 
 
