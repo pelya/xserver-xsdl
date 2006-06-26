@@ -282,8 +282,12 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 	return -1;
     }
 
-    exaGetPixelFromRGBA(&pixel, red, green, blue, alpha,
-			pDst->format);
+    if (!exaGetPixelFromRGBA(&pixel, red, green, blue, alpha,
+			pDst->format))
+    {
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
+	return -1;
+    }
 
     if (!(*pExaScr->info->PrepareSolid) (pDstPix, GXcopy, 0xffffffff, pixel))
     {

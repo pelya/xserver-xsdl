@@ -14,3 +14,15 @@ libexa_la_SOURCES = \
 
 libexa_la_LIBADD = \
 	../../../exa/libexa.la
+
+include $(top_srcdir)/cpprules.in
+
+drivermandir = $(DRIVER_MAN_DIR)
+driverman_DATA = exa.$(DRIVER_MAN_SUFFIX)
+CLEANFILES = $(driverman_DATA) exa.man
+
+exa.$(DRIVER_MAN_SUFFIX): exa.man
+	-rm -f exa.$(DRIVER_MAN_SUFFIX)
+	$(LN_S) exa.man exa.$(DRIVER_MAN_SUFFIX)
+
+EXTRA_DIST = exa.man.pre README

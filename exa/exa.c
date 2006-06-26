@@ -158,7 +158,7 @@ exaLog2(int val)
 {
     int bits;
 
-    if (!val)
+    if (val <= 0)
 	return 0;
     for (bits = 0; val != 0; bits++)
 	val >>= 1;

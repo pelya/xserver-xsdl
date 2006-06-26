@@ -185,8 +185,8 @@ __glXSendReplySwap( ClientPtr client, const void * data, size_t elements,
     }
 
     __glXReply.length =         bswap_32( reply_ints );
-    __glXReply.type =           bswap_32( X_Reply );
-    __glXReply.sequenceNumber = bswap_32( client->sequence );
+    __glXReply.type =           X_Reply;
+    __glXReply.sequenceNumber = bswap_16( client->sequence );
     __glXReply.size =           bswap_32( elements );
     __glXReply.retval =         bswap_32( retval );
 
