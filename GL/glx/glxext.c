@@ -141,6 +141,10 @@ static int PixmapGone(__GLXpixmap *pGlxPixmap, XID id)
 
     pGlxPixmap->idExists = False;
     if (!pGlxPixmap->refcnt) {
+	if (pGlxPixmap->pDamage) {
+	    DamageUnregister (pGlxPixmap->pDraw, pGlxPixmap->pDamage);
+	    DamageDestroy(pGlxPixmap->pDamage);
+	}
 	/*
 	** The DestroyPixmap routine should decrement the refcount and free
 	** only if it's zero.
