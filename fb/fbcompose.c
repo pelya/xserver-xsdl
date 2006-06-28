@@ -2635,7 +2635,8 @@ FbComposeFunctions composeFunctions = {
 };
 
 
-static void fbFetchSolid(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
+static void fbFetchSolid(PicturePtr pict, int x, int y, int width,
+			 CARD32 *buffer, CARD32 *mask, CARD32 maskBits)
 {
     FbBits *bits;
     FbStride stride;
@@ -2656,7 +2657,8 @@ static void fbFetchSolid(PicturePtr pict, int x, int y, int width, CARD32 *buffe
         *buffer++ = color;
 }
 
-static void fbFetch(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
+static void fbFetch(PicturePtr pict, int x, int y, int width, CARD32 *buffer,
+		    CARD32 *mask, CARD32 maskBits)
 {
     FbBits *bits;
     FbStride stride;
@@ -2711,7 +2713,8 @@ static CARD32 gradientPixel(const SourcePictPtr pGradient, xFixed_48_16 pos, uns
     return pGradient->linear.colorTable[ipos];
 }
 
-static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
+static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width,
+			      CARD32 *buffer, CARD32 *mask, CARD32 maskBits)
 {
     SourcePictPtr pGradient = pict->pSourcePict;
     CARD32 *end = buffer + width;
@@ -2761,22 +2764,30 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                 inc = (a * unit.vector[0] + b * unit.vector[1]) >> 16;
             }
             while (buffer < end) {
-                *buffer++ = gradientPixel(pGradient, t, pict->repeatType);
+		if (mask == NULL || (*mask++ & maskBits) != 0) {
+		    *buffer++ = gradientPixel(pGradient, t, pict->repeatType);
+		} else {
+		    *buffer++ = 0; /* Set it to a value for valgrind */
+		}
                 t += inc;
             }
         } else {
             /* projective transformation */
             while (buffer < end) {
-                xFixed_48_16 t;
-                if (v.vector[2] == 0) {
-                    t = 0;
-                } else {
-                    xFixed_48_16 x, y;
-                    x = ((xFixed_48_16)v.vector[0] << 16) / v.vector[2];
-                    y = ((xFixed_48_16)v.vector[1] << 16) / v.vector[2];
-                    t = ((a*x + b*y) >> 16) + off;
-                }
-                *buffer++ = gradientPixel(pGradient, t, pict->repeatType);
+		if (mask == NULL || (*mask++ & maskBits) != 0) {
+		    xFixed_48_16 t;
+		    if (v.vector[2] == 0) {
+			t = 0;
+		    } else {
+			xFixed_48_16 x, y;
+			x = ((xFixed_48_16)v.vector[0] << 16) / v.vector[2];
+			y = ((xFixed_48_16)v.vector[1] << 16) / v.vector[2];
+			t = ((a*x + b*y) >> 16) + off;
+		    }
+		    *buffer++ = gradientPixel(pGradient, t, pict->repeatType);
+		} else {
+		    *buffer++ = 0; /* Set it to a value for valgrind */
+		}
                 v.vector[0] += unit.vector[0];
                 v.vector[1] += unit.vector[1];
                 v.vector[2] += unit.vector[2];
@@ -2816,37 +2827,45 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                 ry -= pGradient->radial.fy;
 
                 while (buffer < end) {
-                    double b = 2*(rx*pGradient->radial.dx + ry*pGradient->radial.dy);
-                    double c = -(rx*rx + ry*ry);
-                    double det = (b * b) - (4 * pGradient->radial.a * c);
-                    double s = (-b + sqrt(det))/(2. * pGradient->radial.a);
-                    *buffer = gradientPixel(pGradient,
-                                            (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536),
-                                            pict->repeatType);
-                    ++buffer;
+		    if (mask == NULL || (*mask++ & maskBits) != 0) {
+			double b = 2*(rx*pGradient->radial.dx + ry*pGradient->radial.dy);
+			double c = -(rx*rx + ry*ry);
+			double det = (b * b) - (4 * pGradient->radial.a * c);
+			double s = (-b + sqrt(det))/(2. * pGradient->radial.a);
+			*buffer++ = gradientPixel(pGradient,
+				(xFixed_48_16)((s * pGradient->radial.m +
+						pGradient->radial.b) * 65536),
+				pict->repeatType);
+		    } else {
+			*buffer++ = 0;
+		    }
                     rx += cx;
                     ry += cy;
                 }
             } else {
                 while (buffer < end) {
-                    double x, y;
-                    double b, c, det, s;
-                    if (rz != 0) {
-                        x = rx/rz;
-                        y = ry/rz;
-                    } else {
-                        x = y = 0.;
-                    }
-                    x -= pGradient->radial.fx;
-                    y -= pGradient->radial.fy;
-                    b = 2*(x*pGradient->radial.dx + y*pGradient->radial.dy);
-                    c = -(x*x + y*y);
-                    det = (b * b) - (4 * pGradient->radial.a * c);
-                    s = (-b + sqrt(det))/(2. * pGradient->radial.a);
-                    *buffer = gradientPixel(pGradient,
-                                            (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536),
-                                            pict->repeatType);
-                    ++buffer;
+		    if (mask == NULL || (*mask++ & maskBits) != 0) {
+			double x, y;
+			double b, c, det, s;
+			if (rz != 0) {
+			    x = rx/rz;
+			    y = ry/rz;
+			} else {
+			    x = y = 0.;
+			}
+			x -= pGradient->radial.fx;
+			y -= pGradient->radial.fy;
+			b = 2*(x*pGradient->radial.dx + y*pGradient->radial.dy);
+			c = -(x*x + y*y);
+			det = (b * b) - (4 * pGradient->radial.a * c);
+			s = (-b + sqrt(det))/(2. * pGradient->radial.a);
+			*buffer++ = gradientPixel(pGradient,
+			    (xFixed_48_16)((s * pGradient->radial.m +
+					   pGradient->radial.b) * 65536),
+			    pict->repeatType);
+		    } else {
+			*buffer++ = 0;
+		    }
                     rx += cx;
                     ry += cy;
                     rz += cz;
@@ -2859,29 +2878,37 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                 ry -= pGradient->conical.center.y/65536.;
 
                 while (buffer < end) {
-                    double angle = atan2(ry, rx) + a;
-                    *buffer = gradientPixel(pGradient, (xFixed_48_16) (angle * (65536. / (2*M_PI))),
-                                            pict->repeatType);
-                    ++buffer;
+		    if (mask == NULL || (*mask++ & maskBits) != 0) {
+			double angle = atan2(ry, rx) + a;
+			*buffer++ = gradientPixel(pGradient,
+			    (xFixed_48_16) (angle * (65536. / (2*M_PI))),
+					    pict->repeatType);
+		    } else {
+			*buffer++ = 0;
+		    }
                     rx += cx;
                     ry += cy;
                 }
             } else {
 
                 while (buffer < end) {
-                    double x, y, angle;
-                    if (rz != 0) {
-                        x = rx/rz;
-                        y = ry/rz;
-                    } else {
-                        x = y = 0.;
-                    }
-                    x -= pGradient->conical.center.x/65536.;
-                    y -= pGradient->conical.center.y/65536.;
-                    angle = atan2(y, x) + a;
-                    *buffer = gradientPixel(pGradient, (xFixed_48_16) (angle * (65536. / (2*M_PI))),
-                                            pict->repeatType);
-                    ++buffer;
+		    if (mask == NULL || (*mask++ & maskBits) != 0) {
+			double x, y, angle;
+			if (rz != 0) {
+			    x = rx/rz;
+			    y = ry/rz;
+			} else {
+			    x = y = 0.;
+			}
+			x -= pGradient->conical.center.x/65536.;
+			y -= pGradient->conical.center.y/65536.;
+			angle = atan2(y, x) + a;
+			*buffer++ = gradientPixel(pGradient, (xFixed_48_16)
+						  (angle * (65536. / (2*M_PI))),
+						  pict->repeatType);
+		    } else {
+			*buffer++ = 0;
+		    }
                     rx += cx;
                     ry += cy;
                     rz += cz;
@@ -2893,7 +2920,8 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 
 
 
-static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
+static void fbFetchTransformed(PicturePtr pict, int x, int y, int width,
+			       CARD32 *buffer, CARD32 *mask, CARD32 maskBits)
 {
     FbBits     *bits;
     FbStride    stride;
@@ -3357,21 +3385,24 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
 }
 
 
-static void fbFetchExternalAlpha(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
+static void fbFetchExternalAlpha(PicturePtr pict, int x, int y, int width,
+				 CARD32 *buffer, CARD32 *mask, CARD32 maskBits)
 {
     int i;
     CARD32 _alpha_buffer[SCANLINE_BUFFER_LENGTH];
     CARD32 *alpha_buffer = _alpha_buffer;
 
     if (!pict->alphaMap) {
-        fbFetchTransformed(pict, x, y, width, buffer);
+        fbFetchTransformed(pict, x, y, width, buffer, mask, maskBits);
 	return;
     }
     if (width > SCANLINE_BUFFER_LENGTH)
         alpha_buffer = (CARD32 *) malloc(width*sizeof(CARD32));
 
-    fbFetchTransformed(pict, x, y, width, buffer);
-    fbFetchTransformed(pict->alphaMap, x - pict->alphaOrigin.x, y - pict->alphaOrigin.y, width, alpha_buffer);
+    fbFetchTransformed(pict, x, y, width, buffer, mask, maskBits);
+    fbFetchTransformed(pict->alphaMap, x - pict->alphaOrigin.x,
+		       y - pict->alphaOrigin.y, width, alpha_buffer,
+		       mask, maskBits);
     for (i = 0; i < width; ++i) {
         int a = alpha_buffer[i]>>24;
         buffer[i] = (a << 24)
@@ -3441,7 +3472,8 @@ static void fbStoreExternalAlpha(PicturePtr pict, int x, int y, int width, CARD3
 }
 
 typedef void (*scanStoreProc)(PicturePtr , int , int , int , CARD32 *);
-typedef void (*scanFetchProc)(PicturePtr , int , int , int , CARD32 *);
+typedef void (*scanFetchProc)(PicturePtr , int , int , int , CARD32 *,
+			      CARD32 *, CARD32);
 
 static void
 fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
@@ -3503,12 +3535,16 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
         for (i = 0; i < data->height; ++i)
         {
             /* fill first half of scanline with source */
-            fetchSrc(data->src, data->xSrc, data->ySrc + i, data->width, src_buffer);
-            fetchMask(data->mask, data->xMask, data->yMask + i, data->width, mask_buffer);
+            fetchMask(data->mask, data->xMask, data->yMask + i, data->width,
+		      mask_buffer, NULL, 0);
+            fetchSrc(data->src, data->xSrc, data->ySrc + i, data->width,
+		     src_buffer, mask_buffer, 0);
 
             /* fill dest into second half of scanline */
-            if (fetchDest)
-                fetchDest(data->dest, data->xDest, data->yDest + i, data->width, dest_buffer);
+            if (fetchDest) {
+                fetchDest(data->dest, data->xDest, data->yDest + i, data->width,
+			  dest_buffer, NULL, 0);
+	    }
 
             /* blend */
             compose(dest_buffer, src_buffer, mask_buffer, data->width);
@@ -3517,17 +3553,27 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
             store(data->dest, data->xDest, data->yDest + i, data->width, dest_buffer);
         }
     } else {
-
+	CARD32 *mask_buffer;
         CombineFuncU compose = composeFunctions.combineU[data->op];
         if (!compose)
             return;
 
+	if (fetchMask)
+	    mask_buffer = dest_buffer + data->width;
+	else
+	    mask_buffer = NULL;
+
         if (fetchSrc == fbFetchSolid && (!fetchMask || fetchMask == fbFetchSolid)) {
-            fetchSrc(data->src, data->xSrc, data->ySrc, data->width, src_buffer);
             if (fetchMask) {
-                fetchMask(data->mask, data->xMask, data->yMask, data->width, dest_buffer);
-                composeFunctions.combineMaskU(src_buffer, dest_buffer, data->width);
+                fetchMask(data->mask, data->xMask, data->yMask, data->width,
+			  dest_buffer, NULL, 0);
             }
+            fetchSrc(data->src, data->xSrc, data->ySrc, data->width,
+		     src_buffer, mask_buffer, 0xff000000);
+	    if (mask_buffer != NULL) {
+		composeFunctions.combineMaskU(src_buffer, dest_buffer,
+					      data->width);
+	    }
             fetchSrc = NULL;
             fetchMask = NULL;
         }
@@ -3536,18 +3582,27 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
         {
             /* fill first half of scanline with source */
             if (fetchSrc) {
-                fetchSrc(data->src, data->xSrc, data->ySrc + i, data->width, src_buffer);
+		/* Fetch mask before source so that fetching of source can be
+		 * optimized out if possible.
+		 */
+                if (fetchMask) {
+                    fetchMask(data->mask, data->xMask, data->yMask + i,
+			      data->width, dest_buffer, NULL, 0);
+		}
+                fetchSrc(data->src, data->xSrc, data->ySrc + i, data->width,
+			 src_buffer, mask_buffer, 0xff000000);
 
                 /* add in mask */
-                if (fetchMask) {
-                    fetchMask(data->mask, data->xMask, data->yMask + i, data->width, dest_buffer);
+                if (mask_buffer != NULL) {
                     composeFunctions.combineMaskU(src_buffer, dest_buffer, data->width);
                 }
             }
 
             /* fill dest into second half of scanline */
-            if (fetchDest)
-                fetchDest(data->dest, data->xDest, data->yDest + i, data->width, dest_buffer);
+            if (fetchDest != NULL) {
+                fetchDest(data->dest, data->xDest, data->yDest + i, data->width,
+			  dest_buffer, NULL, 0);
+	    }
 
             /* blend */
             compose(dest_buffer, src_buffer, data->width);
