@@ -58,17 +58,13 @@ struct __GLXtextureFromPixmap {
 
 
 struct __GLXcontext {
-    void           (*destroy)       (__GLXcontext *context);    
+    void           (*destroy)       (__GLXcontext *context);
     int            (*makeCurrent)   (__GLXcontext *context);
     int            (*loseCurrent)   (__GLXcontext *context);
     int            (*copy)          (__GLXcontext *dst,
 				     __GLXcontext *src,
 				     unsigned long mask);
     int            (*forceCurrent)  (__GLXcontext *context);
-
-    __GLXdrawable *(*createDrawable)(__GLXcontext *context,
-				     DrawablePtr pDraw,
-				     XID drawId);
 
     __GLXtextureFromPixmap *textureFromPixmap;
 

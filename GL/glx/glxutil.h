@@ -58,11 +58,13 @@ extern GLboolean __glXResizeDrawableBuffers(__GLXdrawable *glxPriv);
 extern void __glXRefDrawable(__GLXdrawable *glxPriv);
 extern void __glXUnrefDrawable(__GLXdrawable *glxPriv);
 
-extern __GLXdrawable *__glXCreateDrawable(__GLXcontext *ctx,
-					  DrawablePtr pDraw, 
-					  XID glxpixmapId);
-extern GLboolean __glXDrawableInit(__GLXdrawable *drawable, __GLXcontext *ctx,
-				   DrawablePtr pDraw, XID drawID);
+extern __GLXdrawable *__glXCreateDrawable(__GLXscreen *screen,
+					  DrawablePtr pDraw, XID drawId,
+					  __GLcontextModes *modes);
+extern GLboolean __glXDrawableInit(__GLXdrawable *drawable,
+				   __GLXscreen *screen,
+				   DrawablePtr pDraw, XID drawID,
+				   __GLcontextModes *modes);
 extern GLboolean __glXDestroyDrawable(__GLXdrawable *glxPriv);
 extern __GLXdrawable *__glXFindDrawable(XID glxpixmapId);
 extern __GLXdrawable *__glXGetDrawable(__GLXcontext *ctx,

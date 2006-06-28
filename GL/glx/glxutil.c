@@ -140,12 +140,14 @@ __glXUnrefDrawable(__GLXdrawable *glxPriv)
 
 GLboolean
 __glXDrawableInit(__GLXdrawable *drawable,
-		  __GLXcontext *ctx, DrawablePtr pDraw, XID drawId)
+		  __GLXscreen *screen, DrawablePtr pDraw, XID drawId,
+		  __GLcontextModes *modes)
 {
     drawable->type = pDraw->type;
     drawable->pDraw = pDraw;
     drawable->drawId = drawId;
     drawable->refCount = 1;
+    drawable->modes = modes;
 
     /* if not a pixmap, lookup will fail, so pGlxPixmap will be NULL */
     drawable->pGlxPixmap = (__GLXpixmap *) 
@@ -167,13 +169,31 @@ __glXFindDrawable(XID drawId)
 __GLXdrawable *
 __glXGetDrawable(__GLXcontext *ctx, DrawablePtr pDraw, XID drawId)
 {
+    __GLXscreen *pGlxScreen = ctx->pGlxScreen;
     __GLXdrawable *glxPriv;
+    __GLcontextModes *modes;
 
     glxPriv = __glXFindDrawable(drawId);
 
     if (glxPriv == NULL)
     {
-	glxPriv = ctx->createDrawable(ctx, pDraw, drawId);
+	if (pDraw->type == DRAWABLE_WINDOW) {
+	    VisualID vid = wVisual((WindowPtr)pDraw);
+
+	    modes = _gl_context_modes_find_visual(pGlxScreen->modes, vid);
+	} else {
+	    __GLXpixmap *pGlxPixmap =
+		(__GLXpixmap *) LookupIDByType(drawId, __glXPixmapRes);
+
+	    /* We never get here without a valid pixmap.
+	     * GetDrawableOrPixmap weeds out X Pixmaps without GLX
+	     * pixmaps for us. */
+
+	    modes = pGlxPixmap->modes;
+	}
+
+	glxPriv =
+	    pGlxScreen->createDrawable(ctx->pGlxScreen, pDraw, drawId, modes);
 
 	/* since we are creating the drawablePrivate, drawId should be new */
 	if (!AddResource(drawId, __glXDrawableRes, glxPriv))

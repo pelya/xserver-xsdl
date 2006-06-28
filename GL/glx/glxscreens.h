@@ -53,11 +53,16 @@
 */
 typedef struct __GLXscreen __GLXscreen;
 struct __GLXscreen {
-    void          (*destroy)(__GLXscreen *screen);
+    void          (*destroy)       (__GLXscreen *screen);
 
-    __GLXcontext *(*createContext)(__GLXscreen *screen,
-				   __GLcontextModes *modes,
-				   __GLXcontext *shareContext);
+    __GLXcontext *(*createContext) (__GLXscreen *screen,
+				    __GLcontextModes *modes,
+				    __GLXcontext *shareContext);
+
+    __GLXdrawable *(*createDrawable)(__GLXscreen *context,
+				     DrawablePtr pDraw,
+				     XID drawId,
+				     __GLcontextModes *modes);
 
     ScreenPtr pScreen;
 
