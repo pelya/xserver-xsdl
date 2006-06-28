@@ -47,7 +47,7 @@ __GLXdispatchSingleProcPtr __glXSingleTable[__GLX_SINGLE_TABLE_SIZE] = {
 	__glXMakeCurrent,
 	__glXIsDirect,
 	__glXQueryVersion,
-	__glXWaitGL,
+	__glXWaitGL,				/* 0x08 */
 	__glXWaitX,
 	__glXCopyContext,
 	__glXSwapBuffers,
@@ -55,23 +55,23 @@ __GLXdispatchSingleProcPtr __glXSingleTable[__GLX_SINGLE_TABLE_SIZE] = {
 	__glXCreateGLXPixmap,
 	__glXGetVisualConfigs,
 	__glXDestroyGLXPixmap,
-	__glXVendorPrivate,
+	__glXVendorPrivate,			/* 0x10 */
 	__glXVendorPrivateWithReply,
 	__glXQueryExtensionsString,
 	__glXQueryServerString,
 	__glXClientInfo,
 	__glXGetFBConfigs,
 	__glXCreatePixmap,
-	__glXDestroyGLXPixmap, /* glXDestroyPixmap */
-	__glXCreateNewContext,
-	__glXNoSuchSingleOpcode, /* glXQueryContext */
+	__glXDestroyPixmap,
+	__glXCreateNewContext,			/* 0x18 */
+	__glXQueryContext,
 	__glXMakeContextCurrent,
-	__glXNoSuchSingleOpcode, /* glXCreatePbuffer */
-	__glXNoSuchSingleOpcode, /* glXDestroyPbuffer */
-	__glXNoSuchSingleOpcode, /* glXGetDrawableAttributes */
-	__glXNoSuchSingleOpcode, /* glXChangeDrawableAttributes */
-	__glXNoSuchSingleOpcode, /* glXCreateWindow */
-	__glXNoSuchSingleOpcode, /* glXDestroyWindow */
+	__glXCreatePbuffer,
+	__glXDestroyPbuffer,
+	__glXGetDrawableAttributes,
+	__glXChangeDrawableAttributes,
+	__glXCreateWindow,
+	__glXDestroyWindow,			/* 0x20 */
 	__glXNoSuchSingleOpcode,
 	__glXNoSuchSingleOpcode,
 	__glXNoSuchSingleOpcode,
@@ -448,7 +448,7 @@ __GLXdispatchSingleProcPtr __glXSwapSingleTable[__GLX_SINGLE_TABLE_SIZE] = {
 	__glXSwapMakeCurrent,
 	__glXSwapIsDirect,
 	__glXSwapQueryVersion,
-	__glXSwapWaitGL,
+	__glXSwapWaitGL,			/* 0x08 */
 	__glXSwapWaitX,
 	__glXSwapCopyContext,
 	__glXSwapSwapBuffers,
@@ -456,23 +456,23 @@ __GLXdispatchSingleProcPtr __glXSwapSingleTable[__GLX_SINGLE_TABLE_SIZE] = {
 	__glXSwapCreateGLXPixmap,
 	__glXSwapGetVisualConfigs,
 	__glXSwapDestroyGLXPixmap,
-	__glXSwapVendorPrivate,
+	__glXSwapVendorPrivate,			/* 0x10 */
 	__glXSwapVendorPrivateWithReply,
 	__glXSwapQueryExtensionsString,
 	__glXSwapQueryServerString,
 	__glXSwapClientInfo,
 	__glXSwapGetFBConfigs,
 	__glXSwapCreatePixmap,
-	__glXSwapDestroyGLXPixmap, /* glXDestroyPixmap */
-	__glXSwapCreateNewContext,
-	__glXNoSuchSingleOpcode, /* glXQueryContext */
+	__glXSwapDestroyPixmap,
+	__glXSwapCreateNewContext,		/* 0x18 */
+	__glXSwapQueryContext,
 	__glXSwapMakeContextCurrent,
-	__glXNoSuchSingleOpcode, /* glXCreatePbuffer */
-	__glXNoSuchSingleOpcode, /* glXDestroyPbuffer */
-	__glXNoSuchSingleOpcode, /* glXGetDrawableAttributes */
-	__glXNoSuchSingleOpcode, /* glXChangeDrawableAttributes */
-	__glXNoSuchSingleOpcode, /* glXCreateWindow */
-	__glXNoSuchSingleOpcode, /* glXDestroyWindow */
+	__glXSwapCreatePbuffer,
+	__glXSwapDestroyPbuffer,
+	__glXSwapGetDrawableAttributes,
+	__glXSwapChangeDrawableAttributes,
+	__glXSwapCreateWindow,
+	__glXSwapDestroyWindow,			/* 0x20 */
 	__glXNoSuchSingleOpcode,
 	__glXNoSuchSingleOpcode,
 	__glXNoSuchSingleOpcode,

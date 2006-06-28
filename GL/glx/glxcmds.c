@@ -1299,16 +1299,9 @@ int __glXCreateGLXPixmapWithConfigSGIX(__GLXclientState *cl, GLbyte *pc)
 }
 
 
-/**
- * Destroy a GLX pixmap.  This function is used for both
- * \c glXDestroyGLXPixmap and \c glXDestroyPixmap.
- */
-
-int __glXDestroyGLXPixmap(__GLXclientState *cl, GLbyte *pc)
+int DoDestroyPixmap(__GLXclientState *cl, XID glxpixmap)
 {
     ClientPtr client = cl->client;
-    xGLXDestroyGLXPixmapReq *req = (xGLXDestroyGLXPixmapReq *) pc;
-    XID glxpixmap = req->glxpixmap;
 
     /*
     ** Check if it's a valid GLX pixmap.
@@ -1318,8 +1311,70 @@ int __glXDestroyGLXPixmap(__GLXclientState *cl, GLbyte *pc)
 	return __glXBadPixmap;
     }
     FreeResource(glxpixmap, FALSE);
+
     return Success;
 }
+
+int __glXDestroyGLXPixmap(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXDestroyGLXPixmapReq *req = (xGLXDestroyGLXPixmapReq *) pc;
+
+    return DoDestroyPixmap(cl, req->glxpixmap);
+}
+
+int __glXDestroyPixmap(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXDestroyPixmapReq *req = (xGLXDestroyPixmapReq *) pc;
+
+    return DoDestroyPixmap(cl, req->glxpixmap);
+}
+
+int __glXCreatePbuffer(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreatePbufferReq *req = (xGLXCreatePbufferReq *) pc;
+
+    (void) req;
+
+    return BadRequest;
+}
+
+int __glXDestroyPbuffer(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXDestroyPbufferReq *req = (xGLXDestroyPbufferReq *) pc;
+
+    (void) req;
+
+    return BadRequest;
+}
+
+int __glXChangeDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXChangeDrawableAttributesReq *req =
+	(xGLXChangeDrawableAttributesReq *) pc;
+
+    (void) req;
+
+    return BadRequest;
+}
+
+int __glXCreateWindow(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreateWindowReq *req = (xGLXCreateWindowReq *) pc;
+
+    (void) req;
+
+    return BadRequest;
+}
+
+int __glXDestroyWindow(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXDestroyWindowReq *req = (xGLXDestroyWindowReq *) pc;
+
+    (void) req;
+
+    return BadRequest;
+}
+
 
 /*****************************************************************************/
 
@@ -1419,20 +1474,18 @@ int __glXSwapBuffers(__GLXclientState *cl, GLbyte *pc)
 }
 
 
-int __glXQueryContextInfoEXT(__GLXclientState *cl, GLbyte *pc)
+int DoQueryContext(__GLXclientState *cl, GLXContextID gcId)
 {
     ClientPtr client = cl->client;
     __GLXcontext *ctx;
-    xGLXQueryContextInfoEXTReq *req;
     xGLXQueryContextInfoEXTReply reply;
     int nProps;
     int *sendBuf, *pSendBuf;
     int nReplyBytes;
 
-    req = (xGLXQueryContextInfoEXTReq *)pc;
-    ctx = (__GLXcontext *) LookupIDByType(req->context, __glXContextRes);
+    ctx = (__GLXcontext *) LookupIDByType(gcId, __glXContextRes);
     if (!ctx) {
-	client->errorValue = req->context;
+	client->errorValue = gcId;
 	return __glXBadContext;
     }
 
@@ -1466,6 +1519,19 @@ int __glXQueryContextInfoEXT(__GLXclientState *cl, GLbyte *pc)
     return Success;
 }
 
+int __glXQueryContextInfoEXT(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXQueryContextInfoEXTReq *req = (xGLXQueryContextInfoEXTReq *) pc;
+
+    return DoQueryContext(cl, req->context);
+}
+
+int __glXQueryContext(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXQueryContextReq *req = (xGLXQueryContextReq *) pc;
+
+    return DoQueryContext(cl, req->context);
+}
 
 int __glXBindTexImageEXT(__GLXclientState *cl, GLbyte *pc)
 {
@@ -1587,6 +1653,13 @@ int __glXGetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc)
     drawable = data[0];
 
     return DoGetDrawableAttributes(cl, drawable);
+}
+
+int __glXGetDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXGetDrawableAttributesReq *req = (xGLXGetDrawableAttributesReq *)pc;
+
+    return DoGetDrawableAttributes(cl, req->drawable);
 }
 
 /************************************************************************/

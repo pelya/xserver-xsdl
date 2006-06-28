@@ -87,6 +87,9 @@ extern int DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
     GLXContextID shareList, VisualID visual, GLuint screen, GLboolean isDirect);
 extern int DoCreateGLXPixmap(__GLXclientState *cl, VisualID visual,
     GLuint screenNum, XID pixmapId, XID glxpixmapId);
+extern int DoDestroyPixmap(__GLXclientState *cl, XID glxpixmapId);
+
+extern int DoQueryContext(__GLXclientState *cl, GLXContextID gcId);
 
 extern void GlxExtensionInit(void);
 

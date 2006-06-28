@@ -315,6 +315,68 @@ int __glXSwapDestroyGLXPixmap(__GLXclientState *cl, GLbyte *pc)
     return __glXDestroyGLXPixmap(cl, pc);
 }
 
+int __glXSwapDestroyPixmap(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXDestroyGLXPixmapReq *req = (xGLXDestroyGLXPixmapReq *) pc;
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    __GLX_SWAP_SHORT(&req->length);
+    __GLX_SWAP_INT(&req->glxpixmap);
+
+    return __glXDestroyGLXPixmap(cl, pc);
+}
+
+int __glXSwapQueryContext(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXQueryContextReq *req = (xGLXQueryContextReq *) pc;    
+
+    (void) req;
+
+    return BadRequest;    
+}
+
+int __glXSwapCreatePbuffer(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreatePbufferReq *req = (xGLXCreatePbufferReq *) pc;    
+
+    (void) req;
+
+    return BadRequest;    
+}
+
+int __glXSwapDestroyPbuffer(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXDestroyPbufferReq *req = (xGLXDestroyPbufferReq *) req;
+
+    return BadRequest;
+}
+
+int __glXSwapChangeDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXChangeDrawableAttributesReq *req =
+	(xGLXChangeDrawableAttributesReq *) req;
+
+    return BadRequest;
+}
+
+int __glXSwapCreateWindow(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreateWindowReq *req = (xGLXCreateWindowReq *) pc;
+
+    (void) req;
+
+    return BadRequest;
+}
+
+int __glXSwapDestroyWindow(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXDestroyWindowReq *req = (xGLXDestroyWindowReq *) pc;
+
+    (void) req;
+
+    return BadRequest;
+}
+
 int __glXSwapSwapBuffers(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXSwapBuffersReq *req = (xGLXSwapBuffersReq *) pc;
@@ -444,7 +506,19 @@ int __glXSwapGetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc)
     __GLX_SWAP_INT(&req->contextTag);
     __GLX_SWAP_INT(data);
 
-    return __glXGetDrawableAttributesSGIX(cl, (GLbyte *)pc);
+    return __glXGetDrawableAttributesSGIX(cl, pc);
+}
+
+int __glXSwapGetDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXGetDrawableAttributesReq *req = (xGLXGetDrawableAttributesReq *)pc;
+    
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    __GLX_SWAP_SHORT(&req->length);
+    __GLX_SWAP_INT(&req->drawable);
+
+    return __glXGetDrawableAttributes(cl, pc);
 }
 
 
