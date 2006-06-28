@@ -296,24 +296,18 @@ glxCountBits(int word)
 }
 
 static void
-glxFillAlphaChannel (PixmapPtr pixmap)
+glxFillAlphaChannel (PixmapPtr pixmap, int x, int y, int width, int height)
 {
-    int i, j;
-    CARD32 *pixels = (CARD32 *)pixmap->devPrivate.ptr;
+    int i;
+    CARD32 *p, *end, *pixels = (CARD32 *)pixmap->devPrivate.ptr;
     CARD32 rowstride = pixmap->devKind / 4;
-    CARD32 x, y;
-
-    x = pixmap->drawable.x;
-    y = pixmap->drawable.y;
     
-    for (i = y; i < pixmap->drawable.height + y; ++i)
+    for (i = y; i < y + height; i++)
     {
-        for (j = x; j < pixmap->drawable.width + x; ++j)
-        {
-            int index = i * rowstride + j;
-
-            pixels[index] |= 0xFF000000;
-        }
+	p = &pixels[i * rowstride + x];
+	end = p + width;
+	while (p < end)
+	  *p++ |= 0xFF000000;
     }
 }
 
@@ -326,7 +320,6 @@ glxFillAlphaChannel (PixmapPtr pixmap)
  * - No fbconfig handling for TEXTURE_TARGET
  * - No fbconfig exposure of Y inversion state
  * - No GenerateMipmapEXT support (due to no FBO support)
- * - No damage tracking between binds
  * - No support for anything but 16bpp and 32bpp-sparse pixmaps
  */
 
@@ -335,38 +328,103 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
 		     int buffer,
 		     __GLXpixmap *glxPixmap)
 {
+    RegionPtr	pRegion;
     PixmapPtr	pixmap;
     int		bpp;
-    Bool	npot;
+    GLenum	target, format, type;
 
     pixmap = (PixmapPtr) glxPixmap->pDraw;
-    bpp = pixmap->drawable.depth >= 24 ? 4 : 2; /* XXX 24bpp packed, 8, etc */
-    
+    if (!glxPixmap->pDamage) {
+        glxPixmap->pDamage = DamageCreate(NULL, NULL, DamageReportNone,
+					  TRUE, glxPixmap->pScreen, NULL);
+	if (!glxPixmap->pDamage)
+            return BadAlloc;
+
+	DamageRegister ((DrawablePtr) pixmap, glxPixmap->pDamage);
+	pRegion = NULL;
+    } else {
+	pRegion = DamageRegion(glxPixmap->pDamage);
+	if (REGION_NIL(pRegion))
+	    return Success;
+    }
+
+    /* XXX 24bpp packed, 8, etc */
+    if (pixmap->drawable.depth >= 24) {
+	bpp = 4;
+	format = GL_BGRA;
+	type = GL_UNSIGNED_BYTE;
+    } else {
+	bpp = 2;
+	format = GL_RGB;
+	type = GL_UNSIGNED_SHORT_5_6_5;
+    }
+
+    if (!(glxCountBits(pixmap->drawable.width) == 1 &&
+	  glxCountBits(pixmap->drawable.height) == 1)
+	/* || strstr(CALL_GetString(GL_EXTENSIONS,
+	             "GL_ARB_texture_non_power_of_two")) */)
+	target = GL_TEXTURE_RECTANGLE_ARB;
+    else
+	target = GL_TEXTURE_2D;
+
     CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_ROW_LENGTH,
-                                       pixmap->devKind / bpp) );
-    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_ROWS,
-                                       pixmap->drawable.y) );
-    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_PIXELS,
-                                       pixmap->drawable.x) );
+				       pixmap->devKind / bpp) );
+    if (pRegion == NULL)
+    {
+	if (pixmap->drawable.depth == 24)
+	    glxFillAlphaChannel(pixmap,
+				pixmap->drawable.x,
+				pixmap->drawable.y,
+				pixmap->drawable.width,
+				pixmap->drawable.height);
 
-    if (pixmap->drawable.depth == 24)
-        glxFillAlphaChannel(pixmap);
+        CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_PIXELS,
+					   pixmap->drawable.x) );
+	CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_ROWS,
+					   pixmap->drawable.y) );
 
-    npot = !(glxCountBits(pixmap->drawable.width) == 1 &&
-             glxCountBits(pixmap->drawable.height) == 1) /* ||
-             strstr(CALL_GetString(GL_EXTENSIONS,
-                    "GL_ARB_texture_non_power_of_two")) */ ;
-    
-    CALL_TexImage2D( GET_DISPATCH(),
-		     ( npot ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D,
-		       0,
-		       bpp == 4 ? 4 : 3,
-		       pixmap->drawable.width,
-		       pixmap->drawable.height,
-		       0,
-		       bpp == 4 ? GL_BGRA : GL_RGB,
-		       bpp == 4 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT_5_6_5,
-		       pixmap->devPrivate.ptr ) );
+	CALL_TexImage2D( GET_DISPATCH(),
+			 (target,
+			  0,
+			  bpp == 4 ? 4 : 3,
+			  pixmap->drawable.width,
+			  pixmap->drawable.height,
+			  0,
+			  format,
+			  type,
+			  pixmap->devPrivate.ptr) );
+    } else {
+        int i, numRects;
+	BoxPtr p;
+
+	numRects = REGION_NUM_RECTS (pRegion);
+	p = REGION_RECTS (pRegion);
+	for (i = 0; i < numRects; i++)
+	{
+	    if (pixmap->drawable.depth == 24)
+		glxFillAlphaChannel(pixmap,
+				    pixmap->drawable.x + p[i].x1,
+				    pixmap->drawable.y + p[i].y1,
+				    p[i].x2 - p[i].x1,
+				    p[i].y2 - p[i].y1);
+
+	    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_PIXELS,
+					       pixmap->drawable.x + p[i].x1) );
+	    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_ROWS,
+					       pixmap->drawable.y + p[i].y1) );
+
+	    CALL_TexSubImage2D( GET_DISPATCH(),
+				(target,
+				 0,
+				 p[i].x1, p[i].y1,
+				 p[i].x2 - p[i].x1, p[i].y2 - p[i].y1,
+				 format,
+				 type,
+				 pixmap->devPrivate.ptr) );
+	}
+    }
+
+    DamageEmpty(glxPixmap->pDamage);
 
     return Success;
 }

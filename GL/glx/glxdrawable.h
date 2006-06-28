@@ -41,6 +41,8 @@
 **
 */
 
+#include <damage.h>
+
 typedef struct {
 
     DrawablePtr pDraw;
@@ -49,7 +51,7 @@ typedef struct {
     ScreenPtr pScreen;
     Bool idExists;
     int refcnt;
-
+    DamagePtr pDamage;
 } __GLXpixmap;
 
 struct __GLXdrawable {
