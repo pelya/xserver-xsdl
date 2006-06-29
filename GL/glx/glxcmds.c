@@ -445,29 +445,46 @@ int __glXMakeCurrentReadSGI(__GLXclientState *cl, GLbyte *pc)
  *        is added.
  */
 static int GetDrawableOrPixmap( __GLXcontext *glxc, GLXDrawable drawId,
-				DrawablePtr *ppDraw, __GLXpixmap **ppPixmap,
+				__GLXdrawable **ppGlxDraw,
+				__GLXpixmap **ppPixmap,
 				ClientPtr client )
 {
     DrawablePtr pDraw;
+    __GLcontextModes *modes;
+    __GLXdrawable *pGlxDraw;
     __GLXpixmap *drawPixmap = NULL;
 
+    /* This is the GLX 1.3 case - the client passes in a GLXWindow and
+     * we just return the __GLXdrawable.  The first time a GLXPixmap
+     * comes in, it doesn't have a corresponding __GLXdrawable, so it
+     * falls through to the else-case below, but after that it'll have
+     * a __GLXdrawable and we'll handle it here. */
+    pGlxDraw = (__GLXdrawable *) LookupIDByType(drawId, __glXDrawableRes);
+    if (pGlxDraw != NULL) {
+	if (glxc != NULL && pGlxDraw->modes != glxc->modes) {
+	    client->errorValue = drawId;
+	    return BadMatch;
+	}
+
+	*ppGlxDraw = pGlxDraw;
+	*ppPixmap = pGlxDraw->pGlxPixmap;
+	return Success;
+    }
+
+    /* The drawId wasn't a GLXWindow, so presumably it's a regular X
+     * window.  In that case, we create a shadow GLXWindow for it on
+     * demand here for pre GLX 1.3 compatibility and use the X Window
+     * XID as its GLXWindow XID.  The client can't explicitly create a
+     * GLXWindow with the same XID as an X Window, so we wont get any
+     * resource ID clashes.  Effectively, the X Window is now also a
+     * GLXWindow. */
     pDraw = (DrawablePtr) LookupDrawable(drawId, client);
     if (pDraw) {
 	if (pDraw->type == DRAWABLE_WINDOW) {
-	    /*
-	    ** Drawable is an X Window.
-	    */
-	    WindowPtr pWin = (WindowPtr)pDraw;
-	    VisualID vid = wVisual(pWin);
+	    VisualID vid = wVisual((WindowPtr)pDraw);
 
-	    /*
-	    ** Check if window and context are similar.
-	    */
-	    if ((vid != glxc->pVisual->vid) ||
-		(pWin->drawable.pScreen != glxc->pScreen)) {
-		client->errorValue = drawId;
-		return BadMatch;
-	    }
+	    modes = _gl_context_modes_find_visual(glxc->pGlxScreen->modes,
+						  vid);
 	} else {
 	    /*
 	    ** An X Pixmap is not allowed as a parameter (a GLX Pixmap
@@ -479,16 +496,8 @@ static int GetDrawableOrPixmap( __GLXcontext *glxc, GLXDrawable drawId,
     } else {
 	drawPixmap = (__GLXpixmap *) LookupIDByType(drawId, __glXPixmapRes);
 	if (drawPixmap) {
-	    /*
-	    ** Check if pixmap and context are similar.
-	    */
-	    if (drawPixmap->pScreen != glxc->pScreen ||
-		drawPixmap->modes->visualID != glxc->modes->visualID) {
-		client->errorValue = drawId;
-		return BadMatch;
-	    }
 	    pDraw = drawPixmap->pDraw;
-
+	    modes = drawPixmap->modes;
 	} else {
 	    /*
 	    ** Drawable is neither a Window nor a GLXPixmap.
@@ -498,8 +507,33 @@ static int GetDrawableOrPixmap( __GLXcontext *glxc, GLXDrawable drawId,
 	}
     }
 
+    /* If we're not given a context, don't create the __GLXdrawable */
+    if (glxc == NULL) {
+	*ppPixmap = NULL;
+	*ppGlxDraw = NULL;
+	return Success;
+    }
+
+    /* We're binding an X Window or a GLX Pixmap for the first time
+     * and need to create a GLX drawable for it.  First check that the
+     * drawable screen and fbconfig matches the context ditto. */
+    if (pDraw->pScreen != glxc->pScreen || modes != glxc->modes) {
+	client->errorValue = drawId;
+	return BadMatch;
+    }
+
+    pGlxDraw =
+	glxc->pGlxScreen->createDrawable(glxc->pGlxScreen,
+					 pDraw, drawId, modes);
+
+    /* since we are creating the drawablePrivate, drawId should be new */
+    if (!AddResource(drawId, __glXDrawableRes, pGlxDraw)) {
+	pGlxDraw->destroy (pGlxDraw);
+	return BadAlloc;
+    }
+
     *ppPixmap = drawPixmap;
-    *ppDraw = pDraw;
+    *ppGlxDraw = pGlxDraw;
 
     return 0;
 }
@@ -510,8 +544,6 @@ int DoMakeCurrent( __GLXclientState *cl,
 		   GLXContextID contextId, GLXContextTag tag )
 {
     ClientPtr client = cl->client;
-    DrawablePtr pDraw;
-    DrawablePtr pRead;
     xGLXMakeCurrentReply reply;
     __GLXpixmap *drawPixmap = NULL;
     __GLXpixmap *readPixmap = NULL;
@@ -572,35 +604,17 @@ int DoMakeCurrent( __GLXclientState *cl,
 	assert( drawId != None );
 	assert( readId != None );
 
-	status = GetDrawableOrPixmap( glxc, drawId, & pDraw, & drawPixmap,
-				      client );
+	status = GetDrawableOrPixmap(glxc, drawId, &drawPriv, &drawPixmap,
+				     client);
 	if ( status != 0 ) {
 	    return status;
 	}
 
 	if ( readId != drawId ) {
-	    status = GetDrawableOrPixmap( glxc, readId, & pRead, & readPixmap,
-					  client );
+	    status = GetDrawableOrPixmap(glxc, readId, &readPriv, &readPixmap,
+					 client);
 	    if ( status != 0 ) {
 		return status;
-	    }
-	} else {
-	    pRead = pDraw;
-	}
-
-	/* FIXME: Finish refactoring this. - idr */
-	/* get the drawable private */
-	if (pDraw) {
-	    drawPriv = __glXGetDrawable(glxc, pDraw, drawId);
-	    if (drawPriv == NULL) {
-		return __glXError(GLXBadDrawable);
-	    }
-	}
-
-	if (pRead != pDraw) {
-	    readPriv = __glXGetDrawable(glxc, pRead, readId);
-	    if (readPriv == NULL) {
-		return __glXError(GLXBadDrawable);
 	    }
 	} else {
 	    readPriv = drawPriv;
@@ -609,8 +623,8 @@ int DoMakeCurrent( __GLXclientState *cl,
     } else {
 	/* Switching to no context.  Ignore new drawable. */
 	glxc = 0;
-	pDraw = 0;
-	pRead = 0;
+	drawPriv = 0;
+	readPriv = 0;
     }
 
 
@@ -1386,45 +1400,13 @@ int __glXDestroyWindow(__GLXclientState *cl, GLbyte *pc)
 int __glXSwapBuffers(__GLXclientState *cl, GLbyte *pc)
 {
     ClientPtr client = cl->client;
-    DrawablePtr pDraw;
     xGLXSwapBuffersReq *req = (xGLXSwapBuffersReq *) pc;
     GLXContextTag tag = req->contextTag;
     XID drawId = req->drawable;
-    __GLXpixmap *pGlxPixmap;
     __GLXcontext *glxc = NULL;
+    __GLXdrawable *pGlxDraw;
+    __GLXpixmap *pPixmap;
     int error;
-    
-    /*
-    ** Check that the GLX drawable is valid.
-    */
-    pDraw = (DrawablePtr) LookupDrawable(drawId, client);
-    if (pDraw) {
-	if (pDraw->type == DRAWABLE_WINDOW) {
-	    /*
-	    ** Drawable is an X window.
-	    */
-	} else {
-	    /*
-	    ** Drawable is an X pixmap, which is not allowed.
-	    */
-	    client->errorValue = drawId;
-	    return __glXError(GLXBadDrawable);
-	}
-    } else {
-	pGlxPixmap = (__GLXpixmap *) LookupIDByType(drawId,
-						    __glXPixmapRes);
-	if (pGlxPixmap) {
-	    /*
-	    ** Drawable is a GLX pixmap.
-	    */
-	} else {
-	    /*
-	    ** Drawable is neither a X window nor a GLX pixmap.
-	    */
-	    client->errorValue = drawId;
-	    return __glXError(GLXBadDrawable);
-	}
-    }
 
     if (tag) {
 	glxc = __glXLookupContextByTag(cl, tag);
@@ -1448,27 +1430,13 @@ int __glXSwapBuffers(__GLXclientState *cl, GLbyte *pc)
 	}
     }
 
-    if (pDraw) {
-	__GLXdrawable *glxPriv;
+    error = GetDrawableOrPixmap(glxc, drawId, &pGlxDraw, &pPixmap, client);
+    if (error != Success)
+	return error;
 
-	if (glxc) {
-	    glxPriv = __glXGetDrawable(glxc, pDraw, drawId);
-	    if (glxPriv == NULL) {
-		return __glXError(GLXBadDrawable);
-	    }
-	}
-	else {
-	    glxPriv = __glXFindDrawable(drawId);
-	    if (glxPriv == NULL) {
-		/* This is a window we've never seen before, do nothing */
-		return Success;
-	    }
-	}
-
-	if ((*glxPriv->swapBuffers)(glxPriv) == GL_FALSE) {
-	    return __glXError(GLXBadDrawable);
-	}
-    }
+    if (pGlxDraw != NULL && pGlxDraw->type == DRAWABLE_WINDOW &&
+	(*pGlxDraw->swapBuffers)(pGlxDraw) == GL_FALSE)
+	return __glXError(GLXBadDrawable);
 
     return Success;
 }
