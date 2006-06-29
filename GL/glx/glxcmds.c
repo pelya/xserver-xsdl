@@ -1201,81 +1201,82 @@ int __glXGetFBConfigsSGIX(__GLXclientState *cl, GLbyte *pc)
     return DoGetFBConfigs( cl, req->screen, GL_FALSE );
 }
 
-
-/*
-** Create a GLX Pixmap from an X Pixmap.
-*/
-int DoCreateGLXPixmap(__GLXclientState *cl, VisualID visual,
-		      GLuint screenNum, XID pixmapId, XID glxpixmapId)
+static int ValidateCreateDrawable(ClientPtr client,
+				  int screenNum, XID fbconfigId,
+				  XID drawablId, XID glxDrawableId,
+				  int type, __GLcontextModes **modes,
+				  DrawablePtr *ppDraw)
 {
-    ClientPtr client = cl->client;
     DrawablePtr pDraw;
     ScreenPtr pScreen;
     VisualPtr pVisual;
-    __GLXpixmap *pGlxPixmap;
     __GLXscreen *pGlxScreen;
-    __GLcontextModes *modes;
     int i;
 
-    LEGAL_NEW_RESOURCE(glxpixmapId, client);
-    
-    pDraw = (DrawablePtr) LookupDrawable(pixmapId, client);
-    if (!pDraw || pDraw->type != DRAWABLE_PIXMAP) {
-	client->errorValue = pixmapId;
-	return BadPixmap;
+    LEGAL_NEW_RESOURCE(glxDrawableId, client);
+
+    pDraw = (DrawablePtr) LookupDrawable(drawablId, client);
+    if (!pDraw || pDraw->type != type) {
+	client->errorValue = drawablId;
+	return type == DRAWABLE_WINDOW ? BadWindow : BadPixmap;
     }
 
-    /*
-    ** Check if screen of visual matches screen of pixmap.
-    */
+    /* Check if screen of the fbconfig matches screen of drawable. */
     pScreen = pDraw->pScreen;
     if (screenNum != pScreen->myNum) {
 	return BadMatch;
     }
 
-    /*
-    ** Find the VisualRec for this visual.
-    */
+    /* If this fbconfig has a corresponding VisualRec the number of
+     * planes must match the drawable depth. */
     pVisual = pScreen->visuals;
-    for (i=0; i < pScreen->numVisuals; i++, pVisual++) {
-	if (pVisual->vid == visual) {
-	    break;
-	}
-    }
-    if (i == pScreen->numVisuals) {
-	client->errorValue = visual;
-	return BadValue;
-    }
-    /*
-    ** Check if depth of visual matches depth of pixmap.
-    */
-    if (pVisual->nplanes != pDraw->depth) {
-	return BadMatch;
+    for (i = 0; i < pScreen->numVisuals; i++, pVisual++) {
+	if (pVisual->vid == fbconfigId && pVisual->nplanes != pDraw->depth)
+	    return BadMatch;
     }
 
-    /*
-    ** Get configuration of the visual.
-    */
-    pGlxScreen = __glXActiveScreens[screenNum];
-    modes = _gl_context_modes_find_visual( pGlxScreen->modes, visual );
-    if (modes == NULL) {
-	/*
-	** Visual not support on this screen by this OpenGL implementation.
-	*/
-	client->errorValue = visual;
+    /* Get configuration of the visual. */
+    pGlxScreen = __glXgetActiveScreen(screenNum);
+    *modes = _gl_context_modes_find_visual(pGlxScreen->modes, fbconfigId);
+    if (*modes == NULL) {
+	/* Visual not support on this screen by this OpenGL implementation. */
+	client->errorValue = fbconfigId;
 	return BadValue;
     }
+
+    *ppDraw = pDraw;
+
+    return Success;
+}
+
+/*
+** Create a GLX Pixmap from an X Pixmap.
+*/
+int DoCreateGLXPixmap(__GLXclientState *cl, XID fbconfigId,
+		      GLuint screenNum, XID pixmapId, XID glxPixmapId)
+{
+    ClientPtr client = cl->client;
+    DrawablePtr pDraw;
+    __GLXpixmap *pGlxPixmap;
+    __GLcontextModes *modes;
+    int retval;
+
+    retval = ValidateCreateDrawable (client, screenNum, fbconfigId,
+				     pixmapId, glxPixmapId,
+				     DRAWABLE_PIXMAP, &modes, &pDraw);
+    if (retval != Success)
+	return retval;
 
     pGlxPixmap = (__GLXpixmap *) xalloc(sizeof(__GLXpixmap));
     if (!pGlxPixmap) {
 	return BadAlloc;
     }
-    if (!(AddResource(glxpixmapId, __glXPixmapRes, pGlxPixmap))) {
+    if (!(AddResource(glxPixmapId, __glXPixmapRes, pGlxPixmap))) {
 	return BadAlloc;
     }
     pGlxPixmap->pDraw = pDraw;
-    pGlxPixmap->pGlxScreen = pGlxScreen;
-    pGlxPixmap->pScreen = pScreen;
+    pGlxPixmap->pGlxScreen = __glXgetActiveScreen(screenNum);
+    pGlxPixmap->pScreen = pDraw->pScreen;
     pGlxPixmap->idExists = True;
     pGlxPixmap->pDamage = NULL;
     pGlxPixmap->refcnt = 0;
@@ -1374,19 +1375,50 @@ int __glXChangeDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 int __glXCreateWindow(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXCreateWindowReq *req = (xGLXCreateWindowReq *) pc;
+    ClientPtr client = cl->client;
+    DrawablePtr pDraw;
+    __GLXdrawable *glxPriv;
+    __GLXscreen *screen;
+    __GLcontextModes *modes;
+    int retval;
 
-    (void) req;
+    retval = ValidateCreateDrawable (client, req->screen, req->fbconfig,
+				     req->window, req->glxwindow,
+				     DRAWABLE_WINDOW, &modes, &pDraw);
+    if (retval != Success)
+	return retval;
 
-    return BadRequest;
+    /* FIXME: We need to check that the window visual is compatible
+     * with the specified fbconfig. */
+
+    screen = __glXgetActiveScreen(req->screen);
+    glxPriv = screen->createDrawable(screen, pDraw, req->glxwindow, modes);
+    if (glxPriv == NULL)
+	return BadAlloc;
+
+    if (!AddResource(req->glxwindow, __glXDrawableRes, glxPriv)) {
+	glxPriv->destroy (glxPriv);
+	return BadAlloc;
+    }
+
+    return Success;
 }
 
 int __glXDestroyWindow(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXDestroyWindowReq *req = (xGLXDestroyWindowReq *) pc;
+    ClientPtr client = cl->client;
 
-    (void) req;
+    /*
+    ** Check if it's a valid GLX window.
+    */
+    if (!LookupIDByType(req->glxwindow, __glXDrawableRes)) {
+	client->errorValue = req->glxwindow;
+	return __glXError(GLXBadWindow);
+    }
+    FreeResource(req->glxwindow, FALSE);
 
-    return BadRequest;
+    return Success;
 }
 
 
