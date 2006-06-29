@@ -674,12 +674,12 @@ int __glXSwapRender(__GLXclientState *cl, GLbyte *pc)
 #endif /* __GLX_MAX_RENDER_OPCODE_EXT > __GLX_MIN_RENDER_OPCODE_EXT */
 	} else {
 	    client->errorValue = commandsDone;
-	    return __glXBadRenderRequest;
+	    return __glXError(GLXBadRenderRequest);
 	}
         if (!entry->bytes) {
             /* unused opcode */
 	    client->errorValue = commandsDone;
-            return __glXBadRenderRequest;
+            return __glXError(GLXBadRenderRequest);
         }
         if (entry->varsize) {
             /* variable size command */
@@ -772,7 +772,7 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 	*/
 	if (req->requestNumber != 1) {
 	    client->errorValue = req->requestNumber;
-	    return __glXBadLargeRequest;
+	    return __glXError(GLXBadLargeRequest);
 	}
 	hdr = (__GLXrenderLargeHeader *) pc;
 	__GLX_SWAP_INT(&hdr->length);
@@ -793,13 +793,13 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 #endif /* __GLX_MAX_RENDER_OPCODE_EXT > __GLX_MIN_RENDER_OPCODE_EXT */
 	} else {
 	    client->errorValue = opcode;
-	    return __glXBadLargeRequest;
+	    return __glXError(GLXBadLargeRequest);
 	}
 
         if (!entry->bytes) {
             /* unused opcode */
             client->errorValue = opcode;
-            return __glXBadLargeRequest;
+            return __glXError(GLXBadLargeRequest);
         }
 	if (entry->varsize) {
 	    /*
@@ -855,12 +855,12 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 	if (req->requestNumber != cl->largeCmdRequestsSoFar + 1) {
 	    client->errorValue = req->requestNumber;
 	    __glXResetLargeCommandStatus(cl);
-	    return __glXBadLargeRequest;
+	    return __glXError(GLXBadLargeRequest);
 	}
 	if (req->requestTotal != cl->largeCmdRequestsTotal) {
 	    client->errorValue = req->requestTotal;
 	    __glXResetLargeCommandStatus(cl);
-	    return __glXBadLargeRequest;
+	    return __glXError(GLXBadLargeRequest);
 	}
 
 	/*
@@ -869,7 +869,7 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 	if ((cl->largeCmdBytesSoFar + dataBytes) > cl->largeCmdBytesTotal) {
 	    client->errorValue = dataBytes;
 	    __glXResetLargeCommandStatus(cl);
-	    return __glXBadLargeRequest;
+	    return __glXError(GLXBadLargeRequest);
 	}
 	memcpy(cl->largeCmdBuf + cl->largeCmdBytesSoFar, pc, dataBytes);
 	cl->largeCmdBytesSoFar += dataBytes;
@@ -893,7 +893,7 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 		__GLX_PAD(cl->largeCmdBytesTotal)) {
 		client->errorValue = dataBytes;
 		__glXResetLargeCommandStatus(cl);
-		return __glXBadLargeRequest;
+		return __glXError(GLXBadLargeRequest);
 	    }
 	    hdr = (__GLXrenderLargeHeader *) cl->largeCmdBuf;
 	    /*
@@ -916,7 +916,7 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 #endif /* __GLX_MAX_RENDER_OPCODE_EXT > __GLX_MIN_RENDER_OPCODE_EXT */
 	    } else {
 		client->errorValue = opcode;
-		return __glXBadLargeRequest;
+		return __glXError(GLXBadLargeRequest);
 	    }
 
 	    /*
@@ -984,7 +984,7 @@ int __glXSwapVendorPrivate(__GLXclientState *cl, GLbyte *pc)
 	return Success;
     }
     cl->client->errorValue = req->vendorCode;
-    return __glXUnsupportedPrivateRequest;
+    return __glXError(GLXUnsupportedPrivateRequest);
 }
 
 int __glXSwapVendorPrivateWithReply(__GLXclientState *cl, GLbyte *pc)
@@ -1037,5 +1037,5 @@ int __glXSwapVendorPrivateWithReply(__GLXclientState *cl, GLbyte *pc)
 	return (*__glXSwapVendorPrivTable_EXT[vendorcode-__GLX_MIN_VENDPRIV_OPCODE_EXT])(cl, (GLbyte*)req);
     }
     cl->client->errorValue = req->vendorCode;
-    return __glXUnsupportedPrivateRequest;
+    return __glXError(GLXUnsupportedPrivateRequest);
 }
