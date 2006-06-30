@@ -349,7 +349,12 @@ typedef struct _PictureScreen {
     PictFilterAliasPtr		filterAliases;
     int				nfilterAliases;
 
+    /**
+     * Called immediately after a picture's transform is changed through the
+     * SetPictureTransform request.  Not called for source-only pictures.
+     */
     ChangePictureTransformProcPtr   ChangePictureTransform;
+
     ChangePictureFilterProcPtr	ChangePictureFilter;
     DestroyPictureFilterProcPtr	DestroyPictureFilter;
 

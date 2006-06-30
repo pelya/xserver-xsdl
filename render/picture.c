@@ -1217,7 +1217,8 @@ ChangePicture (PicturePtr	pPicture,
 			    error = BadPixmap;
 			    break;
 			}
-			if (pAlpha->pDrawable->type != DRAWABLE_PIXMAP)
+			if (pAlpha->pDrawable == NULL ||
+			    pAlpha->pDrawable->type != DRAWABLE_PIXMAP)
 			{
 			    client->errorValue = pid;
 			    error = BadMatch;
@@ -1469,9 +1470,6 @@ SetPictureTransform (PicturePtr	    pPicture,
 	{ 0x00000, xFixed1, 0x00000 },
 	{ 0x00000, 0x00000, xFixed1 },
     } };
-    ScreenPtr		pScreen = pPicture->pDrawable->pScreen;
-    PictureScreenPtr	ps = GetPictureScreen(pScreen);
-    int			result;
 
     if (transform && memcmp (transform, &identity, sizeof (PictTransform)) == 0)
 	transform = 0;
@@ -1496,9 +1494,16 @@ SetPictureTransform (PicturePtr	    pPicture,
     }
     pPicture->serialNumber |= GC_CHANGE_SERIAL_BIT;
 
-    result = (*ps->ChangePictureTransform) (pPicture, transform);
+    if (pPicture->pDrawable != NULL) {
+	int result;
+	PictureScreenPtr ps = GetPictureScreen(pPicture->pDrawable->pScreen);
 
-    return result;
+	result = (*ps->ChangePictureTransform) (pPicture, transform);
+
+	return result;
+    }
+
+    return Success;
 }
 
 void
