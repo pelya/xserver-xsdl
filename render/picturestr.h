@@ -355,7 +355,12 @@ typedef struct _PictureScreen {
      */
     ChangePictureTransformProcPtr   ChangePictureTransform;
 
+    /**
+     * Called immediately after a picture's transform is changed through the
+     * SetPictureFilter request.  Not called for source-only pictures.
+     */
     ChangePictureFilterProcPtr	ChangePictureFilter;
+
     DestroyPictureFilterProcPtr	DestroyPictureFilter;
 
     TrapezoidsProcPtr		Trapezoids;
