@@ -1,7 +1,3 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/loader/dixsym.c,v 1.21 2006/03/24 20:50:13 fredrik Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/dixsym.c,v 1.63 2003/12/03
- * 17:11:29 tsi Exp $ */
-
 /*
  * Copyright 1995-1998 by Metro Link, Inc.
  *
@@ -99,7 +95,7 @@ extern int NumCurrentSelections;
 
 /* DIX things */
 
-LOOKUP dixLookupTab[] = {
+_X_HIDDEN void *dixLookupTab[] = {
 
     /* dix */
     /* atom.c */
@@ -533,6 +529,4 @@ LOOKUP dixLookupTab[] = {
     SYMFUNC(RenderEdgeInit)
     SYMFUNC(RenderLineFixedEdgeInit)
 #endif
-
-    {0, 0}
 };

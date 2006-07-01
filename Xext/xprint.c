@@ -85,8 +85,8 @@ copyright holders.
 #include <X11/Xatom.h>
 #include <X11/extensions/Print.h>
 #include <X11/extensions/Printstr.h>
-#include "../Xprint/DiPrint.h"
-#include "../Xprint/attributes.h"
+#include "../hw/xprint/DiPrint.h"
+#include "../hw/xprint/attributes.h"
 #include "modinit.h"
 
 static void XpResetProc(ExtensionEntry *);

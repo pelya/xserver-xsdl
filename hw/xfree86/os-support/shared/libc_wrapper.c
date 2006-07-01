@@ -1270,7 +1270,10 @@ xf86execl(const char *pathname, const char *arg, ...)
 #ifndef SELF_CONTAINED_WRAPPER
 	xf86DisableIO();
 #endif
-        setuid(getuid());
+        if (setuid(getuid()) == -1) {
+		ErrorF("xf86Execl: setuid() failed: %s\n", strerror(errno));
+		exit(255);
+	}
 #if !defined(SELF_CONTAINED_WRAPPER)
         /* set stdin, stdout to the consoleFD, and leave stderr alone */
         for (i = 0; i < 2; i++)

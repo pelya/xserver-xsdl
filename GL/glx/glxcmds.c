@@ -1263,6 +1263,7 @@ int DoCreateGLXPixmap(__GLXclientState *cl, VisualID visual,
     pGlxPixmap->pGlxScreen = pGlxScreen;
     pGlxPixmap->pScreen = pScreen;
     pGlxPixmap->idExists = True;
+    pGlxPixmap->pDamage = NULL;
     pGlxPixmap->refcnt = 0;
 
     pGlxPixmap->modes = modes;

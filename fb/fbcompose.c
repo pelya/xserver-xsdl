@@ -267,11 +267,11 @@ fbFetch_a4b4g4r4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
         CARD32  r,g,b, a;
 
         a = ((p & 0xf000) | ((p & 0xf000) >> 4)) << 16;
-        b = ((p & 0x0f00) | ((p & 0x0f00) >> 4)) << 12;
+        b = ((p & 0x0f00) | ((p & 0x0f00) >> 4)) >> 4;
         g = ((p & 0x00f0) | ((p & 0x00f0) >> 4)) << 8;
-        r = ((p & 0x000f) | ((p & 0x000f) << 4));
+        r = ((p & 0x000f) | ((p & 0x000f) << 4)) << 16;
         *buffer++ = (a | r | g | b);
-	}
+    }
 }
 
 static FASTCALL void
@@ -283,11 +283,11 @@ fbFetch_x4b4g4r4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
         CARD32  p = *pixel++;
         CARD32  r,g,b;
 
-        b = ((p & 0x0f00) | ((p & 0x0f00) >> 4)) << 12;
+        b = ((p & 0x0f00) | ((p & 0x0f00) >> 4)) >> 4;
         g = ((p & 0x00f0) | ((p & 0x00f0) >> 4)) << 8;
-        r = ((p & 0x000f) | ((p & 0x000f) << 4));
+        r = ((p & 0x000f) | ((p & 0x000f) << 4)) << 16;
         *buffer++ = (0xff000000 | r | g | b);
-	}
+    }
 }
 
 static FASTCALL void
@@ -573,9 +573,9 @@ static fetchProc fetchProcForPicture (PicturePtr pict)
         /* 1bpp formats */
     case PICT_a1: return  fbFetch_a1;
     case PICT_g1: return  fbFetch_g1;
-    default:
-        return NULL;
     }
+
+    return NULL;
 }
 
 /*
@@ -758,9 +758,9 @@ fbFetchPixel_a4b4g4r4 (const FbBits *bits, int offset, miIndexedPtr indexed)
     CARD32  a,r,g,b;
 
     a = ((pixel & 0xf000) | ((pixel & 0xf000) >> 4)) << 16;
-    b = ((pixel & 0x0f00) | ((pixel & 0x0f00) >> 4)) << 12;
+    b = ((pixel & 0x0f00) | ((pixel & 0x0f00) >> 4)) >> 4;
     g = ((pixel & 0x00f0) | ((pixel & 0x00f0) >> 4)) << 8;
-    r = ((pixel & 0x000f) | ((pixel & 0x000f) << 4));
+    r = ((pixel & 0x000f) | ((pixel & 0x000f) << 4)) << 16;
     return (a | r | g | b);
 }
 
@@ -770,9 +770,9 @@ fbFetchPixel_x4b4g4r4 (const FbBits *bits, int offset, miIndexedPtr indexed)
     CARD32  pixel = ((CARD16 *) bits)[offset];
     CARD32  r,g,b;
 
-    b = ((pixel & 0x0f00) | ((pixel & 0x0f00) >> 4)) << 12;
+    b = ((pixel & 0x0f00) | ((pixel & 0x0f00) >> 4)) >> 4;
     g = ((pixel & 0x00f0) | ((pixel & 0x00f0) >> 4)) << 8;
-    r = ((pixel & 0x000f) | ((pixel & 0x000f) << 4));
+    r = ((pixel & 0x000f) | ((pixel & 0x000f) << 4)) << 16;
     return (0xff000000 | r | g | b);
 }
 
@@ -847,6 +847,14 @@ fbFetchPixel_c8 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
     CARD32   pixel = ((CARD8 *) bits)[offset];
     return indexed->rgba[pixel];
+}
+
+static FASTCALL CARD32
+fbFetchPixel_x4a4 (const FbBits *bits, int offset, miIndexedPtr indexed)
+{
+    CARD32   pixel = ((CARD8 *) bits)[offset];
+
+    return ((pixel & 0xf) | ((pixel & 0xf) << 4)) << 24;
 }
 
 #define Fetch8(l,o)    (((CARD8 *) (l))[(o) >> 2])
@@ -988,6 +996,7 @@ static fetchPixelProc fetchPixelProcForPicture (PicturePtr pict)
     case PICT_a2b2g2r2: return fbFetchPixel_a2b2g2r2;
     case PICT_c8: return  fbFetchPixel_c8;
     case PICT_g8: return  fbFetchPixel_c8;
+    case PICT_x4a4: return fbFetchPixel_x4a4;
 
         /* 4bpp formats */
     case PICT_a4: return  fbFetchPixel_a4;
@@ -1001,9 +1010,9 @@ static fetchPixelProc fetchPixelProcForPicture (PicturePtr pict)
         /* 1bpp formats */
     case PICT_a1: return  fbFetchPixel_a1;
     case PICT_g1: return  fbFetchPixel_g1;
-    default:
-        return NULL;
     }
+
+    return NULL;
 }
 
 
@@ -2717,8 +2726,9 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
         xFixed_32_32 l;
         xFixed_48_16 dx, dy, a, b, off;
 
-        v.vector[0] = IntToxFixed(x);
-        v.vector[1] = IntToxFixed(y);
+        /* reference point is the center of the pixel */
+        v.vector[0] = IntToxFixed(x) + xFixed1/2;
+        v.vector[1] = IntToxFixed(y) + xFixed1/2;
         v.vector[2] = xFixed1;
         if (pict->transform) {
             if (!PictureTransformPoint3d (pict->transform, &v))
@@ -2784,8 +2794,9 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 
         if (pict->transform) {
             PictVector v;
-            v.vector[0] = IntToxFixed(x);
-            v.vector[1] = IntToxFixed(y);
+            /* reference point is the center of the pixel */
+            v.vector[0] = IntToxFixed(x) + xFixed1/2;
+            v.vector[1] = IntToxFixed(y) + xFixed1/2;
             v.vector[2] = xFixed1;
             if (!PictureTransformPoint3d (pict->transform, &v))
                 return;
@@ -2905,8 +2916,9 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
     dx = pict->pDrawable->x;
     dy = pict->pDrawable->y;
 
-    v.vector[0] = IntToxFixed(x - dx);
-    v.vector[1] = IntToxFixed(y - dy);
+    /* reference point is the center of the pixel */
+    v.vector[0] = IntToxFixed(x - dx) + xFixed1 / 2;
+    v.vector[1] = IntToxFixed(y - dy) + xFixed1 / 2;
     v.vector[2] = xFixed1;
 
     /* when using convolution filters one might get here without a transform */
@@ -3011,6 +3023,12 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             }
         }
     } else if (pict->filter == PictFilterBilinear) {
+        /* adjust vector for maximum contribution at 0.5, 0.5 of each texel. */
+        v.vector[0] -= v.vector[2] / 2;
+        v.vector[1] -= v.vector[2] / 2;
+        unit.vector[0] -= unit.vector[2] / 2;
+        unit.vector[1] -= unit.vector[2] / 2;
+
         if (pict->repeatType == RepeatNormal) {
             if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
                 for (i = 0; i < width; ++i) {
@@ -3271,8 +3289,8 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
         xFixed *params = pict->filter_params;
         INT32 cwidth = xFixedToInt(params[0]);
         INT32 cheight = xFixedToInt(params[1]);
-        int xoff = params[0] >> 1;
-        int yoff = params[1] >> 1;
+        int xoff = (params[0] - xFixed1) >> 1;
+	int yoff = (params[1] - xFixed1) >> 1;
         params += 2;
         for (i = 0; i < width; ++i) {
             if (!v.vector[2]) {
@@ -3315,6 +3333,11 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         p++;
                     }
                 }
+
+		satot >>= 16;
+		srtot >>= 16;
+		sgtot >>= 16;
+		sbtot >>= 16;
 
                 if (satot < 0) satot = 0; else if (satot > 0xff) satot = 0xff;
                 if (srtot < 0) srtot = 0; else if (srtot > 0xff) srtot = 0xff;

@@ -1,7 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/xf86sym.c,v 1.242 2003/10/27 20:51:16 herrb Exp $ */
-
 /*
- *
  * Copyright 1995,96 by Metro Link, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -241,7 +238,7 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 
 /* XFree86 things */
 
-LOOKUP xfree86LookupTab[] = {
+_X_HIDDEN void *xfree86LookupTab[] = {
 
     /* Public OSlib functions */
     SYMFUNC(xf86ReadBIOS)
@@ -746,7 +743,6 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86ReadPciBIOS)
 
     /* Loader functions */
-    SYMFUNC(LoaderDefaultFunc)
     SYMFUNC(LoadSubModule)
     SYMFUNC(DuplicateModule)
     SYMFUNC(LoaderErrorMsg)
@@ -1178,6 +1174,4 @@ LOOKUP xfree86LookupTab[] = {
 
     /* Pci.c */
     SYMVAR(pciNumBuses)
-
-    {0, 0}
 };

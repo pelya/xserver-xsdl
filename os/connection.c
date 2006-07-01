@@ -148,11 +148,10 @@ extern __const__ int _nfiles;
 #include "opaque.h"
 #include "dixstruct.h"
 #ifdef XAPPGROUP
-#include <X11/extensions/Xagsrv.h>
+#include "appgroup.h"
 #endif
 #ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
+#include "securitysrv.h"
 #endif
 
 #ifdef X_NOT_POSIX

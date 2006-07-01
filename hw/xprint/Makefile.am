@@ -1,4 +1,4 @@
-SUBDIRS = doc pcl pcl-mono raster ps etc
+SUBDIRS = doc pcl pcl-mono raster ps etc config
 
 bin_PROGRAMS = Xprt
 
@@ -9,8 +9,8 @@ Xprt_CFLAGS = @SERVER_DEFINES@ @DIX_CFLAGS@ @XPRINT_CFLAGS@ \
 
 Xprt_LDFLAGS = -L$(top_srcdir)
 Xprt_LDADD = @XPRINT_LIBS@ ps/libps.la raster/libraster.la  \
-	pcl/libpcl.la pcl-mono/libpcl.la ../fb/libfb.la \
-	../render/librender.la ../mi/libmi.la ../Xext/libXext.la \
+	pcl/libpcl.la pcl-mono/libpcl.la ../../fb/libfb.la \
+	../../render/librender.la ../../mi/libmi.la ../../Xext/libXext.la \
 	@FREETYPE_LIBS@
 
 miinitext-wrapper.c:

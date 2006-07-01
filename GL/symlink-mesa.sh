@@ -88,6 +88,8 @@ symlink_mesa_main() {
     action api_noop.h
     action api_validate.c
     action api_validate.h
+    action arrayobj.c
+    action arrayobj.h
     action attrib.c
     action attrib.h
     action bitset.h

@@ -37,8 +37,7 @@ from The Open Group.
 #include "swaprep.h"
 
 #ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
+#include "securitysrv.h"
 #endif
 
 static char InvalidPolicyReason[] = "invalid policy specification";

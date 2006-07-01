@@ -1,4 +1,4 @@
-/* $XdotOrg: xserver/xorg/os/utils.c,v 1.25 2006/03/25 19:52:05 ajax Exp $ */
+/* $XdotOrg: xserver/xorg/os/utils.c,v 1.26 2006-06-01 22:06:41 daniels Exp $ */
 /* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
@@ -68,6 +68,9 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include <stdio.h>
 #include "misc.h"
 #include <X11/X.h>
+#define XSERV_t
+#define TRANS_SERVER
+#define TRANS_REOPEN
 #include <X11/Xtrans/Xtrans.h>
 #include "input.h"
 #include "dixfont.h"
@@ -120,8 +123,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/XKBsrv.h>
 #endif
 #ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
+#include "securitysrv.h"
 #endif
 
 #ifdef RENDER
@@ -1713,8 +1715,10 @@ System(char *command)
     case -1:	/* error */
 	p = -1;
     case 0:	/* child */
-	setgid(getgid());
-	setuid(getuid());
+	if (setgid(getgid()) == -1)
+	    _exit(127);
+	if (setuid(getuid()) == -1)
+	    _exit(127);
 	execl("/bin/sh", "sh", "-c", command, (char *)NULL);
 	_exit(127);
     default:	/* parent */
@@ -1765,8 +1769,10 @@ Popen(char *command, char *type)
 	xfree(cur);
 	return NULL;
     case 0:	/* child */
-	setgid(getgid());
-	setuid(getuid());
+	if (setgid(getgid()) == -1)
+	    _exit(127);
+	if (setuid(getuid()) == -1)
+	    _exit(127);
 	if (*type == 'r') {
 	    if (pdes[1] != 1) {
 		/* stdout */
@@ -1840,8 +1846,10 @@ Fopen(char *file, char *type)
 	xfree(cur);
 	return NULL;
     case 0:	/* child */
-	setgid(getgid());
-	setuid(getuid());
+	if (setgid(getgid()) == -1)
+	    _exit(127);
+	if (setuid(getuid()) == -1)
+	    _exit(127);
 	if (*type == 'r') {
 	    if (pdes[1] != 1) {
 		/* stdout */

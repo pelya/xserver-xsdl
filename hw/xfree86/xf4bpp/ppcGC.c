@@ -97,8 +97,8 @@ SOFTWARE.
  */
 static GCFuncs vgaGCFuncs = {
 	xf4bppValidateGC,
-	(void (*)())NoopDDA,
-	(void (*)())NoopDDA,
+	(void (*)(GCPtr, unsigned long))NoopDDA,
+	(void (*)(GCPtr, unsigned long, GCPtr))NoopDDA,
 	xf4bppDestroyGC,
 	xf4bppChangeClip,
 	xf4bppDestroyClip,

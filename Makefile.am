@@ -26,11 +26,6 @@ if GLX
 GLX_DIR=GL
 endif
 
-if XPRINT
-XPDDX_DIR=Xprint
-XPCONFIG_DIR=XpConfig
-endif
-
 if XINPUT
 XINPUT_DIR=Xi
 endif
@@ -64,9 +59,7 @@ SUBDIRS = \
 	$(COMPOSITE_DIR) \
 	$(GLX_DIR) \
 	exa \
-	hw \
-	$(XPDDX_DIR) \
-	$(XPCONFIG_DIR)
+	hw
 
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = xorg-server.m4
@@ -101,9 +94,7 @@ DIST_SUBDIRS = \
 	composite \
 	GL \
 	exa \
-	hw \
-	Xprint \
-	XpConfig
+	hw
 
 # gross hack
 relink: all

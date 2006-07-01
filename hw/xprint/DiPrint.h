@@ -1,18 +1,4 @@
-/* $Xorg: PclPixmap.c,v 1.3 2000/08/17 19:48:08 cpqbld Exp $ */
-/*******************************************************************
-**
-**    *********************************************************
-**    *
-**    *  File:		PclPixmap.c
-**    *
-**    *  Contents:
-**    *                 Pixmap handling code for the PCL DDX driver
-**    *
-**    *  Created:	2/19/96
-**    *
-**    *********************************************************
-** 
-********************************************************************/
+/* $Xorg: DiPrint.h,v 1.3 2000/08/17 19:48:04 cpqbld Exp $ */
 /*
 (c) Copyright 1996 Hewlett-Packard Company
 (c) Copyright 1996 International Business Machines Corp.
@@ -44,42 +30,57 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclPixmap.c,v 1.3 1999/12/16 02:26:27 robin Exp $ */
-
+/*
+ * The XpDiListEntry struct is the type of each element of the array
+ * handed back to the extension code to handle a GetPrinterList request.
+ * We don't use the printerDb directly because of the desire to handle
+ * multiple locales.  Creating this new array for each GetPrinterList
+ * request will allow us to build it with the description in the locale of
+ * the requesting client.
+ */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
+#include <X11/fonts/fontstruct.h>
 
-#include "Pcl.h"
-#include "cfb.h"
-#include "cfb32.h"
-#include "mfb.h"
-#include "pixmapstr.h"
+#ifndef _XpDiPrint_H_
+#define _XpDiPrint_H_ 1
 
-PixmapPtr
-PclCreatePixmap(ScreenPtr pScreen,
-		int width,
-		int height,
-		int depth)
-{
-    if( depth == 1 )
-      return mfbCreatePixmap( pScreen, width, height, depth );
-    else if( depth <= 8 )
-      return cfbCreatePixmap( pScreen, width, height, depth );
-    else if( depth <= 32 )
-      return cfb32CreatePixmap( pScreen, width, height, depth );
-    return 0;
-}
+#include "scrnintstr.h"
 
+typedef struct _diListEntry {
+    char *name;
+    char *description;
+    char *localeName;
+    unsigned long rootWinId;
+} XpDiListEntry;
 
-Bool
-PclDestroyPixmap(PixmapPtr pPixmap)
-{
-    if( pPixmap->drawable.depth == 1 )
-      return mfbDestroyPixmap( pPixmap );
-    else if( pPixmap->drawable.depth <= 8 )
-      return cfbDestroyPixmap( pPixmap );
-    else if( pPixmap->drawable.depth <= 32 )
-      return cfb32DestroyPixmap( pPixmap );
-    return 0;
-}
+extern void XpDiFreePrinterList(XpDiListEntry **list);
+
+extern XpDiListEntry **XpDiGetPrinterList(
+    int nameLen,
+    char *name,
+    int localeLen,
+    char *locale);
+
+extern char * XpDiGetDriverName(int index, char *printerName);
+
+extern WindowPtr XpDiValidatePrinter(char *printerName, int printerNameLen);
+
+extern int PrinterOptions(int argc, char **argv, int i);
+
+extern void PrinterUseMsg(void);
+
+extern void PrinterInitGlobals(void);
+
+extern void PrinterInitOutput(ScreenInfo *pScreenInfo, int argc, char **argv);
+
+extern Bool XpClientIsPrintClient(ClientPtr client, FontPathElementPtr fpe);
+
+extern Bool XpClientIsBitmapClient(ClientPtr client);
+
+extern void _XpVoidNoop(void);
+
+extern Bool _XpBoolNoop(void);
+
+#endif /* _XpDiPrint_H_ */
