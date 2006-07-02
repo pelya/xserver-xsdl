@@ -1,28 +1,29 @@
 /*
- *
- * Copyright © 2000, Compaq Computer Corporation, 
- * Copyright © 2002, Hewlett Packard, Inc.
+ * Copyright © 2000 Compaq Computer Corporation
+ * Copyright © 2002 Hewlett-Packard Company
+ * Copyright © 2006 Intel Corporation
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that
- * copyright notice and this permission notice appear in supporting
- * documentation, and that the name of Compaq or HP not be used in advertising
- * or publicity pertaining to distribution of the software without specific,
- * written prior permission.  HP makes no representations about the
- * suitability of this software for any purpose.  It is provided "as is"
- * without express or implied warranty.
+ * the above copyright notice appear in all copies and that both that copyright
+ * notice and this permission notice appear in supporting documentation, and
+ * that the name of the copyright holders not be used in advertising or
+ * publicity pertaining to distribution of the software without specific,
+ * written prior permission.  The copyright holders make no representations
+ * about the suitability of this software for any purpose.  It is provided "as
+ * is" without express or implied warranty.
  *
- * HP DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL HP
- * BE LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,
+ * INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO
+ * EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
+ * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+ * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ * OF THIS SOFTWARE.
  *
- * Author:  Jim Gettys, HP Labs, Hewlett-Packard, Inc.
+ * Author:  Jim Gettys, Hewlett-Packard Company, Inc.
+ *	    Keith Packard, Intel Corporation
  */
-
 
 #define NEED_REPLIES
 #define NEED_EVENTS
@@ -159,10 +160,21 @@ static Bool
 RRCloseScreen (int i, ScreenPtr pScreen)
 {
     rrScrPriv(pScreen);
+    RRMonitorPtr    pMonitor;
 
     unwrap (pScrPriv, pScreen, CloseScreen);
-    if (pScrPriv->pSizes)
-	xfree (pScrPriv->pSizes);
+    while (pMonitor = pScrPriv->pMonitors) 
+    {
+	RRModePtr   pMode;
+	
+	pScrPriv->pMonitors = pMonitor->next;
+	while (pMode = pMonitor->pModes) 
+	{
+	    pMonitor->pModes = pMode->next;
+	    xfree (pMode);
+	}
+	xfree (pMonitor);
+    }
     xfree (pScrPriv);
     RRNScreens -= 1;	/* ok, one fewer screen with RandR running */
     return (*pScreen->CloseScreen) (i, pScreen);    
@@ -187,6 +199,25 @@ SRRScreenChangeNotifyEvent(xRRScreenChangeNotifyEvent *from,
     cpswaps(from->subpixelOrder, to->subpixelOrder);
 }
 
+static void
+SRRMonitorChangeNotifyEvent(xRRMonitorChangeNotifyEvent *from,
+			    xRRMonitorChangeNotifyEvent *to)
+{
+    to->type = from->type;
+    to->subCode = from->subCode;
+    cpswaps(from->sequenceNumber, to->sequenceNumber);
+    cpswapl(from->timestamp, to->timestamp);
+    cpswapl(from->configTimestamp, to->configTimestamp);
+    cpswapl(from->root, to->root);
+    cpswapl(from->window, to->window);
+    cpswaps(from->monitor, to->monitor);
+    cpswaps(from->modeID, to->modeID);
+    cpswaps(from->rotation, to->rotation);
+    cpswaps(from->subpixelOrder, to->subpixelOrder);
+    cpswaps(from->x, to->x);
+    cpswaps(from->y, to->y);
+}
+
 Bool RRScreenInit(ScreenPtr pScreen)
 {
     rrScrPrivPtr   pScrPriv;
@@ -207,8 +238,12 @@ Bool RRScreenInit(ScreenPtr pScreen)
     /*
      * Calling function best set these function vectors
      */
-    pScrPriv->rrSetConfig = 0;
+    pScrPriv->rrSetMode = 0;
     pScrPriv->rrGetInfo = 0;
+#ifdef RANDR_SCREEN_INTERFACE    
+    pScrPriv->rrSetConfig = 0;
+#endif
+    
     /*
      * This value doesn't really matter -- any client must call
      * GetScreenInfo before reading it which will automatically update
@@ -219,14 +254,7 @@ Bool RRScreenInit(ScreenPtr pScreen)
     
     wrap (pScrPriv, pScreen, CloseScreen, RRCloseScreen);
 
-    pScrPriv->rotations = RR_Rotate_0;
-    
-    pScrPriv->nSizes = 0;
-    pScrPriv->nSizesInUse = 0;
-    pScrPriv->pSizes = 0;
-    
-    pScrPriv->rotation = RR_Rotate_0;
-    pScrPriv->size = -1;
+    pScrPriv->pMonitors = NULL;
     
     RRNScreens += 1;	/* keep count of screens that implement randr */
     return TRUE;
@@ -318,55 +346,96 @@ TellChanged (WindowPtr pWin, pointer value)
     RREventPtr			*pHead, pRREvent;
     ClientPtr			client;
     xRRScreenChangeNotifyEvent	se;
+    xRRMonitorChangeNotifyEvent	me;
     ScreenPtr			pScreen = pWin->drawable.pScreen;
     rrScrPriv(pScreen);
-    RRScreenSizePtr		pSize;
+    RRMonitorPtr		pMonitor = pScrPriv->pMonitors;
+    RRModePtr			pMode;
     WindowPtr			pRoot = WindowTable[pScreen->myNum];
+    int				i;
 
     pHead = (RREventPtr *) LookupIDByType (pWin->drawable.id, EventType);
     if (!pHead)
 	return WT_WALKCHILDREN;
 
-    se.type = RRScreenChangeNotify + RREventBase;
-    se.rotation = (CARD8) pScrPriv->rotation;
-    se.timestamp = pScrPriv->lastSetTime.milliseconds;
-    se.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
-    se.root =  pRoot->drawable.id;
-    se.window = pWin->drawable.id;
-#ifdef RENDER
-    se.subpixelOrder = PictureGetSubpixelOrder (pScreen);
-#else
-    se.subpixelOrder = SubPixelUnknown;
-#endif
-    if (pScrPriv->size >= 0)
-    {
-	pSize = &pScrPriv->pSizes[pScrPriv->size];
-	se.sizeID = pSize->id;
-	se.widthInPixels = pSize->width;
-	se.heightInPixels = pSize->height;
-	se.widthInMillimeters = pSize->mmWidth;
-	se.heightInMillimeters = pSize->mmHeight;
-    }
-    else
-    {
-	/*
-	 * This "shouldn't happen", but a broken DDX can
-	 * forget to set the current configuration on GetInfo
-	 */
-	se.sizeID = 0xffff;
-	se.widthInPixels = 0;
-	se.heightInPixels = 0;
-	se.widthInMillimeters = 0;
-	se.heightInMillimeters = 0;
-    }    
     for (pRREvent = *pHead; pRREvent; pRREvent = pRREvent->next) 
     {
 	client = pRREvent->client;
 	if (client == serverClient || client->clientGone)
 	    continue;
-	se.sequenceNumber = client->sequence;
-	if(pRREvent->mask & RRScreenChangeNotifyMask)
-	  WriteEventsToClient (client, 1, (xEvent *) &se);
+
+	if (pRREvent->mask & RRMonitorChangeNotifyMask)) 
+	{
+	    me.type = RRNotify + RREventBase;
+	    me.subCode = RRNotify_MonitorChange;
+	    me.timestamp = pScrPriv->lastSetTime.milliseconds;
+	    me.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
+	    me.root =  pRoot->drawable.id;
+	    me.window = pWin->drawable.id;
+#ifdef RENDER
+	    me.subpixelOrder = PictureGetSubpixelOrder (pScreen);
+#else
+	    me.subpixelOrder = SubPixelUnknown;
+#endif
+	    for (i = 0; i < pScrPriv->nMonitors; i++) 
+	    {
+		pMonitor = &pScrPriv->pMonitors[i];
+		me.monitor = i;
+		if (pMonitor->mode >= 0) {
+		    me.modeID = pMonitor->pMode[pMonitor->mode].id;
+		    me.rotation = pMonitor->rotation;
+		    me.x = pMonitor->x;
+		    me.y = pMonitor->y;
+		} else {
+		    me.modeID = 0xffff;
+		    me.rotation = RR_Rotate_0;
+		    me.x = 0;
+		    me.y = 0;
+		}
+		WriteEventsToClient (client, 1, (xEvent *) &me);
+	    }
+	}
+	if ((pRREvent->mask & RRScreenChangeNotifyMask) &&
+	    pScrPriv->nMonitors > 0)
+	{
+	    se.type = RRScreenChangeNotify + RREventBase;
+	    se.rotation = (CARD8) pScrPriv->rotation;
+	    se.timestamp = pScrPriv->lastSetTime.milliseconds;
+	    se.sequenceNumber = client->sequence;
+	    se.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
+	    se.root =  pRoot->drawable.id;
+	    se.window = pWin->drawable.id;
+#ifdef RENDER
+	    se.subpixelOrder = PictureGetSubpixelOrder (pScreen);
+#else
+	    se.subpixelOrder = SubPixelUnknown;
+#endif
+
+	    pMonitor = &pScrPriv->pMonitors[0];
+	    se.sequenceNumber = client->sequence;
+	    if (pMonitor->mode >= 0) 
+	    {
+		pMode = &pMonitor->pModes[pMonitor->mode];
+		se.sizeID = pMode->id;
+		se.widthInPixels = pMode->width;
+		se.heightInPixels = pMode->height;
+		se.widthInMillimeters = pMode->mmWidth;
+		se.heightInMillimeters = pMode->mmHeight;
+	    }
+	    else
+	    {
+		/*
+		 * This "shouldn't happen", but a broken DDX can
+		 * forget to set the current configuration on GetInfo
+		 */
+		se.sizeID = 0xffff;
+		se.widthInPixels = 0;
+		se.heightInPixels = 0;
+		se.widthInMillimeters = 0;
+		se.heightInMillimeters = 0;
+	    }    
+	    WriteEventsToClient (client, 1, (xEvent *) &se);
+	}
     }
     return WT_WALKCHILDREN;
 }
@@ -375,59 +444,66 @@ static Bool
 RRGetInfo (ScreenPtr pScreen)
 {
     rrScrPriv (pScreen);
-    int		    i, j, k, l;
+    int		    m, s, n;
     Bool	    changed;
     Rotation	    rotations;
-    RRScreenSizePtr pSize;
-    RRScreenRatePtr pRate;
+    RRMonitorPtr    pMonitor;
+    RRModePtr	    pMode;
 
-    for (i = 0; i < pScrPriv->nSizes; i++)
+    for (m = 0; m < pScrPriv->nMonitors; m++)
     {
-	pSize = &pScrPriv->pSizes[i];
-	pSize->oldReferenced = pSize->referenced;
-	pSize->referenced = FALSE;
-	for (k = 0; k < pSize->nRates; k++)
+	pMonitor = &pScrPriv->pMonitors[m];
+	pMonitor->oldReferenced = pMonitor->referenced;
+	pMonitor->referenced = FALSE;
+	for (s = 0; s < pMonitor->nModes; s++)
 	{
-	    pRate = &pSize->pRates[k];
-	    pRate->oldReferenced = pRate->referenced;
-	    pRate->referenced = FALSE;
+	    pMode = &pSize->pModes[s];
+	    pMode->oldReferenced = pMode->referenced;
+	    pMode->referenced = FALSE;
 	}
     }
-    if (!(*pScrPriv->rrGetInfo) (pScreen, &rotations))
-	return FALSE;
-
     changed = FALSE;
 
-    /*
-     * Check whether anything changed and simultaneously generate
-     * the protocol id values for the objects
-     */
-    if (rotations != pScrPriv->rotations)
-    {
-	pScrPriv->rotations = rotations;
-	changed = TRUE;
-    }
-
-    j = 0;
-    for (i = 0; i < pScrPriv->nSizes; i++)
-    {
-	pSize = &pScrPriv->pSizes[i];
-	if (pSize->oldReferenced != pSize->referenced)
-	    changed = TRUE;
-	if (pSize->referenced)
-	    pSize->id = j++;
-	l = 0;
-	for (k = 0; k < pSize->nRates; k++)
+    rotations = 0;
+    if (!(*pScrPriv->rrGetInfo) (pScreen, &rotations))
+	return FALSE;
+    
+    /* Old GetInfo clients return rotations here */
+    if (rotations && pScrPriv->nMonitors) {
+	/*
+	 * Check whether anything changed and simultaneously generate
+	 * the protocol id values for the objects
+	 */
+	if (rotations != pScrPriv->pMonitors[i].rotations)
 	{
-	    pRate = &pSize->pRates[k];
-	    if (pRate->oldReferenced != pRate->referenced)
-		changed = TRUE;
-	    if (pRate->referenced)
-		l++;
+	    pScrPriv->pMonitors[i].rotations = rotations;
+	    changed = TRUE;
 	}
-	pSize->nRatesInUse = l;
     }
-    pScrPriv->nSizesInUse = j;
+	
+    n = 0;
+    for (m = 0; m < pScrPriv->nMonitors; m++)
+    {
+	int modeid = 0;
+	
+	pMonitor = &pScrPriv->pMonitors[m];
+	if (pMonitor->oldReferenced != pMonitor->referenced)
+	    changed = TRUE;
+	if (pMonitor->referenced)
+	{
+	    for (s = 0; s < pMonitor->nModes; s++)
+	    {
+		pMode = &pMonitor->pModes[s];
+		if (pMode->oldReferenced != pMode->referenced)
+		    changed = TRUE;
+		if (pMode->referenced)
+		    pMode->id = modeid++;
+	    }
+	    n++;
+	}
+	pMonitor->nModesInUse = modeid;
+    }
+    pScrPriv->nMonitorsInUse = n;
     if (changed)
     {
 	UpdateCurrentTime ();
@@ -1241,6 +1317,7 @@ RRRegisterSize (ScreenPtr	    pScreen,
     if (!pScrPriv)
 	return 0;
     
+    tmp.id = -1;
     tmp.width = width;
     tmp.height= height;
     tmp.mmWidth = mmWidth;
