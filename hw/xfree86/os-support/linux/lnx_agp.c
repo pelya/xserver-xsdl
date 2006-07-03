@@ -1,7 +1,7 @@
 /*
  * Abstraction of the AGP GART interface.
  *
- * This version is for both Linux and FreeBSD.
+ * This version is for Linux and Free/Open/NetBSD.
  *
  * Copyright © 2000 VA Linux Systems, Inc.
  * Copyright © 2001 The XFree86 Project, Inc.
@@ -264,7 +264,11 @@ xf86DeallocateGARTMemory(int screenNum, int key)
 		return FALSE;
 	}
 
+#ifdef __linux__
 	if (ioctl(gartFd, AGPIOC_DEALLOCATE, (int *)key) != 0) {
+#else
+	if (ioctl(gartFd, AGPIOC_DEALLOCATE, &key) != 0) {
+#endif
 		xf86DrvMsg(screenNum, X_WARNING,"xf86DeAllocateGARTMemory: "
                    "deallocation gart memory with key %d failed\n\t(%s)\n",
                    key, strerror(errno));
