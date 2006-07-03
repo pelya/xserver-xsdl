@@ -277,9 +277,17 @@ SetPictureFilter (PicturePtr pPicture, char *name, int len, xFixed *params, int 
 
     pFilter = PictureFindFilter (screenInfo.screens[0], name, len);
 
-    for (s = 0; s < screenInfo.numScreens; s++) {
-	if (PictureFindFilter (screenInfo.screens[s], name, len) != pFilter)
-	    return BadMatch;
+    if (pPicture->pDrawable == NULL) {
+	/* For source pictures, the picture isn't tied to a screen.  So, ensure
+	 * that all screens can handle a filter we set for the picture.
+	 */
+	for (s = 0; s < screenInfo.numScreens; s++) {
+	    if (PictureFindFilter (screenInfo.screens[s], name, len)->id !=
+		pFilter->id)
+	    {
+		return BadMatch;
+	    }
+	}
     }
 
     if (!pFilter)
