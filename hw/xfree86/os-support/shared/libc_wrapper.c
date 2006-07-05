@@ -89,8 +89,8 @@ extern int mmapFd;
 #include <stdlib.h>
 #endif
 
-#define NEED_XF86_TYPES
-#define NEED_XF86_PROTOTYPES
+#define NEED_XF86_TYPES 1
+#define NEED_XF86_PROTOTYPES 1
 #define DONT_DEFINE_WRAPPERS
 #include "xf86_ansic.h"
 
