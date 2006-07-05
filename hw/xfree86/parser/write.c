@@ -170,7 +170,7 @@ xf86writeConfigFile (const char *filename, XF86ConfigPtr cptr)
 					strerror(errno));
 			return 0;
 		case 0: /* child */
-			if (setuid(getuid() == -1) 
+			if (setuid(getuid()) == -1) 
 			    FatalError("xf86writeConfigFile(): "
 				"setuid failed(%s)\n", 
 				strerror(errno));

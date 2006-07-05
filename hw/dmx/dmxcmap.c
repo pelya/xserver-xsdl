@@ -46,7 +46,7 @@
 
 #include "micmap.h"
 
-static int dmxInitColormapPrivateFunc(ColormapPtr pColormap)
+static int dmxInitColormapPrivateFunc(ColormapPtr pColormap, int index)
 {
     return TRUE;
 }

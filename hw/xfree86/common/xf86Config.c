@@ -75,6 +75,7 @@ extern DeviceAssocRec mouse_assoc;
 #endif
 
 #ifdef XKB
+#undef XKB_IN_SERVER
 #define XKB_IN_SERVER
 #include <X11/extensions/XKBsrv.h>
 #endif
@@ -617,6 +618,9 @@ static Bool
 configFiles(XF86ConfFilesPtr fileconf)
 {
   MessageType pathFrom = X_DEFAULT;
+  int countDirs;
+  char *temp_path;
+  char *log_buf;
 
   /* FontPath */
 
@@ -676,13 +680,13 @@ configFiles(XF86ConfFilesPtr fileconf)
     FatalError("No valid FontPath could be found.");
 
   /* make fontpath more readable in the logfiles */
-  int countDirs = 1;
-  char *temp_path = defaultFontPath;
+  countDirs = 1;
+  temp_path = defaultFontPath;
   while((temp_path = index(temp_path, ',')) != NULL) {
     countDirs++;
     temp_path++;
   }
-  char *log_buf = xnfalloc(strlen(defaultFontPath) + (2 * countDirs) + 1);
+  log_buf = xnfalloc(strlen(defaultFontPath) + (2 * countDirs) + 1);
   if(!log_buf) /* fallback to old method */
     xf86Msg(pathFrom, "FontPath set to \"%s\"\n", defaultFontPath);
   else {
