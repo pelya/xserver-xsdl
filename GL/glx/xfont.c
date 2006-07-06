@@ -179,7 +179,7 @@ int __glXUseXFont(__GLXclientState *cl, GLbyte *pc)
 	** to try to make a font during another lists construction.
 	*/
 	client->errorValue = cx->id;
-	return __glXBadContextState;
+	return __glXError(GLXBadContextState);
     }
 
     /*

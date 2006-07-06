@@ -42,7 +42,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pixmapstr.h"
 #include "xf86glx_util.h"
 #include <X11/Xmd.h>
-#include "GL/xf86glx.h"
 
 #ifdef ROUNDUP
 #undef ROUNDUP

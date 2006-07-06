@@ -60,8 +60,17 @@ extern int __glXQueryServerString(__GLXclientState*, GLbyte*);
 extern int __glXClientInfo(__GLXclientState*, GLbyte*);
 extern int __glXMakeContextCurrent(__GLXclientState*, GLbyte*);
 extern int __glXGetFBConfigs(__GLXclientState*, GLbyte*);
-extern int __glXCreateNewContext(__GLXclientState*, GLbyte*);
 extern int __glXCreatePixmap(__GLXclientState*, GLbyte*);
+extern int __glXDestroyPixmap(__GLXclientState*, GLbyte*);
+extern int __glXCreateNewContext(__GLXclientState*, GLbyte*);
+extern int __glXQueryContext(__GLXclientState*, GLbyte*);
+extern int __glXMakeContextCurrent(__GLXclientState*, GLbyte*);
+extern int __glXCreatePbuffer(__GLXclientState*, GLbyte*);
+extern int __glXDestroyPbuffer(__GLXclientState*, GLbyte*);
+extern int __glXGetDrawableAttributes(__GLXclientState*, GLbyte*);
+extern int __glXChangeDrawableAttributes(__GLXclientState*, GLbyte*);
+extern int __glXCreateWindow(__GLXclientState*, GLbyte*);
+extern int __glXDestroyWindow(__GLXclientState*, GLbyte*);
 
 extern int __glXSwapRender(__GLXclientState*, GLbyte*);
 extern int __glXSwapRenderLarge(__GLXclientState*, GLbyte*);
@@ -88,8 +97,18 @@ extern int __glXSwapQueryServerString(__GLXclientState*, GLbyte*);
 extern int __glXSwapClientInfo(__GLXclientState*, GLbyte*);
 extern int __glXSwapMakeContextCurrent(__GLXclientState*, GLbyte*);
 extern int __glXSwapGetFBConfigs(__GLXclientState*, GLbyte*);
-extern int __glXSwapCreateNewContext(__GLXclientState*, GLbyte*);
 extern int __glXSwapCreatePixmap(__GLXclientState*, GLbyte*);
+extern int __glXSwapDestroyPixmap(__GLXclientState*, GLbyte*);
+extern int __glXSwapCreateNewContext(__GLXclientState*, GLbyte*);
+extern int __glXSwapQueryContext(__GLXclientState*, GLbyte*);
+extern int __glXSwapMakeContextCurrent(__GLXclientState*, GLbyte*);
+extern int __glXSwapCreatePbuffer(__GLXclientState*, GLbyte*);
+extern int __glXSwapDestroyPbuffer(__GLXclientState*, GLbyte*);
+extern int __glXSwapGetDrawableAttributes(__GLXclientState*, GLbyte*);
+extern int __glXSwapChangeDrawableAttributes(__GLXclientState*, GLbyte*);
+extern int __glXSwapCreateWindow(__GLXclientState*, GLbyte*);
+extern int __glXSwapDestroyWindow(__GLXclientState*, GLbyte*);
+
 
 #define __GLX_MIN_GLXCMD_OPCODE 1
 #define __GLX_MAX_GLXCMD_OPCODE 20

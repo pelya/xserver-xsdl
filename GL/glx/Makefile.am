@@ -43,13 +43,11 @@ libglx_la_SOURCES = \
         glapi.c \
         glcontextmodes.c \
         glcontextmodes.h \
-        global.c \
         glthread.c \
         glxcmds.c \
         glxcmdsswap.c \
         glxcontext.h \
         glxdrawable.h \
-        glxerror.h \
         glxext.c \
         glxext.h \
 	glxvisuals.c \

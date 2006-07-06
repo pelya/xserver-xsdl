@@ -1,4 +1,4 @@
-SUBDIRS = glx mesa include
+SUBDIRS = glx mesa
 
 # someone could get really crazy someday and add support for the SI...
 

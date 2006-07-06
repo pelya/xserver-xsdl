@@ -177,48 +177,6 @@ __glXDRIdrawableSwapBuffers(__GLXdrawable *basePrivate)
     return TRUE;
 }
 
-static __GLXdrawable *
-__glXDRIcontextCreateDrawable(__GLXcontext *context,
-			      DrawablePtr pDraw,
-			      XID drawId)
-{
-    __GLXDRIdrawable *private;
-
-    private = xalloc(sizeof *private);
-    if (private == NULL)
-	return NULL;
-
-    memset(private, 0, sizeof *private);
-
-    if (!__glXDrawableInit(&private->base, context, pDraw, drawId)) {
-        xfree(private);
-	return NULL;
-    }
-
-    private->base.destroy     = __glXDRIdrawableDestroy;
-    private->base.resize      = __glXDRIdrawableResize;
-    private->base.swapBuffers = __glXDRIdrawableSwapBuffers;
-    
-#if 0
-    /* FIXME: It would only be natural that we called
-     * driScreen->createNewDrawable here but the DRI drivers manage
-     * them a little oddly. FIXME: describe this better.*/
-
-    /* The last argument is 'attrs', which is used with pbuffers which
-     * we currently don't support. */
-
-    glxPriv->driDrawable.private =
-	(pGlxScreen->driScreen.createNewDrawable)(NULL, modes,
-						  drawId,
-						  &glxPriv->driDrawable,
-						  0,
-						  NULL);
-#endif
-
-    return &private->base;
-}
-
-
 static void
 __glXDRIcontextDestroy(__GLXcontext *baseContext)
 {
@@ -483,7 +441,6 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
     context->base.loseCurrent       = __glXDRIcontextLoseCurrent;
     context->base.copy              = __glXDRIcontextCopy;
     context->base.forceCurrent      = __glXDRIcontextForceCurrent;
-    context->base.createDrawable    = __glXDRIcontextCreateDrawable;
 
     context->base.textureFromPixmap = &__glXDRItextureFromPixmap;
 
@@ -497,6 +454,49 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
 
     return &context->base;
 }
+
+static __GLXdrawable *
+__glXDRIscreenCreateDrawable(__GLXscreen *screen,
+			     DrawablePtr pDraw,
+			     XID drawId,
+			     __GLcontextModes *modes)
+{
+    __GLXDRIdrawable *private;
+
+    private = xalloc(sizeof *private);
+    if (private == NULL)
+	return NULL;
+
+    memset(private, 0, sizeof *private);
+
+    if (!__glXDrawableInit(&private->base, screen, pDraw, drawId, modes)) {
+        xfree(private);
+	return NULL;
+    }
+
+    private->base.destroy     = __glXDRIdrawableDestroy;
+    private->base.resize      = __glXDRIdrawableResize;
+    private->base.swapBuffers = __glXDRIdrawableSwapBuffers;
+    
+#if 0
+    /* FIXME: It would only be natural that we called
+     * driScreen->createNewDrawable here but the DRI drivers manage
+     * them a little oddly. FIXME: describe this better.*/
+
+    /* The last argument is 'attrs', which is used with pbuffers which
+     * we currently don't support. */
+
+    glxPriv->driDrawable.private =
+	(screen->driScreen.createNewDrawable)(NULL, modes,
+					      drawId,
+					      &glxPriv->driDrawable,
+					      0,
+					      NULL);
+#endif
+
+    return &private->base;
+}
+
 
 static unsigned
 filter_modes(__GLcontextModes **server_modes,
@@ -798,8 +798,9 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
       return NULL;
     memset(screen, 0, sizeof *screen);
 
-    screen->base.destroy       = __glXDRIscreenDestroy;
-    screen->base.createContext = __glXDRIscreenCreateContext;
+    screen->base.destroy        = __glXDRIscreenDestroy;
+    screen->base.createContext  = __glXDRIscreenCreateContext;
+    screen->base.createDrawable = __glXDRIscreenCreateDrawable;
     screen->base.pScreen       = pScreen;
 
     /* DRI protocol version. */
