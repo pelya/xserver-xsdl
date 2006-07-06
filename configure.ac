@@ -1599,8 +1599,6 @@ AC_OUTPUT([
 Makefile
 GL/Makefile
 GL/glx/Makefile
-GL/include/Makefile
-GL/include/GL/Makefile
 GL/mesa/Makefile
 GL/mesa/array_cache/Makefile
 GL/mesa/glapi/Makefile
