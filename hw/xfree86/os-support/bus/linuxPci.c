@@ -416,7 +416,7 @@ xf86GetPciHostConfigFromTag(PCITAG Tag)
  *
  * Please keep this table in ascending vendor/device order.
  */
-static struct pciSizes {
+static const struct pciSizes {
     unsigned short vendor, device;
     unsigned long io_size, mem_size;
 } pciControllerSizes[] = {
@@ -439,9 +439,12 @@ static struct pciSizes {
 };
 #define NUM_SIZES (sizeof(pciControllerSizes) / sizeof(pciControllerSizes[0]))
 
-static unsigned long
-linuxGetIOSize(PCITAG Tag)
+static const struct pciSizes *
+linuxGetSizesStruct(PCITAG Tag)
 {
+    static const struct pciSizes default_size = {
+	0, 0, 1U << 16, (unsigned long)(1ULL << 32)
+    };
     pciConfigPtr pPCI;
     int          i;
 
@@ -449,47 +452,31 @@ linuxGetIOSize(PCITAG Tag)
     if ((pPCI = xf86GetPciHostConfigFromTag(Tag))) {
 	/* Look up vendor/device */
 	for (i = 0;  i < NUM_SIZES;  i++) {
-	    if (pPCI->pci_vendor > pciControllerSizes[i].vendor)
-		continue;
-	    if (pPCI->pci_vendor < pciControllerSizes[i].vendor)
-		break;
-	    if (pPCI->_pci_device > pciControllerSizes[i].device)
-		continue;
-	    if (pPCI->_pci_device < pciControllerSizes[i].device)
-		break;
-	    return pciControllerSizes[i].io_size;
+	    if ((pPCI->pci_vendor == pciControllerSizes[i].vendor)
+		&& (pPCI->_pci_device == pciControllerSizes[i].device)) {
+		return & pciControllerSizes[i];
+	    }
 	}
     }
 
-    return 1U << 16;			/* Default to 64K */
+    /* Default to 64KB I/O and 4GB memory. */
+    return & default_size;
 }
 
-static void
+static __inline__ unsigned long
+linuxGetIOSize(PCITAG Tag)
+{
+    const struct pciSizes * const sizes = linuxGetSizesStruct(Tag);
+    return sizes->io_size;
+}
+
+static __inline__ void
 linuxGetSizes(PCITAG Tag, unsigned long *io_size, unsigned long *mem_size)
 {
-    pciConfigPtr pPCI;
-    int          i;
+    const struct pciSizes * const sizes = linuxGetSizesStruct(Tag);
 
-    *io_size  = (1U << 16);			/* Default to 64K */
-    *mem_size = (unsigned long)(1ULL << 32);	/* Default to 4G */
-
-    /* Find host bridge */
-    if ((pPCI = xf86GetPciHostConfigFromTag(Tag))) {
-	/* Look up vendor/device */
-	for (i = 0;  i < NUM_SIZES;  i++) {
-	    if (pPCI->pci_vendor > pciControllerSizes[i].vendor)
-		continue;
-	    if (pPCI->pci_vendor < pciControllerSizes[i].vendor)
-		break;
-	    if (pPCI->_pci_device > pciControllerSizes[i].device)
-		continue;
-	    if (pPCI->_pci_device < pciControllerSizes[i].device)
-		break;
-	    *io_size  = pciControllerSizes[i].io_size;
-	    *mem_size = pciControllerSizes[i].mem_size;
-	    break;
-	}
-    }
+    *io_size  = sizes->io_size;
+    *mem_size = sizes->mem_size;
 }
 
 _X_EXPORT int
