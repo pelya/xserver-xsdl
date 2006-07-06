@@ -48,6 +48,7 @@ extern int __glXCopyContext(__GLXclientState*, GLbyte*);
 extern int __glXSwapBuffers(__GLXclientState*, GLbyte*);
 extern int __glXBindTexImageEXT(__GLXclientState *cl, GLbyte *pc);
 extern int __glXReleaseTexImageEXT(__GLXclientState *cl, GLbyte *pc);
+extern int __glXCopySubBufferMESA(__GLXclientState *cl, GLbyte *pc);
 extern int __glXGetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXUseXFont(__GLXclientState*, GLbyte*);
 extern int __glXCreateGLXPixmap(__GLXclientState*, GLbyte*);
@@ -84,6 +85,7 @@ extern int __glXSwapWaitX(__GLXclientState*, GLbyte*);
 extern int __glXSwapCopyContext(__GLXclientState*, GLbyte*);
 extern int __glXSwapSwapBuffers(__GLXclientState*, GLbyte*);
 extern int __glXSwapBindTexImageEXT(__GLXclientState *cl, GLbyte *pc);
+extern int __glXSwapReleaseTexImageEXT(__GLXclientState *cl, GLbyte *pc);
 extern int __glXSwapReleaseTexImageEXT(__GLXclientState *cl, GLbyte *pc);
 extern int __glXSwapGetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXSwapUseXFont(__GLXclientState*, GLbyte*);
@@ -124,4 +126,11 @@ extern __GLXdispatchRenderProcPtr __glXRenderTable[__GLX_RENDER_TABLE_SIZE];
 extern __GLXdispatchSingleProcPtr __glXSingleTable[__GLX_SINGLE_TABLE_SIZE];
 extern __GLXdispatchRenderProcPtr __glXSwapRenderTable[__GLX_RENDER_TABLE_SIZE];
 extern __GLXdispatchSingleProcPtr __glXSwapSingleTable[__GLX_SINGLE_TABLE_SIZE];
+
+/* Copied from mesa src/glx/x11/glxcmds.c
+ *
+ * Apparently there's no standardized opcode for this extension.
+ */
+#define X_GLXvop_CopySubBufferMESA 5154 /* temporary */
+
 #endif /* _GLX_g_disptab_h_ */

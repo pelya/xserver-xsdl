@@ -1602,6 +1602,27 @@ int __glXReleaseTexImageEXT(__GLXclientState *cl, GLbyte *pc)
 						       pGlxPixmap);
 }
 
+int __glXCopySubBufferMESA(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq *req = (xGLXVendorPrivateReq *) pc;
+    ClientPtr		  client = cl->client;
+    GLXDrawable		  drawId;
+    int                   x, y, width, height;
+
+    (void) client;
+    (void) req;
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+
+    drawId = *((CARD32 *) (pc));
+    x      = *((INT32 *)  (pc + 4));
+    y      = *((INT32 *)  (pc + 8));
+    width  = *((INT32 *)  (pc + 12));
+    height = *((INT32 *)  (pc + 16));
+
+    return BadRequest;
+}
+
 /*
 ** Get drawable attributes
 */
@@ -2238,7 +2259,9 @@ int __glXVendorPrivate(__GLXclientState *cl, GLbyte *pc)
     case X_GLXvop_BindTexImageEXT:
 	return __glXBindTexImageEXT(cl, pc);
     case X_GLXvop_ReleaseTexImageEXT:
-	return __glXReleaseTexImageEXT(cl, pc);  
+	return __glXReleaseTexImageEXT(cl, pc);
+    case X_GLXvop_CopySubBufferMESA:
+	return __glXCopySubBufferMESA(cl, pc);
     }
 #endif
 
