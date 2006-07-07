@@ -58,6 +58,8 @@ struct __GLXdrawable {
     void (*destroy)(__GLXdrawable *private);
     GLboolean (*resize)(__GLXdrawable *private);
     GLboolean (*swapBuffers)(__GLXdrawable *);
+    void      (*copySubBuffer)(__GLXdrawable *drawable,
+			       int x, int y, int w, int h);
 
     /*
     ** list of drawable private structs

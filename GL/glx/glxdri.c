@@ -112,11 +112,27 @@ struct __GLXDRIdrawable {
  *            months ago. :(
  * 20050727 - Gut all the old interfaces.  This breaks compatability with
  *            any DRI driver built to any previous version.
+ * 20060314 - Added support for GLX_MESA_copy_sub_buffer.
  */
+
 #define INTERNAL_VERSION 20050727
 
 static const char CREATE_NEW_SCREEN_FUNC[] =
     "__driCreateNewScreen_" STRINGIFY (INTERNAL_VERSION);
+
+/* The DRI driver entry point version wasn't bumped when the
+ * copySubBuffer functionality was added to the DRI drivers, but the
+ * functionality is still conditional on the value of the
+ * internal_api_version passed to __driCreateNewScreen.  However, the
+ * screen constructor doesn't fail for a DRI driver that's older than
+ * the passed in version number, so there's no way we can know for
+ * sure that we can actually use the copySubBuffer functionality.  But
+ * since the earliest (and at this point only) released mesa version
+ * (6.5) that uses the 20050727 entry point does have copySubBuffer,
+ * we'll just settle for that.  We still have to pass in a higher to
+ * the screen constructor to enable the functionality.
+ */
+#define COPY_SUB_BUFFER_INTERNAL_VERSION 20060314
 
 static void
 __glXDRIleaveServer(void)
@@ -175,6 +191,27 @@ __glXDRIdrawableSwapBuffers(__GLXdrawable *basePrivate)
 					 private->driDrawable->private);
 
     return TRUE;
+}
+
+static void
+__glXDRIdrawableCopySubBuffer(__GLXdrawable *basePrivate,
+			       int x, int y, int w, int h)
+{
+    __GLXDRIdrawable *private = (__GLXDRIdrawable *) basePrivate;
+    __GLXDRIscreen *screen;
+
+    /* FIXME: We're jumping through hoops here to get the DRIdrawable
+     * which the dri driver tries to keep to it self...  cf. FIXME in
+     * createDrawable. */
+
+    screen = (__GLXDRIscreen *) __glXgetActiveScreen(private->base.pDraw->pScreen->myNum);
+    private->driDrawable = (screen->driScreen.getDrawable)(NULL,
+							   private->base.drawId,
+							   screen->driScreen.private);
+
+    (*private->driDrawable->copySubBuffer)(NULL,
+					   private->driDrawable->private,
+					   x, y, w, h);
 }
 
 static void
@@ -474,10 +511,11 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
 	return NULL;
     }
 
-    private->base.destroy     = __glXDRIdrawableDestroy;
-    private->base.resize      = __glXDRIdrawableResize;
-    private->base.swapBuffers = __glXDRIdrawableSwapBuffers;
-    
+    private->base.destroy       = __glXDRIdrawableDestroy;
+    private->base.resize        = __glXDRIdrawableResize;
+    private->base.swapBuffers   = __glXDRIdrawableSwapBuffers;
+    private->base.copySubBuffer = __glXDRIdrawableCopySubBuffer;
+
 #if 0
     /* FIXME: It would only be natural that we called
      * driScreen->createNewDrawable here but the DRI drivers manage
@@ -770,7 +808,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     __DRIframebuffer  framebuffer;
     int   fd = -1;
     int   status;
-    int api_ver = INTERNAL_VERSION;
+    int api_ver = COPY_SUB_BUFFER_INTERNAL_VERSION;
     drm_magic_t magic;
     drmVersionPtr version;
     char *driverName;
