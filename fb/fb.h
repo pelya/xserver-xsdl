@@ -44,6 +44,12 @@
 #include "picture.h"
 #endif
 
+#ifdef FB_ACCESS_WRAPPER
+#define FBPREFIX(x) wfb##x
+#else
+#define FBPREFIX(x) fb##x
+#endif
+
 /*
  * This single define controls the basic size of data manipulated
  * by this software; it must be log2(sizeof (FbBits) * 8)
