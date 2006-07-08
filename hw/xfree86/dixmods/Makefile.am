@@ -95,6 +95,7 @@ libtype1_la_SOURCES = type1mod.c
 libdixmods_la_SOURCES = $(top_srcdir)/mi/miinitext.c
 
 libxorgxkb_la_SOURCES = xkbVT.c xkbPrivate.c xkbKillSrv.c
+libxorgxkb_la_LIBADD = $(top_builddir)/dix/libdix.la
 
 libxtrap_la_LDFLAGS = -avoid-version
 libxtrap_la_LIBADD = $(top_builddir)/XTrap/libxtrap.la

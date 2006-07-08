@@ -820,4 +820,10 @@ typedef struct {
     SelectionCallbackKind   kind;
 } SelectionInfoRec;
 
+/* strcasecmp.c */
+#if NEED_STRCASECMP
+#define strcasecmp xstrcasecmp
+extern int xstrcasecmp(char *s1, char *s2);
+#endif
+
 #endif /* DIX_H */
