@@ -45,6 +45,7 @@
 #endif
 
 #ifdef FB_ACCESS_WRAPPER
+#include "wfbrename.h"
 #define FBPREFIX(x) wfb##x
 #else
 #define FBPREFIX(x) fb##x

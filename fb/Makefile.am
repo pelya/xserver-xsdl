@@ -7,7 +7,7 @@ INCLUDES = \
 AM_CFLAGS = $(DIX_CFLAGS)
 
 if XORG
-sdk_HEADERS = fb.h fbrop.h fbpseudocolor.h fboverlay.h
+sdk_HEADERS = fb.h fbrop.h fbpseudocolor.h fboverlay.h wfbrename.h
 endif
 
 if MMX_CAPABLE
