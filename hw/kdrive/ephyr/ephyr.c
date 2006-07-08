@@ -40,6 +40,8 @@ extern DeviceIntPtr pKdKeyboard;
 
 static int mouseState = 0;
 
+Bool   EphyrWantGrayScale = 0;
+
 Bool
 ephyrInitialize (KdCardInfo *card, EphyrPriv *priv)
 {
@@ -80,7 +82,10 @@ ephyrScreenInitialize (KdScreenInfo *screen, EphyrScrPriv *scrpriv)
       screen->width = width;
       screen->height = height;
     }
-  
+
+  if (EphyrWantGrayScale)
+    screen->fb[0].depth = 8;
+
   if (screen->fb[0].depth && screen->fb[0].depth != hostx_get_depth())
     {
       if (screen->fb[0].depth < hostx_get_depth()
@@ -98,12 +103,15 @@ ephyrScreenInitialize (KdScreenInfo *screen, EphyrScrPriv *scrpriv)
   
   if (screen->fb[0].depth <= 8)
     {
-      screen->fb[0].visuals = ((1 << StaticGray) |
-			       (1 << GrayScale) |
-			       (1 << StaticColor) |
-			       (1 << PseudoColor) |
-			       (1 << TrueColor) |
-			       (1 << DirectColor));
+      if (EphyrWantGrayScale)
+	screen->fb[0].visuals = ((1 << StaticGray) | (1 << GrayScale));
+      else
+	screen->fb[0].visuals = ((1 << StaticGray) |
+				 (1 << GrayScale) |
+				 (1 << StaticColor) |
+				 (1 << PseudoColor) |
+				 (1 << TrueColor) |
+				 (1 << DirectColor));
       
       screen->fb[0].redMask   = 0x00;
       screen->fb[0].greenMask = 0x00;
