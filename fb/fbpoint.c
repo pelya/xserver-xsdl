@@ -160,4 +160,5 @@ fbPolyPoint (DrawablePtr    pDrawable,
 	 nBox--; pBox++)
 	(*dots) (dst, dstStride, dstBpp, pBox, pptInit, nptInit, 
 		 pDrawable->x, pDrawable->y, dstXoff, dstYoff, and, xor);
+    fbFinishAccess (pDrawable);
 }

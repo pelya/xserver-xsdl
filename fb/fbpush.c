@@ -165,6 +165,7 @@ fbPushFill (DrawablePtr	pDrawable,
 		      fbAnd(GXnoop,(FbBits) 0,FB_ALLONES),
 		      fbXor(GXnoop,(FbBits) 0,FB_ALLONES));
 	}
+	fbFinishAccess (pDrawable);
     }
     else
     {

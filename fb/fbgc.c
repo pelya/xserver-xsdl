@@ -116,6 +116,8 @@ fbPadPixmap (PixmapPtr pPixmap)
 	*bits = b;
 	bits += stride;
     }
+
+    fbFinishAccess (&pPixmap->drawable);
 }
 
 /*
@@ -183,10 +185,13 @@ fbCanEvenStipple (PixmapPtr pStipple, int bpp)
     /* check to see that the stipple repeats horizontally */
     while (h--)
     {
-	if (!fbLineRepeat (bits, len, pStipple->drawable.width))
+	if (!fbLineRepeat (bits, len, pStipple->drawable.width)) {
+	    fbFinishAccess (&pStipple->drawable);
 	    return FALSE;
+	}
 	bits += stride;
     }
+    fbFinishAccess (&pStipple->drawable);
     return TRUE;
 }
 

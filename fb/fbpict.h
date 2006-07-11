@@ -99,6 +99,7 @@
     /* manage missing src alpha */ \
     if ((pict)->pFormat->direct.alphaMask == 0) \
 	(bits) |= 0xff000000; \
+    fbFinishAccess ((pict)->pDrawable); \
 }
 
 #define fbComposeGetStart(pict,x,y,type,stride,line,mul) {\

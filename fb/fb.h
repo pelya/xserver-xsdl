@@ -47,8 +47,12 @@
 #ifdef FB_ACCESS_WRAPPER
 #include "wfbrename.h"
 #define FBPREFIX(x) wfb##x
+#define WRITE(ptr, val) ((*wfbWriteMemory)(ptr, val))
+#define READ(ptr) ((*wfbReadMemory)(ptr))
 #else
 #define FBPREFIX(x) fb##x
+#define WRITE(ptr, val) (*(ptr) = (val))
+#define READ(ptr) (*(ptr))
 #endif
 
 /*
@@ -595,6 +599,34 @@ extern WindowPtr    *WindowTable;
 #define FB_SCREEN_PRIVATE
 #endif
 
+/* Framebuffer access wrapper */
+#ifdef FB_ACCESS_WRAPPER
+typedef FbBits (*ReadMemoryProcPtr)(FbBits *src);
+typedef void (*WriteMemoryProcPtr)(FbBits *dst, FbBits value);
+typedef void (*SetupWrapProcPtr)(ReadMemoryProcPtr  *pRead,
+                                 WriteMemoryProcPtr *pWrite,
+                                 PixmapPtr           pPixmap);
+typedef void (*FinishWrapProcPtr)(PixmapPtr pPixmap);
+#define fbPrepareAccess(pPix) \
+	fbGetScreenPrivate((pPix)->drawable.pScreen)->setupWrap( \
+		&wfbReadMemory, \
+		&wfbWriteMemory, \
+		(pPix))
+#define fbFinishAccess(pDrawable) { \
+	PixmapPtr _pPix; \
+	if ((pDrawable)->type != DRAWABLE_PIXMAP) \
+	    _pPix = fbGetWindowPixmap(pDrawable); \
+	else \
+	    _pPix = (PixmapPtr) (pDrawable); \
+	fbGetScreenPrivate(_pPix->drawable.pScreen)->finishWrap(_pPix); \
+}
+
+#else
+#define fbPrepareAccess(pPix)
+#define fbFinishAccess(pDraw)
+#endif
+
+
 #ifdef FB_SCREEN_PRIVATE
 extern int	fbScreenPrivateIndex;
 extern int	fbGetScreenPrivateIndex(void);
@@ -603,6 +635,10 @@ extern int	fbGetScreenPrivateIndex(void);
 typedef struct {
     unsigned char	win32bpp;	/* window bpp for 32-bpp images */
     unsigned char	pix32bpp;	/* pixmap bpp for 32-bpp images */
+#ifdef FB_ACCESS_WRAPPER
+    SetupWrapProcPtr	setupWrap;	/* driver hook to set pixmap access wrapping */
+    FinishWrapProcPtr	finishWrap;	/* driver hook to clean up pixmap access wrapping */
+#endif
 } FbScreenPrivRec, *FbScreenPrivPtr;
 
 #define fbGetScreenPrivate(pScreen) ((FbScreenPrivPtr) \
@@ -681,6 +717,7 @@ typedef struct {
 	(xoff) = __fbPixOffXPix(_pPix); \
 	(yoff) = __fbPixOffYPix(_pPix); \
     } \
+    fbPrepareAccess(_pPix); \
     (pointer) = (FbBits *) _pPix->devPrivate.ptr; \
     (stride) = ((int) _pPix->devKind) / sizeof (FbBits); (void)(stride); \
     (bpp) = _pPix->drawable.bitsPerPixel;  (void)(bpp); \
@@ -697,6 +734,7 @@ typedef struct {
 	(xoff) = __fbPixOffXPix(_pPix); \
 	(yoff) = __fbPixOffYPix(_pPix); \
     } \
+    fbPrepareAccess(_pPix); \
     (pointer) = (FbStip *) _pPix->devPrivate.ptr; \
     (stride) = ((int) _pPix->devKind) / sizeof (FbStip); (void)(stride); \
     (bpp) = _pPix->drawable.bitsPerPixel; (void)(bpp); \
@@ -1745,6 +1783,31 @@ fbSetupScreen(ScreenPtr	pScreen,
 	      int	width,		/* pixel width of frame buffer */
 	      int	bpp);		/* bits per pixel of frame buffer */
 
+#ifdef FB_ACCESS_WRAPPER
+Bool
+wfbFinishScreenInit(ScreenPtr	pScreen,
+		    pointer	pbits,
+		    int		xsize,
+		    int		ysize,
+		    int		dpix,
+		    int		dpiy,
+		    int		width,
+		    int		bpp,
+		    SetupWrapProcPtr setupWrap,
+		    FinishWrapProcPtr finishWrap);
+
+Bool
+wfbScreenInit(ScreenPtr	pScreen,
+	      pointer	pbits,
+	      int	xsize,
+	      int	ysize,
+	      int	dpix,
+	      int	dpiy,
+	      int	width,
+	      int	bpp,
+	      SetupWrapProcPtr setupWrap,
+	      FinishWrapProcPtr finishWrap);
+#else
 Bool
 fbFinishScreenInit(ScreenPtr	pScreen,
 		   pointer	pbits,
@@ -1764,6 +1827,7 @@ fbScreenInit(ScreenPtr	pScreen,
 	     int	dpiy,
 	     int	width,
 	     int	bpp);
+#endif
 
 void
 fbInitializeBackingStore (ScreenPtr pScreen);
@@ -2000,6 +2064,11 @@ fbReplicatePixel (Pixel p, int bpp);
 
 void
 fbReduceRasterOp (int rop, FbBits fg, FbBits pm, FbBits *andp, FbBits *xorp);
+
+#ifdef FB_ACCESS_WRAPPER
+extern ReadMemoryProcPtr wfbReadMemory;
+extern WriteMemoryProcPtr wfbWriteMemory;
+#endif
 
 /*
  * fbwindow.c

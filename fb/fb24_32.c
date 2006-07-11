@@ -305,6 +305,8 @@ fb24_32GetSpans(DrawablePtr	pDrawable,
 	ppt++;
 	pwidth++;
     }
+
+    fbFinishAccess (pDrawable);
 }
 
 void
@@ -366,6 +368,8 @@ fb24_32SetSpans (DrawablePtr	    pDrawable,
 	ppt++;
 	pwidth++;
     }
+
+    fbFinishAccess (pDrawable);
 }
 
 /*
@@ -429,6 +433,8 @@ fb24_32PutZImage (DrawablePtr	pDrawable,
 			alu,
 			pm);
     }
+
+    fbFinishAccess (pDrawable);
 }
 
 void
@@ -463,6 +469,8 @@ fb24_32GetImage (DrawablePtr     pDrawable,
     fb24_32BltUp (src + (y + srcYoff) * srcStride, srcStride, x + srcXoff,
 		  (CARD8 *) d, dstStride, 0,
 		  w, h, GXcopy, pm);
+
+    fbFinishAccess (pDrawable);
 }
 
 void
@@ -519,6 +527,9 @@ fb24_32CopyMtoN (DrawablePtr pSrcDrawable,
 		pPriv->pm);
 	pbox++;
     }
+
+    fbFinishAccess (pSrcDrawable);
+    fbFinishAccess (pDstDrawable);
 }
 
 PixmapPtr
@@ -562,6 +573,9 @@ fb24_32ReformatTile(PixmapPtr pOldTile, int bitsPerPixel)
 
 	    GXcopy,
 	    FB_ALLONES);
+
+    fbFinishAccess (&pOldTile->drawable);
+    fbFinishAccess (&pNewTile->drawable);
 
     return pNewTile;
 }

@@ -115,6 +115,8 @@ fbBresSolid (DrawablePtr    pDrawable,
 	    }
 	}
     }
+
+    fbFinishAccess (pDrawable);
 }
 
 void
@@ -199,6 +201,8 @@ fbBresDash (DrawablePtr	pDrawable,
 	}
 	FbDashStep (dashlen, even);
     }
+
+    fbFinishAccess (pDrawable);
 }
 
 void
@@ -399,6 +403,8 @@ fbBresSolid24RRop (DrawablePtr  pDrawable,
 	    }
 	}
     }
+
+    fbFinishAccess (pDrawable);
 }
 
 static void
@@ -498,6 +504,8 @@ fbBresDash24RRop (DrawablePtr	pDrawable,
 	}
 	FbDashStep (dashlen, even);
     }
+
+    fbFinishAccess (pDrawable);
 }
 #endif
 

@@ -81,7 +81,6 @@
 #define fbFillRegionSolid wfbFillRegionSolid
 #define fbFillRegionTiled wfbFillRegionTiled
 #define fbFillSpans wfbFillSpans
-#define fbFinishScreenInit wfbFinishScreenInit
 #define fbFixCoordModePrevious wfbFixCoordModePrevious
 #define fbGCFuncs wfbGCFuncs
 #define fbGCOps wfbGCOps
@@ -160,7 +159,6 @@
 #define fbResolveColor wfbResolveColor
 #define fbRestoreAreas wfbRestoreAreas
 #define fbSaveAreas wfbSaveAreas
-#define fbScreenInit wfbScreenInit
 #define fbScreenPrivateIndex wfbScreenPrivateIndex
 #define fbSegment wfbSegment
 #define fbSelectBres wfbSelectBres

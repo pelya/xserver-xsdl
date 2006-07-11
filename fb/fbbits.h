@@ -119,6 +119,8 @@ BRESSOLID (DrawablePtr	pDrawable,
 	    e += e3;
 	}
     }
+
+    fbFinishAccess (pDrawable);
 }
 #endif
 
@@ -263,6 +265,8 @@ onOffOdd:
 		dashlen = len;
 	}
     }
+
+    fbFinishAccess (pDrawable);
 }
 #endif
 
@@ -710,8 +714,10 @@ POLYLINE (DrawablePtr	pDrawable,
 		       intToX(pt2) + xoff, intToY(pt2) + yoff,
 		       npt == 0 && pGC->capStyle != CapNotLast,
 		       &dashoffset);
-	    if (!npt)
+	    if (!npt) {
+		fbFinishAccess (pDrawable);
 		return;
+	    }
 	    pt1 = pt2;
 	    pt2 = *pts++;
 	    npt--;
@@ -776,6 +782,7 @@ POLYLINE (DrawablePtr	pDrawable,
 		    {
 			RROP(bits,and,xor);
 		    }
+		    fbFinishAccess (pDrawable);
 		    return;
 		}
 		pt1 = pt2;
@@ -786,6 +793,8 @@ POLYLINE (DrawablePtr	pDrawable,
     	    }
 	}
     }
+
+    fbFinishAccess (pDrawable);
 }
 #endif
 
@@ -950,6 +959,8 @@ POLYSEGMENT (DrawablePtr    pDrawable,
 	    }
 	}
     }
+
+    fbFinishAccess (pDrawable);
 }
 #endif
 

@@ -2652,6 +2652,7 @@ static void fbFetchSolid(PicturePtr pict, int x, int y, int width, CARD32 *buffe
     end = buffer + width;
     while (buffer < end)
         *buffer++ = color;
+    fbFinishAccess (pict->pDrawable);
 }
 
 static void fbFetch(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
@@ -2670,6 +2671,7 @@ static void fbFetch(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
     bits += y*stride;
 
     fetch(bits, x, width, buffer, indexed);
+    fbFinishAccess (pict->pDrawable);
 }
 
 #define MOD(a,b) ((a) < 0 ? ((b) - ((-(a) - 1) % (b))) - 1 : (a) % (b))
@@ -2921,8 +2923,10 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
 
     /* when using convolution filters one might get here without a transform */
     if (pict->transform) {
-        if (!PictureTransformPoint3d (pict->transform, &v))
+        if (!PictureTransformPoint3d (pict->transform, &v)) {
+            fbFinishAccess (pict->pDrawable);
             return;
+        }
         unit.vector[0] = pict->transform->matrix[0][0];
         unit.vector[1] = pict->transform->matrix[1][0];
         unit.vector[2] = pict->transform->matrix[2][0];
@@ -3352,6 +3356,8 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             v.vector[2] += unit.vector[2];
         }
     }
+
+    fbFinishAccess (pict->pDrawable);
 }
 
 
@@ -3397,6 +3403,7 @@ static void fbStore(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
 
     bits += y*stride;
     store(bits, buffer, x, width, indexed);
+    fbFinishAccess (pict->pDrawable);
 }
 
 static void fbStoreExternalAlpha(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
@@ -3436,6 +3443,9 @@ static void fbStoreExternalAlpha(PicturePtr pict, int x, int y, int width, CARD3
 
     store(bits, buffer, x, width, indexed);
     astore(alpha_bits, buffer, ax - pict->alphaOrigin.x, width, aindexed);
+
+    fbFinishAccess (pict->alphaMap->pDrawable);
+    fbFinishAccess (pict->pDrawable);
 }
 
 typedef void (*scanStoreProc)(PicturePtr , int , int , int , CARD32 *);

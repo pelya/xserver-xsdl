@@ -284,7 +284,7 @@ fbPolyGlyphBlt (DrawablePtr	pDrawable,
     glyph = 0;
     if (pGC->fillStyle == FillSolid && pPriv->and == 0)
     {
-	fbGetDrawable (pDrawable, dst, dstStride, dstBpp, dstXoff, dstYoff);
+	dstBpp = pDrawable->bitsPerPixel;
 	switch (dstBpp) {
 	case 8:	    glyph = fbGlyph8; break;
 	case 16:    glyph = fbGlyph16; break;
@@ -312,6 +312,7 @@ fbPolyGlyphBlt (DrawablePtr	pDrawable,
 	    if (glyph && gWidth <= sizeof (FbStip) * 8 &&
 		fbGlyphIn (fbGetCompositeClip(pGC), gx, gy, gWidth, gHeight))
 	    {
+		fbGetDrawable (pDrawable, dst, dstStride, dstBpp, dstXoff, dstYoff);
 		(*glyph) (dst + (gy + dstYoff) * dstStride,
 			  dstStride,
 			  dstBpp,
@@ -319,6 +320,7 @@ fbPolyGlyphBlt (DrawablePtr	pDrawable,
 			  pPriv->xor,
 			  gx + dstXoff,
 			  gHeight);
+		fbFinishAccess (pDrawable);
 	    }
 	    else
 #endif
@@ -375,7 +377,7 @@ fbImageGlyphBlt (DrawablePtr	pDrawable,
     glyph = 0;
     if (pPriv->and == 0)
     {
-	fbGetDrawable (pDrawable, dst, dstStride, dstBpp, dstXoff, dstYoff);
+	dstBpp = pDrawable->bitsPerPixel;
 	switch (dstBpp) {
 	case 8:	    glyph = fbGlyph8; break;
 	case 16:    glyph = fbGlyph16; break;
@@ -443,6 +445,7 @@ fbImageGlyphBlt (DrawablePtr	pDrawable,
 	    if (glyph && gWidth <= sizeof (FbStip) * 8 &&
 		fbGlyphIn (fbGetCompositeClip(pGC), gx, gy, gWidth, gHeight))
 	    {
+		fbGetDrawable (pDrawable, dst, dstStride, dstBpp, dstXoff, dstYoff);
 		(*glyph) (dst + (gy + dstYoff) * dstStride,
 			  dstStride,
 			  dstBpp,
@@ -450,6 +453,7 @@ fbImageGlyphBlt (DrawablePtr	pDrawable,
 			  pPriv->fg,
 			  gx + dstXoff,
 			  gHeight);
+		fbFinishAccess (pDrawable);
 	    }
 	    else
 #endif
