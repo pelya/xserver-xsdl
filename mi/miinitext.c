@@ -108,6 +108,7 @@ SOFTWARE.
 #undef XF86DRI
 #undef DPMSExtension
 #undef FONTCACHE
+#undef COMPOSITE
 #undef DAMAGE
 #undef XFIXES
 #undef XEVIE
