@@ -1079,7 +1079,10 @@ xf86WriteMmio32Be(__volatile__ void *base, const unsigned long offset,
 extern volatile unsigned char *ioBase;
 
 #if defined(linux) && defined(__powerpc64__)
-# include <asm/memory.h>
+# include <linux/version.h>
+# if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 0)
+#  include <asm/memory.h>
+# endif
 #endif /* defined(linux) && defined(__powerpc64__) */
 #ifndef eieio /* We deal with arch-specific eieio() routines above... */
 # define eieio() __asm__ __volatile__ ("eieio" ::: "memory")

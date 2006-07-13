@@ -494,6 +494,31 @@ int __glXSwapReleaseTexImageEXT(__GLXclientState *cl, GLbyte *pc)
     return __glXReleaseTexImageEXT(cl, (GLbyte *)pc);
 }
 
+int __glXSwapCopySubBufferMESA(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq *req = (xGLXVendorPrivateReq *) pc;
+    GLXDrawable		 *drawId;
+    int			 *buffer;
+
+    (void) drawId;
+    (void) buffer;
+
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+
+    __GLX_SWAP_SHORT(&req->length);
+    __GLX_SWAP_INT(&req->contextTag);
+    __GLX_SWAP_INT(pc);
+    __GLX_SWAP_INT(pc + 4);
+    __GLX_SWAP_INT(pc + 8);
+    __GLX_SWAP_INT(pc + 12);
+    __GLX_SWAP_INT(pc + 16);
+
+    return __glXCopySubBufferMESA(cl, pc);
+
+}
+
 int __glXSwapGetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXVendorPrivateWithReplyReq *req = (xGLXVendorPrivateWithReplyReq *)pc;
@@ -973,7 +998,9 @@ int __glXSwapVendorPrivate(__GLXclientState *cl, GLbyte *pc)
     case X_GLXvop_BindTexImageEXT:
 	return __glXSwapBindTexImageEXT(cl, pc);
     case X_GLXvop_ReleaseTexImageEXT:
-	return __glXSwapReleaseTexImageEXT(cl, pc);  
+	return __glXSwapReleaseTexImageEXT(cl, pc);
+    case X_GLXvop_CopySubBufferMESA:
+	return __glXSwapCopySubBufferMESA(cl, pc);
     }
 #endif
 

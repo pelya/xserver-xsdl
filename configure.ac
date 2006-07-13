@@ -421,7 +421,7 @@ AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Mult
 AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCache extension (default: disabled)]), [FONTCACHE=$enableval], [FONTCACHE=no])
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
 AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--disable-xf86bigfont], [Build XF86 Big Font extension (default: enabled)]), [XF86BIGFONT=$enableval], [XF86BIGFONT=yes])
-AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled)]), [DPMS=$enableval], [DPMSExtension=yes])
+AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled)]), [DPMSExtension=$enableval], [DPMSExtension=yes])
 AC_ARG_ENABLE(xinput,         AS_HELP_STRING([--disable-xinput], [Build XInput Extension (default: enabled)]), [XINPUT=$enableval], [XINPUT=yes])
 
 dnl DDXes.
@@ -572,7 +572,7 @@ fi
 
 if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
 	PKG_CHECK_MODULES([XLIB], [x11])
-	PKG_CHECK_MODULES([GL], [glproto >= 1.4.6])
+	PKG_CHECK_MODULES([GL], [glproto >= 1.4.7])
 	AC_SUBST(XLIB_CFLAGS)
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
 	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
@@ -1065,6 +1065,25 @@ dnl has it in libc), or if libdl is needed to get it.
 		  *)
 			;;
 		esac
+
+		# check whether struct kbd_repeat has the 'period' field.
+		# on kernels < 2.5.42 it's called 'rate' instead.
+		AC_TRY_COMPILE([
+#include <linux/kd.h>
+#ifdef __sparc__
+#include <asm/param.h>
+#include <asm/kbio.h>
+#endif
+],[
+int main () { 
+	struct kbd_repeat k;
+	k.period = 0;
+	return 0;
+}],
+		[period_field="period"],
+		[period_field="rate"])
+		AC_DEFINE_UNQUOTED(LNX_KBD_PERIOD_NAME, [$period_field],
+		                   [Name of the period field in struct kbd_repeat])
 		;;
 	  freebsd* | kfreebsd*-gnu)
 	  	XORG_OS="freebsd"
@@ -1539,7 +1558,7 @@ AC_ARG_ENABLE(xorgcfg, AS_HELP_STRING([--enable-xorgcfg],
 	[XORGCFG=$enableval],[XORGCFG=yes])
 if test x$XORGCFG = xyes ; then
 	PKG_CHECK_MODULES([XORGCFG_DEP], 
-	    [xkbui xkbfile xxf86misc xxf86vm xaw7 xmu xt xpm xext x11])
+	    [xkbui >= 1.0.2 xkbfile xxf86misc xxf86vm xaw7 xmu xt xpm xext x11])
 	AC_CHECK_LIB([curses],[waddstr],
 	    [XORGCFG_DEP_LIBS="$XORGCFG_DEP_LIBS -lcurses"; CURSES=yes],
 	    AC_CHECK_LIB([ncurses],[waddstr],

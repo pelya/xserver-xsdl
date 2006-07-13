@@ -1602,6 +1602,65 @@ int __glXReleaseTexImageEXT(__GLXclientState *cl, GLbyte *pc)
 						       pGlxPixmap);
 }
 
+int __glXCopySubBufferMESA(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq *req = (xGLXVendorPrivateReq *) pc;
+    GLXContextTag         tag = req->contextTag;
+    __GLXcontext         *glxc = NULL;
+    __GLXdrawable        *pGlxDraw;
+    __GLXpixmap          *pPixmap;
+    ClientPtr		  client = cl->client;
+    GLXDrawable		  drawId;
+    int                   error;
+    int                   x, y, width, height;
+
+    (void) client;
+    (void) req;
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+
+    drawId = *((CARD32 *) (pc));
+    x      = *((INT32 *)  (pc + 4));
+    y      = *((INT32 *)  (pc + 8));
+    width  = *((INT32 *)  (pc + 12));
+    height = *((INT32 *)  (pc + 16));
+
+    if (tag) {
+	glxc = __glXLookupContextByTag(cl, tag);
+	if (!glxc) {
+	    return __glXError(GLXBadContextTag);
+	}
+	/*
+	** The calling thread is swapping its current drawable.  In this case,
+	** glxSwapBuffers is in both GL and X streams, in terms of
+	** sequentiality.
+	*/
+	if (__glXForceCurrent(cl, tag, &error)) {
+	    /*
+	    ** Do whatever is needed to make sure that all preceding requests
+	    ** in both streams are completed before the swap is executed.
+	    */
+	    CALL_Finish( GET_DISPATCH(), () );
+	    __GLX_NOTE_FLUSHED_CMDS(glxc);
+	} else {
+	    return error;
+	}
+    }
+
+    error = GetDrawableOrPixmap(glxc, drawId, &pGlxDraw, &pPixmap, client);
+    if (error != Success)
+	return error;
+
+    if (pGlxDraw == NULL ||
+	pGlxDraw->type != DRAWABLE_WINDOW ||
+	pGlxDraw->copySubBuffer == NULL)
+	return __glXError(GLXBadDrawable);
+
+    (*pGlxDraw->copySubBuffer)(pGlxDraw, x, y, width, height);
+
+    return Success;
+}
+
 /*
 ** Get drawable attributes
 */
@@ -2238,7 +2297,9 @@ int __glXVendorPrivate(__GLXclientState *cl, GLbyte *pc)
     case X_GLXvop_BindTexImageEXT:
 	return __glXBindTexImageEXT(cl, pc);
     case X_GLXvop_ReleaseTexImageEXT:
-	return __glXReleaseTexImageEXT(cl, pc);  
+	return __glXReleaseTexImageEXT(cl, pc);
+    case X_GLXvop_CopySubBufferMESA:
+	return __glXCopySubBufferMESA(cl, pc);
     }
 #endif
 
