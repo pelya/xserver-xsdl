@@ -284,36 +284,30 @@ void
 xf86int10ParseBiosLocation(void* options, 
 			   xf86int10BiosLocationPtr bios)
 {
-    char *s;
-    char *p;
-    char *str = NULL;
-
-    if (options)
-	str = xf86GetOptValString(options,OPT_BIOS_LOCATION);
+    const char *p;
+    const char *str;
 
     bios->bus = BUS_NONE;
-    if (!str)
-	return;
-    
-    s = xstrdup(str);
-    p = strtok(s,":");
-    if (xf86NameCmp(p,"pci") == 0) bios->bus = BUS_PCI;
-    else
-	if (xf86NameCmp(p,"primary") == 0) bios->bus = BUS_ISA;
 
-    xfree(s);
+    if ((options == NULL) 
+	|| ((str = xf86GetOptValString(options, OPT_BIOS_LOCATION)) == NULL)) {
+	return;
+    }
+
+    if (strncasecmp(str, "pci", 3) == 0) {
+	bios->bus = BUS_PCI;
+    } else if (strncasecmp(str, "primary", 7) == 0) {
+	bios->bus = BUS_ISA;
+    }
+    else {
+	return;
+    }
     
-    if (bios->bus == BUS_NONE) return;
-    
-    s = xstrdup(str);
-    p = strchr(s, ':');
+    p = strchr(str, ':');
 		     
     switch (bios->bus) {
     case BUS_ISA:
-	if (p)
-	    bios->location.legacy = atoi(++p);
-	else
-	    bios->location.legacy = 0;
+	bios->location.legacy = (p != NULL) ? atoi(++p) : 0;
 	break;
     case BUS_PCI:
 	if (p) {
@@ -332,7 +326,6 @@ xf86int10ParseBiosLocation(void* options,
     default:
 	break;
     }
-    xfree(s);
 }
 
 
