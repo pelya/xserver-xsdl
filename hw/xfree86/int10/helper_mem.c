@@ -336,4 +336,104 @@ xf86int10ParseBiosLocation(void* options,
 }
 
 
+BusType
+xf86int10GetBiosLocationType(const xf86Int10InfoPtr pInt,
+			     const xf86int10BiosLocationPtr bios)
+{
+    BusType location_type = bios->bus;
 
+    switch (location_type) {
+    case BUS_PCI:
+	xf86DrvMsg(pInt->scrnIndex,X_CONFIG,"Overriding bios location: "
+		   "PCI:%i:%i%i\n",bios->location.pci.bus,
+		   bios->location.pci.dev,bios->location.pci.func);
+	break;
+    case BUS_ISA:
+	if (bios->location.legacy)
+	    xf86DrvMsg(pInt->scrnIndex,X_CONFIG,"Overriding bios location: "
+		       "Legacy:0x%x\n",bios->location.legacy);
+	else
+	    xf86DrvMsg(pInt->scrnIndex,X_CONFIG,"Overriding bios location: "
+		       "Legacy\n");
+	break;
+    case BUS_NONE: {
+	EntityInfoPtr pEnt = xf86GetEntityInfo(pInt->entityIndex);
+	location_type = pEnt->location.type;
+	xfree(pEnt);
+	break;
+    }
+    default:
+	break;
+    }
+
+    return location_type;
+}
+
+
+#define CHECK_V_SEGMENT_RANGE(x)   \
+    if (((x) << 4) < V_BIOS) { \
+	xf86DrvMsg(pInt->scrnIndex, X_ERROR, \
+		   "V_BIOS address 0x%lx out of range\n", \
+		   (unsigned long)(x) << 4); \
+	return FALSE; \
+    }
+
+Bool
+xf86int10GetBiosSegment(xf86Int10InfoPtr pInt,
+			const xf86int10BiosLocationPtr bios, void * base)
+{
+    unsigned i;
+    int cs = ~0;
+    int segments[4];
+    const char * format;
+
+
+    if (bios->bus == BUS_ISA && bios->location.legacy) {
+	xf86DrvMsg(pInt->scrnIndex, X_CONFIG, 
+		   "Overriding BIOS location: 0x%x\n",
+		   bios->location.legacy);
+
+	segments[0] = bios->location.legacy >> 4;
+	segments[1] = ~0;
+
+	format = "No V_BIOS at specified address 0x%lx\n";
+    } else {
+	if (bios->bus == BUS_PCI) {
+	    xf86DrvMsg(pInt->scrnIndex, X_WARNING,
+		       "Option BiosLocation for primary device ignored: "
+		       "It points to PCI.\n");
+	    xf86DrvMsg(pInt->scrnIndex, X_WARNING,
+		       "You must set Option InitPrimary also\n");
+	}
+
+	segments[0] = MEM_RW(pInt, (0x10 << 2) + 2);
+	segments[1] = MEM_RW(pInt, (0x42 << 2) + 2);
+	segments[2] = V_BIOS >> 4;
+	segments[3] = ~0;
+
+	format = "No V_BIOS found\n";
+    }
+
+    for (i = 0; segments[i] != ~0; i++) {
+	unsigned char * vbiosMem;
+
+	cs = segments[i];
+
+	CHECK_V_SEGMENT_RANGE(cs);
+	vbiosMem = (unsigned char *)base + (cs << 4);
+	if (int10_check_bios(pInt->scrnIndex, cs, vbiosMem)) {
+	    break;
+	}
+    }
+
+    if (segments[i] == ~0) {
+	xf86DrvMsg(pInt->scrnIndex, X_ERROR, format, (unsigned long)cs << 4);
+	return FALSE;
+    }
+
+    xf86DrvMsg(pInt->scrnIndex, X_INFO, "Primary V_BIOS segment is: 0x%lx\n",
+	       (unsigned long)cs);
+
+    pInt->BIOSseg = cs;
+    return TRUE;
+}

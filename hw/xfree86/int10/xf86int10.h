@@ -187,6 +187,10 @@ Bool int10_check_bios(int scrnIndex, int codeSeg, unsigned char* vbiosMem);
 Bool initPrimary(void* options);
 void xf86int10ParseBiosLocation(void* options, 
 				xf86int10BiosLocationPtr bios);
+BusType xf86int10GetBiosLocationType(const xf86Int10InfoPtr pInt,
+    const xf86int10BiosLocationPtr bios);
+Bool xf86int10GetBiosSegment(xf86Int10InfoPtr pInt,
+    const xf86int10BiosLocationPtr bios, void * base);
 #ifdef DEBUG
 void dprint(unsigned long start, unsigned long size);
 #endif
