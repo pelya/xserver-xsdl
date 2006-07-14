@@ -224,7 +224,7 @@ xf86HandleInt10Options(ScrnInfoPtr pScrn, int entityIndex)
 }
 
 Bool
-int10skip(void* options)
+int10skip(const void* options)
 {
     Bool noint10 = FALSE;
 
@@ -235,7 +235,7 @@ int10skip(void* options)
 }
 
 Bool
-int10_check_bios(int scrnIndex, int codeSeg, unsigned char* vbiosMem)
+int10_check_bios(int scrnIndex, int codeSeg, const unsigned char* vbiosMem)
 {
     int size;
 
@@ -262,7 +262,7 @@ int10_check_bios(int scrnIndex, int codeSeg, unsigned char* vbiosMem)
 }
 
 Bool
-initPrimary(void* options)
+initPrimary(const void* options)
 {
     Bool initPrimary = FALSE;
 
@@ -281,7 +281,7 @@ initPrimary(void* options)
  * be used with extreme care.
  */
 void
-xf86int10ParseBiosLocation(void* options, 
+xf86int10ParseBiosLocation(const void* options,
 			   xf86int10BiosLocationPtr bios)
 {
     const char *p;

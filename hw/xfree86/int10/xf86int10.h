@@ -143,7 +143,7 @@ void dump_code(xf86Int10InfoPtr pInt);
 void dump_registers(xf86Int10InfoPtr pInt);
 void stack_trace(xf86Int10InfoPtr pInt);
 xf86Int10InfoPtr getInt10Rec(int entityIndex);
-CARD8 bios_checksum(CARD8 *start, int size);
+CARD8 bios_checksum(const CARD8 *start, int size);
 void LockLegacyVGA(xf86Int10InfoPtr pInt, legacyVGAPtr vga);
 void UnlockLegacyVGA(xf86Int10InfoPtr pInt, legacyVGAPtr vga);
 #if defined (_PC)
@@ -182,10 +182,11 @@ int setup_system_bios(void *base_addr);
 void reset_int_vect(xf86Int10InfoPtr pInt);
 void set_return_trap(xf86Int10InfoPtr pInt);
 void * xf86HandleInt10Options(ScrnInfoPtr pScrn, int entityIndex);
-Bool int10skip(void* options);
-Bool int10_check_bios(int scrnIndex, int codeSeg, unsigned char* vbiosMem);
-Bool initPrimary(void* options);
-void xf86int10ParseBiosLocation(void* options, 
+Bool int10skip(const void* options);
+Bool int10_check_bios(int scrnIndex, int codeSeg,
+    const unsigned char* vbiosMem);
+Bool initPrimary(const void* options);
+void xf86int10ParseBiosLocation(const void* options, 
 				xf86int10BiosLocationPtr bios);
 BusType xf86int10GetBiosLocationType(const xf86Int10InfoPtr pInt,
     const xf86int10BiosLocationPtr bios);

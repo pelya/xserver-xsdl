@@ -576,7 +576,7 @@ pciCfg1outb(CARD16 addr, CARD8 val)
 }
 
 CARD8
-bios_checksum(CARD8 *start, int size)
+bios_checksum(const CARD8 *start, int size)
 {
     CARD8 sum = 0;
 
