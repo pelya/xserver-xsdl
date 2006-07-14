@@ -445,15 +445,19 @@ linuxGetSizesStruct(PCITAG Tag)
     static const struct pciSizes default_size = {
 	0, 0, 1U << 16, (unsigned long)(1ULL << 32)
     };
-    pciConfigPtr pPCI;
+    struct pci_device *dev;
     int          i;
 
     /* Find host bridge */
-    if ((pPCI = xf86GetPciHostConfigFromTag(Tag))) {
+    dev = pci_device_find_by_slot(PCI_DOM_FROM_TAG(Tag),
+				  PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(Tag)),
+				  PCI_DEV_FROM_TAG(Tag),
+				  PCI_FUNC_FROM_TAG(Tag));
+    if (dev != NULL) {
 	/* Look up vendor/device */
 	for (i = 0;  i < NUM_SIZES;  i++) {
-	    if ((pPCI->pci_vendor == pciControllerSizes[i].vendor)
-		&& (pPCI->_pci_device == pciControllerSizes[i].device)) {
+	    if ((dev->vendor_id == pciControllerSizes[i].vendor)
+		&& (dev->device_id == pciControllerSizes[i].device)) {
 		return & pciControllerSizes[i];
 	    }
 	}
@@ -660,18 +664,18 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
     return (pointer)((char *)DomainMmappedMem[domain] + Base);
 }
 
-/*
- * xf86MapDomainIO - map I/O space in this domain
+/**
+ * Map I/O space in this domain
  *
  * Each domain has a legacy ISA I/O space.  This routine will try to
  * map it using the Linux sysfs legacy_io interface.  If that fails,
  * it'll fall back to using /proc/bus/pci.
  *
- * If the legacy_io interface *does* exist, the file descriptor (fd below)
- * will be saved in the DomainMmappedIO array in the upper bits of the
+ * If the legacy_io interface \b does exist, the file descriptor (\c fd below)
+ * will be saved in the \c DomainMmappedIO array in the upper bits of the
  * pointer.  Callers will do I/O with small port numbers (<64k values), so
- * the platform I/O code can extract the port number and the fd, lseek to
- * the port number in the legacy_io file, and issue the read or write.
+ * the platform I/O code can extract the port number and the \c fd, \c lseek
+ * to the port number in the legacy_io file, and issue the read or write.
  *
  * This has no means of returning failure, so all errors are fatal
  */
