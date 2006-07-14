@@ -6,15 +6,18 @@ EXTRA_CFLAGS = @SERVER_DEFINES@ @MODULE_DEFINES@ @LOADER_DEFINES@
 
 libint10_la_LDFLAGS = -avoid-version
 
-if INT10_VM86
-AM_CFLAGS = -D_PC -D_VM86_LINUX $(XORG_CFLAGS) $(EXTRA_CFLAGS)
-INCLUDES = $(XORG_INCS)
-libint10_la_SOURCES = \
+COMMON_SOURCES = \
 	helper_exec.c \
 	helper_mem.c \
 	pci.c \
 	xf86int10.c \
-	xf86int10module.c \
+	xf86int10module.c
+
+if INT10_VM86
+AM_CFLAGS = -D_PC -D_VM86_LINUX $(XORG_CFLAGS) $(EXTRA_CFLAGS)
+INCLUDES = $(XORG_INCS)
+libint10_la_SOURCES = \
+	$(COMMON_SOURCES) \
 	$(srcdir)/../os-support/linux/int10/vm86/linux_vm86.c \
 	$(srcdir)/../os-support/linux/int10/linux.c
 endif
@@ -22,8 +25,11 @@ endif
 if INT10_X86EMU
 AM_CFLAGS = -D_X86EMU -DNO_SYS_HEADERS -D_PC $(XORG_CFLAGS) $(EXTRA_CFLAGS)
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../x86emu
-libint10_la_SOURCES = pci.c xf86int10module.c helper_exec.c helper_mem.c \
-	xf86int10.c xf86x86emu.c generic.c x86emu.c
+libint10_la_SOURCES = \
+	$(COMMON_SOURCES) \
+	xf86x86emu.c \
+	generic.c \
+	x86emu.c
 endif
 
 if INT10_STUB
