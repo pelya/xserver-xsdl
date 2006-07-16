@@ -79,7 +79,7 @@ static void ResetClientState(int clientIndex)
     }
 
     keep_be_displays = cl->be_displays;
-    __glXMemset(cl, 0, sizeof(__GLXclientState));
+    memset(cl, 0, sizeof(__GLXclientState));
     cl->be_displays = keep_be_displays;
 
     /*
@@ -90,7 +90,7 @@ static void ResetClientState(int clientIndex)
     cl->GLClientminorVersion = 0;
     if (cl->GLClientextensions) __glXFree(cl->GLClientextensions);
 
-    __glXMemset(cl->be_displays, 0, screenInfo.numScreens * sizeof(Display *));
+    memset(cl->be_displays, 0, screenInfo.numScreens * sizeof(Display *));
 }
 
 
@@ -414,14 +414,14 @@ static int __glXDispatch(ClientPtr client)
 	if (!cl) {
 	    return BadAlloc;
 	}
-	__glXMemset(cl, 0, sizeof(__GLXclientState));
+	memset(cl, 0, sizeof(__GLXclientState));
 
 	cl->be_displays = (Display **) __glXMalloc( screenInfo.numScreens * sizeof(Display *) );
 	if (!cl->be_displays) {
 	    __glXFree( cl );
 	    return BadAlloc;
 	}
-	__glXMemset(cl->be_displays, 0, screenInfo.numScreens * sizeof(Display *));
+	memset(cl->be_displays, 0, screenInfo.numScreens * sizeof(Display *));
     }
     
     if (!cl->inUse) {
@@ -468,7 +468,7 @@ static int __glXSwapDispatch(ClientPtr client)
 	if (!cl) {
 	    return BadAlloc;
 	}
-	__glXMemset(cl, 0, sizeof(__GLXclientState));
+	memset(cl, 0, sizeof(__GLXclientState));
 
 	cl->be_displays = (Display **) __glXMalloc( screenInfo.numScreens * sizeof(Display *) );
 	if (!cl->be_displays) {
@@ -476,7 +476,7 @@ static int __glXSwapDispatch(ClientPtr client)
 	    return BadAlloc;
 	}
 
-	__glXMemset(cl->be_displays, 0, screenInfo.numScreens * sizeof(Display *));
+	memset(cl->be_displays, 0, screenInfo.numScreens * sizeof(Display *));
     }
     
     if (!cl->inUse) {
