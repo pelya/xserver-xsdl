@@ -36,6 +36,20 @@ static void lnxCloseACPI(void);
 static pointer ACPIihPtr = NULL;
 PMClose lnxACPIOpen(void);
 
+/* in milliseconds */
+#define ACPI_REOPEN_DELAY 1000
+
+static CARD32
+lnxACPIReopen(OsTimerPtr timer, CARD32 time, pointer arg)
+{
+    if (lnxACPIOpen()) {
+	TimerFree(timer);
+	return 0;
+    }
+
+    return ACPI_REOPEN_DELAY;
+}
+
 #define LINE_LENGTH 80
 
 static int
@@ -52,8 +66,7 @@ lnxACPIGetEventFromOs(int fd, pmEvent *events, int num)
 
     if (n <= 0) {
 	lnxCloseACPI();
-	sleep(1);
-	lnxACPIOpen();
+	TimerSet(NULL, 0, ACPI_REOPEN_DELAY, lnxACPIReopen, NULL);
 	return 0;
     }
     
@@ -171,4 +184,3 @@ lnxCloseACPI(void)
 	ACPIihPtr = NULL;
     }
 }
-
