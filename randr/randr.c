@@ -542,6 +542,7 @@ RRGetInfo (ScreenPtr pScreen)
 		    pMode->id = modeid++;
 		    if (!pMode->oldReferenced)
 			changed = TRUE;
+		    pPrevMode = &pMode->next;
 		}
 		else
 		{
@@ -550,6 +551,7 @@ RRGetInfo (ScreenPtr pScreen)
 		    RRFreeMode (pMode);
 		}
 	    }
+	    pPrevMon = &pMonitor->next;
 	}
 	else
 	{
@@ -716,6 +718,7 @@ RR10GetData (ScreenPtr pScreen, RRMonitorPtr pMonitor)
 	return NULL;
     size = (RRScreenSizePtr) (data + 1);
     refresh = (RRRefreshPtr) (size + nmode);
+    data->sizes = size;
     data->nsize = 0;
     data->nrefresh = 0;
     data->size = 0;
@@ -728,6 +731,7 @@ RR10GetData (ScreenPtr pScreen, RRMonitorPtr pMonitor)
 		break;
 	if (i == data->nsize)
 	{
+	    size[i].id = i;
 	    size[i].width = pMode->mode.width;
 	    size[i].height = pMode->mode.height;
 	    size[i].mmWidth = pMode->mode.widthInMillimeters;
@@ -823,7 +827,7 @@ ProcRRGetScreenInfo (ClientPtr client)
 	rep.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
 	rep.rotation = pMonitor->rotation;
 	rep.nSizes = pData->nsize;
-        rep.nrateEnts = pData->nrefresh;
+        rep.nrateEnts = pData->nrefresh + pData->nsize;
 	rep.sizeID = pData->size;
 	rep.rate = pData->refresh;
 
@@ -904,6 +908,97 @@ ProcRRGetScreenInfo (ClientPtr client)
 }
 
 static int
+RRMonitorSetMode (ScreenPtr pScreen, RRMonitorPtr pMonitor, 
+		  RRModePtr pMode, int x, int y, Rotation rotation,
+		  TimeStamp time)
+{
+    rrScrPriv(pScreen);
+    short   oldWidth, oldHeight;
+    
+    oldWidth = pScreen->width;
+    oldHeight = pScreen->height;
+    
+    /*
+     * call out to ddx routine to effect the change
+     */
+    if (pScrPriv->rrSetScreenSize && pScrPriv->rrSetMode)
+    {
+	xScreenSizes	oldSize;
+	if (!(*pScrPriv->rrSetMode) (pScreen, 0, NULL, 0, 0, RR_Rotate_0))
+	    return RRSetConfigFailed;
+	oldSize.widthInPixels = pScreen->width;
+	oldSize.heightInPixels = pScreen->width;
+	oldSize.widthInMillimeters = pScreen->mmWidth;
+	oldSize.heightInMillimeters = pScreen->mmHeight;
+	if (!(*pScrPriv->rrSetScreenSize) (pScreen,
+					   pMode->mode.width,
+					   pMode->mode.height,
+					   pMode->mode.widthInMillimeters,
+					   pMode->mode.heightInMillimeters))
+	{
+	    (void) (*pScrPriv->rrSetMode) (pScreen, 0, pMonitor->pMode,
+					   pMonitor->x, pMonitor->y,
+					   pMonitor->rotation);
+	    return RRSetConfigFailed;
+	}
+	if (!(*pScrPriv->rrSetMode) (pScreen, 0, pMode, 0, 0, rotation))
+	{
+	    (void) (*pScrPriv->rrSetScreenSize) (pScreen,
+						 oldSize.widthInPixels,
+						 oldSize.heightInPixels,
+						 oldSize.widthInMillimeters,
+						 oldSize.heightInMillimeters);
+	    (void) (*pScrPriv->rrSetMode) (pScreen, 0, pMonitor->pMode,
+					   pMonitor->x, pMonitor->y,
+					   pMonitor->rotation);
+	    return RRSetConfigFailed;
+	}
+    }
+#ifdef RANDR_SCREEN_INTERFACE
+    else if (pScrPriv->rrSetConfig)
+    {
+	int rate = RRVerticalRefresh (&pMode->mode);
+	RRScreenSizeRec	size;
+
+	size.width = pMode->mode.width;
+	size.height = pMode->mode.height;
+	size.mmWidth = pMode->mode.widthInMillimeters;
+	size.mmHeight = pMode->mode.heightInMillimeters;
+	if (!(*pScrPriv->rrSetConfig) (pScreen, rotation, rate, &size))
+	    return RRSetConfigFailed;
+    }
+#endif
+    else
+	return RRSetConfigFailed;
+    
+    /*
+     * set current extension configuration pointers
+     */
+    RRSetCurrentMode (pMonitor, pMode, 0, 0, rotation);
+    
+    /*
+     * Deliver ScreenChangeNotify events whenever
+     * the configuration is updated
+     */
+    WalkTree (pScreen, TellChanged, (pointer) pScreen);
+    
+    /*
+     * Deliver ConfigureNotify events when root changes
+     * pixel size
+     */
+    if (oldWidth != pScreen->width || oldHeight != pScreen->height)
+	RRSendConfigNotify (pScreen);
+    RREditConnectionInfo (pScreen);
+    
+    /*
+     * Fix pointer bounds and location
+     */
+    ScreenRestructured (pScreen);
+    pScrPriv->lastSetTime = time;
+    return RRSetConfigSuccess;
+}
+
+static int
 ProcRRSetScreenConfig (ClientPtr client)
 {
     REQUEST(xRRSetScreenConfigReq);
@@ -917,7 +1012,6 @@ ProcRRSetScreenConfig (ClientPtr client)
     int			    i;
     Rotation		    rotation;
     int			    rate;
-    short		    oldWidth, oldHeight;
     Bool		    has_rate;
     RRMonitorPtr	    pMonitor;
     RRModePtr		    pMode;
@@ -946,9 +1040,6 @@ ProcRRSetScreenConfig (ClientPtr client)
     
     time = ClientTimeToServerTime(stuff->timestamp);
     configTime = ClientTimeToServerTime(stuff->configTimestamp);
-    
-    oldWidth = pScreen->width;
-    oldHeight = pScreen->height;
     
     if (!pScrPriv)
     {
@@ -1063,90 +1154,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 	goto sendReply;
     }
 
-    /*
-     * call out to ddx routine to effect the change
-     */
-    if (pScrPriv->rrSetScreenSize && pScrPriv->rrSetMode)
-    {
-	xScreenSizes	oldSize;
-	if (!(*pScrPriv->rrSetMode) (pScreen, 0, NULL, 0, 0, RR_Rotate_0))
-	    goto fail;
-	oldSize.widthInPixels = pScreen->width;
-	oldSize.heightInPixels = pScreen->width;
-	oldSize.widthInMillimeters = pScreen->mmWidth;
-	oldSize.heightInMillimeters = pScreen->mmHeight;
-	if (!(*pScrPriv->rrSetScreenSize) (pScreen,
-					   pMode->mode.width,
-					   pMode->mode.height,
-					   pMode->mode.widthInMillimeters,
-					   pMode->mode.heightInMillimeters))
-	{
-	    (void) (*pScrPriv->rrSetMode) (pScreen, 0, pMonitor->pMode,
-					   pMonitor->x, pMonitor->y,
-					   pMonitor->rotation);
-	    goto fail;
-	}
-	if (!(*pScrPriv->rrSetMode) (pScreen, 0, pMode, 0, 0, rotation))
-	{
-	    (void) (*pScrPriv->rrSetScreenSize) (pScreen,
-						 oldSize.widthInPixels,
-						 oldSize.heightInPixels,
-						 oldSize.widthInMillimeters,
-						 oldSize.heightInMillimeters);
-	    (void) (*pScrPriv->rrSetMode) (pScreen, 0, pMonitor->pMode,
-					   pMonitor->x, pMonitor->y,
-					   pMonitor->rotation);
-	    goto fail;
-	}
-    }
-#ifdef RANDR_SCREEN_INTERFACE
-    else if (pScrPriv->rrSetConfig)
-    {
-	if (!(*pScrPriv->rrSetConfig) (pScreen, rotation, rate, pSize))
-	{
-	    goto fail;
-	}
-    }
-#endif
-    else
-    {
-fail:	;
-	/*
-	 * unknown DDX failure, report to client
-	 */
-	rep.status = RRSetConfigFailed;
-	goto sendReply;
-    }
-    
-    /*
-     * set current extension configuration pointers
-     */
-    RRSetCurrentMode (pMonitor, pMode, 0, 0, rotation);
-    
-    /*
-     * Deliver ScreenChangeNotify events whenever
-     * the configuration is updated
-     */
-    WalkTree (pScreen, TellChanged, (pointer) pScreen);
-    
-    /*
-     * Deliver ConfigureNotify events when root changes
-     * pixel size
-     */
-    if (oldWidth != pScreen->width || oldHeight != pScreen->height)
-	RRSendConfigNotify (pScreen);
-    RREditConnectionInfo (pScreen);
-    
-    /*
-     * Fix pointer bounds and location
-     */
-    ScreenRestructured (pScreen);
-    pScrPriv->lastSetTime = time;
-    
-    /*
-     * Report Success
-     */
-    rep.status = RRSetConfigSuccess;
+    rep.status = RRMonitorSetMode (pScreen, pMonitor, pMode, 0, 0, rotation, time);
     
 sendReply:
     
@@ -1182,11 +1190,20 @@ RRSetScreenConfig (ScreenPtr		pScreen,
 		   RRScreenSizePtr	pSize)
 {
     rrScrPrivPtr	    pScrPriv;
-    int			    i;
+    RRMonitorPtr	    pMonitor;
     short		    oldWidth, oldHeight;
+    RRModePtr		    pMode;
+    int			    status;
 
     pScrPriv = rrGetScrPriv(pScreen);
     
+    if (!pScrPriv)
+	return BadImplementation;
+    
+    pMonitor = pScrPriv->pMonitors;
+    if (!pMonitor)
+	return BadImplementation;
+
     oldWidth = pScreen->width;
     oldHeight = pScreen->height;
     
@@ -1219,61 +1236,24 @@ RRSetScreenConfig (ScreenPtr		pScreen,
 	return BadMatch;
     }
 
-    /*
-     * Validate requested refresh
-     */
-    if (rate)
+    for (pMode = pMonitor->pModes; pMode; pMode = pMode->next)
     {
-	for (i = 0; i < pSize->nRates; i++)
+	if (pMode->mode.width == pSize->width &&
+	    pMode->mode.height == pSize->height &&
+	    pMode->mode.widthInMillimeters == pSize->mmWidth &&
+	    pMode->mode.heightInMillimeters == pSize->mmHeight &&
+	    (RRVerticalRefresh (&pMode->mode) == rate || rate == 0))
 	{
-	    RRScreenRatePtr pRate = &pSize->pRates[i];
-	    if (pRate->referenced && pRate->rate == rate)
-		break;
-	}
-	if (i == pSize->nRates)
-	{
-	    /*
-	     * Invalid rate
-	     */
-	    return BadValue;
+	    break;
 	}
     }
-
-    /*
-     * call out to ddx routine to effect the change
-     */
-    if (!(*pScrPriv->rrSetConfig) (pScreen, rotation, rate,
-				   pSize))
-    {
-	/*
-	 * unknown DDX failure, report to client
-	 */
-        return BadImplementation;
-    }
+    if (!pMode)
+	return BadValue;
     
-    /*
-     * set current extension configuration pointers
-     */
-    RRSetCurrentMode (pMonitor, pMode, 0, 0, rotation);
-    
-    /*
-     * Deliver ScreenChangeNotify events whenever
-     * the configuration is updated
-     */
-    WalkTree (pScreen, TellChanged, (pointer) pScreen);
-    
-    /*
-     * Deliver ConfigureNotify events when root changes
-     * pixel size
-     */
-    if (oldWidth != pScreen->width || oldHeight != pScreen->height)
-	RRSendConfigNotify (pScreen);
-    RREditConnectionInfo (pScreen);
-    
-    /*
-     * Fix pointer bounds and location
-     */
-    ScreenRestructured (pScreen);
+    status = RRMonitorSetMode (pScreen, pMonitor, pMode, 0, 0, 
+			       rotation, currentTime);
+    if (status != RRSetConfigSuccess)
+	return BadImplementation;
     return Success;
 }
 
@@ -1387,23 +1367,63 @@ ProcRRSelectInput (ClientPtr client)
 }
 
 
+static int ProcRRGetScreenSizeRange (ClientPtr pClient)
+{
+    return BadImplementation;
+}
+
+static int ProcRRSetScreenSize (ClientPtr pClient)
+{
+    return BadImplementation;
+}
+
+static int ProcRRGetMonitorInfo (ClientPtr pClient)
+{
+    return BadImplementation;
+}
+
+static int ProcRRAddMonitorMode (ClientPtr pClient)
+{
+    return BadImplementation;
+}
+
+static int ProcRRDeleteMonitorMode (ClientPtr pClient)
+{
+    return BadImplementation;
+}
+
+static int ProcRRSetMonitorConfig (ClientPtr pClient)
+{
+    return BadImplementation;
+}
+
+int (*ProcRandrVector[RRNumberRequests])(ClientPtr) = {
+    ProcRRQueryVersion,	/* 0 */
+/* we skip 1 to make old clients fail pretty immediately */
+    NULL,			/* 1 ProcRandrOldGetScreenInfo */
+/* V1.0 apps share the same set screen config request id */
+    ProcRRSetScreenConfig,	/* 2 */
+    NULL,			/* 3 ProcRandrOldScreenChangeSelectInput */
+/* 3 used to be ScreenChangeSelectInput; deprecated */
+    ProcRRSelectInput,		/* 4 */
+    ProcRRGetScreenInfo,    	/* 5 */
+/* V1.2 additions */
+    ProcRRGetScreenSizeRange,	/* 6 */
+    ProcRRSetScreenSize,	/* 7 */
+    ProcRRGetMonitorInfo,	/* 8 */
+    ProcRRAddMonitorMode,	/* 9 */
+    ProcRRDeleteMonitorMode,	/* 10 */
+    ProcRRSetMonitorConfig,	/* 11 */
+};
+
+
 static int
 ProcRRDispatch (ClientPtr client)
 {
     REQUEST(xReq);
-    switch (stuff->data)
-    {
-    case X_RRQueryVersion:
-	return ProcRRQueryVersion(client);
-    case X_RRSetScreenConfig:
-        return ProcRRSetScreenConfig(client);
-    case X_RRSelectInput:
-        return ProcRRSelectInput(client);
-    case X_RRGetScreenInfo:
-        return ProcRRGetScreenInfo(client);
-    default:
+    if (stuff->data >= RRNumberRequests || !ProcRandrVector[stuff->data])
 	return BadRequest;
-    }
+    return (*ProcRandrVector[stuff->data]) (client);
 }
 
 static int
@@ -1609,7 +1629,12 @@ RRRegisterSize (ScreenPtr	    pScreen,
 	return NULL;
     pMonitor = pScrPriv->pMonitors;
     if (!pMonitor)
-	return NULL;
+    {
+	pMonitor = RRRegisterMonitor (pScreen, NULL, RR_Rotate_0);
+	if (!pMonitor)
+	    return NULL;
+    }
+    pMonitor->referenced = TRUE;
     
     for (pPrev = &pMonitor->pModes; (pMode = *pPrev); pPrev = &(pMode->next))
 	if (pMode->mode.width == width &&
