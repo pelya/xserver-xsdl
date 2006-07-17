@@ -34,11 +34,19 @@
 
 #include <X11/extensions/randrproto.h>
 
+#define RANDR_SCREEN_INTERFACE 1
+
+/*
+ * Modeline for a monitor. Name follows directly after this struct
+ */
+
+#define RRModeName(pMode) ((char *) (pMode + 1))
+
 typedef struct _rrMode {
     struct _rrMode  *next;
-    int		    id;
     Bool	    referenced;
     Bool	    oldReferenced;
+    int		    id;
     xRRMonitorMode  mode;
 } RRMode, *RRModePtr;
 
@@ -47,12 +55,15 @@ typedef struct _rrMonitor {
     ScreenPtr	    pScreen;
     RRModePtr	    pModes;
     void	    *identifier;    /* made unique by DDX */
+    int		    id;		    /* index in list of monitors */
     Bool	    referenced;
+    Bool	    oldReferenced;
+    Rotation	    rotations;
     
     /*
      * Current state
      */
-    int		    mode;
+    RRModePtr	    pMode;
     int		    x, y;
     Rotation	    rotation;
 } RRMonitor, *RRMonitorPtr;
@@ -76,7 +87,18 @@ typedef Bool (*RRCloseScreenProcPtr) ( int i, ScreenPtr pscreen);
 
 #ifdef RANDR_SCREEN_INTERFACE
 
-typedef void *RRScreenSizePtr;
+typedef struct _rrRefresh {
+    CARD16	    refresh;
+    RRModePtr	    pMode;
+} RRRefreshRec, *RRRefreshPtr;
+
+typedef struct _rrScreenSize {
+    int		    id;
+    short	    width, height;
+    short	    mmWidth, mmHeight;
+    int		    nrefresh;
+    RRRefreshPtr    refresh;
+} RRScreenSizeRec, *RRScreenSizePtr;
 
 typedef Bool (*RRSetConfigProcPtr) (ScreenPtr		pScreen,
 				    Rotation		rotation,
@@ -87,12 +109,23 @@ typedef Bool (*RRSetConfigProcPtr) (ScreenPtr		pScreen,
 	
 
 typedef struct _rrScrPriv {
-    RRSetModeProcPtr	    rrSetMode;
+    /*
+     * 'public' part of the structure; DDXen fill this in
+     * as they initialize
+     */
+#ifdef RANDR_SCREEN_INTERFACE
+    RRSetConfigProcPtr	    rrSetConfig;
+#endif
     RRGetInfoProcPtr	    rrGetInfo;
-    RRCloseScreenProcPtr    CloseScreen;
+    RRSetScreenSizeProcPtr  rrSetScreenSize;
+    RRSetModeProcPtr	    rrSetMode;
     
+    /*
+     * Private part of the structure; not considered part of the ABI
+     */
     TimeStamp		    lastSetTime;	/* last changed by client */
     TimeStamp		    lastConfigTime;	/* possible configs changed */
+    RRCloseScreenProcPtr    CloseScreen;
 
     /*
      * monitor data
@@ -105,7 +138,6 @@ typedef struct _rrScrPriv {
      */
     Rotation		    rotations;
     
-    RRSetConfigProcPtr	    rrSetConfig;
 
     Rotation		    rotation;
 #endif
@@ -137,8 +169,7 @@ RRRegisterMonitor (ScreenPtr		pScreen,
 RRModePtr
 RRRegisterMode (RRMonitorPtr	pMonitor,
 		xRRMonitorMode	*pMode,
-		char		*name,
-		int		nameLength);
+		char		*name);
 
 /*
  * Finally, set the current configuration of each monitor
@@ -147,6 +178,8 @@ RRRegisterMode (RRMonitorPtr	pMonitor,
 void
 RRSetCurrentMode (RRMonitorPtr	pMonitor,
 		  RRModePtr	pMode,
+		  int		x,
+		  int		y,
 		  Rotation	rotation);
 
 Bool RRScreenInit(ScreenPtr pScreen);
@@ -167,6 +200,8 @@ Bool
 miRRSetMode (ScreenPtr	pScreen,
 	     int	monitor,
 	     RRModePtr	pMode,
+	     int	x,
+	     int	y,
 	     Rotation	rotation);
 
 #ifdef RANDR_SCREEN_INTERFACE					

@@ -65,11 +65,11 @@ miRRGetInfo (ScreenPtr pScreen, Rotation *rotations)
 	    rrMode.height = pScreen->height;
 	    rrMode.widthInMillimeters = pScreen->mmWidth;
 	    rrMode.heightInMillimeters = pScreen->mmHeight;
-	    pMonitor = RRRegisterMonitor (pScreen, RR_Rotate_0);
+	    rrMode.nameLength = strlen (name);
+	    pMonitor = RRRegisterMonitor (pScreen, NULL, RR_Rotate_0);
 	    pMode = RRRegisterMode (pMonitor,
 				    &rrMode,
-				    name,
-				    strlen (name));
+				    name);
 	    if (!pMode)
 		return FALSE;
 	    if (!setConfig)
@@ -90,6 +90,8 @@ Bool
 miRRSetMode (ScreenPtr	pScreen,
 	     int	monitor,
 	     RRModePtr	pMode,
+	     int	x,
+	     int	y,
 	     Rotation	rotation)
 {
     return TRUE;
