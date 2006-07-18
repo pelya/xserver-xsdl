@@ -6,7 +6,7 @@ sdk_HEADERS = mibank.h micmap.h miline.h mipointer.h mi.h mibstore.h \
               mispans.h miwideline.h mistruct.h mifpoly.h
 endif
 
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS)
 
 # libminimi is for dmx - it has different defines for miinitext.c
 libminimi_la_SOURCES = 	\

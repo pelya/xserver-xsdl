@@ -62,9 +62,7 @@
 
 #include "compiler.h"
 
-#ifdef XFree86LOADER
 #include "loaderProcs.h"
-#endif
 #ifdef XFreeXDGA
 #include "dgaproc.h"
 #endif
@@ -114,12 +112,10 @@ extern void os2ServerVideoAccess();
 void (*xf86OSPMClose)(void) = NULL;
 #endif
 
-#ifdef XFree86LOADER
 static char *baseModules[] = {
 	"pcidata",
 	NULL
 };
-#endif
 
 /* Common pixmap formats */
 
@@ -272,10 +268,8 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 {
   int                    i, j, k, scr_index;
   static unsigned long   generation = 0;
-#ifdef XFree86LOADER
   char                   **modulelist;
   pointer                *optionlist;
-#endif
   screenLayoutPtr	 layout;
   Pix24Flags		 screenpix24, pix24;
   MessageType		 pix24From = X_DEFAULT;
@@ -333,7 +327,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     if (!autoconfig)
 	PostConfigInit();
 
-#ifdef XFree86LOADER
     /* Initialise the loader */
     LoaderInit();
 
@@ -377,8 +370,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     if (!xf86LoadModules(baseModules, NULL))
 	FatalError("Unable to load required base modules, Exiting...\n");
     
-#endif
-
     xf86OpenConsole();
 
     /* Do a general bus probe.  This will be a PCI probe for x86 platforms */
@@ -401,7 +392,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     /* Initialise the resource broker */
     xf86ResourceBrokerInit();
 
-#ifdef XFree86LOADER
     /* Load all modules specified explicitly in the config file */
     if ((modulelist = xf86ModulelistFromConfig(&optionlist))) {
       xf86LoadModules(modulelist, optionlist);
@@ -432,7 +422,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
      * XXX Nothing keeps track of them for other modules.
      */
     /* XXX What do we do if not all of these could be loaded? */
-#endif
 
     /*
      * At this point, xf86DriverList[] is all filled in with entries for
@@ -672,12 +661,10 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       exit(0);
     }
 
-#ifdef XFree86LOADER
     /* Remove (unload) drivers that are not required */
     for (i = 0; i < xf86NumDrivers; i++)
 	if (xf86DriverList[i] && xf86DriverList[i]->refCount <= 0)
 	    xf86DeleteDriver(i);
-#endif
 
     /*
      * At this stage we know how many screens there are.
@@ -982,12 +969,10 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 #endif
   }
 
-#ifdef XFree86LOADER
     if ((serverGeneration == 1) && LoaderCheckUnresolved(LD_RESOLV_IFDONE)) {
 	/* For now, just a warning */
 	xf86Msg(X_WARNING, "Some symbols could not be resolved!\n");
     }
-#endif
 
   xf86PostScreenInit();
 
@@ -1167,9 +1152,7 @@ OsVendorInit()
   signal(SIGCHLD, SIG_DFL);	/* Need to wait for child processes */
 #endif
   OsDelayInitColors = TRUE;
-#ifdef XFree86LOADER
   loadableFonts = TRUE;
-#endif
 
   if (!beenHere)
     xf86LogInit();
@@ -1461,9 +1444,7 @@ ddxProcessArgument(int argc, char **argv, int i)
   }
   if (!strcmp(argv[i],"-ignoreABI"))
   {
-#ifdef XFree86LOADER
     LoaderSetOptions(LDR_OPT_ABI_MISMATCH_NONFATAL);
-#endif
     return 1;
   }
   if (!strcmp(argv[i],"-verbose"))
@@ -1870,9 +1851,7 @@ xf86PrintBanner()
 #endif
   ErrorF("\tBefore reporting problems, check "__VENDORDWEBSUPPORT__"\n"
 	 "\tto make sure that you have the latest version.\n");
-#ifdef XFree86LOADER
   ErrorF("Module Loader present\n");
-#endif
 }
 
 static void
@@ -1919,7 +1898,6 @@ xf86RunVtInit(void)
     }
 }
 
-#ifdef XFree86LOADER
 /*
  * xf86LoadModules iterates over a list that is being passed in.
  */             
@@ -1961,8 +1939,6 @@ xf86LoadModules(char **list, pointer *optlist)
     }
     return !failed;
 }
-
-#endif
 
 /* Pixmap format stuff */
 

@@ -29,24 +29,11 @@ CARD16 tda9850_getstatus(TDA9850Ptr t);
 		"tda9850_mute", \
 		"tda9850_sap_mute"
 
-#ifdef XFree86LOADER
-
 #define xf86_Detect_tda9850       ((TDA9850Ptr (*)(I2CBusPtr, I2CSlaveAddr))LoaderSymbol("Detect_tda9850"))
 #define xf86_tda9850_init         ((Bool (*)(TDA9850Ptr))LoaderSymbol("tda9850_init"))
 #define xf86_tda9850_setaudio     ((void (*)(TDA9850Ptr))LoaderSymbol("tda9850_setaudio"))
 #define xf86_tda9850_mute         ((void (*)(TDA9850Ptr, Bool))LoaderSymbol("tda9850_mute"))
 #define xf86_tda9850_sap_mute     ((void (*)(TDA9850Ptr, Bool))LoaderSymbol("tda9850_sap_mute"))
 #define xf86_tda9850_getstatus    ((CARD16 (*)(TDA9850Ptr))LoaderSymbol("tda9850_getstatus"))
-
-#else
-
-#define xf86_Detect_tda9850       Detect_tda9850
-#define xf86_tda9850_init         tda9850_init
-#define xf86_tda9850_setaudio     tda9850_setaudio
-#define xf86_tda9850_mute         tda9850_mute
-#define xf86_tda9850_sap_mute     tda9850_sap_mute
-#define xf86_tda9850_getstatus    tda9850_getstatus
-
-#endif
 
 #endif

@@ -139,13 +139,9 @@ _X_EXPORT Bool noTestExtensions;
 _X_EXPORT Bool noBigReqExtension = FALSE;
 #endif
 #ifdef COMPOSITE
- #ifdef XFree86Server
-  /* COMPOSITE is disabled by default for now until the
-   * interface is stable */
-  #define COMPOSITE_DEFAULT FALSE
- #else
-  #define COMPOSITE_DEFAULT TRUE
- #endif
+ /* COMPOSITE is disabled by default for now until the
+  * interface is stable */
+ #define COMPOSITE_DEFAULT FALSE
 _X_EXPORT Bool noCompositeExtension = !COMPOSITE_DEFAULT;
 #endif
 

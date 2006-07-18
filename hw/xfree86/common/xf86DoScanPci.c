@@ -40,9 +40,7 @@
 #include <X11/X.h>
 #include <X11/Xmd.h>
 #include "os.h"
-#ifdef XFree86LOADER
 #include "loaderProcs.h"
-#endif
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86Pci.h"
@@ -54,9 +52,7 @@ void DoScanPci(int argc, char **argv, int i)
   int j,skip,globalVerbose,scanpciVerbose;
   ScanPciSetupProcPtr PciSetup;
   ScanPciDisplayCardInfoProcPtr DisplayPCICardInfo;
-#ifdef XFree86LOADER
   int errmaj, errmin;
-#endif
 
   /*
    * first we need to finish setup of the OS so that we can call other
@@ -95,7 +91,6 @@ void DoScanPci(int argc, char **argv, int i)
   /*
    * now get the loader set up and load the scanpci module
    */
-#ifdef XFree86LOADER
   /* Initialise the loader */
   LoaderInit();
   /* Tell the loader the default module search path */
@@ -113,10 +108,6 @@ void DoScanPci(int argc, char **argv, int i)
   PciSetup = (ScanPciSetupProcPtr)LoaderSymbol("ScanPciSetupPciIds");
   DisplayPCICardInfo =
     (ScanPciDisplayCardInfoProcPtr)LoaderSymbol("ScanPciDisplayPCICardInfo");
-#else
-  PciSetup = ScanPciSetupPciIds;
-  DisplayPCICardInfo = ScanPciDisplayPCICardInfo;
-#endif
 
   if (!(*PciSetup)())
     FatalError("ScanPciSetupPciIds() failed\n");

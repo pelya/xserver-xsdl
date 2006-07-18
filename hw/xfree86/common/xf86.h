@@ -354,10 +354,8 @@ int  xf86RegisterRootWindowProperty(int ScrnIndex, Atom	property, Atom type,
 				    pointer value);
 Bool xf86IsUnblank(int mode);
 
-#ifdef XFree86LOADER
 void xf86AddModuleInfo(ModuleInfoPtr info, pointer module);
 void xf86DeleteModuleInfo(int idx);
-#endif
 
 /* xf86Debug.c */
 #ifdef BUILDDEBUG

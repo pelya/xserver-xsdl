@@ -28,32 +28,26 @@
 
 /* Handle <stdarg.h> */
 
-#ifndef IN_MODULE
+#ifndef __OS2ELF__
 # include <stdarg.h>
-#else /* !IN_MODULE */
-# ifndef __OS2ELF__
-#  include <stdarg.h>
-# else /* __OS2ELF__ */
-   /* EMX/gcc_elf under OS/2 does not have native header files */
-#  if !defined (_VA_LIST)
-#   define _VA_LIST
-    typedef char *va_list;
-#  endif
-#  define _VA_ROUND(t) ((sizeof (t) + 3) & -4)
-#  if !defined (va_start)
-#   define va_start(ap,v) ap = (va_list)&v + ((sizeof (v) + 3) & -4)
-#   define va_end(ap) (ap = 0, (void)0)
-#   define va_arg(ap,t) (ap += _VA_ROUND (t), *(t *)(ap - _VA_ROUND (t)))
-#  endif
-# endif /* __OS2ELF__ */
-#endif /* IN_MODULE */
+#else /* __OS2ELF__ */
+  /* EMX/gcc_elf under OS/2 does not have native header files */
+# if !defined (_VA_LIST)
+#  define _VA_LIST
+   typedef char *va_list;
+# endif
+# define _VA_ROUND(t) ((sizeof (t) + 3) & -4)
+# if !defined (va_start)
+#  define va_start(ap,v) ap = (va_list)&v + ((sizeof (v) + 3) & -4)
+#  define va_end(ap) (ap = 0, (void)0)
+#  define va_arg(ap,t) (ap += _VA_ROUND (t), *(t *)(ap - _VA_ROUND (t)))
+# endif
+#endif /* __OS2ELF__ */
 
 /*
  * The first set of definitions are required both for modules and
  * libc_wrapper.c.
  */
-
-#if defined(XFree86LOADER) || defined(NEED_XF86_TYPES)
 
 #if !defined(SYSV) && !defined(SVR4) && !defined(Lynx) || \
 	defined(__SCO__) || defined(__UNIXWARE__)
@@ -133,9 +127,6 @@
 #define MAXLONG LONG_MAX
 #endif
 
-#endif /* XFree86LOADER || NEED_XF86_TYPES */
-
-#if defined(XFree86LOADER) || defined(NEED_XF86_PROTOTYPES)
 /*
  * ANSI C compilers only.
  */
@@ -320,21 +311,6 @@ extern void xf86longjmp(xf86jmp_buf env, int val);
 	(xf86getjmptype() == 0 ? xf86setjmp0((env)) : \
 	(xf86getjmptype() == 1 ? xf86setjmp1((env), xf86setjmp1_arg2()) : \
 		xf86setjmperror((env))))
-
-#else /* XFree86LOADER || NEED_XF86_PROTOTYPES */
-#include <unistd.h>
-#include <stdio.h>
-#include <sys/ioctl.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <ctype.h>
-#ifdef HAVE_SYSV_IPC
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#endif
-#include <sys/stat.h>
-#define stat_t struct stat
-#endif /* XFree86LOADER || NEED_XF86_PROTOTYPES */
 
 /*
  * These things are always required by drivers (but not by libc_wrapper.c),

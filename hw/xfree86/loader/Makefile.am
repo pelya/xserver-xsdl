@@ -5,7 +5,7 @@ INCLUDES = $(XORG_INCS) -I$(srcdir)/../parser -I$(srcdir)/../dixmods/extmod \
 	   -I$(srcdir)/../ddc -I$(srcdir)/../i2c
 
 #AM_LDFLAGS = -r
-AM_CFLAGS = -DIN_LOADER $(XORG_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = -DIN_LOADER $(XORG_CFLAGS)
 
 if XORG_LOADER_SPARC
 SPARC_SOURCES = SparcMulDiv.S

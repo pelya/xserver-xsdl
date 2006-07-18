@@ -12,7 +12,7 @@ endif
 
 INCLUDES = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
 
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS)
 
 if XORG
 sdk_HEADERS = xvdix.h xvmcext.h

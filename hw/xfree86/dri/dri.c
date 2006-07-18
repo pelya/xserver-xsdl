@@ -69,7 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "mi.h"
 #include "mipointer.h"
 
-#if defined(XFree86LOADER) && !defined(PANORAMIX)
+#if !defined(PANORAMIX)
 extern Bool noPanoramiXExtension;
 #endif
 
@@ -135,14 +135,9 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
      * If Xinerama is on, don't allow DRI to initialise.  It won't be usable
      * anyway.
      */
-#if defined(PANORAMIX) && !defined(XFree86LOADER)
-    xineramaInCore = TRUE;
-#elif defined(XFree86LOADER)
     if (xf86LoaderCheckSymbol("noPanoramiXExtension"))
 	xineramaInCore = TRUE;
-#endif
 
-#if defined(PANORAMIX) || defined(XFree86LOADER)
     if (xineramaInCore) {
 	if (!noPanoramiXExtension) {
 	    DRIDrvMsg(pScreen->myNum, X_WARNING,
@@ -150,7 +145,6 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 	    return FALSE;
 	}
     }
-#endif
 
     drmWasAvailable = drmAvailable();
 
