@@ -439,6 +439,9 @@ dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
 AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
 AC_ARG_ENABLE(xsdl,           AS_HELP_STRING([--enable-xsdl], [Build the kdrive Xsdl server (default: auto)]), [XSDL=$enableval], [XSDL=auto])
+AC_ARG_ENABLE(xfake,          AS_HELP_STRING([--enable-xfake], [Build the kdrive 'fake' server (default: auto)]), [XFAKE=$enableval], [XFAKE=auto])
+AC_ARG_ENABLE(xfbdev,         AS_HELP_STRING([--enable-xfbdev], [Build the kdrive framebuffer device server (default: auto)]), [XFBDEV=$enableval], [XFBDEV=auto])
+AC_ARG_ENABLE(kdrive-vesa,    AS_HELP_STRING([--enable-kdrive-vesa], [Build the kdrive VESA-based servers (default: auto)]), [KDRIVEVESA=$enableval], [KDRIVEVESA=auto])
 dnl xprint
 AC_ARG_ENABLE(freetype,       AS_HELP_STRING([ --enable-freetype], [Build Xprint FreeType backend (default: yes)]), [XP_USE_FREETYPE=$enableval],[XP_USE_FREETYPE=no])
 AC_ARG_WITH(freetype-config,  AS_HELP_STRING([ --with-freetype-config=PROG], [Use FreeType configuration program PROG (default: auto)]), freetype_config=$withval, freetype_config=auto)
@@ -510,7 +513,7 @@ XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="randrproto renderproto [fixesproto >= 4.0] damageproto xcmiscproto xextproto xproto xtrans xf86miscproto xf86vidmodeproto xf86bigfontproto [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto inputproto xf86dgaproto"
+REQUIRED_MODULES="randrproto renderproto [fixesproto >= 4.0] damageproto xcmiscproto xextproto xproto xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4]"
 REQUIRED_LIBS="xfont xau fontenc"
 
 if test "x$DBUS" = xauto; then
@@ -824,11 +827,35 @@ AC_DEFINE(DDXOSINIT, 1, [Use OsVendorInit])
 AC_DEFINE(SERVER_LOCK, 1, [Use a lock to prevent multiple servers on a display])
 AC_DEFINE(SMART_SCHEDULE, 1, [Include time-based scheduler])
 AC_DEFINE(NO_LIBCWRAPPER, 1, [Define to 1 if modules should avoid the libcwrapper])
-AM_CONDITIONAL(DEBUG, test "x$DEBUGGING" = xyes)
 
-if ! test "x$DEBUGGING" = xyes; then
-  AC_DEFINE(NDEBUG, 1, [Disable some debugging code])
+if test "x$DEBUGGING" = xyes; then
+       AC_DEFINE(DEBUG, 1, [Enable debugging code])
+else
+       AC_DEFINE(NDEBUG, 1, [Disable some debugging code])
 fi
+AM_CONDITIONAL(DEBUG, [test "x$DEBUGGING" = xyes])
+
+# The Xorg binary needs to export symbols so that they can be used from modules
+# Some platforms require extra flags to do this.   gcc should set these flags
+# when -rdynamic is passed to it, other compilers/linkers may need to be added
+# here.
+if test "x$GCC" = "xyes"; then
+       GCC_WARNINGS1="-Wall -Wpointer-arith -Wstrict-prototypes"
+       GCC_WARNINGS2="-Wmissing-prototypes -Wmissing-declarations"
+       GCC_WARNINGS3="-Wnested-externs -fno-strict-aliasing"
+       GCC_WARNINGS="$GCC_WARNINGS1 $GCC_WARNINGS2 $GCC_WARNINGS3"
+       if test "x$WERROR" = "xyes"; then
+               GCC_WARNINGS="${GCC_WARNINGS} -Werror"
+       fi
+       XSERVER_CFLAGS="$GCC_WARNINGS $XSERVER_CFLAGS"
+       LD_EXPORT_SYMBOLS_FLAG="-rdynamic"
+fi
+case $host_os in
+       openbsd*)
+       LD_EXPORT_SYMBOLS_FLAG="-Wl,--export-dynamic"
+       ;;
+esac
+AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
 
 AC_DEFINE(USE_RGB_TXT, 1, [Use rgb.txt directly])
 AC_DEFINE(MITMISC, 1, [Support MIT Misc extension])
@@ -1038,6 +1065,14 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 	XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
 	XORG_LIBS="$COMPOSITE_LIB $MI_LIB $FIXES_LIB $XEXTXORG_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XPSTUBS_LIB $OS_LIB"
 
+        AC_DEFINE(XF86VIDMODE, 1, [Support XFree86 Video Mode extension])
+        AC_DEFINE(XF86MISC, 1, [Support XFree86 miscellaneous extensions])
+
+        XORG_MODULES="xf86miscproto xf86vidmodeproto xf86dgaproto"
+        PKG_CHECK_MODULES(XORG_MODULES, [$XORG_MODULES])
+        XORG_CFLAGS="$XORG_CFLAGS $XORG_MODULES_CFLAGS"
+        XORG_LIBS="$XORG_LIBS $XORG_MODULES_LIBS"
+
 dnl Check to see if dlopen is in default libraries (like Solaris, which
 dnl has it in libc), or if libdl is needed to get it.
 	AC_CHECK_FUNC([dlopen], [], 
@@ -1229,28 +1264,7 @@ int main () {
 	fi
 	AC_SUBST(PERL)
 
-	# The Xorg binary needs to export symbols so that they can be used from modules
-	# Some platforms require extra flags to do this.   gcc should set these flags
-	# when -rdynamic is passed to it, other compilers/linkers may need to be added
-	# here.
-	if test "x$GCC" = "xyes"; then
-		GCC_WARNINGS1="-Wall -Wpointer-arith -Wstrict-prototypes"
-		GCC_WARNINGS2="-Wmissing-prototypes -Wmissing-declarations"
-		GCC_WARNINGS3="-Wnested-externs -fno-strict-aliasing"
-		GCC_WARNINGS="$GCC_WARNINGS1 $GCC_WARNINGS2 $GCC_WARNINGS3"
-		if test "x$WERROR" = "xyes"; then
-			GCC_WARNINGS="${GCC_WARNINGS} -Werror"
-		fi
-		XSERVER_CFLAGS="$GCC_WARNINGS $XSERVER_CFLAGS"
-		LD_EXPORT_SYMBOLS_FLAG="-rdynamic"
-	fi
-	case $host_os in
-		openbsd*)
-		LD_EXPORT_SYMBOLS_FLAG="-Wl,--export-dynamic"
-		;;
-	esac
 	AC_SUBST([XORG_CFLAGS])
-	AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
 
 	dnl these only go in xorg-config.h
 	XF86CONFIGFILE="xorg.conf"
@@ -1438,16 +1452,58 @@ if test "$KDRIVE" = yes; then
     AC_DEFINE(KDRIVEDDXACTIONS,,[Build kdrive ddx])
 
     AC_CHECK_HEADERS([sys/vm86.h sys/io.h])
-    if test "$ac_cv_header_sys_vm86_h" = yes; then
+    if test "$ac_cv_header_sys_vm86_h" = yes && test "x$KDRIVEVESA" = xauto; then
+        KDRIVEVESA=yes
+    fi
+
+    if test "x$KDRIVEVESA" = xyes; then
+        KDRIVEFBDEVLIB=yes
         AC_DEFINE(KDRIVEVESA, 1, [Build VESA-based kdrive servers])
     fi
 
     AC_CHECK_HEADERS([linux/fb.h])
-    if test "$ac_cv_header_linux_fb_h" = yes; then
+    if test "$ac_cv_header_linux_fb_h" = yes && test "x$XFBDEV" = xauto; then
+        XFBDEV=yes
+    fi
+
+    if test "x$XFBDEV" = xyes; then
+        KDRIVEFBDEVLIB=yes
         AC_DEFINE(KDRIVEFBDEV, 1, [Build fbdev-based kdrive server])
     fi
     
     # tslib...
+    AC_CHECK_LIB(ts, ts_open, [HAVE_TSLIB="yes"])
+    if test "x$TSLIB" = xauto && test "x$HAVE_TSLIB" = xyes; then
+        TSLIB=yes
+    fi
+
+    if test "x$TSLIB" = xyes; then
+        if ! test "x$HAVE_TSLIB" = xyes; then
+            AC_MSG_ERROR([tslib must be installed to build the tslib input driver.])
+        fi
+        TSLIB_LIBS="-lts"
+        AC_DEFINE(TSLIB, 1, [Have tslib support])
+    fi
+
+    if test x"$ac_cv_header_SDL_SDL_h" = xyes && "x$XSDL" = xauto; then
+       XSDL=yes
+    fi
+
+    if test x"$XSDL" = xyes; then
+       # PKG_CHECK_MODULES(XSDL_EXTRA, Xfont xau $XDMCP_MODULES)
+       AC_DEFINE(XSDLSERVER,1,[Build Xsdl server])
+       XSDL_LIBS="`sdl-config --libs` $XSERVER_LIBS"
+       XSDL_INCS="`sdl-config --cflags` $XSERVER_CFLAGS"
+    fi
+
+    PKG_CHECK_MODULES(XEPHYR, x11 xext xfont xau xdmcp, [xephyr="yes"], [xephyr="no"])
+    if test "x$XEPHYR" = xauto; then
+       XEPHYR=xephyr
+    fi
+    # Xephyr needs nanosleep() which is in librt on Solaris
+    AC_CHECK_FUNC([nanosleep], [],
+        AC_CHECK_LIB([rt], [nanosleep], XEPHYR_LIBS="$XEPHYR_LIBS -lrt"))
+    XEPHYR_LIBS="$XEPHYR_LIBS $XSERVER_LIBS"
 
     # damage shadow extension glx (NOTYET) fb mi
     KDRIVE_INC='-I$(top_srcdir)/hw/kdrive/src'
@@ -1460,48 +1516,38 @@ if test "$KDRIVE" = yes; then
     # dix os fb mi extension glx (NOTYET) damage shadow xpstubs
     #KDRIVE_PURE_LIBS="$DIX_LIB $OS_LIB $FB_LIB $XEXT_LIB $MIEXT_DAMAGE_LIB \
     #    $MIEXT_SHADOW_LIB $XPSTUBS_LIB"
-    KDRIVE_PURE_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
+    KDRIVE_PURE_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $TSLIB_LIBS $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
     KDRIVE_LIB='$(top_builddir)/hw/kdrive/src/libkdrive.a'
     KDRIVE_OS_LIB='$(top_builddir)/hw/kdrive/linux/liblinux.a'
     KDRIVE_STUB_LIB='$(top_builddir)/hw/kdrive/src/libkdrivestubs.a'
-    KDRIVE_LIBS="$DIX_LIB $CONFIG_LIB $KDRIVE_LIB $KDRIVE_OS_LIB $KDRIVE_PURE_LIBS $KDRIVE_STUB_LIB"
+    KDRIVE_LIBS="$XSERVERLIBS_LIBS $DIX_LIB $CONFIG_LIB $KDRIVE_LIB $KDRIVE_OS_LIB $KDRIVE_PURE_LIBS $KDRIVE_STUB_LIB"
 
     # check if we can build Xephyr
     PKG_CHECK_MODULES(XEPHYR, x11 xext xfont xau xdmcp, [xephyr="yes"], [xephyr="no"])
-    
-    # check for SDL SDK
-    AC_CHECK_HEADERS([SDL/SDL.h])
+    XEPHYR_LIBS="$XEPHYR_LIBS $XSERVER_LIBS"
+
+    # Xephyr needs nanosleep() which is in librt on Solaris
+    AC_CHECK_FUNC([nanosleep], [],
+        AC_CHECK_LIB([rt], [nanosleep], XEPHYR_LIBS="$XEPHYR_LIBS -lrt"))
+
+    AC_SUBST([XEPHYR_LIBS])
+    AC_SUBST([XEPHYR_INCS])
+    AC_SUBST([XSDL_LIBS])
+    AC_SUBST([XSDL_INCS])
 fi
-AC_SUBST(KDRIVE_INCS)
-AC_SUBST(KDRIVE_PURE_INCS)
-AC_SUBST(KDRIVE_CFLAGS)
-AC_SUBST(KDRIVE_PURE_LIBS)
-AC_SUBST(KDRIVE_LIBS)
-AM_CONDITIONAL(TSLIB, false)
+AC_SUBST([KDRIVE_INCS])
+AC_SUBST([KDRIVE_PURE_INCS])
+AC_SUBST([KDRIVE_CFLAGS])
+AC_SUBST([KDRIVE_PURE_LIBS])
+AC_SUBST([KDRIVE_LIBS])
+AM_CONDITIONAL(TSLIB, [test "x$TSLIB" = xyes])
 AM_CONDITIONAL(H3600_TS, false)
-AM_CONDITIONAL(KDRIVEVESA, [test x"$ac_cv_header_sys_vm86_h" = xyes])
-AM_CONDITIONAL(KDRIVEFBDEV, [test x"$ac_cv_header_linux_fb_h" = xyes])
-#AM_CONDITIONAL(KDRIVEVESA, false)
-#AM_CONDITIONAL(KDRIVEFBDEV, false)
-
-# Xephyr needs nanosleep() which is in librt on Solaris
-AC_CHECK_FUNC([nanosleep], [],
-	AC_CHECK_LIB([rt], [nanosleep], XEPHYR_LIBS="$XEPHYR_LIBS -lrt"))
-
-AM_CONDITIONAL(XEPHYR, [test x"$xephyr" = xyes])
-XEPHYR_LIBS="$XEPHYR_LIBS $XSERVER_LIBS"
-AC_SUBST([XEPHYR_LIBS])
-AC_SUBST([XEPHYR_INCS])
-
-AM_CONDITIONAL(XSDLSERVER, [test x"$ac_cv_header_SDL_SDL_h" = xyes])
-if test x"$ac_cv_header_SDL_SDL_h" = xyes -o x"$XSDL" = xyes; then
-    # PKG_CHECK_MODULES(XSDL_EXTRA, Xfont xau $XDMCP_MODULES)
-    AC_DEFINE(XSDLSERVER,,[Build Xsdl server])
-    XSDL_LIBS="`sdl-config --libs` $XSERVER_LIBS"
-    XSDL_INCS="`sdl-config --cflags` $XSERVER_CFLAGS"
-fi
-AC_SUBST([XSDL_LIBS])
-AC_SUBST([XSDL_INCS])
+AM_CONDITIONAL(KDRIVEVESA, [test "x$KDRIVEVESA" = xyes])
+AM_CONDITIONAL(KDRIVEFBDEV, [test "x$XFBDEV" = xyes])
+AM_CONDITIONAL(XSDLSERVER, [test x"$XSDL" = xyes])
+AM_CONDITIONAL(XEPHYR, [test "x$KDRIVE" = xyes && test "x$xephyr" = xyes])
+AM_CONDITIONAL(BUILD_KDRIVEFBDEVLIB, [test "x$KDRIVE" = xyes && test "x$KDRIVEFBDEVLIB" = xyes])
+AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
 
 
 dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
@@ -1510,7 +1556,6 @@ AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBPATH, [Path to XKB data])
 AC_DEFINE_DIR(XKB_BIN_DIRECTORY, bindir, [Path to XKB bin dir])
 
 # Make sure XKM_OUTPUT_DIR is an absolute path
-
 XKBOUTPUT_FIRSTCHAR=`echo $XKBOUTPUT | cut -b 1`
 
 if [[ x$XKBOUTPUT_FIRSTCHAR != x/ ]] ; then
@@ -1549,15 +1594,21 @@ esac
 AC_DEFINE_DIR(PROJECTROOT, prefix, [Overall prefix])
 
 dnl xorgconfig CLI configuration utility
-PKG_CHECK_MODULES([XORGCONFIG_DEP], [xkbfile x11])
-AC_SUBST(XORGCONFIG_DEP_CFLAGS)
-AC_SUBST(XORGCONFIG_DEP_LIBS)
+if test "x$XORG" = xyes; then
+    PKG_CHECK_MODULES([XORGCONFIG_DEP], [xkbfile x11])
+    AC_SUBST(XORGCONFIG_DEP_CFLAGS)
+    AC_SUBST(XORGCONFIG_DEP_LIBS)
+fi
 
 dnl xorgcfg GUI configuration utility
 AC_ARG_ENABLE(xorgcfg, AS_HELP_STRING([--enable-xorgcfg], 
-	[Build xorgcfg GUI configuration utility (default: yes)]),
-	[XORGCFG=$enableval],[XORGCFG=yes])
-if test x$XORGCFG = xyes ; then
+	[Build xorgcfg GUI configuration utility (default: auto)]),
+	[XORGCFG=$enableval],[XORGCFG=auto])
+if test "x$XORGCFG" = xauto && test "x$XORG" = xyes; then
+    XORGCFG=yes
+fi
+
+if test "x$XORGCFG" = xyes; then
 	PKG_CHECK_MODULES([XORGCFG_DEP], 
 	    [xkbui >= 1.0.2 xkbfile xxf86misc xxf86vm xaw7 xmu xt xpm xext x11])
 	AC_CHECK_LIB([curses],[waddstr],

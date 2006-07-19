@@ -4,8 +4,6 @@ INCLUDES = 					\
 
 noinst_LIBRARIES = libfbdev.a
 
-bin_PROGRAMS = Xfbdev
-
 if TSLIB
 TSLIB_FLAG = -lts
 endif
@@ -13,6 +11,9 @@ endif
 libfbdev_a_SOURCES =	\
 	fbdev.c		\
 	fbdev.h
+
+if KDRIVEFBDEV
+bin_PROGRAMS = Xfbdev
 
 Xfbdev_SOURCES = \
 	fbinit.c
@@ -26,4 +27,4 @@ Xfbdev_LDADD = 						\
 Xfbdev_DEPENDENCIES =					\
 	libfbdev.a					\
 	@KDRIVE_LIBS@					
-
+endif

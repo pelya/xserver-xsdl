@@ -77,14 +77,8 @@ static EphyrHostXVars HostX = { "?", 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 static int            HostXWantDamageDebug = 0;
 
-extern KeySym         EphyrKeymap[];
+extern EphyrKeySyms   ephyrKeySyms;
 
-extern KeySym	      kdKeymap[];
-extern int	      kdMinScanCode;
-extern int	      kdMaxScanCode;
-extern int	      kdMinKeyCode;
-extern int	      kdMaxKeyCode;
-extern int	      kdKeymapWidth;
 extern int            monitorResolution;
 
 static void
@@ -403,9 +397,9 @@ hostx_get_bpp(void)
 }
 
 void
-hostx_get_visual_masks (unsigned long *rmsk, 
-			unsigned long *gmsk, 
-			unsigned long *bmsk)
+hostx_get_visual_masks (CARD32 *rmsk, 
+			CARD32 *gmsk, 
+			CARD32 *bmsk)
 {
   if (host_depth_matches_server())
     {
@@ -681,6 +675,13 @@ hostx_load_keymap(void)
 			       max_keycode - min_keycode + 1,
 			       &host_width);
 
+
+  ephyrKeySyms.map = (KeySym *)calloc(sizeof(KeySym),
+                                      (max_keycode - min_keycode + 1) *
+                                      width);
+  if (!ephyrKeySyms.map)
+        return;
+  
   /* Try and copy the hosts keymap into our keymap to avoid loads
    * of messing around.
    *
@@ -695,13 +696,9 @@ hostx_load_keymap(void)
 
   EPHYR_DBG("keymap width, host:%d kdrive:%d", host_width, width);
   
-  /* all kdrive vars - see kkeymap.c */
-
-  kdMinScanCode = min_keycode;
-  kdMaxScanCode = max_keycode;
-  kdMinKeyCode  = min_keycode;
-  kdMaxKeyCode  = max_keycode;
-  kdKeymapWidth = width;
+  ephyrKeySyms.minKeyCode  = min_keycode;
+  ephyrKeySyms.maxKeyCode  = max_keycode;
+  ephyrKeySyms.mapWidth    = (width > 4) ? 4 : width;
 
   XFree(keymap);
 }

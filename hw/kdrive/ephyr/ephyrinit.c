@@ -51,7 +51,24 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-  KdInitInput (&EphyrMouseFuncs, &EphyrKeyboardFuncs);
+  KdKeyboardInfo *ki;
+  KdPointerInfo *pi;
+        
+  ki = KdNewKeyboard();
+  if (!ki)
+    FatalError("Couldn't create Xephyr keyboard\n");
+  ki->driver = &EphyrKeyboardDriver;
+  ki->name = KdSaveString("Xephyr virtual keyboard");
+  KdAddKeyboard(ki);
+
+  pi = KdNewPointer();
+  if (!pi)
+    FatalError("Couldn't create Xephyr pointer\n");
+  pi->driver = &EphyrMouseDriver;
+  pi->name = KdSaveString("Xephyr virtual mouse");
+  KdAddPointer(pi);
+
+  KdInitInput();
 }
 
 void

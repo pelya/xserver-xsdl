@@ -27,7 +27,6 @@
 #include <kdrive-config.h>
 #endif
 #include "fake.h"
-#include "kkeymap.h"
 #include <X11/keysym.h>
 
 #define FAKE_WIDTH  2
@@ -155,41 +154,58 @@ KeySym FakeKeymap[] = {
 /*    116   123 */	 NoSymbol,	NoSymbol,   /* tiny button */
 };
 
-static void
-FakeKeyboardLoad (void)
+static Status
+FakeKeyboardInit (KdKeyboardInfo *ki)
 {
-    kdMinScanCode = 1;
-    kdKeymapWidth = FAKE_WIDTH;
-    kdMaxScanCode = (sizeof (FakeKeymap) / sizeof (FakeKeymap[0])) / FAKE_WIDTH;
-    memcpy (kdKeymap, FakeKeymap, sizeof (FakeKeymap));
+    ki->keySyms.minKeyCode = 1;
+    ki->keySyms.maxKeyCode = (sizeof (FakeKeymap) / sizeof (FakeKeymap[0])) / FAKE_WIDTH;
+    ki->keySyms.mapWidth = FAKE_WIDTH;
+    if (ki->keySyms.map)
+        xfree(ki->keySyms.map);
+    ki->keySyms.map = (KeySym *)xalloc(sizeof(FakeKeymap));
+    if (!ki->keySyms.map)
+        return BadAlloc;
+    memcpy (ki->keySyms.map, FakeKeymap, sizeof (FakeKeymap));
+
+    return Success;
 }
 
-static int
-FakeKeyboardInit (void)
+static Status
+FakeKeyboardEnable (KdKeyboardInfo *ki)
 {
-    return 0;
-}
-
-static void
-FakeKeyboardFini (void)
-{
-}
-
-static void
-FakeKeyboardLeds (int leds)
-{
+    return Success;
 }
 
 static void
-FakeKeyboardBell (int volume, int frequency, int duration)
+FakeKeyboardDisable (KdKeyboardInfo *ki)
+{
+    return;
+}
+
+static void
+FakeKeyboardFini (KdKeyboardInfo *ki)
+{
+    xfree(ki->keySyms.map);
+    ki->keySyms.map = NULL;
+}
+
+static void
+FakeKeyboardLeds (KdKeyboardInfo *ki, int leds)
 {
 }
 
-KdKeyboardFuncs	FakeKeyboardFuncs = {
-    FakeKeyboardLoad,
+static void
+FakeKeyboardBell (KdKeyboardInfo *ki, int volume, int frequency, int duration)
+{
+}
+
+KdKeyboardDriver FakeKeyboardDriver = {
+    "fake",
     FakeKeyboardInit,
+    FakeKeyboardEnable,
     FakeKeyboardLeds,
     FakeKeyboardBell,
+    FakeKeyboardDisable,
     FakeKeyboardFini,
-    0,
+    NULL,
 };

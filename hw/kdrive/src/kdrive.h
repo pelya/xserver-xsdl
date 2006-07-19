@@ -47,6 +47,10 @@
 #include "shadow.h"
 #include "randrstr.h"
 
+#ifdef XKB
+#include <X11/extensions/XKBstr.h>
+#endif
+
 extern WindowPtr    *WindowTable;
 
 #define KD_DPMS_NORMAL	    0
@@ -62,6 +66,8 @@ extern WindowPtr    *WindowTable;
 #ifndef KD_MAX_CARD_ADDRESS
 #define KD_MAX_CARD_ADDRESS 8
 #endif
+
+#define Status int
 
 /*
  * Configuration information per video card
@@ -215,7 +221,7 @@ typedef struct {
 #endif
 } KdPrivScreenRec, *KdPrivScreenPtr;
 
-typedef enum _kdMouseState {
+typedef enum _kdPointerState {
     start,
     button_1_pend,
     button_1_down,
@@ -226,51 +232,135 @@ typedef enum _kdMouseState {
     synth_2_down_3,
     synth_2_down_1,
     num_input_states
-} KdMouseState;
+} KdPointerState;
 
-#define KD_MAX_BUTTON  7
+#define KD_MAX_BUTTON  16
 
-typedef struct _KdMouseInfo {
-    struct _KdMouseInfo	*next;
-    void		*driver;
-    void		*closure;
-    char		*name;
-    char		*prot;
-    char		map[KD_MAX_BUTTON];
-    int			nbutton;
-    Bool		emulateMiddleButton;
-    unsigned long	emulationTimeout;
-    Bool		timeoutPending;
-    KdMouseState	mouseState;
-    Bool		eventHeld;
-    xEvent		heldEvent;
-    unsigned char	buttonState;
-    int			emulationDx, emulationDy;
-    int			inputType;
-    Bool		transformCoordinates;
-} KdMouseInfo;
+#define KD_KEYBOARD 1
+#define KD_MOUSE 2
+#define KD_TOUCHSCREEN 3
 
-extern KdMouseInfo	*kdMouseInfo;
+typedef struct _KdPointerInfo KdPointerInfo;
+
+typedef struct _KdPointerDriver {
+    char                    *name;
+    Status                  (*Init)    (KdPointerInfo *);
+    Status                  (*Enable)  (KdPointerInfo *);
+    void                    (*Disable) (KdPointerInfo *);
+    void                    (*Fini)    (KdPointerInfo *);
+    struct _KdPointerDriver *next;
+} KdPointerDriver;
+
+struct _KdPointerInfo {
+    DeviceIntPtr          dixdev;
+    char                  *name;
+    char                  *path;
+    InputOption           *options;
+    int                   inputClass;
+
+    CARD8                 map[KD_MAX_BUTTON];
+    int                   nButtons;
+    int                   nAxes;
+
+    Bool                  emulateMiddleButton;
+    unsigned long         emulationTimeout;
+    int                   emulationDx, emulationDy;
+
+    Bool                  timeoutPending;
+    KdPointerState        mouseState;
+    Bool                  eventHeld;
+    struct {
+        int type;
+        int x;
+        int y;
+        int z;
+        int flags;
+        int absrel;
+    } heldEvent;         
+    unsigned char         buttonState;
+    Bool                  transformCoordinates;
+    int                   pressureThreshold;
+
+    KdPointerDriver       *driver;
+    void                  *driverPrivate;
+
+    struct _KdPointerInfo *next;
+};
 
 extern int KdCurScreen;
 
-KdMouseInfo *KdMouseInfoAdd (void);
-void	    KdMouseInfoDispose (KdMouseInfo *mi);
-void	    KdParseMouse (char *);
+void KdAddPointerDriver (KdPointerDriver *driver);
+void KdRemovePointerDriver (KdPointerDriver *driver);
+KdPointerInfo *KdNewPointer (void);
+void KdFreePointer (KdPointerInfo *);
+int KdAddPointer (KdPointerInfo *ki);
+int KdAddConfigPointer (char *pointer);
+void KdRemovePointer (KdPointerInfo *ki);
 
-typedef struct _KdMouseFuncs {
-    Bool    	    (*Init) (void);
-    void	    (*Fini) (void);
-} KdMouseFuncs;
 
-typedef struct _KdKeyboardFuncs {
-    void	    (*Load) (void);
-    int		    (*Init) (void);
-    void	    (*Leds) (int);
-    void	    (*Bell) (int, int, int);
-    void	    (*Fini) (void);
-    int		    LockLed;
-} KdKeyboardFuncs;
+#define KD_KEY_COUNT 248
+#define KD_MIN_KEYCODE  8
+#define KD_MAX_KEYCODE  255
+#define KD_MAX_WIDTH    4
+#define KD_MAX_LENGTH   (KD_MAX_KEYCODE - KD_MIN_KEYCODE + 1)
+
+typedef struct {
+    KeySym modsym;
+    int    modbit;
+} KdKeySymModsRec;
+
+extern const KeySym       kdDefaultKeymap[KD_MAX_LENGTH * KD_MAX_WIDTH];
+extern const int          kdDefaultKeymapWidth;
+extern const CARD8        kdDefaultModMap[MAP_LENGTH];
+extern const KeySymsRec   kdDefaultKeySyms;
+
+typedef struct _KdKeyboardInfo KdKeyboardInfo;
+
+typedef struct _KdKeyboardDriver {
+    char                  *name;
+    Bool                  (*Init)    (KdKeyboardInfo *);
+    Bool                  (*Enable)  (KdKeyboardInfo *);
+    void                  (*Leds)    (KdKeyboardInfo *, int);
+    void                  (*Bell)    (KdKeyboardInfo *, int, int, int);
+    void                  (*Disable) (KdKeyboardInfo *);
+    void                  (*Fini)    (KdKeyboardInfo *);
+    struct _KdKeyboardDriver *next;
+} KdKeyboardDriver;
+
+struct _KdKeyboardInfo {
+    struct _KdKeyboardInfo *next;
+    DeviceIntPtr        dixdev;
+    void                *closure;
+    char                *name;
+    char                *path;
+    int                 inputClass;
+#ifdef XKB
+    XkbDescPtr          xkb;
+#endif
+    int                 LockLed;
+
+    CARD8               keyState[KD_KEY_COUNT/8];
+    int                 minScanCode;
+    int                 maxScanCode;
+    CARD8               modmap[MAP_LENGTH];
+    KeySymsRec          keySyms; 
+
+    int                 leds;
+    int                 bellPitch;
+    int                 bellDuration;
+    InputOption         *options;
+
+    KdKeyboardDriver    *driver;
+    void                *driverPrivate;
+};
+
+void KdAddKeyboardDriver (KdKeyboardDriver *driver);
+void KdRemoveKeyboardDriver (KdKeyboardDriver *driver);
+KdKeyboardInfo *KdNewKeyboard (void);
+void KdFreeKeyboard (KdKeyboardInfo *ki);
+int KdAddConfigKeyboard (char *pointer);
+int KdAddKeyboard (KdKeyboardInfo *ki);
+void KdRemoveKeyboard (KdKeyboardInfo *ki);
 
 typedef struct _KdOsFuncs {
     int		    (*Init) (void);
@@ -307,9 +397,9 @@ typedef struct _KdMonitorTiming {
 extern const KdMonitorTiming	kdMonitorTimings[];
 extern const int		kdNumMonitorTimings;
 
-typedef struct _KdMouseMatrix {
+typedef struct _KdPointerMatrix {
     int	    matrix[2][3];
-} KdMouseMatrix;
+} KdPointerMatrix;
 
 typedef struct _KaaTrapezoid {
     float tl, tr, ty;
@@ -628,8 +718,14 @@ KdParseScreen (KdScreenInfo *screen,
 char *
 KdSaveString (char *str);
 
-void
-KdParseMouse (char *arg);
+KdPointerInfo *
+KdParsePointer (char *arg);
+
+KdKeyboardInfo *
+KdParseKeyboard (char *arg);
+
+char *
+KdParseFindNext (char *cur, char *delim, char *save, char *last);
 
 void
 KdParseRgba (char *rgba);
@@ -677,6 +773,9 @@ KdInitOutput (ScreenInfo    *pScreenInfo,
  
 void
 KdSetSubpixelOrder (ScreenPtr pScreen, Rotation randr);
+
+void
+KdBacktrace (int signum);
     
 /* kinfo.c */
 KdCardInfo *
@@ -699,53 +798,51 @@ KdScreenInfoDispose (KdScreenInfo *si);
 
 /* kinput.c */
 void
-KdInitInput(KdMouseFuncs *, KdKeyboardFuncs *);
+KdInitInput(void);
 
 void
-KdAddMouseDriver(KdMouseFuncs *);
+KdAddPointerDriver(KdPointerDriver *);
 
-int
-KdAllocInputType (void);
+void
+KdAddKeyboardDriver(KdKeyboardDriver *);
 
 Bool
-KdRegisterFd (int type, int fd, void (*read) (int fd, void *closure), void *closure);
+KdRegisterFd (int fd, void (*read) (int fd, void *closure), void *closure);
 
 void
-KdRegisterFdEnableDisable (int fd, 
-			   int (*enable) (int fd, void *closure),
-			   void (*disable) (int fd, void *closure));
+KdUnregisterFds (void *closure, Bool do_close);
 
 void
-KdUnregisterFds (int type, Bool do_close);
-
-void
-KdEnqueueKeyboardEvent(unsigned char	scan_code,
-		       unsigned char	is_up);
+KdEnqueueKeyboardEvent(KdKeyboardInfo *ki, unsigned char scan_code,
+                    unsigned char is_up);
 
 #define KD_BUTTON_1	0x01
 #define KD_BUTTON_2	0x02
 #define KD_BUTTON_3	0x04
 #define KD_BUTTON_4	0x08
 #define KD_BUTTON_5	0x10
+#define KD_BUTTON_8	0x80
 #define KD_MOUSE_DELTA	0x80000000
 
 void
-KdEnqueueMouseEvent(KdMouseInfo *mi, unsigned long flags, int x, int y);
+KdEnqueuePointerEvent(KdPointerInfo *pi, unsigned long flags, int rx, int ry,
+                      int rz);
 
 void
-KdEnqueueMotionEvent (KdMouseInfo *mi, int x, int y);
+_KdEnqueuePointerEvent(KdPointerInfo *pi, int type, int x, int y, int z,
+                       int b, int absrel, Bool force);
 
 void
 KdReleaseAllKeys (void);
     
 void
-KdSetLed (int led, Bool on);
+KdSetLed (KdKeyboardInfo *ki, int led, Bool on);
 
 void
-KdSetMouseMatrix (KdMouseMatrix *matrix);
+KdSetPointerMatrix (KdPointerMatrix *pointer);
 
 void
-KdComputeMouseMatrix (KdMouseMatrix *matrix, Rotation randr, int width, int height);
+KdComputePointerMatrix (KdPointerMatrix *pointer, Rotation randr, int width, int height);
     
 void
 KdBlockHandler (int		screen,
@@ -768,19 +865,17 @@ KdEnableInput (void);
 void
 ProcessInputEvents (void);
 
-extern KdMouseFuncs	LinuxMouseFuncs;
-extern KdMouseFuncs	LinuxEvdevFuncs;
-extern KdMouseFuncs	Ps2MouseFuncs;
-extern KdMouseFuncs	BusMouseFuncs;
-extern KdMouseFuncs	MsMouseFuncs;
-#ifdef TOUCHSCREEN
-extern KdMouseFuncs	TsFuncs;
-#endif
-extern KdKeyboardFuncs	LinuxKeyboardFuncs;
+extern KdPointerDriver	LinuxMouseDriver;
+extern KdPointerDriver	LinuxEvdevDriver;
+extern KdPointerDriver	Ps2MouseDriver;
+extern KdPointerDriver	BusMouseDriver;
+extern KdPointerDriver	MsMouseDriver;
+extern KdPointerDriver	TsDriver;
+extern KdKeyboardDriver	LinuxKeyboardDriver;
 extern KdOsFuncs	LinuxFuncs;
 
-extern KdMouseFuncs	VxWorksMouseFuncs;
-extern KdKeyboardFuncs	VxWorksKeyboardFuncs;
+extern KdPointerDriver	VxWorksMouseDriver;
+extern KdKeyboardDriver	VxWorksKeyboardDriver;
 extern KdOsFuncs	VxWorksFuncs;
 
 /* kmap.c */

@@ -101,7 +101,7 @@ KdScreenInfoDispose (KdScreenInfo *si)
     KdCardInfo	    *ci = si->card;
     KdScreenInfo    **prev;
 
-    for (prev = &ci->screenList; *prev; prev = &(*prev)->next)
+    for (prev = &ci->screenList; *prev; prev = &(*prev)->next) {
 	if (*prev == si)
 	{
 	    *prev = si->next;
@@ -110,38 +110,63 @@ KdScreenInfoDispose (KdScreenInfo *si)
 		KdCardInfoDispose (ci);
 	    break;
 	}
+    }
 }
 
-KdMouseInfo *kdMouseInfo;
-
-KdMouseInfo *
-KdMouseInfoAdd (void)
+KdPointerInfo *
+KdNewPointer (void)
 {
-    KdMouseInfo	*mi, **prev;
+    KdPointerInfo *pi;
 
-    mi = (KdMouseInfo *) xalloc (sizeof (KdMouseInfo));
-    if (!mi)
-	return 0;
-    bzero (mi, sizeof (KdMouseInfo));
-    for (prev = &kdMouseInfo; *prev; prev = &(*prev)->next);
-    *prev = mi;
-    return mi;
+    pi = (KdPointerInfo *)xcalloc(1, sizeof(KdPointerInfo));
+    if (!pi)
+        return NULL;
+
+    pi->name = KdSaveString("Generic Pointer");
+    pi->path = NULL;
+    pi->inputClass = KD_MOUSE;
+    pi->driver = NULL;
+    pi->driverPrivate = NULL;
+    pi->next = NULL;
+    pi->options = NULL;
+    pi->nAxes = 3;
+
+    return pi;
 }
 
 void
-KdMouseInfoDispose (KdMouseInfo *mi)
+KdFreePointer(KdPointerInfo *pi)
 {
-    KdMouseInfo	**prev;
+    InputOption *option, *prev = NULL;
 
-    for (prev = &kdMouseInfo; *prev; prev = &(*prev)->next)
-	if (*prev == mi)
-	{
-	    *prev = mi->next;
-	    if (mi->name)
-		xfree (mi->name);
-	    if (mi->prot)
-		xfree (mi->prot);
-	    xfree (mi);
-	    break;
-	}
+    if (pi->name)
+        xfree(pi->name);
+    if (pi->path)
+        xfree(pi->path);
+
+    for (option = pi->options; option; option = option->next) {
+        if (prev)
+            xfree(prev);
+        if (option->key)
+            xfree(option->key);
+        if (option->value)
+            xfree(option->value);
+        prev = option;
+    }
+
+    if (prev)
+        xfree(prev);
+    
+    xfree(pi);
+}
+ 
+void
+KdFreeKeyboard(KdKeyboardInfo *ki)
+{
+    if (ki->name)
+        xfree(ki->name);
+    if (ki->path)
+        xfree(ki->path);
+    ki->next = NULL;
+    xfree(ki);
 }
