@@ -469,7 +469,7 @@ AC_MSG_RESULT([$SETUID])
 AM_CONDITIONAL(INSTALL_SETUID, [test "x$SETUID" = "xyes"])
 
 dnl Issue an error if xtrans.m4 was not found and XTRANS_CONNECTION_FLAGS macro
-dnl was not expanded, since libX11 with no transport types is rather useless.
+dnl was not expanded, since xorg-server with no transport types is rather useless.
 dnl
 dnl If you're seeing an error here, be sure you installed the lib/xtrans module
 dnl first and if it's not in the default location, that you set the ACLOCAL
