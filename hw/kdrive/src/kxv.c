@@ -1814,7 +1814,7 @@ KdXVCopyPackedData(KdScreenInfo *screen, CARD8 *src, CARD8 *dst, int randr,
     src = src + top * srcDown + left * srcRight;
 
     w >>= 1;
-    srcRight >>= 1;
+    /* srcRight >>= 1; */
     srcNext = srcRight >> 1;
     while (h--) {
 	CARD16 *s = (CARD16 *)src;
