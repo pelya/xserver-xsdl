@@ -1014,21 +1014,34 @@ CloseDownConnection(ClientPtr client)
 }
 
 _X_EXPORT void
-AddEnabledDevice(int fd)
+AddGeneralSocket(int fd)
 {
-    FD_SET(fd, &EnabledDevices);
     FD_SET(fd, &AllSockets);
     if (GrabInProgress)
 	FD_SET(fd, &SavedAllSockets);
 }
 
 _X_EXPORT void
-RemoveEnabledDevice(int fd)
+AddEnabledDevice(int fd)
+{
+    FD_SET(fd, &EnabledDevices);
+    AddGeneralSocket(fd);
+}
+
+_X_EXPORT void
+RemoveGeneralSocket(int fd)
 {
     FD_CLR(fd, &EnabledDevices);
     FD_CLR(fd, &AllSockets);
     if (GrabInProgress)
 	FD_CLR(fd, &SavedAllSockets);
+}
+
+_X_EXPORT void
+RemoveEnabledDevice(int fd)
+{
+    FD_CLR(fd, &EnabledDevices);
+    RemoveGeneralSocket(fd);
 }
 
 /*****************

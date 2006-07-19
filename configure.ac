@@ -423,6 +423,7 @@ AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extensi
 AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--disable-xf86bigfont], [Build XF86 Big Font extension (default: enabled)]), [XF86BIGFONT=$enableval], [XF86BIGFONT=yes])
 AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled)]), [DPMSExtension=$enableval], [DPMSExtension=yes])
 AC_ARG_ENABLE(xinput,         AS_HELP_STRING([--disable-xinput], [Build XInput Extension (default: enabled)]), [XINPUT=$enableval], [XINPUT=yes])
+AC_ARG_ENABLE(dbus,           AS_HELP_STRING([--disable-dbus], [Build D-BUS support (default: auto)]), [DBUS=$enableval], [DBUS=auto])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -511,6 +512,18 @@ XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 dnl Core modules for most extensions, et al.
 REQUIRED_MODULES="randrproto renderproto [fixesproto >= 4.0] damageproto xcmiscproto xextproto xproto xtrans xf86miscproto xf86vidmodeproto xf86bigfontproto [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto inputproto xf86dgaproto"
 REQUIRED_LIBS="xfont xau fontenc"
+
+if test "x$DBUS" = xauto; then
+       PKG_CHECK_MODULES(DBUS, dbus-1, [DBUS=yes], [DBUS=no])
+fi
+if test "x$DBUS" = xyes; then
+       PKG_CHECK_MODULES(DBUS, dbus-1)
+       AC_DEFINE(HAVE_DBUS, 1, [Have D-BUS support])
+       REQUIRED_MODULES="$REQUIRED_MODULES dbus-1"
+       REQUIRED_LIBS="$REQUIRED_LIBS dbus-1"
+fi
+CONFIG_LIB='$(top_builddir)/config/libconfig.a'
+AM_CONDITIONAL(DBUS, [test "x$DBUS" = xyes])
 
 AM_CONDITIONAL(XV, [test "x$XV" = xyes])
 if test "x$XV" = xyes; then
@@ -1007,7 +1020,7 @@ if test "x$XGLX" = xyes; then
 fi
 
 # XORG_CORE_LIBS is needed even if you're not building the Xorg DDX
-XORG_CORE_LIBS="$DIX_LIB"
+XORG_CORE_LIBS="$DIX_LIB $CONFIG_LIB"
 AC_SUBST([XORG_CORE_LIBS])
 
 xorg_bus_linuxpci=no
@@ -1295,7 +1308,7 @@ AC_MSG_RESULT([$XPRINT])
 if test "x$XPRINT" = xyes; then
 	PKG_CHECK_MODULES([XPRINT], [printproto x11 xfont $XDMCP_MODULES xau])
 	XPRINT_EXTENSIONS="$XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $RENDER_LIB $COMPOSITE_LIB $RANDR_LIB $XI_LIB $FIXES_LIB $DAMAGE_LIB $XI_LIB $GLX_LIBS"
-	XPRINT_LIBS="$XPRINT_LIBS $DIX_LIB $XKB_LIB $XKB_STUB_LIB $XPRINT_EXTENSIONS $MI_LIB $MIEXT_DAMAGE_LIB $CWRAP_LIB $OS_LIB"
+	XPRINT_LIBS="$XPRINT_LIBS $DIX_LIB $CONFIG_LIB $XKB_LIB $XKB_STUB_LIB $XPRINT_EXTENSIONS $MI_LIB $MIEXT_DAMAGE_LIB $CWRAP_LIB $OS_LIB"
 	AC_SUBST([XPRINT_CFLAGS])
 	AC_SUBST([XPRINT_LIBS])
 
@@ -1451,7 +1464,7 @@ if test "$KDRIVE" = yes; then
     KDRIVE_LIB='$(top_builddir)/hw/kdrive/src/libkdrive.a'
     KDRIVE_OS_LIB='$(top_builddir)/hw/kdrive/linux/liblinux.a'
     KDRIVE_STUB_LIB='$(top_builddir)/hw/kdrive/src/libkdrivestubs.a'
-    KDRIVE_LIBS="$DIX_LIB $KDRIVE_LIB $KDRIVE_OS_LIB $KDRIVE_PURE_LIBS $KDRIVE_STUB_LIB"
+    KDRIVE_LIBS="$DIX_LIB $CONFIG_LIB $KDRIVE_LIB $KDRIVE_OS_LIB $KDRIVE_PURE_LIBS $KDRIVE_STUB_LIB"
 
     # check if we can build Xephyr
     PKG_CHECK_MODULES(XEPHYR, x11 xext xfont xau xdmcp, [xephyr="yes"], [xephyr="no"])
@@ -1630,6 +1643,7 @@ XTrap/Makefile
 mfb/Makefile
 cfb/Makefile
 cfb32/Makefile
+config/Makefile
 mi/Makefile
 miext/Makefile
 miext/damage/Makefile

@@ -436,4 +436,7 @@
 /* Define to 1 if modules should avoid the libcwrapper */
 #undef NO_LIBCWRAPPER
 
+/* Support D-BUS */
+#undef HAVE_DBUS
+
 #endif /* _DIX_CONFIG_H_ */

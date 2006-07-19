@@ -163,6 +163,12 @@ extern void ResetDevicePrivateIndex(void);
 extern KeybdCtrl	defaultKeyboardControl;
 extern PtrCtrl		defaultPointerControl;
 
+typedef struct _InputOption {
+    char                *key;
+    char                *value;
+    struct _InputOption *next;
+} InputOption;
+
 extern DeviceIntPtr AddInputDevice(
     DeviceProc /*deviceProc*/,
     Bool /*autoStart*/);
@@ -365,5 +371,12 @@ extern void ProcessInputEvents(void);
 extern void InitInput(
     int  /*argc*/,
     char ** /*argv*/);
+
+/* Implemented by the DDX. */
+extern int NewInputDeviceRequest(
+    InputOption *options);
+
+extern DeviceIntPtr LookupDeviceIntRec(
+    CARD8 deviceid);
 
 #endif /* INPUT_H */

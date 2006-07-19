@@ -59,6 +59,7 @@ SUBDIRS = \
 	$(COMPOSITE_DIR) \
 	$(GLX_DIR) \
 	exa \
+	config \
 	hw
 
 aclocaldir = $(datadir)/aclocal

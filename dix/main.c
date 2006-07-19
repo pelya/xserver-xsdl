@@ -101,6 +101,7 @@ Equipment Corporation.
 #include <X11/fonts/font.h>
 #include "opaque.h"
 #include "servermd.h"
+#include "config.h"
 #include "site.h"
 #include "dixfont.h"
 #include "extnsionst.h"
@@ -311,6 +312,7 @@ main(int argc, char *argv[], char *envp[])
 	DPMSPowerLevel = 0;
 #endif
 	InitBlockAndWakeupHandlers();
+        configInitialise();
 	/* Perform any operating system dependent initializations you'd like */
 	OsInit();		
 	if(serverGeneration == 1)
@@ -463,6 +465,7 @@ main(int argc, char *argv[], char *envp[])
 	FreeAllResources();
 #endif
 
+        configFini();
 	CloseDownDevices();
 	for (i = screenInfo.numScreens - 1; i >= 0; i--)
 	{
