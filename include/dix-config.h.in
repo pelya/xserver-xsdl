@@ -442,4 +442,7 @@
 /* Use only built-in fonts */
 #undef BUILTIN_FONTS
 
+/* Avoid using font servers */
+#undef NOFONTSERVERACCESS
+
 #endif /* _DIX_CONFIG_H_ */
