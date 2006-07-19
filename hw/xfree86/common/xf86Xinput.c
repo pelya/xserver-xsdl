@@ -622,6 +622,82 @@ ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
 }
 #endif
 
+int
+NewInputDeviceRequest (InputOption *options)
+{
+    IDevRec *idev = NULL;
+    InputDriverPtr drv = NULL;
+    InputInfoPtr pInfo = NULL;
+    InputOption *option = NULL;
+    DeviceIntPtr dev = NULL;
+    int i;
+
+    idev = xcalloc(sizeof(*idev), 1);
+    if (!idev)
+        return BadAlloc;
+
+    for (option = options; option; option = option->next) {
+        if (strcmp(option->key, "driver") == 0) {
+            if (!xf86LoadOneModule(option->value, NULL))
+                return BadName;
+            drv = xf86LookupInputDriver(option->value);
+            if (!drv) {
+                xf86Msg(X_ERROR, "No input driver matching `%s'\n",
+                        option->value);
+                return BadName;
+            }
+            idev->driver = xstrdup(option->value);
+            if (!idev->driver) {
+                xfree(idev);
+                return BadAlloc;
+            }
+        }
+        if (strcmp(option->key, "name") == 0 ||
+            strcmp(option->key, "identifier") == 0) {
+            idev->identifier = xstrdup(option->value);
+            if (!idev->identifier) {
+                xfree(idev);
+                return BadAlloc;
+            }
+        }
+    }
+
+    if (!drv->PreInit) {
+        xf86Msg(X_ERROR,
+                "Input driver `%s' has no PreInit function (ignoring)\n",
+                drv->driverName);
+        return BadImplementation;
+    }
+
+    idev->commonOptions = NULL;
+    for (option = options; option; option = option->next)
+        idev->commonOptions = xf86addNewOption(idev->commonOptions,
+                                               option->key, option->value);
+    idev->extraOptions = NULL;
+
+    pInfo = drv->PreInit(drv, idev, 0);
+
+    if (!pInfo) {
+        xf86Msg(X_ERROR, "PreInit returned NULL for \"%s\"\n", idev->identifier);
+        return BadMatch;
+    }
+    else if (!(pInfo->flags & XI86_CONFIGURED)) {
+        xf86Msg(X_ERROR, "PreInit failed for input device \"%s\"\n",
+                idev->identifier);
+        xf86DeleteInput(pInfo, 0);
+        return BadMatch;
+    }
+
+    xf86ActivateDevice(pInfo);
+
+    dev = pInfo->dev;
+    dev->inited = ((*dev->deviceProc)(dev, DEVICE_INIT) == Success);
+    if (dev->inited && dev->startup)
+        EnableDevice(dev);
+
+    return Success;
+}
+
 /*
  * adapted from mieq.c to support extended events
  *

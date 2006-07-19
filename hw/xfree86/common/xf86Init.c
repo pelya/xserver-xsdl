@@ -985,21 +985,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 				 NULL);
 }
 
-
-static InputDriverPtr
-MatchInput(IDevPtr pDev)
-{
-    int i;
-
-    for (i = 0; i < xf86NumInputDrivers; i++) {
-	if (xf86InputDriverList[i] && xf86InputDriverList[i]->driverName &&
-	    xf86NameCmp(pDev->driver, xf86InputDriverList[i]->driverName) == 0)
-	    return xf86InputDriverList[i];
-    }
-    return NULL;
-}
-
-
 /*
  * InitInput --
  *      Initialize all supported input devices.
@@ -1033,7 +1018,7 @@ InitInput(argc, argv)
 	    }
 #endif
 
-	    if ((pDrv = MatchInput(pDev)) == NULL) {
+	    if ((pDrv = xf86LookupInputDriver(pDev->driver)) == NULL) {
 		xf86Msg(X_ERROR, "No Input driver matching `%s'\n", pDev->driver);
 		/* XXX For now, just continue. */
 		continue;
