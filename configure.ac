@@ -422,7 +422,6 @@ AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCa
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
 AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--disable-xf86bigfont], [Build XF86 Big Font extension (default: enabled)]), [XF86BIGFONT=$enableval], [XF86BIGFONT=yes])
 AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled)]), [DPMSExtension=$enableval], [DPMSExtension=yes])
-AC_ARG_ENABLE(xinput,         AS_HELP_STRING([--disable-xinput], [Build XInput Extension (default: enabled)]), [XINPUT=$enableval], [XINPUT=yes])
 AC_ARG_ENABLE(dbus,           AS_HELP_STRING([--disable-dbus], [Build D-BUS support (default: auto)]), [DBUS=$enableval], [DBUS=auto])
 
 dnl DDXes.
@@ -733,12 +732,9 @@ if test "$COMPOSITE" = yes; then
 fi
 MIEXT_DAMAGE_INC='-I$(top_srcdir)/miext/damage'
 
-AM_CONDITIONAL(XINPUT, [test "x$XINPUT" = xyes])
-if test "x$XINPUT" = xyes; then
-   	AC_DEFINE(XINPUT, 1, [Support X Input extension])
-	XI_LIB='$(top_builddir)/Xi/libXi.la'
-	XI_INC='-I$(top_srcdir)/Xi'
-fi
+AC_DEFINE(XINPUT, 1, [Support X Input extension])
+XI_LIB='$(top_builddir)/Xi/libXi.la'
+XI_INC='-I$(top_srcdir)/Xi'
 
 AC_DEFINE(SHAPE, 1, [Support SHAPE extension])
 
