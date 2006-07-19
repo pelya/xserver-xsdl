@@ -51,6 +51,7 @@ extern Mask DeviceMappingNotifyMask;
 extern Mask DeviceOwnerGrabButtonMask;
 extern Mask DeviceButtonGrabMask;
 extern Mask DeviceButtonMotionMask;
+extern Mask DevicePresenceNotifyMask;
 extern Mask PropagateMask[];
 
 extern int DeviceValuator;
@@ -68,12 +69,8 @@ extern int DeviceKeyStateNotify;
 extern int DeviceButtonStateNotify;
 extern int DeviceMappingNotify;
 extern int ChangeDeviceNotify;
+extern int DevicePresenceNotify;
 
 extern int RT_INPUTCLIENT;
-
-#if 0
-/* FIXME: in dix */
-extern InputInfo inputInfo;
-#endif
 
 #endif /* EXGLOBALS_H */

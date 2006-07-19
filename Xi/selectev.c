@@ -74,6 +74,53 @@ SOFTWARE.
 extern Mask ExtExclusiveMasks[];
 extern Mask ExtValidMasks[];
 
+static int
+HandleDevicePresenceMask(ClientPtr client, WindowPtr win,
+                         XEventClass *cls, CARD16 *count)
+{
+    int i, j;
+    Mask mask;
+
+    /* We use the device ID 256 to select events that aren't bound to
+     * any device.  For now we only handle the device presence event,
+     * but this could be extended to other events that aren't bound to
+     * a device.
+     *
+     * In order not to break in CreateMaskFromList() we remove the
+     * entries with device ID 256 from the XEventClass array.
+     */
+
+    mask = 0;
+    for (i = 0, j = 0; i < *count; i++) {
+        if (cls[i] >> 8 != 256) {
+            cls[j] = cls[i];
+            j++;
+            continue;
+        }
+
+        switch (cls[i] & 0xff) {
+        case _devicePresence:
+            mask |= DevicePresenceNotifyMask;
+            break;
+        }
+    }
+
+    *count = j;
+
+    if (mask == 0)
+        return Success;
+
+    /* We always only use mksidx = 0 for events not bound to
+     * devices */
+
+    if (AddExtensionClient (win, client, mask, 0) != Success)
+        return BadAlloc;
+
+    RecalculateDeviceDeliverableEvents(win);
+
+    return Success;
+}
+
 /***********************************************************************
  *
  * Handle requests from clients with a different byte order.
@@ -129,6 +176,13 @@ ProcXSelectExtensionEvent(register ClientPtr client)
 	SendErrorToClient(client, IReqCode, X_SelectExtensionEvent, 0,
 			  BadWindow);
 	return Success;
+    }
+
+    if (HandleDevicePresenceMask(client, pWin, (XEventClass *) & stuff[i],
+                                &stuff->count) != Success) {
+       SendErrorToClient(client, IReqCode, X_SelectExtensionEvent, 0,
+                         BadAlloc);
+       return Success;
     }
 
     if ((ret = CreateMaskFromList(client, (XEventClass *) & stuff[1],
