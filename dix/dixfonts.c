@@ -1889,7 +1889,7 @@ InitFonts ()
 {
     patternCache = MakeFontPatternCache();
 
-#ifndef KDRIVESERVER
+#ifndef BUILTIN_FONTS
     if (screenInfo.numScreens > screenInfo.numVideoScreens) {
 	PrinterFontRegisterFpeFunctions();
 	FontFileCheckRegisterFpeFunctions();
@@ -1897,10 +1897,11 @@ InitFonts ()
     } else 
 #endif
     {
-#ifdef KDRIVESERVER
-	BuiltinRegisterFpeFunctions();
-#endif
+#ifdef BUILTIN_FONTS
+        BuiltinRegisterFpeFunctions();
+#else
 	FontFileRegisterFpeFunctions();
+#endif
 #ifndef NOFONTSERVERACCESS
 	fs_register_fpe_functions();
 #endif

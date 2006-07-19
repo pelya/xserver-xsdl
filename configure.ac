@@ -392,6 +392,9 @@ AC_ARG_ENABLE(install-libxf86config,
 				[Install libxf86config (default: disabled)]),
 				[INSTALL_LIBXF86CONFIG=$enableval],
 				[INSTALL_LIBXF86CONFIG=no])
+AC_ARG_ENABLE(builtin-fonts,  AS_HELP_STRING([--enable-builtin-fonts], [Use only built-in fonts (default: use external)]),
+                                [BUILTIN_FONTS=$enableval],
+                                [BUILTIN_FONTS=no])
 
 dnl Extensions.
 AC_ARG_ENABLE(composite,      AS_HELP_STRING([--disable-composite], [Build Composite extension (default: enabled)]), [COMPOSITE=$enableval], [COMPOSITE=yes])
@@ -708,6 +711,11 @@ AM_CONDITIONAL(XPRINT, [test "x$XPRINT" = xyes])
 if test "x$XPRINT" = xyes; then
 	AC_DEFINE(XPRINT, 1, [Build Print extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES printproto"
+fi
+
+if test "x$BUILTIN_FONTS" = xyes; then
+       AC_DEFINE(BUILTIN_FONTS, 1, [Use only built-in fonts])
+       AC_DEFINE(NOFONTSERVERACCESS, 1, [Avoid using a font server])
 fi
 
 AC_DEFINE(RENDER, 1, [Support RENDER extension])

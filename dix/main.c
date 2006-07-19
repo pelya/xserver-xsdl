@@ -403,9 +403,14 @@ main(int argc, char *argv[], char *envp[])
 	    FatalError("failed to initialize core devices");
 
 	InitFonts();
+#ifdef BUILTIN_FONTS
+        defaultFontPath = "built-ins";
+#else
 	if (loadableFonts) {
 	    SetFontPath(0, 0, (unsigned char *)defaultFontPath, &error);
-	} else {
+	} else 
+#endif
+        {
 	    if (SetDefaultFontPath(defaultFontPath) != Success)
 		ErrorF("failed to set default font path '%s'",
 			defaultFontPath);

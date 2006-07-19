@@ -439,4 +439,7 @@
 /* Support D-BUS */
 #undef HAVE_DBUS
 
+/* Use only built-in fonts */
+#undef BUILTIN_FONTS
+
 #endif /* _DIX_CONFIG_H_ */
