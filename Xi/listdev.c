@@ -241,6 +241,10 @@ CopySwapDevice(register ClientPtr client, DeviceIntPtr d, int num_classes,
 	dev->use = IsXKeyboard;
     else if (d == inputInfo.pointer)
 	dev->use = IsXPointer;
+    else if (d->key && d->kbdfeed)
+        dev->use = IsXExtensionKeyboard;
+    else if (d->valuator && d->button)
+        dev->use = IsXExtensionPointer;
     else
 	dev->use = IsXExtensionDevice;
     if (client->swapped) {
