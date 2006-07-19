@@ -124,6 +124,18 @@ ProcXGetDeviceControl(ClientPtr client)
 	total_length = sizeof(xDeviceResolutionState) +
 	    (3 * sizeof(int) * dev->valuator->numAxes);
 	break;
+    case DEVICE_TOUCHSCREEN:
+        if (!dev->touchscreen) {
+            SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0,
+                              BadMatch);
+            return Success;
+        }
+
+        total_length = sizeof(xDeviceTSCtl);
+        break;
+    case DEVICE_CORE:
+        total_length = sizeof(xDeviceCoreCtl);
+        break;
     default:
 	SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0, BadValue);
 	return Success;
@@ -140,6 +152,11 @@ ProcXGetDeviceControl(ClientPtr client)
     case DEVICE_RESOLUTION:
 	CopySwapDeviceResolution(client, dev->valuator, buf, total_length);
 	break;
+    case DEVICE_TOUCHSCREEN:
+        CopySwapDeviceTouchscreen(client, dev->touchscreen, buf);
+        break;
+    case DEVICE_CORE:
+        CopySwapDeviceCore(client, dev, buf);
     default:
 	break;
     }
@@ -188,6 +205,48 @@ CopySwapDeviceResolution(ClientPtr client, ValuatorClassPtr v, char *buf,
 	}
     }
 }
+
+void CopySwapDeviceTouchscreen (ClientPtr client, TouchscreenClassPtr dts,
+                                char *buf)
+{
+    register char n;
+    xDeviceTSState *ts = (xDeviceTSState *) buf;
+
+    ts->control = DEVICE_TOUCHSCREEN;
+    ts->length = sizeof(ts);
+    ts->min_x = dts->min_x;
+    ts->max_x = dts->max_x;
+    ts->min_y = dts->min_y;
+    ts->max_y = dts->max_y;
+    ts->button_threshold = dts->button_threshold;
+
+    if (client->swapped) {
+        swaps(&ts->control, n);
+        swaps(&ts->length, n);
+        swapl(&ts->min_x, n);
+        swapl(&ts->max_x, n);
+        swapl(&ts->min_y, n);
+        swapl(&ts->max_y, n);
+        swapl(&ts->button_threshold, n);
+    }
+}
+
+void CopySwapDeviceCore (ClientPtr client, DeviceIntPtr dev, char *buf)
+{
+    register char n;
+    xDeviceCoreState *c = (xDeviceCoreState *) buf;
+
+    c->control = DEVICE_CORE;
+    c->length = sizeof(c);
+    c->status = dev->coreEvents;
+
+    if (client->swapped) {
+        swaps(&c->control, n);
+        swaps(&c->length, n);
+        swaps(&c->status, n);
+    }
+}
+
 
 /***********************************************************************
  *
