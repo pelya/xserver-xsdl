@@ -64,6 +64,10 @@ SOFTWARE.
 
 #define EMASKSIZE	MAX_DEVICES
 
+#define POINTER_RELATIVE (1 << 1)
+#define POINTER_ABSOLUTE (1 << 2)
+#define POINTER_ACCELERATE (1 << 3)
+
 /* Kludge: OtherClients and InputClients must be compatible, see code */
 
 typedef struct _OtherClients {
@@ -150,6 +154,9 @@ typedef struct _ValuatorClassRec {
     unsigned short	numAxes;
     int			*axisVal;
     CARD8	 	mode;
+    int                 lastx, lasty; /* last event recorded, not posted to
+                                       * client; see dix/devices.c */
+    int                 dxremaind, dyremaind; /* for acceleration */
 } ValuatorClassRec, *ValuatorClassPtr;
 
 typedef struct _ButtonClassRec {

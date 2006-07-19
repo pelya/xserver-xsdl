@@ -372,6 +372,32 @@ extern void InitInput(
     int  /*argc*/,
     char ** /*argv*/);
 
+extern int GetPointerEvents(
+    xEvent **xE,
+    DeviceIntPtr pDev,
+    int type,
+    int buttons,
+    int flags,
+    int num_axes,
+    int *valuators);
+
+extern int GetKeyboardEvents(
+    xEvent **xE,
+    DeviceIntPtr pDev,
+    int type,
+    int key_code);
+
+extern int GetKeyboardValuatorEvents(
+    xEvent **xE,
+    DeviceIntPtr pDev,
+    int type,
+    int key_code,
+    int num_axes,
+    int *valuators);
+
+extern DeviceIntPtr LookupDeviceIntRec(
+    CARD8 deviceid);
+
 /* Implemented by the DDX. */
 extern int NewInputDeviceRequest(
     InputOption *options);

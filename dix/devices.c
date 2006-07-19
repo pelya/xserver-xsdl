@@ -611,6 +611,10 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     valc->axisVal = (int *)(valc->axes + numAxes);
     for (i=0; i<numAxes; i++)
 	valc->axisVal[i]=0;
+    valc->lastx = 0;
+    valc->lasty = 0;
+    valc->dxremaind = 0;
+    valc->dyremaind = 0;
     dev->valuator = valc;
     return TRUE;
 }

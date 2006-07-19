@@ -157,12 +157,15 @@ xEvent *xeviexE;
 #endif
 
 #include <X11/extensions/XIproto.h>
+#include "exglobals.h"
 #include "exevents.h"
 #include "extnsionst.h"
 
 #include "dixevents.h"
 #include "dixgrabs.h"
 #include "dispatch.h"
+
+int CoreDevicePrivatesIndex = 0, CoreDevicePrivatesGeneration = -1;
 
 #define EXTENSION_EVENT_BASE  64
 
@@ -4659,4 +4662,402 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
     {
 	(void)WriteToClient(pClient, count * sizeof(xEvent), (char *) events);
     }
+}
+
+int
+GetKeyboardEvents(xEvent **xE, DeviceIntPtr pDev, int type, int key_code) {
+    return GetKeyboardValuatorEvents(xE, pDev, type, key_code, 0, NULL);
+}
+
+int GetKeyboardValuatorEvents(xEvent **xE, DeviceIntPtr pDev, int type,
+                              int key_code, int num_valuators,
+                              int *valuators) {
+    int numEvents = 0, ms = 0, first_valuator = 0;
+    deviceKeyButtonPointer *kbp = NULL;
+    deviceValuator *xv = NULL;
+    xEvent *ev = NULL;
+    KeyClassPtr ckeyc;
+#ifdef XKB
+    xkbNewKeyboardNotify nkn;
+#endif
+
+    if (type != KeyPress && type != KeyRelease)
+        return 0;
+
+    if (!pDev->key || !pDev->focus ||
+        (pDev->coreEvents && !inputInfo.keyboard->key))
+        return 0;
+
+    if (pDev->coreEvents)
+        numEvents = 2;
+    else
+        numEvents = 1;
+
+    if (num_valuators)
+        numEvents += (num_valuators % 6) + 1;
+
+    ev = (xEvent *)xcalloc(sizeof(xEvent), numEvents);
+    if (!ev)
+        return 0;
+
+    *xE = ev;
+    ms = GetTimeInMillis();
+
+    kbp = (deviceKeyButtonPointer *) ev;
+    kbp->time = ms;
+    kbp->deviceid = pDev->id;
+    if (type == KeyPress)
+        kbp->type = DeviceKeyPress;
+    else if (type == KeyRelease)
+        kbp->type = DeviceKeyRelease;
+
+    if (num_valuators) {
+        kbp->deviceid |= MORE_EVENTS;
+        while (first_valuator < num_valuators) {
+            xv = (deviceValuator *) ++ev;
+            xv->type = DeviceValuator;
+            xv->first_valuator = first_valuator;
+            xv->num_valuators = num_valuators;
+            xv->deviceid = kbp->deviceid;
+            switch (num_valuators - first_valuator) {
+            case 6:
+                xv->valuator5 = valuators[first_valuator+5];
+            case 5:
+                xv->valuator4 = valuators[first_valuator+4];
+            case 4:
+                xv->valuator3 = valuators[first_valuator+3];
+            case 3:
+                xv->valuator2 = valuators[first_valuator+2];
+            case 2:
+                xv->valuator1 = valuators[first_valuator+1];
+            case 1:
+                xv->valuator0 = valuators[first_valuator];
+            }
+            first_valuator += 6;
+        }
+#ifdef DEBUG
+        ErrorF("GKVE: DV event with %d valuators\n", xv->num_valuators);
+#endif
+    }
+
+    if (pDev->coreEvents) {
+        ev++;
+        ev->u.keyButtonPointer.time = ms;
+        ev->u.u.type = type;
+        ev->u.u.detail = key_code;
+
+        if (inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr !=
+            pDev) {
+            ckeyc = inputInfo.keyboard->key;
+            memcpy(ckeyc->modifierMap, pDev->key->modifierMap, MAP_LENGTH);
+            if (ckeyc->modifierKeyMap)
+                xfree(ckeyc->modifierKeyMap);
+            ckeyc->modifierKeyMap = xalloc(8 * pDev->key->maxKeysPerModifier);
+            memcpy(ckeyc->modifierKeyMap, pDev->key->modifierKeyMap,
+                    (8 * pDev->key->maxKeysPerModifier));
+            ckeyc->maxKeysPerModifier = pDev->key->maxKeysPerModifier;
+            ckeyc->curKeySyms.map = NULL;
+            ckeyc->curKeySyms.mapWidth = 0;
+            ckeyc->curKeySyms.minKeyCode = pDev->key->curKeySyms.minKeyCode;
+            ckeyc->curKeySyms.maxKeyCode = pDev->key->curKeySyms.maxKeyCode;
+            SetKeySymsMap(&ckeyc->curKeySyms, &pDev->key->curKeySyms);
+#ifdef XKB
+            if (!noXkbExtension) {
+                nkn.oldMinKeyCode = ckeyc->xkbInfo->desc->min_key_code;
+                nkn.oldMaxKeyCode = ckeyc->xkbInfo->desc->max_key_code;
+                nkn.deviceID = nkn.oldDeviceID = inputInfo.keyboard->id;
+                nkn.minKeyCode = pDev->key->xkbInfo->desc->min_key_code;
+                nkn.maxKeyCode = pDev->key->xkbInfo->desc->max_key_code;
+                nkn.requestMajor = XkbReqCode;
+                nkn.requestMinor = X_kbSetMap; /* XXX bare-faced lie */
+                nkn.changed = XkbAllNewKeyboardEventsMask;
+                /* Free the map we set up at DEVICE_INIT time, since it's
+                 * going to just quietly disappear.  Shameful hack. */
+                if (!inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr
+                    && ckeyc->xkbInfo)
+                    XkbFreeInfo(ckeyc->xkbInfo);
+                ckeyc->xkbInfo = pDev->key->xkbInfo;
+                /* FIXME OH MY GOD SO AWFUL let's hope nobody notices */
+                if (nkn.oldMinKeyCode == nkn.minKeyCode)
+                    nkn.oldMinKeyCode--;
+                if (nkn.oldMaxKeyCode == nkn.maxKeyCode)
+                    nkn.oldMaxKeyCode++;
+                XkbSendNewKeyboardNotify(inputInfo.keyboard, &nkn);
+            }
+#endif
+            SendMappingNotify(MappingKeyboard, ckeyc->curKeySyms.minKeyCode,
+                              (ckeyc->curKeySyms.maxKeyCode -
+                               ckeyc->curKeySyms.minKeyCode),
+                              serverClient);
+            inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
+        }
+    }
+
+#ifdef DEBUG
+    ErrorF("GKE: putting out %d events with detail %d\n", numEvents, key_code);
+#endif
+
+    return numEvents;
+}
+
+/* Originally a part of xf86PostMotionEvent. */
+static void
+acceleratePointer(DeviceIntPtr pDev, int num_valuators, int *valuators)
+{
+    float mult = 0.0;
+    int dx = num_valuators >= 1 ? valuators[0] : 0;
+    int dy = num_valuators >= 2 ? valuators[1] : 0;
+
+    if (!num_valuators || !valuators)
+        return;
+
+    /*
+     * Accelerate
+     */
+    if (pDev->ptrfeed && pDev->ptrfeed->ctrl.num) {
+        /* modeled from xf86Events.c */
+        if (pDev->ptrfeed->ctrl.threshold) {
+            if ((abs(dx) + abs(dy)) >= pDev->ptrfeed->ctrl.threshold) {
+                pDev->valuator->dxremaind = ((float)dx *
+                                             (float)(pDev->ptrfeed->ctrl.num)) /
+                                             (float)(pDev->ptrfeed->ctrl.den) +
+                                            pDev->valuator->dxremaind;
+                valuators[0] = (int)pDev->valuator->dxremaind;
+                pDev->valuator->dxremaind = pDev->valuator->dxremaind -
+                                            (float)valuators[0];
+
+                pDev->valuator->dyremaind = ((float)dy *
+                                             (float)(pDev->ptrfeed->ctrl.num)) /
+                                             (float)(pDev->ptrfeed->ctrl.den) +
+                                            pDev->valuator->dyremaind;
+                valuators[1] = (int)pDev->valuator->dyremaind;
+                pDev->valuator->dyremaind = pDev->valuator->dyremaind -
+                                            (float)valuators[1];
+            }
+        }
+        else if (dx || dy) {
+            mult = pow((float)(dx * dx + dy * dy),
+                       ((float)(pDev->ptrfeed->ctrl.num) /
+                        (float)(pDev->ptrfeed->ctrl.den) - 1.0) /
+                       2.0) / 2.0;
+            if (dx) {
+                pDev->valuator->dxremaind = mult * (float)dx +
+                                            pDev->valuator->dxremaind;
+                valuators[0] = (int)pDev->valuator->dxremaind;
+                pDev->valuator->dxremaind = pDev->valuator->dxremaind -
+                                            (float)valuators[0];
+            }
+            if (dy) {
+                pDev->valuator->dyremaind = mult * (float)dy +
+                                            pDev->valuator->dyremaind;
+                valuators[1] = (int)pDev->valuator->dyremaind;
+                pDev->valuator->dyremaind = pDev->valuator->dyremaind -
+                                            (float)valuators[1];
+            }
+        }
+    }
+}
+
+int
+GetPointerEvents(xEvent **xE, DeviceIntPtr pDev, int type, int buttons,
+                 int flags, int num_valuators, int *valuators) {
+    int numEvents, ms, first_valuator = 0;
+    deviceKeyButtonPointer *kbp = NULL;
+    deviceValuator *xv = NULL;
+    AxisInfoPtr axes = NULL;
+    xEvent *ev = NULL;
+    DeviceIntPtr cp = inputInfo.pointer;
+
+    if (type != MotionNotify && type != ButtonPress && type != ButtonRelease)
+        return 0;
+
+    if (!pDev->button || (pDev->coreEvents && !(cp->button || !cp->valuator)))
+        return 0;
+
+#ifdef DEBUG
+    ErrorF("GPE: called with device %d, type %d\n", pDev->id, type);
+    ErrorF("GPE: relative %s, accelerate %s\n", flags & POINTER_RELATIVE ? "yes" : "no",
+           flags & POINTER_ACCELERATE ? "yes" : "no");
+#endif
+
+    if (pDev->coreEvents)
+        numEvents = 2;
+    else
+        numEvents = 1;
+
+    if (type == MotionNotify) {
+        if (num_valuators > 2)
+            numEvents += (num_valuators / 6) + 1;
+        else if (num_valuators < 2)
+            return 0;
+    }
+
+    ev = (xEvent *)xcalloc(sizeof(xEvent), numEvents);
+    if (!ev)
+        return 0;
+
+    *xE = ev;
+    ms = GetTimeInMillis();
+
+    kbp = (deviceKeyButtonPointer *) ev;
+    kbp->time = ms;
+    kbp->deviceid = pDev->id;
+
+    if (flags & POINTER_ABSOLUTE) {
+        if (num_valuators >= 1) {
+            kbp->root_x = valuators[0];
+        }
+        else {
+            if (pDev->coreEvents)
+                kbp->root_x = cp->valuator->lastx;
+            else
+                kbp->root_x = pDev->valuator->lastx;
+        }
+        if (num_valuators >= 2) {
+            kbp->root_y = valuators[1];
+        }
+        else {
+            if (pDev->coreEvents)
+                kbp->root_x = cp->valuator->lasty;
+            else
+                kbp->root_y = pDev->valuator->lasty;
+        }
+    }
+    else {
+        if (flags & POINTER_ACCELERATE)
+            acceleratePointer(pDev, num_valuators, valuators);
+
+        if (pDev->coreEvents) {
+            if (num_valuators >= 1)
+                kbp->root_x = cp->valuator->lastx + valuators[0];
+            else
+                kbp->root_x = cp->valuator->lastx;
+            if (num_valuators >= 2)
+                kbp->root_y = cp->valuator->lasty + valuators[1];
+            else
+                kbp->root_y = cp->valuator->lasty;
+        }
+        else {
+            if (num_valuators >= 1)
+                kbp->root_x = pDev->valuator->lastx + valuators[0];
+            else
+                kbp->root_x = pDev->valuator->lastx;
+            if (num_valuators >= 2)
+                kbp->root_y = pDev->valuator->lasty + valuators[1];
+            else
+                kbp->root_y = pDev->valuator->lasty;
+        }
+    }
+
+    /* FIXME: need mipointer-like semantics to move on to different screens. */
+    axes = pDev->valuator->axes;
+    if (kbp->root_x < axes->min_value)
+        kbp->root_x = axes->min_value;
+    if (kbp->root_x > axes->max_value)
+        kbp->root_x = axes->max_value;
+    axes++;
+    if (kbp->root_y < axes->min_value)
+        kbp->root_y = axes->min_value;
+    if (kbp->root_y > axes->max_value)
+        kbp->root_y = axes->max_value;
+
+    if (pDev->coreEvents) {
+#ifdef DEBUG
+        ErrorF("warping core lastx from %d to %d\n", cp->valuator->lastx, kbp->root_x);
+        ErrorF("x value given was %d\n", valuators[0]);
+#endif
+        cp->valuator->lastx = kbp->root_x;
+#ifdef DEBUG
+        ErrorF("warping core lasty from %d to %d\n", cp->valuator->lasty, kbp->root_y);
+        ErrorF("y value given was %d\n", valuators[1]);
+#endif
+        cp->valuator->lasty = kbp->root_y;
+    }
+    pDev->valuator->lastx = kbp->root_x;
+    pDev->valuator->lasty = kbp->root_y;
+
+    if (type == MotionNotify) {
+        kbp->type = DeviceMotionNotify;
+#ifdef DEBUG
+        ErrorF("GPE: motion at %d, %d\n", kbp->root_x, kbp->root_y);
+#endif
+    }
+    else {
+        if (type == ButtonPress)
+            kbp->type = DeviceButtonPress;
+        else if (type == ButtonRelease)
+            kbp->type = DeviceButtonRelease;
+#ifdef DEBUG
+        ErrorF("GPE: detail is %d\n", buttons);
+#endif
+        kbp->detail = buttons;
+    }
+
+    /* XXX: the spec says that Device{Key,Button}{Press,Release} events
+     * for relative devices shouldn't contain valuators since only the
+     * state field will have meaning, but I don't see why. */
+    if (num_valuators > 2 && (type == MotionNotify ||
+                              flags & POINTER_ABSOLUTE)) {
+        kbp->deviceid |= MORE_EVENTS;
+        while (first_valuator < num_valuators) {
+            xv = (deviceValuator *) ++ev;
+            xv->type = DeviceValuator;
+            xv->first_valuator = first_valuator;
+            xv->num_valuators = num_valuators;
+            xv->deviceid = kbp->deviceid;
+            switch (num_valuators - first_valuator) {
+            case 6:
+                xv->valuator5 = valuators[first_valuator+5];
+            case 5:
+                xv->valuator4 = valuators[first_valuator+4];
+            case 4:
+                xv->valuator3 = valuators[first_valuator+3];
+            case 3:
+                xv->valuator2 = valuators[first_valuator+2];
+            case 2:
+                if (first_valuator == 0)
+                    xv->valuator1 = kbp->root_y;
+                else
+                    xv->valuator1 = valuators[first_valuator+1];
+            case 1:
+                if (first_valuator == 0)
+                    xv->valuator0 = kbp->root_x;
+                else
+                    xv->valuator0 = valuators[first_valuator];
+            }
+            first_valuator += 6;
+        }
+#ifdef DEBUG
+        ErrorF("GPE: DV event with %d valuators\n", xv->num_valuators);
+#endif
+    }
+
+    if (pDev->coreEvents) {
+        ev++;
+        ev->u.u.type = type;
+        ev->u.keyButtonPointer.time = ms;
+        ev->u.keyButtonPointer.rootX = kbp->root_x;
+        ev->u.keyButtonPointer.rootY = kbp->root_y;
+        cp->valuator->lastx = kbp->root_x;
+        cp->valuator->lasty = kbp->root_y;
+#ifdef DEBUG
+        ErrorF("GPE: core co-ords at %d, %d\n", kbp->root_x, kbp->root_y);
+#endif
+        if (type == ButtonPress || type == ButtonRelease) {
+#ifdef DEBUG
+            ErrorF("GPE: core detail is %d\n", buttons);
+#endif
+            /* Core buttons remapping shouldn't be transitive. */
+            ev->u.u.detail = pDev->button->map[buttons];
+        }
+        else {
+            ev->u.u.detail = 0;
+        }
+
+        if (inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr !=
+            pDev)
+            inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
+    }
+
+    return numEvents;
 }
