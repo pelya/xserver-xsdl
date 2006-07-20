@@ -76,7 +76,6 @@ xf86Int10InfoPtr
 xf86ExtendedInitInt10(int entityIndex, int Flags)
 {
     xf86Int10InfoPtr pInt = NULL;
-    CARD8 *bios_base;
     int screen;
     int fd;
     static void* vidMem = NULL;
