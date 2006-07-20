@@ -14,7 +14,6 @@ SRCS =	Args.c \
 	GC.c \
 	GCOps.c \
 	GCOps.h \
-	GetTime.c \
 	Handlers.c \
 	Handlers.h \
 	Init.c \

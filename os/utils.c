@@ -545,7 +545,6 @@ GiveUp(int sig)
     errno = olderrno;
 }
 
-#ifndef DDXTIME
 _X_EXPORT CARD32
 GetTimeInMillis(void)
 {
@@ -554,7 +553,6 @@ GetTimeInMillis(void)
     X_GETTIMEOFDAY(&tp);
     return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
 }
-#endif
 
 _X_EXPORT void
 AdjustWaitForDelay (pointer waitTime, unsigned long newdelay)
