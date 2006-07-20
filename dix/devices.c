@@ -838,6 +838,27 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
 }
 
 _X_EXPORT Bool
+InitTouchscreenClassDeviceStruct(DeviceIntPtr dev)
+{
+    register TouchscreenClassPtr tsc;
+
+    tsc = (TouchscreenClassPtr)xalloc(sizeof(TouchscreenClassRec));
+    if (!tsc)
+        return FALSE;
+
+    /* we don't do anything sensible with these, but should */
+    tsc->min_x = -1;
+    tsc->min_y = -1;
+    tsc->max_x = -1;
+    tsc->max_y = -1;
+
+    tsc->button_threshold = 0;
+    dev->touchscreen = tsc;
+
+    return TRUE;
+}
+
+_X_EXPORT Bool
 InitFocusClassDeviceStruct(DeviceIntPtr dev)
 {
     register FocusClassPtr focc;
