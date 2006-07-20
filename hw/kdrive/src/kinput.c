@@ -408,7 +408,9 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
     switch (onoff)
     {
     case DEVICE_INIT:
+#ifdef DEBUG
         ErrorF("initialising pointer %s ...\n", pi->name);
+#endif
         if (!pi->driver) {
             if (!pi->driverPrivate) {
                 ErrorF("no driver specified for %s\n", pi->name);
@@ -468,7 +470,6 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
         }
 
         if ((*pi->driver->Enable) (pi) == Success) {
-            ErrorF("initialised fine, returning success\n");
             pDev->on = TRUE;
             return Success;
         }
@@ -495,13 +496,11 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
         return Success;
 
     case DEVICE_CLOSE:
-        ErrorF("D_C\n");
 	if (pDev->on) {
             if (!pi->driver->Disable) {
                 return BadImplementation;
             }
             (*pi->driver->Disable) (pi);
-            ErrorF("disabled\n");
             pDev->on = FALSE;
         }
 
@@ -509,10 +508,8 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
             return BadImplementation;
 
         (*pi->driver->Fini) (pi);
-        ErrorF("finished\n");
 
         KdRemovePointer(pi);
-        ErrorF("removed\n");
         
         return Success;
     }

@@ -101,7 +101,10 @@ mieqEnqueue (xEvent *e)
     deviceKeyButtonPointer *lastkbp = (deviceKeyButtonPointer *)
                                       &laste->event[0];
 
+#ifdef DEBUG
     ErrorF("mieqEnqueue: slamming an event on to the queue from %d\n", kbp->deviceid & DEVICE_BITS);
+#endif
+
     if (e->u.u.type == MotionNotify) {
         miPointerAbsoluteCursor(e->u.keyButtonPointer.rootX,
                                 e->u.keyButtonPointer.rootY,
@@ -135,7 +138,6 @@ mieqEnqueue (xEvent *e)
                 return;
             }
             laste->event[laste->nevents++] = *e;
-            ErrorF("put a valuator event into the queue\n");
             return;
         }
         else if (e->u.u.type == DeviceMotionNotify) {
@@ -174,9 +176,11 @@ mieqEnqueue (xEvent *e)
     if (e->u.keyButtonPointer.time < miEventQueue.lastEventTime &&
 	miEventQueue.lastEventTime - e->u.keyButtonPointer.time < 10000)
     {
+#ifdef DEBUG
         ErrorF("mieq: rewinding event time from %d to %d\n",
                miEventQueue.lastEventTime,
                miEventQueue.events[oldtail].event[0].u.keyButtonPointer.time);
+#endif
 	miEventQueue.events[oldtail].event[0].u.keyButtonPointer.time =
 	    miEventQueue.lastEventTime;
     }
@@ -186,7 +190,6 @@ mieqEnqueue (xEvent *e)
     miEventQueue.events[oldtail].pDev = pDev;
 
     miEventQueue.lastMotion = isMotion;
-    ErrorF("bottom of mieqEnqueue\n");
 }
 
 void
@@ -205,8 +208,6 @@ void mieqProcessInputEvents ()
 {
     EventRec	*e;
     int		x, y;
-
-    ErrorF("mieqPIE: head %p, tail %p\n", miEventQueue.head, miEventQueue.tail);
 
     while (miEventQueue.head != miEventQueue.tail)
     {
@@ -234,7 +235,6 @@ void mieqProcessInputEvents ()
 	    	miEventQueue.head = 0;
 	    else
 	    	++miEventQueue.head;
-            ErrorF("calling pIP from mieqPIE\n");
             (*e->pDev->public.processInputProc)(e->event, e->pDev, e->nevents);
 	}
     }
