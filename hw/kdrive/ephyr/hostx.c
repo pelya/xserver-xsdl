@@ -675,13 +675,6 @@ hostx_load_keymap(void)
 			       max_keycode - min_keycode + 1,
 			       &host_width);
 
-
-  ephyrKeySyms.map = (KeySym *)calloc(sizeof(KeySym),
-                                      (max_keycode - min_keycode + 1) *
-                                      width);
-  if (!ephyrKeySyms.map)
-        return;
-  
   /* Try and copy the hosts keymap into our keymap to avoid loads
    * of messing around.
    *
@@ -690,15 +683,21 @@ hostx_load_keymap(void)
    */
   width = (host_width > 4) ? 4 : host_width;
 
+  ephyrKeySyms.map = (KeySym *)calloc(sizeof(KeySym),
+                                      (max_keycode - min_keycode + 1) *
+                                      width);
+  if (!ephyrKeySyms.map)
+        return;
+
   for (i=0; i<(max_keycode - min_keycode+1); i++)
     for (j=0; j<width; j++)
-      kdKeymap[ (i*width)+j ] = keymap[ (i*host_width) + j ];
+      ephyrKeySyms.map[(i*width)+j] = keymap[(i*host_width) + j];
 
   EPHYR_DBG("keymap width, host:%d kdrive:%d", host_width, width);
   
   ephyrKeySyms.minKeyCode  = min_keycode;
   ephyrKeySyms.maxKeyCode  = max_keycode;
-  ephyrKeySyms.mapWidth    = (width > 4) ? 4 : width;
+  ephyrKeySyms.mapWidth    = width;
 
   XFree(keymap);
 }

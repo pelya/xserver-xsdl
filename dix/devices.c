@@ -815,6 +815,9 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     int i;
     register ValuatorClassPtr valc;
 
+    if (!dev)
+        return FALSE;
+
     valc = (ValuatorClassPtr)xalloc(sizeof(ValuatorClassRec) +
 				    numAxes * sizeof(AxisInfo) +
 				    numAxes * sizeof(unsigned int));
@@ -827,13 +830,15 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     valc->mode = mode;
     valc->axes = (AxisInfoPtr)(valc + 1);
     valc->axisVal = (int *)(valc->axes + numAxes);
-    for (i=0; i<numAxes; i++)
-	valc->axisVal[i]=0;
     valc->lastx = 0;
     valc->lasty = 0;
     valc->dxremaind = 0;
     valc->dyremaind = 0;
     dev->valuator = valc;
+    for (i=0; i<numAxes; i++) {
+        InitValuatorAxisStruct(dev, i, 0, -1, 0, 0, 0);
+	valc->axisVal[i]=0;
+    }
     return TRUE;
 }
 

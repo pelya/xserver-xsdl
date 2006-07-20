@@ -4953,12 +4953,12 @@ GetPointerEvents(xEvent **xE, DeviceIntPtr pDev, int type, int buttons,
     axes = pDev->valuator->axes;
     if (kbp->root_x < axes->min_value)
         kbp->root_x = axes->min_value;
-    if (kbp->root_x > axes->max_value)
+    if (axes->max_value > 0 && kbp->root_x > axes->max_value)
         kbp->root_x = axes->max_value;
     axes++;
     if (kbp->root_y < axes->min_value)
         kbp->root_y = axes->min_value;
-    if (kbp->root_y > axes->max_value)
+    if (axes->max_value > 0 && kbp->root_y > axes->max_value)
         kbp->root_y = axes->max_value;
 
     if (pDev->coreEvents) {
