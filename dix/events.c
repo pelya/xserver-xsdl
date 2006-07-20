@@ -134,6 +134,7 @@ of the copyright holder.
 #include "globals.h"
 
 #ifdef XKB
+#include <X11/extensions/XKBproto.h>
 #include <X11/extensions/XKBsrv.h>
 extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
 #endif
@@ -159,13 +160,12 @@ xEvent *xeviexE;
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"
 #include "exevents.h"
+#include "exglobals.h"
 #include "extnsionst.h"
 
 #include "dixevents.h"
 #include "dixgrabs.h"
 #include "dispatch.h"
-
-int CoreDevicePrivatesIndex = 0, CoreDevicePrivatesGeneration = -1;
 
 #define EXTENSION_EVENT_BASE  64
 

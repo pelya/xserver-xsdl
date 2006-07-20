@@ -68,6 +68,8 @@ SOFTWARE.
 #define POINTER_ABSOLUTE (1 << 2)
 #define POINTER_ACCELERATE (1 << 3)
 
+extern int CoreDevicePrivatesIndex, CoreDevicePrivatesGeneration;
+
 /* Kludge: OtherClients and InputClients must be compatible, see code */
 
 typedef struct _OtherClients {

@@ -50,7 +50,6 @@ typedef struct {
     Bool		    confined;	/* pointer can't change screens */
     int			    x, y;	/* hot spot location */
     int			    devx, devy;	/* sprite position */
-    DevicePtr		    pPointer;   /* pointer device structure */
     miHistoryRec	    history[MOTION_SIZE];
     int			    history_start, history_end;
 } miPointerRec, *miPointerPtr;

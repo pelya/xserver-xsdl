@@ -171,8 +171,7 @@ typedef struct _DeviceRec *DevicePtr;
 #endif
 
 extern Bool mieqInit(
-    DevicePtr /*pKbd*/,
-    DevicePtr /*pPtr*/
+    void
 );
 
 extern void mieqEnqueue(

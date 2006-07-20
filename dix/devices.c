@@ -80,6 +80,13 @@ SOFTWARE.
 #include "swaprep.h"
 #include "dixevents.h"
 
+#ifdef XINPUT
+#include <X11/extensions/XIproto.h>
+#include "exglobals.h"
+#endif
+
+int CoreDevicePrivatesIndex = 0, CoreDevicePrivatesGeneration = -1;
+
 DeviceIntPtr
 AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 {
@@ -87,7 +94,7 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 
     if (inputInfo.numDevices >= MAX_DEVICES)
 	return (DeviceIntPtr)NULL;
-    dev = (DeviceIntPtr) xalloc(sizeof(DeviceIntRec));
+    dev = (DeviceIntPtr) xcalloc(sizeof(DeviceIntRec), 1);
     if (!dev)
 	return (DeviceIntPtr)NULL;
     dev->name = (char *)NULL;
@@ -113,19 +120,21 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     dev->button = (ButtonClassPtr)NULL;
     dev->focus = (FocusClassPtr)NULL;
     dev->proximity = (ProximityClassPtr)NULL;
+    dev->touchscreen = (TouchscreenClassPtr)NULL;
     dev->kbdfeed = (KbdFeedbackPtr)NULL;
     dev->ptrfeed = (PtrFeedbackPtr)NULL;
     dev->intfeed = (IntegerFeedbackPtr)NULL;
     dev->stringfeed = (StringFeedbackPtr)NULL;
     dev->bell = (BellFeedbackPtr)NULL;
     dev->leds = (LedFeedbackPtr)NULL;
-    dev->next = inputInfo.off_devices;
 #ifdef XKB
-    dev->xkb_interest= NULL;
+    dev->xkb_interest = NULL;
 #endif
     dev->nPrivates = 0;
     dev->devPrivates = NULL;
     dev->unwrapProc = NULL;
+    dev->coreEvents = TRUE;
+    dev->next = inputInfo.off_devices;
     inputInfo.off_devices = dev;
     return dev;
 }
@@ -134,14 +143,20 @@ Bool
 EnableDevice(register DeviceIntPtr dev)
 {
     register DeviceIntPtr *prev;
+    int ret;
 
     for (prev = &inputInfo.off_devices;
 	 *prev && (*prev != dev);
 	 prev = &(*prev)->next)
 	;
     if ((*prev != dev) || !dev->inited ||
-	((*dev->deviceProc)(dev, DEVICE_ON) != Success))
+	((ret = (*dev->deviceProc)(dev, DEVICE_ON)) != Success)) {
+        ErrorF("couldn't enable device %d\n", dev->id);
+#ifdef DEBUG
+        ErrorF("prev is %p, dev is %p, dev->inited is %d, ret is %d\n", prev, dev, dev->inited, ret);
+#endif
 	return FALSE;
+    }
     *prev = dev->next;
     dev->next = inputInfo.devices;
     inputInfo.devices = dev;
@@ -167,22 +182,220 @@ DisableDevice(register DeviceIntPtr dev)
 }
 
 int
+ActivateDevice(DeviceIntPtr dev)
+{
+    int ret = Success;
+#ifdef XINPUT
+    devicePresenceNotify ev;
+    DeviceIntRec dummyDev;
+#endif
+
+    if (!dev || !dev->deviceProc)
+        return BadImplementation;
+
+    ret = (*dev->deviceProc) (dev, DEVICE_INIT);
+    dev->inited = (ret == Success);
+    
+#ifdef XINPUT
+    ev.type = DevicePresenceNotify;
+    ev.time = currentTime.milliseconds;
+    dummyDev.id = 0;
+    SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
+                          &ev, 1);
+#endif
+
+    return ret;
+}
+
+static void
+CoreKeyboardBell(int volume, DeviceIntPtr pDev, pointer ctrl, int something)
+{
+    return;
+}
+
+static void
+CoreKeyboardCtl(DeviceIntPtr pDev, KeybdCtrl *ctrl)
+{
+    return;
+}
+
+static int
+CoreKeyboardProc(DeviceIntPtr pDev, int what)
+{
+    CARD8 *modMap;
+    KeySymsRec keySyms;
+#ifdef XKB
+    XkbComponentNamesRec names;
+#endif
+
+    switch (what) {
+    case DEVICE_INIT:
+        keySyms.minKeyCode = 8;
+        keySyms.maxKeyCode = 255;
+        keySyms.mapWidth = 4;
+        keySyms.map = (KeySym *)xcalloc(sizeof(KeySym),
+                                        (keySyms.maxKeyCode -
+                                         keySyms.minKeyCode) *
+                                        keySyms.mapWidth);
+        if (!keySyms.map) {
+            ErrorF("Couldn't allocate core keymap\n");
+            return BadAlloc;
+        }
+
+        modMap = (CARD8 *)xalloc(MAP_LENGTH);
+        if (!modMap) {
+            ErrorF("Couldn't allocate core modifier map\n");
+            return BadAlloc;
+        }
+        bzero((char *)modMap, MAP_LENGTH);
+
+#ifdef XKB
+        if (!noXkbExtension) {
+            bzero(&names, sizeof(names));
+            XkbSetRulesDflts("base", "pc105", "us", NULL, NULL);
+            XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, modMap,
+                                        CoreKeyboardBell, CoreKeyboardCtl);
+        }
+        else
+#endif
+        InitKeyboardDeviceStruct((DevicePtr)pDev, &keySyms, modMap,
+                                 CoreKeyboardBell, CoreKeyboardCtl);
+        break;
+
+    case DEVICE_CLOSE:
+        /* This, uh, probably requires some explanation.
+         * Press a key on another keyboard.
+         * Watch its xkbInfo get pivoted into core's.
+         * Kill the server.
+         * Watch the first device's xkbInfo get freed.
+         * Try to free ours, which points to same.
+         *
+         * ... yeah.
+         */
+        pDev->key->xkbInfo = NULL;
+        break;
+
+    default:
+        break;
+    }
+    return Success;
+}
+
+static int
+CorePointerProc(DeviceIntPtr pDev, int what)
+{
+    BYTE map[33];
+    int i = 0;
+
+    switch (what) {
+    case DEVICE_INIT:
+        for (i = 1; i <= 32; i++)
+            map[i] = i;
+        /* we don't keep history, for now. */
+        InitPointerDeviceStruct((DevicePtr)pDev, map, 32,
+                                NULL, (PtrCtrlProcPtr)NoopDDA,
+                                0, 2);
+        pDev->valuator->axisVal[0] = screenInfo.screens[0]->width / 2;
+        pDev->valuator->lastx = pDev->valuator->axisVal[0];
+        pDev->valuator->axisVal[1] = screenInfo.screens[0]->height / 2;
+        pDev->valuator->lasty = pDev->valuator->axisVal[1];
+        break;
+
+    default:
+        break;
+    }
+
+    return Success;
+}
+
+void
+InitCoreDevices()
+{
+    register DeviceIntPtr dev;
+
+    if (CoreDevicePrivatesGeneration != serverGeneration) {
+        CoreDevicePrivatesIndex = AllocateDevicePrivateIndex();
+        CoreDevicePrivatesGeneration = serverGeneration;
+    }
+
+    if (!inputInfo.keyboard) {
+        dev = AddInputDevice(CoreKeyboardProc, TRUE);
+        if (!dev)
+            FatalError("Failed to allocate core keyboard");
+        dev->name = strdup("Virtual core keyboard");
+#ifdef XKB
+        dev->public.processInputProc = CoreProcessKeyboardEvent;
+        dev->public.realInputProc = CoreProcessKeyboardEvent;
+        if (!noXkbExtension)
+           XkbSetExtension(dev, ProcessKeyboardEvent);
+#else
+        dev->public.processInputProc = ProcessKeyboardEvent;
+        dev->public.realInputProc = ProcessKeyboardEvent;
+#endif
+        dev->ActivateGrab = ActivateKeyboardGrab;
+        dev->DeactivateGrab = DeactivateKeyboardGrab;
+        dev->coreEvents = FALSE;
+        if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
+            FatalError("Couldn't allocate keyboard devPrivates\n");
+        dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
+        (void)ActivateDevice(dev);
+        inputInfo.keyboard = dev;
+    }
+
+    if (!inputInfo.pointer) {
+        dev = AddInputDevice(CorePointerProc, TRUE);
+        if (!dev)
+            FatalError("Failed to allocate core pointer");
+        dev->name = strdup("Virtual core pointer");
+#ifdef XKB
+        dev->public.processInputProc = CoreProcessPointerEvent;
+        dev->public.realInputProc = CoreProcessPointerEvent;
+        if (!noXkbExtension)
+           XkbSetExtension(dev, ProcessPointerEvent);
+#else
+        dev->public.processInputProc = ProcessPointerEvent;
+        dev->public.realInputProc = ProcessPointerEvent;
+#endif
+        dev->ActivateGrab = ActivatePointerGrab;
+        dev->DeactivateGrab = DeactivatePointerGrab;
+        dev->coreEvents = FALSE;
+        if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
+            FatalError("Couldn't allocate pointer devPrivates\n");
+        dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
+        (void)ActivateDevice(dev);
+        inputInfo.pointer = dev;
+    }
+}
+
+int
 InitAndStartDevices()
 {
     register DeviceIntPtr dev, next;
 
-    for (dev = inputInfo.off_devices; dev; dev = dev->next)
-	dev->inited = ((*dev->deviceProc)(dev, DEVICE_INIT) == Success);
+    for (dev = inputInfo.off_devices; dev; dev = dev->next) {
+#ifdef DEBUG
+        ErrorF("(dix) initialising device %d\n", dev->id);
+#endif
+	ActivateDevice(dev);
+#ifdef DEBUG
+        ErrorF("(dix) finished device %d, inited is %d\n", dev->id, dev->inited);
+#endif
+    }
     for (dev = inputInfo.off_devices; dev; dev = next)
     {
+#ifdef DEBUG
+        ErrorF("(dix) enabling device %d\n", dev->id);
+#endif
 	next = dev->next;
 	if (dev->inited && dev->startup)
 	    (void)EnableDevice(dev);
+#ifdef DEBUG
+        ErrorF("(dix) finished device %d\n", dev->id);
+#endif
     }
     for (dev = inputInfo.devices;
 	 dev && (dev != inputInfo.keyboard);
 	 dev = dev->next)
-	;
     if (!dev || (dev != inputInfo.keyboard)) {
 	ErrorF("No core keyboard\n");
 	return BadImplementation;
@@ -210,9 +423,10 @@ CloseDevice(register DeviceIntPtr dev)
 
     if (dev->inited)
 	(void)(*dev->deviceProc)(dev, DEVICE_CLOSE);
+
     xfree(dev->name);
-    if (dev->key)
-    {
+
+    if (dev->key) {
 #ifdef XKB
 	if (dev->key->xkbInfo)
 	    XkbFreeInfo(dev->key->xkbInfo);
@@ -221,20 +435,27 @@ CloseDevice(register DeviceIntPtr dev)
 	xfree(dev->key->modifierKeyMap);
 	xfree(dev->key);
     }
-    xfree(dev->valuator);
+
+    if (dev->valuator)
+        xfree(dev->valuator);
+
+    if (dev->button) {
 #ifdef XKB
-    if ((dev->button)&&(dev->button->xkb_acts))
-	xfree(dev->button->xkb_acts);
+        if (dev->button->xkb_acts)
+            xfree(dev->button->xkb_acts);
 #endif
-    xfree(dev->button);
-    if (dev->focus)
-    {
+        xfree(dev->button);
+    }
+
+    if (dev->focus) {
 	xfree(dev->focus->trace);
 	xfree(dev->focus);
     }
-    xfree(dev->proximity);
-    for (k=dev->kbdfeed; k; k=knext)
-    {
+
+    if (dev->proximity)
+        xfree(dev->proximity);
+
+    for (k = dev->kbdfeed; k; k = knext) {
 	knext = k->next;
 #ifdef XKB
 	if (k->xkb_sli)
@@ -242,30 +463,30 @@ CloseDevice(register DeviceIntPtr dev)
 #endif
 	xfree(k);
     }
-    for (p=dev->ptrfeed; p; p=pnext)
-    {
+
+    for (p = dev->ptrfeed; p; p = pnext) {
 	pnext = p->next;
 	xfree(p);
     }
-    for (i=dev->intfeed; i; i=inext)
-    {
+    
+    for (i = dev->intfeed; i; i = inext) {
 	inext = i->next;
 	xfree(i);
     }
-    for (s=dev->stringfeed; s; s=snext)
-    {
+
+    for (s = dev->stringfeed; s; s = snext) {
 	snext = s->next;
 	xfree(s->ctrl.symbols_supported);
 	xfree(s->ctrl.symbols_displayed);
 	xfree(s);
     }
-    for (b=dev->bell; b; b=bnext)
-    {
+
+    for (b = dev->bell; b; b = bnext) {
 	bnext = b->next;
 	xfree(b);
     }
-    for (l=dev->leds; l; l=lnext)
-    {
+
+    for (l = dev->leds; l; l = lnext) {
 	lnext = l->next;
 #ifdef XKB
 	if (l->xkb_sli)
@@ -273,11 +494,12 @@ CloseDevice(register DeviceIntPtr dev)
 #endif
 	xfree(l);
     }
+
 #ifdef XKB
-    while (dev->xkb_interest) {
+    while (dev->xkb_interest)
 	XkbRemoveResourceClient((DevicePtr)dev,dev->xkb_interest->resource);
-    }
 #endif
+
     xfree(dev->sync.event);
     xfree(dev);
 }
@@ -303,48 +525,78 @@ CloseDownDevices()
     inputInfo.pointer = NULL;
 }
 
-void
-RemoveDevice(register DeviceIntPtr dev)
+int
+RemoveDevice(DeviceIntPtr dev)
 {
-    register DeviceIntPtr prev,tmp,next;
+    DeviceIntPtr prev,tmp,next;
+    int ret = BadMatch;
+#ifdef XINPUT
+    devicePresenceNotify ev;
+    DeviceIntRec dummyDev;
+#endif
 
-    prev= NULL;
-    for (tmp= inputInfo.devices; tmp; (prev = tmp), (tmp = next)) {
+#ifdef DEBUG
+    ErrorF("want to remove device %p, kb is %p, pointer is %p\n", dev, inputInfo.keyboard, inputInfo.pointer);
+#endif
+
+    if (!dev)
+        return BadImplementation;
+
+    prev = NULL;
+    for (tmp = inputInfo.devices; tmp; (prev = tmp), (tmp = next)) {
 	next = tmp->next;
-	if (tmp==dev) {
+	if (tmp == dev) {
 	    CloseDevice(tmp);
+
 	    if (prev==NULL)
 		inputInfo.devices = next;
 	    else
 		prev->next = next;
+
 	    inputInfo.numDevices--;
+
 	    if (inputInfo.keyboard == tmp)
 	        inputInfo.keyboard = NULL;
 	    else if (inputInfo.pointer == tmp)
 	        inputInfo.pointer = NULL;
-	    return;
+
+	    ret = Success;
 	}
     }
 
-    prev= NULL;
-    for (tmp= inputInfo.off_devices; tmp; (prev = tmp), (tmp = next)) {
+    prev = NULL;
+    for (tmp = inputInfo.off_devices; tmp; (prev = tmp), (tmp = next)) {
 	next = tmp->next;
-	if (tmp==dev) {
+	if (tmp == dev) {
 	    CloseDevice(tmp);
-	    if (prev==NULL)
+
+	    if (prev == NULL)
 		inputInfo.off_devices = next;
 	    else
 		prev->next = next;
+
 	    inputInfo.numDevices--;
+
 	    if (inputInfo.keyboard == tmp)
 	        inputInfo.keyboard = NULL;
 	    else if (inputInfo.pointer == tmp)
 	        inputInfo.pointer = NULL;
-	    return;
+
+            ret = Success;
 	}
     }
-    ErrorF("Internal Error! Attempt to remove a non-existent device\n");
-    return;
+    
+#ifdef XINPUT
+    if (ret == Success) {
+        ev.type = DevicePresenceNotify;
+        ev.time = currentTime.milliseconds;
+        dummyDev.id = 0;
+        SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
+                              &ev, 1);
+    }
+#endif
+
+    return ret;
 }
 
 int
@@ -356,47 +608,13 @@ NumMotionEvents()
 void
 RegisterPointerDevice(DeviceIntPtr device)
 {
-    inputInfo.pointer = device;
-#ifdef XKB
-    device->public.processInputProc = CoreProcessPointerEvent;
-    device->public.realInputProc = CoreProcessPointerEvent;
-    if (!noXkbExtension)
-       XkbSetExtension(device,ProcessPointerEvent);
-#else
-    device->public.processInputProc = ProcessPointerEvent;
-    device->public.realInputProc = ProcessPointerEvent;
-#endif
-    device->ActivateGrab = ActivatePointerGrab;
-    device->DeactivateGrab = DeactivatePointerGrab;
-    if (!device->name)
-    {
-	char *p = "pointer";
-	device->name = (char *)xalloc(strlen(p) + 1);
-	strcpy(device->name, p);
-    }
+    RegisterOtherDevice(device);
 }
 
 void
 RegisterKeyboardDevice(DeviceIntPtr device)
 {
-    inputInfo.keyboard = device;
-#ifdef XKB
-    device->public.processInputProc = CoreProcessKeyboardEvent;
-    device->public.realInputProc = CoreProcessKeyboardEvent;
-    if (!noXkbExtension)
-       XkbSetExtension(device,ProcessKeyboardEvent);
-#else
-    device->public.processInputProc = ProcessKeyboardEvent;
-    device->public.realInputProc = ProcessKeyboardEvent;
-#endif
-    device->ActivateGrab = ActivateKeyboardGrab;
-    device->DeactivateGrab = DeactivateKeyboardGrab;
-    if (!device->name)
-    {
-	char *k = "keyboard";
-	device->name = (char *)xalloc(strlen(k) + 1);
-	strcpy(device->name, k);
-    }
+    RegisterOtherDevice(device);
 }
 
 _X_EXPORT DevicePtr
@@ -441,8 +659,8 @@ SetKeySymsMap(register KeySymsPtr dst, register KeySymsPtr src)
 {
     int i, j;
     int rowDif = src->minKeyCode - dst->minKeyCode;
-           /* if keysym map size changes, grow map first */
 
+    /* if keysym map size changes, grow map first */
     if (src->mapWidth < dst->mapWidth)
     {
         for (i = src->minKeyCode; i <= src->maxKeyCode; i++)
@@ -532,7 +750,7 @@ InitKeyClassDeviceStruct(DeviceIntPtr dev, KeySymsPtr pKeySyms, CARD8 pModifiers
 {
     int i;
     register KeyClassPtr keyc;
-
+    
     keyc = (KeyClassPtr)xalloc(sizeof(KeyClassRec));
     if (!keyc)
 	return FALSE;
@@ -808,12 +1026,13 @@ InitIntegerFeedbackClassDeviceStruct (DeviceIntPtr dev, IntegerCtrlProcPtr contr
 _X_EXPORT Bool
 InitPointerDeviceStruct(DevicePtr device, CARD8 *map, int numButtons, 
                         ValuatorMotionProcPtr motionProc, 
-                        PtrCtrlProcPtr controlProc, int numMotionEvents)
+                        PtrCtrlProcPtr controlProc, int numMotionEvents,
+                        int numAxes)
 {
     DeviceIntPtr dev = (DeviceIntPtr)device;
 
     return(InitButtonClassDeviceStruct(dev, numButtons, map) &&
-	   InitValuatorClassDeviceStruct(dev, 2, motionProc,
+	   InitValuatorClassDeviceStruct(dev, numAxes, motionProc,
 					 numMotionEvents, 0) &&
 	   InitPtrFeedbackClassDeviceStruct(dev, controlProc));
 }

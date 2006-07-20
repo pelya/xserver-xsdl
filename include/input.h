@@ -176,6 +176,9 @@ extern DeviceIntPtr AddInputDevice(
 extern Bool EnableDevice(
     DeviceIntPtr /*device*/);
 
+extern Bool ActivateDevice(
+    DeviceIntPtr /*device*/);
+
 extern Bool DisableDevice(
     DeviceIntPtr /*device*/);
 
@@ -183,7 +186,7 @@ extern int InitAndStartDevices(void);
 
 extern void CloseDownDevices(void);
 
-extern void RemoveDevice(
+extern int RemoveDevice(
     DeviceIntPtr /*dev*/);
 
 extern int NumMotionEvents(void);
@@ -232,6 +235,9 @@ extern Bool InitValuatorClassDeviceStruct(
     ValuatorMotionProcPtr /* motionProc */,
     int /*numMotionEvents*/,
     int /*mode*/);
+
+extern Bool InitTouchscreenClassDeviceStruct(
+    DeviceIntPtr /*device*/);
 
 extern Bool InitFocusClassDeviceStruct(
     DeviceIntPtr /*device*/);
@@ -302,7 +308,8 @@ extern Bool InitPointerDeviceStruct(
     int /*numButtons*/,
     ValuatorMotionProcPtr /*motionProc*/,
     PtrCtrlProcPtr /*controlProc*/,
-    int /*numMotionEvents*/);
+    int /*numMotionEvents*/,
+    int /*numAxes*/);
 
 extern Bool InitKeyboardDeviceStruct(
     DevicePtr /*device*/,
