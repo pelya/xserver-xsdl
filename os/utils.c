@@ -264,12 +264,6 @@ int SyncOn  = 0;
 extern int SelectWaitTime;
 #endif
 
-#ifdef DEBUG
-#ifndef SPECIAL_MALLOC
-#define MEMBUG
-#endif
-#endif
-
 #if defined(SVR4) || defined(__linux__) || defined(CSRG_BASED)
 #define HAS_SAVED_IDS_AND_SETEUID
 #endif
