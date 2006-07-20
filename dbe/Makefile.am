@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libdbe.la
 
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS)
 
 if XORG
 sdk_HEADERS = dbestruct.h

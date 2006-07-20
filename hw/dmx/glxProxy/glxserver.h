@@ -46,7 +46,6 @@
 #include <extnsionst.h>
 #include <resource.h>
 #include <scrnintstr.h>
-#include "GL/glx_ansic.h"
 
 
 /*

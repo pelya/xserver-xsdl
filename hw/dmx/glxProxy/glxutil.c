@@ -41,7 +41,6 @@
 #include <pixmapstr.h>
 #include <windowstr.h>
 #include "glxutil.h"
-#include "GL/glx_ansic.h"
 
 /************************************************************************/
 
@@ -82,7 +81,7 @@ __glXCalloc(size_t numElements, size_t elementSize)
 	/* XXX: handle out of memory error */
 	return NULL;
     }
-    __glXMemset(addr, 0, size);
+    memset(addr, 0, size);
     return addr;
 }
 

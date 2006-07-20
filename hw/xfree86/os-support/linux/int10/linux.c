@@ -18,12 +18,6 @@
 #else
 #define DEV_MEM "/dev/mem"
 #endif
-#ifndef XFree86LOADER
-#include <sys/mman.h>
-#ifndef MAP_FAILED
-#define MAP_FAILED ((void *)-1)
-#endif
-#endif
 #define ALLOC_ENTRIES(x) ((V_RAM / x) - 1)
 #define SHMERRORPTR (pointer)(-1)
 

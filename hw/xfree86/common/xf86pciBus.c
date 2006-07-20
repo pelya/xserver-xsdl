@@ -1690,19 +1690,12 @@ xf86PciProbe(void)
     /*
      * Initialise the pcidata entry points.
      */
-#ifdef XFree86LOADER
     xf86SetupPciIds = (ScanPciSetupProcPtr)LoaderSymbol("ScanPciSetupPciIds");
     xf86ClosePciIds = (ScanPciCloseProcPtr)LoaderSymbol("ScanPciClosePciIds");
     xf86FindPciNamesByDevice =
 	(ScanPciFindByDeviceProcPtr)LoaderSymbol("ScanPciFindPciNamesByDevice");
     xf86FindPciNamesBySubsys =
 	(ScanPciFindBySubsysProcPtr)LoaderSymbol("ScanPciFindPciNamesBySubsys");
-#else
-    xf86SetupPciIds = ScanPciSetupPciIds;
-    xf86ClosePciIds = ScanPciClosePciIds;
-    xf86FindPciNamesByDevice = ScanPciFindPciNamesByDevice;
-    xf86FindPciNamesBySubsys = ScanPciFindPciNamesBySubsys;
-#endif
 
     if (!xf86SetupPciIds())
 	FatalError("xf86SetupPciIds() failed\n");

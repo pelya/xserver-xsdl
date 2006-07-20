@@ -63,11 +63,7 @@ DGACopyModeInfo(
    XDGAModePtr xmode
 );
 
-#if defined(XFree86LOADER) || !defined(XFreeXDGA)
 _X_EXPORT int *XDGAEventBase = NULL;
-#else
-_X_EXPORT int *XDGAEventBase = &DGAEventBase;
-#endif
 
 #define DGA_GET_SCREEN_PRIV(pScreen) \
 	((DGAScreenPtr)((pScreen)->devPrivates[DGAScreenIndex].ptr))

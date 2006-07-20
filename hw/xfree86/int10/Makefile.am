@@ -2,7 +2,7 @@ module_LTLIBRARIES = libint10.la
 
 sdk_HEADERS = xf86int10.h
 
-EXTRA_CFLAGS = @SERVER_DEFINES@ @MODULE_DEFINES@ @LOADER_DEFINES@
+EXTRA_CFLAGS =
 
 libint10_la_LDFLAGS = -avoid-version
 

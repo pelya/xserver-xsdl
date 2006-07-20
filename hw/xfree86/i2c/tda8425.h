@@ -34,20 +34,9 @@ void tda8425_mute(TDA8425Ptr t, Bool mute);
 		"tda8425_setaudio", \
 		"tda8425_mute"
 
-#ifdef XFree86LOADER
-
 #define xf86_Detect_tda8425   ((TDA8425Ptr (*)(I2CBusPtr, I2CSlaveAddr,Bool))LoaderSymbol("Detect_tda8425"))
 #define xf86_tda8425_init     ((Bool (*)(TDA8425Ptr))LoaderSymbol("tda8425_init"))
 #define xf86_tda8425_setaudio ((void (*)(TDA8425Ptr))LoaderSymbol("tda8425_setaudio"))
 #define xf86_tda8425_mute     ((void (*)(TDA8425Ptr, Bool))LoaderSymbol("tda8425_mute"))
-
-#else
-
-#define xf86_Detect_tda8425   Detect_tda8425
-#define xf86_tda8425_init     tda8425_init
-#define xf86_tda8425_setaudio tda8425_setaudio
-#define xf86_tda8425_mute     tda8425_mute
-
-#endif
 
 #endif

@@ -32,6 +32,5 @@
 #include <xkb-config.h>
 
 #undef MITSHM
-#undef XFree86LOADER
 
 #endif /* XNEST_CONFIG_H */

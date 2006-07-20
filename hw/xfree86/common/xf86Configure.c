@@ -37,9 +37,7 @@
 #include <X11/X.h>
 #include <X11/Xmd.h>
 #include "os.h"
-#ifdef XFree86LOADER
 #include "loaderProcs.h"
-#endif
 #include "xf86.h"
 #include "xf86Config.h"
 #include "xf86_OSlib.h"
@@ -602,7 +600,6 @@ configureFlagsSection (void)
 static XF86ConfModulePtr
 configureModuleSection (void)
 {
-#ifdef XFree86LOADER
     char **elist, **el;
     /* Find the list of extension modules. */
     const char *esubdirs[] = {
@@ -613,10 +610,8 @@ configureModuleSection (void)
 	"fonts",
 	NULL
     };
-#endif
     parsePrologue (XF86ConfModulePtr, XF86ConfModuleRec)
 
-#ifdef XFree86LOADER
     elist = LoaderListDirs(esubdirs, NULL);
     if (elist) {
 	for (el = elist; *el; el++) {
@@ -653,7 +648,6 @@ configureModuleSection (void)
     	}
 	xfree(elist);
     }
-#endif
 
     return ptr;
 }
@@ -663,10 +657,8 @@ configureFilesSection (void)
 {
     parsePrologue (XF86ConfFilesPtr, XF86ConfFilesRec)
 
-#ifdef XFree86LOADER
    if (xf86ModulePath)
        ptr->file_modulepath = strdup(xf86ModulePath);
-#endif
    if (defaultFontPath)
        ptr->file_fontpath = strdup(defaultFontPath);
    if (rgbPath)
@@ -788,10 +780,8 @@ DoConfigure()
     for (vl = vlist; *vl; vl++)
 	ErrorF("\t%s\n", *vl);
 
-#ifdef XFree86LOADER
     /* Load all the drivers that were found. */
     xf86LoadModules(vlist, NULL);
-#endif /* XFree86LOADER */
 
     xfree(vlist);
 

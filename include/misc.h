@@ -83,11 +83,7 @@ extern unsigned long serverGeneration;
 #include <X11/X.h>
 #include <X11/Xdefs.h>
 
-#ifndef IN_MODULE
-#ifndef NULL
 #include <stddef.h>
-#endif
-#endif
 
 #ifndef MAXSCREENS
 #define MAXSCREENS	16
@@ -115,9 +111,7 @@ typedef struct _CallbackList *CallbackListPtr; /* also in dix.h */
 typedef struct _xReq *xReqPtr;
 
 #include "os.h" 	/* for ALLOCATE_LOCAL and DEALLOCATE_LOCAL */
-#ifndef IN_MODULE
 #include <X11/Xfuncs.h> /* for bcopy, bzero, and bcmp */
-#endif
 
 #define NullBox ((BoxPtr)0)
 #define MILLI_PER_MIN (1000 * 60)
@@ -145,12 +139,10 @@ typedef struct _xReq *xReqPtr;
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
-#ifndef IN_MODULE
 /* abs() is a function, not a macro; include the file declaring
  * it in case we haven't done that yet.
- */  
+ */
 #include <stdlib.h>
-#endif /* IN_MODULE */
 #ifndef Fabs
 #define Fabs(a) ((a) > 0.0 ? (a) : -(a))	/* floating absolute value */
 #endif
@@ -166,7 +158,6 @@ typedef struct _xReq *xReqPtr;
  */
 #define lowbit(x) ((x) & (~(x) + 1))
 
-#ifndef IN_MODULE
 /* XXX Not for modules */
 #include <limits.h>
 #if !defined(MAXSHORT) || !defined(MINSHORT) || \
@@ -177,7 +168,6 @@ typedef struct _xReq *xReqPtr;
  */
 
 #include <math.h>
-#endif
 #undef MAXSHORT
 #define MAXSHORT SHRT_MAX
 #undef MINSHORT
@@ -189,7 +179,7 @@ typedef struct _xReq *xReqPtr;
 
 #include <assert.h>
 #include <ctype.h>
-#include <stdio.h>	/* for fopen, etc... */
+#include <stdio.h>     /* for fopen, etc... */
 
 #endif
 

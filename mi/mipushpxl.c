@@ -95,7 +95,7 @@ miPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
     Bool 	fInBox;
     DDXPointRec	pt[NPT], ptThisLine;
     int		width[NPT];
-#ifdef XFree86Server
+#if 1
     PixelType	startmask;
     if (screenInfo.bitmapBitOrder == IMAGE_BYTE_ORDER)
       if (screenInfo.bitmapBitOrder == LSBFirst)
@@ -135,7 +135,7 @@ miPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
 	while(pw  < pwEnd)
 	{
 	    w = *pw;
-#ifdef XFree86Server
+#if 1
 	    msk = startmask;
 #else
 	    msk = (MiBits)(-1) ^ SCRRIGHT((MiBits)(-1), 1);
@@ -168,7 +168,7 @@ miPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
 			fInBox = FALSE;
 		    }
 		}
-#ifdef XFree86Server
+#if 1
     		/* This is not quite right, but it'll do for now */
 		if (screenInfo.bitmapBitOrder == IMAGE_BYTE_ORDER)
 		  if (screenInfo.bitmapBitOrder == LSBFirst)
@@ -191,7 +191,7 @@ miPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
 	{
 	    /* Process final partial word on line */
 	    w = *pw;
-#ifdef XFree86Server
+#if 1
 	    msk = startmask;
 #else
 	    msk = (MiBits)(-1) ^ SCRRIGHT((MiBits)(-1), 1);
@@ -224,7 +224,7 @@ miPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
 			fInBox = FALSE;
 		    }
 		}
-#ifdef XFree86Server
+#if 1
     		/* This is not quite right, but it'll do for now */
 		if (screenInfo.bitmapBitOrder == IMAGE_BYTE_ORDER)
 		  if (screenInfo.bitmapBitOrder == LSBFirst)

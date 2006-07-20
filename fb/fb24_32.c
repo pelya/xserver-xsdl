@@ -28,9 +28,6 @@
 #endif
 
 #include <string.h>
-#ifdef XFree86LOADER
-#include "xf86.h"
-#endif
 
 #include "fb.h"
 

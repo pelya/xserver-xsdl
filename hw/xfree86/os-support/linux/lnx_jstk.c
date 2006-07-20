@@ -40,9 +40,7 @@ static const char rcs_id[] = "Id: lnx_jstk.c,v 1.1 1995/12/20 14:06:09 lepied Ex
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
-#ifdef XFree86LOADER
 #include "xf86.h"
-#endif
 
 #if !defined(JSIOCGTIMELIMIT)
 /* make 2.1.x joystick.h backward compatable */
@@ -172,7 +170,6 @@ xf86JoystickGetState(int fd, int *x, int *y, int *buttons)
   return 1;
 }
 
-#ifdef XFree86LOADER
 /*
  * Entry point for XFree86 Loader
  */
@@ -182,6 +179,5 @@ linux_jstkModuleInit(pointer *data, INT32 *magic)
     *magic = MAGIC_DONE;
     *data = NULL;
 }
-#endif
 
 /* end of lnx_jstk.c */

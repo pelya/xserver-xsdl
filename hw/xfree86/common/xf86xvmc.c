@@ -41,19 +41,13 @@
 #include "resource.h"
 #include "dixstruct.h"
 
-#ifdef XFree86LOADER
 #include "xvmodproc.h"
-#endif
 
 #include "xf86xvpriv.h"
 #include "xf86xvmc.h"
 
 typedef int (*XvMCScreenInitProcPtr)(ScreenPtr, int, XvMCAdaptorPtr);
-#ifdef XFree86LOADER
 _X_EXPORT XvMCScreenInitProcPtr XvMCScreenInitProc = NULL;
-#else
-_X_EXPORT XvMCScreenInitProcPtr XvMCScreenInitProc = XvMCScreenInit;
-#endif
 
 
 typedef struct {

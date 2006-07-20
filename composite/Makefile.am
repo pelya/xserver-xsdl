@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libcomposite.la
 
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS)
 
 libcomposite_la_SOURCES = 	\
 	compalloc.c		\

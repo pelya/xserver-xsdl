@@ -40,10 +40,8 @@
 #include <X11/X.h>
 #include <X11/Xmd.h>
 #include "os.h"
-#ifdef XFree86LOADER
 #include "loaderProcs.h"
 #include "xf86Config.h"
-#endif /* XFree86LOADER */
 #include "xf86_OSlib.h"
 #include "xf86.h"
 #include "xf86Priv.h"
@@ -55,7 +53,6 @@ DoProbe()
     Bool probeResult;
     Bool ioEnableFailed = FALSE;
     
-#ifdef XFree86LOADER
     /* Find the list of video driver modules. */
     char **list = xf86DriverlistFromCompile();
     char **l;
@@ -70,7 +67,6 @@ DoProbe()
 
     /* Load all the drivers that were found. */
     xf86LoadModules(list, NULL);
-#endif /* XFree86LOADER */
 
     /* Disable PCI devices */
     xf86AccessInit();

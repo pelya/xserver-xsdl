@@ -212,9 +212,7 @@ extern int xf86InstallSIGIOHandler(int fd, void (*f)(int, void *), void *);
 extern int xf86RemoveSIGIOHandler(int fd);
 extern int xf86BlockSIGIO (void);
 extern void xf86UnblockSIGIO (int);
-#ifdef XFree86Server
 extern void xf86AssertBlockedSIGIO (char *);
-#endif
 extern Bool xf86SIGIOSupported (void);
 
 #ifdef XF86_OS_PRIVS

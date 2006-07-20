@@ -31,7 +31,7 @@ bin_PROGRAMS = xorgconfig
 X11dir = $(libdir)/X11
 dist_X11_DATA = Cards
 
-xorgconfig_CFLAGS = @SERVER_DEFINES@ @XORGCONFIG_DEP_CFLAGS@ \
+xorgconfig_CFLAGS = @XORGCONFIG_DEP_CFLAGS@ \
 	-DCARD_DATABASE_FILE='"$(X11dir)/Cards"' \
 	-DPROJECTROOT='"$(PROJECTROOT)"' \
         -DFILEMANSUFFIX='"$(FILE_MAN_SUFFIX)"' \
