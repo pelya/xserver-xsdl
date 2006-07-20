@@ -105,6 +105,12 @@ SDeviceMappingNotifyEvent (
 	);
 
 void
+SDevicePresenceNotifyEvent (
+       devicePresenceNotify * /* from */,
+       devicePresenceNotify * /* to */
+       );
+
+void
 FixExtensionEvents (
 	ExtensionEntry 	*      /* extEntry */
 	);
