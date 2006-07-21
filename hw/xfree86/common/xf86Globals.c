@@ -94,9 +94,6 @@ InputInfoPtr xf86InputDevs = NULL;
 /* Globals that video drivers may not access */
 
 xf86InfoRec xf86Info = {
-	NULL,		/* pKeyboard */
-	NULL,		/* kbdProc */
-	NULL,		/* kbdEvents */
 	-1,		/* consoleFd */
 	-1,		/* kbdFd */
 	-1,		/* vtno */

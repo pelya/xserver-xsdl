@@ -366,7 +366,7 @@ MiscExtCreateStruct(MiscExtStructType mse_or_kbd)
 	InputInfoPtr pInfo = xf86InputDevs;
 	
 	while (pInfo) {
-	    if (xf86IsCorePointer(pInfo->dev))
+	    if (pInfo->dev == inputInfo.pointer)
 		break;
 	    pInfo = pInfo->next;
 	}

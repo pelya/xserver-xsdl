@@ -923,7 +923,7 @@ DGAStealKeyEvent(int index, xEvent *e)
     de.u.u.type = e->u.u.type + *XDGAEventBase;
     de.u.u.detail = e->u.u.detail;
     de.u.event.time = e->u.keyButtonPointer.time;
-    xf86eqEnqueue ((xEvent *) &de);
+    mieqEnqueue ((xEvent *) &de);
    return TRUE;
 }
 
@@ -960,7 +960,7 @@ DGAStealMouseEvent(int index, xEvent *e, int dx, int dy)
     de.u.event.dy = dy;
     de.u.event.pad1 = DGAMouseX;
     de.u.event.pad2 = DGAMouseY;
-    xf86eqEnqueue ((xEvent *) &de);
+    mieqEnqueue ((xEvent *) &de);
     return TRUE;
 }
 

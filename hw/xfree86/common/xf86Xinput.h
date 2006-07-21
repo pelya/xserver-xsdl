@@ -147,8 +147,6 @@ typedef struct _LocalDeviceRec {
     unsigned int	    last;
     int			    old_x;
     int			    old_y;
-    float		    dxremaind;
-    float		    dyremaind;
     char *		    type_name;
     IntegerFeedbackPtr	    always_core_feedback;
     IDevPtr		    conf_idev;
@@ -167,16 +165,7 @@ typedef struct _DeviceAssocRec
 extern InputInfoPtr xf86InputDevs;
 
 /* xf86Xinput.c */
-int xf86IsCorePointer(DeviceIntPtr dev);
-int xf86IsCoreKeyboard(DeviceIntPtr dev);
-void xf86XInputSetSendCoreEvents(LocalDevicePtr local, Bool always);
-#define xf86AlwaysCore(a,b) xf86XInputSetSendCoreEvents(a,b)
-
 void InitExtInput(void);
-Bool xf86eqInit(DevicePtr pKbd, DevicePtr pPtr);
-void xf86eqEnqueue(struct _xEvent *event);
-void xf86eqProcessInputEvents (void);
-void xf86eqSwitchScreen(ScreenPtr pScreen, Bool fromDIX);
 void xf86PostMotionEvent(DeviceIntPtr device, int is_absolute,
 			 int first_valuator, int num_valuators, ...);
 void xf86PostProximityEvent(DeviceIntPtr device, int is_in,
@@ -212,10 +201,16 @@ void xf86RemoveEnabledDevice(InputInfoPtr pInfo);
 void xf86AddInputDriver(InputDriverPtr driver, pointer module, int flags);
 void xf86DeleteInputDriver(int drvIndex);
 InputInfoPtr xf86AllocateInput(InputDriverPtr drv, int flags);
+InputDriverPtr xf86LookupInputDriver(const char *name);
+InputInfoPtr xf86LookupInput(const char *name);
 void xf86DeleteInput(InputInfoPtr pInp, int flags);
 
 /* xf86Option.c */
 void xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts,
 			     pointer extraOpts);
+
+/* Legacy hatred */
+#define SendCoreEvents 59
+#define DontSendCoreEvents 60
 
 #endif /* _xf86Xinput_h */

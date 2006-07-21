@@ -68,11 +68,6 @@ typedef enum {
  */
 
 typedef struct {
-
-    /* keyboard part */
-    DeviceIntPtr	pKeyboard;
-    DeviceProc		kbdProc;		/* procedure for initializing */
-    void		(* kbdEvents)(void);	/* proc for processing events */
     int			consoleFd;
     int			kbdFd;
     int			vtno;

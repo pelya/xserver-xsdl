@@ -1136,7 +1136,6 @@ configInputKbd(IDevPtr inputp)
   xf86Info.kbdDelay      = 500;
   xf86Info.kbdRate       = 30;
   
-  xf86Info.kbdProc       = NULL;
   xf86Info.vtinit        = NULL;
   xf86Info.vtSysreq      = VT_SYSREQ_DEFAULT;
 #if defined(SVR4) && defined(i386)
@@ -1172,8 +1171,6 @@ configInputKbd(IDevPtr inputp)
 
   s = xf86SetStrOption(inputp->commonOptions, "Protocol", kbdproto);
   if (xf86NameCmp(s, "standard") == 0) {
-     xf86Info.kbdProc    = xf86KbdProc;
-     xf86Info.kbdEvents  = xf86KbdEvents;
      xfree(s);
   } else if (xf86NameCmp(s, "xqueue") == 0) {
 #ifdef __UNIXWARE__
@@ -1181,20 +1178,14 @@ configInputKbd(IDevPtr inputp)
      * To retain compatibility with older config files, on UnixWare, we
      * accept the xqueue protocol but use the normal keyboard procs.
      */
-     xf86Info.kbdProc    = xf86KbdProc;
-     xf86Info.kbdEvents  = xf86KbdEvents;
 #else
 #ifdef XQUEUE
-    xf86Info.kbdProc = xf86XqueKbdProc;
-    xf86Info.kbdEvents = xf86XqueEvents;
     xf86Msg(X_CONFIG, "Xqueue selected for keyboard input\n");
 #endif
 #endif
     xfree(s);
 #ifdef WSCONS_SUPPORT
   } else if (xf86NameCmp(s, "wskbd") == 0) {
-     xf86Info.kbdProc    = xf86KbdProc;
-     xf86Info.kbdEvents  = xf86WSKbdEvents;
      xfree(s);
      s = xf86SetStrOption(inputp->commonOptions, "Device", NULL);
      xf86Msg(X_CONFIG, "Keyboard: Protocol: wskbd\n");

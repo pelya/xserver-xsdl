@@ -200,9 +200,6 @@ void xf86KbdBell(int percent, DeviceIntPtr pKeyboard, pointer ctrl,
 		 int unused);
 void xf86KbdLeds(void);
 void xf86UpdateKbdLeds(void);
-void xf86KbdCtrl(DevicePtr pKeyboard, KeybdCtrl *ctrl); 
-void xf86InitKBD(Bool init);  
-int xf86KbdProc(DeviceIntPtr pKeyboard, int what);
 
 /* xf86Kbd.c */ 
 

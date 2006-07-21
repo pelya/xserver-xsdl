@@ -155,6 +155,19 @@ xf86LookupInputDriver(const char *name)
     return NULL;
 }
 
+InputInfoPtr
+xf86LookupInput(const char *name)
+{
+    InputInfoPtr p;
+
+    for (p = xf86InputDevs; p != NULL; p = p->next) {
+        if (strcmp(name, p->name) == 0)
+            return p;
+    }
+
+    return NULL;
+}
+
 _X_EXPORT void
 xf86AddModuleInfo(ModuleInfoPtr info, pointer module)
 {
