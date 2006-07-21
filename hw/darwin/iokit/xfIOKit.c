@@ -33,8 +33,6 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/iokit/xfIOKit.c,v 1.4 2005/04/20 12:25:19 daniels Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/darwin/iokit/xfIOKit.c,v 1.2 2003/10/16 23:50:09 torrey Exp $ */
 
 #include <X11/X.h>
 #include <X11/Xproto.h>

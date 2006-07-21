@@ -23,7 +23,6 @@
  *
  * Generic RAMDAC access routines.
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86RamDac.c,v 1.6tsi Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

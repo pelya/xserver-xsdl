@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xext/xf86miscproc.h,v 1.5 2002/11/20 04:04:58 dawes Exp $ */
 
 /* Prototypes for Pointer/Keyboard functions that the DDX must provide */
 

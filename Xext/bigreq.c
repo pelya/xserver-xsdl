@@ -1,4 +1,3 @@
-/* $Xorg: bigreq.c,v 1.4 2001/02/09 02:04:32 xorgcvs Exp $ */
 /*
 
 Copyright 1992, 1998  The Open Group
@@ -26,7 +25,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/Xext/bigreq.c,v 3.8 2003/10/28 23:08:43 tsi Exp $ */
 
 #define NEED_EVENTS
 #ifdef HAVE_DIX_CONFIG_H

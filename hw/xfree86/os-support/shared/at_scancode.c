@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/at_scancode.c,v 1.4 2003/08/24 17:37:05 dawes Exp $ */
 /*
  * Copyright (c) 2002-2003 by The XFree86 Project, Inc.
  *

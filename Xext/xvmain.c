@@ -1,4 +1,3 @@
-/* $XdotOrg: xserver/xorg/Xext/xvmain.c,v 1.7 2006/02/10 22:00:20 anholt Exp $ */
 /***********************************************************
 Copyright 1991 by Digital Equipment Corporation, Maynard, Massachusetts,
 and the Massachusetts Institute of Technology, Cambridge, Massachusetts.
@@ -22,7 +21,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/Xext/xvmain.c,v 1.15tsi Exp $ */
 
 /*
 ** File: 

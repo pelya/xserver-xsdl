@@ -1,5 +1,3 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/xf86Date.h,v 1.4 2004/08/16 22:48:50 kem Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf86Date.h,v 1.54 2003/12/19 04:52:10 dawes Exp $ */
 /*
  * Copyright (c) 2003 by The XFree86 Project, Inc.
  *

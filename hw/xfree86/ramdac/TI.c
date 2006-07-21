@@ -24,7 +24,6 @@
  * Modified from IBM.c to support TI RAMDAC routines 
  *   by Jens Owen, <jens@tungstengraphics.com>.
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/TI.c,v 1.7 2003/02/17 16:08:29 dawes Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

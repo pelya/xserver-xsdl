@@ -1,4 +1,3 @@
-/* $Xorg: PsArea.c,v 1.6 2001/03/14 18:27:44 pookie Exp $ */
 /*
 
 Copyright 1996, 1998  The Open Group

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaTEGlyph.c,v 1.7 1999/11/06 23:14:46 mvojkovi Exp $ */
 
 
 #ifdef HAVE_XORG_CONFIG_H

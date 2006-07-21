@@ -1,7 +1,6 @@
 #ifndef _GLX_screens_h_
 #define _GLX_screens_h_
 
-/* $XFree86: xc/programs/Xserver/GL/glx/glxscreens.h,v 1.4 2001/03/21 16:29:37 dawes Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_io.c,v 1.2 2002/10/11 01:40:37 dawes Exp $ */
 /* $XdotOrg: $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany

@@ -1,4 +1,3 @@
-/* $Xorg: Util.c,v 1.3 2000/08/17 19:48:06 cpqbld Exp $ */
 /*
 (c) Copyright 1996 Hewlett-Packard Company
 (c) Copyright 1996 International Business Machines Corp.
@@ -30,7 +29,6 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/Util.c,v 1.12 2001/08/01 00:44:45 tsi Exp $ */
 
 /* To get the tempnam() prototype in <stdio.h> */
 #ifdef HAVE_DIX_CONFIG_H

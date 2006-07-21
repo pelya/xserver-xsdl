@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mi/micmap.h,v 1.5 1999/06/14 07:32:11 dawes Exp $ */
 
 #include "colormapst.h"
 

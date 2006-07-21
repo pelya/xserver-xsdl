@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/vidmem.c,v 1.17 2003/08/24 17:37:06 dawes Exp $ */
 /*
  * Copyright (c) 1993-2003 by The XFree86 Project, Inc.
  *

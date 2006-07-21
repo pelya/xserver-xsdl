@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mi/mibitblt.c,v 3.10 2001/08/06 20:51:17 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -45,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: mibitblt.c,v 1.5 2001/02/09 02:05:20 xorgcvs Exp $ */
 /* Author: Todd Newman  (aided and abetted by Mr. Drewry) */
 
 #ifdef HAVE_DIX_CONFIG_H

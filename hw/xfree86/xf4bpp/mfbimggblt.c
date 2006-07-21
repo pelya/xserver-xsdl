@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/mfbimggblt.c,v 1.8 2003/11/03 05:11:56 tsi Exp $ */
 
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************

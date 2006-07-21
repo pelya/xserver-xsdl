@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbimage.c,v 1.2 2000/02/25 00:21:40 mvojkovi Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

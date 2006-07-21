@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/os-support/linux/lnx_video.c,v 1.10 2005/09/19 18:38:26 alanc Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_video.c,v 3.67 2003/06/25 18:27:07 eich Exp $ */
 /*
  * Copyright 1992 by Orest Zborowski <obz@Kodak.com>
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>

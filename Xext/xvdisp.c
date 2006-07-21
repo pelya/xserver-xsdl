@@ -1,4 +1,3 @@
-/* $XdotOrg: xserver/xorg/Xext/xvdisp.c,v 1.6 2005/07/03 08:53:36 daniels Exp $ */
 /***********************************************************
 Copyright 1991 by Digital Equipment Corporation, Maynard, Massachusetts,
 and the Massachusetts Institute of Technology, Cambridge, Massachusetts.
@@ -22,7 +21,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/Xext/xvdisp.c,v 1.27 2003/07/16 01:38:31 dawes Exp $ */
 
 /*
 ** File: 

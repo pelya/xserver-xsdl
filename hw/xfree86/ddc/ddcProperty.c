@@ -3,7 +3,6 @@
  * 
  * Copyright 1999 by Andrew C Aitchison <A.C.Aitchison@dpmms.cam.ac.uk>
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/ddcProperty.c,v 1.9tsi Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

@@ -1,4 +1,3 @@
-/* $Xorg: sync.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
 /*
 
 Copyright 1991, 1993, 1998  The Open Group
@@ -50,7 +49,6 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 
 */
-/* $XFree86: xc/programs/Xserver/Xext/sync.c,v 3.13 2003/09/02 18:19:01 tsi Exp $ */
 
 #define NEED_REPLIES
 #define NEED_EVENTS

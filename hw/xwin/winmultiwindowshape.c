@@ -28,7 +28,6 @@
  * Authors:	Kensuke Matsuzaki
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winmultiwindowshape.c,v 1.2 2003/11/10 18:22:44 tsi Exp $ */
 
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>

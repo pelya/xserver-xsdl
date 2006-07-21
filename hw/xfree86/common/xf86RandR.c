@@ -1,6 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86RandR.c,v 1.25 2005/10/30 17:38:49 twini Exp $ */
 /*
- * $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.7tsi Exp $
  *
  * Copyright © 2002 Keith Packard, member of The XFree86 Project, Inc.
  *

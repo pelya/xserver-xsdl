@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/IBM.h,v 1.7 1999/02/12 22:52:11 hohndel Exp $ */
 
 #include <xf86RamDac.h>
 

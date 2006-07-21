@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/dix/property.c,v 3.12 2002/02/19 11:09:22 alanh Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -45,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: property.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

@@ -27,7 +27,6 @@
  *
  * Authors:	Earle F. Philhower, III
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.c,v 1.5 2002/11/07 10:31:32 alanh Exp $ */
 
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>

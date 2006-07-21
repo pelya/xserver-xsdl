@@ -1,4 +1,3 @@
-/* $Xorg: panoramiXprocs.c,v 1.5 2000/08/17 19:47:57 cpqbld Exp $ */
 /*****************************************************************
 Copyright (c) 1991, 1997 Digital Equipment Corporation, Maynard, Massachusetts.
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,7 +25,6 @@ Equipment Corporation.
 
 /* Massively rewritten by Mark Vojkovich <markv@valinux.com> */
 
-/* $XFree86: xc/programs/Xserver/Xext/panoramiXprocs.c,v 3.36tsi Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

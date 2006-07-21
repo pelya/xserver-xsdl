@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xext/mbufbf.c,v 3.5tsi Exp $ */
 /*
 
 Copyright 1989, 1998  The Open Group
@@ -25,7 +24,6 @@ in this Software without prior written authorization from The Open Group.
 
 */
 
-/* $Xorg: mbufbf.c,v 1.4 2001/02/09 02:04:32 xorgcvs Exp $ */
 
 #define NEED_REPLIES
 #define NEED_EVENTS

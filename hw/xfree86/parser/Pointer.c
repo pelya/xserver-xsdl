@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/Pointer.c,v 1.13 2003/08/24 17:37:08 dawes Exp $ */
 /* 
  * 
  * Copyright (c) 1997  Metro Link Incorporated

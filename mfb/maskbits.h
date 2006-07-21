@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mfb/maskbits.h,v 3.8tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.1, 1/24/89 */
 /***********************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
@@ -22,7 +21,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: maskbits.h,v 1.3 2000/08/17 19:53:34 cpqbld Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

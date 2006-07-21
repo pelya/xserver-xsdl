@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/wm3.h,v 1.2 1998/07/25 16:59:46 dawes Exp $ */
 
 
 

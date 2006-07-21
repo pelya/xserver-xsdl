@@ -21,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64draw.h,v 1.1 2001/06/03 18:48:19 keithp Exp $ */
 
 #ifndef _SMIDRAW_H_
 #define _SMIDRAW_H_

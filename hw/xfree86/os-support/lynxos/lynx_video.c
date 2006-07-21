@@ -21,7 +21,6 @@
  *
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_video.c,v 3.17 2000/10/28 01:42:27 mvojkovi Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

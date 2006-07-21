@@ -1,5 +1,3 @@
-/* $Xorg: xkbInit.c,v 1.3 2000/08/17 19:53:47 cpqbld Exp $ */
-/* $XdotOrg: xserver/xorg/xkb/xkbInit.c,v 1.13 2006/03/25 22:35:48 daniels Exp $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
 
@@ -25,7 +23,6 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/xkbInit.c,v 3.32tsi Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

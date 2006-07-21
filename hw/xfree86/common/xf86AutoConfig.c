@@ -32,7 +32,6 @@
  * Author: David Dawes <dawes@XFree86.Org>.
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86AutoConfig.c,v 1.2 2003/11/03 05:11:01 tsi Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

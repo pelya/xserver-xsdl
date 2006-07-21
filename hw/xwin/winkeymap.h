@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Keymap.h,v 3.19 2002/05/31 18:45:58 dawes Exp $ */
 /*
  *
  * For Scancodes see notes in winkeynames.h  !!!!

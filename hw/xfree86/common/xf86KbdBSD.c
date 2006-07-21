@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86KbdBSD.c,v 3.22 2003/10/07 22:00:52 herrb Exp $ */
 /*
  * Derived from xf86Kbd.c by S_ren Schmidt (sos@login.dkuug.dk)
  * which is Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany.

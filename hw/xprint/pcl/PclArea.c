@@ -1,4 +1,3 @@
-/* $Xorg: PclArea.c,v 1.3 2000/08/17 19:48:07 cpqbld Exp $ */
 /*******************************************************************
 **
 **    *********************************************************
@@ -44,7 +43,6 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclArea.c,v 1.8 2001/01/17 22:36:30 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

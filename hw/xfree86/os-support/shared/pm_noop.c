@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/pm_noop.c,v 1.2 2003/08/24 17:37:06 dawes Exp $ */
 /*
  * Copyright (c) 2000 by The XFree86 Project, Inc.
  *

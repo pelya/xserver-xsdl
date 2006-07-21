@@ -1,7 +1,6 @@
 /*
  * Fill rectangles.
  */
-/* $XFree86: xc/programs/Xserver/cfb/cfbfillrct.c,v 3.7 2001/01/17 22:36:35 dawes Exp $ */
 
 /*
 
@@ -28,7 +27,6 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
 
-/* $Xorg: cfbfillrct.c,v 1.4 2001/02/09 02:04:37 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

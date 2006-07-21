@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mi/miregion.c,v 1.9 2003/04/23 21:51:53 tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1988, 1989, 1998  The Open Group
@@ -46,7 +45,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: miregion.c,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
 
 /* The panoramix components contained the following notice */
 /*****************************************************************

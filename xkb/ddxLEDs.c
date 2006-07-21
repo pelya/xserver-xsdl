@@ -1,4 +1,3 @@
-/* $Xorg: ddxLEDs.c,v 1.3 2000/08/17 19:53:46 cpqbld Exp $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
 

@@ -1,4 +1,3 @@
-/* $Xorg: auth.c,v 1.5 2001/02/09 02:05:23 xorgcvs Exp $ */
 /*
 
 Copyright 1988, 1998  The Open Group
@@ -26,7 +25,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: auth.c,v 1.13 2003/04/27 21:31:08 herrb Exp $ */
 
 /*
  * authorization hooks for the server

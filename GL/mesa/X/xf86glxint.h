@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/mesa/src/X/xf86glxint.h,v 1.4 2002/02/22 21:45:08 dawes Exp $ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.

@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/dbe/dbe.c,v 1.6 2006/02/10 22:00:21 anholt Exp $ */
-/* $Xorg: dbe.c,v 1.3 2000/08/17 19:48:16 cpqbld Exp $ */
 /******************************************************************************
  * 
  * Copyright (c) 1994, 1995  Hewlett-Packard Company
@@ -31,7 +29,6 @@
  *     DIX DBE code
  *
  *****************************************************************************/
-/* $XFree86: xc/programs/Xserver/dbe/dbe.c,v 3.10 2001/08/23 14:19:24 alanh Exp $ */
 
 
 /* INCLUDES */

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_ansic.h,v 3.53 2003/10/28 18:36:37 tsi Exp $ */
 /*
  * Copyright 1997-2003 by The XFree86 Project, Inc
  *

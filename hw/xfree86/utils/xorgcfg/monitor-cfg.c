@@ -26,7 +26,6 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/monitor-cfg.c,v 1.6 2001/02/21 23:37:03 paulo Exp $
  */
 
 #include "xf86config.h"

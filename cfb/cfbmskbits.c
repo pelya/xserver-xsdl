@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbmskbits.c,v 3.1 1998/10/04 09:37:46 dawes Exp $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.
 
@@ -28,7 +27,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
 
-/* $Xorg: cfbmskbits.c,v 1.3 2000/08/17 19:48:14 cpqbld Exp $ */
 
 /*
  * ==========================================================================
