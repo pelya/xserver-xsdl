@@ -606,7 +606,9 @@ exaDriverInit (ScreenPtr		pScreen,
     }
 #endif
 
+#ifdef COMPOSITE
     miDisableCompositeWrapper(pScreen);
+#endif
 
     /*
      * Hookup offscreen pixmaps

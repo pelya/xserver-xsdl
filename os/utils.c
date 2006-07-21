@@ -264,12 +264,6 @@ int SyncOn  = 0;
 extern int SelectWaitTime;
 #endif
 
-#ifdef DEBUG
-#ifndef SPECIAL_MALLOC
-#define MEMBUG
-#endif
-#endif
-
 #if defined(SVR4) || defined(__linux__) || defined(CSRG_BASED)
 #define HAS_SAVED_IDS_AND_SETEUID
 #endif
@@ -545,7 +539,6 @@ GiveUp(int sig)
     errno = olderrno;
 }
 
-#ifndef DDXTIME
 _X_EXPORT CARD32
 GetTimeInMillis(void)
 {
@@ -554,7 +547,6 @@ GetTimeInMillis(void)
     X_GETTIMEOFDAY(&tp);
     return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
 }
-#endif
 
 _X_EXPORT void
 AdjustWaitForDelay (pointer waitTime, unsigned long newdelay)

@@ -450,17 +450,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
     return 0;
 }
 
-#ifdef DDXTIME /* from ServerOSDefines */
-CARD32
-GetTimeInMillis()
-{
-    struct timeval  tp;
-
-    X_GETTIMEOFDAY(&tp);
-    return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
-}
-#endif
-
 static ColormapPtr InstalledMaps[MAXSCREENS];
 
 static int

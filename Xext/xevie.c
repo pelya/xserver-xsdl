@@ -59,7 +59,9 @@ of the copyright holder.
 
 #define NoSuchEvent 0x80000000
 
+#ifdef XKB
 extern Bool noXkbExtension;
+#endif
 extern int    xeviegrabState;
 
 static int		ProcDispatch (register ClientPtr client), SProcDispatch (register ClientPtr client);
@@ -201,12 +203,14 @@ int ProcStart (register ClientPtr client)
            return BadAlloc;
     } else
         return BadAccess;
+#ifdef XKB
     if (!noXkbExtension) {
 	if (!XevieStart()) {
             DeleteCallback(&ClientStateCallback,XevieClientStateCallback,NULL);
             return BadAlloc;
         }
     }
+#endif
     
     xevieModifiersOn = FALSE;
 
@@ -255,19 +259,23 @@ int ProcSend (register ClientPtr client)
 	case KeyPress:
         case KeyRelease:
 	  xevieKBEventSent = 1;
-          if(noXkbExtension)
-            CoreProcessKeyboardEvent (xE, xeviekb, 1);
-	  else 
+#ifdef XKB
+          if(!noXkbExtension)
 	    doSendEvent(xE, inputInfo.keyboard);
+	  else 
+#endif
+            CoreProcessKeyboardEvent (xE, xeviekb, 1);
 	  break;
 	case ButtonPress:
 	case ButtonRelease:
 	case MotionNotify:
 	  xevieEventSent = 1;
-	  if(noXkbExtension)
-	    CoreProcessPointerEvent(xE, xeviemouse, 1); 
-	  else
+#ifdef XKB
+	  if(!noXkbExtension)
 	    doSendEvent(xE, inputInfo.pointer);
+	  else
+#endif
+	    CoreProcessPointerEvent(xE, xeviemouse, 1); 
 	  break; 
 	default:
 	  break;
@@ -464,6 +472,7 @@ XevieKbdProcessInputProc(xEvent *xE, DeviceIntPtr dev, int count)
         xE->u.keyButtonPointer.state = keyc->state | inputInfo.pointer->button->state;
         /* fix bug: sequence lost in Xlib */
         xE->u.u.sequenceNumber = clients[xevieClientIndex]->sequence;
+#ifdef XKB
 	/* fix for bug5092586 */
 	if(!noXkbExtension) {
           switch(xE->u.u.type) {
@@ -471,6 +480,7 @@ XevieKbdProcessInputProc(xEvent *xE, DeviceIntPtr dev, int count)
 	    case KeyRelease: *kptr &= ~bit; break;
 	  }
 	}
+#endif
 	keycq[keycqHead].time = xE->u.keyButtonPointer.time;
 	memcpy(keycq[keycqHead].keyc, keyc, sizeof(KeyClassRec) - sizeof(KeyClassPtr));
 	memcpy(keycq[keycqHead].keyc->xkbInfo, keyc->xkbInfo, sizeof(XkbSrvInfoRec));
@@ -525,6 +535,7 @@ XevieEnd(int clientIndex)
 {
     if (!clientIndex || clientIndex == xevieClientIndex) {
 
+#ifdef XKB
        if(!noXkbExtension) {
 
 	   XevieRemove(inputInfo.keyboard,NULL);
@@ -540,6 +551,7 @@ XevieEnd(int clientIndex)
            inputInfo.pointer->public.realInputProc = CoreProcessPointerEvent;
            XkbSetExtension(inputInfo.pointer,ProcessPointerEvent);
        }
+#endif
 
        xevieFlag = 0;
        xevieClientIndex = 0;
