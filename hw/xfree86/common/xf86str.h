@@ -46,11 +46,19 @@
 
 #include <pciaccess.h>
 
-/*
- * memType is of the size of the addressable memory (machine size)
- * usually unsigned long.
+/**
+ * Integer type that is of the size of the addressable memory (machine size).
+ * On most platforms \c uintptr_t will suffice.  However, on some mixed
+ * 32-bit / 64-bit platforms, such as 32-bit binaries on 64-bit PowerPC, this
+ * must be 64-bits.
  */
-typedef unsigned long memType;
+#include <inttypes.h>
+#if defined(__powerpc__)
+typedef uint64_t memType;
+#else
+typedef uintptr_t memType;
+#endif
+
 
 /* Video mode flags */
 

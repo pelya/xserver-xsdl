@@ -196,8 +196,5 @@ Bool xf86int10GetBiosSegment(xf86Int10InfoPtr pInt,
 void dprint(unsigned long start, unsigned long size);
 #endif
 
-/* pci.c */
-int mapPciRom(int pciEntity, unsigned char *address);
-
 #endif /* _INT10_PRIVATE */
 #endif /* _XF86INT10_H */

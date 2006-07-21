@@ -279,16 +279,21 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 
 	switch (location_type) {
 	case BUS_PCI: {
-	    const int pci_entity = (bios.bus == BUS_PCI)
-	      ? xf86GetPciEntity(bios.location.pci.bus,
-				 bios.location.pci.dev,
-				 bios.location.pci.func)
-	      : pInt->entityIndex;
-	    
-	    if (!mapPciRom(pci_entity, (unsigned char *)(V_BIOS))) {
-	        xf86DrvMsg(screen, X_ERROR, "Cannot read V_BIOS\n");
+	    int err;
+	    struct pci_device *rom_device = (bios.bus == BUS_PCI)
+	      ? pci_device_find_by_slot(PCI_DOM_FROM_BUS(bios.location.pci.bus),
+					PCI_BUS_NO_DOM(bios.location.pci.bus),
+					bios.location.pci.dev,
+					bios.location.pci.func)
+	      : xf86GetPciInfoForEntity(pInt->entityIndex);
+
+	    err = pci_device_read_rom(rom_device, (unsigned char *)(V_BIOS));
+	    if (err) {
+		xf86DrvMsg(screen,X_ERROR,"Cannot read V_BIOS (%s)\n",
+			   strerror(err));
 		goto error3;
 	    }
+
 	    pInt->BIOSseg = V_BIOS >> 4;
 	    break;
 	}

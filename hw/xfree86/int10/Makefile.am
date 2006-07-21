@@ -9,7 +9,6 @@ libint10_la_LDFLAGS = -avoid-version
 COMMON_SOURCES = \
 	helper_exec.c \
 	helper_mem.c \
-	pci.c \
 	xf86int10.c \
 	xf86int10module.c
 

@@ -57,8 +57,8 @@ int10MemRec genericMem = {
 static void MapVRam(xf86Int10InfoPtr pInt);
 static void UnmapVRam(xf86Int10InfoPtr pInt);
 #ifdef _PC
-#define GET_HIGH_BASE(x) (((V_BIOS + size + getpagesize() - 1)/getpagesize()) \
-                             * getpagesize())
+#define GET_HIGH_BASE(x) (((V_BIOS + (x) + getpagesize() - 1)/getpagesize()) \
+                              * getpagesize())
 #endif
 
 static void *sysMem = NULL;
@@ -165,18 +165,22 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 
 	switch (location_type) {
 	case BUS_PCI: {
-	    const int pci_entity = (bios.bus == BUS_PCI)
-	      ? xf86GetPciEntity(bios.location.pci.bus,
-				 bios.location.pci.dev,
-				 bios.location.pci.func)
-	      : pInt->entityIndex;
+	    int err;
+	    struct pci_device *rom_device = (bios.bus == BUS_PCI)
+	      ? pci_device_find_by_slot(PCI_DOM_FROM_BUS(bios.location.pci.bus),
+					PCI_BUS_NO_DOM(bios.location.pci.bus),
+					bios.location.pci.dev,
+					bios.location.pci.func)
+	      : xf86GetPciInfoForEntity(pInt->entityIndex);
 
 	    vbiosMem = (unsigned char *)base + bios_location;
-	    if (!(size = mapPciRom(pci_entity,(unsigned char *)(vbiosMem)))) {
-		xf86DrvMsg(screen,X_ERROR,"Cannot read V_BIOS (3)\n");
+	    err = pci_device_read_rom(rom_device, vbiosMem);
+	    if (err) {
+		xf86DrvMsg(screen,X_ERROR,"Cannot read V_BIOS (3) %s\n",
+			   strerror(err));
 		goto error1;
 	    }
-	    INTPriv(pInt)->highMemory = GET_HIGH_BASE(size);
+	    INTPriv(pInt)->highMemory = GET_HIGH_BASE(rom_device->rom_size);
 	    break;
 	}
 	case BUS_ISA:
@@ -262,24 +266,21 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 			       "No legacy BIOS found -- trying PCI\n");
 	} 
 	if (!done) {
-	    int pci_entity;
-	    
-	    if (bios.bus == BUS_PCI) {
-		xf86DrvMsg(screen,X_CONFIG,"Looking for BIOS at PCI:%i%i%i\n",
-			   bios.location.pci.bus,bios.location.pci.dev,
-			   bios.location.pci.func);		
-		pci_entity = xf86GetPciEntity(bios.location.pci.bus,
-					      bios.location.pci.dev,
-					      bios.location.pci.func);
-	    } else 
-		pci_entity = pInt->entityIndex;
+	    int err;
+	    struct pci_device *rom_device = (bios.bus == BUS_PCI)
+	      ? pci_device_find_by_slot(PCI_DOM_FROM_BUS(bios.location.pci.bus),
+					PCI_BUS_NO_DOM(bios.location.pci.bus),
+					bios.location.pci.dev,
+					bios.location.pci.func)
+	      : xf86GetPciInfoForEntity(pInt->entityIndex);
 
-	    if (!mapPciRom(pci_entity, vbiosMem)) {
-		    xf86DrvMsg(screen, X_ERROR, "Cannot read V_BIOS (5)\n");
-		    goto error1;
+	    err = pci_device_read_rom(rom_device, vbiosMem);
+	    if (err) {
+		xf86DrvMsg(screen,X_ERROR,"Cannot read V_BIOS (3) %s\n",
+			   strerror(err));
+		goto error1;
 	    }
 	} 
-
     }
 
     pInt->BIOSseg = V_BIOS >> 4;
