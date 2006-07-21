@@ -907,9 +907,17 @@ EphyrKeyboardInit (KdKeyboardInfo *ki)
 {
   ki->driverPrivate = (EphyrKbdPrivate *)
                        xcalloc(sizeof(EphyrKbdPrivate), 1);
-  /* FIXME blah blah overrunning memory blah blah */
-  ki->minScanCode = ki->keySyms.minKeyCode = 0;
-  ki->maxScanCode = ki->keySyms.maxKeyCode = 255;
+  hostx_load_keymap();
+  if (!ephyrKeySyms.map) {
+      ErrorF("Couldn't load keymap from host\n");
+      return BadAlloc;
+  }
+  ki->keySyms.minKeyCode = ephyrKeySyms.minKeyCode;
+  ki->keySyms.maxKeyCode = ephyrKeySyms.maxKeyCode;
+  ki->minScanCode = ki->keySyms.minKeyCode;
+  ki->maxScanCode = ki->keySyms.maxKeyCode;
+  ki->keySyms.mapWidth = ephyrKeySyms.mapWidth;
+  ki->keySyms.map = ephyrKeySyms.map;
   ephyrKbd = ki;
   return Success;
 }
@@ -917,17 +925,6 @@ EphyrKeyboardInit (KdKeyboardInfo *ki)
 static Status
 EphyrKeyboardEnable (KdKeyboardInfo *ki)
 {
-    hostx_load_keymap();
-    if (!ephyrKeySyms.map) {
-        ErrorF("Couldn't load keymap from host\n");
-        return BadAlloc;
-    }
-    ki->keySyms.minKeyCode = ephyrKeySyms.minKeyCode;
-    ki->keySyms.maxKeyCode = ephyrKeySyms.maxKeyCode;
-    ki->minScanCode = ki->keySyms.minKeyCode;
-    ki->maxScanCode = ki->keySyms.maxKeyCode;
-    ki->keySyms.mapWidth = ephyrKeySyms.mapWidth;
-    ki->keySyms.map = ephyrKeySyms.map;
     ((EphyrKbdPrivate *)ki->driverPrivate)->enabled = TRUE;
 
     return Success;
