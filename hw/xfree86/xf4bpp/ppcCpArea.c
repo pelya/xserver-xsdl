@@ -55,8 +55,7 @@ SOFTWARE.
 #include "xf4bpp.h"
 #include "mfbmap.h"
 #define PSZ 8
-#include "cfb.h"
-#include "cfbmskbits.h"
+#include "mfb.h"
 #include "mergerop.h"
 #include "mi.h"
 #include "pixmapstr.h"
@@ -87,8 +86,8 @@ vga16DoBitblt
     int w, h;
     int careful;
 
-    widthSrc = cfbGetLongWidth(pSrc);
-    widthDst = cfbGetLongWidth(pDst);
+    widthSrc = mfbGetPixelWidth(pSrc);
+    widthDst = mfbGetPixelWidth(pDst);
 
     /* XXX we have to err on the side of safety when both are windows,
      * because we don't know if IncludeInferiors is being used.
