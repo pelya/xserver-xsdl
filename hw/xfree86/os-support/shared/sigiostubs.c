@@ -31,7 +31,6 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef XFree86Server
 #ifdef __UNIXOS2__
 # define I_NEED_OS2_H
 #endif
@@ -39,13 +38,6 @@
 # include "xf86.h"
 # include "xf86Priv.h"
 # include "xf86_OSlib.h"
-#else
-# include <unistd.h>
-# include <signal.h>
-# include <fcntl.h>
-# include <sys/time.h>
-# include <errno.h>
-#endif
 
 _X_EXPORT int
 xf86InstallSIGIOHandler(int fd, void (*f)(int, void *), void *closure)
@@ -70,12 +62,10 @@ xf86UnblockSIGIO (int wasset)
 {
 }
 
-#ifdef XFree86Server
 void
 xf86AssertBlockedSIGIO (char *where)
 {
 }
-#endif
 
 /* XXX This is a quick hack for the benefit of xf86SetSilkenMouse() */
 Bool

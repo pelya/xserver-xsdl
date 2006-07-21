@@ -594,7 +594,7 @@ pciCfg1outb(CARD16 addr, CARD8 val)
 }
 
 CARD8
-bios_checksum(CARD8 *start, int size)
+bios_checksum(const CARD8 *start, int size)
 {
     CARD8 sum = 0;
 
@@ -703,3 +703,9 @@ xf86Int10SaveRestoreBIOSVars(xf86Int10InfoPtr pInt, Bool save)
     xf86UnMapVidMem(pInt->scrnIndex,base - BIOS_SCRATCH_OFF ,pagesize);
 }
 #endif
+
+xf86Int10InfoPtr
+xf86InitInt10(int entityIndex)
+{
+    return xf86ExtendedInitInt10(entityIndex, 0);
+}

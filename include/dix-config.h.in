@@ -231,6 +231,9 @@
 /* Disable some debugging code */
 #undef NDEBUG
 
+/* Enable some debugging code */
+#undef DEBUG
+
 /* Name of package */
 #undef PACKAGE
 

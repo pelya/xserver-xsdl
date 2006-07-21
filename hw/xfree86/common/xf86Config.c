@@ -513,7 +513,6 @@ fixup_video_driver_list(char **drivers)
 static char **
 GenerateDriverlist(char * dirname, char * drivernames)
 {
-#ifdef XFree86LOADER
     char **ret;
     const char *subdirs[] = { dirname, NULL };
     static const char *patlist[] = {"(.*)_drv\\.so", "(.*)_drv\\.o", NULL};
@@ -524,39 +523,6 @@ GenerateDriverlist(char * dirname, char * drivernames)
         fixup_video_driver_list(ret);
 
     return ret;
-#else /* non-loadable server */
-    char *cp, **driverlist;
-    int count;
-
-    /* Count the number needed */
-    count = 0;
-    cp = drivernames;
-    while (*cp) {
-	while (*cp && isspace(*cp)) cp++;
-	if (!*cp) break;
-	count++;
-	while (*cp && !isspace(*cp)) cp++;
-    }
-
-    if (!count)
-	return NULL;
-
-    /* Now allocate the array of pointers to 0-terminated driver names */
-    driverlist = (char **)xnfalloc((count + 1) * sizeof(char *));
-    count = 0;
-    cp = drivernames;
-    while (*cp) {
-	while (*cp && isspace(*cp)) cp++;
-	if (!*cp) break;
-	driverlist[count++] = cp;
-	while (*cp && !isspace(*cp)) cp++;
-	if (!*cp) break;
-	*cp++ = 0;
-    }
-    driverlist[count] = NULL;
-
-    return driverlist;
-#endif
 }
 
 
@@ -732,7 +698,6 @@ configFiles(XF86ConfFilesPtr fileconf)
   }
   
   
-#ifdef XFree86LOADER
   /* ModulePath */
 
   if (fileconf) {
@@ -743,7 +708,6 @@ configFiles(XF86ConfFilesPtr fileconf)
   }
 
   xf86Msg(xf86ModPathFrom, "ModulePath set to \"%s\"\n", xf86ModulePath);
-#endif
 
 #if 0
   /* LogFile */

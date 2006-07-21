@@ -97,13 +97,9 @@ extern unsigned short xf86MouseCflags[];
 extern Bool xf86SupportedMouseTypes[];
 extern int xf86NumMouseTypes;
 
-#ifdef XFree86LOADER
 extern DriverPtr *xf86DriverList;
 extern ModuleInfoPtr *xf86ModuleInfoList;
 extern int xf86NumModuleInfos;
-#else
-extern DriverPtr xf86DriverList[];
-#endif
 extern int xf86NumDrivers;
 extern Bool xf86Resetting;
 extern Bool xf86Initialising;

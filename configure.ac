@@ -469,7 +469,7 @@ AC_MSG_RESULT([$SETUID])
 AM_CONDITIONAL(INSTALL_SETUID, [test "x$SETUID" = "xyes"])
 
 dnl Issue an error if xtrans.m4 was not found and XTRANS_CONNECTION_FLAGS macro
-dnl was not expanded, since libX11 with no transport types is rather useless.
+dnl was not expanded, since xorg-server with no transport types is rather useless.
 dnl
 dnl If you're seeing an error here, be sure you installed the lib/xtrans module
 dnl first and if it's not in the default location, that you set the ACLOCAL
@@ -865,11 +865,6 @@ dnl ---------------------------------------------------------------------------
 dnl DDX section.
 dnl ---------------------------------------------------------------------------
 
-dnl These are used to define Xorg module, loader and general server defines
-MODULE_DEFINES=""
-LOADER_DEFINES=""
-SERVER_DEFINES=""
-
 dnl DMX DDX
 
 AC_MSG_CHECKING([whether to build Xdmx DDX])
@@ -1247,11 +1242,6 @@ int main () {
 	AC_SUBST([XORG_CFLAGS])
 	AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
 
-	dnl Module defines are used in the Xorg server and the drivers
-	MODULE_DEFINES="$MODULE_DEFINES -DIN_MODULE -DXFree86Module"
-	LOADER_DEFINES="$LOADER_DEFINES -DXFree86LOADER"
-	SERVER_DEFINES="$SERVER_DEFINES -DXFree86Server"
-
 	dnl these only go in xorg-config.h
 	XF86CONFIGFILE="xorg.conf"
 	CONFIGFILE="$sysconfdir/$XF86CONFIGFILE"
@@ -1259,6 +1249,7 @@ int main () {
 	AC_DEFINE(XORG_SERVER, 1, [Building Xorg server])
 	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
 	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
+	AC_DEFINE(XFree86LOADER, 1, [Building loadable XFree86 server])
 	AC_DEFINE_UNQUOTED(XORG_VERSION_CURRENT, [$VENDOR_RELEASE], [Current Xorg version])
 	AC_DEFINE(NEED_XF86_TYPES, 1, [Need XFree86 typedefs])
 	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
@@ -1595,10 +1586,6 @@ fi
 AM_CONDITIONAL(BUILD_KBD_MODE, [test x$BUILD_KBD_MODE = xyes])
 AM_CONDITIONAL(BSD_KBD_MODE, [test x$KBD_MODE_TYPE = xbsd])
 AM_CONDITIONAL(SUN_KBD_MODE, [test x$KBD_MODE_TYPE = xsun])
-
-AC_SUBST([MODULE_DEFINES])
-AC_SUBST([LOADER_DEFINES])
-AC_SUBST([SERVER_DEFINES])
 
 CFLAGS="$XSERVER_CFLAGS $CFLAGS"
 AC_SUBST([CFLAGS])

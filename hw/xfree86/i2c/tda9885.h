@@ -51,22 +51,10 @@ void tda9885_dumpstatus(TDA9885Ptr t);
 		"tda9885_setaudio", \
 		"tda9885_mute"
 
-#ifdef XFree86LOADER
-
 #define xf86_Detect_tda9885       ((TDA9885Ptr (*)(I2CBusPtr, I2CSlaveAddr))LoaderSymbol("Detect_tda9885"))
 #define xf86_tda9885_init         ((Bool (*)(TDA9885Ptr))LoaderSymbol("tda9885_init"))
 #define xf86_tda9885_setparameters     ((void (*)(TDA9885Ptr))LoaderSymbol("tda9885_setparameters"))
 #define xf86_tda9885_getstatus    ((void (*)(TDA9885Ptr))LoaderSymbol("tda9885_getstatus"))
 #define xf86_tda9885_dumpstatus    ((void (*)(TDA9885Ptr))LoaderSymbol("tda9885_dumpstatus"))
-
-#else
-
-#define xf86_Detect_tda9885       Detect_tda9885
-#define xf86_tda9885_init         tda9885_init
-#define xf86_tda9885_setparameters     tda9885_setparameters
-#define xf86_tda9885_getstatus    tda9885_getstatus
-#define xf86_tda9885_dumpstatus    tda9885_dumpstatus
-
-#endif
 
 #endif

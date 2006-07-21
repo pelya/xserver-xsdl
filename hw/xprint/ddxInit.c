@@ -245,17 +245,6 @@ ddxBeforeReset(void)
 }
 #endif
 
-#ifdef DDXTIME
-CARD32
-GetTimeInMillis(void)
-{
-    struct timeval  tp;
-
-    X_GETTIMEOFDAY(&tp);
-    return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
-}
-#endif
-
 /* ddxInitGlobals - called by |InitGlobals| from os/util.c */
 void ddxInitGlobals(void)
 {

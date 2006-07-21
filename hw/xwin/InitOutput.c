@@ -944,15 +944,6 @@ void ddxInitGlobals(void)
 {
 }
 
-#ifdef DDXTIME /* from ServerOSDefines */
-CARD32
-GetTimeInMillis (void)
-{
-  return GetTickCount ();
-}
-#endif /* DDXTIME */
-
-
 /* See Porting Layer Definition - p. 20 */
 /*
  * Do any global initialization, then initialize each screen.

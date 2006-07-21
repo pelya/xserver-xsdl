@@ -44,7 +44,6 @@
 #include <windowstr.h>
 #include "unpack.h"
 #include "glxext.h"
-#include "GL/glx_ansic.h"
 #include "glxvendor.h"
 
 extern int glxIsExtensionSupported( char *ext );
@@ -714,7 +713,7 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 	    }
 	    cl->largeCmdBufSize = hdr->length;
 	}
-	__glXMemcpy(cl->largeCmdBuf, pc, req->dataBytes);
+	memcpy(cl->largeCmdBuf, pc, req->dataBytes);
 
 	cl->largeCmdBytesSoFar = req->dataBytes;
 	cl->largeCmdBytesTotal = hdr->length;
@@ -737,7 +736,7 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 	    return __glXBadLargeRequest;
        }
 
-       __glXMemcpy(cl->largeCmdBuf + cl->largeCmdBytesSoFar, 
+       memcpy(cl->largeCmdBuf + cl->largeCmdBytesSoFar, 
 	           pc, req->dataBytes);
 
        cl->largeCmdBytesSoFar += req->dataBytes;
@@ -759,7 +758,7 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 	    return __glXBadLargeRequest;
        }
 
-       __glXMemcpy(cl->largeCmdBuf + cl->largeCmdBytesSoFar, 
+       memcpy(cl->largeCmdBuf + cl->largeCmdBytesSoFar, 
 	           pc, req->dataBytes);
 
        cl->largeCmdBytesSoFar += req->dataBytes;

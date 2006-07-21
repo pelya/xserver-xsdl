@@ -13,9 +13,7 @@ AM_CFLAGS = \
 	@DRIPROTO_CFLAGS@ \
 	-I@MESA_SOURCE@/src/mesa/glapi \
 	-I@MESA_SOURCE@/src/mesa/main \
-	@SERVER_DEFINES@ \
-	@MODULE_DEFINES@ \
-	@LOADER_DEFINES@ \
+	-DXFree86Server \
 	-DNO_LIBCWRAPPER \
 	@GLX_DEFINES@
 

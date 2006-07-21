@@ -470,32 +470,3 @@ searchdone:
   }
   return (Success);
 }
-
-#if defined(DDXTIME) && !defined(QNX4)
-/*
- * These are getting tossed in here until I can think of where
- * they really belong
- */
-#define HALFMONTH ((unsigned long) 1<<31)
-_X_EXPORT CARD32
-GetTimeInMillis()
-{
-    struct timeval  tp;
-    register CARD32 val;
-    register INT32 diff;
-    static CARD32 oldval = 0;
-    static CARD32 time = 0;
-
-    gettimeofday(&tp, 0);
-    val = (tp.tv_sec * 1000) + (tp.tv_usec / 1000);
-    if (oldval) {
-	diff = val - oldval;
-	if (diff > 0)
-	    time += diff;
-    }
-    oldval = val;
-
-    return time;
-}
-#endif /* DDXTIME && !QNX4 */
-

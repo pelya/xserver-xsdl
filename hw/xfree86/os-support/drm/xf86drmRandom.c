@@ -84,9 +84,7 @@
 #if !RANDOM_MAIN
 # include "drm.h"
 # include "xf86drm.h"
-# ifdef XFree86LOADER
-#  include "xf86.h"
-# endif
+# include "xf86.h"
 #endif
 
 #define N(x)  drm##x

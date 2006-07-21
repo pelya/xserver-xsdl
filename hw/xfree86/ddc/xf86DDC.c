@@ -121,14 +121,12 @@ static const OptionInfoRec DDCOptions[] = {
     { -1,		NULL,		OPTV_NONE,	{0},	FALSE },
 };
 
-#ifdef XFree86LOADER
 /*ARGSUSED*/
 static const OptionInfoRec *
 DDCAvailableOptions(void *unused)
 {
     return (DDCOptions);
 }
-#endif
 
 /**
  * Attempts to probe the monitor for EDID information, if NoDDC and NoDDC1 are

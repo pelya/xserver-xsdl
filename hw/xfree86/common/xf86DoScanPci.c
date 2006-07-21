@@ -41,9 +41,6 @@
 #include <X11/Xmd.h>
 #include <pciaccess.h>
 #include "os.h"
-#ifdef XFree86LOADER
-#include "loaderProcs.h"
-#endif
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86Pci.h"

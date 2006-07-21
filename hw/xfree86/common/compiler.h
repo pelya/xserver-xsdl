@@ -1605,17 +1605,13 @@ extern void outl(unsigned int a, unsigned int l);
 #    endif
 #    ifndef SCO325
 #     if defined(__UNIXWARE__)
-#      if defined(IN_MODULE)
 #     /* avoid including <sys/types.h> for <sys/inline.h> on UnixWare */
-#       define ushort unsigned short
-#       define ushort_t unsigned short
-#       define ulong unsigned long
-#       define ulong_t unsigned long
-#       define uint_t unsigned int
-#       define uchar_t unsigned char
-#      else
-#       include <sys/types.h>
-#      endif /* IN_MODULE */
+#      define ushort unsigned short
+#      define ushort_t unsigned short
+#      define ulong unsigned long
+#      define ulong_t unsigned long
+#      define uint_t unsigned int
+#      define uchar_t unsigned char
 #     endif /* __UNIXWARE__ */
 #     if !defined(sgi) && !defined(__SUNPRO_C)
 #      include <sys/inline.h>

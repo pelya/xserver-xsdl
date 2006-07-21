@@ -2072,7 +2072,7 @@ miWideDash (pDrawable, pGC, mode, npt, pPts)
     Bool	    endIsFg = FALSE, startIsFg = FALSE;
     Bool            firstIsFg = FALSE, prevIsFg = FALSE;
 
-#ifndef XFree86Server
+#if 0
     /* XXX backward compatibility */
     if (pGC->lineWidth == 0)
     {

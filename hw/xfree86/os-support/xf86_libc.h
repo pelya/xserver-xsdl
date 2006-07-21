@@ -53,8 +53,6 @@
  * libc_wrapper.c.
  */
 
-#if defined(XFree86LOADER) || defined(NEED_XF86_TYPES)
-
 /*
  * First, the new data types
  *
@@ -215,14 +213,12 @@ typedef int xf86jmp_buf[1024];
 /* xf86shmclt() */
 #define XF86IPC_RMID 0
 
-#endif /* defined(XFree86LOADER) || defined(NEED_XF86_TYPES) */
-
 /*
  * the rest of this file should only be included for code that is supposed
  * to go into modules
  */
 
-#if defined(XFree86LOADER) && !defined(DONT_DEFINE_WRAPPERS)
+#if !defined(DONT_DEFINE_WRAPPERS)
 
 #undef abort
 #define abort()			xf86abort()
@@ -713,10 +709,9 @@ typedef int xf86jmp_buf[1024];
 # define _FILEDEFED /* Already have FILE defined, don't redefine it */
 #endif
 
-#endif /* XFree86LOADER  && !DONT_DEFINE_WRAPPERS */
+#endif /* !DONT_DEFINE_WRAPPERS */
 
-#if defined(XFree86LOADER) && \
-    (!defined(DONT_DEFINE_WRAPPERS) || defined(DEFINE_SETJMP_WRAPPERS))
+#if (!defined(DONT_DEFINE_WRAPPERS) || defined(DEFINE_SETJMP_WRAPPERS))
 #undef setjmp
 #define setjmp(a)               xf86setjmp_macro(a)
 #undef longjmp

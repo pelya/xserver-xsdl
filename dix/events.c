@@ -3019,9 +3019,6 @@ ProcessPointerEvent (register xEvent *xE, register DeviceIntPtr mouse, int count
 		butc->buttonsDown++;
 	    butc->motionMask = ButtonMotionMask;
 	    *kptr |= bit;
-#if !defined(XFree86Server) || !defined(XINPUT)
-	    xE->u.u.detail = butc->map[key];
-#endif
 	    if (xE->u.u.detail == 0)
 		return;
 	    if (xE->u.u.detail <= 5)
@@ -3038,9 +3035,6 @@ ProcessPointerEvent (register xEvent *xE, register DeviceIntPtr mouse, int count
 	    if (!butc->buttonsDown)
 		butc->motionMask = 0;
 	    *kptr &= ~bit;
-#if !defined(XFree86Server) || !defined(XINPUT)
-	    xE->u.u.detail = butc->map[key];
-#endif
 	    if (xE->u.u.detail == 0)
 		return;
 	    if (xE->u.u.detail <= 5)

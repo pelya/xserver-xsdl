@@ -35,11 +35,7 @@
 #define _xf86InPriv_h
 
 /* xf86Globals.c */
-#ifdef XFree86LOADER
 extern InputDriverPtr *xf86InputDriverList;
-#else
-extern InputDriverPtr xf86InputDriverList[];
-#endif
 extern int xf86NumInputDrivers;
 
 /* xf86Xinput.c */

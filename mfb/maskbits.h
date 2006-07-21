@@ -253,7 +253,7 @@ extern PixelType mfbGetmask(int);
 #define BitLeft(b,s)	SCRLEFT(b,s)
 #define BitRight(b,s)	SCRRIGHT(b,s)
 
-#ifdef XFree86Server
+#if 1
 #define LONG2CHARSSAMEORDER(x) ((MfbBits)(x))
 #define LONG2CHARSDIFFORDER( x ) ( ( ( ( x ) & (MfbBits)0x000000FF ) << 0x18 ) \
                         | ( ( ( x ) & (MfbBits)0x0000FF00 ) << 0x08 ) \

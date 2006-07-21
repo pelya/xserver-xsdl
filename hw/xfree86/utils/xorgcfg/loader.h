@@ -36,9 +36,6 @@
 
 #else
 
-#ifndef XFree86LOADER
-#define XFree86LOADER		/* not really */
-#endif
 #define IN_LOADER
 
 #include "xf86.h"
