@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/dix/dispatch.h,v 3.2 2001/08/01 00:44:48 tsi Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>

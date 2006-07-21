@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_mouse.c,v 1.1 1999/05/22 08:40:14 dawes Exp $ */
 
 /*
  * Copyright 1999 by The XFree86 Project, Inc.

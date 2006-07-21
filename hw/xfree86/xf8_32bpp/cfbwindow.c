@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbwindow.c,v 1.8tsi Exp $ */
 
 
 #ifdef HAVE_XORG_CONFIG_H

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Debug.c,v 1.7 2003/09/24 02:43:17 dawes Exp $ */
 
 /*
  * Copyright (c) 2000-2003 by The XFree86 Project, Inc.

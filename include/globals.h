@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/include/globals.h,v 1.11 2006/04/05 21:08:45 fredrik Exp $ */
-/* $XFree86: xc/programs/Xserver/include/globals.h,v 1.3 1999/09/25 14:38:21 dawes Exp $ */
 
 #ifndef _XSERV_GLOBAL_H_
 #define _XSERV_GLOBAL_H_

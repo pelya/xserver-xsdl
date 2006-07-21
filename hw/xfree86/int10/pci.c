@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/int10/pci.c,v 1.11 2001/10/01 13:44:13 eich Exp $ */
 
 /*
  *                   XFree86 int10 module

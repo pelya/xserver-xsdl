@@ -1,4 +1,3 @@
-/* $Xorg: miscstruct.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -45,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/miscstruct.h,v 3.4 2003/04/27 21:31:04 herrb Exp $ */
 
 #ifndef MISCSTRUCT_H
 #define MISCSTRUCT_H 1

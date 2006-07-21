@@ -30,7 +30,6 @@ or other dealings in this Software without prior written authorization
 of the copyright holder.
 
 ************************************************************/
-/* $XdotOrg: xserver/xorg/Xext/xevie.c,v 1.11 2005/10/06 17:55:54 alanc Exp $ */
 
 #define NEED_REPLIES
 #define NEED_EVENTS

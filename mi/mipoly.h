@@ -1,4 +1,3 @@
-/* $Xorg: mipoly.h,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
 /*
 
 Copyright 1987, 1998  The Open Group
@@ -26,7 +25,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/mi/mipoly.h,v 1.2 2001/08/06 20:51:19 dawes Exp $ */
 
 
 /*

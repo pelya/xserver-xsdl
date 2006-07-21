@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/vbe/vbe.c,v 1.2tsi Exp $ */
 
 /*
  *                   XFree86 vbe module

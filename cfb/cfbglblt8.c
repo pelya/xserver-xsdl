@@ -1,4 +1,3 @@
-/* $Xorg: cfbglblt8.c,v 1.4 2001/02/09 02:04:38 xorgcvs Exp $ */
 /*
 
 Copyright 1989, 1998  The Open Group
@@ -23,7 +22,6 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
-/* $XFree86: xc/programs/Xserver/cfb/cfbglblt8.c,v 3.7 2003/07/16 01:38:37 dawes Exp $ */
 
 /*
  * Poly glyph blt.  Accepts an arbitrary font <= 32 bits wide, in Copy mode

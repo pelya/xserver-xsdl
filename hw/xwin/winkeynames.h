@@ -1,6 +1,5 @@
 #ifndef _WINKEYNAMES_H
 #define _WINKEYNAMES_H
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/atKeynames.h,v 3.18 2001/09/29 20:40:30 herrb Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany.
  *

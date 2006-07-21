@@ -2,7 +2,6 @@
  * copyed from from linux kernel 2.2.4
  * removed internal stuff (#ifdef __KERNEL__)
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/fbdevhw/fbpriv.h,v 1.2 2000/01/21 02:30:02 dawes Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

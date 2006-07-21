@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaNonTEText.c,v 1.12 2000/04/07 19:11:10 mvojkovi Exp $ */
 
 /********************************************************************
 

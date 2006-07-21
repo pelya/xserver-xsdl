@@ -1,4 +1,3 @@
-/* $Xorg: psout.c,v 1.9 2001/03/26 15:25:12 coskrey Exp $ */
 /*
 
 Copyright 1996, 1998  The Open Group

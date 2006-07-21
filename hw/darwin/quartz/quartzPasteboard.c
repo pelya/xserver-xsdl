@@ -29,7 +29,6 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/bundle/quartzPasteboard.c,v 1.3 2001/09/23 04:04:49 torrey Exp $ */
 
 #include "quartzPasteboard.h"
 

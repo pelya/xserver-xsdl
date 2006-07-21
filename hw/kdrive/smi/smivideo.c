@@ -19,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/mach64/mach64video.c,v 1.10 2003/04/23 21:51:18 tsi Exp $ */
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>
 #endif

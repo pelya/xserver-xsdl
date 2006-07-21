@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/scan.c,v 1.30 2003/11/03 05:11:52 tsi Exp $ */
 /* 
  * 
  * Copyright (c) 1997  Metro Link Incorporated

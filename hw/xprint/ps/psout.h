@@ -1,4 +1,3 @@
-/* $Xorg: psout.h,v 1.6 2001/02/09 02:04:37 xorgcvs Exp $ */
 /*
 
 Copyright 1996, 1998  The Open Group

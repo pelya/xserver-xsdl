@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/record/record.c,v 1.7 2006/03/28 01:21:00 ajax Exp $ */
-/* $Xorg: record.c,v 1.4 2001/02/09 02:05:27 xorgcvs Exp $ */
 
 /*
 
@@ -33,7 +31,6 @@ This work benefited from earlier work done by Martha Zimet of NCD
 and Jim Haggerty of Metheus.
 
 */
-/* $XFree86: xc/programs/Xserver/record/record.c,v 1.11 2003/11/03 05:12:01 tsi Exp $ */
 
 #define NEED_EVENTS
 #ifdef HAVE_DIX_CONFIG_H

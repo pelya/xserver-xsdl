@@ -1,4 +1,3 @@
-/* $Xorg: XNWindow.h,v 1.3 2000/08/17 19:53:28 cpqbld Exp $ */
 /*
 
 Copyright 1993 by Davor Matic
@@ -12,7 +11,6 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/XNWindow.h,v 1.3 2003/11/03 05:36:34 tsi Exp $ */
 
 #ifndef XNESTWINDOW_H
 #define XNESTWINDOW_H

@@ -1,5 +1,4 @@
 /*
- * $Xorg: PsAttVal.c,v 1.5 2001/03/13 18:45:31 pookie Exp $
  */
 /*
 (c) Copyright 1996 Hewlett-Packard Company

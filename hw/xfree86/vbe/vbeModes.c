@@ -27,7 +27,6 @@
  *
  * Authors: David Dawes <dawes@xfree86.org>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/vbe/vbeModes.c,v 1.3tsi Exp $
  */
 
 #ifdef HAVE_XORG_CONFIG_H

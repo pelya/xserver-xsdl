@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/include/gc.h,v 1.5 2001/12/14 19:59:54 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -45,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: gc.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 
 #ifndef GC_H
 #define GC_H 

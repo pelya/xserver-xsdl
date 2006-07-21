@@ -1,4 +1,3 @@
-/* $Xorg: OidStrs.h,v 1.4 2001/03/14 18:45:40 pookie Exp $ */
 /*
 (c) Copyright 1996 Hewlett-Packard Company
 (c) Copyright 1996 International Business Machines Corp.

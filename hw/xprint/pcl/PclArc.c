@@ -1,4 +1,3 @@
-/* $Xorg: PclArc.c,v 1.3 2000/08/17 19:48:07 cpqbld Exp $ */
 /*******************************************************************
 **
 **    *********************************************************
@@ -45,7 +44,6 @@ dealings in this Software without prior written authorization from said
 copyright holders.
 */
 
-/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclArc.c,v 1.4 1999/12/13 02:12:53 robin Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

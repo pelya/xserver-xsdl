@@ -1,4 +1,3 @@
-/* $Xorg: mfbtegblt.c,v 1.4 2001/02/09 02:05:19 xorgcvs Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -47,7 +46,6 @@ SOFTWARE.
 
 ******************************************************************/
 
-/* $XFree86: xc/programs/Xserver/mfb/mfbtegblt.c,v 1.7 2001/01/17 22:37:03 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
