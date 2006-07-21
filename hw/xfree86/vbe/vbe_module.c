@@ -6,8 +6,6 @@
 #include "xf86str.h"
 #include "vbe.h"
 
-extern const char *vbe_ddcSymbols[];
-
 static MODULESETUPPROTO(vbeSetup);
 
 static XF86ModuleVersionInfo vbeVersRec =
@@ -29,19 +27,5 @@ _X_EXPORT XF86ModuleData vbeModuleData = { &vbeVersRec, vbeSetup, NULL };
 static pointer
 vbeSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 {
-    static Bool setupDone = FALSE;
-    
-    if (!setupDone) {
-	setupDone = TRUE;
-	LoaderRefSymLists(vbe_ddcSymbols,NULL);
-	/*
-	 * Tell the loader about symbols from other modules that this module
-	 * might refer to.
-	 */
-    } 
-    /*
-     * The return value must be non-NULL on success even though there
-     * is no TearDownProc.
-     */
     return (pointer)1;
 }

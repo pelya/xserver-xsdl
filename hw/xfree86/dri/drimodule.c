@@ -68,32 +68,6 @@ static ExtensionModule XF86DRIExt =
     NULL
 };
 
-static const char *drmSymbols[] = {
-    "drmAddContextTag",
-    "drmAddMap",
-    "drmAuthMagic",
-    "drmAvailable",
-    "drmClose",
-    "drmCreateContext",
-    "drmCreateDrawable",
-    "drmDelContextTag",
-    "drmDestroyContext",
-    "drmDestroyDrawable",
-    "drmFreeReservedContextList",
-    "drmGetContextTag",
-    "drmGetLock",
-    "drmGetReservedContextList",
-    "drmInstallSIGIOHandler",
-    "drmMap",
-    "drmOpen",
-    "drmRemoveSIGIOHandler",
-    "drmSetBusid",
-    "drmSetContextFlags",
-    "drmUnlock",
-    "drmUnmap",
-    NULL
-};
-
 _X_EXPORT XF86ModuleData driModuleData = { &VersRec, driSetup, NULL };
 
 static pointer
@@ -110,10 +84,7 @@ driSetup(pointer module, pointer opts, int *errmaj, int *errmin)
     
 	if (!drm) {
 	    if (errmaj) *errmaj = LDR_NOSUBENT;
-	}
-	else {
-	    LoaderReqSymLists(drmSymbols, NULL);
-	    LoaderRefSymbols("noPanoramiXExtension", NULL);
+	} else {
 	    LoadExtension(&XF86DRIExt, FALSE);
 	}
     } else {

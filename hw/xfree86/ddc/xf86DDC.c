@@ -15,15 +15,6 @@
 
 static const OptionInfoRec *DDCAvailableOptions(void *unused);
 
-const char *i2cSymbols[] = {
-    "xf86CreateI2CDevRec",
-    "xf86I2CDevInit",
-    "xf86I2CWriteRead",
-    "xf86I2CFindDev",
-    "xf86DestroyI2CDevRec",
-    NULL
-};
-
 static MODULESETUPPROTO(ddcSetup);
 
 static XF86ModuleVersionInfo ddcVersRec =
@@ -58,12 +49,6 @@ ddcSetup(pointer module, pointer opts, int *errmaj, int *errmin)
     if (!setupDone) {
 	setupDone = TRUE;
 	xf86AddModuleInfo(&DDC, module);
-	/*
-	 * Tell the loader about symbols from other modules that this module
-	 * might refer to.
-	 */
-	LoaderRefSymLists(i2cSymbols, NULL);
-
     } 
     /*
      * The return value must be non-NULL on success even though there
@@ -348,8 +333,6 @@ DDCRead_DDC2(int scrnIndex, I2CBusPtr pBus, int start, int len)
     unsigned char *R_Buffer;
     int i;
     
-    xf86LoaderReqSymLists(i2cSymbols, NULL);
-
     if (!(dev = xf86I2CFindDev(pBus, 0x00A0))) {
 	dev = xf86CreateI2CDevRec();
 	dev->DevName = "ddc2";
