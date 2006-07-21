@@ -2068,11 +2068,7 @@ static char *XF86Config_fontpathchunk_text =
 "Section \"InputDevice\"\n"
 "\n"
 "    Identifier	\"Keyboard1\"\n"
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-"    Driver	\"Keyboard\"\n"
-#else
 "    Driver	\"kbd\"\n"
-#endif
 "\n"
 "# For most OSs the protocol can be omitted (it defaults to \"Standard\").\n"
 "# When using XQUEUE (only for SVR3 and SVR4, but not Solaris),\n"

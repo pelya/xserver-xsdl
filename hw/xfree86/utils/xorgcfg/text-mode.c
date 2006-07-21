@@ -48,8 +48,7 @@
 #include "xf86config.h"
 #include "loader.h"
 
-#define IS_KBDDRIV(X) ((strcmp((X),"kbd") == 0) || \
-	(strcmp((X), "keyboard") == 0))
+#define IS_KBDDRIV(X) ((strcmp((X),"kbd") == 0)
 
 #ifndef PROJECT_ROOT
 #define PROJECT_ROOT "/usr"
@@ -746,11 +745,7 @@ KeyboardConfig(void)
 		input->inp_option_lst =
 		    xf86addNewOption(input->inp_option_lst,
 			XtNewString("XkbLayout"), XtNewString("us"));
-#if defined(USE_DEPRECATED_KEYBOARD_DRIVER)
-		input->inp_driver = XtNewString("keyboard");
-#else
 		input->inp_driver = XtNewString("kbd");
-#endif
 		XF86Config->conf_input_lst =
 		    xf86addInput(XF86Config, input);
 	    }
@@ -826,11 +821,7 @@ KeyboardConfig(void)
 		XtNewString("XkbLayout"), XtNewString(layout));
 
     if (input->inp_driver == NULL) {
-#if defined(USE_DEPRECATED_KEYBOARD_DRIVER)
-	input->inp_driver = XtNewString("keyboard");
-#else
 	input->inp_driver = XtNewString("kbd");
-#endif
 	XF86Config->conf_input_lst =
 	    xf86addInput(XF86Config->conf_input_lst, input);
     }

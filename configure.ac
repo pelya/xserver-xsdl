@@ -1089,7 +1089,6 @@ dnl has it in libc), or if libdl is needed to get it.
 		fi
 	  	XORG_OS="linux"
 		XORG_OS_SUBDIR="linux"
-		XORG_OS_KBD="Lnx"
 		xorg_bus_linuxpci="yes"
 		linux_acpi="no"
 		case $host_cpu in
@@ -1131,7 +1130,6 @@ int main () {
 	  freebsd* | kfreebsd*-gnu)
 	  	XORG_OS="freebsd"
 		XORG_OS_SUBDIR="bsd"
-		XORG_OS_KBD="BSD"
 		case $host_cpu in
 		  i*86)
 			;;
@@ -1143,7 +1141,6 @@ int main () {
 	  netbsd*)
 	  	XORG_OS="netbsd"
 		XORG_OS_SUBDIR="bsd"
-		XORG_OS_KBD="BSD"
 		case $host_cpu in
 		  i*86|amd64*|x86_64*|ia64*)
 			;;
@@ -1155,7 +1152,6 @@ int main () {
 	  openbsd*)
 	  	XORG_OS="openbsd"
 		XORG_OS_SUBDIR="bsd"
-		XORG_OS_KBD="BSD"
 		case $host_cpu in
 		  i*86|amd64*|x86_64*|ia64*)
 			;;
@@ -1258,7 +1254,6 @@ int main () {
 	AC_SUBST([XORG_INCS])
 	AC_SUBST([XORG_OS])
 	AC_SUBST([XORG_OS_SUBDIR])
-	AC_SUBST([XORG_OS_KBD])
 
 	dnl only used in hw/xfree86/scanpci, TTBOMK
 	AC_PATH_PROG(PERL, perl, no)

@@ -113,13 +113,6 @@ xf86readConfigFile (void)
 				val.str = NULL;
 				HANDLE_RETURN (conf_flags, xf86parseFlagsSection ());
 			}
-			else if (xf86nameCompare (val.str, "keyboard") == 0)
-			{
-				xf86conffree(val.str);
-				val.str = NULL;
-				HANDLE_LIST (conf_input_lst, xf86parseKeyboardSection,
-							 XF86ConfInputPtr);
-			}
 			else if (xf86nameCompare (val.str, "pointer") == 0)
 			{
 				xf86conffree(val.str);

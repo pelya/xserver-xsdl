@@ -62,6 +62,7 @@
 #endif
 
 #include "xf86OSmouse.h"
+#include "xf86OSKbd.h"
 
 #ifdef DEBUG
 # define DEBUG_P(x) ErrorF(x"\n");
@@ -90,6 +91,7 @@ typedef struct {
 	int	rate;
 	int	delay;
 	int	serverNumLock;	/* obsolete */
+        pointer private;
 } kbdParamsRec, *kbdParamsPtr;
 
 /*
@@ -257,16 +259,23 @@ _X_EXPORT Bool
 MiscExtGetKbdSettings(pointer *kbd)
 {
     kbdParamsPtr kbdptr;
+    InputInfoPtr pInfo;
+    KbdDevPtr pKbd;
 
     DEBUG_P("MiscExtGetKbdSettings");
 
     kbdptr = MiscExtCreateStruct(MISC_KEYBOARD);
     if (!kbdptr)
 	return FALSE;
-    kbdptr->type  = xf86Info.kbdType;
-    kbdptr->rate  = xf86Info.kbdRate;
-    kbdptr->delay = xf86Info.kbdDelay;
+
+    pInfo = inputInfo.keyboard->public.devicePrivate;
+    pKbd = (KbdDevPtr) pInfo->private;
+
+    kbdptr->type  = pKbd->kbdType;
+    kbdptr->rate  = pKbd->rate;
+    kbdptr->delay = pKbd->delay;
     *kbd = kbdptr;
+
     return TRUE;
 }
 
@@ -589,6 +598,11 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
     }
     if (mse_or_kbd == MISC_KEYBOARD) {
 	kbdParamsPtr kbd = structure;
+        InputInfoPtr pInfo;
+        KbdDevPtr pKbd;
+
+        pInfo = inputInfo.keyboard->public.devicePrivate;
+        pKbd = (KbdDevPtr) pInfo->private;
 
 	if (kbd->rate < 0)
 	    return MISC_RET_BADVAL;
@@ -597,25 +611,22 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	if (kbd->type < KTYPE_UNKNOWN || kbd->type > KTYPE_XQUEUE)
 	    return MISC_RET_BADKBDTYPE;
 
-	if (xf86Info.kbdRate!=kbd->rate || xf86Info.kbdDelay!=kbd->delay) {
+	if (pKbd->rate!=kbd->rate || pKbd->delay!=kbd->delay) {
 	    char rad;
 
-	    xf86Info.kbdRate = kbd->rate;
-	    xf86Info.kbdDelay = kbd->delay;
-	    if      (xf86Info.kbdDelay <= 375) rad = 0x00;
-	    else if (xf86Info.kbdDelay <= 625) rad = 0x20;
-	    else if (xf86Info.kbdDelay <= 875) rad = 0x40;
-	    else                               rad = 0x60;
+	    pKbd->rate = kbd->rate;
+	    pKbd->delay = kbd->delay;
+	    if      (pKbd->delay <= 375) rad = 0x00;
+	    else if (pKbd->delay <= 625) rad = 0x20;
+	    else if (pKbd->delay <= 875) rad = 0x40;
+	    else                         rad = 0x60;
 
-	    if      (xf86Info.kbdRate <=  2)   rad |= 0x1F;
-	    else if (xf86Info.kbdRate >= 30)   rad |= 0x00;
-	    else                               rad |= ((58/xf86Info.kbdRate)-2);
+	    if      (pKbd->rate <=  2)   rad |= 0x1F;
+	    else if (pKbd->rate >= 30)   rad |= 0x00;
+	    else                         rad |= ((58/pKbd->rate)-2);
 
-	    xf86SetKbdRepeat(rad);
+	    pKbd->SetKbdRepeat(pInfo, rad);
 	}
-#if 0   /* Not done yet */
-	xf86Info.kbdType = kbd->kbdtype;
-#endif
     }
     return MISC_RET_SUCCESS;
 }

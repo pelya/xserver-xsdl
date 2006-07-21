@@ -385,18 +385,6 @@ xf86DriverlistFromConfig()
     return modulearray;
 }
 
-
-Bool
-xf86BuiltinInputDriver(const char *name)
-{
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-    if (xf86NameCmp(name, "keyboard") == 0)
-	return TRUE;
-    else
-#endif
-	return FALSE;
-}
-
 char **
 xf86InputDriverlistFromConfig()
 {
@@ -421,8 +409,7 @@ xf86InputDriverlistFromConfig()
     if (xf86ConfigLayout.inputs) {
         idp = xf86ConfigLayout.inputs;
         while (idp->identifier) {
-	    if (!xf86BuiltinInputDriver(idp->driver))
-	        count++;
+	    count++;
 	    idp++;
         }
     }
@@ -437,10 +424,8 @@ xf86InputDriverlistFromConfig()
     count = 0;
     idp = xf86ConfigLayout.inputs;
     while (idp->identifier) {
-	if (!xf86BuiltinInputDriver(idp->driver)) {
-	    modulearray[count] = idp->driver;
-	    count++;
-	}
+        modulearray[count] = idp->driver;
+	count++;
 	idp++;
     }
     modulearray[count] = NULL;
@@ -1115,295 +1100,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 }
 
 /*
- * XXX This function is temporary, and will be removed when the keyboard
- * driver is converted into a regular input driver.
- */
-static Bool
-configInputKbd(IDevPtr inputp)
-{
-  char *s;
-  MessageType from = X_DEFAULT;
-  Bool customKeycodesDefault = FALSE;
-  int verb = 0;
-#if defined(XQUEUE)
-  char *kbdproto = "Xqueue";
-#else
-  char *kbdproto = "standard";
-#endif
-
-  /* Initialize defaults */
-  xf86Info.xleds         = 0L;
-  xf86Info.kbdDelay      = 500;
-  xf86Info.kbdRate       = 30;
-  
-  xf86Info.vtinit        = NULL;
-  xf86Info.vtSysreq      = VT_SYSREQ_DEFAULT;
-#if defined(SVR4) && defined(i386)
-  xf86Info.panix106      = FALSE;
-#endif
-  xf86Info.kbdCustomKeycodes = FALSE;
-#ifdef WSCONS_SUPPORT
-  xf86Info.kbdFd 	   = -1;
-#endif
-#ifdef XKB
-  if (!xf86IsPc98()) {
-    xf86Info.xkbrules      = __XKBDEFRULES__;
-    xf86Info.xkbmodel      = "pc105";
-    xf86Info.xkblayout     = "us";
-    xf86Info.xkbvariant    = NULL;
-    xf86Info.xkboptions    = NULL;
-  } else {
-    xf86Info.xkbrules      = "xfree98";
-    xf86Info.xkbmodel      = "pc98";
-    xf86Info.xkblayout     = "nec/jp";
-    xf86Info.xkbvariant    = NULL;
-    xf86Info.xkboptions    = NULL;
-  }
-  xf86Info.xkbcomponents_specified = FALSE;
-  /* Should discourage the use of these. */
-  xf86Info.xkbkeymap     = NULL;
-  xf86Info.xkbtypes      = NULL;
-  xf86Info.xkbcompat     = NULL;
-  xf86Info.xkbkeycodes   = NULL;
-  xf86Info.xkbsymbols    = NULL;
-  xf86Info.xkbgeometry   = NULL;
-#endif
-
-  s = xf86SetStrOption(inputp->commonOptions, "Protocol", kbdproto);
-  if (xf86NameCmp(s, "standard") == 0) {
-     xfree(s);
-  } else if (xf86NameCmp(s, "xqueue") == 0) {
-#ifdef __UNIXWARE__
-    /*
-     * To retain compatibility with older config files, on UnixWare, we
-     * accept the xqueue protocol but use the normal keyboard procs.
-     */
-#else
-#ifdef XQUEUE
-    xf86Msg(X_CONFIG, "Xqueue selected for keyboard input\n");
-#endif
-#endif
-    xfree(s);
-#ifdef WSCONS_SUPPORT
-  } else if (xf86NameCmp(s, "wskbd") == 0) {
-     xfree(s);
-     s = xf86SetStrOption(inputp->commonOptions, "Device", NULL);
-     xf86Msg(X_CONFIG, "Keyboard: Protocol: wskbd\n");
-     if (s == NULL) {
-	 xf86ConfigError("A \"device\" option is required with"
-			 " the \"wskbd\" keyboard protocol");
-	 return FALSE;
-     }
-     xf86Info.kbdFd = open(s, O_RDWR | O_NONBLOCK | O_EXCL);
-     if (xf86Info.kbdFd == -1) {
-       xf86ConfigError("cannot open \"%s\"", s);
-       xfree(s);
-       return FALSE;
-     }
-     xfree(s);
-     /* Find out keyboard type */
-     if (ioctl(xf86Info.kbdFd, WSKBDIO_GTYPE, &xf86Info.wsKbdType) == -1) {
-	     xf86ConfigError("cannot get keyboard type");
-	     close(xf86Info.kbdFd);
-	     return FALSE;
-     }
-     switch (xf86Info.wsKbdType) {
-     case WSKBD_TYPE_PC_XT:
-	     xf86Msg(X_PROBED, "Keyboard type: XT\n");
-	     break;
-     case WSKBD_TYPE_PC_AT:
-	     xf86Msg(X_PROBED, "Keyboard type: AT\n");
-	     break;
-     case WSKBD_TYPE_USB:
-	     xf86Msg(X_PROBED, "Keyboard type: USB\n");
-	     break;
-#ifdef WSKBD_TYPE_ADB
-     case WSKBD_TYPE_ADB:
-	     xf86Msg(X_PROBED, "Keyboard type: ADB\n");
-	     break;
-#endif
-#ifdef WSKBD_TYPE_SUN
-     case WSKBD_TYPE_SUN:
-	     xf86Msg(X_PROBED, "Keyboard type: Sun\n");
-	     break;
-#endif
-#ifdef WSKBD_TYPE_SUN5
-     case WSKBD_TYPE_SUN5:
-	     xf86Msg(X_PROBED, "Keyboard type: Sun5\n");
-	     break;
-#endif
-     default:
-	     xf86ConfigError("Unsupported wskbd type \"%d\"", 
-			     xf86Info.wsKbdType);
-	     close(xf86Info.kbdFd);
-	     return FALSE;
-     }
-#endif
-  } else {
-    xf86ConfigError("\"%s\" is not a valid keyboard protocol name", s);
-    xfree(s);
-    return FALSE;
-  }
-
-  s = xf86SetStrOption(inputp->commonOptions, "AutoRepeat", NULL);
-  if (s) {
-    if (sscanf(s, "%d %d", &xf86Info.kbdDelay, &xf86Info.kbdRate) != 2) {
-      xf86ConfigError("\"%s\" is not a valid AutoRepeat value", s);
-      xfree(s);
-      return FALSE;
-    }
-  xfree(s);
-  }
-
-  s = xf86SetStrOption(inputp->commonOptions, "XLeds", NULL);
-  if (s) {
-    char *l, *end;
-    unsigned int i;
-    l = strtok(s, " \t\n");
-    while (l) {
-      i = strtoul(l, &end, 0);
-      if (*end == '\0')
-	xf86Info.xleds |= 1L << (i - 1);
-      else {
-	xf86ConfigError("\"%s\" is not a valid XLeds value", l);
-	xfree(s);
-	return FALSE;
-      }
-      l = strtok(NULL, " \t\n");
-    }
-    xfree(s);
-  }
-
-#ifdef XKB
-  from = X_DEFAULT;
-  if (noXkbExtension)
-    from = X_CMDLINE;
-  else if (xf86FindOption(inputp->commonOptions, "XkbDisable")) {
-    xf86Msg(X_WARNING, "KEYBOARD: XKB should be disabled in the "
-	    "ServerFlags section instead\n"
-	    "\tof in the \"keyboard\" InputDevice section.\n");
-    noXkbExtension =
-	xf86SetBoolOption(inputp->commonOptions, "XkbDisable", FALSE);
-    from = X_CONFIG;
-  }
-  if (noXkbExtension)
-    xf86Msg(from, "XKB: disabled\n");
-
-#define NULL_IF_EMPTY(s) (s[0] ? s : (xfree(s), (char *)NULL))
-
-  if (!noXkbExtension) {
-    if ((s = xf86SetStrOption(inputp->commonOptions, "XkbKeymap", NULL))) {
-      xf86Info.xkbkeymap = NULL_IF_EMPTY(s);
-      xf86Msg(X_CONFIG, "XKB: keymap: \"%s\" "
-		"(overrides other XKB settings)\n", xf86Info.xkbkeymap);
-    } else {
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbCompat", NULL))) {
-	xf86Info.xkbcompat = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: compat: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbTypes", NULL))) {
-	xf86Info.xkbtypes = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: types: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbKeycodes", NULL))) {
-	xf86Info.xkbkeycodes = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: keycodes: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbGeometry", NULL))) {
-	xf86Info.xkbgeometry = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: geometry: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbSymbols", NULL))) {
-	xf86Info.xkbsymbols = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: symbols: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbRules", NULL))) {
-	xf86Info.xkbrules = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: rules: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbModel", NULL))) {
-	xf86Info.xkbmodel = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: model: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbLayout", NULL))) {
-	xf86Info.xkblayout = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: layout: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbVariant", NULL))) {
-	xf86Info.xkbvariant = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: variant: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbOptions", NULL))) {
-	xf86Info.xkboptions = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: options: \"%s\"\n", s);
-      }
-    }
-  }
-#undef NULL_IF_EMPTY
-#endif
-#if defined(SVR4) && defined(i386)
-  if ((xf86Info.panix106 =
-	xf86SetBoolOption(inputp->commonOptions, "Panix106", FALSE))) {
-    xf86Msg(X_CONFIG, "PANIX106: enabled\n");
-  }
-#endif
-
-  /*
-   * This was once a compile time option (ASSUME_CUSTOM_KEYCODES)
-   * defaulting to 1 on Linux/PPC. It is no longer necessary, but for
-   * backwards compatibility we provide 'Option "CustomKeycodes"'
-   * and try to autoprobe on Linux/PPC.
-   */
-  from = X_DEFAULT;
-  verb = 2;
-#if defined(__linux__) && defined(__powerpc__)
-  {
-    FILE *f;
-
-    f = fopen("/proc/sys/dev/mac_hid/keyboard_sends_linux_keycodes","r");
-    if (f) {
-      if (fgetc(f) == '0') {
-	customKeycodesDefault = TRUE;
-	from = X_PROBED;
-	verb = 1;
-      }
-      fclose(f);
-    }
-  }
-#endif
-  if (xf86FindOption(inputp->commonOptions, "CustomKeycodes")) {
-    from = X_CONFIG;
-    verb = 1;
-  }
-  xf86Info.kbdCustomKeycodes =
-	xf86SetBoolOption(inputp->commonOptions, "CustomKeycodes",
-			  customKeycodesDefault);
-  xf86MsgVerb(from, verb, "Keyboard: CustomKeycode %s\n",
-		xf86Info.kbdCustomKeycodes ? "enabled" : "disabled");
-
-  return TRUE;
-}
-
-/*
  * Locate the core input devices.  These can be specified/located in
  * the following ways, in order of priority:
  *
@@ -1637,10 +1333,6 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 				  xf86configptr->conf_input_lst);
 	if (!confInput) {
 	    confInput = xf86findInputByDriver("kbd",
-					      xf86configptr->conf_input_lst);
-	}
-	if (!confInput) {
-	    confInput = xf86findInputByDriver("keyboard",
 					      xf86configptr->conf_input_lst);
 	}
 	if (confInput) {
@@ -2548,10 +2240,6 @@ configInput(IDevPtr inputp, XF86ConfInputPtr conf_input, MessageType from)
     inputp->driver = conf_input->inp_driver;
     inputp->commonOptions = conf_input->inp_option_lst;
     inputp->extraOptions = NULL;
-
-    /* XXX This is required until the keyboard driver is converted */
-    if (!xf86NameCmp(inputp->driver, "keyboard"))
-	return configInputKbd(inputp);
 
     return TRUE;
 }

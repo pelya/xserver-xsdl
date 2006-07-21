@@ -137,16 +137,6 @@ static int numFormats = 6;
 #endif
 static Bool formatsDone = FALSE;
 
-InputDriverRec XF86KEYBOARD = {
-	1,
-	"keyboard",
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	0
-};
-
 static Bool
 xf86CreateRootWindow(WindowPtr pWin)
 {
@@ -405,10 +395,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       xfree(modulelist);
     }
 
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-    /* Setup the builtin input drivers */
-    xf86AddInputDriver(&XF86KEYBOARD, NULL, 0);
-#endif
     /* Load all input driver modules specified in the config file. */
     if ((modulelist = xf86InputDriverlistFromConfig())) {
       xf86LoadModules(modulelist, NULL);

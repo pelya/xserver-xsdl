@@ -19,7 +19,7 @@ APM_SOURCES = lnx_apm.c
 XORG_CFLAGS += -DHAVE_APM
 endif
 
-liblinux_la_SOURCES = lnx_init.c lnx_video.c lnx_io.c lnx_kbd.c lnx_mouse.c \
+liblinux_la_SOURCES = lnx_init.c lnx_video.c lnx_kbd.c lnx_mouse.c \
                      lnx_pci.c lnx_agp.c lnx_kmod.c lnx_KbdMap.c \
                      $(srcdir)/../shared/bios_mmap.c \
 		     $(srcdir)/../shared/VTsw_usl.c \

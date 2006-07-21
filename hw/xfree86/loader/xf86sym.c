@@ -290,7 +290,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86BindGARTMemory)
     SYMFUNC(xf86UnbindGARTMemory)
     SYMFUNC(xf86EnableAGP)
-    SYMFUNC(xf86SoundKbdBell)
     SYMFUNC(xf86GARTCloseScreen)
 #ifdef XINPUT
     SYMFUNC(XisbNew)
