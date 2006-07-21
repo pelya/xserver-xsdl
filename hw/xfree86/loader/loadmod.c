@@ -389,23 +389,65 @@ FreeSubdirs(const char **subdirs)
 }
 
 static char *
-FindModule(const char *module, const char *dir, const char **subdirlist,
+FindModuleInSubdir(const char *dirpath, const char *module)
+{
+    struct dirent *direntry = NULL;
+    DIR *dir = NULL;
+    char *ret = NULL, tmpBuf[PATH_MAX];
+    struct stat stat_buf;
+
+    dir = opendir(dirpath);
+    if (!dir)
+        return NULL;
+
+    while ((direntry = readdir(dir))) {
+        if (direntry->d_name[0] == '.')
+            continue;
+        if ((stat(direntry->d_name, &stat_buf) == 0) && S_ISDIR(stat_buf.st_mode)) {
+            snprintf(tmpBuf, PATH_MAX, "%s/%s", dirpath, direntry->d_name);
+            if ((ret = FindModuleInSubdir(tmpBuf, module)))
+                break;
+            continue;
+        }
+ 
+        snprintf(tmpBuf, PATH_MAX, "lib%s.so", module);
+        if (strcmp(direntry->d_name, tmpBuf) == 0) {
+            ret = malloc(strlen(tmpBuf) + strlen(dirpath) + 2);
+            sprintf(ret, "%s/%s", dirpath, tmpBuf);
+            break;
+        }
+
+        snprintf(tmpBuf, PATH_MAX, "%s_drv.so", module);
+        if (strcmp(direntry->d_name, tmpBuf) == 0) {
+            ret = malloc(strlen(tmpBuf) + strlen(dirpath) + 2);
+            sprintf(ret, "%s/%s", dirpath, tmpBuf);
+            break;
+        }
+
+        snprintf(tmpBuf, PATH_MAX, "%s.so", module);
+        if (strcmp(direntry->d_name, tmpBuf) == 0) {
+            ret = malloc(strlen(tmpBuf) + strlen(dirpath) + 2);
+            sprintf(ret, "%s/%s", dirpath, tmpBuf);
+            break;
+        }
+    }
+    
+    closedir(dir);
+    return ret;
+}
+
+static char *
+FindModule(const char *module, const char *dirname, const char **subdirlist,
 	   PatternPtr patterns)
 {
-    char buf[PATH_MAX + 1], tmpBuf[PATH_MAX + 1];
+    char buf[PATH_MAX + 1];
     char *dirpath = NULL;
     char *name = NULL;
-    struct stat stat_buf;
     int dirlen;
     const char **subdirs = NULL;
     const char **s;
 
-#ifndef __EMX__
-    dirpath = (char *)dir;
-#else
-    dirpath = xalloc(strlen(dir) + 10);
-    strcpy(dirpath, (char *)__XOS2RedirRoot(dir));
-#endif
+    dirpath = (char *)dirname;
     if (strlen(dirpath) > PATH_MAX)
 	return NULL;
     
@@ -418,38 +460,15 @@ FindModule(const char *module, const char *dir, const char **subdirlist,
 	    continue;
 	strcpy(buf, dirpath);
 	strcat(buf, *s);
-        if ((stat(buf, &stat_buf) == 0) && S_ISDIR(stat_buf.st_mode)) {
-            if (buf[dirlen - 1] != '/') {
-                buf[dirlen++] = '/';
-            }
-	    
-            snprintf(tmpBuf, PATH_MAX, "%slib%s.so", buf, module);
-            if (stat(tmpBuf, &stat_buf) == 0) {
-                name = tmpBuf;
-                break;
-            }
-
-            snprintf(tmpBuf, PATH_MAX, "%s%s_drv.so", buf, module);
-            if (stat(tmpBuf, &stat_buf) == 0) {
-                name = tmpBuf;
-                break;
-            }
-
-            snprintf(tmpBuf, PATH_MAX, "%s%s.so", buf, module);
-            if (stat(tmpBuf, &stat_buf) == 0) {
-                name = tmpBuf;
-                break;
-            }
-        }
+        if ((name = FindModuleInSubdir(buf, module)))
+            break;
     }
+
     FreeSubdirs(subdirs);
-    if (dirpath != dir)
+    if (dirpath != dirname)
 	xfree(dirpath);
 
-    if (name) {
-	return xstrdup(name);
-    }
-    return NULL;
+    return name;
 }
 
 _X_EXPORT char **
