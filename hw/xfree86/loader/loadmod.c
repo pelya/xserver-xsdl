@@ -115,6 +115,17 @@ FreeStringList(char **paths)
 
 static char **defaultPathList = NULL;
 
+static Bool
+PathIsAbsolute(const char *path)
+{
+#ifdef __UNIXOS2__
+    return (*path == '/' || (strlen(path) > 2 && isalpha(elem[0]) &&
+		elem[1] == ':' && elem[2] == '/'));
+#else
+    return (*path == '/');
+#endif
+}	
+
 /*
  * Convert a comma-separated path into a NULL-terminated array of path
  * elements, rejecting any that are not full absolute paths, and appending
@@ -138,13 +149,7 @@ InitPathList(const char *path)
 	return NULL;
     elem = strtok(fullpath, ",");
     while (elem) {
-	/* Only allow fully specified paths */
-#ifndef __UNIXOS2__
-	if (*elem == '/')
-#else
-	if (*elem == '/' || (strlen(elem) > 2 && isalpha(elem[0]) &&
-			     elem[1] == ':' && elem[2] == '/'))
-#endif
+	if (PathIsAbsolute(elem))
 	{
 	    len = strlen(elem);
 	    addslash = (elem[len - 1] != '/');
@@ -750,13 +755,7 @@ LoadSubModule(ModuleDescPtr parent, const char *module,
 
     xf86MsgVerb(X_INFO, 3, "Loading sub module \"%s\"\n", module);
 
-    /* Absolute module paths are not allowed here */
-#ifndef __UNIXOS2__
-    if (module[0] == '/')
-#else
-    if (isalpha(module[0]) && module[1] == ':' && module[2] == '/')
-#endif
-    {
+    if (PathIsAbsolute(module)) {
 	xf86Msg(X_ERROR,
 		"LoadSubModule: Absolute module path not permitted: \"%s\"\n",
 		module);
@@ -786,12 +785,7 @@ LoadSubModuleLocal(ModuleDescPtr parent, const char *module,
 
     xf86MsgVerb(X_INFO, 3, "Loading local sub module \"%s\"\n", module);
 
-    /* Absolute module paths are not allowed here */
-#ifndef __UNIXOS2__
-    if (module[0] == '/')
-#else
-    if (isalpha(module[0]) && module[1] == ':' && module[2] == '/')
-#endif
+    if (PathIsAbsolute(module))
     {
 	xf86Msg(X_ERROR,
 		"LoadSubModule: Absolute module path not permitted: \"%s\"\n",
@@ -908,14 +902,8 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
      * if the module name is not a full pathname, we need to
      * check the elements in the path
      */
-#ifndef __UNIXOS2__
-    if (module[0] == '/')
-	found = xstrdup(module);
-#else
-    /* accept a drive name here */
-    if (isalpha(module[0]) && module[1] == ':' && module[2] == '/')
-	found = xstrdup(module);
-#endif
+    if (PathIsAbsolute(module))
+	xstrdup(module);
     path_elem = pathlist;
     while (!found && *path_elem != NULL) {
 	found = FindModule(m, *path_elem, subdirlist, patterns);
