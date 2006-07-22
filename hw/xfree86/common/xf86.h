@@ -164,9 +164,6 @@ void xf86EnablePciBusMaster(pciVideoPtr pPci, Bool enable);
 #endif
 void xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg);
 Bool xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func);
-#ifdef async
-Bool xf86QueueAsyncEvent(void (*func)(pointer),pointer arg);
-#endif
 
 int xf86GetLastScrnFlag(int entityIndex);
 void xf86SetLastScrnFlag(int entityIndex, int scrnIndex);
