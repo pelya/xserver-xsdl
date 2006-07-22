@@ -168,7 +168,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	    int err;
 	    struct pci_device *rom_device = (bios.bus == BUS_PCI)
 	      ? pci_device_find_by_slot(PCI_DOM_FROM_BUS(bios.location.pci.bus),
-					PCI_BUS_NO_DOM(bios.location.pci.bus),
+					PCI_BUS_NO_DOMAIN(bios.location.pci.bus),
 					bios.location.pci.dev,
 					bios.location.pci.func)
 	      : xf86GetPciInfoForEntity(pInt->entityIndex);
@@ -269,7 +269,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	    int err;
 	    struct pci_device *rom_device = (bios.bus == BUS_PCI)
 	      ? pci_device_find_by_slot(PCI_DOM_FROM_BUS(bios.location.pci.bus),
-					PCI_BUS_NO_DOM(bios.location.pci.bus),
+					PCI_BUS_NO_DOMAIN(bios.location.pci.bus),
 					bios.location.pci.dev,
 					bios.location.pci.func)
 	      : xf86GetPciInfoForEntity(pInt->entityIndex);
