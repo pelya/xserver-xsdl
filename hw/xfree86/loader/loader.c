@@ -313,7 +313,6 @@ LoaderOpen(const char *module, const char *cname, int handle,
 {
     loaderPtr tmp;
     int new_handle;
-    int fd;
 
 #if defined(DEBUG)
     ErrorF("LoaderOpen(%s)\n", module);
@@ -369,16 +368,6 @@ LoaderOpen(const char *module, const char *cname, int handle,
     freeHandles[new_handle] = HANDLE_USED;
     refCount[new_handle] = 1;
 
-    if ((fd = open(module, O_RDONLY)) < 0) {
-	xf86Msg(X_ERROR, "Unable to open %s\n", module);
-	freeHandles[new_handle] = HANDLE_FREE;
-	if (errmaj)
-	    *errmaj = LDR_NOMODOPEN;
-	if (errmin)
-	    *errmin = errno;
-	return -1;
-    }
-
     tmp = _LoaderListPush();
     tmp->name = malloc(strlen(module) + 1);
     strcpy(tmp->name, module);
@@ -387,7 +376,7 @@ LoaderOpen(const char *module, const char *cname, int handle,
     tmp->handle = new_handle;
     tmp->module = moduleseq++;
 
-    if ((tmp->private = DLLoadModule(tmp, fd, flags)) == NULL) {
+    if ((tmp->private = DLLoadModule(tmp, flags)) == NULL) {
 	xf86Msg(X_ERROR, "Failed to load %s\n", module);
 	_LoaderListPop(new_handle);
 	freeHandles[new_handle] = HANDLE_FREE;
@@ -397,8 +386,6 @@ LoaderOpen(const char *module, const char *cname, int handle,
 	    *errmin = LDR_NOLOAD;
 	return -1;
     }
-
-    close(fd);
 
     return new_handle;
 }

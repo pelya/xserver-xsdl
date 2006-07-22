@@ -26,7 +26,7 @@
 #ifndef _DLLOADER_H
 #define _DLLOADER_H
 
-extern void *DLLoadModule(loaderPtr, int, int flags);
+extern void *DLLoadModule(loaderPtr, int flags);
 extern void DLUnloadModule(void *);
 extern void *DLFindSymbol(const char *name);
 

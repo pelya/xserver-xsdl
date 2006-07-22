@@ -129,7 +129,7 @@ DLFindSymbol(const char *name)
 }
 
 void *
-DLLoadModule(loaderPtr modrec, int fd, int flags)
+DLLoadModule(loaderPtr modrec, int flags)
 {
     DLModulePtr dlfile;
     DLModuleList *l;
