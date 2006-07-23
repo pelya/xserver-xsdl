@@ -288,18 +288,21 @@ OpenInputDevice(DeviceIntPtr	dev,
                 ClientPtr	client,
                 int		*status)
 {
-    if (!dev->inited) {
-        *status = BadDevice;
-    } else {
-        if (!dev->public.on) {
-            if (EnableDevice(dev)) {
-                /* to prevent ProcXOpenDevice to call EnableDevice again */
-                dev->startup = FALSE;
-            } else {
-                *status = BadDevice;
-            }
+    if (!dev->inited)
+        ActivateDevice(dev);
+
+    if (!dev->public.on) {
+        if (EnableDevice(dev)) {
+            dev->startup = FALSE;
+        }
+        else {
+            ErrorF("couldn't enable device %s\n", dev->name);
+            *status = BadDevice;
+            return;
         }
     }
+
+    *status = Success;
 }
 
 
@@ -530,7 +533,14 @@ ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
   LocalDevicePtr        local = (LocalDevicePtr)dev->public.devicePrivate;
 
   if (!local->control_proc) {
-      return (BadMatch);
+      switch (control->control) {
+      case DEVICE_CORE:
+      case DEVICE_RESOLUTION:
+      case DEVICE_TOUCHSCREEN:
+        return Success;
+      default:
+        return BadMatch;
+      }
   }
   else {
       return (*local->control_proc)(local, control);
