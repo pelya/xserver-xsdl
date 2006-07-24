@@ -44,11 +44,13 @@
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86Pci.h"
+#include "Pci.h"
+#include "xf86_OSproc.h"
 
-static void ScanPciDisplayPCICardInfo();
+static void ScanPciDisplayPCICardInfo(void);
 
 void
-ScanPciDisplayPCICardInfo()
+ScanPciDisplayPCICardInfo(void)
 {
     struct pci_id_match   match;
     struct pci_device_iterator *iter;
@@ -88,13 +90,13 @@ ScanPciDisplayPCICardInfo()
 			& svendorname, & subsysname);
 
 	if ((dev->subvendor_id != 0) || (dev->subdevice_id != 0)) {
-	    xf86MsgVerb(X_NONE, 0, "%s %s (0x%04 / 0x%04) using ",
+	    xf86MsgVerb(X_NONE, 0, "%s %s (0x%04x / 0x%04x) using ",
 			(svendorname == NULL) ? "unknown vendor" : svendorname,
 			(subsysname == NULL) ? "unknown card" : subsysname,
 			dev->subvendor_id, dev->subdevice_id);
 	}
 
-	xf86MsgVerb(X_NONE, 0, "%s %s (0x%04 / 0x%04)\n",
+	xf86MsgVerb(X_NONE, 0, "%s %s (0x%04x / 0x%04x)\n",
 		    (vendorname == NULL) ? "unknown vendor" : vendorname,
 		    (devicename == NULL) ? "unknown chip" : devicename,
 		    dev->vendor_id, dev->device_id);
