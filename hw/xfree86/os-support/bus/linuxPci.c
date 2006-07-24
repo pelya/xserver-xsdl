@@ -446,26 +446,18 @@ static const struct pciSizes {
 #define NUM_SIZES (sizeof(pciControllerSizes) / sizeof(pciControllerSizes[0]))
 
 static const struct pciSizes *
-linuxGetSizesStruct(PCITAG Tag)
+linuxGetSizesStruct(const struct pci_device *dev)
 {
     static const struct pciSizes default_size = {
 	0, 0, 1U << 16, (unsigned long)(1ULL << 32)
     };
-    struct pci_device *dev;
     int          i;
 
-    /* Find host bridge */
-    dev = pci_device_find_by_slot(PCI_DOM_FROM_TAG(Tag),
-				  PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(Tag)),
-				  PCI_DEV_FROM_TAG(Tag),
-				  PCI_FUNC_FROM_TAG(Tag));
-    if (dev != NULL) {
-	/* Look up vendor/device */
-	for (i = 0;  i < NUM_SIZES;  i++) {
-	    if ((dev->vendor_id == pciControllerSizes[i].vendor)
-		&& (dev->device_id == pciControllerSizes[i].device)) {
-		return & pciControllerSizes[i];
-	    }
+    /* Look up vendor/device */
+    for (i = 0;  i < NUM_SIZES;  i++) {
+	if ((dev->vendor_id == pciControllerSizes[i].vendor)
+	    && (dev->device_id == pciControllerSizes[i].device)) {
+	    return & pciControllerSizes[i];
 	}
     }
 
@@ -476,17 +468,17 @@ linuxGetSizesStruct(PCITAG Tag)
 static __inline__ unsigned long
 linuxGetIOSize(PCITAG Tag)
 {
-    const struct pciSizes * const sizes = linuxGetSizesStruct(Tag);
-    return sizes->io_size;
-}
-
-static __inline__ void
-linuxGetSizes(PCITAG Tag, unsigned long *io_size, unsigned long *mem_size)
-{
-    const struct pciSizes * const sizes = linuxGetSizesStruct(Tag);
-
-    *io_size  = sizes->io_size;
-    *mem_size = sizes->mem_size;
+    const struct pci_device * const dev =pci_device_find_by_slot(PCI_DOM_FROM_TAG(Tag),
+								 PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(Tag)),
+								 PCI_DEV_FROM_TAG(Tag),
+								 PCI_FUNC_FROM_TAG(Tag));
+    if (dev != NULL) {
+	const struct pciSizes * const sizes = linuxGetSizesStruct(dev);
+	return sizes->io_size;
+    } else {
+	/* Default to 64KB I/O. */
+	return (1U << 16);
+    }
 }
 
 _X_EXPORT int
@@ -785,22 +777,19 @@ xf86BusAccWindowsFromOS(void)
     sturct pci_device_iterator *iter;
     resPtr        pRes = NULL;
     resRange      range;
-    unsigned long io_size, mem_size;
-
 
     iter = pci_id_match_iterator_create(& match_host_bridge);
     while ((dev = pci_device_next(iter)) != NULL) {
 	const PCITAG tag = PCI_MAKE_TAG(PCI_MAKE_BUS(dev->domain, dev->bus),
 					dev->dev, dev->func);
 	const int domain = xf86GetPciDomain(tag);
+	const struct pciSizes * const sizes = linuxGetSizesStruct(dev);
 
-	linuxGetSizes(tag, &io_size, &mem_size);
-
-	RANGE(range, 0, (ADDRESS)(mem_size - 1),
+	RANGE(range, 0, (ADDRESS)(sizes->mem_size - 1),
 	      RANGE_TYPE(ResExcMemBlock, domain));
 	pRes = xf86AddResToList(pRes, &range, -1);
 
-	RANGE(range, 0, (IOADDRESS)(io_size - 1),
+	RANGE(range, 0, (IOADDRESS)(sizes->io_size - 1),
 	      RANGE_TYPE(ResExcIoBlock, domain));
 	pRes = xf86AddResToList(pRes, &range, -1);
 
@@ -826,15 +815,13 @@ xf86AccResFromOS(resPtr pRes)
     struct pci_device *dev;
     sturct pci_device_iterator *iter;
     resRange      range;
-    unsigned long io_size, mem_size;
 
     iter = pci_id_match_iterator_create(& match_host_bridge);
     while ((dev = pci_device_next(iter)) != NULL) {
 	const PCITAG tag = PCI_MAKE_TAG(PCI_MAKE_BUS(dev->domain, dev->bus),
 					dev->dev, dev->func);
 	const int domain = xf86GetPciDomain(tag);
-
-	linuxGetSizes(tag, &io_size, &mem_size);
+	const struct pciSizes * const sizes = linuxGetSizesStruct(dev);
 
 	/*
 	 * At minimum, the top and bottom resources must be claimed, so
@@ -851,14 +838,16 @@ xf86AccResFromOS(resPtr pRes)
 	      RANGE_TYPE(ResExcMemBlock, domain));
 	pRes = xf86AddResToList(pRes, &range, -1);
 
-	RANGE(range, (ADDRESS)(mem_size - 1), (ADDRESS)(mem_size - 1),
+	RANGE(range, (ADDRESS)(sizes->mem_size - 1), 
+	      (ADDRESS)(sizes->mem_size - 1),
 	      RANGE_TYPE(ResExcMemBlock, domain));
 	pRes = xf86AddResToList(pRes, &range, -1);
 
 	RANGE(range, 0x00000000u, 0x00000000u,
 	      RANGE_TYPE(ResExcIoBlock, domain));
 	pRes = xf86AddResToList(pRes, &range, -1);
-	RANGE(range, (IOADDRESS)(io_size - 1), (IOADDRESS)(io_size - 1),
+	RANGE(range, (IOADDRESS)(sizes->io_size - 1), 
+	      (IOADDRESS)(sizes->io_size - 1),
 	      RANGE_TYPE(ResExcIoBlock, domain));
 	pRes = xf86AddResToList(pRes, &range, -1);
 
