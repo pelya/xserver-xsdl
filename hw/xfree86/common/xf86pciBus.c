@@ -644,10 +644,7 @@ xf86GetPciBridgeInfo(void)
 
     /* Add each bridge */
     for (pcrpp = xf86PciInfo, pcrp = *pcrpp; pcrp; pcrp = *(++pcrpp)) {
-	struct pci_device * const dev = 
-	  pci_device_find_by_slot( PCI_DOM_FROM_BUS( pcrp->busnum ),
-				   PCI_BUS_NO_DOMAIN( pcrp->busnum ),
-				   pcrp->devnum, pcrp->funcnum );
+	struct pci_device * const dev = pcrp->dev;
 
 	if (pcrp->busnum > MaxBus)
 	    MaxBus = pcrp->busnum;
@@ -1103,10 +1100,7 @@ xf86GetPciBridgeInfo(void)
 		*pnPciBus = PciBus = xnfcalloc(1, sizeof(PciBusRec));
 		pnPciBus = &PciBus->next;
 
-		PciBus->dev = pci_device_find_by_slot( PCI_DOM_FROM_BUS( pcrp->busnum ),
-						       PCI_BUS_NO_DOMAIN( pcrp->busnum ),
-						       pcrp->devnum,
-						       pcrp->funcnum );
+		PciBus->dev = pcrp->dev;
 		PciBus->primary = PciBus->secondary = i;
 		PciBus->subclass = PCI_SUBCLASS_BRIDGE_HOST;
 		PciBus->brcontrol = PCI_PCI_BRIDGE_VGA_EN;
@@ -1305,10 +1299,7 @@ initPciBusState(void)
 	    pbap->set_f = pciSetBusAccess;
 	    pbap->enable_f = pciBusAccessEnable;
 	    pbap->disable_f = pciBusAccessDisable;
-	    pbap->busdep.pci.dev = pci_device_find_by_slot(PCI_DOM_FROM_BUS(pbp->brbus),
-							   PCI_BUS_NO_DOMAIN(pbp->brbus),
-							   pbp->brdev,
-							   pbp->brfunc);
+	    pbap->busdep.pci.dev = pbp->dev;
 	    savePciBusState(pbap);
 	    break;
 	case PCI_SUBCLASS_BRIDGE_ISA:
