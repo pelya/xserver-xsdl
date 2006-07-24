@@ -107,6 +107,12 @@ static pciBusInfo_t linuxPci0 = {
 /* bridge      */	NULL
 };
 
+static const struct pci_id_match match_host_bridge = {
+    PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY,
+    (PCI_CLASS_BRIDGE << 16) | (PCI_SUBCLASS_BRIDGE_HOST << 8),
+    0x0000ffff00, 0
+};
+
 /* from lnx_pci.c. */
 extern int lnxPciInit(void);
 
@@ -775,33 +781,34 @@ xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
 resPtr
 xf86BusAccWindowsFromOS(void)
 {
-    pciConfigPtr  *ppPCI, pPCI;
+    struct pci_device *dev;
+    sturct pci_device_iterator *iter;
     resPtr        pRes = NULL;
     resRange      range;
     unsigned long io_size, mem_size;
-    int           domain;
 
-    if ((ppPCI = xf86scanpci(0))) {
-	for (;  (pPCI = *ppPCI);  ppPCI++) {
-	    if ((pPCI->pci_base_class != PCI_CLASS_BRIDGE) ||
-		(pPCI->pci_sub_class  != PCI_SUBCLASS_BRIDGE_HOST))
-		continue;
 
-	    domain = xf86GetPciDomain(pPCI->tag);
-	    linuxGetSizes(pPCI->tag, &io_size, &mem_size);
+    iter = pci_id_match_iterator_create(& match_host_bridge);
+    while ((dev = pci_device_next(iter)) != NULL) {
+	const PCITAG tag = PCI_MAKE_TAG(PCI_MAKE_BUS(dev->domain, dev->bus),
+					dev->dev, dev->func);
+	const int domain = xf86GetPciDomain(tag);
 
-	    RANGE(range, 0, (ADDRESS)(mem_size - 1),
-		  RANGE_TYPE(ResExcMemBlock, domain));
-	    pRes = xf86AddResToList(pRes, &range, -1);
+	linuxGetSizes(tag, &io_size, &mem_size);
 
-	    RANGE(range, 0, (IOADDRESS)(io_size - 1),
-		  RANGE_TYPE(ResExcIoBlock, domain));
-	    pRes = xf86AddResToList(pRes, &range, -1);
+	RANGE(range, 0, (ADDRESS)(mem_size - 1),
+	      RANGE_TYPE(ResExcMemBlock, domain));
+	pRes = xf86AddResToList(pRes, &range, -1);
 
-	    if (domain <= 0)
-		break;
-	}
+	RANGE(range, 0, (IOADDRESS)(io_size - 1),
+	      RANGE_TYPE(ResExcIoBlock, domain));
+	pRes = xf86AddResToList(pRes, &range, -1);
+
+	if (domain <= 0)
+	  break;
     }
+
+    pci_iterator_destroy(iter);
 
     return pRes;
 }
@@ -816,50 +823,50 @@ xf86PciBusAccWindowsFromOS(void)
 resPtr
 xf86AccResFromOS(resPtr pRes)
 {
-    pciConfigPtr  *ppPCI, pPCI;
+    struct pci_device *dev;
+    sturct pci_device_iterator *iter;
     resRange      range;
     unsigned long io_size, mem_size;
-    int           domain;
 
-    if ((ppPCI = xf86scanpci(0))) {
-	for (;  (pPCI = *ppPCI);  ppPCI++) {
-	    if ((pPCI->pci_base_class != PCI_CLASS_BRIDGE) ||
-		(pPCI->pci_sub_class  != PCI_SUBCLASS_BRIDGE_HOST))
-		continue;
+    iter = pci_id_match_iterator_create(& match_host_bridge);
+    while ((dev = pci_device_next(iter)) != NULL) {
+	const PCITAG tag = PCI_MAKE_TAG(PCI_MAKE_BUS(dev->domain, dev->bus),
+					dev->dev, dev->func);
+	const int domain = xf86GetPciDomain(tag);
 
-	    domain = xf86GetPciDomain(pPCI->tag);
-	    linuxGetSizes(pPCI->tag, &io_size, &mem_size);
+	linuxGetSizes(tag, &io_size, &mem_size);
 
-	    /*
-	     * At minimum, the top and bottom resources must be claimed, so
-	     * that resources that are (or appear to be) unallocated can be
-	     * relocated.
-	     */
-	    RANGE(range, 0x00000000u, 0x0009ffffu,
-		  RANGE_TYPE(ResExcMemBlock, domain));
-	    pRes = xf86AddResToList(pRes, &range, -1);
-	    RANGE(range, 0x000c0000u, 0x000effffu,
-		  RANGE_TYPE(ResExcMemBlock, domain));
-	    pRes = xf86AddResToList(pRes, &range, -1);
-	    RANGE(range, 0x000f0000u, 0x000fffffu,
-		  RANGE_TYPE(ResExcMemBlock, domain));
-	    pRes = xf86AddResToList(pRes, &range, -1);
+	/*
+	 * At minimum, the top and bottom resources must be claimed, so
+	 * that resources that are (or appear to be) unallocated can be
+	 * relocated.
+	 */
+	RANGE(range, 0x00000000u, 0x0009ffffu,
+	      RANGE_TYPE(ResExcMemBlock, domain));
+	pRes = xf86AddResToList(pRes, &range, -1);
+	RANGE(range, 0x000c0000u, 0x000effffu,
+	      RANGE_TYPE(ResExcMemBlock, domain));
+	pRes = xf86AddResToList(pRes, &range, -1);
+	RANGE(range, 0x000f0000u, 0x000fffffu,
+	      RANGE_TYPE(ResExcMemBlock, domain));
+	pRes = xf86AddResToList(pRes, &range, -1);
 
-	    RANGE(range, (ADDRESS)(mem_size - 1), (ADDRESS)(mem_size - 1),
-		  RANGE_TYPE(ResExcMemBlock, domain));
-	    pRes = xf86AddResToList(pRes, &range, -1);
+	RANGE(range, (ADDRESS)(mem_size - 1), (ADDRESS)(mem_size - 1),
+	      RANGE_TYPE(ResExcMemBlock, domain));
+	pRes = xf86AddResToList(pRes, &range, -1);
 
-	    RANGE(range, 0x00000000u, 0x00000000u,
-		  RANGE_TYPE(ResExcIoBlock, domain));
-	    pRes = xf86AddResToList(pRes, &range, -1);
-	    RANGE(range, (IOADDRESS)(io_size - 1), (IOADDRESS)(io_size - 1),
-		  RANGE_TYPE(ResExcIoBlock, domain));
-	    pRes = xf86AddResToList(pRes, &range, -1);
+	RANGE(range, 0x00000000u, 0x00000000u,
+	      RANGE_TYPE(ResExcIoBlock, domain));
+	pRes = xf86AddResToList(pRes, &range, -1);
+	RANGE(range, (IOADDRESS)(io_size - 1), (IOADDRESS)(io_size - 1),
+	      RANGE_TYPE(ResExcIoBlock, domain));
+	pRes = xf86AddResToList(pRes, &range, -1);
 
-	    if (domain <= 0)
-		break;
-	}
+	if (domain <= 0)
+	  break;
     }
+
+    pci_iterator_destroy(iter);
 
     return pRes;
 }
