@@ -809,35 +809,7 @@ xf86BusAccWindowsFromOS(void)
 resPtr
 xf86PciBusAccWindowsFromOS(void)
 {
-    pciConfigPtr  *ppPCI, pPCI;
-    resPtr        pRes = NULL;
-    resRange      range;
-    unsigned long io_size, mem_size;
-    int           domain;
-
-    if ((ppPCI = xf86scanpci(0))) {
-	for (;  (pPCI = *ppPCI);  ppPCI++) {
-	    if ((pPCI->pci_base_class != PCI_CLASS_BRIDGE) ||
-		(pPCI->pci_sub_class  != PCI_SUBCLASS_BRIDGE_HOST))
-		continue;
-
-	    domain = xf86GetPciDomain(pPCI->tag);
-	    linuxGetSizes(pPCI->tag, &io_size, &mem_size);
-
-	    RANGE(range, 0, (ADDRESS)(mem_size - 1),
-		  RANGE_TYPE(ResExcMemBlock, domain));
-	    pRes = xf86AddResToList(pRes, &range, -1);
-
-	    RANGE(range, 0, (IOADDRESS)(io_size - 1),
-		  RANGE_TYPE(ResExcIoBlock, domain));
-	    pRes = xf86AddResToList(pRes, &range, -1);
-
-	    if (domain <= 0)
-		break;
-	}
-    }
-
-    return pRes;
+    return xf86BusAccWindowsFromOS();
 }
 
 
