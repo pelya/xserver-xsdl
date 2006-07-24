@@ -45,93 +45,62 @@
 #include "xf86Priv.h"
 #include "xf86Pci.h"
 
-static void ScanPciDisplayPCICardInfo( int verbosity );
+static void ScanPciDisplayPCICardInfo();
 
 void
-ScanPciDisplayPCICardInfo(int verbosity)
+ScanPciDisplayPCICardInfo()
 {
     struct pci_id_match   match;
-    pciConfigPtr pcrp, *pcrpp;
-    int i;
+    struct pci_device_iterator *iter;
+    const struct pci_device *dev;
 
     xf86EnableIO();
-    pcrpp = xf86scanpci(0);
 
-    if (pcrpp == NULL) {
-        xf86MsgVerb(X_NONE,0,"No PCI info available\n");
+    if (xf86scanpci(0) == NULL) {
+        xf86MsgVerb(X_NONE, 0, "No PCI info available\n");
 	return;
     }
-    xf86MsgVerb(X_NONE,0,"Probing for PCI devices (Bus:Device:Function)\n\n");
-    for (i = 0; (pcrp = pcrpp[i]); i++) {
+    xf86MsgVerb(X_NONE, 0,
+		"Probing for PCI devices (Bus:Device:Function)\n\n");
+
+    iter = pci_id_match_iterator_create(NULL);
+    while ((dev = pci_device_next(iter)) != NULL) {
 	const char *svendorname = NULL, *subsysname = NULL;
 	const char *vendorname = NULL, *devicename = NULL;
-	Bool noCard = FALSE;
-	const char *prefix1 = "", *prefix2 = "";
 
-	xf86MsgVerb(X_NONE, -verbosity, "(%d:%d:%d) ",
-		    pcrp->busnum, pcrp->devnum, pcrp->funcnum);
+
+	xf86MsgVerb(X_NONE, 0, "(%d:%d:%d) ",
+		    PCI_MAKE_BUS(dev->domain, dev->bus), dev->dev, dev->func);
 
 	/*
 	 * Lookup as much as we can about the device.
 	 */
-	match.vendor_id = pcrp->pci_vendor;
-	match.device_id = pcrp->_pci_device;
-	match.subvendor_id = (pcrp->pci_subsys_vendor != 0)
-	  ? pcrp->pci_subsys_vendor : PCI_MATCH_ANY;
-	match.subdevice_id = (pcrp->pci_subsys_card != 0)
-	  ? pcrp->pci_subsys_card : PCI_MATCH_ANY;
+	match.vendor_id = dev->vendor_id;
+	match.device_id = dev->device_id;
+	match.subvendor_id = (dev->subvendor_id != 0)
+	  ? dev->subvendor_id : PCI_MATCH_ANY;
+	match.subdevice_id = (dev->subdevice_id != 0)
+	  ? dev->subdevice_id : PCI_MATCH_ANY;
 	match.device_class = 0;
 	match.device_class_mask = 0;
 
-	pci_get_strings( & match, & vendorname, & devicename,
-			 & svendorname, & subsysname);
+	pci_get_strings(& match, & vendorname, & devicename,
+			& svendorname, & subsysname);
 
-	if (svendorname)
-	    xf86MsgVerb(X_NONE, -verbosity, "%s ", svendorname);
-	if (subsysname)
-	    xf86MsgVerb(X_NONE, -verbosity, "%s ", subsysname);
-	if (svendorname && !subsysname) {
-	    if ( match.subdevice_id != PCI_MATCH_ANY ) {
-		xf86MsgVerb(X_NONE, -verbosity, "unknown card (0x%04x) ",
-			    match.subdevice_id);
-	    } else {
-		xf86MsgVerb(X_NONE, -verbosity, "card ");
-	    }
+	if ((dev->subvendor_id != 0) || (dev->subdevice_id != 0)) {
+	    xf86MsgVerb(X_NONE, 0, "%s %s (0x%04 / 0x%04) using ",
+			(svendorname == NULL) ? "unknown vendor" : svendorname,
+			(subsysname == NULL) ? "unknown card" : subsysname,
+			dev->subvendor_id, dev->subdevice_id);
 	}
-	if (!svendorname && !subsysname) {
-	    /*
-	     * We didn't find a text representation of the information 
-	     * about the card.
-	     */
-	    if ( (match.subvendor_id != PCI_MATCH_ANY)
-		 || (match.subdevice_id != PCI_MATCH_ANY) ) {
-		/*
-		 * If there was information and we just couldn't interpret
-		 * it, print it out as unknown, anyway.
-		 */
-		xf86MsgVerb(X_NONE, -verbosity,
-			    "unknown card (0x%04x/0x%04x) ",
-			    match.subvendor_id, match.subdevice_id);
-	    } else
-		noCard = TRUE;
-	}
-	if (!noCard) {
-	    prefix1 = "using a ";
-	    prefix2 = "using an ";
-	}
-	if (vendorname && devicename) {
-	    xf86MsgVerb(X_NONE, -verbosity,"%s%s %s\n", prefix1, vendorname,
-			devicename);
-	} else if (vendorname) {
-	    xf86MsgVerb(X_NONE, -verbosity,
-			"%sunknown chip (DeviceId 0x%04x) from %s\n",
-			prefix2, match.device_id, vendorname);
-	} else {
-	    xf86MsgVerb(X_NONE, -verbosity,
-			"%sunknown chipset(0x%04x/0x%04x)\n",
-			prefix2, match.vendor_id, match.device_id);
-	}
+
+	xf86MsgVerb(X_NONE, 0, "%s %s (0x%04 / 0x%04)\n",
+		    (vendorname == NULL) ? "unknown vendor" : vendorname,
+		    (devicename == NULL) ? "unknown chip" : devicename,
+		    dev->vendor_id, dev->device_id);
     }
+
+    pci_iterator_destroy(iter);
 }
 
 
@@ -167,11 +136,7 @@ void DoScanPci(int argc, char **argv, int i)
   if (xf86Verbose > globalVerbose)
     xf86SetVerbosity(globalVerbose);
 
-  /*
-   * Setting scanpciVerbose to 0 will ensure that the output will go to
-   * stderr for all reasonable default stderr verbosity levels.
-   */
-  ScanPciDisplayPCICardInfo( 0 );
+  ScanPciDisplayPCICardInfo();
 
   /*
    * That's it; we really should clean things up, but a simple
