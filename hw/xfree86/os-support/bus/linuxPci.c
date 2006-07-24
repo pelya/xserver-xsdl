@@ -677,33 +677,34 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
  *
  * This has no means of returning failure, so all errors are fatal
  */
-_X_EXPORT IOADDRESS
-xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
-		IOADDRESS Base, unsigned long Size)
+IOADDRESS
+xf86MapLegacyIO(struct pci_device *dev)
 {
-    int domain = xf86GetPciDomain(Tag);
+    const PCITAG tag = PCI_MAKE_TAG(PCI_MAKE_BUS(dev->domain, dev->bus),
+				    dev->dev, dev->func);
+    const int domain = xf86GetPciDomain(tag);
     int fd;
 
     if ((domain <= 0) || (domain >= MAX_DOMAINS))
-	FatalError("xf86MapDomainIO():  domain out of range\n");
+	FatalError("xf86MapLegacyIO():  domain out of range\n");
 
     if (DomainMmappedIO[domain])
-	return (IOADDRESS)DomainMmappedIO[domain] + Base;
+	return (IOADDRESS)DomainMmappedIO[domain];
 
     /* Permanently map all of I/O space */
-    if ((fd = linuxOpenLegacy(Tag, "legacy_io")) < 0) {
-	    DomainMmappedIO[domain] = linuxMapPci(ScreenNum, Flags, Tag,
-						  0, linuxGetIOSize(Tag),
+    if ((fd = linuxOpenLegacy(tag, "legacy_io")) < 0) {
+	    DomainMmappedIO[domain] = linuxMapPci(-1, VIDMEM_MMIO, tag,
+						  0, linuxGetIOSize(tag),
 						  PCIIOC_MMAP_IS_IO);
 	    /* ia64 can't mmap legacy IO port space */
 	    if (!DomainMmappedIO[domain])
-		return Base;
+		return 0;
     }
     else { /* legacy_io file exists, encode fd */
 	DomainMmappedIO[domain] = (pointer)(fd << 24);
     }
 
-    return (IOADDRESS)DomainMmappedIO[domain] + Base;
+    return (IOADDRESS)DomainMmappedIO[domain];
 }
 
 /*

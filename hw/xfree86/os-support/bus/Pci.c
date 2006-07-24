@@ -25,7 +25,7 @@
  *	xf86GetPciDomain()     - Return domain number from a PCITAG
  *	xf86MapDomainMemory()  - Like xf86MapPciMem() but can handle
  *                               domain/host address translation
- *	xf86MapDomainIO()      - Maps PCI I/O spaces
+ *	xf86MapLegacyIO()      - Maps PCI I/O spaces
  *	xf86ReadDomainMemory() - Like xf86ReadPciBIOS() but can handle
  *                               domain/host address translation
  *
@@ -497,11 +497,11 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
     return xf86MapVidMem(ScreenNum, Flags, Base, Size);
 }
 
-_X_EXPORT IOADDRESS
-xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
-		IOADDRESS Base, unsigned long Size)
+IOADDRESS
+xf86MapLegacyIO(struct pci_device *dev)
 {
-    return Base;
+    (void) dev;
+    return 0;
 }
 
 _X_EXPORT int

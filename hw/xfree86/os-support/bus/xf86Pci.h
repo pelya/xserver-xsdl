@@ -767,8 +767,7 @@ extern int pciNumBuses;
 int	      xf86GetPciDomain(PCITAG tag);
 pointer	      xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 				  ADDRESS Base, unsigned long Size);
-IOADDRESS     xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
-			      IOADDRESS Base, unsigned long Size);
+IOADDRESS xf86MapLegacyIO(struct pci_device *dev);
 int	      xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len,
 				   unsigned char *Buf);
 

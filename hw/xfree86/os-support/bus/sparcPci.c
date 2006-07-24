@@ -623,7 +623,7 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 }
 
 _X_EXPORT IOADDRESS
-xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
+xf86MapLegacyIO(int ScreenNum, int Flags, PCITAG Tag,
 		IOADDRESS Base, unsigned long Size)
 {
     sparcDomainPtr pDomain;
@@ -633,7 +633,7 @@ xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
 	!(pDomain = xf86DomainInfo[domain]) ||
 	(((unsigned long long)Base + (unsigned long long)Size) >
 	 pDomain->io_size))
-	FatalError("xf86MapDomainIO() called with invalid parameters.\n");
+	FatalError("xf86MapLegacyIO() called with invalid parameters.\n");
 
     /* Permanently map all of I/O space */
     if (!pDomain->io) {
