@@ -57,9 +57,6 @@ Bool pciSlotClaimed = FALSE;
 static pciConfigPtr *xf86PciInfo = NULL;	/* Full PCI probe info */
 struct pci_device ** xf86PciVideoInfo = NULL;	/* PCI probe for video hw */
 
-/* PCI buses */
-static PciBusPtr xf86PciBus = NULL;
-/* Bus-specific probe/sorting functions */
 
 /* PCI classes that get included in xf86PciVideoInfo */
 #define PCIINFOCLASSES(c) \
@@ -115,7 +112,6 @@ static PciBusPtr xf86PciBus = NULL;
 		  RANGE_TYPE(type, xf86GetPciDomain(tag))); \
 	}
 
-static PciBusPtr xf86GetPciBridgeInfo(void);
 
 _X_EXPORT void
 xf86FormatPciBusNumber(int busnum, char *buffer)
@@ -143,8 +139,6 @@ FindPCIVideoInfo(void)
 	xf86PciVideoInfo = NULL;
 	return;
     }
-
-    xf86PciBus = xf86GetPciBridgeInfo();
 
     if ( (xf86IsolateDevice.bus != 0)
 	 || (xf86IsolateDevice.device != 0) 
@@ -174,43 +168,6 @@ FindPCIVideoInfo(void)
 
 	    pci_device_probe(info);
 	    info->user_data = 0;
-
-#if 0 && defined(INCLUDE_XF86_NO_DOMAIN)
-	    if ((PCISHAREDIOCLASSES( info->device_class ))
-		&& (pcrp->pci_command & PCI_CMD_IO_ENABLE) 
-		&& (pcrp->pci_prog_if == 0)) {
-		int j;
-
-		/*
-		 * Attempt to ensure that VGA is actually routed to this
-		 * adapter on entry.  This needs to be fixed when we finally
-		 * grok host bridges (and multiple bus trees).
-		 */
-		j = pcrp->busnum;
-		while (TRUE) {
-		    PciBusPtr pBus = xf86PciBus;
-		    while (pBus && j != pBus->secondary)
-			pBus = pBus->next;
-		    if (!pBus || !(pBus->brcontrol & PCI_PCI_BRIDGE_VGA_EN))
-			break;
-		    if (j == pBus->primary) {
-			if (primaryBus.type == BUS_NONE) {
-			    /* assumption: primary adapter is always VGA */
-			    primaryBus.type = BUS_PCI;
-			    primaryBus.id.pci.bus = pcrp->busnum;
-			    primaryBus.id.pci.device = pcrp->devnum;
-			    primaryBus.id.pci.func = pcrp->funcnum;
-			} else if (primaryBus.type < BUS_last) {
-			    xf86Msg(X_NOTICE,
-				    "More than one primary device found\n");
-			    primaryBus.type ^= (BusType)(-1);
-			}
-			break;
-		    }
-		    j = pBus->primary;
-		}
-	    }
-#endif
 	}
     }
 
@@ -587,621 +544,6 @@ xf86PciProbe(void)
     FindPCIVideoInfo();
 }
 
-static void alignBridgeRanges(PciBusPtr PciBusBase, PciBusPtr primary);
-
-static void
-printBridgeInfo(PciBusPtr PciBus) 
-{
-    char primary[8], secondary[8], subordinate[8], brbus[8];
-
-    xf86FormatPciBusNumber(PciBus->primary, primary);
-    xf86FormatPciBusNumber(PciBus->secondary, secondary);
-    xf86FormatPciBusNumber(PciBus->subordinate, subordinate);
-    xf86FormatPciBusNumber(PciBus->brbus, brbus);
-
-    xf86MsgVerb(X_INFO, 3, "Bus %s: bridge is at (%s:%d:%d), (%s,%s,%s),"
-		" BCTRL: 0x%04x (VGA_EN is %s)\n",
-		secondary, brbus, PciBus->brdev, PciBus->brfunc,
-		primary, secondary, subordinate, PciBus->brcontrol,
-		(PciBus->brcontrol & PCI_PCI_BRIDGE_VGA_EN) ?
-		 "set" : "cleared");
-    if (PciBus->preferred_io) {
-	xf86MsgVerb(X_INFO, 3,
-		    "Bus %s I/O range:\n", secondary);
-	xf86PrintResList(3, PciBus->preferred_io);
-    }
-    if (PciBus->preferred_mem) {
-	xf86MsgVerb(X_INFO, 3,
-		    "Bus %s non-prefetchable memory range:\n", secondary);
-	xf86PrintResList(3, PciBus->preferred_mem);
-    }
-    if (PciBus->preferred_pmem) {
-	xf86MsgVerb(X_INFO, 3,
-		    "Bus %s prefetchable memory range:\n", secondary);
-	xf86PrintResList(3, PciBus->preferred_pmem);
-    }
-}
-
-static PciBusPtr
-xf86GetPciBridgeInfo(void)
-{
-    const pciConfigPtr *pcrpp;
-    pciConfigPtr pcrp;
-    pciBusInfo_t *pBusInfo;
-    resRange range;
-    PciBusPtr PciBus, PciBusBase = NULL;
-    PciBusPtr *pnPciBus = &PciBusBase;
-    int MaxBus = 0;
-    int i, domain;
-    int primary, secondary, subordinate;
-    memType base, limit;
-
-    resPtr pciBusAccWindows = xf86PciBusAccWindowsFromOS();
-
-    if (xf86PciInfo == NULL)
-	return NULL;
-
-    /* Add each bridge */
-    for (pcrpp = xf86PciInfo, pcrp = *pcrpp; pcrp; pcrp = *(++pcrpp)) {
-	struct pci_device * const dev = pcrp->dev;
-
-	if (pcrp->busnum > MaxBus)
-	    MaxBus = pcrp->busnum;
-
-	if ( pcrp->pci_base_class == PCI_CLASS_BRIDGE ) {
-	    const int sub_class = pcrp->pci_sub_class;
-
-	    domain = xf86GetPciDomain(pcrp->tag);
-
-	    switch (sub_class) {
-	    case PCI_SUBCLASS_BRIDGE_PCI:
-		/* something fishy about the header? If so: just ignore! */
-		if ((pcrp->pci_header_type & 0x7f) != 0x01) {
-		    xf86MsgVerb(X_WARNING, 3, "PCI-PCI bridge at %x:%x:%x has"
-				" unexpected header:  0x%x",
-				pcrp->busnum, pcrp->devnum,
-				pcrp->funcnum, pcrp->pci_header_type);
-		    break;
-		}
-
-		domain = pcrp->busnum & 0x0000FF00;
-		primary = pcrp->busnum;
-		secondary = domain | pcrp->pci_secondary_bus_number;
-		subordinate = domain | pcrp->pci_subordinate_bus_number;
-
-		/* Is this the correct bridge? If not, ignore it */
-		pBusInfo = pcrp->businfo;
-		if (pBusInfo && (pcrp != pBusInfo->bridge)) {
-		    xf86MsgVerb(X_WARNING, 3, "PCI bridge mismatch for bus %x:"
-				" %x:%x:%x and %x:%x:%x\n", secondary,
-				pcrp->busnum, pcrp->devnum, pcrp->funcnum,
-				pBusInfo->bridge->busnum,
-				pBusInfo->bridge->devnum,
-				pBusInfo->bridge->funcnum);
-		    break;
-		}
-
-		if (pBusInfo && pBusInfo->funcs->pciGetBridgeBuses)
-		    (*pBusInfo->funcs->pciGetBridgeBuses)(secondary,
-							   &primary,
-							   &secondary,
-							   &subordinate);
-
-		if (!pcrp->fakeDevice && (primary >= secondary)) {
-		    xf86MsgVerb(X_WARNING, 3, "Misconfigured PCI bridge"
-				" %x:%x:%x (%x,%x)\n",
-				pcrp->busnum, pcrp->devnum, pcrp->funcnum,
-				primary, secondary);
-		    break;
-		}
-		
-		*pnPciBus = PciBus = xnfcalloc(1, sizeof(PciBusRec));
-		pnPciBus = &PciBus->next;
-
-		PciBus->dev = dev;
-		PciBus->primary = primary;
-		PciBus->secondary = secondary;
-		PciBus->subordinate = subordinate;
-
-		PciBus->brbus = pcrp->busnum;
-		PciBus->brdev = pcrp->devnum;
-		PciBus->brfunc = pcrp->funcnum;
-
-		PciBus->subclass = sub_class;
-
-		/* The Intel bridges don't report as transparent
-		   but guess what they are - from Linux kernel - airlied */
-		if ((pcrp->pci_vendor == PCI_VENDOR_INTEL) && 
-		   ((pcrp->_pci_device & 0xff00) == 0x2400)) {
-			xf86MsgVerb(X_INFO, 3, "Intel Bridge workaround enabled\n");
-			PciBus->interface = PCI_IF_BRIDGE_PCI_SUBTRACTIVE;
-		} else {
-			PciBus->interface = pcrp->pci_prog_if;
-		}
-
-		if (pBusInfo && pBusInfo->funcs->pciControlBridge)
-		    PciBus->brcontrol =
-			(*pBusInfo->funcs->pciControlBridge)(secondary, 0, 0);
-		else
-		    PciBus->brcontrol = pcrp->pci_bridge_control;
-
-		if (pBusInfo && pBusInfo->funcs->pciGetBridgeResources) {
-		    (*pBusInfo->funcs->pciGetBridgeResources)(secondary,
-			(pointer *)&PciBus->preferred_io,
-			(pointer *)&PciBus->preferred_mem,
-			(pointer *)&PciBus->preferred_pmem);
-		    break;
-		}
-
-		if ((pcrp->pci_command & PCI_CMD_IO_ENABLE) &&
-		    (pcrp->pci_upper_io_base || pcrp->pci_io_base ||
-		     pcrp->pci_upper_io_limit || pcrp->pci_io_limit)) {
-		    base = (pcrp->pci_upper_io_base << 16) |
-			((pcrp->pci_io_base & 0xf0u) << 8);
-		    limit = (pcrp->pci_upper_io_limit << 16) |
-			((pcrp->pci_io_limit & 0xf0u) << 8) | 0x0fff;
-		    /*
-		     * Deal with bridge ISA mode (256 wide ranges spaced 1K
-		     * apart, but only in the first 64K).
-		     */
-		    if (pcrp->pci_bridge_control & PCI_PCI_BRIDGE_ISA_EN) {
-			while ((base <= (CARD16)(-1)) && (base <= limit)) {
-			    PCI_I_RANGE(range, pcrp->tag,
-				base, base + (CARD8)(-1),
-				ResIo | ResBlock | ResExclusive);
-			    PciBus->preferred_io =
-				xf86AddResToList(PciBus->preferred_io,
-						 &range, -1);
-			    base += 0x0400;
-			}
-		    }
-		    if (base <= limit) {
-			PCI_I_RANGE(range, pcrp->tag, base, limit,
-			    ResIo | ResBlock | ResExclusive);
-			PciBus->preferred_io =
-			    xf86AddResToList(PciBus->preferred_io, &range, -1);
-		    }
-		}
-		if (pcrp->pci_command & PCI_CMD_MEM_ENABLE) {
-		  /*
-		   * The P2P spec requires these next two, but some bridges
-		   * don't comply.  Err on the side of caution, making the not
-		   * so bold assumption that no bridge would ever re-route the
-		   * bottom megabyte.
-		   */
-		  if (pcrp->pci_mem_base || pcrp->pci_mem_limit) {
-                    base = pcrp->pci_mem_base & 0xfff0u;
-                    limit = pcrp->pci_mem_limit & 0xfff0u;
-		    if (base <= limit) {
-			PCI_M_RANGE(range, pcrp->tag,
-				    base << 16, (limit << 16) | 0x0fffff,
-				    ResMem | ResBlock | ResExclusive);
-			PciBus->preferred_mem =
-			    xf86AddResToList(PciBus->preferred_mem, &range, -1);
-		    }
-		  }
-
-		  if (pcrp->pci_prefetch_mem_base ||
-		      pcrp->pci_prefetch_mem_limit ||
-		      pcrp->pci_prefetch_upper_mem_base ||
-		      pcrp->pci_prefetch_upper_mem_limit) {
-                    base = pcrp->pci_prefetch_mem_base & 0xfff0u;
-                    limit = pcrp->pci_prefetch_mem_limit & 0xfff0u;
-#if defined(LONG64) || defined(WORD64)
-		    base |= (memType)pcrp->pci_prefetch_upper_mem_base << 16;
-		    limit |= (memType)pcrp->pci_prefetch_upper_mem_limit << 16;
-#endif
-		    if (base <= limit) {
-			PCI_M_RANGE(range, pcrp->tag,
-				    base << 16, (limit << 16) | 0xfffff,
-				    ResMem | ResBlock | ResExclusive);
-			PciBus->preferred_pmem =
-			    xf86AddResToList(PciBus->preferred_pmem,
-					     &range, -1);
-		    }
-		  }
-		}
-		break;
-
-	    case PCI_SUBCLASS_BRIDGE_CARDBUS:
-		/* something fishy about the header? If so: just ignore! */
-		if ((pcrp->pci_header_type & 0x7f) != 0x02) {
-		    xf86MsgVerb(X_WARNING, 3, "PCI-CardBus bridge at %x:%x:%x"
-				" has unexpected header:  0x%x",
-				pcrp->busnum, pcrp->devnum,
-				pcrp->funcnum, pcrp->pci_header_type);
-		    break;
-		}
-
-		domain = pcrp->busnum & 0x0000FF00;
-		primary = pcrp->busnum;
-		secondary = domain | pcrp->pci_cb_cardbus_bus_number;
-		subordinate = domain | pcrp->pci_subordinate_bus_number;
-
-		/* Is this the correct bridge?  If not, ignore it */
-		pBusInfo = pcrp->businfo;
-		if (pBusInfo && (pcrp != pBusInfo->bridge)) {
-		    xf86MsgVerb(X_WARNING, 3, "CardBus bridge mismatch for bus"
-				" %x: %x:%x:%x and %x:%x:%x\n", secondary,
-				pcrp->busnum, pcrp->devnum, pcrp->funcnum,
-				pBusInfo->bridge->busnum,
-				pBusInfo->bridge->devnum,
-				pBusInfo->bridge->funcnum);
-		    break;
-		}
-
-		if (pBusInfo && pBusInfo->funcs->pciGetBridgeBuses)
-		    (*pBusInfo->funcs->pciGetBridgeBuses)(secondary,
-							   &primary,
-							   &secondary,
-							   &subordinate);
-
-		if (primary >= secondary) {
-		    if (pcrp->pci_cb_cardbus_bus_number != 0)
-		        xf86MsgVerb(X_WARNING, 3, "Misconfigured CardBus"
-				    " bridge %x:%x:%x (%x,%x)\n",
-				    pcrp->busnum, pcrp->devnum, pcrp->funcnum,
-				    primary, secondary);
-		    break;
-		}
-
-		*pnPciBus = PciBus = xnfcalloc(1, sizeof(PciBusRec));
-		pnPciBus = &PciBus->next;
-
-		PciBus->dev = dev;
-		PciBus->primary = primary;
-		PciBus->secondary = secondary;
-		PciBus->subordinate = subordinate;
-
-		PciBus->brbus = pcrp->busnum;
-		PciBus->brdev = pcrp->devnum;
-		PciBus->brfunc = pcrp->funcnum;
-
-		PciBus->subclass = sub_class;
-		PciBus->interface = pcrp->pci_prog_if;
-
-		if (pBusInfo && pBusInfo->funcs->pciControlBridge)
-		    PciBus->brcontrol =
-			(*pBusInfo->funcs->pciControlBridge)(secondary, 0, 0);
-		else
-		    PciBus->brcontrol = pcrp->pci_bridge_control;
-
-		if (pBusInfo && pBusInfo->funcs->pciGetBridgeResources) {
-		    (*pBusInfo->funcs->pciGetBridgeResources)(secondary,
-			(pointer *)&PciBus->preferred_io,
-			(pointer *)&PciBus->preferred_mem,
-			(pointer *)&PciBus->preferred_pmem);
-		    break;
-		}
-
-		if (pcrp->pci_command & PCI_CMD_IO_ENABLE) {
-		    if (pcrp->pci_cb_iobase0) {
-			base = PCI_CB_IOBASE(pcrp->pci_cb_iobase0);
-			limit = PCI_CB_IOLIMIT(pcrp->pci_cb_iolimit0);
-
-			/*
-			 * Deal with bridge ISA mode (256-wide ranges spaced 1K
-			 * apart (start to start), but only in the first 64K).
-			 */
-			if (pcrp->pci_bridge_control & PCI_PCI_BRIDGE_ISA_EN) {
-			    while ((base <= (CARD16)(-1)) &&
-				   (base <= limit)) {
-				PCI_I_RANGE(range, pcrp->tag,
-					    base, base + (CARD8)(-1),
-					    ResIo | ResBlock | ResExclusive);
-				PciBus->preferred_io =
-				    xf86AddResToList(PciBus->preferred_io,
-						     &range, -1);
-				base += 0x0400;
-			    }
-			}
-
-			if (base <= limit) {
-			    PCI_I_RANGE(range, pcrp->tag, base, limit,
-					ResIo | ResBlock | ResExclusive);
-			    PciBus->preferred_io =
-				xf86AddResToList(PciBus->preferred_io,
-						 &range, -1);
-			}
-		    }
-
-		    if (pcrp->pci_cb_iobase1) {
-			base = PCI_CB_IOBASE(pcrp->pci_cb_iobase1);
-			limit = PCI_CB_IOLIMIT(pcrp->pci_cb_iolimit1);
-
-			/*
-			 * Deal with bridge ISA mode (256-wide ranges spaced 1K
-			 * apart (start to start), but only in the first 64K).
-			 */
-			if (pcrp->pci_bridge_control & PCI_PCI_BRIDGE_ISA_EN) {
-			    while ((base <= (CARD16)(-1)) &&
-				   (base <= limit)) {
-				PCI_I_RANGE(range, pcrp->tag,
-					    base, base + (CARD8)(-1),
-					    ResIo | ResBlock | ResExclusive);
-				PciBus->preferred_io =
-				    xf86AddResToList(PciBus->preferred_io,
-						     &range, -1);
-				base += 0x0400;
-			    }
-			}
-
-			if (base <= limit) {
-			    PCI_I_RANGE(range, pcrp->tag, base, limit,
-					ResIo | ResBlock | ResExclusive);
-			    PciBus->preferred_io =
-				xf86AddResToList(PciBus->preferred_io,
-						 &range, -1);
-			}
-		    }
-		}
-
-		if (pcrp->pci_command & PCI_CMD_MEM_ENABLE) {
-		    if ((pcrp->pci_cb_membase0) &&
-			(pcrp->pci_cb_membase0 <= pcrp->pci_cb_memlimit0)) {
-			PCI_M_RANGE(range, pcrp->tag,
-				    pcrp->pci_cb_membase0 & ~0x0fff,
-				    pcrp->pci_cb_memlimit0 | 0x0fff,
-				    ResMem | ResBlock | ResExclusive);
-			if (pcrp->pci_bridge_control &
-			    PCI_CB_BRIDGE_CTL_PREFETCH_MEM0)
-			    PciBus->preferred_pmem =
-				xf86AddResToList(PciBus->preferred_pmem,
-						 &range, -1);
-			else
-			    PciBus->preferred_mem =
-				xf86AddResToList(PciBus->preferred_mem,
-						 &range, -1);
-		    }
-		    if ((pcrp->pci_cb_membase1) &&
-			(pcrp->pci_cb_membase1 <= pcrp->pci_cb_memlimit1)) {
-			PCI_M_RANGE(range, pcrp->tag,
-				    pcrp->pci_cb_membase1 & ~0x0fff,
-				    pcrp->pci_cb_memlimit1 | 0x0fff,
-				    ResMem | ResBlock | ResExclusive);
-			if (pcrp->pci_bridge_control &
-			    PCI_CB_BRIDGE_CTL_PREFETCH_MEM1)
-			    PciBus->preferred_pmem =
-				xf86AddResToList(PciBus->preferred_pmem,
-						 &range, -1);
-			else
-			    PciBus->preferred_mem =
-				xf86AddResToList(PciBus->preferred_mem,
-						 &range, -1);
-		    }
-		}
-
-		break;
-
-	    case PCI_SUBCLASS_BRIDGE_ISA:
-	    case PCI_SUBCLASS_BRIDGE_EISA:
-	    case PCI_SUBCLASS_BRIDGE_MC:
-		*pnPciBus = PciBus = xnfcalloc(1, sizeof(PciBusRec));
-		pnPciBus = &PciBus->next;
-		PciBus->dev = dev;
-		PciBus->primary = pcrp->busnum;
-		PciBus->secondary = PciBus->subordinate = -1;
-		PciBus->brbus = pcrp->busnum;
-		PciBus->brdev = pcrp->devnum;
-		PciBus->brfunc = pcrp->funcnum;
-		PciBus->subclass = sub_class;
-		PciBus->brcontrol = PCI_PCI_BRIDGE_VGA_EN;
-		break;
-
-	    case PCI_SUBCLASS_BRIDGE_HOST:
-		/* Is this the correct bridge?  If not, ignore bus info */
-		pBusInfo = pcrp->businfo;
-
-		if (!pBusInfo || pBusInfo == HOST_NO_BUS)
-		    break;
-
-		secondary = 0;
-		/* Find "secondary" bus segment */
-		while (pBusInfo != pciBusInfo[secondary])
-			secondary++;
-		if (pcrp != pBusInfo->bridge) {
-		    xf86MsgVerb(X_WARNING, 3, "Host bridge mismatch for"
-				" bus %x: %x:%x:%x and %x:%x:%x\n",
-				pBusInfo->primary_bus,
-				pcrp->busnum, pcrp->devnum, pcrp->funcnum,
-				pBusInfo->bridge->busnum,
-				pBusInfo->bridge->devnum,
-				pBusInfo->bridge->funcnum);
-		    pBusInfo = NULL;
-		}
-
-		*pnPciBus = PciBus = xnfcalloc(1, sizeof(PciBusRec));
-		pnPciBus = &PciBus->next;
-
-		PciBus->dev = dev;
-		PciBus->primary = PciBus->secondary = secondary;
-		PciBus->subordinate = pciNumBuses - 1;
-
-		if (pBusInfo->funcs->pciGetBridgeBuses)
-		    (*pBusInfo->funcs->pciGetBridgeBuses)
-		        (secondary,
-			   &PciBus->primary,
-			   &PciBus->secondary,
-			   &PciBus->subordinate);
-
-		PciBus->brbus = pcrp->busnum;
-		PciBus->brdev = pcrp->devnum;
-		PciBus->brfunc = pcrp->funcnum;
-
-		PciBus->subclass = sub_class;
-
-		if (pBusInfo && pBusInfo->funcs->pciControlBridge)
-		    PciBus->brcontrol =
-			(*pBusInfo->funcs->pciControlBridge)(secondary, 0, 0);
-		else
-		    PciBus->brcontrol = PCI_PCI_BRIDGE_VGA_EN;
-
-		if (pBusInfo && pBusInfo->funcs->pciGetBridgeResources) {
-		    (*pBusInfo->funcs->pciGetBridgeResources)
-			(secondary,
-			 (pointer *)&PciBus->preferred_io,
-			 (pointer *)&PciBus->preferred_mem,
-			 (pointer *)&PciBus->preferred_pmem);
-		    break;
-		}
-
-		PciBus->preferred_io =
-		    xf86ExtractTypeFromList(pciBusAccWindows,
-					    RANGE_TYPE(ResIo, domain));
-		PciBus->preferred_mem =
-		    xf86ExtractTypeFromList(pciBusAccWindows,
-					    RANGE_TYPE(ResMem, domain));
-		PciBus->preferred_pmem =
-		    xf86ExtractTypeFromList(pciBusAccWindows,
-					    RANGE_TYPE(ResMem, domain));
-		break;
-
-	    default:
-		break;
-	    }
-	}
-    }
-    for (i = 0; i <= MaxBus; i++) { /* find PCI buses not attached to bridge */
-	if (!pciBusInfo[i])
-	    continue;
-	for (PciBus = PciBusBase; PciBus; PciBus = PciBus->next)
-	    if (PciBus->secondary == i) break;
-	if (!PciBus) {  /* We assume it's behind a HOST-PCI bridge */
-	    /*
-	     * Find the 'smallest' free HOST-PCI bridge, where 'small' is in
-	     * the order of pciTag().
-	     */
-	    PCITAG minTag = 0xFFFFFFFF;
-	    PciBusPtr PciBusFound = NULL;
-
-	    for (PciBus = PciBusBase; PciBus; PciBus = PciBus->next) {
-		const PCITAG tag = pciTag( PciBus->brbus, PciBus->brdev,
-					   PciBus->brfunc );
-		if ((PciBus->subclass == PCI_SUBCLASS_BRIDGE_HOST) &&
-		    (PciBus->secondary == -1) &&
-		    (tag < minTag) )  {
-		    minTag = tag;
-		    PciBusFound = PciBus;
-		}
-	    }
-
-	    if (PciBusFound)
-		PciBusFound->secondary = i;
-	    else {  /* if nothing found it may not be visible: create new */
-		/* Find a device on this bus */
-		domain = 0;
-		for (pcrpp = xf86PciInfo;  (pcrp = *pcrpp);  pcrpp++) {
-		    if (pcrp->busnum == i) {
-			domain = xf86GetPciDomain(pcrp->tag);
-			break;
-		    }
-		}
-		*pnPciBus = PciBus = xnfcalloc(1, sizeof(PciBusRec));
-		pnPciBus = &PciBus->next;
-
-		PciBus->dev = pcrp->dev;
-		PciBus->primary = PciBus->secondary = i;
-		PciBus->subclass = PCI_SUBCLASS_BRIDGE_HOST;
-		PciBus->brcontrol = PCI_PCI_BRIDGE_VGA_EN;
-		PciBus->preferred_io =
-		    xf86ExtractTypeFromList(pciBusAccWindows,
-					    RANGE_TYPE(ResIo, domain));
-		PciBus->preferred_mem =
-		    xf86ExtractTypeFromList(pciBusAccWindows,
-					    RANGE_TYPE(ResMem, domain));
-		PciBus->preferred_pmem =
-		    xf86ExtractTypeFromList(pciBusAccWindows,
-					    RANGE_TYPE(ResMem, domain));
-	    }
-	}
-    }
-
-    for (PciBus = PciBusBase; PciBus; PciBus = PciBus->next) {
-	if (PciBus->primary == PciBus->secondary) {
-	    alignBridgeRanges(PciBusBase, PciBus);
-	}
-    }
-
-    for (PciBus = PciBusBase; PciBus; PciBus = PciBus->next) {
-	switch (PciBus->subclass) {
-	    case PCI_SUBCLASS_BRIDGE_PCI:
-		if (PciBus->interface == PCI_IF_BRIDGE_PCI_SUBTRACTIVE)
-		    xf86MsgVerb(X_INFO, 3, "Subtractive PCI-to-PCI bridge:\n");
-		else
-		    xf86MsgVerb(X_INFO, 3, "PCI-to-PCI bridge:\n");
-		break;
-	    case PCI_SUBCLASS_BRIDGE_CARDBUS:
-		xf86MsgVerb(X_INFO, 3, "PCI-to-CardBus bridge:\n");
-		break;
-	    case PCI_SUBCLASS_BRIDGE_HOST:
-		xf86MsgVerb(X_INFO, 3, "Host-to-PCI bridge:\n");
-		break;
-	    case PCI_SUBCLASS_BRIDGE_ISA:
-		xf86MsgVerb(X_INFO, 3, "PCI-to-ISA bridge:\n");
-		break;
-	    case PCI_SUBCLASS_BRIDGE_EISA:
-		xf86MsgVerb(X_INFO, 3, "PCI-to-EISA bridge:\n");
-		break;
-	    case PCI_SUBCLASS_BRIDGE_MC:
-		xf86MsgVerb(X_INFO, 3, "PCI-to-MCA bridge:\n");
-		break;
-	    default:
-		break;
-	}
-	printBridgeInfo(PciBus);
-    }
-    xf86FreeResList(pciBusAccWindows);
-    return PciBusBase;
-}
-
-static void
-alignBridgeRanges(PciBusPtr PciBusBase, PciBusPtr primary)
-{
-    PciBusPtr PciBus;
-
-    for (PciBus = PciBusBase; PciBus; PciBus = PciBus->next) {
-	if ((PciBus != primary) && (PciBus->primary != -1)
-	    && (PciBus->primary == primary->secondary)) {
-	    resPtr tmp;
-	    tmp = xf86FindIntersectOfLists(primary->preferred_io,
-					   PciBus->preferred_io);
-	    xf86FreeResList(PciBus->preferred_io);
-	    PciBus->preferred_io = tmp;
-	    tmp = xf86FindIntersectOfLists(primary->preferred_pmem,
-					   PciBus->preferred_pmem);
-	    xf86FreeResList(PciBus->preferred_pmem);
-	    PciBus->preferred_pmem = tmp;
-	    tmp = xf86FindIntersectOfLists(primary->preferred_mem,
-					   PciBus->preferred_mem);
-	    xf86FreeResList(PciBus->preferred_mem);
-	    PciBus->preferred_mem = tmp;
-
-	    /* Deal with subtractive decoding */
-	    switch (PciBus->subclass) {
-	    case PCI_SUBCLASS_BRIDGE_PCI:
-		if (PciBus->interface != PCI_IF_BRIDGE_PCI_SUBTRACTIVE)
-		    break;
-		/* Fall through */
-#if 0	/* Not yet */
-	    case PCI_SUBCLASS_BRIDGE_ISA:
-	    case PCI_SUBCLASS_BRIDGE_EISA:
-	    case PCI_SUBCLASS_BRIDGE_MC:
-#endif
-		if (!(PciBus->io = primary->io))
-		    PciBus->io = primary->preferred_io;
-		if (!(PciBus->mem = primary->mem))
-		    PciBus->mem = primary->preferred_mem;
-		if (!(PciBus->pmem = primary->pmem))
-		    PciBus->pmem = primary->preferred_pmem;
-	    default:
-		break;
-	    }
-
-	    alignBridgeRanges(PciBusBase, PciBus);
-	}
-    }
-}
-
 void
 initPciState(void)
 {
@@ -1264,59 +606,70 @@ initPciState(void)
 void
 initPciBusState(void)
 {
+    static const struct pci_id_match bridge_match = {
+	PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY,
+	(PCI_CLASS_BRIDGE << 16), 0x0000ff0000, 0
+    };
+    struct pci_device *dev;
+    struct pci_device_iterator *iter;
     BusAccPtr pbap, pbap_tmp;
-    PciBusPtr pbp = xf86PciBus;
     pciBusInfo_t *pBusInfo;
 
-    while (pbp) {
-	pbap = xnfcalloc(1,sizeof(BusAccRec));
-	pbap->busdep.pci.bus = pbp->secondary;
-	pbap->busdep.pci.primary_bus = pbp->primary;
-	pbap->busdep_type = BUS_PCI;
-	pbap->busdep.pci.dev = NULL;
+    iter = pci_id_match_iterator_create(& bridge_match);
+    while((dev = pci_device_next(iter)) != NULL) {
+	const uint8_t subclass = (dev->device_class >> 8) & 0x0ff;
+	int primary;
+	int secondary;
+	int subordinate;
 
-	if ((pbp->secondary >= 0) && (pbp->secondary < pciNumBuses) &&
-	    (pBusInfo = pciBusInfo[pbp->secondary]) &&
+
+	pci_device_get_bridge_buses(dev, &primary, &secondary, &subordinate);
+
+	pbap = xnfcalloc(1,sizeof(BusAccRec));
+	pbap->busdep.pci.bus = secondary;
+	pbap->busdep.pci.primary_bus = primary;
+	pbap->busdep_type = BUS_PCI;
+	pbap->busdep.pci.dev = dev;
+
+	pbap->set_f = pciSetBusAccess;
+	
+	if ((secondary >= 0) && (secondary < pciNumBuses) &&
+	    (pBusInfo = pciBusInfo[secondary]) &&
 	    pBusInfo->funcs->pciControlBridge) {
 	    pbap->type = BUS_PCI;
 	    pbap->save_f = savePciDrvBusState;
 	    pbap->restore_f = restorePciDrvBusState;
-	    pbap->set_f = pciSetBusAccess;
 	    pbap->enable_f = pciDrvBusAccessEnable;
 	    pbap->disable_f = pciDrvBusAccessDisable;
 	    savePciDrvBusState(pbap);
-	} else switch (pbp->subclass) {
+	} else switch (subclass) {
 	case PCI_SUBCLASS_BRIDGE_HOST:
 	    pbap->type = BUS_PCI;
-	    pbap->set_f = pciSetBusAccess;
 	    break;
 	case PCI_SUBCLASS_BRIDGE_PCI:
 	case PCI_SUBCLASS_BRIDGE_CARDBUS:
 	    pbap->type = BUS_PCI;
 	    pbap->save_f = savePciBusState;
 	    pbap->restore_f = restorePciBusState;
-	    pbap->set_f = pciSetBusAccess;
 	    pbap->enable_f = pciBusAccessEnable;
 	    pbap->disable_f = pciBusAccessDisable;
-	    pbap->busdep.pci.dev = pbp->dev;
 	    savePciBusState(pbap);
 	    break;
 	case PCI_SUBCLASS_BRIDGE_ISA:
 	case PCI_SUBCLASS_BRIDGE_EISA:
 	case PCI_SUBCLASS_BRIDGE_MC:
 	    pbap->type = BUS_ISA;
-	    pbap->set_f = pciSetBusAccess;
 	    break;
 	}
 	pbap->next = xf86BusAccInfo;
 	xf86BusAccInfo = pbap;
-	pbp = pbp->next;
     }
 
-    pbap = xf86BusAccInfo;
+    pci_iterator_destroy(iter);
 
-    while (pbap) {
+    for (pbap = xf86BusAccInfo; pbap; pbap = pbap->next) {
 	pbap->primary = NULL;
+
 	if (pbap->busdep_type == BUS_PCI
 	    && pbap->busdep.pci.primary_bus > -1) {
 	    pbap_tmp = xf86BusAccInfo;
@@ -1332,7 +685,6 @@ initPciBusState(void)
 		pbap_tmp = pbap_tmp->next;
 	    }
 	}
-	pbap = pbap->next;
     }
 }
 

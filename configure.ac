@@ -1030,7 +1030,7 @@ dnl has it in libc), or if libdl is needed to get it.
 	AC_CHECK_FUNC([dlopen], [], 
 		AC_CHECK_LIB([dl], [dlopen], XORG_LIBS="$XORG_LIBS -ldl"))
 
-	PKG_CHECK_MODULES([PCIACCESS], [pciaccess >= 0.3.0])
+	PKG_CHECK_MODULES([PCIACCESS], [pciaccess >= 0.5.0])
 	XSERVER_LIBS="$XSERVER_LIBS $PCIACCESS_LIBS"
 	XORG_CFLAGS="$XORG_CFLAGS $PCIACCESS_CFLAGS"
 

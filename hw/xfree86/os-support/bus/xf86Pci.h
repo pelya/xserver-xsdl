@@ -656,10 +656,7 @@ typedef struct {
     int	      devnum;
     int	      funcnum;
     pciCfgSpc cfgspc;
-    int	      basesize[7];	/* number of bits in base addr allocations */
-    Bool      minBasesize;
     pointer   businfo;		/* pointer to secondary's bus info structure */
-    Bool      fakeDevice;	/* Device added by system chipset support */
     struct pci_device * dev;
 } pciDevice, *pciConfigPtr;
 

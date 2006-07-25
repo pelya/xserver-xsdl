@@ -467,7 +467,7 @@ linuxGetSizesStruct(const struct pci_device *dev)
 static __inline__ unsigned long
 linuxGetIOSize(PCITAG Tag)
 {
-    const struct pci_device * const dev =pci_device_find_by_slot(PCI_DOM_FROM_TAG(Tag),
+    const struct pci_device * const dev = pci_device_find_by_slot(PCI_DOM_FROM_TAG(Tag),
 								 PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(Tag)),
 								 PCI_DEV_FROM_TAG(Tag),
 								 PCI_FUNC_FROM_TAG(Tag));
@@ -491,10 +491,10 @@ xf86GetPciDomain(PCITAG Tag)
     if (pPCI && (result = PCI_DOM_FROM_BUS(pPCI->busnum)))
 	return result;
 
-    if (!pPCI || pPCI->fakeDevice)
+    if (!pPCI)
 	return 1;		/* Domain 0 is reserved */
 
-    if ((fd = linuxPciOpenFile(pPCI ? pPCI->tag : 0,FALSE)) < 0)
+    if ((fd = linuxPciOpenFile(pPCI->tag, FALSE)) < 0)
 	return 0;
 
     if ((result = ioctl(fd, PCIIOC_CONTROLLER, 0)) < 0)
