@@ -47,8 +47,8 @@
 #ifdef FB_ACCESS_WRAPPER
 #include "wfbrename.h"
 #define FBPREFIX(x) wfb##x
-#define WRITE(ptr, val) ((*wfbWriteMemory)(ptr, val))
-#define READ(ptr) ((*wfbReadMemory)(ptr))
+#define WRITE(ptr, val) ((*wfbWriteMemory)(ptr, val, sizeof(*ptr)))
+#define READ(ptr) ((*wfbReadMemory)(ptr, sizeof(*ptr)))
 #else
 #define FBPREFIX(x) fb##x
 #define WRITE(ptr, val) (*(ptr) = (val))
@@ -601,8 +601,8 @@ extern WindowPtr    *WindowTable;
 
 /* Framebuffer access wrapper */
 #ifdef FB_ACCESS_WRAPPER
-typedef FbBits (*ReadMemoryProcPtr)(FbBits *src);
-typedef void (*WriteMemoryProcPtr)(FbBits *dst, FbBits value);
+typedef FbBits (*ReadMemoryProcPtr)(void *src, int size);
+typedef void (*WriteMemoryProcPtr)(void *dst, FbBits value, int size);
 typedef void (*SetupWrapProcPtr)(ReadMemoryProcPtr  *pRead,
                                  WriteMemoryProcPtr *pWrite,
                                  PixmapPtr           pPixmap);
