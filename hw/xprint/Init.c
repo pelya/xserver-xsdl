@@ -1,4 +1,3 @@
-/* $Xorg: Init.c,v 1.5 2001/03/07 17:31:33 pookie Exp $ */
 /*
 (c) Copyright 1996 Hewlett-Packard Company
 (c) Copyright 1996 International Business Machines Corp.

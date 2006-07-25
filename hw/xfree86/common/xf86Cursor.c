@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Cursor.c,v 3.37 2003/11/07 22:20:17 dawes Exp $ */
 /*
  * Copyright (c) 1994-2003 by The XFree86 Project, Inc.
  *

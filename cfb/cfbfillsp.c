@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbfillsp.c,v 3.7tsi Exp $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.
 
@@ -75,7 +74,6 @@ SOFTWARE.
 
 ******************************************************************/
 
-/* $Xorg: cfbfillsp.c,v 1.4 2001/02/09 02:04:37 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

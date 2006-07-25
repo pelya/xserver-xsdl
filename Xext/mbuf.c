@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xext/mbuf.c,v 3.15 2003/10/28 23:08:43 tsi Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -25,7 +24,6 @@ in this Software without prior written authorization from The Open Group.
 
 ********************************************************/
 
-/* $Xorg: mbuf.c,v 1.4 2001/02/09 02:04:32 xorgcvs Exp $ */
 #define NEED_REPLIES
 #define NEED_EVENTS
 #ifdef HAVE_DIX_CONFIG_H

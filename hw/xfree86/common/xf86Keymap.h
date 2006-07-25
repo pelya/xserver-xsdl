@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Keymap.h,v 3.20 2003/08/24 17:36:53 dawes Exp $ */
 
 /*
  * Copyright (c) 1994-2002 by The XFree86 Project, Inc.

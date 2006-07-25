@@ -66,7 +66,7 @@ xf86CurrentAccessRec xf86CurrentAccess = {NULL,NULL};
 
 BusRec primaryBus = { BUS_NONE, {{0}}};
 
-Bool xf86ResAccessEnter = FALSE;
+static Bool xf86ResAccessEnter = FALSE;
 
 #ifdef REDUCER
 /* Resources that temporarily conflict with estimated resources */
@@ -665,32 +665,6 @@ xf86AccessRestoreState(void)
  * Otherwise resources needed for access control might be shadowed
  * by other resources!
  */
-#ifdef async
-
-static AsyncQPtr *AsyncQ = NULL;
-_X_EXPORT ScrnInfoPtr xf86CurrentScreen = NULL;
-
-#define SETUP_Q  org = AsyncQ; \
-	         AsyncQ = &new;
-
-#define PROCESS_Q xf86CurrentScreen = pScrn;
-                  if (!new) AsyncQ = org; \
-                  else { \
-                       AsyncQPtr tmp_Q; \
-                       while (1) {\
-                          new->func(new->arg);\
-                          if (!(new->next)) {\
-			      AsyncQ = org; xfree(new); break; \
-			   } \
-			   tmp_Q = new->next; \
-		           xfree(new); \
- 		           new = tmp_Q; \
-		       } \
-                  }
-#else
-#define SETUP_Q
-#define PROCESS_Q
-#endif
 
 _X_EXPORT void
 xf86EnableAccess(ScrnInfoPtr pScrn)
@@ -699,9 +673,6 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
     register EntityAccessPtr pceAcc;
     register xf86AccessPtr pAcc;
     EntityAccessPtr tmp;
-#ifdef async
-    AsyncQPtr *org, new = NULL;
-#endif
 
 #ifdef DEBUG
     ErrorF("Enable access %i\n",pScrn->scrnIndex);
@@ -710,9 +681,7 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
     /* Entity is not under access control or currently enabled */
     if (!pScrn->access) {
 	if (pScrn->busAccess) {
-	    SETUP_Q;
 	    ((BusAccPtr)pScrn->busAccess)->set_f(pScrn->busAccess);
-	    PROCESS_Q;
 	}
 	return;
     }
@@ -723,7 +692,6 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	if (peAcc == pceAcc) {
 	    return;
 	}
-	SETUP_Q;
 	if (pScrn->CurrentAccess->pMemAccess == pceAcc)
 	    pScrn->CurrentAccess->pMemAccess = NULL;
 	while (pceAcc) {
@@ -741,13 +709,11 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	    peAcc = peAcc->next;
 	}
 	pScrn->CurrentAccess->pIoAccess = (EntityAccessPtr) pScrn->access;
-	PROCESS_Q;
 	return;
 	
     case MEM_IO:
 	pceAcc = pScrn->CurrentAccess->pIoAccess;
 	if (peAcc != pceAcc) { /* current Io != pAccess */
-	    SETUP_Q;
 	    tmp = pceAcc;
 	    while (pceAcc) {
 		pAcc = pceAcc->pAccess;
@@ -770,7 +736,6 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	    if (pceAcc == peAcc) { /* current Mem == pAccess */
 		return;
 	    }
-	    SETUP_Q;
 	    while (pceAcc) {  /* current Mem != pAccess */
 		pAcc = pceAcc->pAccess;
 		if (pAcc && pAcc->AccessDisable) 
@@ -788,7 +753,6 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	}
 	pScrn->CurrentAccess->pMemAccess =
 	    pScrn->CurrentAccess->pIoAccess = (EntityAccessPtr) pScrn->access;
-	PROCESS_Q;
 	return;
 	
     case MEM:
@@ -796,7 +760,6 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	if (peAcc == pceAcc) {
 	    return;
 	}
-	SETUP_Q;
 	if (pScrn->CurrentAccess->pIoAccess == pceAcc)
 	    pScrn->CurrentAccess->pIoAccess = NULL;
 	while (pceAcc) {
@@ -814,14 +777,11 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	    peAcc = peAcc->next;
 	}
 	pScrn->CurrentAccess->pMemAccess = (EntityAccessPtr) pScrn->access;
-	PROCESS_Q;
 	return;
 
     case NONE:
 	if (pScrn->busAccess) {
-	    SETUP_Q;
 	    ((BusAccPtr)pScrn->busAccess)->set_f(pScrn->busAccess);
-	    PROCESS_Q;
 	}
 	return;
     }
@@ -3164,23 +3124,6 @@ notifyStateChange(xf86NotifyState state)
 	ptr = ptr->next;
     }
 }
-
-#ifdef async
-_X_EXPORT Bool
-xf86QueueAsyncEvent(void (*func)(pointer),pointer arg)
-{
-    AsyncQPtr new;
-    
-    if (!AsyncQ) return FALSE;
-
-    new = (AsyncQPtr)xfnalloc(sizeof(AsyncQRec));
-    new->func = func;
-    new->arg = arg;
-    (*AsyncQPtr)->next = new;
-    AsyncQPtr = &new;
-    return TRUE;
-}
-#endif
 
 /* Multihead accel sharing accessor functions and entity Private handling */
 

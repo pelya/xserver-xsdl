@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_mouse.c,v 1.2 2003/10/08 14:58:30 dawes Exp $ */
 
 /*
  * Copyright 1999 by The XFree86 Project, Inc.

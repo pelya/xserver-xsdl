@@ -1,4 +1,3 @@
-/* $Xorg: PsPrint.c,v 1.7 2001/03/14 18:28:18 pookie Exp $ */
 /*
 
 Copyright 1996, 1998  The Open Group

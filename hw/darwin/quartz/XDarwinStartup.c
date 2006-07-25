@@ -38,7 +38,6 @@
  * dealings in this Software without prior written authorization from
  * Torrey T. Lyons.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XDarwinStartup.c,v 1.1 2002/03/28 02:21:18 torrey Exp $ */
 
 #include <unistd.h>
 #include <stdio.h>

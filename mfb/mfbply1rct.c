@@ -1,5 +1,4 @@
 /*
- * $Xorg: mfbply1rct.c,v 1.4 2001/02/09 02:05:19 xorgcvs Exp $
  *
 Copyright 1990, 1998  The Open Group
 
@@ -26,7 +25,6 @@ in this Software without prior written authorization from The Open Group.
  * Author:  Keith Packard, MIT X Consortium
  */
 
-/* $XFree86: xc/programs/Xserver/mfb/mfbply1rct.c,v 1.7tsi Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

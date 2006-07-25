@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86PM.c,v 3.9 2003/08/24 17:36:54 dawes Exp $ */
 /*
  * Copyright (c) 2000-2002 by The XFree86 Project, Inc.
  *

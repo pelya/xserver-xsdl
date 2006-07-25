@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xext/mbufpx.c,v 3.3 2001/07/23 13:15:44 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -25,7 +24,6 @@ in this Software without prior written authorization from The Open Group.
 
 ********************************************************/
 
-/* $Xorg: mbufpx.c,v 1.4 2001/02/09 02:04:32 xorgcvs Exp $ */
 #define NEED_REPLIES
 #define NEED_EVENTS
 #ifdef HAVE_DIX_CONFIG_H

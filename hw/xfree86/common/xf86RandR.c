@@ -1,6 +1,4 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86RandR.c,v 1.25 2005/10/30 17:38:49 twini Exp $ */
 /*
- * $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86RandR.c,v 1.7tsi Exp $
  *
  * Copyright © 2002 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -156,6 +154,8 @@ xf86RandRSetMode (ScreenPtr	    pScreen,
     int			oldHeight = pScreen->height;
     int			oldmmWidth = pScreen->mmWidth;
     int			oldmmHeight = pScreen->mmHeight;
+    int			oldVirtualX = scrp->virtualX;
+    int			oldVirtualY = scrp->virtualY;
     WindowPtr		pRoot = WindowTable[pScreen->myNum];
     Bool		ret = TRUE;
 
@@ -188,10 +188,12 @@ xf86RandRSetMode (ScreenPtr	    pScreen,
     }
     if (!xf86SwitchMode (pScreen, mode))
     {
-	scrp->virtualX = pScreen->width = oldWidth;
-	scrp->virtualY = pScreen->height = oldHeight;
+	pScreen->width = oldWidth;
+	pScreen->height = oldHeight;
 	pScreen->mmWidth = oldmmWidth;
 	pScreen->mmHeight = oldmmHeight;
+	scrp->virtualX = oldVirtualX;
+	scrp->virtualY = oldVirtualY;
 	ret = FALSE;
     }
     /*
@@ -270,8 +272,8 @@ xf86RandRSetConfig (ScreenPtr		pScreen,
 	       xorgRRRotation RRRotation;
 	       RRRotation.RRConfig.rotation = oldRotation;
 	       RRRotation.RRConfig.rate = xf86RandRModeRefresh (scrp->currentMode);
-	       RRRotation.RRConfig.width = pScreen->width;
-	       RRRotation.RRConfig.height = pScreen->height;
+	       RRRotation.RRConfig.width = scrp->virtualX;
+	       RRRotation.RRConfig.height = scrp->virtualY;
 	       (*scrp->DriverFunc)(scrp, RR_SET_CONFIG, &RRRotation);
 	   }
 

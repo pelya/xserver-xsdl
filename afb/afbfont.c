@@ -46,7 +46,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 */
-/* $XConsortium: afbfont.c,v 1.18 94/04/17 20:28:22 keith Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

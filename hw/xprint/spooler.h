@@ -6,7 +6,6 @@
 #ifndef SPOOLER_H
 #define SPOOLER_H 1
 
-/* $Xorg: spooler.h,v 1.1 2003/09/14 1:19:56 gisburn Exp $ */
 /*
 Copyright (c) 2003-2004 Roland Mainz <roland.mainz@nrubsig.org>
 

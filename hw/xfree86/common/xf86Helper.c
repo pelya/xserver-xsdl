@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Helper.c,v 1.136 2004/01/27 01:31:45 dawes Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -2454,44 +2453,25 @@ xf86LoaderCheckSymbol(const char *name)
     return LoaderSymbol(name) != NULL;
 }
 
+/* These two are just ABI stubs, they don't do anything in dlloader world */
 _X_EXPORT void
 xf86LoaderReqSymLists(const char **list0, ...)
 {
-    va_list ap;
-
-    va_start(ap, list0);
-    LoaderVReqSymLists(list0, ap);
-    va_end(ap);
 }
 
 _X_EXPORT void
 xf86LoaderReqSymbols(const char *sym0, ...)
 {
-    va_list ap;
-
-    va_start(ap, sym0);
-    LoaderVReqSymbols(sym0, ap);
-    va_end(ap);
 }
 
 _X_EXPORT void
 xf86LoaderRefSymLists(const char **list0, ...)
 {
-    va_list ap;
-
-    va_start(ap, list0);
-    LoaderVRefSymLists(list0, ap);
-    va_end(ap);
 }
 
 _X_EXPORT void
 xf86LoaderRefSymbols(const char *sym0, ...)
 {
-    va_list ap;
-
-    va_start(ap, sym0);
-    LoaderVRefSymbols(sym0, ap);
-    va_end(ap);
 }
 
 

@@ -1,4 +1,3 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/os-support/usl/usl_mouse.c,v 1.3 2005/11/10 02:41:20 jkj Exp $ */
 
 /*
  * Copyright 2005 Kean Johnston

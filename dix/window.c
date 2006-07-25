@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/dix/window.c,v 1.17 2006/03/31 17:39:35 sandmann Exp $ */
-/* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
 Copyright (c) 2006, Red Hat, Inc.
@@ -100,7 +98,6 @@ Equipment Corporation.
 
 ******************************************************************/
 
-/* $XFree86: xc/programs/Xserver/dix/window.c,v 3.36 2003/11/14 23:52:50 torrey Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

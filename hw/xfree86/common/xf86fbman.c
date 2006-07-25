@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86fbman.c,v 1.28 2003/11/03 05:11:03 tsi Exp $ */
 
 /*
  * Copyright (c) 1998-2001 by The XFree86 Project, Inc.

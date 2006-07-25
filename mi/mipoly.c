@@ -45,7 +45,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: mipoly.c,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
 /*
  *  mipoly.c
  *

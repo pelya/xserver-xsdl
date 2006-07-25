@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/sco_init.c,v 3.13 2002/06/03 21:22:10 dawes Exp $ */
 /*
  * Copyright 2001-2005 by J. Kean Johnston <jkj@sco.com>
  *

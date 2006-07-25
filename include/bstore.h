@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/include/bstore.h,v 1.1 1998/04/05 16:44:25 robin Exp $*/
 /*
  * Copyright (c) 1987 by the Regents of the University of California
  *

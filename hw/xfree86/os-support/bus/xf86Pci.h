@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/xf86Pci.h,v 1.39 2003/08/24 17:37:05 dawes Exp $ */
 /*
  * Copyright 1998 by Concurrent Computer Corporation
  *

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaBitmap.c,v 1.9 2000/06/29 10:55:41 alanh Exp $ */
 
 
 #ifdef HAVE_XORG_CONFIG_H

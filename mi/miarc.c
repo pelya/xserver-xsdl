@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/mi/miarc.c,v 1.7 2006/02/15 19:05:54 ajax Exp $ */
-/* $XFree86: xc/programs/Xserver/mi/miarc.c,v 3.14 2003/10/29 22:57:48 tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -46,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: miarc.c,v 1.4 2001/02/09 02:05:20 xorgcvs Exp $ */
 /* Author: Keith Packard and Bob Scheifler */
 /* Warning: this code is toxic, do not dally very long here. */
 

@@ -1,4 +1,3 @@
-/* $Xorg: maskbits.c,v 1.4 2001/02/09 02:05:17 xorgcvs Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /*
 
@@ -48,7 +47,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 */
-/* $XFree86: xc/programs/Xserver/mfb/maskbits.c,v 1.5 2001/01/17 22:37:01 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

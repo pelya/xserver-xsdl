@@ -26,7 +26,6 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/loadmod.c,v 1.16 2003/03/12 16:40:28 tsi Exp $
  */
 
 #ifdef USE_MODULES

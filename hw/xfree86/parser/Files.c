@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/Files.c,v 1.16 2003/08/24 17:37:07 dawes Exp $ */
 /* 
  * 
  * Copyright (c) 1997  Metro Link Incorporated

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mi/mispans.c,v 3.3 2001/08/06 20:51:20 dawes Exp $ */
 /***********************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -46,7 +45,6 @@ SOFTWARE.
 
 ******************************************************************/
 
-/* $Xorg: mispans.c,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

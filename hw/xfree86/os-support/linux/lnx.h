@@ -1,4 +1,3 @@
-/* $XFree86: Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

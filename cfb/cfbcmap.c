@@ -1,4 +1,3 @@
-/* $Xorg: cfbcmap.c,v 1.3 2000/08/17 19:48:13 cpqbld Exp $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.
 
@@ -27,7 +26,6 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/cfb/cfbcmap.c,v 3.12 2000/02/12 03:39:23 dawes Exp $ */
 
 
 #ifdef HAVE_DIX_CONFIG_H

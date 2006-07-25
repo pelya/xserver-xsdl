@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86str.h,v 1.97 2003/10/30 17:36:56 tsi Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.

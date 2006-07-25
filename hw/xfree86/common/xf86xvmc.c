@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86xvmc.c,v 1.6 2003/10/08 22:31:59 mvojkovi Exp $ */
 
 /*
  * Copyright (c) 2001-2003 by The XFree86 Project, Inc.

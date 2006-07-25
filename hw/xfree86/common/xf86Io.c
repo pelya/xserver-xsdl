@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Io.c,v 3.56 2003/11/03 05:11:02 tsi Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany.
  *
@@ -49,7 +48,6 @@
  */
 
 /* $XConsortium: xf86Io.c /main/27 1996/10/19 17:58:55 kaleb $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Io.c,v 1.6 2006/03/25 19:52:03 ajax Exp $ */
 
 #define NEED_EVENTS
 #ifdef HAVE_XORG_CONFIG_H

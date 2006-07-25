@@ -97,22 +97,6 @@ static int refCount[MAX_HANDLE];
  */
 static int moduleseq = 0;
 
-typedef struct {
-    int num;
-    const char **list;
-} symlist;
-
-/*
- * List of symbols that may be referenced, and which are allowed to be
- * unresolved providing that they don't appear on the "reqired" list.
- */
-static symlist refList = { 0, NULL };
-
-/* List of symbols that must not be unresolved */
-static symlist reqList = { 0, NULL };
-
-static int fatalReqSym = 0;
-
 /* Prototypes for static functions. */
 static loaderPtr _LoaderListPush(void);
 static loaderPtr _LoaderListPop(int);
@@ -300,165 +284,25 @@ _LoaderModuleToName(int module)
     return 0;
 }
 
-/*
- * Add a list of symbols to the referenced list.
- */
-
-static void
-AppendSymbol(symlist * list, const char *sym)
-{
-    list->list = xnfrealloc(list->list, (list->num + 1) * sizeof(char **));
-    /* copy the symbol, since it comes from a module 
-       that can be unloaded later */
-    list->list[list->num] = xnfstrdup(sym);
-    list->num++;
-}
-
-static void
-AppendSymList(symlist * list, const char **syms)
-{
-    while (*syms) {
-	AppendSymbol(list, *syms);
-	syms++;
-    }
-}
-
-static int
-SymInList(symlist * list, char *sym)
-{
-    int i;
-
-    for (i = 0; i < list->num; i++)
-	if (strcmp(list->list[i], sym) == 0)
-	    return 1;
-
-    return 0;
-}
-
-void
-LoaderVRefSymbols(const char *sym0, va_list args)
-{
-    const char *s;
-
-    if (sym0 == NULL)
-	return;
-
-    s = sym0;
-    do {
-	AppendSymbol(&refList, s);
-	s = va_arg(args, const char *);
-    } while (s != NULL);
-}
-
+/* These four are just ABI stubs */
 _X_EXPORT void
 LoaderRefSymbols(const char *sym0, ...)
 {
-    va_list ap;
-
-    va_start(ap, sym0);
-    LoaderVRefSymbols(sym0, ap);
-    va_end(ap);
-}
-
-void
-LoaderVRefSymLists(const char **list0, va_list args)
-{
-    const char **l;
-
-    if (list0 == NULL)
-	return;
-
-    l = list0;
-    do {
-	AppendSymList(&refList, l);
-	l = va_arg(args, const char **);
-    } while (l != NULL);
 }
 
 _X_EXPORT void
 LoaderRefSymLists(const char **list0, ...)
 {
-    va_list ap;
-
-    va_start(ap, list0);
-    LoaderVRefSymLists(list0, ap);
-    va_end(ap);
-}
-
-void
-LoaderVReqSymLists(const char **list0, va_list args)
-{
-    const char **l;
-
-    if (list0 == NULL)
-	return;
-
-    l = list0;
-    do {
-	AppendSymList(&reqList, l);
-	l = va_arg(args, const char **);
-    } while (l != NULL);
 }
 
 _X_EXPORT void
 LoaderReqSymLists(const char **list0, ...)
 {
-    va_list ap;
-
-    va_start(ap, list0);
-    LoaderVReqSymLists(list0, ap);
-    va_end(ap);
-}
-
-void
-LoaderVReqSymbols(const char *sym0, va_list args)
-{
-    const char *s;
-
-    if (sym0 == NULL)
-	return;
-
-    s = sym0;
-    do {
-	AppendSymbol(&reqList, s);
-	s = va_arg(args, const char *);
-    } while (s != NULL);
 }
 
 _X_EXPORT void
 LoaderReqSymbols(const char *sym0, ...)
 {
-    va_list ap;
-
-    va_start(ap, sym0);
-    LoaderVReqSymbols(sym0, ap);
-    va_end(ap);
-}
-
-/* 
- * _LoaderHandleUnresolved() decides what to do with an unresolved
- * symbol.  Symbols that are not on the "referenced" or "required" lists
- * get a warning if they are unresolved.  Symbols that are on the "required"
- * list generate a fatal error if they are unresolved.
- */
-
-int
-_LoaderHandleUnresolved(char *symbol, char *module)
-{
-    int fatalsym = 0;
-
-    if (xf86ShowUnresolved && !fatalsym) {
-	if (SymInList(&reqList, symbol)) {
-	    fatalReqSym = 1;
-	    ErrorF("Required symbol %s from module %s is unresolved!\n",
-		   symbol, module);
-	}
-	if (!SymInList(&refList, symbol)) {
-	    ErrorF("Symbol %s from module %s is unresolved!\n",
-		   symbol, module);
-	}
-    }
-    return (fatalsym);
 }
 
 /* Public Interface to the loader. */
@@ -469,7 +313,6 @@ LoaderOpen(const char *module, const char *cname, int handle,
 {
     loaderPtr tmp;
     int new_handle;
-    int fd;
 
 #if defined(DEBUG)
     ErrorF("LoaderOpen(%s)\n", module);
@@ -525,16 +368,6 @@ LoaderOpen(const char *module, const char *cname, int handle,
     freeHandles[new_handle] = HANDLE_USED;
     refCount[new_handle] = 1;
 
-    if ((fd = open(module, O_RDONLY)) < 0) {
-	xf86Msg(X_ERROR, "Unable to open %s\n", module);
-	freeHandles[new_handle] = HANDLE_FREE;
-	if (errmaj)
-	    *errmaj = LDR_NOMODOPEN;
-	if (errmin)
-	    *errmin = errno;
-	return -1;
-    }
-
     tmp = _LoaderListPush();
     tmp->name = malloc(strlen(module) + 1);
     strcpy(tmp->name, module);
@@ -543,7 +376,7 @@ LoaderOpen(const char *module, const char *cname, int handle,
     tmp->handle = new_handle;
     tmp->module = moduleseq++;
 
-    if ((tmp->private = DLLoadModule(tmp, fd, flags)) == NULL) {
+    if ((tmp->private = DLLoadModule(tmp, flags)) == NULL) {
 	xf86Msg(X_ERROR, "Failed to load %s\n", module);
 	_LoaderListPop(new_handle);
 	freeHandles[new_handle] = HANDLE_FREE;
@@ -553,8 +386,6 @@ LoaderOpen(const char *module, const char *cname, int handle,
 	    *errmin = LDR_NOLOAD;
 	return -1;
     }
-
-    close(fd);
 
     return new_handle;
 }
@@ -578,15 +409,11 @@ LoaderSymbol(const char *sym)
     return (DLFindSymbol(sym));
 }
 
+/* more stub */
 _X_EXPORT int
 LoaderCheckUnresolved(int delay_flag)
 {
-    int ret = 0;
-
-    if (fatalReqSym)
-	FatalError("Some required symbols were unresolved\n");
-
-    return ret;
+    return 0;
 }
 
 int

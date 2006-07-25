@@ -1,4 +1,3 @@
-/* $Xorg: PclPolygon.c,v 1.3 2000/08/17 19:48:08 cpqbld Exp $ */
 /*******************************************************************
 **
 **    *********************************************************
@@ -44,7 +43,6 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclPolygon.c,v 1.6 1999/12/13 02:12:56 robin Exp $ */
 
 
 #ifdef HAVE_DIX_CONFIG_H

@@ -1,4 +1,3 @@
-/* $Xorg: DiPrint.h,v 1.3 2000/08/17 19:48:04 cpqbld Exp $ */
 /*
 (c) Copyright 1996 Hewlett-Packard Company
 (c) Copyright 1996 International Business Machines Corp.

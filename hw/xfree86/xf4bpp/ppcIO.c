@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/ppcIO.c,v 1.5tsi Exp $ */
 /*
 
 Copyright (c) 1990  X Consortium

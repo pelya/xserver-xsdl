@@ -1,4 +1,3 @@
-/* $Xorg: site.h,v 1.6 2001/02/09 02:05:16 xorgcvs Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -45,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/include/site.h,v 1.8 2001/12/19 21:37:35 dawes Exp $ */
 
 #ifndef SITE_H
 #define SITE_H

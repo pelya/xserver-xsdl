@@ -1,5 +1,3 @@
-/* $XdotOrg: xc/programs/Xserver/include/cursor.h,v 1.2 2004/04/23 19:54:23 eich Exp $ */
-/* $XFree86: xc/programs/Xserver/include/cursor.h,v 1.6 2002/09/17 01:15:14 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -46,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: cursor.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 
 #ifndef CURSOR_H
 #define CURSOR_H 

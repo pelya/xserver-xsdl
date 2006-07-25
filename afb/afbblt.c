@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/afb/afbblt.c,v 3.0 1996/08/18 01:45:24 dawes Exp $ */
 /*
  * afb copy area
  */
@@ -31,7 +30,6 @@ in this Software without prior written authorization from the X Consortium.
 Author: Keith Packard
 
 */
-/* $XConsortium: afbblt.c,v 1.11 94/04/17 20:28:16 dpw Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

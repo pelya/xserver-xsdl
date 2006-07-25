@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86.h,v 3.173 2004/01/27 01:31:44 dawes Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -55,7 +54,6 @@ extern Bool xf86DoConfigurePass1;
 extern int xf86ScreenIndex;		/* Index into pScreen.devPrivates */
 extern int xf86CreateRootWindowIndex;	/* Index into pScreen.devPrivates */
 extern int xf86PixmapIndex;
-extern Bool xf86ResAccessEnter;
 extern ScrnInfoPtr *xf86Screens;	/* List of pointers to ScrnInfoRecs */
 extern const unsigned char byte_reversed[256];
 extern ScrnInfoPtr xf86CurrentScreen;
@@ -159,9 +157,6 @@ struct pci_device * xf86FindPciClass(CARD8 intf, CARD8 subClass, CARD16 class,
     char n, const struct pci_device * pvp_exclude);
 void xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg);
 Bool xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func);
-#ifdef async
-Bool xf86QueueAsyncEvent(void (*func)(pointer),pointer arg);
-#endif
 
 int xf86GetLastScrnFlag(int entityIndex);
 void xf86SetLastScrnFlag(int entityIndex, int scrnIndex);

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mi/mipushpxl.c,v 3.11 2001/01/17 22:37:07 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group

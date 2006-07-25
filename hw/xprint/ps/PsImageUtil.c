@@ -1,5 +1,4 @@
 
-/* $Xorg: PsImageUtil.c,v 1.1 2005/03/25 1:19:56 gisburn Exp $ */
 /*
 Copyright (c) 2005 Roland Mainz <roland.mainz@nrubsig.org>
 

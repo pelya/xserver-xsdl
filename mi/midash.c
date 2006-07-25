@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mi/midash.c,v 1.4 2001/12/14 20:00:21 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -45,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: midash.c,v 1.4 2001/02/09 02:05:20 xorgcvs Exp $ */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif

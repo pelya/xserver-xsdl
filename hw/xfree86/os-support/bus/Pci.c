@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Pci.c,v 1.82 2004/01/16 15:39:04 tsi Exp $ */
 /*
  * Pci.c - New server PCI access functions
  *

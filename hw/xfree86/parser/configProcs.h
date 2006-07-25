@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/configProcs.h,v 1.17 2003/08/24 17:37:08 dawes Exp $ */
 /*
  * Copyright (c) 1997-2001 by The XFree86 Project, Inc.
  *

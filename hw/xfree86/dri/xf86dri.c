@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/dri/xf86dri.c,v 1.12 2002/12/14 01:36:08 dawes Exp $ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.

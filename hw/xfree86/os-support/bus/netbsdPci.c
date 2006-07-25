@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/netbsdPci.c,v 1.4 2003/08/24 17:37:04 dawes Exp $ */
 /*
  * Copyright (C) 1994-2003 The XFree86 Project, Inc.  All Rights Reserved.
  *

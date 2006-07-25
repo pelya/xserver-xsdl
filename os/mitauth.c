@@ -1,4 +1,3 @@
-/* $Xorg: mitauth.c,v 1.4 2001/02/09 02:05:23 xorgcvs Exp $ */
 /*
 
 Copyright 1988, 1998  The Open Group
@@ -26,7 +25,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/os/mitauth.c,v 1.4 2001/01/17 22:37:11 dawes Exp $ */
 
 /*
  * MIT-MAGIC-COOKIE-1 authorization scheme

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/libc_wrapper.c,v 1.102 2003/11/19 03:52:58 dawes Exp $ */
 /*
  * Copyright 1997-2003 by The XFree86 Project, Inc.
  *

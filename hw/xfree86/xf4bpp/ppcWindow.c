@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/ppcWindow.c,v 1.3 1999/06/06 08:49:06 dawes Exp $ */
 /*
 
 Copyright (c) 1987  X Consortium

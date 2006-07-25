@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xext/xf86vmode.c,v 3.58 2003/11/06 18:37:57 tsi Exp $ */
 
 /*
 
@@ -29,8 +28,6 @@ or other dealings in this Software without prior written authorization
 from Kaleb S. KEITHLEY
 
 */
-/* $XdotOrg: xserver/xorg/hw/xfree86/dixmods/extmod/xf86vmode.c,v 1.9 2006/02/10 22:00:24 anholt Exp $ */
-/* $Xorg: xf86vmode.c,v 1.3 2000/08/17 19:47:59 cpqbld Exp $ */
 /* THIS IS NOT AN X CONSORTIUM STANDARD OR AN X PROJECT TEAM SPECIFICATION */
 
 #ifdef HAVE_XORG_CONFIG_H

@@ -1,7 +1,6 @@
 /*
  * Fill 32 bit stippled rectangles for 8 bit frame buffers
  */
-/* $XFree86: xc/programs/Xserver/cfb/cfbrctstp8.c,v 3.5 2001/10/28 03:33:01 tsi Exp $ */
 /*
 
 Copyright 1989, 1998  The Open Group
@@ -30,7 +29,6 @@ Author: Keith Packard, MIT X Consortium
 
 */
 
-/* $Xorg: cfbrctstp8.c,v 1.4 2001/02/09 02:04:38 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

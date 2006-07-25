@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/TI.h,v 1.4 2000/05/02 21:04:46 alanh Exp $ */
 
 #include <xf86RamDac.h>
 

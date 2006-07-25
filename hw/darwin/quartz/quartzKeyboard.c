@@ -32,7 +32,6 @@
    promote the sale, use or other dealings in this Software without
    prior written authorization.
 */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzKeyboard.c,v 1.1 2003/11/01 08:13:08 torrey Exp $ */
 
 #include "quartzCommon.h"
 

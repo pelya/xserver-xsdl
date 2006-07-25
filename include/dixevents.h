@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/include/dixevents.h,v 3.4 2001/09/04 14:03:27 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>

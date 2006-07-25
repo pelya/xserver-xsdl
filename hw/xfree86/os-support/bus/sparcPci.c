@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/sparcPci.c,v 1.14 2003/08/24 17:37:04 dawes Exp $ */
 /*
  * Copyright (C) 2001-2003 The XFree86 Project, Inc.  All Rights Reserved.
  *
