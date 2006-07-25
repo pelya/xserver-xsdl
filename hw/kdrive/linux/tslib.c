@@ -7,6 +7,7 @@
  * Copyright © 1999 Keith Packard
  * Copyright © 2000 Compaq Computer Corporation
  * Copyright © 2002 MontaVista Software Inc.
+ * Copyright © 2005 OpenedHand Ltd.
  * Copyright © 2006 Nokia Corporation
  * 
  * Permission to use, copy, modify, distribute, and sell this software and its
