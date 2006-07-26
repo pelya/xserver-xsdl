@@ -92,7 +92,6 @@ extern unsigned long LoaderOptions;
 
 /* Internal Functions */
 void LoaderDuplicateSymbol(const char *, const int);
-int _LoaderHandleUnresolved(char *, char *);
 char *_LoaderModuleToName(int);
 int LoaderOpen(const char *, const char *, int, int *, int *, int *, int);
 int LoaderHandleOpen(int);
