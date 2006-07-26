@@ -2420,8 +2420,6 @@ NewInputDeviceRequest(InputOption *options)
     KdPointerInfo *pi = NULL;
     KdKeyboardInfo *ki = NULL;
 
-    ErrorF("handling NIDR\n");
-
     for (option = options; option; option = option->next) {
         if (strcmp(option->key, "type") == 0) {
             if (strcmp(option->value, "pointer") == 0) {
@@ -2481,6 +2479,4 @@ NewInputDeviceRequest(InputOption *options)
             return BadImplementation;
         }
     }
-
-    ErrorF("done handling NIDR\n");
 }
