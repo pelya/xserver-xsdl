@@ -834,7 +834,7 @@ xf86ClaimPciSlot(struct pci_device * d, DriverPtr drvp,
 
 	if (active) {
 	    /* Map in this domain's I/O space */
-	   p->domainIO = xf86MapLegacyIO(dev);
+	   p->domainIO = xf86MapLegacyIO(d);
 	}
 	
  	return num;
