@@ -47,8 +47,6 @@
 
 #include "glxserver.h"
 
-#include <xf86_ansic.h>
-
 #include <windowstr.h>
 
 #include "glxfbconfig.h"
