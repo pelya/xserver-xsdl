@@ -194,6 +194,10 @@ void *xf86GetPointerScreenFuncs(void);
 void xf86InitOrigins(void);
 void xf86ReconfigureLayout(void);
 
+/* xf86cvt.c */
+DisplayModePtr xf86CVTMode(int HDisplay, int VDisplay, float VRefresh,
+                           Bool Reduced, Bool Interlaced);
+
 /* xf86DPMS.c */
 
 Bool xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags);
