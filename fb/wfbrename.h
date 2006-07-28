@@ -97,6 +97,7 @@
 #define fbGlyph32 wfbGlyph32
 #define fbGlyph8 wfbGlyph8
 #define fbGlyphIn wfbGlyphIn
+#define fbHasVisualTypes wfbHasVisualTypes
 #define fbImageGlyphBlt wfbImageGlyphBlt
 #define fbIn wfbIn
 #define fbInitializeColormap wfbInitializeColormap
@@ -165,6 +166,7 @@
 #define fbSetSpans wfbSetSpans
 #define fbSetupScreen wfbSetupScreen
 #define fbSetVisualTypes wfbSetVisualTypes
+#define fbSetVisualTypesAndMasks wfbSetVisualTypesAndMasks
 #define _fbSetWindowPixmap _wfbSetWindowPixmap
 #define fbSolid wfbSolid
 #define fbSolid24 wfbSolid24
