@@ -103,8 +103,6 @@ ModuleDescPtr AddSibling(ModuleDescPtr head, ModuleDescPtr new);
 void LoaderSetPath(const char *path);
 void LoaderSortExtensions(void);
 
-void LoaderShowStack(void);
-void *LoaderSymbolHandle(const char *, int);
 int LoaderUnload(int);
 unsigned long LoaderGetModuleVersion(ModuleDescPtr mod);
 
