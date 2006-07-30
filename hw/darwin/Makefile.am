@@ -54,7 +54,6 @@ EXTRA_DIST = \
 	darwinKeyboard.c \
 	darwinKeyboard.h \
 	darwinXinput.c \
-	iokit/.cvsignore \
 	iokit/xfIOKit.c \
 	iokit/xfIOKitCursor.c \
 	iokit/xfIOKit.h \
@@ -66,11 +65,8 @@ EXTRA_DIST = \
 	quartz/cr/crFrame.m \
 	quartz/cr/cr.h \
 	quartz/cr/crScreen.m \
-	quartz/cr/.cvsignore \
 	quartz/cr/XView.h \
 	quartz/cr/XView.m \
-	quartz/.cvsignore \
-	quartz/fullscreen/.cvsignore \
 	quartz/fullscreen/fullscreen.c \
 	quartz/fullscreen/quartzCursor.c \
 	quartz/fullscreen/quartzCursor.h \
@@ -98,7 +94,6 @@ EXTRA_DIST = \
 	quartz/XDarwinStartup.c \
 	quartz/XDarwinStartup.man \
 	quartz/xpr/appledri.c \
-	quartz/xpr/.cvsignore \
 	quartz/xpr/dri.c \
 	quartz/xpr/dri.h \
 	quartz/xpr/dristruct.h \
