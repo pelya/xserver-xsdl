@@ -425,11 +425,6 @@ xf86scanpci(int flags)
 	    if (i > devp->busnum) {
 		if (pciBusInfo[i]) {
 		    pciBusInfo[i]->bridge = devp;
-		    /*
-                     * The back link needs to be set here, and is unlikely to
-		     * change.
-		     */
-		    devp->businfo = pciBusInfo[i];
 		}
 #ifdef ARCH_PCI_PCI_BRIDGE
 		ARCH_PCI_PCI_BRIDGE(devp);
@@ -451,16 +446,6 @@ xf86scanpci(int flags)
 #ifdef XF86SCANPCI_WRAPPER
     XF86SCANPCI_WRAPPER(SCANPCI_TERM);
 #endif
-
-    /*
-     * Lastly, link bridges to their secondary bus, after the architecture has
-     * had a chance to modify these assignments.
-     */
-    for (idx = 0;  idx < pciNumBuses;  idx++) {
-	if (!(busp = pciBusInfo[idx]) || !(devp = busp->bridge))
-	    continue;
-	devp->businfo = busp;
-    }
 
     xf86MsgVerb(X_INFO, 2, "PCI: End of PCI scan\n");
 

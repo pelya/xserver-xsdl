@@ -656,7 +656,6 @@ typedef struct {
     int	      devnum;
     int	      funcnum;
     pciCfgSpc cfgspc;
-    pointer   businfo;		/* pointer to secondary's bus info structure */
     struct pci_device * dev;
 } pciDevice, *pciConfigPtr;
 
