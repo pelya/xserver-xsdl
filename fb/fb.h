@@ -601,7 +601,7 @@ extern WindowPtr    *WindowTable;
 
 /* Framebuffer access wrapper */
 #ifdef FB_ACCESS_WRAPPER
-typedef FbBits (*ReadMemoryProcPtr)(void *src, int size);
+typedef FbBits (*ReadMemoryProcPtr)(const void *src, int size);
 typedef void (*WriteMemoryProcPtr)(void *dst, FbBits value, int size);
 typedef void (*SetupWrapProcPtr)(ReadMemoryProcPtr  *pRead,
                                  WriteMemoryProcPtr *pWrite,
