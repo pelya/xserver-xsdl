@@ -256,6 +256,8 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(GetScratchPixmapHeader)
     SYMFUNC(FreeScratchPixmapHeader)
     /* privates.c */
+    SYMFUNC(AllocateExtensionPrivate)
+    SYMFUNC(AllocateExtensionPrivateIndex)
     SYMFUNC(AllocateClientPrivate)
     SYMFUNC(AllocateClientPrivateIndex)
     SYMFUNC(AllocateGCPrivate)
