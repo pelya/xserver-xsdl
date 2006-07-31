@@ -40,7 +40,6 @@ XORG_LIBS = \
             libosandcommon.la \
 	    rac/librac.a \
             parser/libxf86config.a \
-            dummylib/libdummy.a \
 	    dixmods/libdixmods.la \
             @XORG_LIBS@
 
