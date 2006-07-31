@@ -25,4 +25,4 @@ exa.$(DRIVER_MAN_SUFFIX): exa.man
 	-rm -f exa.$(DRIVER_MAN_SUFFIX)
 	$(LN_S) exa.man exa.$(DRIVER_MAN_SUFFIX)
 
-EXTRA_DIST = exa.man.pre README
+EXTRA_DIST = exa.man.pre

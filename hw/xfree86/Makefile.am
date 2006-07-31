@@ -7,12 +7,12 @@ DOC_SUBDIR = doc
 SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support parser rac \
           ramdac shadowfb vbe vgahw xaa xf1bpp xf4bpp xf8_16bpp \
 	  xf8_32bpp loader dixmods exa \
-	  $(DRI_SUBDIR) utils $(DOC_SUBDIR) getconfig
+	  $(DRI_SUBDIR) utils $(DOC_SUBDIR)
 
 DIST_SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support \
                parser rac ramdac shadowfb vbe vgahw xaa xf1bpp xf4bpp \
                xf8_16bpp xf8_32bpp loader dixmods dri exa \
-	       utils doc getconfig
+	       utils doc
 
 bin_PROGRAMS = Xorg
 

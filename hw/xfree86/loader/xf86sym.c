@@ -357,6 +357,9 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86AllocateEntityPrivateIndex)
     SYMFUNC(xf86GetEntityPrivate)
 
+    /* xf86cvt.c */
+    SYMFUNC(xf86CVTMode)
+
     /* xf86Configure.c */
     SYMFUNC(xf86AddDeviceToConfigure)
 
