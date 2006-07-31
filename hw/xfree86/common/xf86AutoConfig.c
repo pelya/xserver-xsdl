@@ -154,7 +154,7 @@ AppendToConfig(const char *s)
 }
 
 static const char *
-videoPtrToDriverName(pciVideoPtr info)
+videoPtrToDriverName(struct pci_device *dev)
 {
     /*
      * things not handled yet:
@@ -162,7 +162,7 @@ videoPtrToDriverName(pciVideoPtr info)
      * xgi
      */
 
-    switch (info->vendor)
+    switch (dev->vendor_id)
     {
 	case 0x1142:		    return "apm";
 	case 0xedd8:		    return "ark";
@@ -171,7 +171,7 @@ videoPtrToDriverName(pciVideoPtr info)
 	case 0x102c:		    return "chips";
 	case 0x1013:		    return "cirrus";
 	case 0x8086:
-	    if ((info->chipType == 0x00d1) || (info->chipType == 0x7800))
+	    if ((dev->device_id == 0x00d1) || (dev->device_id == 0x7800))
 		return "i740";
 	    else return "i810";
 	case 0x102b:		    return "mga";
@@ -180,7 +180,7 @@ videoPtrToDriverName(pciVideoPtr info)
 	case 0x10de: case 0x12d2:   return "nv";
 	case 0x1163:		    return "rendition";
 	case 0x5333:
-	    switch (info->chipType)
+	    switch (dev->device_id)
 	    {
 		case 0x88d0: case 0x88d1: case 0x88f0: case 0x8811:
 		case 0x8812: case 0x8814: case 0x8901:
@@ -194,7 +194,7 @@ videoPtrToDriverName(pciVideoPtr info)
 	case 0x1039:		    return "sis";
 	case 0x126f:		    return "siliconmotion";
 	case 0x121a:
-	    if (info->chipType < 0x0003)
+	    if (dev->device_id < 0x0003)
 	        return "voodoo";
 	    else
 	        return "tdfx";
