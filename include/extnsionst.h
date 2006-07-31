@@ -50,6 +50,7 @@ SOFTWARE.
 #ifndef EXTENSIONSTRUCT_H
 #define EXTENSIONSTRUCT_H 
 
+#include "dix.h"
 #include "misc.h"
 #include "screenint.h"
 #include "extension.h"
@@ -70,6 +71,7 @@ typedef struct _ExtensionEntry {
     pointer extPrivate;
     unsigned short (* MinorOpcode)(	/* called for errors */
 	ClientPtr /* client */);
+    DevUnion *devPrivates;
 #ifdef XACE
     pointer securityState[4];		/* 4 slots for use */
 #endif
