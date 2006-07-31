@@ -19,6 +19,8 @@
 #include "swaprep.h"
 #include <X11/extensions/XResproto.h>
 #include "pixmapstr.h"
+#include "windowstr.h"
+#include "gcstruct.h"
 #include "modinit.h"
 
 static int
@@ -154,6 +156,7 @@ ProcXResQueryClientResources (ClientPtr client)
         swapl (&rep.length, n);
         swapl (&rep.num_types, n);
     }   
+
     WriteToClient (client,sizeof(xXResQueryClientResourcesReply),(char*)&rep);
 
     if(num_types) {
@@ -185,13 +188,54 @@ ProcXResQueryClientResources (ClientPtr client)
     return (client->noClientException);
 }
 
+static unsigned long
+ResGetApproxPixmapBytes (PixmapPtr pix)
+{
+   unsigned long nPixels;
+   int           bytesPerPixel; 
+
+   bytesPerPixel = pix->drawable.bitsPerPixel>>3;
+   nPixels       = pix->drawable.width * pix->drawable.height;
+
+   /* Divide by refcnt as pixmap could be shared between clients,  
+    * so total pixmap mem is shared between these. 
+   */
+   return ( nPixels * bytesPerPixel ) / pix->refcnt;
+}
+
 static void 
 ResFindPixmaps (pointer value, XID id, pointer cdata)
 {
    unsigned long *bytes = (unsigned long *)cdata;
    PixmapPtr pix = (PixmapPtr)value;
 
-   *bytes += (pix->devKind * pix->drawable.height);
+   *bytes += ResGetApproxPixmapBytes(pix);
+}
+
+static void
+ResFindWindowPixmaps (pointer value, XID id, pointer cdata)
+{
+   unsigned long *bytes = (unsigned long *)cdata;
+   WindowPtr pWin = (WindowPtr)value;
+
+   if (pWin->backgroundState == BackgroundPixmap)
+     *bytes += ResGetApproxPixmapBytes(pWin->background.pixmap);
+
+   if (pWin->border.pixmap != NULL && !pWin->borderIsPixel)
+     *bytes += ResGetApproxPixmapBytes(pWin->border.pixmap);
+}
+
+static void
+ResFindGCPixmaps (pointer value, XID id, pointer cdata)
+{
+   unsigned long *bytes = (unsigned long *)cdata;
+   GCPtr pGC = (GCPtr)value;
+
+   if (pGC->stipple != NULL)
+     *bytes += ResGetApproxPixmapBytes(pGC->stipple);
+
+   if (pGC->tile.pixmap != NULL && !pGC->tileIsPixel)
+     *bytes += ResGetApproxPixmapBytes(pGC->tile.pixmap);
 }
 
 static int
@@ -217,6 +261,24 @@ ProcXResQueryClientPixmapBytes (ClientPtr client)
 
     FindClientResourcesByType(clients[clientID], RT_PIXMAP, ResFindPixmaps, 
                               (pointer)(&bytes));
+
+    /* 
+     * Make sure win background pixmaps also held to account. 
+     */
+    FindClientResourcesByType(clients[clientID], RT_WINDOW, 
+			      ResFindWindowPixmaps, 
+                              (pointer)(&bytes));
+
+    /* 
+     * GC Tile & Stipple pixmaps too.
+    */
+    FindClientResourcesByType(clients[clientID], RT_GC, 
+			      ResFindGCPixmaps, 
+                              (pointer)(&bytes));
+
+#ifdef COMPOSITE
+    /* FIXME: include composite pixmaps too */
+#endif
 
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
