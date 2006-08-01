@@ -45,14 +45,36 @@
 #endif
 
 #ifdef FB_ACCESS_WRAPPER
+
 #include "wfbrename.h"
 #define FBPREFIX(x) wfb##x
-#define WRITE(ptr, val) ((*wfbWriteMemory)(ptr, val, sizeof(*ptr)))
-#define READ(ptr) ((*wfbReadMemory)(ptr, sizeof(*ptr)))
+#define WRITE(ptr, val) ((*wfbWriteMemory)((ptr), (val), sizeof(*(ptr))))
+#define READ(ptr) ((*wfbReadMemory)((ptr), sizeof(*(ptr))))
+
+#define MEMCPY_WRAPPED(dst, src, size) do {                       \
+    size_t _i;                                                    \
+    CARD8 *_dst = (CARD8*)(dst), *_src = (CARD8*)(src);           \
+    for(_i = 0; _i < size; _i++) {                                \
+        WRITE(_dst +_i, READ(_src + _i));                         \
+    }                                                             \
+} while(0)
+
+#define MEMSET_WRAPPED(dst, val, size) do {                       \
+    size_t _i;                                                    \
+    CARD8 *_dst = (CARD8*)(dst);                                  \
+    for(_i = 0; _i < size; _i++) {                                \
+        WRITE(_dst +_i, (val));                                   \
+    }                                                             \
+} while(0)
+
 #else
+
 #define FBPREFIX(x) fb##x
 #define WRITE(ptr, val) (*(ptr) = (val))
 #define READ(ptr) (*(ptr))
+#define MEMCPY_WRAPPED(dst, src, size) memcpy((dst), (src), (size))
+#define MEMSET_WRAPPED(dst, val, size) memset((dst), (val), (size))
+
 #endif
 
 /*
@@ -233,8 +255,8 @@ extern void fbSetBits (FbStip *bits, int stride, FbStip data);
 
 #define FbPtrOffset(p,o,t)		((t *) ((CARD8 *) (p) + (o)))
 #define FbSelectPatternPart(xor,o,t)	((xor) >> (FbPatternOffset (o,t) << 3))
-#define FbStorePart(dst,off,t,xor)	(*FbPtrOffset(dst,off,t) = \
-					 FbSelectPart(xor,off,t))
+#define FbStorePart(dst,off,t,xor)	(WRITE(FbPtrOffset(dst,off,t), \
+					 FbSelectPart(xor,off,t)))
 #ifndef FbSelectPart
 #define FbSelectPart(x,o,t) FbSelectPatternPart(x,o,t)
 #endif
@@ -414,7 +436,7 @@ extern void fbSetBits (FbStip *bits, int stride, FbStip data);
 	FbStorePart(dst,sizeof (FbBits) - 1,CARD8,xor); \
 	break; \
     default: \
-	*dst = FbDoMaskRRop(*dst, and, xor, l); \
+	WRITE(dst, FbDoMaskRRop(READ(dst), and, xor, l)); \
 	break; \
     } \
 }
@@ -434,7 +456,7 @@ extern void fbSetBits (FbStip *bits, int stride, FbStip data);
 	break; \
     FbDoRightMaskByteRRop6Cases(dst,xor) \
     default: \
-	*dst = FbDoMaskRRop (*dst, and, xor, r); \
+	WRITE(dst, FbDoMaskRRop (READ(dst), and, xor, r)); \
     } \
 }
 #endif
@@ -467,15 +489,15 @@ extern void fbSetBits (FbStip *bits, int stride, FbStip data);
  */
 
 #define FbLaneCase1(n,a,o)  ((n) == 0x01 ? \
-			     (*(CARD8 *) ((a)+FbPatternOffset(o,CARD8)) = \
+			     WRITE((CARD8 *) ((a)+FbPatternOffset(o,CARD8)), \
 			      fgxor) : 0)
 #define FbLaneCase2(n,a,o)  ((n) == 0x03 ? \
-			     (*(CARD16 *) ((a)+FbPatternOffset(o,CARD16)) = \
+			     WRITE((CARD16 *) ((a)+FbPatternOffset(o,CARD16)), \
 			      fgxor) : \
 			     ((void)FbLaneCase1((n)&1,a,o), \
 				    FbLaneCase1((n)>>1,a,(o)+1)))
 #define FbLaneCase4(n,a,o)  ((n) == 0x0f ? \
-			     (*(CARD32 *) ((a)+FbPatternOffset(o,CARD32)) = \
+			     WRITE((CARD32 *) ((a)+FbPatternOffset(o,CARD32)), \
 			      fgxor) : \
 			     ((void)FbLaneCase2((n)&3,a,o), \
 				    FbLaneCase2((n)>>2,a,(o)+2)))

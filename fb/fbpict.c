@@ -137,18 +137,18 @@ fbCompositeSolidMask_nx8x8888 (CARD8      op,
 
 	while (w--)
 	{
-	    m = *mask++;
+	    m = READ(mask++);
 	    if (m == 0xff)
 	    {
 		if (srca == 0xff)
-		    *dst = src & dstMask;
+		    WRITE(dst, src & dstMask);
 		else
-		    *dst = fbOver (src, *dst) & dstMask;
+		    WRITE(dst, fbOver (src, READ(dst)) & dstMask);
 	    }
 	    else if (m)
 	    {
 		d = fbIn (src, m);
-		*dst = fbOver (d, *dst) & dstMask;
+		WRITE(dst, fbOver (d, READ(dst)) & dstMask);
 	    }
 	    dst++;
 	}
@@ -199,17 +199,17 @@ fbCompositeSolidMask_nx8888x8888C (CARD8      op,
 
 	while (w--)
 	{
-	    ma = *mask++;
+	    ma = READ(mask++);
 	    if (ma == 0xffffffff)
 	    {
 		if (srca == 0xff)
-		    *dst = src & dstMask;
+		    WRITE(dst, src & dstMask);
 		else
-		    *dst = fbOver (src, *dst) & dstMask;
+		    WRITE(dst, fbOver (src, READ(dst)) & dstMask);
 	    }
 	    else if (ma)
 	    {
-		d = *dst;
+		d = READ(dst);
 #define FbInOverC(src,srca,msk,dst,i,result) { \
     CARD16  __a = FbGet8(msk,i); \
     CARD32  __t, __ta; \
@@ -224,7 +224,7 @@ fbCompositeSolidMask_nx8888x8888C (CARD8      op,
 		FbInOverC (src, srca, ma, d, 8, n);
 		FbInOverC (src, srca, ma, d, 16, o);
 		FbInOverC (src, srca, ma, d, 24, p);
-		*dst = m|n|o|p;
+		WRITE(dst, m|n|o|p);
 	    }
 	    dst++;
 	}
@@ -274,7 +274,7 @@ fbCompositeSolidMask_nx8x0888 (CARD8      op,
 
 	while (w--)
 	{
-	    m = *mask++;
+	    m = READ(mask++);
 	    if (m == 0xff)
 	    {
 		if (srca == 0xff)
@@ -339,23 +339,23 @@ fbCompositeSolidMask_nx8x0565 (CARD8      op,
 
 	while (w--)
 	{
-	    m = *mask++;
+	    m = READ(mask++);
 	    if (m == 0xff)
 	    {
 		if (srca == 0xff)
 		    d = src;
 		else
 		{
-		    d = *dst;
+		    d = READ(dst);
 		    d = fbOver24 (src, cvt0565to8888(d));
 		}
-		*dst = cvt8888to0565(d);
+		WRITE(dst, cvt8888to0565(d));
 	    }
 	    else if (m)
 	    {
-		d = *dst;
+		d = READ(dst);
 		d = fbOver24 (fbIn(src,m), cvt0565to8888(d));
-		*dst = cvt8888to0565(d);
+		WRITE(dst, cvt8888to0565(d));
 	    }
 	    dst++;
 	}
@@ -409,29 +409,29 @@ fbCompositeSolidMask_nx8888x0565C (CARD8      op,
 
 	while (w--)
 	{
-	    ma = *mask++;
+	    ma = READ(mask++);
 	    if (ma == 0xffffffff)
 	    {
 		if (srca == 0xff)
 		{
-		    *dst = src16;
+		    WRITE(dst, src16);
 		}
 		else
 		{
-		    d = *dst;
+		    d = READ(dst);
 		    d = fbOver24 (src, cvt0565to8888(d));
-		    *dst = cvt8888to0565(d);
+		    WRITE(dst, cvt8888to0565(d));
 		}
 	    }
 	    else if (ma)
 	    {
-		d = *dst;
+		d = READ(dst);
 		d = cvt0565to8888(d);
 		FbInOverC (src, srca, ma, d, 0, m);
 		FbInOverC (src, srca, ma, d, 8, n);
 		FbInOverC (src, srca, ma, d, 16, o);
 		d = m|n|o;
-		*dst = cvt8888to0565(d);
+		WRITE(dst, cvt8888to0565(d));
 	    }
 	    dst++;
 	}
@@ -476,12 +476,12 @@ fbCompositeSrc_8888x8888 (CARD8      op,
 
 	while (w--)
 	{
-	    s = *src++;
+	    s = READ(src++);
 	    a = s >> 24;
 	    if (a == 0xff)
-		*dst = s & dstMask;
+		WRITE(dst, s & dstMask);
 	    else if (a)
-		*dst = fbOver (s, *dst) & dstMask;
+		WRITE(dst, fbOver (s, READ(dst)) & dstMask);
 	    dst++;
 	}
     }
@@ -524,7 +524,7 @@ fbCompositeSrc_8888x0888 (CARD8      op,
 
 	while (w--)
 	{
-	    s = *src++;
+	    s = READ(src++);
 	    a = s >> 24;
 	    if (a)
 	    {
@@ -576,7 +576,7 @@ fbCompositeSrc_8888x0565 (CARD8      op,
 
 	while (w--)
 	{
-	    s = *src++;
+	    s = READ(src++);
 	    a = s >> 24;
 	    if (a)
 	    {
@@ -584,10 +584,10 @@ fbCompositeSrc_8888x0565 (CARD8      op,
 		    d = s;
 		else
 		{
-		    d = *dst;
+		    d = READ(dst);
 		    d = fbOver24 (s, cvt0565to8888(d));
 		}
-		*dst = cvt8888to0565(d);
+		WRITE(dst, cvt8888to0565(d));
 	    }
 	    dst++;
 	}
@@ -629,7 +629,7 @@ fbCompositeSrc_0565x0565 (CARD8      op,
 	w = width;
 
 	while (w--)
-	    *dst++ = *src++;
+	    WRITE(dst, READ(src++));
     }
 
     fbFinishAccess (pDst->pDrawable);
@@ -670,16 +670,16 @@ fbCompositeSrcAdd_8000x8000 (CARD8	op,
 
 	while (w--)
 	{
-	    s = *src++;
+	    s = READ(src++);
 	    if (s)
 	    {
 		if (s != 0xff)
 		{
-		    d = *dst;
+		    d = READ(dst);
 		    t = d + s;
 		    s = t | (0 - (t >> 8));
 		}
-		*dst = s;
+		WRITE(dst, s);
 	    }
 	    dst++;
 	}
@@ -724,12 +724,12 @@ fbCompositeSrcAdd_8888x8888 (CARD8	op,
 
 	while (w--)
 	{
-	    s = *src++;
+	    s = READ(src++);
 	    if (s)
 	    {
 		if (s != 0xffffffff)
 		{
-		    d = *dst;
+		    d = READ(dst);
 		    if (d)
 		    {
 			m = FbAdd(s,d,0,t);
@@ -739,7 +739,7 @@ fbCompositeSrcAdd_8888x8888 (CARD8	op,
 			s = m|n|o|p;
 		    }
 		}
-		*dst = s;
+		WRITE(dst, s);
 	    }
 	    dst++;
 	}

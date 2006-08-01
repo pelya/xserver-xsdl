@@ -76,13 +76,13 @@
     fbGetDrawable((pict)->pDrawable,__bits__,__stride__,__bpp__,__xoff__,__yoff__); \
     switch (__bpp__) { \
     case 32: \
-	(bits) = *(CARD32 *) __bits__; \
+	(bits) = READ((CARD32 *) __bits__); \
 	break; \
     case 24: \
 	(bits) = Fetch24 ((CARD8 *) __bits__); \
 	break; \
     case 16: \
-	(bits) = *(CARD16 *) __bits__; \
+	(bits) = READ((CARD16 *) __bits__); \
 	(bits) = cvt0565to8888(bits); \
 	break; \
     default: \
@@ -121,22 +121,22 @@
 
 #if IMAGE_BYTE_ORDER == MSBFirst
 #define Fetch24(a)  ((unsigned long) (a) & 1 ? \
-		     ((*(a) << 16) | *((CARD16 *) ((a)+1))) : \
-		     ((*((CARD16 *) (a)) << 8) | *((a)+2)))
+		     ((READ(a) << 16) | READ((CARD16 *) ((a)+1))) : \
+		     ((READ((CARD16 *) (a)) << 8) | READ((a)+2)))
 #define Store24(a,v) ((unsigned long) (a) & 1 ? \
-		      ((*(a) = (CARD8) ((v) >> 16)), \
-		       (*((CARD16 *) ((a)+1)) = (CARD16) (v))) : \
-		      ((*((CARD16 *) (a)) = (CARD16) ((v) >> 8)), \
-		       (*((a)+2) = (CARD8) (v))))
+		      (WRITE(a, (CARD8) ((v) >> 16)), \
+		       WRITE((CARD16 *) ((a)+1), (CARD16) (v))) : \
+		      (WRITE((CARD16 *) (a), (CARD16) ((v) >> 8)), \
+		       WRITE((a)+2, (CARD8) (v))))
 #else
 #define Fetch24(a)  ((unsigned long) (a) & 1 ? \
-		     ((*(a)) | (*((CARD16 *) ((a)+1)) << 8)) : \
-		     ((*((CARD16 *) (a))) | (*((a)+2) << 16)))
+		     (READ(a) | (READ((CARD16 *) ((a)+1)) << 8)) : \
+		     (READ((CARD16 *) (a)) | (READ((a)+2) << 16)))
 #define Store24(a,v) ((unsigned long) (a) & 1 ? \
-		      ((*(a) = (CARD8) (v)), \
-		       (*((CARD16 *) ((a)+1)) = (CARD16) ((v) >> 8))) : \
-		      ((*((CARD16 *) (a)) = (CARD16) (v)),\
-		       (*((a)+2) = (CARD8) ((v) >> 16))))
+		      (WRITE(a, (CARD8) (v)), \
+		       WRITE((CARD16 *) ((a)+1), (CARD16) ((v) >> 8))) : \
+		      (WRITE((CARD16 *) (a), (CARD16) (v)),\
+		       WRITE((a)+2, (CARD8) ((v) >> 16))))
 #endif
 		      
 /*

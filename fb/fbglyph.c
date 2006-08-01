@@ -62,11 +62,11 @@ fbGlyphIn (RegionPtr	pRegion,
 #ifdef FB_24BIT
 #ifndef FBNOPIXADDR
 
-#define WRITE1(d,n,fg)	((d)[n] = (CARD8) fg)
-#define WRITE2(d,n,fg)	(*(CARD16 *) &(d[n]) = (CARD16) fg)
-#define WRITE4(d,n,fg)	(*(CARD32 *) &(d[n]) = (CARD32) fg)
+#define WRITE1(d,n,fg)	WRITE((d) + (n), (CARD8) fg)
+#define WRITE2(d,n,fg)	WRITE((CARD16 *) &(d[n]), (CARD16) fg)
+#define WRITE4(d,n,fg)	WRITE((CARD32 *) &(d[n]), (CARD32) fg)
 #if FB_UNIT == 6 && IMAGE_BYTE_ORDER == LSBFirst
-#define WRITE8(d)	(*(FbBits *) &(d[0]) = fg)
+#define WRITE8(d)	WRITE((FbBits *) &(d[0]), fg)
 #else
 #define WRITE8(d)	WRITE4(d,0,_ABCA), WRITE4(d,4,_BCAB)
 #endif
@@ -157,7 +157,7 @@ fbGlyph24 (FbBits   *dstBits,
     lshift = 4 - shift;
     while (height--)
     {
-	bits = *stipple++;
+	bits = READ(stipple++);
 	n = lshift;
 	dst = dstLine;
 	while (bits)

@@ -79,7 +79,7 @@ fbBresSolid (DrawablePtr    pDrawable,
 	    mask = fbBresShiftMask(mask,signdx,dstBpp);
 	    if (!mask)
 	    {
-		*dst = FbDoMaskRRop (*dst, and, xor, bits);
+		WRITE(dst, FbDoMaskRRop (READ(dst), and, xor, bits));
 		bits = 0;
 		dst += signdx;
 		mask = mask0;
@@ -87,20 +87,20 @@ fbBresSolid (DrawablePtr    pDrawable,
 	    e += e1;
 	    if (e >= 0)
 	    {
-		*dst = FbDoMaskRRop (*dst, and, xor, bits);
+		WRITE(dst, FbDoMaskRRop (READ(dst), and, xor, bits));
 		bits = 0;
 		dst += dstStride;
 		e += e3;
 	    }
 	}
 	if (bits)
-	    *dst = FbDoMaskRRop (*dst, and, xor, bits);
+	    WRITE(dst, FbDoMaskRRop (READ(dst), and, xor, bits));
     }
     else
     {
 	while (len--)
 	{
-	    *dst = FbDoMaskRRop (*dst, and, xor, mask);
+	    WRITE(dst, FbDoMaskRRop (READ(dst), and, xor, mask));
 	    dst += dstStride;
 	    e += e1;
 	    if (e >= 0)
@@ -166,9 +166,9 @@ fbBresDash (DrawablePtr	pDrawable,
     while (len--)
     {
 	if (even)
-	    *dst = FbDoMaskRRop (*dst, and, xor, mask);
+	    WRITE(dst, FbDoMaskRRop (READ(dst), and, xor, mask));
 	else if (doOdd)
-	    *dst = FbDoMaskRRop (*dst, bgand, bgxor, mask);
+	    WRITE(dst, FbDoMaskRRop (READ(dst), bgand, bgxor, mask));
 	if (axis == X_AXIS)
 	{
 	    mask = fbBresShiftMask(mask,signdx,dstBpp);
@@ -375,13 +375,13 @@ fbBresSolid24RRop (DrawablePtr  pDrawable,
 	FbMaskStip (x, 24, leftMask, nl, rightMask);
 	if (leftMask)
 	{
-	    *d = FbDoMaskRRop (*d, andT, xorT, leftMask);
+	    WRITE(d, FbDoMaskRRop (READ(d), andT, xorT, leftMask));
 	    d++;
 	    andT = FbNext24Stip (andT);
 	    xorT = FbNext24Stip (xorT);
 	}
 	if (rightMask)
-	    *d = FbDoMaskRRop (*d, andT, xorT, rightMask);
+	    WRITE(d, FbDoMaskRRop (READ(d), andT, xorT, rightMask));
 	if (axis == X_AXIS)
 	{
 	    x1 += signdx;
@@ -474,13 +474,13 @@ fbBresDash24RRop (DrawablePtr	pDrawable,
 	    FbMaskStip (x, 24, leftMask, nl, rightMask);
 	    if (leftMask)
 	    {
-		*d = FbDoMaskRRop (*d, andT, xorT, leftMask);
+		WRITE(d, FbDoMaskRRop (READ(d), andT, xorT, leftMask));
 		d++;
 		andT = FbNext24Stip (andT);
 		xorT = FbNext24Stip (xorT);
 	    }
 	    if (rightMask)
-		*d = FbDoMaskRRop (*d, andT, xorT, rightMask);
+		WRITE(d, FbDoMaskRRop (READ(d), andT, xorT, rightMask));
 	}
 	if (axis == X_AXIS)
 	{

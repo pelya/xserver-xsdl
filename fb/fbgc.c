@@ -106,14 +106,14 @@ fbPadPixmap (PixmapPtr pPixmap)
     mask = FbBitsMask (0, width);
     while (height--)
     {
-	b = *bits & mask;
+	b = READ(bits) & mask;
 	w = width;
 	while (w < FB_UNIT)
 	{
 	    b = b | FbScrRight(b, w);
 	    w <<= 1;
 	}
-	*bits = b;
+	WRITE(bits, b);
 	bits += stride;
     }
 
@@ -155,7 +155,7 @@ fbLineRepeat (FbBits *bits, int len, int width)
     width = (width + FB_UNIT-1) >> FB_SHIFT;
     bits++;
     while (--width)
-	if (*bits != first)
+	if (READ(bits) != first)
 	    return FALSE;
     return TRUE;
 }

@@ -176,7 +176,7 @@ fbPixmapToRegion(PixmapPtr pPix)
 	irectLineStart = rects - FirstRect;
 	/* If the Screen left most bit of the word is set, we're starting in
 	 * a box */
-	if(*pw & mask0)
+	if(READ(pw) & mask0)
 	{
 	    fInBox = TRUE;
 	    rx1 = 0;
@@ -187,7 +187,7 @@ fbPixmapToRegion(PixmapPtr pPix)
 	pwLineEnd = pw + (width >> FB_SHIFT);
 	for (base = 0; pw < pwLineEnd; base += FB_UNIT)
 	{
-	    w = *pw++;
+	    w = READ(pw++);
 	    if (fInBox)
 	    {
 		if (!~w)
@@ -228,7 +228,7 @@ fbPixmapToRegion(PixmapPtr pPix)
 	if(width & FB_MASK)
 	{
 	    /* Process final partial word on line */
-	    w = *pw++;
+	    w = READ(pw++);
 	    for(ib = 0; ib < (width & FB_MASK); ib++)
 	    {
 	        /* If the Screen left most bit of the word is set, we're
