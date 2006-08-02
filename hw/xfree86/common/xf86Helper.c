@@ -1628,7 +1628,7 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 {
     int i,j;
     struct pci_device * pPci;
-    struct pci_device ** ppPci;
+    struct pci_device_iterator *iter;
     struct Inst *instances = NULL;
     int numClaimedInstances = 0;
     int allocatedInstances = 0;
@@ -1648,19 +1648,21 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
      */
     if ( !xf86DoProbe && !(xf86DoConfigure && xf86DoConfigurePass1) ) {
 	unsigned max_entries = numDevs;
-	for (ppPci = xf86PciVideoInfo ; *ppPci != NULL ; ppPci++) {
+
+	iter = pci_slot_match_iterator_create(NULL);
+	while ((pPci = pci_device_next(iter)) != NULL) {
 	    max_entries++;
 	}
 
-	instances = xnfalloc( max_entries * sizeof(struct Inst) );
+	pci_iterator_destroy(iter);
+	instances = xnfalloc(max_entries * sizeof(struct Inst));
     }
 
-    for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
-	unsigned device_class = (*ppPci)->device_class;
+    iter = pci_slot_match_iterator_create(NULL);
+    while ((pPci = pci_device_next(iter)) != NULL) {
+	unsigned device_class = pPci->device_class;
 	Bool foundVendor = FALSE;
 
-
-	pPci = *ppPci;
 
 	/* Convert the pre-PCI 2.0 device class for a VGA adapter to the
 	 * 2.0 version of the same class.
@@ -1686,11 +1688,11 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	    const unsigned device_id = (id->PCIid & 0x0000FFFF);
 	    const unsigned match_class = 0x00030000 | id->PCIid;
 
-	    if ( (vendor_id == pPci->vendor_id)
-		 || ((vendorID == PCI_VENDOR_GENERIC) && (match_class == device_class)) ) {
-		if ( !foundVendor && (instances != NULL) ) {
+	    if ((vendor_id == pPci->vendor_id)
+		|| ((vendorID == PCI_VENDOR_GENERIC) && (match_class == device_class))) {
+		if (!foundVendor && (instances != NULL)) {
 		    ++allocatedInstances;
-		    instances[allocatedInstances - 1].pci = *ppPci;
+		    instances[allocatedInstances - 1].pci = pPci;
 		    instances[allocatedInstances - 1].dev = NULL;
 		    instances[allocatedInstances - 1].claimed = FALSE;
 		    instances[allocatedInstances - 1].foundHW = FALSE;
@@ -1709,10 +1711,10 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 
 
 		    if ( xf86DoConfigure && xf86DoConfigurePass1 ) {
-			if ( xf86CheckPciSlot( pPci ) ) {
+			if (xf86CheckPciSlot(pPci)) {
 			    GDevPtr pGDev = 
-			      xf86AddDeviceToConfigure( drvp->driverName,
-							pPci, -1 );
+			      xf86AddDeviceToConfigure(drvp->driverName,
+						       pPci, -1);
 			    if (pGDev) {
 				/* After configure pass 1, chipID and chipRev
 				 * are treated as over-rides, so clobber them
@@ -1734,6 +1736,8 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	    }
 	}
     }
+
+    pci_iterator_destroy(iter);
 
 
     /* In "probe only" or "configure" mode (signaled by instances being NULL),

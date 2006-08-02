@@ -272,24 +272,22 @@ probe_devices_from_device_sections(DriverPtr drvp)
 {
     int i, j;
     struct pci_device * pPci;
-    struct pci_device **ppPci;
     Bool foundScreen = FALSE;
     const struct pci_id_match * const devices = drvp->supported_devices;
     GDevPtr *devList;
-    const unsigned numDevs = xf86MatchDevice( drvp->driverName, & devList );
+    const unsigned numDevs = xf86MatchDevice(drvp->driverName, & devList);
 
 
     for ( i = 0 ; i < numDevs ; i++ ) {
+	struct pci_device_iterator *iter;
 	unsigned device_id;
 
 
 	/* Find the pciVideoRec associated with this device section.
 	 */
-	pPci = NULL;
-	for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
-	    pPci = *ppPci;
-
-	    if ( devList[i]->busID && *devList[i]->busID ) {
+	iter = pci_id_match_iterator_create(NULL);
+	while ((pPci = pci_device_next(iter)) != NULL) {
+	    if (devList[i]->busID && *devList[i]->busID) {
 		if (xf86ComparePciBusString(devList[i]->busID, 
 					    ((pPci->domain << 8)
 					     | pPci->bus),
@@ -298,15 +296,17 @@ probe_devices_from_device_sections(DriverPtr drvp)
 		    break;
 		}
 	    }
-	    else if ( xf86IsPrimaryPci( pPci ) ) {
+	    else if (xf86IsPrimaryPci(pPci)) {
 		break;
 	    }
 	}
 
-	if ( pPci == NULL ) {
+	pci_iterator_destroy(iter);
+
+	if (pPci == NULL) {
 	    continue;
 	}
-	
+
 	device_id = (devList[i]->chipID > 0)
 	  ? devList[i]->chipID : pPci->device_id;
 
@@ -380,14 +380,13 @@ add_matching_devices_to_configure_list(DriverPtr drvp)
 {
     const struct pci_id_match * const devices = drvp->supported_devices;
     int j;
-    struct pci_device ** ppPci;
+    struct pci_device *pPci;
+    struct pci_device_iterator *iter;
     int numFound = 0;
 
 
-    for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
-	struct pci_device * const pPci = *ppPci;
-
-
+    iter = pci_id_match_iterator_create(NULL);
+    while ((pPci = pci_device_next(iter)) != NULL) {
 	/* Determine if this device is supported by the driver.  If it is,
 	 * add it to the list of devices to configure.
 	 */
@@ -415,6 +414,8 @@ add_matching_devices_to_configure_list(DriverPtr drvp)
 	}
     }
 
+    pci_iterator_destroy(iter);
+
 
     return (numFound != 0);
 }
@@ -425,23 +426,18 @@ check_for_matching_devices(DriverPtr drvp)
 {
     const struct pci_id_match * const devices = drvp->supported_devices;
     int j;
-    struct pci_device ** ppPci;
 
 
-    for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
-	const struct pci_device * pPci = *ppPci;
-
-
-	/* Determine if this device is supported by the driver.  If it is,
-	 * add it to the list of devices to configure.
-	 */
-	for ( j = 0 ; ! END_OF_MATCHES( devices[j] ) ; j++ ) {
-	    if ( PCI_ID_COMPARE( devices[j].vendor_id, pPci->vendor_id )
-		 && PCI_ID_COMPARE( devices[j].device_id, pPci->device_id )
-		 && ((devices[j].device_class_mask & pPci->device_class)
-		     == devices[j].device_class) ) {
-		return TRUE;
-	    }
+    for (j = 0; ! END_OF_MATCHES(devices[j]); j++) {
+	struct pci_device_iterator *iter;
+	struct pci_device *dev;
+	
+	iter = pci_id_match_iterator_create(& devices[j]);
+	dev = pci_device_next(iter);
+	pci_iterator_destroy(iter);
+	
+	if (dev != NULL) {
+	    return TRUE;
 	}
     }
 

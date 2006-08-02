@@ -213,23 +213,23 @@ xf86AutoConfig(void)
 {
     const char **p;
     char buf[1024];
-    struct pci_device ** pciptr;
+    struct pci_device_iterator *iter;
     struct pci_device * info = NULL;
     char *driver = NULL;
     ConfigStatus ret;
 
     /* Find the primary device, and get some information about it. */
-    if (xf86PciVideoInfo) {
-	for (pciptr = xf86PciVideoInfo; (info = *pciptr); pciptr++) {
-	    if (xf86IsPrimaryPci(info)) {
-		break;
-	    }
+    iter = pci_slot_match_iterator_create(NULL);
+    while ((info = pci_device_next(iter)) != NULL) {
+	if (xf86IsPrimaryPci(info)) {
+	    break;
 	}
-	if (!info) {
-	    ErrorF("Primary device is not PCI\n");
-	}
-    } else {
-	ErrorF("xf86PciVideoInfo is not set\n");
+    }
+
+    pci_iterator_destroy(iter);
+
+    if (!info) {
+	ErrorF("Primary device is not PCI\n");
     }
 
     if (info)

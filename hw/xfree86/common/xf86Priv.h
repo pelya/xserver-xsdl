@@ -104,7 +104,6 @@ extern Bool xf86Resetting;
 extern Bool xf86Initialising;
 extern Bool xf86ProbeFailed;
 extern int xf86NumScreens;
-extern struct pci_device ** xf86PciVideoInfo;
 extern xf86CurrentAccessRec xf86CurrentAccess;
 extern const char *xf86VisualNames[];
 extern int xf86Verbose;                 /* verbosity level */
