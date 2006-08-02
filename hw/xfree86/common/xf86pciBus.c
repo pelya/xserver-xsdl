@@ -1038,42 +1038,62 @@ xf86CheckPciSlot( const struct pci_device * d )
  * _excluded if required.
  */
 _X_EXPORT struct pci_device *
-xf86FindPciDeviceVendor( CARD16 vendorID, CARD16 deviceID,
-			 char n, const struct pci_device * exclude )
+xf86FindPciDeviceVendor(CARD16 vendorID, CARD16 deviceID,
+			char n, const struct pci_device * exclude)
 {
-    struct pci_device * pvp;
-    struct pci_device ** ppvp;
+    struct pci_device *dev;
+    struct pci_id_match m;
+    struct pci_device_iterator *iter;
+
+    m.vendor_id = vendorID;
+    m.device_id = deviceID;
+    m.subvendor_id = PCI_MATCH_ANY;
+    m.subdevice_id = PCI_MATCH_ANY;
+    m.device_class = 0;
+    m.device_class_mask = 0;
 
     n++;
 
-    for (ppvp = xf86PciVideoInfo, pvp =*ppvp; pvp ; pvp = *(++ppvp)) {
-	if ( (pvp != exclude) && (pvp->vendor_id == vendorID)
-	     && (pvp->device_id == deviceID) ) {
-	    if (!(--n)) break;
+    iter = pci_id_match_iterator_create(& m);
+    while ((dev = pci_device_next(iter)) != NULL) {
+	if ((dev != exclude) && !(--n)) {
+	    break;
 	}
     }
 
-    return pvp;
+    pci_iterator_destroy(iter);
+
+    return dev;
 }
 
 _X_EXPORT struct pci_device *
 xf86FindPciClass(CARD8 intf, CARD8 subClass, CARD16 _class,
 		 char n, const struct pci_device * exclude)
 {
-    struct pci_device * pvp;
-    struct pci_device ** ppvp;
-    const uint32_t device_class = ( ((uint32_t)_class) << 16) 
-      | ( ((uint32_t)subClass) << 8) | intf;
+    struct pci_device *dev;
+    struct pci_id_match m;
+    struct pci_device_iterator *iter;
+
+    m.vendor_id = PCI_MATCH_ANY;
+    m.device_id = PCI_MATCH_ANY;
+    m.subvendor_id = PCI_MATCH_ANY;
+    m.subdevice_id = PCI_MATCH_ANY;
+    m.device_class = (((uint32_t)_class) << 16) 
+      | (((uint32_t)subClass) << 8) | intf;
+    m.device_class_mask = 0x00ffffff;
 
     n++;
-    
-    for (ppvp = xf86PciVideoInfo, pvp =*ppvp; pvp ; pvp = *(++ppvp)) {
-	if ( (pvp != exclude) && (pvp->device_class == device_class) ) {
-	    if (!(--n)) break;
+
+    iter = pci_id_match_iterator_create(& m);
+    while ((dev = pci_device_next(iter)) != NULL) {
+	if ((dev != exclude) && !(--n)) {
+	    break;
 	}
     }
 
-    return pvp;
+    pci_iterator_destroy(iter);
+
+    return dev;
 }
 
 static void
