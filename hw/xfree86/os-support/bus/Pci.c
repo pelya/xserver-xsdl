@@ -220,8 +220,6 @@ pciBusInfo_t  *pciBusInfo[MAX_PCI_BUSES] = { NULL, };
 _X_EXPORT int            pciNumBuses = 0;     /* Actual number of PCI buses */
 int            pciMaxBusNum = MAX_PCI_BUSES;
 
-static pciConfigPtr pci_devp[MAX_PCI_DEVICES + 1] = {NULL, };
-
 
 /*
  * pciInit - choose correct platform/OS specific PCI init routine
@@ -304,166 +302,26 @@ pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS addr)
 	return(addr);
 }
 
-_X_EXPORT pciConfigPtr *
-xf86scanpci(int flags)
+_X_EXPORT Bool
+xf86scanpci(void)
 {
-    pciConfigPtr devp;
-    pciBusInfo_t *busp;
-    int          idx = 0, i;
-    struct pci_device * dev;
-    struct pci_device_iterator * iter;
     static Bool  done = FALSE;
+    static Bool  success = FALSE;
 
     /*
      * if we haven't found PCI devices checking for pci_devp may
      * result in an endless recursion if platform/OS specific PCI
      * bus probing code calls this function from with in it.
      */
-    if (done || pci_devp[0])
-	return pci_devp;
+    if (done)
+	return success;
 
     done = TRUE;
 
-    pci_system_init();
+    success = (pci_system_init() == 0);
     pciInit();
 
-#ifdef XF86SCANPCI_WRAPPER
-    XF86SCANPCI_WRAPPER(SCANPCI_INIT);
-#endif
-
-    iter = pci_slot_match_iterator_create(NULL);
-    dev = pci_device_next(iter);
-
-    /* Check if no devices, return now */
-    if (dev == NULL) {
-#ifdef XF86SCANPCI_WRAPPER
-	XF86SCANPCI_WRAPPER(SCANPCI_TERM);
-#endif
-	return NULL;
-    }
-
-
-    while ((idx < MAX_PCI_DEVICES) && (dev != NULL)) {
-	pci_device_probe(dev);
-
-	devp = xcalloc(1, sizeof(pciDevice));
-	if (!devp) {
-	    xf86Msg(X_ERROR,
-		"xf86scanpci: Out of memory after %d devices!!\n", idx);
-	    return (pciConfigPtr *)NULL;
-	}
-
-	/* Identify pci device by bus, dev, func, and tag */
-	devp->dev = dev;
-	devp->busnum = PCI_MAKE_BUS(dev->domain, dev->bus);
-	devp->devnum = dev->dev;
-	devp->funcnum = dev->func;
-	devp->tag = PCI_MAKE_TAG(devp->busnum, dev->dev, dev->func);
-
-	/* Read config space for this device */
-	for (i = 0; i < 17; i++) { /* PCI hdr plus 1st dev spec dword */
-	    pci_device_cfg_read_u32(dev, & devp->cfgspc.dwords[i],
-				    i * sizeof(CARD32));
-	}
-
-	/* Some broken devices don't implement this field... */
-	if (devp->pci_header_type == 0xff)
-	    devp->pci_header_type = 0;
-
-	switch (devp->pci_header_type & 0x7f) {
-	case 0:
-	    break;
-
-	case 1:
-	case 2: {
-	    const uint8_t control = devp->pci_bridge_control &
-		     ~(PCI_PCI_BRIDGE_MASTER_ABORT_EN |
-		       PCI_PCI_BRIDGE_SECONDARY_RESET);
-
-	    /* Allow master aborts to complete normally on secondary buses */
-	    if (!(devp->pci_bridge_control & PCI_PCI_BRIDGE_MASTER_ABORT_EN))
-		break;
-	    pci_device_cfg_write_u8(dev, & control,
-				    PCI_PCI_BRIDGE_CONTROL_REG);
-
-	    break;
-	}
-	default:
-	    break;
-	}
-
-	xf86MsgVerb(X_INFO, 2, "PCI: %.2x:%02x:%1x: chip %04x,%04x"
-		    " card %04x,%04x rev %02x class %02x,%02x,%02x hdr %02x\n",
-		    devp->busnum, devp->devnum, devp->funcnum,
-		    devp->pci_vendor, devp->_pci_device,
-		    devp->pci_subsys_vendor, devp->pci_subsys_card,
-		    devp->pci_rev_id, devp->pci_base_class,
-		    devp->pci_sub_class, devp->pci_prog_if,
-		    devp->pci_header_type);
-
-	pci_devp[idx++] = devp;
-	dev = pci_device_next(iter);
-    }
-
-    /* Restore modified data (in reverse order), and link buses */
-    while (--idx >= 0) {
-	devp = pci_devp[idx];
-	switch (devp->pci_header_type & 0x7f) {
-	case 0:
-	    if ((devp->pci_base_class != PCI_CLASS_BRIDGE) ||
-		(devp->pci_sub_class != PCI_SUBCLASS_BRIDGE_HOST))
-		break;
-	    pciBusInfo[devp->busnum]->bridge = devp;
-	    pciBusInfo[devp->busnum]->primary_bus = devp->busnum;
-	    break;
-
-	case 1:
-	case 2: {
-	    uint8_t control;
-
-	    i = PCI_SECONDARY_BUS_EXTRACT(devp->pci_pp_bus_register, devp->tag);
-	    if (i > devp->busnum) {
-		if (pciBusInfo[i]) {
-		    pciBusInfo[i]->bridge = devp;
-		}
-#ifdef ARCH_PCI_PCI_BRIDGE
-		ARCH_PCI_PCI_BRIDGE(devp);
-#endif
-	    }
-	    if (!(devp->pci_bridge_control & PCI_PCI_BRIDGE_MASTER_ABORT_EN))
-		break;
-	    control = devp->pci_bridge_control & ~PCI_PCI_BRIDGE_SECONDARY_RESET;
-	    pci_device_cfg_write_u8(devp->dev, & control, 
-				    PCI_PCI_BRIDGE_CONTROL_REG);
-	    break;
-	}
-
-	default:
-	    break;
-	}
-    }
-
-#ifdef XF86SCANPCI_WRAPPER
-    XF86SCANPCI_WRAPPER(SCANPCI_TERM);
-#endif
-
-    xf86MsgVerb(X_INFO, 2, "PCI: End of PCI scan\n");
-
-    return pci_devp;
-}
-
-pciConfigPtr
-xf86GetPciConfigFromTag(PCITAG Tag)
-{
-    pciConfigPtr pDev;
-    int i = 0;
-
-    for (i = 0 ; (pDev = pci_devp[i]) && i <= MAX_PCI_DEVICES; i++) {
-	if (Tag == pDev->tag)
-	    return pDev;
-    }
-
-    return NULL;	/* Bad data */
+    return success;
 }
 
 #ifdef INCLUDE_XF86_NO_DOMAIN

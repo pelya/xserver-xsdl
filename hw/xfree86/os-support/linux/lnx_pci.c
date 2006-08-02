@@ -167,9 +167,9 @@ xf86GetPciOffsetFromOS(PCITAG tag, int index, unsigned long* bases)
 unsigned long
 xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
 {
-    unsigned int dev, fn;
     unsigned int ndx;
     struct pci_dev *device;
+    struct pci_device *dev;
 
     if (!xf86OSLinuxPCIDevs) {
         xf86OSLinuxPCIDevs = xf86OSLinuxGetPciDevs();
@@ -179,26 +179,31 @@ xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
     }
 
     for (device = xf86OSLinuxPCIDevs; device; device = device->next) {
-        dev = device->devfn >> 3;
-        fn = device->devfn & 0x7;
-        if (tag == pciTag(device->bus, dev, fn)) {
+	dev = pci_device_find_by_slot(0, device->bus, (device->devfn >> 3),
+				      (device->devfn & 0x7));
+        if (dev != NULL) {
             /* ok now look through all the BAR values of this device */
-            pciConfigPtr pDev = xf86GetPciConfigFromTag(tag);
-
             for (ndx=0; ndx<7; ndx++) {
-                unsigned long savePtr, flagMask;
-                if (ndx == 6) 
-                    savePtr = pDev->pci_baserom;
-                else /* this the ROM bar */
-                    savePtr = (&pDev->pci_base0)[ndx];
-                /* Ignore unset base addresses. The kernel may
-                 * have reported non-zero size and address even
-                 * if they are disabled (e.g. disabled ROM BAR).
+                uint32_t savePtr;
+	        uint32_t flagMask;
+
+		/* The ROM BAR isn't with the other BARs.
+		 */
+		const pciaddr_t offset = (ndx == 6) 
+		  ? (4 * 12) : (4 * ndx) + 16;
+
+		pci_device_cfg_read_u32(dev, &savePtr, offset);
+
+                /* Ignore unset base addresses. The kernel may have reported
+		 * non-zero size and address even if they are disabled (e.g.,
+		 * disabled ROM BAR).
                  */
                 if (savePtr == 0)
                     continue;
+
                 /* Remove memory attribute bits, different for IO
-                 * and memory ranges. */
+                 * and memory ranges. 
+		 */
                 flagMask = (savePtr & 0x1) ? ~0x3UL : ~0xFUL;
                 savePtr &= flagMask;
 
@@ -208,7 +213,7 @@ xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
                 }
             }
         }
-    };
+    }
 
     return 0;
 }

@@ -54,7 +54,6 @@
 
 /* Bus-specific globals */
 Bool pciSlotClaimed = FALSE;
-static pciConfigPtr *xf86PciInfo = NULL;	/* Full PCI probe info */
 struct pci_device ** xf86PciVideoInfo = NULL;	/* PCI probe for video hw */
 
 
@@ -133,9 +132,7 @@ FindPCIVideoInfo(void)
     struct pci_device_iterator * iter;
 
 
-    xf86PciInfo = xf86scanpci(0);
-
-    if (xf86PciInfo == NULL) {
+    if (!xf86scanpci()) {
 	xf86PciVideoInfo = NULL;
 	return;
     }

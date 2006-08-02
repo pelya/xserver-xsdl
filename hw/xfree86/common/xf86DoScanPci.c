@@ -57,7 +57,7 @@ ScanPciDisplayPCICardInfo(void)
 
     xf86EnableIO();
 
-    if (xf86scanpci(0) == NULL) {
+    if (! xf86scanpci()) {
         xf86MsgVerb(X_NONE, 0, "No PCI info available\n");
 	return;
     }

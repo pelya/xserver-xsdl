@@ -156,38 +156,6 @@
 #define PCI_BUS_NO_DOMAIN(bus) ((bus) & 0xffu)
 #define PCI_TAG_NO_DOMAIN(tag) ((tag) & 0x00ffff00u)
 
-/*
- * Macros for bus numbers found in P2P headers.
- */
-#define PCI_PRIMARY_BUS_EXTRACT(x, tag)     \
-    ((((x) & PCI_PRIMARY_BUS_MASK    ) >>  0) | (PCI_DOM_FROM_TAG(tag) << 8))
-#define PCI_SECONDARY_BUS_EXTRACT(x, tag)   \
-    ((((x) & PCI_SECONDARY_BUS_MASK  ) >>  8) | (PCI_DOM_FROM_TAG(tag) << 8))
-#define PCI_SUBORDINATE_BUS_EXTRACT(x, tag) \
-    ((((x) & PCI_SUBORDINATE_BUS_MASK) >> 16) | (PCI_DOM_FROM_TAG(tag) << 8))
-
-#define PCI_PRIMARY_BUS_INSERT(x, y)     \
-    (((x) & ~PCI_PRIMARY_BUS_MASK    ) | (((y) & 0xffu) <<  0))
-#define PCI_SECONDARY_BUS_INSERT(x, y)   \
-    (((x) & ~PCI_SECONDARY_BUS_MASK  ) | (((y) & 0xffu) <<  8))
-#define PCI_SUBORDINATE_BUS_INSERT(x, y) \
-    (((x) & ~PCI_SUBORDINATE_BUS_MASK) | (((y) & 0xffu) << 16))
-
-/* Ditto for CardBus bridges */
-#define PCI_CB_PRIMARY_BUS_EXTRACT(x, tag)     \
-    PCI_PRIMARY_BUS_EXTRACT(x, tag)
-#define PCI_CB_CARDBUS_BUS_EXTRACT(x, tag)     \
-    PCI_SECONDARY_BUS_EXTRACT(x, tag)
-#define PCI_CB_SUBORDINATE_BUS_EXTRACT(x, tag) \
-    PCI_SUBORDINATE_BUS_EXTRACT(x, tag)
-
-#define PCI_CB_PRIMARY_BUS_INSERT(x, tag)     \
-    PCI_PRIMARY_BUS_INSERT(x, tag)
-#define PCI_CB_CARDBUS_BUS_INSERT(x, tag)     \
-    PCI_SECONDARY_BUS_INSERT(x, tag)
-#define PCI_CB_SUBORDINATE_BUS_INSERT(x, tag) \
-    PCI_SUBORDINATE_BUS_INSERT(x, tag)
-
 #if X_BYTE_ORDER == X_BIG_ENDIAN
 #define PCI_CPU(val)	(((val >> 24) & 0x000000ff) |	\
 			 ((val >>  8) & 0x0000ff00) |	\
@@ -352,10 +320,6 @@ extern void ARCH_PCI_INIT(void);
 extern void ARCH_PCI_OS_INIT(void);
 #endif
 
-#if defined(ARCH_PCI_PCI_BRIDGE)
-extern void ARCH_PCI_PCI_BRIDGE(pciConfigPtr pPCI);
-#endif
-
 #if defined(XF86SCANPCI_WRAPPER)
 typedef enum {
     SCANPCI_INIT,
@@ -402,7 +366,7 @@ typedef struct pci_bus_info {
 	int            primary_bus;  /* Parent bus                  */
 	pciBusFuncs_p  funcs;        /* PCI access functions        */
 	void          *pciBusPriv;   /* Implementation private data */
-	pciConfigPtr   bridge;       /* bridge that opens this bus  */
+	struct pci_device *bridge;       /* bridge that opens this bus  */
 } pciBusInfo_t;
 
 #define HOST_NO_BUS ((pciBusInfo_t *)(-1))
