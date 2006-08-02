@@ -171,6 +171,7 @@
 /*
  * Intel x86 platform specific PCI access functions
  */
+#if 0
 static CARD32 ix86PciReadLongSetup(PCITAG tag, int off);
 static void ix86PciWriteLongSetup(PCITAG, int off, CARD32 val);
 static void ix86PciSetBitsLongSetup(PCITAG, int off, CARD32 mask, CARD32 val);
@@ -180,27 +181,34 @@ static void ix86PciSetBitsLongCFG1(PCITAG, int off, CARD32 mask, CARD32 val);
 static CARD32 ix86PciReadLongCFG2(PCITAG tag, int off);
 static void ix86PciWriteLongCFG2(PCITAG, int off, CARD32 val);
 static void ix86PciSetBitsLongCFG2(PCITAG, int off, CARD32 mask, CARD32 val);
+#endif
 
 static pciBusFuncs_t ix86Funcs0 = {
+#if 0
 /* pciReadLong      */	ix86PciReadLongSetup,
 /* pciWriteLong     */	ix86PciWriteLongSetup,
 /* pciSetBitsLong   */	ix86PciSetBitsLongSetup,
+#endif
 /* pciAddrHostToBus */	pciAddrNOOP,
 /* pciAddrBusToHost */	pciAddrNOOP
 };
 
 static pciBusFuncs_t ix86Funcs1 = {
+#if 0
 /* pciReadLong      */	ix86PciReadLongCFG1,
 /* pciWriteLong     */	ix86PciWriteLongCFG1,
 /* pciSetBitsLong   */	ix86PciSetBitsLongCFG1,
+#endif
 /* pciAddrHostToBus */	pciAddrNOOP,
 /* pciAddrBusToHost */	pciAddrNOOP
 };
 
 static pciBusFuncs_t ix86Funcs2 = {
+#if 0
 /* pciReadLong      */	ix86PciReadLongCFG2,
 /* pciWriteLong     */	ix86PciWriteLongCFG2,
 /* pciSetBitsLong   */	ix86PciSetBitsLongCFG2,
+#endif
 /* pciAddrHostToBus */	pciAddrNOOP,
 /* pciAddrBusToHost */	pciAddrNOOP
 };
@@ -218,6 +226,7 @@ static pciBusInfo_t ix86Pci0 = {
 static Bool
 ix86PciBusCheck(void)
 {
+#if 0
     PCITAG tag;
     CARD32 id, class;
     CARD8 device;
@@ -250,6 +259,7 @@ ix86PciBusCheck(void)
 	    break;
 	}
     }
+#endif
     return FALSE;
 }
 
@@ -544,6 +554,7 @@ ix86PcibusTag(CARD8 bus, CARD8 cardnum, CARD8 func)
 }
 #endif
 
+#if 0
 static CARD32
 ix86PciReadLongSetup(PCITAG Tag, int reg)
 {
@@ -680,6 +691,7 @@ ix86PciSetBitsLongCFG2(PCITAG Tag, int reg, CARD32 mask, CARD32 val)
     outb(PCI_CFGMECH2_ENABLE_REG, 0);
     outb(PCI_CFGMECH2_FORWARD_REG, 0);
 }
+#endif
 
 void
 ix86PciInit()

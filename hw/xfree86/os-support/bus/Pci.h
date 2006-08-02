@@ -156,18 +156,6 @@
 #define PCI_BUS_NO_DOMAIN(bus) ((bus) & 0xffu)
 #define PCI_TAG_NO_DOMAIN(tag) ((tag) & 0x00ffff00u)
 
-#if X_BYTE_ORDER == X_BIG_ENDIAN
-#define PCI_CPU(val)	(((val >> 24) & 0x000000ff) |	\
-			 ((val >>  8) & 0x0000ff00) |	\
-			 ((val <<  8) & 0x00ff0000) |	\
-			 ((val << 24) & 0xff000000))
-#define PCI_CPU16(val)	(((val >>  8) & 0x000000ff) |	\
-			 ((val <<  8) & 0x0000ff00))
-#else
-#define PCI_CPU(val)	(val)
-#define PCI_CPU16(val)	(val)
-#endif
-
 /*
  * Debug Macros/Definitions
  */
@@ -333,9 +321,6 @@ extern void XF86SCANPCI_WRAPPER(scanpciWrapperOpt flags);
  * (e.g. a primary PCI bus and all of its secondaries)
  */
 typedef struct pci_bus_funcs {
-	CARD32  (*pciReadLong)(PCITAG, int);
-	void    (*pciWriteLong)(PCITAG, int, CARD32);
-	void    (*pciSetBitsLong)(PCITAG, int, CARD32, CARD32);
 	ADDRESS (*pciAddrHostToBus)(PCITAG, PciAddrType, ADDRESS);
 	ADDRESS (*pciAddrBusToHost)(PCITAG, PciAddrType, ADDRESS);
 	/*
@@ -346,14 +331,6 @@ typedef struct pci_bus_funcs {
 	void    (*pciGetBridgeBuses)(int, int *, int *, int *);
 	/* Use pointer's to avoid #include recursion */
 	void    (*pciGetBridgeResources)(int, pointer *, pointer *, pointer *);
-
-	/* These are optional and will be implemented using read long
-	 * if not present. */
-	CARD8   (*pciReadByte)(PCITAG, int);
-	void    (*pciWriteByte)(PCITAG, int, CARD8);
-	CARD16  (*pciReadWord)(PCITAG, int);
-	void    (*pciWriteWord)(PCITAG, int, CARD16);
-
 } pciBusFuncs_t, *pciBusFuncs_p;
 
 /*
