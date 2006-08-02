@@ -3698,6 +3698,17 @@ InitClientPrivates(ClientPtr client)
 	else
 	    ppriv->ptr = (pointer)NULL;
     }
+
+    /* Allow registrants to initialize the serverClient devPrivates */
+    if (!client->index && ClientStateCallback)
+    {
+	NewClientInfoRec clientinfo;
+
+	clientinfo.client = client; 
+	clientinfo.prefix = (xConnSetupPrefix *)NULL;  
+	clientinfo.setup = (xConnSetup *) NULL;
+	CallCallbacks((&ClientStateCallback), (pointer)&clientinfo);
+    } 
     return 1;
 }
 
