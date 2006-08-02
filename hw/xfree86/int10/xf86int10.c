@@ -593,12 +593,68 @@ int42_handler(xf86Int10InfoPtr pInt)
 #define DEVICE_NOT_FOUND        0x86
 #define BAD_REGISTER_NUMBER     0x87
 
+#ifdef SHOW_ALL_DEVICES
 /**
- * \todo
- * Eliminate the reliance on \c xf86FindPciDeviceVendor and
- * \c xf86FindPciDeviceClass in this function.  Create new functions in this
- * file that directly use libpciaccess to replace them.
+ * These functions are meant to be used by the PCI BIOS emulation. Some
+ * BIOSes need to see if there are \b other chips of the same type around so
+ * by setting \c exclude one PCI device can be explicitely excluded, if
+ * required.
  */
+static struct pci_device *
+do_find(const struct pci_id_match *m, char n, const struct pci_device * exclude)
+{
+    struct pci_device *dev;
+    struct pci_device_iterator *iter;
+
+    n++;
+
+    iter = pci_id_match_iterator_create(m);
+    while ((dev = pci_device_next(iter)) != NULL) {
+	if ((dev != exclude) && !(--n)) {
+	    break;
+	}
+    }
+
+    pci_iterator_destroy(iter);
+
+    return dev;
+}
+
+
+static struct pci_device *
+find_pci_device_vendor(CARD16 vendorID, CARD16 deviceID,
+			char n, const struct pci_device * exclude)
+{
+    struct pci_id_match m;
+
+    m.vendor_id = vendorID;
+    m.device_id = deviceID;
+    m.subvendor_id = PCI_MATCH_ANY;
+    m.subdevice_id = PCI_MATCH_ANY;
+    m.device_class = 0;
+    m.device_class_mask = 0;
+
+    return do_find(& m, n, exclude);
+}
+
+static struct pci_device *
+find_pci_class(CARD8 intf, CARD8 subClass, CARD16 _class,
+	       char n, const struct pci_device * exclude)
+{
+    struct pci_id_match m;
+
+    m.vendor_id = PCI_MATCH_ANY;
+    m.device_id = PCI_MATCH_ANY;
+    m.subvendor_id = PCI_MATCH_ANY;
+    m.subdevice_id = PCI_MATCH_ANY;
+    m.device_class = (((uint32_t)_class) << 16) 
+      | (((uint32_t)subClass) << 8) | intf;
+    m.device_class_mask = 0x00ffffff;
+
+    return do_find(& m, n, exclude);
+}
+#endif
+
 static int
 int1A_handler(xf86Int10InfoPtr pInt)
 {
@@ -635,7 +691,7 @@ int1A_handler(xf86Int10InfoPtr pInt)
 	}
 #ifdef SHOW_ALL_DEVICES
 	else
-	if ((dev = xf86FindPciDeviceVendor(X86_EDX, X86_ECX, X86_ESI, pvp))) {
+	if ((dev = find_pci_device_vendor(X86_EDX, X86_ECX, X86_ESI, pvp))) {
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	    X86_EBX = pciSlotBX(dev);
@@ -656,10 +712,10 @@ int1A_handler(xf86Int10InfoPtr pInt)
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	}
 #ifdef SHOW_ALL_DEVICES
-	else if ((dev = xf86FindPciClass(X86_CL, X86_CH,
-					 (X86_ECX & 0xffff0000) >> 16,
-					 X86_ESI, pvp))) {
-p	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
+	else if ((dev = find_pci_class(X86_CL, X86_CH,
+				       (X86_ECX & 0xffff0000) >> 16,
+				       X86_ESI, pvp))) {
+	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	    X86_EBX = pciSlotBX(dev);
 	}

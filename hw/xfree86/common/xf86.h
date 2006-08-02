@@ -151,10 +151,6 @@ memType xf86ChkConflict(resRange *rgp, int entityIndex);
 ScrnInfoPtr xf86FindScreenForEntity(int entityIndex);
 Bool xf86NoSharedResources(int screenIndex, resType res);
 resPtr xf86FindIntersectOfLists(resPtr l1, resPtr l2);
-struct pci_device * xf86FindPciDeviceVendor(CARD16 vendorID, CARD16 deviceID,
-    char n, const struct pci_device * pvp_exclude);
-struct pci_device * xf86FindPciClass(CARD8 intf, CARD8 subClass, CARD16 class,
-    char n, const struct pci_device * pvp_exclude);
 void xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg);
 Bool xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func);
 
