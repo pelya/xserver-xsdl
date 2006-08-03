@@ -169,36 +169,6 @@ int XaceHook(int hook, ...)
 	    calldata = &rec;
 	    break;
 	}
-#ifdef LBX
-	case XACE_LBX_EXT_ACCESS: {
-	    XaceLbxExtAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, LbxExtensionEntry*),
-		TRUE		/* default allow */
-	    };
-	    calldata = &rec;
-	    prv = &rec.rval;
-	    break;
-	}
-	case XACE_DECLARE_LBX_EXT_SECURE: {
-	    XaceDeclareLbxExtSecureRec rec = {
-		va_arg(ap, LbxExtensionEntry*),
-		va_arg(ap, Bool)
-	    };
-	    calldata = &rec;
-	    break;
-	}
-	case XACE_LBX_PROXY_ACCESS: {
-	    XaceLbxProxyAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, XID),
-		TRUE		/* default allow */
-	    };
-	    calldata = &rec;
-	    prv = &rec.rval;
-	    break;
-	}
-#endif
 	default: {
 	    va_end(ap);
 	    return 0;	/* unimplemented hook number */

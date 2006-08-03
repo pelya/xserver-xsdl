@@ -46,14 +46,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define XACE_SITE_POLICY		10
 #define XACE_DECLARE_EXT_SECURE		11
 #define XACE_AUTH_AVAIL			12
-#ifndef LBX
 #define XACE_NUM_HOOKS			13
-#else /* LBX */
-#define XACE_LBX_EXT_ACCESS		13
-#define XACE_DECLARE_LBX_EXT_SECURE	14
-#define XACE_LBX_PROXY_ACCESS		15
-#define XACE_NUM_HOOKS			16
-#endif
 
 extern CallbackListPtr XaceHooks[XACE_NUM_HOOKS];
 
@@ -64,9 +57,7 @@ extern int XaceHook(
     ... /*appropriate args for hook*/
     ); 
 
-/* Register a callback for a given hook.  Extensions do not
- * need to register themselves with XACERegisterExtension()
- * to do this.
+/* Register a callback for a given hook.
  */
 #define XaceRegisterCallback(hook,callback,data) \
     AddCallback(XaceHooks+(hook), callback, data)

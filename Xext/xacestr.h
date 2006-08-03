@@ -28,9 +28,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "windowstr.h"
 #include "inputstr.h"
 #include "xace.h"
-#ifdef LBX
-#include "lbxserve.h"  /* for LbxExtensionEntry */
-#endif
 
 /* XACE_CORE_DISPATCH */
 typedef struct {
@@ -114,28 +111,5 @@ typedef struct {
     ClientPtr client;
     XID authId;
 } XaceAuthAvailRec;
-
-#ifdef LBX
-/* XACE_LBX_EXT_ACCESS */
-typedef struct {
-    ClientPtr client;
-    LbxExtensionEntry *ext;
-    int rval;
-} XaceLbxExtAccessRec;
-
-/* XACE_DECLARE_LBX_EXT_SECURE */
-typedef struct {
-    LbxExtensionEntry *ext;
-    Bool secure;
-} XaceDeclareLbxExtSecureRec;
-
-/* XACE_LBX_PROXY_ACCESS */
-typedef struct {
-    ClientPtr client;
-    XID authId;
-    int rval;
-} XaceLbxProxyAccessRec;
-
-#endif  /* LBX */
 
 #endif /* _XACESTR_H */
