@@ -130,9 +130,6 @@ typedef struct _Client {
     int         requestLogIndex;
 #endif
     unsigned long replyBytesRemaining;
-#ifdef XACE
-    pointer securityState[4];   /* 4 slots for use */
-#endif
 #ifdef XAPPGROUP
     struct _AppGroupRec*	appgroup;
 #endif

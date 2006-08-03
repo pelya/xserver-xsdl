@@ -72,9 +72,6 @@ typedef struct _ExtensionEntry {
     unsigned short (* MinorOpcode)(	/* called for errors */
 	ClientPtr /* client */);
     DevUnion *devPrivates;
-#ifdef XACE
-    pointer securityState[4];		/* 4 slots for use */
-#endif
 } ExtensionEntry;
 
 /* 

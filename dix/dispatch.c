@@ -3647,9 +3647,6 @@ void InitClient(ClientPtr client, int i, pointer ospriv)
     }
 #endif
     client->replyBytesRemaining = 0;
-#ifdef XACE
-    XACE_STATE_INIT(client->securityState);
-#endif
 #ifdef XAPPGROUP
     client->appgroup = NULL;
 #endif

@@ -62,7 +62,8 @@ in this Software without prior written authorization from The Open Group.
 
 static int SecurityErrorBase;  /* first Security error number */
 static int SecurityEventBase;  /* first Security event number */
-static int slot;	       /* Xace security state number  */
+static int securityClientPrivateIndex;
+static int securityExtnsnPrivateIndex;
 
 /* this is what we store as client security state */
 typedef struct {
@@ -70,9 +71,14 @@ typedef struct {
     XID authId;
 } SecurityClientStateRec;
 
-#define STATEPTR(obj)   ((obj)->securityState[slot])
-#define TRUSTLEVEL(obj) (((SecurityClientStateRec*)STATEPTR(obj))->trustLevel)
-#define AUTHID(obj)     (((SecurityClientStateRec*)STATEPTR(obj))->authId)
+#define STATEVAL(extnsn) \
+    ((extnsn)->devPrivates[securityExtnsnPrivateIndex].val)
+#define STATEPTR(client) \
+    ((client)->devPrivates[securityClientPrivateIndex].ptr)
+#define TRUSTLEVEL(client) \
+    (((SecurityClientStateRec*)STATEPTR(client))->trustLevel)
+#define AUTHID(client) \
+    (((SecurityClientStateRec*)STATEPTR(client))->authId)
 
 CallbackListPtr SecurityValidateGroupCallback = NULL;  /* see security.h */
 
@@ -1118,6 +1124,11 @@ CALLBACK(SecurityClientStateCallback)
 
     switch (client->clientState)
     {
+    case ClientStateInitial:
+	TRUSTLEVEL(serverClient) = XSecurityClientTrusted;
+	AUTHID(serverClient) = None;
+	break;
+
 	case ClientStateRunning:
 	{ 
 	    XID authId = AuthorizationIDOfClient(client);
@@ -1148,7 +1159,6 @@ CALLBACK(SecurityClientStateCallback)
 	case ClientStateRetained: /* client disconnected */
 	{
 	    SecurityAuthorizationPtr pAuth;
-	    pointer freeit;
 
 	    /* client may not have any state (bad authorization) */
 	    if (!STATEPTR(client))
@@ -1164,10 +1174,6 @@ CALLBACK(SecurityClientStateCallback)
 		    SecurityStartAuthorizationTimer(pAuth);
 		}
 	    }	    
-	    /* free security state */
-	    freeit = STATEPTR(client);
-	    STATEPTR(client) = NULL;
-	    xfree(freeit);
 	    break;
 	}
 	default: break; 
@@ -1208,7 +1214,7 @@ CALLBACK(SecurityCheckExtAccess)
     XaceExtAccessRec *rec = (XaceExtAccessRec*)calldata;
 
     if ((TRUSTLEVEL(rec->client) != XSecurityClientTrusted) &&
-	!STATEPTR(rec->ext))
+	!STATEVAL(rec->ext))
 
 	rec->rval = FALSE;
 }
@@ -1234,7 +1240,7 @@ CALLBACK(SecurityDeclareExtSecure)
     XaceDeclareExtSecureRec *rec = (XaceDeclareExtSecureRec*)calldata;
 
     /* security state for extensions is simply a boolean trust value */
-    STATEPTR(rec->ext) = (pointer)rec->secure;
+    STATEVAL(rec->ext) = rec->secure;
 }
 
 /**********************************************************************/
@@ -1842,10 +1848,6 @@ static void
 SecurityResetProc(
     ExtensionEntry *extEntry)
 {
-    pointer freeit = STATEPTR(serverClient);
-    STATEPTR(serverClient) = NULL;
-    xfree(freeit);
-    XaceUnregisterExtension(slot);
     SecurityFreePropertyAccessList();
     SecurityFreeSitePolicyStrings();
 } /* SecurityResetProc */
@@ -1882,13 +1884,16 @@ XSecurityOptions(argc, argv, i)
 void
 SecurityExtensionSetup(INITARGS)
 {
-    /* allocate space for security state (freed in SecurityResetProc) */
-    STATEPTR(serverClient) = xalloc(sizeof(SecurityClientStateRec));
-    if (!STATEPTR(serverClient))
-	FatalError("serverClient: couldn't allocate security state\n");
+    /* Allocate the client private index */
+    securityClientPrivateIndex = AllocateClientPrivateIndex();
+    if (!AllocateClientPrivate(securityClientPrivateIndex,
+			       sizeof (SecurityClientStateRec)))
+	FatalError("SecurityExtensionSetup: Can't allocate client private.\n");
 
-    TRUSTLEVEL(serverClient) = XSecurityClientTrusted;
-    AUTHID(serverClient) = None;
+    /* Allocate the extension private index */
+    securityExtnsnPrivateIndex = AllocateExtensionPrivateIndex();
+    if (!AllocateExtensionPrivate(securityExtnsnPrivateIndex, 0))
+	FatalError("SecurityExtensionSetup: Can't allocate extnsn private.\n");
 
     /* register callbacks */
 #define XaceRC XaceRegisterCallback
@@ -1932,10 +1937,6 @@ SecurityExtensionInit(INITARGS)
     RTEventClient |= RC_NEVERRETAIN;
 
     if (!AddCallback(&ClientStateCallback, SecurityClientStateCallback, NULL))
-	return;
-
-    slot = XaceRegisterExtension(SECURITY_EXTENSION_NAME);
-    if (slot < 0)
 	return;
 
     extEntry = AddExtension(SECURITY_EXTENSION_NAME,

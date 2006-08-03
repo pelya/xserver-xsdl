@@ -26,9 +26,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 CallbackListPtr XaceHooks[XACE_NUM_HOOKS] = {0};
 
-static Bool stateSlotsUsed[XACE_STATE_SLOTS] = {0};
-static char *stateExtNames[XACE_STATE_SLOTS] = {0};
-
 /* Proc vectors for untrusted clients, swapped and unswapped versions.
  * These are the same as the normal proc vectors except that extensions
  * that haven't declared themselves secure will have ProcBadRequest plugged
@@ -42,43 +39,6 @@ int (*UntrustedProcVector[256])(
 int (*SwappedUntrustedProcVector[256])(
     ClientPtr /*client*/
 );
-
-/* Register with the security module, which allows an extension to store
- * security state.  The return value is the index which should be passed
- * to the state macros, or -1 if no more slots are available.
- */
-int XaceRegisterExtension(name)
-    char *name;
-{
-    int i;
-    for (i=0; i<XACE_STATE_SLOTS; i++)
-	if (!stateSlotsUsed[i])
-	{
-	    /* save the extension name */
-	    if (name) {
-		stateExtNames[i] = (char*)xalloc(strlen(name)+1);
-		if (!stateExtNames[i])
-		    return -1;
-		memcpy(stateExtNames[i], name, strlen(name)+1);
-	    }
-	    stateSlotsUsed[i] = TRUE;
-	    return i;
-	}
-    return -1;  /* no slots free */
-}
-
-/* Unregister an extension.  Pass the index returned at registration time.
- */
-void XaceUnregisterExtension(idx)
-    int idx;  /* state index */
-{
-    /* free the extension name */
-    if (stateExtNames[idx]) {
-	xfree(stateExtNames[idx]);
-	stateExtNames[idx] = NULL;
-    }
-    stateSlotsUsed[idx] = FALSE;
-}
 
 /* Entry point for hook functions.  Called by Xserver.
  */
@@ -295,14 +255,6 @@ XaceResetProc(ExtensionEntry *extEntry)
     {
 	DeleteCallbackList(&XaceHooks[i]);
 	XaceHooks[i] = NULL;
-    }
-
-    for (i=0; i<XACE_STATE_SLOTS; i++)
-    {
-	if (stateExtNames[i])
-	    xfree(stateExtNames[i]);
-	stateExtNames[i] = NULL;
-	stateSlotsUsed[i] = FALSE;
     }
 } /* XaceResetProc */
 

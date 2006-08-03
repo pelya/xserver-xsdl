@@ -30,10 +30,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define XaceNumberEvents		0
 #define XaceNumberErrors		0
 
-/* security state */
-#define XACE_STATE_SLOTS 4
-#define XACE_STATE_INIT(ary) memset(ary, 0, sizeof(ary))
-
 /* security hooks */
 /* Constants used to identify the available security hooks
  */
@@ -80,18 +76,6 @@ extern int XaceHook(
 #define XaceDeleteCallback(hook,callback,data) \
     DeleteCallback(XaceHooks+(hook), callback, data)
 
-
-/* extension registration */
-
-/* Register with the security module, which allows an extension to store
- * security state.  Pass the name of the calling extension.  Returns the
- * index number for the state macros or -1 if no more slots are available.
- */
-extern int XaceRegisterExtension(char *); 
-
-/* Unregister an extension.  Pass the index returned at registration time.
- */
-extern void XaceUnregisterExtension(int);
 
 /* From the original Security extension...
  */

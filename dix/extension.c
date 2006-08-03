@@ -131,6 +131,7 @@ AddExtension(char *name, int NumEvents, int NumErrors,
     ext = (ExtensionEntry *) xalloc(totalExtensionSize);
     if (!ext || !InitExtensionPrivates(ext))
 	return((ExtensionEntry *) NULL);
+    bzero(ext, totalExtensionSize);
     ext->name = (char *)xalloc(strlen(name) + 1);
     ext->num_aliases = 0;
     ext->aliases = (char **)NULL;
@@ -180,9 +181,6 @@ AddExtension(char *name, int NumEvents, int NumErrors,
         ext->errorBase = 0;
         ext->errorLast = 0;
     }
-#ifdef XACE
-    XACE_STATE_INIT(ext->securityState);
-#endif
 
     return(ext);
 }
