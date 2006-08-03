@@ -824,8 +824,6 @@ LegalNewID(XID id, register ClientPtr client)
 	     !LookupIDByClass(id, RC_ANY)));
 }
 
-#ifdef XACE
-
 /* SecurityLookupIDByType and SecurityLookupIDByClass:
  * These are the heart of the resource ID security system.  They take
  * two additional arguments compared to the old LookupID functions:
@@ -841,10 +839,6 @@ SecurityLookupIDByType(ClientPtr client, XID id, RESTYPE rtype, Mask mode)
     register    ResourcePtr res;
     pointer retval = NULL;
 
-    assert(client == NullClient ||
-     (client->index <= currentMaxClients && clients[client->index] == client));
-    assert( (rtype & TypeMask) <= lastResourceType);
-
     if (((cid = CLIENT_ID(id)) < MAXCLIENTS) &&
 	clientTable[cid].buckets)
     {
@@ -857,9 +851,11 @@ SecurityLookupIDByType(ClientPtr client, XID id, RESTYPE rtype, Mask mode)
 		break;
 	    }
     }
+#ifdef XACE
     if (retval && client && 
 	!XaceHook(XACE_RESOURCE_ACCESS, client, id, rtype, mode, retval))
 	retval = NULL;
+#endif
     return retval;
 }
 
@@ -870,10 +866,6 @@ SecurityLookupIDByClass(ClientPtr client, XID id, RESTYPE classes, Mask mode)
     int    cid;
     register ResourcePtr res = NULL;
     pointer retval = NULL;
-
-    assert(client == NullClient ||
-     (client->index <= currentMaxClients && clients[client->index] == client));
-    assert (classes >= lastResourceClass);
 
     if (((cid = CLIENT_ID(id)) < MAXCLIENTS) &&
 	clientTable[cid].buckets)
@@ -887,9 +879,11 @@ SecurityLookupIDByClass(ClientPtr client, XID id, RESTYPE classes, Mask mode)
 		break;
 	    }
     }
+#ifdef XACE
     if (retval && client &&
 	!XaceHook(XACE_RESOURCE_ACCESS, client, id, res->type, mode, retval))
 	retval = NULL;
+#endif
     return retval;
 }
 
@@ -910,50 +904,3 @@ LookupIDByClass(XID id, RESTYPE classes)
     return SecurityLookupIDByClass(NullClient, id, classes,
 				   SecurityUnknownAccess);
 }
-
-#else /* not XACE */
-
-/*
- *  LookupIDByType returns the object with the given id and type, else NULL.
- */ 
-pointer
-LookupIDByType(XID id, RESTYPE rtype)
-{
-    int    cid;
-    register    ResourcePtr res;
-
-    if (((cid = CLIENT_ID(id)) < MAXCLIENTS) &&
-	clientTable[cid].buckets)
-    {
-	res = clientTable[cid].resources[Hash(cid, id)];
-
-	for (; res; res = res->next)
-	    if ((res->id == id) && (res->type == rtype))
-		return res->value;
-    }
-    return (pointer)NULL;
-}
-
-/*
- *  LookupIDByClass returns the object with the given id and any one of the
- *  given classes, else NULL.
- */ 
-pointer
-LookupIDByClass(XID id, RESTYPE classes)
-{
-    int    cid;
-    register    ResourcePtr res;
-
-    if (((cid = CLIENT_ID(id)) < MAXCLIENTS) &&
-	clientTable[cid].buckets)
-    {
-	res = clientTable[cid].resources[Hash(cid, id)];
-
-	for (; res; res = res->next)
-	    if ((res->id == id) && (res->type & classes))
-		return res->value;
-    }
-    return (pointer)NULL;
-}
-
-#endif /* XACE */
