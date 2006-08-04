@@ -124,6 +124,7 @@ mieqEnqueue (xEvent *e)
         if (e->u.u.type == DeviceValuator) {
             if (laste->nevents >= 6) {
                 ErrorF("mieqEnqueue: more than six valuator events; dropping.\n");
+                free(e);
                 return;
             }
             if (oldtail == miEventQueue.head || 
@@ -133,6 +134,7 @@ mieqEnqueue (xEvent *e)
                 ((lastkbp->deviceid & DEVICE_BITS) !=
                  (v->deviceid & DEVICE_BITS))) {
                 ErrorF("mieqEnequeue: out-of-order valuator event; dropping.\n");
+                free(e);
                 return;
             }
             laste->event[laste->nevents++] = *e;
@@ -159,6 +161,7 @@ mieqEnqueue (xEvent *e)
     	/* Toss events which come in late */
     	if (newtail == miEventQueue.head) {
             ErrorF("tossed event which came in late\n");
+            free(e);
 	    return;
         }
 	miEventQueue.tail = newtail;
@@ -235,5 +238,7 @@ void mieqProcessInputEvents ()
 	    	++miEventQueue.head;
             (*e->pDev->public.processInputProc)(e->event, e->pDev, e->nevents);
 	}
+
+        free(e->event);
     }
 }
