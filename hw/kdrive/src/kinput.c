@@ -2087,7 +2087,7 @@ KdEnqueuePointerEvent(KdPointerInfo *pi, unsigned long flags, int rx, int ry,
 
     buttons = flags;
 
-    for (button = KD_BUTTON_1, n = 1; button <= pi->nButtons;
+    for (button = KD_BUTTON_1, n = 1; n <= pi->nButtons;
          button <<= 1, n++) {
         if (((pi->buttonState & button) ^ (buttons & button)) &&
            !(buttons & button)) {
@@ -2098,7 +2098,7 @@ KdEnqueuePointerEvent(KdPointerInfo *pi, unsigned long flags, int rx, int ry,
                                    dixflags, FALSE);
 	}
     }
-    for (button = KD_BUTTON_1, n = 1; button <= pi->nButtons;
+    for (button = KD_BUTTON_1, n = 1; n <= pi->nButtons;
          button <<= 1, n++) {
 	if (((pi->buttonState & button) ^ (buttons & button)) &&
 	    (buttons & button)) {
