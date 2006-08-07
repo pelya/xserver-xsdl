@@ -30,4 +30,5 @@ libloader_a_SOURCES = \
 	fontsym.c \
 	misym.c \
 	xf86sym.c \
+	sym.h \
 	$(SPARC_SOURCES)

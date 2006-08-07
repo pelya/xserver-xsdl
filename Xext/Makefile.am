@@ -66,7 +66,7 @@ BUILTIN_SRCS += $(XINERAMA_SRCS)
 endif
 
 # Security extension: multi-level security to protect clients from each other
-XCSECURITY_SRCS = security.c
+XCSECURITY_SRCS = security.c securitysrv.h
 if XCSECURITY   
 BUILTIN_SRCS += $(XCSECURITY_SRCS)
 
