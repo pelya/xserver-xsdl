@@ -433,9 +433,6 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
             return BadImplementation;
         }
 
-	for (i = 1; i <= pi->nButtons; i++)
-	    pi->map[i] = i; 
-
         if ((*pi->driver->Init) (pi) != Success) {
             return !Success;
         }
@@ -1155,9 +1152,6 @@ KdParsePointer (char *arg)
     pi->transformCoordinates = !kdRawPointerCoordinates;
     pi->nButtons = 3;
     pi->inputClass = KD_MOUSE;
-
-    for (i = 0; i < KD_MAX_BUTTON; i++)
-        pi->map[i] = i + 1;
 
     if (!arg)
     {
@@ -1967,39 +1961,6 @@ KdEnqueueKeyboardEvent(KdKeyboardInfo   *ki,
  * passed off to MI for enqueueing.
  */
 
-static void
-KdMouseAccelerate (KdPointerInfo *pi, int *dx, int *dy)
-{
-    DeviceIntPtr device = pi->dixdev;
-    PtrCtrl *pCtrl = &device->ptrfeed->ctrl;
-    double  speed = sqrt (*dx * *dx + *dy * *dy);
-    double  accel;
-#ifdef QUADRATIC_ACCELERATION
-    double  m;
-
-    /*
-     * Ok, so we want it moving num/den times faster at threshold*2
-     *
-     * accel = m *threshold + b
-     * 1 = m * 0 + b	-> b = 1
-     *
-     * num/den = m * (threshold * 2) + 1
-     *
-     * num / den - 1 = m * threshold * 2
-     * (num / den - 1) / threshold * 2 = m
-     */
-    m = (((double) pCtrl->num / (double) pCtrl->den - 1.0) / 
-	 ((double) pCtrl->threshold * 2.0));
-    accel = m * speed + 1;
-#else
-    accel = 1.0;
-    if (speed > pCtrl->threshold)
-	accel = (double) pCtrl->num / pCtrl->den;
-#endif
-    *dx = accel * *dx;
-    *dy = accel * *dy;
-}
-
 /* FIXME do something a little more clever to deal with multiple axes here */
 void
 KdEnqueuePointerEvent(KdPointerInfo *pi, unsigned long flags, int rx, int ry,
@@ -2028,9 +1989,6 @@ KdEnqueuePointerEvent(KdPointerInfo *pi, unsigned long flags, int rx, int ry,
 	    x = rx;
 	    y = ry;
 	}
-        /* screw this, use the DIX's acceleration (stolen from XFree86)
-         * instead.
-         * KdMouseAccelerate (pi, &x, &y); */
     }
     else {
 	if (pi->transformCoordinates) {

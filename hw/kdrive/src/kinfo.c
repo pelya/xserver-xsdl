@@ -117,6 +117,7 @@ KdPointerInfo *
 KdNewPointer (void)
 {
     KdPointerInfo *pi;
+    int i;
 
     pi = (KdPointerInfo *)xcalloc(1, sizeof(KdPointerInfo));
     if (!pi)
@@ -130,6 +131,9 @@ KdNewPointer (void)
     pi->next = NULL;
     pi->options = NULL;
     pi->nAxes = 3;
+    pi->nButtons = KD_MAX_BUTTON;
+    for (i = 1; i < KD_MAX_BUTTON; i++)
+        pi->map[i] = i;
 
     return pi;
 }
