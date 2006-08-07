@@ -875,7 +875,7 @@ xxCopyPseudocolorRegion(ScreenPtr pScreen, RegionPtr pReg,
     register CARD16     *d;
     int w;
 
-    fbPrepareAccess((PixmapPtr)pScreen->devPrivate);
+    fbPrepareAccess((DrawablePtr)pScreen->devPrivate);
 
     dst_base = (CARD16*) ((PixmapPtr)pScreen->devPrivate)->devPrivate.ptr;
     dst_stride = (int)((PixmapPtr)pScreen->devPrivate)->devKind
