@@ -866,7 +866,6 @@ MouseInit (KdPointerInfo *pi)
     pi->nAxes = 3;
     pi->nButtons = 32;
     ephyrMouse = pi;
-    KdAddPointerDriver(&EphyrMouseDriver);
     return Success;
 }
 
