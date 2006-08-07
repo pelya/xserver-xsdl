@@ -639,7 +639,7 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     int i = 0, nevents = 0;
     Bool drag = xf86SendDragEvents(device);
     LocalDevicePtr local = (LocalDevicePtr) device->public.devicePrivate;
-    xEvent *xE = NULL;
+    xEvent *events = NULL;
     int *valuators = NULL;
     int flags = 0;
 
@@ -662,14 +662,15 @@ xf86PostMotionEvent(DeviceIntPtr	device,
 #endif
     }
 
-    nevents = GetPointerEvents(&xE, device, MotionNotify, 0,
+    nevents = GetPointerEvents(&events, device, MotionNotify, 0,
                                flags, num_valuators, valuators);
 
     for (i = 0; i < nevents; i++) {
-        if (xE->u.keyButtonPointer.time > xf86Info.lastEventTime)
-            xf86Info.lastEventTime = xE->u.keyButtonPointer.time;
-        mieqEnqueue(xE++);
+        if (events->u.keyButtonPointer.time > xf86Info.lastEventTime)
+            xf86Info.lastEventTime = events->u.keyButtonPointer.time;
+        mieqEnqueue(events + i);
     }
+    xfree(events);
     
 #if 0
     if (HAS_MOTION_HISTORY(local)) {
@@ -818,8 +819,9 @@ xf86PostButtonEvent(DeviceIntPtr	device,
     for (i = 0; i < nevents; i++) {
         if (events->u.keyButtonPointer.time > xf86Info.lastEventTime)
             xf86Info.lastEventTime = events->u.keyButtonPointer.time;
-        mieqEnqueue(events++);
+        mieqEnqueue(events + i);
     }
+    xfree(events);
 }
 
 _X_EXPORT void
@@ -862,8 +864,9 @@ xf86PostKeyEvent(DeviceIntPtr	device,
     for (i = 0; i < nevents; i++) {
         if (events->u.keyButtonPointer.time > xf86Info.lastEventTime)
             xf86Info.lastEventTime = events->u.keyButtonPointer.time;
-        mieqEnqueue(events++);
+        mieqEnqueue(events + i);
     }
+    xfree(events);
 }
 
 _X_EXPORT void
@@ -885,8 +888,9 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
     for (i = 0; i < nevents; i++) {
         if (events->u.keyButtonPointer.time > xf86Info.lastEventTime)
             xf86Info.lastEventTime = events->u.keyButtonPointer.time;
-        mieqEnqueue(events++);
+        mieqEnqueue(events + i);
     }
+    xfree(events);
 }
 
 /* 
