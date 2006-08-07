@@ -173,6 +173,10 @@ configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
                 return DBUS_HANDLER_RESULT_HANDLED;
             }
             ErrorF("pDev is %p\n", pDev);
+            /* Call PIE here so we don't try to dereference a device that's
+             * already been removed.  Technically there's still a small race
+             * here, so we should ensure that SIGIO is blocked. */
+            ProcessInputEvents();
             RemoveDevice(pDev);
             dbus_error_free(&error);
             return DBUS_HANDLER_RESULT_HANDLED;
