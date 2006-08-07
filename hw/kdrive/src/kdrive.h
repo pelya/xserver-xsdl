@@ -258,7 +258,7 @@ struct _KdPointerInfo {
     InputOption           *options;
     int                   inputClass;
 
-    CARD8                 map[KD_MAX_BUTTON];
+    CARD8                 map[KD_MAX_BUTTON + 1];
     int                   nButtons;
     int                   nAxes;
 
