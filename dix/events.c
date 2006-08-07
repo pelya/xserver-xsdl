@@ -4727,14 +4727,6 @@ int GetKeyboardValuatorEvents(xEvent **xE, DeviceIntPtr pDev, int type,
                                                KeyRelease, key_code,
                                                num_valuators, valuators);
     }
-    else if (type == KeyRelease &&
-             !((pDev->key->down[key_code >> 3] & (key_code & 7)) & 1)
-#ifdef XKB
-             && noXkbExtension
-#endif
-             ) {
-        return;
-    }
 
     ev = (xEvent *)xcalloc(sizeof(xEvent), numEvents);
     if (!ev)
