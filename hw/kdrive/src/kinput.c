@@ -1943,34 +1943,6 @@ KdEnqueueKeyboardEvent(KdKeyboardInfo   *ki,
 		type = KeyPress;
 	}
 	
-	/*
-	 * Check pressed keys which are already down
-	 */
-	if (IsKeyDown (ki, key_code) && type == KeyPress) {
-	    /*
-	     * Check auto repeat
-	     */
-	    if (!ctrl->autoRepeat || keyc->modifierMap[key_code] ||
-		!(ctrl->autoRepeats[key_code >> 3] & (1 << (key_code & 7))))
-		return;
-
-	    /*
-	     * X delivers press/release even for autorepeat
-	     */
-            nEvents = GetKeyboardEvents(&xE, ki->dixdev, KeyRelease, key_code);
-            for (i = 0; i < nEvents; i++)
-                KdQueueEvent(xE++);
-            nEvents = GetKeyboardEvents(&xE, ki->dixdev, KeyPress, key_code);
-            for (i = 0; i < nEvents; i++)
-                KdQueueEvent(xE++);
-	}
-	/*
-	 * Check released keys which are already up
-	 */
-	else if (!IsKeyDown (ki, key_code) && type == KeyRelease) {
-	    return;
-        }
-
         KdCheckSpecialKeys(ki, type, key_code);
         KdHandleKeyboardEvent(ki, type, key_code);
         nEvents = GetKeyboardEvents(&xE, ki->dixdev, type, key_code);

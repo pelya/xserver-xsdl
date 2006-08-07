@@ -4661,18 +4661,34 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
     }
 }
 
+/**
+ * Convenience wrapper around GetKeyboardValuatorEvents, that takes no
+ * valuators.
+ */
 int
 GetKeyboardEvents(xEvent **xE, DeviceIntPtr pDev, int type, int key_code) {
     return GetKeyboardValuatorEvents(xE, pDev, type, key_code, 0, NULL);
 }
 
+/**
+ * Returns a set of keyboard events for KeyPress/KeyRelease, optionally
+ * also with valuator events.  Handles Xi and XKB.
+ *
+ * xE will be set to an array of events, which must be freed by the user;
+ * the return value is the number of events in xE, which is not
+ * NULL-terminated.
+ *
+ * Note that this function recurses!  If called for non-XKB, a repeating
+ * key press will trigger a matching KeyRelease, as well as the
+ * KeyPresses.
+ */
 int GetKeyboardValuatorEvents(xEvent **xE, DeviceIntPtr pDev, int type,
                               int key_code, int num_valuators,
                               int *valuators) {
-    int numEvents = 0, ms = 0, first_valuator = 0;
+    int numEvents = 0, numRepeatEvents = 0, ms = 0, first_valuator = 0, i = 0;
     deviceKeyButtonPointer *kbp = NULL;
     deviceValuator *xv = NULL;
-    xEvent *ev = NULL;
+    xEvent *ev = NULL, *repeatEvents = NULL;
     KeyClassPtr ckeyc;
 #ifdef XKB
     xkbNewKeyboardNotify nkn;
@@ -4693,9 +4709,43 @@ int GetKeyboardValuatorEvents(xEvent **xE, DeviceIntPtr pDev, int type,
     if (num_valuators)
         numEvents += (num_valuators % 6) + 1;
 
+    /* Handle core repeating, via press/release/press/release.
+     * FIXME: In theory, if you're repeating with two keyboards,
+     *        you could get unbalanced events here. */
+    if (type == KeyPress &&
+        ((pDev->key->down[key_code >> 3] & (key_code & 7)) & 1)
+#ifdef XKB
+       && noXkbExtension
+#endif
+       ) {
+        if (!pDev->kbdfeed->ctrl.autoRepeat ||
+            pDev->key->modifierMap[key_code] ||
+            !(pDev->kbdfeed->ctrl.autoRepeats[key_code >> 3]
+                & (1 << (key_code & 7))))
+            return 0;
+        numEvents += GetKeyboardValuatorEvents(&repeatEvents, pDev,
+                                               KeyRelease, key_code,
+                                               num_valuators, valuators);
+    }
+    else if (type == KeyRelease &&
+             !((pDev->key->down[key_code >> 3] & (key_code & 7)) & 1)
+#ifdef XKB
+             && noXkbExtension
+#endif
+             ) {
+        return;
+    }
+
     ev = (xEvent *)xcalloc(sizeof(xEvent), numEvents);
     if (!ev)
         return 0;
+
+    if (repeatEvents) {
+        for (i = 0; i < numRepeatEvents; i++) {
+            ev = repeatEvents++;
+            ev++;
+        }
+    }
 
     *xE = ev;
     ms = GetTimeInMillis();
@@ -4791,7 +4841,7 @@ int GetKeyboardValuatorEvents(xEvent **xE, DeviceIntPtr pDev, int type,
     }
 
 #ifdef DEBUG
-    ErrorF("GKE: putting out %d events with detail %d\n", numEvents, key_code);
+    ErrorF("GKVE: putting out %d events with detail %d\n", numEvents, key_code);
 #endif
 
     return numEvents;
@@ -4855,6 +4905,13 @@ acceleratePointer(DeviceIntPtr pDev, int num_valuators, int *valuators)
     }
 }
 
+/**
+ * Generate a series of xEvents (returned in xE) representing pointer
+ * motion, or button presses.  Xi and XKB-aware.
+ *
+ * xE is not NULL-terminated; the return value is the number of events.
+ * The user is responsible for freeing these events.
+ */
 int
 GetPointerEvents(xEvent **xE, DeviceIntPtr pDev, int type, int buttons,
                  int flags, int num_valuators, int *valuators) {
@@ -4990,9 +5047,6 @@ GetPointerEvents(xEvent **xE, DeviceIntPtr pDev, int type, int buttons,
         kbp->detail = buttons;
     }
 
-    /* XXX: the spec says that Device{Key,Button}{Press,Release} events
-     * for relative devices shouldn't contain valuators since only the
-     * state field will have meaning, but I don't see why. */
     if (num_valuators > 2 && (type == MotionNotify ||
                               flags & POINTER_ABSOLUTE)) {
         kbp->deviceid |= MORE_EVENTS;
