@@ -234,7 +234,7 @@ typedef enum _kdPointerState {
     num_input_states
 } KdPointerState;
 
-#define KD_MAX_BUTTON  16
+#define KD_MAX_BUTTON  32
 
 #define KD_KEYBOARD 1
 #define KD_MOUSE 2
