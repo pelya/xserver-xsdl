@@ -58,14 +58,14 @@ InitInput (int argc, char **argv)
   if (!ki)
     FatalError("Couldn't create Xephyr keyboard\n");
   ki->driver = &EphyrKeyboardDriver;
-  ki->name = KdSaveString("Xephyr virtual keyboard");
+  KdAddKeyboardDriver(&EphyrKeyboardDriver);
   KdAddKeyboard(ki);
 
   pi = KdNewPointer();
   if (!pi)
     FatalError("Couldn't create Xephyr pointer\n");
   pi->driver = &EphyrMouseDriver;
-  pi->name = KdSaveString("Xephyr virtual mouse");
+  KdAddPointerDriver(&EphyrMouseDriver);
   KdAddPointer(pi);
 
   KdInitInput();

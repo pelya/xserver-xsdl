@@ -865,6 +865,7 @@ MouseInit (KdPointerInfo *pi)
     ((EphyrPointerPrivate *)pi->driverPrivate)->enabled = FALSE;
     pi->nAxes = 3;
     pi->nButtons = 32;
+    pi->name = KdSaveString("Xephyr virtual mouse");
     ephyrMouse = pi;
     return Success;
 }
@@ -917,6 +918,7 @@ EphyrKeyboardInit (KdKeyboardInfo *ki)
   ki->maxScanCode = ki->keySyms.maxKeyCode;
   ki->keySyms.mapWidth = ephyrKeySyms.mapWidth;
   ki->keySyms.map = ephyrKeySyms.map;
+  ki->name = KdSaveString("Xephyr virtual keyboard");
   ephyrKbd = ki;
   return Success;
 }
