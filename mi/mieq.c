@@ -51,7 +51,7 @@ in this Software without prior written authorization from The Open Group.
 #define QUEUE_SIZE  256
 
 typedef struct _Event {
-    xEvent          event[2];
+    xEvent          event[7];
     int             nevents;
     ScreenPtr	    pScreen;
     DeviceIntPtr    pDev;
@@ -101,6 +101,7 @@ mieqEnqueue (xEvent *e)
 
 #ifdef DEBUG
     ErrorF("mieqEnqueue: slamming an event on to the queue from %d\n", kbp->deviceid & DEVICE_BITS);
+    ErrorF("    type %d, detail %d\n", e->u.u.type, e->u.u.detail);
 #endif
 
     if (e->u.u.type == MotionNotify) {
@@ -122,9 +123,8 @@ mieqEnqueue (xEvent *e)
         /* We silently steal valuator events: just tack them on to the last
          * motion event they need to be attached to.  Sigh. */
         if (e->u.u.type == DeviceValuator) {
-            if (laste->nevents >= 6) {
+            if (laste->nevents > 6) {
                 ErrorF("mieqEnqueue: more than six valuator events; dropping.\n");
-                free(e);
                 return;
             }
             if (oldtail == miEventQueue.head || 
@@ -134,10 +134,9 @@ mieqEnqueue (xEvent *e)
                 ((lastkbp->deviceid & DEVICE_BITS) !=
                  (v->deviceid & DEVICE_BITS))) {
                 ErrorF("mieqEnequeue: out-of-order valuator event; dropping.\n");
-                free(e);
                 return;
             }
-            laste->event[laste->nevents++] = *e;
+            memcpy(&(laste->event[laste->nevents++]), e, sizeof(xEvent));
             return;
         }
         else if (e->u.u.type == DeviceMotionNotify) {
@@ -161,13 +160,12 @@ mieqEnqueue (xEvent *e)
     	/* Toss events which come in late */
     	if (newtail == miEventQueue.head) {
             ErrorF("tossed event which came in late\n");
-            free(e);
 	    return;
         }
 	miEventQueue.tail = newtail;
     }
 
-    miEventQueue.events[oldtail].event[0] = *e;
+    memcpy(&(miEventQueue.events[oldtail].event[0]), e, sizeof(xEvent));
     miEventQueue.events[oldtail].nevents = 1;
 
     /*
@@ -238,7 +236,5 @@ void mieqProcessInputEvents ()
 	    	++miEventQueue.head;
             (*e->pDev->public.processInputProc)(e->event, e->pDev, e->nevents);
 	}
-
-        free(e->event);
     }
 }
