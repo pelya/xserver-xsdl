@@ -5044,7 +5044,7 @@ GetPointerEvents(xEvent **xE, DeviceIntPtr pDev, int type, int buttons,
 #ifdef DEBUG
         ErrorF("GPE: detail is %d\n", buttons);
 #endif
-        kbp->detail = buttons;
+        kbp->detail = pDev->button->map[buttons];
     }
 
     if (num_valuators > 2 && (type == MotionNotify ||
