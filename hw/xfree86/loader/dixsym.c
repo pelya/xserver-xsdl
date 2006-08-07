@@ -244,7 +244,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMVAR(globalSerialNumber)
     SYMVAR(lastDeviceEventTime)
     SYMVAR(monitorResolution)
-    SYMVAR(permitOldBugs)
     SYMVAR(screenInfo)
     SYMVAR(serverClient)
     SYMVAR(serverGeneration)
