@@ -536,7 +536,7 @@ RemoveDevice(DeviceIntPtr dev)
     ErrorF("want to remove device %p, kb is %p, pointer is %p\n", dev, inputInfo.keyboard, inputInfo.pointer);
 #endif
 
-    if (!dev)
+    if (!dev || dev == inputInfo.keyboard || dev == inputInfo.pointer)
         return BadImplementation;
 
     prev = NULL;
@@ -549,13 +549,6 @@ RemoveDevice(DeviceIntPtr dev)
 		inputInfo.devices = next;
 	    else
 		prev->next = next;
-
-	    inputInfo.numDevices--;
-
-	    if (inputInfo.keyboard == tmp)
-	        inputInfo.keyboard = NULL;
-	    else if (inputInfo.pointer == tmp)
-	        inputInfo.pointer = NULL;
 
 	    ret = Success;
 	}
@@ -571,13 +564,6 @@ RemoveDevice(DeviceIntPtr dev)
 		inputInfo.off_devices = next;
 	    else
 		prev->next = next;
-
-	    inputInfo.numDevices--;
-
-	    if (inputInfo.keyboard == tmp)
-	        inputInfo.keyboard = NULL;
-	    else if (inputInfo.pointer == tmp)
-	        inputInfo.pointer = NULL;
 
             ret = Success;
 	}
