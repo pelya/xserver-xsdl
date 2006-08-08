@@ -4675,6 +4675,10 @@ GetKeyboardEvents(xEvent **xE, DeviceIntPtr pDev, int type, int key_code) {
  * the return value is the number of events in xE, which is not
  * NULL-terminated.
  *
+ * If pDev is set to send core events, then the keymap on the core
+ * keyboard will be pivoted to that of the new keyboard and the appropriate
+ * MapNotify events (both core and XKB) will be sent.
+ *
  * Note that this function recurses!  If called for non-XKB, a repeating
  * key press will trigger a matching KeyRelease, as well as the
  * KeyPresses.
@@ -4688,7 +4692,7 @@ int GetKeyboardValuatorEvents(xEvent **xE, DeviceIntPtr pDev, int type,
     xEvent *ev = NULL, *repeatEvents = NULL;
     KeyClassPtr ckeyc;
 #ifdef XKB
-    xkbNewKeyboardNotify nkn;
+    xkbMapNotify mn;
 #endif
 
     if (type != KeyPress && type != KeyRelease)
@@ -4798,27 +4802,36 @@ int GetKeyboardValuatorEvents(xEvent **xE, DeviceIntPtr pDev, int type,
             ckeyc->curKeySyms.maxKeyCode = pDev->key->curKeySyms.maxKeyCode;
             SetKeySymsMap(&ckeyc->curKeySyms, &pDev->key->curKeySyms);
 #ifdef XKB
-            if (!noXkbExtension) {
-                nkn.oldMinKeyCode = ckeyc->xkbInfo->desc->min_key_code;
-                nkn.oldMaxKeyCode = ckeyc->xkbInfo->desc->max_key_code;
-                nkn.deviceID = nkn.oldDeviceID = inputInfo.keyboard->id;
-                nkn.minKeyCode = pDev->key->xkbInfo->desc->min_key_code;
-                nkn.maxKeyCode = pDev->key->xkbInfo->desc->max_key_code;
-                nkn.requestMajor = XkbReqCode;
-                nkn.requestMinor = X_kbSetMap; /* XXX bare-faced lie */
-                nkn.changed = XkbAllNewKeyboardEventsMask;
-                /* Free the map we set up at DEVICE_INIT time, since it's
-                 * going to just quietly disappear.  Shameful hack. */
-                if (!inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr
-                    && ckeyc->xkbInfo)
+            if (!noXkbExtension && pDev->key->xkbInfo &&
+                pDev->key->xkbInfo->desc) {
+                mn.deviceID = inputInfo.keyboard->id;
+                mn.minKeyCode = pDev->key->xkbInfo->desc->min_key_code;
+                mn.maxKeyCode = pDev->key->xkbInfo->desc->max_key_code;
+                mn.firstType = 0;
+                mn.nTypes = pDev->key->xkbInfo->desc->map->num_types;
+                mn.firstKeySym = pDev->key->xkbInfo->desc->min_key_code;
+                mn.nKeySyms = XkbNumKeys(pDev->key->xkbInfo->desc);
+                mn.firstKeyAct = pDev->key->xkbInfo->desc->min_key_code;
+                mn.nKeyActs = XkbNumKeys(pDev->key->xkbInfo->desc);
+                /* Cargo-culted from ProcXkbGetMap. */
+                mn.firstKeyBehavior = pDev->key->xkbInfo->desc->min_key_code;
+                mn.nKeyBehaviors = XkbNumKeys(pDev->key->xkbInfo->desc);
+                mn.firstKeyExplicit = pDev->key->xkbInfo->desc->min_key_code;
+                mn.nKeyExplicit = XkbNumKeys(pDev->key->xkbInfo->desc);
+                mn.firstModMapKey = pDev->key->xkbInfo->desc->min_key_code;
+                mn.nModMapKeys = XkbNumKeys(pDev->key->xkbInfo->desc);
+                mn.firstVModMapKey = pDev->key->xkbInfo->desc->min_key_code;
+                mn.nVModMapKeys = XkbNumKeys(pDev->key->xkbInfo->desc);
+                mn.virtualMods = ~0; /* ??? */
+                mn.changed = XkbAllMapComponentsMask;
+                
+                /* If this is still the map we set at DEVICE_INIT, free it so
+                 * it doesn't just get lost.  (Shameful hack, sorry.) */
+                if (!inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr &&
+                    ckeyc->xkbInfo)
                     XkbFreeInfo(ckeyc->xkbInfo);
                 ckeyc->xkbInfo = pDev->key->xkbInfo;
-                /* FIXME OH MY GOD SO AWFUL let's hope nobody notices */
-                if (nkn.oldMinKeyCode == nkn.minKeyCode)
-                    nkn.oldMinKeyCode--;
-                if (nkn.oldMaxKeyCode == nkn.maxKeyCode)
-                    nkn.oldMaxKeyCode++;
-                XkbSendNewKeyboardNotify(inputInfo.keyboard, &nkn);
+                XkbSendMapNotify(inputInfo.keyboard, &mn);
             }
 #endif
             SendMappingNotify(MappingKeyboard, ckeyc->curKeySyms.minKeyCode,
