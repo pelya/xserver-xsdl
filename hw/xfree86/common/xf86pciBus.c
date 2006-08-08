@@ -54,7 +54,7 @@
 
 /* Bus-specific globals */
 Bool pciSlotClaimed = FALSE;
-struct pci_device ** xf86PciVideoInfo = NULL;	/* PCI probe for video hw */
+static struct pci_device ** xf86PciVideoInfo = NULL;	/* PCI probe for video hw */
 
 
 /* PCI classes that get included in xf86PciVideoInfo */
@@ -171,14 +171,14 @@ FindPCIVideoInfo(void)
 
     /* If we haven't found a primary device try a different heuristic */
     if (primaryBus.type == BUS_NONE && num) {
-	for (i = 0;  i < num;  i++) {
+	for (i = 0; i < num; i++) {
 	    uint16_t  command;
 
 	    info = xf86PciVideoInfo[i];
-	    pci_device_cfg_read_u16( info, & command, 4 );
+	    pci_device_cfg_read_u16(info, & command, 4);
 
-	    if ( (command & PCI_CMD_MEM_ENABLE) 
-		 && ((num == 1) || IS_VGA( info->device_class )) ) {
+	    if ((command & PCI_CMD_MEM_ENABLE) 
+		&& ((num == 1) || IS_VGA(info->device_class))) {
 		if (primaryBus.type == BUS_NONE) {
 		    primaryBus.type = BUS_PCI;
 		    primaryBus.id.pci.bus = PCI_MAKE_BUS( info->domain, info->bus );
@@ -206,7 +206,7 @@ FindPCIVideoInfo(void)
 	chipname = pci_device_get_device_name( info );
 
 	if ((!vendorname || !chipname) &&
-	    !PCIALWAYSPRINTCLASSES( info->device_class ))
+	    !PCIALWAYSPRINTCLASSES(info->device_class))
 	    continue;
 
 	if (xf86IsPrimaryPci(info))
@@ -270,21 +270,25 @@ FindPCIVideoInfo(void)
 static void
 pciIoAccessEnable(void* arg)
 {
+#if 0
 #ifdef DEBUG
     ErrorF("pciIoAccessEnable: 0x%05lx\n", *(PCITAG *)arg);
 #endif
     pArg->ctrl |= SETBITS | PCI_CMD_MASTER_ENABLE;
     pci_device_cfg_write_u32( pArg->dev, & pArg->ctrl, PCI_CMD_STAT_REG );
+#endif
 }
 
 static void
 pciIoAccessDisable(void* arg)
 {
+#if 0
 #ifdef DEBUG
     ErrorF("pciIoAccessDisable: 0x%05lx\n", *(PCITAG *)arg);
 #endif
     pArg->ctrl &= ~SETBITS;
     pci_device_cfg_write_u32( pArg->dev, & pArg->ctrl, PCI_CMD_STAT_REG );
+#endif
 }
 
 #undef SETBITS
@@ -292,21 +296,25 @@ pciIoAccessDisable(void* arg)
 static void
 pciIo_MemAccessEnable(void* arg)
 {
+#if 0
 #ifdef DEBUG
     ErrorF("pciIo_MemAccessEnable: 0x%05lx\n", *(PCITAG *)arg);
 #endif
     pArg->ctrl |= SETBITS | PCI_CMD_MASTER_ENABLE;
     pci_device_cfg_write_u32( pArg->dev, & pArg->ctrl, PCI_CMD_STAT_REG );
+#endif
 }
 
 static void
 pciIo_MemAccessDisable(void* arg)
 {
+#if 0
 #ifdef DEBUG
     ErrorF("pciIo_MemAccessDisable: 0x%05lx\n", *(PCITAG *)arg);
 #endif
     pArg->ctrl &= ~SETBITS;
     pci_device_cfg_write_u32( pArg->dev, & pArg->ctrl, PCI_CMD_STAT_REG );
+#endif
 }
 
 #undef SETBITS
@@ -314,21 +322,25 @@ pciIo_MemAccessDisable(void* arg)
 static void
 pciMemAccessEnable(void* arg)
 {
+#if 0
 #ifdef DEBUG
     ErrorF("pciMemAccessEnable: 0x%05lx\n", *(PCITAG *)arg);
 #endif
     pArg->ctrl |= SETBITS | PCI_CMD_MASTER_ENABLE;
     pci_device_cfg_write_u32( pArg->dev, & pArg->ctrl, PCI_CMD_STAT_REG );
+#endif
 }
 
 static void
 pciMemAccessDisable(void* arg)
 {
+#if 0
 #ifdef DEBUG
     ErrorF("pciMemAccessDisable: 0x%05lx\n", *(PCITAG *)arg);
 #endif
     pArg->ctrl &= ~SETBITS;
     pci_device_cfg_write_u32( pArg->dev, & pArg->ctrl, PCI_CMD_STAT_REG );
+#endif
 }
 #undef SETBITS
 #undef pArg
@@ -339,6 +351,7 @@ pciMemAccessDisable(void* arg)
 static void
 pciBusAccessEnable(BusAccPtr ptr)
 {
+#if 0
     struct pci_device * const dev = ptr->busdep.pci.dev;
     uint16_t ctrl;
 
@@ -351,12 +364,14 @@ pciBusAccessEnable(BusAccPtr ptr)
 	    ~(PCI_PCI_BRIDGE_MASTER_ABORT_EN | PCI_PCI_BRIDGE_SECONDARY_RESET);
 	pci_device_cfg_write_u16( dev, & ctrl, PCI_PCI_BRIDGE_CONTROL_REG );
     }
+#endif
 }
 
 /* move to OS layer */
 static void
 pciBusAccessDisable(BusAccPtr ptr)
 {
+#if 0
     struct pci_device * const dev = ptr->busdep.pci.dev;
     uint16_t ctrl;
 
@@ -368,6 +383,7 @@ pciBusAccessDisable(BusAccPtr ptr)
 	ctrl &= ~(MASKBITS | PCI_PCI_BRIDGE_SECONDARY_RESET);
 	pci_device_cfg_write_u16( dev, & ctrl, PCI_PCI_BRIDGE_CONTROL_REG );
     }
+#endif
 }
 #undef MASKBITS
 
@@ -375,6 +391,7 @@ pciBusAccessDisable(BusAccPtr ptr)
 static void
 pciDrvBusAccessEnable(BusAccPtr ptr)
 {
+#if 0
     int bus = ptr->busdep.pci.bus;
 
 #ifdef DEBUG
@@ -383,12 +400,14 @@ pciDrvBusAccessEnable(BusAccPtr ptr)
     (*pciBusInfo[bus]->funcs->pciControlBridge)(bus,
 						PCI_PCI_BRIDGE_VGA_EN,
 						PCI_PCI_BRIDGE_VGA_EN);
+#endif
 }
 
 /* move to OS layer */
 static void
 pciDrvBusAccessDisable(BusAccPtr ptr)
 {
+#if 0
     int bus = ptr->busdep.pci.bus;
 
 #ifdef DEBUG
@@ -396,12 +415,14 @@ pciDrvBusAccessDisable(BusAccPtr ptr)
 #endif
     (*pciBusInfo[bus]->funcs->pciControlBridge)(bus,
 						PCI_PCI_BRIDGE_VGA_EN, 0);
+#endif
 }
 
 
 static void
 pciSetBusAccess(BusAccPtr ptr)
 {
+#if 0
 #ifdef DEBUG
     ErrorF("pciSetBusAccess: route VGA to bus %d\n", ptr->busdep.pci.bus);
 #endif
@@ -424,12 +445,14 @@ pciSetBusAccess(BusAccPtr ptr)
 	}
 	ptr = ptr->primary;
     }
+#endif
 }
 
 /* move to OS layer */
 static void
 savePciState( struct pci_device * dev, pciSavePtr ptr )
 {
+#if 0
     int i;
 
     pci_device_cfg_read_u32( dev, & ptr->command, PCI_CMD_STAT_REG );
@@ -440,12 +463,14 @@ savePciState( struct pci_device * dev, pciSavePtr ptr )
     }
 
     pci_device_cfg_read_u32( dev, & ptr->biosBase, PCI_CMD_BIOS_REG );
+#endif
 }
 
 /* move to OS layer */
 static void
 restorePciState( struct pci_device * dev, pciSavePtr ptr)
 {
+#if 0
     int i;
     
     /* disable card before setting anything */
@@ -460,12 +485,14 @@ restorePciState( struct pci_device * dev, pciSavePtr ptr)
     }
 
     pci_device_cfg_write_u32( dev, & ptr->command, PCI_CMD_STAT_REG );
+#endif
 }
 
 /* move to OS layer */
 static void
 savePciBusState(BusAccPtr ptr)
 {
+#if 0
     struct pci_device * const dev = ptr->busdep.pci.dev;
     uint16_t temp;
 
@@ -477,6 +504,7 @@ savePciBusState(BusAccPtr ptr)
 	temp = ptr->busdep.pci.save.control & ~PCI_PCI_BRIDGE_MASTER_ABORT_EN;
 	pci_device_cfg_read_u16( dev, & temp, PCI_PCI_BRIDGE_CONTROL_REG );
     }
+#endif
 }
 
 /* move to OS layer */
@@ -484,6 +512,7 @@ savePciBusState(BusAccPtr ptr)
 static void
 restorePciBusState(BusAccPtr ptr)
 {
+#if 0
     struct pci_device * const dev = ptr->busdep.pci.dev;
     uint16_t ctrl;
 
@@ -495,6 +524,7 @@ restorePciBusState(BusAccPtr ptr)
 	ctrl |= ptr->busdep.pci.save.control & MASKBITS;
 	pci_device_cfg_write_u16( dev, & ctrl, PCI_PCI_BRIDGE_CONTROL_REG );
     }
+#endif
 }
 #undef MASKBITS
 
@@ -502,6 +532,7 @@ restorePciBusState(BusAccPtr ptr)
 static void
 savePciDrvBusState(BusAccPtr ptr)
 {
+#if 0
     int bus = ptr->busdep.pci.bus;
 
     ptr->busdep.pci.save.control =
@@ -510,24 +541,19 @@ savePciDrvBusState(BusAccPtr ptr)
     (*pciBusInfo[bus]->funcs->pciControlBridge)(bus,
 						PCI_PCI_BRIDGE_MASTER_ABORT_EN,
 						0);
+#endif
 }
 
 /* move to OS layer */
 static void
 restorePciDrvBusState(BusAccPtr ptr)
 {
+#if 0
     int bus = ptr->busdep.pci.bus;
 
     (*pciBusInfo[bus]->funcs->pciControlBridge)(bus, (CARD16)(-1),
 					        ptr->busdep.pci.save.control);
-}
-
-
-static void
-disablePciBios(struct pci_device * dev)
-{
-    pci_device_cfg_write_bits(dev, PCI_CMD_BIOS_ENABLE, 0,
-			       PCI_CMD_BIOS_REG);
+#endif
 }
 
 
@@ -688,6 +714,7 @@ initPciBusState(void)
 void 
 PciStateEnter(void)
 {
+#if 0
     unsigned i;
 
     if (xf86PciVideoInfo == NULL)
@@ -702,11 +729,13 @@ PciStateEnter(void)
 	    paccp->arg.ctrl = paccp->restore.command;
 	}
     }
+#endif
 }
 
 void
 PciBusStateEnter(void)
 {
+#if 0
     BusAccPtr pbap = xf86BusAccInfo;
 
     while (pbap) {
@@ -714,11 +743,13 @@ PciBusStateEnter(void)
 	    pbap->save_f(pbap);
 	pbap = pbap->next;
     }
+#endif
 }
 
 void 
 PciStateLeave(void)
 {
+#if 0
     unsigned i;
 
     if (xf86PciVideoInfo == NULL)
@@ -732,11 +763,13 @@ PciStateLeave(void)
 	    restorePciState(paccp->arg.dev, &paccp->save);
 	}
     }
+#endif
 }
 
 void
 PciBusStateLeave(void)
 {
+#if 0
     BusAccPtr pbap = xf86BusAccInfo;
 
     while (pbap) {
@@ -744,11 +777,13 @@ PciBusStateLeave(void)
 	    pbap->restore_f(pbap);
 	pbap = pbap->next;
     }
+#endif
 }
 
 void 
 DisablePciAccess(void)
 {
+#if 0
     unsigned i;
 
     if (xf86PciVideoInfo == NULL)
@@ -761,11 +796,13 @@ DisablePciAccess(void)
 	    pciIo_MemAccessDisable(paccp->io_memAccess.arg);
 	}
     }
+#endif
 }
 
 void
 DisablePciBusAccess(void)
 {
+#if 0
     BusAccPtr pbap = xf86BusAccInfo;
 
     while (pbap) {
@@ -775,6 +812,7 @@ DisablePciBusAccess(void)
 	    pbap->primary->current = NULL;
 	pbap = pbap->next;
     }
+#endif
 }
 
 /*
@@ -825,8 +863,6 @@ xf86ClaimPciSlot(struct pci_device * d, DriverPtr drvp,
 	    pbap = pbap->next;
 	}
 
-	/* in case bios is enabled disable it */
-	disablePciBios( d );
 	pciSlotClaimed = TRUE;
 
 	if (active) {
@@ -958,21 +994,12 @@ xf86GetPciInfoForEntity(int entityIndex)
 	return NULL;
 
     p = xf86Entities[entityIndex];
-    if (p->busType == BUS_PCI) {
-	const unsigned domain = PCI_DOM_FROM_BUS(p->pciBusId.bus);
-	const unsigned bus = PCI_BUS_NO_DOMAIN(p->pciBusId.bus);
-	struct pci_device ** ppPci;
-
-	for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
-	    if (domain == (*ppPci)->domain &&
-		bus == (*ppPci)->bus &&
-		p->pciBusId.device == (*ppPci)->dev &&
-		p->pciBusId.func == (*ppPci)->func) 
-	      return (*ppPci);
-	}
-    }
-
-    return NULL;
+    return (p->busType == BUS_PCI)
+      ? pci_device_find_by_slot(PCI_DOM_FROM_BUS(p->pciBusId.bus),
+				PCI_BUS_NO_DOMAIN(p->pciBusId.bus),
+				p->pciBusId.device,
+				p->pciBusId.func)
+      : NULL;
 }
 
 _X_EXPORT int
@@ -981,13 +1008,14 @@ xf86GetPciEntity(int bus, int dev, int func)
     int i;
     
     for (i = 0; i < xf86NumEntities; i++) {
-	EntityPtr p = xf86Entities[i];
-	if (p->busType != BUS_PCI) continue;
-	
-	if (p->pciBusId.bus == bus &&
-	    p->pciBusId.device == dev &&
-	    p->pciBusId.func == func) 
+	const EntityPtr p = xf86Entities[i];
+
+	if ((p->busType == BUS_PCI) &&
+	    (p->pciBusId.bus == bus) &&
+	    (p->pciBusId.device == dev) &&
+	    (p->pciBusId.func == func)) {
 	    return i;
+	}
     }
     return -1;
 }
@@ -1014,19 +1042,8 @@ xf86CheckPciMemBase( struct pci_device * pPci, memType base )
 _X_EXPORT Bool
 xf86CheckPciSlot( const struct pci_device * d )
 {
-    int i;
-    EntityPtr p;
-    const unsigned busnum = PCI_MAKE_BUS(d->domain, d->bus);
-
-    for (i = 0; i < xf86NumEntities; i++) {
-	p = xf86Entities[i];
-	/* Check if this PCI slot is taken */
-	if (p->busType == BUS_PCI && p->pciBusId.bus == busnum &&
-	    p->pciBusId.device == d->dev && p->pciBusId.func == d->func)
-	    return FALSE;
-    }
-    
-    return TRUE;
+    return (xf86GetPciEntity(PCI_MAKE_BUS(d->domain, d->bus),
+			     d->dev, d->func) == -1);
 }
 
 
