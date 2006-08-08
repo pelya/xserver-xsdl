@@ -362,19 +362,16 @@ xf86MapLegacyIO(struct pci_device *dev)
 }
 
 _X_EXPORT int
-xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
+xf86ReadLegacyVideoBIOS(PCITAG Tag, unsigned char *Buf)
 {
-    static unsigned long pagemask = 0;
+    const unsigned long pagemask = xf86getpagesize() - 1;
+    const ADDRESS Base = 0xC0000;
+    const int Len = 0x20000;
+    const ADDRESS MapBase = Base & ~pagemask;
+    unsigned long MapSize = ((Base + Len + pagemask) & ~pagemask) - MapBase;
     unsigned char *MappedAddr;
-    unsigned long MapSize;
-    ADDRESS MapBase;
     int i;
 
-    if (!pagemask) pagemask = xf86getpagesize() - 1;
-
-    /* Ensure page boundaries */
-    MapBase = Base & ~pagemask;
-    MapSize = ((Base + Len + pagemask) & ~pagemask) - MapBase;
 
     /*
      * VIDMEM_MMIO in order to get sparse mapping on sparse memory systems

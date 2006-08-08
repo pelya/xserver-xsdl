@@ -263,7 +263,6 @@ int	      xf86GetPciDomain(PCITAG tag);
 pointer	      xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 				  ADDRESS Base, unsigned long Size);
 IOADDRESS xf86MapLegacyIO(struct pci_device *dev);
-int	      xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len,
-				   unsigned char *Buf);
+int xf86ReadLegacyVideoBIOS(PCITAG Tag, unsigned char *Buf);
 
 #endif /* _XF86PCI_H */

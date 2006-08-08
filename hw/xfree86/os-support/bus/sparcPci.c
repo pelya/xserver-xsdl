@@ -649,7 +649,7 @@ xf86MapLegacyIO(int ScreenNum, int Flags, PCITAG Tag,
 }
 
 _X_EXPORT int
-xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
+xf86ReadLegacyVideoBIOS(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
 {
     unsigned char *ptr, *src;
     ADDRESS offset;

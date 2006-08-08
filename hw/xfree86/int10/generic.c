@@ -216,25 +216,14 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     setup_int_vect(pInt);
     set_return_trap(pInt);
 
-    /*
-     * Retrieve two segments:  one at V_BIOS, the other 64kB beyond the first.
-     * This'll catch any BIOS that might have been initialised before server
-     * entry.
+    /* Retrieve the entire legacy video BIOS segment.  This can be upto
+     * 128KiB.
      */
     vbiosMem = (char *)base + V_BIOS;
     (void)memset(vbiosMem, 0, 2 * V_BIOS_SIZE);
-    if (xf86ReadDomainMemory(pInt->Tag, V_BIOS, V_BIOS_SIZE, vbiosMem) <
-	V_BIOS_SIZE) {
+    if (xf86ReadLegacyVideoBIOS(pInt->Tag, vbiosMem) < V_BIOS_SIZE) {
 	xf86DrvMsg(screen, X_WARNING,
 		   "Unable to retrieve all of segment 0x0C0000.\n");
-    }
-    else if ((((unsigned char *)vbiosMem)[0] == 0x55) &&
-	     (((unsigned char *)vbiosMem)[1] == 0xAA) &&
-	     (((unsigned char *)vbiosMem)[2] > 0x80)) {
-	if (xf86ReadDomainMemory(pInt->Tag, V_BIOS + V_BIOS_SIZE, V_BIOS_SIZE,
-				 (unsigned char *)vbiosMem + V_BIOS_SIZE) < V_BIOS_SIZE)
-	  xf86DrvMsg(screen, X_WARNING,
-		     "Unable to retrieve all of segment 0x0D0000.\n");
     }
 
     /*

@@ -95,8 +95,6 @@ static const struct pci_id_match match_host_bridge = {
     0x0000ffff00, 0
 };
 
-/* from lnx_pci.c. */
-extern int lnxPciInit(void);
 
 void
 linuxPciInit(void)
@@ -358,19 +356,10 @@ linuxGetSizesStruct(const struct pci_device *dev)
 }
 
 static __inline__ unsigned long
-linuxGetIOSize(PCITAG Tag)
+linuxGetIOSize(const struct pci_device *dev)
 {
-    const struct pci_device * const dev = pci_device_find_by_slot(PCI_DOM_FROM_TAG(Tag),
-								 PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(Tag)),
-								 PCI_DEV_FROM_TAG(Tag),
-								 PCI_FUNC_FROM_TAG(Tag));
-    if (dev != NULL) {
-	const struct pciSizes * const sizes = linuxGetSizesStruct(dev);
-	return sizes->io_size;
-    } else {
-	/* Default to 64KB I/O. */
-	return (1U << 16);
-    }
+    const struct pciSizes * const sizes = linuxGetSizesStruct(dev);
+    return sizes->io_size;
 }
 
 _X_EXPORT int
@@ -387,7 +376,7 @@ xf86GetPciDomain(PCITAG Tag)
     if ((result = PCI_DOM_FROM_TAG(Tag)) != 0)
 	return result;
 
-    if ((fd = linuxPciOpenFile(Tag, FALSE)) < 0)
+    if ((fd = linuxPciOpenFile(dev, FALSE)) < 0)
 	return 0;
 
     if ((result = ioctl(fd, PCIIOC_CONTROLLER, 0)) < 0)
@@ -397,18 +386,18 @@ xf86GetPciDomain(PCITAG Tag)
 }
 
 static pointer
-linuxMapPci(int ScreenNum, int Flags, PCITAG Tag,
+linuxMapPci(int ScreenNum, int Flags, struct pci_device *dev,
 	    ADDRESS Base, unsigned long Size, int mmap_ioctl)
 {
+    /* Align to page boundary */
+    const ADDRESS realBase = Base & ~(getpagesize() - 1);
+    const ADDRESS Offset = Base - realBase;
+
     do {
-	struct pci_device *dev;
 	unsigned char *result;
-	ADDRESS realBase, Offset;
 	int fd, mmapflags, prot;
 
 	xf86InitVidMem();
-
-	dev = xf86GetPciHostConfigFromTag(Tag);
 
 	/* FIXME: What if dev == NULL? */
 
@@ -442,9 +431,6 @@ linuxMapPci(int ScreenNum, int Flags, PCITAG Tag,
 
 #endif /* ?__ia64__ */
 
-	/* Align to page boundary */
-	realBase = Base & ~(getpagesize() - 1);
-	Offset = Base - realBase;
 
 	if (Flags & VIDMEM_READONLY)
 	    prot = PROT_READ;
@@ -472,24 +458,18 @@ static pointer DomainMmappedIO[MAX_DOMAINS];
 static pointer DomainMmappedMem[MAX_DOMAINS];
 
 static int
-linuxOpenLegacy(PCITAG Tag, char *name)
-
+linuxOpenLegacy(struct pci_device *dev, char *name)
 {
 #define PREFIX "/sys/class/pci_bus/%04x:%02x/%s"
     char *path;
     int domain, bus;
     pciBusInfo_t *pBusInfo;
-    struct pci_device *dev;
     int fd;
 
     path = xalloc(strlen(PREFIX) + strlen(name));
     if (!path)
 	return -1;
 
-    dev = pci_device_find_by_slot(PCI_DOM_FROM_TAG(Tag),
-				  PCI_BUS_NO_DOM(PCI_BUS_FROM_TAG(Tag)),
-				  PCI_DEV_FROM_TAG(Tag),
-				  PCI_FUNC_FROM_TAG(Tag));
     while (dev != NULL) {
 	sprintf(path, PREFIX, dev->domain, dev->bus, name);
 	fd = open(path, O_RDWR);
@@ -524,20 +504,16 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 		    ADDRESS Base, unsigned long Size)
 {
     int domain = xf86GetPciDomain(Tag);
+    const struct pci_device *dev = xf86GetPciHostConfigFromTag(Tag);
     int fd;
 
     /*
      * We use /proc/bus/pci on non-legacy addresses or if the Linux sysfs
      * legacy_mem interface is unavailable.
      */
-    if (Base > 1024*1024)
-	return linuxMapPci(ScreenNum, Flags, Tag, Base, Size,
+    if ((Base > 1024*1024) || ((fd = linuxOpenLegacy(dev, "legacy_mem")) < 0))
+	return linuxMapPci(ScreenNum, Flags, dev, Base, Size,
 			   PCIIOC_MMAP_IS_MEM);
-
-    if ((fd = linuxOpenLegacy(Tag, "legacy_mem")) < 0)
-	return linuxMapPci(ScreenNum, Flags, Tag, Base, Size,
-			   PCIIOC_MMAP_IS_MEM);
-
 
     /* If we haven't already mapped this legacy space, try to. */
     if (!DomainMmappedMem[domain]) {
@@ -575,6 +551,7 @@ xf86MapLegacyIO(struct pci_device *dev)
     const PCITAG tag = PCI_MAKE_TAG(PCI_MAKE_BUS(dev->domain, dev->bus),
 				    dev->dev, dev->func);
     const int domain = xf86GetPciDomain(tag);
+    const struct pci_device *bridge = xf86GetPciHostConfigFromTag(Tag);
     int fd;
 
     if ((domain <= 0) || (domain >= MAX_DOMAINS))
@@ -584,8 +561,8 @@ xf86MapLegacyIO(struct pci_device *dev)
 	return (IOADDRESS)DomainMmappedIO[domain];
 
     /* Permanently map all of I/O space */
-    if ((fd = linuxOpenLegacy(tag, "legacy_io")) < 0) {
-	    DomainMmappedIO[domain] = linuxMapPci(-1, VIDMEM_MMIO, tag,
+    if ((fd = linuxOpenLegacy(bridge, "legacy_io")) < 0) {
+	    DomainMmappedIO[domain] = linuxMapPci(-1, VIDMEM_MMIO, bridge,
 						  0, linuxGetIOSize(tag),
 						  PCIIOC_MMAP_IS_IO);
 	    /* ia64 can't mmap legacy IO port space */
@@ -599,54 +576,36 @@ xf86MapLegacyIO(struct pci_device *dev)
     return (IOADDRESS)DomainMmappedIO[domain];
 }
 
-/*
- * xf86ReadDomainMemory - copy from domain memory into a caller supplied buffer
+/**
+ * Read legacy VGA video BIOS associated with specified domain.
+ * 
+ * Attempts to read up to 128KiB of legacy VGA video BIOS.
+ * 
+ * \return
+ * The number of bytes read on success or -1 on failure.
  */
 _X_EXPORT int
-xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
+xf86ReadLegacyVideoBIOS(PCITAG Tag, unsigned char *Buf)
 {
+    const ADDRESS Base = V_BIOS;
+    const int Len = V_BIOS_SIZE * 2;
+    const int pagemask = getpagesize() - 1;
+    const ADDRESS offset = Base & ~pagemask;
+    const unsigned long size = ((Base + Len + pagemask) & ~pagemask) - offset;
+    const struct pci_device * const dev = 
+      pci_device_find_by_slot(PCI_DOM_FROM_TAG(Tag),
+			      PCI_BUS_NO_DOM(PCI_BUS_FROM_TAG(Tag)),
+			      PCI_DEV_FROM_TAG(Tag),
+			      PCI_FUNC_FROM_TAG(Tag));
     unsigned char *ptr, *src;
-    ADDRESS offset;
-    unsigned long size;
-    int len, pagemask = getpagesize() - 1;
+    int len;
 
-    unsigned int i, dom, bus, dev, func;
-    unsigned int fd;
-    char file[256];
-    struct stat st;
 
-    dom  = PCI_DOM_FROM_TAG(Tag);
-    bus  = PCI_BUS_FROM_TAG(Tag);
-    dev  = PCI_DEV_FROM_TAG(Tag);
-    func = PCI_FUNC_FROM_TAG(Tag);
-    sprintf(file, "/sys/devices/pci%04x:%02x/%04x:%02x:%02x.%1x/rom",
-	    dom, bus, dom, bus, dev, func);
-
-    /*
-     * If the caller wants the ROM and the sysfs rom interface exists,
-     * try to use it instead of reading it from /proc/bus/pci.
+    /* Try to use the civilized PCI interface first.
      */
-    if (((Base & 0xfffff) == 0xC0000) && (stat(file, &st) == 0)) {
-        if ((fd = open(file, O_RDWR)))
-            Base = 0x0;
-
-	/* enable the ROM first */
-	write(fd, "1", 2);
-	lseek(fd, 0, SEEK_SET);
-
-        /* copy the ROM until we hit Len, EOF or read error */
-        for (i = 0; i < Len && read(fd, Buf, 1) > 0; Buf++, i++)
-            ;
-
-	write(fd, "0", 2);
-	close(fd);
-
-	return Len;
+    if (pci_device_read_rom(dev, Buf) == 0) {
+	return dev->rom_size;
     }
-
-    /* Ensure page boundaries */
-    offset = Base & ~pagemask;
-    size = ((Base + Len + pagemask) & ~pagemask) - offset;
 
     ptr = xf86MapDomainMemory(-1, VIDMEM_READONLY, Tag, offset, size);
 
@@ -655,8 +614,15 @@ xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
 
     /* Using memcpy() here can hang the system */
     src = ptr + (Base - offset);
-    for (len = Len;  len-- > 0;)
-	*Buf++ = *src++;
+    for (len = 0; len < V_BIOS_SIZE; len++) {
+	Buf[len] = src[len];
+    }
+
+    if ((buf[0] == 0x55) && (buf[1] == 0xAA) && (buf[2] > 0x80)) {
+	for ( /* empty */ ; len < (2 * V_BIOS_SIZE); len++) {
+	    Buf[len] = src[len];
+	}
+    }
 
     xf86UnMapVidMem(-1, ptr, size);
 

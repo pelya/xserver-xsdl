@@ -25,7 +25,7 @@
  *	xf86MapDomainMemory()  - Like xf86MapPciMem() but can handle
  *                               domain/host address translation
  *	xf86MapLegacyIO()      - Maps PCI I/O spaces
- *	xf86ReadDomainMemory() - Like xf86ReadPciBIOS() but can handle
+ *	xf86ReadLegacyVideoBIOS() - Like xf86ReadPciBIOS() but can handle
  *                               domain/host address translation
  *
  * The actual PCI backend driver is selected by the pciInit() function
@@ -282,20 +282,6 @@ pciTag(int busnum, int devnum, int funcnum)
 	return(PCI_MAKE_TAG(busnum,devnum,funcnum));
 }
 
-CARD32
-pciByteSwap(CARD32 u)
-{
-#if X_BYTE_ORDER == X_BIG_ENDIAN
-
-  return lswapl(u);
-
-#else /* !BIG_ENDIAN */
-
-  return(u);
-    
-#endif
-}
-
 ADDRESS
 pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS addr)
 {
@@ -347,24 +333,39 @@ xf86MapLegacyIO(struct pci_device *dev)
 }
 
 _X_EXPORT int
-xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
+xf86ReadLegacyVideoBIOS(PCITAG Tag, unsigned char *Buf)
 {
+    const unsigned Len = (2 * 0x10000);
+    ADDRESS Base = 0xC0000;
     int ret, length, rlength;
 
     /* Read in 64kB chunks */
     ret = 0;
-    while ((length = Len) > 0) {
-	if (length > 0x010000) length = 0x010000;
-	rlength = xf86ReadBIOS(Base, 0, Buf, length);
+
+    for (length = 0x10000; length > 0; /* empty */) {
+	rlength = xf86ReadBIOS(Base, 0, & Buf[ret], length);
 	if (rlength < 0) {
 	    ret = rlength;
 	    break;
 	}
+
 	ret += rlength;
-	if (rlength < length) break;
+	length -= rlength;
 	Base += rlength;
-	Buf += rlength;
-	Len -= rlength;
+    }
+
+    if ((Buf[0] == 0x55) && (Buf[1] == 0xAA) && (Buf[2] > 0x80)) {
+	for (length = 0x10000; length > 0; /* empty */) {
+	    rlength = xf86ReadBIOS(Base, 0, & Buf[ret], length);
+	    if (rlength < 0) {
+		ret = rlength;
+		break;
+	    }
+
+	    ret += rlength;
+	    length -= rlength;
+	    Base += rlength;
+	}
     }
 
     return ret;
