@@ -37,7 +37,7 @@
 #include <X11/Xaw/SimpleMenu.h>
 #include <X11/Xaw/SmeBSB.h>
 
-#define IS_KBDDRIV(X) ((strcasecmp((X),"kbd") == 0)
+#define IS_KBDDRIV(X) ((strcasecmp((X),"kbd") == 0))
 
 /*
  * Types

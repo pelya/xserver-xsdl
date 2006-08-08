@@ -46,7 +46,7 @@
 #include "xf86config.h"
 #include "loader.h"
 
-#define IS_KBDDRIV(X) ((strcmp((X),"kbd") == 0)
+#define IS_KBDDRIV(X) ((strcmp((X),"kbd") == 0))
 
 #ifndef PROJECT_ROOT
 #define PROJECT_ROOT "/usr"

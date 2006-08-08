@@ -66,7 +66,7 @@
 #define DefaultXFree86Dir	"/usr"
 #endif
 
-#define IS_KBDDRIV(S) ((strcasecmp((S),"kbd") == 0)
+#define IS_KBDDRIV(S) ((strcasecmp((S),"kbd") == 0))
 
 /*
  * Prototypes
