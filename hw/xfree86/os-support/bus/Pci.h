@@ -355,13 +355,10 @@ typedef struct pci_bus_info {
 #define PCI_CFG_MECH_OTHER   3 /* Something else */
 
 /* Generic PCI service functions and helpers */
-PCITAG        pciGenFindFirst(void);
-PCITAG        pciGenFindNext(void);
 CARD32        pciCfgMech1Read(PCITAG tag, int offset);
 void          pciCfgMech1Write(PCITAG tag, int offset, CARD32 val);
 void          pciCfgMech1SetBits(PCITAG tag, int offset, CARD32 mask,
 				 CARD32 val);
-CARD32        pciByteSwap(CARD32);
 ADDRESS       pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS);
 
 extern int    pciMaxBusNum;
