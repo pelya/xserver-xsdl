@@ -42,8 +42,6 @@ in this Software without prior written authorization from The Open Group.
 #include <X11/extensions/mitmiscstr.h>
 #include "modinit.h"
 
-extern Bool permitOldBugs;
-
 #if 0
 static unsigned char MITReqCode;
 #endif
@@ -90,12 +88,8 @@ ProcMITSetBugMode(client)
     REQUEST(xMITSetBugModeReq);
 
     REQUEST_SIZE_MATCH(xMITSetBugModeReq);
-    if ((stuff->onOff != xTrue) && (stuff->onOff != xFalse))
-    {
-	client->errorValue = stuff->onOff;
-	return BadValue;
-    }
-    permitOldBugs = stuff->onOff;
+    if (stuff->onOff != xFalse)
+        return BadRequest;
     return(client->noClientException);
 }
 
@@ -110,7 +104,7 @@ ProcMITGetBugMode(client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.onOff = permitOldBugs;
+    rep.onOff = FALSE;
     if (client->swapped) {
     	swaps(&rep.sequenceNumber, n);
     	swapl(&rep.length, n);

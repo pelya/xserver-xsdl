@@ -70,7 +70,6 @@ extern int limitStackSpace;
 #ifdef RLIMIT_NOFILE
 extern int limitNoFile;
 #endif
-extern Bool permitOldBugs;
 extern Bool defeatAccessControl;
 extern long maxBigRequestSize;
 extern Bool blackRoot;

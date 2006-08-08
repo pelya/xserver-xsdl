@@ -2093,7 +2093,7 @@ WhereDoIGoInTheStack(
 	else
 	    return NullWindow;
       case TopIf:
-	if ((!pWin->mapped || (pSib && !pSib->mapped)) && !permitOldBugs)
+	if ((!pWin->mapped || (pSib && !pSib->mapped)))
 	    return(pWin->nextSib);
 	else if (pSib)
 	{
@@ -2108,7 +2108,7 @@ WhereDoIGoInTheStack(
 	else
 	    return(pWin->nextSib);
       case BottomIf:
-	if ((!pWin->mapped || (pSib && !pSib->mapped)) && !permitOldBugs)
+	if ((!pWin->mapped || (pSib && !pSib->mapped)))
 	    return(pWin->nextSib);
 	else if (pSib)
 	{
@@ -2123,7 +2123,7 @@ WhereDoIGoInTheStack(
 	else
 	    return(pWin->nextSib);
       case Opposite:
-	if ((!pWin->mapped || (pSib && !pSib->mapped)) && !permitOldBugs)
+	if ((!pWin->mapped || (pSib && !pSib->mapped)))
 	    return(pWin->nextSib);
 	else if (pSib)
 	{
