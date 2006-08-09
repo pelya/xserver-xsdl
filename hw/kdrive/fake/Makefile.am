@@ -26,8 +26,3 @@ Xfake_LDADD = 						\
 	@KDRIVE_LIBS@					\
 	$(TSLIB_FLAG)                                   \
         @XSERVER_LIBS@
-
-Xfake_DEPENDENCIES =					\
-	libfake.a					\
-	@KDRIVE_LIBS@					
-

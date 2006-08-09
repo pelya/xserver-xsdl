@@ -30,7 +30,3 @@ Xvesa_LDADD = \
 	@KDRIVE_LIBS@                          \
 	$(TSLIB_FLAG)				\
 	@XSERVER_LIBS@
-
-Xvesa_DEPENDENCIES = \
-	libvesa.a    \
-	@KDRIVE_LIBS@

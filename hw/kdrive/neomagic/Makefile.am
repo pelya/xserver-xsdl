@@ -43,5 +43,3 @@ Xneomagic_LDADD = \
 	@KDRIVE_LIBS@               \
 	@XSERVER_LIBS@					\
 	$(TSLIB_FLAG)
-
-Xneomagic_DEPENDENCIES = $(NEOMAGIC_LIBS) @KDRIVE_LIBS@

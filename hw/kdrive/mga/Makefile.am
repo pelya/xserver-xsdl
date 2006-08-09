@@ -31,5 +31,3 @@ Xmga_LDADD = \
 	@KDRIVE_LIBS@                                  \
 	@XSERVER_LIBS@					\
 	$(TSLIB_FLAG)
-
-Xmga_DEPENDENCIES = $(MGA_LIBS) @KDRIVE_LIBS@

@@ -29,5 +29,3 @@ Xr128_LDADD = \
 	@KDRIVE_LIBS@                          \
 	@XSERVER_LIBS@					\
 	$(TSLIB_FLAG)
-
-Xr128_DEPENDENCIES = $(R128_LIBS) @KDRIVE_LIBS@

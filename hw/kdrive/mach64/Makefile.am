@@ -32,6 +32,3 @@ Xmach64_LDADD = 					\
 	@KDRIVE_LIBS@					\
 	@XSERVER_LIBS@					\
 	$(TSLIB_FLAG)
-
-
-Xmach64_DEPENDENCIES = $(MACH64_LIBS) @KDRIVE_LIBS@

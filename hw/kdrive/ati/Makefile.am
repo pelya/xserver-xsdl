@@ -67,6 +67,3 @@ Xati_LDADD = \
 	@KDRIVE_LIBS@			\
 	@XSERVER_LIBS@			\
 	$(TSLIB_FLAG)
-
-
-Xati_DEPENDENCIES = $(ATI_LIBS)
