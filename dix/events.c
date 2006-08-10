@@ -4737,20 +4737,22 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
      * FIXME: In theory, if you're repeating with two keyboards,
      *        you could get unbalanced events here. */
     if (type == KeyPress &&
-        ((pDev->key->down[key_code >> 3] & (key_code & 7)) & 1)
-#ifdef XKB
-       && noXkbExtension
-#endif
-       ) {
+        ((pDev->key->down[key_code >> 3] & (key_code & 7)) & 1)) {
         if (!pDev->kbdfeed->ctrl.autoRepeat ||
             pDev->key->modifierMap[key_code] ||
             !(pDev->kbdfeed->ctrl.autoRepeats[key_code >> 3]
                 & (1 << (key_code & 7))))
             return 0;
-        numEvents += GetKeyboardValuatorEvents(events, pDev,
-                                               KeyRelease, key_code,
-                                               num_valuators, valuators);
-        events += numEvents;
+
+#ifdef XKB
+        if (noXkbExtension)
+#endif
+        {
+            numEvents += GetKeyboardValuatorEvents(events, pDev,
+                                                   KeyRelease, key_code,
+                                                   num_valuators, valuators);
+            events += numEvents;
+        }
     }
 
     ms = GetTimeInMillis();
