@@ -270,6 +270,7 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
          * ... yeah.
          */
         pDev->key->xkbInfo = NULL;
+        pDev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
         break;
 
     default:
@@ -296,6 +297,10 @@ CorePointerProc(DeviceIntPtr pDev, int what)
         pDev->valuator->lastx = pDev->valuator->axisVal[0];
         pDev->valuator->axisVal[1] = screenInfo.screens[0]->height / 2;
         pDev->valuator->lasty = pDev->valuator->axisVal[1];
+        break;
+
+    case DEVICE_CLOSE:
+        pDev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
         break;
 
     default:
