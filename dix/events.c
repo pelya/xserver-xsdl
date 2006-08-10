@@ -4672,7 +4672,14 @@ int
 GetMaximumEventsNum() {
     /* Two base events -- core and device, plus valuator events.  Multiply
      * by two if we're doing key repeats. */
-    return 2 * (2 + MAX_VALUATOR_EVENTS);
+    int ret = 2 + MAX_VALUATOR_EVENTS;
+
+#ifdef XKB
+    if (noXkbExtension)
+#endif
+        ret *= 2;
+
+    return ret;
 }
 
 /**
