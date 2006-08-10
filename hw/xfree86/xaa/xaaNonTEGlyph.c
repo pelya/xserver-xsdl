@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaNonTEGlyph.c,v 1.4 1998/09/13 05:23:55 dawes Exp $ */
 
 
 #ifdef HAVE_XORG_CONFIG_H

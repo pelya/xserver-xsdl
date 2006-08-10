@@ -1,4 +1,3 @@
-/* $Xorg: PsFonts.c,v 1.6 2001/03/06 16:30:15 pookie Exp $ */
 /*
 
 Copyright 1996, 1998  The Open Group

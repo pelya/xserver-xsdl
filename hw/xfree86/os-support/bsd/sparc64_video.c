@@ -1,4 +1,3 @@
-/* $XFree86: sparc64_video.c,v 1.2 2003/03/14 13:46:04 tsi Exp $ */
 /*
  * Copyright 1992 by Rich Murphey <Rich@Rice.edu>
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>

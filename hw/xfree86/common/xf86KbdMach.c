@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86KbdMach.c,v 3.7.4.2 1998/06/04 17:35:20 dawes Exp $ */
 /*
  *****************************************************************************
  * HISTORY

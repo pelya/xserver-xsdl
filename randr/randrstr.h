@@ -1,5 +1,4 @@
 /*
- * $XFree86: xc/programs/Xserver/randr/randrstr.h,v 1.5 2002/09/29 23:39:45 keithp Exp $
  *
  * Copyright © 2000 Compaq Computer Corporation
  *

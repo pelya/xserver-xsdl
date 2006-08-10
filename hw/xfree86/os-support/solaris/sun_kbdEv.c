@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_kbdEv.c,v 1.5 2003/08/26 19:00:36 tsi Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany.
  * Copyright 1993 by David Dawes <dawes@xfree86.org>
@@ -23,7 +22,6 @@
  */
 
 /* [JCH-96/01/21] Extended std reverse map to four buttons. */
-/* $XdotOrg: xserver/xorg/hw/xfree86/os-support/solaris/sun_kbdEv.c,v 1.10 2005/12/12 23:33:55 alanc Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

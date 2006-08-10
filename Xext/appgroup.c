@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xext/appgroup.c,v 1.10tsi Exp $ */
 /*
 Copyright 1996, 1998, 2001  The Open Group
 
@@ -24,7 +23,6 @@ not be used in advertising or otherwise to promote the sale, use or
 other dealings in this Software without prior written authorization
 from The Open Group.
 */
-/* $Xorg: appgroup.c,v 1.6 2001/02/09 02:04:32 xorgcvs Exp $ */
 
 #define NEED_REPLIES
 #define NEED_EVENTS

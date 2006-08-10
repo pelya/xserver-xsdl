@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxscreens.c,v 1.6 2001/03/21 16:29:36 dawes Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -47,13 +46,6 @@
 #undef Xfree
 
 #include "glxserver.h"
-
-#ifdef IN_MODULE
-#include <xf86_ansic.h>
-#else
-#include <string.h>
-#include <signal.h>
-#endif
 
 #include <windowstr.h>
 

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/dix/atom.c,v 3.3 2001/12/14 19:59:29 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -46,7 +45,6 @@ SOFTWARE.
 
 ******************************************************************/
 
-/* $Xorg: atom.c,v 1.4 2001/02/09 02:04:39 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -54,6 +52,8 @@ SOFTWARE.
 
 #include <X11/X.h>
 #include <X11/Xatom.h>
+#include <stdio.h>
+#include <string.h>
 #include "misc.h"
 #include "resource.h"
 #include "dix.h"

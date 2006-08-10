@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf86config/xf86config.c,v 3.69 2003/02/20 04:05:15 dawes Exp $ */
 
 /*
  * This is a configuration program that will create a base XF86Config
@@ -93,7 +92,6 @@
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
 /* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/utils/xorgconfig/xorgconfig.c,v 1.20 2006/04/18 17:28:44 spyderous Exp $ */
 
 #ifdef HAVE_CONFIG_H
 # include "xorg-server.h"

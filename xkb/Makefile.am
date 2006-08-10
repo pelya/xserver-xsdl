@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libxkb.la libxkbstubs.la
 
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@ \
+AM_CFLAGS = $(DIX_CFLAGS) \
 	-DHAVE_XKB_CONFIG_H
 
 DDX_SRCS = \
@@ -30,8 +30,10 @@ DIX_SRCS = \
 XKBFILE_SRCS = \
         maprules.c \
         xkmread.c \
+        xkbtext.c \
         xkbfmisc.c \
-        xkberrs.c
+        xkberrs.c \
+        xkbout.c
 
 X11_SRCS = \
         XKBMisc.c \

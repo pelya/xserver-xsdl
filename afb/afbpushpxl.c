@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/afb/afbpushpxl.c,v 3.1 1998/03/20 21:04:56 hohndel Exp $ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium
@@ -46,7 +45,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XConsortium: afbpushpxl.c,v 5.6 94/04/17 20:28:31 dpw Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

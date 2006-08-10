@@ -1,4 +1,3 @@
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/quartzCommon.h,v 1.3 2004/07/30 19:12:17 torrey Exp $ */
 /*
  * quartzCommon.h
  *
@@ -32,7 +31,6 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzCommon.h,v 1.15 2004/06/08 22:58:10 torrey Exp $ */
 
 #ifndef _QUARTZCOMMON_H
 #define _QUARTZCOMMON_H

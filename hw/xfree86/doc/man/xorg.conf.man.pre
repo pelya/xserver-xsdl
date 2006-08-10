@@ -602,6 +602,9 @@ the keymap for a mapping to the
 .B Terminate
 action and, if found, use XKEYBOARD for processing actions, otherwise
 the builtin handler will be used.
+.TP 7
+.BI "Option \*qAIGLX\*q \*q" boolean \*q
+enable or disable AIGLX. AIGLX is enabled by default.
 .SH MODULE SECTION
 The
 .B Module

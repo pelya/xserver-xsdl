@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/libc_wrapper.c,v 1.102 2003/11/19 03:52:58 dawes Exp $ */
 /*
  * Copyright 1997-2003 by The XFree86 Project, Inc.
  *
@@ -89,8 +88,8 @@ extern int mmapFd;
 #include <stdlib.h>
 #endif
 
-#define NEED_XF86_TYPES
-#define NEED_XF86_PROTOTYPES
+#define NEED_XF86_TYPES 1
+#define NEED_XF86_PROTOTYPES 1
 #define DONT_DEFINE_WRAPPERS
 #include "xf86_ansic.h"
 

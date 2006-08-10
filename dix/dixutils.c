@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/dix/dixutils.c,v 3.13 2003/01/12 02:44:26 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -82,7 +81,6 @@ Author:  Adobe Systems Incorporated
 
 */
 
-/* $Xorg: dixutils.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

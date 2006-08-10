@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxutil.h,v 1.3 2001/03/21 16:29:37 dawes Exp $ */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -58,11 +57,13 @@ extern GLboolean __glXResizeDrawableBuffers(__GLXdrawable *glxPriv);
 extern void __glXRefDrawable(__GLXdrawable *glxPriv);
 extern void __glXUnrefDrawable(__GLXdrawable *glxPriv);
 
-extern __GLXdrawable *__glXCreateDrawable(__GLXcontext *ctx,
-					  DrawablePtr pDraw, 
-					  XID glxpixmapId);
-extern GLboolean __glXDrawableInit(__GLXdrawable *drawable, __GLXcontext *ctx,
-				   DrawablePtr pDraw, XID drawID);
+extern __GLXdrawable *__glXCreateDrawable(__GLXscreen *screen,
+					  DrawablePtr pDraw, XID drawId,
+					  __GLcontextModes *modes);
+extern GLboolean __glXDrawableInit(__GLXdrawable *drawable,
+				   __GLXscreen *screen,
+				   DrawablePtr pDraw, XID drawID,
+				   __GLcontextModes *modes);
 extern GLboolean __glXDestroyDrawable(__GLXdrawable *glxPriv);
 extern __GLXdrawable *__glXFindDrawable(XID glxpixmapId);
 extern __GLXdrawable *__glXGetDrawable(__GLXcontext *ctx,

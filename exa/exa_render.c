@@ -282,8 +282,12 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 	return -1;
     }
 
-    exaGetPixelFromRGBA(&pixel, red, green, blue, alpha,
-			pDst->format);
+    if (!exaGetPixelFromRGBA(&pixel, red, green, blue, alpha,
+			pDst->format))
+    {
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
+	return -1;
+    }
 
     if (!(*pExaScr->info->PrepareSolid) (pDstPix, GXcopy, 0xffffffff, pixel))
     {
@@ -531,7 +535,8 @@ exaComposite(CARD8	op,
 	if (op == PictOpSrc)
 	{
 	    if (pSrc->pDrawable->width == 1 &&
-		pSrc->pDrawable->height == 1 && pSrc->repeat)
+		pSrc->pDrawable->height == 1 && pSrc->repeat &&
+		pSrc->repeatType == RepeatNormal)
 	    {
 		ret = exaTryDriverSolidFill(pSrc, pDst, xSrc, ySrc, xDst, yDst,
 					    width, height);
@@ -571,6 +576,8 @@ exaComposite(CARD8	op,
 	    pMask->repeat = 0;
 
     if (pExaScr->info->PrepareComposite &&
+	(!pSrc->repeat || pSrc->repeat == RepeatNormal) &&
+	(!pMask || !pMask->repeat || pMask->repeat == RepeatNormal) &&
 	!pSrc->alphaMap && (!pMask || !pMask->alphaMap) && !pDst->alphaMap)
     {
 	ret = exaTryDriverComposite(op, pSrc, pMask, pDst, xSrc, ySrc, xMask,

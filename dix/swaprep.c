@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/dix/swaprep.c,v 3.7 2001/12/14 19:59:33 dawes Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -46,7 +45,6 @@ SOFTWARE.
 
 ********************************************************/
 
-/* $Xorg: swaprep.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

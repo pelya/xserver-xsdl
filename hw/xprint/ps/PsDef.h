@@ -1,4 +1,3 @@
-/* $Xorg: PsDef.h,v 1.4 2001/02/09 02:04:36 xorgcvs Exp $ */
 /*
 
 Copyright 1996, 1998  The Open Group

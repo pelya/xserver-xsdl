@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libdix.la libxpstubs.la
 
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@ \
+AM_CFLAGS = $(DIX_CFLAGS) \
 	-DVENDOR_STRING=\""@VENDOR_STRING@"\" \
 	-DVENDOR_RELEASE="@VENDOR_RELEASE@"
 
@@ -29,7 +29,8 @@ libdix_la_SOURCES = 	\
 	swaprep.c	\
 	swapreq.c	\
 	tables.c	\
-	window.c
+	window.c	\
+	strcasecmp.c
 
 libxpstubs_la_SOURCES =	\
 	xpstubs.c

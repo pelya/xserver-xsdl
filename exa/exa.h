@@ -36,6 +36,7 @@
 #include "windowstr.h"
 #include "gcstruct.h"
 #include "picturestr.h"
+#include "fb.h"
 
 #define EXA_VERSION_MAJOR   2
 #define EXA_VERSION_MINOR   0
@@ -714,5 +715,13 @@ exaGetPixmapSize(PixmapPtr pPix);
 
 void
 exaEnableDisableFBAccess (int index, Bool enable);
+
+/**
+ * Returns TRUE if the given planemask covers all the significant bits in the
+ * pixel values for pDrawable.
+ */
+#define EXA_PM_IS_SOLID(_pDrawable, _pm) \
+	(((_pm) & FbFullMask((_pDrawable)->depth)) == \
+	 FbFullMask((_pDrawable)->depth))
 
 #endif /* EXA_H */

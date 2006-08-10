@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86OSmouse.h,v 1.24 2003/11/03 05:11:51 tsi Exp $ */
 /*
  * Copyright (c) 1999-2003 by The XFree86 Project, Inc.
  *

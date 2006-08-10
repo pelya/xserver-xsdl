@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86OSKbd.h,v 1.5tsi Exp $ */
 /*
  * Copyright (c) 2002-2003 by The XFree86 Project, Inc.
  *

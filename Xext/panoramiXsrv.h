@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xext/panoramiXsrv.h,v 1.8 2001/08/01 00:44:44 tsi Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

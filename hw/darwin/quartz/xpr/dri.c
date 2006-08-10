@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/dri/dri.c,v 1.34 2001/12/10 19:07:19 dawes Exp $ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.
@@ -35,13 +34,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
 
-#ifdef XFree86LOADER
-#include "xf86.h"
-#include "xf86_ansic.h"
-#else
 #include <sys/time.h>
 #include <unistd.h>
-#endif
 
 #define NEED_REPLIES
 #define NEED_EVENTS

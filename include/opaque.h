@@ -1,4 +1,3 @@
-/* $Xorg: opaque.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 /*
 
 Copyright 1987, 1998  The Open Group
@@ -26,7 +25,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/include/opaque.h,v 1.13 2003/07/24 13:50:25 eich Exp $ */
 
 #ifndef OPAQUE_H
 #define OPAQUE_H
@@ -72,7 +70,6 @@ extern int limitStackSpace;
 #ifdef RLIMIT_NOFILE
 extern int limitNoFile;
 #endif
-extern Bool permitOldBugs;
 extern Bool defeatAccessControl;
 extern long maxBigRequestSize;
 extern Bool blackRoot;

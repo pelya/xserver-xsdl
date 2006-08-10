@@ -37,6 +37,7 @@
 #include <dmx-config.h>
 #endif
 
+#include <assert.h>
 #include "dmx.h"
 #include "glxserver.h"
 #include "glxutil.h"

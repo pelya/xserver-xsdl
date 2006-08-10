@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86.h,v 3.173 2004/01/27 01:31:44 dawes Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -53,7 +52,6 @@ extern Bool xf86DoConfigurePass1;
 extern int xf86ScreenIndex;		/* Index into pScreen.devPrivates */
 extern int xf86CreateRootWindowIndex;	/* Index into pScreen.devPrivates */
 extern int xf86PixmapIndex;
-extern Bool xf86ResAccessEnter;
 extern ScrnInfoPtr *xf86Screens;	/* List of pointers to ScrnInfoRecs */
 extern const unsigned char byte_reversed[256];
 extern ScrnInfoPtr xf86CurrentScreen;
@@ -166,9 +164,6 @@ void xf86EnablePciBusMaster(pciVideoPtr pPci, Bool enable);
 #endif
 void xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg);
 Bool xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func);
-#ifdef async
-Bool xf86QueueAsyncEvent(void (*func)(pointer),pointer arg);
-#endif
 
 int xf86GetLastScrnFlag(int entityIndex);
 void xf86SetLastScrnFlag(int entityIndex, int scrnIndex);
@@ -198,6 +193,10 @@ Bool xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode);
 void *xf86GetPointerScreenFuncs(void);
 void xf86InitOrigins(void);
 void xf86ReconfigureLayout(void);
+
+/* xf86cvt.c */
+DisplayModePtr xf86CVTMode(int HDisplay, int VDisplay, float VRefresh,
+                           Bool Reduced, Bool Interlaced);
 
 /* xf86DPMS.c */
 
@@ -354,10 +353,8 @@ int  xf86RegisterRootWindowProperty(int ScrnIndex, Atom	property, Atom type,
 				    pointer value);
 Bool xf86IsUnblank(int mode);
 
-#ifdef XFree86LOADER
 void xf86AddModuleInfo(ModuleInfoPtr info, pointer module);
 void xf86DeleteModuleInfo(int idx);
-#endif
 
 /* xf86Debug.c */
 #ifdef BUILDDEBUG

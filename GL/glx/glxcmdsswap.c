@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxcmdsswap.c,v 1.10 2004/01/28 18:11:50 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -315,6 +314,68 @@ int __glXSwapDestroyGLXPixmap(__GLXclientState *cl, GLbyte *pc)
     return __glXDestroyGLXPixmap(cl, pc);
 }
 
+int __glXSwapDestroyPixmap(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXDestroyGLXPixmapReq *req = (xGLXDestroyGLXPixmapReq *) pc;
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    __GLX_SWAP_SHORT(&req->length);
+    __GLX_SWAP_INT(&req->glxpixmap);
+
+    return __glXDestroyGLXPixmap(cl, pc);
+}
+
+int __glXSwapQueryContext(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXQueryContextReq *req = (xGLXQueryContextReq *) pc;    
+
+    (void) req;
+
+    return BadRequest;    
+}
+
+int __glXSwapCreatePbuffer(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreatePbufferReq *req = (xGLXCreatePbufferReq *) pc;    
+
+    (void) req;
+
+    return BadRequest;    
+}
+
+int __glXSwapDestroyPbuffer(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXDestroyPbufferReq *req = (xGLXDestroyPbufferReq *) req;
+
+    return BadRequest;
+}
+
+int __glXSwapChangeDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXChangeDrawableAttributesReq *req =
+	(xGLXChangeDrawableAttributesReq *) req;
+
+    return BadRequest;
+}
+
+int __glXSwapCreateWindow(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreateWindowReq *req = (xGLXCreateWindowReq *) pc;
+
+    (void) req;
+
+    return BadRequest;
+}
+
+int __glXSwapDestroyWindow(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXDestroyWindowReq *req = (xGLXDestroyWindowReq *) pc;
+
+    (void) req;
+
+    return BadRequest;
+}
+
 int __glXSwapSwapBuffers(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXSwapBuffersReq *req = (xGLXSwapBuffersReq *) pc;
@@ -432,6 +493,31 @@ int __glXSwapReleaseTexImageEXT(__GLXclientState *cl, GLbyte *pc)
     return __glXReleaseTexImageEXT(cl, (GLbyte *)pc);
 }
 
+int __glXSwapCopySubBufferMESA(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq *req = (xGLXVendorPrivateReq *) pc;
+    GLXDrawable		 *drawId;
+    int			 *buffer;
+
+    (void) drawId;
+    (void) buffer;
+
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+
+    __GLX_SWAP_SHORT(&req->length);
+    __GLX_SWAP_INT(&req->contextTag);
+    __GLX_SWAP_INT(pc);
+    __GLX_SWAP_INT(pc + 4);
+    __GLX_SWAP_INT(pc + 8);
+    __GLX_SWAP_INT(pc + 12);
+    __GLX_SWAP_INT(pc + 16);
+
+    return __glXCopySubBufferMESA(cl, pc);
+
+}
+
 int __glXSwapGetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXVendorPrivateWithReplyReq *req = (xGLXVendorPrivateWithReplyReq *)pc;
@@ -444,7 +530,19 @@ int __glXSwapGetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc)
     __GLX_SWAP_INT(&req->contextTag);
     __GLX_SWAP_INT(data);
 
-    return __glXGetDrawableAttributesSGIX(cl, (GLbyte *)pc);
+    return __glXGetDrawableAttributesSGIX(cl, pc);
+}
+
+int __glXSwapGetDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXGetDrawableAttributesReq *req = (xGLXGetDrawableAttributesReq *)pc;
+    
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    __GLX_SWAP_SHORT(&req->length);
+    __GLX_SWAP_INT(&req->drawable);
+
+    return __glXGetDrawableAttributes(cl, pc);
 }
 
 
@@ -600,12 +698,12 @@ int __glXSwapRender(__GLXclientState *cl, GLbyte *pc)
 #endif /* __GLX_MAX_RENDER_OPCODE_EXT > __GLX_MIN_RENDER_OPCODE_EXT */
 	} else {
 	    client->errorValue = commandsDone;
-	    return __glXBadRenderRequest;
+	    return __glXError(GLXBadRenderRequest);
 	}
         if (!entry->bytes) {
             /* unused opcode */
 	    client->errorValue = commandsDone;
-            return __glXBadRenderRequest;
+            return __glXError(GLXBadRenderRequest);
         }
         if (entry->varsize) {
             /* variable size command */
@@ -698,7 +796,7 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 	*/
 	if (req->requestNumber != 1) {
 	    client->errorValue = req->requestNumber;
-	    return __glXBadLargeRequest;
+	    return __glXError(GLXBadLargeRequest);
 	}
 	hdr = (__GLXrenderLargeHeader *) pc;
 	__GLX_SWAP_INT(&hdr->length);
@@ -719,13 +817,13 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 #endif /* __GLX_MAX_RENDER_OPCODE_EXT > __GLX_MIN_RENDER_OPCODE_EXT */
 	} else {
 	    client->errorValue = opcode;
-	    return __glXBadLargeRequest;
+	    return __glXError(GLXBadLargeRequest);
 	}
 
         if (!entry->bytes) {
             /* unused opcode */
             client->errorValue = opcode;
-            return __glXBadLargeRequest;
+            return __glXError(GLXBadLargeRequest);
         }
 	if (entry->varsize) {
 	    /*
@@ -781,12 +879,12 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 	if (req->requestNumber != cl->largeCmdRequestsSoFar + 1) {
 	    client->errorValue = req->requestNumber;
 	    __glXResetLargeCommandStatus(cl);
-	    return __glXBadLargeRequest;
+	    return __glXError(GLXBadLargeRequest);
 	}
 	if (req->requestTotal != cl->largeCmdRequestsTotal) {
 	    client->errorValue = req->requestTotal;
 	    __glXResetLargeCommandStatus(cl);
-	    return __glXBadLargeRequest;
+	    return __glXError(GLXBadLargeRequest);
 	}
 
 	/*
@@ -795,7 +893,7 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 	if ((cl->largeCmdBytesSoFar + dataBytes) > cl->largeCmdBytesTotal) {
 	    client->errorValue = dataBytes;
 	    __glXResetLargeCommandStatus(cl);
-	    return __glXBadLargeRequest;
+	    return __glXError(GLXBadLargeRequest);
 	}
 	memcpy(cl->largeCmdBuf + cl->largeCmdBytesSoFar, pc, dataBytes);
 	cl->largeCmdBytesSoFar += dataBytes;
@@ -819,7 +917,7 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 		__GLX_PAD(cl->largeCmdBytesTotal)) {
 		client->errorValue = dataBytes;
 		__glXResetLargeCommandStatus(cl);
-		return __glXBadLargeRequest;
+		return __glXError(GLXBadLargeRequest);
 	    }
 	    hdr = (__GLXrenderLargeHeader *) cl->largeCmdBuf;
 	    /*
@@ -842,7 +940,7 @@ int __glXSwapRenderLarge(__GLXclientState *cl, GLbyte *pc)
 #endif /* __GLX_MAX_RENDER_OPCODE_EXT > __GLX_MIN_RENDER_OPCODE_EXT */
 	    } else {
 		client->errorValue = opcode;
-		return __glXBadLargeRequest;
+		return __glXError(GLXBadLargeRequest);
 	    }
 
 	    /*
@@ -899,7 +997,9 @@ int __glXSwapVendorPrivate(__GLXclientState *cl, GLbyte *pc)
     case X_GLXvop_BindTexImageEXT:
 	return __glXSwapBindTexImageEXT(cl, pc);
     case X_GLXvop_ReleaseTexImageEXT:
-	return __glXSwapReleaseTexImageEXT(cl, pc);  
+	return __glXSwapReleaseTexImageEXT(cl, pc);
+    case X_GLXvop_CopySubBufferMESA:
+	return __glXSwapCopySubBufferMESA(cl, pc);
     }
 #endif
 
@@ -910,7 +1010,7 @@ int __glXSwapVendorPrivate(__GLXclientState *cl, GLbyte *pc)
 	return Success;
     }
     cl->client->errorValue = req->vendorCode;
-    return __glXUnsupportedPrivateRequest;
+    return __glXError(GLXUnsupportedPrivateRequest);
 }
 
 int __glXSwapVendorPrivateWithReply(__GLXclientState *cl, GLbyte *pc)
@@ -963,5 +1063,5 @@ int __glXSwapVendorPrivateWithReply(__GLXclientState *cl, GLbyte *pc)
 	return (*__glXSwapVendorPrivTable_EXT[vendorcode-__GLX_MIN_VENDPRIV_OPCODE_EXT])(cl, (GLbyte*)req);
     }
     cl->client->errorValue = req->vendorCode;
-    return __glXUnsupportedPrivateRequest;
+    return __glXError(GLXUnsupportedPrivateRequest);
 }

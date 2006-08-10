@@ -1,5 +1,4 @@
 /*
- * $XFree86: xc/programs/Xserver/fb/fb.h,v 1.36tsi Exp $
  *
  * Copyright © 1998 Keith Packard
  *
@@ -22,7 +21,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $XdotOrg: xc/programs/Xserver/fb/fb.h,v 1.12 2005/08/24 11:18:33 daniels Exp $ */
 
 #ifndef _FB_H_
 #define _FB_H_

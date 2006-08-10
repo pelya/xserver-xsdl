@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/edid.h,v 1.6 2000/04/17 16:29:55 eich Exp $ */
 
 /* edid.h: defines to parse an EDID block 
  *

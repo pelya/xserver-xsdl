@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxerror.h,v 1.3 2001/03/21 16:29:36 dawes Exp $ */
 #ifndef _GLX_error_h_
 #define _GLX_error_h_
 

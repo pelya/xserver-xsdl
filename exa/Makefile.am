@@ -12,7 +12,7 @@ INCLUDES = \
 	$(XORG_INCS) \
 	-I$(srcdir)/../miext/cw
 
-AM_CFLAGS = $(XORG_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@ $(DIX_CFLAGS)
+AM_CFLAGS = $(XORG_CFLAGS) $(DIX_CFLAGS)
 
 libexa_la_SOURCES = \
 	exa.c \

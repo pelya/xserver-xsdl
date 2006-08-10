@@ -28,7 +28,6 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/bundle/quartzAudio.h,v 1.2 2001/04/01 20:45:43 tsi Exp $ */
 
 #ifndef _QUARTZAUDIO_H
 #define _QUARTZAUDIO_H

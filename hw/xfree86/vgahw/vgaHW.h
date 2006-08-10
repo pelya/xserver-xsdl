@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/vgahw/vgaHW.h,v 1.31 2002/04/04 14:05:56 eich Exp $ */
 
 
 /*

@@ -2,9 +2,9 @@ SUBDIRS = doc pcl pcl-mono raster ps etc config
 
 bin_PROGRAMS = Xprt
 
-Xprt_CFLAGS = @SERVER_DEFINES@ @DIX_CFLAGS@ @XPRINT_CFLAGS@ \
+Xprt_CFLAGS = @DIX_CFLAGS@ @XPRINT_CFLAGS@ \
 	-DXPRINT -DPRINT_ONLY_SERVER -D_XP_PRINT_SERVER_  \
-	-DXPRINTDIR=\"$(prefix)/X11/xserver\"    \
+	-DXPRINTDIR=\"$(libdir)/X11/xserver\"    \
 	-DXPRASTERDDX -DXPPCLDDX -DXPMONOPCLDDX -DXPPSDDX
 
 Xprt_LDFLAGS = -L$(top_srcdir)

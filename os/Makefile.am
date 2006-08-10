@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libos.la libcwrapper.la
 
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS)
 
 # FIXME: Add support for these in configure.ac
 K5AUTH_SOURCES = k5auth.c

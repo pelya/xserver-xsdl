@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/afb/afbimage.c,v 3.2 1998/03/20 21:04:55 hohndel Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

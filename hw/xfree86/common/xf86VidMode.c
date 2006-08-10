@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86VidMode.c,v 1.17 2003/08/24 17:36:55 dawes Exp $ */
 /*
  * Copyright (c) 1999-2003 by The XFree86 Project, Inc.
  *

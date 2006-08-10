@@ -25,7 +25,6 @@
  *
  * Authors: Rickard E. (Rik) Faith <faith@valinux.com>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/drm/xf86drmHash.c,v 1.4 2001/03/21 18:08:54 dawes Exp $
  *
  * DESCRIPTION
  *
@@ -81,9 +80,7 @@
 #if !HASH_MAIN
 # include "drm.h"
 # include "xf86drm.h"
-# ifdef XFree86LOADER
-#  include "xf86.h"
-# endif
+# include "xf86.h"
 #endif
 
 #define N(x)  drm##x

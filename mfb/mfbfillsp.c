@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mfb/mfbfillsp.c,v 1.8 2001/01/17 22:37:02 dawes Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -46,7 +45,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: mfbfillsp.c,v 1.4 2001/02/09 02:05:18 xorgcvs Exp $ */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif

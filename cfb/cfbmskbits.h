@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbmskbits.h,v 3.13tsi Exp $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.
 
@@ -28,7 +27,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
 
-/* $Xorg: cfbmskbits.h,v 1.3 2000/08/17 19:48:14 cpqbld Exp $ */
 /* Optimizations for PSZ == 32 added by Kyle Marvin (marvin@vitec.com) */
 
 #include	<X11/X.h>

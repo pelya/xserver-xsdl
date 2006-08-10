@@ -1,4 +1,3 @@
-/* $Xorg: cfb8bit.c,v 1.4 2001/02/09 02:04:37 xorgcvs Exp $ */
 /*
 
 Copyright 1989, 1994, 1998  The Open Group
@@ -26,7 +25,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/cfb/cfb8bit.c,v 1.4 2001/01/17 22:36:34 dawes Exp $ */
 
 /*
  * cfb8bit.c

@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Config.c,v 1.32 2006/06/01 19:53:06 ajax Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Config.c,v 3.276 2003/10/08 14:58:26 dawes Exp $ */
 
 
 /*
@@ -75,6 +73,7 @@ extern DeviceAssocRec mouse_assoc;
 #endif
 
 #ifdef XKB
+#undef XKB_IN_SERVER
 #define XKB_IN_SERVER
 #include <X11/extensions/XKBsrv.h>
 #endif
@@ -512,7 +511,6 @@ fixup_video_driver_list(char **drivers)
 static char **
 GenerateDriverlist(char * dirname, char * drivernames)
 {
-#ifdef XFree86LOADER
     char **ret;
     const char *subdirs[] = { dirname, NULL };
     static const char *patlist[] = {"(.*)_drv\\.so", "(.*)_drv\\.o", NULL};
@@ -523,39 +521,6 @@ GenerateDriverlist(char * dirname, char * drivernames)
         fixup_video_driver_list(ret);
 
     return ret;
-#else /* non-loadable server */
-    char *cp, **driverlist;
-    int count;
-
-    /* Count the number needed */
-    count = 0;
-    cp = drivernames;
-    while (*cp) {
-	while (*cp && isspace(*cp)) cp++;
-	if (!*cp) break;
-	count++;
-	while (*cp && !isspace(*cp)) cp++;
-    }
-
-    if (!count)
-	return NULL;
-
-    /* Now allocate the array of pointers to 0-terminated driver names */
-    driverlist = (char **)xnfalloc((count + 1) * sizeof(char *));
-    count = 0;
-    cp = drivernames;
-    while (*cp) {
-	while (*cp && isspace(*cp)) cp++;
-	if (!*cp) break;
-	driverlist[count++] = cp;
-	while (*cp && !isspace(*cp)) cp++;
-	if (!*cp) break;
-	*cp++ = 0;
-    }
-    driverlist[count] = NULL;
-
-    return driverlist;
-#endif
 }
 
 
@@ -617,6 +582,9 @@ static Bool
 configFiles(XF86ConfFilesPtr fileconf)
 {
   MessageType pathFrom = X_DEFAULT;
+  int countDirs;
+  char *temp_path;
+  char *log_buf;
 
   /* FontPath */
 
@@ -676,13 +644,13 @@ configFiles(XF86ConfFilesPtr fileconf)
     FatalError("No valid FontPath could be found.");
 
   /* make fontpath more readable in the logfiles */
-  int countDirs = 1;
-  char *temp_path = defaultFontPath;
+  countDirs = 1;
+  temp_path = defaultFontPath;
   while((temp_path = index(temp_path, ',')) != NULL) {
     countDirs++;
     temp_path++;
   }
-  char *log_buf = xnfalloc(strlen(defaultFontPath) + (2 * countDirs) + 1);
+  log_buf = xnfalloc(strlen(defaultFontPath) + (2 * countDirs) + 1);
   if(!log_buf) /* fallback to old method */
     xf86Msg(pathFrom, "FontPath set to \"%s\"\n", defaultFontPath);
   else {
@@ -728,7 +696,6 @@ configFiles(XF86ConfFilesPtr fileconf)
   }
   
   
-#ifdef XFree86LOADER
   /* ModulePath */
 
   if (fileconf) {
@@ -739,7 +706,6 @@ configFiles(XF86ConfFilesPtr fileconf)
   }
 
   xf86Msg(xf86ModPathFrom, "ModulePath set to \"%s\"\n", xf86ModulePath);
-#endif
 
 #if 0
   /* LogFile */

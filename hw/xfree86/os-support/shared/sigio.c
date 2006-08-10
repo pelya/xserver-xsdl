@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/sigio.c,v 1.16 2003/09/04 00:21:17 dawes Exp $ */
 
 /* sigio.c -- Support for SIGIO handler installation and removal
  * Created: Thu Jun  3 15:39:18 1999 by faith@precisioninsight.com
@@ -58,22 +57,11 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef XFree86Server
 # include <X11/X.h>
 # include "xf86.h"
 # include "xf86Priv.h"
 # include "xf86_OSlib.h"
 # include "inputstr.h"
-#else
-# include <unistd.h>
-# include <signal.h>
-# include <fcntl.h>
-# include <sys/time.h>
-# include <errno.h>
-# include <stdio.h>
-# include <string.h>
-# define SYSCALL(call) while(((call) == -1) && (errno == EINTR))
-#endif
 
 /*
  * Linux libc5 defines FASYNC, but not O_ASYNC.  Don't know if it is
@@ -126,11 +114,9 @@ xf86SIGIO (int sig)
 				   xf86SigIOFuncs[i].closure);
 	    r--;
 	}
-#ifdef XFree86Server
     if (r > 0) {
       xf86Msg(X_ERROR, "SIGIO %d descriptors not handled\n", r);
     }
-#endif
 }
 
 static int
@@ -159,24 +145,14 @@ xf86InstallSIGIOHandler(int fd, void (*f)(int, void *), void *closure)
 		return 0;
 	    blocked = xf86BlockSIGIO();
 	    if (fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_ASYNC) == -1) {
-#ifdef XFree86Server
 		xf86Msg(X_WARNING, "fcntl(%d, O_ASYNC): %s\n", 
 			fd, strerror(errno));
-#else
-		fprintf(stderr,"fcntl(%d, O_ASYNC): %s\n", 
-			fd, strerror(errno));
-#endif
 		xf86UnblockSIGIO(blocked);
 		return 0;
 	    }
 	    if (fcntl(fd, F_SETOWN, getpid()) == -1) {
-#ifdef XFree86Server
 		xf86Msg(X_WARNING, "fcntl(%d, F_SETOWN): %s\n", 
 			fd, strerror(errno));
-#else
-		fprintf(stderr,"fcntl(%d, F_SETOWN): %s\n", 
-			fd, strerror(errno));
-#endif
 		xf86UnblockSIGIO(blocked);
 		return 0;
 	    }
@@ -289,7 +265,6 @@ xf86UnblockSIGIO (int wasset)
     }
 }
 
-#ifdef XFree86Server
 void
 xf86AssertBlockedSIGIO (char *where)
 {
@@ -308,5 +283,3 @@ xf86SIGIOSupported (void)
 {
     return 1;
 }
-
-#endif

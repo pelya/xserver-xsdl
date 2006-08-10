@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/os-support/xf86_libc.h,v 1.9 2005/08/24 11:18:31 daniels Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_libc.h,v 3.63 2003/12/08 21:46:55 alanh Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
  *
@@ -52,8 +50,6 @@
  * The first set of definitions are required both for modules and
  * libc_wrapper.c.
  */
-
-#if defined(XFree86LOADER) || defined(NEED_XF86_TYPES)
 
 /*
  * First, the new data types
@@ -215,14 +211,12 @@ typedef int xf86jmp_buf[1024];
 /* xf86shmclt() */
 #define XF86IPC_RMID 0
 
-#endif /* defined(XFree86LOADER) || defined(NEED_XF86_TYPES) */
-
 /*
  * the rest of this file should only be included for code that is supposed
  * to go into modules
  */
 
-#if defined(XFree86LOADER) && !defined(DONT_DEFINE_WRAPPERS)
+#if !defined(DONT_DEFINE_WRAPPERS)
 
 #undef abort
 #define abort()			xf86abort()
@@ -713,10 +707,9 @@ typedef int xf86jmp_buf[1024];
 # define _FILEDEFED /* Already have FILE defined, don't redefine it */
 #endif
 
-#endif /* XFree86LOADER  && !DONT_DEFINE_WRAPPERS */
+#endif /* !DONT_DEFINE_WRAPPERS */
 
-#if defined(XFree86LOADER) && \
-    (!defined(DONT_DEFINE_WRAPPERS) || defined(DEFINE_SETJMP_WRAPPERS))
+#if (!defined(DONT_DEFINE_WRAPPERS) || defined(DEFINE_SETJMP_WRAPPERS))
 #undef setjmp
 #define setjmp(a)               xf86setjmp_macro(a)
 #undef longjmp

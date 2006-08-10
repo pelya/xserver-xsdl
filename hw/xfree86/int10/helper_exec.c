@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/int10/helper_exec.c,v 1.26 2003/11/06 18:38:12 tsi Exp $ */
 /*
  *                   XFree86 int10 module
  *   execute BIOS int 10h calls in x86 real mode environment
@@ -576,7 +575,7 @@ pciCfg1outb(CARD16 addr, CARD8 val)
 }
 
 CARD8
-bios_checksum(CARD8 *start, int size)
+bios_checksum(const CARD8 *start, int size)
 {
     CARD8 sum = 0;
 
@@ -685,3 +684,9 @@ xf86Int10SaveRestoreBIOSVars(xf86Int10InfoPtr pInt, Bool save)
     xf86UnMapVidMem(pInt->scrnIndex,base - BIOS_SCRATCH_OFF ,pagesize);
 }
 #endif
+
+xf86Int10InfoPtr
+xf86InitInt10(int entityIndex)
+{
+    return xf86ExtendedInitInt10(entityIndex, 0);
+}

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xext/xf86misc.c,v 3.41 2003/11/17 22:20:27 dawes Exp $ */
 
 /*
  * Copyright (c) 1995, 1996  The XFree86 Project, Inc

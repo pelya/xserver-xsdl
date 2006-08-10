@@ -25,7 +25,6 @@
  * 
  * Authors: Rickard E. (Rik) Faith <faith@valinux.com>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/drm/xf86drmSL.c,v 1.3 2000/06/17 00:03:34 martin Exp $
  *
  * DESCRIPTION
  *
@@ -53,12 +52,7 @@
 #else
 # include "drm.h"
 # include "xf86drm.h"
-# ifdef XFree86LOADER
-#  include "xf86.h"
-# else
-#  include <stdio.h>
-#  include <stdlib.h>
-# endif
+# include "xf86.h"
 #endif
 
 #define N(x)  drm##x

@@ -105,6 +105,8 @@ DLFindSymbolLocal(pointer module, const char *name)
     return p;
 }
 
+static void *global_scope = NULL;
+
 void *
 DLFindSymbol(const char *name)
 {
@@ -117,11 +119,17 @@ DLFindSymbol(const char *name)
 	    return p;
     }
 
+    if (!global_scope)
+	global_scope = dlopen(NULL, DLOPEN_LAZY | DLOPEN_GLOBAL);
+
+    if (global_scope)
+	return dlsym(global_scope, name);
+
     return NULL;
 }
 
 void *
-DLLoadModule(loaderPtr modrec, int fd, int flags)
+DLLoadModule(loaderPtr modrec, int flags)
 {
     DLModulePtr dlfile;
     DLModuleList *l;

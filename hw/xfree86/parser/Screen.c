@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/Screen.c,v 1.28 2003/11/07 23:41:41 dawes Exp $ */
 /* 
  * 
  * Copyright (c) 1997  Metro Link Incorporated

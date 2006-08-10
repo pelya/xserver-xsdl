@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/dix/events.c,v 1.18 2006/02/15 20:44:12 ajax Exp $ */
-/* $XFree86: xc/programs/Xserver/dix/events.c,v 3.51 2004/01/12 17:04:52 tsi Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -109,7 +107,6 @@ of the copyright holder.
 
 ******************************************************************/
 
-/* $Xorg: events.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -3019,9 +3016,6 @@ ProcessPointerEvent (register xEvent *xE, register DeviceIntPtr mouse, int count
 		butc->buttonsDown++;
 	    butc->motionMask = ButtonMotionMask;
 	    *kptr |= bit;
-#if !defined(XFree86Server) || !defined(XINPUT)
-	    xE->u.u.detail = butc->map[key];
-#endif
 	    if (xE->u.u.detail == 0)
 		return;
 	    if (xE->u.u.detail <= 5)
@@ -3038,9 +3032,6 @@ ProcessPointerEvent (register xEvent *xE, register DeviceIntPtr mouse, int count
 	    if (!butc->buttonsDown)
 		butc->motionMask = 0;
 	    *kptr &= ~bit;
-#if !defined(XFree86Server) || !defined(XINPUT)
-	    xE->u.u.detail = butc->map[key];
-#endif
 	    if (xE->u.u.detail == 0)
 		return;
 	    if (xE->u.u.detail <= 5)
@@ -3223,7 +3214,7 @@ EventSuppressForWindow(register WindowPtr pWin, register ClientPtr client,
 {
     register int i, free;
 
-    if ((mask & ~PropagateMask) && !permitOldBugs)
+    if (mask & ~PropagateMask)
     {
 	client->errorValue = mask;
 	return BadValue;
@@ -3774,7 +3765,7 @@ ProcGrabPointer(ClientPtr client)
 	client->errorValue = stuff->ownerEvents;
         return BadValue;
     }
-    if ((stuff->eventMask & ~PointerGrabMask) && !permitOldBugs)
+    if (stuff->eventMask & ~PointerGrabMask)
     {
 	client->errorValue = stuff->eventMask;
         return BadValue;
@@ -3860,7 +3851,7 @@ ProcChangeActivePointerGrab(ClientPtr client)
     TimeStamp time;
 
     REQUEST_SIZE_MATCH(xChangeActivePointerGrabReq);
-    if ((stuff->eventMask & ~PointerGrabMask) && !permitOldBugs)
+    if (stuff->eventMask & ~PointerGrabMask)
     {
 	client->errorValue = stuff->eventMask;
         return BadValue;
@@ -4161,13 +4152,12 @@ ProcSendEvent(ClientPtr client)
     if (stuff->event.u.u.type == ClientMessage &&
 	stuff->event.u.u.detail != 8 &&
 	stuff->event.u.u.detail != 16 &&
-	stuff->event.u.u.detail != 32 &&
-	!permitOldBugs)
+	stuff->event.u.u.detail != 32)
     {
 	client->errorValue = stuff->event.u.u.detail;
 	return BadValue;
     }
-    if ((stuff->eventMask & ~AllEventMasks) && !permitOldBugs)
+    if (stuff->eventMask & ~AllEventMasks)
     {
 	client->errorValue = stuff->eventMask;
 	return BadValue;
@@ -4384,12 +4374,10 @@ ProcGrabButton(ClientPtr client)
 
 
     grab = CreateGrab(client->index, inputInfo.pointer, pWin, 
-    permitOldBugs ? (Mask)(stuff->eventMask |
-			       ButtonPressMask | ButtonReleaseMask) :
-			(Mask)stuff->eventMask,
-	(Bool)stuff->ownerEvents, (Bool) stuff->keyboardMode,
-	(Bool)stuff->pointerMode, inputInfo.keyboard, stuff->modifiers,
-	ButtonPress, stuff->button, confineTo, cursor);
+        (Mask)stuff->eventMask, (Bool)stuff->ownerEvents,
+        (Bool) stuff->keyboardMode, (Bool)stuff->pointerMode,
+        inputInfo.keyboard, stuff->modifiers, ButtonPress,
+        stuff->button, confineTo, cursor);
     if (!grab)
 	return BadAlloc;
     return AddPassiveGrabToList(grab);

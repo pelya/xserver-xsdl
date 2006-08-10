@@ -12,7 +12,7 @@ endif
 
 INCLUDES = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
 
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS)
 
 if XORG
 sdk_HEADERS = xvdix.h xvmcext.h
@@ -73,7 +73,7 @@ BUILTIN_SRCS += $(XACE_SRCS)
 endif
 
 # Security extension: multi-level security to protect clients from each other
-XCSECURITY_SRCS = security.c
+XCSECURITY_SRCS = security.c securitysrv.h
 if XCSECURITY   
 BUILTIN_SRCS += $(XCSECURITY_SRCS)
 

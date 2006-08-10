@@ -14,7 +14,6 @@ SRCS =	Args.c \
 	GC.c \
 	GCOps.c \
 	GCOps.h \
-	GetTime.c \
 	Handlers.c \
 	Handlers.h \
 	Init.c \
@@ -52,7 +51,7 @@ Xnest_LDFLAGS =
 
 AM_CFLAGS = -DHAVE_XNEST_CONFIG_H \
             -DNO_HW_ONLY_EXTS \
-            @SERVER_DEFINES@ \
+ \
             $(XNESTMODULES_CFLAGS)
 
 EXTRA_DIST = os2Stub.c \

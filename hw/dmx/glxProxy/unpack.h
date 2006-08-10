@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/unpack.h,v 1.3 2001/03/21 16:29:37 dawes Exp $ */
 #ifndef __GLX_unpack_h__
 #define __GLX_unpack_h__
 

@@ -23,7 +23,6 @@
 
 /* Modified for FreeBSD by David Dawes <dawes@XFree86.org> */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_jstk.c,v 3.7 1998/07/25 16:56:34 dawes Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -36,9 +35,7 @@
 #include <machine/joystick.h>
 #include <fcntl.h>
 
-#ifdef XFree86LOADER
 #include "misc.h"
-#endif
 #include "xf86.h"
 
 #define JS_RETURN sizeof(struct joystick)
@@ -174,7 +171,6 @@ xf86JoystickGetState(int fd, int *x, int *y, int *buttons)
   return 1;
 }
 
-#ifdef XFree86LOADER
 /*
  * Entry point for XFree86 Loader
  */
@@ -184,5 +180,4 @@ bsd_jstkModuleInit(pointer *data, INT32 *magic)
     *magic = MAGIC_DONE;
     *data = NULL;
 }
-#endif
 /* end of bsd_jstk.c */

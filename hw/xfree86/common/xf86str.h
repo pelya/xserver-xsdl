@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86str.h,v 1.97 2003/10/30 17:36:56 tsi Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -319,7 +318,6 @@ typedef struct _DriverRec {
 #define HaveDriverFuncs 1
 
 
-#ifdef XFree86LOADER
 /*
  * The optional module list struct. This allows modules exporting helping
  * functions to configuration tools, the Xserver, or any other
@@ -333,7 +331,6 @@ typedef struct _ModuleInfoRec {
     const OptionInfoRec * (*AvailableOptions)(void *unused);
     pointer		unused[8];	/* leave some space for more fields */
 } ModuleInfoRec, *ModuleInfoPtr;
-#endif
 
 /*
  * These are the private bus types.  New types can be added here.  Types

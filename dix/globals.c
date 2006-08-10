@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/dix/globals.c,v 1.8 2006/02/15 20:44:12 ajax Exp $ */
-/* $XFree86: xc/programs/Xserver/dix/globals.c,v 1.12tsi Exp $ */
 /************************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -47,7 +45,6 @@ SOFTWARE.
 
 ********************************************************/
 
-/* $Xorg: globals.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -150,12 +147,6 @@ ClientPtr requestingClient;	/* XXX this should be obsolete now, remove? */
 
 _X_EXPORT TimeStamp currentTime;
 _X_EXPORT TimeStamp lastDeviceEventTime;
-
-/*
- * turn off some error checking, to permit old broken clients (like R2/R3
- * xterms) to work
- */
-_X_EXPORT Bool permitOldBugs = FALSE;
 
 _X_EXPORT int defaultColorVisualClass = -1;
 _X_EXPORT int monitorResolution = 0;

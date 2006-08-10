@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/e8870PCI.c,v 1.2 2003/07/17 15:08:22 tsi Exp $ */
 /*
  * Copyright (C) 2002-2003 The XFree86 Project, Inc.  All Rights Reserved.
  *

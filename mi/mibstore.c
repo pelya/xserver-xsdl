@@ -1,4 +1,3 @@
-/* $Xorg: mibstore.c,v 1.4 2001/02/09 02:05:20 xorgcvs Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -42,7 +41,6 @@ implied warranty.
 
 ******************************************************************/
 
-/* $XFree86: xc/programs/Xserver/mi/mibstore.c,v 1.10tsi Exp $ */
 
 #define NEED_EVENTS
 #ifdef HAVE_DIX_CONFIG_H

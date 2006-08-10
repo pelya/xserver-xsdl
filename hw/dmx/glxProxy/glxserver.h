@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxserver.h,v 1.3 2001/03/21 16:29:37 dawes Exp $ */
 #ifndef _GLX_server_h_
 #define _GLX_server_h_
 
@@ -46,7 +45,6 @@
 #include <extnsionst.h>
 #include <resource.h>
 #include <scrnintstr.h>
-#include "GL/glx_ansic.h"
 
 
 /*

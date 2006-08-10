@@ -1,5 +1,4 @@
 /* $XFree86$ */
-/* $XConsortium: afbpntwin.c,v 5.12 94/04/17 20:28:30 dpw Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 

@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/os/utils.c,v 1.26 2006-06-01 22:06:41 daniels Exp $ */
-/* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
 Copyright 1987, 1998  The Open Group
@@ -50,7 +48,6 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
 OR PERFORMANCE OF THIS SOFTWARE.
 
 */
-/* $XFree86: xc/programs/Xserver/os/utils.c,v 3.96 2004/01/07 04:16:37 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -139,13 +136,9 @@ _X_EXPORT Bool noTestExtensions;
 _X_EXPORT Bool noBigReqExtension = FALSE;
 #endif
 #ifdef COMPOSITE
- #ifdef XFree86Server
-  /* COMPOSITE is disabled by default for now until the
-   * interface is stable */
-  #define COMPOSITE_DEFAULT FALSE
- #else
-  #define COMPOSITE_DEFAULT TRUE
- #endif
+ /* COMPOSITE is disabled by default for now until the
+  * interface is stable */
+ #define COMPOSITE_DEFAULT FALSE
 _X_EXPORT Bool noCompositeExtension = !COMPOSITE_DEFAULT;
 #endif
 
@@ -266,12 +259,6 @@ _X_EXPORT Bool Must_have_memory = FALSE;
 #ifdef AIXV3
 int SyncOn  = 0;
 extern int SelectWaitTime;
-#endif
-
-#ifdef DEBUG
-#ifndef SPECIAL_MALLOC
-#define MEMBUG
-#endif
 #endif
 
 #if defined(SVR4) || defined(__linux__) || defined(CSRG_BASED)
@@ -549,7 +536,6 @@ GiveUp(int sig)
     errno = olderrno;
 }
 
-#ifndef DDXTIME
 _X_EXPORT CARD32
 GetTimeInMillis(void)
 {
@@ -558,7 +544,6 @@ GetTimeInMillis(void)
     X_GETTIMEOFDAY(&tp);
     return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
 }
-#endif
 
 _X_EXPORT void
 AdjustWaitForDelay (pointer waitTime, unsigned long newdelay)
@@ -595,7 +580,6 @@ void UseMsg(void)
 #endif
     ErrorF("-audit int             set audit trail level\n");	
     ErrorF("-auth file             select authorization file\n");	
-    ErrorF("bc                     enable bug compatibility\n");
     ErrorF("-br                    create root window with black background\n");
     ErrorF("+bs                    enable any backing store support\n");
     ErrorF("-bs                    disable any backing store support\n");
@@ -783,8 +767,6 @@ ProcessCommandLine(int argc, char *argv[])
 	    else
 		UseMsg();
 	}
-	else if ( strcmp( argv[i], "bc") == 0)
-	    permitOldBugs = TRUE;
 	else if ( strcmp( argv[i], "-br") == 0)
 	    blackRoot = TRUE;
 	else if ( strcmp( argv[i], "+bs") == 0)

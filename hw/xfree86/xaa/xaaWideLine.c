@@ -1,5 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaWideLine.c,v 1.10 2001/11/16 16:47:56 dawes Exp $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/xaa/xaaWideLine.c,v 1.7 2005/07/03 08:53:49 daniels Exp $ */
 /*
 
 XAAPolylinesWideSolid does not maintain a span list and subsequently does
@@ -818,20 +816,6 @@ XAAPolylinesWideSolid (
 	return;
     }
 
-    if (mode == CoordModePrevious) {
-	pPts->x += xorg;
-	pPts->y += yorg;
-    } else if(xorg | yorg) {
-	register int n = npt;
-	register DDXPointPtr pts = pPts;
-
-	while(n--) {
-	   pts->x += xorg;
-	   pts->y += yorg;
-	   pts++;
-	}
-    }
-
     x2 = pPts->x;
     y2 = pPts->y;
     if (npt > 1) {
@@ -869,6 +853,8 @@ XAAPolylinesWideSolid (
               infoRec->ClipBox->x2 - 1, infoRec->ClipBox->y2 - 1);		
     }
 
+    x2 += xorg;
+    y2 += yorg;
     while (--npt) {
 	x1 = x2;
 	y1 = y2;
@@ -878,6 +864,9 @@ XAAPolylinesWideSolid (
 	if (mode == CoordModePrevious) {
 	    x2 += x1;
 	    y2 += y1;
+	} else {
+	    x2 += xorg;
+	    y2 += yorg;
 	}
 	if ((x1 != x2) || (y1 != y2)) {
 	    somethingDrawn = TRUE;

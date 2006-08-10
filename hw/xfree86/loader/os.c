@@ -33,10 +33,11 @@
 
 /*
  * OSNAME is a standard form of the OS name that may be used by the
- * loader and by OS-specific modules.
+ * loader and by OS-specific modules.  OSNAME here is different from what's in
+ * dix-config.h
  */
 
-#ifndef OSNAME
+#undef OSNAME
 #if defined(__linux__)
 #define OSNAME "linux"
 #elif defined(__FreeBSD__)
@@ -65,7 +66,6 @@
 #define OSNAME "os2"
 #else
 #define OSNAME "unknown"
-#endif
 #endif
 
 /* Return the OS name, and run-time OS version */

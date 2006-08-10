@@ -1,6 +1,4 @@
 /*
- * $XdotOrg: xserver/xorg/fb/fbcompose.c,v 1.28 2006/04/19 21:56:13 keithp Exp $
- * $XFree86: xc/programs/Xserver/fb/fbcompose.c,v 1.17tsi Exp $
  *
  * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
  *             2005 Lars Knoll & Zack Rusin, Trolltech
@@ -573,9 +571,9 @@ static fetchProc fetchProcForPicture (PicturePtr pict)
         /* 1bpp formats */
     case PICT_a1: return  fbFetch_a1;
     case PICT_g1: return  fbFetch_g1;
-    default:
-        return NULL;
     }
+
+    return NULL;
 }
 
 /*
@@ -1010,9 +1008,9 @@ static fetchPixelProc fetchPixelProcForPicture (PicturePtr pict)
         /* 1bpp formats */
     case PICT_a1: return  fbFetchPixel_a1;
     case PICT_g1: return  fbFetchPixel_g1;
-    default:
-        return NULL;
     }
+
+    return NULL;
 }
 
 

@@ -1,4 +1,3 @@
-/* $Xorg: xprint.c,v 1.5 2001/03/05 20:42:26 pookie Exp $ */
 /*
 (c) Copyright 1996 Hewlett-Packard Company
 (c) Copyright 1996 International Business Machines Corp.
@@ -64,7 +63,6 @@ copyright holders.
 **    *********************************************************
 **
 ********************************************************************/
-/* $XFree86: xc/programs/Xserver/Xext/xprint.c,v 1.14tsi Exp $ */
 
 #define _XP_PRINT_SERVER_
 #ifdef HAVE_DIX_CONFIG_H

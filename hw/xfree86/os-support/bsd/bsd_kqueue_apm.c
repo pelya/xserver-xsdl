@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bsd/bsd_kqueue_apm.c,v 1.5 2002/07/30 23:24:32 herrb Exp $ */
 /*
  * Copyright (C) 2001 The XFree86 Project, Inc.  All Rights Reserved.
  * 

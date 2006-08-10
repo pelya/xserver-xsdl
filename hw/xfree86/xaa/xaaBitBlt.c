@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaBitBlt.c,v 1.3tsi Exp $ */
 
 /* 
    This is a lighter version of cfbBitBlt.  We calculate the boxes

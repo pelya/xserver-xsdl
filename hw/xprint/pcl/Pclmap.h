@@ -1,4 +1,3 @@
-/* $Xorg: Pclmap.h,v 1.3 2000/08/17 19:48:08 cpqbld Exp $ */
 /*
 (c) Copyright 1996 Hewlett-Packard Company
 (c) Copyright 1996 International Business Machines Corp.
@@ -30,7 +29,6 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/pcl/Pclmap.h,v 1.5 2001/07/25 15:05:00 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

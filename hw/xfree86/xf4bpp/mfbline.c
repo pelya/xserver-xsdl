@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/mfbline.c,v 1.5 2003/11/03 05:11:56 tsi Exp $ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium

@@ -1,5 +1,4 @@
 /*
- * $XFree86: xc/programs/Xserver/render/picture.h,v 1.20tsi Exp $
  *
  * Copyright © 2000 SuSE, Inc.
  *
@@ -102,10 +101,6 @@ typedef enum _PictFormatShort {
    PICT_g8 =		PICT_FORMAT(8,PICT_TYPE_GRAY,0,0,0,0),
 
    PICT_x4a4 =		PICT_FORMAT(8,PICT_TYPE_A,4,0,0,0),
-   PICT_x4r1g2b1 =	PICT_FORMAT(8,PICT_TYPE_ARGB,0,1,2,1),
-   PICT_x4b1g2r1 =	PICT_FORMAT(8,PICT_TYPE_ABGR,0,1,2,1),
-   PICT_x4a1r1g1b1 =	PICT_FORMAT(8,PICT_TYPE_ARGB,1,1,1,1),
-   PICT_x4a1b1g1r1 =	PICT_FORMAT(8,PICT_TYPE_ABGR,1,1,1,1),
 				    
    PICT_x4c4 =		PICT_FORMAT(8,PICT_TYPE_COLOR,0,0,0,0),
    PICT_x4g4 =		PICT_FORMAT(8,PICT_TYPE_GRAY,0,0,0,0),

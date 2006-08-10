@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxscreens.c,v 1.14 2004/02/09 23:46:31 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -139,6 +138,7 @@ static char GLXServerExtensions[] =
                         "GLX_SGIX_swap_barrier "
 #endif
 			"GLX_SGIX_fbconfig "
+			"GLX_MESA_copy_sub_buffer "
 			;
 
 __GLXscreen **__glXActiveScreens;

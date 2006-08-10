@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libcw.la
 
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @MODULE_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS)
 
 INCLUDES = -I$(top_srcdir)/hw/xfree86/os-support
 

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/print_edid.c,v 1.15 2001/05/22 17:01:23 tsi Exp $ */
 
 /* print_edid.c: print out all information retrieved from display device 
  * 

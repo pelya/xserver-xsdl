@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/afb/afbpntarea.c,v 3.0 1996/08/18 01:45:49 dawes Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -47,7 +46,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XConsortium: afbpntarea.c,v 5.7 94/04/17 20:28:29 dpw Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

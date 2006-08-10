@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxserver.h,v 1.5 2003/09/28 20:15:43 alanh Exp $ */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -70,7 +69,6 @@ typedef struct __GLXcontext __GLXcontext;
 #include "glxscreens.h"
 #include "glxdrawable.h"
 #include "glxcontext.h"
-#include "glxerror.h"
 
 
 #define GLX_SERVER_MAJOR_VERSION 1
@@ -111,6 +109,8 @@ void __glXScreenInitVisuals(__GLXscreen *screen);
 */
 extern __GLXcontext *__glXLastContext;
 extern __GLXcontext *__glXForceCurrent(__GLXclientState*, GLXContextTag, int*);
+
+int __glXError(int error);
 
 /*
 ** Macros to set, unset, and retrieve the flag that says whether a context

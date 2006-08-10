@@ -21,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/hw/kdrive/smi/smi.h,v 1.6 2001/07/24 19:06:03 keithp Exp $ */
 
 #ifndef _SMI_H_
 #define _SMI_H_

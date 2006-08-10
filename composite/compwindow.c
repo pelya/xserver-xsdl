@@ -301,7 +301,7 @@ compIsAlternateVisual (ScreenPtr    pScreen,
     CompScreenPtr	cs = GetCompScreen (pScreen);
     int			i;
 
-    for (i = 0; i < NUM_COMP_ALTERNATE_VISUALS; i++)
+    for (i = 0; i < cs->numAlternateVisuals; i++)
 	if (cs->alternateVisuals[i] == visual)
 	    return TRUE;
     return FALSE;

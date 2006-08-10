@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libdamage.la
 
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @MODULE_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS)
 
 INCLUDES = -I$(srcdir)/../cw -I$(top_srcdir)/hw/xfree86/os-support
 

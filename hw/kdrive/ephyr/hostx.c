@@ -533,15 +533,9 @@ hostx_screen_init (int width, int height, int buffer_height)
 
   /* Ask the WM to keep our size static */
   size_hints = XAllocSizeHints();
-#if 0
   size_hints->max_width = size_hints->min_width = width;
   size_hints->max_height = size_hints->min_height = height;
   size_hints->flags = PMinSize|PMaxSize;
-#else
-  size_hints->min_width = 100;
-  size_hints->min_height = 100;
-  size_hints->flags = PMinSize;
-#endif
   XSetWMNormalHints(HostX.dpy, HostX.win, size_hints);
   XFree(size_hints);
 
@@ -669,7 +663,7 @@ void
 hostx_load_keymap(void)
 {
   KeySym          *keymap;
-  int              mapWidth, min_keycode, max_keycode;
+  int              host_width, min_keycode, max_keycode, width;
   int              i,j;
 
   XDisplayKeycodes(HostX.dpy, &min_keycode, &max_keycode);
@@ -679,25 +673,21 @@ hostx_load_keymap(void)
   keymap = XGetKeyboardMapping(HostX.dpy, 
 			       min_keycode,
 			       max_keycode - min_keycode + 1,
-			       &mapWidth);
+			       &host_width);
 
   /* Try and copy the hosts keymap into our keymap to avoid loads
    * of messing around.
    *
    * kdrive cannot can have more than 4 keysyms per keycode
-   * so we only copy the first 4 ( xorg has 6 per keycode )
+   * so we only copy at most the first 4 ( xorg has 6 per keycode, XVNC 2 )
    */
+  width = (host_width > 4) ? 4 : host_width;
 
   for (i=0; i<(max_keycode - min_keycode+1); i++)
-    for (j=0; j<4; j++)
-      kdKeymap[ (i*4)+j ] = keymap[ (i*mapWidth) + j ];
+    for (j=0; j<width; j++)
+      kdKeymap[ (i*width)+j ] = keymap[ (i*host_width) + j ];
 
-  /* old way
-    memcpy (kdKeymap, keymap, 
-    (max_keycode - min_keycode + 1)*mapWidth*sizeof(KeySym));
-  */
-
-  EPHYR_DBG("keymap width: %d", mapWidth);
+  EPHYR_DBG("keymap width, host:%d kdrive:%d", host_width, width);
   
   /* all kdrive vars - see kkeymap.c */
 
@@ -705,7 +695,7 @@ hostx_load_keymap(void)
   kdMaxScanCode = max_keycode;
   kdMinKeyCode  = min_keycode;
   kdMaxKeyCode  = max_keycode;
-  kdKeymapWidth = (mapWidth > 4) ? 4 : mapWidth;
+  kdKeymapWidth = width;
 
   XFree(keymap);
 }

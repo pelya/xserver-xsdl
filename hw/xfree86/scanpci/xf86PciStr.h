@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/scanpci/xf86PciStr.h,v 1.2 2003/08/24 17:37:10 dawes Exp $ */
 /*
  * Copyright (c) 2002 by The XFree86 Project, Inc.
  *

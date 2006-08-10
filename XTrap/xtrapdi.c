@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/XTrap/xtrapdi.c,v 1.6 2006/02/10 22:00:19 anholt Exp $ */
-/* $XFree86: xc/programs/Xserver/XTrap/xtrapdi.c,v 1.6tsi Exp $ */
 /*****************************************************************************
 Copyright 1987, 1988, 1989, 1990, 1991 by Digital Equipment Corp., Maynard, MA
 X11R6 Changes Copyright (c) 1994 by Robert Chesler of Absol-Puter, Hudson, NH.

@@ -1,4 +1,3 @@
-/* $Xorg: xdmauth.c,v 1.4 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
 Copyright 1988, 1998  The Open Group
@@ -26,7 +25,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xdmauth.c,v 1.7 2002/11/05 05:50:34 keithp Exp $ */
 
 /*
  * XDM-AUTHENTICATION-1 (XDMCP authentication) and

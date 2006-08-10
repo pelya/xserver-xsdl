@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbscrinit.c,v 1.19 2001/01/17 22:36:36 dawes Exp $ */
 /************************************************************
 Copyright 1987 by Sun Microsystems, Inc. Mountain View, CA.
 
@@ -27,7 +26,6 @@ OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $Xorg: cfbscrinit.c,v 1.3 2000/08/17 19:48:15 cpqbld Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

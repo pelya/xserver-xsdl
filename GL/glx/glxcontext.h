@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxcontext.h,v 1.4 2002/02/22 21:45:07 dawes Exp $ */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -58,17 +57,13 @@ struct __GLXtextureFromPixmap {
 
 
 struct __GLXcontext {
-    void           (*destroy)       (__GLXcontext *context);    
+    void           (*destroy)       (__GLXcontext *context);
     int            (*makeCurrent)   (__GLXcontext *context);
     int            (*loseCurrent)   (__GLXcontext *context);
     int            (*copy)          (__GLXcontext *dst,
 				     __GLXcontext *src,
 				     unsigned long mask);
     int            (*forceCurrent)  (__GLXcontext *context);
-
-    __GLXdrawable *(*createDrawable)(__GLXcontext *context,
-				     DrawablePtr pDraw,
-				     XID drawId);
 
     __GLXtextureFromPixmap *textureFromPixmap;
 

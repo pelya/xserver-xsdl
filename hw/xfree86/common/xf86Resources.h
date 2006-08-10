@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Resources.h,v 1.15 2003/08/24 17:36:55 dawes Exp $ */
 
 /*
  * Copyright (c) 1999-2002 by The XFree86 Project, Inc.

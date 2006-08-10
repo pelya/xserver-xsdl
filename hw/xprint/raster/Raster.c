@@ -1,4 +1,3 @@
-/* $Xorg: Raster.c,v 1.4 2001/03/14 18:46:12 pookie Exp $ */
 /*
 (c) Copyright 1996 Hewlett-Packard Company
 (c) Copyright 1996 International Business Machines Corp.
@@ -31,7 +30,6 @@ dealings in this Software without prior written authorization from said
 copyright holders.
 */
 
-/* $XFree86: xc/programs/Xserver/Xprint/raster/Raster.c,v 1.11tsi Exp $ */
 
 /*******************************************************************
 **

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/afb/afbline.c,v 3.1 1998/03/20 21:04:55 hohndel Exp $ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium
@@ -46,7 +45,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XConsortium: afbline.c,v 5.18 94/04/17 20:28:26 dpw Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

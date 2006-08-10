@@ -32,7 +32,6 @@
  * Backwards compatability modules broken out by:
  *   Jens Owen <jens@tungstengraphics.com>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86drmCompat.h,v 1.1 2002/10/30 12:52:23 alanh Exp $
  *
  */
 
