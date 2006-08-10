@@ -377,8 +377,10 @@ extern void InitInput(
     int  /*argc*/,
     char ** /*argv*/);
 
+extern int GetMaximumEventsNum(void);
+
 extern int GetPointerEvents(
-    xEvent **xE,
+    xEvent *events,
     DeviceIntPtr pDev,
     int type,
     int buttons,
@@ -387,13 +389,13 @@ extern int GetPointerEvents(
     int *valuators);
 
 extern int GetKeyboardEvents(
-    xEvent **xE,
+    xEvent *events,
     DeviceIntPtr pDev,
     int type,
     int key_code);
 
 extern int GetKeyboardValuatorEvents(
-    xEvent **xE,
+    xEvent *events,
     DeviceIntPtr pDev,
     int type,
     int key_code,

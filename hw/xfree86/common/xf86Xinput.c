@@ -108,6 +108,8 @@ static int      debug_level = 0;
 #define DBG(lvl, f)
 #endif
 
+static xEvent *xf86Events = NULL;
+
 static Bool
 xf86SendDragEvents(DeviceIntPtr	device)
 {
@@ -639,7 +641,6 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     int i = 0, nevents = 0;
     Bool drag = xf86SendDragEvents(device);
     LocalDevicePtr local = (LocalDevicePtr) device->public.devicePrivate;
-    xEvent *events = NULL;
     int *valuators = NULL;
     int flags = 0;
 
@@ -662,15 +663,16 @@ xf86PostMotionEvent(DeviceIntPtr	device,
 #endif
     }
 
-    nevents = GetPointerEvents(&events, device, MotionNotify, 0,
+    if (!xf86Events)
+        xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+    if (!xf86Events)
+        FatalError("Couldn't allocate event store\n");
+
+    nevents = GetPointerEvents(xf86Events, device, MotionNotify, 0,
                                flags, num_valuators, valuators);
 
-    for (i = 0; i < nevents; i++) {
-        if (events->u.keyButtonPointer.time > xf86Info.lastEventTime)
-            xf86Info.lastEventTime = events->u.keyButtonPointer.time;
-        mieqEnqueue(events + i);
-    }
-    xfree(events);
+    for (i = 0; i < nevents; i++)
+        mieqEnqueue(xf86Events + i);
     
 #if 0
     if (HAS_MOTION_HISTORY(local)) {
@@ -791,7 +793,6 @@ xf86PostButtonEvent(DeviceIntPtr	device,
     va_list var;
     int *valuators = NULL;
     int i = 0, nevents = 0;
-    xEvent *events = NULL;
     
 #ifdef DEBUG
     ErrorF("xf86PostButtonEvent BEGIN 0x%x(%s) button=%d down=%s is_absolute=%s\n",
@@ -810,18 +811,19 @@ xf86PostButtonEvent(DeviceIntPtr	device,
         valuators[i] = va_arg(var, int);
     }
 
-    nevents = GetPointerEvents(&events, device,
+    if (!xf86Events)
+        xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+    if (!xf86Events)
+        FatalError("Couldn't allocate event store\n");
+
+    nevents = GetPointerEvents(xf86Events, device,
                                is_down ? ButtonPress : ButtonRelease, button,
                                is_absolute ? POINTER_ABSOLUTE :
                                              POINTER_RELATIVE,
                                num_valuators, valuators);
 
-    for (i = 0; i < nevents; i++) {
-        if (events->u.keyButtonPointer.time > xf86Info.lastEventTime)
-            xf86Info.lastEventTime = events->u.keyButtonPointer.time;
-        mieqEnqueue(events + i);
-    }
-    xfree(events);
+    for (i = 0; i < nevents; i++)
+        mieqEnqueue(xf86Events + i);
 }
 
 _X_EXPORT void
@@ -835,38 +837,39 @@ xf86PostKeyEvent(DeviceIntPtr	device,
 {
     va_list var;
     int i = 0, nevents = 0, *valuators = NULL;
-    xEvent *events = NULL;
 
     /* instil confidence in the user */
     ErrorF("this function has never been tested properly.  if things go quite "
            "badly south after this message, then xf86PostKeyEvent is "
            "broken.\n");
 
+    if (!xf86Events)
+        xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+    if (!xf86Events)
+        FatalError("Couldn't allocate event store\n");
+
     /* the spec says that dkp/dkr events should only get valuators in
      * absolute mode.  the spec knows all.  BOW BEFORE etc. */
     if (is_absolute) {
-        nevents = GetKeyboardValuatorEvents(&events, device,
-                                            is_down ? KeyPress : KeyRelease,
-                                            key_code, num_valuators,
-                                            valuators);
         valuators = xcalloc(sizeof(int), num_valuators);
         va_start(var, num_valuators);
         for (i = 0; i < num_valuators; i++)
             valuators[i] = va_arg(var, int);
         va_end(var);
+
+        nevents = GetKeyboardValuatorEvents(xf86Events, device,
+                                            is_down ? KeyPress : KeyRelease,
+                                            key_code, num_valuators,
+                                            valuators);
     }
     else {
-        nevents = GetKeyboardEvents(&events, device,
+        nevents = GetKeyboardEvents(xf86Events, device,
                                     is_down ? KeyPress : KeyRelease,
                                     key_code);
     }
 
-    for (i = 0; i < nevents; i++) {
-        if (events->u.keyButtonPointer.time > xf86Info.lastEventTime)
-            xf86Info.lastEventTime = events->u.keyButtonPointer.time;
-        mieqEnqueue(events + i);
-    }
-    xfree(events);
+    for (i = 0; i < nevents; i++)
+        mieqEnqueue(xf86Events + i);
 }
 
 _X_EXPORT void
@@ -874,7 +877,6 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
                       unsigned int      key_code,
                       int               is_down)
 {
-    xEvent *events = NULL;
     int nevents = 0, i = 0;
 
 #ifdef DEBUG
@@ -882,15 +884,16 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
            is_down ? "down" : "up", device->id);
 #endif
 
-    nevents = GetKeyboardEvents(&events, device,
+    if (!xf86Events)
+        xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+    if (!xf86Events)
+        FatalError("Couldn't allocate event store\n");
+
+    nevents = GetKeyboardEvents(xf86Events, device,
                                 is_down ? KeyPress : KeyRelease, key_code);
 
-    for (i = 0; i < nevents; i++) {
-        if (events->u.keyButtonPointer.time > xf86Info.lastEventTime)
-            xf86Info.lastEventTime = events->u.keyButtonPointer.time;
-        mieqEnqueue(events + i);
-    }
-    xfree(events);
+    for (i = 0; i < nevents; i++)
+        mieqEnqueue(xf86Events + i);
 }
 
 /* 

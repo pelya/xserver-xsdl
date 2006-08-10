@@ -4658,22 +4658,39 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
     }
 }
 
+/* Maximum number of valuators, divided by six, rounded up. */
+#define MAX_VALUATOR_EVENTS 6
+
+/**
+ * Returns the maximum number of events GetKeyboardEvents,
+ * GetKeyboardValuatorEvents, and GetPointerEvents will ever return.
+ *
+ * Should be used in DIX as:
+ * xEvent *events = xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+ */
+int
+GetMaximumEventsNum() {
+    /* Two base events -- core and device, plus valuator events.  Multiply
+     * by two if we're doing key repeats. */
+    return 2 * (2 + MAX_VALUATOR_EVENTS);
+}
+
 /**
  * Convenience wrapper around GetKeyboardValuatorEvents, that takes no
  * valuators.
  */
 int
-GetKeyboardEvents(xEvent **xE, DeviceIntPtr pDev, int type, int key_code) {
-    return GetKeyboardValuatorEvents(xE, pDev, type, key_code, 0, NULL);
+GetKeyboardEvents(xEvent *events, DeviceIntPtr pDev, int type, int key_code) {
+    return GetKeyboardValuatorEvents(events, pDev, type, key_code, 0, NULL);
 }
 
 /**
  * Returns a set of keyboard events for KeyPress/KeyRelease, optionally
  * also with valuator events.  Handles Xi and XKB.
  *
- * xE will be set to an array of events, which must be freed by the user;
- * the return value is the number of events in xE, which is not
- * NULL-terminated.
+ * events is not NULL-terminated; the return value is the number of events.
+ * The DDX is responsible for allocating the event structure in the first
+ * place via GetMaximumEventsNum(), and for freeing it.
  *
  * If pDev is set to send core events, then the keymap on the core
  * keyboard will be pivoted to that of the new keyboard and the appropriate
@@ -4683,18 +4700,21 @@ GetKeyboardEvents(xEvent **xE, DeviceIntPtr pDev, int type, int key_code) {
  * key press will trigger a matching KeyRelease, as well as the
  * KeyPresses.
  */
-int GetKeyboardValuatorEvents(xEvent **xE, DeviceIntPtr pDev, int type,
+int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
                               int key_code, int num_valuators,
                               int *valuators) {
     int numEvents = 0, numRepeatEvents = 0, ms = 0, first_valuator = 0, i = 0;
     deviceKeyButtonPointer *kbp = NULL;
     deviceValuator *xv = NULL;
-    xEvent *ev = NULL, *repeatEvents = NULL;
+    xEvent *repeatEvents = NULL;
     KeyClassPtr ckeyc;
 #ifdef XKB
     xkbMapNotify mn;
 #endif
 
+    if (!events)
+        return 0;
+    
     if (type != KeyPress && type != KeyRelease)
         return 0;
 
@@ -4707,8 +4727,11 @@ int GetKeyboardValuatorEvents(xEvent **xE, DeviceIntPtr pDev, int type,
     else
         numEvents = 1;
 
-    if (num_valuators)
-        numEvents += (num_valuators % 6) + 1;
+    if (num_valuators) {
+        if ((num_valuators / 6) + 1 > MAX_VALUATOR_EVENTS)
+            num_valuators = MAX_VALUATOR_EVENTS;
+        numEvents += (num_valuators / 6) + 1;
+    }
 
     /* Handle core repeating, via press/release/press/release.
      * FIXME: In theory, if you're repeating with two keyboards,
@@ -4724,26 +4747,15 @@ int GetKeyboardValuatorEvents(xEvent **xE, DeviceIntPtr pDev, int type,
             !(pDev->kbdfeed->ctrl.autoRepeats[key_code >> 3]
                 & (1 << (key_code & 7))))
             return 0;
-        numEvents += GetKeyboardValuatorEvents(&repeatEvents, pDev,
+        numEvents += GetKeyboardValuatorEvents(events, pDev,
                                                KeyRelease, key_code,
                                                num_valuators, valuators);
+        events += numEvents;
     }
 
-    ev = (xEvent *)xcalloc(sizeof(xEvent), numEvents);
-    if (!ev)
-        return 0;
-
-    if (repeatEvents) {
-        for (i = 0; i < numRepeatEvents; i++) {
-            ev = repeatEvents++;
-            ev++;
-        }
-    }
-
-    *xE = ev;
     ms = GetTimeInMillis();
 
-    kbp = (deviceKeyButtonPointer *) ev;
+    kbp = (deviceKeyButtonPointer *) events;
     kbp->time = ms;
     kbp->deviceid = pDev->id;
     if (type == KeyPress)
@@ -4754,7 +4766,7 @@ int GetKeyboardValuatorEvents(xEvent **xE, DeviceIntPtr pDev, int type,
     if (num_valuators) {
         kbp->deviceid |= MORE_EVENTS;
         while (first_valuator < num_valuators) {
-            xv = (deviceValuator *) ++ev;
+            xv = (deviceValuator *) ++events;
             xv->type = DeviceValuator;
             xv->first_valuator = first_valuator;
             xv->num_valuators = num_valuators;
@@ -4781,10 +4793,10 @@ int GetKeyboardValuatorEvents(xEvent **xE, DeviceIntPtr pDev, int type,
     }
 
     if (pDev->coreEvents) {
-        ev++;
-        ev->u.keyButtonPointer.time = ms;
-        ev->u.u.type = type;
-        ev->u.u.detail = key_code;
+        events++;
+        events->u.keyButtonPointer.time = ms;
+        events->u.u.type = type;
+        events->u.u.detail = key_code;
 
         if (inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr !=
             pDev) {
@@ -4796,8 +4808,6 @@ int GetKeyboardValuatorEvents(xEvent **xE, DeviceIntPtr pDev, int type,
             memcpy(ckeyc->modifierKeyMap, pDev->key->modifierKeyMap,
                     (8 * pDev->key->maxKeysPerModifier));
             ckeyc->maxKeysPerModifier = pDev->key->maxKeysPerModifier;
-            ckeyc->curKeySyms.map = NULL;
-            ckeyc->curKeySyms.mapWidth = 0;
             ckeyc->curKeySyms.minKeyCode = pDev->key->curKeySyms.minKeyCode;
             ckeyc->curKeySyms.maxKeyCode = pDev->key->curKeySyms.maxKeyCode;
             SetKeySymsMap(&ckeyc->curKeySyms, &pDev->key->curKeySyms);
@@ -4911,13 +4921,14 @@ acceleratePointer(DeviceIntPtr pDev, int num_valuators, int *valuators)
  * Generate a series of xEvents (returned in xE) representing pointer
  * motion, or button presses.  Xi and XKB-aware.
  *
- * xE is not NULL-terminated; the return value is the number of events.
- * The user is responsible for freeing these events.
+ * events is not NULL-terminated; the return value is the number of events.
+ * The DDX is responsible for allocating the event structure in the first
+ * place via GetMaximumEventsNum(), and for freeing it.
  */
 int
-GetPointerEvents(xEvent **xE, DeviceIntPtr pDev, int type, int buttons,
+GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
                  int flags, int num_valuators, int *valuators) {
-    int numEvents, ms, first_valuator = 0;
+    int numEvents = 0, ms = 0, first_valuator = 0;
     deviceKeyButtonPointer *kbp = NULL;
     deviceValuator *xv = NULL;
     AxisInfoPtr axes = NULL;
@@ -4942,20 +4953,18 @@ GetPointerEvents(xEvent **xE, DeviceIntPtr pDev, int type, int buttons,
         numEvents = 1;
 
     if (type == MotionNotify) {
-        if (num_valuators > 2)
+        if (num_valuators > 2) {
+            if (((num_valuators / 6) + 1) > MAX_VALUATOR_EVENTS)
+                num_valuators = MAX_VALUATOR_EVENTS;
             numEvents += (num_valuators / 6) + 1;
+        }
         else if (num_valuators < 2)
             return 0;
     }
 
-    ev = (xEvent *)xcalloc(sizeof(xEvent), numEvents);
-    if (!ev)
-        return 0;
-
-    *xE = ev;
     ms = GetTimeInMillis();
 
-    kbp = (deviceKeyButtonPointer *) ev;
+    kbp = (deviceKeyButtonPointer *) events;
     kbp->time = ms;
     kbp->deviceid = pDev->id;
 
@@ -5053,7 +5062,7 @@ GetPointerEvents(xEvent **xE, DeviceIntPtr pDev, int type, int buttons,
                               flags & POINTER_ABSOLUTE)) {
         kbp->deviceid |= MORE_EVENTS;
         while (first_valuator < num_valuators) {
-            xv = (deviceValuator *) ++ev;
+            xv = (deviceValuator *) ++events;
             xv->type = DeviceValuator;
             xv->first_valuator = first_valuator;
             xv->num_valuators = num_valuators;
@@ -5086,11 +5095,11 @@ GetPointerEvents(xEvent **xE, DeviceIntPtr pDev, int type, int buttons,
     }
 
     if (pDev->coreEvents) {
-        ev++;
-        ev->u.u.type = type;
-        ev->u.keyButtonPointer.time = ms;
-        ev->u.keyButtonPointer.rootX = kbp->root_x;
-        ev->u.keyButtonPointer.rootY = kbp->root_y;
+        events++;
+        events->u.u.type = type;
+        events->u.keyButtonPointer.time = ms;
+        events->u.keyButtonPointer.rootX = kbp->root_x;
+        events->u.keyButtonPointer.rootY = kbp->root_y;
         cp->valuator->lastx = kbp->root_x;
         cp->valuator->lasty = kbp->root_y;
 #ifdef DEBUG
@@ -5101,10 +5110,10 @@ GetPointerEvents(xEvent **xE, DeviceIntPtr pDev, int type, int buttons,
             ErrorF("GPE: core detail is %d\n", buttons);
 #endif
             /* Core buttons remapping shouldn't be transitive. */
-            ev->u.u.detail = pDev->button->map[buttons];
+            events->u.u.detail = pDev->button->map[buttons];
         }
         else {
-            ev->u.u.detail = 0;
+            events->u.u.detail = 0;
         }
 
         if (inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr !=

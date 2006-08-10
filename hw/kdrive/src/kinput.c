@@ -69,6 +69,8 @@ static struct KdConfigDevice *kdConfigPointers    = NULL;
 static KdKeyboardDriver *kdKeyboardDrivers = NULL;
 static KdPointerDriver  *kdPointerDrivers  = NULL;
 
+static xEvent           *kdEvents = NULL;
+
 static Bool		kdInputEnabled;
 static Bool		kdOffScreen;
 static unsigned long	kdOffScreenTime;
@@ -1271,6 +1273,11 @@ KdInitInput (void)
             ErrorF("Failed to add keyboard!\n");
     }
 
+    if (!kdEvents)
+        kdEvents = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+    if (!kdEvents)
+        FatalError("Couldn't allocate event buffer\n");
+
     mieqInit();
 }
 
@@ -1849,7 +1856,6 @@ KdHandleKeyboardEvent (KdKeyboardInfo *ki, int type, int key)
 void
 KdReleaseAllKeys (void)
 {
-    xEvent *xE;
     int	key, nEvents, i;
     KdKeyboardInfo *ki;
 
@@ -1860,9 +1866,9 @@ KdReleaseAllKeys (void)
              key++) {
             if (IsKeyDown(ki, key)) {
                 KdHandleKeyboardEvent(ki, KeyRelease, key);
-                nEvents = GetKeyboardEvents(&xE, ki->dixdev, KeyRelease, key);
+                nEvents = GetKeyboardEvents(kdEvents, ki->dixdev, KeyRelease, key);
                 for (i = 0; i < nEvents; i++)
-                    KdQueueEvent (xE++);
+                    KdQueueEvent (kdEvents + i);
             }
         }
     }
@@ -1897,7 +1903,6 @@ KdEnqueueKeyboardEvent(KdKeyboardInfo   *ki,
     KeyClassPtr	keyc = NULL;
     KeybdCtrl *ctrl = NULL;
     int type, nEvents, i;
-    xEvent *xE = NULL;
 
 #ifdef DEBUG
     ErrorF("enqueuing kb event (scancode %d, %s)\n", scan_code, is_up ? "up" : "down");
@@ -1939,12 +1944,12 @@ KdEnqueueKeyboardEvent(KdKeyboardInfo   *ki,
 	
         KdCheckSpecialKeys(ki, type, key_code);
         KdHandleKeyboardEvent(ki, type, key_code);
-        nEvents = GetKeyboardEvents(&xE, ki->dixdev, type, key_code);
+        nEvents = GetKeyboardEvents(kdEvents, ki->dixdev, type, key_code);
 #ifdef DEBUG
         ErrorF("KdEnqueueKeyboardEvent: got %d events from GKE\n", nEvents);
 #endif
         for (i = 0; i < nEvents; i++)
-            KdQueueEvent(xE++);
+            KdQueueEvent(kdEvents + i);
     }
     else {
         ErrorF("driver %s wanted to post scancode %d outside of [%d, %d]!\n",
@@ -2047,8 +2052,7 @@ void
 _KdEnqueuePointerEvent (KdPointerInfo *pi, int type, int x, int y, int z,
                         int b, int absrel, Bool force)
 {
-    xEvent *xE = NULL;
-    int n = 0, i = 0;
+    int nEvents = 0, i = 0;
     int valuators[3] = { x, y, z };
 
 #ifdef DEBUG
@@ -2060,9 +2064,10 @@ _KdEnqueuePointerEvent (KdPointerInfo *pi, int type, int x, int y, int z,
     if (!force && KdHandlePointerEvent(pi, type, x, y, z, b, absrel))
         return;
 
-    n = GetPointerEvents(&xE, pi->dixdev, type, b, absrel, 3, valuators);
-    for (i = 0; i < n; i++)
-        KdQueueEvent(xE++);
+    nEvents = GetPointerEvents(kdEvents, pi->dixdev, type, b, absrel, 3,
+                               valuators);
+    for (i = 0; i < nEvents; i++)
+        KdQueueEvent(kdEvents + i);
 }
 
 void
