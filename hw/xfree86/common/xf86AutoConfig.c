@@ -71,7 +71,6 @@
 #define BUILTIN_MONITOR_SECTION \
 	"Section \"Monitor\"\n" \
 	"\tIdentifier\t" BUILTIN_MONITOR_NAME "\n" \
-	"\tOption\t\"TargetRefresh\"\t\"75.0\"\n" \
 	"EndSection\n\n"
 
 #define BUILTIN_SCREEN_NAME \

@@ -580,7 +580,6 @@ void UseMsg(void)
 #endif
     ErrorF("-audit int             set audit trail level\n");	
     ErrorF("-auth file             select authorization file\n");	
-    ErrorF("bc                     enable bug compatibility\n");
     ErrorF("-br                    create root window with black background\n");
     ErrorF("+bs                    enable any backing store support\n");
     ErrorF("-bs                    disable any backing store support\n");
@@ -768,8 +767,6 @@ ProcessCommandLine(int argc, char *argv[])
 	    else
 		UseMsg();
 	}
-	else if ( strcmp( argv[i], "bc") == 0)
-	    permitOldBugs = TRUE;
 	else if ( strcmp( argv[i], "-br") == 0)
 	    blackRoot = TRUE;
 	else if ( strcmp( argv[i], "+bs") == 0)

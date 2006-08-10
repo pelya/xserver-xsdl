@@ -148,12 +148,6 @@ ClientPtr requestingClient;	/* XXX this should be obsolete now, remove? */
 _X_EXPORT TimeStamp currentTime;
 _X_EXPORT TimeStamp lastDeviceEventTime;
 
-/*
- * turn off some error checking, to permit old broken clients (like R2/R3
- * xterms) to work
- */
-_X_EXPORT Bool permitOldBugs = FALSE;
-
 _X_EXPORT int defaultColorVisualClass = -1;
 _X_EXPORT int monitorResolution = 0;
 
