@@ -1396,9 +1396,11 @@ KdInitOutput (ScreenInfo    *pScreenInfo,
     KdCardInfo	    *card;
     KdScreenInfo    *screen;
 
+#ifdef COMPOSITE
     /* kind of a hack: we want Composite enabled, but it's disabled per
      * default. */
     noCompositeExtension = FALSE;
+#endif
     
     if (!kdCardInfo)
     {
