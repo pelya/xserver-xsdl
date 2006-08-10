@@ -137,19 +137,13 @@ static const char CREATE_NEW_SCREEN_FUNC[] =
 static void
 __glXDRIleaveServer(void)
 {
-  int i;
-
-  for (i = 0; i < screenInfo.numScreens; i++)
-    DRIDoBlockHandler(i, NULL, NULL, NULL);
+  DRIBlockHandler(NULL, NULL, NULL);
 }
     
 static void
 __glXDRIenterServer(void)
 {
-  int i;
-
-  for (i = 0; i < screenInfo.numScreens; i++)
-    DRIDoWakeupHandler(i, NULL, 0, NULL);
+  DRIWakeupHandler(NULL, 0, NULL);
 }
 
 static void
