@@ -1758,7 +1758,8 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 			 * horizontal timing parameters that CRTs may have
 			 * problems with.
 			 */
-			if ((q->type & M_T_DEFAULT) &&
+			if (!scrp->monitor->reducedblanking &&
+			    (q->type & M_T_DEFAULT) &&
 			    ((double)q->HTotal / (double)q->HDisplay) < 1.15)
 			    continue;
 
