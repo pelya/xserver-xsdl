@@ -119,14 +119,19 @@ typedef enum {
     MODE_ERROR	= -1	/* error condition */
 } ModeStatus;
 
+/*
+ * The mode sets are, from best to worst: USERDEF, DRIVER, and DEFAULT/BUILTIN.
+ * Preferred will bubble a mode to the top within a set.
+ */
 # define M_T_BUILTIN 0x01        /* built-in mode */
 # define M_T_CLOCK_C (0x02 | M_T_BUILTIN) /* built-in mode - configure clock */
 # define M_T_CRTC_C  (0x04 | M_T_BUILTIN) /* built-in mode - configure CRTC  */
 # define M_T_CLOCK_CRTC_C  (M_T_CLOCK_C | M_T_CRTC_C)
                                /* built-in mode - configure CRTC and clock */
+# define M_T_PREFERRED 0x08	/* preferred mode within a set */
 # define M_T_DEFAULT 0x10	/* (VESA) default modes */
 # define M_T_USERDEF 0x20	/* One of the modes from the config file */
-# define M_T_EDID    0x40	/* Mode from the EDID info from the monitor */
+# define M_T_DRIVER  0x40	/* Supplied by the driver (EDID, etc) */
 
 /* Video mode */
 typedef struct _DisplayModeRec {
