@@ -1454,6 +1454,10 @@ ProcChangeKeyboardControl (ClientPtr client)
     REQUEST(xChangeKeyboardControlReq);
 
     REQUEST_AT_LEAST_SIZE(xChangeKeyboardControlReq);
+
+    if (!keybd->kbdfeed->CtrlProc)
+        return BadDevice;
+    
     vmask = stuff->mask;
     if (client->req_len != (sizeof(xChangeKeyboardControlReq)>>2)+Ones(vmask))
 	return BadLength;
@@ -1660,6 +1664,10 @@ ProcBell(ClientPtr client)
     int newpercent;
     REQUEST(xBellReq);
     REQUEST_SIZE_MATCH(xBellReq);
+
+    if (!keybd->kbdfeed->BellProc)
+        return BadDevice;
+    
     if (stuff->percent < -100 || stuff->percent > 100)
     {
 	client->errorValue = stuff->percent;
@@ -1677,7 +1685,7 @@ ProcBell(ClientPtr client)
 	else
 #endif
     (*keybd->kbdfeed->BellProc)(newpercent, keybd,
-				(pointer) &keybd->kbdfeed->ctrl, 0);
+                                (pointer) &keybd->kbdfeed->ctrl, 0);
     return Success;
 } 
 
@@ -1689,6 +1697,10 @@ ProcChangePointerControl(ClientPtr client)
     REQUEST(xChangePointerControlReq);
 
     REQUEST_SIZE_MATCH(xChangePointerControlReq);
+    
+    if (!mouse->ptrfeed->CtrlProc)
+        return BadDevice;
+    
     ctrl = mouse->ptrfeed->ctrl;
     if ((stuff->doAccel != xTrue) && (stuff->doAccel != xFalse))
     {
