@@ -1162,6 +1162,10 @@ int main () {
 		fi
 		AC_SUBST([SOLARIS_ASM_CFLAGS])
 		;;
+	  gnu*)
+	  	XORG_OS="gnu"
+		XORG_OS_SUBDIR="hurd"
+		;;
 	  *)
 	  	XORG_OS="unknown"
 		XORG_OS_SUBDIR="unknown"
@@ -1667,6 +1671,7 @@ hw/xfree86/os-support/Makefile
 hw/xfree86/os-support/bsd/Makefile
 hw/xfree86/os-support/bus/Makefile
 hw/xfree86/os-support/drm/Makefile
+hw/xfree86/os-support/hurd/Makefile
 hw/xfree86/os-support/misc/Makefile
 hw/xfree86/os-support/linux/Makefile
 hw/xfree86/os-support/lynxos/Makefile
