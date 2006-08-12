@@ -667,13 +667,7 @@ InitPtrFeedbackClassDeviceStruct(DeviceIntPtr dev, PtrCtrlProcPtr controlProc)
     if (!feedc)
 	return FALSE;
     feedc->CtrlProc = controlProc;
-#ifdef sgi
-    feedc->ctrl.num = 1;
-    feedc->ctrl.den = 1;
-    feedc->ctrl.threshold = 1;
-#else
     feedc->ctrl = defaultPointerControl;
-#endif
     feedc->ctrl.id = 0;
     if ( (feedc->next = dev->ptrfeed) )
         feedc->ctrl.id = dev->ptrfeed->ctrl.id + 1;
