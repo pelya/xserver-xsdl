@@ -19,17 +19,15 @@ APM_SOURCES = lnx_apm.c
 XORG_CFLAGS += -DHAVE_APM
 endif
 
-liblinux_la_SOURCES = lnx_init.c lnx_video.c lnx_kbd.c lnx_mouse.c \
-                     lnx_pci.c lnx_agp.c lnx_kmod.c lnx_KbdMap.c \
+liblinux_la_SOURCES = lnx_init.c lnx_video.c lnx_mouse.c \
+                     lnx_pci.c lnx_agp.c lnx_kmod.c \
                      $(srcdir)/../shared/bios_mmap.c \
 		     $(srcdir)/../shared/VTsw_usl.c \
-                     $(srcdir)/../shared/std_kbdEv.c \
 		     $(srcdir)/../shared/posix_tty.c \
                      $(srcdir)/../shared/vidmem.c \
 		     $(srcdir)/../shared/sigio.c \
                      $(srcdir)/../shared/stdResource.c \
 		     $(srcdir)/../shared/libc_wrapper.c \
-                     $(srcdir)/../shared/at_scancode.c \
                      $(ACPI_SOURCES) \
                      $(APM_SOURCES) \
                      $(PLATFORM_PCI_SUPPORT)

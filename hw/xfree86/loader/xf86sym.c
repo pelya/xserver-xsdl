@@ -70,7 +70,6 @@
 # include "xf86Xinput.h"
 #endif
 #include "xf86OSmouse.h"
-#include "xf86OSKbd.h"
 #include "xf86xv.h"
 #include "xf86xvmc.h"
 #include "xf86cmap.h"
@@ -280,7 +279,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86SerialModemClearBits)
     SYMFUNC(xf86LoadKernelModule)
     SYMFUNC(xf86OSMouseInit)
-    SYMFUNC(xf86OSKbdPreInit)
     SYMFUNC(xf86AgpGARTSupported)
     SYMFUNC(xf86GetAGPInfo)
     SYMFUNC(xf86AcquireGART)

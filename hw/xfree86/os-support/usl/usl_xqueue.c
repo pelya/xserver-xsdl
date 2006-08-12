@@ -33,7 +33,6 @@
 #include "xf86_OSlib.h"
 #include "xf86Xinput.h"
 #include "xf86OSmouse.h"
-#include "xf86OSKbd.h"
 #include "usl_xqueue.h"
 
 #ifdef XKB

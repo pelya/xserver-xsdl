@@ -61,7 +61,6 @@
 #endif
 
 #include "xf86OSmouse.h"
-#include "xf86OSKbd.h"
 
 #ifdef DEBUG
 # define DEBUG_P(x) ErrorF(x"\n");
@@ -259,59 +258,21 @@ MiscExtGetKbdSettings(pointer *kbd)
 {
     kbdParamsPtr kbdptr;
     InputInfoPtr pInfo;
-    KbdDevPtr pKbd;
 
     DEBUG_P("MiscExtGetKbdSettings");
 
-    kbdptr = MiscExtCreateStruct(MISC_KEYBOARD);
-    if (!kbdptr)
-	return FALSE;
-
-    pInfo = inputInfo.keyboard->public.devicePrivate;
-    pKbd = (KbdDevPtr) pInfo->private;
-
-    kbdptr->type  = pKbd->kbdType;
-    kbdptr->rate  = pKbd->rate;
-    kbdptr->delay = pKbd->delay;
-    *kbd = kbdptr;
-
-    return TRUE;
+    return FALSE;
 }
 
 _X_EXPORT int
 MiscExtGetKbdValue(pointer keyboard, MiscExtKbdValType valtype)
 {
-    kbdParamsPtr kbd = keyboard;
-
-    DEBUG_P("MiscExtGetKbdValue");
-    switch (valtype) {
-	case MISC_KBD_TYPE:		return kbd->type;
-	case MISC_KBD_RATE:		return kbd->rate;
-	case MISC_KBD_DELAY:		return kbd->delay;
-	case MISC_KBD_SERVNUMLOCK:	return 0;
-    }
     return 0;
 }
 
 _X_EXPORT Bool
 MiscExtSetKbdValue(pointer keyboard, MiscExtKbdValType valtype, int value)
 {
-    kbdParamsPtr kbd = keyboard;
-
-    DEBUG_P("MiscExtSetKbdValue");
-    switch (valtype) {
-	case MISC_KBD_TYPE:
-		kbd->type = value;
-		return TRUE;
-	case MISC_KBD_RATE:
-		kbd->rate = value;
-		return TRUE;
-	case MISC_KBD_DELAY:
-		kbd->delay = value;
-		return TRUE;
-	case MISC_KBD_SERVNUMLOCK:
-		return TRUE;
-    }
     return FALSE;
 }
 
@@ -595,39 +556,7 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	   xf86ReplaceBoolOption(pInfo->options, "ClearRTS",
 				 pMse->mouseFlags | MF_CLEAR_RTS);
     }
-    if (mse_or_kbd == MISC_KEYBOARD) {
-	kbdParamsPtr kbd = structure;
-        InputInfoPtr pInfo;
-        KbdDevPtr pKbd;
-
-        pInfo = inputInfo.keyboard->public.devicePrivate;
-        pKbd = (KbdDevPtr) pInfo->private;
-
-	if (kbd->rate < 0)
-	    return MISC_RET_BADVAL;
-	if (kbd->delay < 0)
-	    return MISC_RET_BADVAL;
-	if (kbd->type < KTYPE_UNKNOWN || kbd->type > KTYPE_XQUEUE)
-	    return MISC_RET_BADKBDTYPE;
-
-	if (pKbd->rate!=kbd->rate || pKbd->delay!=kbd->delay) {
-	    char rad;
-
-	    pKbd->rate = kbd->rate;
-	    pKbd->delay = kbd->delay;
-	    if      (pKbd->delay <= 375) rad = 0x00;
-	    else if (pKbd->delay <= 625) rad = 0x20;
-	    else if (pKbd->delay <= 875) rad = 0x40;
-	    else                         rad = 0x60;
-
-	    if      (pKbd->rate <=  2)   rad |= 0x1F;
-	    else if (pKbd->rate >= 30)   rad |= 0x00;
-	    else                         rad |= ((58/pKbd->rate)-2);
-
-	    pKbd->SetKbdRepeat(pInfo, rad);
-	}
-    }
-    return MISC_RET_SUCCESS;
+    return MISC_RET_BADVAL;
 }
 
 _X_EXPORT Bool

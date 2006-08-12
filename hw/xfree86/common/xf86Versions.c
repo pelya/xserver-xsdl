@@ -31,7 +31,6 @@
 
 #include "xf86.h"
 #include "xf86OSmouse.h"
-#include "xf86OSKbd.h"
 
 static CARD32 registeredVersions[NUM_BUILTIN_IFS];
 
@@ -51,8 +50,6 @@ xf86GetBuiltinInterfaceVersion(BuiltinInterface iface, int flags)
     switch (iface) {
     case BUILTIN_IF_OSMOUSE:
 	return OS_MOUSE_VERSION_CURRENT;
-    case BUILTIN_IF_OSKBD:
-	return OS_KBD_VERSION_CURRENT;
     default:
 	xf86Msg(X_ERROR, "xf86GetBuiltinInterfaceVersion: internal error: "
 		"interface %d not handled\n", iface);
