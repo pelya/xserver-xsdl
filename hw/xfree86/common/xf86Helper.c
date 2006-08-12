@@ -2576,7 +2576,7 @@ xf86SetSilkenMouse (ScreenPtr pScreen)
     /*
      * XXX quick hack to report correctly for OSs that can't do SilkenMouse
      * yet.  Should handle this differently so that alternate async methods
-     * like Xqueue work correctly with this too.
+     * work correctly with this too.
      */
     pScrn->silkenMouse = useSM && xf86SIGIOSupported();
     if (serverGeneration == 1)

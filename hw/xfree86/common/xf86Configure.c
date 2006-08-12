@@ -76,7 +76,7 @@ Bool foundMouse = FALSE;
 #elif defined(__SCO__)
 static char *DFLT_MOUSE_PROTO = "OSMouse";
 #elif defined(__UNIXWARE__)
-static char *DFLT_MOUSE_PROTO = "Xqueue";
+static char *DFLT_MOUSE_PROTO = "OSMouse";
 static char *DFLT_MOUSE_DEV = "/dev/mouse";
 #elif defined(QNX4)
 static char *DFLT_MOUSE_PROTO = "OSMouse";

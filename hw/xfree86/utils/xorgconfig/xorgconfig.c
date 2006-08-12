@@ -2068,12 +2068,6 @@ static char *XF86Config_fontpathchunk_text =
 "    Identifier	\"Keyboard1\"\n"
 "    Driver	\"kbd\"\n"
 "\n"
-"# For most OSs the protocol can be omitted (it defaults to \"Standard\").\n"
-"# When using XQUEUE (only for SVR3 and SVR4, but not Solaris),\n"
-"# uncomment the following line.\n"
-"\n"
-"#    Option     \"Protocol\"      \"Xqueue\"\n"
-"\n"
 "    Option \"AutoRepeat\" \"500 30\"\n"
 "\n"
 "# Specify which keyboard LEDs can be user-controlled (eg, with xset(1))\n"
@@ -2125,7 +2119,7 @@ static char *pointersection_text1 =
 "\n"
 "# Identifier and driver\n"
 "\n"
-#if defined(__UNIXWARE__) || defined(XQUEUE)
+#if defined(__UNIXWARE__)
 "#    Identifier	\"Mouse1\"\n"
 "#    Driver	\"mouse\"\n"
 #else
@@ -2135,15 +2129,6 @@ static char *pointersection_text1 =
 ;
 
 static char *pointersection_text2 =
-"\n"
-"# When using XQUEUE, comment out the above two lines, and uncomment\n"
-"# the following line.\n"
-"\n"
-#if defined(__UNIXWARE__) || defined(XQUEUE)
-"    Option \"Protocol\"	\"Xqueue\"\n"
-#else
-"#    Option \"Protocol\"	\"Xqueue\"\n"
-#endif
 "\n"
 "# Mouse-speed setting for PS/2 mouse.\n"
 "\n"

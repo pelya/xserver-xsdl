@@ -433,15 +433,13 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	if (!xf86MouseProtocolIDToName)
 	    return MISC_RET_NOMODULE;
 	if (mse->type < MTYPE_MICROSOFT
-		|| ( mse->type > MTYPE_EXPPS2
-		    && (mse->type!=MTYPE_OSMOUSE && mse->type!=MTYPE_XQUEUE)))
+		|| (mse->type > MTYPE_EXPPS2
+		    && (mse->type != MTYPE_OSMOUSE)))
 	    return MISC_RET_BADMSEPROTO;
 #ifdef OSMOUSE_ONLY
 	if (mse->type != MTYPE_OSMOUSE)
 	    return MISC_RET_BADMSEPROTO;
 #else
-	if (mse->type == MTYPE_XQUEUE)
-	    return MISC_RET_BADMSEPROTO;
 	if (mse->type == MTYPE_OSMOUSE)
 	    return MISC_RET_BADMSEPROTO;
 #endif /* OSMOUSE_ONLY */
@@ -462,7 +460,6 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	    mse->flags &= ~MF_REOPEN;
 	}
 	if (mse->type != MTYPE_OSMOUSE
-		&& mse->type != MTYPE_XQUEUE
 		&& mse->type != MTYPE_PS_2
 		&& mse->type != MTYPE_BUSMOUSE
 		&& mse->type != MTYPE_IMPS2
@@ -483,7 +480,6 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	    return MISC_RET_BADFLAGS;
 
 	if (mse->type != MTYPE_OSMOUSE
-		&& mse->type != MTYPE_XQUEUE
 		&& mse->type != MTYPE_BUSMOUSE)
 	{
 	    if (mse->samplerate < 0)

@@ -142,9 +142,6 @@ Bool VTSwitchEnabled = TRUE;		/* Allows run-time disabling for
 
 extern fd_set EnabledDevices;
 
-#if defined(XQUEUE)
-extern void xf86XqueRequest(void);
-#endif
 #ifdef XF86PM
 extern void (*xf86OSPMClose)(void);
 #endif

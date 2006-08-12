@@ -361,9 +361,6 @@ static char *protocols[] = {
 #ifdef __SCO__
     "OsMouse",
 #endif
-#ifdef __UNIXWARE__
-    "Xqueue",
-#endif
 #ifdef WSCONS_SUPPORT
     "wsmouse",
 #endif

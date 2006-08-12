@@ -62,7 +62,6 @@ libbsd_la_SOURCES = \
 	$(srcdir)/../shared/vidmem.c \
 	bsd_VTsw.c \
 	bsd_init.c \
-	bsd_io.c \
 	bsd_mouse.c \
 	$(ARCH_SOURCES) \
 	$(AGP_SOURCES) \
