@@ -174,6 +174,7 @@ dnl glibc backtrace support check (hw/xfree86/common/xf86Events.c)
 AC_CHECK_HEADER([execinfo.h],[
     AC_CHECK_LIB(c, backtrace, [
         AC_DEFINE(HAVE_BACKTRACE, 1, [Has backtrace support])
+        AC_DEFINE(HAVE_EXECINFO_H, 1, [Have execinfo.h])
     ])]
 )
 
