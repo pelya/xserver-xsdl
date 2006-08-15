@@ -143,7 +143,7 @@ KdAssertSigioBlocked (char *where)
     sigprocmask (SIG_BLOCK, &set, &old);
     if (!sigismember (&old, SIGIO)) {
 	ErrorF ("SIGIO not blocked at %s\n", where);
-        KdBacktrace();
+        KdBacktrace(0);
     }
 }
 
@@ -387,7 +387,6 @@ static int
 KdPointerProc(DeviceIntPtr pDevice, int onoff)
 {
     DevicePtr       pDev = (DevicePtr)pDevice;
-    int             i;
     KdPointerInfo   *pi;
 #ifdef XINPUT
     Atom            xiclass;
@@ -716,9 +715,6 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
     Bool        ret;
     DevicePtr   pDev = (DevicePtr)pDevice;
     KdKeyboardInfo *ki;
-#ifdef XKB
-    XkbComponentNamesRec names;
-#endif
 #ifdef XINPUT
     Atom xiclass;
 #endif
@@ -1254,7 +1250,6 @@ KdInitInput (void)
     KdPointerInfo *pi;
     KdKeyboardInfo *ki;
     struct KdConfigDevice *dev;
-    int i = 0;
 
     kdInputEnabled = TRUE;
 
