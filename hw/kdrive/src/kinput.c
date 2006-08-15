@@ -1927,23 +1927,14 @@ KdEnqueueKeyboardEvent(KdKeyboardInfo   *ki,
 	else
 	    type = KeyPress;
 	
-        /* HRNGH */
-	switch (KEYCOL1(ki, key_code)) 
-	{
-	case XK_Num_Lock:
-	case XK_Scroll_Lock:
-	case XK_Shift_Lock:
-	case XK_Caps_Lock:
-	    if (type == KeyRelease)
-		return;
-	    if (IsKeyDown (ki, key_code))
-		type = KeyRelease;
-	    else
-		type = KeyPress;
+#ifdef XKB
+        if (noXkbExtension)
+#endif
+        {
+            KdCheckSpecialKeys(ki, type, key_code);
+            KdHandleKeyboardEvent(ki, type, key_code);
 	}
 	
-        KdCheckSpecialKeys(ki, type, key_code);
-        KdHandleKeyboardEvent(ki, type, key_code);
         nEvents = GetKeyboardEvents(kdEvents, ki->dixdev, type, key_code);
 #ifdef DEBUG
         ErrorF("KdEnqueueKeyboardEvent: got %d events from GKE\n", nEvents);
