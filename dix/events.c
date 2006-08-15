@@ -4711,11 +4711,10 @@ GetKeyboardEvents(xEvent *events, DeviceIntPtr pDev, int type, int key_code) {
 int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
                               int key_code, int num_valuators,
                               int *valuators) {
-    int numEvents = 0, numRepeatEvents = 0, ms = 0, first_valuator = 0, i = 0;
+    int numEvents = 0, ms = 0, first_valuator = 0;
     KeySym sym = pDev->key->curKeySyms.map[key_code * pDev->key->curKeySyms.mapWidth];
     deviceKeyButtonPointer *kbp = NULL;
     deviceValuator *xv = NULL;
-    xEvent *repeatEvents = NULL;
     KeyClassPtr ckeyc;
 #ifdef XKB
     xkbMapNotify mn;
@@ -4779,6 +4778,7 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
                                                    num_valuators, valuators);
             events += numEvents;
         }
+    }
     
 
     ms = GetTimeInMillis();
@@ -4960,7 +4960,6 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     deviceKeyButtonPointer *kbp = NULL;
     deviceValuator *xv = NULL;
     AxisInfoPtr axes = NULL;
-    xEvent *ev = NULL;
     Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
     DeviceIntPtr cp = inputInfo.pointer;
 
