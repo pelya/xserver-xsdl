@@ -113,6 +113,7 @@ of the copyright holder.
 #endif
 
 #include <X11/X.h>
+#include <X11/keysym.h>
 #include "misc.h"
 #include "resource.h"
 #define NEED_EVENTS
@@ -210,7 +211,7 @@ Mask DontPropagateMasks[DNPMCOUNT];
 static int DontPropagateRefCnts[DNPMCOUNT];
 
 #ifdef DEBUG
-static debug_events = 0;
+static int debug_events = 0;
 #endif
 _X_EXPORT InputInfo inputInfo;
 
@@ -4711,6 +4712,7 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
                               int key_code, int num_valuators,
                               int *valuators) {
     int numEvents = 0, numRepeatEvents = 0, ms = 0, first_valuator = 0, i = 0;
+    KeySym sym = pDev->key->curKeySyms.map[key_code * pDev->key->curKeySyms.mapWidth];
     deviceKeyButtonPointer *kbp = NULL;
     deviceValuator *xv = NULL;
     xEvent *repeatEvents = NULL;
@@ -4740,11 +4742,28 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
         numEvents += (num_valuators / 6) + 1;
     }
 
+#ifdef XKB
+    if (noXkbExtension)
+#endif
+    {
+        switch (sym) {
+            case XK_Num_Lock:
+            case XK_Caps_Lock:
+            case XK_Scroll_Lock:
+            case XK_Shift_Lock:
+                if (type == KeyRelease)
+                    return 0;
+                else if (type == KeyPress &&
+                         (pDev->key->down[key_code >> 3] & (key_code & 7)) & 1)
+                        type = KeyRelease;
+        }
+    }
+
     /* Handle core repeating, via press/release/press/release.
      * FIXME: In theory, if you're repeating with two keyboards,
      *        you could get unbalanced events here. */
     if (type == KeyPress &&
-        ((pDev->key->down[key_code >> 3] & (key_code & 7)) & 1)) {
+        (((pDev->key->down[key_code >> 3] & (key_code & 7))) & 1)) {
         if (!pDev->kbdfeed->ctrl.autoRepeat ||
             pDev->key->modifierMap[key_code] ||
             !(pDev->kbdfeed->ctrl.autoRepeats[key_code >> 3]
@@ -4760,7 +4779,7 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
                                                    num_valuators, valuators);
             events += numEvents;
         }
-    }
+    
 
     ms = GetTimeInMillis();
 
@@ -4942,6 +4961,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     deviceValuator *xv = NULL;
     AxisInfoPtr axes = NULL;
     xEvent *ev = NULL;
+    Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
     DeviceIntPtr cp = inputInfo.pointer;
 
     if (type != MotionNotify && type != ButtonPress && type != ButtonRelease)
@@ -4961,14 +4981,13 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     else
         numEvents = 1;
 
-    if (type == MotionNotify) {
-        if (num_valuators > 2) {
-            if (((num_valuators / 6) + 1) > MAX_VALUATOR_EVENTS)
-                num_valuators = MAX_VALUATOR_EVENTS;
-            numEvents += (num_valuators / 6) + 1;
-        }
-        else if (num_valuators < 2)
-            return 0;
+    if (num_valuators > 2 && sendValuators) {
+        if (((num_valuators / 6) + 1) > MAX_VALUATOR_EVENTS)
+            num_valuators = MAX_VALUATOR_EVENTS;
+        numEvents += (num_valuators / 6) + 1;
+    }
+    else if (type == MotionNotify && num_valuators < 2) {
+        return 0;
     }
 
     ms = GetTimeInMillis();
@@ -5067,8 +5086,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         kbp->detail = pDev->button->map[buttons];
     }
 
-    if (num_valuators > 2 && (type == MotionNotify ||
-                              flags & POINTER_ABSOLUTE)) {
+    if (num_valuators > 2 && sendValuators) {
         kbp->deviceid |= MORE_EVENTS;
         while (first_valuator < num_valuators) {
             xv = (deviceValuator *) ++events;
@@ -5106,6 +5124,9 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     if (pDev->coreEvents) {
         events++;
         events->u.u.type = type;
+#ifdef DEBUG
+        ErrorF("GPE: core type is %d\n", type);
+#endif
         events->u.keyButtonPointer.time = ms;
         events->u.keyButtonPointer.rootX = kbp->root_x;
         events->u.keyButtonPointer.rootY = kbp->root_y;
