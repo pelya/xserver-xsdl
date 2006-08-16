@@ -576,24 +576,40 @@ xf86InitOrigins(void)
 		/* force edge lists */
 		if(screen->left) {
 		    ref = screen->left->screennum;
+		    if (! xf86Screens[ref] || ! xf86Screens[ref]->pScreen) {
+			ErrorF("Referenced uninitialized screen in Layout!\n");
+			break;
+		    }
 		    pLayout->left = AddEdge(pLayout->left, 
 			0, xf86Screens[i]->pScreen->height,
 			xf86Screens[ref]->pScreen->width, 0, ref);
 		}
 		if(screen->right) {
 		    ref = screen->right->screennum;
+		    if (! xf86Screens[ref] || ! xf86Screens[ref]->pScreen) {
+			ErrorF("Referenced uninitialized screen in Layout!\n");
+			break;
+		    }
 		    pScreen = xf86Screens[i]->pScreen;
 		    pLayout->right = AddEdge(pLayout->right, 
 			0, pScreen->height, -pScreen->width, 0, ref);
 		}
 		if(screen->top) {
 		    ref = screen->top->screennum;
+		    if (! xf86Screens[ref] || ! xf86Screens[ref]->pScreen) {
+			ErrorF("Referenced uninitialized screen in Layout!\n");
+			break;
+		    }
 		    pLayout->up = AddEdge(pLayout->up, 
 			0, xf86Screens[i]->pScreen->width,
 			0, xf86Screens[ref]->pScreen->height, ref);
 		}
 		if(screen->bottom) {
 		    ref = screen->bottom->screennum;
+		    if (! xf86Screens[ref] || ! xf86Screens[ref]->pScreen) {
+			ErrorF("Referenced uninitialized screen in Layout!\n");
+			break;
+		    }
 		    pScreen = xf86Screens[i]->pScreen;
 		    pLayout->down = AddEdge(pLayout->down, 
 			0, pScreen->width, 0, -pScreen->height, ref);
@@ -609,6 +625,10 @@ xf86InitOrigins(void)
 		break;
 	    case PosRelative:
 		ref = screen->refscreen->screennum;
+		if (! xf86Screens[ref] || ! xf86Screens[ref]->pScreen) {
+		    ErrorF("Referenced uninitialized screen in Layout!\n");
+		    break;
+		}
 		if(screensLeft & (1 << ref)) break;
 		dixScreenOrigins[i].x = dixScreenOrigins[ref].x + screen->x;
 		dixScreenOrigins[i].y = dixScreenOrigins[ref].y + screen->y;
@@ -616,6 +636,10 @@ xf86InitOrigins(void)
 		break;
 	    case PosRightOf:
 		ref = screen->refscreen->screennum;
+		if (! xf86Screens[ref] || ! xf86Screens[ref]->pScreen) {
+		    ErrorF("Referenced uninitialized screen in Layout!\n");
+		    break;
+		}
 		if(screensLeft & (1 << ref)) break;
 		pScreen = xf86Screens[ref]->pScreen;
 		dixScreenOrigins[i].x = 
@@ -625,6 +649,10 @@ xf86InitOrigins(void)
 		break;
 	    case PosLeftOf:
 		ref = screen->refscreen->screennum;
+		if (! xf86Screens[ref] || ! xf86Screens[ref]->pScreen) {
+		    ErrorF("Referenced uninitialized screen in Layout!\n");
+		    break;
+		}
 		if(screensLeft & (1 << ref)) break;
 		pScreen = xf86Screens[i]->pScreen;
 		dixScreenOrigins[i].x = 
@@ -634,6 +662,10 @@ xf86InitOrigins(void)
 		break;
 	    case PosBelow:
 		ref = screen->refscreen->screennum;
+		if (! xf86Screens[ref] || ! xf86Screens[ref]->pScreen) {
+		    ErrorF("Referenced uninitialized screen in Layout!\n");
+		    break;
+		}
 		if(screensLeft & (1 << ref)) break;
 		pScreen = xf86Screens[ref]->pScreen;
 		dixScreenOrigins[i].x = dixScreenOrigins[ref].x;
@@ -643,6 +675,10 @@ xf86InitOrigins(void)
 		break;
 	    case PosAbove:
 		ref = screen->refscreen->screennum;
+		if (! xf86Screens[ref] || ! xf86Screens[ref]->pScreen) {
+		    ErrorF("Referenced uninitialized screen in Layout!\n");
+		    break;
+		}
 		if(screensLeft & (1 << ref)) break;
 		pScreen = xf86Screens[i]->pScreen;
 		dixScreenOrigins[i].x = dixScreenOrigins[ref].x;
