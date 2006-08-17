@@ -4868,6 +4868,7 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
                 if (!inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr &&
                     ckeyc->xkbInfo)
                     XkbFreeInfo(ckeyc->xkbInfo);
+                /* FIXME we really need a map copy here. */
                 ckeyc->xkbInfo = pDev->key->xkbInfo;
                 XkbSendMapNotify(inputInfo.keyboard, &mn);
             }
