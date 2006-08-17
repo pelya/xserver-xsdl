@@ -458,13 +458,7 @@ XineramaCheckVirtualMotion(
     if (qe)
     {
 	sprite.hot.pScreen = qe->pScreen;  /* should always be Screen 0 */
-#ifdef XEVIE
-	xeviehot.x =
-#endif
 	sprite.hot.x = qe->event->u.keyButtonPointer.rootX;
-#ifdef XEVIE
-	xeviehot.y =
-#endif
 	sprite.hot.y = qe->event->u.keyButtonPointer.rootY;
 	pWin = inputInfo.pointer->grab ? inputInfo.pointer->grab->confineTo :
 					 NullWindow;
@@ -501,24 +495,12 @@ XineramaCheckVirtualMotion(
 	lims = *REGION_EXTENTS(sprite.screen, &sprite.Reg2);
 
         if (sprite.hot.x < lims.x1)
-#ifdef XEVIE
-	    xeviehot.x =
-#endif
             sprite.hot.x = lims.x1;
         else if (sprite.hot.x >= lims.x2)
-#ifdef XEVIE
-	    xeviehot.x =
-#endif
             sprite.hot.x = lims.x2 - 1;
         if (sprite.hot.y < lims.y1)
-#ifdef XEVIE
-	    xeviehot.y =
-#endif
             sprite.hot.y = lims.y1;
         else if (sprite.hot.y >= lims.y2)
-#ifdef XEVIE
-	    xeviehot.y =
-#endif
             sprite.hot.y = lims.y2 - 1;
 
 	if (REGION_NUM_RECTS(&sprite.Reg2) > 1) 
@@ -531,6 +513,10 @@ XineramaCheckVirtualMotion(
 	    qe->event->u.keyButtonPointer.rootY = sprite.hot.y;
 	}
     }
+#ifdef XEVIE
+    xeviehot.x = sprite.hot.x;
+    xeviehot.y = sprite.hot.y;
+#endif
 }
 
 
@@ -548,33 +534,15 @@ XineramaCheckMotion(xEvent *xE)
 			  panoramiXdataPtr[0].x;
 	XE_KBPTR.rootY += panoramiXdataPtr[sprite.screen->myNum].y -
 			  panoramiXdataPtr[0].y;
-#ifdef XEVIE
-	xeviehot.x =
-#endif
 	sprite.hot.x = XE_KBPTR.rootX;
-#ifdef XEVIE
-	xeviehot.y =
-#endif
 	sprite.hot.y = XE_KBPTR.rootY;
 	if (sprite.hot.x < sprite.physLimits.x1)
-#ifdef XEVIE
-	    xeviehot.x =
-#endif
 	    sprite.hot.x = sprite.physLimits.x1;
 	else if (sprite.hot.x >= sprite.physLimits.x2)
-#ifdef XEVIE
-	    xeviehot.x =
-#endif
 	    sprite.hot.x = sprite.physLimits.x2 - 1;
 	if (sprite.hot.y < sprite.physLimits.y1)
-#ifdef XEVIE
-	    xeviehot.y =
-#endif
 	    sprite.hot.y = sprite.physLimits.y1;
 	else if (sprite.hot.y >= sprite.physLimits.y2)
-#ifdef XEVIE
-	    xeviehot.y =
-#endif
 	    sprite.hot.y = sprite.physLimits.y2 - 1;
 
 	if (sprite.hotShape) 
@@ -592,6 +560,8 @@ XineramaCheckMotion(xEvent *xE)
     }
 
 #ifdef XEVIE
+    xeviehot.x = sprite.hot.x;
+    xeviehot.y = sprite.hot.y;
     xeviewin =
 #endif
     sprite.win = XYToWindow(sprite.hot.x, sprite.hot.y);
@@ -817,13 +787,7 @@ CheckVirtualMotion(
     if (qe)
     {
 	sprite.hot.pScreen = qe->pScreen;
-#ifdef XEVIE
-	xeviehot.x =
-#endif
 	sprite.hot.x = qe->event->u.keyButtonPointer.rootX;
-#ifdef XEVIE
-	xeviehot.y =
-#endif
 	sprite.hot.y = qe->event->u.keyButtonPointer.rootY;
 	pWin = inputInfo.pointer->grab ? inputInfo.pointer->grab->confineTo :
 					 NullWindow;
@@ -835,31 +799,16 @@ CheckVirtualMotion(
 	if (sprite.hot.pScreen != pWin->drawable.pScreen)
 	{
 	    sprite.hot.pScreen = pWin->drawable.pScreen;
-#ifdef XEVIE
-	    xeviehot.x = xeviehot.y = 0;
-#endif
 	    sprite.hot.x = sprite.hot.y = 0;
 	}
 	lims = *REGION_EXTENTS(pWin->drawable.pScreen, &pWin->borderSize);
 	if (sprite.hot.x < lims.x1)
-#ifdef XEVIE
-	    xeviehot.x =
-#endif
 	    sprite.hot.x = lims.x1;
 	else if (sprite.hot.x >= lims.x2)
-#ifdef XEVIE
-	    xeviehot.x =
-#endif
 	    sprite.hot.x = lims.x2 - 1;
 	if (sprite.hot.y < lims.y1)
-#ifdef XEVIE
-	    xeviehot.y =
-#endif
 	    sprite.hot.y = lims.y1;
 	else if (sprite.hot.y >= lims.y2)
-#ifdef XEVIE
-	    xeviehot.y =
-#endif
 	    sprite.hot.y = lims.y2 - 1;
 #ifdef SHAPE
 	if (wBoundingShape(pWin))
@@ -872,6 +821,10 @@ CheckVirtualMotion(
 	    qe->event->u.keyButtonPointer.rootY = sprite.hot.y;
 	}
     }
+#ifdef XEVIE
+    xeviehot.x = sprite.hot.x;
+    xeviehot.y = sprite.hot.y;
+#endif
     ROOT = WindowTable[sprite.hot.pScreen->myNum];
 }
 
@@ -2053,34 +2006,20 @@ CheckMotion(xEvent *xE)
 	    sprite.hot.pScreen = sprite.hotPhys.pScreen;
 	    ROOT = WindowTable[sprite.hot.pScreen->myNum];
 	}
-#ifdef XEVIE
-	xeviehot.x =
-#endif
 	sprite.hot.x = XE_KBPTR.rootX;
-#ifdef XEVIE
-	xeviehot.y =
-#endif
 	sprite.hot.y = XE_KBPTR.rootY;
 	if (sprite.hot.x < sprite.physLimits.x1)
-#ifdef XEVIE
-	    xeviehot.x =
-#endif
 	    sprite.hot.x = sprite.physLimits.x1;
 	else if (sprite.hot.x >= sprite.physLimits.x2)
-#ifdef XEVIE
-	    xeviehot.x =
-#endif
 	    sprite.hot.x = sprite.physLimits.x2 - 1;
 	if (sprite.hot.y < sprite.physLimits.y1)
-#ifdef XEVIE
-	    xeviehot.y =
-#endif
 	    sprite.hot.y = sprite.physLimits.y1;
 	else if (sprite.hot.y >= sprite.physLimits.y2)
-#ifdef XEVIE
-	    xeviehot.y =
-#endif
 	    sprite.hot.y = sprite.physLimits.y2 - 1;
+#ifdef XEVIE
+        xeviehot.x = sprite.hot.x;
+        xeviehot.y = sprite.hot.y;
+#endif
 #ifdef SHAPE
 	if (sprite.hotShape)
 	    ConfineToShape(sprite.hotShape, &sprite.hot.x, &sprite.hot.y);
