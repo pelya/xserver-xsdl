@@ -2020,13 +2020,13 @@ CheckMotion(xEvent *xE)
 	    sprite.hot.y = sprite.physLimits.y1;
 	else if (sprite.hot.y >= sprite.physLimits.y2)
 	    sprite.hot.y = sprite.physLimits.y2 - 1;
-#ifdef XEVIE
-        xeviehot.x = sprite.hot.x;
-        xeviehot.y = sprite.hot.y;
-#endif
 #ifdef SHAPE
 	if (sprite.hotShape)
 	    ConfineToShape(sprite.hotShape, &sprite.hot.x, &sprite.hot.y);
+#endif
+#ifdef XEVIE
+        xeviehot.x = sprite.hot.x;
+        xeviehot.y = sprite.hot.y;
 #endif
 	sprite.hotPhys = sprite.hot;
 	if ((sprite.hotPhys.x != XE_KBPTR.rootX) ||
