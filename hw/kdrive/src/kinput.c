@@ -131,8 +131,7 @@ KdUnblockSigio (void)
     sigprocmask (SIG_UNBLOCK, &set, 0);
 }
 
-#undef VERIFY_SIGIO
-#ifdef VERIFY_SIGIO
+#ifdef DEBUG
 
 void
 KdAssertSigioBlocked (char *where)
