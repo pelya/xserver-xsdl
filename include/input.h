@@ -167,6 +167,8 @@ typedef struct _InputOption {
     struct _InputOption *next;
 } InputOption;
 
+extern void InitCoreDevices(void);
+
 extern DeviceIntPtr AddInputDevice(
     DeviceProc /*deviceProc*/,
     Bool /*autoStart*/);
