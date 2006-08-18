@@ -167,16 +167,19 @@ winClipboardWindowProc (HWND hwnd, UINT message,
 
     case WM_CREATE:
       {
+	HWND first, next;
+	DWORD error_code = 0;
 	winDebug ("winClipboardWindowProc - WM_CREATE\n");
 	
+	first = GetClipboardViewer();			/* Get handle to first viewer in chain. */
+	if (first == hwnd) return 0;			/* Make sure it's not us! */
 	/* Add ourselves to the clipboard viewer chain */
-	s_hwndNextViewer = SetClipboardViewer (hwnd);
-	if (s_hwndNextViewer == hwnd)
-	  {
-	    s_hwndNextViewer = NULL;
-	    winErrorFVerb (1, "winClipboardWindowProc - WM_CREATE: "
-			   "attempted to set next window to ourselves.");
-	  }
+	next = SetClipboardViewer (hwnd);
+	error_code = GetLastError();
+	if (SUCCEEDED(error_code) && (next == first))	/* SetClipboardViewer must have succeeded, and the handle */
+		s_hwndNextViewer = next;		/* it returned must have been the first window in the chain */
+	else
+		s_fCBCInitialized = FALSE;
       }
       return 0;
 
@@ -220,28 +223,27 @@ winClipboardWindowProc (HWND hwnd, UINT message,
 	 * expensive than just putting ourselves back into the chain.
 	 */
 
+	HWND first, next;
+	DWORD error_code = 0;
 	winDebug ("winClipboardWindowProc - WM_WM_REINIT: Enter\n");
-	if (hwnd != GetClipboardViewer ())
-	  {
-	    winDebug ("  WM_WM_REINIT: Replacing us(%x) with %x at head "
-		      "of chain\n", hwnd, s_hwndNextViewer);
-	    s_fCBCInitialized = FALSE;
-	    ChangeClipboardChain (hwnd, s_hwndNextViewer);
-	    s_hwndNextViewer = NULL;
-	    s_fCBCInitialized = FALSE;
-	    winDebug ("  WM_WM_REINIT: Putting us back at head of chain.\n");
-	    s_hwndNextViewer = SetClipboardViewer (hwnd);
-	    if (s_hwndNextViewer == hwnd)
-	      {
-		s_hwndNextViewer = NULL;
-		winErrorFVerb (1, "winClipboardWindowProc - WM_WM_REINIT: "
-			       "attempted to set next window to ourselves.\n");
-	      }
-	  }
+
+	first = GetClipboardViewer();			/* Get handle to first viewer in chain. */
+	if (first == hwnd) return 0;			/* Make sure it's not us! */
+	winDebug ("  WM_WM_REINIT: Replacing us(%x) with %x at head "
+		  "of chain\n", hwnd, s_hwndNextViewer);
+	s_fCBCInitialized = FALSE;
+	ChangeClipboardChain (hwnd, s_hwndNextViewer);
+	s_hwndNextViewer = NULL;
+	s_fCBCInitialized = FALSE;
+	winDebug ("  WM_WM_REINIT: Putting us back at head of chain.\n");
+	first = GetClipboardViewer();			/* Get handle to first viewer in chain. */
+	if (first == hwnd) return 0;			/* Make sure it's not us! */
+	next = SetClipboardViewer (hwnd);
+	error_code = GetLastError();
+	if (SUCCEEDED(error_code) && (next == first))	/* SetClipboardViewer must have succeeded, and the handle */
+		s_hwndNextViewer = next;		/* it returned must have been the first window in the chain */
 	else
-	  {
-	    winDebug ("  WM_WM_REINIT: already at head of viewer chain.\n");
-	  }
+		s_fCBCInitialized = FALSE;
       }
       winDebug ("winClipboardWindowProc - WM_WM_REINIT: Exit\n");
       return 0;
