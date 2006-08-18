@@ -394,6 +394,15 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
        * currently being created.
        */
       winReorderWindowsMultiWindow ();
+
+      /* Fix a 'round title bar corner background should be transparent not black' problem when first painted */
+      RECT rWindow;
+      HRGN hRgnWindow;
+      GetWindowRect(hwnd, &rWindow);
+      hRgnWindow = CreateRectRgnIndirect(&rWindow);
+      SetWindowRgn (hwnd, hRgnWindow, TRUE);
+      DeleteObject(hRgnWindow);
+
       return 0;
 
     case WM_INIT_SYS_MENU:
