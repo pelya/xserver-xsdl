@@ -445,4 +445,7 @@
 /* Avoid using font servers */
 #undef NOFONTSERVERACCESS
 
+/* Use an empty root cursor */
+#undef NULL_ROOT_CURSOR
+
 #endif /* _DIX_CONFIG_H_ */

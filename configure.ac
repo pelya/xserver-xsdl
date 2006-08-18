@@ -396,6 +396,9 @@ AC_ARG_ENABLE(install-libxf86config,
 AC_ARG_ENABLE(builtin-fonts,  AS_HELP_STRING([--enable-builtin-fonts], [Use only built-in fonts (default: use external)]),
                                 [BUILTIN_FONTS=$enableval],
                                 [BUILTIN_FONTS=no])
+AC_ARG_ENABLE(null-root-cursor, AS_HELP_STRING([--enable-null-root-cursor], [Use an empty root cursor (default: use core cursor)]),
+                                 [NULL_ROOT_CURSOR=$enableval],
+                                 [NULL_ROOT_CURSOR=no])
 
 dnl Extensions.
 AC_ARG_ENABLE(composite,      AS_HELP_STRING([--disable-composite], [Build Composite extension (default: enabled)]), [COMPOSITE=$enableval], [COMPOSITE=yes])
@@ -744,6 +747,10 @@ XKB_STUB_LIB='$(top_builddir)/xkb/libxkbstubs.la'
 
 AC_CHECK_FUNC(strcasecmp, [], AC_DEFINE([NEED_STRCASECMP], 1,
                                         [Do not have `strcasecmp'.]))
+
+if test "x$NULL_ROOT_CURSOR" = xyes; then
+        AC_DEFINE(NULL_ROOT_CURSOR, 1, [Use an empty root cursor])
+fi
 
 PKG_CHECK_MODULES([XDMCP], [xdmcp], [have_libxdmcp="yes"], [have_libxdmcp="no"])
 if test "x$have_libxdmcp" = xyes; then

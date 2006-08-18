@@ -249,6 +249,7 @@ main(int argc, char *argv[], char *envp[])
     int		i, j, k, error;
     char	*xauthfile;
     HWEventQueueType	alwaysCheckForInput[2];
+    CursorMetricRec cm;
 
     display = "0";
 
@@ -415,9 +416,20 @@ main(int argc, char *argv[], char *envp[])
 	}
 	if (!SetDefaultFont(defaultTextFont))
 	    FatalError("could not open default font '%s'", defaultTextFont);
+#ifdef NULL_ROOT_CURSOR
+        cm.width = 0;
+        cm.height = 0;
+        cm.xhot = 0;
+        cm.yhot = 0;
+
+        if (!(rootCursor = AllocCursor(NULL, NULL, &cm, 0, 0, 0, 0, 0, 0)))
+            FatalError("could not create empty root cursor");
+        AddResource(FakeClientID(0), RT_CURSOR, (pointer)rootCursor);
+#else
 	if (!(rootCursor = CreateRootCursor(defaultCursorFont, 0)))
 	    FatalError("could not open default cursor font '%s'",
 		       defaultCursorFont);
+#endif
 #ifdef DPMSExtension
  	/* check all screens, looking for DPMS Capabilities */
  	DPMSCapableFlag = DPMSSupported();
