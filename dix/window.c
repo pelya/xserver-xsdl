@@ -519,9 +519,9 @@ InitRootWindow(WindowPtr pWin)
     }
     else {
         if (blackRoot)
-            pWin->background.pixel = blackPixel;
+            pWin->background.pixel = pScreen->blackPixel;
         else
-            pWin->background.pixel = whitePixel;
+            pWin->background.pixel = pScreen->whitePixel;
         backFlag |= CWBackPixel;
     } 
 
