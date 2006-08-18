@@ -343,9 +343,6 @@ MakeRootTile(WindowPtr pWin)
 	for (j = len; j > 0; j--)
 	    *to++ = *from;
 
-   if (blackRoot)
-       bzero(back, sizeof(back));
-
    (*pGC->ops->PutImage)((DrawablePtr)pWin->background.pixmap, pGC, 1,
 		    0, 0, len, 4, 0, XYBitmap, (char *)back);
 
@@ -506,6 +503,7 @@ void
 InitRootWindow(WindowPtr pWin)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
+    int backFlag = CWBorderPixel | CWCursor | CWBackingStore;
 
     if (!(*pScreen->CreateWindow)(pWin))
 	return; /* XXX */
@@ -514,12 +512,23 @@ InitRootWindow(WindowPtr pWin)
     pWin->cursorIsNone = FALSE;
     pWin->optional->cursor = rootCursor;
     rootCursor->refcnt++;
-    MakeRootTile(pWin);
+
+    if (!blackRoot && !whiteRoot) {
+        MakeRootTile(pWin);
+        backFlag |= CWBackPixmap;
+    }
+    else {
+        if (blackRoot)
+            pWin->background.pixel = blackPixel;
+        else
+            pWin->background.pixel = whitePixel;
+        backFlag |= CWBackPixel;
+    } 
+
     pWin->backingStore = defaultBackingStore;
     pWin->forcedBS = (defaultBackingStore != NotUseful);
     /* We SHOULD check for an error value here XXX */
-    (*pScreen->ChangeWindowAttributes)(pWin,
-		       CWBackPixmap|CWBorderPixel|CWCursor|CWBackingStore);
+    (*pScreen->ChangeWindowAttributes)(pWin, backFlag);
 
     MapWindow(pWin, serverClient);
 }
