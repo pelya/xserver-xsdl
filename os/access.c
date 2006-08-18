@@ -1188,7 +1188,11 @@ ResetHosts (char *display)
         FreeHost (host);
     }
 
+#if defined WIN32 && defined __MINGW32__
+#define ETC_HOST_PREFIX "X"
+#else
 #define ETC_HOST_PREFIX "/etc/X"
+#endif
 #define ETC_HOST_SUFFIX ".hosts"
     fnamelen = strlen(ETC_HOST_PREFIX) + strlen(ETC_HOST_SUFFIX) +
 		strlen(display) + 1;
