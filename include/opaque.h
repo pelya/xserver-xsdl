@@ -73,6 +73,7 @@ extern int limitNoFile;
 extern Bool defeatAccessControl;
 extern long maxBigRequestSize;
 extern Bool blackRoot;
+extern Bool whiteRoot;
 
 extern Bool CoreDump;
 
