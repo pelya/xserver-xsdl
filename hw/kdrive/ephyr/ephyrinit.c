@@ -29,6 +29,7 @@
 #include "ephyr.h"
 
 extern Window EphyrPreExistingHostWin;
+extern Bool   EphyrWantGrayScale;
 
 void
 InitCard (char *name)
@@ -62,6 +63,7 @@ ddxUseMsg (void)
   ErrorF("-parent XID   Use existing window as Xephyr root win\n");
   ErrorF("-host-cursor  Re-use exisiting X host server cursor\n");
   ErrorF("-fullscreen   Attempt to run Xephyr fullscreen\n");
+  ErrorF("-grayscale    Simulate 8bit grayscale\n");
   ErrorF("-fakexa	Simulate acceleration using software rendering\n");
   ErrorF("\n");
 
@@ -92,6 +94,11 @@ ddxProcessArgument (int argc, char **argv, int i)
   else if (!strcmp (argv[i], "-fullscreen"))
     {
       hostx_use_fullscreen();
+      return 1;
+    }
+  else if (!strcmp (argv[i], "-grayscale"))
+    {
+      EphyrWantGrayScale = 1;      
       return 1;
     }
   else if (!strcmp (argv[i], "-fakexa"))

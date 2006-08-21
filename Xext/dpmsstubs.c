@@ -1,4 +1,3 @@
-/* $Xorg: dpmsstubs.c,v 1.3 2000/08/17 19:47:56 cpqbld Exp $ */
 /*****************************************************************
 
 Copyright (c) 1996 Digital Equipment Corporation, Maynard, Massachusetts.
@@ -26,7 +25,6 @@ dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/Xext/dpmsstubs.c,v 3.4 2001/01/17 22:13:15 dawes Exp $ */
 
 typedef int Bool;
 

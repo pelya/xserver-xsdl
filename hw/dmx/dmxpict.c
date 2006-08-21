@@ -662,7 +662,7 @@ static int dmxProcRenderSetPictureFilter(ClientPtr client)
     int             nparams;
     REQUEST(xRenderSetPictureFilterReq);
 
-    REQUEST_SIZE_MATCH(xRenderSetPictureFilterReq);
+    REQUEST_AT_LEAST_SIZE(xRenderSetPictureFilterReq);
     VERIFY_PICTURE(pPicture, stuff->picture, client, SecurityWriteAccess,
 		   RenderErrBase + BadPicture);
 

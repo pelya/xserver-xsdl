@@ -1,4 +1,3 @@
-/* $Xorg: mfbbstore.c,v 1.4 2001/02/09 02:05:18 xorgcvs Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /*
 

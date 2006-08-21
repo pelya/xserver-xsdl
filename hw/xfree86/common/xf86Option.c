@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Option.c,v 1.29 2003/10/18 12:34:19 dawes Exp $ */
 /*
  * Copyright (c) 1998-2003 by The XFree86 Project, Inc.
  *

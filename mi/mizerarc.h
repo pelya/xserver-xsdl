@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mi/mizerarc.h,v 1.2 2001/08/06 20:51:20 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -25,7 +24,6 @@ in this Software without prior written authorization from The Open Group.
 
 ********************************************************/
 
-/* $Xorg: mizerarc.h,v 1.4 2001/02/09 02:05:22 xorgcvs Exp $ */
 
 typedef struct {
     int x;

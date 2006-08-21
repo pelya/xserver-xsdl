@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mi/micoord.h,v 1.7 2003/10/29 22:57:48 tsi Exp $ */
 /*
  * Copyright (C) 2000 The XFree86 Project, Inc.  All Rights Reserved.
  *

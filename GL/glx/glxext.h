@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxext.h,v 1.7 2003/11/17 22:20:26 dawes Exp $ */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -85,8 +84,11 @@ extern int DoGetFBConfigs(__GLXclientState *cl, unsigned screen,
     GLboolean do_swap);
 extern int DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
     GLXContextID shareList, VisualID visual, GLuint screen, GLboolean isDirect);
-extern int DoCreateGLXPixmap(__GLXclientState *cl, VisualID visual,
+extern int DoCreateGLXPixmap(__GLXclientState *cl, XID fbconfigId,
     GLuint screenNum, XID pixmapId, XID glxpixmapId);
+extern int DoDestroyPixmap(__GLXclientState *cl, XID glxpixmapId);
+
+extern int DoQueryContext(__GLXclientState *cl, GLXContextID gcId);
 
 extern void GlxExtensionInit(void);
 

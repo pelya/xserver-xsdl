@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/axpPci.c,v 1.14 2002/12/11 02:44:28 dawes Exp $ */
 /*
  * Copyright 1998 by Concurrent Computer Corporation
  *

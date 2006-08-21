@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxext.c,v 1.9 2003/09/28 20:15:43 alanh Exp $
+/*
 ** The contents of this file are subject to the GLX Public License Version 1.0
 ** (the "License"). You may not use this file except in compliance with the
 ** License. You may obtain a copy of the License at Silicon Graphics, Inc.,
@@ -32,6 +32,33 @@
 #include "unpack.h"
 #include "glxutil.h"
 #include "glxext.h"
+
+/*
+** The last context used by the server.  It is the context that is current
+** from the server's perspective.
+*/
+__GLXcontext *__glXLastContext;
+
+/*
+** X resources.
+*/
+RESTYPE __glXContextRes;
+RESTYPE __glXClientRes;
+RESTYPE __glXPixmapRes;
+RESTYPE __glXDrawableRes;
+RESTYPE __glXSwapBarrierRes;
+
+/*
+** Reply for most singles.
+*/
+xGLXSingleReply __glXReply;
+
+/*
+** A set of state for each client.  The 0th one is unused because client
+** indices start at 1, not 0.
+*/
+__GLXclientState *__glXClients[MAXCLIENTS+1];
+
 
 static Bool inDispatch;
 
@@ -141,6 +168,10 @@ static int PixmapGone(__GLXpixmap *pGlxPixmap, XID id)
 
     pGlxPixmap->idExists = False;
     if (!pGlxPixmap->refcnt) {
+	if (pGlxPixmap->pDamage) {
+	    DamageUnregister (pGlxPixmap->pDraw, pGlxPixmap->pDamage);
+	    DamageDestroy(pGlxPixmap->pDamage);
+	}
 	/*
 	** The DestroyPixmap routine should decrement the refcount and free
 	** only if it's zero.
@@ -261,6 +292,13 @@ GLboolean __glXErrorOccured(void)
     return errorOccured;
 }
 
+static int __glXErrorBase;
+
+int __glXError(int error)
+{
+    return __glXErrorBase + error;
+}
+
 /************************************************************************/
 
 /*
@@ -270,11 +308,12 @@ void GlxExtensionInit(void)
 {
     ExtensionEntry *extEntry;
     int i;
-    
+
     __glXContextRes = CreateNewResourceType((DeleteType)ContextGone);
     __glXClientRes = CreateNewResourceType((DeleteType)ClientGone);
     __glXPixmapRes = CreateNewResourceType((DeleteType)PixmapGone);
     __glXDrawableRes = CreateNewResourceType((DeleteType)DrawableGone);
+    __glXSwapBarrierRes = CreateNewResourceType((DeleteType)SwapBarrierGone);
 
     /*
     ** Add extension to server extensions.
@@ -292,18 +331,7 @@ void GlxExtensionInit(void)
 	return;
     }
 
-    __glXBadContext = extEntry->errorBase + GLXBadContext;
-    __glXBadContextState = extEntry->errorBase + GLXBadContextState;
-    __glXBadDrawable = extEntry->errorBase + GLXBadDrawable;
-    __glXBadPixmap = extEntry->errorBase + GLXBadPixmap;
-    __glXBadContextTag = extEntry->errorBase + GLXBadContextTag;
-    __glXBadCurrentWindow = extEntry->errorBase + GLXBadCurrentWindow;
-    __glXBadRenderRequest = extEntry->errorBase + GLXBadRenderRequest;
-    __glXBadLargeRequest = extEntry->errorBase + GLXBadLargeRequest;
-    __glXUnsupportedPrivateRequest = extEntry->errorBase +
-      			GLXUnsupportedPrivateRequest;
-
-    __glXSwapBarrierRes = CreateNewResourceType((DeleteType)SwapBarrierGone);
+    __glXErrorBase = extEntry->errorBase;
 
     /*
     ** Initialize table of client state.  There is never a client 0.
@@ -343,7 +371,7 @@ __GLXcontext *__glXForceCurrent(__GLXclientState *cl, GLXContextTag tag,
     cx = (__GLXcontext *) __glXLookupContextByTag(cl, tag);
     if (!cx) {
 	cl->client->errorValue = tag;
-	*error = __glXBadContextTag;
+	*error = __glXError(GLXBadContextTag);
 	return 0;
     }
 
@@ -354,7 +382,7 @@ __GLXcontext *__glXForceCurrent(__GLXclientState *cl, GLXContextTag tag,
 	    ** windows can be destroyed from under us; GLX pixmaps are
 	    ** refcounted and don't go away until no one is using them.
 	    */
-	    *error = __glXBadCurrentWindow;
+	    *error = __glXError(GLXBadCurrentWindow);
 	    return 0;
     	}
     }
@@ -369,7 +397,7 @@ __GLXcontext *__glXForceCurrent(__GLXclientState *cl, GLXContextTag tag,
 	if (!(*cx->forceCurrent)(cx)) {
 	    /* Bind failed, and set the error code.  Bummer */
 	    cl->client->errorValue = cx->id;
-	    *error = __glXBadContextState;
+	    *error = __glXError(GLXBadContextState);
 	    return 0;
     	}
     }
@@ -465,7 +493,7 @@ static int __glXDispatch(ClientPtr client)
     */
     if ((cl->largeCmdRequestsSoFar != 0) && (opcode != X_GLXRenderLarge)) {
 	client->errorValue = stuff->glxCode;
-	return __glXBadLargeRequest;
+	return __glXError(GLXBadLargeRequest);
     }
 
     /*

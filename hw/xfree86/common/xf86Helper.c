@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Helper.c,v 1.136 2004/01/27 01:31:45 dawes Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -70,7 +69,6 @@
 static int xf86ScrnInfoPrivateCount = 0;
 
 
-#ifdef XFree86LOADER
 /* Add a pointer to a new DriverRec to xf86DriverList */
 
 _X_EXPORT void
@@ -172,7 +170,6 @@ xf86DeleteModuleInfo(int idx)
 	xf86ModuleInfoList[idx] = NULL;
     }
 }
-#endif
 
 
 /* Allocate a new ScrnInfoRec in xf86Screens */
@@ -199,11 +196,7 @@ xf86AllocateScreen(DriverPtr drv, int flags)
 
     xf86Screens[i]->drv = drv;
     drv->refCount++;
-#ifdef XFree86LOADER
     xf86Screens[i]->module = DuplicateModule(drv->module, NULL);
-#else
-    xf86Screens[i]->module = NULL;
-#endif
     /*
      * set the initial access state. This will be modified after PreInit.
      * XXX Or should we do it some other place?
@@ -260,10 +253,8 @@ xf86DeleteScreen(int scrnIndex, int flags)
 
     xf86OptionListFree(pScrn->options);
 
-#ifdef XFree86LOADER
     if (pScrn->module)
 	UnloadModule(pScrn->module);
-#endif
 
     if (pScrn->drv)
 	pScrn->drv->refCount--;
@@ -321,11 +312,7 @@ xf86AllocateInput(InputDriverPtr drv, int flags)
 
     new->drv = drv;
     drv->refCount++;
-#ifdef XFree86LOADER
     new->module = DuplicateModule(drv->module, NULL);
-#else
-    new->module = NULL;
-#endif
     new->next = xf86InputDevs;
     xf86InputDevs = new;
     return new;
@@ -352,10 +339,8 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
 	pInp->free(pInp, 0);
 #endif
 
-#ifdef XFree86LOADER
     if (pInp->module)
 	UnloadModule(pInp->module);
-#endif
 
     if (pInp->drv)
 	pInp->drv->refCount--;
@@ -2381,17 +2366,12 @@ xf86GetVersion()
 _X_EXPORT CARD32
 xf86GetModuleVersion(pointer module)
 {
-#ifdef XFree86LOADER
     return (CARD32)LoaderGetModuleVersion(module);
-#else
-    return 0;
-#endif
 }
 
 _X_EXPORT pointer
 xf86LoadDrvSubModule(DriverPtr drv, const char *name)
 {
-#ifdef XFree86LOADER
     pointer ret;
     int errmaj = 0, errmin = 0;
 
@@ -2400,15 +2380,11 @@ xf86LoadDrvSubModule(DriverPtr drv, const char *name)
     if (!ret)
 	LoaderErrorMsg(NULL, name, errmaj, errmin);
     return ret;
-#else
-    return (pointer)1;
-#endif
 }
 
 _X_EXPORT pointer
 xf86LoadSubModule(ScrnInfoPtr pScrn, const char *name)
 {
-#ifdef XFree86LOADER
     pointer ret;
     int errmaj = 0, errmin = 0;
 
@@ -2417,9 +2393,6 @@ xf86LoadSubModule(ScrnInfoPtr pScrn, const char *name)
     if (!ret)
 	LoaderErrorMsg(pScrn->name, name, errmaj, errmin);
     return ret;
-#else
-    return (pointer)1;
-#endif
 }
 
 /*
@@ -2428,9 +2401,7 @@ xf86LoadSubModule(ScrnInfoPtr pScrn, const char *name)
 _X_EXPORT pointer
 xf86LoadOneModule(char *name, pointer opt)
 {
-#ifdef XFree86LOADER
     int errmaj, errmin;
-#endif
     char *Name;
     pointer mod;
     
@@ -2452,13 +2423,9 @@ xf86LoadOneModule(char *name, pointer opt)
 	return NULL;
     }
 
-#ifdef XFree86LOADER
     mod = LoadModule(Name, NULL, NULL, NULL, opt, NULL, &errmaj, &errmin);
     if (!mod)
 	LoaderErrorMsg(NULL, Name, errmaj, errmin);
-#else
-    mod = (pointer)1;
-#endif
     xfree(Name);
     return mod;
 }
@@ -2470,7 +2437,7 @@ xf86UnloadSubModule(pointer mod)
      * This is disabled for now.  The loader isn't smart enough yet to undo
      * relocations.
      */
-#if defined(XFree86LOADER) && 0
+#if 0
     UnloadSubModule(mod);
 #endif
 }
@@ -2478,59 +2445,28 @@ xf86UnloadSubModule(pointer mod)
 _X_EXPORT Bool
 xf86LoaderCheckSymbol(const char *name)
 {
-#ifdef XFree86LOADER
     return LoaderSymbol(name) != NULL;
-#else
-    return TRUE;
-#endif
 }
 
+/* These two are just ABI stubs, they don't do anything in dlloader world */
 _X_EXPORT void
 xf86LoaderReqSymLists(const char **list0, ...)
 {
-#ifdef XFree86LOADER
-    va_list ap;
-
-    va_start(ap, list0);
-    LoaderVReqSymLists(list0, ap);
-    va_end(ap);
-#endif
 }
 
 _X_EXPORT void
 xf86LoaderReqSymbols(const char *sym0, ...)
 {
-#ifdef XFree86LOADER
-    va_list ap;
-
-    va_start(ap, sym0);
-    LoaderVReqSymbols(sym0, ap);
-    va_end(ap);
-#endif
 }
 
 _X_EXPORT void
 xf86LoaderRefSymLists(const char **list0, ...)
 {
-#ifdef XFree86LOADER
-    va_list ap;
-
-    va_start(ap, list0);
-    LoaderVRefSymLists(list0, ap);
-    va_end(ap);
-#endif
 }
 
 _X_EXPORT void
 xf86LoaderRefSymbols(const char *sym0, ...)
 {
-#ifdef XFree86LOADER
-    va_list ap;
-
-    va_start(ap, sym0);
-    LoaderVRefSymbols(sym0, ap);
-    va_end(ap);
-#endif
 }
 
 

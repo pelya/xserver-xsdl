@@ -1,5 +1,4 @@
 /*
- * $XFree86: xc/programs/Xserver/render/mitrap.c,v 1.8 2002/09/03 19:28:28 keithp Exp $
  *
  * Copyright © 2002 Keith Packard, member of The XFree86 Project, Inc.
  *

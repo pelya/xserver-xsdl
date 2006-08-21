@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/afb/afbzerarc.c,v 3.2 2001/10/28 03:32:59 tsi Exp $ */
 /************************************************************
 
 Copyright (c) 1989  X Consortium
@@ -26,7 +25,6 @@ in this Software without prior written authorization from the X Consortium.
 
 ********************************************************/
 
-/* $XConsortium: afbzerarc.c,v 5.19 94/04/17 20:28:37 dpw Exp $ */
 
 /* Derived from:
  * "Algorithm for drawing ellipses or hyperbolae with a digital plotter"

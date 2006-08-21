@@ -44,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: rgb.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 
 #ifndef RGB_H
 #define RGB_H

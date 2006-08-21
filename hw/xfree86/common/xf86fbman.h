@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86fbman.h,v 1.14 2003/10/09 12:40:54 alanh Exp $ */
 
 /*
  * Copyright (c) 1998-2001 by The XFree86 Project, Inc.

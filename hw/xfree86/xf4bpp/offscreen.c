@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/offscreen.c,v 1.4 1999/10/13 20:04:26 alanh Exp $ */
 /*
  * Copyright 1993 Gerrit Jan Akkerman 
  *

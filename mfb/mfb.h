@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mfb/mfb.h,v 1.21 2003/07/16 03:35:16 dawes Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -46,7 +45,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: mfb.h,v 1.4 2001/02/09 02:05:18 xorgcvs Exp $ */
 
 #if !defined(_MFB_H_) || defined(MFB_PROTOTYPES_ONLY)
 #ifndef MFB_PROTOTYPES_ONLY

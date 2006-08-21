@@ -25,7 +25,6 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/Preferences.h,v 1.2 2003/01/15 02:34:05 torrey Exp $ */
 
 #import <Cocoa/Cocoa.h>
 

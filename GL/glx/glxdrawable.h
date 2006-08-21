@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxdrawable.h,v 1.3 2001/03/21 16:29:36 dawes Exp $ */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -41,6 +40,8 @@
 **
 */
 
+#include <damage.h>
+
 typedef struct {
 
     DrawablePtr pDraw;
@@ -49,13 +50,15 @@ typedef struct {
     ScreenPtr pScreen;
     Bool idExists;
     int refcnt;
-
+    DamagePtr pDamage;
 } __GLXpixmap;
 
 struct __GLXdrawable {
     void (*destroy)(__GLXdrawable *private);
     GLboolean (*resize)(__GLXdrawable *private);
     GLboolean (*swapBuffers)(__GLXdrawable *);
+    void      (*copySubBuffer)(__GLXdrawable *drawable,
+			       int x, int y, int w, int h);
 
     /*
     ** list of drawable private structs

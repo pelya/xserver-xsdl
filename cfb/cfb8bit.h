@@ -7,7 +7,6 @@
  * are used for depths other than 8.  Perhaps the file should be
  * renamed.  dpw
  */
-/* $XFree86: xc/programs/Xserver/cfb/cfb8bit.h,v 3.7 2001/12/14 19:59:20 dawes Exp $ */
 
 /*
 
@@ -34,7 +33,6 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
 
-/* $Xorg: cfb8bit.h,v 1.4 2001/02/09 02:04:37 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

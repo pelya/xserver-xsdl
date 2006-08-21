@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ramdac/xf86Cursor.h,v 1.10tsi Exp $ */
 
 #ifndef _XF86CURSOR_H
 #define _XF86CURSOR_H

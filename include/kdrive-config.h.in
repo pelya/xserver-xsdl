@@ -22,4 +22,7 @@
 /* Support tslib touchscreen abstraction library */
 #undef TSLIB
 
+/* Verbose debugging output hilarity */
+#undef DEBUG
+
 #endif /* _KDRIVE_CONFIG_H_ */

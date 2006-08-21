@@ -26,7 +26,6 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/loader.h,v 1.6 2001/07/07 01:43:58 paulo Exp $
  */
 
 #ifdef USE_MODULES
@@ -36,9 +35,6 @@
 
 #else
 
-#ifndef XFree86LOADER
-#define XFree86LOADER		/* not really */
-#endif
 #define IN_LOADER
 
 #include "xf86.h"

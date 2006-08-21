@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86cmap.h,v 1.9 2003/10/17 20:02:12 alanh Exp $ */
 
 /*
  * Copyright (c) 1998-2001 by The XFree86 Project, Inc.

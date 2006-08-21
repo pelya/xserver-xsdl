@@ -25,7 +25,7 @@ dnl Process this file with autoconf to create configure.
 AC_PREREQ(2.57)
 dnl This is the not the Xorg version number, it's the server version number.
 dnl Yes, that's weird.
-AC_INIT([xorg-server], 1.1.99.2, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
+AC_INIT([xorg-server], 1.1.99.3, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 AM_MAINTAINER_MODE
@@ -174,6 +174,7 @@ dnl glibc backtrace support check (hw/xfree86/common/xf86Events.c)
 AC_CHECK_HEADER([execinfo.h],[
     AC_CHECK_LIB(c, backtrace, [
         AC_DEFINE(HAVE_BACKTRACE, 1, [Has backtrace support])
+        AC_DEFINE(HAVE_EXECINFO_H, 1, [Have execinfo.h])
     ])]
 )
 
@@ -294,9 +295,9 @@ AC_DEFINE_UNQUOTED(OSNAME, "$OSNAME",
 DEFAULT_VENDOR_NAME="The X.Org Foundation"
 DEFAULT_VENDOR_NAME_SHORT="X.Org"
 DEFAULT_VERSION_MAJOR=7
-DEFAULT_VERSION_MINOR=0
-DEFAULT_VERSION_PATCH=0
-DEFAULT_VERSION_SNAP=0
+DEFAULT_VERSION_MINOR=1
+DEFAULT_VERSION_PATCH=99
+DEFAULT_VERSION_SNAP=2
 DEFAULT_RELEASE_DATE="21 December 2005"
 DEFAULT_VENDOR_WEB="http://wiki.x.org"
 
@@ -422,7 +423,7 @@ AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Mult
 AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCache extension (default: disabled)]), [FONTCACHE=$enableval], [FONTCACHE=no])
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
 AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--disable-xf86bigfont], [Build XF86 Big Font extension (default: enabled)]), [XF86BIGFONT=$enableval], [XF86BIGFONT=yes])
-AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled)]), [DPMS=$enableval], [DPMSExtension=yes])
+AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled)]), [DPMSExtension=$enableval], [DPMSExtension=yes])
 AC_ARG_ENABLE(xinput,         AS_HELP_STRING([--disable-xinput], [Build XInput Extension (default: enabled)]), [XINPUT=$enableval], [XINPUT=yes])
 
 dnl DDXes.
@@ -470,7 +471,7 @@ AC_MSG_RESULT([$SETUID])
 AM_CONDITIONAL(INSTALL_SETUID, [test "x$SETUID" = "xyes"])
 
 dnl Issue an error if xtrans.m4 was not found and XTRANS_CONNECTION_FLAGS macro
-dnl was not expanded, since libX11 with no transport types is rather useless.
+dnl was not expanded, since xorg-server with no transport types is rather useless.
 dnl
 dnl If you're seeing an error here, be sure you installed the lib/xtrans module
 dnl first and if it's not in the default location, that you set the ACLOCAL
@@ -510,7 +511,7 @@ XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="randrproto renderproto [fixesproto >= 4.0] damageproto xcmiscproto xextproto xproto xtrans xf86miscproto xf86vidmodeproto xf86bigfontproto [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto inputproto xf86dgaproto"
+REQUIRED_MODULES="randrproto renderproto [fixesproto >= 4.0] damageproto xcmiscproto xextproto xproto xtrans xf86miscproto xf86vidmodeproto xf86bigfontproto [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto inputproto xf86dgaproto [kbproto >= 1.0.3]"
 REQUIRED_LIBS="xfont xau fontenc"
 
 AM_CONDITIONAL(XV, [test "x$XV" = xyes])
@@ -573,7 +574,7 @@ fi
 
 if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
 	PKG_CHECK_MODULES([XLIB], [x11])
-	PKG_CHECK_MODULES([GL], [glproto >= 1.4.6])
+	PKG_CHECK_MODULES([GL], [glproto >= 1.4.7])
 	AC_SUBST(XLIB_CFLAGS)
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
 	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
@@ -851,7 +852,7 @@ PKG_CHECK_MODULES([XSERVERCFLAGS], [$REQUIRED_MODULES $REQUIRED_LIBS])
 PKG_CHECK_MODULES([XSERVERLIBS], [$REQUIRED_LIBS])
 
 XSERVER_CFLAGS="${XSERVERCFLAGS_CFLAGS}"
-XSERVER_LIBS="${XSERVERLIBS_LIBS} ${SYS_LIBS} -lm -lz"
+XSERVER_LIBS="${XSERVERLIBS_LIBS} ${SYS_LIBS} -lm"
 AC_SUBST([XSERVER_LIBS])
 AC_SUBST([SYS_LIBS])
 
@@ -872,11 +873,6 @@ AC_DEFINE_UNQUOTED(X_BYTE_ORDER,[$ENDIAN],[Endian order])
 dnl ---------------------------------------------------------------------------
 dnl DDX section.
 dnl ---------------------------------------------------------------------------
-
-dnl These are used to define Xorg module, loader and general server defines
-MODULE_DEFINES=""
-LOADER_DEFINES=""
-SERVER_DEFINES=""
 
 dnl DMX DDX
 
@@ -1069,6 +1065,25 @@ dnl has it in libc), or if libdl is needed to get it.
 		  *)
 			;;
 		esac
+
+		# check whether struct kbd_repeat has the 'period' field.
+		# on kernels < 2.5.42 it's called 'rate' instead.
+		AC_TRY_COMPILE([
+#include <linux/kd.h>
+#ifdef __sparc__
+#include <asm/param.h>
+#include <asm/kbio.h>
+#endif
+],[
+int main () { 
+	struct kbd_repeat k;
+	k.period = 0;
+	return 0;
+}],
+		[period_field="period"],
+		[period_field="rate"])
+		AC_DEFINE_UNQUOTED(LNX_KBD_PERIOD_NAME, [$period_field],
+		                   [Name of the period field in struct kbd_repeat])
 		;;
 	  freebsd* | kfreebsd*-gnu)
 	  	XORG_OS="freebsd"
@@ -1155,6 +1170,10 @@ dnl has it in libc), or if libdl is needed to get it.
 		fi
 		AC_SUBST([SOLARIS_ASM_CFLAGS])
 		;;
+	  gnu*)
+	  	XORG_OS="gnu"
+		XORG_OS_SUBDIR="hurd"
+		;;
 	  *)
 	  	XORG_OS="unknown"
 		XORG_OS_SUBDIR="unknown"
@@ -1233,11 +1252,6 @@ dnl has it in libc), or if libdl is needed to get it.
 	AC_SUBST([XORG_CFLAGS])
 	AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
 
-	dnl Module defines are used in the Xorg server and the drivers
-	MODULE_DEFINES="$MODULE_DEFINES -DIN_MODULE -DXFree86Module"
-	LOADER_DEFINES="$LOADER_DEFINES -DXFree86LOADER"
-	SERVER_DEFINES="$SERVER_DEFINES -DXFree86Server"
-
 	dnl these only go in xorg-config.h
 	XF86CONFIGFILE="xorg.conf"
 	CONFIGFILE="$sysconfdir/$XF86CONFIGFILE"
@@ -1245,6 +1259,7 @@ dnl has it in libc), or if libdl is needed to get it.
 	AC_DEFINE(XORG_SERVER, 1, [Building Xorg server])
 	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
 	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
+	AC_DEFINE(XFree86LOADER, 1, [Building loadable XFree86 server])
 	AC_DEFINE_UNQUOTED(XORG_VERSION_CURRENT, [$VENDOR_RELEASE], [Current Xorg version])
 	AC_DEFINE(NEED_XF86_TYPES, 1, [Need XFree86 typedefs])
 	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
@@ -1544,7 +1559,7 @@ AC_ARG_ENABLE(xorgcfg, AS_HELP_STRING([--enable-xorgcfg],
 	[XORGCFG=$enableval],[XORGCFG=yes])
 if test x$XORGCFG = xyes ; then
 	PKG_CHECK_MODULES([XORGCFG_DEP], 
-	    [xkbui xkbfile xxf86misc xxf86vm xaw7 xmu xt xpm xext x11])
+	    [xkbui >= 1.0.2 xkbfile xxf86misc xxf86vm xaw7 xmu xt xpm xext x11])
 	AC_CHECK_LIB([curses],[waddstr],
 	    [XORGCFG_DEP_LIBS="$XORGCFG_DEP_LIBS -lcurses"; CURSES=yes],
 	    AC_CHECK_LIB([ncurses],[waddstr],
@@ -1582,10 +1597,6 @@ AM_CONDITIONAL(BUILD_KBD_MODE, [test x$BUILD_KBD_MODE = xyes])
 AM_CONDITIONAL(BSD_KBD_MODE, [test x$KBD_MODE_TYPE = xbsd])
 AM_CONDITIONAL(SUN_KBD_MODE, [test x$KBD_MODE_TYPE = xsun])
 
-AC_SUBST([MODULE_DEFINES])
-AC_SUBST([LOADER_DEFINES])
-AC_SUBST([SERVER_DEFINES])
-
 CFLAGS="$XSERVER_CFLAGS $CFLAGS"
 AC_SUBST([CFLAGS])
 
@@ -1607,8 +1618,6 @@ AC_OUTPUT([
 Makefile
 GL/Makefile
 GL/glx/Makefile
-GL/include/Makefile
-GL/include/GL/Makefile
 GL/mesa/Makefile
 GL/mesa/array_cache/Makefile
 GL/mesa/glapi/Makefile
@@ -1663,7 +1672,6 @@ hw/xfree86/dri/Makefile
 hw/xfree86/dummylib/Makefile
 hw/xfree86/exa/Makefile
 hw/xfree86/fbdevhw/Makefile
-hw/xfree86/getconfig/Makefile
 hw/xfree86/i2c/Makefile
 hw/xfree86/int10/Makefile
 hw/xfree86/loader/Makefile
@@ -1671,6 +1679,7 @@ hw/xfree86/os-support/Makefile
 hw/xfree86/os-support/bsd/Makefile
 hw/xfree86/os-support/bus/Makefile
 hw/xfree86/os-support/drm/Makefile
+hw/xfree86/os-support/hurd/Makefile
 hw/xfree86/os-support/misc/Makefile
 hw/xfree86/os-support/linux/Makefile
 hw/xfree86/os-support/lynxos/Makefile

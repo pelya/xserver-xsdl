@@ -282,8 +282,12 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 	return -1;
     }
 
-    exaGetPixelFromRGBA(&pixel, red, green, blue, alpha,
-			pDst->format);
+    if (!exaGetPixelFromRGBA(&pixel, red, green, blue, alpha,
+			pDst->format))
+    {
+	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
+	return -1;
+    }
 
     if (!(*pExaScr->info->PrepareSolid) (pDstPix, GXcopy, 0xffffffff, pixel))
     {
@@ -448,24 +452,72 @@ exaTryDriverComposite(CARD8		op,
     return 1;
 }
 
+/**
+ * exaTryMagicTwoPassCompositeHelper implements PictOpOver using two passes of
+ * simpler operations PictOpOutReverse and PictOpAdd. Mainly used for component
+ * alpha and limited 1-tmu cards.
+ *
+ * From http://anholt.livejournal.com/32058.html:
+ *
+ * The trouble is that component-alpha rendering requires two different sources
+ * for blending: one for the source value to the blender, which is the
+ * per-channel multiplication of source and mask, and one for the source alpha
+ * for multiplying with the destination channels, which is the multiplication
+ * of the source channels by the mask alpha. So the equation for Over is:
+ *
+ * dst.A = src.A * mask.A + (1 - (src.A * mask.A)) * dst.A
+ * dst.R = src.R * mask.R + (1 - (src.A * mask.R)) * dst.R
+ * dst.G = src.G * mask.G + (1 - (src.A * mask.G)) * dst.G
+ * dst.B = src.B * mask.B + (1 - (src.A * mask.B)) * dst.B
+ *
+ * But we can do some simpler operations, right? How about PictOpOutReverse,
+ * which has a source factor of 0 and dest factor of (1 - source alpha). We
+ * can get the source alpha value (srca.X = src.A * mask.X) out of the texture
+ * blenders pretty easily. So we can do a component-alpha OutReverse, which
+ * gets us:
+ *
+ * dst.A = 0 + (1 - (src.A * mask.A)) * dst.A
+ * dst.R = 0 + (1 - (src.A * mask.R)) * dst.R
+ * dst.G = 0 + (1 - (src.A * mask.G)) * dst.G
+ * dst.B = 0 + (1 - (src.A * mask.B)) * dst.B
+ *
+ * OK. And if an op doesn't use the source alpha value for the destination
+ * factor, then we can do the channel multiplication in the texture blenders
+ * to get the source value, and ignore the source alpha that we wouldn't use.
+ * We've supported this in the Radeon driver for a long time. An example would
+ * be PictOpAdd, which does:
+ *
+ * dst.A = src.A * mask.A + dst.A
+ * dst.R = src.R * mask.R + dst.R
+ * dst.G = src.G * mask.G + dst.G
+ * dst.B = src.B * mask.B + dst.B
+ *
+ * Hey, this looks good! If we do a PictOpOutReverse and then a PictOpAdd right
+ * after it, we get:
+ *
+ * dst.A = src.A * mask.A + ((1 - (src.A * mask.A)) * dst.A)
+ * dst.R = src.R * mask.R + ((1 - (src.A * mask.R)) * dst.R)
+ * dst.G = src.G * mask.G + ((1 - (src.A * mask.G)) * dst.G)
+ * dst.B = src.B * mask.B + ((1 - (src.A * mask.B)) * dst.B)
+ */
+
 static int
-exaTryComponentAlphaHelper(CARD8 op,
-			   PicturePtr pSrc,
-			   PicturePtr pMask,
-			   PicturePtr pDst,
-			   INT16 xSrc,
-			   INT16 ySrc,
-			   INT16 xMask,
-			   INT16 yMask,
-			   INT16 xDst,
-			   INT16 yDst,
-			   CARD16 width,
-			   CARD16 height)
+exaTryMagicTwoPassCompositeHelper(CARD8 op,
+				  PicturePtr pSrc,
+				  PicturePtr pMask,
+				  PicturePtr pDst,
+				  INT16 xSrc,
+				  INT16 ySrc,
+				  INT16 xMask,
+				  INT16 yMask,
+				  INT16 xDst,
+				  INT16 yDst,
+				  CARD16 width,
+				  CARD16 height)
 {
     ExaScreenPriv (pDst->pDrawable->pScreen);
 
     assert(op == PictOpOver);
-    assert(pMask->componentAlpha == TRUE);
 
     if (pExaScr->info->CheckComposite &&
 	(!(*pExaScr->info->CheckComposite)(PictOpOutReverse, pSrc, pMask,
@@ -531,7 +583,8 @@ exaComposite(CARD8	op,
 	if (op == PictOpSrc)
 	{
 	    if (pSrc->pDrawable->width == 1 &&
-		pSrc->pDrawable->height == 1 && pSrc->repeat)
+		pSrc->pDrawable->height == 1 && pSrc->repeat &&
+		pSrc->repeatType == RepeatNormal)
 	    {
 		ret = exaTryDriverSolidFill(pSrc, pDst, xSrc, ySrc, xDst, yDst,
 					    width, height);
@@ -571,21 +624,34 @@ exaComposite(CARD8	op,
 	    pMask->repeat = 0;
 
     if (pExaScr->info->PrepareComposite &&
+	(!pSrc->repeat || pSrc->repeat == RepeatNormal) &&
+	(!pMask || !pMask->repeat || pMask->repeat == RepeatNormal) &&
 	!pSrc->alphaMap && (!pMask || !pMask->alphaMap) && !pDst->alphaMap)
     {
+	Bool isSrcSolid;
+
 	ret = exaTryDriverComposite(op, pSrc, pMask, pDst, xSrc, ySrc, xMask,
 				    yMask, xDst, yDst, width, height);
 	if (ret == 1)
 	    goto done;
 
+	/* For generic masks and solid src pictures, mach64 can do Over in two
+	 * passes, similar to the component-alpha case.
+	 */
+	isSrcSolid = pSrc->pDrawable->width == 1 &&
+		     pSrc->pDrawable->height == 1 &&
+		     pSrc->repeat;
+
 	/* If we couldn't do the Composite in a single pass, and it was a
 	 * component-alpha Over, see if we can do it in two passes with
 	 * an OutReverse and then an Add.
 	 */
-	if (ret == -1 && pMask && pMask->componentAlpha && op == PictOpOver) {
-	    ret = exaTryComponentAlphaHelper(op, pSrc, pMask, pDst, xSrc, ySrc,
-					     xMask, yMask, xDst, yDst,
-					     width, height);
+	if (ret == -1 && op == PictOpOver && pMask &&
+	    (pMask->componentAlpha || isSrcSolid)) {
+	    ret = exaTryMagicTwoPassCompositeHelper(op, pSrc, pMask, pDst,
+						    xSrc, ySrc,
+						    xMask, yMask, xDst, yDst,
+						    width, height);
 	    if (ret == 1)
 		goto done;
 	}

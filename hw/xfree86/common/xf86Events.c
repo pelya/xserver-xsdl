@@ -1255,12 +1255,8 @@ xf86InterceptSigIll(void (*sigillhandler)(void))
     xf86SigIllHandler = sigillhandler;
 }
 
-#ifdef HAVE_EXECINFO_H
-#define HAVE_BACKTRACE
-#include <execinfo.h>
-#endif
-
 #ifdef HAVE_BACKTRACE
+#include <execinfo.h>
 
 static __inline__ void xorg_backtrace(void)
 {

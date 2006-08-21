@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/rensizetab.c,v 1.5 2004/01/28 18:11:53 alanh Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free

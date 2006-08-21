@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/vgaReg.h,v 1.3 1999/06/06 08:49:07 dawes Exp $ */
 /*
  * Copyright IBM Corporation 1987,1988,1989
  *

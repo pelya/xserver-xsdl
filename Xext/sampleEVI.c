@@ -1,4 +1,3 @@
-/* $Xorg: sampleEVI.c,v 1.3 2000/08/17 19:47:58 cpqbld Exp $ */
 /************************************************************
 Copyright (c) 1997 by Silicon Graphics Computer Systems, Inc.
 Permission to use, copy, modify, and distribute this

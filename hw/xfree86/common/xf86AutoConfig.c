@@ -1,6 +1,3 @@
-/* $DHD: xc/programs/Xserver/hw/xfree86/common/xf86AutoConfig.c,v 1.15 2003/09/24 19:39:36 dawes Exp $ */
-/* $XdotOrg: $ */
-
 /*
  * Copyright 2003 by David H. Dawes.
  * Copyright 2003 by X-Oz Technologies.
@@ -32,8 +29,6 @@
  * Author: David Dawes <dawes@XFree86.Org>.
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86AutoConfig.c,v 1.2 2003/11/03 05:11:01 tsi Exp $ */
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
@@ -45,9 +40,7 @@
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
 
-/*
- * Sections for the default built-in configuration.
- */
+/* Sections for the default built-in configuration. */
 
 #define BUILTIN_MODULE_SECTION \
 	"Section \"Module\"\n" \
@@ -78,7 +71,6 @@
 #define BUILTIN_MONITOR_SECTION \
 	"Section \"Monitor\"\n" \
 	"\tIdentifier\t" BUILTIN_MONITOR_NAME "\n" \
-	"\tOption\t\"TargetRefresh\"\t\"75.0\"\n" \
 	"EndSection\n\n"
 
 #define BUILTIN_SCREEN_NAME \
@@ -100,17 +92,6 @@
 
 #define BUILTIN_LAYOUT_SECTION_POST \
 	"EndSection\n\n"
-
-
-#ifndef GET_CONFIG_CMD
-#define GET_CONFIG_CMD			"getconfig"
-#endif
-
-#ifndef GETCONFIG_DIR
-#define GETCONFIG_DIR			PROJECTROOT "/lib/X11/getconfig"
-#endif
-
-#define GETCONFIG_WHITESPACE		" \t\n"
 
 static const char **builtinConfig = NULL;
 static int builtinLines = 0;
@@ -171,6 +152,61 @@ AppendToConfig(const char *s)
     AppendToList(s, &builtinConfig, &builtinLines);
 }
 
+static const char *
+videoPtrToDriverName(pciVideoPtr info)
+{
+    /*
+     * things not handled yet:
+     * amd/cyrix/nsc
+     * xgi
+     */
+
+    switch (info->vendor)
+    {
+	case 0x1142:		    return "apm";
+	case 0xedd8:		    return "ark";
+	case 0x1a03:		    return "ast";
+	case 0x1002:		    return "ati";
+	case 0x102c:		    return "chips";
+	case 0x1013:		    return "cirrus";
+	case 0x8086:
+	    if ((info->chipType == 0x00d1) || (info->chipType == 0x7800))
+		return "i740";
+	    else return "i810";
+	case 0x102b:		    return "mga";
+	case 0x10c8:		    return "neomagic";
+	case 0x105d:		    return "i128";
+	case 0x10de: case 0x12d2:   return "nv";
+	case 0x1163:		    return "rendition";
+	case 0x5333:
+	    switch (info->chipType)
+	    {
+		case 0x88d0: case 0x88d1: case 0x88f0: case 0x8811:
+		case 0x8812: case 0x8814: case 0x8901:
+		    return "s3";
+		case 0x5631: case 0x883d: case 0x8a01: case 0x8a10:
+		case 0x8c01: case 0x8c03: case 0x8904: case 0x8a13:
+		    return "s3virge";
+		default:
+		    return "savage";
+	    }
+	case 0x1039:		    return "sis";
+	case 0x126f:		    return "siliconmotion";
+	case 0x121a:
+	    if (info->chipType < 0x0003)
+	        return "voodoo";
+	    else
+	        return "tdfx";
+	case 0x3d3d:		    return "glint";
+	case 0x1023:		    return "trident";
+	case 0x100c:		    return "tseng";
+	case 0x1106:		    return "via";
+	case 0x15ad:		    return "vmware";
+	default: break;
+    }
+    return NULL;
+}
+
 Bool
 xf86AutoConfig(void)
 {
@@ -178,7 +214,6 @@ xf86AutoConfig(void)
     char buf[1024];
     pciVideoPtr *pciptr, info = NULL;
     char *driver = NULL;
-    FILE *gp = NULL;
     ConfigStatus ret;
 
     /* Find the primary device, and get some information about it. */
@@ -195,108 +230,8 @@ xf86AutoConfig(void)
 	ErrorF("xf86PciVideoInfo is not set\n");
     }
 
-    if (info) {
-	char *tmp;
-	char *path = NULL, *a, *b;
-	char *searchPath = NULL;
-
-	/*
-	 * Look for the getconfig program first in the xf86ModulePath
-	 * directories, then in GETCONFIG_DIR, then in BINDIR.  If it
-	 * isn't found in any of those locations, just use the normal
-	 * search path.
-	 */
-
-	if (xf86ModulePath) {
-	    a = xnfstrdup(xf86ModulePath);
-	    b = strtok(a, ",");
-	    while (b) {
-		path = xnfrealloc(path,
-				  strlen(b) + 1 + strlen(GET_CONFIG_CMD) + 1);
-		sprintf(path, "%s/%s", b, GET_CONFIG_CMD);
-		if (access(path, X_OK) == 0)
-		    break;
-		b = strtok(NULL, ",");
-	    }
-	    if (!b) {
-		xfree(path);
-		path = NULL;
-	    }
-	    xfree(a);
-	}
-
-	if (!path) {
-	    path = xnfstrdup(GETCONFIG_DIR "/" GET_CONFIG_CMD);
-	    if (access(path, X_OK) != 0) {
-		xfree(path);
-		path = NULL;
-	    }
-	}
-
-#ifdef BINDIR
-	if (!path) {
-	    path = xnfstrdup(BINDIR "/" GET_CONFIG_CMD);
-	    if (access(path, X_OK) != 0) {
-		xfree(path);
-		path = NULL;
-	    }
-	}
-#endif
-
-	if (!path)
-	    path = xnfstrdup(GET_CONFIG_CMD);
-
-	/*
-	 * Build up the config file directory search path:
-	 *
-	 * /etc/X11
-	 * PROJECTROOT/etc/X11
-	 * xf86ModulePath
-	 * PROJECTROOT/lib/X11/getconfig  (GETCONFIG_DIR)
-	 */
-
-	searchPath = xnfalloc(strlen("/etc/X11") + 1 +
-			      strlen(PROJECTROOT "/etc/X11") + 1 +
-			      (xf86ModulePath ? strlen(xf86ModulePath) : 0)
-				+ 1 +
-			      strlen(GETCONFIG_DIR) + 1);
-	strcpy(searchPath, "/etc/X11," PROJECTROOT "/etc/X11,");
-	if (xf86ModulePath && *xf86ModulePath) {
-	    strcat(searchPath, xf86ModulePath);
-	    strcat(searchPath, ",");
-	}
-	strcat(searchPath, GETCONFIG_DIR);
-
-	ErrorF("xf86AutoConfig: Primary PCI is %d:%d:%d\n",
-	       info->bus, info->device, info->func);
-
-	snprintf(buf, sizeof(buf), "%s"
-#ifdef DEBUG
-		 " -D"
-#endif
-		 " -X %d"
-		 " -I %s"
-		 " -v 0x%04x -d 0x%04x -r 0x%02x -s 0x%04x"
-		 " -b 0x%04x -c 0x%04x",
-		 path,
-		 (unsigned int)xorgGetVersion(),
-		 searchPath,
-		 info->vendor, info->chipType, info->chipRev,
-		 info->subsysVendor, info->subsysCard,
-		 info->class << 8 | info->subclass);
-	ErrorF("Running \"%s\"\n", buf);
-	gp = Popen(buf, "r");
-	if (gp) {
-	    if (fgets(buf, sizeof(buf) - 1, gp)) {
-		buf[strlen(buf) - 1] = '\0';
-		tmp = strtok(buf, GETCONFIG_WHITESPACE);
-		if (tmp)
-		    driver = xnfstrdup(tmp);
-	    }
-	}
-	xfree(path);
-	xfree(searchPath);
-    }
+    if (info)
+	driver = videoPtrToDriverName(info);
 
     AppendToConfig(BUILTIN_MODULE_SECTION);
     AppendToConfig(BUILTIN_MONITOR_SECTION);
@@ -307,18 +242,11 @@ xf86AutoConfig(void)
 	AppendToConfig(buf);
 	ErrorF("New driver is \"%s\"\n", driver);
 	buf[0] = '\t';
-	while (fgets(buf + 1, sizeof(buf) - 2, gp)) {
-	    AppendToConfig(buf);
-	    ErrorF("Extra line: %s", buf);
-	}
 	AppendToConfig(BUILTIN_DEVICE_SECTION_POST);
 	snprintf(buf, sizeof(buf), BUILTIN_SCREEN_SECTION,
 		 driver, 0, driver, 0);
 	AppendToConfig(buf);
     }
-
-    if (gp)
-	Pclose(gp);
 
     for (p = deviceList; *p; p++) {
 	snprintf(buf, sizeof(buf), BUILTIN_DEVICE_SECTION, *p, 0, *p);
@@ -338,13 +266,6 @@ xf86AutoConfig(void)
     }
     AppendToConfig(BUILTIN_LAYOUT_SECTION_POST);
 
-#ifdef BUILTIN_EXTRA
-    AppendToConfig(BUILTIN_EXTRA);
-#endif
-
-    if (driver)
-	xfree(driver);
-
     xf86MsgVerb(X_DEFAULT, 0,
 		"Using default built-in configuration (%d lines)\n",
 		builtinLines);
@@ -357,12 +278,9 @@ xf86AutoConfig(void)
     xf86setBuiltinConfig(builtinConfig);
     ret = xf86HandleConfigFile(TRUE);
     FreeConfig();
-    switch(ret) {
-    case CONFIG_OK:
-	return TRUE;
-    default:
-	xf86Msg(X_ERROR, "Error parsing the built-in default configuration.\n");
-	return FALSE;
-    }
-}
 
+    if (ret != CONFIG_OK)
+	xf86Msg(X_ERROR, "Error parsing the built-in default configuration.\n");
+
+    return (ret == CONFIG_OK);
+}

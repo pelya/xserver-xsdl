@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mfb/maskbits.h,v 3.8tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.1, 1/24/89 */
 /***********************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
@@ -22,7 +21,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: maskbits.h,v 1.3 2000/08/17 19:53:34 cpqbld Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -253,7 +251,7 @@ extern PixelType mfbGetmask(int);
 #define BitLeft(b,s)	SCRLEFT(b,s)
 #define BitRight(b,s)	SCRRIGHT(b,s)
 
-#ifdef XFree86Server
+#if 1
 #define LONG2CHARSSAMEORDER(x) ((MfbBits)(x))
 #define LONG2CHARSDIFFORDER( x ) ( ( ( ( x ) & (MfbBits)0x000000FF ) << 0x18 ) \
                         | ( ( ( x ) & (MfbBits)0x0000FF00 ) << 0x08 ) \

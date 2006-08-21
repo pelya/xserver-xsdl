@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf4bpp/mfbfillarc.c,v 1.5tsi Exp $ */
 /************************************************************
 
 Copyright (c) 1989  X Consortium

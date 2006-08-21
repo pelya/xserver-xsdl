@@ -20,9 +20,7 @@ INCLUDES = -I@MESA_SOURCE@/include \
 # symbol means "being built in the server"
 AM_CFLAGS = \
 	$(DIX_CFLAGS) \
-	@SERVER_DEFINES@ \
-	@MODULE_DEFINES@ \
-	@LOADER_DEFINES@ \
+	-DXFree86Server \
 	@GLX_DEFINES@ \
 	-DXFree86Server
 

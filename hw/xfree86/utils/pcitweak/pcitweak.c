@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/etc/pcitweak.c,v 1.17 2003/08/24 17:37:01 dawes Exp $ */
 /*
  * Copyright (c) 1999-2002 by The XFree86 Project, Inc.
  *

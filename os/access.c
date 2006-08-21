@@ -1,5 +1,3 @@
-/* $Xorg: access.c,v 1.5 2001/02/09 02:05:23 xorgcvs Exp $ */
-/* $XdotOrg: xserver/xorg/os/access.c,v 1.15 2006/02/15 20:44:13 ajax Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -55,7 +53,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/os/access.c,v 3.53 2004/01/02 18:23:19 tsi Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -1191,7 +1188,11 @@ ResetHosts (char *display)
         FreeHost (host);
     }
 
+#if defined WIN32 && defined __MINGW32__
+#define ETC_HOST_PREFIX "X"
+#else
 #define ETC_HOST_PREFIX "/etc/X"
+#endif
 #define ETC_HOST_SUFFIX ".hosts"
     fnamelen = strlen(ETC_HOST_PREFIX) + strlen(ETC_HOST_SUFFIX) +
 		strlen(display) + 1;

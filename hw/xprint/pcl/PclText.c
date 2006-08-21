@@ -1,4 +1,3 @@
-/* $Xorg: PclText.c,v 1.5 2001/03/06 16:28:48 pookie Exp $ */
 /*******************************************************************
 **
 **    *********************************************************
@@ -44,7 +43,6 @@ not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from said
 copyright holders.
 */
-/* $XFree86: xc/programs/Xserver/Xprint/pcl/PclText.c,v 1.10tsi Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

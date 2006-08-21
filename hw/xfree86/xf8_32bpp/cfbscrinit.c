@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf8_32bpp/cfbscrinit.c,v 1.11 2001/04/14 21:17:49 mvojkovi Exp $ */
 
 
 #ifdef HAVE_XORG_CONFIG_H

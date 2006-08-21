@@ -1,4 +1,3 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/utils/xorgcfg/interface.c,v 1.8 2005/11/08 06:33:30 jkj Exp $ */
 /*
  * Copyright (c) 2000 by Conectiva S.A. (http://www.conectiva.com)
  * 
@@ -27,7 +26,6 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/interface.c,v 1.36 2002/10/19 20:04:21 herrb Exp $
  */
 
 #include <X11/IntrinsicP.h>

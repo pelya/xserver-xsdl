@@ -60,6 +60,8 @@ compCloseScreen (int index, ScreenPtr pScreen)
     CompScreenPtr   cs = GetCompScreen (pScreen);
     Bool	    ret;
 
+    xfree (cs->alternateVisuals);
+
     pScreen->CloseScreen = cs->CloseScreen;
     pScreen->BlockHandler = cs->BlockHandler;
     pScreen->InstallColormap = cs->InstallColormap;
@@ -100,7 +102,7 @@ compInstallColormap (ColormapPtr pColormap)
     CompScreenPtr   cs = GetCompScreen (pScreen);
     int		    a;
 
-    for (a = 0; a < NUM_COMP_ALTERNATE_VISUALS; a++)
+    for (a = 0; a < cs->numAlternateVisuals; a++)
 	if (pVisual->vid == cs->alternateVisuals[a])
 	    return;
     pScreen->InstallColormap = cs->InstallColormap;
@@ -170,6 +172,41 @@ compFindVisuallessDepth (ScreenPtr pScreen, int d)
     return 0;
 }
 
+/*
+ * Add a list of visual IDs to the list of visuals to implicitly redirect.
+ */
+static Bool
+compRegisterAlternateVisuals (CompScreenPtr cs, VisualID *vids, int nVisuals)
+{
+    VisualID *p;
+
+    p = xrealloc(cs->alternateVisuals,
+		 sizeof(VisualID) * (cs->numAlternateVisuals + nVisuals));
+    if(p == NULL)
+	return FALSE;
+
+    memcpy(&p[cs->numAlternateVisuals], vids, sizeof(VisualID) * nVisuals);
+
+    cs->alternateVisuals = p;
+    cs->numAlternateVisuals += nVisuals;
+
+    return TRUE;
+}
+
+_X_EXPORT
+Bool CompositeRegisterAlternateVisuals (ScreenPtr pScreen, VisualID *vids,
+					int nVisuals)
+{
+    CompScreenPtr cs = GetCompScreen (pScreen);
+    return compRegisterAlternateVisuals(cs, vids, nVisuals);
+}
+
+#if COMP_INCLUDE_RGB24_VISUAL
+#define NUM_COMP_ALTERNATE_VISUALS 2
+#else
+#define NUM_COMP_ALTERNATE_VISUALS 1
+#endif
+
 typedef struct _alternateVisual {
     int		depth;
     CARD32	format;
@@ -197,8 +234,6 @@ compAddAlternateVisuals (ScreenPtr pScreen, CompScreenPtr cs)
     int		    numAlternate = 0;
     int		    alt;
     
-    memset (cs->alternateVisuals, '\0', sizeof (cs->alternateVisuals));
-
     for (alt = 0; alt < NUM_COMP_ALTERNATE_VISUALS; alt++)
     {
 	DepthPtr	depth;
@@ -321,7 +356,7 @@ compAddAlternateVisuals (ScreenPtr pScreen, CompScreenPtr cs)
 	/*
 	 * remember the visual ID to detect auto-update windows
 	 */
-	cs->alternateVisuals[alt] = visual->vid;
+	compRegisterAlternateVisuals(cs, &visual->vid, 1);
 	
 	/*
 	 * Fix up the depth
@@ -366,6 +401,9 @@ compScreenInit (ScreenPtr pScreen)
     cs->damaged = FALSE;
     cs->pOverlayWin = NULL;
     cs->pOverlayClients = NULL;
+
+    cs->numAlternateVisuals = 0;
+    cs->alternateVisuals = NULL;
 
     if (!compAddAlternateVisuals (pScreen, cs))
     {

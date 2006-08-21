@@ -1,4 +1,3 @@
-/* $Xorg: propertyst.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -45,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/propertyst.h,v 3.2 2001/01/17 22:36:57 dawes Exp $ */
 
 #ifndef PROPERTYSTRUCT_H
 #define PROPERTYSTRUCT_H 

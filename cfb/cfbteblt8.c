@@ -3,7 +3,6 @@
  * 8 bit displays, in Copy mode with no clipping.
  */
 
-/* $XFree86: xc/programs/Xserver/cfb/cfbteblt8.c,v 1.5 2001/10/28 03:33:02 tsi Exp $ */
 /*
 
 Copyright 1989, 1998  The Open Group
@@ -29,7 +28,6 @@ used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
 
-/* $Xorg: cfbteblt8.c,v 1.4 2001/02/09 02:04:38 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

@@ -1,4 +1,3 @@
-/* $Xorg: dpms.c,v 1.3 2000/08/17 19:47:56 cpqbld Exp $ */
 /*****************************************************************
 
 Copyright (c) 1996 Digital Equipment Corporation, Maynard, Massachusetts.
@@ -33,7 +32,6 @@ Equipment Corporation.
  * @(#)RCSfile: dpms.c,v Revision: 1.1.4.5  (DEC) Date: 1996/03/04 15:27:00
  */
 
-/* $XFree86: xc/programs/Xserver/Xext/dpms.c,v 3.10tsi Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

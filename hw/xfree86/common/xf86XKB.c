@@ -51,7 +51,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
  * authorization from the copyright holder(s) and author(s).
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86XKB.c,v 3.12 2003/08/24 17:36:55 dawes Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

@@ -73,8 +73,6 @@ Equipment Corporation.
 
 ******************************************************************/
 
-/* $Xorg: resource.c,v 1.5 2001/02/09 02:04:40 xorgcvs Exp $ */
-/* $XdotOrg: xserver/xorg/dix/resource.c,v 1.8 2005/07/03 08:53:38 daniels Exp $ */
 /* $TOG: resource.c /main/41 1998/02/09 14:20:31 kaleb $ */
 
 /*	Routines to manage various kinds of resources:
@@ -99,7 +97,6 @@ Equipment Corporation.
  *      1, and an otherwise arbitrary ID in the low 22 bits, we can create a
  *      resource "owned" by the client.
  */
-/* $XFree86: xc/programs/Xserver/dix/resource.c,v 3.13 2003/09/24 02:43:13 dawes Exp $ */
 
 #define NEED_EVENTS
 #ifdef HAVE_DIX_CONFIG_H

@@ -158,7 +158,7 @@ exaLog2(int val)
 {
     int bits;
 
-    if (!val)
+    if (val <= 0)
 	return 0;
     for (bits = 0; val != 0; bits++)
 	val >>= 1;
@@ -523,6 +523,9 @@ exaDriverInit (ScreenPtr		pScreen,
                ExaDriverPtr	pScreenInfo)
 {
     ExaScreenPrivPtr pExaScr;
+#ifdef RENDER
+    PictureScreenPtr ps;
+#endif
 
     if (pScreenInfo->exa_major != EXA_VERSION_MAJOR ||
 	pScreenInfo->exa_minor > EXA_VERSION_MINOR)
@@ -536,7 +539,7 @@ exaDriverInit (ScreenPtr		pScreen,
     }
 
 #ifdef RENDER
-    PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
+    ps = GetPictureScreenIfSet(pScreen);
 #endif
     if (exaGeneration != serverGeneration)
     {
@@ -603,7 +606,9 @@ exaDriverInit (ScreenPtr		pScreen,
     }
 #endif
 
+#ifdef COMPOSITE
     miDisableCompositeWrapper(pScreen);
+#endif
 
     /*
      * Hookup offscreen pixmaps

@@ -2,9 +2,7 @@ noinst_LTLIBRARIES = libslang.la
 
 AM_CFLAGS = \
 	$(DIX_CFLAGS) \
-	@SERVER_DEFINES@ \
-	@MODULE_DEFINES@ \
-	@LOADER_DEFINES@ \
+	-DXFree86Server \
 	@GLX_DEFINES@
 
 INCLUDES = -I@MESA_SOURCE@/include \

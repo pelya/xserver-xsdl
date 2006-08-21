@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_mouse.c,v 1.2 2003/10/08 14:58:30 dawes Exp $ */
 
 /*
  * Copyright 1999 by The XFree86 Project, Inc.
@@ -29,7 +28,7 @@ DefaultProtocol(void)
     return "Auto";
 }
 
-#define DEFAULT_MOUSE_DEV		"/dev/mouse"
+#define DEFAULT_MOUSE_DEV		"/dev/input/mice"
 #define DEFAULT_PS2_DEV			"/dev/psaux"
 #define DEFAULT_GPM_DATA_DEV		"/dev/gpmdata"
 #define DEFAULT_GPM_CTL_DEV		"/dev/gpmdata"

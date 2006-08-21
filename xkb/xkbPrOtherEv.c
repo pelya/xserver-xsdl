@@ -1,4 +1,3 @@
-/* $Xorg: xkbPrOtherEv.c,v 1.3 2000/08/17 19:53:48 cpqbld Exp $ */
 /************************************************************
 Copyright (c) 1995 by Silicon Graphics Computer Systems, Inc.
 

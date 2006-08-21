@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mi/mioverlay.h,v 3.3 2000/02/29 00:16:03 mvojkovi Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

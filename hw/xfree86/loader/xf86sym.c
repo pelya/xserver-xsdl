@@ -356,9 +356,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86RegisterStateChangeNotificationCallback)
     SYMFUNC(xf86DeregisterStateChangeNotificationCallback)
     SYMFUNC(xf86NoSharedResources)
-#ifdef async
-    SYMFUNC(xf86QueueAsyncEvent)
-#endif
     /* Shared Accel Accessor Functions */
     SYMFUNC(xf86GetLastScrnFlag)
     SYMFUNC(xf86SetLastScrnFlag)
@@ -371,6 +368,9 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86ClearPrimInitDone)
     SYMFUNC(xf86AllocateEntityPrivateIndex)
     SYMFUNC(xf86GetEntityPrivate)
+
+    /* xf86cvt.c */
+    SYMFUNC(xf86CVTMode)
 
     /* xf86Configure.c */
     SYMFUNC(xf86AddDeviceToConfigure)
@@ -1146,9 +1146,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMVAR(xf86DummyVar3)
 #endif
 
-#ifdef async
-    SYMVAR(xf86CurrentScreen)
-#endif
     /* predefined resource lists from xf86Bus.h */
     SYMVAR(resVgaExclusive)
     SYMVAR(resVgaShared)

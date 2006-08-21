@@ -49,7 +49,6 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Xinput.h,v 3.36 2003/08/24 17:36:55 dawes Exp $ */
 
 #ifndef _xf86Xinput_h
 #define _xf86Xinput_h

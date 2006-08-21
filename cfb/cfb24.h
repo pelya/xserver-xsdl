@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfb24.h,v 1.4 1998/11/28 10:42:51 dawes Exp $ */
 /*
  * Copyright (C) 1994-1998 The XFree86 Project, Inc.  All Rights Reserved.
  *

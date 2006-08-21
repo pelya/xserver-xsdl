@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/write.c,v 1.18 2003/08/24 17:37:08 dawes Exp $ */
 /* 
  * 
  * Copyright (c) 1997  Metro Link Incorporated
@@ -170,7 +169,7 @@ xf86writeConfigFile (const char *filename, XF86ConfigPtr cptr)
 					strerror(errno));
 			return 0;
 		case 0: /* child */
-			if (setuid(getuid() == -1) 
+			if (setuid(getuid()) == -1) 
 			    FatalError("xf86writeConfigFile(): "
 				"setuid failed(%s)\n", 
 				strerror(errno));

@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86DGA.c,v 1.8 2006/02/15 20:44:13 ajax Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86DGA.c,v 1.46 2002/12/03 18:17:40 tsi Exp $ */
 /*
  * Copyright (c) 1998-2002 by The XFree86 Project, Inc.
  *
@@ -63,11 +61,7 @@ DGACopyModeInfo(
    XDGAModePtr xmode
 );
 
-#if defined(XFree86LOADER) || !defined(XFreeXDGA)
 _X_EXPORT int *XDGAEventBase = NULL;
-#else
-_X_EXPORT int *XDGAEventBase = &DGAEventBase;
-#endif
 
 #define DGA_GET_SCREEN_PRIV(pScreen) \
 	((DGAScreenPtr)((pScreen)->devPrivates[DGAScreenIndex].ptr))

@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/os/utils.c,v 1.26 2006-06-01 22:06:41 daniels Exp $ */
-/* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
 Copyright 1987, 1998  The Open Group
@@ -50,7 +48,6 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
 OR PERFORMANCE OF THIS SOFTWARE.
 
 */
-/* $XFree86: xc/programs/Xserver/os/utils.c,v 3.96 2004/01/07 04:16:37 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -139,13 +136,9 @@ _X_EXPORT Bool noTestExtensions;
 _X_EXPORT Bool noBigReqExtension = FALSE;
 #endif
 #ifdef COMPOSITE
- #ifdef XFree86Server
-  /* COMPOSITE is disabled by default for now until the
-   * interface is stable */
-  #define COMPOSITE_DEFAULT FALSE
- #else
-  #define COMPOSITE_DEFAULT TRUE
- #endif
+ /* COMPOSITE is disabled by default for now until the
+  * interface is stable */
+ #define COMPOSITE_DEFAULT FALSE
 _X_EXPORT Bool noCompositeExtension = !COMPOSITE_DEFAULT;
 #endif
 
@@ -268,12 +261,6 @@ int SyncOn  = 0;
 extern int SelectWaitTime;
 #endif
 
-#ifdef DEBUG
-#ifndef SPECIAL_MALLOC
-#define MEMBUG
-#endif
-#endif
-
 #if defined(SVR4) || defined(__linux__) || defined(CSRG_BASED)
 #define HAS_SAVED_IDS_AND_SETEUID
 #endif
@@ -283,10 +270,6 @@ extern int SelectWaitTime;
 long Memory_fail = 0;
 #include <stdlib.h>  /* for random() */
 #endif
-
-#ifdef sgi
-int userdefinedfontpath = 0;
-#endif /* sgi */
 
 char *dev_tty_from_init = NULL;		/* since we need to parse it anyway */
 
@@ -549,7 +532,6 @@ GiveUp(int sig)
     errno = olderrno;
 }
 
-#ifndef DDXTIME
 _X_EXPORT CARD32
 GetTimeInMillis(void)
 {
@@ -558,7 +540,6 @@ GetTimeInMillis(void)
     X_GETTIMEOFDAY(&tp);
     return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
 }
-#endif
 
 _X_EXPORT void
 AdjustWaitForDelay (pointer waitTime, unsigned long newdelay)
@@ -595,7 +576,6 @@ void UseMsg(void)
 #endif
     ErrorF("-audit int             set audit trail level\n");	
     ErrorF("-auth file             select authorization file\n");	
-    ErrorF("bc                     enable bug compatibility\n");
     ErrorF("-br                    create root window with black background\n");
     ErrorF("+bs                    enable any backing store support\n");
     ErrorF("-bs                    disable any backing store support\n");
@@ -662,6 +642,7 @@ void UseMsg(void)
     ErrorF("v                      video blanking for screen-saver\n");
     ErrorF("-v                     screen-saver without video blanking\n");
     ErrorF("-wm                    WhenMapped default backing-store\n");
+    ErrorF("-wr                    create root window with white background\n");
     ErrorF("-x string              loads named extension at init time \n");
     ErrorF("-maxbigreqsize         set maximal bigrequest size \n");
 #ifdef PANORAMIX
@@ -783,8 +764,6 @@ ProcessCommandLine(int argc, char *argv[])
 	    else
 		UseMsg();
 	}
-	else if ( strcmp( argv[i], "bc") == 0)
-	    permitOldBugs = TRUE;
 	else if ( strcmp( argv[i], "-br") == 0)
 	    blackRoot = TRUE;
 	else if ( strcmp( argv[i], "+bs") == 0)
@@ -861,9 +840,6 @@ ProcessCommandLine(int argc, char *argv[])
 	{
 	    if(++i < argc)
 	    {
-#ifdef sgi
-		userdefinedfontpath = 1;
-#endif /* sgi */
 	        defaultFontPath = argv[i];
 	    }
 	    else
@@ -1008,6 +984,8 @@ ProcessCommandLine(int argc, char *argv[])
 	    defaultScreenSaverBlanking = DontPreferBlanking;
 	else if ( strcmp( argv[i], "-wm") == 0)
 	    defaultBackingStore = WhenMapped;
+        else if ( strcmp( argv[i], "-wr") == 0)
+            whiteRoot = TRUE;
         else if ( strcmp( argv[i], "-maxbigreqsize") == 0) {
              if(++i < argc) {
                  long reqSizeArg = atol(argv[i]);

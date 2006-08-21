@@ -28,7 +28,6 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/xfIOKit.h,v 1.10 2003/03/15 18:02:08 torrey Exp $ */
 
 #ifndef _XFIOKIT_H
 #define _XFIOKIT_H

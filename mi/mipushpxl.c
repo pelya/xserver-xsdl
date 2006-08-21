@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mi/mipushpxl.c,v 3.12 2001/12/14 20:00:26 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -45,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: mipushpxl.c,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -95,7 +93,7 @@ miPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
     Bool 	fInBox;
     DDXPointRec	pt[NPT], ptThisLine;
     int		width[NPT];
-#ifdef XFree86Server
+#if 1
     PixelType	startmask;
     if (screenInfo.bitmapBitOrder == IMAGE_BYTE_ORDER)
       if (screenInfo.bitmapBitOrder == LSBFirst)
@@ -135,7 +133,7 @@ miPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
 	while(pw  < pwEnd)
 	{
 	    w = *pw;
-#ifdef XFree86Server
+#if 1
 	    msk = startmask;
 #else
 	    msk = (MiBits)(-1) ^ SCRRIGHT((MiBits)(-1), 1);
@@ -168,7 +166,7 @@ miPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
 			fInBox = FALSE;
 		    }
 		}
-#ifdef XFree86Server
+#if 1
     		/* This is not quite right, but it'll do for now */
 		if (screenInfo.bitmapBitOrder == IMAGE_BYTE_ORDER)
 		  if (screenInfo.bitmapBitOrder == LSBFirst)
@@ -191,7 +189,7 @@ miPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
 	{
 	    /* Process final partial word on line */
 	    w = *pw;
-#ifdef XFree86Server
+#if 1
 	    msk = startmask;
 #else
 	    msk = (MiBits)(-1) ^ SCRRIGHT((MiBits)(-1), 1);
@@ -224,7 +222,7 @@ miPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
 			fInBox = FALSE;
 		    }
 		}
-#ifdef XFree86Server
+#if 1
     		/* This is not quite right, but it'll do for now */
 		if (screenInfo.bitmapBitOrder == IMAGE_BYTE_ORDER)
 		  if (screenInfo.bitmapBitOrder == LSBFirst)

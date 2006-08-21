@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/afb/afb.h,v 3.10 2003/10/29 22:15:19 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -47,7 +46,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XConsortium: afb.h,v 5.31 94/04/17 20:28:15 dpw Exp $ */
 /* Monochrome Frame Buffer definitions
    written by drewry, september 1986
 */

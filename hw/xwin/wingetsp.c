@@ -28,7 +28,6 @@
  * Authors:	Harold L Hunt II
  * 		Alan Hourihane <alanh@fairlite.demon.co.uk>
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/wingetsp.c,v 1.7 2001/11/01 12:19:40 alanh Exp $ */
 
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>

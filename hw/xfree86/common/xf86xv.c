@@ -28,7 +28,6 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86xv.c,v 1.37 2003/11/10 18:22:15 tsi Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -53,9 +52,7 @@
 #include <X11/extensions/Xv.h>
 #include <X11/extensions/Xvproto.h>
 #include "xvdix.h"
-#ifdef XFree86LOADER
 #include "xvmodproc.h"
-#endif
 
 #include "xf86xvpriv.h"
 
@@ -118,16 +115,9 @@ int XF86XvScreenIndex = -1;
 static unsigned long XF86XVGeneration = 0;
 static unsigned long PortResource = 0;
 
-#ifdef XFree86LOADER
 int (*XvGetScreenIndexProc)(void) = NULL;
 unsigned long (*XvGetRTPortProc)(void) = NULL;
 int (*XvScreenInitProc)(ScreenPtr) = NULL;
-#else
-int (*XvGetScreenIndexProc)(void) = XvGetScreenIndex;
-unsigned long (*XvGetRTPortProc)(void) = XvGetRTPort;
-int (*XvScreenInitProc)(ScreenPtr) = XvScreenInit;
-#endif
-
 
 #define GET_XV_SCREEN(pScreen) \
 	((XvScreenPtr)((pScreen)->devPrivates[XF86XvScreenIndex].ptr))

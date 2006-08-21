@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/afb/afbfillsp.c,v 3.3 2000/11/22 00:58:12 tsi Exp $ */
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -47,7 +46,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XConsortium: afbfillsp.c,v 5.13 94/04/17 20:28:21 dpw Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/compiler.h,v 3.106 2004/02/02 03:55:28 dawes Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany.
  *
@@ -1079,7 +1078,10 @@ xf86WriteMmio32Be(__volatile__ void *base, const unsigned long offset,
 extern volatile unsigned char *ioBase;
 
 #if defined(linux) && defined(__powerpc64__)
-# include <asm/memory.h>
+# include <linux/version.h>
+# if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 0)
+#  include <asm/memory.h>
+# endif
 #endif /* defined(linux) && defined(__powerpc64__) */
 #ifndef eieio /* We deal with arch-specific eieio() routines above... */
 # define eieio() __asm__ __volatile__ ("eieio" ::: "memory")
@@ -1512,88 +1514,7 @@ inl(unsigned short port)
 
 #   endif /* ix86 */
 
-#  elif defined(__powerpc__) /* && !__GNUC__ */
-/*
- * NON-GCC PowerPC - Presumed to be PowerMAX OS for now
- */
-#   ifndef PowerMAX_OS
-#    error - Non-gcc PowerPC and !PowerMAXOS ???
-#   endif
-
-#   define PPCIO_DEBUG  0
-#   define PPCIO_INLINE 1
-#   define USE_ABS_MACRO 1
-/*
- * Use compiler intrinsics to access certain PPC machine instructions
- */
-#   define eieio() 	      __inst_eieio()
-#   define stw_brx(val,base,ndx) __inst_sthbrx(val,base,ndx)
-#   define stl_brx(val,base,ndx) __inst_stwbrx(val,base,ndx)
-#   define ldw_brx(base,ndx)     __inst_lhbrx(base,ndx)
-#   define ldl_brx(base,ndx)     __inst_lwbrx(base,ndx)
-
-#   define ldq_u(p)	(*((unsigned long long  *)(p)))
-#   define ldl_u(p)	(*((unsigned long   *)(p)))
-#   define ldw_u(p)	(*((unsigned short *)(p)))
-#   define stq_u(v,p)	(*(unsigned long long *)(p)) = (v)
-#   define stl_u(v,p)	(*(unsigned long  *)(p)) = (v)
-#   define stw_u(v,p)	(*(unsigned short *)(p)) = (v)
-#   define mem_barrier()         eieio()
-#   define write_mem_barrier()   eieio()
-
-extern volatile unsigned char *ioBase;
-
-#   if !defined(abs) && defined(USE_ABS_MACRO)
-#    define abs(x) ((x) >= 0 ? (x) : -(x))
-#   endif
-
-#   undef inb
-#   undef inw
-#   undef inl
-#   undef outb
-#   undef outw
-#   undef outl
-
-#   if PPCIO_DEBUG
-
-extern void debug_outb(unsigned int a, unsigned char b, int line, char *file); 
-extern void debug_outw(unsigned int a, unsigned short w, int line, char *file); 
-extern void debug_outl(unsigned int a, unsigned int l, int line, char *file); 
-extern unsigned char debug_inb(unsigned int a, int line, char *file); 
-extern unsigned short debug_inw(unsigned int a, int line, char *file); 
-extern unsigned int debug_inl(unsigned int a, int line, char *file); 
-
-#    define outb(a,b) debug_outb(a,b, __LINE__, __FILE__)
-#    define outw(a,w) debug_outw(a,w, __LINE__, __FILE__)
-#    define outl(a,l) debug_outl(a,l, __LINE__, __FILE__)
-#    define inb(a)    debug_inb(a, __LINE__, __FILE__)
-#    define inw(a)    debug_inw(a, __LINE__, __FILE__)
-#    define inl(a)    debug_inl(a, __LINE__, __FILE__)
-
-#   else /* !PPCIO_DEBUG */
-
-extern unsigned char  inb(unsigned int a);
-extern unsigned short inw(unsigned int a);
-extern unsigned int   inl(unsigned int a);
-
-#    if PPCIO_INLINE
-
-#     define outb(a,b) \
-            (*((volatile unsigned char *)(ioBase + (a))) = (b), eieio())
-#     define outw(a,w) (stw_brx((w),ioBase,(a)), eieio())
-#     define outl(a,l) (stl_brx((l),ioBase,(a)), eieio())
-
-#    else /* !PPCIO_INLINE */
-
-extern void outb(unsigned int a, unsigned char b);
-extern void outw(unsigned int a, unsigned short w);
-extern void outl(unsigned int a, unsigned int l);
-
-#    endif /* PPCIO_INLINE */
-
-#   endif /* !PPCIO_DEBUG */
-
-#  else /* !GNUC && !PPC */
+#  else /* !GNUC */
 #   if !defined(QNX4)
 #    if defined(__STDC__) && (__STDC__ == 1)
 #     ifndef asm
@@ -1602,17 +1523,13 @@ extern void outl(unsigned int a, unsigned int l);
 #    endif
 #    ifndef SCO325
 #     if defined(__UNIXWARE__)
-#      if defined(IN_MODULE)
 #     /* avoid including <sys/types.h> for <sys/inline.h> on UnixWare */
-#       define ushort unsigned short
-#       define ushort_t unsigned short
-#       define ulong unsigned long
-#       define ulong_t unsigned long
-#       define uint_t unsigned int
-#       define uchar_t unsigned char
-#      else
-#       include <sys/types.h>
-#      endif /* IN_MODULE */
+#      define ushort unsigned short
+#      define ushort_t unsigned short
+#      define ulong unsigned long
+#      define ulong_t unsigned long
+#      define uint_t unsigned int
+#      define uchar_t unsigned char
 #     endif /* __UNIXWARE__ */
 #     if !defined(sgi) && !defined(__SUNPRO_C)
 #      include <sys/inline.h>

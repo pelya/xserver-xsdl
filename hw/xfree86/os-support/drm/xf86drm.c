@@ -31,24 +31,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/drm/xf86drm.c,v 1.36 2003/08/24 17:35:35 tsi Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
 
-#ifdef XFree86Server
-# include "xf86.h"
-# include "xf86_OSproc.h"
-# define _DRM_MALLOC xalloc
-# define _DRM_FREE   xfree
-# ifndef XFree86LOADER
-#  include <sys/mman.h>
-# endif
-#else
-# define _DRM_MALLOC malloc
-# define _DRM_FREE   free
-#endif
+#include "xf86.h"
+#include "xf86_OSproc.h"
+#define _DRM_MALLOC xalloc
+#define _DRM_FREE   xfree
 
 #include "drm.h"
 #include <stdio.h>
@@ -124,19 +115,9 @@ drmMsg(const char *format, ...)
 {
     va_list	ap;
 
-#ifndef XFree86Server
-    const char *env;
-    if ((env = getenv("LIBGL_DEBUG")) && strstr(env, "verbose"))
-#endif
-    {
-	va_start(ap, format);
-#ifdef XFree86Server
-	xf86VDrvMsgVerb(-1, X_NONE, DRM_MSG_VERBOSITY, format, ap);
-#else
-	vfprintf(stderr, format, ap);
-#endif
-	va_end(ap);
-    }
+    va_start(ap, format);
+    xf86VDrvMsgVerb(-1, X_NONE, DRM_MSG_VERBOSITY, format, ap);
+    va_end(ap);
 }
 
 static void *drmHashTable = NULL; /* Context switch callbacks */
@@ -270,19 +251,15 @@ static int drmOpenDevice(long dev, int minor)
     int             fd;
     mode_t          devmode = DRM_DEV_MODE;
     int             isroot  = !geteuid();
-#if defined(XFree86Server)
     uid_t           user    = DRM_DEV_UID;
     gid_t           group   = DRM_DEV_GID;
-#endif
 
     sprintf(buf, DRM_DEV_NAME, DRM_DIR_NAME, minor);
     drmMsg("drmOpenDevice: node name is %s\n", buf);
 
-#if defined(XFree86Server)
     devmode  = xf86ConfigDRI.mode ? xf86ConfigDRI.mode : DRM_DEV_MODE;
     devmode &= ~(S_IXUSR|S_IXGRP|S_IXOTH);
     group = (xf86ConfigDRI.group >= 0) ? xf86ConfigDRI.group : DRM_DEV_GID;
-#endif
 
     if (stat(DRM_DIR_NAME, &st)) {
 	if (!isroot) return DRM_ERR_NOT_ROOT;
@@ -297,10 +274,8 @@ static int drmOpenDevice(long dev, int minor)
 	remove(buf);
 	mknod(buf, S_IFCHR | devmode, dev);
     }
-#if defined(XFree86Server)
     chown(buf, user, group);
     chmod(buf, devmode);
-#endif
 
     fd = open(buf, O_RDWR, 0);
     drmMsg("drmOpenDevice: open result is %d, (%s)\n",
@@ -314,10 +289,8 @@ static int drmOpenDevice(long dev, int minor)
 	if (!isroot) return DRM_ERR_NOT_ROOT;
 	remove(buf);
 	mknod(buf, S_IFCHR | devmode, dev);
-#if defined(XFree86Server)
 	chown(buf, user, group);
 	chmod(buf, devmode);
-#endif
     }
     fd = open(buf, O_RDWR, 0);
     drmMsg("drmOpenDevice: open result is %d, (%s)\n",
@@ -454,16 +427,12 @@ static int drmOpenByName(const char *name)
     char *        id;
     
     if (!drmAvailable()) {
-#if !defined(XFree86Server)
-	return -1;
-#else
         /* try to load the kernel module now */
         if (!xf86LoadKernelModule(name)) {
             ErrorF("[drm] failed to load kernel module \"%s\"\n",
 		   name);
             return -1;
         }
-#endif
     }
 
     /*
@@ -546,7 +515,6 @@ static int drmOpenByName(const char *name)
  */
 int drmOpen(const char *name, const char *busid)
 {
-#ifdef XFree86Server
     if (!drmAvailable() && name != NULL) {
 	/* try to load the kernel */
 	if (!xf86LoadKernelModule(name)) {
@@ -555,7 +523,6 @@ int drmOpen(const char *name, const char *busid)
 	    return -1;
 	}
     }
-#endif
 
     if (busid) {
 	int fd;
@@ -2259,7 +2226,6 @@ int drmCommandWriteRead(int fd, unsigned long drmCommandIndex,
     return 0;
 }
 
-#if defined(XFree86Server) 
 static void drmSIGIOHandler(int interrupt, void *closure)
 {
     unsigned long key;
@@ -2323,4 +2289,3 @@ int drmRemoveSIGIOHandler(int fd)
 
     return xf86RemoveSIGIOHandler(fd);
 }
-#endif

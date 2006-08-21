@@ -29,7 +29,6 @@
  *		Earle F. Philhower, III
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winmultiwindowwndproc.c,v 1.2 2003/10/02 13:30:11 eich Exp $ */
 
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>
@@ -395,6 +394,15 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
        * currently being created.
        */
       winReorderWindowsMultiWindow ();
+
+      /* Fix a 'round title bar corner background should be transparent not black' problem when first painted */
+      RECT rWindow;
+      HRGN hRgnWindow;
+      GetWindowRect(hwnd, &rWindow);
+      hRgnWindow = CreateRectRgnIndirect(&rWindow);
+      SetWindowRgn (hwnd, hRgnWindow, TRUE);
+      DeleteObject(hRgnWindow);
+
       return 0;
 
     case WM_INIT_SYS_MENU:

@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.33 2006/06/01 18:47:01 daniels Exp $ */
-/* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -46,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: miinitext.c,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -108,6 +105,7 @@ SOFTWARE.
 #undef XF86DRI
 #undef DPMSExtension
 #undef FONTCACHE
+#undef COMPOSITE
 #undef DAMAGE
 #undef XFIXES
 #undef XEVIE

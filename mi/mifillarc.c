@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mi/mifillarc.c,v 3.7 2001/12/14 20:00:22 dawes Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -27,7 +26,6 @@ Author:  Bob Scheifler, MIT X Consortium
 
 ********************************************************/
 
-/* $Xorg: mifillarc.c,v 1.4 2001/02/09 02:05:20 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

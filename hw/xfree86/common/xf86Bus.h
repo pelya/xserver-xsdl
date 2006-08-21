@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Bus.h,v 1.23 2003/08/24 17:36:50 dawes Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -74,15 +73,6 @@ typedef struct {
     GDevPtr *                   devices;   
     IOADDRESS                   domainIO;
 } EntityRec, *EntityPtr;
-
-/* asynchronous event handling */
-#ifdef async
-typedef struct _AsyncQRec {
-    void (*func)(pointer);
-    pointer arg;
-    struct _AsyncQRec *next;
-} AsyncQRec, *AsyncQPtr;
-#endif
 
 #define NO_SEPARATE_IO_FROM_MEM 0x0001
 #define NO_SEPARATE_MEM_FROM_IO 0x0002

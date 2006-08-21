@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = libXi.la
 
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS)
 
 libXi_la_SOURCES =	\
 	allowev.c \

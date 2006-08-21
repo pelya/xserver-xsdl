@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86MiscExt.c,v 1.16 2003/11/03 05:11:02 tsi Exp $ */
 /*
  * Copyright (c) 1999-2003 by The XFree86 Project, Inc.
  *
@@ -459,12 +458,10 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	mseParamsPtr mse = structure;
 	InputInfoPtr pInfo;
 	MouseDevPtr pMse;
-#ifdef XFree86LOADER
 	pointer xf86MouseProtocolIDToName
 	    = LoaderSymbol("xf86MouseProtocolIDToName");
 	if (!xf86MouseProtocolIDToName)
 	    return MISC_RET_NOMODULE;
-#endif
 	if (mse->type < MTYPE_MICROSOFT
 		|| ( mse->type > MTYPE_EXPPS2
 		    && (mse->type!=MTYPE_OSMOUSE && mse->type!=MTYPE_XQUEUE)))
@@ -563,12 +560,8 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	pMse->chordMiddle     = mse->chordmiddle;
 	pMse->mouseFlags      = mse->flags;
 
-#ifdef XFree86LOADER
 	pMse->protocol = ((const char *(*)(MouseProtocolID))
 			  xf86MouseProtocolIDToName)(pMse->protocolID);
-#else
-	pMse->protocol = xf86MouseProtocolIDToName(pMse->protocolID);
-#endif
 	
 	if (mse->device) {
 	    if (MiscExtAuthorizeDevice(pInfo, mse->device)) {

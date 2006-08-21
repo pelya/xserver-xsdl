@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/afb/afbfillarc.c,v 3.1 1998/03/20 21:04:54 hohndel Exp $ */
 /************************************************************
 
 Copyright (c) 1989  X Consortium
@@ -26,7 +25,6 @@ in this Software without prior written authorization from the X Consortium.
 
 ********************************************************/
 
-/* $XConsortium: afbfillarc.c,v 5.14 94/04/17 20:28:20 dpw Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

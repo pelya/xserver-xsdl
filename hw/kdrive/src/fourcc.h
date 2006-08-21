@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/fourcc.h,v 1.4 2003/04/23 21:51:24 tsi Exp $ */
 
 /*
    This header file contains listings of STANDARD guids for video formats.

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbbstore.c,v 1.4 1999/01/31 12:21:41 dawes Exp $ */
 /*-
  * cfbbstore.c --
  *	Functions required by the backing-store implementation in MI.
@@ -15,7 +14,6 @@
  *
  *
  */
-/* $Xorg: cfbbstore.c,v 1.3 2000/08/17 19:48:13 cpqbld Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

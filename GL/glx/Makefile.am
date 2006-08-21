@@ -13,9 +13,7 @@ AM_CFLAGS = \
 	@DRIPROTO_CFLAGS@ \
 	-I@MESA_SOURCE@/src/mesa/glapi \
 	-I@MESA_SOURCE@/src/mesa/main \
-	@SERVER_DEFINES@ \
-	@MODULE_DEFINES@ \
-	@LOADER_DEFINES@ \
+	-DXFree86Server \
 	-DNO_LIBCWRAPPER \
 	@GLX_DEFINES@
 
@@ -43,13 +41,11 @@ libglx_la_SOURCES = \
         glapi.c \
         glcontextmodes.c \
         glcontextmodes.h \
-        global.c \
         glthread.c \
         glxcmds.c \
         glxcmdsswap.c \
         glxcontext.h \
         glxdrawable.h \
-        glxerror.h \
         glxext.c \
         glxext.h \
 	glxvisuals.c \

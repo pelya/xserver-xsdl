@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sco/VTsw_sco.c,v 1.2 1998/07/25 16:56:57 dawes Exp $ */
 /*
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
  * Copyright 1993 by David McCullough <davidm@stallion.oz.au>

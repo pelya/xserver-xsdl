@@ -1,4 +1,3 @@
-/* $Xorg: ddxInit.c,v 1.3 2000/08/17 19:48:07 cpqbld Exp $ */
 /*
 (c) Copyright 1996 Hewlett-Packard Company
 (c) Copyright 1996 International Business Machines Corp.
@@ -242,17 +241,6 @@ void
 ddxBeforeReset(void)
 {
     return;
-}
-#endif
-
-#ifdef DDXTIME
-CARD32
-GetTimeInMillis(void)
-{
-    struct timeval  tp;
-
-    X_GETTIMEOFDAY(&tp);
-    return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
 }
 #endif
 

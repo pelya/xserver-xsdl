@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_kbd.c,v 1.1 2001/05/28 02:42:31 tsi Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1993 by David Dawes <dawes@XFree86.org>
@@ -50,7 +49,6 @@
  * or other dealings in this Software without prior written authorization
  * of the copyright holder.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_kbd.c,v 1.3 2004/06/13 04:50:21 alanc Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

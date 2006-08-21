@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxcmds.c,v 1.8 2001/05/02 15:06:05 dawes Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -59,7 +58,6 @@
 #include "glxutil.h"
 #include "glxext.h"
 #include "unpack.h"
-#include "GL/glx_ansic.h"
 
 #include "GL/glxproto.h"
 #include "glxvendor.h"
@@ -158,7 +156,7 @@ static int CreateContext(__GLXclientState *cl,
     if (!glxc) {
 	return BadAlloc;
     }
-    __glXMemset(glxc, 0, sizeof(__GLXcontext));
+    memset(glxc, 0, sizeof(__GLXcontext));
 
     pScreen = screenInfo.screens[screen];
     pGlxScreen = &__glXActiveScreens[screen];
@@ -610,7 +608,7 @@ static int AddCurrentContext(__GLXclientState *cl, __GLXcontext *glxc, DrawableP
     cl->currentContexts = table;
     cl->numCurrentContexts++;
 
-    __glXMemset(cl->be_currentCTag + num*screenInfo.numScreens, 0, 
+    memset(cl->be_currentCTag + num*screenInfo.numScreens, 0, 
 	         screenInfo.numScreens * sizeof(GLXContextTag));
 
     return num+1;
@@ -2589,7 +2587,7 @@ int __glXClientInfo(__GLXclientState *cl, GLbyte *pc)
     cl->GLClientminorVersion = req->minor;
     if (cl->GLClientextensions) __glXFree(cl->GLClientextensions);
     buf = (const char *)(req+1);
-    cl->GLClientextensions = __glXStrdup(buf);
+    cl->GLClientextensions = strdup(buf);
 
     to_screen = screenInfo.numScreens - 1;
 

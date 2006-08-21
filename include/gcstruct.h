@@ -1,4 +1,3 @@
-/* $Xorg: gcstruct.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -47,7 +46,6 @@ SOFTWARE.
 ******************************************************************/
 
 
-/* $XFree86: xc/programs/Xserver/include/gcstruct.h,v 1.7 2003/04/27 21:31:04 herrb Exp $ */
 
 #ifndef GCSTRUCT_H
 #define GCSTRUCT_H

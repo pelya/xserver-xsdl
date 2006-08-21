@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/linux/lnx_kbd.c,v 1.4 2003/11/03 05:11:52 tsi Exp $ */
 
 /*
  * Copyright (c) 2002 by The XFree86 Project, Inc.
@@ -97,25 +96,6 @@ GetKbdLeds(InputInfoPtr pInfo)
     return(leds);
 }
 
-/* kbd rate stuff based on kbdrate.c from Rik Faith <faith@cs.unc.edu> et.al.
- * from util-linux-2.9t package */
-
-#include <linux/kd.h>
-#include <linux/version.h>
-#ifdef __sparc__
-#include <asm/param.h>
-#include <asm/kbio.h>
-#endif
-
-/* Deal with spurious kernel header change in struct kbd_repeat.
-   We undo this define after the routine using that struct is over,
-   so as not to interfere with other 'rate' elements.  */
-#if defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION)
-# if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,42)
-#  define rate period
-# endif
-#endif
-
 static int
 KDKBDREP_ioctl_ok(int rate, int delay) {
 #if defined(KDKBDREP) && !defined(__sparc__)
@@ -124,7 +104,7 @@ KDKBDREP_ioctl_ok(int rate, int delay) {
    struct kbd_repeat kbdrep_s;
 
    /* don't change, just test */
-   kbdrep_s.rate = -1;
+   kbdrep_s.LNX_KBD_PERIOD_NAME = -1;
    kbdrep_s.delay = -1;
    if (ioctl( xf86Info.consoleFd, KDKBDREP, &kbdrep_s )) {
        return 0;
@@ -132,11 +112,11 @@ KDKBDREP_ioctl_ok(int rate, int delay) {
 
    /* do the change */
    if (rate == 0)				/* switch repeat off */
-     kbdrep_s.rate = 0;
+     kbdrep_s.LNX_KBD_PERIOD_NAME = 0;
    else
-     kbdrep_s.rate  = 10000 / rate;		/* convert cps to msec */
-   if (kbdrep_s.rate < 1)
-     kbdrep_s.rate = 1;
+     kbdrep_s.LNX_KBD_PERIOD_NAME = 10000 / rate; /* convert cps to msec */
+   if (kbdrep_s.LNX_KBD_PERIOD_NAME < 1)
+     kbdrep_s.LNX_KBD_PERIOD_NAME = 1;
    kbdrep_s.delay = delay;
    if (kbdrep_s.delay < 1)
      kbdrep_s.delay = 1;
@@ -150,15 +130,6 @@ KDKBDREP_ioctl_ok(int rate, int delay) {
    return 0;
 #endif /* KDKBDREP */
 }
-
-#undef rate
-
-/* Undo the earlier define for the struct kbd_repeat problem. */
-#if defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION)
-# if LINUX_VERSION_CODE >= KERNEL_VERSION(2,5,42)
-#  undef rate
-# endif
-#endif
 
 static int
 KIOCSRATE_ioctl_ok(int rate, int delay) {

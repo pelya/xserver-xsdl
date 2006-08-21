@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86xvpriv.h,v 1.2 2003/08/24 17:36:56 dawes Exp $ */
 
 /*
  * Copyright (c) 2003 by The XFree86 Project, Inc.
