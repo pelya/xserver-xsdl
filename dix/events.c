@@ -4802,14 +4802,8 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
                 mn.virtualMods = ~0; /* ??? */
                 mn.changed = XkbAllMapComponentsMask;
                 
-                /* If this is still the map we set at DEVICE_INIT, free it so
-                 * it doesn't just get lost.  (Shameful hack, sorry.) */
-                if (!inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr &&
-                    ckeyc->xkbInfo)
-                    XkbFreeInfo(ckeyc->xkbInfo);
-                /* FIXME we really need a map copy here. */
-                ckeyc->xkbInfo = pDev->key->xkbInfo;
-                XkbSendMapNotify(inputInfo.keyboard, &mn);
+                if (!XkbCopyKeymap(pDev->key->xkbInfo, ckeyc->xkbInfo))
+                    FatalError("Couldn't pivot keymap from device to core!\n");
             }
 #endif
             SendMappingNotify(MappingKeyboard, ckeyc->curKeySyms.minKeyCode,

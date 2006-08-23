@@ -72,3 +72,7 @@ extern Bool XkbDDXCompileKeymapByNames(
     unsigned                need,
     char *                  nameRtrn,
     int                     nameRtrnLen);
+
+extern Bool XkbCopyKeymap(
+    XkbDescPtr              src,
+    XkbDescPtr              dst);

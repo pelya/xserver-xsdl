@@ -260,16 +260,6 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
         break;
 
     case DEVICE_CLOSE:
-        /* This, uh, probably requires some explanation.
-         * Press a key on another keyboard.
-         * Watch its xkbInfo get pivoted into core's.
-         * Kill the server.
-         * Watch the first device's xkbInfo get freed.
-         * Try to free ours, which points to same.
-         *
-         * ... yeah.
-         */
-        pDev->key->xkbInfo = NULL;
         pDev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
         break;
 
