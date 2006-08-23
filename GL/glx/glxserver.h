@@ -254,6 +254,6 @@ extern int __glXImageSize(GLenum format, GLenum type,
     GLint imageHeight, GLint rowLength, GLint skipImages, GLint skipRows,
     GLint alignment);
 
-extern int __glXDrawArraysSize(const GLbyte *pc, Bool swap);
+extern int __glXDrawArraysReqSize(const GLbyte *pc, Bool swap);
 
 #endif /* !__GLX_server_h__ */
