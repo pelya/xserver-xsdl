@@ -202,8 +202,6 @@ typedef struct {
     int bytes;
     gl_proto_size_func varsize;
 } __GLXrenderSizeData;
-extern __GLXrenderSizeData __glXRenderSizeTable[];
-extern __GLXrenderSizeData __glXRenderSizeTable_EXT[];
 
 /************************************************************************/
 

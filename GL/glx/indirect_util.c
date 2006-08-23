@@ -289,7 +289,7 @@ __glXGetProtocolDecodeFunction(const struct __glXDispatchInfo *dispatch_info,
 
     return (func_index < 0) 
 	? NULL 
-	: dispatch_info->dispatch_functions[func_index][swapped_version];
+	: (void *) dispatch_info->dispatch_functions[func_index][swapped_version];
 }
 
 
@@ -300,13 +300,14 @@ __glXGetProtocolSizeData(const struct __glXDispatchInfo *dispatch_info,
     if (dispatch_info->size_table != NULL) {
 	const int func_index = get_decode_index(dispatch_info, opcode);
 
-	if (func_index >= 0) {
+	if ((func_index >= 0) 
+	    && (dispatch_info->size_table[func_index][0] != 0)) {
 	    const int var_offset = 
 		dispatch_info->size_table[func_index][1];
 
 	    data->bytes = dispatch_info->size_table[func_index][0];
 	    data->varsize = (var_offset != ~0)
-		? dispatch_info->size_table[func_index]
+		? dispatch_info->size_func_table[var_offset]
 		: NULL;
 
 	    return 0;

@@ -70,7 +70,6 @@ libglx_la_SOURCES = \
         renderpix.c \
         renderpixswap.c \
         rensize.c \
-        rensizetab.c \
         single2.c \
         single2swap.c \
         singlepix.c \

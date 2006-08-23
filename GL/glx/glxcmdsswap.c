@@ -669,9 +669,10 @@ int __glXDispSwap_Render(__GLXclientState *cl, GLbyte *pc)
     pc += sz_xGLXRenderReq;
     left = (req->length << 2) - sz_xGLXRenderReq;
     while (left > 0) {
-        __GLXrenderSizeData *entry;
+        __GLXrenderSizeData entry;
         int extra;
-	void (* proc)(GLbyte *);
+	__GLXdispatchRenderProcPtr proc;
+	int err;
 
 	/*
 	** Verify that the header length and the overall length agree.
@@ -683,38 +684,27 @@ int __glXDispSwap_Render(__GLXclientState *cl, GLbyte *pc)
 	cmdlen = hdr->length;
 	opcode = hdr->opcode;
 
-	if ( (opcode >= __GLX_MIN_RENDER_OPCODE) && 
-	     (opcode <= __GLX_MAX_RENDER_OPCODE) ) {
-	    entry = &__glXRenderSizeTable[opcode];
-	    proc = __glXSwapRenderTable[opcode];
-#if __GLX_MAX_RENDER_OPCODE_EXT > __GLX_MIN_RENDER_OPCODE_EXT
-	} else if ( (opcode >= __GLX_MIN_RENDER_OPCODE_EXT) && 
-	     (opcode <= __GLX_MAX_RENDER_OPCODE_EXT) ) {
-	    int index = opcode - __GLX_MIN_RENDER_OPCODE_EXT;
-	    entry = &__glXRenderSizeTable_EXT[index];
-	    proc = __glXSwapRenderTable_EXT[index];
-#endif /* __GLX_MAX_RENDER_OPCODE_EXT > __GLX_MIN_RENDER_OPCODE_EXT */
-	} else {
+	err = __glXGetProtocolSizeData(& Render_dispatch_info, opcode, & entry);
+	proc = (__GLXdispatchRenderProcPtr)
+	  __glXGetProtocolDecodeFunction(& Render_dispatch_info, opcode, 1);
+
+	if ((err < 0) || (proc == NULL)) {
 	    client->errorValue = commandsDone;
 	    return __glXError(GLXBadRenderRequest);
 	}
-        if (!entry->bytes) {
-            /* unused opcode */
-	    client->errorValue = commandsDone;
-            return __glXError(GLXBadRenderRequest);
-        }
-        if (entry->varsize) {
+
+        if (entry.varsize) {
             /* variable size command */
-            extra = (*entry->varsize)(pc + __GLX_RENDER_HDR_SIZE, True);
+            extra = (*entry.varsize)(pc + __GLX_RENDER_HDR_SIZE, True);
             if (extra < 0) {
                 extra = 0;
             }
-            if (cmdlen != __GLX_PAD(entry->bytes + extra)) {
+            if (cmdlen != __GLX_PAD(entry.bytes + extra)) {
                 return BadLength;
             }
         } else {
             /* constant size command */
-            if (cmdlen != __GLX_PAD(entry->bytes)) {
+            if (cmdlen != __GLX_PAD(entry.bytes)) {
                 return BadLength;
             }
         }
@@ -746,7 +736,7 @@ int __glXDispSwap_RenderLarge(__GLXclientState *cl, GLbyte *pc)
     xGLXRenderLargeReq *req;
     ClientPtr client= cl->client;
     size_t dataBytes;
-    void (*proc)(GLbyte *);
+    __GLXdispatchRenderProcPtr proc;
     __GLXrenderLargeHeader *hdr;
     __GLXcontext *cx;
     int error;
@@ -785,9 +775,11 @@ int __glXDispSwap_RenderLarge(__GLXclientState *cl, GLbyte *pc)
     pc += sz_xGLXRenderLargeReq;
     
     if (cl->largeCmdRequestsSoFar == 0) {
-	__GLXrenderSizeData *entry;
+	__GLXrenderSizeData entry;
 	int extra;
 	size_t cmdlen;
+	int err;
+
 	/*
 	** This is the first request of a multi request command.
 	** Make enough space in the buffer, then copy the entire request.
@@ -802,44 +794,36 @@ int __glXDispSwap_RenderLarge(__GLXclientState *cl, GLbyte *pc)
 	cmdlen = hdr->length;
 	opcode = hdr->opcode;
 
-	if ( (opcode >= __GLX_MIN_RENDER_OPCODE) && 
-	     (opcode <= __GLX_MAX_RENDER_OPCODE) ) {
-	    entry = &__glXRenderSizeTable[opcode];
-	    proc = __glXSwapRenderTable[opcode];
-#if __GLX_MAX_RENDER_OPCODE_EXT > __GLX_MIN_RENDER_OPCODE_EXT
-	} else if ( (opcode >= __GLX_MIN_RENDER_OPCODE_EXT) && 
-	     (opcode <= __GLX_MAX_RENDER_OPCODE_EXT) ) {
-	    int index = opcode - __GLX_MIN_RENDER_OPCODE_EXT;
-	    entry = &__glXRenderSizeTable_EXT[index];
-	    proc = __glXSwapRenderTable_EXT[index];
-#endif /* __GLX_MAX_RENDER_OPCODE_EXT > __GLX_MIN_RENDER_OPCODE_EXT */
-	} else {
+	err = __glXGetProtocolSizeData(& Render_dispatch_info, opcode, & entry);
+	if (err < 0) {
 	    client->errorValue = opcode;
 	    return __glXError(GLXBadLargeRequest);
 	}
 
-        if (!entry->bytes) {
-            /* unused opcode */
-            client->errorValue = opcode;
-            return __glXError(GLXBadLargeRequest);
-        }
-	if (entry->varsize) {
+	proc = (__GLXdispatchRenderProcPtr)
+	  __glXGetProtocolDecodeFunction(& Render_dispatch_info, opcode, 0);
+	if (proc == NULL) {
+	    client->errorValue = opcode;
+	    return __glXError(GLXBadLargeRequest);
+	}
+
+	if (entry.varsize) {
 	    /*
 	    ** If it's a variable-size command (a command whose length must
 	    ** be computed from its parameters), all the parameters needed
 	    ** will be in the 1st request, so it's okay to do this.
 	    */
-	    extra = (*entry->varsize)(pc + __GLX_RENDER_LARGE_HDR_SIZE, True);
+	    extra = (*entry.varsize)(pc + __GLX_RENDER_LARGE_HDR_SIZE, True);
 	    if (extra < 0) {
 		extra = 0;
 	    }
 	    /* large command's header is 4 bytes longer, so add 4 */
-	    if (cmdlen != __GLX_PAD(entry->bytes + 4 + extra)) {
+	    if (cmdlen != __GLX_PAD(entry.bytes + 4 + extra)) {
 		return BadLength;
 	    }
 	} else {
 	    /* constant size command */
-	    if (cmdlen != __GLX_PAD(entry->bytes + 4)) {
+	    if (cmdlen != __GLX_PAD(entry.bytes + 4)) {
 		return BadLength;
 	    }
 	}
