@@ -1418,20 +1418,20 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                 mn.minKeyCode = src->min_key_code;
                 mn.maxKeyCode = src->max_key_code;
                 mn.firstType = 0;
-                mn.nTypes = dst->map->num_types;
-                mn.firstKeySym = dst->min_key_code;
-                mn.nKeySyms = XkbNumKeys(dst);
-                mn.firstKeyAct = dst->min_key_code;
-                mn.nKeyActs = XkbNumKeys(dst);
+                mn.nTypes = src->map->num_types;
+                mn.firstKeySym = src->min_key_code;
+                mn.nKeySyms = XkbNumKeys(src);
+                mn.firstKeyAct = src->min_key_code;
+                mn.nKeyActs = XkbNumKeys(src);
                 /* Cargo-culted from ProcXkbGetMap. */
-                mn.firstKeyBehavior = dst->min_key_code;
-                mn.nKeyBehaviors = XkbNumKeys(dst);
-                mn.firstKeyExplicit = dst->min_key_code;
-                mn.nKeyExplicit = XkbNumKeys(dst);
-                mn.firstModMapKey = dst->min_key_code;
-                mn.nModMapKeys = XkbNumKeys(dst);
-                mn.firstVModMapKey = dst->min_key_code;
-                mn.nVModMapKeys = XkbNumKeys(dst);
+                mn.firstKeyBehavior = src->min_key_code;
+                mn.nKeyBehaviors = XkbNumKeys(src);
+                mn.firstKeyExplicit = src->min_key_code;
+                mn.nKeyExplicit = XkbNumKeys(src);
+                mn.firstModMapKey = src->min_key_code;
+                mn.nModMapKeys = XkbNumKeys(src);
+                mn.firstVModMapKey = src->min_key_code;
+                mn.nVModMapKeys = XkbNumKeys(src);
                 mn.virtualMods = ~0; /* ??? */
                 mn.changed = XkbAllMapComponentsMask;                
                 XkbSendMapNotify(pDev, &mn);
