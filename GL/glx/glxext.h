@@ -89,6 +89,9 @@ extern int DoDestroyPixmap(__GLXclientState *cl, XID glxpixmapId);
 
 extern int DoQueryContext(__GLXclientState *cl, GLXContextID gcId);
 
+extern int DoRender(__GLXclientState *cl, GLbyte *pc, int do_swap);
+extern int DoRenderLarge(__GLXclientState *cl, GLbyte *pc, int do_swap);
+
 extern void GlxExtensionInit(void);
 
 extern Bool __glXCoreType(void);

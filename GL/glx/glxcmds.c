@@ -1717,10 +1717,7 @@ int __glXDisp_GetDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 ** client library to send batches of GL rendering commands.
 */
 
-/*
-** Execute all the drawing commands in a request.
-*/
-int __glXDisp_Render(__GLXclientState *cl, GLbyte *pc)
+int DoRender(__GLXclientState *cl, GLbyte *pc, int do_swap)
 {
     xGLXRenderReq *req;
     ClientPtr client= cl->client;
@@ -1729,14 +1726,15 @@ int __glXDisp_Render(__GLXclientState *cl, GLbyte *pc)
     CARD16 opcode;
     __GLXrenderHeader *hdr;
     __GLXcontext *glxc;
+    __GLX_DECLARE_SWAP_VARIABLES;
 
-    /*
-    ** NOTE: much of this code also appears in the byteswapping version of this
-    ** routine, __glXDisp_SwapRender().  Any changes made here should also be
-    ** duplicated there.
-    */
     
     req = (xGLXRenderReq *) pc;
+    if (do_swap) {
+	__GLX_SWAP_SHORT(&req->length);
+	__GLX_SWAP_INT(&req->contextTag);
+    }
+
     glxc = __glXForceCurrent(cl, req->contextTag, &error);
     if (!glxc) {
 	return error;
@@ -1756,6 +1754,10 @@ int __glXDisp_Render(__GLXclientState *cl, GLbyte *pc)
 	** Also, each command must be word aligned.
 	*/
 	hdr = (__GLXrenderHeader *) pc;
+	if (do_swap) {
+	    __GLX_SWAP_SHORT(&hdr->length);
+	    __GLX_SWAP_SHORT(&hdr->opcode);
+	}
 	cmdlen = hdr->length;
 	opcode = hdr->opcode;
 
@@ -1764,7 +1766,7 @@ int __glXDisp_Render(__GLXclientState *cl, GLbyte *pc)
 	*/
 	err = __glXGetProtocolSizeData(& Render_dispatch_info, opcode, & entry);
 	proc = (__GLXdispatchRenderProcPtr)
-	  __glXGetProtocolDecodeFunction(& Render_dispatch_info, opcode, 0);
+	  __glXGetProtocolDecodeFunction(& Render_dispatch_info, opcode, do_swap);
 
 	if ((err < 0) || (proc == NULL)) {
 	    client->errorValue = commandsDone;
@@ -1773,7 +1775,7 @@ int __glXDisp_Render(__GLXclientState *cl, GLbyte *pc)
 
         if (entry.varsize) {
             /* variable size command */
-            extra = (*entry.varsize)(pc + __GLX_RENDER_HDR_SIZE, False);
+            extra = (*entry.varsize)(pc + __GLX_RENDER_HDR_SIZE, do_swap);
             if (extra < 0) {
                 extra = 0;
             }
@@ -1807,25 +1809,34 @@ int __glXDisp_Render(__GLXclientState *cl, GLbyte *pc)
 }
 
 /*
-** Execute a large rendering request (one that spans multiple X requests).
+** Execute all the drawing commands in a request.
 */
-int __glXDisp_RenderLarge(__GLXclientState *cl, GLbyte *pc)
+int __glXDisp_Render(__GLXclientState *cl, GLbyte *pc)
+{
+    return DoRender(cl, pc, False);
+}
+
+int DoRenderLarge(__GLXclientState *cl, GLbyte *pc, int do_swap)
 {
     xGLXRenderLargeReq *req;
     ClientPtr client= cl->client;
-    GLuint dataBytes;
+    size_t dataBytes;
     __GLXrenderLargeHeader *hdr;
     __GLXcontext *glxc;
     int error;
     CARD16 opcode;
+    __GLX_DECLARE_SWAP_VARIABLES;
 
-    /*
-    ** NOTE: much of this code also appears in the byteswapping version of this
-    ** routine, __glXDisp_SwapRenderLarge().  Any changes made here should also be
-    ** duplicated there.
-    */
     
     req = (xGLXRenderLargeReq *) pc;
+    if (do_swap) {
+	__GLX_SWAP_SHORT(&req->length);
+	__GLX_SWAP_INT(&req->contextTag);
+	__GLX_SWAP_INT(&req->dataBytes);
+	__GLX_SWAP_SHORT(&req->requestNumber);
+	__GLX_SWAP_SHORT(&req->requestTotal);
+    }
+
     glxc = __glXForceCurrent(cl, req->contextTag, &error);
     if (!glxc) {
 	/* Reset in case this isn't 1st request. */
@@ -1847,7 +1858,8 @@ int __glXDisp_RenderLarge(__GLXclientState *cl, GLbyte *pc)
     
     if (cl->largeCmdRequestsSoFar == 0) {
 	__GLXrenderSizeData entry;
-	int extra, cmdlen;
+	int extra;
+	size_t cmdlen;
 	int err;
 
 	/*
@@ -1860,6 +1872,10 @@ int __glXDisp_RenderLarge(__GLXclientState *cl, GLbyte *pc)
 	}
 
 	hdr = (__GLXrenderLargeHeader *) pc;
+	if (do_swap) {
+	    __GLX_SWAP_INT(&hdr->length);
+	    __GLX_SWAP_INT(&hdr->opcode);
+	}
 	cmdlen = hdr->length;
 	opcode = hdr->opcode;
 
@@ -1878,7 +1894,7 @@ int __glXDisp_RenderLarge(__GLXclientState *cl, GLbyte *pc)
 	    ** be computed from its parameters), all the parameters needed
 	    ** will be in the 1st request, so it's okay to do this.
 	    */
-	    extra = (*entry.varsize)(pc + __GLX_RENDER_LARGE_HDR_SIZE, False);
+	    extra = (*entry.varsize)(pc + __GLX_RENDER_LARGE_HDR_SIZE, do_swap);
 	    if (extra < 0) {
 		extra = 0;
 	    }
@@ -1897,10 +1913,9 @@ int __glXDisp_RenderLarge(__GLXclientState *cl, GLbyte *pc)
 	*/
 	if (cl->largeCmdBufSize < cmdlen) {
 	    if (!cl->largeCmdBuf) {
-		cl->largeCmdBuf = (GLbyte *) xalloc((size_t)cmdlen);
+		cl->largeCmdBuf = (GLbyte *) xalloc(cmdlen);
 	    } else {
-		cl->largeCmdBuf = (GLbyte *) xrealloc(cl->largeCmdBuf, 
-						      (size_t)cmdlen);
+		cl->largeCmdBuf = (GLbyte *) xrealloc(cl->largeCmdBuf, cmdlen);
 	    }
 	    if (!cl->largeCmdBuf) {
 		return BadAlloc;
@@ -1970,13 +1985,16 @@ int __glXDisp_RenderLarge(__GLXclientState *cl, GLbyte *pc)
 		return __glXError(GLXBadLargeRequest);
 	    }
 	    hdr = (__GLXrenderLargeHeader *) cl->largeCmdBuf;
-	    opcode = hdr->opcode;
-
 	    /*
+	    ** The opcode and length field in the header had already been
+	    ** swapped when the first request was received.
+	    **
 	    ** Use the opcode to index into the procedure table.
 	    */
+	    opcode = hdr->opcode;
+
 	    proc = (__GLXdispatchRenderProcPtr)
-	      __glXGetProtocolDecodeFunction(& Render_dispatch_info, opcode, 0);
+	      __glXGetProtocolDecodeFunction(& Render_dispatch_info, opcode, do_swap);
 	    if (proc == NULL) {
 		client->errorValue = opcode;
 		return __glXError(GLXBadLargeRequest);
@@ -1999,6 +2017,14 @@ int __glXDisp_RenderLarge(__GLXclientState *cl, GLbyte *pc)
 	}
 	return Success;
     }
+}
+
+/*
+** Execute a large rendering request (one that spans multiple X requests).
+*/
+int __glXDisp_RenderLarge(__GLXclientState *cl, GLbyte *pc)
+{
+    return DoRenderLarge(cl, pc, False);
 }
 
 extern RESTYPE __glXSwapBarrierRes;
