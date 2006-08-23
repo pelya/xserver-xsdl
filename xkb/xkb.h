@@ -75,4 +75,5 @@ extern Bool XkbDDXCompileKeymapByNames(
 
 extern Bool XkbCopyKeymap(
     XkbDescPtr              src,
-    XkbDescPtr              dst);
+    XkbDescPtr              dst,
+    Bool                    sendNotifies);

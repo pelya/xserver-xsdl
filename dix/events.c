@@ -4655,9 +4655,6 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
     deviceKeyButtonPointer *kbp = NULL;
     deviceValuator *xv = NULL;
     KeyClassPtr ckeyc;
-#ifdef XKB
-    xkbMapNotify mn;
-#endif
 
     if (!events)
         return 0;
@@ -4781,28 +4778,7 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
 #ifdef XKB
             if (!noXkbExtension && pDev->key->xkbInfo &&
                 pDev->key->xkbInfo->desc) {
-                mn.deviceID = inputInfo.keyboard->id;
-                mn.minKeyCode = pDev->key->xkbInfo->desc->min_key_code;
-                mn.maxKeyCode = pDev->key->xkbInfo->desc->max_key_code;
-                mn.firstType = 0;
-                mn.nTypes = pDev->key->xkbInfo->desc->map->num_types;
-                mn.firstKeySym = pDev->key->xkbInfo->desc->min_key_code;
-                mn.nKeySyms = XkbNumKeys(pDev->key->xkbInfo->desc);
-                mn.firstKeyAct = pDev->key->xkbInfo->desc->min_key_code;
-                mn.nKeyActs = XkbNumKeys(pDev->key->xkbInfo->desc);
-                /* Cargo-culted from ProcXkbGetMap. */
-                mn.firstKeyBehavior = pDev->key->xkbInfo->desc->min_key_code;
-                mn.nKeyBehaviors = XkbNumKeys(pDev->key->xkbInfo->desc);
-                mn.firstKeyExplicit = pDev->key->xkbInfo->desc->min_key_code;
-                mn.nKeyExplicit = XkbNumKeys(pDev->key->xkbInfo->desc);
-                mn.firstModMapKey = pDev->key->xkbInfo->desc->min_key_code;
-                mn.nModMapKeys = XkbNumKeys(pDev->key->xkbInfo->desc);
-                mn.firstVModMapKey = pDev->key->xkbInfo->desc->min_key_code;
-                mn.nVModMapKeys = XkbNumKeys(pDev->key->xkbInfo->desc);
-                mn.virtualMods = ~0; /* ??? */
-                mn.changed = XkbAllMapComponentsMask;
-                
-                if (!XkbCopyKeymap(pDev->key->xkbInfo, ckeyc->xkbInfo))
+                if (!XkbCopyKeymap(pDev->key->xkbInfo, ckeyc->xkbInfo, True))
                     FatalError("Couldn't pivot keymap from device to core!\n");
             }
 #endif

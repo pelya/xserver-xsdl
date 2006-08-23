@@ -985,13 +985,16 @@ XkbConvertCase(register KeySym sym, KeySym *lower, KeySym *upper)
  * to remain valid, but part of the map may be from src and part from dst.
  */
 Bool
-XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst)
+XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
 {
     int i = 0, j = 0;
     void *tmp = NULL;
     XkbKeyTypePtr stype = NULL, dtype = NULL;
+    DeviceIntPtr pDev = NULL, tmpDev = NULL;
+    xkbMapNotify mn;
+    xkbNewKeyboardNotify nkn;
 
-    if (!src || !dst)
+    if (!src || !dst || src == dst)
         return FALSE;
 
     /* client map */
@@ -1365,6 +1368,74 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst)
     else {
         if (dst->geom) {
             XkbFreeGeometry(dst->geom, XkbGeomAllMask, True);
+        }
+    }
+
+    if (inputInfo.keyboard->key->xkbInfo &&
+        inputInfo.keyboard->key->xkbInfo->desc == dst) {
+        pDev = inputInfo.keyboard;
+    }
+    else {
+        for (tmpDev = inputInfo.devices; tmpDev && !pDev;
+             tmpDev = tmpDev->next) {
+            if (tmpDev->key && tmpDev->key->xkbInfo &&
+                tmpDev->key->xkbInfo->desc == dst) {
+                pDev = tmpDev;
+                break;
+            }
+        }
+        for (tmpDev = inputInfo.off_devices; tmpDev && !pDev;
+             tmpDev = tmpDev->next) {
+            if (tmpDev->key && tmpDev->key->xkbInfo &&
+                tmpDev->key->xkbInfo->desc == dst) {
+                pDev = tmpDev;
+                break;
+            }
+        }
+    }
+
+    if (sendNotifies) {
+        if (!pDev) {
+            ErrorF("XkbCopyKeymap: asked for notifies, but can't find device!\n");
+        }
+        else {
+            /* send NewKeyboardNotify if the keycode range changed, else
+             * just MapNotify. */
+            if (src->min_key_code != dst->min_key_code ||
+                src->max_key_code != dst->max_key_code && sendNotifies) {
+                nkn.oldMinKeyCode = dst->min_key_code;
+                nkn.oldMaxKeyCode = dst->max_key_code;
+                nkn.deviceID = nkn.oldDeviceID = pDev->id;
+                nkn.minKeyCode = src->min_key_code;
+                nkn.maxKeyCode = src->max_key_code;
+                nkn.requestMajor = XkbReqCode;
+                nkn.requestMinor = X_kbSetMap; /* XXX bare-faced lie */
+                nkn.changed = XkbAllNewKeyboardEventsMask;
+                XkbSendNewKeyboardNotify(pDev, &nkn);
+            }
+            else if (sendNotifies) {
+                mn.deviceID = pDev->id;
+                mn.minKeyCode = src->min_key_code;
+                mn.maxKeyCode = src->max_key_code;
+                mn.firstType = 0;
+                mn.nTypes = dst->map->num_types;
+                mn.firstKeySym = dst->min_key_code;
+                mn.nKeySyms = XkbNumKeys(dst);
+                mn.firstKeyAct = dst->min_key_code;
+                mn.nKeyActs = XkbNumKeys(dst);
+                /* Cargo-culted from ProcXkbGetMap. */
+                mn.firstKeyBehavior = dst->min_key_code;
+                mn.nKeyBehaviors = XkbNumKeys(dst);
+                mn.firstKeyExplicit = dst->min_key_code;
+                mn.nKeyExplicit = XkbNumKeys(dst);
+                mn.firstModMapKey = dst->min_key_code;
+                mn.nModMapKeys = XkbNumKeys(dst);
+                mn.firstVModMapKey = dst->min_key_code;
+                mn.nVModMapKeys = XkbNumKeys(dst);
+                mn.virtualMods = ~0; /* ??? */
+                mn.changed = XkbAllMapComponentsMask;                
+                XkbSendMapNotify(pDev, &mn);
+            }
         }
     }
 
