@@ -36,12 +36,7 @@
 
 #define __GLX_MIN_RENDER_OPCODE_EXT 2053
 #define __GLX_MAX_RENDER_OPCODE_EXT 4325
-#define __GLX_MIN_VENDPRIV_OPCODE_EXT 11
-#define __GLX_MAX_VENDPRIV_OPCODE_EXT 14
-#define __GLX_VENDPRIV_TABLE_SIZE_EXT (__GLX_MAX_VENDPRIV_OPCODE_EXT - __GLX_MIN_VENDPRIV_OPCODE_EXT + 1)
 #define __GLX_RENDER_TABLE_SIZE_EXT (__GLX_MAX_RENDER_OPCODE_EXT - __GLX_MIN_RENDER_OPCODE_EXT + 1)
 extern __GLXdispatchRenderProcPtr __glXRenderTable_EXT[__GLX_RENDER_TABLE_SIZE_EXT];
-extern __GLXdispatchVendorPrivProcPtr __glXVendorPrivTable_EXT[__GLX_VENDPRIV_TABLE_SIZE_EXT];
 extern __GLXdispatchRenderProcPtr __glXSwapRenderTable_EXT[__GLX_RENDER_TABLE_SIZE_EXT];
-extern __GLXdispatchVendorPrivProcPtr __glXSwapVendorPrivTable_EXT[__GLX_VENDPRIV_TABLE_SIZE_EXT];
 #endif /* _GLX_g_disptab_EXT_h_ */

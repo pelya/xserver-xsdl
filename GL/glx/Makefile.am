@@ -61,6 +61,8 @@ libglx_la_SOURCES = \
         indirect_reqsize.h \
         indirect_size_get.c \
         indirect_size_get.h \
+        indirect_table.c \
+        indirect_table.h \
         indirect_util.c \
         indirect_util.h \
         render2.c \

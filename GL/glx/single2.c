@@ -392,3 +392,13 @@ int __glXDisp_GetString(__GLXclientState *cl, GLbyte *pc)
 {
     return DoGetString(cl, pc, GL_FALSE);
 }
+
+int __glXDisp_GetProgramStringARB(__GLXclientState *cl, GLbyte *pc)
+{
+    return BadRequest;
+}
+
+int __glXDisp_GetProgramStringNV(__GLXclientState *cl, GLbyte *pc)
+{
+    return BadRequest;
+}

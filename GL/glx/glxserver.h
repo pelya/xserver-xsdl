@@ -196,9 +196,11 @@ extern __GLXprocPtr __glXProcTable[];
 /*
  * Tables for computing the size of each rendering command.
  */
+typedef int (*gl_proto_size_func)(const GLbyte *, Bool);
+
 typedef struct {
     int bytes;
-    int (*varsize)(const GLbyte *pc, Bool swap);
+    gl_proto_size_func varsize;
 } __GLXrenderSizeData;
 extern __GLXrenderSizeData __glXRenderSizeTable[];
 extern __GLXrenderSizeData __glXRenderSizeTable_EXT[];
