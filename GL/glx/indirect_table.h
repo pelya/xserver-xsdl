@@ -53,7 +53,7 @@ struct __glXDispatchInfo {
      * is the non-byte-swapped version, and the second element is the
      * byte-swapped version.
      */
-    void * const (*dispatch_functions)[2];
+    const void *(*dispatch_functions)[2];
 
     /**
      * Pointer to size validation data.  This table is indexed with the same
@@ -70,7 +70,7 @@ struct __glXDispatchInfo {
      * If size checking is not to be performed on this type of protocol
      * data, this pointer will be \c NULL.
      */
-    const int_fast16_t * size_table[2];
+    const int_fast16_t (*size_table)[2];
 
     /**
      * Array of functions used to calculate the variable-size portion of
@@ -81,7 +81,7 @@ struct __glXDispatchInfo {
      * If size checking is not to be performed on this type of protocol
      * data, this pointer will be \c NULL.
      */
-    const gl_proto_size_func * size_func_table;
+    const gl_proto_size_func *size_func_table;
 };
 
 /**
