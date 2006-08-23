@@ -736,7 +736,6 @@ int __glXDispSwap_RenderLarge(__GLXclientState *cl, GLbyte *pc)
     xGLXRenderLargeReq *req;
     ClientPtr client= cl->client;
     size_t dataBytes;
-    __GLXdispatchRenderProcPtr proc;
     __GLXrenderLargeHeader *hdr;
     __GLXcontext *cx;
     int error;
@@ -796,13 +795,6 @@ int __glXDispSwap_RenderLarge(__GLXclientState *cl, GLbyte *pc)
 
 	err = __glXGetProtocolSizeData(& Render_dispatch_info, opcode, & entry);
 	if (err < 0) {
-	    client->errorValue = opcode;
-	    return __glXError(GLXBadLargeRequest);
-	}
-
-	proc = (__GLXdispatchRenderProcPtr)
-	  __glXGetProtocolDecodeFunction(& Render_dispatch_info, opcode, 0);
-	if (proc == NULL) {
 	    client->errorValue = opcode;
 	    return __glXError(GLXBadLargeRequest);
 	}
@@ -882,6 +874,8 @@ int __glXDispSwap_RenderLarge(__GLXclientState *cl, GLbyte *pc)
 	cl->largeCmdRequestsSoFar++;
 
 	if (req->requestNumber == cl->largeCmdRequestsTotal) {
+	    __GLXdispatchRenderProcPtr proc;
+
 	    /*
 	    ** This is the last request; it must have enough bytes to complete
 	    ** the command.
@@ -911,16 +905,10 @@ int __glXDispSwap_RenderLarge(__GLXclientState *cl, GLbyte *pc)
 	    ** Use the opcode to index into the procedure table.
 	    */
 	    opcode = hdr->opcode;
-	    if ( (opcode >= __GLX_MIN_RENDER_OPCODE) && 
-		 (opcode <= __GLX_MAX_RENDER_OPCODE) ) {
-		proc = __glXSwapRenderTable[opcode];
-#if __GLX_MAX_RENDER_OPCODE_EXT > __GLX_MIN_RENDER_OPCODE_EXT
-	    } else if ( (opcode >= __GLX_MIN_RENDER_OPCODE_EXT) && 
-		 (opcode <= __GLX_MAX_RENDER_OPCODE_EXT) ) {
-		int index = opcode - __GLX_MIN_RENDER_OPCODE_EXT;
-		proc = __glXSwapRenderTable_EXT[index];
-#endif /* __GLX_MAX_RENDER_OPCODE_EXT > __GLX_MIN_RENDER_OPCODE_EXT */
-	    } else {
+
+	    proc = (__GLXdispatchRenderProcPtr)
+	      __glXGetProtocolDecodeFunction(& Render_dispatch_info, opcode, 1);
+	    if (proc == NULL) {
 		client->errorValue = opcode;
 		return __glXError(GLXBadLargeRequest);
 	    }
