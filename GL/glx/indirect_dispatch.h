@@ -345,6 +345,8 @@ extern HIDDEN int __glXDisp_CreateContextWithConfigSGIX(struct __GLXclientStateR
 extern HIDDEN int __glXDispSwap_CreateContextWithConfigSGIX(struct __GLXclientStateRec *, GLbyte *);
 extern HIDDEN void __glXDisp_FramebufferTexture3DEXT(GLbyte * pc);
 extern HIDDEN void __glXDispSwap_FramebufferTexture3DEXT(GLbyte * pc);
+extern HIDDEN int __glXDisp_CopySubBufferMESA(struct __GLXclientStateRec *, GLbyte *);
+extern HIDDEN int __glXDispSwap_CopySubBufferMESA(struct __GLXclientStateRec *, GLbyte *);
 extern HIDDEN void __glXDisp_BlendEquation(GLbyte * pc);
 extern HIDDEN void __glXDispSwap_BlendEquation(GLbyte * pc);
 extern HIDDEN int __glXDisp_GetError(struct __GLXclientStateRec *, GLbyte *);
