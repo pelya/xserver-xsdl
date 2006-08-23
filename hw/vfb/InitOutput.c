@@ -364,6 +364,9 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp (argv[i], "-render") == 0)	/* -render */
     {
 	Render = FALSE;
+#ifdef COMPOSITE
+	noCompositeExtension = TRUE;
+#endif
 	return 1;
     }
 
