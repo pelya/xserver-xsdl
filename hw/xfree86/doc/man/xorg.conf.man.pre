@@ -605,6 +605,10 @@ the builtin handler will be used.
 .TP 7
 .BI "Option \*qAIGLX\*q \*q" boolean \*q
 enable or disable AIGLX. AIGLX is enabled by default.
+.TP 7
+.BI "Option \*qIgnoreABI\*q \*q" boolean \*q
+Allow modules built for a different, potentially incompatible version of
+the X server to load. Disabled by default.
 .SH MODULE SECTION
 The
 .B Module

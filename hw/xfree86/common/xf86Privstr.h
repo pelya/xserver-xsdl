@@ -120,6 +120,7 @@ typedef struct {
     MessageType		randRFrom;
     Bool		aiglx;
     MessageType		aiglxFrom;
+    Bool        ignoreABI;
     struct {
 	Bool		disabled;		/* enable/disable deactivating
 						 * grabs or closing the

@@ -222,6 +222,9 @@
 /* Support IPv6 for TCP connections */
 #undef IPv6
 
+/* Support os-specific local connections */
+#undef LOCALCONN
+
 /* Support MIT Misc extension */
 #undef MITMISC
 

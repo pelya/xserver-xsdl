@@ -67,7 +67,6 @@ extern GLboolean __glXFreeContext(__GLXcontext *glxc);
 extern void __glXFlushContextCache(void);
 
 extern void __glXNoSuchRenderOpcode(GLbyte*);
-extern int __glXNoSuchSingleOpcode(__GLXclientState*, GLbyte*);
 extern void __glXErrorCallBack(__GLinterface *gc, GLenum code);
 extern void __glXClearErrorOccured(void);
 extern GLboolean __glXErrorOccured(void);
@@ -89,6 +88,9 @@ extern int DoCreateGLXPixmap(__GLXclientState *cl, XID fbconfigId,
 extern int DoDestroyPixmap(__GLXclientState *cl, XID glxpixmapId);
 
 extern int DoQueryContext(__GLXclientState *cl, GLXContextID gcId);
+
+extern int DoRender(__GLXclientState *cl, GLbyte *pc, int do_swap);
+extern int DoRenderLarge(__GLXclientState *cl, GLbyte *pc, int do_swap);
 
 extern void GlxExtensionInit(void);
 

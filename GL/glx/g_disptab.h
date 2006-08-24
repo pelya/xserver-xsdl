@@ -34,97 +34,33 @@
 ** version 1.2.1 Specification.
 */
 
-extern int __glXRender(__GLXclientState*, GLbyte*);
-extern int __glXRenderLarge(__GLXclientState*, GLbyte*);
-extern int __glXCreateContext(__GLXclientState*, GLbyte*);
-extern int __glXDestroyContext(__GLXclientState*, GLbyte*);
-extern int __glXMakeCurrent(__GLXclientState*, GLbyte*);
-extern int __glXIsDirect(__GLXclientState*, GLbyte*);
-extern int __glXQueryVersion(__GLXclientState*, GLbyte*);
-extern int __glXWaitGL(__GLXclientState*, GLbyte*);
-extern int __glXWaitX(__GLXclientState*, GLbyte*);
-extern int __glXCopyContext(__GLXclientState*, GLbyte*);
-extern int __glXSwapBuffers(__GLXclientState*, GLbyte*);
-extern int __glXBindTexImageEXT(__GLXclientState *cl, GLbyte *pc);
-extern int __glXReleaseTexImageEXT(__GLXclientState *cl, GLbyte *pc);
-extern int __glXCopySubBufferMESA(__GLXclientState *cl, GLbyte *pc);
-extern int __glXGetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc);
-extern int __glXUseXFont(__GLXclientState*, GLbyte*);
-extern int __glXCreateGLXPixmap(__GLXclientState*, GLbyte*);
-extern int __glXGetVisualConfigs(__GLXclientState*, GLbyte*);
-extern int __glXDestroyGLXPixmap(__GLXclientState*, GLbyte*);
-extern int __glXVendorPrivate(__GLXclientState*, GLbyte*);
-extern int __glXVendorPrivateWithReply(__GLXclientState*, GLbyte*);
-extern int __glXQueryExtensionsString(__GLXclientState*, GLbyte*);
-extern int __glXQueryServerString(__GLXclientState*, GLbyte*);
-extern int __glXClientInfo(__GLXclientState*, GLbyte*);
-extern int __glXMakeContextCurrent(__GLXclientState*, GLbyte*);
-extern int __glXGetFBConfigs(__GLXclientState*, GLbyte*);
-extern int __glXCreatePixmap(__GLXclientState*, GLbyte*);
-extern int __glXDestroyPixmap(__GLXclientState*, GLbyte*);
-extern int __glXCreateNewContext(__GLXclientState*, GLbyte*);
-extern int __glXQueryContext(__GLXclientState*, GLbyte*);
-extern int __glXMakeContextCurrent(__GLXclientState*, GLbyte*);
-extern int __glXCreatePbuffer(__GLXclientState*, GLbyte*);
-extern int __glXDestroyPbuffer(__GLXclientState*, GLbyte*);
-extern int __glXGetDrawableAttributes(__GLXclientState*, GLbyte*);
-extern int __glXChangeDrawableAttributes(__GLXclientState*, GLbyte*);
-extern int __glXCreateWindow(__GLXclientState*, GLbyte*);
-extern int __glXDestroyWindow(__GLXclientState*, GLbyte*);
+extern int __glXDisp_CopySubBufferMESA(__GLXclientState *cl, GLbyte *pc);
+extern int __glXDisp_GetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc);
+extern int __glXDisp_BindSwapBarrierSGIX(__GLXclientState *cl, GLbyte *pc);
+extern int __glXDisp_QueryMaxSwapBarriersSGIX(__GLXclientState *cl, GLbyte *pc);
+extern int __glXDisp_QueryHyperpipeNetworkSGIX(__GLXclientState *cl, GLbyte *pc);
+extern int __glXDisp_DestroyHyperpipeConfigSGIX (__GLXclientState *cl, GLbyte *pc);
+extern int __glXDisp_QueryHyperpipeConfigSGIX(__GLXclientState *cl, GLbyte *pc);
+extern int __glXDisp_HyperpipeConfigSGIX(__GLXclientState *cl, GLbyte *pc);
 
-extern int __glXSwapRender(__GLXclientState*, GLbyte*);
-extern int __glXSwapRenderLarge(__GLXclientState*, GLbyte*);
-extern int __glXSwapCreateContext(__GLXclientState*, GLbyte*);
-extern int __glXSwapDestroyContext(__GLXclientState*, GLbyte*);
-extern int __glXSwapMakeCurrent(__GLXclientState*, GLbyte*);
-extern int __glXSwapIsDirect(__GLXclientState*, GLbyte*);
-extern int __glXSwapQueryVersion(__GLXclientState*, GLbyte*);
-extern int __glXSwapWaitGL(__GLXclientState*, GLbyte*);
-extern int __glXSwapWaitX(__GLXclientState*, GLbyte*);
-extern int __glXSwapCopyContext(__GLXclientState*, GLbyte*);
-extern int __glXSwapSwapBuffers(__GLXclientState*, GLbyte*);
-extern int __glXSwapBindTexImageEXT(__GLXclientState *cl, GLbyte *pc);
-extern int __glXSwapReleaseTexImageEXT(__GLXclientState *cl, GLbyte *pc);
-extern int __glXSwapReleaseTexImageEXT(__GLXclientState *cl, GLbyte *pc);
-extern int __glXSwapGetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc);
-extern int __glXSwapUseXFont(__GLXclientState*, GLbyte*);
-extern int __glXSwapCreateGLXPixmap(__GLXclientState*, GLbyte*);
-extern int __glXSwapGetVisualConfigs(__GLXclientState*, GLbyte*);
-extern int __glXSwapDestroyGLXPixmap(__GLXclientState*, GLbyte*);
-extern int __glXSwapVendorPrivate(__GLXclientState*, GLbyte*);
-extern int __glXSwapVendorPrivateWithReply(__GLXclientState*, GLbyte*);
-extern int __glXSwapQueryExtensionsString(__GLXclientState*, GLbyte*);
-extern int __glXSwapQueryServerString(__GLXclientState*, GLbyte*);
-extern int __glXSwapClientInfo(__GLXclientState*, GLbyte*);
-extern int __glXSwapMakeContextCurrent(__GLXclientState*, GLbyte*);
-extern int __glXSwapGetFBConfigs(__GLXclientState*, GLbyte*);
-extern int __glXSwapCreatePixmap(__GLXclientState*, GLbyte*);
-extern int __glXSwapDestroyPixmap(__GLXclientState*, GLbyte*);
-extern int __glXSwapCreateNewContext(__GLXclientState*, GLbyte*);
-extern int __glXSwapQueryContext(__GLXclientState*, GLbyte*);
-extern int __glXSwapMakeContextCurrent(__GLXclientState*, GLbyte*);
-extern int __glXSwapCreatePbuffer(__GLXclientState*, GLbyte*);
-extern int __glXSwapDestroyPbuffer(__GLXclientState*, GLbyte*);
-extern int __glXSwapGetDrawableAttributes(__GLXclientState*, GLbyte*);
-extern int __glXSwapChangeDrawableAttributes(__GLXclientState*, GLbyte*);
-extern int __glXSwapCreateWindow(__GLXclientState*, GLbyte*);
-extern int __glXSwapDestroyWindow(__GLXclientState*, GLbyte*);
+extern int __glXDispSwap_CopySubBufferMESA(__GLXclientState *cl, GLbyte *pc);
+extern int __glXDispSwap_GetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc);
+extern int __glXDispSwap_BindSwapBarrierSGIX(__GLXclientState *cl, GLbyte *pc);
+extern int __glXDispSwap_QueryMaxSwapBarriersSGIX(__GLXclientState *cl, GLbyte *pc);
+extern int __glXDispSwap_QueryHyperpipeNetworkSGIX(__GLXclientState *cl, GLbyte *pc);
+extern int __glXDispSwap_DestroyHyperpipeConfigSGIX (__GLXclientState *cl, GLbyte *pc);
+extern int __glXDispSwap_QueryHyperpipeConfigSGIX(__GLXclientState *cl, GLbyte *pc);
+extern int __glXDispSwap_HyperpipeConfigSGIX(__GLXclientState *cl, GLbyte *pc);
+
 
 
 #define __GLX_MIN_GLXCMD_OPCODE 1
 #define __GLX_MAX_GLXCMD_OPCODE 20
 #define __GLX_MIN_RENDER_OPCODE 1
-/*#define __GLX_MAX_RENDER_OPCODE 213*/
 #define __GLX_MAX_RENDER_OPCODE 230
-#define __GLX_MIN_SINGLE_OPCODE 1
-#define __GLX_MAX_SINGLE_OPCODE 159
-#define __GLX_SINGLE_TABLE_SIZE 160
-/*#define __GLX_RENDER_TABLE_SIZE 214*/
 #define __GLX_RENDER_TABLE_SIZE 231
 extern __GLXdispatchRenderProcPtr __glXRenderTable[__GLX_RENDER_TABLE_SIZE];
-extern __GLXdispatchSingleProcPtr __glXSingleTable[__GLX_SINGLE_TABLE_SIZE];
 extern __GLXdispatchRenderProcPtr __glXSwapRenderTable[__GLX_RENDER_TABLE_SIZE];
-extern __GLXdispatchSingleProcPtr __glXSwapSingleTable[__GLX_SINGLE_TABLE_SIZE];
 
 /* Copied from mesa src/glx/x11/glxcmds.c
  *
