@@ -28,6 +28,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <dix-config.h>
 #endif
 
+#include "os.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <math.h>
@@ -1009,16 +1010,17 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         if (src->map->syms) {
             if (src->map->size_syms != dst->map->size_syms) {
                 if (dst->map->syms)
-                    tmp = xrealloc(dst->map->syms, src->map->size_syms);
+                    tmp = xrealloc(dst->map->syms,
+                                   src->map->size_syms * sizeof(KeySym));
                 else
-                    tmp = xalloc(src->map->size_syms);
+                    tmp = xalloc(src->map->size_syms * sizeof(KeySym));
                 if (!tmp)
                     return FALSE;
                 dst->map->syms = tmp;
+
             }
-            memcpy(dst->map->syms, src->map->syms, src->map->size_syms);
-            memcpy(dst->map->key_sym_map, src->map->key_sym_map,
-                   src->map->size_syms);
+            memcpy(dst->map->syms, src->map->syms,
+                   src->map->size_syms * sizeof(KeySym));
         }
         else {
             if (dst->map->syms) {
@@ -1029,37 +1031,116 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         dst->map->num_syms = src->map->num_syms;
         dst->map->size_syms = src->map->size_syms;
 
-        if (src->map->types) {
-            if (src->map->size_types != dst->map->size_types) {
-                XkbKeyTypePtr stype = src->map->types;
-
-                if (dst->map->types)
-                    tmp = xrealloc(dst->map->types, src->map->size_types);
+        if (src->map->key_sym_map) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->map->key_sym_map)
+                    tmp = xrealloc(dst->map->key_sym_map,
+                                   (src->max_key_code + 1) *
+                                     sizeof(XkbSymMapRec));
                 else
-                    tmp = xalloc(src->map->size_types);
+                    tmp = xalloc((src->max_key_code + 1) *
+                                 sizeof(XkbSymMapRec));
+                if (!tmp)
+                    return FALSE;
+                dst->map->key_sym_map = tmp;
+            }
+            memcpy(dst->map->key_sym_map, src->map->key_sym_map,
+                   (src->max_key_code + 1) * sizeof(XkbSymMapRec));
+        }
+        else {
+            if (dst->map->key_sym_map) {
+                xfree(dst->map->key_sym_map);
+                dst->map->key_sym_map = NULL;
+            }
+        }
+
+        if (src->map->types) {
+            if (src->map->size_types > dst->map->size_types) {
+                if (dst->map->types) {
+                    tmp = xrealloc(dst->map->types,
+                                   src->map->size_types * sizeof(XkbKeyTypeRec));
+                    bzero(dst->map->types +
+                            (dst->map->size_types * sizeof(XkbKeyTypeRec)),
+                          (src->map->size_types - dst->map->size_types) *
+                            sizeof(XkbKeyTypeRec));
+                }
+                else {
+                    tmp = xcalloc(src->map->size_types, sizeof(XkbKeyTypeRec));
+                }
                 if (!tmp)
                     return FALSE;
                 dst->map->types = tmp;
             }
-            memcpy(dst->map->types, src->map->types, src->map->size_types);
+            else if (src->map->size_types < dst->map->size_types) {
+                if (dst->map->types) {
+                    for (i = src->map->num_types, dtype = (dst->map->types + i);
+                         i < dst->map->size_types; i++, dtype++) {
+                        if (dtype->level_names)
+                            xfree(dtype->level_names);
+                        dtype->level_names = NULL;
+                        dtype->num_levels = 0;
+                    }
+                }
+            }
 
             stype = src->map->types;
             dtype = dst->map->types;
             for (i = 0; i < dst->map->num_types; i++, dtype++, stype++) {
-                dtype->level_names = xalloc(dtype->num_levels * sizeof(Atom));
-                if (!dtype->level_names)
-                    continue; /* don't return FALSE here, try to whack all the
-                                 pointers we can, so we don't double-free when
-                                 going down. */
+                if (stype->num_levels != dtype->num_levels) {
+                    if (dtype->level_names)
+                        tmp = xrealloc(dtype->level_names,
+                                       stype->num_levels * sizeof(Atom));
+                    else
+                        tmp = xalloc(stype->num_levels * sizeof(Atom));
+                    if (!tmp)
+                        continue; /* don't return FALSE here, try to whack
+                                     all the pointers we can, so we don't
+                                     double-free when going down. */
+                    dtype->level_names = tmp;
+                    dtype->num_levels = stype->num_levels;
+                }
                 memcpy(dtype->level_names, stype->level_names,
-                       dtype->num_levels * sizeof(Atom));
+                       stype->num_levels * sizeof(Atom));
+
+                dtype->name = stype->name;
+                memcpy(&dtype->mods, &stype->mods, sizeof(XkbModsRec));
+
+                if (stype->map_count != dtype->map_count) {
+                    if (dtype->map)
+                        tmp = xrealloc(dtype->map,
+                                       stype->map_count *
+                                         sizeof(XkbKTMapEntryRec));
+                    else
+                        tmp = xalloc(stype->map_count *
+                                     sizeof(XkbKTMapEntryRec));
+                    if (!tmp)
+                        return FALSE;
+                    dtype->map = tmp;
+
+                    if (dtype->preserve)
+                        tmp = xrealloc(dtype->preserve,
+                                       stype->map_count * sizeof(XkbModsRec));
+                    else
+                        tmp = xalloc(stype->map_count * sizeof(XkbModsRec));
+                    if (!tmp)
+                        return FALSE;
+                    dtype->preserve = tmp;
+                }
+                dtype->map_count = stype->map_count;
+                memcpy(dtype->map, stype->map, stype->map_count *
+                                               sizeof(XkbKTMapEntryRec));
+                memcpy(dtype->preserve, stype->preserve, stype->map_count *
+                                                         sizeof(XkbModsRec));
             }
         }
         else {
             if (dst->map->types) {
                 for (i = 0, dtype = dst->map->types; i < dst->map->num_types;
-                     i++, dtype++)
+                     i++, dtype++) {
                     xfree(dtype->level_names);
+                    xfree(dtype->map);
+                    xfree(dtype->preserve);
+                }
                 xfree(dst->map->types);
                 dst->map->types = NULL;
             }
@@ -1123,15 +1204,16 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         if (src->server->acts) {
             if (src->server->size_acts != dst->server->size_acts) {
                 if (dst->server->acts)
-                    tmp = xrealloc(dst->server->acts, src->server->size_acts);
+                    tmp = xrealloc(dst->server->acts,
+                                   src->server->size_acts * sizeof(XkbAction));
                 else
-                    tmp = xalloc(src->server->size_acts);
+                    tmp = xalloc(src->server->size_acts * sizeof(XkbAction));
                 if (!tmp)
                     return FALSE;
                 dst->server->acts = tmp;
             }
             memcpy(dst->server->acts, src->server->acts,
-                   src->server->size_acts);
+                   src->server->size_acts * sizeof(XkbAction));
         }
         else {
             if (dst->server->acts) {
@@ -1140,19 +1222,23 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
             }
         }
        dst->server->size_acts = src->server->size_acts;
+       dst->server->num_acts = src->server->num_acts;
 
         if (src->server->key_acts) {
             if (src->max_key_code != dst->max_key_code) {
                 if (dst->server->key_acts)
-                    tmp = xrealloc(dst->server->key_acts, src->max_key_code + 1);
+                    tmp = xrealloc(dst->server->key_acts,
+                                   (src->max_key_code + 1) *
+                                     sizeof(unsigned short));
                 else
-                    tmp = xalloc(src->max_key_code + 1);
+                    tmp = xalloc((src->max_key_code + 1) *
+                                 sizeof(unsigned short));
                 if (!tmp)
                     return FALSE;
                 dst->server->key_acts = tmp;
             }
             memcpy(dst->server->key_acts, src->server->key_acts,
-                   src->max_key_code + 1);
+                   (src->max_key_code + 1) * sizeof(unsigned short));
         }
         else {
             if (dst->server->key_acts) {
@@ -1188,15 +1274,17 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
             if (src->max_key_code != dst->max_key_code) {
                 if (dst->server->vmodmap)
                     tmp = xrealloc(dst->server->vmodmap,
-                                   src->max_key_code + 1);
+                                   (src->max_key_code + 1) *
+                                   sizeof(unsigned short));
                 else
-                    tmp = xalloc(src->max_key_code + 1);
+                    tmp = xalloc((src->max_key_code + 1) *
+                                 sizeof(unsigned short));
                 if (!tmp)
                     return FALSE;
                 dst->server->vmodmap = tmp;
             }
             memcpy(dst->server->vmodmap, src->server->vmodmap,
-                   src->max_key_code + 1);
+                   (src->max_key_code + 1) * sizeof(unsigned short));
         }
         else {
             if (dst->server->vmodmap) {
@@ -1324,20 +1412,20 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
     /* compat */
     if (src->compat) {
         if (src->compat->sym_interpret) {
-            if (src->compat->num_si != dst->compat->num_si) {
+            if (src->compat->size_si != dst->compat->size_si) {
                 if (dst->compat->sym_interpret)
                     tmp = xrealloc(dst->compat->sym_interpret,
-                                   src->compat->num_si *
+                                   src->compat->size_si *
                                      sizeof(XkbSymInterpretRec));
                 else
-                    tmp = xalloc(src->compat->num_si *
+                    tmp = xalloc(src->compat->size_si *
                                  sizeof(XkbSymInterpretRec));
                 if (!tmp)
                     return FALSE;
                 dst->compat->sym_interpret = tmp;
             }
             memcpy(dst->compat->sym_interpret, src->compat->sym_interpret,
-                   src->compat->num_si * sizeof(XkbSymInterpretRec));
+                   src->compat->size_si * sizeof(XkbSymInterpretRec));
         }
         else {
             if (dst->compat->sym_interpret) {
@@ -1346,6 +1434,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
             }
         }
         dst->compat->num_si = src->compat->num_si;
+        dst->compat->size_si = src->compat->size_si;
 
         memcpy(dst->compat->groups, src->compat->groups,
                XkbNumKbdGroups * sizeof(XkbModsRec));
