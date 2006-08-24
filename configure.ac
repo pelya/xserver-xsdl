@@ -1082,8 +1082,8 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 		AC_DEFINE(XF86MISC, 1, [Support XFree86 miscellaneous extensions])
 	fi
 
-	if test "x$XF86VIDMOE" = xauto; then
-		PKG_CHECK_MODULES(XF86VIDMODE, xf86vidmode, [DGA=yes], [DGA=no])
+	if test "x$XF86VIDMODE" = xauto; then
+		PKG_CHECK_MODULES(XF86VIDMODE, xf86vidmode, [XF86VIDMODE=yes], [XF86VIDMODE=no])
 	fi
 	if test "x$XF86VIDMODE" = xyes; then
 		XORG_MODULES="$XORG_MODULES xf86vidmodeproto"
