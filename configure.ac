@@ -1066,7 +1066,7 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 	XORG_LIBS="$COMPOSITE_LIB $MI_LIB $FIXES_LIB $XEXTXORG_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XPSTUBS_LIB $OS_LIB"
 
 	if test "x$DGA" = xauto; then
-		PKG_CHECK_MODULES(DGA, dgaproto, [DGA=yes], [DGA=no])
+		PKG_CHECK_MODULES(DGA, xf86dgaproto, [DGA=yes], [DGA=no])
 	fi
 	if test "x$DGA" = xyes; then
 		XORG_MODULES="$XORG_MODULES xf86dgaproto"
@@ -1083,7 +1083,7 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 	fi
 
 	if test "x$XF86VIDMODE" = xauto; then
-		PKG_CHECK_MODULES(XF86VIDMODE, xf86vidmode, [XF86VIDMODE=yes], [XF86VIDMODE=no])
+		PKG_CHECK_MODULES(XF86VIDMODE, xf86vidmodeproto, [XF86VIDMODE=yes], [XF86VIDMODE=no])
 	fi
 	if test "x$XF86VIDMODE" = xyes; then
 		XORG_MODULES="$XORG_MODULES xf86vidmodeproto"
