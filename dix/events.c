@@ -4651,7 +4651,8 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
                               int key_code, int num_valuators,
                               int *valuators) {
     int numEvents = 0, ms = 0, first_valuator = 0;
-    KeySym sym = pDev->key->curKeySyms.map[key_code * pDev->key->curKeySyms.mapWidth];
+    KeySym sym = pDev->key->curKeySyms.map[key_code *
+                                           pDev->key->curKeySyms.mapWidth];
     deviceKeyButtonPointer *kbp = NULL;
     deviceValuator *xv = NULL;
     KeyClassPtr ckeyc;
@@ -4778,7 +4779,8 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
 #ifdef XKB
             if (!noXkbExtension && pDev->key->xkbInfo &&
                 pDev->key->xkbInfo->desc) {
-                if (!XkbCopyKeymap(pDev->key->xkbInfo, ckeyc->xkbInfo, True))
+                if (!XkbCopyKeymap(pDev->key->xkbInfo->desc,
+                                   ckeyc->xkbInfo->desc, True))
                     FatalError("Couldn't pivot keymap from device to core!\n");
             }
 #endif
