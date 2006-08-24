@@ -540,8 +540,9 @@ winShadowUpdateGDI (ScreenPtr pScreen,
    * handle large regions by creating a clipping region and 
    * doing a single blit constrained to that clipping region.
    */
-  if (pScreenInfo->dwClipUpdatesNBoxes == 0
-      || dwBox < pScreenInfo->dwClipUpdatesNBoxes)
+  if (!pScreenInfo->fMultiWindow &&
+      (pScreenInfo->dwClipUpdatesNBoxes == 0 ||
+      dwBox < pScreenInfo->dwClipUpdatesNBoxes))
     {
       /* Loop through all boxes in the damaged region */
       while (dwBox--)
@@ -566,7 +567,7 @@ winShadowUpdateGDI (ScreenPtr pScreen,
 	  ++pBox;
 	}
     }
-  else
+  else if (!pScreenInfo->fMultiWindow)
     {
       /* Compute a GDI region from the damaged region */
       hrgnCombined = CreateRectRgn (pBox->x1, pBox->y1, pBox->x2, pBox->y2);
