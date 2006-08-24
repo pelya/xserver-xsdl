@@ -47,6 +47,22 @@
 #include "xf86Priv.h"
 #include "xf86DDC.h"
 
+static void
+printModeRejectMessage(int index, DisplayModePtr p, int status)
+{
+    char *type;
+
+    if (p->type & M_T_BUILTIN)
+	type = "built-in ";
+    else if (p->type & M_T_DEFAULT)
+	type = "default ";
+    else
+	type = "";
+
+    xf86DrvMsg(index, X_INFO, "Not using %smode \"%s\" (%s)\n", type, p->name,
+	       xf86ModeStatusToString(status));
+}
+
 /*
  * xf86GetNearestClock --
  *	Find closest clock to given frequency (in kHz).  This assumes the
@@ -1644,18 +1660,7 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 		q->name = xnfstrdup(p->name);
 	        q->status = MODE_OK;
 	    } else {
-		if (p->type & M_T_BUILTIN)
-		    xf86DrvMsg(scrp->scrnIndex, X_INFO,
-			       "Not using built-in mode \"%s\" (%s)\n",
-			       p->name, xf86ModeStatusToString(status));
-		else if (p->type & M_T_DEFAULT)
-		    xf86DrvMsg(scrp->scrnIndex, X_INFO,
-			       "Not using default mode \"%s\" (%s)\n", p->name,
-			       xf86ModeStatusToString(status));
-		else
-		    xf86DrvMsg(scrp->scrnIndex, X_INFO,
-			       "Not using mode \"%s\" (%s)\n", p->name,
-			       xf86ModeStatusToString(status));
+		printModeRejectMessage(scrp->scrnIndex, p, status);
 	    }
 	}
 
@@ -1758,7 +1763,8 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 			 * horizontal timing parameters that CRTs may have
 			 * problems with.
 			 */
-			if ((q->type & M_T_DEFAULT) &&
+			if (!scrp->monitor->reducedblanking &&
+			    (q->type & M_T_DEFAULT) &&
 			    ((double)q->HTotal / (double)q->HDisplay) < 1.15)
 			    continue;
 
@@ -1795,39 +1801,14 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 
 	repeat = FALSE;
     lookupNext:
-	if (repeat && ((status = p->status) != MODE_OK)) {
-		if (p->type & M_T_BUILTIN)
-		    xf86DrvMsg(scrp->scrnIndex, X_INFO,
-			       "Not using built-in mode \"%s\" (%s)\n",
-			       p->name, xf86ModeStatusToString(status));
-		else if (p->type & M_T_DEFAULT)
-		    xf86DrvMsg(scrp->scrnIndex, X_INFO,
-			       "Not using default mode \"%s\" (%s)\n", p->name,
-			       xf86ModeStatusToString(status));
-		else
-		    xf86DrvMsg(scrp->scrnIndex, X_INFO,
-			       "Not using mode \"%s\" (%s)\n", p->name,
-			       xf86ModeStatusToString(status));
-	}
+	if (repeat && ((status = p->status) != MODE_OK))
+	    printModeRejectMessage(scrp->scrnIndex, p, status);
 	saveType = p->type;
 	status = xf86LookupMode(scrp, p, clockRanges, strategy);
-	if (repeat && status == MODE_NOMODE) {
+	if (repeat && status == MODE_NOMODE)
 	    continue;
-	}
-	if (status != MODE_OK) {
-		if (p->type & M_T_BUILTIN)
-		    xf86DrvMsg(scrp->scrnIndex, X_INFO,
-			       "Not using built-in mode \"%s\" (%s)\n",
-			       p->name, xf86ModeStatusToString(status));
-		else if (p->type & M_T_DEFAULT)
-		    xf86DrvMsg(scrp->scrnIndex, X_INFO,
-			       "Not using default mode \"%s\" (%s)\n", p->name,
-			       xf86ModeStatusToString(status));
-		else
-		    xf86DrvMsg(scrp->scrnIndex, X_INFO,
-			       "Not using mode \"%s\" (%s)\n", p->name,
-			       xf86ModeStatusToString(status));
-	}
+	if (status != MODE_OK)
+	    printModeRejectMessage(scrp->scrnIndex, p, status);
 	if (status == MODE_ERROR) {
 	    ErrorF("xf86ValidateModes: "
 		   "unexpected result from xf86LookupMode()\n");
@@ -2022,20 +2003,6 @@ xf86PruneDriverModes(ScrnInfoPtr scrp)
 	    return;
 	n = p->next;
 	if (p->status != MODE_OK) {
-#if 0
-	    if (p->type & M_T_BUILTIN)
-		xf86DrvMsg(scrp->scrnIndex, X_INFO,
-			   "Not using built-in mode \"%s\" (%s)\n", p->name,
-			   xf86ModeStatusToString(p->status));
-	    else if (p->type & M_T_DEFAULT)
-		xf86DrvMsg(scrp->scrnIndex, X_INFO,
-			   "Not using default mode \"%s\" (%s)\n", p->name,
-			   xf86ModeStatusToString(p->status));
-	    else
-	        xf86DrvMsg(scrp->scrnIndex, X_INFO,
-			   "Not using mode \"%s\" (%s)\n", p->name,
-			   xf86ModeStatusToString(p->status));
-#endif
 	    xf86DeleteMode(&(scrp->modes), p);
 	}
 	p = n;

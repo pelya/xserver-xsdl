@@ -271,10 +271,6 @@ long Memory_fail = 0;
 #include <stdlib.h>  /* for random() */
 #endif
 
-#ifdef sgi
-int userdefinedfontpath = 0;
-#endif /* sgi */
-
 char *dev_tty_from_init = NULL;		/* since we need to parse it anyway */
 
 OsSigHandlerPtr
@@ -646,6 +642,7 @@ void UseMsg(void)
     ErrorF("v                      video blanking for screen-saver\n");
     ErrorF("-v                     screen-saver without video blanking\n");
     ErrorF("-wm                    WhenMapped default backing-store\n");
+    ErrorF("-wr                    create root window with white background\n");
     ErrorF("-x string              loads named extension at init time \n");
     ErrorF("-maxbigreqsize         set maximal bigrequest size \n");
 #ifdef PANORAMIX
@@ -843,9 +840,6 @@ ProcessCommandLine(int argc, char *argv[])
 	{
 	    if(++i < argc)
 	    {
-#ifdef sgi
-		userdefinedfontpath = 1;
-#endif /* sgi */
 	        defaultFontPath = argv[i];
 	    }
 	    else
@@ -990,6 +984,8 @@ ProcessCommandLine(int argc, char *argv[])
 	    defaultScreenSaverBlanking = DontPreferBlanking;
 	else if ( strcmp( argv[i], "-wm") == 0)
 	    defaultBackingStore = WhenMapped;
+        else if ( strcmp( argv[i], "-wr") == 0)
+            whiteRoot = TRUE;
         else if ( strcmp( argv[i], "-maxbigreqsize") == 0) {
              if(++i < argc) {
                  long reqSizeArg = atol(argv[i]);

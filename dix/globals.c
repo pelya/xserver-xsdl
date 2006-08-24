@@ -143,6 +143,7 @@ FontPtr defaultFont;   /* not declared in dix.h to avoid including font.h in
 Bool loadableFonts = FALSE;
 CursorPtr rootCursor;
 Bool blackRoot=FALSE;
+Bool whiteRoot=FALSE;
 ClientPtr requestingClient;	/* XXX this should be obsolete now, remove? */
 
 _X_EXPORT TimeStamp currentTime;
