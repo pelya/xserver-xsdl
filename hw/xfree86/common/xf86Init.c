@@ -331,6 +331,10 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     /* Tell the loader the default module search path */
     LoaderSetPath(xf86ModulePath);
 
+    if (xf86Info.ignoreABI) {
+        LoaderSetOptions(LDR_OPT_ABI_MISMATCH_NONFATAL);
+    }
+
 #ifdef TESTING
     {
 	char **list, **l;

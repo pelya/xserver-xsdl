@@ -642,6 +642,7 @@ void UseMsg(void)
     ErrorF("v                      video blanking for screen-saver\n");
     ErrorF("-v                     screen-saver without video blanking\n");
     ErrorF("-wm                    WhenMapped default backing-store\n");
+    ErrorF("-wr                    create root window with white background\n");
     ErrorF("-x string              loads named extension at init time \n");
     ErrorF("-maxbigreqsize         set maximal bigrequest size \n");
 #ifdef PANORAMIX
@@ -983,6 +984,8 @@ ProcessCommandLine(int argc, char *argv[])
 	    defaultScreenSaverBlanking = DontPreferBlanking;
 	else if ( strcmp( argv[i], "-wm") == 0)
 	    defaultBackingStore = WhenMapped;
+        else if ( strcmp( argv[i], "-wr") == 0)
+            whiteRoot = TRUE;
         else if ( strcmp( argv[i], "-maxbigreqsize") == 0) {
              if(++i < argc) {
                  long reqSizeArg = atol(argv[i]);

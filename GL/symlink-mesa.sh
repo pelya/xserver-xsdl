@@ -468,7 +468,7 @@ symlink_mesa_shader_slang_library() {
     action slang_core_gc.h
     action slang_fragment_builtin_gc.h
     action slang_shader_syn.h
-    action slang_version_syn.h
+    action slang_pp_version_syn.h
     action slang_vertex_builtin_gc.h
 }        
 

@@ -2338,12 +2338,6 @@ __GLXdispatchRenderProcPtr __glXRenderTable_EXT[__GLX_MAX_RENDER_OPCODE_EXT - __
 	__glXDisp_FramebufferRenderbufferEXT, /* 4324 */
 	__glXDisp_GenerateMipmapEXT /* 4325 */
 };
-__GLXdispatchVendorPrivProcPtr __glXVendorPrivTable_EXT[__GLX_MAX_VENDPRIV_OPCODE_EXT - __GLX_MIN_VENDPRIV_OPCODE_EXT + 1] = {
-	__glXDisp_AreTexturesResidentEXT, /* 11 */
-	__glXDisp_DeleteTextures, /* 12 */
-	__glXDisp_GenTexturesEXT, /* 13 */
-	__glXDisp_IsTextureEXT, /* 14 */
-};
 
 
 __GLXdispatchRenderProcPtr __glXSwapRenderTable_EXT[__GLX_MAX_RENDER_OPCODE_EXT - __GLX_MIN_RENDER_OPCODE_EXT + 1] = {
@@ -4647,10 +4641,3 @@ __GLXdispatchRenderProcPtr __glXSwapRenderTable_EXT[__GLX_MAX_RENDER_OPCODE_EXT 
 	__glXDispSwap_FramebufferRenderbufferEXT, /* 4324 */
 	__glXDispSwap_GenerateMipmapEXT /* 4325 */
 };
-__GLXdispatchVendorPrivProcPtr __glXSwapVendorPrivTable_EXT[__GLX_MAX_VENDPRIV_OPCODE_EXT - __GLX_MIN_VENDPRIV_OPCODE_EXT + 1] = {
-	__glXDispSwap_AreTexturesResidentEXT, /* 11 */
-	__glXDispSwap_DeleteTextures, /* 12 */
-	__glXDispSwap_GenTexturesEXT, /* 13 */
-	__glXDispSwap_IsTextureEXT, /* 14 */
-};
-

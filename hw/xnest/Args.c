@@ -58,6 +58,13 @@ void ddxInitGlobals(void)
 int
 ddxProcessArgument (int argc, char *argv[], int i)
 {
+
+#ifdef COMPOSITE
+    /* XXX terrible hack */
+    extern Bool noCompositeExtension;
+    noCompositeExtension = TRUE;
+#endif
+
   if (!strcmp(argv[i], "-display")) {
     if (++i < argc) {
       xnestDisplayName = argv[i];
