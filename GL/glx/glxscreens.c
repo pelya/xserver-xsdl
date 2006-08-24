@@ -78,7 +78,7 @@ static const char GLServerExtensions[] =
 			"GL_EXT_copy_texture "
 			"GL_EXT_draw_range_elements "
 			"GL_EXT_fog_coord "
-			"GL_EXT_framebuffe_object "
+			"GL_EXT_framebuffer_object "
 			"GL_EXT_multi_draw_arrays "
 			"GL_EXT_packed_pixels "
 			"GL_EXT_point_parameters "
