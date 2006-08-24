@@ -1207,12 +1207,12 @@ const struct __glXDispatchInfo Render_dispatch_info = {
 
 /*****************************************************************/
 /* tree depth = 13 */
-static const int_fast16_t VendorPriv_dispatch_tree[138] = {
+static const int_fast16_t VendorPriv_dispatch_tree[155] = {
     /* [0] -> opcode range [0, 131072], node depth 1 */
     2,
     5,
     EMPTY_LEAF,
-    102,
+    119,
     EMPTY_LEAF,
 
     /* [5] -> opcode range [0, 32768], node depth 2 */
@@ -1331,108 +1331,135 @@ static const int_fast16_t VendorPriv_dispatch_tree[138] = {
     EMPTY_LEAF,
 
     /* [78] -> opcode range [4096, 6144], node depth 5 */
-    1,
+    2,
+    83,
     EMPTY_LEAF,
-    81,
-
-    /* [81] -> opcode range [5120, 6144], node depth 6 */
-    1,
-    84,
+    101,
     EMPTY_LEAF,
 
-    /* [84] -> opcode range [5120, 5632], node depth 7 */
+    /* [83] -> opcode range [4096, 4608], node depth 6 */
     1,
-    87,
+    86,
     EMPTY_LEAF,
 
-    /* [87] -> opcode range [5120, 5376], node depth 8 */
+    /* [86] -> opcode range [4096, 4352], node depth 7 */
     1,
-    90,
+    89,
     EMPTY_LEAF,
 
-    /* [90] -> opcode range [5120, 5248], node depth 9 */
+    /* [89] -> opcode range [4096, 4224], node depth 8 */
     1,
-    93,
+    92,
     EMPTY_LEAF,
 
-    /* [93] -> opcode range [5120, 5184], node depth 10 */
+    /* [92] -> opcode range [4096, 4160], node depth 9 */
     1,
-    EMPTY_LEAF,
-    96,
-
-    /* [96] -> opcode range [5152, 5184], node depth 11 */
-    1,
-    99,
+    95,
     EMPTY_LEAF,
 
-    /* [99] -> opcode range [5152, 5168], node depth 12 */
+    /* [95] -> opcode range [4096, 4128], node depth 10 */
+    1,
+    98,
+    EMPTY_LEAF,
+
+    /* [98] -> opcode range [4096, 4112], node depth 11 */
     1,
     LEAF(56),
     EMPTY_LEAF,
 
-    /* [102] -> opcode range [65536, 98304], node depth 2 */
+    /* [101] -> opcode range [5120, 5632], node depth 6 */
     1,
-    105,
+    104,
     EMPTY_LEAF,
 
-    /* [105] -> opcode range [65536, 81920], node depth 3 */
+    /* [104] -> opcode range [5120, 5376], node depth 7 */
     1,
-    108,
+    107,
     EMPTY_LEAF,
 
-    /* [108] -> opcode range [65536, 73728], node depth 4 */
+    /* [107] -> opcode range [5120, 5248], node depth 8 */
     1,
-    111,
+    110,
     EMPTY_LEAF,
 
-    /* [111] -> opcode range [65536, 69632], node depth 5 */
+    /* [110] -> opcode range [5120, 5184], node depth 9 */
     1,
-    114,
+    EMPTY_LEAF,
+    113,
+
+    /* [113] -> opcode range [5152, 5184], node depth 10 */
+    1,
+    116,
     EMPTY_LEAF,
 
-    /* [114] -> opcode range [65536, 67584], node depth 6 */
-    1,
-    117,
-    EMPTY_LEAF,
-
-    /* [117] -> opcode range [65536, 66560], node depth 7 */
-    1,
-    120,
-    EMPTY_LEAF,
-
-    /* [120] -> opcode range [65536, 66048], node depth 8 */
-    1,
-    123,
-    EMPTY_LEAF,
-
-    /* [123] -> opcode range [65536, 65792], node depth 9 */
-    1,
-    126,
-    EMPTY_LEAF,
-
-    /* [126] -> opcode range [65536, 65664], node depth 10 */
-    1,
-    129,
-    EMPTY_LEAF,
-
-    /* [129] -> opcode range [65536, 65600], node depth 11 */
-    1,
-    132,
-    EMPTY_LEAF,
-
-    /* [132] -> opcode range [65536, 65568], node depth 12 */
-    1,
-    135,
-    EMPTY_LEAF,
-
-    /* [135] -> opcode range [65536, 65552], node depth 13 */
+    /* [116] -> opcode range [5152, 5168], node depth 11 */
     1,
     LEAF(64),
     EMPTY_LEAF,
 
+    /* [119] -> opcode range [65536, 98304], node depth 2 */
+    1,
+    122,
+    EMPTY_LEAF,
+
+    /* [122] -> opcode range [65536, 81920], node depth 3 */
+    1,
+    125,
+    EMPTY_LEAF,
+
+    /* [125] -> opcode range [65536, 73728], node depth 4 */
+    1,
+    128,
+    EMPTY_LEAF,
+
+    /* [128] -> opcode range [65536, 69632], node depth 5 */
+    1,
+    131,
+    EMPTY_LEAF,
+
+    /* [131] -> opcode range [65536, 67584], node depth 6 */
+    1,
+    134,
+    EMPTY_LEAF,
+
+    /* [134] -> opcode range [65536, 66560], node depth 7 */
+    1,
+    137,
+    EMPTY_LEAF,
+
+    /* [137] -> opcode range [65536, 66048], node depth 8 */
+    1,
+    140,
+    EMPTY_LEAF,
+
+    /* [140] -> opcode range [65536, 65792], node depth 9 */
+    1,
+    143,
+    EMPTY_LEAF,
+
+    /* [143] -> opcode range [65536, 65664], node depth 10 */
+    1,
+    146,
+    EMPTY_LEAF,
+
+    /* [146] -> opcode range [65536, 65600], node depth 11 */
+    1,
+    149,
+    EMPTY_LEAF,
+
+    /* [149] -> opcode range [65536, 65568], node depth 12 */
+    1,
+    152,
+    EMPTY_LEAF,
+
+    /* [152] -> opcode range [65536, 65552], node depth 13 */
+    1,
+    LEAF(72),
+    EMPTY_LEAF,
+
 };
 
-static const void *VendorPriv_function_table[72][2] = {
+static const void *VendorPriv_function_table[80][2] = {
     /* [  0] =     8 */ {NULL, NULL},
     /* [  1] =     9 */ {NULL, NULL},
     /* [  2] =    10 */ {NULL, NULL},
@@ -1489,22 +1516,30 @@ static const void *VendorPriv_function_table[72][2] = {
     /* [ 53] =  1429 */ {NULL, NULL},
     /* [ 54] =  1430 */ {NULL, NULL},
     /* [ 55] =  1431 */ {NULL, NULL},
-    /* [ 56] =  5152 */ {__glXDisp_BindTexImageEXT, __glXDispSwap_BindTexImageEXT},
-    /* [ 57] =  5153 */ {__glXDisp_ReleaseTexImageEXT, __glXDispSwap_ReleaseTexImageEXT},
-    /* [ 58] =  5154 */ {__glXDisp_CopySubBufferMESA, __glXDispSwap_CopySubBufferMESA},
-    /* [ 59] =  5155 */ {NULL, NULL},
-    /* [ 60] =  5156 */ {NULL, NULL},
-    /* [ 61] =  5157 */ {NULL, NULL},
-    /* [ 62] =  5158 */ {NULL, NULL},
-    /* [ 63] =  5159 */ {NULL, NULL},
-    /* [ 64] = 65536 */ {NULL, NULL},
-    /* [ 65] = 65537 */ {__glXDisp_MakeCurrentReadSGI, __glXDispSwap_MakeCurrentReadSGI},
-    /* [ 66] = 65538 */ {NULL, NULL},
-    /* [ 67] = 65539 */ {NULL, NULL},
-    /* [ 68] = 65540 */ {__glXDisp_GetFBConfigsSGIX, __glXDispSwap_GetFBConfigsSGIX},
-    /* [ 69] = 65541 */ {__glXDisp_CreateContextWithConfigSGIX, __glXDispSwap_CreateContextWithConfigSGIX},
-    /* [ 70] = 65542 */ {__glXDisp_CreateGLXPixmapWithConfigSGIX, __glXDispSwap_CreateGLXPixmapWithConfigSGIX},
-    /* [ 71] = 65543 */ {NULL, NULL},
+    /* [ 56] =  4096 */ {NULL, NULL},
+    /* [ 57] =  4097 */ {NULL, NULL},
+    /* [ 58] =  4098 */ {__glXDisp_GetColorTableSGI, __glXDispSwap_GetColorTableSGI},
+    /* [ 59] =  4099 */ {__glXDisp_GetColorTableParameterfvSGI, __glXDispSwap_GetColorTableParameterfvSGI},
+    /* [ 60] =  4100 */ {__glXDisp_GetColorTableParameterivSGI, __glXDispSwap_GetColorTableParameterivSGI},
+    /* [ 61] =  4101 */ {NULL, NULL},
+    /* [ 62] =  4102 */ {NULL, NULL},
+    /* [ 63] =  4103 */ {NULL, NULL},
+    /* [ 64] =  5152 */ {__glXDisp_BindTexImageEXT, __glXDispSwap_BindTexImageEXT},
+    /* [ 65] =  5153 */ {__glXDisp_ReleaseTexImageEXT, __glXDispSwap_ReleaseTexImageEXT},
+    /* [ 66] =  5154 */ {__glXDisp_CopySubBufferMESA, __glXDispSwap_CopySubBufferMESA},
+    /* [ 67] =  5155 */ {NULL, NULL},
+    /* [ 68] =  5156 */ {NULL, NULL},
+    /* [ 69] =  5157 */ {NULL, NULL},
+    /* [ 70] =  5158 */ {NULL, NULL},
+    /* [ 71] =  5159 */ {NULL, NULL},
+    /* [ 72] = 65536 */ {NULL, NULL},
+    /* [ 73] = 65537 */ {__glXDisp_MakeCurrentReadSGI, __glXDispSwap_MakeCurrentReadSGI},
+    /* [ 74] = 65538 */ {NULL, NULL},
+    /* [ 75] = 65539 */ {NULL, NULL},
+    /* [ 76] = 65540 */ {__glXDisp_GetFBConfigsSGIX, __glXDispSwap_GetFBConfigsSGIX},
+    /* [ 77] = 65541 */ {__glXDisp_CreateContextWithConfigSGIX, __glXDispSwap_CreateContextWithConfigSGIX},
+    /* [ 78] = 65542 */ {__glXDisp_CreateGLXPixmapWithConfigSGIX, __glXDispSwap_CreateGLXPixmapWithConfigSGIX},
+    /* [ 79] = 65543 */ {NULL, NULL},
 };
 
 const struct __glXDispatchInfo VendorPriv_dispatch_info = {

@@ -4414,6 +4414,64 @@ void __glXDisp_DrawBuffersARB(GLbyte * pc)
     ) );
 }
 
+int __glXDisp_GetColorTableParameterfvSGI(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLenum pname = *(GLenum   *)(pc +  4);
+
+        const GLuint compsize = __glGetColorTableParameterfvSGI_size(pname);
+        GLfloat answerBuffer[200];
+        GLfloat * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
+
+        if (params == NULL) return BadAlloc;
+        __glXClearErrorOccured();
+
+        CALL_GetColorTableParameterfvSGI( GET_DISPATCH(), (
+            *(GLenum   *)(pc +  0),
+            pname,
+            params
+        ) );
+        __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
+        error = Success;
+    }
+
+    return error;
+}
+
+int __glXDisp_GetColorTableParameterivSGI(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLenum pname = *(GLenum   *)(pc +  4);
+
+        const GLuint compsize = __glGetColorTableParameterivSGI_size(pname);
+        GLint answerBuffer[200];
+        GLint * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
+
+        if (params == NULL) return BadAlloc;
+        __glXClearErrorOccured();
+
+        CALL_GetColorTableParameterivSGI( GET_DISPATCH(), (
+            *(GLenum   *)(pc +  0),
+            pname,
+            params
+        ) );
+        __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
+        error = Success;
+    }
+
+    return error;
+}
+
 int __glXDisp_AreTexturesResidentEXT(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;

@@ -4566,6 +4566,66 @@ void __glXDispSwap_DrawBuffersARB(GLbyte * pc)
     ) );
 }
 
+int __glXDispSwap_GetColorTableParameterfvSGI(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, bswap_CARD32( &req->contextTag ), &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLenum pname =  (GLenum  )bswap_ENUM   ( pc +  4 );
+
+        const GLuint compsize = __glGetColorTableParameterfvSGI_size(pname);
+        GLfloat answerBuffer[200];
+        GLfloat * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
+
+        if (params == NULL) return BadAlloc;
+        __glXClearErrorOccured();
+
+        CALL_GetColorTableParameterfvSGI( GET_DISPATCH(), (
+             (GLenum  )bswap_ENUM   ( pc +  0 ),
+            pname,
+            params
+        ) );
+        (void) bswap_32_array( (uint32_t *) params, compsize );
+        __glXSendReplySwap(cl->client, params, compsize, 4, GL_FALSE, 0);
+        error = Success;
+    }
+
+    return error;
+}
+
+int __glXDispSwap_GetColorTableParameterivSGI(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, bswap_CARD32( &req->contextTag ), &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLenum pname =  (GLenum  )bswap_ENUM   ( pc +  4 );
+
+        const GLuint compsize = __glGetColorTableParameterivSGI_size(pname);
+        GLint answerBuffer[200];
+        GLint * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
+
+        if (params == NULL) return BadAlloc;
+        __glXClearErrorOccured();
+
+        CALL_GetColorTableParameterivSGI( GET_DISPATCH(), (
+             (GLenum  )bswap_ENUM   ( pc +  0 ),
+            pname,
+            params
+        ) );
+        (void) bswap_32_array( (uint32_t *) params, compsize );
+        __glXSendReplySwap(cl->client, params, compsize, 4, GL_FALSE, 0);
+        error = Success;
+    }
+
+    return error;
+}
+
 int __glXDispSwap_AreTexturesResidentEXT(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
