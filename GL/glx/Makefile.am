@@ -34,10 +34,7 @@ libglxdri_la_SOURCES = \
         glxdri.c
 
 libglx_la_SOURCES = \
-        g_disptab.c \
         g_disptab.h \
-        g_disptab_EXT.c \
-        g_disptab_EXT.h \
         glapi.c \
         glcontextmodes.c \
         glcontextmodes.h \

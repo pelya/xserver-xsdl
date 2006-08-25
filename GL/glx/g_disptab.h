@@ -34,7 +34,6 @@
 ** version 1.2.1 Specification.
 */
 
-extern int __glXDisp_CopySubBufferMESA(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDisp_GetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDisp_BindSwapBarrierSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDisp_QueryMaxSwapBarriersSGIX(__GLXclientState *cl, GLbyte *pc);
@@ -43,7 +42,6 @@ extern int __glXDisp_DestroyHyperpipeConfigSGIX (__GLXclientState *cl, GLbyte *p
 extern int __glXDisp_QueryHyperpipeConfigSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDisp_HyperpipeConfigSGIX(__GLXclientState *cl, GLbyte *pc);
 
-extern int __glXDispSwap_CopySubBufferMESA(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDispSwap_GetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDispSwap_BindSwapBarrierSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDispSwap_QueryMaxSwapBarriersSGIX(__GLXclientState *cl, GLbyte *pc);
@@ -51,21 +49,5 @@ extern int __glXDispSwap_QueryHyperpipeNetworkSGIX(__GLXclientState *cl, GLbyte 
 extern int __glXDispSwap_DestroyHyperpipeConfigSGIX (__GLXclientState *cl, GLbyte *pc);
 extern int __glXDispSwap_QueryHyperpipeConfigSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDispSwap_HyperpipeConfigSGIX(__GLXclientState *cl, GLbyte *pc);
-
-
-
-#define __GLX_MIN_GLXCMD_OPCODE 1
-#define __GLX_MAX_GLXCMD_OPCODE 20
-#define __GLX_MIN_RENDER_OPCODE 1
-#define __GLX_MAX_RENDER_OPCODE 230
-#define __GLX_RENDER_TABLE_SIZE 231
-extern __GLXdispatchRenderProcPtr __glXRenderTable[__GLX_RENDER_TABLE_SIZE];
-extern __GLXdispatchRenderProcPtr __glXSwapRenderTable[__GLX_RENDER_TABLE_SIZE];
-
-/* Copied from mesa src/glx/x11/glxcmds.c
- *
- * Apparently there's no standardized opcode for this extension.
- */
-#define X_GLXvop_CopySubBufferMESA 5154 /* temporary */
 
 #endif /* _GLX_g_disptab_h_ */

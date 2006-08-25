@@ -48,7 +48,6 @@
 #include "g_disptab.h"
 #include <pixmapstr.h>
 #include <windowstr.h>
-#include "g_disptab_EXT.h"
 #include "glxutil.h"
 #include "glxext.h"
 #include "glcontextmodes.h"
