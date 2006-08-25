@@ -44,8 +44,7 @@
 #include "glxutil.h"
 #include <GL/glxtokens.h>
 #include <unpack.h>
-#include <g_disptab.h>
-#include <g_disptab_EXT.h>
+#include "g_disptab.h"
 #include <pixmapstr.h>
 #include <windowstr.h>
 #include "glxext.h"

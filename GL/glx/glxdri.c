@@ -53,7 +53,6 @@
 #include "glcontextmodes.h"
 
 #include "g_disptab.h"
-#include "g_disptab_EXT.h"
 #include "glapitable.h"
 #include "glapi.h"
 #include "glthread.h"
