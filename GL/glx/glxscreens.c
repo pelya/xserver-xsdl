@@ -45,7 +45,7 @@
 #include "glxutil.h"
 #include "glxext.h"
 
-const char GLServerVersion[] = "1.2";
+const char GLServerVersion[] = "1.4";
 static const char GLServerExtensions[] = 
 			"GL_ARB_depth_texture "
 			"GL_ARB_draw_buffers "
@@ -59,6 +59,7 @@ static const char GLServerExtensions[] =
 			"GL_ARB_shadow_ambient "
 			"GL_ARB_texture_border_clamp "
 			"GL_ARB_texture_cube_map "
+			"GL_ARB_texture_compression "
 			"GL_ARB_texture_env_add "
 			"GL_ARB_texture_env_combine "
 			"GL_ARB_texture_env_crossbar "
@@ -94,6 +95,8 @@ static const char GLServerExtensions[] =
 			"GL_EXT_subtexture "
 			"GL_EXT_texture "
 			"GL_EXT_texture3D "
+			"GL_EXT_texture_compression_dxt1 "
+			"GL_EXT_texture_compression_s3tc "
 			"GL_EXT_texture_edge_clamp "
  			"GL_EXT_texture_env_add "
  			"GL_EXT_texture_env_combine "
@@ -104,6 +107,7 @@ static const char GLServerExtensions[] =
 			"GL_EXT_texture_object "
 			"GL_EXT_texture_rectangle "
 			"GL_EXT_vertex_array "
+			"GL_3DFX_texture_compression_FXT1 "
 			"GL_APPLE_packed_pixels "
 			"GL_ATI_draw_buffers "
 			"GL_ATI_texture_env_combine3 "
@@ -120,9 +124,11 @@ static const char GLServerExtensions[] =
 			"GL_NV_multisample_filter_hint "
 			"GL_NV_point_sprite "
 			"GL_NV_texgen_reflection "
+			"GL_NV_texture_compression_vtc "
 			"GL_NV_texture_env_combine4 "
 			"GL_NV_texture_expand_normal "
 			"GL_NV_texture_rectangle "
+			"GL_OES_compressed_paletted_texture "
 			"GL_SGI_color_matrix "
 			"GL_SGI_color_table "
 			"GL_SGIS_generate_mipmap "

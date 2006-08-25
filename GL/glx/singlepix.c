@@ -515,8 +515,3 @@ int __glXDisp_GetColorTableSGI(__GLXclientState *cl, GLbyte *pc)
 
     return Success;
 }
-
-int __glXDisp_GetCompressedTexImageARB(__GLXclientState *cl, GLbyte *pc)
-{
-    return BadRequest;
-}
