@@ -169,6 +169,39 @@ int XaceHook(int hook, ...)
 	    calldata = &rec;
 	    break;
 	}
+	case XACE_KEY_AVAIL: {
+	    XaceKeyAvailRec rec = {
+		va_arg(ap, xEventPtr),
+		va_arg(ap, DeviceIntPtr),
+		va_arg(ap, int)
+	    };
+	    calldata = &rec;
+	    break;
+	}
+	case XACE_WINDOW_INIT: {
+	    XaceWindowRec rec = {
+		va_arg(ap, ClientPtr),
+		va_arg(ap, WindowPtr)
+	    };
+	    calldata = &rec;
+	    break;
+	}
+	case XACE_AUDIT_BEGIN: {
+	    XaceAuditRec rec = {
+		va_arg(ap, ClientPtr),
+		0
+	    };
+	    calldata = &rec;
+	    break;
+	}
+	case XACE_AUDIT_END: {
+	    XaceAuditRec rec = {
+		va_arg(ap, ClientPtr),
+		va_arg(ap, int)
+	    };
+	    calldata = &rec;
+	    break;
+	}
 	default: {
 	    va_end(ap);
 	    return 0;	/* unimplemented hook number */

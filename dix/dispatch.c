@@ -451,7 +451,15 @@ Dispatch(void)
 		if (result > (maxBigRequestSize << 2))
 		    result = BadLength;
 		else
+#ifdef XACE
+		{
+		    XaceHook(XACE_AUDIT_BEGIN, client);
 		    result = (* client->requestVector[MAJOROP])(client);
+		    XaceHook(XACE_AUDIT_END, client, result);
+		}
+#else
+    		    result = (* client->requestVector[MAJOROP])(client);
+#endif /* XACE */
 	    
 		if (result != Success) 
 		{

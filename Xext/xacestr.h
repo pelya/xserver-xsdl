@@ -112,4 +112,24 @@ typedef struct {
     XID authId;
 } XaceAuthAvailRec;
 
+/* XACE_KEY_AVAIL */
+typedef struct {
+    xEventPtr event;
+    DeviceIntPtr keybd;
+    int count;
+} XaceKeyAvailRec;
+
+/* XACE_WINDOW_INIT */
+typedef struct {
+    ClientPtr client;
+    WindowPtr pWin;
+} XaceWindowRec;
+
+/* XACE_AUDIT_BEGIN */
+/* XACE_AUDIT_END */
+typedef struct {
+    ClientPtr client;
+    int requestResult;
+} XaceAuditRec;
+
 #endif /* _XACESTR_H */

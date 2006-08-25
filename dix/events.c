@@ -2846,6 +2846,10 @@ drawable.id:0;
 	DeliverFocusedEvent(keybd, xE, sprite.win, count);
     if (deactivateGrab)
         (*keybd->DeactivateGrab)(keybd);
+
+#ifdef XACE
+    XaceHook(XACE_KEY_AVAIL, xE, keybd, count);
+#endif
 }
 
 #ifdef XKB
