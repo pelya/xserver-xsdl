@@ -179,7 +179,7 @@ XCOMM **********************************************************************
 Section "InputDevice"
 
     Identifier	"Keyboard1"
-    Driver	"keyboard"
+    Driver	"kbd"
 
 XCOMM Set the keyboard auto repeat parameters.  Not all platforms implement
 XCOMM this.
