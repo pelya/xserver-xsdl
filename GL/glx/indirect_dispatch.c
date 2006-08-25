@@ -5466,6 +5466,14 @@ void __glXDisp_ProgramNamedParameter4fvNV(GLbyte * pc)
     ) );
 }
 
+void __glXDisp_BlendEquationSeparateEXT(GLbyte * pc)
+{
+    CALL_BlendEquationSeparateEXT( GET_DISPATCH(), (
+        *(GLenum   *)(pc +  0),
+        *(GLenum   *)(pc +  4)
+    ) );
+}
+
 void __glXDisp_BindFramebufferEXT(GLbyte * pc)
 {
     CALL_BindFramebufferEXT( GET_DISPATCH(), (

@@ -609,6 +609,7 @@ __glGetBooleanv_size( GLenum e )
         case GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB:
 /*      case GL_MAX_RECTANGLE_TEXTURE_SIZE_NV:*/
         case GL_MAX_TEXTURE_LOD_BIAS:
+        case GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT:
         case GL_MAX_SHININESS_NV:
         case GL_MAX_SPOT_EXPONENT_NV:
         case GL_TEXTURE_CUBE_MAP:
