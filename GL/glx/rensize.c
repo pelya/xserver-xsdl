@@ -323,7 +323,7 @@ int __glXTypeSize(GLenum enm)
   }
 }
 
-int __glXDrawArraysSize( const GLbyte *pc, Bool swap )
+int __glXDrawArraysReqSize( const GLbyte *pc, Bool swap )
 {
     __GLXdispatchDrawArraysHeader *hdr = (__GLXdispatchDrawArraysHeader *) pc;
     __GLXdispatchDrawArraysComponentHeader *compHeader;

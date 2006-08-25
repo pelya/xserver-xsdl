@@ -464,7 +464,7 @@ mapVidMem(int ScreenNum, unsigned long Base, unsigned long Size, int flags)
 	   Base,realBase,alignOff);
 #endif
     
-#if defined(__ia64__)
+#if defined(__ia64__) || defined(__arm__) || defined(__s390__)
 #ifndef MAP_WRITECOMBINED
 #define MAP_WRITECOMBINED 0x00010000
 #endif
@@ -594,7 +594,7 @@ xf86DisableIO(void)
 #if defined(__powerpc__)
 	munmap(ioBase, 0x20000);
 	ioBase = NULL;
-#elif !defined(__mc68000__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__hppa__)
+#elif !defined(__mc68000__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__hppa__) && !defined(__arm__) && !defined(__s390__)
 	iopl(0);
 	ioperm(0, 1024, 0);
 #endif
@@ -613,12 +613,12 @@ xf86DisableIO(void)
 _X_EXPORT Bool
 xf86DisableInterrupts()
 {
-#if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__ia64__) && !defined(__sh__) && !defined(__hppa__)
+#if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__ia64__) && !defined(__sh__) && !defined(__hppa__) && !defined(__arm__) && !defined(__s390__)
 	if (!ExtendedEnabled)
 	    if (iopl(3) || ioperm(0, 1024, 1))
 			return (FALSE);
 #endif
-#if defined(__alpha__) || defined(__mc68000__) || defined(__powerpc__) || defined(__sparc__) || defined(__mips__) || defined(__arm__) || defined(__sh__) || defined(__ia64__) || defined(__hppa__)
+#if defined(__alpha__) || defined(__mc68000__) || defined(__powerpc__) || defined(__sparc__) || defined(__mips__) || defined(__arm__) || defined(__sh__) || defined(__ia64__) || defined(__hppa__) || defined(__s390__)
 #else
 # ifdef __GNUC__
 #  if defined(__ia64__)
@@ -632,7 +632,7 @@ xf86DisableInterrupts()
 	asm("cli");
 # endif
 #endif
-#if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__ia64__) && !defined(__hppa__)
+#if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__ia64__) && !defined(__hppa__) && !defined(__arm__) && !defined(__s390__)
 	if (!ExtendedEnabled) {
 	    iopl(0);
 	    ioperm(0, 1024, 0);
@@ -645,12 +645,12 @@ xf86DisableInterrupts()
 _X_EXPORT void
 xf86EnableInterrupts()
 {
-#if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__ia64__) && !defined(__sh__) && !defined(__hppa__)
+#if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__ia64__) && !defined(__sh__) && !defined(__hppa__) && !defined(__arm__) && !defined(__s390__)
 	if (!ExtendedEnabled)
 	    if (iopl(3) || ioperm(0, 1024, 1))
 			return;
 #endif
-#if defined(__alpha__) || defined(__mc68000__) || defined(__powerpc__) || defined(__sparc__) || defined(__mips__) || defined(__arm__) || defined(__sh__) || defined(__ia64__) || defined(__hppa__)
+#if defined(__alpha__) || defined(__mc68000__) || defined(__powerpc__) || defined(__sparc__) || defined(__mips__) || defined(__arm__) || defined(__sh__) || defined(__ia64__) || defined(__hppa__) || defined(__s390__)
 #else
 # ifdef __GNUC__
 #  if defined(__ia64__)
@@ -664,7 +664,7 @@ xf86EnableInterrupts()
 	asm("sti");
 # endif
 #endif
-#if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__ia64__) && !defined(__hppa__)
+#if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__ia64__) && !defined(__hppa__) && !defined(__arm__) && !defined(__s390__)
 	if (!ExtendedEnabled) {
 	    iopl(0);
 	    ioperm(0, 1024, 0);

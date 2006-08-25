@@ -88,6 +88,9 @@ static char *DFLT_MOUSE_DEV = "/dev/devi/mouse0";
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
 static char *DFLT_MOUSE_DEV = "/dev/sysmouse";
 static char *DFLT_MOUSE_PROTO = "auto";
+#elif defined(linux)
+static char DFLT_MOUSE_DEV[] = "/dev/input/mice";
+static char DFLT_MOUSE_PROTO[] = "auto";
 #else
 static char *DFLT_MOUSE_DEV = "/dev/mouse";
 static char *DFLT_MOUSE_PROTO = "auto";

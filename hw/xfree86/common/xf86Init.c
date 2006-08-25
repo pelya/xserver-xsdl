@@ -137,7 +137,8 @@ static int numFormats = 6;
 #endif
 static Bool formatsDone = FALSE;
 
-InputDriverRec XF86KEYBOARD = {
+#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
+static InputDriverRec XF86KEYBOARD = {
 	1,
 	"keyboard",
 	NULL,
@@ -146,6 +147,7 @@ InputDriverRec XF86KEYBOARD = {
 	NULL,
 	0
 };
+#endif
 
 static Bool
 xf86CreateRootWindow(WindowPtr pWin)
@@ -561,6 +563,10 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 
     /* Tell the loader the default module search path */
     LoaderSetPath(xf86ModulePath);
+
+    if (xf86Info.ignoreABI) {
+        LoaderSetOptions(LDR_OPT_ABI_MISMATCH_NONFATAL);
+    }
 
 #ifdef TESTING
     {

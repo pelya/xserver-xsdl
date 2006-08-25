@@ -174,6 +174,7 @@ dnl glibc backtrace support check (hw/xfree86/common/xf86Events.c)
 AC_CHECK_HEADER([execinfo.h],[
     AC_CHECK_LIB(c, backtrace, [
         AC_DEFINE(HAVE_BACKTRACE, 1, [Has backtrace support])
+        AC_DEFINE(HAVE_EXECINFO_H, 1, [Have execinfo.h])
     ])]
 )
 
@@ -1165,6 +1166,10 @@ int main () {
 		fi
 		AC_SUBST([SOLARIS_ASM_CFLAGS])
 		;;
+	  gnu*)
+	  	XORG_OS="gnu"
+		XORG_OS_SUBDIR="hurd"
+		;;
 	  *)
 	  	XORG_OS="unknown"
 		XORG_OS_SUBDIR="unknown"
@@ -1669,6 +1674,7 @@ hw/xfree86/os-support/Makefile
 hw/xfree86/os-support/bsd/Makefile
 hw/xfree86/os-support/bus/Makefile
 hw/xfree86/os-support/drm/Makefile
+hw/xfree86/os-support/hurd/Makefile
 hw/xfree86/os-support/misc/Makefile
 hw/xfree86/os-support/linux/Makefile
 hw/xfree86/os-support/lynxos/Makefile

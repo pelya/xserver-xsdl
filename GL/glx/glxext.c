@@ -32,6 +32,8 @@
 #include "unpack.h"
 #include "glxutil.h"
 #include "glxext.h"
+#include "indirect_table.h"
+#include "indirect_util.h"
 
 /*
 ** The last context used by the server.  It is the context that is current
@@ -452,7 +454,7 @@ static int __glXDispatch(ClientPtr client)
 {
     REQUEST(xGLXSingleReq);
     CARD8 opcode;
-    int (*proc)(__GLXclientState *cl, GLbyte *pc);
+    __GLXdispatchSingleProcPtr proc;
     __GLXclientState *cl;
     int retval;
 
@@ -482,13 +484,6 @@ static int __glXDispatch(ClientPtr client)
     }
 
     /*
-    ** Check for valid opcode.
-    */
-    if (opcode >= __GLX_SINGLE_TABLE_SIZE) {
-	return BadRequest;
-    }
-
-    /*
     ** If we're expecting a glXRenderLarge request, this better be one.
     */
     if ((cl->largeCmdRequestsSoFar != 0) && (opcode != X_GLXRenderLarge)) {
@@ -499,27 +494,25 @@ static int __glXDispatch(ClientPtr client)
     /*
     ** Use the opcode to index into the procedure table.
     */
-    if (client->swapped)
-	proc = __glXSwapSingleTable[opcode];
-    else
-	proc = __glXSingleTable[opcode];
+    proc = (__GLXdispatchSingleProcPtr) __glXGetProtocolDecodeFunction(& Single_dispatch_info,
+								       opcode,
+								       client->swapped);
+    if (proc != NULL) {
+	__glXleaveServer();
 
-    __glXleaveServer();
+	inDispatch = True;
 
-    inDispatch = True;
+	retval = (*proc)(cl, (GLbyte *) stuff);
 
-    retval = proc(cl, (GLbyte *) stuff);
+	inDispatch = False;
 
-    inDispatch = False;
-
-    __glXenterServer();
+	__glXenterServer();
+    }
+    else {
+	retval = BadRequest;
+    }
 
     return retval;
-}
-
-int __glXNoSuchSingleOpcode(__GLXclientState *cl, GLbyte *pc)
-{
-    return BadRequest;
 }
 
 void __glXNoSuchRenderOpcode(GLbyte *pc)
