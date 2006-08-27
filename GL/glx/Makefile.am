@@ -54,12 +54,14 @@ libglx_la_SOURCES = \
         indirect_dispatch.c \
         indirect_dispatch.h \
         indirect_dispatch_swap.c \
+        indirect_program.c \
         indirect_reqsize.c \
         indirect_reqsize.h \
         indirect_size_get.c \
         indirect_size_get.h \
         indirect_table.c \
         indirect_table.h \
+        indirect_texture_compression.c \
         indirect_util.c \
         indirect_util.h \
         render2.c \
