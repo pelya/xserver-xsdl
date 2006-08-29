@@ -32,5 +32,4 @@ Xvesa_LDADD = \
 	@XSERVER_LIBS@
 
 Xvesa_DEPENDENCIES = \
-	libvesa.a    \
-	@KDRIVE_LIBS@
+	libvesa.a

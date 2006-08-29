@@ -24,6 +24,4 @@ Xfbdev_LDADD = 						\
 	$(TSLIB_FLAG)
 
 Xfbdev_DEPENDENCIES =					\
-	libfbdev.a					\
-	@KDRIVE_LIBS@					
-
+	libfbdev.a

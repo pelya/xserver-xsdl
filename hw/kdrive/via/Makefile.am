@@ -31,4 +31,4 @@ Xvia_LDADD =						\
 	@XSERVER_LIBS@					\
 	$(TSLIB_FLAG)					
 
-Xvia_DEPENDENCIES = $(VIA_LIBS) @KDRIVE_LIBS@
+Xvia_DEPENDENCIES = $(VIA_LIBS)

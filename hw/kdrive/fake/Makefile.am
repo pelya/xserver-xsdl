@@ -28,6 +28,4 @@ Xfake_LDADD = 						\
         @XSERVER_LIBS@
 
 Xfake_DEPENDENCIES =					\
-	libfake.a					\
-	@KDRIVE_LIBS@					
-
+	libfake.a

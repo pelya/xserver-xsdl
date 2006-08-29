@@ -1416,7 +1416,6 @@ AM_CONDITIONAL(XWIN_XV, [test "x$XWIN" = xyes && test "x$XV" = xyes])
 
 
 dnl kdrive DDX
-dnl utterly incomplete yet
 
 XEYPHR_LIBS=
 XEPHYR_INCS=
@@ -1463,6 +1462,9 @@ if test "$KDRIVE" = yes; then
     
     # check for SDL SDK
     AC_CHECK_HEADERS([SDL/SDL.h])
+    if test "x$XSDL" = xauto; then
+        XSDL="$ac_cv_header_SDL_SDL_h"
+    fi
 fi
 AC_SUBST(KDRIVE_INCS)
 AC_SUBST(KDRIVE_PURE_INCS)
@@ -1473,8 +1475,6 @@ AM_CONDITIONAL(TSLIB, false)
 AM_CONDITIONAL(H3600_TS, false)
 AM_CONDITIONAL(KDRIVEVESA, [test x"$ac_cv_header_sys_vm86_h" = xyes])
 AM_CONDITIONAL(KDRIVEFBDEV, [test x"$ac_cv_header_linux_fb_h" = xyes])
-#AM_CONDITIONAL(KDRIVEVESA, false)
-#AM_CONDITIONAL(KDRIVEFBDEV, false)
 
 # Xephyr needs nanosleep() which is in librt on Solaris
 AC_CHECK_FUNC([nanosleep], [],
@@ -1485,13 +1485,12 @@ XEPHYR_LIBS="$XEPHYR_LIBS $XSERVER_LIBS"
 AC_SUBST([XEPHYR_LIBS])
 AC_SUBST([XEPHYR_INCS])
 
-AM_CONDITIONAL(XSDLSERVER, [test x"$ac_cv_header_SDL_SDL_h" = xyes])
-if test x"$ac_cv_header_SDL_SDL_h" = xyes -o x"$XSDL" = xyes; then
-    # PKG_CHECK_MODULES(XSDL_EXTRA, Xfont xau $XDMCP_MODULES)
+if test x"$XSDL" = xyes; then
     AC_DEFINE(XSDLSERVER,,[Build Xsdl server])
     XSDL_LIBS="`sdl-config --libs` $XSERVER_LIBS"
     XSDL_INCS="`sdl-config --cflags` $XSERVER_CFLAGS"
 fi
+AM_CONDITIONAL(XSDLSERVER, [test x"$XSDL" = xyes])
 AC_SUBST([XSDL_LIBS])
 AC_SUBST([XSDL_INCS])
 
