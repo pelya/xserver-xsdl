@@ -77,8 +77,10 @@ static const struct extension_info known_glx_extensions[] = {
    { GLX(MESA_copy_sub_buffer),        VER(0,0), N, },
    { GLX(OML_swap_method),             VER(0,0), Y, },
    { GLX(SGI_make_current_read),       VER(1,3), N, },
+#if 0 /* GLX protocol not yet supported for these. */
    { GLX(SGI_swap_control),            VER(0,0), N, },
    { GLX(SGI_video_sync),              VER(0,0), N, },
+#endif
    { GLX(SGIS_multisample),            VER(0,0), Y, },
    { GLX(SGIX_fbconfig),               VER(1,3), Y, },
    { GLX(SGIX_pbuffer),                VER(1,3), N, },
