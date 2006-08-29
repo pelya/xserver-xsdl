@@ -579,7 +579,9 @@ LinuxKeyboardRead (int fd, void *closure)
                 if (!prefix && ((b[0] & 0x7f) == KEY_Prefix0))
                 {
                         prefix = KEY_Prefix0;
+#ifdef DEBUG
                         ErrorF("Prefix0");
+#endif
                         /* swallow this up */
                         b++;
                         continue;
@@ -598,7 +600,9 @@ LinuxKeyboardRead (int fd, void *closure)
                         /* from xf86Events.c */
                         case KEY_Prefix0:
                         {
+#ifdef DEBUG
                             ErrorF("Prefix0 scancode: 0x%02x\n", scancode);
+#endif
                             switch (scancode) {
                                 case KEY_KP_7:
                                     scancode = KEY_Home;      break;  /* curs home */
