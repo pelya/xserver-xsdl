@@ -30,7 +30,8 @@ NVIDIA_LIBS =					\
 Xnvidia_LDADD = \
 	$(NVIDIA_LIBS)				\
 	@KDRIVE_LIBS@				\
-	@XSERVER_LIBS@					\
-	$(TSLIB_FLAG)
+	@XSERVER_LIBS@			
 
-Xnvidia_DEPENDENCIES = $(NVIDIA_LIBS)
+Xnvidia_DEPENDENCIES = 				\
+	libnvidia.a 				\
+	$(top_builddir)/hw/kdrive/vesa/libvesa.a 

@@ -4,10 +4,6 @@ INCLUDES = 					\
 
 bin_PROGRAMS = Xepson
 
-if TSLIB
-TSLIB_FLAG = -lts
-endif
-
 noinst_LIBRARIES = libepson.a
 
 libepson_a_SOURCES = 	\
@@ -25,9 +21,8 @@ EPSON_LIBS =					\
 	@KDRIVE_LIBS@
 
 Xepson_LDADD = \
-	$(EPSON_LIBS)				\
+	$(EPSON_LIBS)			       \
 	@KDRIVE_LIBS@                          \
-	@XSERVER_LIBS@				\
-	$(TSLIB_FLAG)
+	@XSERVER_LIBS@				
 
-Xepson_DEPENDENCIES = $(EPSON_LIBS)
+Xepson_DEPENDENCIES = libepson.a
