@@ -659,8 +659,10 @@ LinuxKeyboardRead (int fd, void *closure)
                                     prefix = 0;
                                     continue;
                                 default:
+#ifdef DEBUG
                                     ErrorF("Unreported Prefix0 scancode: 0x%02x\n",
                                            scancode);
+#endif
                                      /*
                                       * "Internet" keyboards are generating lots of new
                                       * codes.  Let them pass.  There is little consistency
@@ -675,7 +677,9 @@ LinuxKeyboardRead (int fd, void *closure)
                         case KEY_Prefix1:
                         {
                             /* we do no handle these */
+#ifdef DEBUG
                             ErrorF("Prefix1 scancode: 0x%02x\n", scancode);
+#endif
                             b++;
                             prefix = 0;
                             continue;
@@ -683,7 +687,10 @@ LinuxKeyboardRead (int fd, void *closure)
 
                         default: /* should not happen*/
                         case 0: /* do nothing */
+#ifdef DEBUG
                             ErrorF("Plain scancode: 0x%02x\n", scancode);
+#endif
+                            ;
                 }
 
                 prefix = 0;
