@@ -4663,7 +4663,7 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
     if (type != KeyPress && type != KeyRelease)
         return 0;
 
-    if (!pDev->key || !pDev->focus ||
+    if (!pDev->key || !pDev->focus || !pDev->kbdfeed ||
         (pDev->coreEvents && !inputInfo.keyboard->key))
         return 0;
 
