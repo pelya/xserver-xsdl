@@ -957,11 +957,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 #endif
   }
 
-    if ((serverGeneration == 1) && LoaderCheckUnresolved(LD_RESOLV_IFDONE)) {
-	/* For now, just a warning */
-	xf86Msg(X_WARNING, "Some symbols could not be resolved!\n");
-    }
-
   xf86PostScreenInit();
 
   xf86InitOrigins();
