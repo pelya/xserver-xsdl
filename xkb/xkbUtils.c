@@ -1059,6 +1059,9 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                 if (dst->map->types) {
                     tmp = xrealloc(dst->map->types,
                                    src->map->size_types * sizeof(XkbKeyTypeRec));
+                    if (!tmp)
+                        return FALSE;
+                    dst->map->types = tmp;
                     bzero(dst->map->types +
                             (dst->map->size_types * sizeof(XkbKeyTypeRec)),
                           (src->map->size_types - dst->map->size_types) *
@@ -1066,10 +1069,10 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                 }
                 else {
                     tmp = xcalloc(src->map->size_types, sizeof(XkbKeyTypeRec));
+                    if (!tmp)
+                        return FALSE;
+                    dst->map->types = tmp;
                 }
-                if (!tmp)
-                    return FALSE;
-                dst->map->types = tmp;
             }
             else if (src->map->size_types < dst->map->size_types) {
                 if (dst->map->types) {
@@ -1085,7 +1088,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
 
             stype = src->map->types;
             dtype = dst->map->types;
-            for (i = 0; i < dst->map->num_types; i++, dtype++, stype++) {
+            for (i = 0; i < src->map->num_types; i++, dtype++, stype++) {
                 if (stype->num_levels != dtype->num_levels) {
                     if (dtype->level_names)
                         tmp = xrealloc(dtype->level_names,
@@ -1105,41 +1108,69 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                 dtype->name = stype->name;
                 memcpy(&dtype->mods, &stype->mods, sizeof(XkbModsRec));
 
-                if (stype->map_count != dtype->map_count) {
-                    if (dtype->map)
-                        tmp = xrealloc(dtype->map,
-                                       stype->map_count *
-                                         sizeof(XkbKTMapEntryRec));
-                    else
+                if (stype->map) {
+                    if (dtype->map) {
+                        if (stype->map_count != dtype->map_count) {
+                            tmp = xrealloc(dtype->map,
+                                           stype->map_count *
+                                             sizeof(XkbKTMapEntryRec));
+                            if (!tmp)
+                                return FALSE;
+                            dtype->map = tmp;
+                        }
+                    }
+                    else {
                         tmp = xalloc(stype->map_count *
-                                     sizeof(XkbKTMapEntryRec));
-                    if (!tmp)
-                        return FALSE;
-                    dtype->map = tmp;
+                                       sizeof(XkbKTMapEntryRec));
+                        if (!tmp)
+                            return FALSE;
+                        dtype->map = tmp;
+                    }
 
-                    if (dtype->preserve)
-                        tmp = xrealloc(dtype->preserve,
-                                       stype->map_count * sizeof(XkbModsRec));
-                    else
-                        tmp = xalloc(stype->map_count * sizeof(XkbModsRec));
-                    if (!tmp)
-                        return FALSE;
-                    dtype->preserve = tmp;
-                }
-                dtype->map_count = stype->map_count;
-                memcpy(dtype->map, stype->map, stype->map_count *
+                    dtype->map_count = stype->map_count;
+                    memcpy(dtype->map, stype->map, stype->map_count *
                                                sizeof(XkbKTMapEntryRec));
-                memcpy(dtype->preserve, stype->preserve, stype->map_count *
-                                                         sizeof(XkbModsRec));
+                }
+
+                if (stype->preserve) {
+                    if (dtype->preserve) {
+                        if (stype->map_count != dtype->map_count) {
+                            tmp = xrealloc(dtype->preserve,
+                                           stype->map_count *
+                                             sizeof(XkbModsRec));
+                            if (!tmp)
+                                return FALSE;
+                            dtype->preserve = tmp;
+                        }
+                    }
+                    else {
+                        tmp = xalloc(stype->map_count * sizeof(XkbModsRec));
+                        if (!tmp)
+                            return FALSE;
+                        dtype->preserve = tmp;
+                    }
+
+                    memcpy(dtype->preserve, stype->preserve,
+                           stype->map_count * sizeof(XkbModsRec));
+                }
+                else {
+                    if (dtype->preserve) {
+                        xfree(dtype->preserve);
+                        dtype->preserve = NULL;
+                    }
+                }
             }
         }
         else {
             if (dst->map->types) {
                 for (i = 0, dtype = dst->map->types; i < dst->map->num_types;
                      i++, dtype++) {
-                    xfree(dtype->level_names);
-                    xfree(dtype->map);
-                    xfree(dtype->preserve);
+                    if (dtype->level_names)
+                        xfree(dtype->level_names);
+                    if (dtype->map)
+                        xfree(dtype->map);
+                    if (dtype->preserve)
+                        xfree(dtype->preserve);
                 }
                 xfree(dst->map->types);
                 dst->map->types = NULL;
@@ -1490,8 +1521,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         else {
             /* send NewKeyboardNotify if the keycode range changed, else
              * just MapNotify. */
-            if (src->min_key_code != dst->min_key_code ||
-                src->max_key_code != dst->max_key_code && sendNotifies) {
+            if ((src->min_key_code != dst->min_key_code ||
+                 src->max_key_code != dst->max_key_code) && sendNotifies) {
                 nkn.oldMinKeyCode = dst->min_key_code;
                 nkn.oldMaxKeyCode = dst->max_key_code;
                 nkn.deviceID = nkn.oldDeviceID = pDev->id;
