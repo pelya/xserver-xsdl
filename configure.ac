@@ -1508,7 +1508,7 @@ if test "$KDRIVE" = yes; then
         AC_DEFINE(TSLIB, 1, [Have tslib support])
     fi
 
-    if test x"$ac_cv_header_SDL_SDL_h" = xyes && "x$XSDL" = xauto; then
+    if test x"$ac_cv_header_SDL_SDL_h" = xyes && test "x$XSDL" = xauto; then
        XSDL=yes
     fi
 
