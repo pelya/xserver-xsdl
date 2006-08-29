@@ -57,6 +57,7 @@
 #include "glapi.h"
 #include "glthread.h"
 #include "dispatch.h"
+#include "extension_string.h"
 
 
 #define STRINGIFY(macro_or_string)	STRINGIFY_ARG (macro_or_string)
@@ -71,6 +72,8 @@ struct __GLXDRIscreen {
 
     __DRIscreen			 driScreen;
     void			*driver;
+
+    unsigned char glx_enable_bits[__GLX_EXT_BYTES];
 };
 
 struct __GLXDRIcontext {
@@ -586,8 +589,21 @@ filter_modes(__GLcontextModes **server_modes,
 }
 
 
+static void
+enable_glx_extension(void *psc, const char *ext_name)
+{
+    __GLXDRIscreen * const screen = (__GLXDRIscreen *) psc;
+
+    __glXEnableExtension(screen->glx_enable_bits, ext_name);
+}
+
+
 static __DRIfuncPtr getProcAddress(const char *proc_name)
 {
+    if (strcmp(proc_name, "glxEnableExtension") == 0) {
+	return (__DRIfuncPtr) enable_glx_extension;
+    }
+
     return NULL;
 }
 
@@ -812,6 +828,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     void *dev_priv = NULL;
     char filename[128];
     Bool isCapable;
+    size_t buffer_size;
 
     if (!xf86LoaderCheckSymbol("DRIQueryDirectRenderingCapable")) {
 	LogMessage(X_ERROR, "AIGLX: DRI module not loaded\n");
@@ -833,6 +850,10 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     screen->base.createContext  = __glXDRIscreenCreateContext;
     screen->base.createDrawable = __glXDRIscreenCreateDrawable;
     screen->base.pScreen       = pScreen;
+
+    __glXInitExtensionEnableBits(screen->glx_enable_bits);
+    screen->driScreen.screenConfigs = screen;
+
 
     /* DRI protocol version. */
     dri_version.major = XF86DRI_MAJOR_VERSION;
@@ -976,6 +997,18 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     }
 
     __glXScreenInit(&screen->base, pScreen);
+
+    buffer_size = __glXGetExtensionString(screen->glx_enable_bits, NULL);
+    if (buffer_size > 0) {
+	if (screen->base.GLXextensions != NULL) {
+	    xfree(screen->base.GLXextensions);
+	}
+
+	screen->base.GLXextensions = xnfalloc(buffer_size);
+	(void) __glXGetExtensionString(screen->glx_enable_bits, 
+				       screen->base.GLXextensions);
+    }
+
 
     filter_modes(&screen->base.modes, driver_modes);
     _gl_context_modes_destroy(driver_modes);

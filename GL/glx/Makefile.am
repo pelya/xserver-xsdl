@@ -31,7 +31,9 @@ INCLUDES = \
 nodist_libglx_la_SOURCES = indirect_size.h
 
 libglxdri_la_SOURCES = \
-        glxdri.c
+        glxdri.c \
+        extension_string.c \
+        extension_string.h
 
 libglx_la_SOURCES = \
         g_disptab.h \
