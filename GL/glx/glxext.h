@@ -66,7 +66,6 @@ typedef struct {
 extern GLboolean __glXFreeContext(__GLXcontext *glxc);
 extern void __glXFlushContextCache(void);
 
-extern void __glXNoSuchRenderOpcode(GLbyte*);
 extern void __glXErrorCallBack(__GLinterface *gc, GLenum code);
 extern void __glXClearErrorOccured(void);
 extern GLboolean __glXErrorOccured(void);
