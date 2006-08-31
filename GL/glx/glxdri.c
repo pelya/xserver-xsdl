@@ -148,6 +148,22 @@ __glXDRIenterServer(void)
   DRIWakeupHandler(NULL, 0, NULL);
 }
 
+/**
+ * \bug
+ * We're jumping through hoops here to get the DRIdrawable which the DRI
+ * driver tries to keep to it self...  cf. FIXME in \c createDrawable.
+ */
+static void
+__glXDRIdrawableFoo(__GLXDRIdrawable *draw)
+{
+    __GLXDRIscreen * const screen =
+      (__GLXDRIscreen *) __glXgetActiveScreen(draw->base.pDraw->pScreen->myNum);
+
+    draw->driDrawable = (*screen->driScreen.getDrawable)(NULL,
+							 draw->base.drawId,
+							 screen->driScreen.private);
+}
+
 static void
 __glXDRIdrawableDestroy(__GLXdrawable *private)
 {
@@ -172,16 +188,8 @@ static GLboolean
 __glXDRIdrawableSwapBuffers(__GLXdrawable *basePrivate)
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) basePrivate;
-    __GLXDRIscreen *screen;
 
-    /* FIXME: We're jumping through hoops here to get the DRIdrawable
-     * which the dri driver tries to keep to it self...  cf. FIXME in
-     * createDrawable. */
-
-    screen = (__GLXDRIscreen *) __glXgetActiveScreen(private->base.pDraw->pScreen->myNum);
-    private->driDrawable = (screen->driScreen.getDrawable)(NULL,
-							   private->base.drawId,
-							   screen->driScreen.private);
+    __glXDRIdrawableFoo(private);
 
     (*private->driDrawable->swapBuffers)(NULL,
 					 private->driDrawable->private);
@@ -189,21 +197,26 @@ __glXDRIdrawableSwapBuffers(__GLXdrawable *basePrivate)
     return TRUE;
 }
 
+
+static int
+__glXDRIdrawableSwapInterval(__GLXdrawable *baseDrawable, int interval)
+{
+    __GLXDRIdrawable *draw = (__GLXDRIdrawable *) baseDrawable;
+
+    __glXDRIdrawableFoo(draw);
+
+    draw->driDrawable->swap_interval = interval;
+    return 0;
+}
+
+
 static void
 __glXDRIdrawableCopySubBuffer(__GLXdrawable *basePrivate,
 			       int x, int y, int w, int h)
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) basePrivate;
-    __GLXDRIscreen *screen;
 
-    /* FIXME: We're jumping through hoops here to get the DRIdrawable
-     * which the dri driver tries to keep to it self...  cf. FIXME in
-     * createDrawable. */
-
-    screen = (__GLXDRIscreen *) __glXgetActiveScreen(private->base.pDraw->pScreen->myNum);
-    private->driDrawable = (screen->driScreen.getDrawable)(NULL,
-							   private->base.drawId,
-							   screen->driScreen.private);
+    __glXDRIdrawableFoo(private);
 
     (*private->driDrawable->copySubBuffer)(NULL,
 					   private->driDrawable->private,
@@ -849,6 +862,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     screen->base.destroy        = __glXDRIscreenDestroy;
     screen->base.createContext  = __glXDRIscreenCreateContext;
     screen->base.createDrawable = __glXDRIscreenCreateDrawable;
+    screen->base.swapInterval   = __glXDRIdrawableSwapInterval;
     screen->base.pScreen       = pScreen;
 
     __glXInitExtensionEnableBits(screen->glx_enable_bits);

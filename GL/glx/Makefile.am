@@ -77,5 +77,6 @@ libglx_la_SOURCES = \
         singlepixswap.c \
         singlesize.c \
         singlesize.h \
+        swap_interval.c \
         unpack.h \
         xfont.c

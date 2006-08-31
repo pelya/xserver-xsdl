@@ -2274,9 +2274,6 @@ int __glXDisp_VendorPrivate(__GLXclientState *cl, GLbyte *pc)
 	return Success;
     }
 
-    /*
-    ** This sample implemention does not support any private requests.
-    */
     cl->client->errorValue = req->vendorCode;
     return __glXError(GLXUnsupportedPrivateRequest);
 }
