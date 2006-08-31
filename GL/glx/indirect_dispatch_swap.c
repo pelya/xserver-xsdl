@@ -4186,8 +4186,8 @@ void __glXDispSwap_VertexAttrib1dvARB(GLbyte * pc)
 #endif
 
     CALL_VertexAttrib1dvARB( GET_DISPATCH(), (
-         (GLuint  )bswap_CARD32 ( pc +  8 ),
-         (const GLdouble *)bswap_64_array( (uint64_t *) (pc +  0), 1 )
+         (GLuint  )bswap_CARD32 ( pc +  0 ),
+         (const GLdouble *)bswap_64_array( (uint64_t *) (pc +  4), 1 )
     ) );
 }
 
@@ -4217,8 +4217,8 @@ void __glXDispSwap_VertexAttrib2dvARB(GLbyte * pc)
 #endif
 
     CALL_VertexAttrib2dvARB( GET_DISPATCH(), (
-         (GLuint  )bswap_CARD32 ( pc + 16 ),
-         (const GLdouble *)bswap_64_array( (uint64_t *) (pc +  0), 2 )
+         (GLuint  )bswap_CARD32 ( pc +  0 ),
+         (const GLdouble *)bswap_64_array( (uint64_t *) (pc +  4), 2 )
     ) );
 }
 
@@ -4248,8 +4248,8 @@ void __glXDispSwap_VertexAttrib3dvARB(GLbyte * pc)
 #endif
 
     CALL_VertexAttrib3dvARB( GET_DISPATCH(), (
-         (GLuint  )bswap_CARD32 ( pc + 24 ),
-         (const GLdouble *)bswap_64_array( (uint64_t *) (pc +  0), 3 )
+         (GLuint  )bswap_CARD32 ( pc +  0 ),
+         (const GLdouble *)bswap_64_array( (uint64_t *) (pc +  4), 3 )
     ) );
 }
 
@@ -4335,8 +4335,8 @@ void __glXDispSwap_VertexAttrib4dvARB(GLbyte * pc)
 #endif
 
     CALL_VertexAttrib4dvARB( GET_DISPATCH(), (
-         (GLuint  )bswap_CARD32 ( pc + 32 ),
-         (const GLdouble *)bswap_64_array( (uint64_t *) (pc +  0), 4 )
+         (GLuint  )bswap_CARD32 ( pc +  0 ),
+         (const GLdouble *)bswap_64_array( (uint64_t *) (pc +  4), 4 )
     ) );
 }
 

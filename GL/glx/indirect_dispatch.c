@@ -4038,8 +4038,8 @@ void __glXDisp_VertexAttrib1dvARB(GLbyte * pc)
 #endif
 
     CALL_VertexAttrib1dvARB( GET_DISPATCH(), (
-        *(GLuint   *)(pc +  8),
-         (const GLdouble *)(pc +  0)
+        *(GLuint   *)(pc +  0),
+         (const GLdouble *)(pc +  4)
     ) );
 }
 
@@ -4069,8 +4069,8 @@ void __glXDisp_VertexAttrib2dvARB(GLbyte * pc)
 #endif
 
     CALL_VertexAttrib2dvARB( GET_DISPATCH(), (
-        *(GLuint   *)(pc + 16),
-         (const GLdouble *)(pc +  0)
+        *(GLuint   *)(pc +  0),
+         (const GLdouble *)(pc +  4)
     ) );
 }
 
@@ -4100,8 +4100,8 @@ void __glXDisp_VertexAttrib3dvARB(GLbyte * pc)
 #endif
 
     CALL_VertexAttrib3dvARB( GET_DISPATCH(), (
-        *(GLuint   *)(pc + 24),
-         (const GLdouble *)(pc +  0)
+        *(GLuint   *)(pc +  0),
+         (const GLdouble *)(pc +  4)
     ) );
 }
 
@@ -4187,8 +4187,8 @@ void __glXDisp_VertexAttrib4dvARB(GLbyte * pc)
 #endif
 
     CALL_VertexAttrib4dvARB( GET_DISPATCH(), (
-        *(GLuint   *)(pc + 32),
-         (const GLdouble *)(pc +  0)
+        *(GLuint   *)(pc +  0),
+         (const GLdouble *)(pc +  4)
     ) );
 }
 
