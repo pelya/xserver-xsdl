@@ -77,7 +77,7 @@ ddxProcessArgument (int argc, char **argv, int i)
   return KdProcessArgument (argc, argv, i);
 }
 
-char           *fbdevDevicePath = NULL;
+
 KdCardFuncs	fbdevFuncs = {
     fbdevCardInit,	    /* cardinit */
     fbdevScreenInit,	    /* scrinit */

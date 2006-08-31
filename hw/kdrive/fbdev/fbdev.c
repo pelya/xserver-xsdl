@@ -33,6 +33,8 @@
 
 extern int KdTsPhyScreen;
 
+char *fbdevDevicePath = NULL;
+
 Bool
 fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 {
