@@ -68,7 +68,7 @@ fbPutImage (DrawablePtr	pDrawable,
 	break;
     case XYPixmap:
 	srcStride = BitmapBytePad(w + leftPad) / sizeof (FbStip);
-	for (i = 1 << (pDrawable->depth - 1); i; i >>= 1)
+	for (i = (unsigned long)1 << (pDrawable->depth - 1); i; i >>= 1)
 	{
 	    if (i & pGC->planemask)
 	    {
