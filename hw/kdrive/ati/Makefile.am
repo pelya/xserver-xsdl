@@ -31,10 +31,6 @@ INCLUDES = 					\
 
 bin_PROGRAMS = Xati
 
-if TSLIB
-TSLIB_FLAG = -lts
-endif
-
 noinst_LIBRARIES = libati.a
 
 libati_a_SOURCES = 	\
@@ -65,8 +61,12 @@ ATI_LIBS =				\
 Xati_LDADD = \
 	$(ATI_LIBS)			\
 	@KDRIVE_LIBS@			\
-	@XSERVER_LIBS@			\
-	$(TSLIB_FLAG)
+	@XSERVER_LIBS@			
 
 
-Xati_DEPENDENCIES = $(ATI_LIBS)
+Xati_DEPENDENCIES =                     \
+        libati.a                        \
+        $(FBDEV_LIBS)                   \
+        $(VESA_LIBS)                    \
+        $(DRI_LIBS)                     
+

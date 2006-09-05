@@ -32,4 +32,6 @@ Xmga_LDADD = \
 	@XSERVER_LIBS@					\
 	$(TSLIB_FLAG)
 
-Xmga_DEPENDENCIES = $(MGA_LIBS) @KDRIVE_LIBS@
+Xmga_DEPENDENCIES = 					\
+	libmga.a 					\
+	$(top_builddir)/hw/kdrive/vesa/libvesa.a	

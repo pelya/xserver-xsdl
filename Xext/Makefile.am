@@ -82,6 +82,12 @@ SERVERCONFIG_DATA = SecurityPolicy
 AM_CFLAGS += -DDEFAULTPOLICYFILE=\"$(SERVERCONFIGdir)/SecurityPolicy\"
 endif
 
+XCALIBRATE_SRCS = xcalibrate.c
+if XCALIBRATE
+BUILTIN_SRCS += $(XCALIBRATE_SRCS)
+# XCalibrare needs tslib
+endif
+
 # X EVent Interception Extension: allows accessibility helpers & composite
 # managers to intercept events from input devices and transform as needed
 # before the clients see them.
@@ -158,6 +164,7 @@ EXTRA_DIST = \
 	$(SCREENSAVER_SRCS) \
 	$(XACE_SRCS) \
 	$(XCSECURITY_SRCS) \
+	$(XCALIBRATE_SRCS) \
 	$(XINERAMA_SRCS) \
 	$(XEVIE_SRCS) \
 	$(XPRINT_SRCS) \

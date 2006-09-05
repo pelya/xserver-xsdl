@@ -5,10 +5,6 @@ INCLUDES = 					\
 
 bin_PROGRAMS = Xpm2
 
-if TSLIB
-TSLIB_FLAG = -lts
-endif
-
 noinst_LIBRARIES = libpm2.a
 
 libpm2_a_SOURCES = 	\
@@ -28,7 +24,9 @@ PM2_LIBS =					\
 Xpm2_LDADD = \
 	$(PM2_LIBS)				\
 	@KDRIVE_LIBS@                          \
-	@XSERVER_LIBS@					\
-	$(TSLIB_FLAG)
+	@XSERVER_LIBS@			
 
-Xpm2_DEPENDENCIES = $(PM2_LIBS) @KDRIVE_LIBS@
+
+Xpm2_DEPENDENCIES = 				\
+	libpm2.a 				\
+	$(top_builddir)/hw/kdrive/vesa/libvesa.a 

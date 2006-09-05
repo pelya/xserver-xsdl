@@ -100,10 +100,6 @@ void DoScanPci(int argc, char **argv, int i)
     LoaderErrorMsg(NULL, "scanpci", errmaj, errmin);
     exit(1);
   }
-  if (LoaderCheckUnresolved(LD_RESOLV_IFDONE)) {
-      /* For now, just a warning */
-      xf86Msg(X_WARNING, "Some symbols could not be resolved!\n");
-  }
   PciSetup = (ScanPciSetupProcPtr)LoaderSymbol("ScanPciSetupPciIds");
   DisplayPCICardInfo =
     (ScanPciDisplayCardInfoProcPtr)LoaderSymbol("ScanPciDisplayPCICardInfo");

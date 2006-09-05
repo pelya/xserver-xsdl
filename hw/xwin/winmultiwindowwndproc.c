@@ -304,7 +304,6 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
   winScreenInfo		*s_pScreenInfo = NULL;
   HWND			hwndScreen = NULL;
   DrawablePtr		pDraw = NULL;
-  int		        iX, iY, iWidth, iHeight, iBorder;
   winWMMessageRec	wmMsg;
   Bool                  fWMMsgInitialized = FALSE;
   static Bool		s_fTracking = FALSE;
@@ -442,20 +441,19 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
 
       /* BeginPaint gives us an hdc that clips to the invalidated region */
       hdcUpdate = BeginPaint (hwnd, &ps);
-
-      /* Get the position and dimensions of the window */
-      iBorder = wBorderWidth (pWin);
-      iX = pWin->drawable.x;
-      iY = pWin->drawable.y;
-      iWidth = pWin->drawable.width;
-      iHeight = pWin->drawable.height;
+      /* Avoid the BitBlt's if the PAINTSTRUCT is bogus */
+      if (ps.rcPaint.right==0 && ps.rcPaint.bottom==0 && ps.rcPaint.left==0 && ps.rcPaint.top==0)
+      {
+	EndPaint (hwndScreen, &ps);
+	return 0;
+      }
 
       /* Try to copy from the shadow buffer */
       if (!BitBlt (hdcUpdate,
-		   0, 0,
-		   iWidth, iHeight,
+		   ps.rcPaint.left, ps.rcPaint.top,
+		   ps.rcPaint.right - ps.rcPaint.left, ps.rcPaint.bottom - ps.rcPaint.top,
 		   s_pScreenPriv->hdcShadow,
-		   iX, iY,
+		   ps.rcPaint.left + pWin->drawable.x, ps.rcPaint.top + pWin->drawable.y,
 		   SRCCOPY))
 	{
 	  LPVOID lpMsgBuf;

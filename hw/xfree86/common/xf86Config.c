@@ -761,7 +761,8 @@ typedef enum {
     FLAG_RENDER_COLORMAP_MODE,
     FLAG_HANDLE_SPECIAL_KEYS,
     FLAG_RANDR,
-    FLAG_AIGLX
+    FLAG_AIGLX,
+    FLAG_IGNORE_ABI
 } FlagValues;
    
 static OptionInfoRec FlagOptions[] = {
@@ -833,6 +834,8 @@ static OptionInfoRec FlagOptions[] = {
 	{0}, FALSE },
   { FLAG_AIGLX,			"AIGLX",			OPTV_BOOLEAN,
 	{0}, FALSE },
+  { FLAG_IGNORE_ABI,			"IgnoreABI",			OPTV_BOOLEAN,
+	{0}, FALSE },
   { -1,				NULL,				OPTV_NONE,
 	{0}, FALSE },
 };
@@ -891,6 +894,10 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 		      &(xf86Info.grabInfo.allowDeactivate));
     xf86GetOptValBool(FlagOptions, FLAG_ALLOW_CLOSEDOWN_GRABS,
 		      &(xf86Info.grabInfo.allowClosedown));
+    xf86GetOptValBool(FlagOptions, FLAG_IGNORE_ABI, &xf86Info.ignoreABI);
+    if (&xf86Info.ignoreABI) {
+	    xf86Msg(X_CONFIG, "Ignoring ABI Version\n");
+    }
 
     /*
      * Set things up based on the config file information.  Some of these

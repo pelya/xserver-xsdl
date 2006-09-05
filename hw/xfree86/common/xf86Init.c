@@ -135,7 +135,8 @@ static int numFormats = 6;
 #endif
 static Bool formatsDone = FALSE;
 
-InputDriverRec XF86KEYBOARD = {
+#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
+static InputDriverRec XF86KEYBOARD = {
 	1,
 	"keyboard",
 	NULL,
@@ -144,6 +145,7 @@ InputDriverRec XF86KEYBOARD = {
 	NULL,
 	0
 };
+#endif
 
 static Bool
 xf86CreateRootWindow(WindowPtr pWin)
@@ -330,6 +332,10 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 
     /* Tell the loader the default module search path */
     LoaderSetPath(xf86ModulePath);
+
+    if (xf86Info.ignoreABI) {
+        LoaderSetOptions(LDR_OPT_ABI_MISMATCH_NONFATAL);
+    }
 
 #ifdef TESTING
     {
@@ -966,11 +972,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       if (!xf86Info.sharedMonitor) (xf86Screens[i]->EnterLeaveMonitor)(ENTER);
 #endif
   }
-
-    if ((serverGeneration == 1) && LoaderCheckUnresolved(LD_RESOLV_IFDONE)) {
-	/* For now, just a warning */
-	xf86Msg(X_WARNING, "Some symbols could not be resolved!\n");
-    }
 
   xf86PostScreenInit();
 

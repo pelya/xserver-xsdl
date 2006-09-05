@@ -609,6 +609,7 @@ __glGetBooleanv_size( GLenum e )
         case GL_MAX_RECTANGLE_TEXTURE_SIZE_ARB:
 /*      case GL_MAX_RECTANGLE_TEXTURE_SIZE_NV:*/
         case GL_MAX_TEXTURE_LOD_BIAS:
+        case GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT:
         case GL_MAX_SHININESS_NV:
         case GL_MAX_SPOT_EXPONENT_NV:
         case GL_TEXTURE_CUBE_MAP:
@@ -968,57 +969,6 @@ __glGetMinmaxParameterfv_size( GLenum e )
 }
 
 INTERNAL PURE FASTCALL GLint
-__glPointParameterfvEXT_size( GLenum e )
-{
-    switch( e ) {
-        case GL_POINT_SIZE_MIN:
-/*      case GL_POINT_SIZE_MIN_ARB:*/
-/*      case GL_POINT_SIZE_MIN_SGIS:*/
-        case GL_POINT_SIZE_MAX:
-/*      case GL_POINT_SIZE_MAX_ARB:*/
-/*      case GL_POINT_SIZE_MAX_SGIS:*/
-        case GL_POINT_FADE_THRESHOLD_SIZE:
-/*      case GL_POINT_FADE_THRESHOLD_SIZE_ARB:*/
-/*      case GL_POINT_FADE_THRESHOLD_SIZE_SGIS:*/
-        case GL_POINT_SPRITE_R_MODE_NV:
-        case GL_POINT_SPRITE_COORD_ORIGIN:
-            return 1;
-        case GL_POINT_DISTANCE_ATTENUATION:
-/*      case GL_POINT_DISTANCE_ATTENUATION_ARB:*/
-/*      case GL_POINT_DISTANCE_ATTENUATION_SGIS:*/
-            return 3;
-        default: return 0;
-    }
-}
-
-INTERNAL PURE FASTCALL GLint
-__glGetProgramivNV_size( GLenum e )
-{
-    switch( e ) {
-        case GL_PROGRAM_LENGTH_NV:
-        case GL_PROGRAM_TARGET_NV:
-        case GL_PROGRAM_RESIDENT_NV:
-            return 1;
-        default: return 0;
-    }
-}
-
-INTERNAL PURE FASTCALL GLint
-__glGetVertexAttribdvARB_size( GLenum e )
-{
-    switch( e ) {
-        case GL_VERTEX_PROGRAM_ARB:
-        case GL_VERTEX_ATTRIB_ARRAY_ENABLED_ARB:
-        case GL_VERTEX_ATTRIB_ARRAY_SIZE_ARB:
-        case GL_VERTEX_ATTRIB_ARRAY_STRIDE_ARB:
-        case GL_VERTEX_ATTRIB_ARRAY_TYPE_ARB:
-        case GL_CURRENT_VERTEX_ATTRIB_ARB:
-            return 1;
-        default: return 0;
-    }
-}
-
-INTERNAL PURE FASTCALL GLint
 __glGetProgramivARB_size( GLenum e )
 {
     switch( e ) {
@@ -1073,11 +1023,15 @@ __glGetProgramivARB_size( GLenum e )
 }
 
 INTERNAL PURE FASTCALL GLint
-__glGetQueryivARB_size( GLenum e )
+__glGetVertexAttribdvARB_size( GLenum e )
 {
     switch( e ) {
-        case GL_QUERY_COUNTER_BITS_ARB:
-        case GL_CURRENT_QUERY_ARB:
+        case GL_VERTEX_PROGRAM_ARB:
+        case GL_VERTEX_ATTRIB_ARRAY_ENABLED_ARB:
+        case GL_VERTEX_ATTRIB_ARRAY_SIZE_ARB:
+        case GL_VERTEX_ATTRIB_ARRAY_STRIDE_ARB:
+        case GL_VERTEX_ATTRIB_ARRAY_TYPE_ARB:
+        case GL_CURRENT_VERTEX_ATTRIB_ARB:
             return 1;
         default: return 0;
     }
@@ -1089,6 +1043,53 @@ __glGetQueryObjectivARB_size( GLenum e )
     switch( e ) {
         case GL_QUERY_RESULT_ARB:
         case GL_QUERY_RESULT_AVAILABLE_ARB:
+            return 1;
+        default: return 0;
+    }
+}
+
+INTERNAL PURE FASTCALL GLint
+__glGetQueryivARB_size( GLenum e )
+{
+    switch( e ) {
+        case GL_QUERY_COUNTER_BITS_ARB:
+        case GL_CURRENT_QUERY_ARB:
+            return 1;
+        default: return 0;
+    }
+}
+
+INTERNAL PURE FASTCALL GLint
+__glPointParameterfvEXT_size( GLenum e )
+{
+    switch( e ) {
+        case GL_POINT_SIZE_MIN:
+/*      case GL_POINT_SIZE_MIN_ARB:*/
+/*      case GL_POINT_SIZE_MIN_SGIS:*/
+        case GL_POINT_SIZE_MAX:
+/*      case GL_POINT_SIZE_MAX_ARB:*/
+/*      case GL_POINT_SIZE_MAX_SGIS:*/
+        case GL_POINT_FADE_THRESHOLD_SIZE:
+/*      case GL_POINT_FADE_THRESHOLD_SIZE_ARB:*/
+/*      case GL_POINT_FADE_THRESHOLD_SIZE_SGIS:*/
+        case GL_POINT_SPRITE_R_MODE_NV:
+        case GL_POINT_SPRITE_COORD_ORIGIN:
+            return 1;
+        case GL_POINT_DISTANCE_ATTENUATION:
+/*      case GL_POINT_DISTANCE_ATTENUATION_ARB:*/
+/*      case GL_POINT_DISTANCE_ATTENUATION_SGIS:*/
+            return 3;
+        default: return 0;
+    }
+}
+
+INTERNAL PURE FASTCALL GLint
+__glGetProgramivNV_size( GLenum e )
+{
+    switch( e ) {
+        case GL_PROGRAM_LENGTH_NV:
+        case GL_PROGRAM_TARGET_NV:
+        case GL_PROGRAM_RESIDENT_NV:
             return 1;
         default: return 0;
     }
@@ -1153,10 +1154,12 @@ ALIAS( GetHistogramParameteriv, GetHistogramParameterfv )
 ALIAS( GetMinmaxParameteriv, GetMinmaxParameterfv )
 ALIAS( GetVertexAttribfvARB, GetVertexAttribdvARB )
 ALIAS( GetVertexAttribivARB, GetVertexAttribdvARB )
-ALIAS( PointParameterivNV, PointParameterfvEXT )
 ALIAS( GetQueryObjectuivARB, GetQueryObjectivARB )
+ALIAS( GetColorTableParameterfvSGI, GetColorTableParameterfv )
+ALIAS( GetColorTableParameterivSGI, GetColorTableParameterfv )
 ALIAS( GetVertexAttribfvNV, GetVertexAttribdvNV )
 ALIAS( GetVertexAttribivNV, GetVertexAttribdvNV )
+ALIAS( PointParameterivNV, PointParameterfvEXT )
 
 #  undef PURE
 #  undef FASTCALL
