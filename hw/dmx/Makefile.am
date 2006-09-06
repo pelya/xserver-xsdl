@@ -83,6 +83,7 @@ Xdmx_LDADD = $(XORG_CORE_LIBS) \
 
 Xdmx_CFLAGS = \
               -DHAVE_DMX_CONFIG_H \
+              $(DIX_CFLAGS) \
               $(GLX_INCS) \
               $(GLX_DEFS) \
               @DMXMODULES_CFLAGS@
