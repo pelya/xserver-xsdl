@@ -514,9 +514,3 @@ static int __glXDispatch(ClientPtr client)
 
     return retval;
 }
-
-void __glXNoSuchRenderOpcode(GLbyte *pc)
-{
-    return;
-}
-

@@ -5,10 +5,6 @@ INCLUDES = 					\
 
 bin_PROGRAMS = Xr128
 
-if TSLIB
-TSLIB_FLAG = -lts
-endif
-
 noinst_LIBRARIES = libr128.a
 
 libr128_a_SOURCES = 	\
@@ -27,5 +23,4 @@ R128_LIBS =					\
 Xr128_LDADD = \
 	$(R128_LIBS)				\
 	@KDRIVE_LIBS@                          \
-	@XSERVER_LIBS@					\
-	$(TSLIB_FLAG)
+	@XSERVER_LIBS@					

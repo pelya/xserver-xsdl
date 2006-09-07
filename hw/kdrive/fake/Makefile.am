@@ -6,10 +6,6 @@ noinst_LIBRARIES = libfake.a
 
 bin_PROGRAMS = Xfake
 
-if TSLIB
-TSLIB_FLAG = -lts
-endif
-
 libfake_a_SOURCES =	\
 	fake.c		\
 	kbd.c		\
@@ -23,6 +19,4 @@ Xfake_SOURCES = \
 Xfake_LDADD = 						\
 	libfake.a					\
 	@KDRIVE_LIBS@					\
-	@KDRIVE_LIBS@					\
-	$(TSLIB_FLAG)                                   \
         @XSERVER_LIBS@

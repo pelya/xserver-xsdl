@@ -17,10 +17,6 @@ INCLUDES = 					\
 
 bin_PROGRAMS = Xsis
 
-if TSLIB
-TSLIB_FLAG = -lts
-endif
-
 noinst_LIBRARIES = libsis.a
 
 libsis_a_SOURCES = 	\

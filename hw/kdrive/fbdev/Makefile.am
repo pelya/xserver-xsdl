@@ -4,10 +4,6 @@ INCLUDES = 					\
 
 noinst_LIBRARIES = libfbdev.a
 
-if TSLIB
-TSLIB_FLAG = -lts
-endif
-
 libfbdev_a_SOURCES =	\
 	fbdev.c		\
 	fbdev.h
@@ -21,6 +17,5 @@ Xfbdev_SOURCES = \
 Xfbdev_LDADD = 						\
 	libfbdev.a					\
 	@KDRIVE_LIBS@					\
-	@XSERVER_LIBS@					\
-	$(TSLIB_FLAG)
+	@XSERVER_LIBS@
 endif

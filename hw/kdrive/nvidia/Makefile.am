@@ -7,10 +7,6 @@ bin_PROGRAMS = Xnvidia
 
 noinst_LIBRARIES = libnvidia.a
 
-if TSLIB
-TSLIB_FLAG = -lts
-endif
-
 #	nvidiavideo.c
 
 libnvidia_a_SOURCES = 	\
@@ -30,5 +26,4 @@ NVIDIA_LIBS =					\
 Xnvidia_LDADD = \
 	$(NVIDIA_LIBS)				\
 	@KDRIVE_LIBS@				\
-	@XSERVER_LIBS@					\
-	$(TSLIB_FLAG)
+	@XSERVER_LIBS@			
