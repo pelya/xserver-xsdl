@@ -136,6 +136,9 @@ void __glXsetEnterLeaveServerFuncs(void (*enter)(void),
 void __glXenterServer(void);
 void __glXleaveServer(void);
 
+void glxSuspendClients(void);
+void glxResumeClients(void);
+
 /*
 ** State kept per client.
 */
@@ -175,8 +178,6 @@ struct __GLXclientStateRec {
     int GLClientminorVersion;
     char *GLClientextensions;
 };
-
-extern __GLXclientState *__glXClients[];
 
 /************************************************************************/
 

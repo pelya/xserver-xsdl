@@ -73,6 +73,9 @@ struct __GLXDRIscreen {
     __DRIscreen			 driScreen;
     void			*driver;
 
+    xf86EnterVTProc *enterVT;
+    xf86LeaveVTProc *leaveVT;
+
     unsigned char glx_enable_bits[__GLX_EXT_BYTES];
 };
 
@@ -622,8 +625,7 @@ static __DRIfuncPtr getProcAddress(const char *proc_name)
 
 static __DRIscreen *findScreen(__DRInativeDisplay *dpy, int scrn)
 {
-    __GLXDRIscreen *screen =
-	(__GLXDRIscreen *) __glXgetActiveScreen(scrn);
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) __glXgetActiveScreen(scrn);
 
     return &screen->driScreen;
 }
@@ -817,6 +819,30 @@ static const __DRIinterfaceMethods interface_methods = {
 
 static const char dri_driver_path[] = DRI_DRIVER_PATH;
 
+static Bool
+glxDRIEnterVT (int index, int flags)
+{
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) __glXgetActiveScreen(index);
+
+    LogMessage(X_INFO, "AIGLX: Resuming AIGLX clients after VT switch\n");
+
+    glxResumeClients();
+
+    return (*screen->enterVT) (index, flags);
+}
+
+static void
+glxDRILeaveVT (int index, int flags)
+{
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) __glXgetActiveScreen(index);
+
+    LogMessage(X_INFO, "AIGLX: Suspending AIGLX clients for VT switch\n");
+
+    glxSuspendClients();
+
+    return (*screen->leaveVT) (index, flags);
+}
+
 static __GLXscreen *
 __glXDRIscreenProbe(ScreenPtr pScreen)
 {
@@ -842,6 +868,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     char filename[128];
     Bool isCapable;
     size_t buffer_size;
+    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
 
     if (!xf86LoaderCheckSymbol("DRIQueryDirectRenderingCapable")) {
 	LogMessage(X_ERROR, "AIGLX: DRI module not loaded\n");
@@ -1028,6 +1055,11 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     _gl_context_modes_destroy(driver_modes);
 
     __glXsetEnterLeaveServerFuncs(__glXDRIenterServer, __glXDRIleaveServer);
+
+    screen->enterVT = pScrn->EnterVT;
+    pScrn->EnterVT = glxDRIEnterVT; 
+    screen->leaveVT = pScrn->LeaveVT;
+    pScrn->LeaveVT = glxDRILeaveVT;
 
     LogMessage(X_INFO,
 	       "AIGLX: Loaded and initialized %s\n", filename);
