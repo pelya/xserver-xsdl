@@ -1476,6 +1476,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
     }
 
     /* geometry */
+    /* not implemented yet because oh god the pain. */
+#if 0
     if (src->geom) {
         /* properties */
         /* colors */
@@ -1485,9 +1487,13 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         /* key aliases */
         /* font?!? */
     }
-    else {
+    else
+#endif
+    {
         if (dst->geom) {
+            /* I LOVE THE DIFFERENT CALL SIGNATURE.  REALLY, I DO. */
             XkbFreeGeometry(dst->geom, XkbGeomAllMask, True);
+            dst->geom = NULL;
         }
     }
 
@@ -1520,7 +1526,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         }
         else {
             /* send NewKeyboardNotify if the keycode range changed, else
-             * just MapNotify. */
+             * just MapNotify.  we also need to send NKN if the geometry
+             * changed (obviously ...). */
             if ((src->min_key_code != dst->min_key_code ||
                  src->max_key_code != dst->max_key_code) && sendNotifies) {
                 nkn.oldMinKeyCode = dst->min_key_code;
