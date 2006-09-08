@@ -80,7 +80,7 @@ extern int extensionPrivateLen;
 extern unsigned *extensionPrivateSizes;
 extern unsigned totalExtensionSize;
 
-static int
+static void
 InitExtensionPrivates(ExtensionEntry *ext)
 {
     register char *ptr;
@@ -107,7 +107,6 @@ InitExtensionPrivates(ExtensionEntry *ext)
 	else
 	    ppriv->ptr = (pointer)NULL;
     }
-    return 1;
 }
 
 _X_EXPORT ExtensionEntry *
@@ -127,9 +126,10 @@ AddExtension(char *name, int NumEvents, int NumErrors,
         return((ExtensionEntry *) NULL);
 
     ext = (ExtensionEntry *) xalloc(totalExtensionSize);
-    if (!ext || !InitExtensionPrivates(ext))
+    if (!ext)
 	return((ExtensionEntry *) NULL);
     bzero(ext, totalExtensionSize);
+    InitExtensionPrivates(ext);
     ext->name = (char *)xalloc(strlen(name) + 1);
     ext->num_aliases = 0;
     ext->aliases = (char **)NULL;
