@@ -414,6 +414,7 @@ AC_ARG_ENABLE(xinerama,	      AS_HELP_STRING([--disable-xinerama], [Build Xinera
 AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF86VidMode extension (default: enabled)]), [XF86VIDMODE=$enableval], [XF86VIDMODE=yes])
 AC_ARG_ENABLE(xf86misc,       AS_HELP_STRING([--disable-xf86misc], [Build XF86Misc extension (default: enabled)]), [XF86MISC=$enableval], [XF86MISC=yes])
 AC_ARG_ENABLE(xace,     AS_HELP_STRING([--disable-xace], [Build X-ACE extension (default: enabled)]), [XACE=$enableval], [XACE=yes])
+AC_ARG_ENABLE(xselinux,     AS_HELP_STRING([--disable-xselinux], [Build SELinux extension (default: enabled)]), [XSELINUX=$enableval], [XSELINUX=$XACE])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Security extension (default: enabled)]), [XCSECURITY=$enableval], [XCSECURITY=$XACE])
 AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: enabled)]), [APPGROUP=$enableval], [APPGROUP=$XCSECURITY])
 AC_ARG_ENABLE(xcalibrate,     AS_HELP_STRING([--enable-xcalibrate], [Build XCalibrate extension (default: disabled)]), [XCALIBRATE=$enableval], [XCALIBRATE=no])
@@ -625,6 +626,19 @@ fi
 AM_CONDITIONAL(XACE, [test "x$XACE" = xyes])
 if test "x$XACE" = xyes; then
 	AC_DEFINE(XACE, 1, [Build X-ACE extension])
+fi
+
+AM_CONDITIONAL(XSELINUX, [test "x$XSELINUX" = xyes])
+if test "x$XSELINUX" = xyes; then
+	if test "x$XACE" != xyes; then
+		AC_MSG_ERROR([cannot build SELinux extension without X-ACE])
+	fi
+	AC_CHECK_HEADERS([selinux/selinux.h selinux/avc.h], [], AC_MSG_ERROR([SELinux include files not found]))
+	AC_CHECK_LIB(selinux, avc_init, [], AC_MSG_ERROR([SELinux library not found])) 
+	AC_CHECK_HEADERS([libaudit.h], [], AC_MSG_ERROR([SELinux extension requires audit system headers]))
+	AC_CHECK_LIB(audit, audit_log_avc, [], AC_MSG_ERROR([SELinux extension requires audit system library]))
+	AC_DEFINE(XSELINUX, 1, [Build SELinux extension])
+	SELINUX_LIB="-lselinux -laudit"
 fi
 
 AM_CONDITIONAL(XCSECURITY, [test "x$XCSECURITY" = xyes])
@@ -1042,7 +1056,7 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
 	XORG_INCS="$XORG_DDXINCS $XORG_OSINCS"
 	XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
-	XORG_LIBS="$COMPOSITE_LIB $MI_LIB $FIXES_LIB $XEXTXORG_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XPSTUBS_LIB $OS_LIB"
+	XORG_LIBS="$COMPOSITE_LIB $MI_LIB $FIXES_LIB $XEXTXORG_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XPSTUBS_LIB $SELINUX_LIB $OS_LIB"
 
 dnl Check to see if dlopen is in default libraries (like Solaris, which
 dnl has it in libc), or if libdl is needed to get it.
