@@ -248,6 +248,9 @@ typedef void (*InitExtension)(INITARGS);
 #include "securitysrv.h"
 #include <X11/extensions/securstr.h>
 #endif
+#ifdef XSELINUX
+#include "xselinux.h"
+#endif
 #ifdef PANORAMIX
 #include <X11/extensions/panoramiXproto.h>
 #endif
@@ -320,6 +323,10 @@ extern void XaceExtensionInit(INITARGS);
 #ifdef XCSECURITY
 extern void SecurityExtensionSetup(INITARGS);
 extern void SecurityExtensionInit(INITARGS);
+#endif
+#ifdef XSELINUX
+extern void XSELinuxExtensionSetup(INITARGS);
+extern void XSELinuxExtensionInit(INITARGS);
 #endif
 #ifdef XPRINT
 extern void XpExtensionInit(INITARGS);
@@ -532,6 +539,9 @@ InitExtensions(argc, argv)
 #ifdef XCSECURITY
     SecurityExtensionSetup();
 #endif
+#ifdef XSELINUX
+    XSELinuxExtensionSetup();
+#endif
 #ifdef PANORAMIX
 # if !defined(PRINT_ONLY_SERVER) && !defined(NO_PANORAMIX)
   if (!noPanoramiXExtension) PanoramiXExtensionInit();
@@ -599,6 +609,9 @@ InitExtensions(argc, argv)
 #endif
 #ifdef XCSECURITY
     if (!noSecurityExtension) SecurityExtensionInit();
+#endif
+#ifdef XSELINUX
+    XSELinuxExtensionInit();
 #endif
 #ifdef XPRINT
     XpExtensionInit(); /* server-specific extension, cannot be disabled */
@@ -704,6 +717,9 @@ static ExtensionModule staticExtensions[] = {
 #endif
 #ifdef XCSECURITY
     { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, SecurityExtensionSetup, NULL },
+#endif
+#ifdef XSELINUX
+    { XSELinuxExtensionInit, XSELINUX_EXTENSION_NAME, NULL, XSELinuxExtensionSetup, NULL },
 #endif
 #ifdef XPRINT
     { XpExtensionInit, XP_PRINTNAME, NULL, NULL, NULL },
