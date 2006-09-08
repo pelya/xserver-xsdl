@@ -1,0 +1,83 @@
+#
+# Config file for XSELinux extension
+#
+
+#
+# The nonlocal_context rule defines a context to be used for all clients
+# connecting to the server from a remote host.  The nonlocal context must
+# be defined, and it must be a valid context according to the SELinux
+# security policy.  Only one nonlocal_context rule may be defined.
+#
+nonlocal_context			system_u:object_r:remote_xclient_t:s1
+
+#
+# Property rules map a property name to a SELinux type.  The type must
+# be valid according to the SELinux security policy.  There can be any
+# number of property rules.  Additionally, a default property type can be
+# defined for all properties not explicitly listed.  The default
+# property type may not be omitted.  The default rule may appear in
+# any position (it need not be the last property rule listed).
+#
+property WM_NAME			wm_property_t
+property WM_CLASS			wm_property_t
+property WM_ICON_NAME			wm_property_t
+property WM_HINTS			wm_property_t
+property WM_NORMAL_HINTS		wm_property_t
+property WM_COMMAND			wm_property_t
+
+property CUT_BUFFER0			cut_buffer_property_t
+property CUT_BUFFER1			cut_buffer_property_t
+property CUT_BUFFER2			cut_buffer_property_t
+property CUT_BUFFER3			cut_buffer_property_t
+property CUT_BUFFER4			cut_buffer_property_t
+property CUT_BUFFER5			cut_buffer_property_t
+property CUT_BUFFER6			cut_buffer_property_t
+property CUT_BUFFER7			cut_buffer_property_t
+
+property default			unknown_property_t
+
+#
+# Extension rules map an extension name to a SELinux type.  The type must
+# be valid according to the SELinux security policy.  There can be any
+# number of extension rules.  Additionally, a default extension type can
+# be defined for all extensions not explicitly listed.  The default
+# extension type may not be omitted.  The default rule may appear in
+# any position (it need not be the last extension rule listed).
+#
+extension BIG-REQUESTS			std_ext_t
+extension DOUBLE-BUFFER			std_ext_t
+extension DPMS				screensaver_ext_t
+extension Extended-Visual-Information	std_ext_t
+extension FontCache			font_ext_t
+extension GLX				std_ext_t
+extension LBX				std_ext_t
+extension MIT-SCREEN-SAVER		screensaver_ext_t
+extension MIT-SHM			shmem_ext_t
+extension MIT-SUNDRY-NONSTANDARD	std_ext_t
+extension NV-CONTROL			accelgraphics_ext_t
+extension NV-GLX			accelgraphics_ext_t
+extension NVIDIA-GLX			accelgraphics_ext_t
+extension RANDR				std_ext_t
+extension RECORD			debug_ext_t
+extension RENDER			std_ext_t
+extension SECURITY			security_ext_t
+extension SELinux			security_ext_t
+extension SHAPE				std_ext_t
+extension SYNC				sync_ext_t
+extension TOG-CUP			windowmgr_ext_t
+extension X-Resource			debug_ext_t
+extension XAccessControlExtension	security_ext_t
+extension XACEUSR			security_ext_t
+extension XC-APPGROUP			security_ext_t
+extension XC-MISC			std_ext_t
+extension XFree86-Bigfont		font_ext_t
+extension XFree86-DGA			accelgraphics_ext_t
+extension XFree86-Misc			std_ext_t
+extension XFree86-VidModeExtension	video_ext_t
+extension XInputExtension		input_ext_t
+extension XKEYBOARD			input_ext_t
+extension XpExtension                   std_ext_t
+extension XTEST				debug_ext_t
+extension XVideo			video_ext_t
+extension XVideo-MotionCompensation	video_ext_t
+extension default			unknown_ext_t
