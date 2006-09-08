@@ -1131,12 +1131,6 @@ CALLBACK(SecurityClientStateCallback)
 	    XID authId = AuthorizationIDOfClient(client);
 	    SecurityAuthorizationPtr pAuth;
 
-	    /* allocate space for security state */
-	    STATEPTR(client) = xalloc(sizeof(SecurityClientStateRec));
-	    if (!STATEPTR(client))
-		FatalError("Client %d: couldn't allocate security state\n",
-			   client->index);
-
 	    TRUSTLEVEL(client) = XSecurityClientTrusted;
 	    AUTHID(client) = authId;
 	    pAuth = (SecurityAuthorizationPtr)LookupIDByType(authId,
