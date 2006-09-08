@@ -3612,8 +3612,13 @@ CloseDownRetainedResources()
     }
 }
 
+extern int clientPrivateLen;
+extern unsigned *clientPrivateSizes;
+extern unsigned totalClientSize;
+
 void InitClient(ClientPtr client, int i, pointer ospriv)
 {
+    bzero(client, totalClientSize);
     client->index = i;
     client->sequence = 0; 
     client->clientAsMask = ((Mask)i) << CLIENTOFFSET;
@@ -3663,10 +3668,6 @@ void InitClient(ClientPtr client, int i, pointer ospriv)
     client->smart_check_tick = SmartScheduleTime;
 #endif
 }
-
-extern int clientPrivateLen;
-extern unsigned *clientPrivateSizes;
-extern unsigned totalClientSize;
 
 int
 InitClientPrivates(ClientPtr client)
