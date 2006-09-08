@@ -317,6 +317,9 @@
 /* Build X-ACE extension */
 #undef XACE
 
+/* Build SELinux extension */
+#undef XSELINUX
+
 /* Support XCMisc extension */
 #undef XCMISC
 
