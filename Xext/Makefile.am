@@ -76,6 +76,16 @@ if XACE
 BUILTIN_SRCS += $(XACE_SRCS)
 endif
 
+# SELinux extension: provides SELinux policy support for X objects
+# requires X-ACE extension
+XSELINUX_SRCS = xselinux.c xselinux.h
+if XSELINUX
+BUILTIN_SRCS += $(XSELINUX_SRCS)
+
+SERVERCONFIG_DATA += XSELinuxConfig
+AM_CFLAGS += -DXSELINUXCONFIGFILE=\"$(SERVERCONFIGdir)/XSELinuxConfig\"
+endif
+
 # Security extension: multi-level security to protect clients from each other
 XCSECURITY_SRCS = security.c securitysrv.h
 if XCSECURITY   
