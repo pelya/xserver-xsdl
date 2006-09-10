@@ -20,7 +20,7 @@ applications to use devices like printers, FAX or create
 documents in formats like PostScript, PCL or PDF. It may be used by
 clients such as mozilla.
 .PP
-Xprint is a very flexible, extensible, scaleable, client/server
+Xprint is a very flexible, extensible, scalable, client/server
 print system based on ISO 10175 (and some other specs) and the X11 
 rendering protocol. 
 Using Xprint an application can search, query and use devices like 
@@ -85,7 +85,7 @@ points for clients), but establishes at least
 one.
 .TP 
 \fB\-XpFile \fIfile\fB\fR 
-Sets an altername Xprinters file (see section FILES).
+Sets an alternate Xprinters file (see section FILES).
 .TP 
 \fB\-XpSpoolerType \fIspoolername\fB\fR 
 Defines the spooler system to be used for print job spooling.
@@ -113,7 +113,7 @@ other
 
 none
 
-(multiple values can be specified, seperated by ':', the first active spooler will be chosen).
+(multiple values can be specified, separated by ':', the first active spooler will be chosen).
 The default value is platform-specific and can be obtained via
 
 .nf
