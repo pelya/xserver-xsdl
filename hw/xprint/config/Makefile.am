@@ -709,4 +709,4 @@ install-data-local: remove-links
 
 uninstall-hook: remove-links
 
-EXTRA_DIST = README
+dist_xpconfig_DATA = README
