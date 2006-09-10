@@ -242,7 +242,7 @@ XkbMapChangesPtr	mc;
 	    xkb->min_key_code= first;
 	    /* 1/12/95 (ef) -- XXX! should zero out the new maps */
 	    changes->map.changed|= XkbKeycodesMask;
-generate a NewKeyboard notify here?
+/* generate a NewKeyboard notify here? */
 	}
     }
 #endif

@@ -135,6 +135,7 @@ of the copyright holder.
 #include <X11/extensions/XKBproto.h>
 #include <X11/extensions/XKBsrv.h>
 extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
+extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
 #endif
 
 #ifdef XCSECURITY
