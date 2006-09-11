@@ -1464,6 +1464,7 @@ transformIsIdentity(PictTransform *t)
 {
     return ((t->matrix[0][0] == t->matrix[1][1]) &&
             (t->matrix[0][0] == t->matrix[2][2]) &&
+            (t->matrix[0][0] != 0) &&
             (t->matrix[0][1] == 0) &&
             (t->matrix[0][2] == 0) &&
             (t->matrix[1][0] == 0) &&
