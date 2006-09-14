@@ -2201,6 +2201,7 @@ configMonitor(MonPtr monitorp, XF86ConfMonitorPtr conf_monitor)
     monitorp->widthmm = conf_monitor->mon_width;
     monitorp->heightmm = conf_monitor->mon_height;
     monitorp->reducedblanking = FALSE;
+    monitorp->maxPixClock = 0;
     monitorp->options = conf_monitor->mon_option_lst;
 
     /*

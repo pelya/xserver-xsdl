@@ -824,6 +824,9 @@ xf86CheckModeForMonitor(DisplayModePtr mode, MonPtr monitor)
         }
     }
 
+    if ((monitor->maxPixClock) && (mode->Clock > monitor->maxPixClock))
+	return MODE_CLOCK_HIGH;
+
     return MODE_OK;
 }
 

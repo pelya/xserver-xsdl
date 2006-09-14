@@ -296,7 +296,7 @@ void
 xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 {
     DisplayModePtr Modes = NULL, Mode;
-    int i;
+    int i, clock;
     
     if (!Monitor || !DDC)
         return;
@@ -338,6 +338,10 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
             Monitor->nVrefresh = 1;
             Monitor->vrefresh[0].lo = DDC->det_mon[i].section.ranges.min_v;
             Monitor->vrefresh[0].hi = DDC->det_mon[i].section.ranges.max_v;
+
+	    clock = DDC->det_mon[i].section.ranges.max_clock * 1000;
+	    if (clock > Monitor->maxPixClock)
+		Monitor->maxPixClock = clock;
 
             break;
         case DT:
