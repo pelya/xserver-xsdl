@@ -297,6 +297,7 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 {
     DisplayModePtr Modes = NULL, Mode;
     int i, clock;
+    Bool have_hsync = FALSE, have_vrefresh = FALSE;
     
     if (!Monitor || !DDC)
         return;
@@ -319,25 +320,41 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
     Mode = DDCModesFromStandardTiming(scrnIndex, DDC->timings2);
     Modes = xf86ModesAdd(Modes, Mode);
 
+    /* Skip EDID ranges if they were specified in the config file */
+    have_hsync = (Monitor->nHsync != 0);
+    have_vrefresh = (Monitor->nVrefresh != 0);
+
     /* Go through the detailed monitor sections */
     for (i = 0; i < DET_TIMINGS; i++)
         switch (DDC->det_mon[i].type) {
         case DS_RANGES:
-            if (Monitor->nHsync && Monitor->nVrefresh) {
-                xf86DrvMsg(scrnIndex, X_INFO, "Ignoring EDID Ranges. Using"
-                           " configured ranges.\n");
-                break;
-            }
+	    if (!have_hsync) {
+		if (!Monitor->nHsync)
+		    xf86DrvMsg(scrnIndex, X_INFO,
+			    "Using EDID range info for horizontal sync\n");
+		Monitor->hsync[Monitor->nHsync].lo =
+		    DDC->det_mon[i].section.ranges.min_h;
+		Monitor->hsync[Monitor->nHsync].hi =
+		    DDC->det_mon[i].section.ranges.max_h;
+		Monitor->nHsync++;
+	    } else {
+		xf86DrvMsg(scrnIndex, X_INFO,
+			"Using hsync ranges from config file\n");
+	    }
 
-            xf86DrvMsg(scrnIndex, X_INFO, "Using EDID ranges info for Monitor"
-                       " timing.\n");
-            Monitor->nHsync = 1;
-            Monitor->hsync[0].lo = DDC->det_mon[i].section.ranges.min_h;
-            Monitor->hsync[0].hi = DDC->det_mon[i].section.ranges.max_h;
-            
-            Monitor->nVrefresh = 1;
-            Monitor->vrefresh[0].lo = DDC->det_mon[i].section.ranges.min_v;
-            Monitor->vrefresh[0].hi = DDC->det_mon[i].section.ranges.max_v;
+	    if (!have_vrefresh) {
+		if (!Monitor->nVrefresh)
+		    xf86DrvMsg(scrnIndex, X_INFO,
+			    "Using EDID range info for vertical refresh\n");
+		Monitor->vrefresh[Monitor->nVrefresh].lo =
+		    DDC->det_mon[i].section.ranges.min_v;
+		Monitor->vrefresh[Monitor->nVrefresh].hi =
+		    DDC->det_mon[i].section.ranges.max_v;
+		Monitor->nVrefresh++;
+	    } else {
+		xf86DrvMsg(scrnIndex, X_INFO,
+			"Using vrefresh ranges from config file\n");
+	    }
 
 	    clock = DDC->det_mon[i].section.ranges.max_clock * 1000;
 	    if (clock > Monitor->maxPixClock)
