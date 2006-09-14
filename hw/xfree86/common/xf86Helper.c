@@ -1635,6 +1635,8 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 
     *foundEntities = NULL;
 
+    if (!xf86PciVideoInfo)
+	return 0;
 
     /* Each PCI device will contribute at least one entry.  Each device
      * section can contribute at most one entry.  The sum of the two is
