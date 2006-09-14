@@ -47,6 +47,9 @@ extern xf86vdifPtr xf86InterpretVdif(
     CARD8 *c
 );
 
+extern void 
+xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC);
+
 extern Bool xf86SetDDCproperties(
     ScrnInfoPtr pScreen,
     xf86MonPtr DDC

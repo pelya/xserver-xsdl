@@ -45,7 +45,6 @@
 #include "globals.h"
 #include "xf86.h"
 #include "xf86Priv.h"
-#include "xf86DDC.h"
 
 static void
 printModeRejectMessage(int index, DisplayModePtr p, int status)
@@ -766,31 +765,6 @@ xf86CheckModeForMonitor(DisplayModePtr mode, MonPtr monitor)
 	   mode, mode->name, monitor, monitor->id);
 #endif
 
-    if (monitor->DDC) {
-	xf86MonPtr DDC = (xf86MonPtr)(monitor->DDC);
-	struct detailed_monitor_section* detMon;
-	struct monitor_ranges *mon_range;
-	int i;
-
-	mon_range = NULL;
-	for (i = 0; i < 4; i++) {
-	    detMon = &DDC->det_mon[i];
-	    if(detMon->type == DS_RANGES) {
-		mon_range = &detMon->section.ranges;
-	    }
-	}
-	if (mon_range) {
-	    /* mode->Clock in kHz, DDC in MHz */
-	    if (mon_range->max_clock < 2550 &&
-		 mode->Clock / 1000.0 > mon_range->max_clock) {
-		xf86Msg(X_WARNING,
-		   "(%s,%s) mode clock %gMHz exceeds DDC maximum %dMHz\n",
-		   mode->name, monitor->id,
-		   mode->Clock/1000.0, mon_range->max_clock);
-	    }
-	}
-    }
-
     /* Some basic mode validity checks */
     if (0 >= mode->HDisplay || mode->HDisplay > mode->HSyncStart ||
 	mode->HSyncStart >= mode->HSyncEnd || mode->HSyncEnd >= mode->HTotal)
@@ -1267,7 +1241,6 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
     PixmapFormatRec *BankFormat;
     ClockRangePtr cp;
     ClockRangesPtr storeClockRanges;
-    struct monitor_ranges *mon_range = NULL;
     double targetRefresh = 0.0;
     int numTimings = 0;
     range hsync[MAX_HSYNC];
@@ -1299,166 +1272,6 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
     if ((virtualX > 0) != (virtualY > 0)) {
 	ErrorF("xf86ValidateModes: called with invalid virtual resolution\n");
 	return -1;
-    }
-
-    /*
-     * Probe monitor so that we can enforce/warn about its limits.
-     * If one or more DS_RANGES descriptions are present, use the parameters
-     * that they provide.  Otherwise, deduce limits based on the modes that
-     * are shown as supported via standard and detailed timings.
-     *
-     * XXX The full potential of the DDC/EDID data still isn't being tapped.
-     */
-    if (scrp->monitor->DDC) {
-	MonPtr monitor = scrp->monitor;
-	xf86MonPtr DDC = (xf86MonPtr)(scrp->monitor->DDC);
-	int i, j;
-	float hmin = 1e6, hmax = 0.0, vmin = 1e6, vmax = 0.0;
-	float h;
-	struct std_timings *t;
-	struct detailed_timings *dt;
-
-	numTimings = 0;
-	for (i = 0; i < DET_TIMINGS; i++) {
-	    switch (DDC->det_mon[i].type) {
-	    case DS_RANGES:
-		mon_range = &DDC->det_mon[i].section.ranges;
-		hsync[numTimings].lo = mon_range->min_h;
-		hsync[numTimings].hi = mon_range->max_h;
-		vrefresh[numTimings].lo = mon_range->min_v;
-		vrefresh[numTimings].hi = mon_range->max_v;
-		numTimings++;
-		break;
-
-	    case DS_STD_TIMINGS:
-		t = DDC->det_mon[i].section.std_t;
-		for (j = 0; j < 5; j++) {
-		    if (t[j].hsize > 256) { /* sanity check */
-			if (t[j].refresh < vmin)
-			    vmin = t[i].refresh;
-			if (t[j].refresh > vmax)
-			    vmax = t[i].refresh;
-			/*
-			 * For typical modes this is a reasonable estimate
-			 * of the horizontal sync rate.
-			 */
-			h = t[j].refresh * 1.07 * t[j].vsize / 1000.0;
-			if (h < hmin)
-			    hmin = h;
-			if (h > hmax)
-			    hmax = h;
-		    }
-		}
-		break;
-
-	    case DT:
-		dt = &DDC->det_mon[i].section.d_timings;
-		if (dt->clock > 15000000) { /* sanity check */
-		    float v;
-		    h = (float)dt->clock / (dt->h_active + dt->h_blanking);
-		    v = h / (dt->v_active + dt->v_blanking);
-		    h /= 1000.0;
-		    if (dt->interlaced) 
-			v /= 2.0;
-
-		    if (v < vmin)
-			vmin = v;
-		    if (v > vmax)
-			vmax = v;
-		    if (h < hmin)
-			hmin = h;
-		    if (h > hmax)
-			hmax = h;
-		}
-		break;
-	    }
-
-	    if (numTimings > MAX_HSYNC)
-		break;
-	}
-
-	if (numTimings == 0) {
-	    t = DDC->timings2;
-	    for (i = 0; i < STD_TIMINGS; i++) {
-		if (t[i].hsize > 256) { /* sanity check */
-		    if (t[i].refresh < vmin)
-			vmin = t[i].refresh;
-		    if (t[i].refresh > vmax)
-			vmax = t[i].refresh;
-		    /*
-		     * For typical modes this is a reasonable estimate
-		     * of the horizontal sync rate.
-		     */
-		    h = t[i].refresh * 1.07 * t[i].vsize / 1000.0;
-		    if (h < hmin)
-			hmin = h;
-		    if (h > hmax)
-			hmax = h;
-		}
-	    }
-
-	    if (hmax > 0.0) {
-		hsync[numTimings].lo = hmin;
-		hsync[numTimings].hi = hmax;
-		vrefresh[numTimings].lo = vmin;
-		vrefresh[numTimings].hi = vmax;
-		numTimings++;
-	    }
-	}
-
-	if (numTimings > 0) {
-
-#ifdef DEBUG
-	    for (i = 0; i < numTimings; i++) {
-		ErrorF("DDC - Hsync %.1f-%.1f kHz - Vrefresh %.1f-%.1f Hz\n",
-		       hsync[i].lo, hsync[i].hi,
-		       vrefresh[i].lo, vrefresh[i].hi);
-	    }
-#endif
-
-#define DDC_SYNC_TOLERANCE SYNC_TOLERANCE
-	    if (monitor->nHsync > 0) {
-		for (i = 0; i < monitor->nHsync; i++) {
-		    Bool good = FALSE;
-		    for (j = 0; j < numTimings; j++) {
-			if ((1.0 - DDC_SYNC_TOLERANCE) * hsync[j].lo <=
-				monitor->hsync[i].lo &&
-			    (1.0 + DDC_SYNC_TOLERANCE) * hsync[j].hi >=
-				monitor->hsync[i].hi) {
-			    good = TRUE;
-			    break;
-			}
-		    }
-		    if (!good) {
-			xf86DrvMsg(scrp->scrnIndex, X_WARNING,
-			  "config file hsync range %g-%gkHz not within DDC "
-			  "hsync ranges.\n",
-			  monitor->hsync[i].lo, monitor->hsync[i].hi);
-		    }
-		}
-	    }
-
-	    if (monitor->nVrefresh > 0) {
-		for (i = 0; i < monitor->nVrefresh; i++) {
-		    Bool good = FALSE;
-		    for (j = 0; j < numTimings; j++) {
-			if ((1.0 - DDC_SYNC_TOLERANCE) * vrefresh[j].lo <=
-				monitor->vrefresh[0].lo &&
-			    (1.0 + DDC_SYNC_TOLERANCE) * vrefresh[j].hi >=
-				monitor->vrefresh[0].hi) {
-			    good = TRUE;
-			    break;
-			}
-		    }
-		    if (!good) {
-			xf86DrvMsg(scrp->scrnIndex, X_WARNING,
-			  "config file vrefresh range %g-%gHz not within DDC "
-			  "vrefresh ranges.\n",
-			  monitor->vrefresh[i].lo, monitor->vrefresh[i].hi);
-		    }
-		}
-	    }
-        }
     }
 
     /*
