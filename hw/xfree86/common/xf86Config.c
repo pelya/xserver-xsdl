@@ -1450,12 +1450,13 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     IDevPtr corePointer = NULL, coreKeyboard = NULL;
     Bool foundPointer = FALSE, foundKeyboard = FALSE;
     const char *pointerMsg = NULL, *keyboardMsg = NULL;
-    IDevPtr indp;
+    IDevPtr indp, i;
     IDevRec Pointer, Keyboard;
     XF86ConfInputPtr confInput;
     XF86ConfInputRec defPtr, defKbd;
     int count = 0;
     MessageType from = X_DEFAULT;
+    int found = 0;
 
     /*
      * First check if a core pointer or core keyboard have been specified
@@ -1605,6 +1606,35 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	/* This shouldn't happen. */
 	xf86Msg(X_ERROR, "Cannot locate a core pointer device.\n");
 	return FALSE;
+    }
+
+    /*
+     * always synthesize a 'mouse' section configured to send core
+     * events, unless a 'void' section is found, in which case the user
+     * probably wants to run footless.
+     */
+    for (i = servlayoutp->inputs; i->driver; i++) {
+	if (!strcmp(i->driver, "void") || !strcmp(i->driver, "mouse")) {
+	    found = 1; break;
+	}
+    }
+    if (!found) {
+	xf86Msg(X_INFO, "No default mouse found, adding one\n");
+	bzero(&defPtr, sizeof(defPtr));
+	defPtr.inp_identifier = "<default pointer>";
+	defPtr.inp_driver = "mouse";
+	confInput = &defPtr;
+	foundPointer = configInput(&Pointer, confInput, from);
+        if (foundPointer) {
+	    count++;
+	    indp = xnfrealloc(servlayoutp->inputs,
+			      (count + 1) * sizeof(IDevRec));
+	    indp[count - 1] = Pointer;
+	    indp[count - 1].extraOptions =
+				xf86addNewOption(NULL, "AlwaysCore", NULL);
+	    indp[count].identifier = NULL;
+	    servlayoutp->inputs = indp;
+	}
     }
 
     confInput = NULL;
