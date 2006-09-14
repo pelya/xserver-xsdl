@@ -174,7 +174,7 @@ DDCModesFromStandardTiming(int scrnIndex, struct std_timings *timing)
     DisplayModePtr Modes = NULL, Mode = NULL;
     int i;
     
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < STD_TIMINGS; i++)
         if (timing[i].hsize && timing[i].vsize && timing[i].refresh) {
             Mode =  xf86CVTMode(timing[i].hsize, timing[i].vsize,
                                 timing[i].refresh, FALSE, FALSE);
