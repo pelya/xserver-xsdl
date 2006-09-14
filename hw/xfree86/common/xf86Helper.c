@@ -430,11 +430,11 @@ xf86AddPixFormat(ScrnInfoPtr pScrn, int depth, int bpp, int pad)
 #define DO_PIX24FOR32(f) ((f & Support32bppFb) && (f & SupportConvert24to32))
 
 #ifndef GLOBAL_DEFAULT_DEPTH
-#define GLOBAL_DEFAULT_DEPTH 16
+#define GLOBAL_DEFAULT_DEPTH 24
 #endif
 
 #ifndef GLOBAL_DEFAULT_FBBPP
-#define GLOBAL_DEFAULT_FBBPP 16
+#define GLOBAL_DEFAULT_FBBPP 32
 #endif
 
 _X_EXPORT Bool
