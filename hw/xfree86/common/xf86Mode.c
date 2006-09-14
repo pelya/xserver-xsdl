@@ -832,7 +832,7 @@ xf86CheckModeForMonitor(DisplayModePtr mode, MonPtr monitor)
             ((mode->HSyncEnd - mode->HDisplay) == 80) &&
             ((mode->HSyncEnd - mode->HSyncStart) == 32) &&
             ((mode->VSyncStart - mode->VDisplay) == 3)) {
-            if (!monitor->reducedblanking)
+            if (!monitor->reducedblanking && !(mode->type & M_T_DRIVER))
                 return MODE_NO_REDUCED;
         }
     }
