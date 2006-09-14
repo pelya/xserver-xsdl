@@ -1294,8 +1294,8 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 		    scrp->monitor->hsync[i].hi = hsync[i].hi;
 		}
 	    } else {
-		scrp->monitor->hsync[0].lo = 28;
-		scrp->monitor->hsync[0].hi = 33;
+		scrp->monitor->hsync[0].lo = 31.5;
+		scrp->monitor->hsync[0].hi = 37.9;
 		scrp->monitor->nHsync = 1;
 	    }
 	    type = "default ";
@@ -1323,8 +1323,8 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 		    scrp->monitor->vrefresh[i].hi = vrefresh[i].hi;
 		}
 	    } else {
-		scrp->monitor->vrefresh[0].lo = 43;
-		scrp->monitor->vrefresh[0].hi = 72;
+		scrp->monitor->vrefresh[0].lo = 50;
+		scrp->monitor->vrefresh[0].hi = 70;
 		scrp->monitor->nVrefresh = 1;
 	    }
 	    type = "default ";
