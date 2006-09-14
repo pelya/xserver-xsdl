@@ -63,7 +63,7 @@
 #include "xf86Config.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
-
+#include "configProcs.h"
 #include "globals.h"
 #include "extension.h"
 
@@ -280,9 +280,21 @@ xf86ModulelistFromConfig(pointer **optlist)
 	        count++;
 	    modp = (XF86LoadPtr) modp->list.next;
 	}
+    } else {
+	xf86configptr->conf_modules = xnfcalloc(1, sizeof(XF86ConfModuleRec));
     }
-    if (count == 0)
-	return NULL;
+
+    if (count == 0) {
+	XF86ConfModulePtr ptr = xf86configptr->conf_modules;
+	ptr = xf86addNewLoadDirective(ptr, "extmod", XF86_LOAD_MODULE, NULL);
+	ptr = xf86addNewLoadDirective(ptr, "dbe", XF86_LOAD_MODULE, NULL);
+	ptr = xf86addNewLoadDirective(ptr, "glx", XF86_LOAD_MODULE, NULL);
+	ptr = xf86addNewLoadDirective(ptr, "freetype", XF86_LOAD_MODULE, NULL);
+	ptr = xf86addNewLoadDirective(ptr, "type1", XF86_LOAD_MODULE, NULL);
+	ptr = xf86addNewLoadDirective(ptr, "record", XF86_LOAD_MODULE, NULL);
+	ptr = xf86addNewLoadDirective(ptr, "dri", XF86_LOAD_MODULE, NULL);
+	count = 7;
+    }
 
     /*
      * allocate the memory and walk the list again to fill in the pointers
