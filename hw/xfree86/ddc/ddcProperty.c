@@ -303,12 +303,6 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 
     Monitor->DDC = DDC;
 
-    if (DDC->features.gamma > 0.0) {
-        Monitor->gamma.red = DDC->features.gamma;
-        Monitor->gamma.green = DDC->features.gamma;
-        Monitor->gamma.blue = DDC->features.gamma;
-    }
-
     Monitor->widthmm = 10 * DDC->features.hsize;
     Monitor->heightmm = 10 * DDC->features.vsize;
     
