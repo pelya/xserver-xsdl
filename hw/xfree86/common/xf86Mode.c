@@ -45,6 +45,7 @@
 #include "globals.h"
 #include "xf86.h"
 #include "xf86Priv.h"
+#include "edid.h"
 
 static void
 printModeRejectMessage(int index, DisplayModePtr p, int status)
@@ -55,6 +56,8 @@ printModeRejectMessage(int index, DisplayModePtr p, int status)
 	type = "built-in ";
     else if (p->type & M_T_DEFAULT)
 	type = "default ";
+    else if (p->type & M_T_DRIVER)
+	type = "driver ";
     else
 	type = "";
 
@@ -1177,6 +1180,58 @@ xf86CheckModeForDriver(ScrnInfoPtr scrp, DisplayModePtr mode, int flags)
     return MODE_OK;
 }
 
+static int 
+inferVirtualSize(ScrnInfoPtr scrp, DisplayModePtr modes, int *vx, int *vy)
+{
+    float aspect = 0.0;
+    MonPtr mon = scrp->monitor;
+    int x = 0, y = 0;
+    DisplayModePtr mode;
+
+    if (!mon) return 0;
+
+    /*
+     * technically this triggers if _either_ is zero, which is not what EDID
+     * says, but if only one is zero this is best effort.  also we don't
+     * know that all projectors are 4:3, but we certainly suspect it.
+     */
+    if (!mon->widthmm || !mon->heightmm)
+	aspect = 4.0/3.0;
+    else
+	aspect = (float)mon->widthmm / (float)mon->heightmm;
+
+    /* find the largest M_T_DRIVER mode with that aspect ratio */
+    for (mode = modes; mode; mode = mode->next) {
+	float mode_aspect, metaspect;
+	if (!(mode->type & (M_T_DRIVER|M_T_USERDEF)))
+	    continue;
+	mode_aspect = (float)mode->HDisplay / (float)mode->VDisplay;
+	metaspect = aspect / mode_aspect;
+	/* 5% slop or so, since we only get size in centimeters */
+	if (fabs(1.0 - metaspect) < 0.05) {
+	    if ((mode->HDisplay > x) && (mode->VDisplay > y)) {
+		x = mode->HDisplay;
+		y = mode->VDisplay;
+	    }
+	}
+    }
+
+    if (!x || !y) {
+	xf86DrvMsg(scrp->scrnIndex, X_WARNING,
+		   "Unable to estimate virtual size\n");
+	return 0;
+    }
+
+    *vx = x;
+    *vy = y;
+
+    xf86DrvMsg(scrp->scrnIndex, X_INFO,
+	       "Estimated virtual size for aspect ratio %.4f is %dx%d\n",
+	       aspect, *vx, *vy);
+
+    return 1;
+}
+
 /*
  * xf86ValidateModes
  *
@@ -1248,6 +1303,7 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
     int numTimings = 0;
     range hsync[MAX_HSYNC];
     range vrefresh[MAX_VREFRESH];
+    Bool inferred_virtual = FALSE;
 
 #ifdef DEBUG
     ErrorF("xf86ValidateModes(%p, %p, %p, %p,\n\t\t  %p, %d, %d, %d, %d, %d, %d, %d, %d, 0x%x)\n",
@@ -1440,6 +1496,13 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 	virtX = virtualX;
 	virtY = virtualY;
 	scrp->virtualFrom = X_CONFIG;
+    } else if (!modeNames || !*modeNames) {
+	/* No virtual size given in the config, try to infer */
+	/* XXX this doesn't take m{in,ax}Pitch into account; oh well */
+	inferred_virtual = inferVirtualSize(scrp, availModes, &virtX, &virtY);
+	if (inferred_virtual)
+	    linePitch = miScanLineWidth(virtX, virtY, minPitch, apertureSize,
+					BankFormat, pitchInc);
     }
 
     /* Print clock ranges and scaled clocks */
@@ -1456,7 +1519,7 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 	for (p = availModes; p != NULL; p = p->next) {
 	    status = xf86InitialCheckModeForDriver(scrp, p, clockRanges,
 						   strategy, maxPitch,
-						   virtualX, virtualY);
+						   virtX, virtY);
 
 	    if (status == MODE_OK) {
 		status = xf86CheckModeForMonitor(p, scrp->monitor);
@@ -1733,6 +1796,30 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 
 #undef _VIRTUALX
 
+    /*
+     * If we estimated the virtual size above, we may have filtered away all
+     * the modes that maximally match that size; scan again to find out and
+     * fix up if so.
+     */
+    if (inferred_virtual) {
+	int vx = 0, vy = 0;
+	for (p = scrp->modes; p; p = p->next) {
+	    if (p->HDisplay > vx && p->VDisplay > vy) {
+		vx = p->HDisplay;
+		vy = p->VDisplay;
+	    }
+	}
+	if (vx < virtX || vy < virtY) {
+	    xf86DrvMsg(scrp->scrnIndex, X_WARNING,
+		       "Shrinking virtual size estimate from %dx%d to %dx%d\n",
+		       virtX, virtY, vx, vy);
+	    virtX = vx;
+	    virtY = vy;
+	    linePitch = miScanLineWidth(vx, vy, linePitch, apertureSize,
+					BankFormat, pitchInc);
+	}
+    }
+
     /* Update the ScrnInfoRec parameters */
     
     scrp->virtualX = virtX;
@@ -1955,6 +2042,8 @@ xf86PrintModes(ScrnInfoPtr scrp)
 	    prefix = "Built-in mode";
 	else if (p->type & M_T_DEFAULT)
 	    prefix = "Default mode";
+	else if (p->type & M_T_DRIVER)
+	    prefix = "Driver mode";
 	else
 	    prefix = "Mode";
 	if (p->type & M_T_USERDEF)

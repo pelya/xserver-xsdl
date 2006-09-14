@@ -127,9 +127,8 @@ PrintModeline(int scrnIndex,DisplayModePtr mode)
 /*
  * TODO:
  *  - for those with access to the VESA DMT standard; review please.
- *  - swap M_T_DEFAULT for M_T_EDID_...
  */
-#define MODEPREFIX(name) NULL, NULL, name, 0,M_T_DEFAULT
+#define MODEPREFIX(name) NULL, NULL, name, 0,M_T_DRIVER
 #define MODESUFFIX   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,FALSE,FALSE,0,NULL,0,0.0,0.0
 
 DisplayModeRec DDCEstablishedModes[17] = {
@@ -182,6 +181,7 @@ DDCModesFromStandardTiming(int scrnIndex, struct std_timings *timing)
         if (timing[i].hsize && timing[i].vsize && timing[i].refresh) {
             Mode =  xf86CVTMode(timing[i].hsize, timing[i].vsize,
                                 timing[i].refresh, FALSE, FALSE);
+	    Mode->type = M_T_DRIVER;
             Modes = xf86ModesAdd(Modes, Mode);
         }
 
@@ -192,7 +192,8 @@ DDCModesFromStandardTiming(int scrnIndex, struct std_timings *timing)
  *
  */
 static DisplayModePtr
-DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing)
+DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
+			  int preferred)
 {
     DisplayModePtr Mode;
 
@@ -205,9 +206,8 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing)
     
     /* We only do seperate sync currently */
     if (timing->sync != 0x03) {
-         xf86DrvMsg(scrnIndex, X_INFO, "%s: Ignoring: We only handle seperate"
-                    " sync.\n", __func__);
-         return NULL;
+         xf86DrvMsg(scrnIndex, X_INFO, "%s: %dx%d Warning: We only handle seperate"
+                    " sync.\n", __func__, timing->h_active, timing->v_active);
     }
     
     Mode = xnfalloc(sizeof(DisplayModeRec));
@@ -217,7 +217,9 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing)
     xf86snprintf(Mode->name, 20, "%dx%d", timing->h_active,
                  timing->v_active);
     
-    Mode->type = M_T_DEFAULT; /* get ourselves a nice type of our own */
+    Mode->type = M_T_DRIVER;
+    if (preferred)
+	Mode->type |= M_T_PREFERRED;
     
     Mode->Clock = timing->clock / 1000.0;
     
@@ -302,11 +304,14 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
     DisplayModePtr Modes = NULL, Mode;
     int i, clock;
     Bool have_hsync = FALSE, have_vrefresh = FALSE;
+    int preferred;
     
     if (!Monitor || !DDC)
         return;
 
     Monitor->DDC = DDC;
+
+    preferred = PREFERRED_TIMING_MODE(DDC->features.msc);
 
     Monitor->widthmm = 10 * DDC->features.hsize;
     Monitor->heightmm = 10 * DDC->features.vsize;
@@ -367,7 +372,9 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
             break;
         case DT:
             Mode = DDCModeFromDetailedTiming(scrnIndex, 
-                                             &DDC->det_mon[i].section.d_timings);
+                                             &DDC->det_mon[i].section.d_timings,
+					     preferred);
+	    preferred = 0;
             Modes = xf86ModesAdd(Modes, Mode);
             break;
         case DS_STD_TIMINGS:
