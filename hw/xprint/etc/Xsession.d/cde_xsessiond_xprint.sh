@@ -22,8 +22,8 @@
 # Obtain list of Xprint servers
 #
 
-if [ -f "/etc/init.d/xprint" ] ; then
-  XPSERVERLIST="`/bin/sh /etc/init.d/xprint get_xpserverlist`"
+if [ -x "/etc/init.d/xprint" ] ; then
+  XPSERVERLIST="`/etc/init.d/xprint get_xpserverlist`"
   export XPSERVERLIST
 fi
 
