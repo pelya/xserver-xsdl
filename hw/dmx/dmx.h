@@ -51,6 +51,10 @@
 #ifndef DMX_H
 #define DMX_H
 
+#if HAVE_DMX_CONFIG_H
+#include <dmx-config.h>
+#endif
+
 #include "gcstruct.h"
 
 /* Handle client-side include files in one place. */

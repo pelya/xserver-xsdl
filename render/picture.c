@@ -1459,18 +1459,25 @@ SetPictureClipRegion (PicturePtr    pPicture,
     return result;
 }
 
+static Bool
+transformIsIdentity(PictTransform *t)
+{
+    return ((t->matrix[0][0] == t->matrix[1][1]) &&
+            (t->matrix[0][0] == t->matrix[2][2]) &&
+            (t->matrix[0][0] != 0) &&
+            (t->matrix[0][1] == 0) &&
+            (t->matrix[0][2] == 0) &&
+            (t->matrix[1][0] == 0) &&
+            (t->matrix[1][2] == 0) &&
+            (t->matrix[2][0] == 0) &&
+            (t->matrix[2][1] == 0));
+}
 
 int
 SetPictureTransform (PicturePtr	    pPicture,
 		     PictTransform  *transform)
 {
-    static const PictTransform	identity = { {
-	{ xFixed1, 0x00000, 0x00000 },
-	{ 0x00000, xFixed1, 0x00000 },
-	{ 0x00000, 0x00000, xFixed1 },
-    } };
-
-    if (transform && memcmp (transform, &identity, sizeof (PictTransform)) == 0)
+    if (transform && transformIsIdentity (transform))
 	transform = 0;
     
     if (transform)
