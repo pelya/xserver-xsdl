@@ -1,4 +1,4 @@
-module_LIBRARIES = librac.a
+noinst_LIBRARIES = librac.a
 librac_a_SOURCES = xf86RAC.c
 
 sdk_HEADERS = xf86RAC.h
