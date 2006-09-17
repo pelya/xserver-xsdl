@@ -60,6 +60,8 @@
 int	RRGeneration;
 int	RRNScreens;
 
+static RESTYPE	    ModeType, CrtcType, OutputType;
+
 static int ProcRRQueryVersion (ClientPtr pClient);
 static int ProcRRDispatch (ClientPtr pClient);
 static int SProcRRDispatch (ClientPtr pClient);
@@ -160,21 +162,16 @@ static Bool
 RRCloseScreen (int i, ScreenPtr pScreen)
 {
     rrScrPriv(pScreen);
-    RRMonitorPtr    pMonitor;
+    int		    j;
 
     unwrap (pScrPriv, pScreen, CloseScreen);
-    while ((pMonitor = pScrPriv->pMonitors))
-    {
-	RRModePtr   pMode;
-	
-	pScrPriv->pMonitors = pMonitor->next;
-	while ((pMode = pMonitor->pModes))
-	{
-	    pMonitor->pModes = pMode->next;
-	    xfree (pMode);
-	}
-	xfree (pMonitor);
-    }
+    for (j = pScrPriv->numCrtcs - 1; j >= 0; j--)
+	RRCrtcDestroy (pScrPriv->crtcs[j]);
+    for (j = pScrPriv->numOutputs - 1; j >= 0; j--)
+	RROutputDestroy (pScrPriv->outputs[j]);
+    for (j = pScrPriv->numModes - 1; j >= 0; j--)
+	RRModeDestroy (pScrPriv->modes[j]);
+    
     xfree (pScrPriv);
     RRNScreens -= 1;	/* ok, one fewer screen with RandR running */
     return (*pScreen->CloseScreen) (i, pScreen);    
@@ -199,6 +196,7 @@ SRRScreenChangeNotifyEvent(xRRScreenChangeNotifyEvent *from,
     cpswaps(from->subpixelOrder, to->subpixelOrder);
 }
 
+#if 0
 static void
 SRRMonitorChangeNotifyEvent(xRRMonitorChangeNotifyEvent *from,
 			    xRRMonitorChangeNotifyEvent *to)
@@ -217,19 +215,43 @@ SRRMonitorChangeNotifyEvent(xRRMonitorChangeNotifyEvent *from,
     cpswaps(from->x, to->x);
     cpswaps(from->y, to->y);
 }
+#endif
 
 static void
 SRRNotifyEvent (xEvent *from,
 		xEvent *to)
 {
     switch (from->u.u.detail) {
+#if 0
     case RRNotify_MonitorChange:
 	SRRMonitorChangeNotifyEvent ((xRRMonitorChangeNotifyEvent *) from,
 				     (xRRMonitorChangeNotifyEvent *) to);
 	break;
+#endif
     default:
 	break;
     }
+}
+
+static int
+RRModeDestroyResource (pointer value, XID pid)
+{
+    RRModeDestroy ((RRModePtr) value);
+    return 1;
+}
+
+static int
+RRCrtcDestroyResource (pointer value, XID pid)
+{
+    RRCrtcDestroy ((RRCrtcPtr) value);
+    return 1;
+}
+
+static int
+RROutputDestroyResource (pointer value, XID pid)
+{
+    RROutputDestroy ((RROutputPtr) value);
+    return 1;
 }
 
 Bool RRScreenInit(ScreenPtr pScreen)
@@ -238,9 +260,23 @@ Bool RRScreenInit(ScreenPtr pScreen)
 
     if (RRGeneration != serverGeneration)
     {
+	ModeType = CreateNewResourceType (RRModeDestroyResource);
+	if (!ModeType)
+	    return FALSE;
+	CrtcType = CreateNewResourceType (RRCrtcDestroyResource);
+	if (!ModeType)
+	    return FALSE;
+	OutputType = CreateNewResourceType (RROutputDestroyResource);
+	if (!ModeType)
+	    return FALSE;
 	if ((rrPrivIndex = AllocateScreenPrivateIndex()) < 0)
 	    return FALSE;
 	RRGeneration = serverGeneration;
+#ifdef XResExtension
+	RegisterResourceName (ModeType, "MODE");
+	RegisterResourceName (CrtcType, "CRTC");
+	RegisterResourceName (OutputType, "OUTPUT");
+#endif
     }
 
     pScrPriv = (rrScrPrivPtr) xalloc (sizeof (rrScrPrivRec));
@@ -252,10 +288,14 @@ Bool RRScreenInit(ScreenPtr pScreen)
     /*
      * Calling function best set these function vectors
      */
-    pScrPriv->rrSetMode = 0;
+    pScrPriv->rrCrtcSet = 0;
     pScrPriv->rrGetInfo = 0;
+    pScrPriv->maxWidth = pScrPriv->minWidth = pScreen->width;
+    pScrPriv->maxHeight = pScrPriv->minHeight = pScreen->height;
 #ifdef RANDR_SCREEN_INTERFACE    
     pScrPriv->rrSetConfig = 0;
+    pScrPriv->reqWidth = pScreen->width;
+    pScrPriv->reqHeight = pScreen->height;
 #endif
     
     /*
@@ -268,7 +308,12 @@ Bool RRScreenInit(ScreenPtr pScreen)
     
     wrap (pScrPriv, pScreen, CloseScreen, RRCloseScreen);
 
-    pScrPriv->pMonitors = NULL;
+    pScrPriv->numModes = 0;
+    pScrPriv->modes = NULL;
+    pScrPriv->numOutputs = 0;
+    pScrPriv->outputs = NULL;
+    pScrPriv->numCrtcs = 0;
+    pScrPriv->crtcs = NULL;
     
     RRNScreens += 1;	/* keep count of screens that implement randr */
     return TRUE;
@@ -356,18 +401,77 @@ RRExtensionInit (void)
     return;
 }
 		
+static void
+DeliverScreenEvent (ClientPtr client, WindowPtr pWin, ScreenPtr pScreen)
+{
+    rrScrPriv (pScreen);
+    xRRScreenChangeNotifyEvent	se;
+    RRCrtcPtr	crtc = pScrPriv->numCrtcs ? pScrPriv->crtcs[0] : NULL;
+    RROutputPtr	output = pScrPriv->numOutputs ? pScrPriv->outputs[0] : NULL;
+    RRModePtr	mode = crtc ? crtc->mode : NULL;
+    WindowPtr	pRoot = WindowTable[pScreen->myNum];
+    int		i;
+    
+    se.type = RRScreenChangeNotify + RREventBase;
+    se.rotation = (CARD8) (crtc ? crtc->rotation : RR_Rotate_0);
+    se.timestamp = pScrPriv->lastSetTime.milliseconds;
+    se.sequenceNumber = client->sequence;
+    se.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
+    se.root =  pRoot->drawable.id;
+    se.window = pWin->drawable.id;
+#ifdef RENDER
+    se.subpixelOrder = PictureGetSubpixelOrder (pScreen);
+#else
+    se.subpixelOrder = SubPixelUnknown;
+#endif
+
+    se.sequenceNumber = client->sequence;
+    if (mode) 
+    {
+	se.sizeID = -1;
+	for (i = 0; i < output->numModes; i++)
+	    if (mode == output->modes[i])
+	    {
+		se.sizeID = i;
+		break;
+	    }
+	se.widthInPixels = mode->mode.width;
+	se.heightInPixels = mode->mode.height;
+	se.widthInMillimeters = mode->mode.mmWidth;
+	se.heightInMillimeters = mode->mode.mmHeight;
+    }
+    else
+    {
+	/*
+	 * This "shouldn't happen", but a broken DDX can
+	 * forget to set the current configuration on GetInfo
+	 */
+	se.sizeID = 0xffff;
+	se.widthInPixels = 0;
+	se.heightInPixels = 0;
+	se.widthInMillimeters = 0;
+	se.heightInMillimeters = 0;
+    }    
+    WriteEventsToClient (client, 1, (xEvent *) &se);
+}
+
+static void
+DeliverCrtcEvent (ClientPtr client, WindowPtr pWin, RRCrtcPtr crtc)
+{
+}
+
+static void
+DeliverOutputEvent (ClientPtr client, WindowPtr pWin, RROutputPtr output)
+{
+}
+
 static int
 TellChanged (WindowPtr pWin, pointer value)
 {
     RREventPtr			*pHead, pRREvent;
     ClientPtr			client;
-    xRRScreenChangeNotifyEvent	se;
-    xRRMonitorChangeNotifyEvent	me;
     ScreenPtr			pScreen = pWin->drawable.pScreen;
     rrScrPriv(pScreen);
-    RRModePtr			pMode;
-    RRMonitorPtr		pMonitor;
-    WindowPtr			pRoot = WindowTable[pScreen->myNum];
     int				i;
 
     pHead = (RREventPtr *) LookupIDByType (pWin->drawable.id, EventType);
@@ -380,192 +484,245 @@ TellChanged (WindowPtr pWin, pointer value)
 	if (client == serverClient || client->clientGone)
 	    continue;
 
-	if (pRREvent->mask & RRMonitorChangeNotifyMask)
+	if (pRREvent->mask & RRScreenChangeNotifyMask)
+	    DeliverScreenEvent (client, pWin, pScreen);
+	
+	if (pRREvent->mask & RRCrtcChangeNotifyMask)
 	{
-	    me.type = RRNotify + RREventBase;
-	    me.subCode = RRNotify_MonitorChange;
-	    me.timestamp = pScrPriv->lastSetTime.milliseconds;
-	    me.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
-	    me.root =  pRoot->drawable.id;
-	    me.window = pWin->drawable.id;
-#ifdef RENDER
-	    me.subpixelOrder = PictureGetSubpixelOrder (pScreen);
-#else
-	    me.subpixelOrder = SubPixelUnknown;
-#endif
-	    for (pMonitor = pScrPriv->pMonitors, i = 0; 
-		 pMonitor; 
-		 pMonitor = pMonitor->next, i++)
+	    for (i = 0; i < pScrPriv->numCrtcs; i++)
 	    {
-		me.monitor = i;
-		if (pMonitor->pMode) {
-		    me.modeID = pMonitor->pMode->id;
-		    me.rotation = pMonitor->rotation;
-		    me.x = pMonitor->x;
-		    me.y = pMonitor->y;
-		} else {
-		    me.modeID = 0xffff;
-		    me.rotation = RR_Rotate_0;
-		    me.x = 0;
-		    me.y = 0;
-		}
-		WriteEventsToClient (client, 1, (xEvent *) &me);
+		RRCrtcPtr   crtc = pScrPriv->crtcs[i];
+		if (crtc->changed)
+		    DeliverCrtcEvent (client, pWin, crtc);
 	    }
 	}
-	if ((pRREvent->mask & RRScreenChangeNotifyMask) &&
-	    (pMonitor = pScrPriv->pMonitors))
+	
+	if (pRREvent->mask & RROutputChangeNotifyMask)
 	{
-	    se.type = RRScreenChangeNotify + RREventBase;
-	    se.rotation = (CARD8) pMonitor->rotation;
-	    se.timestamp = pScrPriv->lastSetTime.milliseconds;
-	    se.sequenceNumber = client->sequence;
-	    se.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
-	    se.root =  pRoot->drawable.id;
-	    se.window = pWin->drawable.id;
-#ifdef RENDER
-	    se.subpixelOrder = PictureGetSubpixelOrder (pScreen);
-#else
-	    se.subpixelOrder = SubPixelUnknown;
-#endif
-
-	    pMonitor = &pScrPriv->pMonitors[0];
-	    se.sequenceNumber = client->sequence;
-	    if (pMonitor->pMode) 
+	    for (i = 0; i < pScrPriv->numOutputs; i++)
 	    {
-		pMode = pMonitor->pMode;
-		se.sizeID = pMode->id;
-		se.widthInPixels = pMode->mode.width;
-		se.heightInPixels = pMode->mode.height;
-		se.widthInMillimeters = pMode->mode.widthInMillimeters;
-		se.heightInMillimeters = pMode->mode.heightInMillimeters;
+		RROutputPtr   output = pScrPriv->outputs[i];
+		if (output->changed)
+		    DeliverOutputEvent (client, pWin, output);
 	    }
-	    else
-	    {
-		/*
-		 * This "shouldn't happen", but a broken DDX can
-		 * forget to set the current configuration on GetInfo
-		 */
-		se.sizeID = 0xffff;
-		se.widthInPixels = 0;
-		se.heightInPixels = 0;
-		se.widthInMillimeters = 0;
-		se.heightInMillimeters = 0;
-	    }    
-	    WriteEventsToClient (client, 1, (xEvent *) &se);
 	}
     }
     return WT_WALKCHILDREN;
 }
 
-static void
-RRFreeMode (RRModePtr pMode)
+void
+RRTellChanged (ScreenPtr pScreen)
 {
-    xfree (pMode);
-}
-
-static void
-RRFreeModes (RRModePtr pHead)
-{
-    RRModePtr	pMode;
-    while ((pMode = pHead)) 
+    rrScrPriv (pScreen);
+    int i;
+    
+    if (pScrPriv->changed)
     {
-	pHead = pMode->next;
-	RRFreeMode (pMode);
+	UpdateCurrentTime ();
+	pScrPriv->lastConfigTime = currentTime;
+	WalkTree (pScreen, TellChanged, (pointer) pScreen);
+	pScrPriv->changed = FALSE;
+	for (i = 0; i < pScrPriv->numOutputs; i++)
+	    pScrPriv->outputs[i]->changed = FALSE;
+	for (i = 0; i < pScrPriv->numCrtcs; i++)
+	    pScrPriv->crtcs[i]->changed = FALSE;
     }
 }
 
-static void
-RRFreeMonitor (RRMonitorPtr pMonitor)
+RRModePtr
+RRModeGet (ScreenPtr	pScreen,
+	   xRRModeInfo	*modeInfo,
+	   char		*name)
 {
-    RRFreeModes (pMonitor->pModes);
-    xfree (pMonitor);
+    rrScrPriv (pScreen);
+    int	i;
+    RRModePtr	mode;
+
+    for (i = 0; i < pScrPriv->numModes; i++)
+    {
+	mode = pScrPriv->modes[i];
+	if (!memcmp (modeInfo, &mode->mode, sizeof (xRRModeInfo)) &&
+	    !memcmp (name, mode->name, modeInfo->nameLength))
+	{
+	    ++mode->refcnt;
+	    return mode;
+	}
+    }
+    mode = xalloc (sizeof (RRModeRec) + modeInfo->nameLength + 1);
+    mode->refcnt = 1;
+    mode->mode = *modeInfo;
+    mode->name = (char *) (mode + 1);
+    memcpy (mode->name, name, modeInfo->nameLength);
+    mode->name[modeInfo->nameLength] = '\0';
+    mode->id = FakeClientID(0);
+    if (!AddResource (mode->id, ModeType, (pointer) mode))
+	return NULL;
+    ++mode->refcnt;
+    pScrPriv->changed = TRUE;
+    return mode;
 }
 
+void
+RRModeDestroy (RRModePtr mode)
+{
+    if (--mode->refcnt > 0)
+	return;
+    xfree (mode);
+}
+
+/*
+ * Return the first output which is connected to an active CRTC
+ * Used in emulating 1.0 behaviour
+ */
+static RROutputPtr
+RRFirstOutput (ScreenPtr pScreen)
+{
+    rrScrPriv(pScreen);
+    RROutputPtr		    output;
+    int	i, j;
+    
+    for (i = 0; i < pScrPriv->numCrtcs; i++)
+    {
+	RRCrtcPtr   crtc = pScrPriv->crtcs[i];
+	for (j = 0; j < pScrPriv->numOutputs; j++)
+	{
+	    output = pScrPriv->outputs[j];
+	    if (output->crtc == crtc)
+		return output;
+	}
+    }
+    return NULL;
+}
+
+#ifdef RANDR_SCREEN_INTERFACE
+
+static Bool
+RROldModeAdd (RROutputPtr output, RRScreenSizePtr size, int refresh)
+{
+    xRRModeInfo	modeInfo;
+    char	name[100];
+    RRModePtr	mode;
+    int		i;
+    RRModePtr   *modes;
+    
+    memset (&modeInfo, '\0', sizeof (modeInfo));
+    sprintf (name, "%dx%d", size->width, size->height);
+    
+    modeInfo.width = size->width;
+    modeInfo.height = size->height;
+    modeInfo.mmWidth = size->mmWidth;
+    modeInfo.mmHeight = size->mmHeight;
+    modeInfo.hTotal = size->width;
+    modeInfo.vTotal = size->height;
+    modeInfo.dotClock = ((CARD32) size->width * (CARD32) size->width *
+			 (CARD32) refresh);
+    modeInfo.nameLength = strlen (name);
+    mode = RRModeGet (output->pScreen, &modeInfo, name);
+    if (!mode)
+	return FALSE;
+    for (i = 0; i < output->numModes; i++)
+	if (output->modes[i] == mode)
+	    return TRUE;
+    
+    if (output->numModes)
+	modes = xrealloc (output->modes, 
+			  (output->numModes + 1) * sizeof (RRModePtr));
+    else
+	modes = xalloc (sizeof (RRModePtr));
+    if (!modes)
+	return FALSE;
+    modes[output->numModes++] = mode;
+    output->modes = modes;
+    output->changed = TRUE;
+    return TRUE;
+}
+
+static void
+RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
+{
+    rrScrPriv(pScreen);
+    RROutputPtr	output = RRFirstOutput (pScreen);
+    RRCrtcPtr	crtc;
+    int		i;
+    CARD16	minWidth = MAXSHORT, minHeight = MAXSHORT;
+    CARD16	maxWidth = 0, maxHeight = 0;
+    
+    if (!output)
+	return;
+    crtc = output->crtc;
+
+    /* check rotations */
+    if (rotations != crtc->rotations)
+    {
+        crtc->rotations = rotations;
+	crtc->changed = TRUE;
+	pScrPriv->changed = TRUE;
+    }
+	
+    /* regenerate mode list */
+    for (i = 0; i < pScrPriv->nSizes; i++)
+    {
+	RRScreenSizePtr	size = &pScrPriv->pSizes[i];
+	int		r;
+
+	if (size->nRates)
+	    for (r = 0; r < size->nRates; r++)
+		RROldModeAdd (output, size, size->pRates[r].rate);
+	else
+	    RROldModeAdd (output, size, 0);
+    }
+	    
+    /* find size bounds */
+    for (i = 0; i < output->numModes; i++) 
+    {
+	RRModePtr   mode = output->modes[i];
+        CARD16	    width = mode->mode.width;
+        CARD16	    height = mode->mode.height;
+	
+	if (width < minWidth) minWidth = width;
+	if (width > maxWidth) maxWidth = width;
+	if (height < minHeight) minHeight = height;
+	if (height > maxHeight) maxHeight = height;
+    }
+
+    if (minWidth != pScrPriv->minWidth) {
+	pScrPriv->minWidth = minWidth; pScrPriv->changed = TRUE;
+    }
+    if (maxWidth != pScrPriv->maxWidth) {
+	pScrPriv->maxWidth = maxWidth; pScrPriv->changed = TRUE;
+    }
+    if (minHeight != pScrPriv->minHeight) {
+	pScrPriv->minHeight = minHeight; pScrPriv->changed = TRUE;
+    }
+    if (maxHeight != pScrPriv->maxHeight) {
+	pScrPriv->maxHeight = maxHeight; pScrPriv->changed = TRUE;
+    }
+}
+#endif
 
 static Bool
 RRGetInfo (ScreenPtr pScreen)
 {
     rrScrPriv (pScreen);
-    Bool	    changed;
     Rotation	    rotations;
-    RRMonitorPtr    pMonitor, *pPrevMon;
-    RRModePtr	    pMode, *pPrevMode;
-    int		    monitorid;
+    int		    i;
 
-    for (pMonitor = pScrPriv->pMonitors; pMonitor; pMonitor = pMonitor->next)
-    {
-	pMonitor->oldReferenced = TRUE;
-	pMonitor->referenced = FALSE;
-	pMonitor->pMode = NULL;
-	for (pMode = pMonitor->pModes; pMode; pMode = pMode->next)
-	{
-	    pMode->oldReferenced = TRUE;
-	    pMode->referenced = FALSE;
-	}
-    }
+    for (i = 0; i < pScrPriv->numOutputs; i++)
+	pScrPriv->outputs[i]->changed = FALSE;
+    for (i = 0; i < pScrPriv->numCrtcs; i++)
+	pScrPriv->crtcs[i]->changed = FALSE;
+    
     rotations = 0;
+    pScrPriv->changed = FALSE;
+    
     if (!(*pScrPriv->rrGetInfo) (pScreen, &rotations))
 	return FALSE;
 
-    changed = FALSE;
-    
-    /* Old GetInfo clients return rotations here */
-    if (rotations && pScrPriv->pMonitors) {
-	/*
-	 * Check whether anything changed and simultaneously generate
-	 * the protocol id values for the objects
-	 */
-	if (rotations != pScrPriv->pMonitors->rotations)
-	{
-	    pScrPriv->pMonitors->rotations = rotations;
-	    changed = TRUE;
-	}
-    }
-	
-    /*
-     * Walk monitor and mode lists looking for updates
-     */
-    monitorid = 0;
-    for (pPrevMon = &pScrPriv->pMonitors; (pMonitor = *pPrevMon);)
-    {
-	int modeid = 0;
-	
-	if (pMonitor->referenced)
-	{
-	    pMonitor->id = monitorid++;
-	    if (!pMonitor->oldReferenced)
-		changed = TRUE;
-	    for (pPrevMode = &pMonitor->pModes; (pMode = *pPrevMode);)
-	    {
-		if (pMode->referenced)
-		{
-		    pMode->id = modeid++;
-		    if (!pMode->oldReferenced)
-			changed = TRUE;
-		    pPrevMode = &pMode->next;
-		}
-		else
-		{
-		    *pPrevMode = pMode->next;
-		    changed = TRUE;
-		    RRFreeMode (pMode);
-		}
-	    }
-	    pPrevMon = &pMonitor->next;
-	}
-	else
-	{
-	    *pPrevMon = pMonitor->next;
-	    changed = TRUE;
-	    RRFreeMonitor (pMonitor);
-	}
-    }
-    if (changed)
-    {
-	UpdateCurrentTime ();
-	pScrPriv->lastConfigTime = currentTime;
-	WalkTree (pScreen, TellChanged, (pointer) pScreen);
-    }
+#if RANDR_SCREEN_INTERFACE
+    if (pScrPriv->nSizes)
+	RRScanOldConfig (pScreen, rotations);
+#endif
+    RRTellChanged (pScreen);
     return TRUE;
 }
 
@@ -664,17 +821,6 @@ RREditConnectionInfo (ScreenPtr pScreen)
     root->mmHeight = pScreen->mmHeight;
 }
 
-static int
-RRNumModes (RRMonitorPtr pMonitor)
-{
-    int	n = 0;
-    RRModePtr	pMode;
-
-    for (pMode = pMonitor->pModes; pMode; pMode = pMode->next)
-	n++;
-    return n;
-}
-
 typedef struct _RR10Data {
     RRScreenSizePtr sizes;
     int		    nsize;
@@ -684,7 +830,7 @@ typedef struct _RR10Data {
 } RR10DataRec, *RR10DataPtr;
 
 static CARD16
-RRVerticalRefresh (xRRMonitorMode *mode)
+RRVerticalRefresh (xRRModeInfo *mode)
 {
     CARD32  refresh;
     if (!mode->hTotal || !mode->vTotal)
@@ -699,61 +845,61 @@ RRVerticalRefresh (xRRMonitorMode *mode)
  * Convert 1.2 monitor data into 1.0 screen data
  */
 static RR10DataPtr
-RR10GetData (ScreenPtr pScreen, RRMonitorPtr pMonitor)
+RR10GetData (ScreenPtr pScreen, RROutputPtr output)
 {
     RR10DataPtr	    data;
     RRScreenSizePtr size;
-    int		    nmode = RRNumModes (pMonitor);
-    int		    i;
-    int		    j;
-    RRRefreshPtr    refresh;
+    int		    nmode = output->numModes;
+    int		    i, j, k;
+    RRScreenRatePtr refresh;
     CARD16	    vRefresh;
-    RRModePtr	    pMode;
+    RRModePtr	    mode;
 
     /* Make sure there is plenty of space for any combination */
     data = malloc (sizeof (RR10DataRec) + 
-		   sizeof (RRScreenSizeRec) * nmode + 
-		   sizeof (RRRefreshRec) * nmode);
+		   sizeof (RRScreenSize) * nmode + 
+		   sizeof (RRScreenRate) * nmode);
     if (!data)
 	return NULL;
     size = (RRScreenSizePtr) (data + 1);
-    refresh = (RRRefreshPtr) (size + nmode);
+    refresh = (RRScreenRatePtr) (size + nmode);
     data->sizes = size;
     data->nsize = 0;
     data->nrefresh = 0;
     data->size = 0;
     data->refresh = 0;
-    for (pMode = pMonitor->pModes; pMode; pMode = pMode->next)
+    for (i = 0; i < output->numModes; i++)
     {
-	for (i = 0; i < data->nsize; i++)
-	    if (pMode->mode.width == size[i].width &&
-		pMode->mode.height == size[i].height)
+	mode = output->modes[i];
+	for (j = 0; j < data->nsize; j++)
+	    if (mode->mode.width == size[j].width &&
+		mode->mode.height == size[j].height)
 		break;
-	if (i == data->nsize)
+	if (j == data->nsize)
 	{
-	    size[i].id = i;
-	    size[i].width = pMode->mode.width;
-	    size[i].height = pMode->mode.height;
-	    size[i].mmWidth = pMode->mode.widthInMillimeters;
-	    size[i].mmHeight = pMode->mode.heightInMillimeters;
-	    size[i].nrefresh = 0;
-	    size[i].refresh = &refresh[data->nrefresh];
+	    size[j].id = j;
+	    size[j].width = mode->mode.width;
+	    size[j].height = mode->mode.height;
+	    size[j].mmWidth = mode->mode.mmWidth;
+	    size[j].mmHeight = mode->mode.mmHeight;
+	    size[j].nRates = 0;
+	    size[j].pRates = &refresh[data->nrefresh];
 	    data->nsize++;
 	}
-	vRefresh = RRVerticalRefresh (&pMode->mode);
-	for (j = 0; j < size[i].nrefresh; j++)
-	    if (vRefresh == size[i].refresh[j].refresh)
+	vRefresh = RRVerticalRefresh (&mode->mode);
+	for (k = 0; k < size[j].nRates; k++)
+	    if (vRefresh == size[j].pRates[k].rate)
 		break;
-	if (j == size[i].nrefresh)
+	if (k == size[j].nRates)
 	{
-	    size[i].refresh[j].refresh = vRefresh;
-	    size[i].refresh[j].pMode = pMode;
-	    size[i].nrefresh++;
+	    size[j].pRates[k].rate = vRefresh;
+	    size[j].pRates[k].mode = mode;
+	    size[j].nRates++;
 	    data->nrefresh++;
 	}
-	if (pMode == pMonitor->pMode)
+	if (mode == output->crtc->mode)
 	{
-	    data->size = i;
+	    data->size = j;
 	    data->refresh = vRefresh;
 	}
     }
@@ -771,6 +917,7 @@ ProcRRGetScreenInfo (ClientPtr client)
     rrScrPrivPtr	    pScrPriv;
     CARD8		    *extra;
     unsigned long	    extraLen;
+    RROutputPtr		    output;
 
     REQUEST_SIZE_MATCH(xRRGetScreenInfoReq);
     pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
@@ -786,7 +933,9 @@ ProcRRGetScreenInfo (ClientPtr client)
     if (pScrPriv)
 	RRGetInfo (pScreen);
 
-    if (!pScrPriv && !pScrPriv->pMonitors)
+    output = RRFirstOutput (pScreen);
+    
+    if (!pScrPriv || !output)
     {
 	rep.type = X_Reply;
 	rep.setOfRotations = RR_Rotate_0;;
@@ -805,7 +954,6 @@ ProcRRGetScreenInfo (ClientPtr client)
     }
     else
     {
-	RRMonitorPtr		pMonitor = pScrPriv->pMonitors;
 	int			i, j;
 	xScreenSizes		*size;
 	CARD16			*rates;
@@ -814,18 +962,18 @@ ProcRRGetScreenInfo (ClientPtr client)
 	RR10DataPtr		pData;
 	RRScreenSizePtr		pSize;
     
-	pData = RR10GetData (pScreen, pMonitor);
+	pData = RR10GetData (pScreen, output);
 	if (!pData)
 	    return BadAlloc;
 	
 	rep.type = X_Reply;
-	rep.setOfRotations = pMonitor->rotations;
+	rep.setOfRotations = output->crtc->rotations;
 	rep.sequenceNumber = client->sequence;
 	rep.length = 0;
 	rep.root = WindowTable[pWin->drawable.pScreen->myNum]->drawable.id;
 	rep.timestamp = pScrPriv->lastSetTime.milliseconds;
 	rep.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
-	rep.rotation = pMonitor->rotation;
+	rep.rotation = output->crtc->rotation;
 	rep.nSizes = pData->nsize;
         rep.nrateEnts = pData->nrefresh + pData->nsize;
 	rep.sizeID = pData->size;
@@ -862,15 +1010,15 @@ ProcRRGetScreenInfo (ClientPtr client)
 	    size++;
 	    if (has_rate)
 	    {
-		*rates = pSize->nrefresh;
+		*rates = pSize->nRates;
 		if (client->swapped)
 		{
 		    swaps (rates, n);
 		}
 		rates++;
-		for (j = 0; j < pSize->nrefresh; j++)
+		for (j = 0; j < pSize->nRates; j++)
 		{
-		    *rates = pSize->refresh[j].refresh;
+		    *rates = pSize->pRates[j].rate;
 		    if (client->swapped)
 		    {
 			swaps (rates, n);
@@ -907,6 +1055,7 @@ ProcRRGetScreenInfo (ClientPtr client)
     return (client->noClientException);
 }
 
+#if 0
 static int
 RRMonitorSetMode (ScreenPtr pScreen, RRMonitorPtr pMonitor, 
 		  RRModePtr pMode, int x, int y, Rotation rotation,
@@ -997,6 +1146,7 @@ RRMonitorSetMode (ScreenPtr pScreen, RRMonitorPtr pMonitor,
     pScrPriv->lastSetTime = time;
     return RRSetConfigSuccess;
 }
+#endif
 
 static int
 ProcRRSetScreenConfig (ClientPtr client)
@@ -1013,8 +1163,8 @@ ProcRRSetScreenConfig (ClientPtr client)
     Rotation		    rotation;
     int			    rate;
     Bool		    has_rate;
-    RRMonitorPtr	    pMonitor;
-    RRModePtr		    pMode;
+    RROutputPtr		    output;
+    RRModePtr		    mode;
     RR10DataPtr		    pData = NULL;
     RRScreenSizePtr    	    pSize;
     
@@ -1050,8 +1200,8 @@ ProcRRSetScreenConfig (ClientPtr client)
     if (!RRGetInfo (pScreen))
 	return BadAlloc;
     
-    pMonitor = pScrPriv->pMonitors;
-    if (!pMonitor)
+    output = RRFirstOutput (pScreen);
+    if (!output)
     {
 	time = currentTime;
 	rep.status = RRSetConfigFailed;
@@ -1069,7 +1219,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 	goto sendReply;
     }
     
-    pData = RR10GetData (pScreen, pMonitor);
+    pData = RR10GetData (pScreen, output);
     if (!pData)
 	return BadAlloc;
     
@@ -1105,7 +1255,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 	return BadValue;
     }
 
-    if ((~pMonitor->rotations) & rotation)
+    if ((~output->crtc->rotations) & rotation)
     {
 	/*
 	 * requested rotation or reflection not supported by screen
@@ -1125,12 +1275,12 @@ ProcRRSetScreenConfig (ClientPtr client)
 
     if (rate)
     {
-	for (i = 0; i < pSize->nrefresh; i++)
+	for (i = 0; i < pSize->nRates; i++)
 	{
-	    if (pSize->refresh[i].refresh == rate)
+	    if (pSize->pRates[i].rate == rate)
 		break;
 	}
-	if (i == pSize->nrefresh)
+	if (i == pSize->nRates)
 	{
 	    /*
 	     * Invalid rate
@@ -1139,10 +1289,10 @@ ProcRRSetScreenConfig (ClientPtr client)
 	    xfree (pData);
 	    return BadValue;
 	}
-	pMode = pSize->refresh[i].pMode;
+	mode = pSize->pRates[i].mode;
     }
     else
-	pMode = pSize->refresh[0].pMode;
+	mode = pSize->pRates[0].mode;
     
     /*
      * Make sure the requested set-time is not older than
@@ -1154,7 +1304,8 @@ ProcRRSetScreenConfig (ClientPtr client)
 	goto sendReply;
     }
 
-    rep.status = RRMonitorSetMode (pScreen, pMonitor, pMode, 0, 0, rotation, time);
+    rep.status = RRCrtcSet (output->crtc, mode, 0, 0, stuff->rotation,
+			    1, &output);
     
 sendReply:
     
@@ -1183,6 +1334,7 @@ sendReply:
     return (client->noClientException);
 }
 
+#if 0
 int
 RRSetScreenConfig (ScreenPtr		pScreen,
 		   Rotation		rotation,
@@ -1252,9 +1404,41 @@ RRSetScreenConfig (ScreenPtr		pScreen,
     
     status = RRMonitorSetMode (pScreen, pMonitor, pMode, 0, 0, 
 			       rotation, currentTime);
+    
     if (status != RRSetConfigSuccess)
 	return BadImplementation;
     return Success;
+}
+#endif
+
+static Bool
+RRSetScreenSize (ScreenPtr pScreen,
+		 CARD16 width, CARD16 height,
+		 CARD16 widthInMillimeters, CARD16 heightInMillimeters)
+{
+    rrScrPriv(pScreen);
+    
+    if (pScrPriv->rrScreenSetSize) 
+    {
+	return (*pScrPriv->rrScreenSetSize) (pScreen, width, height,
+					     widthInMillimeters,
+					     heightInMillimeters);
+    }
+#ifdef RANDR_SCREEN_INTERFACE
+    else
+    {
+	/* Pend the size change until we get the set mode request.
+	 * Yes, this is 'illegal', but the best we can do until
+	 * drivers are updated
+	 */
+	pScrPriv->reqWidth = width;
+	pScrPriv->reqHeight = height;
+	pScreen->mmWidth = widthInMillimeters;
+	pScreen->mmHeight = heightInMillimeters;
+	return TRUE;
+    }
+#endif
+    return FALSE;
 }
 
 static int
@@ -1264,7 +1448,7 @@ ProcRRSelectInput (ClientPtr client)
     rrClientPriv(client);
     RRTimesPtr	pTimes;
     WindowPtr	pWin;
-    RREventPtr	pRREvent, pNewRREvent, *pHead;
+    RREventPtr	pRREvent, *pHead;
     XID		clientResource;
 
     REQUEST_SIZE_MATCH(xRRSelectInputReq);
@@ -1275,58 +1459,64 @@ ProcRRSelectInput (ClientPtr client)
 						 pWin->drawable.id, EventType,
 						 SecurityWriteAccess);
 
-    if (stuff->enable & (RRScreenChangeNotifyMask)) 
+    if (stuff->enable & (RRScreenChangeNotifyMask|
+			 RRCrtcChangeNotifyMask|
+			 RROutputChangeNotifyMask)) 
     {
 	ScreenPtr	pScreen = pWin->drawable.pScreen;
 	rrScrPriv	(pScreen);
 
+	pRREvent = NULL;
 	if (pHead) 
 	{
 	    /* check for existing entry. */
 	    for (pRREvent = *pHead; pRREvent; pRREvent = pRREvent->next)
 		if (pRREvent->client == client)
-		    return Success;
+		    break;
 	}
 
-	/* build the entry */
-	pNewRREvent = (RREventPtr) xalloc (sizeof (RREventRec));
-	if (!pNewRREvent)
-	    return BadAlloc;
-	pNewRREvent->next = 0;
-	pNewRREvent->client = client;
-	pNewRREvent->window = pWin;
-	pNewRREvent->mask = stuff->enable;
-	/*
-	 * add a resource that will be deleted when
-	 * the client goes away
-	 */
-	clientResource = FakeClientID (client->index);
-	pNewRREvent->clientResource = clientResource;
-	if (!AddResource (clientResource, ClientType, (pointer)pNewRREvent))
-	    return BadAlloc;
-	/*
-	 * create a resource to contain a pointer to the list
-	 * of clients selecting input.  This must be indirect as
-	 * the list may be arbitrarily rearranged which cannot be
-	 * done through the resource database.
-	 */
-	if (!pHead)
+	if (!pRREvent)
 	{
-	    pHead = (RREventPtr *) xalloc (sizeof (RREventPtr));
-	    if (!pHead ||
-		!AddResource (pWin->drawable.id, EventType, (pointer)pHead))
-	    {
-		FreeResource (clientResource, RT_NONE);
+	    /* build the entry */
+	    pRREvent = (RREventPtr) xalloc (sizeof (RREventRec));
+	    if (!pRREvent)
 		return BadAlloc;
+	    pRREvent->next = 0;
+	    pRREvent->client = client;
+	    pRREvent->window = pWin;
+	    pRREvent->mask = stuff->enable;
+	    /*
+	     * add a resource that will be deleted when
+	     * the client goes away
+	     */
+	    clientResource = FakeClientID (client->index);
+	    pRREvent->clientResource = clientResource;
+	    if (!AddResource (clientResource, ClientType, (pointer)pRREvent))
+		return BadAlloc;
+	    /*
+	     * create a resource to contain a pointer to the list
+	     * of clients selecting input.  This must be indirect as
+	     * the list may be arbitrarily rearranged which cannot be
+	     * done through the resource database.
+	     */
+	    if (!pHead)
+	    {
+		pHead = (RREventPtr *) xalloc (sizeof (RREventPtr));
+		if (!pHead ||
+		    !AddResource (pWin->drawable.id, EventType, (pointer)pHead))
+		{
+		    FreeResource (clientResource, RT_NONE);
+		    return BadAlloc;
+		}
+		*pHead = 0;
 	    }
-	    *pHead = 0;
+	    pRREvent->next = *pHead;
+	    *pHead = pRREvent;
 	}
-	pNewRREvent->next = *pHead;
-	*pHead = pNewRREvent;
 	/*
 	 * Now see if the client needs an event
 	 */
-	if (pScrPriv)
+	if (pScrPriv && (pRREvent->mask & RRScreenChangeNotifyMask))
 	{
 	    pTimes = &((RRTimesPtr) (pRRClient + 1))[pScreen->myNum];
 	    if (CompareTimeStamps (pTimes->setTime, 
@@ -1334,15 +1524,15 @@ ProcRRSelectInput (ClientPtr client)
 		CompareTimeStamps (pTimes->configTime, 
 				   pScrPriv->lastConfigTime) != 0)
 	    {
-		TellChanged (pWin, (pointer) pScreen);
+		DeliverScreenEvent (client, pWin, pScreen);
 	    }
 	}
     }
-    else if (stuff->enable == xFalse) 
+    else if (stuff->enable == 0) 
     {
 	/* delete the interest */
 	if (pHead) {
-	    pNewRREvent = 0;
+	    RREventPtr pNewRREvent = 0;
 	    for (pRREvent = *pHead; pRREvent; pRREvent = pRREvent->next) {
 		if (pRREvent->client == client)
 		    break;
@@ -1366,36 +1556,340 @@ ProcRRSelectInput (ClientPtr client)
     return Success;
 }
 
+/*
+ * Retrieve valid screen size range
+ */
+static int ProcRRGetScreenSizeRange (ClientPtr client)
+{
+    REQUEST(xRRGetScreenSizeRangeReq);
+    xRRGetScreenSizeRangeReply	rep;
+    WindowPtr			pWin;
+    ScreenPtr			pScreen;
+    rrScrPrivPtr		pScrPriv;
+    
+    REQUEST_SIZE_MATCH(xRRGetScreenInfoReq);
+    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
+					   SecurityReadAccess);
 
-static int ProcRRGetScreenSizeRange (ClientPtr pClient)
+    if (!pWin)
+	return BadWindow;
+
+    pScreen = pWin->drawable.pScreen;
+    pScrPriv = rrGetScrPriv(pScreen);
+    
+    rep.type = X_Reply;
+    rep.pad = 0;
+    rep.sequenceNumber = client->sequence;
+    rep.length = 0;
+    
+    if (pScrPriv) 
+    {
+	RRGetInfo (pScreen);
+	rep.minWidth  = pScrPriv->minWidth;
+	rep.minHeight = pScrPriv->minHeight;
+	rep.maxWidth  = pScrPriv->maxWidth;
+	rep.maxHeight = pScrPriv->maxHeight;
+    }
+    else
+    {
+	rep.maxWidth  = rep.minWidth  = pScreen->width;
+	rep.maxHeight = rep.minHeight = pScreen->height;
+    }
+    if (client->swapped) 
+    {
+	int n;
+	
+    	swaps(&rep.sequenceNumber, n);
+    	swapl(&rep.length, n);
+	swaps(&rep.minWidth, n);
+	swaps(&rep.minHeight, n);
+	swaps(&rep.maxWidth, n);
+	swaps(&rep.maxHeight, n);
+    }
+    WriteToClient(client, sizeof(xRRGetScreenSizeRangeReply), (char *)&rep);
+    return (client->noClientException);
+}
+
+static int ProcRRSetScreenSize (ClientPtr client)
+{
+    REQUEST(xRRSetScreenSizeReq);
+    WindowPtr		pWin;
+    ScreenPtr		pScreen;
+    rrScrPrivPtr	pScrPriv;
+    RRCrtcPtr		crtc;
+    int			i;
+    
+    REQUEST_SIZE_MATCH(xRRSetScreenSizeReq);
+    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
+					   SecurityReadAccess);
+
+    if (!pWin)
+	return BadWindow;
+
+    pScreen = pWin->drawable.pScreen;
+    pScrPriv = rrGetScrPriv(pScreen);
+    if (stuff->width < pScrPriv->minWidth || pScrPriv->maxWidth < stuff->width)
+    {
+	client->errorValue = stuff->width;
+	return BadValue;
+    }
+    if (stuff->height < pScrPriv->minHeight || 
+	pScrPriv->maxHeight < stuff->height)
+    {
+	client->errorValue = stuff->height;
+	return BadValue;
+    }
+    for (i = 0; i < pScrPriv->numCrtcs; i++) {
+	crtc = pScrPriv->crtcs[i];
+	if (crtc->mode &&
+	    (crtc->x + crtc->mode->mode.width > stuff->width ||
+	     crtc->y + crtc->mode->mode.height > stuff->height))
+	    return BadMatch;
+    }
+    if (stuff->widthInMillimeters == 0 || stuff->heightInMillimeters == 0)
+    {
+	client->errorValue = 0;
+	return BadValue;
+    }
+    if (!RRSetScreenSize (pScreen, 
+			  stuff->width, stuff->height,
+			  stuff->widthInMillimeters,
+			  stuff->heightInMillimeters))
+    {
+	return BadMatch;
+    }
+    return Success;
+}
+
+#if 0
+static int ProcRRGetMonitorInfo (ClientPtr client)
+{
+    REQUEST(xRRGetMonitorInfoReq);
+    xRRGetMonitorInfoReply	rep;
+    WindowPtr			pWin;
+    ScreenPtr			pScreen;
+    rrScrPrivPtr		pScrPriv;
+    RRMonitorPtr		pMonitor;
+    RRModePtr			pMode;
+    int				extraLen;
+    CARD8			*extra;
+    xRRMonitorInfo		*monitor;
+    xRRMonitorMode		*mode;
+    CARD8			*names;
+    
+    REQUEST_SIZE_MATCH(xRRGetScreenInfoReq);
+    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
+					   SecurityReadAccess);
+
+    if (!pWin)
+	return BadWindow;
+
+    pScreen = pWin->drawable.pScreen;
+    pScrPriv = rrGetScrPriv(pScreen);
+    rep.type = X_Reply;
+    rep.pad = 0;
+    rep.sequenceNumber = client->sequence;
+    rep.numMonitors = 0;
+    rep.numModes = 0;
+    rep.sizeNames = 0;
+    if (!pScrPriv)
+    {
+	extraLen = 0;
+	extra = NULL;
+    }
+    else
+    {
+	int i, m, b;
+	for (pMonitor = pScrPriv->pMonitors; pMonitor; pMonitor = pMonitor->next)
+	{
+	    rep.numMonitors++;
+	    for (pMode = pMonitor->pModes; pMode; pMode = pMode->next)
+	    {
+		rep.numModes++;
+		rep.sizeNames += (1 + pMode->mode.nameLength);
+	    }
+	}
+	extraLen = (rep.numMonitors * sizeof (xRRMonitorInfo) +
+		    rep.numModes * sizeof (xRRMonitorMode) +
+		    rep.sizeNames + 3) & ~3;
+	extra = (CARD8 *) xalloc (extraLen);
+	if (!extra)
+	    return BadAlloc;
+	monitor = (xRRMonitorInfo *) extra;
+	mode = (xRRMonitorMode *) (monitor + rep.numMonitors);
+	names = (CARD8 *) (mode + rep.numModes);
+	i = 0;
+	m = 0;
+	b = 0;
+	for (pMonitor = pScrPriv->pMonitors; pMonitor; pMonitor = pMonitor->next)
+	{
+	    monitor[i].timestamp = pScrPriv->lastSetTime;
+	    monitor[i].configTimestamp = pScrPriv->lastConfigTime;
+	    monitor[i].x = pMonitor->x;
+	    monitor[i].y = pMonitor->y;
+	    monitor[i].rotation = pMonitor->rotation;
+	    monitor[i].mode = pMonitor->pMode->id;
+	    monitor[i].defaultMode = 0;	/* XXX */
+	    monitor[i].rotations = pMonitor->rotations;
+	    monitor[i].firstMode = m;
+	    monitor[i].numModes = 0;
+	    for (pMode = pMonitor->pModes; pMode; pMode = pMode->next)
+	    {
+		monitor[i].numModes++;
+		mode[m] = pMode->mode;
+		names[b] = pMode->mode.nameLength;
+		b++;
+		memcpy (names + b, (char *) (pMode + 1), 
+			pMode->mode.nameLength);
+		b += pMode->mode.nameLength;
+		m++;
+	    }
+	    i++;
+	}
+	if ((char *) (names + ((b + 3) & ~3)) != (char *) extra + extraLen)
+	    FatalError ("RRGetMonitorInfo length mismatch\n");
+    }
+    rep.length = extraLen >> 2;
+    
+    WriteToClient(client, sizeof(xRRGetMonitorInfoReply), (char *)&rep);
+    if (extraLen)
+    {
+	WriteToClient (client, extraLen, (char *) extra);
+	xfree (extra);
+    }
+    
+    if (extra)
+	xfree (extra);
+    return (client->noClientException);
+}
+
+static int ProcRRAddMonitorMode (ClientPtr client)
 {
     return BadImplementation;
 }
 
-static int ProcRRSetScreenSize (ClientPtr pClient)
+static int ProcRRDeleteMonitorMode (ClientPtr client)
 {
     return BadImplementation;
 }
 
-static int ProcRRGetMonitorInfo (ClientPtr pClient)
+static int ProcRRSetMonitorConfig (ClientPtr client)
 {
-    return BadImplementation;
-}
+    REQUEST(xRRSetMonitorConfigReq);
+    xRRSetMonitorConfigReply	rep;
+    WindowPtr			pWin;
+    ScreenPtr			pScreen;
+    rrScrPrivPtr		pScrPriv;
+    RRMonitorPtr		pMonitor;
+    RRModePtr			pMode;
+    TimeStamp		    configTime;
+    TimeStamp		    time;
+    Rotation		    rotation;
+    
+    REQUEST_SIZE_MATCH(xRRSetScreenConfigReq);
+    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
+					   SecurityReadAccess);
 
-static int ProcRRAddMonitorMode (ClientPtr pClient)
-{
-    return BadImplementation;
-}
+    if (!pWin)
+	return BadWindow;
 
-static int ProcRRDeleteMonitorMode (ClientPtr pClient)
-{
-    return BadImplementation;
-}
+    pScreen = pWin->drawable.pScreen;
+    pScrPriv = rrGetScrPriv(pScreen);
+    
+    time = ClientTimeToServerTime(stuff->timestamp);
+    configTime = ClientTimeToServerTime(stuff->configTimestamp);
+    
+    if (!pScrPriv)
+    {
+	time = currentTime;
+	rep.status = RRSetConfigFailed;
+	goto sendReply;
+    }
+    if (!RRGetInfo (pScreen))
+	return BadAlloc;
+    
+    /*
+     * if the client's config timestamp is not the same as the last config
+     * timestamp, then the config information isn't up-to-date and
+     * can't even be validated
+     */
+    if (CompareTimeStamps (configTime, pScrPriv->lastConfigTime) != 0)
+    {
+	rep.status = RRSetConfigInvalidConfigTime;
+	goto sendReply;
+    }
+    
+    for (pMonitor = pScrPriv->pMonitors; pMonitor; pMonitor = pMonitor->next)
+    {
+	if (pMonitor->id == stuff->monitorIndex)
+	    break;
+    }
+    if (!pMonitor)
+    {
+	client->errorValue = stuff->monitorIndex;
+	return BadValue;
+    }
+    
+    for (pMode = pMonitor->pModes; pMode; pMode = pMode->next)
+    {
+	if (pMode->id == stuff->modeIndex)
+	    break;
+    }
+    if (!pMode)
+    {
+	client->errorValue = stuff->modeIndex;
+	return BadValue;
+    }
+    
+    /*
+     * Validate requested rotation
+     */
+    rotation = (Rotation) stuff->rotation;
 
-static int ProcRRSetMonitorConfig (ClientPtr pClient)
-{
-    return BadImplementation;
+    /* test the rotation bits only! */
+    switch (rotation & 0xf) {
+    case RR_Rotate_0:
+    case RR_Rotate_90:
+    case RR_Rotate_180:
+    case RR_Rotate_270:
+	break;
+    default:
+	/*
+	 * Invalid rotation
+	 */
+	client->errorValue = stuff->rotation;
+	return BadValue;
+    }
+
+    if ((~pMonitor->rotations) & rotation)
+    {
+	/*
+	 * requested rotation or reflection not supported by screen
+	 */
+	client->errorValue = stuff->rotation;
+	return BadMatch;
+    }
+
+    if (stuff->x + pMode->mode.width > pScreen->width)
+    {
+	client->errorValue = stufff
+	stuff->y + pMode->mode.height > pScreen
+    /*
+     * Make sure the requested set-time is not older than
+     * the last set-time
+     */
+    if (CompareTimeStamps (time, pScrPriv->lastSetTime) < 0)
+    {
+	rep.status = RRSetConfigInvalidTime;
+	goto sendReply;
+    }
+
+    rep.status = RRMonitorSetMode (pScreen, pMonitor, 
+				   pMode, stuff->x, stuff->y, rotation, time);
+    
+    return client->noClientException;
 }
+#endif
 
 int (*ProcRandrVector[RRNumberRequests])(ClientPtr) = {
     ProcRRQueryVersion,	/* 0 */
@@ -1408,12 +1902,14 @@ int (*ProcRandrVector[RRNumberRequests])(ClientPtr) = {
     ProcRRSelectInput,		/* 4 */
     ProcRRGetScreenInfo,    	/* 5 */
 /* V1.2 additions */
+#if 0
     ProcRRGetScreenSizeRange,	/* 6 */
     ProcRRSetScreenSize,	/* 7 */
     ProcRRGetMonitorInfo,	/* 8 */
     ProcRRAddMonitorMode,	/* 9 */
     ProcRRDeleteMonitorMode,	/* 10 */
     ProcRRSetMonitorConfig,	/* 11 */
+#endif
 };
 
 
@@ -1505,112 +2001,41 @@ SProcRRDispatch (ClientPtr client)
 }
 
 /*
- * Register a monitor for a screen. identifier is a unique identifier
- * for the monitors of a particular screen.
+ * Register the range of sizes for the screen
  */
-RRMonitorPtr
-RRRegisterMonitor (ScreenPtr		pScreen,
-		   void			*identifier,
-		   Rotation		rotations)
+void
+RRScreenSetSizeRange (ScreenPtr	pScreen,
+		      CARD16	minWidth,
+		      CARD16	minHeight,
+		      CARD16	maxWidth,
+		      CARD16	maxHeight)
 {
     rrScrPriv (pScreen);
-    RRMonitorPtr    pMonitor, *pPrev, *pInsert;
 
-    pInsert = NULL;
-    for (pPrev = &pScrPriv->pMonitors; (pMonitor = *pPrev); 
-	 pPrev = &(pMonitor)->next)
-    {
-	if (pMonitor->identifier == identifier) 
-	{
-	    pMonitor->referenced = TRUE;
-	    return pMonitor;
-	}
-	if (!pMonitor->referenced)
-	    pInsert = pPrev;
-    }
-    if (!pInsert)
-	pInsert = pPrev;
-    
-    /*
-     * New monitor, add before the first unreferenced monitor
-     */
-    pMonitor = xalloc (sizeof (RRMonitor));
-    if (!pMonitor)
-	return NULL;
-    pMonitor->pScreen = pScreen;
-    pMonitor->pModes = NULL;
-    pMonitor->identifier = identifier;
-    pMonitor->referenced = TRUE;
-    pMonitor->oldReferenced = FALSE;
-    pMonitor->rotations = RR_Rotate_0;
-    
-    pMonitor->pMode = NULL;
-    pMonitor->x = 0;
-    pMonitor->y = 0;
-    pMonitor->rotation = RR_Rotate_0;
-    pMonitor->next = *pInsert;
-    *pInsert = pMonitor;
-    return pMonitor;
-}
-
-/*
- * Register a mode for a monitor
- */
-
-RRModePtr
-RRRegisterMode (RRMonitorPtr	pMonitor,
-		xRRMonitorMode	*pModeline,
-		char		*name)
-{
-    RRModePtr	pMode, *pPrev, *pInsert = NULL;
-
-    /*
-     * Find existing mode with same modeline and name
-     */
-    for (pPrev = &pMonitor->pModes; (pMode = *pPrev); pPrev = &(pMode->next))
-    {
-	if (!memcmp (&pMode->mode, pModeline, sizeof (xRRMonitorMode)) &&
-	    pMode->mode.nameLength == pModeline->nameLength &&
-	    !memcmp (RRModeName(pMode), name, pModeline->nameLength))
-	{
-	    pMode->referenced = TRUE;
-	    return pMode;
-	}
-	if (!pMode->referenced)
-	    pInsert = pPrev;
-    }
-
-    if (!pInsert)
-	pInsert = pPrev;
-    
-    /*
-     * Create a new mode, inserting before the first unreferenced mode
-     */
-    pMode = xalloc (sizeof (RRMode) + pModeline->nameLength + 1);
-    pMode->referenced = TRUE;
-    pMode->oldReferenced = FALSE;
-    pMode->mode = *pModeline;
-    memcpy (RRModeName (pMode), name, pModeline->nameLength);
-    RRModeName(pMode)[pModeline->nameLength] = '\0';
-    pMode->next = *pInsert;
-    *pInsert = pMode;
-    return pMode;
-}
-
-void
-RRSetCurrentMode (RRMonitorPtr	pMonitor,
-		  RRModePtr	pMode,
-		  int		x,
-		  int		y,
-		  Rotation	rotation)
-{
-    pMonitor->pMode = pMode;
-    pMonitor->x = x;
-    pMonitor->y = y;
-    pMonitor->rotation = rotation;
+    if (!pScrPriv)
+	return;
+    pScrPriv->minWidth  = minWidth;
+    pScrPriv->minHeight = minHeight;
+    pScrPriv->maxWidth  = maxWidth;
+    pScrPriv->maxHeight = maxHeight;
 }
 
 #ifdef RANDR_SCREEN_INTERFACE
+
+static Bool
+RRScreenSizeMatches (RRScreenSizePtr  a,
+		   RRScreenSizePtr  b)
+{
+    if (a->width != b->width)
+	return FALSE;
+    if (a->height != b->height)
+	return FALSE;
+    if (a->mmWidth != b->mmWidth)
+	return FALSE;
+    if (a->mmHeight != b->mmHeight)
+	return FALSE;
+    return TRUE;
+}
 
 RRScreenSizePtr
 RRRegisterSize (ScreenPtr	    pScreen,
@@ -1620,50 +2045,29 @@ RRRegisterSize (ScreenPtr	    pScreen,
 		short		    mmHeight)
 {
     rrScrPriv (pScreen);
-    xRRMonitorMode  tmp;
-    RRMonitorPtr    pMonitor;
-    RRModePtr	    pMode, *pPrev;
-    char	    name[100];
+    int		    i;
+    RRScreenSize    tmp;
+    RRScreenSizePtr pNew;
 
     if (!pScrPriv)
-	return NULL;
-    pMonitor = pScrPriv->pMonitors;
-    if (!pMonitor)
-    {
-	pMonitor = RRRegisterMonitor (pScreen, NULL, RR_Rotate_0);
-	if (!pMonitor)
-	    return NULL;
-    }
-    pMonitor->referenced = TRUE;
+	return 0;
     
-    for (pPrev = &pMonitor->pModes; (pMode = *pPrev); pPrev = &(pMode->next))
-	if (pMode->mode.width == width &&
-	    pMode->mode.height == height &&
-	    pMode->mode.widthInMillimeters == mmWidth &&
-	    pMode->mode.heightInMillimeters == mmHeight)
-	{
-	    pMode->referenced =TRUE;
-	    return (void *) pMode;
-	}
-    memset (&tmp, '\0', sizeof (xRRMonitorMode));
-    memset (name, '\0', sizeof (name));
-    sprintf (name, "%dx%d", width, height);
     tmp.width = width;
     tmp.height= height;
-    tmp.widthInMillimeters = mmWidth;
-    tmp.heightInMillimeters = mmHeight;
-    tmp.nameLength = strlen (name) + 10;    /* leave space for refresh */
-    pMode = RRRegisterMode (pMonitor, &tmp, name);
-    return (void *) pMode;
-}
-
-static Bool
-RRModesMatchSize (RRModePtr a, RRModePtr b)
-{
-    return (a->mode.width == a->mode.width &&
-	    a->mode.height == b->mode.height &&
-	    a->mode.widthInMillimeters == b->mode.widthInMillimeters &&
-	    a->mode.heightInMillimeters == b->mode.heightInMillimeters);
+    tmp.mmWidth = mmWidth;
+    tmp.mmHeight = mmHeight;
+    tmp.pRates = 0;
+    tmp.nRates = 0;
+    for (i = 0; i < pScrPriv->nSizes; i++)
+	if (RRScreenSizeMatches (&tmp, &pScrPriv->pSizes[i]))
+	    return &pScrPriv->pSizes[i];
+    pNew = xrealloc (pScrPriv->pSizes,
+		     (pScrPriv->nSizes + 1) * sizeof (RRScreenSize));
+    if (!pNew)
+	return 0;
+    pNew[pScrPriv->nSizes++] = tmp;
+    pScrPriv->pSizes = pNew;
+    return &pNew[pScrPriv->nSizes-1];
 }
 
 Bool RRRegisterRate (ScreenPtr		pScreen,
@@ -1671,77 +2075,35 @@ Bool RRRegisterRate (ScreenPtr		pScreen,
 		     int		rate)
 {
     rrScrPriv(pScreen);
-    RRMonitorPtr    pMonitor;
-    RRModePtr	    pSizeMode = (RRModePtr) pSize;
-    RRModePtr	    pMode, *pPrev;
-    CARD16	    width = pSizeMode->mode.width;
-    CARD16	    height = pSizeMode->mode.height;
-    char	    name[100];
-    xRRMonitorMode  modeLine;
+    int		    i;
+    RRScreenRatePtr pNew, pRate;
 
     if (!pScrPriv)
 	return FALSE;
     
-    pMonitor = pScrPriv->pMonitors;
-    if (!pMonitor)
-	return FALSE;
+    for (i = 0; i < pSize->nRates; i++)
+	if (pSize->pRates[i].rate == rate)
+	    return TRUE;
 
-    for (pPrev = &pMonitor->pModes; (pMode = *pPrev); pPrev = &pMode->next)
-    {
-	if (RRModesMatchSize (pMode, pSizeMode))
-	{
-	    if (pMode->mode.dotClock == 0)
-	    {
-		/*
-		 * First refresh for this size; reprogram this mode
-		 * with the right refresh.
-		 */
-		pMode->mode.hSyncStart = width;
-		pMode->mode.hSyncEnd = width;
-		pMode->mode.hTotal = width;
-		pMode->mode.hSkew = 0;
-		pMode->mode.vSyncStart = height;
-		pMode->mode.vSyncEnd = height;
-		pMode->mode.vTotal = height;
-		pMode->mode.dotClock = width * height * rate;
-		sprintf ((char *) (pMode + 1), "%dx%d@%d", width, height, rate);
-		pMode->mode.modeFlags = 0;
-		pMode->mode.nameLength = strlen ((char *) (pMode + 1));
-		pMode->referenced = TRUE;
-		return TRUE;
-	    }
-	    else if (rate == RRVerticalRefresh (&pMode->mode))
-	    {
-		pMode->referenced = TRUE;
-		return TRUE;
-	    }
-	}
-    }
-    
-    sprintf (name, "%dx%d@%d", pSizeMode->mode.width, pSizeMode->mode.height,
-	     rate);
-    modeLine = pSizeMode->mode;
-    modeLine.dotClock = rate * modeLine.vTotal * modeLine.hTotal;
-    modeLine.nameLength = strlen (name);
-    pMode = RRRegisterMode (pMonitor, &modeLine, name);
-    if (!pMode)
+    pNew = xrealloc (pSize->pRates,
+		     (pSize->nRates + 1) * sizeof (RRScreenRate));
+    if (!pNew)
 	return FALSE;
+    pRate = &pNew[pSize->nRates++];
+    pRate->rate = rate;
+    pSize->pRates = pNew;
     return TRUE;
 }
 
 Rotation
 RRGetRotation(ScreenPtr pScreen)
 {
-    rrScrPriv (pScreen);
-    RRMonitorPtr    pMonitor;
+    RROutputPtr	output = RRFirstOutput (pScreen);
 
-    if (!pScrPriv)
+    if (!output)
 	return RR_Rotate_0;
 
-    pMonitor = pScrPriv->pMonitors;
-    if (!pMonitor)
-	return RR_Rotate_0;
-    return pMonitor->rotation;
+    return output->crtc->rotation;
 }
 
 void
@@ -1751,25 +2113,11 @@ RRSetCurrentConfig (ScreenPtr		pScreen,
 		    RRScreenSizePtr	pSize)
 {
     rrScrPriv (pScreen);
-    RRMonitorPtr    pMonitor;
-    RRModePtr	    pMode;
-    RRModePtr	    pSizeMode = (RRModePtr) pSize;
 
     if (!pScrPriv)
 	return;
-    pMonitor = pScrPriv->pMonitors;
-    if (!pMonitor)
-	return;
-
-    for (pMode = pMonitor->pModes; pMode; pMode = pMode->next)
-    {
-	if (RRModesMatchSize (pMode, pSizeMode) && 
-	    RRVerticalRefresh (&pMode->mode) == rate)
-	    break;
-    }
-    if (!pMode)
-	return;
-    
-    RRSetCurrentMode (pMonitor, pMode, 0, 0, rotation);
+    pScrPriv->size = pSize - pScrPriv->pSizes;
+    pScrPriv->rotation = rotation;
+    pScrPriv->rate = rate;
 }
 #endif

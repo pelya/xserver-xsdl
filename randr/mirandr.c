@@ -34,6 +34,29 @@
 #include "randrstr.h"
 #include <stdio.h>
 
+Bool
+miRRGetInfo (ScreenPtr pScreen, Rotation *rotations)
+{
+    return TRUE;
+}
+
+/*
+ * Any hardware that can actually change anything will need something
+ * different here
+ */
+Bool
+miRRCrtcSet (ScreenPtr	pScreen,
+	     RRCrtcPtr	crtc,
+	     RRModePtr	mode,
+	     int	x,
+	     int	y,
+	     Rotation	rotation,
+	     int	numOutput,
+	     RROutputPtr    *outputs)
+{
+    return TRUE;
+}
+
 /*
  * This function assumes that only a single depth can be
  * displayed at a time, but that all visuals of that depth
@@ -44,69 +67,51 @@
  */
 
 Bool
-miRRGetInfo (ScreenPtr pScreen, Rotation *rotations)
-{
-    int	i;
-    Bool setConfig = FALSE;
-    RRMonitorPtr pMonitor;
-    
-    pMonitor = RRRegisterMonitor (pScreen, NULL, RR_Rotate_0);
-    for (i = 0; i < pScreen->numDepths; i++)
-    {
-	if (pScreen->allowedDepths[i].numVids)
-	{
-	    xRRMonitorMode		rrMode;
-	    RRModePtr			pMode;
-	    char			name[64];
-
-	    sprintf (name, "%dx%d", pScreen->width, pScreen->height);
-	    memset (&rrMode, '\0', sizeof (rrMode));
-	    rrMode.width = pScreen->width;
-	    rrMode.height = pScreen->height;
-	    rrMode.widthInMillimeters = pScreen->mmWidth;
-	    rrMode.heightInMillimeters = pScreen->mmHeight;
-	    rrMode.nameLength = strlen (name);
-	    pMonitor = RRRegisterMonitor (pScreen, NULL, RR_Rotate_0);
-	    pMode = RRRegisterMode (pMonitor,
-				    &rrMode,
-				    name);
-	    if (!pMode)
-		return FALSE;
-	    if (!setConfig)
-	    {
-		RRSetCurrentMode (pMonitor, pMode, 0, 0, RR_Rotate_0);
-		setConfig = TRUE;
-	    }
-	}
-    }
-    return TRUE;
-}
-
-/*
- * Any hardware that can actually change anything will need something
- * different here
- */
-Bool
-miRRSetMode (ScreenPtr	pScreen,
-	     int	monitor,
-	     RRModePtr	pMode,
-	     int	x,
-	     int	y,
-	     Rotation	rotation)
-{
-    return TRUE;
-}
-
-
-Bool
 miRandRInit (ScreenPtr pScreen)
 {
-    rrScrPrivPtr    rp;
+    rrScrPrivPtr    pScrPriv;
+    RRModePtr	mode;
+    RRCrtcPtr	crtc;
+    RROutputPtr	output;
+    xRRModeInfo modeInfo;
+    char	name[64];
     
     if (!RRScreenInit (pScreen))
 	return FALSE;
-    rp = rrGetScrPriv(pScreen);
-    rp->rrGetInfo = miRRGetInfo;
-    rp->rrSetMode = miRRSetMode;
+    pScrPriv = rrGetScrPriv(pScreen);
+    pScrPriv->rrGetInfo = miRRGetInfo;
+    pScrPriv->rrCrtcSet = miRRCrtcSet;
+    
+    RRScreenSetSizeRange (pScreen,
+			  pScreen->width, pScreen->height,
+			  pScreen->width, pScreen->height);
+
+    sprintf (name, "%dx%d", pScreen->width, pScreen->height);
+    memset (&modeInfo, '\0', sizeof (modeInfo));
+    modeInfo.width = pScreen->width;
+    modeInfo.height = pScreen->height;
+    modeInfo.mmWidth = pScreen->mmWidth;
+    modeInfo.mmHeight = pScreen->mmHeight;
+    modeInfo.nameLength = strlen (name);
+    
+    mode = RRModeGet (pScreen, &modeInfo, name);
+    if (!mode)
+	return FALSE;
+    
+    crtc = RRCrtcCreate (pScreen, NULL);
+    if (!crtc)
+	return FALSE;
+    
+    output = RROutputCreate (pScreen, "screen", 6, NULL);
+    if (!output)
+	return FALSE;
+    if (!RROutputSet (output, 
+		      NULL, 0,  /* clones */
+		      &mode, 1, /* modes */
+		      &crtc, 1, /* crtcs */
+		      RR_Connected))
+	return FALSE;
+    if (!RRCrtcSet (crtc, mode, 0, 0, RR_Rotate_0, 1, &output))
+	return FALSE;
     return TRUE;
 }

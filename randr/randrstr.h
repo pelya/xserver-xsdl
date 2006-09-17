@@ -34,71 +34,94 @@
 
 #include <X11/extensions/randrproto.h>
 
+/* required for ABI compatibility for now */
 #define RANDR_SCREEN_INTERFACE 1
+
+typedef XID	RRMode;
+typedef XID	RROutput;
+typedef XID	RRCrtc;
 
 /*
  * Modeline for a monitor. Name follows directly after this struct
  */
 
 #define RRModeName(pMode) ((char *) (pMode + 1))
+typedef struct _rrMode	    RRModeRec, *RRModePtr;
+typedef struct _rrCrtc	    RRCrtcRec, *RRCrtcPtr;
+typedef struct _rrOutput    RROutputRec, *RROutputPtr;
 
-typedef struct _rrMode {
-    struct _rrMode  *next;
-    Bool	    referenced;
-    Bool	    oldReferenced;
-    int		    id;
-    xRRMonitorMode  mode;
-} RRMode, *RRModePtr;
+struct _rrMode {
+    RRMode	    id;
+    int		    refcnt;
+    xRRModeInfo	    mode;
+    char	    *name;
+};
 
-typedef struct _rrMonitor {
-    struct _rrMonitor	*next;
+struct _rrCrtc {
+    RRCrtc	    id;
     ScreenPtr	    pScreen;
-    RRModePtr	    pModes;
-    void	    *identifier;    /* made unique by DDX */
-    int		    id;		    /* index in list of monitors */
-    Bool	    referenced;
-    Bool	    oldReferenced;
-    Rotation	    rotations;
-    
-    /*
-     * Current state
-     */
-    RRModePtr	    pMode;
+    RRModePtr	    mode;
     int		    x, y;
     Rotation	    rotation;
-} RRMonitor, *RRMonitorPtr;
+    Rotation	    rotations;
+    int		    numPossibleOutputs;
+    RROutputPtr	    *possibleOutputs;
+    Bool	    changed;
+    void	    *devPrivate;
+};
 
-typedef Bool (*RRSetScreenSizeProcPtr) (ScreenPtr	pScreen,
+struct _rrOutput {
+    RROutput	    id;
+    ScreenPtr	    pScreen;
+    char	    *name;
+    int		    nameLength;
+    CARD8	    connection;
+    CARD8	    subpixelOrder;
+    RRCrtcPtr	    crtc;
+    int		    numCrtcs;
+    RRCrtcPtr	    *crtcs;
+    int		    numClones;
+    RROutputPtr	    *outputs;
+    int		    numModes;
+    RRModePtr	    *modes;
+    Bool	    changed;
+    void	    *devPrivate;
+};
+
+typedef Bool (*RRScreenSetSizeProcPtr) (ScreenPtr	pScreen,
 					CARD16		width,
 					CARD16		height,
 					CARD32		widthInMM,
 					CARD32		heightInMM);
 					
-typedef Bool (*RRSetModeProcPtr) (ScreenPtr		pScreen,
-				  int			monitor,
-				  RRModePtr		pMode,
+typedef Bool (*RRCrtcSetProcPtr) (ScreenPtr		pScreen,
+				  RRCrtcPtr		crtc,
+				  RRModePtr		mode,
 				  int			x,
 				  int			y,
-				  Rotation		rotation);
+				  Rotation		rotation,
+				  int			numOutput,
+				  RROutputPtr		*outputs);
 
 typedef Bool (*RRGetInfoProcPtr) (ScreenPtr pScreen, Rotation *rotations);
 typedef Bool (*RRCloseScreenProcPtr) ( int i, ScreenPtr pscreen);
 
-
-#ifdef RANDR_SCREEN_INTERFACE
-
+/* These are for 1.0 compatibility */
+ 
 typedef struct _rrRefresh {
-    CARD16	    refresh;
-    RRModePtr	    pMode;
-} RRRefreshRec, *RRRefreshPtr;
+    CARD16	    rate;
+    RRModePtr	    mode;
+} RRScreenRate, *RRScreenRatePtr;
 
 typedef struct _rrScreenSize {
     int		    id;
     short	    width, height;
     short	    mmWidth, mmHeight;
-    int		    nrefresh;
-    RRRefreshPtr    refresh;
-} RRScreenSizeRec, *RRScreenSizePtr;
+    int		    nRates;
+    RRScreenRatePtr pRates;
+} RRScreenSize, *RRScreenSizePtr;
+
+#ifdef RANDR_SCREEN_INTERFACE
 
 typedef Bool (*RRSetConfigProcPtr) (ScreenPtr		pScreen,
 				    Rotation		rotation,
@@ -117,8 +140,8 @@ typedef struct _rrScrPriv {
     RRSetConfigProcPtr	    rrSetConfig;
 #endif
     RRGetInfoProcPtr	    rrGetInfo;
-    RRSetScreenSizeProcPtr  rrSetScreenSize;
-    RRSetModeProcPtr	    rrSetMode;
+    RRScreenSetSizeProcPtr  rrScreenSetSize;
+    RRCrtcSetProcPtr	    rrCrtcSet;
     
     /*
      * Private part of the structure; not considered part of the ABI
@@ -126,20 +149,34 @@ typedef struct _rrScrPriv {
     TimeStamp		    lastSetTime;	/* last changed by client */
     TimeStamp		    lastConfigTime;	/* possible configs changed */
     RRCloseScreenProcPtr    CloseScreen;
+    Bool		    changed;
+    CARD16		    minWidth, minHeight;
+    CARD16		    maxWidth, maxHeight;
 
-    /*
-     * monitor data
-     */
-    RRMonitorPtr	    pMonitors;
+    /* modes, outputs and crtcs */
+    int			    numModes;
+    RRModePtr		    *modes;
+
+    int			    numOutputs;
+    RROutputPtr		    *outputs;
+
+    int			    numCrtcs;
+    RRCrtcPtr		    *crtcs;
 
 #ifdef RANDR_SCREEN_INTERFACE
     /*
      * Configuration information
      */
     Rotation		    rotations;
+    CARD16		    reqWidth, reqHeight;
     
-
+    int			    nSizes;
+    RRScreenSizePtr	    pSizes;
+    
+    RRScreenSizePtr	    pSize;
     Rotation		    rotation;
+    int			    rate;
+    int			    size;
 #endif
 } rrScrPrivRec, *rrScrPrivPtr;
 
@@ -154,33 +191,91 @@ void
 RRExtensionInit (void);
 
 /*
- * Then, register a monitor with the screen
+ * Set the range of sizes for the screen
  */
-
-RRMonitorPtr
-RRRegisterMonitor (ScreenPtr		pScreen,
-		   void			*identifier,
-		   Rotation		rotations);
+void
+RRScreenSetSizeRange (ScreenPtr	pScreen,
+		      CARD16	minWidth,
+		      CARD16	minHeight,
+		      CARD16	maxWidth,
+		      CARD16	maxHeight);
 
 /*
- * Next, register the list of modes with the monitor
+ * Create a CRTC
+ */
+RRCrtcPtr
+RRCrtcCreate (ScreenPtr	pScreen,
+	      void	*devPrivate);
+
+
+/*
+ * Use this value for any num parameter to indicate that
+ * the related data are unchanged
+ */
+#define RR_NUM_UNCHANGED    -1
+
+/*
+ * Notify the extension that the Crtc has been reconfigured
+ */
+Bool
+RRCrtcSet (RRCrtcPtr	crtc,
+	   RRModePtr	mode,
+	   int		x,
+	   int		y,
+	   Rotation	rotation,
+	   int		numOutput,
+	   RROutputPtr	*outputs);
+
+/*
+ * Destroy a Crtc at shutdown
+ */
+void
+RRCrtcDestroy (RRCrtcPtr crtc);
+
+/*
+ * Find, and if necessary, create a mode
  */
 
 RRModePtr
-RRRegisterMode (RRMonitorPtr	pMonitor,
-		xRRMonitorMode	*pMode,
-		char		*name);
+RRModeGet (ScreenPtr	pScreen,
+	   xRRModeInfo	*modeInfo,
+	   char		*name);
 
 /*
- * Finally, set the current configuration of each monitor
+ * Destroy a mode.
  */
 
 void
-RRSetCurrentMode (RRMonitorPtr	pMonitor,
-		  RRModePtr	pMode,
-		  int		x,
-		  int		y,
-		  Rotation	rotation);
+RRModeDestroy (RRModePtr mode);
+
+/*
+ * Create an output
+ */
+
+RROutputPtr
+RROutputCreate (ScreenPtr   pScreen,
+		char	    *name,
+		int	    nameLength,
+		void	    *devPrivate);
+
+/*
+ * Notify extension that output parameters have been changed
+ */
+Bool
+RROutputSet (RROutputPtr    output,
+	     RROutputPtr    *clones,
+	     int	    numClones,
+	     RRModePtr	    *modes,
+	     int	    numModes,
+	     RRCrtcPtr	    *crtcs,
+	     int	    numCrtcs,
+	     CARD8	    connection);
+
+void
+RROutputDestroy (RROutputPtr	output);
+
+void
+RRTellChanged (ScreenPtr pScreen);
 
 Bool RRScreenInit(ScreenPtr pScreen);
 
@@ -197,12 +292,14 @@ Bool
 miRRGetScreenInfo (ScreenPtr pScreen);
 
 Bool
-miRRSetMode (ScreenPtr	pScreen,
-	     int	monitor,
-	     RRModePtr	pMode,
+miRRCrtcSet (ScreenPtr	pScreen,
+	     RRCrtcPtr	crtc,
+	     RRModePtr	mode,
 	     int	x,
 	     int	y,
-	     Rotation	rotation);
+	     Rotation	rotation,
+	     int	numOutput,
+	     RROutputPtr    *outputs);
 
 #ifdef RANDR_SCREEN_INTERFACE					
 /*
@@ -225,9 +322,6 @@ Bool RRRegisterRate (ScreenPtr		pScreen,
 		     RRScreenSizePtr	pSize,
 		     int		rate);
 
-Bool RRRegisterRotation (ScreenPtr	pScreen,
-			 Rotation	rotation);
-
 /*
  * Finally, set the current configuration of the screen
  */
@@ -238,17 +332,16 @@ RRSetCurrentConfig (ScreenPtr		pScreen,
 		    int			rate,
 		    RRScreenSizePtr	pSize);
 
+Bool RRScreenInit (ScreenPtr pScreen);
+
+Rotation
+RRGetRotation (ScreenPtr pScreen);
+
 int
 RRSetScreenConfig (ScreenPtr		pScreen,
 		   Rotation		rotation,
 		   int			rate,
 		   RRScreenSizePtr	pSize);
-
-Bool
-miRRSetConfig (ScreenPtr	pScreen,
-	       Rotation		rotation,
-	       int		rate,
-	       RRScreenSizePtr	size);
 
 #endif					
 #endif /* _RANDRSTR_H_ */
