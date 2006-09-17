@@ -70,16 +70,19 @@ Bool
 miRandRInit (ScreenPtr pScreen)
 {
     rrScrPrivPtr    pScrPriv;
+#if RANDR_12_INTERFACE
     RRModePtr	mode;
     RRCrtcPtr	crtc;
     RROutputPtr	output;
     xRRModeInfo modeInfo;
     char	name[64];
+#endif
     
     if (!RRScreenInit (pScreen))
 	return FALSE;
     pScrPriv = rrGetScrPriv(pScreen);
     pScrPriv->rrGetInfo = miRRGetInfo;
+#if RANDR_12_INTERFACE
     pScrPriv->rrCrtcSet = miRRCrtcSet;
     
     RRScreenSetSizeRange (pScreen,
@@ -111,7 +114,7 @@ miRandRInit (ScreenPtr pScreen)
 		      &crtc, 1, /* crtcs */
 		      RR_Connected))
 	return FALSE;
-    if (!RRCrtcSet (crtc, mode, 0, 0, RR_Rotate_0, 1, &output))
-	return FALSE;
+    RRCrtcNotify (crtc, mode, 0, 0, RR_Rotate_0, 1, &output);
+#endif
     return TRUE;
 }

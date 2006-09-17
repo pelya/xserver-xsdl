@@ -9,4 +9,8 @@ endif
 librandr_la_SOURCES =	\
 	mirandr.c	\
 	randr.c		\
-	randrstr.h
+	randrstr.h	\
+	rrcrtc.c	\
+	rrmode.c	\
+	rroutput.c	\
+	rrscreen.c

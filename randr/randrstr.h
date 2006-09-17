@@ -32,14 +32,34 @@
 #ifndef _RANDRSTR_H_
 #define _RANDRSTR_H_
 
+#include <X11/X.h>
+#include <X11/Xproto.h>
+#include "misc.h"
+#include "os.h"
+#include "dixstruct.h"
+#include "resource.h"
+#include "scrnintstr.h"
+#include "windowstr.h"
+#include "pixmapstr.h"
+#include "extnsionst.h"
+#include "servermd.h"
+#include <X11/extensions/randr.h>
 #include <X11/extensions/randrproto.h>
+#ifdef RENDER
+#include <X11/extensions/render.h> 	/* we share subpixel order information */
+#include "picturestr.h"
+#endif
+#include <X11/Xfuncproto.h>
 
 /* required for ABI compatibility for now */
-#define RANDR_SCREEN_INTERFACE 1
+#define RANDR_10_INTERFACE 1
+/* #define RANDR_12_INTERFACE 1 */
 
 typedef XID	RRMode;
 typedef XID	RROutput;
 typedef XID	RRCrtc;
+
+extern int	RREventBase;
 
 /*
  * Modeline for a monitor. Name follows directly after this struct
@@ -64,9 +84,9 @@ struct _rrCrtc {
     int		    x, y;
     Rotation	    rotation;
     Rotation	    rotations;
-    int		    numPossibleOutputs;
-    RROutputPtr	    *possibleOutputs;
     Bool	    changed;
+    int		    numOutputs;
+    RROutputPtr	    *outputs;
     void	    *devPrivate;
 };
 
@@ -88,11 +108,12 @@ struct _rrOutput {
     void	    *devPrivate;
 };
 
-typedef Bool (*RRScreenSetSizeProcPtr) (ScreenPtr	pScreen,
+#if RANDR_12_INTERFACE
+typedef Bool (*RRScreentSizeSetProcPtr) (ScreenPtr	pScreen,
 					CARD16		width,
 					CARD16		height,
-					CARD32		widthInMM,
-					CARD32		heightInMM);
+					CARD32		mmWidth,
+					CARD32		mmHeight);
 					
 typedef Bool (*RRCrtcSetProcPtr) (ScreenPtr		pScreen,
 				  RRCrtcPtr		crtc,
@@ -100,8 +121,9 @@ typedef Bool (*RRCrtcSetProcPtr) (ScreenPtr		pScreen,
 				  int			x,
 				  int			y,
 				  Rotation		rotation,
-				  int			numOutput,
+				  int			numOutputs,
 				  RROutputPtr		*outputs);
+#endif
 
 typedef Bool (*RRGetInfoProcPtr) (ScreenPtr pScreen, Rotation *rotations);
 typedef Bool (*RRCloseScreenProcPtr) ( int i, ScreenPtr pscreen);
@@ -121,7 +143,7 @@ typedef struct _rrScreenSize {
     RRScreenRatePtr pRates;
 } RRScreenSize, *RRScreenSizePtr;
 
-#ifdef RANDR_SCREEN_INTERFACE
+#ifdef RANDR_10_INTERFACE
 
 typedef Bool (*RRSetConfigProcPtr) (ScreenPtr		pScreen,
 				    Rotation		rotation,
@@ -136,12 +158,14 @@ typedef struct _rrScrPriv {
      * 'public' part of the structure; DDXen fill this in
      * as they initialize
      */
-#ifdef RANDR_SCREEN_INTERFACE
+#if RANDR_10_INTERFACE
     RRSetConfigProcPtr	    rrSetConfig;
 #endif
     RRGetInfoProcPtr	    rrGetInfo;
-    RRScreenSetSizeProcPtr  rrScreenSetSize;
+#if RANDR_12_INTERFACE
+    RRScreenSetSizeProcPtr  rrScreenSizeSet;
     RRCrtcSetProcPtr	    rrCrtcSet;
+#endif
     
     /*
      * Private part of the structure; not considered part of the ABI
@@ -152,6 +176,7 @@ typedef struct _rrScrPriv {
     Bool		    changed;
     CARD16		    minWidth, minHeight;
     CARD16		    maxWidth, maxHeight;
+    CARD16		    width, height;	/* last known screen size */
 
     /* modes, outputs and crtcs */
     int			    numModes;
@@ -163,7 +188,7 @@ typedef struct _rrScrPriv {
     int			    numCrtcs;
     RRCrtcPtr		    *crtcs;
 
-#ifdef RANDR_SCREEN_INTERFACE
+#ifdef RANDR_10_INTERFACE
     /*
      * Configuration information
      */
@@ -173,7 +198,6 @@ typedef struct _rrScrPriv {
     int			    nSizes;
     RRScreenSizePtr	    pSizes;
     
-    RRScreenSizePtr	    pSize;
     Rotation		    rotation;
     int			    rate;
     int			    size;
@@ -190,6 +214,7 @@ extern int rrPrivIndex;
 void
 RRExtensionInit (void);
 
+#ifdef RANDR_12_INTERFACE
 /*
  * Set the range of sizes for the screen
  */
@@ -199,89 +224,34 @@ RRScreenSetSizeRange (ScreenPtr	pScreen,
 		      CARD16	minHeight,
 		      CARD16	maxWidth,
 		      CARD16	maxHeight);
+#endif
 
+/* rrscreen.c */
 /*
- * Create a CRTC
+ * Notify the extension that the screen size has been changed.
+ * The driver is responsible for calling this whenever it has changed
+ * the size of the screen
  */
-RRCrtcPtr
-RRCrtcCreate (ScreenPtr	pScreen,
-	      void	*devPrivate);
-
+void
+RRScreenSizeNotify (ScreenPtr	pScreen);
 
 /*
- * Use this value for any num parameter to indicate that
- * the related data are unchanged
- */
-#define RR_NUM_UNCHANGED    -1
-
-/*
- * Notify the extension that the Crtc has been reconfigured
+ * Request that the screen be resized
  */
 Bool
-RRCrtcSet (RRCrtcPtr	crtc,
-	   RRModePtr	mode,
-	   int		x,
-	   int		y,
-	   Rotation	rotation,
-	   int		numOutput,
-	   RROutputPtr	*outputs);
+RRScreenSizeSet (ScreenPtr  pScreen,
+		 CARD16	    width,
+		 CARD16	    height,
+		 CARD32	    mmWidth,
+		 CARD32	    mmHeight);
 
 /*
- * Destroy a Crtc at shutdown
+ * Deliver a ScreenNotify event
  */
 void
-RRCrtcDestroy (RRCrtcPtr crtc);
-
-/*
- * Find, and if necessary, create a mode
- */
-
-RRModePtr
-RRModeGet (ScreenPtr	pScreen,
-	   xRRModeInfo	*modeInfo,
-	   char		*name);
-
-/*
- * Destroy a mode.
- */
-
-void
-RRModeDestroy (RRModePtr mode);
-
-/*
- * Create an output
- */
-
-RROutputPtr
-RROutputCreate (ScreenPtr   pScreen,
-		char	    *name,
-		int	    nameLength,
-		void	    *devPrivate);
-
-/*
- * Notify extension that output parameters have been changed
- */
-Bool
-RROutputSet (RROutputPtr    output,
-	     RROutputPtr    *clones,
-	     int	    numClones,
-	     RRModePtr	    *modes,
-	     int	    numModes,
-	     RRCrtcPtr	    *crtcs,
-	     int	    numCrtcs,
-	     CARD8	    connection);
-
-void
-RROutputDestroy (RROutputPtr	output);
-
-void
-RRTellChanged (ScreenPtr pScreen);
-
-Bool RRScreenInit(ScreenPtr pScreen);
-
-Rotation
-RRGetRotation (ScreenPtr pScreen);
-
+RRDeliverScreenEvent (ClientPtr client, WindowPtr pWin, ScreenPtr pScreen);
+    
+/* mirandr.c */
 Bool
 miRandRInit (ScreenPtr pScreen);
 
@@ -301,7 +271,22 @@ miRRCrtcSet (ScreenPtr	pScreen,
 	     int	numOutput,
 	     RROutputPtr    *outputs);
 
-#ifdef RANDR_SCREEN_INTERFACE					
+/* randr.c */
+/*
+ * Send all pending events
+ */
+void
+RRTellChanged (ScreenPtr pScreen);
+
+Bool RRScreenInit(ScreenPtr pScreen);
+
+Rotation
+RRGetRotation (ScreenPtr pScreen);
+
+CARD16
+RRVerticalRefresh (xRRModeInfo *mode);
+
+#ifdef RANDR_10_INTERFACE					
 /*
  * This is the old interface, deprecated but left
  * around for compatibility
@@ -344,4 +329,122 @@ RRSetScreenConfig (ScreenPtr		pScreen,
 		   RRScreenSizePtr	pSize);
 
 #endif					
+
+/* rrcrtc.c */
+/*
+ * Create a CRTC
+ */
+RRCrtcPtr
+RRCrtcCreate (ScreenPtr	pScreen,
+	      void	*devPrivate);
+
+
+/*
+ * Use this value for any num parameter to indicate that
+ * the related data are unchanged
+ */
+#define RR_NUM_UNCHANGED    -1
+
+/*
+ * Notify the extension that the Crtc has been reconfigured,
+ * the driver calls this whenever it has updated the mode
+ */
+Bool
+RRCrtcNotify (RRCrtcPtr	    crtc,
+	      RRModePtr	    mode,
+	      int	    x,
+	      int	    y,
+	      Rotation	    rotation,
+	      int	    numOutput,
+	      RROutputPtr   *outputs);
+
+/*
+ * Request that the Crtc be reconfigured
+ */
+Bool
+RRCrtcSet (RRCrtcPtr    crtc,
+	   RRModePtr	mode,
+	   int		x,
+	   int		y,
+	   Rotation	rotation,
+	   int		numOutput,
+	   RROutputPtr  *outputs);
+
+/*
+ * Destroy a Crtc at shutdown
+ */
+void
+RRCrtcDestroy (RRCrtcPtr crtc);
+
+/*
+ * Initialize crtc type
+ */
+Bool
+RRCrtcInit (void);
+
+/* rrmode.c */
+/*
+ * Find, and if necessary, create a mode
+ */
+
+RRModePtr
+RRModeGet (ScreenPtr	pScreen,
+	   xRRModeInfo	*modeInfo,
+	   char		*name);
+
+/*
+ * Destroy a mode.
+ */
+
+void
+RRModeDestroy (RRModePtr mode);
+
+/*
+ * Initialize mode type
+ */
+Bool
+RRModeInit (void);
+    
+/* rroutput.c */
+/*
+ * Create an output
+ */
+
+RROutputPtr
+RROutputCreate (ScreenPtr   pScreen,
+		char	    *name,
+		int	    nameLength,
+		void	    *devPrivate);
+
+/*
+ * Notify extension that output parameters have been changed
+ */
+Bool
+RROutputSetClones (RROutputPtr  output,
+		   RROutputPtr  *clones,
+		   int		numClones);
+
+Bool
+RROutputSetModes (RROutputPtr	output,
+		  RRModePtr	*modes,
+		  int		numModes);
+
+Bool
+RROutputSetCrtcs (RROutputPtr	output,
+		  RRCrtcPtr	*crtcs,
+		  int		numCrtcs);
+
+Bool
+RROutputSetConnection (RROutputPtr  output,
+		       CARD8	    connection);
+
+void
+RROutputDestroy (RROutputPtr	output);
+
+/*
+ * Initialize output type
+ */
+Bool
+RROutputInit (void);
+    
 #endif /* _RANDRSTR_H_ */

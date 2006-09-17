@@ -31,25 +31,7 @@
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>
-#include <X11/Xproto.h>
-#include "misc.h"
-#include "os.h"
-#include "dixstruct.h"
-#include "resource.h"
-#include "scrnintstr.h"
-#include "windowstr.h"
-#include "pixmapstr.h"
-#include "extnsionst.h"
-#include "servermd.h"
-#include <X11/extensions/randr.h>
-#include <X11/extensions/randrproto.h>
 #include "randrstr.h"
-#ifdef RENDER
-#include <X11/extensions/render.h> 	/* we share subpixel order information */
-#include "picturestr.h"
-#endif
-#include <X11/Xfuncproto.h>
 
 /* From render.h */
 #ifndef SubPixelUnknown
@@ -59,8 +41,6 @@
 #define RR_VALIDATE
 int	RRGeneration;
 int	RRNScreens;
-
-static RESTYPE	    ModeType, CrtcType, OutputType;
 
 static int ProcRRQueryVersion (ClientPtr pClient);
 static int ProcRRDispatch (ClientPtr pClient);
@@ -80,7 +60,7 @@ static int SProcRRQueryVersion (ClientPtr pClient);
 static CARD8	RRReqCode;
 static int	RRErrBase;
 #endif
-static int	RREventBase;
+int	RREventBase;
 static RESTYPE ClientType, EventType; /* resource types for event masks */
 static int	RRClientPrivateIndex;
 
@@ -233,50 +213,21 @@ SRRNotifyEvent (xEvent *from,
     }
 }
 
-static int
-RRModeDestroyResource (pointer value, XID pid)
-{
-    RRModeDestroy ((RRModePtr) value);
-    return 1;
-}
-
-static int
-RRCrtcDestroyResource (pointer value, XID pid)
-{
-    RRCrtcDestroy ((RRCrtcPtr) value);
-    return 1;
-}
-
-static int
-RROutputDestroyResource (pointer value, XID pid)
-{
-    RROutputDestroy ((RROutputPtr) value);
-    return 1;
-}
-
 Bool RRScreenInit(ScreenPtr pScreen)
 {
     rrScrPrivPtr   pScrPriv;
 
     if (RRGeneration != serverGeneration)
     {
-	ModeType = CreateNewResourceType (RRModeDestroyResource);
-	if (!ModeType)
+	if (!RRModeInit ())
 	    return FALSE;
-	CrtcType = CreateNewResourceType (RRCrtcDestroyResource);
-	if (!ModeType)
+	if (!RRCrtcInit ())
 	    return FALSE;
-	OutputType = CreateNewResourceType (RROutputDestroyResource);
-	if (!ModeType)
+	if (!RROutputInit ())
 	    return FALSE;
 	if ((rrPrivIndex = AllocateScreenPrivateIndex()) < 0)
 	    return FALSE;
 	RRGeneration = serverGeneration;
-#ifdef XResExtension
-	RegisterResourceName (ModeType, "MODE");
-	RegisterResourceName (CrtcType, "CRTC");
-	RegisterResourceName (OutputType, "OUTPUT");
-#endif
     }
 
     pScrPriv = (rrScrPrivPtr) xalloc (sizeof (rrScrPrivRec));
@@ -288,14 +239,23 @@ Bool RRScreenInit(ScreenPtr pScreen)
     /*
      * Calling function best set these function vectors
      */
-    pScrPriv->rrCrtcSet = 0;
     pScrPriv->rrGetInfo = 0;
     pScrPriv->maxWidth = pScrPriv->minWidth = pScreen->width;
     pScrPriv->maxHeight = pScrPriv->minHeight = pScreen->height;
-#ifdef RANDR_SCREEN_INTERFACE    
+    
+#if RANDR_12_INTERFACE
+    pScrPriv->rrCrtcSet = 0;
+#endif
+#if RANDR_10_INTERFACE    
     pScrPriv->rrSetConfig = 0;
+    pScrPriv->rotations = RR_Rotate_0;
     pScrPriv->reqWidth = pScreen->width;
     pScrPriv->reqHeight = pScreen->height;
+    pScrPriv->nSizes = 0;
+    pScrPriv->pSizes = NULL;
+    pScrPriv->rotation = RR_Rotate_0;
+    pScrPriv->rate = 0;
+    pScrPriv->size = 0;
 #endif
     
     /*
@@ -400,61 +360,6 @@ RRExtensionInit (void)
 
     return;
 }
-		
-static void
-DeliverScreenEvent (ClientPtr client, WindowPtr pWin, ScreenPtr pScreen)
-{
-    rrScrPriv (pScreen);
-    xRRScreenChangeNotifyEvent	se;
-    RRCrtcPtr	crtc = pScrPriv->numCrtcs ? pScrPriv->crtcs[0] : NULL;
-    RROutputPtr	output = pScrPriv->numOutputs ? pScrPriv->outputs[0] : NULL;
-    RRModePtr	mode = crtc ? crtc->mode : NULL;
-    WindowPtr	pRoot = WindowTable[pScreen->myNum];
-    int		i;
-    
-    se.type = RRScreenChangeNotify + RREventBase;
-    se.rotation = (CARD8) (crtc ? crtc->rotation : RR_Rotate_0);
-    se.timestamp = pScrPriv->lastSetTime.milliseconds;
-    se.sequenceNumber = client->sequence;
-    se.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
-    se.root =  pRoot->drawable.id;
-    se.window = pWin->drawable.id;
-#ifdef RENDER
-    se.subpixelOrder = PictureGetSubpixelOrder (pScreen);
-#else
-    se.subpixelOrder = SubPixelUnknown;
-#endif
-
-    se.sequenceNumber = client->sequence;
-    if (mode) 
-    {
-	se.sizeID = -1;
-	for (i = 0; i < output->numModes; i++)
-	    if (mode == output->modes[i])
-	    {
-		se.sizeID = i;
-		break;
-	    }
-	se.widthInPixels = mode->mode.width;
-	se.heightInPixels = mode->mode.height;
-	se.widthInMillimeters = mode->mode.mmWidth;
-	se.heightInMillimeters = mode->mode.mmHeight;
-    }
-    else
-    {
-	/*
-	 * This "shouldn't happen", but a broken DDX can
-	 * forget to set the current configuration on GetInfo
-	 */
-	se.sizeID = 0xffff;
-	se.widthInPixels = 0;
-	se.heightInPixels = 0;
-	se.widthInMillimeters = 0;
-	se.heightInMillimeters = 0;
-    }    
-    WriteEventsToClient (client, 1, (xEvent *) &se);
-}
-
 static void
 DeliverCrtcEvent (ClientPtr client, WindowPtr pWin, RRCrtcPtr crtc)
 {
@@ -485,7 +390,7 @@ TellChanged (WindowPtr pWin, pointer value)
 	    continue;
 
 	if (pRREvent->mask & RRScreenChangeNotifyMask)
-	    DeliverScreenEvent (client, pWin, pScreen);
+	    RRDeliverScreenEvent (client, pWin, pScreen);
 	
 	if (pRREvent->mask & RRCrtcChangeNotifyMask)
 	{
@@ -529,47 +434,6 @@ RRTellChanged (ScreenPtr pScreen)
     }
 }
 
-RRModePtr
-RRModeGet (ScreenPtr	pScreen,
-	   xRRModeInfo	*modeInfo,
-	   char		*name)
-{
-    rrScrPriv (pScreen);
-    int	i;
-    RRModePtr	mode;
-
-    for (i = 0; i < pScrPriv->numModes; i++)
-    {
-	mode = pScrPriv->modes[i];
-	if (!memcmp (modeInfo, &mode->mode, sizeof (xRRModeInfo)) &&
-	    !memcmp (name, mode->name, modeInfo->nameLength))
-	{
-	    ++mode->refcnt;
-	    return mode;
-	}
-    }
-    mode = xalloc (sizeof (RRModeRec) + modeInfo->nameLength + 1);
-    mode->refcnt = 1;
-    mode->mode = *modeInfo;
-    mode->name = (char *) (mode + 1);
-    memcpy (mode->name, name, modeInfo->nameLength);
-    mode->name[modeInfo->nameLength] = '\0';
-    mode->id = FakeClientID(0);
-    if (!AddResource (mode->id, ModeType, (pointer) mode))
-	return NULL;
-    ++mode->refcnt;
-    pScrPriv->changed = TRUE;
-    return mode;
-}
-
-void
-RRModeDestroy (RRModePtr mode)
-{
-    if (--mode->refcnt > 0)
-	return;
-    xfree (mode);
-}
-
 /*
  * Return the first output which is connected to an active CRTC
  * Used in emulating 1.0 behaviour
@@ -594,11 +458,13 @@ RRFirstOutput (ScreenPtr pScreen)
     return NULL;
 }
 
-#ifdef RANDR_SCREEN_INTERFACE
+#ifdef RANDR_10_INTERFACE
 
-static Bool
+static RRModePtr
 RROldModeAdd (RROutputPtr output, RRScreenSizePtr size, int refresh)
 {
+    ScreenPtr	pScreen = output->pScreen;
+    rrScrPriv(pScreen);
     xRRModeInfo	modeInfo;
     char	name[100];
     RRModePtr	mode;
@@ -617,12 +483,15 @@ RROldModeAdd (RROutputPtr output, RRScreenSizePtr size, int refresh)
     modeInfo.dotClock = ((CARD32) size->width * (CARD32) size->width *
 			 (CARD32) refresh);
     modeInfo.nameLength = strlen (name);
-    mode = RRModeGet (output->pScreen, &modeInfo, name);
+    mode = RRModeGet (pScreen, &modeInfo, name);
     if (!mode)
-	return FALSE;
+	return NULL;
     for (i = 0; i < output->numModes; i++)
 	if (output->modes[i] == mode)
-	    return TRUE;
+	{
+	    RRModeDestroy (mode);
+	    return mode;
+	}
     
     if (output->numModes)
 	modes = xrealloc (output->modes, 
@@ -630,11 +499,16 @@ RROldModeAdd (RROutputPtr output, RRScreenSizePtr size, int refresh)
     else
 	modes = xalloc (sizeof (RRModePtr));
     if (!modes)
-	return FALSE;
+    {
+	RRModeDestroy (mode);
+	FreeResource (mode->id, 0);
+	return NULL;
+    }
     modes[output->numModes++] = mode;
     output->modes = modes;
     output->changed = TRUE;
-    return TRUE;
+    pScrPriv->changed = TRUE;
+    return mode;
 }
 
 static void
@@ -643,6 +517,7 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
     rrScrPriv(pScreen);
     RROutputPtr	output = RRFirstOutput (pScreen);
     RRCrtcPtr	crtc;
+    RRModePtr	mode, newMode = NULL;
     int		i;
     CARD16	minWidth = MAXSHORT, minHeight = MAXSHORT;
     CARD16	maxWidth = 0, maxHeight = 0;
@@ -666,11 +541,29 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
 	int		r;
 
 	if (size->nRates)
+	{
 	    for (r = 0; r < size->nRates; r++)
-		RROldModeAdd (output, size, size->pRates[r].rate);
+	    {
+		mode = RROldModeAdd (output, size, size->pRates[r].rate);
+		if (i == pScrPriv->size && 
+		    size->pRates[r].rate == pScrPriv->rate)
+		{
+		    newMode = mode;
+		}
+	    }
+	    xfree (size->pRates);
+	}
 	else
-	    RROldModeAdd (output, size, 0);
+	{
+	    mode = RROldModeAdd (output, size, 0);
+	    if (i == pScrPriv->size)
+		newMode = mode;
+	}
     }
+    if (pScrPriv->nSizes)
+	xfree (pScrPriv->pSizes);
+    pScrPriv->pSizes = NULL;
+    pScrPriv->nSizes = 0;
 	    
     /* find size bounds */
     for (i = 0; i < output->numModes; i++) 
@@ -697,9 +590,17 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
     if (maxHeight != pScrPriv->maxHeight) {
 	pScrPriv->maxHeight = maxHeight; pScrPriv->changed = TRUE;
     }
+
+    /* notice current mode */
+    if (newMode)
+	RRCrtcSet (output->crtc, newMode, 0, 0, pScrPriv->rotation,
+		   1, &output);
 }
 #endif
 
+/*
+ * Poll the driver for changed information
+ */
 static Bool
 RRGetInfo (ScreenPtr pScreen)
 {
@@ -718,33 +619,12 @@ RRGetInfo (ScreenPtr pScreen)
     if (!(*pScrPriv->rrGetInfo) (pScreen, &rotations))
 	return FALSE;
 
-#if RANDR_SCREEN_INTERFACE
+#if RANDR_10_INTERFACE
     if (pScrPriv->nSizes)
 	RRScanOldConfig (pScreen, rotations);
 #endif
     RRTellChanged (pScreen);
     return TRUE;
-}
-
-static void
-RRSendConfigNotify (ScreenPtr pScreen)
-{
-    WindowPtr	pWin = WindowTable[pScreen->myNum];
-    xEvent	event;
-
-    event.u.u.type = ConfigureNotify;
-    event.u.configureNotify.window = pWin->drawable.id;
-    event.u.configureNotify.aboveSibling = None;
-    event.u.configureNotify.x = 0;
-    event.u.configureNotify.y = 0;
-
-    /* XXX xinerama stuff ? */
-    
-    event.u.configureNotify.width = pWin->drawable.width;
-    event.u.configureNotify.height = pWin->drawable.height;
-    event.u.configureNotify.borderWidth = wBorderWidth (pWin);
-    event.u.configureNotify.override = pWin->overrideRedirect;
-    DeliverEvents(pWin, &event, 1, NullWindow);
 }
 
 static int
@@ -777,50 +657,6 @@ ProcRRQueryVersion (ClientPtr client)
     return (client->noClientException);
 }
 
-
-extern char	*ConnectionInfo;
-
-static int padlength[4] = {0, 3, 2, 1};
-
-static void
-RREditConnectionInfo (ScreenPtr pScreen)
-{
-    xConnSetup	    *connSetup;
-    char	    *vendor;
-    xPixmapFormat   *formats;
-    xWindowRoot	    *root;
-    xDepth	    *depth;
-    xVisualType	    *visual;
-    int		    screen = 0;
-    int		    d;
-
-    connSetup = (xConnSetup *) ConnectionInfo;
-    vendor = (char *) connSetup + sizeof (xConnSetup);
-    formats = (xPixmapFormat *) ((char *) vendor +
-				 connSetup->nbytesVendor +
-				 padlength[connSetup->nbytesVendor & 3]);
-    root = (xWindowRoot *) ((char *) formats +
-			    sizeof (xPixmapFormat) * screenInfo.numPixmapFormats);
-    while (screen != pScreen->myNum)
-    {
-	depth = (xDepth *) ((char *) root + 
-			    sizeof (xWindowRoot));
-	for (d = 0; d < root->nDepths; d++)
-	{
-	    visual = (xVisualType *) ((char *) depth +
-				      sizeof (xDepth));
-	    depth = (xDepth *) ((char *) visual +
-				depth->nVisuals * sizeof (xVisualType));
-	}
-	root = (xWindowRoot *) ((char *) depth);
-	screen++;
-    }
-    root->pixWidth = pScreen->width;
-    root->pixHeight = pScreen->height;
-    root->mmWidth = pScreen->mmWidth;
-    root->mmHeight = pScreen->mmHeight;
-}
-
 typedef struct _RR10Data {
     RRScreenSizePtr sizes;
     int		    nsize;
@@ -829,7 +665,7 @@ typedef struct _RR10Data {
     CARD16	    refresh;
 } RR10DataRec, *RR10DataPtr;
 
-static CARD16
+CARD16
 RRVerticalRefresh (xRRModeInfo *mode)
 {
     CARD32  refresh;
@@ -1056,94 +892,6 @@ ProcRRGetScreenInfo (ClientPtr client)
 }
 
 #if 0
-static int
-RRMonitorSetMode (ScreenPtr pScreen, RRMonitorPtr pMonitor, 
-		  RRModePtr pMode, int x, int y, Rotation rotation,
-		  TimeStamp time)
-{
-    rrScrPriv(pScreen);
-    short   oldWidth, oldHeight;
-    
-    oldWidth = pScreen->width;
-    oldHeight = pScreen->height;
-    
-    /*
-     * call out to ddx routine to effect the change
-     */
-    if (pScrPriv->rrSetScreenSize && pScrPriv->rrSetMode)
-    {
-	xScreenSizes	oldSize;
-	if (!(*pScrPriv->rrSetMode) (pScreen, 0, NULL, 0, 0, RR_Rotate_0))
-	    return RRSetConfigFailed;
-	oldSize.widthInPixels = pScreen->width;
-	oldSize.heightInPixels = pScreen->width;
-	oldSize.widthInMillimeters = pScreen->mmWidth;
-	oldSize.heightInMillimeters = pScreen->mmHeight;
-	if (!(*pScrPriv->rrSetScreenSize) (pScreen,
-					   pMode->mode.width,
-					   pMode->mode.height,
-					   pMode->mode.widthInMillimeters,
-					   pMode->mode.heightInMillimeters))
-	{
-	    (void) (*pScrPriv->rrSetMode) (pScreen, 0, pMonitor->pMode,
-					   pMonitor->x, pMonitor->y,
-					   pMonitor->rotation);
-	    return RRSetConfigFailed;
-	}
-	if (!(*pScrPriv->rrSetMode) (pScreen, 0, pMode, 0, 0, rotation))
-	{
-	    (void) (*pScrPriv->rrSetScreenSize) (pScreen,
-						 oldSize.widthInPixels,
-						 oldSize.heightInPixels,
-						 oldSize.widthInMillimeters,
-						 oldSize.heightInMillimeters);
-	    (void) (*pScrPriv->rrSetMode) (pScreen, 0, pMonitor->pMode,
-					   pMonitor->x, pMonitor->y,
-					   pMonitor->rotation);
-	    return RRSetConfigFailed;
-	}
-    }
-#ifdef RANDR_SCREEN_INTERFACE
-    else if (pScrPriv->rrSetConfig)
-    {
-	int rate = RRVerticalRefresh (&pMode->mode);
-	RRScreenSizeRec	size;
-
-	size.width = pMode->mode.width;
-	size.height = pMode->mode.height;
-	size.mmWidth = pMode->mode.widthInMillimeters;
-	size.mmHeight = pMode->mode.heightInMillimeters;
-	if (!(*pScrPriv->rrSetConfig) (pScreen, rotation, rate, &size))
-	    return RRSetConfigFailed;
-    }
-#endif
-    else
-	return RRSetConfigFailed;
-    
-    /*
-     * set current extension configuration pointers
-     */
-    RRSetCurrentMode (pMonitor, pMode, 0, 0, rotation);
-    
-    /*
-     * Deliver ScreenChangeNotify events whenever
-     * the configuration is updated
-     */
-    WalkTree (pScreen, TellChanged, (pointer) pScreen);
-    
-    /*
-     * Deliver ConfigureNotify events when root changes
-     * pixel size
-     */
-    if (oldWidth != pScreen->width || oldHeight != pScreen->height)
-	RRSendConfigNotify (pScreen);
-    RREditConnectionInfo (pScreen);
-    
-    /*
-     * Fix pointer bounds and location
-     */
-    ScreenRestructured (pScreen);
-    pScrPriv->lastSetTime = time;
     return RRSetConfigSuccess;
 }
 #endif
@@ -1411,36 +1159,6 @@ RRSetScreenConfig (ScreenPtr		pScreen,
 }
 #endif
 
-static Bool
-RRSetScreenSize (ScreenPtr pScreen,
-		 CARD16 width, CARD16 height,
-		 CARD16 widthInMillimeters, CARD16 heightInMillimeters)
-{
-    rrScrPriv(pScreen);
-    
-    if (pScrPriv->rrScreenSetSize) 
-    {
-	return (*pScrPriv->rrScreenSetSize) (pScreen, width, height,
-					     widthInMillimeters,
-					     heightInMillimeters);
-    }
-#ifdef RANDR_SCREEN_INTERFACE
-    else
-    {
-	/* Pend the size change until we get the set mode request.
-	 * Yes, this is 'illegal', but the best we can do until
-	 * drivers are updated
-	 */
-	pScrPriv->reqWidth = width;
-	pScrPriv->reqHeight = height;
-	pScreen->mmWidth = widthInMillimeters;
-	pScreen->mmHeight = heightInMillimeters;
-	return TRUE;
-    }
-#endif
-    return FALSE;
-}
-
 static int
 ProcRRSelectInput (ClientPtr client)
 {
@@ -1524,7 +1242,7 @@ ProcRRSelectInput (ClientPtr client)
 		CompareTimeStamps (pTimes->configTime, 
 				   pScrPriv->lastConfigTime) != 0)
 	    {
-		DeliverScreenEvent (client, pWin, pScreen);
+		RRDeliverScreenEvent (client, pWin, pScreen);
 	    }
 	}
     }
@@ -1651,7 +1369,7 @@ static int ProcRRSetScreenSize (ClientPtr client)
 	client->errorValue = 0;
 	return BadValue;
     }
-    if (!RRSetScreenSize (pScreen, 
+    if (!RRScreenSizeSet (pScreen, 
 			  stuff->width, stuff->height,
 			  stuff->widthInMillimeters,
 			  stuff->heightInMillimeters))
@@ -2000,6 +1718,7 @@ SProcRRDispatch (ClientPtr client)
     }
 }
 
+#if RANDR_12_INTERFACE
 /*
  * Register the range of sizes for the screen
  */
@@ -2019,8 +1738,9 @@ RRScreenSetSizeRange (ScreenPtr	pScreen,
     pScrPriv->maxWidth  = maxWidth;
     pScrPriv->maxHeight = maxHeight;
 }
+#endif
 
-#ifdef RANDR_SCREEN_INTERFACE
+#ifdef RANDR_10_INTERFACE
 
 static Bool
 RRScreenSizeMatches (RRScreenSizePtr  a,
@@ -2052,6 +1772,7 @@ RRRegisterSize (ScreenPtr	    pScreen,
     if (!pScrPriv)
 	return 0;
     
+    tmp.id = 0;
     tmp.width = width;
     tmp.height= height;
     tmp.mmWidth = mmWidth;
