@@ -10,7 +10,7 @@ libdri_la_CFLAGS = -I$(top_srcdir)/hw/xfree86/common \
 		 \
 		 \
  \
-                   @DRIPROTO_CFLAGS@ \
+                   @DIX_CFLAGS@ @DRIPROTO_CFLAGS@ \
                    @LIBDRM_CFLAGS@ \
                    @GL_CFLAGS@
 libdri_la_LDFLAGS = -module -avoid-version

@@ -19,6 +19,8 @@ libxorgos_la_LIBADD = @XORG_OS_SUBDIR@/lib@XORG_OS_SUBDIR@.la \
                       bus/libbus.la \
                       misc/libmisc.la
 
+AM_CFLAGS = $(DIX_CFLAGS) 
+
 xorgos.c:
 	touch $@
 

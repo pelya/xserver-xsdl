@@ -6,7 +6,7 @@ noinst_LIBRARIES = libdummy-nonserver.a
 
 INCLUDES = $(XORG_INCS)
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 
 if NEED_STRLCAT
 STRL_SRCS = $(top_srcdir)/os/strlcat.c $(top_srcdir)/os/strlcpy.c
