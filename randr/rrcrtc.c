@@ -22,7 +22,7 @@
 
 #include "randrstr.h"
 
-static RESTYPE	CrtcType;
+RESTYPE	RRCrtcType;
 
 /*
  * Create a CRTC
@@ -144,6 +144,12 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
     return TRUE;
 }
 
+void
+RRDeliverCrtcEvent (ClientPtr client, WindowPtr pWin, RRCrtcPtr crtc)
+{
+    
+}
+
 /*
  * Request that the Crtc be reconfigured
  */
@@ -216,6 +222,7 @@ RRCrtcDestroyResource (pointer value, XID pid)
 	    memmove (pScrPriv->crtcs, pScrPriv->crtcs + 1,
 		     (pScrPriv->numCrtcs - (i - 1)) * sizeof (RRCrtcPtr));
 	    --pScrPriv->numCrtcs;
+	    break;
 	}
     }
     free (value);
@@ -228,11 +235,11 @@ RRCrtcDestroyResource (pointer value, XID pid)
 Bool
 RRCrtcInit (void)
 {
-    CrtcType = CreateNewResourceType (RRCrtcDestroyResource);
-    if (!CrtcType)
+    RRCrtcType = CreateNewResourceType (RRCrtcDestroyResource);
+    if (!RRCrtcType)
 	return FALSE;
 #ifdef XResExtension
-	RegisterResourceName (CrtcType, "CRTC");
+	RegisterResourceName (RRCrtcType, "CRTC");
 #endif
     return TRUE;
 }

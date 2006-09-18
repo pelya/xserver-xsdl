@@ -59,8 +59,11 @@ typedef XID	RRMode;
 typedef XID	RROutput;
 typedef XID	RRCrtc;
 
-extern int	RREventBase;
+extern int	RREventBase, RRErrorBase;
 
+extern int (*ProcRandrVector[RRNumberRequests])(ClientPtr);
+extern int (*SProcRandrVector[RRNumberRequests])(ClientPtr);
+    
 /*
  * Modeline for a monitor. Name follows directly after this struct
  */
@@ -101,7 +104,7 @@ struct _rrOutput {
     int		    numCrtcs;
     RRCrtcPtr	    *crtcs;
     int		    numClones;
-    RROutputPtr	    *outputs;
+    RROutputPtr	    *clones;
     int		    numModes;
     RRModePtr	    *modes;
     Bool	    changed;
@@ -210,6 +213,42 @@ extern int rrPrivIndex;
 #define rrScrPriv(pScr)	rrScrPrivPtr    pScrPriv = rrGetScrPriv(pScr)
 #define SetRRScreen(s,p) ((s)->devPrivates[rrPrivIndex].ptr = (pointer) (p))
 
+/*
+ * each window has a list of clients requesting
+ * RRNotify events.  Each client has a resource
+ * for each window it selects RRNotify input for,
+ * this resource is used to delete the RRNotifyRec
+ * entry from the per-window queue.
+ */
+
+typedef struct _RREvent *RREventPtr;
+
+typedef struct _RREvent {
+    RREventPtr  next;
+    ClientPtr	client;
+    WindowPtr	window;
+    XID		clientResource;
+    int		mask;
+} RREventRec;
+
+typedef struct _RRTimes {
+    TimeStamp	setTime;
+    TimeStamp	configTime;
+} RRTimesRec, *RRTimesPtr;
+
+typedef struct _RRClient {
+    int		major_version;
+    int		minor_version;
+/*  RRTimesRec	times[0]; */
+} RRClientRec, *RRClientPtr;
+
+extern RESTYPE	RRClientType, RREventType; /* resource types for event masks */
+extern int	RRClientPrivateIndex;
+extern RESTYPE	RRCrtcType, RRModeType, RROutputType;
+
+#define GetRRClient(pClient)    ((RRClientPtr) (pClient)->devPrivates[RRClientPrivateIndex].ptr)
+#define rrClientPriv(pClient)	RRClientPtr pRRClient = GetRRClient(pClient)
+
 /* Initialize the extension */
 void
 RRExtensionInit (void);
@@ -278,7 +317,16 @@ miRRCrtcSet (ScreenPtr	pScreen,
 void
 RRTellChanged (ScreenPtr pScreen);
 
+/*
+ * Poll the driver for changed information
+ */
+Bool
+RRGetInfo (ScreenPtr pScreen);
+
 Bool RRScreenInit(ScreenPtr pScreen);
+
+RROutputPtr
+RRFirstOutput (ScreenPtr pScreen);
 
 Rotation
 RRGetRotation (ScreenPtr pScreen);
@@ -338,13 +386,6 @@ RRCrtcPtr
 RRCrtcCreate (ScreenPtr	pScreen,
 	      void	*devPrivate);
 
-
-/*
- * Use this value for any num parameter to indicate that
- * the related data are unchanged
- */
-#define RR_NUM_UNCHANGED    -1
-
 /*
  * Notify the extension that the Crtc has been reconfigured,
  * the driver calls this whenever it has updated the mode
@@ -358,6 +399,9 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	      int	    numOutput,
 	      RROutputPtr   *outputs);
 
+void
+RRDeliverCrtcEvent (ClientPtr client, WindowPtr pWin, RRCrtcPtr crtc);
+    
 /*
  * Request that the Crtc be reconfigured
  */
@@ -381,6 +425,10 @@ RRCrtcDestroy (RRCrtcPtr crtc);
  */
 Bool
 RRCrtcInit (void);
+
+/* rrdispatch.c */
+Bool
+RRClientKnowsRates (ClientPtr	pClient);
 
 /* rrmode.c */
 /*
@@ -437,6 +485,9 @@ RROutputSetCrtcs (RROutputPtr	output,
 Bool
 RROutputSetConnection (RROutputPtr  output,
 		       CARD8	    connection);
+
+void
+RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output);
 
 void
 RROutputDestroy (RROutputPtr	output);

@@ -22,7 +22,7 @@
 
 #include "randrstr.h"
 
-static RESTYPE	ModeType;
+RESTYPE	RRModeType;
 
 RRModePtr
 RRModeGet (ScreenPtr	pScreen,
@@ -50,7 +50,7 @@ RRModeGet (ScreenPtr	pScreen,
     memcpy (mode->name, name, modeInfo->nameLength);
     mode->name[modeInfo->nameLength] = '\0';
     mode->id = FakeClientID(0);
-    if (!AddResource (mode->id, ModeType, (pointer) mode))
+    if (!AddResource (mode->id, RRModeType, (pointer) mode))
 	return NULL;
     ++mode->refcnt;
     pScrPriv->changed = TRUE;
@@ -75,11 +75,11 @@ RRModeDestroyResource (pointer value, XID pid)
 Bool
 RRModeInit (void)
 {
-    ModeType = CreateNewResourceType (RRModeDestroyResource);
-    if (!ModeType)
+    RRModeType = CreateNewResourceType (RRModeDestroyResource);
+    if (!RRModeType)
 	return FALSE;
 #ifdef XResExtension
-    RegisterResourceName (ModeType, "MODE");
+    RegisterResourceName (RRModeType, "MODE");
 #endif
     return TRUE;
 }
