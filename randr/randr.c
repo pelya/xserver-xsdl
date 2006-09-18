@@ -477,6 +477,7 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
 	if (!output)
 	    return;
 	RROutputSetCrtcs (output, &crtc, 1);
+	RROutputSetCrtc (output, crtc);
 	RROutputSetConnection (output, RR_Connected);
     }
 
@@ -552,8 +553,8 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
 
     /* notice current mode */
     if (newMode)
-	RRCrtcSet (output->crtc, newMode, 0, 0, pScrPriv->rotation,
-		   1, &output);
+	RRCrtcNotify (output->crtc, newMode, 0, 0, pScrPriv->rotation,
+		      1, &output);
 }
 #endif
 

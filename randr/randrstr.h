@@ -482,6 +482,9 @@ RROutputSetCrtcs (RROutputPtr	output,
 		  RRCrtcPtr	*crtcs,
 		  int		numCrtcs);
 
+void
+RROutputSetCrtc (RROutputPtr output, RRCrtcPtr crtc);
+    
 Bool
 RROutputSetConnection (RROutputPtr  output,
 		       CARD8	    connection);

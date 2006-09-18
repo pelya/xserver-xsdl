@@ -824,7 +824,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
     if (!crtc)
     {
 	client->errorValue = stuff->crtc;
-	return RRErrorBase + BadCrtc;
+	return RRErrorBase + BadRRCrtc;
     }
     if (stuff->mode == None)
     {
@@ -838,7 +838,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	if (!mode)
 	{
 	    client->errorValue = stuff->mode;
-	    return RRErrorBase + BadMode;
+	    return RRErrorBase + BadRRMode;
 	}
 	if (numOutputs == 0)
 	    return BadMatch;
@@ -854,7 +854,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	if (!outputs[i])
 	{
 	    client->errorValue = outputIds[i];
-	    return RRErrorBase + BadOutput;
+	    return RRErrorBase + BadRROutput;
 	}
 	/* validate crtc for this output */
 	for (j = 0; j < outputs[i]->numCrtcs; j++)

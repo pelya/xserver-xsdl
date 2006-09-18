@@ -32,6 +32,7 @@ RRModeGet (ScreenPtr	pScreen,
     rrScrPriv (pScreen);
     int	i;
     RRModePtr	mode;
+    RRModePtr	*modes;
 
     for (i = 0; i < pScrPriv->numModes; i++)
     {
@@ -43,16 +44,34 @@ RRModeGet (ScreenPtr	pScreen,
 	    return mode;
 	}
     }
+
     mode = xalloc (sizeof (RRModeRec) + modeInfo->nameLength + 1);
+    if (!mode)
+	return NULL;
     mode->refcnt = 1;
     mode->mode = *modeInfo;
     mode->name = (char *) (mode + 1);
     memcpy (mode->name, name, modeInfo->nameLength);
     mode->name[modeInfo->nameLength] = '\0';
+
+    if (pScrPriv->numModes)
+	modes = xrealloc (pScrPriv->modes,
+			  (pScrPriv->numModes + 1) * sizeof (RRModePtr));
+    else
+	modes = xalloc (sizeof (RRModePtr));
+
+    if (!modes)
+    {
+	xfree (mode);
+	return NULL;
+    }
+
     mode->id = FakeClientID(0);
     if (!AddResource (mode->id, RRModeType, (pointer) mode))
 	return NULL;
     ++mode->refcnt;
+    pScrPriv->modes = modes;
+    pScrPriv->modes[pScrPriv->numModes++] = mode;
     pScrPriv->changed = TRUE;
     return mode;
 }

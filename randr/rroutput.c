@@ -56,6 +56,7 @@ RROutputCreate (ScreenPtr   pScreen,
     output->name = (char *) (output + 1);
     output->nameLength = nameLength;
     memcpy (output->name, name, nameLength);
+    output->name[nameLength] = '\0';
     output->connection = RR_UnknownConnection;
     output->subpixelOrder = SubPixelUnknown;
     output->crtc = NULL;
@@ -67,7 +68,13 @@ RROutputCreate (ScreenPtr   pScreen,
     output->modes = NULL;
     output->changed = TRUE;
     output->devPrivate = devPrivate;
+    
+    if (!AddResource (output->id, RROutputType, (pointer) output))
+	return NULL;
+
+    pScrPriv->outputs = outputs;
     pScrPriv->outputs[pScrPriv->numOutputs++] = output;
+    pScrPriv->changed = TRUE;
     return output;
 }
 
@@ -89,6 +96,7 @@ RROutputSetClones (RROutputPtr  output,
     memcpy (newClones, clones, numClones * sizeof (RROutputPtr));
     output->clones = newClones;
     output->numClones = numClones;
+    output->changed = TRUE;
     return TRUE;
 }
 
@@ -107,6 +115,7 @@ RROutputSetModes (RROutputPtr	output,
     memcpy (newModes, modes, numModes * sizeof (RRModePtr));
     output->modes = newModes;
     output->numModes = numModes;
+    output->changed = TRUE;
     return TRUE;
 }
 
@@ -125,7 +134,15 @@ RROutputSetCrtcs (RROutputPtr	output,
     memcpy (newCrtcs, crtcs, numCrtcs * sizeof (RRCrtcPtr));
     output->crtcs = newCrtcs;
     output->numCrtcs = numCrtcs;
+    output->changed = TRUE;
     return TRUE;
+}
+
+void
+RROutputSetCrtc (RROutputPtr output, RRCrtcPtr crtc)
+{
+    output->crtc = crtc;
+    output->changed = TRUE;
 }
 
 Bool
@@ -133,6 +150,7 @@ RROutputSetConnection (RROutputPtr  output,
 		       CARD8	    connection)
 {
     output->connection = connection;
+    output->changed = TRUE;
     return TRUE;
 }
 

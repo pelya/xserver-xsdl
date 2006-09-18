@@ -59,7 +59,13 @@ RRCrtcCreate (ScreenPtr	pScreen,
     crtc->numOutputs = 0;
     crtc->changed = TRUE;
     crtc->devPrivate = devPrivate;
+
+    if (!AddResource (crtc->id, RRCrtcType, (pointer) crtc))
+	return NULL;
+
+    pScrPriv->crtcs = crtcs;
     pScrPriv->crtcs[pScrPriv->numCrtcs++] = crtc;
+    pScrPriv->changed = TRUE;
     return crtc;
 }
 
@@ -165,6 +171,16 @@ RRCrtcSet (RRCrtcPtr    crtc,
     ScreenPtr	pScreen = crtc->pScreen;
     rrScrPriv(pScreen);
 
+    /* See if nothing changed */
+    if (crtc->mode == mode &&
+	crtc->x == x &&
+	crtc->y == y &&
+	crtc->rotation == rotation &&
+	crtc->numOutputs == numOutputs &&
+	!memcmp (crtc->outputs, outputs, numOutputs * sizeof (RROutputPtr)))
+    {
+	return TRUE;
+    }
 #if RANDR_12_INTERFACE
     if (pScrPriv->rrCrtcSet)
     {
