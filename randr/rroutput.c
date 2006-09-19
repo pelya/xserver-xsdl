@@ -154,6 +154,15 @@ RROutputSetConnection (RROutputPtr  output,
     return TRUE;
 }
 
+Bool
+RROutputSetSubpixelOrder (RROutputPtr output,
+			  int	      subpixelOrder)
+{
+    output->subpixelOrder = subpixelOrder;
+    output->changed = TRUE;
+    return TRUE;
+}
+
 void
 RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output)
 {

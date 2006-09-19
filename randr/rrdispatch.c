@@ -694,20 +694,229 @@ static int
 ProcRRGetScreenResources (ClientPtr client)
 {
     REQUEST(xRRGetScreenResourcesReq);
+    xRRGetScreenResourcesReply  rep;
+    WindowPtr			pWin;
+    ScreenPtr			pScreen;
+    rrScrPrivPtr		pScrPriv;
+    CARD8			*extra;
+    unsigned long		extraLen;
+    int				i;
+    RRCrtc			*crtcs;
+    RROutput			*outputs;
+    xRRModeInfo			*modeinfos;
+    CARD8			*names;
+    int				n;
     
     REQUEST_SIZE_MATCH(xRRGetScreenResourcesReq);
-    (void) stuff;
-    return BadImplementation; 
+    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
+					   SecurityReadAccess);
+
+    if (!pWin)
+	return BadWindow;
+    
+    pScreen = pWin->drawable.pScreen;
+    pScrPriv = rrGetScrPriv(pScreen);
+    rep.pad = 0;
+    
+    if (pScrPriv)
+	RRGetInfo (pScreen);
+
+    if (!pScrPriv)
+    {
+	rep.type = X_Reply;
+	rep.sequenceNumber = client->sequence;
+	rep.length = 0;
+	rep.timestamp = currentTime.milliseconds;
+	rep.configTimestamp = currentTime.milliseconds;
+	rep.nCrtcs = 0;
+	rep.nOutputs = 0;
+	rep.nModes = 0;
+	rep.nbytesNames = 0;
+	extra = NULL;
+	extraLen = 0;
+    }
+    else
+    {
+	rep.type = X_Reply;
+	rep.sequenceNumber = client->sequence;
+	rep.length = 0;
+	rep.timestamp = currentTime.milliseconds;
+	rep.configTimestamp = currentTime.milliseconds;
+	rep.nCrtcs = pScrPriv->numCrtcs;
+	rep.nOutputs = pScrPriv->numOutputs;
+	rep.nModes = pScrPriv->numModes;;
+	rep.nbytesNames = 0;
+
+	for (i = 0; i < pScrPriv->numModes; i++)
+	    rep.nbytesNames += pScrPriv->modes[i]->mode.nameLength;
+
+	rep.length = (pScrPriv->numCrtcs + 
+		      pScrPriv->numOutputs + 
+		      pScrPriv->numModes * 10 +
+		      ((rep.nbytesNames + 3) >> 2));
+	
+	extraLen = rep.length << 2;
+	extra = xalloc (extraLen);
+	if (!extra)
+	    return BadAlloc;
+
+	crtcs = (RRCrtc *) extra;
+	outputs = (RROutput *) (crtcs + pScrPriv->numCrtcs);
+	modeinfos = (xRRModeInfo *) (outputs + pScrPriv->numOutputs);
+	names = (CARD8 *) (modeinfos + pScrPriv->numModes);
+	
+	for (i = 0; i < pScrPriv->numCrtcs; i++)
+	{
+	    crtcs[i] = pScrPriv->crtcs[i]->id;
+	    if (client->swapped)
+		swapl (&crtcs[i], n);
+	}
+	
+	for (i = 0; i < pScrPriv->numOutputs; i++)
+	{
+	    outputs[i] = pScrPriv->outputs[i]->id;
+	    if (client->swapped)
+		swapl (&outputs[i], n);
+	}
+	
+	for (i = 0; i < pScrPriv->numModes; i++)
+	{
+	    modeinfos[i] = pScrPriv->modes[i]->mode;
+	    if (client->swapped)
+	    {
+		swapl (&modeinfos[i].id, n);
+		swaps (&modeinfos[i].width, n);
+		swaps (&modeinfos[i].height, n);
+		swapl (&modeinfos[i].mmWidth, n);
+		swapl (&modeinfos[i].mmHeight, n);
+		swapl (&modeinfos[i].dotClock, n);
+		swaps (&modeinfos[i].hSyncStart, n);
+		swaps (&modeinfos[i].hSyncEnd, n);
+		swaps (&modeinfos[i].hTotal, n);
+		swaps (&modeinfos[i].hSkew, n);
+		swaps (&modeinfos[i].vSyncStart, n);
+		swaps (&modeinfos[i].vSyncEnd, n);
+		swaps (&modeinfos[i].vTotal, n);
+		swaps (&modeinfos[i].nameLength, n);
+		swapl (&modeinfos[i].modeFlags, n);
+	    }
+	    memcpy (names, pScrPriv->modes[i]->name, 
+		    pScrPriv->modes[i]->mode.nameLength);
+	    names += pScrPriv->modes[i]->mode.nameLength;
+	}
+	assert ((names + 3 >> 3) == rep.length);
+    }
+    
+    if (client->swapped) {
+	swaps(&rep.sequenceNumber, n);
+	swapl(&rep.length, n);
+	swapl(&rep.timestamp, n);
+	swapl(&rep.configTimestamp, n);
+	swaps(&rep.nCrtcs, n);
+	swaps(&rep.nOutputs, n);
+	swaps(&rep.nModes, n);
+	swaps(&rep.nbytesNames, n);
+    }
+    WriteToClient(client, sizeof(xRRGetScreenResourcesReply), (char *)&rep);
+    if (extraLen)
+    {
+	WriteToClient (client, extraLen, (char *) extra);
+	xfree (extra);
+    }
+    return client->noClientException;
 }
 
 static int
 ProcRRGetOutputInfo (ClientPtr client)
 {
     REQUEST(xRRGetOutputInfoReq);;
+    xRRGetOutputInfoReply	rep;
+    RROutputPtr			output;
+    CARD8			*extra;
+    unsigned long		extraLen;
+    ScreenPtr			pScreen;
+    rrScrPrivPtr		pScrPriv;
+    RRCrtc			*crtcs;
+    RRMode			*modes;
+    RROutput			*clones;
+    char			*name;
+    int				i, n;
     
     REQUEST_SIZE_MATCH(xRRGetOutputInfoReq);
-    (void) stuff;
-    return BadImplementation; 
+    output = (RROutputPtr)SecurityLookupIDByType(client, stuff->output, 
+						 RROutputType, 
+						 SecurityReadAccess);
+
+    if (!output)
+	return RRErrorBase + BadRROutput;
+
+    pScreen = output->pScreen;
+    pScrPriv = rrGetScrPriv(pScreen);
+
+    rep.type = X_Reply;
+    rep.sequenceNumber = client->sequence;
+    rep.length = 0;
+    rep.timestamp = pScrPriv->lastSetTime.milliseconds;
+    rep.crtc = output->crtc ? output->crtc->id : None;
+    rep.connection = output->connection;
+    rep.subpixelOrder = output->subpixelOrder;
+    rep.nCrtcs = output->numCrtcs;
+    rep.nModes = output->numModes;
+    rep.nClones = output->numClones;
+    rep.nameLength = output->nameLength;
+    
+    rep.length = (output->numCrtcs + 
+		  output->numModes + 
+		  output->numClones +
+		  ((rep.nameLength + 3) >> 2));
+
+    extraLen = rep.length << 2;
+    extra = xalloc (extraLen);
+    if (!extra)
+	return BadAlloc;
+
+    crtcs = (RRCrtc *) extra;
+    modes = (RRMode *) (crtcs + output->numCrtcs);
+    clones = (RROutput *) (modes + output->numModes);
+    name = (char *) (clones + output->numClones);
+    
+    for (i = 0; i < output->numCrtcs; i++)
+    {
+	crtcs[i] = output->crtcs[i]->id;
+	if (client->swapped)
+	    swapl (&crtcs[i], n);
+    }
+    for (i = 0; i < output->numModes; i++)
+    {
+	modes[i] = output->modes[i]->mode.id;
+	if (client->swapped)
+	    swapl (&modes[i], n);
+    }
+    for (i = 0; i < output->numClones; i++)
+    {
+	clones[i] = output->clones[i]->id;
+	if (client->swapped)
+	    swapl (&clones[i], n);
+    }
+    memcpy (name, output->name, output->nameLength);
+    if (client->swapped) {
+	swaps(&rep.sequenceNumber, n);
+	swapl(&rep.length, n);
+	swapl(&rep.timestamp, n);
+	swapl(&rep.crtc, n);
+	swaps(&rep.nCrtcs, n);
+	swaps(&rep.nModes, n);
+	swaps(&rep.nClones, n);
+	swaps(&rep.nameLength, n);
+    }
+    WriteToClient(client, sizeof(xRRGetOutputInfoReply), (char *)&rep);
+    if (extraLen)
+    {
+	WriteToClient (client, extraLen, (char *) extra);
+	xfree (extra);
+    }
+    
+    return client->noClientException;
 }
 
 static int

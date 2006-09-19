@@ -442,7 +442,7 @@ RROldModeAdd (RROutputPtr output, RRScreenSizePtr size, int refresh)
     if (!modes)
     {
 	RRModeDestroy (mode);
-	FreeResource (mode->id, 0);
+	FreeResource (mode->mode.id, 0);
 	return NULL;
     }
     modes[output->numModes++] = mode;
@@ -479,6 +479,9 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
 	RROutputSetCrtcs (output, &crtc, 1);
 	RROutputSetCrtc (output, crtc);
 	RROutputSetConnection (output, RR_Connected);
+#ifdef RENDER
+	RROutputSetSubpixelOrder (output, PictureGetSubpixelOrder (pScreen));
+#endif
     }
 
     output = RRFirstOutput (pScreen);

@@ -74,7 +74,6 @@ typedef struct _rrCrtc	    RRCrtcRec, *RRCrtcPtr;
 typedef struct _rrOutput    RROutputRec, *RROutputPtr;
 
 struct _rrMode {
-    RRMode	    id;
     int		    refcnt;
     xRRModeInfo	    mode;
     char	    *name;
@@ -488,6 +487,10 @@ RROutputSetCrtc (RROutputPtr output, RRCrtcPtr crtc);
 Bool
 RROutputSetConnection (RROutputPtr  output,
 		       CARD8	    connection);
+
+Bool
+RROutputSetSubpixelOrder (RROutputPtr output,
+			  int	      subpixelOrder);
 
 void
 RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output);

@@ -37,6 +37,7 @@ RRModeGet (ScreenPtr	pScreen,
     for (i = 0; i < pScrPriv->numModes; i++)
     {
 	mode = pScrPriv->modes[i];
+	modeInfo->id = mode->mode.id;
 	if (!memcmp (modeInfo, &mode->mode, sizeof (xRRModeInfo)) &&
 	    !memcmp (name, mode->name, modeInfo->nameLength))
 	{
@@ -66,8 +67,8 @@ RRModeGet (ScreenPtr	pScreen,
 	return NULL;
     }
 
-    mode->id = FakeClientID(0);
-    if (!AddResource (mode->id, RRModeType, (pointer) mode))
+    mode->mode.id = FakeClientID(0);
+    if (!AddResource (mode->mode.id, RRModeType, (pointer) mode))
 	return NULL;
     ++mode->refcnt;
     pScrPriv->modes = modes;
