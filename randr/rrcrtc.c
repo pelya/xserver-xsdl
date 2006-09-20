@@ -94,13 +94,22 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
     {
 	RROutputPtr *outputs;
 	
-	if (crtc->numOutputs)
-	    outputs = xrealloc (crtc->outputs,
-				numOutputs * sizeof (RROutputPtr));
+	if (numOutputs)
+	{
+	    if (crtc->numOutputs)
+		outputs = xrealloc (crtc->outputs,
+				    numOutputs * sizeof (RROutputPtr));
+	    else
+		outputs = xalloc (numOutputs * sizeof (RROutputPtr));
+	    if (!outputs)
+		return FALSE;
+	}
 	else
-	    outputs = xalloc (numOutputs * sizeof (RROutputPtr));
-	if (!outputs)
-	    return FALSE;
+	{
+	    if (crtc->outputs)
+		xfree (crtc->outputs);
+	    outputs = NULL;
+	}
 	crtc->outputs = outputs;
     }
     for (i = 0; i < numOutputs; i++)
@@ -300,9 +309,14 @@ RRCrtcGammaSetSize (RRCrtcPtr	crtc,
 
     if (size == crtc->gammaSize)
 	return TRUE;
-    gamma = xalloc (size * 3 * sizeof (CARD16));
-    if (!gamma)
-	return FALSE;
+    if (size)
+    {
+	gamma = xalloc (size * 3 * sizeof (CARD16));
+	if (!gamma)
+	    return FALSE;
+    }
+    else
+	gamma = NULL;
     if (crtc->gammaRed)
 	xfree (crtc->gammaRed);
     crtc->gammaRed = gamma;
@@ -376,9 +390,14 @@ ProcRRGetCrtcInfo (ClientPtr client)
     rep.length = rep.nOutput + rep.nPossibleOutput;
 
     extraLen = rep.length << 2;
-    extra = xalloc (extraLen);
-    if (!extra)
-	return BadAlloc;
+    if (extraLen)
+    {
+	extra = xalloc (extraLen);
+	if (!extra)
+	    return BadAlloc;
+    }
+    else
+	extra = NULL;
 
     outputs = (RROutput *) extra;
     possible = (RROutput *) (outputs + rep.nOutput);
@@ -467,9 +486,14 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	if (numOutputs == 0)
 	    return BadMatch;
     }
-    outputs = xalloc (numOutputs * sizeof (RROutputPtr));
-    if (!outputs)
-	return BadAlloc;
+    if (numOutputs)
+    {
+	outputs = xalloc (numOutputs * sizeof (RROutputPtr));
+	if (!outputs)
+	    return BadAlloc;
+    }
+    else
+	outputs = NULL;
     
     outputIds = (RROutput *) (stuff + 1);
     for (i = 0; i < numOutputs; i++)
@@ -574,7 +598,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
      * for setting screen size. Else, assume the CrtcSet sets
      * the size along with the mode
      */
-    if (pScrPriv->rrScreenSizeSet)
+    if (pScrPriv->rrScreenSetSize)
     {
 	if (stuff->x + mode->mode.width > pScreen->width)
 	{

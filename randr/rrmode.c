@@ -27,7 +27,7 @@ RESTYPE	RRModeType;
 RRModePtr
 RRModeGet (ScreenPtr	pScreen,
 	   xRRModeInfo	*modeInfo,
-	   char		*name)
+	   const char	*name)
 {
     rrScrPriv (pScreen);
     int	i;

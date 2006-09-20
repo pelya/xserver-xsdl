@@ -30,7 +30,7 @@ RESTYPE	RROutputType;
 
 RROutputPtr
 RROutputCreate (ScreenPtr   pScreen,
-		char	    *name,
+		const char  *name,
 		int	    nameLength,
 		void	    *devPrivate)
 {
@@ -89,9 +89,14 @@ RROutputSetClones (RROutputPtr  output,
 {
     RROutputPtr	*newClones;
 
-    newClones = xalloc (numClones * sizeof (RROutputPtr));
-    if (!newClones)
-	return FALSE;
+    if (numClones)
+    {
+	newClones = xalloc (numClones * sizeof (RROutputPtr));
+	if (!newClones)
+	    return FALSE;
+    }
+    else
+	newClones = NULL;
     if (output->clones)
 	xfree (output->clones);
     memcpy (newClones, clones, numClones * sizeof (RROutputPtr));
@@ -108,9 +113,14 @@ RROutputSetModes (RROutputPtr	output,
 {
     RRModePtr	*newModes;
 
-    newModes = xalloc (numModes * sizeof (RRModePtr));
-    if (!newModes)
-	return FALSE;
+    if (numModes)
+    {
+	newModes = xalloc (numModes * sizeof (RRModePtr));
+	if (!newModes)
+	    return FALSE;
+    }
+    else
+	newModes = NULL;
     if (output->modes)
 	xfree (output->modes);
     memcpy (newModes, modes, numModes * sizeof (RRModePtr));
@@ -127,9 +137,14 @@ RROutputSetCrtcs (RROutputPtr	output,
 {
     RRCrtcPtr	*newCrtcs;
 
-    newCrtcs = xalloc (numCrtcs * sizeof (RRCrtcPtr));
-    if (!newCrtcs)
-	return FALSE;
+    if (numCrtcs)
+    {
+	newCrtcs = xalloc (numCrtcs * sizeof (RRCrtcPtr));
+	if (!newCrtcs)
+	    return FALSE;
+    }
+    else
+	newCrtcs = NULL;
     if (output->crtcs)
 	xfree (output->crtcs);
     memcpy (newCrtcs, crtcs, numCrtcs * sizeof (RRCrtcPtr));
@@ -265,9 +280,14 @@ ProcRRGetOutputInfo (ClientPtr client)
 		  ((rep.nameLength + 3) >> 2));
 
     extraLen = rep.length << 2;
-    extra = xalloc (extraLen);
-    if (!extra)
-	return BadAlloc;
+    if (extraLen)
+    {
+	extra = xalloc (extraLen);
+	if (!extra)
+	    return BadAlloc;
+    }
+    else
+	extra = NULL;
 
     crtcs = (RRCrtc *) extra;
     modes = (RRMode *) (crtcs + output->numCrtcs);

@@ -174,7 +174,7 @@ typedef struct _rrScrPriv {
 #endif
     RRGetInfoProcPtr	    rrGetInfo;
 #if RANDR_12_INTERFACE
-    RRScreenSetSizeProcPtr  rrScreenSizeSet;
+    RRScreenSetSizeProcPtr  rrScreenSetSize;
     RRCrtcSetProcPtr	    rrCrtcSet;
     RRCrtcSetGammaProcPtr   rrCrtcSetGamma;
 #endif
@@ -521,7 +521,7 @@ RRClientKnowsRates (ClientPtr	pClient);
 RRModePtr
 RRModeGet (ScreenPtr	pScreen,
 	   xRRModeInfo	*modeInfo,
-	   char		*name);
+	   const char	*name);
 
 /*
  * Destroy a mode.
@@ -555,7 +555,7 @@ ProcRRDeleteOutputMode (ClientPtr client);
 
 RROutputPtr
 RROutputCreate (ScreenPtr   pScreen,
-		char	    *name,
+		const char  *name,
 		int	    nameLength,
 		void	    *devPrivate);
 
