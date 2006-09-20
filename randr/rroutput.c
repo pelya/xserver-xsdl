@@ -66,6 +66,7 @@ RROutputCreate (ScreenPtr   pScreen,
     output->clones = NULL;
     output->numModes = 0;
     output->modes = NULL;
+    output->properties = NULL;
     output->changed = TRUE;
     output->devPrivate = devPrivate;
     
@@ -201,12 +202,13 @@ RROutputDestroyResource (pointer value, XID pid)
 	xfree (output->crtcs);
     if (output->clones)
 	xfree (output->clones);
+    RRDeleteAllOutputProperties (output);
     xfree (output);
     return 1;
 }
 
 /*
- * Initialize crtc type
+ * Initialize output type
  */
 Bool
 RROutputInit (void)
@@ -219,3 +221,95 @@ RROutputInit (void)
 #endif
     return TRUE;
 }
+
+int
+ProcRRGetOutputInfo (ClientPtr client)
+{
+    REQUEST(xRRGetOutputInfoReq);;
+    xRRGetOutputInfoReply	rep;
+    RROutputPtr			output;
+    CARD8			*extra;
+    unsigned long		extraLen;
+    ScreenPtr			pScreen;
+    rrScrPrivPtr		pScrPriv;
+    RRCrtc			*crtcs;
+    RRMode			*modes;
+    RROutput			*clones;
+    char			*name;
+    int				i, n;
+    
+    REQUEST_SIZE_MATCH(xRRGetOutputInfoReq);
+    output = LookupOutput(client, stuff->output, SecurityReadAccess);
+
+    if (!output)
+	return RRErrorBase + BadRROutput;
+
+    pScreen = output->pScreen;
+    pScrPriv = rrGetScrPriv(pScreen);
+
+    rep.type = X_Reply;
+    rep.sequenceNumber = client->sequence;
+    rep.length = 0;
+    rep.timestamp = pScrPriv->lastSetTime.milliseconds;
+    rep.crtc = output->crtc ? output->crtc->id : None;
+    rep.connection = output->connection;
+    rep.subpixelOrder = output->subpixelOrder;
+    rep.nCrtcs = output->numCrtcs;
+    rep.nModes = output->numModes;
+    rep.nClones = output->numClones;
+    rep.nameLength = output->nameLength;
+    
+    rep.length = (output->numCrtcs + 
+		  output->numModes + 
+		  output->numClones +
+		  ((rep.nameLength + 3) >> 2));
+
+    extraLen = rep.length << 2;
+    extra = xalloc (extraLen);
+    if (!extra)
+	return BadAlloc;
+
+    crtcs = (RRCrtc *) extra;
+    modes = (RRMode *) (crtcs + output->numCrtcs);
+    clones = (RROutput *) (modes + output->numModes);
+    name = (char *) (clones + output->numClones);
+    
+    for (i = 0; i < output->numCrtcs; i++)
+    {
+	crtcs[i] = output->crtcs[i]->id;
+	if (client->swapped)
+	    swapl (&crtcs[i], n);
+    }
+    for (i = 0; i < output->numModes; i++)
+    {
+	modes[i] = output->modes[i]->mode.id;
+	if (client->swapped)
+	    swapl (&modes[i], n);
+    }
+    for (i = 0; i < output->numClones; i++)
+    {
+	clones[i] = output->clones[i]->id;
+	if (client->swapped)
+	    swapl (&clones[i], n);
+    }
+    memcpy (name, output->name, output->nameLength);
+    if (client->swapped) {
+	swaps(&rep.sequenceNumber, n);
+	swapl(&rep.length, n);
+	swapl(&rep.timestamp, n);
+	swapl(&rep.crtc, n);
+	swaps(&rep.nCrtcs, n);
+	swaps(&rep.nModes, n);
+	swaps(&rep.nClones, n);
+	swaps(&rep.nameLength, n);
+    }
+    WriteToClient(client, sizeof(xRRGetOutputInfoReply), (char *)&rep);
+    if (extraLen)
+    {
+	WriteToClient (client, extraLen, (char *) extra);
+	xfree (extra);
+    }
+    
+    return client->noClientException;
+}
+

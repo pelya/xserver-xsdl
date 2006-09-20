@@ -103,3 +103,44 @@ RRModeInit (void)
 #endif
     return TRUE;
 }
+
+int
+ProcRRCreateMode (ClientPtr client)
+{
+    REQUEST(xRRCreateModeReq);
+    
+    REQUEST_SIZE_MATCH(xRRCreateModeReq);
+    (void) stuff;
+    return BadImplementation; 
+}
+
+int
+ProcRRDestroyMode (ClientPtr client)
+{
+    REQUEST(xRRDestroyModeReq);
+    
+    REQUEST_SIZE_MATCH(xRRDestroyModeReq);
+    (void) stuff;
+    return BadImplementation; 
+}
+
+int
+ProcRRAddOutputMode (ClientPtr client)
+{
+    REQUEST(xRRAddOutputModeReq);
+    
+    REQUEST_SIZE_MATCH(xRRAddOutputModeReq);
+    (void) stuff;
+    return BadImplementation; 
+}
+
+int
+ProcRRDeleteOutputMode (ClientPtr client)
+{
+    REQUEST(xRRDeleteOutputModeReq);
+    
+    REQUEST_SIZE_MATCH(xRRDeleteOutputModeReq);
+    (void) stuff;
+    return BadImplementation; 
+}
+

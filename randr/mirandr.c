@@ -108,11 +108,13 @@ miRandRInit (ScreenPtr pScreen)
     output = RROutputCreate (pScreen, "screen", 6, NULL);
     if (!output)
 	return FALSE;
-    if (!RROutputSet (output, 
-		      NULL, 0,  /* clones */
-		      &mode, 1, /* modes */
-		      &crtc, 1, /* crtcs */
-		      RR_Connected))
+    if (!RROutputSetClones (output, NULL, 0))
+	return FALSE;
+    if (!RROutputSetModes (output, &mode, 1))
+	return FALSE;
+    if (!RROutputSetCrtcs (output, &crtc, 1))
+	return FALSE;
+    if (!RROutputSetConnection (output, RR_Connected))
 	return FALSE;
     RRCrtcNotify (crtc, mode, 0, 0, RR_Rotate_0, 1, &output);
 #endif

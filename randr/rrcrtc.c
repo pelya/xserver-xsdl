@@ -21,6 +21,7 @@
  */
 
 #include "randrstr.h"
+#include "swaprep.h"
 
 RESTYPE	RRCrtcType;
 
@@ -57,6 +58,8 @@ RRCrtcCreate (ScreenPtr	pScreen,
     crtc->rotations = RR_Rotate_0;
     crtc->outputs = NULL;
     crtc->numOutputs = 0;
+    crtc->gammaSize = 0;
+    crtc->gammaRed = crtc->gammaBlue = crtc->gammaGreen = NULL;
     crtc->changed = TRUE;
     crtc->devPrivate = devPrivate;
 
@@ -241,8 +244,72 @@ RRCrtcDestroyResource (pointer value, XID pid)
 	    break;
 	}
     }
-    free (value);
+    if (crtc->gammaRed)
+	xfree (crtc->gammaRed);
+    xfree (value);
     return 1;
+}
+
+/*
+ * Request that the Crtc gamma be changed
+ */
+
+Bool
+RRCrtcGammaSet (RRCrtcPtr   crtc,
+		CARD16	    *red,
+		CARD16	    *green,
+		CARD16	    *blue)
+{
+    Bool	ret = TRUE;
+#if RANDR_12_INTERFACE
+    ScreenPtr	pScreen = crtc->pScreen;
+    rrScrPriv(pScreen);
+#endif
+    
+    memcpy (crtc->gammaRed, red, crtc->gammaSize * sizeof (CARD16));
+    memcpy (crtc->gammaGreen, green, crtc->gammaSize * sizeof (CARD16));
+    memcpy (crtc->gammaBlue, blue, crtc->gammaSize * sizeof (CARD16));
+#if RANDR_12_INTERFACE
+    if (pScrPriv->rrCrtcSetGamma)
+	ret = (*pScrPriv->rrCrtcSetGamma) (pScreen, crtc);
+#endif
+    return ret;
+}
+
+/*
+ * Notify the extension that the Crtc gamma has been changed
+ * The driver calls this whenever it has changed the gamma values
+ * in the RRCrtcRec
+ */
+
+Bool
+RRCrtcGammaNotify (RRCrtcPtr	crtc)
+{
+    return TRUE;    /* not much going on here */
+}
+
+/*
+ * Set the size of the gamma table at server startup time
+ */
+
+Bool
+RRCrtcGammaSetSize (RRCrtcPtr	crtc,
+		    int		size)
+{
+    CARD16  *gamma;
+
+    if (size == crtc->gammaSize)
+	return TRUE;
+    gamma = xalloc (size * 3 * sizeof (CARD16));
+    if (!gamma)
+	return FALSE;
+    if (crtc->gammaRed)
+	xfree (crtc->gammaRed);
+    crtc->gammaRed = gamma;
+    crtc->gammaGreen = gamma + size;
+    crtc->gammaBlue = gamma + size*2;
+    crtc->gammaSize = size;
+    return TRUE;
 }
 
 /*
@@ -259,3 +326,395 @@ RRCrtcInit (void)
 #endif
     return TRUE;
 }
+
+int
+ProcRRGetCrtcInfo (ClientPtr client)
+{
+    REQUEST(xRRGetCrtcInfoReq);;
+    xRRGetCrtcInfoReply	rep;
+    RRCrtcPtr			crtc;
+    CARD8			*extra;
+    unsigned long		extraLen;
+    ScreenPtr			pScreen;
+    rrScrPrivPtr		pScrPriv;
+    RRModePtr			mode;
+    RROutput			*outputs;
+    RROutput			*possible;
+    int				i, j, k, n;
+    
+    REQUEST_SIZE_MATCH(xRRGetCrtcInfoReq);
+    crtc = LookupCrtc(client, stuff->crtc, SecurityReadAccess);
+
+    if (!crtc)
+	return RRErrorBase + BadRRCrtc;
+
+    pScreen = crtc->pScreen;
+    pScrPriv = rrGetScrPriv(pScreen);
+
+    mode = crtc->mode;
+    
+    rep.type = X_Reply;
+    rep.status = RRSetConfigSuccess;
+    rep.sequenceNumber = client->sequence;
+    rep.length = 0;
+    rep.timestamp = pScrPriv->lastSetTime.milliseconds;
+    rep.x = crtc->x;
+    rep.y = crtc->y;
+    rep.width = mode ? mode->mode.width : 0;
+    rep.height = mode ? mode->mode.height : 0;
+    rep.mode = mode->mode.id;
+    rep.rotation = crtc->rotation;
+    rep.rotations = crtc->rotations;
+    rep.nOutput = crtc->numOutputs;
+    k = 0;
+    for (i = 0; i < pScrPriv->numOutputs; i++)
+	for (j = 0; j < pScrPriv->outputs[i]->numCrtcs; j++)
+	    if (pScrPriv->outputs[i]->crtcs[j] == crtc)
+		k++;
+    rep.nPossibleOutput = k;
+    
+    rep.length = rep.nOutput + rep.nPossibleOutput;
+
+    extraLen = rep.length << 2;
+    extra = xalloc (extraLen);
+    if (!extra)
+	return BadAlloc;
+
+    outputs = (RROutput *) extra;
+    possible = (RROutput *) (outputs + rep.nOutput);
+    
+    for (i = 0; i < crtc->numOutputs; i++)
+    {
+	outputs[i] = crtc->outputs[i]->id;
+	if (client->swapped)
+	    swapl (&outputs[i], n);
+    }
+    k = 0;
+    for (i = 0; i < pScrPriv->numOutputs; i++)
+	for (j = 0; j < pScrPriv->outputs[i]->numCrtcs; j++)
+	    if (pScrPriv->outputs[i]->crtcs[j] == crtc)
+	    {
+		possible[k] = pScrPriv->outputs[i]->id;
+		if (client->swapped)
+		    swapl (&possible[k], n);
+		k++;
+	    }
+    
+    if (client->swapped) {
+	swaps(&rep.sequenceNumber, n);
+	swapl(&rep.length, n);
+	swapl(&rep.timestamp, n);
+	swaps(&rep.x, n);
+	swaps(&rep.y, n);
+	swaps(&rep.width, n);
+	swaps(&rep.height, n);
+	swapl(&rep.mode, n);
+	swaps(&rep.rotation, n);
+	swaps(&rep.rotations, n);
+	swaps(&rep.nOutput, n);
+	swaps(&rep.nPossibleOutput, n);
+    }
+    WriteToClient(client, sizeof(xRRGetCrtcInfoReply), (char *)&rep);
+    if (extraLen)
+    {
+	WriteToClient (client, extraLen, (char *) extra);
+	xfree (extra);
+    }
+    
+    return client->noClientException;
+}
+
+int
+ProcRRSetCrtcConfig (ClientPtr client)
+{
+    REQUEST(xRRSetCrtcConfigReq);
+    xRRSetCrtcConfigReply   rep;
+    ScreenPtr		    pScreen;
+    rrScrPrivPtr	    pScrPriv;
+    RRCrtcPtr		    crtc;
+    RRModePtr		    mode;
+    int			    numOutputs;
+    RROutputPtr		    *outputs = NULL;
+    RROutput		    *outputIds;
+    TimeStamp		    configTime;
+    TimeStamp		    time;
+    Rotation		    rotation;
+    int			    i, j;
+    
+    REQUEST_AT_LEAST_SIZE(xRRSetCrtcConfigReq);
+    numOutputs = stuff->length - (SIZEOF (xRRSetCrtcConfigReq) >> 2);
+    
+    crtc = LookupIDByType (stuff->crtc, RRCrtcType);
+    if (!crtc)
+    {
+	client->errorValue = stuff->crtc;
+	return RRErrorBase + BadRRCrtc;
+    }
+    if (stuff->mode == None)
+    {
+	mode = NULL;
+	if (numOutputs > 0)
+	    return BadMatch;
+    }
+    else
+    {
+	mode = LookupIDByType (stuff->mode, RRModeType);
+	if (!mode)
+	{
+	    client->errorValue = stuff->mode;
+	    return RRErrorBase + BadRRMode;
+	}
+	if (numOutputs == 0)
+	    return BadMatch;
+    }
+    outputs = xalloc (numOutputs * sizeof (RROutputPtr));
+    if (!outputs)
+	return BadAlloc;
+    
+    outputIds = (RROutput *) (stuff + 1);
+    for (i = 0; i < numOutputs; i++)
+    {
+	outputs[i] = LookupIDByType (outputIds[i], RROutputType);
+	if (!outputs[i])
+	{
+	    client->errorValue = outputIds[i];
+	    if (outputs)
+		xfree (outputs);
+	    return RRErrorBase + BadRROutput;
+	}
+	/* validate crtc for this output */
+	for (j = 0; j < outputs[i]->numCrtcs; j++)
+	    if (outputs[i]->crtcs[j] == crtc)
+		break;
+	if (j == outputs[j]->numCrtcs)
+	{
+	    if (outputs)
+		xfree (outputs);
+	    return BadMatch;
+	}
+	/* validate mode for this output */
+	for (j = 0; j < outputs[i]->numModes; j++)
+	    if (outputs[i]->modes[j] == mode)
+		break;
+	if (j == outputs[i]->numModes)
+	{
+	    if (outputs)
+		xfree (outputs);
+	    return BadMatch;
+	}
+    }
+
+    pScreen = crtc->pScreen;
+    pScrPriv = rrGetScrPriv(pScreen);
+    
+    if (!RRGetInfo (pScreen))
+    {
+	if (outputs)
+	    xfree (outputs);
+	return BadAlloc;
+    }
+    
+    time = ClientTimeToServerTime(stuff->timestamp);
+    configTime = ClientTimeToServerTime(stuff->configTimestamp);
+    
+    if (!pScrPriv)
+    {
+	time = currentTime;
+	rep.status = RRSetConfigFailed;
+	goto sendReply;
+    }
+    
+    /*
+     * if the client's config timestamp is not the same as the last config
+     * timestamp, then the config information isn't up-to-date and
+     * can't even be validated
+     */
+    if (CompareTimeStamps (configTime, pScrPriv->lastConfigTime) != 0)
+    {
+	rep.status = RRSetConfigInvalidConfigTime;
+	goto sendReply;
+    }
+    
+    /*
+     * Validate requested rotation
+     */
+    rotation = (Rotation) stuff->rotation;
+
+    /* test the rotation bits only! */
+    switch (rotation & 0xf) {
+    case RR_Rotate_0:
+    case RR_Rotate_90:
+    case RR_Rotate_180:
+    case RR_Rotate_270:
+	break;
+    default:
+	/*
+	 * Invalid rotation
+	 */
+	client->errorValue = stuff->rotation;
+	if (outputs)
+	    xfree (outputs);
+	return BadValue;
+    }
+
+    if ((~crtc->rotations) & rotation)
+    {
+	/*
+	 * requested rotation or reflection not supported by screen
+	 */
+	client->errorValue = stuff->rotation;
+	if (outputs)
+	    xfree (outputs);
+	return BadMatch;
+    }
+
+#ifdef RANDR_12_INTERFACE
+    /*
+     * Check screen size bounds if the DDX provides a 1.2 interface
+     * for setting screen size. Else, assume the CrtcSet sets
+     * the size along with the mode
+     */
+    if (pScrPriv->rrScreenSizeSet)
+    {
+	if (stuff->x + mode->mode.width > pScreen->width)
+	{
+	    client->errorValue = stuff->x;
+	    if (outputs)
+		xfree (outputs);
+	    return BadValue;
+	}
+	
+	if (stuff->y + mode->mode.height > pScreen->height)
+	{
+	    client->errorValue = stuff->y;
+	    if (outputs)
+		xfree (outputs);
+	    return BadValue;
+	}
+    }
+#endif
+    
+    /*
+     * Make sure the requested set-time is not older than
+     * the last set-time
+     */
+    if (CompareTimeStamps (time, pScrPriv->lastSetTime) < 0)
+    {
+	rep.status = RRSetConfigInvalidTime;
+	goto sendReply;
+    }
+
+    rep.status = RRCrtcSet (crtc, mode, stuff->x, stuff->y,
+			    rotation, numOutputs, outputs);
+    
+sendReply:
+    if (outputs)
+	xfree (outputs);
+    
+    rep.type = X_Reply;
+    /* rep.status has already been filled in */
+    rep.length = 0;
+    rep.sequenceNumber = client->sequence;
+    rep.newTimestamp = pScrPriv->lastConfigTime.milliseconds;
+
+    if (client->swapped) 
+    {
+	int n;
+    	swaps(&rep.sequenceNumber, n);
+    	swapl(&rep.length, n);
+	swapl(&rep.newTimestamp, n);
+    }
+    WriteToClient(client, sizeof(xRRSetCrtcConfigReply), (char *)&rep);
+    
+    return client->noClientException;
+}
+
+int
+ProcRRGetCrtcGammaSize (ClientPtr client)
+{
+    REQUEST(xRRGetCrtcGammaSizeReq);
+    xRRGetCrtcGammaSizeReply	reply;
+    RRCrtcPtr			crtc;
+    int				n;
+
+    REQUEST_SIZE_MATCH(xRRGetCrtcGammaSizeReq);
+    crtc = LookupCrtc (client, stuff->crtc, SecurityReadAccess);
+    if (!crtc)
+	return RRErrorBase + BadRRCrtc;
+    
+    reply.type = X_Reply;
+    reply.sequenceNumber = client->sequence;
+    reply.length = 0;
+    reply.size = crtc->gammaSize;
+    if (client->swapped) {
+	swaps (&reply.sequenceNumber, n);
+	swapl (&reply.length, n);
+	swaps (&reply.size, n);
+    }
+    WriteToClient (client, sizeof (xRRGetCrtcGammaSizeReply), (char *) &reply);
+    return client->noClientException;
+}
+
+int
+ProcRRGetCrtcGamma (ClientPtr client)
+{
+    REQUEST(xRRGetCrtcGammaReq);
+    xRRGetCrtcGammaReply	reply;
+    RRCrtcPtr			crtc;
+    int				n;
+    unsigned long		len;
+    
+    REQUEST_SIZE_MATCH(xRRGetCrtcGammaReq);
+    crtc = LookupCrtc (client, stuff->crtc, SecurityReadAccess);
+    if (!crtc)
+	return RRErrorBase + BadRRCrtc;
+    
+    len = crtc->gammaSize * 3 * 2;
+    
+    reply.type = X_Reply;
+    reply.sequenceNumber = client->sequence;
+    reply.length = (len + 3) >> 2;
+    reply.size = crtc->gammaSize;
+    if (client->swapped) {
+	swaps (&reply.sequenceNumber, n);
+	swapl (&reply.length, n);
+	swaps (&reply.size, n);
+    }
+    WriteToClient (client, sizeof (xRRGetCrtcGammaReply), (char *) &reply);
+    if (crtc->gammaSize)
+    {
+	client->pSwapReplyFunc = (ReplySwapPtr)CopySwap16Write;
+	WriteSwappedDataToClient (client, len, (char *) crtc->gammaRed);
+    }
+    return client->noClientException;
+}
+
+int
+ProcRRSetCrtcGamma (ClientPtr client)
+{
+    REQUEST(xRRSetCrtcGammaReq);
+    RRCrtcPtr			crtc;
+    unsigned long		len;
+    CARD16			*red, *green, *blue;
+    
+    REQUEST_SIZE_MATCH(xRRSetCrtcGammaReq);
+    crtc = LookupCrtc (client, stuff->crtc, SecurityWriteAccess);
+    if (!crtc)
+	return RRErrorBase + BadRRCrtc;
+    
+    len = client->req_len - (sizeof (xRRSetCrtcGammaReq) >> 2);
+    if (len < (stuff->size * 3 + 1) >> 1)
+	return BadLength;
+
+    if (stuff->size != crtc->gammaSize)
+	return BadMatch;
+    
+    red = (CARD16 *) (stuff + 1);
+    green = red + crtc->gammaSize;
+    blue = green + crtc->gammaSize;
+    
+    RRCrtcGammaSet (crtc, red, green, blue);
+
+    return Success;
+}
+

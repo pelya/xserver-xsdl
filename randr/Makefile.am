@@ -12,7 +12,9 @@ librandr_la_SOURCES =	\
 	randrstr.h	\
 	rrcrtc.c	\
 	rrdispatch.c	\
+	rrinfo.c	\
 	rrmode.c	\
 	rroutput.c	\
+	rrproperty.c	\
 	rrscreen.c	\
 	rrsdispatch.c

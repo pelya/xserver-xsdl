@@ -53,7 +53,7 @@
 
 /* required for ABI compatibility for now */
 #define RANDR_10_INTERFACE 1
-/* #define RANDR_12_INTERFACE 1 */
+#define RANDR_12_INTERFACE 1
 
 typedef XID	RRMode;
 typedef XID	RROutput;
@@ -89,6 +89,10 @@ struct _rrCrtc {
     Bool	    changed;
     int		    numOutputs;
     RROutputPtr	    *outputs;
+    int		    gammaSize;
+    CARD16	    *gammaRed;
+    CARD16	    *gammaBlue;
+    CARD16	    *gammaGreen;
     void	    *devPrivate;
 };
 
@@ -107,11 +111,12 @@ struct _rrOutput {
     int		    numModes;
     RRModePtr	    *modes;
     Bool	    changed;
+    PropertyPtr	    properties;
     void	    *devPrivate;
 };
 
 #if RANDR_12_INTERFACE
-typedef Bool (*RRScreentSizeSetProcPtr) (ScreenPtr	pScreen,
+typedef Bool (*RRScreenSetSizeProcPtr) (ScreenPtr	pScreen,
 					CARD16		width,
 					CARD16		height,
 					CARD32		mmWidth,
@@ -125,6 +130,10 @@ typedef Bool (*RRCrtcSetProcPtr) (ScreenPtr		pScreen,
 				  Rotation		rotation,
 				  int			numOutputs,
 				  RROutputPtr		*outputs);
+
+typedef Bool (*RRCrtcSetGammaProcPtr) (ScreenPtr	pScreen,
+				       RRCrtcPtr	crtc);
+
 #endif
 
 typedef Bool (*RRGetInfoProcPtr) (ScreenPtr pScreen, Rotation *rotations);
@@ -167,6 +176,7 @@ typedef struct _rrScrPriv {
 #if RANDR_12_INTERFACE
     RRScreenSetSizeProcPtr  rrScreenSizeSet;
     RRCrtcSetProcPtr	    rrCrtcSet;
+    RRCrtcSetGammaProcPtr   rrCrtcSetGamma;
 #endif
     
     /*
@@ -245,6 +255,16 @@ extern RESTYPE	RRClientType, RREventType; /* resource types for event masks */
 extern int	RRClientPrivateIndex;
 extern RESTYPE	RRCrtcType, RRModeType, RROutputType;
 
+#define LookupOutput(client,id,a) ((RROutputPtr) \
+				   (SecurityLookupIDByType (client, id, \
+							    RROutputType, a)))
+#define LookupCrtc(client,id,a) ((RRCrtcPtr) \
+				 (SecurityLookupIDByType (client, id, \
+							  RRCrtcType, a)))
+#define LookupMode(client,id,a) ((RRModePtr) \
+				 (SecurityLookupIDByType (client, id, \
+							  RRModeType, a)))
+
 #define GetRRClient(pClient)    ((RRClientPtr) (pClient)->devPrivates[RRClientPrivateIndex].ptr)
 #define rrClientPriv(pClient)	RRClientPtr pRRClient = GetRRClient(pClient)
 
@@ -282,6 +302,24 @@ RRScreenSizeSet (ScreenPtr  pScreen,
 		 CARD16	    height,
 		 CARD32	    mmWidth,
 		 CARD32	    mmHeight);
+
+/*
+ * screen dispatch
+ */
+int 
+ProcRRGetScreenSizeRange (ClientPtr client);
+
+int
+ProcRRSetScreenSize (ClientPtr client);
+
+int
+ProcRRGetScreenResources (ClientPtr client);
+
+int
+ProcRRSetScreenConfig (ClientPtr client);
+
+int
+ProcRRGetScreenInfo (ClientPtr client);
 
 /*
  * Deliver a ScreenNotify event
@@ -414,6 +452,33 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	   RROutputPtr  *outputs);
 
 /*
+ * Request that the Crtc gamma be changed
+ */
+
+Bool
+RRCrtcGammaSet (RRCrtcPtr   crtc,
+		CARD16	    *red,
+		CARD16	    *green,
+		CARD16	    *blue);
+
+/*
+ * Notify the extension that the Crtc gamma has been changed
+ * The driver calls this whenever it has changed the gamma values
+ * in the RRCrtcRec
+ */
+
+Bool
+RRCrtcGammaNotify (RRCrtcPtr	crtc);
+
+/*
+ * Set the size of the gamma table at server startup time
+ */
+
+Bool
+RRCrtcGammaSetSize (RRCrtcPtr	crtc,
+		    int		size);
+
+/*
  * Destroy a Crtc at shutdown
  */
 void
@@ -424,6 +489,25 @@ RRCrtcDestroy (RRCrtcPtr crtc);
  */
 Bool
 RRCrtcInit (void);
+
+/*
+ * Crtc dispatch
+ */
+
+int
+ProcRRGetCrtcInfo (ClientPtr client);
+
+int
+ProcRRSetCrtcConfig (ClientPtr client);
+
+int
+ProcRRGetCrtcGammaSize (ClientPtr client);
+
+int
+ProcRRGetCrtcGamma (ClientPtr client);
+
+int
+ProcRRSetCrtcGamma (ClientPtr client);
 
 /* rrdispatch.c */
 Bool
@@ -452,6 +536,18 @@ RRModeDestroy (RRModePtr mode);
 Bool
 RRModeInit (void);
     
+int
+ProcRRCreateMode (ClientPtr client);
+
+int
+ProcRRDestroyMode (ClientPtr client);
+
+int
+ProcRRAddOutputMode (ClientPtr client);
+
+int
+ProcRRDeleteOutputMode (ClientPtr client);
+
 /* rroutput.c */
 /*
  * Create an output
@@ -498,10 +594,38 @@ RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output);
 void
 RROutputDestroy (RROutputPtr	output);
 
+int
+ProcRRGetOutputInfo (ClientPtr client);
+
 /*
  * Initialize output type
  */
 Bool
 RROutputInit (void);
     
+/* rrproperty.c */
+
+void
+RRDeleteAllOutputProperties (RROutputPtr output);
+
+void
+RRDeleteOutputProperty (RROutputPtr output, Atom property);
+
+int
+RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
+			int format, int mode, unsigned long len,
+			pointer value, Bool sendevent);
+
+int
+ProcRRChangeOutputProperty (ClientPtr client);
+
+int
+ProcRRGetOutputProperty (ClientPtr client);
+
+int
+ProcRRListOutputProperties (ClientPtr client);
+
+int
+ProcRRDeleteOutputProperty (ClientPtr client);
+
 #endif /* _RANDRSTR_H_ */
