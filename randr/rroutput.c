@@ -88,7 +88,16 @@ RROutputSetClones (RROutputPtr  output,
 		   int		numClones)
 {
     RROutputPtr	*newClones;
+    int		i;
 
+    if (numClones == output->numClones)
+    {
+	for (i = 0; i < numClones; i++)
+	    if (output->clones[i] != clones[i])
+		break;
+	if (i == numClones)
+	    return TRUE;
+    }
     if (numClones)
     {
 	newClones = xalloc (numClones * sizeof (RROutputPtr));
@@ -112,6 +121,20 @@ RROutputSetModes (RROutputPtr	output,
 		  int		numModes)
 {
     RRModePtr	*newModes;
+    int		i;
+
+    if (numModes == output->numModes)
+    {
+	for (i = 0; i < numModes; i++)
+	    if (output->modes[i] != modes[i])
+		break;
+	if (i == numModes)
+	{
+	    for (i = 0; i < numModes; i++)
+		RRModeDestroy (modes[i]);
+	    return TRUE;
+	}
+    }
 
     if (numModes)
     {
@@ -122,7 +145,11 @@ RROutputSetModes (RROutputPtr	output,
     else
 	newModes = NULL;
     if (output->modes)
+    {
+	for (i = 0; i < output->numModes; i++)
+	    RRModeDestroy (output->modes[i]);
 	xfree (output->modes);
+    }
     memcpy (newModes, modes, numModes * sizeof (RRModePtr));
     output->modes = newModes;
     output->numModes = numModes;
@@ -136,7 +163,16 @@ RROutputSetCrtcs (RROutputPtr	output,
 		  int		numCrtcs)
 {
     RRCrtcPtr	*newCrtcs;
+    int		i;
 
+    if (numCrtcs == output->numCrtcs)
+    {
+	for (i = 0; i < numCrtcs; i++)
+	    if (output->crtcs[i] != crtcs[i])
+		break;
+	if (i == numCrtcs)
+	    return TRUE;
+    }
     if (numCrtcs)
     {
 	newCrtcs = xalloc (numCrtcs * sizeof (RRCrtcPtr));
@@ -157,6 +193,8 @@ RROutputSetCrtcs (RROutputPtr	output,
 void
 RROutputSetCrtc (RROutputPtr output, RRCrtcPtr crtc)
 {
+    if (output->crtc == crtc)
+	return TRUE;
     output->crtc = crtc;
     output->changed = TRUE;
 }
@@ -165,6 +203,8 @@ Bool
 RROutputSetConnection (RROutputPtr  output,
 		       CARD8	    connection)
 {
+    if (output->connection == connection)
+	return TRUE;
     output->connection = connection;
     output->changed = TRUE;
     return TRUE;
@@ -174,6 +214,9 @@ Bool
 RROutputSetSubpixelOrder (RROutputPtr output,
 			  int	      subpixelOrder)
 {
+    if (output->subpixelOrder == subpixelOrder)
+	return TRUE;
+
     output->subpixelOrder = subpixelOrder;
     output->changed = TRUE;
     return TRUE;

@@ -77,6 +77,7 @@ struct _rrMode {
     int		    refcnt;
     xRRModeInfo	    mode;
     char	    *name;
+    void	    *devPrivate;
 };
 
 struct _rrCrtc {
