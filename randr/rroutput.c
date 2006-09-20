@@ -194,7 +194,7 @@ void
 RROutputSetCrtc (RROutputPtr output, RRCrtcPtr crtc)
 {
     if (output->crtc == crtc)
-	return TRUE;
+	return;
     output->crtc = crtc;
     output->changed = TRUE;
 }
