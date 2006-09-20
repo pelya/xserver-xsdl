@@ -143,10 +143,10 @@ typedef struct _xxGCPriv {
 				      (pGC)->devPrivates[xxGCPrivateIndex].ptr)
 #define xxGCPriv(pGC)   xxGCPrivPtr  pGCPriv = xxGetGCPriv(pGC)
 
-int xxScrPrivateIndex = -1;
-int xxGCPrivateIndex;
-int xxColormapPrivateIndex = -1;
-int xxGeneration;
+static int xxScrPrivateIndex = -1;
+static int xxGCPrivateIndex;
+static int xxColormapPrivateIndex = -1;
+static int xxGeneration;
 
 
 #define wrap(priv,real,mem,func) {\
@@ -1199,12 +1199,12 @@ xxSetup(ScreenPtr pScreen, int myDepth, int baseDepth, char* addr, xxSyncFunc sy
     return TRUE;
 }
 
-GCFuncs xxGCFuncs = {
+static GCFuncs xxGCFuncs = {
     xxValidateGC, xxChangeGC, xxCopyGC, xxDestroyGC,
     xxChangeClip, xxDestroyClip, xxCopyClip
 };
 
-GCOps xxGCOps = {
+static GCOps xxGCOps = {
     xxFillSpans, xxSetSpans, 
     xxPutImage, xxCopyArea, 
     xxCopyPlane, xxPolyPoint, 

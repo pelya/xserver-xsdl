@@ -187,3 +187,6 @@
 #define fbWinPrivateIndex wfbWinPrivateIndex
 #define fbZeroLine wfbZeroLine
 #define fbZeroSegment wfbZeroSegment
+#define xxPrintVisuals wfbxxPrintVisuals
+#define xxSetup wfbxxSetup
+#define composeFunctions wfbComposeFunctions
