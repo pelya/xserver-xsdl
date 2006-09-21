@@ -564,64 +564,67 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	goto sendReply;
     }
     
-    /*
-     * Validate requested rotation
-     */
-    rotation = (Rotation) stuff->rotation;
-
-    /* test the rotation bits only! */
-    switch (rotation & 0xf) {
-    case RR_Rotate_0:
-    case RR_Rotate_90:
-    case RR_Rotate_180:
-    case RR_Rotate_270:
-	break;
-    default:
-	/*
-	 * Invalid rotation
-	 */
-	client->errorValue = stuff->rotation;
-	if (outputs)
-	    xfree (outputs);
-	return BadValue;
-    }
-
-    if ((~crtc->rotations) & rotation)
+    if (mode)
     {
 	/*
-	 * requested rotation or reflection not supported by screen
+	 * Validate requested rotation
 	 */
-	client->errorValue = stuff->rotation;
-	if (outputs)
-	    xfree (outputs);
-	return BadMatch;
-    }
-
+	rotation = (Rotation) stuff->rotation;
+    
+	/* test the rotation bits only! */
+	switch (rotation & 0xf) {
+	case RR_Rotate_0:
+	case RR_Rotate_90:
+	case RR_Rotate_180:
+	case RR_Rotate_270:
+	    break;
+	default:
+	    /*
+	     * Invalid rotation
+	     */
+	    client->errorValue = stuff->rotation;
+	    if (outputs)
+		xfree (outputs);
+	    return BadValue;
+	}
+    
+	if ((~crtc->rotations) & rotation)
+	{
+	    /*
+	     * requested rotation or reflection not supported by screen
+	     */
+	    client->errorValue = stuff->rotation;
+	    if (outputs)
+		xfree (outputs);
+	    return BadMatch;
+	}
+    
 #ifdef RANDR_12_INTERFACE
-    /*
-     * Check screen size bounds if the DDX provides a 1.2 interface
-     * for setting screen size. Else, assume the CrtcSet sets
-     * the size along with the mode
-     */
-    if (pScrPriv->rrScreenSetSize)
-    {
-	if (stuff->x + mode->mode.width > pScreen->width)
+	/*
+	 * Check screen size bounds if the DDX provides a 1.2 interface
+	 * for setting screen size. Else, assume the CrtcSet sets
+	 * the size along with the mode
+	 */
+	if (pScrPriv->rrScreenSetSize)
 	{
-	    client->errorValue = stuff->x;
-	    if (outputs)
-		xfree (outputs);
-	    return BadValue;
+	    if (stuff->x + mode->mode.width > pScreen->width)
+	    {
+		client->errorValue = stuff->x;
+		if (outputs)
+		    xfree (outputs);
+		return BadValue;
+	    }
+	    
+	    if (stuff->y + mode->mode.height > pScreen->height)
+	    {
+		client->errorValue = stuff->y;
+		if (outputs)
+		    xfree (outputs);
+		return BadValue;
+	    }
 	}
-	
-	if (stuff->y + mode->mode.height > pScreen->height)
-	{
-	    client->errorValue = stuff->y;
-	    if (outputs)
-		xfree (outputs);
-	    return BadValue;
-	}
-    }
 #endif
+    }
     
     /*
      * Make sure the requested set-time is not older than
