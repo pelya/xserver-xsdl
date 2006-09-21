@@ -17,4 +17,5 @@ librandr_la_SOURCES =	\
 	rroutput.c	\
 	rrproperty.c	\
 	rrscreen.c	\
-	rrsdispatch.c
+	rrsdispatch.c	\
+	rrxinerama.c

@@ -69,7 +69,7 @@ RREditConnectionInfo (ScreenPtr pScreen)
     root->mmHeight = pScreen->mmHeight;
 }
 
-static void
+void
 RRSendConfigNotify (ScreenPtr pScreen)
 {
     WindowPtr	pWin = WindowTable[pScreen->myNum];

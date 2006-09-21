@@ -305,6 +305,12 @@ RRScreenSizeSet (ScreenPtr  pScreen,
 		 CARD32	    mmHeight);
 
 /*
+ * Send ConfigureNotify event to root window when 'something' happens
+ */
+void
+RRSendConfigNotify (ScreenPtr pScreen);
+    
+/*
  * screen dispatch
  */
 int 
@@ -628,5 +634,9 @@ ProcRRListOutputProperties (ClientPtr client);
 
 int
 ProcRRDeleteOutputProperty (ClientPtr client);
+
+/* rrxinerama.c */
+void
+RRXineramaExtensionInit(void);
 
 #endif /* _RANDRSTR_H_ */

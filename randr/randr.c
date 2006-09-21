@@ -311,7 +311,7 @@ RRExtensionInit (void)
     EventSwapVector[RREventBase + RRNotify] = (EventSwapPtr)
 	SRRNotifyEvent;
 
-    return;
+    RRXineramaExtensionInit();
 }
 
 static int

@@ -111,6 +111,7 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	    outputs = NULL;
 	}
 	crtc->outputs = outputs;
+	crtc->numOutputs = numOutputs;
     }
     for (i = 0; i < numOutputs; i++)
     {
@@ -158,7 +159,11 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	crtc->changed = TRUE;
     }
     if (crtc->changed)
+    {
+	if (!pScrPriv->changed)
+	    RRSendConfigNotify (pScreen);
 	pScrPriv->changed = TRUE;
+    }
     return TRUE;
 }
 
