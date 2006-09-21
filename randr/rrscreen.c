@@ -360,8 +360,8 @@ ProcRRGetScreenResources (ClientPtr client)
 	rep.type = X_Reply;
 	rep.sequenceNumber = client->sequence;
 	rep.length = 0;
-	rep.timestamp = currentTime.milliseconds;
-	rep.configTimestamp = currentTime.milliseconds;
+	rep.timestamp = pScrPriv->lastSetTime.milliseconds;
+	rep.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
 	rep.nCrtcs = pScrPriv->numCrtcs;
 	rep.nOutputs = pScrPriv->numOutputs;
 	rep.nModes = pScrPriv->numModes;;

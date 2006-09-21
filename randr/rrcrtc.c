@@ -628,8 +628,13 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	goto sendReply;
     }
 
-    rep.status = RRCrtcSet (crtc, mode, stuff->x, stuff->y,
-			    rotation, numOutputs, outputs);
+    if (!RRCrtcSet (crtc, mode, stuff->x, stuff->y,
+		   rotation, numOutputs, outputs))
+    {
+	rep.status = RRSetConfigFailed;
+	goto sendReply;
+    }
+    rep.status = RRSetConfigSuccess;
     
 sendReply:
     if (outputs)
