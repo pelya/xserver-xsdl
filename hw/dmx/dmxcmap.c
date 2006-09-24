@@ -40,6 +40,7 @@
 #endif
 
 #include "dmx.h"
+#include "dmxlog.h"
 #include "dmxsync.h"
 #include "dmxcmap.h"
 #include "dmxvisual.h"
@@ -83,12 +84,18 @@ Bool dmxBECreateColormap(ColormapPtr pColormap)
     VisualPtr           pVisual   = pColormap->pVisual;
     Visual             *visual    = dmxLookupVisual(pScreen, pVisual);
 
-    pCmapPriv->cmap = XCreateColormap(dmxScreen->beDisplay,
-				      dmxScreen->scrnWin,
-				      visual,
-				      (pVisual->class & DynamicClass ?
-				       AllocAll : AllocNone));
-    return (pCmapPriv->cmap != 0);
+    if (visual) {
+       pCmapPriv->cmap = XCreateColormap(dmxScreen->beDisplay,
+                                         dmxScreen->scrnWin,
+                                         visual,
+                                         (pVisual->class & DynamicClass ?
+                                          AllocAll : AllocNone));
+       return (pCmapPriv->cmap != 0);
+    }
+    else {
+       dmxLog(dmxWarning, "dmxBECreateColormap: No visual found\n");
+       return 0;
+    }
 }
 
 /** Create colormap on back-end server associated with \a pColormap's
