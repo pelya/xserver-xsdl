@@ -1507,7 +1507,6 @@ if test "$KDRIVE" = yes; then
     fi
     
     # tslib...
-<<<<<<< HEAD/configure.ac
     AC_CHECK_LIB(ts, ts_open, [HAVE_TSLIB="yes"])
     if test "x$TSLIB" = xauto && test "x$HAVE_TSLIB" = xyes; then
         TSLIB=yes
