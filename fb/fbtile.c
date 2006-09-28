@@ -80,7 +80,7 @@ fbEvenTile (FbBits	*dst,
 	/*
 	 * Pick up bits for this scanline
 	 */
-	bits = *t++;
+	bits = READ(t++);
 	if (t == tileEnd) t = tile;
 	bits = FbRotLeft(bits,rot);
 	and = fbAnd(alu,bits,pm);
@@ -94,11 +94,11 @@ fbEvenTile (FbBits	*dst,
 	n = nmiddle;
 	if (!and)
 	    while (n--)
-		*dst++ = xor;
+		WRITE(dst++, xor);
 	else
 	    while (n--)
 	    {
-		*dst = FbDoRRop (*dst, and, xor);
+		WRITE(dst, FbDoRRop (READ(dst), and, xor));
 		dst++;
 	    }
 	if (endmask)

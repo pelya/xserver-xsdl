@@ -38,18 +38,18 @@
  * by reading/writing aligned CARD32s where it's easy
  */
 
-#define Get8(a)	((CARD32) *(a))
+#define Get8(a)	((CARD32) READ(a))
 
 #if BITMAP_BIT_ORDER == MSBFirst
 #define Get24(a)    ((Get8(a) << 16) | (Get8((a)+1) << 8) | Get8((a)+2))
-#define Put24(a,p)  (((a)[0] = (CARD8) ((p) >> 16)), \
-		     ((a)[1] = (CARD8) ((p) >> 8)), \
-		     ((a)[2] = (CARD8) (p)))
+#define Put24(a,p)  ((WRITE((a+0), (CARD8) ((p) >> 16))), \
+		     (WRITE((a+1), (CARD8) ((p) >> 8))), \
+		     (WRITE((a+2), (CARD8) (p))))
 #else
 #define Get24(a)    (Get8(a) | (Get8((a)+1) << 8) | (Get8((a)+2)<<16))
-#define Put24(a,p)  (((a)[0] = (CARD8) (p)), \
-		     ((a)[1] = (CARD8) ((p) >> 8)), \
-		     ((a)[2] = (CARD8) ((p) >> 16)))
+#define Put24(a,p)  ((WRITE((a+0), (CARD8) (p))), \
+		     (WRITE((a+1), (CARD8) ((p) >> 8))), \
+		     (WRITE((a+2), (CARD8) ((p) >> 16))))
 #endif
 
 typedef void (*fb24_32BltFunc) (CARD8	    *srcLine,
@@ -106,7 +106,7 @@ fb24_32BltDown (CARD8	    *srcLine,
 	    while (((long) dst & 3) && w)
 	    {
 		w--;
-		pixel = *src++;
+		pixel = READ(src++);
 		pixel = FbDoDestInvarientMergeRop(pixel);
 		Put24 (dst, pixel);
 		dst += 3;
@@ -115,35 +115,35 @@ fb24_32BltDown (CARD8	    *srcLine,
 	    while (w >= 4)
 	    {
 		CARD32  s0, s1;
-		s0 = *src++;
+		s0 = READ(src++);
 		s0 = FbDoDestInvarientMergeRop(s0);
-		s1 = *src++;
+		s1 = READ(src++);
 		s1 = FbDoDestInvarientMergeRop(s1);
 #if BITMAP_BIT_ORDER == LSBFirst
-		*(CARD32 *)(dst) = (s0 & 0xffffff) | (s1 << 24);
+		WRITE((CARD32 *)dst, (s0 & 0xffffff) | (s1 << 24));
 #else
-		*(CARD32 *)(dst) = (s0 << 8) | ((s1 & 0xffffff) >> 16);
+		WRITE((CARD32 *)dst, (s0 << 8) | ((s1 & 0xffffff) >> 16));
 #endif
-		s0 = *src++;
+		s0 = READ(src++);
 		s0 = FbDoDestInvarientMergeRop(s0);
 #if BITMAP_BIT_ORDER == LSBFirst
-		*(CARD32 *)(dst+4) = ((s1 & 0xffffff) >> 8) | (s0 << 16);
+		WRITE((CARD32 *)(dst+4), ((s1 & 0xffffff) >> 8) | (s0 << 16));
 #else
-		*(CARD32 *)(dst+4) = (s1 << 16) | ((s0 & 0xffffff) >> 8);
+		WRITE((CARD32 *)(dst+4), (s1 << 16) | ((s0 & 0xffffff) >> 8));
 #endif
-		s1 = *src++;
+		s1 = READ(src++);
 		s1 = FbDoDestInvarientMergeRop(s1);
 #if BITMAP_BIT_ORDER == LSBFirst
-		*(CARD32 *)(dst+8) = ((s0 & 0xffffff) >> 16) | (s1 << 8);
+		WRITE((CARD32 *)(dst+8), ((s0 & 0xffffff) >> 16) | (s1 << 8));
 #else
-		*(CARD32 *)(dst+8) = (s0 << 24) | (s1 & 0xffffff);
+		WRITE((CARD32 *)(dst+8), (s0 << 24) | (s1 & 0xffffff));
 #endif
 		dst += 12;
 		w -= 4;
 	    }
 	    while (w--)
 	    {
-		pixel = *src++;
+		pixel = READ(src++);
 		pixel = FbDoDestInvarientMergeRop(pixel);
 		Put24 (dst, pixel);
 		dst += 3;
@@ -153,7 +153,7 @@ fb24_32BltDown (CARD8	    *srcLine,
 	{
 	    while (w--)
 	    {
-		pixel = *src++;
+		pixel = READ(src++);
 		dpixel = Get24 (dst);
 		pixel = FbDoMergeRop(pixel, dpixel);
 		Put24 (dst, pixel);
@@ -205,40 +205,40 @@ fb24_32BltUp (CARD8	    *srcLine,
 		w--;
 		pixel = Get24(src);
 		src += 3;
-		*dst++ = FbDoDestInvarientMergeRop(pixel);
+		WRITE(dst++, FbDoDestInvarientMergeRop(pixel));
 	    }
 	    /* Do four aligned pixels at a time */
 	    while (w >= 4)
 	    {
 		CARD32  s0, s1;
 
-		s0 = *(CARD32 *)(src);
+		s0 = READ((CARD32 *)src);
 #if BITMAP_BIT_ORDER == LSBFirst
 		pixel = s0 & 0xffffff;
 #else
 		pixel = s0 >> 8;
 #endif
-		*dst++ = FbDoDestInvarientMergeRop(pixel);
-		s1 = *(CARD32 *)(src+4);
+		WRITE(dst++, FbDoDestInvarientMergeRop(pixel));
+		s1 = READ((CARD32 *)(src+4));
 #if BITMAP_BIT_ORDER == LSBFirst
 		pixel = (s0 >> 24) | ((s1 << 8) & 0xffffff);
 #else
 		pixel = ((s0 << 16) & 0xffffff) | (s1 >> 16);
 #endif
-		*dst++ = FbDoDestInvarientMergeRop(pixel);
-		s0 = *(CARD32 *)(src+8);
+		WRITE(dst++, FbDoDestInvarientMergeRop(pixel));
+		s0 = READ((CARD32 *)(src+8));
 #if BITMAP_BIT_ORDER == LSBFirst
 		pixel = (s1 >> 16) | ((s0 << 16) & 0xffffff);
 #else
 		pixel = ((s1 << 8) & 0xffffff) | (s0 >> 24);
 #endif
-		*dst++ = FbDoDestInvarientMergeRop(pixel);
+		WRITE(dst++, FbDoDestInvarientMergeRop(pixel));
 #if BITMAP_BIT_ORDER == LSBFirst
 		pixel = s0 >> 8;
 #else
 		pixel = s0 & 0xffffff;
 #endif
-		*dst++ = FbDoDestInvarientMergeRop(pixel);
+		WRITE(dst++, FbDoDestInvarientMergeRop(pixel));
 		src += 12;
 		w -= 4;
 	    }
@@ -247,7 +247,7 @@ fb24_32BltUp (CARD8	    *srcLine,
 		w--;
 		pixel = Get24(src);
 		src += 3;
-		*dst++ = FbDoDestInvarientMergeRop(pixel);
+		WRITE(dst++, FbDoDestInvarientMergeRop(pixel));
 	    }
 	}
 	else
@@ -256,7 +256,7 @@ fb24_32BltUp (CARD8	    *srcLine,
 	    {
 		pixel = Get24(src);
 		src += 3;
-		*dst = FbDoMergeRop(pixel, *dst);
+		WRITE(dst, FbDoMergeRop(pixel, READ(dst)));
 		dst++;
 	    }
 	}
@@ -305,6 +305,8 @@ fb24_32GetSpans(DrawablePtr	pDrawable,
 	ppt++;
 	pwidth++;
     }
+
+    fbFinishAccess (pDrawable);
 }
 
 void
@@ -366,6 +368,8 @@ fb24_32SetSpans (DrawablePtr	    pDrawable,
 	ppt++;
 	pwidth++;
     }
+
+    fbFinishAccess (pDrawable);
 }
 
 /*
@@ -429,6 +433,8 @@ fb24_32PutZImage (DrawablePtr	pDrawable,
 			alu,
 			pm);
     }
+
+    fbFinishAccess (pDrawable);
 }
 
 void
@@ -463,6 +469,8 @@ fb24_32GetImage (DrawablePtr     pDrawable,
     fb24_32BltUp (src + (y + srcYoff) * srcStride, srcStride, x + srcXoff,
 		  (CARD8 *) d, dstStride, 0,
 		  w, h, GXcopy, pm);
+
+    fbFinishAccess (pDrawable);
 }
 
 void
@@ -519,6 +527,9 @@ fb24_32CopyMtoN (DrawablePtr pSrcDrawable,
 		pPriv->pm);
 	pbox++;
     }
+
+    fbFinishAccess (pSrcDrawable);
+    fbFinishAccess (pDstDrawable);
 }
 
 PixmapPtr
@@ -562,6 +573,9 @@ fb24_32ReformatTile(PixmapPtr pOldTile, int bitsPerPixel)
 
 	    GXcopy,
 	    FB_ALLONES);
+
+    fbFinishAccess (&pOldTile->drawable);
+    fbFinishAccess (&pNewTile->drawable);
 
     return pNewTile;
 }

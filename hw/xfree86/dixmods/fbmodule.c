@@ -33,7 +33,11 @@
 
 static XF86ModuleVersionInfo VersRec =
 {
+#ifdef FB_ACCESS_WRAPPER
+	"wfb",
+#else
 	"fb",
+#endif
 	MODULEVENDORSTRING,
 	MODINFOSTRING1,
 	MODINFOSTRING2,
@@ -45,4 +49,4 @@ static XF86ModuleVersionInfo VersRec =
 	{0,0,0,0}       /* signature, to be patched into the file by a tool */
 };
 
-_X_EXPORT XF86ModuleData fbModuleData = { &VersRec, NULL, NULL };
+_X_EXPORT XF86ModuleData FBPREFIX(ModuleData) = { &VersRec, NULL, NULL };
