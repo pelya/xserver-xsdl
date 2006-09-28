@@ -371,7 +371,7 @@ extern void CoreProcessKeyboardEvent(
 
 extern Bool LegalModifier(
     unsigned int /*key*/, 
-    DevicePtr /*pDev*/);
+    DeviceIntPtr /*pDev*/);
 
 extern void ProcessInputEvents(void);
 

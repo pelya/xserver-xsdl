@@ -253,7 +253,7 @@ XkbError:
 }
 
 Bool
-LegalModifier(unsigned int key, DevicePtr pDev)
+LegalModifier(unsigned int key, DeviceIntPtr pDev)
 {
   return TRUE;
 }

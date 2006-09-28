@@ -173,7 +173,7 @@ KdWakeupHandler (pointer data,
 
 Bool
 KdLegalModifier (unsigned int key, 
-		 DevicePtr    pDev);
+		 DeviceIntPtr pDev);
 
 void
 KdProcessInputEvents (void);

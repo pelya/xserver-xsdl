@@ -192,7 +192,7 @@ InitOutput (ScreenInfo *pScreenInfo,
 
 Bool
 LegalModifier (unsigned int key,
-	       DevicePtr    pDev)
+	       DeviceIntPtr    pDev)
 {
     return (*__ddxFunc.legalModifier) (key, pDev);
 }

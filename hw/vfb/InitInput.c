@@ -43,7 +43,7 @@ from The Open Group.
 #include <X11/keysym.h>
 
 Bool
-LegalModifier(unsigned int key, DevicePtr pDev)
+LegalModifier(unsigned int key, DeviceIntPtr pDev)
 {
     return TRUE;
 }

@@ -79,7 +79,7 @@ extern winDispatchProcPtr	winProcQueryTreeOrig;
  */
 
 Bool
-LegalModifier (unsigned int uiKey, DevicePtr pDevice)
+LegalModifier (unsigned int uiKey, DeviceIntPtr pDevice)
 {
   return TRUE;
 }
