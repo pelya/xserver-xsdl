@@ -178,7 +178,7 @@ ProcXSelectExtensionEvent(register ClientPtr client)
 	return Success;
     }
 
-    if (HandleDevicePresenceMask(client, pWin, (XEventClass *) & stuff[i],
+    if (HandleDevicePresenceMask(client, pWin, (XEventClass *) & stuff[1],
                                 &stuff->count) != Success) {
        SendErrorToClient(client, IReqCode, X_SelectExtensionEvent, 0,
                          BadAlloc);
