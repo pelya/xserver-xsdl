@@ -155,6 +155,19 @@ fbSetupScreen(ScreenPtr	pScreen,
     return TRUE;
 }
 
+#ifdef FB_ACCESS_WRAPPER
+Bool
+wfbFinishScreenInit(ScreenPtr		pScreen,
+		    pointer		pbits,
+		    int			xsize,
+		    int			ysize,
+		    int			dpix,
+		    int			dpiy,
+		    int			width,
+		    int			bpp,
+		    SetupWrapProcPtr	setupWrap,
+		    FinishWrapProcPtr	finishWrap)
+#else
 Bool
 fbFinishScreenInit(ScreenPtr	pScreen,
 		   pointer	pbits,
@@ -164,6 +177,7 @@ fbFinishScreenInit(ScreenPtr	pScreen,
 		   int		dpiy,
 		   int		width,
 		   int		bpp)
+#endif
 {
     VisualPtr	visuals;
     DepthPtr	depths;
@@ -222,6 +236,10 @@ fbFinishScreenInit(ScreenPtr	pScreen,
 	fbGetScreenPrivate(pScreen)->win32bpp = 32;
 	fbGetScreenPrivate(pScreen)->pix32bpp = 32;
     }
+#ifdef FB_ACCESS_WRAPPER
+    fbGetScreenPrivate(pScreen)->setupWrap = setupWrap;
+    fbGetScreenPrivate(pScreen)->finishWrap = finishWrap;
+#endif
 #endif
     rootdepth = 0;
     if (!fbInitVisuals (&visuals, &depths, &nvisuals, &ndepths, &rootdepth,
@@ -256,6 +274,27 @@ fbFinishScreenInit(ScreenPtr	pScreen,
 }
 
 /* dts * (inch/dot) * (25.4 mm / inch) = mm */
+#ifdef FB_ACCESS_WRAPPER
+Bool
+wfbScreenInit(ScreenPtr		pScreen,
+	      pointer		pbits,
+	      int		xsize,
+	      int		ysize,
+	      int		dpix,
+	      int		dpiy,
+	      int		width,
+	      int		bpp,
+	      SetupWrapProcPtr	setupWrap,
+	      FinishWrapProcPtr	finishWrap)
+{
+    if (!fbSetupScreen(pScreen, pbits, xsize, ysize, dpix, dpiy, width, bpp))
+	return FALSE;
+    if (!wfbFinishScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy,
+			     width, bpp, setupWrap, finishWrap))
+	return FALSE;
+    return TRUE;
+}
+#else
 Bool
 fbScreenInit(ScreenPtr	pScreen,
 	     pointer	pbits,
@@ -273,6 +312,7 @@ fbScreenInit(ScreenPtr	pScreen,
 	return FALSE;
     return TRUE;
 }
+#endif
 
 
 #ifdef FB_OLD_SCREEN

@@ -1388,6 +1388,22 @@ int drmDestroyDrawable(int fd, drm_drawable_t handle)
     return 0;
 }
 
+int drmUpdateDrawableInfo(int fd, drm_drawable_t handle,
+			   drm_drawable_info_type_t type, unsigned int num,
+			   void *data)
+{
+    drm_update_draw_t update;
+
+    update.handle = handle;
+    update.type = type;
+    update.num = num;
+    update.data = (unsigned long long)(unsigned long)data;
+
+    if (ioctl(fd, DRM_IOCTL_UPDATE_DRAW, &update)) return -errno;
+
+    return 0;
+}
+
 /**
  * Acquire the AGP device.
  *
