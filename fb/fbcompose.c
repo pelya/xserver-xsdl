@@ -53,7 +53,7 @@ typedef FASTCALL void (*fetchProc)(const FbBits *bits, int x, int width, CARD32 
 static FASTCALL void
 fbFetch_a8r8g8b8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr indexed)
 {
-    memcpy(buffer, (const CARD32 *)bits + x, width*sizeof(CARD32));
+    MEMCPY_WRAPPED(buffer, (const CARD32 *)bits + x, width*sizeof(CARD32));
 }
 
 static FASTCALL void
@@ -62,7 +62,7 @@ fbFetch_x8r8g8b8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     const CARD32 *pixel = (const CARD32 *)bits + x;
     const CARD32 *end = pixel + width;
     while (pixel < end) {
-        *buffer++ = *pixel++ | 0xff000000;
+        WRITE(buffer++, READ(pixel++) | 0xff000000);
     }
 }
 
@@ -72,9 +72,9 @@ fbFetch_a8b8g8r8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     const CARD32 *pixel = (CARD32 *)bits + x;
     const CARD32 *end = pixel + width;
     while (pixel < end) {
-        *buffer++ =  ((*pixel & 0xff00ff00) |
-                      ((*pixel >> 16) & 0xff) |
-                      ((*pixel & 0xff) << 16));
+        WRITE(buffer++, ((READ(pixel) & 0xff00ff00) |
+                         ((READ(pixel) >> 16) & 0xff) |
+                         ((READ(pixel) & 0xff) << 16)));
         ++pixel;
     }
 }
@@ -85,10 +85,10 @@ fbFetch_x8b8g8r8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     const CARD32 *pixel = (CARD32 *)bits + x;
     const CARD32 *end = pixel + width;
     while (pixel < end) {
-        *buffer++ =  0xff000000 |
-                     ((*pixel & 0x0000ff00) |
-                      ((*pixel >> 16) & 0xff) |
-                      ((*pixel & 0xff) << 16));
+        WRITE(buffer++, 0xff000000 |
+                        ((READ(pixel) & 0x0000ff00) |
+                         ((READ(pixel) >> 16) & 0xff) |
+                         ((READ(pixel) & 0xff) << 16)));
         ++pixel;
     }
 }
@@ -101,7 +101,7 @@ fbFetch_r8g8b8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
     while (pixel < end) {
         CARD32 b = Fetch24(pixel) | 0xff000000;
         pixel += 3;
-        *buffer++ = b;
+        WRITE(buffer++, b);
     }
 }
 
@@ -113,13 +113,13 @@ fbFetch_b8g8r8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
     while (pixel < end) {
         CARD32 b = 0xff000000;
 #if IMAGE_BYTE_ORDER == MSBFirst
-        b |= (*pixel++);
-        b |= (*pixel++ << 8);
-        b |= (*pixel++ << 16);
+        b |= (READ(pixel++));
+        b |= (READ(pixel++) << 8);
+        b |= (READ(pixel++) << 16);
 #else
-        b |= (*pixel++ << 16);
-        b |= (*pixel++ << 8);
-        b |= (*pixel++);
+        b |= (READ(pixel++) << 16);
+        b |= (READ(pixel++) << 8);
+        b |= (READ(pixel++));
 #endif
     }
 }
@@ -130,13 +130,13 @@ fbFetch_r5g6b5 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
     const CARD16 *pixel = (const CARD16 *)bits + x;
     const CARD16 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32 r = (((p) << 3) & 0xf8) | 
                    (((p) << 5) & 0xfc00) |
                    (((p) << 8) & 0xf80000);
         r |= (r >> 5) & 0x70007;
         r |= (r >> 6) & 0x300;
-        *buffer++ = 0xff000000 | r;
+        WRITE(buffer++, 0xff000000 | r);
     }
 }
 
@@ -146,13 +146,13 @@ fbFetch_b5g6r5 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
     const CARD16 *pixel = (const CARD16 *)bits + x;
     const CARD16 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32  r,g,b;
 
         b = ((p & 0xf800) | ((p & 0xe000) >> 5)) >> 8;
         g = ((p & 0x07e0) | ((p & 0x0600) >> 6)) << 5;
         r = ((p & 0x001c) | ((p & 0x001f) << 5)) << 14;
-        *buffer++ = (0xff000000 | r | g | b);
+        WRITE(buffer++, (0xff000000 | r | g | b));
     }
 }
 
@@ -162,14 +162,14 @@ fbFetch_a1r5g5b5 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     const CARD16 *pixel = (const CARD16 *)bits + x;
     const CARD16 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32  r,g,b, a;
 
         a = (CARD32) ((CARD8) (0 - ((p & 0x8000) >> 15))) << 24;
         r = ((p & 0x7c00) | ((p & 0x7000) >> 5)) << 9;
         g = ((p & 0x03e0) | ((p & 0x0380) >> 5)) << 6;
         b = ((p & 0x001c) | ((p & 0x001f) << 5)) >> 2;
-        *buffer++ = (a | r | g | b);
+        WRITE(buffer++, (a | r | g | b));
     }
 }
 
@@ -179,13 +179,13 @@ fbFetch_x1r5g5b5 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     const CARD16 *pixel = (const CARD16 *)bits + x;
     const CARD16 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32  r,g,b;
 
         r = ((p & 0x7c00) | ((p & 0x7000) >> 5)) << 9;
         g = ((p & 0x03e0) | ((p & 0x0380) >> 5)) << 6;
         b = ((p & 0x001c) | ((p & 0x001f) << 5)) >> 2;
-        *buffer++ = (0xff000000 | r | g | b);
+        WRITE(buffer++, (0xff000000 | r | g | b));
     }
 }
 
@@ -195,14 +195,14 @@ fbFetch_a1b5g5r5 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     const CARD16 *pixel = (const CARD16 *)bits + x;
     const CARD16 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32  r,g,b, a;
 
         a = (CARD32) ((CARD8) (0 - ((p & 0x8000) >> 15))) << 24;
         b = ((p & 0x7c00) | ((p & 0x7000) >> 5)) >> 7;
         g = ((p & 0x03e0) | ((p & 0x0380) >> 5)) << 6;
         r = ((p & 0x001c) | ((p & 0x001f) << 5)) << 14;
-        *buffer++ = (a | r | g | b);
+        WRITE(buffer++, (a | r | g | b));
     }
 }
 
@@ -212,13 +212,13 @@ fbFetch_x1b5g5r5 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     const CARD16 *pixel = (const CARD16 *)bits + x;
     const CARD16 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32  r,g,b;
 
         b = ((p & 0x7c00) | ((p & 0x7000) >> 5)) >> 7;
         g = ((p & 0x03e0) | ((p & 0x0380) >> 5)) << 6;
         r = ((p & 0x001c) | ((p & 0x001f) << 5)) << 14;
-        *buffer++ = (0xff000000 | r | g | b);
+        WRITE(buffer++, (0xff000000 | r | g | b));
     }
 }
 
@@ -228,14 +228,14 @@ fbFetch_a4r4g4b4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     const CARD16 *pixel = (const CARD16 *)bits + x;
     const CARD16 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32  r,g,b, a;
 
         a = ((p & 0xf000) | ((p & 0xf000) >> 4)) << 16;
         r = ((p & 0x0f00) | ((p & 0x0f00) >> 4)) << 12;
         g = ((p & 0x00f0) | ((p & 0x00f0) >> 4)) << 8;
         b = ((p & 0x000f) | ((p & 0x000f) << 4));
-        *buffer++ = (a | r | g | b);
+        WRITE(buffer++, (a | r | g | b));
     }
 }
 
@@ -245,13 +245,13 @@ fbFetch_x4r4g4b4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     const CARD16 *pixel = (const CARD16 *)bits + x;
     const CARD16 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32  r,g,b;
 
         r = ((p & 0x0f00) | ((p & 0x0f00) >> 4)) << 12;
         g = ((p & 0x00f0) | ((p & 0x00f0) >> 4)) << 8;
         b = ((p & 0x000f) | ((p & 0x000f) << 4));
-        *buffer++ = (0xff000000 | r | g | b);
+        WRITE(buffer++, (0xff000000 | r | g | b));
     }
 }
 
@@ -261,14 +261,14 @@ fbFetch_a4b4g4r4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     const CARD16 *pixel = (const CARD16 *)bits + x;
     const CARD16 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32  r,g,b, a;
 
         a = ((p & 0xf000) | ((p & 0xf000) >> 4)) << 16;
         b = ((p & 0x0f00) | ((p & 0x0f00) >> 4)) >> 4;
         g = ((p & 0x00f0) | ((p & 0x00f0) >> 4)) << 8;
         r = ((p & 0x000f) | ((p & 0x000f) << 4)) << 16;
-        *buffer++ = (a | r | g | b);
+        WRITE(buffer++, (a | r | g | b));
     }
 }
 
@@ -278,13 +278,13 @@ fbFetch_x4b4g4r4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     const CARD16 *pixel = (const CARD16 *)bits + x;
     const CARD16 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32  r,g,b;
 
         b = ((p & 0x0f00) | ((p & 0x0f00) >> 4)) >> 4;
         g = ((p & 0x00f0) | ((p & 0x00f0) >> 4)) << 8;
         r = ((p & 0x000f) | ((p & 0x000f) << 4)) << 16;
-        *buffer++ = (0xff000000 | r | g | b);
+        WRITE(buffer++, (0xff000000 | r | g | b));
     }
 }
 
@@ -294,7 +294,7 @@ fbFetch_a8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr i
     const CARD8 *pixel = (const CARD8 *)bits + x;
     const CARD8 *end = pixel + width;
     while (pixel < end) {
-        *buffer++ = (*pixel++) << 24;
+        WRITE(buffer++, READ(pixel++) << 24);
     }
 }
 
@@ -304,7 +304,7 @@ fbFetch_r3g3b2 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
     const CARD8 *pixel = (const CARD8 *)bits + x;
     const CARD8 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32  r,g,b;
 
         r = ((p & 0xe0) | ((p & 0xe0) >> 3) | ((p & 0xc0) >> 6)) << 16;
@@ -313,7 +313,7 @@ fbFetch_r3g3b2 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
              ((p & 0x03) << 2) |
              ((p & 0x03) << 4) |
              ((p & 0x03) << 6));
-        *buffer++ = (0xff000000 | r | g | b);
+        WRITE(buffer++, (0xff000000 | r | g | b));
     }
 }
 
@@ -323,7 +323,7 @@ fbFetch_b2g3r3 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
     const CARD8 *pixel = (const CARD8 *)bits + x;
     const CARD8 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32  r,g,b;
 
         b = (((p & 0xc0)     ) |
@@ -334,7 +334,7 @@ fbFetch_b2g3r3 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
         r = (((p & 0x07)     ) |
              ((p & 0x07) << 3) |
              ((p & 0x06) << 6)) << 16;
-        *buffer++ = (0xff000000 | r | g | b);
+        WRITE(buffer++, (0xff000000 | r | g | b));
 	}
 }
 
@@ -344,14 +344,14 @@ fbFetch_a2r2g2b2 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     const CARD8 *pixel = (const CARD8 *)bits + x;
     const CARD8 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32   a,r,g,b;
 
         a = ((p & 0xc0) * 0x55) << 18;
         r = ((p & 0x30) * 0x55) << 12;
         g = ((p & 0x0c) * 0x55) << 6;
         b = ((p & 0x03) * 0x55);
-        *buffer++ = a|r|g|b;
+        WRITE(buffer++, a|r|g|b);
     }
 }
 
@@ -361,14 +361,14 @@ fbFetch_a2b2g2r2 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
     const CARD8 *pixel = (const CARD8 *)bits + x;
     const CARD8 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
+        CARD32  p = READ(pixel++);
         CARD32   a,r,g,b;
 
         a = ((p & 0xc0) * 0x55) << 18;
         b = ((p & 0x30) * 0x55) >> 6;
         g = ((p & 0x0c) * 0x55) << 6;
         r = ((p & 0x03) * 0x55) << 16;
-        *buffer++ = a|r|g|b;
+        WRITE(buffer++, a|r|g|b);
     }
 }
 
@@ -378,8 +378,8 @@ fbFetch_c8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr i
     const CARD8 *pixel = (const CARD8 *)bits + x;
     const CARD8 *end = pixel + width;
     while (pixel < end) {
-        CARD32  p = *pixel++;
-        *buffer++ = indexed->rgba[p];
+        CARD32  p = READ(pixel++);
+        WRITE(buffer++, indexed->rgba[p]);
     }
 }
 
@@ -389,8 +389,8 @@ fbFetch_x4a4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr
     const CARD8 *pixel = (const CARD8 *)bits + x;
     const CARD8 *end = pixel + width;
     while (pixel < end) {
-	CARD8 p = (*pixel++) & 0xf;
-        *buffer++ = (p | (p << 4)) << 24;
+	CARD8 p = READ(pixel++) & 0xf;
+        WRITE(buffer++, (p | (p << 4)) << 24);
     }
 }
 
@@ -409,7 +409,7 @@ fbFetch_a4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr i
         CARD32  p = Fetch4(bits, i + x);
 
         p |= p << 4;
-        *buffer++ = p << 24;
+        WRITE(buffer++, p << 24);
     }
 }
 
@@ -424,7 +424,7 @@ fbFetch_r1g2b1 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
         r = ((p & 0x8) * 0xff) << 13;
         g = ((p & 0x6) * 0x55) << 7;
         b = ((p & 0x1) * 0xff);
-        *buffer++ = 0xff000000|r|g|b;
+        WRITE(buffer++, 0xff000000|r|g|b);
     }
 }
 
@@ -439,7 +439,7 @@ fbFetch_b1g2r1 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
         b = ((p & 0x8) * 0xff) >> 3;
         g = ((p & 0x6) * 0x55) << 7;
         r = ((p & 0x1) * 0xff) << 16;
-        *buffer++ = 0xff000000|r|g|b;
+        WRITE(buffer++, 0xff000000|r|g|b);
     }
 }
 
@@ -455,7 +455,7 @@ fbFetch_a1r1g1b1 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
         r = ((p & 0x4) * 0xff) << 14;
         g = ((p & 0x2) * 0xff) << 7;
         b = ((p & 0x1) * 0xff);
-        *buffer++ = a|r|g|b;
+        WRITE(buffer++, a|r|g|b);
     }
 }
 
@@ -471,7 +471,7 @@ fbFetch_a1b1g1r1 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexe
         r = ((p & 0x4) * 0xff) >> 3;
         g = ((p & 0x2) * 0xff) << 7;
         b = ((p & 0x1) * 0xff) << 16;
-        *buffer++ = a|r|g|b;
+        WRITE(buffer++, a|r|g|b);
     }
 }
 
@@ -482,7 +482,7 @@ fbFetch_c4 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr i
     for (i = 0; i < width; ++i) {
         CARD32  p = Fetch4(bits, i + x);
 
-        *buffer++ = indexed->rgba[p];
+        WRITE(buffer++, indexed->rgba[p]);
     }
 }
 
@@ -503,7 +503,7 @@ fbFetch_a1 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr i
         a |= a << 1;
         a |= a << 2;
         a |= a << 4;
-        *buffer++ = a << 24;
+        WRITE(buffer++, a << 24);
     }
 }
 
@@ -520,7 +520,7 @@ fbFetch_g1 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedPtr i
         a = p >> ((i+x) & 0x1f);
 #endif
         a = a & 1;
-        *buffer++ = indexed->rgba[a];
+        WRITE(buffer++, indexed->rgba[a]);
     }
 }
 
@@ -585,19 +585,19 @@ typedef FASTCALL CARD32 (*fetchPixelProc)(const FbBits *bits, int offset, miInde
 static FASTCALL CARD32
 fbFetchPixel_a8r8g8b8 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    return ((CARD32 *)bits)[offset];
+    return READ((CARD32 *)bits + offset);
 }
 
 static FASTCALL CARD32
 fbFetchPixel_x8r8g8b8 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    return ((CARD32 *)bits)[offset] | 0xff000000;
+    return READ((CARD32 *)bits + offset) | 0xff000000;
 }
 
 static FASTCALL CARD32
 fbFetchPixel_a8b8g8r8 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32  pixel = ((CARD32 *)bits)[offset];
+    CARD32  pixel = READ((CARD32 *)bits + offset);
 
     return ((pixel & 0xff000000) |
 	    ((pixel >> 16) & 0xff) |
@@ -608,7 +608,7 @@ fbFetchPixel_a8b8g8r8 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_x8b8g8r8 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32  pixel = ((CARD32 *)bits)[offset];
+    CARD32  pixel = READ((CARD32 *)bits + offset);
 
     return ((0xff000000) |
 	    ((pixel >> 16) & 0xff) |
@@ -622,14 +622,14 @@ fbFetchPixel_r8g8b8 (const FbBits *bits, int offset, miIndexedPtr indexed)
     CARD8   *pixel = ((CARD8 *) bits) + (offset*3);
 #if IMAGE_BYTE_ORDER == MSBFirst
     return (0xff000000 |
-	    (pixel[0] << 16) |
-	    (pixel[1] << 8) |
-	    (pixel[2]));
+	    (READ(pixel + 0) << 16) |
+	    (READ(pixel + 1) << 8) |
+	    (READ(pixel + 2)));
 #else
     return (0xff000000 |
-            (pixel[2] << 16) |
-            (pixel[1] << 8) |
-            (pixel[0]));
+            (READ(pixel + 2) << 16) |
+            (READ(pixel + 1) << 8) |
+            (READ(pixel + 0)));
 #endif
 }
 
@@ -639,21 +639,21 @@ fbFetchPixel_b8g8r8 (const FbBits *bits, int offset, miIndexedPtr indexed)
     CARD8   *pixel = ((CARD8 *) bits) + (offset*3);
 #if IMAGE_BYTE_ORDER == MSBFirst
     return (0xff000000 |
-	    (pixel[2] << 16) |
-	    (pixel[1] << 8) |
-	    (pixel[0]));
+	    (READ(pixel + 2) << 16) |
+	    (READ(pixel + 1) << 8) |
+	    (READ(pixel + 0)));
 #else
     return (0xff000000 |
-	    (pixel[0] << 16) |
-	    (pixel[1] << 8) |
-	    (pixel[2]));
+	    (READ(pixel + 0) << 16) |
+	    (READ(pixel + 1) << 8) |
+	    (READ(pixel + 2)));
 #endif
 }
 
 static FASTCALL CARD32
 fbFetchPixel_r5g6b5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32  pixel = ((CARD16 *) bits)[offset];
+    CARD32  pixel = READ((CARD16 *) bits + offset);
     CARD32  r,g,b;
 
     r = ((pixel & 0xf800) | ((pixel & 0xe000) >> 5)) << 8;
@@ -665,7 +665,7 @@ fbFetchPixel_r5g6b5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_b5g6r5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32  pixel = ((CARD16 *) bits)[offset];
+    CARD32  pixel = READ((CARD16 *) bits + offset);
     CARD32  r,g,b;
 
     b = ((pixel & 0xf800) | ((pixel & 0xe000) >> 5)) >> 8;
@@ -677,7 +677,7 @@ fbFetchPixel_b5g6r5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_a1r5g5b5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32  pixel = ((CARD16 *) bits)[offset];
+    CARD32  pixel = READ((CARD16 *) bits + offset);
     CARD32  a,r,g,b;
 
     a = (CARD32) ((CARD8) (0 - ((pixel & 0x8000) >> 15))) << 24;
@@ -690,7 +690,7 @@ fbFetchPixel_a1r5g5b5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_x1r5g5b5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32  pixel = ((CARD16 *) bits)[offset];
+    CARD32  pixel = READ((CARD16 *) bits + offset);
     CARD32  r,g,b;
 
     r = ((pixel & 0x7c00) | ((pixel & 0x7000) >> 5)) << 9;
@@ -702,7 +702,7 @@ fbFetchPixel_x1r5g5b5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_a1b5g5r5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32  pixel = ((CARD16 *) bits)[offset];
+    CARD32  pixel = READ((CARD16 *) bits + offset);
     CARD32  a,r,g,b;
 
     a = (CARD32) ((CARD8) (0 - ((pixel & 0x8000) >> 15))) << 24;
@@ -715,7 +715,7 @@ fbFetchPixel_a1b5g5r5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_x1b5g5r5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32  pixel = ((CARD16 *) bits)[offset];
+    CARD32  pixel = READ((CARD16 *) bits + offset);
     CARD32  r,g,b;
 
     b = ((pixel & 0x7c00) | ((pixel & 0x7000) >> 5)) >> 7;
@@ -727,7 +727,7 @@ fbFetchPixel_x1b5g5r5 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_a4r4g4b4 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32  pixel = ((CARD16 *) bits)[offset];
+    CARD32  pixel = READ((CARD16 *) bits + offset);
     CARD32  a,r,g,b;
 
     a = ((pixel & 0xf000) | ((pixel & 0xf000) >> 4)) << 16;
@@ -740,7 +740,7 @@ fbFetchPixel_a4r4g4b4 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_x4r4g4b4 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32  pixel = ((CARD16 *) bits)[offset];
+    CARD32  pixel = READ((CARD16 *) bits + offset);
     CARD32  r,g,b;
 
     r = ((pixel & 0x0f00) | ((pixel & 0x0f00) >> 4)) << 12;
@@ -752,7 +752,7 @@ fbFetchPixel_x4r4g4b4 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_a4b4g4r4 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32  pixel = ((CARD16 *) bits)[offset];
+    CARD32  pixel = READ((CARD16 *) bits + offset);
     CARD32  a,r,g,b;
 
     a = ((pixel & 0xf000) | ((pixel & 0xf000) >> 4)) << 16;
@@ -765,7 +765,7 @@ fbFetchPixel_a4b4g4r4 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_x4b4g4r4 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32  pixel = ((CARD16 *) bits)[offset];
+    CARD32  pixel = READ((CARD16 *) bits + offset);
     CARD32  r,g,b;
 
     b = ((pixel & 0x0f00) | ((pixel & 0x0f00) >> 4)) >> 4;
@@ -777,7 +777,7 @@ fbFetchPixel_x4b4g4r4 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_a8 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32   pixel = ((CARD8 *) bits)[offset];
+    CARD32   pixel = READ((CARD8 *) bits + offset);
 
     return pixel << 24;
 }
@@ -785,7 +785,7 @@ fbFetchPixel_a8 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_r3g3b2 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32   pixel = ((CARD8 *) bits)[offset];
+    CARD32   pixel = READ((CARD8 *) bits + offset);
     CARD32  r,g,b;
 
     r = ((pixel & 0xe0) | ((pixel & 0xe0) >> 3) | ((pixel & 0xc0) >> 6)) << 16;
@@ -800,7 +800,7 @@ fbFetchPixel_r3g3b2 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_b2g3r3 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32   pixel = ((CARD8 *) bits)[offset];
+    CARD32   pixel = READ((CARD8 *) bits + offset);
     CARD32  r,g,b;
 
     b = (((pixel & 0xc0)     ) |
@@ -817,7 +817,7 @@ fbFetchPixel_b2g3r3 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_a2r2g2b2 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32   pixel = ((CARD8 *) bits)[offset];
+    CARD32   pixel = READ((CARD8 *) bits + offset);
     CARD32   a,r,g,b;
 
     a = ((pixel & 0xc0) * 0x55) << 18;
@@ -830,7 +830,7 @@ fbFetchPixel_a2r2g2b2 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_a2b2g2r2 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32   pixel = ((CARD8 *) bits)[offset];
+    CARD32   pixel = READ((CARD8 *) bits + offset);
     CARD32   a,r,g,b;
 
     a = ((pixel & 0xc0) * 0x55) << 18;
@@ -843,14 +843,14 @@ fbFetchPixel_a2b2g2r2 (const FbBits *bits, int offset, miIndexedPtr indexed)
 static FASTCALL CARD32
 fbFetchPixel_c8 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32   pixel = ((CARD8 *) bits)[offset];
+    CARD32   pixel = READ((CARD8 *) bits + offset);
     return indexed->rgba[pixel];
 }
 
 static FASTCALL CARD32
 fbFetchPixel_x4a4 (const FbBits *bits, int offset, miIndexedPtr indexed)
 {
-    CARD32   pixel = ((CARD8 *) bits)[offset];
+    CARD32   pixel = READ((CARD8 *) bits + offset);
 
     return ((pixel & 0xf) | ((pixel & 0xf) << 4)) << 24;
 }
@@ -1027,7 +1027,7 @@ typedef FASTCALL void (*storeProc) (FbBits *bits, const CARD32 *values, int x, i
 static FASTCALL void
 fbStore_a8r8g8b8 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr indexed)
 {
-    memcpy(((CARD32 *)bits) + x, values, width*sizeof(CARD32));
+    MEMCPY_WRAPPED(((CARD32 *)bits) + x, values, width*sizeof(CARD32));
 }
 
 static FASTCALL void
@@ -1036,7 +1036,7 @@ fbStore_x8r8g8b8 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     CARD32 *pixel = (CARD32 *)bits + x;
     for (i = 0; i < width; ++i)
-        *pixel++ = values[i] & 0xffffff;
+        WRITE(pixel++, READ(values + i) & 0xffffff);
 }
 
 static FASTCALL void
@@ -1045,7 +1045,7 @@ fbStore_a8b8g8r8 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     CARD32 *pixel = (CARD32 *)bits + x;
     for (i = 0; i < width; ++i)
-        *pixel++ = (values[i] & 0xff00ff00) | ((values[i] >> 16) & 0xff) | ((values[i] & 0xff) << 16);
+        WRITE(pixel++, (READ(values + i) & 0xff00ff00) | ((READ(values + i) >> 16) & 0xff) | ((READ(values + i) & 0xff) << 16));
 }
 
 static FASTCALL void
@@ -1054,7 +1054,7 @@ fbStore_x8b8g8r8 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     CARD32 *pixel = (CARD32 *)bits + x;
     for (i = 0; i < width; ++i)
-        *pixel++ = (values[i] & 0x0000ff00) | ((values[i] >> 16) & 0xff) | ((values[i] & 0xff) << 16);
+        WRITE(pixel++, (READ(values + i) & 0x0000ff00) | ((READ(values + i) >> 16) & 0xff) | ((READ(values + i) & 0xff) << 16));
 }
 
 static FASTCALL void
@@ -1063,7 +1063,7 @@ fbStore_r8g8b8 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedP
     int i;
     CARD8 *pixel = ((CARD8 *) bits) + 3*x;
     for (i = 0; i < width; ++i) {
-        Store24(pixel, values[i]);
+        Store24(pixel, READ(values + i));
         pixel += 3;
     }
 }
@@ -1074,14 +1074,15 @@ fbStore_b8g8r8 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedP
     int i;
     CARD8 *pixel = ((CARD8 *) bits) + 3*x;
     for (i = 0; i < width; ++i) {
+        CARD32 val = READ(values + i);
 #if IMAGE_BYTE_ORDER == MSBFirst
-        *pixel++ = Blue(values[i]);
-        *pixel++ = Green(values[i]);
-        *pixel++ = Red(values[i]);
+        WRITE(pixel++, Blue(val));
+        WRITE(pixel++, Green(val));
+        WRITE(pixel++, Red(val));
 #else
-        *pixel++ = Red(values[i]);
-        *pixel++ = Green(values[i]);
-        *pixel++ = Blue(values[i]);
+        WRITE(pixel++, Red(val));
+        WRITE(pixel++, Green(val));
+        WRITE(pixel++, Blue(val));
 #endif
     }
 }
@@ -1092,10 +1093,10 @@ fbStore_r5g6b5 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedP
     int i;
     CARD16 *pixel = ((CARD16 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        CARD32 s = values[i];
-        *pixel++ = ((s >> 3) & 0x001f) |
-                   ((s >> 5) & 0x07e0) |
-                   ((s >> 8) & 0xf800);
+        CARD32 s = READ(values + i);
+        WRITE(pixel++, ((s >> 3) & 0x001f) |
+                       ((s >> 5) & 0x07e0) |
+                       ((s >> 8) & 0xf800));
     }
 }
 
@@ -1105,10 +1106,10 @@ fbStore_b5g6r5 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedP
     int i;
     CARD16  *pixel = ((CARD16 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        Split(values[i]);
-        *pixel++ = (((b << 8) & 0xf800) |
-                    ((g << 3) & 0x07e0) |
-                    ((r >> 3)         ));
+        Split(READ(values + i));
+        WRITE(pixel++, ((b << 8) & 0xf800) |
+                       ((g << 3) & 0x07e0) |
+                       ((r >> 3)         ));
     }
 }
 
@@ -1118,11 +1119,11 @@ fbStore_a1r5g5b5 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     CARD16  *pixel = ((CARD16 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        Splita(values[i]);
-        *pixel++ = (((a << 8) & 0x8000) |
-                    ((r << 7) & 0x7c00) |
-                    ((g << 2) & 0x03e0) |
-                    ((b >> 3)         ));
+        Splita(READ(values + i));
+        WRITE(pixel++, ((a << 8) & 0x8000) |
+                       ((r << 7) & 0x7c00) |
+                       ((g << 2) & 0x03e0) |
+                       ((b >> 3)         ));
     }
 }
 
@@ -1132,10 +1133,10 @@ fbStore_x1r5g5b5 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     CARD16  *pixel = ((CARD16 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        Split(values[i]);
-        *pixel++ = (((r << 7) & 0x7c00) |
-                    ((g << 2) & 0x03e0) |
-                    ((b >> 3)         ));
+        Split(READ(values + i));
+        WRITE(pixel++, ((r << 7) & 0x7c00) |
+                       ((g << 2) & 0x03e0) |
+                       ((b >> 3)         ));
     }
 }
 
@@ -1145,11 +1146,11 @@ fbStore_a1b5g5r5 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     CARD16  *pixel = ((CARD16 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        Splita(values[i]);
-        *pixel++ = (((a << 8) & 0x8000) |
-                    ((b << 7) & 0x7c00) |
-                    ((g << 2) & 0x03e0) |
-                    ((r >> 3)         ));
+        Splita(READ(values + i));
+        WRITE(pixel++, ((a << 8) & 0x8000) |
+                       ((b << 7) & 0x7c00) |
+                       ((g << 2) & 0x03e0) |
+                       ((r >> 3)         ));
 	}
 }
 
@@ -1159,10 +1160,10 @@ fbStore_x1b5g5r5 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     CARD16  *pixel = ((CARD16 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        Split(values[i]);
-        *pixel++ = (((b << 7) & 0x7c00) |
-                    ((g << 2) & 0x03e0) |
-                    ((r >> 3)         ));
+        Split(READ(values + i));
+        WRITE(pixel++, ((b << 7) & 0x7c00) |
+                       ((g << 2) & 0x03e0) |
+                       ((r >> 3)         ));
     }
 }
 
@@ -1172,11 +1173,11 @@ fbStore_a4r4g4b4 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     CARD16  *pixel = ((CARD16 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        Splita(values[i]);
-        *pixel++ = (((a << 8) & 0xf000) |
-                    ((r << 4) & 0x0f00) |
-                    ((g     ) & 0x00f0) |
-                    ((b >> 4)         ));
+        Splita(READ(values + i));
+        WRITE(pixel++, ((a << 8) & 0xf000) |
+                       ((r << 4) & 0x0f00) |
+                       ((g     ) & 0x00f0) |
+                       ((b >> 4)         ));
     }
 }
 
@@ -1186,10 +1187,10 @@ fbStore_x4r4g4b4 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     CARD16  *pixel = ((CARD16 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        Split(values[i]);
-        *pixel++ = (((r << 4) & 0x0f00) |
-                    ((g     ) & 0x00f0) |
-                    ((b >> 4)         ));
+        Split(READ(values + i));
+        WRITE(pixel++, ((r << 4) & 0x0f00) |
+                       ((g     ) & 0x00f0) |
+                       ((b >> 4)         ));
     }
 }
 
@@ -1199,11 +1200,11 @@ fbStore_a4b4g4r4 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     CARD16  *pixel = ((CARD16 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        Splita(values[i]);
-        *pixel++ = (((a << 8) & 0xf000) |
-                    ((b << 4) & 0x0f00) |
-                    ((g     ) & 0x00f0) |
-                    ((r >> 4)         ));
+        Splita(READ(values + i));
+        WRITE(pixel++, ((a << 8) & 0xf000) |
+                       ((b << 4) & 0x0f00) |
+                       ((g     ) & 0x00f0) |
+                       ((r >> 4)         ));
     }
 }
 
@@ -1213,10 +1214,10 @@ fbStore_x4b4g4r4 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     CARD16  *pixel = ((CARD16 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        Split(values[i]);
-        *pixel++ = (((b << 4) & 0x0f00) |
-                    ((g     ) & 0x00f0) |
-                    ((r >> 4)         ));
+        Split(READ(values + i));
+        WRITE(pixel++, ((b << 4) & 0x0f00) |
+                       ((g     ) & 0x00f0) |
+                       ((r >> 4)         ));
     }
 }
 
@@ -1226,7 +1227,7 @@ fbStore_a8 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr i
     int i;
     CARD8   *pixel = ((CARD8 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        *pixel++ = values[i] >> 24;
+        WRITE(pixel++, READ(values + i) >> 24);
     }
 }
 
@@ -1236,10 +1237,10 @@ fbStore_r3g3b2 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedP
     int i;
     CARD8   *pixel = ((CARD8 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        Split(values[i]);
-        *pixel++ = (((r     ) & 0xe0) |
-                    ((g >> 3) & 0x1c) |
-                    ((b >> 6)       ));
+        Split(READ(values + i));
+        WRITE(pixel++, ((r     ) & 0xe0) |
+                       ((g >> 3) & 0x1c) |
+                       ((b >> 6)       ));
     }
 }
 
@@ -1249,10 +1250,10 @@ fbStore_b2g3r3 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedP
     int i;
     CARD8   *pixel = ((CARD8 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        Split(values[i]);
-        *pixel++ = (((b     ) & 0xe0) |
-                    ((g >> 3) & 0x1c) |
-                    ((r >> 6)       ));
+        Split(READ(values + i));
+        WRITE(pixel++, ((b     ) & 0xe0) |
+                       ((g >> 3) & 0x1c) |
+                       ((r >> 6)       ));
     }
 }
 
@@ -1262,11 +1263,11 @@ fbStore_a2r2g2b2 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     CARD8   *pixel = ((CARD8 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        Splita(values[i]);
-        *pixel++ = (((a     ) & 0xc0) |
-                    ((r >> 2) & 0x30) |
-                    ((g >> 4) & 0x0c) |
-                    ((b >> 6)       ));
+        Splita(READ(values + i));
+        WRITE(pixel++, ((a     ) & 0xc0) |
+                       ((r >> 2) & 0x30) |
+                       ((g >> 4) & 0x0c) |
+                       ((b >> 6)       ));
     }
 }
 
@@ -1276,7 +1277,7 @@ fbStore_c8 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr i
     int i;
     CARD8   *pixel = ((CARD8 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        *pixel++ = miIndexToEnt24(indexed,values[i]);
+        WRITE(pixel++, miIndexToEnt24(indexed,READ(values + i)));
     }
 }
 
@@ -1286,7 +1287,7 @@ fbStore_x4a4 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr
     int i;
     CARD8   *pixel = ((CARD8 *) bits) + x;
     for (i = 0; i < width; ++i) {
-        *pixel++ = values[i] >> 28;
+        WRITE(pixel++, READ(values + i) >> 28);
     }
 }
 
@@ -1306,7 +1307,7 @@ fbStore_a4 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr i
 {
     int i;
     for (i = 0; i < width; ++i) {
-        Store4(bits, i + x, values[i]>>28);
+        Store4(bits, i + x, READ(values + i)>>28);
     }
 }
 
@@ -1317,7 +1318,7 @@ fbStore_r1g2b1 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedP
     for (i = 0; i < width; ++i) {
         CARD32  pixel;
 
-        Split(values[i]);
+        Split(READ(values + i));
         pixel = (((r >> 4) & 0x8) |
                  ((g >> 5) & 0x6) |
                  ((b >> 7)      ));
@@ -1332,7 +1333,7 @@ fbStore_b1g2r1 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedP
     for (i = 0; i < width; ++i) {
         CARD32  pixel;
 
-        Split(values[i]);
+        Split(READ(values + i));
         pixel = (((b >> 4) & 0x8) |
                  ((g >> 5) & 0x6) |
                  ((r >> 7)      ));
@@ -1346,7 +1347,7 @@ fbStore_a1r1g1b1 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     for (i = 0; i < width; ++i) {
         CARD32  pixel;
-        Splita(values[i]);
+        Splita(READ(values + i));
         pixel = (((a >> 4) & 0x8) |
                  ((r >> 5) & 0x4) |
                  ((g >> 6) & 0x2) |
@@ -1361,7 +1362,7 @@ fbStore_a1b1g1r1 (FbBits *bits, const CARD32 *values, int x, int width, miIndexe
     int i;
     for (i = 0; i < width; ++i) {
         CARD32  pixel;
-        Splita(values[i]);
+        Splita(READ(values + i));
         pixel = (((a >> 4) & 0x8) |
                  ((b >> 5) & 0x4) |
                  ((g >> 6) & 0x2) |
@@ -1377,7 +1378,7 @@ fbStore_c4 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr i
     for (i = 0; i < width; ++i) {
         CARD32  pixel;
 
-        pixel = miIndexToEnt24(indexed, values[i]);
+        pixel = miIndexToEnt24(indexed, READ(values + i));
         Store4(bits, i + x, pixel);
     }
 }
@@ -1390,8 +1391,8 @@ fbStore_a1 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr i
         CARD32  *pixel = ((CARD32 *) bits) + ((i+x) >> 5);
         CARD32  mask = FbStipMask((i+x) & 0x1f, 1);
 
-        CARD32 v = values[i] & 0x80000000 ? mask : 0;
-        *pixel = (*pixel & ~mask) | v;
+        CARD32 v = READ(values + i) & 0x80000000 ? mask : 0;
+        WRITE(pixel, (READ(pixel) & ~mask) | v);
     }
 }
 
@@ -1403,8 +1404,8 @@ fbStore_g1 (FbBits *bits, const CARD32 *values, int x, int width, miIndexedPtr i
         CARD32  *pixel = ((CARD32 *) bits) + ((i+x) >> 5);
         CARD32  mask = FbStipMask((i+x) & 0x1f, 1);
 
-        CARD32 v = miIndexToEntY24(indexed,values[i]) ? mask : 0;
-        *pixel = (*pixel & ~mask) | v;
+        CARD32 v = miIndexToEntY24(indexed,READ(values + i)) ? mask : 0;
+        WRITE(pixel, (READ(pixel) & ~mask) | v);
     }
 }
 
@@ -1469,10 +1470,10 @@ fbCombineMaskU (CARD32 *src, const CARD32 *mask, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 a = mask[i] >> 24;
-        CARD32 s = src[i];
+        CARD32 a = READ(mask + i) >> 24;
+        CARD32 s = READ(src + i);
         FbByteMul(s, a);
-        src[i] = s;
+        WRITE(src + i, s);
     }
 }
 
@@ -1483,13 +1484,13 @@ fbCombineMaskU (CARD32 *src, const CARD32 *mask, int width)
 static FASTCALL void
 fbCombineClear (CARD32 *dest, const CARD32 *src, int width)
 {
-    memset(dest, 0, width*sizeof(CARD32));
+    MEMSET_WRAPPED(dest, 0, width*sizeof(CARD32));
 }
 
 static FASTCALL void
 fbCombineSrcU (CARD32 *dest, const CARD32 *src, int width)
 {
-    memcpy(dest, src, width*sizeof(CARD32));
+    MEMCPY_WRAPPED(dest, src, width*sizeof(CARD32));
 }
 
 
@@ -1498,12 +1499,12 @@ fbCombineOverU (CARD32 *dest, const CARD32 *src, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 s = src[i];
-        CARD32 d = dest[i];
+        CARD32 s = READ(src + i);
+        CARD32 d = READ(dest + i);
         CARD32 ia = Alpha(~s);
 
         FbByteMulAdd(d, ia, s);
-        dest[i] = d;
+        WRITE(dest + i, d);
     }
 }
 
@@ -1512,11 +1513,11 @@ fbCombineOverReverseU (CARD32 *dest, const CARD32 *src, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 s = src[i];
-        CARD32 d = dest[i];
-        CARD32 ia = Alpha(~dest[i]);
+        CARD32 s = READ(src + i);
+        CARD32 d = READ(dest + i);
+        CARD32 ia = Alpha(~READ(dest + i));
         FbByteMulAdd(s, ia, d);
-        dest[i] = s;
+        WRITE(dest + i, s);
     }
 }
 
@@ -1525,10 +1526,10 @@ fbCombineInU (CARD32 *dest, const CARD32 *src, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 s = src[i];
-        CARD32 a = Alpha(dest[i]);
+        CARD32 s = READ(src + i);
+        CARD32 a = Alpha(READ(dest + i));
         FbByteMul(s, a);
-        dest[i] = s;
+        WRITE(dest + i, s);
     }
 }
 
@@ -1537,10 +1538,10 @@ fbCombineInReverseU (CARD32 *dest, const CARD32 *src, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 d = dest[i];
-        CARD32 a = Alpha(src[i]);
+        CARD32 d = READ(dest + i);
+        CARD32 a = Alpha(READ(src + i));
         FbByteMul(d, a);
-        dest[i] = d;
+        WRITE(dest + i, d);
     }
 }
 
@@ -1549,10 +1550,10 @@ fbCombineOutU (CARD32 *dest, const CARD32 *src, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 s = src[i];
-        CARD32 a = Alpha(~dest[i]);
+        CARD32 s = READ(src + i);
+        CARD32 a = Alpha(~READ(dest + i));
         FbByteMul(s, a);
-        dest[i] = s;
+        WRITE(dest + i, s);
     }
 }
 
@@ -1561,10 +1562,10 @@ fbCombineOutReverseU (CARD32 *dest, const CARD32 *src, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 d = dest[i];
-        CARD32 a = Alpha(~src[i]);
+        CARD32 d = READ(dest + i);
+        CARD32 a = Alpha(~READ(src + i));
         FbByteMul(d, a);
-        dest[i] = d;
+        WRITE(dest + i, d);
     }
 }
 
@@ -1573,13 +1574,13 @@ fbCombineAtopU (CARD32 *dest, const CARD32 *src, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 s = src[i];
-        CARD32 d = dest[i];
+        CARD32 s = READ(src + i);
+        CARD32 d = READ(dest + i);
         CARD32 dest_a = Alpha(d);
         CARD32 src_ia = Alpha(~s);
 
         FbByteAddMul(s, dest_a, d, src_ia);
-        dest[i] = s;
+        WRITE(dest + i, s);
     }
 }
 
@@ -1588,13 +1589,13 @@ fbCombineAtopReverseU (CARD32 *dest, const CARD32 *src, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 s = src[i];
-        CARD32 d = dest[i];
+        CARD32 s = READ(src + i);
+        CARD32 d = READ(dest + i);
         CARD32 src_a = Alpha(s);
         CARD32 dest_ia = Alpha(~d);
 
         FbByteAddMul(s, dest_ia, d, src_a);
-        dest[i] = s;
+        WRITE(dest + i, s);
     }
 }
 
@@ -1603,13 +1604,13 @@ fbCombineXorU (CARD32 *dest, const CARD32 *src, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 s = src[i];
-        CARD32 d = dest[i];
+        CARD32 s = READ(src + i);
+        CARD32 d = READ(dest + i);
         CARD32 src_ia = Alpha(~s);
         CARD32 dest_ia = Alpha(~d);
 
         FbByteAddMul(s, dest_ia, d, src_ia);
-        dest[i] = s;
+        WRITE(dest + i, s);
     }
 }
 
@@ -1618,10 +1619,10 @@ fbCombineAddU (CARD32 *dest, const CARD32 *src, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 s = src[i];
-        CARD32 d = dest[i];
+        CARD32 s = READ(src + i);
+        CARD32 d = READ(dest + i);
         FbByteAdd(d, s);
-        dest[i] = d;
+        WRITE(dest + i, d);
     }
 }
 
@@ -1630,8 +1631,8 @@ fbCombineSaturateU (CARD32 *dest, const CARD32 *src, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32  s = src[i];
-        CARD32 d = dest[i];
+        CARD32  s = READ(src + i);
+        CARD32 d = READ(dest + i);
         CARD16  sa, da;
 
         sa = s >> 24;
@@ -1642,7 +1643,7 @@ fbCombineSaturateU (CARD32 *dest, const CARD32 *src, int width)
             FbByteMul(s, sa);
         }
         FbByteAdd(d, s);
-        dest[i] = d;
+        WRITE(dest + i, d);
     }
 }
 
@@ -1716,8 +1717,8 @@ fbCombineDisjointGeneralU (CARD32 *dest, const CARD32 *src, int width, CARD8 com
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 s = src[i];
-        CARD32 d = dest[i];
+        CARD32 s = READ(src + i);
+        CARD32 d = READ(dest + i);
         CARD32 m,n,o,p;
         CARD16 Fa, Fb, t, u, v;
         CARD8 sa = s >> 24;
@@ -1757,7 +1758,7 @@ fbCombineDisjointGeneralU (CARD32 *dest, const CARD32 *src, int width, CARD8 com
         o = FbGen (s,d,16,Fa,Fb,t, u, v);
         p = FbGen (s,d,24,Fa,Fb,t, u, v);
         s = m|n|o|p;
-        dest[i] = s;
+        WRITE(dest + i, s);
     }
 }
 
@@ -1766,19 +1767,19 @@ fbCombineDisjointOverU (CARD32 *dest, const CARD32 *src, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32  s = src[i];
+        CARD32  s = READ(src + i);
         CARD16  a = s >> 24;
 
         if (a != 0x00)
         {
             if (a != 0xff)
             {
-                CARD32 d = dest[i];
+                CARD32 d = READ(dest + i);
                 a = fbCombineDisjointOutPart (d >> 24, a);
                 FbByteMulAdd(d, a, s);
                 s = d;
             }
-            dest[i] = s;
+            WRITE(dest + i, s);
         }
     }
 }
@@ -1855,8 +1856,8 @@ fbCombineConjointGeneralU (CARD32 *dest, const CARD32 *src, int width, CARD8 com
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32  s = src[i];
-        CARD32 d = dest[i];
+        CARD32  s = READ(src + i);
+        CARD32 d = READ(dest + i);
         CARD32  m,n,o,p;
         CARD16  Fa, Fb, t, u, v;
         CARD8 sa = s >> 24;
@@ -1896,7 +1897,7 @@ fbCombineConjointGeneralU (CARD32 *dest, const CARD32 *src, int width, CARD8 com
         o = FbGen (s,d,16,Fa,Fb,t, u, v);
         p = FbGen (s,d,24,Fa,Fb,t, u, v);
         s = m|n|o|p;
-        dest[i] = s;
+        WRITE(dest + i, s);
     }
 }
 
@@ -2009,32 +2010,32 @@ fbCombineMaskC (CARD32 *src, CARD32 *mask, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 a = mask[i];
+        CARD32 a = READ(mask + i);
 
         CARD32	x;
         CARD16	xa;
 
         if (!a)
         {
-            src[i] = 0;
+            WRITE(src + i, 0);
             continue;
         }
 
-        x = src[i];
+        x = READ(src + i);
         if (a == 0xffffffff)
         {
             x = x >> 24;
             x |= x << 8;
             x |= x << 16;
-            mask[i] = x;
+            WRITE(mask + i, x);
             continue;
         }
 
         xa = x >> 24;
         FbByteMulC(x, a);
-        src[i] = x;
+        WRITE(src + i, x);
         FbByteMul(a, xa);
-        mask[i] = a;
+        WRITE(mask + i, a);
     }
 }
 
@@ -2043,21 +2044,21 @@ fbCombineMaskValueC (CARD32 *src, const CARD32 *mask, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 a = mask[i];
+        CARD32 a = READ(mask + i);
         CARD32	x;
 
         if (!a)
         {
-            src[i] = 0;
+            WRITE(src + i, 0);
             continue;
         }
 
         if (a == 0xffffffff)
             continue;
 
-        x = src[i];
+        x = READ(src + i);
         FbByteMulC(x, a);
-        src[i] = x;
+        WRITE(src + i, x);
     }
 }
 
@@ -2067,13 +2068,13 @@ fbCombineMaskAlphaC (const CARD32 *src, CARD32 *mask, int width)
 {
     int i;
     for (i = 0; i < width; ++i) {
-        CARD32 a = mask[i];
+        CARD32 a = READ(mask + i);
         CARD32	x;
 
         if (!a)
             continue;
 
-        x = src[i] >> 24;
+        x = READ(src + i) >> 24;
         if (x == 0xff)
             continue;
         if (a == 0xffffffff)
@@ -2081,12 +2082,12 @@ fbCombineMaskAlphaC (const CARD32 *src, CARD32 *mask, int width)
             x = x >> 24;
             x |= x << 8;
             x |= x << 16;
-            mask[i] = x;
+            WRITE(mask + i, x);
             continue;
         }
 
         FbByteMul(a, x);
-        mask[i] = a;
+        WRITE(mask + i, a);
     }
 }
 
@@ -2100,7 +2101,7 @@ static FASTCALL void
 fbCombineSrcC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
     fbCombineMaskValueC(src, mask, width);
-    memcpy(dest, src, width*sizeof(CARD32));
+    MEMCPY_WRAPPED(dest, src, width*sizeof(CARD32));
 }
 
 static FASTCALL void
@@ -2109,18 +2110,18 @@ fbCombineOverC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
     int i;
     fbCombineMaskC(src, mask, width);
     for (i = 0; i < width; ++i) {
-        CARD32  s = src[i];
-        CARD32  a = ~mask[i];
+        CARD32  s = READ(src + i);
+        CARD32  a = ~READ(mask + i);
 
         if (a != 0xffffffff)
         {
             if (a)
             {
-                CARD32 d = dest[i];
+                CARD32 d = READ(dest + i);
                 FbByteMulAddC(d, a, s);
                 s = d;
             }
-            dest[i] = s;
+            WRITE(dest + i, s);
         }
     }
 }
@@ -2131,17 +2132,17 @@ fbCombineOverReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
     int i;
     fbCombineMaskValueC(src, mask, width);
     for (i = 0; i < width; ++i) {
-        CARD32 d = dest[i];
+        CARD32 d = READ(dest + i);
         CARD32 a = ~d >> 24;
 
         if (a)
         {
-            CARD32 s = src[i];
+            CARD32 s = READ(src + i);
             if (a != 0xff)
             {
                 FbByteMulAdd(s, a, d);
             }
-            dest[i] = s;
+            WRITE(dest + i, s);
         }
     }
 }
@@ -2152,18 +2153,18 @@ fbCombineInC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
     int i;
     fbCombineMaskValueC(src, mask, width);
     for (i = 0; i < width; ++i) {
-        CARD32 d = dest[i];
+        CARD32 d = READ(dest + i);
         CARD16 a = d >> 24;
         CARD32 s = 0;
         if (a)
         {
-            s = src[i];
+            s = READ(src + i);
             if (a != 0xff)
             {
                 FbByteMul(s, a);
             }
         }
-        dest[i] = s;
+        WRITE(dest + i, s);
     }
 }
 
@@ -2173,17 +2174,17 @@ fbCombineInReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
     int i;
     fbCombineMaskAlphaC(src, mask, width);
     for (i = 0; i < width; ++i) {
-        CARD32 a = mask[i];
+        CARD32 a = READ(mask + i);
 
         if (a != 0xffffffff)
         {
             CARD32 d = 0;
             if (a)
             {
-                d = dest[i];
+                d = READ(dest + i);
                 FbByteMulC(d, a);
             }
-            dest[i] = d;
+            WRITE(dest + i, d);
         }
     }
 }
@@ -2194,18 +2195,18 @@ fbCombineOutC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
     int i;
     fbCombineMaskValueC(src, mask, width);
     for (i = 0; i < width; ++i) {
-        CARD32 d = dest[i];
+        CARD32 d = READ(dest + i);
         CARD16 a = ~d >> 24;
         CARD32 s = 0;
         if (a)
         {
-            s = src[i];
+            s = READ(src + i);
             if (a != 0xff)
             {
                 FbByteMul(s, a);
             }
         }
-        dest[i] = s;
+        WRITE(dest + i, s);
     }
 }
 
@@ -2215,17 +2216,17 @@ fbCombineOutReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
     int i;
     fbCombineMaskAlphaC(src, mask, width);
     for (i = 0; i < width; ++i) {
-        CARD32 a = ~mask[i];
+        CARD32 a = ~READ(mask + i);
 
         if (a != 0xffffffff)
         {
             CARD32 d = 0;
             if (a)
             {
-                d = dest[i];
+                d = READ(dest + i);
                 FbByteMulC(d, a);
             }
-            dest[i] = d;
+            WRITE(dest + i, d);
         }
     }
 }
@@ -2236,12 +2237,12 @@ fbCombineAtopC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
     int i;
     fbCombineMaskC(src, mask, width);
     for (i = 0; i < width; ++i) {
-        CARD32 d = dest[i];
-        CARD32 s = src[i];
-        CARD32 ad = ~mask[i];
+        CARD32 d = READ(dest + i);
+        CARD32 s = READ(src + i);
+        CARD32 ad = ~READ(mask + i);
         CARD16 as = d >> 24;
         FbByteAddMulC(d, ad, s, as);
-        dest[i] = d;
+        WRITE(dest + i, d);
     }
 }
 
@@ -2252,12 +2253,12 @@ fbCombineAtopReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
     fbCombineMaskC(src, mask, width);
     for (i = 0; i < width; ++i) {
 
-        CARD32 d = dest[i];
-        CARD32 s = src[i];
-        CARD32 ad = mask[i];
+        CARD32 d = READ(dest + i);
+        CARD32 s = READ(src + i);
+        CARD32 ad = READ(mask + i);
         CARD16 as = ~d >> 24;
         FbByteAddMulC(d, ad, s, as);
-        dest[i] = d;
+        WRITE(dest + i, d);
     }
 }
 
@@ -2267,12 +2268,12 @@ fbCombineXorC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
     int i;
     fbCombineMaskC(src, mask, width);
     for (i = 0; i < width; ++i) {
-        CARD32 d = dest[i];
-        CARD32 s = src[i];
-        CARD32 ad = ~mask[i];
+        CARD32 d = READ(dest + i);
+        CARD32 s = READ(src + i);
+        CARD32 ad = ~READ(mask + i);
         CARD16 as = ~d >> 24;
         FbByteAddMulC(d, ad, s, as);
-        dest[i] = d;
+        WRITE(dest + i, d);
     }
 }
 
@@ -2282,10 +2283,10 @@ fbCombineAddC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
     int i;
     fbCombineMaskValueC(src, mask, width);
     for (i = 0; i < width; ++i) {
-        CARD32 s = src[i];
-        CARD32 d = dest[i];
+        CARD32 s = READ(src + i);
+        CARD32 d = READ(dest + i);
         FbByteAdd(d, s);
-        dest[i] = d;
+        WRITE(dest + i, d);
     }
 }
 
@@ -2300,12 +2301,12 @@ fbCombineSaturateC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
         CARD16  t, u, v;
         CARD32  m,n,o,p;
 
-        d = dest[i];
-        s = src[i];
-        sa = (mask[i] >> 24);
-        sr = (mask[i] >> 16) & 0xff;
-        sg = (mask[i] >>  8) & 0xff;
-        sb = (mask[i]      ) & 0xff;
+        d = READ(dest + i);
+        s = READ(src + i);
+        sa = (READ(mask + i) >> 24);
+        sr = (READ(mask + i) >> 16) & 0xff;
+        sg = (READ(mask + i) >>  8) & 0xff;
+        sb = (READ(mask + i)      ) & 0xff;
         da = ~d >> 24;
 
         if (sb <= da)
@@ -2328,7 +2329,7 @@ fbCombineSaturateC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
         else
             p = FbGen (s, d, 24, (da << 8) / sa, 0xff, t, u, v);
 
-        dest[i] = m|n|o|p;
+        WRITE(dest + i, m|n|o|p);
     }
 }
 
@@ -2345,9 +2346,9 @@ fbCombineDisjointGeneralC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width, C
         CARD32  sa;
         CARD8   da;
 
-        s = src[i];
-        sa = mask[i];
-        d = dest[i];
+        s = READ(src + i);
+        sa = READ(mask + i);
+        d = READ(dest + i);
         da = d >> 24;
 
         switch (combine & CombineA) {
@@ -2400,7 +2401,7 @@ fbCombineDisjointGeneralC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width, C
         o = FbGen (s,d,16,FbGet8(Fa,16),FbGet8(Fb,16),t, u, v);
         p = FbGen (s,d,24,FbGet8(Fa,24),FbGet8(Fb,24),t, u, v);
         s = m|n|o|p;
-        dest[i] = s;
+        WRITE(dest + i, s);
     }
 }
 
@@ -2465,9 +2466,9 @@ fbCombineConjointGeneralC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width, C
         CARD32  sa;
         CARD8   da;
 
-        s = src[i];
-        sa = mask[i];
-        d = dest[i];
+        s = READ(src + i);
+        sa = READ(mask + i);
+        d = READ(dest + i);
         da = d >> 24;
 
         switch (combine & CombineA) {
@@ -2520,7 +2521,7 @@ fbCombineConjointGeneralC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width, C
         o = FbGen (s,d,16,FbGet8(Fa,16),FbGet8(Fb,16),t, u, v);
         p = FbGen (s,d,24,FbGet8(Fa,24),FbGet8(Fb,24),t, u, v);
         s = m|n|o|p;
-        dest[i] = s;
+        WRITE(dest + i, s);
     }
 }
 
@@ -2651,7 +2652,8 @@ static void fbFetchSolid(PicturePtr pict, int x, int y, int width, CARD32 *buffe
 
     end = buffer + width;
     while (buffer < end)
-        *buffer++ = color;
+        WRITE(buffer++, color);
+    fbFinishAccess (pict->pDrawable);
 }
 
 static void fbFetch(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
@@ -2670,6 +2672,7 @@ static void fbFetch(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
     bits += y*stride;
 
     fetch(bits, x, width, buffer, indexed);
+    fbFinishAccess (pict->pDrawable);
 }
 
 #define MOD(a,b) ((a) < 0 ? ((b) - ((-(a) - 1) % (b))) - 1 : (a) % (b))
@@ -2717,7 +2720,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
     if (pGradient->type == SourcePictTypeSolidFill) {
         register CARD32 color = pGradient->solidFill.color;
         while (buffer < end) {
-            *buffer++ = color;
+            WRITE(buffer++, color);
         }
     } else if (pGradient->type == SourcePictTypeLinear) {
         PictVector v, unit;
@@ -2759,7 +2762,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                 inc = (a * unit.vector[0] + b * unit.vector[1]) >> 16;
             }
             while (buffer < end) {
-                *buffer++ = gradientPixel(pGradient, t, pict->repeatType);
+                WRITE(buffer++, gradientPixel(pGradient, t, pict->repeatType));
                 t += inc;
             }
         } else {
@@ -2774,7 +2777,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                     y = ((xFixed_48_16)v.vector[1] << 16) / v.vector[2];
                     t = ((a*x + b*y) >> 16) + off;
                 }
-                *buffer++ = gradientPixel(pGradient, t, pict->repeatType);
+                WRITE(buffer++, gradientPixel(pGradient, t, pict->repeatType));
                 v.vector[0] += unit.vector[0];
                 v.vector[1] += unit.vector[1];
                 v.vector[2] += unit.vector[2];
@@ -2818,9 +2821,9 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                     double c = -(rx*rx + ry*ry);
                     double det = (b * b) - (4 * pGradient->radial.a * c);
                     double s = (-b + sqrt(det))/(2. * pGradient->radial.a);
-                    *buffer = gradientPixel(pGradient,
-                                            (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536),
-                                            pict->repeatType);
+                    WRITE(buffer, gradientPixel(pGradient,
+                                                (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536),
+                                                pict->repeatType));
                     ++buffer;
                     rx += cx;
                     ry += cy;
@@ -2841,9 +2844,9 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                     c = -(x*x + y*y);
                     det = (b * b) - (4 * pGradient->radial.a * c);
                     s = (-b + sqrt(det))/(2. * pGradient->radial.a);
-                    *buffer = gradientPixel(pGradient,
-                                            (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536),
-                                            pict->repeatType);
+                    WRITE(buffer, gradientPixel(pGradient,
+                                                (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536),
+                                                pict->repeatType));
                     ++buffer;
                     rx += cx;
                     ry += cy;
@@ -2858,8 +2861,8 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 
                 while (buffer < end) {
                     double angle = atan2(ry, rx) + a;
-                    *buffer = gradientPixel(pGradient, (xFixed_48_16) (angle * (65536. / (2*M_PI))),
-                                            pict->repeatType);
+                    WRITE(buffer, gradientPixel(pGradient, (xFixed_48_16) (angle * (65536. / (2*M_PI))),
+                                                pict->repeatType));
                     ++buffer;
                     rx += cx;
                     ry += cy;
@@ -2877,8 +2880,8 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                     x -= pGradient->conical.center.x/65536.;
                     y -= pGradient->conical.center.y/65536.;
                     angle = atan2(y, x) + a;
-                    *buffer = gradientPixel(pGradient, (xFixed_48_16) (angle * (65536. / (2*M_PI))),
-                                            pict->repeatType);
+                    WRITE(buffer, gradientPixel(pGradient, (xFixed_48_16) (angle * (65536. / (2*M_PI))),
+                                                pict->repeatType));
                     ++buffer;
                     rx += cx;
                     ry += cy;
@@ -2921,8 +2924,10 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
 
     /* when using convolution filters one might get here without a transform */
     if (pict->transform) {
-        if (!PictureTransformPoint3d (pict->transform, &v))
+        if (!PictureTransformPoint3d (pict->transform, &v)) {
+            fbFinishAccess (pict->pDrawable);
             return;
+        }
         unit.vector[0] = pict->transform->matrix[0][0];
         unit.vector[1] = pict->transform->matrix[1][0];
         unit.vector[2] = pict->transform->matrix[2][0];
@@ -2939,7 +2944,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
                 for (i = 0; i < width; ++i) {
                     if (!v.vector[2]) {
-                        buffer[i] = 0;
+                        WRITE(buffer + i, 0);
                     } else {
                         if (!affine) {
                             y = MOD(DIV(v.vector[1],v.vector[2]), pict->pDrawable->height);
@@ -2948,7 +2953,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                             y = MOD(v.vector[1]>>16, pict->pDrawable->height);
                             x = MOD(v.vector[0]>>16, pict->pDrawable->width);
                         }
-                        buffer[i] = fetch(bits + (y + dy)*stride, x + dx, indexed);
+                        WRITE(buffer + i, fetch(bits + (y + dy)*stride, x + dx, indexed));
                     }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
@@ -2957,7 +2962,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             } else {
                 for (i = 0; i < width; ++i) {
                     if (!v.vector[2]) {
-                        buffer[i] = 0;
+                        WRITE(buffer + i, 0);
                     } else {
                         if (!affine) {
                             y = MOD(DIV(v.vector[1],v.vector[2]), pict->pDrawable->height);
@@ -2967,9 +2972,9 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                             x = MOD(v.vector[0]>>16, pict->pDrawable->width);
                         }
                         if (POINT_IN_REGION (0, pict->pCompositeClip, x + dx, y + dy, &box))
-                            buffer[i] = fetch(bits + (y + dy)*stride, x + dx, indexed);
+                            WRITE(buffer + i, fetch(bits + (y + dy)*stride, x + dx, indexed));
                         else
-                            buffer[i] = 0;
+                            WRITE(buffer + i, 0);
                     }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
@@ -2981,7 +2986,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                 box = pict->pCompositeClip->extents;
                 for (i = 0; i < width; ++i) {
                     if (!v.vector[2]) {
-                        buffer[i] = 0;
+                        WRITE(buffer + i, 0);
                     } else {
                         if (!affine) {
                             y = DIV(v.vector[1],v.vector[2]);
@@ -2990,8 +2995,8 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                             y = v.vector[1]>>16;
                             x = v.vector[0]>>16;
                         }
-                        buffer[i] = ((x < box.x1-dx) | (x >= box.x2-dx) | (y < box.y1-dy) | (y >= box.y2-dy)) ?
-                                    0 : fetch(bits + (y + dy)*stride, x + dx, indexed);
+                        WRITE(buffer + i, ((x < box.x1-dx) | (x >= box.x2-dx) | (y < box.y1-dy) | (y >= box.y2-dy)) ?
+                                          0 : fetch(bits + (y + dy)*stride, x + dx, indexed));
                     }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
@@ -3000,7 +3005,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             } else {
                 for (i = 0; i < width; ++i) {
                     if (!v.vector[2]) {
-                        buffer[i] = 0;
+                        WRITE(buffer + i, 0);
                     } else {
                         if (!affine) {
                             y = DIV(v.vector[1],v.vector[2]);
@@ -3010,9 +3015,9 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                             x = v.vector[0]>>16;
                         }
                         if (POINT_IN_REGION (0, pict->pCompositeClip, x + dx, y + dy, &box))
-                            buffer[i] = fetch(bits + (y + dy)*stride, x + dx, indexed);
+                            WRITE(buffer + i, fetch(bits + (y + dy)*stride, x + dx, indexed));
                         else
-                            buffer[i] = 0;
+                            WRITE(buffer + i, 0);
                     }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
@@ -3031,7 +3036,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             if (REGION_NUM_RECTS(pict->pCompositeClip) == 1) {
                 for (i = 0; i < width; ++i) {
                     if (!v.vector[2]) {
-                        buffer[i] = 0;
+                        WRITE(buffer + i, 0);
                     } else {
                         int x1, x2, y1, y2, distx, idistx, disty, idisty;
                         FbBits *b;
@@ -3083,7 +3088,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         ft = FbGet8(tl,24) * idistx + FbGet8(tr,24) * distx;
                         fb = FbGet8(bl,24) * idistx + FbGet8(br,24) * distx;
                         r |= (((ft * idisty + fb * disty) << 8) & 0xff000000);
-                        buffer[i] = r;
+                        WRITE(buffer + i, r);
                     }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
@@ -3092,7 +3097,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             } else {
                 for (i = 0; i < width; ++i) {
                     if (!v.vector[2]) {
-                        buffer[i] = 0;
+                        WRITE(buffer + i, 0);
                     } else {
                         int x1, x2, y1, y2, distx, idistx, disty, idisty;
                         FbBits *b;
@@ -3148,7 +3153,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         ft = FbGet8(tl,24) * idistx + FbGet8(tr,24) * distx;
                         fb = FbGet8(bl,24) * idistx + FbGet8(br,24) * distx;
                         r |= (((ft * idisty + fb * disty) << 8) & 0xff000000);
-                        buffer[i] = r;
+                        WRITE(buffer + i, r);
                     }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
@@ -3160,7 +3165,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                 box = pict->pCompositeClip->extents;
                 for (i = 0; i < width; ++i) {
                     if (!v.vector[2]) {
-                        buffer[i] = 0;
+                        WRITE(buffer + i, 0);
                     } else {
                         int x1, x2, y1, y2, distx, idistx, disty, idisty, x_off;
                         FbBits *b;
@@ -3214,7 +3219,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         ft = FbGet8(tl,24) * idistx + FbGet8(tr,24) * distx;
                         fb = FbGet8(bl,24) * idistx + FbGet8(br,24) * distx;
                         r |= (((ft * idisty + fb * disty) << 8) & 0xff000000);
-                        buffer[i] = r;
+                        WRITE(buffer + i, r);
                     }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
@@ -3223,7 +3228,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
             } else {
                 for (i = 0; i < width; ++i) {
                     if (!v.vector[2]) {
-                        buffer[i] = 0;
+                        WRITE(buffer + i, 0);
                     } else {
                         int x1, x2, y1, y2, distx, idistx, disty, idisty, x_off;
                         FbBits *b;
@@ -3275,7 +3280,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                         ft = FbGet8(tl,24) * idistx + FbGet8(tr,24) * distx;
                         fb = FbGet8(bl,24) * idistx + FbGet8(br,24) * distx;
                         r |= (((ft * idisty + fb * disty) << 8) & 0xff000000);
-                        buffer[i] = r;
+                        WRITE(buffer + i, r);
                     }
                     v.vector[0] += unit.vector[0];
                     v.vector[1] += unit.vector[1];
@@ -3292,7 +3297,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
         params += 2;
         for (i = 0; i < width; ++i) {
             if (!v.vector[2]) {
-                buffer[i] = 0;
+                WRITE(buffer + i, 0);
             } else {
                 int x1, x2, y1, y2, x, y;
                 INT32 srtot, sgtot, sbtot, satot;
@@ -3342,16 +3347,18 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
                 if (sgtot < 0) sgtot = 0; else if (sgtot > 0xff) sgtot = 0xff;
                 if (sbtot < 0) sbtot = 0; else if (sbtot > 0xff) sbtot = 0xff;
 
-                buffer[i] = ((satot << 24) |
-                             (srtot << 16) |
-                             (sgtot <<  8) |
-                             (sbtot       ));
+                WRITE(buffer + i, ((satot << 24) |
+                                  (srtot << 16) |
+                                  (sgtot <<  8) |
+                                  (sbtot       )));
             }
             v.vector[0] += unit.vector[0];
             v.vector[1] += unit.vector[1];
             v.vector[2] += unit.vector[2];
         }
     }
+
+    fbFinishAccess (pict->pDrawable);
 }
 
 
@@ -3372,10 +3379,10 @@ static void fbFetchExternalAlpha(PicturePtr pict, int x, int y, int width, CARD3
     fbFetchTransformed(pict->alphaMap, x - pict->alphaOrigin.x, y - pict->alphaOrigin.y, width, alpha_buffer);
     for (i = 0; i < width; ++i) {
         int a = alpha_buffer[i]>>24;
-        buffer[i] = (a << 24)
-                 | (div_255(Red(buffer[i]) * a) << 16)
-                 | (div_255(Green(buffer[i]) * a) << 8)
-                 | (div_255(Blue(buffer[i]) * a));
+        WRITE(buffer + i, (a << 24)
+                          | (div_255(Red(READ(buffer + i)) * a) << 16)
+                          | (div_255(Green(READ(buffer + i)) * a) << 8)
+                          | (div_255(Blue(READ(buffer + i)) * a)));
     }
 
     if (alpha_buffer != _alpha_buffer)
@@ -3397,6 +3404,7 @@ static void fbStore(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
 
     bits += y*stride;
     store(bits, buffer, x, width, indexed);
+    fbFinishAccess (pict->pDrawable);
 }
 
 static void fbStoreExternalAlpha(PicturePtr pict, int x, int y, int width, CARD32 *buffer)
@@ -3436,6 +3444,9 @@ static void fbStoreExternalAlpha(PicturePtr pict, int x, int y, int width, CARD3
 
     store(bits, buffer, x, width, indexed);
     astore(alpha_bits, buffer, ax - pict->alphaOrigin.x, width, aindexed);
+
+    fbFinishAccess (pict->alphaMap->pDrawable);
+    fbFinishAccess (pict->pDrawable);
 }
 
 typedef void (*scanStoreProc)(PicturePtr , int , int , int , CARD32 *);

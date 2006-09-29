@@ -269,7 +269,7 @@ char	tmpname[PATH_MAX];
 #ifndef WIN32
     if (haveDir)
 	fclose(in);
-    else if ((rval=pclose(in))!=0) {
+    else if ((rval=Pclose(in))!=0) {
 	if (xkbDebugFlags)
 	    ErrorF("xkbcomp returned exit code %d\n",rval);
     }
