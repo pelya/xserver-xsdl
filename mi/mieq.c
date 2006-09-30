@@ -103,11 +103,6 @@ mieqEnqueue (xEvent *e)
     deviceKeyButtonPointer *lastkbp = (deviceKeyButtonPointer *)
                                       &laste->event[0];
 
-#ifdef DEBUG
-    ErrorF("mieqEnqueue: slamming an event on to the queue from %d\n", kbp->deviceid & DEVICE_BITS);
-    ErrorF("    type %d, detail %d\n", e->u.u.type, e->u.u.detail);
-#endif
-
     if (e->u.u.type == MotionNotify) {
         miPointerAbsoluteCursor(e->u.keyButtonPointer.rootX,
                                 e->u.keyButtonPointer.rootY,
@@ -178,15 +173,9 @@ mieqEnqueue (xEvent *e)
      */
     if (e->u.keyButtonPointer.time < miEventQueue.lastEventTime &&
 	miEventQueue.lastEventTime - e->u.keyButtonPointer.time < 10000)
-    {
-#ifdef DEBUG
-        ErrorF("mieq: rewinding event time from %d to %d\n",
-               miEventQueue.lastEventTime,
-               miEventQueue.events[oldtail].event[0].u.keyButtonPointer.time);
-#endif
 	miEventQueue.events[oldtail].event[0].u.keyButtonPointer.time =
 	    miEventQueue.lastEventTime;
-    }
+
     miEventQueue.lastEventTime =
 	miEventQueue.events[oldtail].event[0].u.keyButtonPointer.time;
     miEventQueue.events[oldtail].pScreen = miEventQueue.pEnqueueScreen;

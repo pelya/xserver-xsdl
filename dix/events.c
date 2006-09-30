@@ -211,9 +211,6 @@ _X_EXPORT CallbackListPtr DeviceEventCallback;
 Mask DontPropagateMasks[DNPMCOUNT];
 static int DontPropagateRefCnts[DNPMCOUNT];
 
-#ifdef DEBUG
-static int debug_events = 0;
-#endif
 _X_EXPORT InputInfo inputInfo;
 
 static struct {
@@ -1536,9 +1533,8 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
     int i;
     int type;
 
-#ifdef DEBUG
-    if (debug_events) ErrorF(
-	"Event([%d, %d], mask=0x%x), client=%d",
+#ifdef DEBUG_EVENTS
+    ErrorF("Event([%d, %d], mask=0x%x), client=%d",
 	pEvents->u.u.type, pEvents->u.u.detail, mask, client->index);
 #endif
     if ((client) && (client != serverClient) && (!client->clientGone) &&
@@ -1554,9 +1550,9 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
 		if (WID(inputInfo.pointer->valuator->motionHintWindow) ==
 		    pEvents->u.keyButtonPointer.event)
 		{
-#ifdef DEBUG
-		    if (debug_events) ErrorF("\n");
-	    fprintf(stderr,"motionHintWindow == keyButtonPointer.event\n");
+#ifdef DEBUG_EVENTS
+		    ErrorF("\n");
+	    ErrorF("motionHintWindow == keyButtonPointer.event\n");
 #endif
 		    return 1; /* don't send, but pretend we did */
 		}
@@ -1594,15 +1590,15 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
 	}
 
 	WriteEventsToClient(client, count, pEvents);
-#ifdef DEBUG
-	if (debug_events) ErrorF(  " delivered\n");
+#ifdef DEBUG_EVENTS
+	ErrorF(  " delivered\n");
 #endif
 	return 1;
     }
     else
     {
-#ifdef DEBUG
-	if (debug_events) ErrorF("\n");
+#ifdef DEBUG_EVENTS
+	ErrorF("\n");
 #endif
 	return 0;
     }
@@ -2782,8 +2778,7 @@ drawable.id:0;
 #endif
 
 #ifdef DEBUG
-    if ((xkbDebugFlags&0x4)&&
-	((xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease))) {
+    if (((xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease))) {
 	ErrorF("CoreProcessKbdEvent: Key %d %s\n",key,
 			(xE->u.u.type==KeyPress?"down":"up"));
     }
@@ -2869,8 +2864,7 @@ FixKeyState (register xEvent *xE, register DeviceIntPtr keybd)
     kptr = &keyc->down[key >> 3];
     bit = 1 << (key & 7);
 #ifdef DEBUG
-    if ((xkbDebugFlags&0x4)&&
-	((xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease))) {
+    if (((xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease))) {
 	ErrorF("FixKeyState: Key %d %s\n",key,
 			(xE->u.u.type==KeyPress?"down":"up"));
     }
@@ -4753,9 +4747,6 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
             }
             first_valuator += 6;
         }
-#ifdef DEBUG
-        ErrorF("GKVE: DV event with %d valuators\n", xv->num_valuators);
-#endif
     }
 
     if (pDev->coreEvents) {
@@ -4792,10 +4783,6 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
             inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
         }
     }
-
-#ifdef DEBUG
-    ErrorF("GKVE: putting out %d events with detail %d\n", numEvents, key_code);
-#endif
 
     return numEvents;
 }
@@ -4882,12 +4869,6 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     if (!pDev->button || (pDev->coreEvents && !(cp->button || !cp->valuator)))
         return 0;
 
-#ifdef DEBUG
-    ErrorF("GPE: called with device %d, type %d\n", pDev->id, type);
-    ErrorF("GPE: relative %s, accelerate %s\n", flags & POINTER_RELATIVE ? "yes" : "no",
-           flags & POINTER_ACCELERATE ? "yes" : "no");
-#endif
-
     if (pDev->coreEvents)
         numEvents = 2;
     else
@@ -4967,15 +4948,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         kbp->root_y = axes->max_value;
 
     if (pDev->coreEvents) {
-#ifdef DEBUG
-        ErrorF("warping core lastx from %d to %d\n", cp->valuator->lastx, kbp->root_x);
-        ErrorF("x value given was %d\n", valuators[0]);
-#endif
         cp->valuator->lastx = kbp->root_x;
-#ifdef DEBUG
-        ErrorF("warping core lasty from %d to %d\n", cp->valuator->lasty, kbp->root_y);
-        ErrorF("y value given was %d\n", valuators[1]);
-#endif
         cp->valuator->lasty = kbp->root_y;
     }
     pDev->valuator->lastx = kbp->root_x;
@@ -4983,18 +4956,12 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
 
     if (type == MotionNotify) {
         kbp->type = DeviceMotionNotify;
-#ifdef DEBUG
-        ErrorF("GPE: motion at %d, %d\n", kbp->root_x, kbp->root_y);
-#endif
     }
     else {
         if (type == ButtonPress)
             kbp->type = DeviceButtonPress;
         else if (type == ButtonRelease)
             kbp->type = DeviceButtonRelease;
-#ifdef DEBUG
-        ErrorF("GPE: detail is %d\n", buttons);
-#endif
         kbp->detail = pDev->button->map[buttons];
     }
 
@@ -5028,29 +4995,17 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
             }
             first_valuator += 6;
         }
-#ifdef DEBUG
-        ErrorF("GPE: DV event with %d valuators\n", xv->num_valuators);
-#endif
     }
 
     if (pDev->coreEvents) {
         events++;
         events->u.u.type = type;
-#ifdef DEBUG
-        ErrorF("GPE: core type is %d\n", type);
-#endif
         events->u.keyButtonPointer.time = ms;
         events->u.keyButtonPointer.rootX = kbp->root_x;
         events->u.keyButtonPointer.rootY = kbp->root_y;
         cp->valuator->lastx = kbp->root_x;
         cp->valuator->lasty = kbp->root_y;
-#ifdef DEBUG
-        ErrorF("GPE: core co-ords at %d, %d\n", kbp->root_x, kbp->root_y);
-#endif
         if (type == ButtonPress || type == ButtonRelease) {
-#ifdef DEBUG
-            ErrorF("GPE: core detail is %d\n", buttons);
-#endif
             /* Core buttons remapping shouldn't be transitive. */
             events->u.u.detail = pDev->button->map[buttons];
         }
