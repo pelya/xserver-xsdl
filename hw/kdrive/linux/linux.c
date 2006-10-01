@@ -456,6 +456,7 @@ LinuxFini (void)
 	}
     }
     close(LinuxConsoleFd);                /* make the vt-manager happy */
+    LinuxConsoleFd = -1;
     fd = open ("/dev/tty0", O_RDWR|O_NDELAY, 0);
     if (fd >= 0)
     {

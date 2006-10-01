@@ -135,18 +135,6 @@ static int numFormats = 6;
 #endif
 static Bool formatsDone = FALSE;
 
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-static InputDriverRec XF86KEYBOARD = {
-	1,
-	"keyboard",
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	0
-};
-#endif
-
 static Bool
 xf86CreateRootWindow(WindowPtr pWin)
 {
@@ -409,10 +397,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       xfree(modulelist);
     }
 
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-    /* Setup the builtin input drivers */
-    xf86AddInputDriver(&XF86KEYBOARD, NULL, 0);
-#endif
     /* Load all input driver modules specified in the config file. */
     if ((modulelist = xf86InputDriverlistFromConfig())) {
       xf86LoadModules(modulelist, NULL);
@@ -984,21 +968,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 				 NULL);
 }
 
-
-static InputDriverPtr
-MatchInput(IDevPtr pDev)
-{
-    int i;
-
-    for (i = 0; i < xf86NumInputDrivers; i++) {
-	if (xf86InputDriverList[i] && xf86InputDriverList[i]->driverName &&
-	    xf86NameCmp(pDev->driver, xf86InputDriverList[i]->driverName) == 0)
-	    return xf86InputDriverList[i];
-    }
-    return NULL;
-}
-
-
 /*
  * InitInput --
  *      Initialize all supported input devices.
@@ -1020,19 +989,7 @@ InitInput(argc, argv)
     if (serverGeneration == 1) {
 	/* Call the PreInit function for each input device instance. */
 	for (pDev = xf86ConfigLayout.inputs; pDev && pDev->identifier; pDev++) {
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-	    /* XXX The keyboard driver is a special case for now. */
-	    if (!xf86NameCmp(pDev->driver, "keyboard")) {
-		xf86MsgVerb(X_WARNING, 0, "*** WARNING the legacy keyboard driver \"keyboard\" is deprecated\n");
-		xf86MsgVerb(X_WARNING, 0, "*** and will be removed in the next release of the Xorg server.\n");
-		xf86MsgVerb(X_WARNING, 0, "*** Please consider using the the new \"kbd\" driver for \"%s\".\n",
-			pDev->identifier);
-
-		continue;
-	    }
-#endif
-
-	    if ((pDrv = MatchInput(pDev)) == NULL) {
+	    if ((pDrv = xf86LookupInputDriver(pDev->driver)) == NULL) {
 		xf86Msg(X_ERROR, "No Input driver matching `%s'\n", pDev->driver);
 		/* XXX For now, just continue. */
 		continue;
@@ -1054,80 +1011,18 @@ InitInput(argc, argv)
 		xf86DeleteInput(pInfo, 0);
 		continue;
 	    }
-	    if (pInfo->flags & XI86_CORE_KEYBOARD) {
-		if (coreKeyboard) {
-		    xf86Msg(X_ERROR,
-		      "Attempt to register more than one core keyboard (%s)\n",
-		      pInfo->name);
-		    pInfo->flags &= ~XI86_CORE_KEYBOARD;
-		} else {
-		    if (!(pInfo->flags & XI86_KEYBOARD_CAPABLE)) {
-			/* XXX just a warning for now */
-			xf86Msg(X_WARNING,
-			    "%s: does not have core keyboard capabilities\n",
-			    pInfo->name);
-		    }
-		    coreKeyboard = pInfo;
-		}
-	    }
-	    if (pInfo->flags & XI86_CORE_POINTER) {
-		if (corePointer) {
-		    xf86Msg(X_ERROR,
-			"Attempt to register more than one core pointer (%s)\n",
-			pInfo->name);
-		    pInfo->flags &= ~XI86_CORE_POINTER;
-		} else {
-		    if (!(pInfo->flags & XI86_POINTER_CAPABLE)) {
-			/* XXX just a warning for now */
-			xf86Msg(X_WARNING,
-			    "%s: does not have core pointer capabilities\n",
-			    pInfo->name);
-		    }
-		    corePointer = pInfo;
-		}
-	    }
 	}
-	if (!corePointer) {
-	    xf86Msg(X_WARNING, "No core pointer registered\n");
-	    /* XXX register a dummy core pointer */
-	}
-#ifdef NEW_KBD
-	if (!coreKeyboard) {
-	    xf86Msg(X_WARNING, "No core keyboard registered\n");
-	    /* XXX register a dummy core keyboard */
-	}
-#endif
     }
 
     /* Initialise all input devices. */
     pInfo = xf86InputDevs;
     while (pInfo) {
+        xf86Msg(X_INFO, "evaluating device (%s)\n", pInfo->name);
 	xf86ActivateDevice(pInfo);
 	pInfo = pInfo->next;
     }
 
-    if (coreKeyboard) {
-      xf86Info.pKeyboard = coreKeyboard->dev;
-      xf86Info.kbdEvents = NULL; /* to prevent the internal keybord driver usage*/
-    }
-    else {
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-      /* Only set this if we're allowing the old driver. */
-	if (xf86Info.kbdProc != NULL) 
-	    xf86Info.pKeyboard = AddInputDevice(xf86Info.kbdProc, TRUE);
-#endif
-    }
-    if (corePointer)
-	xf86Info.pMouse = corePointer->dev;
-    if (xf86Info.pKeyboard)
-      RegisterKeyboardDevice(xf86Info.pKeyboard); 
-
-  miRegisterPointerDevice(screenInfo.screens[0], xf86Info.pMouse);
-#ifdef XINPUT
-  xf86eqInit ((DevicePtr)xf86Info.pKeyboard, (DevicePtr)xf86Info.pMouse);
-#else
-  mieqInit ((DevicePtr)xf86Info.pKeyboard, (DevicePtr)xf86Info.pMouse);
-#endif
+    mieqInit();
 }
 
 #ifndef SET_STDERR_NONBLOCKING
@@ -1245,12 +1140,6 @@ void
 AbortDDX()
 {
   int i;
-
-  /*
-   * try to deinitialize all input devices
-   */
-  if (xf86Info.kbdProc && xf86Info.pKeyboard)
-    (xf86Info.kbdProc)(xf86Info.pKeyboard, DEVICE_CLOSE);
 
   /*
    * try to restore the original video state

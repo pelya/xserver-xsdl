@@ -147,6 +147,10 @@ extern void CheckConnections(void);
 
 extern void CloseDownConnection(ClientPtr /*client*/);
 
+extern void AddGeneralSocket(int /*fd*/);
+
+extern void RemoveGeneralSocket(int /*fd*/);
+
 extern void AddEnabledDevice(int /*fd*/);
 
 extern void RemoveEnabledDevice(int /*fd*/);

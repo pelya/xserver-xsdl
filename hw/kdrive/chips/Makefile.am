@@ -24,7 +24,3 @@ Xchips_LDADD = \
 	$(CHIPS_LIBS)				\
 	@KDRIVE_LIBS@                           \
 	@XSERVER_LIBS@				
-
-Xchips_DEPENDENCIES =                           \
-        libchips.a                              \
-        $(top_builddir)/hw/kdrive/vesa/libvesa.a 

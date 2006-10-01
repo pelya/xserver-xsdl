@@ -100,6 +100,7 @@ int ProcInitialConnection();
 #include "dispatch.h"
 #include "swaprep.h"
 #include "swapreq.h"
+#include "config.h"
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
@@ -381,6 +382,9 @@ Dispatch(void)
 	}
 
 	nready = WaitForSomething(clientReady);
+
+        /* this is an enormous hack and NEEDS TO GO AWAY. */
+        configDispatch();
 
 #ifdef SMART_SCHEDULE
 	if (nready && !SmartScheduleDisable)

@@ -28,14 +28,13 @@
 #endif
 #include "kdrive.h"
 #include <X11/keysym.h>
-#include "kkeymap.h"
 
 /*
  * Map scan codes (both regular and synthesized from extended keys)
  * to X keysyms
  */
 
-KeySym kdKeymap[(MAX_SCANCODE - MIN_SCANCODE + 1) * MAX_WIDTH] = {
+const KeySym kdDefaultKeymap[KD_MAX_LENGTH * KD_MAX_WIDTH] = {
 /* These are directly mapped from DOS scanset 0 */
 /*      1     8 */	 XK_Escape, NoSymbol,
 /*      2     9 */	 XK_1,	XK_exclam,
@@ -152,58 +151,13 @@ KeySym kdKeymap[(MAX_SCANCODE - MIN_SCANCODE + 1) * MAX_WIDTH] = {
 /*    110   117 */	 NoSymbol,	NoSymbol,
 /*    111   118 */	 NoSymbol,	NoSymbol,
 /*    112   119 */	 NoSymbol,	NoSymbol,
-;
-
-/*
- * Map extended keys to additional scancodes
- */
-KdExtendMap kdExtendMap[] = {
-    0x1d,   89,	    /* Control_R */
-    0x1c,   90,	    /* KP_Enter */
-    0x35,   91,	    /* KP_Divide */
-    0x37,   92,	    /* Sys_Req */
-    0x38,   93,	    /* Alt_R */
-    0x45,   94,	    /* Num_Lock */
-    0x47,   95,	    /* Home */
-    0x48,   96,	    /* Up */
-    0x49,   97,	    /* Page_Up */
-    0x4b,   98,	    /* Left */
-    0x4d,   99,	    /* Right */
-    0x4f,   100,    /* End */
-    0x50,   101,    /* Down */
-    0x51,   102,    /* Page_Down */
-    0x52,   103,    /* Insert */
-    0x53,   104,    /* Delete */
-    0x5b,   105,    /* Super_L (Windows_L) */
-    0x5c,   106,    /* Super_R (Windows_R) */
-    0x5d,   107,    /* Menu */
-    0x46,   69,	    /* Break (with control pressed) */
 };
-
-#define NUM_EXTEND   (sizeof (kdExtendMap)/ sizeof (kdExtendMap[0]))
-
-int kdNumExtend = NUM_EXTEND;
-
-/*
- * Map keys on Japanese keyboard far from zero back to reasonable values
- */
-KdExtendMap kdJapanMap[] = {
-    0x70,   108,    /* next to Alt key */
-    0x73,   109,    /* dash/vbar */
-    0x79,   110,    /* right of space bar */
-    0x7b,   111,    /* left of space bar */
-    0x7d,   112,    /* Yen */
-};
-
-#define NUM_JAPAN   (sizeof (kdJapanMap)/sizeof (kdJapanMap[0]))
-
-int kdNumJapan = NUM_JAPAN;
 
 /*
  * List of locking key codes
  */
 
-CARD8  kdLockMap[] = {
+CARD8 kdLockMap[] = {
     65,
     101,
     77,
@@ -218,7 +172,7 @@ int kdNumLock = NUM_LOCK;
  * the KEYMAP_LOCKING_ALTGR flag is set in CEKeymapFlags
  */
 
-CARD8	kdOptionalLockMap[] = {
+CARD8 kdOptionalLockMap[] = {
     100,
 };
 
@@ -226,13 +180,13 @@ CARD8	kdOptionalLockMap[] = {
 
 int kdNumOptionalLock = NUM_OPTIONAL_LOCK;
 
-CARD8	kdModMap[MAP_LENGTH];
+const CARD8 kdDefaultModMap[MAP_LENGTH];
 
-unsigned long	kdKeymapFlags = 0;
+unsigned long kdDefaultKeymapFlags = 0;
 
-KeySymsRec  kdKeySyms = {
-    kdKeymap,
-    MIN_KEYCODE,
-    MAX_KEYCODE,
-    2
+const KeySymsRec kdDefaultKeySyms = {
+    kdDefaultKeymap,
+    KD_MIN_KEYCODE,
+    KD_MAX_KEYCODE,
+    KD_MAX_WIDTH
 };

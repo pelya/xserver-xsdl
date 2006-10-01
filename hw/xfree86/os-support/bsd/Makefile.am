@@ -55,18 +55,13 @@ AM_CFLAGS = -DUSESTDRES $(XORG_CFLAGS)
 INCLUDES = $(XORG_INCS)
 
 libbsd_la_SOURCES = \
-	$(srcdir)/../shared/at_scancode.c \
 	$(srcdir)/../shared/libc_wrapper.c \
 	$(srcdir)/../shared/posix_tty.c \
 	$(srcdir)/../shared/sigio.c \
-	$(srcdir)/../shared/std_kbdEv.c \
 	$(srcdir)/../shared/stdPci.c \
 	$(srcdir)/../shared/vidmem.c \
 	bsd_VTsw.c \
 	bsd_init.c \
-	bsd_io.c \
-	bsd_kbd.c \
-	bsd_KbdMap.c \
 	bsd_mouse.c \
 	$(ARCH_SOURCES) \
 	$(AGP_SOURCES) \
@@ -80,7 +75,6 @@ libbsd_la_SOURCES = \
 EXTRA_DIST = \
 	bsd_apm.c \
 	bsd_jstk.c \
-	bsd_kbd.h \
 	bsd_kqueue_apm.c \
 	bsdResource.c \
 	memrange.h \

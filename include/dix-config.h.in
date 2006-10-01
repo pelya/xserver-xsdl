@@ -439,4 +439,16 @@
 /* Define to 1 if modules should avoid the libcwrapper */
 #undef NO_LIBCWRAPPER
 
+/* Support D-BUS */
+#undef HAVE_DBUS
+
+/* Use only built-in fonts */
+#undef BUILTIN_FONTS
+
+/* Avoid using font servers */
+#undef NOFONTSERVERACCESS
+
+/* Use an empty root cursor */
+#undef NULL_ROOT_CURSOR
+
 #endif /* _DIX_CONFIG_H_ */

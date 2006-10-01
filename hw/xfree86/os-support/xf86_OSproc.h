@@ -135,10 +135,6 @@ extern void xf86WrapperInit(void);
 #include <X11/Xfuncproto.h>
 #include "opaque.h"
 
-#if defined(XQUEUE)
-#include "input.h"	/* for DeviceIntPtr */
-#endif
-
 _XFUNCPROTOBEGIN
 
 /* public functions */
@@ -224,21 +220,7 @@ extern Bool xf86VTSwitchTo(void);
 extern void xf86VTRequest(int sig);
 extern int xf86ProcessArgument(int, char **, int);
 extern void xf86UseMsg(void);
-extern void xf86SetKbdLeds(int);
-extern int xf86GetKbdLeds(void);
-extern void xf86SetKbdRepeat(char);
-extern void xf86KbdInit(void);
-extern int xf86KbdOn(void);
-extern int xf86KbdOff(void);
-extern void xf86KbdEvents(void);
-#ifdef XQUEUE
-extern int  xf86XqueKbdProc(DeviceIntPtr, int);
-extern void xf86XqueEvents(void);
-#endif
 extern void xf86ReloadInputDevs(int sig);
-#ifdef WSCONS_SUPPORT
-extern void xf86WSKbdEvents(void);
-#endif
 extern PMClose xf86OSPMOpen(void);
 
 #ifdef NEED_OS_RAC_PROTOS

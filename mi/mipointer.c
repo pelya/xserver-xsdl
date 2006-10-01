@@ -488,12 +488,6 @@ miPointerMove (pScreen, x, y, time)
     miPointer.y = y;
     miPointer.pScreen = pScreen;
 
-    xE.u.u.type = MotionNotify;
-    xE.u.keyButtonPointer.rootX = x;
-    xE.u.keyButtonPointer.rootY = y;
-    xE.u.keyButtonPointer.time = time;
-    (*pScreenPriv->screenFuncs->EnqueueEvent) (&xE);
-
     end = miPointer.history_end;
     start = miPointer.history_start;
     prev = end - 1;
@@ -518,12 +512,4 @@ miPointerMove (pScreen, x, y, time)
     history->event.y = y;
     history->event.time = time;
     history->pScreen = pScreen;
-}
-
-void
-miRegisterPointerDevice (pScreen, pDevice)
-    ScreenPtr	pScreen;
-    DeviceIntPtr pDevice;
-{
-    miPointer.pPointer = (DevicePtr)pDevice;
 }

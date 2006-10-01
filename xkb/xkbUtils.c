@@ -28,6 +28,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <dix-config.h>
 #endif
 
+#include "os.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <math.h>
@@ -241,7 +242,7 @@ XkbMapChangesPtr	mc;
 	    xkb->min_key_code= first;
 	    /* 1/12/95 (ef) -- XXX! should zero out the new maps */
 	    changes->map.changed|= XkbKeycodesMask;
-generate a NewKeyboard notify here?
+/* generate a NewKeyboard notify here? */
 	}
     }
 #endif
@@ -968,4 +969,605 @@ XkbConvertCase(register KeySym sym, KeySym *lower, KeySym *upper)
 	    *upper -= (XK_Greek_alpha - XK_Greek_ALPHA);
         break;
     }
+}
+
+
+/**
+ * Copy an XKB map from src to dst, reallocating when necessary: if some
+ * map components are present in one, but not in the other, the destination
+ * components will be allocated or freed as necessary.
+ *
+ * Basic map consistency is assumed on both sides, so maps with random
+ * uninitialised data (e.g. names->radio_grous == NULL, names->num_rg == 19)
+ * _will_ cause failures.  You've been warned.
+ *
+ * Returns TRUE on success, or FALSE on failure.  If this function fails,
+ * dst may be in an inconsistent state: all its pointers are guaranteed
+ * to remain valid, but part of the map may be from src and part from dst.
+ */
+Bool
+XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
+{
+    int i = 0, j = 0;
+    void *tmp = NULL;
+    XkbKeyTypePtr stype = NULL, dtype = NULL;
+    DeviceIntPtr pDev = NULL, tmpDev = NULL;
+    xkbMapNotify mn;
+    xkbNewKeyboardNotify nkn;
+
+    if (!src || !dst || src == dst)
+        return FALSE;
+
+    /* client map */
+    if (src->map) {
+        if (!dst->map) {
+            tmp = xcalloc(1, sizeof(XkbClientMapRec));
+            if (!tmp)
+                return FALSE;
+            dst->map = tmp;
+        }
+
+        if (src->map->syms) {
+            if (src->map->size_syms != dst->map->size_syms) {
+                if (dst->map->syms)
+                    tmp = xrealloc(dst->map->syms,
+                                   src->map->size_syms * sizeof(KeySym));
+                else
+                    tmp = xalloc(src->map->size_syms * sizeof(KeySym));
+                if (!tmp)
+                    return FALSE;
+                dst->map->syms = tmp;
+
+            }
+            memcpy(dst->map->syms, src->map->syms,
+                   src->map->size_syms * sizeof(KeySym));
+        }
+        else {
+            if (dst->map->syms) {
+                xfree(dst->map->syms);
+                dst->map->syms = NULL;
+            }
+        }
+        dst->map->num_syms = src->map->num_syms;
+        dst->map->size_syms = src->map->size_syms;
+
+        if (src->map->key_sym_map) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->map->key_sym_map)
+                    tmp = xrealloc(dst->map->key_sym_map,
+                                   (src->max_key_code + 1) *
+                                     sizeof(XkbSymMapRec));
+                else
+                    tmp = xalloc((src->max_key_code + 1) *
+                                 sizeof(XkbSymMapRec));
+                if (!tmp)
+                    return FALSE;
+                dst->map->key_sym_map = tmp;
+            }
+            memcpy(dst->map->key_sym_map, src->map->key_sym_map,
+                   (src->max_key_code + 1) * sizeof(XkbSymMapRec));
+        }
+        else {
+            if (dst->map->key_sym_map) {
+                xfree(dst->map->key_sym_map);
+                dst->map->key_sym_map = NULL;
+            }
+        }
+
+        if (src->map->types) {
+            if (src->map->size_types > dst->map->size_types) {
+                if (dst->map->types) {
+                    tmp = xrealloc(dst->map->types,
+                                   src->map->size_types * sizeof(XkbKeyTypeRec));
+                    if (!tmp)
+                        return FALSE;
+                    dst->map->types = tmp;
+                    bzero(dst->map->types +
+                            (dst->map->size_types * sizeof(XkbKeyTypeRec)),
+                          (src->map->size_types - dst->map->size_types) *
+                            sizeof(XkbKeyTypeRec));
+                }
+                else {
+                    tmp = xcalloc(src->map->size_types, sizeof(XkbKeyTypeRec));
+                    if (!tmp)
+                        return FALSE;
+                    dst->map->types = tmp;
+                }
+            }
+            else if (src->map->size_types < dst->map->size_types) {
+                if (dst->map->types) {
+                    for (i = src->map->num_types, dtype = (dst->map->types + i);
+                         i < dst->map->size_types; i++, dtype++) {
+                        if (dtype->level_names)
+                            xfree(dtype->level_names);
+                        dtype->level_names = NULL;
+                        dtype->num_levels = 0;
+                    }
+                }
+            }
+
+            stype = src->map->types;
+            dtype = dst->map->types;
+            for (i = 0; i < src->map->num_types; i++, dtype++, stype++) {
+                if (stype->num_levels != dtype->num_levels) {
+                    if (dtype->level_names)
+                        tmp = xrealloc(dtype->level_names,
+                                       stype->num_levels * sizeof(Atom));
+                    else
+                        tmp = xalloc(stype->num_levels * sizeof(Atom));
+                    if (!tmp)
+                        continue; /* don't return FALSE here, try to whack
+                                     all the pointers we can, so we don't
+                                     double-free when going down. */
+                    dtype->level_names = tmp;
+                    dtype->num_levels = stype->num_levels;
+                }
+                memcpy(dtype->level_names, stype->level_names,
+                       stype->num_levels * sizeof(Atom));
+
+                dtype->name = stype->name;
+                memcpy(&dtype->mods, &stype->mods, sizeof(XkbModsRec));
+
+                if (stype->map) {
+                    if (dtype->map) {
+                        if (stype->map_count != dtype->map_count) {
+                            tmp = xrealloc(dtype->map,
+                                           stype->map_count *
+                                             sizeof(XkbKTMapEntryRec));
+                            if (!tmp)
+                                return FALSE;
+                            dtype->map = tmp;
+                        }
+                    }
+                    else {
+                        tmp = xalloc(stype->map_count *
+                                       sizeof(XkbKTMapEntryRec));
+                        if (!tmp)
+                            return FALSE;
+                        dtype->map = tmp;
+                    }
+
+                    dtype->map_count = stype->map_count;
+                    memcpy(dtype->map, stype->map, stype->map_count *
+                                               sizeof(XkbKTMapEntryRec));
+                }
+
+                if (stype->preserve) {
+                    if (dtype->preserve) {
+                        if (stype->map_count != dtype->map_count) {
+                            tmp = xrealloc(dtype->preserve,
+                                           stype->map_count *
+                                             sizeof(XkbModsRec));
+                            if (!tmp)
+                                return FALSE;
+                            dtype->preserve = tmp;
+                        }
+                    }
+                    else {
+                        tmp = xalloc(stype->map_count * sizeof(XkbModsRec));
+                        if (!tmp)
+                            return FALSE;
+                        dtype->preserve = tmp;
+                    }
+
+                    memcpy(dtype->preserve, stype->preserve,
+                           stype->map_count * sizeof(XkbModsRec));
+                }
+                else {
+                    if (dtype->preserve) {
+                        xfree(dtype->preserve);
+                        dtype->preserve = NULL;
+                    }
+                }
+            }
+        }
+        else {
+            if (dst->map->types) {
+                for (i = 0, dtype = dst->map->types; i < dst->map->num_types;
+                     i++, dtype++) {
+                    if (dtype->level_names)
+                        xfree(dtype->level_names);
+                    if (dtype->map)
+                        xfree(dtype->map);
+                    if (dtype->preserve)
+                        xfree(dtype->preserve);
+                }
+                xfree(dst->map->types);
+                dst->map->types = NULL;
+            }
+        }
+        dst->map->size_types = src->map->size_types;
+        dst->map->num_types = src->map->num_types;
+
+        if (src->map->modmap) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->map->modmap)
+                    tmp = xrealloc(dst->map->modmap, src->max_key_code + 1);
+                else
+                    tmp = xalloc(src->max_key_code + 1);
+                if (!tmp)
+                    return FALSE;
+                dst->map->syms = tmp;
+            }
+            memcpy(dst->map->modmap, src->map->modmap, src->max_key_code + 1);
+        }
+        else {
+            if (dst->map->modmap) {
+                xfree(dst->map->modmap);
+                dst->map->modmap = NULL;
+            }
+        }
+    }
+    else {
+        if (dst->map)
+            XkbFreeClientMap(dst, XkbAllClientInfoMask, True);
+    }
+
+    /* server map */
+    if (src->server) {
+        if (!dst->server) {
+            tmp = xcalloc(1, sizeof(XkbServerMapRec));
+            if (!tmp)
+                return FALSE;
+            dst->server = tmp;
+        }
+
+        if (src->server->explicit) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->server->explicit)
+                    tmp = xrealloc(dst->server->explicit, src->max_key_code + 1);
+                else
+                    tmp = xalloc(src->max_key_code + 1);
+                if (!tmp)
+                    return FALSE;
+                dst->server->explicit = tmp;
+            }
+            memcpy(dst->server->explicit, src->server->explicit,
+                   src->max_key_code + 1);
+        }
+        else {
+            if (dst->server->explicit) {
+                xfree(dst->server->explicit);
+                dst->server->explicit = NULL;
+            }
+        }
+
+        if (src->server->acts) {
+            if (src->server->size_acts != dst->server->size_acts) {
+                if (dst->server->acts)
+                    tmp = xrealloc(dst->server->acts,
+                                   src->server->size_acts * sizeof(XkbAction));
+                else
+                    tmp = xalloc(src->server->size_acts * sizeof(XkbAction));
+                if (!tmp)
+                    return FALSE;
+                dst->server->acts = tmp;
+            }
+            memcpy(dst->server->acts, src->server->acts,
+                   src->server->size_acts * sizeof(XkbAction));
+        }
+        else {
+            if (dst->server->acts) {
+                xfree(dst->server->acts);
+                dst->server->acts = NULL;
+            }
+        }
+       dst->server->size_acts = src->server->size_acts;
+       dst->server->num_acts = src->server->num_acts;
+
+        if (src->server->key_acts) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->server->key_acts)
+                    tmp = xrealloc(dst->server->key_acts,
+                                   (src->max_key_code + 1) *
+                                     sizeof(unsigned short));
+                else
+                    tmp = xalloc((src->max_key_code + 1) *
+                                 sizeof(unsigned short));
+                if (!tmp)
+                    return FALSE;
+                dst->server->key_acts = tmp;
+            }
+            memcpy(dst->server->key_acts, src->server->key_acts,
+                   (src->max_key_code + 1) * sizeof(unsigned short));
+        }
+        else {
+            if (dst->server->key_acts) {
+                xfree(dst->server->key_acts);
+                dst->server->key_acts = NULL;
+            }
+        }
+
+        if (src->server->behaviors) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->server->behaviors)
+                    tmp = xrealloc(dst->server->behaviors,
+                                   (src->max_key_code + 1) *
+                                   sizeof(XkbBehavior));
+                else
+                    tmp = xalloc((src->max_key_code + 1) *
+                                 sizeof(XkbBehavior));
+                if (!tmp)
+                    return FALSE;
+                dst->server->behaviors = tmp;
+            }
+            memcpy(dst->server->behaviors, src->server->behaviors,
+                   (src->max_key_code + 1) * sizeof(XkbBehavior));
+        }
+        else {
+            if (dst->server->behaviors) {
+                xfree(dst->server->behaviors);
+                dst->server->behaviors = NULL;
+            }
+        }
+
+        if (src->server->vmodmap) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->server->vmodmap)
+                    tmp = xrealloc(dst->server->vmodmap,
+                                   (src->max_key_code + 1) *
+                                   sizeof(unsigned short));
+                else
+                    tmp = xalloc((src->max_key_code + 1) *
+                                 sizeof(unsigned short));
+                if (!tmp)
+                    return FALSE;
+                dst->server->vmodmap = tmp;
+            }
+            memcpy(dst->server->vmodmap, src->server->vmodmap,
+                   (src->max_key_code + 1) * sizeof(unsigned short));
+        }
+        else {
+            if (dst->server->vmodmap) {
+                xfree(dst->server->vmodmap);
+                dst->server->vmodmap = NULL;
+            }
+        }
+    }
+    else {
+        if (dst->server)
+            XkbFreeServerMap(dst, XkbAllServerInfoMask, True);
+    }
+
+    /* indicators */
+    if (src->indicators) {
+        if (!dst->indicators) {
+            dst->indicators = xalloc(sizeof(XkbIndicatorRec));
+            if (!dst->indicators)
+                return FALSE;
+        }
+        memcpy(dst->indicators, src->indicators, sizeof(XkbIndicatorRec));
+    }
+    else {
+        if (dst->indicators) {
+            xfree(dst->indicators);
+            dst->indicators = NULL;
+        }
+    }
+
+    /* controls */
+    if (src->ctrls) {
+        if (!dst->ctrls) {
+            dst->ctrls = xalloc(sizeof(XkbControlsRec));
+            if (!dst->ctrls)
+                return FALSE;
+        }
+        memcpy(dst->ctrls, src->ctrls, sizeof(XkbControlsRec));
+    }
+    else {
+        if (dst->ctrls) {
+            xfree(dst->ctrls);
+            dst->ctrls = NULL;
+        }
+    }
+
+    /* names */
+    if (src->names) {
+        if (!dst->names) {
+            dst->names = xcalloc(1, sizeof(XkbNamesRec));
+            if (!dst->names)
+                return FALSE;
+        }
+
+        if (src->names->keys) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->names->keys)
+                    tmp = xrealloc(dst->names->keys, (src->max_key_code + 1) *
+                                   sizeof(XkbKeyNameRec));
+                else
+                    tmp = xalloc((src->max_key_code + 1) *
+                                 sizeof(XkbKeyNameRec));
+                if (!tmp)
+                    return FALSE;
+                dst->names->keys = tmp;
+            }
+            memcpy(dst->names->keys, src->names->keys,
+                   (src->max_key_code + 1) * sizeof(XkbKeyNameRec));
+        }
+        else {
+            if (dst->names->keys) {
+                xfree(dst->names->keys);
+                dst->names->keys = NULL;
+            }
+        }
+
+        if (src->names->num_key_aliases) {
+            if (src->names->num_key_aliases != dst->names->num_key_aliases) {
+                if (dst->names->key_aliases)
+                    tmp = xrealloc(dst->names->key_aliases,
+                                   src->names->num_key_aliases *
+                                     sizeof(XkbKeyAliasRec));
+                else
+                    tmp = xalloc(src->names->num_key_aliases *
+                                 sizeof(XkbKeyAliasRec));
+                if (!tmp)
+                    return FALSE;
+                dst->names->key_aliases = tmp;
+            }
+            memcpy(dst->names->key_aliases, src->names->key_aliases,
+                   src->names->num_key_aliases * sizeof(XkbKeyAliasRec));
+        }
+        else {
+            if (dst->names->key_aliases) {
+                xfree(dst->names->key_aliases);
+                dst->names->key_aliases = NULL;
+            }
+        }
+        dst->names->num_key_aliases = src->names->num_key_aliases;
+
+        if (src->names->num_rg) {
+            if (src->names->num_rg != dst->names->num_rg) {
+                if (dst->names->radio_groups)
+                    tmp = xrealloc(dst->names->radio_groups,
+                                   src->names->num_rg * sizeof(Atom));
+                else
+                    tmp = xalloc(src->names->num_rg * sizeof(Atom));
+                if (!tmp)
+                    return FALSE;
+                dst->names->radio_groups = tmp;
+            }
+            memcpy(dst->names->radio_groups, src->names->radio_groups,
+                   src->names->num_rg * sizeof(Atom));
+        }
+        else {
+            if (dst->names->radio_groups)
+                xfree(dst->names->radio_groups);
+        }
+        dst->names->num_rg = src->names->num_rg;
+    }
+    else {
+        if (dst->names)
+            XkbFreeNames(dst, XkbAllNamesMask, True);
+    }
+
+    /* compat */
+    if (src->compat) {
+        if (src->compat->sym_interpret) {
+            if (src->compat->size_si != dst->compat->size_si) {
+                if (dst->compat->sym_interpret)
+                    tmp = xrealloc(dst->compat->sym_interpret,
+                                   src->compat->size_si *
+                                     sizeof(XkbSymInterpretRec));
+                else
+                    tmp = xalloc(src->compat->size_si *
+                                 sizeof(XkbSymInterpretRec));
+                if (!tmp)
+                    return FALSE;
+                dst->compat->sym_interpret = tmp;
+            }
+            memcpy(dst->compat->sym_interpret, src->compat->sym_interpret,
+                   src->compat->size_si * sizeof(XkbSymInterpretRec));
+        }
+        else {
+            if (dst->compat->sym_interpret) {
+                xfree(dst->compat->sym_interpret);
+                dst->compat->sym_interpret = NULL;
+            }
+        }
+        dst->compat->num_si = src->compat->num_si;
+        dst->compat->size_si = src->compat->size_si;
+
+        memcpy(dst->compat->groups, src->compat->groups,
+               XkbNumKbdGroups * sizeof(XkbModsRec));
+    }
+    else {
+        if (dst->compat)
+            XkbFreeCompatMap(dst, XkbAllCompatMask, True);
+    }
+
+    /* geometry */
+    /* not implemented yet because oh god the pain. */
+#if 0
+    if (src->geom) {
+        /* properties */
+        /* colors */
+        /* shapes */
+        /* sections */
+        /* doodads */
+        /* key aliases */
+        /* font?!? */
+    }
+    else
+#endif
+    {
+        if (dst->geom) {
+            /* I LOVE THE DIFFERENT CALL SIGNATURE.  REALLY, I DO. */
+            XkbFreeGeometry(dst->geom, XkbGeomAllMask, True);
+            dst->geom = NULL;
+        }
+    }
+
+    if (inputInfo.keyboard->key->xkbInfo &&
+        inputInfo.keyboard->key->xkbInfo->desc == dst) {
+        pDev = inputInfo.keyboard;
+    }
+    else {
+        for (tmpDev = inputInfo.devices; tmpDev && !pDev;
+             tmpDev = tmpDev->next) {
+            if (tmpDev->key && tmpDev->key->xkbInfo &&
+                tmpDev->key->xkbInfo->desc == dst) {
+                pDev = tmpDev;
+                break;
+            }
+        }
+        for (tmpDev = inputInfo.off_devices; tmpDev && !pDev;
+             tmpDev = tmpDev->next) {
+            if (tmpDev->key && tmpDev->key->xkbInfo &&
+                tmpDev->key->xkbInfo->desc == dst) {
+                pDev = tmpDev;
+                break;
+            }
+        }
+    }
+
+    if (sendNotifies) {
+        if (!pDev) {
+            ErrorF("XkbCopyKeymap: asked for notifies, but can't find device!\n");
+        }
+        else {
+            /* send NewKeyboardNotify if the keycode range changed, else
+             * just MapNotify.  we also need to send NKN if the geometry
+             * changed (obviously ...). */
+            if ((src->min_key_code != dst->min_key_code ||
+                 src->max_key_code != dst->max_key_code) && sendNotifies) {
+                nkn.oldMinKeyCode = dst->min_key_code;
+                nkn.oldMaxKeyCode = dst->max_key_code;
+                nkn.deviceID = nkn.oldDeviceID = pDev->id;
+                nkn.minKeyCode = src->min_key_code;
+                nkn.maxKeyCode = src->max_key_code;
+                nkn.requestMajor = XkbReqCode;
+                nkn.requestMinor = X_kbSetMap; /* XXX bare-faced lie */
+                nkn.changed = XkbAllNewKeyboardEventsMask;
+                XkbSendNewKeyboardNotify(pDev, &nkn);
+            }
+            else if (sendNotifies) {
+                mn.deviceID = pDev->id;
+                mn.minKeyCode = src->min_key_code;
+                mn.maxKeyCode = src->max_key_code;
+                mn.firstType = 0;
+                mn.nTypes = src->map->num_types;
+                mn.firstKeySym = src->min_key_code;
+                mn.nKeySyms = XkbNumKeys(src);
+                mn.firstKeyAct = src->min_key_code;
+                mn.nKeyActs = XkbNumKeys(src);
+                /* Cargo-culted from ProcXkbGetMap. */
+                mn.firstKeyBehavior = src->min_key_code;
+                mn.nKeyBehaviors = XkbNumKeys(src);
+                mn.firstKeyExplicit = src->min_key_code;
+                mn.nKeyExplicit = XkbNumKeys(src);
+                mn.firstModMapKey = src->min_key_code;
+                mn.nModMapKeys = XkbNumKeys(src);
+                mn.firstVModMapKey = src->min_key_code;
+                mn.nVModMapKeys = XkbNumKeys(src);
+                mn.virtualMods = ~0; /* ??? */
+                mn.changed = XkbAllMapComponentsMask;                
+                XkbSendMapNotify(pDev, &mn);
+            }
+        }
+    }
+
+    dst->min_key_code = src->min_key_code;
+    dst->max_key_code = src->max_key_code;
+
+    return TRUE;
 }

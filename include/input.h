@@ -161,11 +161,22 @@ extern void ResetDevicePrivateIndex(void);
 extern KeybdCtrl	defaultKeyboardControl;
 extern PtrCtrl		defaultPointerControl;
 
+typedef struct _InputOption {
+    char                *key;
+    char                *value;
+    struct _InputOption *next;
+} InputOption;
+
+extern void InitCoreDevices(void);
+
 extern DeviceIntPtr AddInputDevice(
     DeviceProc /*deviceProc*/,
     Bool /*autoStart*/);
 
 extern Bool EnableDevice(
+    DeviceIntPtr /*device*/);
+
+extern Bool ActivateDevice(
     DeviceIntPtr /*device*/);
 
 extern Bool DisableDevice(
@@ -175,7 +186,7 @@ extern int InitAndStartDevices(void);
 
 extern void CloseDownDevices(void);
 
-extern void RemoveDevice(
+extern int RemoveDevice(
     DeviceIntPtr /*dev*/);
 
 extern int NumMotionEvents(void);
@@ -224,6 +235,9 @@ extern Bool InitValuatorClassDeviceStruct(
     ValuatorMotionProcPtr /* motionProc */,
     int /*numMotionEvents*/,
     int /*mode*/);
+
+extern Bool InitTouchscreenClassDeviceStruct(
+    DeviceIntPtr /*device*/);
 
 extern Bool InitFocusClassDeviceStruct(
     DeviceIntPtr /*device*/);
@@ -294,7 +308,8 @@ extern Bool InitPointerDeviceStruct(
     int /*numButtons*/,
     ValuatorMotionProcPtr /*motionProc*/,
     PtrCtrlProcPtr /*controlProc*/,
-    int /*numMotionEvents*/);
+    int /*numMotionEvents*/,
+    int /*numAxes*/);
 
 extern Bool InitKeyboardDeviceStruct(
     DevicePtr /*device*/,
@@ -356,12 +371,47 @@ extern void CoreProcessKeyboardEvent(
 
 extern Bool LegalModifier(
     unsigned int /*key*/, 
-    DevicePtr /*pDev*/);
+    DeviceIntPtr /*pDev*/);
 
 extern void ProcessInputEvents(void);
 
 extern void InitInput(
     int  /*argc*/,
     char ** /*argv*/);
+
+extern int GetMaximumEventsNum(void);
+
+extern int GetPointerEvents(
+    xEvent *events,
+    DeviceIntPtr pDev,
+    int type,
+    int buttons,
+    int flags,
+    int num_axes,
+    int *valuators);
+
+extern int GetKeyboardEvents(
+    xEvent *events,
+    DeviceIntPtr pDev,
+    int type,
+    int key_code);
+
+extern int GetKeyboardValuatorEvents(
+    xEvent *events,
+    DeviceIntPtr pDev,
+    int type,
+    int key_code,
+    int num_axes,
+    int *valuators);
+
+extern DeviceIntPtr LookupDeviceIntRec(
+    CARD8 deviceid);
+
+/* Implemented by the DDX. */
+extern int NewInputDeviceRequest(
+    InputOption *options);
+
+extern DeviceIntPtr LookupDeviceIntRec(
+    CARD8 deviceid);
 
 #endif /* INPUT_H */

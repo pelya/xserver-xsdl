@@ -1,6 +1,6 @@
 /*
- * $RCSId: xc/programs/Xserver/hw/kdrive/linux/tslib.c,v 1.1 2002/11/01 22:27:49 keithp Exp $
- * TSLIB based touchscreen driver for TinyX
+ * TSLIB based touchscreen driver for KDrive
+ * Porting to new input API and event queueing by Daniel Stone.
  * Derived from ts.c by Keith Packard
  * Derived from ps2.c by Jim Gettys
  *
@@ -8,66 +8,33 @@
  * Copyright © 2000 Compaq Computer Corporation
  * Copyright © 2002 MontaVista Software Inc.
  * Copyright © 2005 OpenedHand Ltd.
+ * Copyright © 2006 Nokia Corporation
  * 
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
  * the above copyright notice appear in all copies and that both that
  * copyright notice and this permission notice appear in supporting
- * documentation, and that the name of Keith Packard or Compaq not be used in
- * advertising or publicity pertaining to distribution of the software without
- * specific, written prior permission.  Keith Packard and Compaq makes no
- * representations about the suitability of this software for any purpose.  It
- * is provided "as is" without express or implied warranty.
+ * documentation, and that the name of the authors and/or copyright holders
+ * not be used in advertising or publicity pertaining to distribution of the
+ * software without specific, written prior permission.  The authors and/or
+ * copyright holders make no representations about the suitability of this
+ * software for any purpose.  It is provided "as is" without express or
+ * implied warranty.
  *
- * KEITH PACKARD AND COMPAQ DISCLAIM ALL WARRANTIES WITH REGARD TO THIS 
- * SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, 
- * IN NO EVENT SHALL KEITH PACKARD BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- * 
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that
- * copyright notice and this permission notice appear in supporting
- * documentation, and that the name of Michael Taht or MontaVista not be used in
- * advertising or publicity pertaining to distribution of the software without
- * specific, written prior permission.  Michael Taht and Montavista make no
- * representations about the suitability of this software for any purpose.  It
- * is provided "as is" without express or implied warranty.
- *
- * MICHAEL TAHT AND MONTAVISTA DISCLAIM ALL WARRANTIES WITH REGARD TO THIS 
- * SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, 
- * IN NO EVENT SHALL EITHER BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
- *
- * Permission to use, copy, modify, distribute, and sell this software and its
- * documentation for any purpose is hereby granted without fee, provided that
- * the above copyright notice appear in all copies and that both that
- * copyright notice and this permission notice appear in supporting
- * documentation, and that the name of Matthew Allum or OpenedHand not be used in
- * advertising or publicity pertaining to distribution of the software without
- * specific, written prior permission.  Matthew Allum and OpenedHand make no
- * representations about the suitability of this software for any purpose.  It
- * is provided "as is" without express or implied warranty.
- *
- * MATTHEW ALLUM AND OPENEDHAND DISCLAIM ALL WARRANTIES WITH REGARD TO THIS 
- * SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, 
- * IN NO EVENT SHALL EITHER BE LIABLE FOR ANY SPECIAL, INDIRECT OR
- * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE,
- * DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
- * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
- * PERFORMANCE OF THIS SOFTWARE.
+ * THE AUTHORS AND/OR COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD
+ * TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS, IN NO EVENT SHALL THE AUTHORS AND/OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 
-#ifdef HAVE_CONFIG_H
+#ifdef HAVE_KDRIVE_CONFIG_H
 #include <kdrive-config.h>
 #endif
+
 #define NEED_EVENTS
 #include <X11/X.h>
 #include <X11/Xproto.h>
@@ -77,186 +44,171 @@
 #include "kdrive.h"
 #include <sys/ioctl.h>
 #include <tslib.h>
+#include <dirent.h>
+#include <linux/input.h>
 
-static struct tsdev *tsDev = NULL;
-
-static char *TsNames[] = {
-  NULL, 			/* set via TSLIB_TSDEVICE */
-  "/dev/ts",	
-  "/dev/touchscreen/0",
+struct TslibPrivate {
+    int fd;
+    int lastx, lasty;
+    struct tsdev *tsDev;
+    void (*raw_event_hook)(int x, int y, int pressure, void *closure);
+    void *raw_event_closure;
+    int phys_screen;
 };
 
-#define NUM_TS_NAMES (sizeof (TsNames) / sizeof (TsNames[0]))
-
-/* For XCalibrate extension */
-void (*tslib_raw_event_hook)(int x, int y, int pressure, void *closure);
-void *tslib_raw_event_closure;
-
-int TsInputType = 0;
-int KdTsPhyScreen = 0; 		/* XXX Togo .. */
 
 static void
-TsRead (int tsPort, void *closure)
+TsRead (int fd, void *closure)
 {
-    KdMouseInfo	    *mi = closure;
-    struct ts_sample event;
-    long	    x, y;
-    unsigned long   flags;
+    KdPointerInfo       *pi = closure;
+    struct TslibPrivate *private = pi->driverPrivate;
+    struct ts_sample    event;
+    long                x = 0, y = 0;
+    unsigned long       flags;
 
-    if (tslib_raw_event_hook)
-      {
-	/* XCalibrate Ext */
-	if (ts_read_raw(tsDev, &event, 1) == 1)
-	  {
-	    tslib_raw_event_hook (event.x, 
-				  event.y, 
-				  event.pressure, 
-				  tslib_raw_event_closure);
-	  }
-	return;
-      }
-
-    while (ts_read(tsDev, &event, 1) == 1)
-      {
-	flags = (event.pressure) ? KD_BUTTON_1 : 0;
-	x = event.x;
-	y = event.y;
-	
-	KdEnqueueMouseEvent (mi, flags, x, y);
-      }
-}
-
-static int
-TsLibOpen(char *dev)
-{
-  if(!(tsDev = ts_open(dev, 0)))
-    return -1;
-
-  if (ts_config(tsDev))
-    return -1;
-
-  return ts_fd(tsDev);
-}
-
-static int
-TslibEnable (int not_needed_fd, void *closure)
-{
-  KdMouseInfo	    *mi = closure;
-  int		     fd = 0;
-
-  if ((fd = TsLibOpen(mi->name)) == -1)
-    ErrorF ("Unable to re-enable TSLib ( on %s )", mi->name);
-
-  return fd;
-}
-
-static void
-TslibDisable (int fd, void *closure)
-{
-  if (tsDev)
-    ts_close(tsDev);
-  tsDev = NULL;
-}
-
-static int
-TslibInit (void)
-{
-  int		i, j = 0;
-  KdMouseInfo	*mi, *next;
-  int		fd = 0;
-  int           req_type;
-
-  if (!TsInputType)
-    {
-      TsInputType = KdAllocInputType ();
-      KdParseMouse(0); /* allocate safe slot in kdMouseInfo */
-      req_type = 0;
+    if (private->raw_event_hook) {
+        while (ts_read_raw(private->tsDev, &event, 1) == 1)
+            private->raw_event_hook (event.x, event.y, event.pressure,
+                                     private->raw_event_closure);
+        return;
     }
-  else req_type = TsInputType; 	/* is being re-inited */
-  
-  for (mi = kdMouseInfo; mi; mi = next)
-    {
-      next = mi->next;
-      
-      /* find a usuable slot */
-      if (mi->inputType != req_type) 
-	continue;
-      
-      /* Check for tslib env var device setting */
-      if ((TsNames[0] = getenv("TSLIB_TSDEVICE")) == NULL)
-	j++;
-      
-      if (!mi->name)
-	{
-	  for (i = j; i < NUM_TS_NAMES; i++)    
-	    {
-	      fd = TsLibOpen(TsNames[i]);
-	      
-	      if (fd >= 0) 
-		{
-		  mi->name = KdSaveString (TsNames[i]);
-		  break;
-		}
-	    }
-	} 
-      else 
-	fd = TsLibOpen(mi->name);
-      
-      if (fd >= 0 && tsDev != NULL) 
-	{
-	  mi->driver    = (void *) fd;
-	  mi->inputType = TsInputType;
-	  
-	  KdRegisterFd (TsInputType, fd, TsRead, (void *) mi);
-	  
-	  /* Set callbacks for vt switches etc */
-	  KdRegisterFdEnableDisable (fd, TslibEnable, TslibDisable);
-	  
-	  return TRUE;
-	} 
-    }
-  
-  ErrorF ("Failed to open TSLib device, tried ");
-  for (i = j; i < NUM_TS_NAMES; i++)    
-    ErrorF ("%s ", TsNames[i]);
-  ErrorF (".\n");
-  if (!TsNames[0]) 
-    ErrorF ("Try setting TSLIB_TSDEVICE to valid /dev entry?\n");
-  
-  if (fd > 0) 
-    close(fd);
-  
-  return FALSE;
-}
 
-static void
-TslibFini (void)
-{
-    KdMouseInfo	*mi;
+    while (ts_read(private->tsDev, &event, 1) == 1) {
+#ifdef DEBUG
+        ErrorF("[tslib] originally from (%d, %d)\n", event.x, event.y);
+#endif
+        if (event.pressure) {
+            if (event.pressure > pi->dixdev->touchscreen->button_threshold) 
+                flags = KD_BUTTON_8;
+            else
+                flags = KD_BUTTON_1;
 
-    KdUnregisterFds (TsInputType, TRUE);
-    for (mi = kdMouseInfo; mi; mi = mi->next)
-    {
-	if (mi->inputType == TsInputType)
-	{
-	    if(mi->driver) 
-	      {
-		ts_close(tsDev);
-		tsDev = NULL;
-	      }
-	    mi->driver    = 0;
+            /* 
+             * Here we test for the touch screen driver actually being on the
+             * touch screen, if it is we send absolute coordinates. If not,
+             * then we send delta's so that we can track the entire vga screen.
+             */
+            if (KdCurScreen == private->phys_screen) {
+                x = event.x;
+                y = event.y;
+            } else {
+                flags |= KD_MOUSE_DELTA;
+                if ((private->lastx == 0) || (private->lasty == 0)) {
+                    x = event.x;
+                    y = event.y;
+                } else {
+                    x = event.x - private->lastx;
+                    y = event.y - private->lasty;
+	    	}
+            }
+            private->lastx = x;
+            private->lasty = y;
+        } else {
+            flags = 0;
+            x = private->lastx;
+            y = private->lasty;
+        }
 
-	    /* If below is set to 0, then MouseInit() will trash it,
-	     * setting to 'mouse type' ( via server reset). Therefore 
-             * Leave it alone and work around in TslibInit()  ( see
-             * req_type ).
-	    */
-	    /* mi->inputType = 0; */
-	}
+#ifdef DEBUG
+        ErrorF("event at (%lu, %lu), pressure is %d, sending flags %lu\n", x, y, event.pressure, flags);
+#endif
+        KdEnqueuePointerEvent (pi, flags, x, y, event.pressure);
     }
 }
 
-KdMouseFuncs TsFuncs = {
+static Status
+TslibEnable (KdPointerInfo *pi)
+{
+  struct TslibPrivate *private = pi->driverPrivate;
+
+    private->holdThumbEvents = 1;
+    private->raw_event_hook = NULL;
+    private->raw_event_closure = NULL;
+    private->tsDev = ts_open(pi->path, 0);
+    private->fd = ts_fd(private->tsDev);
+    if (!private->tsDev || ts_config(private->tsDev) || private->fd < 0) {
+        ErrorF("[tslib/TslibEnable] failed to open %s\n", pi->path);
+        if (private->fd > 0);
+            close(private->fd);
+        return BadAlloc;
+    }
+    if (pi->dixdev && pi->dixdev->touchscreen &&
+        pi->dixdev->touchscreen->button_threshold == 0)
+        pi->dixdev->touchscreen->button_threshold = 115;
+
+#ifdef DEBUG
+    ErrorF("[tslib/TslibEnable] successfully enabled %s\n", pi->path);
+#endif
+
+    KdRegisterFd(private->fd, TsRead, pi);
+  
+    return Success;
+}
+
+
+static void
+TslibDisable (KdPointerInfo *pi)
+{
+    struct TslibPrivate *private = pi->driverPrivate;
+
+    if (private->fd) {
+        KdUnregisterFd(pi, private->fd);
+        close(private->fd);
+    }
+    if (private->tsDev)
+        ts_close(private->tsDev);
+    private->fd = 0;
+    private->tsDev = NULL;
+}
+
+
+static Status
+TslibInit (KdPointerInfo *pi)
+{
+    int		        fd = 0, i = 0;
+    char                devpath[PATH_MAX], devname[TS_NAME_SIZE];
+    DIR                 *inputdir = NULL;
+    struct dirent       *inputent = NULL;
+    struct tsdev        *tsDev = NULL;
+    struct TslibPrivate *private = NULL;
+
+    if (!pi || !pi->dixdev)
+        return !Success;
+    
+    pi->driverPrivate = (struct TslibPrivate *)
+                        xcalloc(sizeof(struct TslibPrivate), 1);
+    if (!pi->driverPrivate)
+        return !Success;
+
+    private = pi->driverPrivate;
+    /* hacktastic */
+    private->phys_screen = 0;
+    pi->nAxes = 3;
+    pi->name = KdSaveString("Touchscreen");
+    pi->inputClass = KD_TOUCHSCREEN;
+#ifdef DEBUG
+    ErrorF("[tslib/TslibInit] successfully inited for device %s\n", pi->path);
+#endif
+
+    return Success;
+}
+
+
+static void
+TslibFini (KdPointerInfo *pi)
+{
+    if (pi->driverPrivate) {
+        xfree(pi->driverPrivate);
+        pi->driverPrivate = NULL;
+    }
+}
+
+
+KdPointerDriver TsDriver = {
+    "tslib",
     TslibInit,
-    TslibFini
+    TslibEnable,
+    TslibDisable,
+    TslibFini,
+    NULL,
 };

@@ -331,7 +331,7 @@ Bool
 fbdevMapFramebuffer (KdScreenInfo *screen)
 {
     FbdevScrPriv	*scrpriv = screen->driver;
-    KdMouseMatrix	m;
+    KdPointerMatrix	m;
     FbdevPriv		*priv = screen->card->driver;
 
     if (scrpriv->randr != RR_Rotate_0)
@@ -339,9 +339,9 @@ fbdevMapFramebuffer (KdScreenInfo *screen)
     else
 	scrpriv->shadow = FALSE;
     
-    KdComputeMouseMatrix (&m, scrpriv->randr, screen->width, screen->height);
+    KdComputePointerMatrix (&m, scrpriv->randr, screen->width, screen->height);
     
-    KdSetMouseMatrix (&m);
+    KdSetPointerMatrix (&m);
     
     screen->width = priv->var.xres;
     screen->height = priv->var.yres;

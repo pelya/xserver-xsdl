@@ -77,14 +77,9 @@ static miPointerScreenFuncRec xf86PointerScreenFuncs = {
   xf86CursorOffScreen,
   xf86CrossScreen,
   xf86WarpCursor,
-#ifdef XINPUT
-  xf86eqEnqueue,
-  xf86eqSwitchScreen
-#else
   /* let miPointerInitialize take care of these */
   NULL,
   NULL
-#endif
 };
 
 static xf86ScreenLayoutRec xf86ScreenLayout[MAXSCREENS];

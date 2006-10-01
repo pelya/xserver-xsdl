@@ -267,3 +267,4 @@ mfb/mfbteblack.c
 mfb/mfbtewhite.c
 mfb/mfbtileC.c
 mfb/mfbtileG.c
+.*.swp

@@ -141,6 +141,32 @@ xf86DeleteInputDriver(int drvIndex)
     xf86InputDriverList[drvIndex] = NULL;
 }
 
+InputDriverPtr
+xf86LookupInputDriver(const char *name)
+{
+    int i;
+
+    for (i = 0; i < xf86NumInputDrivers; i++) {
+       if (xf86InputDriverList[i] && xf86InputDriverList[i]->driverName &&
+           xf86NameCmp(name, xf86InputDriverList[i]->driverName) == 0)
+           return xf86InputDriverList[i];
+    }
+    return NULL;
+}
+
+InputInfoPtr
+xf86LookupInput(const char *name)
+{
+    InputInfoPtr p;
+
+    for (p = xf86InputDevs; p != NULL; p = p->next) {
+        if (strcmp(name, p->name) == 0)
+            return p;
+    }
+
+    return NULL;
+}
+
 _X_EXPORT void
 xf86AddModuleInfo(ModuleInfoPtr info, pointer module)
 {
@@ -2550,7 +2576,7 @@ xf86SetSilkenMouse (ScreenPtr pScreen)
     /*
      * XXX quick hack to report correctly for OSs that can't do SilkenMouse
      * yet.  Should handle this differently so that alternate async methods
-     * like Xqueue work correctly with this too.
+     * work correctly with this too.
      */
     pScrn->silkenMouse = useSM && xf86SIGIOSupported();
     if (serverGeneration == 1)

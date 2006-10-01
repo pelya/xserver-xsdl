@@ -166,6 +166,7 @@ Mask DeviceMappingNotifyMask;
 Mask DeviceOwnerGrabButtonMask;
 Mask DeviceButtonGrabMask;
 Mask DeviceButtonMotionMask;
+Mask DevicePresenceNotifyMask;
 
 int DeviceValuator;
 int DeviceKeyPress;
@@ -182,6 +183,7 @@ int DeviceKeyStateNotify;
 int DeviceButtonStateNotify;
 int DeviceMappingNotify;
 int ChangeDeviceNotify;
+int DevicePresenceNotify;
 
 int RT_INPUTCLIENT;
 
@@ -202,8 +204,8 @@ Mask PropagateMask[MAX_DEVICES];
  */
 
 static XExtensionVersion thisversion = { XI_Present,
-    XI_Add_XChangeDeviceControl_Major,
-    XI_Add_XChangeDeviceControl_Minor
+    XI_Add_DevicePresenceNotify_Major,
+    XI_Add_DevicePresenceNotify_Minor
 };
 
 /**********************************************************************
@@ -648,6 +650,16 @@ SDeviceMappingNotifyEvent(deviceMappingNotify * from, deviceMappingNotify * to)
     swapl(&to->time, n);
 }
 
+void
+SDevicePresenceNotifyEvent (devicePresenceNotify *from, devicePresenceNotify *to)
+{
+    register char n;
+
+    *to = *from;
+    swaps(&to->sequenceNumber,n);
+    swapl(&to->time, n);
+}
+
 /************************************************************************
  *
  * This function sets up extension event types and masks.
@@ -674,6 +686,7 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     ChangeDeviceNotify = DeviceMappingNotify + 1;
     DeviceKeyStateNotify = ChangeDeviceNotify + 1;
     DeviceButtonStateNotify = DeviceKeyStateNotify + 1;
+    DevicePresenceNotify = DeviceButtonStateNotify + 1;
 
     event_base[KeyClass] = DeviceKeyPress;
     event_base[ButtonClass] = DeviceButtonPress;
@@ -746,6 +759,9 @@ FixExtensionEvents(ExtensionEntry * extEntry)
 
     DeviceOwnerGrabButtonMask = GetNextExtEventMask();
     SetEventInfo(DeviceOwnerGrabButtonMask, _deviceOwnerGrabButton);
+
+    DevicePresenceNotifyMask = GetNextExtEventMask();
+    SetEventInfo(DevicePresenceNotifyMask, _devicePresence);
     SetEventInfo(0, _noExtensionEvent);
 }
 
@@ -786,6 +802,7 @@ RestoreExtensionEvents(void)
     ChangeDeviceNotify = 12;
     DeviceKeyStateNotify = 13;
     DeviceButtonStateNotify = 13;
+    DevicePresenceNotify = 14;
 
     BadDevice = 0;
     BadEvent = 1;
@@ -823,6 +840,7 @@ IResetProc(ExtensionEntry * unused)
     EventSwapVector[DeviceButtonStateNotify] = NotImplemented;
     EventSwapVector[DeviceMappingNotify] = NotImplemented;
     EventSwapVector[ChangeDeviceNotify] = NotImplemented;
+    EventSwapVector[DevicePresenceNotify] = NotImplemented;
     RestoreExtensionEvents();
 }
 
@@ -857,9 +875,7 @@ MakeDeviceTypeAtoms(void)
 }
 
 /**************************************************************************
- *
  * Return a DeviceIntPtr corresponding to a specified device id.
- * This will not return the pointer or keyboard, or devices that are not on.
  *
  */
 
@@ -869,13 +885,16 @@ LookupDeviceIntRec(CARD8 id)
     DeviceIntPtr dev;
 
     for (dev = inputInfo.devices; dev; dev = dev->next) {
-	if (dev->id == id) {
-	    if (id == inputInfo.pointer->id || id == inputInfo.keyboard->id)
-		return (NULL);
-	    return (dev);
-	}
+	if (dev->id == id)
+	    return dev;
     }
-    return (NULL);
+
+    for (dev = inputInfo.off_devices; dev; dev = dev->next) {
+	if (dev->id == id)
+	    return dev;
+    }
+
+    return NULL;
 }
 
 /**************************************************************************

@@ -62,6 +62,12 @@ SOFTWARE.
 
 #define EMASKSIZE	MAX_DEVICES
 
+#define POINTER_RELATIVE (1 << 1)
+#define POINTER_ABSOLUTE (1 << 2)
+#define POINTER_ACCELERATE (1 << 3)
+
+extern int CoreDevicePrivatesIndex, CoreDevicePrivatesGeneration;
+
 /* Kludge: OtherClients and InputClients must be compatible, see code */
 
 typedef struct _OtherClients {
@@ -148,6 +154,9 @@ typedef struct _ValuatorClassRec {
     unsigned short	numAxes;
     int			*axisVal;
     CARD8	 	mode;
+    int                 lastx, lasty; /* last event recorded, not posted to
+                                       * client; see dix/devices.c */
+    int                 dxremaind, dyremaind; /* for acceleration */
 } ValuatorClassRec, *ValuatorClassPtr;
 
 typedef struct _ButtonClassRec {
@@ -174,6 +183,14 @@ typedef struct _FocusClassRec {
 typedef struct _ProximityClassRec {
     char	pad;
 } ProximityClassRec, *ProximityClassPtr;
+
+typedef struct _TouchscreenClassRec {
+    int         min_x;
+    int         max_x;
+    int         min_y;
+    int         max_y;
+    int         button_threshold;
+} TouchscreenClassRec, *TouchscreenClassPtr;
 
 typedef struct _KbdFeedbackClassRec *KbdFeedbackPtr;
 typedef struct _PtrFeedbackClassRec *PtrFeedbackPtr;
@@ -248,6 +265,7 @@ typedef struct _DeviceIntRec {
 					  used to initialize, turn on, or
 					  turn off the device */
     Bool	inited;			/* TRUE if INIT returns Success */
+    Bool        coreEvents;             /* TRUE if device also sends core */
     GrabPtr	grab;			/* the grabber - used by DIX */
     struct {
 	Bool		frozen;
@@ -274,6 +292,7 @@ typedef struct _DeviceIntRec {
     ButtonClassPtr	button;
     FocusClassPtr	focus;
     ProximityClassPtr	proximity;
+    TouchscreenClassPtr touchscreen;
     KbdFeedbackPtr	kbdfeed;
     PtrFeedbackPtr	ptrfeed;
     IntegerFeedbackPtr	intfeed;

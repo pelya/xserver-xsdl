@@ -302,7 +302,12 @@ _X_EXPORT void
 InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
 		       int resolution, int min_res, int max_res)
 {
-    register AxisInfoPtr ax = dev->valuator->axes + axnum;
+    register AxisInfoPtr ax;
+   
+    if (!dev || !dev->valuator)
+        return NULL;
+
+    ax = dev->valuator->axes + axnum;
 
     ax->min_value = minval;
     ax->max_value = maxval;

@@ -287,6 +287,10 @@ ChangeDeviceControl(register ClientPtr client, DeviceIntPtr dev,
     switch (control->control) {
     case DEVICE_RESOLUTION:
 	return (BadMatch);
+    case DEVICE_TOUCHSCREEN:
+        return (BadMatch);
+    case DEVICE_CORE:
+        return (BadMatch);
     default:
 	return (BadMatch);
     }

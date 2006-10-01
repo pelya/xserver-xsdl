@@ -102,7 +102,10 @@ xf86parseInputSection (void)
 		case DRIVER:
 			if (xf86getSubToken (&(ptr->inp_comment)) != STRING)
 				Error (QUOTE_MSG, "Driver");
-			ptr->inp_driver = val.str;
+                        if (strcmp(val.str, "keyboard") == 0)
+                            ptr->inp_driver = "kbd";
+                        else
+			    ptr->inp_driver = val.str;
 			break;
 		case OPTION:
 			ptr->inp_option_lst = xf86parseOption(ptr->inp_option_lst);
