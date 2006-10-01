@@ -754,12 +754,12 @@ unsigned char	grp;
 
 
     grp= state->locked_group;
-    if (grp>=ctrls->num_groups || grp < 0)
-	state->locked_group= XkbAdjustGroup(grp,ctrls);
+    if (grp>=ctrls->num_groups)
+	state->locked_group= XkbAdjustGroup(XkbCharToInt(grp),ctrls);
 
     grp= state->locked_group+state->base_group+state->latched_group;
-    if (grp>=ctrls->num_groups || grp < 0)
-	 state->group= XkbAdjustGroup(grp,ctrls);
+    if (grp>=ctrls->num_groups)
+	 state->group= XkbAdjustGroup(XkbCharToInt(grp),ctrls);
     else state->group= grp;
     XkbComputeCompatState(xkbi);
     return;
