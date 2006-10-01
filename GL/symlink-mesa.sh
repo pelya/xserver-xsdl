@@ -62,7 +62,7 @@ symlink_mesa_glapi() {
     src_dir src/mesa/glapi
     dst_dir mesa/glapi
 
-    for src in $REAL_SRC_DIR/*.{c,h}; do
+    for src in $REAL_SRC_DIR/*.c $REAL_SRC_DIR/*.h; do
         action `basename $src`
     done
 }
@@ -71,7 +71,7 @@ symlink_mesa_main() {
     src_dir src/mesa/main
     dst_dir mesa/main
 
-    for src in $REAL_SRC_DIR/*.{c,h}; do
+    for src in $REAL_SRC_DIR/*.c $REAL_SRC_DIR/*.h; do
         action `basename $src`
     done
 }
@@ -80,7 +80,7 @@ symlink_mesa_math() {
     src_dir src/mesa/math
     dst_dir mesa/math
 
-    for src in $REAL_SRC_DIR/*.{c,h}; do
+    for src in $REAL_SRC_DIR/*.c $REAL_SRC_DIR/*.h; do
         action `basename $src`
     done
 }
@@ -89,7 +89,7 @@ symlink_mesa_ac() {
     src_dir src/mesa/array_cache
     dst_dir mesa/array_cache
 
-    for src in $REAL_SRC_DIR/*.{c,h}; do
+    for src in $REAL_SRC_DIR/*.c $REAL_SRC_DIR/*.h; do
         action `basename $src`
     done
 }
@@ -98,7 +98,7 @@ symlink_mesa_swrast() {
     src_dir src/mesa/swrast
     dst_dir mesa/swrast
 
-    for src in $REAL_SRC_DIR/*.{c,h}; do
+    for src in $REAL_SRC_DIR/*.c $REAL_SRC_DIR/*.h; do
         action `basename $src`
     done
 }
@@ -107,7 +107,7 @@ symlink_mesa_ss() {
     src_dir src/mesa/swrast_setup
     dst_dir mesa/swrast_setup
 
-    for src in $REAL_SRC_DIR/*.{c,h}; do
+    for src in $REAL_SRC_DIR/*.c $REAL_SRC_DIR/*.h; do
         action `basename $src`
     done
 }
@@ -116,7 +116,7 @@ symlink_mesa_tnl() {
     src_dir src/mesa/tnl
     dst_dir mesa/tnl
 
-    for src in $REAL_SRC_DIR/*.{c,h}; do
+    for src in $REAL_SRC_DIR/*.c $REAL_SRC_DIR/*.h; do
         action `basename $src`
     done
 }
@@ -125,7 +125,7 @@ symlink_mesa_shader() {
     src_dir src/mesa/shader
     dst_dir mesa/shader
 
-    for src in $REAL_SRC_DIR/*.{c,h}; do
+    for src in $REAL_SRC_DIR/*.c $REAL_SRC_DIR/*.h; do
         action `basename $src`
     done
 }
@@ -134,7 +134,7 @@ symlink_mesa_shader_grammar() {
     src_dir src/mesa/shader/grammar
     dst_dir mesa/shader/grammar
 
-    for src in $REAL_SRC_DIR/*.{c,h}; do
+    for src in $REAL_SRC_DIR/*.c $REAL_SRC_DIR/*.h; do
         action `basename $src`
     done
 }
@@ -143,7 +143,7 @@ symlink_mesa_shader_slang() {
     src_dir src/mesa/shader/slang
     dst_dir mesa/shader/slang
 
-    for src in $REAL_SRC_DIR/*.{c,h}; do
+    for src in $REAL_SRC_DIR/*.c $REAL_SRC_DIR/*.h; do
         action `basename $src`
     done
 }
@@ -152,7 +152,7 @@ symlink_mesa_shader_slang_library() {
     src_dir src/mesa/shader/slang/library
     dst_dir mesa/shader/slang/library
 
-    for src in $REAL_SRC_DIR/*.{c,h}; do
+    for src in $REAL_SRC_DIR/*.c $REAL_SRC_DIR/*.h; do
         action `basename $src`
     done
 }        
