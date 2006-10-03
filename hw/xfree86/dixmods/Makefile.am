@@ -18,6 +18,7 @@ module_LTLIBRARIES = libafb.la \
                      libcfb.la \
                      libcfb32.la \
                      libfb.la \
+                     libwfb.la \
                      libmfb.la \
                      libshadow.la
 
@@ -65,6 +66,11 @@ libfb_la_LDFLAGS = -avoid-version
 libfb_la_LIBADD = $(top_builddir)/fb/libfb.la
 libfb_la_SOURCES = $(top_builddir)/fb/fbcmap.c fbmodule.c
 libfb_la_CFLAGS = -DXFree86Server $(AM_CFLAGS)
+
+libwfb_la_LDFLAGS = -avoid-version
+libwfb_la_LIBADD = $(top_builddir)/fb/libwfb.la
+libwfb_la_SOURCES = $(top_builddir)/fb/fbcmap.c fbmodule.c
+libwfb_la_CFLAGS = -DXFree86Server $(AM_CFLAGS) -DFB_ACCESS_WRAPPER
 
 libglx_la_LDFLAGS = -avoid-version
 if AIGLX

@@ -2,12 +2,16 @@ if DRI
 DRI_SUBDIR = dri
 endif
 
+if XF86UTILS
+XF86UTILS_SUBDIR = utils
+endif
+
 DOC_SUBDIR = doc
 
 SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support parser rac \
           ramdac shadowfb vbe vgahw xaa xf1bpp xf4bpp xf8_16bpp \
 	  xf8_32bpp loader scanpci dixmods exa \
-	  $(DRI_SUBDIR) utils $(DOC_SUBDIR)
+	  $(DRI_SUBDIR) $(XF86UTILS_SUBDIR) $(DOC_SUBDIR)
 
 DIST_SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support \
                parser rac ramdac shadowfb vbe vgahw xaa xf1bpp xf4bpp \
