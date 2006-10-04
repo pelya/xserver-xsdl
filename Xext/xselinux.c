@@ -35,6 +35,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 #include <X11/X.h>
+#include <X11/Xatom.h>
 #include <X11/Xproto.h>
 #include <X11/Xfuncproto.h>
 #include "dixstruct.h"
@@ -119,6 +120,10 @@ char *XSELinuxPropertyTypeDefault = NULL;
 static char **extensionTypes = NULL;
 static int extensionTypesCount = 0;
 static char *XSELinuxExtensionTypeDefault = NULL;
+
+/* Atoms for SELinux window labeling properties */
+Atom atom_ctx;
+Atom atom_client_ctx;
 
 /* security context for non-local clients */
 static char *XSELinuxNonlocalContextDefault = NULL;
@@ -1196,6 +1201,28 @@ CALLBACK(XSELinuxClientState)
     }
 } /* XSELinuxClientState */
 
+/* Labeling callbacks */
+CALLBACK(XSELinuxWindowInit)
+{
+    XaceWindowRec *rec = (XaceWindowRec*)calldata;
+    security_context_t ctx;
+    int rc;
+
+    if (HAVESTATE(rec->client)) {
+	rc = avc_sid_to_context(SID(rec->client), &ctx);
+	if (rc < 0)
+	    FatalError("Failed to get security context!\n");
+	rc = ChangeWindowProperty(rec->pWin, atom_client_ctx, XA_STRING, 8,
+				  PropModeReplace, strlen(ctx), ctx, FALSE);
+	freecon(ctx);
+    } 
+    else
+	rc = ChangeWindowProperty(rec->pWin, atom_client_ctx, XA_STRING, 8,
+				  PropModeReplace, 10, "UNLABELED!", FALSE);
+    if (rc != Success)
+	FatalError("Failed to set context property on window!\n");
+} /* XSELinuxWindowInit */
+
 static char *XSELinuxKeywords[] = {
 #define XSELinuxKeywordComment 0
     "#",
@@ -1844,6 +1871,14 @@ XSELinuxExtensionInit(INITARGS)
     if (!AddCallback(&ClientStateCallback, XSELinuxClientState, NULL))
 	return;
 
+    /* Create atoms for doing window labeling */
+    atom_ctx = MakeAtom("_SELINUX_CONTEXT", 16, 1);
+    if (atom_ctx == BAD_RESOURCE)
+	return;
+    atom_client_ctx = MakeAtom("_SELINUX_CLIENT_CONTEXT", 23, 1);
+    if (atom_client_ctx == BAD_RESOURCE)
+	return;
+
     /* Load the config file.  If this fails, shut down the server,
      * since an unknown security status is worse than no security.
      *
@@ -1873,6 +1908,7 @@ XSELinuxExtensionInit(INITARGS)
     XaceRegisterCallback(XACE_BACKGRND_ACCESS, XSELinuxBackgrnd, NULL);
     XaceRegisterCallback(XACE_DRAWABLE_ACCESS, XSELinuxDrawable, NULL);
     XaceRegisterCallback(XACE_PROPERTY_ACCESS, XSELinuxProperty, NULL);
+    XaceRegisterCallback(XACE_WINDOW_INIT, XSELinuxWindowInit, NULL);
     /* XaceRegisterCallback(XACE_DECLARE_EXT_SECURE, XSELinuxDeclare, NULL);
     XaceRegisterCallback(XACE_DEVICE_ACCESS, XSELinuxDevice, NULL); */
 
