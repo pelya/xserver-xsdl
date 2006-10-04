@@ -60,6 +60,8 @@ RROutputCreate (ScreenPtr   pScreen,
     output->connection = RR_UnknownConnection;
     output->subpixelOrder = SubPixelUnknown;
     output->crtc = NULL;
+    output->currentOptions = 0;
+    output->possibleOptions = 0;
     output->numCrtcs = 0;
     output->crtcs = NULL;
     output->numClones = 0;
@@ -190,6 +192,17 @@ RROutputSetCrtcs (RROutputPtr	output,
     return TRUE;
 }
 
+Bool
+RROutputSetPossibleOptions (RROutputPtr	output,
+			    CARD32	possibleOptions)
+{
+    if (output->possibleOptions == possibleOptions)
+	return TRUE;
+    output->possibleOptions = possibleOptions;
+    output->changed = TRUE;
+    return TRUE;
+}
+
 void
 RROutputSetCrtc (RROutputPtr output, RRCrtcPtr crtc)
 {
@@ -222,6 +235,17 @@ RROutputSetSubpixelOrder (RROutputPtr output,
     return TRUE;
 }
 
+Bool
+RROutputSetCurrentOptions (RROutputPtr output,
+			   CARD32      currentOptions)
+{
+    if (output->currentOptions == currentOptions)
+	return TRUE;
+    output->currentOptions = currentOptions;
+    output->changed = TRUE;
+    return TRUE;
+}
+
 void
 RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output)
 {
@@ -248,7 +272,7 @@ RROutputDestroyResource (pointer value, XID pid)
     {
 	if (pScrPriv->outputs[i] == output)
 	{
-	    memmove (pScrPriv->outputs, pScrPriv->outputs + 1,
+	    memmove (pScrPriv->outputs + i, pScrPriv->outputs + i + 1,
 		     (pScrPriv->numOutputs - (i - 1)) * sizeof (RROutputPtr));
 	    --pScrPriv->numOutputs;
 	    break;
@@ -280,6 +304,8 @@ RROutputInit (void)
     return TRUE;
 }
 
+#define OutputInfoExtra	(SIZEOF(xRRGetOutputInfoReply) - 32)
+				
 int
 ProcRRGetOutputInfo (ClientPtr client)
 {
@@ -307,24 +333,27 @@ ProcRRGetOutputInfo (ClientPtr client)
 
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.length = 0;
+    rep.length = OutputInfoExtra >> 2;
     rep.timestamp = pScrPriv->lastSetTime.milliseconds;
     rep.crtc = output->crtc ? output->crtc->id : None;
+    rep.currentOptions = output->currentOptions;
     rep.connection = output->connection;
     rep.subpixelOrder = output->subpixelOrder;
     rep.nCrtcs = output->numCrtcs;
     rep.nModes = output->numModes;
     rep.nClones = output->numClones;
     rep.nameLength = output->nameLength;
+    rep.possibleOptions = output->possibleOptions;
+    rep.pad1 = 42;
     
-    rep.length = (output->numCrtcs + 
-		  output->numModes + 
-		  output->numClones +
-		  ((rep.nameLength + 3) >> 2));
+    extraLen = ((output->numCrtcs + 
+		 output->numModes + 
+		 output->numClones +
+		 ((rep.nameLength + 3) >> 2)) << 2);
 
-    extraLen = rep.length << 2;
     if (extraLen)
     {
+	rep.length += extraLen >> 2;
 	extra = xalloc (extraLen);
 	if (!extra)
 	    return BadAlloc;

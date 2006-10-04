@@ -372,7 +372,7 @@ ProcRRGetScreenResources (ClientPtr client)
 
 	rep.length = (pScrPriv->numCrtcs + 
 		      pScrPriv->numOutputs + 
-		      pScrPriv->numModes * 10 +
+		      pScrPriv->numModes * (SIZEOF(xRRModeInfo) >> 2) +
 		      ((rep.nbytesNames + 3) >> 2));
 	
 	extraLen = rep.length << 2;
@@ -429,7 +429,7 @@ ProcRRGetScreenResources (ClientPtr client)
 		    pScrPriv->modes[i]->mode.nameLength);
 	    names += pScrPriv->modes[i]->mode.nameLength;
 	}
-	assert ((names + 3 >> 3) == rep.length);
+	assert (((((char *) names - (char *) extra) + 3) >> 2) == rep.length);
     }
     
     if (client->swapped) {
@@ -694,7 +694,7 @@ ProcRRSetScreenConfig (ClientPtr client)
     Rotation		    rotation;
     int			    rate;
     Bool		    has_rate;
-    RROutputPtr		    output;
+    RROutputConfigRec	    output;
     RRModePtr		    mode;
     RR10DataPtr		    pData = NULL;
     RRScreenSizePtr    	    pSize;
@@ -731,13 +731,14 @@ ProcRRSetScreenConfig (ClientPtr client)
     if (!RRGetInfo (pScreen))
 	return BadAlloc;
     
-    output = RRFirstOutput (pScreen);
-    if (!output)
+    output.output = RRFirstOutput (pScreen);
+    if (!output.output)
     {
 	time = currentTime;
 	rep.status = RRSetConfigFailed;
 	goto sendReply;
     }
+    output.options = output.output->currentOptions;
     
     /*
      * if the client's config timestamp is not the same as the last config
@@ -750,7 +751,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 	goto sendReply;
     }
     
-    pData = RR10GetData (pScreen, output);
+    pData = RR10GetData (pScreen, output.output);
     if (!pData)
 	return BadAlloc;
     
@@ -786,7 +787,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 	return BadValue;
     }
 
-    if ((~output->crtc->rotations) & rotation)
+    if ((~output.output->crtc->rotations) & rotation)
     {
 	/*
 	 * requested rotation or reflection not supported by screen
@@ -835,7 +836,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 	goto sendReply;
     }
 
-    rep.status = RRCrtcSet (output->crtc, mode, 0, 0, stuff->rotation,
+    rep.status = RRCrtcSet (output.output->crtc, mode, 0, 0, stuff->rotation,
 			    1, &output);
     
 sendReply:

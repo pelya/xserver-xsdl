@@ -72,12 +72,14 @@ extern int (*SProcRandrVector[RRNumberRequests])(ClientPtr);
 typedef struct _rrMode	    RRModeRec, *RRModePtr;
 typedef struct _rrCrtc	    RRCrtcRec, *RRCrtcPtr;
 typedef struct _rrOutput    RROutputRec, *RROutputPtr;
+typedef struct _rrOutputConfig	RROutputConfigRec, *RROutputConfigPtr;
 
 struct _rrMode {
     int		    refcnt;
     xRRModeInfo	    mode;
     char	    *name;
     void	    *devPrivate;
+    ScreenPtr	    screen;
 };
 
 struct _rrCrtc {
@@ -105,6 +107,8 @@ struct _rrOutput {
     CARD8	    connection;
     CARD8	    subpixelOrder;
     RRCrtcPtr	    crtc;
+    CARD32	    currentOptions;
+    CARD32	    possibleOptions;
     int		    numCrtcs;
     RRCrtcPtr	    *crtcs;
     int		    numClones;
@@ -114,6 +118,11 @@ struct _rrOutput {
     Bool	    changed;
     PropertyPtr	    properties;
     void	    *devPrivate;
+};
+
+struct _rrOutputConfig {
+    RROutputPtr	    output;
+    CARD32	    options;
 };
 
 #if RANDR_12_INTERFACE
@@ -130,7 +139,7 @@ typedef Bool (*RRCrtcSetProcPtr) (ScreenPtr		pScreen,
 				  int			y,
 				  Rotation		rotation,
 				  int			numOutputs,
-				  RROutputPtr		*outputs);
+				  RROutputConfigPtr	outputs);
 
 typedef Bool (*RRCrtcSetGammaProcPtr) (ScreenPtr	pScreen,
 				       RRCrtcPtr	crtc);
@@ -352,7 +361,7 @@ miRRCrtcSet (ScreenPtr	pScreen,
 	     int	y,
 	     Rotation	rotation,
 	     int	numOutput,
-	     RROutputPtr    *outputs);
+	     RROutputConfigPtr    outputs);
 
 /* randr.c */
 /*
@@ -440,7 +449,7 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	      int	    x,
 	      int	    y,
 	      Rotation	    rotation,
-	      int	    numOutput,
+	      int	    numOutputs,
 	      RROutputPtr   *outputs);
 
 void
@@ -456,7 +465,7 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	   int		y,
 	   Rotation	rotation,
 	   int		numOutput,
-	   RROutputPtr  *outputs);
+	   RROutputConfigPtr  outputs);
 
 /*
  * Request that the Crtc gamma be changed
@@ -530,6 +539,9 @@ RRModeGet (ScreenPtr	pScreen,
 	   xRRModeInfo	*modeInfo,
 	   const char	*name);
 
+void
+RRModePruneUnused (ScreenPtr pScreen);
+
 /*
  * Destroy a mode.
  */
@@ -584,6 +596,10 @@ RROutputSetCrtcs (RROutputPtr	output,
 		  RRCrtcPtr	*crtcs,
 		  int		numCrtcs);
 
+Bool
+RROutputSetPossibleOptions (RROutputPtr	output,
+			    CARD32	possibleOptions);
+
 void
 RROutputSetCrtc (RROutputPtr output, RRCrtcPtr crtc);
     
@@ -594,6 +610,10 @@ RROutputSetConnection (RROutputPtr  output,
 Bool
 RROutputSetSubpixelOrder (RROutputPtr output,
 			  int	      subpixelOrder);
+
+Bool
+RROutputSetCurrentOptions (RROutputPtr output,
+			   CARD32      currentOptions);
 
 void
 RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output);

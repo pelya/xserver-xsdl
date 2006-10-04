@@ -52,7 +52,7 @@ miRRCrtcSet (ScreenPtr	pScreen,
 	     int	y,
 	     Rotation	rotation,
 	     int	numOutput,
-	     RROutputPtr    *outputs)
+	     RROutputConfigPtr    outputs)
 {
     return TRUE;
 }
@@ -113,6 +113,10 @@ miRandRInit (ScreenPtr pScreen)
     if (!RROutputSetModes (output, &mode, 1))
 	return FALSE;
     if (!RROutputSetCrtcs (output, &crtc, 1))
+	return FALSE;
+    if (!RROutputSetPossibleOptions (output, 0))
+	return FALSE;
+    if (!RROutputSetCurrentOptions (output, 0))
 	return FALSE;
     if (!RROutputSetConnection (output, RR_Connected))
 	return FALSE;

@@ -208,6 +208,7 @@ RRGetInfo (ScreenPtr pScreen)
     if (pScrPriv->nSizes)
 	RRScanOldConfig (pScreen, rotations);
 #endif
+    RRModePruneUnused (pScreen);
     RRTellChanged (pScreen);
     return TRUE;
 }

@@ -92,25 +92,25 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
     
     if (numOutputs != prevNumOutputs)
     {
-	RROutputPtr *outputs;
+	RROutputPtr *newoutputs;
 	
 	if (numOutputs)
 	{
 	    if (crtc->numOutputs)
-		outputs = xrealloc (crtc->outputs,
+		newoutputs = xrealloc (crtc->outputs,
 				    numOutputs * sizeof (RROutputPtr));
 	    else
-		outputs = xalloc (numOutputs * sizeof (RROutputPtr));
-	    if (!outputs)
+		newoutputs = xalloc (numOutputs * sizeof (RROutputPtr));
+	    if (!newoutputs)
 		return FALSE;
 	}
 	else
 	{
 	    if (crtc->outputs)
 		xfree (crtc->outputs);
-	    outputs = NULL;
+	    newoutputs = NULL;
 	}
-	crtc->outputs = outputs;
+	crtc->outputs = newoutputs;
 	crtc->numOutputs = numOutputs;
     }
     for (i = 0; i < numOutputs; i++)
@@ -183,7 +183,7 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	   int		y,
 	   Rotation	rotation,
 	   int		numOutputs,
-	   RROutputPtr  *outputs)
+	   RROutputConfigPtr  outputs)
 {
     ScreenPtr	pScreen = crtc->pScreen;
     rrScrPriv(pScreen);
@@ -252,7 +252,7 @@ RRCrtcDestroyResource (pointer value, XID pid)
     {
 	if (pScrPriv->crtcs[i] == crtc)
 	{
-	    memmove (pScrPriv->crtcs, pScrPriv->crtcs + 1,
+	    memmove (pScrPriv->crtcs + i, pScrPriv->crtcs + i + 1,
 		     (pScrPriv->numCrtcs - (i - 1)) * sizeof (RRCrtcPtr));
 	    --pScrPriv->numCrtcs;
 	    break;
@@ -458,15 +458,15 @@ ProcRRSetCrtcConfig (ClientPtr client)
     RRCrtcPtr		    crtc;
     RRModePtr		    mode;
     int			    numOutputs;
-    RROutputPtr		    *outputs = NULL;
-    RROutput		    *outputIds;
+    RROutputConfigPtr	    outputs = NULL;
+    xRROutputConfig 	    *outputConfigs;
     TimeStamp		    configTime;
     TimeStamp		    time;
     Rotation		    rotation;
     int			    i, j;
     
     REQUEST_AT_LEAST_SIZE(xRRSetCrtcConfigReq);
-    numOutputs = stuff->length - (SIZEOF (xRRSetCrtcConfigReq) >> 2);
+    numOutputs = (stuff->length - (SIZEOF (xRRSetCrtcConfigReq) >> 2)) >> 1;
     
     crtc = LookupIDByType (stuff->crtc, RRCrtcType);
     if (!crtc)
@@ -493,39 +493,47 @@ ProcRRSetCrtcConfig (ClientPtr client)
     }
     if (numOutputs)
     {
-	outputs = xalloc (numOutputs * sizeof (RROutputPtr));
+	outputs = xalloc (numOutputs * sizeof (RROutputConfigRec));
 	if (!outputs)
 	    return BadAlloc;
     }
     else
 	outputs = NULL;
     
-    outputIds = (RROutput *) (stuff + 1);
+    outputConfigs = (xRROutputConfig *) (stuff + 1);
     for (i = 0; i < numOutputs; i++)
     {
-	outputs[i] = LookupIDByType (outputIds[i], RROutputType);
-	if (!outputs[i])
+	outputs[i].output = LookupIDByType (outputConfigs[i].output, RROutputType);
+	if (!outputs[i].output)
 	{
-	    client->errorValue = outputIds[i];
+	    client->errorValue = outputConfigs[i].output;
 	    if (outputs)
 		xfree (outputs);
 	    return RRErrorBase + BadRROutput;
 	}
+	outputs[i].options = outputConfigs[i].options;
+	if (outputs[i].options & ~outputs[i].output->possibleOptions)
+	{
+	    client->errorValue = outputConfigs[i].options;
+	    if (outputs)
+		xfree (outputs);
+	    return BadMatch;
+	}
 	/* validate crtc for this output */
-	for (j = 0; j < outputs[i]->numCrtcs; j++)
-	    if (outputs[i]->crtcs[j] == crtc)
+	for (j = 0; j < outputs[i].output->numCrtcs; j++)
+	    if (outputs[i].output->crtcs[j] == crtc)
 		break;
-	if (j == outputs[j]->numCrtcs)
+	if (j == outputs[j].output->numCrtcs)
 	{
 	    if (outputs)
 		xfree (outputs);
 	    return BadMatch;
 	}
 	/* validate mode for this output */
-	for (j = 0; j < outputs[i]->numModes; j++)
-	    if (outputs[i]->modes[j] == mode)
+	for (j = 0; j < outputs[i].output->numModes; j++)
+	    if (outputs[i].output->modes[j] == mode)
 		break;
-	if (j == outputs[i]->numModes)
+	if (j == outputs[i].output->numModes)
 	{
 	    if (outputs)
 		xfree (outputs);

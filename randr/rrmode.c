@@ -24,6 +24,27 @@
 
 RESTYPE	RRModeType;
 
+static Bool
+RRModeEqual (xRRModeInfo *a, xRRModeInfo *b)
+{
+    if (a->width != b->width) return FALSE;
+    if (a->height != b->height) return FALSE;
+    if (a->mmWidth != b->mmWidth) return FALSE;
+    if (a->mmHeight != b->mmHeight) return FALSE;
+    if (a->dotClock != b->dotClock) return FALSE;
+    if (a->hSyncStart != b->hSyncStart) return FALSE;
+    if (a->hSyncEnd != b->hSyncEnd) return FALSE;
+    if (a->hTotal != b->hTotal) return FALSE;
+    if (a->hSkew != b->hSkew) return FALSE;
+    if (a->vSyncStart != b->vSyncStart) return FALSE;
+    if (a->vSyncEnd != b->vSyncEnd) return FALSE;
+    if (a->vTotal != b->vTotal) return FALSE;
+    if (a->nameLength != b->nameLength) return FALSE;
+    if (a->modeFlags != b->modeFlags) return FALSE;
+    if (a->origin != b->origin) return FALSE;
+    return TRUE;
+}
+
 RRModePtr
 RRModeGet (ScreenPtr	pScreen,
 	   xRRModeInfo	*modeInfo,
@@ -37,8 +58,7 @@ RRModeGet (ScreenPtr	pScreen,
     for (i = 0; i < pScrPriv->numModes; i++)
     {
 	mode = pScrPriv->modes[i];
-	modeInfo->id = mode->mode.id;
-	if (!memcmp (modeInfo, &mode->mode, sizeof (xRRModeInfo)) &&
+	if (RRModeEqual (&mode->mode, modeInfo) &&
 	    !memcmp (name, mode->name, modeInfo->nameLength))
 	{
 	    ++mode->refcnt;
@@ -54,6 +74,7 @@ RRModeGet (ScreenPtr	pScreen,
     mode->name = (char *) (mode + 1);
     memcpy (mode->name, name, modeInfo->nameLength);
     mode->name[modeInfo->nameLength] = '\0';
+    mode->screen = pScreen;
 
     if (pScrPriv->numModes)
 	modes = xrealloc (pScrPriv->modes,
@@ -80,8 +101,31 @@ RRModeGet (ScreenPtr	pScreen,
 void
 RRModeDestroy (RRModePtr mode)
 {
+    ScreenPtr	    pScreen;
+    rrScrPrivPtr    pScrPriv;
+    int	m;
+    
     if (--mode->refcnt > 0)
 	return;
+    pScreen = mode->screen;
+    pScrPriv = rrGetScrPriv (pScreen);
+    for (m = 0; m < pScrPriv->numModes; m++)
+    {
+	if (pScrPriv->modes[m] == mode)
+	{
+	    memmove (pScrPriv->modes + m, pScrPriv->modes + m + 1,
+		     (pScrPriv->numModes - m - 1) * sizeof (RRModePtr));
+	    pScrPriv->numModes--;
+	    if (!pScrPriv->numModes)
+	    {
+		xfree (pScrPriv->modes);
+		pScrPriv->modes = NULL;
+	    }
+	    pScrPriv->changed = TRUE;
+	    break;
+	}
+    }
+    
     xfree (mode);
 }
 
@@ -102,6 +146,26 @@ RRModeInit (void)
     RegisterResourceName (RRModeType, "MODE");
 #endif
     return TRUE;
+}
+
+void
+RRModePruneUnused (ScreenPtr pScreen)
+{
+    rrScrPriv (pScreen);
+    RRModePtr	*unused, mode;
+    int		m;
+    int		num = pScrPriv->numModes;
+
+    unused = xalloc (num * sizeof (RRModePtr));
+    if (!unused)
+	return;
+    memcpy (unused, pScrPriv->modes, num * sizeof (RRModePtr));
+    for (m = 0; m < num; m++) {
+	mode = unused[m];
+	if (mode->refcnt == 1 && mode->mode.origin != RRModeOriginUser)
+	    FreeResource (mode->mode.id, 0);
+    }
+    xfree (unused);
 }
 
 int
