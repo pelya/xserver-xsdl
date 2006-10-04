@@ -11,11 +11,9 @@
 #	specified for a device (see the syntax description below).
 #
 #	Don't make gratuitous changes, and please send back
-#	changes/additions that aren't XFree86-specific to the pciids
+#	changes/additions that aren't X-specific to the pciids
 #	project (http://pciids.sf.net/).
 #
-#	$XdotOrg: xserver/xorg/hw/xfree86/scanpci/extrapci.ids,v 1.6 2005/09/19 18:54:05 alanc Exp $
-#	$XFree86: xc/programs/Xserver/hw/xfree86/etc/extrapci.ids,v 1.11 2003/12/18 16:22:27 dawes Exp $
 #
 
 # Vendors, devices and subsystems. Please keep sorted.
@@ -39,10 +37,7 @@
 
 # Some NVIDIA cards that are not in the master pci.ids file yet.
 10de	"
-	0046	NV40 [GeForce 6800 GT]
-	0048	GeForce 6800 XT
 	0147	GeForce 6700 XL
 	0160	GeForce 6500
-	0163	GeForce 6200 LE
 	0169	GeForce 6250
 

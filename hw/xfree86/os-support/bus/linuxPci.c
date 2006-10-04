@@ -85,7 +85,7 @@ static pciBusFuncs_t linuxFuncs0 = {
 /* pciAddrHostToBus */	pciAddrNOOP,
 /* linuxTransAddrBusToHost is busted on sparc64 but the PCI rework tree
  * makes it all moot, so we kludge it for now */
-#if defined(__sparc64__)
+#if defined(__sparc__)
 /* pciAddrBusToHost */  pciAddrNOOP,
 #else
 /* pciAddrBusToHost */	linuxTransAddrBusToHost,

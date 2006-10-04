@@ -992,6 +992,10 @@ DRICreateDrawable(ScreenPtr pScreen, Drawable id,
 	pWin = (WindowPtr)pDrawable;
 	if ((pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin))) {
 	    pDRIDrawablePriv->refCount++;
+
+	    if (!pDRIDrawablePriv->hwDrawable) {
+		drmCreateDrawable(pDRIPriv->drmFD, &pDRIDrawablePriv->hwDrawable);
+	    }
 	}
 	else {
 	    /* allocate a DRI Window Private record */
@@ -1000,13 +1004,13 @@ DRICreateDrawable(ScreenPtr pScreen, Drawable id,
 	    }
 
 	    /* Only create a drm_drawable_t once */
-	    if (drmCreateDrawable(pDRIPriv->drmFD, hHWDrawable)) {
+	    if (drmCreateDrawable(pDRIPriv->drmFD,
+				  &pDRIDrawablePriv->hwDrawable)) {
 		xfree(pDRIDrawablePriv);
 		return FALSE;
 	    }
 
 	    /* add it to the list of DRI drawables for this screen */
-	    pDRIDrawablePriv->hwDrawable = *hHWDrawable;
 	    pDRIDrawablePriv->pScreen = pScreen;
 	    pDRIDrawablePriv->refCount = 1;
 	    pDRIDrawablePriv->drawableIndex = -1;
@@ -1028,6 +1032,15 @@ DRICreateDrawable(ScreenPtr pScreen, Drawable id,
 
 	    /* track this in case this window is destroyed */
 	    AddResource(id, DRIDrawablePrivResType, (pointer)pWin);
+	}
+
+	if (pDRIDrawablePriv->hwDrawable) {
+	    drmUpdateDrawableInfo(pDRIPriv->drmFD,
+				  pDRIDrawablePriv->hwDrawable,
+				  DRM_DRAWABLE_CLIPRECTS,
+				  REGION_NUM_RECTS(&pWin->clipList),
+				  REGION_RECTS(&pWin->clipList));
+	    *hHWDrawable = pDRIDrawablePriv->hwDrawable;
 	}
     }
     else { /* pixmap (or for GLX 1.3, a PBuffer) */
@@ -1813,6 +1826,11 @@ DRIClipNotify(WindowPtr pWin, int dx, int dy)
 
 	pDRIPriv->pSAREA->drawableTable[pDRIDrawablePriv->drawableIndex].stamp
 	    = DRIDrawableValidationStamp++;
+
+	drmUpdateDrawableInfo(pDRIPriv->drmFD, pDRIDrawablePriv->hwDrawable,
+			      DRM_DRAWABLE_CLIPRECTS,
+			      REGION_NUM_RECTS(&pWin->clipList),
+			      REGION_RECTS(&pWin->clipList));
     }
 
     /* call lower wrapped functions */
