@@ -488,20 +488,20 @@ extern void fbSetBits (FbStip *bits, int stride, FbStip data);
  * The term "lane" comes from the hardware term "byte-lane" which
  */
 
-#define FbLaneCase1(n,a,o)  ((n) == 0x01 ? \
+#define FbLaneCase1(n,a,o)  ((n) == 0x01 ? (void) \
 			     WRITE((CARD8 *) ((a)+FbPatternOffset(o,CARD8)), \
-			      fgxor) : 0)
-#define FbLaneCase2(n,a,o)  ((n) == 0x03 ? \
+			      fgxor) : (void) 0)
+#define FbLaneCase2(n,a,o)  ((n) == 0x03 ? (void) \
 			     WRITE((CARD16 *) ((a)+FbPatternOffset(o,CARD16)), \
 			      fgxor) : \
 			     ((void)FbLaneCase1((n)&1,a,o), \
 				    FbLaneCase1((n)>>1,a,(o)+1)))
-#define FbLaneCase4(n,a,o)  ((n) == 0x0f ? \
+#define FbLaneCase4(n,a,o)  ((n) == 0x0f ? (void) \
 			     WRITE((CARD32 *) ((a)+FbPatternOffset(o,CARD32)), \
 			      fgxor) : \
 			     ((void)FbLaneCase2((n)&3,a,o), \
 				    FbLaneCase2((n)>>2,a,(o)+2)))
-#define FbLaneCase8(n,a,o)  ((n) == 0x0ff ? (*(FbBits *) ((a)+(o)) = fgxor) : \
+#define FbLaneCase8(n,a,o)  ((n) == 0x0ff ? (void) (*(FbBits *) ((a)+(o)) = fgxor) : \
 			     ((void)FbLaneCase4((n)&15,a,o), \
 				    FbLaneCase4((n)>>4,a,(o)+4)))
 
