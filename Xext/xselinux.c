@@ -1211,7 +1211,7 @@ CALLBACK(XSELinuxWindowInit)
     if (HAVESTATE(rec->client)) {
 	rc = avc_sid_to_context(SID(rec->client), &ctx);
 	if (rc < 0)
-	    FatalError("Failed to get security context!\n");
+	    FatalError("XSELinux: Failed to get security context!\n");
 	rc = ChangeWindowProperty(rec->pWin, atom_client_ctx, XA_STRING, 8,
 				  PropModeReplace, strlen(ctx), ctx, FALSE);
 	freecon(ctx);
@@ -1220,7 +1220,7 @@ CALLBACK(XSELinuxWindowInit)
 	rc = ChangeWindowProperty(rec->pWin, atom_client_ctx, XA_STRING, 8,
 				  PropModeReplace, 10, "UNLABELED!", FALSE);
     if (rc != Success)
-	FatalError("Failed to set context property on window!\n");
+	FatalError("XSELinux: Failed to set context property on window!\n");
 } /* XSELinuxWindowInit */
 
 static char *XSELinuxKeywords[] = {
@@ -1859,13 +1859,13 @@ XSELinuxExtensionInit(INITARGS)
 
     if (!is_selinux_enabled())
     {
-        ErrorF("SELinux Extension failed to load: SELinux not enabled\n");
+        ErrorF("XSELinux: Extension failed to load: SELinux not enabled\n");
         return;
     }
 
     if (avc_init("xserver", NULL, &alc, NULL, NULL) < 0)
     {
-	FatalError("couldn't initialize SELinux userspace AVC\n");
+	FatalError("XSELinux: Couldn't initialize SELinux userspace AVC\n");
     }
 
     if (!AddCallback(&ClientStateCallback, XSELinuxClientState, NULL))
@@ -1874,10 +1874,10 @@ XSELinuxExtensionInit(INITARGS)
     /* Create atoms for doing window labeling */
     atom_ctx = MakeAtom("_SELINUX_CONTEXT", 16, 1);
     if (atom_ctx == BAD_RESOURCE)
-	return;
+	FatalError("XSELinux: Failed to create atom\n");
     atom_client_ctx = MakeAtom("_SELINUX_CLIENT_CONTEXT", 23, 1);
     if (atom_client_ctx == BAD_RESOURCE)
-	return;
+	FatalError("XSELinux: Failed to create atom\n");
 
     /* Load the config file.  If this fails, shut down the server,
      * since an unknown security status is worse than no security.
