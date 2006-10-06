@@ -406,9 +406,10 @@ CARD16
 RRVerticalRefresh (xRRModeInfo *mode)
 {
     CARD32  refresh;
-    if (!mode->hTotal || !mode->vTotal)
+    CARD32  dots = mode->hTotal * mode->vTotal;
+    if (!dots)
 	return 0;
-    refresh = mode->dotClock / (mode->hTotal * mode->vTotal);
+    refresh = (mode->dotClock + dots/2) / dots;
     if (refresh > 0xffff)
 	refresh = 0xffff;
     return (CARD16) refresh;

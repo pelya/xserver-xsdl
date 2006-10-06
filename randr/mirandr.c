@@ -110,7 +110,7 @@ miRandRInit (ScreenPtr pScreen)
 	return FALSE;
     if (!RROutputSetClones (output, NULL, 0))
 	return FALSE;
-    if (!RROutputSetModes (output, &mode, 1))
+    if (!RROutputSetModes (output, &mode, 1, 0))
 	return FALSE;
     if (!RROutputSetCrtcs (output, &crtc, 1))
 	return FALSE;

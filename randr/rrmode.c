@@ -41,7 +41,6 @@ RRModeEqual (xRRModeInfo *a, xRRModeInfo *b)
     if (a->vTotal != b->vTotal) return FALSE;
     if (a->nameLength != b->nameLength) return FALSE;
     if (a->modeFlags != b->modeFlags) return FALSE;
-    if (a->origin != b->origin) return FALSE;
     return TRUE;
 }
 
@@ -75,6 +74,7 @@ RRModeGet (ScreenPtr	pScreen,
     memcpy (mode->name, name, modeInfo->nameLength);
     mode->name[modeInfo->nameLength] = '\0';
     mode->screen = pScreen;
+    mode->userDefined = FALSE;
 
     if (pScrPriv->numModes)
 	modes = xrealloc (pScrPriv->modes,
@@ -162,7 +162,7 @@ RRModePruneUnused (ScreenPtr pScreen)
     memcpy (unused, pScrPriv->modes, num * sizeof (RRModePtr));
     for (m = 0; m < num; m++) {
 	mode = unused[m];
-	if (mode->refcnt == 1 && mode->mode.origin != RRModeOriginUser)
+	if (mode->refcnt == 1 && !mode->userDefined)
 	    FreeResource (mode->mode.id, 0);
     }
     xfree (unused);

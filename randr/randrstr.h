@@ -80,6 +80,7 @@ struct _rrMode {
     char	    *name;
     void	    *devPrivate;
     ScreenPtr	    screen;
+    Bool	    userDefined;
 };
 
 struct _rrCrtc {
@@ -114,6 +115,7 @@ struct _rrOutput {
     int		    numClones;
     RROutputPtr	    *clones;
     int		    numModes;
+    int		    numPreferred;
     RRModePtr	    *modes;
     Bool	    changed;
     PropertyPtr	    properties;
@@ -143,6 +145,10 @@ typedef Bool (*RRCrtcSetProcPtr) (ScreenPtr		pScreen,
 
 typedef Bool (*RRCrtcSetGammaProcPtr) (ScreenPtr	pScreen,
 				       RRCrtcPtr	crtc);
+
+typedef Bool (*RROutputSetPropertyProcPtr) (ScreenPtr	pScreen,
+					    RROutputPtr	output,
+					    Atom	property);
 
 #endif
 
@@ -187,6 +193,7 @@ typedef struct _rrScrPriv {
     RRScreenSetSizeProcPtr  rrScreenSetSize;
     RRCrtcSetProcPtr	    rrCrtcSet;
     RRCrtcSetGammaProcPtr   rrCrtcSetGamma;
+    RROutputSetPropertyProcPtr	rrOutputSetProperty;
 #endif
     
     /*
@@ -589,7 +596,8 @@ RROutputSetClones (RROutputPtr  output,
 Bool
 RROutputSetModes (RROutputPtr	output,
 		  RRModePtr	*modes,
-		  int		numModes);
+		  int		numModes,
+		  int		numPreferred);
 
 Bool
 RROutputSetCrtcs (RROutputPtr	output,

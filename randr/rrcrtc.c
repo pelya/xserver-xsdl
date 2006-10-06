@@ -88,9 +88,41 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
     ScreenPtr	pScreen = crtc->pScreen;
     rrScrPriv(pScreen);
     int	    i, j;
-    int	    prevNumOutputs = crtc->numOutputs;
     
-    if (numOutputs != prevNumOutputs)
+    /*
+     * Check to see if any of the new outputs were
+     * not in the old list and mark them as changed
+     */
+    for (i = 0; i < numOutputs; i++)
+    {
+	for (j = 0; j < crtc->numOutputs; j++)
+	    if (outputs[i] == crtc->outputs[j])
+		break;
+	if (j == crtc->numOutputs)
+	{
+	    outputs[i]->changed = TRUE;
+	    crtc->changed = TRUE;
+	}
+    }
+    /*
+     * Check to see if any of the old outputs are
+     * not in the new list and mark them as changed
+     */
+    for (j = 0; j < crtc->numOutputs; j++)
+    {
+	for (i = 0; i < numOutputs; i++)
+	    if (outputs[i] == crtc->outputs[j])
+		break;
+	if (i == numOutputs)
+	{
+	    crtc->outputs[j]->changed = TRUE;
+	    crtc->changed = TRUE;
+	}
+    }
+    /*
+     * Reallocate the crtc output array if necessary
+     */
+    if (numOutputs != crtc->numOutputs)
     {
 	RROutputPtr *newoutputs;
 	
@@ -113,28 +145,13 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	crtc->outputs = newoutputs;
 	crtc->numOutputs = numOutputs;
     }
-    for (i = 0; i < numOutputs; i++)
-    {
-	for (j = 0; j < crtc->numOutputs; j++)
-	    if (outputs[i] == crtc->outputs[j])
-		break;
-	if (j != crtc->numOutputs)
-	{
-	    outputs[i]->changed = TRUE;
-	    crtc->changed = TRUE;
-	}
-    }
-    for (j = 0; j < crtc->numOutputs; j++)
-    {
-	for (i = 0; i < numOutputs; i++)
-	    if (outputs[i] == crtc->outputs[j])
-		break;
-	if (i != numOutputs)
-	{
-	    crtc->outputs[j]->changed = TRUE;
-	    crtc->changed = TRUE;
-	}
-    }
+    /*
+     * Copy the new list of outputs into the crtc
+     */
+    memcpy (crtc->outputs, outputs, numOutputs * sizeof (RROutputPtr));
+    /*
+     * Update remaining crtc fields
+     */
     if (mode != crtc->mode)
     {
 	if (crtc->mode)
@@ -158,6 +175,9 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	crtc->rotation = rotation;
 	crtc->changed = TRUE;
     }
+    /*
+     * Send events if anything changed
+     */
     if (crtc->changed)
     {
 	if (!pScrPriv->changed)
@@ -170,7 +190,35 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 void
 RRDeliverCrtcEvent (ClientPtr client, WindowPtr pWin, RRCrtcPtr crtc)
 {
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+    rrScrPriv (pScreen);
+    xRRCrtcChangeNotifyEvent	ce;
+    RRModePtr	mode = crtc->mode;
     
+    ce.type = RRNotify + RREventBase;
+    ce.subCode = RRNotify_CrtcChange;
+    ce.sequenceNumber = client->sequence;
+    ce.timestamp = pScrPriv->lastSetTime.milliseconds;
+    ce.window = pWin->drawable.id;
+    ce.crtc = crtc->id;
+    ce.rotation = crtc->rotation;
+    if (mode)
+    {
+	ce.mode = mode->mode.id;
+	ce.x = crtc->x;
+	ce.y = crtc->y;
+	ce.width = mode->mode.width;
+	ce.height = mode->mode.height;
+    }
+    else
+    {
+	ce.mode = None;
+	ce.x = 0;
+	ce.y = 0;
+	ce.width = 0;
+	ce.height = 0;
+    }
+    WriteEventsToClient (client, 1, (xEvent *) &ce);
 }
 
 /*
@@ -381,7 +429,7 @@ ProcRRGetCrtcInfo (ClientPtr client)
     rep.y = crtc->y;
     rep.width = mode ? mode->mode.width : 0;
     rep.height = mode ? mode->mode.height : 0;
-    rep.mode = mode->mode.id;
+    rep.mode = mode ? mode->mode.id : 0;
     rep.rotation = crtc->rotation;
     rep.rotations = crtc->rotations;
     rep.nOutput = crtc->numOutputs;
@@ -572,30 +620,30 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	goto sendReply;
     }
     
+    /*
+     * Validate requested rotation
+     */
+    rotation = (Rotation) stuff->rotation;
+
+    /* test the rotation bits only! */
+    switch (rotation & 0xf) {
+    case RR_Rotate_0:
+    case RR_Rotate_90:
+    case RR_Rotate_180:
+    case RR_Rotate_270:
+	break;
+    default:
+	/*
+	 * Invalid rotation
+	 */
+	client->errorValue = stuff->rotation;
+	if (outputs)
+	    xfree (outputs);
+	return BadValue;
+    }
+
     if (mode)
     {
-	/*
-	 * Validate requested rotation
-	 */
-	rotation = (Rotation) stuff->rotation;
-    
-	/* test the rotation bits only! */
-	switch (rotation & 0xf) {
-	case RR_Rotate_0:
-	case RR_Rotate_90:
-	case RR_Rotate_180:
-	case RR_Rotate_270:
-	    break;
-	default:
-	    /*
-	     * Invalid rotation
-	     */
-	    client->errorValue = stuff->rotation;
-	    if (outputs)
-		xfree (outputs);
-	    return BadValue;
-	}
-    
 	if ((~crtc->rotations) & rotation)
 	{
 	    /*

@@ -67,6 +67,7 @@ RROutputCreate (ScreenPtr   pScreen,
     output->numClones = 0;
     output->clones = NULL;
     output->numModes = 0;
+    output->numPreferred = 0;
     output->modes = NULL;
     output->properties = NULL;
     output->changed = TRUE;
@@ -120,12 +121,13 @@ RROutputSetClones (RROutputPtr  output,
 Bool
 RROutputSetModes (RROutputPtr	output,
 		  RRModePtr	*modes,
-		  int		numModes)
+		  int		numModes,
+		  int		numPreferred)
 {
     RRModePtr	*newModes;
     int		i;
 
-    if (numModes == output->numModes)
+    if (numModes == output->numModes && numPreferred == output->numPreferred)
     {
 	for (i = 0; i < numModes; i++)
 	    if (output->modes[i] != modes[i])
@@ -155,6 +157,7 @@ RROutputSetModes (RROutputPtr	output,
     memcpy (newModes, modes, numModes * sizeof (RRModePtr));
     output->modes = newModes;
     output->numModes = numModes;
+    output->numPreferred = numPreferred;
     output->changed = TRUE;
     return TRUE;
 }
@@ -341,10 +344,10 @@ ProcRRGetOutputInfo (ClientPtr client)
     rep.subpixelOrder = output->subpixelOrder;
     rep.nCrtcs = output->numCrtcs;
     rep.nModes = output->numModes;
+    rep.nPreferred = output->numPreferred;
     rep.nClones = output->numClones;
     rep.nameLength = output->nameLength;
     rep.possibleOptions = output->possibleOptions;
-    rep.pad1 = 42;
     
     extraLen = ((output->numCrtcs + 
 		 output->numModes + 
