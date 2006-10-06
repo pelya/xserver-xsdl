@@ -821,9 +821,11 @@ ProcXkbSetControls(ClientPtr client)
     if (stuff->changeCtrls&XkbPerKeyRepeatMask) {
 	memcpy(new.per_key_repeat,stuff->perKeyRepeat,XkbPerKeyBitArraySize);
     }
+
     old= *ctrl;
     *ctrl= new;
     XkbDDXChangeControls(dev,&old,ctrl);
+
     if (XkbComputeControlsNotify(dev,&old,ctrl,&cn,False)) {
 	cn.keycode= 0;
 	cn.eventType = 0;
@@ -831,15 +833,16 @@ ProcXkbSetControls(ClientPtr client)
 	cn.requestMinor = X_kbSetControls;
 	XkbSendControlsNotify(dev,&cn);
     }
+
     if ((sli= XkbFindSrvLedInfo(dev,XkbDfltXIClass,XkbDfltXIId,0))!=NULL)
 	XkbUpdateIndicators(dev,sli->usesControls,True,NULL,&cause);
-#ifndef NO_CLEAR_LATCHES_FOR_STICKY_KEYS_OFF
+
     /* If sticky keys were disabled, clear all locks and latches */
     if ((old.enabled_ctrls&XkbStickyKeysMask)&&
 	(!(ctrl->enabled_ctrls&XkbStickyKeysMask))) {
 	XkbClearAllLatchesAndLocks(dev,xkbi,True,&cause);
     }
-#endif
+
     return client->noClientException;
 }
 
