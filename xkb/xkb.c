@@ -570,7 +570,7 @@ ProcXkbLatchLockState(ClientPtr client)
                 status = XkbLatchModifiers(tmpd, stuff->affectModLatches,
                                            stuff->modLatches);
             if (status == Success && stuff->latchGroup)
-                status = XkbLatchGroup(tmp, stuff->groupLatch);
+                status = XkbLatchGroup(tmpd, stuff->groupLatch);
 
             if (status != Success)
                 return status;
@@ -5111,6 +5111,8 @@ ProcXkbGetKbdByName(ClientPtr client)
     unsigned			fwant,fneed,reported;
     int				status;
     Bool			geom_changed;
+    XkbSrvLedInfoPtr            old_sli;
+    XkbSrvLedInfoPtr            sli;
 
     REQUEST(xkbGetKbdByNameReq);
     REQUEST_AT_LEAST_SIZE(xkbGetKbdByNameReq);
@@ -5379,45 +5381,27 @@ ProcXkbGetKbdByName(ClientPtr client)
 	}
 	xkb->ctrls->num_groups= nTG;
 
-	memcpy(dev->key->modifierMap,xkb->map->modmap,xkb->max_key_code+1);
-	XkbUpdateCoreDescription(dev,True);
+        for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
+            if ((dev == inputInfo.keyboard && tmpd->key && tmpd->coreEvents) ||
+                tmpd == inputInfo.keyboard) {
 
-	if (dev->kbdfeed && dev->kbdfeed->xkb_sli) {
-            XkbSrvLedInfoPtr	old_sli;
-            XkbSrvLedInfoPtr	sli;
-            old_sli = dev->kbdfeed->xkb_sli;
-            dev->kbdfeed->xkb_sli = NULL;
-	    sli = XkbAllocSrvLedInfo(dev,dev->kbdfeed,NULL,0);
-            if (sli) {
-               sli->explicitState = old_sli->explicitState;
-               sli->effectiveState = old_sli->effectiveState;
-            }
-            dev->kbdfeed->xkb_sli = sli;
-	    XkbFreeSrvLedInfo(old_sli);
-	}
-
-        if (dev == inputInfo.keyboard) {
-            for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
-                if (tmpd->key && tmpd->coreEvents) {
-                    memcpy(tmpd->key->modifierMap, xkb->map->modmap,
-                           xkb->max_key_code + 1);
+                memcpy(tmpd->key->modifierMap, xkb->map->modmap,
+                       xkb->max_key_code + 1);
+                if (dev != inputInfo.keyboard)
                     XkbCopyKeymap(dev->key->xkbInfo->desc,
                                   tmpd->key->xkbInfo->desc, True);
-                    XkbUpdateCoreDescription(tmpd, True);
+                XkbUpdateCoreDescription(tmpd, True);
 
-	            if (tmpd->kbdfeed && tmpd->kbdfeed->xkb_sli) {
-                        XkbSrvLedInfoPtr old_sli;
-                        XkbSrvLedInfoPtr sli;
-                        old_sli = tmpd->kbdfeed->xkb_sli;
-                        tmpd->kbdfeed->xkb_sli = NULL;
-                        sli = XkbAllocSrvLedInfo(tmpd, tmpd->kbdfeed, NULL, 0);
-                        if (sli) {
-                            sli->explicitState = old_sli->explicitState;
-                            sli->effectiveState = old_sli->effectiveState;
-                        }
-                        tmpd->kbdfeed->xkb_sli = sli;
-                        XkbFreeSrvLedInfo(old_sli);
+                if (tmpd->kbdfeed && tmpd->kbdfeed->xkb_sli) {
+                    old_sli = tmpd->kbdfeed->xkb_sli;
+                    tmpd->kbdfeed->xkb_sli = NULL;
+                    sli = XkbAllocSrvLedInfo(tmpd, tmpd->kbdfeed, NULL, 0);
+                    if (sli) {
+                        sli->explicitState = old_sli->explicitState;
+                        sli->effectiveState = old_sli->effectiveState;
                     }
+                    tmpd->kbdfeed->xkb_sli = sli;
+                    XkbFreeSrvLedInfo(old_sli);
                 }
             }
         }
