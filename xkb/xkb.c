@@ -5084,6 +5084,7 @@ int
 ProcXkbGetKbdByName(ClientPtr client)
 {
     DeviceIntPtr 		dev;
+    DeviceIntPtr                tmpd;
     XkbFileInfo			finfo;
     xkbGetKbdByNameReply 	rep;
     xkbGetMapReply		mrep;
@@ -5169,8 +5170,10 @@ ProcXkbGetKbdByName(ClientPtr client)
 	fneed|= XkmKeyNamesIndex|XkmTypesIndex;
 	fwant|= XkmIndicatorsIndex;
     }
+
+    /* We pass dev in here so we can get the old names out if needed. */
     rep.found = XkbDDXLoadKeymapByNames(dev,&names,fwant,fneed,&finfo,
-							mapFile,PATH_MAX);
+                                        mapFile,PATH_MAX);
     rep.newKeyboard= False;
     rep.pad1= rep.pad2= rep.pad3= rep.pad4= 0;
 
@@ -5382,6 +5385,34 @@ ProcXkbGetKbdByName(ClientPtr client)
 	    XkbFreeSrvLedInfo(old_sli);
 	}
 
+        if (dev == inputInfo.keyboard) {
+            for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
+                if (tmpd->key && tmpd->coreEvents) {
+                    memcpy(tmpd->key->modifierMap, xkb->map->modmap,
+                           xkb->max_key_code + 1);
+                    XkbCopyKeymap(dev->key->xkbInfo->desc,
+                                  tmpd->key->xkbInfo->desc, True);
+                    XkbUpdateCoreDescription(tmpd, True);
+
+	            if (tmpd->kbdfeed && tmpd->kbdfeed->xkb_sli) {
+                        XkbSrvLedInfoPtr old_sli;
+                        XkbSrvLedInfoPtr sli;
+                        old_sli = tmpd->kbdfeed->xkb_sli;
+                        tmpd->kbdfeed->xkb_sli = NULL;
+                        sli = XkbAllocSrvLedInfo(tmpd, tmpd->kbdfeed, NULL, 0);
+                        if (sli) {
+                            sli->explicitState = old_sli->explicitState;
+                            sli->effectiveState = old_sli->effectiveState;
+                        }
+                        tmpd->kbdfeed->xkb_sli = sli;
+                        XkbFreeSrvLedInfo(old_sli);
+                    }
+                }
+            }
+        }
+
+        /* this should be either a MN or an NKN, depending on whether or not
+         * the keycode range changed? */
 	nkn.deviceID= nkn.oldDeviceID= dev->id;
 	nkn.minKeyCode= finfo.xkb->min_key_code;
 	nkn.maxKeyCode= finfo.xkb->max_key_code;
