@@ -51,7 +51,9 @@ extern ClientPtr XagLeader(
 );
 
 extern void XagCallClientStateChange(
-    ClientPtr			/* client */
+    CallbackListPtr *		/* pcbl */,
+    pointer 			/* nulldata */,
+    pointer 			/* calldata */
 );
 
 extern Bool XagIsControlledRoot (

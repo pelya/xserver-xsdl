@@ -126,8 +126,8 @@ Equipment Corporation.
 #ifdef XAPPGROUP
 #include "appgroup.h"
 #endif
-#ifdef XCSECURITY
-#include "securitysrv.h"
+#ifdef XACE
+#include "xace.h"
 #endif
 
 /******
@@ -530,6 +530,10 @@ InitRootWindow(WindowPtr pWin)
     /* We SHOULD check for an error value here XXX */
     (*pScreen->ChangeWindowAttributes)(pWin, backFlag);
 
+#ifdef XACE
+    XaceHook(XACE_WINDOW_INIT, serverClient, pWin);
+#endif
+
     MapWindow(pWin, serverClient);
 }
 
@@ -731,11 +735,11 @@ CreateWindow(Window wid, register WindowPtr pParent, int x, int y, unsigned w,
     }
 
     pWin->borderWidth = bw;
-#ifdef XCSECURITY
+#ifdef XACE
     /*  can't let untrusted clients have background None windows;
      *  they make it too easy to steal window contents
      */
-    if (client->trustLevel != XSecurityClientTrusted)
+    if (!XaceHook(XACE_BACKGRND_ACCESS, client, pWin))
     {
 	pWin->backgroundState = BackgroundPixel;
 	pWin->background.pixel = 0;
@@ -761,6 +765,10 @@ CreateWindow(Window wid, register WindowPtr pParent, int x, int y, unsigned w,
     REGION_NULL(pScreen, &pWin->borderClip);
     REGION_NULL(pScreen, &pWin->winSize);
     REGION_NULL(pScreen, &pWin->borderSize);
+
+#ifdef XACE
+    XaceHook(XACE_WINDOW_INIT, client, pWin);
+#endif
 
     pHead = RealChildHead(pParent);
     if (pHead)
@@ -1025,9 +1033,9 @@ ChangeWindowAttributes(register WindowPtr pWin, Mask vmask, XID *vlist, ClientPt
 		borderRelative = TRUE;
 	    if (pixID == None)
 	    {
-#ifdef XCSECURITY
+#ifdef XACE
 		/*  can't let untrusted clients have background None windows */
-		if (client->trustLevel == XSecurityClientTrusted)
+		if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin))
 		{
 #endif
 		if (pWin->backgroundState == BackgroundPixmap)
@@ -1036,7 +1044,7 @@ ChangeWindowAttributes(register WindowPtr pWin, Mask vmask, XID *vlist, ClientPt
 		    MakeRootTile(pWin);
 		else
 		    pWin->backgroundState = None;
-#ifdef XCSECURITY
+#ifdef XACE
 		}
 		else
 		{ /* didn't change the background to None, so don't tell ddx */
@@ -2724,13 +2732,9 @@ MapWindow(register WindowPtr pWin, ClientPtr client)
     if (pWin->mapped)
 	return(Success);
 
-#ifdef XCSECURITY
-    /*  don't let an untrusted client map a child-of-trusted-window, InputOnly
-     *  window; too easy to steal device input
-     */
-    if ( (client->trustLevel != XSecurityClientTrusted) &&
-	 (pWin->drawable.class == InputOnly) &&
-	 (wClient(pWin->parent)->trustLevel == XSecurityClientTrusted) )
+#ifdef XACE
+    /*  general check for permission to map window */
+    if (!XaceHook(XACE_MAP_ACCESS, client, pWin))
 	 return Success;
 #endif	
 

@@ -354,6 +354,7 @@ main(int argc, char *argv[], char *envp[])
 	InitAtoms();
 	InitEvents();
 	InitGlyphCaching();
+	ResetExtensionPrivates();
 	ResetClientPrivates();
 	ResetScreenPrivates();
 	ResetWindowPrivates();
