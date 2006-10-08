@@ -2362,7 +2362,6 @@ NewInputDeviceRequest(InputOption *options)
     }
 
     for (option = options; option; option = option->next) {
-        ErrorF("option '%s': '%s'\n", option->key, option->value);
         if (strcmp(option->key, "driver") == 0) {
             if (pi) {
                 pi->driver = KdFindPointerDriver(option->value);
