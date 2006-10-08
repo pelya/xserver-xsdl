@@ -37,8 +37,8 @@
 #define MATCH_RULE "type='method_call',interface='org.x.config.input'"
 
 #define MALFORMED_MSG "config: malformed message, dropping"
-#define MALFORMED_MESSAGE DebugF(MALFORMED_MSG)
-#define MALFORMED_MESSAGE_ERROR DEBUGF(MALFORMED_MSG ": %s, %s", \
+#define MALFORMED_MESSAGE() DebugF(MALFORMED_MSG)
+#define MALFORMED_MESSAGE_ERROR() DebugF(MALFORMED_MSG ": %s, %s", \
                                        error.name, error.message)
 
 static DBusConnection *configConnection = NULL;
