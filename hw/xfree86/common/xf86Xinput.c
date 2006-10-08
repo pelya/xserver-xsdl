@@ -644,10 +644,6 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     int *valuators = NULL;
     int flags = 0;
 
-#ifdef DEBUG
-    ErrorF("xf8PostMotionEvent enter: is_absolute %s\n",
-           is_absolute ? "yes" : "no");
-#endif
     if (is_absolute)
         flags = POINTER_ABSOLUTE;
     else
@@ -658,9 +654,6 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     va_start(var, num_valuators);
     for (i = 0; i < num_valuators; i++) {
         valuators[i] = va_arg(var, int);
-#ifdef DEBUG
-        ErrorF("valuator %d: %d\n", i, valuators[i]);
-#endif
     }
 
     if (!xf86Events)
@@ -699,10 +692,8 @@ xf86PostProximityEvent(DeviceIntPtr	device,
     int				loop;
     Bool			is_core = device->coreEvents;
 
-#ifdef DEBUG
-    ErrorF("xf86PostProximityEvent enter\n");
-#endif
-    
+    ErrorF("xf86PostProximityEvent: no-op event called\n");
+
 #if 0
     DBG(5, ErrorF("xf86PostProximityEvent BEGIN 0x%x(%s) prox=%s is_core=%s is_absolute=%s\n",
                   device, device->name, is_in ? "true" : "false",
@@ -794,20 +785,10 @@ xf86PostButtonEvent(DeviceIntPtr	device,
     int *valuators = NULL;
     int i = 0, nevents = 0;
     
-#ifdef DEBUG
-    ErrorF("xf86PostButtonEvent BEGIN 0x%x(%s) button=%d down=%s is_absolute=%s\n",
-                  device, device->name, button,
-                  is_down ? "True" : "False",
-                  is_absolute ? "True" : "False");
-#endif
-
     valuators = xcalloc(sizeof(int), num_valuators);
 
     va_start(var, num_valuators);
     for (i = 0; i < num_valuators; i++) {
-#ifdef DEBUG
-        ErrorF("valuator %d: %d\n", i, valuators[i]);
-#endif
         valuators[i] = va_arg(var, int);
     }
 
@@ -839,7 +820,7 @@ xf86PostKeyEvent(DeviceIntPtr	device,
     int i = 0, nevents = 0, *valuators = NULL;
 
     /* instil confidence in the user */
-    ErrorF("this function has never been tested properly.  if things go quite "
+    DebugF("this function has never been tested properly.  if things go quite "
            "badly south after this message, then xf86PostKeyEvent is "
            "broken.\n");
 
@@ -848,8 +829,6 @@ xf86PostKeyEvent(DeviceIntPtr	device,
     if (!xf86Events)
         FatalError("Couldn't allocate event store\n");
 
-    /* the spec says that dkp/dkr events should only get valuators in
-     * absolute mode.  the spec knows all.  BOW BEFORE etc. */
     if (is_absolute) {
         valuators = xcalloc(sizeof(int), num_valuators);
         va_start(var, num_valuators);
@@ -878,11 +857,6 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
                       int               is_down)
 {
     int nevents = 0, i = 0;
-
-#ifdef DEBUG
-    ErrorF("xf86PKE enter: keycode %d is %s, device %d\n", key_code,
-           is_down ? "down" : "up", device->id);
-#endif
 
     if (!xf86Events)
         xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
