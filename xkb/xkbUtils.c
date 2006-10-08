@@ -45,21 +45,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/XKBgeom.h>
 #include "xkb.h"
 
-#ifdef MODE_SWITCH
-extern Bool noKME; /* defined in os/utils.c */
-#endif
-
 int	XkbDisableLockActions = 0;
-
-/***====================================================================***/
-
-#ifndef RETURN_SHOULD_REPEAT
-#if (defined(__osf__) && defined(__alpha))
-#define RETURN_SHOULD_REPEAT 1
-#else
-#define	RETURN_SHOULD_REPEAT 0
-#endif
-#endif
 
 /***====================================================================***/
 
@@ -560,12 +546,6 @@ CARD8			keysPerMod[XkbNumModifiers];
 	    }
 	}
     }
-#ifdef MODE_SWITCH
-    /* Fix up any of the KME stuff if we changed the core description.
-     */
-    if (!noKME)
-	HandleKeyBinding(keyc, &keyc->curKeySyms);
-#endif
     return;
 }
 
