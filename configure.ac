@@ -848,28 +848,6 @@ else
 fi
 AM_CONDITIONAL(DEBUG, [test "x$DEBUGGING" = xyes])
 
-# The Xorg binary needs to export symbols so that they can be used from modules
-# Some platforms require extra flags to do this.   gcc should set these flags
-# when -rdynamic is passed to it, other compilers/linkers may need to be added
-# here.
-if test "x$GCC" = "xyes"; then
-       GCC_WARNINGS1="-Wall -Wpointer-arith -Wstrict-prototypes"
-       GCC_WARNINGS2="-Wmissing-prototypes -Wmissing-declarations"
-       GCC_WARNINGS3="-Wnested-externs -fno-strict-aliasing"
-       GCC_WARNINGS="$GCC_WARNINGS1 $GCC_WARNINGS2 $GCC_WARNINGS3"
-       if test "x$WERROR" = "xyes"; then
-               GCC_WARNINGS="${GCC_WARNINGS} -Werror"
-       fi
-       XSERVER_CFLAGS="$GCC_WARNINGS $XSERVER_CFLAGS"
-       LD_EXPORT_SYMBOLS_FLAG="-rdynamic"
-fi
-case $host_os in
-       openbsd*)
-       LD_EXPORT_SYMBOLS_FLAG="-Wl,--export-dynamic"
-       ;;
-esac
-AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
-
 AC_DEFINE(USE_RGB_TXT, 1, [Use rgb.txt directly])
 AC_DEFINE(MITMISC, 1, [Support MIT Misc extension])
 AC_DEFINE(XTEST, 1, [Support XTest extension])
@@ -899,6 +877,29 @@ XSERVER_CFLAGS="${XSERVERCFLAGS_CFLAGS}"
 XSERVER_LIBS="${XSERVERLIBS_LIBS} ${SYS_LIBS} -lm"
 AC_SUBST([XSERVER_LIBS])
 AC_SUBST([SYS_LIBS])
+
+# The Xorg binary needs to export symbols so that they can be used from modules
+# Some platforms require extra flags to do this.   gcc should set these flags
+# when -rdynamic is passed to it, other compilers/linkers may need to be added
+# here.
+if test "x$GCC" = "xyes"; then
+       GCC_WARNINGS1="-Wall -Wpointer-arith -Wstrict-prototypes"
+       GCC_WARNINGS2="-Wmissing-prototypes -Wmissing-declarations"
+       GCC_WARNINGS3="-Wnested-externs -fno-strict-aliasing"
+       GCC_WARNINGS="$GCC_WARNINGS1 $GCC_WARNINGS2 $GCC_WARNINGS3"
+       if test "x$WERROR" = "xyes"; then
+               GCC_WARNINGS="${GCC_WARNINGS} -Werror"
+       fi
+       XSERVER_CFLAGS="$GCC_WARNINGS $XSERVER_CFLAGS"
+
+       LD_EXPORT_SYMBOLS_FLAG="-rdynamic"
+fi
+case $host_os in
+       openbsd*)
+       LD_EXPORT_SYMBOLS_FLAG="-Wl,--export-dynamic"
+       ;;
+esac
+AC_SUBST([LD_EXPORT_SYMBOLS_FLAG])
 
 dnl Imake defines SVR4 on SVR4 systems, and many files check for it, so
 dnl we need to replicate that here until those can all be fixed
