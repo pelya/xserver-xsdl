@@ -180,47 +180,6 @@ DeleteFocusClassDeviceStruct(DeviceIntPtr dev)
 
 /***********************************************************************
  *
- * Send an event to interested clients in all windows on all screens.
- *
- */
-
-void
-SendEventToAllWindows(DeviceIntPtr dev, Mask mask, xEvent * ev, int count)
-{
-    int i;
-    WindowPtr pWin, p1;
-
-    for (i = 0; i < screenInfo.numScreens; i++) {
-	pWin = WindowTable[i];
-	(void)DeliverEventsToWindow(pWin, ev, count, mask, NullGrab, dev->id);
-	p1 = pWin->firstChild;
-	FindInterestedChildren(dev, p1, mask, ev, count);
-    }
-}
-
-/***********************************************************************
- *
- * Walk through the window tree, finding all clients that want to know
- * about the ChangeDeviceNotify Event.
- *
- */
-
-void
-FindInterestedChildren(DeviceIntPtr dev, WindowPtr p1, Mask mask,
-		       xEvent * ev, int count)
-{
-    WindowPtr p2;
-
-    while (p1) {
-	p2 = p1->firstChild;
-	(void)DeliverEventsToWindow(p1, ev, count, mask, NullGrab, dev->id);
-	FindInterestedChildren(dev, p2, mask, ev, count);
-	p1 = p1->nextSib;
-    }
-}
-
-/***********************************************************************
- *
  * This procedure writes the reply for the XChangePointerDevice 
  * function, if the client and server have a different byte ordering.
  *
