@@ -97,11 +97,11 @@ extern void miPointerWarpCursor(
     ScreenPtr /*pScreen*/,
     int /*x*/,
     int /*y*/
-);
+) _X_DEPRECATED;
 
 extern int miPointerGetMotionBufferSize(
     void
-);
+) _X_DEPRECATED;
 
 extern int miPointerGetMotionEvents(
     DeviceIntPtr /*pPtr*/,
@@ -113,33 +113,33 @@ extern int miPointerGetMotionEvents(
 
 extern void miPointerUpdate(
     void
-);
+) _X_DEPRECATED;
 
 extern void miPointerDeltaCursor(
     int /*dx*/,
     int /*dy*/,
     unsigned long /*time*/
-);
+) _X_DEPRECATED;
 
 extern void miPointerAbsoluteCursor(
     int /*x*/,
     int /*y*/,
     unsigned long /*time*/
-);
+) _X_DEPRECATED;
 
 extern void miPointerPosition(
     int * /*x*/,
     int * /*y*/
-);
+) _X_DEPRECATED;
 
 extern void miPointerSetNewScreen(
     int, /*screen_no*/
 	int, /*x*/
 	int /*y*/
-);
+) _X_DEPRECATED;
 extern ScreenPtr miPointerCurrentScreen(
     void
-);
+) _X_DEPRECATED;
 
 extern void miRegisterPointerDevice(
     ScreenPtr /*pScreen*/,
