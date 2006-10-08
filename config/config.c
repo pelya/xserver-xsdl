@@ -36,6 +36,11 @@
 
 #define MATCH_RULE "type='method_call',interface='org.x.config.input'"
 
+#define MALFORMED_MSG "config: malformed message, dropping"
+#define MALFORMED_MESSAGE DebugF(MALFORMED_MSG)
+#define MALFORMED_MESSAGE_ERROR DEBUGF(MALFORMED_MSG ": %s, %s", \
+                                       error.name, error.message)
+
 static DBusConnection *configConnection = NULL;
 static int configfd = -1;
 static char busobject[32] = { 0 };
@@ -60,32 +65,17 @@ configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
     int deviceid = -1;
     DeviceIntPtr pDev = NULL;
 
-#ifdef DEBUG
-    ErrorF("[dbus] new message!\n");
-    ErrorF("       source: %s\n", dbus_message_get_sender(message));
-    ErrorF("       destination: %s\n", dbus_message_get_destination(message));
-    ErrorF("       signature: %s\n", dbus_message_get_signature(message));
-    ErrorF("       path: %s\n", dbus_message_get_path(message));
-    ErrorF("       interface: %s\n", dbus_message_get_interface(message));
-    ErrorF("       member: %s\n", dbus_message_get_member(message));
-    ErrorF("       method call? %s\n", (dbus_message_get_type(message) ==
-                                         DBUS_MESSAGE_TYPE_METHOD_CALL) ?
-                                        "yes" : "no");
-#endif
-
     dbus_error_init(&error);
 
     if (strcmp(dbus_message_get_interface(message),
                "org.x.config.input") == 0) {
         if (!dbus_message_iter_init(message, &iter)) {
-            ErrorF("failed to init iterator! this is probably bad.\n");
+            ErrorF("config: failed to init iterator\n");
             dbus_error_free(&error);
             return DBUS_HANDLER_RESULT_NEED_MEMORY; /* ?? */
         }
         if (strcmp(dbus_message_get_member(message), "add") == 0) {
-#ifdef DEBUG
-            ErrorF("       we want to add a device!\n");
-#endif
+            DebugF("config: adding device\n");
             /* signature should be [ss][ss]... */
             while (dbus_message_iter_get_arg_type(&iter) == DBUS_TYPE_ARRAY) {
                 option = (InputOption *)xcalloc(sizeof(InputOption), 1);
@@ -103,14 +93,14 @@ configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
 
                 if (dbus_message_iter_get_arg_type(&subiter) !=
                     DBUS_TYPE_STRING) {
-                    ErrorF("couldn't get the arg type\n");
+                    MALFORMED_MESSAGE();
                     xfree(option);
                     dbus_error_free(&error);
                     return DBUS_HANDLER_RESULT_HANDLED;
                 }
                 dbus_message_iter_get_basic(&subiter, &tmp);
                 if (!tmp) {
-                    ErrorF("couldn't get the key!\n");
+                    MALFORMED_MESSAGE();
                     xfree(option);
                     break;
                 }
@@ -122,7 +112,7 @@ configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
                 }
 
                 if (!dbus_message_iter_has_next(&subiter)) {
-                    ErrorF("broken message: no next\n");
+                    MALFORMED_MESSAGE();
                     xfree(option->key);
                     xfree(option);
                     dbus_error_free(&error);
@@ -132,14 +122,14 @@ configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
 
                 if (dbus_message_iter_get_arg_type(&subiter) !=
                     DBUS_TYPE_STRING) {
-                    ErrorF("couldn't get the arg type\n");
+                    MALFORMED_MESSAGE();
                     xfree(option);
                     dbus_error_free(&error);
                     return DBUS_HANDLER_RESULT_HANDLED;
                 }
                 dbus_message_iter_get_basic(&subiter, &tmp);
                 if (!tmp) {
-                    ErrorF("couldn't get the value!\n");
+                    MALFORMED_MESSAGE();
                     xfree(option->key);
                     xfree(option);
                     break;
@@ -158,23 +148,21 @@ configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
             }
 
             if (NewInputDeviceRequest(ret) != Success) {
-                ErrorF("[config] NIDR failed\n");
+                DebugF("config: NewInputDeviceRequest failed\n");
             }
             dbus_error_free(&error);
             return DBUS_HANDLER_RESULT_HANDLED;
         }
         else if (strcmp(dbus_message_get_member(message), "remove") == 0) {
-#ifdef DEBUG
-            ErrorF("        we want to remove a device!\n");
-#endif
+            ErrorF("config: removing device\n");
             if (!dbus_message_get_args(message, &error, DBUS_TYPE_INT32,
                                        &deviceid, DBUS_TYPE_INVALID)) {
-                ErrorF("couldn't get args: %s %s\n", error.name, error.message);
+                MALFORMED_MESSAGE_ERROR();
                 dbus_error_free(&error);
                 return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
             }
             if (deviceid < 0 || !(pDev = LookupDeviceIntRec(deviceid))) {
-                ErrorF("bogus device id %d\n", deviceid);
+                DebugF("config: bogus device id %d given\n", deviceid);
                 dbus_error_free(&error);
                 return DBUS_HANDLER_RESULT_HANDLED;
             }
@@ -251,10 +239,8 @@ configInitialise()
         FatalError("[dbus] couldn't register object path\n");
         return;
     }
-#ifdef DEBUG
-    ErrorF("[dbus] registered object path %s\n", busobject);
-    ErrorF("[dbus] registered and listening\n");
-#endif
+
+    DebugF("[dbus] registered object path %s\n", busobject);
 
     dbus_error_free(&error);
 
