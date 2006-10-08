@@ -653,7 +653,8 @@ xf86PostMotionEvent(DeviceIntPtr	device,
         FatalError("Couldn't allocate event store\n");
 
     nevents = GetPointerEvents(xf86Events, device, MotionNotify, 0,
-                               flags, 0, num_valuators, valuators);
+                               flags, first_valuator, num_valuators,
+                               valuators);
 
     for (i = 0; i < nevents; i++)
         mieqEnqueue(xf86Events + i);
@@ -792,7 +793,7 @@ xf86PostButtonEvent(DeviceIntPtr	device,
                                is_down ? ButtonPress : ButtonRelease, button,
                                is_absolute ? POINTER_ABSOLUTE :
                                              POINTER_RELATIVE,
-                               0, num_valuators, valuators);
+                               first_valuator, num_valuators, valuators);
 
     for (i = 0; i < nevents; i++)
         mieqEnqueue(xf86Events + i);
@@ -829,8 +830,8 @@ xf86PostKeyEvent(DeviceIntPtr	device,
 
         nevents = GetKeyboardValuatorEvents(xf86Events, device,
                                             is_down ? KeyPress : KeyRelease,
-                                            key_code, num_valuators,
-                                            valuators);
+                                            key_code, first_valuator,
+                                            num_valuators, valuators);
     }
     else {
         nevents = GetKeyboardEvents(xf86Events, device,
@@ -971,10 +972,9 @@ xf86XInputSetScreen(LocalDevicePtr	local,
 		    int			x,
 		    int			y)
 {
-    if (local->dev->coreEvents &&
-	(miPointerGetScreen(inputInfo.pointer) !=
-          screenInfo.screens[screen_number])) {
-	miPointerSetScreen(inputInfo.pointer, screen_number, x, y);
+    if (miPointerGetScreen(local->dev) !=
+          screenInfo.screens[screen_number]) {
+	miPointerSetScreen(local->dev, screen_number, x, y);
     }
 }
 
@@ -983,20 +983,11 @@ _X_EXPORT void
 xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
 			   int resolution, int min_res, int max_res)
 {
-#ifdef XINPUT
     if (!dev || !dev->valuator)
         return;
 
-    if (maxval == -1) {
-	if (axnum == 0)
-	    maxval = screenInfo.screens[0]->width - 1;
-	else if (axnum == 1)
-	    maxval = screenInfo.screens[0]->height - 1;
-	/* else? */
-    }
     InitValuatorAxisStruct(dev, axnum, minval, maxval, resolution, min_res,
 			   max_res);
-#endif
 }
 
 /*
@@ -1006,7 +997,6 @@ xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
 _X_EXPORT void
 xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum)
 {
-#ifdef XINPUT
     if (axnum == 0) {
 	dev->valuator->axisVal[0] = screenInfo.screens[0]->width / 2;
         dev->valuator->lastx = dev->valuator->axisVal[0];
@@ -1015,7 +1005,6 @@ xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum)
 	dev->valuator->axisVal[1] = screenInfo.screens[0]->height / 2;
         dev->valuator->lasty = dev->valuator->axisVal[1];
     }
-#endif
 }
 
 /* end of xf86Xinput.c */
