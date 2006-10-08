@@ -402,7 +402,8 @@ extern int GetKeyboardValuatorEvents(
     DeviceIntPtr pDev,
     int type,
     int key_code,
-    int num_axes,
+    int first_valuator,
+    int num_valuator,
     int *valuators);
 
 extern DeviceIntPtr LookupDeviceIntRec(

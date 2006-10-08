@@ -4639,9 +4639,10 @@ GetKeyboardEvents(xEvent *events, DeviceIntPtr pDev, int type, int key_code) {
  * KeyPresses.
  */
 int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
-                              int key_code, int num_valuators,
-                              int *valuators) {
-    int numEvents = 0, ms = 0, first_valuator = 0;
+                              int key_code, int first_valuator,
+                              int num_valuators, int *valuators) {
+    int numEvents = 0, ms = 0, i = 0;
+    int final_valuator = first_valuator + num_valuators;
     KeySym sym = pDev->key->curKeySyms.map[key_code *
                                            pDev->key->curKeySyms.mapWidth];
     deviceKeyButtonPointer *kbp = NULL;
@@ -4721,27 +4722,26 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
 
     if (num_valuators) {
         kbp->deviceid |= MORE_EVENTS;
-        while (first_valuator < num_valuators) {
+        for (i = first_valuator; i < final_valuator; i += 6) {
             xv = (deviceValuator *) ++events;
             xv->type = DeviceValuator;
-            xv->first_valuator = first_valuator;
+            xv->first_valuator = i;
             xv->num_valuators = num_valuators;
             xv->deviceid = kbp->deviceid;
             switch (num_valuators - first_valuator) {
             case 6:
-                xv->valuator5 = valuators[first_valuator+5];
+                xv->valuator5 = valuators[i+5];
             case 5:
-                xv->valuator4 = valuators[first_valuator+4];
+                xv->valuator4 = valuators[i+4];
             case 4:
-                xv->valuator3 = valuators[first_valuator+3];
+                xv->valuator3 = valuators[i+3];
             case 3:
-                xv->valuator2 = valuators[first_valuator+2];
+                xv->valuator2 = valuators[i+2];
             case 2:
-                xv->valuator1 = valuators[first_valuator+1];
+                xv->valuator1 = valuators[i+1];
             case 1:
-                xv->valuator0 = valuators[first_valuator];
+                xv->valuator0 = valuators[i];
             }
-            first_valuator += 6;
         }
     }
 
