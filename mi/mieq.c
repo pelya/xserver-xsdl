@@ -104,9 +104,9 @@ mieqEnqueue (xEvent *e)
                                       &laste->event[0];
 
     if (e->u.u.type == MotionNotify) {
-        miPointerAbsoluteCursor(e->u.keyButtonPointer.rootX,
-                                e->u.keyButtonPointer.rootY,
-                                e->u.keyButtonPointer.time);
+        miPointerSetPosition(pDev, e->u.keyButtonPointer.rootX,
+                             e->u.keyButtonPointer.rootY,
+                             e->u.keyButtonPointer.time);
         pDev = inputInfo.pointer;
         isMotion = inputInfo.pointer->id & DEVICE_BITS;
     }

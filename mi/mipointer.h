@@ -111,40 +111,59 @@ extern int miPointerGetMotionEvents(
     ScreenPtr /*pScreen*/
 );
 
+/* Deprecated in favour of miPointerUpdateSprite. */
 extern void miPointerUpdate(
     void
 ) _X_DEPRECATED;
 
+/* Deprecated in favour of miSetPointerPosition. */
 extern void miPointerDeltaCursor(
     int /*dx*/,
     int /*dy*/,
     unsigned long /*time*/
 ) _X_DEPRECATED;
-
 extern void miPointerAbsoluteCursor(
     int /*x*/,
     int /*y*/,
     unsigned long /*time*/
 ) _X_DEPRECATED;
 
+/* Deprecated in favour of miGetPointerPosition. */
 extern void miPointerPosition(
     int * /*x*/,
     int * /*y*/
 ) _X_DEPRECATED;
 
+/* Deprecated in favour of miPointerSetScreen. */
 extern void miPointerSetNewScreen(
     int, /*screen_no*/
-	int, /*x*/
-	int /*y*/
+    int, /*x*/
+    int /*y*/
 ) _X_DEPRECATED;
+
+/* Deprecated in favour of miPointerGetScreen. */
 extern ScreenPtr miPointerCurrentScreen(
     void
 ) _X_DEPRECATED;
 
-extern void miRegisterPointerDevice(
-    ScreenPtr /*pScreen*/,
-    DeviceIntPtr /*pDevice*/
-);
+extern ScreenPtr miPointerGetScreen(
+    DeviceIntPtr pDev);
+extern void miPointerSetScreen(
+    DeviceIntPtr pDev);
+
+extern void miPointerGetPosition(
+    DeviceIntPtr pDev,
+    int *x,
+    int *y);
+
+extern void miPointerSetPosition(
+    DeviceIntPtr pDev,
+    int x,
+    int y,
+    unsigned long time);
+
+extern void miPointerUpdateSprite(
+    DeviceIntPtr pDev);
 
 extern int miPointerScreenIndex;
 

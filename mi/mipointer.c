@@ -44,6 +44,7 @@ in this Software without prior written authorization from The Open Group.
 # include   "mipointrst.h"
 # include   "cursorstr.h"
 # include   "dixstruct.h"
+# include   "inputstr.h"
 
 _X_EXPORT int miPointerScreenIndex;
 static unsigned long miPointerGeneration = 0;
@@ -178,7 +179,7 @@ miPointerDisplayCursor (pScreen, pCursor)
 {
     miPointer.pCursor = pCursor;
     miPointer.pScreen = pScreen;
-    miPointerUpdate ();
+    miPointerUpdateSprite(inputInfo.pointer);
     return TRUE;
 }
 
@@ -225,7 +226,7 @@ miPointerSetCursorPosition(pScreen, x, y, generateEvent)
     /* device dependent - must pend signal and call miPointerWarpCursor */
     (*pScreenPriv->screenFuncs->WarpCursor) (pScreen, x, y);
     if (!generateEvent)
-	miPointerUpdate();
+	miPointerUpdateSprite(inputInfo.pointer);
     return TRUE;
 }
 
@@ -308,6 +309,12 @@ miPointerGetMotionEvents (pPtr, coords, start, stop, pScreen)
 void
 miPointerUpdate ()
 {
+    miPointerUpdateSprite(inputInfo.pointer);
+}
+
+void
+miPointerUpdateSprite (DeviceIntPtr pDev)
+{
     ScreenPtr		pScreen;
     miPointerScreenPtr	pScreenPriv;
     CursorPtr		pCursor;
@@ -376,11 +383,10 @@ miPointerUpdate ()
  */
 
 void
-miPointerDeltaCursor (dx, dy, time)
-    int		    dx, dy;
-    unsigned long   time;
+miPointerDeltaCursor (int dx, int dy, unsigned long time)
 {
-    miPointerAbsoluteCursor (miPointer.x + dx, miPointer.y + dy, time);
+    miPointerSetPosition(inputInfo.pointer, miPointer.x + dx,
+                         miPointer.y + dy, time);
 }
 
 void
@@ -408,9 +414,13 @@ miPointerCurrentScreen ()
  */
 
 _X_EXPORT void
-miPointerAbsoluteCursor (x, y, time)
-    int		    x, y;
-    unsigned long   time;
+miPointerAbsoluteCursor (int x, int y, unsigned long time)
+{
+    miPointerSetPosition(inputInfo.pointer, x, y, time);
+}
+
+_X_EXPORT void
+miPointerSetPosition(DeviceIntPtr pDev, int x, int y, unsigned long time)
 {
     miPointerScreenPtr	pScreenPriv;
     ScreenPtr		pScreen;
@@ -419,6 +429,7 @@ miPointerAbsoluteCursor (x, y, time)
     pScreen = miPointer.pScreen;
     if (!pScreen)
 	return;	    /* called before ready */
+
     if (x < 0 || x >= pScreen->width || y < 0 || y >= pScreen->height)
     {
 	pScreenPriv = GetScreenPrivate (pScreen);
@@ -455,8 +466,13 @@ miPointerAbsoluteCursor (x, y, time)
 }
 
 _X_EXPORT void
-miPointerPosition (x, y)
-    int	    *x, *y;
+miPointerPosition (int *x, int *y)
+{
+    miPointerGetPosition(inputInfo.pointer, x, y);
+}
+
+_X_EXPORT void
+miPointerGetPosition(DeviceIntPtr pDev, int *x, int *y)
 {
     *x = miPointer.x;
     *y = miPointer.y;
@@ -473,7 +489,6 @@ miPointerMove (pScreen, x, y, time)
     unsigned long   time;
 {
     SetupScreen(pScreen);
-    xEvent		xE;
     miHistoryPtr	history;
     int			prev, end, start;
 
