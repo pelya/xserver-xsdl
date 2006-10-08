@@ -510,6 +510,12 @@ __attribute((noreturn))
 #endif
 ;
 
+#ifdef DEBUG
+#define DebugF ErrorF
+#else
+#define DebugF(x, ...) /* */
+#endif
+
 extern void VErrorF(const char *f, va_list args);
 extern void ErrorF(const char *f, ...) _printf_attribute(1,2);
 extern void Error(char *str);
