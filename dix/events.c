@@ -4866,7 +4866,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     if (type != MotionNotify && type != ButtonPress && type != ButtonRelease)
         return 0;
 
-    if (!pDev->button || (pDev->coreEvents && !(cp->button || !cp->valuator)))
+    if (!pDev->button || (pDev->coreEvents && (!cp->button || !cp->valuator)))
         return 0;
 
     if (pDev->coreEvents)
