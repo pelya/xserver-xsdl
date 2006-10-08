@@ -149,9 +149,6 @@ EnableDevice(register DeviceIntPtr dev)
     if ((*prev != dev) || !dev->inited ||
 	((ret = (*dev->deviceProc)(dev, DEVICE_ON)) != Success)) {
         ErrorF("couldn't enable device %d\n", dev->id);
-#ifdef DEBUG
-        ErrorF("prev is %p, dev is %p, dev->inited is %d, ret is %d\n", prev, dev, dev->inited, ret);
-#endif
 	return FALSE;
     }
     *prev = dev->next;
@@ -365,25 +362,15 @@ InitAndStartDevices()
     register DeviceIntPtr dev, next;
 
     for (dev = inputInfo.off_devices; dev; dev = dev->next) {
-#ifdef DEBUG
-        ErrorF("(dix) initialising device %d\n", dev->id);
-#endif
+        DebugF("(dix) initialising device %d\n", dev->id);
 	ActivateDevice(dev);
-#ifdef DEBUG
-        ErrorF("(dix) finished device %d, inited is %d\n", dev->id, dev->inited);
-#endif
     }
     for (dev = inputInfo.off_devices; dev; dev = next)
     {
-#ifdef DEBUG
-        ErrorF("(dix) enabling device %d\n", dev->id);
-#endif
+        DebugF("(dix) enabling device %d\n", dev->id);
 	next = dev->next;
 	if (dev->inited && dev->startup)
 	    (void)EnableDevice(dev);
-#ifdef DEBUG
-        ErrorF("(dix) finished device %d\n", dev->id);
-#endif
     }
     for (dev = inputInfo.devices;
 	 dev && (dev != inputInfo.keyboard);
@@ -527,9 +514,7 @@ RemoveDevice(DeviceIntPtr dev)
     DeviceIntRec dummyDev;
 #endif
 
-#ifdef DEBUG
-    ErrorF("want to remove device %p, kb is %p, pointer is %p\n", dev, inputInfo.keyboard, inputInfo.pointer);
-#endif
+    DebugF("(dix) removing device %d\n", dev->id);
 
     if (!dev || dev == inputInfo.keyboard || dev == inputInfo.pointer)
         return BadImplementation;
