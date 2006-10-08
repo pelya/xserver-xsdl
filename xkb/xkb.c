@@ -347,6 +347,7 @@ ProcXkbSelectEvents(ClientPtr client)
 
 /***====================================================================***/
 
+/* FIXME: Needs to ding on all core-sending devices. */
 int
 ProcXkbBell(ClientPtr client)
 {
@@ -894,6 +895,7 @@ ProcXkbSetControls(ClientPtr client)
     return client->noClientException;
 }
 
+/* FIXME: Needs to set rate on all core-sending devices. */
 int
 XkbSetRepeatRate(DeviceIntPtr dev,int timeout,int interval,int major,int minor)
 {
@@ -2325,6 +2327,7 @@ XkbServerMapPtr		srv = xkbi->desc->server;
     return (char *)wire;
 }
 
+/* FIXME: Needs to set map on all core-sending devices. */
 int
 ProcXkbSetMap(ClientPtr client)
 {
@@ -2641,6 +2644,7 @@ ProcXkbGetCompatMap(ClientPtr client)
     return XkbSendCompatMap(client,compat,&rep);
 }
 
+/* FIXME: Needs to set compat map on all core-sending devices. */
 int
 ProcXkbSetCompatMap(ClientPtr client)
 {
@@ -2918,6 +2922,7 @@ XkbIndicatorPtr		leds;
     return XkbSendIndicatorMap(client,leds,&rep);
 }
 
+/* FIXME: Needs to set indicator map on all core-sending devices. */
 int
 ProcXkbSetIndicatorMap(ClientPtr client)
 {
@@ -3081,6 +3086,7 @@ ProcXkbGetNamedIndicator(ClientPtr client)
     return client->noClientException;
 }
 
+/* FIXME: Needs to set indicator on all core-sending devices. */
 int
 ProcXkbSetNamedIndicator(ClientPtr client)
 {
@@ -3569,6 +3575,7 @@ char *	str;
     return True;
 }
 
+/* FIXME: Needs to set names on all core-sending devices. */
 int
 ProcXkbSetNames(ClientPtr client)
 {
@@ -4866,6 +4873,7 @@ char *		wire;
     return Success;
 }
 
+/* FIXME: Needs to set geom on all core-sending devices. */
 int
 ProcXkbSetGeometry(ClientPtr client)
 {
@@ -6017,6 +6025,7 @@ DeviceIntPtr			kbd;
     return (char *)ledWire;
 }
 
+/* FIXME: Needs to set info on all core-sending devices. */
 int
 ProcXkbSetDeviceInfo(ClientPtr client)
 {
