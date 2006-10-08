@@ -86,11 +86,6 @@
 #define XI_PRIVATE(dev) \
 	(((LocalDevicePtr)((dev)->public.devicePrivate))->private)
 
-#ifdef DBG
-#undef DBG
-#endif
-#define DBG(lvl, f) {if ((lvl) <= xf86GetVerbosity()) f;}
-
 #ifdef HAS_MOTION_HISTORY
 #undef HAS_MOTION_HISTORY
 #endif

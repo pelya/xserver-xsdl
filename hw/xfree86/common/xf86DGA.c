@@ -47,6 +47,8 @@
 #endif
 #include "xf86Xinput.h"
 
+#include "mi.h"
+
 static unsigned long DGAGeneration = 0;
 static int DGAScreenIndex = -1;
 

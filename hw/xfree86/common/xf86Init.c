@@ -981,7 +981,6 @@ InitInput(argc, argv)
     IDevPtr pDev;
     InputDriverPtr pDrv;
     InputInfoPtr pInfo;
-    static InputInfoPtr coreKeyboard = NULL, corePointer = NULL;
 
     xf86Info.vtRequestsPending = FALSE;
     xf86Info.inputPending = FALSE;

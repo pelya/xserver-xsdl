@@ -77,10 +77,9 @@ SOFTWARE.
 #include "swaprep.h"
 #include "dixevents.h"
 
-#ifdef XINPUT
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"
-#endif
+#include "exevents.h"
 
 int CoreDevicePrivatesIndex = 0, CoreDevicePrivatesGeneration = -1;
 
@@ -179,10 +178,8 @@ int
 ActivateDevice(DeviceIntPtr dev)
 {
     int ret = Success;
-#ifdef XINPUT
     devicePresenceNotify ev;
     DeviceIntRec dummyDev;
-#endif
 
     if (!dev || !dev->deviceProc)
         return BadImplementation;
@@ -190,13 +187,11 @@ ActivateDevice(DeviceIntPtr dev)
     ret = (*dev->deviceProc) (dev, DEVICE_INIT);
     dev->inited = (ret == Success);
     
-#ifdef XINPUT
     ev.type = DevicePresenceNotify;
     ev.time = currentTime.milliseconds;
     dummyDev.id = 0;
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
-                          &ev, 1);
-#endif
+                          (xEvent *) &ev, 1);
 
     return ret;
 }
@@ -509,10 +504,8 @@ RemoveDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr prev,tmp,next;
     int ret = BadMatch;
-#ifdef XINPUT
     devicePresenceNotify ev;
     DeviceIntRec dummyDev;
-#endif
 
     DebugF("(dix) removing device %d\n", dev->id);
 
@@ -549,15 +542,13 @@ RemoveDevice(DeviceIntPtr dev)
 	}
     }
     
-#ifdef XINPUT
     if (ret == Success) {
         ev.type = DevicePresenceNotify;
         ev.time = currentTime.milliseconds;
         dummyDev.id = 0;
         SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
-                              &ev, 1);
+                              (xEvent *) &ev, 1);
     }
-#endif
 
     return ret;
 }
@@ -1128,9 +1119,7 @@ static int
 DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
                      int numKeyPerModifier)
 {
-    KeyClassPtr keyc = NULL;
     DeviceIntPtr pDev = NULL;
-    KeyCode *map = NULL;
     int i = 0, inputMapLen = numKeyPerModifier * 8;
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
@@ -1200,8 +1189,6 @@ ProcSetModifierMapping(ClientPtr client)
 {
     xSetModifierMappingReply rep;
     REQUEST(xSetModifierMappingReq);
-    register int i;
-    DeviceIntPtr keybd = inputInfo.keyboard;
     
     REQUEST_AT_LEAST_SIZE(xSetModifierMappingReq);
 
@@ -1332,7 +1319,6 @@ ProcSetPointerMapping(ClientPtr client)
     BYTE *map;
     int ret;
     xSetPointerMappingReply rep;
-    unsigned int i;
 
     REQUEST_AT_LEAST_SIZE(xSetPointerMappingReq);
     if (client->req_len != (sizeof(xSetPointerMappingReq)+stuff->nElts+3) >> 2)
@@ -1448,7 +1434,6 @@ DoChangeKeyboardControl (ClientPtr client, DeviceIntPtr keybd, XID *vlist,
     int key = DO_ALL;
     BITS32 index2;
     int mask = vmask, i;
-    DeviceIntPtr dev = NULL;
 
     ctrl = keybd->kbdfeed->ctrl;
     while (vmask) {
