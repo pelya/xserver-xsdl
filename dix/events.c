@@ -2777,12 +2777,6 @@ drawable.id:0;
     }
 #endif
 
-#ifdef DEBUG
-    if (((xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease))) {
-	ErrorF("CoreProcessKbdEvent: Key %d %s\n",key,
-			(xE->u.u.type==KeyPress?"down":"up"));
-    }
-#endif
     switch (xE->u.u.type)
     {
 	case KeyPress: 
@@ -2863,12 +2857,12 @@ FixKeyState (register xEvent *xE, register DeviceIntPtr keybd)
     key = xE->u.u.detail;
     kptr = &keyc->down[key >> 3];
     bit = 1 << (key & 7);
-#ifdef DEBUG
+
     if (((xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease))) {
-	ErrorF("FixKeyState: Key %d %s\n",key,
+	DebugF("FixKeyState: Key %d %s\n",key,
 			(xE->u.u.type==KeyPress?"down":"up"));
     }
-#endif
+
     switch (xE->u.u.type)
     {
 	case KeyPress: 
