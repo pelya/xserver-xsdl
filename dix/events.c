@@ -4619,7 +4619,7 @@ GetMaximumEventsNum() {
  */
 int
 GetKeyboardEvents(xEvent *events, DeviceIntPtr pDev, int type, int key_code) {
-    return GetKeyboardValuatorEvents(events, pDev, type, key_code, 0, NULL);
+    return GetKeyboardValuatorEvents(events, pDev, type, key_code, 0, 0, NULL);
 }
 
 /**
@@ -4704,7 +4704,8 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
         {
             numEvents += GetKeyboardValuatorEvents(events, pDev,
                                                    KeyRelease, key_code,
-                                                   num_valuators, valuators);
+                                                   first_valuator, num_valuators,
+                                                   valuators);
             events += numEvents;
         }
     }
