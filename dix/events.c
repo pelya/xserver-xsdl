@@ -4789,13 +4789,26 @@ int GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
 
 /* Originally a part of xf86PostMotionEvent. */
 static void
-acceleratePointer(DeviceIntPtr pDev, int num_valuators, int *valuators)
+acceleratePointer(DeviceIntPtr pDev, int first_valuator, int num_valuators,
+                  int *valuators)
 {
     float mult = 0.0;
-    int dx = num_valuators >= 1 ? valuators[0] : 0;
-    int dy = num_valuators >= 2 ? valuators[1] : 0;
+    int dx = 0, dy = 0;
+    int *px = NULL, *py = NULL;
 
     if (!num_valuators || !valuators)
+        return;
+
+    if (first_valuator == 0) {
+        dx = valuators[0];
+        px = &valuators[0];
+    }
+    if (first_valuator <= 1 && num_valuators >= (2 - first_valuator)) {
+        dy = valuators[1 - first_valuator];
+        py = &valuators[1 - first_valuator];
+    }
+
+    if (!dx && !dy)
         return;
 
     /*
@@ -4809,20 +4822,24 @@ acceleratePointer(DeviceIntPtr pDev, int num_valuators, int *valuators)
                                              (float)(pDev->ptrfeed->ctrl.num)) /
                                              (float)(pDev->ptrfeed->ctrl.den) +
                                             pDev->valuator->dxremaind;
-                valuators[0] = (int)pDev->valuator->dxremaind;
-                pDev->valuator->dxremaind = pDev->valuator->dxremaind -
-                                            (float)valuators[0];
+                if (px) {
+                    *px = (int)pDev->valuator->dxremaind;
+                    pDev->valuator->dxremaind = pDev->valuator->dxremaind -
+                                                (float)(*px);
+                }
 
                 pDev->valuator->dyremaind = ((float)dy *
                                              (float)(pDev->ptrfeed->ctrl.num)) /
                                              (float)(pDev->ptrfeed->ctrl.den) +
                                             pDev->valuator->dyremaind;
-                valuators[1] = (int)pDev->valuator->dyremaind;
-                pDev->valuator->dyremaind = pDev->valuator->dyremaind -
-                                            (float)valuators[1];
+                if (py) {
+                    *py = (int)pDev->valuator->dyremaind;
+                    pDev->valuator->dyremaind = pDev->valuator->dyremaind -
+                                                (float)(*py);
+                }
             }
         }
-        else if (dx || dy) {
+        else {
             mult = pow((float)(dx * dx + dy * dy),
                        ((float)(pDev->ptrfeed->ctrl.num) /
                         (float)(pDev->ptrfeed->ctrl.den) - 1.0) /
@@ -4830,16 +4847,16 @@ acceleratePointer(DeviceIntPtr pDev, int num_valuators, int *valuators)
             if (dx) {
                 pDev->valuator->dxremaind = mult * (float)dx +
                                             pDev->valuator->dxremaind;
-                valuators[0] = (int)pDev->valuator->dxremaind;
+                *px = (int)pDev->valuator->dxremaind;
                 pDev->valuator->dxremaind = pDev->valuator->dxremaind -
-                                            (float)valuators[0];
+                                            (float)(*px);
             }
             if (dy) {
                 pDev->valuator->dyremaind = mult * (float)dy +
                                             pDev->valuator->dyremaind;
-                valuators[1] = (int)pDev->valuator->dyremaind;
+                *py = (int)pDev->valuator->dyremaind;
                 pDev->valuator->dyremaind = pDev->valuator->dyremaind -
-                                            (float)valuators[1];
+                                            (float)(*py);
             }
         }
     }
@@ -4855,8 +4872,9 @@ acceleratePointer(DeviceIntPtr pDev, int num_valuators, int *valuators)
  */
 int
 GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
-                 int flags, int num_valuators, int *valuators) {
-    int numEvents = 0, ms = 0, first_valuator = 0;
+                 int flags, int first_valuator, int num_valuators,
+                 int *valuators) {
+    int num_events = 0, ms = 0, final_valuator = 0, i = 0;
     deviceKeyButtonPointer *kbp = NULL;
     deviceValuator *xv = NULL;
     AxisInfoPtr axes = NULL;
@@ -4869,19 +4887,26 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     if (!pDev->button || (pDev->coreEvents && (!cp->button || !cp->valuator)))
         return 0;
 
-    if (pDev->coreEvents)
-        numEvents = 2;
-    else
-        numEvents = 1;
+    /* You fail. */
+    if (first_valuator < 0)
+        return 0;
 
-    if (num_valuators > 2 && sendValuators) {
+    if (pDev->coreEvents)
+        num_events = 2;
+    else
+        num_events = 1;
+
+    /* Do we need to send a DeviceValuator event? */
+    if ((num_valuators + first_valuator) >= 2 && sendValuators) {
         if (((num_valuators / 6) + 1) > MAX_VALUATOR_EVENTS)
             num_valuators = MAX_VALUATOR_EVENTS;
-        numEvents += (num_valuators / 6) + 1;
+        num_events += (num_valuators / 6) + 1;
     }
-    else if (type == MotionNotify && num_valuators < 2) {
+    else if (type == MotionNotify && num_valuators <= 0) {
         return 0;
     }
+
+    final_valuator = num_valuators + first_valuator;
 
     ms = GetTimeInMillis();
 
@@ -4890,7 +4915,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     kbp->deviceid = pDev->id;
 
     if (flags & POINTER_ABSOLUTE) {
-        if (num_valuators >= 1) {
+        if (num_valuators >= 1 && first_valuator == 0) {
             kbp->root_x = valuators[0];
         }
         else {
@@ -4899,8 +4924,9 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
             else
                 kbp->root_x = pDev->valuator->lastx;
         }
-        if (num_valuators >= 2) {
-            kbp->root_y = valuators[1];
+
+        if (first_valuator <= 1 && num_valuators >= (2 - first_valuator)) {
+            kbp->root_y = valuators[1 - first_valuator];
         }
         else {
             if (pDev->coreEvents)
@@ -4911,25 +4937,30 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     }
     else {
         if (flags & POINTER_ACCELERATE)
-            acceleratePointer(pDev, num_valuators, valuators);
+            acceleratePointer(pDev, first_valuator, num_valuators,
+                              valuators);
 
         if (pDev->coreEvents) {
-            if (num_valuators >= 1)
+            if (first_valuator == 0 && num_valuators >= 1)
                 kbp->root_x = cp->valuator->lastx + valuators[0];
             else
                 kbp->root_x = cp->valuator->lastx;
-            if (num_valuators >= 2)
-                kbp->root_y = cp->valuator->lasty + valuators[1];
+
+            if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
+                kbp->root_y = cp->valuator->lasty +
+                              valuators[1 - first_valuator];
             else
                 kbp->root_y = cp->valuator->lasty;
         }
         else {
-            if (num_valuators >= 1)
+            if (first_valuator == 0 && num_valuators >= 1)
                 kbp->root_x = pDev->valuator->lastx + valuators[0];
             else
                 kbp->root_x = pDev->valuator->lastx;
-            if (num_valuators >= 2)
-                kbp->root_y = pDev->valuator->lasty + valuators[1];
+
+            if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
+                kbp->root_y = pDev->valuator->lasty +
+                              valuators[1 - first_valuator];
             else
                 kbp->root_y = pDev->valuator->lasty;
         }
@@ -4941,6 +4972,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         kbp->root_x = axes->min_value;
     if (axes->max_value > 0 && kbp->root_x > axes->max_value)
         kbp->root_x = axes->max_value;
+
     axes++;
     if (kbp->root_y < axes->min_value)
         kbp->root_y = axes->min_value;
@@ -4965,35 +4997,36 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         kbp->detail = pDev->button->map[buttons];
     }
 
-    if (num_valuators > 2 && sendValuators) {
+    if (final_valuator > 2 && sendValuators) {
         kbp->deviceid |= MORE_EVENTS;
-        while (first_valuator < num_valuators) {
+        for (i = first_valuator; i < final_valuator; i += 6) {
             xv = (deviceValuator *) ++events;
             xv->type = DeviceValuator;
-            xv->first_valuator = first_valuator;
+            xv->first_valuator = i;
             xv->num_valuators = num_valuators;
             xv->deviceid = kbp->deviceid;
-            switch (num_valuators - first_valuator) {
+            switch (final_valuator - i) {
             case 6:
-                xv->valuator5 = valuators[first_valuator+5];
+                xv->valuator5 = valuators[i+5];
             case 5:
-                xv->valuator4 = valuators[first_valuator+4];
+                xv->valuator4 = valuators[i+4];
             case 4:
-                xv->valuator3 = valuators[first_valuator+3];
+                xv->valuator3 = valuators[i+3];
             case 3:
-                xv->valuator2 = valuators[first_valuator+2];
+                xv->valuator2 = valuators[i+2];
             case 2:
-                if (first_valuator == 0)
+                /* x and y may have been accelerated. */
+                if (i == 0)
                     xv->valuator1 = kbp->root_y;
                 else
-                    xv->valuator1 = valuators[first_valuator+1];
+                    xv->valuator1 = valuators[i+1];
             case 1:
-                if (first_valuator == 0)
+                /* x and y may have been accelerated. */
+                if (i == 0)
                     xv->valuator0 = kbp->root_x;
                 else
-                    xv->valuator0 = valuators[first_valuator];
+                    xv->valuator0 = valuators[i];
             }
-            first_valuator += 6;
         }
     }
 
@@ -5005,8 +5038,11 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         events->u.keyButtonPointer.rootY = kbp->root_y;
         cp->valuator->lastx = kbp->root_x;
         cp->valuator->lasty = kbp->root_y;
+
         if (type == ButtonPress || type == ButtonRelease) {
-            /* Core buttons remapping shouldn't be transitive. */
+            /* We hijack SetPointerMapping to work on all core-sending
+             * devices, so we use the device-specific map here instead of
+             * the core one. */
             events->u.u.detail = pDev->button->map[buttons];
         }
         else {
@@ -5018,5 +5054,5 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
             inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
     }
 
-    return numEvents;
+    return num_events;
 }

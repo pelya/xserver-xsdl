@@ -669,7 +669,7 @@ xf86PostMotionEvent(DeviceIntPtr	device,
         FatalError("Couldn't allocate event store\n");
 
     nevents = GetPointerEvents(xf86Events, device, MotionNotify, 0,
-                               flags, num_valuators, valuators);
+                               flags, 0, num_valuators, valuators);
 
     for (i = 0; i < nevents; i++)
         mieqEnqueue(xf86Events + i);
@@ -820,7 +820,7 @@ xf86PostButtonEvent(DeviceIntPtr	device,
                                is_down ? ButtonPress : ButtonRelease, button,
                                is_absolute ? POINTER_ABSOLUTE :
                                              POINTER_RELATIVE,
-                               num_valuators, valuators);
+                               0, num_valuators, valuators);
 
     for (i = 0; i < nevents; i++)
         mieqEnqueue(xf86Events + i);

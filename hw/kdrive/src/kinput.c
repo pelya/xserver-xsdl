@@ -2049,7 +2049,7 @@ _KdEnqueuePointerEvent (KdPointerInfo *pi, int type, int x, int y, int z,
     if (!force && KdHandlePointerEvent(pi, type, x, y, z, b, absrel))
         return;
 
-    nEvents = GetPointerEvents(kdEvents, pi->dixdev, type, b, absrel, 3,
+    nEvents = GetPointerEvents(kdEvents, pi->dixdev, type, b, absrel, 0, 3,
                                valuators);
     for (i = 0; i < nEvents; i++)
         KdQueueEvent(kdEvents + i);

@@ -387,7 +387,8 @@ extern int GetPointerEvents(
     int type,
     int buttons,
     int flags,
-    int num_axes,
+    int first_valuator,
+    int num_valuators,
     int *valuators);
 
 extern int GetKeyboardEvents(
