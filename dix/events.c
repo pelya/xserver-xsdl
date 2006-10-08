@@ -131,6 +131,8 @@ of the copyright holder.
 #endif
 #include "globals.h"
 
+#include "mipointer.h"
+
 #ifdef XKB
 #include <X11/extensions/XKBproto.h>
 #include <X11/extensions/XKBsrv.h>
@@ -4874,6 +4876,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     AxisInfoPtr axes = NULL;
     Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
     DeviceIntPtr cp = inputInfo.pointer;
+    int x = 0, y = 0;
 
     if (type != MotionNotify && type != ButtonPress && type != ButtonRelease)
         return 0;
@@ -4910,23 +4913,23 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
 
     if (flags & POINTER_ABSOLUTE) {
         if (num_valuators >= 1 && first_valuator == 0) {
-            kbp->root_x = valuators[0];
+            x = valuators[0];
         }
         else {
             if (pDev->coreEvents)
-                kbp->root_x = cp->valuator->lastx;
+                x = cp->valuator->lastx;
             else
-                kbp->root_x = pDev->valuator->lastx;
+                x = pDev->valuator->lastx;
         }
 
         if (first_valuator <= 1 && num_valuators >= (2 - first_valuator)) {
-            kbp->root_y = valuators[1 - first_valuator];
+            y = valuators[1 - first_valuator];
         }
         else {
             if (pDev->coreEvents)
-                kbp->root_x = cp->valuator->lasty;
+                x = cp->valuator->lasty;
             else
-                kbp->root_y = pDev->valuator->lasty;
+                y = pDev->valuator->lasty;
         }
     }
     else {
@@ -4936,49 +4939,52 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
 
         if (pDev->coreEvents) {
             if (first_valuator == 0 && num_valuators >= 1)
-                kbp->root_x = cp->valuator->lastx + valuators[0];
+                x = cp->valuator->lastx + valuators[0];
             else
-                kbp->root_x = cp->valuator->lastx;
+                x = cp->valuator->lastx;
 
             if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-                kbp->root_y = cp->valuator->lasty +
-                              valuators[1 - first_valuator];
+                y = cp->valuator->lasty + valuators[1 - first_valuator];
             else
-                kbp->root_y = cp->valuator->lasty;
+                y = cp->valuator->lasty;
         }
         else {
             if (first_valuator == 0 && num_valuators >= 1)
-                kbp->root_x = pDev->valuator->lastx + valuators[0];
+                x = pDev->valuator->lastx + valuators[0];
             else
-                kbp->root_x = pDev->valuator->lastx;
+                x = pDev->valuator->lastx;
 
             if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-                kbp->root_y = pDev->valuator->lasty +
-                              valuators[1 - first_valuator];
+                y = pDev->valuator->lasty + valuators[1 - first_valuator];
             else
-                kbp->root_y = pDev->valuator->lasty;
+                y = pDev->valuator->lasty;
         }
     }
 
-    /* FIXME: need mipointer-like semantics to move on to different screens. */
+
     axes = pDev->valuator->axes;
-    if (kbp->root_x < axes->min_value)
-        kbp->root_x = axes->min_value;
-    if (axes->max_value > 0 && kbp->root_x > axes->max_value)
-        kbp->root_x = axes->max_value;
+    if (x < axes->min_value)
+        x = axes->min_value;
+    if (axes->max_value > 0 && x > axes->max_value)
+        x = axes->max_value;
 
     axes++;
-    if (kbp->root_y < axes->min_value)
-        kbp->root_y = axes->min_value;
-    if (axes->max_value > 0 && kbp->root_y > axes->max_value)
-        kbp->root_y = axes->max_value;
+    if (y < axes->min_value)
+        y = axes->min_value;
+    if (axes->max_value > 0 && y > axes->max_value)
+        y = axes->max_value;
+
+    /* This takes care of crossing screens for us, as well as clipping
+     * to the current screen.  Right now, we only have one history buffer,
+     * so we don't set this for both the device and core.*/
+    miPointerSetPosition(pDev, &x, &y, ms);
 
     if (pDev->coreEvents) {
-        cp->valuator->lastx = kbp->root_x;
-        cp->valuator->lasty = kbp->root_y;
+        cp->valuator->lastx = x;
+        cp->valuator->lasty = y;
     }
-    pDev->valuator->lastx = kbp->root_x;
-    pDev->valuator->lasty = kbp->root_y;
+    pDev->valuator->lastx = x;
+    pDev->valuator->lasty = y;
 
     if (type == MotionNotify) {
         kbp->type = DeviceMotionNotify;
@@ -4990,6 +4996,9 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
             kbp->type = DeviceButtonRelease;
         kbp->detail = pDev->button->map[buttons];
     }
+
+    kbp->root_x = x;
+    kbp->root_y = y;
 
     if (final_valuator > 2 && sendValuators) {
         kbp->deviceid |= MORE_EVENTS;
@@ -5028,10 +5037,8 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         events++;
         events->u.u.type = type;
         events->u.keyButtonPointer.time = ms;
-        events->u.keyButtonPointer.rootX = kbp->root_x;
-        events->u.keyButtonPointer.rootY = kbp->root_y;
-        cp->valuator->lastx = kbp->root_x;
-        cp->valuator->lasty = kbp->root_y;
+        events->u.keyButtonPointer.rootX = x;
+        events->u.keyButtonPointer.rootY = y;
 
         if (type == ButtonPress || type == ButtonRelease) {
             /* We hijack SetPointerMapping to work on all core-sending

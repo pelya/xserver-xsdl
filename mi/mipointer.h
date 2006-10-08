@@ -149,21 +149,44 @@ extern ScreenPtr miPointerCurrentScreen(
 extern ScreenPtr miPointerGetScreen(
     DeviceIntPtr pDev);
 extern void miPointerSetScreen(
-    DeviceIntPtr pDev);
+    DeviceIntPtr pDev,
+    int screen_num,
+    int x,
+    int y);
 
+/* Returns the current cursor position. */
 extern void miPointerGetPosition(
     DeviceIntPtr pDev,
     int *x,
     int *y);
 
+/* Moves the cursor to the specified position.  May clip the co-ordinates:
+ * x and y are modified in-place. */
 extern void miPointerSetPosition(
     DeviceIntPtr pDev,
-    int x,
-    int y,
+    int *x,
+    int *y,
     unsigned long time);
 
 extern void miPointerUpdateSprite(
     DeviceIntPtr pDev);
+
+/* Moves the sprite to x, y on the current screen, and updates the event
+ * history. */
+extern void miPointerMoved(
+    DeviceIntPtr pDev,
+    ScreenPtr pScreen,
+    int x,
+    int y,
+    unsigned long time);
+
+/* Updates the event history. */
+extern void miPointerUpdateHistory(
+    DeviceIntPtr pDev,
+    ScreenPtr pScreen,
+    int x,
+    int y,
+    unsigned long time);
 
 extern int miPointerScreenIndex;
 

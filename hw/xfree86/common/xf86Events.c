@@ -253,9 +253,9 @@ ProcessInputEvents ()
   xf86Info.inputPending = FALSE;
 
   mieqProcessInputEvents();
-  miPointerUpdate();
+  miPointerUpdateSprite(inputInfo.pointer);
 
-  miPointerPosition(&x, &y);
+  miPointerGetPosition(inputInfo.pointer, &x, &y);
   xf86SetViewport(xf86Info.currentScreen, x, y);
 }
 
@@ -793,7 +793,7 @@ xf86ReleaseKeys(DeviceIntPtr pDev)
 {
     KeyClassPtr keyc = NULL;
     KeySym *map = NULL;
-    xEvent *events = NULL, ke;
+    xEvent ke;
     int i = 0, j = 0, nevents = 0;
 
     ErrorF("releasekeys: called on device %s (%d)\n", pDev->name, pDev->id);
@@ -818,7 +818,6 @@ xf86ReleaseKeys(DeviceIntPtr pDev)
     for (i = keyc->curKeySyms.minKeyCode, map = keyc->curKeySyms.map;
          i < keyc->curKeySyms.maxKeyCode;
          i++, map += keyc->curKeySyms.mapWidth) {
-        ErrorF("key %d: pressed is %s\n", i, KeyPressed(i) ? "true" : "false");
         if (KeyPressed(i)) {
             switch (*map) {
             /* Don't release the lock keys */
@@ -838,10 +837,9 @@ xf86ReleaseKeys(DeviceIntPtr pDev)
                     (*pDev->public.processInputProc) (&ke, pDev, 1);
                 }
                 else {
-                    nevents = GetKeyboardEvents(&events, pDev, KeyRelease, i);
-                    ErrorF("device %s: got %d events for %d key\n", pDev->name, nevents, i);
+                    nevents = GetKeyboardEvents(xf86Events, pDev, KeyRelease, i);
                     for (j = 0; j < nevents; j++)
-                        mieqEnqueue(events++);
+                        mieqEnqueue(xf86Events + i);
                 }
                 break;
             }

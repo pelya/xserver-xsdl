@@ -320,13 +320,18 @@ miPointerUpdateSprite (DeviceIntPtr pDev)
     CursorPtr		pCursor;
     int			x, y, devx, devy;
 
+    if (!pDev || !(pDev->coreEvents || pDev == inputInfo.pointer))
+        return;
+
     pScreen = miPointer.pScreen;
+    if (!pScreen)
+	return;
+
     x = miPointer.x;
     y = miPointer.y;
     devx = miPointer.devx;
     devy = miPointer.devy;
-    if (!pScreen)
-	return;
+
     pScreenPriv = GetScreenPrivate (pScreen);
     /*
      * if the cursor has switched screens, disable the sprite
@@ -385,12 +390,19 @@ miPointerUpdateSprite (DeviceIntPtr pDev)
 void
 miPointerDeltaCursor (int dx, int dy, unsigned long time)
 {
-    miPointerSetPosition(inputInfo.pointer, miPointer.x + dx,
-                         miPointer.y + dy, time);
+    int x = miPointer.x + dx, y = miPointer.y + dy;
+
+    miPointerSetPosition(inputInfo.pointer, &x, &y, time);
 }
 
 void
 miPointerSetNewScreen(int screen_no, int x, int y)
+{
+    miPointerSetScreen(inputInfo.pointer, screen_no, x, y);
+}
+
+void
+miPointerSetScreen(DeviceIntPtr pDev, int screen_no, int x, int y)
 {
 	miPointerScreenPtr pScreenPriv;
 	ScreenPtr pScreen;
@@ -406,21 +418,26 @@ miPointerSetNewScreen(int screen_no, int x, int y)
 _X_EXPORT ScreenPtr
 miPointerCurrentScreen ()
 {
-	return (miPointer.pScreen);
+    return miPointerGetScreen(inputInfo.pointer);
 }
 
-/*
- * miPointerAbsoluteCursor.  The pointer has moved to x,y
- */
+_X_EXPORT ScreenPtr
+miPointerGetScreen(DeviceIntPtr pDev)
+{
+    return miPointer.pScreen;
+}
 
+/* Move the pointer to x, y on the current screen, update the sprite, and
+ * the motion history.  Generates no events.  Does not return changed x
+ * and y if they are clipped; use miPointerSetPosition instead. */
 _X_EXPORT void
 miPointerAbsoluteCursor (int x, int y, unsigned long time)
 {
-    miPointerSetPosition(inputInfo.pointer, x, y, time);
+    miPointerSetPosition(inputInfo.pointer, &x, &y, time);
 }
 
 _X_EXPORT void
-miPointerSetPosition(DeviceIntPtr pDev, int x, int y, unsigned long time)
+miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y, unsigned long time)
 {
     miPointerScreenPtr	pScreenPriv;
     ScreenPtr		pScreen;
@@ -430,13 +447,16 @@ miPointerSetPosition(DeviceIntPtr pDev, int x, int y, unsigned long time)
     if (!pScreen)
 	return;	    /* called before ready */
 
-    if (x < 0 || x >= pScreen->width || y < 0 || y >= pScreen->height)
+    if (!pDev || !(pDev->coreEvents || pDev == inputInfo.pointer))
+        return;
+
+    if (*x < 0 || *x >= pScreen->width || *y < 0 || *y >= pScreen->height)
     {
 	pScreenPriv = GetScreenPrivate (pScreen);
 	if (!miPointer.confined)
 	{
 	    newScreen = pScreen;
-	    (*pScreenPriv->screenFuncs->CursorOffScreen) (&newScreen, &x, &y);
+	    (*pScreenPriv->screenFuncs->CursorOffScreen) (&newScreen, x, y);
 	    if (newScreen != pScreen)
 	    {
 		pScreen = newScreen;
@@ -448,21 +468,20 @@ miPointerSetPosition(DeviceIntPtr pDev, int x, int y, unsigned long time)
 	    }
 	}
     }
-    /*
-     * constrain the hot-spot to the current
-     * limits
-     */
-    if (x < miPointer.limits.x1)
-	x = miPointer.limits.x1;
-    if (x >= miPointer.limits.x2)
-	x = miPointer.limits.x2 - 1;
-    if (y < miPointer.limits.y1)
-	y = miPointer.limits.y1;
-    if (y >= miPointer.limits.y2)
-	y = miPointer.limits.y2 - 1;
-    if (miPointer.x == x && miPointer.y == y && miPointer.pScreen == pScreen)
+    /* Constrain the sprite to the current limits. */
+    if (*x < miPointer.limits.x1)
+	*x = miPointer.limits.x1;
+    if (*x >= miPointer.limits.x2)
+	*x = miPointer.limits.x2 - 1;
+    if (*y < miPointer.limits.y1)
+	*y = miPointer.limits.y1;
+    if (*y >= miPointer.limits.y2)
+	*y = miPointer.limits.y2 - 1;
+
+    if (miPointer.x == *x && miPointer.y == *y && miPointer.pScreen == pScreen)
 	return;
-    miPointerMove (pScreen, x, y, time);
+
+    miPointerMoved(pDev, pScreen, *x, *y, time);
 }
 
 _X_EXPORT void
@@ -478,27 +497,39 @@ miPointerGetPosition(DeviceIntPtr pDev, int *x, int *y)
     *y = miPointer.y;
 }
 
-/*
- * miPointerMove.  The pointer has moved to x,y on current screen
- */
+void
+miPointerMove (ScreenPtr pScreen, int x, int y, unsigned long time)
+{
+    miPointerMoved(inputInfo.pointer, pScreen, x, y, time);
+}
 
-static void
-miPointerMove (pScreen, x, y, time)
-    ScreenPtr	    pScreen;
-    int		    x, y;
-    unsigned long   time;
+/* Move the pointer on the current screen,  and update the sprite. */
+void
+miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
+                     unsigned long time)
 {
     SetupScreen(pScreen);
-    miHistoryPtr	history;
-    int			prev, end, start;
 
-    if (!pScreenPriv->waitForUpdate && pScreen == miPointer.pSpriteScreen)
+    if (pDev && (pDev->coreEvents || pDev == inputInfo.pointer) &&
+        !pScreenPriv->waitForUpdate && pScreen == miPointer.pSpriteScreen)
     {
 	miPointer.devx = x;
 	miPointer.devy = y;
 	if(!miPointer.pCursor->bits->emptyMask)
 	    (*pScreenPriv->spriteFuncs->MoveCursor) (pScreen, x, y);
     }
+
+    miPointerUpdateHistory(pDev, pScreen, x, y, time);
+}
+
+/* The pointer has moved to x, y; update the motion history. */
+void
+miPointerUpdateHistory (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
+                        unsigned long time)
+{
+    miHistoryPtr	history;
+    int			prev, end, start;
+
     miPointer.x = x;
     miPointer.y = y;
     miPointer.pScreen = pScreen;

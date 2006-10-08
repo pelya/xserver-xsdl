@@ -203,6 +203,9 @@ void xf86UnlockServer(void);
 
 void xf86InitXkb(void);
 
+/* xf86Xinput.c */
+extern xEvent *xf86Events;
+
 #endif /* _NO_XF86_PROTOTYPES */
 
 

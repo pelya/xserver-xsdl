@@ -88,27 +88,19 @@
 #include <X11/Xpoll.h>
 #include "xf86_OSproc.h"	/* sigio stuff */
 
+#include "mi.h"
+
 /******************************************************************************
  * debugging macro
  *****************************************************************************/
-#ifdef DBG
-#undef DBG
-#endif
 #ifdef DEBUG
-#undef DEBUG
-#endif
-
-#define DEBUG 0
-
-#if DEBUG
 static int      debug_level = 0;
-
 #define DBG(lvl, f) {if ((lvl) <= debug_level) f;}
 #else
 #define DBG(lvl, f)
 #endif
 
-static xEvent *xf86Events = NULL;
+xEvent *xf86Events = NULL;
 
 static Bool
 xf86SendDragEvents(DeviceIntPtr	device)
@@ -558,7 +550,6 @@ NewInputDeviceRequest (InputOption *options)
     InputInfoPtr pInfo = NULL;
     InputOption *option = NULL;
     DeviceIntPtr dev = NULL;
-    int i;
 
     idev = xcalloc(sizeof(*idev), 1);
     if (!idev)
@@ -981,8 +972,9 @@ xf86XInputSetScreen(LocalDevicePtr	local,
 		    int			y)
 {
     if (local->dev->coreEvents &&
-	(miPointerCurrentScreen() != screenInfo.screens[screen_number])) {
-	miPointerSetNewScreen (screen_number, x, y);
+	(miPointerGetScreen(inputInfo.pointer) !=
+          screenInfo.screens[screen_number])) {
+	miPointerSetScreen(inputInfo.pointer, screen_number, x, y);
     }
 }
 

@@ -223,9 +223,9 @@ xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
   if (mode->HDisplay > pScr->virtualX || mode->VDisplay > pScr->virtualY)
     return FALSE;
 
-  pCursorScreen = miPointerCurrentScreen();
+  pCursorScreen = miPointerGetScreen(inputInfo.pointer);
   if (pScreen == pCursorScreen)
-    miPointerPosition(&px, &py);
+    miPointerGetPosition(inputInfo.pointer, &px, &py);
 
   xf86EnterServerState(SETUP);
   Switched = (*pScr->SwitchMode)(pScr->scrnIndex, mode, 0);
