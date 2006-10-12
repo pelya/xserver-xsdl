@@ -583,7 +583,12 @@ if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
 	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
 	test -d GL || mkdir GL
-        $srcdir/GL/symlink-mesa.sh $MESA_SOURCE GL/
+	case $host_os in
+	  solaris*) 	
+		SYMLINK_MESA="/usr/bin/bash $srcdir/GL/symlink-mesa.sh"	;;
+	  *)	SYMLINK_MESA=$srcdir/GL/symlink-mesa.sh ;;
+	esac
+	$SYMLINK_MESA $MESA_SOURCE GL/
 	if test $? -ne 0; then
 		AC_MSG_ERROR([Failed to link Mesa source tree.  Please specify a proper path to Mesa sources, or disable GLX.])
 	fi
