@@ -128,16 +128,6 @@ typedef struct _Client {
     int         requestLogIndex;
 #endif
     unsigned long replyBytesRemaining;
-#ifdef XCSECURITY
-    XID		authId;
-    unsigned int trustLevel;
-    pointer (* CheckAccess)(
-	    ClientPtr /*pClient*/,
-	    XID /*id*/,
-	    RESTYPE /*classes*/,
-	    Mask /*access_mode*/,
-	    pointer /*resourceval*/);
-#endif
 #ifdef XAPPGROUP
     struct _AppGroupRec*	appgroup;
 #endif

@@ -208,6 +208,7 @@ xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
   ScreenPtr   pCursorScreen;
   Bool        Switched;
   int         px, py;
+  int         sigstate;
 
   if (!pScr->vtSema || !mode || !pScr->SwitchMode)
     return FALSE;
@@ -227,6 +228,7 @@ xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
   if (pScreen == pCursorScreen)
     miPointerGetPosition(inputInfo.pointer, &px, &py);
 
+  sigstate = xf86BlockSIGIO ();
   xf86EnterServerState(SETUP);
   Switched = (*pScr->SwitchMode)(pScr->scrnIndex, mode, 0);
   xf86EnterServerState(OPERATING);
@@ -264,6 +266,7 @@ xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
       pScr->frameY1 = pScr->virtualY - 1;
     }
   }
+  xf86UnblockSIGIO (sigstate);
 
   if (pScr->AdjustFrame)
     (*pScr->AdjustFrame)(pScr->scrnIndex, pScr->frameX0, pScr->frameY0, 0);

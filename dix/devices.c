@@ -69,8 +69,8 @@ SOFTWARE.
 #ifdef XKB
 #include <X11/extensions/XKBsrv.h>
 #endif
-#ifdef XCSECURITY
-#include "securitysrv.h"
+#ifdef XACE
+#include "xace.h"
 #endif
 
 #include "dispatch.h"
@@ -1134,10 +1134,12 @@ DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
                     return BadValue;
                 }
             }
-#ifdef XCSECURITY
-            if (!SecurityCheckDeviceAccess(client, pDev, TRUE))
+
+#ifdef XACE
+            if (!XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE))
                 return BadAccess;
 #endif 
+
             /* None of the modifiers (old or new) may be down while we change
              * the map. */
             if (!AllModifierKeysAreUp(pDev, pDev->key->modifierKeyMap,
@@ -1152,6 +1154,7 @@ DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
     }
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
+
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key) {
             bzero(pDev->key->modifierMap, MAP_LENGTH);
 
@@ -1256,10 +1259,10 @@ ProcChangeKeyboardMapping(ClientPtr client)
 	    return BadValue;
     }
 
-#ifdef XCSECURITY
+#ifdef XACE
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key) {
-            if (!SecurityCheckDeviceAccess(client, pDev, TRUE))
+            if (!XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE))
                 return BadAccess;
         }
     }
@@ -1435,6 +1438,12 @@ DoChangeKeyboardControl (ClientPtr client, DeviceIntPtr keybd, XID *vlist,
     BITS32 index2;
     int mask = vmask, i;
 
+    REQUEST_AT_LEAST_SIZE(xChangeKeyboardControlReq);
+    vmask = stuff->mask;
+    if (client->req_len != (sizeof(xChangeKeyboardControlReq)>>2)+Ones(vmask))
+	return BadLength;
+
+    vlist = (XID *)&stuff[1];		/* first word of values */
     ctrl = keybd->kbdfeed->ctrl;
     while (vmask) {
 	index2 = (BITS32) lowbit (vmask);
@@ -1609,11 +1618,11 @@ ProcChangeKeyboardControl (ClientPtr client)
     if (client->req_len != (sizeof(xChangeKeyboardControlReq)>>2)+Ones(vmask))
 	return BadLength;
 
-#ifdef XCSECURITY
+#ifdef XACE
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) &&
             pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
-            if (!SecurityCheckDeviceAccess(client, pDev, TRUE))
+            if (!XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE))
                 return BadAccess;
         }
     }
@@ -1874,8 +1883,8 @@ ProcQueryKeymap(ClientPtr client)
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.length = 2;
-#ifdef XCSECURITY
-    if (!SecurityCheckDeviceAccess(client, inputInfo.keyboard, TRUE))
+#ifdef XACE
+    if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
     {
 	bzero((char *)&rep.map[0], 32);
     }

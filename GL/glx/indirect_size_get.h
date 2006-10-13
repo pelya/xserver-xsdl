@@ -73,8 +73,10 @@ extern INTERNAL PURE FASTCALL GLint __glGetTexLevelParameterfv_size(GLenum);
 extern INTERNAL PURE FASTCALL GLint __glGetTexLevelParameteriv_size(GLenum);
 extern INTERNAL PURE FASTCALL GLint __glGetColorTableParameterfv_size(GLenum);
 extern INTERNAL PURE FASTCALL GLint __glGetColorTableParameteriv_size(GLenum);
-extern INTERNAL PURE FASTCALL GLint __glGetConvolutionParameterfv_size(GLenum);
-extern INTERNAL PURE FASTCALL GLint __glGetConvolutionParameteriv_size(GLenum);
+extern INTERNAL PURE FASTCALL GLint
+__glGetConvolutionParameterfv_size(GLenum);
+extern INTERNAL PURE FASTCALL GLint
+__glGetConvolutionParameteriv_size(GLenum);
 extern INTERNAL PURE FASTCALL GLint __glGetHistogramParameterfv_size(GLenum);
 extern INTERNAL PURE FASTCALL GLint __glGetHistogramParameteriv_size(GLenum);
 extern INTERNAL PURE FASTCALL GLint __glGetMinmaxParameterfv_size(GLenum);
@@ -86,13 +88,12 @@ extern INTERNAL PURE FASTCALL GLint __glGetVertexAttribivARB_size(GLenum);
 extern INTERNAL PURE FASTCALL GLint __glGetQueryObjectivARB_size(GLenum);
 extern INTERNAL PURE FASTCALL GLint __glGetQueryObjectuivARB_size(GLenum);
 extern INTERNAL PURE FASTCALL GLint __glGetQueryivARB_size(GLenum);
-extern INTERNAL PURE FASTCALL GLint __glGetColorTableParameterfvSGI_size(GLenum);
-extern INTERNAL PURE FASTCALL GLint __glGetColorTableParameterivSGI_size(GLenum);
 extern INTERNAL PURE FASTCALL GLint __glGetProgramivNV_size(GLenum);
 extern INTERNAL PURE FASTCALL GLint __glGetVertexAttribdvNV_size(GLenum);
 extern INTERNAL PURE FASTCALL GLint __glGetVertexAttribfvNV_size(GLenum);
 extern INTERNAL PURE FASTCALL GLint __glGetVertexAttribivNV_size(GLenum);
-extern INTERNAL PURE FASTCALL GLint __glGetFramebufferAttachmentParameterivEXT_size(GLenum);
+extern INTERNAL PURE FASTCALL GLint
+__glGetFramebufferAttachmentParameterivEXT_size(GLenum);
 
 #  undef PURE
 #  undef FASTCALL
