@@ -17,6 +17,7 @@ libdix_la_SOURCES = 	\
 	extension.c	\
 	ffs.c		\
 	gc.c		\
+	getevents.c	\
 	globals.c	\
 	glyphcurs.c	\
 	grabs.c		\
