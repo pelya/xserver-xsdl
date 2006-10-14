@@ -1438,12 +1438,6 @@ DoChangeKeyboardControl (ClientPtr client, DeviceIntPtr keybd, XID *vlist,
     BITS32 index2;
     int mask = vmask, i;
 
-    REQUEST_AT_LEAST_SIZE(xChangeKeyboardControlReq);
-    vmask = stuff->mask;
-    if (client->req_len != (sizeof(xChangeKeyboardControlReq)>>2)+Ones(vmask))
-	return BadLength;
-
-    vlist = (XID *)&stuff[1];		/* first word of values */
     ctrl = keybd->kbdfeed->ctrl;
     while (vmask) {
 	index2 = (BITS32) lowbit (vmask);
