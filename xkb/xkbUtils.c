@@ -964,13 +964,22 @@ XkbConvertCase(register KeySym sym, KeySym *lower, KeySym *upper)
  * Returns TRUE on success, or FALSE on failure.  If this function fails,
  * dst may be in an inconsistent state: all its pointers are guaranteed
  * to remain valid, but part of the map may be from src and part from dst.
+ *
+ * FIXME: This function wants to be broken up into multiple functions.
  */
 Bool
 XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
 {
-    int i = 0, j = 0;
+    int i = 0, j = 0, k = 0;
     void *tmp = NULL;
+    XkbColorPtr scolor = NULL, dcolor = NULL;
+    XkbDoodadPtr sdoodad = NULL, ddoodad = NULL;
     XkbKeyTypePtr stype = NULL, dtype = NULL;
+    XkbOutlinePtr soutline = NULL, doutline = NULL;
+    XkbPropertyPtr sprop = NULL, dprop = NULL;
+    XkbRowPtr srow = NULL, drow = NULL;
+    XkbSectionPtr ssection = NULL, dsection = NULL;
+    XkbShapePtr sshape = NULL, dshape = NULL;
     DeviceIntPtr pDev = NULL, tmpDev = NULL;
     xkbMapNotify mn;
     xkbNewKeyboardNotify nkn;
@@ -1456,19 +1465,491 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
     }
 
     /* geometry */
-    /* not implemented yet because oh god the pain. */
-#if 0
     if (src->geom) {
         /* properties */
+        if (src->geom->num_properties) {
+            if (src->geom->num_properties != dst->geom->sz_properties) {
+                if (src->geom->num_properties < dst->geom->sz_properties) {
+                    for (i = src->geom->num_properties,
+                          dprop = dst->geom->properties +
+                                  src->geom->num_properties;
+                         i < dst->geom->num_properties;
+                         i++, dprop++) {
+                        xfree(dprop->name);
+                        xfree(dprop->value);
+                    }
+                }
+
+                if (dst->geom->sz_properties)
+                    tmp = xrealloc(dst->geom->properties,
+                                   src->geom->num_properties *
+                                    sizeof(XkbPropertyRec));
+                else
+                    tmp = xalloc(src->geom->num_properties *
+                                  sizeof(XkbPropertyRec));
+                if (!tmp)
+                    return FALSE;
+                dst->geom->properties = tmp;
+            }
+
+            dst->geom->sz_properties = src->geom->num_properties;
+
+            if (dst->geom->sz_properties > dst->geom->num_properties) {
+                bzero(dst->geom->properties + dst->geom->num_properties,
+                      (dst->geom->sz_properties - dst->geom->num_properties) *
+                      sizeof(XkbPropertyRec));
+            }
+
+            for (i = 0,
+                  sprop = src->geom->properties,
+                  dprop = dst->geom->properties;
+                 i < src->geom->num_properties;
+                 i++, sprop++, dprop++) {
+                if (i < dst->geom->num_properties) {
+                    if (strlen(sprop->name) != strlen(dprop->name)) {
+                        tmp = xrealloc(dprop->name, strlen(sprop->name) + 1);
+                        if (!tmp)
+                            return FALSE;
+                        dprop->name = tmp;
+                    }
+                    if (strlen(sprop->value) != strlen(dprop->value)) {
+                        tmp = xrealloc(dprop->value, strlen(sprop->value) + 1);
+                        if (!tmp)
+                            return FALSE;
+                        dprop->value = tmp;
+                    }
+                    strcpy(dprop->name, sprop->name);
+                    strcpy(dprop->value, sprop->value);
+                }
+                else {
+                    dprop->name = xstrdup(sprop->name);
+                    dprop->value = xstrdup(sprop->value);
+                }
+            }
+
+            dst->geom->num_properties = dst->geom->sz_properties;
+        }
+        else {
+            if (dst->geom->sz_properties) {
+                for (i = 0, dprop = dst->geom->properties;
+                     i < dst->geom->num_properties;
+                     i++, dprop++) {
+                    xfree(dprop->name);
+                    xfree(dprop->value);
+                }
+                xfree(dst->geom->properties);
+                dst->geom->properties = NULL;
+            }
+
+            dst->geom->num_properties = 0;
+            dst->geom->sz_properties = 0;
+        }
+
         /* colors */
+        if (src->geom->num_colors) {
+            if (src->geom->num_colors != dst->geom->sz_colors) {
+                if (src->geom->num_colors < dst->geom->sz_colors) {
+                    for (i = src->geom->num_colors,
+                          dcolor = dst->geom->colors +
+                                   src->geom->num_colors;
+                         i < dst->geom->num_colors;
+                         i++, dcolor++) {
+                        xfree(dcolor->spec);
+                    }
+                }
+
+                if (dst->geom->sz_colors)
+                    tmp = xrealloc(dst->geom->colors,
+                                   src->geom->num_colors *
+                                    sizeof(XkbColorRec));
+                else
+                    tmp = xalloc(src->geom->num_colors *
+                                  sizeof(XkbColorRec));
+                if (!tmp)
+                    return FALSE;
+                dst->geom->colors = tmp;
+            }
+
+            dst->geom->sz_colors = src->geom->num_colors;
+
+            if (dst->geom->sz_colors > dst->geom->num_colors) {
+                bzero(dst->geom->colors + dst->geom->num_colors,
+                      (dst->geom->sz_colors - dst->geom->num_colors) *
+                      sizeof(XkbColorRec));
+            }
+
+            for (i = 0,
+                  scolor = src->geom->colors,
+                  dcolor = dst->geom->colors;
+                 i < src->geom->num_colors;
+                 i++, scolor++, dcolor++) {
+                if (i < dst->geom->num_colors) {
+                    if (strlen(scolor->spec) != strlen(dcolor->spec)) {
+                        tmp = xrealloc(dcolor->spec, strlen(scolor->spec) + 1);
+                        if (!tmp)
+                            return FALSE;
+                        dcolor->spec = tmp;
+                    }
+                    strcpy(dcolor->spec, scolor->spec);
+                }
+                else {
+                    dcolor->spec = xstrdup(scolor->spec);
+                }
+            }
+
+            dst->geom->num_colors = dst->geom->sz_colors;
+        }
+        else {
+            if (dst->geom->sz_colors) {
+                for (i = 0, dcolor = dst->geom->colors;
+                     i < dst->geom->num_colors;
+                     i++, dcolor++) {
+                    xfree(dcolor->spec);
+                }
+                xfree(dst->geom->colors);
+                dst->geom->colors = NULL;
+            }
+
+            dst->geom->num_colors = 0;
+            dst->geom->sz_colors = 0;
+        }
+
         /* shapes */
+        /* shapes break down into outlines, which break down into points. */
+        if (dst->geom->num_shapes) {
+            for (i = 0, dshape = dst->geom->shapes;
+                 i < dst->geom->num_shapes;
+                 i++, dshape++) {
+                for (j = 0, doutline = dshape->outlines;
+                     j < dshape->num_outlines;
+                     j++, doutline++) {
+                    if (doutline->sz_points)
+                        xfree(doutline->points);
+                }
+
+                if (dshape->sz_outlines) {
+                    xfree(dshape->outlines);
+                    dshape->outlines = NULL;
+                }
+
+                dshape->num_outlines = 0;
+                dshape->sz_outlines = 0;
+            }
+        }
+
+        if (src->geom->num_shapes) {
+            tmp = xcalloc(src->geom->num_shapes, sizeof(XkbShapeRec));
+            if (!tmp)
+                return FALSE;
+            dst->geom->shapes = tmp;
+
+            for (i = 0, sshape = src->geom->shapes, dshape = dst->geom->shapes;
+                 i < src->geom->num_shapes;
+                 i++) {
+                if (sshape->num_outlines) {
+                    tmp = xcalloc(sshape->num_outlines, sizeof(XkbOutlineRec));
+                    if (!tmp)
+                        return FALSE;
+                    dshape->outlines = tmp;
+                    
+                    for (j = 0,
+                          soutline = sshape->outlines,
+                          doutline = dshape->outlines;
+                         j < sshape->num_outlines;
+                         j++) {
+                        if (soutline->num_points) {
+                            tmp = xalloc(soutline->num_points *
+                                          sizeof(XkbPointRec));
+                            if (!tmp)
+                                return FALSE;
+                            doutline->points = tmp;
+
+                            memcpy(doutline->points, soutline->points,
+                                   soutline->num_points * sizeof(XkbPointRec));
+                        }
+
+                        doutline->num_points = soutline->num_points;
+                        doutline->sz_points = soutline->sz_points;
+                    }
+                }
+
+                dshape->num_outlines = sshape->num_outlines;
+                dshape->sz_outlines = sshape->num_outlines;
+            }
+
+            dst->geom->num_shapes = src->geom->num_shapes;
+            dst->geom->sz_shapes = src->geom->num_shapes;
+        }
+        else {
+            if (dst->geom->sz_shapes) {
+                xfree(dst->geom->shapes);
+                dst->geom->shapes = NULL;
+            }
+            
+            dst->geom->num_shapes = 0;
+            dst->geom->sz_shapes = 0;
+        }
+
         /* sections */
+        /* sections break down into doodads, and also into rows, which break
+         * down into keys. */
+        if (dst->geom->num_sections) {
+            for (i = 0, dsection = dst->geom->sections;
+                 i < dst->geom->num_sections;
+                 i++, dsection++) {
+                for (j = 0, drow = dsection->rows;
+                     j < dsection->num_rows;
+                     j++, drow++) {
+                    if (drow->num_keys)
+                        xfree(drow->keys);
+                }
+
+                if (dsection->num_rows)
+                    xfree(dsection->rows);
+
+                /* cut and waste from geom/doodad below. */
+                for (j = 0, ddoodad = dsection->doodads;
+                     j < dsection->num_doodads;
+                     j++, ddoodad++) {
+                    if (ddoodad->any.type == XkbTextDoodad) {
+                        if (ddoodad->text.text) {
+                            xfree(ddoodad->text.text);
+                            ddoodad->text.text = NULL;
+                        }
+                        if (ddoodad->text.font) {
+                            xfree(ddoodad->text.font);
+                            ddoodad->text.font = NULL;
+                        }
+                     }
+                     else if (ddoodad->any.type == XkbLogoDoodad) {
+                        if (ddoodad->logo.logo_name) {
+                            xfree(ddoodad->logo.logo_name);
+                            ddoodad->logo.logo_name = NULL;
+                        }
+                    }
+                }
+
+                if (dsection->num_doodads)
+                    xfree(dsection->doodads);
+            }
+
+            dst->geom->num_sections = 0;
+        }
+
+        if (src->geom->num_sections) {
+            if (dst->geom->sz_sections)
+                tmp = xrealloc(dst->geom->sections,
+                               src->geom->num_sections *
+                                sizeof(XkbSectionRec));
+            else
+                tmp = xalloc(src->geom->num_sections * sizeof(XkbSectionRec));
+            if (!tmp)
+                return FALSE;
+            dst->geom->sections = tmp;
+
+            for (i = 0,
+                  ssection = src->geom->sections,
+                  dsection = dst->geom->sections;
+                 i < src->geom->num_sections;
+                 i++, ssection++, dsection++) {
+                if (ssection->num_rows) {
+                    tmp = xcalloc(ssection->num_rows, sizeof(XkbRowRec));
+                    if (!tmp)
+                        return FALSE;
+                    dsection->rows = tmp;
+                }
+                for (j = 0, srow = ssection->rows, drow = dsection->rows;
+                     j < ssection->num_rows;
+                     j++, srow++, drow++) {
+                    if (srow->num_keys) {
+                        tmp = xalloc(srow->num_keys * sizeof(XkbKeyRec));
+                        if (!tmp)
+                            return FALSE;
+                        drow->keys = tmp;
+                        memcpy(drow->keys, srow->keys,
+                               srow->num_keys * sizeof(XkbKeyRec));
+                    }
+                    drow->num_keys = srow->num_keys;
+                    drow->sz_keys = srow->num_keys;
+                }
+
+                if (ssection->num_doodads) {
+                    tmp = xcalloc(ssection->num_doodads, sizeof(XkbDoodadRec));
+                    if (!tmp)
+                        return FALSE;
+                    dsection->doodads = tmp;
+                }
+                for (k = 0,
+                      sdoodad = ssection->doodads,
+                      ddoodad = dsection->doodads;
+                     k < ssection->num_doodads;
+                     k++, sdoodad++, ddoodad++) {
+                    if (sdoodad->any.type == XkbTextDoodad) {
+                        if (sdoodad->text.text)
+                            ddoodad->text.text =
+                             xstrdup(sdoodad->text.text);
+                        if (sdoodad->text.font)
+                            ddoodad->text.font =
+                             xstrdup(sdoodad->text.font);
+                    }
+                    else if (sdoodad->any.type == XkbLogoDoodad) {
+                        if (sdoodad->logo.logo_name)
+                            ddoodad->logo.logo_name =
+                             xstrdup(sdoodad->logo.logo_name);
+                    }
+                    ddoodad->any.type = sdoodad->any.type;
+                }
+                dsection->num_doodads = ssection->num_doodads;
+                dsection->sz_doodads = ssection->num_doodads;
+            }
+        }
+        else {
+            if (dst->geom->sz_sections) {
+                xfree(dst->geom->sections);
+                dst->geom->sections = NULL;
+            }
+
+            dst->geom->num_sections = 0;
+            dst->geom->sz_sections = 0;
+        }
+
         /* doodads */
+        if (dst->geom->num_doodads) {
+            for (i = src->geom->num_doodads,
+                  ddoodad = dst->geom->doodads +
+                             src->geom->num_doodads;
+                 i < dst->geom->num_doodads;
+                 i++, ddoodad++) {
+                 if (ddoodad->any.type == XkbTextDoodad) {
+                    if (ddoodad->text.text) {
+                        xfree(ddoodad->text.text);
+                        ddoodad->text.text = NULL;
+                    }
+                    if (ddoodad->text.font) {
+                        xfree(ddoodad->text.font);
+                        ddoodad->text.font = NULL;
+                    }
+                 }
+                 else if (ddoodad->any.type == XkbLogoDoodad) {
+                    if (ddoodad->logo.logo_name) {
+                        xfree(ddoodad->logo.logo_name);
+                        ddoodad->logo.logo_name = NULL;
+                    }
+                }
+            }
+        }
+
+        if (src->geom->num_doodads) {
+            if (dst->geom->sz_doodads)
+                tmp = xrealloc(dst->geom->doodads,
+                               src->geom->num_doodads *
+                                sizeof(XkbDoodadRec));
+            else
+                tmp = xalloc(src->geom->num_doodads *
+                              sizeof(XkbDoodadRec));
+            if (!tmp)
+                return FALSE;
+            bzero(tmp, src->geom->num_doodads * sizeof(XkbDoodadRec));
+            dst->geom->doodads = tmp;
+
+            dst->geom->sz_doodads = src->geom->num_doodads;
+
+            for (i = 0,
+                  sdoodad = src->geom->doodads,
+                  ddoodad = dst->geom->doodads;
+                 i < src->geom->num_doodads;
+                 i++, sdoodad++, ddoodad++) {
+                ddoodad->any.type = sdoodad->any.type;
+                if (sdoodad->any.type == XkbTextDoodad) {
+                    if (sdoodad->text.text)
+                        ddoodad->text.text = xstrdup(sdoodad->text.text);
+                    if (sdoodad->text.font)
+                        ddoodad->text.font = xstrdup(sdoodad->text.font);
+                }
+                else if (sdoodad->any.type == XkbLogoDoodad) {
+                    if (sdoodad->logo.logo_name)
+                        ddoodad->logo.logo_name =
+                          xstrdup(sdoodad->logo.logo_name);
+                }
+            }
+
+            dst->geom->num_doodads = dst->geom->sz_doodads;
+        }
+        else {
+            if (dst->geom->sz_doodads) {
+                xfree(dst->geom->doodads);
+                dst->geom->doodads = NULL;
+            }
+
+            dst->geom->num_doodads = 0;
+            dst->geom->sz_doodads = 0;
+        }
+
         /* key aliases */
-        /* font?!? */
+        if (src->geom->num_key_aliases) {
+            if (src->geom->num_key_aliases != dst->geom->sz_key_aliases) {
+                if (dst->geom->sz_key_aliases)
+                    tmp = xrealloc(dst->geom->key_aliases,
+                                   src->geom->num_key_aliases *
+                                    2 * XkbKeyNameLength);
+                else
+                    tmp = xalloc(src->geom->num_key_aliases *
+                                  2 * XkbKeyNameLength);
+                if (!tmp)
+                    return FALSE;
+                dst->geom->key_aliases = tmp;
+
+                dst->geom->sz_key_aliases = src->geom->num_key_aliases;
+            }
+
+            memcpy(dst->geom->key_aliases, src->geom->key_aliases,
+                   src->geom->num_key_aliases * 2 * XkbKeyNameLength);
+
+            dst->geom->num_key_aliases = dst->geom->sz_key_aliases;
+        }
+        else {
+            if (dst->geom->sz_key_aliases) {
+                xfree(dst->geom->key_aliases);
+                dst->geom->key_aliases = NULL;
+            }
+            dst->geom->num_key_aliases = 0;
+            dst->geom->sz_key_aliases = 0;
+        }
+        
+        /* font */
+        if (src->geom->label_font) {
+            if (strlen(src->geom->label_font) !=
+                strlen(dst->geom->label_font)) {
+                if (dst->geom->label_font)
+                    tmp = xrealloc(dst->geom->label_font,
+                                   strlen(src->geom->label_font));
+                else
+                    tmp = xalloc(strlen(src->geom->label_font));
+                if (!tmp)
+                    return FALSE;
+                dst->geom->label_font = tmp;
+            }
+
+            strcpy(dst->geom->label_font, src->geom->label_font);
+            i = XkbGeomColorIndex(src->geom, src->geom->label_color);
+            dst->geom->label_color = &(src->geom->colors[i]);
+            i = XkbGeomColorIndex(src->geom, src->geom->base_color);
+            dst->geom->base_color = &(src->geom->colors[i]);
+        }
+        else {
+            if (dst->geom->label_font) {
+                xfree(dst->geom->label_font);
+                dst->geom->label_font = NULL;
+            }
+            dst->geom->label_color = NULL;
+            dst->geom->base_color = NULL;
+        }
+
+        dst->geom->name = src->geom->name;
+        dst->geom->width_mm = src->geom->width_mm;
+        dst->geom->height_mm = src->geom->height_mm;
     }
     else
-#endif
     {
         if (dst->geom) {
             /* I LOVE THE DIFFERENT CALL SIGNATURE.  REALLY, I DO. */
