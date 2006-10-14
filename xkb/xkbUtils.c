@@ -78,6 +78,8 @@ _XkbLookupKeyboard(int id,int *why_rtrn)
 {
 DeviceIntPtr dev = NULL;
 
+    if (id == XkbDfltXIId)
+        id = XkbUseCoreKbd;
     if ((dev= _XkbLookupAnyDevice(id,why_rtrn))==NULL)
 	return NULL;
     else if ((!dev->key)||(!dev->key->xkbInfo)) {
@@ -108,6 +110,8 @@ _XkbLookupLedDevice(int id,int *why_rtrn)
 {
 DeviceIntPtr dev = NULL;
 
+    if (id == XkbDfltXIId)
+        id = XkbUseCorePtr;
     if ((dev= _XkbLookupAnyDevice(id,why_rtrn))==NULL)
 	return NULL;
     else if ((!dev->kbdfeed)&&(!dev->leds)) {
