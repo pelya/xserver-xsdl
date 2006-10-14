@@ -84,6 +84,9 @@ miRandRInit (ScreenPtr pScreen)
     pScrPriv->rrGetInfo = miRRGetInfo;
 #if RANDR_12_INTERFACE
     pScrPriv->rrCrtcSet = miRRCrtcSet;
+    pScrPriv->rrCrtcSetGamma = miRRCrtcSetGamma;
+    pScrPriv->rrOutputSetProperty = miRROutput
+    
     
     RRScreenSetSizeRange (pScreen,
 			  pScreen->width, pScreen->height,

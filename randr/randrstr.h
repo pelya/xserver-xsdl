@@ -202,10 +202,11 @@ typedef struct _rrScrPriv {
     TimeStamp		    lastSetTime;	/* last changed by client */
     TimeStamp		    lastConfigTime;	/* possible configs changed */
     RRCloseScreenProcPtr    CloseScreen;
-    Bool		    changed;
+    Bool		    changed;		/* some config changed */
     CARD16		    minWidth, minHeight;
     CARD16		    maxWidth, maxHeight;
     CARD16		    width, height;	/* last known screen size */
+    Bool		    layoutChanged;	/* screen layout changed */
 
     /* modes, outputs and crtcs */
     int			    numModes;
@@ -216,6 +217,9 @@ typedef struct _rrScrPriv {
 
     int			    numCrtcs;
     RRCrtcPtr		    *crtcs;
+
+    /* Last known pointer position */
+    RRCrtcPtr		    pointerCrtc;
 
 #ifdef RANDR_10_INTERFACE
     /*
@@ -439,6 +443,14 @@ RRSetScreenConfig (ScreenPtr		pScreen,
 #endif					
 
 /* rrcrtc.c */
+
+/*
+ * Notify the CRTC of some change; layoutChanged indicates that
+ * some position or size element changed
+ */
+void
+RRCrtcChanged (RRCrtcPtr crtc, Bool layoutChanged);
+
 /*
  * Create a CRTC
  */
@@ -575,6 +587,13 @@ int
 ProcRRDeleteOutputMode (ClientPtr client);
 
 /* rroutput.c */
+
+/*
+ * Notify the output of some change
+ */
+void
+RROutputChanged (RROutputPtr output);
+
 /*
  * Create an output
  */
@@ -638,6 +657,13 @@ ProcRRGetOutputInfo (ClientPtr client);
 Bool
 RROutputInit (void);
     
+/* rrpointer.c */
+void
+RRPointerMoved (ScreenPtr pScreen, int x, int y);
+
+void
+RRPointerScreenConfigured (ScreenPtr pScreen);
+
 /* rrproperty.c */
 
 void
@@ -668,3 +694,79 @@ void
 RRXineramaExtensionInit(void);
 
 #endif /* _RANDRSTR_H_ */
+
+/*
+ 
+randr extension implementation structure
+
+Query state:
+    ProcRRGetScreenInfo/ProcRRGetScreenResources
+	RRGetInfo
+ 
+	    • Request configuration from driver, either 1.0 or 1.2 style
+	    • These functions only record state changes, all
+	      other actions are pended until RRTellChanged is called
+ 
+	    ->rrGetInfo
+	    1.0:
+		RRRegisterSize
+		RRRegisterRate
+		RRSetCurrentConfig
+	    1.2:
+		RRScreenSetSizeRange
+		RROutputSetCrtcs
+		RROutputSetCrtc
+		RROutputSetPossibleOptions
+		RRSetCurrentOptions
+		RRModeGet
+		RROutputSetModes
+		RROutputSetConnection
+		RROutputSetSubpixelOrder
+		RROutputSetClones
+		RRCrtcNotify
+ 
+	• Must delay scanning configuration until after ->rrGetInfo returns
+	  because some drivers will call SetCurrentConfig in the middle
+	  of the ->rrGetInfo operation.
+ 
+	1.0:
+
+	    • Scan old configuration, mirror to new structures
+ 
+	    RRScanOldConfig
+		RRCrtcCreate
+		RROutputCreate
+		RROutputSetCrtcs
+		RROutputSetCrtc
+		RROutputSetConnection
+		RROutputSetSubpixelOrder
+		RROldModeAdd	• This adds modes one-at-a-time
+		    RRModeGet
+		RRCrtcNotify
+ 
+	• send events, reset pointer if necessary
+ 
+	RRTellChanged
+	    WalkTree (sending events)
+ 
+	    • when layout has changed:
+		RRPointerScreenConfigured
+		RRSendConfigNotify
+ 
+Asynchronous state setting (1.2 only)
+    When setting state asynchronously, the driver invokes the
+    ->rrGetInfo function and then calls RRTellChanged to flush
+    the changes to the clients and reset pointer if necessary
+
+Set state
+
+    ProcRRSetScreenConfig
+	RRCrtcSet
+	    1.2:
+		->rrCrtcSet
+		    RRCrtcNotify
+	    1.0:
+		->rrSetConfig
+		RRCrtcNotify
+	    RRTellChanged
+ */

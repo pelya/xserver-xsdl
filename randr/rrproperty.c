@@ -27,6 +27,7 @@
 static void
 RRDeliverEvent (ScreenPtr pScreen, xEvent *event, CARD32 mask)
 {
+    
 }
 
 void

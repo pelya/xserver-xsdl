@@ -130,38 +130,71 @@ SRRScreenChangeNotifyEvent(xRRScreenChangeNotifyEvent *from,
     cpswaps(from->subpixelOrder, to->subpixelOrder);
 }
 
-#if 0
 static void
-SRRMonitorChangeNotifyEvent(xRRMonitorChangeNotifyEvent *from,
-			    xRRMonitorChangeNotifyEvent *to)
+SRRCrtcChangeNotifyEvent(xRRCrtcChangeNotifyEvent *from,
+			 xRRCrtcChangeNotifyEvent *to)
+{
+    to->type = from->type;
+    to->subCode = from->subCode;
+    cpswaps(from->sequenceNumber, to->sequenceNumber);
+    cpswapl(from->timestamp, to->timestamp);
+    cpswapl(from->window, to->window);
+    cpswapl(from->crtc, to->crtc);
+    cpswapl(from->mode, to->mode);
+    cpswapl(from->window, to->window);
+    cpswaps(from->rotation, to->rotation);
+    cpswaps(from->x, to->x);
+    cpswaps(from->y, to->y);
+    cpswaps(from->width, to->width);
+    cpswaps(from->height, to->height);
+}
+
+static void
+SRROutputChangeNotifyEvent(xRROutputChangeNotifyEvent *from,
+			   xRROutputChangeNotifyEvent *to)
 {
     to->type = from->type;
     to->subCode = from->subCode;
     cpswaps(from->sequenceNumber, to->sequenceNumber);
     cpswapl(from->timestamp, to->timestamp);
     cpswapl(from->configTimestamp, to->configTimestamp);
-    cpswapl(from->root, to->root);
     cpswapl(from->window, to->window);
-    cpswaps(from->monitor, to->monitor);
-    cpswaps(from->modeID, to->modeID);
+    cpswapl(from->output, to->output);
+    cpswapl(from->crtc, to->crtc);
+    cpswapl(from->mode, to->mode);
     cpswaps(from->rotation, to->rotation);
-    cpswaps(from->subpixelOrder, to->subpixelOrder);
-    cpswaps(from->x, to->x);
-    cpswaps(from->y, to->y);
 }
-#endif
+
+static void
+SRROutputPropertyNotifyEvent(xRROutputPropertyNotifyEvent *from,
+			     xRROutputPropertyNotifyEvent *to)
+{
+    to->type = from->type;
+    to->subCode = from->subCode;
+    cpswaps(from->sequenceNumber, to->sequenceNumber);
+    cpswapl(from->window, to->window);
+    cpswapl(from->output, to->output);
+    cpswapl(from->atom, to->atom);
+    cpswapl(from->timestamp, to->timestamp);
+}
 
 static void
 SRRNotifyEvent (xEvent *from,
 		xEvent *to)
 {
     switch (from->u.u.detail) {
-#if 0
-    case RRNotify_MonitorChange:
-	SRRMonitorChangeNotifyEvent ((xRRMonitorChangeNotifyEvent *) from,
-				     (xRRMonitorChangeNotifyEvent *) to);
+    case RRNotify_CrtcChange:
+	SRRCrtcChangeNotifyEvent ((xRRCrtcChangeNotifyEvent *) from,
+				  (xRRCrtcChangeNotifyEvent *) to);
 	break;
-#endif
+    case RRNotify_OutputChange:
+	SRROutputChangeNotifyEvent ((xRROutputChangeNotifyEvent *) from,
+				    (xRROutputChangeNotifyEvent *) to);
+	break;
+    case RRNotify_OutputProperty:
+	SRROutputPropertyNotifyEvent ((xRROutputPropertyNotifyEvent *) from,
+				      (xRROutputPropertyNotifyEvent *) to);
+	break;
     default:
 	break;
     }
@@ -359,6 +392,9 @@ TellChanged (WindowPtr pWin, pointer value)
     return WT_WALKCHILDREN;
 }
 
+/*
+ * Something changed; send events and adjust pointer position
+ */
 void
 RRTellChanged (ScreenPtr pScreen)
 {
@@ -369,12 +405,18 @@ RRTellChanged (ScreenPtr pScreen)
     {
 	UpdateCurrentTime ();
 	pScrPriv->lastConfigTime = currentTime;
-	WalkTree (pScreen, TellChanged, (pointer) pScreen);
 	pScrPriv->changed = FALSE;
+	WalkTree (pScreen, TellChanged, (pointer) pScreen);
 	for (i = 0; i < pScrPriv->numOutputs; i++)
 	    pScrPriv->outputs[i]->changed = FALSE;
 	for (i = 0; i < pScrPriv->numCrtcs; i++)
 	    pScrPriv->crtcs[i]->changed = FALSE;
+	if (pScrPriv->layoutChanged)
+	{
+	    pScrPriv->layoutChanged = FALSE;
+	    RRPointerScreenConfigured (pScreen);
+	    RRSendConfigNotify (pScreen);
+	}
     }
 }
 

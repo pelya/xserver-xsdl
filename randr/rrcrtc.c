@@ -26,6 +26,24 @@
 RESTYPE	RRCrtcType;
 
 /*
+ * Notify the CRTC of some change
+ */
+void
+RRCrtcChanged (RRCrtcPtr crtc, Bool layoutChanged)
+{
+    ScreenPtr	pScreen = crtc->pScreen;
+    rrScrPriv(pScreen);
+
+    crtc->changed = TRUE;
+    pScrPriv->changed = TRUE;
+    /*
+     * Send ConfigureNotify on any layout change
+     */
+    if (layoutChanged)
+	pScrPriv->layoutChanged = TRUE;
+}
+
+/*
  * Create a CRTC
  */
 RRCrtcPtr
@@ -60,7 +78,7 @@ RRCrtcCreate (ScreenPtr	pScreen,
     crtc->numOutputs = 0;
     crtc->gammaSize = 0;
     crtc->gammaRed = crtc->gammaBlue = crtc->gammaGreen = NULL;
-    crtc->changed = TRUE;
+    crtc->changed = FALSE;
     crtc->devPrivate = devPrivate;
 
     if (!AddResource (crtc->id, RRCrtcType, (pointer) crtc))
@@ -68,7 +86,8 @@ RRCrtcCreate (ScreenPtr	pScreen,
 
     pScrPriv->crtcs = crtcs;
     pScrPriv->crtcs[pScrPriv->numCrtcs++] = crtc;
-    pScrPriv->changed = TRUE;
+
+    RRCrtcChanged (crtc, TRUE);
     return crtc;
 }
 
@@ -85,8 +104,6 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	      int	    numOutputs,
 	      RROutputPtr   *outputs)
 {
-    ScreenPtr	pScreen = crtc->pScreen;
-    rrScrPriv(pScreen);
     int	    i, j;
     
     /*
@@ -100,8 +117,8 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 		break;
 	if (j == crtc->numOutputs)
 	{
-	    outputs[i]->changed = TRUE;
-	    crtc->changed = TRUE;
+	    RROutputChanged (outputs[i]);
+	    RRCrtcChanged (crtc, FALSE);
 	}
     }
     /*
@@ -115,8 +132,8 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 		break;
 	if (i == numOutputs)
 	{
-	    crtc->outputs[j]->changed = TRUE;
-	    crtc->changed = TRUE;
+	    RROutputChanged (crtc->outputs[j]);
+	    RRCrtcChanged (crtc, FALSE);
 	}
     }
     /*
@@ -158,31 +175,22 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	    RRModeDestroy (crtc->mode);
 	crtc->mode = mode;
 	mode->refcnt++;
-	crtc->changed = TRUE;
+	RRCrtcChanged (crtc, TRUE);
     }
     if (x != crtc->x)
     {
 	crtc->x = x;
-	crtc->changed = TRUE;
+	RRCrtcChanged (crtc, TRUE);
     }
     if (y != crtc->y)
     {
 	crtc->y = y;
-	crtc->changed = TRUE;
+	RRCrtcChanged (crtc, TRUE);
     }
     if (rotation != crtc->rotation)
     {
 	crtc->rotation = rotation;
-	crtc->changed = TRUE;
-    }
-    /*
-     * Send events if anything changed
-     */
-    if (crtc->changed)
-    {
-	if (!pScrPriv->changed)
-	    RRSendConfigNotify (pScreen);
-	pScrPriv->changed = TRUE;
+	RRCrtcChanged (crtc, TRUE);
     }
     return TRUE;
 }
@@ -272,10 +280,11 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	 * Old 1.0 interface tied screen size to mode size
 	 */
 	if (ret)
-	    RRScreenSizeNotify (pScreen);
+	    RRCrtcNotify (crtc, mode, x, y, rotation, 
 	return ret;
     }
 #endif
+    RRTellChanged (pScreen);
     return FALSE;
 }
 

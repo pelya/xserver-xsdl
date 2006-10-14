@@ -164,10 +164,13 @@ RRScreenSizeNotify (ScreenPtr	pScreen)
     pScrPriv->width = pScreen->width;
     pScrPriv->height = pScreen->height;
     pScrPriv->changed = TRUE;
+    pScrPriv->sizeChanged = TRUE;
 
+    RRTellChanged (pScreen);
     RRSendConfigNotify (pScreen);
     RREditConnectionInfo (pScreen);
     
+    RRPointerScreenConfigured (pScreen);
     /*
      * Fix pointer bounds and location
      */
@@ -836,8 +839,36 @@ ProcRRSetScreenConfig (ClientPtr client)
 	goto sendReply;
     }
 
+    /*
+     * If the screen size is changing, adjust all of the other outputs
+     * to fit the new size, mirroring as much as possible
+     */
+    if (mode->mode.width != pScreen->width || 
+	mode->mode.height != pScreen->height)
+    {
+	int	c;
+
+	for (c = 0; c < pScrPriv->numCrtcs; c++)
+	{
+	    rep.status = RRCrtcSet (pScrPriv->->crtc, NULL, 0, 0, RR_Rotate_0,
+				    0, NULL);
+	    if (rep.status != Success)
+		goto sendReply;
+	}
+	if (!RRScreenSizeSet (pScreen, mode->mode.width, mode->mode.height,
+			      pScreen->mmWidth, pScreen->mmHeight))
+	{
+	    rep.status  RRSetConfigFailed;
+	    goto sendReply;
+	}
+    }
+    
     rep.status = RRCrtcSet (output.output->crtc, mode, 0, 0, stuff->rotation,
 			    1, &output);
+    
+    /*
+     * XXX Configure other crtcs to mirror as much as possible
+     */
     
 sendReply:
     

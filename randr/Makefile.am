@@ -15,6 +15,7 @@ librandr_la_SOURCES =	\
 	rrinfo.c	\
 	rrmode.c	\
 	rroutput.c	\
+	rrpointer.c	\
 	rrproperty.c	\
 	rrscreen.c	\
 	rrsdispatch.c	\

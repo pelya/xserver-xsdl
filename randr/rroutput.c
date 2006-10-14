@@ -25,6 +25,19 @@
 RESTYPE	RROutputType;
 
 /*
+ * Notify the output of some change
+ */
+void
+RROutputChanged (RROutputPtr output)
+{
+    ScreenPtr	pScreen = output->pScreen;
+    rrScrPriv (pScreen);
+
+    output->changed = TRUE;
+    pScrPriv->changed = TRUE;
+}
+
+/*
  * Create an output
  */
 
@@ -70,7 +83,7 @@ RROutputCreate (ScreenPtr   pScreen,
     output->numPreferred = 0;
     output->modes = NULL;
     output->properties = NULL;
-    output->changed = TRUE;
+    output->changed = FALSE;
     output->devPrivate = devPrivate;
     
     if (!AddResource (output->id, RROutputType, (pointer) output))
@@ -78,7 +91,7 @@ RROutputCreate (ScreenPtr   pScreen,
 
     pScrPriv->outputs = outputs;
     pScrPriv->outputs[pScrPriv->numOutputs++] = output;
-    pScrPriv->changed = TRUE;
+    RROutputChanged (output);
     return output;
 }
 
@@ -114,7 +127,7 @@ RROutputSetClones (RROutputPtr  output,
     memcpy (newClones, clones, numClones * sizeof (RROutputPtr));
     output->clones = newClones;
     output->numClones = numClones;
-    output->changed = TRUE;
+    RROutputChanged (output);
     return TRUE;
 }
 
@@ -158,7 +171,7 @@ RROutputSetModes (RROutputPtr	output,
     output->modes = newModes;
     output->numModes = numModes;
     output->numPreferred = numPreferred;
-    output->changed = TRUE;
+    RROutputChanged (output);
     return TRUE;
 }
 
@@ -191,7 +204,7 @@ RROutputSetCrtcs (RROutputPtr	output,
     memcpy (newCrtcs, crtcs, numCrtcs * sizeof (RRCrtcPtr));
     output->crtcs = newCrtcs;
     output->numCrtcs = numCrtcs;
-    output->changed = TRUE;
+    RROutputChanged (output);
     return TRUE;
 }
 
@@ -202,7 +215,7 @@ RROutputSetPossibleOptions (RROutputPtr	output,
     if (output->possibleOptions == possibleOptions)
 	return TRUE;
     output->possibleOptions = possibleOptions;
-    output->changed = TRUE;
+    RROutputChanged (output);
     return TRUE;
 }
 
@@ -212,7 +225,7 @@ RROutputSetCrtc (RROutputPtr output, RRCrtcPtr crtc)
     if (output->crtc == crtc)
 	return;
     output->crtc = crtc;
-    output->changed = TRUE;
+    RROutputChanged (output);
 }
 
 Bool
@@ -222,7 +235,7 @@ RROutputSetConnection (RROutputPtr  output,
     if (output->connection == connection)
 	return TRUE;
     output->connection = connection;
-    output->changed = TRUE;
+    RROutputChanged (output);
     return TRUE;
 }
 
@@ -234,7 +247,7 @@ RROutputSetSubpixelOrder (RROutputPtr output,
 	return TRUE;
 
     output->subpixelOrder = subpixelOrder;
-    output->changed = TRUE;
+    RROutputChanged (output);
     return TRUE;
 }
 
@@ -245,13 +258,41 @@ RROutputSetCurrentOptions (RROutputPtr output,
     if (output->currentOptions == currentOptions)
 	return TRUE;
     output->currentOptions = currentOptions;
-    output->changed = TRUE;
+    RROutputChanged (output);
     return TRUE;
 }
 
 void
 RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output)
 {
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+    rrScrPriv (pScreen);
+    xRROutputChangeNotifyEvent	oe;
+    RRCrtcPtr	crtc = output->crtc;
+    RRModePtr	mode = crtc ? crtc->mode : 0;
+    
+    oe.type = RRNotify + RREventBase;
+    oe.subCode = RRNotify_OutputChange;
+    oe.sequenceNumber = client->sequence;
+    oe.timestamp = pScrPriv->lastSetTime.milliseconds;
+    oe.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
+    oe.window = pWin->drawable.id;
+    oe.output = output->id;
+    if (crtc)
+    {
+	oe.crtc = crtc->id;
+	oe.mode = mode ? mode->mode.id : None;
+	oe.rotation = crtc->rotation;
+    }
+    else
+    {
+	oe.crtc = None;
+	oe.mode = None;
+	oe.rotation = RR_Rotate_0;
+    }
+    oe.connection = output->connection;
+    oe.subpixelOrder = output->subpixelOrder;
+    WriteEventsToClient (client, 1, (xEvent *) &oe);
 }
 
 /*
