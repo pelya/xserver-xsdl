@@ -222,15 +222,8 @@ xf86ActivateDevice(LocalDevicePtr local)
     DeviceIntPtr	dev;
 
     if (local->flags & XI86_CONFIGURED) {
-        int	open_on_init;
-        
-        open_on_init = local->flags & (XI86_OPEN_ON_INIT | XI86_ALWAYS_CORE);
-        
-        dev = AddInputDevice(local->device_control,
-                             open_on_init);
-#ifdef DEBUG
-        ErrorF("activated device %d: %s\n", dev->id, local->name);
-#endif
+        dev = AddInputDevice(local->device_control, TRUE);
+
         if (dev == NULL)
             FatalError("Too many input devices");
         
