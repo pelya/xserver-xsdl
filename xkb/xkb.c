@@ -555,7 +555,7 @@ ProcXkbLatchLockState(ClientPtr client)
 
     for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
         if ((dev == inputInfo.keyboard && tmpd->key && tmpd->coreEvents) ||
-            tmpd == inputInfo.keyboard) {
+            tmpd == dev) {
             if (!tmpd->key->xkbInfo)
                 continue;
 
@@ -697,7 +697,7 @@ ProcXkbSetControls(ClientPtr client)
 
     for (tmpd = inputInfo.keyboard; tmpd; tmpd = tmpd->next) {
         if ((dev == inputInfo.keyboard && tmpd->key && tmpd->coreEvents) ||
-            tmpd == inputInfo.keyboard) {
+            tmpd == dev) {
 
             xkbi = tmpd->key->xkbInfo;
             ctrl = xkbi->desc->ctrls;
@@ -5441,12 +5441,13 @@ ProcXkbGetKbdByName(ClientPtr client)
 	xkb->ctrls->num_groups= nTG;
 
         for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
-            if ((dev == inputInfo.keyboard && tmpd->key && tmpd->coreEvents) ||
-                tmpd == inputInfo.keyboard) {
+            if (tmpd == dev ||
+                (dev->id == inputInfo.keyboard->id && tmpd->key &&
+                 tmpd->coreEvents)) {
 
                 memcpy(tmpd->key->modifierMap, xkb->map->modmap,
                        xkb->max_key_code + 1);
-                if (dev != inputInfo.keyboard)
+                if (tmpd != dev)
                     XkbCopyKeymap(dev->key->xkbInfo->desc,
                                   tmpd->key->xkbInfo->desc, True);
                 XkbUpdateCoreDescription(tmpd, True);
