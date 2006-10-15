@@ -86,7 +86,7 @@ int CoreDevicePrivatesIndex = 0, CoreDevicePrivatesGeneration = -1;
 DeviceIntPtr
 AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 {
-    register DeviceIntPtr dev;
+    register DeviceIntPtr dev, *prev; /* not a typo */
 
     if (inputInfo.numDevices >= MAX_DEVICES)
 	return (DeviceIntPtr)NULL;
@@ -130,8 +130,12 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     dev->devPrivates = NULL;
     dev->unwrapProc = NULL;
     dev->coreEvents = TRUE;
-    dev->next = inputInfo.off_devices;
-    inputInfo.off_devices = dev;
+
+    for (prev = &inputInfo.off_devices; *prev; prev = &(*prev)->next)
+        ;
+    *prev = dev;
+    dev->next = NULL;
+
     return dev;
 }
 
@@ -151,8 +155,12 @@ EnableDevice(register DeviceIntPtr dev)
 	return FALSE;
     }
     *prev = dev->next;
-    dev->next = inputInfo.devices;
-    inputInfo.devices = dev;
+
+    for (prev = &inputInfo.devices; *prev; prev = &(*prev)->next)
+        ;
+    *prev = dev;
+    dev->next = NULL;
+
     return TRUE;
 }
 
