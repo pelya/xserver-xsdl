@@ -359,7 +359,12 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
     if (pixmap->drawable.depth >= 24) {
 	bpp = 4;
 	format = GL_BGRA;
-	type = GL_UNSIGNED_BYTE;
+	type =
+#if X_BYTE_ORDER == X_LITTLE_ENDIAN
+	    GL_UNSIGNED_BYTE;
+#else
+	    GL_UNSIGNED_INT_8_8_8_8_REV;
+#endif
     } else {
 	bpp = 2;
 	format = GL_RGB;
