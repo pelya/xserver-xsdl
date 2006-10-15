@@ -1294,6 +1294,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
             }
         }
 
+        memcpy(dst->server->vmods, src->server->vmods, XkbNumVirtualMods);
+
         if (src->server->vmodmap) {
             if (src->max_key_code != dst->max_key_code) {
                 if (dst->server->vmodmap)
@@ -1427,6 +1429,20 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                 xfree(dst->names->radio_groups);
         }
         dst->names->num_rg = src->names->num_rg;
+
+        dst->names->keycodes = src->names->keycodes;
+        dst->names->geometry = src->names->geometry;
+        dst->names->symbols = src->names->symbols;
+        dst->names->types = src->names->types;
+        dst->names->compat = src->names->compat;
+        dst->names->phys_symbols = src->names->phys_symbols;
+
+        memcpy(dst->names->vmods, src->names->vmods,
+               XkbNumVirtualMods * sizeof(Atom));
+        memcpy(dst->names->indicators, src->names->indicators,
+               XkbNumIndicators * sizeof(Atom));
+        memcpy(dst->names->groups, src->names->groups,
+               XkbNumKbdGroups * sizeof(Atom));
     }
     else {
         if (dst->names)
