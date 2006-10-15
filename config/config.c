@@ -319,9 +319,13 @@ configFini()
 
     if (configConnection) {
         dbus_error_init(&error);
+        /* This causes a segfault inside libdbus.  Sigh. */
+#if 0
+        dbus_connection_unregister_object_path(configConnection, busobject);
+#endif
         dbus_bus_remove_match(configConnection, MATCH_RULE, &error);
         dbus_bus_release_name(configConnection, busname, &error);
-        dbus_connection_close(configConnection);
+        dbus_connection_unref(configConnection);
         RemoveGeneralSocket(configfd);
         configConnection = NULL;
         configfd = -1;
