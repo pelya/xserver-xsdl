@@ -126,7 +126,8 @@ exaDrawableDirty (DrawablePtr pDrawable, int x1, int y1, int x2, int y2)
 {
     ExaPixmapPrivPtr pExaPixmap;
     RegionPtr pDamageReg;
-    BoxRec box = { max(x1,0), max(y1,0), min(x2,pDrawable->width), min(y2,pDrawable->height) };
+    BoxRec box = { .x1 = max(x1,0), .x2 = min(x2,pDrawable->width),
+		   .y1 = max(y1,0), .y2 = min(y2,pDrawable->height) };
     RegionRec region;
 
     pExaPixmap = ExaGetPixmapPriv(exaGetDrawablePixmap (pDrawable));
