@@ -251,7 +251,7 @@ configInitialise()
 {
     DBusConnection *bus = NULL;
     DBusError error;
-    DBusObjectPathVTable vtable;
+    DBusObjectPathVTable vtable = { .message_function = configMessage };
 
     configConnection = NULL;
 
@@ -294,7 +294,6 @@ configInitialise()
         return;
     }
 
-    vtable.message_function = configMessage;
     snprintf(busobject, sizeof(busobject), "/org/x/config/%d", atoi(display));
     if (!dbus_connection_register_object_path(bus, busobject, &vtable, bus)) {
         configfd = -1;
@@ -319,10 +318,7 @@ configFini()
 
     if (configConnection) {
         dbus_error_init(&error);
-        /* This causes a segfault inside libdbus.  Sigh. */
-#if 0
         dbus_connection_unregister_object_path(configConnection, busobject);
-#endif
         dbus_bus_remove_match(configConnection, MATCH_RULE, &error);
         dbus_bus_release_name(configConnection, busname, &error);
         dbus_connection_unref(configConnection);
