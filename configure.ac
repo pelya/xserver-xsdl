@@ -1665,13 +1665,9 @@ fi
 
 dnl xorgcfg GUI configuration utility
 AC_ARG_ENABLE(xorgcfg, AS_HELP_STRING([--enable-xorgcfg], 
-	[Build xorgcfg GUI configuration utility (default: auto)]),
-	[XORGCFG=$enableval],[XORGCFG=auto])
-if test "x$XORGCFG" = xauto && test "x$XORG" = xyes; then
-    XORGCFG=yes
-fi
-
-if test "x$XORGCFG" = xyes; then
+	[Build xorgcfg GUI configuration utility (default: no)]),
+	[XORGCFG=$enableval],[XORGCFG=no])
+if test x$XORGCFG = xyes ; then
 	PKG_CHECK_MODULES([XORGCFG_DEP], 
 	    [xkbui >= 1.0.2 xkbfile xxf86misc xxf86vm xaw7 xmu xt xpm xext x11])
 	AC_CHECK_LIB([curses],[waddstr],
