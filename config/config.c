@@ -265,7 +265,7 @@ configInitialise()
     }
 
     if (!dbus_connection_get_unix_fd(bus, &configfd)) {
-        dbus_connection_close(bus);
+        dbus_connection_unref(bus);
         configfd = -1;
         FatalError("[dbus] couldn't get fd for bus\n");
         return;
@@ -275,7 +275,7 @@ configInitialise()
     if (!dbus_bus_request_name(bus, busname, 0, &error) ||
         dbus_error_is_set(&error)) {
         dbus_error_free(&error);
-        dbus_connection_close(bus);
+        dbus_connection_unref(bus);
         configfd = -1;
         FatalError("[dbus] couldn't take over org.x.config: %s (%s)\n",
                    error.name, error.message);
@@ -287,7 +287,7 @@ configInitialise()
     if (dbus_error_is_set(&error)) {
         dbus_error_free(&error);
         dbus_bus_release_name(bus, busname, &error);
-        dbus_connection_close(bus);
+        dbus_connection_unref(bus);
         configfd = -1;
         FatalError("[dbus] couldn't match X.Org rule: %s (%s)\n", error.name,
                    error.message);
@@ -299,7 +299,7 @@ configInitialise()
         configfd = -1;
         dbus_bus_release_name(bus, busname, &error);
         dbus_bus_remove_match(bus, MATCH_RULE, &error);
-        dbus_connection_close(bus);
+        dbus_connection_unref(bus);
         FatalError("[dbus] couldn't register object path\n");
         return;
     }
