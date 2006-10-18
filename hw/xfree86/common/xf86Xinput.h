@@ -113,7 +113,7 @@ typedef struct _LocalDeviceRec {
     struct _LocalDeviceRec *next;
     char *		    name;
     int			    flags;
-    
+
     Bool		    (*device_control)(DeviceIntPtr device, int what);
     void		    (*read_input)(struct _LocalDeviceRec *local);
     int			    (*control_proc)(struct _LocalDeviceRec *local,
@@ -128,7 +128,11 @@ typedef struct _LocalDeviceRec {
     Bool		    (*reverse_conversion_proc)(
 					struct _LocalDeviceRec *local,
 					int x, int y, int *valuators);
-    
+    int                     (*set_device_valuators)
+				(struct _LocalDeviceRec *local,
+				 int *valuators, int first_valuator,
+				 int num_valuators);
+
     int			    fd;
     Atom		    atom;
     DeviceIntPtr	    dev;

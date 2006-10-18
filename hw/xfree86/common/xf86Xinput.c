@@ -501,7 +501,13 @@ int
 SetDeviceValuators (ClientPtr client, DeviceIntPtr dev, int *valuators,
                     int first_valuator, int num_valuators)
 {
-  return BadMatch;
+    LocalDevicePtr local = (LocalDevicePtr) dev->public.devicePrivate;
+
+    if (local->set_device_valuators)
+	return (*local->set_device_valuators)(local, valuators, first_valuator,
+					      num_valuators);
+
+    return BadMatch;
 }
 
 
