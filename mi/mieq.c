@@ -113,7 +113,7 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
             ErrorF("mieqEnqueue: more than six valuator events; dropping.\n");
             return;
         }
-        if (oldtail == miEventQueue.head || 
+        if (oldtail == miEventQueue.head ||
             !(lastkbp->type == DeviceMotionNotify ||
               lastkbp->type == DeviceButtonPress ||
               lastkbp->type == DeviceButtonRelease) ||

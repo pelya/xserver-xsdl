@@ -1,6 +1,6 @@
 /*
  * Copyright © 2006 Nokia Corporation
- * 
+ *
  * Permission to use, copy, modify, distribute, and sell this software and
  * its documentation for any purpose is hereby granted without fee,
  * provided that the above copyright notice appear in all copies and that
@@ -121,7 +121,7 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
 
     if (!events)
         return 0;
-    
+
     if (type != KeyPress && type != KeyRelease)
         return 0;
 
@@ -179,7 +179,6 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
             events += numEvents;
         }
     }
-    
 
     ms = GetTimeInMillis();
 
