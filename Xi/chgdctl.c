@@ -106,6 +106,7 @@ ProcXChangeDeviceControl(ClientPtr client)
     CARD32 *resolution;
     xDeviceTSCtl *ts;
     xDeviceCoreCtl *c;
+    xDeviceEnableCtl *e;
 
     REQUEST(xChangeDeviceControlReq);
     REQUEST_AT_LEAST_SIZE(xChangeDeviceControlReq);
@@ -206,6 +207,28 @@ ProcXChangeDeviceControl(ClientPtr client)
 
         if (status == Success) {
             dev->coreEvents = c->status;
+        } else if (status == DeviceBusy) {
+            rep.status = DeviceBusy;
+            WriteReplyToClient(client, sizeof(xChangeDeviceControlReply),
+                               &rep);
+            return Success;
+        } else {
+            SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0,
+                              BadMatch);
+            return Success;
+        }
+
+        break;
+    case DEVICE_ENABLE:
+        e = (xDeviceEnableCtl *)&stuff[1];
+
+        status = ChangeDeviceControl(client, dev, (xDeviceCtl *) e);
+
+        if (status == Success) {
+            if (e->enable)
+                EnableDevice(dev);
+            else
+                DisableDevice(dev);
         } else if (status == DeviceBusy) {
             rep.status = DeviceBusy;
             WriteReplyToClient(client, sizeof(xChangeDeviceControlReply),

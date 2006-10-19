@@ -130,6 +130,8 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     dev->devPrivates = NULL;
     dev->unwrapProc = NULL;
     dev->coreEvents = TRUE;
+    dev->inited = FALSE;
+    dev->enabled = FALSE;
 
     for (prev = &inputInfo.off_devices; *prev; prev = &(*prev)->next)
         ;
@@ -154,6 +156,7 @@ EnableDevice(register DeviceIntPtr dev)
         ErrorF("couldn't enable device %d\n", dev->id);
 	return FALSE;
     }
+    dev->enabled = TRUE;
     *prev = dev->next;
 
     for (prev = &inputInfo.devices; *prev; prev = &(*prev)->next)
@@ -176,6 +179,7 @@ DisableDevice(register DeviceIntPtr dev)
     if (*prev != dev)
 	return FALSE;
     (void)(*dev->deviceProc)(dev, DEVICE_OFF);
+    dev->enabled = FALSE;
     *prev = dev->next;
     dev->next = inputInfo.off_devices;
     inputInfo.off_devices = dev;
