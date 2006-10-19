@@ -406,6 +406,9 @@ extern int GetKeyboardValuatorEvents(
     int num_valuator,
     int *valuators);
 
+extern void SwitchCoreKeyboard(DeviceIntPtr pDev);
+extern void SwitchCorePointer(DeviceIntPtr pDev);
+
 extern DeviceIntPtr LookupDeviceIntRec(
     CARD8 deviceid);
 

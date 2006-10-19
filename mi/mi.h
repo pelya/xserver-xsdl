@@ -173,6 +173,7 @@ extern Bool mieqInit(
 );
 
 extern void mieqEnqueue(
+    DeviceIntPtr /*pDev*/,
     xEventPtr /*e*/
 );
 
