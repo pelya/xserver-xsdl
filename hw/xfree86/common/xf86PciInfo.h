@@ -92,6 +92,7 @@
 #define PCI_VENDOR_TRITECH		0x1292
 #define PCI_VENDOR_NVIDIA_SGS		0x12D2
 #define PCI_VENDOR_VMWARE		0x15AD
+#define PCI_VENDOR_AST			0x1A03
 #define PCI_VENDOR_3DLABS		0x3D3D
 #define PCI_VENDOR_AVANCE_2		0x4005
 #define PCI_VENDOR_HERCULES		0x4843
@@ -357,6 +358,9 @@
 #define PCI_CHIP_RV410_5E4F             0x5E4F
 #define PCI_CHIP_RS350_7834             0x7834
 #define PCI_CHIP_RS350_7835             0x7835
+
+/* ASPEED Technology (AST) */
+#define PCI_CHIP_AST2000		0x2000
 
 /* Avance Logic */
 #define PCI_CHIP_ALG2064		0x2064
