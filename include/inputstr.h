@@ -277,6 +277,7 @@ typedef struct _DeviceIntRec {
 					  used to initialize, turn on, or
 					  turn off the device */
     Bool	inited;			/* TRUE if INIT returns Success */
+    Bool        enabled;                /* TRUE if ON returns Success */
     Bool        coreEvents;             /* TRUE if device also sends core */
     GrabPtr	grab;			/* the grabber - used by DIX */
     struct {

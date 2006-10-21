@@ -55,6 +55,11 @@ void CopySwapDeviceCore(ClientPtr /* client */ ,
                         char * /* buf */
     );
 
+void CopySwapDeviceEnable(ClientPtr /* client */ ,
+                          DeviceIntPtr /* dev */ ,
+                          char * /* buf */
+    );
+
 void SRepXGetDeviceControl(ClientPtr /* client */ ,
 			   int /* size */ ,
 			   xGetDeviceControlReply *	/* rep */

@@ -974,6 +974,7 @@ xf86XVEnlistPortInWindow(WindowPtr pWin, XvPortRecPrivatePtr portPriv)
    if(!winPriv) {
 	winPriv = xalloc(sizeof(XF86XVWindowRec));
 	if(!winPriv) return BadAlloc;
+	memset(winPriv, 0, sizeof(XF86XVWindowRec));
 	winPriv->PortRec = portPriv;
 	winPriv->next = PrivRoot;
 	pWin->devPrivates[XF86XVWindowIndex].ptr = (pointer)winPriv;
@@ -1026,6 +1027,9 @@ xf86XVDestroyWindow(WindowPtr pWin)
 
      pPriv->pDraw = NULL;
      tmp = WinPriv;
+     if(WinPriv->pGC) {
+       FreeGC(WinPriv->pGC, 0);
+     }
      WinPriv = WinPriv->next;
      xfree(tmp);
   }
@@ -1118,6 +1122,8 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
   while(WinPriv) {
      pPriv = WinPriv->PortRec;
 
+     if(!pPriv) goto next;
+ 
      if(pPriv->pCompositeClip && pPriv->FreeCompositeClip)
 	REGION_DESTROY(pScreen, pPriv->pCompositeClip);
 
@@ -1148,6 +1154,7 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
 	}
      }
 
+next:
      pPrev = WinPriv;
      WinPriv = WinPriv->next;
   }
@@ -1739,9 +1746,13 @@ xf86XVPutImage(
      REGION_UNINIT(pScreen, &VPReg);
   }
 
-  if(portPriv->pDraw) {
+  /* If we are changing windows, unregister our port in the old window */
+  if(portPriv->pDraw && (portPriv->pDraw != pDraw))
      xf86XVRemovePortFromWindow((WindowPtr)(portPriv->pDraw), portPriv);
-  }
+
+  /* Register our port with the new window */
+  ret =  xf86XVEnlistPortInWindow((WindowPtr)pDraw, portPriv);
+  if(ret != Success) goto PUT_IMAGE_BAILOUT;
 
   if(!REGION_NOTEMPTY(pScreen, &ClipRegion)) {
      clippedAway = TRUE;
@@ -1772,7 +1783,6 @@ xf86XVPutImage(
   if((ret == Success) &&
 	(portPriv->AdaptorRec->flags & VIDEO_OVERLAID_IMAGES)) {
 
-     xf86XVEnlistPortInWindow((WindowPtr)pDraw, portPriv);
      portPriv->isOn = XV_ON;
      portPriv->pDraw = pDraw;
      portPriv->drw_x = drw_x;  portPriv->drw_y = drw_y;
@@ -1811,6 +1821,56 @@ xf86XVQueryImageAttributes(
 
   return (*portPriv->AdaptorRec->QueryImageAttributes)(portPriv->pScrn,
 			format->id, width, height, pitches, offsets);
+}
+
+
+_X_EXPORT void
+xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes)
+{
+   ScreenPtr pScreen = pDraw->pScreen;
+   WindowPtr pWin = (WindowPtr)pDraw;
+   XF86XVWindowPtr pPriv = GET_XF86XV_WINDOW(pWin);
+   GCPtr pGC = NULL;
+   XID pval[2];
+   BoxPtr pbox = REGION_RECTS(clipboxes);
+   int i, nbox = REGION_NUM_RECTS(clipboxes);
+   xRectangle *rects;
+
+   if(!xf86Screens[pScreen->myNum]->vtSema) return;
+
+   if(pPriv)
+      pGC = pPriv->pGC;
+
+   if(!pGC) {
+       int status;
+       pval[0] = key;
+       pval[1] = IncludeInferiors;
+       pGC = CreateGC(pDraw, GCForeground | GCSubwindowMode, pval, &status);
+       if(!pGC) return;
+       ValidateGC(pDraw, pGC);
+       if (pPriv) pPriv->pGC = pGC;
+   } else if (key != pGC->fgPixel){
+       pval[0] = key;
+       ChangeGC(pGC, GCForeground, pval);
+       ValidateGC(pDraw, pGC);
+   }
+
+   REGION_TRANSLATE(pDraw->pScreen, clipboxes, -pDraw->x, -pDraw->y);
+
+   rects = ALLOCATE_LOCAL(nbox * sizeof(xRectangle));
+
+   for(i = 0; i < nbox; i++, pbox++) {
+      rects[i].x = pbox->x1;
+      rects[i].y = pbox->y1;
+      rects[i].width = pbox->x2 - pbox->x1;
+      rects[i].height = pbox->y2 - pbox->y1;
+   }
+
+   (*pGC->ops->PolyFillRect)(pDraw, pGC, nbox, rects);
+
+   if (!pPriv) FreeGC(pGC, 0);
+
+   DEALLOCATE_LOCAL(rects);
 }
 
 _X_EXPORT void

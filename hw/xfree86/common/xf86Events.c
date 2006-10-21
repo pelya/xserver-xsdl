@@ -104,18 +104,11 @@ extern Bool noXkbExtension;
 #define XE_POINTER  1
 #define XE_KEYBOARD 2
 
-#define __EqEnqueue(ev) mieqEnqueue(ev)
-
-#define EqEnqueue(ev) { \
+#define EqEnqueue(pDev, ev) { \
     int __sigstate = xf86BlockSIGIO (); \
-    __EqEnqueue (ev); \
+    mieqEnqueue (pDev, ev); \
     xf86UnblockSIGIO(__sigstate); \
 }
-
-#define ENQUEUE(ev, code, direction, dev_type) \
-  (ev)->u.u.detail = (code); \
-  (ev)->u.u.type   = (direction); \
-  EqEnqueue((ev))
 
 /*
  * The first of many hacks to get VT switching to work under
@@ -839,7 +832,7 @@ xf86ReleaseKeys(DeviceIntPtr pDev)
                 else {
                     nevents = GetKeyboardEvents(xf86Events, pDev, KeyRelease, i);
                     for (j = 0; j < nevents; j++)
-                        mieqEnqueue(xf86Events + i);
+                        EqEnqueue(pDev, xf86Events + i);
                 }
                 break;
             }

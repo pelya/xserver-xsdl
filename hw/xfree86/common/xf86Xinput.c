@@ -657,20 +657,7 @@ xf86PostMotionEvent(DeviceIntPtr	device,
                                valuators);
 
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(xf86Events + i);
-    
-#if 0
-    if (HAS_MOTION_HISTORY(local)) {
-      buff = ((char *)local->motion_history +
-              (sizeof(INT32) * local->dev->valuator->numAxes + sizeof(Time)) * local->last);
-    }
-
-    if (HAS_MOTION_HISTORY(local)) {
-        local->last = (local->last + 1) % device->valuator->numMotionEvents;
-        if (local->last == local->first)
-            local->first = (local->first + 1) % device->valuator->numMotionEvents;
-    }
-#endif
+        mieqEnqueue(device, xf86Events + i);
 }
 
 _X_EXPORT void
@@ -796,7 +783,7 @@ xf86PostButtonEvent(DeviceIntPtr	device,
                                first_valuator, num_valuators, valuators);
 
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(xf86Events + i);
+        mieqEnqueue(device, xf86Events + i);
 }
 
 _X_EXPORT void
@@ -840,7 +827,7 @@ xf86PostKeyEvent(DeviceIntPtr	device,
     }
 
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(xf86Events + i);
+        mieqEnqueue(device, xf86Events + i);
 }
 
 _X_EXPORT void
@@ -859,7 +846,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
                                 is_down ? KeyPress : KeyRelease, key_code);
 
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(xf86Events + i);
+        mieqEnqueue(device, xf86Events + i);
 }
 
 /* 

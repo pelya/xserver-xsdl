@@ -1656,10 +1656,10 @@ char *kdActionNames[] = {
 #endif
 
 static void
-KdQueueEvent (xEvent *ev)
+KdQueueEvent (DeviceIntPtr pDev, xEvent *ev)
 {
     KdAssertSigioBlocked ("KdQueueEvent");
-    mieqEnqueue (ev);
+    mieqEnqueue (pDev, ev);
 }
 
 /* We return true if we're stealing the event. */
@@ -1862,7 +1862,7 @@ KdReleaseAllKeys (void)
                 KdHandleKeyboardEvent(ki, KeyRelease, key);
                 nEvents = GetKeyboardEvents(kdEvents, ki->dixdev, KeyRelease, key);
                 for (i = 0; i < nEvents; i++)
-                    KdQueueEvent (kdEvents + i);
+                    KdQueueEvent (ki->dixdev, kdEvents + i);
             }
         }
     }
@@ -1934,7 +1934,7 @@ KdEnqueueKeyboardEvent(KdKeyboardInfo   *ki,
         ErrorF("KdEnqueueKeyboardEvent: got %d events from GKE\n", nEvents);
 #endif
         for (i = 0; i < nEvents; i++)
-            KdQueueEvent(kdEvents + i);
+            KdQueueEvent(ki->dixdev, kdEvents + i);
     }
     else {
         ErrorF("driver %s wanted to post scancode %d outside of [%d, %d]!\n",
@@ -2052,7 +2052,7 @@ _KdEnqueuePointerEvent (KdPointerInfo *pi, int type, int x, int y, int z,
     nEvents = GetPointerEvents(kdEvents, pi->dixdev, type, b, absrel, 0, 3,
                                valuators);
     for (i = 0; i < nEvents; i++)
-        KdQueueEvent(kdEvents + i);
+        KdQueueEvent(pi->dixdev, kdEvents + i);
 }
 
 void

@@ -73,14 +73,14 @@ typedef struct _EventQueue {
 static EventQueueRec miEventQueue;
 
 Bool
-mieqInit ()
+mieqInit()
 {
     miEventQueue.head = miEventQueue.tail = 0;
     miEventQueue.lastEventTime = GetTimeInMillis ();
     miEventQueue.lastMotion = FALSE;
     miEventQueue.pEnqueueScreen = screenInfo.screens[0];
     miEventQueue.pDequeueScreen = miEventQueue.pEnqueueScreen;
-    SetInputCheck (&miEventQueue.head, &miEventQueue.tail);
+    SetInputCheck(&miEventQueue.head, &miEventQueue.tail);
     return TRUE;
 }
 
@@ -92,56 +92,38 @@ mieqInit ()
  */
 
 void
-mieqEnqueue (xEvent *e)
+mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
 {
     HWEventQueueType       oldtail = miEventQueue.tail, newtail;
     int                    isMotion = 0;
-    DeviceIntPtr           pDev = NULL;
-    deviceKeyButtonPointer *kbp = (deviceKeyButtonPointer *) e;
     deviceValuator         *v = (deviceValuator *) e;
     EventPtr               laste = &miEventQueue.events[oldtail - 1];
     deviceKeyButtonPointer *lastkbp = (deviceKeyButtonPointer *)
                                       &laste->event[0];
 
-    if (e->u.u.type == MotionNotify) {
-        pDev = inputInfo.pointer;
-        isMotion = inputInfo.pointer->id & DEVICE_BITS;
-    }
-    else if (e->u.u.type == KeyPress || e->u.u.type == KeyRelease) {
-        pDev = inputInfo.keyboard;
-    }
-    else if (e->u.u.type == ButtonPress || e->u.u.type == ButtonRelease) {
-        pDev = inputInfo.pointer;
-    }
-    else {
-        pDev = LookupDeviceIntRec(kbp->deviceid & DEVICE_BITS);
+    if (e->u.u.type == MotionNotify)
+        isMotion = inputInfo.pointer->id;
+    else if (e->u.u.type == DeviceMotionNotify)
+        isMotion = pDev->id;
 
-        /* We silently steal valuator events: just tack them on to the last
-         * motion event they need to be attached to.  Sigh. */
-        if (e->u.u.type == DeviceValuator) {
-            if (laste->nevents > 6) {
-                ErrorF("mieqEnqueue: more than six valuator events; dropping.\n");
-                return;
-            }
-            if (oldtail == miEventQueue.head || 
-                !(lastkbp->type == DeviceMotionNotify ||
-                  lastkbp->type == DeviceButtonPress ||
-                  lastkbp->type == DeviceButtonRelease) ||
-                ((lastkbp->deviceid & DEVICE_BITS) !=
-                 (v->deviceid & DEVICE_BITS))) {
-                ErrorF("mieqEnequeue: out-of-order valuator event; dropping.\n");
-                return;
-            }
-            memcpy(&(laste->event[laste->nevents++]), e, sizeof(xEvent));
+    /* We silently steal valuator events: just tack them on to the last
+     * motion event they need to be attached to.  Sigh. */
+    if (e->u.u.type == DeviceValuator) {
+        if (laste->nevents > 6) {
+            ErrorF("mieqEnqueue: more than six valuator events; dropping.\n");
             return;
         }
-        else if (e->u.u.type == DeviceMotionNotify) {
-            isMotion = pDev->id & DEVICE_BITS;
+        if (oldtail == miEventQueue.head || 
+            !(lastkbp->type == DeviceMotionNotify ||
+              lastkbp->type == DeviceButtonPress ||
+              lastkbp->type == DeviceButtonRelease) ||
+            (lastkbp->deviceid != v->deviceid)) {
+            ErrorF("mieqEnequeue: out-of-order valuator event; dropping.\n");
+            return;
         }
+        memcpy(&(laste->event[laste->nevents++]), e, sizeof(xEvent));
+        return;
     }
-
-    if (!pDev)
-        FatalError("Couldn't find device for event!\n");
 
     if (isMotion && isMotion == miEventQueue.lastMotion &&
         oldtail != miEventQueue.head) {
@@ -164,10 +146,8 @@ mieqEnqueue (xEvent *e)
     memcpy(&(miEventQueue.events[oldtail].event[0]), e, sizeof(xEvent));
     miEventQueue.events[oldtail].nevents = 1;
 
-    /*
-     * Make sure that event times don't go backwards - this
-     * is "unnecessary", but very useful
-     */
+    /* Make sure that event times don't go backwards - this
+     * is "unnecessary", but very useful. */
     if (e->u.keyButtonPointer.time < miEventQueue.lastEventTime &&
 	miEventQueue.lastEventTime - e->u.keyButtonPointer.time < 10000)
 	miEventQueue.events[oldtail].event[0].u.keyButtonPointer.time =
@@ -182,49 +162,59 @@ mieqEnqueue (xEvent *e)
 }
 
 void
-mieqSwitchScreen (ScreenPtr pScreen, Bool fromDIX)
+mieqSwitchScreen(ScreenPtr pScreen, Bool fromDIX)
 {
     miEventQueue.pEnqueueScreen = pScreen;
     if (fromDIX)
 	miEventQueue.pDequeueScreen = pScreen;
 }
 
-/*
- * Call this from ProcessInputEvents()
- */
-
-void mieqProcessInputEvents ()
+/* Call this from ProcessInputEvents(). */
+void
+mieqProcessInputEvents()
 {
-    EventRec	*e;
-    int		x, y;
+    EventRec *e = NULL;
+    int x = 0, y = 0;
+    DeviceIntPtr dev = NULL;
 
-    while (miEventQueue.head != miEventQueue.tail)
-    {
-	if (screenIsSaved == SCREEN_SAVER_ON)
-	    SaveScreens (SCREEN_SAVER_OFF, ScreenSaverReset);
+    while (miEventQueue.head != miEventQueue.tail) {
+        if (screenIsSaved == SCREEN_SAVER_ON)
+            SaveScreens (SCREEN_SAVER_OFF, ScreenSaverReset);
 
-	e = &miEventQueue.events[miEventQueue.head];
-	/*
-	 * Assumption - screen switching can only occur on motion events
-	 */
-	if (e->pScreen != miEventQueue.pDequeueScreen)
-	{
-	    miEventQueue.pDequeueScreen = e->pScreen;
-	    x = e->event[0].u.keyButtonPointer.rootX;
-	    y = e->event[0].u.keyButtonPointer.rootY;
-	    if (miEventQueue.head == QUEUE_SIZE - 1)
-	    	miEventQueue.head = 0;
-	    else
-	    	++miEventQueue.head;
-	    NewCurrentScreen (miEventQueue.pDequeueScreen, x, y);
-	}
-	else
-	{
-	    if (miEventQueue.head == QUEUE_SIZE - 1)
-	    	miEventQueue.head = 0;
-	    else
-	    	++miEventQueue.head;
-            (*e->pDev->public.processInputProc)(e->event, e->pDev, e->nevents);
-	}
+        e = &miEventQueue.events[miEventQueue.head];
+        /* Assumption - screen switching can only occur on motion events. */
+        if (e->pScreen != miEventQueue.pDequeueScreen) {
+            miEventQueue.pDequeueScreen = e->pScreen;
+            x = e->event[0].u.keyButtonPointer.rootX;
+            y = e->event[0].u.keyButtonPointer.rootY;
+            if (miEventQueue.head == QUEUE_SIZE - 1)
+                miEventQueue.head = 0;
+            else
+                ++miEventQueue.head;
+            NewCurrentScreen (miEventQueue.pDequeueScreen, x, y);
+        }
+        else {
+            if (miEventQueue.head == QUEUE_SIZE - 1)
+                miEventQueue.head = 0;
+            else
+                ++miEventQueue.head;
+
+            if (e->event[0].u.u.type == KeyPress ||
+                e->event[0].u.u.type == KeyRelease) {
+                SwitchCoreKeyboard(e->pDev);
+                dev = inputInfo.keyboard;
+            }
+            else if (e->event[0].u.u.type == MotionNotify ||
+                     e->event[0].u.u.type == ButtonPress ||
+                     e->event[0].u.u.type == ButtonRelease) {
+                SwitchCorePointer(e->pDev);
+                dev = inputInfo.pointer;
+            }
+            else {
+                dev = e->pDev;
+            }
+
+            dev->public.processInputProc(e->event, dev, e->nevents);
+        }
     }
 }

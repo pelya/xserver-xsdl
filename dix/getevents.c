@@ -481,19 +481,19 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
             xv->deviceid = kbp->deviceid;
             switch (final_valuator - i) {
             case 6:
-                xv->valuator5 = valuators[i+5];
+                xv->valuator5 = valuators[i + 5];
             case 5:
-                xv->valuator4 = valuators[i+4];
+                xv->valuator4 = valuators[i + 4];
             case 4:
-                xv->valuator3 = valuators[i+3];
+                xv->valuator3 = valuators[i + 3];
             case 3:
-                xv->valuator2 = valuators[i+2];
+                xv->valuator2 = valuators[i + 2];
             case 2:
                 /* x and y may have been accelerated. */
                 if (i == 0)
                     xv->valuator1 = kbp->root_y;
                 else
-                    xv->valuator1 = valuators[i+1];
+                    xv->valuator1 = valuators[i + 1];
             case 1:
                 /* x and y may have been accelerated. */
                 if (i == 0)
@@ -520,11 +520,47 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         else {
             events->u.u.detail = 0;
         }
-
-        if (inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr !=
-            pDev)
-            inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
     }
 
     return num_events;
+}
+
+void SwitchCoreKeyboard(DeviceIntPtr pDev)
+{
+    KeyClassPtr ckeyc = inputInfo.keyboard->key;
+
+    if (inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr != pDev) {
+        memcpy(ckeyc->modifierMap, pDev->key->modifierMap, MAP_LENGTH);
+        if (ckeyc->modifierKeyMap)
+            xfree(ckeyc->modifierKeyMap);
+        ckeyc->modifierKeyMap = xalloc(8 * pDev->key->maxKeysPerModifier);
+        memcpy(ckeyc->modifierKeyMap, pDev->key->modifierKeyMap,
+                (8 * pDev->key->maxKeysPerModifier));
+
+        ckeyc->maxKeysPerModifier = pDev->key->maxKeysPerModifier;
+        ckeyc->curKeySyms.minKeyCode = pDev->key->curKeySyms.minKeyCode;
+        ckeyc->curKeySyms.maxKeyCode = pDev->key->curKeySyms.maxKeyCode;
+        SetKeySymsMap(&ckeyc->curKeySyms, &pDev->key->curKeySyms);
+
+#ifdef XKB
+        if (!noXkbExtension && pDev->key->xkbInfo && pDev->key->xkbInfo->desc) {
+            if (!XkbCopyKeymap(pDev->key->xkbInfo->desc, ckeyc->xkbInfo->desc,
+                               True))
+                FatalError("Couldn't pivot keymap from device to core!\n");
+        }
+#endif
+
+        SendMappingNotify(MappingKeyboard, ckeyc->curKeySyms.minKeyCode,
+                          (ckeyc->curKeySyms.maxKeyCode -
+                           ckeyc->curKeySyms.minKeyCode),
+                          serverClient);
+        inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
+    }
+}
+
+/* Currently a no-op. */
+void SwitchCorePointer(DeviceIntPtr pDev)
+{
+    if (inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr != pDev)
+        inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
 }

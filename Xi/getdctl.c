@@ -145,6 +145,9 @@ ProcXGetDeviceControl(ClientPtr client)
     case DEVICE_CORE:
         total_length = sizeof(xDeviceCoreCtl);
         break;
+    case DEVICE_ENABLE:
+        total_length = sizeof(xDeviceEnableCtl);
+        break;
     default:
 	SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0, BadValue);
 	return Success;
@@ -169,6 +172,10 @@ ProcXGetDeviceControl(ClientPtr client)
         break;
     case DEVICE_CORE:
         CopySwapDeviceCore(client, dev, buf);
+        break;
+    case DEVICE_ENABLE:
+        CopySwapDeviceEnable(client, dev, buf);
+        break;
     default:
 	break;
     }
@@ -284,11 +291,28 @@ void CopySwapDeviceCore (ClientPtr client, DeviceIntPtr dev, char *buf)
     c->control = DEVICE_CORE;
     c->length = sizeof(c);
     c->status = dev->coreEvents;
+    c->iscore = (dev == inputInfo.keyboard || dev == inputInfo.pointer);
 
     if (client->swapped) {
         swaps(&c->control, n);
         swaps(&c->length, n);
         swaps(&c->status, n);
+    }
+}
+
+void CopySwapDeviceEnable (ClientPtr client, DeviceIntPtr dev, char *buf)
+{
+    register char n;
+    xDeviceEnableState *e = (xDeviceEnableState *) buf;
+
+    e->control = DEVICE_ENABLE;
+    e->length = sizeof(e);
+    e->enable = dev->enabled;
+
+    if (client->swapped) {
+        swaps(&e->control, n);
+        swaps(&e->length, n);
+        swaps(&e->enable, n);
     }
 }
 
