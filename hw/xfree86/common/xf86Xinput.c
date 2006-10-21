@@ -529,7 +529,8 @@ ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
       switch (control->control) {
       case DEVICE_CORE:
       case DEVICE_RESOLUTION:
-      case DEVICE_TOUCHSCREEN:
+      case DEVICE_ABS_CALIB:
+      case DEVICE_ABS_AREA:
         return Success;
       default:
         return BadMatch;

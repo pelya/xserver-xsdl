@@ -42,10 +42,13 @@ void CopySwapDeviceResolution(ClientPtr /* client */ ,
 			      int	/* length */
     );
 
-void CopySwapDeviceTouchscreen(ClientPtr /* client */ ,
-                               TouchscreenClassPtr /* ts */ ,
-                               char * /* buf */
-    );
+void CopySwapDeviceAbsCalib (ClientPtr client,
+                             AbsoluteClassPtr dts,
+                             char *buf);
+
+void CopySwapDeviceAbsArea (ClientPtr client,
+                            AbsoluteClassPtr dts,
+                            char *buf);
 
 void CopySwapDeviceCore(ClientPtr /* client */ ,
                         DeviceIntPtr /* dev */ ,

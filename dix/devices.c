@@ -116,7 +116,7 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     dev->button = (ButtonClassPtr)NULL;
     dev->focus = (FocusClassPtr)NULL;
     dev->proximity = (ProximityClassPtr)NULL;
-    dev->touchscreen = (TouchscreenClassPtr)NULL;
+    dev->absolute = (AbsoluteClassPtr)NULL;
     dev->kbdfeed = (KbdFeedbackPtr)NULL;
     dev->ptrfeed = (PtrFeedbackPtr)NULL;
     dev->intfeed = (IntegerFeedbackPtr)NULL;
@@ -805,22 +805,31 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
 }
 
 _X_EXPORT Bool
-InitTouchscreenClassDeviceStruct(DeviceIntPtr dev)
+InitAbsoluteClassDeviceStruct(DeviceIntPtr dev)
 {
-    register TouchscreenClassPtr tsc;
+    register AbsoluteClassPtr abs;
 
-    tsc = (TouchscreenClassPtr)xalloc(sizeof(TouchscreenClassRec));
-    if (!tsc)
+    abs = (AbsoluteClassPtr)xalloc(sizeof(AbsoluteClassRec));
+    if (!abs)
         return FALSE;
 
     /* we don't do anything sensible with these, but should */
-    tsc->min_x = -1;
-    tsc->min_y = -1;
-    tsc->max_x = -1;
-    tsc->max_y = -1;
+    abs->min_x = -1;
+    abs->min_y = -1;
+    abs->max_x = -1;
+    abs->max_y = -1;
+    abs->flip_x = 0;
+    abs->flip_y = 0;
+    abs->rotation = 0;
+    abs->button_threshold = 0;
 
-    tsc->button_threshold = 0;
-    dev->touchscreen = tsc;
+    abs->offset_x = 0;
+    abs->offset_y = 0;
+    abs->width = -1;
+    abs->height = -1;
+    abs->following = 0;
+
+    dev->absolute = abs;
 
     return TRUE;
 }

@@ -236,7 +236,7 @@ extern Bool InitValuatorClassDeviceStruct(
     int /*numMotionEvents*/,
     int /*mode*/);
 
-extern Bool InitTouchscreenClassDeviceStruct(
+extern Bool InitAbsoluteClassDeviceStruct(
     DeviceIntPtr /*device*/);
 
 extern Bool InitFocusClassDeviceStruct(

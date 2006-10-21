@@ -184,13 +184,25 @@ typedef struct _ProximityClassRec {
     char	pad;
 } ProximityClassRec, *ProximityClassPtr;
 
-typedef struct _TouchscreenClassRec {
+typedef struct _AbsoluteClassRec {
+    /* Calibration. */
     int         min_x;
     int         max_x;
     int         min_y;
     int         max_y;
+    int         flip_x;
+    int         flip_y;
+    int		rotation;
     int         button_threshold;
-} TouchscreenClassRec, *TouchscreenClassPtr;
+
+    /* Area. */
+    int         offset_x;
+    int         offset_y;
+    int         width;
+    int         height;
+    int         screen;
+    XID		following;
+} AbsoluteClassRec, *AbsoluteClassPtr;
 
 typedef struct _KbdFeedbackClassRec *KbdFeedbackPtr;
 typedef struct _PtrFeedbackClassRec *PtrFeedbackPtr;
@@ -292,7 +304,7 @@ typedef struct _DeviceIntRec {
     ButtonClassPtr	button;
     FocusClassPtr	focus;
     ProximityClassPtr	proximity;
-    TouchscreenClassPtr touchscreen;
+    AbsoluteClassPtr    absolute;
     KbdFeedbackPtr	kbdfeed;
     PtrFeedbackPtr	ptrfeed;
     IntegerFeedbackPtr	intfeed;

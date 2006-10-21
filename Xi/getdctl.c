@@ -124,14 +124,23 @@ ProcXGetDeviceControl(ClientPtr client)
 	total_length = sizeof(xDeviceResolutionState) +
 	    (3 * sizeof(int) * dev->valuator->numAxes);
 	break;
-    case DEVICE_TOUCHSCREEN:
-        if (!dev->touchscreen) {
+    case DEVICE_ABS_CALIB:
+        if (!dev->absolute) {
             SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0,
                               BadMatch);
             return Success;
         }
 
-        total_length = sizeof(xDeviceTSCtl);
+        total_length = sizeof(xDeviceAbsCalibCtl);
+        break;
+    case DEVICE_ABS_AREA:
+        if (!dev->absolute) {
+            SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0,
+                              BadMatch);
+            return Success;
+        }
+
+        total_length = sizeof(xDeviceAbsAreaCtl);
         break;
     case DEVICE_CORE:
         total_length = sizeof(xDeviceCoreCtl);
@@ -152,8 +161,11 @@ ProcXGetDeviceControl(ClientPtr client)
     case DEVICE_RESOLUTION:
 	CopySwapDeviceResolution(client, dev->valuator, buf, total_length);
 	break;
-    case DEVICE_TOUCHSCREEN:
-        CopySwapDeviceTouchscreen(client, dev->touchscreen, buf);
+    case DEVICE_ABS_CALIB:
+        CopySwapDeviceAbsCalib(client, dev->absolute, buf);
+        break;
+    case DEVICE_ABS_AREA:
+        CopySwapDeviceAbsArea(client, dev->absolute, buf);
         break;
     case DEVICE_CORE:
         CopySwapDeviceCore(client, dev, buf);
@@ -206,28 +218,61 @@ CopySwapDeviceResolution(ClientPtr client, ValuatorClassPtr v, char *buf,
     }
 }
 
-void CopySwapDeviceTouchscreen (ClientPtr client, TouchscreenClassPtr dts,
+void CopySwapDeviceAbsCalib (ClientPtr client, AbsoluteClassPtr dts,
                                 char *buf)
 {
     register char n;
-    xDeviceTSState *ts = (xDeviceTSState *) buf;
+    xDeviceAbsCalibState *calib = (xDeviceAbsCalibState *) buf;
 
-    ts->control = DEVICE_TOUCHSCREEN;
-    ts->length = sizeof(ts);
-    ts->min_x = dts->min_x;
-    ts->max_x = dts->max_x;
-    ts->min_y = dts->min_y;
-    ts->max_y = dts->max_y;
-    ts->button_threshold = dts->button_threshold;
+    calib->control = DEVICE_ABS_CALIB;
+    calib->length = sizeof(calib);
+    calib->min_x = dts->min_x;
+    calib->max_x = dts->max_x;
+    calib->min_y = dts->min_y;
+    calib->max_y = dts->max_y;
+    calib->flip_x = dts->flip_x;
+    calib->flip_y = dts->flip_y;
+    calib->rotation = dts->rotation;
+    calib->button_threshold = dts->button_threshold;
 
     if (client->swapped) {
-        swaps(&ts->control, n);
-        swaps(&ts->length, n);
-        swapl(&ts->min_x, n);
-        swapl(&ts->max_x, n);
-        swapl(&ts->min_y, n);
-        swapl(&ts->max_y, n);
-        swapl(&ts->button_threshold, n);
+        swaps(&calib->control, n);
+        swaps(&calib->length, n);
+        swapl(&calib->min_x, n);
+        swapl(&calib->max_x, n);
+        swapl(&calib->min_y, n);
+        swapl(&calib->max_y, n);
+        swapl(&calib->flip_x, n);
+        swapl(&calib->flip_y, n);
+        swapl(&calib->rotation, n);
+        swapl(&calib->button_threshold, n);
+    }
+}
+
+void CopySwapDeviceAbsArea (ClientPtr client, AbsoluteClassPtr dts,
+                                char *buf)
+{
+    register char n;
+    xDeviceAbsAreaState *area = (xDeviceAbsAreaState *) buf;
+
+    area->control = DEVICE_ABS_AREA;
+    area->length = sizeof(area);
+    area->offset_x = dts->offset_x;
+    area->offset_y = dts->offset_y;
+    area->width = dts->width;
+    area->height = dts->height;
+    area->screen = dts->screen;
+    area->following = dts->following;
+
+    if (client->swapped) {
+        swaps(&area->control, n);
+        swaps(&area->length, n);
+        swapl(&area->offset_x, n);
+        swapl(&area->offset_y, n);
+        swapl(&area->width, n);
+        swapl(&area->height, n);
+        swapl(&area->screen, n);
+        swapl(&area->following, n);
     }
 }
 

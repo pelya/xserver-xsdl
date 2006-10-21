@@ -104,7 +104,8 @@ ProcXChangeDeviceControl(ClientPtr client)
     xChangeDeviceControlReply rep;
     AxisInfoPtr a;
     CARD32 *resolution;
-    xDeviceTSCtl *ts;
+    xDeviceAbsCalibCtl *calib;
+    xDeviceAbsAreaCtl *area;
     xDeviceCoreCtl *c;
 
     REQUEST(xChangeDeviceControlReq);
@@ -170,25 +171,52 @@ ProcXChangeDeviceControl(ClientPtr client)
 	    return Success;
 	}
 	break;
-    case DEVICE_TOUCHSCREEN:
-        ts = (xDeviceTSCtl *)&stuff[1];
+    case DEVICE_ABS_CALIB:
+        calib = (xDeviceAbsCalibCtl *)&stuff[1];
 
-        if (ts->button_threshold < 0 || ts->button_threshold > 255) {
+        if (calib->button_threshold < 0 || calib->button_threshold > 255) {
             SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0,
                               BadValue);
             return Success;
         }
 
-        status = ChangeDeviceControl(client, dev, (xDeviceCtl *) ts);
+        status = ChangeDeviceControl(client, dev, (xDeviceCtl *) calib);
 
         if (status == Success) {
-            dev->touchscreen->min_x = ts->min_x;
-            dev->touchscreen->max_x = ts->max_x;
-            dev->touchscreen->min_y = ts->min_y;
-            dev->touchscreen->max_y = ts->max_y;
-            dev->touchscreen->button_threshold = ts->button_threshold;
-        } else if (status == DeviceBusy) {
-            rep.status = DeviceBusy;
+            dev->absolute->min_x = calib->min_x;
+            dev->absolute->max_x = calib->max_x;
+            dev->absolute->min_y = calib->min_y;
+            dev->absolute->max_y = calib->max_y;
+            dev->absolute->flip_x = calib->flip_x;
+            dev->absolute->flip_y = calib->flip_y;
+            dev->absolute->rotation = calib->rotation;
+            dev->absolute->button_threshold = calib->button_threshold;
+        } else if (status == DeviceBusy || status == BadValue) {
+            rep.status = status;
+            WriteReplyToClient(client, sizeof(xChangeDeviceControlReply),
+                               &rep);
+            return Success;
+        } else {
+            SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0,
+                              BadMatch);
+            return Success;
+        }
+
+        break;
+    case DEVICE_ABS_AREA:
+        area = (xDeviceAbsAreaCtl *)&stuff[1];
+
+        status = ChangeDeviceControl(client, dev, (xDeviceCtl *) area);
+
+        if (status == Success) {
+            dev->absolute->offset_x = area->offset_x;
+            dev->absolute->offset_y = area->offset_y;
+            dev->absolute->width = area->width;
+            dev->absolute->height = area->height;
+            dev->absolute->screen = area->screen;
+            dev->absolute->following = area->following;
+        } else if (status == DeviceBusy || status == BadValue) {
+            rep.status = status;
             WriteReplyToClient(client, sizeof(xChangeDeviceControlReply),
                                &rep);
             return Success;
