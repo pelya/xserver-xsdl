@@ -308,5 +308,5 @@ ChangeDeviceControl(register ClientPtr client, DeviceIntPtr dev,
 int
 NewInputDeviceRequest(InputOption *options)
 {
-    return;
+    return BadValue;
 }
