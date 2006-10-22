@@ -287,7 +287,8 @@ ChangeDeviceControl(register ClientPtr client, DeviceIntPtr dev,
     switch (control->control) {
     case DEVICE_RESOLUTION:
 	return (BadMatch);
-    case DEVICE_TOUCHSCREEN:
+    case DEVICE_ABS_CALIB:
+    case DEVICE_ABS_AREA:
         return (BadMatch);
     case DEVICE_CORE:
         return (BadMatch);
