@@ -66,6 +66,7 @@ SOFTWARE.
 #include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
+#include "exevents.h"
 
 #include "chgdctl.h"
 
@@ -98,7 +99,7 @@ int
 ProcXChangeDeviceControl(ClientPtr client)
 {
     unsigned len;
-    int i, status;
+    int i, status, ret = BadValue;
     DeviceIntPtr dev;
     xDeviceResolutionCtl *r;
     xChangeDeviceControlReply rep;
@@ -108,6 +109,7 @@ ProcXChangeDeviceControl(ClientPtr client)
     xDeviceAbsAreaCtl *area;
     xDeviceCoreCtl *c;
     xDeviceEnableCtl *e;
+    devicePresenceNotify dpn;
 
     REQUEST(xChangeDeviceControlReq);
     REQUEST_AT_LEAST_SIZE(xChangeDeviceControlReq);
@@ -115,9 +117,8 @@ ProcXChangeDeviceControl(ClientPtr client)
     len = stuff->length - (sizeof(xChangeDeviceControlReq) >> 2);
     dev = LookupDeviceIntRec(stuff->deviceid);
     if (dev == NULL) {
-	SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0,
-			  BadDevice);
-	return Success;
+        ret = BadDevice;
+        goto out;
     }
 
     rep.repType = X_Reply;
@@ -130,25 +131,22 @@ ProcXChangeDeviceControl(ClientPtr client)
 	r = (xDeviceResolutionCtl *) & stuff[1];
 	if ((len < (sizeof(xDeviceResolutionCtl) >> 2)) ||
 	    (len != (sizeof(xDeviceResolutionCtl) >> 2) + r->num_valuators)) {
-	    SendErrorToClient(client, IReqCode, X_ChangeDeviceControl,
-			      0, BadLength);
-	    return Success;
+            ret = BadLength;
+            goto out;
 	}
 	if (!dev->valuator) {
-	    SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0,
-			      BadMatch);
-	    return Success;
+            ret = BadMatch;
+            goto out;
 	}
 	if ((dev->grab) && !SameClient(dev->grab, client)) {
 	    rep.status = AlreadyGrabbed;
-	    WriteReplyToClient(client, sizeof(xChangeDeviceControlReply), &rep);
-	    return Success;
+            ret = Success;
+            goto out;
 	}
 	resolution = (CARD32 *) (r + 1);
 	if (r->first_valuator + r->num_valuators > dev->valuator->numAxes) {
-	    SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0,
-			      BadValue);
-	    return Success;
+            ret = BadValue;
+            goto out;
 	}
 	status = ChangeDeviceControl(client, dev, (xDeviceCtl *) r);
 	if (status == Success) {
@@ -162,23 +160,21 @@ ProcXChangeDeviceControl(ClientPtr client)
 		}
 	    for (i = 0; i < r->num_valuators; i++)
 		(a++)->resolution = *resolution++;
+
+            ret = Success;
 	} else if (status == DeviceBusy) {
 	    rep.status = DeviceBusy;
-	    WriteReplyToClient(client, sizeof(xChangeDeviceControlReply), &rep);
-	    return Success;
+            ret = Success;
 	} else {
-	    SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0,
-			      BadMatch);
-	    return Success;
+            ret = BadMatch;
 	}
 	break;
     case DEVICE_ABS_CALIB:
         calib = (xDeviceAbsCalibCtl *)&stuff[1];
 
         if (calib->button_threshold < 0 || calib->button_threshold > 255) {
-            SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0,
-                              BadValue);
-            return Success;
+            ret = BadValue;
+            goto out;
         }
 
         status = ChangeDeviceControl(client, dev, (xDeviceCtl *) calib);
@@ -192,15 +188,12 @@ ProcXChangeDeviceControl(ClientPtr client)
             dev->absolute->flip_y = calib->flip_y;
             dev->absolute->rotation = calib->rotation;
             dev->absolute->button_threshold = calib->button_threshold;
+            ret = Success;
         } else if (status == DeviceBusy || status == BadValue) {
             rep.status = status;
-            WriteReplyToClient(client, sizeof(xChangeDeviceControlReply),
-                               &rep);
-            return Success;
+            ret = Success;
         } else {
-            SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0,
-                              BadMatch);
-            return Success;
+            ret = BadMatch;
         }
 
         break;
@@ -216,15 +209,12 @@ ProcXChangeDeviceControl(ClientPtr client)
             dev->absolute->height = area->height;
             dev->absolute->screen = area->screen;
             dev->absolute->following = area->following;
+            ret = Success;
         } else if (status == DeviceBusy || status == BadValue) {
             rep.status = status;
-            WriteReplyToClient(client, sizeof(xChangeDeviceControlReply),
-                               &rep);
-            return Success;
+            ret = Success;
         } else {
-            SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0,
-                              BadMatch);
-            return Success;
+            ret = Success;
         }
 
         break;
@@ -235,15 +225,12 @@ ProcXChangeDeviceControl(ClientPtr client)
 
         if (status == Success) {
             dev->coreEvents = c->status;
+            ret = Success;
         } else if (status == DeviceBusy) {
             rep.status = DeviceBusy;
-            WriteReplyToClient(client, sizeof(xChangeDeviceControlReply),
-                               &rep);
-            return Success;
+            ret = Success;
         } else {
-            SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0,
-                              BadMatch);
-            return Success;
+            ret = BadMatch;
         }
 
         break;
@@ -257,23 +244,35 @@ ProcXChangeDeviceControl(ClientPtr client)
                 EnableDevice(dev);
             else
                 DisableDevice(dev);
+            ret = Success;
         } else if (status == DeviceBusy) {
             rep.status = DeviceBusy;
-            WriteReplyToClient(client, sizeof(xChangeDeviceControlReply),
-                               &rep);
-            return Success;
+            ret = Success;
         } else {
-            SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0,
-                              BadMatch);
-            return Success;
+            ret = BadMatch;
         }
 
         break;
     default:
-	SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0, BadValue);
-	return Success;
+        ret = BadValue;
     }
-    WriteReplyToClient(client, sizeof(xChangeDeviceControlReply), &rep);
+
+out:
+    if (ret == Success) {
+        dpn.type = DevicePresenceNotify;
+        dpn.time = currentTime.milliseconds;
+        dpn.devchange = 1;
+        dpn.deviceid = dev->id;
+        dpn.control = stuff->control;
+        SendEventToAllWindows(dev, DevicePresenceNotifyMask,
+                              (xEvent *) &dpn, 1);
+
+        WriteReplyToClient(client, sizeof(xChangeDeviceControlReply), &rep);
+    }
+    else {
+        SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0, ret);
+    }
+
     return Success;
 }
 

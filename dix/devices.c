@@ -201,6 +201,8 @@ ActivateDevice(DeviceIntPtr dev)
     
     ev.type = DevicePresenceNotify;
     ev.time = currentTime.milliseconds;
+    ev.devchange = 0;
+    ev.deviceid = 0;
     dummyDev.id = 0;
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                           (xEvent *) &ev, 1);
@@ -557,6 +559,8 @@ RemoveDevice(DeviceIntPtr dev)
     if (ret == Success) {
         ev.type = DevicePresenceNotify;
         ev.time = currentTime.milliseconds;
+        ev.devchange = 0;
+        ev.deviceid = 0;
         dummyDev.id = 0;
         SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                               (xEvent *) &ev, 1);
