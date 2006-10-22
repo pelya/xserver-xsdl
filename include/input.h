@@ -59,6 +59,10 @@ SOFTWARE.
 #define DEVICE_OFF	2
 #define DEVICE_CLOSE	3
 
+#define POINTER_RELATIVE (1 << 1)
+#define POINTER_ABSOLUTE (1 << 2)
+#define POINTER_ACCELERATE (1 << 3)
+
 #define MAP_LENGTH	256
 #define DOWN_LENGTH	32	/* 256/8 => number of bytes to hold 256 bits */
 #define NullGrab ((GrabPtr)NULL)

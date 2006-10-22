@@ -62,10 +62,6 @@ SOFTWARE.
 
 #define EMASKSIZE	MAX_DEVICES
 
-#define POINTER_RELATIVE (1 << 1)
-#define POINTER_ABSOLUTE (1 << 2)
-#define POINTER_ACCELERATE (1 << 3)
-
 extern int CoreDevicePrivatesIndex, CoreDevicePrivatesGeneration;
 
 /* Kludge: OtherClients and InputClients must be compatible, see code */
