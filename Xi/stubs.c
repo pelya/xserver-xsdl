@@ -305,7 +305,7 @@ ChangeDeviceControl(register ClientPtr client, DeviceIntPtr dev,
  * Add a new device with the specified options.
  *
  */
-void
+int
 NewInputDeviceRequest(InputOption *options)
 {
     return;
