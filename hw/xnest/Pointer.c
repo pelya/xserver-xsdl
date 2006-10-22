@@ -59,7 +59,7 @@ xnestPointerProc(DeviceIntPtr pDev, int onoff)
       InitPointerDeviceStruct(&pDev->public, map, nmap,
 			      miPointerGetMotionEvents,
 			      xnestChangePointerControl,
-			      miPointerGetMotionBufferSize());
+			      miPointerGetMotionBufferSize(), 2);
       break;
     case DEVICE_ON: 
       xnestEventMask |= XNEST_POINTER_EVENT_MASK;
