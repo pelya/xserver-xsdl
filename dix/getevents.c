@@ -44,7 +44,6 @@
 #ifdef XKB
 #include <X11/extensions/XKBproto.h>
 #include <X11/extensions/XKBsrv.h>
-extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
 extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
 #endif
 
@@ -99,9 +98,10 @@ GetKeyboardEvents(xEvent *events, DeviceIntPtr pDev, int type, int key_code) {
  * The DDX is responsible for allocating the event structure in the first
  * place via GetMaximumEventsNum(), and for freeing it.
  *
- * If pDev is set to send core events, then the keymap on the core
- * keyboard will be pivoted to that of the new keyboard and the appropriate
- * MapNotify events (both core and XKB) will be sent.
+ * This function does not change the core keymap to that of the device;
+ * that is done by SwitchCoreKeyboard, which is called from
+ * mieqProcessInputEvents.  If replacing function, take care to call
+ * SetCoreKeyboard before processInputProc, so keymaps are altered to suit.
  *
  * Note that this function recurses!  If called for non-XKB, a repeating
  * key press will trigger a matching KeyRelease, as well as the
@@ -117,7 +117,6 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
                                            pDev->key->curKeySyms.mapWidth];
     deviceKeyButtonPointer *kbp = NULL;
     deviceValuator *xv = NULL;
-    KeyClassPtr ckeyc;
 
     if (!events)
         return 0;
@@ -220,40 +219,13 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
         events->u.keyButtonPointer.time = ms;
         events->u.u.type = type;
         events->u.u.detail = key_code;
-
-        if (inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr !=
-            pDev) {
-            ckeyc = inputInfo.keyboard->key;
-            memcpy(ckeyc->modifierMap, pDev->key->modifierMap, MAP_LENGTH);
-            if (ckeyc->modifierKeyMap)
-                xfree(ckeyc->modifierKeyMap);
-            ckeyc->modifierKeyMap = xalloc(8 * pDev->key->maxKeysPerModifier);
-            memcpy(ckeyc->modifierKeyMap, pDev->key->modifierKeyMap,
-                    (8 * pDev->key->maxKeysPerModifier));
-            ckeyc->maxKeysPerModifier = pDev->key->maxKeysPerModifier;
-            ckeyc->curKeySyms.minKeyCode = pDev->key->curKeySyms.minKeyCode;
-            ckeyc->curKeySyms.maxKeyCode = pDev->key->curKeySyms.maxKeyCode;
-            SetKeySymsMap(&ckeyc->curKeySyms, &pDev->key->curKeySyms);
-#ifdef XKB
-            if (!noXkbExtension && pDev->key->xkbInfo &&
-                pDev->key->xkbInfo->desc) {
-                if (!XkbCopyKeymap(pDev->key->xkbInfo->desc,
-                                   ckeyc->xkbInfo->desc, True))
-                    FatalError("Couldn't pivot keymap from device to core!\n");
-            }
-#endif
-            SendMappingNotify(MappingKeyboard, ckeyc->curKeySyms.minKeyCode,
-                              (ckeyc->curKeySyms.maxKeyCode -
-                               ckeyc->curKeySyms.minKeyCode),
-                              serverClient);
-            inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
-        }
     }
 
     return numEvents;
 }
 
-/* Originally a part of xf86PostMotionEvent. */
+/* Originally a part of xf86PostMotionEvent; modifies valuators
+ * in-place. */
 static void
 acceleratePointer(DeviceIntPtr pDev, int first_valuator, int num_valuators,
                   int *valuators)
@@ -277,9 +249,6 @@ acceleratePointer(DeviceIntPtr pDev, int first_valuator, int num_valuators,
     if (!dx && !dy)
         return;
 
-    /*
-     * Accelerate
-     */
     if (pDev->ptrfeed && pDev->ptrfeed->ctrl.num) {
         /* modeled from xf86Events.c */
         if (pDev->ptrfeed->ctrl.threshold) {
@@ -524,7 +493,15 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     return num_events;
 }
 
-void SwitchCoreKeyboard(DeviceIntPtr pDev)
+/**
+ * Note that pDev was the last device to send a core event.  This function
+ * copies the complete keymap from the originating device to the core
+ * device, and makes sure the appropriate notifications are generated.
+ *
+ * Call this just before processInputProc.
+ */
+_X_EXPORT void
+SwitchCoreKeyboard(DeviceIntPtr pDev)
 {
     KeyClassPtr ckeyc = inputInfo.keyboard->key;
 
@@ -557,8 +534,14 @@ void SwitchCoreKeyboard(DeviceIntPtr pDev)
     }
 }
 
-/* Currently a no-op. */
-void SwitchCorePointer(DeviceIntPtr pDev)
+/**
+ * Note that pDev was the last function to send a core pointer event.
+ * Currently a no-op.
+ *
+ * Call this just before processInputProc.
+ */ 
+_X_EXPORT void
+SwitchCorePointer(DeviceIntPtr pDev)
 {
     if (inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr != pDev)
         inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
