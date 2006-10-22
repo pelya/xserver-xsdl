@@ -296,3 +296,17 @@ ChangeDeviceControl(register ClientPtr client, DeviceIntPtr dev,
 	return (BadMatch);
     }
 }
+
+
+/****************************************************************************
+ *
+ * Caller: configAddDevice (and others)
+ *
+ * Add a new device with the specified options.
+ *
+ */
+void
+NewInputDeviceRequest(InputOption *options)
+{
+    return;
+}
