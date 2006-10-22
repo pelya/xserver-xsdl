@@ -444,7 +444,7 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
 
 #ifdef XINPUT
         if (pi->inputClass == KD_TOUCHSCREEN) {
-            InitTouchscreenClassDeviceStruct(pDevice);
+            InitAbsoluteClassDeviceStruct(pDev);
             xiclass = AtomFromName(XI_TOUCHSCREEN);
         }
         else {
