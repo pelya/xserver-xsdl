@@ -469,6 +469,18 @@ LinuxFini (void)
     return;
 }
 
+void
+KdOsAddInputDrivers ()
+{
+    KdAddPointerDriver(&LinuxMouseDriver);
+    KdAddPointerDriver(&MsMouseDriver);
+    KdAddPointerDriver(&Ps2MouseDriver);
+#ifdef TSLIB
+    KdAddPointerDriver(&TsDriver);
+#endif
+    KdAddKeyboardDriver(&LinuxKeyboardDriver);
+}
+
 KdOsFuncs   LinuxFuncs = {
     LinuxInit,
     LinuxEnable,

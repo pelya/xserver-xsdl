@@ -33,12 +33,6 @@ VxWorksSpecialKey (KeySym sym)
     case XK_Break:
 	download(1, "launcher", 0);
 	return TRUE;
-    case XK_Delete:
-	dispatchException |= DE_REBOOT;
-	return TRUE;
-    case XK_BackSpace:
-	dispatchException |= DE_RESET;
-	return TRUE;
     }
     return FALSE;
 }
@@ -51,6 +45,13 @@ VxWorksDisable (void)
 void
 VxWorksFini (void)
 {
+}
+
+void
+KdOsAddInputDrivers (void)
+{
+    KdAddPointerDriver(&VxWorksMouseDriver);
+    KdAddPointerDriver(&VxWorksKeyboardDriver);
 }
 
 KdOsFuncs   VxWorksFuncs = {
