@@ -293,7 +293,7 @@ vfbMouseProc(DeviceIntPtr pDevice, int onoff)
 	    map[2] = 2;
 	    map[3] = 3;
 	    InitPointerDeviceStruct(pDev, map, 3, miPointerGetMotionEvents,
-		(PtrCtrlProcPtr)NoopDDA, miPointerGetMotionBufferSize());
+		(PtrCtrlProcPtr)NoopDDA, miPointerGetMotionBufferSize(), 2);
 	    break;
 
     case DEVICE_ON:
@@ -318,6 +318,5 @@ InitInput(int argc, char *argv[])
     k = AddInputDevice(vfbKeybdProc, TRUE);
     RegisterPointerDevice(p);
     RegisterKeyboardDevice(k);
-    miRegisterPointerDevice(screenInfo.screens[0], p);
-    (void)mieqInit ((DevicePtr) k, (DevicePtr) p);
+    (void)mieqInit();
 }
