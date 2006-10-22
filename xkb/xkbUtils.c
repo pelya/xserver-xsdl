@@ -1665,7 +1665,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
 
             for (i = 0, sshape = src->geom->shapes, dshape = dst->geom->shapes;
                  i < src->geom->num_shapes;
-                 i++) {
+                 i++, sshape++, dshape++) {
                 if (sshape->num_outlines) {
                     tmp = xcalloc(sshape->num_outlines, sizeof(XkbOutlineRec));
                     if (!tmp)
@@ -1676,7 +1676,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                           soutline = sshape->outlines,
                           doutline = dshape->outlines;
                          j < sshape->num_outlines;
-                         j++) {
+                         j++, soutline++, doutline++) {
                         if (soutline->num_points) {
                             tmp = xalloc(soutline->num_points *
                                           sizeof(XkbPointRec));
