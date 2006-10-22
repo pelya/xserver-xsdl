@@ -1116,6 +1116,7 @@ CardConfig(void)
     static char *xdrivers[] = {
 	"apm",
 	"ark",
+	"ast",
 	"ati",
 	"r128",
 	"radeon",
