@@ -320,10 +320,15 @@ static CARD8 criticalEvents[32] =
 };
 
 #ifdef PANORAMIX
-
 static void ConfineToShape(RegionPtr shape, int *px, int *py);
-static void SyntheticMotion(int x, int y);
+static void PostSyntheticMotion(int x, int y, int screenNum, int time);
 static void PostNewCursor(void);
+
+#define SyntheticMotion(x, y) \
+    PostSyntheticMotion(x, y, sprite.screen->myNum, \
+                        syncEvents.playingEvents ? \
+                          syncEvents.time.milliseconds : \
+                          currentTime.milliseconds);
 
 static Bool
 XineramaSetCursorPosition(
@@ -665,30 +670,6 @@ SetCriticalEvent(int event)
     if (event >= 128)
 	FatalError("SetCriticalEvent: bogus event number");
     criticalEvents[event >> 3] |= 1 << (event & 7);
-}
-
-static void
-SyntheticMotion(int x, int y)
-{
-    xEvent xE;
-
-#ifdef PANORAMIX
-    /* Translate back to the sprite screen since processInputProc
-       will translate from sprite screen to screen 0 upon reentry
-       to the DIX layer */
-    if(!noPanoramiXExtension) {
-	x += panoramiXdataPtr[0].x - panoramiXdataPtr[sprite.screen->myNum].x;
-	y += panoramiXdataPtr[0].y - panoramiXdataPtr[sprite.screen->myNum].y;
-    }
-#endif
-    xE.u.keyButtonPointer.rootX = x;
-    xE.u.keyButtonPointer.rootY = y;
-    if (syncEvents.playingEvents)
-	xE.u.keyButtonPointer.time = syncEvents.time.milliseconds;
-    else
-	xE.u.keyButtonPointer.time = currentTime.milliseconds;
-    xE.u.u.type = MotionNotify;
-    (*inputInfo.pointer->public.processInputProc)(&xE, inputInfo.pointer, 1);
 }
 
 #ifdef SHAPE

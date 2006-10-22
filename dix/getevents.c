@@ -51,6 +51,11 @@ extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
 #include "xace.h"
 #endif
 
+#ifdef PANORAMIX
+#include "panoramiX.h"
+#include "panoramiXsrv.h"
+#endif
+
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"
 #include "exevents.h"
@@ -545,4 +550,33 @@ SwitchCorePointer(DeviceIntPtr pDev)
 {
     if (inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr != pDev)
         inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
+}
+
+
+/**
+ * Synthesize a single motion event for the core pointer.
+ *
+ * Used in cursor functions, e.g. when cursor confinement changes, and we need
+ * to shift the pointer to get it inside the new bounds.
+ */
+void
+PostSyntheticMotion(int x, int y, int screenNum, unsigned long time)
+{
+    xEvent xE = { 0, };
+
+#ifdef PANORAMIX
+    /* Translate back to the sprite screen since processInputProc
+       will translate from sprite screen to screen 0 upon reentry
+       to the DIX layer. */
+    if (!noPanoramiXExtension) {
+        x += panoramiXdataPtr[0].x - panoramiXdataPtr[screenNum].x;
+        y += panoramiXdataPtr[0].y - panoramiXdataPtr[screenNum].y;
+    }
+#endif
+
+    xE.u.u.type = MotionNotify;
+    xE.u.keyButtonPointer.rootX = x;
+    xE.u.keyButtonPointer.rootY = y;
+
+    (*inputInfo.pointer->public.processInputProc)(&xE, inputInfo.pointer, 1);
 }
