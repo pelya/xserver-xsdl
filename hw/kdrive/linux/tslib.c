@@ -74,11 +74,8 @@ TsRead (int fd, void *closure)
     }
 
     while (ts_read(private->tsDev, &event, 1) == 1) {
-#ifdef DEBUG
-        ErrorF("[tslib] originally from (%d, %d)\n", event.x, event.y);
-#endif
         if (event.pressure) {
-            if (event.pressure > pi->dixdev->touchscreen->button_threshold) 
+            if (event.pressure > pi->dixdev->absolute->button_threshold) 
                 flags = KD_BUTTON_8;
             else
                 flags = KD_BUTTON_1;
@@ -109,9 +106,6 @@ TsRead (int fd, void *closure)
             y = private->lasty;
         }
 
-#ifdef DEBUG
-        ErrorF("event at (%lu, %lu), pressure is %d, sending flags %lu\n", x, y, event.pressure, flags);
-#endif
         KdEnqueuePointerEvent (pi, flags, x, y, event.pressure);
     }
 }
@@ -132,13 +126,9 @@ TslibEnable (KdPointerInfo *pi)
             close(private->fd);
         return BadAlloc;
     }
-    if (pi->dixdev && pi->dixdev->touchscreen &&
-        pi->dixdev->touchscreen->button_threshold == 0)
-        pi->dixdev->touchscreen->button_threshold = 115;
-
-#ifdef DEBUG
-    ErrorF("[tslib/TslibEnable] successfully enabled %s\n", pi->path);
-#endif
+    if (pi->dixdev && pi->dixdev->absolute &&
+        pi->dixdev->absolute->button_threshold == 0)
+        pi->dixdev->absolute->button_threshold = 115;
 
     KdRegisterFd(private->fd, TsRead, pi);
   
@@ -186,9 +176,6 @@ TslibInit (KdPointerInfo *pi)
     pi->nAxes = 3;
     pi->name = KdSaveString("Touchscreen");
     pi->inputClass = KD_TOUCHSCREEN;
-#ifdef DEBUG
-    ErrorF("[tslib/TslibInit] successfully inited for device %s\n", pi->path);
-#endif
 
     return Success;
 }
