@@ -2316,11 +2316,9 @@ ChangeDeviceControl(register ClientPtr client, DeviceIntPtr pDev,
         /* FIXME do something more intelligent here */
         return BadMatch;
 
-    case DEVICE_TOUCHSCREEN:
-        if (!pDev->touchscreen)
-            return BadDevice;
-        else
-            return Success;
+    case DEVICE_ABS_CALIB:
+    case DEVICE_ABS_AREA:
+        return Success;
 
     case DEVICE_CORE:
         return Success;
