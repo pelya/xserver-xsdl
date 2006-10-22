@@ -658,6 +658,7 @@ SDevicePresenceNotifyEvent (devicePresenceNotify *from, devicePresenceNotify *to
     *to = *from;
     swaps(&to->sequenceNumber,n);
     swapl(&to->time, n);
+    swaps(&to->control, n);
 }
 
 /************************************************************************
