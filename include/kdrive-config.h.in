@@ -25,4 +25,10 @@
 /* Verbose debugging output hilarity */
 #undef DEBUG
 
+/* Have the backtrace() function. */
+#undef HAVE_BACKTRACE
+
+/* Have execinfo.h for backtrace(). */
+#undef HAVE_EXECINFO_H
+
 #endif /* _KDRIVE_CONFIG_H_ */

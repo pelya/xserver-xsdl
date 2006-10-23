@@ -48,6 +48,7 @@
 #ifdef XINPUT
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
+#include "XIstubs.h" /* even though we don't use stubs.  cute, no? */
 #include "exevents.h"
 #include "extinit.h"
 #include "exglobals.h"
@@ -131,7 +132,7 @@ KdUnblockSigio (void)
     sigprocmask (SIG_UNBLOCK, &set, 0);
 }
 
-#ifdef DEBUG
+#ifdef DEBUG_SIGIO
 
 void
 KdAssertSigioBlocked (char *where)
@@ -244,7 +245,7 @@ KdUnregisterFd (void *closure, int fd, Bool do_close)
 
     for (i = 0; i < kdNumInputFds; i++) {
 	if (kdInputFds[i].closure == closure &&
-            kdInputFds[i].fd == fd) {
+            (fd == -1 || kdInputFds[i].fd == fd)) {
 	    if (kdInputEnabled)
 		KdRemoveFd (kdInputFds[i].fd);
 	    if (do_close)
@@ -255,6 +256,12 @@ KdUnregisterFd (void *closure, int fd, Bool do_close)
             break;
 	}
     }
+}
+
+void
+KdUnregisterFds (void *closure, Bool do_close)
+{
+    KdUnregisterFd(closure, -1, do_close);
 }
 
 void
@@ -348,7 +355,7 @@ KdEnableInput (void)
     KdUnblockSigio ();
 }
 
-KdKeyboardDriver *
+static KdKeyboardDriver *
 KdFindKeyboardDriver (char *name)
 {
     KdKeyboardDriver *ret;
@@ -365,7 +372,7 @@ KdFindKeyboardDriver (char *name)
     return NULL;
 }
 
-KdPointerDriver *
+static KdPointerDriver *
 KdFindPointerDriver (char *name)
 {
     KdPointerDriver *ret;
@@ -444,7 +451,7 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
 
 #ifdef XINPUT
         if (pi->inputClass == KD_TOUCHSCREEN) {
-            InitAbsoluteClassDeviceStruct(pDev);
+            InitAbsoluteClassDeviceStruct(pDevice);
             xiclass = AtomFromName(XI_TOUCHSCREEN);
         }
         else {
@@ -2261,7 +2268,8 @@ ChangeKeyboardDevice(DeviceIntPtr pOldDev, DeviceIntPtr pDev)
 }
 
 int
-ChangePointerDevice(DeviceIntPtr pOldDev, DeviceIntPtr pDev, int x, int y)
+ChangePointerDevice(DeviceIntPtr pOldDev, DeviceIntPtr pDev, unsigned char x,
+                    unsigned char y)
 {
     return BadDevice;
 }
@@ -2277,20 +2285,17 @@ OpenInputDevice(DeviceIntPtr pDev, ClientPtr client, int *status)
         *status = Success;
 }
 
-int
+void
 CloseInputDevice(DeviceIntPtr pDev, ClientPtr client)
 {
-    if (!pDev)
-        return BadDevice;
-
-    return Success;
+    return;
 }
 
 /* We initialise all input devices at startup. */
-int
+void
 AddOtherInputDevices(void)
 {
-    return Success;
+    return;
 }
 
 /* At the moment, absolute/relative is up to the client. */
@@ -2396,4 +2401,6 @@ NewInputDeviceRequest(InputOption *options)
             return BadImplementation;
         }
     }
+
+    return Success;
 }

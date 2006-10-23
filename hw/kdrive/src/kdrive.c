@@ -619,8 +619,6 @@ KdProcessArgument (int argc, char **argv, int i)
 {
     KdCardInfo	    *card;
     KdScreenInfo    *screen;
-    KdPointerInfo   *pi;
-    KdKeyboardInfo  *ki;
 
     if (!strcmp (argv[i], "-card"))
     {
