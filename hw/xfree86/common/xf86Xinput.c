@@ -107,44 +107,10 @@ xf86SendDragEvents(DeviceIntPtr	device)
 {
     LocalDevicePtr local = (LocalDevicePtr) device->public.devicePrivate;
     
-    if (inputInfo.pointer->button->buttonsDown > 0)
+    if (device->button->buttonsDown > 0)
         return (local->flags & XI86_SEND_DRAG_EVENTS);
     else
         return (TRUE);
-}
-
-/***********************************************************************
- *
- * xf86CheckButton --
- *	
- *	Test if the core pointer button state is coherent with
- * the button event to send.
- *
- ***********************************************************************
- */
-Bool
-xf86CheckButton(int	button,
-                int	down)
-{
-    int	check;
-    int bit = (1 << (button - 1));
-
-    /* XXX FIXME VERDAMMT */
-#if 0
-    check = xf86CoreButtonState & bit;
-    
-    DBG(5, ErrorF("xf86CheckButton "
-                  "button=%d down=%d state=%d check=%d returns ",
-                   button, down, xf86CoreButtonState, check));
-    if ((check && down) || (!check && !down)) {
-        DBG(5, ErrorF("FALSE\n"));
-        return FALSE;
-    }
-    xf86CoreButtonState ^= bit;
-
-    DBG(5, ErrorF("TRUE\n"));
-#endif
-    return TRUE;
 }
 
 /***********************************************************************
@@ -377,30 +343,6 @@ ChangePointerDevice (
     axes_changed = FALSE;
    *************************************************************************/
 
-  /*
-   * We don't allow axis swap or other exotic features.
-   */
-  if (x == 0 && y == 1) {
-      LocalDevicePtr	old_local = (LocalDevicePtr)old_dev->public.devicePrivate;
-      LocalDevicePtr	new_local = (LocalDevicePtr)new_dev->public.devicePrivate;
-      
-      InitFocusClassDeviceStruct(old_dev);
-    
-      /* Restore Extended motion history information */
-      old_dev->valuator->GetMotionProc   = old_local->motion_history_proc;
-      old_dev->valuator->numMotionEvents = old_local->history_size;
-
-      /* Save Extended motion history information */
-      new_local->motion_history_proc = new_dev->valuator->GetMotionProc;
-      new_local->history_size	     = new_dev->valuator->numMotionEvents;
-      
-      /* Set Core motion history information */
-      new_dev->valuator->GetMotionProc   = miPointerGetMotionEvents;
-      new_dev->valuator->numMotionEvents = miPointerGetMotionBufferSize();
-      
-    return Success;
-  }
-  else
     return !Success;
 }
 
