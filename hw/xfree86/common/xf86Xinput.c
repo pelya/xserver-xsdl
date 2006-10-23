@@ -585,9 +585,9 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     valuators = xcalloc(sizeof(int), num_valuators);
 
     va_start(var, num_valuators);
-    for (i = 0; i < num_valuators; i++) {
+    for (i = 0; i < num_valuators; i++)
         valuators[i] = va_arg(var, int);
-    }
+    va_end(var);
 
     if (!xf86Events)
         xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
@@ -600,6 +600,8 @@ xf86PostMotionEvent(DeviceIntPtr	device,
 
     for (i = 0; i < nevents; i++)
         mieqEnqueue(device, xf86Events + i);
+
+    xfree(valuators);
 }
 
 _X_EXPORT void
@@ -609,88 +611,28 @@ xf86PostProximityEvent(DeviceIntPtr	device,
                        int		num_valuators,
                        ...)
 {
-    va_list			var;
-    int				loop;
-    Bool			is_core = device->coreEvents;
+    va_list var;
+    int i, nevents, *valuators = NULL;
 
-    ErrorF("xf86PostProximityEvent: no-op event called\n");
+    valuators = xcalloc(sizeof(int), num_valuators);
 
-#if 0
-    DBG(5, ErrorF("xf86PostProximityEvent BEGIN 0x%x(%s) prox=%s is_core=%s is_absolute=%s\n",
-                  device, device->name, is_in ? "true" : "false",
-                  is_core ? "True" : "False",
-                  is_absolute ? "True" : "False"));
-    
-    if (is_core) {
-        return;
-    }
-  
-    if (num_valuators && (!val || (first_valuator + num_valuators > val->numAxes))) {
-        ErrorF("Bad valuators reported for device \"%s\"\n", device->name);
-        return;
-    }
+    va_start(var, num_valuators);
+    for (i = 0; i < num_valuators; i++)
+        valuators[i] = va_arg(var, int);
+    va_end(var);
 
-    xev->type = is_in ? ProximityIn : ProximityOut;
-    xev->detail = 0;
-    xev->deviceid = device->id | MORE_EVENTS;
-        
-    xv->type = DeviceValuator;
-    xv->deviceid = device->id;
-    xv->device_state = 0;
+    if (!xf86Events)
+        xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+    if (!xf86Events)
+        FatalError("Couldn't allocate event store\n");
 
-    if ((device->valuator->mode & 1) == Relative) {
-        num_valuators = 0;
-    }
-  
-    if (num_valuators != 0) {
-        int	*axisvals = val->axisVal;
-            
-        va_start(var, num_valuators);
+    nevents = GetProximityEvents(xf86Events, device,
+                                 is_in ? ProximityIn : ProximityOut, 
+                                 first_valuator, num_valuators, valuators);
+    for (i = 0; i < nevents; i++)
+        mieqEnqueue(device, xf86Events + i);
 
-        for(loop=0; loop<num_valuators; loop++) {
-            switch (loop % 6) {
-            case 0:
-                xv->valuator0 = is_absolute ? va_arg(var, int) : axisvals[loop]; 
-                break;
-            case 1:
-                xv->valuator1 = is_absolute ? va_arg(var, int) : axisvals[loop];
-                break;
-            case 2:
-                xv->valuator2 = is_absolute ? va_arg(var, int) : axisvals[loop];
-                break;
-            case 3:
-                xv->valuator3 = is_absolute ? va_arg(var, int) : axisvals[loop];
-                break;
-            case 4:
-                xv->valuator4 = is_absolute ? va_arg(var, int) : axisvals[loop];
-                break;
-            case 5:
-                xv->valuator5 = is_absolute ? va_arg(var, int) : axisvals[loop];
-                break;
-            }
-            if ((loop % 6 == 5) || (loop == num_valuators - 1)) {
-                xf86Info.lastEventTime = xev->time = GetTimeInMillis();
-
-                xv->num_valuators = (loop % 6) + 1;
-                xv->first_valuator = first_valuator + (loop / 6) * 6;
-                mieqEnqueue(xE);
-            }
-        }
-        va_end(var);
-    }
-    else {
-        /* no valuator */
-        xf86Info.lastEventTime = xev->time = GetTimeInMillis();
-
-        xv->num_valuators = 0;
-        xv->first_valuator = 0;
-        mieqEnqueue(xE);
-    }
-    DBG(5, ErrorF("xf86PostProximityEvent END   0x%x(%s) prox=%s is_core=%s is_absolute=%s\n",
-                  device, device->name, is_in ? "true" : "false",
-                  is_core ? "True" : "False",
-                  is_absolute ? "True" : "False"));
-#endif
+    xfree(valuators);
 }
 
 _X_EXPORT void
@@ -709,9 +651,9 @@ xf86PostButtonEvent(DeviceIntPtr	device,
     valuators = xcalloc(sizeof(int), num_valuators);
 
     va_start(var, num_valuators);
-    for (i = 0; i < num_valuators; i++) {
+    for (i = 0; i < num_valuators; i++)
         valuators[i] = va_arg(var, int);
-    }
+    va_end(var);
 
     if (!xf86Events)
         xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
@@ -726,6 +668,8 @@ xf86PostButtonEvent(DeviceIntPtr	device,
 
     for (i = 0; i < nevents; i++)
         mieqEnqueue(device, xf86Events + i);
+
+    xfree(valuators);
 }
 
 _X_EXPORT void
@@ -761,6 +705,7 @@ xf86PostKeyEvent(DeviceIntPtr	device,
                                             is_down ? KeyPress : KeyRelease,
                                             key_code, first_valuator,
                                             num_valuators, valuators);
+        xfree(valuators);
     }
     else {
         nevents = GetKeyboardEvents(xf86Events, device,
