@@ -303,6 +303,69 @@ acceleratePointer(DeviceIntPtr pDev, int first_valuator, int num_valuators,
 }
 
 /**
+ * Clip an axis to its bounds.
+ */
+static void
+clipAxis(DeviceIntPtr pDev, int axisNum, int *val)
+{
+    AxisInfoPtr axes = pDev->valuator->axes + axisNum;
+
+    if (*val < axes->min_value)
+        *val = axes->min_value;
+    if (axes->max_value >= 0 && *val > axes->max_value)
+        *val = axes->max_value;
+}
+
+/**
+ * Compare the list of valuators against the limits for each axis, and clip
+ * them to those bounds.
+ */
+static void
+clipValuators(DeviceIntPtr pDev, int first_valuator, int num_valuators,
+              int *valuators)
+{
+    AxisInfoPtr axes = pDev->valuator->axes + first_valuator;
+    int i;
+
+    for (i = 0; i < num_valuators; i++, axes++)
+        clipAxis(pDev, i + first_valuator, &(valuators[i]));
+}
+
+/**
+ * Fills events with valuator events for pDev, as given by the other
+ * parameters.
+ */
+static xEvent *
+getValuatorEvents(xEvent *events, DeviceIntPtr pDev, int first_valuator,
+                  int num_valuators, int *valuators) {
+    deviceValuator *xv = (deviceValuator *) events;
+    int i = 0, final_valuator = first_valuator + num_valuators;
+
+    for (i = first_valuator; i < final_valuator; i += 6, xv++, events++) {
+        xv->type = DeviceValuator;
+        xv->first_valuator = i;
+        xv->num_valuators = num_valuators;
+        xv->deviceid = pDev->id;
+        switch (final_valuator - i) {
+        case 6:
+            xv->valuator5 = valuators[i + 5];
+        case 5:
+            xv->valuator4 = valuators[i + 4];
+        case 4:
+            xv->valuator3 = valuators[i + 3];
+        case 3:
+            xv->valuator2 = valuators[i + 2];
+        case 2:
+            xv->valuator1 = valuators[i + 1];
+        case 1:
+            xv->valuator0 = valuators[i];
+        }
+    }
+
+    return events;
+}
+
+/**
  * Generate a series of xEvents (returned in xE) representing pointer
  * motion, or button presses.  Xi and XKB-aware.
  *
@@ -314,22 +377,17 @@ _X_EXPORT int
 GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
                  int flags, int first_valuator, int num_valuators,
                  int *valuators) {
-    int num_events = 0, ms = 0, final_valuator = 0, i = 0;
+    int num_events = 0, ms = 0, final_valuator = 0;
     deviceKeyButtonPointer *kbp = NULL;
-    deviceValuator *xv = NULL;
-    AxisInfoPtr axes = NULL;
     Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
     DeviceIntPtr cp = inputInfo.pointer;
     int x = 0, y = 0;
 
+    /* Sanity checks. */
     if (type != MotionNotify && type != ButtonPress && type != ButtonRelease)
         return 0;
 
-    if (!pDev->button || (pDev->coreEvents && (!cp->button || !cp->valuator)))
-        return 0;
-
-    /* You fail. */
-    if (first_valuator < 0)
+    if ((type == ButtonPress || type == ButtonRelease) && !pDev->button)
         return 0;
 
     if (pDev->coreEvents)
@@ -339,15 +397,19 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
 
     /* Do we need to send a DeviceValuator event? */
     if ((num_valuators + first_valuator) >= 2 && sendValuators) {
-        if (((num_valuators / 6) + 1) > MAX_VALUATOR_EVENTS)
-            num_valuators = MAX_VALUATOR_EVENTS;
-        num_events += (num_valuators / 6) + 1;
+        if ((((num_valuators - 1) / 6) + 1) > MAX_VALUATOR_EVENTS)
+            num_valuators = MAX_VALUATOR_EVENTS * 6;
+        num_events += ((num_valuators - 1) / 6) + 1;
     }
     else if (type == MotionNotify && num_valuators <= 0) {
         return 0;
     }
 
     final_valuator = num_valuators + first_valuator;
+
+    /* You fail. */
+    if (first_valuator < 0 || final_valuator > pDev->valuator->numAxes)
+        return 0;
 
     ms = GetTimeInMillis();
 
@@ -405,23 +467,21 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         }
     }
 
-
-    axes = pDev->valuator->axes;
-    if (x < axes->min_value)
-        x = axes->min_value;
-    if (axes->max_value > 0 && x > axes->max_value)
-        x = axes->max_value;
-
-    axes++;
-    if (y < axes->min_value)
-        y = axes->min_value;
-    if (axes->max_value > 0 && y > axes->max_value)
-        y = axes->max_value;
+    /* Clip both x and y to the defined limits (usually co-ord space limit). */
+    clipAxis(pDev, 0, &x);
+    clipAxis(pDev, 1, &y);
 
     /* This takes care of crossing screens for us, as well as clipping
      * to the current screen.  Right now, we only have one history buffer,
      * so we don't set this for both the device and core.*/
     miPointerSetPosition(pDev, &x, &y, ms);
+
+    /* Drop x and y back into the valuators list, if they were originally
+     * present. */
+    if (first_valuator == 0 && num_valuators >= 1)
+        valuators[0] = x;
+    if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
+        valuators[1 - first_valuator] = y;
 
     if (pDev->coreEvents) {
         cp->valuator->lastx = x;
@@ -446,39 +506,13 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
 
     if (final_valuator > 2 && sendValuators) {
         kbp->deviceid |= MORE_EVENTS;
-        for (i = first_valuator; i < final_valuator; i += 6) {
-            xv = (deviceValuator *) ++events;
-            xv->type = DeviceValuator;
-            xv->first_valuator = i;
-            xv->num_valuators = num_valuators;
-            xv->deviceid = kbp->deviceid;
-            switch (final_valuator - i) {
-            case 6:
-                xv->valuator5 = valuators[i + 5];
-            case 5:
-                xv->valuator4 = valuators[i + 4];
-            case 4:
-                xv->valuator3 = valuators[i + 3];
-            case 3:
-                xv->valuator2 = valuators[i + 2];
-            case 2:
-                /* x and y may have been accelerated. */
-                if (i == 0)
-                    xv->valuator1 = kbp->root_y;
-                else
-                    xv->valuator1 = valuators[i + 1];
-            case 1:
-                /* x and y may have been accelerated. */
-                if (i == 0)
-                    xv->valuator0 = kbp->root_x;
-                else
-                    xv->valuator0 = valuators[i];
-            }
-        }
+        events++;
+        clipValuators(pDev, first_valuator, num_valuators, valuators);
+        events = getValuatorEvents(events, pDev, first_valuator,
+                                   num_valuators, valuators);
     }
 
     if (pDev->coreEvents) {
-        events++;
         events->u.u.type = type;
         events->u.keyButtonPointer.time = ms;
         events->u.keyButtonPointer.rootX = x;
@@ -562,7 +596,7 @@ SwitchCorePointer(DeviceIntPtr pDev)
 void
 PostSyntheticMotion(int x, int y, int screenNum, unsigned long time)
 {
-    xEvent xE = { 0, };
+    xEvent xE;
 
 #ifdef PANORAMIX
     /* Translate back to the sprite screen since processInputProc
@@ -574,6 +608,7 @@ PostSyntheticMotion(int x, int y, int screenNum, unsigned long time)
     }
 #endif
 
+    memset(&xE, 0, sizeof(xEvent));
     xE.u.u.type = MotionNotify;
     xE.u.keyButtonPointer.rootX = x;
     xE.u.keyButtonPointer.rootY = y;
