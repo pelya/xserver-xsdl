@@ -56,6 +56,7 @@ extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
 #include "panoramiXsrv.h"
 #endif
 
+#include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"
 #include "exevents.h"
@@ -527,6 +528,57 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         else {
             events->u.u.detail = 0;
         }
+    }
+
+    return num_events;
+}
+
+/**
+ * Post ProximityIn/ProximityOut events, accompanied by valuators.
+ *
+ * events is not NULL-terminated; the return value is the number of events.
+ * The DDX is responsible for allocating the event structure in the first
+ * place via GetMaximumEventsNum(), and for freeing it.
+ */
+_X_EXPORT int
+GetProximityEvents(xEvent *events, DeviceIntPtr pDev, int type,
+                   int first_valuator, int num_valuators, int *valuators)
+{
+    int num_events = 0;
+    deviceKeyButtonPointer *kbp = (deviceKeyButtonPointer *) events;
+
+    /* Sanity checks. */
+    if (type != ProximityIn && type != ProximityOut)
+        return 0;
+
+    if (!pDev->valuator)
+        return 0;
+
+    /* Do we need to send a DeviceValuator event? */
+    if ((pDev->valuator->mode & 1) == Relative)
+        num_valuators = 0;
+
+    if (num_valuators) {
+        if ((((num_valuators - 1) / 6) + 1) > MAX_VALUATOR_EVENTS)
+            num_valuators = MAX_VALUATOR_EVENTS * 6;
+        num_events += ((num_valuators - 1) / 6) + 1;
+    }
+
+    /* You fail. */
+    if (first_valuator < 0 ||
+        (num_valuators + first_valuator) > pDev->valuator->numAxes)
+        return 0;
+
+    kbp->type = type;
+    kbp->deviceid = pDev->id;
+    kbp->detail = 0;
+    kbp->time = GetTimeInMillis();
+
+    if (num_valuators) {
+        kbp->deviceid |= MORE_EVENTS;
+        events++;
+        events = getValuatorEvents(events, pDev, first_valuator,
+                                   num_valuators, valuators);
     }
 
     return num_events;

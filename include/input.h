@@ -410,6 +410,14 @@ extern int GetKeyboardValuatorEvents(
     int num_valuator,
     int *valuators);
 
+extern int GetProximityEvents(
+    xEvent *events,
+    DeviceIntPtr pDev,
+    int type,
+    int first_valuator,
+    int num_valuators,
+    int *valuators);
+
 extern void SwitchCoreKeyboard(DeviceIntPtr pDev);
 extern void SwitchCorePointer(DeviceIntPtr pDev);
 
