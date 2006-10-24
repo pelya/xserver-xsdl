@@ -1192,11 +1192,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 #endif
   }
 
-    if ((serverGeneration == 1) && LoaderCheckUnresolved(LD_RESOLV_IFDONE)) {
-	/* For now, just a warning */
-	xf86Msg(X_WARNING, "Some symbols could not be resolved!\n");
-    }
-
   xf86PostScreenInit();
 
   xf86InitOrigins();
@@ -1987,8 +1982,8 @@ xf86PrintBanner()
     "Bugs may be filed in the bugzilla at http://bugs.freedesktop.org/.\n"
     "Select the \"xorg\" product for bugs you find in this release.\n"
     "Before reporting bugs in pre-release versions please check the\n"
-    "latest version in the X.Org Foundation CVS repository.\n"
-    "See http://wiki.x.org/wiki/CvsPage for CVS access instructions.\n");
+    "latest version in the X.Org Foundation git repository.\n"
+    "See http://wiki.x.org/wiki/GitPage for git access instructions.\n");
 #endif
   ErrorF("\nX Window System Version %d.%d.%d",
 	 XORG_VERSION_MAJOR,

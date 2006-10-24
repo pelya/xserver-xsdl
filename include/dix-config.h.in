@@ -112,6 +112,9 @@
 /* Define to 1 if you have the `geteuid' function. */
 #undef HAVE_GETEUID
 
+/* Define to 1 if you have the `getisax' function. */
+#undef HAVE_GETISAX
+
 /* Define to 1 if you have the `getopt' function. */
 #undef HAVE_GETOPT
 
@@ -307,6 +310,9 @@
 
 /* unaligned word accesses behave as expected */
 #undef WORKING_UNALIGNED_INT
+
+/* Build X-ACE extension */
+#undef XACE
 
 /* Support XCMisc extension */
 #undef XCMISC

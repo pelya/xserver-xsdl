@@ -45,8 +45,8 @@
 #include "inputstr.h"
 #include "servermd.h"
 #define _FONTCACHE_SERVER_
-#include "fontcacheP.h"
-#include "fontcachstr.h"
+#include <X11/extensions/fontcacheP.h>
+#include <X11/extensions/fontcachstr.h>
 #include <X11/Xfuncproto.h>
 
 #include "swaprep.h"

@@ -543,6 +543,9 @@ extern int           drmSwitchToContext(int fd, drm_context_t context);
 extern int           drmDestroyContext(int fd, drm_context_t handle);
 extern int           drmCreateDrawable(int fd, drm_drawable_t * handle);
 extern int           drmDestroyDrawable(int fd, drm_drawable_t handle);
+extern int           drmUpdateDrawableInfo(int fd, drm_drawable_t handle,
+					   drm_drawable_info_type_t type,
+					   unsigned int num, void *data);
 extern int           drmCtlInstHandler(int fd, int irq);
 extern int           drmCtlUninstHandler(int fd);
 extern int           drmInstallSIGIOHandler(int fd,

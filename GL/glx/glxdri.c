@@ -57,6 +57,7 @@
 #include "glapi.h"
 #include "glthread.h"
 #include "dispatch.h"
+#include "extension_string.h"
 
 
 #define STRINGIFY(macro_or_string)	STRINGIFY_ARG (macro_or_string)
@@ -71,6 +72,11 @@ struct __GLXDRIscreen {
 
     __DRIscreen			 driScreen;
     void			*driver;
+
+    xf86EnterVTProc *enterVT;
+    xf86LeaveVTProc *leaveVT;
+
+    unsigned char glx_enable_bits[__GLX_EXT_BYTES];
 };
 
 struct __GLXDRIcontext {
@@ -145,6 +151,22 @@ __glXDRIenterServer(void)
   DRIWakeupHandler(NULL, 0, NULL);
 }
 
+/**
+ * \bug
+ * We're jumping through hoops here to get the DRIdrawable which the DRI
+ * driver tries to keep to it self...  cf. FIXME in \c createDrawable.
+ */
+static void
+__glXDRIdrawableFoo(__GLXDRIdrawable *draw)
+{
+    __GLXDRIscreen * const screen =
+      (__GLXDRIscreen *) __glXgetActiveScreen(draw->base.pDraw->pScreen->myNum);
+
+    draw->driDrawable = (*screen->driScreen.getDrawable)(NULL,
+							 draw->base.drawId,
+							 screen->driScreen.private);
+}
+
 static void
 __glXDRIdrawableDestroy(__GLXdrawable *private)
 {
@@ -169,16 +191,8 @@ static GLboolean
 __glXDRIdrawableSwapBuffers(__GLXdrawable *basePrivate)
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) basePrivate;
-    __GLXDRIscreen *screen;
 
-    /* FIXME: We're jumping through hoops here to get the DRIdrawable
-     * which the dri driver tries to keep to it self...  cf. FIXME in
-     * createDrawable. */
-
-    screen = (__GLXDRIscreen *) __glXgetActiveScreen(private->base.pDraw->pScreen->myNum);
-    private->driDrawable = (screen->driScreen.getDrawable)(NULL,
-							   private->base.drawId,
-							   screen->driScreen.private);
+    __glXDRIdrawableFoo(private);
 
     (*private->driDrawable->swapBuffers)(NULL,
 					 private->driDrawable->private);
@@ -186,21 +200,26 @@ __glXDRIdrawableSwapBuffers(__GLXdrawable *basePrivate)
     return TRUE;
 }
 
+
+static int
+__glXDRIdrawableSwapInterval(__GLXdrawable *baseDrawable, int interval)
+{
+    __GLXDRIdrawable *draw = (__GLXDRIdrawable *) baseDrawable;
+
+    __glXDRIdrawableFoo(draw);
+
+    draw->driDrawable->swap_interval = interval;
+    return 0;
+}
+
+
 static void
 __glXDRIdrawableCopySubBuffer(__GLXdrawable *basePrivate,
 			       int x, int y, int w, int h)
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) basePrivate;
-    __GLXDRIscreen *screen;
 
-    /* FIXME: We're jumping through hoops here to get the DRIdrawable
-     * which the dri driver tries to keep to it self...  cf. FIXME in
-     * createDrawable. */
-
-    screen = (__GLXDRIscreen *) __glXgetActiveScreen(private->base.pDraw->pScreen->myNum);
-    private->driDrawable = (screen->driScreen.getDrawable)(NULL,
-							   private->base.drawId,
-							   screen->driScreen.private);
+    __glXDRIdrawableFoo(private);
 
     (*private->driDrawable->copySubBuffer)(NULL,
 					   private->driDrawable->private,
@@ -340,7 +359,12 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
     if (pixmap->drawable.depth >= 24) {
 	bpp = 4;
 	format = GL_BGRA;
-	type = GL_UNSIGNED_BYTE;
+	type =
+#if X_BYTE_ORDER == X_LITTLE_ENDIAN
+	    GL_UNSIGNED_BYTE;
+#else
+	    GL_UNSIGNED_INT_8_8_8_8_REV;
+#endif
     } else {
 	bpp = 2;
 	format = GL_RGB;
@@ -586,15 +610,27 @@ filter_modes(__GLcontextModes **server_modes,
 }
 
 
+static void
+enable_glx_extension(void *psc, const char *ext_name)
+{
+    __GLXDRIscreen * const screen = (__GLXDRIscreen *) psc;
+
+    __glXEnableExtension(screen->glx_enable_bits, ext_name);
+}
+
+
 static __DRIfuncPtr getProcAddress(const char *proc_name)
 {
+    if (strcmp(proc_name, "glxEnableExtension") == 0) {
+	return (__DRIfuncPtr) enable_glx_extension;
+    }
+
     return NULL;
 }
 
 static __DRIscreen *findScreen(__DRInativeDisplay *dpy, int scrn)
 {
-    __GLXDRIscreen *screen =
-	(__GLXDRIscreen *) __glXgetActiveScreen(scrn);
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) __glXgetActiveScreen(scrn);
 
     return &screen->driScreen;
 }
@@ -788,6 +824,30 @@ static const __DRIinterfaceMethods interface_methods = {
 
 static const char dri_driver_path[] = DRI_DRIVER_PATH;
 
+static Bool
+glxDRIEnterVT (int index, int flags)
+{
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) __glXgetActiveScreen(index);
+
+    LogMessage(X_INFO, "AIGLX: Resuming AIGLX clients after VT switch\n");
+
+    glxResumeClients();
+
+    return (*screen->enterVT) (index, flags);
+}
+
+static void
+glxDRILeaveVT (int index, int flags)
+{
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) __glXgetActiveScreen(index);
+
+    LogMessage(X_INFO, "AIGLX: Suspending AIGLX clients for VT switch\n");
+
+    glxSuspendClients();
+
+    return (*screen->leaveVT) (index, flags);
+}
+
 static __GLXscreen *
 __glXDRIscreenProbe(ScreenPtr pScreen)
 {
@@ -812,6 +872,8 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     void *dev_priv = NULL;
     char filename[128];
     Bool isCapable;
+    size_t buffer_size;
+    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
 
     if (!xf86LoaderCheckSymbol("DRIQueryDirectRenderingCapable")) {
 	LogMessage(X_ERROR, "AIGLX: DRI module not loaded\n");
@@ -832,7 +894,12 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     screen->base.destroy        = __glXDRIscreenDestroy;
     screen->base.createContext  = __glXDRIscreenCreateContext;
     screen->base.createDrawable = __glXDRIscreenCreateDrawable;
+    screen->base.swapInterval   = __glXDRIdrawableSwapInterval;
     screen->base.pScreen       = pScreen;
+
+    __glXInitExtensionEnableBits(screen->glx_enable_bits);
+    screen->driScreen.screenConfigs = screen;
+
 
     /* DRI protocol version. */
     dri_version.major = XF86DRI_MAJOR_VERSION;
@@ -977,10 +1044,27 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 
     __glXScreenInit(&screen->base, pScreen);
 
+    buffer_size = __glXGetExtensionString(screen->glx_enable_bits, NULL);
+    if (buffer_size > 0) {
+	if (screen->base.GLXextensions != NULL) {
+	    xfree(screen->base.GLXextensions);
+	}
+
+	screen->base.GLXextensions = xnfalloc(buffer_size);
+	(void) __glXGetExtensionString(screen->glx_enable_bits, 
+				       screen->base.GLXextensions);
+    }
+
+
     filter_modes(&screen->base.modes, driver_modes);
     _gl_context_modes_destroy(driver_modes);
 
     __glXsetEnterLeaveServerFuncs(__glXDRIenterServer, __glXDRIleaveServer);
+
+    screen->enterVT = pScrn->EnterVT;
+    pScrn->EnterVT = glxDRIEnterVT; 
+    screen->leaveVT = pScrn->LeaveVT;
+    pScrn->LeaveVT = glxDRILeaveVT;
 
     LogMessage(X_INFO,
 	       "AIGLX: Loaded and initialized %s\n", filename);

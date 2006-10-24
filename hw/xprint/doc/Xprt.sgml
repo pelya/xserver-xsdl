@@ -55,7 +55,7 @@ HTML generation can be done like this:
       clients such as <application>mozilla</application>.
     </para>
 
-    <para>Xprint is a very flexible, extensible, scaleable, client/server
+    <para>Xprint is a very flexible, extensible, scalable, client/server
      print system based on ISO 10175 (and some other specs) and the X11        
      rendering protocol.                                                       
      Using Xprint an application can search, query and use devices like        
@@ -155,7 +155,7 @@ HTML generation can be done like this:
         <term><option>-XpFile <replaceable>file</replaceable></option>
         </term>
         <listitem>
-          <para>Sets an altername Xprinters file (see section FILES).</para>
+          <para>Sets an alternate Xprinters file (see section FILES).</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -178,7 +178,7 @@ HTML generation can be done like this:
               <member>other</member>
               <member>none</member>
             </simplelist>
-            (multiple values can be specified, seperated by ':', the first active spooler will be chosen).
+            (multiple values can be specified, separated by ':', the first active spooler will be chosen).
             The default value is platform-specific and can be obtained via
             <programlisting>Xprt -h</programlisting>.
           </para>

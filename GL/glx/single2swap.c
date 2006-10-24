@@ -270,13 +270,3 @@ int __glXDispSwap_GetString(__GLXclientState *cl, GLbyte *pc)
 {
     return DoGetString(cl, pc, GL_TRUE);
 }
-
-int __glXDispSwap_GetProgramStringARB(__GLXclientState *cl, GLbyte *pc)
-{
-    return BadRequest;
-}
-
-int __glXDispSwap_GetProgramStringNV(__GLXclientState *cl, GLbyte *pc)
-{
-    return BadRequest;
-}

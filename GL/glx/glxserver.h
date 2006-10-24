@@ -136,6 +136,9 @@ void __glXsetEnterLeaveServerFuncs(void (*enter)(void),
 void __glXenterServer(void);
 void __glXleaveServer(void);
 
+void glxSuspendClients(void);
+void glxResumeClients(void);
+
 /*
 ** State kept per client.
 */
@@ -176,8 +179,6 @@ struct __GLXclientStateRec {
     char *GLClientextensions;
 };
 
-extern __GLXclientState *__glXClients[];
-
 /************************************************************************/
 
 /*
@@ -191,7 +192,6 @@ typedef int (*__GLXdispatchVendorPrivProcPtr)(__GLXclientState *, GLbyte *);
  * Dispatch for GLX commands.
  */
 typedef int (*__GLXprocPtr)(__GLXclientState *, char *pc);
-extern __GLXprocPtr __glXProcTable[];
 
 /*
  * Tables for computing the size of each rendering command.
@@ -251,7 +251,5 @@ extern int __glXImageSize(GLenum format, GLenum type,
     GLenum target, GLsizei w, GLsizei h, GLsizei d,
     GLint imageHeight, GLint rowLength, GLint skipImages, GLint skipRows,
     GLint alignment);
-
-extern int __glXDrawArraysReqSize(const GLbyte *pc, Bool swap);
 
 #endif /* !__GLX_server_h__ */

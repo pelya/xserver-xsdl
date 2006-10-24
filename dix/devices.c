@@ -69,8 +69,8 @@ SOFTWARE.
 #ifdef XKB
 #include <X11/extensions/XKBsrv.h>
 #endif
-#ifdef XCSECURITY
-#include "securitysrv.h"
+#ifdef XACE
+#include "xace.h"
 #endif
 
 #include "dispatch.h"
@@ -946,8 +946,8 @@ ProcSetModifierMapping(ClientPtr client)
 	}
     }
 
-#ifdef XCSECURITY
-    if (!SecurityCheckDeviceAccess(client, keybd, TRUE))
+#ifdef XACE
+    if (!XaceHook(XACE_DEVICE_ACCESS, client, keybd, TRUE))
 	return BadAccess;
 #endif 
 
@@ -1063,9 +1063,8 @@ ProcChangeKeyboardMapping(ClientPtr client)
 	    client->errorValue = stuff->keySymsPerKeyCode;
 	    return BadValue;
     }
-#ifdef XCSECURITY
-    if (!SecurityCheckDeviceAccess(client, inputInfo.keyboard,
-				   TRUE))
+#ifdef XACE
+    if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
 	return BadAccess;
 #endif 
     keysyms.minKeyCode = stuff->firstKeyCode;
@@ -1211,8 +1210,8 @@ ProcChangeKeyboardControl (ClientPtr client)
     vmask = stuff->mask;
     if (client->req_len != (sizeof(xChangeKeyboardControlReq)>>2)+Ones(vmask))
 	return BadLength;
-#ifdef XCSECURITY
-    if (!SecurityCheckDeviceAccess(client, keybd, TRUE))
+#ifdef XACE
+    if (!XaceHook(XACE_DEVICE_ACCESS, client, keybd, TRUE))
 	return BadAccess;
 #endif 
     vlist = (XID *)&stuff[1];		/* first word of values */
@@ -1600,8 +1599,8 @@ ProcQueryKeymap(ClientPtr client)
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.length = 2;
-#ifdef XCSECURITY
-    if (!SecurityCheckDeviceAccess(client, inputInfo.keyboard, TRUE))
+#ifdef XACE
+    if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
     {
 	bzero((char *)&rep.map[0], 32);
     }

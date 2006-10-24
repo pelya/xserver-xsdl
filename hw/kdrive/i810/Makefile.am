@@ -6,9 +6,6 @@ bin_PROGRAMS = Xi810
 
 noinst_LIBRARIES = libi810.a
 
-if TSLIB
-TSLIB_FLAG = -lts
-endif
 
 libi810_a_SOURCES = 		\
 	i810_cursor.c	\
@@ -29,7 +26,6 @@ I810_LIBS =						\
 Xi810_LDADD = \
 	$(I810_LIBS)					\
 	@KDRIVE_LIBS@                                  \
-	@XSERVER_LIBS@					\
-	$(TSLIB_FLAG)
+	@XSERVER_LIBS@					
 
-Xi810_DEPENDENCIES = $(I810_LIBS) @KDRIVE_LIBS@
+Xi810_DEPENDENCIES = libi810.a

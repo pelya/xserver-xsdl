@@ -82,7 +82,8 @@ AC_TYPE_PID_T
 dnl Checks for library functions.
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr \
-		strtol getopt getopt_long vsnprintf walkcontext backtrace])
+		strtol getopt getopt_long vsnprintf walkcontext backtrace \
+		getisax])
 AC_FUNC_ALLOCA
 dnl Old HAS_* names used in os/*.c.
 AC_CHECK_FUNC([getdtablesize],
@@ -413,9 +414,12 @@ AC_ARG_ENABLE(dri,            AS_HELP_STRING([--enable-dri], [Build DRI extensio
 AC_ARG_ENABLE(xinerama,	      AS_HELP_STRING([--disable-xinerama], [Build Xinerama extension (default: enabled)]), [XINERAMA=$enableval], [XINERAMA=yes])
 AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF86VidMode extension (default: enabled)]), [XF86VIDMODE=$enableval], [XF86VIDMODE=yes])
 AC_ARG_ENABLE(xf86misc,       AS_HELP_STRING([--disable-xf86misc], [Build XF86Misc extension (default: enabled)]), [XF86MISC=$enableval], [XF86MISC=yes])
-AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Security extension (default: enabled)]), [XCSECURITY=$enableval], [XCSECURITY=yes])
+AC_ARG_ENABLE(xace,     AS_HELP_STRING([--disable-xace], [Build X-ACE extension (default: enabled)]), [XACE=$enableval], [XACE=yes])
+AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Security extension (default: enabled)]), [XCSECURITY=$enableval], [XCSECURITY=$XACE])
+AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: enabled)]), [APPGROUP=$enableval], [APPGROUP=$XCSECURITY])
+AC_ARG_ENABLE(xcalibrate,     AS_HELP_STRING([--enable-xcalibrate], [Build XCalibrate extension (default: disabled)]), [XCALIBRATE=$enableval], [XCALIBRATE=no])
+AC_ARG_ENABLE(tslib,          AS_HELP_STRING([--enable-tslib], [Build kdrive tslib touchscreen support (default: disabled)]), [TSLIB=$enableval], [TSLIB=no])
 AC_ARG_ENABLE(xevie,          AS_HELP_STRING([--disable-xevie], [Build XEvIE extension (default: enabled)]), [XEVIE=$enableval], [XEVIE=yes])
-AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: enabled)]), [APPGROUP=$enableval], [APPGROUP=yes])
 AC_ARG_ENABLE(cup,            AS_HELP_STRING([--disable-cup], [Build TOG-CUP extension (default: enabled)]), [CUP=$enableval], [CUP=yes])
 AC_ARG_ENABLE(evi,            AS_HELP_STRING([--disable-evi], [Build Extended-Visual-Information extension (default: enabled)]), [EVI=$enableval], [EVI=yes])
 AC_ARG_ENABLE(multibuffer,    AS_HELP_STRING([--enable-multibuffer], [Build Multibuffer extension (default: disabled)]), [MULTIBUFFER=$enableval], [MULTIBUFFER=no])
@@ -424,6 +428,7 @@ AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extensi
 AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--disable-xf86bigfont], [Build XF86 Big Font extension (default: enabled)]), [XF86BIGFONT=$enableval], [XF86BIGFONT=yes])
 AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled)]), [DPMSExtension=$enableval], [DPMSExtension=yes])
 AC_ARG_ENABLE(xinput,         AS_HELP_STRING([--disable-xinput], [Build XInput Extension (default: enabled)]), [XINPUT=$enableval], [XINPUT=yes])
+AC_ARG_ENABLE(xfree86-utils,     AS_HELP_STRING([--enable-xfree86-utils], [Build xfree86 DDX utilities (default: enabled)]), [XF86UTILS=$enableval], [XF86UTILS=yes])
 
 dnl DDXes.
 AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server (default: auto)]), [XORG=$enableval], [XORG=auto])
@@ -578,7 +583,12 @@ if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
 	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
 	test -d GL || mkdir GL
-        $srcdir/GL/symlink-mesa.sh $MESA_SOURCE GL/
+	case $host_os in
+	  solaris*) 	
+		SYMLINK_MESA="/usr/bin/bash $srcdir/GL/symlink-mesa.sh"	;;
+	  *)	SYMLINK_MESA=$srcdir/GL/symlink-mesa.sh ;;
+	esac
+	$SYMLINK_MESA $MESA_SOURCE GL/
 	if test $? -ne 0; then
 		AC_MSG_ERROR([Failed to link Mesa source tree.  Please specify a proper path to Mesa sources, or disable GLX.])
 	fi
@@ -619,8 +629,16 @@ if test "x$XINERAMA" = xyes; then
 	REQUIRED_MODULES="$REQUIRED_MODULES xineramaproto"
 fi
 
+AM_CONDITIONAL(XACE, [test "x$XACE" = xyes])
+if test "x$XACE" = xyes; then
+	AC_DEFINE(XACE, 1, [Build X-ACE extension])
+fi
+
 AM_CONDITIONAL(XCSECURITY, [test "x$XCSECURITY" = xyes])
 if test "x$XCSECURITY" = xyes; then
+	if test "x$XACE" != xyes; then
+		AC_MSG_ERROR([cannot build Security extension without X-ACE])
+	fi
 	AC_DEFINE(XCSECURITY, 1, [Build Security extension])
 fi
 
@@ -630,12 +648,11 @@ if test "x$XEVIE" = xyes; then
 	REQUIRED_MODULES="$REQUIRED_MODULES evieproto"
 fi
 
-if test "x$APPGROUP" = xyes && test "x$XCSECURITY" != xyes; then
-	AC_MSG_NOTICE([Disabling APPGROUP extension])
-	APPGROUP=no
-fi
 AM_CONDITIONAL(APPGROUP, [test "x$APPGROUP" = xyes])
 if test "x$APPGROUP" = xyes; then
+	if test "x$XACE" != xyes || test "x$XCSECURITY" != xyes; then
+		AC_MSG_ERROR([cannot build APPGROUP extension without X-ACE and XC-SECURITY])
+	fi
 	AC_DEFINE(XAPPGROUP, 1, [Build APPGROUP extension])
 fi
 
@@ -696,6 +713,14 @@ if test "x$XPRINT" = xyes; then
 	REQUIRED_MODULES="$REQUIRED_MODULES printproto"
 fi
 
+if test "x$XCALIBRATE" = xyes && test "$KDRIVE" = yes; then
+   AC_DEFINE(XCALIBRATE, 1, [Build XCalibrate extension])
+   REQUIRED_MODULES="$REQUIRED_MODULES xcalibrateproto"
+else
+   XCALIBRATE=no
+fi
+AM_CONDITIONAL(XCALIBRATE, [test "x$XCALIBRATE" = xyes])
+
 AC_DEFINE(RENDER, 1, [Support RENDER extension])
 RENDER_LIB='$(top_builddir)/render/librender.la'
 RENDER_INC='-I$(top_srcdir)/render'
@@ -724,6 +749,8 @@ if test "x$XINPUT" = xyes; then
 	XI_LIB='$(top_builddir)/Xi/libXi.la'
 	XI_INC='-I$(top_srcdir)/Xi'
 fi
+
+AM_CONDITIONAL(XF86UTILS, test "x$XF86UTILS" = xyes)
 
 AC_DEFINE(SHAPE, 1, [Support SHAPE extension])
 
@@ -794,6 +821,7 @@ VENDOR_MAN_VERSION="Version ${VENDOR_VERSION_STRING}"
 
 AC_DEFINE_DIR(COMPILEDDEFAULTFONTPATH, FONTPATH, [Default font path])
 AC_DEFINE_DIR(RGB_DB, RGBPATH, [Default RGB path])
+AC_DEFINE_DIR(BASE_FONT_PATH, FONTDIR, [Default base font path])
 AC_DEFINE_DIR(DRI_DRIVER_PATH, DRI_DRIVER_PATH, [Default DRI driver path])
 AC_DEFINE_UNQUOTED(XVENDORNAME, ["$VENDOR_STRING"], [Vendor name])
 AC_DEFINE_UNQUOTED(XVENDORNAMESHORT, ["$VENDOR_STRING_SHORT"], [Short vendor name])
@@ -1419,7 +1447,6 @@ AM_CONDITIONAL(XWIN_XV, [test "x$XWIN" = xyes && test "x$XV" = xyes])
 
 
 dnl kdrive DDX
-dnl utterly incomplete yet
 
 XEYPHR_LIBS=
 XEPHYR_INCS=
@@ -1443,6 +1470,13 @@ if test "$KDRIVE" = yes; then
     fi
     
     # tslib...
+    if test "x$TSLIB" = xyes; then
+        PKG_CHECK_MODULES([TSLIB], [tslib-0.0], [HAVE_TSLIB="yes"], [HAVE_TSLIB="no"])
+        if test "x$HAVE_TSLIB" = xno; then
+            AC_MSG_ERROR([tslib must be installed to build the tslib driver. See http://tslib.berlios.de/])
+        fi
+        AC_DEFINE(TSLIB, 1, [Have tslib support])
+    fi
 
     # damage shadow extension glx (NOTYET) fb mi
     KDRIVE_INC='-I$(top_srcdir)/hw/kdrive/src'
@@ -1450,7 +1484,7 @@ if test "$KDRIVE" = yes; then
     KDRIVE_OS_INC='-I$(top_srcdir)/hw/kdrive/linux'
     KDRIVE_INCS="$KDRIVE_PURE_INCS $KDRIVE_OS_INC"
     
-    KDRIVE_CFLAGS="$XSERVER_CFLAGS -DHAVE_KDRIVE_CONFIG_H"
+    KDRIVE_CFLAGS="$XSERVER_CFLAGS -DHAVE_KDRIVE_CONFIG_H $TSLIB_CFLAGS"
 
     # dix os fb mi extension glx (NOTYET) damage shadow xpstubs
     #KDRIVE_PURE_LIBS="$DIX_LIB $OS_LIB $FB_LIB $XEXT_LIB $MIEXT_DAMAGE_LIB \
@@ -1459,25 +1493,26 @@ if test "$KDRIVE" = yes; then
     KDRIVE_LIB='$(top_builddir)/hw/kdrive/src/libkdrive.a'
     KDRIVE_OS_LIB='$(top_builddir)/hw/kdrive/linux/liblinux.a'
     KDRIVE_STUB_LIB='$(top_builddir)/hw/kdrive/src/libkdrivestubs.a'
-    KDRIVE_LIBS="$DIX_LIB $KDRIVE_LIB $KDRIVE_OS_LIB $KDRIVE_PURE_LIBS $KDRIVE_STUB_LIB"
+    KDRIVE_LIBS="$DIX_LIB $KDRIVE_LIB $KDRIVE_OS_LIB $KDRIVE_PURE_LIBS $KDRIVE_STUB_LIB $TSLIB_LIBS"
 
     # check if we can build Xephyr
     PKG_CHECK_MODULES(XEPHYR, x11 xext xfont xau xdmcp, [xephyr="yes"], [xephyr="no"])
     
     # check for SDL SDK
     AC_CHECK_HEADERS([SDL/SDL.h])
+    if test "x$XSDL" = xauto; then
+        XSDL="$ac_cv_header_SDL_SDL_h"
+    fi
 fi
 AC_SUBST(KDRIVE_INCS)
 AC_SUBST(KDRIVE_PURE_INCS)
 AC_SUBST(KDRIVE_CFLAGS)
 AC_SUBST(KDRIVE_PURE_LIBS)
 AC_SUBST(KDRIVE_LIBS)
-AM_CONDITIONAL(TSLIB, false)
+AM_CONDITIONAL(TSLIB, [test "x$HAVE_TSLIB" = xyes])
 AM_CONDITIONAL(H3600_TS, false)
 AM_CONDITIONAL(KDRIVEVESA, [test x"$ac_cv_header_sys_vm86_h" = xyes])
 AM_CONDITIONAL(KDRIVEFBDEV, [test x"$ac_cv_header_linux_fb_h" = xyes])
-#AM_CONDITIONAL(KDRIVEVESA, false)
-#AM_CONDITIONAL(KDRIVEFBDEV, false)
 
 # Xephyr needs nanosleep() which is in librt on Solaris
 AC_CHECK_FUNC([nanosleep], [],
@@ -1488,13 +1523,12 @@ XEPHYR_LIBS="$XEPHYR_LIBS $XSERVER_LIBS"
 AC_SUBST([XEPHYR_LIBS])
 AC_SUBST([XEPHYR_INCS])
 
-AM_CONDITIONAL(XSDLSERVER, [test x"$ac_cv_header_SDL_SDL_h" = xyes])
-if test x"$ac_cv_header_SDL_SDL_h" = xyes -o x"$XSDL" = xyes; then
-    # PKG_CHECK_MODULES(XSDL_EXTRA, Xfont xau $XDMCP_MODULES)
+if test x"$XSDL" = xyes; then
     AC_DEFINE(XSDLSERVER,,[Build Xsdl server])
     XSDL_LIBS="`sdl-config --libs` $XSERVER_LIBS"
     XSDL_INCS="`sdl-config --cflags` $XSERVER_CFLAGS"
 fi
+AM_CONDITIONAL(XSDLSERVER, [test x"$XSDL" = xyes])
 AC_SUBST([XSDL_LIBS])
 AC_SUBST([XSDL_INCS])
 
@@ -1550,8 +1584,8 @@ AC_SUBST(XORGCONFIG_DEP_LIBS)
 
 dnl xorgcfg GUI configuration utility
 AC_ARG_ENABLE(xorgcfg, AS_HELP_STRING([--enable-xorgcfg], 
-	[Build xorgcfg GUI configuration utility (default: yes)]),
-	[XORGCFG=$enableval],[XORGCFG=yes])
+	[Build xorgcfg GUI configuration utility (default: no)]),
+	[XORGCFG=$enableval],[XORGCFG=no])
 if test x$XORGCFG = xyes ; then
 	PKG_CHECK_MODULES([XORGCFG_DEP], 
 	    [xkbui >= 1.0.2 xkbfile xxf86misc xxf86vm xaw7 xmu xt xpm xext x11])

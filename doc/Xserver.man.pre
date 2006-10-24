@@ -181,7 +181,7 @@ prints a usage message.
 causes all remaining command line arguments to be ignored.
 .TP 8
 .B \-maxbigreqsize \fIsize\fP
-sets the maxmium big request to
+sets the maximum big request to
 .I size
 MB.
 .TP 8
@@ -449,7 +449,7 @@ the text after the /; it is used to distinguish between instances of
 
 <action> ::= a | i | e
 
-<string> ::= <dbl quoted string> | <single quoted string> | <unqouted string>
+<string> ::= <dbl quoted string> | <single quoted string> | <unquoted string>
 
 <dbl quoted string> ::= <space> " <not dqoute>* " <space>
 

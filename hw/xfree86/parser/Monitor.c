@@ -675,7 +675,7 @@ xf86printMonitorSection (FILE * cf, XF86ConfMonitorPtr ptr)
 					 ptr->mon_width,
 					 ptr->mon_height);
 		if ( ptr->mon_n_hsync || ptr->mon_n_vrefresh )
-		    fprintf(cf," ### Comment all HorizSync and VertSync values to use DDC:\n");
+		    fprintf(cf," ### Comment all HorizSync and VertRefresh values to use DDC:\n");
 		for (i = 0; i < ptr->mon_n_hsync; i++)
 		{
 			fprintf (cf, "\tHorizSync    %2.1f - %2.1f\n",

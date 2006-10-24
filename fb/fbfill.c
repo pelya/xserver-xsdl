@@ -49,8 +49,10 @@ fbFill (DrawablePtr pDrawable,
     case FillSolid:
 #ifdef USE_MMX
 	if (!pPriv->and && fbHaveMMX())
-	    if (fbSolidFillmmx (pDrawable, x, y, width, height, pPriv->xor))
+	    if (fbSolidFillmmx (pDrawable, x, y, width, height, pPriv->xor)) {
+		fbFinishAccess (pDrawable);
 		return;
+	    }
 #endif	    
 	fbSolid (dst + (y + dstYoff) * dstStride, 
 		 dstStride, 
@@ -92,6 +94,7 @@ fbFill (DrawablePtr pDrawable,
 		    
 		    (pGC->patOrg.x + pDrawable->x + dstXoff),
 		    pGC->patOrg.y + pDrawable->y - y);
+	    fbFinishAccess (&pStip->drawable);
 	}
 	else
 	{
@@ -129,6 +132,7 @@ fbFill (DrawablePtr pDrawable,
 		       bgand, bgxor,
 		       pGC->patOrg.x + pDrawable->x + dstXoff,
 		       pGC->patOrg.y + pDrawable->y - y);
+	    fbFinishAccess (&pStip->drawable);
 	}
 	break;
     }
@@ -157,10 +161,12 @@ fbFill (DrawablePtr pDrawable,
 		dstBpp,
 		(pGC->patOrg.x + pDrawable->x + dstXoff) * dstBpp,
 		pGC->patOrg.y + pDrawable->y - y);
+	fbFinishAccess (&pTile->drawable);
 	break;
     }
     }
     fbValidateDrawable (pDrawable);
+    fbFinishAccess (pDrawable);
 }
 
 void
@@ -215,8 +221,10 @@ fbSolidBoxClipped (DrawablePtr	pDrawable,
 		if (fbSolidFillmmx (pDrawable,
 		                    partX1, partY1,
 				    (partX2 - partX1), (partY2 - partY1),
-				    xor))
+				    xor)) {
+			fbFinishAccess (pDrawable);
 			return;
+		}
 	}
 #endif
 	fbSolid (dst + (partY1 + dstYoff) * dstStride,
@@ -228,4 +236,5 @@ fbSolidBoxClipped (DrawablePtr	pDrawable,
 		 (partY2 - partY1),
 		 and, xor);
     }
+    fbFinishAccess (pDrawable);
 }

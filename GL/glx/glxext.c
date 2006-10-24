@@ -59,10 +59,7 @@ xGLXSingleReply __glXReply;
 ** A set of state for each client.  The 0th one is unused because client
 ** indices start at 1, not 0.
 */
-__GLXclientState *__glXClients[MAXCLIENTS+1];
-
-
-static Bool inDispatch;
+static __GLXclientState *__glXClients[MAXCLIENTS + 1];
 
 /*
 ** Forward declarations.
@@ -219,6 +216,10 @@ static Bool DrawableGone(__GLXdrawable *glxPriv, XID xid)
     return True;
 }
 
+static __GLXcontext *glxPendingDestroyContexts;
+static int glxServerLeaveCount;
+static int glxBlockClients;
+
 /*
 ** Free a context.
 */
@@ -236,13 +237,14 @@ GLboolean __glXFreeContext(__GLXcontext *cx)
      * __glXDispatch() or as a callback from the resource manager.  In
      * the latter case we need to lift the DRI lock manually. */
 
-    if (!inDispatch)
-      __glXleaveServer();
-
-    cx->destroy(cx);
-
-    if (!inDispatch)
-      __glXenterServer();
+    if (glxBlockClients) {
+	__glXleaveServer();
+	cx->destroy(cx);
+	__glXenterServer();
+    } else {
+	cx->next = glxPendingDestroyContexts;
+	glxPendingDestroyContexts = cx;
+    }
 
     return GL_TRUE;
 }
@@ -338,7 +340,7 @@ void GlxExtensionInit(void)
     /*
     ** Initialize table of client state.  There is never a client 0.
     */
-    for (i=1; i <= MAXCLIENTS; i++) {
+    for (i = 1; i <= MAXCLIENTS; i++) {
 	__glXClients[i] = 0;
     }
 
@@ -409,11 +411,43 @@ __GLXcontext *__glXForceCurrent(__GLXclientState *cl, GLXContextTag tag,
 
 /************************************************************************/
 
-/*
-** Top level dispatcher; all commands are executed from here down.
-*/
+void glxSuspendClients(void)
+{
+    int i;
 
-/* I cried when I wrote this.  Damn you XAA! */
+    for (i = 1; i <= MAXCLIENTS; i++) {
+	if (__glXClients[i] == NULL || !__glXClients[i]->inUse)
+	    continue;
+
+	IgnoreClient(__glXClients[i]->client);
+    }
+
+    glxBlockClients = TRUE;
+}
+
+void glxResumeClients(void)
+{
+    __GLXcontext *cx, *next;
+    int i;
+
+    glxBlockClients = FALSE;
+
+    for (i = 1; i <= MAXCLIENTS; i++) {
+	if (__glXClients[i] == NULL || !__glXClients[i]->inUse)
+	    continue;
+
+	AttendClient(__glXClients[i]->client);
+    }
+
+    __glXleaveServer();
+    for (cx = glxPendingDestroyContexts; cx != NULL; cx = next) {
+	next = cx->next;
+
+	cx->destroy(cx);
+    }
+    glxPendingDestroyContexts = NULL;
+    __glXenterServer();
+}
 
 static void
 __glXnopEnterServer(void)
@@ -438,14 +472,19 @@ void __glXsetEnterLeaveServerFuncs(void (*enter)(void),
 
 void __glXenterServer(void)
 {
-  (*__glXenterServerFunc)();
+  glxServerLeaveCount--;
+
+  if (glxServerLeaveCount == 0)
+    (*__glXenterServerFunc)();
 }
 
 void __glXleaveServer(void)
 {
-  (*__glXleaveServerFunc)();
-}
+  if (glxServerLeaveCount == 0)
+    (*__glXleaveServerFunc)();
 
+  glxServerLeaveCount++;
+}
 
 /*
 ** Top level dispatcher; all commands are executed from here down.
@@ -491,6 +530,15 @@ static int __glXDispatch(ClientPtr client)
 	return __glXError(GLXBadLargeRequest);
     }
 
+    /* If we're currently blocking GLX clients, just put this guy to
+     * sleep, reset the request and return. */
+    if (glxBlockClients) {
+	ResetCurrentRequest(client);
+	client->sequence--;
+	IgnoreClient(client);
+	return(client->noClientException);
+    }
+
     /*
     ** Use the opcode to index into the procedure table.
     */
@@ -500,11 +548,7 @@ static int __glXDispatch(ClientPtr client)
     if (proc != NULL) {
 	__glXleaveServer();
 
-	inDispatch = True;
-
 	retval = (*proc)(cl, (GLbyte *) stuff);
-
-	inDispatch = False;
 
 	__glXenterServer();
     }
@@ -514,9 +558,3 @@ static int __glXDispatch(ClientPtr client)
 
     return retval;
 }
-
-void __glXNoSuchRenderOpcode(GLbyte *pc)
-{
-    return;
-}
-

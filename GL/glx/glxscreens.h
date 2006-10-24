@@ -62,6 +62,8 @@ struct __GLXscreen {
 				     DrawablePtr pDraw,
 				     XID drawId,
 				     __GLcontextModes *modes);
+    int            (*swapInterval)  (__GLXdrawable *drawable,
+				     int interval);
 
     ScreenPtr pScreen;
 

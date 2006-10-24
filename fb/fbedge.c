@@ -60,9 +60,9 @@
 #define StepAlpha	((__ap += __ao), (__ao ^= 1))
 
 #define AddAlpha(a) {						\
-    CARD8   __o = *__ap;					\
+    CARD8   __o = READ(__ap);					\
     CARD8   __a = (a) + Get4(__o, __ao);			\
-    *__ap = Put4 (__o, __ao, __a | (0 - ((__a) >> 4)));		\
+    WRITE(__ap, Put4 (__o, __ao, __a | (0 - ((__a) >> 4))));	\
 }
 
 #include "fbedgeimp.h"
@@ -102,7 +102,7 @@ add_saturate_8 (CARD8 *buf, int value, int length)
 {
     while (length--)
     {
-        *buf = clip255 (*buf + value);
+        WRITE(buf, clip255 (READ(buf) + value));
         buf++;
     }
 }
@@ -164,11 +164,11 @@ fbRasterizeEdges8 (FbBits	*buf,
             /* Add coverage across row */
             if (lxi == rxi)
             {
-                ap[lxi] = clip255 (ap[lxi] + rxs - lxs);
+                WRITE(ap +lxi, clip255 (READ(ap + lxi) + rxs - lxs));
             }
             else
             {
-                ap[lxi] = clip255 (ap[lxi] + N_X_FRAC(8) - lxs);
+                WRITE(ap + lxi, clip255 (READ(ap + lxi) + N_X_FRAC(8) - lxs));
 
                 /* Move forward so that lxi/rxi is the pixel span */
                 lxi++;
@@ -238,7 +238,7 @@ fbRasterizeEdges8 (FbBits	*buf,
                  * necessary to avoid a buffer overrun, (when rx
                  * is exactly on a pixel boundary). */
                 if (rxs)
-                    ap[rxi] = clip255 (ap[rxi] + rxs);
+                    WRITE(ap + rxi, clip255 (READ(ap + rxi) + rxs));
             }
 	}
 
@@ -247,7 +247,7 @@ fbRasterizeEdges8 (FbBits	*buf,
             if (fill_start != fill_end) {
                 if (fill_size == N_Y_FRAC(8))
                 {
-                    memset (ap + fill_start, 0xff, fill_end - fill_start);
+                    MEMSET_WRAPPED (ap + fill_start, 0xff, fill_end - fill_start);
                 }
                 else
                 {
@@ -273,7 +273,7 @@ fbRasterizeEdges8 (FbBits	*buf,
             {
                 if (fill_size == N_Y_FRAC(8))
                 {
-                    memset (ap + fill_start, 0xff, fill_end - fill_start);
+                    MEMSET_WRAPPED (ap + fill_start, 0xff, fill_end - fill_start);
                 }
                 else
                 {

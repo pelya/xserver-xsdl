@@ -84,4 +84,6 @@ fbGetSpans(DrawablePtr	pDrawable,
 	ppt++;
 	pwidth++;
     }
+
+    fbFinishAccess (pDrawable);
 }

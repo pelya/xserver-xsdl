@@ -234,7 +234,6 @@ xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
 
   xf86EnterServerState(SETUP);
   Switched = (*pScr->SwitchMode)(pScr->scrnIndex, mode, 0);
-  xf86EnterServerState(OPERATING);
   if (Switched) {
     pScr->currentMode = mode;
 
@@ -269,6 +268,7 @@ xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
       pScr->frameY1 = pScr->virtualY - 1;
     }
   }
+  xf86EnterServerState(OPERATING);
 
   if (pScr->AdjustFrame)
     (*pScr->AdjustFrame)(pScr->scrnIndex, pScr->frameX0, pScr->frameY0, 0);

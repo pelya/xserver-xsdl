@@ -2756,6 +2756,31 @@ int __glXDisp_AreTexturesResident(__GLXclientState *cl, GLbyte *pc)
     return error;
 }
 
+int __glXDisp_AreTexturesResidentEXT(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLsizei n = *(GLsizei  *)(pc +  0);
+
+        GLboolean retval;
+        GLboolean answerBuffer[200];
+        GLboolean * residences = __glXGetAnswerBuffer(cl, n, answerBuffer, sizeof(answerBuffer), 1);
+        retval = CALL_AreTexturesResident( GET_DISPATCH(), (
+            n,
+             (const GLuint *)(pc +  4),
+            residences
+        ) );
+        __glXSendReply(cl->client, residences, n, 1, GL_TRUE, retval);
+        error = Success;
+    }
+
+    return error;
+}
+
 void __glXDisp_CopyTexImage1D(GLbyte * pc)
 {
     CALL_CopyTexImage1D( GET_DISPATCH(), (
@@ -2811,6 +2836,26 @@ void __glXDisp_CopyTexSubImage2D(GLbyte * pc)
 
 int __glXDisp_DeleteTextures(__GLXclientState *cl, GLbyte *pc)
 {
+    xGLXSingleReq * const req = (xGLXSingleReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_SINGLE_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLsizei n = *(GLsizei  *)(pc +  0);
+
+        CALL_DeleteTextures( GET_DISPATCH(), (
+            n,
+             (const GLuint *)(pc +  4)
+        ) );
+        error = Success;
+    }
+
+    return error;
+}
+
+int __glXDisp_DeleteTexturesEXT(__GLXclientState *cl, GLbyte *pc)
+{
     xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
     int error;
     __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
@@ -2852,6 +2897,29 @@ int __glXDisp_GenTextures(__GLXclientState *cl, GLbyte *pc)
     return error;
 }
 
+int __glXDisp_GenTexturesEXT(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLsizei n = *(GLsizei  *)(pc +  0);
+
+        GLuint answerBuffer[200];
+        GLuint * textures = __glXGetAnswerBuffer(cl, n * 4, answerBuffer, sizeof(answerBuffer), 4);
+        CALL_GenTextures( GET_DISPATCH(), (
+            n,
+            textures
+        ) );
+        __glXSendReply(cl->client, textures, n, 4, GL_TRUE, 0);
+        error = Success;
+    }
+
+    return error;
+}
+
 int __glXDisp_IsTexture(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXSingleReq * const req = (xGLXSingleReq *) pc;
@@ -2859,6 +2927,25 @@ int __glXDisp_IsTexture(__GLXclientState *cl, GLbyte *pc)
     __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
 
     pc += __GLX_SINGLE_HDR_SIZE;
+    if ( cx != NULL ) {
+        GLboolean retval;
+        retval = CALL_IsTexture( GET_DISPATCH(), (
+            *(GLuint   *)(pc +  0)
+        ) );
+        __glXSendReply(cl->client, dummy_answer, 0, 0, GL_FALSE, retval);
+        error = Success;
+    }
+
+    return error;
+}
+
+int __glXDisp_IsTextureEXT(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
     if ( cx != NULL ) {
         GLboolean retval;
         retval = CALL_IsTexture( GET_DISPATCH(), (
@@ -3039,6 +3126,35 @@ int __glXDisp_GetColorTableParameterfv(__GLXclientState *cl, GLbyte *pc)
     return error;
 }
 
+int __glXDisp_GetColorTableParameterfvSGI(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLenum pname = *(GLenum   *)(pc +  4);
+
+        const GLuint compsize = __glGetColorTableParameterfv_size(pname);
+        GLfloat answerBuffer[200];
+        GLfloat * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
+
+        if (params == NULL) return BadAlloc;
+        __glXClearErrorOccured();
+
+        CALL_GetColorTableParameterfv( GET_DISPATCH(), (
+            *(GLenum   *)(pc +  0),
+            pname,
+            params
+        ) );
+        __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
+        error = Success;
+    }
+
+    return error;
+}
+
 int __glXDisp_GetColorTableParameteriv(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXSingleReq * const req = (xGLXSingleReq *) pc;
@@ -3046,6 +3162,35 @@ int __glXDisp_GetColorTableParameteriv(__GLXclientState *cl, GLbyte *pc)
     __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
 
     pc += __GLX_SINGLE_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLenum pname = *(GLenum   *)(pc +  4);
+
+        const GLuint compsize = __glGetColorTableParameteriv_size(pname);
+        GLint answerBuffer[200];
+        GLint * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
+
+        if (params == NULL) return BadAlloc;
+        __glXClearErrorOccured();
+
+        CALL_GetColorTableParameteriv( GET_DISPATCH(), (
+            *(GLenum   *)(pc +  0),
+            pname,
+            params
+        ) );
+        __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
+        error = Success;
+    }
+
+    return error;
+}
+
+int __glXDisp_GetColorTableParameterivSGI(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
     if ( cx != NULL ) {
         const GLenum pname = *(GLenum   *)(pc +  4);
 
@@ -3244,6 +3389,35 @@ int __glXDisp_GetConvolutionParameterfv(__GLXclientState *cl, GLbyte *pc)
     return error;
 }
 
+int __glXDisp_GetConvolutionParameterfvEXT(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLenum pname = *(GLenum   *)(pc +  4);
+
+        const GLuint compsize = __glGetConvolutionParameterfv_size(pname);
+        GLfloat answerBuffer[200];
+        GLfloat * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
+
+        if (params == NULL) return BadAlloc;
+        __glXClearErrorOccured();
+
+        CALL_GetConvolutionParameterfv( GET_DISPATCH(), (
+            *(GLenum   *)(pc +  0),
+            pname,
+            params
+        ) );
+        __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
+        error = Success;
+    }
+
+    return error;
+}
+
 int __glXDisp_GetConvolutionParameteriv(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXSingleReq * const req = (xGLXSingleReq *) pc;
@@ -3251,6 +3425,35 @@ int __glXDisp_GetConvolutionParameteriv(__GLXclientState *cl, GLbyte *pc)
     __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
 
     pc += __GLX_SINGLE_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLenum pname = *(GLenum   *)(pc +  4);
+
+        const GLuint compsize = __glGetConvolutionParameteriv_size(pname);
+        GLint answerBuffer[200];
+        GLint * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
+
+        if (params == NULL) return BadAlloc;
+        __glXClearErrorOccured();
+
+        CALL_GetConvolutionParameteriv( GET_DISPATCH(), (
+            *(GLenum   *)(pc +  0),
+            pname,
+            params
+        ) );
+        __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
+        error = Success;
+    }
+
+    return error;
+}
+
+int __glXDisp_GetConvolutionParameterivEXT(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
     if ( cx != NULL ) {
         const GLenum pname = *(GLenum   *)(pc +  4);
 
@@ -3302,6 +3505,35 @@ int __glXDisp_GetHistogramParameterfv(__GLXclientState *cl, GLbyte *pc)
     return error;
 }
 
+int __glXDisp_GetHistogramParameterfvEXT(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLenum pname = *(GLenum   *)(pc +  4);
+
+        const GLuint compsize = __glGetHistogramParameterfv_size(pname);
+        GLfloat answerBuffer[200];
+        GLfloat * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
+
+        if (params == NULL) return BadAlloc;
+        __glXClearErrorOccured();
+
+        CALL_GetHistogramParameterfv( GET_DISPATCH(), (
+            *(GLenum   *)(pc +  0),
+            pname,
+            params
+        ) );
+        __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
+        error = Success;
+    }
+
+    return error;
+}
+
 int __glXDisp_GetHistogramParameteriv(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXSingleReq * const req = (xGLXSingleReq *) pc;
@@ -3309,6 +3541,35 @@ int __glXDisp_GetHistogramParameteriv(__GLXclientState *cl, GLbyte *pc)
     __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
 
     pc += __GLX_SINGLE_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLenum pname = *(GLenum   *)(pc +  4);
+
+        const GLuint compsize = __glGetHistogramParameteriv_size(pname);
+        GLint answerBuffer[200];
+        GLint * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
+
+        if (params == NULL) return BadAlloc;
+        __glXClearErrorOccured();
+
+        CALL_GetHistogramParameteriv( GET_DISPATCH(), (
+            *(GLenum   *)(pc +  0),
+            pname,
+            params
+        ) );
+        __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
+        error = Success;
+    }
+
+    return error;
+}
+
+int __glXDisp_GetHistogramParameterivEXT(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
     if ( cx != NULL ) {
         const GLenum pname = *(GLenum   *)(pc +  4);
 
@@ -3360,6 +3621,35 @@ int __glXDisp_GetMinmaxParameterfv(__GLXclientState *cl, GLbyte *pc)
     return error;
 }
 
+int __glXDisp_GetMinmaxParameterfvEXT(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLenum pname = *(GLenum   *)(pc +  4);
+
+        const GLuint compsize = __glGetMinmaxParameterfv_size(pname);
+        GLfloat answerBuffer[200];
+        GLfloat * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
+
+        if (params == NULL) return BadAlloc;
+        __glXClearErrorOccured();
+
+        CALL_GetMinmaxParameterfv( GET_DISPATCH(), (
+            *(GLenum   *)(pc +  0),
+            pname,
+            params
+        ) );
+        __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
+        error = Success;
+    }
+
+    return error;
+}
+
 int __glXDisp_GetMinmaxParameteriv(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXSingleReq * const req = (xGLXSingleReq *) pc;
@@ -3367,6 +3657,35 @@ int __glXDisp_GetMinmaxParameteriv(__GLXclientState *cl, GLbyte *pc)
     __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
 
     pc += __GLX_SINGLE_HDR_SIZE;
+    if ( cx != NULL ) {
+        const GLenum pname = *(GLenum   *)(pc +  4);
+
+        const GLuint compsize = __glGetMinmaxParameteriv_size(pname);
+        GLint answerBuffer[200];
+        GLint * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
+
+        if (params == NULL) return BadAlloc;
+        __glXClearErrorOccured();
+
+        CALL_GetMinmaxParameteriv( GET_DISPATCH(), (
+            *(GLenum   *)(pc +  0),
+            pname,
+            params
+        ) );
+        __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
+        error = Success;
+    }
+
+    return error;
+}
+
+int __glXDisp_GetMinmaxParameterivEXT(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
+    int error;
+    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
+
+    pc += __GLX_VENDPRIV_HDR_SIZE;
     if ( cx != NULL ) {
         const GLenum pname = *(GLenum   *)(pc +  4);
 
@@ -4038,8 +4357,8 @@ void __glXDisp_VertexAttrib1dvARB(GLbyte * pc)
 #endif
 
     CALL_VertexAttrib1dvARB( GET_DISPATCH(), (
-        *(GLuint   *)(pc +  8),
-         (const GLdouble *)(pc +  0)
+        *(GLuint   *)(pc +  0),
+         (const GLdouble *)(pc +  4)
     ) );
 }
 
@@ -4069,8 +4388,8 @@ void __glXDisp_VertexAttrib2dvARB(GLbyte * pc)
 #endif
 
     CALL_VertexAttrib2dvARB( GET_DISPATCH(), (
-        *(GLuint   *)(pc + 16),
-         (const GLdouble *)(pc +  0)
+        *(GLuint   *)(pc +  0),
+         (const GLdouble *)(pc +  4)
     ) );
 }
 
@@ -4100,8 +4419,8 @@ void __glXDisp_VertexAttrib3dvARB(GLbyte * pc)
 #endif
 
     CALL_VertexAttrib3dvARB( GET_DISPATCH(), (
-        *(GLuint   *)(pc + 24),
-         (const GLdouble *)(pc +  0)
+        *(GLuint   *)(pc +  0),
+         (const GLdouble *)(pc +  4)
     ) );
 }
 
@@ -4187,8 +4506,8 @@ void __glXDisp_VertexAttrib4dvARB(GLbyte * pc)
 #endif
 
     CALL_VertexAttrib4dvARB( GET_DISPATCH(), (
-        *(GLuint   *)(pc + 32),
-         (const GLdouble *)(pc +  0)
+        *(GLuint   *)(pc +  0),
+         (const GLdouble *)(pc +  4)
     ) );
 }
 
@@ -4412,131 +4731,6 @@ void __glXDisp_DrawBuffersARB(GLbyte * pc)
         n,
          (const GLenum *)(pc +  4)
     ) );
-}
-
-int __glXDisp_GetColorTableParameterfvSGI(__GLXclientState *cl, GLbyte *pc)
-{
-    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
-    int error;
-    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
-
-    pc += __GLX_VENDPRIV_HDR_SIZE;
-    if ( cx != NULL ) {
-        const GLenum pname = *(GLenum   *)(pc +  4);
-
-        const GLuint compsize = __glGetColorTableParameterfvSGI_size(pname);
-        GLfloat answerBuffer[200];
-        GLfloat * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
-
-        if (params == NULL) return BadAlloc;
-        __glXClearErrorOccured();
-
-        CALL_GetColorTableParameterfvSGI( GET_DISPATCH(), (
-            *(GLenum   *)(pc +  0),
-            pname,
-            params
-        ) );
-        __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
-        error = Success;
-    }
-
-    return error;
-}
-
-int __glXDisp_GetColorTableParameterivSGI(__GLXclientState *cl, GLbyte *pc)
-{
-    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
-    int error;
-    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
-
-    pc += __GLX_VENDPRIV_HDR_SIZE;
-    if ( cx != NULL ) {
-        const GLenum pname = *(GLenum   *)(pc +  4);
-
-        const GLuint compsize = __glGetColorTableParameterivSGI_size(pname);
-        GLint answerBuffer[200];
-        GLint * params = __glXGetAnswerBuffer(cl, compsize * 4, answerBuffer, sizeof(answerBuffer), 4);
-
-        if (params == NULL) return BadAlloc;
-        __glXClearErrorOccured();
-
-        CALL_GetColorTableParameterivSGI( GET_DISPATCH(), (
-            *(GLenum   *)(pc +  0),
-            pname,
-            params
-        ) );
-        __glXSendReply(cl->client, params, compsize, 4, GL_FALSE, 0);
-        error = Success;
-    }
-
-    return error;
-}
-
-int __glXDisp_AreTexturesResidentEXT(__GLXclientState *cl, GLbyte *pc)
-{
-    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
-    int error;
-    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
-
-    pc += __GLX_VENDPRIV_HDR_SIZE;
-    if ( cx != NULL ) {
-        const GLsizei n = *(GLsizei  *)(pc +  0);
-
-        GLboolean retval;
-        GLboolean answerBuffer[200];
-        GLboolean * residences = __glXGetAnswerBuffer(cl, n, answerBuffer, sizeof(answerBuffer), 1);
-        retval = CALL_AreTexturesResidentEXT( GET_DISPATCH(), (
-            n,
-             (const GLuint *)(pc +  4),
-            residences
-        ) );
-        __glXSendReply(cl->client, residences, n, 1, GL_TRUE, retval);
-        error = Success;
-    }
-
-    return error;
-}
-
-int __glXDisp_GenTexturesEXT(__GLXclientState *cl, GLbyte *pc)
-{
-    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
-    int error;
-    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
-
-    pc += __GLX_VENDPRIV_HDR_SIZE;
-    if ( cx != NULL ) {
-        const GLsizei n = *(GLsizei  *)(pc +  0);
-
-        GLuint answerBuffer[200];
-        GLuint * textures = __glXGetAnswerBuffer(cl, n * 4, answerBuffer, sizeof(answerBuffer), 4);
-        CALL_GenTexturesEXT( GET_DISPATCH(), (
-            n,
-            textures
-        ) );
-        __glXSendReply(cl->client, textures, n, 4, GL_TRUE, 0);
-        error = Success;
-    }
-
-    return error;
-}
-
-int __glXDisp_IsTextureEXT(__GLXclientState *cl, GLbyte *pc)
-{
-    xGLXVendorPrivateReq * const req = (xGLXVendorPrivateReq *) pc;
-    int error;
-    __GLXcontext * const cx = __glXForceCurrent(cl, req->contextTag, &error);
-
-    pc += __GLX_VENDPRIV_HDR_SIZE;
-    if ( cx != NULL ) {
-        GLboolean retval;
-        retval = CALL_IsTextureEXT( GET_DISPATCH(), (
-            *(GLuint   *)(pc +  0)
-        ) );
-        __glXSendReply(cl->client, dummy_answer, 0, 0, GL_FALSE, retval);
-        error = Success;
-    }
-
-    return error;
 }
 
 void __glXDisp_SampleMaskSGIS(GLbyte * pc)
@@ -5463,6 +5657,14 @@ void __glXDisp_ProgramNamedParameter4fvNV(GLbyte * pc)
         len,
          (const GLubyte *)(pc + 24),
          (const GLfloat *)(pc +  8)
+    ) );
+}
+
+void __glXDisp_BlendEquationSeparateEXT(GLbyte * pc)
+{
+    CALL_BlendEquationSeparateEXT( GET_DISPATCH(), (
+        *(GLenum   *)(pc +  0),
+        *(GLenum   *)(pc +  4)
     ) );
 }
 
