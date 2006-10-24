@@ -45,14 +45,12 @@
 #include <X11/extensions/XKBsrv.h>
 #endif
 
-#ifdef XINPUT
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h" /* even though we don't use stubs.  cute, no? */
 #include "exevents.h"
 #include "extinit.h"
 #include "exglobals.h"
-#endif
 
 #define AtomFromName(x) MakeAtom(x, strlen(x), 1)
 
@@ -394,9 +392,7 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
 {
     DevicePtr       pDev = (DevicePtr)pDevice;
     KdPointerInfo   *pi;
-#ifdef XINPUT
     Atom            xiclass;
-#endif
 
     if (!pDev)
 	return BadImplementation;
@@ -719,9 +715,7 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
     Bool        ret;
     DevicePtr   pDev = (DevicePtr)pDevice;
     KdKeyboardInfo *ki;
-#ifdef XINPUT
     Atom xiclass;
-#endif
 
     if (!pDev)
 	return BadImplementation;
@@ -794,11 +788,9 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
 	    return BadImplementation;
         }
 
-#ifdef XINPUT
         xiclass = AtomFromName(XI_KEYBOARD);
         AssignTypeAndName(pDevice, xiclass,
                           ki->name ? ki->name : "Generic KDrive Keyboard");
-#endif
 
         KdResetInputMachine();
 
@@ -987,9 +979,7 @@ KdAddKeyboard (KdKeyboardInfo *ki)
         return !Success;
     }
 
-#ifdef XINPUT
     RegisterOtherDevice(ki->dixdev);
-#endif
 
 #ifdef DEBUG
     ErrorF("added keyboard %s with dix id %d\n", ki->name, ki->dixdev->id);
@@ -1058,9 +1048,7 @@ KdAddPointer (KdPointerInfo *pi)
         return BadDevice;
     }
 
-#ifdef XINPUT
     RegisterOtherDevice(pi->dixdev);
-#endif
 
     for (prev = &kdPointers; *prev; prev = &(*prev)->next);
     *prev = pi;
