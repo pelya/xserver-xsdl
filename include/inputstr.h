@@ -93,15 +93,15 @@ typedef struct _OtherInputMasks {
  */
 
 #define MasksPerDetailMask 8		/* 256 keycodes and 256 possible
-						modifier combinations, but only	
-						3 buttons. */
+                                           modifier combinations, but only	
+                                           3 buttons. */
 
-  typedef struct _DetailRec {		/* Grab details may be bit masks */
-	unsigned short exact;
-	Mask *pMask;
-  } DetailRec;
+typedef struct _DetailRec {		/* Grab details may be bit masks */
+    unsigned short      exact;
+    Mask                *pMask;
+} DetailRec;
 
-  typedef struct _GrabRec {
+typedef struct _GrabRec {
     GrabPtr		next;		/* for chain of passive grabs */
     XID			resource;
     DeviceIntPtr	device;
