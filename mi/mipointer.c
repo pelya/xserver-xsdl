@@ -484,4 +484,8 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
 	if(!miPointer.pCursor->bits->emptyMask)
 	    (*pScreenPriv->spriteFuncs->MoveCursor) (pScreen, x, y);
     }
+
+    miPointer.x = x;
+    miPointer.y = y;
+    miPointer.pScreen = pScreen;
 }
