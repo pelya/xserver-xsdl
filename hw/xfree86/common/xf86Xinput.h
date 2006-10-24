@@ -86,10 +86,6 @@
 #define XI_PRIVATE(dev) \
 	(((LocalDevicePtr)((dev)->public.devicePrivate))->private)
 
-#ifdef HAS_MOTION_HISTORY
-#undef HAS_MOTION_HISTORY
-#endif
-#define HAS_MOTION_HISTORY(local) ((local)->dev->valuator && (local)->dev->valuator->numMotionEvents)
 
 #ifdef XINPUT
 /* This holds the input driver entry and module information. */
@@ -138,9 +134,6 @@ typedef struct _LocalDeviceRec {
     DeviceIntPtr	    dev;
     pointer		    private;
     int			    private_flags;
-    pointer		    motion_history;
-    ValuatorMotionProcPtr   motion_history_proc;
-    unsigned int	    history_size;   /* only for configuration purpose */
     unsigned int	    first;
     unsigned int	    last;
     int			    old_x;
@@ -176,10 +169,6 @@ void xf86PostKeyEvent(DeviceIntPtr device, unsigned int key_code, int is_down,
 		      ...);
 void xf86PostKeyboardEvent(DeviceIntPtr device, unsigned int key_code,
                            int is_down);
-void xf86MotionHistoryAllocate(LocalDevicePtr local);
-int xf86GetMotionEvents(DeviceIntPtr dev, xTimecoord *buff,
-			unsigned long start, unsigned long stop,
-			ScreenPtr pScreen);
 void xf86XinputFinalizeInit(DeviceIntPtr dev);
 void xf86ActivateDevice(LocalDevicePtr local);
 Bool xf86CheckButton(int button, int down);

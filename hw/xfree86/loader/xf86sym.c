@@ -697,8 +697,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86PostButtonEvent)
     SYMFUNC(xf86PostKeyEvent)
     SYMFUNC(xf86PostKeyboardEvent)
-    SYMFUNC(xf86GetMotionEvents)
-    SYMFUNC(xf86MotionHistoryAllocate)
     SYMFUNC(xf86FirstLocalDevice)
     SYMFUNC(xf86ActivateDevice)
     SYMFUNC(xf86XInputSetScreen)

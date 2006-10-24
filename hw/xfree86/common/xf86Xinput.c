@@ -138,13 +138,6 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
     } else {
         xf86Msg(X_CONFIG, "%s: doesn't report drag events\n", local->name);
     }
-    
-    local->history_size = xf86SetIntOption(list, "HistorySize", 0);
-
-    if (local->history_size > 0) {
-        xf86Msg(X_CONFIG, "%s: has a history of %d motions\n", local->name,
-                local->history_size);
-    }
 }
 
 void
@@ -734,57 +727,6 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
 
     for (i = 0; i < nevents; i++)
         mieqEnqueue(device, xf86Events + i);
-}
-
-/* 
- * Motion history management.
- */
-
-_X_EXPORT void
-xf86MotionHistoryAllocate(LocalDevicePtr	local)
-{
-    ValuatorClassPtr	valuator = local->dev->valuator;
-    
-    if (!HAS_MOTION_HISTORY(local))
-        return;
-    if (local->motion_history) xfree(local->motion_history);
-    local->motion_history = xalloc((sizeof(INT32) * valuator->numAxes + sizeof(Time))
-                                   * valuator->numMotionEvents);
-    local->first = 0;
-    local->last	 = 0;
-}
-
-_X_EXPORT int
-xf86GetMotionEvents(DeviceIntPtr	dev,
-                    xTimecoord		*buff,
-                    unsigned long	start,
-                    unsigned long	stop,
-                    ScreenPtr		pScreen)
-{
-    LocalDevicePtr	local	 = (LocalDevicePtr)dev->public.devicePrivate;
-    ValuatorClassPtr	valuator = dev->valuator;
-    int			num  	 = 0;
-    int			loop	 = local->first;
-    int			size;
-    Time		current;
-    
-    if (!HAS_MOTION_HISTORY(local))
-        return 0;
-
-    size = (sizeof(INT32) * valuator->numAxes + sizeof(Time));
-
-    while (loop != local->last) {
-        current = *(Time*)(((char *)local->motion_history)+loop*size);
-        if (current > stop)
-            return num;
-        if (current >= start) {
-            memcpy(((char *)buff)+size*num,
-                   ((char *)local->motion_history)+loop*size, size);
-            num++;
-        }
-        loop = (loop + 1) % valuator->numMotionEvents;
-    }
-    return num;
 }
 
 _X_EXPORT LocalDevicePtr
