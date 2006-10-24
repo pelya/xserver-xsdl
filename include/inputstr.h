@@ -131,6 +131,8 @@ typedef struct _KeyClassRec {
     unsigned short	prev_state;
 #ifdef XKB
     struct _XkbSrvInfo *xkbInfo;
+#else
+    void               *pad0;
 #endif
 } KeyClassRec, *KeyClassPtr;
 
@@ -163,7 +165,9 @@ typedef struct _ButtonClassRec {
     CARD8		down[DOWN_LENGTH];
     CARD8		map[MAP_LENGTH];
 #ifdef XKB
-    union _XkbAction *	xkb_acts;
+    union _XkbAction    *xkb_acts;
+#else
+    void                *pad0;
 #endif
 } ButtonClassRec, *ButtonClassPtr;
 
@@ -214,6 +218,8 @@ typedef struct _KbdFeedbackClassRec {
     KbdFeedbackPtr	next;
 #ifdef XKB
     struct _XkbSrvLedInfo *xkb_sli;
+#else
+    void                *pad0;
 #endif
 } KbdFeedbackClassRec;
 
@@ -248,6 +254,8 @@ typedef struct _LedFeedbackClassRec {
     LedFeedbackPtr	next;
 #ifdef XKB
     struct _XkbSrvLedInfo *xkb_sli;
+#else
+    void                *pad0;
 #endif
 } LedFeedbackClassRec;
 
@@ -309,7 +317,9 @@ typedef struct _DeviceIntRec {
     BellFeedbackPtr	bell;
     LedFeedbackPtr	leds;
 #ifdef XKB
-    struct _XkbInterest *	xkb_interest;
+    struct _XkbInterest *xkb_interest;
+#else
+    void                *pad0;
 #endif
     DevUnion		*devPrivates;
     int			nPrivates;
