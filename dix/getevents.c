@@ -504,7 +504,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         num_events = 1;
 
     /* Do we need to send a DeviceValuator event? */
-    if ((num_valuators + first_valuator) >= 2 && sendValuators) {
+    if ((num_valuators + first_valuator) > 2 && sendValuators) {
         if ((((num_valuators - 1) / 6) + 1) > MAX_VALUATOR_EVENTS)
             num_valuators = MAX_VALUATOR_EVENTS * 6;
         num_events += ((num_valuators - 1) / 6) + 1;
@@ -614,9 +614,9 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     kbp->root_x = x;
     kbp->root_y = y;
 
+    events++;
     if (final_valuator > 2 && sendValuators) {
         kbp->deviceid |= MORE_EVENTS;
-        events++;
         clipValuators(pDev, first_valuator, num_valuators, valuators);
         events = getValuatorEvents(events, pDev, first_valuator,
                                    num_valuators, valuators);
