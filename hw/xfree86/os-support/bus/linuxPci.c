@@ -380,7 +380,7 @@ xf86GetPciDomain(PCITAG Tag)
 	return 1;		/* Domain 0 is reserved */
 
     if ((result = PCI_DOM_FROM_TAG(Tag)) != 0)
-	return result;
+	return result + 1;
 
     if ((fd = linuxPciOpenFile(dev, FALSE)) < 0)
 	return 0;
