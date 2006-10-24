@@ -591,6 +591,8 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
         valuators[1 - first_valuator] = y;
 
+    updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
+
     if (pDev->coreEvents) {
         cp->valuator->lastx = x;
         cp->valuator->lasty = y;

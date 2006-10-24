@@ -292,8 +292,8 @@ vfbMouseProc(DeviceIntPtr pDevice, int onoff)
 	    map[1] = 1;
 	    map[2] = 2;
 	    map[3] = 3;
-	    InitPointerDeviceStruct(pDev, map, 3, miPointerGetMotionEvents,
-		(PtrCtrlProcPtr)NoopDDA, miPointerGetMotionBufferSize(), 2);
+	    InitPointerDeviceStruct(pDev, map, 3, GetMotionHistory,
+		(PtrCtrlProcPtr)NoopDDA, GetMotionHistorySize(), 2);
 	    break;
 
     case DEVICE_ON:

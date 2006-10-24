@@ -445,11 +445,10 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
         }
 
 	InitPointerDeviceStruct(pDev, pi->map, pi->nButtons,
-	    miPointerGetMotionEvents,
+	    GetMotionHistory,
 	    (PtrCtrlProcPtr)NoopDDA,
-	    miPointerGetMotionBufferSize(), pi->nAxes);
+	    GetMotionHistorySize(), pi->nAxes);
 
-#ifdef XINPUT
         if (pi->inputClass == KD_TOUCHSCREEN) {
             InitAbsoluteClassDeviceStruct(pDevice);
             xiclass = AtomFromName(XI_TOUCHSCREEN);
@@ -460,7 +459,6 @@ KdPointerProc(DeviceIntPtr pDevice, int onoff)
 
         AssignTypeAndName(pi->dixdev, xiclass,
                           pi->name ? pi->name : "Generic KDrive Pointer");
-#endif
 
 	return Success;
 	

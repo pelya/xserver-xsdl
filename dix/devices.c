@@ -285,10 +285,9 @@ CorePointerProc(DeviceIntPtr pDev, int what)
     case DEVICE_INIT:
         for (i = 1; i <= 32; i++)
             map[i] = i;
-        /* we don't keep history, for now. */
         InitPointerDeviceStruct((DevicePtr)pDev, map, 32,
-                                NULL, (PtrCtrlProcPtr)NoopDDA,
-                                0, 2);
+                                GetMotionHistory, (PtrCtrlProcPtr)NoopDDA,
+                                GetMotionHistorySize(), 2);
         pDev->valuator->axisVal[0] = screenInfo.screens[0]->width / 2;
         pDev->valuator->lastx = pDev->valuator->axisVal[0];
         pDev->valuator->axisVal[1] = screenInfo.screens[0]->height / 2;
