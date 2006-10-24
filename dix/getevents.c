@@ -117,7 +117,8 @@ _X_EXPORT int
 GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
                           int key_code, int first_valuator,
                           int num_valuators, int *valuators) {
-    int numEvents = 0, ms = 0, i = 0;
+    int numEvents = 0, i = 0;
+    CARD32 ms = 0;
     int final_valuator = first_valuator + num_valuators;
     KeySym sym = pDev->key->curKeySyms.map[key_code *
                                            pDev->key->curKeySyms.mapWidth];
@@ -378,7 +379,8 @@ _X_EXPORT int
 GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
                  int flags, int first_valuator, int num_valuators,
                  int *valuators) {
-    int num_events = 0, ms = 0, final_valuator = 0;
+    int num_events = 0, final_valuator = 0;
+    CARD32 ms = 0;
     deviceKeyButtonPointer *kbp = NULL;
     Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
     DeviceIntPtr cp = inputInfo.pointer;
