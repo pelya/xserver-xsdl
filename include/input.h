@@ -418,6 +418,19 @@ extern int GetProximityEvents(
     int num_valuators,
     int *valuators);
 
+extern int GetMotionHistorySize(
+    void);
+
+extern void AllocateMotionHistory(
+    DeviceIntPtr pDev);
+
+extern int GetMotionHistory(
+    DeviceIntPtr pDev,
+    xTimecoord *buff,
+    unsigned long start,
+    unsigned long stop,
+    ScreenPtr pScreen);
+
 extern void SwitchCoreKeyboard(DeviceIntPtr pDev);
 extern void SwitchCorePointer(DeviceIntPtr pDev);
 

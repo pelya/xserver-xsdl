@@ -66,6 +66,9 @@ extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
 /* Maximum number of valuators, divided by six, rounded up. */
 #define MAX_VALUATOR_EVENTS 6
 
+/* Number of motion history events to store. */
+#define MOTION_HISTORY_SIZE 256
+
 /**
  * Returns the maximum number of events GetKeyboardEvents,
  * GetKeyboardValuatorEvents, and GetPointerEvents will ever return.
@@ -365,6 +368,108 @@ getValuatorEvents(xEvent *events, DeviceIntPtr pDev, int first_valuator,
     }
 
     return events;
+}
+
+/**
+ * Pick some arbitrary size for Xi motion history.
+ */
+_X_EXPORT int
+GetMotionHistorySize()
+{
+    return MOTION_HISTORY_SIZE;
+}
+
+/**
+ * Allocate the motion history buffer.
+ */
+_X_EXPORT void
+AllocateMotionHistory(DeviceIntPtr pDev)
+{
+    if (pDev->valuator->motion)
+        xfree(pDev->valuator->motion);
+
+    if (pDev->valuator->numMotionEvents < 1)
+        return;
+
+    pDev->valuator->motion = xalloc(((sizeof(INT32) * pDev->valuator->numAxes) +
+                                     sizeof(Time)) *
+                                    pDev->valuator->numMotionEvents);
+    pDev->valuator->first_motion = 0;
+    pDev->valuator->last_motion = 0;
+}
+
+/**
+ * Dump the motion history between start and stop into the supplied buffer.
+ * Only records the event for a given screen in theory, but in practice, we
+ * sort of ignore this.
+ */
+_X_EXPORT int
+GetMotionHistory(DeviceIntPtr pDev, xTimecoord *buff, unsigned long start,
+                 unsigned long stop, ScreenPtr pScreen)
+{
+    int i = 0, ret = 0;
+    /* The size of a single motion event. */
+    int size = (sizeof(INT32) * pDev->valuator->numAxes) + sizeof(Time);
+    Time current;
+    char *ibuff = NULL, *obuff = (char *) buff;
+
+    if (!pDev->valuator || !pDev->valuator->numMotionEvents)
+        return 0;
+
+    for (i = pDev->valuator->first_motion;
+         i != pDev->valuator->last_motion;
+         i = (i + 1) % pDev->valuator->numMotionEvents) {
+        /* We index the input buffer by which element we're accessing, which
+         * is not monotonic, and the output buffer by how many events we've
+         * written so far. */
+        ibuff = (char *) pDev->valuator->motion + (i * size);
+        memcpy(&current, ibuff, sizeof(Time));
+
+        if (current > stop) {
+            return ret;
+        }
+        else if (current >= start) {
+            memcpy(obuff, ibuff, size);
+            obuff += size;
+            ret++;
+        }
+    }
+
+    return ret;
+}
+
+/**
+ * Update the motion history for a specific device, with the list of
+ * valuators.
+ */
+static void
+updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
+                    int num_valuators, int *valuators)
+{
+    char *buff = (char *) pDev->valuator->motion;
+
+    if (!pDev->valuator->numMotionEvents)
+        return;
+
+    buff += ((sizeof(INT32) * pDev->valuator->numAxes) + sizeof(CARD32)) *
+            pDev->valuator->last_motion;
+    memcpy(buff, &ms, sizeof(Time));
+
+    buff += sizeof(Time);
+    bzero(buff, sizeof(INT32) * pDev->valuator->numAxes);
+
+    buff += sizeof(INT32) * first_valuator;
+    memcpy(buff, valuators, sizeof(INT32) * num_valuators);
+
+    pDev->valuator->last_motion = (pDev->valuator->last_motion + 1) %
+                                  pDev->valuator->numMotionEvents;
+    
+    /* If we're wrapping around, just keep the circular buffer going. */
+    if (pDev->valuator->first_motion == pDev->valuator->last_motion)
+        pDev->valuator->first_motion = (pDev->valuator->first_motion + 1) %
+                                       pDev->valuator->numMotionEvents;
+
+    return;
 }
 
 /**

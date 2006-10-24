@@ -793,7 +793,12 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
 				    numAxes * sizeof(unsigned int));
     if (!valc)
 	return FALSE;
+
+    valc->motion = NULL;
+    valc->first_motion = 0;
+    valc->last_motion = 0;
     valc->GetMotionProc = motionProc;
+
     valc->numMotionEvents = numMotionEvents;
     valc->motionHintWindow = NullWindow;
     valc->numAxes = numAxes;
@@ -805,6 +810,11 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     valc->dxremaind = 0;
     valc->dyremaind = 0;
     dev->valuator = valc;
+
+    /* biggest hack ever. */
+    if (motionProc == GetMotionHistory)
+        AllocateMotionHistory(dev);
+
     for (i=0; i<numAxes; i++) {
         InitValuatorAxisStruct(dev, i, 0, -1, 0, 0, 0);
 	valc->axisVal[i]=0;

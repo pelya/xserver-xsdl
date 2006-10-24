@@ -146,15 +146,20 @@ typedef struct _AxisInfo {
 
 typedef struct _ValuatorClassRec {
     ValuatorMotionProcPtr GetMotionProc;
-    int		 	numMotionEvents;
-    WindowPtr    	motionHintWindow;
-    AxisInfoPtr 	axes;
-    unsigned short	numAxes;
-    int			*axisVal;
-    CARD8	 	mode;
-    int                 lastx, lasty; /* last event recorded, not posted to
-                                       * client; see dix/devices.c */
-    int                 dxremaind, dyremaind; /* for acceleration */
+    int		 	  numMotionEvents;
+    int                   first_motion;
+    int                   last_motion;
+    void                  *motion;
+
+    WindowPtr    	  motionHintWindow;
+
+    AxisInfoPtr 	  axes;
+    unsigned short	  numAxes;
+    int			  *axisVal;
+    int                   lastx, lasty; /* last event recorded, not posted to
+                                         * client; see dix/devices.c */
+    int                   dxremaind, dyremaind; /* for acceleration */
+    CARD8	 	  mode;
 } ValuatorClassRec, *ValuatorClassPtr;
 
 typedef struct _ButtonClassRec {
