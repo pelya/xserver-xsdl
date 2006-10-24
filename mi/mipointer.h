@@ -181,14 +181,6 @@ extern void miPointerMoved(
     int y,
     unsigned long time);
 
-/* Updates the event history. */
-extern void miPointerUpdateHistory(
-    DeviceIntPtr pDev,
-    ScreenPtr pScreen,
-    int x,
-    int y,
-    unsigned long time);
-
 extern int miPointerScreenIndex;
 
 #endif /* MIPOINTER_H */

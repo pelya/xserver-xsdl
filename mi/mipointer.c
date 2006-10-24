@@ -128,7 +128,6 @@ miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
     miPointer.confined = FALSE;
     miPointer.x = 0;
     miPointer.y = 0;
-    miPointer.history_start = miPointer.history_end = 0;
     return TRUE;
 }
 
@@ -267,39 +266,6 @@ miPointerWarpCursor (pScreen, x, y)
  * Pointer/CursorDisplay interface routines
  */
 
-_X_EXPORT int
-miPointerGetMotionBufferSize ()
-{
-    return MOTION_SIZE;
-}
-
-_X_EXPORT int
-miPointerGetMotionEvents (pPtr, coords, start, stop, pScreen)
-    DeviceIntPtr    pPtr;
-    xTimecoord	    *coords;
-    unsigned long   start, stop;
-    ScreenPtr	    pScreen;
-{
-    int		    i;
-    int		    count = 0;
-    miHistoryPtr    h;
-
-    for (i = miPointer.history_start; i != miPointer.history_end;)
-    {
-	h = &miPointer.history[i];
-	if (h->event.time >= stop)
-	    break;
-	if (h->event.time >= start)
-	{
-	    *coords++ = h->event;
-	    count++;
-	}
-	if (++i == MOTION_SIZE) i = 0;
-    }
-    return count;
-}
-
-    
 /*
  * miPointerUpdate
  *
@@ -518,44 +484,4 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
 	if(!miPointer.pCursor->bits->emptyMask)
 	    (*pScreenPriv->spriteFuncs->MoveCursor) (pScreen, x, y);
     }
-
-    miPointerUpdateHistory(pDev, pScreen, x, y, time);
-}
-
-/* The pointer has moved to x, y; update the motion history. */
-void
-miPointerUpdateHistory (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
-                        unsigned long time)
-{
-    miHistoryPtr	history;
-    int			prev, end, start;
-
-    miPointer.x = x;
-    miPointer.y = y;
-    miPointer.pScreen = pScreen;
-
-    end = miPointer.history_end;
-    start = miPointer.history_start;
-    prev = end - 1;
-    if (end == 0)
-	prev = MOTION_SIZE - 1;
-    history = &miPointer.history[prev];
-    if (end == start || history->event.time != time)
-    {
-    	history = &miPointer.history[end];
-    	if (++end == MOTION_SIZE) 
-	    end = 0;
-    	if (end == start)
-    	{
-	    start = end + 1;
-	    if (start == MOTION_SIZE)
-	    	start = 0;
-	    miPointer.history_start = start;
-    	}
-    	miPointer.history_end = end;
-    }
-    history->event.x = x;
-    history->event.y = y;
-    history->event.time = time;
-    history->pScreen = pScreen;
 }
