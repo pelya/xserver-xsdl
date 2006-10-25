@@ -498,7 +498,7 @@ xf86GetPciDomain(PCITAG Tag)
     pPCI = xf86GetPciHostConfigFromTag(Tag);
 
     if (pPCI && (result = PCI_DOM_FROM_BUS(pPCI->busnum)))
-	return result;
+	return result + 1;
 
     if (!pPCI || pPCI->fakeDevice)
 	return 1;		/* Domain 0 is reserved */

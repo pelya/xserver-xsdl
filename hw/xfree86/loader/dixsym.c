@@ -162,7 +162,7 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(QueueWorkProc)
     SYMFUNC(RegisterBlockAndWakeupHandlers)
     SYMFUNC(RemoveBlockAndWakeupHandlers)
-#ifdef XCSECURITY
+#ifdef XACE
     SYMFUNC(SecurityLookupDrawable)
     SYMFUNC(SecurityLookupWindow)
 #endif
@@ -255,6 +255,8 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(GetScratchPixmapHeader)
     SYMFUNC(FreeScratchPixmapHeader)
     /* privates.c */
+    SYMFUNC(AllocateExtensionPrivate)
+    SYMFUNC(AllocateExtensionPrivateIndex)
     SYMFUNC(AllocateClientPrivate)
     SYMFUNC(AllocateClientPrivateIndex)
     SYMFUNC(AllocateGCPrivate)
@@ -282,10 +284,8 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(LookupIDByType)
     SYMFUNC(LookupIDByClass)
     SYMFUNC(LegalNewID)
-#ifdef XCSECURITY
     SYMFUNC(SecurityLookupIDByClass)
     SYMFUNC(SecurityLookupIDByType)
-#endif
     SYMFUNC(FindClientResourcesByType)
     SYMFUNC(FindAllClientResources)
     SYMVAR(lastResourceType)

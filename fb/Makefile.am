@@ -10,8 +10,10 @@ if XORG
 sdk_HEADERS = fb.h fbrop.h fbpseudocolor.h fboverlay.h wfbrename.h
 endif
 
+libfb_la_CFLAGS = $(AM_CFLAGS)
+
 if MMX_CAPABLE
-libfb_la_CFLAGS = $(AM_CFLAGS) -DUSE_MMX
+libfb_la_CFLAGS += -DUSE_MMX
 
 libfbmmx_la_CFLAGS =				\
 	$(DIX_CFLAGS)				\

@@ -104,8 +104,8 @@ int ProcInitialConnection();
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 #endif
-#ifdef XCSECURITY
-#include "securitysrv.h"
+#ifdef XACE
+#include "xace.h"
 #endif
 #ifdef XAPPGROUP
 #include "appgroup.h"
@@ -451,7 +451,15 @@ Dispatch(void)
 		if (result > (maxBigRequestSize << 2))
 		    result = BadLength;
 		else
+#ifdef XACE
+		{
+		    XaceHook(XACE_AUDIT_BEGIN, client);
 		    result = (* client->requestVector[MAJOROP])(client);
+		    XaceHook(XACE_AUDIT_END, client, result);
+		}
+#else
+    		    result = (* client->requestVector[MAJOROP])(client);
+#endif /* XACE */
 	    
 		if (result != Success) 
 		{
@@ -1099,11 +1107,10 @@ ProcConvertSelection(register ClientPtr client)
 	       CurrentSelections[i].selection != stuff->selection) i++;
 	if ((i < NumCurrentSelections) && 
 	    (CurrentSelections[i].window != None)
-#ifdef XCSECURITY
-	    && (!client->CheckAccess ||
-		(* client->CheckAccess)(client, CurrentSelections[i].window,
-					RT_WINDOW, SecurityReadAccess,
-					CurrentSelections[i].pWin))
+#ifdef XACE
+	    && XaceHook(XACE_RESOURCE_ACCESS, client,
+			CurrentSelections[i].window, RT_WINDOW,
+			SecurityReadAccess, CurrentSelections[i].pWin)
 #endif
 	    )
 	{        
@@ -2095,7 +2102,7 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
     Mask		plane = 0;
     char		*pBuf;
     xGetImageReply	xgi;
-#ifdef XCSECURITY
+#ifdef XACE
     RegionPtr pVisibleRegion = NULL;
 #endif
 
@@ -2201,9 +2208,9 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
 	WriteReplyToClient(client, sizeof (xGetImageReply), &xgi);
     }
 
-#ifdef XCSECURITY
-    if (client->trustLevel != XSecurityClientTrusted &&
-	pDraw->type == DRAWABLE_WINDOW)
+#ifdef XACE
+    if (pDraw->type == DRAWABLE_WINDOW &&
+	!XaceHook(XACE_DRAWABLE_ACCESS, client, pDraw))
     {
 	pVisibleRegion = NotClippedByChildren((WindowPtr)pDraw);
 	if (pVisibleRegion)
@@ -2231,9 +2238,9 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
 				         format,
 				         planemask,
 				         (pointer) pBuf);
-#ifdef XCSECURITY
+#ifdef XACE
 	    if (pVisibleRegion)
-		SecurityCensorImage(client, pVisibleRegion, widthBytesLine,
+		XaceCensorImage(client, pVisibleRegion, widthBytesLine,
 			pDraw, x, y + linesDone, width, 
 			nlines, format, pBuf);
 #endif
@@ -2272,9 +2279,9 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
 				                 format,
 				                 plane,
 				                 (pointer)pBuf);
-#ifdef XCSECURITY
+#ifdef XACE
 		    if (pVisibleRegion)
-			SecurityCensorImage(client, pVisibleRegion,
+			XaceCensorImage(client, pVisibleRegion,
 				widthBytesLine,
 				pDraw, x, y + linesDone, width, 
 				nlines, format, pBuf);
@@ -2300,7 +2307,7 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
             }
 	}
     }
-#ifdef XCSECURITY
+#ifdef XACE
     if (pVisibleRegion)
 	REGION_DESTROY(pDraw->pScreen, pVisibleRegion);
 #endif
@@ -3274,11 +3281,10 @@ ProcListHosts(register ClientPtr client)
     /* REQUEST(xListHostsReq); */
 
     REQUEST_SIZE_MATCH(xListHostsReq);
-#ifdef XCSECURITY
+#ifdef XACE
     /* untrusted clients can't list hosts */
-    if (client->trustLevel != XSecurityClientTrusted)
+    if (!XaceHook(XACE_HOSTLIST_ACCESS, client, SecurityReadAccess))
     {
-	SecurityAudit("client %d attempted to list hosts\n", client->index);
 	return BadAccess;
     }
 #endif
@@ -3606,8 +3612,13 @@ CloseDownRetainedResources()
     }
 }
 
+extern int clientPrivateLen;
+extern unsigned *clientPrivateSizes;
+extern unsigned totalClientSize;
+
 void InitClient(ClientPtr client, int i, pointer ospriv)
 {
+    bzero(client, totalClientSize);
     client->index = i;
     client->sequence = 0; 
     client->clientAsMask = ((Mask)i) << CLIENTOFFSET;
@@ -3646,11 +3657,6 @@ void InitClient(ClientPtr client, int i, pointer ospriv)
     }
 #endif
     client->replyBytesRemaining = 0;
-#ifdef XCSECURITY
-    client->trustLevel = XSecurityClientTrusted;
-    client->CheckAccess = NULL;
-    client->authId = 0;
-#endif
 #ifdef XAPPGROUP
     client->appgroup = NULL;
 #endif
@@ -3662,10 +3668,6 @@ void InitClient(ClientPtr client, int i, pointer ospriv)
     client->smart_check_tick = SmartScheduleTime;
 #endif
 }
-
-extern int clientPrivateLen;
-extern unsigned *clientPrivateSizes;
-extern unsigned totalClientSize;
 
 int
 InitClientPrivates(ClientPtr client)
@@ -3699,6 +3701,17 @@ InitClientPrivates(ClientPtr client)
 	else
 	    ppriv->ptr = (pointer)NULL;
     }
+
+    /* Allow registrants to initialize the serverClient devPrivates */
+    if (!client->index && ClientStateCallback)
+    {
+	NewClientInfoRec clientinfo;
+
+	clientinfo.client = client; 
+	clientinfo.prefix = (xConnSetupPrefix *)NULL;  
+	clientinfo.setup = (xConnSetup *) NULL;
+	CallCallbacks((&ClientStateCallback), (pointer)&clientinfo);
+    } 
     return 1;
 }
 
