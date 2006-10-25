@@ -259,6 +259,9 @@ ProcRRXineramaQueryScreens(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xXineramaQueryScreensReq);
 
+    if (RRXineramaScreenActive (pScreen))
+	RRGetInfo (pScreen);
+    
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.number = RRXineramaScreenCount (pScreen);

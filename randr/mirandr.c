@@ -57,6 +57,21 @@ miRRCrtcSet (ScreenPtr	pScreen,
     return TRUE;
 }
 
+static Bool
+miRRCrtcSetGamma (ScreenPtr	pScreen,
+		  RRCrtcPtr	crtc)
+{
+    return TRUE;
+}
+
+static Bool
+miRROutputSetProperty (ScreenPtr	pScreen,
+		       RROutputPtr	output,
+		       Atom	property)
+{
+    return TRUE;
+}
+
 /*
  * This function assumes that only a single depth can be
  * displayed at a time, but that all visuals of that depth
@@ -85,7 +100,7 @@ miRandRInit (ScreenPtr pScreen)
 #if RANDR_12_INTERFACE
     pScrPriv->rrCrtcSet = miRRCrtcSet;
     pScrPriv->rrCrtcSetGamma = miRRCrtcSetGamma;
-    pScrPriv->rrOutputSetProperty = miRROutput
+    pScrPriv->rrOutputSetProperty = miRROutputSetProperty;
     
     
     RRScreenSetSizeRange (pScreen,

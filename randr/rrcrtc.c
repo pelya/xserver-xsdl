@@ -280,7 +280,7 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	 * Old 1.0 interface tied screen size to mode size
 	 */
 	if (ret)
-	    RRCrtcNotify (crtc, mode, x, y, rotation, 
+	    RRCrtcNotify (crtc, mode, x, y, rotation, 1, &outputs[0].output);
 	return ret;
     }
 #endif

@@ -42,9 +42,6 @@
 int	RRGeneration;
 int	RRNScreens;
 
-static int ProcRRDispatch (ClientPtr pClient);
-static int SProcRRDispatch (ClientPtr pClient);
-
 #define wrap(priv,real,mem,func) {\
     priv->mem = real->mem; \
     real->mem = func; \
@@ -53,6 +50,9 @@ static int SProcRRDispatch (ClientPtr pClient);
 #define unwrap(priv,real,mem) {\
     real->mem = priv->mem; \
 }
+
+static int ProcRRDispatch (ClientPtr pClient);
+static int SProcRRDispatch (ClientPtr pClient);
 
 int	RREventBase;
 int	RRErrorBase;
@@ -465,54 +465,6 @@ ProcRRDispatch (ClientPtr client)
 	return BadRequest;
     return (*ProcRandrVector[stuff->data]) (client);
 }
-
-static int
-SProcRRGetScreenInfo (ClientPtr client)
-{
-    register int n;
-    REQUEST(xRRGetScreenInfoReq);
-
-    swaps(&stuff->length, n);
-    swapl(&stuff->window, n);
-    return ProcRRGetScreenInfo(client);
-}
-
-static int
-SProcRRSetScreenConfig (ClientPtr client)
-{
-    register int n;
-    REQUEST(xRRSetScreenConfigReq);
-
-    if (RRClientKnowsRates (client))
-    {
-	REQUEST_SIZE_MATCH (xRRSetScreenConfigReq);
-	swaps (&stuff->rate, n);
-    }
-    else
-    {
-	REQUEST_SIZE_MATCH (xRR1_0SetScreenConfigReq);
-    }
-    
-    swaps(&stuff->length, n);
-    swapl(&stuff->drawable, n);
-    swapl(&stuff->timestamp, n);
-    swaps(&stuff->sizeID, n);
-    swaps(&stuff->rotation, n);
-    return ProcRRSetScreenConfig(client);
-}
-
-static int
-SProcRRSelectInput (ClientPtr client)
-{
-    register int n;
-    REQUEST(xRRSelectInputReq);
-
-    swaps(&stuff->length, n);
-    swapl(&stuff->window, n);
-    swaps(&stuff->enable, n);
-    return ProcRRSelectInput(client);
-}
-
 
 static int
 SProcRRDispatch (ClientPtr client)

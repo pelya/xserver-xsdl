@@ -164,7 +164,7 @@ RRScreenSizeNotify (ScreenPtr	pScreen)
     pScrPriv->width = pScreen->width;
     pScrPriv->height = pScreen->height;
     pScrPriv->changed = TRUE;
-    pScrPriv->sizeChanged = TRUE;
+/*    pScrPriv->sizeChanged = TRUE; */
 
     RRTellChanged (pScreen);
     RRSendConfigNotify (pScreen);
@@ -850,7 +850,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 
 	for (c = 0; c < pScrPriv->numCrtcs; c++)
 	{
-	    rep.status = RRCrtcSet (pScrPriv->->crtc, NULL, 0, 0, RR_Rotate_0,
+	    rep.status = RRCrtcSet (pScrPriv->crtcs[c], NULL, 0, 0, RR_Rotate_0,
 				    0, NULL);
 	    if (rep.status != Success)
 		goto sendReply;
@@ -858,7 +858,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 	if (!RRScreenSizeSet (pScreen, mode->mode.width, mode->mode.height,
 			      pScreen->mmWidth, pScreen->mmHeight))
 	{
-	    rep.status  RRSetConfigFailed;
+	    rep.status = RRSetConfigFailed;
 	    goto sendReply;
 	}
     }
