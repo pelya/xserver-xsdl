@@ -515,7 +515,7 @@ XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="randrproto renderproto [fixesproto >= 4.0] damageproto xcmiscproto xextproto xproto xtrans xf86miscproto xf86vidmodeproto xf86bigfontproto [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto inputproto xf86dgaproto [kbproto >= 1.0.3]"
+REQUIRED_MODULES="randrproto renderproto [fixesproto >= 4.0] damageproto xcmiscproto xextproto [xproto >= 7.0.9] xtrans xf86miscproto xf86vidmodeproto xf86bigfontproto [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto inputproto xf86dgaproto [kbproto >= 1.0.3]"
 REQUIRED_LIBS="xfont xau fontenc"
 
 AM_CONDITIONAL(XV, [test "x$XV" = xyes])
@@ -873,8 +873,45 @@ PKG_CHECK_MODULES([XSERVERLIBS], [$REQUIRED_LIBS])
 
 XSERVER_CFLAGS="${XSERVERCFLAGS_CFLAGS}"
 XSERVER_LIBS="${XSERVERLIBS_LIBS} ${SYS_LIBS} -lm"
-AC_SUBST([XSERVER_LIBS])
 AC_SUBST([SYS_LIBS])
+
+AC_CHECK_FUNCS([clock_gettime], [have_clock_gettime=yes],
+               [AC_CHECK_LIB([rt], [clock_gettime], [have_clock_gettime=-lrt],
+                             [have_clock_gettime=no])])
+
+AC_MSG_CHECKING([for a useful monotonic clock ...])
+
+if ! test "x$have_clock_gettime" = xno; then
+    if ! test "x$have_clock_gettime" = xyes; then
+        LIBS="$have_clock_gettime"
+    else
+        LIBS=""
+    fi
+
+    AC_RUN_IFELSE([
+#define _POSIX_C_SOURCE 199309L
+#include <time.h>
+
+int main(int argc, char *argv[]) {
+    struct timespec tp;
+
+    if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)
+        return 0;
+    else
+        return 1;
+}
+    ], [MONOTONIC_CLOCK=yes], [MONOTONIC_CLOCK=no],
+       [MONOTONIC_CLOCK="cross compiling"])
+else
+    MONOTONIC_CLOCK=no
+fi
+
+AC_MSG_RESULT([$MONOTONIC_CLOCK])
+
+if test "x$MONOTONIC_CLOCK" = xyes; then
+    AC_DEFINE(MONOTONIC_CLOCK, 1, [Have monotonic clock from clock_gettime()])
+    XSERVER_LIBS="$XSERVER_LIBS $LIBS"
+fi
 
 dnl Imake defines SVR4 on SVR4 systems, and many files check for it, so
 dnl we need to replicate that here until those can all be fixed
@@ -889,6 +926,8 @@ AC_MSG_RESULT([yes])], AC_MSG_RESULT([no]))
 
 XSERVER_CFLAGS="$XSERVER_CFLAGS $CORE_INCS $XEXT_INC $COMPOSITE_INC $DAMAGE_INC $FIXES_INC $XI_INC $MI_INC $MIEXT_SHADOW_INC $MIEXT_LAYER_INC $MIEXT_DAMAGE_INC $RENDER_INC $RANDR_INC $FB_INC"
 AC_DEFINE_UNQUOTED(X_BYTE_ORDER,[$ENDIAN],[Endian order])
+
+AC_SUBST([XSERVER_LIBS])
 
 dnl ---------------------------------------------------------------------------
 dnl DDX section.
