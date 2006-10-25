@@ -51,6 +51,11 @@ NAME ** Ark Logic (generic)                [ark]
 SERVER SVGA
 DRIVER ark
 
+NAME ** ASPEED Technology (generic)        [ast]
+#CHIPSET ast
+SERVER SVGA
+DRIVER ast
+
 NAME ** ATI (generic)                      [ati]
 #CHIPSET ati
 SERVER SVGA

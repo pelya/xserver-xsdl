@@ -625,6 +625,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86XVAllocateVideoAdaptorRec)
     SYMFUNC(xf86XVFreeVideoAdaptorRec)
     SYMFUNC(xf86XVFillKeyHelper)
+    SYMFUNC(xf86XVFillKeyHelperDrawable)
     SYMFUNC(xf86XVClipVideoHelper)
     SYMFUNC(xf86XVCopyYUV12ToPacked)
     SYMFUNC(xf86XVCopyPacked)
