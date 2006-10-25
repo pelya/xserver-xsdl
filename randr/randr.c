@@ -1187,6 +1187,7 @@ SProcRRSelectInput (ClientPtr client)
 
     swaps(&stuff->length, n);
     swapl(&stuff->window, n);
+    swaps(&stuff->enable, n);
     return ProcRRSelectInput(client);
 }
 

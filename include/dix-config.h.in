@@ -457,4 +457,7 @@
 /* Use an empty root cursor */
 #undef NULL_ROOT_CURSOR
 
+/* Have a monotonic clock from clock_gettime() */
+#undef MONOTONIC_CLOCK
+
 #endif /* _DIX_CONFIG_H_ */
