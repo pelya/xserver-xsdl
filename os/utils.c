@@ -268,8 +268,6 @@ int auditTrailLevel = 1;
 
 _X_EXPORT Bool Must_have_memory = FALSE;
 
-static int monotonic_usable = -1;
-
 #ifdef AIXV3
 int SyncOn  = 0;
 extern int SelectWaitTime;
@@ -550,22 +548,11 @@ _X_EXPORT CARD32
 GetTimeInMillis(void)
 {
     struct timeval tv;
+
 #ifdef MONOTONIC_CLOCK
     struct timespec tp;
-    int spare = 0;
-
-    if (_X_UNLIKELY(monotonic_usable == -1)) {
-        if (clock_gettime(0, &tp) == 0 &&
-            clock_getcpuclockid(0, &spare) == 0)
-            monotonic_usable = 1;
-        else
-            monotonic_usable = 0;
-    }
-
-    if (_X_LIKELY(monotonic_usable == 1)) {
-        if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)
-            return (tp.tv_sec * 1000) + (tp.tv_nsec / 1000000);
-    }
+    if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)
+        return (tp.tv_sec * 1000) + (tp.tv_nsec / 1000000);
 #endif
 
     X_GETTIMEOFDAY(&tv);
