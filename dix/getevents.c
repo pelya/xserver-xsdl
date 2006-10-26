@@ -365,6 +365,9 @@ getValuatorEvents(xEvent *events, DeviceIntPtr pDev, int first_valuator,
         case 1:
             xv->valuator0 = valuators[i];
         }
+
+        if (i + 6 < final_valuator)
+            xv->deviceid |= MORE_EVENTS;
     }
 
     return events;
