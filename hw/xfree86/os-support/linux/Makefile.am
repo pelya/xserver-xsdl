@@ -1,7 +1,9 @@
 noinst_LTLIBRARIES = liblinux.la
 
 if LINUX_IA64
-PLATFORM_PCI_SUPPORT = $(srcdir)/../shared/ia64Pci.c
+PLATFORM_PCI_SUPPORT = $(srcdir)/lnx_ia64.c $(srcdir)/../shared/ia64Pci.c
+PLATFORM_DEFINES = -DOS_PROBE_PCI_CHIPSET=lnxProbePciChipset
+PLATFORM_INCLUDES = -I$(srcdir)/../shared
 endif
 if LINUX_ALPHA
 PLATFORM_PCI_SUPPORT = lnx_ev56.c \
@@ -34,14 +36,13 @@ liblinux_la_SOURCES = lnx_init.c lnx_video.c lnx_io.c lnx_kbd.c lnx_mouse.c \
                      $(APM_SOURCES) \
                      $(PLATFORM_PCI_SUPPORT)
 
-AM_CFLAGS = -DUSESTDRES -DHAVE_SYSV_IPC $(XORG_CFLAGS)
+AM_CFLAGS = -DUSESTDRES -DHAVE_SYSV_IPC $(XORG_CFLAGS) $(PLATFORM_DEFINES)
 
-INCLUDES = $(XORG_INCS) -I/usr/include/drm # FIXME this last part is crack
+INCLUDES = $(XORG_INCS) $(PLATFORM_INCLUDES) -I/usr/include/drm # FIXME this last part is crack
 
 # FIXME: These need to be added to the build
 LNX_EXTRA_SOURCES = \
 	lnx_font.c \
-	lnx_ia64.c \
 	lnx_jstk.c \
 	lnxResource.c
 
@@ -49,5 +50,4 @@ EXTRA_DIST = \
 	$(LNX_EXTRA_SOURCES) \
 	lnx.h \
 	lnx_kbd.h \
-	$(srcdir)/../shared/ia64Pci.h \
 	$(srcdir)/../shared/xf86Axp.h
