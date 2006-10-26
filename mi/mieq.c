@@ -117,7 +117,8 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
             !(lastkbp->type == DeviceMotionNotify ||
               lastkbp->type == DeviceButtonPress ||
               lastkbp->type == DeviceButtonRelease) ||
-            (lastkbp->deviceid != v->deviceid)) {
+            ((lastkbp->deviceid & DEVICE_BITS) !=
+             (v->deviceid & DEVICE_BITS))) {
             ErrorF("mieqEnequeue: out-of-order valuator event; dropping.\n");
             return;
         }
