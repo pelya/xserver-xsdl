@@ -261,8 +261,11 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
         }
         else
 #endif
-        InitKeyboardDeviceStruct((DevicePtr)pDev, &keySyms, modMap,
-                                 CoreKeyboardBell, CoreKeyboardCtl);
+        {
+            /* FIXME Our keymap here isn't exactly useful. */
+            InitKeyboardDeviceStruct((DevicePtr)pDev, &keySyms, modMap,
+                                     CoreKeyboardBell, CoreKeyboardCtl);
+        }
 
         xfree(keySyms.map);
         xfree(modMap);
