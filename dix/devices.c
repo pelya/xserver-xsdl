@@ -263,6 +263,10 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
 #endif
         InitKeyboardDeviceStruct((DevicePtr)pDev, &keySyms, modMap,
                                  CoreKeyboardBell, CoreKeyboardCtl);
+
+        xfree(keySyms.map);
+        xfree(modMap);
+
         break;
 
     case DEVICE_CLOSE:
