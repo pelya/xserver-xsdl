@@ -685,7 +685,7 @@ if test "x$XSELINUX" = xyes; then
 	AC_CHECK_HEADERS([selinux/selinux.h selinux/avc.h], [], AC_MSG_ERROR([SELinux include files not found]))
 	AC_CHECK_LIB(selinux, avc_init, [], AC_MSG_ERROR([SELinux library not found])) 
 	AC_CHECK_HEADERS([libaudit.h], [], AC_MSG_ERROR([SELinux extension requires audit system headers]))
-	AC_CHECK_LIB(audit, audit_log_avc, [], AC_MSG_ERROR([SELinux extension requires audit system library]))
+	AC_CHECK_LIB(audit, audit_open, [], AC_MSG_ERROR([SELinux extension requires audit system library]))
 	AC_DEFINE(XSELINUX, 1, [Build SELinux extension])
 	SELINUX_LIB="-lselinux -laudit"
 fi
