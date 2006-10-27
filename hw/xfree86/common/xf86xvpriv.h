@@ -80,6 +80,7 @@ typedef struct {
 typedef struct _XF86XVWindowRec{
    XvPortRecPrivatePtr PortRec;
    struct _XF86XVWindowRec *next;
+   GCPtr pGC;
 } XF86XVWindowRec, *XF86XVWindowPtr;
 
 #endif  /* _XF86XVPRIV_H_ */

@@ -119,11 +119,13 @@ mffs(fd_mask mask)
 struct _OsTimerRec {
     OsTimerPtr		next;
     CARD32		expires;
+    CARD32              delta;
     OsTimerCallback	callback;
     pointer		arg;
 };
 
 static void DoTimer(OsTimerPtr timer, CARD32 now, OsTimerPtr *prev);
+static void CheckAllTimers(CARD32 now);
 static OsTimerPtr timers = NULL;
 
 /*****************
@@ -200,6 +202,11 @@ WaitForSomething(int *pClientsReady)
         {
             now = GetTimeInMillis();
 	    timeout = timers->expires - now;
+            /* time has rewound.  reset the timers. */
+            if (timeout > timers->delta) {
+                CheckAllTimers(now);
+                timeout = timers->expires - now;
+            }
             if (timeout < 0)
                 timeout = 0;
 	    waittime.tv_sec = timeout / MILLI_PER_SECOND;
@@ -426,6 +433,20 @@ ANYSET(FdMask *src)
 }
 #endif
 
+/* If time has rewound, re-run every affected timer.
+ * TimerForce will change timer->next, but it will _generally_ only
+ * promote timers in the list, meaning that we should still be
+ * walking every timer. */
+static void
+CheckAllTimers(CARD32 now)
+{
+    OsTimerPtr timer;
+
+    for (timer = timers; timer; timer = timer->next) {
+        if (timer->expires - now > timer->delta)
+            TimerForce(timer);
+    }
+}
 
 static void
 DoTimer(OsTimerPtr timer, CARD32 now, OsTimerPtr *prev)
@@ -467,8 +488,13 @@ TimerSet(OsTimerPtr timer, int flags, CARD32 millis,
     }
     if (!millis)
 	return timer;
-    if (!(flags & TimerAbsolute))
+    if (flags & TimerAbsolute) {
+        timer->delta = millis - now;
+    }
+    else {
+        timer->delta = millis;
 	millis += now;
+    }
     timer->expires = millis;
     timer->callback = func;
     timer->arg = arg;
@@ -481,8 +507,10 @@ TimerSet(OsTimerPtr timer, int flags, CARD32 millis,
     }
     for (prev = &timers;
 	 *prev && (int) ((*prev)->expires - millis) <= 0;
-	 prev = &(*prev)->next)
-	;
+	 prev = &(*prev)->next) {
+        if ((*prev)->expires - now > (*prev)->delta)
+            CheckAllTimers(now);
+    }
     timer->next = *prev;
     *prev = timer;
     return timer;

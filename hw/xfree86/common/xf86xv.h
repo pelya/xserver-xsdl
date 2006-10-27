@@ -232,6 +232,9 @@ void xf86XVFreeVideoAdaptorRec(XF86VideoAdaptorPtr ptr);
 void
 xf86XVFillKeyHelper (ScreenPtr pScreen, CARD32 key, RegionPtr clipboxes);
 
+void
+xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes);
+
 Bool
 xf86XVClipVideoHelper(
     BoxPtr dst,

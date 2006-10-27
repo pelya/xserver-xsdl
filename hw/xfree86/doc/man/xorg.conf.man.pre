@@ -1081,7 +1081,7 @@ Include the set of modes listed in the
 .B Modes
 section called
 .IR modesection-id.
-This make all of the modes defined in that section available for use by
+This makes all of the modes defined in that section available for use by
 this monitor.
 .TP 7
 .BI "Mode  \*q" name \*q

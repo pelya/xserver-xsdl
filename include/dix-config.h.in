@@ -112,6 +112,9 @@
 /* Define to 1 if you have the `geteuid' function. */
 #undef HAVE_GETEUID
 
+/* Define to 1 if you have the `getisax' function. */
+#undef HAVE_GETISAX
+
 /* Define to 1 if you have the `getopt' function. */
 #undef HAVE_GETOPT
 
@@ -444,5 +447,8 @@
 
 /* Define to 1 if modules should avoid the libcwrapper */
 #undef NO_LIBCWRAPPER
+
+/* Have a monotonic clock from clock_gettime() */
+#undef MONOTONIC_CLOCK
 
 #endif /* _DIX_CONFIG_H_ */
