@@ -49,7 +49,8 @@ dnl xwin-config.h covers the XWin DDX.
 AC_CONFIG_HEADERS(include/xwin-config.h)
 dnl kdrive-config.h covers the kdrive DDX
 AC_CONFIG_HEADERS(include/kdrive-config.h)
-
+dnl libdrm now needs 64-bit file offsets
+AC_CONFIG_HEADERS(include/libdrm-config.h)
 
 AC_PROG_CC
 AM_PROG_AS
@@ -62,7 +63,6 @@ AC_PROG_MAKE_SET
 PKG_PROG_PKG_CONFIG
 AC_PROG_LEX
 AC_PROG_YACC
-dnl for libdrm
 AC_SYS_LARGEFILE
 XORG_PROG_RAWCPP
 

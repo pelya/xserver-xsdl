@@ -33,6 +33,7 @@
 
 
 #ifdef HAVE_XORG_CONFIG_H
+#include <libdrm-config.h>
 #include <xorg-config.h>
 #endif
 
