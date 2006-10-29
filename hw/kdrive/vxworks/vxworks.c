@@ -12,17 +12,6 @@
 #include "kdrive.h"
 #include <X11/keysym.h>
 
-int
-VxWorksInit (void)
-{
-    return 1;
-}
-
-void
-VxWorksEnable (void)
-{
-}
-
 Bool
 VxWorksSpecialKey (KeySym sym)
 {
@@ -38,16 +27,6 @@ VxWorksSpecialKey (KeySym sym)
 }
 
 void
-VxWorksDisable (void)
-{
-}
-
-void
-VxWorksFini (void)
-{
-}
-
-void
 KdOsAddInputDrivers (void)
 {
     KdAddPointerDriver(&VxWorksMouseDriver);
@@ -55,12 +34,7 @@ KdOsAddInputDrivers (void)
 }
 
 KdOsFuncs   VxWorksFuncs = {
-    VxWorksInit,
-    VxWorksEnable,
-    VxWorksSpecialKey,
-    VxWorksDisable,
-    VxWorksFini,
-    0
+    .SpecialKey = VxWorksSpecialKey,
 };
 
 void

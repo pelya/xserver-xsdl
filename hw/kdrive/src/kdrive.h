@@ -369,6 +369,7 @@ typedef struct _KdOsFuncs {
     void	    (*Disable) (void);
     void	    (*Fini) (void);
     void	    (*pollEvents) (void);
+    void            (*Bell) (int, int, int);
 } KdOsFuncs;
 
 typedef enum _KdSyncPolarity {

@@ -523,22 +523,46 @@ LegalModifier(unsigned int key, DeviceIntPtr pDev)
 }
 
 static void
-KdBell (int volume, DeviceIntPtr pDev, pointer ctrl, int something)
+KdBell (int volume, DeviceIntPtr pDev, pointer arg, int something)
 {
+    KeybdCtrl *ctrl = arg;
     KdKeyboardInfo *ki = NULL;
-
+    
     for (ki = kdKeyboards; ki; ki = ki->next) {
-        if (ki->dixdev && (ki->dixdev->id == pDev->id))
+        if (ki->dixdev && ki->dixdev->id == pDev->id)
             break;
     }
 
     if (!ki || !ki->dixdev || ki->dixdev->id != pDev->id || !ki->driver)
         return;
-        
-    if (kdInputEnabled) {
-        if (ki->driver->Bell)
-            (*ki->driver->Bell) (ki, volume, ki->bellPitch, ki->bellDuration);
+    
+    KdRingBell(ki, volume, ctrl->bell_pitch, ctrl->bell_duration);
+}
+
+void
+DDXRingBell(int volume, int pitch, int duration)
+{
+    KdKeyboardInfo *ki = NULL;
+
+    if (kdOsFuncs->Bell) {
+        (*kdOsFuncs->Bell)(volume, pitch, duration);
     }
+    else {
+        for (ki = kdKeyboards; ki; ki = ki->next) {
+            if (ki->dixdev->coreEvents)
+                KdRingBell(ki, volume, pitch, duration);
+        }
+    }
+}
+
+void
+KdRingBell(KdKeyboardInfo *ki, int volume, int pitch, int duration)
+{
+    if (!ki || !ki->driver || !ki->driver->Bell)
+        return;
+        
+    if (kdInputEnabled)
+        (*ki->driver->Bell) (ki, volume, pitch, duration);
 }
 
 

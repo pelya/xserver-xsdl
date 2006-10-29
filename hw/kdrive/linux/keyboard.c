@@ -791,11 +791,6 @@ LinuxKeyboardInit (KdKeyboardInfo *ki)
 }
 
 static void
-LinuxKeyboardFini (KdKeyboardInfo *ki)
-{
-}
-
-static void
 LinuxKeyboardLeds (KdKeyboardInfo *ki, int leds)
 {
     if (!ki)
@@ -804,29 +799,10 @@ LinuxKeyboardLeds (KdKeyboardInfo *ki, int leds)
     ioctl ((int)ki->driverPrivate, KDSETLED, leds & 7);
 }
 
-static void
-LinuxKeyboardBell (KdKeyboardInfo *ki, int volume, int pitch, int duration)
-{
-    if (!ki)
-        return;
-
-    if (volume && pitch)
-    {
-	ioctl((int)ki->driverPrivate, KDMKTONE,
-	      ((1193190 / pitch) & 0xffff) |
-	      (((unsigned long)duration *
-		volume / 50) << 16));
-
-    }
-}
-
 KdKeyboardDriver LinuxKeyboardDriver = {
     "keyboard",
-    LinuxKeyboardInit,
-    LinuxKeyboardEnable,
-    LinuxKeyboardLeds,
-    LinuxKeyboardBell,
-    LinuxKeyboardDisable,
-    LinuxKeyboardFini,
-    NULL,
+    .Init = LinuxKeyboardInit,
+    .Enable = LinuxKeyboardEnable,
+    .Leds = LinuxKeyboardLeds,
+    .Disable = LinuxKeyboardDisable,
 };
