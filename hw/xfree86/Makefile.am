@@ -103,4 +103,4 @@ relink:
 	rm -f Xorg && $(MAKE) Xorg
 
 xorg.conf.example.pre: xorgconf.cpp
-	cp xorgconf.cpp $@
+	cp $(srcdir)/xorgconf.cpp $@
