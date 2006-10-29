@@ -465,12 +465,6 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
     else if (rep->RepType == X_GetDeviceMotionEvents)
 	SRepXGetDeviceMotionEvents(client, len,
 				   (xGetDeviceMotionEventsReply *) rep);
-    else if (rep->RepType == X_ChangeKeyboardDevice)
-	SRepXChangeKeyboardDevice(client, len,
-				  (xChangeKeyboardDeviceReply *) rep);
-    else if (rep->RepType == X_ChangePointerDevice)
-	SRepXChangePointerDevice(client, len,
-				 (xChangePointerDeviceReply *) rep);
     else if (rep->RepType == X_GrabDevice)
 	SRepXGrabDevice(client, len, (xGrabDeviceReply *) rep);
     else if (rep->RepType == X_GetDeviceFocus)

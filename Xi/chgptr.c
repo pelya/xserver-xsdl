@@ -101,97 +101,10 @@ SProcXChangePointerDevice(register ClientPtr client)
 int
 ProcXChangePointerDevice(register ClientPtr client)
 {
-    DeviceIntPtr xptr = inputInfo.pointer;
-    DeviceIntPtr dev;
-    ValuatorClassPtr v;
-    xChangePointerDeviceReply rep;
-    changeDeviceNotify ev;
-
     REQUEST(xChangePointerDeviceReq);
     REQUEST_SIZE_MATCH(xChangePointerDeviceReq);
 
-    rep.repType = X_Reply;
-    rep.RepType = X_ChangePointerDevice;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
-	rep.status = -1;
-	SendErrorToClient(client, IReqCode, X_ChangePointerDevice, 0,
-			  BadDevice);
-	return Success;
-    }
-
-    v = dev->valuator;
-    if (v == NULL || v->numAxes < 2 ||
-	stuff->xaxis >= v->numAxes || stuff->yaxis >= v->numAxes) {
-	rep.status = -1;
-	SendErrorToClient(client, IReqCode, X_ChangePointerDevice, 0, BadMatch);
-	return Success;
-    }
-
-    if (((dev->grab) && !SameClient(dev->grab, client)) ||
-	((xptr->grab) && !SameClient(xptr->grab, client)))
-	rep.status = AlreadyGrabbed;
-    else if ((dev->sync.frozen &&
-	      dev->sync.other && !SameClient(dev->sync.other, client)) ||
-	     (xptr->sync.frozen &&
-	      xptr->sync.other && !SameClient(xptr->sync.other, client)))
-	rep.status = GrabFrozen;
-    else {
-	if (ChangePointerDevice(xptr, dev, stuff->xaxis, stuff->yaxis) !=
-	    Success) {
-	    SendErrorToClient(client, IReqCode, X_ChangePointerDevice, 0,
-			      BadDevice);
-	    return Success;
-	}
-	if (dev->focus)
-	    DeleteFocusClassDeviceStruct(dev);
-	if (!dev->button)
-	    InitButtonClassDeviceStruct(dev, 0, NULL);
-	if (!dev->ptrfeed)
-	    InitPtrFeedbackClassDeviceStruct(dev, (PtrCtrlProcPtr) NoopDDA);
-	RegisterOtherDevice(xptr);
-	RegisterPointerDevice(dev);
-
-	ev.type = ChangeDeviceNotify;
-	ev.deviceid = stuff->deviceid;
-	ev.time = currentTime.milliseconds;
-	ev.request = NewPointer;
-
-	SendEventToAllWindows(dev, ChangeDeviceNotifyMask, (xEvent *) & ev, 1);
-	SendMappingNotify(MappingPointer, 0, 0, client);
-
-	rep.status = 0;
-    }
-
-    WriteReplyToClient(client, sizeof(xChangePointerDeviceReply), &rep);
+    SendErrorToClient(client, IReqCode, X_ChangePointerDevice, 0,
+                      BadDevice);
     return Success;
-}
-
-void
-DeleteFocusClassDeviceStruct(DeviceIntPtr dev)
-{
-    xfree(dev->focus->trace);
-    xfree(dev->focus);
-    dev->focus = NULL;
-}
-
-/***********************************************************************
- *
- * This procedure writes the reply for the XChangePointerDevice 
- * function, if the client and server have a different byte ordering.
- *
- */
-
-void
-SRepXChangePointerDevice(ClientPtr client, int size,
-			 xChangePointerDeviceReply * rep)
-{
-    register char n;
-
-    swaps(&rep->sequenceNumber, n);
-    swapl(&rep->length, n);
-    WriteToClient(client, size, (char *)rep);
 }

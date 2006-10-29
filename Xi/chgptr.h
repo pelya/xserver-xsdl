@@ -53,9 +53,4 @@ void FindInterestedChildren(	/* FIXME: could be static? */
 			       int	/* count */
     );
 
-void SRepXChangePointerDevice(ClientPtr /* client */ ,
-			      int /* size */ ,
-			      xChangePointerDeviceReply *	/* rep */
-    );
-
 #endif /* CHGPTR_H */

@@ -64,7 +64,6 @@ SOFTWARE.
 #include "XIstubs.h"
 #include "globals.h"
 #include "extnsionst.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 
 #include "exevents.h"
 #include "exglobals.h"
@@ -99,107 +98,10 @@ SProcXChangeKeyboardDevice(register ClientPtr client)
 int
 ProcXChangeKeyboardDevice(register ClientPtr client)
 {
-    int i;
-    DeviceIntPtr xkbd = inputInfo.keyboard;
-    DeviceIntPtr dev;
-    FocusClassPtr xf = xkbd->focus;
-    FocusClassPtr df;
-    KeyClassPtr k;
-    xChangeKeyboardDeviceReply rep;
-    changeDeviceNotify ev;
-
     REQUEST(xChangeKeyboardDeviceReq);
     REQUEST_SIZE_MATCH(xChangeKeyboardDeviceReq);
 
-    rep.repType = X_Reply;
-    rep.RepType = X_ChangeKeyboardDevice;
-    rep.length = 0;
-    rep.sequenceNumber = client->sequence;
-
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
-	rep.status = -1;
-	SendErrorToClient(client, IReqCode, X_ChangeKeyboardDevice, 0,
-			  BadDevice);
-	return Success;
-    }
-
-    k = dev->key;
-    if (k == NULL) {
-	rep.status = -1;
-	SendErrorToClient(client, IReqCode, X_ChangeKeyboardDevice, 0,
-			  BadMatch);
-	return Success;
-    }
-
-    if (((dev->grab) && !SameClient(dev->grab, client)) ||
-	((xkbd->grab) && !SameClient(xkbd->grab, client)))
-	rep.status = AlreadyGrabbed;
-    else if ((dev->sync.frozen &&
-	      dev->sync.other && !SameClient(dev->sync.other, client)) ||
-	     (xkbd->sync.frozen &&
-	      xkbd->sync.other && !SameClient(xkbd->sync.other, client)))
-	rep.status = GrabFrozen;
-    else {
-	if (ChangeKeyboardDevice(xkbd, dev) != Success) {
-	    SendErrorToClient(client, IReqCode, X_ChangeKeyboardDevice, 0,
-			      BadDevice);
-	    return Success;
-	}
-	if (!dev->focus)
-	    InitFocusClassDeviceStruct(dev);
-	if (!dev->kbdfeed)
-	    InitKbdFeedbackClassDeviceStruct(dev, (BellProcPtr) NoopDDA,
-					     (KbdCtrlProcPtr) NoopDDA);
-	df = dev->focus;
-	df->win = xf->win;
-	df->revert = xf->revert;
-	df->time = xf->time;
-	df->traceGood = xf->traceGood;
-	if (df->traceSize != xf->traceSize) {
-	    Must_have_memory = TRUE;	/* XXX */
-	    df->trace = (WindowPtr *) xrealloc(df->trace,
-					       xf->traceSize *
-					       sizeof(WindowPtr));
-	    Must_have_memory = FALSE;	/* XXX */
-	}
-	df->traceSize = xf->traceSize;
-	for (i = 0; i < df->traceSize; i++)
-	    df->trace[i] = xf->trace[i];
-	RegisterOtherDevice(xkbd);
-	RegisterKeyboardDevice(dev);
-
-	ev.type = ChangeDeviceNotify;
-	ev.deviceid = stuff->deviceid;
-	ev.time = currentTime.milliseconds;
-	ev.request = NewKeyboard;
-
-	SendEventToAllWindows(dev, ChangeDeviceNotifyMask, (xEvent *) & ev, 1);
-	SendMappingNotify(MappingKeyboard, k->curKeySyms.minKeyCode,
-			  k->curKeySyms.maxKeyCode - k->curKeySyms.minKeyCode +
-			  1, client);
-
-	rep.status = 0;
-    }
-
-    WriteReplyToClient(client, sizeof(xChangeKeyboardDeviceReply), &rep);
+    SendErrorToClient(client, IReqCode, X_ChangeKeyboardDevice, 0,
+                      BadDevice);
     return Success;
-}
-
-/***********************************************************************
- *
- * This procedure writes the reply for the XChangeKeyboardDevice 
- * function, if the client and server have a different byte ordering.
- *
- */
-
-void
-SRepXChangeKeyboardDevice(ClientPtr client, int size,
-			  xChangeKeyboardDeviceReply * rep)
-{
-    register char n;
-
-    swaps(&rep->sequenceNumber, n);
-    swapl(&rep->length, n);
-    WriteToClient(client, size, (char *)rep);
 }
