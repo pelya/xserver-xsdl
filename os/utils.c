@@ -552,7 +552,7 @@ GetTimeInMillis(void)
 #ifdef MONOTONIC_CLOCK
     struct timespec tp;
     if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)
-        return (tp.tv_sec * 1000) + (tp.tv_nsec / 1000000);
+        return (tp.tv_sec * 1000) + (tp.tv_nsec / 1000000L);
 #endif
 
     X_GETTIMEOFDAY(&tv);
