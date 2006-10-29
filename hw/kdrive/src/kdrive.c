@@ -281,7 +281,7 @@ KdSuspend (void)
 	    for (screen = card->screenList; screen; screen = screen->next)
 		if (screen->mynum == card->selected && screen->pScreen)
 		    KdDisableScreen (screen->pScreen);
-	    if (card->driver)
+	    if (card->driver && card->cfuncs->restore)
 		(*card->cfuncs->restore) (card);
 	}
 	KdDisableInput ();
@@ -295,7 +295,8 @@ KdDisableScreens (void)
     KdSuspend ();
     if (kdEnabled)
     {
-	(*kdOsFuncs->Disable) ();
+        if (kdOsFuncs->Disable)
+            (*kdOsFuncs->Disable) ();
 	kdEnabled = FALSE;
     }
 }
@@ -353,7 +354,8 @@ KdEnableScreens (void)
     if (!kdEnabled)
     {
 	kdEnabled = TRUE;
-	(*kdOsFuncs->Enable) ();
+        if (kdOsFuncs->Enable)
+            (*kdOsFuncs->Enable) ();
     }
     KdResume ();
 }
@@ -373,9 +375,10 @@ AbortDDX(void)
     KdDisableScreens ();
     if (kdOsFuncs)
     {
-	if (kdEnabled)
+	if (kdEnabled && kdOsFuncs->Disable)
 	    (*kdOsFuncs->Disable) ();
-	(*kdOsFuncs->Fini) ();
+        if (kdOsFuncs->Fini)
+            (*kdOsFuncs->Fini) ();
 	KdDoSwitchCmd ("stop");
     }
 
@@ -768,7 +771,8 @@ KdOsInit (KdOsFuncs *pOsFuncs)
 	if (serverGeneration == 1) 
 	{
 	    KdDoSwitchCmd ("start");
-	    (*pOsFuncs->Init) ();
+            if (pOsFuncs->Init)
+                (*pOsFuncs->Init) ();
 	}
     }
 }
