@@ -58,6 +58,8 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #ifdef _POSIX_C_SOURCE
 #define _SAVED_POSIX_C_SOURCE _POSIX_C_SOURCE
 #undef _POSIX_C_SOURCE
+#else if defined(sun)	/* Needed to tell Solaris headers not to restrict to */
+#define __EXTENSIONS__	/* only the functions defined in POSIX 199309.       */
 #endif
 #define _POSIX_C_SOURCE 199309L
 #include <time.h>
