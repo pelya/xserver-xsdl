@@ -1082,52 +1082,61 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
             stype = src->map->types;
             dtype = dst->map->types;
             for (i = 0; i < src->map->num_types; i++, dtype++, stype++) {
-                if (stype->num_levels != dtype->num_levels) {
-                    if (dtype->level_names)
+                if (stype->num_levels) {
+                    if (stype->num_levels != dtype->num_levels &&
+                        dtype->num_levels && dtype->level_names) {
                         tmp = xrealloc(dtype->level_names,
                                        stype->num_levels * sizeof(Atom));
-                    else
+                        if (!tmp)
+                            continue;
+                        dtype->level_names = tmp;
+                    }
+                    else if (!dtype->num_levels || !dtype->level_names) {
                         tmp = xalloc(stype->num_levels * sizeof(Atom));
-                    if (!tmp)
-                        continue; /* don't return FALSE here, try to whack
-                                     all the pointers we can, so we don't
-                                     double-free when going down. */
-                    dtype->level_names = tmp;
+                        if (!tmp)
+                            continue;
+                        dtype->level_names = tmp;
+                    }
                     dtype->num_levels = stype->num_levels;
+                    memcpy(dtype->level_names, stype->level_names,
+                           stype->num_levels * sizeof(Atom));
                 }
-                memcpy(dtype->level_names, stype->level_names,
-                       stype->num_levels * sizeof(Atom));
+                else {
+                    if (dtype->num_levels && dtype->level_names)
+                        xfree(dtype->level_names);
+                    dtype->num_levels = 0;
+                    dtype->level_names = NULL;
+                }
 
                 dtype->name = stype->name;
                 memcpy(&dtype->mods, &stype->mods, sizeof(XkbModsRec));
 
-                if (stype->map) {
-                    if (dtype->map) {
-                        if (stype->map_count != dtype->map_count) {
+                if (stype->map_count) {
+                    if (stype->map) {
+                        if (stype->map_count != dtype->map_count &&
+                            dtype->map_count && dtype->map) {
                             tmp = xrealloc(dtype->map,
                                            stype->map_count *
                                              sizeof(XkbKTMapEntryRec));
                             if (!tmp)
                                 return FALSE;
                             dtype->map = tmp;
+                       }
+                        else if (!dtype->map_count || !dtype->map) {
+                            tmp = xalloc(stype->map_count *
+                                           sizeof(XkbKTMapEntryRec));
+                            if (!tmp)
+                                return FALSE;
+                            dtype->map = tmp;
                         }
-                    }
-                    else {
-                        tmp = xalloc(stype->map_count *
-                                       sizeof(XkbKTMapEntryRec));
-                        if (!tmp)
-                            return FALSE;
-                        dtype->map = tmp;
+
+                        memcpy(dtype->map, stype->map,
+                               stype->map_count * sizeof(XkbKTMapEntryRec));
                     }
 
-                    dtype->map_count = stype->map_count;
-                    memcpy(dtype->map, stype->map, stype->map_count *
-                                               sizeof(XkbKTMapEntryRec));
-                }
-
-                if (stype->preserve) {
-                    if (dtype->preserve) {
-                        if (stype->map_count != dtype->map_count) {
+                    if (stype->preserve) {
+                        if (stype->map_count != dtype->map_count &&
+                            dtype->map_count && dtype->preserve) {
                             tmp = xrealloc(dtype->preserve,
                                            stype->map_count *
                                              sizeof(XkbModsRec));
@@ -1135,22 +1144,30 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                                 return FALSE;
                             dtype->preserve = tmp;
                         }
-                    }
-                    else {
-                        tmp = xalloc(stype->map_count * sizeof(XkbModsRec));
-                        if (!tmp)
-                            return FALSE;
-                        dtype->preserve = tmp;
+                        else if (!dtype->preserve || !dtype->map_count) {
+                            tmp = xalloc(stype->map_count *
+                                         sizeof(XkbModsRec));
+                            if (!tmp)
+                                return FALSE;
+                            dtype->preserve = tmp;
+                        }
+
+                        memcpy(dtype->preserve, stype->preserve,
+                               stype->map_count * sizeof(XkbModsRec));
                     }
 
-                    memcpy(dtype->preserve, stype->preserve,
-                           stype->map_count * sizeof(XkbModsRec));
+                    dtype->map_count = stype->map_count;
                 }
                 else {
-                    if (dtype->preserve) {
-                        xfree(dtype->preserve);
-                        dtype->preserve = NULL;
+                    if (dtype->map_count) {
+                        if (dtype->map)
+                            xfree(dtype->map);
+                        if (dtype->preserve)
+                            xfree(dtype->preserve);
+                        dtype->map_count = 0;
                     }
+                    dtype->map = NULL;
+                    dtype->preserve = NULL;
                 }
             }
         }
@@ -1160,9 +1177,9 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                      i++, dtype++) {
                     if (dtype->level_names)
                         xfree(dtype->level_names);
-                    if (dtype->map)
+                    if (dtype->map && dtype->map_count)
                         xfree(dtype->map);
-                    if (dtype->preserve)
+                    if (dtype->preserve && dtype->preserve)
                         xfree(dtype->preserve);
                 }
                 xfree(dst->map->types);
@@ -1451,6 +1468,12 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
 
     /* compat */
     if (src->compat) {
+        if (!dst->compat) {
+            dst->compat = xcalloc(1, sizeof(XkbCompatMapRec));
+            if (!dst->compat)
+                return FALSE;
+        }
+
         if (src->compat->sym_interpret) {
             if (src->compat->size_si != dst->compat->size_si) {
                 if (dst->compat->sym_interpret)
@@ -1486,6 +1509,12 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
 
     /* geometry */
     if (src->geom) {
+        if (!dst->geom) {
+            dst->geom = xcalloc(sizeof(XkbGeometryRec), 1);
+            if (!dst->geom)
+                return FALSE;
+        }
+
         /* properties */
         if (src->geom->num_properties) {
             if (src->geom->num_properties != dst->geom->sz_properties) {
