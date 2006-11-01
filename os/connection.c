@@ -549,7 +549,9 @@ AuthAudit (ClientPtr client, Bool letin,
 {
     char addr[128];
     char *out = addr;
-
+    int client_uid;
+    char client_uid_string[32];
+    
     if (!len)
         strcpy(out, "local host");
     else
@@ -585,14 +587,22 @@ AuthAudit (ClientPtr client, Bool letin,
 	default:
 	    strcpy(out, "unknown address");
 	}
+
+    if (LocalClientCred(client, &client_uid, NULL) != -1) {
+	snprintf(client_uid_string, sizeof(client_uid_string),
+		 " (uid %d)", client_uid);
+    } else {
+	client_uid_string[0] = '\0';
+    }
     
     if (proto_n)
-	AuditF("client %d %s from %s\n  Auth name: %.*s ID: %d\n", 
+	AuditF("client %d %s from %s%s\n  Auth name: %.*s ID: %d\n", 
 	       client->index, letin ? "connected" : "rejected", addr,
-	       (int)proto_n, auth_proto, auth_id);
+	       client_uid_string, (int)proto_n, auth_proto, auth_id);
     else 
-	AuditF("client %d %s from %s\n", 
-	       client->index, letin ? "connected" : "rejected", addr);
+	AuditF("client %d %s from %s%s\n", 
+	       client->index, letin ? "connected" : "rejected", addr,
+	       client_uid_string);
 }
 
 XID
