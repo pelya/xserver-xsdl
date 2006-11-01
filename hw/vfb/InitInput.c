@@ -55,6 +55,10 @@ ProcessInputEvents()
     miPointerUpdate();
 }
 
+void DDXRingBell(int volume, int pitch, int duration)
+{
+}
+
 #define VFB_MIN_KEY 8
 #define VFB_MAX_KEY 255
 KeySym  map[MAP_LENGTH * LK201_GLYPHS_PER_KEY];

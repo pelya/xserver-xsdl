@@ -441,7 +441,9 @@ extern DeviceIntPtr LookupDeviceIntRec(
 extern int NewInputDeviceRequest(
     InputOption *options);
 
-extern DeviceIntPtr LookupDeviceIntRec(
-    CARD8 deviceid);
+extern void DDXRingBell(
+    int volume,
+    int pitch,
+    int duration);
 
 #endif /* INPUT_H */

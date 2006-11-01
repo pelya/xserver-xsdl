@@ -211,9 +211,11 @@ ActivateDevice(DeviceIntPtr dev)
 }
 
 static void
-CoreKeyboardBell(int volume, DeviceIntPtr pDev, pointer ctrl, int something)
+CoreKeyboardBell(int volume, DeviceIntPtr pDev, pointer arg, int something)
 {
-    return;
+    KeybdCtrl *ctrl = arg;
+
+    DDXRingBell(volume, ctrl->bell_pitch, ctrl->bell_duration);
 }
 
 static void

@@ -63,6 +63,7 @@ libbsd_la_SOURCES = \
 	bsd_VTsw.c \
 	bsd_init.c \
 	bsd_mouse.c \
+	bsd_bell.c \
 	$(ARCH_SOURCES) \
 	$(AGP_SOURCES) \
 	$(APM_SOURCES) \

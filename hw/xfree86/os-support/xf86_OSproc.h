@@ -174,6 +174,7 @@ extern int xf86GetSerialModemState(int fd);
 extern int xf86SerialModemSetBits(int fd, int bits);
 extern int xf86SerialModemClearBits(int fd, int bits);
 extern int xf86LoadKernelModule(const char *pathname);
+extern void xf86RingBell(int volume, int pitch, int duration);
 
 /* AGP GART interface */
 

@@ -1128,6 +1128,11 @@ xf86ReloadInputDevs(int sig)
   return;
 }
 
+_X_EXPORT void
+DDXRingBell(int volume, int pitch, int duration) {
+    xf86OSRingBell(volume, pitch, duration);
+}
+
 #ifdef WSCONS_SUPPORT
 
 /* XXX Currently XKB is mandatory. */
