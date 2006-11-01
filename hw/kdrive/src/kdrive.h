@@ -872,6 +872,12 @@ KdEnableInput (void);
 void
 ProcessInputEvents (void);
 
+void
+KdRingBell (KdKeyboardInfo      *ki,
+            int                 volume,
+            int                 pitch,
+            int                 duration);
+
 extern KdPointerDriver	LinuxMouseDriver;
 extern KdPointerDriver	LinuxEvdevDriver;
 extern KdPointerDriver	Ps2MouseDriver;
