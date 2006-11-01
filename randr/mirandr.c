@@ -111,8 +111,6 @@ miRandRInit (ScreenPtr pScreen)
     memset (&modeInfo, '\0', sizeof (modeInfo));
     modeInfo.width = pScreen->width;
     modeInfo.height = pScreen->height;
-    modeInfo.mmWidth = pScreen->mmWidth;
-    modeInfo.mmHeight = pScreen->mmHeight;
     modeInfo.nameLength = strlen (name);
     
     mode = RRModeGet (pScreen, &modeInfo, name);

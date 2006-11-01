@@ -270,8 +270,16 @@ RRCrtcSet (RRCrtcPtr    crtc,
 
 	size.width = mode->mode.width;
 	size.height = mode->mode.height;
-	size.mmWidth = mode->mode.mmWidth;
-	size.mmHeight = mode->mode.mmHeight;
+	if (outputs[0].output->mmWidth && outputs[0].output->mmHeight)
+	{
+	    size.mmWidth = outputs[0].output->mmWidth;
+	    size.mmHeight = outputs[0].output->mmHeight;
+	}
+	else
+	{
+	    size.mmWidth = pScreen->mmWidth;
+	    size.mmHeight = pScreen->mmHeight;
+	}
 	size.nRates = 1;
 	rate.rate = RRVerticalRefresh (&mode->mode);
 	size.pRates = &rate;

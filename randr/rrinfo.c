@@ -39,8 +39,6 @@ RROldModeAdd (RROutputPtr output, RRScreenSizePtr size, int refresh)
     
     modeInfo.width = size->width;
     modeInfo.height = size->height;
-    modeInfo.mmWidth = size->mmWidth;
-    modeInfo.mmHeight = size->mmHeight;
     modeInfo.hTotal = size->width;
     modeInfo.vTotal = size->height;
     modeInfo.dotClock = ((CARD32) size->width * (CARD32) size->height *

@@ -72,6 +72,8 @@ RROutputCreate (ScreenPtr   pScreen,
     output->name[nameLength] = '\0';
     output->connection = RR_UnknownConnection;
     output->subpixelOrder = SubPixelUnknown;
+    output->mmWidth = 0;
+    output->mmHeight = 0;
     output->crtc = NULL;
     output->currentOptions = 0;
     output->possibleOptions = 0;
@@ -262,6 +264,20 @@ RROutputSetCurrentOptions (RROutputPtr output,
     return TRUE;
 }
 
+Bool
+RROutputSetPhysicalSize (RROutputPtr	output,
+			 int		mmWidth,
+			 int		mmHeight)
+{
+    if (output->mmWidth == mmWidth && output->mmHeight == mmHeight)
+	return TRUE;
+    output->mmWidth = mmWidth;
+    output->mmHeight = mmHeight;
+    RROutputChanged (output);
+    return TRUE;
+}
+
+
 void
 RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output)
 {
@@ -381,6 +397,8 @@ ProcRRGetOutputInfo (ClientPtr client)
     rep.timestamp = pScrPriv->lastSetTime.milliseconds;
     rep.crtc = output->crtc ? output->crtc->id : None;
     rep.currentOptions = output->currentOptions;
+    rep.mmWidth = output->mmWidth;
+    rep.mmHeight = output->mmHeight;
     rep.connection = output->connection;
     rep.subpixelOrder = output->subpixelOrder;
     rep.nCrtcs = output->numCrtcs;
@@ -434,10 +452,15 @@ ProcRRGetOutputInfo (ClientPtr client)
 	swapl(&rep.length, n);
 	swapl(&rep.timestamp, n);
 	swapl(&rep.crtc, n);
+	swapl(&rep.currentOptions, n);
+	swapl(&rep.mmWidth, n);
+	swapl(&rep.mmHeight, n);
 	swaps(&rep.nCrtcs, n);
 	swaps(&rep.nModes, n);
 	swaps(&rep.nClones, n);
+	swapl(&rep.possibleOptions, n);
 	swaps(&rep.nameLength, n);
+	swapl(&rep.possibleOptions, n);
     }
     WriteToClient(client, sizeof(xRRGetOutputInfoReply), (char *)&rep);
     if (extraLen)

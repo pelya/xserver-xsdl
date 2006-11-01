@@ -107,6 +107,8 @@ struct _rrOutput {
     int		    nameLength;
     CARD8	    connection;
     CARD8	    subpixelOrder;
+    int		    mmWidth;
+    int		    mmHeight;
     RRCrtcPtr	    crtc;
     CARD32	    currentOptions;
     CARD32	    possibleOptions;
@@ -641,6 +643,11 @@ RROutputSetSubpixelOrder (RROutputPtr output,
 Bool
 RROutputSetCurrentOptions (RROutputPtr output,
 			   CARD32      currentOptions);
+
+Bool
+RROutputSetPhysicalSize (RROutputPtr	output,
+			 int		mmWidth,
+			 int		mmHeight);
 
 void
 RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output);

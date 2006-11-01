@@ -126,8 +126,8 @@ RRDeliverScreenEvent (ClientPtr client, WindowPtr pWin, ScreenPtr pScreen)
 	    }
 	se.widthInPixels = mode->mode.width;
 	se.heightInPixels = mode->mode.height;
-	se.widthInMillimeters = mode->mode.mmWidth;
-	se.heightInMillimeters = mode->mode.mmHeight;
+	se.widthInMillimeters = pScreen->mmWidth;
+	se.heightInMillimeters = pScreen->mmHeight;
     }
     else
     {
@@ -415,8 +415,6 @@ ProcRRGetScreenResources (ClientPtr client)
 		swapl (&modeinfos[i].id, n);
 		swaps (&modeinfos[i].width, n);
 		swaps (&modeinfos[i].height, n);
-		swapl (&modeinfos[i].mmWidth, n);
-		swapl (&modeinfos[i].mmHeight, n);
 		swapl (&modeinfos[i].dotClock, n);
 		swaps (&modeinfos[i].hSyncStart, n);
 		swaps (&modeinfos[i].hSyncEnd, n);
@@ -501,8 +499,13 @@ RR10GetData (ScreenPtr pScreen, RROutputPtr output)
 	    size[j].id = j;
 	    size[j].width = mode->mode.width;
 	    size[j].height = mode->mode.height;
-	    size[j].mmWidth = mode->mode.mmWidth;
-	    size[j].mmHeight = mode->mode.mmHeight;
+	    if (output->mmWidth && output->mmHeight) {
+		size[j].mmWidth = output->mmWidth;
+		size[j].mmHeight = output->mmHeight;
+	    } else {
+		size[j].mmWidth = pScreen->mmWidth;
+		size[j].mmHeight = pScreen->mmHeight;
+	    }
 	    size[j].nRates = 0;
 	    size[j].pRates = &refresh[data->nrefresh];
 	    data->nsize++;

@@ -29,8 +29,6 @@ RRModeEqual (xRRModeInfo *a, xRRModeInfo *b)
 {
     if (a->width != b->width) return FALSE;
     if (a->height != b->height) return FALSE;
-    if (a->mmWidth != b->mmWidth) return FALSE;
-    if (a->mmHeight != b->mmHeight) return FALSE;
     if (a->dotClock != b->dotClock) return FALSE;
     if (a->hSyncStart != b->hSyncStart) return FALSE;
     if (a->hSyncEnd != b->hSyncEnd) return FALSE;

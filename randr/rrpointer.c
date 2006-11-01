@@ -131,7 +131,7 @@ RRPointerScreenConfigured (ScreenPtr pScreen)
     int		x, y;
 
     if (pScreen != pCurrentScreen)
-	return FALSE;
+	return;
     GetSpritePosition (&x, &y);
     RRPointerToNearestCrtc (pScreen, x, y, NULL);
 }
