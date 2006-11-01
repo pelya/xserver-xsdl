@@ -1194,25 +1194,6 @@ dnl has it in libc), or if libdl is needed to get it.
 		  *)
 			;;
 		esac
-
-		# check whether struct kbd_repeat has the 'period' field.
-		# on kernels < 2.5.42 it's called 'rate' instead.
-		AC_TRY_COMPILE([
-#include <linux/kd.h>
-#ifdef __sparc__
-#include <asm/param.h>
-#include <asm/kbio.h>
-#endif
-],[
-int main () { 
-	struct kbd_repeat k;
-	k.period = 0;
-	return 0;
-}],
-		[period_field="period"],
-		[period_field="rate"])
-		AC_DEFINE_UNQUOTED(LNX_KBD_PERIOD_NAME, [$period_field],
-		                   [Name of the period field in struct kbd_repeat])
 		;;
 	  freebsd* | kfreebsd*-gnu)
 	  	XORG_OS="freebsd"
