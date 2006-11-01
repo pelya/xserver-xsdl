@@ -58,12 +58,15 @@ Xorg_LDADD = $(XORG_LIBS) \
 
 Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
+BUILT_SOURCES = xorg.conf.example
+CLEAN = xorg.conf.example xorg.conf.example.pre
+EXTRA_DIST = xorgconf.cpp
 
 if SOLARIS_ASM_INLINE
 # Needs to be built before any files are compiled when using Sun compilers
 # so in*/out* inline definitions are properly processed.
 
-BUILT_SOURCES = os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il
+BUILT_SOURCES += os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il
 
 os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il:
 	cd os-support/solaris ; make solaris-$(SOLARIS_INOUT_ARCH).il
@@ -83,10 +86,6 @@ endif
 
 optionsdir = $(libdir)/X11
 dist_options_DATA = Options
-
-BUILT_SOURCES = xorg.conf.example
-CLEAN = xorg.conf.example xorg.conf.example.pre
-EXTRA_DIST = xorgconf.cpp
 
 CPP_FILES_FLAGS = \
 	-DRGBPATH=\"$(RGB_DB)\" \
