@@ -2269,21 +2269,6 @@ ProcessInputEvents ()
     KdCheckLock ();
 }
 
-/* We don't want to allow people to change the core devices, because the DIX
- * does magical repeating goodness for us. */
-int
-ChangeKeyboardDevice(DeviceIntPtr pOldDev, DeviceIntPtr pDev)
-{
-    return BadDevice;
-}
-
-int
-ChangePointerDevice(DeviceIntPtr pOldDev, DeviceIntPtr pDev, unsigned char x,
-                    unsigned char y)
-{
-    return BadDevice;
-}
-
 /* FIXME use XSECURITY to work out whether the client should be allowed to
  * open and close. */
 void
