@@ -321,7 +321,7 @@ static CARD8 criticalEvents[32] =
 
 #ifdef PANORAMIX
 static void ConfineToShape(RegionPtr shape, int *px, int *py);
-static void PostSyntheticMotion(int x, int y, int screenNum, int time);
+extern void PostSyntheticMotion(int x, int y, int screenNum, int time);
 static void PostNewCursor(void);
 
 #define SyntheticMotion(x, y) \
