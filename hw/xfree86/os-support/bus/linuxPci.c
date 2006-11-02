@@ -940,3 +940,106 @@ int linuxPciHandleBIOS(PCITAG Tag, int basereg, unsigned char *buf, int len)
   }
   return 0;
 }
+
+#ifdef __ia64__
+static PCITAG ia64linuxPciFindFirst(void);
+static PCITAG ia64linuxPciFindNext(void);
+
+void   
+ia64linuxPciInit()
+{
+    struct stat st;
+
+    linuxPciInit();
+	   
+    if (!stat("/proc/sgi_sn/licenseID", &st) && pciNumBuses) {
+       /* Be a little paranoid here and only use this code for Altix systems.
+	* It is generic, so it should work on any system, but depends on
+	* /proc/bus/pci entries for each domain/bus combination. Altix is
+	* guaranteed a recent enough kernel to have them.
+	*/
+       pciFindFirstFP = ia64linuxPciFindFirst;
+       pciFindNextFP  = ia64linuxPciFindNext;
+    }
+}
+
+static DIR *busdomdir;
+static DIR *devdir;
+	       
+static PCITAG
+ia64linuxPciFindFirst(void)
+{   
+       busdomdir = opendir("/proc/bus/pci");
+       devdir = NULL;
+
+       return ia64linuxPciFindNext();
+}   
+
+static struct dirent *getnextbus(int *domain, int *bus)
+{
+    struct dirent *entry;
+    int dombus;
+
+    for (;;) {
+	entry = readdir(busdomdir);
+	if (entry == NULL) {
+	    *domain = 0;
+	    *bus = 0;
+	    closedir(busdomdir);
+	    return NULL;
+	}
+	if (sscanf(entry->d_name, "%04x:%02x", domain, bus) != 2)
+	    continue;
+	dombus = PCI_MAKE_BUS(*domain, *bus);
+
+	if (pciNumBuses <= dombus)
+	    pciNumBuses = dombus + 1;
+	if (!pciBusInfo[dombus]) {
+	    pciBusInfo[dombus] = xnfalloc(sizeof(pciBusInfo_t));
+	    *pciBusInfo[dombus] = *pciBusInfo[0];
+	}
+
+	return entry;
+    }
+}
+
+static PCITAG
+ia64linuxPciFindNext(void)
+{
+    struct dirent *entry;
+    char file[40];
+    static int bus, dev, func, domain;
+    PCITAG pciDeviceTag;
+    CARD32 devid;
+
+    for (;;) {
+	if (devdir == NULL) {
+	    entry = getnextbus(&domain, &bus);
+	    if (!entry)
+		return PCI_NOT_FOUND;
+	    snprintf(file, 40, "/proc/bus/pci/%s", entry->d_name);
+	    devdir = opendir(file);
+	    if (!devdir)
+		return PCI_NOT_FOUND;
+
+	}
+
+	entry = readdir(devdir);
+
+	if (entry == NULL) {
+	    closedir(devdir);
+	    devdir = NULL;
+	    continue;
+	}
+
+	if (sscanf(entry->d_name, "%02x . %01x", &dev, &func) == 2) {
+	    pciDeviceTag = PCI_MAKE_TAG(PCI_MAKE_BUS(domain, bus), dev, func);
+	    devid = pciReadLong(pciDeviceTag, PCI_ID_REG);
+	    if ((devid & pciDevidMask) == pciDevid)
+		/* Yes - Return it.  Otherwise, next device */
+		return pciDeviceTag;
+	}
+    }
+}
+#endif
+
