@@ -747,7 +747,8 @@ typedef enum {
     FLAG_HANDLE_SPECIAL_KEYS,
     FLAG_RANDR,
     FLAG_AIGLX,
-    FLAG_IGNORE_ABI
+    FLAG_IGNORE_ABI,
+    FLAG_ALLOW_EMPTY_INPUT,
 } FlagValues;
    
 static OptionInfoRec FlagOptions[] = {
@@ -819,6 +820,8 @@ static OptionInfoRec FlagOptions[] = {
 	{0}, FALSE },
   { FLAG_AIGLX,			"AIGLX",			OPTV_BOOLEAN,
 	{0}, FALSE },
+  { FLAG_ALLOW_EMPTY_INPUT,     "AllowEmptyInput",              OPTV_BOOLEAN,
+        {0}, FALSE },
   { FLAG_IGNORE_ABI,			"IgnoreABI",			OPTV_BOOLEAN,
 	{0}, FALSE },
   { -1,				NULL,				OPTV_NONE,
@@ -1015,6 +1018,10 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 	xf86Info.aiglx = value;
 	xf86Info.aiglxFrom = X_CONFIG;
     }
+
+    xf86Info.allowEmptyInput = FALSE;
+    if (xf86GetOptValBool(FlagOptions, FLAG_ALLOW_EMPTY_INPUT, &value))
+        xf86Info.allowEmptyInput = TRUE;
 
 /* Make sure that timers don't overflow CARD32's after multiplying */
 #define MAX_TIME_IN_MIN (0x7fffffff / MILLI_PER_MIN)
@@ -1657,8 +1664,6 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
     servlayoutp->options = conf_layout->lay_option_lst;
     from = X_DEFAULT;
 
-    if (!checkCoreInputDevices(servlayoutp, FALSE))
-	return FALSE;
     return TRUE;
 }
 
@@ -1717,7 +1722,7 @@ configImpliedLayout(serverLayoutPtr servlayoutp, XF86ConfScreenPtr conf_screen)
     indp = xnfalloc(sizeof(IDevRec));
     indp->identifier = NULL;
     servlayoutp->inputs = indp;
-    if (!checkCoreInputDevices(servlayoutp, TRUE))
+    if (!xf86Info.allowEmptyInput && checkCoreInputDevices(servlayoutp, TRUE))
 	return FALSE;
     
     return TRUE;
@@ -2303,6 +2308,12 @@ addDefaultModes(MonPtr monitorp)
     return TRUE;
 }
 
+static void
+checkInput(serverLayoutPtr layout) {
+    if (!xf86Info.allowEmptyInput)
+        checkCoreInputDevices(layout, FALSE);
+}
+
 /*
  * load the config file and fill the global data structure
  */
@@ -2423,6 +2434,8 @@ xf86HandleConfigFile(Bool autoconfig)
              ErrorF ("Problem when converting the config data structures\n");
              return CONFIG_PARSE_ERROR;
     }
+
+    checkInput(&xf86ConfigLayout);
 
     /*
      * Handle some command line options that can override some of the

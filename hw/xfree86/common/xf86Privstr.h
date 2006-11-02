@@ -133,6 +133,9 @@ typedef struct {
 	Bool		allowClosedown;
 	ServerGrabInfoRec server;
     } grabInfo;
+
+    Bool        allowEmptyInput;  /* Allow the server to start with no input
+                                   * devices. */
 } xf86InfoRec, *xf86InfoPtr;
 
 #ifdef DPMSExtension
