@@ -32,16 +32,3 @@ liblinux_a_SOURCES = 	\
 	$(KDRIVE_HW_SOURCES) \
 	$(TSLIB_C)	\
 	$(TS_C)
-
-liblinux_a_DEPENDENCIES = \
-	agp.c		\
-	bus.c		\
-	keyboard.c	\
-	linux.c		\
-	mouse.c		\
-	evdev.c		\
-	ms.c		\
-	ps2.c		\
-	$(TSLIB_C)	\
-	$(TS_C)
-

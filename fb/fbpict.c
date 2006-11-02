@@ -930,9 +930,8 @@ fbComposite (CARD8      op,
     case PictOpOver:
 	if (pMask)
 	{
-	    if (srcRepeat &&
-		pSrc->pDrawable->width == 1 &&
-		pSrc->pDrawable->height == 1)
+	    if (fbCanGetSolid(pSrc) &&
+		!maskRepeat)
 	    {
 		srcRepeat = FALSE;
 		if (PICT_FORMAT_COLOR(pSrc->format)) {
@@ -1044,7 +1043,7 @@ fbComposite (CARD8      op,
 	    {
 		if (pSrc->pDrawable == pMask->pDrawable &&
 		    xSrc == xMask && ySrc == yMask &&
-		    !pMask->componentAlpha)
+		    !pMask->componentAlpha && !maskRepeat)
 		{
 		    /* source == mask: non-premultiplied data */
 		    switch (pSrc->format) {
@@ -1108,9 +1107,7 @@ fbComposite (CARD8      op,
 		else
 		{
 		    /* non-repeating source, repeating mask => translucent window */
-		    if (maskRepeat &&
-			pMask->pDrawable->width == 1 &&
-			pMask->pDrawable->height == 1)
+		    if (fbCanGetSolid(pMask))
 		    {
 			if (pSrc->format == PICT_x8r8g8b8 &&
 			    pDst->format == PICT_x8r8g8b8 &&
@@ -1127,9 +1124,7 @@ fbComposite (CARD8      op,
 	}
 	else /* no mask */
 	{
-	    if (srcRepeat &&
-		pSrc->pDrawable->width == 1 &&
-		pSrc->pDrawable->height == 1)
+	    if (fbCanGetSolid(pSrc))
 	    {
 		/* no mask and repeating source */
 		switch (pSrc->format) {

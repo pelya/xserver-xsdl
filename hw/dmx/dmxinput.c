@@ -53,7 +53,7 @@
 /** Returns TRUE if the key is a valid modifier.  For PC-class
  * keyboards, all keys can be used as modifiers, so return TRUE
  * always. */
-Bool LegalModifier(unsigned int key, DevicePtr pDev)
+Bool LegalModifier(unsigned int key, DeviceIntPtr pDev)
 {
     return TRUE;
 }

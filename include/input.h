@@ -59,6 +59,10 @@ SOFTWARE.
 #define DEVICE_OFF	2
 #define DEVICE_CLOSE	3
 
+#define POINTER_RELATIVE (1 << 1)
+#define POINTER_ABSOLUTE (1 << 2)
+#define POINTER_ACCELERATE (1 << 3)
+
 #define MAP_LENGTH	256
 #define DOWN_LENGTH	32	/* 256/8 => number of bytes to hold 256 bits */
 #define NullGrab ((GrabPtr)NULL)
@@ -161,11 +165,22 @@ extern void ResetDevicePrivateIndex(void);
 extern KeybdCtrl	defaultKeyboardControl;
 extern PtrCtrl		defaultPointerControl;
 
+typedef struct _InputOption {
+    char                *key;
+    char                *value;
+    struct _InputOption *next;
+} InputOption;
+
+extern void InitCoreDevices(void);
+
 extern DeviceIntPtr AddInputDevice(
     DeviceProc /*deviceProc*/,
     Bool /*autoStart*/);
 
 extern Bool EnableDevice(
+    DeviceIntPtr /*device*/);
+
+extern Bool ActivateDevice(
     DeviceIntPtr /*device*/);
 
 extern Bool DisableDevice(
@@ -175,7 +190,7 @@ extern int InitAndStartDevices(void);
 
 extern void CloseDownDevices(void);
 
-extern void RemoveDevice(
+extern int RemoveDevice(
     DeviceIntPtr /*dev*/);
 
 extern int NumMotionEvents(void);
@@ -224,6 +239,9 @@ extern Bool InitValuatorClassDeviceStruct(
     ValuatorMotionProcPtr /* motionProc */,
     int /*numMotionEvents*/,
     int /*mode*/);
+
+extern Bool InitAbsoluteClassDeviceStruct(
+    DeviceIntPtr /*device*/);
 
 extern Bool InitFocusClassDeviceStruct(
     DeviceIntPtr /*device*/);
@@ -294,7 +312,8 @@ extern Bool InitPointerDeviceStruct(
     int /*numButtons*/,
     ValuatorMotionProcPtr /*motionProc*/,
     PtrCtrlProcPtr /*controlProc*/,
-    int /*numMotionEvents*/);
+    int /*numMotionEvents*/,
+    int /*numAxes*/);
 
 extern Bool InitKeyboardDeviceStruct(
     DevicePtr /*device*/,
@@ -356,12 +375,75 @@ extern void CoreProcessKeyboardEvent(
 
 extern Bool LegalModifier(
     unsigned int /*key*/, 
-    DevicePtr /*pDev*/);
+    DeviceIntPtr /*pDev*/);
 
 extern void ProcessInputEvents(void);
 
 extern void InitInput(
     int  /*argc*/,
     char ** /*argv*/);
+
+extern int GetMaximumEventsNum(void);
+
+extern int GetPointerEvents(
+    xEvent *events,
+    DeviceIntPtr pDev,
+    int type,
+    int buttons,
+    int flags,
+    int first_valuator,
+    int num_valuators,
+    int *valuators);
+
+extern int GetKeyboardEvents(
+    xEvent *events,
+    DeviceIntPtr pDev,
+    int type,
+    int key_code);
+
+extern int GetKeyboardValuatorEvents(
+    xEvent *events,
+    DeviceIntPtr pDev,
+    int type,
+    int key_code,
+    int first_valuator,
+    int num_valuator,
+    int *valuators);
+
+extern int GetProximityEvents(
+    xEvent *events,
+    DeviceIntPtr pDev,
+    int type,
+    int first_valuator,
+    int num_valuators,
+    int *valuators);
+
+extern int GetMotionHistorySize(
+    void);
+
+extern void AllocateMotionHistory(
+    DeviceIntPtr pDev);
+
+extern int GetMotionHistory(
+    DeviceIntPtr pDev,
+    xTimecoord *buff,
+    unsigned long start,
+    unsigned long stop,
+    ScreenPtr pScreen);
+
+extern void SwitchCoreKeyboard(DeviceIntPtr pDev);
+extern void SwitchCorePointer(DeviceIntPtr pDev);
+
+extern DeviceIntPtr LookupDeviceIntRec(
+    CARD8 deviceid);
+
+/* Implemented by the DDX. */
+extern int NewInputDeviceRequest(
+    InputOption *options);
+
+extern void DDXRingBell(
+    int volume,
+    int pitch,
+    int duration);
 
 #endif /* INPUT_H */

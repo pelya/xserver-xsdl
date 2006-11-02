@@ -26,10 +26,6 @@ if GLX
 GLX_DIR=GL
 endif
 
-if XINPUT
-XINPUT_DIR=Xi
-endif
-
 if DBE
 DBE_DIR=dbe
 endif
@@ -45,7 +41,7 @@ SUBDIRS = \
 	os \
 	randr \
 	render  \
-	$(XINPUT_DIR) \
+	Xi \
 	xkb \
 	$(DBE_DIR) \
 	$(MFB_DIR) \
@@ -59,6 +55,7 @@ SUBDIRS = \
 	$(COMPOSITE_DIR) \
 	$(GLX_DIR) \
 	exa \
+	config \
 	hw
 
 aclocaldir = $(datadir)/aclocal

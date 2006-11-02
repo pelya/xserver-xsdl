@@ -189,7 +189,7 @@ InitInput(
 Bool
 LegalModifier(
      unsigned int key,
-     DevicePtr dev)
+     DeviceIntPtr dev)
 {
     return TRUE;
 }

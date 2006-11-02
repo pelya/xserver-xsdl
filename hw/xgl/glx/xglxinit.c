@@ -81,7 +81,7 @@ InitOutput (ScreenInfo *pScreenInfo,
 
 Bool
 LegalModifier (unsigned int key,
-	       DevicePtr    pDev)
+	       DeviceIntPtr pDev)
 {
     return xglxLegalModifier (key, pDev);
 }

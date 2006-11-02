@@ -36,6 +36,7 @@
 #define _XF86DRM_H_
 
 #include <drm.h>
+#include <xf86mm.h>
 
 				/* Defaults, if nothing set in xf86config */
 #define DRM_DEV_UID	 0

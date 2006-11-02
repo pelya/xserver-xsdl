@@ -130,9 +130,9 @@ fakeRandRInit (ScreenPtr pScreen);
 
 #endif
 
-extern KdMouseFuncs FakeMouseFuncs;
+extern KdPointerDriver FakePointerDriver;
 
-extern KdKeyboardFuncs	FakeKeyboardFuncs;
+extern KdKeyboardDriver	FakeKeyboardDriver;
 
 extern KdOsFuncs   FakeOsFuncs;
 

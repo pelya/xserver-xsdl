@@ -206,10 +206,10 @@ MouseWriteBytes (int fd, unsigned char *c, int n, int timeout)
 
 typedef struct _kmouseProt {
     char	    *name;
-    Bool	    (*Complete) (KdMouseInfo *mi, unsigned char *ev, int ne);
-    int		    (*Valid) (KdMouseInfo *mi, unsigned char *ev, int ne);
-    Bool	    (*Parse) (KdMouseInfo *mi, unsigned char *ev, int ne);
-    Bool	    (*Init) (KdMouseInfo *mi);
+    Bool	    (*Complete) (KdPointerInfo *pi, unsigned char *ev, int ne);
+    int		    (*Valid) (KdPointerInfo *pi, unsigned char *ev, int ne);
+    Bool	    (*Parse) (KdPointerInfo *pi, unsigned char *ev, int ne);
+    Bool	    (*Init) (KdPointerInfo *pi);
     unsigned char   headerMask, headerValid;
     unsigned char   dataMask, dataValid;
     Bool	    tty;
@@ -238,9 +238,9 @@ typedef struct _kmouse {
     unsigned long	state;	/* private per protocol, init to prot->state */
 } Kmouse;
     
-static int mouseValid (KdMouseInfo *mi, unsigned char *ev, int ne)
+static int mouseValid (KdPointerInfo *pi, unsigned char *ev, int ne)
 {
-    Kmouse		*km = mi->driver;
+    Kmouse		*km = pi->driverPrivate;
     const KmouseProt	*prot = km->prot;
     int	    i;
 
@@ -255,24 +255,24 @@ static int mouseValid (KdMouseInfo *mi, unsigned char *ev, int ne)
     return 0;
 }
 
-static Bool threeComplete (KdMouseInfo *mi, unsigned char *ev, int ne)
+static Bool threeComplete (KdPointerInfo *pi, unsigned char *ev, int ne)
 {
     return ne == 3;
 }
 
-static Bool fourComplete (KdMouseInfo *mi, unsigned char *ev, int ne)
+static Bool fourComplete (KdPointerInfo *pi, unsigned char *ev, int ne)
 {
     return ne == 4;
 }
 
-static Bool fiveComplete (KdMouseInfo *mi, unsigned char *ev, int ne)
+static Bool fiveComplete (KdPointerInfo *pi, unsigned char *ev, int ne)
 {
     return ne == 5;
 }
 
-static Bool MouseReasonable (KdMouseInfo *mi, unsigned long flags, int dx, int dy)
+static Bool MouseReasonable (KdPointerInfo *pi, unsigned long flags, int dx, int dy)
 {
-    Kmouse		*km = mi->driver;
+    Kmouse		*km = pi->driverPrivate;
 
     if (km->stage == MouseWorking) 
 	return TRUE;
@@ -296,9 +296,9 @@ static Bool MouseReasonable (KdMouseInfo *mi, unsigned long flags, int dx, int d
 /*
  * Standard PS/2 mouse protocol
  */
-static Bool ps2Parse (KdMouseInfo *mi, unsigned char *ev, int ne)
+static Bool ps2Parse (KdPointerInfo *pi, unsigned char *ev, int ne)
 {
-    Kmouse	    *km = mi->driver;
+    Kmouse	    *km = pi->driverPrivate;
     int		    dx, dy, dz;
     unsigned long   flags;
     unsigned long   flagsrelease = 0;
@@ -333,21 +333,21 @@ static Bool ps2Parse (KdMouseInfo *mi, unsigned char *ev, int ne)
     if (ev[0] & 0x20)
 	dy -= 256;
     dy = -dy;
-    if (!MouseReasonable (mi, flags, dx, dy))
+    if (!MouseReasonable (pi, flags, dx, dy))
 	return FALSE;
     if (km->stage == MouseWorking)
     {
-	KdEnqueueMouseEvent (mi, flags, dx, dy);
+	KdEnqueuePointerEvent (pi, flags, dx, dy, 0);
 	if (flagsrelease)
 	{
 	    flags &= ~flagsrelease;
-	    KdEnqueueMouseEvent (mi, flags, dx, dy);
+	    KdEnqueuePointerEvent (pi, flags, dx, dy, 0);
 	}
     }
     return TRUE;
 }
 
-static Bool ps2Init (KdMouseInfo *mi);
+static Bool ps2Init (KdPointerInfo *pi);
 
 static const KmouseProt ps2Prot = {
     "ps/2",
@@ -450,9 +450,9 @@ static unsigned char	intelli_init[] = {
 #define NINIT_INTELLI	3
 
 static int
-ps2SkipInit (KdMouseInfo *mi, int ninit, Bool ret_next)
+ps2SkipInit (KdPointerInfo *pi, int ninit, Bool ret_next)
 {
-    Kmouse  *km = mi->driver;
+    Kmouse  *km = pi->driverPrivate;
     int	    c = -1;
     int	    skipping;
     Bool    waiting;
@@ -481,9 +481,9 @@ ps2SkipInit (KdMouseInfo *mi, int ninit, Bool ret_next)
 }
 
 static Bool
-ps2Init (KdMouseInfo *mi)
+ps2Init (KdPointerInfo *pi)
 {
-    Kmouse	    *km = mi->driver;
+    Kmouse	    *km = pi->driverPrivate;
     int		    skipping;
     Bool	    waiting;
     int		    id;
@@ -499,7 +499,7 @@ ps2Init (KdMouseInfo *mi)
 	return FALSE;
     skipping = 0;
     waiting = FALSE;
-    id = ps2SkipInit (mi, 0, TRUE);
+    id = ps2SkipInit (pi, 0, TRUE);
     switch (id) {
     case 3:
 	init = wheel_3button_init;
@@ -524,13 +524,13 @@ ps2Init (KdMouseInfo *mi)
      * initialization string.  Make sure any partial event is
      * skipped
      */
-    (void) ps2SkipInit (mi, ninit, FALSE);
+    (void) ps2SkipInit (pi, ninit, FALSE);
     return TRUE;
 }
 
-static Bool busParse (KdMouseInfo *mi, unsigned char *ev, int ne)
+static Bool busParse (KdPointerInfo *pi, unsigned char *ev, int ne)
 {
-    Kmouse	    *km = mi->driver;
+    Kmouse	    *km = pi->driverPrivate;
     int		    dx, dy;
     unsigned long   flags;
     
@@ -543,10 +543,10 @@ static Bool busParse (KdMouseInfo *mi, unsigned char *ev, int ne)
 	flags |= KD_BUTTON_2;
     if ((ev[0] & 1) == 0)
 	flags |= KD_BUTTON_3;
-    if (!MouseReasonable (mi, flags, dx, dy))
+    if (!MouseReasonable (pi, flags, dx, dy))
 	return FALSE;
     if (km->stage == MouseWorking)
-	KdEnqueueMouseEvent (mi, flags, dx, dy);
+	KdEnqueuePointerEvent (pi, flags, dx, dy, 0);
     return TRUE;
 }
 
@@ -561,9 +561,9 @@ static const KmouseProt busProt = {
  * Standard MS serial protocol, three bytes
  */
 
-static Bool msParse (KdMouseInfo *mi, unsigned char *ev, int ne)
+static Bool msParse (KdPointerInfo *pi, unsigned char *ev, int ne)
 {
-    Kmouse	    *km = mi->driver;
+    Kmouse	    *km = pi->driverPrivate;
     int		    dx, dy;
     unsigned long   flags;
 
@@ -576,10 +576,10 @@ static Bool msParse (KdMouseInfo *mi, unsigned char *ev, int ne)
 
     dx = (signed char)(((ev[0] & 0x03) << 6) | (ev[1] & 0x3F));
     dy = (signed char)(((ev[0] & 0x0C) << 4) | (ev[2] & 0x3F));
-    if (!MouseReasonable (mi, flags, dx, dy))
+    if (!MouseReasonable (pi, flags, dx, dy))
 	return FALSE;
     if (km->stage == MouseWorking)
-	KdEnqueueMouseEvent (mi, flags, dx, dy);
+	KdEnqueuePointerEvent (pi, flags, dx, dy, 0);
     return TRUE;
 }
 
@@ -600,9 +600,9 @@ static const KmouseProt msProt = {
  * first byte of a synchronized protocol stream and see if it's got
  * any bits turned on that can't occur in that fourth byte
  */
-static Bool logiComplete (KdMouseInfo *mi, unsigned char *ev, int ne)
+static Bool logiComplete (KdPointerInfo *pi, unsigned char *ev, int ne)
 {
-    Kmouse		*km = mi->driver;
+    Kmouse		*km = pi->driverPrivate;
 
     if ((ev[0] & 0x40) == 0x40)
 	return ne == 3;
@@ -611,9 +611,9 @@ static Bool logiComplete (KdMouseInfo *mi, unsigned char *ev, int ne)
     return FALSE;
 }
 
-static int logiValid (KdMouseInfo *mi, unsigned char *ev, int ne)
+static int logiValid (KdPointerInfo *pi, unsigned char *ev, int ne)
 {
-    Kmouse		*km = mi->driver;
+    Kmouse		*km = pi->driverPrivate;
     const KmouseProt	*prot = km->prot;
     int	    i;
 
@@ -632,9 +632,9 @@ static int logiValid (KdMouseInfo *mi, unsigned char *ev, int ne)
     return 0;
 }
 
-static Bool logiParse (KdMouseInfo *mi, unsigned char *ev, int ne)
+static Bool logiParse (KdPointerInfo *pi, unsigned char *ev, int ne)
 {
-    Kmouse	    *km = mi->driver;
+    Kmouse	    *km = pi->driverPrivate;
     int		    dx, dy;
     unsigned long   flags;
 
@@ -660,10 +660,10 @@ static Bool logiParse (KdMouseInfo *mi, unsigned char *ev, int ne)
 	flags |= km->state & (KD_BUTTON_1|KD_BUTTON_3);
     }
 
-    if (!MouseReasonable (mi, flags, dx, dy))
+    if (!MouseReasonable (pi, flags, dx, dy))
 	return FALSE;
     if (km->stage == MouseWorking)
-	KdEnqueueMouseEvent (mi, flags, dx, dy);
+	KdEnqueuePointerEvent (pi, flags, dx, dy, 0);
     return TRUE;
 }
 
@@ -682,9 +682,9 @@ static const KmouseProt logiProt = {
 /*
  * Mouse systems protocol, 5 bytes
  */
-static Bool mscParse (KdMouseInfo *mi, unsigned char *ev, int ne)
+static Bool mscParse (KdPointerInfo *pi, unsigned char *ev, int ne)
 {
-    Kmouse	    *km = mi->driver;
+    Kmouse	    *km = pi->driverPrivate;
     int		    dx, dy;
     unsigned long   flags;
 
@@ -699,10 +699,10 @@ static Bool mscParse (KdMouseInfo *mi, unsigned char *ev, int ne)
     dx =    (signed char)(ev[1]) + (signed char)(ev[3]);
     dy = - ((signed char)(ev[2]) + (signed char)(ev[4]));
 
-    if (!MouseReasonable (mi, flags, dx, dy))
+    if (!MouseReasonable (pi, flags, dx, dy))
 	return FALSE;
     if (km->stage == MouseWorking)
-	KdEnqueueMouseEvent (mi, flags, dx, dy);
+	KdEnqueuePointerEvent (pi, flags, dx, dy, 0);
     return TRUE;
 }
 
@@ -810,8 +810,8 @@ MouseNextProtocol (Kmouse *km)
 static void
 MouseRead (int mousePort, void *closure)
 {
-    KdMouseInfo	    *mi = closure;
-    Kmouse	    *km = mi->driver;
+    KdPointerInfo   *pi = closure;
+    Kmouse	    *km = pi->driverPrivate;
     unsigned char   event[MAX_MOUSE];
     int		    ne;
     int		    c;
@@ -835,7 +835,7 @@ MouseRead (int mousePort, void *closure)
 	    break;
 	}
 	event[ne++] = c;
-	i = (*km->prot->Valid) (mi, event, ne);
+	i = (*km->prot->Valid) (pi, event, ne);
 	if (i != 0)
 	{
 #ifdef DEBUG
@@ -867,9 +867,9 @@ MouseRead (int mousePort, void *closure)
 	}
 	else
 	{
-	    if ((*km->prot->Complete) (mi, event, ne))
+	    if ((*km->prot->Complete) (pi, event, ne))
 	    {
-		if ((*km->prot->Parse) (mi, event, ne))
+		if ((*km->prot->Parse) (pi, event, ne))
 		{
 		    switch (km->stage)
 		    {
@@ -896,7 +896,7 @@ MouseRead (int mousePort, void *closure)
 			    km->invalid = 0;
 			    km->tested = 0;
 			    km->valid = 0;
-			    if (km->prot->Init && !(*km->prot->Init) (mi))
+			    if (km->prot->Init && !(*km->prot->Init) (pi))
 				km->stage = MouseBroken;
 			}
 			break;
@@ -923,9 +923,9 @@ MouseRead (int mousePort, void *closure)
 int MouseInputType;
 
 char *kdefaultMouse[] =  {
+    "/dev/input/mice",
     "/dev/mouse",
     "/dev/psaux",
-    "/dev/input/mice",
     "/dev/adbmouse",
     "/dev/ttyS0",
     "/dev/ttyS1",
@@ -933,81 +933,97 @@ char *kdefaultMouse[] =  {
 
 #define NUM_DEFAULT_MOUSE    (sizeof (kdefaultMouse) / sizeof (kdefaultMouse[0]))
 
-static Bool
-MouseInit (void)
+static Status
+MouseInit (KdPointerInfo *pi)
 {
     int		i;
     int		fd;
     Kmouse	*km;
-    KdMouseInfo	*mi, *next;
-    int		n = 0;
-    char	*prot;
 
-    if (!MouseInputType)
-	MouseInputType = KdAllocInputType ();
-
-    for (mi = kdMouseInfo; mi; mi = next)
-    {
-	next = mi->next;
-	prot = mi->prot;
-	if (mi->inputType)
-	    continue;
-	if (!mi->name)
-	{
-	    for (i = 0; i < NUM_DEFAULT_MOUSE; i++)
-	    {
-		fd = open (kdefaultMouse[i], 2);
-		if (fd >= 0)
-		{
-		    mi->name = KdSaveString (kdefaultMouse[i]);
-		    break;
-		}
-	    }
-	}
-	else
-	    fd = open (mi->name, 2);
-	    
-	if (fd >= 0)
-	{
-	    km = (Kmouse *) xalloc (sizeof (Kmouse));
-	    if (km)
-	    {
-		km->iob.fd = fd;
-		km->iob.avail = km->iob.used = 0;
-		km->prot = 0;
-		km->i_prot = 0;
-		km->tty = isatty (fd);
-		mi->driver = km;
-		mi->inputType = MouseInputType;
-		MouseFirstProtocol (km, mi->prot);
-		if (KdRegisterFd (MouseInputType, fd, MouseRead, (void *) mi))
-		    n++;
-	    }
-	    else
-		close (fd);
-	}
+    if (!pi)
+        return BadImplementation;
+    
+    if (!pi->path || strcmp(pi->path, "auto") == 0) {
+        for (i = 0; i < NUM_DEFAULT_MOUSE; i++) {
+            fd = open (kdefaultMouse[i], 2);
+            if (fd >= 0) {
+                pi->path = KdSaveString (kdefaultMouse[i]);
+                break;
+            }
+        }
     }
-    return TRUE;
+    else {
+        fd = open (pi->path, 2);
+    }
+	    
+    if (fd < 0)
+        return BadMatch;
+
+    close(fd);
+
+    km = (Kmouse *) xalloc (sizeof (Kmouse));
+    if (km) {
+        km->iob.avail = km->iob.used = 0;
+        MouseFirstProtocol(km, "exps/2");
+        km->i_prot = 0;
+        km->tty = isatty (fd);
+        km->iob.fd = -1;
+        pi->driverPrivate = km;
+    }
+    else {
+        close (fd);
+        return BadAlloc;
+    }
+
+    return Success;
+}
+
+static Status
+MouseEnable (KdPointerInfo *pi)
+{
+    Kmouse *km;
+
+    if (!pi || !pi->driverPrivate || !pi->path)
+        return BadImplementation;
+
+    km = pi->driverPrivate;
+
+    km->iob.fd = open(pi->path, 2);
+    if (km->iob.fd < 0)
+        return BadMatch;
+
+    if (!KdRegisterFd (km->iob.fd, MouseRead, pi))
+    {
+        close(km->iob.fd);
+        return BadAlloc;
+    }
+
+    return Success;
 }
 
 static void
-MouseFini (void)
+MouseDisable (KdPointerInfo *pi)
 {
-    KdMouseInfo	*mi;
-
-    KdUnregisterFds (MouseInputType, TRUE);
-    for (mi = kdMouseInfo; mi; mi = mi->next)
-    {
-	if (mi->inputType == MouseInputType)
-	{
-	    xfree (mi->driver);
-	    mi->driver = 0;
-	    mi->inputType = 0;
-	}
-    }
+    Kmouse *km;
+    if (!pi || !pi->driverPrivate)
+        return;
+    
+    km = pi->driverPrivate;
+    KdUnregisterFd (pi, km->iob.fd, TRUE);
 }
 
-KdMouseFuncs LinuxMouseFuncs = {
+static void
+MouseFini (KdPointerInfo *pi)
+{
+    xfree (pi->driverPrivate);
+    pi->driverPrivate = NULL;
+}
+
+KdPointerDriver LinuxMouseDriver = {
+    "mouse",
     MouseInit,
+    MouseEnable,
+    MouseDisable,
     MouseFini,
+    NULL,
 };

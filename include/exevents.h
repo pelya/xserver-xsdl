@@ -179,4 +179,17 @@ extern int DeviceEventSuppressForWindow(
 	Mask                   /* mask */,
 	int                    /* maskndx */);
 
+void FindInterestedChildren(
+        DeviceIntPtr           /* dev */,
+        WindowPtr              /* p1 */,
+        Mask                   /* mask */,
+        xEvent *               /* ev */,
+        int                    /* count */);
+
+void SendEventToAllWindows(
+        DeviceIntPtr           /* dev */,
+        Mask                   /* mask */,
+        xEvent *               /* ev */,
+        int                    /* count */);
+
 #endif /* EXEVENTS_H */
