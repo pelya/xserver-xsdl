@@ -5720,7 +5720,6 @@ char *			str;
 	wanted&= ~XkbXI_ButtonActionsMask;
     if ((!dev->kbdfeed)&&(!dev->leds))
 	wanted&= ~XkbXI_IndicatorsMask;
-    wanted&= ~XkbXI_KeyboardsMask;
 
     nameLen= XkbSizeCountedString(dev->name);
     bzero((char *)&rep,SIZEOF(xkbGetDeviceInfoReply));
@@ -5729,8 +5728,8 @@ char *			str;
     rep.sequenceNumber = client->sequence;
     rep.length = nameLen/4;
     rep.present = wanted;
-    rep.supported = XkbXI_AllDeviceFeaturesMask&(~XkbXI_KeyboardsMask);
-    rep.unsupported = XkbXI_KeyboardsMask;
+    rep.supported = XkbXI_AllDeviceFeaturesMask;
+    rep.unsupported = 0;
     rep.firstBtnWanted = rep.nBtnsWanted = 0;
     rep.firstBtnRtrn = rep.nBtnsRtrn = 0;
     if (dev->button)
@@ -6044,7 +6043,7 @@ xkbExtensionDeviceNotify ed;
     change= stuff->change;
 
     CHK_ANY_DEVICE(dev,stuff->deviceSpec);
-    CHK_MASK_LEGAL(0x01,change,(XkbXI_AllFeaturesMask&(~XkbXI_KeyboardsMask)));
+    CHK_MASK_LEGAL(0x01,change,XkbXI_AllFeaturesMask);
 
     wire= (char *)&stuff[1];
     if (change&XkbXI_ButtonActionsMask) {
