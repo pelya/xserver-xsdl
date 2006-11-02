@@ -165,6 +165,11 @@ extern __const__ int _nfiles;
 #include <netdnet/dn.h>
 #endif /* DNETCONN */
 
+#ifdef HAS_GETPEERUCRED
+# include <ucred.h>
+# include <zone.h>
+#endif
+
 int lastfdesc;			/* maximum file descriptor */
 
 fd_set WellKnownConnections;	/* Listener mask */
@@ -549,6 +554,13 @@ AuthAudit (ClientPtr client, Bool letin,
 {
     char addr[128];
     char *out = addr;
+    int client_uid;
+    char client_uid_string[64];
+#ifdef HAS_GETPEERUCRED
+    ucred_t *peercred = NULL;
+    pid_t client_pid = -1;
+    zoneid_t client_zid = -1;
+#endif
 
     if (!len)
         strcpy(out, "local host");
@@ -585,14 +597,36 @@ AuthAudit (ClientPtr client, Bool letin,
 	default:
 	    strcpy(out, "unknown address");
 	}
+
+#ifdef HAS_GETPEERUCRED
+    if (getpeerucred(((OsCommPtr)client->osPrivate)->fd, &peercred) >= 0) {
+	client_uid = ucred_geteuid(peercred);
+	client_pid = ucred_getpid(peercred);
+	client_zid = ucred_getzoneid(peercred);
+
+	ucred_free(peercred);
+	snprintf(client_uid_string, sizeof(client_uid_string),
+		 " (uid %ld, pid %ld, zone %ld)",
+		 (long) client_uid, (long) client_pid, (long) client_zid);
+    }
+#else    
+    if (LocalClientCred(client, &client_uid, NULL) != -1) {
+	snprintf(client_uid_string, sizeof(client_uid_string),
+		 " (uid %d)", client_uid);
+    }
+#endif
+    else {
+	client_uid_string[0] = '\0';
+    }
     
     if (proto_n)
-	AuditF("client %d %s from %s\n  Auth name: %.*s ID: %d\n", 
+	AuditF("client %d %s from %s%s\n  Auth name: %.*s ID: %d\n", 
 	       client->index, letin ? "connected" : "rejected", addr,
-	       (int)proto_n, auth_proto, auth_id);
+	       client_uid_string, (int)proto_n, auth_proto, auth_id);
     else 
-	AuditF("client %d %s from %s\n", 
-	       client->index, letin ? "connected" : "rejected", addr);
+	AuditF("client %d %s from %s%s\n", 
+	       client->index, letin ? "connected" : "rejected", addr,
+	       client_uid_string);
 }
 
 XID
