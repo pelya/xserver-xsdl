@@ -91,6 +91,7 @@ DIST_SUBDIRS = \
 	composite \
 	GL \
 	exa \
+	config \
 	hw
 
 # gross hack
