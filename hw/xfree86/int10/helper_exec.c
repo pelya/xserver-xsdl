@@ -469,7 +469,6 @@ Mem_wl(CARD32 addr, CARD32 val)
 
 static CARD32 PciCfg1Addr = 0;
 
-#define TAG(Cfg1Addr) (Cfg1Addr & 0xffff00)
 #define OFFSET(Cfg1Addr) (Cfg1Addr & 0xff)
 
 static int
@@ -480,7 +479,7 @@ pciCfg1in(CARD16 addr, CARD32 *val)
 	return 1;
     }
     if (addr == 0xCFC) {
-	*val = pciReadLong(TAG(PciCfg1Addr), OFFSET(PciCfg1Addr));
+	*val = pciReadLong(Int10Current->Tag, OFFSET(PciCfg1Addr));
 	return 1;
     }
     return 0;
@@ -494,7 +493,7 @@ pciCfg1out(CARD16 addr, CARD32 val)
 	return 1;
     }
     if (addr == 0xCFC) {
-	pciWriteLong(TAG(PciCfg1Addr), OFFSET(PciCfg1Addr), val);
+	pciWriteLong(Int10Current->Tag, OFFSET(PciCfg1Addr), val);
 	return 1;
     }
     return 0;
@@ -512,7 +511,7 @@ pciCfg1inw(CARD16 addr, CARD16 *val)
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	offset = addr - 0xCFC;
-	*val = pciReadWord(TAG(PciCfg1Addr), OFFSET(PciCfg1Addr) + offset);
+	*val = pciReadWord(Int10Current->Tag, OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }
     return 0;
@@ -531,7 +530,7 @@ pciCfg1outw(CARD16 addr, CARD16 val)
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	offset = addr - 0xCFC;
-	pciWriteWord(TAG(PciCfg1Addr), OFFSET(PciCfg1Addr) + offset, val);
+	pciWriteWord(Int10Current->Tag, OFFSET(PciCfg1Addr) + offset, val);
 	return 1;
     }
     return 0;
@@ -549,7 +548,7 @@ pciCfg1inb(CARD16 addr, CARD8 *val)
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	offset = addr - 0xCFC;
-	*val = pciReadByte(TAG(PciCfg1Addr), OFFSET(PciCfg1Addr) + offset);
+	*val = pciReadByte(Int10Current->Tag, OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }
     return 0;
@@ -568,7 +567,7 @@ pciCfg1outb(CARD16 addr, CARD8 val)
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	offset = addr - 0xCFC;
-	pciWriteByte(TAG(PciCfg1Addr), OFFSET(PciCfg1Addr) + offset, val);
+	pciWriteByte(Int10Current->Tag, OFFSET(PciCfg1Addr) + offset, val);
 	return 1;
     }
     return 0;
