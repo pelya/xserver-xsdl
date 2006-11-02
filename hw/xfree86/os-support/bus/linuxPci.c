@@ -731,7 +731,7 @@ xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
     struct stat st;
 
     dom  = PCI_DOM_FROM_TAG(Tag);
-    bus  = PCI_BUS_FROM_TAG(Tag);
+    bus  = PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(Tag));
     dev  = PCI_DEV_FROM_TAG(Tag);
     func = PCI_FUNC_FROM_TAG(Tag);
     sprintf(file, "/sys/devices/pci%04x:%02x/%04x:%02x:%02x.%1x/rom",
@@ -910,7 +910,7 @@ int linuxPciHandleBIOS(PCITAG Tag, int basereg, unsigned char *buf, int len)
   int sofar = 0;
 
   dom  = PCI_DOM_FROM_TAG(Tag);
-  bus  = PCI_BUS_FROM_TAG(Tag);
+  bus  = PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(Tag));
   dev  = PCI_DEV_FROM_TAG(Tag);
   func = PCI_FUNC_FROM_TAG(Tag);
   sprintf(file, "/sys/bus/pci/devices/%04x:%02x:%02x.%1x/rom",
