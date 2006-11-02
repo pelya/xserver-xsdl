@@ -149,11 +149,10 @@ int lnxPciInit(void) {
 Bool
 xf86GetPciSizeFromOS(PCITAG tag, int index, int* bits)
 {
-    unsigned int dev, fn;
     signed PCIADDR_TYPE Size;
     struct pci_dev *device;
 
-    if (index > 7)
+    if (index >= 7)
         return FALSE;
     
     if (!xf86OSLinuxPCIDevs) {
@@ -181,14 +180,14 @@ xf86GetPciSizeFromOS(PCITAG tag, int index, int* bits)
 
 
 
+#if 0
 /* Query the kvirt address (64bit) of a BAR range from TAG */
 Bool
 xf86GetPciOffsetFromOS(PCITAG tag, int index, unsigned long* bases)
 {
-    unsigned int dev, fn;
     struct pci_dev *device;
 
-    if (index > 7)
+    if (index >= 7)
         return FALSE;
 
     if (!xf86OSLinuxPCIDevs) {
@@ -208,12 +207,12 @@ xf86GetPciOffsetFromOS(PCITAG tag, int index, unsigned long* bases)
 
     return FALSE;
 }
+#endif
 
 /* Query the kvirt address (64bit) of a BAR range from size for a given TAG */
 unsigned long
 xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
 {
-    unsigned int dev, fn;
     unsigned int ndx;
     struct pci_dev *device;
 
