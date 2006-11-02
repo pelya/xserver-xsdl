@@ -887,7 +887,8 @@ xf86VTSwitch()
      */
     pInfo = xf86InputDevs;
     while (pInfo) {
-      DisableDevice(pInfo->dev);
+      if (pInfo->dev)
+          DisableDevice(pInfo->dev);
       pInfo = pInfo->next;
     }
 #endif /* !__UNIXOS2__ */
@@ -927,8 +928,10 @@ xf86VTSwitch()
 #if !defined(__UNIXOS2__)
       pInfo = xf86InputDevs;
       while (pInfo) {
-        xf86ReleaseKeys(pInfo->dev);
-	EnableDevice(pInfo->dev);
+        if (pInfo->dev) {
+            xf86ReleaseKeys(pInfo->dev);
+            EnableDevice(pInfo->dev);
+        }
 	pInfo = pInfo->next;
       }
       /* XXX HACK */
@@ -991,8 +994,10 @@ xf86VTSwitch()
 #if !defined(__UNIXOS2__)
     pInfo = xf86InputDevs;
     while (pInfo) {
-      xf86ReleaseKeys(pInfo->dev);
-      EnableDevice(pInfo->dev);
+      if (pInfo->dev) {
+          xf86ReleaseKeys(pInfo->dev);
+          EnableDevice(pInfo->dev);
+      }
       pInfo = pInfo->next;
     }
     /* XXX HACK */
