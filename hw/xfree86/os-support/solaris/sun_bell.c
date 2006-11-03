@@ -38,6 +38,7 @@
 
 #include "xf86.h"
 #include "xf86Priv.h"
+#include "xf86_OSlib.h"
 
 #define BELL_RATE       48000   /* Samples per second */
 #define BELL_HZ         50      /* Fraction of a second i.e. 1/x */
