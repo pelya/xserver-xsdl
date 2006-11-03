@@ -460,4 +460,10 @@
 /* Have a monotonic clock from clock_gettime() */
 #undef MONOTONIC_CLOCK
 
+/* Define to 1 if the DTrace Xserver provider probes should be built in */
+#undef XSERVER_DTRACE
+
+/* Path to XErrorDB file */
+#undef XERRORDB_PATH
+
 #endif /* _DIX_CONFIG_H_ */

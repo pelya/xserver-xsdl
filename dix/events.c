@@ -141,6 +141,12 @@ extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
 #include "xace.h"
 #endif
 
+#ifdef XSERVER_DTRACE
+#include <sys/types.h>
+typedef const char *string;
+#include "Xserver-dtrace.h"
+#endif
+
 #ifdef XEVIE
 extern WindowPtr *WindowTable;
 extern int       xevieFlag;
@@ -4553,6 +4559,14 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 	eventinfo.count = count;
 	CallCallbacks(&EventCallback, (pointer)&eventinfo);
     }
+#ifdef XSERVER_DTRACE
+    if (XSERVER_SEND_EVENT_ENABLED()) {
+	for (i = 0; i < count; i++)
+	{
+	    XSERVER_SEND_EVENT(pClient->index, events[i].u.u.type, &events[i]);
+	}
+    }
+#endif	
     if(pClient->swapped)
     {
 	for(i = 0; i < count; i++)

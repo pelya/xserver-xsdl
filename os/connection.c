@@ -170,6 +170,13 @@ extern __const__ int _nfiles;
 # include <zone.h>
 #endif
 
+#ifdef XSERVER_DTRACE
+# include <sys/types.h>
+typedef const char *string;
+# include "../dix/Xserver-dtrace.h"
+# include <ucred.h>
+#endif
+
 int lastfdesc;			/* maximum file descriptor */
 
 fd_set WellKnownConnections;	/* Listener mask */
@@ -619,14 +626,22 @@ AuthAudit (ClientPtr client, Bool letin,
 	client_uid_string[0] = '\0';
     }
     
-    if (proto_n)
+#ifdef XSERVER_DTRACE
+    XSERVER_CLIENT_AUTH(client->index, addr, client_pid, client_zid);
+    if (auditTrailLevel > 1) {
+#endif
+      if (proto_n)
 	AuditF("client %d %s from %s%s\n  Auth name: %.*s ID: %d\n", 
 	       client->index, letin ? "connected" : "rejected", addr,
 	       client_uid_string, (int)proto_n, auth_proto, auth_id);
-    else 
+      else 
 	AuditF("client %d %s from %s%s\n", 
 	       client->index, letin ? "connected" : "rejected", addr,
 	       client_uid_string);
+
+#ifdef XSERVER_DTRACE
+    }
+#endif	
 }
 
 XID
@@ -693,7 +708,11 @@ ClientAuthorized(ClientPtr client,
 	    else
 	    {
 		auth_id = (XID) 0;
+#ifdef XSERVER_DTRACE
+		if ((auditTrailLevel > 1) || XSERVER_CLIENT_AUTH_ENABLED())
+#else
 		if (auditTrailLevel > 1)
+#endif
 		    AuthAudit(client, TRUE,
 			(struct sockaddr *) from, fromlen,
 			proto_n, auth_proto, auth_id);
@@ -709,7 +728,11 @@ ClientAuthorized(ClientPtr client,
 		return "Client is not authorized to connect to Server";
 	}
     }
+#ifdef XSERVER_DTRACE
+    else if ((auditTrailLevel > 1) || XSERVER_CLIENT_AUTH_ENABLED())
+#else
     else if (auditTrailLevel > 1)
+#endif
     {
 	if (_XSERVTransGetPeerAddr (trans_conn,
 	    &family, &fromlen, &from) != -1)
@@ -787,6 +810,9 @@ AllocNewConnection (XtransConnInfo trans_conn, int fd, CARD32 conn_time)
     ErrorF("AllocNewConnection: client index = %d, socket fd = %d\n",
 	   client->index, fd);
 #endif
+#ifdef XSERVER_DTRACE
+    XSERVER_CLIENT_CONNECT(client->index, fd);
+#endif	
 
     return client;
 }

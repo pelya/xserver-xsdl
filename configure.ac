@@ -66,6 +66,26 @@ AC_PROG_YACC
 AC_SYS_LARGEFILE
 XORG_PROG_RAWCPP
 
+dnl Check for dtrace program (needed to build Xserver dtrace probes)
+AC_ARG_WITH(dtrace, AS_HELP_STRING([--with-dtrace=PATH],
+	     [Enable dtrace probes (default: enabled if dtrace found)]),
+	     [WDTRACE=$withval], [WDTRACE=auto])
+if test "x$WDTRACE" = "xyes" -o "x$WDTRACE" = "xauto" ; then
+	AC_PATH_PROG(DTRACE, [dtrace], [not_found], [$PATH:/usr/sbin])
+	if test "x$DTRACE" = "xnot_found" ; then
+		if test "x$WDTRACE" = "xyes" ; then
+			AC_MSG_FAILURE([dtrace requested but not found])
+		fi
+		WDTRACE="no"
+	fi
+fi
+if test "x$WDTRACE" != "xno" ; then
+  AC_DEFINE(XSERVER_DTRACE, 1, 
+      [Define to 1 if the DTrace Xserver provider probes should be built in.])
+fi
+AM_CONDITIONAL(XSERVER_DTRACE, [test "x$WDTRACE" != "xno"])
+AC_DEFINE_DIR(XERRORDB_PATH, libdir/XErrorDB, [Path to XErrorDB file])
+
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h])
@@ -873,8 +893,13 @@ AC_DEFINE(XCMISC, 1, [Support XCMisc extension])
 AC_DEFINE(BIGREQS, 1, [Support BigRequests extension])
 AC_DEFINE(PIXPRIV, 1, [Support pixmap privates])
 
-DIX_LIB='$(top_builddir)/dix/libdix.la'
-OS_LIB='$(top_builddir)/os/libos.la'
+if test "x$WDTRACE" != "xno" ; then
+  DIX_LIB='$(top_builddir)/dix/dix.O'
+  OS_LIB='$(top_builddir)/os/os.O'
+else
+  DIX_LIB='$(top_builddir)/dix/libdix.la'
+  OS_LIB='$(top_builddir)/os/libos.la'
+fi
 CWRAP_LIB='$(top_builddir)/os/libcwrapper.la'
 MI_LIB='$(top_builddir)/mi/libmi.la'
 MINIMI_LIB='$(top_builddir)/mi/libminimi.la'
