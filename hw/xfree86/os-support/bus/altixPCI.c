@@ -41,13 +41,14 @@ static pciDevice *get_dev_on_bus(unsigned int segnum, unsigned int busnum)
 static void get_bridge_info(pciBusInfo_t *bus_info, pciDevice *pdev)
 {
 	unsigned int parent_segnum, segnum = PCI_DOM_FROM_TAG(pdev->tag);
-	unsigned int parent_busnum, busnum = pdev->busnum;
+	unsigned int parent_busnum, parent_nodombus, busnum = pdev->busnum;
+	unsigned int nodombus = PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(pdev->tag));
 	char bridge_path[] = "/sys/class/pci_bus/0000:00/bridge";
 	char bridge_target[] = "../../../devices/pci0000:00";
 
 	/* Path to this device's bridge */
 	sprintf(bridge_path, "/sys/class/pci_bus/%04x:%02x/bridge", segnum,
-		busnum);
+		nodombus);
 
 	if (readlink(bridge_path, bridge_target, strlen(bridge_target)) < 0) {
 		perror("failed to dereference bridge link");
@@ -56,7 +57,9 @@ static void get_bridge_info(pciBusInfo_t *bus_info, pciDevice *pdev)
 	}
 
 	sscanf(bridge_target, "../../../devices/pci%04x:%02x", &parent_segnum,
-	       &parent_busnum);
+	       &parent_nodombus);
+
+	parent_busnum = PCI_MAKE_BUS(parent_segnum, parent_nodombus);
 
 	/*
 	 * If there's no bridge or the bridge points to the device, use

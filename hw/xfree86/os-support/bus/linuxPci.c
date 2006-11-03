@@ -54,6 +54,7 @@
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
 #include "Pci.h"
+#include <dirent.h>
 
 /*
  * linux platform specific PCI access functions -- using /proc/bus/pci
@@ -73,6 +74,7 @@ static void linuxPciCfgWriteByte(PCITAG tag, int off, CARD8 val);
 static CARD16 linuxPciCfgReadWord(PCITAG tag, int off);
 static void linuxPciCfgWriteWord(PCITAG tag, int off, CARD16 val);
 static int linuxPciHandleBIOS(PCITAG Tag, int basereg, unsigned char *buf, int len);
+static Bool linuxDomainSupport(void);
 
 static pciBusFuncs_t linuxFuncs0 = {
 /* pciReadLong      */	linuxPciCfgRead,
@@ -116,6 +118,8 @@ static pciBusInfo_t linuxPci0 = {
 /* from lnx_pci.c. */
 extern int lnxPciInit(void);
 
+static Bool	domain_support = FALSE;
+
 void
 linuxPciInit()
 {
@@ -126,6 +130,9 @@ linuxPciInit()
 		   we'll need a fallback for 2.0 kernels here */
 		return;
 	}
+#ifndef INCLUDE_XF86_NO_DOMAIN
+	domain_support = linuxDomainSupport();
+#endif
 	pciNumBuses    = 1;
 	pciBusInfo[0]  = &linuxPci0;
 	pciFindFirstFP = pciGenFindFirst;
@@ -137,13 +144,14 @@ linuxPciInit()
 static int
 linuxPciOpenFile(PCITAG tag, Bool write)
 {
-	static int	lbus,ldev,lfunc,fd = -1,is_write = 0;
-	int		bus, dev, func;
+	static int	ldomain, lbus,ldev,lfunc,fd = -1,is_write = 0;
+	int		domain, bus, dev, func;
 	char		file[64];
 	struct stat	ignored;
 	static int is26 = -1;
 
-	bus  = PCI_BUS_FROM_TAG(tag);
+	domain = PCI_DOM_FROM_TAG(tag);
+	bus  = PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(tag));
 	dev  = PCI_DEV_FROM_TAG(tag);
 	func = PCI_FUNC_FROM_TAG(tag);
 	if (is26 == -1) {
@@ -153,30 +161,41 @@ linuxPciOpenFile(PCITAG tag, Bool write)
 			is26 = 1;
 	}
 	
-	if (fd == -1 || (write && (!is_write))
+	if (!domain_support && domain > 0)
+	    return -1;
+
+	if (fd == -1 || (write && (!is_write)) || domain != ldomain
 	    || bus != lbus || dev != ldev || func != lfunc) {
-		if (fd != -1)
+		if (fd != -1) {
 			close(fd);
+			fd = -1;
+		}
 		if (is26)
-			sprintf(file,"/sys/bus/pci/devices/0000:%02x:%02x.%01x/config",
-				bus, dev, func);
+			sprintf(file,"/sys/bus/pci/devices/%04x:%02x:%02x.%01x/config",
+				domain, bus, dev, func);
 		else {
 			if (bus < 256) {
-				sprintf(file,"/proc/bus/pci/%02x",bus);
-				if (stat(file, &ignored) < 0)
-					sprintf(file, "/proc/bus/pci/0000:%02x/%02x.%1x",
-						bus, dev, func);
-				else
-					sprintf(file, "/proc/bus/pci/%02x/%02x.%1x",
-						bus, dev, func);
+				sprintf(file, "/proc/bus/pci/%04x:%02x", domain, bus);
+				if (stat(file, &ignored) < 0) {
+					if (domain == 0) 
+						sprintf(file, "/proc/bus/pci/%02x/%02x.%1x",
+							bus, dev, func);
+					else
+						goto bail;
+				} else
+					sprintf(file, "/proc/bus/pci/%04x:%02x/%02x.%1x",
+						domain, bus, dev, func);
 			} else {
-				sprintf(file,"/proc/bus/pci/%04x",bus);
-				if (stat(file, &ignored) < 0)
-					sprintf(file, "/proc/bus/pci/0000:%04x/%02x.%1x",
-						bus, dev, func);
-				else
-					sprintf(file, "/proc/bus/pci/%04x/%02x.%1x",
-						bus, dev, func);
+				sprintf(file, "/proc/bus/pci/%04x:%04x", domain, bus);
+				if (stat(file, &ignored) < 0) {
+					if (domain == 0)
+						sprintf(file, "/proc/bus/pci/%04x/%02x.%1x",
+							bus, dev, func);
+					else
+						goto bail;
+				} else
+					sprintf(file, "/proc/bus/pci/%04x:%04x/%02x.%1x",
+						domain, bus, dev, func);
 			}
 		}
 		if (write) {
@@ -191,7 +210,8 @@ linuxPciOpenFile(PCITAG tag, Bool write)
 			    fd = open(file,O_RDONLY);
 			    is_write = FALSE;
 		}
-		
+	bail:
+		ldomain = domain;
 		lbus  = bus;
 		ldev  = dev;
 		lfunc = func;
@@ -489,6 +509,32 @@ linuxGetSizes(PCITAG Tag, unsigned long *io_size, unsigned long *mem_size)
     *mem_size = sizes->mem_size;
 }
 
+static Bool
+linuxDomainSupport(void)
+{
+    DIR *dir;
+    struct dirent *dirent;
+    char *end;
+
+    if (!(dir = opendir("/proc/bus/pci")))
+       return FALSE;
+    while (1) {
+	if (!(dirent = readdir(dir)))
+	    return FALSE;
+	strtol(dirent->d_name,&end,16);
+	/* entry of the form xx or xxxx : x=[0..f] no domain */
+	if (*end == '\0')
+	    return FALSE;
+	else if (*end == ':') {
+	    /* ':' found immediately after: verify for xxxx:xx or xxxx:xxxx */
+	    strtol(end + 1,&end,16);
+	    if (*end == '\0')
+		return TRUE;
+	}
+    }
+    return FALSE;
+} 
+
 _X_EXPORT int
 xf86GetPciDomain(PCITAG Tag)
 {
@@ -524,9 +570,7 @@ linuxMapPci(int ScreenNum, int Flags, PCITAG Tag,
 
 	xf86InitVidMem();
 
-	pPCI = xf86GetPciHostConfigFromTag(Tag);
-
-	if (((fd = linuxPciOpenFile(pPCI ? pPCI->tag : 0,FALSE)) < 0) ||
+	if (((fd = linuxPciOpenFile(Tag ,FALSE)) < 0) ||
 	    (ioctl(fd, mmap_ioctl, 0) < 0))
 	    break;
 
@@ -583,7 +627,6 @@ linuxMapPci(int ScreenNum, int Flags, PCITAG Tag,
 
 #define MAX_DOMAINS 257
 static pointer DomainMmappedIO[MAX_DOMAINS];
-static pointer DomainMmappedMem[MAX_DOMAINS];
 
 static int
 linuxOpenLegacy(PCITAG Tag, char *name)
@@ -641,6 +684,7 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 {
     int domain = xf86GetPciDomain(Tag);
     int fd;
+    pointer addr;
 
     /*
      * We use /proc/bus/pci on non-legacy addresses or if the Linux sysfs
@@ -654,20 +698,14 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 	return linuxMapPci(ScreenNum, Flags, Tag, Base, Size,
 			   PCIIOC_MMAP_IS_MEM);
 
-
-    /* If we haven't already mapped this legacy space, try to. */
-    if (!DomainMmappedMem[domain]) {
-	DomainMmappedMem[domain] = mmap(NULL, 1024*1024, PROT_READ|PROT_WRITE,
-					MAP_SHARED, fd, 0);
-	if (DomainMmappedMem[domain] == MAP_FAILED) {
-	    close(fd);
-	    perror("mmap failure");
-	    FatalError("xf86MapDomainMem():  mmap() failure\n");
-	}
+    addr = mmap(NULL, Size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, Base);
+    if (addr == MAP_FAILED) {
+	close (fd);
+	perror("mmap failure");
+	FatalError("xf86MapDomainMem():  mmap() failure\n");
     }
-
     close(fd);
-    return (pointer)((char *)DomainMmappedMem[domain] + Base);
+    return addr;
 }
 
 /*
@@ -731,7 +769,7 @@ xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
     struct stat st;
 
     dom  = PCI_DOM_FROM_TAG(Tag);
-    bus  = PCI_BUS_FROM_TAG(Tag);
+    bus  = PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(Tag));
     dev  = PCI_DEV_FROM_TAG(Tag);
     func = PCI_FUNC_FROM_TAG(Tag);
     sprintf(file, "/sys/devices/pci%04x:%02x/%04x:%02x:%02x.%1x/rom",
@@ -910,7 +948,7 @@ int linuxPciHandleBIOS(PCITAG Tag, int basereg, unsigned char *buf, int len)
   int sofar = 0;
 
   dom  = PCI_DOM_FROM_TAG(Tag);
-  bus  = PCI_BUS_FROM_TAG(Tag);
+  bus  = PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(Tag));
   dev  = PCI_DEV_FROM_TAG(Tag);
   func = PCI_FUNC_FROM_TAG(Tag);
   sprintf(file, "/sys/bus/pci/devices/%04x:%02x:%02x.%1x/rom",
@@ -940,3 +978,106 @@ int linuxPciHandleBIOS(PCITAG Tag, int basereg, unsigned char *buf, int len)
   }
   return 0;
 }
+
+#ifdef __ia64__
+static PCITAG ia64linuxPciFindFirst(void);
+static PCITAG ia64linuxPciFindNext(void);
+
+void   
+ia64linuxPciInit()
+{
+    struct stat st;
+
+    linuxPciInit();
+	   
+    if (!stat("/proc/sgi_sn/licenseID", &st) && pciNumBuses) {
+       /* Be a little paranoid here and only use this code for Altix systems.
+	* It is generic, so it should work on any system, but depends on
+	* /proc/bus/pci entries for each domain/bus combination. Altix is
+	* guaranteed a recent enough kernel to have them.
+	*/
+       pciFindFirstFP = ia64linuxPciFindFirst;
+       pciFindNextFP  = ia64linuxPciFindNext;
+    }
+}
+
+static DIR *busdomdir;
+static DIR *devdir;
+	       
+static PCITAG
+ia64linuxPciFindFirst(void)
+{   
+       busdomdir = opendir("/proc/bus/pci");
+       devdir = NULL;
+
+       return ia64linuxPciFindNext();
+}   
+
+static struct dirent *getnextbus(int *domain, int *bus)
+{
+    struct dirent *entry;
+    int dombus;
+
+    for (;;) {
+	entry = readdir(busdomdir);
+	if (entry == NULL) {
+	    *domain = 0;
+	    *bus = 0;
+	    closedir(busdomdir);
+	    return NULL;
+	}
+	if (sscanf(entry->d_name, "%04x:%02x", domain, bus) != 2)
+	    continue;
+	dombus = PCI_MAKE_BUS(*domain, *bus);
+
+	if (pciNumBuses <= dombus)
+	    pciNumBuses = dombus + 1;
+	if (!pciBusInfo[dombus]) {
+	    pciBusInfo[dombus] = xnfalloc(sizeof(pciBusInfo_t));
+	    *pciBusInfo[dombus] = *pciBusInfo[0];
+	}
+
+	return entry;
+    }
+}
+
+static PCITAG
+ia64linuxPciFindNext(void)
+{
+    struct dirent *entry;
+    char file[40];
+    static int bus, dev, func, domain;
+    PCITAG pciDeviceTag;
+    CARD32 devid;
+
+    for (;;) {
+	if (devdir == NULL) {
+	    entry = getnextbus(&domain, &bus);
+	    if (!entry)
+		return PCI_NOT_FOUND;
+	    snprintf(file, 40, "/proc/bus/pci/%s", entry->d_name);
+	    devdir = opendir(file);
+	    if (!devdir)
+		return PCI_NOT_FOUND;
+
+	}
+
+	entry = readdir(devdir);
+
+	if (entry == NULL) {
+	    closedir(devdir);
+	    devdir = NULL;
+	    continue;
+	}
+
+	if (sscanf(entry->d_name, "%02x . %01x", &dev, &func) == 2) {
+	    pciDeviceTag = PCI_MAKE_TAG(PCI_MAKE_BUS(domain, bus), dev, func);
+	    devid = pciReadLong(pciDeviceTag, PCI_ID_REG);
+	    if ((devid & pciDevidMask) == pciDevid)
+		/* Yes - Return it.  Otherwise, next device */
+		return pciDeviceTag;
+	}
+    }
+}
+#endif
+
