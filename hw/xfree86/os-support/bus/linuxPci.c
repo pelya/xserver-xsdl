@@ -627,7 +627,6 @@ linuxMapPci(int ScreenNum, int Flags, PCITAG Tag,
 
 #define MAX_DOMAINS 257
 static pointer DomainMmappedIO[MAX_DOMAINS];
-static pointer DomainMmappedMem[MAX_DOMAINS];
 
 static int
 linuxOpenLegacy(PCITAG Tag, char *name)
@@ -685,6 +684,7 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 {
     int domain = xf86GetPciDomain(Tag);
     int fd;
+    pointer addr;
 
     /*
      * We use /proc/bus/pci on non-legacy addresses or if the Linux sysfs
@@ -698,20 +698,14 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 	return linuxMapPci(ScreenNum, Flags, Tag, Base, Size,
 			   PCIIOC_MMAP_IS_MEM);
 
-
-    /* If we haven't already mapped this legacy space, try to. */
-    if (!DomainMmappedMem[domain]) {
-	DomainMmappedMem[domain] = mmap(NULL, 1024*1024, PROT_READ|PROT_WRITE,
-					MAP_SHARED, fd, 0);
-	if (DomainMmappedMem[domain] == MAP_FAILED) {
-	    close(fd);
-	    perror("mmap failure");
-	    FatalError("xf86MapDomainMem():  mmap() failure\n");
-	}
+    addr = mmap(NULL, Size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, Base);
+    if (addr == MAP_FAILED) {
+	close (fd);
+	perror("mmap failure");
+	FatalError("xf86MapDomainMem():  mmap() failure\n");
     }
-
     close(fd);
-    return (pointer)((char *)DomainMmappedMem[domain] + Base);
+    return addr;
 }
 
 /*
