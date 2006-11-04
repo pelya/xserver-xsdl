@@ -321,4 +321,7 @@ extern void miRegionEmpty(
 extern BoxPtr miRegionExtents(
     RegionPtr /*pReg*/);
 
+extern void miPrintRegion(
+    RegionPtr /*pReg*/);
+
 #endif /* REGIONSTRUCT_H */
