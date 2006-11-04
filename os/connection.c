@@ -1091,7 +1091,6 @@ AddEnabledDevice(int fd)
 _X_EXPORT void
 RemoveGeneralSocket(int fd)
 {
-    FD_CLR(fd, &EnabledDevices);
     FD_CLR(fd, &AllSockets);
     if (GrabInProgress)
 	FD_CLR(fd, &SavedAllSockets);
