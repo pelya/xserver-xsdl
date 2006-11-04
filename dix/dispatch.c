@@ -2520,7 +2520,7 @@ ProcCreateColormap(register ClientPtr client)
 	    return(result);
     }
     client->errorValue = stuff->visual;
-    return(BadValue);
+    return(BadMatch);
 }
 
 int
