@@ -418,6 +418,12 @@ extern int GetProximityEvents(
     int num_valuators,
     int *valuators);
 
+extern void PostSyntheticMotion(
+    int x,
+    int y,
+    int screenNum,
+    unsigned long time);
+
 extern int GetMotionHistorySize(
     void);
 

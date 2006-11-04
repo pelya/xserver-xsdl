@@ -701,6 +701,8 @@ extern Bool AllocateClientPrivate(
     int /*index*/,
     unsigned /*amount*/);
 
+extern int ffs(int i);
+
 /*
  *  callback manager stuff
  */
