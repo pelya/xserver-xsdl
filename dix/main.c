@@ -701,9 +701,6 @@ AddScreen(
     int i;
     int scanlinepad, format, depth, bitsPerPixel, j, k;
     ScreenPtr pScreen;
-#ifdef DEBUG
-    void	(**jNI) ();
-#endif /* DEBUG */
 
     i = screenInfo.numScreens;
     if (i == MAXSCREENS)
@@ -737,13 +734,6 @@ AddScreen(
     pScreen->ClipNotify = 0;	/* for R4 ddx compatibility */
     pScreen->CreateScreenResources = 0;
     
-#ifdef DEBUG
-    for (jNI = &pScreen->QueryBestSize; 
-	 jNI < (void (**) ()) &pScreen->SendGraphicsExpose;
-	 jNI++)
-	*jNI = NotImplemented;
-#endif /* DEBUG */
-
     /*
      * This loop gets run once for every Screen that gets added,
      * but thats ok.  If the ddx layer initializes the formats
