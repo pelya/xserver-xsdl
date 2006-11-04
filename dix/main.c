@@ -249,7 +249,6 @@ main(int argc, char *argv[], char *envp[])
     int		i, j, k, error;
     char	*xauthfile;
     HWEventQueueType	alwaysCheckForInput[2];
-    CursorMetricRec cm;
 
     display = "0";
 
