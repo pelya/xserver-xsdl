@@ -174,7 +174,8 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	if (crtc->mode)
 	    RRModeDestroy (crtc->mode);
 	crtc->mode = mode;
-	mode->refcnt++;
+	if (mode != NULL)
+	    mode->refcnt++;
 	RRCrtcChanged (crtc, TRUE);
     }
     if (x != crtc->x)
