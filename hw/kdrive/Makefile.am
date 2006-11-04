@@ -19,9 +19,13 @@ if XEPHYR
 XEPHYR_SUBDIRS = ephyr
 endif
 
+if KDRIVELINUX
+LINUX_SUBDIRS = linux
+endif
+
 SUBDIRS =			\
 	src			\
-	linux			\
+	$(LINUX_SUBDIRS)	\
 	$(XSDL_SUBDIRS)		\
 	$(FBDEV_SUBDIRS)	\
 	$(VESA_SUBDIRS)		\
