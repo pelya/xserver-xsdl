@@ -12,12 +12,12 @@ PLATFORM_PCI_SUPPORT = lnx_ev56.c \
 endif
 
 if LNXACPI
-ACPI_SOURCES = lnx_acpi.c lnx_apm.c
+ACPI_SRCS = lnx_acpi.c lnx_apm.c
 XORG_CFLAGS += -DHAVE_ACPI
 endif
 
 if LNXAPM
-APM_SOURCES = lnx_apm.c
+APM_SRCS = lnx_apm.c
 XORG_CFLAGS += -DHAVE_APM
 endif
 
@@ -30,8 +30,8 @@ liblinux_la_SOURCES = lnx_init.c lnx_video.c lnx_mouse.c \
 		     $(srcdir)/../shared/sigio.c \
                      $(srcdir)/../shared/stdResource.c \
 		     $(srcdir)/../shared/libc_wrapper.c \
-                     $(ACPI_SOURCES) \
-                     $(APM_SOURCES) \
+                     $(ACPI_SRCS) \
+                     $(APM_SRCS) \
                      $(PLATFORM_PCI_SUPPORT)
 
 AM_CFLAGS = -DUSESTDRES -DHAVE_SYSV_IPC $(XORG_CFLAGS) $(PLATFORM_DEFINES)
@@ -39,12 +39,12 @@ AM_CFLAGS = -DUSESTDRES -DHAVE_SYSV_IPC $(XORG_CFLAGS) $(PLATFORM_DEFINES)
 INCLUDES = $(XORG_INCS) $(PLATFORM_INCLUDES) -I/usr/include/drm # FIXME this last part is crack
 
 # FIXME: These need to be added to the build
-LNX_EXTRA_SOURCES = \
+LNX_EXTRA_SRCS = \
 	lnx_font.c \
 	lnx_jstk.c \
 	lnxResource.c
 
 EXTRA_DIST = \
-	$(LNX_EXTRA_SOURCES) \
+	$(LNX_EXTRA_SRCS) \
 	lnx.h \
 	$(srcdir)/../shared/xf86Axp.h
