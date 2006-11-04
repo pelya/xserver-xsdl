@@ -247,7 +247,6 @@ _X_EXPORT Bool
 MiscExtSetMouseDevice(pointer mouse, char* device)
 {
     mseParamsPtr mse = mouse;
-
     mse->device = device;
     
     return TRUE;
@@ -256,9 +255,6 @@ MiscExtSetMouseDevice(pointer mouse, char* device)
 _X_EXPORT Bool
 MiscExtGetKbdSettings(pointer *kbd)
 {
-    kbdParamsPtr kbdptr;
-    InputInfoPtr pInfo;
-
     DEBUG_P("MiscExtGetKbdSettings");
 
     return FALSE;
