@@ -58,7 +58,7 @@ typedef struct _Event {
     xEvent          event[7];
     int             nevents;
     ScreenPtr	    pScreen;
-    DeviceIntPtr    pDev;
+    DeviceIntPtr    pDev; /* device this event _originated_ from */
 } EventRec, *EventPtr;
 
 typedef struct _EventQueue {
@@ -136,7 +136,9 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
     	newtail = oldtail + 1;
     	if (newtail == QUEUE_SIZE)
 	    newtail = 0;
-    	/* Toss events which come in late */
+    	/* Toss events which come in late.  Usually this means your server's
+         * stuck in an infinite loop somewhere, but SIGIO is still getting
+         * handled. */
     	if (newtail == miEventQueue.head) {
             ErrorF("tossed event which came in late\n");
 	    return;
@@ -200,6 +202,8 @@ mieqProcessInputEvents()
             else
                 ++miEventQueue.head;
 
+            /* If this is a core event, make sure our keymap, et al, is
+             * changed to suit. */
             if (e->event[0].u.u.type == KeyPress ||
                 e->event[0].u.u.type == KeyRelease) {
                 SwitchCoreKeyboard(e->pDev);
