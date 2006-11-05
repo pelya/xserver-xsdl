@@ -1047,34 +1047,40 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
             }
         }
 
-        if (src->map->types) {
-            if (src->map->size_types > dst->map->size_types) {
-                if (dst->map->types) {
+        if (src->map->types && src->map->num_types) {
+            if (src->map->num_types > dst->map->size_types ||
+                !dst->map->types || !dst->map->size_types) {
+                if (dst->map->types && dst->map->size_types) {
                     tmp = xrealloc(dst->map->types,
-                                   src->map->size_types * sizeof(XkbKeyTypeRec));
+                                   src->map->num_types * sizeof(XkbKeyTypeRec));
                     if (!tmp)
                         return FALSE;
                     dst->map->types = tmp;
                     bzero(dst->map->types +
-                            (dst->map->size_types * sizeof(XkbKeyTypeRec)),
-                          (src->map->size_types - dst->map->size_types) *
+                            (dst->map->num_types * sizeof(XkbKeyTypeRec)),
+                          (src->map->num_types - dst->map->size_types) *
                             sizeof(XkbKeyTypeRec));
                 }
                 else {
-                    tmp = xcalloc(src->map->size_types, sizeof(XkbKeyTypeRec));
+                    tmp = xcalloc(src->map->num_types, sizeof(XkbKeyTypeRec));
                     if (!tmp)
                         return FALSE;
                     dst->map->types = tmp;
                 }
             }
-            else if (src->map->size_types < dst->map->size_types) {
-                if (dst->map->types) {
-                    for (i = src->map->num_types, dtype = (dst->map->types + i);
-                         i < dst->map->size_types; i++, dtype++) {
-                        if (dtype->level_names)
-                            xfree(dtype->level_names);
-                        dtype->level_names = NULL;
-                        dtype->num_levels = 0;
+            else if (src->map->num_types < dst->map->num_types &&
+                     dst->map->types) {
+                for (i = src->map->num_types, dtype = (dst->map->types + i);
+                     i < dst->map->num_types; i++, dtype++) {
+                    if (dtype->level_names)
+                        xfree(dtype->level_names);
+                    dtype->level_names = NULL;
+                    dtype->num_levels = 0;
+                    if (dtype->map_count) {
+                        if (dtype->map)
+                            xfree(dtype->map);
+                        if (dtype->preserve)
+                            xfree(dtype->preserve);
                     }
                 }
             }
@@ -1082,16 +1088,18 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
             stype = src->map->types;
             dtype = dst->map->types;
             for (i = 0; i < src->map->num_types; i++, dtype++, stype++) {
-                if (stype->num_levels) {
+                if (stype->num_levels && stype->level_names) {
                     if (stype->num_levels != dtype->num_levels &&
-                        dtype->num_levels && dtype->level_names) {
+                        dtype->num_levels && dtype->level_names &&
+                        i < dst->map->num_types) {
                         tmp = xrealloc(dtype->level_names,
                                        stype->num_levels * sizeof(Atom));
                         if (!tmp)
                             continue;
                         dtype->level_names = tmp;
                     }
-                    else if (!dtype->num_levels || !dtype->level_names) {
+                    else if (!dtype->num_levels || !dtype->level_names ||
+                             i >= dst->map->num_types) {
                         tmp = xalloc(stype->num_levels * sizeof(Atom));
                         if (!tmp)
                             continue;
@@ -1102,7 +1110,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                            stype->num_levels * sizeof(Atom));
                 }
                 else {
-                    if (dtype->num_levels && dtype->level_names)
+                    if (dtype->num_levels && dtype->level_names &&
+                        i < dst->map->num_types)
                         xfree(dtype->level_names);
                     dtype->num_levels = 0;
                     dtype->level_names = NULL;
@@ -1114,15 +1123,17 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                 if (stype->map_count) {
                     if (stype->map) {
                         if (stype->map_count != dtype->map_count &&
-                            dtype->map_count && dtype->map) {
+                            dtype->map_count && dtype->map &&
+                            i < dst->map->num_types) {
                             tmp = xrealloc(dtype->map,
                                            stype->map_count *
                                              sizeof(XkbKTMapEntryRec));
                             if (!tmp)
                                 return FALSE;
                             dtype->map = tmp;
-                       }
-                        else if (!dtype->map_count || !dtype->map) {
+                        }
+                        else if (!dtype->map_count || !dtype->map ||
+                                 i >= dst->map->num_types) {
                             tmp = xalloc(stype->map_count *
                                            sizeof(XkbKTMapEntryRec));
                             if (!tmp)
@@ -1136,7 +1147,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
 
                     if (stype->preserve) {
                         if (stype->map_count != dtype->map_count &&
-                            dtype->map_count && dtype->preserve) {
+                            dtype->map_count && dtype->preserve &&
+                            i < dst->map->num_types) {
                             tmp = xrealloc(dtype->preserve,
                                            stype->map_count *
                                              sizeof(XkbModsRec));
@@ -1144,7 +1156,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                                 return FALSE;
                             dtype->preserve = tmp;
                         }
-                        else if (!dtype->preserve || !dtype->map_count) {
+                        else if (!dtype->preserve || !dtype->map_count ||
+                                 i >= dst->map->num_types) {
                             tmp = xalloc(stype->map_count *
                                          sizeof(XkbModsRec));
                             if (!tmp)
@@ -1179,14 +1192,14 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                         xfree(dtype->level_names);
                     if (dtype->map && dtype->map_count)
                         xfree(dtype->map);
-                    if (dtype->preserve && dtype->preserve)
+                    if (dtype->preserve && dtype->map_count)
                         xfree(dtype->preserve);
                 }
                 xfree(dst->map->types);
                 dst->map->types = NULL;
             }
         }
-        dst->map->size_types = src->map->size_types;
+        dst->map->size_types = src->map->num_types;
         dst->map->num_types = src->map->num_types;
 
         if (src->map->modmap) {
@@ -1957,7 +1970,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
             dst->geom->num_key_aliases = dst->geom->sz_key_aliases;
         }
         else {
-            if (dst->geom->sz_key_aliases) {
+            if (dst->geom->sz_key_aliases && dst->geom->key_aliases) {
                 xfree(dst->geom->key_aliases);
                 dst->geom->key_aliases = NULL;
             }
@@ -1967,13 +1980,16 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         
         /* font */
         if (src->geom->label_font) {
-            if (strlen(src->geom->label_font) !=
+            if (!dst->geom->label_font) {
+                tmp = xalloc(strlen(src->geom->label_font));
+                if (!tmp)
+                    return FALSE;
+                dst->geom->label_font = tmp;
+            }
+            else if (strlen(src->geom->label_font) !=
                 strlen(dst->geom->label_font)) {
-                if (dst->geom->label_font)
-                    tmp = xrealloc(dst->geom->label_font,
-                                   strlen(src->geom->label_font));
-                else
-                    tmp = xalloc(strlen(src->geom->label_font));
+                tmp = xrealloc(dst->geom->label_font,
+                               strlen(src->geom->label_font));
                 if (!tmp)
                     return FALSE;
                 dst->geom->label_font = tmp;
