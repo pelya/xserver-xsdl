@@ -2307,6 +2307,7 @@ int drmRemoveSIGIOHandler(int fd)
     return xf86RemoveSIGIOHandler(fd);
 }
 
+#if HAVE_LIBDRM_2_2
 /*
  * Valid flags are 
  * DRM_FENCE_FLAG_EMIT
@@ -3260,3 +3261,4 @@ int drmMMUnlock(int fd, unsigned memType)
     
     return ret;	
 }
+#endif /* HAVE_LIBDRM_2_2 */
