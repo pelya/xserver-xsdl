@@ -12,7 +12,6 @@ libxf86config_a_SOURCES = \
 	Files.c \
 	Flags.c \
 	Input.c \
-	Keyboard.c \
 	Layout.c \
 	Module.c \
 	Video.c \

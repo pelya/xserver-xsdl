@@ -252,7 +252,7 @@ xeglInitInput (int  argc,
 
 Bool
 xeglLegalModifier (unsigned int key,
-		   DevicePtr    pDev)
+		   DeviceIntPtr pDev)
 {
     return KdLegalModifier (key, pDev);
 }

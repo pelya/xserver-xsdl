@@ -63,7 +63,7 @@ itsyTsReadBytes (int fd, char *buf, int len, int min)
 }
 
 void
-itsyTsRead (int tsPort)
+itsyTsRead (KdPointerInfo *pi, int tsPort)
 {
     ts_event	    event;
     long	    buf[3];
@@ -89,7 +89,7 @@ itsyTsRead (int tsPort)
 	    x = 0;
 	    y = 0;
 	}
-	KdEnqueueMouseEvent (flags, x, y);
+	KdEnqueuePointerEvent (pi, flags, x, y, 0);
     }
 }
 
@@ -204,7 +204,8 @@ itsyTsFini (int tsPort)
 	close (tsPort);
 }
 
-KdMouseFuncs itsyTsMouseFuncs = {
+KdPointerDriver itsyTsMouseDriver = {
+    "itsyts",
     itsyTsInit,
     itsyTsRead,
     itsyTsFini

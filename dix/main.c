@@ -98,6 +98,7 @@ Equipment Corporation.
 #include <X11/fonts/font.h>
 #include "opaque.h"
 #include "servermd.h"
+#include "config.h"
 #include "site.h"
 #include "dixfont.h"
 #include "extnsionst.h"
@@ -248,6 +249,7 @@ main(int argc, char *argv[], char *envp[])
     int		i, j, k, error;
     char	*xauthfile;
     HWEventQueueType	alwaysCheckForInput[2];
+    CursorMetricRec cm;
 
     display = "0";
 
@@ -308,6 +310,7 @@ main(int argc, char *argv[], char *envp[])
 	DPMSPowerLevel = 0;
 #endif
 	InitBlockAndWakeupHandlers();
+        configInitialise();
 	/* Perform any operating system dependent initializations you'd like */
 	OsInit();		
 	if(serverGeneration == 1)
@@ -394,23 +397,40 @@ main(int argc, char *argv[], char *envp[])
 	    if (!CreateRootWindow(pScreen))
 		FatalError("failed to create root window");
 	}
+        InitCoreDevices();
 	InitInput(argc, argv);
 	if (InitAndStartDevices() != Success)
 	    FatalError("failed to initialize core devices");
 
 	InitFonts();
+#ifdef BUILTIN_FONTS
+        defaultFontPath = "built-ins";
+#else
 	if (loadableFonts) {
 	    SetFontPath(0, 0, (unsigned char *)defaultFontPath, &error);
-	} else {
+	} else 
+#endif
+        {
 	    if (SetDefaultFontPath(defaultFontPath) != Success)
 		ErrorF("failed to set default font path '%s'",
 			defaultFontPath);
 	}
 	if (!SetDefaultFont(defaultTextFont))
 	    FatalError("could not open default font '%s'", defaultTextFont);
+#ifdef NULL_ROOT_CURSOR
+        cm.width = 0;
+        cm.height = 0;
+        cm.xhot = 0;
+        cm.yhot = 0;
+
+        if (!(rootCursor = AllocCursor(NULL, NULL, &cm, 0, 0, 0, 0, 0, 0)))
+            FatalError("could not create empty root cursor");
+        AddResource(FakeClientID(0), RT_CURSOR, (pointer)rootCursor);
+#else
 	if (!(rootCursor = CreateRootCursor(defaultCursorFont, 0)))
 	    FatalError("could not open default cursor font '%s'",
 		       defaultCursorFont);
+#endif
 #ifdef DPMSExtension
  	/* check all screens, looking for DPMS Capabilities */
  	DPMSCapableFlag = DPMSSupported();
@@ -461,6 +481,7 @@ main(int argc, char *argv[], char *envp[])
 	FreeAllResources();
 #endif
 
+        configFini();
 	CloseDownDevices();
 	for (i = screenInfo.numScreens - 1; i >= 0; i--)
 	{

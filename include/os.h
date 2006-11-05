@@ -147,6 +147,10 @@ extern void CheckConnections(void);
 
 extern void CloseDownConnection(ClientPtr /*client*/);
 
+extern void AddGeneralSocket(int /*fd*/);
+
+extern void RemoveGeneralSocket(int /*fd*/);
+
 extern void AddEnabledDevice(int /*fd*/);
 
 extern void RemoveEnabledDevice(int /*fd*/);
@@ -505,6 +509,12 @@ extern void FatalError(const char *f, ...) _printf_attribute(1,2)
 __attribute((noreturn))
 #endif
 ;
+
+#ifdef DEBUG
+#define DebugF ErrorF
+#else
+#define DebugF(x, ...) /* */
+#endif
 
 extern void VErrorF(const char *f, va_list args);
 extern void ErrorF(const char *f, ...) _printf_attribute(1,2);

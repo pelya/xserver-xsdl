@@ -324,8 +324,11 @@ XkbFreeKeyboard(XkbDescPtr xkb,unsigned which,Bool freeAll)
 	XkbFreeIndicatorMaps(xkb);
     if (which&XkbNamesMask)
 	XkbFreeNames(xkb,XkbAllNamesMask,True);
-    if ((which&XkbGeometryMask) && (xkb->geom!=NULL))
+    if ((which&XkbGeometryMask) && (xkb->geom!=NULL)) {
 	XkbFreeGeometry(xkb->geom,XkbGeomAllMask,True);
+        /* PERHAPS BONGHITS etc */
+        xkb->geom = NULL;
+    }
     if (which&XkbControlsMask)
 	XkbFreeControls(xkb,XkbAllControlsMask,True);
     if (freeAll)

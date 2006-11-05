@@ -76,7 +76,7 @@ Bool foundMouse = FALSE;
 #elif defined(__SCO__)
 static char *DFLT_MOUSE_PROTO = "OSMouse";
 #elif defined(__UNIXWARE__)
-static char *DFLT_MOUSE_PROTO = "Xqueue";
+static char *DFLT_MOUSE_PROTO = "OSMouse";
 static char *DFLT_MOUSE_DEV = "/dev/mouse";
 #elif defined(QNX4)
 static char *DFLT_MOUSE_PROTO = "OSMouse";
@@ -265,11 +265,7 @@ configureInputSection (void)
     parsePrologue (XF86ConfInputPtr, XF86ConfInputRec)
 
     ptr->inp_identifier = "Keyboard0";
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-    ptr->inp_driver = "keyboard";
-#else
     ptr->inp_driver = "kbd";
-#endif
     ptr->list.next = NULL;
 
     /* Crude mechanism to auto-detect mouse (os dependent) */

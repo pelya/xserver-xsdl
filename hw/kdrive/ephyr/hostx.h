@@ -26,6 +26,9 @@
 #ifndef _XLIBS_STUFF_H_
 #define _XLIBS_STUFF_H_
 
+#include <X11/X.h>
+#include <X11/Xmd.h>
+
 #define EPHYR_WANT_DEBUG 0
 
 #if (EPHYR_WANT_DEBUG)
@@ -47,6 +50,14 @@ typedef enum EphyrHostXEventType
   EPHYR_EV_KEY_RELEASE
 } 
 EphyrHostXEventType;
+
+/* I can't believe it's not a KeySymsRec. */
+typedef struct {
+  int             minKeyCode;
+  int             maxKeyCode;
+  int             mapWidth;
+  KeySym         *map;
+} EphyrKeySyms;
 
 struct EphyrHostXEvent
 {
@@ -126,9 +137,9 @@ int
 hostx_get_bpp(void);
 
 void
-hostx_get_visual_masks (unsigned long *rmsk, 
-			unsigned long *gmsk, 
-			unsigned long *bmsk);
+hostx_get_visual_masks (CARD32 *rmsk, 
+			CARD32 *gmsk, 
+			CARD32 *bmsk);
 void
 hostx_set_cmap_entry(unsigned char idx, 
 		     unsigned char r, 

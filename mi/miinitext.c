@@ -549,7 +549,7 @@ InitExtensions(argc, argv)
 #ifdef MULTIBUFFER
     if (!noMultibufferExtension) MultibufferExtensionInit();
 #endif
-#if defined(XINPUT) && !defined(NO_HW_ONLY_EXTS)
+#if defined(XINPUT)
     if (!noXInputExtension) XInputExtensionInit();
 #endif
 #ifdef XTEST
@@ -579,7 +579,7 @@ InitExtensions(argc, argv)
 #ifdef XSYNC
     if (!noSyncExtension) SyncExtensionInit();
 #endif
-#if defined(XKB) && !defined(PRINT_ONLY_SERVER) && !defined(NO_HW_ONLY_EXTS)
+#if defined(XKB) && !defined(PRINT_ONLY_SERVER)
     if (!noXkbExtension) XkbExtensionInit();
 #endif
 #ifdef XCMISC

@@ -90,41 +90,50 @@ MsRead (int port, void *closure)
 	    dy = (char)(((b[0] & 0x0C) << 4) | (b[2] & 0x3F));
             n -= 3;
             b += 3;
-	    KdEnqueueMouseEvent (kdMouseInfo, flags, dx, dy);
+	    KdEnqueuePointerEvent (closure, flags, dx, dy, 0);
 	}
     }
 }
 
-int MsInputType;
+static Status
+MsInit (KdPointerInfo *pi)
+{
+    if (!pi)
+        return BadImplementation;
 
-static int
-MsInit (void)
+    if (!pi->path || strcmp(pi->path, "auto"))
+        pi->path = KdSaveString("/dev/mouse");
+    if (!pi->name)
+        pi->name = KdSaveString("Microsoft protocol mouse");
+    
+    return Success; 
+}
+
+static Status
+MsEnable (KdPointerInfo *pi)
 {
     int port;
-    char *device = "/dev/mouse";
     struct termios t;
     int ret;
 
-    if (!MsInputType)
-	MsInputType = KdAllocInputType ();
-    port = open (device, O_RDWR | O_NONBLOCK);
+    port = open (pi->path, O_RDWR | O_NONBLOCK);
     if(port < 0) {
-        ErrorF("Couldn't open %s (%d)\n", device, (int)errno);
+        ErrorF("Couldn't open %s (%d)\n", pi->path, (int)errno);
         return 0;
     } else if (port == 0) {
         ErrorF("Opening %s returned 0!  Please complain to Keith.\n",
-               device);
+               pi->path);
 	goto bail;
     }
 
     if(!isatty(port)) {
-        ErrorF("%s is not a tty\n", device);
+        ErrorF("%s is not a tty\n", pi->path);
         goto bail;
     }
 
     ret = tcgetattr(port, &t);
     if(ret < 0) {
-        ErrorF("Couldn't tcgetattr(%s): %d\n", device, errno);
+        ErrorF("Couldn't tcgetattr(%s): %d\n", pi->path, errno);
         goto bail;
     }
     t.c_iflag &= ~ (IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR |
@@ -140,24 +149,36 @@ MsInit (void)
     t.c_cc[VTIME] = 0;
     ret = tcsetattr(port, TCSANOW, &t);
     if(ret < 0) {
-        ErrorF("Couldn't tcsetattr(%s): %d\n", device, errno);
+        ErrorF("Couldn't tcsetattr(%s): %d\n", pi->path, errno);
         goto bail;
     }
-    if (KdRegisterFd (MsInputType, port, MsRead, (void *) 0))
-	return 1;
+    if (KdRegisterFd (port, MsRead, pi))
+	return TRUE;
+    pi->driverPrivate = (void *)port;
+
+    return Success;
 
  bail:
     close(port);
-    return 0;
+    return BadMatch;
 }
 
 static void
-MsFini (void)
+MsDisable (KdPointerInfo *pi)
 {
-    KdUnregisterFds (MsInputType, TRUE);
+    KdUnregisterFd (pi, (int)pi->driverPrivate, TRUE);
 }
 
-KdMouseFuncs MsMouseFuncs = {
+static void
+MsFini (KdPointerInfo *pi)
+{
+}
+
+KdPointerDriver MsMouseDriver = {
+    "ms",
     MsInit,
-    MsFini
+    MsEnable,
+    MsDisable,
+    MsFini,
+    NULL,
 };

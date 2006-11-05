@@ -766,6 +766,7 @@ void	      pciSetBitsByte(PCITAG tag, int offset, CARD8 mask, CARD8 val);
 ADDRESS	      pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr);
 ADDRESS	      pciHostAddrToBusAddr(PCITAG tag, PciAddrType type, ADDRESS addr);
 PCITAG	      pciTag(int busnum, int devnum, int funcnum);
+PCITAG	      pciDomTag(int domnum, int busnum, int devnum, int funcnum);
 int	      pciGetBaseSize(PCITAG tag, int indx, Bool destructive, Bool *min);
 CARD32	      pciCheckForBrokenBase(PCITAG tag,int basereg);
 pointer	      xf86MapPciMem(int ScreenNum, int Flags, PCITAG Tag,

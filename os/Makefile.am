@@ -3,14 +3,14 @@ noinst_LTLIBRARIES = libos.la libcwrapper.la
 AM_CFLAGS = $(DIX_CFLAGS)
 
 # FIXME: Add support for these in configure.ac
-K5AUTH_SOURCES = k5auth.c
-SECURERPC_SOURCES = rpcauth.c
-INTERNALMALLOC_SOURCES = xalloc.c
+K5AUTH_SRCS = k5auth.c
+SECURERPC_SRCS = rpcauth.c
+INTERNALMALLOC_SRCS = xalloc.c
 
-XCSECURITY_SOURCES = secauth.c
-XDMCP_SOURCES = xdmcp.c
-STRLCAT_SOURCES = strlcat.c strlcpy.c
-XORG_SOURCES = log.c
+XCSECURITY_SRCS = secauth.c
+XDMCP_SRCS = xdmcp.c
+STRLCAT_SRCS = strlcat.c strlcpy.c
+XORG_SRCS = log.c
 
 libos_la_SOURCES = 	\
 	WaitFor.c	\
@@ -27,18 +27,18 @@ libos_la_SOURCES = 	\
 	xdmauth.c	\
 	xstrans.c	\
 	xprintf.c	\
-	$(XORG_SOURCES)
+	$(XORG_SRCS)
 
 if XCSECURITY
-libos_la_SOURCES += $(XCSECURITY_SOURCES)
+libos_la_SOURCES += $(XCSECURITY_SRCS)
 endif
 
 if XDMCP
-libos_la_SOURCES += $(XDMCP_SOURCES)
+libos_la_SOURCES += $(XDMCP_SRCS)
 endif
 
 if NEED_STRLCAT
-libos_la_SOURCES += $(STRLCAT_SOURCES)
+libos_la_SOURCES += $(STRLCAT_SRCS)
 endif
 
 libcwrapper_la_SOURCES = \
@@ -48,5 +48,17 @@ libcwrapper_la_CFLAGS = \
 	-I$(top_srcdir)/hw/xfree86/os-support \
 	$(AM_CFLAGS)
 
-EXTRA_DIST = $(K5AUTH_SOURCES) $(SECURERPC_SOURCES) $(INTERNALMALLOC_SOURCES) \
-     $(XCSECURITY_SOURCES) $(XDMCP_SOURCES) $(LBX_SOURCES) $(STRLCAT_SOURCES)
+EXTRA_DIST = $(K5AUTH_SRCS) $(SECURERPC_SRCS) $(INTERNALMALLOC_SRCS) \
+     $(XCSECURITY_SRCS) $(XDMCP_SRCS) $(STRLCAT_SRCS)
+
+if XSERVER_DTRACE
+# Generate dtrace object code for probes in libos & libdix
+dtrace.o: $(top_srcdir)/dix/Xserver.d $(am_libos_la_OBJECTS)
+	$(DTRACE) -G -C -o $@ -s $(top_srcdir)/dix/Xserver.d .libs/*.o ../dix/.libs/*.o
+
+noinst_LIBRARIES = os.O
+
+os.O: dtrace.o $(am_libos_la_OBJECTS)
+	ld -r -o $@ dtrace.o .libs/*.o
+
+endif

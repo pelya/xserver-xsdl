@@ -191,8 +191,6 @@ _X_HIDDEN void *miLookupTab[] = {
     SYMFUNC(miSegregateChildren)
     SYMFUNC(miHookInitVisuals)
     SYMFUNC(miPointerAbsoluteCursor)
-    SYMFUNC(miPointerGetMotionEvents)
-    SYMFUNC(miPointerGetMotionBufferSize)
     SYMFUNC(miOverlayCopyUnderlay)
     SYMFUNC(miOverlaySetTransFunction)
     SYMFUNC(miOverlayCollectUnderlayRegions)

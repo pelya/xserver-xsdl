@@ -202,11 +202,12 @@ WaitForSomething(int *pClientsReady)
         {
             now = GetTimeInMillis();
 	    timeout = timers->expires - now;
-            /* time has rewound.  reset the timers. */
-            if (timeout > timers->delta) {
+            if (timeout > 0 && timeout > timers->delta + 250) {
+                /* time has rewound.  reset the timers. */
                 CheckAllTimers(now);
                 timeout = timers->expires - now;
             }
+
             if (timeout < 0)
                 timeout = 0;
 	    waittime.tv_sec = timeout / MILLI_PER_SECOND;
@@ -434,17 +435,18 @@ ANYSET(FdMask *src)
 #endif
 
 /* If time has rewound, re-run every affected timer.
- * TimerForce will change timer->next, but it will _generally_ only
- * promote timers in the list, meaning that we should still be
- * walking every timer. */
+ * Timers might drop out of the list, so we have to restart every time. */
 static void
 CheckAllTimers(CARD32 now)
 {
     OsTimerPtr timer;
 
+start:
     for (timer = timers; timer; timer = timer->next) {
-        if (timer->expires - now > timer->delta)
+        if (timer->expires - now > timer->delta + 250) {
             TimerForce(timer);
+            goto start;
+        }
     }
 }
 
@@ -507,10 +509,8 @@ TimerSet(OsTimerPtr timer, int flags, CARD32 millis,
     }
     for (prev = &timers;
 	 *prev && (int) ((*prev)->expires - millis) <= 0;
-	 prev = &(*prev)->next) {
-        if ((*prev)->expires - now > (*prev)->delta)
-            CheckAllTimers(now);
-    }
+	 prev = &(*prev)->next)
+        ;
     timer->next = *prev;
     *prev = timer;
     return timer;

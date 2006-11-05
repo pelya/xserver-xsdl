@@ -176,13 +176,7 @@ XCOMM **********************************************************************
 Section "InputDevice"
 
     Identifier	"Keyboard1"
-    Driver	"keyboard"
-
-XCOMM For most OSs the protocol can be omitted (it defaults to "Standard").
-XCOMM When using XQUEUE (only for SVR3 and SVR4, but not Solaris), comment
-XCOMM out the above line, and uncomment the following line.
-
-XCOMM    Option	"Protocol"	"Xqueue"
+    Driver	"kbd"
 
 XCOMM Set the keyboard auto repeat parameters.  Not all platforms implement
 XCOMM this.
@@ -266,12 +260,6 @@ XCOMM the protocol as follows.  On some platforms some other settings may
 XCOMM be available.
 
 XCOMM    Option "Protocol"	"PS/2"
-
-XCOMM When using XQUEUE (only for SVR3 and SVR4, but not Solaris), use
-XCOMM the following instead of any of the lines above.  The Device line
-XCOMM is not required in this case.
-
-XCOMM    Option	"Protocol"	"Xqueue"
 
 XCOMM Baudrate and SampleRate are only for some older Logitech mice.  In
 XCOMM almost every case these lines should be omitted.

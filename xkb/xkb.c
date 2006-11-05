@@ -347,6 +347,7 @@ ProcXkbSelectEvents(ClientPtr client)
 
 /***====================================================================***/
 
+/* FIXME: Needs to ding on all core-sending devices. */
 int
 ProcXkbBell(ClientPtr client)
 {
@@ -534,56 +535,67 @@ int
 ProcXkbLatchLockState(ClientPtr client)
 {
     int status;
-    DeviceIntPtr dev;
+    DeviceIntPtr dev, tmpd;
     XkbStateRec	oldState,*newState;
     CARD16 changed;
+    xkbStateNotify sn;
+    XkbEventCauseRec cause;
 
     REQUEST(xkbLatchLockStateReq);
     REQUEST_SIZE_MATCH(xkbLatchLockStateReq);
 
-    if (!(client->xkbClientFlags&_XkbClientInitialized))
+    if (!(client->xkbClientFlags & _XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
-    CHK_MASK_MATCH(0x01,stuff->affectModLocks,stuff->modLocks);
-    CHK_MASK_MATCH(0x01,stuff->affectModLatches,stuff->modLatches);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec);
+    CHK_MASK_MATCH(0x01, stuff->affectModLocks, stuff->modLocks);
+    CHK_MASK_MATCH(0x01, stuff->affectModLatches, stuff->modLatches);
 
     status = Success;
-    oldState= dev->key->xkbInfo->state;
-    newState= &dev->key->xkbInfo->state;
-    if ( stuff->affectModLocks ) {
-	newState->locked_mods&= ~stuff->affectModLocks;
-	newState->locked_mods|= (stuff->affectModLocks&stuff->modLocks);
+
+    for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
+        if ((dev == inputInfo.keyboard && tmpd->key && tmpd->coreEvents) ||
+            tmpd == dev) {
+            if (!tmpd->key->xkbInfo)
+                continue;
+
+            oldState = tmpd->key->xkbInfo->state;
+            newState = &tmpd->key->xkbInfo->state;
+            if (stuff->affectModLocks) {
+                newState->locked_mods &= ~stuff->affectModLocks;
+                newState->locked_mods |= (stuff->affectModLocks & stuff->modLocks);
+            }
+            if (status == Success && stuff->lockGroup)
+                newState->locked_group = stuff->groupLock;
+            if (status == Success && stuff->affectModLatches)
+                status = XkbLatchModifiers(tmpd, stuff->affectModLatches,
+                                           stuff->modLatches);
+            if (status == Success && stuff->latchGroup)
+                status = XkbLatchGroup(tmpd, stuff->groupLatch);
+
+            if (status != Success)
+                return status;
+
+            XkbComputeDerivedState(tmpd->key->xkbInfo);
+            tmpd->key->state = XkbStateFieldFromRec(newState);
+
+            changed = XkbStateChangedFlags(&oldState, newState);
+            if (changed) {
+                sn.keycode = 0;
+                sn.eventType = 0;
+                sn.requestMajor = XkbReqCode;
+                sn.requestMinor = X_kbLatchLockState;
+                sn.changed = changed;
+                XkbSendStateNotify(tmpd, &sn);
+                changed = XkbIndicatorsToUpdate(tmpd, changed, False);
+                if (changed) {
+                    XkbSetCauseXkbReq(&cause, X_kbLatchLockState, client);
+                    XkbUpdateIndicators(tmpd, changed, True, NULL, &cause);
+	        }
+            }
+        }
     }
-    if (( status == Success ) && stuff->lockGroup )
-	newState->locked_group = stuff->groupLock;
-    if (( status == Success ) && stuff->affectModLatches )
-	status=XkbLatchModifiers(dev,stuff->affectModLatches,stuff->modLatches);
-    if (( status == Success ) && stuff->latchGroup )
-	status=XkbLatchGroup(dev,stuff->groupLatch);
 
-    if ( status != Success )
-	return status;
-
-    XkbComputeDerivedState(dev->key->xkbInfo);
-    dev->key->state= XkbStateFieldFromRec(newState);
-
-    changed = XkbStateChangedFlags(&oldState,newState);
-    if (changed) {
-	xkbStateNotify	sn;
-	sn.keycode= 0;
-	sn.eventType= 0;
-	sn.requestMajor = XkbReqCode;
-	sn.requestMinor = X_kbLatchLockState;
-	sn.changed= changed;
-	XkbSendStateNotify(dev,&sn);
-	changed= XkbIndicatorsToUpdate(dev,changed,False);
-	if (changed) {
-	    XkbEventCauseRec	cause;
-	    XkbSetCauseXkbReq(&cause,X_kbLatchLockState,client);
-	    XkbUpdateIndicators(dev,changed,True,NULL,&cause);
-	}
-    }
     return client->noClientException;
 }
 
@@ -666,7 +678,7 @@ ProcXkbGetControls(ClientPtr client)
 int
 ProcXkbSetControls(ClientPtr client)
 {
-    DeviceIntPtr 	dev;
+    DeviceIntPtr 	dev, tmpd;
     XkbSrvInfoPtr	xkbi;
     XkbControlsPtr	ctrl;
     XkbControlsRec	new,old;
@@ -677,161 +689,213 @@ ProcXkbSetControls(ClientPtr client)
     REQUEST(xkbSetControlsReq);
     REQUEST_SIZE_MATCH(xkbSetControlsReq);
 
-    if (!(client->xkbClientFlags&_XkbClientInitialized))
+    if (!(client->xkbClientFlags & _XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
-    CHK_MASK_LEGAL(0x01,stuff->changeCtrls,XkbAllControlsMask);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec);
+    CHK_MASK_LEGAL(0x01, stuff->changeCtrls, XkbAllControlsMask);
 
-    xkbi = dev->key->xkbInfo;
-    ctrl = xkbi->desc->ctrls;
-    new = *ctrl;
-    XkbSetCauseXkbReq(&cause,X_kbSetControls,client);
-    if (stuff->changeCtrls&XkbInternalModsMask) {
-	CHK_MASK_MATCH(0x02,stuff->affectInternalMods,stuff->internalMods);
-	CHK_MASK_MATCH(0x03,stuff->affectInternalVMods,stuff->internalVMods);
-	new.internal.real_mods&=~stuff->affectInternalMods;
-	new.internal.real_mods|=(stuff->affectInternalMods&stuff->internalMods);
-	new.internal.vmods&=~stuff->affectInternalVMods;
-	new.internal.vmods|= (stuff->affectInternalVMods&stuff->internalVMods);
-	new.internal.mask= new.internal.real_mods|
-	      XkbMaskForVMask(xkbi->desc,new.internal.vmods);
-    }
-    if (stuff->changeCtrls&XkbIgnoreLockModsMask) {
-	CHK_MASK_MATCH(0x4,stuff->affectIgnoreLockMods,stuff->ignoreLockMods);
-	CHK_MASK_MATCH(0x5,stuff->affectIgnoreLockVMods,stuff->ignoreLockVMods);
-	new.ignore_lock.real_mods&=~stuff->affectIgnoreLockMods;
-	new.ignore_lock.real_mods|=
-	      (stuff->affectIgnoreLockMods&stuff->ignoreLockMods);
-	new.ignore_lock.vmods&= ~stuff->affectIgnoreLockVMods;
-	new.ignore_lock.vmods|=
-	      (stuff->affectIgnoreLockVMods&stuff->ignoreLockVMods);
-	new.ignore_lock.mask= new.ignore_lock.real_mods|
-	      XkbMaskForVMask(xkbi->desc,new.ignore_lock.vmods);
-    }
-    CHK_MASK_MATCH(0x06,stuff->affectEnabledCtrls,stuff->enabledCtrls);
-    if (stuff->affectEnabledCtrls) {
-	CHK_MASK_LEGAL(0x07,stuff->affectEnabledCtrls,XkbAllBooleanCtrlsMask);
-	new.enabled_ctrls&= ~stuff->affectEnabledCtrls;
-	new.enabled_ctrls|= (stuff->affectEnabledCtrls&stuff->enabledCtrls);
-    }
-    if (stuff->changeCtrls&XkbRepeatKeysMask) {
-	if ((stuff->repeatDelay<1)||(stuff->repeatInterval<1)) {
-	   client->errorValue = _XkbErrCode3(0x08,stuff->repeatDelay,
-							stuff->repeatInterval);
-	   return BadValue;
-	}
-	new.repeat_delay = stuff->repeatDelay;
-	new.repeat_interval = stuff->repeatInterval;
-    }
-    if (stuff->changeCtrls&XkbSlowKeysMask) {
-	if (stuff->slowKeysDelay<1) {
-	    client->errorValue = _XkbErrCode2(0x09,stuff->slowKeysDelay);
-	    return BadValue;
-	}
-	new.slow_keys_delay = stuff->slowKeysDelay;
-    }
-    if (stuff->changeCtrls&XkbBounceKeysMask) {
-	if (stuff->debounceDelay<1) {
-	    client->errorValue = _XkbErrCode2(0x0A,stuff->debounceDelay);
-	    return BadValue;
-	}
-	new.debounce_delay = stuff->debounceDelay;
-    }
-    if (stuff->changeCtrls&XkbMouseKeysMask) {
-	if (stuff->mkDfltBtn>XkbMaxMouseKeysBtn) {
-	    client->errorValue = _XkbErrCode2(0x0B,stuff->mkDfltBtn);
-	    return BadValue;
-	}
-	new.mk_dflt_btn = stuff->mkDfltBtn;
-    }
-    if (stuff->changeCtrls&XkbMouseKeysAccelMask) {
-	if ((stuff->mkDelay<1) || (stuff->mkInterval<1) ||
-	    (stuff->mkTimeToMax<1) || (stuff->mkMaxSpeed<1)||
-	    (stuff->mkCurve<-1000)) {
-	    client->errorValue = _XkbErrCode2(0x0C,0);
-	    return BadValue;
-	}
-	new.mk_delay = stuff->mkDelay;
-	new.mk_interval = stuff->mkInterval;
-	new.mk_time_to_max = stuff->mkTimeToMax;
-	new.mk_max_speed = stuff->mkMaxSpeed;
-	new.mk_curve = stuff->mkCurve;
-	AccessXComputeCurveFactor(xkbi,&new);
-    }
-    if (stuff->changeCtrls&XkbGroupsWrapMask) {
-	unsigned act,num;
-	act= XkbOutOfRangeGroupAction(stuff->groupsWrap);
-	switch (act) {
-	    case XkbRedirectIntoRange:
-		num= XkbOutOfRangeGroupNumber(stuff->groupsWrap);
-		if (num>=new.num_groups) {
-		    client->errorValue= _XkbErrCode3(0x0D,new.num_groups,num);
-		    return BadValue;
-		}
-	    case XkbWrapIntoRange:
-	    case XkbClampIntoRange:
-		break;
-	    default:
-		client->errorValue= _XkbErrCode2(0x0E,act);
-		return BadValue;
-	}
-	new.groups_wrap= stuff->groupsWrap;
-    }
-    CHK_MASK_LEGAL(0x0F,stuff->axOptions,XkbAX_AllOptionsMask);
-    if (stuff->changeCtrls&XkbAccessXKeysMask)
-	new.ax_options = stuff->axOptions&XkbAX_AllOptionsMask;
-    else {
-	if (stuff->changeCtrls&XkbStickyKeysMask) {
-	   new.ax_options&= ~XkbAX_SKOptionsMask;
-	   new.ax_options|= stuff->axOptions&XkbAX_SKOptionsMask;
-	}
-	if (stuff->changeCtrls&XkbAccessXFeedbackMask) {
-	   new.ax_options&= ~XkbAX_FBOptionsMask;
-	   new.ax_options|= stuff->axOptions&XkbAX_FBOptionsMask;
-	}
+    for (tmpd = inputInfo.keyboard; tmpd; tmpd = tmpd->next) {
+        if ((dev == inputInfo.keyboard && tmpd->key && tmpd->coreEvents) ||
+            tmpd == dev) {
+
+            xkbi = tmpd->key->xkbInfo;
+            ctrl = xkbi->desc->ctrls;
+            new = *ctrl;
+            XkbSetCauseXkbReq(&cause, X_kbSetControls, client);
+
+            if (stuff->changeCtrls & XkbInternalModsMask) {
+                CHK_MASK_MATCH(0x02, stuff->affectInternalMods,
+                               stuff->internalMods);
+                CHK_MASK_MATCH(0x03, stuff->affectInternalVMods,
+                               stuff->internalVMods);
+
+                new.internal.real_mods &= ~(stuff->affectInternalMods);
+                new.internal.real_mods |= (stuff->affectInternalMods &
+                                           stuff->internalMods);
+                new.internal.vmods &= ~(stuff->affectInternalVMods);
+                new.internal.vmods |= (stuff->affectInternalVMods &
+                                       stuff->internalVMods);
+                new.internal.mask = new.internal.real_mods |
+                                    XkbMaskForVMask(xkbi->desc,
+                                                    new.internal.vmods);
+            }
+
+            if (stuff->changeCtrls & XkbIgnoreLockModsMask) {
+                CHK_MASK_MATCH(0x4, stuff->affectIgnoreLockMods,
+                               stuff->ignoreLockMods);
+                CHK_MASK_MATCH(0x5, stuff->affectIgnoreLockVMods,
+                               stuff->ignoreLockVMods);
+
+                new.ignore_lock.real_mods &= ~(stuff->affectIgnoreLockMods);
+                new.ignore_lock.real_mods |= (stuff->affectIgnoreLockMods &
+                                              stuff->ignoreLockMods);
+                new.ignore_lock.vmods &= ~(stuff->affectIgnoreLockVMods);
+                new.ignore_lock.vmods |= (stuff->affectIgnoreLockVMods &
+                                          stuff->ignoreLockVMods);
+                new.ignore_lock.mask = new.ignore_lock.real_mods |
+                                       XkbMaskForVMask(xkbi->desc,
+                                                       new.ignore_lock.vmods);
+            }
+
+            CHK_MASK_MATCH(0x06, stuff->affectEnabledCtrls,
+                           stuff->enabledCtrls);
+            if (stuff->affectEnabledCtrls) {
+                CHK_MASK_LEGAL(0x07, stuff->affectEnabledCtrls,
+                               XkbAllBooleanCtrlsMask);
+
+                new.enabled_ctrls &= ~(stuff->affectEnabledCtrls);
+                new.enabled_ctrls |= (stuff->affectEnabledCtrls &
+                                      stuff->enabledCtrls);
+            }
+
+            if (stuff->changeCtrls & XkbRepeatKeysMask) {
+                if (stuff->repeatDelay < 1 || stuff->repeatInterval < 1) {
+                    client->errorValue = _XkbErrCode3(0x08, stuff->repeatDelay,
+                                                      stuff->repeatInterval);
+                    return BadValue;
+                }
+
+                new.repeat_delay = stuff->repeatDelay;
+                new.repeat_interval = stuff->repeatInterval;
+            }
+
+            if (stuff->changeCtrls & XkbSlowKeysMask) {
+                if (stuff->slowKeysDelay < 1) {
+                    client->errorValue = _XkbErrCode2(0x09,
+                                                      stuff->slowKeysDelay);
+                    return BadValue;
+                }
+
+                new.slow_keys_delay = stuff->slowKeysDelay;
+            }
+
+            if (stuff->changeCtrls & XkbBounceKeysMask) {
+                if (stuff->debounceDelay < 1) {
+                    client->errorValue = _XkbErrCode2(0x0A,
+                                                      stuff->debounceDelay);
+                    return BadValue;
+                }
+
+                new.debounce_delay = stuff->debounceDelay;
+            }
+
+            if (stuff->changeCtrls & XkbMouseKeysMask) {
+                if (stuff->mkDfltBtn > XkbMaxMouseKeysBtn) {
+                    client->errorValue = _XkbErrCode2(0x0B, stuff->mkDfltBtn);
+                    return BadValue;
+                }
+
+                new.mk_dflt_btn = stuff->mkDfltBtn;
+            }
+
+            if (stuff->changeCtrls & XkbMouseKeysAccelMask) {
+                if (stuff->mkDelay < 1 || stuff->mkInterval < 1 ||
+                    stuff->mkTimeToMax < 1 || stuff->mkMaxSpeed < 1 ||
+                    stuff->mkCurve < -1000) {
+                    client->errorValue = _XkbErrCode2(0x0C,0);
+                    return BadValue;
+                }
+
+                new.mk_delay = stuff->mkDelay;
+                new.mk_interval = stuff->mkInterval;
+                new.mk_time_to_max = stuff->mkTimeToMax;
+                new.mk_max_speed = stuff->mkMaxSpeed;
+                new.mk_curve = stuff->mkCurve;
+                AccessXComputeCurveFactor(xkbi, &new);
+            }
+
+            if (stuff->changeCtrls & XkbGroupsWrapMask) {
+                unsigned act, num;
+
+                act = XkbOutOfRangeGroupAction(stuff->groupsWrap);
+                switch (act) {
+                case XkbRedirectIntoRange:
+                    num = XkbOutOfRangeGroupNumber(stuff->groupsWrap);
+                    if (num >= new.num_groups) {
+                        client->errorValue = _XkbErrCode3(0x0D, new.num_groups,
+                                                          num);
+                        return BadValue;
+                    }
+                case XkbWrapIntoRange:
+                case XkbClampIntoRange:
+                    break;
+                default:
+                    client->errorValue = _XkbErrCode2(0x0E, act);
+                    return BadValue;
+                }
+
+                new.groups_wrap= stuff->groupsWrap;
+            }
+
+            CHK_MASK_LEGAL(0x0F, stuff->axOptions, XkbAX_AllOptionsMask);
+            if (stuff->changeCtrls & XkbAccessXKeysMask) {
+                new.ax_options = stuff->axOptions & XkbAX_AllOptionsMask;
+            }
+            else {
+                if (stuff->changeCtrls & XkbStickyKeysMask) {
+                    new.ax_options &= ~(XkbAX_SKOptionsMask);
+                    new.ax_options |= (stuff->axOptions & XkbAX_SKOptionsMask);
+                }
+            
+                if (stuff->changeCtrls & XkbAccessXFeedbackMask) {
+                    new.ax_options &= ~(XkbAX_FBOptionsMask);
+                    new.ax_options |= (stuff->axOptions & XkbAX_FBOptionsMask);
+                }
+            }
+
+            if (stuff->changeCtrls & XkbAccessXTimeoutMask) {
+                if (stuff->axTimeout < 1) {
+                    client->errorValue = _XkbErrCode2(0x10, stuff->axTimeout);
+                    return BadValue;
+                }
+                CHK_MASK_MATCH(0x11, stuff->axtCtrlsMask,
+                               stuff->axtCtrlsValues);
+                CHK_MASK_LEGAL(0x12, stuff->axtCtrlsMask,
+                               XkbAllBooleanCtrlsMask);
+                CHK_MASK_MATCH(0x13, stuff->axtOptsMask, stuff->axtOptsValues);
+                CHK_MASK_LEGAL(0x14, stuff->axtOptsMask, XkbAX_AllOptionsMask);
+                new.ax_timeout = stuff->axTimeout;
+                new.axt_ctrls_mask = stuff->axtCtrlsMask;
+                new.axt_ctrls_values = (stuff->axtCtrlsValues &
+                                        stuff->axtCtrlsMask);
+                new.axt_opts_mask = stuff->axtOptsMask;
+                new.axt_opts_values = (stuff->axtOptsValues &
+                                       stuff->axtOptsMask);
+            }
+
+            if (stuff->changeCtrls & XkbPerKeyRepeatMask)
+                memcpy(new.per_key_repeat, stuff->perKeyRepeat,
+                       XkbPerKeyBitArraySize);
+
+            old= *ctrl;
+            *ctrl= new;
+            XkbDDXChangeControls(tmpd, &old, ctrl);
+
+            if (XkbComputeControlsNotify(tmpd, &old, ctrl, &cn, False)) {
+                cn.keycode = 0;
+                cn.eventType = 0;
+                cn.requestMajor = XkbReqCode;
+                cn.requestMinor = X_kbSetControls;
+                XkbSendControlsNotify(tmpd, &cn);
+            }
+
+            sli = XkbFindSrvLedInfo(tmpd, XkbDfltXIClass, XkbDfltXIId, 0);
+            if (sli)
+                XkbUpdateIndicators(tmpd, sli->usesControls, True, NULL,
+                                    &cause);
+
+            /* If sticky keys were disabled, clear all locks and latches */
+            if ((old.enabled_ctrls & XkbStickyKeysMask) &&
+                !(ctrl->enabled_ctrls & XkbStickyKeysMask))
+                XkbClearAllLatchesAndLocks(tmpd, xkbi, True, &cause);
+        }
     }
 
-    if (stuff->changeCtrls&XkbAccessXTimeoutMask) {
-	if (stuff->axTimeout<1) {
-	    client->errorValue = _XkbErrCode2(0x10,stuff->axTimeout);
-	    return BadValue;
-	}
-	CHK_MASK_MATCH(0x11,stuff->axtCtrlsMask,stuff->axtCtrlsValues);
-	CHK_MASK_LEGAL(0x12,stuff->axtCtrlsMask,XkbAllBooleanCtrlsMask);
-	CHK_MASK_MATCH(0x13,stuff->axtOptsMask,stuff->axtOptsValues);
-	CHK_MASK_LEGAL(0x14,stuff->axtOptsMask,XkbAX_AllOptionsMask);
-	new.ax_timeout = stuff->axTimeout;
-	new.axt_ctrls_mask = stuff->axtCtrlsMask;
-	new.axt_ctrls_values = (stuff->axtCtrlsValues&stuff->axtCtrlsMask);
-	new.axt_opts_mask = stuff->axtOptsMask;
-	new.axt_opts_values= (stuff->axtOptsValues&stuff->axtOptsMask);
-    }
-    if (stuff->changeCtrls&XkbPerKeyRepeatMask) {
-	memcpy(new.per_key_repeat,stuff->perKeyRepeat,XkbPerKeyBitArraySize);
-    }
-    old= *ctrl;
-    *ctrl= new;
-    XkbDDXChangeControls(dev,&old,ctrl);
-    if (XkbComputeControlsNotify(dev,&old,ctrl,&cn,False)) {
-	cn.keycode= 0;
-	cn.eventType = 0;
-	cn.requestMajor = XkbReqCode;
-	cn.requestMinor = X_kbSetControls;
-	XkbSendControlsNotify(dev,&cn);
-    }
-    if ((sli= XkbFindSrvLedInfo(dev,XkbDfltXIClass,XkbDfltXIId,0))!=NULL)
-	XkbUpdateIndicators(dev,sli->usesControls,True,NULL,&cause);
-#ifndef NO_CLEAR_LATCHES_FOR_STICKY_KEYS_OFF
-    /* If sticky keys were disabled, clear all locks and latches */
-    if ((old.enabled_ctrls&XkbStickyKeysMask)&&
-	(!(ctrl->enabled_ctrls&XkbStickyKeysMask))) {
-	XkbClearAllLatchesAndLocks(dev,xkbi,True,&cause);
-    }
-#endif
     return client->noClientException;
 }
 
+/* FIXME: Needs to set rate on all core-sending devices. */
 int
 XkbSetRepeatRate(DeviceIntPtr dev,int timeout,int interval,int major,int minor)
 {
@@ -1261,7 +1325,7 @@ unsigned short *	pMap;
 
     wire= (xkbVModMapWireDesc *)buf;
     pMap= &xkb->server->vmodmap[rep->firstVModMapKey];
-    for (i=0;i<rep->nVModMapKeys;i++,pMap++) {
+    for (i=0;i<rep->nVModMapKeys-1;i++,pMap++) {
 	if (*pMap!=0) {
 	    wire->key= i+rep->firstVModMapKey;
 	    wire->vmods= *pMap;
@@ -2263,6 +2327,7 @@ XkbServerMapPtr		srv = xkbi->desc->server;
     return (char *)wire;
 }
 
+/* FIXME: Needs to set map on all core-sending devices. */
 int
 ProcXkbSetMap(ClientPtr client)
 {
@@ -2579,6 +2644,7 @@ ProcXkbGetCompatMap(ClientPtr client)
     return XkbSendCompatMap(client,compat,&rep);
 }
 
+/* FIXME: Needs to set compat map on all core-sending devices. */
 int
 ProcXkbSetCompatMap(ClientPtr client)
 {
@@ -2856,6 +2922,7 @@ XkbIndicatorPtr		leds;
     return XkbSendIndicatorMap(client,leds,&rep);
 }
 
+/* FIXME: Needs to set indicator map on all core-sending devices. */
 int
 ProcXkbSetIndicatorMap(ClientPtr client)
 {
@@ -3019,6 +3086,7 @@ ProcXkbGetNamedIndicator(ClientPtr client)
     return client->noClientException;
 }
 
+/* FIXME: Needs to set indicator on all core-sending devices. */
 int
 ProcXkbSetNamedIndicator(ClientPtr client)
 {
@@ -3507,6 +3575,7 @@ char *	str;
     return True;
 }
 
+/* FIXME: Needs to set names on all core-sending devices. */
 int
 ProcXkbSetNames(ClientPtr client)
 {
@@ -4804,6 +4873,7 @@ char *		wire;
     return Success;
 }
 
+/* FIXME: Needs to set geom on all core-sending devices. */
 int
 ProcXkbSetGeometry(ClientPtr client)
 {
@@ -5084,6 +5154,7 @@ int
 ProcXkbGetKbdByName(ClientPtr client)
 {
     DeviceIntPtr 		dev;
+    DeviceIntPtr                tmpd;
     XkbFileInfo			finfo;
     xkbGetKbdByNameReply 	rep;
     xkbGetMapReply		mrep;
@@ -5099,6 +5170,8 @@ ProcXkbGetKbdByName(ClientPtr client)
     unsigned			fwant,fneed,reported;
     int				status;
     Bool			geom_changed;
+    XkbSrvLedInfoPtr            old_sli;
+    XkbSrvLedInfoPtr            sli;
 
     REQUEST(xkbGetKbdByNameReq);
     REQUEST_AT_LEAST_SIZE(xkbGetKbdByNameReq);
@@ -5169,8 +5242,10 @@ ProcXkbGetKbdByName(ClientPtr client)
 	fneed|= XkmKeyNamesIndex|XkmTypesIndex;
 	fwant|= XkmIndicatorsIndex;
     }
+
+    /* We pass dev in here so we can get the old names out if needed. */
     rep.found = XkbDDXLoadKeymapByNames(dev,&names,fwant,fneed,&finfo,
-							mapFile,PATH_MAX);
+                                        mapFile,PATH_MAX);
     rep.newKeyboard= False;
     rep.pad1= rep.pad2= rep.pad3= rep.pad4= 0;
 
@@ -5365,23 +5440,34 @@ ProcXkbGetKbdByName(ClientPtr client)
 	}
 	xkb->ctrls->num_groups= nTG;
 
-	memcpy(dev->key->modifierMap,xkb->map->modmap,xkb->max_key_code+1);
-	XkbUpdateCoreDescription(dev,True);
+        for (tmpd = inputInfo.devices; tmpd; tmpd = tmpd->next) {
+            if (tmpd == dev ||
+                (dev->id == inputInfo.keyboard->id && tmpd->key &&
+                 tmpd->coreEvents)) {
 
-	if (dev->kbdfeed && dev->kbdfeed->xkb_sli) {
-            XkbSrvLedInfoPtr	old_sli;
-            XkbSrvLedInfoPtr	sli;
-            old_sli = dev->kbdfeed->xkb_sli;
-            dev->kbdfeed->xkb_sli = NULL;
-	    sli = XkbAllocSrvLedInfo(dev,dev->kbdfeed,NULL,0);
-            if (sli) {
-               sli->explicitState = old_sli->explicitState;
-               sli->effectiveState = old_sli->effectiveState;
+                memcpy(tmpd->key->modifierMap, xkb->map->modmap,
+                       xkb->max_key_code + 1);
+                if (tmpd != dev)
+                    XkbCopyKeymap(dev->key->xkbInfo->desc,
+                                  tmpd->key->xkbInfo->desc, True);
+                XkbUpdateCoreDescription(tmpd, True);
+
+                if (tmpd->kbdfeed && tmpd->kbdfeed->xkb_sli) {
+                    old_sli = tmpd->kbdfeed->xkb_sli;
+                    tmpd->kbdfeed->xkb_sli = NULL;
+                    sli = XkbAllocSrvLedInfo(tmpd, tmpd->kbdfeed, NULL, 0);
+                    if (sli) {
+                        sli->explicitState = old_sli->explicitState;
+                        sli->effectiveState = old_sli->effectiveState;
+                    }
+                    tmpd->kbdfeed->xkb_sli = sli;
+                    XkbFreeSrvLedInfo(old_sli);
+                }
             }
-            dev->kbdfeed->xkb_sli = sli;
-	    XkbFreeSrvLedInfo(old_sli);
-	}
+        }
 
+        /* this should be either a MN or an NKN, depending on whether or not
+         * the keycode range changed? */
 	nkn.deviceID= nkn.oldDeviceID= dev->id;
 	nkn.minKeyCode= finfo.xkb->min_key_code;
 	nkn.maxKeyCode= finfo.xkb->max_key_code;
@@ -5634,7 +5720,6 @@ char *			str;
 	wanted&= ~XkbXI_ButtonActionsMask;
     if ((!dev->kbdfeed)&&(!dev->leds))
 	wanted&= ~XkbXI_IndicatorsMask;
-    wanted&= ~XkbXI_KeyboardsMask;
 
     nameLen= XkbSizeCountedString(dev->name);
     bzero((char *)&rep,SIZEOF(xkbGetDeviceInfoReply));
@@ -5643,8 +5728,8 @@ char *			str;
     rep.sequenceNumber = client->sequence;
     rep.length = nameLen/4;
     rep.present = wanted;
-    rep.supported = XkbXI_AllDeviceFeaturesMask&(~XkbXI_KeyboardsMask);
-    rep.unsupported = XkbXI_KeyboardsMask;
+    rep.supported = XkbXI_AllDeviceFeaturesMask;
+    rep.unsupported = 0;
     rep.firstBtnWanted = rep.nBtnsWanted = 0;
     rep.firstBtnRtrn = rep.nBtnsRtrn = 0;
     if (dev->button)
@@ -5940,6 +6025,7 @@ DeviceIntPtr			kbd;
     return (char *)ledWire;
 }
 
+/* FIXME: Needs to set info on all core-sending devices. */
 int
 ProcXkbSetDeviceInfo(ClientPtr client)
 {
@@ -5957,7 +6043,7 @@ xkbExtensionDeviceNotify ed;
     change= stuff->change;
 
     CHK_ANY_DEVICE(dev,stuff->deviceSpec);
-    CHK_MASK_LEGAL(0x01,change,(XkbXI_AllFeaturesMask&(~XkbXI_KeyboardsMask)));
+    CHK_MASK_LEGAL(0x01,change,XkbXI_AllFeaturesMask);
 
     wire= (char *)&stuff[1];
     if (change&XkbXI_ButtonActionsMask) {
