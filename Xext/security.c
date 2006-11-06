@@ -1128,7 +1128,7 @@ CALLBACK(SecurityClientStateCallback)
 	}
 	break;
 
-	case ClientStateRunning:
+    case ClientStateRunning:
 	{ 
 	    XID authId = AuthorizationIDOfClient(client);
 	    SecurityAuthorizationPtr pAuth;
@@ -1148,8 +1148,8 @@ CALLBACK(SecurityClientStateCallback)
 	    }
 	    break;
 	}
-	case ClientStateGone:
-	case ClientStateRetained: /* client disconnected */
+    case ClientStateGone:
+    case ClientStateRetained: /* client disconnected */
 	{
 	    SecurityAuthorizationPtr pAuth;
 
@@ -1169,7 +1169,7 @@ CALLBACK(SecurityClientStateCallback)
 	    }	    
 	    break;
 	}
-	default: break; 
+    default: break; 
     }
 } /* SecurityClientStateCallback */
 
