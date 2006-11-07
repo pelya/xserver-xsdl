@@ -258,9 +258,9 @@ configInitialise()
     dbus_error_init(&error);
     bus = dbus_bus_get(DBUS_BUS_SYSTEM, &error);
     if (!bus || dbus_error_is_set(&error)) {
-        dbus_error_free(&error);
         FatalError("[dbus] some kind of error occurred: %s (%s)\n", error.name,
                    error.message);
+        dbus_error_free(&error);
         return;
     }
 
