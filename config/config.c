@@ -274,23 +274,23 @@ configInitialise()
     snprintf(busname, sizeof(busname), "org.x.config.display%d", atoi(display));
     if (!dbus_bus_request_name(bus, busname, 0, &error) ||
         dbus_error_is_set(&error)) {
-        dbus_error_free(&error);
         dbus_connection_unref(bus);
         configfd = -1;
         FatalError("[dbus] couldn't take over org.x.config: %s (%s)\n",
                    error.name, error.message);
+        dbus_error_free(&error);
         return;
     }
 
     /* blocks until we get a reply. */
     dbus_bus_add_match(bus, MATCH_RULE, &error);
     if (dbus_error_is_set(&error)) {
-        dbus_error_free(&error);
         dbus_bus_release_name(bus, busname, &error);
         dbus_connection_unref(bus);
         configfd = -1;
         FatalError("[dbus] couldn't match X.Org rule: %s (%s)\n", error.name,
                    error.message);
+        dbus_error_free(&error);
         return;
     }
 
