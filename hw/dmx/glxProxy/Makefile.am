@@ -32,7 +32,7 @@ libglxproxy_a_SOURCES = compsize.c \
                         unpack.h
 
 AM_CFLAGS = \
- \
+            $(DIX_CFLAGS) \
             -I$(top_srcdir)/hw/dmx \
             -I$(top_srcdir)/include \
             -I$(top_srcdir)/GL/include \

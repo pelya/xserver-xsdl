@@ -19,7 +19,7 @@ SUBDIRS = 		\
 	$(XEGL_SUBDIRS)
 
 AM_CFLAGS = \
-	 \
+	 $(DIX_CFLAGS) \
 	-DHAVE_XGL_CONFIG_H \
 	-DHAVE_DIX_CONFIG_H \
 	-I$(top_srcdir)/GL/glx			\
