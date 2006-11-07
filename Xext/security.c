@@ -1122,10 +1122,8 @@ CALLBACK(SecurityClientStateCallback)
     switch (client->clientState)
     {
     case ClientStateInitial:
-	if (client == serverClient) {
-	    TRUSTLEVEL(serverClient) = XSecurityClientTrusted;
-	    AUTHID(serverClient) = None;
-	}
+	TRUSTLEVEL(client) = XSecurityClientTrusted;
+	AUTHID(client) = None;
 	break;
 
     case ClientStateRunning:
