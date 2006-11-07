@@ -31,6 +31,41 @@ static void get_whitepoint_section(Uchar *, struct whitePoints *);
 static void get_detailed_timing_section(Uchar*, struct 	detailed_timings *);
 static Bool validate_version(int scrnIndex, struct edid_version *);
 
+static void
+handle_edid_quirks(xf86MonPtr m)
+{
+    int i, j;
+    struct detailed_timings *preferred_timing;
+    struct monitor_ranges *ranges;
+
+    /*
+     * max_clock is only encoded in EDID in tens of MHz, so occasionally we
+     * find a monitor claiming a max of 160 with a mode requiring 162, or
+     * similar.  Strictly we should refuse to round up too far, but let's
+     * see how well this works.
+     */
+    for (i = 0; i < 4; i++) {
+	if (m->det_mon[i].type == DS_RANGES) {
+	    ranges = &m->det_mon[i].section.ranges;
+	    for (j = 0; j < 4; j++) {
+		if (m->det_mon[j].type == DT) {
+		    preferred_timing = &m->det_mon[j].section.d_timings;
+		    if (!ranges->max_clock) continue; /* zero is legal */
+		    if (ranges->max_clock * 1000000 < preferred_timing->clock) {
+			xf86Msg(X_WARNING,
+			    "EDID preferred timing clock %.2fMHz exceeds "
+			    "claimed max %dMHz, fixing\n",
+			    preferred_timing->clock / 1.0e6,
+			    ranges->max_clock);
+			ranges->max_clock =
+			    (preferred_timing->clock+999999)/1000000;
+			return;
+		    }
+		}
+	    }
+	}
+    }
+}
 
 xf86MonPtr
 xf86InterpretEDID(int scrnIndex, Uchar *block)
@@ -53,7 +88,9 @@ xf86InterpretEDID(int scrnIndex, Uchar *block)
 			   &m->ver);
     get_dt_md_section(SECTION(DET_TIMING_SECTION,block),&m->ver, m->det_mon);
     m->no_sections = (int)*(char *)SECTION(NO_EDID,block);
-    
+
+    handle_edid_quirks(m);
+
     return (m);
 
  error:

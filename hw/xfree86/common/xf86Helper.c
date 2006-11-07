@@ -456,11 +456,11 @@ xf86AddPixFormat(ScrnInfoPtr pScrn, int depth, int bpp, int pad)
 #define DO_PIX24FOR32(f) ((f & Support32bppFb) && (f & SupportConvert24to32))
 
 #ifndef GLOBAL_DEFAULT_DEPTH
-#define GLOBAL_DEFAULT_DEPTH 16
+#define GLOBAL_DEFAULT_DEPTH 24
 #endif
 
 #ifndef GLOBAL_DEFAULT_FBBPP
-#define GLOBAL_DEFAULT_FBBPP 16
+#define GLOBAL_DEFAULT_FBBPP 32
 #endif
 
 _X_EXPORT Bool
@@ -1661,6 +1661,8 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 
     *foundEntities = NULL;
 
+    if (!xf86PciVideoInfo)
+	return 0;
 
     /* Each PCI device will contribute at least one entry.  Each device
      * section can contribute at most one entry.  The sum of the two is
