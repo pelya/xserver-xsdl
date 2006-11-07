@@ -38,6 +38,7 @@
 
 #include "dixstruct.h"
 #include "globals.h"
+#include "dixevents.h"
 
 #include "mipointer.h"
 
@@ -758,7 +759,7 @@ SwitchCorePointer(DeviceIntPtr pDev)
  * to shift the pointer to get it inside the new bounds.
  */
 void
-PostSyntheticMotion(int x, int y, int screenNum, unsigned long time)
+PostSyntheticMotion(int x, int y, ScreenPtr pScreen, unsigned long time)
 {
     xEvent xE;
 
@@ -767,8 +768,8 @@ PostSyntheticMotion(int x, int y, int screenNum, unsigned long time)
        will translate from sprite screen to screen 0 upon reentry
        to the DIX layer. */
     if (!noPanoramiXExtension) {
-        x += panoramiXdataPtr[0].x - panoramiXdataPtr[screenNum].x;
-        y += panoramiXdataPtr[0].y - panoramiXdataPtr[screenNum].y;
+        x += panoramiXdataPtr[0].x - panoramiXdataPtr[pScreen->myNum].x;
+        y += panoramiXdataPtr[0].y - panoramiXdataPtr[pScreen->myNum].y;
     }
 #endif
 
@@ -776,6 +777,7 @@ PostSyntheticMotion(int x, int y, int screenNum, unsigned long time)
     xE.u.u.type = MotionNotify;
     xE.u.keyButtonPointer.rootX = x;
     xE.u.keyButtonPointer.rootY = y;
+    xE.u.keyButtonPointer.time = time;
 
     (*inputInfo.pointer->public.processInputProc)(&xE, inputInfo.pointer, 1);
 }

@@ -327,11 +327,10 @@ static CARD8 criticalEvents[32] =
 
 #ifdef PANORAMIX
 static void ConfineToShape(RegionPtr shape, int *px, int *py);
-extern void PostSyntheticMotion(int x, int y, int screenNum, int time);
 static void PostNewCursor(void);
 
 #define SyntheticMotion(x, y) \
-    PostSyntheticMotion(x, y, sprite.screen->myNum, \
+    PostSyntheticMotion(x, y, sprite.screen, \
                         syncEvents.playingEvents ? \
                           syncEvents.time.milliseconds : \
                           currentTime.milliseconds);
