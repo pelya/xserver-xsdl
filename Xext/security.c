@@ -1122,11 +1122,11 @@ CALLBACK(SecurityClientStateCallback)
     switch (client->clientState)
     {
     case ClientStateInitial:
-	TRUSTLEVEL(serverClient) = XSecurityClientTrusted;
-	AUTHID(serverClient) = None;
+	TRUSTLEVEL(client) = XSecurityClientTrusted;
+	AUTHID(client) = None;
 	break;
 
-	case ClientStateRunning:
+    case ClientStateRunning:
 	{ 
 	    XID authId = AuthorizationIDOfClient(client);
 	    SecurityAuthorizationPtr pAuth;
@@ -1146,8 +1146,8 @@ CALLBACK(SecurityClientStateCallback)
 	    }
 	    break;
 	}
-	case ClientStateGone:
-	case ClientStateRetained: /* client disconnected */
+    case ClientStateGone:
+    case ClientStateRetained: /* client disconnected */
 	{
 	    SecurityAuthorizationPtr pAuth;
 
@@ -1167,7 +1167,7 @@ CALLBACK(SecurityClientStateCallback)
 	    }	    
 	    break;
 	}
-	default: break; 
+    default: break; 
     }
 } /* SecurityClientStateCallback */
 

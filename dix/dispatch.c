@@ -3682,7 +3682,6 @@ extern unsigned totalClientSize;
 
 void InitClient(ClientPtr client, int i, pointer ospriv)
 {
-    bzero(client, totalClientSize);
     client->index = i;
     client->sequence = 0; 
     client->clientAsMask = ((Mask)i) << CLIENTOFFSET;
