@@ -330,7 +330,8 @@ static void ConfineToShape(RegionPtr shape, int *px, int *py);
 static void PostNewCursor(void);
 
 #define SyntheticMotion(x, y) \
-    PostSyntheticMotion(x, y, sprite.screen->myNum, \
+    PostSyntheticMotion(x, y, noPanoramiXExtension ? 0 : \
+                              sprite.screen->myNum, \
                         syncEvents.playingEvents ? \
                           syncEvents.time.milliseconds : \
                           currentTime.milliseconds);
