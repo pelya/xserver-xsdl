@@ -1045,7 +1045,7 @@ CheckConnections(void)
 	FD_ZERO(&tmask);
 	FD_SET(curclient, &tmask);
 	r = Select (curclient + 1, &tmask, NULL, NULL, &notime);
-	if (r < 0)
+	if (r < 0 && GetConnectionTranslation(curclient) > 0)
 	    CloseDownClient(clients[GetConnectionTranslation(curclient)]);
     }	
 #endif
