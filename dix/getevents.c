@@ -168,7 +168,7 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
 
     pDev->valuator->last_motion = (pDev->valuator->last_motion + 1) %
                                   pDev->valuator->numMotionEvents;
-    
+
     /* If we're wrapping around, just keep the circular buffer going. */
     if (pDev->valuator->first_motion == pDev->valuator->last_motion)
         pDev->valuator->first_motion = (pDev->valuator->first_motion + 1) %
@@ -745,7 +745,7 @@ SwitchCoreKeyboard(DeviceIntPtr pDev)
  * Currently a no-op.
  *
  * Call this just before processInputProc.
- */ 
+ */
 _X_EXPORT void
 SwitchCorePointer(DeviceIntPtr pDev)
 {

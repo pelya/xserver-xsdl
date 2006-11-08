@@ -372,7 +372,7 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 #endif
 	    /* Okay the message made it to the ddx.  The common layer */
 	    /* can check for relevant messages here and react to any  */
-	    /* that have a global effect.  For example:               */ 
+	    /* that have a global effect.  For example:               */
 	    /*                                                        */
 	    /* if (!strcmp(message, "foo") {                          */
 	    /*      do_foo(); break                                   */
@@ -457,9 +457,9 @@ xf86Wakeup(pointer blockData, int err, pointer pReadmask)
 		if (pInfo->read_input && pInfo->fd >= 0 &&
 		    (FD_ISSET(pInfo->fd, &devicesWithInput) != 0)) {
 		    int sigstate = xf86BlockSIGIO();
-		    
+
 		    pInfo->read_input(pInfo);
-		    xf86UnblockSIGIO(sigstate);		    
+		    xf86UnblockSIGIO(sigstate);
 		    /*
 		     * Remove the descriptior from the set because more than one
 		     * device may share the same file descriptor.
@@ -478,9 +478,9 @@ xf86Wakeup(pointer blockData, int err, pointer pReadmask)
     while (pInfo) {
 		if (pInfo->read_input && pInfo->fd >= 0) {
 		    int sigstate = xf86BlockSIGIO();
-		    
+
 		    pInfo->read_input(pInfo);
-		    xf86UnblockSIGIO(sigstate);		    
+		    xf86UnblockSIGIO(sigstate);
 		    /*
 		     * Must break here because more than one device may share
 		     * the same file descriptor.
@@ -502,7 +502,7 @@ xf86Wakeup(pointer blockData, int err, pointer pReadmask)
 	    }
 	}
     }
-    
+
     if (xf86VTSwitchPending()) xf86VTSwitch();
 
     if (xf86Info.inputPending) ProcessInputEvents();
@@ -527,7 +527,7 @@ xf86SigioReadInput(int fd,
 
 /*
  * xf86AddEnabledDevice --
- *    
+ *
  */
 _X_EXPORT void
 xf86AddEnabledDevice(InputInfoPtr pInfo)
@@ -539,7 +539,7 @@ xf86AddEnabledDevice(InputInfoPtr pInfo)
 
 /*
  * xf86RemoveEnabledDevice --
- *    
+ *
  */
 _X_EXPORT void
 xf86RemoveEnabledDevice(InputInfoPtr pInfo)
@@ -560,7 +560,7 @@ xf86InterceptSignals(int *signo)
 
 static void (*xf86SigIllHandler)(void) = NULL;
 
-_X_EXPORT void 
+_X_EXPORT void
 xf86InterceptSigIll(void (*sigillhandler)(void))
 {
     xf86SigIllHandler = sigillhandler;
@@ -608,7 +608,7 @@ static int xorg_backtrace_frame(uintptr_t pc, int signo, void *arg)
     ElfSym *dlsym;
     char header[32];
     int depth = *((int *) arg);
-    
+
     if (signo) {
 	char signame[SIG2STR_MAX];
 
@@ -621,7 +621,7 @@ static int xorg_backtrace_frame(uintptr_t pc, int signo, void *arg)
 
     snprintf(header, sizeof(header), "%d: 0x%lx", depth, pc);
     *((int *) arg) = depth + 1;
-    
+
     /* Ask system dynamic loader for info on the address */
     if (dladdr1((void *) pc, &dlinfo, (void **) &dlsym, RTLD_DL_SYMENT)) {
 	unsigned long offset = pc - (uintptr_t) dlinfo.dli_saddr;
@@ -643,7 +643,7 @@ static int xorg_backtrace_frame(uintptr_t pc, int signo, void *arg)
 	 */
 	ErrorF("%s\n", header);
     }
-    
+
     return 0;
 }
 # endif /* HAVE_WALKCONTEXT */
@@ -686,7 +686,7 @@ static int xorg_backtrace_pstack(void) {
 
 	while (!done) {
 	    bytesread = read(pipefd[0], btline, sizeof(btline) - 1);
-	    
+
 	    if (bytesread > 0) {
 		btline[bytesread] = 0;
 		ErrorF("%s", btline);
@@ -710,11 +710,11 @@ static int xorg_backtrace_pstack(void) {
 static __inline__ void xorg_backtrace(void) {
 
     ErrorF("\nBacktrace:\n");
-    
-#  ifdef HAVE_PSTACK    
+
+#  ifdef HAVE_PSTACK
 /* First try fork/exec of pstack - otherwise fall back to walkcontext
    pstack is preferred since it can print names of non-exported functions */
-    
+
     if (xorg_backtrace_pstack() < 0)
 #  endif	
     {
@@ -752,7 +752,7 @@ xf86SigHandler(int signo)
     (void) signal(signo, xf86SigHandler);
     return;
   }
-  
+
   if (xf86SignalIntercept && (*xf86SignalIntercept < 0)) {
     *xf86SignalIntercept = signo;
     /* Re-arm handler just in case */
@@ -767,7 +767,7 @@ xf86SigHandler(int signo)
 #endif
 
   xorg_backtrace();
-    
+
   FatalError("Caught signal %d.  Server aborting\n", signo);
 }
 
@@ -854,7 +854,7 @@ xf86VTSwitch()
 #ifdef DEBUG
   ErrorF("xf86VTSwitch()\n");
 #endif
-  
+
 #ifdef XFreeXDGA
   if(!DGAVTSwitch())
 	return;
@@ -881,9 +881,9 @@ xf86VTSwitch()
     }
 #if !defined(__UNIXOS2__)
 
-    /* 
+    /*
      * Keep the order: Disable Device > LeaveVT
-     *                        EnterVT > EnableDevice 
+     *                        EnterVT > EnableDevice
      */
     pInfo = xf86InputDevs;
     while (pInfo) {
@@ -903,7 +903,7 @@ xf86VTSwitch()
 
     if (!xf86VTSwitchAway()) {
       /*
-       * switch failed 
+       * switch failed
        */
 
 #ifdef DEBUG
@@ -1003,7 +1003,7 @@ xf86VTSwitch()
     /* XXX HACK */
     xf86ReleaseKeys(inputInfo.keyboard);
 #endif /* !__UNIXOS2__ */
-    
+
     for (ih = InputHandlers; ih; ih = ih->next)
       xf86EnableInputHandler(ih);
 
@@ -1039,7 +1039,7 @@ addInputHandler(int fd, InputHandlerProc proc, pointer data)
 
 _X_EXPORT pointer
 xf86AddInputHandler(int fd, InputHandlerProc proc, pointer data)
-{   
+{
     IHPtr ih = addInputHandler(fd, proc, data);
 
     if (ih)
@@ -1049,7 +1049,7 @@ xf86AddInputHandler(int fd, InputHandlerProc proc, pointer data)
 
 _X_EXPORT pointer
 xf86AddGeneralHandler(int fd, InputHandlerProc proc, pointer data)
-{   
+{
     IHPtr ih = addInputHandler(fd, proc, data);
 
     if (ih)
@@ -1079,13 +1079,13 @@ xf86RemoveInputHandler(pointer handler)
 {
     IHPtr ih;
     int fd;
-    
+
     if (!handler)
 	return -1;
 
     ih = handler;
     fd = ih->fd;
-    
+
     if (ih->fd >= 0)
 	RemoveEnabledDevice(ih->fd);
     removeInputHandler(ih);
@@ -1098,13 +1098,13 @@ xf86RemoveGeneralHandler(pointer handler)
 {
     IHPtr ih;
     int fd;
-    
+
     if (!handler)
 	return -1;
 
     ih = handler;
     fd = ih->fd;
-    
+
     if (ih->fd >= 0)
 	RemoveGeneralSocket(ih->fd);
     removeInputHandler(ih);
@@ -1193,7 +1193,7 @@ void
 xf86ReloadInputDevs(int sig)
 {
   InputInfoPtr pInfo;
-  
+
   signal(sig, (void(*)(int))xf86ReloadInputDevs);
 
   pInfo = xf86InputDevs;
@@ -1202,7 +1202,7 @@ xf86ReloadInputDevs(int sig)
     EnableDevice(pInfo->dev);
     pInfo = pInfo->next;
   }
-  
+
   return;
 }
 
@@ -1224,7 +1224,7 @@ xf86PostWSKbdEvent(struct wscons_event *event)
   int value = event->value;
   unsigned int keycode;
   int blocked;
-  
+
   if (type == WSCONS_EVENT_KEY_UP || type == WSCONS_EVENT_KEY_DOWN) {
     Bool down = (type == WSCONS_EVENT_KEY_DOWN ? TRUE : FALSE);
 
