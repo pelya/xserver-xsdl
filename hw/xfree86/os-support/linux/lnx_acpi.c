@@ -163,7 +163,7 @@ lnxACPIOpen(void)
 
     xf86PMGetEventFromOs = lnxACPIGetEventFromOs;
     xf86PMConfirmEventToOs = lnxACPIConfirmEventToOs;
-    ACPIihPtr = xf86AddInputHandler(fd,xf86HandlePMEvents,NULL);
+    ACPIihPtr = xf86AddGeneralHandler(fd,xf86HandlePMEvents,NULL);
     xf86MsgVerb(X_INFO,3,"Open ACPI successful (%s)\n", ACPI_SOCKET);
 
     return lnxCloseACPI;
@@ -178,7 +178,7 @@ lnxCloseACPI(void)
    ErrorF("ACPI: Closing device\n");
 #endif
     if (ACPIihPtr) {
-	fd = xf86RemoveInputHandler(ACPIihPtr);
+	fd = xf86RemoveGeneralHandler(ACPIihPtr);
 	shutdown(fd, 2);
 	close(fd);
 	ACPIihPtr = NULL;
