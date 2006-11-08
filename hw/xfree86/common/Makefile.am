@@ -66,7 +66,6 @@ EXTRA_DIST = \
 	xf86Bus.h \
 	xf86Config.h \
 	xf86InPriv.h \
-	xf86Keymap.h \
 	xf86Module.h \
 	xf86Opt.h \
 	xf86PciInfo.h \
