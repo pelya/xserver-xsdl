@@ -78,7 +78,7 @@ lnxACPIGetEventFromOs(int fd, pmEvent *events, int num)
 	char *data = NULL; /* doesn't appear to be used in the kernel */
 	unsigned long int notify_l, data_l;
 
-	video = strtok(ev, "video");
+	video = strtok(ev, " ");
 
 	GFX = strtok(NULL, " ");
 #if 0
