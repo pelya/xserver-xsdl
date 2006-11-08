@@ -30,7 +30,6 @@
 #include "kdrive-config.h"
 #endif
 #include "kdrive.h"
-#include "kkeymap.h"
 #include <SDL/SDL.h>
 #include <X11/keysym.h>
 
@@ -39,19 +38,19 @@ static Bool sdlScreenInit(KdScreenInfo *screen);
 static Bool sdlFinishInitScreen(ScreenPtr pScreen);
 static Bool sdlCreateRes(ScreenPtr pScreen);
 
-static void sdlKeyboardBell (int volume, int pitch, int duration);
-static void sdlKeyboardLeds (int leds);
-static void sdlKeyboardFini(void);
-static void sdlKeyboardLoad (void);
-static Bool sdlKeyboardInit(void);
+static void sdlKeyboardFini(KdKeyboardInfo *ki);
+static Bool sdlKeyboardInit(KdKeyboardInfo *ki);
 
-static Bool sdlMouseInit(void);
-static void sdlMouseFini(void);
+static Bool sdlMouseInit(KdPointerInfo *pi);
+static void sdlMouseFini(KdPointerInfo *pi);
 
 void *sdlShadowWindow (ScreenPtr pScreen, CARD32 row, CARD32 offset, int mode, CARD32 *size, void *closure);
 void sdlShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf);
 
 void sdlTimer(void);
+
+KdKeyboardInfo *sdlKeyboard = NULL;
+KdPointerInfo *sdlPointer = NULL;
 
 KeySym sdlKeymap[]={
 	0, 			/* 8 */
@@ -168,51 +167,23 @@ KeySym sdlKeymap[]={
 	NoSymbol, NoSymbol		/* 118 */
 };
 
-//KdMouseInfo *kdMouseInfo;
-
-KdKeyboardFuncs sdlKeyboardFuncs = {
-    sdlKeyboardLoad,
-    sdlKeyboardInit,
-    sdlKeyboardLeds,
-    sdlKeyboardBell,
-    sdlKeyboardFini,
-    3,
+KdKeyboardDriver sdlKeyboardDriver = {
+    .name = "keyboard",
+    .Init = sdlKeyboardInit,
+    .Fini = sdlKeyboardFini,
 };
 
-KdMouseFuncs sdlMouseFuncs = {
-    sdlMouseInit,
-    sdlMouseFini,
+KdPointerDriver sdlMouseDriver = {
+    .name = "mouse",
+    .Init = sdlMouseInit,
+    .Fini = sdlMouseFini,
 };
 
 
 KdCardFuncs sdlFuncs = {
-    0,	/* cardinit */
-    sdlScreenInit,	/* scrinit */
-    0,	/* initScreen */
-    sdlFinishInitScreen, /* finishInitScreen */
-    sdlCreateRes,	/* createRes */
-    0,	/* preserve */
-    0,		/* enable */
-    0,		/* dpms */
-    0,		/* disable */
-    0,		/* restore */
-    0,	/* scrfini */
-    0,	/* cardfini */
-    
-    0,			/* initCursor */
-    0,			/* enableCursor */
-    0,			/* disableCursor */
-    0,			/* finiCursor */
-    0,			/* recolorCursor */
-    
-    0,	/* initAccel */
-    0,	/* enableAccel */
-    0,	/* syncAccel */
-    0,	/* disableAccel */
-    0,	/* finiAccel */
-    
-    0,    	 /* getColors */
-    0	 /* putColors */
+    .scrinit = sdlScreenInit,	/* scrinit */
+    .finishInitScreen = sdlFinishInitScreen, /* finishInitScreen */
+    .createRes = sdlCreateRes,	/* createRes */
 };
 
 int mouseState=0;
@@ -327,52 +298,34 @@ static Bool sdlFinishInitScreen(ScreenPtr pScreen)
 	return TRUE;
 }
 
-static void sdlKeyboardBell (int volume, int pitch, int duration)
+static void sdlKeyboardFini(KdKeyboardInfo *ki)
 {
-#ifdef DEBUG
-	printf("a bell would go here\n");
-#endif
+        sdlKeyboard = NULL;
 }
 
-static void sdlKeyboardLeds (int leds)
+static Bool sdlKeyboardInit(KdKeyboardInfo *ki)
 {
-#ifdef DEBUG
-	printf("Leds: %d\n", leds);
-#endif
+        ki->minScanCode = 8;
+        ki->maxScanCode = 255;
+        ki->keySyms.minKeyCode = 8;
+        ki->keySyms.maxKeyCode = 255;
+        ki->keySyms.mapWidth = 2;
+        memcpy(ki->keySyms.map, sdlKeymap, sizeof(sdlKeymap));
+
+	sdlKeyboard = ki;
+
+        return TRUE;
 }
 
-static void sdlKeyboardLoad(void)
+static Bool sdlMouseInit (KdPointerInfo *pi)
 {
-	int x;
-	kdMinScanCode = 8;
-	kdMaxScanCode = 255;
-	kdMinKeyCode = 8;
-	kdMaxKeyCode = 255;
-	kdKeymapWidth = 2;
-
-	memcpy(kdKeymap, sdlKeymap, sizeof(sdlKeymap));
-}
-
-static void sdlKeyboardFini(void)
-{
-
-}
-
-static Bool sdlKeyboardInit(void)
-{
+        sdlPointer = pi;
 	return TRUE;
 }
 
-static Bool sdlMouseInit (void)
+static void sdlMouseFini(KdPointerInfo *pi)
 {
-#ifdef DEBUG
-	printf("kdMouseInfo: 0x%x\n", kdMouseInfo);
-#endif
-	return TRUE;
-}
-
-static void sdlMouseFini(void)
-{
+        sdlPointer = NULL;
 }
 
 
@@ -395,8 +348,18 @@ void InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 
 void InitInput(int argc, char **argv)
 {
-	/* FIXME: change this to use SDL key/mouse funcs */
-	KdInitInput(&sdlMouseFuncs, &sdlKeyboardFuncs);
+        KdPointerInfo *pi;
+        KdKeyboardInfo *ki;
+
+        KdAddKeyboardDriver(&sdlKeyboardDriver);
+        KdAddPointerDriver(&sdlMouseDriver);
+        
+        ki = KdParseKeyboard("keyboard");
+        KdAddKeyboard(ki);
+        pi = KdParsePointer("mouse");
+        KdAddPointer(pi);
+
+        KdInitInput();
 }
 
 void ddxUseMsg(void)
@@ -418,7 +381,7 @@ void sdlTimer(void)
 	while ( SDL_PollEvent(&event) ) {
 		switch (event.type) {
 			case SDL_MOUSEMOTION:
-				KdEnqueueMouseEvent(kdMouseInfo, mouseState,  event.motion.x, event.motion.y);
+				KdEnqueuePointerEvent(sdlPointer, mouseState, event.motion.x, event.motion.y, 0);
 				break;
 			case SDL_MOUSEBUTTONDOWN:
 				switch(event.button.button)
@@ -434,7 +397,7 @@ void sdlTimer(void)
 						break;
 				}
 				mouseState|=buttonState;
-				KdEnqueueMouseEvent(kdMouseInfo, mouseState|KD_MOUSE_DELTA, 0, 0);
+				KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, 0);
 				break;
 			case SDL_MOUSEBUTTONUP:
 				switch(event.button.button)
@@ -450,14 +413,14 @@ void sdlTimer(void)
 						break;
 				}
 				mouseState &= ~buttonState;
-				KdEnqueueMouseEvent(kdMouseInfo, mouseState|KD_MOUSE_DELTA, 0, 0);
+				KdEnqueuePointerEvent(sdlPointer, mouseState|KD_MOUSE_DELTA, 0, 0, 0);
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
 #ifdef DEBUG
 				printf("Keycode: %d\n", event.key.keysym.scancode);
 #endif
-			        KdEnqueueKeyboardEvent (event.key.keysym.scancode, event.type==SDL_KEYUP);
+			        KdEnqueueKeyboardEvent (sdlKeyboard, event.key.keysym.scancode, event.type==SDL_KEYUP);
 				break;
 
 			case SDL_QUIT:
@@ -482,12 +445,9 @@ static void xsdlFini(void)
 }
 
 KdOsFuncs sdlOsFuncs={
-	xsdlInit,
-	0,
-	0,
-	0,
-	xsdlFini,
-	sdlTimer
+	.Init = xsdlInit,
+	.Fini = xsdlFini,
+	.pollEvents = sdlTimer,
 };
 
 void OsVendorInit (void)
