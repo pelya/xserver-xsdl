@@ -1584,6 +1584,7 @@ if test "$KDRIVE" = yes; then
         AC_DEFINE(TSLIB, 1, [Have tslib support])
     fi
 
+    AC_CHECK_HEADERS([SDL/SDL.h])
     if test x"$ac_cv_header_SDL_SDL_h" = xyes && test "x$XSDL" = xauto; then
        XSDL=yes
     fi
@@ -1641,12 +1642,6 @@ if test "$KDRIVE" = yes; then
     # Xephyr needs nanosleep() which is in librt on Solaris
     AC_CHECK_FUNC([nanosleep], [],
         AC_CHECK_LIB([rt], [nanosleep], XEPHYR_LIBS="$XEPHYR_LIBS -lrt"))
-
-    # check for SDL SDK
-    AC_CHECK_HEADERS([SDL/SDL.h])
-    if test "x$XSDL" = xauto; then
-        XSDL="$ac_cv_header_SDL_SDL_h"
-    fi
 
     AC_SUBST([XEPHYR_LIBS])
     AC_SUBST([XEPHYR_INCS])
