@@ -258,49 +258,51 @@ configInitialise()
     dbus_error_init(&error);
     bus = dbus_bus_get(DBUS_BUS_SYSTEM, &error);
     if (!bus || dbus_error_is_set(&error)) {
-        FatalError("[dbus] some kind of error occurred: %s (%s)\n", error.name,
-                   error.message);
+        ErrorF("[dbus] some kind of error occurred: %s (%s)\n", error.name,
+                error.message);
         dbus_error_free(&error);
         return;
     }
 
     if (!dbus_connection_get_unix_fd(bus, &configfd)) {
         dbus_connection_unref(bus);
+        ErrorF("[dbus] couldn't get fd for bus\n");
+        dbus_error_free(&error);
         configfd = -1;
-        FatalError("[dbus] couldn't get fd for bus\n");
         return;
     }
 
     snprintf(busname, sizeof(busname), "org.x.config.display%d", atoi(display));
     if (!dbus_bus_request_name(bus, busname, 0, &error) ||
         dbus_error_is_set(&error)) {
+        ErrorF("[dbus] couldn't take over org.x.config: %s (%s)\n",
+               error.name, error.message);
+        dbus_error_free(&error);
         dbus_connection_unref(bus);
         configfd = -1;
-        FatalError("[dbus] couldn't take over org.x.config: %s (%s)\n",
-                   error.name, error.message);
-        dbus_error_free(&error);
         return;
     }
 
     /* blocks until we get a reply. */
     dbus_bus_add_match(bus, MATCH_RULE, &error);
     if (dbus_error_is_set(&error)) {
+        ErrorF("[dbus] couldn't match X.Org rule: %s (%s)\n", error.name,
+               error.message);
+        dbus_error_free(&error);
         dbus_bus_release_name(bus, busname, &error);
         dbus_connection_unref(bus);
         configfd = -1;
-        FatalError("[dbus] couldn't match X.Org rule: %s (%s)\n", error.name,
-                   error.message);
-        dbus_error_free(&error);
         return;
     }
 
     snprintf(busobject, sizeof(busobject), "/org/x/config/%d", atoi(display));
     if (!dbus_connection_register_object_path(bus, busobject, &vtable, bus)) {
+        ErrorF("[dbus] couldn't register object path\n");
         configfd = -1;
         dbus_bus_release_name(bus, busname, &error);
         dbus_bus_remove_match(bus, MATCH_RULE, &error);
         dbus_connection_unref(bus);
-        FatalError("[dbus] couldn't register object path\n");
+        dbus_error_free(&error);
         return;
     }
 
