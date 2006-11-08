@@ -1,5 +1,6 @@
 /*
  * Copyright © 2006 Nokia Corporation
+ * Copyright © 2006 Daniel Stone
  *
  * Permission to use, copy, modify, distribute, and sell this software and
  * its documentation for any purpose is hereby granted without fee,
@@ -27,18 +28,17 @@
 
 #include <X11/X.h>
 #include <X11/keysym.h>
-#include "misc.h"
-#include "resource.h"
 #define NEED_EVENTS
 #define NEED_REPLIES
 #include <X11/Xproto.h>
+
+#include "misc.h"
+#include "resource.h"
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include "cursorstr.h"
-
 #include "dixstruct.h"
 #include "globals.h"
-
 #include "mipointer.h"
 
 #ifdef XKB
@@ -63,11 +63,120 @@ extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
 #include "exglobals.h"
 #include "extnsionst.h"
 
-/* Maximum number of valuators, divided by six, rounded up. */
+
+/* Maximum number of valuators, divided by six, rounded up, to get number
+ * of events. */
 #define MAX_VALUATOR_EVENTS 6
 
 /* Number of motion history events to store. */
 #define MOTION_HISTORY_SIZE 256
+
+
+/**
+ * Pick some arbitrary size for Xi motion history.
+ */
+_X_EXPORT int
+GetMotionHistorySize()
+{
+    return MOTION_HISTORY_SIZE;
+}
+
+
+/**
+ * Allocate the motion history buffer.
+ */
+_X_EXPORT void
+AllocateMotionHistory(DeviceIntPtr pDev)
+{
+    if (pDev->valuator->motion)
+        xfree(pDev->valuator->motion);
+
+    if (pDev->valuator->numMotionEvents < 1)
+        return;
+
+    pDev->valuator->motion = xalloc(((sizeof(INT32) * pDev->valuator->numAxes) +
+                                     sizeof(Time)) *
+                                    pDev->valuator->numMotionEvents);
+    pDev->valuator->first_motion = 0;
+    pDev->valuator->last_motion = 0;
+}
+
+
+/**
+ * Dump the motion history between start and stop into the supplied buffer.
+ * Only records the event for a given screen in theory, but in practice, we
+ * sort of ignore this.
+ */
+_X_EXPORT int
+GetMotionHistory(DeviceIntPtr pDev, xTimecoord *buff, unsigned long start,
+                 unsigned long stop, ScreenPtr pScreen)
+{
+    char *ibuff = NULL, *obuff = (char *) buff;
+    int i = 0, ret = 0;
+    Time current;
+    /* The size of a single motion event. */
+    int size = (sizeof(INT32) * pDev->valuator->numAxes) + sizeof(Time);
+
+    if (!pDev->valuator || !pDev->valuator->numMotionEvents)
+        return 0;
+
+    for (i = pDev->valuator->first_motion;
+         i != pDev->valuator->last_motion;
+         i = (i + 1) % pDev->valuator->numMotionEvents) {
+        /* We index the input buffer by which element we're accessing, which
+         * is not monotonic, and the output buffer by how many events we've
+         * written so far. */
+        ibuff = (char *) pDev->valuator->motion + (i * size);
+        memcpy(&current, ibuff, sizeof(Time));
+
+        if (current > stop) {
+            return ret;
+        }
+        else if (current >= start) {
+            memcpy(obuff, ibuff, size);
+            obuff += size;
+            ret++;
+        }
+    }
+
+    return ret;
+}
+
+
+/**
+ * Update the motion history for a specific device, with the list of
+ * valuators.
+ */
+static void
+updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
+                    int num_valuators, int *valuators)
+{
+    char *buff = (char *) pDev->valuator->motion;
+
+    if (!pDev->valuator->numMotionEvents)
+        return;
+
+    buff += ((sizeof(INT32) * pDev->valuator->numAxes) + sizeof(CARD32)) *
+            pDev->valuator->last_motion;
+    memcpy(buff, &ms, sizeof(Time));
+
+    buff += sizeof(Time);
+    bzero(buff, sizeof(INT32) * pDev->valuator->numAxes);
+
+    buff += sizeof(INT32) * first_valuator;
+    memcpy(buff, valuators, sizeof(INT32) * num_valuators);
+
+    pDev->valuator->last_motion = (pDev->valuator->last_motion + 1) %
+                                  pDev->valuator->numMotionEvents;
+    
+    /* If we're wrapping around, just keep the circular buffer going. */
+    if (pDev->valuator->first_motion == pDev->valuator->last_motion)
+        pDev->valuator->first_motion = (pDev->valuator->first_motion + 1) %
+                                       pDev->valuator->numMotionEvents;
+
+    return;
+}
+
 
 /**
  * Returns the maximum number of events GetKeyboardEvents,
@@ -90,149 +199,6 @@ GetMaximumEventsNum() {
     return ret;
 }
 
-/**
- * Convenience wrapper around GetKeyboardValuatorEvents, that takes no
- * valuators.
- */
-_X_EXPORT int
-GetKeyboardEvents(xEvent *events, DeviceIntPtr pDev, int type, int key_code) {
-    return GetKeyboardValuatorEvents(events, pDev, type, key_code, 0, 0, NULL);
-}
-
-/**
- * Returns a set of keyboard events for KeyPress/KeyRelease, optionally
- * also with valuator events.  Handles Xi and XKB.
- *
- * events is not NULL-terminated; the return value is the number of events.
- * The DDX is responsible for allocating the event structure in the first
- * place via GetMaximumEventsNum(), and for freeing it.
- *
- * This function does not change the core keymap to that of the device;
- * that is done by SwitchCoreKeyboard, which is called from
- * mieqProcessInputEvents.  If replacing function, take care to call
- * SetCoreKeyboard before processInputProc, so keymaps are altered to suit.
- *
- * Note that this function recurses!  If called for non-XKB, a repeating
- * key press will trigger a matching KeyRelease, as well as the
- * KeyPresses.
- */
-_X_EXPORT int
-GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
-                          int key_code, int first_valuator,
-                          int num_valuators, int *valuators) {
-    int numEvents = 0, i = 0;
-    CARD32 ms = 0;
-    int final_valuator = first_valuator + num_valuators;
-    KeySym sym = pDev->key->curKeySyms.map[key_code *
-                                           pDev->key->curKeySyms.mapWidth];
-    deviceKeyButtonPointer *kbp = NULL;
-    deviceValuator *xv = NULL;
-
-    if (!events)
-        return 0;
-
-    if (type != KeyPress && type != KeyRelease)
-        return 0;
-
-    if (!pDev->key || !pDev->focus || !pDev->kbdfeed ||
-        (pDev->coreEvents && !inputInfo.keyboard->key))
-        return 0;
-
-    if (pDev->coreEvents)
-        numEvents = 2;
-    else
-        numEvents = 1;
-
-    if (num_valuators) {
-        if ((num_valuators / 6) + 1 > MAX_VALUATOR_EVENTS)
-            num_valuators = MAX_VALUATOR_EVENTS;
-        numEvents += (num_valuators / 6) + 1;
-    }
-
-#ifdef XKB
-    if (noXkbExtension)
-#endif
-    {
-        switch (sym) {
-            case XK_Num_Lock:
-            case XK_Caps_Lock:
-            case XK_Scroll_Lock:
-            case XK_Shift_Lock:
-                if (type == KeyRelease)
-                    return 0;
-                else if (type == KeyPress &&
-                         (pDev->key->down[key_code >> 3] & (key_code & 7)) & 1)
-                        type = KeyRelease;
-        }
-    }
-
-    /* Handle core repeating, via press/release/press/release.
-     * FIXME: In theory, if you're repeating with two keyboards,
-     *        you could get unbalanced events here. */
-    if (type == KeyPress &&
-        (((pDev->key->down[key_code >> 3] & (key_code & 7))) & 1)) {
-        if (!pDev->kbdfeed->ctrl.autoRepeat ||
-            pDev->key->modifierMap[key_code] ||
-            !(pDev->kbdfeed->ctrl.autoRepeats[key_code >> 3]
-                & (1 << (key_code & 7))))
-            return 0;
-
-#ifdef XKB
-        if (noXkbExtension)
-#endif
-        {
-            numEvents += GetKeyboardValuatorEvents(events, pDev,
-                                                   KeyRelease, key_code,
-                                                   first_valuator, num_valuators,
-                                                   valuators);
-            events += numEvents;
-        }
-    }
-
-    ms = GetTimeInMillis();
-
-    kbp = (deviceKeyButtonPointer *) events;
-    kbp->time = ms;
-    kbp->deviceid = pDev->id;
-    if (type == KeyPress)
-        kbp->type = DeviceKeyPress;
-    else if (type == KeyRelease)
-        kbp->type = DeviceKeyRelease;
-
-    if (num_valuators) {
-        kbp->deviceid |= MORE_EVENTS;
-        for (i = first_valuator; i < final_valuator; i += 6) {
-            xv = (deviceValuator *) ++events;
-            xv->type = DeviceValuator;
-            xv->first_valuator = i;
-            xv->num_valuators = num_valuators;
-            xv->deviceid = kbp->deviceid;
-            switch (num_valuators - first_valuator) {
-            case 6:
-                xv->valuator5 = valuators[i+5];
-            case 5:
-                xv->valuator4 = valuators[i+4];
-            case 4:
-                xv->valuator3 = valuators[i+3];
-            case 3:
-                xv->valuator2 = valuators[i+2];
-            case 2:
-                xv->valuator1 = valuators[i+1];
-            case 1:
-                xv->valuator0 = valuators[i];
-            }
-        }
-    }
-
-    if (pDev->coreEvents) {
-        events++;
-        events->u.keyButtonPointer.time = ms;
-        events->u.u.type = type;
-        events->u.u.detail = key_code;
-    }
-
-    return numEvents;
-}
 
 /* Originally a part of xf86PostMotionEvent; modifies valuators
  * in-place. */
@@ -307,8 +273,10 @@ acceleratePointer(DeviceIntPtr pDev, int first_valuator, int num_valuators,
     }
 }
 
+
 /**
- * Clip an axis to its bounds.
+ * Clip an axis to its bounds, which are declared in the call to
+ * InitValuatorAxisClassStruct.
  */
 static void
 clipAxis(DeviceIntPtr pDev, int axisNum, int *val)
@@ -322,8 +290,7 @@ clipAxis(DeviceIntPtr pDev, int axisNum, int *val)
 }
 
 /**
- * Compare the list of valuators against the limits for each axis, and clip
- * them to those bounds.
+ * Clip every axis in the list of valuators to its bounds.
  */
 static void
 clipValuators(DeviceIntPtr pDev, int first_valuator, int num_valuators,
@@ -336,9 +303,14 @@ clipValuators(DeviceIntPtr pDev, int first_valuator, int num_valuators,
         clipAxis(pDev, i + first_valuator, &(valuators[i]));
 }
 
+
 /**
  * Fills events with valuator events for pDev, as given by the other
  * parameters.
+ *
+ * FIXME: Need to fix ValuatorClassRec to store all the valuators as
+ *        last posted, not just x and y; otherwise relative non-x/y
+ *        valuators, though a very narrow use case, will be broken.
  */
 static xEvent *
 getValuatorEvents(xEvent *events, DeviceIntPtr pDev, int first_valuator,
@@ -373,107 +345,132 @@ getValuatorEvents(xEvent *events, DeviceIntPtr pDev, int first_valuator,
     return events;
 }
 
+
 /**
- * Pick some arbitrary size for Xi motion history.
+ * Convenience wrapper around GetKeyboardValuatorEvents, that takes no
+ * valuators.
  */
 _X_EXPORT int
-GetMotionHistorySize()
-{
-    return MOTION_HISTORY_SIZE;
+GetKeyboardEvents(xEvent *events, DeviceIntPtr pDev, int type, int key_code) {
+    return GetKeyboardValuatorEvents(events, pDev, type, key_code, 0, 0, NULL);
 }
 
-/**
- * Allocate the motion history buffer.
- */
-_X_EXPORT void
-AllocateMotionHistory(DeviceIntPtr pDev)
-{
-    if (pDev->valuator->motion)
-        xfree(pDev->valuator->motion);
-
-    if (pDev->valuator->numMotionEvents < 1)
-        return;
-
-    pDev->valuator->motion = xalloc(((sizeof(INT32) * pDev->valuator->numAxes) +
-                                     sizeof(Time)) *
-                                    pDev->valuator->numMotionEvents);
-    pDev->valuator->first_motion = 0;
-    pDev->valuator->last_motion = 0;
-}
 
 /**
- * Dump the motion history between start and stop into the supplied buffer.
- * Only records the event for a given screen in theory, but in practice, we
- * sort of ignore this.
+ * Returns a set of keyboard events for KeyPress/KeyRelease, optionally
+ * also with valuator events.  Handles Xi and XKB.
+ *
+ * events is not NULL-terminated; the return value is the number of events.
+ * The DDX is responsible for allocating the event structure in the first
+ * place via GetMaximumEventsNum(), and for freeing it.
+ *
+ * This function does not change the core keymap to that of the device;
+ * that is done by SwitchCoreKeyboard, which is called from
+ * mieqProcessInputEvents.  If replacing that function, take care to call
+ * SetCoreKeyboard before processInputProc, so keymaps are altered to suit.
+ *
+ * Note that this function recurses!  If called for non-XKB, a repeating
+ * key press will trigger a matching KeyRelease, as well as the
+ * KeyPresses.
  */
 _X_EXPORT int
-GetMotionHistory(DeviceIntPtr pDev, xTimecoord *buff, unsigned long start,
-                 unsigned long stop, ScreenPtr pScreen)
-{
-    int i = 0, ret = 0;
-    /* The size of a single motion event. */
-    int size = (sizeof(INT32) * pDev->valuator->numAxes) + sizeof(Time);
-    Time current;
-    char *ibuff = NULL, *obuff = (char *) buff;
+GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
+                          int key_code, int first_valuator,
+                          int num_valuators, int *valuators) {
+    int numEvents = 0;
+    CARD32 ms = 0;
+    KeySym *map = pDev->key->curKeySyms.map;
+    KeySym sym = map[key_code * pDev->key->curKeySyms.mapWidth];
+    deviceKeyButtonPointer *kbp = NULL;
 
-    if (!pDev->valuator || !pDev->valuator->numMotionEvents)
+    if (!events)
         return 0;
 
-    for (i = pDev->valuator->first_motion;
-         i != pDev->valuator->last_motion;
-         i = (i + 1) % pDev->valuator->numMotionEvents) {
-        /* We index the input buffer by which element we're accessing, which
-         * is not monotonic, and the output buffer by how many events we've
-         * written so far. */
-        ibuff = (char *) pDev->valuator->motion + (i * size);
-        memcpy(&current, ibuff, sizeof(Time));
+    if (type != KeyPress && type != KeyRelease)
+        return 0;
 
-        if (current > stop) {
-            return ret;
-        }
-        else if (current >= start) {
-            memcpy(obuff, ibuff, size);
-            obuff += size;
-            ret++;
+    if (!pDev->key || !pDev->focus || !pDev->kbdfeed ||
+        (pDev->coreEvents && !inputInfo.keyboard->key))
+        return 0;
+
+    if (pDev->coreEvents)
+        numEvents = 2;
+    else
+        numEvents = 1;
+
+    if (num_valuators) {
+        if ((num_valuators / 6) + 1 > MAX_VALUATOR_EVENTS)
+            num_valuators = MAX_VALUATOR_EVENTS;
+        numEvents += (num_valuators / 6) + 1;
+    }
+
+#ifdef XKB
+    if (noXkbExtension)
+#endif
+    {
+        switch (sym) {
+            case XK_Num_Lock:
+            case XK_Caps_Lock:
+            case XK_Scroll_Lock:
+            case XK_Shift_Lock:
+                if (type == KeyRelease)
+                    return 0;
+                else if (type == KeyPress &&
+                         (pDev->key->down[key_code >> 3] & (key_code & 7)) & 1)
+                        type = KeyRelease;
         }
     }
 
-    return ret;
+    /* Handle core repeating, via press/release/press/release.
+     * FIXME: In theory, if you're repeating with two keyboards in non-XKB,
+     *        you could get unbalanced events here. */
+    if (type == KeyPress &&
+        (((pDev->key->down[key_code >> 3] & (key_code & 7))) & 1)) {
+        if (!pDev->kbdfeed->ctrl.autoRepeat ||
+            pDev->key->modifierMap[key_code] ||
+            !(pDev->kbdfeed->ctrl.autoRepeats[key_code >> 3]
+                & (1 << (key_code & 7))))
+            return 0;
+
+#ifdef XKB
+        if (noXkbExtension)
+#endif
+        {
+            numEvents += GetKeyboardValuatorEvents(events, pDev,
+                                                   KeyRelease, key_code,
+                                                   first_valuator, num_valuators,
+                                                   valuators);
+            events += numEvents;
+        }
+    }
+
+    ms = GetTimeInMillis();
+
+    kbp = (deviceKeyButtonPointer *) events;
+    kbp->time = ms;
+    kbp->deviceid = pDev->id;
+    if (type == KeyPress)
+        kbp->type = DeviceKeyPress;
+    else if (type == KeyRelease)
+        kbp->type = DeviceKeyRelease;
+
+    events++;
+    if (num_valuators) {
+        kbp->deviceid |= MORE_EVENTS;
+        clipValuators(pDev, first_valuator, num_valuators, valuators);
+        events = getValuatorEvents(events, pDev, first_valuator,
+                                   num_valuators, valuators);
+    }
+
+    if (pDev->coreEvents) {
+        events->u.keyButtonPointer.time = ms;
+        events->u.u.type = type;
+        events->u.u.detail = key_code;
+    }
+
+    return numEvents;
 }
 
-/**
- * Update the motion history for a specific device, with the list of
- * valuators.
- */
-static void
-updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
-                    int num_valuators, int *valuators)
-{
-    char *buff = (char *) pDev->valuator->motion;
-
-    if (!pDev->valuator->numMotionEvents)
-        return;
-
-    buff += ((sizeof(INT32) * pDev->valuator->numAxes) + sizeof(CARD32)) *
-            pDev->valuator->last_motion;
-    memcpy(buff, &ms, sizeof(Time));
-
-    buff += sizeof(Time);
-    bzero(buff, sizeof(INT32) * pDev->valuator->numAxes);
-
-    buff += sizeof(INT32) * first_valuator;
-    memcpy(buff, valuators, sizeof(INT32) * num_valuators);
-
-    pDev->valuator->last_motion = (pDev->valuator->last_motion + 1) %
-                                  pDev->valuator->numMotionEvents;
-    
-    /* If we're wrapping around, just keep the circular buffer going. */
-    if (pDev->valuator->first_motion == pDev->valuator->last_motion)
-        pDev->valuator->first_motion = (pDev->valuator->first_motion + 1) %
-                                       pDev->valuator->numMotionEvents;
-
-    return;
-}
 
 /**
  * Generate a series of xEvents (returned in xE) representing pointer
@@ -528,6 +525,8 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     kbp->time = ms;
     kbp->deviceid = pDev->id;
 
+    /* Set x and y based on whether this is absolute or relative, and
+     * accelerate if we need to. */
     if (flags & POINTER_ABSOLUTE) {
         if (num_valuators >= 1 && first_valuator == 0) {
             x = valuators[0];
@@ -645,6 +644,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     return num_events;
 }
 
+
 /**
  * Post ProximityIn/ProximityOut events, accompanied by valuators.
  *
@@ -689,12 +689,14 @@ GetProximityEvents(xEvent *events, DeviceIntPtr pDev, int type,
     if (num_valuators) {
         kbp->deviceid |= MORE_EVENTS;
         events++;
+        clipValuators(pDev, first_valuator, num_valuators, valuators);
         events = getValuatorEvents(events, pDev, first_valuator,
                                    num_valuators, valuators);
     }
 
     return num_events;
 }
+
 
 /**
  * Note that pDev was the last device to send a core event.  This function
@@ -736,6 +738,7 @@ SwitchCoreKeyboard(DeviceIntPtr pDev)
         inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
     }
 }
+
 
 /**
  * Note that pDev was the last function to send a core pointer event.
