@@ -74,23 +74,14 @@ static pointer
 driSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 {
     static Bool setupDone = FALSE;
-    pointer drm = NULL;
 
     if (!setupDone) {
 	setupDone = TRUE;
-    
-    	drm = 
-	   LoadSubModule(module, "drm", NULL, NULL, NULL, NULL, errmaj, errmin);
-    
-	if (!drm) {
-	    if (errmaj) *errmaj = LDR_NOSUBENT;
-	} else {
-	    LoadExtension(&XF86DRIExt, FALSE);
-	}
+	LoadExtension(&XF86DRIExt, FALSE);
     } else {
 	if (errmaj) *errmaj = LDR_ONCEONLY;
     }
     /* Need a non-NULL return value to indicate success */
-    return drm;
+    return 1;
 }
 

@@ -654,10 +654,11 @@ AM_CONDITIONAL(DRI, test "x$DRI" = xyes)
 if test "x$DRI" = xyes; then
 	AC_DEFINE(XF86DRI, 1, [Build DRI extension])
 	PKG_CHECK_MODULES([DRIPROTO], [xf86driproto])
-	PKG_CHECK_MODULES([LIBDRM], [libdrm])
+	PKG_CHECK_MODULES([LIBDRM], [libdrm >= 2.3.0])
 	PKG_CHECK_MODULES([GL], [glproto >= 1.4.1])
 	AC_SUBST(DRIPROTO_CFLAGS)
 	AC_SUBST(LIBDRM_CFLAGS)
+	AC_SUBST(LIBDRM_LIBS)
 	AC_SUBST(GL_CFLAGS)
 fi
 
@@ -1840,7 +1841,6 @@ hw/xfree86/loader/Makefile
 hw/xfree86/os-support/Makefile
 hw/xfree86/os-support/bsd/Makefile
 hw/xfree86/os-support/bus/Makefile
-hw/xfree86/os-support/drm/Makefile
 hw/xfree86/os-support/hurd/Makefile
 hw/xfree86/os-support/misc/Makefile
 hw/xfree86/os-support/linux/Makefile

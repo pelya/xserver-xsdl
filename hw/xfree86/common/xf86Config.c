@@ -251,7 +251,7 @@ xf86ModulelistFromConfig(pointer **optlist)
 {
     int count = 0, i = 0;
     char **modulearray;
-    char *ignore[] = { "GLcore", "speedo", "bitmap", NULL };
+    char *ignore[] = { "GLcore", "speedo", "bitmap", "drm", NULL };
     pointer *optarray;
     XF86LoadPtr modp;
     
