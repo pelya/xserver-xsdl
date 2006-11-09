@@ -113,16 +113,23 @@ miRandRInit (ScreenPtr pScreen)
     modeInfo.height = pScreen->height;
     modeInfo.nameLength = strlen (name);
     
-    mode = RRModeGet (pScreen, &modeInfo, name);
+    mode = RRModeGet (&modeInfo, name);
     if (!mode)
 	return FALSE;
     
-    crtc = RRCrtcCreate (pScreen, NULL);
+    crtc = RRCrtcCreate (NULL);
     if (!crtc)
 	return FALSE;
+    if (!RRCrtcAttachScreen (crtc, pScreen))
+    {
+	RRCrtcDestroy (crtc);
+	return FALSE;
+    }
     
-    output = RROutputCreate (pScreen, "screen", 6, NULL);
+    output = RROutputCreate ("screen", 6, NULL);
     if (!output)
+	return FALSE;
+    if (!RROutputAttachScreen (output, pScreen))
 	return FALSE;
     if (!RROutputSetClones (output, NULL, 0))
 	return FALSE;

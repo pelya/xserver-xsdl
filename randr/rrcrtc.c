@@ -32,43 +32,34 @@ void
 RRCrtcChanged (RRCrtcPtr crtc, Bool layoutChanged)
 {
     ScreenPtr	pScreen = crtc->pScreen;
-    rrScrPriv(pScreen);
 
     crtc->changed = TRUE;
-    pScrPriv->changed = TRUE;
-    /*
-     * Send ConfigureNotify on any layout change
-     */
-    if (layoutChanged)
-	pScrPriv->layoutChanged = TRUE;
+    if (pScreen)
+    {
+	rrScrPriv(pScreen);
+    
+	pScrPriv->changed = TRUE;
+	/*
+	 * Send ConfigureNotify on any layout change
+	 */
+	if (layoutChanged)
+	    pScrPriv->layoutChanged = TRUE;
+    }
 }
 
 /*
  * Create a CRTC
  */
 RRCrtcPtr
-RRCrtcCreate (ScreenPtr	pScreen,
-	      void	*devPrivate)
+RRCrtcCreate (void	*devPrivate)
 {
-    rrScrPriv (pScreen);
     RRCrtcPtr	crtc;
-    RRCrtcPtr	*crtcs;
     
     crtc = xalloc (sizeof (RRCrtcRec));
     if (!crtc)
 	return NULL;
-    if (pScrPriv->numCrtcs)
-	crtcs = xrealloc (pScrPriv->crtcs, 
-			  (pScrPriv->numCrtcs + 1) * sizeof (RRCrtcPtr));
-    else
-	crtcs = xalloc (sizeof (RRCrtcPtr));
-    if (!crtcs)
-    {
-	xfree (crtc);
-	return NULL;
-    }
     crtc->id = FakeClientID (0);
-    crtc->pScreen = pScreen;
+    crtc->pScreen = NULL;
     crtc->mode = NULL;
     crtc->x = 0;
     crtc->y = 0;
@@ -84,11 +75,37 @@ RRCrtcCreate (ScreenPtr	pScreen,
     if (!AddResource (crtc->id, RRCrtcType, (pointer) crtc))
 	return NULL;
 
+    return crtc;
+}
+
+/*
+ * Attach a Crtc to a screen. This is done as a separate step
+ * so that an xf86-based driver can create CRTCs in PreInit
+ * before the Screen has been created
+ */
+
+Bool
+RRCrtcAttachScreen (RRCrtcPtr crtc, ScreenPtr pScreen)
+{
+    rrScrPriv (pScreen);
+    RRCrtcPtr	*crtcs;
+
+    /* make space for the crtc pointer */
+    if (pScrPriv->numCrtcs)
+	crtcs = xrealloc (pScrPriv->crtcs, 
+			  (pScrPriv->numCrtcs + 1) * sizeof (RRCrtcPtr));
+    else
+	crtcs = xalloc (sizeof (RRCrtcPtr));
+    if (!crtcs)
+	return FALSE;
+    
+    /* attach the screen and crtc together */
+    crtc->pScreen = pScreen;
     pScrPriv->crtcs = crtcs;
     pScrPriv->crtcs[pScrPriv->numCrtcs++] = crtc;
 
     RRCrtcChanged (crtc, TRUE);
-    return crtc;
+    return TRUE;
 }
 
 /*
@@ -243,7 +260,6 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	   RROutputConfigPtr  outputs)
 {
     ScreenPtr	pScreen = crtc->pScreen;
-    rrScrPriv(pScreen);
 
     /* See if nothing changed */
     if (crtc->mode == mode &&
@@ -255,45 +271,49 @@ RRCrtcSet (RRCrtcPtr    crtc,
     {
 	return TRUE;
     }
-#if RANDR_12_INTERFACE
-    if (pScrPriv->rrCrtcSet)
+    if (pScreen)
     {
-	return (*pScrPriv->rrCrtcSet) (pScreen, crtc, mode, x, y, 
-				       rotation, numOutputs, outputs);
-    }
+#if RANDR_12_INTERFACE
+	rrScrPriv(pScreen);
+	if (pScrPriv->rrCrtcSet)
+	{
+	    return (*pScrPriv->rrCrtcSet) (pScreen, crtc, mode, x, y, 
+					   rotation, numOutputs, outputs);
+	}
 #endif
 #if RANDR_10_INTERFACE
-    if (pScrPriv->rrSetConfig)
-    {
-	RRScreenSize	    size;
-	RRScreenRate	    rate;
-	Bool		    ret;
+	if (pScrPriv->rrSetConfig)
+	{
+	    RRScreenSize	    size;
+	    RRScreenRate	    rate;
+	    Bool		    ret;
 
-	size.width = mode->mode.width;
-	size.height = mode->mode.height;
-	if (outputs[0].output->mmWidth && outputs[0].output->mmHeight)
-	{
-	    size.mmWidth = outputs[0].output->mmWidth;
-	    size.mmHeight = outputs[0].output->mmHeight;
+	    size.width = mode->mode.width;
+	    size.height = mode->mode.height;
+	    if (outputs[0].output->mmWidth && outputs[0].output->mmHeight)
+	    {
+		size.mmWidth = outputs[0].output->mmWidth;
+		size.mmHeight = outputs[0].output->mmHeight;
+	    }
+	    else
+	    {
+		size.mmWidth = pScreen->mmWidth;
+		size.mmHeight = pScreen->mmHeight;
+	    }
+	    size.nRates = 1;
+	    rate.rate = RRVerticalRefresh (&mode->mode);
+	    size.pRates = &rate;
+	    ret = (*pScrPriv->rrSetConfig) (pScreen, rotation, rate.rate, &size);
+	    /*
+	     * Old 1.0 interface tied screen size to mode size
+	     */
+	    if (ret)
+		RRCrtcNotify (crtc, mode, x, y, rotation, 1, &outputs[0].output);
+	    return ret;
 	}
-	else
-	{
-	    size.mmWidth = pScreen->mmWidth;
-	    size.mmHeight = pScreen->mmHeight;
-	}
-	size.nRates = 1;
-	rate.rate = RRVerticalRefresh (&mode->mode);
-	size.pRates = &rate;
-	ret = (*pScrPriv->rrSetConfig) (pScreen, rotation, rate.rate, &size);
-	/*
-	 * Old 1.0 interface tied screen size to mode size
-	 */
-	if (ret)
-	    RRCrtcNotify (crtc, mode, x, y, rotation, 1, &outputs[0].output);
-	return ret;
-    }
 #endif
-    RRTellChanged (pScreen);
+	RRTellChanged (pScreen);
+    }
     return FALSE;
 }
 
@@ -311,22 +331,26 @@ RRCrtcDestroyResource (pointer value, XID pid)
 {
     RRCrtcPtr	crtc = (RRCrtcPtr) value;
     ScreenPtr	pScreen = crtc->pScreen;
-    rrScrPriv(pScreen);
-    int		i;
 
-    for (i = 0; i < pScrPriv->numCrtcs; i++)
+    if (pScreen)
     {
-	if (pScrPriv->crtcs[i] == crtc)
+	rrScrPriv(pScreen);
+	int		i;
+    
+	for (i = 0; i < pScrPriv->numCrtcs; i++)
 	{
-	    memmove (pScrPriv->crtcs + i, pScrPriv->crtcs + i + 1,
-		     (pScrPriv->numCrtcs - (i - 1)) * sizeof (RRCrtcPtr));
-	    --pScrPriv->numCrtcs;
-	    break;
+	    if (pScrPriv->crtcs[i] == crtc)
+	    {
+		memmove (pScrPriv->crtcs + i, pScrPriv->crtcs + i + 1,
+			 (pScrPriv->numCrtcs - (i - 1)) * sizeof (RRCrtcPtr));
+		--pScrPriv->numCrtcs;
+		break;
+	    }
 	}
     }
     if (crtc->gammaRed)
 	xfree (crtc->gammaRed);
-    xfree (value);
+    xfree (crtc);
     return 1;
 }
 
@@ -343,15 +367,18 @@ RRCrtcGammaSet (RRCrtcPtr   crtc,
     Bool	ret = TRUE;
 #if RANDR_12_INTERFACE
     ScreenPtr	pScreen = crtc->pScreen;
-    rrScrPriv(pScreen);
 #endif
     
     memcpy (crtc->gammaRed, red, crtc->gammaSize * sizeof (CARD16));
     memcpy (crtc->gammaGreen, green, crtc->gammaSize * sizeof (CARD16));
     memcpy (crtc->gammaBlue, blue, crtc->gammaSize * sizeof (CARD16));
 #if RANDR_12_INTERFACE
-    if (pScrPriv->rrCrtcSetGamma)
-	ret = (*pScrPriv->rrCrtcSetGamma) (pScreen, crtc);
+    if (pScreen)
+    {
+	rrScrPriv(pScreen);
+	if (pScrPriv->rrCrtcSetGamma)
+	    ret = (*pScrPriv->rrCrtcSetGamma) (pScreen, crtc);
+    }
 #endif
     return ret;
 }
@@ -433,6 +460,9 @@ ProcRRGetCrtcInfo (ClientPtr client)
     if (!crtc)
 	return RRErrorBase + BadRRCrtc;
 
+    /* All crtcs must be associated with screens before client
+     * requests are processed
+     */
     pScreen = crtc->pScreen;
     pScrPriv = rrGetScrPriv(pScreen);
 
@@ -589,7 +619,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	for (j = 0; j < outputs[i].output->numCrtcs; j++)
 	    if (outputs[i].output->crtcs[j] == crtc)
 		break;
-	if (j == outputs[j].output->numCrtcs)
+	if (j == outputs[i].output->numCrtcs)
 	{
 	    if (outputs)
 		xfree (outputs);

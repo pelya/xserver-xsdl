@@ -103,8 +103,6 @@ RRCloseScreen (int i, ScreenPtr pScreen)
 	RRCrtcDestroy (pScrPriv->crtcs[j]);
     for (j = pScrPriv->numOutputs - 1; j >= 0; j--)
 	RROutputDestroy (pScrPriv->outputs[j]);
-    for (j = pScrPriv->numModes - 1; j >= 0; j--)
-	RRModeDestroy (pScrPriv->modes[j]);
     
     xfree (pScrPriv);
     RRNScreens -= 1;	/* ok, one fewer screen with RandR running */
@@ -257,8 +255,6 @@ Bool RRScreenInit(ScreenPtr pScreen)
     
     wrap (pScrPriv, pScreen, CloseScreen, RRCloseScreen);
 
-    pScrPriv->numModes = 0;
-    pScrPriv->modes = NULL;
     pScrPriv->numOutputs = 0;
     pScrPriv->outputs = NULL;
     pScrPriv->numCrtcs = 0;

@@ -360,6 +360,13 @@ ProcRRGetScreenResources (ClientPtr client)
     }
     else
     {
+	RRModePtr   *modes;
+	int	    num_modes;
+
+	modes = RRModesForScreen (pScreen, &num_modes);
+	if (!modes)
+	    return BadAlloc;
+	
 	rep.type = X_Reply;
 	rep.sequenceNumber = client->sequence;
 	rep.length = 0;
@@ -367,15 +374,15 @@ ProcRRGetScreenResources (ClientPtr client)
 	rep.configTimestamp = pScrPriv->lastConfigTime.milliseconds;
 	rep.nCrtcs = pScrPriv->numCrtcs;
 	rep.nOutputs = pScrPriv->numOutputs;
-	rep.nModes = pScrPriv->numModes;;
+	rep.nModes = num_modes;
 	rep.nbytesNames = 0;
 
-	for (i = 0; i < pScrPriv->numModes; i++)
-	    rep.nbytesNames += pScrPriv->modes[i]->mode.nameLength;
+	for (i = 0; i < num_modes; i++)
+	    rep.nbytesNames += modes[i]->mode.nameLength;
 
 	rep.length = (pScrPriv->numCrtcs + 
 		      pScrPriv->numOutputs + 
-		      pScrPriv->numModes * (SIZEOF(xRRModeInfo) >> 2) +
+		      num_modes * (SIZEOF(xRRModeInfo) >> 2) +
 		      ((rep.nbytesNames + 3) >> 2));
 	
 	extraLen = rep.length << 2;
@@ -383,7 +390,10 @@ ProcRRGetScreenResources (ClientPtr client)
 	{
 	    extra = xalloc (extraLen);
 	    if (!extra)
+	    {
+		xfree (modes);
 		return BadAlloc;
+	    }
 	}
 	else
 	    extra = NULL;
@@ -391,7 +401,7 @@ ProcRRGetScreenResources (ClientPtr client)
 	crtcs = (RRCrtc *) extra;
 	outputs = (RROutput *) (crtcs + pScrPriv->numCrtcs);
 	modeinfos = (xRRModeInfo *) (outputs + pScrPriv->numOutputs);
-	names = (CARD8 *) (modeinfos + pScrPriv->numModes);
+	names = (CARD8 *) (modeinfos + num_modes);
 	
 	for (i = 0; i < pScrPriv->numCrtcs; i++)
 	{
@@ -407,9 +417,10 @@ ProcRRGetScreenResources (ClientPtr client)
 		swapl (&outputs[i], n);
 	}
 	
-	for (i = 0; i < pScrPriv->numModes; i++)
+	for (i = 0; i < num_modes; i++)
 	{
-	    modeinfos[i] = pScrPriv->modes[i]->mode;
+	    RRModePtr	mode = modes[i];
+	    modeinfos[i] = mode->mode;
 	    if (client->swapped)
 	    {
 		swapl (&modeinfos[i].id, n);
@@ -426,10 +437,11 @@ ProcRRGetScreenResources (ClientPtr client)
 		swaps (&modeinfos[i].nameLength, n);
 		swapl (&modeinfos[i].modeFlags, n);
 	    }
-	    memcpy (names, pScrPriv->modes[i]->name, 
-		    pScrPriv->modes[i]->mode.nameLength);
-	    names += pScrPriv->modes[i]->mode.nameLength;
+	    memcpy (names, mode->name, 
+		    mode->mode.nameLength);
+	    names += mode->mode.nameLength;
 	}
+    	xfree (modes);
 	assert (((((char *) names - (char *) extra) + 3) >> 2) == rep.length);
     }
     

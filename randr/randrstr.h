@@ -79,7 +79,6 @@ struct _rrMode {
     xRRModeInfo	    mode;
     char	    *name;
     void	    *devPrivate;
-    ScreenPtr	    screen;
     Bool	    userDefined;
 };
 
@@ -209,10 +208,6 @@ typedef struct _rrScrPriv {
     CARD16		    maxWidth, maxHeight;
     CARD16		    width, height;	/* last known screen size */
     Bool		    layoutChanged;	/* screen layout changed */
-
-    /* modes, outputs and crtcs */
-    int			    numModes;
-    RRModePtr		    *modes;
 
     int			    numOutputs;
     RROutputPtr		    *outputs;
@@ -457,9 +452,16 @@ RRCrtcChanged (RRCrtcPtr crtc, Bool layoutChanged);
  * Create a CRTC
  */
 RRCrtcPtr
-RRCrtcCreate (ScreenPtr	pScreen,
-	      void	*devPrivate);
+RRCrtcCreate (void	*devPrivate);
 
+/*
+ * Attach a CRTC to a screen. Once done, this cannot be
+ * undone without destroying the CRTC; it is separate from Create
+ * only to allow an xf86-based driver to create objects in preinit
+ */
+Bool
+RRCrtcAttachScreen (RRCrtcPtr crtc, ScreenPtr pScreen);
+    
 /*
  * Notify the extension that the Crtc has been reconfigured,
  * the driver calls this whenever it has updated the mode
@@ -556,8 +558,7 @@ RRClientKnowsRates (ClientPtr	pClient);
  */
 
 RRModePtr
-RRModeGet (ScreenPtr	pScreen,
-	   xRRModeInfo	*modeInfo,
+RRModeGet (xRRModeInfo	*modeInfo,
 	   const char	*name);
 
 void
@@ -570,6 +571,12 @@ RRModePruneUnused (ScreenPtr pScreen);
 void
 RRModeDestroy (RRModePtr mode);
 
+/*
+ * Return a list of modes that are valid for some output in pScreen
+ */
+RRModePtr *
+RRModesForScreen (ScreenPtr pScreen, int *num_ret);
+    
 /*
  * Initialize mode type
  */
@@ -601,10 +608,17 @@ RROutputChanged (RROutputPtr output);
  */
 
 RROutputPtr
-RROutputCreate (ScreenPtr   pScreen,
-		const char  *name,
+RROutputCreate (const char  *name,
 		int	    nameLength,
 		void	    *devPrivate);
+
+/*
+ * Attach an output to a screen, again split from creation so
+ * xf86 DDXen can create randr resources before the ScreenRec
+ * exists
+ */
+Bool
+RROutputAttachScreen (RROutputPtr output, ScreenPtr pScreen);
 
 /*
  * Notify extension that output parameters have been changed

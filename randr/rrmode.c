@@ -42,19 +42,23 @@ RRModeEqual (xRRModeInfo *a, xRRModeInfo *b)
     return TRUE;
 }
 
+/*
+ * Keep a list so it's easy to find modes in the resource database.
+ */
+static int	    num_modes;
+static RRModePtr    *modes;
+
 RRModePtr
-RRModeGet (ScreenPtr	pScreen,
-	   xRRModeInfo	*modeInfo,
+RRModeGet (xRRModeInfo	*modeInfo,
 	   const char	*name)
 {
-    rrScrPriv (pScreen);
     int	i;
     RRModePtr	mode;
-    RRModePtr	*modes;
+    RRModePtr	*newModes;
 
-    for (i = 0; i < pScrPriv->numModes; i++)
+    for (i = 0; i < num_modes; i++)
     {
-	mode = pScrPriv->modes[i];
+	mode = modes[i];
 	if (RRModeEqual (&mode->mode, modeInfo) &&
 	    !memcmp (name, mode->name, modeInfo->nameLength))
 	{
@@ -71,16 +75,14 @@ RRModeGet (ScreenPtr	pScreen,
     mode->name = (char *) (mode + 1);
     memcpy (mode->name, name, modeInfo->nameLength);
     mode->name[modeInfo->nameLength] = '\0';
-    mode->screen = pScreen;
     mode->userDefined = FALSE;
 
-    if (pScrPriv->numModes)
-	modes = xrealloc (pScrPriv->modes,
-			  (pScrPriv->numModes + 1) * sizeof (RRModePtr));
+    if (num_modes)
+	newModes = xrealloc (modes, (num_modes + 1) * sizeof (RRModePtr));
     else
-	modes = xalloc (sizeof (RRModePtr));
+	newModes = xalloc (sizeof (RRModePtr));
 
-    if (!modes)
+    if (!newModes)
     {
 	xfree (mode);
 	return NULL;
@@ -89,37 +91,64 @@ RRModeGet (ScreenPtr	pScreen,
     mode->mode.id = FakeClientID(0);
     if (!AddResource (mode->mode.id, RRModeType, (pointer) mode))
 	return NULL;
+    modes = newModes;
+    modes[num_modes++] = mode;
+    
+    /*
+     * give the caller a reference to this mode
+     */
     ++mode->refcnt;
-    pScrPriv->modes = modes;
-    pScrPriv->modes[pScrPriv->numModes++] = mode;
-    pScrPriv->changed = TRUE;
     return mode;
+}
+
+RRModePtr *
+RRModesForScreen (ScreenPtr pScreen, int *num_ret)
+{
+    rrScrPriv(pScreen);
+    int	o;
+    RRModePtr	*screen_modes;
+    int		num_screen_modes = 0;
+
+    screen_modes = xalloc ((num_modes ? num_modes : 1) * sizeof (RRModePtr));
+    
+    for (o = 0; o < pScrPriv->numOutputs; o++)
+    {
+	RROutputPtr	output = pScrPriv->outputs[o];
+	int		m, n;
+
+	for (m = 0; m < output->numModes; m++)
+	{
+	    RRModePtr	mode = output->modes[m];
+	    for (n = 0; n < num_screen_modes; n++)
+		if (screen_modes[n] == mode)
+		    break;
+	    if (n == num_screen_modes)
+		screen_modes[num_screen_modes++] = mode;
+	}
+    }
+    *num_ret = num_screen_modes;
+    return screen_modes;
 }
 
 void
 RRModeDestroy (RRModePtr mode)
 {
-    ScreenPtr	    pScreen;
-    rrScrPrivPtr    pScrPriv;
     int	m;
     
     if (--mode->refcnt > 0)
 	return;
-    pScreen = mode->screen;
-    pScrPriv = rrGetScrPriv (pScreen);
-    for (m = 0; m < pScrPriv->numModes; m++)
+    for (m = 0; m < num_modes; m++)
     {
-	if (pScrPriv->modes[m] == mode)
+	if (modes[m] == mode)
 	{
-	    memmove (pScrPriv->modes + m, pScrPriv->modes + m + 1,
-		     (pScrPriv->numModes - m - 1) * sizeof (RRModePtr));
-	    pScrPriv->numModes--;
-	    if (!pScrPriv->numModes)
+	    memmove (modes + m, modes + m + 1,
+		     (num_modes - m - 1) * sizeof (RRModePtr));
+	    num_modes--;
+	    if (!num_modes)
 	    {
-		xfree (pScrPriv->modes);
-		pScrPriv->modes = NULL;
+		xfree (modes);
+		modes = NULL;
 	    }
-	    pScrPriv->changed = TRUE;
 	    break;
 	}
     }
@@ -137,6 +166,8 @@ RRModeDestroyResource (pointer value, XID pid)
 Bool
 RRModeInit (void)
 {
+    assert (num_modes == 0);
+    assert (modes == NULL);
     RRModeType = CreateNewResourceType (RRModeDestroyResource);
     if (!RRModeType)
 	return FALSE;
@@ -144,26 +175,6 @@ RRModeInit (void)
     RegisterResourceName (RRModeType, "MODE");
 #endif
     return TRUE;
-}
-
-void
-RRModePruneUnused (ScreenPtr pScreen)
-{
-    rrScrPriv (pScreen);
-    RRModePtr	*unused, mode;
-    int		m;
-    int		num = pScrPriv->numModes;
-
-    unused = xalloc (num * sizeof (RRModePtr));
-    if (!unused)
-	return;
-    memcpy (unused, pScrPriv->modes, num * sizeof (RRModePtr));
-    for (m = 0; m < num; m++) {
-	mode = unused[m];
-	if (mode->refcnt == 1 && !mode->userDefined)
-	    FreeResource (mode->mode.id, 0);
-    }
-    xfree (unused);
 }
 
 int
@@ -205,4 +216,3 @@ ProcRRDeleteOutputMode (ClientPtr client)
     (void) stuff;
     return BadImplementation; 
 }
-

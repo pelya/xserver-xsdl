@@ -44,7 +44,7 @@ RROldModeAdd (RROutputPtr output, RRScreenSizePtr size, int refresh)
     modeInfo.dotClock = ((CARD32) size->width * (CARD32) size->height *
 			 (CARD32) refresh);
     modeInfo.nameLength = strlen (name);
-    mode = RRModeGet (pScreen, &modeInfo, name);
+    mode = RRModeGet (&modeInfo, name);
     if (!mode)
 	return NULL;
     for (i = 0; i < output->numModes; i++)
@@ -90,11 +90,18 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
     if (pScrPriv->numOutputs == 0 &&
 	pScrPriv->numCrtcs == 0)
     {
-	crtc = RRCrtcCreate (pScreen, NULL);
+	crtc = RRCrtcCreate (NULL);
 	if (!crtc)
 	    return;
-	output = RROutputCreate (pScreen, "default", 7, NULL);
+	if (!RRCrtcAttachScreen (crtc, pScreen))
+	{
+	    RRCrtcDestroy (crtc);
+	    return;
+	}
+	output = RROutputCreate ("default", 7, NULL);
 	if (!output)
+	    return;
+	if (!RROutputAttachScreen (output, pScreen))
 	    return;
 	RROutputSetCrtcs (output, &crtc, 1);
 	RROutputSetCrtc (output, crtc);
@@ -206,7 +213,6 @@ RRGetInfo (ScreenPtr pScreen)
     if (pScrPriv->nSizes)
 	RRScanOldConfig (pScreen, rotations);
 #endif
-    RRModePruneUnused (pScreen);
     RRTellChanged (pScreen);
     return TRUE;
 }
