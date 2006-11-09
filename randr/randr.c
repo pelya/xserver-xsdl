@@ -39,8 +39,7 @@
 #endif
 
 #define RR_VALIDATE
-int	RRGeneration;
-int	RRNScreens;
+static int	RRNScreens;
 
 #define wrap(priv,real,mem,func) {\
     priv->mem = real->mem; \
@@ -198,10 +197,10 @@ SRRNotifyEvent (xEvent *from,
     }
 }
 
-Bool RRScreenInit(ScreenPtr pScreen)
-{
-    rrScrPrivPtr   pScrPriv;
+static int RRGeneration;
 
+Bool RRInit (void)
+{
     if (RRGeneration != serverGeneration)
     {
 	if (!RRModeInit ())
@@ -210,9 +209,25 @@ Bool RRScreenInit(ScreenPtr pScreen)
 	    return FALSE;
 	if (!RROutputInit ())
 	    return FALSE;
+	RRGeneration = serverGeneration;
+    }
+    return TRUE;
+}
+
+static int RRScreenGeneration;
+
+Bool RRScreenInit(ScreenPtr pScreen)
+{
+    rrScrPrivPtr   pScrPriv;
+
+    if (!RRInit ())
+	return FALSE;
+
+    if (RRScreenGeneration != serverGeneration)
+    {
 	if ((rrPrivIndex = AllocateScreenPrivateIndex()) < 0)
 	    return FALSE;
-	RRGeneration = serverGeneration;
+	RRScreenGeneration = serverGeneration;
     }
 
     pScrPriv = (rrScrPrivPtr) xalloc (sizeof (rrScrPrivRec));

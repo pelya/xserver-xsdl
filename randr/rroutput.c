@@ -31,10 +31,13 @@ void
 RROutputChanged (RROutputPtr output)
 {
     ScreenPtr	pScreen = output->pScreen;
-    rrScrPriv (pScreen);
-
+    
     output->changed = TRUE;
-    pScrPriv->changed = TRUE;
+    if (pScreen)
+    {
+	rrScrPriv (pScreen);
+	pScrPriv->changed = TRUE;
+    }
 }
 
 /*
@@ -335,17 +338,21 @@ RROutputDestroyResource (pointer value, XID pid)
 {
     RROutputPtr	output = (RROutputPtr) value;
     ScreenPtr	pScreen = output->pScreen;
-    rrScrPriv(pScreen);
-    int		i;
 
-    for (i = 0; i < pScrPriv->numOutputs; i++)
+    if (pScreen)
     {
-	if (pScrPriv->outputs[i] == output)
+	rrScrPriv(pScreen);
+	int		i;
+    
+	for (i = 0; i < pScrPriv->numOutputs; i++)
 	{
-	    memmove (pScrPriv->outputs + i, pScrPriv->outputs + i + 1,
-		     (pScrPriv->numOutputs - (i - 1)) * sizeof (RROutputPtr));
-	    --pScrPriv->numOutputs;
-	    break;
+	    if (pScrPriv->outputs[i] == output)
+	    {
+		memmove (pScrPriv->outputs + i, pScrPriv->outputs + i + 1,
+			 (pScrPriv->numOutputs - (i - 1)) * sizeof (RROutputPtr));
+		--pScrPriv->numOutputs;
+		break;
+	    }
 	}
     }
     if (output->modes)
@@ -481,4 +488,3 @@ ProcRRGetOutputInfo (ClientPtr client)
     
     return client->noClientException;
 }
-

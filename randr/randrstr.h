@@ -384,6 +384,8 @@ RRTellChanged (ScreenPtr pScreen);
 Bool
 RRGetInfo (ScreenPtr pScreen);
 
+Bool RRInit (void);
+
 Bool RRScreenInit(ScreenPtr pScreen);
 
 RROutputPtr
