@@ -817,4 +817,7 @@ typedef struct {
 extern int xstrcasecmp(char *s1, char *s2);
 #endif
 
+/* ffs.c */
+extern int ffs(int i);
+
 #endif /* DIX_H */
