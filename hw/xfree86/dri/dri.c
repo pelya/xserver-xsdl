@@ -84,6 +84,8 @@ static RESTYPE DRIDrawablePrivResType;
 static RESTYPE DRIContextPrivResType;
 static void    DRIDestroyDummyContext(ScreenPtr pScreen, Bool hasCtxPriv);
 
+static drmServerInfo DRIDRMServerInfo;
+
 				/* Wrapper just like xf86DrvMsg, but
 				   without the verbosity level checking.
 				   This will make it easy to turn off some
@@ -173,6 +175,8 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 	openbusid = pDRIInfo->busIdString;
     else
 	openbusid = NULL;
+
+    drmSetServerInfo(&DRIDRMServerInfo);
 
     /* Note that drmOpen will try to load the kernel module, if needed. */
     fd = drmOpen(pDRIInfo->drmDriverName, openbusid);
@@ -621,8 +625,6 @@ DRIExtensionInit(void)
 	if (!AllocateWindowPrivate(pScreen, DRIWindowPrivIndex, 0))
 	    return FALSE;
     }
-
-    drmSetServerInfo(&DRIDRMServerInfo);
 
     RegisterBlockAndWakeupHandlers(DRIBlockHandler, DRIWakeupHandler, NULL);
 
