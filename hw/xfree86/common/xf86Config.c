@@ -1307,7 +1307,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
      * events, unless a 'void' section is found, in which case the user
      * probably wants to run footless.
      */
-    for (i = servlayoutp->inputs; i->driver; i++) {
+    for (i = servlayoutp->inputs; i->identifier && i->driver; i++) {
 	if (!strcmp(i->driver, "void") || !strcmp(i->driver, "mouse")) {
 	    found = 1; break;
 	}
