@@ -339,6 +339,8 @@ extern void DRIMoveBuffersHelper(ScreenPtr pScreen,
 
 extern char *DRICreatePCIBusID(pciVideoPtr PciInfo);
 
+extern int drmInstallSIGIOHandler(int fd, void (*f)(int, void *, void *));
+extern int drmRemoveSIGIOHandler(int fd);
 #define _DRI_H_
 
 #endif

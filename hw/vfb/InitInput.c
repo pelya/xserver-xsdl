@@ -43,7 +43,7 @@ from The Open Group.
 #include <X11/keysym.h>
 
 Bool
-LegalModifier(unsigned int key, DevicePtr pDev)
+LegalModifier(unsigned int key, DeviceIntPtr pDev)
 {
     return TRUE;
 }
@@ -53,6 +53,10 @@ ProcessInputEvents()
 {
     mieqProcessInputEvents();
     miPointerUpdate();
+}
+
+void DDXRingBell(int volume, int pitch, int duration)
+{
 }
 
 #define VFB_MIN_KEY 8
@@ -292,8 +296,8 @@ vfbMouseProc(DeviceIntPtr pDevice, int onoff)
 	    map[1] = 1;
 	    map[2] = 2;
 	    map[3] = 3;
-	    InitPointerDeviceStruct(pDev, map, 3, miPointerGetMotionEvents,
-		(PtrCtrlProcPtr)NoopDDA, miPointerGetMotionBufferSize());
+	    InitPointerDeviceStruct(pDev, map, 3, GetMotionHistory,
+		(PtrCtrlProcPtr)NoopDDA, GetMotionHistorySize(), 2);
 	    break;
 
     case DEVICE_ON:
@@ -318,6 +322,5 @@ InitInput(int argc, char *argv[])
     k = AddInputDevice(vfbKeybdProc, TRUE);
     RegisterPointerDevice(p);
     RegisterKeyboardDevice(k);
-    miRegisterPointerDevice(screenInfo.screens[0], p);
-    (void)mieqInit ((DevicePtr) k, (DevicePtr) p);
+    (void)mieqInit();
 }

@@ -871,7 +871,7 @@ vesaComputeFramebufferMapping (KdScreenInfo *screen)
     VesaScreenPrivPtr	pscr = screen->driver;
     int			depth, bpp, fbbpp;
     Pixel		allbits;
-    KdMouseMatrix	m;
+    KdPointerMatrix	m;
 
     if (vesa_linear_fb)
     {
@@ -970,10 +970,10 @@ vesaComputeFramebufferMapping (KdScreenInfo *screen)
 	pscr->mapping = VESA_WINDOWED;
 	pscr->shadow = TRUE;
     }
-    KdComputeMouseMatrix (&m, pscr->randr, 
-			  pscr->mode.XResolution, pscr->mode.YResolution);
+    KdComputePointerMatrix (&m, pscr->randr, 
+                            pscr->mode.XResolution, pscr->mode.YResolution);
     
-    KdSetMouseMatrix (&m);
+    KdSetPointerMatrix (&m);
     
     screen->width = pscr->mode.XResolution;
     screen->height = pscr->mode.YResolution;

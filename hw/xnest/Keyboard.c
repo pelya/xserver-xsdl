@@ -94,6 +94,12 @@ xnestBell(int volume, DeviceIntPtr pDev, pointer ctrl, int cls)
 }
 
 void
+DDXRingBell(int volume, int pitch, int duration)
+{
+  XBell(xnestDisplay, volume);
+}
+
+void
 xnestChangeKeyboardControl(DeviceIntPtr pDev, KeybdCtrl *ctrl)
 {
 #if 0
@@ -253,7 +259,7 @@ XkbError:
 }
 
 Bool
-LegalModifier(unsigned int key, DevicePtr pDev)
+LegalModifier(unsigned int key, DeviceIntPtr pDev)
 {
   return TRUE;
 }

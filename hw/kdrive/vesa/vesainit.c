@@ -71,7 +71,16 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-    KdInitInput(&LinuxMouseFuncs, &LinuxKeyboardFuncs);
+    KdKeyboardInfo *ki = NULL;
+        
+    KdAddPointerDriver(&LinuxMouseDriver);
+    KdAddKeyboardDriver(&LinuxKeyboardDriver);
+    ki = KdNewKeyboard();
+    if (ki) {
+        ki->driver = &LinuxKeyboardDriver;
+        KdAddKeyboard(ki);
+    }
+    KdInitInput();
 }
 
 void

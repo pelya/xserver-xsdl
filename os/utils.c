@@ -53,6 +53,23 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include <dix-config.h>
 #endif
 
+/* The world's most shocking hack, to ensure we get clock_gettime() and
+ * CLOCK_MONOTONIC. */
+#ifdef sun              /* Needed to tell Solaris headers not to restrict to */
+#define __EXTENSIONS__  /* only the functions defined in POSIX 199309.       */
+#endif
+
+#ifdef _POSIX_C_SOURCE
+#define _SAVED_POSIX_C_SOURCE _POSIX_C_SOURCE
+#undef _POSIX_C_SOURCE
+#endif
+#define _POSIX_C_SOURCE 199309L
+#include <time.h>
+#undef _POSIX_C_SOURCE
+#ifdef _SAVED_POSIX_C_SOURCE
+#define _POSIX_C_SOURCE _SAVED_POSIX_C_SOURCE
+#endif
+
 #ifdef __CYGWIN__
 #include <stdlib.h>
 #include <signal.h>
@@ -92,7 +109,6 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #if !defined(SYSV) && !defined(WIN32) && !defined(Lynx) && !defined(QNX4)
 #include <sys/resource.h>
 #endif
-#include <time.h>
 #include <sys/stat.h>
 #include <ctype.h>    /* for isspace */
 #include <stdarg.h>
@@ -535,10 +551,16 @@ GiveUp(int sig)
 _X_EXPORT CARD32
 GetTimeInMillis(void)
 {
-    struct timeval  tp;
+    struct timeval tv;
 
-    X_GETTIMEOFDAY(&tp);
-    return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
+#ifdef MONOTONIC_CLOCK
+    struct timespec tp;
+    if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)
+        return (tp.tv_sec * 1000) + (tp.tv_nsec / 1000000L);
+#endif
+
+    X_GETTIMEOFDAY(&tv);
+    return(tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 }
 
 _X_EXPORT void

@@ -48,6 +48,13 @@
 
 #include "xfixesint.h"
 
+/*
+ * Must use these instead of the constants from xfixeswire.h.  They advertise
+ * what we implement, not what the protocol headers define.
+ */
+#define SERVER_XFIXES_MAJOR 4
+#define SERVER_XFIXES_MINOR 0
+
 unsigned char	XFixesReqCode;
 int		XFixesEventBase;
 int		XFixesErrorBase;
@@ -65,16 +72,16 @@ ProcXFixesQueryVersion(ClientPtr client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    if (stuff->majorVersion < XFIXES_MAJOR) {
+    if (stuff->majorVersion < SERVER_XFIXES_MAJOR) {
 	rep.majorVersion = stuff->majorVersion;
 	rep.minorVersion = stuff->minorVersion;
     } else {
-	rep.majorVersion = XFIXES_MAJOR;
-	if (stuff->majorVersion == XFIXES_MAJOR && 
-	    stuff->minorVersion < XFIXES_MINOR)
+	rep.majorVersion = SERVER_XFIXES_MAJOR;
+	if (stuff->majorVersion == SERVER_XFIXES_MAJOR && 
+	    stuff->minorVersion < SERVER_XFIXES_MINOR)
 	    rep.minorVersion = stuff->minorVersion;
 	else
-	    rep.minorVersion = XFIXES_MINOR;
+	    rep.minorVersion = SERVER_XFIXES_MINOR;
     }
     pXFixesClient->major_version = rep.majorVersion;
     pXFixesClient->minor_version = rep.minorVersion;

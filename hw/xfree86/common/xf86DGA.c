@@ -47,6 +47,8 @@
 #endif
 #include "xf86Xinput.h"
 
+#include "mi.h"
+
 static unsigned long DGAGeneration = 0;
 static int DGAScreenIndex = -1;
 
@@ -907,22 +909,6 @@ DGAVTSwitch(void)
 Bool
 DGAStealKeyEvent(int index, xEvent *e)
 {
-   DGAScreenPtr pScreenPriv;
-    dgaEvent	de;
-
-   if(DGAScreenIndex < 0) /* no DGA */
-	return FALSE;
-
-   pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
-
-   if(!pScreenPriv || !pScreenPriv->grabKeyboard) /* no direct mode */
-	return FALSE;
-
-    de.u.u.type = e->u.u.type + *XDGAEventBase;
-    de.u.u.detail = e->u.u.detail;
-    de.u.event.time = e->u.keyButtonPointer.time;
-    xf86eqEnqueue ((xEvent *) &de);
-   return TRUE;
 }
 
 static int  DGAMouseX, DGAMouseY;
@@ -930,36 +916,6 @@ static int  DGAMouseX, DGAMouseY;
 Bool
 DGAStealMouseEvent(int index, xEvent *e, int dx, int dy)
 {
-   DGAScreenPtr pScreenPriv;
-    dgaEvent	de;
-
-   if(DGAScreenIndex < 0) /* no DGA */
-	return FALSE;
-
-   pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
-
-   if(!pScreenPriv || !pScreenPriv->grabMouse) /* no direct mode */
-	return FALSE;
-    
-    DGAMouseX += dx;
-    if (DGAMouseX < 0)
-	DGAMouseX = 0;
-    else if (DGAMouseX > screenInfo.screens[index]->width)
-	DGAMouseX = screenInfo.screens[index]->width;
-    DGAMouseY += dy;
-    if (DGAMouseY < 0)
-	DGAMouseY = 0;
-    else if (DGAMouseY > screenInfo.screens[index]->height)
-	DGAMouseY = screenInfo.screens[index]->height;
-    de.u.u.type = e->u.u.type + *XDGAEventBase;
-    de.u.u.detail = e->u.u.detail;
-    de.u.event.time = e->u.keyButtonPointer.time;
-    de.u.event.dx = dx;
-    de.u.event.dy = dy;
-    de.u.event.pad1 = DGAMouseX;
-    de.u.event.pad2 = DGAMouseY;
-    xf86eqEnqueue ((xEvent *) &de);
-    return TRUE;
 }
 
 Bool

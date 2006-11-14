@@ -373,26 +373,6 @@ LinuxEnable (void)
     enabled = TRUE;
 }
 
-static Bool
-LinuxSpecialKey (KeySym sym)
-{
-    struct vt_stat  vts;
-    int		    con;
-    
-    if (XK_F1 <= sym && sym <= XK_F12)
-    {
-	con = sym - XK_F1 + 1;
-	memset (&vts, '\0', sizeof (vts));	/* valgrind */
-	ioctl (LinuxConsoleFd, VT_GETSTATE, &vts);
-	if (con != vts.v_active && (vts.v_state & (1 << con)))
-	{
-	    ioctl (LinuxConsoleFd, VT_ACTIVATE, con);
-	    return TRUE;
-	}
-    }
-    return FALSE;
-}
-
 static void
 LinuxDisable (void)
 {
@@ -456,6 +436,7 @@ LinuxFini (void)
 	}
     }
     close(LinuxConsoleFd);                /* make the vt-manager happy */
+    LinuxConsoleFd = -1;
     fd = open ("/dev/tty0", O_RDWR|O_NDELAY, 0);
     if (fd >= 0)
     {
@@ -468,13 +449,32 @@ LinuxFini (void)
     return;
 }
 
+void
+KdOsAddInputDrivers ()
+{
+    KdAddPointerDriver(&LinuxMouseDriver);
+    KdAddPointerDriver(&MsMouseDriver);
+    KdAddPointerDriver(&Ps2MouseDriver);
+#ifdef TSLIB
+    KdAddPointerDriver(&TsDriver);
+#endif
+    KdAddKeyboardDriver(&LinuxKeyboardDriver);
+}
+
+static void
+LinuxBell(int volume, int pitch, int duration)
+{
+    if (volume && pitch)
+        ioctl(LinuxConsoleFd, KDMKTONE, ((1193190 / pitch) & 0xffff) |
+              (((unsigned long)duration * volume / 50) << 16));
+}
+
 KdOsFuncs   LinuxFuncs = {
-    LinuxInit,
-    LinuxEnable,
-    LinuxSpecialKey,
-    LinuxDisable,
-    LinuxFini,
-    0
+    .Init = LinuxInit,
+    .Enable = LinuxEnable,
+    .Disable = LinuxDisable,
+    .Fini = LinuxFini,
+    .Bell = LinuxBell,
 };
 
 void

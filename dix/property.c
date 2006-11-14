@@ -58,8 +58,8 @@ SOFTWARE.
 #include "dixstruct.h"
 #include "dispatch.h"
 #include "swaprep.h"
-#ifdef XCSECURITY
-#include "securitysrv.h"
+#ifdef XACE
+#include "xace.h"
 #endif
 
 /*****************************************************************
@@ -118,12 +118,12 @@ ProcRotateProperties(ClientPtr client)
 	return(BadAlloc);
     for (i = 0; i < stuff->nAtoms; i++)
     {
-#ifdef XCSECURITY
-	char action = SecurityCheckPropertyAccess(client, pWin, atoms[i],
+#ifdef XACE
+	char action = XaceHook(XACE_PROPERTY_ACCESS, client, pWin, atoms[i],
 				SecurityReadAccess|SecurityWriteAccess);
 #endif
         if (!ValidAtom(atoms[i])
-#ifdef XCSECURITY
+#ifdef XACE
 	    || (SecurityErrorOperation == action)
 #endif
 	   )
@@ -132,7 +132,7 @@ ProcRotateProperties(ClientPtr client)
 	    client->errorValue = atoms[i];
             return BadAtom;
         }
-#ifdef XCSECURITY
+#ifdef XACE
 	if (SecurityIgnoreOperation == action)
         {
             DEALLOCATE_LOCAL(props);
@@ -233,8 +233,8 @@ ProcChangeProperty(ClientPtr client)
 	return(BadAtom);
     }
 
-#ifdef XCSECURITY
-    switch (SecurityCheckPropertyAccess(client, pWin, stuff->property,
+#ifdef XACE
+    switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, stuff->property,
 					SecurityWriteAccess))
     {
 	case SecurityErrorOperation:
@@ -501,13 +501,13 @@ ProcGetProperty(ClientPtr client)
     if (!pProp) 
 	return NullPropertyReply(client, None, 0, &reply);
 
-#ifdef XCSECURITY
+#ifdef XACE
     {
 	Mask access_mode = SecurityReadAccess;
 
 	if (stuff->delete)
 	    access_mode |= SecurityDestroyAccess;
-	switch(SecurityCheckPropertyAccess(client, pWin, stuff->property,
+	switch(XaceHook(XACE_PROPERTY_ACCESS, client, pWin, stuff->property,
 					   access_mode))
 	{
 	    case SecurityErrorOperation:
@@ -663,8 +663,8 @@ ProcDeleteProperty(register ClientPtr client)
 	return (BadAtom);
     }
 
-#ifdef XCSECURITY
-    switch(SecurityCheckPropertyAccess(client, pWin, stuff->property,
+#ifdef XACE
+    switch(XaceHook(XACE_PROPERTY_ACCESS, client, pWin, stuff->property,
 				       SecurityDestroyAccess))
     {
 	case SecurityErrorOperation:

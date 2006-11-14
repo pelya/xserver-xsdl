@@ -28,7 +28,11 @@ INCLUDES = \
 	-I$(top_srcdir)/mi
 
 
-nodist_libglx_la_SOURCES = indirect_size.h
+nodist_libglx_la_SOURCES = indirect_size.h \
+			   glapi.c \
+			   glcontextmodes.c \
+			   glcontextmode.h \
+			   glthread.c
 
 libglxdri_la_SOURCES = \
         glxdri.c \
@@ -37,10 +41,6 @@ libglxdri_la_SOURCES = \
 
 libglx_la_SOURCES = \
         g_disptab.h \
-        glapi.c \
-        glcontextmodes.c \
-        glcontextmodes.h \
-        glthread.c \
         glxcmds.c \
         glxcmdsswap.c \
         glxcontext.h \

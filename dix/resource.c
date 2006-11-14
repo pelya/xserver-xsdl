@@ -72,6 +72,34 @@ dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 
 ******************************************************************/
+/* XSERVER_DTRACE additions:
+ * Copyright 2005-2006 Sun Microsystems, Inc.  All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, and/or sell copies of the Software, and to permit persons
+ * to whom the Software is furnished to do so, provided that the above
+ * copyright notice(s) and this permission notice appear in all copies of
+ * the Software and that both the above copyright notice(s) and this
+ * permission notice appear in supporting documentation.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+ * OF THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+ * HOLDERS INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL
+ * INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING
+ * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+ * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * 
+ * Except as contained in this notice, the name of a copyright holder
+ * shall not be used in advertising or otherwise to promote the sale, use
+ * or other dealings in this Software without prior written authorization
+ * of the copyright holder.
+ */
 
 /* $TOG: resource.c /main/41 1998/02/09 14:20:31 kaleb $ */
 
@@ -120,7 +148,18 @@ Equipment Corporation.
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 #endif
+#ifdef XACE
+#include "xace.h"
+#endif
 #include <assert.h>
+
+#ifdef XSERVER_DTRACE
+#include <sys/types.h>
+typedef const char *string;
+#include "Xserver-dtrace.h"
+
+#define TypeNameString(t) NameForAtom(ResourceNames[t & TypeMask])
+#endif
 
 static void RebuildTable(
     int /*client*/
@@ -426,6 +465,9 @@ AddResource(XID id, RESTYPE type, pointer value)
     register ClientResourceRec *rrec;
     register ResourcePtr res, *head;
     	
+#ifdef XSERVER_DTRACE
+    XSERVER_RESOURCE_ALLOC(id, type, value, TypeNameString(type));
+#endif
     client = CLIENT_ID(id);
     rrec = &clientTable[client];
     if (!rrec->buckets)
@@ -525,6 +567,11 @@ FreeResource(XID id, RESTYPE skipDeleteFuncType)
 	    if (res->id == id)
 	    {
 		RESTYPE rtype = res->type;
+
+#ifdef XSERVER_DTRACE
+		XSERVER_RESOURCE_FREE(res->id, res->type,
+			      res->value, TypeNameString(res->type));
+#endif		    
 		*prev = res->next;
 		elements = --*eltptr;
 		if (rtype & RC_CACHED)
@@ -566,6 +613,10 @@ FreeResourceByType(XID id, RESTYPE type, Bool skipFree)
 	{
 	    if (res->id == id && res->type == type)
 	    {
+#ifdef XSERVER_DTRACE
+		XSERVER_RESOURCE_FREE(res->id, res->type,
+			      res->value, TypeNameString(res->type));
+#endif		    		    
 		*prev = res->next;
 		if (type & RC_CACHED)
 		    FlushClientCaches(res->id);
@@ -728,6 +779,10 @@ FreeClientNeverRetainResources(ClientPtr client)
 	    RESTYPE rtype = this->type;
 	    if (rtype & RC_NEVERRETAIN)
 	    {
+#ifdef XSERVER_DTRACE
+		XSERVER_RESOURCE_FREE(this->id, this->type,
+			      this->value, TypeNameString(this->type));
+#endif		    
 		*prev = this->next;
 		if (rtype & RC_CACHED)
 		    FlushClientCaches(this->id);
@@ -774,6 +829,10 @@ FreeClientResources(ClientPtr client)
         for (this = *head; this; this = *head)
 	{
 	    RESTYPE rtype = this->type;
+#ifdef XSERVER_DTRACE
+	    XSERVER_RESOURCE_FREE(this->id, this->type,
+			  this->value, TypeNameString(this->type));
+#endif		    
 	    *head = this->next;
 	    if (rtype & RC_CACHED)
 		FlushClientCaches(this->id);
@@ -818,8 +877,6 @@ LegalNewID(XID id, register ClientPtr client)
 	     !LookupIDByClass(id, RC_ANY)));
 }
 
-#ifdef XCSECURITY
-
 /* SecurityLookupIDByType and SecurityLookupIDByClass:
  * These are the heart of the resource ID security system.  They take
  * two additional arguments compared to the old LookupID functions:
@@ -835,10 +892,6 @@ SecurityLookupIDByType(ClientPtr client, XID id, RESTYPE rtype, Mask mode)
     register    ResourcePtr res;
     pointer retval = NULL;
 
-    assert(client == NullClient ||
-     (client->index <= currentMaxClients && clients[client->index] == client));
-    assert( (rtype & TypeMask) <= lastResourceType);
-
     if (((cid = CLIENT_ID(id)) < MAXCLIENTS) &&
 	clientTable[cid].buckets)
     {
@@ -851,8 +904,11 @@ SecurityLookupIDByType(ClientPtr client, XID id, RESTYPE rtype, Mask mode)
 		break;
 	    }
     }
-    if (retval && client && client->CheckAccess)
-	retval = (* client->CheckAccess)(client, id, rtype, mode, retval);
+#ifdef XACE
+    if (retval && client && 
+	!XaceHook(XACE_RESOURCE_ACCESS, client, id, rtype, mode, retval))
+	retval = NULL;
+#endif
     return retval;
 }
 
@@ -863,10 +919,6 @@ SecurityLookupIDByClass(ClientPtr client, XID id, RESTYPE classes, Mask mode)
     int    cid;
     register ResourcePtr res = NULL;
     pointer retval = NULL;
-
-    assert(client == NullClient ||
-     (client->index <= currentMaxClients && clients[client->index] == client));
-    assert (classes >= lastResourceClass);
 
     if (((cid = CLIENT_ID(id)) < MAXCLIENTS) &&
 	clientTable[cid].buckets)
@@ -880,8 +932,11 @@ SecurityLookupIDByClass(ClientPtr client, XID id, RESTYPE classes, Mask mode)
 		break;
 	    }
     }
-    if (retval && client && client->CheckAccess)
-	retval = (* client->CheckAccess)(client, id, res->type, mode, retval);
+#ifdef XACE
+    if (retval && client &&
+	!XaceHook(XACE_RESOURCE_ACCESS, client, id, res->type, mode, retval))
+	retval = NULL;
+#endif
     return retval;
 }
 
@@ -902,50 +957,3 @@ LookupIDByClass(XID id, RESTYPE classes)
     return SecurityLookupIDByClass(NullClient, id, classes,
 				   SecurityUnknownAccess);
 }
-
-#else /* not XCSECURITY */
-
-/*
- *  LookupIDByType returns the object with the given id and type, else NULL.
- */ 
-pointer
-LookupIDByType(XID id, RESTYPE rtype)
-{
-    int    cid;
-    register    ResourcePtr res;
-
-    if (((cid = CLIENT_ID(id)) < MAXCLIENTS) &&
-	clientTable[cid].buckets)
-    {
-	res = clientTable[cid].resources[Hash(cid, id)];
-
-	for (; res; res = res->next)
-	    if ((res->id == id) && (res->type == rtype))
-		return res->value;
-    }
-    return (pointer)NULL;
-}
-
-/*
- *  LookupIDByClass returns the object with the given id and any one of the
- *  given classes, else NULL.
- */ 
-pointer
-LookupIDByClass(XID id, RESTYPE classes)
-{
-    int    cid;
-    register    ResourcePtr res;
-
-    if (((cid = CLIENT_ID(id)) < MAXCLIENTS) &&
-	clientTable[cid].buckets)
-    {
-	res = clientTable[cid].resources[Hash(cid, id)];
-
-	for (; res; res = res->next)
-	    if ((res->id == id) && (res->type & classes))
-		return res->value;
-    }
-    return (pointer)NULL;
-}
-
-#endif /* XCSECURITY */

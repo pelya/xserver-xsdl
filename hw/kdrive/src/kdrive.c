@@ -43,6 +43,12 @@
 #include "dpmsproc.h"
 #endif
 
+#ifdef HAVE_EXECINFO_H
+#include <execinfo.h>
+#endif
+
+#include <signal.h>
+
 typedef struct _kdDepths {
     CARD8   depth;
     CARD8   bpp;
@@ -60,6 +66,8 @@ KdDepths    kdDepths[] = {
 
 #define NUM_KD_DEPTHS (sizeof (kdDepths) / sizeof (kdDepths[0]))
 
+#define KD_DEFAULT_BUTTONS 5
+
 int                 kdScreenPrivateIndex;
 unsigned long       kdGeneration;
 
@@ -75,6 +83,8 @@ int		    kdVirtualTerminal = -1;
 Bool		    kdSwitchPending;
 char		    *kdSwitchCmd;
 DDXPointRec	    kdOrigin;
+
+static Bool         kdCaughtSignal = FALSE;
 
 /*
  * Carry arguments from InitOutput through driver initialization
@@ -271,7 +281,7 @@ KdSuspend (void)
 	    for (screen = card->screenList; screen; screen = screen->next)
 		if (screen->mynum == card->selected && screen->pScreen)
 		    KdDisableScreen (screen->pScreen);
-	    if (card->driver)
+	    if (card->driver && card->cfuncs->restore)
 		(*card->cfuncs->restore) (card);
 	}
 	KdDisableInput ();
@@ -285,7 +295,8 @@ KdDisableScreens (void)
     KdSuspend ();
     if (kdEnabled)
     {
-	(*kdOsFuncs->Disable) ();
+        if (kdOsFuncs->Disable)
+            (*kdOsFuncs->Disable) ();
 	kdEnabled = FALSE;
     }
 }
@@ -343,7 +354,8 @@ KdEnableScreens (void)
     if (!kdEnabled)
     {
 	kdEnabled = TRUE;
-	(*kdOsFuncs->Enable) ();
+        if (kdOsFuncs->Enable)
+            (*kdOsFuncs->Enable) ();
     }
     KdResume ();
 }
@@ -363,11 +375,15 @@ AbortDDX(void)
     KdDisableScreens ();
     if (kdOsFuncs)
     {
-	if (kdEnabled)
+	if (kdEnabled && kdOsFuncs->Disable)
 	    (*kdOsFuncs->Disable) ();
-	(*kdOsFuncs->Fini) ();
+        if (kdOsFuncs->Fini)
+            (*kdOsFuncs->Fini) ();
 	KdDoSwitchCmd ("stop");
     }
+
+    if (kdCaughtSignal)
+        abort();
 }
 
 void
@@ -379,7 +395,7 @@ ddxGiveUp ()
 Bool	kdDumbDriver;
 Bool	kdSoftCursor;
 
-static char *
+char *
 KdParseFindNext (char *cur, char *delim, char *save, char *last)
 {
     while (*cur && !strchr (delim, *cur))
@@ -560,97 +576,6 @@ KdSaveString (char *str)
     return n;
 }
 
-/*
- * Parse mouse information.  Syntax:
- *
- *  <device>,<nbutton>,<protocol>{,<option>}...
- *
- * options: {nmo}   pointer mapping (e.g. {321})
- *	    2button emulate middle button
- *	    3button dont emulate middle button
- */
-
-void
-KdParseMouse (char *arg)
-{
-    char	save[1024];
-    char	delim;
-    KdMouseInfo	*mi;
-    int		i;
-    
-    mi = KdMouseInfoAdd ();
-    if (!mi)
-	return;
-    mi->name = 0;
-    mi->prot = 0;
-    mi->emulateMiddleButton = kdEmulateMiddleButton;
-    mi->transformCoordinates = !kdRawPointerCoordinates;
-    mi->nbutton = 3;
-    for (i = 0; i < KD_MAX_BUTTON; i++)
-	mi->map[i] = i + 1;
-    
-    if (!arg)
-	return;
-    if (strlen (arg) >= sizeof (save))
-	return;
-    arg = KdParseFindNext (arg, ",", save, &delim);
-    if (!save[0])
-	return;
-    mi->name = KdSaveString (save);
-    if (delim != ',')
-	return;
-    
-    arg = KdParseFindNext (arg, ",", save, &delim);
-    if (!save[0])
-	return;
-    
-    if ('1' <= save[0] && save[0] <= '0' + KD_MAX_BUTTON && save[1] == '\0')
-    {
-        mi->nbutton = save[0] - '0';
-	if (mi->nbutton > KD_MAX_BUTTON)
-	{
-	    UseMsg ();
-	    return;
-	}
-    }
-    
-    if (!delim != ',')
-	return;
-    
-    arg = KdParseFindNext (arg, ",", save, &delim);
-    
-    if (save[0])
-	mi->prot = KdSaveString (save);
-    
-    while (delim == ',')
-    {
-	arg = KdParseFindNext (arg, ",", save, &delim);
-	if (save[0] == '{')
-	{
-	    char	*s = save + 1;
-	    i = 0;
-	    while (*s && *s != '}')
-	    {
-		if ('1' <= *s && *s <= '0' + mi->nbutton)
-		    mi->map[i] = *s - '0';
-		else
-		    UseMsg ();
-		s++;
-	    }
-	}
-	else if (!strcmp (save, "2button"))
-	    mi->emulateMiddleButton = TRUE;
-	else if (!strcmp (save, "3button"))
-	    mi->emulateMiddleButton = FALSE;
-	else if (!strcmp (save, "rawcoord"))
-	    mi->transformCoordinates = FALSE;
-	else if (!strcmp (save, "transform"))
-	    mi->transformCoordinates = TRUE;
-	else
-	    UseMsg ();
-    }
-}
-
 void
 KdParseRgba (char *rgba)
 {
@@ -736,6 +661,11 @@ KdProcessArgument (int argc, char **argv, int i)
 	kdDontZap = TRUE;
 	return 1;
     }
+    if (!strcmp (argv[i], "-nozap"))
+    {
+	kdDontZap = TRUE;
+	return 1;
+    }
     if (!strcmp (argv[i], "-3button"))
     {
 	kdEmulateMiddleButton = FALSE;
@@ -785,14 +715,6 @@ KdProcessArgument (int argc, char **argv, int i)
 	    UseMsg ();
 	return 2;
     }
-    if (!strcmp (argv[i], "-mouse"))
-    {
-	if ((i+1) < argc)
-	    KdParseMouse (argv[i+1]);
-	else
-	    UseMsg ();
-	return 2;
-    }
     if (!strcmp (argv[i], "-rgba"))
     {
 	if ((i+1) < argc)
@@ -814,6 +736,20 @@ KdProcessArgument (int argc, char **argv, int i)
     {
 	return 1;
     }
+    if (!strcmp (argv[i], "-mouse") ||
+        !strcmp (argv[i], "-pointer")) {
+        if (i + 1 >= argc)
+            UseMsg();
+        KdAddConfigPointer(argv[i + 1]);
+        return 2;
+    }
+    if (!strcmp (argv[i], "-keybd")) {
+        if (i + 1 >= argc)
+            UseMsg();
+        KdAddConfigKeyboard(argv[i + 1]);
+        return 2;
+    }
+
 #ifdef PSEUDO8
     return p8ProcessArgument (argc, argv, i);
 #else
@@ -835,7 +771,8 @@ KdOsInit (KdOsFuncs *pOsFuncs)
 	if (serverGeneration == 1) 
 	{
 	    KdDoSwitchCmd ("start");
-	    (*pOsFuncs->Init) ();
+            if (pOsFuncs->Init)
+                (*pOsFuncs->Init) ();
 	}
     }
 }
@@ -1420,6 +1357,39 @@ KdDepthToFb (ScreenPtr	pScreen, int depth)
 
 #endif
 
+#ifdef HAVE_BACKTRACE
+/* shamelessly ripped from xf86Events.c */
+void
+KdBacktrace (int signum)
+{
+    void *array[32]; /* more than 32 and you have bigger problems */
+    size_t size, i;
+    char **strings;
+
+    signal(signum, SIG_IGN);
+
+    size = backtrace (array, 32);
+    fprintf (stderr, "\nBacktrace (%d deep):\n", size);
+    strings = backtrace_symbols (array, size);
+    for (i = 0; i < size; i++)
+        fprintf (stderr, "%d: %s\n", i, strings[i]);
+    free (strings);
+    
+    kdCaughtSignal = TRUE;    
+    if (signum == SIGSEGV)
+        FatalError("Segmentation fault caught\n");
+    else if (signum > 0)
+        FatalError("Signal %d caught\n", signum);
+}
+#else
+void
+KdBacktrace (int signum)
+{
+    kdCaughtSignal = TRUE;
+    FatalError("Segmentation fault caught\n");
+}
+#endif
+
 void
 KdInitOutput (ScreenInfo    *pScreenInfo,
 	      int	    argc,
@@ -1427,6 +1397,12 @@ KdInitOutput (ScreenInfo    *pScreenInfo,
 {
     KdCardInfo	    *card;
     KdScreenInfo    *screen;
+
+#ifdef COMPOSITE
+    /* kind of a hack: we want Composite enabled, but it's disabled per
+     * default. */
+    noCompositeExtension = FALSE;
+#endif
     
     if (!kdCardInfo)
     {
@@ -1464,6 +1440,8 @@ KdInitOutput (ScreenInfo    *pScreenInfo,
     for (card = kdCardInfo; card; card = card->next)
 	for (screen = card->screenList; screen; screen = screen->next)
 	    KdAddScreen (pScreenInfo, screen, argc, argv);
+
+    signal(SIGSEGV, KdBacktrace);
 }
 
 #ifdef DPMSExtension

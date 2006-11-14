@@ -26,10 +26,18 @@ The Open Group.
 
 */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
+#include "dix.h"
+
 int
 ffs(int i)
 {
     int j;
+    if (i == 0)
+        return 0;
     for (j = 1; (i & 1) == 0; j++)
 	i >>= 1;
     return j;

@@ -63,7 +63,7 @@
 #include "xf86Config.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
-
+#include "configProcs.h"
 #include "globals.h"
 #include "extension.h"
 
@@ -251,7 +251,7 @@ xf86ModulelistFromConfig(pointer **optlist)
 {
     int count = 0, i = 0;
     char **modulearray;
-    char *ignore[] = { "GLcore", "speedo", "bitmap", NULL };
+    char *ignore[] = { "GLcore", "speedo", "bitmap", "drm", NULL };
     pointer *optarray;
     XF86LoadPtr modp;
     
@@ -280,9 +280,21 @@ xf86ModulelistFromConfig(pointer **optlist)
 	        count++;
 	    modp = (XF86LoadPtr) modp->list.next;
 	}
+    } else {
+	xf86configptr->conf_modules = xnfcalloc(1, sizeof(XF86ConfModuleRec));
     }
-    if (count == 0)
-	return NULL;
+
+    if (count == 0) {
+	XF86ConfModulePtr ptr = xf86configptr->conf_modules;
+	ptr = xf86addNewLoadDirective(ptr, "extmod", XF86_LOAD_MODULE, NULL);
+	ptr = xf86addNewLoadDirective(ptr, "dbe", XF86_LOAD_MODULE, NULL);
+	ptr = xf86addNewLoadDirective(ptr, "glx", XF86_LOAD_MODULE, NULL);
+	ptr = xf86addNewLoadDirective(ptr, "freetype", XF86_LOAD_MODULE, NULL);
+	ptr = xf86addNewLoadDirective(ptr, "type1", XF86_LOAD_MODULE, NULL);
+	ptr = xf86addNewLoadDirective(ptr, "record", XF86_LOAD_MODULE, NULL);
+	ptr = xf86addNewLoadDirective(ptr, "dri", XF86_LOAD_MODULE, NULL);
+	count = 7;
+    }
 
     /*
      * allocate the memory and walk the list again to fill in the pointers
@@ -383,18 +395,6 @@ xf86DriverlistFromConfig()
     return modulearray;
 }
 
-
-Bool
-xf86BuiltinInputDriver(const char *name)
-{
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-    if (xf86NameCmp(name, "keyboard") == 0)
-	return TRUE;
-    else
-#endif
-	return FALSE;
-}
-
 char **
 xf86InputDriverlistFromConfig()
 {
@@ -419,8 +419,7 @@ xf86InputDriverlistFromConfig()
     if (xf86ConfigLayout.inputs) {
         idp = xf86ConfigLayout.inputs;
         while (idp->identifier) {
-	    if (!xf86BuiltinInputDriver(idp->driver))
-	        count++;
+	    count++;
 	    idp++;
         }
     }
@@ -435,10 +434,8 @@ xf86InputDriverlistFromConfig()
     count = 0;
     idp = xf86ConfigLayout.inputs;
     while (idp->identifier) {
-	if (!xf86BuiltinInputDriver(idp->driver)) {
-	    modulearray[count] = idp->driver;
-	    count++;
-	}
+        modulearray[count] = idp->driver;
+	count++;
 	idp++;
     }
     modulearray[count] = NULL;
@@ -762,7 +759,8 @@ typedef enum {
     FLAG_HANDLE_SPECIAL_KEYS,
     FLAG_RANDR,
     FLAG_AIGLX,
-    FLAG_IGNORE_ABI
+    FLAG_IGNORE_ABI,
+    FLAG_ALLOW_EMPTY_INPUT,
 } FlagValues;
    
 static OptionInfoRec FlagOptions[] = {
@@ -834,6 +832,8 @@ static OptionInfoRec FlagOptions[] = {
 	{0}, FALSE },
   { FLAG_AIGLX,			"AIGLX",			OPTV_BOOLEAN,
 	{0}, FALSE },
+  { FLAG_ALLOW_EMPTY_INPUT,     "AllowEmptyInput",              OPTV_BOOLEAN,
+        {0}, FALSE },
   { FLAG_IGNORE_ABI,			"IgnoreABI",			OPTV_BOOLEAN,
 	{0}, FALSE },
   { -1,				NULL,				OPTV_NONE,
@@ -895,7 +895,7 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     xf86GetOptValBool(FlagOptions, FLAG_ALLOW_CLOSEDOWN_GRABS,
 		      &(xf86Info.grabInfo.allowClosedown));
     xf86GetOptValBool(FlagOptions, FLAG_IGNORE_ABI, &xf86Info.ignoreABI);
-    if (&xf86Info.ignoreABI) {
+    if (xf86Info.ignoreABI) {
 	    xf86Msg(X_CONFIG, "Ignoring ABI Version\n");
     }
 
@@ -1031,6 +1031,10 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 	xf86Info.aiglxFrom = X_CONFIG;
     }
 
+    xf86Info.allowEmptyInput = FALSE;
+    if (xf86GetOptValBool(FlagOptions, FLAG_ALLOW_EMPTY_INPUT, &value))
+        xf86Info.allowEmptyInput = TRUE;
+
 /* Make sure that timers don't overflow CARD32's after multiplying */
 #define MAX_TIME_IN_MIN (0x7fffffff / MILLI_PER_MIN)
 
@@ -1120,304 +1124,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 }
 
 /*
- * XXX This function is temporary, and will be removed when the keyboard
- * driver is converted into a regular input driver.
- */
-static Bool
-configInputKbd(IDevPtr inputp)
-{
-  char *s;
-  MessageType from = X_DEFAULT;
-  Bool customKeycodesDefault = FALSE;
-  int verb = 0;
-#if defined(XQUEUE)
-  char *kbdproto = "Xqueue";
-#else
-  char *kbdproto = "standard";
-#endif
-
-  /* Initialize defaults */
-  xf86Info.xleds         = 0L;
-  xf86Info.kbdDelay      = 500;
-  xf86Info.kbdRate       = 30;
-  
-  xf86Info.kbdProc       = NULL;
-  xf86Info.vtinit        = NULL;
-  xf86Info.vtSysreq      = VT_SYSREQ_DEFAULT;
-#if defined(SVR4) && defined(i386)
-  xf86Info.panix106      = FALSE;
-#endif
-  xf86Info.kbdCustomKeycodes = FALSE;
-#ifdef WSCONS_SUPPORT
-  xf86Info.kbdFd 	   = -1;
-#endif
-#ifdef XKB
-  if (!xf86IsPc98()) {
-    xf86Info.xkbrules      = __XKBDEFRULES__;
-    xf86Info.xkbmodel      = "pc105";
-    xf86Info.xkblayout     = "us";
-    xf86Info.xkbvariant    = NULL;
-    xf86Info.xkboptions    = NULL;
-  } else {
-    xf86Info.xkbrules      = "xfree98";
-    xf86Info.xkbmodel      = "pc98";
-    xf86Info.xkblayout     = "nec/jp";
-    xf86Info.xkbvariant    = NULL;
-    xf86Info.xkboptions    = NULL;
-  }
-  xf86Info.xkbcomponents_specified = FALSE;
-  /* Should discourage the use of these. */
-  xf86Info.xkbkeymap     = NULL;
-  xf86Info.xkbtypes      = NULL;
-  xf86Info.xkbcompat     = NULL;
-  xf86Info.xkbkeycodes   = NULL;
-  xf86Info.xkbsymbols    = NULL;
-  xf86Info.xkbgeometry   = NULL;
-#endif
-
-  s = xf86SetStrOption(inputp->commonOptions, "Protocol", kbdproto);
-  if (xf86NameCmp(s, "standard") == 0) {
-     xf86Info.kbdProc    = xf86KbdProc;
-     xf86Info.kbdEvents  = xf86KbdEvents;
-     xfree(s);
-  } else if (xf86NameCmp(s, "xqueue") == 0) {
-#ifdef __UNIXWARE__
-    /*
-     * To retain compatibility with older config files, on UnixWare, we
-     * accept the xqueue protocol but use the normal keyboard procs.
-     */
-     xf86Info.kbdProc    = xf86KbdProc;
-     xf86Info.kbdEvents  = xf86KbdEvents;
-#else
-#ifdef XQUEUE
-    xf86Info.kbdProc = xf86XqueKbdProc;
-    xf86Info.kbdEvents = xf86XqueEvents;
-    xf86Msg(X_CONFIG, "Xqueue selected for keyboard input\n");
-#endif
-#endif
-    xfree(s);
-#ifdef WSCONS_SUPPORT
-  } else if (xf86NameCmp(s, "wskbd") == 0) {
-     xf86Info.kbdProc    = xf86KbdProc;
-     xf86Info.kbdEvents  = xf86WSKbdEvents;
-     xfree(s);
-     s = xf86SetStrOption(inputp->commonOptions, "Device", NULL);
-     xf86Msg(X_CONFIG, "Keyboard: Protocol: wskbd\n");
-     if (s == NULL) {
-	 xf86ConfigError("A \"device\" option is required with"
-			 " the \"wskbd\" keyboard protocol");
-	 return FALSE;
-     }
-     xf86Info.kbdFd = open(s, O_RDWR | O_NONBLOCK | O_EXCL);
-     if (xf86Info.kbdFd == -1) {
-       xf86ConfigError("cannot open \"%s\"", s);
-       xfree(s);
-       return FALSE;
-     }
-     xfree(s);
-     /* Find out keyboard type */
-     if (ioctl(xf86Info.kbdFd, WSKBDIO_GTYPE, &xf86Info.wsKbdType) == -1) {
-	     xf86ConfigError("cannot get keyboard type");
-	     close(xf86Info.kbdFd);
-	     return FALSE;
-     }
-     switch (xf86Info.wsKbdType) {
-     case WSKBD_TYPE_PC_XT:
-	     xf86Msg(X_PROBED, "Keyboard type: XT\n");
-	     break;
-     case WSKBD_TYPE_PC_AT:
-	     xf86Msg(X_PROBED, "Keyboard type: AT\n");
-	     break;
-     case WSKBD_TYPE_USB:
-	     xf86Msg(X_PROBED, "Keyboard type: USB\n");
-	     break;
-#ifdef WSKBD_TYPE_ADB
-     case WSKBD_TYPE_ADB:
-	     xf86Msg(X_PROBED, "Keyboard type: ADB\n");
-	     break;
-#endif
-#ifdef WSKBD_TYPE_SUN
-     case WSKBD_TYPE_SUN:
-	     xf86Msg(X_PROBED, "Keyboard type: Sun\n");
-	     break;
-#endif
-#ifdef WSKBD_TYPE_SUN5
-     case WSKBD_TYPE_SUN5:
-	     xf86Msg(X_PROBED, "Keyboard type: Sun5\n");
-	     break;
-#endif
-     default:
-	     xf86ConfigError("Unsupported wskbd type \"%d\"", 
-			     xf86Info.wsKbdType);
-	     close(xf86Info.kbdFd);
-	     return FALSE;
-     }
-#endif
-  } else {
-    xf86ConfigError("\"%s\" is not a valid keyboard protocol name", s);
-    xfree(s);
-    return FALSE;
-  }
-
-  s = xf86SetStrOption(inputp->commonOptions, "AutoRepeat", NULL);
-  if (s) {
-    if (sscanf(s, "%d %d", &xf86Info.kbdDelay, &xf86Info.kbdRate) != 2) {
-      xf86ConfigError("\"%s\" is not a valid AutoRepeat value", s);
-      xfree(s);
-      return FALSE;
-    }
-  xfree(s);
-  }
-
-  s = xf86SetStrOption(inputp->commonOptions, "XLeds", NULL);
-  if (s) {
-    char *l, *end;
-    unsigned int i;
-    l = strtok(s, " \t\n");
-    while (l) {
-      i = strtoul(l, &end, 0);
-      if (*end == '\0')
-	xf86Info.xleds |= 1L << (i - 1);
-      else {
-	xf86ConfigError("\"%s\" is not a valid XLeds value", l);
-	xfree(s);
-	return FALSE;
-      }
-      l = strtok(NULL, " \t\n");
-    }
-    xfree(s);
-  }
-
-#ifdef XKB
-  from = X_DEFAULT;
-  if (noXkbExtension)
-    from = X_CMDLINE;
-  else if (xf86FindOption(inputp->commonOptions, "XkbDisable")) {
-    xf86Msg(X_WARNING, "KEYBOARD: XKB should be disabled in the "
-	    "ServerFlags section instead\n"
-	    "\tof in the \"keyboard\" InputDevice section.\n");
-    noXkbExtension =
-	xf86SetBoolOption(inputp->commonOptions, "XkbDisable", FALSE);
-    from = X_CONFIG;
-  }
-  if (noXkbExtension)
-    xf86Msg(from, "XKB: disabled\n");
-
-#define NULL_IF_EMPTY(s) (s[0] ? s : (xfree(s), (char *)NULL))
-
-  if (!noXkbExtension) {
-    if ((s = xf86SetStrOption(inputp->commonOptions, "XkbKeymap", NULL))) {
-      xf86Info.xkbkeymap = NULL_IF_EMPTY(s);
-      xf86Msg(X_CONFIG, "XKB: keymap: \"%s\" "
-		"(overrides other XKB settings)\n", xf86Info.xkbkeymap);
-    } else {
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbCompat", NULL))) {
-	xf86Info.xkbcompat = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: compat: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbTypes", NULL))) {
-	xf86Info.xkbtypes = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: types: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbKeycodes", NULL))) {
-	xf86Info.xkbkeycodes = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: keycodes: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbGeometry", NULL))) {
-	xf86Info.xkbgeometry = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: geometry: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbSymbols", NULL))) {
-	xf86Info.xkbsymbols = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: symbols: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbRules", NULL))) {
-	xf86Info.xkbrules = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: rules: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbModel", NULL))) {
-	xf86Info.xkbmodel = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: model: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbLayout", NULL))) {
-	xf86Info.xkblayout = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: layout: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbVariant", NULL))) {
-	xf86Info.xkbvariant = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: variant: \"%s\"\n", s);
-      }
-
-      if ((s = xf86SetStrOption(inputp->commonOptions, "XkbOptions", NULL))) {
-	xf86Info.xkboptions = NULL_IF_EMPTY(s);
-	xf86Info.xkbcomponents_specified = TRUE;
-	xf86Msg(X_CONFIG, "XKB: options: \"%s\"\n", s);
-      }
-    }
-  }
-#undef NULL_IF_EMPTY
-#endif
-#if defined(SVR4) && defined(i386)
-  if ((xf86Info.panix106 =
-	xf86SetBoolOption(inputp->commonOptions, "Panix106", FALSE))) {
-    xf86Msg(X_CONFIG, "PANIX106: enabled\n");
-  }
-#endif
-
-  /*
-   * This was once a compile time option (ASSUME_CUSTOM_KEYCODES)
-   * defaulting to 1 on Linux/PPC. It is no longer necessary, but for
-   * backwards compatibility we provide 'Option "CustomKeycodes"'
-   * and try to autoprobe on Linux/PPC.
-   */
-  from = X_DEFAULT;
-  verb = 2;
-#if defined(__linux__) && defined(__powerpc__)
-  {
-    FILE *f;
-
-    f = fopen("/proc/sys/dev/mac_hid/keyboard_sends_linux_keycodes","r");
-    if (f) {
-      if (fgetc(f) == '0') {
-	customKeycodesDefault = TRUE;
-	from = X_PROBED;
-	verb = 1;
-      }
-      fclose(f);
-    }
-  }
-#endif
-  if (xf86FindOption(inputp->commonOptions, "CustomKeycodes")) {
-    from = X_CONFIG;
-    verb = 1;
-  }
-  xf86Info.kbdCustomKeycodes =
-	xf86SetBoolOption(inputp->commonOptions, "CustomKeycodes",
-			  customKeycodesDefault);
-  xf86MsgVerb(from, verb, "Keyboard: CustomKeycode %s\n",
-		xf86Info.kbdCustomKeycodes ? "enabled" : "disabled");
-
-  return TRUE;
-}
-
-/*
  * Locate the core input devices.  These can be specified/located in
  * the following ways, in order of priority:
  *
@@ -1438,12 +1144,13 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     IDevPtr corePointer = NULL, coreKeyboard = NULL;
     Bool foundPointer = FALSE, foundKeyboard = FALSE;
     const char *pointerMsg = NULL, *keyboardMsg = NULL;
-    IDevPtr indp;
+    IDevPtr indp, i;
     IDevRec Pointer, Keyboard;
     XF86ConfInputPtr confInput;
     XF86ConfInputRec defPtr, defKbd;
     int count = 0;
     MessageType from = X_DEFAULT;
+    int found = 0;
 
     /*
      * First check if a core pointer or core keyboard have been specified
@@ -1595,6 +1302,35 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	return FALSE;
     }
 
+    /*
+     * always synthesize a 'mouse' section configured to send core
+     * events, unless a 'void' section is found, in which case the user
+     * probably wants to run footless.
+     */
+    for (i = servlayoutp->inputs; i->driver; i++) {
+	if (!strcmp(i->driver, "void") || !strcmp(i->driver, "mouse")) {
+	    found = 1; break;
+	}
+    }
+    if (!found) {
+	xf86Msg(X_INFO, "No default mouse found, adding one\n");
+	bzero(&defPtr, sizeof(defPtr));
+	defPtr.inp_identifier = "<default pointer>";
+	defPtr.inp_driver = "mouse";
+	confInput = &defPtr;
+	foundPointer = configInput(&Pointer, confInput, from);
+        if (foundPointer) {
+	    count++;
+	    indp = xnfrealloc(servlayoutp->inputs,
+			      (count + 1) * sizeof(IDevRec));
+	    indp[count - 1] = Pointer;
+	    indp[count - 1].extraOptions =
+				xf86addNewOption(NULL, "AlwaysCore", NULL);
+	    indp[count].identifier = NULL;
+	    servlayoutp->inputs = indp;
+	}
+    }
+
     confInput = NULL;
 
     /* 1. Check for the -keyboard command line option. */
@@ -1651,10 +1387,6 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 				  xf86configptr->conf_input_lst);
 	if (!confInput) {
 	    confInput = xf86findInputByDriver("kbd",
-					      xf86configptr->conf_input_lst);
-	}
-	if (!confInput) {
-	    confInput = xf86findInputByDriver("keyboard",
 					      xf86configptr->conf_input_lst);
 	}
 	if (confInput) {
@@ -1974,8 +1706,6 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
     servlayoutp->options = conf_layout->lay_option_lst;
     from = X_DEFAULT;
 
-    if (!checkCoreInputDevices(servlayoutp, FALSE))
-	return FALSE;
     return TRUE;
 }
 
@@ -2034,7 +1764,7 @@ configImpliedLayout(serverLayoutPtr servlayoutp, XF86ConfScreenPtr conf_screen)
     indp = xnfalloc(sizeof(IDevRec));
     indp->identifier = NULL;
     servlayoutp->inputs = indp;
-    if (!checkCoreInputDevices(servlayoutp, TRUE))
+    if (!xf86Info.allowEmptyInput && checkCoreInputDevices(servlayoutp, TRUE))
 	return FALSE;
     
     return TRUE;
@@ -2201,6 +1931,7 @@ configMonitor(MonPtr monitorp, XF86ConfMonitorPtr conf_monitor)
     monitorp->widthmm = conf_monitor->mon_width;
     monitorp->heightmm = conf_monitor->mon_height;
     monitorp->reducedblanking = FALSE;
+    monitorp->maxPixClock = 0;
     monitorp->options = conf_monitor->mon_option_lst;
 
     /*
@@ -2563,10 +2294,6 @@ configInput(IDevPtr inputp, XF86ConfInputPtr conf_input, MessageType from)
     inputp->commonOptions = conf_input->inp_option_lst;
     inputp->extraOptions = NULL;
 
-    /* XXX This is required until the keyboard driver is converted */
-    if (!xf86NameCmp(inputp->driver, "keyboard"))
-	return configInputKbd(inputp);
-
     return TRUE;
 }
 
@@ -2622,6 +2349,12 @@ addDefaultModes(MonPtr monitorp)
     monitorp->Last = last;
 
     return TRUE;
+}
+
+static void
+checkInput(serverLayoutPtr layout) {
+    if (!xf86Info.allowEmptyInput)
+        checkCoreInputDevices(layout, FALSE);
 }
 
 /*
@@ -2744,6 +2477,8 @@ xf86HandleConfigFile(Bool autoconfig)
              ErrorF ("Problem when converting the config data structures\n");
              return CONFIG_PARSE_ERROR;
     }
+
+    checkInput(&xf86ConfigLayout);
 
     /*
      * Handle some command line options that can override some of the

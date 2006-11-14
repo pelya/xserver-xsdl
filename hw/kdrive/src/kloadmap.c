@@ -27,7 +27,6 @@
 #include <kdrive-config.h>
 #endif
 #include "kdrive.h"
-#include "kkeymap.h"
 
 #ifdef WINDOWS
 #define KM_BUF	1024

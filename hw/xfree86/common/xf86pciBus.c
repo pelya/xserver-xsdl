@@ -1398,7 +1398,7 @@ fixPciResource(int prt, memType alignment, pciVideoPtr pvp, unsigned long type)
     (*p_base) = H2B(tag,range.rBegin,type);
 #ifdef DEBUG
     ErrorF("New PCI res %i base: 0x%lx, size: 0x%lx, type %s\n",
-	   res_n,(*p_base),(1 << (*p_size)),
+	   res_n,(*p_base),(1L << (*p_size)),
 	   ((type & ResPhysMask) == ResMem) ? "Mem" : "Io");
 #endif
     if (res_n != 0xff) {
@@ -1577,8 +1577,8 @@ findPciRange(PCITAG tag, resPtr m, resPtr avoid, CARD32 size)
     return 0;
 }
 
-pciVideoPtr
-getPciVideoPtr(tag)
+static pciVideoPtr
+getPciVideoPtr(PCITAG tag)
 {
     int n = 0;
 

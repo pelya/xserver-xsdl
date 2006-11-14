@@ -930,9 +930,8 @@ fbComposite (CARD8      op,
     case PictOpOver:
 	if (pMask)
 	{
-	    if (srcRepeat &&
-		pSrc->pDrawable->width == 1 &&
-		pSrc->pDrawable->height == 1)
+	    if (fbCanGetSolid(pSrc) &&
+		!maskRepeat)
 	    {
 		srcRepeat = FALSE;
 		if (PICT_FORMAT_COLOR(pSrc->format)) {
@@ -1044,7 +1043,7 @@ fbComposite (CARD8      op,
 	    {
 		if (pSrc->pDrawable == pMask->pDrawable &&
 		    xSrc == xMask && ySrc == yMask &&
-		    !pMask->componentAlpha)
+		    !pMask->componentAlpha && !maskRepeat)
 		{
 		    /* source == mask: non-premultiplied data */
 		    switch (pSrc->format) {
@@ -1108,9 +1107,7 @@ fbComposite (CARD8      op,
 		else
 		{
 		    /* non-repeating source, repeating mask => translucent window */
-		    if (maskRepeat &&
-			pMask->pDrawable->width == 1 &&
-			pMask->pDrawable->height == 1)
+		    if (fbCanGetSolid(pMask))
 		    {
 			if (pSrc->format == PICT_x8r8g8b8 &&
 			    pDst->format == PICT_x8r8g8b8 &&
@@ -1127,9 +1124,7 @@ fbComposite (CARD8      op,
 	}
 	else /* no mask */
 	{
-	    if (srcRepeat &&
-		pSrc->pDrawable->width == 1 &&
-		pSrc->pDrawable->height == 1)
+	    if (fbCanGetSolid(pSrc))
 	    {
 		/* no mask and repeating source */
 		switch (pSrc->format) {
@@ -1435,6 +1430,10 @@ fbPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
  */
 #if !defined(__amd64__) && !defined(__x86_64__)
 
+#ifdef HAVE_GETISAX
+#include <sys/auxv.h>
+#endif
+
 enum CPUFeatures {
     NoFeatures = 0,
     MMX = 0x1,
@@ -1445,7 +1444,23 @@ enum CPUFeatures {
 };
 
 static unsigned int detectCPUFeatures(void) {
+    unsigned int features = 0;
     unsigned int result;
+
+#ifdef HAVE_GETISAX
+    if (getisax(&result, 1)) {
+        if (result & AV_386_CMOV)
+            features |= CMOV;
+        if (result & AV_386_MMX)
+            features |= MMX;
+        if (result & AV_386_AMD_MMX)
+            features |= MMX_Extensions;
+        if (result & AV_386_SSE)
+            features |= SSE;
+        if (result & AV_386_SSE2)
+            features |= SSE2;
+    }
+#else
     char vendor[13];
     vendor[0] = 0;
     vendor[12] = 0;
@@ -1454,7 +1469,8 @@ static unsigned int detectCPUFeatures(void) {
      * %esp here. We can't declare either one as clobbered
      * since they are special registers (%ebx is the "PIC
      * register" holding an offset to global data, %esp the
-     * stack pointer), so we need to make sure they have their+      * original values when we access the output operands.
+     * stack pointer), so we need to make sure they have their
+     * original values when we access the output operands.
      */
     __asm__ ("pushf\n"
              "pop %%eax\n"
@@ -1490,7 +1506,6 @@ static unsigned int detectCPUFeatures(void) {
              : "%eax", "%ecx", "%edx"
         );
 
-    unsigned int features = 0;
     if (result) {
         /* result now contains the standard feature bits */
         if (result & (1 << 15))
@@ -1524,6 +1539,7 @@ static unsigned int detectCPUFeatures(void) {
                 features |= MMX_Extensions;
         }
     }
+#endif /* HAVE_GETISAX */
     return features;
 }
 

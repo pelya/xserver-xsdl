@@ -86,45 +86,10 @@ typedef struct {
     Bool valid; /* did anyone recognize it? if so, set to TRUE */
 } SecurityValidateGroupInfoRec;
 
-/* Proc vectors for untrusted clients, swapped and unswapped versions.
- * These are the same as the normal proc vectors except that extensions
- * that haven't declared themselves secure will have ProcBadRequest plugged
- * in for their major opcode dispatcher.  This prevents untrusted clients
- * from guessing extension major opcodes and using the extension even though
- * the extension can't be listed or queried.
- */
-extern int (*UntrustedProcVector[256])(ClientPtr client);
-extern int (*SwappedUntrustedProcVector[256])(ClientPtr client);
-
-extern Bool SecurityCheckDeviceAccess(ClientPtr client, DeviceIntPtr dev,
-			       Bool fromRequest);
-
-extern void SecurityAudit(char *format, ...);
-
 extern int XSecurityOptions(int argc, char **argv, int i);
 
 /* Give this value or higher to the -audit option to get security messages */
 #define SECURITY_AUDIT_LEVEL 4
-
-extern void SecurityCensorImage(
-    ClientPtr client,
-    RegionPtr pVisibleRegion,
-    long widthBytesLine,
-    DrawablePtr pDraw,
-    int x, int y, int w, int h,
-    unsigned int format,
-    char * pBuf);
-
-#define SecurityAllowOperation  0
-#define SecurityIgnoreOperation 1
-#define SecurityErrorOperation  2
-
-extern char
-SecurityCheckPropertyAccess(
-    ClientPtr client,
-    WindowPtr pWin,
-    ATOM  propertyName,
-    Mask access_mode);
 
 #define SECURITY_POLICY_FILE_VERSION "version-1"
 

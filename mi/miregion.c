@@ -223,8 +223,7 @@ _X_EXPORT RegDataRec miEmptyData = {0, 0};
 RegDataRec  miBrokenData = {0, 0};
 RegionRec   miBrokenRegion = { { 0, 0, 0, 0 }, &miBrokenData };
 
-#ifdef DEBUG
-int
+_X_EXPORT void
 miPrintRegion(rgn)
     RegionPtr rgn;
 {
@@ -242,9 +241,7 @@ miPrintRegion(rgn)
       ErrorF("%d %d %d %d \n",
 	     rects[i].x1, rects[i].y1, rects[i].x2, rects[i].y2);
     ErrorF("\n");
-    return(num);
 }
-#endif /* DEBUG */
 
 _X_EXPORT Bool
 miRegionEqual(reg1, reg2)

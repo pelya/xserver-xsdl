@@ -20,6 +20,8 @@
  *	pciSetBitsByte()       - Write an 8 bit value against a mask
  *	pciTag()               - Return tag for a given PCI bus, device, &
  *                               function
+ *	pciDomTag()            - Return tag for a given PCI domain, bus,
+ *                               device & function
  *	pciBusAddrToHostAddr() - Convert a PCI address to a host address
  *	pciHostAddrToBusAddr() - Convert a host address to a PCI address
  *	pciGetBaseSize()       - Returns the number of bits in a PCI base
@@ -612,6 +614,12 @@ _X_EXPORT PCITAG
 pciTag(int busnum, int devnum, int funcnum)
 {
 	return(PCI_MAKE_TAG(busnum,devnum,funcnum));
+}
+
+_X_EXPORT PCITAG
+pciDomTag(int domnum, int busnum, int devnum, int funcnum)
+{
+	return(PCI_MAKE_TAG(PCI_MAKE_BUS(domnum,busnum),devnum,funcnum));
 }
 
 #if defined(PCI_MFDEV_SUPPORT)

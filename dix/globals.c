@@ -105,7 +105,7 @@ int  ScreenSaverAllowExposures;
 #  define DEFAULT_OFF_TIME DEFAULT_SCREEN_SAVER_TIME * 4
 # endif
 # ifndef DEFAULT_DPMS_ENABLED
-#  define DEFAULT_DPMS_ENABLED FALSE
+#  define DEFAULT_DPMS_ENABLED TRUE
 # endif
 CARD32 defaultDPMSStandbyTime = DEFAULT_STANDBY_TIME;
 CARD32 defaultDPMSSuspendTime = DEFAULT_SUSPEND_TIME;
