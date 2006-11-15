@@ -434,8 +434,6 @@ xf86PostMotionEvent(DeviceIntPtr	device,
 {
     va_list var;
     int i = 0, nevents = 0;
-    Bool drag = xf86SendDragEvents(device);
-    LocalDevicePtr local = (LocalDevicePtr) device->public.devicePrivate;
     int *valuators = NULL;
     int flags = 0;
 
