@@ -470,7 +470,7 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
 
 
 /**
- * Generate a series of xEvents (returned in xE) representing pointer
+ * Generate a series of xEvents (returned in events) representing pointer
  * motion, or button presses.  Xi and XKB-aware.
  *
  * events is not NULL-terminated; the return value is the number of events.
