@@ -24,6 +24,15 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  */
+#ifdef MPX
+ /* 
+  * MPX additions:
+  * Copyright © 2006 Peter Hutterer
+  * License see above.
+  * Author: Peter Hutterer <peter@cs.unisa.edu.au>
+  *
+  */
+#endif
 
 /*
  * mieq.c
@@ -218,13 +227,28 @@ mieqProcessInputEvents()
             else if (e->event[0].u.u.type == MotionNotify ||
                      e->event[0].u.u.type == ButtonPress ||
                      e->event[0].u.u.type == ButtonRelease) {
-                SwitchCorePointer(e->pDev);
+#ifdef MPX
+                if (!e->pDev->isMPDev)
+#endif
+                    SwitchCorePointer(e->pDev);
                 dev = inputInfo.pointer;
+
             }
             else {
                 dev = e->pDev;
             }
 
+#ifdef MPX
+            /* MPX devices send both core and Xi events. Depending on what
+             * event we have, dev is set to either the core pointer or the
+             * device. This gives us the right processing function but we need
+             * to pass the right device in too.
+             * Any device that is not a MP device is processed as usual.
+             */
+            if (e->pDev->isMPDev)
+                dev->public.processInputProc(e->event, e->pDev, e->nevents);
+            else
+#endif
             dev->public.processInputProc(e->event, dev, e->nevents);
         }
     }

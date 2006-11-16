@@ -37,3 +37,15 @@ Files:
         hw/xfree86/common/xf86Xinput.c
         include/inputstr.h
         mi/mieq.c
+
+
+mieq:  EQ processing handles MP devices 
+
+global: MPX define added to xorg-server.h.in
+
+xfree86/common: small fix to avoid byte overflow
+
+Files:
+        mi/mieq.c
+        hw/xfree86/common/xf86Xinput.c
+        include/xserver-config.h.in

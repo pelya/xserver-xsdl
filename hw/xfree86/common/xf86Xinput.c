@@ -215,7 +215,10 @@ xf86ActivateDevice(LocalDevicePtr local)
 
         dev->coreEvents = local->flags & XI86_ALWAYS_CORE;
 #ifdef MPX
-        dev->isMPDev = local->flags & XI86_MP_DEVICE;
+        if (local->flags & XI86_MP_DEVICE)
+            dev->isMPDev = TRUE;
+        else
+            dev->isMPDev = FALSE;
 #endif
         RegisterOtherDevice(dev);
 
