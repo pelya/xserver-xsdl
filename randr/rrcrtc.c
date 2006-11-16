@@ -632,13 +632,6 @@ ProcRRSetCrtcConfig (ClientPtr client)
     pScreen = crtc->pScreen;
     pScrPriv = rrGetScrPriv(pScreen);
     
-    if (!RRGetInfo (pScreen))
-    {
-	if (outputs)
-	    xfree (outputs);
-	return BadAlloc;
-    }
-    
     time = ClientTimeToServerTime(stuff->timestamp);
     configTime = ClientTimeToServerTime(stuff->configTimestamp);
     
