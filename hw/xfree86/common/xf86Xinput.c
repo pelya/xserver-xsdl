@@ -215,7 +215,7 @@ xf86ActivateDevice(LocalDevicePtr local)
 
         dev->coreEvents = local->flags & XI86_ALWAYS_CORE;
 #ifdef MPX
-        dev->coreEvents |= local->flags & XI86_MP_DEVICE;
+        dev->isMPDev = local->flags & XI86_MP_DEVICE;
 #endif
         RegisterOtherDevice(dev);
 
@@ -464,7 +464,7 @@ xf86PostMotionEvent(DeviceIntPtr	device,
         flags = POINTER_RELATIVE | POINTER_ACCELERATE;
 
 #ifdef MPX
-    if (device->coreEvents & XI86_MP_DEVICE)
+    if (device->isMPDev)
         flags |= POINTER_MULTIPOINTER;
 #endif
     
@@ -541,7 +541,7 @@ xf86PostButtonEvent(DeviceIntPtr	device,
         flags = POINTER_RELATIVE;
 
 #ifdef MPX
-    if (device->coreEvents & XI86_MP_DEVICE)
+    if (device->isMPDev)
         flags |= POINTER_MULTIPOINTER;
 #endif
     

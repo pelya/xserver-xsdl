@@ -101,6 +101,12 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
     deviceKeyButtonPointer *lastkbp = (deviceKeyButtonPointer *)
                                       &laste->event[0];
 
+#ifdef MPX
+    /* avoid merging events from different devices */
+    if (e->u.u.type == MotionNotify && pDev->isMPDev)
+        isMotion = pDev->id;
+    else
+#endif
     if (e->u.u.type == MotionNotify)
         isMotion = inputInfo.pointer->id;
     else if (e->u.u.type == DeviceMotionNotify)

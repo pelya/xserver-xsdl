@@ -636,7 +636,12 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
                                    num_valuators, valuators);
     }
 
+#ifdef MPX
+    /* MPX devices always send core events */
+    if (pDev->coreEvents || pDev->isMPDev) {
+#else
     if (pDev->coreEvents) {
+#endif
         events->u.u.type = type;
         events->u.keyButtonPointer.time = ms;
         events->u.keyButtonPointer.rootX = x;

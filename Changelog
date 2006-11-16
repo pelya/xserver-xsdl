@@ -23,3 +23,17 @@ Files:
         configure.ac
         include/dix-config.h.in
 
+
+dix:    added isMPdev field to _DeviceIntRec, is used in GetPointerEvents()
+
+mieq:   avoid merging events from different devices in mieqEnqueue()
+
+xfree86/common
+        isMPdev field used from xf86ActivateDevice(), xf86PostMotionEvent()
+        and xf86PostButtonEvent()
+
+Files:
+        dix/getevents.c
+        hw/xfree86/common/xf86Xinput.c
+        include/inputstr.h
+        mi/mieq.c
