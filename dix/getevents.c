@@ -488,7 +488,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     CARD32 ms = 0;
     deviceKeyButtonPointer *kbp = NULL;
     Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
-    DeviceIntPtr cp = inputInfo.pointer;
+    DeviceIntPtr pointer = NULL;
     int x = 0, y = 0;
 
     /* Sanity checks. */
@@ -525,6 +525,11 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     kbp->time = ms;
     kbp->deviceid = pDev->id;
 
+    if (pDev->coreEvents)
+        pointer = inputInfo.pointer;
+    else
+        pointer = pDev;
+
     /* Set x and y based on whether this is absolute or relative, and
      * accelerate if we need to. */
     if (flags & POINTER_ABSOLUTE) {
@@ -532,20 +537,14 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
             x = valuators[0];
         }
         else {
-            if (pDev->coreEvents)
-                x = cp->valuator->lastx;
-            else
-                x = pDev->valuator->lastx;
+            x = pointer->valuator->lastx;
         }
 
         if (first_valuator <= 1 && num_valuators >= (2 - first_valuator)) {
             y = valuators[1 - first_valuator];
         }
         else {
-            if (pDev->coreEvents)
-                x = cp->valuator->lasty;
-            else
-                y = pDev->valuator->lasty;
+                y = pointer->valuator->lasty;
         }
     }
     else {
@@ -553,28 +552,15 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
             acceleratePointer(pDev, first_valuator, num_valuators,
                               valuators);
 
-        if (pDev->coreEvents) {
-            if (first_valuator == 0 && num_valuators >= 1)
-                x = cp->valuator->lastx + valuators[0];
-            else
-                x = cp->valuator->lastx;
+        if (first_valuator == 0 && num_valuators >= 1)
+            x = pointer->valuator->lastx + valuators[0];
+        else
+            x = pointer->valuator->lastx;
 
-            if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-                y = cp->valuator->lasty + valuators[1 - first_valuator];
-            else
-                y = cp->valuator->lasty;
-        }
-        else {
-            if (first_valuator == 0 && num_valuators >= 1)
-                x = pDev->valuator->lastx + valuators[0];
-            else
-                x = pDev->valuator->lastx;
-
-            if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-                y = pDev->valuator->lasty + valuators[1 - first_valuator];
-            else
-                y = pDev->valuator->lasty;
-        }
+        if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
+            y = pointer->valuator->lasty + valuators[1 - first_valuator];
+        else
+            y = pointer->valuator->lasty;
     }
 
     /* Clip both x and y to the defined limits (usually co-ord space limit). */
@@ -596,8 +582,9 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
 
     if (pDev->coreEvents) {
-        cp->valuator->lastx = x;
-        cp->valuator->lasty = y;
+        /* set the virtual core pointer's coordinates */
+        pointer->valuator->lastx = x;
+        pointer->valuator->lasty = y;
     }
     pDev->valuator->lastx = x;
     pDev->valuator->lasty = y;
