@@ -257,7 +257,7 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	   int		y,
 	   Rotation	rotation,
 	   int		numOutputs,
-	   RROutputConfigPtr  outputs)
+	   RROutputPtr  *outputs)
 {
     ScreenPtr	pScreen = crtc->pScreen;
 
@@ -290,10 +290,10 @@ RRCrtcSet (RRCrtcPtr    crtc,
 
 	    size.width = mode->mode.width;
 	    size.height = mode->mode.height;
-	    if (outputs[0].output->mmWidth && outputs[0].output->mmHeight)
+	    if (outputs[0]->mmWidth && outputs[0]->mmHeight)
 	    {
-		size.mmWidth = outputs[0].output->mmWidth;
-		size.mmHeight = outputs[0].output->mmHeight;
+		size.mmWidth = outputs[0]->mmWidth;
+		size.mmHeight = outputs[0]->mmHeight;
 	    }
 	    else
 	    {
@@ -308,7 +308,7 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	     * Old 1.0 interface tied screen size to mode size
 	     */
 	    if (ret)
-		RRCrtcNotify (crtc, mode, x, y, rotation, 1, &outputs[0].output);
+		RRCrtcNotify (crtc, mode, x, y, rotation, 1, outputs);
 	    return ret;
 	}
 #endif
@@ -554,15 +554,15 @@ ProcRRSetCrtcConfig (ClientPtr client)
     RRCrtcPtr		    crtc;
     RRModePtr		    mode;
     int			    numOutputs;
-    RROutputConfigPtr	    outputs = NULL;
-    xRROutputConfig 	    *outputConfigs;
+    RROutputPtr		    *outputs = NULL;
+    RROutput		    *outputIds;
     TimeStamp		    configTime;
     TimeStamp		    time;
     Rotation		    rotation;
     int			    i, j;
     
     REQUEST_AT_LEAST_SIZE(xRRSetCrtcConfigReq);
-    numOutputs = (stuff->length - (SIZEOF (xRRSetCrtcConfigReq) >> 2)) >> 1;
+    numOutputs = (stuff->length - (SIZEOF (xRRSetCrtcConfigReq) >> 2));
     
     crtc = LookupIDByType (stuff->crtc, RRCrtcType);
     if (!crtc)
@@ -589,47 +589,39 @@ ProcRRSetCrtcConfig (ClientPtr client)
     }
     if (numOutputs)
     {
-	outputs = xalloc (numOutputs * sizeof (RROutputConfigRec));
+	outputs = xalloc (numOutputs * sizeof (RROutputPtr));
 	if (!outputs)
 	    return BadAlloc;
     }
     else
 	outputs = NULL;
     
-    outputConfigs = (xRROutputConfig *) (stuff + 1);
+    outputIds = (RROutput *) (stuff + 1);
     for (i = 0; i < numOutputs; i++)
     {
-	outputs[i].output = LookupIDByType (outputConfigs[i].output, RROutputType);
-	if (!outputs[i].output)
+	outputs[i] = (RROutputPtr) LookupIDByType (outputIds[i], RROutputType);
+	if (!outputs[i])
 	{
-	    client->errorValue = outputConfigs[i].output;
+	    client->errorValue = outputIds[i];
 	    if (outputs)
 		xfree (outputs);
 	    return RRErrorBase + BadRROutput;
 	}
-	outputs[i].options = outputConfigs[i].options;
-	if (outputs[i].options & ~outputs[i].output->possibleOptions)
-	{
-	    client->errorValue = outputConfigs[i].options;
-	    if (outputs)
-		xfree (outputs);
-	    return BadMatch;
-	}
 	/* validate crtc for this output */
-	for (j = 0; j < outputs[i].output->numCrtcs; j++)
-	    if (outputs[i].output->crtcs[j] == crtc)
+	for (j = 0; j < outputs[i]->numCrtcs; j++)
+	    if (outputs[i]->crtcs[j] == crtc)
 		break;
-	if (j == outputs[i].output->numCrtcs)
+	if (j == outputs[i]->numCrtcs)
 	{
 	    if (outputs)
 		xfree (outputs);
 	    return BadMatch;
 	}
 	/* validate mode for this output */
-	for (j = 0; j < outputs[i].output->numModes; j++)
-	    if (outputs[i].output->modes[j] == mode)
+	for (j = 0; j < outputs[i]->numModes; j++)
+	    if (outputs[i]->modes[j] == mode)
 		break;
-	if (j == outputs[i].output->numModes)
+	if (j == outputs[i]->numModes)
 	{
 	    if (outputs)
 		xfree (outputs);

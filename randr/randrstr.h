@@ -72,7 +72,6 @@ extern int (*SProcRandrVector[RRNumberRequests])(ClientPtr);
 typedef struct _rrMode	    RRModeRec, *RRModePtr;
 typedef struct _rrCrtc	    RRCrtcRec, *RRCrtcPtr;
 typedef struct _rrOutput    RROutputRec, *RROutputPtr;
-typedef struct _rrOutputConfig	RROutputConfigRec, *RROutputConfigPtr;
 
 struct _rrMode {
     int		    refcnt;
@@ -109,8 +108,6 @@ struct _rrOutput {
     int		    mmWidth;
     int		    mmHeight;
     RRCrtcPtr	    crtc;
-    CARD32	    currentOptions;
-    CARD32	    possibleOptions;
     int		    numCrtcs;
     RRCrtcPtr	    *crtcs;
     int		    numClones;
@@ -121,11 +118,6 @@ struct _rrOutput {
     Bool	    changed;
     PropertyPtr	    properties;
     void	    *devPrivate;
-};
-
-struct _rrOutputConfig {
-    RROutputPtr	    output;
-    CARD32	    options;
 };
 
 #if RANDR_12_INTERFACE
@@ -142,7 +134,7 @@ typedef Bool (*RRCrtcSetProcPtr) (ScreenPtr		pScreen,
 				  int			y,
 				  Rotation		rotation,
 				  int			numOutputs,
-				  RROutputConfigPtr	outputs);
+				  RROutputPtr		*outputs);
 
 typedef Bool (*RRCrtcSetGammaProcPtr) (ScreenPtr	pScreen,
 				       RRCrtcPtr	crtc);
@@ -369,7 +361,7 @@ miRRCrtcSet (ScreenPtr	pScreen,
 	     int	y,
 	     Rotation	rotation,
 	     int	numOutput,
-	     RROutputConfigPtr    outputs);
+	     RROutputPtr *outputs);
 
 /* randr.c */
 /*
@@ -490,7 +482,7 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	   int		y,
 	   Rotation	rotation,
 	   int		numOutput,
-	   RROutputConfigPtr  outputs);
+	   RROutputPtr  *outputs);
 
 /*
  * Request that the Crtc gamma be changed
@@ -641,10 +633,6 @@ RROutputSetCrtcs (RROutputPtr	output,
 		  RRCrtcPtr	*crtcs,
 		  int		numCrtcs);
 
-Bool
-RROutputSetPossibleOptions (RROutputPtr	output,
-			    CARD32	possibleOptions);
-
 void
 RROutputSetCrtc (RROutputPtr output, RRCrtcPtr crtc);
     
@@ -655,10 +643,6 @@ RROutputSetConnection (RROutputPtr  output,
 Bool
 RROutputSetSubpixelOrder (RROutputPtr output,
 			  int	      subpixelOrder);
-
-Bool
-RROutputSetCurrentOptions (RROutputPtr output,
-			   CARD32      currentOptions);
 
 Bool
 RROutputSetPhysicalSize (RROutputPtr	output,
@@ -739,8 +723,6 @@ Query state:
 		RRScreenSetSizeRange
 		RROutputSetCrtcs
 		RROutputSetCrtc
-		RROutputSetPossibleOptions
-		RRSetCurrentOptions
 		RRModeGet
 		RROutputSetModes
 		RROutputSetConnection

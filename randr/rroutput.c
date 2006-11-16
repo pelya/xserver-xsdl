@@ -65,8 +65,6 @@ RROutputCreate (const char  *name,
     output->mmWidth = 0;
     output->mmHeight = 0;
     output->crtc = NULL;
-    output->currentOptions = 0;
-    output->possibleOptions = 0;
     output->numCrtcs = 0;
     output->crtcs = NULL;
     output->numClones = 0;
@@ -223,17 +221,6 @@ RROutputSetCrtcs (RROutputPtr	output,
     return TRUE;
 }
 
-Bool
-RROutputSetPossibleOptions (RROutputPtr	output,
-			    CARD32	possibleOptions)
-{
-    if (output->possibleOptions == possibleOptions)
-	return TRUE;
-    output->possibleOptions = possibleOptions;
-    RROutputChanged (output);
-    return TRUE;
-}
-
 void
 RROutputSetCrtc (RROutputPtr output, RRCrtcPtr crtc)
 {
@@ -262,17 +249,6 @@ RROutputSetSubpixelOrder (RROutputPtr output,
 	return TRUE;
 
     output->subpixelOrder = subpixelOrder;
-    RROutputChanged (output);
-    return TRUE;
-}
-
-Bool
-RROutputSetCurrentOptions (RROutputPtr output,
-			   CARD32      currentOptions)
-{
-    if (output->currentOptions == currentOptions)
-	return TRUE;
-    output->currentOptions = currentOptions;
     RROutputChanged (output);
     return TRUE;
 }
@@ -413,7 +389,6 @@ ProcRRGetOutputInfo (ClientPtr client)
     rep.length = OutputInfoExtra >> 2;
     rep.timestamp = pScrPriv->lastSetTime.milliseconds;
     rep.crtc = output->crtc ? output->crtc->id : None;
-    rep.currentOptions = output->currentOptions;
     rep.mmWidth = output->mmWidth;
     rep.mmHeight = output->mmHeight;
     rep.connection = output->connection;
@@ -423,7 +398,6 @@ ProcRRGetOutputInfo (ClientPtr client)
     rep.nPreferred = output->numPreferred;
     rep.nClones = output->numClones;
     rep.nameLength = output->nameLength;
-    rep.possibleOptions = output->possibleOptions;
     
     extraLen = ((output->numCrtcs + 
 		 output->numModes + 
@@ -469,15 +443,12 @@ ProcRRGetOutputInfo (ClientPtr client)
 	swapl(&rep.length, n);
 	swapl(&rep.timestamp, n);
 	swapl(&rep.crtc, n);
-	swapl(&rep.currentOptions, n);
 	swapl(&rep.mmWidth, n);
 	swapl(&rep.mmHeight, n);
 	swaps(&rep.nCrtcs, n);
 	swaps(&rep.nModes, n);
 	swaps(&rep.nClones, n);
-	swapl(&rep.possibleOptions, n);
 	swaps(&rep.nameLength, n);
-	swapl(&rep.possibleOptions, n);
     }
     WriteToClient(client, sizeof(xRRGetOutputInfoReply), (char *)&rep);
     if (extraLen)

@@ -712,7 +712,7 @@ ProcRRSetScreenConfig (ClientPtr client)
     Rotation		    rotation;
     int			    rate;
     Bool		    has_rate;
-    RROutputConfigRec	    output;
+    RROutputPtr		    output;
     RRModePtr		    mode;
     RR10DataPtr		    pData = NULL;
     RRScreenSizePtr    	    pSize;
@@ -749,14 +749,13 @@ ProcRRSetScreenConfig (ClientPtr client)
     if (!RRGetInfo (pScreen))
 	return BadAlloc;
     
-    output.output = RRFirstOutput (pScreen);
-    if (!output.output)
+    output = RRFirstOutput (pScreen);
+    if (!output)
     {
 	time = currentTime;
 	rep.status = RRSetConfigFailed;
 	goto sendReply;
     }
-    output.options = output.output->currentOptions;
     
     /*
      * if the client's config timestamp is not the same as the last config
@@ -769,7 +768,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 	goto sendReply;
     }
     
-    pData = RR10GetData (pScreen, output.output);
+    pData = RR10GetData (pScreen, output);
     if (!pData)
 	return BadAlloc;
     
@@ -805,7 +804,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 	return BadValue;
     }
 
-    if ((~output.output->crtc->rotations) & rotation)
+    if ((~output->crtc->rotations) & rotation)
     {
 	/*
 	 * requested rotation or reflection not supported by screen
@@ -878,7 +877,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 	}
     }
     
-    rep.status = RRCrtcSet (output.output->crtc, mode, 0, 0, stuff->rotation,
+    rep.status = RRCrtcSet (output->crtc, mode, 0, 0, stuff->rotation,
 			    1, &output);
     
     /*
