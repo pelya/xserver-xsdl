@@ -1,0 +1,25 @@
+MPX Changelog file
+
+== 16.11.06 ==
+dix: 
+        merge with code cleanup from master
+        GetPointerEvents treats events in the same way as XINPUT devices when flag
+        has POINTER_MULTIPOINTER set.
+
+xfree86/common:
+    added XI86_MP_DEVICE flag and parsing in xf86ProcessCommonOptions
+    added POINTER_MULTIPOINTER define. Is used in xf86PostMotionEvent and
+    xf86PostButtonEvent for the flags that are passed into GetPointerEvents()
+
+global:
+    added flags to configure.ac to enable/disable MPX define
+    added flags to dix-config.h.in to #define MPX
+
+Files:
+        dix/getevents.c
+        hw/xfree86/common/xf86Xinput.c
+        hw/xfree86/common/xf86Xinput.h
+        include/input.h
+        configure.ac
+        include/dix-config.h.in
+

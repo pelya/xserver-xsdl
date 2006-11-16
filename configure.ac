@@ -421,6 +421,7 @@ AC_ARG_ENABLE(builtin-fonts,  AS_HELP_STRING([--enable-builtin-fonts], [Use only
 AC_ARG_ENABLE(null-root-cursor, AS_HELP_STRING([--enable-null-root-cursor], [Use an empty root cursor (default: use core cursor)]),
                                  [NULL_ROOT_CURSOR=$enableval],
                                  [NULL_ROOT_CURSOR=no])
+AC_ARG_ENABLE(mpx,            AS_HELP_STRING([--disable-mpx], [Disable MPX multipointer support (Default: enabled)]), [MPX=$enableval], [MPX=yes])
 
 dnl Extensions.
 AC_ARG_ENABLE(composite,      AS_HELP_STRING([--disable-composite], [Build Composite extension (default: enabled)]), [COMPOSITE=$enableval], [COMPOSITE=yes])
@@ -783,6 +784,14 @@ AC_DEFINE(XINPUT, 1, [Support X Input extension])
 XI_LIB='$(top_builddir)/Xi/libXi.la'
 XI_INC='-I$(top_srcdir)/Xi'
 
+dnl Enable MPX multipointer  extension
+AC_MSG_CHECKING([whether to use MPX extension])
+AC_MSG_RESULT([$MPX])
+AM_CONDITIONAL(MPX, [test "x$MPX" = xyes])
+
+if test "x$MPX" = xyes; then
+    AC_DEFINE(MPX, 1, [Support MPX multipointer extension])
+fi
 AM_CONDITIONAL(XF86UTILS, test "x$XF86UTILS" = xyes)
 
 AC_DEFINE(SHAPE, 1, [Support SHAPE extension])

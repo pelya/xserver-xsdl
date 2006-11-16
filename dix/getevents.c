@@ -21,6 +21,15 @@
  *
  * Author: Daniel Stone <daniel@fooishbar.org>
  */
+#ifdef MPX
+ /* 
+  * MPX additions:
+  * Copyright © 2006 Peter Hutterer
+  * License see above.
+  * Author: Peter Hutterer <peter@cs.unisa.edu.au>
+  *
+  */
+#endif
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -480,6 +489,11 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
  * The DDX is responsible for allocating the event structure in the first
  * place via GetMaximumEventsNum(), and for freeing it.
  */
+#ifdef MPX
+ /* In MPX, flags can be set to POINTER_MULTIPOINTER to indicate that the
+  * device is a multipointer device. MP devices always send core events.
+  */
+#endif
 _X_EXPORT int
 GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
                  int flags, int first_valuator, int num_valuators,
@@ -525,6 +539,11 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     kbp->time = ms;
     kbp->deviceid = pDev->id;
 
+#ifdef MPX
+    if (flags & POINTER_MULTIPOINTER)
+        pointer = pDev;
+    else
+#endif
     if (pDev->coreEvents)
         pointer = inputInfo.pointer;
     else
@@ -581,6 +600,12 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
 
     updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
 
+#ifdef MPX
+    if (flags & POINTER_MULTIPOINTER)
+    {
+        // noop, just to fit MPX in easier with the following if
+    } else
+#endif
     if (pDev->coreEvents) {
         /* set the virtual core pointer's coordinates */
         pointer->valuator->lastx = x;
