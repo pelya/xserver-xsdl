@@ -29,6 +29,15 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
+#ifdef MPX
+ /* 
+  * MPX additions:
+  * Copyright © 2006 Peter Hutterer
+  * License see above.
+  * Author: Peter Hutterer <peter@cs.unisa.edu.au>
+  *
+  */
+#endif
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -105,11 +114,14 @@ static void	    miSpriteComputeSaved(ScreenPtr pScreen);
  * pointer-sprite method table
  */
 
-static Bool miSpriteRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);
-static Bool miSpriteUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);
-static void miSpriteSetCursor(ScreenPtr pScreen, CursorPtr pCursor,
-			      int x, int y);
-static void miSpriteMoveCursor(ScreenPtr pScreen, int x, int y);
+static Bool miSpriteRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen,
+                                  CursorPtr pCursor); 
+static Bool miSpriteUnrealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
+                                    CursorPtr pCursor);
+static void miSpriteSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
+                              CursorPtr pCursor, int x, int y);
+static void miSpriteMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
+                               int x, int y);
 
 _X_EXPORT miPointerSpriteFuncRec miSpritePointerFuncs = {
     miSpriteRealizeCursor,
@@ -603,7 +615,8 @@ miSpriteSaveDoomedAreas (pWin, pObscured, dx, dy)
 #define SPRITE_PAD  8
 
 static Bool
-miSpriteRealizeCursor (pScreen, pCursor)
+miSpriteRealizeCursor (pDev, pScreen, pCursor)
+    DeviceIntPtr pDev;
     ScreenPtr	pScreen;
     CursorPtr	pCursor;
 {
@@ -616,7 +629,8 @@ miSpriteRealizeCursor (pScreen, pCursor)
 }
 
 static Bool
-miSpriteUnrealizeCursor (pScreen, pCursor)
+miSpriteUnrealizeCursor (pDev, pScreen, pCursor)
+    DeviceIntPtr pDev;
     ScreenPtr	pScreen;
     CursorPtr	pCursor;
 {
@@ -627,7 +641,8 @@ miSpriteUnrealizeCursor (pScreen, pCursor)
 }
 
 static void
-miSpriteSetCursor (pScreen, pCursor, x, y)
+miSpriteSetCursor (pDev, pScreen, pCursor, x, y)
+    DeviceIntPtr pDev;
     ScreenPtr	pScreen;
     CursorPtr	pCursor;
     int		x;
@@ -729,14 +744,15 @@ miSpriteSetCursor (pScreen, pCursor, x, y)
 }
 
 static void
-miSpriteMoveCursor (pScreen, x, y)
+miSpriteMoveCursor (pDev, pScreen, x, y)
+    DeviceIntPtr pDev;
     ScreenPtr	pScreen;
     int		x, y;
 {
     miSpriteScreenPtr	pScreenPriv;
 
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
-    miSpriteSetCursor (pScreen, pScreenPriv->pCursor, x, y);
+    miSpriteSetCursor (pDev, pScreen, pScreenPriv->pCursor, x, y);
 }
 
 /*

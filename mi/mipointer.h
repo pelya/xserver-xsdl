@@ -37,20 +37,24 @@ in this Software without prior written authorization from The Open Group.
 
 typedef struct _miPointerSpriteFuncRec {
     Bool	(*RealizeCursor)(
+                    DeviceIntPtr /* pDev */,
                     ScreenPtr /* pScr */,
                     CursorPtr /* pCurs */
                     );
     Bool	(*UnrealizeCursor)(
+                    DeviceIntPtr /* pDev */,
                     ScreenPtr /* pScr */,
                     CursorPtr /* pCurs */
                     );
     void	(*SetCursor)(
+                    DeviceIntPtr /* pDev */,
                     ScreenPtr /* pScr */,
                     CursorPtr /* pCurs */,
                     int  /* x */,
                     int  /* y */
                     );
     void	(*MoveCursor)(
+                    DeviceIntPtr /* pDev */,
                     ScreenPtr /* pScr */,
                     int  /* x */,
                     int  /* y */

@@ -1,5 +1,30 @@
 MPX Changelog file
 
+== 17.11.06 ==
+dix:    moved isMPdev field to end of _DeviceIntRec structure
+
+mi:     
+        added miMPPointers array to mipointer.c
+        added DeviceIntPtr to all miPointerSpriteFuncs. Coming from miPointer
+        we use inputInfo.pointer as standard value. ABI BREAK!
+
+ramdac: 
+        forcing failed HW Cursor initialisation. MPX needs software rendering.
+        changes to use new miPointerSpriteFunc (this required externing
+        inputInfo, should probably be fixed at a later point).
+
+
+RAC: changes to use new miPointerSpriteFuncs.
+
+Files: 
+        include/inputstr.h
+        mi/mipointer.c
+        mi/mipointer.h
+        mi/misprite.c
+        hw/xfree86/ramdac/xf86HWCurs.c
+        hw/xfree86/ramdac/xf86Cursor.c
+        hw/xfree86/rac/xf86RAC.c
+
 == 16.11.06 ==
 dix: 
         merge with code cleanup from master

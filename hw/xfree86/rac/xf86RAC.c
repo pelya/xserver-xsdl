@@ -224,11 +224,14 @@ static void RACPolyGlyphBlt(DrawablePtr pDraw, GCPtr pGC, int xInit,
 static void RACPushPixels(GCPtr pGC, PixmapPtr pBitMap, DrawablePtr pDraw,
 			  int dx, int dy, int xOrg, int yOrg );
 /* miSpriteFuncs */
-static Bool RACSpriteRealizeCursor(ScreenPtr pScreen, CursorPtr pCur);
-static Bool RACSpriteUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCur);
-static void RACSpriteSetCursor(ScreenPtr pScreen, CursorPtr pCur,
-			       int x, int y);
-static void RACSpriteMoveCursor(ScreenPtr pScreen, int x, int y);
+static Bool RACSpriteRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen,
+                                   CursorPtr pCur); 
+static Bool RACSpriteUnrealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
+                                     CursorPtr pCur);
+static void RACSpriteSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
+                               CursorPtr pCur, int x, int y);
+static void RACSpriteMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
+                                int x, int y); 
 #ifdef RENDER
 static void RACComposite(CARD8 op, PicturePtr pSrc,  PicturePtr pMask,
 			 PicturePtr pDst, INT16 xSrc, INT16 ySrc,
@@ -1158,46 +1161,47 @@ RACPushPixels(
 
 /* miSpriteFuncs */
 static Bool
-RACSpriteRealizeCursor(ScreenPtr pScreen, CursorPtr pCur)
+RACSpriteRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCur)
 {
     Bool val;
     SPRITE_PROLOG;
     DPRINT_S("RACSpriteRealizeCursor",pScreen->myNum);
     ENABLE;
-    val = PointPriv->spriteFuncs->RealizeCursor(pScreen, pCur);
+    val = PointPriv->spriteFuncs->RealizeCursor(pDev, pScreen, pCur);
     SPRITE_EPILOG;
     return val;
 }
 
 static Bool
-RACSpriteUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCur)
+RACSpriteUnrealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCur)
 {
     Bool val;
     SPRITE_PROLOG;
     DPRINT_S("RACSpriteUnrealizeCursor",pScreen->myNum);
     ENABLE;
-    val = PointPriv->spriteFuncs->UnrealizeCursor(pScreen, pCur);
+    val = PointPriv->spriteFuncs->UnrealizeCursor(pDev, pScreen, pCur);
     SPRITE_EPILOG;
     return val;
 }
 
 static void
-RACSpriteSetCursor(ScreenPtr pScreen, CursorPtr pCur, int x, int y)
+RACSpriteSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
+                   CursorPtr pCur, int x, int y) 
 {
     SPRITE_PROLOG;
     DPRINT_S("RACSpriteSetCursor",pScreen->myNum);
     ENABLE;
-    PointPriv->spriteFuncs->SetCursor(pScreen, pCur, x, y);
+    PointPriv->spriteFuncs->SetCursor(pDev, pScreen, pCur, x, y);
     SPRITE_EPILOG;
 }
 
 static void
-RACSpriteMoveCursor(ScreenPtr pScreen, int x, int y)
+RACSpriteMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
     SPRITE_PROLOG;
     DPRINT_S("RACSpriteMoveCursor",pScreen->myNum);
     ENABLE;
-    PointPriv->spriteFuncs->MoveCursor(pScreen, x, y);
+    PointPriv->spriteFuncs->MoveCursor(pDev, pScreen, x, y);
     SPRITE_EPILOG;
 }
 

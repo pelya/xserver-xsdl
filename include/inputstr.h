@@ -288,9 +288,6 @@ typedef struct _DeviceIntRec {
     Bool	inited;			/* TRUE if INIT returns Success */
     Bool        enabled;                /* TRUE if ON returns Success */
     Bool        coreEvents;             /* TRUE if device also sends core */
-#ifdef MPX
-    Bool        isMPDev;                /* TRUE if multipointer device */
-#endif
     GrabPtr	grab;			/* the grabber - used by DIX */
     struct {
 	Bool		frozen;
@@ -332,6 +329,9 @@ typedef struct _DeviceIntRec {
     DevUnion		*devPrivates;
     int			nPrivates;
     DeviceUnwrapProc    unwrapProc;
+#ifdef MPX
+    Bool        isMPDev;                /* TRUE if multipointer device */
+#endif
 } DeviceIntRec;
 
 typedef struct {
