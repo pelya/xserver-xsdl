@@ -65,6 +65,10 @@ in this Software without prior written authorization from The Open Group.
 #endif
 # include   "damage.h"
 
+#ifdef MPX
+# include   "inputstr.h" /* for MAX_DEVICES */
+#endif
+
 #define SPRITE_DEBUG_ENABLE 0
 #if SPRITE_DEBUG_ENABLE
 #define SPRITE_DEBUG(x)	ErrorF x
@@ -165,6 +169,9 @@ miSpriteInitialize (pScreen, cursorFuncs, screenFuncs)
     miSpriteCursorFuncPtr   cursorFuncs;
     miPointerScreenFuncPtr  screenFuncs;
 {
+#ifdef MPX
+    int mpCursorIdx = 0;
+#endif
     miSpriteScreenPtr	pScreenPriv;
     VisualPtr		pVisual;
     
@@ -247,6 +254,24 @@ miSpriteInitialize (pScreen, cursorFuncs, screenFuncs)
 
     pScreen->BlockHandler = miSpriteBlockHandler;
     
+#ifdef MPX
+    /* alloc and zero memory for all MPX cursors */
+    pScreenPriv->mpCursors = (miCursorInfoPtr)xalloc(MAX_DEVICES * sizeof(miCursorInfoRec));
+    while (mpCursorIdx < MAX_DEVICES)
+    {
+        miCursorInfoPtr cursor = &(pScreenPriv->mpCursors[mpCursorIdx]);
+
+        cursor->pCursor = NULL;
+        cursor->x = 0;
+        cursor->y = 0;
+        cursor->isUp = FALSE;
+        cursor->shouldBeUp = FALSE;
+        cursor->pCacheWin = NullWindow;
+
+        mpCursorIdx++;
+    }
+#endif
+
     return TRUE;
 }
 
@@ -750,9 +775,15 @@ miSpriteMoveCursor (pDev, pScreen, x, y)
     int		x, y;
 {
     miSpriteScreenPtr	pScreenPriv;
+    CursorPtr pCursor;
 
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
-    miSpriteSetCursor (pDev, pScreen, pScreenPriv->pCursor, x, y);
+    pCursor = pScreenPriv->pCursor;
+#ifdef MPX
+    if (IsMPDev(pDev))
+        pCursor = pScreenPriv->mpCursors[pDev->id].pCursor;
+#endif
+    miSpriteSetCursor (pDev, pScreen, pCursor, x, y);
 }
 
 /*

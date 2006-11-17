@@ -2012,6 +2012,7 @@ CheckMotion(xEvent *xE)
         xeviehot.y = sprite.hot.y;
 #endif
 	sprite.hotPhys = sprite.hot;
+#ifndef MPX
 	if ((sprite.hotPhys.x != XE_KBPTR.rootX) ||
 	    (sprite.hotPhys.y != XE_KBPTR.rootY))
 	{
@@ -2019,6 +2020,7 @@ CheckMotion(xEvent *xE)
 		sprite.hotPhys.pScreen,
 		sprite.hotPhys.x, sprite.hotPhys.y, FALSE);
 	}
+#endif
 	XE_KBPTR.rootX = sprite.hot.x;
 	XE_KBPTR.rootY = sprite.hot.y;
     }

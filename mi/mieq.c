@@ -251,5 +251,17 @@ mieqProcessInputEvents()
 #endif
             dev->public.processInputProc(e->event, dev, e->nevents);
         }
+#ifdef MPX
+        /* 
+         * This is inefficient as we update the sprite for each event rather
+         * than at the end of the event queue. But we don't know if the
+         * next event is from the same device, so it's better to do it here.
+         */
+        if (e->event[0].u.u.type == MotionNotify && 
+                (e->pDev->isMPDev || e->pDev->coreEvents))
+        {
+            miPointerUpdateSprite(e->pDev);
+        }
+#endif
     }
 }

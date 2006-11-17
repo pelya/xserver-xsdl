@@ -43,6 +43,18 @@ in this Software without prior written authorization from The Open Group.
 #endif
 # include   "damage.h"
 
+#ifdef MPX
+typedef struct {
+    CursorPtr	    pCursor;
+    int		    x;			/* cursor hotspot */
+    int		    y;
+    BoxRec	    saved;		/* saved area from the screen */
+    Bool	    isUp;		/* cursor in frame buffer */
+    Bool	    shouldBeUp;		/* cursor should be displayed */
+    WindowPtr	    pCacheWin;		/* window the cursor last seen in */
+} miCursorInfoRec, *miCursorInfoPtr;
+#endif
+
 /*
  * per screen information
  */
@@ -82,6 +94,9 @@ typedef struct {
     VisualPtr	    pVisual;
     miSpriteCursorFuncPtr    funcs;
     DamagePtr	    pDamage;		/* damage tracking structure */
+#ifdef MPX
+    miCursorInfoPtr mpCursors;         /* all cursor's info */
+#endif
 } miSpriteScreenRec, *miSpriteScreenPtr;
 
 #define SOURCE_COLOR	0

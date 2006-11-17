@@ -25,6 +25,29 @@ Files:
         hw/xfree86/ramdac/xf86Cursor.c
         hw/xfree86/rac/xf86RAC.c
 
+
+mi:
+        added miCursorInfoRec to contain info of the MPX cursors.
+        calling miUpdatePointerSprite() from event queue for MPX devices.
+        adding device-specific processing to miPointer*() functions.
+
+dix:    Call to SetCursorPosition in CheckMotion() temporarily disabled.
+
+xfree86/common: call to miPointerUpdateSprite() disabled, is done from the EQ 
+
+NOTE: This build will not display cursor images. 
+BUG: The second mouse does to take correct x coordinates.
+
+Files:
+        mi/mispritestr.h
+        mi/misprite.c
+        mi/mipointer.c
+        mi/mipointer.h
+        mi/mieq.c
+        dix/events.c
+        hw/xfree86/common/xf86Events.c
+
+
 == 16.11.06 ==
 dix: 
         merge with code cleanup from master

@@ -246,7 +246,10 @@ ProcessInputEvents ()
   xf86Info.inputPending = FALSE;
 
   mieqProcessInputEvents();
+#ifndef MPX
+  /* For MPX, this is done inside the mieqProcessInputEvents() */
   miPointerUpdateSprite(inputInfo.pointer);
+#endif
 
   miPointerGetPosition(inputInfo.pointer, &x, &y);
   xf86SetViewport(xf86Info.currentScreen, x, y);
