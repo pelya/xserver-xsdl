@@ -414,21 +414,27 @@ main(int argc, char *argv[], char *envp[])
 		ErrorF("failed to set default font path '%s'",
 			defaultFontPath);
 	}
-	if (!SetDefaultFont(defaultTextFont))
+	if (!SetDefaultFont(defaultTextFont)) {
+	    CloseDownDevices();
 	    FatalError("could not open default font '%s'", defaultTextFont);
+	}
 #ifdef NULL_ROOT_CURSOR
         cm.width = 0;
         cm.height = 0;
         cm.xhot = 0;
         cm.yhot = 0;
 
-        if (!(rootCursor = AllocCursor(NULL, NULL, &cm, 0, 0, 0, 0, 0, 0)))
+        if (!(rootCursor = AllocCursor(NULL, NULL, &cm, 0, 0, 0, 0, 0, 0))) {
+	    CloseDownDevices();
             FatalError("could not create empty root cursor");
+	}
         AddResource(FakeClientID(0), RT_CURSOR, (pointer)rootCursor);
 #else
-	if (!(rootCursor = CreateRootCursor(defaultCursorFont, 0)))
+	if (!(rootCursor = CreateRootCursor(defaultCursorFont, 0))) {
+	    CloseDownDevices();
 	    FatalError("could not open default cursor font '%s'",
 		       defaultCursorFont);
+	}
 #endif
 #ifdef DPMSExtension
  	/* check all screens, looking for DPMS Capabilities */
@@ -452,13 +458,17 @@ main(int argc, char *argv[], char *envp[])
 
 #ifdef PANORAMIX
 	if (!noPanoramiXExtension) {
-	    if (!PanoramiXCreateConnectionBlock())
+	    if (!PanoramiXCreateConnectionBlock()) {
+	    	CloseDownDevices();
 		FatalError("could not create connection block info");
+	    }
 	} else
 #endif
 	{
-	    if (!CreateConnectionBlock())
+	    if (!CreateConnectionBlock()) {
+	    	CloseDownDevices();
 	    	FatalError("could not create connection block info");
+	    }
 	}
 
 	Dispatch();
