@@ -49,8 +49,6 @@ dnl xwin-config.h covers the XWin DDX.
 AC_CONFIG_HEADERS(include/xwin-config.h)
 dnl kdrive-config.h covers the kdrive DDX
 AC_CONFIG_HEADERS(include/kdrive-config.h)
-dnl libdrm now needs 64-bit file offsets
-AC_CONFIG_HEADERS(include/libdrm-config.h)
 
 AC_PROG_CC
 AM_PROG_AS
@@ -284,6 +282,7 @@ case $host_os in
   *netbsd*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
 	AC_DEFINE(PCCONS_SUPPORT, 1, [System has PC console])
+	AC_DEFINE(PCVT_SUPPORT, 1, [System has PCVT console])
 	AC_DEFINE(WSCONS_SUPPORT, 1, [System has wscons console])
 	DRI=yes
 	;;
@@ -464,7 +463,7 @@ AC_ARG_ENABLE(dmx,    	      AS_HELP_STRING([--enable-dmx], [Build DMX server (d
 AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb], [Build Xvfb server (default: yes)]), [XVFB=$enableval], [XVFB=yes])
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest server (default: auto)]), [XNEST=$enableval], [XNEST=auto])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
-AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--enable-xprint], [Build Xprint extension and server (default: auto)]), [XPRINT=$enableval], [XPRINT=auto])
+AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--enable-xprint], [Build Xprint extension and server (default: no)]), [XPRINT=$enableval], [XPRINT=no])
 AC_ARG_ENABLE(xgl,            AS_HELP_STRING([--enable-xgl], [Build Xgl server (default: no)]), [XGL=$enableval], [XGL=no])
 AC_ARG_ENABLE(xglx,           AS_HELP_STRING([--enable-xglx], [Build Xglx xgl module (default: no)]), [XGLX=$enableval], [XGLX=no])
 AC_ARG_ENABLE(xegl,           AS_HELP_STRING([--enable-xegl], [Build Xegl xgl module (default: no)]), [XEGL=$enableval], [XEGL=no])

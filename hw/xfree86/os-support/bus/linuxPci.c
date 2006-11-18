@@ -683,28 +683,28 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 		    ADDRESS Base, unsigned long Size)
 {
     int domain = xf86GetPciDomain(Tag);
-    int fd;
+    int fd = -1;
     pointer addr;
 
     /*
      * We use /proc/bus/pci on non-legacy addresses or if the Linux sysfs
      * legacy_mem interface is unavailable.
      */
-    if (Base > 1024*1024)
-	return linuxMapPci(ScreenNum, Flags, Tag, Base, Size,
+    if (Base >= 1024*1024)
+	addr = linuxMapPci(ScreenNum, Flags, Tag, Base, Size,
 			   PCIIOC_MMAP_IS_MEM);
-
-    if ((fd = linuxOpenLegacy(Tag, "legacy_mem")) < 0)
-	return linuxMapPci(ScreenNum, Flags, Tag, Base, Size,
+    else if ((fd = linuxOpenLegacy(Tag, "legacy_mem")) < 0)
+	addr = linuxMapPci(ScreenNum, Flags, Tag, Base, Size,
 			   PCIIOC_MMAP_IS_MEM);
+    else
+	addr = mmap(NULL, Size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, Base);
 
-    addr = mmap(NULL, Size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, Base);
-    if (addr == MAP_FAILED) {
-	close (fd);
+    if (fd >= 0)
+	close(fd);
+    if (addr == NULL || addr == MAP_FAILED) {
 	perror("mmap failure");
 	FatalError("xf86MapDomainMem():  mmap() failure\n");
     }
-    close(fd);
     return addr;
 }
 

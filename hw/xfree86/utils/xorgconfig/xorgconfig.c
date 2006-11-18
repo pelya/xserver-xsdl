@@ -490,7 +490,7 @@ struct {
 
 #ifdef WSCONS_SUPPORT
 # define DEF_MOUSEDEV "/dev/wsmouse";
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__DragonFly__)
 # define DEF_MOUSEDEV "/dev/sysmouse";
 #elif defined(__linux__)
 # define DEF_MOUSEDEV "/dev/input/mice";

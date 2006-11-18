@@ -84,6 +84,8 @@ static RESTYPE DRIDrawablePrivResType;
 static RESTYPE DRIContextPrivResType;
 static void    DRIDestroyDummyContext(ScreenPtr pScreen, Bool hasCtxPriv);
 
+drmServerInfo DRIDRMServerInfo;
+
 				/* Wrapper just like xf86DrvMsg, but
 				   without the verbosity level checking.
 				   This will make it easy to turn off some
@@ -589,7 +591,7 @@ static void dri_drm_get_perms(gid_t *group, mode_t *mode)
   *mode = xf86ConfigDRI.mode;
 }
 
-static drmServerInfo DRIDRMServerInfo =  {
+drmServerInfo DRIDRMServerInfo =  {
   dri_drm_debug_print,
   xf86LoadKernelModule,
   dri_drm_get_perms,
@@ -621,8 +623,6 @@ DRIExtensionInit(void)
 	if (!AllocateWindowPrivate(pScreen, DRIWindowPrivIndex, 0))
 	    return FALSE;
     }
-
-    drmSetServerInfo(&DRIDRMServerInfo);
 
     RegisterBlockAndWakeupHandlers(DRIBlockHandler, DRIWakeupHandler, NULL);
 

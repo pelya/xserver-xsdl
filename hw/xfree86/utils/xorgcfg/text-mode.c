@@ -547,7 +547,7 @@ MouseConfig(void)
     if (str == NULL)
 #ifdef WSCONS_SUPPORT
 	str = "/dev/wsmouse";
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__DragonFly__)
 	str = "/dev/sysmouse";
 #elif defined(__UNIXOS2__)
 	str = "mouse$";
