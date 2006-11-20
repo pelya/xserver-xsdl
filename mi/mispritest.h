@@ -95,14 +95,21 @@ typedef struct {
 #define SOURCE_COLOR	0
 #define MASK_COLOR	1
 
-#define miSpriteIsUpTRUE(pScreen, pScreenPriv) if (!pScreenPriv->cp->isUp) { \
-    pScreenPriv->cp->isUp = TRUE; \
-    DamageRegister (&(*pScreen->GetScreenPixmap) (pScreen)->drawable, pScreenPriv->pDamage); \
+static int damageRegister = 0;
+#define miSpriteIsUpTRUE(pDevCursor, pScreen, pScreenPriv) if (!pDevCursor->isUp) { \
+    pDevCursor->isUp = TRUE; \
+    if (!damageRegister ) { \
+        damageRegister++; \
+        DamageRegister (&(*pScreen->GetScreenPixmap) (pScreen)->drawable, pScreenPriv->pDamage); \
+    } \
 }
 
-#define miSpriteIsUpFALSE(pScreen, pScreenPriv) if (pScreenPriv->cp->isUp) { \
-    DamageUnregister (&(*pScreen->GetScreenPixmap) (pScreen)->drawable, pScreenPriv->pDamage); \
-    pScreenPriv->cp->isUp = FALSE; \
+#define miSpriteIsUpFALSE(pDevCursor, pScreen, pScreenPriv) if (pDevCursor->isUp) { \
+    if (damageRegister) { \
+        damageRegister--; \
+        DamageUnregister (&(*pScreen->GetScreenPixmap) (pScreen)->drawable, pScreenPriv->pDamage); \
+    } \
+    pDevCursor->isUp = FALSE; \
 }
 
 /*

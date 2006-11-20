@@ -2114,6 +2114,7 @@ DefineInitialRootWindow(register WindowPtr win)
     sprite.current->refcnt++;
     spriteTraceGood = 1;
     ROOT = win;
+/* FIXME: This only limits the core pointer, not the MPX pointer */
     (*pScreen->CursorLimits) (
 	pScreen, sprite.current, &sprite.hotLimits, &sprite.physLimits);
     sprite.confined = FALSE;

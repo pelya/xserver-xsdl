@@ -10,6 +10,18 @@ Files:
         mi/misprite.c
         mi/mipointer.c
 
+
+mi:     added MPX to miSprite functions. 
+
+Files:
+        mi/mispritest.h
+        mi/misprite.c
+        mi/mipointer.c
+        dix/events.c
+
+NOTE: This version will render multiple cursors but with an artefact each time
+when devices alternate.
+
 == 17.11.06 ==
 dix:    moved isMPdev field to end of _DeviceIntRec structure
 
