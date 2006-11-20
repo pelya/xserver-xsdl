@@ -1,4 +1,14 @@
 MPX Changelog file
+== 20.11.06 ==
+
+mi:     moved core pointer information from miSpriteScreenRec into a
+        miCursorInfoRec.
+        bugfix in mipointer, semicolon after preprocessor statement
+
+Files:
+        mi/mispritest.h
+        mi/misprite.c
+        mi/mipointer.c
 
 == 17.11.06 ==
 dix:    moved isMPdev field to end of _DeviceIntRec structure
