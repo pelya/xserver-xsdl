@@ -58,6 +58,18 @@ Files:
         xfixes/cursor.c
 	mi/mieq.c
 
+dix:	WindowsRestructured() calls CheckMotion() on all devices
+
+mi:	core pointer was checked twice in miSpriteReportDamage,
+	miSpriteInstallColormap, miSpriteStoreColors, miSpriteSaveDoomedAreas
+	and miSpriteRealiseCursor 
+	using damage bug (see comment in file) to avoid artefacts
+
+Files:
+	dix/events.c
+	mi/misprite.c
+	mi/mispritest.h
+
 == 20.11.06 ==
 
 mi:     moved core pointer information from miSpriteScreenRec into a

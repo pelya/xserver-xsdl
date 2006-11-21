@@ -2072,7 +2072,7 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
         xeviehot.y = pSprite->hot.y;
 #endif
 	pSprite->hotPhys = pSprite->hot;
-#ifndef MPX
+#ifndef MPX /* XXX ndef!! */
 	if ((pSprite->hotPhys.x != XE_KBPTR.rootX) ||
 	    (pSprite->hotPhys.y != XE_KBPTR.rootY))
 	{
@@ -2113,7 +2113,17 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 _X_EXPORT void
 WindowsRestructured()
 {
+#ifdef MPX
+    DeviceIntPtr pDev = inputInfo.devices;
+    while(pDev)
+    {
+        if (pDev != inputInfo.keyboard)
+            CheckMotion((xEvent *)NULL, pDev);
+        pDev = pDev->next;
+    }
+#else
     (void) CheckMotion((xEvent *)NULL, inputInfo.pointer);
+#endif
 }
 
 #ifdef PANORAMIX

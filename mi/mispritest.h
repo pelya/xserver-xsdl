@@ -97,17 +97,26 @@ typedef struct {
 #define MASK_COLOR	1
 
 static int damageRegister = 0;
+/*
+ * FIXME: MPX uses a bug at the moment. The semaphore system in place will
+ * call miSpriteIsUpTRUE multiple times and thus DamageUnregister() will never
+ * be called in miSpriteIsUpFALSE. 
+ * This gets rid of cursor rendering artefacts but I don't know how this
+ * affects applications.
+ * Without any semaphore system in place DamageRegister will be called twice
+ * and segfault.
+ */
 #define miSpriteIsUpTRUE(pDevCursor, pScreen, pScreenPriv) if (!pDevCursor->isUp) { \
     pDevCursor->isUp = TRUE; \
     if (!damageRegister ) { \
-        damageRegister++; \
         DamageRegister (&(*pScreen->GetScreenPixmap) (pScreen)->drawable, pScreenPriv->pDamage); \
     } \
+    damageRegister++; \
 }
 
 #define miSpriteIsUpFALSE(pDevCursor, pScreen, pScreenPriv) if (pDevCursor->isUp) { \
-    if (damageRegister) { \
-        damageRegister--; \
+    damageRegister--; \
+    if (!damageRegister) { \
         DamageUnregister (&(*pScreen->GetScreenPixmap) (pScreen)->drawable, pScreenPriv->pDamage); \
     } \
     pDevCursor->isUp = FALSE; \
