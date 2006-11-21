@@ -1084,7 +1084,8 @@ miSpriteRemoveCursor (pDevCursor, pScreen)
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
     miSpriteIsUpFALSE (pDevCursor, pScreen, pScreenPriv);
     pDevCursor->pCacheWin = NullWindow;
-    if (!(*pScreenPriv->funcs->RestoreUnderCursor) (pScreen,
+    if (!(*pScreenPriv->funcs->RestoreUnderCursor) (pDevCursor->id, 
+                                         pScreen,
 					 pDevCursor->saved.x1,
                                          pDevCursor->saved.y1,
                                          pDevCursor->saved.x2 -
@@ -1117,7 +1118,8 @@ miSpriteRestoreCursor (pDevCursor, pScreen)
     pCursor = pDevCursor->pCursor;
     x = pDevCursor->x - (int)pCursor->bits->xhot;
     y = pDevCursor->y - (int)pCursor->bits->yhot;
-    if ((*pScreenPriv->funcs->SaveUnderCursor) (pScreen,
+    if ((*pScreenPriv->funcs->SaveUnderCursor) (pDevCursor->id, 
+                                      pScreen,
 				      pDevCursor->saved.x1,
 				      pDevCursor->saved.y1,
                                       pDevCursor->saved.x2 -
@@ -1127,7 +1129,8 @@ miSpriteRestoreCursor (pDevCursor, pScreen)
     {
 	if (pDevCursor->checkPixels)
 	    miSpriteFindColors (pDevCursor, pScreen);
-	if ((*pScreenPriv->funcs->PutUpCursor) (pScreen, pCursor, x, y,
+	if ((*pScreenPriv->funcs->PutUpCursor) (pDevCursor->id, pScreen, 
+                                  pCursor, x, y,
 				  pDevCursor->colors[SOURCE_COLOR].pixel,
 				  pDevCursor->colors[MASK_COLOR].pixel))
 	{

@@ -12,6 +12,18 @@ Files:
 
 TAG: MPX_BEFORE_MIDC_API_BREAK
 
+
+mi:     added device ID to miSpriteCursorFuncRec functions
+        added MPX code to midispcur.c
+
+
+Files:
+        mi/midispcur.c
+        mi/misprite.c
+        mi/mispritest.h
+
+BUG:   Core pointer changes whenever MPX cursor changes shape.
+
 == 20.11.06 ==
 
 mi:     moved core pointer information from miSpriteScreenRec into a
