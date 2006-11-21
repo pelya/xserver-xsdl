@@ -392,7 +392,7 @@ XineramaConstrainCursor(void)
     newBox.y1 += panoramiXdataPtr[0].y - panoramiXdataPtr[pScreen->myNum].y;
     newBox.y2 += panoramiXdataPtr[0].y - panoramiXdataPtr[pScreen->myNum].y;
 
-    (* pScreen->ConstrainCursor)(pScreen, &newBox);
+    (* pScreen->ConstrainCursor)(inputInfo.pointer, pScreen, &newBox);
 }
 
 static void
@@ -735,7 +735,7 @@ CheckPhysLimits(
     (*pScreen->CursorLimits) (pScreen, cursor, &sprite.hotLimits,
 			      &sprite.physLimits);
     sprite.confined = confineToScreen;
-    (* pScreen->ConstrainCursor)(pScreen, &sprite.physLimits);
+    (* pScreen->ConstrainCursor)(inputInfo.pointer, pScreen, &sprite.physLimits);
     if (new.x < sprite.physLimits.x1)
 	new.x = sprite.physLimits.x1;
     else
@@ -2118,7 +2118,18 @@ DefineInitialRootWindow(register WindowPtr win)
     (*pScreen->CursorLimits) (
 	pScreen, sprite.current, &sprite.hotLimits, &sprite.physLimits);
     sprite.confined = FALSE;
+#ifdef MPX
+    {
+        DeviceIntPtr pDev = inputInfo.devices;
+        while(pDev)
+        {
+            (*pScreen->ConstrainCursor) (pDev, pScreen, &sprite.physLimits);
+            pDev = pDev->next;
+        }
+    }
+#else
     (*pScreen->ConstrainCursor) (pScreen, &sprite.physLimits);
+#endif
     (*pScreen->SetCursorPosition) (pScreen, sprite.hot.x, sprite.hot.y, FALSE);
     (*pScreen->DisplayCursor) (pScreen, sprite.current);
 

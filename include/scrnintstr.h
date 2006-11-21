@@ -257,6 +257,7 @@ typedef    Bool (* UnrealizeFontProcPtr)(
 	FontPtr /*pFont*/);
 
 typedef    void (* ConstrainCursorProcPtr)(
+        DeviceIntPtr /*pDev*/,
 	ScreenPtr /*pScreen*/,
 	BoxPtr /*pBox*/);
 

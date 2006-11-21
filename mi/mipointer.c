@@ -83,8 +83,10 @@ IsMPDev(DeviceIntPtr pDev)
 static Bool miPointerRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);
 static Bool miPointerUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);
 static Bool miPointerDisplayCursor(ScreenPtr pScreen, CursorPtr pCursor);
-static void miPointerConstrainCursor(ScreenPtr pScreen, BoxPtr pBox);
-static void miPointerPointerNonInterestBox(ScreenPtr pScreen, BoxPtr pBox);
+static void miPointerConstrainCursor(DeviceIntPtr pDev, ScreenPtr pScreen,
+                                     BoxPtr pBox); 
+static void miPointerPointerNonInterestBox(ScreenPtr
+            pScreen, BoxPtr pBox);
 static void miPointerCursorLimits(ScreenPtr pScreen, CursorPtr pCursor,
 				  BoxPtr pHotBox, BoxPtr pTopLeftBox);
 static Bool miPointerSetCursorPosition(ScreenPtr pScreen, int x, int y,
@@ -254,10 +256,17 @@ miPointerDisplayCursor (pScreen, pCursor)
 }
 
 static void
-miPointerConstrainCursor (pScreen, pBox)
+miPointerConstrainCursor (pDev, pScreen, pBox)
+    DeviceIntPtr pDev;
     ScreenPtr	pScreen;
     BoxPtr	pBox;
 {
+#ifdef MPX
+    if (IsMPDev(pDev))
+    {
+        miMPPointers[pDev->id].limits = *pBox;
+    }
+#endif
     miPointer.limits = *pBox;
     miPointer.confined = PointerConfinedToScreen();
 }
