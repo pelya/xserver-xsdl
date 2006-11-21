@@ -1,4 +1,17 @@
 MPX Changelog file
+== 21.11.06 ==
+mi:     added MPX to miSpriteReportDamage
+        added id field to miCursorInfoPtr, required to pass through to miDC
+        core pointer uses mpCursors array as well.
+        added miDCBufferRec for future use with MPX
+
+Files:
+        mi/midispcur.c
+        mi/misprite.c
+        mi/mispritest.h
+
+TAG: MPX_BEFORE_MIDC_API_BREAK
+
 == 20.11.06 ==
 
 mi:     moved core pointer information from miSpriteScreenRec into a

@@ -44,6 +44,7 @@ in this Software without prior written authorization from The Open Group.
 # include   "damage.h"
 
 typedef struct {
+    int             id;                 /* id, corresponds with device id */
     CursorPtr	    pCursor;
     int		    x;			/* cursor hotspot */
     int		    y;

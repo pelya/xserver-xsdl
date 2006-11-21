@@ -158,6 +158,24 @@ miSpriteReportDamage (DamagePtr pDamage, RegionPtr pRegion, void *closure)
 	SPRITE_DEBUG(("Damage remove\n"));
 	miSpriteRemoveCursor (pScreenPriv->cp, pScreen);
     }
+
+#ifdef MPX
+    {
+        int mpCursorIdx = 0;
+        while (mpCursorIdx < MAX_DEVICES)
+        {
+            miCursorInfoPtr pMPCursor = &pScreenPriv->mpCursors[mpCursorIdx];
+
+            if (pMPCursor->isUp && 
+                    RECT_IN_REGION (pScreen, pRegion, &pMPCursor->saved) != rgnOUT)
+            {
+                SPRITE_DEBUG(("Damage remove MPX\n"));
+                miSpriteRemoveCursor(pMPCursor, pScreen);
+            }
+            mpCursorIdx++;
+        }
+    }
+#endif
 }
 
 /*
@@ -266,6 +284,7 @@ miSpriteInitialize (pScreen, cursorFuncs, screenFuncs)
     {
         miCursorInfoPtr cursor = &(pScreenPriv->mpCursors[mpCursorIdx]);
 
+        cursor->id = mpCursorIdx;
         cursor->pCursor = NULL;
         cursor->x = 0;
         cursor->y = 0;
@@ -285,6 +304,10 @@ miSpriteInitialize (pScreen, cursorFuncs, screenFuncs)
 
         mpCursorIdx++;
     }
+
+    /* virtual core pointer has id 1, we might as well save the memory */
+    xfree(pScreenPriv->cp);
+    pScreenPriv->cp = &(pScreenPriv->mpCursors[1]);
 #endif
 
     return TRUE;
