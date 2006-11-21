@@ -34,6 +34,30 @@ Files:
 
 TAG:   MPX_BEFORE_DIX_API_BREAK
 
+
+
+dix:    moved sprite from static to be pointer of type SpritePtr
+	added SpriteRecs for MPX devices
+	changed sprite dependency and added MPX functionality to parts 
+	of events.c (ConfineToShape, PostNewCursor, XineramaCheckMotion,
+	CheckMotion, XineramaChangeToCursor, ChangeToCursor, CheckPhysLimits,
+	PointerConfinedToScreen) 
+	added DeviceIntRec param to GetSpritePosition(). This required some
+	minor changes in ddx, xtest, xkb and xfixes.
+
+mi:	changed miPointer to pointer instead of static struct.
+
+Files:
+        dix/events.c
+        dix/exevents.c
+        Xext/xtest.c
+        ddx/ddxFakeBtn.c
+        ddx/ddxFakeMtn.c
+        ddx/ddxDevBtn.c
+        xkb/xkbActions.c
+        xfixes/cursor.c
+	mi/mieq.c
+
 == 20.11.06 ==
 
 mi:     moved core pointer information from miSpriteScreenRec into a

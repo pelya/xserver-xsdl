@@ -379,7 +379,7 @@ ProcXTestFakeInput(client)
 	if (ev->u.u.detail == xTrue)
 	{
 	    int x, y;
-	    GetSpritePosition(&x, &y);
+	    GetSpritePosition(inputInfo.pointer, &x, &y);
 	    ev->u.keyButtonPointer.rootX += x;
 	    ev->u.keyButtonPointer.rootY += y;
 	}

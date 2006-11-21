@@ -59,6 +59,8 @@ SOFTWARE.
 #define ARGB_CURSOR
 #endif
 
+struct _DeviceIntRec;
+
 typedef struct _Cursor *CursorPtr;
 typedef struct _CursorMetric *CursorMetricPtr;
 
@@ -133,9 +135,10 @@ extern void NewCurrentScreen(
     int /*x*/,
     int /*y*/);
 
-extern Bool PointerConfinedToScreen(void);
+extern Bool PointerConfinedToScreen(struct _DeviceIntRec* /* pDev */);
 
 extern void GetSpritePosition(
+    struct _DeviceIntRec* /* pDev */,
     int * /*px*/,
     int * /*py*/);
 

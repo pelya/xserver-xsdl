@@ -875,7 +875,7 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(xkbi->device);
     if ((filter->keycode!=0)&&(filter->keycode!=keycode))
 	return 1;
 
-    GetSpritePosition(&x,&y);
+    GetSpritePosition(inputInfo.pointer, &x,&y);
     ev.u.keyButtonPointer.time = GetTimeInMillis();
     ev.u.keyButtonPointer.rootX = x;
     ev.u.keyButtonPointer.rootY = y;

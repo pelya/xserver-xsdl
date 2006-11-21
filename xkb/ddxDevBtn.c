@@ -60,7 +60,7 @@ int			nAxes, i, count;
     if (nAxes > 6)
 	nAxes = 6;
 
-    GetSpritePosition(&x,&y);
+    GetSpritePosition(dev, &x,&y);
     btn= (deviceKeyButtonPointer *) &events[0];
     val= (deviceValuator *) &events[1];
     if (press)		btn->type= DeviceButtonPress;

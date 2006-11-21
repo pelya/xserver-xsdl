@@ -355,7 +355,7 @@ ProcXFixesGetCursorImage (ClientPtr client)
     pCursor = CursorCurrent;
     if (!pCursor)
 	return BadCursor;
-    GetSpritePosition (&x, &y);
+    GetSpritePosition (inputInfo.pointer, &x, &y);
     width = pCursor->bits->width;
     height = pCursor->bits->height;
     npixels = width * height;
@@ -503,7 +503,7 @@ ProcXFixesGetCursorImageAndName (ClientPtr client)
     pCursor = CursorCurrent;
     if (!pCursor)
 	return BadCursor;
-    GetSpritePosition (&x, &y);
+    GetSpritePosition (inputInfo.pointer, &x, &y);
     width = pCursor->bits->width;
     height = pCursor->bits->height;
     npixels = width * height;

@@ -53,7 +53,7 @@ XkbDDXFakePointerMotion(unsigned flags,int x,int y)
 int 		   oldX,oldY;
 ScreenPtr	   pScreen, oldScreen;
 
-    GetSpritePosition(&oldX, &oldY);
+    GetSpritePosition(inputInfo.pointer, &oldX, &oldY);
     pScreen = oldScreen = GetSpriteWindow()->drawable.pScreen;
 
 #ifdef PANORAMIX

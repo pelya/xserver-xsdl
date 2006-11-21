@@ -119,13 +119,17 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
     deviceValuator *xV = (deviceValuator *) xE;
 
     if (xE->u.u.type != DeviceValuator) {
-	GetSpritePosition(&rootX, &rootY);
+	GetSpritePosition(other, &rootX, &rootY);
 	xE->u.keyButtonPointer.rootX = rootX;
 	xE->u.keyButtonPointer.rootY = rootY;
 	key = xE->u.u.detail;
 	NoticeEventTime(xE);
 	xE->u.keyButtonPointer.state = inputInfo.keyboard->key->state |
+#ifdef MPX
+            other->button->state;
+#else
 	    inputInfo.pointer->button->state;
+#endif
 	bit = 1 << (key & 7);
     }
     if (DeviceEventCallback) {

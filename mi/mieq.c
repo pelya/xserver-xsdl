@@ -239,11 +239,9 @@ mieqProcessInputEvents()
             }
 
 #ifdef MPX
-            /* MPX devices send both core and Xi events. Depending on what
-             * event we have, dev is set to either the core pointer or the
-             * device. This gives us the right processing function but we need
-             * to pass the right device in too.
-             * Any device that is not a MP device is processed as usual.
+            /* MPX devices send both core and Xi events. 
+             * Use dev to get the correct processing function but supply
+             *  e->pDev to pass the correct device 
              */
             if (e->pDev->isMPDev)
                 dev->public.processInputProc(e->event, e->pDev, e->nevents);
@@ -252,11 +250,7 @@ mieqProcessInputEvents()
             dev->public.processInputProc(e->event, dev, e->nevents);
         }
 #ifdef MPX
-        /* 
-         * This is inefficient as we update the sprite for each event rather
-         * than at the end of the event queue. But we don't know if the
-         * next event is from the same device, so it's better to do it here.
-         */
+        /* Update the sprite now. Next event may be from different device.  */
         if (e->event[0].u.u.type == MotionNotify && 
                 (e->pDev->isMPDev || e->pDev->coreEvents))
         {
