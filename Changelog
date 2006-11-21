@@ -32,6 +32,8 @@ Files:
 	mi/mipointer.c
 	include/scrnintstr.h
 
+TAG:   MPX_BEFORE_DIX_API_BREAK
+
 == 20.11.06 ==
 
 mi:     moved core pointer information from miSpriteScreenRec into a
