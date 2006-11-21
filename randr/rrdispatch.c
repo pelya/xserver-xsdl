@@ -192,17 +192,19 @@ int (*ProcRandrVector[RRNumberRequests])(ClientPtr) = {
     ProcRRGetScreenResources,	/* 8 */
     ProcRRGetOutputInfo,	/* 9 */
     ProcRRListOutputProperties,	/* 10 */
-    ProcRRChangeOutputProperty,	/* 11 */
-    ProcRRDeleteOutputProperty,	/* 12 */
-    ProcRRGetOutputProperty,	/* 13 */
-    ProcRRCreateMode,		/* 14 */
-    ProcRRDestroyMode,		/* 15 */
-    ProcRRAddOutputMode,	/* 16 */
-    ProcRRDeleteOutputMode,	/* 17 */
-    ProcRRGetCrtcInfo,		/* 18 */
-    ProcRRSetCrtcConfig,	/* 19 */
-    ProcRRGetCrtcGammaSize,	/* 20 */
-    ProcRRGetCrtcGamma,		/* 21 */
-    ProcRRSetCrtcGamma,		/* 22 */
+    ProcRRQueryOutputProperty,	/* 11 */
+    ProcRRConfigureOutputProperty,  /* 12 */
+    ProcRRChangeOutputProperty,	/* 13 */
+    ProcRRDeleteOutputProperty,	/* 14 */
+    ProcRRGetOutputProperty,	/* 15 */
+    ProcRRCreateMode,		/* 16 */
+    ProcRRDestroyMode,		/* 17 */
+    ProcRRAddOutputMode,	/* 18 */
+    ProcRRDeleteOutputMode,	/* 19 */
+    ProcRRGetCrtcInfo,		/* 20 */
+    ProcRRSetCrtcConfig,	/* 21 */
+    ProcRRGetCrtcGammaSize,	/* 22 */
+    ProcRRGetCrtcGamma,		/* 23 */
+    ProcRRSetCrtcGamma,		/* 24 */
 };
 

@@ -33,7 +33,7 @@ RRDeliverEvent (ScreenPtr pScreen, xEvent *event, CARD32 mask)
 void
 RRDeleteAllOutputProperties (RROutputPtr output)
 {
-    PropertyPtr prop, next;
+    RRPropertyPtr prop, next;
     xRROutputPropertyNotifyEvent    event;
 
     for (prop = output->properties; prop; prop = next)
@@ -46,15 +46,58 @@ RRDeleteAllOutputProperties (RROutputPtr output)
 	event.atom = prop->propertyName;
 	event.timestamp = currentTime.milliseconds;
 	RRDeliverEvent (output->pScreen, (xEvent *) &event, RROutputPropertyNotifyMask);
-        xfree(prop->data);
+	if (prop->current.data)
+	    xfree(prop->current.data);
+	if (prop->pending.data)
+	    xfree(prop->pending.data);
         xfree(prop);
     }
+}
+
+static void
+RRInitOutputPropertyValue (RRPropertyValuePtr property_value)
+{
+    property_value->type = None;
+    property_value->format = 0;
+    property_value->size = 0;
+    property_value->data = NULL;
+}
+
+static RRPropertyPtr
+RRCreateOutputProperty (Atom property)
+{
+    RRPropertyPtr   prop;
+    
+    prop = (RRPropertyPtr)xalloc(sizeof(PropertyRec));
+    if (!prop)
+	return NULL;
+    prop->propertyName = property;
+    prop->is_pending = FALSE;
+    prop->range = FALSE;
+    prop->immutable = FALSE;
+    prop->num_valid = 0;
+    prop->valid_values = NULL;
+    RRInitOutputPropertyValue (&prop->current);
+    RRInitOutputPropertyValue (&prop->pending);
+    return prop;
+}
+
+static void
+RRDestroyOutputProperty (RRPropertyPtr prop)
+{
+    if (prop->valid_values)
+	xfree (prop->valid_values);
+    if (prop->current.data)
+	xfree(prop->current.data);
+    if (prop->pending.data)
+	xfree(prop->pending.data);
+    xfree(prop);
 }
 
 void
 RRDeleteOutputProperty (RROutputPtr output, Atom property)
 {
-    PropertyPtr	prop, *prev;
+    RRPropertyPtr	prop, *prev;
     xRROutputPropertyNotifyEvent    event;
 
     for (prev = &output->properties; (prop = *prev); prev = &(prop->next))
@@ -70,8 +113,7 @@ RRDeleteOutputProperty (RROutputPtr output, Atom property)
 	event.atom = prop->propertyName;
 	event.timestamp = currentTime.milliseconds;
 	RRDeliverEvent (output->pScreen, (xEvent *) &event, RROutputPropertyNotifyMask);
-        xfree(prop->data);
-        xfree(prop);
+	RRDestroyOutputProperty (prop);
     }
 }
 
@@ -80,96 +122,95 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 			int format, int mode, unsigned long len,
 			pointer value, Bool sendevent)
 {
-    PropertyPtr			    prop;
+    RRPropertyPtr		    prop;
     xRROutputPropertyNotifyEvent    event;
     int				    sizeInBytes;
     int				    totalSize;
     pointer			    data;
+    RRPropertyValuePtr		    prop_value;
+    Bool			    add = FALSE;
 
     sizeInBytes = format >> 3;
     totalSize = len * sizeInBytes;
 
     /* first see if property already exists */
-
-    for (prop = output->properties; prop; prop = prop->next)
-	if (prop->propertyName == property)
-	    break;
-    
+    prop = RRQueryOutputProperty (output, property);
     if (!prop)   /* just add to list */
     {
-        prop = (PropertyPtr)xalloc(sizeof(PropertyRec));
+        prop = RRCreateOutputProperty (property);
 	if (!prop)
 	    return(BadAlloc);
-        data = (pointer)xalloc(totalSize);
-	if (!data && len)
-	{
-	    xfree(prop);
-	    return(BadAlloc);
-	}
-        prop->propertyName = property;
-        prop->type = type;
-        prop->format = format;
-        prop->data = data;
-	if (len)
-	    memmove((char *)data, (char *)value, totalSize);
-	prop->size = len;
-        prop->next = output->properties;
-        output->properties = prop;
+	add = TRUE;
+	mode = PropModeReplace;
     }
+    if (prop->is_pending)
+	prop_value = &prop->pending;
     else
-    {
-	/* To append or prepend to a property the request format and type
-		must match those of the already defined property.  The
-		existing format and type are irrelevant when using the mode
-		"PropModeReplace" since they will be written over. */
+	prop_value = &prop->current;
+    
+    /* To append or prepend to a property the request format and type
+	    must match those of the already defined property.  The
+	    existing format and type are irrelevant when using the mode
+	    "PropModeReplace" since they will be written over. */
 
-        if ((format != prop->format) && (mode != PropModeReplace))
-	    return(BadMatch);
-        if ((prop->type != type) && (mode != PropModeReplace))
-            return(BadMatch);
-        if (mode == PropModeReplace)
-        {
-	    if (totalSize != prop->size * (prop->format >> 3))
-	    {
-	    	data = (pointer)xrealloc(prop->data, totalSize);
-	    	if (!data && len)
-		    return(BadAlloc);
-            	prop->data = data;
-	    }
-	    if (len)
-		memmove((char *)prop->data, (char *)value, totalSize);
-	    prop->size = len;
-    	    prop->type = type;
-	    prop->format = format;
-	}
-	else if (len == 0)
+    if ((format != prop_value->format) && (mode != PropModeReplace))
+	return(BadMatch);
+    if ((prop_value->type != type) && (mode != PropModeReplace))
+	return(BadMatch);
+    if (mode == PropModeReplace)
+    {
+	if (totalSize != prop_value->size * (prop_value->format >> 3))
 	{
-	    /* do nothing */
-	}
-        else if (mode == PropModeAppend)
-        {
-	    data = (pointer)xrealloc(prop->data,
-				     sizeInBytes * (len + prop->size));
-	    if (!data)
+	    if (prop_value->data)
+		data = (pointer)xrealloc(prop_value->data, totalSize);
+	    else
+		data = (pointer)xalloc (totalSize);
+	    if (!data && len)
+	    {
+		if (add)
+		    RRDestroyOutputProperty (prop);
 		return(BadAlloc);
-            prop->data = data;
-	    memmove(&((char *)data)[prop->size * sizeInBytes], 
-		    (char *)value,
-		  totalSize);
-            prop->size += len;
+	    }
+	    prop_value->data = data;
 	}
-        else if (mode == PropModePrepend)
-        {
-            data = (pointer)xalloc(sizeInBytes * (len + prop->size));
-	    if (!data)
-		return(BadAlloc);
-	    memmove(&((char *)data)[totalSize], (char *)prop->data, 
-		  (int)(prop->size * sizeInBytes));
-            memmove((char *)data, (char *)value, totalSize);
-	    xfree(prop->data);
-            prop->data = data;
-            prop->size += len;
-	}
+	if (len)
+	    memmove((char *)prop_value->data, (char *)value, totalSize);
+	prop_value->size = len;
+	prop_value->type = type;
+	prop_value->format = format;
+    }
+    else if (len == 0)
+    {
+	/* do nothing */
+    }
+    else if (mode == PropModeAppend)
+    {
+	data = (pointer)xrealloc(prop_value->data,
+				 sizeInBytes * (len + prop_value->size));
+	if (!data)
+	    return(BadAlloc);
+	prop_value->data = data;
+	memmove(&((char *)data)[prop_value->size * sizeInBytes], 
+		(char *)value,
+	      totalSize);
+	prop_value->size += len;
+    }
+    else if (mode == PropModePrepend)
+    {
+	data = (pointer)xalloc(sizeInBytes * (len + prop_value->size));
+	if (!data)
+	    return(BadAlloc);
+	memmove(&((char *)data)[totalSize], (char *)prop_value->data, 
+	      (int)(prop_value->size * sizeInBytes));
+	memmove((char *)data, (char *)value, totalSize);
+	xfree(prop_value->data);
+	prop_value->data = data;
+	prop_value->size += len;
+    }
+    if (add)
+    {
+	prop->next = output->properties;
+	output->properties = prop;
     }
     if (sendevent)
     {
@@ -184,6 +225,81 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
     return(Success);
 }
 
+RRPropertyPtr
+RRQueryOutputProperty (RROutputPtr output, Atom property)
+{
+    RRPropertyPtr   prop;
+    
+    for (prop = output->properties; prop; prop = prop->next)
+	if (prop->propertyName == property)
+	    return prop;
+    return NULL;
+}
+		       
+RRPropertyValuePtr
+RRGetOutputProperty (RROutputPtr output, Atom property, Bool pending)
+{
+    RRPropertyPtr   prop = RRQueryOutputProperty (output, property);
+
+    if (!prop)
+	return NULL;
+    if (pending && prop->is_pending)
+	return &prop->pending;
+    else
+	return &prop->current;
+}
+
+int
+RRConfigureOutputProperty (RROutputPtr output, Atom property,
+			   Bool pending, Bool range, Bool immutable,
+			   int num_values, INT32 *values)
+{
+    RRPropertyPtr   prop = RRQueryOutputProperty (output, property);
+    Bool	    add = FALSE;
+    INT32	    *new_values;
+
+    if (!prop)
+    {
+        prop = RRCreateOutputProperty (property);
+	if (!prop)
+	    return(BadAlloc);
+	add = TRUE;
+    } else if (prop->immutable && !immutable)
+	return(BadAccess);
+    
+    /*
+     * ranges must have even number of values
+     */
+    if (range && (num_values & 1))
+	return BadMatch;
+
+    new_values = xalloc (num_values * sizeof (INT32));
+    if (!new_values && num_values)
+	return BadAlloc;
+    if (num_values)
+	memcpy (new_values, values, num_values * sizeof (INT32));
+    
+    /*
+     * Property moving from pending to non-pending
+     * loses any pending values
+     */
+    if (prop->is_pending && !pending)
+    {
+	if (prop->pending.data)
+	    xfree (prop->pending.data);
+	RRInitOutputPropertyValue (&prop->pending);
+    }
+
+    prop->is_pending = pending;
+    prop->range = range;
+    prop->immutable = immutable;
+    prop->num_valid = num_values;
+    if (prop->valid_values)
+	xfree (prop->valid_values);
+    prop->valid_values = new_values;
+    return Success;
+}
+
 int
 ProcRRListOutputProperties (ClientPtr client)
 {
@@ -192,7 +308,7 @@ ProcRRListOutputProperties (ClientPtr client)
     xRRListOutputPropertiesReply    rep;
     int				    numProps = 0;
     RROutputPtr			    output;
-    PropertyPtr			    prop;
+    RRPropertyPtr			    prop;
     
     REQUEST_SIZE_MATCH(xRRListOutputPropertiesReq);
 
@@ -211,6 +327,12 @@ ProcRRListOutputProperties (ClientPtr client)
     rep.nProperties = numProps;
     rep.length = (numProps * sizeof(Atom)) >> 2;
     rep.sequenceNumber = client->sequence;
+    if (client->swapped) 
+    {
+	int n;
+	swaps (&rep.sequenceNumber, n);
+	swapl (&rep.length, n);
+    }
     temppAtoms = pAtoms;
     for (prop = output->properties; prop; prop = prop->next)
 	*temppAtoms++ = prop->propertyName;
@@ -223,6 +345,68 @@ ProcRRListOutputProperties (ClientPtr client)
         DEALLOCATE_LOCAL(pAtoms);
     }
     return(client->noClientException);
+}
+
+int
+ProcRRQueryOutputProperty (ClientPtr client)
+{
+    REQUEST(xRRQueryOutputPropertyReq);
+    xRRQueryOutputPropertyReply	    rep;
+    RROutputPtr			    output;
+    RRPropertyPtr		    prop;
+    
+    REQUEST_SIZE_MATCH(xRRQueryOutputPropertyReq);
+
+    output = LookupOutput (client, stuff->output, SecurityReadAccess);
+    
+    if (!output)
+        return RRErrorBase + BadRROutput;
+    
+    prop = RRQueryOutputProperty (output, stuff->property);
+    if (!prop)
+	return BadName;
+    
+    rep.type = X_Reply;
+    rep.length = prop->num_valid;
+    rep.sequenceNumber = client->sequence;
+    rep.pending = prop->is_pending;
+    rep.range = prop->range;
+    rep.immutable = prop->immutable;
+    if (client->swapped) 
+    {
+	int n;
+	swaps (&rep.sequenceNumber, n);
+	swapl (&rep.length, n);
+    }
+    WriteReplyToClient (client, sizeof (xRRQueryOutputPropertyReply), &rep);
+    if (prop->num_valid)
+    {
+        client->pSwapReplyFunc = (ReplySwapPtr)Swap32Write;
+        WriteSwappedDataToClient(client, prop->num_valid * sizeof(INT32),
+				 prop->valid_values);
+    }
+    return(client->noClientException);
+}
+
+int
+ProcRRConfigureOutputProperty (ClientPtr client)
+{
+    REQUEST(xRRConfigureOutputPropertyReq);
+    RROutputPtr				output;
+    int					num_valid;
+    
+    REQUEST_SIZE_MATCH(xRRConfigureOutputPropertyReq);
+
+    output = LookupOutput (client, stuff->output, SecurityReadAccess);
+    
+    if (!output)
+        return RRErrorBase + BadRROutput;
+    
+    num_valid = stuff->length - (sizeof (xRRConfigureOutputPropertyReq) >> 2);
+    return RRConfigureOutputProperty (output, stuff->property,
+				      stuff->pending, stuff->range,
+				      FALSE, num_valid, 
+				      (INT32 *) (stuff + 1));
 }
 
 int
@@ -309,7 +493,8 @@ int
 ProcRRGetOutputProperty (ClientPtr client)
 {
     REQUEST(xRRGetOutputPropertyReq);
-    PropertyPtr			prop, *prev;
+    RRPropertyPtr			prop, *prev;
+    RRPropertyValuePtr			prop_value;
     unsigned long		n, len, ind;
     RROutputPtr			output;
     xRRGetOutputPropertyReply	reply;
@@ -356,18 +541,26 @@ ProcRRGetOutputProperty (ClientPtr client)
 	return(client->noClientException);
     }
 
+    if (prop->immutable && stuff->delete)
+	return BadAccess;
+
+    if (stuff->pending && prop->is_pending)
+	prop_value = &prop->pending;
+    else
+	prop_value = &prop->current;
+    
     /* If the request type and actual type don't match. Return the
     property information, but not the data. */
 
-    if (((stuff->type != prop->type) &&
+    if (((stuff->type != prop_value->type) &&
 	 (stuff->type != AnyPropertyType))
        )
     {
-	reply.bytesAfter = prop->size;
-	reply.format = prop->format;
+	reply.bytesAfter = prop_value->size;
+	reply.format = prop_value->format;
 	reply.length = 0;
 	reply.nItems = 0;
-	reply.propertyType = prop->type;
+	reply.propertyType = prop_value->type;
 	WriteReplyToClient(client, sizeof(xRRGetOutputPropertyReply), &reply);
 	return(client->noClientException);
     }
@@ -375,7 +568,7 @@ ProcRRGetOutputProperty (ClientPtr client)
 /*
  *  Return type, format, value to client
  */
-    n = (prop->format/8) * prop->size; /* size (bytes) of prop */
+    n = (prop_value->format/8) * prop_value->size; /* size (bytes) of prop */
     ind = stuff->longOffset << 2;        
 
    /* If longOffset is invalid such that it causes "len" to
@@ -390,10 +583,10 @@ ProcRRGetOutputProperty (ClientPtr client)
     len = min(n - ind, 4 * stuff->longLength);
 
     reply.bytesAfter = n - (ind + len);
-    reply.format = prop->format;
+    reply.format = prop_value->format;
     reply.length = (len + 3) >> 2;
-    reply.nItems = len / (prop->format / 8 );
-    reply.propertyType = prop->type;
+    reply.nItems = len / (prop_value->format / 8 );
+    reply.propertyType = prop_value->type;
 
     if (stuff->delete && (reply.bytesAfter == 0))
     {
@@ -417,14 +610,13 @@ ProcRRGetOutputProperty (ClientPtr client)
 	default: client->pSwapReplyFunc = (ReplySwapPtr)WriteToClient; break;
 	}
 	WriteSwappedDataToClient(client, len,
-				 (char *)prop->data + ind);
+				 (char *)prop_value->data + ind);
     }
 
     if (stuff->delete && (reply.bytesAfter == 0))
     { /* delete the Property */
 	*prev = prop->next;
-	xfree(prop->data);
-	xfree(prop);
+	RRDestroyOutputProperty (prop);
     }
     return(client->noClientException);
 }

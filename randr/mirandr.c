@@ -64,10 +64,11 @@ miRRCrtcSetGamma (ScreenPtr	pScreen,
     return TRUE;
 }
 
-static Bool
-miRROutputSetProperty (ScreenPtr	pScreen,
-		       RROutputPtr	output,
-		       Atom	property)
+Bool
+miRROutputSetProperty (ScreenPtr	    pScreen,
+		       RROutputPtr	    output,
+		       Atom		    property,
+		       RRPropertyValuePtr   value)
 {
     return TRUE;
 }

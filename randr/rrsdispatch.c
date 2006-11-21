@@ -132,6 +132,26 @@ SProcRRListOutputProperties (ClientPtr client)
 }
 
 static int
+SProcRRQueryOutputProperty (ClientPtr client)
+{
+    REQUEST(xRRQueryOutputPropertyReq);
+    
+    REQUEST_SIZE_MATCH(xRRQueryOutputPropertyReq);
+    (void) stuff;
+    return BadImplementation; 
+}
+
+static int
+SProcRRConfigureOutputProperty (ClientPtr client)
+{
+    REQUEST(xRRConfigureOutputPropertyReq);
+    
+    REQUEST_SIZE_MATCH(xRRConfigureOutputPropertyReq);
+    (void) stuff;
+    return BadImplementation; 
+}
+
+static int
 SProcRRChangeOutputProperty (ClientPtr client)
 {
     REQUEST(xRRChangeOutputPropertyReq);
@@ -267,17 +287,19 @@ int (*SProcRandrVector[RRNumberRequests])(ClientPtr) = {
     SProcRRGetScreenResources,	/* 8 */
     SProcRRGetOutputInfo,	/* 9 */
     SProcRRListOutputProperties,/* 10 */
-    SProcRRChangeOutputProperty,/* 11 */
-    SProcRRDeleteOutputProperty,/* 12 */
-    SProcRRGetOutputProperty,	/* 13 */
-    SProcRRCreateMode,		/* 14 */
-    SProcRRDestroyMode,		/* 15 */
-    SProcRRAddOutputMode,	/* 16 */
-    SProcRRDeleteOutputMode,	/* 17 */
-    SProcRRGetCrtcInfo,		/* 18 */
-    SProcRRSetCrtcConfig,	/* 19 */
-    SProcRRGetCrtcGammaSize,	/* 20 */
-    SProcRRGetCrtcGamma,	/* 21 */
-    SProcRRSetCrtcGamma,	/* 22 */
+    SProcRRQueryOutputProperty,	/* 11 */
+    SProcRRConfigureOutputProperty,  /* 12 */
+    SProcRRChangeOutputProperty,/* 13 */
+    SProcRRDeleteOutputProperty,/* 14 */
+    SProcRRGetOutputProperty,	/* 15 */
+    SProcRRCreateMode,		/* 16 */
+    SProcRRDestroyMode,		/* 17 */
+    SProcRRAddOutputMode,	/* 18 */
+    SProcRRDeleteOutputMode,	/* 19 */
+    SProcRRGetCrtcInfo,		/* 20 */
+    SProcRRSetCrtcConfig,	/* 21 */
+    SProcRRGetCrtcGammaSize,	/* 22 */
+    SProcRRGetCrtcGamma,	/* 23 */
+    SProcRRSetCrtcGamma,	/* 24 */
 };
 

@@ -69,9 +69,11 @@ extern int (*SProcRandrVector[RRNumberRequests])(ClientPtr);
  */
 
 #define RRModeName(pMode) ((char *) (pMode + 1))
-typedef struct _rrMode	    RRModeRec, *RRModePtr;
-typedef struct _rrCrtc	    RRCrtcRec, *RRCrtcPtr;
-typedef struct _rrOutput    RROutputRec, *RROutputPtr;
+typedef struct _rrMode		RRModeRec, *RRModePtr;
+typedef struct _rrPropertyValue	RRPropertyValueRec, *RRPropertyValuePtr;
+typedef struct _rrProperty	RRPropertyRec, *RRPropertyPtr;
+typedef struct _rrCrtc		RRCrtcRec, *RRCrtcPtr;
+typedef struct _rrOutput	RROutputRec, *RROutputPtr;
 
 struct _rrMode {
     int		    refcnt;
@@ -79,6 +81,24 @@ struct _rrMode {
     char	    *name;
     void	    *devPrivate;
     Bool	    userDefined;
+};
+
+struct _rrPropertyValue {
+    Atom	    type;       /* ignored by server */
+    short	    format;     /* format of data for swapping - 8,16,32 */
+    long	    size;	/* size of data in (format/8) bytes */
+    pointer         data;	/* private to client */
+};
+
+struct _rrProperty {
+    RRPropertyPtr   next;
+    ATOM 	    propertyName;
+    Bool	    is_pending;
+    Bool	    range;
+    Bool	    immutable;
+    int		    num_valid;
+    INT32	    *valid_values;
+    RRPropertyValueRec	current, pending;
 };
 
 struct _rrCrtc {
@@ -116,7 +136,7 @@ struct _rrOutput {
     int		    numPreferred;
     RRModePtr	    *modes;
     Bool	    changed;
-    PropertyPtr	    properties;
+    RRPropertyPtr   properties;
     void	    *devPrivate;
 };
 
@@ -139,9 +159,10 @@ typedef Bool (*RRCrtcSetProcPtr) (ScreenPtr		pScreen,
 typedef Bool (*RRCrtcSetGammaProcPtr) (ScreenPtr	pScreen,
 				       RRCrtcPtr	crtc);
 
-typedef Bool (*RROutputSetPropertyProcPtr) (ScreenPtr	pScreen,
-					    RROutputPtr	output,
-					    Atom	property);
+typedef Bool (*RROutputSetPropertyProcPtr) (ScreenPtr		pScreen,
+					    RROutputPtr		output,
+					    Atom		property,
+					    RRPropertyValuePtr	value);
 
 #endif
 
@@ -362,6 +383,12 @@ miRRCrtcSet (ScreenPtr	pScreen,
 	     Rotation	rotation,
 	     int	numOutput,
 	     RROutputPtr *outputs);
+
+Bool
+miRROutputSetProperty (ScreenPtr	    pScreen,
+		       RROutputPtr	    output,
+		       Atom		    property,
+		       RRPropertyValuePtr   value);
 
 /* randr.c */
 /*
@@ -676,6 +703,12 @@ RRPointerScreenConfigured (ScreenPtr pScreen);
 void
 RRDeleteAllOutputProperties (RROutputPtr output);
 
+RRPropertyValuePtr
+RRGetOutputProperty (RROutputPtr output, Atom property, Bool pending);
+
+RRPropertyPtr
+RRQueryOutputProperty (RROutputPtr output, Atom property);
+		       
 void
 RRDeleteOutputProperty (RROutputPtr output, Atom property);
 
@@ -685,6 +718,10 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 			pointer value, Bool sendevent);
 
 int
+RRConfigureOutputProperty (RROutputPtr output, Atom property,
+			   Bool pending, Bool range, Bool immutable,
+			   int num_values, INT32 *values);
+int
 ProcRRChangeOutputProperty (ClientPtr client);
 
 int
@@ -692,6 +729,12 @@ ProcRRGetOutputProperty (ClientPtr client);
 
 int
 ProcRRListOutputProperties (ClientPtr client);
+
+int
+ProcRRQueryOutputProperty (ClientPtr client);
+
+int
+ProcRRConfigureOutputProperty (ClientPtr client);
 
 int
 ProcRRDeleteOutputProperty (ClientPtr client);
