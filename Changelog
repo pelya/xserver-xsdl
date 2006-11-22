@@ -17,6 +17,19 @@ Files:
 	Xi/exevents.c
 
 
+dix	GetSpriteWindow() adjusted for MPX
+	added device dependency for MPX to DoEnterLeaveEvents,
+	EnterLeaveEvents, EnterNotifies, LeaveNotifies and
+	FixUpEventFromWindow.
+
+Files:
+	Xext/security.c
+	Xi/exevents.c
+	ddx/ddxFakeMtn.c
+	dix/events.c
+	include/dix.h
+
+
 == 21.11.06 ==
 mi:     added MPX to miSpriteReportDamage
         added id field to miCursorInfoPtr, required to pass through to miDC

@@ -54,7 +54,7 @@ int 		   oldX,oldY;
 ScreenPtr	   pScreen, oldScreen;
 
     GetSpritePosition(inputInfo.pointer, &oldX, &oldY);
-    pScreen = oldScreen = GetSpriteWindow()->drawable.pScreen;
+    pScreen = oldScreen = GetSpriteWindow(inputInfo.pointer)->drawable.pScreen;
 
 #ifdef PANORAMIX
     if (!noPanoramiXExtension) {

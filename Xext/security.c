@@ -745,12 +745,12 @@ SecurityDetermineEventPropogationLimits(
 
     if (pFocusWin == PointerRootWin)
     { /* focus follows the pointer */
-	*ppWin = GetSpriteWindow();
+	*ppWin = GetSpriteWindow(dev);
 	*ppStopWin = NULL; /* propogate all the way to the root */
     }
     else
     { /* a real window is set for the focus */
-	WindowPtr pSpriteWin = GetSpriteWindow();
+	WindowPtr pSpriteWin = GetSpriteWindow(dev);
 	*ppStopWin = pFocusWin->parent; /* don't go past the focus window */
 
 	/* if the pointer is in a subwindow of the focus window, start

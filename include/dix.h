@@ -525,7 +525,7 @@ extern Bool IsParent(
 
 extern WindowPtr GetCurrentRootWindow(void);
 
-extern WindowPtr GetSpriteWindow(void);
+extern WindowPtr GetSpriteWindow(DeviceIntPtr pDev);
 
 
 extern void NoticeEventTime(xEventPtr /* xE */);

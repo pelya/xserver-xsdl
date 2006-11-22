@@ -270,6 +270,7 @@ _X_EXPORT HotSpot xeviehot;
 #endif
 
 static void DoEnterLeaveEvents(
+    DeviceIntPtr pDev, 
     WindowPtr fromWin,
     WindowPtr toWin,
     int mode
@@ -614,8 +615,9 @@ XineramaCheckMotion(xEvent *xE, DeviceIntPtr pDev)
 	if (prevSpriteWin != NullWindow) {
 	    if (!xE)
 		UpdateCurrentTimeIf();
-	    DoEnterLeaveEvents(prevSpriteWin, pSprite->win, NotifyNormal);
-	}
+            DoEnterLeaveEvents(pDev, prevSpriteWin, pSprite->win,
+                               NotifyNormal); 
+        }
 	PostNewCursor(pDev);
         return FALSE;
     }
@@ -991,8 +993,13 @@ GetCurrentRootWindow()
 }
 
 _X_EXPORT WindowPtr
-GetSpriteWindow()
+GetSpriteWindow(DeviceIntPtr pDev)
 {
+#ifdef MPX
+    if(IsMPDev(pDev))
+        return mpsprites[pDev->id].win;
+#endif
+
     return sprite->win;
 }
 
@@ -1321,7 +1328,7 @@ ActivatePointerGrab(register DeviceIntPtr mouse, register GrabPtr grab,
 	    sprite->hotPhys.x = sprite->hotPhys.y = 0;
 	ConfineCursorToWindow(grab->confineTo, FALSE, TRUE);
     }
-    DoEnterLeaveEvents(oldWin, grab->window, NotifyGrab);
+    DoEnterLeaveEvents(mouse, oldWin, grab->window, NotifyGrab);
     mouse->valuator->motionHintWindow = NullWindow;
     if (syncEvents.playingEvents)
 	mouse->grabTime = syncEvents.time;
@@ -1351,7 +1358,7 @@ DeactivatePointerGrab(register DeviceIntPtr mouse)
 	if (dev->sync.other == grab)
 	    dev->sync.other = NullGrab;
     }
-    DoEnterLeaveEvents(grab->window, sprite->win, NotifyUngrab);
+    DoEnterLeaveEvents(mouse, grab->window, sprite->win, NotifyUngrab);
     if (grab->confineTo)
 	ConfineCursorToWindow(ROOT, FALSE, FALSE);
     PostNewCursor(inputInfo.pointer);
@@ -1823,11 +1830,18 @@ MaybeDeliverEventsToClient(register WindowPtr pWin, xEvent *pEvents,
 
 static void
 FixUpEventFromWindow(
+    DeviceIntPtr pDev,
     xEvent *xE,
     WindowPtr pWin,
     Window child,
     Bool calcChild)
 {
+    SpritePtr pSprite = sprite;
+#ifdef MPX
+    if (IsMPDev(pDev))
+        pSprite = &mpsprites[pDev->id];
+#endif
+
     if (calcChild)
     {
         WindowPtr w=spriteTrace[spriteTraceGood-1];
@@ -1857,7 +1871,7 @@ FixUpEventFromWindow(
     }
     XE_KBPTR.root = ROOT->drawable.id;
     XE_KBPTR.event = pWin->drawable.id;
-    if (sprite->hot.pScreen == pWin->drawable.pScreen)
+    if (pSprite->hot.pScreen == pWin->drawable.pScreen)
     {
 	XE_KBPTR.sameScreen = xTrue;
 	XE_KBPTR.child = child;
@@ -1896,7 +1910,7 @@ DeliverDeviceEvents(register WindowPtr pWin, register xEvent *xE, GrabPtr grab,
 	{
 	    if (inputMasks && (inputMasks->inputEvents[mskidx] & filter))
 	    {
-		FixUpEventFromWindow(xE, pWin, child, FALSE);
+		FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
 		deliveries = DeliverEventsToWindow(pWin, xE, count, filter,
 						   grab, mskidx);
 		if (deliveries > 0)
@@ -1921,7 +1935,7 @@ DeliverDeviceEvents(register WindowPtr pWin, register xEvent *xE, GrabPtr grab,
 	{
 	    if ((wOtherEventMasks(pWin)|pWin->eventMask) & filter)
 	    {
-		FixUpEventFromWindow(xE, pWin, child, FALSE);
+		FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
 		deliveries = DeliverEventsToWindow(pWin, xE, count, filter,
 						   grab, 0);
 		if (deliveries > 0)
@@ -2125,8 +2139,9 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 	if (prevSpriteWin != NullWindow) {
 	    if (!xE)
 		UpdateCurrentTimeIf();
-	    DoEnterLeaveEvents(prevSpriteWin, pSprite->win, NotifyNormal);
-	}
+            DoEnterLeaveEvents(pDev, prevSpriteWin, pSprite->win,
+                               NotifyNormal); 
+        }
 	PostNewCursor(pDev);
         return FALSE;
     }
@@ -2600,7 +2615,7 @@ CheckPassiveGrabsOnWindow(
 #endif
 	    (*device->ActivateGrab)(device, grab, currentTime, TRUE);
  
-	    FixUpEventFromWindow(xE, grab->window, None, TRUE);
+	    FixUpEventFromWindow(device, xE, grab->window, None, TRUE);
 
 	    (void) TryClientEvents(rClient(grab), xE, count,
 				   filters[xE->u.u.type],
@@ -2705,7 +2720,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
 	    return;
     }
     /* just deliver it to the focus window */
-    FixUpEventFromWindow(xE, focus, None, FALSE);
+    FixUpEventFromWindow(inputInfo.pointer, xE, focus, None, FALSE);
     if (xE->u.u.type & EXTENSION_EVENT_BASE)
 	mskidx = keybd->id;
     (void)DeliverEventsToWindow(focus, xE, count, filters[xE->u.u.type],
@@ -2745,7 +2760,7 @@ DeliverGrabbedEvent(register xEvent *xE, register DeviceIntPtr thisDev,
     }
     if (!deliveries)
     {
-	FixUpEventFromWindow(xE, grab->window, None, TRUE);
+	FixUpEventFromWindow(thisDev, xE, grab->window, None, TRUE);
 	deliveries = TryClientEvents(rClient(grab), xE, count,
 				     (Mask)grab->eventMask,
 				     filters[xE->u.u.type], grab);
@@ -3321,6 +3336,7 @@ CommonAncestor(
 
 static void
 EnterLeaveEvent(
+    DeviceIntPtr pDev,
     int type,
     int mode,
     int detail,
@@ -3330,7 +3346,7 @@ EnterLeaveEvent(
     xEvent		event;
     register DeviceIntPtr keybd = inputInfo.keyboard;
     WindowPtr		focus;
-    register DeviceIntPtr mouse = inputInfo.pointer;
+    register DeviceIntPtr mouse = pDev;
     register GrabPtr	grab = mouse->grab;
     Mask		mask;
 
@@ -3355,7 +3371,7 @@ EnterLeaveEvent(
 	event.u.enterLeave.rootX = sprite->hot.x;
 	event.u.enterLeave.rootY = sprite->hot.y;
 	/* Counts on the same initial structure of crossing & button events! */
-	FixUpEventFromWindow(&event, pWin, None, FALSE);
+	FixUpEventFromWindow(mouse, &event, pWin, None, FALSE);
 	/* Enter/Leave events always set child */
 	event.u.enterLeave.child = child;
 	event.u.enterLeave.flags = event.u.keyButtonPointer.sameScreen ?
@@ -3406,18 +3422,26 @@ EnterLeaveEvent(
 }
 
 static void
-EnterNotifies(WindowPtr ancestor, WindowPtr child, int mode, int detail)
+EnterNotifies(DeviceIntPtr pDev, 
+              WindowPtr ancestor, 
+              WindowPtr child, 
+              int mode, 
+              int detail) 
 {
     WindowPtr	parent = child->parent;
 
     if (ancestor == parent)
 	return;
-    EnterNotifies(ancestor, parent, mode, detail);
-    EnterLeaveEvent(EnterNotify, mode, detail, parent, child->drawable.id);
-}
+    EnterNotifies(pDev, ancestor, parent, mode, detail);
+    EnterLeaveEvent(pDev, EnterNotify, mode, detail, parent,
+                    child->drawable.id); }
 
 static void
-LeaveNotifies(WindowPtr child, WindowPtr ancestor, int mode, int detail)
+LeaveNotifies(DeviceIntPtr pDev, 
+              WindowPtr child, 
+              WindowPtr ancestor, 
+              int mode, 
+              int detail)
 {
     register WindowPtr  pWin;
 
@@ -3425,36 +3449,45 @@ LeaveNotifies(WindowPtr child, WindowPtr ancestor, int mode, int detail)
 	return;
     for (pWin = child->parent; pWin != ancestor; pWin = pWin->parent)
     {
-	EnterLeaveEvent(LeaveNotify, mode, detail, pWin, child->drawable.id);
-	child = pWin;
+        EnterLeaveEvent(pDev, LeaveNotify, mode, detail, pWin,
+                        child->drawable.id); 
+        child = pWin;
     }
 }
 
 static void
-DoEnterLeaveEvents(WindowPtr fromWin, WindowPtr toWin, int mode)
+DoEnterLeaveEvents(DeviceIntPtr pDev, 
+        WindowPtr fromWin, 
+        WindowPtr toWin, 
+        int mode) 
 {
     if (fromWin == toWin)
 	return;
     if (IsParent(fromWin, toWin))
     {
-	EnterLeaveEvent(LeaveNotify, mode, NotifyInferior, fromWin, None);
-	EnterNotifies(fromWin, toWin, mode, NotifyVirtual);
-	EnterLeaveEvent(EnterNotify, mode, NotifyAncestor, toWin, None);
+        EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyInferior, fromWin,
+                        None); 
+        EnterNotifies(pDev, fromWin, toWin, mode,
+                      NotifyVirtual);
+        EnterLeaveEvent(pDev, EnterNotify, mode, NotifyAncestor, toWin, None);
     }
     else if (IsParent(toWin, fromWin))
     {
-	EnterLeaveEvent(LeaveNotify, mode, NotifyAncestor, fromWin, None);
-	LeaveNotifies(fromWin, toWin, mode, NotifyVirtual);
-	EnterLeaveEvent(EnterNotify, mode, NotifyInferior, toWin, None);
+	EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyAncestor, fromWin, 
+                        None);
+	LeaveNotifies(pDev, fromWin, toWin, mode, NotifyVirtual);
+	EnterLeaveEvent(pDev, EnterNotify, mode, NotifyInferior, toWin, None);
     }
     else
     { /* neither fromWin nor toWin is descendent of the other */
 	WindowPtr common = CommonAncestor(toWin, fromWin);
 	/* common == NullWindow ==> different screens */
-	EnterLeaveEvent(LeaveNotify, mode, NotifyNonlinear, fromWin, None);
-	LeaveNotifies(fromWin, common, mode, NotifyNonlinearVirtual);
-	EnterNotifies(common, toWin, mode, NotifyNonlinearVirtual);
-	EnterLeaveEvent(EnterNotify, mode, NotifyNonlinear, toWin, None);
+        EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyNonlinear, fromWin,
+                        None); 
+        LeaveNotifies(pDev, fromWin, common, mode, NotifyNonlinearVirtual);
+	EnterNotifies(pDev, common, toWin, mode, NotifyNonlinearVirtual);
+        EnterLeaveEvent(pDev, EnterNotify, mode, NotifyNonlinear, toWin,
+                        None); 
     }
 }
 
