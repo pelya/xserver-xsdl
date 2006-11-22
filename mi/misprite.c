@@ -67,7 +67,10 @@ in this Software without prior written authorization from The Open Group.
 
 #ifdef MPX
 # include   "inputstr.h" /* for MAX_DEVICES */
+
+static miCursorInfoPtr DevToSprite(DeviceIntPtr pDev, ScreenPtr pScreen);
 #endif
+
 
 #define SPRITE_DEBUG_ENABLE 1
 #if SPRITE_DEBUG_ENABLE
@@ -907,16 +910,9 @@ miSpriteRealizeCursor (pDev, pScreen, pCursor)
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
 #ifdef MPX
     {
-        int mpCursorIdx = 0;
-        while (mpCursorIdx < MAX_DEVICES)
-        {
-            miCursorInfoPtr pMPCursor = &pScreenPriv->mpCursors[mpCursorIdx];
-
-            if (pCursor == pMPCursor->pCursor)
-                pMPCursor->checkPixels = TRUE;
-
-            mpCursorIdx++;
-        }
+        miCursorInfoPtr pMPCursor = DevToSprite(pDev, pScreen);
+        if (pCursor == pMPCursor->pCursor)
+            pMPCursor->checkPixels = TRUE;
     }
 #else
     if (pCursor == pScreenPriv->cp->pCursor)
@@ -1174,3 +1170,21 @@ miSpriteComputeSaved (pDevCursor, pScreen)
     pDevCursor->saved.x2 = pDevCursor->saved.x1 + w + wpad * 2;
     pDevCursor->saved.y2 = pDevCursor->saved.y1 + h + hpad * 2;
 }
+
+#ifdef MPX
+static miCursorInfoPtr DevToSprite(DeviceIntPtr pDev, ScreenPtr pScreen)
+{
+    miSpriteScreenPtr pScreenPriv;
+    pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
+    int mpCursorIdx = 0;
+    while(mpCursorIdx < MAX_DEVICES)
+    {
+        miCursorInfoPtr pMPCursor = &pScreenPriv->mpCursors[mpCursorIdx];
+        if (pMPCursor->id == pDev->id)
+            return pMPCursor;
+        mpCursorIdx++;
+    }
+    return pScreenPriv->cp;
+}
+
+#endif

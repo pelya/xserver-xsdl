@@ -227,8 +227,18 @@ miPointerRealizeCursor (pScreen, pCursor)
     DeviceIntPtr pDev = inputInfo.pointer;
 
     SetupScreen(pScreen);
-
+#ifdef MPX
+    pDev = inputInfo.devices;
+    while(pDev)
+    {
+        if (pDev != inputInfo.keyboard)
+            (*pScreenPriv->spriteFuncs->RealizeCursor) (pDev, pScreen, pCursor);
+        pDev = pDev->next;
+    }
+    return TRUE;
+#else
     return (*pScreenPriv->spriteFuncs->RealizeCursor) (pDev, pScreen, pCursor);
+#endif
 }
 
 static Bool
@@ -239,7 +249,18 @@ miPointerUnrealizeCursor (pScreen, pCursor)
     DeviceIntPtr pDev = inputInfo.pointer;
     SetupScreen(pScreen);
 
+#ifdef MPX
+    pDev = inputInfo.devices;
+    while(pDev)
+    {
+        if (pDev != inputInfo.keyboard)
+            (*pScreenPriv->spriteFuncs->UnrealizeCursor) (pDev, pScreen, pCursor);
+        pDev = pDev->next;
+    }
+    return TRUE;
+#else
     return (*pScreenPriv->spriteFuncs->UnrealizeCursor) (pDev, pScreen, pCursor);
+#endif
 }
 
 static Bool

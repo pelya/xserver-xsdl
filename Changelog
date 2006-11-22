@@ -1,4 +1,22 @@
 MPX Changelog file
+== 22.11.06 ==
+
+mi:     added DevToSprite() conversion function
+        fixed miSpriteRealize to use passed pDev argument instead of looping.
+
+dix:    changed sprite dependency and added MPX functionality to parts of
+        events.c (XineramaChangeToCursor, XineramaCheckPhysLimits,
+        XineramaConstrainCursor)
+
+Xi:	fix: accessing other->buttons for keyboard segfaulted the server
+
+Files:
+        mi/misprite.c
+        mi/mipointer.c
+	dix/events.c
+	Xi/exevents.c
+
+
 == 21.11.06 ==
 mi:     added MPX to miSpriteReportDamage
         added id field to miCursorInfoPtr, required to pass through to miDC

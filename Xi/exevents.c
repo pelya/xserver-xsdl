@@ -125,11 +125,7 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 	key = xE->u.u.detail;
 	NoticeEventTime(xE);
 	xE->u.keyButtonPointer.state = inputInfo.keyboard->key->state |
-#ifdef MPX
-            other->button->state;
-#else
-	    inputInfo.pointer->button->state;
-#endif
+	    inputInfo.pointer->button->state; /* FIXME: change for MPX */
 	bit = 1 << (key & 7);
     }
     if (DeviceEventCallback) {

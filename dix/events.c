@@ -388,10 +388,19 @@ XineramaSetCursorPosition(
 
 
 static void
-XineramaConstrainCursor(void)
+XineramaConstrainCursor(DeviceIntPtr pDev)
 {
-    ScreenPtr pScreen = sprite->screen;
-    BoxRec newBox = sprite->physLimits;
+    SpritePtr pSprite = sprite;
+    ScreenPtr pScreen;
+    BoxRec newBox;
+
+#ifdef MPX
+    if (IsMPDev(pDev))
+        pSprite = &mpsprites[pDev->id];
+#endif
+
+    pScreen = pSprite->screen;
+    newBox = pSprite->physLimits;
 
     /* Translate the constraining box to the screen
        the sprite is actually on */
@@ -400,40 +409,46 @@ XineramaConstrainCursor(void)
     newBox.y1 += panoramiXdataPtr[0].y - panoramiXdataPtr[pScreen->myNum].y;
     newBox.y2 += panoramiXdataPtr[0].y - panoramiXdataPtr[pScreen->myNum].y;
 
-    (* pScreen->ConstrainCursor)(inputInfo.pointer, pScreen, &newBox);
+    (* pScreen->ConstrainCursor)(pDev, pScreen, &newBox);
 }
 
 static void
 XineramaCheckPhysLimits(
+    DeviceIntPtr pDev,
     CursorPtr cursor,
     Bool generateEvents
 ){
     HotSpot new;
+    SpritePtr pSprite = sprite;
 
     if (!cursor)
 	return;
+#ifdef MPX
+    if (IsMPDev(pDev))
+        pSprite = &mpsprites[pDev->id];
+#endif
  
-    new = sprite->hotPhys;
+    new = pSprite->hotPhys;
 
     /* I don't care what the DDX has to say about it */
-    sprite->physLimits = sprite->hotLimits;
+    pSprite->physLimits = pSprite->hotLimits;
 
     /* constrain the pointer to those limits */
-    if (new.x < sprite->physLimits.x1)
-	new.x = sprite->physLimits.x1;
+    if (new.x < pSprite->physLimits.x1)
+	new.x = pSprite->physLimits.x1;
     else
-	if (new.x >= sprite->physLimits.x2)
-	    new.x = sprite->physLimits.x2 - 1;
-    if (new.y < sprite->physLimits.y1)
-	new.y = sprite->physLimits.y1;
+	if (new.x >= pSprite->physLimits.x2)
+	    new.x = pSprite->physLimits.x2 - 1;
+    if (new.y < pSprite->physLimits.y1)
+	new.y = pSprite->physLimits.y1;
     else
-	if (new.y >= sprite->physLimits.y2)
-	    new.y = sprite->physLimits.y2 - 1;
+	if (new.y >= pSprite->physLimits.y2)
+	    new.y = pSprite->physLimits.y2 - 1;
 
-    if (sprite->hotShape)  /* more work if the shape is a mess */
-	ConfineToShape(inputInfo.pointer, sprite->hotShape, &new.x, &new.y);
+    if (pSprite->hotShape)  /* more work if the shape is a mess */
+	ConfineToShape(pDev, pSprite->hotShape, &new.x, &new.y);
 
-    if((new.x != sprite->hotPhys.x) || (new.y != sprite->hotPhys.y))
+    if((new.x != pSprite->hotPhys.x) || (new.y != pSprite->hotPhys.y))
     {
 	XineramaSetCursorPosition (new.x, new.y, generateEvents);
 	if (!generateEvents)
@@ -441,7 +456,7 @@ XineramaCheckPhysLimits(
     }
 
     /* Tell DDX what the limits are */
-    XineramaConstrainCursor();
+    XineramaConstrainCursor(pDev);
 }
 
 
@@ -655,7 +670,8 @@ XineramaConfineCursorToWindow(WindowPtr pWin, Bool generateEvents)
 	sprite->confined = FALSE;
 	sprite->confineWin = (pWin == WindowTable[0]) ? NullWindow : pWin;
 
-	XineramaCheckPhysLimits(sprite->current, generateEvents);
+        XineramaCheckPhysLimits(inputInfo.pointer, sprite->current,
+                                generateEvents); 
     }
 }
 
@@ -663,15 +679,22 @@ XineramaConfineCursorToWindow(WindowPtr pWin, Bool generateEvents)
 static void
 XineramaChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 {
-    if (cursor != sprite->current)
+    SpritePtr pSprite = sprite;
+
+#ifdef MPX
+    if (IsMPDev(pDev))
+        pSprite = &mpsprites[pDev->id];
+#endif
+
+    if (cursor != pSprite->current)
     {
-	if ((sprite->current->bits->xhot != cursor->bits->xhot) ||
-		(sprite->current->bits->yhot != cursor->bits->yhot))
-	    XineramaCheckPhysLimits(cursor, FALSE);
-    	(*sprite->screen->DisplayCursor)(sprite->screen, cursor);
-	FreeCursor(sprite->current, (Cursor)0);
-	sprite->current = cursor;
-	sprite->current->refcnt++;
+	if ((pSprite->current->bits->xhot != cursor->bits->xhot) ||
+		(pSprite->current->bits->yhot != cursor->bits->yhot))
+	    XineramaCheckPhysLimits(pDev, cursor, FALSE);
+    	(*pSprite->screen->DisplayCursor)(pSprite->screen, cursor);
+	FreeCursor(pSprite->current, (Cursor)0);
+	pSprite->current = cursor;
+	pSprite->current->refcnt++;
     }
 }
 
