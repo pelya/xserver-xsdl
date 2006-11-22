@@ -394,7 +394,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
     event.window = pWin->drawable.id;
     event.time = currentTime.milliseconds;
 
-    (void)DeliverEventsToWindow(pWin, (xEvent *) & event, 1,
+    (void)DeliverEventsToWindow(dev, pWin, (xEvent *) & event, 1,
 				DeviceFocusChangeMask, NullGrab, dev->id);
 
     if ((type == DeviceFocusIn) &&
@@ -490,7 +490,7 @@ DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
 	    }
 	}
 
-	(void)DeliverEventsToWindow(pWin, (xEvent *) sev, evcount,
+	(void)DeliverEventsToWindow(dev, pWin, (xEvent *) sev, evcount,
 				    DeviceStateNotifyMask, NullGrab, dev->id);
 	xfree(sev);
     }
@@ -820,7 +820,7 @@ SendEvent(ClientPtr client, DeviceIntPtr d, Window dest, Bool propagate,
     ev->u.u.type |= 0x80;
     if (propagate) {
 	for (; pWin; pWin = pWin->parent) {
-	    if (DeliverEventsToWindow(pWin, ev, count, mask, NullGrab, d->id))
+	    if (DeliverEventsToWindow(d, pWin, ev, count, mask, NullGrab, d->id))
 		return Success;
 	    if (pWin == effectiveFocus)
 		return Success;
@@ -830,7 +830,7 @@ SendEvent(ClientPtr client, DeviceIntPtr d, Window dest, Bool propagate,
 		break;
 	}
     } else
-	(void)(DeliverEventsToWindow(pWin, ev, count, mask, NullGrab, d->id));
+	(void)(DeliverEventsToWindow(d, pWin, ev, count, mask, NullGrab, d->id));
     return Success;
 }
 
@@ -1229,7 +1229,7 @@ FindInterestedChildren(DeviceIntPtr dev, WindowPtr p1, Mask mask,
 
     while (p1) {
         p2 = p1->firstChild;
-        (void)DeliverEventsToWindow(p1, ev, count, mask, NullGrab, dev->id);
+        (void)DeliverEventsToWindow(dev, p1, ev, count, mask, NullGrab, dev->id);
         FindInterestedChildren(dev, p2, mask, ev, count);
         p1 = p1->nextSib;
     }
@@ -1249,7 +1249,7 @@ SendEventToAllWindows(DeviceIntPtr dev, Mask mask, xEvent * ev, int count)
 
     for (i = 0; i < screenInfo.numScreens; i++) {
         pWin = WindowTable[i];
-        (void)DeliverEventsToWindow(pWin, ev, count, mask, NullGrab, dev->id);
+        (void)DeliverEventsToWindow(dev, pWin, ev, count, mask, NullGrab, dev->id);
         p1 = pWin->firstChild;
         FindInterestedChildren(dev, p1, mask, ev, count);
     }

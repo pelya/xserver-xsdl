@@ -1673,8 +1673,8 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
 }
 
 int
-DeliverEventsToWindow(register WindowPtr pWin, xEvent *pEvents, int count, 
-                      Mask filter, GrabPtr grab, int mskidx)
+DeliverEventsToWindow(DeviceIntPtr pDev, register WindowPtr pWin, xEvent
+        *pEvents, int count, Mask filter, GrabPtr grab, int mskidx)
 {
     int deliveries = 0, nondeliveries = 0;
     int attempt;
@@ -1736,7 +1736,7 @@ DeliverEventsToWindow(register WindowPtr pWin, xEvent *pEvents, int count,
     {
 	GrabRec tempGrab;
 
-	tempGrab.device = inputInfo.pointer;
+	tempGrab.device = pDev;
 	tempGrab.resource = client->clientAsMask;
 	tempGrab.window = pWin;
 	tempGrab.ownerEvents = (deliveryMask & OwnerGrabButtonMask) ? TRUE : FALSE;
@@ -1745,11 +1745,11 @@ DeliverEventsToWindow(register WindowPtr pWin, xEvent *pEvents, int count,
 	tempGrab.pointerMode = GrabModeAsync;
 	tempGrab.confineTo = NullWindow;
 	tempGrab.cursor = NullCursor;
-	(*inputInfo.pointer->ActivateGrab)(inputInfo.pointer, &tempGrab,
+	(*inputInfo.pointer->ActivateGrab)(pDev, &tempGrab,
 					   currentTime, TRUE);
     }
     else if ((type == MotionNotify) && deliveries)
-	inputInfo.pointer->valuator->motionHintWindow = pWin;
+	pDev->valuator->motionHintWindow = pWin;
 #ifdef XINPUT
     else
     {
@@ -1911,7 +1911,7 @@ DeliverDeviceEvents(register WindowPtr pWin, register xEvent *xE, GrabPtr grab,
 	    if (inputMasks && (inputMasks->inputEvents[mskidx] & filter))
 	    {
 		FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
-		deliveries = DeliverEventsToWindow(pWin, xE, count, filter,
+		deliveries = DeliverEventsToWindow(dev, pWin, xE, count, filter,
 						   grab, mskidx);
 		if (deliveries > 0)
 		    return deliveries;
@@ -1936,7 +1936,7 @@ DeliverDeviceEvents(register WindowPtr pWin, register xEvent *xE, GrabPtr grab,
 	    if ((wOtherEventMasks(pWin)|pWin->eventMask) & filter)
 	    {
 		FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
-		deliveries = DeliverEventsToWindow(pWin, xE, count, filter,
+		deliveries = DeliverEventsToWindow(dev, pWin, xE, count, filter,
 						   grab, 0);
 		if (deliveries > 0)
 		    return deliveries;
@@ -1971,20 +1971,20 @@ DeliverEvents(register WindowPtr pWin, register xEvent *xE, int count,
     if ((filter & SubstructureNotifyMask) && (xE->u.u.type != CreateNotify))
 	xE->u.destroyNotify.event = pWin->drawable.id;
     if (filter != StructureAndSubMask)
-	return DeliverEventsToWindow(pWin, xE, count, filter, NullGrab, 0);
-    deliveries = DeliverEventsToWindow(pWin, xE, count, StructureNotifyMask,
+	return DeliverEventsToWindow(inputInfo.pointer, pWin, xE, count, filter, NullGrab, 0);
+    deliveries = DeliverEventsToWindow(inputInfo.pointer, pWin, xE, count, StructureNotifyMask,
 				       NullGrab, 0);
     if (pWin->parent)
     {
 	xE->u.destroyNotify.event = pWin->parent->drawable.id;
-	deliveries += DeliverEventsToWindow(pWin->parent, xE, count,
+	deliveries += DeliverEventsToWindow(inputInfo.pointer, pWin->parent, xE, count,
 					    SubstructureNotifyMask, NullGrab,
 					    0);
 	if (xE->u.u.type == ReparentNotify)
 	{
 	    xE->u.destroyNotify.event = otherParent->drawable.id;
-	    deliveries += DeliverEventsToWindow(otherParent, xE, count,
-						SubstructureNotifyMask,
+            deliveries += DeliverEventsToWindow(inputInfo.pointer,
+                    otherParent, xE, count, SubstructureNotifyMask,
 						NullGrab, 0);
 	}
     }
@@ -2723,7 +2723,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
     FixUpEventFromWindow(inputInfo.pointer, xE, focus, None, FALSE);
     if (xE->u.u.type & EXTENSION_EVENT_BASE)
 	mskidx = keybd->id;
-    (void)DeliverEventsToWindow(focus, xE, count, filters[xE->u.u.type],
+    (void)DeliverEventsToWindow(keybd, focus, xE, count, filters[xE->u.u.type],
 				NullGrab, mskidx);
 }
 
@@ -3394,7 +3394,7 @@ EnterLeaveEvent(
 	    (void)TryClientEvents(rClient(grab), &event, 1, mask,
 				  filters[type], grab);
 	else
-	    (void)DeliverEventsToWindow(pWin, &event, 1, filters[type],
+	    (void)DeliverEventsToWindow(pDev, pWin, &event, 1, filters[type],
 					NullGrab, 0);
     }
     if ((type == EnterNotify) && (mask & KeymapStateMask))
@@ -3416,7 +3416,7 @@ EnterLeaveEvent(
 	    (void)TryClientEvents(rClient(grab), (xEvent *)&ke, 1, mask,
 				  KeymapStateMask, grab);
 	else
-	    (void)DeliverEventsToWindow(pWin, (xEvent *)&ke, 1,
+	    (void)DeliverEventsToWindow(pDev, pWin, (xEvent *)&ke, 1,
 					KeymapStateMask, NullGrab, 0);
     }
 }
@@ -3507,8 +3507,8 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, register WindowPtr 
     event.u.u.type = type;
     event.u.u.detail = detail;
     event.u.focus.window = pWin->drawable.id;
-    (void)DeliverEventsToWindow(pWin, &event, 1, filters[type], NullGrab,
-				0);
+    (void)DeliverEventsToWindow(dev, pWin, &event, 1, filters[type], NullGrab,
+                                0);
     if ((type == FocusIn) &&
 	((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
     {
@@ -3523,7 +3523,7 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, register WindowPtr 
 #endif
 	memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
 	ke.type = KeymapNotify;
-	(void)DeliverEventsToWindow(pWin, (xEvent *)&ke, 1,
+	(void)DeliverEventsToWindow(dev, pWin, (xEvent *)&ke, 1,
 				    KeymapStateMask, NullGrab, 0);
     }
 }
@@ -4318,8 +4318,8 @@ ProcSendEvent(ClientPtr client)
     {
 	for (;pWin; pWin = pWin->parent)
 	{
-	    if (DeliverEventsToWindow(pWin, &stuff->event, 1, stuff->eventMask,
-				      NullGrab, 0))
+            if (DeliverEventsToWindow(inputInfo.pointer, pWin, &stuff->event,
+                                    1, stuff->eventMask, NullGrab, 0))
 		return Success;
 	    if (pWin == effectiveFocus)
 		return Success;
@@ -4329,8 +4329,8 @@ ProcSendEvent(ClientPtr client)
 	}
     }
     else
-	(void)DeliverEventsToWindow(pWin, &stuff->event, 1, stuff->eventMask,
-				    NullGrab, 0);
+        (void)DeliverEventsToWindow(inputInfo.pointer, pWin, &stuff->event, 1,
+                                    stuff->eventMask, NullGrab, 0);
     return Success;
 }
 

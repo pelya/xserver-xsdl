@@ -570,6 +570,7 @@ extern void ReleaseActiveGrabs(
     ClientPtr client);
 
 extern int DeliverEventsToWindow(
+    DeviceIntPtr /* pWin */,
     WindowPtr /* pWin */,
     xEventPtr /* pEvents */,
     int /* count */,

@@ -72,7 +72,7 @@ static miCursorInfoPtr DevToSprite(DeviceIntPtr pDev, ScreenPtr pScreen);
 #endif
 
 
-#define SPRITE_DEBUG_ENABLE 1
+#define SPRITE_DEBUG_ENABLE 0
 #if SPRITE_DEBUG_ENABLE
 #define SPRITE_DEBUG(x)	ErrorF x
 #else

@@ -13,9 +13,10 @@ Xi:	fix: accessing other->buttons for keyboard segfaulted the server
 Files:
         mi/misprite.c
         mi/mipointer.c
-	dix/events.c
-	Xi/exevents.c
+        dix/events.c
+        Xi/exevents.c
 
+____________________________________________________________
 
 dix	GetSpriteWindow() adjusted for MPX
 	added device dependency for MPX to DoEnterLeaveEvents,
@@ -23,11 +24,23 @@ dix	GetSpriteWindow() adjusted for MPX
 	FixUpEventFromWindow.
 
 Files:
-	Xext/security.c
-	Xi/exevents.c
-	ddx/ddxFakeMtn.c
-	dix/events.c
-	include/dix.h
+        Xext/security.c
+        Xi/exevents.c
+        ddx/ddxFakeMtn.c
+        dix/events.c
+        include/dix.h
+
+____________________________________________________________
+
+dix:	DeliverEventsToWindow adjusted for MPX
+
+mi:     sprite debugging disabled
+
+Files:	
+        dix/events.c
+        Xi/exevents.c
+        mi/misprite.c
+        include/dix.h
 
 
 == 21.11.06 ==
@@ -43,6 +56,7 @@ Files:
 
 TAG: MPX_BEFORE_MIDC_API_BREAK
 
+____________________________________________________________
 
 mi:     added device ID to miSpriteCursorFuncRec functions
         added MPX code to midispcur.c
@@ -55,6 +69,7 @@ Files:
 
 BUG:   Core pointer changes whenever MPX cursor changes shape.
 
+____________________________________________________________
 
 mi:	constrain MPX cursors to screen 
 
@@ -66,6 +81,7 @@ Files:
 TAG:   MPX_BEFORE_DIX_API_BREAK
 
 
+____________________________________________________________
 
 dix:    moved sprite from static to be pointer of type SpritePtr
 	added SpriteRecs for MPX devices
@@ -88,6 +104,8 @@ Files:
         xkb/xkbActions.c
         xfixes/cursor.c
 	mi/mieq.c
+
+____________________________________________________________
 
 dix:	WindowsRestructured() calls CheckMotion() on all devices
 
@@ -112,6 +130,7 @@ Files:
         mi/misprite.c
         mi/mipointer.c
 
+____________________________________________________________
 
 mi:     added MPX to miSprite functions. 
 
@@ -149,6 +168,7 @@ Files:
         hw/xfree86/ramdac/xf86Cursor.c
         hw/xfree86/rac/xf86RAC.c
 
+____________________________________________________________
 
 mi:
         added miCursorInfoRec to contain info of the MPX cursors.
@@ -195,6 +215,7 @@ Files:
         configure.ac
         include/dix-config.h.in
 
+____________________________________________________________
 
 dix:    added isMPdev field to _DeviceIntRec, is used in GetPointerEvents()
 
@@ -210,6 +231,7 @@ Files:
         include/inputstr.h
         mi/mieq.c
 
+____________________________________________________________
 
 mieq:  EQ processing handles MP devices 
 
