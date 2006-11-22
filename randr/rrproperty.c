@@ -68,9 +68,10 @@ RRCreateOutputProperty (Atom property)
 {
     RRPropertyPtr   prop;
     
-    prop = (RRPropertyPtr)xalloc(sizeof(PropertyRec));
+    prop = (RRPropertyPtr)xalloc(sizeof(RRPropertyRec));
     if (!prop)
 	return NULL;
+    prop->next = NULL;
     prop->propertyName = property;
     prop->is_pending = FALSE;
     prop->range = FALSE;
