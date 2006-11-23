@@ -59,6 +59,7 @@ SOFTWARE.
 #include "cursorstr.h"
 #include "dixfontstr.h"
 #include "opaque.h"
+#include "inputstr.h"
 
 typedef struct _GlyphShare {
     FontPtr font;
@@ -114,14 +115,26 @@ FreeCursor(pointer value, XID cid)
     CursorPtr 	pCurs = (CursorPtr)value;
 
     ScreenPtr	pscr;
+    DeviceIntPtr pDev; 
 
     if ( --pCurs->refcnt > 0)
 	return(Success);
 
+    pDev = inputInfo.pointer;
+
     for (nscr = 0; nscr < screenInfo.numScreens; nscr++)
     {
 	pscr = screenInfo.screens[nscr];
-	(void)( *pscr->UnrealizeCursor)( pscr, pCurs);
+#ifdef MPX
+        pDev = inputInfo.devices;
+        while(pDev)
+        {
+#endif
+            (void)( *pscr->UnrealizeCursor)(pDev, pscr, pCurs);
+#ifdef MPX
+            pDev = pDev->next;
+        }
+#endif
     }
     FreeCursorBits(pCurs->bits);
     xfree( pCurs);
@@ -171,6 +184,7 @@ AllocCursorARGB(unsigned char *psrcbits, unsigned char *pmaskbits, CARD32 *argb,
     CursorPtr 	pCurs;
     int		nscr;
     ScreenPtr 	pscr;
+    DeviceIntPtr pDev; 
 
     pCurs = (CursorPtr)xalloc(sizeof(CursorRec) + sizeof(CursorBits));
     if (!pCurs)
@@ -207,23 +221,62 @@ AllocCursorARGB(unsigned char *psrcbits, unsigned char *pmaskbits, CARD32 *argb,
     pCurs->backGreen = backGreen;
     pCurs->backBlue = backBlue;
 
+    pDev = inputInfo.pointer;
     /*
      * realize the cursor for every screen
      */
     for (nscr = 0; nscr < screenInfo.numScreens; nscr++)
     {
-	pscr = screenInfo.screens[nscr];
-        if (!( *pscr->RealizeCursor)( pscr, pCurs))
-	{
-	    while (--nscr >= 0)
-	    {
-		pscr = screenInfo.screens[nscr];
-		( *pscr->UnrealizeCursor)( pscr, pCurs);
-	    }
-	    FreeCursorBits(bits);
-	    xfree(pCurs);
-	    return (CursorPtr)NULL;
-	}
+        pscr = screenInfo.screens[nscr];
+#ifdef MPX
+        pDev = inputInfo.devices;
+        while(pDev)
+        {
+            if (MPHasCursor(pDev))
+            {
+#endif
+                if (!( *pscr->RealizeCursor)(pDev, pscr, pCurs))
+                {
+#ifdef MPX
+                    /* Realize failed for device pDev on screen pscr.
+                     * We have to assume that for all devices before, realize
+                     * worked. We need to rollback all devices so far on the
+                     * current screen and then all devices on previous
+                     * screens.
+                     */
+                    DeviceIntPtr pDevIt = inputInfo.devices; /*dev iterator*/
+                    while(pDevIt && pDevIt != pDev)
+                    {
+                        if (MPHasCursor(pDevIt))
+                            ( *pscr->UnrealizeCursor)(pDevIt, pscr, pCurs);
+                        pDevIt = pDevIt->next;
+                    }
+#endif
+                    while (--nscr >= 0)
+                    {
+                        pscr = screenInfo.screens[nscr];
+#ifdef MPX
+                        /* now unrealize all devices on previous screens */
+                        pDevIt = inputInfo.devices;
+                        while (pDevIt)
+                        {
+                            if (MPHasCursor(pDevIt))
+                                ( *pscr->UnrealizeCursor)(pDevIt, pscr, pCurs);
+                            pDevIt = pDevIt->next;
+                        }
+#else
+                        ( *pscr->UnrealizeCursor)(pDev, pscr, pCurs);
+#endif
+                    }
+                    FreeCursorBits(bits);
+                    xfree(pCurs);
+                    return (CursorPtr)NULL;
+                }
+#ifdef MPX
+            }
+            pDev = pDev->next;
+        }
+#endif
     }
     return pCurs;
 }
@@ -260,6 +313,7 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
     int		nscr;
     ScreenPtr 	pscr;
     GlyphSharePtr pShare;
+    DeviceIntPtr pDev;
 
     sourcefont = (FontPtr) SecurityLookupIDByType(client, source, RT_FONT,
 						  SecurityReadAccess);
@@ -398,23 +452,62 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
     pCurs->backGreen = backGreen;
     pCurs->backBlue = backBlue;
 
+    pDev = inputInfo.pointer;
     /*
      * realize the cursor for every screen
      */
     for (nscr = 0; nscr < screenInfo.numScreens; nscr++)
     {
-	pscr = screenInfo.screens[nscr];
-        if (!( *pscr->RealizeCursor)( pscr, pCurs))
-	{
-	    while (--nscr >= 0)
-	    {
-		pscr = screenInfo.screens[nscr];
-		( *pscr->UnrealizeCursor)( pscr, pCurs);
-	    }
-	    FreeCursorBits(pCurs->bits);
-	    xfree(pCurs);
-	    return BadAlloc;
-	}
+        pscr = screenInfo.screens[nscr];
+#ifdef MPX
+        pDev = inputInfo.devices;
+        while(pDev)
+        {
+            if (MPHasCursor(pDev))
+            {
+#endif
+                if (!( *pscr->RealizeCursor)(pDev, pscr, pCurs))
+                {
+#ifdef MPX
+                    /* Realize failed for device pDev on screen pscr.
+                     * We have to assume that for all devices before, realize
+                     * worked. We need to rollback all devices so far on the
+                     * current screen and then all devices on previous
+                     * screens.
+                     */
+                    DeviceIntPtr pDevIt = inputInfo.devices; /*dev iterator*/
+                    while(pDevIt && pDevIt != pDev)
+                    {
+                        if (MPHasCursor(pDevIt))
+                            ( *pscr->UnrealizeCursor)(pDevIt, pscr, pCurs);
+                        pDevIt = pDevIt->next;
+                    }
+#endif
+                    while (--nscr >= 0)
+                    {
+                        pscr = screenInfo.screens[nscr];
+#ifdef MPX
+                        /* now unrealize all devices on previous screens */
+                        pDevIt = inputInfo.devices;
+                        while (pDevIt)
+                        {
+                            if (MPHasCursor(pDevIt))
+                                ( *pscr->UnrealizeCursor)(pDevIt, pscr, pCurs);
+                            pDevIt = pDevIt->next;
+                        }
+#else
+                        ( *pscr->UnrealizeCursor)(pDev, pscr, pCurs);
+#endif
+                    }
+                    FreeCursorBits(bits);
+                    xfree(pCurs);
+                    return BadAlloc;
+                }
+#ifdef MPX
+            }
+            pDev = pDev->next;
+        }
+#endif
     }
     *ppCurs = pCurs;
     return Success;

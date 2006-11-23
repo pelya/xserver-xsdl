@@ -121,6 +121,7 @@ typedef    void (* GetSpansProcPtr)(
 	char * /*pdstStart*/);
 
 typedef    void (* PointerNonInterestBoxProcPtr)(
+        DeviceIntPtr /*pDev*/,
 	ScreenPtr /*pScreen*/,
 	BoxPtr /*pBox*/);
 
@@ -262,29 +263,35 @@ typedef    void (* ConstrainCursorProcPtr)(
 	BoxPtr /*pBox*/);
 
 typedef    void (* CursorLimitsProcPtr)(
+        DeviceIntPtr /* pDev */,
 	ScreenPtr /*pScreen*/,
 	CursorPtr /*pCursor*/,
 	BoxPtr /*pHotBox*/,
 	BoxPtr /*pTopLeftBox*/);
 
 typedef    Bool (* DisplayCursorProcPtr)(
+        DeviceIntPtr /* pDev */,
 	ScreenPtr /*pScreen*/,
 	CursorPtr /*pCursor*/);
 
 typedef    Bool (* RealizeCursorProcPtr)(
+        DeviceIntPtr /* pDev */,
 	ScreenPtr /*pScreen*/,
 	CursorPtr /*pCursor*/);
 
 typedef    Bool (* UnrealizeCursorProcPtr)(
+        DeviceIntPtr /* pDev */,
 	ScreenPtr /*pScreen*/,
 	CursorPtr /*pCursor*/);
 
 typedef    void (* RecolorCursorProcPtr)(
+        DeviceIntPtr /* pDev */,
 	ScreenPtr /*pScreen*/,
 	CursorPtr /*pCursor*/,
 	Bool /*displayed*/);
 
 typedef    Bool (* SetCursorPositionProcPtr)(
+        DeviceIntPtr /* pDev */,
 	ScreenPtr /*pScreen*/,
 	int /*x*/,
 	int /*y*/,

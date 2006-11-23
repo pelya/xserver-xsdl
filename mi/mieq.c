@@ -209,7 +209,7 @@ mieqProcessInputEvents()
                 miEventQueue.head = 0;
             else
                 ++miEventQueue.head;
-            NewCurrentScreen (miEventQueue.pDequeueScreen, x, y);
+            NewCurrentScreen (e->pDev, miEventQueue.pDequeueScreen, x, y);
         }
         else {
             if (miEventQueue.head == QUEUE_SIZE - 1)

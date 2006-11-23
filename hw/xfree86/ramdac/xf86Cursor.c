@@ -38,7 +38,7 @@ static miPointerSpriteFuncRec xf86CursorSpriteFuncs = {
 /* Screen functions */
 
 static void xf86CursorInstallColormap(ColormapPtr);
-static void xf86CursorRecolorCursor(ScreenPtr, CursorPtr, Bool);
+static void xf86CursorRecolorCursor(DeviceIntPtr pDev, ScreenPtr, CursorPtr, Bool);
 static Bool xf86CursorCloseScreen(int, ScreenPtr);
 static void xf86CursorQueryBestSize(int, unsigned short*, unsigned short*,
 				    ScreenPtr);
@@ -181,6 +181,7 @@ xf86CursorInstallColormap(ColormapPtr pMap)
 
 static void
 xf86CursorRecolorCursor(
+    DeviceIntPtr pDev,
     ScreenPtr pScreen,
     CursorPtr pCurs,
     Bool displayed)
@@ -192,7 +193,7 @@ xf86CursorRecolorCursor(
 	return;
 
     if (ScreenPriv->SWCursor)
-	(*ScreenPriv->RecolorCursor)(pScreen, pCurs, displayed);
+	(*ScreenPriv->RecolorCursor)(pDev, pScreen, pCurs, displayed);
     else
 	xf86RecolorCursor(pScreen, pCurs, displayed);
 }

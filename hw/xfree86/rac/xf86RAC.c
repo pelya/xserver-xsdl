@@ -154,13 +154,16 @@ static PixmapPtr RACCreatePixmap(ScreenPtr pScreen, int w, int h, int depth);
 static Bool  RACCreateGC(GCPtr pGC);
 static Bool RACSaveScreen(ScreenPtr pScreen, Bool unblank);
 static void RACStoreColors (ColormapPtr pmap, int ndef, xColorItem *pdefs);
-static void RACRecolorCursor (ScreenPtr pScreen, CursorPtr pCurs,
-			      Bool displayed);
-static Bool RACRealizeCursor (ScreenPtr   pScreen, CursorPtr   pCursor);
-static Bool RACUnrealizeCursor (ScreenPtr   pScreen, CursorPtr   pCursor);
-static Bool RACDisplayCursor (ScreenPtr pScreen, CursorPtr pCursor);
-static Bool RACSetCursorPosition (ScreenPtr   pScreen, int x, int y,
-				  Bool generateEvent);
+static void RACRecolorCursor (DeviceIntPtr pDev, ScreenPtr pScreen, 
+                              CursorPtr pCurs, Bool displayed);
+static Bool RACRealizeCursor (DeviceIntPtr pDev, ScreenPtr   pScreen, 
+                              CursorPtr pCursor);
+static Bool RACUnrealizeCursor (DeviceIntPtr pDev, ScreenPtr   pScreen, 
+                                CursorPtr pCursor);
+static Bool RACDisplayCursor (DeviceIntPtr pDev, ScreenPtr pScreen, 
+                              CursorPtr pCursor);
+static Bool RACSetCursorPosition (DeviceIntPtr pDev, ScreenPtr   pScreen, 
+                                  int x, int y, Bool generateEvent);
 static void RACAdjustFrame(int index, int x, int y, int flags);
 static Bool RACSwitchMode(int index, DisplayModePtr mode, int flags);
 static Bool RACEnterVT(int index, int flags);
@@ -586,6 +589,7 @@ RACStoreColors (
 
 static void
 RACRecolorCursor (    
+    DeviceIntPtr pDev,
     ScreenPtr pScreen,
     CursorPtr pCurs,
     Bool displayed
@@ -594,15 +598,16 @@ RACRecolorCursor (
     DPRINT_S("RACRecolorCursor",pScreen->myNum);
     SCREEN_PROLOG (RecolorCursor);
     ENABLE;
-    (*pScreen->RecolorCursor) (pScreen,pCurs,displayed);
+    (*pScreen->RecolorCursor) (pDev, pScreen,pCurs,displayed);
     
     SCREEN_EPILOG ( RecolorCursor, RACRecolorCursor);
 }
 
 static Bool
 RACRealizeCursor (    
-    ScreenPtr   pScreen,
-    CursorPtr   pCursor
+    DeviceIntPtr pDev,
+    ScreenPtr    pScreen,
+    CursorPtr    pCursor
     )
 {
     Bool val;
@@ -610,7 +615,7 @@ RACRealizeCursor (
     DPRINT_S("RACRealizeCursor",pScreen->myNum);
     SCREEN_PROLOG (RealizeCursor);
     ENABLE;
-    val = (*pScreen->RealizeCursor) (pScreen,pCursor);
+    val = (*pScreen->RealizeCursor) (pDev, pScreen,pCursor);
     
     SCREEN_EPILOG ( RealizeCursor, RACRealizeCursor);
     return val;
@@ -618,8 +623,9 @@ RACRealizeCursor (
 
 static Bool
 RACUnrealizeCursor (    
-    ScreenPtr   pScreen,
-    CursorPtr   pCursor
+    DeviceIntPtr pDev,
+    ScreenPtr    pScreen,
+    CursorPtr    pCursor
     )
 {
     Bool val;
@@ -627,7 +633,7 @@ RACUnrealizeCursor (
     DPRINT_S("RACUnrealizeCursor",pScreen->myNum);
     SCREEN_PROLOG (UnrealizeCursor);
     ENABLE;
-    val = (*pScreen->UnrealizeCursor) (pScreen,pCursor);
+    val = (*pScreen->UnrealizeCursor) (pDev, pScreen,pCursor);
     
     SCREEN_EPILOG ( UnrealizeCursor, RACUnrealizeCursor);
     return val;
@@ -635,8 +641,9 @@ RACUnrealizeCursor (
 
 static Bool
 RACDisplayCursor (    
-    ScreenPtr   pScreen,
-    CursorPtr   pCursor
+    DeviceIntPtr pDev,
+    ScreenPtr    pScreen,
+    CursorPtr    pCursor
     )
 {
     Bool val;
@@ -644,7 +651,7 @@ RACDisplayCursor (
     DPRINT_S("RACDisplayCursor",pScreen->myNum);
     SCREEN_PROLOG (DisplayCursor);
     ENABLE;
-    val = (*pScreen->DisplayCursor) (pScreen,pCursor);
+    val = (*pScreen->DisplayCursor) (pDev, pScreen,pCursor);
     
     SCREEN_EPILOG ( DisplayCursor, RACDisplayCursor);
     return val;
@@ -652,6 +659,7 @@ RACDisplayCursor (
 
 static Bool
 RACSetCursorPosition (    
+    DeviceIntPtr pDev,
     ScreenPtr   pScreen,
     int x, int y,
     Bool generateEvent)
@@ -661,7 +669,7 @@ RACSetCursorPosition (
     DPRINT_S("RACSetCursorPosition",pScreen->myNum);
     SCREEN_PROLOG (SetCursorPosition);
     ENABLE;
-    val = (*pScreen->SetCursorPosition) (pScreen,x,y,generateEvent);
+    val = (*pScreen->SetCursorPosition) (pDev, pScreen,x,y,generateEvent);
     
     SCREEN_EPILOG ( SetCursorPosition, RACSetCursorPosition);
     return val;

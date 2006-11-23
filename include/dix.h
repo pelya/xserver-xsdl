@@ -821,4 +821,8 @@ extern int xstrcasecmp(char *s1, char *s2);
 /* ffs.c */
 extern int ffs(int i);
 
+#ifdef MPX
+extern Bool MPHasCursor(DeviceIntPtr pDev);
+#endif
+
 #endif /* DIX_H */

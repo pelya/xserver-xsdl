@@ -330,7 +330,7 @@ typedef struct _DeviceIntRec {
     int			nPrivates;
     DeviceUnwrapProc    unwrapProc;
 #ifdef MPX
-    Bool        isMPDev;                /* TRUE if multipointer device */
+    Bool                isMPDev;           /* TRUE if multipointer device */
 #endif
 } DeviceIntRec;
 

@@ -137,6 +137,7 @@ extern void miPutImage(
 /* micursor.c */
 
 extern void miRecolorCursor(
+    DeviceIntPtr /* pDev */,
     ScreenPtr /*pScr*/,
     CursorPtr /*pCurs*/,
     Bool /*displayed*/

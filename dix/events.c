@@ -262,6 +262,19 @@ static SpritePtr sprite;		/* info about the cursor sprite */
 static SpritePtr mpsprites;             /* info about the MPX sprites */
 
 extern BOOL IsMPDev(DeviceIntPtr dev);
+
+/** 
+ * True for the core pointer and any MPX device. 
+ * False for any other device (including keyboards).
+ * Does ID checking for sane range as well.
+ */
+_X_EXPORT Bool
+MPHasCursor(DeviceIntPtr pDev) 
+{
+    return (pDev == inputInfo.pointer || 
+            (pDev->isMPDev && pDev->id < MAX_DEVICES)); 
+}
+
 #endif
 
 #ifdef XEVIE
@@ -347,6 +360,7 @@ static void PostNewCursor(DeviceIntPtr pDev);
 
 static Bool
 XineramaSetCursorPosition(
+    DeviceIntPtr pDev,
     int x, 
     int y, 
     Bool generateEvent
@@ -354,12 +368,18 @@ XineramaSetCursorPosition(
     ScreenPtr pScreen;
     BoxRec box;
     int i;
+    SpritePtr pSprite = sprite;
+
+#ifdef MPX
+    if (IsMPDev(pDev))
+        pSprite = &mpsprites[pDev->id];
+#endif
 
     /* x,y are in Screen 0 coordinates.  We need to decide what Screen
        to send the message too and what the coordinates relative to 
        that screen are. */
 
-    pScreen = sprite->screen;
+    pScreen = pSprite->screen;
     x += panoramiXdataPtr[0].x;
     y += panoramiXdataPtr[0].y;
 
@@ -378,13 +398,13 @@ XineramaSetCursorPosition(
 	}
     }
 
-    sprite->screen = pScreen;
-    sprite->hotPhys.x = x - panoramiXdataPtr[0].x;
-    sprite->hotPhys.y = y - panoramiXdataPtr[0].y;
+    pSprite->screen = pScreen;
+    pSprite->hotPhys.x = x - panoramiXdataPtr[0].x;
+    pSprite->hotPhys.y = y - panoramiXdataPtr[0].y;
     x -= panoramiXdataPtr[pScreen->myNum].x;
     y -= panoramiXdataPtr[pScreen->myNum].y;
 
-    return (*pScreen->SetCursorPosition)(pScreen, x, y, generateEvent);
+    return (*pScreen->SetCursorPosition)(pDev, pScreen, x, y, generateEvent);
 }
 
 
@@ -451,7 +471,7 @@ XineramaCheckPhysLimits(
 
     if((new.x != pSprite->hotPhys.x) || (new.y != pSprite->hotPhys.y))
     {
-	XineramaSetCursorPosition (new.x, new.y, generateEvents);
+	XineramaSetCursorPosition (pDev, new.x, new.y, generateEvents);
 	if (!generateEvents)
 	    SyntheticMotion(new.x, new.y);
     }
@@ -597,7 +617,7 @@ XineramaCheckMotion(xEvent *xE, DeviceIntPtr pDev)
 	    (pSprite->hotPhys.y != XE_KBPTR.rootY))
 	{
 	    XineramaSetCursorPosition(
-			pSprite->hotPhys.x, pSprite->hotPhys.y, FALSE);
+			pDev, pSprite->hotPhys.x, pSprite->hotPhys.y, FALSE);
 	}
 	XE_KBPTR.rootX = pSprite->hot.x;
 	XE_KBPTR.rootY = pSprite->hot.y;
@@ -693,7 +713,7 @@ XineramaChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 	if ((pSprite->current->bits->xhot != cursor->bits->xhot) ||
 		(pSprite->current->bits->yhot != cursor->bits->yhot))
 	    XineramaCheckPhysLimits(pDev, cursor, FALSE);
-    	(*pSprite->screen->DisplayCursor)(pSprite->screen, cursor);
+    	(*pSprite->screen->DisplayCursor)(pDev, pSprite->screen, cursor);
 	FreeCursor(pSprite->current, (Cursor)0);
 	pSprite->current = cursor;
 	pSprite->current->refcnt++;
@@ -785,7 +805,7 @@ CheckPhysLimits(
 	new.pScreen = pScreen;
     else
 	pScreen = new.pScreen;
-    (*pScreen->CursorLimits) (pScreen, cursor, &pSprite->hotLimits,
+    (*pScreen->CursorLimits) (pDev, pScreen, cursor, &pSprite->hotLimits,
 			      &pSprite->physLimits);
     pSprite->confined = confineToScreen;
     (* pScreen->ConstrainCursor)(pDev, pScreen, &pSprite->physLimits);
@@ -808,8 +828,9 @@ CheckPhysLimits(
     {
 	if (pScreen != pSprite->hotPhys.pScreen)
 	    pSprite->hotPhys = new;
-	(*pScreen->SetCursorPosition) (pScreen, new.x, new.y, generateEvents);
-	if (!generateEvents)
+        (*pScreen->SetCursorPosition) 
+            (pDev, pScreen, new.x, new.y, generateEvents); 
+        if (!generateEvents)
 	    SyntheticMotion(new.x, new.y);
     }
 }
@@ -932,8 +953,9 @@ ChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 		(pSprite->current->bits->yhot != cursor->bits->yhot))
 	    CheckPhysLimits(pDev, cursor, FALSE, pSprite->confined,
 			    (ScreenPtr)NULL);
-	(*sprite->hotPhys.pScreen->DisplayCursor) (pSprite->hotPhys.pScreen,
-						  cursor);
+        (*sprite->hotPhys.pScreen->DisplayCursor) (pDev,
+                                                   pSprite->hotPhys.pScreen,
+                                                   cursor);
 	FreeCursor(pSprite->current, (Cursor)0);
 	pSprite->current = cursor;
 	pSprite->current->refcnt++;
@@ -2208,10 +2230,9 @@ DefineInitialRootWindow(register WindowPtr win)
 {
     register ScreenPtr pScreen = win->drawable.pScreen;
     SpritePtr pSprite = sprite;
+    DeviceIntPtr pDev = inputInfo.pointer;
 #ifdef MPX
     int mpSpriteIdx = 0;
-    DeviceIntPtr pDev;
-
 
     while (mpSpriteIdx < MAX_DEVICES)
     {
@@ -2232,7 +2253,7 @@ DefineInitialRootWindow(register WindowPtr win)
         pSprite->current->refcnt++;
         spriteTraceGood = 1;
         ROOT = win;
-        (*pScreen->CursorLimits) ( pScreen, pSprite->current,
+        (*pScreen->CursorLimits) ( pDev, pScreen, pSprite->current,
                                    &pSprite->hotLimits, &pSprite->physLimits);
         pSprite->confined = FALSE;
 
@@ -2241,18 +2262,20 @@ DefineInitialRootWindow(register WindowPtr win)
         pDev = inputInfo.devices;
         while(pDev)
         {
-            if (pDev->id == mpSpriteIdx)
-                (*pScreen->ConstrainCursor) (pDev, pScreen, &pSprite->physLimits);
-
+            if (pDev->id == mpSpriteIdx && MPHasCursor(pDev))
+            {
+#endif
+                (*pScreen->ConstrainCursor) (pDev, pScreen,
+                                             &pSprite->physLimits);
+                (*pScreen->SetCursorPosition) (pDev, pScreen, pSprite->hot.x,
+                                               pSprite->hot.y,
+                                               FALSE); 
+                (*pScreen->DisplayCursor) (pDev, pScreen, pSprite->current);
+#ifdef MPX
+            }
             pDev = pDev->next;
         }
-#else
-        (*pScreen->ConstrainCursor) (inputInfo.pointer, pScreen,
-                                     &pSprite->physLimits); 
 #endif
-        (*pScreen->SetCursorPosition) (pScreen, pSprite->hot.x, pSprite->hot.y,
-                                       FALSE); 
-        (*pScreen->DisplayCursor) (pScreen, pSprite->current);
 
 #ifdef PANORAMIX
         if(!noPanoramiXExtension) {
@@ -2291,35 +2314,43 @@ WindowHasNewCursor(WindowPtr pWin)
 }
 
 _X_EXPORT void
-NewCurrentScreen(ScreenPtr newScreen, int x, int y)
+NewCurrentScreen(DeviceIntPtr pDev, ScreenPtr newScreen, int x, int y)
 {
-    sprite->hotPhys.x = x;
-    sprite->hotPhys.y = y;
+    SpritePtr pSprite = sprite;
+#ifdef MPX
+    if (IsMPDev(pDev))
+        pSprite = &mpsprites[pDev->id];
+#endif
+
+    pSprite->hotPhys.x = x;
+    pSprite->hotPhys.y = y;
 #ifdef PANORAMIX
     if(!noPanoramiXExtension) {
-	sprite->hotPhys.x += panoramiXdataPtr[newScreen->myNum].x - 
+	pSprite->hotPhys.x += panoramiXdataPtr[newScreen->myNum].x - 
 			    panoramiXdataPtr[0].x;
-	sprite->hotPhys.y += panoramiXdataPtr[newScreen->myNum].y - 
+	pSprite->hotPhys.y += panoramiXdataPtr[newScreen->myNum].y - 
 			    panoramiXdataPtr[0].y;
-	if (newScreen != sprite->screen) {
-	    sprite->screen = newScreen;
+	if (newScreen != pSprite->screen) {
+	    pSprite->screen = newScreen;
 	    /* Make sure we tell the DDX to update its copy of the screen */
-	    if(sprite->confineWin)
-		XineramaConfineCursorToWindow(sprite->confineWin, TRUE);
+	    if(pSprite->confineWin)
+		XineramaConfineCursorToWindow(pSprite->confineWin, TRUE);
 	    else
 		XineramaConfineCursorToWindow(WindowTable[0], TRUE);
 	    /* if the pointer wasn't confined, the DDX won't get 
 	       told of the pointer warp so we reposition it here */
 	    if(!syncEvents.playingEvents)
-		(*sprite->screen->SetCursorPosition)(sprite->screen,
-		    sprite->hotPhys.x + panoramiXdataPtr[0].x - 
-			panoramiXdataPtr[sprite->screen->myNum].x,
-		    sprite->hotPhys.y + panoramiXdataPtr[0].y - 
-			panoramiXdataPtr[sprite->screen->myNum].y, FALSE);
+		(*pSprite->screen->SetCursorPosition)(
+                                                      pDev,
+                                                      pSprite->screen,
+		    pSprite->hotPhys.x + panoramiXdataPtr[0].x - 
+			panoramiXdataPtr[pSprite->screen->myNum].x,
+		    pSprite->hotPhys.y + panoramiXdataPtr[0].y - 
+			panoramiXdataPtr[pSprite->screen->myNum].y, FALSE);
 	}
     } else 
 #endif
-    if (newScreen != sprite->hotPhys.pScreen)
+    if (newScreen != pSprite->hotPhys.pScreen)
 	ConfineCursorToWindow(WindowTable[newScreen->myNum], TRUE, FALSE);
 }
 
@@ -2430,7 +2461,7 @@ XineramaWarpPointer(ClientPtr client)
     if (sprite->hotShape)
 	ConfineToShape(inputInfo.pointer, sprite->hotShape, &x, &y);
 
-    XineramaSetCursorPosition(x, y, TRUE);
+    XineramaSetCursorPosition(inputInfo.pointer, x, y, TRUE);
 
     return Success;
 }
@@ -2518,11 +2549,12 @@ ProcWarpPointer(ClientPtr client)
 	if (sprite->hotShape)
 	    ConfineToShape(inputInfo.pointer, sprite->hotShape, &x, &y);
 #endif
-	(*newScreen->SetCursorPosition)(newScreen, x, y, TRUE);
+        (*newScreen->SetCursorPosition)(inputInfo.pointer, newScreen, x, y,
+                                        TRUE); 
     }
     else if (!PointerConfinedToScreen(inputInfo.pointer))
     {
-	NewCurrentScreen(newScreen, x, y);
+	NewCurrentScreen(inputInfo.pointer, newScreen, x, y);
     }
     return Success;
 }
@@ -4693,7 +4725,7 @@ ProcRecolorCursor(ClientPtr client)
 	else
 #endif
 	    displayed = (pscr == sprite->hotPhys.pScreen);
-	( *pscr->RecolorCursor)(pscr, pCursor,
+	( *pscr->RecolorCursor)(inputInfo.pointer, pscr, pCursor,
 				(pCursor == sprite->current) && displayed);
     }
     return (Success);

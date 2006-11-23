@@ -34,6 +34,7 @@
 #include "xf86DDC.h"
 #include "mipointer.h"
 #include <randrstr.h>
+#include "inputstr.h"
 
 typedef struct _xf86RandRInfo {
     CreateScreenResourcesProcPtr    CreateScreenResources;
@@ -291,7 +292,7 @@ xf86RandRSetConfig (ScreenPtr		pScreen,
 
         xf86SetViewport(pScreen, px, py);
 
-        (*pScreen->SetCursorPosition) (pScreen, px, py, FALSE);
+        (*pScreen->SetCursorPosition) (inputInfo.pointer, pScreen, px, py, FALSE);
     }
 
     return TRUE;

@@ -113,7 +113,7 @@ ScreenPtr	   pScreen, oldScreen;
     }
 
     if (pScreen != oldScreen)
-	NewCurrentScreen(pScreen, oldX, oldY);
+	NewCurrentScreen(inputInfo.pointer, pScreen, oldX, oldY);
     if (pScreen->SetCursorPosition)
-	(*pScreen->SetCursorPosition)(pScreen, oldX, oldY, TRUE);
+	(*pScreen->SetCursorPosition)(inputInfo.pointer, pScreen, oldX, oldY, TRUE);
 }

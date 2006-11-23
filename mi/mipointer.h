@@ -72,6 +72,7 @@ typedef struct _miPointerScreenFuncRec {
                     int  /* entering */
                     );
     void	(*WarpCursor)(
+                    DeviceIntPtr /*pDev*/, 
                     ScreenPtr /* pScr */,
                     int  /* x */,
                     int  /* y */
@@ -99,6 +100,7 @@ extern Bool miPointerInitialize(
 );
 
 extern void miPointerWarpCursor(
+    DeviceIntPtr /*pDev*/,
     ScreenPtr /*pScreen*/,
     int /*x*/,
     int /*y*/

@@ -433,13 +433,13 @@ ProcXTestFakeInput(client)
 	if (root != GetCurrentRootWindow())
 #endif
 	{
-	    NewCurrentScreen(root->drawable.pScreen,
+	    NewCurrentScreen(dev, root->drawable.pScreen,
 			     ev->u.keyButtonPointer.rootX,
 			     ev->u.keyButtonPointer.rootY);
 	    return client->noClientException;
 	}
 	(*root->drawable.pScreen->SetCursorPosition)
-	    (root->drawable.pScreen,
+	    (dev, root->drawable.pScreen,
 	     ev->u.keyButtonPointer.rootX,
 	     ev->u.keyButtonPointer.rootY, FALSE);
 	break;

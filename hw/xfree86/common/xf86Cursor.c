@@ -69,7 +69,7 @@ typedef struct {
 
 static Bool xf86CursorOffScreen(ScreenPtr *pScreen, int *x, int *y);
 static void xf86CrossScreen(ScreenPtr pScreen, Bool entering);
-static void xf86WarpCursor(ScreenPtr pScreen, int x, int y);
+static void xf86WarpCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y);
 
 static void xf86PointerMoved(int scrnIndex, int x, int y);
 
@@ -269,7 +269,7 @@ xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
     (*pScr->AdjustFrame)(pScr->scrnIndex, pScr->frameX0, pScr->frameY0, 0);
 
   if (pScreen == pCursorScreen)
-    xf86WarpCursor(pScreen, px, py);
+    xf86WarpCursor(inputInfo.pointer, pScreen, px, py);
 
   return Switched;
 }
@@ -430,11 +430,11 @@ xf86CrossScreen (ScreenPtr pScreen, Bool entering)
 
 /* ARGSUSED */
 static void
-xf86WarpCursor (ScreenPtr pScreen, int x, int y)
+xf86WarpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
     int    sigstate;
     sigstate = xf86BlockSIGIO ();
-  miPointerWarpCursor(pScreen,x,y);
+  miPointerWarpCursor(pDev, pScreen,x,y);
 
   xf86Info.currentScreen = pScreen;
     xf86UnblockSIGIO (sigstate);

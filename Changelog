@@ -1,4 +1,49 @@
 MPX Changelog file
+== 23.11.06 ==
+mi:	closing memory leak, miPointer is freed in miPointerCloseScreen
+	bugfix: uninitialized pPointer in miPointerGetPosition ifndef MPX
+	adding DeviceIntPtr parameter to ScreenRec's cursor functions.
+	cleanup of miPointer code to use same scheme in each function
+
+dix:	MPHasCursor() function determines checking whether to invoke
+	cursor rendering.
+
+animcur: adding DeviceIntPtr parameter to cursor functions but animcur relies
+	 on the core pointer right now.
+
+xfixes: adding DeviceIntPtr parameter to cursor functions but xfixes relies on
+	the core pointer right now.
+
+rac:	adding DeviceIntPtr parameter to cursor functions but RAC relies on
+	the core pointer right now.
+
+ramdac:	adding DeviceIntPtr parameter to cursor functions but ramdac relies on
+	the core pointer right now.
+
+Files:
+	mi/mipointer.c
+	mi/mipointer.h
+	mi/micursor.c
+	mi/mi.h
+	mi/mieq.c
+	include/cursor.h
+	include/inputstr.h
+	include/scrnintstr.h
+	include/dix.h
+	dix/events.c
+	dix/cursor.c
+	Xext/xtest.c
+	render/animcur.c
+	xfixes/cursor.c
+	XTrap/xtrapddmi.c
+	xkb/ddxFakeMtn.c
+	hw/xfree86/common/xf86Cursor.c
+	hw/xfree86/common/xf86RandR.c
+	hw/xfree86/rac/xf86RAC.c
+	hw/xfree86/ramdac/xf86Cursor.c
+	hw/xfree86/dri/dri.c
+
+
 == 22.11.06 ==
 
 mi:     added DevToSprite() conversion function
@@ -26,7 +71,7 @@ dix	GetSpriteWindow() adjusted for MPX
 Files:
         Xext/security.c
         Xi/exevents.c
-        ddx/ddxFakeMtn.c
+        xkb/ddxFakeMtn.c
         dix/events.c
         include/dix.h
 

@@ -60,6 +60,7 @@ SOFTWARE.
 # include "extnsionst.h"        /* Server ExtensionEntry definitions */
 # include "scrnintstr.h"        /* Screen struct */
 #endif
+#include "inputstr.h"
 
 #include <X11/extensions/xtrapdi.h>
 #include <X11/extensions/xtrapddmi.h>
@@ -130,8 +131,8 @@ int XETrapSimulateXEvent(register xXTrapInputReq *request,
         {   /* Set new cursor position on screen */
             XETrap_avail.data.cur_x = x;
             XETrap_avail.data.cur_y = y;
-          NewCurrentScreen (pScr, x, y); /* fix from amnonc@mercury.co.il */
-            if (!(*pScr->SetCursorPosition)(pScr, x, y, xFalse))
+          NewCurrentScreen (inputInfo.pointer, pScr, x, y); /* fix from amnonc@mercury.co.il */
+            if (!(*pScr->SetCursorPosition)(inputInfo.pointer, pScr, x, y, xFalse))
             {
                 status = BadImplementation;
             }
