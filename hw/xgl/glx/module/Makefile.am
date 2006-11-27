@@ -2,7 +2,7 @@ if GLX
 GLX_LIB = $(top_builddir)/hw/xgl/glxext/libxglglxext.la
 endif
 
-AM_CFLAGS = \
+AM_CFLAGS = $(DIX_CFLAGS) \
 	-I$(srcdir)/.. \
 	-I$(srcdir)/../.. \
 	$(XGLXMODULES_CFLAGS)

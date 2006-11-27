@@ -418,6 +418,14 @@ void xf86PruneDriverModes(ScrnInfoPtr scrp);
 void xf86SetCrtcForModes(ScrnInfoPtr scrp, int adjustFlags);
 void xf86PrintModes(ScrnInfoPtr scrp);
 void xf86ShowClockRanges(ScrnInfoPtr scrp, ClockRangePtr clockRanges);
+double xf86ModeHSync(DisplayModePtr mode);
+double xf86ModeVRefresh(DisplayModePtr mode);
+void xf86SetModeDefaultName(DisplayModePtr mode);
+void xf86SetModeCrtc(DisplayModePtr p, int adjustFlags);
+DisplayModePtr xf86DuplicateMode(DisplayModePtr pMode);
+DisplayModePtr xf86DuplicateModes(ScrnInfoPtr pScrn, DisplayModePtr modeList);
+Bool xf86ModesEqual(DisplayModePtr pMode1, DisplayModePtr pMode2);
+void xf86PrintModeline(int scrnIndex,DisplayModePtr mode);
 
 /* xf86Option.c */
 

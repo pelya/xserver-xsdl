@@ -7,7 +7,7 @@ INCLUDES = \
 	-I$(srcdir)/../../../exa \
 	-I$(srcdir)/../../../miext/cw
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 
 libexa_la_SOURCES = \
 	examodule.c
