@@ -139,6 +139,7 @@ miDCInitialize (pScreen, screenFuncs)
     miPointerScreenFuncPtr  screenFuncs;
 {
     miDCScreenPtr   pScreenPriv;
+    miDCBufferPtr   pBuffer;
 
     if (miDCGeneration != serverGeneration)
     {
@@ -154,36 +155,33 @@ miDCInitialize (pScreen, screenFuncs)
     /*
      * initialize the entire private structure to zeros
      */
+#if !defined MPX
     pScreenPriv->pCoreBuffer = (miDCBufferPtr)xalloc(sizeof(miDCBufferRec));
-
-    pScreenPriv->pCoreBuffer->pSourceGC =
-	pScreenPriv->pCoreBuffer->pMaskGC =
-	pScreenPriv->pCoreBuffer->pSaveGC =
- 	pScreenPriv->pCoreBuffer->pRestoreGC =
- 	pScreenPriv->pCoreBuffer->pMoveGC =
- 	pScreenPriv->pCoreBuffer->pPixSourceGC =
-	pScreenPriv->pCoreBuffer->pPixMaskGC = NULL;
-#ifdef ARGB_CURSOR
-    pScreenPriv->pCoreBuffer->pRootPicture = NULL;
-    pScreenPriv->pCoreBuffer->pTempPicture = NULL;
-#endif
-    
-    pScreenPriv->pCoreBuffer->pSave = pScreenPriv->pCoreBuffer->pTemp = NULL;
-
-#ifdef MPX
+    if (!pScreenPriv->pCoreBuffer)
+    {
+        xfree((pointer)pScreenPriv);
+        return FALSE;
+    }
+    pBuffer = pScreenPriv->pCoreBuffer;
+#else /* ifdef MPX */
     {
         int mpBufferIdx = 0;
 
         pScreenPriv->pMPBuffers = (miDCBufferPtr)xalloc(MAX_DEVICES *
                                 sizeof(miDCBufferRec));
-
+        if (!pScreenPriv->pMPBuffers)
+        {
+            xfree((pointer)pScreenPriv);
+            return FALSE;
+        }
+ 
         /* virtual core pointer ID is 1 */
-        xfree(pScreenPriv->pCoreBuffer);
         pScreenPriv->pCoreBuffer = &pScreenPriv->pMPBuffers[1];
 
-        while (mpBufferIdx < MAX_DEVICES)
+        while(mpBufferIdx < MAX_DEVICES)
         {
-            miDCBufferPtr pBuffer = &pScreenPriv->pMPBuffers[mpBufferIdx];
+            pBuffer = &pScreenPriv->pMPBuffers[mpBufferIdx];
+#endif
             pBuffer->pSourceGC =
                 pBuffer->pMaskGC =
                 pBuffer->pSaveGC =
@@ -198,10 +196,12 @@ miDCInitialize (pScreen, screenFuncs)
 
             pBuffer->pSave = pBuffer->pTemp = NULL;
 
+#ifdef MPX
             mpBufferIdx++;
         }
     }
 #endif
+
 
     pScreenPriv->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = miDCCloseScreen;

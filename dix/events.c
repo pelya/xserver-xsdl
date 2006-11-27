@@ -259,9 +259,9 @@ typedef struct {
 static SpritePtr sprite;		/* info about the cursor sprite */
 
 #ifdef MPX
-static SpritePtr mpsprites;             /* info about the MPX sprites */
+#define MPXDBG(...) fprintf (stderr, "MPX: " __VA_ARGS__)
 
-extern BOOL IsMPDev(DeviceIntPtr dev);
+static SpritePtr mpsprites;             /* info about the MPX sprites */
 
 /** 
  * True for the core pointer and any MPX device. 
@@ -371,7 +371,7 @@ XineramaSetCursorPosition(
     SpritePtr pSprite = sprite;
 
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
 
@@ -416,7 +416,7 @@ XineramaConstrainCursor(DeviceIntPtr pDev)
     BoxRec newBox;
 
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
 
@@ -445,7 +445,7 @@ XineramaCheckPhysLimits(
     if (!cursor)
 	return;
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
  
@@ -583,7 +583,7 @@ XineramaCheckMotion(xEvent *xE, DeviceIntPtr pDev)
     SpritePtr pSprite = sprite;
 
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
 
@@ -704,7 +704,7 @@ XineramaChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
     SpritePtr pSprite = sprite;
 
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
 
@@ -748,7 +748,7 @@ ConfineToShape(DeviceIntPtr pDev, RegionPtr shape, int *px, int *py)
     int incx = 1, incy = 1;
     SpritePtr pSprite = sprite;
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
 
@@ -794,7 +794,7 @@ CheckPhysLimits(
     SpritePtr pSprite = sprite;
 
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
 
@@ -924,7 +924,7 @@ PointerConfinedToScreen(DeviceIntPtr pDev)
 {
     SpritePtr pSprite = sprite;
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
     return pSprite->confined;
@@ -936,7 +936,7 @@ ChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
     SpritePtr pSprite = sprite;
 
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
 
@@ -979,7 +979,7 @@ PostNewCursor(DeviceIntPtr pDev)
     SpritePtr   pSprite = sprite;
 
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
 
@@ -1018,7 +1018,7 @@ _X_EXPORT WindowPtr
 GetSpriteWindow(DeviceIntPtr pDev)
 {
 #ifdef MPX
-    if(IsMPDev(pDev))
+    if(MPHasCursor(pDev))
         return mpsprites[pDev->id].win;
 #endif
 
@@ -1036,7 +1036,7 @@ GetSpritePosition(DeviceIntPtr pDev, int *px, int *py)
 {
     SpritePtr pSprite = sprite;
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
     *px = pSprite->hotPhys.x;
@@ -1860,7 +1860,7 @@ FixUpEventFromWindow(
 {
     SpritePtr pSprite = sprite;
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
 
@@ -2094,7 +2094,7 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
     SpritePtr pSprite = sprite;
         
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
         
@@ -2131,7 +2131,7 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
         xeviehot.y = pSprite->hot.y;
 #endif
 	pSprite->hotPhys = pSprite->hot;
-#ifndef MPX /* XXX ndef!! */
+#if !defined MPX
 	if ((pSprite->hotPhys.x != XE_KBPTR.rootX) ||
 	    (pSprite->hotPhys.y != XE_KBPTR.rootY))
 	{
@@ -2177,7 +2177,7 @@ WindowsRestructured()
     DeviceIntPtr pDev = inputInfo.devices;
     while(pDev)
     {
-        if (pDev != inputInfo.keyboard)
+        if (MPHasCursor(pDev))
             CheckMotion((xEvent *)NULL, pDev);
         pDev = pDev->next;
     }
@@ -2318,7 +2318,7 @@ NewCurrentScreen(DeviceIntPtr pDev, ScreenPtr newScreen, int x, int y)
 {
     SpritePtr pSprite = sprite;
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pSprite = &mpsprites[pDev->id];
 #endif
 
@@ -3051,7 +3051,7 @@ ProcessPointerEvent (register xEvent *xE, register DeviceIntPtr mouse, int count
     SpritePtr           pSprite = sprite;
 
 #ifdef MPX
-    if (IsMPDev(mouse))
+    if (MPHasCursor(mouse))
         pSprite = &mpsprites[mouse->id];
 #endif
 

@@ -14,11 +14,23 @@ Files:
 
 ____________________________________________________________
 
-mi:     mipointer.c cleanup, reducing code duplication, using MPHasCursor()
-	instead of IsMPDev()
+mi:     mipointer.c cleanup, reducing code duplication, using MPHasCursor(),
+	removing IsMPDev()
 
 Files:
 	mi/mipointer.c
+
+____________________________________________________________
+
+mi:     malloc checks for misprite and midispcur, code cleanup
+	removed IsMPDev()
+
+Files:
+	mi/misprite.c
+	mi/mipointer.c
+	mi/midispcur.c
+	dix/events.c
+
 
 == 23.11.06 ==
 mi:	closing memory leak, miPointer is freed in miPointerCloseScreen

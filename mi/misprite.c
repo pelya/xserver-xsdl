@@ -187,11 +187,9 @@ miSpriteInitialize (pScreen, cursorFuncs, screenFuncs)
     miSpriteCursorFuncPtr   cursorFuncs;
     miPointerScreenFuncPtr  screenFuncs;
 {
-#ifdef MPX
-    int mpCursorIdx = 0;
-#endif
     miSpriteScreenPtr	pScreenPriv;
     VisualPtr		pVisual;
+    miCursorInfoPtr     pCursorInfo;
     
     if (!DamageSetup (pScreen))
 	return FALSE;
@@ -239,73 +237,71 @@ miSpriteInitialize (pScreen, cursorFuncs, screenFuncs)
     
     pScreenPriv->BlockHandler = pScreen->BlockHandler;
     
+#if !defined MPX
     pScreenPriv->cp = (miCursorInfoPtr)xalloc(sizeof(miCursorInfoRec));
-    pScreenPriv->cp->pCursor = NULL;
-    pScreenPriv->cp->x = 0;
-    pScreenPriv->cp->y = 0;
-    pScreenPriv->cp->isUp = FALSE;
-    pScreenPriv->cp->shouldBeUp = FALSE;
-    pScreenPriv->cp->pCacheWin = NullWindow;
-    pScreenPriv->cp->isInCacheWin = FALSE;
-    pScreenPriv->cp->checkPixels = TRUE;
-    pScreenPriv->cp->pInstalledMap = NULL;
-    pScreenPriv->cp->pColormap = NULL;
-    pScreenPriv->cp->colors[SOURCE_COLOR].red = 0;
-    pScreenPriv->cp->colors[SOURCE_COLOR].green = 0;
-    pScreenPriv->cp->colors[SOURCE_COLOR].blue = 0;
-    pScreenPriv->cp->colors[MASK_COLOR].red = 0;
-    pScreenPriv->cp->colors[MASK_COLOR].green = 0;
-    pScreenPriv->cp->colors[MASK_COLOR].blue = 0;
+    if (!pScreenPriv->cp)
+    {
+        xfree((pointer)pScreenPriv);
+        return FALSE;
+    }
+    pCursorInfo = pScreenPriv->cp;
+#else
+    /* alloc and zero memory for all MPX cursors */
+    pScreenPriv->mpCursors = (miCursorInfoPtr)xalloc(MAX_DEVICES * sizeof(miCursorInfoRec));
+    if (!pScreenPriv->mpCursors)
+    {
+        xfree((pointer)pScreenPriv->cp);
+        xfree((pointer)pScreenPriv);
+        return FALSE;
+    }
+    pScreenPriv->cp = &(pScreenPriv->mpCursors[1]);
+
+    {
+        int mpCursorIdx = 0;
+        while (mpCursorIdx < MAX_DEVICES)
+        {
+            pCursorInfo = &(pScreenPriv->mpCursors[mpCursorIdx]);
+#endif
+
+            pCursorInfo->pCursor = NULL;
+            pCursorInfo->x = 0;
+            pCursorInfo->y = 0;
+            pCursorInfo->isUp = FALSE;
+            pCursorInfo->shouldBeUp = FALSE;
+            pCursorInfo->pCacheWin = NullWindow;
+            pCursorInfo->isInCacheWin = FALSE;
+            pCursorInfo->checkPixels = TRUE;
+            pCursorInfo->pInstalledMap = NULL;
+            pCursorInfo->pColormap = NULL;
+            pCursorInfo->colors[SOURCE_COLOR].red = 0;
+            pCursorInfo->colors[SOURCE_COLOR].green = 0;
+            pCursorInfo->colors[SOURCE_COLOR].blue = 0;
+            pCursorInfo->colors[MASK_COLOR].red = 0;
+            pCursorInfo->colors[MASK_COLOR].green = 0;
+            pCursorInfo->colors[MASK_COLOR].blue = 0;
+
+#ifdef MPX
+            mpCursorIdx++;
+        }
+    }
+#endif
 
     pScreenPriv->funcs = cursorFuncs;
     pScreen->devPrivates[miSpriteScreenIndex].ptr = (pointer) pScreenPriv;
-    
+
     pScreen->CloseScreen = miSpriteCloseScreen;
     pScreen->GetImage = miSpriteGetImage;
     pScreen->GetSpans = miSpriteGetSpans;
     pScreen->SourceValidate = miSpriteSourceValidate;
-    
+
     pScreen->CopyWindow = miSpriteCopyWindow;
-    
+
     pScreen->SaveDoomedAreas = miSpriteSaveDoomedAreas;
-    
+
     pScreen->InstallColormap = miSpriteInstallColormap;
     pScreen->StoreColors = miSpriteStoreColors;
 
     pScreen->BlockHandler = miSpriteBlockHandler;
-    
-#ifdef MPX
-    /* alloc and zero memory for all MPX cursors */
-    pScreenPriv->mpCursors = (miCursorInfoPtr)xalloc(MAX_DEVICES * sizeof(miCursorInfoRec));
-    while (mpCursorIdx < MAX_DEVICES)
-    {
-        miCursorInfoPtr cursor = &(pScreenPriv->mpCursors[mpCursorIdx]);
-
-        cursor->id = mpCursorIdx;
-        cursor->pCursor = NULL;
-        cursor->x = 0;
-        cursor->y = 0;
-        cursor->isUp = FALSE;
-        cursor->shouldBeUp = FALSE;
-        cursor->pCacheWin = NullWindow;
-        cursor->isInCacheWin = FALSE;
-        cursor->checkPixels = TRUE;
-        cursor->pInstalledMap = NULL;
-        cursor->pColormap = NULL;
-        cursor->colors[SOURCE_COLOR].red = 0;
-        cursor->colors[SOURCE_COLOR].green = 0;
-        cursor->colors[SOURCE_COLOR].blue = 0;
-        cursor->colors[MASK_COLOR].red = 0;
-        cursor->colors[MASK_COLOR].green = 0;
-        cursor->colors[MASK_COLOR].blue = 0;
-
-        mpCursorIdx++;
-    }
-
-    /* virtual core pointer has id 1, we might as well save the memory */
-    xfree(pScreenPriv->cp);
-    pScreenPriv->cp = &(pScreenPriv->mpCursors[1]);
-#endif
 
     damageRegister = 0;
 

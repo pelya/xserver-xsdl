@@ -71,13 +71,6 @@ static miPointerPtr miPointer;
  */
 static miPointerRec miMPPointers[MAX_DEVICES];
 
-
-/* Check if the given device is a MP device. */
-_X_EXPORT Bool 
-IsMPDev(DeviceIntPtr pDev) 
-{
-    return (pDev && pDev->isMPDev && pDev->id < MAX_DEVICES);
-}
 #endif
 
 static Bool miPointerRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
