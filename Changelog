@@ -12,6 +12,14 @@ Files:
 	mi/misprite.c
 	mi/misprite.h
 
+____________________________________________________________
+
+mi:     mipointer.c cleanup, reducing code duplication, using MPHasCursor()
+	instead of IsMPDev()
+
+Files:
+	mi/mipointer.c
+
 == 23.11.06 ==
 mi:	closing memory leak, miPointer is freed in miPointerCloseScreen
 	bugfix: uninitialized pPointer in miPointerGetPosition ifndef MPX

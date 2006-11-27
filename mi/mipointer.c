@@ -27,7 +27,6 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
-#ifdef MPX
  /* 
   * MPX additions:
   * Copyright © 2006 Peter Hutterer
@@ -35,7 +34,6 @@ in this Software without prior written authorization from The Open Group.
   * Author: Peter Hutterer <peter@cs.unisa.edu.au>
   *
   */
-#endif
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -111,6 +109,7 @@ miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
     Bool		    waitForUpdate;
 {
     miPointerScreenPtr	pScreenPriv;
+    miPointerPtr        pPointer;
 
     if (miPointerGeneration != serverGeneration)
     {
@@ -150,26 +149,15 @@ miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
     /*
      * set up the pointer object
      */
+#if !defined MPX
     miPointer = (miPointerPtr)xalloc(sizeof(miPointerRec));
     if (!miPointer)
     {
         xfree((pointer)pScreenPriv);
         return FALSE;
     }
-    miPointer->pScreen = NULL;
-    miPointer->pSpriteScreen = NULL;
-    miPointer->pCursor = NULL;
-    miPointer->pSpriteCursor = NULL;
-    miPointer->limits.x1 = 0;
-    miPointer->limits.x2 = 32767;
-    miPointer->limits.y1 = 0;
-    miPointer->limits.y2 = 32767;
-    miPointer->confined = FALSE;
-    miPointer->x = 0;
-    miPointer->y = 0;
-
-#ifdef MPX
-    xfree(miPointer);
+    pPointer = miPointer;
+#else /* ifdef MPX */
     miPointer = &miMPPointers[1];
     {
         int mpPtrIdx = 0; /* loop counter */
@@ -178,17 +166,21 @@ miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
          */
         while(mpPtrIdx < MAX_DEVICES)
         {
-            miMPPointers[mpPtrIdx].pScreen = NULL;
-            miMPPointers[mpPtrIdx].pSpriteScreen = NULL;
-            miMPPointers[mpPtrIdx].pCursor = NULL;
-            miMPPointers[mpPtrIdx].pSpriteCursor = NULL;
-            miMPPointers[mpPtrIdx].limits.x1 = 0;
-            miMPPointers[mpPtrIdx].limits.x2 = 32767;
-            miMPPointers[mpPtrIdx].limits.y1 = 0;
-            miMPPointers[mpPtrIdx].limits.y2 = 32767;
-            miMPPointers[mpPtrIdx].confined = FALSE;
-            miMPPointers[mpPtrIdx].x = 0;
-            miMPPointers[mpPtrIdx].y = 0;
+            pPointer = &miMPPointers[mpPtrIdx];
+#endif
+
+            pPointer->pScreen = NULL;
+            pPointer->pSpriteScreen = NULL;
+            pPointer->pCursor = NULL;
+            pPointer->pSpriteCursor = NULL;
+            pPointer->limits.x1 = 0;
+            pPointer->limits.x2 = 32767;
+            pPointer->limits.y1 = 0;
+            pPointer->limits.y2 = 32767;
+            pPointer->confined = FALSE;
+            pPointer->x = 0;
+            pPointer->y = 0;
+#ifdef MPX
             mpPtrIdx++;
         }
     }
@@ -202,23 +194,26 @@ miPointerCloseScreen (index, pScreen)
     int		index;
     ScreenPtr	pScreen;
 {
-    int mpPointerIdx = 0;
     SetupScreen(pScreen);
+    miPointerPtr pPointer = miPointer;
 
 #ifdef MPX
+    int mpPointerIdx = 0;
+
     while(mpPointerIdx < MAX_DEVICES)
     {
-        if (pScreen == miMPPointers[mpPointerIdx].pScreen) 
-            miMPPointers[mpPointerIdx].pScreen = 0;
-        if (pScreen == miMPPointers[mpPointerIdx].pSpriteScreen) 
-            miMPPointers[mpPointerIdx].pSpriteScreen = 0;
+        pPointer = &miMPPointers[mpPointerIdx];
+#endif
+        if (pScreen == pPointer->pScreen)
+            pPointer->pScreen = 0;
+        if (pScreen == pPointer->pSpriteScreen)
+            pPointer->pSpriteScreen = 0;
+#ifdef MPX
         mpPointerIdx++;
     }
-#else
-    if (pScreen == miPointer->pScreen)
-	miPointer->pScreen = 0;
-    if (pScreen == miPointer->pSpriteScreen)
-	miPointer->pSpriteScreen = 0;
+#endif
+
+#if !defined MPX
     xfree((pointer)miPointer);
 #endif
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
@@ -256,19 +251,15 @@ miPointerDisplayCursor (pDev, pScreen, pCursor)
     ScreenPtr 	 pScreen;
     CursorPtr	 pCursor;
 {
+    miPointerPtr pPointer = miPointer;
 #ifdef MPX
     /* use core pointer for non MPX devices */
-    if (!IsMPDev(pDev))
-        pDev = inputInfo.pointer;
-
-    miMPPointers[pDev->id].pCursor = pCursor;
-    miMPPointers[pDev->id].pScreen = pScreen;
-    miPointerUpdateSprite(pDev);
-#else
-    miPointer->pCursor = pCursor;
-    miPointer->pScreen = pScreen;
-    miPointerUpdateSprite(inputInfo.pointer);
+    if (MPHasCursor(pDev))
+        pPointer = &miMPPointers[pDev->id];
 #endif
+    pPointer->pCursor = pCursor;
+    pPointer->pScreen = pScreen;
+    miPointerUpdateSprite(pDev);
     return TRUE;
 }
 
@@ -280,7 +271,7 @@ miPointerConstrainCursor (pDev, pScreen, pBox)
 {
     miPointerPtr pPointer = miPointer;
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pPointer = &miMPPointers[pDev->id];
 #endif
     pPointer->limits = *pBox;
@@ -340,7 +331,7 @@ miPointerWarpCursor (pDev, pScreen, x, y)
     SetupScreen (pScreen);
 
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pPointer = &miMPPointers[pDev->id];
 #endif
 
@@ -394,16 +385,16 @@ miPointerUpdateSprite (DeviceIntPtr pDev)
     int			x, y, devx, devy;
     miPointerPtr        pPointer = miPointer;
 
-#ifdef MPX
     if (!pDev || 
-            !(pDev->coreEvents || pDev == inputInfo.pointer || pDev->isMPDev))
-#else
-    if (!pDev || !(pDev->coreEvents || pDev == inputInfo.pointer))
+            !(pDev->coreEvents || pDev == inputInfo.pointer 
+#ifdef MPX
+                || pDev->isMPDev
 #endif
+             ))
         return;
 
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pPointer = &miMPPointers[pDev->id];
 #endif
 
@@ -497,7 +488,7 @@ miPointerSetScreen(DeviceIntPtr pDev, int screen_no, int x, int y)
 	(*pScreenPriv->screenFuncs->NewEventScreen) (pScreen, FALSE);
 	NewCurrentScreen (pDev, pScreen, x, y);
 #ifdef MPX
-        if (IsMPDev(pDev))
+        if (MPHasCursor(pDev))
             pPointer = &miMPPointers[pDev->id];
 #endif
         pPointer->limits.x2 = pScreen->width;
@@ -515,7 +506,7 @@ miPointerGetScreen(DeviceIntPtr pDev)
 {
     miPointerPtr pPointer;
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pPointer = &miMPPointers[pDev->id];
 #endif
     return pPointer->pScreen;
@@ -539,7 +530,7 @@ miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y, unsigned long time)
 
     miPointerPtr        pPointer = miPointer;
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pPointer = &(miMPPointers[pDev->id]);
 #endif
 
@@ -547,12 +538,12 @@ miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y, unsigned long time)
     if (!pScreen)
 	return;	    /* called before ready */
 
-#ifdef MPX
     if (!pDev || 
-            !(pDev->coreEvents || pDev == inputInfo.pointer || pDev->isMPDev))
-#else
-    if (!pDev || !(pDev->coreEvents || pDev == inputInfo.pointer))
+            !(pDev->coreEvents || pDev == inputInfo.pointer 
+#ifdef MPX
+                || pDev->isMPDev
 #endif
+                ))
         return;
 
     if (*x < 0 || *x >= pScreen->width || *y < 0 || *y >= pScreen->height)
@@ -601,7 +592,7 @@ miPointerGetPosition(DeviceIntPtr pDev, int *x, int *y)
 {
     miPointerPtr pPointer = miPointer;
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pPointer = &miMPPointers[pDev->id];
 #endif
     *x = pPointer->x;
@@ -623,7 +614,7 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
     SetupScreen(pScreen);
 
 #ifdef MPX
-    if (IsMPDev(pDev))
+    if (MPHasCursor(pDev))
         pPointer = &miMPPointers[pDev->id];
 #endif
 
