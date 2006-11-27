@@ -90,16 +90,6 @@
 
 #include "mi.h"
 
-/******************************************************************************
- * debugging macro
- *****************************************************************************/
-#ifdef DEBUG
-static int      debug_level = 0;
-#define DBG(lvl, f) {if ((lvl) <= debug_level) f;}
-#else
-#define DBG(lvl, f)
-#endif
-
 xEvent *xf86Events = NULL;
 
 static Bool
@@ -140,33 +130,6 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
     }
 }
 
-void
-xf86AlwaysCoreControl(DeviceIntPtr pDev, IntegerCtrl *control)
-{
-}
-
-/***********************************************************************
- *
- * xf86XinputFinalizeInit --
- * 
- *	Create and initialize an integer feedback to control the always
- * core feature.
- *
- ***********************************************************************
- */
-void
-xf86XinputFinalizeInit(DeviceIntPtr	dev)
-{
-    LocalDevicePtr        local = (LocalDevicePtr)dev->public.devicePrivate;
-
-    if (InitIntegerFeedbackClassDeviceStruct(dev, xf86AlwaysCoreControl) == FALSE) {
-        ErrorF("Unable to init integer feedback for always core feature\n");
-    } else {
-        local->always_core_feedback = dev->intfeed;
-        dev->intfeed->ctrl.integer_displayed = (local->flags & XI86_ALWAYS_CORE) ? 1 : 0;
-    }
-}
-
 /***********************************************************************
  *
  * xf86ActivateDevice --
@@ -193,8 +156,6 @@ xf86ActivateDevice(LocalDevicePtr local)
         dev->public.devicePrivate = (pointer) local;
         local->dev = dev;      
         
-        xf86XinputFinalizeInit(dev);
-
         dev->coreEvents = local->flags & XI86_ALWAYS_CORE;
         RegisterOtherDevice(dev);
 
@@ -435,9 +396,9 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     va_list var;
     int i = 0, nevents = 0;
     Bool drag = xf86SendDragEvents(device);
-    LocalDevicePtr local = (LocalDevicePtr) device->public.devicePrivate;
     int *valuators = NULL;
     int flags = 0;
+    xEvent *xE = NULL;
 
     if (is_absolute)
         flags = POINTER_ABSOLUTE;
@@ -460,8 +421,14 @@ xf86PostMotionEvent(DeviceIntPtr	device,
                                flags, first_valuator, num_valuators,
                                valuators);
 
-    for (i = 0; i < nevents; i++)
-        mieqEnqueue(device, xf86Events + i);
+    for (i = 0; i < nevents; i++) {
+        xE = xf86Events + i;
+        /* Don't post core motion events for devices not registered to send
+         * drag events. */
+        if (xE->u.u.type != MotionNotify || drag) {
+            mieqEnqueue(device, xf86Events + i);
+        }
+    }
 
     xfree(valuators);
 }
