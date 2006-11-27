@@ -67,6 +67,9 @@ RRModeGet (xRRModeInfo	*modeInfo,
 	}
     }
 
+    if (!RRInit ())
+	return NULL;
+
     mode = xalloc (sizeof (RRModeRec) + modeInfo->nameLength + 1);
     if (!mode)
 	return NULL;

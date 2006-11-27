@@ -51,6 +51,8 @@ RROutputCreate (const char  *name,
 {
     RROutputPtr	output;
 
+    if (!RRInit())
+	return NULL;
     output = xalloc (sizeof (RROutputRec) + nameLength + 1);
     if (!output)
 	return NULL;

@@ -55,6 +55,8 @@ RRCrtcCreate (void	*devPrivate)
 {
     RRCrtcPtr	crtc;
     
+    if (!RRInit())
+	return NULL;
     crtc = xalloc (sizeof (RRCrtcRec));
     if (!crtc)
 	return NULL;
