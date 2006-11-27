@@ -1,4 +1,17 @@
 MPX Changelog file
+== 27.11.06 ==
+mi:     free allocated memory in miDCCloseScreen and in miDCInitialize in case
+	of errors.
+	Some copyright notices.
+	misprite.c passes DeviceIntPtr around and down to DC (previously
+	miCursorInfoPtr and the plain device id).
+	Large cleanup in misprite.c to avoid code duplication.
+
+Files:
+	mi/midispcur.c
+	mi/misprite.c
+	mi/misprite.h
+
 == 23.11.06 ==
 mi:	closing memory leak, miPointer is freed in miPointerCloseScreen
 	bugfix: uninitialized pPointer in miPointerGetPosition ifndef MPX

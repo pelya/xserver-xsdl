@@ -42,7 +42,7 @@ typedef struct {
 		CursorPtr /*pCursor*/
 );
     Bool	(*PutUpCursor)(
-                int /* deviceid */,
+                DeviceIntPtr /*pDev*/,
 		ScreenPtr /*pScreen*/,
 		CursorPtr /*pCursor*/,
 		int /*x*/,
@@ -51,7 +51,7 @@ typedef struct {
 		unsigned long /*mask*/
 );
     Bool	(*SaveUnderCursor)(
-                int /* deviceid */,
+                DeviceIntPtr /*pDev*/,
 		ScreenPtr /*pScreen*/,
 		int /*x*/,
 		int /*y*/,
@@ -59,7 +59,7 @@ typedef struct {
 		int /*h*/
 );
     Bool	(*RestoreUnderCursor)(
-                int /* deviceid */,
+                DeviceIntPtr /*pDev*/,
 		ScreenPtr /*pScreen*/,
 		int /*x*/,
 		int /*y*/,
@@ -67,7 +67,7 @@ typedef struct {
 		int /*h*/
 );
     Bool	(*MoveCursor)(
-                int /* deviceid */,
+                DeviceIntPtr /*pDev*/,
 		ScreenPtr /*pScreen*/,
 		CursorPtr /*pCursor*/,
 		int /*x*/,
@@ -80,7 +80,7 @@ typedef struct {
 		unsigned long /*mask*/
 );
     Bool	(*ChangeSave)(
-                int /* deviceid */,
+                DeviceIntPtr /*pDev*/,
 		ScreenPtr /*pScreen*/,
 		int /*x*/,
 		int /*y*/,

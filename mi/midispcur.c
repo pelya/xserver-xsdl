@@ -29,6 +29,12 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
+/* 
+ * MPX additions:
+ * Copyright © 2006 Peter Hutterer
+ * Author: Peter Hutterer <peter@cs.unisa.edu.au>
+ *
+ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -55,9 +61,7 @@ in this Software without prior written authorization from The Open Group.
 #ifdef MPX
 # include "inputstr.h"
 
-
 #define SaneID(a) (a >= 0 && a < MAX_DEVICES)
-
 #endif
 
 /* per-screen private data */
@@ -102,20 +106,20 @@ typedef struct {
 
 static Bool	miDCRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);
 static Bool	miDCUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);
-static Bool	miDCPutUpCursor(int deviceid, ScreenPtr pScreen, 
+static Bool	miDCPutUpCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
                                 CursorPtr pCursor, int x, int y, 
                                 unsigned long source, unsigned long mask);
-static Bool	miDCSaveUnderCursor(int deviceid, ScreenPtr pScreen, 
+static Bool	miDCSaveUnderCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
                                     int x, int y,
 				    int w, int h);
-static Bool	miDCRestoreUnderCursor(int deviceid, ScreenPtr pScreen, 
+static Bool	miDCRestoreUnderCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
                                        int x, int y,
 				       int w, int h);
-static Bool	miDCMoveCursor(int deviceid, ScreenPtr pScreen, 
+static Bool	miDCMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
                                CursorPtr pCursor, int x, int y, 
                                int w, int h, int dx, int dy,
 			       unsigned long source, unsigned long mask);
-static Bool	miDCChangeSave(int deviceid, ScreenPtr pScreen, 
+static Bool	miDCChangeSave(DeviceIntPtr pDev, ScreenPtr pScreen, 
                                int x, int y, int w, int h,	
                                int dx, int dy);
 
@@ -173,7 +177,7 @@ miDCInitialize (pScreen, screenFuncs)
         pScreenPriv->pMPBuffers = (miDCBufferPtr)xalloc(MAX_DEVICES *
                                 sizeof(miDCBufferRec));
 
-        /* virtual core pointer ID is 1, we might as well use the array */
+        /* virtual core pointer ID is 1 */
         xfree(pScreenPriv->pCoreBuffer);
         pScreenPriv->pCoreBuffer = &pScreenPriv->pMPBuffers[1];
 
@@ -206,6 +210,11 @@ miDCInitialize (pScreen, screenFuncs)
 
     if (!miSpriteInitialize (pScreen, &miDCFuncs, screenFuncs))
     {
+#ifdef MPX
+        xfree((pointer)pScreenPriv->pMPBuffers);
+#else
+        xfree((pointer)pScreenPriv->pCoreBuffer);
+#endif
 	xfree ((pointer) pScreenPriv);
 	return FALSE;
     }
@@ -256,6 +265,11 @@ miDCCloseScreen (index, pScreen)
             mpBufferIdx++;
         }
     }
+
+    xfree((pointer) pScreenPriv->pMPBuffers);
+#else
+
+    xfree((pointer) pScreenPriv->pCoreBuffer);
 #endif
 
     xfree ((pointer) pScreenPriv);
@@ -530,8 +544,8 @@ miDCMakeGC(
 
 
 static Bool
-miDCPutUpCursor (deviceid, pScreen, pCursor, x, y, source, mask)
-    int             deviceid;
+miDCPutUpCursor (pDev, pScreen, pCursor, x, y, source, mask)
+    DeviceIntPtr    pDev;
     ScreenPtr	    pScreen;
     CursorPtr	    pCursor;
     int		    x, y;
@@ -554,8 +568,8 @@ miDCPutUpCursor (deviceid, pScreen, pCursor, x, y, source, mask)
     pBuffer = pScreenPriv->pCoreBuffer;
 
 #ifdef MPX
-    if (SaneID(deviceid))
-            pBuffer = &pScreenPriv->pMPBuffers[deviceid];
+    if (MPHasCursor(pDev))
+            pBuffer = &pScreenPriv->pMPBuffers[pDev->id];
 #endif
 
 #ifdef ARGB_CURSOR
@@ -592,8 +606,8 @@ miDCPutUpCursor (deviceid, pScreen, pCursor, x, y, source, mask)
 }
 
 static Bool
-miDCSaveUnderCursor (deviceid, pScreen, x, y, w, h)
-    int         deviceid;
+miDCSaveUnderCursor (pDev, pScreen, x, y, w, h)
+    DeviceIntPtr pDev;
     ScreenPtr	pScreen;
     int		x, y, w, h;
 {
@@ -606,8 +620,8 @@ miDCSaveUnderCursor (deviceid, pScreen, x, y, w, h)
     pScreenPriv = (miDCScreenPtr) pScreen->devPrivates[miDCScreenIndex].ptr;
     pBuffer = pScreenPriv->pCoreBuffer;
 #ifdef MPX
-    if (SaneID(deviceid))
-            pBuffer = &pScreenPriv->pMPBuffers[deviceid];
+    if (MPHasCursor(pDev))
+            pBuffer = &pScreenPriv->pMPBuffers[pDev->id];
 #endif
     pSave = pBuffer->pSave;
     pWin = WindowTable[pScreen->myNum];
@@ -631,8 +645,8 @@ miDCSaveUnderCursor (deviceid, pScreen, x, y, w, h)
 }
 
 static Bool
-miDCRestoreUnderCursor (deviceid, pScreen, x, y, w, h)
-    int         deviceid;
+miDCRestoreUnderCursor (pDev, pScreen, x, y, w, h)
+    DeviceIntPtr pDev;
     ScreenPtr	pScreen;
     int		x, y, w, h;
 {
@@ -645,8 +659,8 @@ miDCRestoreUnderCursor (deviceid, pScreen, x, y, w, h)
     pScreenPriv = (miDCScreenPtr) pScreen->devPrivates[miDCScreenIndex].ptr;
     pBuffer = pScreenPriv->pCoreBuffer;
 #ifdef MPX
-    if (SaneID(deviceid))
-            pBuffer = &pScreenPriv->pMPBuffers[deviceid];
+    if (MPHasCursor(pDev))
+            pBuffer = &pScreenPriv->pMPBuffers[pDev->id];
 #endif
     pSave = pBuffer->pSave;
     pWin = WindowTable[pScreen->myNum];
@@ -663,8 +677,8 @@ miDCRestoreUnderCursor (deviceid, pScreen, x, y, w, h)
 }
 
 static Bool
-miDCChangeSave (deviceid, pScreen, x, y, w, h, dx, dy)
-    int             deviceid;
+miDCChangeSave (pDev, pScreen, x, y, w, h, dx, dy)
+    DeviceIntPtr    pDev;
     ScreenPtr	    pScreen;
     int		    x, y, w, h, dx, dy;
 {
@@ -678,8 +692,8 @@ miDCChangeSave (deviceid, pScreen, x, y, w, h, dx, dy)
     pScreenPriv = (miDCScreenPtr) pScreen->devPrivates[miDCScreenIndex].ptr;
     pBuffer = pScreenPriv->pCoreBuffer;
 #ifdef MPX
-    if (SaneID(deviceid))
-            pBuffer = &pScreenPriv->pMPBuffers[deviceid];
+    if (MPHasCursor(pDev))
+            pBuffer = &pScreenPriv->pMPBuffers[pDev->id];
 #endif
     pSave = pBuffer->pSave;
     pWin = WindowTable[pScreen->myNum];
@@ -802,8 +816,8 @@ miDCChangeSave (deviceid, pScreen, x, y, w, h, dx, dy)
 }
 
 static Bool
-miDCMoveCursor (deviceid, pScreen, pCursor, x, y, w, h, dx, dy, source, mask)
-    int             deviceid;
+miDCMoveCursor (pDev, pScreen, pCursor, x, y, w, h, dx, dy, source, mask)
+    DeviceIntPtr    pDev;
     ScreenPtr	    pScreen;
     CursorPtr	    pCursor;
     int		    x, y, w, h, dx, dy;
@@ -829,8 +843,8 @@ miDCMoveCursor (deviceid, pScreen, pCursor, x, y, w, h, dx, dy, source, mask)
     pWin = WindowTable[pScreen->myNum];
     pBuffer = pScreenPriv->pCoreBuffer;
 #ifdef MPX
-    if (SaneID(deviceid))
-            pBuffer = &pScreenPriv->pMPBuffers[deviceid];
+    if (MPHasCursor(pDev))
+            pBuffer = &pScreenPriv->pMPBuffers[pDev->id];
 #endif
     pTemp = pBuffer->pTemp;
     if (!pTemp ||
