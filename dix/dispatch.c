@@ -426,9 +426,6 @@ Dispatch(void)
 
 	nready = WaitForSomething(clientReady);
 
-        /* this is an enormous hack and NEEDS TO GO AWAY. */
-        configDispatch();
-
 #ifdef SMART_SCHEDULE
 	if (nready && !SmartScheduleDisable)
 	{

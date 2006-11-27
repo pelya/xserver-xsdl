@@ -50,18 +50,27 @@
                                   ret = BadValue; \
                                   goto unwind; }
 
-static DBusConnection *configConnection = NULL;
-static int configfd = -1;
-static char busobject[32] = { 0 };
-static char busname[64] = { 0 };
+struct config_data {
+    int fd;
+    DBusConnection *connection;
+    char busobject[32];
+    char busname[64];
+};
 
-void
-configDispatch()
+static struct config_data *configData;
+
+static void
+configWakeupHandler(pointer blockData, int err, pointer pReadMask)
 {
-    if (!configConnection)
-        return;
+    struct config_data *data = blockData;
 
-    dbus_connection_read_write_dispatch(configConnection, 0);
+    if (data->connection && FD_ISSET(data->fd, (fd_set *) pReadMask))
+        dbus_connection_read_write_dispatch(data->connection, 0);
+}
+
+static void
+configBlockHandler(pointer data, struct timeval **tv, pointer pReadMask)
+{
 }
 
 static int
@@ -249,68 +258,78 @@ configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
 void
 configInitialise()
 {
-    DBusConnection *bus = NULL;
     DBusError error;
     DBusObjectPathVTable vtable = { .message_function = configMessage };
 
-    configConnection = NULL;
+    if (!configData)
+        configData = (struct config_data *) xcalloc(sizeof(struct config_data), 1);
+    if (!configData)
+        return;
 
     dbus_error_init(&error);
-    bus = dbus_bus_get(DBUS_BUS_SYSTEM, &error);
-    if (!bus || dbus_error_is_set(&error)) {
+    configData->connection = dbus_bus_get(DBUS_BUS_SYSTEM, &error);
+    if (!configData->connection || dbus_error_is_set(&error)) {
         ErrorF("[dbus] some kind of error occurred: %s (%s)\n", error.name,
                 error.message);
         dbus_error_free(&error);
         return;
     }
 
-    if (!dbus_connection_get_unix_fd(bus, &configfd)) {
-        dbus_connection_unref(bus);
+    if (!dbus_connection_get_unix_fd(configData->connection, &configData->fd)) {
+        dbus_connection_unref(configData->connection);
         ErrorF("[dbus] couldn't get fd for bus\n");
         dbus_error_free(&error);
-        configfd = -1;
+        configData->fd = -1;
         return;
     }
 
-    snprintf(busname, sizeof(busname), "org.x.config.display%d", atoi(display));
-    if (!dbus_bus_request_name(bus, busname, 0, &error) ||
-        dbus_error_is_set(&error)) {
+    snprintf(configData->busname, sizeof(configData->busname),
+             "org.x.config.display%d", atoi(display));
+    if (!dbus_bus_request_name(configData->connection, configData->busname,
+                               0, &error) || dbus_error_is_set(&error)) {
         ErrorF("[dbus] couldn't take over org.x.config: %s (%s)\n",
                error.name, error.message);
         dbus_error_free(&error);
-        dbus_connection_unref(bus);
-        configfd = -1;
+        dbus_connection_unref(configData->connection);
+        configData->fd = -1;
         return;
     }
 
     /* blocks until we get a reply. */
-    dbus_bus_add_match(bus, MATCH_RULE, &error);
+    dbus_bus_add_match(configData->connection, MATCH_RULE, &error);
     if (dbus_error_is_set(&error)) {
         ErrorF("[dbus] couldn't match X.Org rule: %s (%s)\n", error.name,
                error.message);
         dbus_error_free(&error);
-        dbus_bus_release_name(bus, busname, &error);
-        dbus_connection_unref(bus);
-        configfd = -1;
+        dbus_bus_release_name(configData->connection, configData->busname,
+                              &error);
+        dbus_connection_unref(configData->connection);
+        configData->fd = -1;
         return;
     }
 
-    snprintf(busobject, sizeof(busobject), "/org/x/config/%d", atoi(display));
-    if (!dbus_connection_register_object_path(bus, busobject, &vtable, bus)) {
+    snprintf(configData->busobject, sizeof(configData->busobject),
+             "/org/x/config/%d", atoi(display));
+    if (!dbus_connection_register_object_path(configData->connection,
+                                              configData->busobject, &vtable,
+                                              configData->connection)) {
         ErrorF("[dbus] couldn't register object path\n");
-        configfd = -1;
-        dbus_bus_release_name(bus, busname, &error);
-        dbus_bus_remove_match(bus, MATCH_RULE, &error);
-        dbus_connection_unref(bus);
+        configData->fd = -1;
+        dbus_bus_release_name(configData->connection, configData->busname,
+                              &error);
+        dbus_bus_remove_match(configData->connection, MATCH_RULE, &error);
+        dbus_connection_unref(configData->connection);
         dbus_error_free(&error);
         return;
     }
 
-    DebugF("[dbus] registered object path %s\n", busobject);
+    DebugF("[dbus] registered object path %s\n", configData->busobject);
 
     dbus_error_free(&error);
-    configConnection = bus;
-    AddGeneralSocket(configfd);
+    AddGeneralSocket(configData->fd);
+
+    RegisterBlockAndWakeupHandlers(configBlockHandler, configWakeupHandler,
+                                   configData);
 }
 
 void
@@ -318,25 +337,24 @@ configFini()
 {
     DBusError error;
 
-    if (configConnection) {
+    if (configData) {
         dbus_error_init(&error);
-        dbus_connection_unregister_object_path(configConnection, busobject);
-        dbus_bus_remove_match(configConnection, MATCH_RULE, &error);
-        dbus_bus_release_name(configConnection, busname, &error);
-        dbus_connection_unref(configConnection);
-        RemoveGeneralSocket(configfd);
-        configConnection = NULL;
-        configfd = -1;
+        dbus_connection_unregister_object_path(configData->connection,
+                                               configData->busobject);
+        dbus_bus_remove_match(configData->connection, MATCH_RULE, &error);
+        dbus_bus_release_name(configData->connection, configData->busname,
+                              &error);
+        dbus_connection_unref(configData->connection);
+        RemoveGeneralSocket(configData->fd);
+        RemoveBlockAndWakeupHandlers(configBlockHandler, configWakeupHandler,
+                                     configData);
+        xfree(configData);
+        configData = NULL;
         dbus_error_free(&error);
     }
 }
 
 #else /* !HAVE_DBUS */
-
-void
-configDispatch()
-{
-}
 
 void
 configInitialise()
