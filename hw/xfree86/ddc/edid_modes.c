@@ -85,14 +85,15 @@ DDCModesFromStandardTiming(int scrnIndex, struct std_timings *timing)
 {
     DisplayModePtr Modes = NULL, Mode = NULL;
     int i;
-    
-    for (i = 0; i < STD_TIMINGS; i++)
+
+    for (i = 0; i < STD_TIMINGS; i++) {
         if (timing[i].hsize && timing[i].vsize && timing[i].refresh) {
             Mode =  xf86CVTMode(timing[i].hsize, timing[i].vsize,
                                 timing[i].refresh, FALSE, FALSE);
 	    Mode->type = M_T_DRIVER;
             Modes = xf86ModesAdd(Modes, Mode);
         }
+    }
 
     return Modes;
 }
@@ -108,55 +109,56 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
 
     /* We don't do stereo */
     if (timing->stereo) {
-        xf86DrvMsg(scrnIndex, X_INFO, "%s: Ignoring: We don't handle stereo.\n",
-                   __func__);
+        xf86DrvMsg(scrnIndex, X_INFO,
+		   "%s: Ignoring: We don't handle stereo.\n", __func__);
         return NULL;
     }
-    
+
     /* We only do seperate sync currently */
     if (timing->sync != 0x03) {
-         xf86DrvMsg(scrnIndex, X_INFO, "%s: %dx%d Warning: We only handle seperate"
+         xf86DrvMsg(scrnIndex, X_INFO,
+		    "%s: %dx%d Warning: We only handle seperate"
                     " sync.\n", __func__, timing->h_active, timing->v_active);
     }
-    
+
     Mode = xnfalloc(sizeof(DisplayModeRec));
     memset(Mode, 0, sizeof(DisplayModeRec));
-    
+
     Mode->name = xnfalloc(10); /* "1234x1234" */
     xf86snprintf(Mode->name, 20, "%dx%d", timing->h_active,
                  timing->v_active);
-    
+
     Mode->type = M_T_DRIVER;
     if (preferred)
 	Mode->type |= M_T_PREFERRED;
-    
+
     Mode->Clock = timing->clock / 1000.0;
-    
+
     Mode->HDisplay = timing->h_active;
     Mode->HSyncStart = timing->h_active + timing->h_sync_off;
     Mode->HSyncEnd = Mode->HSyncStart + timing->h_sync_width;
     Mode->HTotal = timing->h_active + timing->h_blanking;
-    
+
     Mode->VDisplay = timing->v_active;
     Mode->VSyncStart = timing->v_active + timing->v_sync_off;
     Mode->VSyncEnd = Mode->VSyncStart + timing->v_sync_width;
     Mode->VTotal = timing->v_active + timing->v_blanking;
-    
+
     /* We ignore h/v_size and h/v_border for now. */
-    
+
     if (timing->interlaced)
         Mode->Flags |= V_INTERLACE;
-    
+
     if (timing->misc & 0x02)
         Mode->Flags |= V_PHSYNC;
     else
         Mode->Flags |= V_NHSYNC;
-    
+
     if (timing->misc & 0x01)
         Mode->Flags |= V_PVSYNC;
     else
         Mode->Flags |= V_NVSYNC;
- 
+
     return Mode;
 }
 
@@ -199,7 +201,7 @@ DDCGuessRangesFromModes(int scrnIndex, MonPtr Monitor, DisplayModePtr Modes)
 
         if (Mode->VRefresh > Monitor->vrefresh[0].hi)
             Monitor->vrefresh[0].hi = Mode->VRefresh;
-        
+
         Mode = Mode->next;
     }
 }
@@ -214,7 +216,7 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
     int i, clock;
     Bool have_hsync = FALSE, have_vrefresh = FALSE;
     int preferred;
-    
+
     if (!Monitor || !DDC)
         return;
 
@@ -224,9 +226,9 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 
     Monitor->widthmm = 10 * DDC->features.hsize;
     Monitor->heightmm = 10 * DDC->features.vsize;
-    
+
     /* If this is a digital display, then we can use reduced blanking */
-    if (DDC->features.input_type) 
+    if (DDC->features.input_type)
         Monitor->reducedblanking = TRUE;
     /* Allow the user to also enable this through config */
 
@@ -280,7 +282,7 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 
             break;
         case DT:
-            Mode = DDCModeFromDetailedTiming(scrnIndex, 
+            Mode = DDCModeFromDetailedTiming(scrnIndex,
                                              &DDC->det_mon[i].section.d_timings,
 					     preferred);
 	    preferred = 0;
@@ -314,7 +316,7 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 
         while (Mode->next)
             Mode = Mode->next;
-        
+
         /* add to MonPtr */
         if (Monitor->Modes) {
             Monitor->Last->next = Modes;
