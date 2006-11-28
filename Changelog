@@ -8,6 +8,17 @@ Files:
 	dix/cursor.c
 	mi/mieq.c
 
+____________________________________________________________
+
+dix:	missing parameter to SetCursorPosition in CheckMotion ifndef MPX
+
+mi:	missing include in misprite.c ifndef MPX
+
+Files:
+	dix/events.c
+	mi/misprite.c
+
+
 == 27.11.06 ==
 mi:     free allocated memory in miDCCloseScreen and in miDCInitialize in case
 	of errors.

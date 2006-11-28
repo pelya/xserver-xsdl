@@ -56,15 +56,13 @@ in this Software without prior written authorization from The Open Group.
 # include   "mispritest.h"
 # include   "dixfontstr.h"
 # include   <X11/fonts/fontstruct.h>
+# include   "inputstr.h" 
 
 #ifdef RENDER
 # include   "mipict.h"
 #endif
 # include   "damage.h"
 
-#ifdef MPX
-# include   "inputstr.h" 
-#endif
 
 
 #define SPRITE_DEBUG_ENABLE 0

@@ -2136,7 +2136,7 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 	    (pSprite->hotPhys.y != XE_KBPTR.rootY))
 	{
 	    (*pSprite->hotPhys.pScreen->SetCursorPosition)(
-		pSprite->hotPhys.pScreen,
+                pDev, pSprite->hotPhys.pScreen,
 		pSprite->hotPhys.x, pSprite->hotPhys.y, FALSE);
 	}
 #endif
