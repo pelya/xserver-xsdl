@@ -33,98 +33,6 @@
 #include "xf86DDC.h"
 
 /*
- * xf86Mode.c should have a some more DisplayModePtr list handling.
- */
-static DisplayModePtr
-xf86ModesAdd(DisplayModePtr Modes, DisplayModePtr Additions)
-{
-    if (!Modes) {
-        if (Additions)
-            return Additions;
-        else
-            return NULL;
-    }
-
-    if (Additions) {
-        DisplayModePtr Mode = Modes;
-
-        while (Mode->next)
-            Mode = Mode->next;
-        
-        Mode->next = Additions;
-        Additions->prev = Mode;
-    }
-
-    return Modes;
-}
-
-static DisplayModePtr
-xf86ModeCopy(DisplayModePtr Mode)
-{
-    DisplayModePtr New;
-
-    if (!Mode)
-        return NULL;
-
-    New = xnfalloc(sizeof(DisplayModeRec));
-
-    memcpy(New, Mode, sizeof(DisplayModeRec));
-    
-    New->name = xnfalloc(strlen(Mode->name) + 1);
-    memcpy(New->name, Mode->name, strlen(Mode->name) + 1);
-
-    /* We ignore privates as DDC code doesn't use it currently */
-    return New;
-}
-
-/*
- * Temporary.
- */
-static void
-add(char **p, char *new)
-{
-    *p = xnfrealloc(*p, strlen(*p) + strlen(new) + 2);
-    strcat(*p, " ");
-    strcat(*p, new);
-}
-
-static void
-PrintModeline(int scrnIndex,DisplayModePtr mode)
-{
-    char tmp[256];
-    char *flags = xnfcalloc(1, 1);
-
-    if (mode->HSkew) { 
-	snprintf(tmp, 256, "hskew %i", mode->HSkew); 
-	add(&flags, tmp);
-    }
-    if (mode->VScan) { 
-	snprintf(tmp, 256, "vscan %i", mode->VScan); 
-	add(&flags, tmp);
-    }
-    if (mode->Flags & V_INTERLACE) add(&flags, "interlace");
-    if (mode->Flags & V_CSYNC) add(&flags, "composite");
-    if (mode->Flags & V_DBLSCAN) add(&flags, "doublescan");
-    if (mode->Flags & V_BCAST) add(&flags, "bcast");
-    if (mode->Flags & V_PHSYNC) add(&flags, "+hsync");
-    if (mode->Flags & V_NHSYNC) add(&flags, "-hsync");
-    if (mode->Flags & V_PVSYNC) add(&flags, "+vsync");
-    if (mode->Flags & V_NVSYNC) add(&flags, "-vsync");
-    if (mode->Flags & V_PCSYNC) add(&flags, "+csync");
-    if (mode->Flags & V_NCSYNC) add(&flags, "-csync");
-#if 0
-    if (mode->Flags & V_CLKDIV2) add(&flags, "vclk/2");
-#endif
-    xf86DrvMsgVerb(scrnIndex, X_INFO, 3,
-		   "Modeline \"%s\"  %6.2f  %i %i %i %i  %i %i %i %i%s\n",
-		   mode->name, mode->Clock/1000., mode->HDisplay,
-		   mode->HSyncStart, mode->HSyncEnd, mode->HTotal,
-		   mode->VDisplay, mode->VSyncStart, mode->VSyncEnd,
-		   mode->VTotal, flags);
-    xfree(flags);
-}
-
-/*
  * TODO:
  *  - for those with access to the VESA DMT standard; review please.
  */
@@ -159,11 +67,12 @@ DDCModesFromEstablished(int scrnIndex, struct established_timings *timing)
         ((timing->t_manu & 0x80) << 9);
     int i;
 
-    for (i = 0; i < 17; i++)
+    for (i = 0; i < 17; i++) {
         if (bits & (0x01 << i)) {
-            Mode = xf86ModeCopy(&(DDCEstablishedModes[i]));
+            Mode = xf86DusplicateMode(&DDCEstablishedModes[i]);
             Modes = xf86ModesAdd(Modes, Mode);
         }
+    }
 
     return Modes;
 }
@@ -392,7 +301,7 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 
         Mode = Modes;
         while (Mode) {
-            PrintModeline(scrnIndex, Mode);
+            xf86PrintModeline(scrnIndex, Mode);
             Mode = Mode->next;
         }
 
