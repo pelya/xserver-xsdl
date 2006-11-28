@@ -69,7 +69,7 @@ DDCModesFromEstablished(int scrnIndex, struct established_timings *timing)
 
     for (i = 0; i < 17; i++) {
         if (bits & (0x01 << i)) {
-            Mode = xf86DusplicateMode(&DDCEstablishedModes[i]);
+            Mode = xf86DuplicateMode(&DDCEstablishedModes[i]);
             Modes = xf86ModesAdd(Modes, Mode);
         }
     }
