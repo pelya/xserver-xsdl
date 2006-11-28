@@ -327,7 +327,7 @@ RROutputDestroyResource (pointer value, XID pid)
 	    if (pScrPriv->outputs[i] == output)
 	    {
 		memmove (pScrPriv->outputs + i, pScrPriv->outputs + i + 1,
-			 (pScrPriv->numOutputs - (i - 1)) * sizeof (RROutputPtr));
+			 (pScrPriv->numOutputs - (i + 1)) * sizeof (RROutputPtr));
 		--pScrPriv->numOutputs;
 		break;
 	    }

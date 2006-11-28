@@ -344,7 +344,7 @@ RRCrtcDestroyResource (pointer value, XID pid)
 	    if (pScrPriv->crtcs[i] == crtc)
 	    {
 		memmove (pScrPriv->crtcs + i, pScrPriv->crtcs + i + 1,
-			 (pScrPriv->numCrtcs - (i - 1)) * sizeof (RRCrtcPtr));
+			 (pScrPriv->numCrtcs - (i + 1)) * sizeof (RRCrtcPtr));
 		--pScrPriv->numCrtcs;
 		break;
 	    }
