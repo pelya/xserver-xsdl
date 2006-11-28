@@ -1,4 +1,13 @@
 MPX Changelog file
+== 28.11.06 ==
+mi:     Bugfix: FreeCursor ignores negative refcounts.
+
+mieq:   Bugfix: Motion notifies did overwrite DeviceMotionNotifies
+
+Files:
+	dix/cursor.c
+	mi/mieq.c
+
 == 27.11.06 ==
 mi:     free allocated memory in miDCCloseScreen and in miDCInitialize in case
 	of errors.

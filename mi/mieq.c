@@ -119,7 +119,7 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
     if (e->u.u.type == MotionNotify)
         isMotion = inputInfo.pointer->id;
     else if (e->u.u.type == DeviceMotionNotify)
-        isMotion = pDev->id;
+        isMotion = pDev->id | (1 << 8); /* flag to indicate DeviceMotion */
 
     /* We silently steal valuator events: just tack them on to the last
      * motion event they need to be attached to.  Sigh. */
