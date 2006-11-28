@@ -204,31 +204,13 @@ DDCGuessRangesFromModes(int scrnIndex, MonPtr Monitor, DisplayModePtr Modes)
     }
 }
 
-/*
- * Fill out MonPtr with xf86MonPtr information.
- */
-void
-xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
+DisplayModePtr
+xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
 {
+    int preferred, i;
     DisplayModePtr Modes = NULL, Mode;
-    int i, clock;
-    Bool have_hsync = FALSE, have_vrefresh = FALSE;
-    int preferred;
-
-    if (!Monitor || !DDC)
-        return;
-
-    Monitor->DDC = DDC;
 
     preferred = PREFERRED_TIMING_MODE(DDC->features.msc);
-
-    Monitor->widthmm = 10 * DDC->features.hsize;
-    Monitor->heightmm = 10 * DDC->features.vsize;
-
-    /* If this is a digital display, then we can use reduced blanking */
-    if (DDC->features.input_type)
-        Monitor->reducedblanking = TRUE;
-    /* Allow the user to also enable this through config */
 
     /* Add established timings */
     Mode = DDCModesFromEstablished(scrnIndex, &DDC->timings1);
@@ -238,12 +220,61 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
     Mode = DDCModesFromStandardTiming(scrnIndex, DDC->timings2);
     Modes = xf86ModesAdd(Modes, Mode);
 
+    for (i = 0; i < DET_TIMINGS; i++) {
+	struct detailed_monitor_section *det_mon = &DDC->det_mon[i];
+
+        switch (det_mon->type) {
+        case DT:
+            Mode = DDCModeFromDetailedTiming(scrnIndex,
+                                             &det_mon->section.d_timings,
+					     preferred);
+	    preferred = 0;
+            Modes = xf86ModesAdd(Modes, Mode);
+            break;
+        case DS_STD_TIMINGS:
+            Mode = DDCModesFromStandardTiming(scrnIndex,
+					      det_mon->section.std_t);
+            Modes = xf86ModesAdd(Modes, Mode);
+            break;
+        default:
+            break;
+        }
+    }
+
+    return Modes;
+}
+
+/*
+ * Fill out MonPtr with xf86MonPtr information.
+ */
+void
+xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
+{
+    DisplayModePtr Modes = NULL, Mode;
+    int i, clock;
+    Bool have_hsync = FALSE, have_vrefresh = FALSE;
+
+    if (!Monitor || !DDC)
+        return;
+
+    Monitor->DDC = DDC;
+
+    Monitor->widthmm = 10 * DDC->features.hsize;
+    Monitor->heightmm = 10 * DDC->features.vsize;
+
+    /* If this is a digital display, then we can use reduced blanking */
+    if (DDC->features.input_type)
+        Monitor->reducedblanking = TRUE;
+    /* Allow the user to also enable this through config */
+
+    Modes = xf86DDCGetModes(scrnIndex, DDC);
+
     /* Skip EDID ranges if they were specified in the config file */
     have_hsync = (Monitor->nHsync != 0);
     have_vrefresh = (Monitor->nVrefresh != 0);
 
     /* Go through the detailed monitor sections */
-    for (i = 0; i < DET_TIMINGS; i++)
+    for (i = 0; i < DET_TIMINGS; i++) {
         switch (DDC->det_mon[i].type) {
         case DS_RANGES:
 	    if (!have_hsync) {
@@ -279,21 +310,10 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 		Monitor->maxPixClock = clock;
 
             break;
-        case DT:
-            Mode = DDCModeFromDetailedTiming(scrnIndex,
-                                             &DDC->det_mon[i].section.d_timings,
-					     preferred);
-	    preferred = 0;
-            Modes = xf86ModesAdd(Modes, Mode);
-            break;
-        case DS_STD_TIMINGS:
-            Mode = DDCModesFromStandardTiming(scrnIndex,
-                                             DDC->det_mon[i].section.std_t);
-            Modes = xf86ModesAdd(Modes, Mode);
-            break;
         default:
             break;
         }
+    }
 
     if (Modes) {
         /* Print Modes */
