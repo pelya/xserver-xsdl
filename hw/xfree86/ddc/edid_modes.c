@@ -124,10 +124,6 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
     Mode = xnfalloc(sizeof(DisplayModeRec));
     memset(Mode, 0, sizeof(DisplayModeRec));
 
-    Mode->name = xnfalloc(10); /* "1234x1234" */
-    xf86snprintf(Mode->name, 20, "%dx%d", timing->h_active,
-                 timing->v_active);
-
     Mode->type = M_T_DRIVER;
     if (preferred)
 	Mode->type |= M_T_PREFERRED;
@@ -143,6 +139,8 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
     Mode->VSyncStart = timing->v_active + timing->v_sync_off;
     Mode->VSyncEnd = Mode->VSyncStart + timing->v_sync_width;
     Mode->VTotal = timing->v_active + timing->v_blanking;
+
+    xf86SetModeDefaultName(Mode);
 
     /* We ignore h/v_size and h/v_border for now. */
 
