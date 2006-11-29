@@ -33,7 +33,7 @@ DUMMYLIB_SRCDIR	= $(XFREE86_SRCDIR)/dummylib
 
 INCLUDES = $(XORG_INCS) -I$(DUMMYLIB_SRCDIR)
 
-ioport_CFLAGS = $(XORG_CFLAGS)
+ioport_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 ioport_LDADD = \
 	../../os-support/libxorgos.la \
 	../../dummylib/libdummy-nonserver.a \

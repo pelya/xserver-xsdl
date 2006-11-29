@@ -34,7 +34,7 @@ DUMMYLIB_SRCDIR	= $(XFREE86_SRCDIR)/dummylib
 
 INCLUDES = $(XORG_INCS) -I$(SCANPCI_SRCDIR) -I$(DUMMYLIB_SRCDIR)
 
-scanpci_CFLAGS = $(XORG_CFLAGS)
+scanpci_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 scanpci_LDADD = \
 	../../scanpci/libscanpci.la \
 	../../os-support/libxorgos.la \
