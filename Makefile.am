@@ -42,6 +42,7 @@ SUBDIRS = \
 	randr \
 	render  \
 	Xi \
+        mpx \
 	xkb \
 	$(DBE_DIR) \
 	$(MFB_DIR) \
@@ -78,6 +79,7 @@ DIST_SUBDIRS = \
 	randr \
 	render  \
 	Xi \
+        mpx \
 	xkb \
 	dbe \
 	mfb \

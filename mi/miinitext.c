@@ -384,6 +384,9 @@ extern void DamageExtensionInit(INITARGS);
 #ifdef COMPOSITE
 extern void CompositeExtensionInit(INITARGS);
 #endif
+#ifdef MPX
+extern void MPXExtensionInit(INITARGS);
+#endif
 
 /* The following is only a small first step towards run-time
  * configurable extensions.
@@ -663,6 +666,9 @@ InitExtensions(argc, argv)
 #ifdef DAMAGE
     if (!noDamageExtension) DamageExtensionInit();
 #endif
+#ifdef MPX
+    if (!noMPXExtension) MPXExtensionInit();
+#endif
 }
 
 void
@@ -733,6 +739,9 @@ static ExtensionModule staticExtensions[] = {
 #ifdef XEVIE
     { XevieExtensionInit, "XEVIE", &noXevieExtension, NULL },
 #endif 
+#ifdef MPX
+    { MPXExtensionInit, "MPX", &noMPXExtension, NULL },
+#endif
     { NULL, NULL, NULL, NULL, NULL }
 };
     

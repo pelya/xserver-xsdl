@@ -63,6 +63,10 @@ extern Bool noCompositeExtension;
 extern Bool noDamageExtension;
 #endif
 
+#ifdef MPX
+extern Bool noMPXExtension;
+#endif
+
 #ifdef DBE
 extern Bool noDbeExtension;
 #endif

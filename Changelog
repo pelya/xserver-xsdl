@@ -1,4 +1,21 @@
 MPX Changelog file
+== 29.11.206 ==
+mpx:    Infrastructure for MPX extension, GetExtensionVersion request works.
+
+Files:
+	mpx/
+	mpx/Makefile.am
+	mpx/extinit.c
+	mpx/getvers.c
+	mpx/getvers.h
+	mpxglobals.h
+	mpx/selectev.c
+	configure.ac
+	Makefile.am
+	os/utils.c
+	mi/miinitext.c
+	include/globals.h
+
 == 28.11.06 ==
 mi:     Bugfix: FreeCursor ignores negative refcounts.
 
