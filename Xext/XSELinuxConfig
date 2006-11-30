@@ -9,6 +9,7 @@
 # security policy.  Only one nonlocal_context rule may be defined.
 #
 nonlocal_context			system_u:object_r:remote_xclient_t:s1
+root_window_context			system_u:object_r:root_window_t:s1
 
 #
 # Property rules map a property name to a SELinux type.  The type must
