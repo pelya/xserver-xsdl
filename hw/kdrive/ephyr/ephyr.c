@@ -36,9 +36,15 @@
 #include "inputstr.h"
 
 extern int KdTsPhyScreen;
-extern DeviceIntPtr pKdKeyboard;
+KdKeyboardInfo *ephyrKbd;
+KdPointerInfo *ephyrMouse;
+EphyrKeySyms ephyrKeySyms;
 
 static int mouseState = 0;
+
+typedef struct _EphyrInputPrivate {
+    Bool    enabled;
+} EphyrKbdPrivate, EphyrPointerPrivate;
 
 Bool   EphyrWantGrayScale = 0;
 
@@ -206,15 +212,14 @@ ephyrMapFramebuffer (KdScreenInfo *screen)
 {
   EphyrScrPriv  *scrpriv = screen->driver;
   EphyrPriv	  *priv    = screen->card->driver;
-  KdMouseMatrix m;
+  KdPointerMatrix m;
   int buffer_height;
   
   EPHYR_DBG(" screen->width: %d, screen->height: %d",
 	    screen->width, screen->height);
   
-  KdComputeMouseMatrix (&m, scrpriv->randr, screen->width, screen->height);
-    
-  KdSetMouseMatrix (&m);
+  KdComputePointerMatrix (&m, scrpriv->randr, screen->width, screen->height);
+  KdSetPointerMatrix (&m);
   
   priv->bytes_per_line = ((screen->width * screen->fb[0].bitsPerPixel + 31) >> 5) << 2;
   
@@ -719,8 +724,9 @@ ephyrUpdateModifierState(unsigned int state)
 		kptr = &keyc->down[key >> 3];
 		bit = 1 << (key & 7);
 		
-		if (*kptr & bit)
-		  KdEnqueueKeyboardEvent(key, TRUE); /* release */
+		if (*kptr & bit && ephyrKbd &&
+                    ((EphyrKbdPrivate *)ephyrKbd->driverPrivate)->enabled)
+		  KdEnqueueKeyboardEvent(ephyrKbd, key, TRUE); /* release */
 		
 		if (--count == 0)
 		  break;
@@ -732,7 +738,9 @@ ephyrUpdateModifierState(unsigned int state)
 	for (key = 0; key < MAP_LENGTH; key++)
 	  if (keyc->modifierMap[key] & mask) 
 	    {
-	      KdEnqueueKeyboardEvent(key, FALSE); /* press */
+              if (keyc->modifierMap[key] & mask && ephyrKbd &&
+                  ((EphyrKbdPrivate *)ephyrKbd->driverPrivate)->enabled)
+	          KdEnqueueKeyboardEvent(ephyrKbd, key, FALSE); /* press */
 	      break;
 	    }
     }
@@ -748,31 +756,47 @@ ephyrPoll(void)
       switch (ev.type)
 	{
 	case EPHYR_EV_MOUSE_MOTION:
-	  KdEnqueueMouseEvent(kdMouseInfo, mouseState,  
-			      ev.data.mouse_motion.x, 
-			      ev.data.mouse_motion.y);
+          if (!ephyrMouse ||
+              !((EphyrPointerPrivate *)ephyrMouse->driverPrivate)->enabled)
+              continue;
+	  KdEnqueuePointerEvent(ephyrMouse, mouseState,  
+			        ev.data.mouse_motion.x, 
+			        ev.data.mouse_motion.y,
+                                0);
 	  break;
 	  
 	case EPHYR_EV_MOUSE_PRESS:
+          if (!ephyrMouse ||
+              !((EphyrPointerPrivate *)ephyrMouse->driverPrivate)->enabled)
+              continue;
 	  ephyrUpdateModifierState(ev.key_state);
 	  mouseState |= ev.data.mouse_down.button_num;
-	  KdEnqueueMouseEvent(kdMouseInfo, mouseState|KD_MOUSE_DELTA, 0, 0);
+	  KdEnqueuePointerEvent(ephyrMouse, mouseState|KD_MOUSE_DELTA, 0, 0, 0);
 	  break;
 
 	case EPHYR_EV_MOUSE_RELEASE:
+          if (!ephyrMouse ||
+              !((EphyrPointerPrivate *)ephyrMouse->driverPrivate)->enabled)
+              continue;
 	  ephyrUpdateModifierState(ev.key_state);
 	  mouseState &= ~ev.data.mouse_up.button_num;
-	  KdEnqueueMouseEvent(kdMouseInfo, mouseState|KD_MOUSE_DELTA, 0, 0);
+	  KdEnqueuePointerEvent(ephyrMouse, mouseState|KD_MOUSE_DELTA, 0, 0, 0);
 	  break;
 
 	case EPHYR_EV_KEY_PRESS:
+          if (!ephyrKbd ||
+              !((EphyrKbdPrivate *)ephyrKbd->driverPrivate)->enabled)
+              continue;
 	  ephyrUpdateModifierState(ev.key_state);
-	  KdEnqueueKeyboardEvent (ev.data.key_down.scancode, FALSE);
+	  KdEnqueueKeyboardEvent (ephyrKbd, ev.data.key_down.scancode, FALSE);
 	  break;
 
 	case EPHYR_EV_KEY_RELEASE:
+          if (!ephyrKbd ||
+              !((EphyrKbdPrivate *)ephyrKbd->driverPrivate)->enabled)
+              continue;
 	  ephyrUpdateModifierState(ev.key_state);
-	  KdEnqueueKeyboardEvent (ev.data.key_up.scancode, TRUE);
+	  KdEnqueueKeyboardEvent (ephyrKbd, ev.data.key_up.scancode, TRUE);
 	  break;
 
 	default:
@@ -833,59 +857,112 @@ ephyrPutColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
 
 /* Mouse calls */
 
-static Bool
-MouseInit (void)
+static Status
+MouseInit (KdPointerInfo *pi)
 {
-    return TRUE;
+    pi->driverPrivate = (EphyrPointerPrivate *)
+                         xcalloc(sizeof(EphyrPointerPrivate), 1);
+    ((EphyrPointerPrivate *)pi->driverPrivate)->enabled = FALSE;
+    pi->nAxes = 3;
+    pi->nButtons = 32;
+    pi->name = KdSaveString("Xephyr virtual mouse");
+    ephyrMouse = pi;
+    return Success;
+}
+
+static Status
+MouseEnable (KdPointerInfo *pi)
+{
+    ((EphyrPointerPrivate *)pi->driverPrivate)->enabled = TRUE;
+    return Success;
 }
 
 static void
-MouseFini (void)
+MouseDisable (KdPointerInfo *pi)
 {
-  ;
+    ((EphyrPointerPrivate *)pi->driverPrivate)->enabled = FALSE;
+    return;
 }
 
-KdMouseFuncs EphyrMouseFuncs = {
+static void
+MouseFini (KdPointerInfo *pi)
+{
+    ephyrMouse = NULL; 
+    return;
+}
+
+KdPointerDriver EphyrMouseDriver = {
+    "ephyr",
     MouseInit,
+    MouseEnable,
+    MouseDisable,
     MouseFini,
+    NULL,
 };
 
 /* Keyboard */
 
-static void
-EphyrKeyboardLoad (void)
+static Status
+EphyrKeyboardInit (KdKeyboardInfo *ki)
 {
-  EPHYR_DBG("mark");
-
+  ki->driverPrivate = (EphyrKbdPrivate *)
+                       xcalloc(sizeof(EphyrKbdPrivate), 1);
   hostx_load_keymap();
+  if (!ephyrKeySyms.map) {
+      ErrorF("Couldn't load keymap from host\n");
+      return BadAlloc;
+  }
+  ki->keySyms.minKeyCode = ephyrKeySyms.minKeyCode;
+  ki->keySyms.maxKeyCode = ephyrKeySyms.maxKeyCode;
+  ki->minScanCode = ki->keySyms.minKeyCode;
+  ki->maxScanCode = ki->keySyms.maxKeyCode;
+  ki->keySyms.mapWidth = ephyrKeySyms.mapWidth;
+  ki->keySyms.map = ephyrKeySyms.map;
+  ki->name = KdSaveString("Xephyr virtual keyboard");
+  ephyrKbd = ki;
+  return Success;
 }
 
-static int
-EphyrKeyboardInit (void)
+static Status
+EphyrKeyboardEnable (KdKeyboardInfo *ki)
 {
-  return 0;
+    ((EphyrKbdPrivate *)ki->driverPrivate)->enabled = TRUE;
+
+    return Success;
 }
 
 static void
-EphyrKeyboardFini (void)
+EphyrKeyboardDisable (KdKeyboardInfo *ki)
+{
+    ((EphyrKbdPrivate *)ki->driverPrivate)->enabled = FALSE;
+}
+
+static void
+EphyrKeyboardFini (KdKeyboardInfo *ki)
+{
+    /* not xfree: we call malloc from hostx.c. */
+    free(ki->keySyms.map);
+    ephyrKbd = NULL;
+    return;
+}
+
+static void
+EphyrKeyboardLeds (KdKeyboardInfo *ki, int leds)
 {
 }
 
 static void
-EphyrKeyboardLeds (int leds)
+EphyrKeyboardBell (KdKeyboardInfo *ki, int volume, int frequency, int duration)
 {
 }
 
-static void
-EphyrKeyboardBell (int volume, int frequency, int duration)
-{
-}
-
-KdKeyboardFuncs	EphyrKeyboardFuncs = {
-    EphyrKeyboardLoad,
+KdKeyboardDriver EphyrKeyboardDriver = {
+    "ephyr",
     EphyrKeyboardInit,
+    EphyrKeyboardEnable,
     EphyrKeyboardLeds,
     EphyrKeyboardBell,
+    EphyrKeyboardDisable,
     EphyrKeyboardFini,
-    0,
+    NULL,
 };

@@ -12,7 +12,6 @@ libxf86config_a_SOURCES = \
 	Files.c \
 	Flags.c \
 	Input.c \
-	Keyboard.c \
 	Layout.c \
 	Module.c \
 	Video.c \
@@ -26,7 +25,7 @@ libxf86config_a_SOURCES = \
 	DRI.c \
 	Extensions.c
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 
 EXTRA_DIST = \
 	Configint.h \

@@ -5,10 +5,6 @@ INCLUDES = 					\
 
 bin_PROGRAMS = Xvia
 
-if TSLIB
-TSLIB_FLAG = -lts
-endif
-
 noinst_LIBRARIES = libvia.a
 
 libvia_a_SOURCES = 	\
@@ -28,7 +24,4 @@ VIA_LIBS =	\
 Xvia_LDADD =						\
 	$(VIA_LIBS)					\
 	@KDRIVE_LIBS@					\
-	@XSERVER_LIBS@					\
-	$(TSLIB_FLAG)					
-
-Xvia_DEPENDENCIES = $(VIA_LIBS)
+	@XSERVER_LIBS@

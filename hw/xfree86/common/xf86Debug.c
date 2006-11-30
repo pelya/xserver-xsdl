@@ -163,6 +163,7 @@ void xf86PokeMmio32(pointer Base, unsigned long Offset, CARD32 v)
 }
 
 
+#if 0
 _X_EXPORT void
 xf86STimestamp(xf86TsPtr* timestamp)
 {
@@ -194,3 +195,4 @@ xf86SPTimestamp(xf86TsPtr* timestamp, char *str)
 	gettimeofday((struct timeval*)*timestamp,NULL);
     }
 }
+#endif

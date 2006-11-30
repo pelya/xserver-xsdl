@@ -142,14 +142,14 @@ xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts,
     if (defaultOpts) {
 	pInfo->options = xf86OptionListCreate(defaultOpts, -1, 0);
     }
-    if (pInfo->conf_idev->commonOptions) {
+    if (pInfo->conf_idev && pInfo->conf_idev->commonOptions) {
 	tmp = xf86optionListDup(pInfo->conf_idev->commonOptions);
 	if (pInfo->options)
 	    pInfo->options = xf86optionListMerge(pInfo->options, tmp);
 	else
 	    pInfo->options = tmp;
     }
-    if (pInfo->conf_idev->extraOptions) {
+    if (pInfo->conf_idev && pInfo->conf_idev->extraOptions) {
 	tmp = xf86optionListDup(pInfo->conf_idev->extraOptions);
 	if (pInfo->options)
 	    pInfo->options = xf86optionListMerge(pInfo->options, tmp);

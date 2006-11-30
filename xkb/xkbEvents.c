@@ -816,7 +816,7 @@ XkbSrvInfoPtr	xkbi;
 		((xE[0].u.u.type==KeyPress)||(xE[0].u.u.type==KeyRelease))) {
 	    ErrorF("XKbFilterWriteEvents:\n");
 	    ErrorF("   Event state= 0x%04x\n",xE[0].u.keyButtonPointer.state);
-	    ErrorF("   XkbLastRepeatEvent!=xE (0x%x!=0x%x) %s\n",
+	    ErrorF("   XkbLastRepeatEvent!=xE (0x%p!=0x%p) %s\n",
 			XkbLastRepeatEvent,xE,
 			((XkbLastRepeatEvent!=(pointer)xE)?"True":"False"));
 	    ErrorF("   (xkbClientEventsFlags&XWDA)==0 (0x%x) %s\n",

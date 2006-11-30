@@ -237,7 +237,7 @@ GLboolean __glXFreeContext(__GLXcontext *cx)
      * __glXDispatch() or as a callback from the resource manager.  In
      * the latter case we need to lift the DRI lock manually. */
 
-    if (glxBlockClients) {
+    if (!glxBlockClients) {
 	__glXleaveServer();
 	cx->destroy(cx);
 	__glXenterServer();

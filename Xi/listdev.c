@@ -96,7 +96,7 @@ int
 ProcXListInputDevices(register ClientPtr client)
 {
     xListInputDevicesReply rep;
-    int numdevs;
+    int numdevs = 0;
     int namesize = 1;	/* need 1 extra byte for strcpy */
     int size = 0;
     int total_length;
@@ -115,12 +115,15 @@ ProcXListInputDevices(register ClientPtr client)
     rep.sequenceNumber = client->sequence;
 
     AddOtherInputDevices();
-    numdevs = inputInfo.numDevices;
 
-    for (d = inputInfo.devices; d; d = d->next)
+    for (d = inputInfo.devices; d; d = d->next) {
 	SizeDeviceInfo(d, &namesize, &size);
-    for (d = inputInfo.off_devices; d; d = d->next)
+        numdevs++;
+    }
+    for (d = inputInfo.off_devices; d; d = d->next) {
 	SizeDeviceInfo(d, &namesize, &size);
+        numdevs++;
+    }
 
     total_length = numdevs * sizeof(xDeviceInfo) + size + namesize;
     devbuf = (char *)xalloc(total_length);
@@ -241,6 +244,10 @@ CopySwapDevice(register ClientPtr client, DeviceIntPtr d, int num_classes,
 	dev->use = IsXKeyboard;
     else if (d == inputInfo.pointer)
 	dev->use = IsXPointer;
+    else if (d->key && d->kbdfeed)
+        dev->use = IsXExtensionKeyboard;
+    else if (d->valuator && d->button)
+        dev->use = IsXExtensionPointer;
     else
 	dev->use = IsXExtensionDevice;
     if (client->swapped) {

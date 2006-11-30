@@ -1,7 +1,7 @@
 SUBDIRS = module
 
 AM_CFLAGS =		 \
-	 \
+	 $(DIX_CFLAGS) \
 	-DHAVE_XGL_CONFIG_H \
 	-DHAVE_DIX_CONFIG_H \
 	$(XGLMODULES_CFLAGS) \

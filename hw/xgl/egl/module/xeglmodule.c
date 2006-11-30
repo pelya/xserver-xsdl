@@ -52,7 +52,7 @@ InitOutput (ScreenInfo *pScreenInfo,
 
 Bool
 LegalModifier (unsigned int key,
-	       DevicePtr    pDev)
+	       DeviceIntPtr    pDev)
 {
     return xeglLegalModifier (key, pDev);
 }

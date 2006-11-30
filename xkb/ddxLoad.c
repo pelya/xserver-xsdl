@@ -403,30 +403,6 @@ char tmpname[PATH_MAX];
 		strncpy(nameRtrn,keymap,nameRtrnLen);
 		nameRtrn[nameRtrnLen-1]= '\0';
 	    }
-#if defined(Lynx) && defined(__i386__) && defined(NEED_POPEN_WORKAROUND)
-	/* somehow popen/pclose is broken on LynxOS AT 2.3.0/2.4.0!
-	 * the problem usually shows up with XF86Setup
-	 * this hack waits at max 5 seconds after pclose() returns
-	 * for the output of the xkbcomp output file.
-	 * I didn't manage to get a patch in time for the 3.2 release
-	 */
-            {
-		int i;
-		char name[PATH_MAX];
-                if (XkbBaseDirectory!=NULL)
-		    sprintf(name,"%s/%s%s.xkm", XkbBaseDirectory
-			,xkm_output_dir, keymap);
-		else
-                    sprintf(name,"%s%s.xkm", xkm_output_dir, keymap);
-		for (i = 0; i < 10; i++) {
-	            if (access(name, 0) == 0) break;
-		    usleep(500000);
-		}
-#ifdef DEBUG
-		if (i) ErrorF(">>>> Waited %d times for %s\n", i, name);
-#endif
-	    }
-#endif
             if (buf != NULL)
                 xfree (buf);
 	    return True;

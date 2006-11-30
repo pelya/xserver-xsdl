@@ -187,7 +187,7 @@ _X_EXPORT int deltaSaveUndersViewable = 0;
  *    For debugging only
  ******/
 
-int
+static void
 PrintChildren(WindowPtr p1, int indent)
 {
     WindowPtr p2;
@@ -197,14 +197,15 @@ PrintChildren(WindowPtr p1, int indent)
     {
 	p2 = p1->firstChild;
 	for (i=0; i<indent; i++) ErrorF( " ");
-	ErrorF( "%x\n", p1->drawable.id);
+	ErrorF( "%lx\n", p1->drawable.id);
 	miPrintRegion(&p1->clipList);
 	PrintChildren(p2, indent+4);
 	p1 = p1->nextSib;
     }
 }
 
-PrintWindowTree()
+static void
+PrintWindowTree(void)
 {
     int i;
     WindowPtr pWin, p1;
@@ -547,8 +548,10 @@ ClippedRegionFromBox(register WindowPtr pWin, RegionPtr Rgn,
                      register int x, register int y,
                      register int w, register int h)
 {
-    ScreenPtr pScreen = pWin->drawable.pScreen;
+    ScreenPtr pScreen;
     BoxRec box;
+
+    pScreen = pWin->drawable.pScreen;
 
     box = *(REGION_EXTENTS(pScreen, &pWin->winSize));
     /* we do these calculations to avoid overflows */
@@ -1663,7 +1666,8 @@ CreateUnclippedWinSize (register WindowPtr pWin)
     pRgn = REGION_CREATE(pWin->drawable.pScreen, &box, 1);
 #ifdef SHAPE
     if (wBoundingShape (pWin) || wClipShape (pWin)) {
-	ScreenPtr pScreen = pWin->drawable.pScreen;
+	ScreenPtr pScreen;
+        pScreen = pWin->drawable.pScreen;
 
 	REGION_TRANSLATE(pScreen, pRgn, - pWin->drawable.x,
 			 - pWin->drawable.y);
@@ -1699,7 +1703,8 @@ SetWinSize (register WindowPtr pWin)
 			 (int)pWin->drawable.height);
 #ifdef SHAPE
     if (wBoundingShape (pWin) || wClipShape (pWin)) {
-	ScreenPtr pScreen = pWin->drawable.pScreen;
+	ScreenPtr pScreen;
+        pScreen = pWin->drawable.pScreen;
 
 	REGION_TRANSLATE(pScreen, &pWin->winSize, - pWin->drawable.x,
 			 - pWin->drawable.y);
@@ -1741,7 +1746,8 @@ SetBorderSize (register WindowPtr pWin)
 		(int)(pWin->drawable.height + (bw<<1)));
 #ifdef SHAPE
 	if (wBoundingShape (pWin)) {
-	    ScreenPtr pScreen = pWin->drawable.pScreen;
+	    ScreenPtr pScreen;
+            pScreen = pWin->drawable.pScreen;
 
 	    REGION_TRANSLATE(pScreen, &pWin->borderSize, - pWin->drawable.x,
 			     - pWin->drawable.y);
@@ -1952,7 +1958,8 @@ MakeBoundingRegion (
     BoxPtr	pBox)
 {
     RegionPtr	pRgn;
-    ScreenPtr   pScreen = pWin->drawable.pScreen;
+    ScreenPtr   pScreen;
+    pScreen = pWin->drawable.pScreen;
 
     pRgn = REGION_CREATE(pScreen, pBox, 1);
     if (wBoundingShape (pWin)) {

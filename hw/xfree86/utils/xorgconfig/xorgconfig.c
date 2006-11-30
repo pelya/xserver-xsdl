@@ -490,7 +490,7 @@ struct {
 
 #ifdef WSCONS_SUPPORT
 # define DEF_MOUSEDEV "/dev/wsmouse";
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__DragonFly__)
 # define DEF_MOUSEDEV "/dev/sysmouse";
 #elif defined(__linux__)
 # define DEF_MOUSEDEV "/dev/input/mice";
@@ -2066,17 +2066,7 @@ static char *XF86Config_fontpathchunk_text =
 "Section \"InputDevice\"\n"
 "\n"
 "    Identifier	\"Keyboard1\"\n"
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-"    Driver	\"Keyboard\"\n"
-#else
 "    Driver	\"kbd\"\n"
-#endif
-"\n"
-"# For most OSs the protocol can be omitted (it defaults to \"Standard\").\n"
-"# When using XQUEUE (only for SVR3 and SVR4, but not Solaris),\n"
-"# uncomment the following line.\n"
-"\n"
-"#    Option     \"Protocol\"      \"Xqueue\"\n"
 "\n"
 "    Option \"AutoRepeat\" \"500 30\"\n"
 "\n"
@@ -2129,7 +2119,7 @@ static char *pointersection_text1 =
 "\n"
 "# Identifier and driver\n"
 "\n"
-#if defined(__UNIXWARE__) || defined(XQUEUE)
+#if defined(__UNIXWARE__)
 "#    Identifier	\"Mouse1\"\n"
 "#    Driver	\"mouse\"\n"
 #else
@@ -2139,15 +2129,6 @@ static char *pointersection_text1 =
 ;
 
 static char *pointersection_text2 =
-"\n"
-"# When using XQUEUE, comment out the above two lines, and uncomment\n"
-"# the following line.\n"
-"\n"
-#if defined(__UNIXWARE__) || defined(XQUEUE)
-"    Option \"Protocol\"	\"Xqueue\"\n"
-#else
-"#    Option \"Protocol\"	\"Xqueue\"\n"
-#endif
 "\n"
 "# Mouse-speed setting for PS/2 mouse.\n"
 "\n"

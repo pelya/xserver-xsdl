@@ -701,6 +701,8 @@ extern Bool AllocateClientPrivate(
     int /*index*/,
     unsigned /*amount*/);
 
+extern int ffs(int i);
+
 /*
  *  callback manager stuff
  */
@@ -814,5 +816,8 @@ typedef struct {
 #define strcasecmp xstrcasecmp
 extern int xstrcasecmp(char *s1, char *s2);
 #endif
+
+/* ffs.c */
+extern int ffs(int i);
 
 #endif /* DIX_H */

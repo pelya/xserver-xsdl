@@ -559,7 +559,7 @@ InitExtensions(argc, argv)
 #ifdef MULTIBUFFER
     if (!noMultibufferExtension) MultibufferExtensionInit();
 #endif
-#if defined(XINPUT) && !defined(NO_HW_ONLY_EXTS)
+#if defined(XINPUT)
     if (!noXInputExtension) XInputExtensionInit();
 #endif
 #ifdef XTEST
@@ -589,7 +589,7 @@ InitExtensions(argc, argv)
 #ifdef XSYNC
     if (!noSyncExtension) SyncExtensionInit();
 #endif
-#if defined(XKB) && !defined(PRINT_ONLY_SERVER) && !defined(NO_HW_ONLY_EXTS)
+#if defined(XKB) && !defined(PRINT_ONLY_SERVER)
     if (!noXkbExtension) XkbExtensionInit();
 #endif
 #ifdef XCMISC
@@ -770,6 +770,16 @@ InitExtensions(argc, argv)
 	/* Sort the extensions according the init dependencies. */
 	LoaderSortExtensions();
 	listInitialised = TRUE;
+    } else {
+	/* Call the setup functions on subsequent server resets as well */
+	for (i = 0; ExtensionModuleList[i].name != NULL; i++) {
+	    ext = &ExtensionModuleList[i];
+	    if (ext->setupFunc != NULL &&
+		(ext->disablePtr == NULL ||
+		 (ext->disablePtr != NULL && !*ext->disablePtr))) {
+		(ext->setupFunc)();
+	    }
+	}
     }
 
     for (i = 0; ExtensionModuleList[i].name != NULL; i++) {

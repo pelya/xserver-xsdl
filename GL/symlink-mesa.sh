@@ -289,9 +289,9 @@ action() {
 }
 
 usage() {
-    echo symlink.sh src-dir dst-dir
-    echo src-dir: the xc directory of the monolithic source tree
-    echo dst-dir: the modular source tree containing proto, app, lib, ...
+    echo symlink-mesa.sh src-dir dst-dir
+    echo src-dir: the Mesa source directory
+    echo dst-dir: the GL subdirectory of the Xserver modular tree
 }
 
 # Check commandline args

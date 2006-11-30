@@ -7,6 +7,7 @@ sdk_HEADERS =		\
 	closure.h	\
 	colormap.h	\
 	colormapst.h	\
+	config.h	\
 	cursor.h	\
 	cursorstr.h	\
 	dix.h		\

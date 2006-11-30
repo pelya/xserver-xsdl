@@ -213,6 +213,7 @@ typedef struct {
     pointer		options;
     pointer		DDC;
     Bool                reducedblanking; /* Allow CVT reduced blanking modes? */
+    int			maxPixClock;	 /* in kHz, like mode->Clock */
 } MonRec, *MonPtr;
 
 /* the list of clock ranges */

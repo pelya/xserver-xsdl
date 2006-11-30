@@ -156,9 +156,9 @@ PointerProc(
 	  {
 	      map[0] = 0;
 	      InitPointerDeviceStruct(pPtr, map, NUM_BUTTONS, 
-				      miPointerGetMotionEvents, 
+				      GetMotionHistory,
 				      (PtrCtrlProcPtr)_XpVoidNoop,
-				      miPointerGetMotionBufferSize());
+				      GetMotionHistorySize(), 2);
 	      break;
 	  }
         case DEVICE_ON:
@@ -189,7 +189,7 @@ InitInput(
 Bool
 LegalModifier(
      unsigned int key,
-     DevicePtr dev)
+     DeviceIntPtr dev)
 {
     return TRUE;
 }

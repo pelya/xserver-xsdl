@@ -44,7 +44,22 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-    KdInitInput (&FakeMouseFuncs, &FakeKeyboardFuncs);
+    KdPointerInfo *pi;
+    KdKeyboardInfo *ki;
+
+    pi = KdNewPointer ();
+    if (!pi)
+        return;
+    pi->driver = &FakePointerDriver;
+    KdAddPointer(pi);
+
+    ki = KdNewKeyboard ();
+    if (!ki)
+        return;
+    ki->driver = &FakeKeyboardDriver;
+    KdAddKeyboard(ki);
+
+    KdInitInput ();
 }
 
 void

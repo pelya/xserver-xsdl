@@ -406,11 +406,13 @@ XaceCensorImage(client, pVisibleRegion, widthBytesLine, pDraw, x, y, w, h,
     unsigned int format;
     char * pBuf;
 {
-    ScreenPtr pScreen = pDraw->pScreen;
+    ScreenPtr pScreen;
     RegionRec imageRegion;  /* region representing x,y,w,h */
     RegionRec censorRegion; /* region to obliterate */
     BoxRec imageBox;
     int nRects;
+
+    pScreen = pDraw->pScreen;
 
     imageBox.x1 = x;
     imageBox.y1 = y;

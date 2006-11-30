@@ -55,6 +55,10 @@ OR PERFORMANCE OF THIS SOFTWARE.
 
 /* The world's most shocking hack, to ensure we get clock_gettime() and
  * CLOCK_MONOTONIC. */
+#ifdef sun              /* Needed to tell Solaris headers not to restrict to */
+#define __EXTENSIONS__  /* only the functions defined in POSIX 199309.       */
+#endif
+
 #ifdef _POSIX_C_SOURCE
 #define _SAVED_POSIX_C_SOURCE _POSIX_C_SOURCE
 #undef _POSIX_C_SOURCE
@@ -552,7 +556,7 @@ GetTimeInMillis(void)
 #ifdef MONOTONIC_CLOCK
     struct timespec tp;
     if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)
-        return (tp.tv_sec * 1000) + (tp.tv_nsec / 1000000);
+        return (tp.tv_sec * 1000) + (tp.tv_nsec / 1000000L);
 #endif
 
     X_GETTIMEOFDAY(&tv);

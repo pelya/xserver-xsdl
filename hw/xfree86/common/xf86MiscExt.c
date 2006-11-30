@@ -89,6 +89,7 @@ typedef struct {
 	int	rate;
 	int	delay;
 	int	serverNumLock;	/* obsolete */
+        pointer private;
 } kbdParamsRec, *kbdParamsPtr;
 
 /*
@@ -246,7 +247,6 @@ _X_EXPORT Bool
 MiscExtSetMouseDevice(pointer mouse, char* device)
 {
     mseParamsPtr mse = mouse;
-
     mse->device = device;
     
     return TRUE;
@@ -255,54 +255,20 @@ MiscExtSetMouseDevice(pointer mouse, char* device)
 _X_EXPORT Bool
 MiscExtGetKbdSettings(pointer *kbd)
 {
-    kbdParamsPtr kbdptr;
-
     DEBUG_P("MiscExtGetKbdSettings");
 
-    kbdptr = MiscExtCreateStruct(MISC_KEYBOARD);
-    if (!kbdptr)
-	return FALSE;
-    kbdptr->type  = xf86Info.kbdType;
-    kbdptr->rate  = xf86Info.kbdRate;
-    kbdptr->delay = xf86Info.kbdDelay;
-    *kbd = kbdptr;
-    return TRUE;
+    return FALSE;
 }
 
 _X_EXPORT int
 MiscExtGetKbdValue(pointer keyboard, MiscExtKbdValType valtype)
 {
-    kbdParamsPtr kbd = keyboard;
-
-    DEBUG_P("MiscExtGetKbdValue");
-    switch (valtype) {
-	case MISC_KBD_TYPE:		return kbd->type;
-	case MISC_KBD_RATE:		return kbd->rate;
-	case MISC_KBD_DELAY:		return kbd->delay;
-	case MISC_KBD_SERVNUMLOCK:	return 0;
-    }
     return 0;
 }
 
 _X_EXPORT Bool
 MiscExtSetKbdValue(pointer keyboard, MiscExtKbdValType valtype, int value)
 {
-    kbdParamsPtr kbd = keyboard;
-
-    DEBUG_P("MiscExtSetKbdValue");
-    switch (valtype) {
-	case MISC_KBD_TYPE:
-		kbd->type = value;
-		return TRUE;
-	case MISC_KBD_RATE:
-		kbd->rate = value;
-		return TRUE;
-	case MISC_KBD_DELAY:
-		kbd->delay = value;
-		return TRUE;
-	case MISC_KBD_SERVNUMLOCK:
-		return TRUE;
-    }
     return FALSE;
 }
 
@@ -365,7 +331,7 @@ MiscExtCreateStruct(MiscExtStructType mse_or_kbd)
 	InputInfoPtr pInfo = xf86InputDevs;
 	
 	while (pInfo) {
-	    if (xf86IsCorePointer(pInfo->dev))
+	    if (pInfo->dev == inputInfo.pointer)
 		break;
 	    pInfo = pInfo->next;
 	}
@@ -463,15 +429,13 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	if (!xf86MouseProtocolIDToName)
 	    return MISC_RET_NOMODULE;
 	if (mse->type < MTYPE_MICROSOFT
-		|| ( mse->type > MTYPE_EXPPS2
-		    && (mse->type!=MTYPE_OSMOUSE && mse->type!=MTYPE_XQUEUE)))
+		|| (mse->type > MTYPE_EXPPS2
+		    && (mse->type != MTYPE_OSMOUSE)))
 	    return MISC_RET_BADMSEPROTO;
 #ifdef OSMOUSE_ONLY
 	if (mse->type != MTYPE_OSMOUSE)
 	    return MISC_RET_BADMSEPROTO;
 #else
-	if (mse->type == MTYPE_XQUEUE)
-	    return MISC_RET_BADMSEPROTO;
 	if (mse->type == MTYPE_OSMOUSE)
 	    return MISC_RET_BADMSEPROTO;
 #endif /* OSMOUSE_ONLY */
@@ -492,7 +456,6 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	    mse->flags &= ~MF_REOPEN;
 	}
 	if (mse->type != MTYPE_OSMOUSE
-		&& mse->type != MTYPE_XQUEUE
 		&& mse->type != MTYPE_PS_2
 		&& mse->type != MTYPE_BUSMOUSE
 		&& mse->type != MTYPE_IMPS2
@@ -513,7 +476,6 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	    return MISC_RET_BADFLAGS;
 
 	if (mse->type != MTYPE_OSMOUSE
-		&& mse->type != MTYPE_XQUEUE
 		&& mse->type != MTYPE_BUSMOUSE)
 	{
 	    if (mse->samplerate < 0)
@@ -586,37 +548,7 @@ MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 	   xf86ReplaceBoolOption(pInfo->options, "ClearRTS",
 				 pMse->mouseFlags | MF_CLEAR_RTS);
     }
-    if (mse_or_kbd == MISC_KEYBOARD) {
-	kbdParamsPtr kbd = structure;
-
-	if (kbd->rate < 0)
-	    return MISC_RET_BADVAL;
-	if (kbd->delay < 0)
-	    return MISC_RET_BADVAL;
-	if (kbd->type < KTYPE_UNKNOWN || kbd->type > KTYPE_XQUEUE)
-	    return MISC_RET_BADKBDTYPE;
-
-	if (xf86Info.kbdRate!=kbd->rate || xf86Info.kbdDelay!=kbd->delay) {
-	    char rad;
-
-	    xf86Info.kbdRate = kbd->rate;
-	    xf86Info.kbdDelay = kbd->delay;
-	    if      (xf86Info.kbdDelay <= 375) rad = 0x00;
-	    else if (xf86Info.kbdDelay <= 625) rad = 0x20;
-	    else if (xf86Info.kbdDelay <= 875) rad = 0x40;
-	    else                               rad = 0x60;
-
-	    if      (xf86Info.kbdRate <=  2)   rad |= 0x1F;
-	    else if (xf86Info.kbdRate >= 30)   rad |= 0x00;
-	    else                               rad |= ((58/xf86Info.kbdRate)-2);
-
-	    xf86SetKbdRepeat(rad);
-	}
-#if 0   /* Not done yet */
-	xf86Info.kbdType = kbd->kbdtype;
-#endif
-    }
-    return MISC_RET_SUCCESS;
+    return MISC_RET_BADVAL;
 }
 
 _X_EXPORT Bool

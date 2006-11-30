@@ -77,14 +77,9 @@ static miPointerScreenFuncRec xf86PointerScreenFuncs = {
   xf86CursorOffScreen,
   xf86CrossScreen,
   xf86WarpCursor,
-#ifdef XINPUT
-  xf86eqEnqueue,
-  xf86eqSwitchScreen
-#else
   /* let miPointerInitialize take care of these */
   NULL,
   NULL
-#endif
 };
 
 static xf86ScreenLayoutRec xf86ScreenLayout[MAXSCREENS];
@@ -228,9 +223,9 @@ xf86SwitchMode(ScreenPtr pScreen, DisplayModePtr mode)
   if (mode->HDisplay > pScr->virtualX || mode->VDisplay > pScr->virtualY)
     return FALSE;
 
-  pCursorScreen = miPointerCurrentScreen();
+  pCursorScreen = miPointerGetScreen(inputInfo.pointer);
   if (pScreen == pCursorScreen)
-    miPointerPosition(&px, &py);
+    miPointerGetPosition(inputInfo.pointer, &px, &py);
 
   xf86EnterServerState(SETUP);
   Switched = (*pScr->SwitchMode)(pScr->scrnIndex, mode, 0);

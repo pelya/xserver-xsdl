@@ -235,15 +235,6 @@ typedef signed long xf86ssize_t;
 #  define i386 /* not defined in ANSI C mode */
 # endif /* ATT && !i386 */
 
-# if (defined(ATT) || defined(SVR4)) && !defined(sun)
-#  ifndef __UNIXWARE__
-#   ifndef XQUEUE
-#    define XQUEUE
-#   endif
-#  endif
-#  include <sys/xque.h>
-# endif /* ATT || SVR4 */
-
 # ifdef SYSV
 #  if !defined(ISC) || defined(ISC202) || defined(ISC22)
 #   define NEED_STRERROR

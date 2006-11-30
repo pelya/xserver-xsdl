@@ -74,6 +74,36 @@ Equipment Corporation.
 
 ******************************************************************/
 
+/* XSERVER_DTRACE additions:
+ * Copyright 2005-2006 Sun Microsystems, Inc.  All rights reserved.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, and/or sell copies of the Software, and to permit persons
+ * to whom the Software is furnished to do so, provided that the above
+ * copyright notice(s) and this permission notice appear in all copies of
+ * the Software and that both the above copyright notice(s) and this
+ * permission notice appear in supporting documentation.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+ * OF THIRD PARTY RIGHTS. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+ * HOLDERS INCLUDED IN THIS NOTICE BE LIABLE FOR ANY CLAIM, OR ANY SPECIAL
+ * INDIRECT OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING
+ * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+ * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * 
+ * Except as contained in this notice, the name of a copyright holder
+ * shall not be used in advertising or otherwise to promote the sale, use
+ * or other dealings in this Software without prior written authorization
+ * of the copyright holder.
+ */
+
+
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -100,6 +130,7 @@ int ProcInitialConnection();
 #include "dispatch.h"
 #include "swaprep.h"
 #include "swapreq.h"
+#include "config.h"
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
@@ -116,6 +147,17 @@ int ProcInitialConnection();
 #endif
 #include "inputstr.h"
 #include <X11/extensions/XKBsrv.h>
+#endif
+
+#ifdef XSERVER_DTRACE
+#include <sys/types.h>
+typedef const char *string;
+#include "Xserver-dtrace.h"
+
+char *RequestNames[256];
+static void LoadRequestNames(void);
+static void FreeRequestNames(void);
+#define GetRequestName(i) (RequestNames[i])
 #endif
 
 #define mskcnt ((MAXCLIENTS + 31) / 32)
@@ -372,6 +414,10 @@ Dispatch(void)
     if (!clientReady)
 	return;
 
+#ifdef XSERVER_DTRACE
+    LoadRequestNames();
+#endif
+
     while (!dispatchException)
     {
         if (*icheck[0] != *icheck[1])
@@ -381,6 +427,9 @@ Dispatch(void)
 	}
 
 	nready = WaitForSomething(clientReady);
+
+        /* this is an enormous hack and NEEDS TO GO AWAY. */
+        configDispatch();
 
 #ifdef SMART_SCHEDULE
 	if (nready && !SmartScheduleDisable)
@@ -448,6 +497,11 @@ Dispatch(void)
 		client->requestLog[client->requestLogIndex] = MAJOROP;
 		client->requestLogIndex++;
 #endif
+#ifdef XSERVER_DTRACE
+		XSERVER_REQUEST_START(GetRequestName(MAJOROP), MAJOROP,
+			      ((xReq *)client->requestBuffer)->length,
+			      client->index, client->requestBuffer);
+#endif
 		if (result > (maxBigRequestSize << 2))
 		    result = BadLength;
 		else
@@ -460,7 +514,11 @@ Dispatch(void)
 #else
     		    result = (* client->requestVector[MAJOROP])(client);
 #endif /* XACE */
-	    
+#ifdef XSERVER_DTRACE
+		XSERVER_REQUEST_DONE(GetRequestName(MAJOROP), MAJOROP,
+			      client->sequence, client->index, result);
+#endif
+
 		if (result != Success) 
 		{
 		    if (client->noClientException != Success)
@@ -491,6 +549,9 @@ Dispatch(void)
     KillAllClients();
     DEALLOCATE_LOCAL(clientReady);
     dispatchException &= ~DE_RESET;
+#ifdef XSERVER_DTRACE
+    FreeRequestNames();
+#endif
 }
 
 #undef MAJOROP
@@ -2459,7 +2520,7 @@ ProcCreateColormap(register ClientPtr client)
 	    return(result);
     }
     client->errorValue = stuff->visual;
-    return(BadValue);
+    return(BadMatch);
 }
 
 int
@@ -3565,6 +3626,9 @@ CloseDownClient(register ClientPtr client)
 	    CallCallbacks((&ClientStateCallback), (pointer)&clientinfo);
 	} 	    
 	FreeClientResources(client);
+#ifdef XSERVER_DTRACE
+	XSERVER_CLIENT_DISCONNECT(client->index);
+#endif	
 	if (client->index < nextFreeClientID)
 	    nextFreeClientID = client->index;
 	clients[client->index] = NullClient;
@@ -3618,7 +3682,6 @@ extern unsigned totalClientSize;
 
 void InitClient(ClientPtr client, int i, pointer ospriv)
 {
-    bzero(client, totalClientSize);
     client->index = i;
     client->sequence = 0; 
     client->clientAsMask = ((Mask)i) << CLIENTOFFSET;
@@ -3991,3 +4054,60 @@ MarkClientException(ClientPtr client)
 {
     client->noClientException = -1;
 }
+
+#ifdef XSERVER_DTRACE
+#include <ctype.h>
+
+/* Load table of request names for dtrace probes */
+static void LoadRequestNames(void)
+{
+    int i;
+    FILE *xedb;
+    extern void LoadExtensionNames(char **RequestNames);
+
+    bzero(RequestNames, 256 * sizeof(char *));
+
+    xedb = fopen(XERRORDB_PATH, "r");
+    if (xedb != NULL) {
+	char buf[256];
+	while (fgets(buf, sizeof(buf), xedb)) {
+	    if ((strncmp("XRequest.", buf, 9) == 0) && (isdigit(buf[9]))) {
+		char *name;
+		i = strtol(buf + 9, &name, 10);
+		if (RequestNames[i] == 0) {
+		    char *end = strchr(name, '\n');
+		    if (end) { *end = '\0'; }
+		    RequestNames[i] = strdup(name + 1);
+		}
+	    }
+	}
+	fclose(xedb);
+    }
+
+    LoadExtensionNames(RequestNames);
+
+    for (i = 0; i < 256; i++) {
+	if (RequestNames[i] == 0) {
+#define RN_SIZE 12 /* "Request#' + up to 3 digits + \0 */
+	    RequestNames[i] = xalloc(RN_SIZE);
+	    if (RequestNames[i]) {
+		snprintf(RequestNames[i], RN_SIZE, "Request#%d", i);
+	    }
+	}
+	/* fprintf(stderr, "%d: %s\n", i, RequestNames[i]); */
+    }
+}
+
+static void FreeRequestNames(void)
+{
+    int i;
+
+    for (i = 0; i < 256; i++) {
+	if (RequestNames[i] != 0) {
+	    free(RequestNames[i]);
+	    RequestNames[i] = 0;
+	}
+    }
+}
+
+#endif

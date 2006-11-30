@@ -24,8 +24,3 @@ Xr128_LDADD = \
 	$(R128_LIBS)				\
 	@KDRIVE_LIBS@                          \
 	@XSERVER_LIBS@					
-
-
-Xr128_DEPENDENCIES = 				\
-	libr128.a 				\
-	$(top_builddir)/hw/kdrive/vesa/libvesa.a

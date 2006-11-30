@@ -29,9 +29,3 @@ Xsmi_LDADD = \
 	$(SMI_LIBS)				\
 	@KDRIVE_LIBS@                          \
 	@XSERVER_LIBS@					
-
-
-Xsmi_DEPENDENCIES = 				\
-	libsmi.a 				\
-	$(top_builddir)/hw/kdrive/fbdev/libfbdev.a \
-	$(top_builddir)/hw/kdrive/vesa/libvesa.a
