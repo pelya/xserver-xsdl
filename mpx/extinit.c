@@ -11,17 +11,36 @@
 #include "extnsionst.h"	/* extension entry   */
 #include <X11/extensions/MPX.h>
 #include <X11/extensions/MPXproto.h>
+#include <X11/extensions/MPXconst.h>
 
+#include "mpxglobals.h"
 #include "mpxextinit.h"
 #include "swaprep.h"
 
 #include "getvers.h"
+#include "listdev.h"
+#include "selectev.h"
+#include "getevbase.h"
 
 static Mask lastExtEventMask = 1;
-int ExtEventIndex;
-Mask ExtValidMasks[EMASKSIZE];
+int MPXEventIndex;
+MPXExtEventInfo EventInfo[32];
 
-XExtEventInfo EventInfo[32];
+/**
+ * MPX piggybacks on the X Input extension's event system. Each window has an
+ * array of event masks, from 0 to MAX_DEVICES. In XI, each device can have
+ * separate event masks. Before an event is delivered, the array at the index
+ * of the device is checked.
+ *
+ * Two things:
+ * -) core devices do not send input extension events
+ * -) MPX events are not device specific.
+ *
+ * Since the mask of the core pointer (index 1) is thus not used by XI, MPX
+ * can use it for the event mask. This also makes MPX less intrusive.  
+ */
+int MPXmskidx = 1;
+
 
 /*****************************************************************
  *
@@ -29,7 +48,7 @@ XExtEventInfo EventInfo[32];
  *
  */
 
-extern XExtensionVersion AllExtensionVersions[];
+extern MPXExtensionVersion AllExtensionVersions[];
 
 Mask PropagateMask[MAX_DEVICES];
 
@@ -46,6 +65,7 @@ int MPXErrorBase = 0;
 int MPXButtonPress;
 int MPXButtonRelease;
 int MPXMotionNotify;
+int MPXLastEvent;
 
 /*****************************************************************
  *
@@ -53,7 +73,8 @@ int MPXMotionNotify;
  *
  */
 
-static XExtensionVersion thisversion = { MPX_Present,
+static MPXExtensionVersion thisversion = { 
+    MPX_Present,
     MPX_Major,
     MPX_Minor
 };
@@ -106,6 +127,12 @@ ProcMPXDispatch(register ClientPtr client)
     REQUEST(xReq);
     if (stuff->data == MPX_GetExtensionVersion)
         return (ProcMPXGetExtensionVersion(client));
+    if (stuff->data == MPX_ListDevices)
+        return (ProcMPXListDevices(client));
+    if (stuff->data == MPX_SelectEvents)
+        return (ProcMPXSelectEvents(client));
+    if (stuff->data == MPX_GetEventBase)
+        return (ProcMPXGetEventBase(client));
     else {
         SendErrorToClient(client, MPXReqCode, stuff->data, 0, BadRequest);
     }
@@ -128,6 +155,12 @@ SProcMPXDispatch(register ClientPtr client)
     REQUEST(xReq);
     if (stuff->data == MPX_GetExtensionVersion)
         return (SProcMPXGetExtensionVersion(client));
+    if (stuff->data == MPX_ListDevices)
+        return (SProcMPXListDevices(client));
+    if (stuff->data == MPX_SelectEvents)
+        return (SProcMPXSelectEvents(client));
+    if (stuff->data == MPX_GetEventBase)
+        return (SProcMPXGetEventBase(client));
     else {
         SendErrorToClient(client, MPXReqCode, stuff->data, 0, BadRequest);
     }
@@ -151,6 +184,8 @@ MPXResetProc(ExtensionEntry* unused)
     EventSwapVector[MPXButtonRelease] = NotImplemented;
     EventSwapVector[MPXMotionNotify] = NotImplemented;
 
+    MPXRestoreExtensionEvents();
+
 }
 
 void SReplyMPXDispatch(ClientPtr client, int len, mpxGetExtensionVersionReply* rep)
@@ -158,6 +193,9 @@ void SReplyMPXDispatch(ClientPtr client, int len, mpxGetExtensionVersionReply* r
     if (rep->RepType ==  MPX_GetExtensionVersion)
         SRepMPXGetExtensionVersion(client, len, 
                 (mpxGetExtensionVersionReply*) rep);
+    if (rep->RepType ==  MPX_ListDevices)
+        SRepMPXListDevices(client, len, 
+                (mpxListDevicesReply*) rep);
     else {
 	FatalError("MPX confused sending swapped reply");
     }
@@ -184,46 +222,16 @@ SEventMPXDispatch(xEvent* from, xEvent* to)
 void 
 MPXFixExtensionEvents(ExtensionEntry* extEntry)
 {
-    Mask mask;
-
     MPXButtonPress = extEntry->eventBase;
     MPXButtonRelease = MPXButtonPress + 1;
     MPXMotionNotify = MPXButtonRelease + 1;
+    MPXLastEvent = MPXMotionNotify + 1;
 
-    mask = MPXGetNextExtEventMask();
-    MPXSetMaskForExtEvent(mask, MPXButtonPress);
-    MPXAllowPropagateSuppress(mask);
-
-    mask = MPXGetNextExtEventMask();
-    MPXSetMaskForExtEvent(mask, MPXButtonRelease);
-    MPXAllowPropagateSuppress(mask);
-
-    mask = MPXGetNextExtEventMask();
-    MPXSetMaskForExtEvent(mask, MPXMotionNotify);
-    MPXAllowPropagateSuppress(mask);
-
+    MPXSetMaskForExtEvent(MPXButtonPressMask, MPXButtonPress);
+    MPXSetMaskForExtEvent(MPXButtonReleaseMask, MPXButtonRelease);
+    MPXSetMaskForExtEvent(MPXPointerMotionMask, MPXMotionNotify);
 }
 
-/**************************************************************************
- *
- * Return the next available extension event mask.
- *
- */
-Mask
-MPXGetNextExtEventMask(void)
-{
-    int i;
-    Mask mask = lastExtEventMask;
-
-    if (lastExtEventMask == 0) {
-	FatalError("MPXGetNextExtEventMask: no more events are available.");
-    }
-    lastExtEventMask <<= 1;
-
-    for (i = 0; i < MAX_DEVICES; i++)
-	ExtValidMasks[i] |= mask;
-    return mask;
-}
 
 /**************************************************************************
  *
@@ -235,8 +243,8 @@ void
 MPXSetMaskForExtEvent(Mask mask, int event)
 {
 
-    EventInfo[ExtEventIndex].mask = mask;
-    EventInfo[ExtEventIndex++].type = event;
+    EventInfo[MPXEventIndex].mask = mask;
+    EventInfo[MPXEventIndex++].type = event;
 
     if ((event < LASTEvent) || (event >= 128))
 	FatalError("MaskForExtensionEvent: bogus event number");
@@ -256,14 +264,14 @@ MPXRestoreExtensionEvents(void)
     int i;
 
     MPXReqCode = 0;
-    for (i = 0; i < ExtEventIndex - 1; i++) {
+    for (i = 0; i < MPXEventIndex - 1; i++) {
 	if ((EventInfo[i].type >= LASTEvent) && (EventInfo[i].type < 128))
 	    SetMaskForEvent(0, EventInfo[i].type);
 	EventInfo[i].mask = 0;
 	EventInfo[i].type = 0;
     }
 
-    ExtEventIndex = 0;
+    MPXEventIndex = 0;
     lastExtEventMask = 1;
     MPXButtonPress = 0;
     MPXButtonRelease = 1;
@@ -285,3 +293,4 @@ MPXAllowPropagateSuppress(Mask mask)
     for (i = 0; i < MAX_DEVICES; i++)
 	PropagateMask[i] |= mask;
 }
+

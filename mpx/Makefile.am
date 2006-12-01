@@ -5,5 +5,12 @@ AM_CFLAGS = $(DIX_CFLAGS)
 libmpx_la_SOURCES =	\
 	extinit.c \
         getvers.c \
-	getvers.h
+	getvers.h \
+        listdev.c \
+        listdev.h \
+        selectev.c \
+        selectev.h \
+        mpxglobals.h \
+	getevbase.c \
+	getevbase.h
 

@@ -82,7 +82,7 @@ SOFTWARE.
 #define Motion_Filter(class) (DevicePointerMotionMask | \
 			      (class)->state | (class)->motionMask)
 
-static Bool ShouldFreeInputMasks(WindowPtr /* pWin */ ,
+Bool ShouldFreeInputMasks(WindowPtr /* pWin */ ,
 				 Bool	/* ignoreSelectedEvents */
     );
 static Bool MakeInputMasks(WindowPtr	/* pWin */
@@ -1196,7 +1196,7 @@ DeviceEventSuppressForWindow(WindowPtr pWin, ClientPtr client, Mask mask,
     return Success;
 }
 
-static Bool
+Bool
 ShouldFreeInputMasks(WindowPtr pWin, Bool ignoreSelectedEvents)
 {
     int i;

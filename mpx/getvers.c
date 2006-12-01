@@ -13,7 +13,7 @@
 #include "mpxglobals.h"
 #include "getvers.h"
 
-XExtensionVersion AllExtensionVersions[128];
+MPXExtensionVersion AllExtensionVersions[128];
 
 /***********************************************************************
  *
@@ -33,7 +33,6 @@ SProcMPXGetExtensionVersion(register ClientPtr client)
     REQUEST_AT_LEAST_SIZE(mpxGetExtensionVersionReq);
     return (ProcMPXGetExtensionVersion(client));
 }
-
 /***********************************************************************
  *
  * This procedure writes the reply for the XGetExtensionVersion function.
@@ -78,3 +77,5 @@ SRepMPXGetExtensionVersion(ClientPtr client, int size,
     swaps(&rep->minor_version, n);
     WriteToClient(client, size, (char *)rep);
 }
+
+

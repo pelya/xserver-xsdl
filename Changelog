@@ -1,5 +1,49 @@
 MPX Changelog file
-== 29.11.206 ==
+== 01.12.06 ==
+
+mpx:    SelectEvents and GetEventBase requests. 
+	Some renaming and cleaning up in extinit.c
+	MPXLastEvent added 
+
+Xi:	ShouldFreeInputMask() from XI is not static any more, used in mpx
+
+dix:	GetPointerEvents() allocates MPX event for MPX devices.
+	DeliverDeviceEvents() caters for MPX devices.
+
+
+Files:
+	configure.ac
+	mpx/Makefile.am
+	mpx/extinit.c
+	mpx/getvers.c
+	mpx/getevbase.c
+	mpx/getevbase.h
+	mpx/listdev.c
+	mpx/listdev.h
+	mpx/mpxglobals.h
+	mpx/selectev.c
+	mpx/selectev.h
+	mpx/mpxevents.h
+	Xi/exevents.c
+	dix/events.c
+	dix/getevents.c
+	include/mpxevents.h
+	include/mpxextinit.h
+
+
+== 30.11.06
+mpx:    Adding ListDevices request. Minor changes, using
+	MPXRestoreExtensionEvents() when resetting.
+
+Files:
+	mpx/Makefile.am
+	mpx/extinit.c
+	mpx/listdev.c
+	mpx/listdev.h
+	mpx/mpxextinit.h
+
+
+== 29.11.06 ==
 mpx:    Infrastructure for MPX extension, GetExtensionVersion request works.
 
 Files:

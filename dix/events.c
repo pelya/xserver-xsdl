@@ -107,6 +107,12 @@ of the copyright holder.
 
 ******************************************************************/
 
+/* 
+ * MPX additions
+ * Copyright 2006 by Peter Hutterer
+ * Author: Peter Hutterer <peter@cs.unisa.edu.au>
+ */
+
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -170,6 +176,10 @@ xEvent *xeviexE;
 #include "dixevents.h"
 #include "dixgrabs.h"
 #include "dispatch.h"
+
+#ifdef MPX
+#include "mpxglobals.h"
+#endif
 
 #define EXTENSION_EVENT_BASE  64
 
@@ -1924,6 +1934,10 @@ DeliverDeviceEvents(register WindowPtr pWin, register xEvent *xE, GrabPtr grab,
     {
 	register OtherInputMasks *inputMasks;
 	int mskidx = dev->id;
+#ifdef MPX
+        if (IsMPXEvent(xE))
+            mskidx = MPXmskidx;
+#endif
 
 	inputMasks = wOtherInputMasks(pWin);
 	if (inputMasks && !(filter & inputMasks->deliverableEvents[mskidx]))

@@ -21,15 +21,12 @@
  *
  * Author: Daniel Stone <daniel@fooishbar.org>
  */
-#ifdef MPX
  /* 
   * MPX additions:
   * Copyright © 2006 Peter Hutterer
-  * License see above.
   * Author: Peter Hutterer <peter@cs.unisa.edu.au>
   *
   */
-#endif
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -72,6 +69,11 @@ extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
 #include "exglobals.h"
 #include "extnsionst.h"
 
+#ifdef MPX
+#include <X11/extensions/MPXconst.h>
+#include <X11/extensions/MPXproto.h>
+#include "mpxglobals.h"
+#endif
 
 /* Maximum number of valuators, divided by six, rounded up, to get number
  * of events. */
@@ -511,7 +513,11 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
 
     if ((type == ButtonPress || type == ButtonRelease) && !pDev->button)
         return 0;
-
+#ifdef MPX
+    if (pDev->isMPDev)
+        num_events = 3;
+    else
+#endif
     if (pDev->coreEvents)
         num_events = 2;
     else
@@ -603,7 +609,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
 #ifdef MPX
     if (flags & POINTER_MULTIPOINTER)
     {
-        // noop, just to fit MPX in easier with the following if
+        // noop, just less intrusive to fit MPX in like that
     } else
 #endif
     if (pDev->coreEvents) {
@@ -637,6 +643,25 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     }
 
 #ifdef MPX
+    if (pDev->isMPDev)
+    {
+        /* MPX events are the same as XI events but without valuators. */
+        memcpy(events, kbp, sizeof(deviceKeyButtonPointer));
+        switch(type)
+        {
+            case ButtonPress:
+                events->u.u.type = MPXButtonPress;
+                break;
+            case ButtonRelease:
+                events->u.u.type = MPXButtonRelease;
+                break;
+            case MotionNotify:
+                events->u.u.type = MPXMotionNotify;
+                break;
+        }
+        events++;
+    }
+
     /* MPX devices always send core events */
     if (pDev->coreEvents || pDev->isMPDev) {
 #else
