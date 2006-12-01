@@ -325,9 +325,9 @@ ProcRRListOutputProperties (ClientPtr client)
             return(BadAlloc);
 
     rep.type = X_Reply;
-    rep.nProperties = numProps;
     rep.length = (numProps * sizeof(Atom)) >> 2;
     rep.sequenceNumber = client->sequence;
+    rep.nAtoms = numProps;
     if (client->swapped) 
     {
 	int n;
