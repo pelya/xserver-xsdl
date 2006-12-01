@@ -48,7 +48,7 @@
 
 #define AUDIO_DEVICE    "/dev/audio"
 
-_X_EXPORT int
+_X_EXPORT void
 xf86OSRingBell(int loudness, int pitch, int duration)
 {
     static short    samples[BELL_SAMPLES];
@@ -66,7 +66,7 @@ xf86OSRingBell(int loudness, int pitch, int duration)
     int             audioFD;
 
     if ((loudness <= 0) || (pitch <= 0) || (duration <= 0)) {
-        return 0;
+        return;
     }
 
     lastFreq = 0;
@@ -76,7 +76,7 @@ xf86OSRingBell(int loudness, int pitch, int duration)
     if (audioFD == -1) {
         xf86Msg(X_ERROR, "Bell: cannot open audio device \"%s\": %s\n",
                 AUDIO_DEVICE, strerror(errno));
-        return -1;
+        return;
     }
 
     freq = pitch;
@@ -126,7 +126,7 @@ xf86OSRingBell(int loudness, int pitch, int duration)
                 "Bell: AUDIO_SETINFO failed on audio device \"%s\": %s\n",
                 AUDIO_DEVICE, strerror(errno));
         close(audioFD);
-        return -1;
+        return;
     }
 
     iovcnt = 0;
@@ -155,7 +155,7 @@ xf86OSRingBell(int loudness, int pitch, int duration)
                                "Bell: writev failed on audio device \"%s\": %s\n",
                                 AUDIO_DEVICE, strerror(errno));
                         close(audioFD);
-                        return -1;
+                        return;
                     }
                     i = iovcnt;
                 } else {
@@ -181,5 +181,5 @@ xf86OSRingBell(int loudness, int pitch, int duration)
     }
 
     close(audioFD);
-    return 0;
+    return;
 }
