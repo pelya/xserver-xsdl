@@ -95,9 +95,7 @@ Author:  Adobe Systems Incorporated
 #include "scrnintstr.h"
 #define  XK_LATIN1
 #include <X11/keysymdef.h>
-#ifdef XACE
 #include "xace.h"
-#endif
 
 /*
  * CompareTimeStamps returns -1, 0, or +1 depending on if the first

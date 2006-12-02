@@ -148,9 +148,7 @@ extern __const__ int _nfiles;
 #ifdef XAPPGROUP
 #include "appgroup.h"
 #endif
-#ifdef XACE
 #include "xace.h"
-#endif
 #ifdef XCSECURITY
 #include "securitysrv.h"
 #endif
@@ -750,9 +748,9 @@ ClientAuthorized(ClientPtr client,
     /* indicate to Xdmcp protocol that we've opened new client */
     XdmcpOpenDisplay(priv->fd);
 #endif /* XDMCP */
-#ifdef XACE
+
     XaceHook(XACE_AUTH_AVAIL, client, auth_id);
-#endif
+
     /* At this point, if the client is authorized to change the access control
      * list, we should getpeername() information, and add the client to
      * the selfhosts list.  It's not really the host machine, but the

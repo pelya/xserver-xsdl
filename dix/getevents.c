@@ -48,10 +48,6 @@
 extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
 #endif
 
-#ifdef XACE
-#include "xace.h"
-#endif
-
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"

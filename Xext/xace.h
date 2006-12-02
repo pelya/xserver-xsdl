@@ -20,6 +20,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _XACE_H
 #define _XACE_H
 
+/* Hook return codes */
+#define SecurityErrorOperation  0
+#define SecurityAllowOperation  1
+#define SecurityIgnoreOperation 2
+
+#ifdef XACE
+
 #define XACE_EXTENSION_NAME		"XAccessControlExtension"
 #define XACE_MAJOR_VERSION		1
 #define XACE_MINOR_VERSION		0
@@ -75,11 +82,6 @@ extern int XaceHook(
 /* From the original Security extension...
  */
 
-/* Hook return codes */
-#define SecurityAllowOperation  0
-#define SecurityIgnoreOperation 1
-#define SecurityErrorOperation  2
-
 /* Proc vectors for untrusted clients, swapped and unswapped versions.
  * These are the same as the normal proc vectors except that extensions
  * that haven't declared themselves secure will have ProcBadRequest plugged
@@ -99,5 +101,19 @@ extern void XaceCensorImage(
     unsigned int format,
     char * pBuf
     );
+
+#else /* XACE */
+
+/* Define calls away when XACE is not being built. */
+
+#ifdef __GNUC__
+#define XaceHook(args...) SecurityAllowOperation
+#define XaceCensorImage(args...) { ; }
+#else
+#define XaceHook(...) SecurityAllowOperation
+#define XaceCensorImage(...) { ; }
+#endif
+
+#endif /* XACE */
 
 #endif /* _XACE_H */

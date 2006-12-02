@@ -135,9 +135,7 @@ int ProcInitialConnection();
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 #endif
-#ifdef XACE
 #include "xace.h"
-#endif
 #ifdef XAPPGROUP
 #include "appgroup.h"
 #endif
@@ -504,16 +502,11 @@ Dispatch(void)
 #endif
 		if (result > (maxBigRequestSize << 2))
 		    result = BadLength;
-		else
-#ifdef XACE
-		{
+		else {
 		    XaceHook(XACE_AUDIT_BEGIN, client);
 		    result = (* client->requestVector[MAJOROP])(client);
 		    XaceHook(XACE_AUDIT_END, client, result);
 		}
-#else
-    		    result = (* client->requestVector[MAJOROP])(client);
-#endif /* XACE */
 #ifdef XSERVER_DTRACE
 		XSERVER_REQUEST_DONE(GetRequestName(MAJOROP), MAJOROP,
 			      client->sequence, client->index, result);
@@ -1166,14 +1159,11 @@ ProcConvertSelection(register ClientPtr client)
 	i = 0;
 	while ((i < NumCurrentSelections) && 
 	       CurrentSelections[i].selection != stuff->selection) i++;
-	if ((i < NumCurrentSelections) && 
-	    (CurrentSelections[i].window != None)
-#ifdef XACE
-	    && XaceHook(XACE_RESOURCE_ACCESS, client,
-			CurrentSelections[i].window, RT_WINDOW,
-			SecurityReadAccess, CurrentSelections[i].pWin)
-#endif
-	    )
+	if ((i < NumCurrentSelections) &&
+	    (CurrentSelections[i].window != None) &&
+	    XaceHook(XACE_RESOURCE_ACCESS, client,
+		     CurrentSelections[i].window, RT_WINDOW,
+		     SecurityReadAccess, CurrentSelections[i].pWin))
 	{        
 	    event.u.u.type = SelectionRequest;
 	    event.u.selectionRequest.time = stuff->time;
@@ -2163,9 +2153,7 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
     Mask		plane = 0;
     char		*pBuf;
     xGetImageReply	xgi;
-#ifdef XACE
     RegionPtr pVisibleRegion = NULL;
-#endif
 
     if ((format != XYPixmap) && (format != ZPixmap))
     {
@@ -2269,17 +2257,16 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
 	WriteReplyToClient(client, sizeof (xGetImageReply), &xgi);
     }
 
-#ifdef XACE
     if (pDraw->type == DRAWABLE_WINDOW &&
 	!XaceHook(XACE_DRAWABLE_ACCESS, client, pDraw))
     {
 	pVisibleRegion = NotClippedByChildren((WindowPtr)pDraw);
 	if (pVisibleRegion)
 	{
-	    REGION_TRANSLATE(pDraw->pScreen, pVisibleRegion, -pDraw->x, -pDraw->y);
+	    REGION_TRANSLATE(pDraw->pScreen, pVisibleRegion,
+			     -pDraw->x, -pDraw->y);
 	}
     }
-#endif
 
     if (linesPerBuf == 0)
     {
@@ -2299,12 +2286,10 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
 				         format,
 				         planemask,
 				         (pointer) pBuf);
-#ifdef XACE
 	    if (pVisibleRegion)
 		XaceCensorImage(client, pVisibleRegion, widthBytesLine,
 			pDraw, x, y + linesDone, width, 
 			nlines, format, pBuf);
-#endif
 
 	    /* Note that this is NOT a call to WriteSwappedDataToClient,
                as we do NOT byte swap */
@@ -2340,13 +2325,11 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
 				                 format,
 				                 plane,
 				                 (pointer)pBuf);
-#ifdef XACE
 		    if (pVisibleRegion)
 			XaceCensorImage(client, pVisibleRegion,
 				widthBytesLine,
 				pDraw, x, y + linesDone, width, 
 				nlines, format, pBuf);
-#endif
 
 		    /* Note: NOT a call to WriteSwappedDataToClient,
 		       as we do NOT byte swap */
@@ -2368,10 +2351,8 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
             }
 	}
     }
-#ifdef XACE
     if (pVisibleRegion)
 	REGION_DESTROY(pDraw->pScreen, pVisibleRegion);
-#endif
     if (!im_return)
 	DEALLOCATE_LOCAL(pBuf);
     return (client->noClientException);
@@ -3342,13 +3323,11 @@ ProcListHosts(register ClientPtr client)
     /* REQUEST(xListHostsReq); */
 
     REQUEST_SIZE_MATCH(xListHostsReq);
-#ifdef XACE
+
     /* untrusted clients can't list hosts */
     if (!XaceHook(XACE_HOSTLIST_ACCESS, client, SecurityReadAccess))
-    {
 	return BadAccess;
-    }
-#endif
+
     result = GetHosts(&pdata, &nHosts, &len, &reply.enabled);
     if (result != Success)
 	return(result);
