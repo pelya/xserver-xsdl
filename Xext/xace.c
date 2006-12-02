@@ -99,7 +99,7 @@ int XaceHook(int hook, ...)
 		va_arg(ap, WindowPtr),
 		va_arg(ap, Atom),
 		va_arg(ap, Mask),
-		SecurityAllowOperation   /* default allow */
+		XaceAllowOperation   /* default allow */
 	    };
 	    calldata = &rec;
 	    prv = &rec.rval;

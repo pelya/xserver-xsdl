@@ -119,12 +119,12 @@ ProcRotateProperties(ClientPtr client)
 	char action = XaceHook(XACE_PROPERTY_ACCESS, client, pWin, atoms[i],
 				SecurityReadAccess|SecurityWriteAccess);
 
-        if (!ValidAtom(atoms[i]) || (SecurityErrorOperation == action)) {
+        if (!ValidAtom(atoms[i]) || (XaceErrorOperation == action)) {
             DEALLOCATE_LOCAL(props);
 	    client->errorValue = atoms[i];
             return BadAtom;
         }
-	if (SecurityIgnoreOperation == action) {
+	if (XaceIgnoreOperation == action) {
             DEALLOCATE_LOCAL(props);
 	    return Success;
 	}
@@ -226,10 +226,10 @@ ProcChangeProperty(ClientPtr client)
     switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, stuff->property,
 		     SecurityWriteAccess))
     {
-    case SecurityErrorOperation:
+    case XaceErrorOperation:
 	client->errorValue = stuff->property;
 	return BadAtom;
-    case SecurityIgnoreOperation:
+    case XaceIgnoreOperation:
 	return Success;
     }
 
@@ -495,10 +495,10 @@ ProcGetProperty(ClientPtr client)
     switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, stuff->property,
 		     access_mode))
     {
-    case SecurityErrorOperation:
+    case XaceErrorOperation:
 	client->errorValue = stuff->property;
 	return BadAtom;;
-    case SecurityIgnoreOperation:
+    case XaceIgnoreOperation:
 	return NullPropertyReply(client, pProp->type, pProp->format, &reply);
     }
 
@@ -649,10 +649,10 @@ ProcDeleteProperty(register ClientPtr client)
     switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, stuff->property,
 		     SecurityDestroyAccess))
     {
-    case SecurityErrorOperation:
+    case XaceErrorOperation:
 	client->errorValue = stuff->property;
 	return BadAtom;;
-    case SecurityIgnoreOperation:
+    case XaceIgnoreOperation:
 	return Success;
     }
 

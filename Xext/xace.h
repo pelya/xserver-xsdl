@@ -21,9 +21,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define _XACE_H
 
 /* Hook return codes */
-#define SecurityErrorOperation  0
-#define SecurityAllowOperation  1
-#define SecurityIgnoreOperation 2
+#define XaceErrorOperation  0
+#define XaceAllowOperation  1
+#define XaceIgnoreOperation 2
 
 #ifdef XACE
 
@@ -107,10 +107,10 @@ extern void XaceCensorImage(
 /* Define calls away when XACE is not being built. */
 
 #ifdef __GNUC__
-#define XaceHook(args...) SecurityAllowOperation
+#define XaceHook(args...) XaceAllowOperation
 #define XaceCensorImage(args...) { ; }
 #else
-#define XaceHook(...) SecurityAllowOperation
+#define XaceHook(...) XaceAllowOperation
 #define XaceCensorImage(...) { ; }
 #endif
 
