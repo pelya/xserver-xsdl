@@ -174,7 +174,7 @@ AC_CACHE_CHECK([for SYSV IPC],
 		[AC_TRY_LINK([
 #include <sys/shm.h>
 ],[
-int main () { 
+{ 
     int id;
     id = shmget(IPC_PRIVATE, 512, SHM_W | SHM_R);
     if (id < 0) return -1;
