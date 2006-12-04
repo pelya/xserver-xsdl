@@ -499,7 +499,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86AddModuleInfo)
     SYMFUNC(xf86DeleteModuleInfo)
 
-#if defined(__sparc__) && !defined(__OpenBSD__)
+#if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     /* xf86sbusBus.c */
     SYMFUNC(xf86MatchSbusInstances)
     SYMFUNC(xf86GetSbusInfoForEntity)

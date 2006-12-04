@@ -118,7 +118,7 @@ extern int ffs(unsigned long);
 # if defined(NO_INLINE) || defined(DO_PROTOTYPES)
 
 #  if !defined(__arm__)
-#   if !defined(__sparc__) && !defined(__arm32__) \
+#   if !defined(__sparc__) && !defined(__sparc) && !defined(__arm32__) \
       && !(defined(__alpha__) && defined(linux)) \
       && !(defined(__ia64__) && defined(linux)) \
 
@@ -1697,7 +1697,7 @@ static __inline__ void ppc_flush_icache(char *addr)
 		: : "r"(addr) : "memory");
 }
 
-# elif defined(__sparc__) || defined(sparc)
+# elif defined(__sparc__) || defined(sparc) || defined(__sparc)
  /*
   * Like powerpc, we provide byteswapping and no byteswapping functions
   * here with byteswapping as default, drivers that don't need byteswapping

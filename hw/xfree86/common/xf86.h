@@ -64,7 +64,7 @@ extern ScrnInfoPtr xf86CurrentScreen;
 extern Bool pciSlotClaimed;
 extern Bool isaSlotClaimed;
 extern Bool fbSlotClaimed;
-#ifdef __sparc__
+#if defined(__sparc__) || defined(__sparc)
 extern Bool sbusSlotClaimed;
 #endif
 extern confDRIRec xf86ConfigDRI;
