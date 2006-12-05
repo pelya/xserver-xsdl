@@ -73,6 +73,12 @@ SOFTWARE.
 #include "dixgrabs.h"	/* CreateGrab() */
 #include "scrnintstr.h"
 
+#ifdef MPX
+#include <X11/extensions/MPXconst.h>
+#include <X11/extensions/MPXproto.h>
+#include "mpxglobals.h"
+#endif
+
 #define WID(w) ((w) ? ((w)->drawable.id) : 0)
 #define AllModifiersMask ( \
 	ShiftMask | LockMask | ControlMask | Mod1Mask | Mod2Mask | \
@@ -230,7 +236,11 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 
 	if (other->fromPassiveGrab && (key == other->activatingKey))
 	    deactivateDeviceGrab = TRUE;
-    } else if (xE->u.u.type == DeviceButtonPress) {
+    } else if (xE->u.u.type == DeviceButtonPress
+#ifdef MPX
+            || xE->u.u.type == MPXButtonPress
+#endif
+            ) {
         if (!b)
             return;
 
@@ -246,11 +256,17 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 	if (xE->u.u.detail <= 5)
 	    b->state |= (Button1Mask >> 1) << xE->u.u.detail;
 	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
-	if (!grab)
-	    if (CheckDeviceGrabs(other, xE, 0, count))
-		return;
+#ifdef MPX
+        if (xE->u.u.type == DeviceButtonPress)
+#endif
+            if (!grab)
+                if (CheckDeviceGrabs(other, xE, 0, count))
+                    return;
 
-    } else if (xE->u.u.type == DeviceButtonRelease) {
+    } else if (xE->u.u.type == DeviceButtonRelease
+#ifdef MPX
+            || xE->u.u.type == MPXButtonRelease
+#endif) {
         if (!b)
             return;
 
@@ -266,8 +282,11 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 	if (xE->u.u.detail <= 5)
 	    b->state &= ~((Button1Mask >> 1) << xE->u.u.detail);
 	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
-	if (!b->state && other->fromPassiveGrab)
-	    deactivateDeviceGrab = TRUE;
+#ifdef MPX
+        if (xE->u.u.type == DeviceButtonRelease)
+#endif
+            if (!b->state && other->fromPassiveGrab)
+                deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == ProximityIn)
 	other->valuator->mode &= ~OutOfProximity;
     else if (xE->u.u.type == ProximityOut)

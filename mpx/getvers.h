@@ -15,7 +15,7 @@ int ProcMPXGetExtensionVersion(ClientPtr	/* client */
 
 void SRepMPXGetExtensionVersion(ClientPtr /* client */ ,
 			      int /* size */ ,
-			      mpxGetExtensionVersionReply *	/* rep */
+			      xMPXGetExtensionVersionReply *	/* rep */
     );
 
 #endif

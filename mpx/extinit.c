@@ -7,7 +7,6 @@
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "inputstr.h"
-//#include "gcstruct.h"	/* pointer for extnsionst.h */
 #include "extnsionst.h"	/* extension entry   */
 #include <X11/extensions/MPX.h>
 #include <X11/extensions/MPXproto.h>
@@ -21,6 +20,7 @@
 #include "listdev.h"
 #include "selectev.h"
 #include "getevbase.h"
+#include "queryptr.h"
 
 static Mask lastExtEventMask = 1;
 int MPXEventIndex;
@@ -74,7 +74,6 @@ int MPXLastEvent;
  */
 
 static MPXExtensionVersion thisversion = { 
-    MPX_Present,
     MPX_Major,
     MPX_Minor
 };
@@ -125,14 +124,16 @@ int
 ProcMPXDispatch(register ClientPtr client)
 {
     REQUEST(xReq);
-    if (stuff->data == MPX_GetExtensionVersion)
+    if (stuff->data == X_MPXGetExtensionVersion)
         return (ProcMPXGetExtensionVersion(client));
-    if (stuff->data == MPX_ListDevices)
+    if (stuff->data == X_MPXListDevices)
         return (ProcMPXListDevices(client));
-    if (stuff->data == MPX_SelectEvents)
+    if (stuff->data == X_MPXSelectEvents)
         return (ProcMPXSelectEvents(client));
-    if (stuff->data == MPX_GetEventBase)
+    if (stuff->data == X_MPXGetEventBase)
         return (ProcMPXGetEventBase(client));
+    if (stuff->data == X_MPXQueryPointer)
+        return (ProcMPXQueryPointer(client));
     else {
         SendErrorToClient(client, MPXReqCode, stuff->data, 0, BadRequest);
     }
@@ -153,14 +154,16 @@ int
 SProcMPXDispatch(register ClientPtr client)
 {
     REQUEST(xReq);
-    if (stuff->data == MPX_GetExtensionVersion)
+    if (stuff->data == X_MPXGetExtensionVersion)
         return (SProcMPXGetExtensionVersion(client));
-    if (stuff->data == MPX_ListDevices)
+    if (stuff->data == X_MPXListDevices)
         return (SProcMPXListDevices(client));
-    if (stuff->data == MPX_SelectEvents)
+    if (stuff->data == X_MPXSelectEvents)
         return (SProcMPXSelectEvents(client));
-    if (stuff->data == MPX_GetEventBase)
+    if (stuff->data == X_MPXGetEventBase)
         return (SProcMPXGetEventBase(client));
+    if (stuff->data == X_MPXQueryPointer)
+        return (SProcMPXQueryPointer(client));
     else {
         SendErrorToClient(client, MPXReqCode, stuff->data, 0, BadRequest);
     }
@@ -188,14 +191,14 @@ MPXResetProc(ExtensionEntry* unused)
 
 }
 
-void SReplyMPXDispatch(ClientPtr client, int len, mpxGetExtensionVersionReply* rep)
+void SReplyMPXDispatch(ClientPtr client, int len, xMPXGetExtensionVersionReply* rep)
 {
-    if (rep->RepType ==  MPX_GetExtensionVersion)
+    if (rep->RepType ==  X_MPXGetExtensionVersion)
         SRepMPXGetExtensionVersion(client, len, 
-                (mpxGetExtensionVersionReply*) rep);
-    if (rep->RepType ==  MPX_ListDevices)
+                (xMPXGetExtensionVersionReply*) rep);
+    if (rep->RepType ==  X_MPXListDevices)
         SRepMPXListDevices(client, len, 
-                (mpxListDevicesReply*) rep);
+                (xMPXListDevicesReply*) rep);
     else {
 	FatalError("MPX confused sending swapped reply");
     }

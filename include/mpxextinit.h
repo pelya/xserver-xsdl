@@ -28,7 +28,7 @@ void
 SReplyMPXDispatch (
 	ClientPtr              /* client */,
 	int                    /* len */,
-	mpxGetExtensionVersionReply *     /* rep */
+	xMPXGetExtensionVersionReply *     /* rep */
 	);
 
 void

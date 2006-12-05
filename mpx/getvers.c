@@ -26,11 +26,11 @@ SProcMPXGetExtensionVersion(register ClientPtr client)
 {
     register char n;
 
-    REQUEST(mpxGetExtensionVersionReq);
+    REQUEST(xMPXGetExtensionVersionReq);
     swaps(&stuff->length, n);
     swaps(&stuff->major_version, n);
     swaps(&stuff->minor_version, n);
-    REQUEST_AT_LEAST_SIZE(mpxGetExtensionVersionReq);
+    REQUEST_AT_LEAST_SIZE(xMPXGetExtensionVersionReq);
     return (ProcMPXGetExtensionVersion(client));
 }
 /***********************************************************************
@@ -41,19 +41,19 @@ SProcMPXGetExtensionVersion(register ClientPtr client)
 int
 ProcMPXGetExtensionVersion(register ClientPtr client)
 {
-    mpxGetExtensionVersionReply rep;
+    xMPXGetExtensionVersionReply rep;
 
-    REQUEST(mpxGetExtensionVersionReq);
-    REQUEST_SIZE_MATCH(mpxGetExtensionVersionReq);
+    REQUEST(xMPXGetExtensionVersionReq);
+    REQUEST_SIZE_MATCH(xMPXGetExtensionVersionReq);
 
     rep.repType = X_Reply;
-    rep.RepType = MPX_GetExtensionVersion;
+    rep.RepType = X_MPXGetExtensionVersion;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    rep.major_version = AllExtensionVersions[MPXReqCode - 128].major_version;
-    rep.minor_version = AllExtensionVersions[MPXReqCode - 128].minor_version;
-    WriteReplyToClient(client, sizeof(mpxGetExtensionVersionReply), &rep);
+    rep.major_version = AllExtensionVersions[MPXReqCode - 128].major;
+    rep.minor_version = AllExtensionVersions[MPXReqCode - 128].minor;
+    WriteReplyToClient(client, sizeof(xMPXGetExtensionVersionReply), &rep);
 
     return Success;
 }
@@ -67,7 +67,7 @@ ProcMPXGetExtensionVersion(register ClientPtr client)
 
 void
 SRepMPXGetExtensionVersion(ClientPtr client, int size,
-			 mpxGetExtensionVersionReply * rep)
+			 xMPXGetExtensionVersionReply * rep)
 {
     register char n;
 

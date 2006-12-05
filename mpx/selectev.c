@@ -42,9 +42,9 @@ SProcMPXSelectEvents(register ClientPtr client)
 {
     register char n;
 
-    REQUEST(mpxSelectEventsReq);
+    REQUEST(xMPXSelectEventsReq);
     swaps(&stuff->length, n);
-    REQUEST_SIZE_MATCH(mpxSelectEventsReq);
+    REQUEST_SIZE_MATCH(xMPXSelectEventsReq);
     swapl(&stuff->window, n);
     return (ProcMPXSelectEvents(client));
 }
@@ -61,12 +61,12 @@ ProcMPXSelectEvents(register ClientPtr client)
     int ret;
     WindowPtr pWin;
 
-    REQUEST(mpxSelectEventsReq);
-    REQUEST_SIZE_MATCH(mpxSelectEventsReq);
+    REQUEST(xMPXSelectEventsReq);
+    REQUEST_SIZE_MATCH(xMPXSelectEventsReq);
 
-    if (stuff->length != (sizeof(mpxSelectEventsReq) >> 2))
+    if (stuff->length != (sizeof(xMPXSelectEventsReq) >> 2))
     { 
-        SendErrorToClient(client, MPXReqCode, MPX_SelectEvents, 0,
+        SendErrorToClient(client, MPXReqCode, X_MPXSelectEvents, 0,
 			  BadLength);
 	return Success;
     }
@@ -75,7 +75,7 @@ ProcMPXSelectEvents(register ClientPtr client)
     if (!pWin) 
     {
 	client->errorValue = stuff->window;
-	SendErrorToClient(client, MPXReqCode, MPX_SelectEvents, 0,
+	SendErrorToClient(client, MPXReqCode, X_MPXSelectEvents, 0,
 			  BadWindow);
 	return Success;
     }
@@ -83,13 +83,13 @@ ProcMPXSelectEvents(register ClientPtr client)
     if (stuff->mask >= MPXHighestMask)
     {
         client->errorValue = stuff->mask;
-	SendErrorToClient(client, MPXReqCode, MPX_SelectEvents, 0,
+	SendErrorToClient(client, MPXReqCode, X_MPXSelectEvents, 0,
 			  BadValue);
     }
 
     if ((ret = MPXSelectForWindow(pWin, client, stuff->mask)) != Success) 
     { 
-        SendErrorToClient(client, MPXReqCode, MPX_SelectEvents, 0, ret);
+        SendErrorToClient(client, MPXReqCode, X_MPXSelectEvents, 0, ret);
         return Success;
     }
 

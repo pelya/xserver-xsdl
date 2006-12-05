@@ -25,7 +25,7 @@ int SProcMPXListDevices(register ClientPtr client)
 {
     register char n;
 
-    REQUEST(mpxListDevicesReq);
+    REQUEST(xMPXListDevicesReq);
     swaps(&stuff->length, n);
     return (ProcMPXListDevices(client));
 }
@@ -38,7 +38,7 @@ int SProcMPXListDevices(register ClientPtr client)
  */
 int ProcMPXListDevices(register ClientPtr client)
 {
-    mpxListDevicesReply rep;
+    xMPXListDevicesReply rep;
     int numdevs = 0;
     int namesize = 1;	/* need 1 extra byte for strcpy */
     int size = 0;
@@ -46,13 +46,13 @@ int ProcMPXListDevices(register ClientPtr client)
     char* devbuf;
     char* namebuf;
     char *savbuf;
-    mpxDeviceInfoPtr dev;
+    xMPXDeviceInfoPtr dev;
     DeviceIntPtr d;
 
-    REQUEST_SIZE_MATCH(mpxListDevicesReq);
-    memset(&rep, 0, sizeof(mpxListDevicesReply));
+    REQUEST_SIZE_MATCH(xMPXListDevicesReq);
+    memset(&rep, 0, sizeof(xMPXListDevicesReply));
     rep.repType = X_Reply;
-    rep.RepType = MPX_ListDevices;
+    rep.RepType = X_MPXListDevices;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
@@ -72,12 +72,12 @@ int ProcMPXListDevices(register ClientPtr client)
         }
     }
 
-    total_length = numdevs * sizeof(mpxDeviceInfo) + size + namesize;
+    total_length = numdevs * sizeof(xMPXDeviceInfo) + size + namesize;
     devbuf = (char *)xalloc(total_length);
-    namebuf = devbuf + (numdevs * sizeof(mpxDeviceInfo));
+    namebuf = devbuf + (numdevs * sizeof(xMPXDeviceInfo));
     savbuf = devbuf;
 
-    dev = (mpxDeviceInfoPtr) devbuf;
+    dev = (xMPXDeviceInfoPtr) devbuf;
     for (d = inputInfo.devices; d; d = d->next, dev++)
         if (d->isMPDev)
             SetMPXDeviceInfo(client, d, dev, &devbuf, &namebuf);
@@ -87,7 +87,7 @@ int ProcMPXListDevices(register ClientPtr client)
 
     rep.ndevices = numdevs;
     rep.length = (total_length + 3) >> 2;
-    WriteReplyToClient(client, sizeof(mpxListDevicesReply), &rep);
+    WriteReplyToClient(client, sizeof(xMPXListDevicesReply), &rep);
     WriteToClient(client, total_length, savbuf);
     xfree(savbuf);
     return Success;
@@ -115,7 +115,7 @@ SizeMPXDeviceInfo(DeviceIntPtr d, int *namesize, int *size)
  */
 
 void
-SetMPXDeviceInfo(ClientPtr client, DeviceIntPtr d, mpxDeviceInfoPtr dev,
+SetMPXDeviceInfo(ClientPtr client, DeviceIntPtr d, xMPXDeviceInfoPtr dev,
 	       char **devbuf, char **namebuf)
 {
     MPXCopyDeviceName(namebuf, d->name);
@@ -157,17 +157,17 @@ void
 MPXCopySwapDevice(register ClientPtr client, DeviceIntPtr d, char **buf)
 {
     register char n;
-    mpxDeviceInfoPtr dev;
+    xMPXDeviceInfoPtr dev;
 
-    dev = (mpxDeviceInfoPtr) * buf;
-    memset(dev, 0, sizeof(mpxDeviceInfo));
+    dev = (xMPXDeviceInfoPtr) * buf;
+    memset(dev, 0, sizeof(xMPXDeviceInfo));
 
     dev->id = d->id;
     dev->type = d->type;
     if (client->swapped) {
 	swapl(&dev->type, n);	/* macro - braces are required */
     }
-    *buf += sizeof(mpxDeviceInfo);
+    *buf += sizeof(xMPXDeviceInfo);
 }
 
 /***********************************************************************
@@ -177,7 +177,7 @@ MPXCopySwapDevice(register ClientPtr client, DeviceIntPtr d, char **buf)
  *
  */
 void
-SRepMPXListDevices(ClientPtr client, int size, mpxListDevicesReply * rep)
+SRepMPXListDevices(ClientPtr client, int size, xMPXListDevicesReply * rep)
 {
     register char n;
 

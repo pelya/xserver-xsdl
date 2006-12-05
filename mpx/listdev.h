@@ -31,7 +31,7 @@ void SizeMPXDeviceInfo(DeviceIntPtr /* d */ ,
 
 void SetMPXDeviceInfo(ClientPtr /* client */ ,
 		    DeviceIntPtr /* d */ ,
-		    mpxDeviceInfoPtr /* dev */ ,
+		    xMPXDeviceInfoPtr /* dev */ ,
 		    char ** /* devbuf */ ,
 		    char **	/* namebuf */
     );
@@ -48,6 +48,6 @@ void MPXCopySwapDevice(ClientPtr /* client */ ,
 
 void SRepMPXListDevices(ClientPtr /* client */ ,
 			   int /* size */ ,
-			   mpxListDevicesReply *	/* rep */
+			   xMPXListDevicesReply *	/* rep */
     );
 #endif

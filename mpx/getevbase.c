@@ -20,20 +20,20 @@
 int
 ProcMPXGetEventBase(register ClientPtr client)
 {
-    mpxGetEventBaseReply rep;
+    xMPXGetEventBaseReply rep;
 
-    REQUEST(mpxGetEventBaseReq);
-    REQUEST_SIZE_MATCH(mpxGetEventBaseReq);
+    REQUEST(xMPXGetEventBaseReq);
+    REQUEST_SIZE_MATCH(xMPXGetEventBaseReq);
 
-    memset(&rep, 0, sizeof(mpxGetEventBaseReply));
+    memset(&rep, 0, sizeof(xMPXGetEventBaseReply));
     rep.repType = X_Reply;
-    rep.RepType = MPX_GetEventBase;
+    rep.RepType = X_MPXGetEventBase;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
     rep.eventBase = MPXEventBase;
 
-    WriteReplyToClient(client, sizeof(mpxGetEventBaseReply), &rep);
+    WriteReplyToClient(client, sizeof(xMPXGetEventBaseReply), &rep);
 
     return Success;
 }
@@ -47,9 +47,9 @@ SProcMPXGetEventBase(register ClientPtr client)
 {
     register char n;
 
-    REQUEST(mpxGetEventBaseReq);
+    REQUEST(xMPXGetEventBaseReq);
     swaps(&stuff->length, n);
-    REQUEST_SIZE_MATCH(mpxGetEventBaseReq);
+    REQUEST_SIZE_MATCH(xMPXGetEventBaseReq);
     return (ProcMPXGetEventBase(client));
 }
 

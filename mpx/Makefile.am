@@ -12,5 +12,7 @@ libmpx_la_SOURCES =	\
         selectev.h \
         mpxglobals.h \
 	getevbase.c \
-	getevbase.h
+	getevbase.h \
+        queryptr.h \
+        queryptr.c 
 

@@ -1,4 +1,26 @@
 MPX Changelog file
+== 05.12.06 ==
+Xi:     adding MPX checks to ProcessOtherEvents
+
+mpx:    adding QueryPointer request and reply
+	adjusting names of requests to Xlib compatible naming (xMPX*** instead of
+	mpx***)
+
+
+Files:
+	Xi/exevents.c
+	mpx/Makefile.am
+	mpx/extinit.c
+	mpx/getevbase.c
+	mpx/getvers.c
+	mpx/queryptr.c
+	mpx/queryptr.h
+	mpx/selectev.c
+	mpx/listdev.h
+	mpx/listdev.c
+	include/mpxextinit.h
+
+
 == 01.12.06 ==
 
 mpx:    SelectEvents and GetEventBase requests. 
