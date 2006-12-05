@@ -270,7 +270,7 @@ ProcCompositeNameWindowPixmap (ClientPtr client)
 	return BadWindow;
     }
 
-    if (!pWin->realized)
+    if (!pWin->viewable)
 	return BadMatch;
 
     LEGAL_NEW_RESOURCE (stuff->pixmap, client);
