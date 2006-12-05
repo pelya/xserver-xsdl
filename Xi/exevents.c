@@ -266,7 +266,8 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
     } else if (xE->u.u.type == DeviceButtonRelease
 #ifdef MPX
             || xE->u.u.type == MPXButtonRelease
-#endif) {
+#endif
+            ) {
         if (!b)
             return;
 

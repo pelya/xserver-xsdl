@@ -24,6 +24,15 @@ ____________________________________________________________
 
 Merging from master
 
+____________________________________________________________
+
+Ironing some glitches caused by the merge
+
+Files:
+	Xi/exevents.c
+	randr/rrpointer.c
+	dix/events.c
+
 
 == 01.12.06 ==
 

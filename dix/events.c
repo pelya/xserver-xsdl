@@ -360,7 +360,7 @@ static void ConfineToShape(DeviceIntPtr pDev, RegionPtr shape, int *px, int *py)
 static void PostNewCursor(DeviceIntPtr pDev);
 
 #define SyntheticMotion(x, y) \
-    PostSyntheticMotion(x, y, sprite.screen, \
+    PostSyntheticMotion(x, y, sprite->screen, \
                         syncEvents.playingEvents ? \
                           syncEvents.time.milliseconds : \
                           currentTime.milliseconds);

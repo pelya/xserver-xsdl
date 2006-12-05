@@ -21,6 +21,7 @@
  */
 
 #include "randrstr.h"
+#include "inputstr.h"
 
 /*
  * When the pointer moves, check to see if the specified position is outside
@@ -87,7 +88,7 @@ RRPointerToNearestCrtc (ScreenPtr pScreen, int x, int y, RRCrtcPtr skip)
 	}
     }
     if (best_dx || best_dy)
-	(*pScreen->SetCursorPosition) (pScreen, x + best_dx, y + best_dy, TRUE);
+	(*pScreen->SetCursorPosition) (inputInfo.pointer, pScreen, x + best_dx, y + best_dy, TRUE);
     pScrPriv->pointerCrtc = nearest;
 }
 
@@ -132,6 +133,6 @@ RRPointerScreenConfigured (ScreenPtr pScreen)
 
     if (pScreen != pCurrentScreen)
 	return;
-    GetSpritePosition (&x, &y);
+    GetSpritePosition(inputInfo.pointer, &x, &y);
     RRPointerToNearestCrtc (pScreen, x, y, NULL);
 }
