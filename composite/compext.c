@@ -269,7 +269,10 @@ ProcCompositeNameWindowPixmap (ClientPtr client)
 	client->errorValue = stuff->window;
 	return BadWindow;
     }
-    
+
+    if (!pWin->realized)
+	return BadMatch;
+
     LEGAL_NEW_RESOURCE (stuff->pixmap, client);
     
     cw = GetCompWindow (pWin);
