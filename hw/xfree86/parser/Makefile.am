@@ -25,7 +25,7 @@ libxf86config_a_SOURCES = \
 	DRI.c \
 	Extensions.c
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 
 EXTRA_DIST = \
 	Configint.h \

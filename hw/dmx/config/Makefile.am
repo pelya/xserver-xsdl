@@ -27,7 +27,7 @@ endif
 
 AM_YFLAGS = -d
 AM_CFLAGS = \
-	 \
+	$(DIX_CFLAGS) \
 	-I$(top_srcdir)/hw/dmx \
 	$(GLX_INCS) \
 	-DHAVE_DMX_CONFIG_H \

@@ -143,9 +143,7 @@ of the copyright holder.
 extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
 #endif
 
-#ifdef XACE
 #include "xace.h"
-#endif
 
 #ifdef XSERVER_DTRACE
 #include <sys/types.h>
@@ -362,8 +360,7 @@ static void ConfineToShape(DeviceIntPtr pDev, RegionPtr shape, int *px, int *py)
 static void PostNewCursor(DeviceIntPtr pDev);
 
 #define SyntheticMotion(x, y) \
-    PostSyntheticMotion(x, y, noPanoramiXExtension ? 0 : \
-                              sprite->screen->myNum, \
+    PostSyntheticMotion(x, y, sprite.screen, \
                         syncEvents.playingEvents ? \
                           syncEvents.time.milliseconds : \
                           currentTime.milliseconds);
@@ -2648,10 +2645,8 @@ CheckPassiveGrabsOnWindow(
 	     (grab->confineTo->realized && 
 				BorderSizeNotEmpty(grab->confineTo))))
 	{
-#ifdef XACE
 	    if (!XaceHook(XACE_DEVICE_ACCESS, wClient(pWin), device, FALSE))
 		return FALSE;
-#endif
 #ifdef XKB
 	    if (!noXkbExtension) {
 		XE_KBPTR.state &= 0x1f00;
@@ -3012,9 +3007,7 @@ drawable.id:0;
     if (deactivateGrab)
         (*keybd->DeactivateGrab)(keybd);
 
-#ifdef XACE
     XaceHook(XACE_KEY_AVAIL, xE, keybd, count);
-#endif
 }
 
 #ifdef XKB
@@ -3446,17 +3439,13 @@ EnterLeaveEvent(
     if ((type == EnterNotify) && (mask & KeymapStateMask))
     {
 	xKeymapEvent ke;
-
-#ifdef XACE
 	ClientPtr client = grab ? rClient(grab)
 				: clients[CLIENT_ID(pWin->drawable.id)];
-	if (!XaceHook(XACE_DEVICE_ACCESS, client, keybd, FALSE))
-	{
-	    bzero((char *)&ke.map[0], 31);
-	}
+	if (XaceHook(XACE_DEVICE_ACCESS, client, keybd, FALSE))
+	    memmove((char *)&ke.map[0], (char *)&keybd->key->down[1], 31);
 	else
-#endif
-	memmove((char *)&ke.map[0], (char *)&keybd->key->down[1], 31);
+	    bzero((char *)&ke.map[0], 31);
+
 	ke.type = KeymapNotify;
 	if (grab)
 	    (void)TryClientEvents(rClient(grab), (xEvent *)&ke, 1, mask,
@@ -3559,15 +3548,12 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, register WindowPtr 
 	((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
     {
 	xKeymapEvent ke;
-#ifdef XACE
 	ClientPtr client = clients[CLIENT_ID(pWin->drawable.id)];
-	if (!XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
-	{
-	    bzero((char *)&ke.map[0], 31);
-	}
+	if (XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
+	    memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
 	else
-#endif
-	memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
+	    bzero((char *)&ke.map[0], 31);
+
 	ke.type = KeymapNotify;
 	(void)DeliverEventsToWindow(dev, pWin, (xEvent *)&ke, 1,
 				    KeymapStateMask, NullGrab, 0);
@@ -3830,10 +3816,10 @@ ProcSetInputFocus(client)
     REQUEST(xSetInputFocusReq);
 
     REQUEST_SIZE_MATCH(xSetInputFocusReq);
-#ifdef XACE
+
     if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
 	return Success;
-#endif
+
     return SetInputFocus(client, inputInfo.keyboard, stuff->focus,
 			 stuff->revertTo, stuff->time, FALSE);
 }
@@ -4095,18 +4081,17 @@ ProcGrabKeyboard(ClientPtr client)
     int result;
 
     REQUEST_SIZE_MATCH(xGrabKeyboardReq);
-#ifdef XACE
-    if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
-    {
+
+    if (XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
+	result = GrabDevice(client, inputInfo.keyboard, stuff->keyboardMode,
+			    stuff->pointerMode, stuff->grabWindow,
+			    stuff->ownerEvents, stuff->time,
+			    KeyPressMask | KeyReleaseMask, &rep.status);
+    else {
 	result = Success;
 	rep.status = AlreadyGrabbed;
     }
-    else
-#endif
-    result = GrabDevice(client, inputInfo.keyboard, stuff->keyboardMode,
-			stuff->pointerMode, stuff->grabWindow,
-			stuff->ownerEvents, stuff->time,
-			KeyPressMask | KeyReleaseMask, &rep.status);
+
     if (result != Success)
 	return result;
     rep.type = X_Reply;

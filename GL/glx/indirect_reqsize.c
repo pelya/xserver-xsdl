@@ -31,7 +31,7 @@
 #include "indirect_size.h"
 #include "indirect_reqsize.h"
 
-#if defined(__linux__) || defined(__GNU__)
+#if defined(__linux__) || defined (__GLIBC__) || defined(__GNU__)
 #  include <byteswap.h>
 #  define SWAP_32(v)  do { (v) = bswap_32(v); } while(0)
 #else
