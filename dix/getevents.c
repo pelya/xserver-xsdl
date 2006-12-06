@@ -540,7 +540,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         }
         else {
             if (pDev->coreEvents)
-                x = cp->valuator->lasty;
+                y = cp->valuator->lasty;
             else
                 y = pDev->valuator->lasty;
         }
