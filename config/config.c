@@ -357,7 +357,7 @@ configSetup(void)
 
     if (!dbus_connection_add_filter(configData->connection, configFilter,
                                     configData, NULL)) {
-        
+
         ErrorF("[dbus] couldn't add signal filter: %s (%s)\n", error.name,
                error.message);
         dbus_error_free(&error);
