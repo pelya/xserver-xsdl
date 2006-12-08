@@ -59,6 +59,8 @@ extern void xf86print_vdif(
     xf86vdifPtr v
 );
 
+DisplayModePtr xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC);
+
 #endif
 
 

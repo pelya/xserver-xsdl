@@ -745,14 +745,11 @@ LinuxKeyboardEnable (KdKeyboardInfo *ki)
     cfsetispeed(&nTty, 9600);
     cfsetospeed(&nTty, 9600);
     tcsetattr(fd, TCSANOW, &nTty);
-    /* Our kernel cleverly ignores O_NONBLOCK.  Sigh. */
-#if 0
     /*
      * Flush any pending keystrokes
      */
     while ((n = read (fd, buf, sizeof (buf))) > 0)
 	;
-#endif
     KdRegisterFd (fd, LinuxKeyboardRead, ki);
     return Success;
 }

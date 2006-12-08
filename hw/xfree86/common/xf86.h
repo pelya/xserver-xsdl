@@ -64,7 +64,7 @@ extern ScrnInfoPtr xf86CurrentScreen;
 extern Bool pciSlotClaimed;
 extern Bool isaSlotClaimed;
 extern Bool fbSlotClaimed;
-#ifdef __sparc__
+#if defined(__sparc__) || defined(__sparc)
 extern Bool sbusSlotClaimed;
 #endif
 extern confDRIRec xf86ConfigDRI;
@@ -418,6 +418,15 @@ void xf86PruneDriverModes(ScrnInfoPtr scrp);
 void xf86SetCrtcForModes(ScrnInfoPtr scrp, int adjustFlags);
 void xf86PrintModes(ScrnInfoPtr scrp);
 void xf86ShowClockRanges(ScrnInfoPtr scrp, ClockRangePtr clockRanges);
+double xf86ModeHSync(DisplayModePtr mode);
+double xf86ModeVRefresh(DisplayModePtr mode);
+void xf86SetModeDefaultName(DisplayModePtr mode);
+void xf86SetModeCrtc(DisplayModePtr p, int adjustFlags);
+DisplayModePtr xf86DuplicateMode(DisplayModePtr pMode);
+DisplayModePtr xf86DuplicateModes(ScrnInfoPtr pScrn, DisplayModePtr modeList);
+Bool xf86ModesEqual(DisplayModePtr pMode1, DisplayModePtr pMode2);
+void xf86PrintModeline(int scrnIndex,DisplayModePtr mode);
+DisplayModePtr xf86ModesAdd(DisplayModePtr modes, DisplayModePtr new);
 
 /* xf86Option.c */
 

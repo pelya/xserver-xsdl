@@ -36,10 +36,10 @@
                     /* the above comment lies.  there is no better way. */
 #include "input.h"
 #include "inputstr.h"
-#include "config.h"
+#include "hotplug.h"
 #include "os.h"
 
-#define MATCH_RULE "type='method_call',interface='org.x.config.input'"
+#define CONFIG_MATCH_RULE "type='method_call',interface='org.x.config.input'"
 
 #define MALFORMED_MSG "[config] malformed message, dropping"
 #define MALFORMED_MESSAGE() { DebugF(MALFORMED_MSG "\n"); \
@@ -50,18 +50,44 @@
                                   ret = BadValue; \
                                   goto unwind; }
 
-static DBusConnection *configConnection = NULL;
-static int configfd = -1;
-static char busobject[32] = { 0 };
-static char busname[64] = { 0 };
+/* How often to attempt reconnecting when we get booted off the bus. */
+#define RECONNECT_DELAY 10000 /* in ms */
 
-void
-configDispatch()
+struct config_data {
+    int fd;
+    DBusConnection *connection;
+    char busobject[32];
+    char busname[64];
+};
+
+static struct config_data *configData;
+
+static CARD32 configReconnect(OsTimerPtr timer, CARD32 time, pointer arg);
+
+static void
+configWakeupHandler(pointer blockData, int err, pointer pReadMask)
 {
-    if (!configConnection)
-        return;
+    struct config_data *data = blockData;
 
-    dbus_connection_read_write_dispatch(configConnection, 0);
+    if (data->connection && FD_ISSET(data->fd, (fd_set *) pReadMask))
+        dbus_connection_read_write_dispatch(data->connection, 0);
+}
+
+static void
+configBlockHandler(pointer data, struct timeval **tv, pointer pReadMask)
+{
+}
+
+static void
+configTeardown(void)
+{
+    if (configData) {
+        RemoveGeneralSocket(configData->fd);
+        RemoveBlockAndWakeupHandlers(configBlockHandler, configWakeupHandler,
+                                     configData);
+        xfree(configData);
+        configData = NULL;
+    }
 }
 
 static int
@@ -217,23 +243,22 @@ configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
             ret = configAddDevice(message, &iter, &error);
         else if (strcmp(dbus_message_get_member(message), "remove") == 0)
             ret = configRemoveDevice(message, &iter, &error);
-    }
+        if (ret != BadDrawable && ret != BadAlloc) {
+            reply = dbus_message_new_method_return(message);
+            dbus_message_iter_init_append(reply, &iter);
 
-    if (ret != BadDrawable && ret != BadAlloc) {
-        reply = dbus_message_new_method_return(message);
-        dbus_message_iter_init_append(reply, &iter);
+            if (!dbus_message_iter_append_basic(&iter, DBUS_TYPE_INT32, &ret)) {
+                ErrorF("[config] couldn't append to iterator\n");
+                dbus_error_free(&error);
+                return DBUS_HANDLER_RESULT_HANDLED;
+            }
 
-        if (!dbus_message_iter_append_basic(&iter, DBUS_TYPE_INT32, &ret)) {
-            ErrorF("[config] couldn't append to iterator\n");
-            dbus_error_free(&error);
-            return DBUS_HANDLER_RESULT_HANDLED;
+            if (!dbus_connection_send(bus, reply, NULL))
+                ErrorF("[config] failed to send reply\n");
+            dbus_connection_flush(bus);
+
+            dbus_message_unref(reply);
         }
-
-        if (!dbus_connection_send(bus, reply, NULL))
-            ErrorF("[config] failed to send reply\n");
-        dbus_connection_flush(bus);
-
-        dbus_message_unref(reply);
     }
 
     dbus_error_free(&error);
@@ -246,71 +271,147 @@ configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
         return DBUS_HANDLER_RESULT_HANDLED;
 }
 
-void
-configInitialise()
+/**
+ * This is a filter, which only handles the disconnected signal, which
+ * doesn't go to the normal message handling function.  This takes
+ * precedence over the message handling function, so have have to be
+ * careful to ignore anything we don't want to deal with here.
+ *
+ * Yes, this is brutally stupid.
+ */
+static DBusHandlerResult
+configFilter(DBusConnection *connection, DBusMessage *message, void *closure)
 {
-    DBusConnection *bus = NULL;
+    if (dbus_message_is_signal(message, DBUS_INTERFACE_LOCAL,
+                                    "Disconnected")) {
+        ErrorF("[dbus] disconnected from bus\n");
+        TimerSet(NULL, 0, RECONNECT_DELAY, configReconnect, NULL);
+        configTeardown();
+        return DBUS_HANDLER_RESULT_HANDLED;
+    }
+
+    return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+}
+
+static Bool
+configSetup(void)
+{
     DBusError error;
     DBusObjectPathVTable vtable = { .message_function = configMessage };
 
-    configConnection = NULL;
+    if (!configData)
+        configData = (struct config_data *) xcalloc(sizeof(struct config_data), 1);
+    if (!configData) {
+        ErrorF("[dbus] failed to allocate data struct.\n");
+        return FALSE;
+    }
 
     dbus_error_init(&error);
-    bus = dbus_bus_get(DBUS_BUS_SYSTEM, &error);
-    if (!bus || dbus_error_is_set(&error)) {
+    configData->connection = dbus_bus_get(DBUS_BUS_SYSTEM, &error);
+    if (!configData->connection || dbus_error_is_set(&error)) {
         ErrorF("[dbus] some kind of error occurred: %s (%s)\n", error.name,
                 error.message);
         dbus_error_free(&error);
-        return;
+        xfree(configData);
+        configData = NULL;
+        return FALSE;
     }
 
-    if (!dbus_connection_get_unix_fd(bus, &configfd)) {
-        dbus_connection_unref(bus);
+    dbus_connection_set_exit_on_disconnect(configData->connection, FALSE);
+
+    if (!dbus_connection_get_unix_fd(configData->connection, &configData->fd)) {
+        dbus_connection_unref(configData->connection);
         ErrorF("[dbus] couldn't get fd for bus\n");
         dbus_error_free(&error);
-        configfd = -1;
-        return;
+        xfree(configData);
+        configData = NULL;
+        return FALSE;
     }
 
-    snprintf(busname, sizeof(busname), "org.x.config.display%d", atoi(display));
-    if (!dbus_bus_request_name(bus, busname, 0, &error) ||
-        dbus_error_is_set(&error)) {
+    snprintf(configData->busname, sizeof(configData->busname),
+             "org.x.config.display%d", atoi(display));
+    if (!dbus_bus_request_name(configData->connection, configData->busname,
+                               0, &error) || dbus_error_is_set(&error)) {
         ErrorF("[dbus] couldn't take over org.x.config: %s (%s)\n",
                error.name, error.message);
         dbus_error_free(&error);
-        dbus_connection_unref(bus);
-        configfd = -1;
-        return;
+        dbus_connection_unref(configData->connection);
+        xfree(configData);
+        configData = NULL;
+        return FALSE;
     }
 
     /* blocks until we get a reply. */
-    dbus_bus_add_match(bus, MATCH_RULE, &error);
+    dbus_bus_add_match(configData->connection, CONFIG_MATCH_RULE, &error);
     if (dbus_error_is_set(&error)) {
         ErrorF("[dbus] couldn't match X.Org rule: %s (%s)\n", error.name,
                error.message);
         dbus_error_free(&error);
-        dbus_bus_release_name(bus, busname, &error);
-        dbus_connection_unref(bus);
-        configfd = -1;
-        return;
+        dbus_bus_release_name(configData->connection, configData->busname,
+                              &error);
+        dbus_connection_unref(configData->connection);
+        xfree(configData);
+        configData = NULL;
+        return FALSE;
     }
 
-    snprintf(busobject, sizeof(busobject), "/org/x/config/%d", atoi(display));
-    if (!dbus_connection_register_object_path(bus, busobject, &vtable, bus)) {
-        ErrorF("[dbus] couldn't register object path\n");
-        configfd = -1;
-        dbus_bus_release_name(bus, busname, &error);
-        dbus_bus_remove_match(bus, MATCH_RULE, &error);
-        dbus_connection_unref(bus);
+    if (!dbus_connection_add_filter(configData->connection, configFilter,
+                                    configData, NULL)) {
+
+        ErrorF("[dbus] couldn't add signal filter: %s (%s)\n", error.name,
+               error.message);
         dbus_error_free(&error);
-        return;
+        dbus_bus_release_name(configData->connection, configData->busname,
+                              &error);
+        dbus_bus_remove_match(configData->connection, CONFIG_MATCH_RULE,
+                              &error);
+        dbus_connection_unref(configData->connection);
+        xfree(configData);
+        configData = NULL;
+        return FALSE;
     }
 
-    DebugF("[dbus] registered object path %s\n", busobject);
+    snprintf(configData->busobject, sizeof(configData->busobject),
+             "/org/x/config/%d", atoi(display));
+    if (!dbus_connection_register_object_path(configData->connection,
+                                              configData->busobject, &vtable,
+                                              configData->connection)) {
+        ErrorF("[dbus] couldn't register object path\n");
+        dbus_bus_release_name(configData->connection, configData->busname,
+                              &error);
+        dbus_bus_remove_match(configData->connection, CONFIG_MATCH_RULE,
+                              &error);
+        dbus_connection_unref(configData->connection);
+        dbus_error_free(&error);
+        xfree(configData);
+        configData = NULL;
+        return FALSE;
+    }
+
+    DebugF("[dbus] registered object path %s\n", configData->busobject);
 
     dbus_error_free(&error);
-    configConnection = bus;
-    AddGeneralSocket(configfd);
+    AddGeneralSocket(configData->fd);
+
+    RegisterBlockAndWakeupHandlers(configBlockHandler, configWakeupHandler,
+                                   configData);
+
+    return TRUE;
+}
+
+static CARD32
+configReconnect(OsTimerPtr timer, CARD32 time, pointer arg)
+{
+    if (configSetup())
+        return 0;
+    else
+        return RECONNECT_DELAY;
+}
+
+void
+configInitialise()
+{
+    TimerSet(NULL, 0, 1, configReconnect, NULL);
 }
 
 void
@@ -318,25 +419,23 @@ configFini()
 {
     DBusError error;
 
-    if (configConnection) {
+    if (configData) {
         dbus_error_init(&error);
-        dbus_connection_unregister_object_path(configConnection, busobject);
-        dbus_bus_remove_match(configConnection, MATCH_RULE, &error);
-        dbus_bus_release_name(configConnection, busname, &error);
-        dbus_connection_unref(configConnection);
-        RemoveGeneralSocket(configfd);
-        configConnection = NULL;
-        configfd = -1;
+        dbus_connection_unregister_object_path(configData->connection,
+                                               configData->busobject);
+        dbus_connection_remove_filter(configData->connection, configFilter,
+                                      configData);
+        dbus_bus_remove_match(configData->connection, CONFIG_MATCH_RULE,
+                              &error);
+        dbus_bus_release_name(configData->connection, configData->busname,
+                              &error);
+        dbus_connection_unref(configData->connection);
         dbus_error_free(&error);
+        configTeardown();
     }
 }
 
 #else /* !HAVE_DBUS */
-
-void
-configDispatch()
-{
-}
 
 void
 configInitialise()

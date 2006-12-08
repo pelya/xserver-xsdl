@@ -205,15 +205,17 @@ WaitForSomething(int *pClientsReady)
             if (timeout > 0 && timeout > timers->delta + 250) {
                 /* time has rewound.  reset the timers. */
                 CheckAllTimers(now);
-                timeout = timers->expires - now;
             }
 
-            if (timeout < 0)
-                timeout = 0;
-	    waittime.tv_sec = timeout / MILLI_PER_SECOND;
-	    waittime.tv_usec = (timeout % MILLI_PER_SECOND) *
-		               (1000000 / MILLI_PER_SECOND);
-	    wt = &waittime;
+	    if (timers) {
+		timeout = timers->expires - now;
+		if (timeout < 0)
+		    timeout = 0;
+		waittime.tv_sec = timeout / MILLI_PER_SECOND;
+		waittime.tv_usec = (timeout % MILLI_PER_SECOND) *
+				   (1000000 / MILLI_PER_SECOND);
+		wt = &waittime;
+	    }
 	}
 	XFD_COPYSET(&AllSockets, &LastSelectMask);
 #ifdef SMART_SCHEDULE

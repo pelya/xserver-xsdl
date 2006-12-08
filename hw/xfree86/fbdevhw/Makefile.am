@@ -11,7 +11,7 @@ endif
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../i2c
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 
 sdk_HEADERS = fbdevhw.h
 

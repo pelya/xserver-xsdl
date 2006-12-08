@@ -60,7 +60,7 @@ GLX_DEFS = @GL_CFLAGS@
 GLX_INCS = -I@MESA_SOURCE@/include
 endif	    
 
-AM_CFLAGS = \
+AM_CFLAGS = $(DIX_CFLAGS) \
             -I$(top_srcdir)/hw/dmx \
             -I$(top_srcdir)/hw/xfree86/common \
             $(GLX_INCS) \

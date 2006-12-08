@@ -39,7 +39,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "xf86Module.h"
 #include "globals.h"
 
+#include "xf86drm.h"
 static MODULESETUPPROTO(driSetup);
+
+drmServerInfo DRIDRMServerInfo;
 
 static XF86ModuleVersionInfo VersRec =
 {
@@ -81,6 +84,9 @@ driSetup(pointer module, pointer opts, int *errmaj, int *errmin)
     } else {
 	if (errmaj) *errmaj = LDR_ONCEONLY;
     }
+
+    drmSetServerInfo(&DRIDRMServerInfo);
+
     /* Need a non-NULL return value to indicate success */
     return 1;
 }

@@ -56,7 +56,7 @@ if XSERVER_DTRACE
 dtrace.o: $(top_srcdir)/dix/Xserver.d $(am_libos_la_OBJECTS)
 	$(DTRACE) -G -C -o $@ -s $(top_srcdir)/dix/Xserver.d .libs/*.o ../dix/.libs/*.o
 
-noinst_LIBRARIES = os.O
+noinst_PROGRAMS = os.O
 
 os.O: dtrace.o $(am_libos_la_OBJECTS)
 	ld -r -o $@ dtrace.o .libs/*.o

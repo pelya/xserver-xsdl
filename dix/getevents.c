@@ -39,16 +39,13 @@
 #include "cursorstr.h"
 #include "dixstruct.h"
 #include "globals.h"
+#include "dixevents.h"
 #include "mipointer.h"
 
 #ifdef XKB
 #include <X11/extensions/XKBproto.h>
 #include <X11/extensions/XKBsrv.h>
 extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
-#endif
-
-#ifdef XACE
-#include "xace.h"
 #endif
 
 #ifdef PANORAMIX
@@ -487,6 +484,8 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     int num_events = 0, final_valuator = 0;
     CARD32 ms = 0;
     deviceKeyButtonPointer *kbp = NULL;
+    /* Thanks to a broken lib, we _always_ have to chase DeviceMotionNotifies
+     * with DeviceValuators. */
     Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
     DeviceIntPtr cp = inputInfo.pointer;
     int x = 0, y = 0;
@@ -503,14 +502,15 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     else
         num_events = 1;
 
+    if (type == MotionNotify && num_valuators <= 0) {
+        return 0;
+    }
+
     /* Do we need to send a DeviceValuator event? */
-    if ((num_valuators + first_valuator) > 2 && sendValuators) {
+    if (sendValuators) {
         if ((((num_valuators - 1) / 6) + 1) > MAX_VALUATOR_EVENTS)
             num_valuators = MAX_VALUATOR_EVENTS * 6;
         num_events += ((num_valuators - 1) / 6) + 1;
-    }
-    else if (type == MotionNotify && num_valuators <= 0) {
-        return 0;
     }
 
     final_valuator = num_valuators + first_valuator;
@@ -543,7 +543,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         }
         else {
             if (pDev->coreEvents)
-                x = cp->valuator->lasty;
+                y = cp->valuator->lasty;
             else
                 y = pDev->valuator->lasty;
         }
@@ -617,7 +617,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     kbp->root_y = y;
 
     events++;
-    if (final_valuator > 2 && sendValuators) {
+    if (sendValuators) {
         kbp->deviceid |= MORE_EVENTS;
         clipValuators(pDev, first_valuator, num_valuators, valuators);
         events = getValuatorEvents(events, pDev, first_valuator,
@@ -761,7 +761,7 @@ SwitchCorePointer(DeviceIntPtr pDev)
  * to shift the pointer to get it inside the new bounds.
  */
 void
-PostSyntheticMotion(int x, int y, int screenNum, unsigned long time)
+PostSyntheticMotion(int x, int y, ScreenPtr pScreen, unsigned long time)
 {
     xEvent xE;
 
@@ -770,8 +770,8 @@ PostSyntheticMotion(int x, int y, int screenNum, unsigned long time)
        will translate from sprite screen to screen 0 upon reentry
        to the DIX layer. */
     if (!noPanoramiXExtension) {
-        x += panoramiXdataPtr[0].x - panoramiXdataPtr[screenNum].x;
-        y += panoramiXdataPtr[0].y - panoramiXdataPtr[screenNum].y;
+        x += panoramiXdataPtr[0].x - panoramiXdataPtr[pScreen->myNum].x;
+        y += panoramiXdataPtr[0].y - panoramiXdataPtr[pScreen->myNum].y;
     }
 #endif
 
@@ -779,6 +779,7 @@ PostSyntheticMotion(int x, int y, int screenNum, unsigned long time)
     xE.u.u.type = MotionNotify;
     xE.u.keyButtonPointer.rootX = x;
     xE.u.keyButtonPointer.rootY = y;
+    xE.u.keyButtonPointer.time = time;
 
     (*inputInfo.pointer->public.processInputProc)(&xE, inputInfo.pointer, 1);
 }

@@ -59,9 +59,7 @@ SOFTWARE.
 #include "gcstruct.h"
 #include "scrnintstr.h"
 #include "dispatch.h"
-#ifdef XACE
 #include "xace.h"
-#endif
 
 #define EXTENSION_BASE  128
 #define EXTENSION_EVENT_BASE  64
@@ -256,11 +254,9 @@ GetExtensionEntry(int major)
 _X_EXPORT void
 DeclareExtensionSecurity(char *extname, Bool secure)
 {
-#ifdef XACE
     int i = FindExtension(extname, strlen(extname));
     if (i >= 0)
 	XaceHook(XACE_DECLARE_EXT_SECURE, extensions[i], secure);
-#endif
 }
 
 _X_EXPORT unsigned short
@@ -336,12 +332,7 @@ ProcQueryExtension(ClientPtr client)
     else
     {
 	i = FindExtension((char *)&stuff[1], stuff->nbytes);
-        if (i < 0
-#ifdef XACE
-	    /* call callbacks to find out whether to show extension */
-	    || !XaceHook(XACE_EXT_ACCESS, client, extensions[i])
-#endif
-	    )
+        if (i < 0 || !XaceHook(XACE_EXT_ACCESS, client, extensions[i]))
             reply.present = xFalse;
         else
         {            
@@ -376,11 +367,10 @@ ProcListExtensions(ClientPtr client)
 
         for (i=0;  i<NumExtensions; i++)
 	{
-#ifdef XACE
 	    /* call callbacks to find out whether to show extension */
 	    if (!XaceHook(XACE_EXT_ACCESS, client, extensions[i]))
 		continue;
-#endif
+
 	    total_length += strlen(extensions[i]->name) + 1;
 	    reply.nExtensions += 1 + extensions[i]->num_aliases;
 	    for (j = extensions[i]->num_aliases; --j >= 0;)
@@ -393,10 +383,9 @@ ProcListExtensions(ClientPtr client)
         for (i=0;  i<NumExtensions; i++)
         {
 	    int len;
-#ifdef XACE
 	    if (!XaceHook(XACE_EXT_ACCESS, client, extensions[i]))
 		continue;
-#endif
+
             *bufptr++ = len = strlen(extensions[i]->name);
 	    memmove(bufptr, extensions[i]->name,  len);
 	    bufptr += len;

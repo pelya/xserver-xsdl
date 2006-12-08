@@ -1342,6 +1342,9 @@ void
 fbClearVisualTypes(void);
 
 Bool
+fbHasVisualTypes (int depth);
+
+Bool
 fbSetVisualTypes (int depth, int visuals, int bitsPerRGB);
 
 Bool

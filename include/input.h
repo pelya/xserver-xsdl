@@ -421,7 +421,7 @@ extern int GetProximityEvents(
 extern void PostSyntheticMotion(
     int x,
     int y,
-    int screenNum,
+    ScreenPtr pScreen,
     unsigned long time);
 
 extern int GetMotionHistorySize(

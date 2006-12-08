@@ -11,7 +11,7 @@ libx86emu_a_SOURCES = debug.c \
 
 INCLUDES = 
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 
 EXTRA_DIST = validate.c \
              x86emu/debug.h \
