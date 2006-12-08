@@ -580,7 +580,7 @@ Client error message database.
 .B __projectroot__/lib/X11/app-defaults/\(**
 Client resource specifications.
 .TP 30
-.B __projectroot__/man/man?/\(**
+.B __mandir__/man?/\(**
 Manual pages.
 .TP 30
 .BI /etc/X n .hosts

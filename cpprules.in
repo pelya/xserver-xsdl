@@ -34,6 +34,7 @@ MANDEFS = \
 	-D__miscmansuffix__=$(MISC_MAN_SUFFIX) \
 	-D__drivermansuffix__=$(DRIVER_MAN_SUFFIX) \
 	-D__adminmansuffix__=$(ADMIN_MAN_SUFFIX) \
+	-D__mandir__=$(mandir) \
 	-D__projectroot__=$(prefix) \
 	-D__xconfigfile__=$(__XCONFIGFILE__) -D__xconfigdir__=$(XCONFIGDIR) \
 	-D__xlogfile__=$(XLOGFILE) -D__xservername__=$(XSERVERNAME) 
