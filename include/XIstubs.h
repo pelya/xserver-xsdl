@@ -26,18 +26,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef XI_STUBS_H
 #define XI_STUBS_H 1
 
-int
-ChangeKeyboardDevice (
-	DeviceIntPtr           /* old_dev */,
-	DeviceIntPtr           /* new_dev */);
-
-int
-ChangePointerDevice (
-	DeviceIntPtr           /* old_dev */,
-	DeviceIntPtr           /* new_dev */,
-	unsigned char          /* x */,
-	unsigned char          /* y */);
-
 void
 CloseInputDevice (
 	DeviceIntPtr           /* d */,

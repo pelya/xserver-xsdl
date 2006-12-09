@@ -126,9 +126,7 @@ Equipment Corporation.
 #ifdef XAPPGROUP
 #include "appgroup.h"
 #endif
-#ifdef XACE
 #include "xace.h"
-#endif
 
 /******
  * Window stuff for server 
@@ -187,7 +185,7 @@ _X_EXPORT int deltaSaveUndersViewable = 0;
  *    For debugging only
  ******/
 
-int
+static void
 PrintChildren(WindowPtr p1, int indent)
 {
     WindowPtr p2;
@@ -197,14 +195,15 @@ PrintChildren(WindowPtr p1, int indent)
     {
 	p2 = p1->firstChild;
 	for (i=0; i<indent; i++) ErrorF( " ");
-	ErrorF( "%x\n", p1->drawable.id);
+	ErrorF( "%lx\n", p1->drawable.id);
 	miPrintRegion(&p1->clipList);
 	PrintChildren(p2, indent+4);
 	p1 = p1->nextSib;
     }
 }
 
-PrintWindowTree()
+static void
+PrintWindowTree(void)
 {
     int i;
     WindowPtr pWin, p1;
@@ -530,9 +529,7 @@ InitRootWindow(WindowPtr pWin)
     /* We SHOULD check for an error value here XXX */
     (*pScreen->ChangeWindowAttributes)(pWin, backFlag);
 
-#ifdef XACE
     XaceHook(XACE_WINDOW_INIT, serverClient, pWin);
-#endif
 
     MapWindow(pWin, serverClient);
 }
@@ -547,8 +544,10 @@ ClippedRegionFromBox(register WindowPtr pWin, RegionPtr Rgn,
                      register int x, register int y,
                      register int w, register int h)
 {
-    ScreenPtr pScreen = pWin->drawable.pScreen;
+    ScreenPtr pScreen;
     BoxRec box;
+
+    pScreen = pWin->drawable.pScreen;
 
     box = *(REGION_EXTENTS(pScreen, &pWin->winSize));
     /* we do these calculations to avoid overflows */
@@ -735,18 +734,16 @@ CreateWindow(Window wid, register WindowPtr pParent, int x, int y, unsigned w,
     }
 
     pWin->borderWidth = bw;
-#ifdef XACE
+
     /*  can't let untrusted clients have background None windows;
      *  they make it too easy to steal window contents
      */
-    if (!XaceHook(XACE_BACKGRND_ACCESS, client, pWin))
-    {
+    if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin))
+	pWin->backgroundState = None;
+    else {
 	pWin->backgroundState = BackgroundPixel;
 	pWin->background.pixel = 0;
     }
-    else
-#endif
-    pWin->backgroundState = None;
 
     pWin->borderIsPixel = pParent->borderIsPixel;
     pWin->border = pParent->border;
@@ -766,9 +763,7 @@ CreateWindow(Window wid, register WindowPtr pParent, int x, int y, unsigned w,
     REGION_NULL(pScreen, &pWin->winSize);
     REGION_NULL(pScreen, &pWin->borderSize);
 
-#ifdef XACE
     XaceHook(XACE_WINDOW_INIT, client, pWin);
-#endif
 
     pHead = RealChildHead(pParent);
     if (pHead)
@@ -1033,24 +1028,18 @@ ChangeWindowAttributes(register WindowPtr pWin, Mask vmask, XID *vlist, ClientPt
 		borderRelative = TRUE;
 	    if (pixID == None)
 	    {
-#ifdef XACE
 		/*  can't let untrusted clients have background None windows */
-		if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin))
-		{
-#endif
-		if (pWin->backgroundState == BackgroundPixmap)
-		    (*pScreen->DestroyPixmap)(pWin->background.pixmap);
-		if (!pWin->parent)
-		    MakeRootTile(pWin);
-		else
-		    pWin->backgroundState = None;
-#ifdef XACE
-		}
-		else
-		{ /* didn't change the background to None, so don't tell ddx */
+		if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin)) {
+		    if (pWin->backgroundState == BackgroundPixmap)
+			(*pScreen->DestroyPixmap)(pWin->background.pixmap);
+		    if (!pWin->parent)
+			MakeRootTile(pWin);
+		    else
+			pWin->backgroundState = None;
+		} else {
+		    /* didn't change the backgrnd to None, so don't tell ddx */
 		    index2 = 0; 
 		}
-#endif
 	    }
 	    else if (pixID == ParentRelative)
 	    {
@@ -1663,7 +1652,8 @@ CreateUnclippedWinSize (register WindowPtr pWin)
     pRgn = REGION_CREATE(pWin->drawable.pScreen, &box, 1);
 #ifdef SHAPE
     if (wBoundingShape (pWin) || wClipShape (pWin)) {
-	ScreenPtr pScreen = pWin->drawable.pScreen;
+	ScreenPtr pScreen;
+        pScreen = pWin->drawable.pScreen;
 
 	REGION_TRANSLATE(pScreen, pRgn, - pWin->drawable.x,
 			 - pWin->drawable.y);
@@ -1699,7 +1689,8 @@ SetWinSize (register WindowPtr pWin)
 			 (int)pWin->drawable.height);
 #ifdef SHAPE
     if (wBoundingShape (pWin) || wClipShape (pWin)) {
-	ScreenPtr pScreen = pWin->drawable.pScreen;
+	ScreenPtr pScreen;
+        pScreen = pWin->drawable.pScreen;
 
 	REGION_TRANSLATE(pScreen, &pWin->winSize, - pWin->drawable.x,
 			 - pWin->drawable.y);
@@ -1741,7 +1732,8 @@ SetBorderSize (register WindowPtr pWin)
 		(int)(pWin->drawable.height + (bw<<1)));
 #ifdef SHAPE
 	if (wBoundingShape (pWin)) {
-	    ScreenPtr pScreen = pWin->drawable.pScreen;
+	    ScreenPtr pScreen;
+            pScreen = pWin->drawable.pScreen;
 
 	    REGION_TRANSLATE(pScreen, &pWin->borderSize, - pWin->drawable.x,
 			     - pWin->drawable.y);
@@ -1952,7 +1944,8 @@ MakeBoundingRegion (
     BoxPtr	pBox)
 {
     RegionPtr	pRgn;
-    ScreenPtr   pScreen = pWin->drawable.pScreen;
+    ScreenPtr   pScreen;
+    pScreen = pWin->drawable.pScreen;
 
     pRgn = REGION_CREATE(pScreen, pBox, 1);
     if (wBoundingShape (pWin)) {
@@ -2732,11 +2725,9 @@ MapWindow(register WindowPtr pWin, ClientPtr client)
     if (pWin->mapped)
 	return(Success);
 
-#ifdef XACE
     /*  general check for permission to map window */
     if (!XaceHook(XACE_MAP_ACCESS, client, pWin))
 	 return Success;
-#endif	
 
     pScreen = pWin->drawable.pScreen;
     if ( (pParent = pWin->parent) )

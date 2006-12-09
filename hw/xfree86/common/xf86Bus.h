@@ -40,7 +40,7 @@
 #define _XF86_BUS_H
 
 #include "xf86pciBus.h"
-#ifdef __sparc__
+#if defined(__sparc__) || defined(__sparc)
 #include "xf86sbusBus.h"
 #endif
 

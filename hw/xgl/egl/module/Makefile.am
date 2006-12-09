@@ -1,4 +1,5 @@
 AM_CFLAGS = \
+        $(DIX_CFLAGS) \
 	-I$(srcdir)/.. \
 	-I$(srcdir)/../.. \
 	$(XEGLMODULES_CFLAGS)

@@ -68,7 +68,6 @@
 # include "xf86Xinput.h"
 #endif
 #include "xf86OSmouse.h"
-#include "xf86OSKbd.h"
 #include "xf86xv.h"
 #include "xf86xvmc.h"
 #include "xf86cmap.h"
@@ -277,7 +276,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86SerialModemClearBits)
     SYMFUNC(xf86LoadKernelModule)
     SYMFUNC(xf86OSMouseInit)
-    SYMFUNC(xf86OSKbdPreInit)
     SYMFUNC(xf86AgpGARTSupported)
     SYMFUNC(xf86GetAGPInfo)
     SYMFUNC(xf86AcquireGART)
@@ -287,10 +285,8 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86BindGARTMemory)
     SYMFUNC(xf86UnbindGARTMemory)
     SYMFUNC(xf86EnableAGP)
-    SYMFUNC(xf86SoundKbdBell)
     SYMFUNC(xf86GARTCloseScreen)
 #ifdef XINPUT
-    /* XISB routines  (Merged from Metrolink tree) */
     SYMFUNC(XisbNew)
     SYMFUNC(XisbFree)
     SYMFUNC(XisbRead)
@@ -489,7 +485,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86AddModuleInfo)
     SYMFUNC(xf86DeleteModuleInfo)
 
-#if defined(__sparc__) && !defined(__OpenBSD__)
+#if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     /* xf86sbusBus.c */
     SYMFUNC(xf86MatchSbusInstances)
     SYMFUNC(xf86GetSbusInfoForEntity)
@@ -682,22 +678,15 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     /* xf86Xinput.c */
 #ifdef XINPUT
     SYMFUNC(xf86ProcessCommonOptions)
-    SYMFUNC(xf86IsCorePointer)
     SYMFUNC(xf86PostMotionEvent)
     SYMFUNC(xf86PostProximityEvent)
     SYMFUNC(xf86PostButtonEvent)
     SYMFUNC(xf86PostKeyEvent)
     SYMFUNC(xf86PostKeyboardEvent)
-    SYMFUNC(xf86GetMotionEvents)
-    SYMFUNC(xf86MotionHistoryAllocate)
     SYMFUNC(xf86FirstLocalDevice)
-    SYMFUNC(xf86eqEnqueue)
     SYMFUNC(xf86ActivateDevice)
-/* The following segment merged from Metrolink tree */
     SYMFUNC(xf86XInputSetScreen)
     SYMFUNC(xf86ScaleAxis)
-    SYMFUNC(xf86XInputSetSendCoreEvents)
-/* End merged segment */
 #endif
 #ifdef DPMSExtension
     SYMFUNC(DPMSGet)

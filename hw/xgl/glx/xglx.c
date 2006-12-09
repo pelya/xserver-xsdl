@@ -1243,7 +1243,7 @@ xglxKeybdProc (DeviceIntPtr pDevice,
 
 Bool
 xglxLegalModifier (unsigned int key,
-		   DevicePtr    pDev)
+		   DeviceIntPtr pDev)
 {
     return TRUE;
 }

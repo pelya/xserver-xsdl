@@ -46,8 +46,7 @@
 #include "xf86config.h"
 #include "loader.h"
 
-#define IS_KBDDRIV(X) ((strcmp((X),"kbd") == 0) || \
-	(strcmp((X), "keyboard") == 0))
+#define IS_KBDDRIV(X) ((strcmp((X),"kbd") == 0))
 
 #ifndef PROJECT_ROOT
 #define PROJECT_ROOT "/usr"
@@ -362,9 +361,6 @@ static char *protocols[] = {
 #ifdef __SCO__
     "OsMouse",
 #endif
-#ifdef __UNIXWARE__
-    "Xqueue",
-#endif
 #ifdef WSCONS_SUPPORT
     "wsmouse",
 #endif
@@ -551,7 +547,7 @@ MouseConfig(void)
     if (str == NULL)
 #ifdef WSCONS_SUPPORT
 	str = "/dev/wsmouse";
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__DragonFly__)
 	str = "/dev/sysmouse";
 #elif defined(__UNIXOS2__)
 	str = "mouse$";
@@ -744,11 +740,7 @@ KeyboardConfig(void)
 		input->inp_option_lst =
 		    xf86addNewOption(input->inp_option_lst,
 			XtNewString("XkbLayout"), XtNewString("us"));
-#if defined(USE_DEPRECATED_KEYBOARD_DRIVER)
-		input->inp_driver = XtNewString("keyboard");
-#else
 		input->inp_driver = XtNewString("kbd");
-#endif
 		XF86Config->conf_input_lst =
 		    xf86addInput(XF86Config, input);
 	    }
@@ -824,11 +816,7 @@ KeyboardConfig(void)
 		XtNewString("XkbLayout"), XtNewString(layout));
 
     if (input->inp_driver == NULL) {
-#if defined(USE_DEPRECATED_KEYBOARD_DRIVER)
-	input->inp_driver = XtNewString("keyboard");
-#else
 	input->inp_driver = XtNewString("kbd");
-#endif
 	XF86Config->conf_input_lst =
 	    xf86addInput(XF86Config->conf_input_lst, input);
     }

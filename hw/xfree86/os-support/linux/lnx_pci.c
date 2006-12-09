@@ -3,7 +3,9 @@
 #include <xorg-config.h>
 #endif
 
+#include <sys/types.h>
 #include <stdio.h>
+#include <dirent.h>
 #include <X11/X.h>
 #include "os.h"
 #include "xf86.h"
@@ -11,6 +13,7 @@
 #define XF86_OS_PRIVS
 #include "xf86_OSproc.h"
 #include "xf86Pci.h"
+#include "Pci.h"
 
 #ifdef __sparc__
 #define PCIADDR_TYPE		long long
@@ -25,8 +28,10 @@
 int lnxPciInit(void);
 
 struct pci_dev {
+    unsigned int domain;
     unsigned int bus;
-    unsigned int devfn;
+    unsigned int dev;
+    unsigned int fn;
     PCIADDR_TYPE offset[7];
     PCIADDR_TYPE size[7];
     struct pci_dev *next;
@@ -38,10 +43,53 @@ int xf86OSLinuxNumPciDevs = 0;
 static struct pci_dev *xf86OSLinuxGetPciDevs(void) {
     char c[0x200];
     FILE *file = NULL;
+    DIR  *dir;
+    struct dirent *dirent;
     struct pci_dev *tmp, *ret = NULL;
-    unsigned int num;
+    unsigned int i, num, devfn;
+    unsigned PCIADDR_TYPE begin, end;
     char *res;
     
+    /* Try 2.6 devices first, with domain support */
+    if ( (dir = opendir ("/sys/bus/pci/devices")) ) {
+	xf86OSLinuxNumPciDevs = 0;
+	while ( (dirent = readdir (dir)) ) {
+	    unsigned int domain, bus, dev, fn;
+	    if (sscanf (dirent->d_name, "%04x:%02x:%02x.%01x",
+			&domain, &bus, &dev, &fn) == 4) {
+		tmp = xcalloc (sizeof(struct pci_dev), 1);
+		tmp->domain = domain;
+		tmp->bus    = bus;
+		tmp->dev    = dev;
+		tmp->fn     = fn;
+		sprintf (c, "/sys/bus/pci/devices/%12s/resource",
+			 dirent->d_name);
+		i = 0;
+		if ( (file = fopen (c, "r")) ) {
+		    while (i < 7 && fgets (c, 0x200, file)) {
+			if (sscanf (c, PCIADDR_FMT " " PCIADDR_FMT " "
+				    PCIADDR_IGNORE_FMT, &begin, &end) == 2) {
+			    tmp->offset[i] = begin;
+			    tmp->size[i]   = begin ? end-begin+1 : 0;
+			    i++;
+			}
+		    }
+		    fclose (file);
+		}
+		if (i > 0) {
+		    tmp->next = ret;
+		    ret       = tmp;
+		    xf86OSLinuxNumPciDevs++;
+		} else
+		    xfree (tmp);
+	    }
+	}
+	closedir (dir);
+    }
+
+    if (ret)
+	return ret;
+
     file = fopen("/proc/bus/pci/devices", "r");
     if (!file) return NULL;
 
@@ -70,9 +118,11 @@ static struct pci_dev *xf86OSLinuxGetPciDevs(void) {
                 "\t" PCIADDR_FMT
                 "\t" PCIADDR_FMT
                 "\t" PCIADDR_FMT,
-                &tmp->bus,&tmp->devfn,&tmp->offset[0],&tmp->offset[1],&tmp->offset[2],&tmp->offset[3],
+                &tmp->bus,&devfn,&tmp->offset[0],&tmp->offset[1],&tmp->offset[2],&tmp->offset[3],
                 &tmp->offset[4],&tmp->offset[5],&tmp->offset[6], &tmp->size[0], &tmp->size[1], &tmp->size[2],
                 &tmp->size[3], &tmp->size[4], &tmp->size[5], &tmp->size[6]);
+            tmp->dev = devfn >> 3;
+            tmp->fn  = devfn & 0x7;
             if (num != 16) {  /* apparantly not 2.3 style */
                 xfree(tmp);
                 fclose(file);
@@ -100,11 +150,10 @@ int lnxPciInit(void) {
 Bool
 xf86GetPciSizeFromOS(PCITAG tag, int index, int* bits)
 {
-    unsigned int dev, fn;
     signed PCIADDR_TYPE Size;
     struct pci_dev *device;
 
-    if (index > 7)
+    if (index >= 7)
         return FALSE;
     
     if (!xf86OSLinuxPCIDevs) {
@@ -114,10 +163,8 @@ xf86GetPciSizeFromOS(PCITAG tag, int index, int* bits)
         return FALSE;
     
     for (device = xf86OSLinuxPCIDevs; device; device = device->next) {
-        dev = device->devfn >> 3;
-	fn = device->devfn & 0x7;
-        if (tag == pciTag(device->bus,dev,fn)) {
-            *bits = 0;
+        if (tag == PCI_MAKE_TAG(PCI_MAKE_BUS(device->domain, device->bus),
+				device->dev, device->fn)) {
             if (device->size[index] != 0) {
                 Size = device->size[index] - ((PCIADDR_TYPE) 1);
                 while (Size & ((PCIADDR_TYPE) 0x01)) {
@@ -134,14 +181,14 @@ xf86GetPciSizeFromOS(PCITAG tag, int index, int* bits)
 
 
 
+#if 0
 /* Query the kvirt address (64bit) of a BAR range from TAG */
 Bool
 xf86GetPciOffsetFromOS(PCITAG tag, int index, unsigned long* bases)
 {
-    unsigned int dev, fn;
     struct pci_dev *device;
 
-    if (index > 7)
+    if (index >= 7)
         return FALSE;
 
     if (!xf86OSLinuxPCIDevs) {
@@ -151,9 +198,8 @@ xf86GetPciOffsetFromOS(PCITAG tag, int index, unsigned long* bases)
         return FALSE;
 
     for (device = xf86OSLinuxPCIDevs; device; device = device->next) {
-        dev = device->devfn >> 3;
-        fn = device->devfn & 0x7;
-        if (tag == pciTag(device->bus,dev,fn)) {
+        if (tag == PCI_MAKE_TAG(PCI_MAKE_BUS(device->domain, device->bus),
+				device->dev, device->fn)) {
             /* return the offset for the index requested */
             *bases = device->offset[index];
             return TRUE;
@@ -162,6 +208,7 @@ xf86GetPciOffsetFromOS(PCITAG tag, int index, unsigned long* bases)
 
     return FALSE;
 }
+#endif
 
 /* Query the kvirt address (64bit) of a BAR range from size for a given TAG */
 unsigned long
@@ -179,8 +226,8 @@ xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
     }
 
     for (device = xf86OSLinuxPCIDevs; device; device = device->next) {
-	dev = pci_device_find_by_slot(0, device->bus, (device->devfn >> 3),
-				      (device->devfn & 0x7));
+	dev = pci_device_find_by_slot(device->domain, device->bus, 
+				      device->dev, device->fn);
         if (dev != NULL) {
             /* ok now look through all the BAR values of this device */
             for (ndx=0; ndx<7; ndx++) {

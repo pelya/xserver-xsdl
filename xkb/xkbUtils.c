@@ -28,6 +28,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <dix-config.h>
 #endif
 
+#include "os.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <math.h>
@@ -44,21 +45,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/XKBgeom.h>
 #include "xkb.h"
 
-#ifdef MODE_SWITCH
-extern Bool noKME; /* defined in os/utils.c */
-#endif
-
 int	XkbDisableLockActions = 0;
-
-/***====================================================================***/
-
-#ifndef RETURN_SHOULD_REPEAT
-#if (defined(__osf__) && defined(__alpha))
-#define RETURN_SHOULD_REPEAT 1
-#else
-#define	RETURN_SHOULD_REPEAT 0
-#endif
-#endif
 
 /***====================================================================***/
 
@@ -91,6 +78,8 @@ _XkbLookupKeyboard(int id,int *why_rtrn)
 {
 DeviceIntPtr dev = NULL;
 
+    if (id == XkbDfltXIId)
+        id = XkbUseCoreKbd;
     if ((dev= _XkbLookupAnyDevice(id,why_rtrn))==NULL)
 	return NULL;
     else if ((!dev->key)||(!dev->key->xkbInfo)) {
@@ -121,6 +110,8 @@ _XkbLookupLedDevice(int id,int *why_rtrn)
 {
 DeviceIntPtr dev = NULL;
 
+    if (id == XkbDfltXIId)
+        id = XkbUseCorePtr;
     if ((dev= _XkbLookupAnyDevice(id,why_rtrn))==NULL)
 	return NULL;
     else if ((!dev->kbdfeed)&&(!dev->leds)) {
@@ -241,7 +232,7 @@ XkbMapChangesPtr	mc;
 	    xkb->min_key_code= first;
 	    /* 1/12/95 (ef) -- XXX! should zero out the new maps */
 	    changes->map.changed|= XkbKeycodesMask;
-generate a NewKeyboard notify here?
+/* generate a NewKeyboard notify here? */
 	}
     }
 #endif
@@ -559,12 +550,6 @@ CARD8			keysPerMod[XkbNumModifiers];
 	    }
 	}
     }
-#ifdef MODE_SWITCH
-    /* Fix up any of the KME stuff if we changed the core description.
-     */
-    if (!noKME)
-	HandleKeyBinding(keyc, &keyc->curKeySyms);
-#endif
     return;
 }
 
@@ -968,4 +953,1157 @@ XkbConvertCase(register KeySym sym, KeySym *lower, KeySym *upper)
 	    *upper -= (XK_Greek_alpha - XK_Greek_ALPHA);
         break;
     }
+}
+
+
+/**
+ * Copy an XKB map from src to dst, reallocating when necessary: if some
+ * map components are present in one, but not in the other, the destination
+ * components will be allocated or freed as necessary.
+ *
+ * Basic map consistency is assumed on both sides, so maps with random
+ * uninitialised data (e.g. names->radio_grous == NULL, names->num_rg == 19)
+ * _will_ cause failures.  You've been warned.
+ *
+ * Returns TRUE on success, or FALSE on failure.  If this function fails,
+ * dst may be in an inconsistent state: all its pointers are guaranteed
+ * to remain valid, but part of the map may be from src and part from dst.
+ *
+ * FIXME: This function wants to be broken up into multiple functions.
+ */
+Bool
+XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
+{
+    int i = 0, j = 0, k = 0;
+    void *tmp = NULL;
+    XkbColorPtr scolor = NULL, dcolor = NULL;
+    XkbDoodadPtr sdoodad = NULL, ddoodad = NULL;
+    XkbKeyTypePtr stype = NULL, dtype = NULL;
+    XkbOutlinePtr soutline = NULL, doutline = NULL;
+    XkbPropertyPtr sprop = NULL, dprop = NULL;
+    XkbRowPtr srow = NULL, drow = NULL;
+    XkbSectionPtr ssection = NULL, dsection = NULL;
+    XkbShapePtr sshape = NULL, dshape = NULL;
+    DeviceIntPtr pDev = NULL, tmpDev = NULL;
+    xkbMapNotify mn;
+    xkbNewKeyboardNotify nkn;
+
+    if (!src || !dst || src == dst)
+        return FALSE;
+
+    /* client map */
+    if (src->map) {
+        if (!dst->map) {
+            tmp = xcalloc(1, sizeof(XkbClientMapRec));
+            if (!tmp)
+                return FALSE;
+            dst->map = tmp;
+        }
+
+        if (src->map->syms) {
+            if (src->map->size_syms != dst->map->size_syms) {
+                if (dst->map->syms)
+                    tmp = xrealloc(dst->map->syms,
+                                   src->map->size_syms * sizeof(KeySym));
+                else
+                    tmp = xalloc(src->map->size_syms * sizeof(KeySym));
+                if (!tmp)
+                    return FALSE;
+                dst->map->syms = tmp;
+
+            }
+            memcpy(dst->map->syms, src->map->syms,
+                   src->map->size_syms * sizeof(KeySym));
+        }
+        else {
+            if (dst->map->syms) {
+                xfree(dst->map->syms);
+                dst->map->syms = NULL;
+            }
+        }
+        dst->map->num_syms = src->map->num_syms;
+        dst->map->size_syms = src->map->size_syms;
+
+        if (src->map->key_sym_map) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->map->key_sym_map)
+                    tmp = xrealloc(dst->map->key_sym_map,
+                                   (src->max_key_code + 1) *
+                                     sizeof(XkbSymMapRec));
+                else
+                    tmp = xalloc((src->max_key_code + 1) *
+                                 sizeof(XkbSymMapRec));
+                if (!tmp)
+                    return FALSE;
+                dst->map->key_sym_map = tmp;
+            }
+            memcpy(dst->map->key_sym_map, src->map->key_sym_map,
+                   (src->max_key_code + 1) * sizeof(XkbSymMapRec));
+        }
+        else {
+            if (dst->map->key_sym_map) {
+                xfree(dst->map->key_sym_map);
+                dst->map->key_sym_map = NULL;
+            }
+        }
+
+        if (src->map->types && src->map->num_types) {
+            if (src->map->num_types > dst->map->size_types ||
+                !dst->map->types || !dst->map->size_types) {
+                if (dst->map->types && dst->map->size_types) {
+                    tmp = xrealloc(dst->map->types,
+                                   src->map->num_types * sizeof(XkbKeyTypeRec));
+                    if (!tmp)
+                        return FALSE;
+                    dst->map->types = tmp;
+                    bzero(dst->map->types +
+                            (dst->map->num_types * sizeof(XkbKeyTypeRec)),
+                          (src->map->num_types - dst->map->size_types) *
+                            sizeof(XkbKeyTypeRec));
+                }
+                else {
+                    tmp = xcalloc(src->map->num_types, sizeof(XkbKeyTypeRec));
+                    if (!tmp)
+                        return FALSE;
+                    dst->map->types = tmp;
+                }
+            }
+            else if (src->map->num_types < dst->map->num_types &&
+                     dst->map->types) {
+                for (i = src->map->num_types, dtype = (dst->map->types + i);
+                     i < dst->map->num_types; i++, dtype++) {
+                    if (dtype->level_names)
+                        xfree(dtype->level_names);
+                    dtype->level_names = NULL;
+                    dtype->num_levels = 0;
+                    if (dtype->map_count) {
+                        if (dtype->map)
+                            xfree(dtype->map);
+                        if (dtype->preserve)
+                            xfree(dtype->preserve);
+                    }
+                }
+            }
+
+            stype = src->map->types;
+            dtype = dst->map->types;
+            for (i = 0; i < src->map->num_types; i++, dtype++, stype++) {
+                if (stype->num_levels && stype->level_names) {
+                    if (stype->num_levels != dtype->num_levels &&
+                        dtype->num_levels && dtype->level_names &&
+                        i < dst->map->num_types) {
+                        tmp = xrealloc(dtype->level_names,
+                                       stype->num_levels * sizeof(Atom));
+                        if (!tmp)
+                            continue;
+                        dtype->level_names = tmp;
+                    }
+                    else if (!dtype->num_levels || !dtype->level_names ||
+                             i >= dst->map->num_types) {
+                        tmp = xalloc(stype->num_levels * sizeof(Atom));
+                        if (!tmp)
+                            continue;
+                        dtype->level_names = tmp;
+                    }
+                    dtype->num_levels = stype->num_levels;
+                    memcpy(dtype->level_names, stype->level_names,
+                           stype->num_levels * sizeof(Atom));
+                }
+                else {
+                    if (dtype->num_levels && dtype->level_names &&
+                        i < dst->map->num_types)
+                        xfree(dtype->level_names);
+                    dtype->num_levels = 0;
+                    dtype->level_names = NULL;
+                }
+
+                dtype->name = stype->name;
+                memcpy(&dtype->mods, &stype->mods, sizeof(XkbModsRec));
+
+                if (stype->map_count) {
+                    if (stype->map) {
+                        if (stype->map_count != dtype->map_count &&
+                            dtype->map_count && dtype->map &&
+                            i < dst->map->num_types) {
+                            tmp = xrealloc(dtype->map,
+                                           stype->map_count *
+                                             sizeof(XkbKTMapEntryRec));
+                            if (!tmp)
+                                return FALSE;
+                            dtype->map = tmp;
+                        }
+                        else if (!dtype->map_count || !dtype->map ||
+                                 i >= dst->map->num_types) {
+                            tmp = xalloc(stype->map_count *
+                                           sizeof(XkbKTMapEntryRec));
+                            if (!tmp)
+                                return FALSE;
+                            dtype->map = tmp;
+                        }
+
+                        memcpy(dtype->map, stype->map,
+                               stype->map_count * sizeof(XkbKTMapEntryRec));
+                    }
+                    else {
+                        if (dtype->map && i < dst->map->num_types)
+                            xfree(dtype->map);
+                        dtype->map = NULL;
+                    }
+
+                    if (stype->preserve) {
+                        if (stype->map_count != dtype->map_count &&
+                            dtype->map_count && dtype->preserve &&
+                            i < dst->map->num_types) {
+                            tmp = xrealloc(dtype->preserve,
+                                           stype->map_count *
+                                             sizeof(XkbModsRec));
+                            if (!tmp)
+                                return FALSE;
+                            dtype->preserve = tmp;
+                        }
+                        else if (!dtype->preserve || !dtype->map_count ||
+                                 i >= dst->map->num_types) {
+                            tmp = xalloc(stype->map_count *
+                                         sizeof(XkbModsRec));
+                            if (!tmp)
+                                return FALSE;
+                            dtype->preserve = tmp;
+                        }
+
+                        memcpy(dtype->preserve, stype->preserve,
+                               stype->map_count * sizeof(XkbModsRec));
+                    }
+                    else {
+                        if (dtype->preserve && i < dst->map->num_types)
+                            xfree(dtype->preserve);
+                        dtype->preserve = NULL;
+                    }
+
+                    dtype->map_count = stype->map_count;
+                }
+                else {
+                    if (dtype->map_count && i < dst->map->num_types) {
+                        if (dtype->map)
+                            xfree(dtype->map);
+                        if (dtype->preserve)
+                            xfree(dtype->preserve);
+                    }
+                    dtype->map_count = 0;
+                    dtype->map = NULL;
+                    dtype->preserve = NULL;
+                }
+            }
+        }
+        else {
+            if (dst->map->types) {
+                for (i = 0, dtype = dst->map->types; i < dst->map->num_types;
+                     i++, dtype++) {
+                    if (dtype->level_names)
+                        xfree(dtype->level_names);
+                    if (dtype->map && dtype->map_count)
+                        xfree(dtype->map);
+                    if (dtype->preserve && dtype->map_count)
+                        xfree(dtype->preserve);
+                }
+                xfree(dst->map->types);
+                dst->map->types = NULL;
+            }
+        }
+        dst->map->size_types = src->map->num_types;
+        dst->map->num_types = src->map->num_types;
+
+        if (src->map->modmap) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->map->modmap)
+                    tmp = xrealloc(dst->map->modmap, src->max_key_code + 1);
+                else
+                    tmp = xalloc(src->max_key_code + 1);
+                if (!tmp)
+                    return FALSE;
+                dst->map->syms = tmp;
+            }
+            memcpy(dst->map->modmap, src->map->modmap, src->max_key_code + 1);
+        }
+        else {
+            if (dst->map->modmap) {
+                xfree(dst->map->modmap);
+                dst->map->modmap = NULL;
+            }
+        }
+    }
+    else {
+        if (dst->map)
+            XkbFreeClientMap(dst, XkbAllClientInfoMask, True);
+    }
+
+    /* server map */
+    if (src->server) {
+        if (!dst->server) {
+            tmp = xcalloc(1, sizeof(XkbServerMapRec));
+            if (!tmp)
+                return FALSE;
+            dst->server = tmp;
+        }
+
+        if (src->server->explicit) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->server->explicit)
+                    tmp = xrealloc(dst->server->explicit, src->max_key_code + 1);
+                else
+                    tmp = xalloc(src->max_key_code + 1);
+                if (!tmp)
+                    return FALSE;
+                dst->server->explicit = tmp;
+            }
+            memcpy(dst->server->explicit, src->server->explicit,
+                   src->max_key_code + 1);
+        }
+        else {
+            if (dst->server->explicit) {
+                xfree(dst->server->explicit);
+                dst->server->explicit = NULL;
+            }
+        }
+
+        if (src->server->acts) {
+            if (src->server->size_acts != dst->server->size_acts) {
+                if (dst->server->acts)
+                    tmp = xrealloc(dst->server->acts,
+                                   src->server->size_acts * sizeof(XkbAction));
+                else
+                    tmp = xalloc(src->server->size_acts * sizeof(XkbAction));
+                if (!tmp)
+                    return FALSE;
+                dst->server->acts = tmp;
+            }
+            memcpy(dst->server->acts, src->server->acts,
+                   src->server->size_acts * sizeof(XkbAction));
+        }
+        else {
+            if (dst->server->acts) {
+                xfree(dst->server->acts);
+                dst->server->acts = NULL;
+            }
+        }
+       dst->server->size_acts = src->server->size_acts;
+       dst->server->num_acts = src->server->num_acts;
+
+        if (src->server->key_acts) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->server->key_acts)
+                    tmp = xrealloc(dst->server->key_acts,
+                                   (src->max_key_code + 1) *
+                                     sizeof(unsigned short));
+                else
+                    tmp = xalloc((src->max_key_code + 1) *
+                                 sizeof(unsigned short));
+                if (!tmp)
+                    return FALSE;
+                dst->server->key_acts = tmp;
+            }
+            memcpy(dst->server->key_acts, src->server->key_acts,
+                   (src->max_key_code + 1) * sizeof(unsigned short));
+        }
+        else {
+            if (dst->server->key_acts) {
+                xfree(dst->server->key_acts);
+                dst->server->key_acts = NULL;
+            }
+        }
+
+        if (src->server->behaviors) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->server->behaviors)
+                    tmp = xrealloc(dst->server->behaviors,
+                                   (src->max_key_code + 1) *
+                                   sizeof(XkbBehavior));
+                else
+                    tmp = xalloc((src->max_key_code + 1) *
+                                 sizeof(XkbBehavior));
+                if (!tmp)
+                    return FALSE;
+                dst->server->behaviors = tmp;
+            }
+            memcpy(dst->server->behaviors, src->server->behaviors,
+                   (src->max_key_code + 1) * sizeof(XkbBehavior));
+        }
+        else {
+            if (dst->server->behaviors) {
+                xfree(dst->server->behaviors);
+                dst->server->behaviors = NULL;
+            }
+        }
+
+        memcpy(dst->server->vmods, src->server->vmods, XkbNumVirtualMods);
+
+        if (src->server->vmodmap) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->server->vmodmap)
+                    tmp = xrealloc(dst->server->vmodmap,
+                                   (src->max_key_code + 1) *
+                                   sizeof(unsigned short));
+                else
+                    tmp = xalloc((src->max_key_code + 1) *
+                                 sizeof(unsigned short));
+                if (!tmp)
+                    return FALSE;
+                dst->server->vmodmap = tmp;
+            }
+            memcpy(dst->server->vmodmap, src->server->vmodmap,
+                   (src->max_key_code + 1) * sizeof(unsigned short));
+        }
+        else {
+            if (dst->server->vmodmap) {
+                xfree(dst->server->vmodmap);
+                dst->server->vmodmap = NULL;
+            }
+        }
+    }
+    else {
+        if (dst->server)
+            XkbFreeServerMap(dst, XkbAllServerInfoMask, True);
+    }
+
+    /* indicators */
+    if (src->indicators) {
+        if (!dst->indicators) {
+            dst->indicators = xalloc(sizeof(XkbIndicatorRec));
+            if (!dst->indicators)
+                return FALSE;
+        }
+        memcpy(dst->indicators, src->indicators, sizeof(XkbIndicatorRec));
+    }
+    else {
+        if (dst->indicators) {
+            xfree(dst->indicators);
+            dst->indicators = NULL;
+        }
+    }
+
+    /* controls */
+    if (src->ctrls) {
+        if (!dst->ctrls) {
+            dst->ctrls = xalloc(sizeof(XkbControlsRec));
+            if (!dst->ctrls)
+                return FALSE;
+        }
+        memcpy(dst->ctrls, src->ctrls, sizeof(XkbControlsRec));
+    }
+    else {
+        if (dst->ctrls) {
+            xfree(dst->ctrls);
+            dst->ctrls = NULL;
+        }
+    }
+
+    /* names */
+    if (src->names) {
+        if (!dst->names) {
+            dst->names = xcalloc(1, sizeof(XkbNamesRec));
+            if (!dst->names)
+                return FALSE;
+        }
+
+        if (src->names->keys) {
+            if (src->max_key_code != dst->max_key_code) {
+                if (dst->names->keys)
+                    tmp = xrealloc(dst->names->keys, (src->max_key_code + 1) *
+                                   sizeof(XkbKeyNameRec));
+                else
+                    tmp = xalloc((src->max_key_code + 1) *
+                                 sizeof(XkbKeyNameRec));
+                if (!tmp)
+                    return FALSE;
+                dst->names->keys = tmp;
+            }
+            memcpy(dst->names->keys, src->names->keys,
+                   (src->max_key_code + 1) * sizeof(XkbKeyNameRec));
+        }
+        else {
+            if (dst->names->keys) {
+                xfree(dst->names->keys);
+                dst->names->keys = NULL;
+            }
+        }
+
+        if (src->names->num_key_aliases) {
+            if (src->names->num_key_aliases != dst->names->num_key_aliases) {
+                if (dst->names->key_aliases)
+                    tmp = xrealloc(dst->names->key_aliases,
+                                   src->names->num_key_aliases *
+                                     sizeof(XkbKeyAliasRec));
+                else
+                    tmp = xalloc(src->names->num_key_aliases *
+                                 sizeof(XkbKeyAliasRec));
+                if (!tmp)
+                    return FALSE;
+                dst->names->key_aliases = tmp;
+            }
+            memcpy(dst->names->key_aliases, src->names->key_aliases,
+                   src->names->num_key_aliases * sizeof(XkbKeyAliasRec));
+        }
+        else {
+            if (dst->names->key_aliases) {
+                xfree(dst->names->key_aliases);
+                dst->names->key_aliases = NULL;
+            }
+        }
+        dst->names->num_key_aliases = src->names->num_key_aliases;
+
+        if (src->names->num_rg) {
+            if (src->names->num_rg != dst->names->num_rg) {
+                if (dst->names->radio_groups)
+                    tmp = xrealloc(dst->names->radio_groups,
+                                   src->names->num_rg * sizeof(Atom));
+                else
+                    tmp = xalloc(src->names->num_rg * sizeof(Atom));
+                if (!tmp)
+                    return FALSE;
+                dst->names->radio_groups = tmp;
+            }
+            memcpy(dst->names->radio_groups, src->names->radio_groups,
+                   src->names->num_rg * sizeof(Atom));
+        }
+        else {
+            if (dst->names->radio_groups)
+                xfree(dst->names->radio_groups);
+        }
+        dst->names->num_rg = src->names->num_rg;
+
+        dst->names->keycodes = src->names->keycodes;
+        dst->names->geometry = src->names->geometry;
+        dst->names->symbols = src->names->symbols;
+        dst->names->types = src->names->types;
+        dst->names->compat = src->names->compat;
+        dst->names->phys_symbols = src->names->phys_symbols;
+
+        memcpy(dst->names->vmods, src->names->vmods,
+               XkbNumVirtualMods * sizeof(Atom));
+        memcpy(dst->names->indicators, src->names->indicators,
+               XkbNumIndicators * sizeof(Atom));
+        memcpy(dst->names->groups, src->names->groups,
+               XkbNumKbdGroups * sizeof(Atom));
+    }
+    else {
+        if (dst->names)
+            XkbFreeNames(dst, XkbAllNamesMask, True);
+    }
+
+    /* compat */
+    if (src->compat) {
+        if (!dst->compat) {
+            dst->compat = xcalloc(1, sizeof(XkbCompatMapRec));
+            if (!dst->compat)
+                return FALSE;
+        }
+
+        if (src->compat->sym_interpret) {
+            if (src->compat->size_si != dst->compat->size_si) {
+                if (dst->compat->sym_interpret)
+                    tmp = xrealloc(dst->compat->sym_interpret,
+                                   src->compat->size_si *
+                                     sizeof(XkbSymInterpretRec));
+                else
+                    tmp = xalloc(src->compat->size_si *
+                                 sizeof(XkbSymInterpretRec));
+                if (!tmp)
+                    return FALSE;
+                dst->compat->sym_interpret = tmp;
+            }
+            memcpy(dst->compat->sym_interpret, src->compat->sym_interpret,
+                   src->compat->size_si * sizeof(XkbSymInterpretRec));
+        }
+        else {
+            if (dst->compat->sym_interpret) {
+                xfree(dst->compat->sym_interpret);
+                dst->compat->sym_interpret = NULL;
+            }
+        }
+        dst->compat->num_si = src->compat->num_si;
+        dst->compat->size_si = src->compat->size_si;
+
+        memcpy(dst->compat->groups, src->compat->groups,
+               XkbNumKbdGroups * sizeof(XkbModsRec));
+    }
+    else {
+        if (dst->compat)
+            XkbFreeCompatMap(dst, XkbAllCompatMask, True);
+    }
+
+    /* geometry */
+    if (src->geom) {
+        if (!dst->geom) {
+            dst->geom = xcalloc(sizeof(XkbGeometryRec), 1);
+            if (!dst->geom)
+                return FALSE;
+        }
+
+        /* properties */
+        if (src->geom->num_properties) {
+            if (src->geom->num_properties != dst->geom->sz_properties) {
+                if (src->geom->num_properties < dst->geom->sz_properties) {
+                    for (i = src->geom->num_properties,
+                          dprop = dst->geom->properties +
+                                  src->geom->num_properties;
+                         i < dst->geom->num_properties;
+                         i++, dprop++) {
+                        xfree(dprop->name);
+                        xfree(dprop->value);
+                    }
+                }
+
+                if (dst->geom->sz_properties)
+                    tmp = xrealloc(dst->geom->properties,
+                                   src->geom->num_properties *
+                                    sizeof(XkbPropertyRec));
+                else
+                    tmp = xalloc(src->geom->num_properties *
+                                  sizeof(XkbPropertyRec));
+                if (!tmp)
+                    return FALSE;
+                dst->geom->properties = tmp;
+            }
+
+            dst->geom->sz_properties = src->geom->num_properties;
+
+            if (dst->geom->sz_properties > dst->geom->num_properties) {
+                bzero(dst->geom->properties + dst->geom->num_properties,
+                      (dst->geom->sz_properties - dst->geom->num_properties) *
+                      sizeof(XkbPropertyRec));
+            }
+
+            for (i = 0,
+                  sprop = src->geom->properties,
+                  dprop = dst->geom->properties;
+                 i < src->geom->num_properties;
+                 i++, sprop++, dprop++) {
+                if (i < dst->geom->num_properties) {
+                    if (strlen(sprop->name) != strlen(dprop->name)) {
+                        tmp = xrealloc(dprop->name, strlen(sprop->name) + 1);
+                        if (!tmp)
+                            return FALSE;
+                        dprop->name = tmp;
+                    }
+                    if (strlen(sprop->value) != strlen(dprop->value)) {
+                        tmp = xrealloc(dprop->value, strlen(sprop->value) + 1);
+                        if (!tmp)
+                            return FALSE;
+                        dprop->value = tmp;
+                    }
+                    strcpy(dprop->name, sprop->name);
+                    strcpy(dprop->value, sprop->value);
+                }
+                else {
+                    dprop->name = xstrdup(sprop->name);
+                    dprop->value = xstrdup(sprop->value);
+                }
+            }
+
+            dst->geom->num_properties = dst->geom->sz_properties;
+        }
+        else {
+            if (dst->geom->sz_properties) {
+                for (i = 0, dprop = dst->geom->properties;
+                     i < dst->geom->num_properties;
+                     i++, dprop++) {
+                    xfree(dprop->name);
+                    xfree(dprop->value);
+                }
+                xfree(dst->geom->properties);
+                dst->geom->properties = NULL;
+            }
+
+            dst->geom->num_properties = 0;
+            dst->geom->sz_properties = 0;
+        }
+
+        /* colors */
+        if (src->geom->num_colors) {
+            if (src->geom->num_colors != dst->geom->sz_colors) {
+                if (src->geom->num_colors < dst->geom->sz_colors) {
+                    for (i = src->geom->num_colors,
+                          dcolor = dst->geom->colors +
+                                   src->geom->num_colors;
+                         i < dst->geom->num_colors;
+                         i++, dcolor++) {
+                        xfree(dcolor->spec);
+                    }
+                }
+
+                if (dst->geom->sz_colors)
+                    tmp = xrealloc(dst->geom->colors,
+                                   src->geom->num_colors *
+                                    sizeof(XkbColorRec));
+                else
+                    tmp = xalloc(src->geom->num_colors *
+                                  sizeof(XkbColorRec));
+                if (!tmp)
+                    return FALSE;
+                dst->geom->colors = tmp;
+            }
+
+            dst->geom->sz_colors = src->geom->num_colors;
+
+            if (dst->geom->sz_colors > dst->geom->num_colors) {
+                bzero(dst->geom->colors + dst->geom->num_colors,
+                      (dst->geom->sz_colors - dst->geom->num_colors) *
+                      sizeof(XkbColorRec));
+            }
+
+            for (i = 0,
+                  scolor = src->geom->colors,
+                  dcolor = dst->geom->colors;
+                 i < src->geom->num_colors;
+                 i++, scolor++, dcolor++) {
+                if (i < dst->geom->num_colors) {
+                    if (strlen(scolor->spec) != strlen(dcolor->spec)) {
+                        tmp = xrealloc(dcolor->spec, strlen(scolor->spec) + 1);
+                        if (!tmp)
+                            return FALSE;
+                        dcolor->spec = tmp;
+                    }
+                    strcpy(dcolor->spec, scolor->spec);
+                }
+                else {
+                    dcolor->spec = xstrdup(scolor->spec);
+                }
+            }
+
+            dst->geom->num_colors = dst->geom->sz_colors;
+        }
+        else {
+            if (dst->geom->sz_colors) {
+                for (i = 0, dcolor = dst->geom->colors;
+                     i < dst->geom->num_colors;
+                     i++, dcolor++) {
+                    xfree(dcolor->spec);
+                }
+                xfree(dst->geom->colors);
+                dst->geom->colors = NULL;
+            }
+
+            dst->geom->num_colors = 0;
+            dst->geom->sz_colors = 0;
+        }
+
+        /* shapes */
+        /* shapes break down into outlines, which break down into points. */
+        if (dst->geom->num_shapes) {
+            for (i = 0, dshape = dst->geom->shapes;
+                 i < dst->geom->num_shapes;
+                 i++, dshape++) {
+                for (j = 0, doutline = dshape->outlines;
+                     j < dshape->num_outlines;
+                     j++, doutline++) {
+                    if (doutline->sz_points)
+                        xfree(doutline->points);
+                }
+
+                if (dshape->sz_outlines) {
+                    xfree(dshape->outlines);
+                    dshape->outlines = NULL;
+                }
+
+                dshape->num_outlines = 0;
+                dshape->sz_outlines = 0;
+            }
+        }
+
+        if (src->geom->num_shapes) {
+            tmp = xcalloc(src->geom->num_shapes, sizeof(XkbShapeRec));
+            if (!tmp)
+                return FALSE;
+            dst->geom->shapes = tmp;
+
+            for (i = 0, sshape = src->geom->shapes, dshape = dst->geom->shapes;
+                 i < src->geom->num_shapes;
+                 i++, sshape++, dshape++) {
+                if (sshape->num_outlines) {
+                    tmp = xcalloc(sshape->num_outlines, sizeof(XkbOutlineRec));
+                    if (!tmp)
+                        return FALSE;
+                    dshape->outlines = tmp;
+                    
+                    for (j = 0,
+                          soutline = sshape->outlines,
+                          doutline = dshape->outlines;
+                         j < sshape->num_outlines;
+                         j++, soutline++, doutline++) {
+                        if (soutline->num_points) {
+                            tmp = xalloc(soutline->num_points *
+                                          sizeof(XkbPointRec));
+                            if (!tmp)
+                                return FALSE;
+                            doutline->points = tmp;
+
+                            memcpy(doutline->points, soutline->points,
+                                   soutline->num_points * sizeof(XkbPointRec));
+                        }
+
+                        doutline->num_points = soutline->num_points;
+                        doutline->sz_points = soutline->sz_points;
+                    }
+                }
+
+                dshape->num_outlines = sshape->num_outlines;
+                dshape->sz_outlines = sshape->num_outlines;
+            }
+
+            dst->geom->num_shapes = src->geom->num_shapes;
+            dst->geom->sz_shapes = src->geom->num_shapes;
+        }
+        else {
+            if (dst->geom->sz_shapes) {
+                xfree(dst->geom->shapes);
+                dst->geom->shapes = NULL;
+            }
+            
+            dst->geom->num_shapes = 0;
+            dst->geom->sz_shapes = 0;
+        }
+
+        /* sections */
+        /* sections break down into doodads, and also into rows, which break
+         * down into keys. */
+        if (dst->geom->num_sections) {
+            for (i = 0, dsection = dst->geom->sections;
+                 i < dst->geom->num_sections;
+                 i++, dsection++) {
+                for (j = 0, drow = dsection->rows;
+                     j < dsection->num_rows;
+                     j++, drow++) {
+                    if (drow->num_keys)
+                        xfree(drow->keys);
+                }
+
+                if (dsection->num_rows)
+                    xfree(dsection->rows);
+
+                /* cut and waste from geom/doodad below. */
+                for (j = 0, ddoodad = dsection->doodads;
+                     j < dsection->num_doodads;
+                     j++, ddoodad++) {
+                    if (ddoodad->any.type == XkbTextDoodad) {
+                        if (ddoodad->text.text) {
+                            xfree(ddoodad->text.text);
+                            ddoodad->text.text = NULL;
+                        }
+                        if (ddoodad->text.font) {
+                            xfree(ddoodad->text.font);
+                            ddoodad->text.font = NULL;
+                        }
+                     }
+                     else if (ddoodad->any.type == XkbLogoDoodad) {
+                        if (ddoodad->logo.logo_name) {
+                            xfree(ddoodad->logo.logo_name);
+                            ddoodad->logo.logo_name = NULL;
+                        }
+                    }
+                }
+
+                if (dsection->num_doodads)
+                    xfree(dsection->doodads);
+            }
+
+            dst->geom->num_sections = 0;
+        }
+
+        if (src->geom->num_sections) {
+            if (dst->geom->sz_sections)
+                tmp = xrealloc(dst->geom->sections,
+                               src->geom->num_sections *
+                                sizeof(XkbSectionRec));
+            else
+                tmp = xalloc(src->geom->num_sections * sizeof(XkbSectionRec));
+            if (!tmp)
+                return FALSE;
+            dst->geom->sections = tmp;
+
+            for (i = 0,
+                  ssection = src->geom->sections,
+                  dsection = dst->geom->sections;
+                 i < src->geom->num_sections;
+                 i++, ssection++, dsection++) {
+                if (ssection->num_rows) {
+                    tmp = xcalloc(ssection->num_rows, sizeof(XkbRowRec));
+                    if (!tmp)
+                        return FALSE;
+                    dsection->rows = tmp;
+                }
+                for (j = 0, srow = ssection->rows, drow = dsection->rows;
+                     j < ssection->num_rows;
+                     j++, srow++, drow++) {
+                    if (srow->num_keys) {
+                        tmp = xalloc(srow->num_keys * sizeof(XkbKeyRec));
+                        if (!tmp)
+                            return FALSE;
+                        drow->keys = tmp;
+                        memcpy(drow->keys, srow->keys,
+                               srow->num_keys * sizeof(XkbKeyRec));
+                    }
+                    drow->num_keys = srow->num_keys;
+                    drow->sz_keys = srow->num_keys;
+                }
+
+                if (ssection->num_doodads) {
+                    tmp = xcalloc(ssection->num_doodads, sizeof(XkbDoodadRec));
+                    if (!tmp)
+                        return FALSE;
+                    dsection->doodads = tmp;
+                }
+                for (k = 0,
+                      sdoodad = ssection->doodads,
+                      ddoodad = dsection->doodads;
+                     k < ssection->num_doodads;
+                     k++, sdoodad++, ddoodad++) {
+                    if (sdoodad->any.type == XkbTextDoodad) {
+                        if (sdoodad->text.text)
+                            ddoodad->text.text =
+                             xstrdup(sdoodad->text.text);
+                        if (sdoodad->text.font)
+                            ddoodad->text.font =
+                             xstrdup(sdoodad->text.font);
+                    }
+                    else if (sdoodad->any.type == XkbLogoDoodad) {
+                        if (sdoodad->logo.logo_name)
+                            ddoodad->logo.logo_name =
+                             xstrdup(sdoodad->logo.logo_name);
+                    }
+                    ddoodad->any.type = sdoodad->any.type;
+                }
+                dsection->num_doodads = ssection->num_doodads;
+                dsection->sz_doodads = ssection->num_doodads;
+            }
+        }
+        else {
+            if (dst->geom->sz_sections) {
+                xfree(dst->geom->sections);
+                dst->geom->sections = NULL;
+            }
+
+            dst->geom->num_sections = 0;
+            dst->geom->sz_sections = 0;
+        }
+
+        /* doodads */
+        if (dst->geom->num_doodads) {
+            for (i = src->geom->num_doodads,
+                  ddoodad = dst->geom->doodads +
+                             src->geom->num_doodads;
+                 i < dst->geom->num_doodads;
+                 i++, ddoodad++) {
+                 if (ddoodad->any.type == XkbTextDoodad) {
+                    if (ddoodad->text.text) {
+                        xfree(ddoodad->text.text);
+                        ddoodad->text.text = NULL;
+                    }
+                    if (ddoodad->text.font) {
+                        xfree(ddoodad->text.font);
+                        ddoodad->text.font = NULL;
+                    }
+                 }
+                 else if (ddoodad->any.type == XkbLogoDoodad) {
+                    if (ddoodad->logo.logo_name) {
+                        xfree(ddoodad->logo.logo_name);
+                        ddoodad->logo.logo_name = NULL;
+                    }
+                }
+            }
+        }
+
+        if (src->geom->num_doodads) {
+            if (dst->geom->sz_doodads)
+                tmp = xrealloc(dst->geom->doodads,
+                               src->geom->num_doodads *
+                                sizeof(XkbDoodadRec));
+            else
+                tmp = xalloc(src->geom->num_doodads *
+                              sizeof(XkbDoodadRec));
+            if (!tmp)
+                return FALSE;
+            bzero(tmp, src->geom->num_doodads * sizeof(XkbDoodadRec));
+            dst->geom->doodads = tmp;
+
+            dst->geom->sz_doodads = src->geom->num_doodads;
+
+            for (i = 0,
+                  sdoodad = src->geom->doodads,
+                  ddoodad = dst->geom->doodads;
+                 i < src->geom->num_doodads;
+                 i++, sdoodad++, ddoodad++) {
+                ddoodad->any.type = sdoodad->any.type;
+                if (sdoodad->any.type == XkbTextDoodad) {
+                    if (sdoodad->text.text)
+                        ddoodad->text.text = xstrdup(sdoodad->text.text);
+                    if (sdoodad->text.font)
+                        ddoodad->text.font = xstrdup(sdoodad->text.font);
+                }
+                else if (sdoodad->any.type == XkbLogoDoodad) {
+                    if (sdoodad->logo.logo_name)
+                        ddoodad->logo.logo_name =
+                          xstrdup(sdoodad->logo.logo_name);
+                }
+            }
+
+            dst->geom->num_doodads = dst->geom->sz_doodads;
+        }
+        else {
+            if (dst->geom->sz_doodads) {
+                xfree(dst->geom->doodads);
+                dst->geom->doodads = NULL;
+            }
+
+            dst->geom->num_doodads = 0;
+            dst->geom->sz_doodads = 0;
+        }
+
+        /* key aliases */
+        if (src->geom->num_key_aliases) {
+            if (src->geom->num_key_aliases != dst->geom->sz_key_aliases) {
+                if (dst->geom->sz_key_aliases)
+                    tmp = xrealloc(dst->geom->key_aliases,
+                                   src->geom->num_key_aliases *
+                                    2 * XkbKeyNameLength);
+                else
+                    tmp = xalloc(src->geom->num_key_aliases *
+                                  2 * XkbKeyNameLength);
+                if (!tmp)
+                    return FALSE;
+                dst->geom->key_aliases = tmp;
+
+                dst->geom->sz_key_aliases = src->geom->num_key_aliases;
+            }
+
+            memcpy(dst->geom->key_aliases, src->geom->key_aliases,
+                   src->geom->num_key_aliases * 2 * XkbKeyNameLength);
+
+            dst->geom->num_key_aliases = dst->geom->sz_key_aliases;
+        }
+        else {
+            if (dst->geom->sz_key_aliases && dst->geom->key_aliases) {
+                xfree(dst->geom->key_aliases);
+                dst->geom->key_aliases = NULL;
+            }
+            dst->geom->num_key_aliases = 0;
+            dst->geom->sz_key_aliases = 0;
+        }
+        
+        /* font */
+        if (src->geom->label_font) {
+            if (!dst->geom->label_font) {
+                tmp = xalloc(strlen(src->geom->label_font));
+                if (!tmp)
+                    return FALSE;
+                dst->geom->label_font = tmp;
+            }
+            else if (strlen(src->geom->label_font) !=
+                strlen(dst->geom->label_font)) {
+                tmp = xrealloc(dst->geom->label_font,
+                               strlen(src->geom->label_font));
+                if (!tmp)
+                    return FALSE;
+                dst->geom->label_font = tmp;
+            }
+
+            strcpy(dst->geom->label_font, src->geom->label_font);
+            i = XkbGeomColorIndex(src->geom, src->geom->label_color);
+            dst->geom->label_color = &(src->geom->colors[i]);
+            i = XkbGeomColorIndex(src->geom, src->geom->base_color);
+            dst->geom->base_color = &(src->geom->colors[i]);
+        }
+        else {
+            if (dst->geom->label_font) {
+                xfree(dst->geom->label_font);
+                dst->geom->label_font = NULL;
+            }
+            dst->geom->label_color = NULL;
+            dst->geom->base_color = NULL;
+        }
+
+        dst->geom->name = src->geom->name;
+        dst->geom->width_mm = src->geom->width_mm;
+        dst->geom->height_mm = src->geom->height_mm;
+    }
+    else
+    {
+        if (dst->geom) {
+            /* I LOVE THE DIFFERENT CALL SIGNATURE.  REALLY, I DO. */
+            XkbFreeGeometry(dst->geom, XkbGeomAllMask, True);
+            dst->geom = NULL;
+        }
+    }
+
+    if (inputInfo.keyboard->key->xkbInfo &&
+        inputInfo.keyboard->key->xkbInfo->desc == dst) {
+        pDev = inputInfo.keyboard;
+    }
+    else {
+        for (tmpDev = inputInfo.devices; tmpDev && !pDev;
+             tmpDev = tmpDev->next) {
+            if (tmpDev->key && tmpDev->key->xkbInfo &&
+                tmpDev->key->xkbInfo->desc == dst) {
+                pDev = tmpDev;
+                break;
+            }
+        }
+        for (tmpDev = inputInfo.off_devices; tmpDev && !pDev;
+             tmpDev = tmpDev->next) {
+            if (tmpDev->key && tmpDev->key->xkbInfo &&
+                tmpDev->key->xkbInfo->desc == dst) {
+                pDev = tmpDev;
+                break;
+            }
+        }
+    }
+
+    if (sendNotifies) {
+        if (!pDev) {
+            ErrorF("XkbCopyKeymap: asked for notifies, but can't find device!\n");
+        }
+        else {
+            /* send NewKeyboardNotify if the keycode range changed, else
+             * just MapNotify.  we also need to send NKN if the geometry
+             * changed (obviously ...). */
+            if ((src->min_key_code != dst->min_key_code ||
+                 src->max_key_code != dst->max_key_code) && sendNotifies) {
+                nkn.oldMinKeyCode = dst->min_key_code;
+                nkn.oldMaxKeyCode = dst->max_key_code;
+                nkn.deviceID = nkn.oldDeviceID = pDev->id;
+                nkn.minKeyCode = src->min_key_code;
+                nkn.maxKeyCode = src->max_key_code;
+                nkn.requestMajor = XkbReqCode;
+                nkn.requestMinor = X_kbSetMap; /* XXX bare-faced lie */
+                nkn.changed = XkbAllNewKeyboardEventsMask;
+                XkbSendNewKeyboardNotify(pDev, &nkn);
+            }
+            else if (sendNotifies) {
+                mn.deviceID = pDev->id;
+                mn.minKeyCode = src->min_key_code;
+                mn.maxKeyCode = src->max_key_code;
+                mn.firstType = 0;
+                mn.nTypes = src->map->num_types;
+                mn.firstKeySym = src->min_key_code;
+                mn.nKeySyms = XkbNumKeys(src);
+                mn.firstKeyAct = src->min_key_code;
+                mn.nKeyActs = XkbNumKeys(src);
+                /* Cargo-culted from ProcXkbGetMap. */
+                mn.firstKeyBehavior = src->min_key_code;
+                mn.nKeyBehaviors = XkbNumKeys(src);
+                mn.firstKeyExplicit = src->min_key_code;
+                mn.nKeyExplicit = XkbNumKeys(src);
+                mn.firstModMapKey = src->min_key_code;
+                mn.nModMapKeys = XkbNumKeys(src);
+                mn.firstVModMapKey = src->min_key_code;
+                mn.nVModMapKeys = XkbNumKeys(src);
+                mn.virtualMods = ~0; /* ??? */
+                mn.changed = XkbAllMapComponentsMask;                
+                XkbSendMapNotify(pDev, &mn);
+            }
+        }
+    }
+
+    dst->min_key_code = src->min_key_code;
+    dst->max_key_code = src->max_key_code;
+
+    return TRUE;
 }

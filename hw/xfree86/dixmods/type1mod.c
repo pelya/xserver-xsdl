@@ -57,9 +57,6 @@ static XF86ModuleVersionInfo VersRec =
 _X_EXPORT XF86ModuleData type1ModuleData = { &VersRec, type1Setup, NULL };
 
 extern void Type1RegisterFontFileFunctions(void);
-#ifdef BUILDCID
-extern void CIDRegisterFontFileFunctions(void);
-#endif
 
 FontModule type1Module = {
     Type1RegisterFontFileFunctions,
@@ -67,23 +64,11 @@ FontModule type1Module = {
     NULL
 };
 
-#ifdef BUILDCID
-FontModule CIDModule = {
-    CIDRegisterFontFileFunctions,
-    "CID",
-    NULL
-};
-#endif
-
 static pointer
 type1Setup(pointer module, pointer opts, int *errmaj, int *errmin)
 {
     type1Module.module = module;
     LoadFont(&type1Module);
-#ifdef BUILDCID
-    CIDModule.module = module;
-    LoadFont(&CIDModule);
-#endif
 
     /* Need a non-NULL return */
     return (pointer)1;

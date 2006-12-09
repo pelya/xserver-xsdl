@@ -1122,11 +1122,11 @@ CALLBACK(SecurityClientStateCallback)
     switch (client->clientState)
     {
     case ClientStateInitial:
-	TRUSTLEVEL(serverClient) = XSecurityClientTrusted;
-	AUTHID(serverClient) = None;
+	TRUSTLEVEL(client) = XSecurityClientTrusted;
+	AUTHID(client) = None;
 	break;
 
-	case ClientStateRunning:
+    case ClientStateRunning:
 	{ 
 	    XID authId = AuthorizationIDOfClient(client);
 	    SecurityAuthorizationPtr pAuth;
@@ -1146,8 +1146,8 @@ CALLBACK(SecurityClientStateCallback)
 	    }
 	    break;
 	}
-	case ClientStateGone:
-	case ClientStateRetained: /* client disconnected */
+    case ClientStateGone:
+    case ClientStateRetained: /* client disconnected */
 	{
 	    SecurityAuthorizationPtr pAuth;
 
@@ -1167,7 +1167,7 @@ CALLBACK(SecurityClientStateCallback)
 	    }	    
 	    break;
 	}
-	default: break; 
+    default: break; 
     }
 } /* SecurityClientStateCallback */
 
@@ -1251,7 +1251,7 @@ typedef struct _PropertyAccessRec {
 } PropertyAccessRec, *PropertyAccessPtr;
 
 static PropertyAccessPtr PropertyAccessList = NULL;
-static char SecurityDefaultAction = SecurityErrorOperation;
+static char SecurityDefaultAction = XaceErrorOperation;
 static char *SecurityPolicyFile = DEFAULTPOLICYFILE;
 static ATOM SecurityMaxPropertyName = 0;
 
@@ -1410,9 +1410,9 @@ SecurityParsePropertyAccessRule(
     {
 	switch (c)
 	{
-	    case 'i': action = SecurityIgnoreOperation; break;
-	    case 'a': action = SecurityAllowOperation;  break;
-	    case 'e': action = SecurityErrorOperation;  break;
+	    case 'i': action = XaceIgnoreOperation; break;
+	    case 'a': action = XaceAllowOperation;  break;
+	    case 'e': action = XaceErrorOperation;  break;
 
 	    case 'r': readAction    = action; break;
 	    case 'w': writeAction   = action; break;
@@ -1797,7 +1797,7 @@ CALLBACK(SecurityCheckPropertyAccess)
 	     * If pacl doesn't apply, something above should have
 	     * executed a continue, which will skip the follwing code.
 	     */
-	    action = SecurityAllowOperation;
+	    action = XaceAllowOperation;
 	    if (access_mode & SecurityReadAccess)
 		action = max(action, pacl->readAction);
 	    if (access_mode & SecurityWriteAccess)
@@ -1808,11 +1808,11 @@ CALLBACK(SecurityCheckPropertyAccess)
 	} /* end for each pacl */
     } /* end if propertyName <= SecurityMaxPropertyName */
 
-    if (SecurityAllowOperation != action)
+    if (XaceAllowOperation != action)
     { /* audit the access violation */
 	int cid = CLIENT_ID(pWin->drawable.id);
 	int reqtype = ((xReq *)client->requestBuffer)->reqType;
-	char *actionstr = (SecurityIgnoreOperation == action) ?
+	char *actionstr = (XaceIgnoreOperation == action) ?
 							"ignored" : "error";
 	SecurityAudit("client %d attempted request %d with window 0x%x property %s (atom 0x%x) of client %d, %s\n",
 		client->index, reqtype, pWin->drawable.id,

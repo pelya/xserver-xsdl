@@ -28,7 +28,7 @@
 #include <X11/Xmd.h>
 #include <GL/gl.h>
 #include <GL/glxproto.h>
-#ifdef __linux__
+#if defined(__linux__) || defined (__GLIBC__) || defined(__GNU__)
 #include <byteswap.h>
 #elif defined(__OpenBSD__)
 #include <sys/endian.h>

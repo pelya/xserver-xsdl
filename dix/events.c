@@ -113,6 +113,7 @@ of the copyright holder.
 #endif
 
 #include <X11/X.h>
+#include <X11/keysym.h>
 #include "misc.h"
 #include "resource.h"
 #define NEED_EVENTS
@@ -131,12 +132,17 @@ of the copyright holder.
 #include "globals.h"
 
 #ifdef XKB
+#include <X11/extensions/XKBproto.h>
 #include <X11/extensions/XKBsrv.h>
 extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
 #endif
 
-#ifdef XACE
 #include "xace.h"
+
+#ifdef XSERVER_DTRACE
+#include <sys/types.h>
+typedef const char *string;
+#include "Xserver-dtrace.h"
 #endif
 
 #ifdef XEVIE
@@ -154,7 +160,9 @@ xEvent *xeviexE;
 #endif
 
 #include <X11/extensions/XIproto.h>
+#include "exglobals.h"
 #include "exevents.h"
+#include "exglobals.h"
 #include "extnsionst.h"
 
 #include "dixevents.h"
@@ -206,9 +214,6 @@ _X_EXPORT CallbackListPtr DeviceEventCallback;
 Mask DontPropagateMasks[DNPMCOUNT];
 static int DontPropagateRefCnts[DNPMCOUNT];
 
-#ifdef DEBUG
-static debug_events = 0;
-#endif
 _X_EXPORT InputInfo inputInfo;
 
 static struct {
@@ -319,10 +324,15 @@ static CARD8 criticalEvents[32] =
 };
 
 #ifdef PANORAMIX
-
 static void ConfineToShape(RegionPtr shape, int *px, int *py);
-static void SyntheticMotion(int x, int y);
 static void PostNewCursor(void);
+
+#define SyntheticMotion(x, y) \
+    PostSyntheticMotion(x, y, noPanoramiXExtension ? 0 : \
+                              sprite.screen->myNum, \
+                        syncEvents.playingEvents ? \
+                          syncEvents.time.milliseconds : \
+                          currentTime.milliseconds);
 
 static Bool
 XineramaSetCursorPosition(
@@ -664,30 +674,6 @@ SetCriticalEvent(int event)
     if (event >= 128)
 	FatalError("SetCriticalEvent: bogus event number");
     criticalEvents[event >> 3] |= 1 << (event & 7);
-}
-
-static void
-SyntheticMotion(int x, int y)
-{
-    xEvent xE;
-
-#ifdef PANORAMIX
-    /* Translate back to the sprite screen since processInputProc
-       will translate from sprite screen to screen 0 upon reentry
-       to the DIX layer */
-    if(!noPanoramiXExtension) {
-	x += panoramiXdataPtr[0].x - panoramiXdataPtr[sprite.screen->myNum].x;
-	y += panoramiXdataPtr[0].y - panoramiXdataPtr[sprite.screen->myNum].y;
-    }
-#endif
-    xE.u.keyButtonPointer.rootX = x;
-    xE.u.keyButtonPointer.rootY = y;
-    if (syncEvents.playingEvents)
-	xE.u.keyButtonPointer.time = syncEvents.time.milliseconds;
-    else
-	xE.u.keyButtonPointer.time = currentTime.milliseconds;
-    xE.u.u.type = MotionNotify;
-    (*inputInfo.pointer->public.processInputProc)(&xE, inputInfo.pointer, 1);
 }
 
 #ifdef SHAPE
@@ -1531,9 +1517,8 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
     int i;
     int type;
 
-#ifdef DEBUG
-    if (debug_events) ErrorF(
-	"Event([%d, %d], mask=0x%x), client=%d",
+#ifdef DEBUG_EVENTS
+    ErrorF("Event([%d, %d], mask=0x%x), client=%d",
 	pEvents->u.u.type, pEvents->u.u.detail, mask, client->index);
 #endif
     if ((client) && (client != serverClient) && (!client->clientGone) &&
@@ -1549,9 +1534,9 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
 		if (WID(inputInfo.pointer->valuator->motionHintWindow) ==
 		    pEvents->u.keyButtonPointer.event)
 		{
-#ifdef DEBUG
-		    if (debug_events) ErrorF("\n");
-	    fprintf(stderr,"motionHintWindow == keyButtonPointer.event\n");
+#ifdef DEBUG_EVENTS
+		    ErrorF("\n");
+	    ErrorF("motionHintWindow == keyButtonPointer.event\n");
 #endif
 		    return 1; /* don't send, but pretend we did */
 		}
@@ -1589,15 +1574,15 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
 	}
 
 	WriteEventsToClient(client, count, pEvents);
-#ifdef DEBUG
-	if (debug_events) ErrorF(  " delivered\n");
+#ifdef DEBUG_EVENTS
+	ErrorF(  " delivered\n");
 #endif
 	return 1;
     }
     else
     {
-#ifdef DEBUG
-	if (debug_events) ErrorF("\n");
+#ifdef DEBUG_EVENTS
+	ErrorF("\n");
 #endif
 	return 0;
     }
@@ -2476,10 +2461,8 @@ CheckPassiveGrabsOnWindow(
 	     (grab->confineTo->realized && 
 				BorderSizeNotEmpty(grab->confineTo))))
 	{
-#ifdef XACE
 	    if (!XaceHook(XACE_DEVICE_ACCESS, wClient(pWin), device, FALSE))
 		return FALSE;
-#endif
 #ifdef XKB
 	    if (!noXkbExtension) {
 		XE_KBPTR.state &= 0x1f00;
@@ -2776,13 +2759,6 @@ drawable.id:0;
     }
 #endif
 
-#ifdef DEBUG
-    if ((xkbDebugFlags&0x4)&&
-	((xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease))) {
-	ErrorF("CoreProcessKbdEvent: Key %d %s\n",key,
-			(xE->u.u.type==KeyPress?"down":"up"));
-    }
-#endif
     switch (xE->u.u.type)
     {
 	case KeyPress: 
@@ -2847,9 +2823,7 @@ drawable.id:0;
     if (deactivateGrab)
         (*keybd->DeactivateGrab)(keybd);
 
-#ifdef XACE
     XaceHook(XACE_KEY_AVAIL, xE, keybd, count);
-#endif
 }
 
 #ifdef XKB
@@ -2867,13 +2841,12 @@ FixKeyState (register xEvent *xE, register DeviceIntPtr keybd)
     key = xE->u.u.detail;
     kptr = &keyc->down[key >> 3];
     bit = 1 << (key & 7);
-#ifdef DEBUG
-    if ((xkbDebugFlags&0x4)&&
-	((xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease))) {
-	ErrorF("FixKeyState: Key %d %s\n",key,
+
+    if (((xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease))) {
+	DebugF("FixKeyState: Key %d %s\n",key,
 			(xE->u.u.type==KeyPress?"down":"up"));
     }
-#endif
+
     switch (xE->u.u.type)
     {
 	case KeyPress: 
@@ -3101,12 +3074,7 @@ EventSelectForWindow(register WindowPtr pWin, register ClientPtr client, Mask ma
     if (wClient (pWin) == client)
     {
 	check = pWin->eventMask;
-#ifdef SGIMISC
-	pWin->eventMask =
-	    (mask & ~SGIMiscSpecialDestroyMask) | (pWin->eventMask & SGIMiscSpecialDestroyMask);
-#else
 	pWin->eventMask = mask;
-#endif
     }
     else
     {
@@ -3115,9 +3083,6 @@ EventSelectForWindow(register WindowPtr pWin, register ClientPtr client, Mask ma
 	    if (SameClient(others, client))
 	    {
 		check = others->mask;
-#ifdef SGIMISC
-		mask = (mask & ~SGIMiscSpecialDestroyMask) | (others->mask & SGIMiscSpecialDestroyMask);
-#endif
 		if (mask == 0)
 		{
 		    FreeResource(others->resource, RT_NONE);
@@ -3282,17 +3247,13 @@ EnterLeaveEvent(
     if ((type == EnterNotify) && (mask & KeymapStateMask))
     {
 	xKeymapEvent ke;
-
-#ifdef XACE
 	ClientPtr client = grab ? rClient(grab)
 				: clients[CLIENT_ID(pWin->drawable.id)];
-	if (!XaceHook(XACE_DEVICE_ACCESS, client, keybd, FALSE))
-	{
-	    bzero((char *)&ke.map[0], 31);
-	}
+	if (XaceHook(XACE_DEVICE_ACCESS, client, keybd, FALSE))
+	    memmove((char *)&ke.map[0], (char *)&keybd->key->down[1], 31);
 	else
-#endif
-	memmove((char *)&ke.map[0], (char *)&keybd->key->down[1], 31);
+	    bzero((char *)&ke.map[0], 31);
+
 	ke.type = KeymapNotify;
 	if (grab)
 	    (void)TryClientEvents(rClient(grab), (xEvent *)&ke, 1, mask,
@@ -3378,15 +3339,12 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, register WindowPtr 
 	((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
     {
 	xKeymapEvent ke;
-#ifdef XACE
 	ClientPtr client = clients[CLIENT_ID(pWin->drawable.id)];
-	if (!XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
-	{
-	    bzero((char *)&ke.map[0], 31);
-	}
+	if (XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
+	    memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
 	else
-#endif
-	memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
+	    bzero((char *)&ke.map[0], 31);
+
 	ke.type = KeymapNotify;
 	(void)DeliverEventsToWindow(pWin, (xEvent *)&ke, 1,
 				    KeymapStateMask, NullGrab, 0);
@@ -3649,10 +3607,10 @@ ProcSetInputFocus(client)
     REQUEST(xSetInputFocusReq);
 
     REQUEST_SIZE_MATCH(xSetInputFocusReq);
-#ifdef XACE
+
     if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
 	return Success;
-#endif
+
     return SetInputFocus(client, inputInfo.keyboard, stuff->focus,
 			 stuff->revertTo, stuff->time, FALSE);
 }
@@ -3914,18 +3872,17 @@ ProcGrabKeyboard(ClientPtr client)
     int result;
 
     REQUEST_SIZE_MATCH(xGrabKeyboardReq);
-#ifdef XACE
-    if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
-    {
+
+    if (XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
+	result = GrabDevice(client, inputInfo.keyboard, stuff->keyboardMode,
+			    stuff->pointerMode, stuff->grabWindow,
+			    stuff->ownerEvents, stuff->time,
+			    KeyPressMask | KeyReleaseMask, &rep.status);
+    else {
 	result = Success;
 	rep.status = AlreadyGrabbed;
     }
-    else
-#endif
-    result = GrabDevice(client, inputInfo.keyboard, stuff->keyboardMode,
-			stuff->pointerMode, stuff->grabWindow,
-			stuff->ownerEvents, stuff->time,
-			KeyPressMask | KeyReleaseMask, &rep.status);
+
     if (result != Success)
 	return result;
     rep.type = X_Reply;
@@ -4580,6 +4537,14 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 	eventinfo.count = count;
 	CallCallbacks(&EventCallback, (pointer)&eventinfo);
     }
+#ifdef XSERVER_DTRACE
+    if (XSERVER_SEND_EVENT_ENABLED()) {
+	for (i = 0; i < count; i++)
+	{
+	    XSERVER_SEND_EVENT(pClient->index, events[i].u.u.type, &events[i]);
+	}
+    }
+#endif	
     if(pClient->swapped)
     {
 	for(i = 0; i < count; i++)

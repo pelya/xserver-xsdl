@@ -54,6 +54,7 @@
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
 #include "Pci.h"
+#include <dirent.h>
 
 /*
  * linux platform specific PCI access functions -- using /proc/bus/pci
@@ -102,6 +103,8 @@ static const struct pci_id_match match_host_bridge = {
 };
 
 
+static Bool	domain_support = FALSE;
+
 void
 linuxPciInit(void)
 {
@@ -112,6 +115,9 @@ linuxPciInit(void)
 		   we'll need a fallback for 2.0 kernels here */
 		return;
 	}
+#ifndef INCLUDE_XF86_NO_DOMAIN
+	domain_support = linuxDomainSupport();
+#endif
 	pciNumBuses    = 1;
 	pciBusInfo[0]  = &linuxPci0;
 }
@@ -135,8 +141,10 @@ linuxPciOpenFile(struct pci_device *dev, Bool write)
     }
 	
     if (fd == -1 || (write && (!is_write)) || (last_dev != dev)) {
-	if (fd != -1)
+	if (fd != -1) {
 	    close(fd);
+	    fd = -1;
+	}
 
 	if (is26) {
 	    sprintf(file,"/sys/bus/pci/devices/%04u:%02x:%02x.%01x/config",
@@ -380,7 +388,7 @@ xf86GetPciDomain(PCITAG Tag)
 	return 1;		/* Domain 0 is reserved */
 
     if ((result = PCI_DOM_FROM_TAG(Tag)) != 0)
-	return result + 1;
+	return result;
 
     if ((fd = linuxPciOpenFile(dev, FALSE)) < 0)
 	return 0;
@@ -461,7 +469,6 @@ linuxMapPci(int ScreenNum, int Flags, struct pci_device *dev,
 
 #define MAX_DOMAINS 257
 static pointer DomainMmappedIO[MAX_DOMAINS];
-static pointer DomainMmappedMem[MAX_DOMAINS];
 
 static int
 linuxOpenLegacy(struct pci_device *dev, char *name)
@@ -511,7 +518,8 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 {
     int domain = xf86GetPciDomain(Tag);
     const struct pci_device *dev = xf86GetPciHostConfigFromTag(Tag);
-    int fd;
+    int fd = -1;
+    pointer addr;
 
     /*
      * We use /proc/bus/pci on non-legacy addresses or if the Linux sysfs
@@ -520,20 +528,16 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
     if ((Base > 1024*1024) || ((fd = linuxOpenLegacy(dev, "legacy_mem")) < 0))
 	return linuxMapPci(ScreenNum, Flags, dev, Base, Size,
 			   PCIIOC_MMAP_IS_MEM);
+    else
+	addr = mmap(NULL, Size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, Base);
 
-    /* If we haven't already mapped this legacy space, try to. */
-    if (!DomainMmappedMem[domain]) {
-	DomainMmappedMem[domain] = mmap(NULL, 1024*1024, PROT_READ|PROT_WRITE,
-					MAP_SHARED, fd, 0);
-	if (DomainMmappedMem[domain] == MAP_FAILED) {
-	    close(fd);
-	    perror("mmap failure");
-	    FatalError("xf86MapDomainMem():  mmap() failure\n");
-	}
+    if (fd >= 0)
+	close(fd);
+    if (addr == NULL || addr == MAP_FAILED) {
+	perror("mmap failure");
+	FatalError("xf86MapDomainMem():  mmap() failure\n");
     }
-
-    close(fd);
-    return (pointer)((char *)DomainMmappedMem[domain] + Base);
+    return addr;
 }
 
 /**

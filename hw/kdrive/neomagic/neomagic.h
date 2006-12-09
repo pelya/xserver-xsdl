@@ -26,14 +26,10 @@
 #include <backend.h>
 #include "kxv.h"
 #include "klinux.h"
+#include "vesa.h"
 
 
-#define DEBUG
-#ifdef DEBUG
-#define DBGOUT(fmt,a...) fprintf (stderr, fmt, ##a)
-#else
-#define DBGOUT(fmt,a...)
-#endif
+#define DBGOUT DebugF
 
 #define ENTER()    DBGOUT("Enter %s\n", __FUNCTION__)
 #define LEAVE() DBGOUT("Leave %s\n", __FUNCTION__)

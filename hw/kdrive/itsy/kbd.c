@@ -27,7 +27,6 @@
 #include <kdrive-config.h>
 #endif
 #include "itsy.h"
-#include "kkeymap.h"
 #include <X11/keysym.h>
 #include <linux/itsy_buttons.h>
 
@@ -167,28 +166,44 @@ ItsyKeyboardLoad (void)
 {
     KeySym  *k;
 
-    itsyButtonState = 0;
-    kdMinScanCode = 1;
-    kdKeymapWidth = ITSY_WIDTH;
-    kdMaxScanCode = (sizeof (ItsyKeymap) / sizeof (ItsyKeymap[0])) / ITSY_WIDTH;
-    memcpy (kdKeymap, ItsyKeymap, sizeof (ItsyKeymap));
 }
 
-int
-ItsyKeyboardInit (void)
+static Status
+ItsyKeyboardInit (KdKeyboardInfo *ki)
 {
-    int	butPort;
+    if (!ki)
+        return BadImplementation;
 
-    butPort = open ("/dev/buttons", 0);
-    fprintf (stderr, "butPort %d\n", butPort);
-    return butPort;
+    ki->driverPrivate = open ("/dev/buttons", 0);
+
+    itsyButtonState = 0;
+    ki->keySyms.minKeyCode = 1;
+    ki->keySyms.maxKeyCode = (sizeof (ItsyKeymap) / sizeof (ItsyKeymap[0])) / ITSY_WIDTH;
+    ki->minScanCode = ki->keySyms.minKeyCode;
+    ki->maxScanCode = ki->keySyms.maxKeyCode;
+    ki->keySyms.mapWidth = ITSY_WIDTH;
+
+    if (ki->keySyms.map)
+        xfree(ki->keySyms.map);
+    ki->keySyms.map = xalloc(sizeof(ItsyKeymap));
+    if (!ki->keySyms.map)
+        return BadAlloc;
+    memcpy (kdKeymap, ItsyKeymap, sizeof (ItsyKeymap));
+
+    return Success;
 }
 
-void
-ItsyKeyboardFini (int fd)
+static void
+ItsyKeyboardDisable (KdKeybdInfo *ki)
 {
     if (fd >= 0)
-	close (fd);
+	close ((int)ki->driverPrivate);
+}
+
+static void
+ItsyKeyboardFini (KdKeybdInfo *ki)
+{
+    return;
 }
 
 void
@@ -227,11 +242,13 @@ ItsyKeyboardBell (int volume, int frequency, int duration)
 }
 
 KdKeyboardFuncs	itsyKeyboardFuncs = {
-    ItsyKeyboardLoad,
+    "itsy",
     ItsyKeyboardInit,
+    ItsyKeyboardEnable,
     ItsyKeyboardRead,
     ItsyKeyboardLeds,
     ItsyKeyboardBell,
+    ItsyKeyboardDisable
     ItsyKeyboardFini,
-    0,
+    NULL,
 };

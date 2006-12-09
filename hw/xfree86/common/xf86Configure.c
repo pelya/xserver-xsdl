@@ -49,7 +49,7 @@
 #include "Configint.h"
 #include "vbe.h"
 #include "xf86DDC.h"
-#if defined(__sparc__) && !defined(__OpenBSD__)
+#if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
 #include "xf86Bus.h"
 #include "xf86Sbus.h"
 #endif
@@ -58,7 +58,7 @@
 typedef struct _DevToConfig {
     GDevRec GDev;
     struct pci_device * pVideo;
-#if defined(__sparc__) && !defined(__OpenBSD__)
+#if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     sbusDevicePtr sVideo;
 #endif
     int iDriver;
@@ -77,7 +77,7 @@ Bool foundMouse = FALSE;
 #elif defined(__SCO__)
 static char *DFLT_MOUSE_PROTO = "OSMouse";
 #elif defined(__UNIXWARE__)
-static char *DFLT_MOUSE_PROTO = "Xqueue";
+static char *DFLT_MOUSE_PROTO = "OSMouse";
 static char *DFLT_MOUSE_DEV = "/dev/mouse";
 #elif defined(QNX4)
 static char *DFLT_MOUSE_PROTO = "OSMouse";
@@ -136,7 +136,7 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 	    if (!DevToConfig[i].pVideo)
 		return NULL;
 	break;
-#if defined(__sparc__) && !defined(__OpenBSD__)
+#if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     case BUS_SBUS:
 	for (i = 0;  i < nDevToConfig;  i++)
 	    if (DevToConfig[i].sVideo &&
@@ -215,7 +215,7 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 	NewDevice.GDev.identifier = "ISA Adapter";
 	NewDevice.GDev.busID = "ISA";
 	break;
-#if defined(__sparc__) && !defined(__OpenBSD__)
+#if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     case BUS_SBUS: {
 	char *promPath = NULL;
 	NewDevice.sVideo = (sbusDevicePtr) busData;
@@ -268,11 +268,7 @@ configureInputSection (void)
     parsePrologue (XF86ConfInputPtr, XF86ConfInputRec)
 
     ptr->inp_identifier = "Keyboard0";
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-    ptr->inp_driver = "keyboard";
-#else
     ptr->inp_driver = "kbd";
-#endif
     ptr->list.next = NULL;
 
     /* Crude mechanism to auto-detect mouse (os dependent) */

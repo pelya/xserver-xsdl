@@ -45,6 +45,9 @@
 /* Path to loadable modules. */
 #undef DEFAULT_MODULE_PATH
 
+/* Path to installed libraries. */
+#undef DEFAULT_LIBRARY_PATH
+
 /* Path to server log file. */
 #undef DEFAULT_LOGPREFIX
 

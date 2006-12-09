@@ -32,13 +32,6 @@ in this Software without prior written authorization from The Open Group.
 #include "mipointer.h"
 #include "scrnintstr.h"
 
-#define MOTION_SIZE	256
-
-typedef struct {
-    xTimecoord	    event;
-    ScreenPtr	    pScreen;
-} miHistoryRec, *miHistoryPtr;
-
 typedef struct {
     ScreenPtr		    pScreen;    /* current screen */
     ScreenPtr		    pSpriteScreen;/* screen containing current sprite */
@@ -48,9 +41,6 @@ typedef struct {
     Bool		    confined;	/* pointer can't change screens */
     int			    x, y;	/* hot spot location */
     int			    devx, devy;	/* sprite position */
-    DevicePtr		    pPointer;   /* pointer device structure */
-    miHistoryRec	    history[MOTION_SIZE];
-    int			    history_start, history_end;
 } miPointerRec, *miPointerPtr;
 
 typedef struct {

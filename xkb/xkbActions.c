@@ -868,6 +868,10 @@ XkbStateRec	old;
 unsigned	mods,mask,oldCoreState = 0,oldCorePrevState = 0;
 xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(xkbi->device);
 
+    /* never actually used uninitialised, but gcc isn't smart enough
+     * to work that out. */
+    memset(&old, 0, sizeof(old));
+
     if ((filter->keycode!=0)&&(filter->keycode!=keycode))
 	return 1;
 

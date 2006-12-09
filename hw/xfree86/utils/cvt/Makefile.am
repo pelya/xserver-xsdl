@@ -33,7 +33,7 @@ DUMMYLIB_SRCDIR = $(XFREE86_SRCDIR)/dummylib
 
 # gah
 cvt_SOURCES = cvt.c $(top_srcdir)/hw/xfree86/common/xf86cvt.c
-cvt_CFLAGS = $(XORG_CFLAGS)
+cvt_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 cvt_LDADD = $(top_builddir)/hw/xfree86/dummylib/libdummy-nonserver.a
 
 man1_MANS = cvt.man

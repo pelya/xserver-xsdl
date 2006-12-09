@@ -33,7 +33,6 @@
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
 #include "mipointer.h"
-#include "usl_xqueue.h"
 
 static int
 SupportedInterfaces(void)
@@ -42,7 +41,6 @@ SupportedInterfaces(void)
 }
 
 static const char *internalNames[] = {
-  "Xqueue",
   NULL
 };
 
@@ -55,7 +53,7 @@ BuiltinNames(void)
 static const char *
 DefaultProtocol (void)
 {
-  return "Xqueue";
+  return "OSMouse";
 }
 
 static Bool
@@ -121,7 +119,6 @@ OsMouseProc(DeviceIntPtr pPointer, int what)
 static Bool
 OsMousePreInit(InputInfoPtr pInfo, const char *protocol, int flags)
 {
-  /* This is called when the protocol is "Xqueue" */
   MouseDevPtr pMse;
 
   pMse = pInfo->private;
@@ -155,7 +152,7 @@ OsMousePreInit(InputInfoPtr pInfo, const char *protocol, int flags)
 
   /* Setup the local procs. */
   pInfo->device_control = OsMouseProc;
-  pInfo->read_input     = NULL;	/* Handled by the XQUEUE signal handler */
+  pInfo->read_input     = NULL;
 
   pInfo->flags |= XI86_CONFIGURED;
   return TRUE;

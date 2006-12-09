@@ -45,8 +45,6 @@ XF86ConfInputPtr xf86parseInputSection(void);
 void xf86printInputSection(FILE *f, XF86ConfInputPtr ptr);
 void xf86freeInputList(XF86ConfInputPtr ptr);
 int xf86validateInput (XF86ConfigPtr p);
-/* Keyboard.c */
-XF86ConfInputPtr xf86parseKeyboardSection(void);
 /* Layout.c */
 XF86ConfLayoutPtr xf86parseLayoutSection(void);
 void xf86printLayoutSection(FILE *cf, XF86ConfLayoutPtr ptr);

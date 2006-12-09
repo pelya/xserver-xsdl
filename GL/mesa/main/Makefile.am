@@ -60,6 +60,7 @@ nodist_libmain_la_SOURCES = accum.c \
                     light.c \
                     lines.c \
                     matrix.c \
+                    mipmap.c \
                     mm.c \
                     occlude.c \
                     pixel.c \

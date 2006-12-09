@@ -36,9 +36,4 @@ int SProcXChangeKeyboardDevice(ClientPtr	/* client */
 int ProcXChangeKeyboardDevice(ClientPtr	/* client */
     );
 
-void SRepXChangeKeyboardDevice(ClientPtr /* client */ ,
-			       int /* size */ ,
-			       xChangeKeyboardDeviceReply *	/* rep */
-    );
-
 #endif /* CHGKBD_H */

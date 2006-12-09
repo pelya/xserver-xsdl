@@ -11,7 +11,6 @@
 #include "xf86.h"
 #include "xf86Xinput.h"
 #include "xf86OSmouse.h"
-#include "xqueue.h"
 
 static int
 SupportedInterfaces(void)
@@ -22,7 +21,6 @@ SupportedInterfaces(void)
 
 #ifndef ISC
 static const char *internalNames[] = {
-	"Xqueue",
 	NULL
 };
 
@@ -56,7 +54,6 @@ xf86OSMouseInit(int flags)
 #ifndef ISC
     p->BuiltinNames = BuiltinNames;
     p->CheckProtocol = CheckProtocol;
-    p->PreInit = XqueueMousePreInit;
 #endif
     return p;
 }

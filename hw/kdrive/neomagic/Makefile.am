@@ -38,9 +38,3 @@ Xneomagic_LDADD = \
 	$(NEOMAGIC_LIBS)            \
 	@KDRIVE_LIBS@               \
 	@XSERVER_LIBS@		  
-
-
-Xneomagic_DEPENDENCIES =                 \
-	libneomagic.a               \
-	${FBDEV_LIBS}               \
-	${VESA_LIBS}                

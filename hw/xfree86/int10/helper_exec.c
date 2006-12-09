@@ -470,13 +470,13 @@ Mem_wl(CARD32 addr, CARD32 val)
 
 static CARD32 PciCfg1Addr = 0;
 
-#define TAG(Cfg1Addr) (Cfg1Addr & 0xffff00)
 #define OFFSET(Cfg1Addr) (Cfg1Addr & 0xff)
-#define _BUS(x)  PCI_BUS_FROM_TAG( TAG(PciCfg1Addr) )
-#define _DEV(x)  PCI_DEV_FROM_TAG( TAG(PciCfg1Addr) )
-#define _FUNC(x) PCI_FUNC_FROM_TAG( TAG(PciCfg1Addr) )
-#define GET_DEVICE(_addr)  \
-    pci_device_find_by_slot(0, _BUS(_addr), _DEV(_addr), _FUNC(_addr))
+#define _DOM(x)  PCI_DOM_FROM_TAG(x)
+#define _BUS(x)  PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(x))
+#define _DEV(x)  PCI_DEV_FROM_TAG(x)
+#define _FUNC(x) PCI_FUNC_FROM_TAG(x)
+#define GET_DEVICE(_tag)  \
+    pci_device_find_by_slot(_DOM(_tag), _BUS(_tag), _DEV(_tag), _FUNC(_tag))
 
 static int
 pciCfg1in(CARD16 addr, CARD32 *val)
@@ -486,7 +486,7 @@ pciCfg1in(CARD16 addr, CARD32 *val)
 	return 1;
     }
     if (addr == 0xCFC) {
-	struct pci_device *dev = GET_DEVICE(PciCfg1Addr);
+	struct pci_device *dev = GET_DEVICE(Int10Current->Tag);
 
 	pci_device_cfg_read_u32(dev, val, OFFSET(PciCfg1Addr));
 	return 1;
@@ -502,7 +502,7 @@ pciCfg1out(CARD16 addr, CARD32 val)
 	return 1;
     }
     if (addr == 0xCFC) {
-	struct pci_device *dev = GET_DEVICE(PciCfg1Addr);
+	struct pci_device *dev = GET_DEVICE(Int10Current->Tag);
 
 	pci_device_cfg_write_u32(dev, & val, OFFSET(PciCfg1Addr));
 	return 1;
@@ -522,7 +522,7 @@ pciCfg1inw(CARD16 addr, CARD16 *val)
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	const unsigned offset = addr - 0xCFC;
-	struct pci_device *dev = GET_DEVICE(PciCfg1Addr);
+	struct pci_device *dev = GET_DEVICE(Int10Current->Tag);
 
 	pci_device_cfg_read_u16(dev, val, OFFSET(PciCfg1Addr) + offset);
 	return 1;
@@ -543,7 +543,7 @@ pciCfg1outw(CARD16 addr, CARD16 val)
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	const unsigned offset = addr - 0xCFC;
-	struct pci_device *dev = GET_DEVICE(PciCfg1Addr);
+	struct pci_device *dev = GET_DEVICE(Int10Current->Tag);
 
 	pci_device_cfg_write_u16(dev, & val, OFFSET(PciCfg1Addr) + offset);
 	return 1;
@@ -563,7 +563,7 @@ pciCfg1inb(CARD16 addr, CARD8 *val)
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	const unsigned offset = addr - 0xCFC;
-	struct pci_device *dev = GET_DEVICE(PciCfg1Addr);
+	struct pci_device *dev = GET_DEVICE(Int10Current->Tag);
 
 	pci_device_cfg_read_u8(dev, val, OFFSET(PciCfg1Addr) + offset);
 	return 1;
@@ -584,7 +584,7 @@ pciCfg1outb(CARD16 addr, CARD8 val)
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	const unsigned offset = addr - 0xCFC;
-	struct pci_device *dev = GET_DEVICE(PciCfg1Addr);
+	struct pci_device *dev = GET_DEVICE(Int10Current->Tag);
 
 	pci_device_cfg_write_u8(dev, & val, OFFSET(PciCfg1Addr) + offset);
 	return 1;

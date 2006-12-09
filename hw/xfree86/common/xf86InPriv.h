@@ -40,4 +40,7 @@ extern int xf86NumInputDrivers;
 /* xf86Xinput.c */
 void xf86ActivateDevice(InputInfoPtr pInfo);
 
+/* xf86Helper.c */
+InputDriverPtr xf86LookupInputDriver(const char *name);
+
 #endif /* _xf86InPriv_h */

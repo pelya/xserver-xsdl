@@ -101,7 +101,7 @@ VbeReportVib(Vm86InfoPtr vi, VbeInfoBlock *vib)
     }
     ErrorF(")\n");
     ErrorF("DAC is %s, controller is %sVGA compatible%s\n",
-           (vib->Capabilities[0]&1)?"fixed":"switchable",
+           (vib->Capabilities[0]&1)?"switchable":"fixed",
            (vib->Capabilities[0]&2)?"not ":"",
            (vib->Capabilities[0]&3)?", RAMDAC causes snow":"");
     ErrorF("Total memory: %lu kilobytes\n", 64L*vib->TotalMemory);

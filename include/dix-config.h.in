@@ -127,6 +127,9 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define to 1 if you have version 2.2 (or newer) of the drm library */
+#undef HAVE_LIBDRM_2_2
+
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
@@ -444,5 +447,26 @@
 
 /* Define to 1 if modules should avoid the libcwrapper */
 #undef NO_LIBCWRAPPER
+
+/* Support D-BUS */
+#undef HAVE_DBUS
+
+/* Use only built-in fonts */
+#undef BUILTIN_FONTS
+
+/* Avoid using font servers */
+#undef NOFONTSERVERACCESS
+
+/* Use an empty root cursor */
+#undef NULL_ROOT_CURSOR
+
+/* Have a monotonic clock from clock_gettime() */
+#undef MONOTONIC_CLOCK
+
+/* Define to 1 if the DTrace Xserver provider probes should be built in */
+#undef XSERVER_DTRACE
+
+/* Path to XErrorDB file */
+#undef XERRORDB_PATH
 
 #endif /* _DIX_CONFIG_H_ */

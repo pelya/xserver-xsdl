@@ -98,6 +98,7 @@ Equipment Corporation.
 #include <X11/fonts/font.h>
 #include "opaque.h"
 #include "servermd.h"
+#include "hotplug.h"
 #include "site.h"
 #include "dixfont.h"
 #include "extnsionst.h"
@@ -309,7 +310,8 @@ main(int argc, char *argv[], char *envp[])
 #endif
 	InitBlockAndWakeupHandlers();
 	/* Perform any operating system dependent initializations you'd like */
-	OsInit();		
+	OsInit();
+        configInitialise();
 	if(serverGeneration == 1)
 	{
 	    CreateWellKnownSockets();
@@ -394,23 +396,43 @@ main(int argc, char *argv[], char *envp[])
 	    if (!CreateRootWindow(pScreen))
 		FatalError("failed to create root window");
 	}
+        InitCoreDevices();
 	InitInput(argc, argv);
 	if (InitAndStartDevices() != Success)
 	    FatalError("failed to initialize core devices");
 
 	InitFonts();
+#ifdef BUILTIN_FONTS
+        defaultFontPath = "built-ins";
+#else
 	if (loadableFonts) {
 	    SetFontPath(0, 0, (unsigned char *)defaultFontPath, &error);
-	} else {
+	} else 
+#endif
+        {
 	    if (SetDefaultFontPath(defaultFontPath) != Success)
 		ErrorF("failed to set default font path '%s'",
 			defaultFontPath);
 	}
-	if (!SetDefaultFont(defaultTextFont))
+	if (!SetDefaultFont(defaultTextFont)) {
 	    FatalError("could not open default font '%s'", defaultTextFont);
-	if (!(rootCursor = CreateRootCursor(defaultCursorFont, 0)))
+	}
+#ifdef NULL_ROOT_CURSOR
+        cm.width = 0;
+        cm.height = 0;
+        cm.xhot = 0;
+        cm.yhot = 0;
+
+        if (!(rootCursor = AllocCursor(NULL, NULL, &cm, 0, 0, 0, 0, 0, 0))) {
+            FatalError("could not create empty root cursor");
+	}
+        AddResource(FakeClientID(0), RT_CURSOR, (pointer)rootCursor);
+#else
+	if (!(rootCursor = CreateRootCursor(defaultCursorFont, 0))) {
 	    FatalError("could not open default cursor font '%s'",
 		       defaultCursorFont);
+	}
+#endif
 #ifdef DPMSExtension
  	/* check all screens, looking for DPMS Capabilities */
  	DPMSCapableFlag = DPMSSupported();
@@ -433,13 +455,15 @@ main(int argc, char *argv[], char *envp[])
 
 #ifdef PANORAMIX
 	if (!noPanoramiXExtension) {
-	    if (!PanoramiXCreateConnectionBlock())
+	    if (!PanoramiXCreateConnectionBlock()) {
 		FatalError("could not create connection block info");
+	    }
 	} else
 #endif
 	{
-	    if (!CreateConnectionBlock())
+	    if (!CreateConnectionBlock()) {
 	    	FatalError("could not create connection block info");
+	    }
 	}
 
 	Dispatch();
@@ -461,6 +485,7 @@ main(int argc, char *argv[], char *envp[])
 	FreeAllResources();
 #endif
 
+        configFini();
 	CloseDownDevices();
 	for (i = screenInfo.numScreens - 1; i >= 0; i--)
 	{
@@ -681,9 +706,6 @@ AddScreen(
     int i;
     int scanlinepad, format, depth, bitsPerPixel, j, k;
     ScreenPtr pScreen;
-#ifdef DEBUG
-    void	(**jNI) ();
-#endif /* DEBUG */
 
     i = screenInfo.numScreens;
     if (i == MAXSCREENS)
@@ -717,13 +739,6 @@ AddScreen(
     pScreen->ClipNotify = 0;	/* for R4 ddx compatibility */
     pScreen->CreateScreenResources = 0;
     
-#ifdef DEBUG
-    for (jNI = &pScreen->QueryBestSize; 
-	 jNI < (void (**) ()) &pScreen->SendGraphicsExpose;
-	 jNI++)
-	*jNI = NotImplemented;
-#endif /* DEBUG */
-
     /*
      * This loop gets run once for every Screen that gets added,
      * but thats ok.  If the ddx layer initializes the formats

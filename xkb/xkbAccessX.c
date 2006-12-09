@@ -361,10 +361,7 @@ XkbControlsPtr	ctrls;
 	if (keybd->kbdfeed->ctrl.autoRepeat && 
 	    ((xkbi->slowKey != xkbi->mouseKey) || (!xkbi->mouseKeysAccel)) &&
 	     (ctrls->enabled_ctrls&XkbRepeatKeysMask)) {
-#ifndef AIXV3
-	    if (BitIsOn(keybd->kbdfeed->ctrl.autoRepeats,xkbi->slowKey))
-#endif
-	    {
+	    if (BitIsOn(keybd->kbdfeed->ctrl.autoRepeats,xkbi->slowKey)) {
 		xkbi->repeatKey = xkbi->slowKey;
 		xkbi->repeatKeyTimer= TimerSet(xkbi->repeatKeyTimer,
 					0, ctrls->repeat_delay,
@@ -530,10 +527,7 @@ KeySym *	sym = XkbKeySymsPtr(xkbi->desc,key);
 	if ((keybd->kbdfeed->ctrl.autoRepeat) &&
 		((ctrls->enabled_ctrls&(XkbSlowKeysMask|XkbRepeatKeysMask))==
 							XkbRepeatKeysMask)) {
-#ifndef AIXV3
-	    if (BitIsOn(keybd->kbdfeed->ctrl.autoRepeats,key))
-#endif
-	    {
+	    if (BitIsOn(keybd->kbdfeed->ctrl.autoRepeats,key)) {
 #ifdef DEBUG
 		if (xkbDebugFlags&0x10)
 		    ErrorF("Starting software autorepeat...\n");
