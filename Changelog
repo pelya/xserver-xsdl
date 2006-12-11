@@ -1,4 +1,26 @@
 MPX Changelog file
+== 12.12.06 ==
+dix:    Moving SpriteRec into DeviceIntRec
+	removing global sprite structure
+	beginning to remove MPX ifdefs
+
+xnest:  Fix to make xnest compile again 
+
+Files:
+	dix/getevents.c
+	dix/events.c
+	dix/devices.c
+	hw/xfree86/common/xf86Xinput.c
+	include/cursor.h
+	include/dix.h
+	include/dixevents.h
+	include/input.h
+	include/inputstr.h
+	XTrap/xtrapdi.c
+	Xext/xtest.c
+	hw/xnest/Events.c
+	record/record.c
+
 == 05.12.06 ==
 Xi:     adding MPX checks to ProcessOtherEvents
 

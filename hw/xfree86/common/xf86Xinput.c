@@ -47,7 +47,6 @@
  */
 /* $XConsortium: xf86Xinput.c /main/14 1996/10/27 11:05:25 kaleb $ */
 
-#ifdef MPX
  /* 
   * MPX additions:
   * Copyright © 2006 Peter Hutterer
@@ -55,7 +54,6 @@
   * Author: Peter Hutterer <peter@cs.unisa.edu.au>
   *
   */
-#endif
 
 
 #ifdef HAVE_XORG_CONFIG_H
@@ -144,12 +142,10 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
         xf86Msg(X_CONFIG, "%s: always reports core events\n", local->name);
     }
 
-#ifdef MPX
     if (xf86SetBoolOption(list, "IsMPDevice", 0)) {
         local->flags |= XI86_MP_DEVICE;
         xf86Msg(X_CONFIG, "%s: is MP device\n", local->name);
     }
-#endif
 
     if (xf86SetBoolOption(list, "SendDragEvents", 1)) {
         local->flags |= XI86_SEND_DRAG_EVENTS;
@@ -214,12 +210,9 @@ xf86ActivateDevice(LocalDevicePtr local)
         xf86XinputFinalizeInit(dev);
 
         dev->coreEvents = local->flags & XI86_ALWAYS_CORE;
-#ifdef MPX
-        if (local->flags & XI86_MP_DEVICE)
-            dev->isMPDev = TRUE;
-        else
-            dev->isMPDev = FALSE;
-#endif
+        dev->isMPDev = (local->flags & XI86_MP_DEVICE);
+        InitSprite(dev, dev->isMPDev);
+
         RegisterOtherDevice(dev);
 
         if (serverGeneration == 1) 
@@ -466,11 +459,6 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     else
         flags = POINTER_RELATIVE | POINTER_ACCELERATE;
 
-#ifdef MPX
-    if (device->isMPDev)
-        flags |= POINTER_MULTIPOINTER;
-#endif
-    
     valuators = xcalloc(sizeof(int), num_valuators);
 
     va_start(var, num_valuators);
@@ -543,11 +531,6 @@ xf86PostButtonEvent(DeviceIntPtr	device,
     else
         flags = POINTER_RELATIVE;
 
-#ifdef MPX
-    if (device->isMPDev)
-        flags |= POINTER_MULTIPOINTER;
-#endif
-    
     valuators = xcalloc(sizeof(int), num_valuators);
 
     va_start(var, num_valuators);

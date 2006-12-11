@@ -52,6 +52,7 @@ SOFTWARE.
 #include "input.h"
 #include "window.h"
 #include "dixstruct.h"
+#include "cursorstr.h"
 
 #define BitIsOn(ptr, bit) (((BYTE *) (ptr))[(bit)>>3] & (1 << ((bit) & 7)))
 
@@ -264,6 +265,30 @@ typedef struct _LedFeedbackClassRec {
 #endif
 } LedFeedbackClassRec;
 
+
+/**
+ * Sprite information for a device.
+ */
+typedef struct {
+    CursorPtr	current;
+    BoxRec	hotLimits;	/* logical constraints of hot spot */
+    Bool	confined;	/* confined to screen */
+#if defined(SHAPE) || defined(PANORAMIX)
+    RegionPtr	hotShape;	/* additional logical shape constraint */
+#endif
+    BoxRec	physLimits;	/* physical constraints of hot spot */
+    WindowPtr	win;		/* window of logical position */
+    HotSpot	hot;		/* logical pointer position */
+    HotSpot	hotPhys;	/* physical pointer position */
+#ifdef PANORAMIX
+    ScreenPtr	screen;		/* all others are in Screen 0 coordinates */
+    RegionRec   Reg1;	        /* Region 1 for confining motion */
+    RegionRec   Reg2;		/* Region 2 for confining virtual motion */
+    WindowPtr   windows[MAXSCREENS];
+    WindowPtr	confineWin;	/* confine window */ 
+#endif
+} SpriteRec, *SpritePtr;
+
 /* states for devices */
 
 #define NOT_GRABBED		0
@@ -329,9 +354,8 @@ typedef struct _DeviceIntRec {
     DevUnion		*devPrivates;
     int			nPrivates;
     DeviceUnwrapProc    unwrapProc;
-#ifdef MPX
     Bool                isMPDev;           /* TRUE if multipointer device */
-#endif
+    SpritePtr           pSprite;        /* sprite information */
 } DeviceIntRec;
 
 typedef struct {

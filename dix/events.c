@@ -175,9 +175,7 @@ xEvent *xeviexE;
 #include "dixgrabs.h"
 #include "dispatch.h"
 
-#ifdef MPX
 #include "mpxglobals.h"
-#endif
 
 #define EXTENSION_EVENT_BASE  64
 
@@ -244,32 +242,8 @@ static WindowPtr *spriteTrace = (WindowPtr *)NULL;
 static int spriteTraceSize = 0;
 static int spriteTraceGood;
 
-typedef struct {
-    CursorPtr	current;
-    BoxRec	hotLimits;	/* logical constraints of hot spot */
-    Bool	confined;	/* confined to screen */
-#if defined(SHAPE) || defined(PANORAMIX)
-    RegionPtr	hotShape;	/* additional logical shape constraint */
-#endif
-    BoxRec	physLimits;	/* physical constraints of hot spot */
-    WindowPtr	win;		/* window of logical position */
-    HotSpot	hot;		/* logical pointer position */
-    HotSpot	hotPhys;	/* physical pointer position */
-#ifdef PANORAMIX
-    ScreenPtr	screen;		/* all others are in Screen 0 coordinates */
-    RegionRec   Reg1;	        /* Region 1 for confining motion */
-    RegionRec   Reg2;		/* Region 2 for confining virtual motion */
-    WindowPtr   windows[MAXSCREENS];
-    WindowPtr	confineWin;	/* confine window */ 
-#endif
-} SpriteRec, *SpritePtr;
 
-static SpritePtr sprite;		/* info about the cursor sprite */
-
-#ifdef MPX
 #define MPXDBG(...) fprintf (stderr, "MPX: " __VA_ARGS__)
-
-static SpritePtr mpsprites;             /* info about the MPX sprites */
 
 /** 
  * True for the core pointer and any MPX device. 
@@ -282,8 +256,6 @@ MPHasCursor(DeviceIntPtr pDev)
     return (pDev == inputInfo.pointer || 
             (pDev->isMPDev && pDev->id < MAX_DEVICES)); 
 }
-
-#endif
 
 #ifdef XEVIE
 _X_EXPORT WindowPtr xeviewin;
@@ -359,8 +331,8 @@ static CARD8 criticalEvents[32] =
 static void ConfineToShape(DeviceIntPtr pDev, RegionPtr shape, int *px, int *py);
 static void PostNewCursor(DeviceIntPtr pDev);
 
-#define SyntheticMotion(x, y) \
-    PostSyntheticMotion(x, y, sprite->screen, \
+#define SyntheticMotion(dev, x, y) \
+    PostSyntheticMotion(dev, x, y, dev->pSprite->screen, \
                         syncEvents.playingEvents ? \
                           syncEvents.time.milliseconds : \
                           currentTime.milliseconds);
@@ -375,12 +347,7 @@ XineramaSetCursorPosition(
     ScreenPtr pScreen;
     BoxRec box;
     int i;
-    SpritePtr pSprite = sprite;
-
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
+    SpritePtr pSprite = pDev->pSprite;
 
     /* x,y are in Screen 0 coordinates.  We need to decide what Screen
        to send the message too and what the coordinates relative to 
@@ -418,14 +385,9 @@ XineramaSetCursorPosition(
 static void
 XineramaConstrainCursor(DeviceIntPtr pDev)
 {
-    SpritePtr pSprite = sprite;
+    SpritePtr pSprite = pDev->pSprite;
     ScreenPtr pScreen;
     BoxRec newBox;
-
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
 
     pScreen = pSprite->screen;
     newBox = pSprite->physLimits;
@@ -447,14 +409,10 @@ XineramaCheckPhysLimits(
     Bool generateEvents
 ){
     HotSpot new;
-    SpritePtr pSprite = sprite;
+    SpritePtr pSprite = pDev->pSprite;
 
     if (!cursor)
 	return;
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
  
     new = pSprite->hotPhys;
 
@@ -480,7 +438,7 @@ XineramaCheckPhysLimits(
     {
 	XineramaSetCursorPosition (pDev, new.x, new.y, generateEvents);
 	if (!generateEvents)
-	    SyntheticMotion(new.x, new.y);
+	    SyntheticMotion(pDev, new.x, new.y);
     }
 
     /* Tell DDX what the limits are */
@@ -489,10 +447,12 @@ XineramaCheckPhysLimits(
 
 
 static Bool
-XineramaSetWindowPntrs(WindowPtr pWin)
+XineramaSetWindowPntrs(DeviceIntPtr pDev, WindowPtr pWin)
 {
+    SpritePtr pSprite = pDev->pSprite;
+
     if(pWin == WindowTable[0]) {
-	    memcpy(sprite->windows, WindowTable, 
+	    memcpy(pSprite->windows, WindowTable, 
 				PanoramiXNumScreens*sizeof(WindowPtr));
     } else {
 	PanoramiXRes *win;
@@ -504,8 +464,8 @@ XineramaSetWindowPntrs(WindowPtr pWin)
 	    return FALSE;
 
 	for(i = 0; i < PanoramiXNumScreens; i++) {
-	   sprite->windows[i] = LookupIDByType(win->info[i].id, RT_WINDOW);
-	   if(!sprite->windows[i])  /* window is being unmapped */
+	   pSprite->windows[i] = LookupIDByType(win->info[i].id, RT_WINDOW);
+	   if(!pSprite->windows[i])  /* window is being unmapped */
 		return FALSE;
 	}
     }
@@ -514,16 +474,18 @@ XineramaSetWindowPntrs(WindowPtr pWin)
 
 static void
 XineramaCheckVirtualMotion(
+   DeviceIntPtr pDev,
    QdEventPtr qe,
-   WindowPtr pWin
-){
+   WindowPtr pWin) 
+{
+    SpritePtr pSprite = pDev->pSprite;
 
     if (qe)
     {
-	sprite->hot.pScreen = qe->pScreen;  /* should always be Screen 0 */
-	sprite->hot.x = qe->event->u.keyButtonPointer.rootX;
-	sprite->hot.y = qe->event->u.keyButtonPointer.rootY;
-	pWin = inputInfo.pointer->grab ? inputInfo.pointer->grab->confineTo :
+	pSprite->hot.pScreen = qe->pScreen;  /* should always be Screen 0 */
+	pSprite->hot.x = qe->event->u.keyButtonPointer.rootX;
+	pSprite->hot.y = qe->event->u.keyButtonPointer.rootY;
+	pWin = pDev->grab ? pDev->grab->confineTo :
 					 NullWindow;
     }
     if (pWin)
@@ -531,13 +493,13 @@ XineramaCheckVirtualMotion(
 	int x, y, off_x, off_y, i;
 	BoxRec lims;
 
-	if(!XineramaSetWindowPntrs(pWin))
+	if(!XineramaSetWindowPntrs(pDev, pWin))
 	    return;
 
 	i = PanoramiXNumScreens - 1;
 	
-	REGION_COPY(sprite->screen, &sprite->Reg2, 
-					&sprite->windows[i]->borderSize); 
+	REGION_COPY(pSprite->screen, &pSprite->Reg2, 
+					&pSprite->windows[i]->borderSize); 
 	off_x = panoramiXdataPtr[i].x;
 	off_y = panoramiXdataPtr[i].y;
 
@@ -546,39 +508,40 @@ XineramaCheckVirtualMotion(
 	    y = off_y - panoramiXdataPtr[i].y;
 
 	    if(x || y)
-		REGION_TRANSLATE(sprite->screen, &sprite->Reg2, x, y);
+		REGION_TRANSLATE(pSprite->screen, &pSprite->Reg2, x, y);
 		
-	    REGION_UNION(sprite->screen, &sprite->Reg2, &sprite->Reg2, 
-					&sprite->windows[i]->borderSize);
+	    REGION_UNION(pSprite->screen, &pSprite->Reg2, &pSprite->Reg2, 
+					&pSprite->windows[i]->borderSize);
 
 	    off_x = panoramiXdataPtr[i].x;
 	    off_y = panoramiXdataPtr[i].y;
 	}
 
-	lims = *REGION_EXTENTS(sprite->screen, &sprite->Reg2);
+	lims = *REGION_EXTENTS(pSprite->screen, &pSprite->Reg2);
 
-        if (sprite->hot.x < lims.x1)
-            sprite->hot.x = lims.x1;
-        else if (sprite->hot.x >= lims.x2)
-            sprite->hot.x = lims.x2 - 1;
-        if (sprite->hot.y < lims.y1)
-            sprite->hot.y = lims.y1;
-        else if (sprite->hot.y >= lims.y2)
-            sprite->hot.y = lims.y2 - 1;
+        if (pSprite->hot.x < lims.x1)
+            pSprite->hot.x = lims.x1;
+        else if (pSprite->hot.x >= lims.x2)
+            pSprite->hot.x = lims.x2 - 1;
+        if (pSprite->hot.y < lims.y1)
+            pSprite->hot.y = lims.y1;
+        else if (pSprite->hot.y >= lims.y2)
+            pSprite->hot.y = lims.y2 - 1;
 
-	if (REGION_NUM_RECTS(&sprite->Reg2) > 1) 
-	    ConfineToShape(inputInfo.pointer, &sprite->Reg2, &sprite->hot.x, &sprite->hot.y);
+	if (REGION_NUM_RECTS(&pSprite->Reg2) > 1) 
+	    ConfineToShape(pDev, &pSprite->Reg2, 
+                    &pSprite->hot.x, &pSprite->hot.y);
 
 	if (qe)
 	{
-	    qe->pScreen = sprite->hot.pScreen;
-	    qe->event->u.keyButtonPointer.rootX = sprite->hot.x;
-	    qe->event->u.keyButtonPointer.rootY = sprite->hot.y;
+	    qe->pScreen = pSprite->hot.pScreen;
+	    qe->event->u.keyButtonPointer.rootX = pSprite->hot.x;
+	    qe->event->u.keyButtonPointer.rootY = pSprite->hot.y;
 	}
     }
 #ifdef XEVIE
-    xeviehot.x = sprite->hot.x;
-    xeviehot.y = sprite->hot.y;
+    xeviehot.x = pSprite->hot.x;
+    xeviehot.y = pSprite->hot.y;
 #endif
 }
 
@@ -587,12 +550,7 @@ static Bool
 XineramaCheckMotion(xEvent *xE, DeviceIntPtr pDev)
 {
     WindowPtr prevSpriteWin;
-    SpritePtr pSprite = sprite;
-
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
+    SpritePtr pSprite = pDev->pSprite;
 
     prevSpriteWin = pSprite->win;
 
@@ -653,25 +611,28 @@ XineramaCheckMotion(xEvent *xE, DeviceIntPtr pDev)
 
 
 static void
-XineramaConfineCursorToWindow(WindowPtr pWin, Bool generateEvents)
+XineramaConfineCursorToWindow(DeviceIntPtr pDev, 
+                              WindowPtr pWin, 
+                              Bool generateEvents)
 {
+    SpritePtr pSprite = pDev->pSprite;
 
     if (syncEvents.playingEvents)
     {
-	XineramaCheckVirtualMotion((QdEventPtr)NULL, pWin);
-	SyntheticMotion(sprite->hot.x, sprite->hot.y);
+	XineramaCheckVirtualMotion(pDev, (QdEventPtr)NULL, pWin);
+	SyntheticMotion(pDev, pSprite->hot.x, pSprite->hot.y);
     }
     else
     {
 	int x, y, off_x, off_y, i;
 
-	if(!XineramaSetWindowPntrs(pWin))
+	if(!XineramaSetWindowPntrs(pDev, pWin))
 	    return;
 
 	i = PanoramiXNumScreens - 1;
 	
-	REGION_COPY(sprite->screen, &sprite->Reg1, 
-					&sprite->windows[i]->borderSize); 
+	REGION_COPY(pSprite->screen, &pSprite->Reg1, 
+					&pSprite->windows[i]->borderSize); 
 	off_x = panoramiXdataPtr[i].x;
 	off_y = panoramiXdataPtr[i].y;
 
@@ -680,26 +641,26 @@ XineramaConfineCursorToWindow(WindowPtr pWin, Bool generateEvents)
 	    y = off_y - panoramiXdataPtr[i].y;
 
 	    if(x || y)
-		REGION_TRANSLATE(sprite->screen, &sprite->Reg1, x, y);
+		REGION_TRANSLATE(pSprite->screen, &pSprite->Reg1, x, y);
 		
-	    REGION_UNION(sprite->screen, &sprite->Reg1, &sprite->Reg1, 
-					&sprite->windows[i]->borderSize);
+	    REGION_UNION(pSprite->screen, &pSprite->Reg1, &pSprite->Reg1, 
+					&pSprite->windows[i]->borderSize);
 
 	    off_x = panoramiXdataPtr[i].x;
 	    off_y = panoramiXdataPtr[i].y;
 	}
 
-	sprite->hotLimits = *REGION_EXTENTS(sprite->screen, &sprite->Reg1);
+	pSprite->hotLimits = *REGION_EXTENTS(pSprite->screen, &pSprite->Reg1);
 
-	if(REGION_NUM_RECTS(&sprite->Reg1) > 1)
-	   sprite->hotShape = &sprite->Reg1;
+	if(REGION_NUM_RECTS(&pSprite->Reg1) > 1)
+	   pSprite->hotShape = &pSprite->Reg1;
 	else
-	   sprite->hotShape = NullRegion;
+	   pSprite->hotShape = NullRegion;
 	
-	sprite->confined = FALSE;
-	sprite->confineWin = (pWin == WindowTable[0]) ? NullWindow : pWin;
+	pSprite->confined = FALSE;
+	pSprite->confineWin = (pWin == WindowTable[0]) ? NullWindow : pWin;
 
-        XineramaCheckPhysLimits(inputInfo.pointer, sprite->current,
+        XineramaCheckPhysLimits(pDev, pSprite->current,
                                 generateEvents); 
     }
 }
@@ -708,12 +669,7 @@ XineramaConfineCursorToWindow(WindowPtr pWin, Bool generateEvents)
 static void
 XineramaChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 {
-    SpritePtr pSprite = sprite;
-
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
+    SpritePtr pSprite = pDev->pSprite;
 
     if (cursor != pSprite->current)
     {
@@ -753,11 +709,7 @@ ConfineToShape(DeviceIntPtr pDev, RegionPtr shape, int *px, int *py)
     BoxRec box;
     int x = *px, y = *py;
     int incx = 1, incy = 1;
-    SpritePtr pSprite = sprite;
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
+    SpritePtr pSprite = pDev->pSprite;
 
     if (POINT_IN_REGION(pSprite->hot.pScreen, shape, x, y, &box))
 	return;
@@ -798,12 +750,7 @@ CheckPhysLimits(
     ScreenPtr pScreen)
 {
     HotSpot new;
-    SpritePtr pSprite = sprite;
-
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
+    SpritePtr pSprite = pDev->pSprite;
 
     if (!cursor)
 	return;
@@ -838,90 +785,94 @@ CheckPhysLimits(
         (*pScreen->SetCursorPosition) 
             (pDev, pScreen, new.x, new.y, generateEvents); 
         if (!generateEvents)
-	    SyntheticMotion(new.x, new.y);
+	    SyntheticMotion(pDev, new.x, new.y);
     }
 }
 
 static void
 CheckVirtualMotion(
+    register DeviceIntPtr pDev,
     register QdEventPtr qe,
     register WindowPtr pWin)
 {
+    SpritePtr pSprite = pDev->pSprite;
+
 #ifdef PANORAMIX
     if(!noPanoramiXExtension) {
-	XineramaCheckVirtualMotion(qe, pWin);
+	XineramaCheckVirtualMotion(pDev, qe, pWin);
 	return;
     }
 #endif
     if (qe)
     {
-	sprite->hot.pScreen = qe->pScreen;
-	sprite->hot.x = qe->event->u.keyButtonPointer.rootX;
-	sprite->hot.y = qe->event->u.keyButtonPointer.rootY;
-	pWin = inputInfo.pointer->grab ? inputInfo.pointer->grab->confineTo :
-					 NullWindow;
+	pSprite->hot.pScreen = qe->pScreen;
+	pSprite->hot.x = qe->event->u.keyButtonPointer.rootX;
+	pSprite->hot.y = qe->event->u.keyButtonPointer.rootY;
+	pWin = pDev->grab ? pDev->grab->confineTo : NullWindow;
     }
     if (pWin)
     {
 	BoxRec lims;
 
-	if (sprite->hot.pScreen != pWin->drawable.pScreen)
+	if (pSprite->hot.pScreen != pWin->drawable.pScreen)
 	{
-	    sprite->hot.pScreen = pWin->drawable.pScreen;
-	    sprite->hot.x = sprite->hot.y = 0;
+	    pSprite->hot.pScreen = pWin->drawable.pScreen;
+	    pSprite->hot.x = pSprite->hot.y = 0;
 	}
 	lims = *REGION_EXTENTS(pWin->drawable.pScreen, &pWin->borderSize);
-	if (sprite->hot.x < lims.x1)
-	    sprite->hot.x = lims.x1;
-	else if (sprite->hot.x >= lims.x2)
-	    sprite->hot.x = lims.x2 - 1;
-	if (sprite->hot.y < lims.y1)
-	    sprite->hot.y = lims.y1;
-	else if (sprite->hot.y >= lims.y2)
-	    sprite->hot.y = lims.y2 - 1;
+	if (pSprite->hot.x < lims.x1)
+	    pSprite->hot.x = lims.x1;
+	else if (pSprite->hot.x >= lims.x2)
+	    pSprite->hot.x = lims.x2 - 1;
+	if (pSprite->hot.y < lims.y1)
+	    pSprite->hot.y = lims.y1;
+	else if (pSprite->hot.y >= lims.y2)
+	    pSprite->hot.y = lims.y2 - 1;
 #ifdef SHAPE
 	if (wBoundingShape(pWin))
-	    ConfineToShape(inputInfo.pointer, &pWin->borderSize, &sprite->hot.x, &sprite->hot.y);
+	    ConfineToShape(pDev, &pWin->borderSize, 
+                    &pSprite->hot.x, &pSprite->hot.y);
 #endif
 	if (qe)
 	{
-	    qe->pScreen = sprite->hot.pScreen;
-	    qe->event->u.keyButtonPointer.rootX = sprite->hot.x;
-	    qe->event->u.keyButtonPointer.rootY = sprite->hot.y;
+	    qe->pScreen = pSprite->hot.pScreen;
+	    qe->event->u.keyButtonPointer.rootX = pSprite->hot.x;
+	    qe->event->u.keyButtonPointer.rootY = pSprite->hot.y;
 	}
     }
 #ifdef XEVIE
-    xeviehot.x = sprite->hot.x;
-    xeviehot.y = sprite->hot.y;
+    xeviehot.x = pSprite->hot.x;
+    xeviehot.y = pSprite->hot.y;
 #endif
-    ROOT = WindowTable[sprite->hot.pScreen->myNum];
+    ROOT = WindowTable[pSprite->hot.pScreen->myNum];
 }
 
 static void
-ConfineCursorToWindow(WindowPtr pWin, Bool generateEvents, Bool confineToScreen)
+ConfineCursorToWindow(DeviceIntPtr pDev, WindowPtr pWin, Bool generateEvents, Bool confineToScreen)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
+    SpritePtr pSprite = pDev->pSprite;
 
 #ifdef PANORAMIX
     if(!noPanoramiXExtension) {
-	XineramaConfineCursorToWindow(pWin, generateEvents);
+	XineramaConfineCursorToWindow(pDev, pWin, generateEvents);
 	return;
     }	
 #endif
 
     if (syncEvents.playingEvents)
     {
-	CheckVirtualMotion((QdEventPtr)NULL, pWin);
-	SyntheticMotion(sprite->hot.x, sprite->hot.y);
+	CheckVirtualMotion(pDev, (QdEventPtr)NULL, pWin);
+	SyntheticMotion(pDev, pSprite->hot.x, pSprite->hot.y);
     }
     else
     {
-	sprite->hotLimits = *REGION_EXTENTS( pScreen, &pWin->borderSize);
+	pSprite->hotLimits = *REGION_EXTENTS( pScreen, &pWin->borderSize);
 #ifdef SHAPE
-	sprite->hotShape = wBoundingShape(pWin) ? &pWin->borderSize
+	pSprite->hotShape = wBoundingShape(pWin) ? &pWin->borderSize
 					       : NullRegion;
 #endif
-        CheckPhysLimits(inputInfo.pointer, sprite->current, generateEvents,
+        CheckPhysLimits(pDev, pSprite->current, generateEvents,
                         confineToScreen, pScreen);
     }
 }
@@ -929,23 +880,13 @@ ConfineCursorToWindow(WindowPtr pWin, Bool generateEvents, Bool confineToScreen)
 _X_EXPORT Bool
 PointerConfinedToScreen(DeviceIntPtr pDev)
 {
-    SpritePtr pSprite = sprite;
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
-    return pSprite->confined;
+    return pDev->pSprite->confined;
 }
 
 static void
 ChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 {
-    SpritePtr pSprite = sprite;
-
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
+    SpritePtr pSprite = pDev->pSprite;
 
 #ifdef PANORAMIX
     if(!noPanoramiXExtension) {
@@ -960,7 +901,7 @@ ChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 		(pSprite->current->bits->yhot != cursor->bits->yhot))
 	    CheckPhysLimits(pDev, cursor, FALSE, pSprite->confined,
 			    (ScreenPtr)NULL);
-        (*sprite->hotPhys.pScreen->DisplayCursor) (pDev,
+        (*pSprite->hotPhys.pScreen->DisplayCursor) (pDev,
                                                    pSprite->hotPhys.pScreen,
                                                    cursor);
 	FreeCursor(pSprite->current, (Cursor)0);
@@ -983,13 +924,7 @@ PostNewCursor(DeviceIntPtr pDev)
 {
     register    WindowPtr win;
     register    GrabPtr grab = pDev->grab;
-    SpritePtr   pSprite = sprite;
-
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
-
+    SpritePtr   pSprite = pDev->pSprite;
 
     if (syncEvents.playingEvents)
 	return;
@@ -1024,38 +959,29 @@ GetCurrentRootWindow()
 _X_EXPORT WindowPtr
 GetSpriteWindow(DeviceIntPtr pDev)
 {
-#ifdef MPX
-    if(MPHasCursor(pDev))
-        return mpsprites[pDev->id].win;
-#endif
-
-    return sprite->win;
+    return pDev->pSprite->win;
 }
 
 _X_EXPORT CursorPtr
-GetSpriteCursor()
+GetSpriteCursor(DeviceIntPtr pDev)
 {
-    return sprite->current;
+    return pDev->pSprite->current;
 }
 
 _X_EXPORT void
 GetSpritePosition(DeviceIntPtr pDev, int *px, int *py)
 {
-    SpritePtr pSprite = sprite;
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
+    SpritePtr pSprite = pDev->pSprite;
     *px = pSprite->hotPhys.x;
     *py = pSprite->hotPhys.y;
 }
 
 #ifdef PANORAMIX
 _X_EXPORT int
-XineramaGetCursorScreen()
+XineramaGetCursorScreen(DeviceIntPtr pDev)
 {
     if(!noPanoramiXExtension) {
-	return sprite->screen->myNum;
+	return pDev->pSprite->screen->myNum;
     } else {
 	return 0;
     }
@@ -1100,6 +1026,7 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
     register QdEventPtr tail = *syncEvents.pendtail;
     register QdEventPtr qe;
     xEvent		*qxE;
+    SpritePtr pSprite = device->pSprite;
 
     NoticeTime(xE);
 
@@ -1124,7 +1051,7 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
 	 */
 	if (xE->u.u.type == MotionNotify)
 	    XE_KBPTR.root =
-		WindowTable[sprite->hotPhys.pScreen->myNum]->drawable.id;
+		WindowTable[pSprite->hotPhys.pScreen->myNum]->drawable.id;
 	eventinfo.events = xE;
 	eventinfo.count = count;
 	CallCallbacks(&DeviceEventCallback, (pointer)&eventinfo);
@@ -1133,21 +1060,21 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
     {
 #ifdef PANORAMIX
 	if(!noPanoramiXExtension) {
-	    XE_KBPTR.rootX += panoramiXdataPtr[sprite->screen->myNum].x -
+	    XE_KBPTR.rootX += panoramiXdataPtr[pSprite->screen->myNum].x -
 			      panoramiXdataPtr[0].x;
-	    XE_KBPTR.rootY += panoramiXdataPtr[sprite->screen->myNum].y -
+	    XE_KBPTR.rootY += panoramiXdataPtr[pSprite->screen->myNum].y -
 			      panoramiXdataPtr[0].y;
 	}
 #endif
-	sprite->hotPhys.x = XE_KBPTR.rootX;
-	sprite->hotPhys.y = XE_KBPTR.rootY;
+	pSprite->hotPhys.x = XE_KBPTR.rootX;
+	pSprite->hotPhys.y = XE_KBPTR.rootY;
 	/* do motion compression */
 	if (tail &&
 	    (tail->event->u.u.type == MotionNotify) &&
-	    (tail->pScreen == sprite->hotPhys.pScreen))
+	    (tail->pScreen == pSprite->hotPhys.pScreen))
 	{
-	    tail->event->u.keyButtonPointer.rootX = sprite->hotPhys.x;
-	    tail->event->u.keyButtonPointer.rootY = sprite->hotPhys.y;
+	    tail->event->u.keyButtonPointer.rootX = pSprite->hotPhys.x;
+	    tail->event->u.keyButtonPointer.rootY = pSprite->hotPhys.y;
 	    tail->event->u.keyButtonPointer.time = XE_KBPTR.time;
 	    tail->months = currentTime.months;
 	    return;
@@ -1158,7 +1085,7 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
 	return;
     qe->next = (QdEventPtr)NULL;
     qe->device = device;
-    qe->pScreen = sprite->hotPhys.pScreen;
+    qe->pScreen = pSprite->hotPhys.pScreen;
     qe->months = currentTime.months;
     qe->event = (xEvent *)(qe + 1);
     qe->evcount = count;
@@ -1174,6 +1101,7 @@ PlayReleasedEvents(void)
 {
     register QdEventPtr *prev, qe;
     register DeviceIntPtr dev;
+    DeviceIntPtr pDev;
 
     prev = &syncEvents.pending;
     while ( (qe = *prev) )
@@ -1181,10 +1109,11 @@ PlayReleasedEvents(void)
 	if (!qe->device->sync.frozen)
 	{
 	    *prev = qe->next;
+            pDev = qe->device;
 	    if (*syncEvents.pendtail == *prev)
 		syncEvents.pendtail = prev;
 	    if (qe->event->u.u.type == MotionNotify)
-		CheckVirtualMotion(qe, NullWindow);
+		CheckVirtualMotion(pDev, qe, NullWindow);
 	    syncEvents.time.months = qe->months;
 	    syncEvents.time.milliseconds = qe->event->u.keyButtonPointer.time;
 #ifdef PANORAMIX
@@ -1194,10 +1123,10 @@ PlayReleasedEvents(void)
 	    if(!noPanoramiXExtension) {
 		qe->event->u.keyButtonPointer.rootX += 
 			panoramiXdataPtr[0].x - 
-			panoramiXdataPtr[sprite->screen->myNum].x;
+			panoramiXdataPtr[pDev->pSprite->screen->myNum].x;
 		qe->event->u.keyButtonPointer.rootY += 
 			panoramiXdataPtr[0].y - 
-			panoramiXdataPtr[sprite->screen->myNum].y;
+			panoramiXdataPtr[pDev->pSprite->screen->myNum].y;
 	    }
 #endif
 	    (*qe->device->public.processInputProc)(qe->event, qe->device,
@@ -1279,17 +1208,27 @@ playmore:
 	}
     }
     syncEvents.playingEvents = FALSE;
-    /* the following may have been skipped during replay, so do it now */
-    if ((grab = inputInfo.pointer->grab) && grab->confineTo)
+    for (dev = inputInfo.devices; dev; dev = dev->next)
     {
-	if (grab->confineTo->drawable.pScreen != sprite->hotPhys.pScreen)
-	    sprite->hotPhys.x = sprite->hotPhys.y = 0;
-	ConfineCursorToWindow(grab->confineTo, TRUE, TRUE);
+        if (MPHasCursor(dev))
+        {
+            /* the following may have been skipped during replay, 
+              so do it now */
+            if ((grab = dev->grab) && grab->confineTo)
+            {
+                if (grab->confineTo->drawable.pScreen !=
+                        dev->pSprite->hotPhys.pScreen) 
+                    dev->pSprite->hotPhys.x =
+                        dev->pSprite->hotPhys.y = 0;
+                ConfineCursorToWindow(dev, grab->confineTo, TRUE, TRUE);
+            }
+            else
+                ConfineCursorToWindow(dev,
+                        WindowTable[dev->pSprite->hotPhys.pScreen->myNum],
+                        TRUE, FALSE);
+            PostNewCursor(dev);
+        }
     }
-    else
-	ConfineCursorToWindow(WindowTable[sprite->hotPhys.pScreen->myNum],
-			      TRUE, FALSE);
-    PostNewCursor(inputInfo.pointer);
 }
 
 #ifdef RANDR
@@ -1297,16 +1236,23 @@ void
 ScreenRestructured (ScreenPtr pScreen)
 {
     GrabPtr grab;
+    DeviceIntPtr pDev;
 
-    if ((grab = inputInfo.pointer->grab) && grab->confineTo)
+    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-	if (grab->confineTo->drawable.pScreen != sprite->hotPhys.pScreen)
-	    sprite->hotPhys.x = sprite->hotPhys.y = 0;
-	ConfineCursorToWindow(grab->confineTo, TRUE, TRUE);
+
+        if ((grab = pDev->grab) && grab->confineTo)
+        {
+            if (grab->confineTo->drawable.pScreen 
+                    != pDev->pSprite->hotPhys.pScreen)
+                pDev->pSprite->hotPhys.x = pDev->pSprite->hotPhys.y = 0;
+            ConfineCursorToWindow(pDev, grab->confineTo, TRUE, TRUE);
+        }
+        else
+            ConfineCursorToWindow(pDev, 
+                    WindowTable[pDev->pSprite->hotPhys.pScreen->myNum],
+                    TRUE, FALSE);
     }
-    else
-	ConfineCursorToWindow(WindowTable[sprite->hotPhys.pScreen->myNum],
-			      TRUE, FALSE);
 }
 #endif
 
@@ -1349,13 +1295,14 @@ ActivatePointerGrab(register DeviceIntPtr mouse, register GrabPtr grab,
                     TimeStamp time, Bool autoGrab)
 {
     WindowPtr oldWin = (mouse->grab) ? mouse->grab->window
-				     : sprite->win;
+				     : mouse->pSprite->win;
 
     if (grab->confineTo)
     {
-	if (grab->confineTo->drawable.pScreen != sprite->hotPhys.pScreen)
-	    sprite->hotPhys.x = sprite->hotPhys.y = 0;
-	ConfineCursorToWindow(grab->confineTo, FALSE, TRUE);
+	if (grab->confineTo->drawable.pScreen 
+                != mouse->pSprite->hotPhys.pScreen)
+	    mouse->pSprite->hotPhys.x = mouse->pSprite->hotPhys.y = 0;
+	ConfineCursorToWindow(mouse, grab->confineTo, FALSE, TRUE);
     }
     DoEnterLeaveEvents(mouse, oldWin, grab->window, NotifyGrab);
     mouse->valuator->motionHintWindow = NullWindow;
@@ -1387,10 +1334,11 @@ DeactivatePointerGrab(register DeviceIntPtr mouse)
 	if (dev->sync.other == grab)
 	    dev->sync.other = NullGrab;
     }
-    DoEnterLeaveEvents(mouse, grab->window, sprite->win, NotifyUngrab);
+    DoEnterLeaveEvents(mouse, grab->window, 
+                       mouse->pSprite->win, NotifyUngrab);
     if (grab->confineTo)
-	ConfineCursorToWindow(ROOT, FALSE, FALSE);
-    PostNewCursor(inputInfo.pointer);
+	ConfineCursorToWindow(mouse, ROOT, FALSE, FALSE);
+    PostNewCursor(mouse);
     if (grab->cursor)
 	FreeCursor(grab->cursor, (Cursor)0);
     ComputeFreezes();
@@ -1406,7 +1354,7 @@ ActivateKeyboardGrab(register DeviceIntPtr keybd, GrabPtr grab, TimeStamp time, 
     else if (keybd->focus)
 	oldWin = keybd->focus->win;
     else
-	oldWin = sprite->win;
+	oldWin = keybd->pSprite->win;
     if (oldWin == FollowKeyboardWin)
 	oldWin = inputInfo.keyboard->focus->win;
     if (keybd->valuator)
@@ -1428,7 +1376,7 @@ DeactivateKeyboardGrab(register DeviceIntPtr keybd)
     register GrabPtr grab = keybd->grab;
     register DeviceIntPtr dev;
     register WindowPtr focusWin = keybd->focus ? keybd->focus->win
-					       : sprite->win;
+					       : keybd->pSprite->win;
 
     if (focusWin == FollowKeyboardWin)
 	focusWin = inputInfo.keyboard->focus->win;
@@ -1865,11 +1813,7 @@ FixUpEventFromWindow(
     Window child,
     Bool calcChild)
 {
-    SpritePtr pSprite = sprite;
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
+    SpritePtr pSprite = pDev->pSprite;
 
     if (calcChild)
     {
@@ -1931,10 +1875,9 @@ DeliverDeviceEvents(register WindowPtr pWin, register xEvent *xE, GrabPtr grab,
     {
 	register OtherInputMasks *inputMasks;
 	int mskidx = dev->id;
-#ifdef MPX
+
         if (IsMPXEvent(xE))
             mskidx = MPXmskidx;
-#endif
 
 	inputMasks = wOtherInputMasks(pWin);
 	if (inputMasks && !(filter & inputMasks->deliverableEvents[mskidx]))
@@ -2029,17 +1972,19 @@ static Bool
 PointInBorderSize(WindowPtr pWin, int x, int y)
 {
     BoxRec box;
+    SpritePtr pSprite = inputInfo.pointer->pSprite;
 
     if(POINT_IN_REGION(pWin->drawable.pScreen, &pWin->borderSize, x, y, &box))
 	return TRUE;
 
 #ifdef PANORAMIX
-    if(!noPanoramiXExtension && XineramaSetWindowPntrs(pWin)) {
+    if(!noPanoramiXExtension && 
+            XineramaSetWindowPntrs(inputInfo.pointer, pWin)) {
 	int i;
 
 	for(i = 1; i < PanoramiXNumScreens; i++) {
-	   if(POINT_IN_REGION(sprite->screen, 
-			&sprite->windows[i]->borderSize, 
+	   if(POINT_IN_REGION(pSprite->screen, 
+			&pSprite->windows[i]->borderSize, 
 			x + panoramiXdataPtr[0].x - panoramiXdataPtr[i].x, 
 			y + panoramiXdataPtr[0].y - panoramiXdataPtr[i].y, 
 			&box))
@@ -2102,12 +2047,7 @@ static Bool
 CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 {
     WindowPtr prevSpriteWin;
-    SpritePtr pSprite = sprite;
-        
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
+    SpritePtr pSprite = pDev->pSprite;
         
     prevSpriteWin = pSprite->win;
 
@@ -2184,7 +2124,6 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 _X_EXPORT void
 WindowsRestructured()
 {
-#ifdef MPX
     DeviceIntPtr pDev = inputInfo.devices;
     while(pDev)
     {
@@ -2192,9 +2131,6 @@ WindowsRestructured()
             CheckMotion((xEvent *)NULL, pDev);
         pDev = pDev->next;
     }
-#else
-    (void) CheckMotion((xEvent *)NULL, inputInfo.pointer);
-#endif
 }
 
 #ifdef PANORAMIX
@@ -2206,33 +2142,48 @@ WindowsRestructured()
 void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
 {
     GrabPtr   grab;
+    DeviceIntPtr pDev;
+    SpritePtr pSprite;
 
     if (noPanoramiXExtension) return;
-    
-    sprite->hot.x        -= xoff;
-    sprite->hot.y        -= yoff;
 
-    sprite->hotPhys.x    -= xoff;
-    sprite->hotPhys.y    -= yoff;
+    pDev = inputInfo.devices;
+    while(pDev)
+    {
+        if (MPHasCursor(pDev))
+        {
+            pSprite = pDev->pSprite;
+            pSprite->hot.x        -= xoff;
+            pSprite->hot.y        -= yoff;
 
-    sprite->hotLimits.x1 -= xoff; 
-    sprite->hotLimits.y1 -= yoff;
-    sprite->hotLimits.x2 -= xoff;
-    sprite->hotLimits.y2 -= yoff;
+            pSprite->hotPhys.x    -= xoff;
+            pSprite->hotPhys.y    -= yoff;
 
-    if (REGION_NOTEMPTY(sprite->screen, &sprite->Reg1))
-        REGION_TRANSLATE(sprite->screen, &sprite->Reg1,    xoff, yoff);
-    if (REGION_NOTEMPTY(sprite->screen, &sprite->Reg2))
-        REGION_TRANSLATE(sprite->screen, &sprite->Reg2,    xoff, yoff);
+            pSprite->hotLimits.x1 -= xoff; 
+            pSprite->hotLimits.y1 -= yoff;
+            pSprite->hotLimits.x2 -= xoff;
+            pSprite->hotLimits.y2 -= yoff;
 
-    /* FIXME: if we call ConfineCursorToWindow, must we do anything else? */
-    if ((grab = inputInfo.pointer->grab) && grab->confineTo) {
-	if (grab->confineTo->drawable.pScreen != sprite->hotPhys.pScreen)
-	    sprite->hotPhys.x = sprite->hotPhys.y = 0;
-	ConfineCursorToWindow(grab->confineTo, TRUE, TRUE);
-    } else
-	ConfineCursorToWindow(WindowTable[sprite->hotPhys.pScreen->myNum],
-			      TRUE, FALSE);
+            if (REGION_NOTEMPTY(pSprite->screen, &pSprite->Reg1))
+                REGION_TRANSLATE(pSprite->screen, &pSprite->Reg1,    xoff, yoff);
+            if (REGION_NOTEMPTY(pSprite->screen, &pSprite->Reg2))
+                REGION_TRANSLATE(pSprite->screen, &pSprite->Reg2,    xoff, yoff);
+
+            /* FIXME: if we call ConfineCursorToWindow, must we do anything else? */
+            if ((grab = inputInfo.pointer->grab) && grab->confineTo) {
+                if (grab->confineTo->drawable.pScreen 
+                        != pSprite->hotPhys.pScreen)
+                    pSprite->hotPhys.x = pSprite->hotPhys.y = 0;
+                ConfineCursorToWindow(pDev, grab->confineTo, TRUE, TRUE);
+            } else
+                ConfineCursorToWindow(
+                        pDev,
+                        WindowTable[pSprite->hotPhys.pScreen->myNum],
+                        TRUE, FALSE);
+
+        }
+        pDev = pDev->next;
+    }
 }
 #endif
 
@@ -2240,75 +2191,60 @@ void
 DefineInitialRootWindow(register WindowPtr win)
 {
     register ScreenPtr pScreen = win->drawable.pScreen;
-    SpritePtr pSprite = sprite;
-    DeviceIntPtr pDev = inputInfo.pointer;
-#ifdef MPX
-    int mpSpriteIdx = 0;
+    SpritePtr pSprite;
+    DeviceIntPtr pDev = inputInfo.devices;
 
-    while (mpSpriteIdx < MAX_DEVICES)
+    while (pDev)
     {
-        pSprite = &mpsprites[mpSpriteIdx];
-#endif
-
-        pSprite->hotPhys.pScreen = pScreen;
-        pSprite->hotPhys.x = pScreen->width / 2;
-        pSprite->hotPhys.y = pScreen->height / 2;
-        pSprite->hot = pSprite->hotPhys;
-        pSprite->hotLimits.x2 = pScreen->width;
-        pSprite->hotLimits.y2 = pScreen->height;
-#ifdef XEVIE
-        xeviewin =
-#endif
-            pSprite->win = win;
-        pSprite->current = wCursor (win);
-        pSprite->current->refcnt++;
-        spriteTraceGood = 1;
-        ROOT = win;
-        (*pScreen->CursorLimits) ( pDev, pScreen, pSprite->current,
-                                   &pSprite->hotLimits, &pSprite->physLimits);
-        pSprite->confined = FALSE;
-
-#ifdef MPX
-        /* this is ugly */
-        pDev = inputInfo.devices;
-        while(pDev)
+        if (MPHasCursor(pDev))
         {
-            if (pDev->id == mpSpriteIdx && MPHasCursor(pDev))
-            {
+            pSprite = pDev->pSprite;
+
+            pSprite->hotPhys.pScreen = pScreen;
+            pSprite->hotPhys.x = pScreen->width / 2;
+            pSprite->hotPhys.y = pScreen->height / 2;
+            pSprite->hot = pSprite->hotPhys;
+            pSprite->hotLimits.x2 = pScreen->width;
+            pSprite->hotLimits.y2 = pScreen->height;
+#ifdef XEVIE
+            xeviewin =
 #endif
-                (*pScreen->ConstrainCursor) (pDev, pScreen,
-                                             &pSprite->physLimits);
-                (*pScreen->SetCursorPosition) (pDev, pScreen, pSprite->hot.x,
-                                               pSprite->hot.y,
-                                               FALSE); 
-                (*pScreen->DisplayCursor) (pDev, pScreen, pSprite->current);
-#ifdef MPX
-            }
-            pDev = pDev->next;
-        }
-#endif
+                pSprite->win = win;
+            pSprite->current = wCursor (win);
+            pSprite->current->refcnt++;
+            spriteTraceGood = 1;
+            ROOT = win;
+            (*pScreen->CursorLimits) ( pDev, pScreen, pSprite->current,
+                                       &pSprite->hotLimits, &pSprite->physLimits);
+            pSprite->confined = FALSE;
+
+            (*pScreen->ConstrainCursor) (pDev, pScreen,
+                                         &pSprite->physLimits);
+            (*pScreen->SetCursorPosition) (pDev, pScreen, pSprite->hot.x,
+                                           pSprite->hot.y,
+                                           FALSE); 
+            (*pScreen->DisplayCursor) (pDev, pScreen, pSprite->current);
 
 #ifdef PANORAMIX
-        if(!noPanoramiXExtension) {
-            pSprite->hotLimits.x1 = -panoramiXdataPtr[0].x;
-            pSprite->hotLimits.y1 = -panoramiXdataPtr[0].y;
-            pSprite->hotLimits.x2 = PanoramiXPixWidth  - panoramiXdataPtr[0].x;
-            pSprite->hotLimits.y2 = PanoramiXPixHeight - panoramiXdataPtr[0].y;
-            pSprite->physLimits = pSprite->hotLimits;
-            pSprite->confineWin = NullWindow;
+            if(!noPanoramiXExtension) {
+                pSprite->hotLimits.x1 = -panoramiXdataPtr[0].x;
+                pSprite->hotLimits.y1 = -panoramiXdataPtr[0].y;
+                pSprite->hotLimits.x2 = PanoramiXPixWidth  - panoramiXdataPtr[0].x;
+                pSprite->hotLimits.y2 = PanoramiXPixHeight - panoramiXdataPtr[0].y;
+                pSprite->physLimits = pSprite->hotLimits;
+                pSprite->confineWin = NullWindow;
 #ifdef SHAPE
-            pSprite->hotShape = NullRegion;
+                pSprite->hotShape = NullRegion;
 #endif
-            pSprite->screen = pScreen;
-            /* gotta UNINIT these someplace */
-            REGION_NULL(pScreen, &pSprite->Reg1);
-            REGION_NULL(pScreen, &pSprite->Reg2);
+                pSprite->screen = pScreen;
+                /* gotta UNINIT these someplace */
+                REGION_NULL(pScreen, &pSprite->Reg1);
+                REGION_NULL(pScreen, &pSprite->Reg2);
+            }
+#endif
         }
-#endif
-#ifdef MPX
-        mpSpriteIdx++;
+        pDev = pDev->next;
     }
-#endif
 }
 
 /*
@@ -2327,11 +2263,7 @@ WindowHasNewCursor(WindowPtr pWin)
 _X_EXPORT void
 NewCurrentScreen(DeviceIntPtr pDev, ScreenPtr newScreen, int x, int y)
 {
-    SpritePtr pSprite = sprite;
-#ifdef MPX
-    if (MPHasCursor(pDev))
-        pSprite = &mpsprites[pDev->id];
-#endif
+    SpritePtr pSprite = pDev->pSprite;
 
     pSprite->hotPhys.x = x;
     pSprite->hotPhys.y = y;
@@ -2345,9 +2277,10 @@ NewCurrentScreen(DeviceIntPtr pDev, ScreenPtr newScreen, int x, int y)
 	    pSprite->screen = newScreen;
 	    /* Make sure we tell the DDX to update its copy of the screen */
 	    if(pSprite->confineWin)
-		XineramaConfineCursorToWindow(pSprite->confineWin, TRUE);
+		XineramaConfineCursorToWindow(pDev, 
+                        pSprite->confineWin, TRUE);
 	    else
-		XineramaConfineCursorToWindow(WindowTable[0], TRUE);
+		XineramaConfineCursorToWindow(pDev, WindowTable[0], TRUE);
 	    /* if the pointer wasn't confined, the DDX won't get 
 	       told of the pointer warp so we reposition it here */
 	    if(!syncEvents.playingEvents)
@@ -2362,7 +2295,8 @@ NewCurrentScreen(DeviceIntPtr pDev, ScreenPtr newScreen, int x, int y)
     } else 
 #endif
     if (newScreen != pSprite->hotPhys.pScreen)
-	ConfineCursorToWindow(WindowTable[newScreen->myNum], TRUE, FALSE);
+	ConfineCursorToWindow(pDev, WindowTable[newScreen->myNum], 
+                TRUE, FALSE);
 }
 
 #ifdef PANORAMIX
@@ -2383,13 +2317,13 @@ XineramaPointInWindowIsVisible(
     if (POINT_IN_REGION(pScreen, &pWin->borderClip, x, y, &box))
         return TRUE;
     
-    if(!XineramaSetWindowPntrs(pWin)) return FALSE;
+    if(!XineramaSetWindowPntrs(inputInfo.pointer, pWin)) return FALSE;
 
     xoff = x + panoramiXdataPtr[0].x;  
     yoff = y + panoramiXdataPtr[0].y;  
 
     for(i = 1; i < PanoramiXNumScreens; i++) {
-	pWin = sprite->windows[i];
+	pWin = inputInfo.pointer->pSprite->windows[i];
 	pScreen = pWin->drawable.pScreen;
 	x = xoff - panoramiXdataPtr[i].x;
 	y = yoff - panoramiXdataPtr[i].y;
@@ -2412,6 +2346,7 @@ XineramaWarpPointer(ClientPtr client)
 {
     WindowPtr	dest = NULL;
     int		x, y;
+    SpritePtr   pSprite = inputInfo.pointer->pSprite;
 
     REQUEST(xWarpPointerReq);
 
@@ -2422,8 +2357,8 @@ XineramaWarpPointer(ClientPtr client)
 	if (!dest)
 	    return BadWindow;
     }
-    x = sprite->hotPhys.x;
-    y = sprite->hotPhys.y;
+    x = pSprite->hotPhys.x;
+    y = pSprite->hotPhys.y;
 
     if (stuff->srcWid != None)
     {
@@ -2461,16 +2396,16 @@ XineramaWarpPointer(ClientPtr client)
     x += stuff->dstX;
     y += stuff->dstY;
 
-    if (x < sprite->physLimits.x1)
-	x = sprite->physLimits.x1;
-    else if (x >= sprite->physLimits.x2)
-	x = sprite->physLimits.x2 - 1;
-    if (y < sprite->physLimits.y1)
-	y = sprite->physLimits.y1;
-    else if (y >= sprite->physLimits.y2)
-	y = sprite->physLimits.y2 - 1;
-    if (sprite->hotShape)
-	ConfineToShape(inputInfo.pointer, sprite->hotShape, &x, &y);
+    if (x < pSprite->physLimits.x1)
+	x = pSprite->physLimits.x1;
+    else if (x >= pSprite->physLimits.x2)
+	x = pSprite->physLimits.x2 - 1;
+    if (y < pSprite->physLimits.y1)
+	y = pSprite->physLimits.y1;
+    else if (y >= pSprite->physLimits.y2)
+	y = pSprite->physLimits.y2 - 1;
+    if (pSprite->hotShape)
+	ConfineToShape(inputInfo.pointer, pSprite->hotShape, &x, &y);
 
     XineramaSetCursorPosition(inputInfo.pointer, x, y, TRUE);
 
@@ -2486,6 +2421,7 @@ ProcWarpPointer(ClientPtr client)
     WindowPtr	dest = NULL;
     int		x, y;
     ScreenPtr	newScreen;
+    SpritePtr   pSprite = inputInfo.pointer->pSprite;
 
     REQUEST(xWarpPointerReq);
 
@@ -2502,8 +2438,8 @@ ProcWarpPointer(ClientPtr client)
 	if (!dest)
 	    return BadWindow;
     }
-    x = sprite->hotPhys.x;
-    y = sprite->hotPhys.y;
+    x = pSprite->hotPhys.x;
+    y = pSprite->hotPhys.y;
 
     if (stuff->srcWid != None)
     {
@@ -2516,7 +2452,7 @@ ProcWarpPointer(ClientPtr client)
 
 	winX = source->drawable.x;
 	winY = source->drawable.y;
-	if (source->drawable.pScreen != sprite->hotPhys.pScreen ||
+	if (source->drawable.pScreen != pSprite->hotPhys.pScreen ||
 	    x < winX + stuff->srcX ||
 	    y < winY + stuff->srcY ||
 	    (stuff->srcWidth != 0 &&
@@ -2532,7 +2468,7 @@ ProcWarpPointer(ClientPtr client)
 	y = dest->drawable.y;
 	newScreen = dest->drawable.pScreen;
     } else 
-	newScreen = sprite->hotPhys.pScreen;
+	newScreen = pSprite->hotPhys.pScreen;
 
     x += stuff->dstX;
     y += stuff->dstY;
@@ -2546,19 +2482,19 @@ ProcWarpPointer(ClientPtr client)
     else if (y >= newScreen->height)
 	y = newScreen->height - 1;
 
-    if (newScreen == sprite->hotPhys.pScreen)
+    if (newScreen == pSprite->hotPhys.pScreen)
     {
-	if (x < sprite->physLimits.x1)
-	    x = sprite->physLimits.x1;
-	else if (x >= sprite->physLimits.x2)
-	    x = sprite->physLimits.x2 - 1;
-	if (y < sprite->physLimits.y1)
-	    y = sprite->physLimits.y1;
-	else if (y >= sprite->physLimits.y2)
-	    y = sprite->physLimits.y2 - 1;
+	if (x < pSprite->physLimits.x1)
+	    x = pSprite->physLimits.x1;
+	else if (x >= pSprite->physLimits.x2)
+	    x = pSprite->physLimits.x2 - 1;
+	if (y < pSprite->physLimits.y1)
+	    y = pSprite->physLimits.y1;
+	else if (y >= pSprite->physLimits.y2)
+	    y = pSprite->physLimits.y2 - 1;
 #if defined(SHAPE)
-	if (sprite->hotShape)
-	    ConfineToShape(inputInfo.pointer, sprite->hotShape, &x, &y);
+	if (pSprite->hotShape)
+	    ConfineToShape(inputInfo.pointer, pSprite->hotShape, &x, &y);
 #endif
         (*newScreen->SetCursorPosition)(inputInfo.pointer, newScreen, x, y,
                                         TRUE); 
@@ -2571,17 +2507,18 @@ ProcWarpPointer(ClientPtr client)
 }
 
 static Bool 
-BorderSizeNotEmpty(WindowPtr pWin)
+BorderSizeNotEmpty(DeviceIntPtr pDev, WindowPtr pWin)
 {
-     if(REGION_NOTEMPTY(sprite->hotPhys.pScreen, &pWin->borderSize))
+     if(REGION_NOTEMPTY(pDev->pSprite->hotPhys.pScreen, &pWin->borderSize))
 	return TRUE;
 
 #ifdef PANORAMIX
-     if(!noPanoramiXExtension && XineramaSetWindowPntrs(pWin)) {
+     if(!noPanoramiXExtension && XineramaSetWindowPntrs(pDev, pWin)) {
 	int i;
 
 	for(i = 1; i < PanoramiXNumScreens; i++) {
-	    if(REGION_NOTEMPTY(sprite->screen, &sprite->windows[i]->borderSize))
+	    if(REGION_NOTEMPTY(pDev->pSprite->screen, 
+                        &pDev->pSprite->windows[i]->borderSize))
 		return TRUE;
 	}
      }
@@ -2643,7 +2580,7 @@ CheckPassiveGrabsOnWindow(
 	if (GrabMatchesSecond(&tempGrab, grab) &&
 	    (!grab->confineTo ||
 	     (grab->confineTo->realized && 
-				BorderSizeNotEmpty(grab->confineTo))))
+				BorderSizeNotEmpty(device, grab->confineTo))))
 	{
 	    if (!XaceHook(XACE_DEVICE_ACCESS, wClient(pWin), device, FALSE))
 		return FALSE;
@@ -2776,6 +2713,7 @@ DeliverGrabbedEvent(register xEvent *xE, register DeviceIntPtr thisDev,
     int deliveries = 0;
     register DeviceIntPtr dev;
     register xEvent *dxE;
+    SpritePtr pSprite = thisDev->pSprite;
 
     if (grab->ownerEvents)
     {
@@ -2790,10 +2728,11 @@ DeliverGrabbedEvent(register xEvent *xE, register DeviceIntPtr thisDev,
 	else
 	    focus = PointerRootWin;
 	if (focus == PointerRootWin)
-	    deliveries = DeliverDeviceEvents(sprite->win, xE, grab, NullWindow,
-					     thisDev, count);
-	else if (focus && (focus == sprite->win || IsParent(focus, sprite->win)))
-	    deliveries = DeliverDeviceEvents(sprite->win, xE, grab, focus,
+	    deliveries = DeliverDeviceEvents(pSprite->win, xE, grab, 
+                                             NullWindow, thisDev, count);
+	else if (focus && (focus == pSprite->win || 
+                    IsParent(focus, pSprite->win)))
+	    deliveries = DeliverDeviceEvents(pSprite->win, xE, grab, focus,
 					     thisDev, count);
 	else if (focus)
 	    deliveries = DeliverDeviceEvents(focus, xE, grab, focus,
@@ -2926,8 +2865,8 @@ drawable.id:0;
     )))
 #endif
     XE_KBPTR.state = (keyc->state | inputInfo.pointer->button->state);
-    XE_KBPTR.rootX = sprite->hot.x;
-    XE_KBPTR.rootY = sprite->hot.y;
+    XE_KBPTR.rootX = keybd->pSprite->hot.x;
+    XE_KBPTR.rootY = keybd->pSprite->hot.y;
     key = xE->u.u.detail;
     kptr = &keyc->down[key >> 3];
     bit = 1 << (key & 7);
@@ -3003,7 +2942,7 @@ drawable.id:0;
     if (grab)
 	DeliverGrabbedEvent(xE, keybd, deactivateGrab, count);
     else
-	DeliverFocusedEvent(keybd, xE, sprite->win, count);
+	DeliverFocusedEvent(keybd, xE, keybd->pSprite->win, count);
     if (deactivateGrab)
         (*keybd->DeactivateGrab)(keybd);
 
@@ -3055,12 +2994,8 @@ ProcessPointerEvent (register xEvent *xE, register DeviceIntPtr mouse, int count
     register GrabPtr	grab = mouse->grab;
     Bool                deactivateGrab = FALSE;
     register ButtonClassPtr butc = mouse->button;
-    SpritePtr           pSprite = sprite;
+    SpritePtr           pSprite = mouse->pSprite;
 
-#ifdef MPX
-    if (MPHasCursor(mouse))
-        pSprite = &mpsprites[mouse->id];
-#endif
 
 #ifdef XKB
     XkbSrvInfoPtr xkbi= inputInfo.keyboard->key->xkbInfo;
@@ -3407,8 +3342,8 @@ EnterLeaveEvent(
 	event.u.u.type = type;
 	event.u.u.detail = detail;
 	event.u.enterLeave.time = currentTime.milliseconds;
-	event.u.enterLeave.rootX = sprite->hot.x;
-	event.u.enterLeave.rootY = sprite->hot.y;
+	event.u.enterLeave.rootX = pDev->pSprite->hot.x;
+	event.u.enterLeave.rootY = pDev->pSprite->hot.y;
 	/* Counts on the same initial structure of crossing & button events! */
 	FixUpEventFromWindow(mouse, &event, pWin, None, FALSE);
 	/* Enter/Leave events always set child */
@@ -3611,6 +3546,7 @@ DoFocusEvents(DeviceIntPtr dev, WindowPtr fromWin, WindowPtr toWin, int mode)
     int     out, in;		       /* for holding details for to/from
 				          PointerRoot/None */
     int     i;
+    SpritePtr pSprite = dev->pSprite;
 
     if (fromWin == toWin)
 	return;
@@ -3623,8 +3559,8 @@ DoFocusEvents(DeviceIntPtr dev, WindowPtr fromWin, WindowPtr toWin, int mode)
 	if ((fromWin == NullWindow) || (fromWin == PointerRootWin))
    	{
 	    if (fromWin == PointerRootWin)
-		FocusOutEvents(dev, sprite->win, ROOT, mode, NotifyPointer,
-			       TRUE);
+                FocusOutEvents(dev, pSprite->win, ROOT, mode,
+                        NotifyPointer, TRUE);
 	    /* Notify all the roots */
 #ifdef PANORAMIX
  	    if ( !noPanoramiXExtension )
@@ -3636,8 +3572,8 @@ DoFocusEvents(DeviceIntPtr dev, WindowPtr fromWin, WindowPtr toWin, int mode)
 	}
 	else
 	{
-	    if (IsParent(fromWin, sprite->win))
-	      FocusOutEvents(dev, sprite->win, fromWin, mode, NotifyPointer,
+	    if (IsParent(fromWin, pSprite->win))
+	      FocusOutEvents(dev, pSprite->win, fromWin, mode, NotifyPointer,
 			     FALSE);
 	    FocusEvent(dev, FocusOut, mode, NotifyNonlinear, fromWin);
 	    /* next call catches the root too, if the screen changed */
@@ -3653,7 +3589,7 @@ DoFocusEvents(DeviceIntPtr dev, WindowPtr fromWin, WindowPtr toWin, int mode)
 	    for (i=0; i<screenInfo.numScreens; i++)
 	        FocusEvent(dev, FocusIn, mode, in, WindowTable[i]);
 	if (toWin == PointerRootWin)
-	    (void)FocusInEvents(dev, ROOT, sprite->win, NullWindow, mode,
+	    (void)FocusInEvents(dev, ROOT, pSprite->win, NullWindow, mode,
 				NotifyPointer, TRUE);
     }
     else
@@ -3661,7 +3597,7 @@ DoFocusEvents(DeviceIntPtr dev, WindowPtr fromWin, WindowPtr toWin, int mode)
 	if ((fromWin == NullWindow) || (fromWin == PointerRootWin))
 	{
 	    if (fromWin == PointerRootWin)
-		FocusOutEvents(dev, sprite->win, ROOT, mode, NotifyPointer,
+		FocusOutEvents(dev, pSprite->win, ROOT, mode, NotifyPointer,
 			       TRUE);
 #ifdef PANORAMIX
  	    if ( !noPanoramiXExtension )
@@ -3674,8 +3610,8 @@ DoFocusEvents(DeviceIntPtr dev, WindowPtr fromWin, WindowPtr toWin, int mode)
 	      (void)FocusInEvents(dev, ROOT, toWin, toWin, mode,
 				  NotifyNonlinearVirtual, TRUE);
 	    FocusEvent(dev, FocusIn, mode, NotifyNonlinear, toWin);
-	    if (IsParent(toWin, sprite->win))
-    	       (void)FocusInEvents(dev, toWin, sprite->win, NullWindow, mode,
+	    if (IsParent(toWin, pSprite->win))
+    	       (void)FocusInEvents(dev, toWin, pSprite->win, NullWindow, mode,
 				   NotifyPointer, FALSE);
 	}
 	else
@@ -3686,21 +3622,21 @@ DoFocusEvents(DeviceIntPtr dev, WindowPtr fromWin, WindowPtr toWin, int mode)
 		FocusOutEvents(dev, fromWin->parent, toWin, mode,
 			       NotifyVirtual, FALSE);
 		FocusEvent(dev, FocusIn, mode, NotifyInferior, toWin);
-		if ((IsParent(toWin, sprite->win)) &&
-			(sprite->win != fromWin) &&
-			(!IsParent(fromWin, sprite->win)) &&
-			(!IsParent(sprite->win, fromWin)))
-		    (void)FocusInEvents(dev, toWin, sprite->win, NullWindow,
+		if ((IsParent(toWin, pSprite->win)) &&
+			(pSprite->win != fromWin) &&
+			(!IsParent(fromWin, pSprite->win)) &&
+			(!IsParent(pSprite->win, fromWin)))
+		    (void)FocusInEvents(dev, toWin, pSprite->win, NullWindow,
 					mode, NotifyPointer, FALSE);
 	    }
 	    else
 		if (IsParent(fromWin, toWin))
 		{
-		    if ((IsParent(fromWin, sprite->win)) &&
-			    (sprite->win != fromWin) &&
-			    (!IsParent(toWin, sprite->win)) &&
-			    (!IsParent(sprite->win, toWin)))
-			FocusOutEvents(dev, sprite->win, fromWin, mode,
+		    if ((IsParent(fromWin, pSprite->win)) &&
+			    (pSprite->win != fromWin) &&
+			    (!IsParent(toWin, pSprite->win)) &&
+			    (!IsParent(pSprite->win, toWin)))
+			FocusOutEvents(dev, pSprite->win, fromWin, mode,
 				       NotifyPointer, FALSE);
 		    FocusEvent(dev, FocusOut, mode, NotifyInferior, fromWin);
 		    (void)FocusInEvents(dev, fromWin, toWin, toWin, mode,
@@ -3712,8 +3648,8 @@ DoFocusEvents(DeviceIntPtr dev, WindowPtr fromWin, WindowPtr toWin, int mode)
 		/* neither fromWin or toWin is child of other */
 		    WindowPtr common = CommonAncestor(toWin, fromWin);
 		/* common == NullWindow ==> different screens */
-		    if (IsParent(fromWin, sprite->win))
-			FocusOutEvents(dev, sprite->win, fromWin, mode,
+		    if (IsParent(fromWin, pSprite->win))
+			FocusOutEvents(dev, pSprite->win, fromWin, mode,
 				       NotifyPointer, FALSE);
 		    FocusEvent(dev, FocusOut, mode, NotifyNonlinear, fromWin);
 		    if (fromWin->parent != NullWindow)
@@ -3723,8 +3659,8 @@ DoFocusEvents(DeviceIntPtr dev, WindowPtr fromWin, WindowPtr toWin, int mode)
 		      (void)FocusInEvents(dev, common, toWin, toWin, mode,
 					  NotifyNonlinearVirtual, FALSE);
 		    FocusEvent(dev, FocusIn, mode, NotifyNonlinear, toWin);
-		    if (IsParent(toWin, sprite->win))
-			(void)FocusInEvents(dev, toWin, sprite->win, NullWindow,
+		    if (IsParent(toWin, pSprite->win))
+			(void)FocusInEvents(dev, toWin, pSprite->win, NullWindow,
 					    mode, NotifyPointer, FALSE);
 		}
 	}
@@ -3914,7 +3850,8 @@ ProcGrabPointer(ClientPtr client)
 	rep.status = AlreadyGrabbed;
     else if ((!pWin->realized) ||
              (confineTo &&
-                !(confineTo->realized && BorderSizeNotEmpty(confineTo))))
+                !(confineTo->realized 
+                    && BorderSizeNotEmpty(device, confineTo))))
 	rep.status = GrabNotViewable;
     else if (device->sync.frozen &&
 	     device->sync.other && !SameClient(device->sync.other, client))
@@ -3930,7 +3867,7 @@ ProcGrabPointer(ClientPtr client)
 	if (grab)
  	{
 	    if (grab->confineTo && !confineTo)
-		ConfineCursorToWindow(ROOT, FALSE, FALSE);
+		ConfineCursorToWindow(device, ROOT, FALSE, FALSE);
 	    oldCursor = grab->cursor;
 	}
 	tempGrab.cursor = cursor;
@@ -4127,6 +4064,7 @@ ProcQueryPointer(ClientPtr client)
     WindowPtr pWin, t;
     REQUEST(xResourceReq);
     DeviceIntPtr mouse = inputInfo.pointer;
+    SpritePtr pSprite = mouse->pSprite;
 
     REQUEST_SIZE_MATCH(xResourceReq);
     pWin = SecurityLookupWindow(stuff->id, client, SecurityReadAccess);
@@ -4139,15 +4077,15 @@ ProcQueryPointer(ClientPtr client)
     rep.mask = mouse->button->state | inputInfo.keyboard->key->state;
     rep.length = 0;
     rep.root = (ROOT)->drawable.id;
-    rep.rootX = sprite->hot.x;
-    rep.rootY = sprite->hot.y;
+    rep.rootX = pSprite->hot.x;
+    rep.rootY = pSprite->hot.y;
     rep.child = None;
-    if (sprite->hot.pScreen == pWin->drawable.pScreen)
+    if (pSprite->hot.pScreen == pWin->drawable.pScreen)
     {
 	rep.sameScreen = xTrue;
-	rep.winX = sprite->hot.x - pWin->drawable.x;
-	rep.winY = sprite->hot.y - pWin->drawable.y;
-	for (t = sprite->win; t; t = t->parent)
+	rep.winX = pSprite->hot.x - pWin->drawable.x;
+	rep.winY = pSprite->hot.y - pWin->drawable.y;
+	for (t = pSprite->win; t; t = t->parent)
 	    if (t->parent == pWin)
 	    {
 		rep.child = t->drawable.id;
@@ -4182,19 +4120,6 @@ InitEvents()
 {
     int i;
 
-    sprite = (SpritePtr)xalloc(sizeof(SpriteRec));
-    if (!sprite)
-        FatalError("failed to allocate sprite struct");
-
-#ifdef MPX
-    mpsprites = (SpritePtr)xalloc(MAX_DEVICES * sizeof(SpriteRec));
-    if (!mpsprites)
-        FatalError("failed to allocate MPX sprite structs");
-    xfree(sprite);
-    sprite = &mpsprites[1];
-#endif
-
-    sprite->hot.pScreen = sprite->hotPhys.pScreen = (ScreenPtr)NULL;
     inputInfo.numDevices = 0;
     inputInfo.devices = (DeviceIntPtr)NULL;
     inputInfo.off_devices = (DeviceIntPtr)NULL;
@@ -4211,34 +4136,7 @@ InitEvents()
     lastEventMask = OwnerGrabButtonMask;
     filters[MotionNotify] = PointerMotionMask;
 #ifdef XEVIE
-    xeviewin =
-#endif
-    sprite->win = NullWindow;
-    sprite->current = NullCursor;
-    sprite->hotLimits.x1 = 0;
-    sprite->hotLimits.y1 = 0;
-    sprite->hotLimits.x2 = 0;
-    sprite->hotLimits.y2 = 0;
-    sprite->confined = FALSE;
-
-#ifdef MPX
-    {
-        int mpSpriteIdx = 0;
-        while(mpSpriteIdx < MAX_DEVICES)
-        {
-            SpritePtr pSprite = &mpsprites[mpSpriteIdx];
-            pSprite->hot.pScreen = pSprite->hotPhys.pScreen = (ScreenPtr)NULL;
-            pSprite->win = NullWindow;
-            pSprite->current = NullCursor;
-            pSprite->hotLimits.x1 = 0;
-            pSprite->hotLimits.y1 = 0;
-            pSprite->hotLimits.x2 = 0;
-            pSprite->hotLimits.y2 = 0;
-            pSprite->confined = FALSE;
-
-            mpSpriteIdx++;
-        }
-    }
+    xeviewin = NULL;
 #endif
 
     syncEvents.replayDev = (DeviceIntPtr)NULL;
@@ -4263,19 +4161,41 @@ InitEvents()
     }
 }
 
+
+/**
+ * Initialize a sprite structure for the given device. If hasCursor is False,
+ * let the device use the core pointer's sprite structure.
+ */
+void 
+InitSprite(DeviceIntPtr pDev, Bool hasCursor)
+{
+    if (hasCursor)
+    {
+        SpritePtr pSprite = (SpritePtr)xalloc(sizeof(SpriteRec));
+        if (!pSprite)
+            FatalError("failed to allocate sprite struct");
+        pSprite->hot.pScreen = pSprite->hotPhys.pScreen = (ScreenPtr)NULL;
+        pSprite->win = NullWindow;
+        pSprite->current = NullCursor;
+        pSprite->hotLimits.x1 = 0;
+        pSprite->hotLimits.y1 = 0;
+        pSprite->hotLimits.x2 = 0;
+        pSprite->hotLimits.y2 = 0;
+        pSprite->confined = FALSE;
+
+        pDev->pSprite = pSprite;
+    } else
+    {
+        pDev->pSprite = inputInfo.pointer->pSprite;
+    }
+}
+
 void
 CloseDownEvents(void)
 {
   xfree(spriteTrace);
   spriteTrace = NULL;
   spriteTraceSize = 0;
-
-#ifdef MPX
-  /* sprite points to mpsprites[1] in MPX, don't free it separately */
-  xfree(mpsprites);
-#else
-  xfree(sprite);
-#endif
 }
 
 int
@@ -4283,6 +4203,7 @@ ProcSendEvent(ClientPtr client)
 {
     WindowPtr pWin;
     WindowPtr effectiveFocus = NullWindow; /* only set if dest==InputFocus */
+    SpritePtr pSprite = inputInfo.pointer->pSprite;
     REQUEST(xSendEventReq);
 
     REQUEST_SIZE_MATCH(xSendEventReq);
@@ -4313,7 +4234,7 @@ ProcSendEvent(ClientPtr client)
     }
 
     if (stuff->destination == PointerWindow)
-	pWin = sprite->win;
+	pWin = pSprite->win;
     else if (stuff->destination == InputFocus)
     {
 	WindowPtr inputFocus = inputInfo.keyboard->focus->win;
@@ -4326,10 +4247,10 @@ ProcSendEvent(ClientPtr client)
    	if (inputFocus == PointerRootWin)
 	    inputFocus = ROOT;
 
-	if (IsParent(inputFocus, sprite->win))
+	if (IsParent(inputFocus, pSprite->win))
 	{
 	    effectiveFocus = inputFocus;
-	    pWin = sprite->win;
+	    pWin = pSprite->win;
 	}
 	else
 	    effectiveFocus = pWin = inputFocus;
@@ -4658,19 +4579,24 @@ DeleteWindowFromAnyEvents(WindowPtr pWin, Bool freeResources)
 _X_EXPORT void
 CheckCursorConfinement(WindowPtr pWin)
 {
-    GrabPtr grab = inputInfo.pointer->grab;
+    GrabPtr grab;
     WindowPtr confineTo;
+    DeviceIntPtr pDev;
 
 #ifdef PANORAMIX
     if(!noPanoramiXExtension && pWin->drawable.pScreen->myNum) return;
 #endif
 
-    if (grab && (confineTo = grab->confineTo))
+    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-	if (!BorderSizeNotEmpty(confineTo))
-	    (*inputInfo.pointer->DeactivateGrab)(inputInfo.pointer);
-	else if ((pWin == confineTo) || IsParent(pWin, confineTo))
-	    ConfineCursorToWindow(confineTo, TRUE, TRUE);
+        grab = pDev->grab;
+        if (grab && (confineTo = grab->confineTo))
+        {
+            if (!BorderSizeNotEmpty(pDev, confineTo))
+                (*inputInfo.pointer->DeactivateGrab)(pDev);
+            else if ((pWin == confineTo) || IsParent(pWin, confineTo))
+                ConfineCursorToWindow(pDev, confineTo, TRUE, TRUE);
+        }
     }
 }
 
@@ -4696,6 +4622,7 @@ ProcRecolorCursor(ClientPtr client)
     int		nscr;
     ScreenPtr	pscr;
     Bool 	displayed;
+    SpritePtr   pSprite = inputInfo.pointer->pSprite;
     REQUEST(xRecolorCursorReq);
 
     REQUEST_SIZE_MATCH(xRecolorCursorReq);
@@ -4720,12 +4647,12 @@ ProcRecolorCursor(ClientPtr client)
 	pscr = screenInfo.screens[nscr];
 #ifdef PANORAMIX
 	if(!noPanoramiXExtension)
-	    displayed = (pscr == sprite->screen);
+	    displayed = (pscr == pSprite->screen);
 	else
 #endif
-	    displayed = (pscr == sprite->hotPhys.pScreen);
+	    displayed = (pscr == pSprite->hotPhys.pScreen);
 	( *pscr->RecolorCursor)(inputInfo.pointer, pscr, pCursor,
-				(pCursor == sprite->current) && displayed);
+				(pCursor == pSprite->current) && displayed);
     }
     return (Success);
 }

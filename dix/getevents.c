@@ -488,11 +488,6 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
  * The DDX is responsible for allocating the event structure in the first
  * place via GetMaximumEventsNum(), and for freeing it.
  */
-#ifdef MPX
- /* In MPX, flags can be set to POINTER_MULTIPOINTER to indicate that the
-  * device is a multipointer device. MP devices always send core events.
-  */
-#endif
 _X_EXPORT int
 GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
                  int flags, int first_valuator, int num_valuators,
@@ -543,7 +538,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     kbp->deviceid = pDev->id;
 
 #ifdef MPX
-    if (flags & POINTER_MULTIPOINTER)
+    if (pDev->isMPDev)
         pointer = pDev;
     else
 #endif
@@ -604,7 +599,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
 
 #ifdef MPX
-    if (flags & POINTER_MULTIPOINTER)
+    if (pDev->isMPDev)
     {
         // noop, just less intrusive to fit MPX in like that
     } else
@@ -800,7 +795,11 @@ SwitchCorePointer(DeviceIntPtr pDev)
  * to shift the pointer to get it inside the new bounds.
  */
 void
-PostSyntheticMotion(int x, int y, ScreenPtr pScreen, unsigned long time)
+PostSyntheticMotion(DeviceIntPtr pDev, 
+                    int x, 
+                    int y, 
+                    ScreenPtr pScreen,
+                    unsigned long time) 
 {
     xEvent xE;
 
@@ -820,5 +819,5 @@ PostSyntheticMotion(int x, int y, ScreenPtr pScreen, unsigned long time)
     xE.u.keyButtonPointer.rootY = y;
     xE.u.keyButtonPointer.time = time;
 
-    (*inputInfo.pointer->public.processInputProc)(&xE, inputInfo.pointer, 1);
+    (*pDev->public.processInputProc)(&xE, pDev, 1);
 }

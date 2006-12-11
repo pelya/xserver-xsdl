@@ -649,6 +649,10 @@ extern int GrabDevice(
     CARD8 * /* status */);
 
 extern void InitEvents(void);
+extern void InitSprite(
+        DeviceIntPtr /* pDev */, 
+        Bool /* hasCursor */
+        );
 
 extern void CloseDownEvents(void);
 

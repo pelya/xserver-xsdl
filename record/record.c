@@ -43,6 +43,7 @@ and Jim Haggerty of Metheus.
 #include <X11/extensions/recordstr.h>
 #include "set.h"
 #include "swaprep.h"
+#include "inputstr.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -861,7 +862,7 @@ RecordADeviceEvent(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 			     pev->u.u.type == ButtonRelease ||
 			     pev->u.u.type == KeyPress ||
 			     pev->u.u.type == KeyRelease)) {
-				int scr = XineramaGetCursorScreen();
+				int scr = XineramaGetCursorScreen(inputInfo.pointer);
 				memcpy(&shiftedEvent, pev, sizeof(xEvent));
 				shiftedEvent.u.keyButtonPointer.rootX +=
 				    panoramiXdataPtr[scr].x - 

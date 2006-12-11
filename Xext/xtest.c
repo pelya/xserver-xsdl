@@ -148,7 +148,7 @@ ProcXTestCompareCursor(client)
     if (stuff->cursor == None)
 	pCursor = NullCursor;
     else if (stuff->cursor == XTestCurrentCursor)
-	pCursor = GetSpriteCursor();
+	pCursor = GetSpriteCursor(inputInfo.pointer);
     else {
 	pCursor = (CursorPtr)LookupIDByType(stuff->cursor, RT_CURSOR);
 	if (!pCursor) 
@@ -426,7 +426,8 @@ ProcXTestFakeInput(client)
 
 #ifdef PANORAMIX
 	if ((!noPanoramiXExtension
-	     && root->drawable.pScreen->myNum != XineramaGetCursorScreen())
+	     && root->drawable.pScreen->myNum 
+                != XineramaGetCursorScreen(inputInfo.pointer))
 	    || (noPanoramiXExtension && root != GetCurrentRootWindow()))
 
 #else

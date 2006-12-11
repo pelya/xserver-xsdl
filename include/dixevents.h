@@ -28,7 +28,7 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 extern void SetCriticalEvent(int /* event */);
 
-extern CursorPtr GetSpriteCursor(void);
+extern CursorPtr GetSpriteCursor(DeviceIntPtr /*pDev*/);
 
 extern int ProcAllowEvents(ClientPtr /* client */);
 
@@ -103,7 +103,11 @@ extern int ProcUngrabButton(ClientPtr /* client */);
 extern int ProcRecolorCursor(ClientPtr /* client */);
 
 #ifdef PANORAMIX
-extern void PostSyntheticMotion(int x, int y, ScreenPtr pScreen, unsigned long time);
+extern void PostSyntheticMotion(DeviceIntPtr pDev, 
+                                int x, 
+                                int y, 
+                                ScreenPtr pScreen, 
+                                unsigned long time);
 #endif
 
 #endif /* DIXEVENTS_H */

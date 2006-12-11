@@ -62,9 +62,6 @@ SOFTWARE.
 #define POINTER_RELATIVE (1 << 1)
 #define POINTER_ABSOLUTE (1 << 2)
 #define POINTER_ACCELERATE (1 << 3)
-#ifdef MPX
-#define POINTER_MULTIPOINTER (1 << 4)
-#endif
 
 #define MAP_LENGTH	256
 #define DOWN_LENGTH	32	/* 256/8 => number of bytes to hold 256 bits */
@@ -422,6 +419,7 @@ extern int GetProximityEvents(
     int *valuators);
 
 extern void PostSyntheticMotion(
+    DeviceIntPtr pDev,
     int x,
     int y,
     ScreenPtr pScreen,

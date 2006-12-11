@@ -71,6 +71,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #endif
 #include "pixmapstr.h"          /* DrawableRec */
 #include "windowstr.h"          /* Drawable Lookup structures */
+#include "inputstr.h"
 #include <X11/extensions/xtrapdi.h>
 #include <X11/extensions/xtrapddmi.h>
 #include <X11/extensions/xtrapproto.h>
@@ -1564,7 +1565,7 @@ void XETrapStampAndMail(xEvent *x_event)
                 data.u.event.u.u.type == ButtonRelease ||
                 data.u.event.u.u.type == KeyPress ||
                 data.u.event.u.u.type == KeyRelease)) {
-		    int scr = XineramaGetCursorScreen();
+		    int scr = XineramaGetCursorScreen(inputInfo.pointer);
 		    data.u.event.u.keyButtonPointer.rootX +=
 			panoramiXdataPtr[scr].x - panoramiXdataPtr[0].x;
 		    data.u.event.u.keyButtonPointer.rootY +=

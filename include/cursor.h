@@ -144,7 +144,7 @@ extern void GetSpritePosition(
     int * /*py*/);
 
 #ifdef PANORAMIX
-extern int XineramaGetCursorScreen(void);
+extern int XineramaGetCursorScreen(struct _DeviceIntRec* pDev);
 #endif /* PANORAMIX */
 
 #endif /* CURSOR_H */

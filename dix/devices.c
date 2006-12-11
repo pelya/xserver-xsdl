@@ -366,8 +366,12 @@ InitCoreDevices()
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
             FatalError("Couldn't allocate pointer devPrivates\n");
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
+        InitSprite(dev, TRUE);
         (void)ActivateDevice(dev);
         inputInfo.pointer = dev;
+        /* the core keyboard is initialised by now. set the keyboard's sprite
+         * to the core pointer's sprite. */
+        InitSprite(inputInfo.keyboard, FALSE);
     }
 }
 
