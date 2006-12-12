@@ -135,8 +135,8 @@ static char *XSELinuxRootWindowContext = NULL;
 extern Selection *CurrentSelections;
 extern int NumCurrentSelections;
 
-/* 
- * list of classes corresponding to SIDs in the 
+/*
+ * list of classes corresponding to SIDs in the
  * rsid array of the security state structure (below).
  *
  * XXX SIDs should be stored in their native objects, not all
@@ -193,7 +193,7 @@ IndexByClass(security_class_t class)
 }
 
 /*
- * Does sanity checking on a resource ID.  This can be removed after 
+ * Does sanity checking on a resource ID.  This can be removed after
  * testing.
  */
 static void
@@ -351,7 +351,7 @@ ObjectSIDByLabel(security_context_t basecontext, security_class_t class,
     con = context_new(base);
     if (!con)
 	goto out2;
-    
+
     /* look in the mappings of names to types */
     ptr = (class == SECCLASS_PROPERTY) ? propertyTypes : extensionTypes;
     for (; *ptr; ptr+=2)
@@ -564,14 +564,14 @@ CheckSendEventPerms(ClientPtr client)
 	swapl(&stuff->destination, n);
     return IDPerm(client, stuff->destination, SECCLASS_WINDOW, perm);
 }
-     
+
 static int
 CheckConvertSelectionPerms(ClientPtr client)
 {
     register char n;
     int rval = TRUE;
     REQUEST(xConvertSelectionReq);
-    
+
     if (!REQUEST_SIZE_CHECK(client, xConvertSelectionReq))
 	return FALSE;
 
@@ -620,11 +620,11 @@ CheckSetSelectionOwnerPerms(ClientPtr client)
 	    rval = rval && IDPerm(client, CurrentSelections[i].window,
 				  SECCLASS_WINDOW, WINDOW__CHSELECTION);
     }
-    rval = rval && IDPerm(client, stuff->window, 
+    rval = rval && IDPerm(client, stuff->window,
 			  SECCLASS_WINDOW, WINDOW__CHSELECTION);
     return rval;
 }
-    
+
 CALLBACK(XSELinuxCoreDispatch)
 {
     XaceCoreDispatchRec *rec = (XaceCoreDispatchRec*)calldata;
@@ -678,7 +678,7 @@ CALLBACK(XSELinuxCoreDispatch)
     /* Window class control requirements */
     case X_ChangeProperty:
 	rval = IDPERM(client, xChangePropertyReq, window,
-		      SECCLASS_WINDOW, 
+		      SECCLASS_WINDOW,
 		      WINDOW__CHPROPLIST | WINDOW__CHPROP |
 		      WINDOW__LISTPROP);
 	break;
@@ -914,7 +914,7 @@ CALLBACK(XSELinuxCoreDispatch)
 	    && IDPERM(client, xPolyTextReq, drawable,
 		      SECCLASS_DRAWABLE, DRAWABLE__DRAW);
 	break;
-	
+
     /* Pixmap class control requirements */
     case X_CreatePixmap:
 	rval = IDPERM(client, xCreatePixmapReq, pid,
@@ -950,7 +950,7 @@ CALLBACK(XSELinuxCoreDispatch)
 	rval = IDPERM(client, xResourceReq, id,
 		      SECCLASS_CURSOR, CURSOR__FREE);
 	break;
-	    
+
     /* GC class control requirements */
     case X_CreateGC:
 	rval = IDPERM(client, xCreateGCReq, gc,
@@ -1018,7 +1018,7 @@ CALLBACK(XSELinuxExtDispatch)
     security_id_t extsid;
     access_vector_t perm;
     REQUEST(xReq);
-    
+
     /* XXX there should be a separate callback for this */
     if (!EXTENSIONSID(ext))
     {
@@ -1215,7 +1215,7 @@ CALLBACK(XSELinuxWindowInit)
 	rc = ChangeWindowProperty(rec->pWin, atom_client_ctx, XA_STRING, 8,
 				  PropModeReplace, strlen(ctx), ctx, FALSE);
 	freecon(ctx);
-    } 
+    }
     else
 	rc = ChangeWindowProperty(rec->pWin, atom_client_ctx, XA_STRING, 8,
 				  PropModeReplace, 10, "UNLABELED!", FALSE);
@@ -1441,7 +1441,7 @@ XSELinuxParsePropertyTypeRule(char *p)
 
     newTypes[propertyTypesCount*2 - 2] = propcopy;
     newTypes[propertyTypesCount*2 - 1] = typecopy;
-    
+
     propertyTypes = newTypes;
 
     return TRUE;
@@ -1612,7 +1612,7 @@ XSELinuxLoadConfigFile(void)
     int lineNumber = 0;
     char **newTypes;
     Bool ret = FALSE;
-    
+
     if (!XSELINUXCONFIGFILE)
         return FALSE;
 
@@ -1837,7 +1837,7 @@ XSELinuxExtensionSetup(INITARGS)
 {
     /* Allocate the client private index */
     clientPrivateIndex = AllocateClientPrivateIndex();
-    if (!AllocateClientPrivate(clientPrivateIndex, 
+    if (!AllocateClientPrivate(clientPrivateIndex,
 			       sizeof (XSELinuxClientStateRec)))
 	FatalError("XSELinux: Failed to allocate client private.\n");
 
