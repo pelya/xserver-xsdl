@@ -1090,7 +1090,7 @@ CALLBACK(XSELinuxProperty)
 	{
 	    if (errno != EACCES)
 		ErrorF("Property: unexpected error %d\n", errno);
-	    rec->rval = SecurityIgnoreOperation;
+	    rec->rval = XaceIgnoreOperation;
 	}
     } else
 	ErrorF("No client state in property callback!\n");
