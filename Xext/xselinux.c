@@ -152,7 +152,8 @@ static security_class_t sClasses[] = {
     SECCLASS_COLORMAP,
     SECCLASS_PROPERTY,
     SECCLASS_XCLIENT,
-    SECCLASS_XINPUT
+    SECCLASS_XINPUT,
+    SECCLASS_XSERVER
 };
 #define NRES (sizeof(sClasses)/sizeof(sClasses[0]))
 
