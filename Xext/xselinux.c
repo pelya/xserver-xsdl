@@ -382,6 +382,48 @@ ObjectSIDByLabel(security_context_t basecontext, security_class_t class,
 }
 
 /*
+ * AssignServerState - set up server security state.
+ *
+ * Arguments:
+ */
+static void
+AssignServerState(void)
+{
+    int i;
+    security_context_t basectx, objctx;
+    XSELinuxClientStateRec *state;
+
+    state = (XSELinuxClientStateRec*)STATEPTR(serverClient);
+    avc_entry_ref_init(&state->aeref);
+
+    /* use the context of the X server process for the serverClient */
+    if (getcon(&basectx) < 0)
+	FatalError("Couldn't get context of X server process\n");
+
+    /* get a SID from the context */
+    if (avc_context_to_sid(basectx, &state->sid) < 0)
+	FatalError("Client %d: couldn't get security ID for client\n", 0);
+
+    /* get contexts and then SIDs for each resource type */
+    for (i=0; i<NRES; i++) {
+	if (security_compute_create(basectx, basectx, sClasses[i],
+				    &objctx) < 0)
+	    FatalError("Client %d: couldn't get context for class %x\n", 0,
+		       sClasses[i]);
+
+	if (avc_context_to_sid(objctx, &state->rsid[i]) < 0)
+	    FatalError("Client %d: couldn't get SID for class %x\n", 0,
+		       sClasses[i]);
+
+	freecon(objctx);
+    }
+
+    /* mark as set up, free base context, and return */
+    state->haveState = TRUE;
+    freecon(basectx);
+}
+
+/*
  * AssignClientState - set up client security state.
  *
  * Arguments:
@@ -392,75 +434,41 @@ AssignClientState(ClientPtr client)
 {
     int i, needToFree = 0;
     security_context_t basectx, objctx;
-    XSELinuxClientStateRec *state = (XSELinuxClientStateRec*)STATEPTR(client);
-    Bool isServerClient = FALSE;
+    XSELinuxClientStateRec *state;
 
+    state = (XSELinuxClientStateRec*)STATEPTR(client);
     avc_entry_ref_init(&state->aeref);
 
-    if (client->index > 0)
-    {
-	XtransConnInfo ci = ((OsCommPtr)client->osPrivate)->trans_conn;
-	if (_XSERVTransIsLocal(ci)) {
-	    /* for local clients, can get context from the socket */
-	    int fd = _XSERVTransGetConnectionNumber(ci);
-	    if (getpeercon(fd, &basectx) < 0)
-	    {
-		FatalError("Client %d: couldn't get context from socket\n",
-			   client->index);
-	    }
-	    needToFree = 1;
-	}
-        else
-        {
-	    /* for remote clients, need to use a default context */
-	    basectx = XSELinuxNonlocalContextDefault;
-	}
-    }
-    else
-    {
-        isServerClient = TRUE;
-
-	/* use the context of the X server process for the serverClient */
-	if (getcon(&basectx) < 0)
-	{
-	    FatalError("Couldn't get context of X server process\n");
-	}
+    XtransConnInfo ci = ((OsCommPtr)client->osPrivate)->trans_conn;
+    if (_XSERVTransIsLocal(ci)) {
+	/* for local clients, can get context from the socket */
+	int fd = _XSERVTransGetConnectionNumber(ci);
+	if (getpeercon(fd, &basectx) < 0)
+	    FatalError("Client %d: couldn't get context from socket\n",
+		       client->index);
 	needToFree = 1;
     }
+    else
+	/* for remote clients, need to use a default context */
+	basectx = XSELinuxNonlocalContextDefault;
 
     /* get a SID from the context */
     if (avc_context_to_sid(basectx, &state->sid) < 0)
-    {
 	FatalError("Client %d: couldn't get security ID for client\n",
 		   client->index);
-    }
 
     /* get contexts and then SIDs for each resource type */
-    for (i=0; i<NRES; i++)
-    {
+    for (i=0; i<NRES; i++) {
 	if (security_compute_create(basectx, basectx, sClasses[i],
 				    &objctx) < 0)
-	{
 	    FatalError("Client %d: couldn't get context for class %x\n",
 		       client->index, sClasses[i]);
-	}
-	else if (avc_context_to_sid(objctx, &state->rsid[i]) < 0)
-	{
+
+	if (avc_context_to_sid(objctx, &state->rsid[i]) < 0)
 	    FatalError("Client %d: couldn't get SID for class %x\n",
 		       client->index, sClasses[i]);
-	}
-	freecon(objctx);
-    }
 
-    /* special handling for serverClient windows (that is, root windows) */
-    if (isServerClient == TRUE)
-    {
-        i = IndexByClass(SECCLASS_WINDOW);
-        sidput(state->rsid[i]);
-        if (avc_context_to_sid(XSELinuxRootWindowContext, &state->rsid[i]))
-        {
-            FatalError("Failed to set SID for root window\n");
-        }
+	freecon(objctx);
     }
 
     /* mark as set up, free base context if necessary, and return */
@@ -1183,7 +1191,7 @@ CALLBACK(XSELinuxClientState)
     switch(client->clientState)
     {
     case ClientStateInitial:
-	AssignClientState(serverClient);
+	AssignServerState();
 	break;
 
 	case ClientStateRunning:
