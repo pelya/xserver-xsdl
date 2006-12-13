@@ -481,62 +481,81 @@ RR10GetData (ScreenPtr pScreen, RROutputPtr output)
     RR10DataPtr	    data;
     RRScreenSizePtr size;
     int		    nmode = output->numModes;
-    int		    i, j, k;
+    int		    o, os, l, r;
     RRScreenRatePtr refresh;
     CARD16	    vRefresh;
     RRModePtr	    mode;
+    Bool	    *used;
 
     /* Make sure there is plenty of space for any combination */
     data = malloc (sizeof (RR10DataRec) + 
 		   sizeof (RRScreenSize) * nmode + 
-		   sizeof (RRScreenRate) * nmode);
+		   sizeof (RRScreenRate) * nmode +
+		   sizeof (Bool) * nmode);
     if (!data)
 	return NULL;
     size = (RRScreenSizePtr) (data + 1);
     refresh = (RRScreenRatePtr) (size + nmode);
+    used = (Bool *) (refresh + nmode);
+    memset (used, '\0', sizeof (Bool) * nmode);
     data->sizes = size;
     data->nsize = 0;
     data->nrefresh = 0;
     data->size = 0;
     data->refresh = 0;
-    for (i = 0; i < output->numModes; i++)
+    
+    /*
+     * find modes not yet listed
+     */
+    for (o = 0; o < output->numModes; o++)
     {
-	mode = output->modes[i];
-	for (j = 0; j < data->nsize; j++)
-	    if (mode->mode.width == size[j].width &&
-		mode->mode.height == size[j].height)
-		break;
-	if (j == data->nsize)
+	if (used[o]) continue;
+	
+	mode = output->modes[o];
+	
+	l = data->nsize;
+	size[l].id = data->nsize;
+	size[l].width = mode->mode.width;
+	size[l].height = mode->mode.height;
+	if (output->mmWidth && output->mmHeight) {
+	    size[l].mmWidth = output->mmWidth;
+	    size[l].mmHeight = output->mmHeight;
+	} else {
+	    size[l].mmWidth = pScreen->mmWidth;
+	    size[l].mmHeight = pScreen->mmHeight;
+	}
+	size[l].nRates = 0;
+	size[l].pRates = &refresh[data->nrefresh];
+	data->nsize++;
+	
+	/*
+	 * Find all modes with matching size
+	 */
+	for (os = o; os < output->numModes; os++)
 	{
-	    size[j].id = j;
-	    size[j].width = mode->mode.width;
-	    size[j].height = mode->mode.height;
-	    if (output->mmWidth && output->mmHeight) {
-		size[j].mmWidth = output->mmWidth;
-		size[j].mmHeight = output->mmHeight;
-	    } else {
-		size[j].mmWidth = pScreen->mmWidth;
-		size[j].mmHeight = pScreen->mmHeight;
+	    mode = output->modes[os];
+	    if (mode->mode.width == size[l].width &&
+		mode->mode.height == size[l].height)
+	    {
+		vRefresh = RRVerticalRefresh (&mode->mode);
+		used[os] = TRUE;
+		
+		for (r = 0; r < size[l].nRates; r++)
+		    if (vRefresh == size[l].pRates[r].rate)
+			break;
+		if (r == size[l].nRates)
+		{
+		    size[l].pRates[r].rate = vRefresh;
+		    size[l].pRates[r].mode = mode;
+		    size[l].nRates++;
+		    data->nrefresh++;
+		}
+		if (mode == output->crtc->mode)
+		{
+		    data->size = l;
+		    data->refresh = vRefresh;
+		}
 	    }
-	    size[j].nRates = 0;
-	    size[j].pRates = &refresh[data->nrefresh];
-	    data->nsize++;
-	}
-	vRefresh = RRVerticalRefresh (&mode->mode);
-	for (k = 0; k < size[j].nRates; k++)
-	    if (vRefresh == size[j].pRates[k].rate)
-		break;
-	if (k == size[j].nRates)
-	{
-	    size[j].pRates[k].rate = vRefresh;
-	    size[j].pRates[k].mode = mode;
-	    size[j].nRates++;
-	    data->nrefresh++;
-	}
-	if (mode == output->crtc->mode)
-	{
-	    data->size = j;
-	    data->refresh = vRefresh;
 	}
     }
     return data;
@@ -865,22 +884,28 @@ ProcRRSetScreenConfig (ClientPtr client)
 
 	for (c = 0; c < pScrPriv->numCrtcs; c++)
 	{
-	    rep.status = RRCrtcSet (pScrPriv->crtcs[c], NULL, 0, 0, RR_Rotate_0,
-				    0, NULL);
-	    if (rep.status != Success)
+	    if (!RRCrtcSet (pScrPriv->crtcs[c], NULL, 0, 0, RR_Rotate_0,
+			    0, NULL))
+	    {
+		rep.status = RRSetConfigFailed;
+		/* XXX recover from failure */
 		goto sendReply;
+	    }
 	}
 	if (!RRScreenSizeSet (pScreen, mode->mode.width, mode->mode.height,
 			      pScreen->mmWidth, pScreen->mmHeight))
 	{
 	    rep.status = RRSetConfigFailed;
+	    /* XXX recover from failure */
 	    goto sendReply;
 	}
     }
-    
-    rep.status = RRCrtcSet (output->crtc, mode, 0, 0, stuff->rotation,
-			    1, &output);
-    
+
+    if (!RRCrtcSet (output->crtc, mode, 0, 0, stuff->rotation, 1, &output))
+	rep.status = RRSetConfigFailed;
+    else
+	rep.status = RRSetConfigSuccess;
+
     /*
      * XXX Configure other crtcs to mirror as much as possible
      */
