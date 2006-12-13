@@ -90,6 +90,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     legacyVGARec vga;
     xf86int10BiosLocation bios;
     Bool videoBiosMapped = FALSE;
+    pciVideoPtr pvp;
     
     if (int10Generation != serverGeneration) {
 	counter = 0;
@@ -151,6 +152,8 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     pInt = (xf86Int10InfoPtr)xnfcalloc(1, sizeof(xf86Int10InfoRec));
     pInt->scrnIndex = screen;
     pInt->entityIndex = entityIndex;
+    pvp = xf86GetPciInfoForEntity(entityIndex);
+    if (pvp) pInt->Tag = pciTag(pvp->bus, pvp->device, pvp->func);
     if (!xf86Int10ExecSetup(pInt))
 	goto error0;
     pInt->mem = &linuxMem;
