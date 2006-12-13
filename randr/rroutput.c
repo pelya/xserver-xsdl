@@ -28,7 +28,7 @@ RESTYPE	RROutputType;
  * Notify the output of some change
  */
 void
-RROutputChanged (RROutputPtr output)
+RROutputChanged (RROutputPtr output, Bool configChanged)
 {
     ScreenPtr	pScreen = output->pScreen;
     
@@ -37,6 +37,8 @@ RROutputChanged (RROutputPtr output)
     {
 	rrScrPriv (pScreen);
 	pScrPriv->changed = TRUE;
+	if (configChanged)
+	    pScrPriv->configChanged = TRUE;
     }
 }
 
@@ -106,7 +108,7 @@ RROutputAttachScreen (RROutputPtr output, ScreenPtr pScreen)
     output->pScreen = pScreen;
     pScrPriv->outputs = outputs;
     pScrPriv->outputs[pScrPriv->numOutputs++] = output;
-    RROutputChanged (output);
+    RROutputChanged (output, FALSE);
     return TRUE;
 }
 		      
@@ -142,7 +144,7 @@ RROutputSetClones (RROutputPtr  output,
     memcpy (newClones, clones, numClones * sizeof (RROutputPtr));
     output->clones = newClones;
     output->numClones = numClones;
-    RROutputChanged (output);
+    RROutputChanged (output, TRUE);
     return TRUE;
 }
 
@@ -186,7 +188,7 @@ RROutputSetModes (RROutputPtr	output,
     output->modes = newModes;
     output->numModes = numModes;
     output->numPreferred = numPreferred;
-    RROutputChanged (output);
+    RROutputChanged (output, TRUE);
     return TRUE;
 }
 
@@ -219,7 +221,7 @@ RROutputSetCrtcs (RROutputPtr	output,
     memcpy (newCrtcs, crtcs, numCrtcs * sizeof (RRCrtcPtr));
     output->crtcs = newCrtcs;
     output->numCrtcs = numCrtcs;
-    RROutputChanged (output);
+    RROutputChanged (output, TRUE);
     return TRUE;
 }
 
@@ -229,7 +231,7 @@ RROutputSetCrtc (RROutputPtr output, RRCrtcPtr crtc)
     if (output->crtc == crtc)
 	return;
     output->crtc = crtc;
-    RROutputChanged (output);
+    RROutputChanged (output, FALSE);
 }
 
 Bool
@@ -239,7 +241,7 @@ RROutputSetConnection (RROutputPtr  output,
     if (output->connection == connection)
 	return TRUE;
     output->connection = connection;
-    RROutputChanged (output);
+    RROutputChanged (output, TRUE);
     return TRUE;
 }
 
@@ -251,7 +253,7 @@ RROutputSetSubpixelOrder (RROutputPtr output,
 	return TRUE;
 
     output->subpixelOrder = subpixelOrder;
-    RROutputChanged (output);
+    RROutputChanged (output, FALSE);
     return TRUE;
 }
 
@@ -264,7 +266,7 @@ RROutputSetPhysicalSize (RROutputPtr	output,
 	return TRUE;
     output->mmWidth = mmWidth;
     output->mmHeight = mmHeight;
-    RROutputChanged (output);
+    RROutputChanged (output, FALSE);
     return TRUE;
 }
 
