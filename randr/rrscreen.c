@@ -268,7 +268,6 @@ ProcRRSetScreenSize (ClientPtr client)
     WindowPtr		pWin;
     ScreenPtr		pScreen;
     rrScrPrivPtr	pScrPriv;
-    RRCrtcPtr		crtc;
     int			i;
     
     REQUEST_SIZE_MATCH(xRRSetScreenSizeReq);
@@ -291,12 +290,26 @@ ProcRRSetScreenSize (ClientPtr client)
 	client->errorValue = stuff->height;
 	return BadValue;
     }
-    for (i = 0; i < pScrPriv->numCrtcs; i++) {
-	crtc = pScrPriv->crtcs[i];
-	if (crtc->mode &&
-	    (crtc->x + crtc->mode->mode.width > stuff->width ||
-	     crtc->y + crtc->mode->mode.height > stuff->height))
+    for (i = 0; i < pScrPriv->numCrtcs; i++) 
+    {
+	RRCrtcPtr   crtc = pScrPriv->crtcs[i];
+	RRModePtr   mode = crtc->mode;
+	if (mode)
+	{
+	    int		source_width = mode->mode.width;
+	    int		source_height = mode->mode.height;
+	    Rotation	rotation = crtc->rotation;
+
+	    if (rotation == RR_Rotate_90 || rotation == RR_Rotate_270)
+	    {
+		source_width = mode->mode.height;
+		source_height = mode->mode.width;
+	    }
+	    
+	    if (crtc->x + source_width > stuff->width ||
+		crtc->y + source_height > stuff->height)
 	    return BadMatch;
+	}
     }
     if (stuff->widthInMillimeters == 0 || stuff->heightInMillimeters == 0)
     {

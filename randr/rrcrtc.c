@@ -698,7 +698,15 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	 */
 	if (pScrPriv->rrScreenSetSize)
 	{
-	    if (stuff->x + mode->mode.width > pScreen->width)
+	    int source_width = mode->mode.width;
+	    int	source_height = mode->mode.height;
+
+	    if (rotation == RR_Rotate_90 || rotation == RR_Rotate_270)
+	    {
+		source_width = mode->mode.height;
+		source_height = mode->mode.width;
+	    }
+	    if (stuff->x + source_width > pScreen->width)
 	    {
 		client->errorValue = stuff->x;
 		if (outputs)
@@ -706,7 +714,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 		return BadValue;
 	    }
 	    
-	    if (stuff->y + mode->mode.height > pScreen->height)
+	    if (stuff->y + source_height > pScreen->height)
 	    {
 		client->errorValue = stuff->y;
 		if (outputs)
