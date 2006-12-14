@@ -436,7 +436,7 @@ SyncInitTrigger(client, pTrigger, counter, changes)
 	if (counter == None)
 	    pCounter = NULL;
 	else if (!(pCounter = (SyncCounter *)SecurityLookupIDByType(
-			client, counter, RTCounter, SecurityReadAccess)))
+			client, counter, RTCounter, DixReadAccess)))
 	{
 	    client->errorValue = counter;
 	    return SyncErrorBase + XSyncBadCounter;
@@ -1550,7 +1550,7 @@ ProcSyncSetCounter(client)
     REQUEST_SIZE_MATCH(xSyncSetCounterReq);
 
     pCounter = (SyncCounter *)SecurityLookupIDByType(client, stuff->cid,
-					   RTCounter, SecurityWriteAccess);
+					   RTCounter, DixWriteAccess);
     if (pCounter == NULL)
     {
 	client->errorValue = stuff->cid;
@@ -1583,7 +1583,7 @@ ProcSyncChangeCounter(client)
     REQUEST_SIZE_MATCH(xSyncChangeCounterReq);
 
     pCounter = (SyncCounter *) SecurityLookupIDByType(client, stuff->cid,
-					    RTCounter, SecurityWriteAccess);
+					    RTCounter, DixWriteAccess);
     if (pCounter == NULL)
     {
 	client->errorValue = stuff->cid;
@@ -1621,7 +1621,7 @@ ProcSyncDestroyCounter(client)
     REQUEST_SIZE_MATCH(xSyncDestroyCounterReq);
 
     pCounter = (SyncCounter *)SecurityLookupIDByType(client, stuff->counter,
-					   RTCounter, SecurityDestroyAccess);
+					   RTCounter, DixDestroyAccess);
     if (pCounter == NULL)
     {
 	client->errorValue = stuff->counter;
@@ -1767,7 +1767,7 @@ ProcSyncQueryCounter(client)
     REQUEST_SIZE_MATCH(xSyncQueryCounterReq);
 
     pCounter = (SyncCounter *)SecurityLookupIDByType(client, stuff->counter,
-					    RTCounter, SecurityReadAccess);
+					    RTCounter, DixReadAccess);
     if (pCounter == NULL)
     {
 	client->errorValue = stuff->counter;
@@ -1896,7 +1896,7 @@ ProcSyncChangeAlarm(client)
     REQUEST_AT_LEAST_SIZE(xSyncChangeAlarmReq);
 
     if (!(pAlarm = (SyncAlarm *)SecurityLookupIDByType(client, stuff->alarm,
-					      RTAlarm, SecurityWriteAccess)))
+					      RTAlarm, DixWriteAccess)))
     {
 	client->errorValue = stuff->alarm;
 	return SyncErrorBase + XSyncBadAlarm;
@@ -1937,7 +1937,7 @@ ProcSyncQueryAlarm(client)
     REQUEST_SIZE_MATCH(xSyncQueryAlarmReq);
 
     pAlarm = (SyncAlarm *)SecurityLookupIDByType(client, stuff->alarm,
-						RTAlarm, SecurityReadAccess);
+						RTAlarm, DixReadAccess);
     if (!pAlarm)
     {
 	client->errorValue = stuff->alarm;
@@ -1997,7 +1997,7 @@ ProcSyncDestroyAlarm(client)
     REQUEST_SIZE_MATCH(xSyncDestroyAlarmReq);
 
     if (!((SyncAlarm *)SecurityLookupIDByType(client, stuff->alarm,
-					      RTAlarm, SecurityDestroyAccess)))
+					      RTAlarm, DixDestroyAccess)))
     {
 	client->errorValue = stuff->alarm;
 	return SyncErrorBase + XSyncBadAlarm;

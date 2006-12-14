@@ -105,7 +105,7 @@ ProcRotateProperties(ClientPtr client)
     REQUEST_FIXED_SIZE(xRotatePropertiesReq, stuff->nAtoms << 2);
     UpdateCurrentTime();
     pWin = (WindowPtr) SecurityLookupWindow(stuff->window, client,
-					    SecurityWriteAccess);
+					    DixWriteAccess);
     if (!pWin)
         return(BadWindow);
     if (!stuff->nAtoms)
@@ -117,7 +117,7 @@ ProcRotateProperties(ClientPtr client)
     for (i = 0; i < stuff->nAtoms; i++)
     {
 	char action = XaceHook(XACE_PROPERTY_ACCESS, client, pWin, atoms[i],
-				SecurityReadAccess|SecurityWriteAccess);
+				DixReadAccess|DixWriteAccess);
 
         if (!ValidAtom(atoms[i]) || (XaceErrorOperation == action)) {
             DEALLOCATE_LOCAL(props);
@@ -209,7 +209,7 @@ ProcChangeProperty(ClientPtr client)
     REQUEST_FIXED_SIZE(xChangePropertyReq, totalSize);
 
     pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   SecurityWriteAccess);
+					   DixWriteAccess);
     if (!pWin)
 	return(BadWindow);
     if (!ValidAtom(stuff->property))
@@ -224,7 +224,7 @@ ProcChangeProperty(ClientPtr client)
     }
 
     switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, stuff->property,
-		     SecurityWriteAccess))
+		     DixWriteAccess))
     {
     case XaceErrorOperation:
 	client->errorValue = stuff->property;
@@ -448,14 +448,14 @@ ProcGetProperty(ClientPtr client)
     unsigned long n, len, ind;
     WindowPtr pWin;
     xGetPropertyReply reply;
-    Mask access_mode = SecurityReadAccess;
+    Mask access_mode = DixReadAccess;
     REQUEST(xGetPropertyReq);
 
     REQUEST_SIZE_MATCH(xGetPropertyReq);
     if (stuff->delete)
 	UpdateCurrentTime();
     pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   SecurityReadAccess);
+					   DixReadAccess);
     if (!pWin)
 	return BadWindow;
 
@@ -491,7 +491,7 @@ ProcGetProperty(ClientPtr client)
 	return NullPropertyReply(client, None, 0, &reply);
 
     if (stuff->delete)
-	access_mode |= SecurityDestroyAccess;
+	access_mode |= DixDestroyAccess;
     switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, stuff->property,
 		     access_mode))
     {
@@ -592,7 +592,7 @@ ProcListProperties(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xResourceReq);
     pWin = (WindowPtr)SecurityLookupWindow(stuff->id, client,
-					   SecurityReadAccess);
+					   DixReadAccess);
     if (!pWin)
         return(BadWindow);
 
@@ -637,7 +637,7 @@ ProcDeleteProperty(register ClientPtr client)
     REQUEST_SIZE_MATCH(xDeletePropertyReq);
     UpdateCurrentTime();
     pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   SecurityWriteAccess);
+					   DixWriteAccess);
     if (!pWin)
         return(BadWindow);
     if (!ValidAtom(stuff->property))
@@ -647,7 +647,7 @@ ProcDeleteProperty(register ClientPtr client)
     }
 
     switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, stuff->property,
-		     SecurityDestroyAccess))
+		     DixDestroyAccess))
     {
     case XaceErrorOperation:
 	client->errorValue = stuff->property;

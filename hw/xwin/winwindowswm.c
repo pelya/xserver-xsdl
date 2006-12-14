@@ -203,7 +203,7 @@ ProcWindowsWMSelectInput (register ClientPtr client)
 
   REQUEST_SIZE_MATCH (xWindowsWMSelectInputReq);
   pHead = (WMEventPtr *)SecurityLookupIDByType(client, eventResource,
-					       EventType, SecurityWriteAccess);
+					       EventType, DixWriteAccess);
   if (stuff->mask != 0)
     {
       if (pHead)
@@ -451,7 +451,7 @@ ProcWindowsWMFrameDraw (register ClientPtr client)
   ErrorF ("ProcWindowsWMFrameDraw\n");
 #endif
   if (!(pWin = SecurityLookupWindow((Drawable)stuff->window,
-				    client, SecurityReadAccess)))
+				    client, DixReadAccess)))
     {
       return BadValue;
     }
@@ -546,7 +546,7 @@ ProcWindowsWMFrameSetTitle(
   REQUEST_AT_LEAST_SIZE(xWindowsWMFrameSetTitleReq);
 
   if (!(pWin = SecurityLookupWindow((Drawable)stuff->window,
-				    client, SecurityReadAccess)))
+				    client, DixReadAccess)))
     {
       return BadValue;
     }

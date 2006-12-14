@@ -242,7 +242,7 @@ ProcXFixesSelectCursorInput (ClientPtr client)
 
     REQUEST_SIZE_MATCH (xXFixesSelectCursorInputReq);
     pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   SecurityReadAccess);
+					   DixReadAccess);
     if (!pWin)
         return(BadWindow);
     if (stuff->eventMask & ~CursorAllEvents)
@@ -415,7 +415,7 @@ ProcXFixesSetCursorName (ClientPtr client)
     Atom atom;
 
     REQUEST_AT_LEAST_SIZE(xXFixesSetCursorNameReq);
-    VERIFY_CURSOR(pCursor, stuff->cursor, client, SecurityWriteAccess);
+    VERIFY_CURSOR(pCursor, stuff->cursor, client, DixWriteAccess);
     tchar = (char *) &stuff[1];
     atom = MakeAtom (tchar, stuff->nbytes, TRUE);
     if (atom == BAD_RESOURCE)
@@ -448,7 +448,7 @@ ProcXFixesGetCursorName (ClientPtr client)
     int len;
 
     REQUEST_SIZE_MATCH(xXFixesGetCursorNameReq);
-    VERIFY_CURSOR(pCursor, stuff->cursor, client, SecurityReadAccess);
+    VERIFY_CURSOR(pCursor, stuff->cursor, client, DixReadAccess);
     if (pCursor->name)
 	str = NameForAtom (pCursor->name);
     else
@@ -679,8 +679,8 @@ ProcXFixesChangeCursor (ClientPtr client)
     REQUEST(xXFixesChangeCursorReq);
 
     REQUEST_SIZE_MATCH(xXFixesChangeCursorReq);
-    VERIFY_CURSOR (pSource, stuff->source, client, SecurityReadAccess);
-    VERIFY_CURSOR (pDestination, stuff->destination, client, SecurityWriteAccess);
+    VERIFY_CURSOR (pSource, stuff->source, client, DixReadAccess);
+    VERIFY_CURSOR (pDestination, stuff->destination, client, DixWriteAccess);
 
     ReplaceCursor (pSource, TestForCursor, (pointer) pDestination);
     return (client->noClientException);
@@ -714,7 +714,7 @@ ProcXFixesChangeCursorByName (ClientPtr client)
     REQUEST(xXFixesChangeCursorByNameReq);
 
     REQUEST_FIXED_SIZE(xXFixesChangeCursorByNameReq, stuff->nbytes);
-    VERIFY_CURSOR(pSource, stuff->source, client, SecurityReadAccess);
+    VERIFY_CURSOR(pSource, stuff->source, client, DixReadAccess);
     tchar = (char *) &stuff[1];
     name = MakeAtom (tchar, stuff->nbytes, FALSE);
     if (name)

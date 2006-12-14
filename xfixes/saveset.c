@@ -38,7 +38,7 @@ ProcXFixesChangeSaveSet(ClientPtr client)
 		  
     REQUEST_SIZE_MATCH(xXFixesChangeSaveSetReq);
     pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   SecurityReadAccess);
+					   DixReadAccess);
     if (!pWin)
         return(BadWindow);
     if (client->clientAsMask == (CLIENT_BITS(pWin->drawable.id)))

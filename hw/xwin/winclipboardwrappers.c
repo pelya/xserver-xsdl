@@ -345,7 +345,7 @@ winProcSetSelectionOwner (ClientPtr client)
     {
       /* Grab the Window from the request */
       pWindow = (WindowPtr) SecurityLookupWindow (stuff->window, client,
-						  SecurityReadAccess);
+						  DixReadAccess);
       if (!pWindow)
 	{
 	  ErrorF ("winProcSetSelectionOwner - Found BadWindow, aborting.\n");

@@ -401,7 +401,7 @@ ProcXF86DRICreateDrawable(
     if (!(pDrawable = (DrawablePtr)SecurityLookupDrawable(
 						(Drawable)stuff->drawable,
 						client, 
-						SecurityReadAccess))) {
+						DixReadAccess))) {
 	return BadValue;
     }
 
@@ -432,7 +432,7 @@ ProcXF86DRIDestroyDrawable(
     if (!(pDrawable = (DrawablePtr)SecurityLookupDrawable(
 						(Drawable)stuff->drawable,
 						client, 
-						SecurityReadAccess))) {
+						DixReadAccess))) {
 	return BadValue;
     }
 
@@ -471,7 +471,7 @@ ProcXF86DRIGetDrawableInfo(
     if (!(pDrawable = (DrawablePtr)SecurityLookupDrawable(
 						(Drawable)stuff->drawable,
 						client, 
-						SecurityReadAccess))) {
+						DixReadAccess))) {
 	return BadValue;
     }
 

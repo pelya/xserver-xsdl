@@ -247,7 +247,7 @@ static int dmxProcRenderCreateGlyphSet(ClientPtr client)
 	/* Make sure we handle all errors here!! */
 	
 	glyphSet = SecurityLookupIDByType(client, stuff->gsid, GlyphSetType,
-					  SecurityDestroyAccess);
+					  DixDestroyAccess);
 	glyphPriv = xalloc(sizeof(dmxGlyphPrivRec));
 	if (!glyphPriv) return BadAlloc;
         glyphPriv->glyphSets = NULL;
@@ -255,7 +255,7 @@ static int dmxProcRenderCreateGlyphSet(ClientPtr client)
 	DMX_SET_GLYPH_PRIV(glyphSet, glyphPriv);
 
 	pFmt = SecurityLookupIDByType(client, stuff->format, PictFormatType,
-				      SecurityReadAccess);
+				      DixReadAccess);
 
 	oldErrorHandler = XSetErrorHandler(dmxGlyphErrorHandler);
 
@@ -315,7 +315,7 @@ static int dmxProcRenderFreeGlyphSet(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xRenderFreeGlyphSetReq);
     glyphSet = SecurityLookupIDByType(client, stuff->glyphset, GlyphSetType,
-				      SecurityDestroyAccess);
+				      DixDestroyAccess);
 
     if (glyphSet && glyphSet->refcnt == 1) {
 	dmxGlyphPrivPtr  glyphPriv = DMX_GET_GLYPH_PRIV(glyphSet);
@@ -358,7 +358,7 @@ static int dmxProcRenderAddGlyphs(ClientPtr client)
 	int              nbytes;
 
 	glyphSet = SecurityLookupIDByType(client, stuff->glyphset,
-					  GlyphSetType, SecurityReadAccess);
+					  GlyphSetType, DixReadAccess);
 	glyphPriv = DMX_GET_GLYPH_PRIV(glyphSet);
 
 	nglyphs = stuff->nglyphs;
@@ -401,7 +401,7 @@ static int dmxProcRenderFreeGlyphs(ClientPtr client)
 
     REQUEST_AT_LEAST_SIZE(xRenderFreeGlyphsReq);
     glyphSet = SecurityLookupIDByType(client, stuff->glyphset, GlyphSetType,
-				      SecurityWriteAccess);
+				      DixWriteAccess);
 
     if (glyphSet) {
 	dmxGlyphPrivPtr  glyphPriv = DMX_GET_GLYPH_PRIV(glyphSet);
@@ -473,13 +473,13 @@ static int dmxProcRenderCompositeGlyphs(ClientPtr client)
 	dmxGlyphPrivPtr    glyphPriv;
 
 	pSrc = SecurityLookupIDByType(client, stuff->src, PictureType,
-				      SecurityReadAccess);
+				      DixReadAccess);
 	pSrcPriv = DMX_GET_PICT_PRIV(pSrc);
 	if (!pSrcPriv->pict)
 	    return ret;
 
 	pDst = SecurityLookupIDByType(client, stuff->dst, PictureType,
-				      SecurityWriteAccess);
+				      DixWriteAccess);
 	pDstPriv = DMX_GET_PICT_PRIV(pDst);
 	if (!pDstPriv->pict)
 	    return ret;
@@ -496,7 +496,7 @@ static int dmxProcRenderCompositeGlyphs(ClientPtr client)
 
 	if (stuff->maskFormat)
 	    pFmt = SecurityLookupIDByType(client, stuff->maskFormat,
-					  PictFormatType, SecurityReadAccess);
+					  PictFormatType, DixReadAccess);
 	else
 	    pFmt = NULL;
 
@@ -547,7 +547,7 @@ static int dmxProcRenderCompositeGlyphs(ClientPtr client)
 	curElt = elts;
 
 	glyphSet = SecurityLookupIDByType(client, stuff->glyphset,
-					  GlyphSetType, SecurityReadAccess);
+					  GlyphSetType, DixReadAccess);
 	glyphPriv = DMX_GET_GLYPH_PRIV(glyphSet);
 
 	while (buffer + sizeof(xGlyphElt) < end) {
@@ -558,7 +558,7 @@ static int dmxProcRenderCompositeGlyphs(ClientPtr client)
 		glyphSet = SecurityLookupIDByType(client,
 						  *((CARD32 *)buffer),
 						  GlyphSetType,
-						  SecurityReadAccess);
+						  DixReadAccess);
 		glyphPriv = DMX_GET_GLYPH_PRIV(glyphSet);
 		buffer += 4;
 	    } else {
@@ -622,7 +622,7 @@ static int dmxProcRenderSetPictureTransform(ClientPtr client)
     REQUEST(xRenderSetPictureTransformReq);
 
     REQUEST_SIZE_MATCH(xRenderSetPictureTransformReq);
-    VERIFY_PICTURE(pPicture, stuff->picture, client, SecurityWriteAccess,
+    VERIFY_PICTURE(pPicture, stuff->picture, client, DixWriteAccess,
 		   RenderErrBase + BadPicture);
 
     /* For the following to work with PanoramiX, it assumes that Render
@@ -663,7 +663,7 @@ static int dmxProcRenderSetPictureFilter(ClientPtr client)
     REQUEST(xRenderSetPictureFilterReq);
 
     REQUEST_AT_LEAST_SIZE(xRenderSetPictureFilterReq);
-    VERIFY_PICTURE(pPicture, stuff->picture, client, SecurityWriteAccess,
+    VERIFY_PICTURE(pPicture, stuff->picture, client, DixWriteAccess,
 		   RenderErrBase + BadPicture);
 
     /* For the following to work with PanoramiX, it assumes that Render

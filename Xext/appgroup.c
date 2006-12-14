@@ -432,7 +432,7 @@ int ProcXagDestroy(
 
     REQUEST_SIZE_MATCH (xXagDestroyReq);
     pAppGrp = (AppGroupPtr)SecurityLookupIDByType (client, 
-		(XID)stuff->app_group, RT_APPGROUP, SecurityReadAccess);
+		(XID)stuff->app_group, RT_APPGROUP, DixReadAccess);
     if (!pAppGrp) return XagBadAppGroup;
     FreeResource ((XID)stuff->app_group, RT_NONE);
     if (--XagCallbackRefCount == 0)
@@ -451,7 +451,7 @@ int ProcXagGetAttr(
 
     REQUEST_SIZE_MATCH (xXagGetAttrReq);
     pAppGrp = (AppGroupPtr)SecurityLookupIDByType (client, 
-		(XID)stuff->app_group, RT_APPGROUP, SecurityReadAccess);
+		(XID)stuff->app_group, RT_APPGROUP, DixReadAccess);
     if (!pAppGrp) return XagBadAppGroup;
     rep.type = X_Reply;
     rep.length = 0;

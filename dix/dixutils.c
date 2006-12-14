@@ -236,13 +236,13 @@ SecurityLookupDrawable(XID rid, ClientPtr client, Mask access_mode)
 _X_EXPORT WindowPtr
 LookupWindow(XID rid, ClientPtr client)
 {
-    return SecurityLookupWindow(rid, client, SecurityUnknownAccess);
+    return SecurityLookupWindow(rid, client, DixUnknownAccess);
 }
 
 _X_EXPORT pointer
 LookupDrawable(XID rid, ClientPtr client)
 {
-    return SecurityLookupDrawable(rid, client, SecurityUnknownAccess);
+    return SecurityLookupDrawable(rid, client, DixUnknownAccess);
 }
 
 #else /* not XACE */
@@ -293,7 +293,7 @@ _X_EXPORT ClientPtr
 LookupClient(XID rid, ClientPtr client)
 {
     pointer pRes = (pointer)SecurityLookupIDByClass(client, rid, RC_ANY,
-						    SecurityReadAccess);
+						    DixReadAccess);
     int clientIndex = CLIENT_ID(rid);
 
     if (clientIndex && pRes && clients[clientIndex] && !(rid & SERVER_BIT))

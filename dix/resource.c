@@ -944,12 +944,12 @@ _X_EXPORT pointer
 LookupIDByType(XID id, RESTYPE rtype)
 {
     return SecurityLookupIDByType(NullClient, id, rtype,
-				  SecurityUnknownAccess);
+				  DixUnknownAccess);
 }
 
 _X_EXPORT pointer
 LookupIDByClass(XID id, RESTYPE classes)
 {
     return SecurityLookupIDByClass(NullClient, id, classes,
-				   SecurityUnknownAccess);
+				   DixUnknownAccess);
 }

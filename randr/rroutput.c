@@ -378,7 +378,7 @@ ProcRRGetOutputInfo (ClientPtr client)
     int				i, n;
     
     REQUEST_SIZE_MATCH(xRRGetOutputInfoReq);
-    output = LookupOutput(client, stuff->output, SecurityReadAccess);
+    output = LookupOutput(client, stuff->output, DixReadAccess);
 
     if (!output)
 	return RRErrorBase + BadRROutput;

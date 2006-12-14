@@ -749,7 +749,7 @@ ProcXpGetPageDimensions(ClientPtr client)
     if((pContext =(XpContextPtr)SecurityLookupIDByType(client,
 						       stuff->printContext,
 						       RTcontext,
-						       SecurityReadAccess))
+						       DixReadAccess))
        == (XpContextPtr)NULL)
     {
 	client->errorValue = stuff->printContext;
@@ -811,7 +811,7 @@ ProcXpSetImageResolution(ClientPtr client)
     if((pContext =(XpContextPtr)SecurityLookupIDByType(client,
 						       stuff->printContext,
 						       RTcontext,
-						       SecurityWriteAccess))
+						       DixWriteAccess))
        == (XpContextPtr)NULL)
     {
 	client->errorValue = stuff->printContext;
@@ -859,7 +859,7 @@ ProcXpGetImageResolution(ClientPtr client)
     if((pContext =(XpContextPtr)SecurityLookupIDByType(client,
 						       stuff->printContext,
 						       RTcontext,
-						       SecurityReadAccess))
+						       DixReadAccess))
        == (XpContextPtr)NULL)
     {
 	client->errorValue = stuff->printContext;
@@ -1068,7 +1068,7 @@ ProcXpSetContext(ClientPtr client)
     if((pContext =(XpContextPtr)SecurityLookupIDByType(client,
 						       stuff->printContext,
 						       RTcontext,
-						       SecurityWriteAccess))
+						       DixWriteAccess))
        == (XpContextPtr)NULL)
     {
 	client->errorValue = stuff->printContext;
@@ -1141,7 +1141,7 @@ ProcXpDestroyContext(ClientPtr client)
     if((pContext =(XpContextPtr)SecurityLookupIDByType(client,
 						       stuff->printContext,
 						       RTcontext,
-						       SecurityDestroyAccess))
+						       DixDestroyAccess))
        == (XpContextPtr)NULL)
     {
 	client->errorValue = stuff->printContext;
@@ -1167,7 +1167,7 @@ ProcXpGetContextScreen(ClientPtr client)
     if((pContext =(XpContextPtr)SecurityLookupIDByType(client,
 						       stuff->printContext,
 						       RTcontext,
-						       SecurityReadAccess))
+						       DixReadAccess))
        == (XpContextPtr)NULL)
         return XpErrorBase+XPBadContext;
     
@@ -1853,7 +1853,7 @@ ProcXpStartPage(ClientPtr client)
 	return XpErrorBase+XPBadSequence;
 
     pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   SecurityWriteAccess);
+					   DixWriteAccess);
     if (!pWin || pWin->drawable.pScreen->myNum != pContext->screenNum)
 	return BadWindow;
 
@@ -1994,7 +1994,7 @@ ProcXpGetDocumentData(ClientPtr client)
     if((pContext = (XpContextPtr)SecurityLookupIDByType(client,
 							stuff->printContext, 
 							RTcontext,
-							SecurityWriteAccess))
+							DixWriteAccess))
        == (XpContextPtr)NULL)
     {
         client->errorValue = stuff->printContext;
@@ -2077,7 +2077,7 @@ ProcXpGetAttributes(ClientPtr client)
 						client,
 						stuff->printContext,
 						RTcontext,
-						SecurityReadAccess))
+						DixReadAccess))
 	   == (XpContextPtr)NULL)
         {
 	    client->errorValue = stuff->printContext;
@@ -2149,7 +2149,7 @@ ProcXpSetAttributes(ClientPtr client)
 					client,
 					stuff->printContext,
 					RTcontext,
-					SecurityWriteAccess))
+					DixWriteAccess))
        == (XpContextPtr)NULL)
     {
         client->errorValue = stuff->printContext;
@@ -2229,7 +2229,7 @@ ProcXpGetOneAttribute(ClientPtr client)
 						client,
 						stuff->printContext, 
 						RTcontext,
-						SecurityReadAccess))
+						DixReadAccess))
 	   == (XpContextPtr)NULL)
         {
 	    client->errorValue = stuff->printContext;
@@ -2300,7 +2300,7 @@ ProcXpSelectInput(ClientPtr client)
     if((pContext=(XpContextPtr)SecurityLookupIDByType(client,
 						      stuff->printContext,
 						      RTcontext,
-						      SecurityWriteAccess))
+						      DixWriteAccess))
        == (XpContextPtr)NULL)
     {
 	client->errorValue = stuff->printContext;
@@ -2336,7 +2336,7 @@ ProcXpInputSelected(ClientPtr client)
     if((pContext=(XpContextPtr)SecurityLookupIDByType(client,
 						      stuff->printContext,
 						      RTcontext,
-						      SecurityReadAccess))
+						      DixReadAccess))
        == (XpContextPtr)NULL)
     {
 	client->errorValue = stuff->printContext;

@@ -72,12 +72,12 @@ ProcRRSelectInput (ClientPtr client)
     XID		clientResource;
 
     REQUEST_SIZE_MATCH(xRRSelectInputReq);
-    pWin = SecurityLookupWindow (stuff->window, client, SecurityWriteAccess);
+    pWin = SecurityLookupWindow (stuff->window, client, DixWriteAccess);
     if (!pWin)
 	return BadWindow;
     pHead = (RREventPtr *)SecurityLookupIDByType(client,
 						 pWin->drawable.id, RREventType,
-						 SecurityWriteAccess);
+						 DixWriteAccess);
 
     if (stuff->enable & (RRScreenChangeNotifyMask|
 			 RRCrtcChangeNotifyMask|

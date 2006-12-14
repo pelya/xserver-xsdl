@@ -2235,7 +2235,7 @@ XineramaWarpPointer(ClientPtr client)
 
     if (stuff->dstWid != None)
     {
-	dest = SecurityLookupWindow(stuff->dstWid, client, SecurityReadAccess);
+	dest = SecurityLookupWindow(stuff->dstWid, client, DixReadAccess);
 	if (!dest)
 	    return BadWindow;
     }
@@ -2248,7 +2248,7 @@ XineramaWarpPointer(ClientPtr client)
  	XID 	winID = stuff->srcWid;
         WindowPtr source;
 	
-	source = SecurityLookupWindow(winID, client, SecurityReadAccess);
+	source = SecurityLookupWindow(winID, client, DixReadAccess);
 	if (!source) return BadWindow;
 
 	winX = source->drawable.x;
@@ -2315,7 +2315,7 @@ ProcWarpPointer(ClientPtr client)
 
     if (stuff->dstWid != None)
     {
-	dest = SecurityLookupWindow(stuff->dstWid, client, SecurityReadAccess);
+	dest = SecurityLookupWindow(stuff->dstWid, client, DixReadAccess);
 	if (!dest)
 	    return BadWindow;
     }
@@ -2328,7 +2328,7 @@ ProcWarpPointer(ClientPtr client)
  	XID 	winID = stuff->srcWid;
         WindowPtr source;
 	
-	source = SecurityLookupWindow(winID, client, SecurityReadAccess);
+	source = SecurityLookupWindow(winID, client, DixReadAccess);
 	if (!source) return BadWindow;
 
 	winX = source->drawable.x;
@@ -3551,7 +3551,7 @@ SetInputFocus(
     else if ((focusID == FollowKeyboard) && followOK)
 	focusWin = inputInfo.keyboard->focus->win;
     else if (!(focusWin = SecurityLookupWindow(focusID, client,
-					       SecurityReadAccess)))
+					       DixReadAccess)))
 	return BadWindow;
     else
     {
@@ -3671,7 +3671,7 @@ ProcGrabPointer(ClientPtr client)
 	client->errorValue = stuff->eventMask;
         return BadValue;
     }
-    pWin = SecurityLookupWindow(stuff->grabWindow, client, SecurityReadAccess);
+    pWin = SecurityLookupWindow(stuff->grabWindow, client, DixReadAccess);
     if (!pWin)
 	return BadWindow;
     if (stuff->confineTo == None)
@@ -3679,7 +3679,7 @@ ProcGrabPointer(ClientPtr client)
     else 
     {
 	confineTo = SecurityLookupWindow(stuff->confineTo, client,
-					 SecurityReadAccess);
+					 DixReadAccess);
 	if (!confineTo)
 	    return BadWindow;
     }
@@ -3688,7 +3688,7 @@ ProcGrabPointer(ClientPtr client)
     else
     {
 	cursor = (CursorPtr)SecurityLookupIDByType(client, stuff->cursor,
-						RT_CURSOR, SecurityReadAccess);
+						RT_CURSOR, DixReadAccess);
 	if (!cursor)
 	{
 	    client->errorValue = stuff->cursor;
@@ -3762,7 +3762,7 @@ ProcChangeActivePointerGrab(ClientPtr client)
     else
     {
 	newCursor = (CursorPtr)SecurityLookupIDByType(client, stuff->cursor,
-						RT_CURSOR, SecurityReadAccess);
+						RT_CURSOR, DixReadAccess);
 	if (!newCursor)
 	{
 	    client->errorValue = stuff->cursor;
@@ -3832,7 +3832,7 @@ GrabDevice(register ClientPtr client, register DeviceIntPtr dev,
 	client->errorValue = ownerEvents;
         return BadValue;
     }
-    pWin = SecurityLookupWindow(grabWindow, client, SecurityReadAccess);
+    pWin = SecurityLookupWindow(grabWindow, client, DixReadAccess);
     if (!pWin)
 	return BadWindow;
     time = ClientTimeToServerTime(ctime);
@@ -3920,7 +3920,7 @@ ProcQueryPointer(ClientPtr client)
     DeviceIntPtr mouse = inputInfo.pointer;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pWin = SecurityLookupWindow(stuff->id, client, SecurityReadAccess);
+    pWin = SecurityLookupWindow(stuff->id, client, DixReadAccess);
     if (!pWin)
 	return BadWindow;
     if (mouse->valuator->motionHintWindow)
@@ -4087,7 +4087,7 @@ ProcSendEvent(ClientPtr client)
     }
     else
 	pWin = SecurityLookupWindow(stuff->destination, client,
-				    SecurityReadAccess);
+				    DixReadAccess);
     if (!pWin)
 	return BadWindow;
     if ((stuff->propagate != xFalse) && (stuff->propagate != xTrue))
@@ -4125,7 +4125,7 @@ ProcUngrabKey(ClientPtr client)
     DeviceIntPtr keybd = inputInfo.keyboard;
 
     REQUEST_SIZE_MATCH(xUngrabKeyReq);
-    pWin = SecurityLookupWindow(stuff->grabWindow, client, SecurityReadAccess);
+    pWin = SecurityLookupWindow(stuff->grabWindow, client, DixReadAccess);
     if (!pWin)
 	return BadWindow;
 
@@ -4196,7 +4196,7 @@ ProcGrabKey(ClientPtr client)
 	client->errorValue = stuff->modifiers;
 	return BadValue;
     }
-    pWin = SecurityLookupWindow(stuff->grabWindow, client, SecurityReadAccess);
+    pWin = SecurityLookupWindow(stuff->grabWindow, client, DixReadAccess);
     if (!pWin)
 	return BadWindow;
 
@@ -4248,14 +4248,14 @@ ProcGrabButton(ClientPtr client)
 	client->errorValue = stuff->eventMask;
         return BadValue;
     }
-    pWin = SecurityLookupWindow(stuff->grabWindow, client, SecurityReadAccess);
+    pWin = SecurityLookupWindow(stuff->grabWindow, client, DixReadAccess);
     if (!pWin)
 	return BadWindow;
     if (stuff->confineTo == None)
        confineTo = NullWindow;
     else {
 	confineTo = SecurityLookupWindow(stuff->confineTo, client,
-					 SecurityReadAccess);
+					 DixReadAccess);
 	if (!confineTo)
 	    return BadWindow;
     }
@@ -4264,7 +4264,7 @@ ProcGrabButton(ClientPtr client)
     else
     {
 	cursor = (CursorPtr)SecurityLookupIDByType(client, stuff->cursor,
-						RT_CURSOR, SecurityReadAccess);
+						RT_CURSOR, DixReadAccess);
 	if (!cursor)
 	{
 	    client->errorValue = stuff->cursor;
@@ -4297,7 +4297,7 @@ ProcUngrabButton(ClientPtr client)
 	client->errorValue = stuff->modifiers;
 	return BadValue;
     }
-    pWin = SecurityLookupWindow(stuff->grabWindow, client, SecurityReadAccess);
+    pWin = SecurityLookupWindow(stuff->grabWindow, client, DixReadAccess);
     if (!pWin)
 	return BadWindow;
     tempGrab.resource = client->clientAsMask;
@@ -4451,7 +4451,7 @@ ProcRecolorCursor(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xRecolorCursorReq);
     pCursor = (CursorPtr)SecurityLookupIDByType(client, stuff->cursor,
-					RT_CURSOR, SecurityWriteAccess);
+					RT_CURSOR, DixWriteAccess);
     if ( !pCursor) 
     {
 	client->errorValue = stuff->cursor;

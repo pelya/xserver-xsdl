@@ -223,7 +223,7 @@ ProcAppleDRICreateSurface(
     if (!(pDrawable = (DrawablePtr)SecurityLookupDrawable(
                                                 (Drawable)stuff->drawable,
                                                 client, 
-                                                SecurityReadAccess))) {
+                                                DixReadAccess))) {
         return BadValue;
     }
 
@@ -256,7 +256,7 @@ ProcAppleDRIDestroySurface(
     if (!(pDrawable = (DrawablePtr)SecurityLookupDrawable(
                                                 (Drawable)stuff->drawable,
                                                 client, 
-                                                SecurityReadAccess))) {
+                                                DixReadAccess))) {
         return BadValue;
     }
 

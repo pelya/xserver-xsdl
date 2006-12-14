@@ -220,7 +220,7 @@ ProcRRGetScreenSizeRange (ClientPtr client)
     
     REQUEST_SIZE_MATCH(xRRGetScreenInfoReq);
     pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   SecurityReadAccess);
+					   DixReadAccess);
 
     if (!pWin)
 	return BadWindow;
@@ -273,7 +273,7 @@ ProcRRSetScreenSize (ClientPtr client)
     
     REQUEST_SIZE_MATCH(xRRSetScreenSizeReq);
     pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   SecurityReadAccess);
+					   DixReadAccess);
 
     if (!pWin)
 	return BadWindow;
@@ -332,7 +332,7 @@ ProcRRGetScreenResources (ClientPtr client)
     
     REQUEST_SIZE_MATCH(xRRGetScreenResourcesReq);
     pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   SecurityReadAccess);
+					   DixReadAccess);
 
     if (!pWin)
 	return BadWindow;
@@ -557,7 +557,7 @@ ProcRRGetScreenInfo (ClientPtr client)
 
     REQUEST_SIZE_MATCH(xRRGetScreenInfoReq);
     pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   SecurityReadAccess);
+					   DixReadAccess);
 
     if (!pWin)
 	return BadWindow;
@@ -731,7 +731,7 @@ ProcRRSetScreenConfig (ClientPtr client)
     }
     
     SECURITY_VERIFY_DRAWABLE(pDraw, stuff->drawable, client,
-			     SecurityWriteAccess);
+			     DixWriteAccess);
 
     pScreen = pDraw->pScreen;
 

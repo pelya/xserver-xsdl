@@ -390,7 +390,7 @@ ProcPanoramiXShapeRectangles(
     REQUEST_AT_LEAST_SIZE (xShapeRectanglesReq);
 
     if(!(win = (PanoramiXRes *)SecurityLookupIDByType(
-		client, stuff->dest, XRT_WINDOW, SecurityWriteAccess)))
+		client, stuff->dest, XRT_WINDOW, DixWriteAccess)))
 	return BadWindow;
 
     FOR_NSCREENS(j) {
@@ -422,7 +422,7 @@ ProcShapeMask (client)
 
     REQUEST_SIZE_MATCH (xShapeMaskReq);
     UpdateCurrentTime();
-    pWin = SecurityLookupWindow (stuff->dest, client, SecurityWriteAccess);
+    pWin = SecurityLookupWindow (stuff->dest, client, DixWriteAccess);
     if (!pWin)
 	return BadWindow;
     switch (stuff->destKind) {
@@ -444,7 +444,7 @@ ProcShapeMask (client)
 	srcRgn = 0;
     else {
         pPixmap = (PixmapPtr) SecurityLookupIDByType(client, stuff->src,
-						RT_PIXMAP, SecurityReadAccess);
+						RT_PIXMAP, DixReadAccess);
         if (!pPixmap)
 	    return BadPixmap;
 	if (pPixmap->drawable.pScreen != pScreen ||
@@ -488,12 +488,12 @@ ProcPanoramiXShapeMask(
     REQUEST_SIZE_MATCH (xShapeMaskReq);
 
     if(!(win = (PanoramiXRes *)SecurityLookupIDByType(
-		client, stuff->dest, XRT_WINDOW, SecurityWriteAccess)))
+		client, stuff->dest, XRT_WINDOW, DixWriteAccess)))
 	return BadWindow;
 
     if(stuff->src != None) {
 	if(!(pmap = (PanoramiXRes *)SecurityLookupIDByType(
-		client, stuff->src, XRT_PIXMAP, SecurityReadAccess)))
+		client, stuff->src, XRT_PIXMAP, DixReadAccess)))
 	    return BadPixmap;
     } else
 	pmap = NULL;
@@ -616,11 +616,11 @@ ProcPanoramiXShapeCombine(
     REQUEST_AT_LEAST_SIZE (xShapeCombineReq);
 
     if(!(win = (PanoramiXRes *)SecurityLookupIDByType(
-		client, stuff->dest, XRT_WINDOW, SecurityWriteAccess)))
+		client, stuff->dest, XRT_WINDOW, DixWriteAccess)))
 	return BadWindow;
 
     if(!(win2 = (PanoramiXRes *)SecurityLookupIDByType(
-		client, stuff->src, XRT_WINDOW, SecurityReadAccess)))
+		client, stuff->src, XRT_WINDOW, DixReadAccess)))
 	return BadWindow;
 
     FOR_NSCREENS(j) {
@@ -688,7 +688,7 @@ ProcPanoramiXShapeOffset(
     REQUEST_AT_LEAST_SIZE (xShapeOffsetReq);
    
     if(!(win = (PanoramiXRes *)SecurityLookupIDByType(
-		client, stuff->dest, XRT_WINDOW, SecurityWriteAccess)))
+		client, stuff->dest, XRT_WINDOW, DixWriteAccess)))
 	return BadWindow;
 
     FOR_NSCREENS(j) {
@@ -822,11 +822,11 @@ ProcShapeSelectInput (client)
     XID			clientResource;
 
     REQUEST_SIZE_MATCH (xShapeSelectInputReq);
-    pWin = SecurityLookupWindow (stuff->window, client, SecurityWriteAccess);
+    pWin = SecurityLookupWindow (stuff->window, client, DixWriteAccess);
     if (!pWin)
 	return BadWindow;
     pHead = (ShapeEventPtr *)SecurityLookupIDByType(client,
-			pWin->drawable.id, EventType, SecurityWriteAccess);
+			pWin->drawable.id, EventType, DixWriteAccess);
     switch (stuff->enable) {
     case xTrue:
 	if (pHead) {
@@ -999,7 +999,7 @@ ProcShapeInputSelected (client)
     if (!pWin)
 	return BadWindow;
     pHead = (ShapeEventPtr *) SecurityLookupIDByType(client,
-			pWin->drawable.id, EventType, SecurityReadAccess);
+			pWin->drawable.id, EventType, DixReadAccess);
     enabled = xFalse;
     if (pHead) {
     	for (pShapeEvent = *pHead;

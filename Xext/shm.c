@@ -571,11 +571,11 @@ ProcPanoramiXShmPutImage(register ClientPtr client)
     REQUEST_SIZE_MATCH(xShmPutImageReq);
 
     if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
-                client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
+                client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
         return BadDrawable;
 
     if(!(gc = (PanoramiXRes *)SecurityLookupIDByType(
-                client, stuff->gc, XRT_GC, SecurityReadAccess)))
+                client, stuff->gc, XRT_GC, DixReadAccess)))
         return BadGC;
 
     isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
@@ -621,7 +621,7 @@ ProcPanoramiXShmGetImage(ClientPtr client)
     }
 
     if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
-		client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
+		client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
 	return BadDrawable;
 
     if (draw->type == XRT_PIXMAP)

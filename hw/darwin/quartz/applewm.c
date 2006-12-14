@@ -268,7 +268,7 @@ ProcAppleWMSelectInput (client)
 
     REQUEST_SIZE_MATCH (xAppleWMSelectInputReq);
     pHead = (WMEventPtr *)SecurityLookupIDByType(client,
-                        eventResource, EventType, SecurityWriteAccess);
+                        eventResource, EventType, DixWriteAccess);
     if (stuff->mask != 0) {
         if (pHead) {
             /* check for existing entry. */
@@ -491,7 +491,7 @@ ProcAppleWMSetWindowLevel(
     REQUEST_SIZE_MATCH(xAppleWMSetWindowLevelReq);
 
     if (!(pWin = SecurityLookupWindow((Drawable)stuff->window,
-                                      client, SecurityReadAccess)))
+                                      client, DixReadAccess)))
     {
         return BadValue;
     }
@@ -603,7 +603,7 @@ ProcAppleWMFrameDraw(
     REQUEST_AT_LEAST_SIZE(xAppleWMFrameDrawReq);
 
     if (!(pWin = SecurityLookupWindow((Drawable)stuff->window,
-                                      client, SecurityReadAccess)))
+                                      client, DixReadAccess)))
     {
         return BadValue;
     }
