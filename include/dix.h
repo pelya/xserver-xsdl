@@ -375,47 +375,40 @@ extern int CompareISOLatin1Lowered(
     unsigned char * /*b*/,
     int blen);
 
-#ifdef XACE
+extern int dixLookupWindow(
+    WindowPtr *result,
+    XID id,
+    ClientPtr client,
+    Mask access_mode);
 
-extern WindowPtr SecurityLookupWindow(
-    XID /*rid*/,
-    ClientPtr /*client*/,
-    Mask /*access_mode*/);
+extern int dixLookupDrawable(
+    DrawablePtr *result,
+    XID id,
+    ClientPtr client,
+    Mask type_mask,
+    Mask access_mode);
 
-extern pointer SecurityLookupDrawable(
-    XID /*rid*/,
-    ClientPtr /*client*/,
-    Mask /*access_mode*/);
+extern int dixLookupGC(
+    GCPtr *result,
+    XID id,
+    ClientPtr client,
+    Mask access_mode);
 
-extern WindowPtr LookupWindow(
-    XID /*rid*/,
-    ClientPtr /*client*/);
+extern int dixLookupClient(
+    ClientPtr *result,
+    XID id,
+    ClientPtr client);
 
-extern pointer LookupDrawable(
-    XID /*rid*/,
-    ClientPtr /*client*/);
-
-#else
-
-extern WindowPtr LookupWindow(
-    XID /*rid*/,
-    ClientPtr /*client*/);
-
-extern pointer LookupDrawable(
-    XID /*rid*/,
-    ClientPtr /*client*/);
-
-#define SecurityLookupWindow(rid, client, access_mode) \
-	LookupWindow(rid, client)
-
-#define SecurityLookupDrawable(rid, client, access_mode) \
-	LookupDrawable(rid, client)
-
-#endif /* XACE */
-
-extern ClientPtr LookupClient(
-    XID /*rid*/,
-    ClientPtr /*client*/);
+/*
+ * These are deprecated compatibility functions and will be removed soon!
+ * Please use the new dixLookup*() functions above.
+ */
+extern WindowPtr SecurityLookupWindow(XID, ClientPtr, Mask);
+extern WindowPtr LookupWindow(XID, ClientPtr);
+extern pointer SecurityLookupDrawable(XID, ClientPtr, Mask);
+extern pointer LookupDrawable(XID, ClientPtr);
+extern ClientPtr LookupClient(XID, ClientPtr);
+/* end deprecated functions */
 
 extern void NoopDDA(void);
 
