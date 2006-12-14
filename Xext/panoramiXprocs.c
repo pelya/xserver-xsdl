@@ -531,10 +531,14 @@ int PanoramiXGetGeometry(ClientPtr client)
 {
     xGetGeometryReply 	 rep;
     DrawablePtr pDraw;
+    int rc;
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    VERIFY_GEOMETRABLE (pDraw, stuff->id, client);
+    rc = dixLookupDrawable(&pDraw, stuff->id, client, M_ANY, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
+
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;

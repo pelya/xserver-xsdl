@@ -447,7 +447,6 @@ ProcXF86BigfontQueryFont(
     pFont = (FontPtr)SecurityLookupIDByType(client, stuff->id, RT_FONT,
 					    DixReadAccess);
     if (!pFont) {
-	/* can't use VERIFY_GC because it might return BadGC */
 	GC *pGC = (GC *) SecurityLookupIDByType(client, stuff->id, RT_GC,
 						DixReadAccess);
         if (!pGC) {

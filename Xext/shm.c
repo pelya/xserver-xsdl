@@ -727,7 +727,7 @@ ProcPanoramiXShmCreatePixmap(
     PixmapPtr pMap = NULL;
     DrawablePtr pDraw;
     DepthPtr pDepth;
-    int i, j, result;
+    int i, j, result, rc;
     ShmDescPtr shmdesc;
     REQUEST(xShmCreatePixmapReq);
     PanoramiXRes *newPix;
@@ -737,7 +737,11 @@ ProcPanoramiXShmCreatePixmap(
     if (!sharedPixmaps)
 	return BadImplementation;
     LEGAL_NEW_RESOURCE(stuff->pid, client);
-    VERIFY_GEOMETRABLE(pDraw, stuff->drawable, client);
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, M_ANY,
+			   DixUnknownAccess);
+    if (rc != Success)
+	return rc;
+
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, TRUE, shmdesc, client);
     if (!stuff->width || !stuff->height)
     {
@@ -1052,9 +1056,9 @@ ProcShmCreatePixmap(client)
     register ClientPtr client;
 {
     PixmapPtr pMap;
-    register DrawablePtr pDraw;
+    DrawablePtr pDraw;
     DepthPtr pDepth;
-    register int i;
+    register int i, rc;
     ShmDescPtr shmdesc;
     REQUEST(xShmCreatePixmapReq);
 
@@ -1063,7 +1067,11 @@ ProcShmCreatePixmap(client)
     if (!sharedPixmaps)
 	return BadImplementation;
     LEGAL_NEW_RESOURCE(stuff->pid, client);
-    VERIFY_GEOMETRABLE(pDraw, stuff->drawable, client);
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, M_ANY,
+			   DixUnknownAccess);
+    if (rc != Success)
+	return rc;
+
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, TRUE, shmdesc, client);
     if (!stuff->width || !stuff->height)
     {
