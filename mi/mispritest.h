@@ -88,9 +88,7 @@ typedef struct {
     VisualPtr	    pVisual;
     miSpriteCursorFuncPtr    funcs;
     DamagePtr	    pDamage;		/* damage tracking structure */
-#ifdef MPX
-    miCursorInfoPtr mpCursors;         /* all cursor's info */
-#endif
+    miCursorInfoPtr pDevCursors;         /* all cursors' info */
 } miSpriteScreenRec, *miSpriteScreenPtr;
 
 #define SOURCE_COLOR	0

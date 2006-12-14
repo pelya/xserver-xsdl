@@ -4589,13 +4589,16 @@ CheckCursorConfinement(WindowPtr pWin)
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-        grab = pDev->grab;
-        if (grab && (confineTo = grab->confineTo))
+        if (MPHasCursor(pDev))
         {
-            if (!BorderSizeNotEmpty(pDev, confineTo))
-                (*inputInfo.pointer->DeactivateGrab)(pDev);
-            else if ((pWin == confineTo) || IsParent(pWin, confineTo))
-                ConfineCursorToWindow(pDev, confineTo, TRUE, TRUE);
+            grab = pDev->grab;
+            if (grab && (confineTo = grab->confineTo))
+            {
+                if (!BorderSizeNotEmpty(pDev, confineTo))
+                    (*inputInfo.pointer->DeactivateGrab)(pDev);
+                else if ((pWin == confineTo) || IsParent(pWin, confineTo))
+                    ConfineCursorToWindow(pDev, confineTo, TRUE, TRUE);
+            }
         }
     }
 }

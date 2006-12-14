@@ -1,4 +1,22 @@
-MPX Changelog file
+== 14.12.06 ==
+mi:     removing MPX ifdefs
+	global sprite renaming in mipointer and misprite
+	fixed: multiple remove cursor call in miSpriteInstallColormap
+	fixed: wrong core pointer usage in miSpriteStoreColors
+
+dix:    bugfix in CheckCursorConfinement
+	removing MPX ifdefs
+	removing MPX event generation (using Xi solely now)
+
+Files:
+	mi/midispcur.c
+	mi/misprite.c
+	mi/mispritest.h
+	mi/mipointer.c
+	dix/getevents.c
+	dix/events.c
+	dix/cursor.c
+
 == 12.12.06 ==
 dix:    Moving SpriteRec into DeviceIntRec
 	removing global sprite structure

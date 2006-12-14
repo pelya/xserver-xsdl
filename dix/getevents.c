@@ -66,12 +66,6 @@ extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
 #include "exglobals.h"
 #include "extnsionst.h"
 
-#ifdef MPX
-#include <X11/extensions/MPXconst.h>
-#include <X11/extensions/MPXproto.h>
-#include "mpxglobals.h"
-#endif
-
 /* Maximum number of valuators, divided by six, rounded up, to get number
  * of events. */
 #define MAX_VALUATOR_EVENTS 6
@@ -505,12 +499,8 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
 
     if ((type == ButtonPress || type == ButtonRelease) && !pDev->button)
         return 0;
-#ifdef MPX
-    if (pDev->isMPDev)
-        num_events = 3;
-    else
-#endif
-    if (pDev->coreEvents)
+
+    if (pDev->coreEvents || pDev->isMPDev)
         num_events = 2;
     else
         num_events = 1;
@@ -537,15 +527,10 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     kbp->time = ms;
     kbp->deviceid = pDev->id;
 
-#ifdef MPX
-    if (pDev->isMPDev)
+    if (!pDev->coreEvents || pDev->isMPDev)
         pointer = pDev;
-    else
-#endif
-    if (pDev->coreEvents)
+    else 
         pointer = inputInfo.pointer;
-    else
-        pointer = pDev;
 
     /* Set x and y based on whether this is absolute or relative, and
      * accelerate if we need to. */
@@ -598,16 +583,10 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
 
     updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
 
-#ifdef MPX
-    if (pDev->isMPDev)
-    {
-        // noop, just less intrusive to fit MPX in like that
-    } else
-#endif
-    if (pDev->coreEvents) {
+    if (pDev->coreEvents && !pDev->isMPDev) {
         /* set the virtual core pointer's coordinates */
-        pointer->valuator->lastx = x;
-        pointer->valuator->lasty = y;
+        inputInfo.pointer->valuator->lastx = x;
+        inputInfo.pointer->valuator->lasty = y;
     }
     pDev->valuator->lastx = x;
     pDev->valuator->lasty = y;
@@ -634,31 +613,8 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
                                    num_valuators, valuators);
     }
 
-#ifdef MPX
-    if (pDev->isMPDev)
-    {
-        /* MPX events are the same as XI events but without valuators. */
-        memcpy(events, kbp, sizeof(deviceKeyButtonPointer));
-        switch(type)
-        {
-            case ButtonPress:
-                events->u.u.type = MPXButtonPress;
-                break;
-            case ButtonRelease:
-                events->u.u.type = MPXButtonRelease;
-                break;
-            case MotionNotify:
-                events->u.u.type = MPXMotionNotify;
-                break;
-        }
-        events++;
-    }
-
     /* MPX devices always send core events */
     if (pDev->coreEvents || pDev->isMPDev) {
-#else
-    if (pDev->coreEvents) {
-#endif
         events->u.u.type = type;
         events->u.keyButtonPointer.time = ms;
         events->u.keyButtonPointer.rootX = x;
