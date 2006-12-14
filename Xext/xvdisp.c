@@ -717,15 +717,14 @@ ProcXvGetStill(ClientPtr client)
 static int
 ProcXvSelectVideoNotify(ClientPtr client)
 {
-  register DrawablePtr pDraw;
+  DrawablePtr pDraw;
+  int rc;
   REQUEST(xvSelectVideoNotifyReq);
   REQUEST_SIZE_MATCH(xvSelectVideoNotifyReq);
 
-  if(!(pDraw = (DrawablePtr)LOOKUP_DRAWABLE(stuff->drawable, client) ))
-    {
-      client->errorValue = stuff->drawable;
-      return (BadWindow);
-    }
+  rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0, DixUnknownAccess);
+  if (rc != Success)
+    return rc;
 
   return XVCALL(diSelectVideoNotify)(client, pDraw, stuff->onoff);
 
@@ -822,8 +821,8 @@ ProcXvUngrabPort(ClientPtr client)
 static int
 ProcXvStopVideo(ClientPtr client)
 {
-  int status;
-  register DrawablePtr pDraw;
+  int status, rc;
+  DrawablePtr pDraw;
   XvPortPtr pPort;
   REQUEST(xvStopVideoReq);
   REQUEST_SIZE_MATCH(xvStopVideoReq);
@@ -840,11 +839,9 @@ ProcXvStopVideo(ClientPtr client)
       return (status);
     }
 
-  if(!(pDraw = LOOKUP_DRAWABLE(stuff->drawable, client) ))
-    {
-      client->errorValue = stuff->drawable;
-      return (BadDrawable);
-    }
+  rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0, DixUnknownAccess);
+  if (rc != Success)
+    return rc;
 
   return XVCALL(diStopVideo)(client, pPort, pDraw);
 

@@ -1028,10 +1028,14 @@ int PanoramiXCopyArea(ClientPtr client)
 	DrawablePtr pDst;
 	GCPtr pGC;
         char *data;
-	int pitch;
+	int pitch, rc;
 
-	FOR_NSCREENS(j)
-	    VERIFY_DRAWABLE(drawables[j], src->info[j].id, client);
+	FOR_NSCREENS(j) {
+	    rc = dixLookupDrawable(drawables+j, src->info[j].id, client, 0,
+				   DixUnknownAccess);
+	    if (rc != Success)
+		return rc;
+	}
 
 	pitch = PixmapBytePad(stuff->width, drawables[0]->depth); 
 	if(!(data = xcalloc(1, stuff->height * pitch)))
@@ -1754,7 +1758,7 @@ int PanoramiXGetImage(ClientPtr client)
     xGetImageReply	xgi;
     Bool		isRoot;
     char		*pBuf;
-    int         	i, x, y, w, h, format;
+    int         	i, x, y, w, h, format, rc;
     Mask		plane = 0, planemask;
     int			linesDone, nlines, linesPerBuf;
     long		widthBytesLine, length;
@@ -1775,7 +1779,10 @@ int PanoramiXGetImage(ClientPtr client)
     if(draw->type == XRT_PIXMAP)
 	return (*SavedProcVector[X_GetImage])(client);
 
-    VERIFY_DRAWABLE(pDraw, stuff->drawable, client);
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
+			   DixUnknownAccess);
+    if (rc != Success)
+	return rc;
 
     if(!((WindowPtr)pDraw)->realized)
 	return(BadMatch);
@@ -1809,8 +1816,12 @@ int PanoramiXGetImage(ClientPtr client)
     }
 
     drawables[0] = pDraw;
-    for(i = 1; i < PanoramiXNumScreens; i++)
-	VERIFY_DRAWABLE(drawables[i], draw->info[i].id, client);
+    for(i = 1; i < PanoramiXNumScreens; i++) {
+	rc = dixLookupDrawable(drawables+i, draw->info[i].id, client, 0,
+			       DixUnknownAccess);
+	if (rc != Success)
+	    return rc;
+    }
 
     xgi.visual = wVisual (((WindowPtr) pDraw));
     xgi.type = X_Reply;

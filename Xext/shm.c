@@ -606,7 +606,7 @@ ProcPanoramiXShmGetImage(ClientPtr client)
     DrawablePtr 	pDraw;
     xShmGetImageReply	xgi;
     ShmDescPtr		shmdesc;
-    int         	i, x, y, w, h, format;
+    int         	i, x, y, w, h, format, rc;
     Mask		plane = 0, planemask;
     long		lenPer = 0, length, widthBytesLine;
     Bool		isRoot;
@@ -627,7 +627,10 @@ ProcPanoramiXShmGetImage(ClientPtr client)
     if (draw->type == XRT_PIXMAP)
 	return ProcShmGetImage(client);
 
-    VERIFY_DRAWABLE(pDraw, stuff->drawable, client);
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
+			   DixUnknownAccess);
+    if (rc != Success)
+	return rc;
 
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, TRUE, shmdesc, client);
 
@@ -660,8 +663,12 @@ ProcPanoramiXShmGetImage(ClientPtr client)
     }
 
     drawables[0] = pDraw;
-    for(i = 1; i < PanoramiXNumScreens; i++)
-	VERIFY_DRAWABLE(drawables[i], draw->info[i].id, client);
+    for(i = 1; i < PanoramiXNumScreens; i++) {
+	rc = dixLookupDrawable(drawables+i, draw->info[i].id, client, 0, 
+			       DixUnknownAccess);
+	if (rc != Success)
+	    return rc;
+    }
 
     xgi.visual = wVisual(((WindowPtr)pDraw));
     xgi.type = X_Reply;
@@ -909,12 +916,12 @@ static int
 ProcShmGetImage(client)
     register ClientPtr client;
 {
-    register DrawablePtr pDraw;
+    DrawablePtr		pDraw;
     long		lenPer = 0, length;
     Mask		plane = 0;
     xShmGetImageReply	xgi;
     ShmDescPtr		shmdesc;
-    int			n;
+    int			n, rc;
 
     REQUEST(xShmGetImageReq);
 
@@ -924,7 +931,10 @@ ProcShmGetImage(client)
 	client->errorValue = stuff->format;
         return(BadValue);
     }
-    VERIFY_DRAWABLE(pDraw, stuff->drawable, client);
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
+			   DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, TRUE, shmdesc, client);
     if (pDraw->type == DRAWABLE_WINDOW)
     {
