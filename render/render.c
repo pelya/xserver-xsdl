@@ -614,15 +614,17 @@ ProcRenderCreatePicture (ClientPtr client)
     PicturePtr	    pPicture;
     DrawablePtr	    pDrawable;
     PictFormatPtr   pFormat;
-    int		    len;
-    int		    error;
+    int		    len, error, rc;
     REQUEST(xRenderCreatePictureReq);
 
     REQUEST_AT_LEAST_SIZE(xRenderCreatePictureReq);
 
     LEGAL_NEW_RESOURCE(stuff->pid, client);
-    SECURITY_VERIFY_DRAWABLE(pDrawable, stuff->drawable, client,
-			     DixWriteAccess);
+    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
+			   DixWriteAccess);
+    if (rc != Success)
+	return rc;
+
     pFormat = (PictFormatPtr) SecurityLookupIDByType (client, 
 						      stuff->format,
 						      PictFormatType,
@@ -1687,14 +1689,15 @@ ProcRenderQueryFilters (ClientPtr client)
     int				nnames;
     ScreenPtr			pScreen;
     PictureScreenPtr		ps;
-    int				i, j;
-    int				len;
-    int				total_bytes;
+    int				i, j, len, total_bytes, rc;
     INT16			*aliases;
     char			*names;
 
     REQUEST_SIZE_MATCH(xRenderQueryFiltersReq);
-    SECURITY_VERIFY_DRAWABLE(pDrawable, stuff->drawable, client, DixReadAccess);
+    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
+			   DixReadAccess);
+    if (rc != Success)
+	return rc;
     
     pScreen = pDrawable->pScreen;
     nbytesName = 0;

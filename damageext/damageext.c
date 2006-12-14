@@ -173,13 +173,17 @@ ProcDamageCreate (ClientPtr client)
     DamageExtPtr	pDamageExt;
     DamageReportLevel	level;
     RegionPtr		pRegion;
+    int			rc;
     
     REQUEST(xDamageCreateReq);
 
     REQUEST_SIZE_MATCH(xDamageCreateReq);
     LEGAL_NEW_RESOURCE(stuff->damage, client);
-    SECURITY_VERIFY_DRAWABLE (pDrawable, stuff->drawable, client,
-			      DixReadAccess);
+    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
+			   DixReadAccess);
+    if (rc != Success)
+	return rc;
+
     switch (stuff->level) {
     case XDamageReportRawRectangles:
 	level = DamageReportRawRegion;

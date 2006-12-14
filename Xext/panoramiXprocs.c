@@ -1069,6 +1069,7 @@ int PanoramiXCopyArea(ClientPtr client)
 	DrawablePtr pDst = NULL, pSrc = NULL;
 	GCPtr pGC = NULL;
 	RegionPtr pRgn[MAXSCREENS];
+	int rc;
 
 	FOR_NSCREENS_BACKWARD(j) {
 	    stuff->dstDrawable = dst->info[j].id;
@@ -1085,8 +1086,11 @@ int PanoramiXCopyArea(ClientPtr client)
 
 	    VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pDst, pGC, client); 
 	    if (stuff->dstDrawable != stuff->srcDrawable) {
-		SECURITY_VERIFY_DRAWABLE(pSrc, stuff->srcDrawable, client,
-                                 DixReadAccess);
+		rc = dixLookupDrawable(&pSrc, stuff->srcDrawable, client, 0,
+				       DixReadAccess);
+		if (rc != Success)
+		    return rc;
+
 		if ((pDst->pScreen != pSrc->pScreen) || 
 		    (pDst->depth != pSrc->depth)) {
 			client->errorValue = stuff->dstDrawable;
@@ -1137,7 +1141,7 @@ int PanoramiXCopyArea(ClientPtr client)
 
 int PanoramiXCopyPlane(ClientPtr client)
 {
-    int			j, srcx, srcy, dstx, dsty;
+    int			j, srcx, srcy, dstx, dsty, rc;
     PanoramiXRes	*gc, *src, *dst;
     Bool		srcIsRoot = FALSE;
     Bool		dstIsRoot = FALSE;
@@ -1191,8 +1195,11 @@ int PanoramiXCopyPlane(ClientPtr client)
 
 	VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pdstDraw, pGC, client);
 	if (stuff->dstDrawable != stuff->srcDrawable) {
-	    SECURITY_VERIFY_DRAWABLE(psrcDraw, stuff->srcDrawable, client,
-                                 DixReadAccess);
+	    rc = dixLookupDrawable(&psrcDraw, stuff->srcDrawable, client, 0,
+				   DixReadAccess);
+	    if (rc != Success)
+		return rc;
+
             if (pdstDraw->pScreen != psrcDraw->pScreen) {
 		client->errorValue = stuff->dstDrawable;
 		return (BadMatch);

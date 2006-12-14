@@ -1597,17 +1597,19 @@ ProcFreePixmap(register ClientPtr client)
 int
 ProcCreateGC(register ClientPtr client)
 {
-    int error;
+    int error, rc;
     GC *pGC;
-    register DrawablePtr pDraw;
+    DrawablePtr pDraw;
     unsigned len;
     REQUEST(xCreateGCReq);
 
     REQUEST_AT_LEAST_SIZE(xCreateGCReq);
     client->errorValue = stuff->gc;
     LEGAL_NEW_RESOURCE(stuff->gc, client);
-    SECURITY_VERIFY_DRAWABLE (pDraw, stuff->drawable, client,
-			      DixReadAccess);
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0, DixReadAccess);
+    if (rc != Success)
+	return rc;
+
     len = client->req_len -  (sizeof(xCreateGCReq) >> 2);
     if (len != Ones(stuff->mask))
         return BadLength;
@@ -1766,18 +1768,21 @@ int
 ProcCopyArea(register ClientPtr client)
 {
     register DrawablePtr pDst;
-    register DrawablePtr pSrc;
+    DrawablePtr pSrc;
     register GC *pGC;
     REQUEST(xCopyAreaReq);
     RegionPtr pRgn;
+    int rc;
 
     REQUEST_SIZE_MATCH(xCopyAreaReq);
 
     VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pDst, pGC, client); 
     if (stuff->dstDrawable != stuff->srcDrawable)
     {
-	SECURITY_VERIFY_DRAWABLE(pSrc, stuff->srcDrawable, client,
+	rc = dixLookupDrawable(&pSrc, stuff->srcDrawable, client, 0,
 				 DixReadAccess);
+	if (rc != Success)
+	    return rc;
 	if ((pDst->pScreen != pSrc->pScreen) || (pDst->depth != pSrc->depth))
 	{
 	    client->errorValue = stuff->dstDrawable;
@@ -1806,18 +1811,22 @@ ProcCopyArea(register ClientPtr client)
 int
 ProcCopyPlane(register ClientPtr client)
 {
-    register DrawablePtr psrcDraw, pdstDraw;
+    DrawablePtr psrcDraw, pdstDraw;
     register GC *pGC;
     REQUEST(xCopyPlaneReq);
     RegionPtr pRgn;
+    int rc;
 
     REQUEST_SIZE_MATCH(xCopyPlaneReq);
 
     VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pdstDraw, pGC, client);
     if (stuff->dstDrawable != stuff->srcDrawable)
     {
-	SECURITY_VERIFY_DRAWABLE(psrcDraw, stuff->srcDrawable, client,
-				 DixReadAccess);
+	rc = dixLookupDrawable(&psrcDraw, stuff->srcDrawable, client, 0,
+			       DixReadAccess);
+	if (rc != Success)
+	    return rc;
+
 	if (pdstDraw->pScreen != psrcDraw->pScreen)
 	{
 	    client->errorValue = stuff->dstDrawable;
@@ -2142,8 +2151,8 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
            int x, int y, int width, int height, 
            Mask planemask, xGetImageReply **im_return)
 {
-    register DrawablePtr pDraw;
-    int			nlines, linesPerBuf;
+    DrawablePtr		pDraw;
+    int			nlines, linesPerBuf, rc;
     register int	linesDone;
     long		widthBytesLine, length;
     Mask		plane = 0;
@@ -2156,7 +2165,10 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
 	client->errorValue = format;
         return(BadValue);
     }
-    SECURITY_VERIFY_DRAWABLE(pDraw, drawable, client, DixReadAccess);
+    rc = dixLookupDrawable(&pDraw, drawable, client, 0, DixReadAccess);
+    if (rc != Success)
+	return rc;
+
     if(pDraw->type == DRAWABLE_WINDOW)
     {
       if( /* check for being viewable */

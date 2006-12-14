@@ -703,7 +703,7 @@ ProcRRSetScreenConfig (ClientPtr client)
     REQUEST(xRRSetScreenConfigReq);
     xRRSetScreenConfigReply rep;
     DrawablePtr		    pDraw;
-    int			    n;
+    int			    n, rc;
     ScreenPtr		    pScreen;
     rrScrPrivPtr	    pScrPriv;
     TimeStamp		    configTime;
@@ -730,8 +730,9 @@ ProcRRSetScreenConfig (ClientPtr client)
 	has_rate = FALSE;
     }
     
-    SECURITY_VERIFY_DRAWABLE(pDraw, stuff->drawable, client,
-			     DixWriteAccess);
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0, DixWriteAccess);
+    if (rc != Success)
+	return rc;
 
     pScreen = pDraw->pScreen;
 
