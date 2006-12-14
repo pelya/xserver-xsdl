@@ -298,7 +298,7 @@ _X_EXPORT pointer
 SecurityLookupDrawable(XID id, ClientPtr client, Mask access_mode)
 {
     DrawablePtr pDraw;
-    int i = dixLookupDrawable(&pDraw, id, client, access_mode, TRUE);
+    int i = dixLookupDrawable(&pDraw, id, client, M_DRAWABLE, access_mode);
     return (i == Success) ? pDraw : NULL;
 }
 
