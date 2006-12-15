@@ -865,7 +865,7 @@ ProcDbeGetVisualInfo(ClientPtr client)
     xDbeGetVisualInfoReply	rep;
     Drawable			*drawables;
     DrawablePtr			*pDrawables = NULL;
-    register int		i, j, n;
+    register int		i, j, n, rc;
     register int		count;  /* number of visual infos in reply */
     register int		length; /* length of reply */
     ScreenPtr			pScreen;
@@ -887,11 +887,11 @@ ProcDbeGetVisualInfo(ClientPtr client)
 
         for (i = 0; i < stuff->n; i++)
         {
-            if (!(pDrawables[i] = (DrawablePtr)SecurityLookupDrawable(
-				drawables[i], client, DixReadAccess)))
-            {
+	    rc = dixLookupDrawable(pDrawables+i, drawables[i], client, 0,
+				   DixReadAccess);
+	    if (rc != Success) {
                 DEALLOCATE_LOCAL(pDrawables);
-                return(BadDrawable);
+                return rc;
             }
         }
     }
