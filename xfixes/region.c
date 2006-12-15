@@ -220,12 +220,15 @@ ProcXFixesCreateRegionFromGC (ClientPtr client)
 {
     RegionPtr	pRegion, pClip;
     GCPtr	pGC;
+    int 	rc;
     REQUEST (xXFixesCreateRegionFromGCReq);
 
     REQUEST_SIZE_MATCH (xXFixesCreateRegionFromGCReq);
     LEGAL_NEW_RESOURCE (stuff->region, client);
 
-    SECURITY_VERIFY_GC(pGC, stuff->gc, client, DixReadAccess);
+    rc = dixLookupGC(&pGC, stuff->gc, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
     
     switch (pGC->clientClipType) {
     case CT_PIXMAP:
@@ -630,10 +633,14 @@ ProcXFixesSetGCClipRegion (ClientPtr client)
     GCPtr	pGC;
     RegionPtr	pRegion;
     XID		vals[2];
+    int		rc;
     REQUEST(xXFixesSetGCClipRegionReq);
-
     REQUEST_SIZE_MATCH(xXFixesSetGCClipRegionReq);
-    SECURITY_VERIFY_GC(pGC, stuff->gc, client, DixWriteAccess);
+
+    rc = dixLookupGC(&pGC, stuff->gc, client, DixWriteAccess);
+    if (rc != Success)
+	return rc;
+
     VERIFY_REGION_OR_NONE (pRegion, stuff->region, client, DixReadAccess);
 
     if (pRegion)

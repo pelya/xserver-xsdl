@@ -531,9 +531,9 @@ ProcXvQueryEncodings(ClientPtr client)
 static int
 ProcXvPutVideo(ClientPtr client)
 {
-  register DrawablePtr pDraw;
+  DrawablePtr pDraw;
   XvPortPtr pPort;
-  register GCPtr pGC;
+  GCPtr pGC;
   int status;
 
   REQUEST(xvPutVideoReq);
@@ -577,9 +577,9 @@ ProcXvPutVideo(ClientPtr client)
 static int
 ProcXvPutStill(ClientPtr client)
 {
-  register DrawablePtr pDraw;
+  DrawablePtr pDraw;
   XvPortPtr pPort;
-  register GCPtr pGC;
+  GCPtr pGC;
   int status;
 
   REQUEST(xvPutStillReq);
@@ -624,9 +624,9 @@ ProcXvPutStill(ClientPtr client)
 static int
 ProcXvGetVideo(ClientPtr client)
 {
-  register DrawablePtr pDraw;
+  DrawablePtr pDraw;
   XvPortPtr pPort;
-  register GCPtr pGC;
+  GCPtr pGC;
   int status;
 
   REQUEST(xvGetVideoReq);
@@ -671,9 +671,9 @@ ProcXvGetVideo(ClientPtr client)
 static int
 ProcXvGetStill(ClientPtr client)
 {
-  register DrawablePtr pDraw;
+  DrawablePtr pDraw;
   XvPortPtr pPort;
-  register GCPtr pGC;
+  GCPtr pGC;
   int status;
 
   REQUEST(xvGetStillReq);

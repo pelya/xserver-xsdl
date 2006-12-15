@@ -816,8 +816,8 @@ static int
 ProcShmPutImage(client)
     register ClientPtr client;
 {
-    register GCPtr pGC;
-    register DrawablePtr pDraw;
+    GCPtr pGC;
+    DrawablePtr pDraw;
     long length;
     ShmDescPtr shmdesc;
     REQUEST(xShmPutImageReq);

@@ -843,11 +843,15 @@ ProcCirculateWindow(register ClientPtr client)
 int
 GetGeometry(register ClientPtr client, xGetGeometryReply *rep)
 {
-    register DrawablePtr pDraw;
+    DrawablePtr pDraw;
+    int rc;
     REQUEST(xResourceReq);
-
     REQUEST_SIZE_MATCH(xResourceReq);
-    SECURITY_VERIFY_GEOMETRABLE (pDraw, stuff->id, client, DixReadAccess);
+
+    rc = dixLookupDrawable(&pDraw, stuff->id, client, M_ANY, DixReadAccess);
+    if (rc != Success)
+	return rc;
+
     rep->type = X_Reply;
     rep->length = 0;
     rep->sequenceNumber = client->sequence;
@@ -1516,16 +1520,20 @@ int
 ProcCreatePixmap(register ClientPtr client)
 {
     PixmapPtr pMap;
-    register DrawablePtr pDraw;
+    DrawablePtr pDraw;
     REQUEST(xCreatePixmapReq);
     DepthPtr pDepth;
-    register int i;
+    register int i, rc;
 
     REQUEST_SIZE_MATCH(xCreatePixmapReq);
     client->errorValue = stuff->pid;
     LEGAL_NEW_RESOURCE(stuff->pid, client);
-    SECURITY_VERIFY_GEOMETRABLE (pDraw, stuff->drawable, client,
-				 DixReadAccess);
+    
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, M_ANY,
+			   DixReadAccess);
+    if (rc != Success)
+	return rc;
+
     if (!stuff->width || !stuff->height)
     {
 	client->errorValue = 0;
@@ -1625,12 +1633,15 @@ int
 ProcChangeGC(register ClientPtr client)
 {
     GC *pGC;
-    REQUEST(xChangeGCReq);
     int result;
     unsigned len;
-		
+    REQUEST(xChangeGCReq);
     REQUEST_AT_LEAST_SIZE(xChangeGCReq);
-    SECURITY_VERIFY_GC(pGC, stuff->gc, client, DixWriteAccess);
+
+    result = dixLookupGC(&pGC, stuff->gc, client, DixWriteAccess);
+    if (result != Success)
+	return result;
+
     len = client->req_len -  (sizeof(xChangeGCReq) >> 2);
     if (len != Ones(stuff->mask))
         return BadLength;
@@ -1648,14 +1659,18 @@ ProcChangeGC(register ClientPtr client)
 int
 ProcCopyGC(register ClientPtr client)
 {
-    register GC *dstGC;
-    register GC *pGC;
+    GC *dstGC;
+    GC *pGC;
     int result;
     REQUEST(xCopyGCReq);
-
     REQUEST_SIZE_MATCH(xCopyGCReq);
-    SECURITY_VERIFY_GC( pGC, stuff->srcGC, client, DixReadAccess);
-    SECURITY_VERIFY_GC( dstGC, stuff->dstGC, client, DixWriteAccess);
+
+    result = dixLookupGC(&pGC, stuff->srcGC, client, DixReadAccess);
+    if (result != Success)
+	return result;
+    result = dixLookupGC(&dstGC, stuff->dstGC, client, DixWriteAccess);
+    if (result != Success)
+	return result;
     if ((dstGC->pScreen != pGC->pScreen) || (dstGC->depth != pGC->depth))
         return (BadMatch);    
     result = CopyGC(pGC, dstGC, stuff->mask);
@@ -1671,7 +1686,7 @@ ProcCopyGC(register ClientPtr client)
 int
 ProcSetDashes(register ClientPtr client)
 {
-    register GC *pGC;
+    GC *pGC;
     int result;
     REQUEST(xSetDashesReq);
 
@@ -1682,7 +1697,9 @@ ProcSetDashes(register ClientPtr client)
          return BadValue;
     }
 
-    SECURITY_VERIFY_GC(pGC,stuff->gc, client, DixWriteAccess);
+    result = dixLookupGC(&pGC,stuff->gc, client, DixWriteAccess);
+    if (result != Success)
+	return result;
 
     result = SetDashes(pGC, stuff->dashOffset, stuff->nDashes,
 		       (unsigned char *)&stuff[1]);
@@ -1698,9 +1715,8 @@ ProcSetDashes(register ClientPtr client)
 int
 ProcSetClipRectangles(register ClientPtr client)
 {
-    int	nr;
-    int result;
-    register GC *pGC;
+    int	nr, result;
+    GC *pGC;
     REQUEST(xSetClipRectanglesReq);
 
     REQUEST_AT_LEAST_SIZE(xSetClipRectanglesReq);
@@ -1710,7 +1726,9 @@ ProcSetClipRectangles(register ClientPtr client)
 	client->errorValue = stuff->ordering;
         return BadValue;
     }
-    SECURITY_VERIFY_GC(pGC,stuff->gc, client, DixWriteAccess);
+    result = dixLookupGC(&pGC,stuff->gc, client, DixWriteAccess);
+    if (result != Success)
+	return result;
 		 
     nr = (client->req_len << 2) - sizeof(xSetClipRectanglesReq);
     if (nr & 4)
@@ -1727,11 +1745,15 @@ ProcSetClipRectangles(register ClientPtr client)
 int
 ProcFreeGC(register ClientPtr client)
 {
-    register GC *pGC;
+    GC *pGC;
+    int rc;
     REQUEST(xResourceReq);
-
     REQUEST_SIZE_MATCH(xResourceReq);
-    SECURITY_VERIFY_GC(pGC, stuff->id, client, DixDestroyAccess);
+
+    rc = dixLookupGC(&pGC, stuff->id, client, DixDestroyAccess);
+    if (rc != Success)
+	return rc;
+
     FreeResource(stuff->id, RT_NONE);
     return(client->noClientException);
 }
@@ -1766,9 +1788,9 @@ ProcClearToBackground(register ClientPtr client)
 int
 ProcCopyArea(register ClientPtr client)
 {
-    register DrawablePtr pDst;
+    DrawablePtr pDst;
     DrawablePtr pSrc;
-    register GC *pGC;
+    GC *pGC;
     REQUEST(xCopyAreaReq);
     RegionPtr pRgn;
     int rc;
@@ -1811,7 +1833,7 @@ int
 ProcCopyPlane(register ClientPtr client)
 {
     DrawablePtr psrcDraw, pdstDraw;
-    register GC *pGC;
+    GC *pGC;
     REQUEST(xCopyPlaneReq);
     RegionPtr pRgn;
     int rc;
@@ -1862,8 +1884,8 @@ int
 ProcPolyPoint(register ClientPtr client)
 {
     int npoint;
-    register GC *pGC;
-    register DrawablePtr pDraw;
+    GC *pGC;
+    DrawablePtr pDraw;
     REQUEST(xPolyPointReq);
 
     REQUEST_AT_LEAST_SIZE(xPolyPointReq);
@@ -1885,8 +1907,8 @@ int
 ProcPolyLine(register ClientPtr client)
 {
     int npoint;
-    register GC *pGC;
-    register DrawablePtr pDraw;
+    GC *pGC;
+    DrawablePtr pDraw;
     REQUEST(xPolyLineReq);
 
     REQUEST_AT_LEAST_SIZE(xPolyLineReq);
@@ -1908,8 +1930,8 @@ int
 ProcPolySegment(register ClientPtr client)
 {
     int nsegs;
-    register GC *pGC;
-    register DrawablePtr pDraw;
+    GC *pGC;
+    DrawablePtr pDraw;
     REQUEST(xPolySegmentReq);
 
     REQUEST_AT_LEAST_SIZE(xPolySegmentReq);
@@ -1927,8 +1949,8 @@ int
 ProcPolyRectangle (register ClientPtr client)
 {
     int nrects;
-    register GC *pGC;
-    register DrawablePtr pDraw;
+    GC *pGC;
+    DrawablePtr pDraw;
     REQUEST(xPolyRectangleReq);
 
     REQUEST_AT_LEAST_SIZE(xPolyRectangleReq);
@@ -1947,8 +1969,8 @@ int
 ProcPolyArc(register ClientPtr client)
 {
     int		narcs;
-    register GC *pGC;
-    register DrawablePtr pDraw;
+    GC *pGC;
+    DrawablePtr pDraw;
     REQUEST(xPolyArcReq);
 
     REQUEST_AT_LEAST_SIZE(xPolyArcReq);
@@ -1966,8 +1988,8 @@ int
 ProcFillPoly(register ClientPtr client)
 {
     int          things;
-    register GC *pGC;
-    register DrawablePtr pDraw;
+    GC *pGC;
+    DrawablePtr pDraw;
     REQUEST(xFillPolyReq);
 
     REQUEST_AT_LEAST_SIZE(xFillPolyReq);
@@ -1997,8 +2019,8 @@ int
 ProcPolyFillRectangle(register ClientPtr client)
 {
     int             things;
-    register GC *pGC;
-    register DrawablePtr pDraw;
+    GC *pGC;
+    DrawablePtr pDraw;
     REQUEST(xPolyFillRectangleReq);
 
     REQUEST_AT_LEAST_SIZE(xPolyFillRectangleReq);
@@ -2018,8 +2040,8 @@ int
 ProcPolyFillArc(register ClientPtr client)
 {
     int		narcs;
-    register GC *pGC;
-    register DrawablePtr pDraw;
+    GC *pGC;
+    DrawablePtr pDraw;
     REQUEST(xPolyFillArcReq);
 
     REQUEST_AT_LEAST_SIZE(xPolyFillArcReq);
@@ -2090,8 +2112,8 @@ ReformatImage (char *base, int nbytes, int bpp, int order)
 int
 ProcPutImage(register ClientPtr client)
 {
-    register	GC *pGC;
-    register	DrawablePtr pDraw;
+    GC *pGC;
+    DrawablePtr pDraw;
     long	length; 	/* length of scanline server padded */
     long 	lengthProto; 	/* length of scanline protocol padded */
     char	*tmpImage;
@@ -2411,8 +2433,8 @@ int
 ProcImageText8(register ClientPtr client)
 {
     int	err;
-    register DrawablePtr pDraw;
-    register GC *pGC;
+    DrawablePtr pDraw;
+    GC *pGC;
 
     REQUEST(xImageTextReq);
 
@@ -2441,8 +2463,8 @@ int
 ProcImageText16(register ClientPtr client)
 {
     int	err;
-    register DrawablePtr pDraw;
-    register GC *pGC;
+    DrawablePtr pDraw;
+    GC *pGC;
 
     REQUEST(xImageTextReq);
 
@@ -3195,11 +3217,12 @@ int
 ProcQueryBestSize (register ClientPtr client)
 {
     xQueryBestSizeReply	reply;
-    register DrawablePtr pDraw;
+    DrawablePtr pDraw;
     ScreenPtr pScreen;
+    int rc;
     REQUEST(xQueryBestSizeReq);
-
     REQUEST_SIZE_MATCH(xQueryBestSizeReq);
+
     if ((stuff->class != CursorShape) && 
 	(stuff->class != TileShape) && 
 	(stuff->class != StippleShape))
@@ -3207,8 +3230,11 @@ ProcQueryBestSize (register ClientPtr client)
 	client->errorValue = stuff->class;
         return(BadValue);
     }
-    SECURITY_VERIFY_GEOMETRABLE (pDraw, stuff->drawable, client,
-				 DixReadAccess);
+
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, M_ANY,
+			   DixReadAccess);
+    if (rc != Success)
+	return rc;
     if (stuff->class != CursorShape && pDraw->type == UNDRAWABLE_WINDOW)
 	return (BadMatch);
     pScreen = pDraw->pScreen;

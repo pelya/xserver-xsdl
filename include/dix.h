@@ -239,10 +239,15 @@ SOFTWARE.
     if ((stuff->gc == INVALID) || (client->lastGCID != stuff->gc) ||\
 	(client->lastDrawableID != drawID))\
     {\
-	SECURITY_VERIFY_GEOMETRABLE(pDraw, drawID, client, DixWriteAccess);\
-	SECURITY_VERIFY_GC(pGC, stuff->gc, client, DixReadAccess);\
-	if ((pGC->depth != pDraw->depth) ||\
-	    (pGC->pScreen != pDraw->pScreen))\
+	int rc;\
+	rc = dixLookupDrawable(&(pDraw), drawID, client, M_ANY,\
+			       DixWriteAccess);\
+	if (rc != Success)\
+	    return rc;\
+	rc = dixLookupGC(&(pGC), stuff->gc, client, DixReadAccess);\
+	if (rc != Success)\
+	    return rc;\
+	if ((pGC->depth != pDraw->depth) || (pGC->pScreen != pDraw->pScreen))\
 	    return (BadMatch);\
 	client->lastDrawable = pDraw;\
 	client->lastDrawableID = drawID;\
