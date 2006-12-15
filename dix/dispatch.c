@@ -3388,7 +3388,8 @@ int
 ProcKillClient(register ClientPtr client)
 {
     REQUEST(xResourceReq);
-    ClientPtr	killclient;
+    ClientPtr killclient;
+    int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
     if (stuff->id == AllTemporary)
@@ -3397,8 +3398,8 @@ ProcKillClient(register ClientPtr client)
         return (client->noClientException);
     }
 
-    if ((killclient = LookupClient(stuff->id, client)))
-    {
+    rc = dixLookupClient(&killclient, stuff->id, client, DixDestroyAccess);
+    if (rc == Success) {
 	CloseDownClient(killclient);
 	/* if an LBX proxy gets killed, isItTimeToYield will be set */
 	if (isItTimeToYield || (client == killclient))
@@ -3412,10 +3413,7 @@ ProcKillClient(register ClientPtr client)
 	return (client->noClientException);
     }
     else
-    {
-	client->errorValue = stuff->id;
-	return (BadValue);
-    }
+	return rc;
 }
 
 int

@@ -301,7 +301,8 @@ extern int dixLookupGC(
 extern int dixLookupClient(
     ClientPtr *result,
     XID id,
-    ClientPtr client);
+    ClientPtr client,
+    Mask access_mode);
 
 /*
  * These are deprecated compatibility functions and will be removed soon!

@@ -485,10 +485,13 @@ int ProcXagQuery(
     ClientPtr pClient;
     AppGroupPtr pAppGrp;
     REQUEST (xXagQueryReq);
-    int n;
+    int n, rc;
 
     REQUEST_SIZE_MATCH (xXagQueryReq);
-    pClient = LookupClient (stuff->resource, client);
+    rc = dixLookupClient(&pClient, stuff->resource, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
+
     for (pAppGrp = appGrpList; pAppGrp != NULL; pAppGrp = pAppGrp->next)
 	for (n = 0; n < pAppGrp->nclients; n++)
 	    if (pAppGrp->clients[n] == pClient) {

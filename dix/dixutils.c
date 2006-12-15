@@ -262,11 +262,12 @@ dixLookupGC(GCPtr *pGC, XID id, ClientPtr client, Mask access)
 }
 
 _X_EXPORT int
-dixLookupClient(ClientPtr *pClient, XID rid, ClientPtr client)
+dixLookupClient(ClientPtr *pClient, XID rid, ClientPtr client, Mask access)
 {
     pointer pRes = (pointer)SecurityLookupIDByClass(client, rid, RC_ANY,
 						    DixReadAccess);
     int clientIndex = CLIENT_ID(rid);
+    client->errorValue = rid;
 
     if (clientIndex && pRes && clients[clientIndex] && !(rid & SERVER_BIT)) {
 	*pClient = clients[clientIndex];
@@ -312,7 +313,7 @@ _X_EXPORT ClientPtr
 LookupClient(XID id, ClientPtr client)
 {
     ClientPtr pClient;
-    int i = dixLookupClient(&pClient, id, client);
+    int i = dixLookupClient(&pClient, id, client, DixUnknownAccess);
     return (i == Success) ? pClient : NULL;
 }
 

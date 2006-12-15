@@ -1452,15 +1452,17 @@ ProcSyncSetPriority(client)
 {
     REQUEST(xSyncSetPriorityReq);
     ClientPtr priorityclient;
+    int rc;
 
     REQUEST_SIZE_MATCH(xSyncSetPriorityReq);
 
     if (stuff->id == None)
 	priorityclient = client;
-    else if (!(priorityclient = LookupClient(stuff->id, client)))
-    {
-	client->errorValue = stuff->id;
-	return BadMatch;
+    else {
+	rc = dixLookupClient(&priorityclient, stuff->id, client,
+			     DixUnknownAccess);
+	if (rc != Success)
+	    return rc;
     }
 
     if (priorityclient->priority != stuff->priority)
@@ -1487,15 +1489,17 @@ ProcSyncGetPriority(client)
     REQUEST(xSyncGetPriorityReq);
     xSyncGetPriorityReply rep;
     ClientPtr priorityclient;
+    int rc;
 
     REQUEST_SIZE_MATCH(xSyncGetPriorityReq);
 
     if (stuff->id == None)
 	priorityclient = client;
-    else if (!(priorityclient = LookupClient(stuff->id, client)))
-    {
-	client->errorValue = stuff->id;
-	return BadMatch;
+    else {
+	rc = dixLookupClient(&priorityclient, stuff->id, client,
+			     DixUnknownAccess);
+	if (rc != Success)
+	    return rc;
     }
 
     rep.type = X_Reply;
