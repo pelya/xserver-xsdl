@@ -430,9 +430,10 @@ int __glXBindSwapBarrierSGIX(__GLXclientState *cl, GLbyte *pc)
     DrawablePtr pDraw;
     __GLXpixmap *pGlxPixmap = NULL;
     __glXWindow *pGlxWindow = NULL;
+    int rc;
 
-    pDraw = (DrawablePtr) LookupDrawable(req->drawable, client);
-    if (!pDraw) {
+    rc = dixLookupDrawable(&pDraw, req->drawable, client, 0, DixUnknownAccess);
+    if (rc != Success) {
 	pGlxPixmap = (__GLXpixmap *) LookupIDByType(req->drawable,
 						    __glXPixmapRes);
 	if (pGlxPixmap) pDraw = pGlxPixmap->pDraw;
@@ -459,9 +460,10 @@ int __glXJoinSwapGroupSGIX(__GLXclientState *cl, GLbyte *pc)
     DrawablePtr pDraw, pMember = NULL;
     __GLXpixmap *pGlxPixmap = NULL;
     __glXWindow *pGlxWindow = NULL;
+    int rc;
 
-    pDraw = (DrawablePtr) LookupDrawable(req->drawable, client);
-    if (!pDraw) {
+    rc = dixLookupDrawable(&pDraw, req->drawable, client, 0, DixUnknownAccess);
+    if (rc != Success) {
 	pGlxPixmap = (__GLXpixmap *) LookupIDByType(req->drawable,
 						    __glXPixmapRes);
 	if (pGlxPixmap) pDraw = pGlxPixmap->pDraw;
@@ -479,8 +481,9 @@ int __glXJoinSwapGroupSGIX(__GLXclientState *cl, GLbyte *pc)
     }
 
     if (req->member != None) {
-	pMember = (DrawablePtr) LookupDrawable(req->member, client);
-	if (!pMember) {
+	rc = dixLookupDrawable(&pMember, req->member, client, 0,
+			       DixUnknownAccess);
+	if (rc != Success) {
 	    pGlxPixmap = (__GLXpixmap *) LookupIDByType(req->member,
 							__glXPixmapRes);
 	    if (pGlxPixmap) pMember = pGlxPixmap->pDraw;
@@ -734,7 +737,7 @@ static int MakeCurrent(__GLXclientState *cl,
 #endif
     int from_screen = 0;
     int to_screen = 0;
-    int s;
+    int s, rc;
 
     /*
     ** If one is None and the other isn't, it's a bad match.
@@ -778,8 +781,8 @@ static int MakeCurrent(__GLXclientState *cl,
     }
 
     if (drawId != None) {
-	pDraw = (DrawablePtr) LookupDrawable(drawId, client);
-	if (pDraw) {
+	rc = dixLookupDrawable(&pDraw, drawId, client, 0, DixUnknownAccess);
+	if (rc == Success) {
 	    if (pDraw->type == DRAWABLE_WINDOW) {
 		/*
 		** Drawable is an X Window.
@@ -885,8 +888,8 @@ static int MakeCurrent(__GLXclientState *cl,
     }
 
     if (readId != None && readId != drawId ) {
-	pReadDraw = (DrawablePtr) LookupDrawable(readId, client);
-	if (pReadDraw) {
+	rc = dixLookupDrawable(&pReadDraw, readId, client, 0,DixUnknownAccess);
+	if (rc == Success) {
 	    if (pReadDraw->type == DRAWABLE_WINDOW) {
 		/*
 		** Drawable is an X Window.
@@ -1636,18 +1639,16 @@ static int CreateGLXPixmap(__GLXclientState *cl,
     __GLXscreenInfo *pGlxScreen;
     __GLXvisualConfig *pGlxVisual;
     __GLXFBConfig *pFBConfig;
-    int i;
-    int s;
+    int i, s, rc;
     int from_screen, to_screen;
 #ifdef PANORAMIX
     PanoramiXRes *pXinDraw = NULL;
 #endif
 
-    pDraw = (DrawablePtr) LookupDrawable(pixmapId, client);
-    if (!pDraw || pDraw->type != DRAWABLE_PIXMAP) {
-	client->errorValue = pixmapId;
-	return BadPixmap;
-    }
+    rc = dixLookupDrawable(&pDraw, pixmapId, client, M_DRAWABLE_PIXMAP,
+			   DixUnknownAccess);
+    if (rc != Success)
+	return rc;
 
     /*
     ** Check if screen of visual matches screen of pixmap.
@@ -1778,7 +1779,8 @@ static int CreateGLXPixmap(__GLXclientState *cl,
 
 #ifdef PANORAMIX
        if (pXinDraw) {
-	  pRealDraw = (DrawablePtr) LookupDrawable(pXinDraw->info[s].id,client);
+	   dixLookupDrawable(&pRealDraw, pXinDraw->info[s].id, client, 0,
+			     DixUnknownAccess);
        }
 #endif
 
@@ -1944,14 +1946,13 @@ int __glXDoSwapBuffers(__GLXclientState *cl, XID drawId, GLXContextTag tag)
     __glXWindow *pGlxWindow = NULL;
     int from_screen = 0;
     int to_screen = 0;
-    int s;
+    int s, rc;
     
     /*
     ** Check that the GLX drawable is valid.
     */
-    pDraw = (DrawablePtr) LookupDrawable(drawId, client);
-    if (pDraw) {
-
+    rc = dixLookupDrawable(&pDraw, drawId, client, 0, DixUnknownAccess);
+    if (rc == Success) {
         from_screen = to_screen = pDraw->pScreen->myNum;
 
 	if (pDraw->type == DRAWABLE_WINDOW) {
@@ -2099,12 +2100,13 @@ int __glXSwapBuffers(__GLXclientState *cl, GLbyte *pc)
     __GLXpixmap *pGlxPixmap = NULL;
     __GLXcontext *glxc = NULL;
     __glXWindow *pGlxWindow = NULL;
+    int rc;
     
     /*
     ** Check that the GLX drawable is valid.
     */
-    pDraw = (DrawablePtr) LookupDrawable(drawId, client);
-    if (pDraw) {
+    rc = dixLookupDrawable(&pDraw, drawId, client, 0, DixUnknownAccess);
+    if (rc == Success) {
 	if (pDraw->type != DRAWABLE_WINDOW) {
 	    /*
 	    ** Drawable is an X pixmap, which is not allowed.
@@ -2892,16 +2894,15 @@ int __glXCreateWindow(__GLXclientState *cl, GLbyte *pc)
     __GLXFBConfig *pGlxFBConfig = NULL;
     VisualPtr pVisual;
     VisualID visId;
-    int i;
+    int i, rc;
 
     /*
     ** Check if windowId is valid 
     */
-    pDraw = (DrawablePtr) LookupDrawable(windowId, client);
-    if (!pDraw || pDraw->type != DRAWABLE_WINDOW) {
-	client->errorValue = windowId;
-	return BadWindow;
-    }
+    rc = dixLookupDrawable(&pDraw, windowId, client, M_DRAWABLE_WINDOW,
+			   DixUnknownAccess);
+    if (rc != Success)
+	return rc;
 
     /*
     ** Check if screen of window matches screen of fbconfig.
@@ -3274,7 +3275,7 @@ int __glXGetDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
    GLXDrawable be_drawable = 0;
    DrawablePtr pDraw = NULL;
    Display *dpy;
-   int screen;
+   int screen, rc;
    DMXScreenInfo *dmxScreen;
    CARD32 *attribs = NULL;
    int attribs_size;
@@ -3283,8 +3284,8 @@ int __glXGetDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 #endif
 
    if (drawId != None) {
-      pDraw = (DrawablePtr) LookupDrawable(drawId, client);
-      if (pDraw) {
+      rc = dixLookupDrawable(&pDraw, drawId, client, 0, DixUnknownAccess);
+      if (rc == Success) {
 	 if (pDraw->type == DRAWABLE_WINDOW) {
 		WindowPtr pWin = (WindowPtr)pDraw;
 		be_drawable = 0;
@@ -3435,7 +3436,7 @@ int __glXChangeDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
    GLXDrawable be_drawable = 0;
    DrawablePtr pDraw = NULL;
    Display *dpy;
-   int screen;
+   int screen, rc;
    DMXScreenInfo *dmxScreen;
    char *attrbuf;
 #ifdef PANORAMIX
@@ -3444,8 +3445,8 @@ int __glXChangeDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 #endif
 
    if (drawId != None) {
-      pDraw = (DrawablePtr) LookupDrawable(drawId, client);
-      if (pDraw) {
+      rc = dixLookupDrawable(&pDraw, drawId, client, 0, DixUnknownAccess);
+      if (rc == Success) {
 	 if (pDraw->type == DRAWABLE_WINDOW) {
 		WindowPtr pWin = (WindowPtr)pDraw;
 		be_drawable = 0;

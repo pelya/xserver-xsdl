@@ -1944,8 +1944,11 @@ ProcXpPutDocumentData(ClientPtr client)
     if (stuff->drawable) {
 	if (pContext->state & DOC_RAW_STARTED)
 	    return BadDrawable;
-	pDraw = (DrawablePtr)LookupDrawable(stuff->drawable, client);
-	if (!pDraw || pDraw->pScreen->myNum != pContext->screenNum)
+	result = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
+				   DixUnknownAccess);
+	if (result != Success)
+	    return result;
+	if (pDraw->pScreen->myNum != pContext->screenNum)
 	    return BadDrawable;
     } else {
 	if (pContext->state & DOC_COOKED_STARTED)

@@ -786,15 +786,15 @@ ProcGetBufferInfo (client)
     DrawablePtr		    pDrawable;
     xMbufGetBufferInfoReply rep;
     ScreenPtr		    pScreen;
-    int			    i, j, k;
-    int			    n;
+    int			    i, j, k, n, rc;
     xMbufBufferInfo	    *pInfo;
     int			    nInfo;
     DepthPtr		    pDepth;
 
-    pDrawable = (DrawablePtr) LookupDrawable (stuff->drawable, client);
-    if (!pDrawable)
-	return BadDrawable;
+    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
+			   DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     pScreen = pDrawable->pScreen;
     nInfo = 0;
     for (i = 0; i < pScreen->numDepths; i++)
