@@ -355,13 +355,15 @@ int AttrValidate(
     AppGroupPtr pAppGrp)
 {
     WindowPtr pWin;
-    int idepth, ivids, found;
+    int idepth, ivids, found, rc;
     ScreenPtr pScreen;
     DepthPtr pDepth;
     ColormapPtr pColormap;
 
-    pWin = LookupWindow (pAppGrp->default_root, client);
-    /* XXX check that pWin is not NULL */
+    rc = dixLookupWindow(&pWin, pAppGrp->default_root, client,
+			 DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     pScreen = pWin->drawable.pScreen;
     if (WindowTable[pScreen->myNum]->drawable.id != pAppGrp->default_root)
 	return BadWindow;

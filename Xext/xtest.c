@@ -139,12 +139,12 @@ ProcXTestCompareCursor(client)
     xXTestCompareCursorReply rep;
     WindowPtr pWin;
     CursorPtr pCursor;
-    register int n;
+    register int n, rc;
 
     REQUEST_SIZE_MATCH(xXTestCompareCursorReq);
-    pWin = (WindowPtr)LookupWindow(stuff->window, client);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    if (rc != Success)
+        return rc;
     if (stuff->cursor == None)
 	pCursor = NullCursor;
     else if (stuff->cursor == XTestCurrentCursor)
@@ -173,12 +173,10 @@ ProcXTestFakeInput(client)
     register ClientPtr client;
 {
     REQUEST(xXTestFakeInputReq);
-    int nev;
-    int	n;
+    int nev, n, type, rc;
     xEvent *ev;
     DeviceIntPtr dev = NULL;
     WindowPtr root;
-    int type;
 #ifdef XINPUT
     Bool extension = FALSE;
     deviceValuator *dv = NULL;
@@ -367,9 +365,10 @@ ProcXTestFakeInput(client)
 	    root = GetCurrentRootWindow();
 	else
 	{
-	    root = LookupWindow(ev->u.keyButtonPointer.root, client);
-	    if (!root)
-		return BadWindow;
+	    rc = dixLookupWindow(&root, ev->u.keyButtonPointer.root, client,
+				 DixUnknownAccess);
+	    if (rc != Success)
+		return rc;
 	    if (root->parent)
 	    {
 		client->errorValue = ev->u.keyButtonPointer.root;

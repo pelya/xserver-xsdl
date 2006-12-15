@@ -373,10 +373,8 @@ ProcXvQueryAdaptors(ClientPtr client)
   xvFormat format;
   xvAdaptorInfo ainfo;
   xvQueryAdaptorsReply rep;
-  int totalSize;
-  int na;
+  int totalSize, na, nf, rc;
   XvAdaptorPtr pa;
-  int nf;
   XvFormatPtr pf;
   WindowPtr pWin;
   ScreenPtr pScreen;
@@ -385,11 +383,9 @@ ProcXvQueryAdaptors(ClientPtr client)
   REQUEST(xvQueryAdaptorsReq);
   REQUEST_SIZE_MATCH(xvQueryAdaptorsReq);
 
-  if(!(pWin = (WindowPtr)LookupWindow(stuff->window, client) ))
-    {
-      client->errorValue = stuff->window;
-      return (BadWindow);
-    }
+  rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+  if (rc != Success)
+      return rc;
 
   pScreen = pWin->drawable.pScreen;
   pxvs = (XvScreenPtr)pScreen->devPrivates[XvScreenIndex].ptr;

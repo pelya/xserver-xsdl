@@ -105,6 +105,7 @@ ProcXUngrabDeviceKey(ClientPtr client)
     DeviceIntPtr mdev;
     WindowPtr pWin;
     GrabRec temporaryGrab;
+    int rc;
 
     REQUEST(xUngrabDeviceKeyReq);
     REQUEST_SIZE_MATCH(xUngrabDeviceKeyReq);
@@ -133,9 +134,9 @@ ProcXUngrabDeviceKey(ClientPtr client)
     } else
 	mdev = (DeviceIntPtr) LookupKeyboardDevice();
 
-    pWin = LookupWindow(stuff->grabWindow, client);
-    if (!pWin) {
-	SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixUnknownAccess);
+    if (rc != Success) {
+	SendErrorToClient(client, IReqCode, X_UngrabDeviceKey, 0, rc);
 	return Success;
     }
     if (((stuff->key > dev->key->curKeySyms.maxKeyCode) ||
