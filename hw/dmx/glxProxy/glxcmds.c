@@ -1137,9 +1137,7 @@ static int MakeCurrent(__GLXclientState *cl,
        }
 #ifdef PANORAMIX
        else if (pXinDraw) {
-	  pWin = (WindowPtr)SecurityLookupWindow(pXinDraw->info[s].id,
-		                                 client,
-                                                 DixReadAccess);
+	  dixLookupWindow(&pWin, pXinDraw->info[s].id, client, DixReadAccess);
        }
 #endif
        else if (pGlxWindow) {
@@ -1195,9 +1193,8 @@ static int MakeCurrent(__GLXclientState *cl,
 	  }
 #ifdef PANORAMIX
 	  else if (pXinReadDraw) {
-   	     pReadWin = (WindowPtr)SecurityLookupWindow(pXinReadDraw->info[s].id,
-		   client,
-		   DixReadAccess);
+	     dixLookupWindow(&pReadWin, pXinReadDraw->info[s].id, client,
+			     DixReadAccess);
    	  }
 #endif
 	  else if (pGlxReadWindow) {
@@ -2058,9 +2055,7 @@ int __glXDoSwapBuffers(__GLXclientState *cl, XID drawId, GLXContextTag tag)
        }
 #ifdef PANORAMIX
        else if (pXinDraw) {
-	  pWin = (WindowPtr)SecurityLookupWindow(pXinDraw->info[s].id,
-		                                 client,
-                                                 DixReadAccess);
+	  dixLookupWindow(&pWin, pXinDraw->info[s].id, client, DixReadAccess);
        }
 #endif
        else if (pGlxWindow) {
@@ -3359,9 +3354,8 @@ int __glXGetDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 	     return __glXBadDrawable;
 	  }
 
-	  pWin = (WindowPtr)SecurityLookupWindow(pXinDraw->info[screen].id,
-		client,
-		DixReadAccess);
+	  dixLookupWindow(&pWin, pXinDraw->info[screen].id, client,
+			  DixReadAccess);
        }
 #endif
 
@@ -3521,9 +3515,8 @@ int __glXChangeDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 	     return __glXBadDrawable;
 	  }
 
-	  pWin = (WindowPtr)SecurityLookupWindow(pXinDraw->info[screen].id,
-		client,
-		DixReadAccess);
+	  dixLookupWindow(&pWin, pXinDraw->info[screen].id, client,
+			  DixReadAccess);
        }
 #endif
 

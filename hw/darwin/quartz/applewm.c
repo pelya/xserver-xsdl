@@ -490,11 +490,9 @@ ProcAppleWMSetWindowLevel(
 
     REQUEST_SIZE_MATCH(xAppleWMSetWindowLevelReq);
 
-    if (!(pWin = SecurityLookupWindow((Drawable)stuff->window,
-                                      client, DixReadAccess)))
-    {
+    if (Success != dixLookupWindow(&pWin, stuff->window, client,
+				   DixReadAccess))
         return BadValue;
-    }
 
     if (stuff->level < 0 || stuff->level >= AppleWMNumWindowLevels) {
         return BadValue;
@@ -602,11 +600,9 @@ ProcAppleWMFrameDraw(
 
     REQUEST_AT_LEAST_SIZE(xAppleWMFrameDrawReq);
 
-    if (!(pWin = SecurityLookupWindow((Drawable)stuff->window,
-                                      client, DixReadAccess)))
-    {
+    if (Success != dixLookupWindow(&pWin, stuff->window, client,
+				   DixReadAccess))
         return BadValue;
-    }
 
     ir = make_box (stuff->ix, stuff->iy, stuff->iw, stuff->ih);
     or = make_box (stuff->ox, stuff->oy, stuff->ow, stuff->oh);

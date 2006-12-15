@@ -577,19 +577,17 @@ int PanoramiXTranslateCoords(ClientPtr client)
 {
     INT16 x, y;
     REQUEST(xTranslateCoordsReq);
-
-    register WindowPtr pWin, pDst;
+    int rc;
+    WindowPtr pWin, pDst;
     xTranslateCoordsReply rep;
 
     REQUEST_SIZE_MATCH(xTranslateCoordsReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->srcWid, client,
-					   DixReadAccess);
-    if (!pWin)
-        return(BadWindow);
-    pDst = (WindowPtr)SecurityLookupWindow(stuff->dstWid, client,
-					   DixReadAccess);
-    if (!pDst)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->srcWid, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
+    rc = dixLookupWindow(&pDst, stuff->dstWid, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;

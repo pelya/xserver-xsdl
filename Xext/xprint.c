@@ -1852,9 +1852,10 @@ ProcXpStartPage(ClientPtr client)
     if(pContext->state & PAGE_STARTED)
 	return XpErrorBase+XPBadSequence;
 
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixWriteAccess);
-    if (!pWin || pWin->drawable.pScreen->myNum != pContext->screenNum)
+    result = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    if (result != Success)
+	return result;
+    if (pWin->drawable.pScreen->myNum != pContext->screenNum)
 	return BadWindow;
 
     if((c = (XpStPagePtr)xalloc(sizeof(XpStPageRec))) == (XpStPagePtr)NULL)

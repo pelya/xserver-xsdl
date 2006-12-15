@@ -94,7 +94,7 @@ PrintPropertys(WindowPtr pWin)
 int
 ProcRotateProperties(ClientPtr client)
 {
-    int     i, j, delta;
+    int     i, j, delta, rc;
     REQUEST(xRotatePropertiesReq);
     WindowPtr pWin;
     register    Atom * atoms;
@@ -104,10 +104,9 @@ ProcRotateProperties(ClientPtr client)
 
     REQUEST_FIXED_SIZE(xRotatePropertiesReq, stuff->nAtoms << 2);
     UpdateCurrentTime();
-    pWin = (WindowPtr) SecurityLookupWindow(stuff->window, client,
-					    DixWriteAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    if (rc != Success)
+        return rc;
     if (!stuff->nAtoms)
 	return(Success);
     atoms = (Atom *) & stuff[1];
@@ -181,9 +180,7 @@ ProcChangeProperty(ClientPtr client)
     WindowPtr pWin;
     char format, mode;
     unsigned long len;
-    int sizeInBytes;
-    int totalSize;
-    int err;
+    int sizeInBytes, totalSize, err;
     REQUEST(xChangePropertyReq);
 
     REQUEST_AT_LEAST_SIZE(xChangePropertyReq);
@@ -208,10 +205,9 @@ ProcChangeProperty(ClientPtr client)
     totalSize = len * sizeInBytes;
     REQUEST_FIXED_SIZE(xChangePropertyReq, totalSize);
 
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixWriteAccess);
-    if (!pWin)
-	return(BadWindow);
+    err = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    if (err != Success)
+	return err;
     if (!ValidAtom(stuff->property))
     {
 	client->errorValue = stuff->property;
@@ -445,7 +441,7 @@ int
 ProcGetProperty(ClientPtr client)
 {
     PropertyPtr pProp, prevProp;
-    unsigned long n, len, ind;
+    unsigned long n, len, ind, rc;
     WindowPtr pWin;
     xGetPropertyReply reply;
     Mask access_mode = DixReadAccess;
@@ -454,10 +450,9 @@ ProcGetProperty(ClientPtr client)
     REQUEST_SIZE_MATCH(xGetPropertyReq);
     if (stuff->delete)
 	UpdateCurrentTime();
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixReadAccess);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     if (!ValidAtom(stuff->property))
     {
@@ -585,16 +580,15 @@ ProcListProperties(ClientPtr client)
 {
     Atom *pAtoms = NULL, *temppAtoms;
     xListPropertiesReply xlpr;
-    int	numProps = 0;
+    int	rc, numProps = 0;
     WindowPtr pWin;
     PropertyPtr pProp;
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->id, client,
-					   DixReadAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
 
     pProp = wUserProps (pWin);
     while (pProp)
@@ -636,10 +630,9 @@ ProcDeleteProperty(register ClientPtr client)
               
     REQUEST_SIZE_MATCH(xDeletePropertyReq);
     UpdateCurrentTime();
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixWriteAccess);
-    if (!pWin)
-        return(BadWindow);
+    result = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    if (result != Success)
+        return result;
     if (!ValidAtom(stuff->property))
     {
 	client->errorValue = stuff->property;

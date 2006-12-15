@@ -405,11 +405,9 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
     REQUEST_SIZE_MATCH(xDbeAllocateBackBufferNameReq);
 
     /* The window must be valid. */
-    if (!(pWin = SecurityLookupWindow(stuff->window, client,
-				      DixWriteAccess)))
-    {
-	return(BadWindow);
-    }
+    status = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    if (status != Success)
+	return status;
 
     /* The window must be InputOutput. */
     if (pWin->drawable.class != InputOutput)
@@ -729,11 +727,11 @@ ProcDbeSwapBuffers(ClientPtr client)
         /* Check all windows to swap. */
 
         /* Each window must be a valid window - BadWindow. */
-        if (!(pWin = SecurityLookupWindow(dbeSwapInfo[i].window, client,
-					  DixWriteAccess)))
-        {
+	error = dixLookupWindow(&pWin, dbeSwapInfo[i].window, client,
+				DixWriteAccess);
+	if (error != Success) {
             DEALLOCATE_LOCAL(swapInfo);
-	    return(BadWindow);
+	    return error;
         }
 
         /* Each window must be double-buffered - BadMatch. */

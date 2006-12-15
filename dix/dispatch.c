@@ -554,17 +554,16 @@ ProcBadRequest(ClientPtr client)
 int
 ProcCreateWindow(ClientPtr client)
 {
-    register WindowPtr pParent, pWin;
+    WindowPtr pParent, pWin;
     REQUEST(xCreateWindowReq);
-    int result;
-    int len;
+    int result, len, rc;
 
     REQUEST_AT_LEAST_SIZE(xCreateWindowReq);
     
     LEGAL_NEW_RESOURCE(stuff->wid, client);
-    if (!(pParent = (WindowPtr)SecurityLookupWindow(stuff->parent, client,
-						    DixWriteAccess)))
-        return BadWindow;
+    rc = dixLookupWindow(&pParent, stuff->parent, client, DixWriteAccess);
+    if (rc != Success)
+        return rc;
     len = client->req_len - (sizeof(xCreateWindowReq) >> 2);
     if (Ones(stuff->mask) != len)
         return BadLength;
@@ -597,16 +596,15 @@ ProcCreateWindow(ClientPtr client)
 int
 ProcChangeWindowAttributes(register ClientPtr client)
 {
-    register WindowPtr pWin;
+    WindowPtr pWin;
     REQUEST(xChangeWindowAttributesReq);
     register int result;
-    int len;
+    int len, rc;
 
     REQUEST_AT_LEAST_SIZE(xChangeWindowAttributesReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixWriteAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    if (rc != Success)
+        return rc;
     len = client->req_len - (sizeof(xChangeWindowAttributesReq) >> 2);
     if (len != Ones(stuff->valueMask))
         return BadLength;
@@ -623,15 +621,15 @@ ProcChangeWindowAttributes(register ClientPtr client)
 int
 ProcGetWindowAttributes(register ClientPtr client)
 {
-    register WindowPtr pWin;
+    WindowPtr pWin;
     REQUEST(xResourceReq);
     xGetWindowAttributesReply wa;
+    int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->id, client,
-					   DixReadAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
     GetWindowAttributes(pWin, client, &wa);
     WriteReplyToClient(client, sizeof(xGetWindowAttributesReply), &wa);
     return(client->noClientException);
@@ -640,14 +638,14 @@ ProcGetWindowAttributes(register ClientPtr client)
 int
 ProcDestroyWindow(register ClientPtr client)
 {
-    register WindowPtr pWin;
+    WindowPtr pWin;
     REQUEST(xResourceReq);
+    int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->id, client,
-					   DixDestroyAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixDestroyAccess);
+    if (rc != Success)
+	return rc;
     if (pWin->parent)
 	FreeResource(stuff->id, RT_NONE);
     return(client->noClientException);
@@ -656,14 +654,14 @@ ProcDestroyWindow(register ClientPtr client)
 int
 ProcDestroySubwindows(register ClientPtr client)
 {
-    register WindowPtr pWin;
+    WindowPtr pWin;
     REQUEST(xResourceReq);
+    int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->id, client,
-					   DixDestroyAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixDestroyAccess);
+    if (rc != Success)
+	return rc;
     DestroySubwindows(pWin, client);
     return(client->noClientException);
 }
@@ -671,15 +669,14 @@ ProcDestroySubwindows(register ClientPtr client)
 int
 ProcChangeSaveSet(register ClientPtr client)
 {
-    register WindowPtr pWin;
+    WindowPtr pWin;
     REQUEST(xChangeSaveSetReq);
-    register int result;
+    register int result, rc;
 		  
     REQUEST_SIZE_MATCH(xChangeSaveSetReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixReadAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
     if (client->clientAsMask == (CLIENT_BITS(pWin->drawable.id)))
         return BadMatch;
     if ((stuff->mode == SetModeInsert) || (stuff->mode == SetModeDelete))
@@ -700,19 +697,17 @@ ProcChangeSaveSet(register ClientPtr client)
 int
 ProcReparentWindow(register ClientPtr client)
 {
-    register WindowPtr pWin, pParent;
+    WindowPtr pWin, pParent;
     REQUEST(xReparentWindowReq);
-    register int result;
+    register int result, rc;
 
     REQUEST_SIZE_MATCH(xReparentWindowReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixWriteAccess);
-    if (!pWin)
-        return(BadWindow);
-    pParent = (WindowPtr)SecurityLookupWindow(stuff->parent, client,
-					      DixWriteAccess);
-    if (!pParent)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    if (rc != Success)
+        return rc;
+    rc = dixLookupWindow(&pParent, stuff->parent, client, DixWriteAccess);
+    if (rc != Success)
+        return rc;
     if (SAME_SCREENS(pWin->drawable, pParent->drawable))
     {
         if ((pWin->backgroundState == ParentRelative) &&
@@ -735,14 +730,14 @@ ProcReparentWindow(register ClientPtr client)
 int
 ProcMapWindow(register ClientPtr client)
 {
-    register WindowPtr pWin;
+    WindowPtr pWin;
     REQUEST(xResourceReq);
+    int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->id, client,
-					   DixReadAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
     MapWindow(pWin, client);
            /* update cache to say it is mapped */
     return(client->noClientException);
@@ -751,14 +746,14 @@ ProcMapWindow(register ClientPtr client)
 int
 ProcMapSubwindows(register ClientPtr client)
 {
-    register WindowPtr pWin;
+    WindowPtr pWin;
     REQUEST(xResourceReq);
+    int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pWin = (WindowPtr)SecurityLookupWindow( stuff->id, client,
-					    DixReadAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
     MapSubwindows(pWin, client);
            /* update cache to say it is mapped */
     return(client->noClientException);
@@ -767,14 +762,14 @@ ProcMapSubwindows(register ClientPtr client)
 int
 ProcUnmapWindow(register ClientPtr client)
 {
-    register WindowPtr pWin;
+    WindowPtr pWin;
     REQUEST(xResourceReq);
+    int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pWin = (WindowPtr)SecurityLookupWindow( stuff->id, client,
-					    DixReadAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
     UnmapWindow(pWin, FALSE);
            /* update cache to say it is mapped */
     return(client->noClientException);
@@ -783,14 +778,14 @@ ProcUnmapWindow(register ClientPtr client)
 int
 ProcUnmapSubwindows(register ClientPtr client)
 {
-    register WindowPtr pWin;
+    WindowPtr pWin;
     REQUEST(xResourceReq);
+    int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pWin = (WindowPtr)SecurityLookupWindow( stuff->id, client,
-					    DixReadAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
     UnmapSubwindows(pWin);
     return(client->noClientException);
 }
@@ -798,16 +793,15 @@ ProcUnmapSubwindows(register ClientPtr client)
 int
 ProcConfigureWindow(register ClientPtr client)
 {
-    register WindowPtr pWin;
+    WindowPtr pWin;
     REQUEST(xConfigureWindowReq);
     register int result;
-    int len;
+    int len, rc;
 
     REQUEST_AT_LEAST_SIZE(xConfigureWindowReq);
-    pWin = (WindowPtr)SecurityLookupWindow( stuff->window, client,
-					    DixWriteAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    if (rc != Success)
+        return rc;
     len = client->req_len - (sizeof(xConfigureWindowReq) >> 2);
     if (Ones((Mask)stuff->mask) != len)
         return BadLength;
@@ -822,8 +816,9 @@ ProcConfigureWindow(register ClientPtr client)
 int
 ProcCirculateWindow(register ClientPtr client)
 {
-    register WindowPtr pWin;
+    WindowPtr pWin;
     REQUEST(xCirculateWindowReq);
+    int rc;
 
     REQUEST_SIZE_MATCH(xCirculateWindowReq);
     if ((stuff->direction != RaiseLowest) &&
@@ -832,10 +827,9 @@ ProcCirculateWindow(register ClientPtr client)
 	client->errorValue = stuff->direction;
         return BadValue;
     }
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixWriteAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    if (rc != Success)
+        return rc;
     CirculateWindow(pWin, (int)stuff->direction, client);
     return(client->noClientException);
 }
@@ -903,16 +897,15 @@ int
 ProcQueryTree(register ClientPtr client)
 {
     xQueryTreeReply reply;
-    int numChildren = 0;
-    register WindowPtr pChild, pWin, pHead;
+    int rc, numChildren = 0;
+    WindowPtr pChild, pWin, pHead;
     Window  *childIDs = (Window *)NULL;
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->id, client,
-					   DixReadAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
     reply.type = X_Reply;
     reply.root = WindowTable[pWin->drawable.pScreen->myNum]->drawable.id;
     reply.sequenceNumber = client->sequence;
@@ -1025,10 +1018,9 @@ ProcSetSelectionOwner(register ClientPtr client)
     	return Success;
     if (stuff->window != None)
     {
-        pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					       DixReadAccess);
-        if (!pWin)
-            return(BadWindow);
+	int rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+        if (rc != Success)
+            return rc;
     }
     else
         pWin = (WindowPtr)None;
@@ -1142,12 +1134,12 @@ ProcConvertSelection(register ClientPtr client)
     xEvent event;
     WindowPtr pWin;
     REQUEST(xConvertSelectionReq);
+    int rc;
 
     REQUEST_SIZE_MATCH(xConvertSelectionReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->requestor, client,
-					   DixReadAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->requestor, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
 
     paramsOkay = (ValidAtom(stuff->selection) && ValidAtom(stuff->target));
     if (stuff->property != None)
@@ -1262,18 +1254,17 @@ ProcTranslateCoords(register ClientPtr client)
 {
     REQUEST(xTranslateCoordsReq);
 
-    register WindowPtr pWin, pDst;
+    WindowPtr pWin, pDst;
     xTranslateCoordsReply rep;
+    int rc;
 
     REQUEST_SIZE_MATCH(xTranslateCoordsReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->srcWid, client,
-					   DixReadAccess);
-    if (!pWin)
-        return(BadWindow);
-    pDst = (WindowPtr)SecurityLookupWindow(stuff->dstWid, client,
-					   DixReadAccess);
-    if (!pDst)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->srcWid, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
+    rc = dixLookupWindow(&pDst, stuff->dstWid, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -1762,13 +1753,13 @@ int
 ProcClearToBackground(register ClientPtr client)
 {
     REQUEST(xClearAreaReq);
-    register WindowPtr pWin;
+    WindowPtr pWin;
+    int rc;
 
     REQUEST_SIZE_MATCH(xClearAreaReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixWriteAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    if (rc != Success)
+        return rc;
     if (pWin->drawable.class == InputOnly)
     {
 	client->errorValue = stuff->window;
@@ -2496,7 +2487,7 @@ ProcCreateColormap(register ClientPtr client)
     VisualPtr	pVisual;
     ColormapPtr	pmap;
     Colormap	mid;
-    register WindowPtr   pWin;
+    WindowPtr   pWin;
     ScreenPtr pScreen;
     REQUEST(xCreateColormapReq);
     int i, result;
@@ -2510,10 +2501,9 @@ ProcCreateColormap(register ClientPtr client)
     }
     mid = stuff->mid;
     LEGAL_NEW_RESOURCE(mid, client);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixReadAccess);
-    if (!pWin)
-        return(BadWindow);
+    result = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    if (result != Success)
+        return result;
 
     pScreen = pWin->drawable.pScreen;
     for (i = 0, pVisual = pScreen->visuals;
@@ -2631,16 +2621,14 @@ int
 ProcListInstalledColormaps(register ClientPtr client)
 {
     xListInstalledColormapsReply *preply; 
-    int nummaps;
+    int nummaps, rc;
     WindowPtr pWin;
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->id, client,
-					   DixReadAccess);
-
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
 
     preply = (xListInstalledColormapsReply *) 
 		ALLOCATE_LOCAL(sizeof(xListInstalledColormapsReply) +

@@ -419,12 +419,13 @@ ProcShapeMask (client)
     RegionPtr		*destRgn;
     PixmapPtr		pPixmap;
     CreateDftPtr	createDefault;
+    int			rc;
 
     REQUEST_SIZE_MATCH (xShapeMaskReq);
     UpdateCurrentTime();
-    pWin = SecurityLookupWindow (stuff->dest, client, DixWriteAccess);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->dest, client, DixWriteAccess);
+    if (rc != Success)
+	return rc;
     switch (stuff->destKind) {
     case ShapeBounding:
 	createDefault = CreateBoundingShape;
@@ -822,11 +823,12 @@ ProcShapeSelectInput (client)
     WindowPtr		pWin;
     ShapeEventPtr	pShapeEvent, pNewShapeEvent, *pHead;
     XID			clientResource;
+    int			rc;
 
     REQUEST_SIZE_MATCH (xShapeSelectInputReq);
-    pWin = SecurityLookupWindow (stuff->window, client, DixWriteAccess);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    if (rc != Success)
+	return rc;
     pHead = (ShapeEventPtr *)SecurityLookupIDByType(client,
 			pWin->drawable.id, EventType, DixWriteAccess);
     switch (stuff->enable) {

@@ -217,13 +217,12 @@ ProcRRGetScreenSizeRange (ClientPtr client)
     WindowPtr			pWin;
     ScreenPtr			pScreen;
     rrScrPrivPtr		pScrPriv;
+    int				rc;
     
     REQUEST_SIZE_MATCH(xRRGetScreenInfoReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixReadAccess);
-
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     pScreen = pWin->drawable.pScreen;
     pScrPriv = rrGetScrPriv(pScreen);
@@ -268,14 +267,12 @@ ProcRRSetScreenSize (ClientPtr client)
     WindowPtr		pWin;
     ScreenPtr		pScreen;
     rrScrPrivPtr	pScrPriv;
-    int			i;
+    int			i, rc;
     
     REQUEST_SIZE_MATCH(xRRSetScreenSizeReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixReadAccess);
-
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     pScreen = pWin->drawable.pScreen;
     pScrPriv = rrGetScrPriv(pScreen);
@@ -336,19 +333,16 @@ ProcRRGetScreenResources (ClientPtr client)
     rrScrPrivPtr		pScrPriv;
     CARD8			*extra;
     unsigned long		extraLen;
-    int				i;
+    int				i, n, rc;
     RRCrtc			*crtcs;
     RROutput			*outputs;
     xRRModeInfo			*modeinfos;
     CARD8			*names;
-    int				n;
     
     REQUEST_SIZE_MATCH(xRRGetScreenResourcesReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixReadAccess);
-
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
     
     pScreen = pWin->drawable.pScreen;
     pScrPriv = rrGetScrPriv(pScreen);
@@ -580,7 +574,7 @@ ProcRRGetScreenInfo (ClientPtr client)
     REQUEST(xRRGetScreenInfoReq);
     xRRGetScreenInfoReply   rep;
     WindowPtr	    	    pWin;
-    int			    n;
+    int			    n, rc;
     ScreenPtr		    pScreen;
     rrScrPrivPtr	    pScrPriv;
     CARD8		    *extra;
@@ -588,11 +582,9 @@ ProcRRGetScreenInfo (ClientPtr client)
     RROutputPtr		    output;
 
     REQUEST_SIZE_MATCH(xRRGetScreenInfoReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixReadAccess);
-
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     pScreen = pWin->drawable.pScreen;
     pScrPriv = rrGetScrPriv(pScreen);

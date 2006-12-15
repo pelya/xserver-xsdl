@@ -239,12 +239,12 @@ ProcXFixesSelectCursorInput (ClientPtr client)
 {
     REQUEST (xXFixesSelectCursorInputReq);
     WindowPtr	pWin;
+    int		rc;
 
     REQUEST_SIZE_MATCH (xXFixesSelectCursorInputReq);
-    pWin = (WindowPtr)SecurityLookupWindow(stuff->window, client,
-					   DixReadAccess);
-    if (!pWin)
-        return(BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
     if (stuff->eventMask & ~CursorAllEvents)
     {
 	client->errorValue = stuff->eventMask;
