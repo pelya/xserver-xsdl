@@ -223,6 +223,36 @@ Bool dmxBEFreeGlyphSet(ScreenPtr pScreen, GlyphSetPtr glyphSet)
     return FALSE;
 }
 
+/** Create \a glyphSet on the backend screen number \a idx. */
+int dmxBECreateGlyphSet(int idx, GlyphSetPtr glyphSet)
+{
+    XRenderPictFormat *pFormat;
+    DMXScreenInfo     *dmxScreen = &dmxScreens[idx];
+    dmxGlyphPrivPtr    glyphPriv = DMX_GET_GLYPH_PRIV(glyphSet);
+    PictFormatPtr      pFmt      = glyphSet->format;
+    int              (*oldErrorHandler)(Display *, XErrorEvent *);
+
+    pFormat = dmxFindFormat(dmxScreen, pFmt);
+    if (!pFormat) {
+	return BadMatch;
+    }
+
+    dmxGlyphLastError = 0;
+    oldErrorHandler = XSetErrorHandler(dmxGlyphErrorHandler);
+
+    /* Catch when this fails */
+    glyphPriv->glyphSets[idx]
+	= XRenderCreateGlyphSet(dmxScreen->beDisplay, pFormat);
+
+    XSetErrorHandler(oldErrorHandler);
+
+    if (dmxGlyphLastError) {
+	return dmxGlyphLastError;
+    }
+
+    return Success;
+}
+
 /** Create a Glyph Set on each screen.  Save the glyphset ID from each
  *  screen in the Glyph Set's private structure.  Fail if the format
  *  requested is not available or if the Glyph Set cannot be created on
@@ -235,12 +265,9 @@ static int dmxProcRenderCreateGlyphSet(ClientPtr client)
     ret = dmxSaveRenderVector[stuff->renderReqType](client);
 
     if (ret == Success) {
-	int              (*oldErrorHandler)(Display *, XErrorEvent *);
 	GlyphSetPtr        glyphSet;
 	dmxGlyphPrivPtr    glyphPriv;
 	int                i;
-	PictFormatPtr      pFmt;
-	XRenderPictFormat *pFormat;
 
 	/* Look up glyphSet that was just created ???? */
 	/* Store glyphsets from backends in glyphSet->devPrivate ????? */
@@ -254,21 +281,16 @@ static int dmxProcRenderCreateGlyphSet(ClientPtr client)
         MAXSCREENSALLOC_RETURN(glyphPriv->glyphSets, BadAlloc);
 	DMX_SET_GLYPH_PRIV(glyphSet, glyphPriv);
 
-	pFmt = SecurityLookupIDByType(client, stuff->format, PictFormatType,
-				      DixReadAccess);
-
-	oldErrorHandler = XSetErrorHandler(dmxGlyphErrorHandler);
-
 	for (i = 0; i < dmxNumScreens; i++) {
 	    DMXScreenInfo *dmxScreen = &dmxScreens[i];
+	    int beret;
 
 	    if (!dmxScreen->beDisplay) {
 		glyphPriv->glyphSets[i] = 0;
 		continue;
 	    }
 
-	    pFormat = dmxFindFormat(dmxScreen, pFmt);
-	    if (!pFormat) {
+	    if ((beret = dmxBECreateGlyphSet(i, glyphSet)) != Success) {
 		int  j;
 
 		/* Free the glyph sets we've allocated thus far */
@@ -278,30 +300,9 @@ static int dmxProcRenderCreateGlyphSet(ClientPtr client)
 		/* Free the resource created by render */
 		FreeResource(stuff->gsid, RT_NONE);
 
-		ret = BadMatch;
-		break;
-	    }
-
-	    /* Catch when this fails */
-	    glyphPriv->glyphSets[i]
-		= XRenderCreateGlyphSet(dmxScreen->beDisplay, pFormat);
-
-	    if (dmxGlyphLastError) {
-		int  j;
-
-		/* Free the glyph sets we've allocated thus far */
-		for (j = 0; j < i; j++)
-		    dmxBEFreeGlyphSet(screenInfo.screens[j], glyphSet);
-
-		/* Free the resource created by render */
-		FreeResource(stuff->gsid, RT_NONE);
-
-		ret = dmxGlyphLastError;
-		break;
+		return beret;
 	    }
 	}
-
-	XSetErrorHandler(oldErrorHandler);
     }
 
     return ret;
@@ -753,6 +754,20 @@ void dmxCreatePictureList(WindowPtr pWindow)
     }
 }
 
+/** Create \a pPicture on the backend. */
+int dmxBECreatePicture(PicturePtr pPicture)
+{
+    dmxPictPrivPtr    pPictPriv = DMX_GET_PICT_PRIV(pPicture);
+
+    /* Create picutre on BE */
+    pPictPriv->pict = dmxDoCreatePicture(pPicture);
+
+    /* Flush changes to the backend server */
+    dmxValidatePicture(pPicture, (1 << (CPLastBit+1)) - 1);
+
+    return Success;
+}
+
 /** Create a picture.  This function handles the CreatePicture
  *  unwrapping/wrapping and calls dmxDoCreatePicture to actually create
  *  the picture on the appropriate screen.  */
@@ -853,7 +868,11 @@ int dmxChangePictureClip(PicturePtr pPicture, int clipType,
 	/* The clip has already been changed into a region by the mi
 	 * routine called above.
 	 */
-	if (pPicture->clientClip) {
+	if (clipType == CT_NONE) {
+	    /* Disable clipping, show all */
+	    XFixesSetPictureClipRegion(dmxScreen->beDisplay,
+				       pPictPriv->pict, 0, 0, None);
+	} else if (pPicture->clientClip) {
 	    RegionPtr   pClip = pPicture->clientClip;
 	    BoxPtr      pBox  = REGION_RECTS(pClip);
 	    int         nBox  = REGION_NUM_RECTS(pClip);
