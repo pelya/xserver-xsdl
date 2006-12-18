@@ -189,9 +189,4 @@ extern void miPointerMoved(
 
 extern int miPointerScreenIndex;
 
-#ifdef MPX
-_X_EXPORT Bool IsMPDev(DeviceIntPtr pDev);
-#endif
-
-
 #endif /* MIPOINTER_H */

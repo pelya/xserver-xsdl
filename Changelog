@@ -26,6 +26,24 @@ Files:
 	hw/xfree86/common/xf86Input.h
 	Xi/exevents.c
 
+____________________________________________________________
+
+Cleaning up #ifdef MPX from remaining files, removing it from configure.ac.
+Removing building mpx extension from Makefile.am
+
+Files:
+	Makefile.am
+	configure.ac
+	hw/xfree86/ramdac/xf86HWCurs.c
+	include/dix-config.h.in
+	include/dix.h
+	include/globals.h
+	include/xorg-server.h.in
+	mi/mieq.c
+	mi/miinitext.c
+	mi/mipointer.c
+	os/utils.c
+
 == 12.12.06 ==
 dix:    Moving SpriteRec into DeviceIntRec
 	removing global sprite structure

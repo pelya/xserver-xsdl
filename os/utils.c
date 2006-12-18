@@ -252,9 +252,6 @@ _X_EXPORT Bool noXIdleExtension = FALSE;
 #ifdef XV
 _X_EXPORT Bool noXvExtension = FALSE;
 #endif
-#ifdef MPX
-_X_EXPORT Bool noMPXExtension = FALSE;
-#endif
 
 #define X_INCLUDE_NETDB_H
 #include <X11/Xos_r.h>

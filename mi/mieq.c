@@ -24,7 +24,6 @@ in this Software without prior written authorization from The Open Group.
  *
  * Author:  Keith Packard, MIT X Consortium
  */
-#ifdef MPX
  /* 
   * MPX additions:
   * Copyright © 2006 Peter Hutterer
@@ -32,7 +31,6 @@ in this Software without prior written authorization from The Open Group.
   * Author: Peter Hutterer <peter@cs.unisa.edu.au>
   *
   */
-#endif
 
 /*
  * mieq.c
@@ -110,13 +108,10 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
     deviceKeyButtonPointer *lastkbp = (deviceKeyButtonPointer *)
                                       &laste->event[0];
 
-#ifdef MPX
     /* avoid merging events from different devices */
     if (e->u.u.type == MotionNotify && pDev->isMPDev)
         isMotion = pDev->id;
-    else
-#endif
-    if (e->u.u.type == MotionNotify)
+    else if (e->u.u.type == MotionNotify)
         isMotion = inputInfo.pointer->id;
     else if (e->u.u.type == DeviceMotionNotify)
         isMotion = pDev->id | (1 << 8); /* flag to indicate DeviceMotion */

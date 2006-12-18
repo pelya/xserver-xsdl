@@ -142,9 +142,6 @@
 /* Support X Input extension */
 #undef XINPUT
 
-/* Support MPX multipointer extension */
-#undef MPX
-
 /* Build XKB */
 #undef XKB
 

@@ -73,12 +73,9 @@ static unsigned char* RealizeCursorInterleave64(xf86CursorInfoPtr, CursorPtr);
 Bool
 xf86InitHardwareCursor(ScreenPtr pScreen, xf86CursorInfoPtr infoPtr)
 {
-
-#ifdef MPX
     /* Graphics cards cannot render multiple cursors in hardware. We have to
        software render them. */
     return FALSE;
-#endif
 
     if ((infoPtr->MaxWidth <= 0) || (infoPtr->MaxHeight <= 0))
 	return FALSE;
