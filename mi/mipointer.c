@@ -70,7 +70,7 @@ static miPointerPtr miCorePointer;
  */
 static miPointerRec miPointers[MAX_DEVICES];
 #define MIPOINTER(dev) \
-    (MPHasCursor((dev))) ? &miPointers[(dev)->id] : miCorePointer
+    (DevHasCursor((dev))) ? &miPointers[(dev)->id] : miCorePointer
 
 static Bool miPointerRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
                                    CursorPtr pCursor);

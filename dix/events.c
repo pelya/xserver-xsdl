@@ -175,8 +175,6 @@ xEvent *xeviexE;
 #include "dixgrabs.h"
 #include "dispatch.h"
 
-#include "mpxglobals.h"
-
 #define EXTENSION_EVENT_BASE  64
 
 #define NoSuchEvent 0x80000000	/* so doesn't match NoEventMask */
@@ -243,15 +241,13 @@ static int spriteTraceSize = 0;
 static int spriteTraceGood;
 
 
-#define MPXDBG(...) fprintf (stderr, "MPX: " __VA_ARGS__)
-
 /** 
  * True for the core pointer and any MPX device. 
  * False for any other device (including keyboards).
  * Does ID checking for sane range as well.
  */
 _X_EXPORT Bool
-MPHasCursor(DeviceIntPtr pDev) 
+DevHasCursor(DeviceIntPtr pDev) 
 {
     return (pDev == inputInfo.pointer || 
             (pDev->isMPDev && pDev->id < MAX_DEVICES)); 
@@ -1210,7 +1206,7 @@ playmore:
     syncEvents.playingEvents = FALSE;
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
-        if (MPHasCursor(dev))
+        if (DevHasCursor(dev))
         {
             /* the following may have been skipped during replay, 
               so do it now */
@@ -1315,7 +1311,7 @@ ActivatePointerGrab(register DeviceIntPtr mouse, register GrabPtr grab,
     mouse->activeGrab = *grab;
     mouse->grab = &mouse->activeGrab;
     mouse->fromPassiveGrab = autoGrab;
-    PostNewCursor(inputInfo.pointer);
+    PostNewCursor(mouse);
     CheckGrabForSyncs(mouse,(Bool)grab->pointerMode, (Bool)grab->keyboardMode);
 }
 
@@ -1876,9 +1872,6 @@ DeliverDeviceEvents(register WindowPtr pWin, register xEvent *xE, GrabPtr grab,
 	register OtherInputMasks *inputMasks;
 	int mskidx = dev->id;
 
-        if (IsMPXEvent(xE))
-            mskidx = MPXmskidx;
-
 	inputMasks = wOtherInputMasks(pWin);
 	if (inputMasks && !(filter & inputMasks->deliverableEvents[mskidx]))
 	    return 0;
@@ -2082,7 +2075,7 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
         xeviehot.y = pSprite->hot.y;
 #endif
 	pSprite->hotPhys = pSprite->hot;
-#if !defined MPX
+
 	if ((pSprite->hotPhys.x != XE_KBPTR.rootX) ||
 	    (pSprite->hotPhys.y != XE_KBPTR.rootY))
 	{
@@ -2090,7 +2083,7 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
                 pDev, pSprite->hotPhys.pScreen,
 		pSprite->hotPhys.x, pSprite->hotPhys.y, FALSE);
 	}
-#endif
+
 	XE_KBPTR.rootX = pSprite->hot.x;
 	XE_KBPTR.rootY = pSprite->hot.y;
     }
@@ -2127,7 +2120,7 @@ WindowsRestructured()
     DeviceIntPtr pDev = inputInfo.devices;
     while(pDev)
     {
-        if (MPHasCursor(pDev))
+        if (DevHasCursor(pDev))
             CheckMotion((xEvent *)NULL, pDev);
         pDev = pDev->next;
     }
@@ -2150,7 +2143,7 @@ void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
     pDev = inputInfo.devices;
     while(pDev)
     {
-        if (MPHasCursor(pDev))
+        if (DevHasCursor(pDev))
         {
             pSprite = pDev->pSprite;
             pSprite->hot.x        -= xoff;
@@ -2196,7 +2189,7 @@ DefineInitialRootWindow(register WindowPtr win)
 
     while (pDev)
     {
-        if (MPHasCursor(pDev))
+        if (DevHasCursor(pDev))
         {
             pSprite = pDev->pSprite;
 
@@ -2257,7 +2250,11 @@ DefineInitialRootWindow(register WindowPtr win)
 void
 WindowHasNewCursor(WindowPtr pWin)
 {
-    PostNewCursor(inputInfo.pointer);
+    DeviceIntPtr pDev;
+
+    for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
+        if (DevHasCursor(pDev))
+            PostNewCursor(pDev);
 }
 
 _X_EXPORT void
@@ -2995,7 +2992,6 @@ ProcessPointerEvent (register xEvent *xE, register DeviceIntPtr mouse, int count
     Bool                deactivateGrab = FALSE;
     register ButtonClassPtr butc = mouse->button;
     SpritePtr           pSprite = mouse->pSprite;
-
 
 #ifdef XKB
     XkbSrvInfoPtr xkbi= inputInfo.keyboard->key->xkbInfo;
@@ -3997,6 +3993,9 @@ GrabDevice(register ClientPtr client, register DeviceIntPtr dev,
     {
 	GrabRec tempGrab;
 
+        /* Otherwise segfaults happen on grabbed MPX devices */
+        memset(&tempGrab, 0, sizeof(GrabRec));
+
 	tempGrab.window = pWin;
 	tempGrab.resource = client->clientAsMask;
 	tempGrab.ownerEvents = ownerEvents;
@@ -4004,6 +4003,8 @@ GrabDevice(register ClientPtr client, register DeviceIntPtr dev,
 	tempGrab.pointerMode = other_mode;
 	tempGrab.eventMask = mask;
 	tempGrab.device = dev;
+        tempGrab.cursor = NULL;
+
 	(*dev->ActivateGrab)(dev, &tempGrab, time, FALSE);
 	*status = GrabSuccess;
     }
@@ -4589,7 +4590,7 @@ CheckCursorConfinement(WindowPtr pWin)
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-        if (MPHasCursor(pDev))
+        if (DevHasCursor(pDev))
         {
             grab = pDev->grab;
             if (grab && (confineTo = grab->confineTo))

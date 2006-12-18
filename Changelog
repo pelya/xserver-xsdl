@@ -7,15 +7,24 @@ mi:     removing MPX ifdefs
 dix:    bugfix in CheckCursorConfinement
 	removing MPX ifdefs
 	removing MPX event generation (using Xi solely now)
+	bugfix GrabDevice: uninitialized field in grab struct caused segfault
+
+xfree86: removing MPX fdefs
+
+Xi:     removing MPX protocol events
 
 Files:
+	include/inputstr.h
 	mi/midispcur.c
-	mi/misprite.c
-	mi/mispritest.h
+	mi/mieq.c
 	mi/mipointer.c
-	dix/getevents.c
+	mi/misprite.c
 	dix/events.c
 	dix/cursor.c
+	dix/devices.c
+	hw/xfree86/common/xf86Events.c
+	hw/xfree86/common/xf86Input.h
+	Xi/exevents.c
 
 == 12.12.06 ==
 dix:    Moving SpriteRec into DeviceIntRec

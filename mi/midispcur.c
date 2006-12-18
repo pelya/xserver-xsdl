@@ -538,7 +538,7 @@ miDCPutUpCursor (pDev, pScreen, pCursor, x, y, source, mask)
     pWin = WindowTable[pScreen->myNum];
     pBuffer = pScreenPriv->pCoreBuffer;
 
-    if (MPHasCursor(pDev))
+    if (DevHasCursor(pDev))
         pBuffer = &pScreenPriv->pCursorBuffers[pDev->id];
 
 #ifdef ARGB_CURSOR
@@ -589,7 +589,7 @@ miDCSaveUnderCursor (pDev, pScreen, x, y, w, h)
     pScreenPriv = (miDCScreenPtr) pScreen->devPrivates[miDCScreenIndex].ptr;
     pBuffer = pScreenPriv->pCoreBuffer;
 
-    if (MPHasCursor(pDev))
+    if (DevHasCursor(pDev))
         pBuffer = &pScreenPriv->pCursorBuffers[pDev->id];
 
     pSave = pBuffer->pSave;
@@ -628,7 +628,7 @@ miDCRestoreUnderCursor (pDev, pScreen, x, y, w, h)
     pScreenPriv = (miDCScreenPtr) pScreen->devPrivates[miDCScreenIndex].ptr;
     pBuffer = pScreenPriv->pCoreBuffer;
 
-    if (MPHasCursor(pDev))
+    if (DevHasCursor(pDev))
         pBuffer = &pScreenPriv->pCursorBuffers[pDev->id];
 
     pSave = pBuffer->pSave;
@@ -661,7 +661,7 @@ miDCChangeSave (pDev, pScreen, x, y, w, h, dx, dy)
     pScreenPriv = (miDCScreenPtr) pScreen->devPrivates[miDCScreenIndex].ptr;
     pBuffer = pScreenPriv->pCoreBuffer;
 
-    if (MPHasCursor(pDev))
+    if (DevHasCursor(pDev))
         pBuffer = &pScreenPriv->pCursorBuffers[pDev->id];
 
     pSave = pBuffer->pSave;
@@ -812,7 +812,7 @@ miDCMoveCursor (pDev, pScreen, pCursor, x, y, w, h, dx, dy, source, mask)
     pWin = WindowTable[pScreen->myNum];
     pBuffer = pScreenPriv->pCoreBuffer;
 
-    if (MPHasCursor(pDev))
+    if (DevHasCursor(pDev))
         pBuffer = &pScreenPriv->pCursorBuffers[pDev->id];
 
     pTemp = pBuffer->pTemp;

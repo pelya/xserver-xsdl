@@ -379,4 +379,5 @@ typedef struct _QdEvent {
     int			evcount;
 } QdEventRec;    
 
+#define MPXDBG(...) ErrorF("MPX: " __VA_ARGS__ )
 #endif /* INPUTSTRUCT_H */

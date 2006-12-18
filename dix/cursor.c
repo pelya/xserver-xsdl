@@ -120,22 +120,22 @@ FreeCursor(pointer value, XID cid)
     /* FIXME: MPX: When FreeClientRessources is called, it calls FreeCursor
      * too often. Refcnt gots < 0 and FreeCursorBits segfaults because the
      * memory is already freed. */
+    MPXDBG("freecursor refcount %d\n", pCurs->refcnt);
     if ( --pCurs->refcnt != 0)
 	return(Success);
-
-    pDev = inputInfo.pointer;
 
     for (nscr = 0; nscr < screenInfo.numScreens; nscr++)
     {
 	pscr = screenInfo.screens[nscr];
         for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
         {
-            if (MPHasCursor(pDev))
+            if (DevHasCursor(pDev))
                 (void)( *pscr->UnrealizeCursor)(pDev, pscr, pCurs);
         }
     }
     FreeCursorBits(pCurs->bits);
     xfree( pCurs);
+    MPXDBG("freeing memory for cursor\n");
     return(Success);
 }
 
@@ -219,7 +219,6 @@ AllocCursorARGB(unsigned char *psrcbits, unsigned char *pmaskbits, CARD32 *argb,
     pCurs->backGreen = backGreen;
     pCurs->backBlue = backBlue;
 
-    pDev = inputInfo.pointer;
     /*
      * realize the cursor for every screen
      */
@@ -228,7 +227,7 @@ AllocCursorARGB(unsigned char *psrcbits, unsigned char *pmaskbits, CARD32 *argb,
         pscr = screenInfo.screens[nscr];
         for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
         {
-            if (MPHasCursor(pDev))
+            if (DevHasCursor(pDev))
             {
                 if (!( *pscr->RealizeCursor)(pDev, pscr, pCurs))
                 {
@@ -241,7 +240,7 @@ AllocCursorARGB(unsigned char *psrcbits, unsigned char *pmaskbits, CARD32 *argb,
                     DeviceIntPtr pDevIt = inputInfo.devices; /*dev iterator*/
                     while(pDevIt && pDevIt != pDev)
                     {
-                        if (MPHasCursor(pDevIt))
+                        if (DevHasCursor(pDevIt))
                             ( *pscr->UnrealizeCursor)(pDevIt, pscr, pCurs);
                         pDevIt = pDevIt->next;
                     }
@@ -252,7 +251,7 @@ AllocCursorARGB(unsigned char *psrcbits, unsigned char *pmaskbits, CARD32 *argb,
                         pDevIt = inputInfo.devices;
                         while (pDevIt)
                         {
-                            if (MPHasCursor(pDevIt))
+                            if (DevHasCursor(pDevIt))
                                 ( *pscr->UnrealizeCursor)(pDevIt, pscr, pCurs);
                             pDevIt = pDevIt->next;
                         }
@@ -439,7 +438,6 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
     pCurs->backGreen = backGreen;
     pCurs->backBlue = backBlue;
 
-    pDev = inputInfo.pointer;
     /*
      * realize the cursor for every screen
      */
@@ -448,7 +446,7 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
         pscr = screenInfo.screens[nscr];
         for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
         {
-            if (MPHasCursor(pDev))
+            if (DevHasCursor(pDev))
             {
                 if (!( *pscr->RealizeCursor)(pDev, pscr, pCurs))
                 {
@@ -461,7 +459,7 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
                     DeviceIntPtr pDevIt = inputInfo.devices; /*dev iterator*/
                     while(pDevIt && pDevIt != pDev)
                     {
-                        if (MPHasCursor(pDevIt))
+                        if (DevHasCursor(pDevIt))
                             ( *pscr->UnrealizeCursor)(pDevIt, pscr, pCurs);
                         pDevIt = pDevIt->next;
                     }
@@ -472,7 +470,7 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
                         pDevIt = inputInfo.devices;
                         while (pDevIt)
                         {
-                            if (MPHasCursor(pDevIt))
+                            if (DevHasCursor(pDevIt))
                                 ( *pscr->UnrealizeCursor)(pDevIt, pscr, pCurs);
                             pDevIt = pDevIt->next;
                         }

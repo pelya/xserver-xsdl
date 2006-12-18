@@ -227,9 +227,7 @@ mieqProcessInputEvents()
             else if (e->event[0].u.u.type == MotionNotify ||
                      e->event[0].u.u.type == ButtonPress ||
                      e->event[0].u.u.type == ButtonRelease) {
-#ifdef MPX
                 if (!e->pDev->isMPDev)
-#endif
                     SwitchCorePointer(e->pDev);
                 dev = inputInfo.pointer;
 
@@ -238,7 +236,6 @@ mieqProcessInputEvents()
                 dev = e->pDev;
             }
 
-#ifdef MPX
             /* MPX devices send both core and Xi events. 
              * Use dev to get the correct processing function but supply
              *  e->pDev to pass the correct device 
@@ -246,16 +243,14 @@ mieqProcessInputEvents()
             if (e->pDev->isMPDev)
                 dev->public.processInputProc(e->event, e->pDev, e->nevents);
             else
-#endif
-            dev->public.processInputProc(e->event, dev, e->nevents);
+                dev->public.processInputProc(e->event, dev, e->nevents);
         }
-#ifdef MPX
-        /* Update the sprite now. Next event may be from different device.  */
+
+        /* Update the sprite now. Next event may be from different device. */
         if (e->event[0].u.u.type == MotionNotify && 
                 (e->pDev->isMPDev || e->pDev->coreEvents))
         {
             miPointerUpdateSprite(e->pDev);
         }
-#endif
     }
 }

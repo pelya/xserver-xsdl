@@ -152,7 +152,7 @@ miSpriteReportDamage (DamagePtr pDamage, RegionPtr pRegion, void *closure)
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-        if (MPHasCursor(pDev))
+        if (DevHasCursor(pDev))
         {
             pCursorInfo = &pScreenPriv->pDevCursors[pDev->id];
 
@@ -318,7 +318,7 @@ miSpriteCloseScreen (i, pScreen)
     pScreen->SaveDoomedAreas = pScreenPriv->SaveDoomedAreas;
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-        if (MPHasCursor(pDev))
+        if (DevHasCursor(pDev))
         {
             miCursorInfoPtr pCursor;
             pCursor = &pScreenPriv->pDevCursors[pDev->id];
@@ -352,7 +352,7 @@ miSpriteGetImage (pDrawable, sx, sy, w, h, format, planemask, pdstLine)
 
     for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-        if (MPHasCursor(pDev))
+        if (DevHasCursor(pDev))
         {
              pCursorInfo = &pScreenPriv->pDevCursors[pDev->id];
              if (pDrawable->type == DRAWABLE_WINDOW &&
@@ -392,7 +392,7 @@ miSpriteGetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart)
 
     for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-        if (MPHasCursor(pDev))
+        if (DevHasCursor(pDev))
         {
             pCursorInfo = &pScreenPriv->pDevCursors[pDev->id];
 
@@ -444,7 +444,7 @@ miSpriteSourceValidate (pDrawable, x, y, width, height)
 
     for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-        if (MPHasCursor(pDev))
+        if (DevHasCursor(pDev))
         {
             pCursorInfo = &pScreenPriv->pDevCursors[pDev->id];
             if (pDrawable->type == DRAWABLE_WINDOW && pCursorInfo->isUp &&
@@ -477,7 +477,7 @@ miSpriteCopyWindow (WindowPtr pWindow, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 
     for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-        if (MPHasCursor(pDev))
+        if (DevHasCursor(pDev))
         {
             pCursorInfo = &pScreenPriv->pDevCursors[pDev->id];
             /*
@@ -518,7 +518,7 @@ miSpriteBlockHandler (i, blockData, pTimeout, pReadmask)
 
     for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-        if (MPHasCursor(pDev))
+        if (DevHasCursor(pDev))
         {
             pCursorInfo = &pPriv->pDevCursors[pDev->id];
             if (!pCursorInfo->isUp && pCursorInfo->shouldBeUp)
@@ -612,7 +612,7 @@ miSpriteStoreColors (pMap, ndef, pdef)
 
     for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-        if (MPHasCursor(pDev))
+        if (DevHasCursor(pDev))
         {
             pCursorInfo = &pPriv->pDevCursors[pDev->id];
             if (pCursorInfo->pColormap == pMap)
@@ -721,7 +721,7 @@ miSpriteSaveDoomedAreas (pWin, pObscured, dx, dy)
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-        if(MPHasCursor(pDev))
+        if(DevHasCursor(pDev))
         {
             pCursorInfo = &pScreenPriv->pDevCursors[pDev->id];
             if (pCursorInfo->isUp)
@@ -765,7 +765,7 @@ miSpriteRealizeCursor (pDev, pScreen, pCursor)
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
     pCursorInfo = pScreenPriv->cp;
 
-    if (MPHasCursor(pDev))
+    if (DevHasCursor(pDev))
         pCursorInfo = &pScreenPriv->pDevCursors[pDev->id];
 
     if (pCursor == pCursorInfo->pCursor)
@@ -799,7 +799,7 @@ miSpriteSetCursor (pDev, pScreen, pCursor, x, y)
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
     miCursorInfoPtr pPointer = pScreenPriv->cp;
 
-    if (MPHasCursor(pDev))
+    if (DevHasCursor(pDev))
         pPointer = &pScreenPriv->pDevCursors[pDev->id];
 
     if (!pCursor)
@@ -916,7 +916,7 @@ miSpriteMoveCursor (pDev, pScreen, x, y)
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
     pCursor = pScreenPriv->cp->pCursor;
 
-    if (MPHasCursor(pDev))
+    if (DevHasCursor(pDev))
         pCursor = pScreenPriv->pDevCursors[pDev->id].pCursor;
 
     miSpriteSetCursor (pDev, pScreen, pCursor, x, y);
@@ -939,7 +939,7 @@ miSpriteRemoveCursor (pDev, pScreen)
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
     pCursorInfo = pScreenPriv->cp;
 
-    if (MPHasCursor(pDev))
+    if (DevHasCursor(pDev))
         pCursorInfo = &pScreenPriv->pDevCursors[pDev->id];
 
     miSpriteIsUpFALSE (pCursorInfo, pScreen, pScreenPriv);
@@ -977,7 +977,7 @@ miSpriteRestoreCursor (pDev, pScreen)
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
     pCursorInfo = pScreenPriv->cp;
 
-    if (MPHasCursor(pDev))
+    if (DevHasCursor(pDev))
         pCursorInfo = &pScreenPriv->pDevCursors[pDev->id];
 
     miSpriteComputeSaved (pDev, pScreen);
@@ -1025,7 +1025,7 @@ miSpriteComputeSaved (pDev, pScreen)
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
     pCursorInfo = pScreenPriv->cp;
 
-    if (MPHasCursor(pDev))
+    if (DevHasCursor(pDev))
         pCursorInfo = &pScreenPriv->pDevCursors[pDev->id];
 
     pCursor = pCursorInfo->pCursor;

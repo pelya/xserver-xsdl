@@ -73,12 +73,6 @@ SOFTWARE.
 #include "dixgrabs.h"	/* CreateGrab() */
 #include "scrnintstr.h"
 
-#ifdef MPX
-#include <X11/extensions/MPXconst.h>
-#include <X11/extensions/MPXproto.h>
-#include "mpxglobals.h"
-#endif
-
 #define WID(w) ((w) ? ((w)->drawable.id) : 0)
 #define AllModifiersMask ( \
 	ShiftMask | LockMask | ControlMask | Mod1Mask | Mod2Mask | \
@@ -123,6 +117,7 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
     KeyClassPtr k = other->key;
     ValuatorClassPtr v = other->valuator;
     deviceValuator *xV = (deviceValuator *) xE;
+
 
     if (xE->u.u.type != DeviceValuator) {
 	GetSpritePosition(other, &rootX, &rootY);
@@ -236,11 +231,7 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 
 	if (other->fromPassiveGrab && (key == other->activatingKey))
 	    deactivateDeviceGrab = TRUE;
-    } else if (xE->u.u.type == DeviceButtonPress
-#ifdef MPX
-            || xE->u.u.type == MPXButtonPress
-#endif
-            ) {
+    } else if (xE->u.u.type == DeviceButtonPress) {
         if (!b)
             return;
 
@@ -256,18 +247,11 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 	if (xE->u.u.detail <= 5)
 	    b->state |= (Button1Mask >> 1) << xE->u.u.detail;
 	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
-#ifdef MPX
-        if (xE->u.u.type == DeviceButtonPress)
-#endif
-            if (!grab)
-                if (CheckDeviceGrabs(other, xE, 0, count))
-                    return;
+        if (!grab)
+            if (CheckDeviceGrabs(other, xE, 0, count))
+                return;
 
-    } else if (xE->u.u.type == DeviceButtonRelease
-#ifdef MPX
-            || xE->u.u.type == MPXButtonRelease
-#endif
-            ) {
+    } else if (xE->u.u.type == DeviceButtonRelease) {
         if (!b)
             return;
 
@@ -283,11 +267,8 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 	if (xE->u.u.detail <= 5)
 	    b->state &= ~((Button1Mask >> 1) << xE->u.u.detail);
 	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
-#ifdef MPX
-        if (xE->u.u.type == DeviceButtonRelease)
-#endif
-            if (!b->state && other->fromPassiveGrab)
-                deactivateDeviceGrab = TRUE;
+        if (!b->state && other->fromPassiveGrab)
+            deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == ProximityIn)
 	other->valuator->mode &= ~OutOfProximity;
     else if (xE->u.u.type == ProximityOut)

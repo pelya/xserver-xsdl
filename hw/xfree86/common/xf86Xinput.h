@@ -82,10 +82,7 @@
 #define XI86_CORE_KEYBOARD	0x20 /* device is the core keyboard */
 #define XI86_POINTER_CAPABLE	0x40 /* capable of being a core pointer */
 #define XI86_KEYBOARD_CAPABLE	0x80 /* capable of being a core keyboard */
-
-#ifdef MPX
 #define XI86_MP_DEVICE 0x100 /* device is multipointer device */
-#endif
 
 #define XI_PRIVATE(dev) \
 	(((LocalDevicePtr)((dev)->public.devicePrivate))->private)
