@@ -129,7 +129,7 @@ typedef union _SourcePict {
 typedef struct _Picture {
     DrawablePtr	    pDrawable;
     PictFormatPtr   pFormat;
-    CARD32	    format;	    /* PICT_FORMAT */
+    PictFormatShort format;	    /* PICT_FORMAT */
     int		    refcnt;
     CARD32	    id;
     PicturePtr	    pNext;	    /* chain on same drawable */
@@ -349,8 +349,18 @@ typedef struct _PictureScreen {
     PictFilterAliasPtr		filterAliases;
     int				nfilterAliases;
 
+    /**
+     * Called immediately after a picture's transform is changed through the
+     * SetPictureTransform request.  Not called for source-only pictures.
+     */
     ChangePictureTransformProcPtr   ChangePictureTransform;
+
+    /**
+     * Called immediately after a picture's transform is changed through the
+     * SetPictureFilter request.  Not called for source-only pictures.
+     */
     ChangePictureFilterProcPtr	ChangePictureFilter;
+
     DestroyPictureFilterProcPtr	DestroyPictureFilter;
 
     TrapezoidsProcPtr		Trapezoids;

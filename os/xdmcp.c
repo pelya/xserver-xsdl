@@ -1,5 +1,3 @@
-/* $XdotOrg: xc/programs/Xserver/os/xdmcp.c,v 1.7 2005/05/02 21:57:32 harold Exp $ */
-/* $Xorg: xdmcp.c,v 1.4 2001/01/31 13:37:19 pookie Exp $ */
 /*
  * Copyright 1989 Network Computing Devices, Inc., Mountain View, California.
  *
@@ -14,7 +12,6 @@
  * without express or implied warranty.
  *
  */
-/* $XFree86: xc/programs/Xserver/os/xdmcp.c,v 3.31 2003/12/30 21:24:32 herrb Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -1603,6 +1600,10 @@ get_fromaddr_by_name(
       , &ai, &aifirst
 #endif
 	);
+#if defined(IPv6) && defined(AF_INET6)
+    if (aifirst != NULL)
+	freeaddrinfo(aifirst);
+#endif
     xdm_from = argv[i];
 }
 

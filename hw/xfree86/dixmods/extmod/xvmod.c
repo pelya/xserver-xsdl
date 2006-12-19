@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xext/xvmod.c,v 1.1 1998/08/13 14:45:36 dawes Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

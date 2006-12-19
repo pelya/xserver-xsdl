@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/assyntax.h,v 3.13 2003/08/24 17:37:03 dawes Exp $ */
 
 #ifndef __ASSYNTAX_H__
 #define	__ASSYNTAX_H__

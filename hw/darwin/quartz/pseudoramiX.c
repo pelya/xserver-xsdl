@@ -32,7 +32,6 @@ shall not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/pseudoramiX.c,v 1.4 2004/07/02 01:30:33 torrey Exp $ */
 
 #include "pseudoramiX.h"
 
@@ -171,12 +170,13 @@ static int ProcPseudoramiXGetState(ClientPtr client)
     REQUEST(xPanoramiXGetStateReq);
     WindowPtr pWin;
     xPanoramiXGetStateReply rep;
-    register int n;
+    register int n, rc;
 
     REQUEST_SIZE_MATCH(xPanoramiXGetStateReq);
-    pWin = LookupWindow (stuff->window, client);
-    if (!pWin)
-        return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
+
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -197,12 +197,13 @@ static int ProcPseudoramiXGetScreenCount(ClientPtr client)
     REQUEST(xPanoramiXGetScreenCountReq);
     WindowPtr pWin;
     xPanoramiXGetScreenCountReply rep;
-    register int n;
+    register int n, rc;
 
     REQUEST_SIZE_MATCH(xPanoramiXGetScreenCountReq);
-    pWin = LookupWindow (stuff->window, client);
-    if (!pWin)
-        return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
+
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -223,12 +224,13 @@ static int ProcPseudoramiXGetScreenSize(ClientPtr client)
     REQUEST(xPanoramiXGetScreenSizeReq);
     WindowPtr			pWin;
     xPanoramiXGetScreenSizeReply	rep;
-    register int			n;
+    register int			n, rc;
 
     REQUEST_SIZE_MATCH(xPanoramiXGetScreenSizeReq);
-    pWin = LookupWindow (stuff->window, client);
-    if (!pWin)
-        return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
+
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;

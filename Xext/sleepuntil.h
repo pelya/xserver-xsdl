@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xext/sleepuntil.h,v 1.2 2003/11/17 22:20:27 dawes Exp $ */
 /*
  * Copyright (C) 2001 The XFree86 Project, Inc.  All Rights Reserved.
  *

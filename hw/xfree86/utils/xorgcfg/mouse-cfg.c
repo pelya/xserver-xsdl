@@ -26,7 +26,6 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/mouse-cfg.c,v 1.11tsi Exp $
  */
 
 #include "xf86config.h"
@@ -60,9 +59,6 @@ static struct MouseProtocol {
 #endif
 #ifdef __SCO__
     {"OsMouse",			MTYPE_AUTOMOUSE},
-#endif
-#if defined(__UNIXWARE__)
-    {"Xqueue",			MTYPE_XQUEUE},
 #endif
 #ifdef WSCONS_SUPPORT
     {"wsmouse",			MTYPE_AUTOMOUSE},

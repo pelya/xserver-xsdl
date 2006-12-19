@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/afb/afbpixmap.c,v 3.0 1996/08/18 01:45:45 dawes Exp $ */
 /***********************************************************
 
 Copyright (c) 1987  X Consortium
@@ -46,7 +45,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XConsortium: afbpixmap.c,v 5.13 94/04/17 20:28:28 dpw Exp $ */
 
 /* pixmap management
    written by drewry, september 1986

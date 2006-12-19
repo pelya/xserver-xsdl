@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Configure.c,v 3.80 2003/10/08 14:58:27 dawes Exp $ */
 /*
  * Copyright 2000-2002 by Alan Hourihane, Flint Mountain, North Wales.
  *
@@ -37,9 +36,7 @@
 #include <X11/X.h>
 #include <X11/Xmd.h>
 #include "os.h"
-#ifdef XFree86LOADER
 #include "loaderProcs.h"
-#endif
 #include "xf86.h"
 #include "xf86Config.h"
 #include "xf86_OSlib.h"
@@ -51,7 +48,7 @@
 #include "Configint.h"
 #include "vbe.h"
 #include "xf86DDC.h"
-#if defined(__sparc__) && !defined(__OpenBSD__)
+#if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
 #include "xf86Bus.h"
 #include "xf86Sbus.h"
 #endif
@@ -60,7 +57,7 @@
 typedef struct _DevToConfig {
     GDevRec GDev;
     pciVideoPtr pVideo;
-#if defined(__sparc__) && !defined(__OpenBSD__)
+#if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     sbusDevicePtr sVideo;
 #endif
     int iDriver;
@@ -79,7 +76,7 @@ Bool foundMouse = FALSE;
 #elif defined(__SCO__)
 static char *DFLT_MOUSE_PROTO = "OSMouse";
 #elif defined(__UNIXWARE__)
-static char *DFLT_MOUSE_PROTO = "Xqueue";
+static char *DFLT_MOUSE_PROTO = "OSMouse";
 static char *DFLT_MOUSE_DEV = "/dev/mouse";
 #elif defined(QNX4)
 static char *DFLT_MOUSE_PROTO = "OSMouse";
@@ -90,6 +87,9 @@ static char *DFLT_MOUSE_DEV = "/dev/devi/mouse0";
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
 static char *DFLT_MOUSE_DEV = "/dev/sysmouse";
 static char *DFLT_MOUSE_PROTO = "auto";
+#elif defined(linux)
+static char DFLT_MOUSE_DEV[] = "/dev/input/mice";
+static char DFLT_MOUSE_PROTO[] = "auto";
 #else
 static char *DFLT_MOUSE_DEV = "/dev/mouse";
 static char *DFLT_MOUSE_PROTO = "auto";
@@ -134,7 +134,7 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 	    if (!DevToConfig[i].pVideo)
 		return NULL;
 	break;
-#if defined(__sparc__) && !defined(__OpenBSD__)
+#if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     case BUS_SBUS:
 	for (i = 0;  i < nDevToConfig;  i++)
 	    if (DevToConfig[i].sVideo &&
@@ -213,7 +213,7 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 	NewDevice.GDev.identifier = "ISA Adapter";
 	NewDevice.GDev.busID = "ISA";
 	break;
-#if defined(__sparc__) && !defined(__OpenBSD__)
+#if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     case BUS_SBUS: {
 	char *promPath = NULL;
 	NewDevice.sVideo = (sbusDevicePtr) busData;
@@ -265,11 +265,7 @@ configureInputSection (void)
     parsePrologue (XF86ConfInputPtr, XF86ConfInputRec)
 
     ptr->inp_identifier = "Keyboard0";
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-    ptr->inp_driver = "keyboard";
-#else
     ptr->inp_driver = "kbd";
-#endif
     ptr->list.next = NULL;
 
     /* Crude mechanism to auto-detect mouse (os dependent) */
@@ -602,7 +598,6 @@ configureFlagsSection (void)
 static XF86ConfModulePtr
 configureModuleSection (void)
 {
-#ifdef XFree86LOADER
     char **elist, **el;
     /* Find the list of extension modules. */
     const char *esubdirs[] = {
@@ -613,10 +608,8 @@ configureModuleSection (void)
 	"fonts",
 	NULL
     };
-#endif
     parsePrologue (XF86ConfModulePtr, XF86ConfModuleRec)
 
-#ifdef XFree86LOADER
     elist = LoaderListDirs(esubdirs, NULL);
     if (elist) {
 	for (el = elist; *el; el++) {
@@ -653,7 +646,6 @@ configureModuleSection (void)
     	}
 	xfree(elist);
     }
-#endif
 
     return ptr;
 }
@@ -663,10 +655,8 @@ configureFilesSection (void)
 {
     parsePrologue (XF86ConfFilesPtr, XF86ConfFilesRec)
 
-#ifdef XFree86LOADER
    if (xf86ModulePath)
        ptr->file_modulepath = strdup(xf86ModulePath);
-#endif
    if (defaultFontPath)
        ptr->file_fontpath = strdup(defaultFontPath);
    if (rgbPath)
@@ -788,10 +778,8 @@ DoConfigure()
     for (vl = vlist; *vl; vl++)
 	ErrorF("\t%s\n", *vl);
 
-#ifdef XFree86LOADER
     /* Load all the drivers that were found. */
     xf86LoadModules(vlist, NULL);
-#endif /* XFree86LOADER */
 
     xfree(vlist);
 

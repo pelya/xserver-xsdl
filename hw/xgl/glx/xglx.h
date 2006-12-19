@@ -91,7 +91,7 @@ xglxInitOutput (ScreenInfo *pScreenInfo,
 
 Bool
 xglxLegalModifier (unsigned int key,
-		   DevicePtr    pDev);
+		   DeviceIntPtr pDev);
 
 void
 xglxProcessInputEvents (void);

@@ -12,7 +12,6 @@ Thanks to Linus Torvalds for contributing this code.
 
 ****************************************************************************/
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/misc/BUSmemcpy.c,v 1.3 1999/12/03 19:17:44 eich Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

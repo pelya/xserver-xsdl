@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/shared/bios_mmap.c,v 1.8 2000/11/19 16:38:06 tsi Exp $ */
 /*
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
  *

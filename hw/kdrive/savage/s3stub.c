@@ -60,12 +60,8 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-#ifdef VXWORKS
-    KdInitInput (&VxWorksMouseFuncs, &VxWorksKeyboardFuncs);
-#endif
-#ifdef linux
-    KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
-#endif
+    KdOsAddInputDrivers ();
+    KdInitInput ();
 }
 
 extern int	s3CpuTimeout;

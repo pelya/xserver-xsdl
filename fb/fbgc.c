@@ -21,8 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XdotOrg: xserver/xorg/fb/fbgc.c,v 1.7 2006/02/10 22:00:21 anholt Exp $ */
-/* $XFree86: xc/programs/Xserver/fb/fbgc.c,v 1.14 2003/12/18 15:22:32 alanh Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -108,16 +106,18 @@ fbPadPixmap (PixmapPtr pPixmap)
     mask = FbBitsMask (0, width);
     while (height--)
     {
-	b = *bits & mask;
+	b = READ(bits) & mask;
 	w = width;
 	while (w < FB_UNIT)
 	{
 	    b = b | FbScrRight(b, w);
 	    w <<= 1;
 	}
-	*bits = b;
+	WRITE(bits, b);
 	bits += stride;
     }
+
+    fbFinishAccess (&pPixmap->drawable);
 }
 
 /*
@@ -155,7 +155,7 @@ fbLineRepeat (FbBits *bits, int len, int width)
     width = (width + FB_UNIT-1) >> FB_SHIFT;
     bits++;
     while (--width)
-	if (*bits != first)
+	if (READ(bits) != first)
 	    return FALSE;
     return TRUE;
 }
@@ -185,10 +185,13 @@ fbCanEvenStipple (PixmapPtr pStipple, int bpp)
     /* check to see that the stipple repeats horizontally */
     while (h--)
     {
-	if (!fbLineRepeat (bits, len, pStipple->drawable.width))
+	if (!fbLineRepeat (bits, len, pStipple->drawable.width)) {
+	    fbFinishAccess (&pStipple->drawable);
 	    return FALSE;
+	}
 	bits += stride;
     }
+    fbFinishAccess (&pStipple->drawable);
     return TRUE;
 }
 

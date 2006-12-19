@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Pci.h,v 1.45 2004/02/02 03:55:31 dawes Exp $ */
 /*
  * Copyright 1998 by Concurrent Computer Corporation
  *
@@ -120,7 +119,7 @@
 				/* by xf86scanpci		     */
 #if defined(sun) && defined(SVR4) && defined(sparc)
 # define MAX_PCI_BUSES   4096	/* Max number of PCI buses           */
-#elif defined(__alpha__) && defined (linux)
+#elif (defined(__alpha__) || defined(__ia64__)) && defined (linux)
 # define MAX_PCI_DOMAINS	512
 # define PCI_DOM_MASK	0x01fful
 # define MAX_PCI_BUSES	(MAX_PCI_DOMAINS*256) /* 256 per domain      */
@@ -259,7 +258,7 @@
 # endif
 #elif defined(__ia64__)
 # if defined(linux)
-#  define ARCH_PCI_INIT linuxPciInit
+#  define ARCH_PCI_INIT ia64linuxPciInit
 #  define INCLUDE_XF86_MAP_PCI_MEM
 # elif defined(FreeBSD)
 #  define ARCH_PCI_INIT freebsdPciInit

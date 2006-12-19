@@ -30,7 +30,6 @@
  *		Peter Busch
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winmouse.c,v 1.3 2001/05/08 08:14:09 alanh Exp $ */
 
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>

@@ -1,7 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/xf86sym.c,v 1.242 2003/10/27 20:51:16 herrb Exp $ */
-
 /*
- *
  * Copyright 1995,96 by Metro Link, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -73,7 +70,6 @@
 # include "xf86Xinput.h"
 #endif
 #include "xf86OSmouse.h"
-#include "xf86OSKbd.h"
 #include "xf86xv.h"
 #include "xf86xvmc.h"
 #include "xf86cmap.h"
@@ -241,7 +237,7 @@ extern unsigned short ldw_brx(volatile unsigned char *, int);
 
 /* XFree86 things */
 
-LOOKUP xfree86LookupTab[] = {
+_X_HIDDEN void *xfree86LookupTab[] = {
 
     /* Public OSlib functions */
     SYMFUNC(xf86ReadBIOS)
@@ -283,7 +279,6 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86SerialModemClearBits)
     SYMFUNC(xf86LoadKernelModule)
     SYMFUNC(xf86OSMouseInit)
-    SYMFUNC(xf86OSKbdPreInit)
     SYMFUNC(xf86AgpGARTSupported)
     SYMFUNC(xf86GetAGPInfo)
     SYMFUNC(xf86AcquireGART)
@@ -293,10 +288,8 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86BindGARTMemory)
     SYMFUNC(xf86UnbindGARTMemory)
     SYMFUNC(xf86EnableAGP)
-    SYMFUNC(xf86SoundKbdBell)
     SYMFUNC(xf86GARTCloseScreen)
 #ifdef XINPUT
-    /* XISB routines  (Merged from Metrolink tree) */
     SYMFUNC(XisbNew)
     SYMFUNC(XisbFree)
     SYMFUNC(XisbRead)
@@ -359,9 +352,6 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86RegisterStateChangeNotificationCallback)
     SYMFUNC(xf86DeregisterStateChangeNotificationCallback)
     SYMFUNC(xf86NoSharedResources)
-#ifdef async
-    SYMFUNC(xf86QueueAsyncEvent)
-#endif
     /* Shared Accel Accessor Functions */
     SYMFUNC(xf86GetLastScrnFlag)
     SYMFUNC(xf86SetLastScrnFlag)
@@ -374,6 +364,9 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86ClearPrimInitDone)
     SYMFUNC(xf86AllocateEntityPrivateIndex)
     SYMFUNC(xf86GetEntityPrivate)
+
+    /* xf86cvt.c */
+    SYMFUNC(xf86CVTMode)
 
     /* xf86Configure.c */
     SYMFUNC(xf86AddDeviceToConfigure)
@@ -506,7 +499,7 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86AddModuleInfo)
     SYMFUNC(xf86DeleteModuleInfo)
 
-#if defined(__sparc__) && !defined(__OpenBSD__)
+#if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     /* xf86sbusBus.c */
     SYMFUNC(xf86MatchSbusInstances)
     SYMFUNC(xf86GetSbusInfoForEntity)
@@ -628,6 +621,7 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86XVAllocateVideoAdaptorRec)
     SYMFUNC(xf86XVFreeVideoAdaptorRec)
     SYMFUNC(xf86XVFillKeyHelper)
+    SYMFUNC(xf86XVFillKeyHelperDrawable)
     SYMFUNC(xf86XVClipVideoHelper)
     SYMFUNC(xf86XVCopyYUV12ToPacked)
     SYMFUNC(xf86XVCopyPacked)
@@ -698,22 +692,15 @@ LOOKUP xfree86LookupTab[] = {
     /* xf86Xinput.c */
 #ifdef XINPUT
     SYMFUNC(xf86ProcessCommonOptions)
-    SYMFUNC(xf86IsCorePointer)
     SYMFUNC(xf86PostMotionEvent)
     SYMFUNC(xf86PostProximityEvent)
     SYMFUNC(xf86PostButtonEvent)
     SYMFUNC(xf86PostKeyEvent)
     SYMFUNC(xf86PostKeyboardEvent)
-    SYMFUNC(xf86GetMotionEvents)
-    SYMFUNC(xf86MotionHistoryAllocate)
     SYMFUNC(xf86FirstLocalDevice)
-    SYMFUNC(xf86eqEnqueue)
     SYMFUNC(xf86ActivateDevice)
-/* The following segment merged from Metrolink tree */
     SYMFUNC(xf86XInputSetScreen)
     SYMFUNC(xf86ScaleAxis)
-    SYMFUNC(xf86XInputSetSendCoreEvents)
-/* End merged segment */
 #endif
 #ifdef DPMSExtension
     SYMFUNC(DPMSGet)
@@ -746,7 +733,6 @@ LOOKUP xfree86LookupTab[] = {
     SYMFUNC(xf86ReadPciBIOS)
 
     /* Loader functions */
-    SYMFUNC(LoaderDefaultFunc)
     SYMFUNC(LoadSubModule)
     SYMFUNC(DuplicateModule)
     SYMFUNC(LoaderErrorMsg)
@@ -1150,9 +1136,6 @@ LOOKUP xfree86LookupTab[] = {
     SYMVAR(xf86DummyVar3)
 #endif
 
-#ifdef async
-    SYMVAR(xf86CurrentScreen)
-#endif
     /* predefined resource lists from xf86Bus.h */
     SYMVAR(resVgaExclusive)
     SYMVAR(resVgaShared)
@@ -1178,6 +1161,4 @@ LOOKUP xfree86LookupTab[] = {
 
     /* Pci.c */
     SYMVAR(pciNumBuses)
-
-    {0, 0}
 };

@@ -33,16 +33,24 @@
 
 extern int KdTsPhyScreen;
 
+char *fbdevDevicePath = NULL;
+
 Bool
 fbdevInitialize (KdCardInfo *card, FbdevPriv *priv)
 {
     int		    k;
     unsigned long   off;
-    if ((priv->fd = open("/dev/fb0", O_RDWR)) < 0 && \
-        (priv->fd = open("/dev/fb/0", O_RDWR)) < 0) {
-	perror("Error opening /dev/fb0");
-	return FALSE;
-    }
+
+    if (fbdevDevicePath == NULL) 
+      fbdevDevicePath = "/dev/fb0";
+
+    if ((priv->fd = open(fbdevDevicePath, O_RDWR)) < 0)
+      {
+	ErrorF("Error opening framebuffer %s: %s\n", 
+	       fbdevDevicePath, strerror(errno));
+        return FALSE;
+      }
+
     /* quiet valgrind */
     memset (&priv->fix, '\0', sizeof (priv->fix));
     if ((k=ioctl(priv->fd, FBIOGET_FSCREENINFO, &priv->fix)) < 0) {
@@ -323,7 +331,7 @@ Bool
 fbdevMapFramebuffer (KdScreenInfo *screen)
 {
     FbdevScrPriv	*scrpriv = screen->driver;
-    KdMouseMatrix	m;
+    KdPointerMatrix	m;
     FbdevPriv		*priv = screen->card->driver;
 
     if (scrpriv->randr != RR_Rotate_0)
@@ -331,9 +339,9 @@ fbdevMapFramebuffer (KdScreenInfo *screen)
     else
 	scrpriv->shadow = FALSE;
     
-    KdComputeMouseMatrix (&m, scrpriv->randr, screen->width, screen->height);
+    KdComputePointerMatrix (&m, scrpriv->randr, screen->width, screen->height);
     
-    KdSetMouseMatrix (&m);
+    KdSetPointerMatrix (&m);
     
     screen->width = priv->var.xres;
     screen->height = priv->var.yres;

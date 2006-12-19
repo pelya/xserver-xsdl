@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxserver.h,v 1.5 2003/09/28 20:15:43 alanh Exp $ */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -70,7 +69,6 @@ typedef struct __GLXcontext __GLXcontext;
 #include "glxscreens.h"
 #include "glxdrawable.h"
 #include "glxcontext.h"
-#include "glxerror.h"
 
 
 #define GLX_SERVER_MAJOR_VERSION 1
@@ -112,6 +110,8 @@ void __glXScreenInitVisuals(__GLXscreen *screen);
 extern __GLXcontext *__glXLastContext;
 extern __GLXcontext *__glXForceCurrent(__GLXclientState*, GLXContextTag, int*);
 
+int __glXError(int error);
+
 /*
 ** Macros to set, unset, and retrieve the flag that says whether a context
 ** has unflushed commands.
@@ -135,6 +135,9 @@ void __glXsetEnterLeaveServerFuncs(void (*enter)(void),
 				   void (*leave)(void));
 void __glXenterServer(void);
 void __glXleaveServer(void);
+
+void glxSuspendClients(void);
+void glxResumeClients(void);
 
 /*
 ** State kept per client.
@@ -176,8 +179,6 @@ struct __GLXclientStateRec {
     char *GLClientextensions;
 };
 
-extern __GLXclientState *__glXClients[];
-
 /************************************************************************/
 
 /*
@@ -191,17 +192,16 @@ typedef int (*__GLXdispatchVendorPrivProcPtr)(__GLXclientState *, GLbyte *);
  * Dispatch for GLX commands.
  */
 typedef int (*__GLXprocPtr)(__GLXclientState *, char *pc);
-extern __GLXprocPtr __glXProcTable[];
 
 /*
  * Tables for computing the size of each rendering command.
  */
+typedef int (*gl_proto_size_func)(const GLbyte *, Bool);
+
 typedef struct {
     int bytes;
-    int (*varsize)(const GLbyte *pc, Bool swap);
+    gl_proto_size_func varsize;
 } __GLXrenderSizeData;
-extern __GLXrenderSizeData __glXRenderSizeTable[];
-extern __GLXrenderSizeData __glXRenderSizeTable_EXT[];
 
 /************************************************************************/
 
@@ -251,7 +251,5 @@ extern int __glXImageSize(GLenum format, GLenum type,
     GLenum target, GLsizei w, GLsizei h, GLsizei d,
     GLint imageHeight, GLint rowLength, GLint skipImages, GLint skipRows,
     GLint alignment);
-
-extern int __glXDrawArraysSize(const GLbyte *pc, Bool swap);
 
 #endif /* !__GLX_server_h__ */

@@ -21,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbstipple.c,v 1.6 2000/02/23 20:29:47 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -156,7 +155,7 @@ fbEvenStipple (FbBits	*dst,
 	/*
 	 * Extract stipple bits for this scanline;
 	 */
-	bits = *s;
+	bits = READ(s);
 	s += stipStride;
 	if (s == stipEnd)
 	    s = stip;
@@ -200,12 +199,12 @@ fbEvenStipple (FbBits	*dst,
 	    n = nmiddle;
 	    if (!and)
 		while (n--)
-		    *dst++ = xor;
+		    WRITE(dst++, xor);
 	    else
 	    {
 		while (n--)
 		{
-		    *dst = FbDoRRop (*dst, and, xor);
+		    WRITE(dst, FbDoRRop (READ(dst), and, xor));
 		    dst++;
 		}
 	    }

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/include/exevents.h,v 3.1 1996/04/15 11:34:29 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -179,5 +178,18 @@ extern int DeviceEventSuppressForWindow(
 	ClientPtr              /* client */,
 	Mask                   /* mask */,
 	int                    /* maskndx */);
+
+void FindInterestedChildren(
+        DeviceIntPtr           /* dev */,
+        WindowPtr              /* p1 */,
+        Mask                   /* mask */,
+        xEvent *               /* ev */,
+        int                    /* count */);
+
+void SendEventToAllWindows(
+        DeviceIntPtr           /* dev */,
+        Mask                   /* mask */,
+        xEvent *               /* ev */,
+        int                    /* count */);
 
 #endif /* EXEVENTS_H */

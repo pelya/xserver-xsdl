@@ -47,6 +47,7 @@
 #include "glapi.h"
 #include "glthread.h"
 #include "dispatch.h"
+#include "indirect_dispatch.h"
 #include <GL/gl.h>
 #include <pixmapstr.h>
 #include <windowstr.h>
@@ -156,7 +157,7 @@ MakeBitmapsFromFont(FontPtr pFont, int first, int count, int list_base)
 
 /************************************************************************/
 
-int __glXUseXFont(__GLXclientState *cl, GLbyte *pc)
+int __glXDisp_UseXFont(__GLXclientState *cl, GLbyte *pc)
 {
     ClientPtr client = cl->client;
     xGLXUseXFontReq *req;
@@ -179,7 +180,7 @@ int __glXUseXFont(__GLXclientState *cl, GLbyte *pc)
 	** to try to make a font during another lists construction.
 	*/
 	client->errorValue = cx->id;
-	return __glXBadContextState;
+	return __glXError(GLXBadContextState);
     }
 
     /*

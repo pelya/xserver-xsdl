@@ -1,5 +1,4 @@
 /*
- * $XFree86: xc/programs/Xserver/fb/fbpict.c,v 1.15 2002/09/26 02:56:48 keithp Exp $
  *
  * Copyright © 2000 SuSE, Inc.
  *
@@ -138,22 +137,25 @@ fbCompositeSolidMask_nx8x8888 (CARD8      op,
 
 	while (w--)
 	{
-	    m = *mask++;
+	    m = READ(mask++);
 	    if (m == 0xff)
 	    {
 		if (srca == 0xff)
-		    *dst = src & dstMask;
+		    WRITE(dst, src & dstMask);
 		else
-		    *dst = fbOver (src, *dst) & dstMask;
+		    WRITE(dst, fbOver (src, READ(dst)) & dstMask);
 	    }
 	    else if (m)
 	    {
 		d = fbIn (src, m);
-		*dst = fbOver (d, *dst) & dstMask;
+		WRITE(dst, fbOver (d, READ(dst)) & dstMask);
 	    }
 	    dst++;
 	}
     }
+
+    fbFinishAccess (pMask->pDrawable);
+    fbFinishAccess (pDst->pDrawable);
 }
 
 void
@@ -197,17 +199,17 @@ fbCompositeSolidMask_nx8888x8888C (CARD8      op,
 
 	while (w--)
 	{
-	    ma = *mask++;
+	    ma = READ(mask++);
 	    if (ma == 0xffffffff)
 	    {
 		if (srca == 0xff)
-		    *dst = src & dstMask;
+		    WRITE(dst, src & dstMask);
 		else
-		    *dst = fbOver (src, *dst) & dstMask;
+		    WRITE(dst, fbOver (src, READ(dst)) & dstMask);
 	    }
 	    else if (ma)
 	    {
-		d = *dst;
+		d = READ(dst);
 #define FbInOverC(src,srca,msk,dst,i,result) { \
     CARD16  __a = FbGet8(msk,i); \
     CARD32  __t, __ta; \
@@ -222,11 +224,14 @@ fbCompositeSolidMask_nx8888x8888C (CARD8      op,
 		FbInOverC (src, srca, ma, d, 8, n);
 		FbInOverC (src, srca, ma, d, 16, o);
 		FbInOverC (src, srca, ma, d, 24, p);
-		*dst = m|n|o|p;
+		WRITE(dst, m|n|o|p);
 	    }
 	    dst++;
 	}
     }
+
+    fbFinishAccess (pMask->pDrawable);
+    fbFinishAccess (pDst->pDrawable);
 }
 
 void
@@ -269,7 +274,7 @@ fbCompositeSolidMask_nx8x0888 (CARD8      op,
 
 	while (w--)
 	{
-	    m = *mask++;
+	    m = READ(mask++);
 	    if (m == 0xff)
 	    {
 		if (srca == 0xff)
@@ -289,6 +294,9 @@ fbCompositeSolidMask_nx8x0888 (CARD8      op,
 	    dst += 3;
 	}
     }
+
+    fbFinishAccess (pMask->pDrawable);
+    fbFinishAccess (pDst->pDrawable);
 }
 
 void
@@ -331,27 +339,30 @@ fbCompositeSolidMask_nx8x0565 (CARD8      op,
 
 	while (w--)
 	{
-	    m = *mask++;
+	    m = READ(mask++);
 	    if (m == 0xff)
 	    {
 		if (srca == 0xff)
 		    d = src;
 		else
 		{
-		    d = *dst;
+		    d = READ(dst);
 		    d = fbOver24 (src, cvt0565to8888(d));
 		}
-		*dst = cvt8888to0565(d);
+		WRITE(dst, cvt8888to0565(d));
 	    }
 	    else if (m)
 	    {
-		d = *dst;
+		d = READ(dst);
 		d = fbOver24 (fbIn(src,m), cvt0565to8888(d));
-		*dst = cvt8888to0565(d);
+		WRITE(dst, cvt8888to0565(d));
 	    }
 	    dst++;
 	}
     }
+
+    fbFinishAccess (pMask->pDrawable);
+    fbFinishAccess (pDst->pDrawable);
 }
 
 void
@@ -398,33 +409,36 @@ fbCompositeSolidMask_nx8888x0565C (CARD8      op,
 
 	while (w--)
 	{
-	    ma = *mask++;
+	    ma = READ(mask++);
 	    if (ma == 0xffffffff)
 	    {
 		if (srca == 0xff)
 		{
-		    *dst = src16;
+		    WRITE(dst, src16);
 		}
 		else
 		{
-		    d = *dst;
+		    d = READ(dst);
 		    d = fbOver24 (src, cvt0565to8888(d));
-		    *dst = cvt8888to0565(d);
+		    WRITE(dst, cvt8888to0565(d));
 		}
 	    }
 	    else if (ma)
 	    {
-		d = *dst;
+		d = READ(dst);
 		d = cvt0565to8888(d);
 		FbInOverC (src, srca, ma, d, 0, m);
 		FbInOverC (src, srca, ma, d, 8, n);
 		FbInOverC (src, srca, ma, d, 16, o);
 		d = m|n|o;
-		*dst = cvt8888to0565(d);
+		WRITE(dst, cvt8888to0565(d));
 	    }
 	    dst++;
 	}
     }
+
+    fbFinishAccess (pMask->pDrawable);
+    fbFinishAccess (pDst->pDrawable);
 }
 
 void
@@ -462,15 +476,18 @@ fbCompositeSrc_8888x8888 (CARD8      op,
 
 	while (w--)
 	{
-	    s = *src++;
+	    s = READ(src++);
 	    a = s >> 24;
 	    if (a == 0xff)
-		*dst = s & dstMask;
+		WRITE(dst, s & dstMask);
 	    else if (a)
-		*dst = fbOver (s, *dst) & dstMask;
+		WRITE(dst, fbOver (s, READ(dst)) & dstMask);
 	    dst++;
 	}
     }
+
+    fbFinishAccess (pSrc->pDrawable);
+    fbFinishAccess (pDst->pDrawable);
 }
 
 void
@@ -507,7 +524,7 @@ fbCompositeSrc_8888x0888 (CARD8      op,
 
 	while (w--)
 	{
-	    s = *src++;
+	    s = READ(src++);
 	    a = s >> 24;
 	    if (a)
 	    {
@@ -520,6 +537,9 @@ fbCompositeSrc_8888x0888 (CARD8      op,
 	    dst += 3;
 	}
     }
+
+    fbFinishAccess (pSrc->pDrawable);
+    fbFinishAccess (pDst->pDrawable);
 }
 
 void
@@ -556,7 +576,7 @@ fbCompositeSrc_8888x0565 (CARD8      op,
 
 	while (w--)
 	{
-	    s = *src++;
+	    s = READ(src++);
 	    a = s >> 24;
 	    if (a)
 	    {
@@ -564,14 +584,17 @@ fbCompositeSrc_8888x0565 (CARD8      op,
 		    d = s;
 		else
 		{
-		    d = *dst;
+		    d = READ(dst);
 		    d = fbOver24 (s, cvt0565to8888(d));
 		}
-		*dst = cvt8888to0565(d);
+		WRITE(dst, cvt8888to0565(d));
 	    }
 	    dst++;
 	}
     }
+
+    fbFinishAccess (pDst->pDrawable);
+    fbFinishAccess (pSrc->pDrawable);
 }
 
 void
@@ -606,8 +629,11 @@ fbCompositeSrc_0565x0565 (CARD8      op,
 	w = width;
 
 	while (w--)
-	    *dst++ = *src++;
+	    WRITE(dst, READ(src++));
     }
+
+    fbFinishAccess (pDst->pDrawable);
+    fbFinishAccess (pSrc->pDrawable);
 }
 
 void
@@ -644,20 +670,23 @@ fbCompositeSrcAdd_8000x8000 (CARD8	op,
 
 	while (w--)
 	{
-	    s = *src++;
+	    s = READ(src++);
 	    if (s)
 	    {
 		if (s != 0xff)
 		{
-		    d = *dst;
+		    d = READ(dst);
 		    t = d + s;
 		    s = t | (0 - (t >> 8));
 		}
-		*dst = s;
+		WRITE(dst, s);
 	    }
 	    dst++;
 	}
     }
+
+    fbFinishAccess (pDst->pDrawable);
+    fbFinishAccess (pSrc->pDrawable);
 }
 
 void
@@ -695,12 +724,12 @@ fbCompositeSrcAdd_8888x8888 (CARD8	op,
 
 	while (w--)
 	{
-	    s = *src++;
+	    s = READ(src++);
 	    if (s)
 	    {
 		if (s != 0xffffffff)
 		{
-		    d = *dst;
+		    d = READ(dst);
 		    if (d)
 		    {
 			m = FbAdd(s,d,0,t);
@@ -710,11 +739,14 @@ fbCompositeSrcAdd_8888x8888 (CARD8	op,
 			s = m|n|o|p;
 		    }
 		}
-		*dst = s;
+		WRITE(dst, s);
 	    }
 	    dst++;
 	}
     }
+
+    fbFinishAccess (pDst->pDrawable);
+    fbFinishAccess (pSrc->pDrawable);
 }
 
 void
@@ -758,6 +790,9 @@ fbCompositeSrcAdd_1000x1000 (CARD8	op,
 
 	   FALSE,
 	   FALSE);
+
+    fbFinishAccess(pDst->pDrawable);
+    fbFinishAccess(pSrc->pDrawable);
 }
 
 void
@@ -822,6 +857,9 @@ fbCompositeSolidMask_nx1xn (CARD8      op,
 	      src,
 	      FB_ALLONES,
 	      0x0);
+
+    fbFinishAccess (pDst->pDrawable);
+    fbFinishAccess (pMask->pDrawable);
 }
 
 # define mod(a,b)	((b) == 1 ? 0 : (a) >= 0 ? (a) % (b) : (b) - (-a) % (b))
@@ -892,9 +930,8 @@ fbComposite (CARD8      op,
     case PictOpOver:
 	if (pMask)
 	{
-	    if (srcRepeat &&
-		pSrc->pDrawable->width == 1 &&
-		pSrc->pDrawable->height == 1)
+	    if (fbCanGetSolid(pSrc) &&
+		!maskRepeat)
 	    {
 		srcRepeat = FALSE;
 		if (PICT_FORMAT_COLOR(pSrc->format)) {
@@ -925,6 +962,8 @@ fbComposite (CARD8      op,
 #endif
 				func = fbCompositeSolidMask_nx8x8888;
 			    break;
+			default:
+			    break;
 			}
 			break;
 		    case PICT_a8r8g8b8:
@@ -946,6 +985,8 @@ fbComposite (CARD8      op,
 				else
 #endif
 				    func = fbCompositeSolidMask_nx8888x0565C;
+				break;
+			    default:
 				break;
 			    }
 			}
@@ -970,6 +1011,8 @@ fbComposite (CARD8      op,
 #endif
 				    func = fbCompositeSolidMask_nx8888x0565C;
 				break;
+			    default:
+				break;
 			    }
 			}
 			break;
@@ -985,16 +1028,22 @@ fbComposite (CARD8      op,
 			case PICT_x8b8g8r8:
 			    func = fbCompositeSolidMask_nx1xn;
 			    break;
+			default:
+			    break;
 			}
 			break;
+		    default:
+			break;
 		    }
+		default:
+		    break;
 		}
 	    }
 	    else if (! srcRepeat) /* has mask and non-repeating source */
 	    {
 		if (pSrc->pDrawable == pMask->pDrawable &&
 		    xSrc == xMask && ySrc == yMask &&
-		    !pMask->componentAlpha)
+		    !pMask->componentAlpha && !maskRepeat)
 		{
 		    /* source == mask: non-premultiplied data */
 		    switch (pSrc->format) {
@@ -1016,7 +1065,11 @@ fbComposite (CARD8      op,
 				    func = fbCompositeSrc_8888RevNPx0565mmx;
 #endif
 				break;
+			    default:
+				break;
 			    }
+			    break;
+			default:
 			    break;
 			}
 			break;
@@ -1038,9 +1091,15 @@ fbComposite (CARD8      op,
 				    func = fbCompositeSrc_8888RevNPx0565mmx;
 #endif
 				break;
+			    default:
+				break;
 			    }
 			    break;
+			default:
+			    break;
 			}
+			break;
+		    default:
 			break;
 		    }
 		    break;
@@ -1048,9 +1107,7 @@ fbComposite (CARD8      op,
 		else
 		{
 		    /* non-repeating source, repeating mask => translucent window */
-		    if (maskRepeat &&
-			pMask->pDrawable->width == 1 &&
-			pMask->pDrawable->height == 1)
+		    if (fbCanGetSolid(pMask))
 		    {
 			if (pSrc->format == PICT_x8r8g8b8 &&
 			    pDst->format == PICT_x8r8g8b8 &&
@@ -1067,9 +1124,7 @@ fbComposite (CARD8      op,
 	}
 	else /* no mask */
 	{
-	    if (srcRepeat &&
-		pSrc->pDrawable->width == 1 &&
-		pSrc->pDrawable->height == 1)
+	    if (fbCanGetSolid(pSrc))
 	    {
 		/* no mask and repeating source */
 		switch (pSrc->format) {
@@ -1094,7 +1149,11 @@ fbComposite (CARD8      op,
 			}
 #endif
 			break;
+		    default:
+			break;
 		    }
+		    break;
+		default:
 		    break;
 		}
 	    }
@@ -1118,6 +1177,8 @@ fbComposite (CARD8      op,
 		    case PICT_r5g6b5:
 			func = fbCompositeSrc_8888x0565;
 			break;
+		    default:
+			break;
 		    }
 		    break;
 		case PICT_x8r8g8b8:
@@ -1129,6 +1190,8 @@ fbComposite (CARD8      op,
 			    func = fbCompositeCopyAreammx;
 #endif
 			break;
+		    default:
+			break;
 		    }
 		case PICT_x8b8g8r8:
 		    switch (pDst->format) {
@@ -1138,6 +1201,8 @@ fbComposite (CARD8      op,
 			if (fbHaveMMX())
 			    func = fbCompositeCopyAreammx;
 #endif
+			break;
+		    default:
 			break;
 		    }
 		    break;
@@ -1158,12 +1223,16 @@ fbComposite (CARD8      op,
 		    case PICT_b5g6r5:
 			func = fbCompositeSrc_8888x0565;
 			break;
+		    default:
+			break;
 		    }
 		    break;
 		case PICT_r5g6b5:
 		    switch (pDst->format) {
 		    case PICT_r5g6b5:
 			func = fbCompositeSrc_0565x0565;
+			break;
+		    default:
 			break;
 		    }
 		    break;
@@ -1172,7 +1241,11 @@ fbComposite (CARD8      op,
 		    case PICT_b5g6r5:
 			func = fbCompositeSrc_0565x0565;
 			break;
+		    default:
+			break;
 		    }
+		    break;
+		default:
 		    break;
 		}
 	    }
@@ -1192,6 +1265,8 @@ fbComposite (CARD8      op,
 #endif
 			func = fbCompositeSrcAdd_8888x8888;
 		    break;
+		default:
+		    break;
 		}
 		break;
 	    case PICT_a8b8g8r8:
@@ -1203,6 +1278,8 @@ fbComposite (CARD8      op,
 		    else
 #endif
 			func = fbCompositeSrcAdd_8888x8888;
+		    break;
+		default:
 		    break;
 		}
 		break;
@@ -1216,6 +1293,8 @@ fbComposite (CARD8      op,
 #endif
 			func = fbCompositeSrcAdd_8000x8000;
 		    break;
+		default:
+		    break;
 		}
 		break;
 	    case PICT_a1:
@@ -1223,7 +1302,11 @@ fbComposite (CARD8      op,
 		case PICT_a1:
 		    func = fbCompositeSrcAdd_1000x1000;
 		    break;
+		default:
+		    break;
 		}
+		break;
+	    default:
 		break;
 	    }
 	}
@@ -1347,6 +1430,10 @@ fbPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
  */
 #if !defined(__amd64__) && !defined(__x86_64__)
 
+#ifdef HAVE_GETISAX
+#include <sys/auxv.h>
+#endif
+
 enum CPUFeatures {
     NoFeatures = 0,
     MMX = 0x1,
@@ -1357,7 +1444,23 @@ enum CPUFeatures {
 };
 
 static unsigned int detectCPUFeatures(void) {
+    unsigned int features = 0;
     unsigned int result;
+
+#ifdef HAVE_GETISAX
+    if (getisax(&result, 1)) {
+        if (result & AV_386_CMOV)
+            features |= CMOV;
+        if (result & AV_386_MMX)
+            features |= MMX;
+        if (result & AV_386_AMD_MMX)
+            features |= MMX_Extensions;
+        if (result & AV_386_SSE)
+            features |= SSE;
+        if (result & AV_386_SSE2)
+            features |= SSE2;
+    }
+#else
     char vendor[13];
     vendor[0] = 0;
     vendor[12] = 0;
@@ -1366,7 +1469,8 @@ static unsigned int detectCPUFeatures(void) {
      * %esp here. We can't declare either one as clobbered
      * since they are special registers (%ebx is the "PIC
      * register" holding an offset to global data, %esp the
-     * stack pointer), so we need to make sure they have their+      * original values when we access the output operands.
+     * stack pointer), so we need to make sure they have their
+     * original values when we access the output operands.
      */
     __asm__ ("pushf\n"
              "pop %%eax\n"
@@ -1402,7 +1506,6 @@ static unsigned int detectCPUFeatures(void) {
              : "%eax", "%ecx", "%edx"
         );
 
-    unsigned int features = 0;
     if (result) {
         /* result now contains the standard feature bits */
         if (result & (1 << 15))
@@ -1436,6 +1539,7 @@ static unsigned int detectCPUFeatures(void) {
                 features |= MMX_Extensions;
         }
     }
+#endif /* HAVE_GETISAX */
     return features;
 }
 

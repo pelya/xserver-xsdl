@@ -1,4 +1,3 @@
-/* $Xorg: window.h,v 1.4 2001/02/09 02:05:16 xorgcvs Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -255,6 +254,8 @@ void ResizeChildrenWinSize(
     int /*dy*/,
     int /*dw*/,
     int /*dh*/);
+
+extern void ShapeExtensionInit(void);
 
 extern void SendShapeNotify(
     WindowPtr /* pWin */,

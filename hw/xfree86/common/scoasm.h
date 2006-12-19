@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/scoasm.h,v 3.1 2003/08/24 17:36:49 dawes Exp $ */
 
 /*
  * Copyright (c) 1996 by The XFree86 Project, Inc.

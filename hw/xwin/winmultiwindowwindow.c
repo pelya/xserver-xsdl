@@ -29,7 +29,6 @@
  *		Earle F. Philhower, III
  *		Harold L Hunt II
  */
-/* $XFree86: xc/programs/Xserver/hw/xwin/winwindow.c,v 1.5 2002/11/07 10:31:32 alanh Exp $ */
 
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>
@@ -983,11 +982,10 @@ winAdjustXWindow (WindowPtr pWin, HWND hwnd)
       /*
        * If the Windows window is minimized, its WindowRect has
        * meaningless values so we don't adjust X window to it.
-       * Instead we put the X window to the bottom in Z order to
-       * be obscured by other windows.
        */
-      vlist[0] = Below;
-      return ConfigureWindow (pWin, CWStackMode, vlist, wClient(pWin));
+      vlist[0] = 0;
+      vlist[1] = 0;
+      return ConfigureWindow (pWin, CWX | CWY, vlist, wClient(pWin));
     }
   
   pDraw = &pWin->drawable;

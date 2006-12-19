@@ -1,4 +1,3 @@
-/* $Xorg: migc.h,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
 /*
 
 Copyright 1993, 1998  The Open Group
@@ -27,7 +26,6 @@ from The Open Group.
 
 */
 
-/* $XFree86: xc/programs/Xserver/mi/migc.h,v 1.7 2001/08/06 20:51:18 dawes Exp $ */
 
 extern void miChangeGC(
     GCPtr  /*pGC*/,

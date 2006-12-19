@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/dix/cursor.c,v 3.8 2003/01/12 02:44:26 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -47,7 +46,6 @@ SOFTWARE.
 ******************************************************************/
 
 
-/* $Xorg: cursor.c,v 1.4 2001/02/09 02:04:39 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -264,9 +262,9 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
     GlyphSharePtr pShare;
 
     sourcefont = (FontPtr) SecurityLookupIDByType(client, source, RT_FONT,
-						  SecurityReadAccess);
+						  DixReadAccess);
     maskfont = (FontPtr) SecurityLookupIDByType(client, mask, RT_FONT,
-						SecurityReadAccess);
+						DixReadAccess);
 
     if (!sourcefont)
     {

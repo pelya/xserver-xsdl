@@ -1,40 +1,28 @@
 #!/bin/sh
-# $XFree86$
-# This is a shell archive (produced by GNU sharutils 4.2c).
-# To extract the files from this archive, save it to some FILE, remove
-# everything before the `!/bin/sh' line above, then type `sh FILE'.
 #
-# Made on 2002-10-04 13:41 MDT by <root@abcyxhiz>.
-# Source directory was `/archives'.
+# This is a shell archive.  Save it in a file, remove anything before
+# this line, and then unpack it by entering "sh file".  Note, it may
+# create directories; files and directories will be owned by you and
+# have default permissions.
+# Made on Sun Jun 25 20:24:59 CEST 2006 by Martin Bochnig at martux.org
 #
-# Existing files will *not* be overwritten unless `-c' is specified.
-# This format requires very little intelligence at unshar time.
-# "if test", "echo", "mkdir", and "sed" may be needed.
+# This archive contains:
 #
-# This shar contains:
-# length mode       name
-# ------ ---------- ------------------------------------------
-#   1521 -rw-r--r-- aperture/Makefile
-#   1659 -rw-r--r-- aperture/README
-#   7557 -rw-r--r-- aperture/aperture.c
-#    450 -rw-r--r-- aperture/aperture.conf
-#     87 -rw-r--r-- aperture/devlink.tab
-#   1062 -rw-r--r-- aperture/Makefile.sun4u
+#	./aperture
+#	
+#	./aperture/Makefile
+#	./aperture/Makefile.amd64
+#	./aperture/Makefile.sparcv9
+#	./aperture/README
+#	./aperture/aperture.c
+#	./aperture/aperture.conf
+#	./aperture/devlink.tab
 #
-echo=echo
-shar_tty= shar_n= shar_c='
-'
-mkdir _sh09806 || ( echo 'failed to create locking directory' '_sh09806'; exit 1 )
-# ============= aperture/Makefile ==============
-if test ! -d 'aperture'; then
-  $echo $echo_n 'x -' 'aperture: '$echo_c
-  if mkdir 'aperture'; then $echo 'created'; else $echo 'failed to create'; fi
-fi
-if test -f 'aperture/Makefile' && test "$first_param" != -c; then
-  $echo 'x -' SKIPPING 'aperture/Makefile' '(file already exists)'
-else
-  $echo 'x -' extracting 'aperture/Makefile' '(text)'
-  sed 's/^X//' << 'SHAR_EOF' > 'aperture/Makefile' &&
+echo c - ./aperture
+mkdir -p ./aperture > /dev/null 2>&1
+#
+echo x - ./aperture/Makefile
+sed 's/^X//' >./aperture/Makefile << 'END-of-./aperture/Makefile'
 X#
 X#   File: makefile for aperture Framebuffer Driver
 X# Author: Doug Anson (danson@lgc.com)
@@ -46,14 +34,22 @@ X# Modified: Marc Aurele La France (tsi@xfree86.org)
 X#   Date: 2001.06.08
 X#   - SPARC support, cleanup and turf aptest.
 X#
-X# >>NOTE<< Have a look at Makefile.sun4u for sun4u specifics.
+X# >>NOTE<< Have a look at Makefile.sparcv9 for  specifics.
+X#
+X# Modified: Martin Bochnig (martin@martux.org)
+X#   Date: 2006.06.24
+X#   - Slightly modified to also build on Solaris 10 and 11.
+X#   - amd64 64 bit kernel support
+X#   - cosmetical changes to also support sun4v, not only sun4u
+X#
+X# >>NOTE<< Have a look at Makefile.amd64 for amd64 specifics.
 X#
 X# GNU gcc compiler
 XCC=gcc
 XCFLGS=-fno-builtin -Wall -O3
 X
 X#
-X# Proworks compiler
+X# SUNWspro compiler
 X#CC=/opt/SUNWspro/bin/cc
 X#CFLGS=-Xa -xnolib -xO3
 X
@@ -75,26 +71,26 @@ X# Make rules
 Xall: $(DRIVER)
 X
 X$(DRIVER): $(OBJS)
-X	@if [ -f "Makefile.`uname -m`" ]; then \
-X		make -f Makefile.`uname -m` $(DRIVER); \
+X	@if [ -f "Makefile.`isainfo -k`" ]; then \
+X		make -f Makefile.`isainfo -k` $(DRIVER); \
 X	else \
 X		rm -f $(DRIVER); \
 X		ld -r -o $(DRIVER) $(OBJS); \
 X	fi
 X
 Xinstall: $(DRIVER)
-X	@if [ -f "Makefile.`uname -m`" ]; then \
-X		make -f Makefile.`uname -m` install; \
+X	@if [ -f "Makefile.`isainfo -k`" ]; then \
+X		make -f Makefile.`isainfo -k` install; \
 X	else \
 X		cp aperture.conf /kernel/drv; \
 X		cp $(DRIVER) /kernel/drv; \
 X	fi
 X
 Xadd_drv:
-X	@if [ -f "Makefile.`uname -m`" ]; then \
-X		make -f Makefile.`uname -m` add_drv; \
+X	@if [ -f "Makefile.`isainfo -k`" ]; then \
+X		make -f Makefile.`isainfo -k` add_drv; \
 X	else \
-X		add_drv /kernel/drv/aperture; \
+X		add_drv aperture; \
 X	fi
 X
 Xclean:
@@ -106,29 +102,156 @@ X.c.i:
 X	$(CC) -E $(CFLAGS) $*.c > $@
 X
 X.c.o:
-X	@if [ -f "Makefile.`uname -m`" ]; then \
-X		make -f Makefile.`uname -m` $@; \
+X	@if [ -f "Makefile.`isainfo -k`" ]; then \
+X		make -f Makefile.`isainfo -k` $@; \
 X	else \
 X		rm -f $@; \
 X		$(CC) -c $(CFLAGS) $*.c -o $@; \
 X	fi
-SHAR_EOF
-  : || $echo 'restore of' 'aperture/Makefile' 'failed'
-fi
-# ============= aperture/README ==============
-if test -f 'aperture/README' && test "$first_param" != -c; then
-  $echo 'x -' SKIPPING 'aperture/README' '(file already exists)'
-else
-  $echo 'x -' extracting 'aperture/README' '(text)'
-  sed 's/^X//' << 'SHAR_EOF' > 'aperture/README' &&
-XFramebuffer apperture driver.
+END-of-./aperture/Makefile
+echo x - ./aperture/Makefile.amd64
+sed 's/^X//' >./aperture/Makefile.amd64 << 'END-of-./aperture/Makefile.amd64'
+X#
+X#   File: Makefile for aperture Framebuffer Driver
+X# Author: Doug Anson (danson@lgc.com)
+X#   Date: 2/15/94
+X# Modified: David Holland (davidh@use.com)
+X#   Date: 2/23/94
+X#   - Changed name, and debugging structure
+X# Modified: Marc Aurele La France (tsi@xfree86.org)
+X#   Date: 2001.06.08
+X#   - SPARC support, cleanup and turf aptest.
+X# Modified: Martin Bochnig (martin@martux.org)
+X#   - amd64 64 bit kernel support, cosmetics and also
+X#     supporting sun4v (and arbitrary sparcv9) platforms
+X#     as well as SunOS 5.10 or higher now
+X#   - Changed name
+X#
+X
+X#
+X# GNU gcc compiler, version 3.2 or later
+X#
+XCC=gcc
+XCFLGS=-fno-builtin -Wall -O3 -m64 -mcmodel=kernel
+X
+X#
+X# SUNWspro compiler (untested, might not properly work for amd64 here)
+X#CC=/opt/SUNWspro/bin/cc
+X#CFLGS=-Xa -xarch=v9 -xnolib -xO3
+X
+X#
+X# Debug error reporting
+X#DEBUG_FLG=
+X#DEBUG_FLG=-DAPERTURE_DEBUG
+X
+X#
+X# Files and object declarations
+XKERNEL_FLGS=-D_KERNEL -DSUNDDI
+XCFLAGS= $(CFLGS) $(KERNEL_FLGS) $(DEBUG_FLG)
+XCFILES= aperture.c
+XOBJS= aperture.o
+XDRIVER= aperture
+X
+X#
+X# Make rules
+Xall: $(DRIVER)
+X
+X$(DRIVER): $(OBJS)
+X	rm -f $(DRIVER)
+X	ld -r -o $(DRIVER) $(OBJS)
+X
+Xinstall: $(DRIVER)
+X	cp aperture.conf /kernel/drv
+X	cp $(DRIVER) /kernel/drv/amd64
+X
+Xadd_drv:
+X	add_drv aperture
+X
+Xclean:
+X	rm -f *% *.BAK $(OBJS) $(DRIVER) core
+X
+X.SUFFIXES: .i
+X
+X.c.i:
+X	$(CC) -E $(CFLAGS) $*.c > $@
+END-of-./aperture/Makefile.amd64
+echo x - ./aperture/Makefile.sparcv9
+sed 's/^X//' >./aperture/Makefile.sparcv9 << 'END-of-./aperture/Makefile.sparcv9'
+X#
+X#   File: makefile for aperture Framebuffer Driver
+X# Author: Doug Anson (danson@lgc.com)
+X#   Date: 2/15/94
+X# Modified: David Holland (davidh@use.com)
+X#   Date: 2/23/94
+X#   - Changed name, and debugging structure
+X# Modified: Marc Aurele La France (tsi@xfree86.org)
+X#   Date: 2001.06.08
+X#   - SPARC support, cleanup and turf aptest.
+X# Modified: Martin Bochnig (martin@martux.org)
+X#   Date: 2006.06.24
+X#   - Changed name for generic sparcv9 support
+X#   - updated to better work with Solaris 10 and 11
+X#
+X
+X#
+X# GNU gcc compiler, version 3.2 or later
+X#
+XCC=gcc
+XCFLGS=-fno-builtin -Wall -O3 -m64
+X
+X#
+X# SUNWspro compiler
+X#CC=/opt/SUNWspro/bin/cc
+X#CFLGS=-Xa -xarch=v9 -xnolib -xO3
+X
+X#
+X# Debug error reporting
+X#DEBUG_FLG=
+X#DEBUG_FLG=-DAPERTURE_DEBUG
+X
+X#
+X# Files and object declarations
+XKERNEL_FLGS=-D_KERNEL -DSUNDDI
+XCFLAGS= $(CFLGS) $(KERNEL_FLGS) $(DEBUG_FLG)
+XCFILES= aperture.c
+XOBJS= aperture.o
+XDRIVER= aperture
+X
+X#
+X# Make rules
+Xall: $(DRIVER)
+X
+X$(DRIVER): $(OBJS)
+X	rm -f $(DRIVER)
+X	ld -r -o $(DRIVER) $(OBJS)
+X
+Xinstall: $(DRIVER)
+X	cp aperture.conf /kernel/drv
+X	cp $(DRIVER) /kernel/drv/sparcv9
+X
+Xadd_drv:
+X	add_drv aperture
+X
+Xclean:
+X	rm -f *% *.BAK $(OBJS) $(DRIVER) core
+X
+X.SUFFIXES: .i
+X
+X.c.i:
+X	$(CC) -E $(CFLAGS) $*.c > $@
+END-of-./aperture/Makefile.sparcv9
+echo x - ./aperture/README
+sed 's/^X//' >./aperture/README << 'END-of-./aperture/README'
+XFramebuffer aperture driver.
 X
 XThis driver was written to provide a device that, unlike /dev/mem, allows
 Xmmap()'ing of ranges beyond installed memory.
 X
-XThe original x86-based version of this driver was the corroborative work of
+XThe original x86-based version of this driver was the collaborative work of
 XDoug Anson (danson@lgc.com), and David Holland (davidh@use.com).  It has since
-Xbeen rewritten to also work on sun4u machines.
+Xbeen rewritten to also work on sparc machines and - later on - also on sparcv9 
+Xand recently amd64 64 bit kernels.
+XIt flawlessly compiles and installs on Solaris 10 and 11 now.
 X
 X
 XInstallation instructions:
@@ -137,23 +260,23 @@ X1) Check the Makefile, for appropriate CC, and CFLAGS definitions.  Compiling
 X   with APERTURE_DEBUG defined means the driver will generate reams of
 X   debugging output.  You'll probably want to leave this off...
 X
-X2) type 'make'.  The driver and test program should compile with out any
-X   problems.  There also should not be any warning messages.
+X2) Type 'make' (or 'gmake').  Both the driver and test program should compile 
+X   without any problems. No warning messages should be generated.
 X
 X3) Become 'root'.
 X
-X4) type 'make install' and 'make add_drv'.  The screen should look something
+X4) Type 'make install' and 'make add_drv'.  The screen should look something
 X   like this:
 X
 X	# make install
 X	cp aperture aperture.conf /kernel/drv
 X	# make add_drv
-X	add_drv /kernel/drv/aperture
+X	add_drv aperture
 X
-X   On a sun4u machine this will mention the /kernel/drv/sparcv9 directory
-X   instead of /kernel/drv.
+X   On a sparcv9 machine this will mention the /kernel/drv/sparcv9 directory
+X   instead of /kernel/drv. Similarily /kernel/drv/amd64 should be used on amd64.
 X
-X   This installs the driver in the system.
+X   This installs the driver to the system.
 X
 X5) While as root modify the file /etc/devlink.tab, adding these lines:
 X
@@ -163,7 +286,7 @@ X
 X   Add that line exactly as shown. You may also simply add the
 X   contents of the devlink.tab file supplied to /etc/devlink.tab.
 X   It contains the lines as well.  (Yes, that is a tab between
-X   aperture, and fbs, not spaces - very important)
+X   aperture and fbs, not spaces - very important)
 X
 X6) Perform a reconfiguration boot of the system.
 X
@@ -171,15 +294,9 @@ X	# touch /reconfigure
 X	# init 6
 X
 XBug reports, questions, suggestions, etc can be sent to xfree86@xfree86.org.
-SHAR_EOF
-  : || $echo 'restore of' 'aperture/README' 'failed'
-fi
-# ============= aperture/aperture.c ==============
-if test -f 'aperture/aperture.c' && test "$first_param" != -c; then
-  $echo 'x -' SKIPPING 'aperture/aperture.c' '(file already exists)'
-else
-  $echo 'x -' extracting 'aperture/aperture.c' '(text)'
-  sed 's/^X//' << 'SHAR_EOF' > 'aperture/aperture.c' &&
+END-of-./aperture/README
+echo x - ./aperture/aperture.c
+sed 's/^X//' >./aperture/aperture.c << 'END-of-./aperture/aperture.c'
 X/*
 X * Copyright (C) 2001 The XFree86 Project, Inc.  All Rights Reserved.
 X *
@@ -208,6 +325,13 @@ X */
 X
 X/*
 X * Aperture driver for Solaris.
+X */
+X
+X/*
+X * Modified: Martin Bochnig (martin@martux.org)
+X * Log:      Commented out obsolete kernel interfaces DDI_IDENTIFIED and DDI_NOT_IDENTIFIED
+X *           not supported by SunOS 5.10 or higher anymore, 
+X *           see http://docs.sun.com/app/docs/doc/819-2255/6n4ibnffr?a=view
 X */
 X
 X#include <sys/conf.h>
@@ -412,9 +536,9 @@ X
 X#endif
 X
 X	if (strcmp(ddi_get_name(dip), DEV_IDENT))
-X		error = DDI_NOT_IDENTIFIED;
+X	  error = 1 /* DDI_NOT_IDENTIFIED obsolete since SunOS 5.10 */ ;
 X	else
-X		error = DDI_IDENTIFIED;
+X	  error = 2 /* DDI_IDENTIFIED obsolete since SunOS 5.10 */ ;
 X
 X#ifdef APERTURE_DEBUG
 X
@@ -465,7 +589,7 @@ X	else
 X	{
 X		error = ddi_create_minor_node(dip, ddi_get_name(dip), S_IFCHR,
 X					      (minor_t)ddi_get_instance(dip),
-X					      NULL, NODESPECIFIC_DEV);
+X					      NULL, 0 /* NODESPECIFIC_DEV obsolete since SunOS 5.10 */ );
 X
 X		if (error == DDI_SUCCESS)
 X		{
@@ -653,15 +777,9 @@ X#endif
 X
 X	return error;
 X}
-SHAR_EOF
-  : || $echo 'restore of' 'aperture/aperture.c' 'failed'
-fi
-# ============= aperture/aperture.conf ==============
-if test -f 'aperture/aperture.conf' && test "$first_param" != -c; then
-  $echo 'x -' SKIPPING 'aperture/aperture.conf' '(file already exists)'
-else
-  $echo 'x -' extracting 'aperture/aperture.conf' '(text)'
-  sed 's/^X//' << 'SHAR_EOF' > 'aperture/aperture.conf' &&
+END-of-./aperture/aperture.c
+echo x - ./aperture/aperture.conf
+sed 's/^X//' >./aperture/aperture.conf << 'END-of-./aperture/aperture.conf'
 X#
 X# Copyright 1994 Doug Anson, danson@lgc.com & David Holland, davidh@use.com
 X#
@@ -678,91 +796,11 @@ X#
 X# Purpose:  This conf file is used by the aperture driver.
 X#
 Xname="aperture" parent="pseudo";
-SHAR_EOF
-  : || $echo 'restore of' 'aperture/aperture.conf' 'failed'
-fi
-# ============= aperture/devlink.tab ==============
-if test -f 'aperture/devlink.tab' && test "$first_param" != -c; then
-  $echo 'x -' SKIPPING 'aperture/devlink.tab' '(file already exists)'
-else
-  $echo 'x -' extracting 'aperture/devlink.tab' '(text)'
-  sed 's/^X//' << 'SHAR_EOF' > 'aperture/devlink.tab' &&
+END-of-./aperture/aperture.conf
+echo x - ./aperture/devlink.tab
+sed 's/^X//' >./aperture/devlink.tab << 'END-of-./aperture/devlink.tab'
 X# The following entry is for the aperture driver
 Xtype=ddi_pseudo;name=aperture	fbs/\M0
-SHAR_EOF
-  : || $echo 'restore of' 'aperture/devlink.tab' 'failed'
-fi
-# ============= aperture/Makefile.sun4u ==============
-if test -f 'aperture/Makefile.sun4u' && test "$first_param" != -c; then
-  $echo 'x -' SKIPPING 'aperture/Makefile.sun4u' '(file already exists)'
-else
-  $echo 'x -' extracting 'aperture/Makefile.sun4u' '(text)'
-  sed 's/^X//' << 'SHAR_EOF' > 'aperture/Makefile.sun4u' &&
-X#
-X#   File: makefile for aperture Framebuffer Driver
-X# Author: Doug Anson (danson@lgc.com)
-X#   Date: 2/15/94
-X# Modified: David Holland (davidh@use.com)
-X#   Date: 2/23/94
-X#   - Changed name, and debugging structure
-X# Modified: Marc Aurele La France (tsi@xfree86.org)
-X#   Date: 2001.06.08
-X#   - SPARC support, cleanup and turf aptest.
-X#
-X
-X#
-X# GNU gcc compiler, version 3.2 or later
-X#
-XCC=gcc
-XCFLGS=-fno-builtin -Wall -O3 -m64
-X
-X#
-X# Proworks compiler
-X#CC=/opt/SUNWspro/bin/cc
-X#CFLGS=-Xa -xarch=v9 -xnolib -xO3
-X
-X#
-X# Debug error reporting
-X#DEBUG_FLG=
-X#DEBUG_FLG=-DAPERTURE_DEBUG
-X
-X#
-X# Files and object declarations
-XKERNEL_FLGS=-D_KERNEL -DSUNDDI
-XCFLAGS= $(CFLGS) $(KERNEL_FLGS) $(DEBUG_FLG)
-XCFILES= aperture.c
-XOBJS= aperture.o
-XDRIVER= aperture
-X
-X#
-X# Make rules
-Xall: $(DRIVER)
-X
-X$(DRIVER): $(OBJS)
-X	rm -f $(DRIVER)
-X	ld -r -o $(DRIVER) $(OBJS)
-X
-Xinstall: $(DRIVER)
-X	cp aperture.conf /kernel/drv
-X	cp $(DRIVER) /kernel/drv/sparcv9
-X
-Xadd_drv:
-X	add_drv /kernel/drv/sparcv9/aperture
-X
-Xclean:
-X	rm -f *% *.BAK $(OBJS) $(DRIVER) core
-X
-X.SUFFIXES: .i
-X
-X.c.i:
-X	$(CC) -E $(CFLAGS) $*.c > $@
-SHAR_EOF
-  : || $echo 'restore of' 'aperture/Makefile.sun4u' 'failed'
-fi
-$echo $shar_n 'x -' 'lock directory' "\`_sh09806': " $shar_c
-if rm -fr _sh09806; then
-  $echo 'removed'
-else
-  $echo 'failed to remove'
-fi
-exit 0
+END-of-./aperture/devlink.tab
+exit
+

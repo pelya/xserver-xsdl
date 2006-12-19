@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/int10Defines.h,v 1.4 2003/08/24 17:37:03 dawes Exp $ */
 /*
  * Copyright (c) 2000-2001 by The XFree86 Project, Inc.
  *

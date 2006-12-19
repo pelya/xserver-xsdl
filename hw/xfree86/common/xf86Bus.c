@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Bus.c,v 1.80 2004/02/05 18:24:59 eich Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
  *
@@ -66,7 +65,7 @@ xf86CurrentAccessRec xf86CurrentAccess = {NULL,NULL};
 
 BusRec primaryBus = { BUS_NONE, {{0}}};
 
-Bool xf86ResAccessEnter = FALSE;
+static Bool xf86ResAccessEnter = FALSE;
 
 #ifdef REDUCER
 /* Resources that temporarily conflict with estimated resources */
@@ -114,7 +113,7 @@ void
 xf86BusProbe(void)
 {
     xf86PciProbe();
-#if defined(__sparc__) && !defined(__OpenBSD__)
+#if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     xf86SbusProbe();
 #endif
 }
@@ -665,32 +664,6 @@ xf86AccessRestoreState(void)
  * Otherwise resources needed for access control might be shadowed
  * by other resources!
  */
-#ifdef async
-
-static AsyncQPtr *AsyncQ = NULL;
-_X_EXPORT ScrnInfoPtr xf86CurrentScreen = NULL;
-
-#define SETUP_Q  org = AsyncQ; \
-	         AsyncQ = &new;
-
-#define PROCESS_Q xf86CurrentScreen = pScrn;
-                  if (!new) AsyncQ = org; \
-                  else { \
-                       AsyncQPtr tmp_Q; \
-                       while (1) {\
-                          new->func(new->arg);\
-                          if (!(new->next)) {\
-			      AsyncQ = org; xfree(new); break; \
-			   } \
-			   tmp_Q = new->next; \
-		           xfree(new); \
- 		           new = tmp_Q; \
-		       } \
-                  }
-#else
-#define SETUP_Q
-#define PROCESS_Q
-#endif
 
 _X_EXPORT void
 xf86EnableAccess(ScrnInfoPtr pScrn)
@@ -699,9 +672,6 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
     register EntityAccessPtr pceAcc;
     register xf86AccessPtr pAcc;
     EntityAccessPtr tmp;
-#ifdef async
-    AsyncQPtr *org, new = NULL;
-#endif
 
 #ifdef DEBUG
     ErrorF("Enable access %i\n",pScrn->scrnIndex);
@@ -710,9 +680,7 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
     /* Entity is not under access control or currently enabled */
     if (!pScrn->access) {
 	if (pScrn->busAccess) {
-	    SETUP_Q;
 	    ((BusAccPtr)pScrn->busAccess)->set_f(pScrn->busAccess);
-	    PROCESS_Q;
 	}
 	return;
     }
@@ -723,7 +691,6 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	if (peAcc == pceAcc) {
 	    return;
 	}
-	SETUP_Q;
 	if (pScrn->CurrentAccess->pMemAccess == pceAcc)
 	    pScrn->CurrentAccess->pMemAccess = NULL;
 	while (pceAcc) {
@@ -741,13 +708,11 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	    peAcc = peAcc->next;
 	}
 	pScrn->CurrentAccess->pIoAccess = (EntityAccessPtr) pScrn->access;
-	PROCESS_Q;
 	return;
 	
     case MEM_IO:
 	pceAcc = pScrn->CurrentAccess->pIoAccess;
 	if (peAcc != pceAcc) { /* current Io != pAccess */
-	    SETUP_Q;
 	    tmp = pceAcc;
 	    while (pceAcc) {
 		pAcc = pceAcc->pAccess;
@@ -770,7 +735,6 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	    if (pceAcc == peAcc) { /* current Mem == pAccess */
 		return;
 	    }
-	    SETUP_Q;
 	    while (pceAcc) {  /* current Mem != pAccess */
 		pAcc = pceAcc->pAccess;
 		if (pAcc && pAcc->AccessDisable) 
@@ -788,7 +752,6 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	}
 	pScrn->CurrentAccess->pMemAccess =
 	    pScrn->CurrentAccess->pIoAccess = (EntityAccessPtr) pScrn->access;
-	PROCESS_Q;
 	return;
 	
     case MEM:
@@ -796,7 +759,6 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	if (peAcc == pceAcc) {
 	    return;
 	}
-	SETUP_Q;
 	if (pScrn->CurrentAccess->pIoAccess == pceAcc)
 	    pScrn->CurrentAccess->pIoAccess = NULL;
 	while (pceAcc) {
@@ -814,14 +776,11 @@ xf86EnableAccess(ScrnInfoPtr pScrn)
 	    peAcc = peAcc->next;
 	}
 	pScrn->CurrentAccess->pMemAccess = (EntityAccessPtr) pScrn->access;
-	PROCESS_Q;
 	return;
 
     case NONE:
 	if (pScrn->busAccess) {
-	    SETUP_Q;
 	    ((BusAccPtr)pScrn->busAccess)->set_f(pScrn->busAccess);
-	    PROCESS_Q;
 	}
 	return;
     }
@@ -2414,7 +2373,7 @@ xf86PostProbe(void)
 
     if (fbSlotClaimed) {
         if (pciSlotClaimed || isaSlotClaimed 
-#if defined(__sparc__) && !defined(__OpenBSD__)
+#if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
 	    || sbusSlotClaimed
 #endif
 	    ) { 
@@ -2571,17 +2530,13 @@ xf86PostPreInit()
     if (xf86NumScreens > 1)
 	needRAC = TRUE;
 
-#ifdef XFree86LOADER
     xf86MsgVerb(X_INFO, 3, "do I need RAC?");
     
     if (needRAC) {
 	xf86ErrorFVerb(3, "  Yes, I do.\n");
-	
-	if (!xf86LoadOneModule("rac",NULL))
-	    FatalError("Cannot load RAC module\n");
-    } else
+    } else {
 	xf86ErrorFVerb(3, "  No, I don't.\n");
-#endif    
+    }
  	
     xf86MsgVerb(X_INFO, 3, "resource ranges after preInit:\n");
     xf86PrintResList(3, Acc);
@@ -2594,22 +2549,12 @@ xf86PostScreenInit(void)
     ScreenPtr pScreen;
     unsigned int flags;
     int nummem = 0, numio = 0;
-#ifdef XFree86LOADER
-	pointer xf86RACInit = NULL;
-#endif
 
-	if (doFramebufferMode) {
-	    SetSIGIOForState(OPERATING);
-	    return;
-	}
+    if (doFramebufferMode) {
+	SetSIGIOForState(OPERATING);
+	return;
+    }
 
-#ifdef XFree86LOADER
-	if (needRAC) {
-	    xf86RACInit = LoaderSymbol("xf86RACInit");
-	    if (!xf86RACInit)
-		FatalError("Cannot resolve symbol \"xf86RACInit\"\n");
-	}
-#endif
 #ifdef DEBUG
     ErrorF("PostScreenInit  generation: %i\n",serverGeneration);
 #endif
@@ -2688,12 +2633,7 @@ xf86PostScreenInit(void)
 		xf86ErrorFVerb(3, "Screen %d is using RAC for io\n", i);
 	    }
 	    
-#ifdef XFree86LOADER
-		((Bool(*)(ScreenPtr,unsigned int))xf86RACInit)
-		    (pScreen,flags);
-#else
 	    xf86RACInit(pScreen,flags);
-#endif
 	}
     }
     
@@ -3066,7 +3006,7 @@ xf86FindPrimaryDevice()
     
 }
 
-#if !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__)
+#if !defined(__sparc) && !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__)
 #include "vgaHW.h"
 #include "compiler.h"
 #endif
@@ -3078,7 +3018,7 @@ static void
 CheckGenericGA()
 {
 /* This needs to be changed for multiple domains */
-#if !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__) && !defined(__ia64__)
+#if !defined(__sparc__) && !defined(__sparc) && !defined(__powerpc__) && !defined(__mips__) && !defined(__ia64__) && !defined(__arm__) && !defined(__s390__)
     IOADDRESS GenericIOBase = VGAHW_GET_IOBASE();
     CARD8 CurrentValue, TestValue;
 
@@ -3179,23 +3119,6 @@ notifyStateChange(xf86NotifyState state)
 	ptr = ptr->next;
     }
 }
-
-#ifdef async
-_X_EXPORT Bool
-xf86QueueAsyncEvent(void (*func)(pointer),pointer arg)
-{
-    AsyncQPtr new;
-    
-    if (!AsyncQ) return FALSE;
-
-    new = (AsyncQPtr)xfnalloc(sizeof(AsyncQRec));
-    new->func = func;
-    new->arg = arg;
-    (*AsyncQPtr)->next = new;
-    AsyncQPtr = &new;
-    return TRUE;
-}
-#endif
 
 /* Multihead accel sharing accessor functions and entity Private handling */
 

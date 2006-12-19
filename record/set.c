@@ -1,5 +1,3 @@
-/* $Xorg: set.c,v 1.4 2001/02/09 02:05:27 xorgcvs Exp $ */
-
 /*
 
 Copyright 1995, 1998  The Open Group
@@ -27,7 +25,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/record/set.c,v 1.7 2001/12/14 20:00:37 dawes Exp $ */
 
 /*
 
@@ -46,9 +43,6 @@ from The Open Group.
     implemented, and RecordCreateSet will decide heuristically which one
     to use based on the set members.
 
-    Note: When compiling for use in the server, do not use -DTESTING.
-    When compiling for stand-alone testing of the set ADT, use -DTESTING.
-
 */
 
 #ifdef HAVE_DIX_CONFIG_H
@@ -57,47 +51,11 @@ from The Open Group.
 
 #include <string.h>
 
-#ifndef TESTING
 #include "misc.h"
-#else
-#include <stdio.h>
-#include <stdlib.h>
-
-/* stuff that you normally get from the X Server's environment */
-
-typedef int Bool;
-#ifndef TRUE
-#define TRUE 1
-#define FALSE 0
-#endif
-
-typedef unsigned short CARD16;
-
-#define xalloc malloc
-#define xfree free
-#define ALLOCATE_LOCAL malloc
-#define DEALLOCATE_LOCAL free
-
-void *Xcalloc(size)
-    int size;
-{
-    void *p = malloc(size);
-    if (p) memset(p, 0, size);
-    return p;
-}
-
-#ifndef max
-#define max(_a, _b) ( ((_a) > (_b)) ? (_a) : (_b) )
-#endif
-
-#endif /* TESTING */
-
 #include "set.h"
 
 static int
-maxMemberInInterval(pIntervals, nIntervals)
-    RecordSetInterval *pIntervals;
-    int nIntervals;
+maxMemberInInterval(RecordSetInterval *pIntervals, int nIntervals)
 {
     int i;
     int maxMember = -1;
@@ -110,8 +68,7 @@ maxMemberInInterval(pIntervals, nIntervals)
 }
 
 static void
-NoopDestroySet(pSet)
-    RecordSetPtr pSet;
+NoopDestroySet(RecordSetPtr pSet)
 {
 }
 
@@ -128,16 +85,13 @@ typedef struct {
 #define BITS_PER_LONG (sizeof(unsigned long) * 8)
 
 static void
-BitVectorDestroySet(pSet)
-    RecordSetPtr pSet;
+BitVectorDestroySet(RecordSetPtr pSet)
 {
     xfree(pSet);
 }
 
 static unsigned long
-BitVectorIsMemberOfSet(pSet, pm)
-    RecordSetPtr pSet;
-    int pm;
+BitVectorIsMemberOfSet(RecordSetPtr pSet, int pm)
 {
     BitVectorSetPtr pbvs = (BitVectorSetPtr)pSet;
     unsigned long *pbitvec;
@@ -149,10 +103,7 @@ BitVectorIsMemberOfSet(pSet, pm)
 
 
 static int
-BitVectorFindBit(pSet, iterbit, bitval)
-    RecordSetPtr pSet;
-    int iterbit;
-    Bool bitval;
+BitVectorFindBit(RecordSetPtr pSet, int iterbit, Bool bitval)
 {
     BitVectorSetPtr pbvs = (BitVectorSetPtr)pSet;
     unsigned long *pbitvec = (unsigned long *)(&pbvs[1]);
@@ -198,10 +149,8 @@ BitVectorFindBit(pSet, iterbit, bitval)
 
 
 static RecordSetIteratePtr
-BitVectorIterateSet(pSet, pIter, pInterval)
-    RecordSetPtr pSet;
-    RecordSetIteratePtr pIter;
-    RecordSetInterval *pInterval;
+BitVectorIterateSet(RecordSetPtr pSet, RecordSetIteratePtr pIter,
+		    RecordSetInterval *pInterval)
 {
     int iterbit = (int)(long)pIter;
     int b;
@@ -222,11 +171,8 @@ RecordSetOperations BitVectorNoFreeOperations = {
     NoopDestroySet, BitVectorIsMemberOfSet, BitVectorIterateSet };
 
 static int
-BitVectorSetMemoryRequirements(pIntervals, nIntervals, maxMember, alignment)
-    RecordSetInterval *pIntervals;
-    int nIntervals;
-    int maxMember;
-    int *alignment;
+BitVectorSetMemoryRequirements(RecordSetInterval *pIntervals, int nIntervals,
+			       int maxMember, int *alignment)
 {
     int nlongs;
 
@@ -236,11 +182,8 @@ BitVectorSetMemoryRequirements(pIntervals, nIntervals, maxMember, alignment)
 }
 
 static RecordSetPtr
-BitVectorCreateSet(pIntervals, nIntervals, pMem, memsize)
-    RecordSetInterval *pIntervals;
-    int nIntervals;
-    void *pMem;
-    int memsize;
+BitVectorCreateSet(RecordSetInterval *pIntervals, int nIntervals,
+		   void *pMem, int memsize)
 {
     BitVectorSetPtr pbvs;
     int i, j;
@@ -288,16 +231,13 @@ typedef struct {
 } IntervalListSet, *IntervalListSetPtr;
 
 static void
-IntervalListDestroySet(pSet)
-    RecordSetPtr pSet;
+IntervalListDestroySet(RecordSetPtr pSet)
 {
     xfree(pSet);
 }
 
 static unsigned long
-IntervalListIsMemberOfSet(pSet, pm)
-    RecordSetPtr pSet;
-    int pm;
+IntervalListIsMemberOfSet(RecordSetPtr pSet, int pm)
 {
     IntervalListSetPtr prls = (IntervalListSetPtr)pSet;
     RecordSetInterval *pInterval = (RecordSetInterval *)(&prls[1]);
@@ -317,10 +257,8 @@ IntervalListIsMemberOfSet(pSet, pm)
 
 
 static RecordSetIteratePtr
-IntervalListIterateSet(pSet, pIter, pIntervalReturn)
-    RecordSetPtr pSet;
-    RecordSetIteratePtr pIter;
-    RecordSetInterval *pIntervalReturn;
+IntervalListIterateSet(RecordSetPtr pSet, RecordSetIteratePtr pIter,
+		       RecordSetInterval *pIntervalReturn)
 {
     RecordSetInterval *pInterval = (RecordSetInterval *)pIter;
     IntervalListSetPtr prls = (IntervalListSetPtr)pSet;
@@ -346,22 +284,16 @@ RecordSetOperations IntervalListNoFreeOperations = {
     NoopDestroySet, IntervalListIsMemberOfSet, IntervalListIterateSet };
 
 static int
-IntervalListMemoryRequirements(pIntervals, nIntervals, maxMember, alignment)
-    RecordSetInterval *pIntervals;
-    int nIntervals;
-    int maxMember;
-    int *alignment;
+IntervalListMemoryRequirements(RecordSetInterval *pIntervals, int nIntervals,
+			       int maxMember, int *alignment)
 {
     *alignment = sizeof(unsigned long);
     return sizeof(IntervalListSet) + nIntervals * sizeof(RecordSetInterval);
 }
 
 static RecordSetPtr
-IntervalListCreateSet(pIntervals, nIntervals, pMem, memsize)
-    RecordSetInterval *pIntervals;
-    int nIntervals;
-    void *pMem;
-    int memsize;
+IntervalListCreateSet(RecordSetInterval *pIntervals, int nIntervals,
+		      void *pMem, int memsize)
 {
     IntervalListSetPtr prls;
     int i, j, k;
@@ -432,20 +364,6 @@ bailout:
     return (RecordSetPtr)prls;
 }
 
-#ifdef TESTING
-typedef enum {
-  BitVectorImplementation, IntervalListImplementation} RecordSetImplementation;
-
-RecordSetImplementation _RecordSetImpl;
-
-static void
-_RecordForceSetImplementation(setimpl)
-    RecordSetImplementation setimpl;
-{
-    _RecordSetImpl = setimpl;
-}
-#endif
-
 typedef RecordSetPtr (*RecordCreateSetProcPtr)(
     RecordSetInterval *pIntervals,
     int nIntervals,
@@ -454,11 +372,9 @@ typedef RecordSetPtr (*RecordCreateSetProcPtr)(
 );
 
 static int
-_RecordSetMemoryRequirements(pIntervals, nIntervals, alignment, ppCreateSet)
-    RecordSetInterval *pIntervals;
-    int nIntervals;
-    int *alignment;
-    RecordCreateSetProcPtr *ppCreateSet;
+_RecordSetMemoryRequirements(RecordSetInterval *pIntervals, int nIntervals,
+			     int *alignment,
+			     RecordCreateSetProcPtr *ppCreateSet)
 {
     int bmsize, rlsize, bma, rla;
     int maxMember;
@@ -470,12 +386,8 @@ _RecordSetMemoryRequirements(pIntervals, nIntervals, alignment, ppCreateSet)
 					    &bma);
     rlsize = IntervalListMemoryRequirements(pIntervals, nIntervals, maxMember,
 					    &rla);
-#ifdef TESTING
-    if (_RecordSetImpl == BitVectorImplementation)
-#else
     if ( ( (nIntervals > 1) && (maxMember <= 255) )
 	|| (bmsize < rlsize) )
-#endif
     {
 	*alignment = bma;
 	*ppCreateSet = BitVectorCreateSet;
@@ -524,183 +436,3 @@ RecordCreateSet(pIntervals, nIntervals, pMem, memsize)
     }
     return (*pCreateSet)(pIntervals, nIntervals, pMem, size);
 }
-
-/***************************************************************************/
-
-#ifdef TESTING
-
-/*
-
-Test Strategy
-
-Having two set representations is convenient for testing because we
-can play them against each other.  The test code will be able to
-specify which implementation to use.  This breaks the encapsulation,
-but that seems acceptable for testing.  The crux of the test loop
-looks like this:
-
-loop:
-    generate random list of Intervals
-
-    create set A using bit vector implementation
-    create set B using Interval list implementation
-
-    for each possible set member
-        if set A and set B disagree on whether this is a member    error;
-
-    iterate over both sets, comparing the intervals returned by each.
-    if intervals or number of intervals are different    error;
-
-    iterate over intervals of set A
-	for i = interval.first to interval.last
-	    if i is not a member of set B	error;
-
-    iterate over intervals of set B
-	for i = interval.first to interval.last
-	    if i is not a member of set A	error;
-
-    destroy sets A, B
-
-*/
-
-int GenerateRandomIntervals(pIntervals, maxintervals)
-    RecordSetInterval *pIntervals;
-    int maxintervals;
-{
-    int i, nIntervals;
-
-    nIntervals = rand() % maxintervals;
-
-    for (i = 0; i < nIntervals; i++)
-    {
-	pIntervals[i].first = rand();
-	pIntervals[i].last  = pIntervals[i].first + rand();
-    }
-    return nIntervals;
-}
-
-#define MAXINTERVALS 100
-
-int main(argc, argv)
-    int argc;
-    char **argv;
-{
-    RecordSetPtr bs, rs;
-    RecordSetInterval br, rr;
-    RecordSetIteratePtr bi, ri;
-    CARD16 i;
-    int testcount;
-    RecordSetInterval intervals[MAXINTERVALS];
-    int nIntervals;
-    int bsize, rsize;
-    int balign, ralign;
-    int pad;
-
-    for (testcount = 0; 1; testcount++)
-    {
-	nIntervals = GenerateRandomIntervals(intervals, MAXINTERVALS);
-	printf("%d nIntervals %d\n", testcount, nIntervals);
-
-	if (testcount & 1)
-	{
-	    _RecordForceSetImplementation(BitVectorImplementation);
-	    bsize = RecordSetMemoryRequirements(intervals, nIntervals, &balign);
-	    _RecordForceSetImplementation(IntervalListImplementation);
-	    rsize = RecordSetMemoryRequirements(intervals, nIntervals, &ralign);
-	    pad = (ralign - (bsize & (ralign - 1))) & (ralign - 1);
-	    bs = (RecordSetPtr)xalloc(bsize + pad + rsize );
-	    if (!bs)
-	    {
-		fprintf(stderr, "%d: failed to alloc memory for  sets\n",
-			testcount);
-		continue;
-	    }
-	    rs = (RecordSetPtr)(((char *)bs) + bsize + pad);
-	}
-	else
-	{
-	    bs = rs = NULL;
-	    bsize = rsize = 0;
-	}
-
-	_RecordForceSetImplementation(BitVectorImplementation);
-	bs = RecordCreateSet(intervals, nIntervals, bs, bsize);
-	_RecordForceSetImplementation(IntervalListImplementation);
-	rs = RecordCreateSet(intervals, nIntervals, rs, rsize);
-
-	if (!bs || !rs)
-	{
-	    fprintf(stderr, "%d: failed to create sets\n", testcount);
-	    continue;
-	}
-
-	for (i = 0; i < 65535; i++)
-	{
-	    unsigned long b, r;
-
-	    b = RecordIsMemberOfSet(bs, i);
-	    r = RecordIsMemberOfSet(rs, i);
-	    if ( (b && !r) || (!b && r) )
-	    {
-		fprintf(stderr, "%d: isMemberOfSet %d\n",
-			testcount, (int)i);
-	    }
-	}
-
-	bi = RecordIterateSet(bs, NULL, &br);
-	ri = RecordIterateSet(rs, NULL, &rr);
-
-	while (bi && ri)
-	{
-	    if ( (rr.first != br.first) || (rr.last != br.last) )
-	    {
-		fprintf(stderr, "%d: iterateSet interval value mismatch\n",
-			testcount);
-	    }
-	    bi = RecordIterateSet(bs, bi, &br);
-	    ri = RecordIterateSet(rs, ri, &rr);
-	}
-	if (bi != ri)
-	{
-	    fprintf(stderr, "%d: iterateSet interval count mismatch\n",
-		    testcount);
-	}
-	
-
-	bi = NULL;
-	while (bi = RecordIterateSet(bs, bi, &br))
-	{
-	    for (i = br.first; i <= br.last; i++)
-	    {
-		if (!RecordIsMemberOfSet(rs, i))
-		{
-		    fprintf(stderr, "%d: iterateSet b / isMemberOfSet r %d\n",
-			    testcount, (int)i);
-		}
-	    }
-	}
-
-	ri = NULL;
-	while (ri = RecordIterateSet(rs, ri, &rr))
-	{
-	    for (i = rr.first; i <= rr.last; i++)
-	    {
-		if (!RecordIsMemberOfSet(bs, i) )
-		{
-		    fprintf(stderr, "%d: iterateSet r / isMemberOfSet b %d\n",
-			    testcount, (int)i);
-		}
-	    }
-	}
-
-	RecordDestroySet(bs);
-	RecordDestroySet(rs);
-
-	if (testcount & 1)
-	{
-	    xfree(bs);
-	}
-    }
-}
-
-#endif /* TESTING */

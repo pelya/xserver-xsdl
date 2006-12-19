@@ -1,4 +1,3 @@
-/* $Xorg: ddxBeep.c,v 1.3 2000/08/17 19:53:45 cpqbld Exp $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
 
@@ -24,7 +23,6 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/ddxBeep.c,v 3.9 2002/12/05 21:59:00 paulo Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -40,12 +38,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "windowstr.h"
 #include <X11/extensions/XKBsrv.h>
 #include <X11/extensions/XI.h>
-
-#if (defined(__osf__) && defined(__alpha))
-#include <sys/sysinfo.h>
-#include <alpha/hal_sysinfo.h>
-#include <alpha/prom.h>
-#endif
 
 /*#define FALLING_TONE	1*/
 /*#define RISING_TONE	1*/
@@ -118,32 +110,6 @@ _XkbDDXBeepInitAtoms(void)
     stickyLock=		MAKE_ATOM(STICKY_LOCK);
     stickyUnlock= 	MAKE_ATOM(STICKY_UNLOCK);
     bounceReject= 	MAKE_ATOM(BOUNCE_REJECT);
-#if (defined(__osf__) && defined(__alpha))
-    /* [[[ WDW - Some bells do not allow for pitch changes.
-     * Maybe this could become part of the keymap? ]]]
-     */
-    {
-	char keyboard[8];
-
-	/* Find the class of keyboard being used.
-	 */
-	keyboard[0] = '\0';
-	if (-1 == getsysinfo(GSI_KEYBOARD, 
-			     keyboard, sizeof(keyboard), 
-			     0, NULL))
-	    keyboard[0] = '\0';
-
-	if ((strcmp(keyboard,"LK201") == 0) ||
-	    (strcmp(keyboard,"LK401") == 0) ||
-	    (strcmp(keyboard,"LK421") == 0) ||
-	    (strcmp(keyboard,"LK443") == 0))
-	    doesPitch = 0;
-    }
-#else
-#if defined(sun)
-    doesPitch = 0;
-#endif
-#endif
     return;
 }
 

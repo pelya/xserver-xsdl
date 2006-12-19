@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86xv.h,v 1.25 2003/08/24 17:36:56 dawes Exp $ */
 
 /*
  * Copyright (c) 1998-2003 by The XFree86 Project, Inc.
@@ -232,6 +231,9 @@ void xf86XVFreeVideoAdaptorRec(XF86VideoAdaptorPtr ptr);
 
 void
 xf86XVFillKeyHelper (ScreenPtr pScreen, CARD32 key, RegionPtr clipboxes);
+
+void
+xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes);
 
 Bool
 xf86XVClipVideoHelper(

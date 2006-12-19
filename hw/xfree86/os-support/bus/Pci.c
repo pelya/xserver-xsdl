@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/bus/Pci.c,v 1.82 2004/01/16 15:39:04 tsi Exp $ */
 /*
  * Pci.c - New server PCI access functions
  *
@@ -21,6 +20,8 @@
  *	pciSetBitsByte()       - Write an 8 bit value against a mask
  *	pciTag()               - Return tag for a given PCI bus, device, &
  *                               function
+ *	pciDomTag()            - Return tag for a given PCI domain, bus,
+ *                               device & function
  *	pciBusAddrToHostAddr() - Convert a PCI address to a host address
  *	pciHostAddrToBusAddr() - Convert a host address to a PCI address
  *	pciGetBaseSize()       - Returns the number of bits in a PCI base
@@ -613,6 +614,12 @@ _X_EXPORT PCITAG
 pciTag(int busnum, int devnum, int funcnum)
 {
 	return(PCI_MAKE_TAG(busnum,devnum,funcnum));
+}
+
+_X_EXPORT PCITAG
+pciDomTag(int domnum, int busnum, int devnum, int funcnum)
+{
+	return(PCI_MAKE_TAG(PCI_MAKE_BUS(domnum,busnum),devnum,funcnum));
 }
 
 #if defined(PCI_MFDEV_SUPPORT)

@@ -109,12 +109,6 @@ typedef struct _CompSubwindows {
 #define COMP_INCLUDE_RGB24_VISUAL 0
 #endif
 
-#if COMP_INCLUDE_RGB24_VISUAL
-#define NUM_COMP_ALTERNATE_VISUALS  2
-#else
-#define NUM_COMP_ALTERNATE_VISUALS  1
-#endif
-
 typedef struct _CompOverlayClientRec *CompOverlayClientPtr;
 
 typedef struct _CompOverlayClientRec {
@@ -154,7 +148,8 @@ typedef struct _CompScreen {
     ScreenBlockHandlerProcPtr	BlockHandler;
     CloseScreenProcPtr		CloseScreen;
     Bool			damaged;
-    XID				alternateVisuals[NUM_COMP_ALTERNATE_VISUALS];
+    int				numAlternateVisuals;
+    VisualID			*alternateVisuals;
 
     WindowPtr                   pOverlayWin;
     CompOverlayClientPtr        pOverlayClients;
@@ -223,6 +218,10 @@ CompositeExtensionInit (void);
 /*
  * compinit.c
  */
+
+Bool
+CompositeRegisterAlternateVisuals (ScreenPtr pScreen,
+				   VisualID *vids, int nVisuals);
 
 Bool
 compScreenInit (ScreenPtr pScreen);

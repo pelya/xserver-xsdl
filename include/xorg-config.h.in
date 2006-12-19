@@ -45,6 +45,9 @@
 /* Path to loadable modules. */
 #undef DEFAULT_MODULE_PATH
 
+/* Path to installed libraries. */
+#undef DEFAULT_LIBRARY_PATH
+
 /* Path to server log file. */
 #undef DEFAULT_LOGPREFIX
 
@@ -105,5 +108,11 @@
 
 /* Has backtrace support */
 #undef HAVE_BACKTRACE
+
+/* Name of the period field in struct kbd_repeat */
+#undef LNX_KBD_PERIOD_NAME
+
+/* Have execinfo.h */
+#undef HAVE_EXECINFO_H
 
 #endif /* _XORG_CONFIG_H_ */

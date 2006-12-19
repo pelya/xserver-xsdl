@@ -1,4 +1,3 @@
-/* $Xorg: xkbAccessX.c,v 1.4 2001/02/05 18:50:20 coskrey Exp $ */
 /************************************************************
 Copyright (c) 1993 by Silicon Graphics Computer Systems, Inc.
 
@@ -24,7 +23,6 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION  WITH
 THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/xkb/xkbAccessX.c,v 1.9 2001/08/23 14:33:25 alanh Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -363,10 +361,7 @@ XkbControlsPtr	ctrls;
 	if (keybd->kbdfeed->ctrl.autoRepeat && 
 	    ((xkbi->slowKey != xkbi->mouseKey) || (!xkbi->mouseKeysAccel)) &&
 	     (ctrls->enabled_ctrls&XkbRepeatKeysMask)) {
-#ifndef AIXV3
-	    if (BitIsOn(keybd->kbdfeed->ctrl.autoRepeats,xkbi->slowKey))
-#endif
-	    {
+	    if (BitIsOn(keybd->kbdfeed->ctrl.autoRepeats,xkbi->slowKey)) {
 		xkbi->repeatKey = xkbi->slowKey;
 		xkbi->repeatKeyTimer= TimerSet(xkbi->repeatKeyTimer,
 					0, ctrls->repeat_delay,
@@ -532,10 +527,7 @@ KeySym *	sym = XkbKeySymsPtr(xkbi->desc,key);
 	if ((keybd->kbdfeed->ctrl.autoRepeat) &&
 		((ctrls->enabled_ctrls&(XkbSlowKeysMask|XkbRepeatKeysMask))==
 							XkbRepeatKeysMask)) {
-#ifndef AIXV3
-	    if (BitIsOn(keybd->kbdfeed->ctrl.autoRepeats,key))
-#endif
-	    {
+	    if (BitIsOn(keybd->kbdfeed->ctrl.autoRepeats,key)) {
 #ifdef DEBUG
 		if (xkbDebugFlags&0x10)
 		    ErrorF("Starting software autorepeat...\n");

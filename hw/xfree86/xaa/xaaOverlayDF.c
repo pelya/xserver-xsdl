@@ -3,7 +3,6 @@
 
    Written by Mark Vojkovich
 */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaOverlayDF.c,v 1.1tsi Exp $ */
 
 
 #ifdef HAVE_XORG_CONFIG_H

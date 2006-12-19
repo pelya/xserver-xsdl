@@ -235,13 +235,9 @@ Vm86DoInterrupt(Vm86InfoPtr vi, int num)
     OsBlockSignals ();
     code = vm86_loop(vi);
     OsReleaseSignals ();
-    if(code < 0) {
-	ErrorF("vm86 failed (errno %d)\n", errno);
+    if(code != 0)
 	return -1;
-    } else if(code != 0) {
-	ErrorF("vm86 returned 0x%04X\n", code);
-	return -1;
-    } else
+    else
 	return 0;
 }
 
@@ -269,14 +265,10 @@ Vm86DoPOST(Vm86InfoPtr vi)
     OsBlockSignals ();
     code = vm86_loop(vi);
     OsReleaseSignals ();
-    if(code < 0) {
-	ErrorF("vm86 failed (errno %d)\n", errno);
+    if(code != 0)
 	return -1;
-    } else if(code != 0) {
-	ErrorF("vm86 returned 0x%04X\n", code);
-	return -1;
-    } else
-	return 0;
+    else
+        return 0;
 }
 
 #define DEBUG_VBE 0
@@ -573,8 +565,17 @@ vm86_loop(Vm86InfoPtr vi)
             Vm86Debug(vi);
             return -1;
         default:
-            ErrorF("Unexpected result code 0x%X from vm86\n", code);
-            Vm86Debug(vi);
+            if(code < 0) {
+                if(errno == ENOSYS) {
+                    ErrorF("No vm86 support.  Are you running on AMD64?\n");
+                } else {
+                    ErrorF("vm86 failed (errno = %d).\n", errno);
+                    Vm86Debug(vi);
+                }
+            } else {
+                ErrorF("Unexpected result code 0x%X from vm86\n", code);
+                Vm86Debug(vi);
+            }
             return -1;
         }
     }

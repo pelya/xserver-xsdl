@@ -1,5 +1,4 @@
 /*
- * $XFree86: xc/programs/Xserver/render/mipict.h,v 1.12 2002/11/05 05:34:40 keithp Exp $
  *
  * Copyright © 2000 SuSE, Inc.
  *

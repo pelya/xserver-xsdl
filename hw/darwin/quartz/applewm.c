@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/applewm.c,v 1.2 2003/09/16 00:36:13 torrey Exp $ */
 /**************************************************************************
 
 Copyright (c) 2002 Apple Computer, Inc. All Rights Reserved.
@@ -269,7 +268,7 @@ ProcAppleWMSelectInput (client)
 
     REQUEST_SIZE_MATCH (xAppleWMSelectInputReq);
     pHead = (WMEventPtr *)SecurityLookupIDByType(client,
-                        eventResource, EventType, SecurityWriteAccess);
+                        eventResource, EventType, DixWriteAccess);
     if (stuff->mask != 0) {
         if (pHead) {
             /* check for existing entry. */
@@ -491,11 +490,9 @@ ProcAppleWMSetWindowLevel(
 
     REQUEST_SIZE_MATCH(xAppleWMSetWindowLevelReq);
 
-    if (!(pWin = SecurityLookupWindow((Drawable)stuff->window,
-                                      client, SecurityReadAccess)))
-    {
+    if (Success != dixLookupWindow(&pWin, stuff->window, client,
+				   DixReadAccess))
         return BadValue;
-    }
 
     if (stuff->level < 0 || stuff->level >= AppleWMNumWindowLevels) {
         return BadValue;
@@ -603,11 +600,9 @@ ProcAppleWMFrameDraw(
 
     REQUEST_AT_LEAST_SIZE(xAppleWMFrameDrawReq);
 
-    if (!(pWin = SecurityLookupWindow((Drawable)stuff->window,
-                                      client, SecurityReadAccess)))
-    {
+    if (Success != dixLookupWindow(&pWin, stuff->window, client,
+				   DixReadAccess))
         return BadValue;
-    }
 
     ir = make_box (stuff->ix, stuff->iy, stuff->iw, stuff->ih);
     or = make_box (stuff->ox, stuff->oy, stuff->ow, stuff->oh);

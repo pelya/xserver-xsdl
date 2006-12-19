@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/dix/dixutils.c,v 3.13 2003/01/12 02:44:26 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -82,7 +81,6 @@ Author:  Adobe Systems Incorporated
 
 */
 
-/* $Xorg: dixutils.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -97,10 +95,7 @@ Author:  Adobe Systems Incorporated
 #include "scrnintstr.h"
 #define  XK_LATIN1
 #include <X11/keysymdef.h>
-#ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
-#endif
+#include "xace.h"
 
 /*
  * CompareTimeStamps returns -1, 0, or +1 depending on if the first
@@ -199,136 +194,144 @@ CompareISOLatin1Lowered(unsigned char *s1, int s1len,
     return (int) c1 - (int) c2;
 }
 
-#ifdef XCSECURITY
-
-/* SecurityLookupWindow and SecurityLookupDrawable:
- * Look up the window/drawable taking into account the client doing
- * the lookup and the type of access desired.  Return the window/drawable
- * if it exists and the client is allowed access, else return NULL.
- * Most Proc* functions should be calling these instead of
- * LookupWindow and LookupDrawable, which do no access checks.
+/*
+ * dixLookupWindow and dixLookupDrawable:
+ * Look up the window/drawable taking into account the client doing the
+ * lookup, the type of drawable desired, and the type of access desired.
+ * Return Success with *pDraw set if the window/drawable exists and the client
+ * is allowed access, else return an error code with *pDraw set to NULL.  The
+ * access mask values are defined in resource.h.  The type mask values are
+ * defined in pixmap.h, with zero equivalent to M_DRAWABLE.
  */
-
-_X_EXPORT WindowPtr
-SecurityLookupWindow(XID rid, ClientPtr client, Mask access_mode)
+_X_EXPORT int
+dixLookupDrawable(DrawablePtr *pDraw, XID id, ClientPtr client,
+		  Mask type, Mask access)
 {
-    WindowPtr	pWin;
+    DrawablePtr pTmp;
+    RESTYPE rtype;
+    *pDraw = NULL;
+    client->errorValue = id;
 
-    client->errorValue = rid;
-    if(rid == INVALID)
-	return NULL;
-    if (client->trustLevel != XSecurityClientTrusted)
-	return (WindowPtr)SecurityLookupIDByType(client, rid, RT_WINDOW, access_mode);
-    if (client->lastDrawableID == rid)
-    {
-        if (client->lastDrawable->type == DRAWABLE_WINDOW)
-            return ((WindowPtr) client->lastDrawable);
-        return (WindowPtr) NULL;
-    }
-    pWin = (WindowPtr)SecurityLookupIDByType(client, rid, RT_WINDOW, access_mode);
-    if (pWin && pWin->drawable.type == DRAWABLE_WINDOW) {
-	client->lastDrawable = (DrawablePtr) pWin;
-	client->lastDrawableID = rid;
+    if (id == INVALID)
+	return BadDrawable;
+
+    if (id == client->lastDrawableID) {
+	pTmp = client->lastDrawable;
+
+	/* an access check is required for cached drawables */
+	rtype = (pTmp->type | M_WINDOW) ? RT_WINDOW : RT_PIXMAP;
+	if (!XaceHook(XACE_RESOURCE_ACCESS, client, id, rtype, access, pTmp))
+	    return BadDrawable;
+    } else
+	pTmp = (DrawablePtr)SecurityLookupIDByClass(client, id, RC_DRAWABLE,
+						   access);
+    if (!pTmp)
+	return BadDrawable;
+    if (!((1 << pTmp->type) | (type ? type : M_DRAWABLE)))
+	return BadMatch;
+
+    if (pTmp->type | M_DRAWABLE) {
+	client->lastDrawable = pTmp;
+	client->lastDrawableID = id;
 	client->lastGCID = INVALID;
 	client->lastGC = (GCPtr)NULL;
     }
-    return pWin;
+    *pDraw = pTmp;
+    return Success;
 }
 
-
-_X_EXPORT pointer
-SecurityLookupDrawable(XID rid, ClientPtr client, Mask access_mode)
+_X_EXPORT int
+dixLookupWindow(WindowPtr *pWin, XID id, ClientPtr client, Mask access)
 {
-    register DrawablePtr pDraw;
-
-    if(rid == INVALID)
-	return (pointer) NULL;
-    if (client->trustLevel != XSecurityClientTrusted)
-	return (DrawablePtr)SecurityLookupIDByClass(client, rid, RC_DRAWABLE,
-						    access_mode);
-    if (client->lastDrawableID == rid)
-	return ((pointer) client->lastDrawable);
-    pDraw = (DrawablePtr)SecurityLookupIDByClass(client, rid, RC_DRAWABLE,
-						 access_mode);
-    if (pDraw && (pDraw->type != UNDRAWABLE_WINDOW))
-        return (pointer)pDraw;		
-    return (pointer)NULL;
+    int rc;
+    rc = dixLookupDrawable((DrawablePtr*)pWin, id, client, M_WINDOW, access);
+    return (rc == BadDrawable) ? BadWindow : rc;
 }
 
-/* We can't replace the LookupWindow and LookupDrawable functions with
- * macros because of compatibility with loadable servers.
- */
-
-_X_EXPORT WindowPtr
-LookupWindow(XID rid, ClientPtr client)
+_X_EXPORT int
+dixLookupGC(GCPtr *pGC, XID id, ClientPtr client, Mask access)
 {
-    return SecurityLookupWindow(rid, client, SecurityUnknownAccess);
-}
-
-_X_EXPORT pointer
-LookupDrawable(XID rid, ClientPtr client)
-{
-    return SecurityLookupDrawable(rid, client, SecurityUnknownAccess);
-}
-
-#else /* not XCSECURITY */
-
-WindowPtr
-LookupWindow(XID rid, ClientPtr client)
-{
-    WindowPtr	pWin;
-
-    client->errorValue = rid;
-    if(rid == INVALID)
-	return NULL;
-    if (client->lastDrawableID == rid)
-    {
-        if (client->lastDrawable->type == DRAWABLE_WINDOW)
-            return ((WindowPtr) client->lastDrawable);
-        return (WindowPtr) NULL;
+    GCPtr pTmp = (GCPtr)SecurityLookupIDByType(client, id, RT_GC, access);
+    if (pTmp) {
+	*pGC = pTmp;
+	return Success;
     }
-    pWin = (WindowPtr)LookupIDByType(rid, RT_WINDOW);
-    if (pWin && pWin->drawable.type == DRAWABLE_WINDOW) {
-	client->lastDrawable = (DrawablePtr) pWin;
-	client->lastDrawableID = rid;
-	client->lastGCID = INVALID;
-	client->lastGC = (GCPtr)NULL;
-    }
-    return pWin;
+    client->errorValue = id;
+    *pGC = NULL;
+    return BadGC;
 }
 
-
-pointer
-LookupDrawable(XID rid, ClientPtr client)
-{
-    register DrawablePtr pDraw;
-
-    if(rid == INVALID)
-	return (pointer) NULL;
-    if (client->lastDrawableID == rid)
-	return ((pointer) client->lastDrawable);
-    pDraw = (DrawablePtr)LookupIDByClass(rid, RC_DRAWABLE);
-    if (pDraw && (pDraw->type != UNDRAWABLE_WINDOW))
-        return (pointer)pDraw;		
-    return (pointer)NULL;
-}
-
-#endif /* XCSECURITY */
-
-_X_EXPORT ClientPtr
-LookupClient(XID rid, ClientPtr client)
+_X_EXPORT int
+dixLookupClient(ClientPtr *pClient, XID rid, ClientPtr client, Mask access)
 {
     pointer pRes = (pointer)SecurityLookupIDByClass(client, rid, RC_ANY,
-						    SecurityReadAccess);
+						    DixReadAccess);
     int clientIndex = CLIENT_ID(rid);
+    client->errorValue = rid;
 
-    if (clientIndex && pRes && clients[clientIndex] && !(rid & SERVER_BIT))
-    {
-	return clients[clientIndex];
+    if (clientIndex && pRes && clients[clientIndex] && !(rid & SERVER_BIT)) {
+	*pClient = clients[clientIndex];
+	return Success;
     }
-    return (ClientPtr)NULL;
+    *pClient = NULL;
+    return BadValue;
 }
 
+/*
+ * These are deprecated compatibility functions and will be removed soon!
+ * Please use the new dixLookup*() functions above.
+ */
+_X_EXPORT _X_DEPRECATED WindowPtr
+SecurityLookupWindow(XID id, ClientPtr client, Mask access_mode)
+{
+    WindowPtr pWin;
+    int i = dixLookupWindow(&pWin, id, client, access_mode);
+    static int warn = 1;
+    if (warn-- > 0)
+	ErrorF("Warning: LookupWindow()/SecurityLookupWindow() "
+	       "are deprecated.  Please convert your driver/module "
+	       "to use dixLookupWindow().\n");
+    return (i == Success) ? pWin : NULL;
+}
+
+_X_EXPORT _X_DEPRECATED WindowPtr
+LookupWindow(XID id, ClientPtr client)
+{
+    return SecurityLookupWindow(id, client, DixUnknownAccess);
+}
+
+_X_EXPORT _X_DEPRECATED pointer
+SecurityLookupDrawable(XID id, ClientPtr client, Mask access_mode)
+{
+    DrawablePtr pDraw;
+    int i = dixLookupDrawable(&pDraw, id, client, M_DRAWABLE, access_mode);
+    static int warn = 1;
+    if (warn-- > 0)
+	ErrorF("Warning: LookupDrawable()/SecurityLookupDrawable() "
+	       "are deprecated.  Please convert your driver/module "
+	       "to use dixLookupDrawable().\n");
+    return (i == Success) ? pDraw : NULL;
+}
+
+_X_EXPORT _X_DEPRECATED pointer
+LookupDrawable(XID id, ClientPtr client)
+{
+    return SecurityLookupDrawable(id, client, DixUnknownAccess);
+}
+
+_X_EXPORT _X_DEPRECATED ClientPtr
+LookupClient(XID id, ClientPtr client)
+{
+    ClientPtr pClient;
+    int i = dixLookupClient(&pClient, id, client, DixUnknownAccess);
+    static int warn = 1;
+    if (warn-- > 0)
+	ErrorF("Warning: LookupClient() is deprecated.  Please convert your "
+	       "driver/module to use dixLookupClient().\n");
+    return (i == Success) ? pClient : NULL;
+}
+
+/* end deprecated functions */
 
 int
 AlterSaveSetForClient(ClientPtr client, WindowPtr pWin, unsigned mode,

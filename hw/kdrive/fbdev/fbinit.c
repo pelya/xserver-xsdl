@@ -45,24 +45,45 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-    KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
-#ifdef TOUCHSCREEN
-    KdAddMouseDriver (&TsFuncs);
+    KdKeyboardInfo *ki;
+
+    KdAddKeyboardDriver (&LinuxKeyboardDriver);
+    KdAddPointerDriver (&LinuxMouseDriver);
+#ifdef TSLIB
+    KdAddPointerDriver (&TsDriver);
 #endif
+
+    ki = KdParseKeyboard ("keybd");
+    KdAddKeyboard(ki);
+
+    KdInitInput ();
 }
 
 void
 ddxUseMsg (void)
 {
-    KdUseMsg();
+  KdUseMsg();
+  ErrorF("\nXfbdev Device Usage:\n");
+  ErrorF("-fb path         Framebuffer device to use. Defaults to /dev/fb0\n");
+  ErrorF("\n");
 }
 
 int
 ddxProcessArgument (int argc, char **argv, int i)
 {
-    return KdProcessArgument (argc, argv, i);
-}
+  if (!strcmp (argv[i], "-fb"))
+    {
+      if (i+1 < argc) 
+	{
+	  fbdevDevicePath = argv[i+1];
+	  return 2;
+	} 
+      UseMsg();
+      exit(1);
+    }
 
+  return KdProcessArgument (argc, argv, i);
+}
 
 
 KdCardFuncs	fbdevFuncs = {

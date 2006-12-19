@@ -1,5 +1,4 @@
 /*
- * $XFree86: xc/programs/Xserver/render/picture.c,v 1.29 2002/11/23 02:38:15 keithp Exp $
  *
  * Copyright © 2000 SuSE, Inc.
  *
@@ -1210,14 +1209,15 @@ ChangePicture (PicturePtr	pPicture,
 			pAlpha = (PicturePtr) SecurityLookupIDByType(client,
 								     pid, 
 								     PictureType, 
-								     SecurityWriteAccess|SecurityReadAccess);
+								     DixWriteAccess|DixReadAccess);
 			if (!pAlpha)
 			{
 			    client->errorValue = pid;
 			    error = BadPixmap;
 			    break;
 			}
-			if (pAlpha->pDrawable->type != DRAWABLE_PIXMAP)
+			if (pAlpha->pDrawable == NULL ||
+			    pAlpha->pDrawable->type != DRAWABLE_PIXMAP)
 			{
 			    client->errorValue = pid;
 			    error = BadMatch;
@@ -1271,7 +1271,7 @@ ChangePicture (PicturePtr	pPicture,
 			pPixmap = (PixmapPtr)SecurityLookupIDByType(client,
 								    pid, 
 								    RT_PIXMAP,
-								    SecurityReadAccess);
+								    DixReadAccess);
 			if (!pPixmap)
 			{
 			    client->errorValue = pid;
@@ -1459,21 +1459,25 @@ SetPictureClipRegion (PicturePtr    pPicture,
     return result;
 }
 
+static Bool
+transformIsIdentity(PictTransform *t)
+{
+    return ((t->matrix[0][0] == t->matrix[1][1]) &&
+            (t->matrix[0][0] == t->matrix[2][2]) &&
+            (t->matrix[0][0] != 0) &&
+            (t->matrix[0][1] == 0) &&
+            (t->matrix[0][2] == 0) &&
+            (t->matrix[1][0] == 0) &&
+            (t->matrix[1][2] == 0) &&
+            (t->matrix[2][0] == 0) &&
+            (t->matrix[2][1] == 0));
+}
 
 int
 SetPictureTransform (PicturePtr	    pPicture,
 		     PictTransform  *transform)
 {
-    static const PictTransform	identity = { {
-	{ xFixed1, 0x00000, 0x00000 },
-	{ 0x00000, xFixed1, 0x00000 },
-	{ 0x00000, 0x00000, xFixed1 },
-    } };
-    ScreenPtr		pScreen = pPicture->pDrawable->pScreen;
-    PictureScreenPtr	ps = GetPictureScreen(pScreen);
-    int			result;
-
-    if (transform && memcmp (transform, &identity, sizeof (PictTransform)) == 0)
+    if (transform && transformIsIdentity (transform))
 	transform = 0;
     
     if (transform)
@@ -1496,9 +1500,16 @@ SetPictureTransform (PicturePtr	    pPicture,
     }
     pPicture->serialNumber |= GC_CHANGE_SERIAL_BIT;
 
-    result = (*ps->ChangePictureTransform) (pPicture, transform);
+    if (pPicture->pDrawable != NULL) {
+	int result;
+	PictureScreenPtr ps = GetPictureScreen(pPicture->pDrawable->pScreen);
 
-    return result;
+	result = (*ps->ChangePictureTransform) (pPicture, transform);
+
+	return result;
+    }
+
+    return Success;
 }
 
 void

@@ -1,4 +1,3 @@
-/* $Xorg: miwideline.h,v 1.4 2001/02/09 02:05:22 xorgcvs Exp $ */
 /*
 
 Copyright 1988, 1998  The Open Group
@@ -26,7 +25,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/mi/miwideline.h,v 1.11 2001/10/25 12:03:47 alanh Exp $ */
 
 /* Author:  Keith Packard, MIT X Consortium */
 

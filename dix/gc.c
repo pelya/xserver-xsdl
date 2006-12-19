@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/dix/gc.c,v 3.9 2001/12/14 19:59:32 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -46,7 +45,6 @@ SOFTWARE.
 
 ******************************************************************/
 
-/* $Xorg: gc.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -273,7 +271,7 @@ dixChangeGC(ClientPtr client, register GC *pGC, register BITS32 mask, CARD32 *pC
 		{
 		    NEXTVAL(XID, newpix);
 		    pPixmap = (PixmapPtr)SecurityLookupIDByType(client,
-					newpix, RT_PIXMAP, SecurityReadAccess);
+					newpix, RT_PIXMAP, DixReadAccess);
 		}
 		if (pPixmap)
 		{
@@ -309,7 +307,7 @@ dixChangeGC(ClientPtr client, register GC *pGC, register BITS32 mask, CARD32 *pC
 		{
 		    NEXTVAL(XID, newstipple)
 		    pPixmap = (PixmapPtr)SecurityLookupIDByType(client,
-				newstipple, RT_PIXMAP, SecurityReadAccess);
+				newstipple, RT_PIXMAP, DixReadAccess);
 		}
 		if (pPixmap)
 		{
@@ -351,7 +349,7 @@ dixChangeGC(ClientPtr client, register GC *pGC, register BITS32 mask, CARD32 *pC
 		{
 		    NEXTVAL(XID, newfont)
 		    pFont = (FontPtr)SecurityLookupIDByType(client, newfont,
-						RT_FONT, SecurityReadAccess);
+						RT_FONT, DixReadAccess);
 		}
 		if (pFont)
 		{
@@ -418,7 +416,7 @@ dixChangeGC(ClientPtr client, register GC *pGC, register BITS32 mask, CARD32 *pC
 		    }
 		    else
 		        pPixmap = (PixmapPtr)SecurityLookupIDByType(client,
-					pid, RT_PIXMAP, SecurityReadAccess);
+					pid, RT_PIXMAP, DixReadAccess);
 		}
 
 		if (pPixmap)

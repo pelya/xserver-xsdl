@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Module.h,v 1.37 2003/08/24 17:36:54 dawes Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -85,8 +84,8 @@ typedef enum {
  * mask is 0xFFFF0000.
  */
 #define ABI_ANSIC_VERSION	SET_ABI_VERSION(0, 3)
-#define ABI_VIDEODRV_VERSION	SET_ABI_VERSION(1, 0)
-#define ABI_XINPUT_VERSION	SET_ABI_VERSION(0, 6)
+#define ABI_VIDEODRV_VERSION	SET_ABI_VERSION(1, 1)
+#define ABI_XINPUT_VERSION	SET_ABI_VERSION(1, 0)
 #define ABI_EXTENSION_VERSION	SET_ABI_VERSION(0, 3)
 #define ABI_FONT_VERSION	SET_ABI_VERSION(0, 5)
 

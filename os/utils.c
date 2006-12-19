@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/os/utils.c,v 1.25 2006/03/25 19:52:05 ajax Exp $ */
-/* $Xorg: utils.c,v 1.5 2001/02/09 02:05:24 xorgcvs Exp $ */
 /*
 
 Copyright 1987, 1998  The Open Group
@@ -50,10 +48,26 @@ OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
 OR PERFORMANCE OF THIS SOFTWARE.
 
 */
-/* $XFree86: xc/programs/Xserver/os/utils.c,v 3.96 2004/01/07 04:16:37 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
+#endif
+
+/* The world's most shocking hack, to ensure we get clock_gettime() and
+ * CLOCK_MONOTONIC. */
+#ifdef sun              /* Needed to tell Solaris headers not to restrict to */
+#define __EXTENSIONS__  /* only the functions defined in POSIX 199309.       */
+#endif
+
+#ifdef _POSIX_C_SOURCE
+#define _SAVED_POSIX_C_SOURCE _POSIX_C_SOURCE
+#undef _POSIX_C_SOURCE
+#endif
+#define _POSIX_C_SOURCE 199309L
+#include <time.h>
+#undef _POSIX_C_SOURCE
+#ifdef _SAVED_POSIX_C_SOURCE
+#define _POSIX_C_SOURCE _SAVED_POSIX_C_SOURCE
 #endif
 
 #ifdef __CYGWIN__
@@ -68,10 +82,14 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include <stdio.h>
 #include "misc.h"
 #include <X11/X.h>
+#define XSERV_t
+#define TRANS_SERVER
+#define TRANS_REOPEN
 #include <X11/Xtrans/Xtrans.h>
 #include "input.h"
 #include "dixfont.h"
 #include "osdep.h"
+#include "extension.h"
 #ifdef X_POSIX_C_SOURCE
 #define _POSIX_C_SOURCE X_POSIX_C_SOURCE
 #include <signal.h>
@@ -91,7 +109,6 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #if !defined(SYSV) && !defined(WIN32) && !defined(Lynx) && !defined(QNX4)
 #include <sys/resource.h>
 #endif
-#include <time.h>
 #include <sys/stat.h>
 #include <ctype.h>    /* for isspace */
 #include <stdarg.h>
@@ -119,8 +136,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/XKBsrv.h>
 #endif
 #ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
+#include "securitysrv.h"
 #endif
 
 #ifdef RENDER
@@ -136,13 +152,9 @@ _X_EXPORT Bool noTestExtensions;
 _X_EXPORT Bool noBigReqExtension = FALSE;
 #endif
 #ifdef COMPOSITE
- #ifdef XFree86Server
-  /* COMPOSITE is disabled by default for now until the
-   * interface is stable */
-  #define COMPOSITE_DEFAULT FALSE
- #else
-  #define COMPOSITE_DEFAULT TRUE
- #endif
+ /* COMPOSITE is disabled by default for now until the
+  * interface is stable */
+ #define COMPOSITE_DEFAULT FALSE
 _X_EXPORT Bool noCompositeExtension = !COMPOSITE_DEFAULT;
 #endif
 
@@ -265,12 +277,6 @@ int SyncOn  = 0;
 extern int SelectWaitTime;
 #endif
 
-#ifdef DEBUG
-#ifndef SPECIAL_MALLOC
-#define MEMBUG
-#endif
-#endif
-
 #if defined(SVR4) || defined(__linux__) || defined(CSRG_BASED)
 #define HAS_SAVED_IDS_AND_SETEUID
 #endif
@@ -281,17 +287,7 @@ long Memory_fail = 0;
 #include <stdlib.h>  /* for random() */
 #endif
 
-#ifdef sgi
-int userdefinedfontpath = 0;
-#endif /* sgi */
-
 char *dev_tty_from_init = NULL;		/* since we need to parse it anyway */
-
-extern char dispatchExceptionAtReset;
-
-/* Extension enable/disable in miinitext.c */
-extern Bool EnableDisableExtension(char *name, Bool enable);
-extern void EnableDisableExtensionError(char *name, Bool enable);
 
 OsSigHandlerPtr
 OsSignal(sig, handler)
@@ -552,16 +548,20 @@ GiveUp(int sig)
     errno = olderrno;
 }
 
-#ifndef DDXTIME
 _X_EXPORT CARD32
 GetTimeInMillis(void)
 {
-    struct timeval  tp;
+    struct timeval tv;
 
-    X_GETTIMEOFDAY(&tp);
-    return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
-}
+#ifdef MONOTONIC_CLOCK
+    struct timespec tp;
+    if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)
+        return (tp.tv_sec * 1000) + (tp.tv_nsec / 1000000L);
 #endif
+
+    X_GETTIMEOFDAY(&tv);
+    return(tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+}
 
 _X_EXPORT void
 AdjustWaitForDelay (pointer waitTime, unsigned long newdelay)
@@ -598,7 +598,6 @@ void UseMsg(void)
 #endif
     ErrorF("-audit int             set audit trail level\n");	
     ErrorF("-auth file             select authorization file\n");	
-    ErrorF("bc                     enable bug compatibility\n");
     ErrorF("-br                    create root window with black background\n");
     ErrorF("+bs                    enable any backing store support\n");
     ErrorF("-bs                    disable any backing store support\n");
@@ -665,6 +664,7 @@ void UseMsg(void)
     ErrorF("v                      video blanking for screen-saver\n");
     ErrorF("-v                     screen-saver without video blanking\n");
     ErrorF("-wm                    WhenMapped default backing-store\n");
+    ErrorF("-wr                    create root window with white background\n");
     ErrorF("-x string              loads named extension at init time \n");
     ErrorF("-maxbigreqsize         set maximal bigrequest size \n");
 #ifdef PANORAMIX
@@ -786,8 +786,6 @@ ProcessCommandLine(int argc, char *argv[])
 	    else
 		UseMsg();
 	}
-	else if ( strcmp( argv[i], "bc") == 0)
-	    permitOldBugs = TRUE;
 	else if ( strcmp( argv[i], "-br") == 0)
 	    blackRoot = TRUE;
 	else if ( strcmp( argv[i], "+bs") == 0)
@@ -864,9 +862,6 @@ ProcessCommandLine(int argc, char *argv[])
 	{
 	    if(++i < argc)
 	    {
-#ifdef sgi
-		userdefinedfontpath = 1;
-#endif /* sgi */
 	        defaultFontPath = argv[i];
 	    }
 	    else
@@ -1011,6 +1006,8 @@ ProcessCommandLine(int argc, char *argv[])
 	    defaultScreenSaverBlanking = DontPreferBlanking;
 	else if ( strcmp( argv[i], "-wm") == 0)
 	    defaultBackingStore = WhenMapped;
+        else if ( strcmp( argv[i], "-wr") == 0)
+            whiteRoot = TRUE;
         else if ( strcmp( argv[i], "-maxbigreqsize") == 0) {
              if(++i < argc) {
                  long reqSizeArg = atol(argv[i]);
@@ -1718,8 +1715,10 @@ System(char *command)
     case -1:	/* error */
 	p = -1;
     case 0:	/* child */
-	setgid(getgid());
-	setuid(getuid());
+	if (setgid(getgid()) == -1)
+	    _exit(127);
+	if (setuid(getuid()) == -1)
+	    _exit(127);
 	execl("/bin/sh", "sh", "-c", command, (char *)NULL);
 	_exit(127);
     default:	/* parent */
@@ -1770,8 +1769,10 @@ Popen(char *command, char *type)
 	xfree(cur);
 	return NULL;
     case 0:	/* child */
-	setgid(getgid());
-	setuid(getuid());
+	if (setgid(getgid()) == -1)
+	    _exit(127);
+	if (setuid(getuid()) == -1)
+	    _exit(127);
 	if (*type == 'r') {
 	    if (pdes[1] != 1) {
 		/* stdout */
@@ -1845,8 +1846,10 @@ Fopen(char *file, char *type)
 	xfree(cur);
 	return NULL;
     case 0:	/* child */
-	setgid(getgid());
-	setuid(getuid());
+	if (setgid(getgid()) == -1)
+	    _exit(127);
+	if (setuid(getuid()) == -1)
+	    _exit(127);
 	if (*type == 'r') {
 	    if (pdes[1] != 1) {
 		/* stdout */

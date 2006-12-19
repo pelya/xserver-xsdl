@@ -1,4 +1,3 @@
-/* $Xorg: stubs.c,v 1.4 2001/02/09 02:04:35 xorgcvs Exp $ */
 
 /*
  * X server support of the XINPUT extension for Darwin
@@ -52,7 +51,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ********************************************************/
-/* $XFree86: xc/programs/Xserver/hw/darwin/darwinXinput.c,v 1.1 2004/05/28 07:44:00 torrey Exp $ */
 
 #define	 NEED_EVENTS
 #include <X11/X.h>

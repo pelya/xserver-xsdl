@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xext/mbuf.c,v 3.15 2003/10/28 23:08:43 tsi Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -25,7 +24,6 @@ in this Software without prior written authorization from The Open Group.
 
 ********************************************************/
 
-/* $Xorg: mbuf.c,v 1.4 2001/02/09 02:04:32 xorgcvs Exp $ */
 #define NEED_REPLIES
 #define NEED_EVENTS
 #ifdef HAVE_DIX_CONFIG_H
@@ -450,16 +448,15 @@ ProcCreateImageBuffers (client)
     register int		n;
     WindowPtr			pWin;
     XID				*ids;
-    int				len, nbuf;
-    int				i;
-    int				err;
+    int				len, nbuf, i, err, rc;
 
     REQUEST_AT_LEAST_SIZE (xMbufCreateImageBuffersReq);
     len = stuff->length - (sizeof(xMbufCreateImageBuffersReq) >> 2);
     if (len == 0)
 	return BadLength;
-    if (!(pWin = LookupWindow (stuff->window, client)))
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     if (pWin->drawable.class == InputOnly)
 	return BadMatch;
     switch (stuff->updateAction)
@@ -586,10 +583,12 @@ ProcDestroyImageBuffers (client)
 {
     REQUEST (xMbufDestroyImageBuffersReq);
     WindowPtr	pWin;
+    int rc;
 
     REQUEST_SIZE_MATCH (xMbufDestroyImageBuffersReq);
-    if (!(pWin = LookupWindow (stuff->window, client)))
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     DestroyImageBuffers (pWin);
     return Success;
 }
@@ -601,16 +600,16 @@ ProcSetMBufferAttributes (client)
     REQUEST (xMbufSetMBufferAttributesReq);
     WindowPtr	pWin;
     MultibuffersPtr	pMultibuffers;
-    int		len;
+    int		len, rc;
     Mask	vmask;
     Mask	index2;
     CARD32	updateHint;
     XID		*vlist;
 
     REQUEST_AT_LEAST_SIZE (xMbufSetMBufferAttributesReq);
-    pWin = LookupWindow (stuff->window, client);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     pMultibuffers = (MultibuffersPtr)LookupIDByType (pWin->drawable.id, MultibuffersResType);
     if (!pMultibuffers)
 	return BadMatch;
@@ -657,12 +656,12 @@ ProcGetMBufferAttributes (client)
     MultibuffersPtr	pMultibuffers;
     XID		*ids;
     xMbufGetMBufferAttributesReply  rep;
-    int		i, n;
+    int		i, n, rc;
 
     REQUEST_SIZE_MATCH (xMbufGetMBufferAttributesReq);
-    pWin = LookupWindow (stuff->window, client);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     pMultibuffers = (MultibuffersPtr)LookupIDByType (pWin->drawable.id, MultibuffersResType);
     if (!pMultibuffers)
 	return BadAccess;
@@ -787,15 +786,15 @@ ProcGetBufferInfo (client)
     DrawablePtr		    pDrawable;
     xMbufGetBufferInfoReply rep;
     ScreenPtr		    pScreen;
-    int			    i, j, k;
-    int			    n;
+    int			    i, j, k, n, rc;
     xMbufBufferInfo	    *pInfo;
     int			    nInfo;
     DepthPtr		    pDepth;
 
-    pDrawable = (DrawablePtr) LookupDrawable (stuff->drawable, client);
-    if (!pDrawable)
-	return BadDrawable;
+    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
+			   DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     pScreen = pDrawable->pScreen;
     nInfo = 0;
     for (i = 0; i < pScreen->numDepths; i++)

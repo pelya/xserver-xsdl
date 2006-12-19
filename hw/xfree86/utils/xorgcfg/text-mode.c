@@ -1,4 +1,3 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/utils/xorgcfg/text-mode.c,v 1.8 2006/05/03 17:50:10 ajax Exp $ */
 /*
  * Copyright (c) 2000 by Conectiva S.A. (http://www.conectiva.com)
  * 
@@ -27,7 +26,6 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/text-mode.c,v 1.25 2003/11/12 00:10:30 dawes Exp $
  */
 
 #include <stdio.h>
@@ -48,8 +46,7 @@
 #include "xf86config.h"
 #include "loader.h"
 
-#define IS_KBDDRIV(X) ((strcmp((X),"kbd") == 0) || \
-	(strcmp((X), "keyboard") == 0))
+#define IS_KBDDRIV(X) ((strcmp((X),"kbd") == 0))
 
 #ifndef PROJECT_ROOT
 #define PROJECT_ROOT "/usr"
@@ -364,9 +361,6 @@ static char *protocols[] = {
 #ifdef __SCO__
     "OsMouse",
 #endif
-#ifdef __UNIXWARE__
-    "Xqueue",
-#endif
 #ifdef WSCONS_SUPPORT
     "wsmouse",
 #endif
@@ -553,7 +547,7 @@ MouseConfig(void)
     if (str == NULL)
 #ifdef WSCONS_SUPPORT
 	str = "/dev/wsmouse";
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__DragonFly__)
 	str = "/dev/sysmouse";
 #elif defined(__UNIXOS2__)
 	str = "mouse$";
@@ -746,11 +740,7 @@ KeyboardConfig(void)
 		input->inp_option_lst =
 		    xf86addNewOption(input->inp_option_lst,
 			XtNewString("XkbLayout"), XtNewString("us"));
-#if defined(USE_DEPRECATED_KEYBOARD_DRIVER)
-		input->inp_driver = XtNewString("keyboard");
-#else
 		input->inp_driver = XtNewString("kbd");
-#endif
 		XF86Config->conf_input_lst =
 		    xf86addInput(XF86Config, input);
 	    }
@@ -826,11 +816,7 @@ KeyboardConfig(void)
 		XtNewString("XkbLayout"), XtNewString(layout));
 
     if (input->inp_driver == NULL) {
-#if defined(USE_DEPRECATED_KEYBOARD_DRIVER)
-	input->inp_driver = XtNewString("keyboard");
-#else
 	input->inp_driver = XtNewString("kbd");
-#endif
 	XF86Config->conf_input_lst =
 	    xf86addInput(XF86Config->conf_input_lst, input);
     }
@@ -1130,6 +1116,7 @@ CardConfig(void)
     static char *xdrivers[] = {
 	"apm",
 	"ark",
+	"ast",
 	"ati",
 	"r128",
 	"radeon",

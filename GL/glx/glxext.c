@@ -1,4 +1,4 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxext.c,v 1.9 2003/09/28 20:15:43 alanh Exp $
+/*
 ** The contents of this file are subject to the GLX Public License Version 1.0
 ** (the "License"). You may not use this file except in compliance with the
 ** License. You may obtain a copy of the License at Silicon Graphics, Inc.,
@@ -32,8 +32,34 @@
 #include "unpack.h"
 #include "glxutil.h"
 #include "glxext.h"
+#include "indirect_table.h"
+#include "indirect_util.h"
 
-static Bool inDispatch;
+/*
+** The last context used by the server.  It is the context that is current
+** from the server's perspective.
+*/
+__GLXcontext *__glXLastContext;
+
+/*
+** X resources.
+*/
+RESTYPE __glXContextRes;
+RESTYPE __glXClientRes;
+RESTYPE __glXPixmapRes;
+RESTYPE __glXDrawableRes;
+RESTYPE __glXSwapBarrierRes;
+
+/*
+** Reply for most singles.
+*/
+xGLXSingleReply __glXReply;
+
+/*
+** A set of state for each client.  The 0th one is unused because client
+** indices start at 1, not 0.
+*/
+static __GLXclientState *__glXClients[MAXCLIENTS + 1];
 
 /*
 ** Forward declarations.
@@ -141,6 +167,10 @@ static int PixmapGone(__GLXpixmap *pGlxPixmap, XID id)
 
     pGlxPixmap->idExists = False;
     if (!pGlxPixmap->refcnt) {
+	if (pGlxPixmap->pDamage) {
+	    DamageUnregister (pGlxPixmap->pDraw, pGlxPixmap->pDamage);
+	    DamageDestroy(pGlxPixmap->pDamage);
+	}
 	/*
 	** The DestroyPixmap routine should decrement the refcount and free
 	** only if it's zero.
@@ -186,6 +216,10 @@ static Bool DrawableGone(__GLXdrawable *glxPriv, XID xid)
     return True;
 }
 
+static __GLXcontext *glxPendingDestroyContexts;
+static int glxServerLeaveCount;
+static int glxBlockClients;
+
 /*
 ** Free a context.
 */
@@ -203,13 +237,14 @@ GLboolean __glXFreeContext(__GLXcontext *cx)
      * __glXDispatch() or as a callback from the resource manager.  In
      * the latter case we need to lift the DRI lock manually. */
 
-    if (!inDispatch)
-      __glXleaveServer();
-
-    cx->destroy(cx);
-
-    if (!inDispatch)
-      __glXenterServer();
+    if (!glxBlockClients) {
+	__glXleaveServer();
+	cx->destroy(cx);
+	__glXenterServer();
+    } else {
+	cx->next = glxPendingDestroyContexts;
+	glxPendingDestroyContexts = cx;
+    }
 
     return GL_TRUE;
 }
@@ -261,6 +296,13 @@ GLboolean __glXErrorOccured(void)
     return errorOccured;
 }
 
+static int __glXErrorBase;
+
+int __glXError(int error)
+{
+    return __glXErrorBase + error;
+}
+
 /************************************************************************/
 
 /*
@@ -270,11 +312,12 @@ void GlxExtensionInit(void)
 {
     ExtensionEntry *extEntry;
     int i;
-    
+
     __glXContextRes = CreateNewResourceType((DeleteType)ContextGone);
     __glXClientRes = CreateNewResourceType((DeleteType)ClientGone);
     __glXPixmapRes = CreateNewResourceType((DeleteType)PixmapGone);
     __glXDrawableRes = CreateNewResourceType((DeleteType)DrawableGone);
+    __glXSwapBarrierRes = CreateNewResourceType((DeleteType)SwapBarrierGone);
 
     /*
     ** Add extension to server extensions.
@@ -292,23 +335,12 @@ void GlxExtensionInit(void)
 	return;
     }
 
-    __glXBadContext = extEntry->errorBase + GLXBadContext;
-    __glXBadContextState = extEntry->errorBase + GLXBadContextState;
-    __glXBadDrawable = extEntry->errorBase + GLXBadDrawable;
-    __glXBadPixmap = extEntry->errorBase + GLXBadPixmap;
-    __glXBadContextTag = extEntry->errorBase + GLXBadContextTag;
-    __glXBadCurrentWindow = extEntry->errorBase + GLXBadCurrentWindow;
-    __glXBadRenderRequest = extEntry->errorBase + GLXBadRenderRequest;
-    __glXBadLargeRequest = extEntry->errorBase + GLXBadLargeRequest;
-    __glXUnsupportedPrivateRequest = extEntry->errorBase +
-      			GLXUnsupportedPrivateRequest;
-
-    __glXSwapBarrierRes = CreateNewResourceType((DeleteType)SwapBarrierGone);
+    __glXErrorBase = extEntry->errorBase;
 
     /*
     ** Initialize table of client state.  There is never a client 0.
     */
-    for (i=1; i <= MAXCLIENTS; i++) {
+    for (i = 1; i <= MAXCLIENTS; i++) {
 	__glXClients[i] = 0;
     }
 
@@ -343,7 +375,7 @@ __GLXcontext *__glXForceCurrent(__GLXclientState *cl, GLXContextTag tag,
     cx = (__GLXcontext *) __glXLookupContextByTag(cl, tag);
     if (!cx) {
 	cl->client->errorValue = tag;
-	*error = __glXBadContextTag;
+	*error = __glXError(GLXBadContextTag);
 	return 0;
     }
 
@@ -354,7 +386,7 @@ __GLXcontext *__glXForceCurrent(__GLXclientState *cl, GLXContextTag tag,
 	    ** windows can be destroyed from under us; GLX pixmaps are
 	    ** refcounted and don't go away until no one is using them.
 	    */
-	    *error = __glXBadCurrentWindow;
+	    *error = __glXError(GLXBadCurrentWindow);
 	    return 0;
     	}
     }
@@ -369,7 +401,7 @@ __GLXcontext *__glXForceCurrent(__GLXclientState *cl, GLXContextTag tag,
 	if (!(*cx->forceCurrent)(cx)) {
 	    /* Bind failed, and set the error code.  Bummer */
 	    cl->client->errorValue = cx->id;
-	    *error = __glXBadContextState;
+	    *error = __glXError(GLXBadContextState);
 	    return 0;
     	}
     }
@@ -379,11 +411,43 @@ __GLXcontext *__glXForceCurrent(__GLXclientState *cl, GLXContextTag tag,
 
 /************************************************************************/
 
-/*
-** Top level dispatcher; all commands are executed from here down.
-*/
+void glxSuspendClients(void)
+{
+    int i;
 
-/* I cried when I wrote this.  Damn you XAA! */
+    for (i = 1; i <= MAXCLIENTS; i++) {
+	if (__glXClients[i] == NULL || !__glXClients[i]->inUse)
+	    continue;
+
+	IgnoreClient(__glXClients[i]->client);
+    }
+
+    glxBlockClients = TRUE;
+}
+
+void glxResumeClients(void)
+{
+    __GLXcontext *cx, *next;
+    int i;
+
+    glxBlockClients = FALSE;
+
+    for (i = 1; i <= MAXCLIENTS; i++) {
+	if (__glXClients[i] == NULL || !__glXClients[i]->inUse)
+	    continue;
+
+	AttendClient(__glXClients[i]->client);
+    }
+
+    __glXleaveServer();
+    for (cx = glxPendingDestroyContexts; cx != NULL; cx = next) {
+	next = cx->next;
+
+	cx->destroy(cx);
+    }
+    glxPendingDestroyContexts = NULL;
+    __glXenterServer();
+}
 
 static void
 __glXnopEnterServer(void)
@@ -408,14 +472,19 @@ void __glXsetEnterLeaveServerFuncs(void (*enter)(void),
 
 void __glXenterServer(void)
 {
-  (*__glXenterServerFunc)();
+  glxServerLeaveCount--;
+
+  if (glxServerLeaveCount == 0)
+    (*__glXenterServerFunc)();
 }
 
 void __glXleaveServer(void)
 {
-  (*__glXleaveServerFunc)();
-}
+  if (glxServerLeaveCount == 0)
+    (*__glXleaveServerFunc)();
 
+  glxServerLeaveCount++;
+}
 
 /*
 ** Top level dispatcher; all commands are executed from here down.
@@ -424,7 +493,7 @@ static int __glXDispatch(ClientPtr client)
 {
     REQUEST(xGLXSingleReq);
     CARD8 opcode;
-    int (*proc)(__GLXclientState *cl, GLbyte *pc);
+    __GLXdispatchSingleProcPtr proc;
     __GLXclientState *cl;
     int retval;
 
@@ -454,48 +523,38 @@ static int __glXDispatch(ClientPtr client)
     }
 
     /*
-    ** Check for valid opcode.
-    */
-    if (opcode >= __GLX_SINGLE_TABLE_SIZE) {
-	return BadRequest;
-    }
-
-    /*
     ** If we're expecting a glXRenderLarge request, this better be one.
     */
     if ((cl->largeCmdRequestsSoFar != 0) && (opcode != X_GLXRenderLarge)) {
 	client->errorValue = stuff->glxCode;
-	return __glXBadLargeRequest;
+	return __glXError(GLXBadLargeRequest);
+    }
+
+    /* If we're currently blocking GLX clients, just put this guy to
+     * sleep, reset the request and return. */
+    if (glxBlockClients) {
+	ResetCurrentRequest(client);
+	client->sequence--;
+	IgnoreClient(client);
+	return(client->noClientException);
     }
 
     /*
     ** Use the opcode to index into the procedure table.
     */
-    if (client->swapped)
-	proc = __glXSwapSingleTable[opcode];
-    else
-	proc = __glXSingleTable[opcode];
+    proc = (__GLXdispatchSingleProcPtr) __glXGetProtocolDecodeFunction(& Single_dispatch_info,
+								       opcode,
+								       client->swapped);
+    if (proc != NULL) {
+	__glXleaveServer();
 
-    __glXleaveServer();
+	retval = (*proc)(cl, (GLbyte *) stuff);
 
-    inDispatch = True;
-
-    retval = proc(cl, (GLbyte *) stuff);
-
-    inDispatch = False;
-
-    __glXenterServer();
+	__glXenterServer();
+    }
+    else {
+	retval = BadRequest;
+    }
 
     return retval;
 }
-
-int __glXNoSuchSingleOpcode(__GLXclientState *cl, GLbyte *pc)
-{
-    return BadRequest;
-}
-
-void __glXNoSuchRenderOpcode(GLbyte *pc)
-{
-    return;
-}
-

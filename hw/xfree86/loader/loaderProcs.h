@@ -1,7 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/loaderProcs.h,v 1.21 2003/10/15 16:29:04 dawes Exp $ */
-
 /*
- *
  * Copyright 1995-1998 by Metro Link, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -56,6 +53,7 @@
 #ifndef _LOADERPROCS_H
 #define _LOADERPROCS_H
 
+#undef IN_LOADER
 #define IN_LOADER
 #include "xf86Module.h"
 #include <X11/fonts/fontmod.h>
@@ -78,9 +76,7 @@ typedef struct module_desc {
     const XF86ModuleVersionInfo *VersionInfo;
 } ModuleDesc, *ModuleDescPtr;
 
-/*
- * Extenal API for the loader 
- */
+/* External API for the loader */
 
 void LoaderInit(void);
 
@@ -107,13 +103,6 @@ ModuleDescPtr AddSibling(ModuleDescPtr head, ModuleDescPtr new);
 void LoaderSetPath(const char *path);
 void LoaderSortExtensions(void);
 
-void LoaderVReqSymLists(const char **, va_list args);
-void LoaderVReqSymbols(const char *, va_list args);
-void LoaderVRefSymLists(const char **, va_list args);
-void LoaderVRefSymbols(const char *, va_list args);
-
-void LoaderShowStack(void);
-void *LoaderSymbolHandle(const char *, int);
 int LoaderUnload(int);
 unsigned long LoaderGetModuleVersion(ModuleDescPtr mod);
 

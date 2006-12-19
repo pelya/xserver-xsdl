@@ -1,5 +1,3 @@
-/* $Xorg: privates.c,v 1.4 2001/02/09 02:04:40 xorgcvs Exp $ */
-/* $XdotOrg: xserver/xorg/dix/privates.c,v 1.10 2005/09/05 07:40:50 daniels Exp $ */
 /*
 
 Copyright 1993, 1998  The Open Group
@@ -27,7 +25,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/dix/privates.c,v 3.7 2001/01/17 22:36:44 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -45,12 +42,70 @@ from The Open Group.
 #include "servermd.h"
 #include "site.h"
 #include "inputstr.h"
+#include "extnsionst.h"
 
 /*
  *  See the Wrappers and devPrivates section in "Definition of the
  *  Porting Layer for the X v11 Sample Server" (doc/Server/ddx.tbl.ms)
  *  for information on how to use devPrivates.
  */
+
+/*
+ *  extension private machinery
+ */
+
+static int  extensionPrivateCount;
+int extensionPrivateLen;
+unsigned *extensionPrivateSizes;
+unsigned totalExtensionSize;
+
+void
+ResetExtensionPrivates()
+{
+    extensionPrivateCount = 0;
+    extensionPrivateLen = 0;
+    xfree(extensionPrivateSizes);
+    extensionPrivateSizes = (unsigned *)NULL;
+    totalExtensionSize =
+	((sizeof(ExtensionEntry) + sizeof(long) - 1) / sizeof(long)) * sizeof(long);
+}
+
+_X_EXPORT int
+AllocateExtensionPrivateIndex()
+{
+    return extensionPrivateCount++;
+}
+
+_X_EXPORT Bool
+AllocateExtensionPrivate(int index2, unsigned amount)
+{
+    unsigned oldamount;
+
+    /* Round up sizes for proper alignment */
+    amount = ((amount + (sizeof(long) - 1)) / sizeof(long)) * sizeof(long);
+
+    if (index2 >= extensionPrivateLen)
+    {
+	unsigned *nsizes;
+	nsizes = (unsigned *)xrealloc(extensionPrivateSizes,
+				      (index2 + 1) * sizeof(unsigned));
+	if (!nsizes)
+	    return FALSE;
+	while (extensionPrivateLen <= index2)
+	{
+	    nsizes[extensionPrivateLen++] = 0;
+	    totalExtensionSize += sizeof(DevUnion);
+	}
+	extensionPrivateSizes = nsizes;
+    }
+    oldamount = extensionPrivateSizes[index2];
+    if (amount > oldamount)
+    {
+	extensionPrivateSizes[index2] = amount;
+	totalExtensionSize += (amount - oldamount);
+    }
+    return TRUE;
+}
 
 /*
  *  client private machinery

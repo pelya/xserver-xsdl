@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES = librender.la
 
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS)
 
 librender_la_SOURCES =	\
 	animcur.c	\

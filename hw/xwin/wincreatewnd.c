@@ -58,6 +58,8 @@ winCreateBoundingWindowFullScreen (ScreenPtr pScreen)
 {
   winScreenPriv(pScreen);
   winScreenInfo		*pScreenInfo = pScreenPriv->pScreenInfo;
+  int			iX = pScreenInfo->dwInitialX;
+  int			iY = pScreenInfo->dwInitialY;
   int			iWidth = pScreenInfo->dwWidth;
   int			iHeight = pScreenInfo->dwHeight;
   HWND			*phwnd = &pScreenPriv->hwndScreen;
@@ -99,8 +101,8 @@ winCreateBoundingWindowFullScreen (ScreenPtr pScreen)
 			    WINDOW_CLASS,	/* Class name */
 			    szTitle,		/* Window name */
 			    WS_POPUP,
-			    0,			/* Horizontal position */
-			    0,			/* Vertical position */
+			    iX,			/* Horizontal position */
+			    iY,			/* Vertical position */
 			    iWidth,		/* Right edge */ 
 			    iHeight,		/* Bottom edge */
 			    (HWND) NULL,	/* No parent or owner window */

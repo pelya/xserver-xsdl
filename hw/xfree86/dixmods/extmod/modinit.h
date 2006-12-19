@@ -1,5 +1,3 @@
-/* $XdotOrg: xc/programs/Xserver/Xext/extmod/modinit.h,v 1.3 2005/04/20 12:25:13 daniels Exp $ */
-/* $XFree86: xc/programs/Xserver/Xext/extmod/modinit.h,v 1.1 2003/07/16 01:38:33 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -10,7 +8,6 @@
 #endif
 
 #ifdef SHAPE
-extern void ShapeExtensionInit(INITARGS);
 #define _SHAPE_SERVER_  /* don't want Xlib structures */
 #include <X11/extensions/shapestr.h>
 #endif
@@ -128,7 +125,12 @@ extern void ShmRegisterFuncs(
     ShmFuncsPtr funcs);
 #endif
 
+#ifdef XACE
+extern void XaceExtensionInit(INITARGS);
+#endif
+
 #if 1
+extern void SecurityExtensionSetup(INITARGS);
 extern void SecurityExtensionInit(INITARGS);
 #endif
 

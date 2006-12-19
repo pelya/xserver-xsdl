@@ -1,4 +1,3 @@
-/* $Xorg: panoramiX.c,v 1.5 2000/08/17 19:47:57 cpqbld Exp $ */
 /*****************************************************************
 Copyright (c) 1991, 1997 Digital Equipment Corporation, Maynard, Massachusetts.
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +22,6 @@ shall not be used in advertising or otherwise to promote the sale, use or other
 dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/Xext/panoramiX.c,v 3.37tsi Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -960,12 +958,13 @@ ProcPanoramiXGetState(ClientPtr client)
 	REQUEST(xPanoramiXGetStateReq);
     	WindowPtr			pWin;
 	xPanoramiXGetStateReply		rep;
-	register int			n;
+	register int			n, rc;
 	
 	REQUEST_SIZE_MATCH(xPanoramiXGetStateReq);
-	pWin = LookupWindow (stuff->window, client);
-	if (!pWin)
-	     return BadWindow;
+	rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+	if (rc != Success)
+	    return rc;
+
 	rep.type = X_Reply;
 	rep.length = 0;
 	rep.sequenceNumber = client->sequence;
@@ -986,12 +985,13 @@ ProcPanoramiXGetScreenCount(ClientPtr client)
 	REQUEST(xPanoramiXGetScreenCountReq);
     	WindowPtr			pWin;
 	xPanoramiXGetScreenCountReply	rep;
-	register int			n;
+	register int			n, rc;
 
 	REQUEST_SIZE_MATCH(xPanoramiXGetScreenCountReq);
-	pWin = LookupWindow (stuff->window, client);
-	if (!pWin)
-	     return BadWindow;
+	rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+	if (rc != Success)
+	    return rc;
+
 	rep.type = X_Reply;
 	rep.length = 0;
 	rep.sequenceNumber = client->sequence;
@@ -1011,12 +1011,13 @@ ProcPanoramiXGetScreenSize(ClientPtr client)
 	REQUEST(xPanoramiXGetScreenSizeReq);
     	WindowPtr			pWin;
 	xPanoramiXGetScreenSizeReply	rep;
-	register int			n;
+	register int			n, rc;
 	
 	REQUEST_SIZE_MATCH(xPanoramiXGetScreenSizeReq);
-	pWin = LookupWindow (stuff->window, client);
-	if (!pWin)
-	     return BadWindow;
+	rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+	if (rc != Success)
+	    return rc;
+
 	rep.type = X_Reply;
 	rep.length = 0;
 	rep.sequenceNumber = client->sequence;
@@ -1049,7 +1050,6 @@ ProcXineramaIsActive(ClientPtr client)
     {
 	/* The following hack fools clients into thinking that Xinerama
 	 * is disabled even though it is not. */
-	extern Bool PanoramiXExtensionDisabledHack;
 	rep.state = !noPanoramiXExtension && !PanoramiXExtensionDisabledHack;
     }
 #else

@@ -11,7 +11,7 @@ if XV
 XV_SRCS = xvmod.c xvmodproc.h
 endif
 
-AM_CFLAGS = @XORG_CFLAGS@ @SERVER_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = @DIX_CFLAGS@ @XORG_CFLAGS@
 INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/afb \
            -I$(top_srcdir)/mfb \

@@ -21,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbpush.c,v 1.3 2000/02/14 19:20:30 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -59,7 +58,7 @@ fbPushPattern (DrawablePtr  pDrawable,
 	w = width;
 	s = src;
 	src += srcStride;
-	bits = *s++;
+	bits = READ(s++);
 	xspan = x;
 	while (w)
 	{
@@ -74,7 +73,7 @@ fbPushPattern (DrawablePtr  pDrawable,
 		    bitsMask = FbStipRight (bitsMask, 1);
 		    if (!bitsMask)
 		    {
-			bits = *s++;
+			bits = READ(s++);
 			bitsMask = FbBitsMask(0,1);
 		    }
 		} while (bits & bitsMask);
@@ -93,7 +92,7 @@ fbPushPattern (DrawablePtr  pDrawable,
 		    bitsMask = FbStipRight (bitsMask, 1);
 		    if (!bitsMask)
 		    {
-			bits = *s++;
+			bits = READ(s++);
 			bitsMask = FbBitsMask(0,1);
 		    }
 		} while (!(bits & bitsMask));
@@ -166,6 +165,7 @@ fbPushFill (DrawablePtr	pDrawable,
 		      fbAnd(GXnoop,(FbBits) 0,FB_ALLONES),
 		      fbXor(GXnoop,(FbBits) 0,FB_ALLONES));
 	}
+	fbFinishAccess (pDrawable);
     }
     else
     {

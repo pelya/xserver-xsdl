@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/mesa/src/X/xf86glx_util.c,v 1.5 2000/03/02 16:07:39 martin Exp $ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.
@@ -42,7 +41,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pixmapstr.h"
 #include "xf86glx_util.h"
 #include <X11/Xmd.h>
-#include "GL/xf86glx.h"
 
 #ifdef ROUNDUP
 #undef ROUNDUP

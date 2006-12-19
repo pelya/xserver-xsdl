@@ -21,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbpoint.c,v 1.7 2000/09/22 05:58:01 keithp Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -91,20 +90,20 @@ fbDots (FbBits	    *dstOrig,
 		FbMaskStip (x, 24, leftMask, n, rightMask);
 		if (leftMask)
 		{
-		    *d = FbDoMaskRRop (*d, andT, xorT, leftMask);
+		    WRITE(d, FbDoMaskRRop (READ(d), andT, xorT, leftMask));
 		    andT = FbNext24Stip(andT);
 		    xorT = FbNext24Stip(xorT);
 		    d++;
 		}
 		if (rightMask)
-		    *d = FbDoMaskRRop(*d, andT, xorT, rightMask);
+		    WRITE(d, FbDoMaskRRop(READ(d), andT, xorT, rightMask));
 	    }
 	    else
 #endif
 	    {
 		FbStip	mask;
 		mask = FbStipMask(x, dstBpp);
-		*d = FbDoMaskRRop (*d, and, xor, mask);
+		WRITE(d, FbDoMaskRRop (READ(d), and, xor, mask));
 	    }
 	}
     }
@@ -161,4 +160,5 @@ fbPolyPoint (DrawablePtr    pDrawable,
 	 nBox--; pBox++)
 	(*dots) (dst, dstStride, dstBpp, pBox, pptInit, nptInit, 
 		 pDrawable->x, pDrawable->y, dstXoff, dstYoff, and, xor);
+    fbFinishAccess (pDrawable);
 }

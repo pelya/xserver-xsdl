@@ -235,4 +235,7 @@
 /* System has wscons console */
 #undef WSCONS_SUPPORT
 
+/* Loadable XFree86 server awesomeness */
+#undef XFree86LOADER
+
 #endif /* _XORG_SERVER_H_ */

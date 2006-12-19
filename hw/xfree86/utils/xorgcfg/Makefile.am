@@ -33,7 +33,7 @@ INCLUDES = $(XORG_INCS) -I$(top_srcdir)/hw/xfree86/parser
 
 OPTIONSPATH=$(libdir)/X11
 
-xorgcfg_CFLAGS = @SERVER_DEFINES@ $(XORG_CFLAGS) $(CURSESDEFINES) \
+xorgcfg_CFLAGS = $(XORG_CFLAGS) $(CURSESDEFINES) \
 	$(XORGCFG_DEP_CFLAGS) -DXKB_RULES_DIR=\"$(XKB_BASE_DIRECTORY)/rules\" \
 	-DPROJECT_ROOT=\"$(PROJECTROOT)\" -DOPTIONSPATH=\"$(OPTIONSPATH)\"
 xorgcfg_LDADD = $(XORGCFG_DEP_LIBS) ../../parser/libxf86config.a $(LOADERLIB) \
@@ -56,6 +56,7 @@ endif
 if NEED_STRLCAT
 STRL_SRCS = $(top_srcdir)/os/strlcat.c $(top_srcdir)/os/strlcpy.c
 endif
+endif BUILD_XORGCFG
 
 xorgcfg_SOURCES =	\
         accessx.c \
@@ -95,10 +96,7 @@ xorgcfg_SOURCES =	\
         xf86config.h \
 	$(STRL_SRCS)
 
-XBMdir = $(includedir)/X11/bitmaps
-XPMdir = $(includedir)/X11/pixmaps
-
-XBM_DATA = \
+BITMAPS = \
         card.xbm \
         keyboard.xbm \
         monitor.xbm \
@@ -112,7 +110,7 @@ XBM_DATA = \
         shorter.xbm \
         taller.xbm
 
-XPM_DATA = \
+PIXMAPS = \
         card.xpm \
         computer.xpm \
         keyboard.xpm \
@@ -121,6 +119,13 @@ XPM_DATA = \
 
 # Rules needed to cpp man page & app-defaults
 include $(top_srcdir)/cpprules.in
+
+if BUILD_XORGCFG
+XBMdir = $(includedir)/X11/bitmaps
+XPMdir = $(includedir)/X11/pixmaps
+
+XBM_DATA = $(BITMAPS)
+XPM_DATA = $(PIXMAPS)
 
 # App default files  (*.ad)
 
@@ -146,7 +151,6 @@ appman_DATA = $(appman_PRE:man=@APP_MAN_SUFFIX@)
 
 all-local: $(appman_PRE) $(appman_DATA)
 
-EXTRA_DIST = $(XBM_DATA) $(XPM_DATA) XOrgCfg.pre xorgcfg.man.pre
 BUILT_SOURCES = $(appman_PRE)
 CLEANFILES = $(APPDEFAULTFILES) $(BUILT_SOURCES) $(appman_DATA)
 
@@ -156,4 +160,6 @@ SUFFIXES += .$(APP_MAN_SUFFIX) .man
 	-rm -f $@
 	$(LN_S) $< $@
 
-endif
+endif BUILD_XORGCFG
+
+EXTRA_DIST = $(BITMAPS) $(PIXMAPS) XOrgCfg.pre xorgcfg.man.pre

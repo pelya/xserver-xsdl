@@ -26,7 +26,6 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/keyboard-cfg.c,v 1.21 2002/12/05 20:24:21 paulo Exp $
  */
 
 #include "xf86config.h"
@@ -38,8 +37,7 @@
 #include <X11/Xaw/SimpleMenu.h>
 #include <X11/Xaw/SmeBSB.h>
 
-#define IS_KBDDRIV(X) ((strcasecmp((X),"kbd") == 0) || \
-	(strcasecmp((X), "keyboard") == 0))
+#define IS_KBDDRIV(X) ((strcasecmp((X),"kbd") == 0))
 
 /*
  * Types
@@ -255,11 +253,7 @@ KeyboardConfig(XtPointer config)
 	    keyboard = XtNew(XF86ConfInputRec);
 	    keyboard->list.next = NULL;
 	    keyboard->inp_identifier = XtNewString(ident_string);
-#if defined(USE_DEPRECATED_KEYBOARD_DRIVER)
-	    keyboard->inp_driver = XtNewString("keyboard");
-#else
 	    keyboard->inp_driver = XtNewString("kbd");
-#endif
 	    keyboard->inp_option_lst = xf86newOption(XtNewString(XkbRules),
 						     XtNewString(rules));
 	    xf86addNewOption(keyboard->inp_option_lst,

@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/XTrap/xtrapdi.c,v 1.6 2006/02/10 22:00:19 anholt Exp $ */
-/* $XFree86: xc/programs/Xserver/XTrap/xtrapdi.c,v 1.6tsi Exp $ */
 /*****************************************************************************
 Copyright 1987, 1988, 1989, 1990, 1991 by Digital Equipment Corp., Maynard, MA
 X11R6 Changes Copyright (c) 1994 by Robert Chesler of Absol-Puter, Hudson, NH.
@@ -170,7 +168,7 @@ static ClientList cmd_clients;   /* Linked-list of clients using command key */
 /*----------------------------*
  *  Forward Declarations
  *----------------------------*/
-static void _SwapProc (int (**f1 )(), int (**f2 )());
+static void _SwapProc (int (**f1 )(void), int (**f2 )(void));
 static void sXETrapEvent (xETrapDataEvent *from , xETrapDataEvent *to );
 static int add_accelerator_node (ClientPtr client , ClientList *accel );
 static void remove_accelerator_node (ClientPtr client , ClientList *accel );
@@ -886,14 +884,14 @@ int XETrapConfig(xXTrapConfigReq *request, ClientPtr client)
                 {   /* Client wants the XTrap rtn */
                     if (++(vectored_requests[i]) <= 1L)
                     {   /* first client, so do it */
-                        _SwapProc(&(XETrapProcVector[i]), &(ProcVector[i]));
+                        _SwapProc(&(XETrapProcVector[i]), (int_function *)&(ProcVector[i]));
                     }
                 }
                 else
                 {   /* Client wants the *real* rtn */
                     if (--(vectored_requests[i]) <= 0L)
                     {   /* No more clients using, so do it */
-                        _SwapProc(&(XETrapProcVector[i]), &(ProcVector[i]));
+                        _SwapProc(&(XETrapProcVector[i]), (int_function *)&(ProcVector[i]));
                     }
                 }
                 if (status == Success)
@@ -1094,8 +1092,8 @@ int XETrapRequestVector(ClientPtr client)
             pdata->hdr.client = client->index;  /* stuff client index in hdr */
             if (BitIsTrue(penv->cur.data_config_flags_data,XETrapWinXY))
             {
-                window_ptr = (WindowPtr) LookupDrawable(stuff->id, client);
-                if (window_ptr == 0L)
+		if (Success != dixLookupDrawable(&window_ptr, stuff->id,
+						 client, 0, DixUnknownAccess))
                 {   /* Failed...invalidate the X and Y coordinate data. */
                     pdata->hdr.win_x = -1L;
                     pdata->hdr.win_y = -1L;
@@ -1787,9 +1785,9 @@ static void update_protocol(xXTrapGetReq *reqptr, ClientPtr client)
  * lint from complaining about mixed types. It seems to work, but I would
  * probably classify this as a hack.
  */
-static void _SwapProc( register int (**f1)(), register int (**f2)())
+static void _SwapProc( register int (**f1)(void), register int (**f2)(void))
 {
-    register int (*t1)() = *f1;
+    register int (*t1)(void) = *f1;
     *f1 = *f2;
     *f2 = t1;
 

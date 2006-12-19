@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86.h,v 3.173 2004/01/27 01:31:44 dawes Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -37,6 +36,12 @@
 #ifndef _XF86_H
 #define _XF86_H
 
+#if HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#elif HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include "xf86str.h"
 #include "xf86Opt.h"
 #include <X11/Xfuncproto.h>
@@ -53,14 +58,13 @@ extern Bool xf86DoConfigurePass1;
 extern int xf86ScreenIndex;		/* Index into pScreen.devPrivates */
 extern int xf86CreateRootWindowIndex;	/* Index into pScreen.devPrivates */
 extern int xf86PixmapIndex;
-extern Bool xf86ResAccessEnter;
 extern ScrnInfoPtr *xf86Screens;	/* List of pointers to ScrnInfoRecs */
 extern const unsigned char byte_reversed[256];
 extern ScrnInfoPtr xf86CurrentScreen;
 extern Bool pciSlotClaimed;
 extern Bool isaSlotClaimed;
 extern Bool fbSlotClaimed;
-#ifdef __sparc__
+#if defined(__sparc__) || defined(__sparc)
 extern Bool sbusSlotClaimed;
 #endif
 extern confDRIRec xf86ConfigDRI;
@@ -166,9 +170,6 @@ void xf86EnablePciBusMaster(pciVideoPtr pPci, Bool enable);
 #endif
 void xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg);
 Bool xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func);
-#ifdef async
-Bool xf86QueueAsyncEvent(void (*func)(pointer),pointer arg);
-#endif
 
 int xf86GetLastScrnFlag(int entityIndex);
 void xf86SetLastScrnFlag(int entityIndex, int scrnIndex);
@@ -199,6 +200,10 @@ void *xf86GetPointerScreenFuncs(void);
 void xf86InitOrigins(void);
 void xf86ReconfigureLayout(void);
 
+/* xf86cvt.c */
+DisplayModePtr xf86CVTMode(int HDisplay, int VDisplay, float VRefresh,
+                           Bool Reduced, Bool Interlaced);
+
 /* xf86DPMS.c */
 
 Bool xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags);
@@ -217,6 +222,10 @@ pointer xf86AddInputHandler(int fd, InputHandlerProc proc, pointer data);
 int xf86RemoveInputHandler(pointer handler);
 void xf86DisableInputHandler(pointer handler);
 void xf86EnableInputHandler(pointer handler);
+pointer xf86AddGeneralHandler(int fd, InputHandlerProc proc, pointer data);
+int xf86RemoveGeneralHandler(pointer handler);
+void xf86DisableGeneralHandler(pointer handler);
+void xf86EnableGeneralHandler(pointer handler);
 void xf86InterceptSignals(int *signo);
 void xf86InterceptSigIll(void (*sigillhandler)(void));
 Bool xf86EnableVTSwitch(Bool new);
@@ -354,10 +363,8 @@ int  xf86RegisterRootWindowProperty(int ScrnIndex, Atom	property, Atom type,
 				    pointer value);
 Bool xf86IsUnblank(int mode);
 
-#ifdef XFree86LOADER
 void xf86AddModuleInfo(ModuleInfoPtr info, pointer module);
 void xf86DeleteModuleInfo(int idx);
-#endif
 
 /* xf86Debug.c */
 #ifdef BUILDDEBUG
@@ -411,6 +418,15 @@ void xf86PruneDriverModes(ScrnInfoPtr scrp);
 void xf86SetCrtcForModes(ScrnInfoPtr scrp, int adjustFlags);
 void xf86PrintModes(ScrnInfoPtr scrp);
 void xf86ShowClockRanges(ScrnInfoPtr scrp, ClockRangePtr clockRanges);
+double xf86ModeHSync(DisplayModePtr mode);
+double xf86ModeVRefresh(DisplayModePtr mode);
+void xf86SetModeDefaultName(DisplayModePtr mode);
+void xf86SetModeCrtc(DisplayModePtr p, int adjustFlags);
+DisplayModePtr xf86DuplicateMode(DisplayModePtr pMode);
+DisplayModePtr xf86DuplicateModes(ScrnInfoPtr pScrn, DisplayModePtr modeList);
+Bool xf86ModesEqual(DisplayModePtr pMode1, DisplayModePtr pMode2);
+void xf86PrintModeline(int scrnIndex,DisplayModePtr mode);
+DisplayModePtr xf86ModesAdd(DisplayModePtr modes, DisplayModePtr new);
 
 /* xf86Option.c */
 

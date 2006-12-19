@@ -1,4 +1,3 @@
-/* $Xorg: Pointer.c,v 1.3 2000/08/17 19:53:28 cpqbld Exp $ */
 /*
 
 Copyright 1993 by Davor Matic
@@ -58,9 +57,9 @@ xnestPointerProc(DeviceIntPtr pDev, int onoff)
       for (i = 0; i <= nmap; i++)
 	map[i] = i; /* buttons are already mapped */
       InitPointerDeviceStruct(&pDev->public, map, nmap,
-			      miPointerGetMotionEvents,
+			      GetMotionHistory,
 			      xnestChangePointerControl,
-			      miPointerGetMotionBufferSize());
+			      GetMotionHistorySize(), 2);
       break;
     case DEVICE_ON: 
       xnestEventMask |= XNEST_POINTER_EVENT_MASK;

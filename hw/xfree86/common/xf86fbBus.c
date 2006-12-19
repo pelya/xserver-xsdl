@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86fbBus.c,v 1.3 2003/08/24 17:36:55 dawes Exp $ */
 
 /*
  * Copyright (c) 2000-2001 by The XFree86 Project, Inc.

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86pciBus.c,v 3.77 2003/11/03 05:11:03 tsi Exp $ */
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
  *
@@ -1399,7 +1398,7 @@ fixPciResource(int prt, memType alignment, pciVideoPtr pvp, unsigned long type)
     (*p_base) = H2B(tag,range.rBegin,type);
 #ifdef DEBUG
     ErrorF("New PCI res %i base: 0x%lx, size: 0x%lx, type %s\n",
-	   res_n,(*p_base),(1 << (*p_size)),
+	   res_n,(*p_base),(1L << (*p_size)),
 	   ((type & ResPhysMask) == ResMem) ? "Mem" : "Io");
 #endif
     if (res_n != 0xff) {
@@ -1578,8 +1577,8 @@ findPciRange(PCITAG tag, resPtr m, resPtr avoid, CARD32 size)
     return 0;
 }
 
-pciVideoPtr
-getPciVideoPtr(tag)
+static pciVideoPtr
+getPciVideoPtr(PCITAG tag)
 {
     int n = 0;
 
@@ -1690,19 +1689,12 @@ xf86PciProbe(void)
     /*
      * Initialise the pcidata entry points.
      */
-#ifdef XFree86LOADER
     xf86SetupPciIds = (ScanPciSetupProcPtr)LoaderSymbol("ScanPciSetupPciIds");
     xf86ClosePciIds = (ScanPciCloseProcPtr)LoaderSymbol("ScanPciClosePciIds");
     xf86FindPciNamesByDevice =
 	(ScanPciFindByDeviceProcPtr)LoaderSymbol("ScanPciFindPciNamesByDevice");
     xf86FindPciNamesBySubsys =
 	(ScanPciFindBySubsysProcPtr)LoaderSymbol("ScanPciFindPciNamesBySubsys");
-#else
-    xf86SetupPciIds = ScanPciSetupPciIds;
-    xf86ClosePciIds = ScanPciClosePciIds;
-    xf86FindPciNamesByDevice = ScanPciFindPciNamesByDevice;
-    xf86FindPciNamesBySubsys = ScanPciFindPciNamesBySubsys;
-#endif
 
     if (!xf86SetupPciIds())
 	FatalError("xf86SetupPciIds() failed\n");

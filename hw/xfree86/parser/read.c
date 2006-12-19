@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/read.c,v 1.24 2003/08/24 17:37:08 dawes Exp $ */
 /* 
  * 
  * Copyright (c) 1997  Metro Link Incorporated
@@ -112,13 +111,6 @@ xf86readConfigFile (void)
 				xf86conffree(val.str);
 				val.str = NULL;
 				HANDLE_RETURN (conf_flags, xf86parseFlagsSection ());
-			}
-			else if (xf86nameCompare (val.str, "keyboard") == 0)
-			{
-				xf86conffree(val.str);
-				val.str = NULL;
-				HANDLE_LIST (conf_input_lst, xf86parseKeyboardSection,
-							 XF86ConfInputPtr);
 			}
 			else if (xf86nameCompare (val.str, "pointer") == 0)
 			{

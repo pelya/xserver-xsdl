@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxutil.c,v 1.5 2001/03/21 16:29:37 dawes Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -140,48 +139,18 @@ __glXUnrefDrawable(__GLXdrawable *glxPriv)
 
 GLboolean
 __glXDrawableInit(__GLXdrawable *drawable,
-		  __GLXcontext *ctx, DrawablePtr pDraw, XID drawId)
+		  __GLXscreen *screen, DrawablePtr pDraw, XID drawId,
+		  __GLcontextModes *modes)
 {
     drawable->type = pDraw->type;
     drawable->pDraw = pDraw;
     drawable->drawId = drawId;
     drawable->refCount = 1;
+    drawable->modes = modes;
 
     /* if not a pixmap, lookup will fail, so pGlxPixmap will be NULL */
     drawable->pGlxPixmap = (__GLXpixmap *) 
 	LookupIDByType(drawId, __glXPixmapRes);
 
     return GL_TRUE;
-}
-
-__GLXdrawable *
-__glXFindDrawable(XID drawId)
-{
-    __GLXdrawable *glxPriv;
-
-    glxPriv = (__GLXdrawable *)LookupIDByType(drawId, __glXDrawableRes);
-
-    return glxPriv;
-}
-
-__GLXdrawable *
-__glXGetDrawable(__GLXcontext *ctx, DrawablePtr pDraw, XID drawId)
-{
-    __GLXdrawable *glxPriv;
-
-    glxPriv = __glXFindDrawable(drawId);
-
-    if (glxPriv == NULL)
-    {
-	glxPriv = ctx->createDrawable(ctx, pDraw, drawId);
-
-	/* since we are creating the drawablePrivate, drawId should be new */
-	if (!AddResource(drawId, __glXDrawableRes, glxPriv))
-	{
-	    glxPriv->destroy (glxPriv);
-	    return NULL;
-	}
-    }
-
-    return glxPriv;
 }

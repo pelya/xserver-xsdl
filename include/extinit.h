@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/include/extinit.h,v 3.2 2001/08/01 00:44:58 tsi Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -103,6 +102,12 @@ SDeviceMappingNotifyEvent (
 	deviceMappingNotify *  /* from */,
 	deviceMappingNotify *  /* to */
 	);
+
+void
+SDevicePresenceNotifyEvent (
+       devicePresenceNotify * /* from */,
+       devicePresenceNotify * /* to */
+       );
 
 void
 FixExtensionEvents (

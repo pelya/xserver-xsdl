@@ -1,4 +1,3 @@
-/* $Xorg: Args.c,v 1.3 2000/08/17 19:53:26 cpqbld Exp $ */
 /*
 
 Copyright 1993 by Davor Matic
@@ -54,6 +53,16 @@ Window xnestParentWindow = 0;
 /* ddxInitGlobals - called by |InitGlobals| from os/util.c */
 void ddxInitGlobals(void)
 {
+#ifdef COMPOSITE
+    /* XXX terrible hack */
+    extern Bool noCompositeExtension;
+    noCompositeExtension = TRUE;
+#endif
+
+#ifdef XKB
+    extern Bool noXkbExtension;
+    noXkbExtension = TRUE;
+#endif
 }
 
 int

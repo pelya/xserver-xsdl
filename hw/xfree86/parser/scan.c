@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/scan.c,v 1.30 2003/11/03 05:11:52 tsi Exp $ */
 /* 
  * 
  * Copyright (c) 1997  Metro Link Incorporated
@@ -158,9 +157,128 @@ xf86strToUL (char *str)
 	return (tot);
 }
 
+/*
+ * xf86getNextLine --
+ *
+ *  read from the configFile FILE stream until we encounter a new
+ *  line; this is effectively just a big wrapper for fgets(3).
+ *
+ *  xf86getToken() assumes that we will read up to the next
+ *  newline; we need to grow configBuf and configRBuf as needed to
+ *  support that.
+ */
+
+static char*
+xf86getNextLine(void)
+{
+	static int configBufLen = CONFIG_BUF_LEN;
+	char *tmpConfigBuf, *tmpConfigRBuf;
+	int c, i, pos = 0, eolFound = 0;
+	char *ret = NULL;
+
+	/*
+	 * reallocate the string if it was grown last time (i.e., is no
+	 * longer CONFIG_BUF_LEN); we malloc the new strings first, so
+	 * that if either of the mallocs fail, we can fall back on the
+	 * existing buffer allocations
+	 */
+
+	if (configBufLen != CONFIG_BUF_LEN) {
+
+		tmpConfigBuf = xf86confmalloc(CONFIG_BUF_LEN);
+		tmpConfigRBuf = xf86confmalloc(CONFIG_BUF_LEN);
+
+		if (!tmpConfigBuf || !tmpConfigRBuf) {
+
+			/*
+			 * at least one of the mallocs failed; keep the old buffers
+			 * and free any partial allocations
+			 */
+
+			xf86conffree(tmpConfigBuf);
+			xf86conffree(tmpConfigRBuf);
+
+		} else {
+
+			/*
+			 * malloc succeeded; free the old buffers and use the new
+			 * buffers
+			 */
+
+			configBufLen = CONFIG_BUF_LEN;
+
+			xf86conffree(configBuf);
+			xf86conffree(configRBuf);
+
+			configBuf = tmpConfigBuf;
+			configRBuf = tmpConfigRBuf;
+		}
+	}
+
+	/* read in another block of chars */
+
+	do {
+		ret = fgets(configBuf + pos, configBufLen - pos - 1, configFile);
+
+		if (!ret) break;
+
+		/* search for EOL in the new block of chars */
+
+		for (i = pos; i < (configBufLen - 1); i++) {
+			c = configBuf[i];
+
+			if (c == '\0') break;
+
+			if ((c == '\n') || (c == '\r')) {
+				eolFound = 1;
+				break;
+			}
+		}
+
+		/*
+		 * if we didn't find EOL, then grow the string and
+		 * read in more
+		 */
+
+		if (!eolFound) {
+
+			tmpConfigBuf = xf86confrealloc(configBuf, configBufLen + CONFIG_BUF_LEN);
+			tmpConfigRBuf = xf86confrealloc(configRBuf, configBufLen + CONFIG_BUF_LEN);
+
+			if (!tmpConfigBuf || !tmpConfigRBuf) {
+
+				/*
+				 * at least one of the reallocations failed; use the
+				 * new allocation that succeeded, but we have to
+				 * fallback to the previous configBufLen size and use
+				 * the string we have, even though we don't have an
+				 * EOL
+				 */
+
+				if (tmpConfigBuf) configBuf = tmpConfigBuf;
+				if (tmpConfigRBuf) configRBuf = tmpConfigRBuf;
+
+				break;
+
+			} else {
+
+				/* reallocation succeeded */
+
+				configBuf = tmpConfigBuf;
+				configRBuf = tmpConfigRBuf;
+				pos = i;
+				configBufLen += CONFIG_BUF_LEN;
+			}
+		}
+
+	} while (!eolFound);
+
+	return (ret);
+}
+
 /* 
  * xf86getToken --
- *      Read next Token form the config file. Handle the global variable
+ *      Read next Token from the config file. Handle the global variable
  *      pushToken.
  */
 int
@@ -194,7 +312,7 @@ again:
 		{
 			char *ret;
 			if (configFile)
-				ret = fgets (configBuf, CONFIG_BUF_LEN - 1, configFile);
+				ret = xf86getNextLine();
 			else {
 				if (builtinConfig[builtinIndex] == NULL)
 					ret = NULL;

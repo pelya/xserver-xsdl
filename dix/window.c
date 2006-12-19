@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/dix/window.c,v 1.17 2006/03/31 17:39:35 sandmann Exp $ */
-/* $Xorg: window.c,v 1.4 2001/02/09 02:04:41 xorgcvs Exp $ */
 /*
 
 Copyright (c) 2006, Red Hat, Inc.
@@ -100,7 +98,6 @@ Equipment Corporation.
 
 ******************************************************************/
 
-/* $XFree86: xc/programs/Xserver/dix/window.c,v 3.36 2003/11/14 23:52:50 torrey Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -127,12 +124,9 @@ Equipment Corporation.
 #include "globals.h"
 
 #ifdef XAPPGROUP
-#include <X11/extensions/Xagsrv.h>
+#include "appgroup.h"
 #endif
-#ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
-#endif
+#include "xace.h"
 
 /******
  * Window stuff for server 
@@ -191,7 +185,7 @@ _X_EXPORT int deltaSaveUndersViewable = 0;
  *    For debugging only
  ******/
 
-int
+static void
 PrintChildren(WindowPtr p1, int indent)
 {
     WindowPtr p2;
@@ -201,14 +195,15 @@ PrintChildren(WindowPtr p1, int indent)
     {
 	p2 = p1->firstChild;
 	for (i=0; i<indent; i++) ErrorF( " ");
-	ErrorF( "%x\n", p1->drawable.id);
+	ErrorF( "%lx\n", p1->drawable.id);
 	miPrintRegion(&p1->clipList);
 	PrintChildren(p2, indent+4);
 	p1 = p1->nextSib;
     }
 }
 
-PrintWindowTree()
+static void
+PrintWindowTree(void)
 {
     int i;
     WindowPtr pWin, p1;
@@ -346,9 +341,6 @@ MakeRootTile(WindowPtr pWin)
    for (i = 4; i > 0; i--, from++)
 	for (j = len; j > 0; j--)
 	    *to++ = *from;
-
-   if (blackRoot)
-       bzero(back, sizeof(back));
 
    (*pGC->ops->PutImage)((DrawablePtr)pWin->background.pixmap, pGC, 1,
 		    0, 0, len, 4, 0, XYBitmap, (char *)back);
@@ -510,6 +502,7 @@ void
 InitRootWindow(WindowPtr pWin)
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
+    int backFlag = CWBorderPixel | CWCursor | CWBackingStore;
 
     if (!(*pScreen->CreateWindow)(pWin))
 	return; /* XXX */
@@ -518,12 +511,25 @@ InitRootWindow(WindowPtr pWin)
     pWin->cursorIsNone = FALSE;
     pWin->optional->cursor = rootCursor;
     rootCursor->refcnt++;
-    MakeRootTile(pWin);
+
+    if (!blackRoot && !whiteRoot) {
+        MakeRootTile(pWin);
+        backFlag |= CWBackPixmap;
+    }
+    else {
+        if (blackRoot)
+            pWin->background.pixel = pScreen->blackPixel;
+        else
+            pWin->background.pixel = pScreen->whitePixel;
+        backFlag |= CWBackPixel;
+    } 
+
     pWin->backingStore = defaultBackingStore;
     pWin->forcedBS = (defaultBackingStore != NotUseful);
     /* We SHOULD check for an error value here XXX */
-    (*pScreen->ChangeWindowAttributes)(pWin,
-		       CWBackPixmap|CWBorderPixel|CWCursor|CWBackingStore);
+    (*pScreen->ChangeWindowAttributes)(pWin, backFlag);
+
+    XaceHook(XACE_WINDOW_INIT, serverClient, pWin);
 
     MapWindow(pWin, serverClient);
 }
@@ -538,8 +544,10 @@ ClippedRegionFromBox(register WindowPtr pWin, RegionPtr Rgn,
                      register int x, register int y,
                      register int w, register int h)
 {
-    ScreenPtr pScreen = pWin->drawable.pScreen;
+    ScreenPtr pScreen;
     BoxRec box;
+
+    pScreen = pWin->drawable.pScreen;
 
     box = *(REGION_EXTENTS(pScreen, &pWin->winSize));
     /* we do these calculations to avoid overflows */
@@ -726,18 +734,16 @@ CreateWindow(Window wid, register WindowPtr pParent, int x, int y, unsigned w,
     }
 
     pWin->borderWidth = bw;
-#ifdef XCSECURITY
+
     /*  can't let untrusted clients have background None windows;
      *  they make it too easy to steal window contents
      */
-    if (client->trustLevel != XSecurityClientTrusted)
-    {
+    if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin))
+	pWin->backgroundState = None;
+    else {
 	pWin->backgroundState = BackgroundPixel;
 	pWin->background.pixel = 0;
     }
-    else
-#endif
-    pWin->backgroundState = None;
 
     pWin->borderIsPixel = pParent->borderIsPixel;
     pWin->border = pParent->border;
@@ -756,6 +762,8 @@ CreateWindow(Window wid, register WindowPtr pParent, int x, int y, unsigned w,
     REGION_NULL(pScreen, &pWin->borderClip);
     REGION_NULL(pScreen, &pWin->winSize);
     REGION_NULL(pScreen, &pWin->borderSize);
+
+    XaceHook(XACE_WINDOW_INIT, client, pWin);
 
     pHead = RealChildHead(pParent);
     if (pHead)
@@ -1020,24 +1028,18 @@ ChangeWindowAttributes(register WindowPtr pWin, Mask vmask, XID *vlist, ClientPt
 		borderRelative = TRUE;
 	    if (pixID == None)
 	    {
-#ifdef XCSECURITY
 		/*  can't let untrusted clients have background None windows */
-		if (client->trustLevel == XSecurityClientTrusted)
-		{
-#endif
-		if (pWin->backgroundState == BackgroundPixmap)
-		    (*pScreen->DestroyPixmap)(pWin->background.pixmap);
-		if (!pWin->parent)
-		    MakeRootTile(pWin);
-		else
-		    pWin->backgroundState = None;
-#ifdef XCSECURITY
-		}
-		else
-		{ /* didn't change the background to None, so don't tell ddx */
+		if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin)) {
+		    if (pWin->backgroundState == BackgroundPixmap)
+			(*pScreen->DestroyPixmap)(pWin->background.pixmap);
+		    if (!pWin->parent)
+			MakeRootTile(pWin);
+		    else
+			pWin->backgroundState = None;
+		} else {
+		    /* didn't change the backgrnd to None, so don't tell ddx */
 		    index2 = 0; 
 		}
-#endif
 	    }
 	    else if (pixID == ParentRelative)
 	    {
@@ -1060,7 +1062,7 @@ ChangeWindowAttributes(register WindowPtr pWin, Mask vmask, XID *vlist, ClientPt
 	    else
 	    {	
 		pPixmap = (PixmapPtr)SecurityLookupIDByType(client, pixID,
-						RT_PIXMAP, SecurityReadAccess);
+						RT_PIXMAP, DixReadAccess);
 		if (pPixmap != (PixmapPtr) NULL)
 		{
 		    if	((pPixmap->drawable.depth != pWin->drawable.depth) ||
@@ -1121,7 +1123,7 @@ ChangeWindowAttributes(register WindowPtr pWin, Mask vmask, XID *vlist, ClientPt
 	    else
 	    {	
 		pPixmap = (PixmapPtr)SecurityLookupIDByType(client, pixID,
-					RT_PIXMAP, SecurityReadAccess);
+					RT_PIXMAP, DixReadAccess);
 		if (pPixmap)
 		{
 		    if	((pPixmap->drawable.depth != pWin->drawable.depth) ||
@@ -1331,7 +1333,7 @@ ChangeWindowAttributes(register WindowPtr pWin, Mask vmask, XID *vlist, ClientPt
 		goto PatchUp;
 	    }
 	    pCmap = (ColormapPtr)SecurityLookupIDByType(client, cmap,
-					      RT_COLORMAP, SecurityReadAccess);
+					      RT_COLORMAP, DixReadAccess);
 	    if (!pCmap)
 	    {
 		error = BadColor;
@@ -1407,7 +1409,7 @@ ChangeWindowAttributes(register WindowPtr pWin, Mask vmask, XID *vlist, ClientPt
 	    else
 	    {
 		pCursor = (CursorPtr)SecurityLookupIDByType(client, cursorID,
-						RT_CURSOR, SecurityReadAccess);
+						RT_CURSOR, DixReadAccess);
 		if (!pCursor)
 		{
 		    error = BadCursor;
@@ -1650,7 +1652,8 @@ CreateUnclippedWinSize (register WindowPtr pWin)
     pRgn = REGION_CREATE(pWin->drawable.pScreen, &box, 1);
 #ifdef SHAPE
     if (wBoundingShape (pWin) || wClipShape (pWin)) {
-	ScreenPtr pScreen = pWin->drawable.pScreen;
+	ScreenPtr pScreen;
+        pScreen = pWin->drawable.pScreen;
 
 	REGION_TRANSLATE(pScreen, pRgn, - pWin->drawable.x,
 			 - pWin->drawable.y);
@@ -1686,7 +1689,8 @@ SetWinSize (register WindowPtr pWin)
 			 (int)pWin->drawable.height);
 #ifdef SHAPE
     if (wBoundingShape (pWin) || wClipShape (pWin)) {
-	ScreenPtr pScreen = pWin->drawable.pScreen;
+	ScreenPtr pScreen;
+        pScreen = pWin->drawable.pScreen;
 
 	REGION_TRANSLATE(pScreen, &pWin->winSize, - pWin->drawable.x,
 			 - pWin->drawable.y);
@@ -1728,7 +1732,8 @@ SetBorderSize (register WindowPtr pWin)
 		(int)(pWin->drawable.height + (bw<<1)));
 #ifdef SHAPE
 	if (wBoundingShape (pWin)) {
-	    ScreenPtr pScreen = pWin->drawable.pScreen;
+	    ScreenPtr pScreen;
+            pScreen = pWin->drawable.pScreen;
 
 	    REGION_TRANSLATE(pScreen, &pWin->borderSize, - pWin->drawable.x,
 			     - pWin->drawable.y);
@@ -1939,7 +1944,8 @@ MakeBoundingRegion (
     BoxPtr	pBox)
 {
     RegionPtr	pRgn;
-    ScreenPtr   pScreen = pWin->drawable.pScreen;
+    ScreenPtr   pScreen;
+    pScreen = pWin->drawable.pScreen;
 
     pRgn = REGION_CREATE(pScreen, pBox, 1);
     if (wBoundingShape (pWin)) {
@@ -2097,7 +2103,7 @@ WhereDoIGoInTheStack(
 	else
 	    return NullWindow;
       case TopIf:
-	if ((!pWin->mapped || (pSib && !pSib->mapped)) && !permitOldBugs)
+	if ((!pWin->mapped || (pSib && !pSib->mapped)))
 	    return(pWin->nextSib);
 	else if (pSib)
 	{
@@ -2112,7 +2118,7 @@ WhereDoIGoInTheStack(
 	else
 	    return(pWin->nextSib);
       case BottomIf:
-	if ((!pWin->mapped || (pSib && !pSib->mapped)) && !permitOldBugs)
+	if ((!pWin->mapped || (pSib && !pSib->mapped)))
 	    return(pWin->nextSib);
 	else if (pSib)
 	{
@@ -2127,7 +2133,7 @@ WhereDoIGoInTheStack(
 	else
 	    return(pWin->nextSib);
       case Opposite:
-	if ((!pWin->mapped || (pSib && !pSib->mapped)) && !permitOldBugs)
+	if ((!pWin->mapped || (pSib && !pSib->mapped)))
 	    return(pWin->nextSib);
 	else if (pSib)
 	{
@@ -2293,7 +2299,7 @@ ConfigureWindow(register WindowPtr pWin, register Mask mask, XID *vlist, ClientP
 	    sibwid = (Window ) *pVlist;
 	    pVlist++;
 	    pSib = (WindowPtr )SecurityLookupIDByType(client, sibwid,
-						RT_WINDOW, SecurityReadAccess);
+						RT_WINDOW, DixReadAccess);
 	    if (!pSib)
 	    {
 		client->errorValue = sibwid;
@@ -2719,15 +2725,9 @@ MapWindow(register WindowPtr pWin, ClientPtr client)
     if (pWin->mapped)
 	return(Success);
 
-#ifdef XCSECURITY
-    /*  don't let an untrusted client map a child-of-trusted-window, InputOnly
-     *  window; too easy to steal device input
-     */
-    if ( (client->trustLevel != XSecurityClientTrusted) &&
-	 (pWin->drawable.class == InputOnly) &&
-	 (wClient(pWin->parent)->trustLevel == XSecurityClientTrusted) )
+    /*  general check for permission to map window */
+    if (!XaceHook(XACE_MAP_ACCESS, client, pWin))
 	 return Success;
-#endif	
 
     pScreen = pWin->drawable.pScreen;
     if ( (pParent = pWin->parent) )

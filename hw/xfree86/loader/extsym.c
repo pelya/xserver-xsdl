@@ -1,6 +1,3 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/loader/extsym.c,v 1.5 2004/09/14 23:21:22 gisburn Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/extsym.c,v 1.9 2003/10/15 16:29:03 dawes Exp $ */
-
 /*
  *
  * Copyright 1999-2003 by The XFree86 Project, Inc.
@@ -57,7 +54,7 @@ extern Bool XineramaRegisterConnectionBlockCallback(void (*func) (void));
 extern int XineramaDeleteResource(pointer, XID);
 #endif
 
-LOOKUP extLookupTab[] = {
+_X_HIDDEN void *extLookupTab[] = {
 
     SYMFUNC(ClientSleepUntil)
 
@@ -79,6 +76,4 @@ LOOKUP extLookupTab[] = {
     SYMVAR(XRT_COLORMAP)
     SYMVAR(XRC_DRAWABLE)
 #endif
-
-    {0, 0}
 };

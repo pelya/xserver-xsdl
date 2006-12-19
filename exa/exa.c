@@ -32,6 +32,10 @@
 #include <dix-config.h>
 #endif
 
+#ifdef MITSHM
+#include "shmint.h"
+#endif
+
 #include <stdlib.h>
 
 #include "exa_priv.h"
@@ -169,7 +173,7 @@ exaLog2(int val)
 {
     int bits;
 
-    if (!val)
+    if (val <= 0)
 	return 0;
     for (bits = 0; val != 0; bits++)
 	val >>= 1;
@@ -549,6 +553,9 @@ exaDriverInit (ScreenPtr		pScreen,
                ExaDriverPtr	pScreenInfo)
 {
     ExaScreenPrivPtr pExaScr;
+#ifdef RENDER
+    PictureScreenPtr ps;
+#endif
 
     if (pScreenInfo->exa_major != EXA_VERSION_MAJOR ||
 	pScreenInfo->exa_minor > EXA_VERSION_MINOR)
@@ -562,7 +569,7 @@ exaDriverInit (ScreenPtr		pScreen,
     }
 
 #ifdef RENDER
-    PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
+    ps = GetPictureScreenIfSet(pScreen);
 #endif
     if (exaGeneration != serverGeneration)
     {
@@ -629,8 +636,17 @@ exaDriverInit (ScreenPtr		pScreen,
     }
 #endif
 
+#ifdef COMPOSITE
     miDisableCompositeWrapper(pScreen);
+#endif
 
+#ifdef MITSHM
+    /* Re-register with the MI funcs, which don't allow shared pixmaps.
+     * Shared pixmaps are almost always a performance loss for us, but this
+     * still allows for SHM PutImage.
+     */
+    ShmRegisterFuncs(pScreen, NULL);
+#endif
     /*
      * Hookup offscreen pixmaps
      */
@@ -649,6 +665,10 @@ exaDriverInit (ScreenPtr		pScreen,
 
         pExaScr->SavedDestroyPixmap = pScreen->DestroyPixmap;
 	pScreen->DestroyPixmap = exaDestroyPixmap;
+
+	LogMessage(X_INFO, "EXA(%d): Offscreen pixmap area of %d bytes\n",
+		   pScreen->myNum,
+		   pExaScr->info->memorySize - pExaScr->info->offScreenBase);
     }
     else
     {
@@ -665,6 +685,22 @@ exaDriverInit (ScreenPtr		pScreen,
                        pScreen->myNum);
             return FALSE;
         }
+    }
+
+    LogMessage(X_INFO, "EXA(%d): Driver registered support for the following"
+	       " operations:\n", pScreen->myNum);
+    assert(pScreenInfo->PrepareSolid != NULL);
+    LogMessage(X_INFO, "        Solid\n");
+    assert(pScreenInfo->PrepareCopy != NULL);
+    LogMessage(X_INFO, "        Copy\n");
+    if (pScreenInfo->PrepareComposite != NULL) {
+	LogMessage(X_INFO, "        Composite (RENDER acceleration)\n");
+    }
+    if (pScreenInfo->UploadToScreen != NULL) {
+	LogMessage(X_INFO, "        UploadToScreen\n");
+    }
+    if (pScreenInfo->DownloadFromScreen != NULL) {
+	LogMessage(X_INFO, "        DownloadFromScreen\n");
     }
 
     return TRUE;

@@ -1,7 +1,4 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/loadmod.c,v 1.73 2003/11/03 05:11:51 tsi Exp $ */
-
 /*
- *
  * Copyright 1995-1998 by Metro Link, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -73,7 +70,7 @@
 #include <dirent.h>
 #include <limits.h>
 
-extern int check_unresolved_sema;
+#define TestFree(a) if (a) { xfree (a); a = NULL; }
 
 typedef struct _pattern {
     const char *pattern;
@@ -93,7 +90,7 @@ static ModuleDescPtr doLoadModule(const char *, const char *, const char **,
 				  const XF86ModReqInfo *, int *, int *,
 				  int flags);
 
-ModuleVersions LoaderVersionInfo = {
+const ModuleVersions LoaderVersionInfo = {
     XORG_VERSION_CURRENT,
     ABI_ANSIC_VERSION,
     ABI_VIDEODRV_VERSION,
@@ -101,17 +98,6 @@ ModuleVersions LoaderVersionInfo = {
     ABI_EXTENSION_VERSION,
     ABI_FONT_VERSION
 };
-
-#if 0
-void
-LoaderFixups(void)
-{
-    /* Need to call LRS here because the frame buffers get loaded last,
-     * and the drivers depend on them. */
-
-    LoaderResolveSymbols();
-}
-#endif
 
 static void
 FreeStringList(char **paths)
@@ -128,6 +114,17 @@ FreeStringList(char **paths)
 }
 
 static char **defaultPathList = NULL;
+
+static Bool
+PathIsAbsolute(const char *path)
+{
+#ifdef __UNIXOS2__
+    return (*path == '/' || (strlen(path) > 2 && isalpha(elem[0]) &&
+		elem[1] == ':' && elem[2] == '/'));
+#else
+    return (*path == '/');
+#endif
+}	
 
 /*
  * Convert a comma-separated path into a NULL-terminated array of path
@@ -152,13 +149,7 @@ InitPathList(const char *path)
 	return NULL;
     elem = strtok(fullpath, ",");
     while (elem) {
-	/* Only allow fully specified paths */
-#ifndef __UNIXOS2__
-	if (*elem == '/')
-#else
-	if (*elem == '/' || (strlen(elem) > 2 && isalpha(elem[0]) &&
-			     elem[1] == ':' && elem[2] == '/'))
-#endif
+	if (PathIsAbsolute(elem))
 	{
 	    len = strlen(elem);
 	    addslash = (elem[len - 1] != '/');
@@ -225,15 +216,15 @@ static const char *stdSubdirs[] = {
 /*
  * Standard set of module name patterns to check, in order of preference
  * These are regular expressions (suitable for use with POSIX regex(3)).
+ *
+ * This list assumes that you're an ELFish platform and therefore your
+ * shared libraries are named something.so.  If we're ever nuts enough
+ * to port this DDX to, say, Darwin, we'll need to fix this.
  */
 static PatternRec stdPatterns[] = {
     {"^lib(.*)\\.so$",},
-    {"^lib(.*)\\.a$",},
     {"(.*)_drv\\.so$",},
-    {"(.*)_drv\\.o$",},
     {"(.*)\\.so$",},
-    {"(.*)\\.a$",},
-    {"(.*)\\.o$",},
     {NULL,}
 };
 
@@ -403,23 +394,65 @@ FreeSubdirs(const char **subdirs)
 }
 
 static char *
-FindModule(const char *module, const char *dir, const char **subdirlist,
+FindModuleInSubdir(const char *dirpath, const char *module)
+{
+    struct dirent *direntry = NULL;
+    DIR *dir = NULL;
+    char *ret = NULL, tmpBuf[PATH_MAX];
+    struct stat stat_buf;
+
+    dir = opendir(dirpath);
+    if (!dir)
+        return NULL;
+
+    while ((direntry = readdir(dir))) {
+        if (direntry->d_name[0] == '.')
+            continue;
+        if ((stat(direntry->d_name, &stat_buf) == 0) && S_ISDIR(stat_buf.st_mode)) {
+            snprintf(tmpBuf, PATH_MAX, "%s/%s", dirpath, direntry->d_name);
+            if ((ret = FindModuleInSubdir(tmpBuf, module)))
+                break;
+            continue;
+        }
+ 
+        snprintf(tmpBuf, PATH_MAX, "lib%s.so", module);
+        if (strcmp(direntry->d_name, tmpBuf) == 0) {
+            ret = malloc(strlen(tmpBuf) + strlen(dirpath) + 2);
+            sprintf(ret, "%s/%s", dirpath, tmpBuf);
+            break;
+        }
+
+        snprintf(tmpBuf, PATH_MAX, "%s_drv.so", module);
+        if (strcmp(direntry->d_name, tmpBuf) == 0) {
+            ret = malloc(strlen(tmpBuf) + strlen(dirpath) + 2);
+            sprintf(ret, "%s/%s", dirpath, tmpBuf);
+            break;
+        }
+
+        snprintf(tmpBuf, PATH_MAX, "%s.so", module);
+        if (strcmp(direntry->d_name, tmpBuf) == 0) {
+            ret = malloc(strlen(tmpBuf) + strlen(dirpath) + 2);
+            sprintf(ret, "%s/%s", dirpath, tmpBuf);
+            break;
+        }
+    }
+    
+    closedir(dir);
+    return ret;
+}
+
+static char *
+FindModule(const char *module, const char *dirname, const char **subdirlist,
 	   PatternPtr patterns)
 {
-    char buf[PATH_MAX + 1], tmpBuf[PATH_MAX + 1];
+    char buf[PATH_MAX + 1];
     char *dirpath = NULL;
     char *name = NULL;
-    struct stat stat_buf;
     int dirlen;
     const char **subdirs = NULL;
     const char **s;
 
-#ifndef __EMX__
-    dirpath = (char *)dir;
-#else
-    dirpath = xalloc(strlen(dir) + 10);
-    strcpy(dirpath, (char *)__XOS2RedirRoot(dir));
-#endif
+    dirpath = (char *)dirname;
     if (strlen(dirpath) > PATH_MAX)
 	return NULL;
     
@@ -432,41 +465,15 @@ FindModule(const char *module, const char *dir, const char **subdirlist,
 	    continue;
 	strcpy(buf, dirpath);
 	strcat(buf, *s);
-	/*xf86Msg(X_INFO,"OS2DIAG: FindModule: buf=%s\n",buf); */
-        if ((stat(buf, &stat_buf) == 0) && S_ISDIR(stat_buf.st_mode)) {
-	    int i;
-	
-            if (buf[dirlen - 1] != '/') {
-                buf[dirlen++] = '/';
-            }
-	    
-            snprintf(tmpBuf, PATH_MAX, "%slib%s.so", buf, module);
-            if (stat(tmpBuf, &stat_buf) == 0) {
-                name = tmpBuf;
-                break;
-            }
-
-            snprintf(tmpBuf, PATH_MAX, "%s%s_drv.so", buf, module);
-            if (stat(tmpBuf, &stat_buf) == 0) {
-                name = tmpBuf;
-                break;
-            }
-
-            snprintf(tmpBuf, PATH_MAX, "%s%s.so", buf, module);
-            if (stat(tmpBuf, &stat_buf) == 0) {
-                name = tmpBuf;
-                break;
-            }
-        }
+        if ((name = FindModuleInSubdir(buf, module)))
+            break;
     }
+
     FreeSubdirs(subdirs);
-    if (dirpath != dir)
+    if (dirpath != dirname)
 	xfree(dirpath);
 
-    if (name) {
-	return xstrdup(name);
-    }
-    return NULL;
+    return name;
 }
 
 _X_EXPORT char **
@@ -730,19 +737,11 @@ CheckVersion(const char *module, XF86ModuleVersionInfo * data,
 	    /* XXX Maybe this should be the other way around? */
 	    if (min > reqmin) {
 		xf86MsgVerb(X_WARNING, 2, "module ABI minor version (%d) "
-			    "is new than that available (%d)\n", min, reqmin);
+			    "is newer than that available (%d)\n", min, reqmin);
 		return FALSE;
 	    }
 	}
     }
-#ifdef NOTYET
-    if (data->checksum) {
-	/* verify the checksum field */
-	/* TO BE DONE */
-    } else {
-	ErrorF("\t*** Checksum field is 0 - this module is untrusted!\n");
-    }
-#endif
     return TRUE;
 }
 
@@ -756,13 +755,7 @@ LoadSubModule(ModuleDescPtr parent, const char *module,
 
     xf86MsgVerb(X_INFO, 3, "Loading sub module \"%s\"\n", module);
 
-    /* Absolute module paths are not allowed here */
-#ifndef __UNIXOS2__
-    if (module[0] == '/')
-#else
-    if (isalpha(module[0]) && module[1] == ':' && module[2] == '/')
-#endif
-    {
+    if (PathIsAbsolute(module)) {
 	xf86Msg(X_ERROR,
 		"LoadSubModule: Absolute module path not permitted: \"%s\"\n",
 		module);
@@ -792,12 +785,7 @@ LoadSubModuleLocal(ModuleDescPtr parent, const char *module,
 
     xf86MsgVerb(X_INFO, 3, "Loading local sub module \"%s\"\n", module);
 
-    /* Absolute module paths are not allowed here */
-#ifndef __UNIXOS2__
-    if (module[0] == '/')
-#else
-    if (isalpha(module[0]) && module[1] == ':' && module[2] == '/')
-#endif
+    if (PathIsAbsolute(module))
     {
 	xf86Msg(X_ERROR,
 		"LoadSubModule: Absolute module path not permitted: \"%s\"\n",
@@ -869,7 +857,6 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
     int noncanonical = 0;
     char *m = NULL;
 
-    /*xf86Msg(X_INFO,"OS2DIAG: LoadModule: %s\n",module); */
     xf86MsgVerb(X_INFO, 3, "LoadModule: \"%s\"", module);
 
     patterns = InitPatterns(patternlist);
@@ -915,14 +902,8 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
      * if the module name is not a full pathname, we need to
      * check the elements in the path
      */
-#ifndef __UNIXOS2__
-    if (module[0] == '/')
-	found = xstrdup(module);
-#else
-    /* accept a drive name here */
-    if (isalpha(module[0]) && module[1] == ':' && module[2] == '/')
-	found = xstrdup(module);
-#endif
+    if (PathIsAbsolute(module))
+	xstrdup(module);
     path_elem = pathlist;
     while (!found && *path_elem != NULL) {
 	found = FindModule(m, *path_elem, subdirlist, patterns);
@@ -1308,7 +1289,7 @@ LoaderErrorMsg(const char *name, const char *modname, int errmaj, int errmin)
 	msg = "module-specific error";
 	break;
     default:
-	msg = "uknown error";
+	msg = "unknown error";
     }
     if (name)
 	xf86Msg(type, "%s: Failed to load module \"%s\" (%s, %d)\n",

@@ -24,7 +24,7 @@ libkdrive_a_SOURCES =	\
 	kdrive.h	\
 	kinfo.c		\
 	kinput.c	\
-	kkeymap.h	\
+	kkeymap.c	\
 	kmap.c		\
 	kmode.c		\
 	knoop.c		\
@@ -37,5 +37,4 @@ libkdrive_a_SOURCES =	\
         $(top_srcdir)/mi/miinitext.c
 
 libkdrivestubs_a_SOURCES = \
-        $(top_srcdir)/Xi/stubs.c \
         $(top_srcdir)/fb/fbcmap.c

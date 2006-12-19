@@ -105,22 +105,10 @@ void MSP3430SetSAP (MSP3430Ptr m, int mode);
 		"MSP3430SetVolume", \
 		"MSP3430SetSAP"
 
-#ifdef XFree86LOADER
-
 #define xf86_DetectMSP3430     ((MSP3430Ptr (*)(I2CBusPtr, I2CSlaveAddr))LoaderSymbol("DetectMSP3430"))
 #define xf86_ResetMSP3430      ((void (*)(MSP3430Ptr))LoaderSymbol("ResetMSP3430"))
 #define xf86_MSP3430SetVolume  ((void (*)(MSP3430Ptr, CARD8))LoaderSymbol("MSP3430SetVolume"))
 #define xf86_MSP3430SetSAP     ((void (*)(MSP3430Ptr, int))LoaderSymbol("MSP3430SetSAP"))
 #define xf86_InitMSP3430       ((void (*)(MSP3430Ptr))LoaderSymbol("InitMSP3430"))
-
-#else
-
-#define xf86_DetectMSP3430     DetectMSP3430
-#define xf86_ResetMSP3430      ResetMSP3430
-#define xf86_MSP3430SetVolume  MSP3430SetVolume
-#define xf86_MSP3430SetSAP     MSP3430SetSAP
-#define xf86_InitMSP3430       InitMSP3430
-
-#endif
 
 #endif

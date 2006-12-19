@@ -3,7 +3,6 @@
  *
  */
 
-/* $Xorg: mipointer.h,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
 
 /*
 
@@ -29,7 +28,6 @@ Except as contained in this notice, the name of The Open Group shall not be
 used in advertising or otherwise to promote the sale, use or other dealings
 in this Software without prior written authorization from The Open Group.
 */
-/* $XFree86: xc/programs/Xserver/mi/mipointer.h,v 3.8 2001/08/06 20:51:19 dawes Exp $ */
 
 #ifndef MIPOINTER_H
 #define MIPOINTER_H
@@ -75,6 +73,7 @@ typedef struct _miPointerScreenFuncRec {
                     int  /* y */
                     );
     void	(*EnqueueEvent)(
+                    DeviceIntPtr /* pDev */,
                     xEventPtr /* event */
                     );
     void	(*NewEventScreen)(
@@ -99,11 +98,11 @@ extern void miPointerWarpCursor(
     ScreenPtr /*pScreen*/,
     int /*x*/,
     int /*y*/
-);
+) _X_DEPRECATED;
 
 extern int miPointerGetMotionBufferSize(
     void
-);
+) _X_DEPRECATED;
 
 extern int miPointerGetMotionEvents(
     DeviceIntPtr /*pPtr*/,
@@ -113,40 +112,74 @@ extern int miPointerGetMotionEvents(
     ScreenPtr /*pScreen*/
 );
 
+/* Deprecated in favour of miPointerUpdateSprite. */
 extern void miPointerUpdate(
     void
-);
+) _X_DEPRECATED;
 
+/* Deprecated in favour of miSetPointerPosition. */
 extern void miPointerDeltaCursor(
     int /*dx*/,
     int /*dy*/,
     unsigned long /*time*/
-);
-
+) _X_DEPRECATED;
 extern void miPointerAbsoluteCursor(
     int /*x*/,
     int /*y*/,
     unsigned long /*time*/
-);
+) _X_DEPRECATED;
 
+/* Deprecated in favour of miGetPointerPosition. */
 extern void miPointerPosition(
     int * /*x*/,
     int * /*y*/
-);
+) _X_DEPRECATED;
 
+/* Deprecated in favour of miPointerSetScreen. */
 extern void miPointerSetNewScreen(
     int, /*screen_no*/
-	int, /*x*/
-	int /*y*/
-);
+    int, /*x*/
+    int /*y*/
+) _X_DEPRECATED;
+
+/* Deprecated in favour of miPointerGetScreen. */
 extern ScreenPtr miPointerCurrentScreen(
     void
-);
+) _X_DEPRECATED;
 
-extern void miRegisterPointerDevice(
-    ScreenPtr /*pScreen*/,
-    DeviceIntPtr /*pDevice*/
-);
+extern ScreenPtr miPointerGetScreen(
+    DeviceIntPtr pDev);
+extern void miPointerSetScreen(
+    DeviceIntPtr pDev,
+    int screen_num,
+    int x,
+    int y);
+
+/* Returns the current cursor position. */
+extern void miPointerGetPosition(
+    DeviceIntPtr pDev,
+    int *x,
+    int *y);
+
+/* Moves the cursor to the specified position.  May clip the co-ordinates:
+ * x and y are modified in-place. */
+extern void miPointerSetPosition(
+    DeviceIntPtr pDev,
+    int *x,
+    int *y,
+    unsigned long time);
+
+extern void miPointerUpdateSprite(
+    DeviceIntPtr pDev);
+
+/* Moves the sprite to x, y on the current screen, and updates the event
+ * history. */
+extern void miPointerMoved(
+    DeviceIntPtr pDev,
+    ScreenPtr pScreen,
+    int x,
+    int y,
+    unsigned long time);
 
 extern int miPointerScreenIndex;
 

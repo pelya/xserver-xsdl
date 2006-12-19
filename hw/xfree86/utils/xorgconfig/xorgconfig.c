@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/xf86config/xf86config.c,v 3.69 2003/02/20 04:05:15 dawes Exp $ */
 
 /*
  * This is a configuration program that will create a base XF86Config
@@ -93,7 +92,6 @@
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
 /* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/utils/xorgconfig/xorgconfig.c,v 1.20 2006/04/18 17:28:44 spyderous Exp $ */
 
 #ifdef HAVE_CONFIG_H
 # include "xorg-server.h"
@@ -492,7 +490,7 @@ struct {
 
 #ifdef WSCONS_SUPPORT
 # define DEF_MOUSEDEV "/dev/wsmouse";
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__DragonFly__)
 # define DEF_MOUSEDEV "/dev/sysmouse";
 #elif defined(__linux__)
 # define DEF_MOUSEDEV "/dev/input/mice";
@@ -2068,17 +2066,7 @@ static char *XF86Config_fontpathchunk_text =
 "Section \"InputDevice\"\n"
 "\n"
 "    Identifier	\"Keyboard1\"\n"
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-"    Driver	\"Keyboard\"\n"
-#else
 "    Driver	\"kbd\"\n"
-#endif
-"\n"
-"# For most OSs the protocol can be omitted (it defaults to \"Standard\").\n"
-"# When using XQUEUE (only for SVR3 and SVR4, but not Solaris),\n"
-"# uncomment the following line.\n"
-"\n"
-"#    Option     \"Protocol\"      \"Xqueue\"\n"
 "\n"
 "    Option \"AutoRepeat\" \"500 30\"\n"
 "\n"
@@ -2131,7 +2119,7 @@ static char *pointersection_text1 =
 "\n"
 "# Identifier and driver\n"
 "\n"
-#if defined(__UNIXWARE__) || defined(XQUEUE)
+#if defined(__UNIXWARE__)
 "#    Identifier	\"Mouse1\"\n"
 "#    Driver	\"mouse\"\n"
 #else
@@ -2141,15 +2129,6 @@ static char *pointersection_text1 =
 ;
 
 static char *pointersection_text2 =
-"\n"
-"# When using XQUEUE, comment out the above two lines, and uncomment\n"
-"# the following line.\n"
-"\n"
-#if defined(__UNIXWARE__) || defined(XQUEUE)
-"    Option \"Protocol\"	\"Xqueue\"\n"
-#else
-"#    Option \"Protocol\"	\"Xqueue\"\n"
-#endif
 "\n"
 "# Mouse-speed setting for PS/2 mouse.\n"
 "\n"

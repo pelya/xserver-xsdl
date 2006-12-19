@@ -1,5 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Init.c,v 3.212 2004/01/27 01:31:45 dawes Exp $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86Init.c,v 1.36 2006/06/01 18:47:01 daniels Exp $ */
 
 /*
  * Loosely based on code bearing the following copyright:
@@ -62,9 +60,7 @@
 
 #include "compiler.h"
 
-#ifdef XFree86LOADER
 #include "loaderProcs.h"
-#endif
 #ifdef XFreeXDGA
 #include "dgaproc.h"
 #endif
@@ -104,6 +100,8 @@
 
 static void xf86PrintBanner(void);
 static void xf86PrintMarkers(void);
+static void xf86PrintDefaultModulePath(void);
+static void xf86PrintDefaultLibraryPath(void);
 static void xf86RunVtInit(void);
 
 #ifdef __UNIXOS2__
@@ -114,12 +112,10 @@ extern void os2ServerVideoAccess();
 void (*xf86OSPMClose)(void) = NULL;
 #endif
 
-#ifdef XFree86LOADER
 static char *baseModules[] = {
 	"pcidata",
 	NULL
 };
-#endif
 
 /* Common pixmap formats */
 
@@ -140,16 +136,6 @@ static int numFormats = 7;
 static int numFormats = 6;
 #endif
 static Bool formatsDone = FALSE;
-
-InputDriverRec XF86KEYBOARD = {
-	1,
-	"keyboard",
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	0
-};
 
 static Bool
 xf86CreateRootWindow(WindowPtr pWin)
@@ -272,10 +258,8 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 {
   int                    i, j, k, scr_index;
   static unsigned long   generation = 0;
-#ifdef XFree86LOADER
   char                   **modulelist;
   pointer                *optionlist;
-#endif
   screenLayoutPtr	 layout;
   Pix24Flags		 screenpix24, pix24;
   MessageType		 pix24From = X_DEFAULT;
@@ -333,12 +317,15 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     if (!autoconfig)
 	PostConfigInit();
 
-#ifdef XFree86LOADER
     /* Initialise the loader */
     LoaderInit();
 
     /* Tell the loader the default module search path */
     LoaderSetPath(xf86ModulePath);
+
+    if (xf86Info.ignoreABI) {
+        LoaderSetOptions(LDR_OPT_ABI_MISMATCH_NONFATAL);
+    }
 
 #ifdef TESTING
     {
@@ -377,8 +364,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     if (!xf86LoadModules(baseModules, NULL))
 	FatalError("Unable to load required base modules, Exiting...\n");
     
-#endif
-
     xf86OpenConsole();
 
     /* Do a general bus probe.  This will be a PCI probe for x86 platforms */
@@ -401,7 +386,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     /* Initialise the resource broker */
     xf86ResourceBrokerInit();
 
-#ifdef XFree86LOADER
     /* Load all modules specified explicitly in the config file */
     if ((modulelist = xf86ModulelistFromConfig(&optionlist))) {
       xf86LoadModules(modulelist, optionlist);
@@ -415,10 +399,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       xfree(modulelist);
     }
 
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-    /* Setup the builtin input drivers */
-    xf86AddInputDriver(&XF86KEYBOARD, NULL, 0);
-#endif
     /* Load all input driver modules specified in the config file. */
     if ((modulelist = xf86InputDriverlistFromConfig())) {
       xf86LoadModules(modulelist, NULL);
@@ -432,7 +412,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
      * XXX Nothing keeps track of them for other modules.
      */
     /* XXX What do we do if not all of these could be loaded? */
-#endif
 
     /*
      * At this point, xf86DriverList[] is all filled in with entries for
@@ -672,12 +651,10 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       exit(0);
     }
 
-#ifdef XFree86LOADER
     /* Remove (unload) drivers that are not required */
     for (i = 0; i < xf86NumDrivers; i++)
 	if (xf86DriverList[i] && xf86DriverList[i]->refCount <= 0)
 	    xf86DeleteDriver(i);
-#endif
 
     /*
      * At this stage we know how many screens there are.
@@ -982,13 +959,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 #endif
   }
 
-#ifdef XFree86LOADER
-    if ((serverGeneration == 1) && LoaderCheckUnresolved(LD_RESOLV_IFDONE)) {
-	/* For now, just a warning */
-	xf86Msg(X_WARNING, "Some symbols could not be resolved!\n");
-    }
-#endif
-
   xf86PostScreenInit();
 
   xf86InitOrigins();
@@ -999,21 +969,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
   RegisterBlockAndWakeupHandlers((BlockHandlerProcPtr)NoopDDA, xf86Wakeup,
 				 NULL);
 }
-
-
-static InputDriverPtr
-MatchInput(IDevPtr pDev)
-{
-    int i;
-
-    for (i = 0; i < xf86NumInputDrivers; i++) {
-	if (xf86InputDriverList[i] && xf86InputDriverList[i]->driverName &&
-	    xf86NameCmp(pDev->driver, xf86InputDriverList[i]->driverName) == 0)
-	    return xf86InputDriverList[i];
-    }
-    return NULL;
-}
-
 
 /*
  * InitInput --
@@ -1028,7 +983,6 @@ InitInput(argc, argv)
     IDevPtr pDev;
     InputDriverPtr pDrv;
     InputInfoPtr pInfo;
-    static InputInfoPtr coreKeyboard = NULL, corePointer = NULL;
 
     xf86Info.vtRequestsPending = FALSE;
     xf86Info.inputPending = FALSE;
@@ -1036,19 +990,7 @@ InitInput(argc, argv)
     if (serverGeneration == 1) {
 	/* Call the PreInit function for each input device instance. */
 	for (pDev = xf86ConfigLayout.inputs; pDev && pDev->identifier; pDev++) {
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-	    /* XXX The keyboard driver is a special case for now. */
-	    if (!xf86NameCmp(pDev->driver, "keyboard")) {
-		xf86MsgVerb(X_WARNING, 0, "*** WARNING the legacy keyboard driver \"keyboard\" is deprecated\n");
-		xf86MsgVerb(X_WARNING, 0, "*** and will be removed in the next release of the Xorg server.\n");
-		xf86MsgVerb(X_WARNING, 0, "*** Please consider using the the new \"kbd\" driver for \"%s\".\n",
-			pDev->identifier);
-
-		continue;
-	    }
-#endif
-
-	    if ((pDrv = MatchInput(pDev)) == NULL) {
+	    if ((pDrv = xf86LookupInputDriver(pDev->driver)) == NULL) {
 		xf86Msg(X_ERROR, "No Input driver matching `%s'\n", pDev->driver);
 		/* XXX For now, just continue. */
 		continue;
@@ -1070,80 +1012,18 @@ InitInput(argc, argv)
 		xf86DeleteInput(pInfo, 0);
 		continue;
 	    }
-	    if (pInfo->flags & XI86_CORE_KEYBOARD) {
-		if (coreKeyboard) {
-		    xf86Msg(X_ERROR,
-		      "Attempt to register more than one core keyboard (%s)\n",
-		      pInfo->name);
-		    pInfo->flags &= ~XI86_CORE_KEYBOARD;
-		} else {
-		    if (!(pInfo->flags & XI86_KEYBOARD_CAPABLE)) {
-			/* XXX just a warning for now */
-			xf86Msg(X_WARNING,
-			    "%s: does not have core keyboard capabilities\n",
-			    pInfo->name);
-		    }
-		    coreKeyboard = pInfo;
-		}
-	    }
-	    if (pInfo->flags & XI86_CORE_POINTER) {
-		if (corePointer) {
-		    xf86Msg(X_ERROR,
-			"Attempt to register more than one core pointer (%s)\n",
-			pInfo->name);
-		    pInfo->flags &= ~XI86_CORE_POINTER;
-		} else {
-		    if (!(pInfo->flags & XI86_POINTER_CAPABLE)) {
-			/* XXX just a warning for now */
-			xf86Msg(X_WARNING,
-			    "%s: does not have core pointer capabilities\n",
-			    pInfo->name);
-		    }
-		    corePointer = pInfo;
-		}
-	    }
 	}
-	if (!corePointer) {
-	    xf86Msg(X_WARNING, "No core pointer registered\n");
-	    /* XXX register a dummy core pointer */
-	}
-#ifdef NEW_KBD
-	if (!coreKeyboard) {
-	    xf86Msg(X_WARNING, "No core keyboard registered\n");
-	    /* XXX register a dummy core keyboard */
-	}
-#endif
     }
 
     /* Initialise all input devices. */
     pInfo = xf86InputDevs;
     while (pInfo) {
+        xf86Msg(X_INFO, "evaluating device (%s)\n", pInfo->name);
 	xf86ActivateDevice(pInfo);
 	pInfo = pInfo->next;
     }
 
-    if (coreKeyboard) {
-      xf86Info.pKeyboard = coreKeyboard->dev;
-      xf86Info.kbdEvents = NULL; /* to prevent the internal keybord driver usage*/
-    }
-    else {
-#ifdef USE_DEPRECATED_KEYBOARD_DRIVER
-      /* Only set this if we're allowing the old driver. */
-	if (xf86Info.kbdProc != NULL) 
-	    xf86Info.pKeyboard = AddInputDevice(xf86Info.kbdProc, TRUE);
-#endif
-    }
-    if (corePointer)
-	xf86Info.pMouse = corePointer->dev;
-    if (xf86Info.pKeyboard)
-      RegisterKeyboardDevice(xf86Info.pKeyboard); 
-
-  miRegisterPointerDevice(screenInfo.screens[0], xf86Info.pMouse);
-#ifdef XINPUT
-  xf86eqInit ((DevicePtr)xf86Info.pKeyboard, (DevicePtr)xf86Info.pMouse);
-#else
-  mieqInit ((DevicePtr)xf86Info.pKeyboard, (DevicePtr)xf86Info.pMouse);
-#endif
+    mieqInit();
 }
 
 #ifndef SET_STDERR_NONBLOCKING
@@ -1167,9 +1047,7 @@ OsVendorInit()
   signal(SIGCHLD, SIG_DFL);	/* Need to wait for child processes */
 #endif
   OsDelayInitColors = TRUE;
-#ifdef XFree86LOADER
   loadableFonts = TRUE;
-#endif
 
   if (!beenHere)
     xf86LogInit();
@@ -1263,12 +1141,6 @@ void
 AbortDDX()
 {
   int i;
-
-  /*
-   * try to deinitialize all input devices
-   */
-  if (xf86Info.kbdProc && xf86Info.pKeyboard)
-    (xf86Info.kbdProc)(xf86Info.pKeyboard, DEVICE_CLOSE);
 
   /*
    * try to restore the original video state
@@ -1461,9 +1333,7 @@ ddxProcessArgument(int argc, char **argv, int i)
   }
   if (!strcmp(argv[i],"-ignoreABI"))
   {
-#ifdef XFree86LOADER
     LoaderSetOptions(LDR_OPT_ABI_MISMATCH_NONFATAL);
-#endif
     return 1;
   }
   if (!strcmp(argv[i],"-verbose"))
@@ -1506,6 +1376,16 @@ ddxProcessArgument(int argc, char **argv, int i)
   if (!strcmp(argv[i],"-showconfig") || !strcmp(argv[i],"-version"))
   {
     xf86PrintBanner();
+    exit(0);
+  }
+  if (!strcmp(argv[i],"-showDefaultModulePath"))
+  {
+    xf86PrintDefaultModulePath();
+    exit(0);
+  }
+  if (!strcmp(argv[i],"-showDefaultLibPath"))
+  {
+    xf86PrintDefaultLibraryPath();
     exit(0);
   }
   /* Notice the -fp flag, but allow it to pass to the dix layer */
@@ -1757,6 +1637,8 @@ ddxUseMsg()
   ErrorF("-ignoreABI             make module ABI mismatches non-fatal\n");
   ErrorF("-isolateDevice bus_id  restrict device resets to bus_id (PCI only)\n");
   ErrorF("-version               show the server version\n");
+  ErrorF("-showDefaultModulePath show the server default module path\n");
+  ErrorF("-showDefaultLibPath    show the server default library path\n");
   /* OS-specific usage */
   xf86UseMsg();
   ErrorF("\n");
@@ -1783,8 +1665,8 @@ xf86PrintBanner()
     "Bugs may be filed in the bugzilla at http://bugs.freedesktop.org/.\n"
     "Select the \"xorg\" product for bugs you find in this release.\n"
     "Before reporting bugs in pre-release versions please check the\n"
-    "latest version in the X.Org Foundation CVS repository.\n"
-    "See http://wiki.x.org/wiki/CvsPage for CVS access instructions.\n");
+    "latest version in the X.Org Foundation git repository.\n"
+    "See http://wiki.x.org/wiki/GitPage for git access instructions.\n");
 #endif
   ErrorF("\nX Window System Version %d.%d.%d",
 	 XORG_VERSION_MAJOR,
@@ -1870,15 +1752,25 @@ xf86PrintBanner()
 #endif
   ErrorF("\tBefore reporting problems, check "__VENDORDWEBSUPPORT__"\n"
 	 "\tto make sure that you have the latest version.\n");
-#ifdef XFree86LOADER
   ErrorF("Module Loader present\n");
-#endif
 }
 
 static void
 xf86PrintMarkers()
 {
   LogPrintMarkers();
+}
+
+static void
+xf86PrintDefaultModulePath(void)
+{
+  ErrorF("%s\n", DEFAULT_MODULE_PATH);
+}
+
+static void
+xf86PrintDefaultLibraryPath(void)
+{
+  ErrorF("%s\n", DEFAULT_LIBRARY_PATH);
 }
 
 static void
@@ -1896,7 +1788,11 @@ xf86RunVtInit(void)
           FatalError("xf86RunVtInit: fork failed (%s)\n", strerror(errno));
           break;
       case 0:  /* child */
-          setuid(getuid());
+	  if (setuid(getuid()) == -1) {
+	      xf86Msg(X_ERROR, "xf86RunVtInit: setuid failed (%s)\n",
+			 strerror(errno));
+	      exit(255);
+	  }
           /* set stdin, stdout to the consoleFd */
           for (i = 0; i < 2; i++) {
             if (xf86Info.consoleFd != i) {
@@ -1915,7 +1811,6 @@ xf86RunVtInit(void)
     }
 }
 
-#ifdef XFree86LOADER
 /*
  * xf86LoadModules iterates over a list that is being passed in.
  */             
@@ -1957,8 +1852,6 @@ xf86LoadModules(char **list, pointer *optlist)
     }
     return !failed;
 }
-
-#endif
 
 /* Pixmap format stuff */
 

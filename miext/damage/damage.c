@@ -1831,7 +1831,6 @@ DamageSetup (ScreenPtr pScreen)
     if (!pScrPriv)
 	return FALSE;
 
-#ifdef XFree86Server
 #ifdef COMPOSITE
     /* This is a kludge to ensure wrapping order with the composite wrapper.
      * If it's done from compinit.c, then DamageSetup may be called before the
@@ -1840,7 +1839,6 @@ DamageSetup (ScreenPtr pScreen)
      */
     if (!noCompositeExtension)
 	miInitializeCompositeWrapper (pScreen);
-#endif
 #endif
 	
     pScrPriv->internalLevel = 0;

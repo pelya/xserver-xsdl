@@ -1,5 +1,11 @@
+include $(top_srcdir)/cpprules.in
+
 if DRI
 DRI_SUBDIR = dri
+endif
+
+if XF86UTILS
+XF86UTILS_SUBDIR = utils
 endif
 
 DOC_SUBDIR = doc
@@ -7,16 +13,16 @@ DOC_SUBDIR = doc
 SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support parser rac \
           ramdac shadowfb vbe vgahw xaa xf1bpp xf4bpp xf8_16bpp \
 	  xf8_32bpp loader scanpci dixmods exa \
-	  $(DRI_SUBDIR) utils $(DOC_SUBDIR) getconfig
+	  $(DRI_SUBDIR) $(XF86UTILS_SUBDIR) $(DOC_SUBDIR)
 
 DIST_SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support \
                parser rac ramdac shadowfb vbe vgahw xaa xf1bpp xf4bpp \
                xf8_16bpp xf8_32bpp loader scanpci dixmods dri exa \
-	       utils doc getconfig
+	       utils doc
 
 bin_PROGRAMS = Xorg
 
-AM_CFLAGS = @XORG_CFLAGS@ @SERVER_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS) @XORG_CFLAGS@
 INCLUDES = @XORG_INCS@ 
 
 Xorg_SOURCES = xorg.c
@@ -38,10 +44,13 @@ XORG_LIBS = \
             common/libinit.a \
             loader/libloader.a \
             libosandcommon.la \
+	    rac/librac.a \
             parser/libxf86config.a \
-            dummylib/libdummy.a \
 	    dixmods/libdixmods.la \
             @XORG_LIBS@
+
+Xorg_DEPENDENCIES = \
+	$(XORG_LIBS)
 
 Xorg_LDADD = $(XORG_LIBS) \
              @XSERVER_LIBS@ \
@@ -49,12 +58,15 @@ Xorg_LDADD = $(XORG_LIBS) \
 
 Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
+BUILT_SOURCES = xorg.conf.example
+CLEAN = xorg.conf.example xorg.conf.example.pre
+EXTRA_DIST = xorgconf.cpp
 
 if SOLARIS_ASM_INLINE
 # Needs to be built before any files are compiled when using Sun compilers
 # so in*/out* inline definitions are properly processed.
 
-BUILT_SOURCES = os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il
+BUILT_SOURCES += os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il
 
 os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il:
 	cd os-support/solaris ; make solaris-$(SOLARIS_INOUT_ARCH).il
@@ -75,7 +87,18 @@ endif
 optionsdir = $(libdir)/X11
 dist_options_DATA = Options
 
-EXTRA_DIST = xorgconf.cpp
+CPP_FILES_FLAGS = \
+	-DRGBPATH=\"$(RGB_DB)\" \
+	-DLOCALFONTPATH="\"$(BASE_FONT_PATH)/local\"" \
+	-DMISCFONTPATH="\"$(BASE_FONT_PATH)/misc\"" \
+	-DT1FONTPATH="\"$(BASE_FONT_PATH)/Type1\"" \
+	-DTRUETYPEFONTPATH="\"$(BASE_FONT_PATH)/TTF\"" \
+	-DDPI75FONTPATH="\"$(BASE_FONT_PATH)/75dpi\"" \
+	-DDPI100FONTPATH="\"$(BASE_FONT_PATH)/100dpi\"" \
+	-DMODULEPATH=\"$(DEFAULT_MODULE_PATH)\"
 
 relink:
 	rm -f Xorg && $(MAKE) Xorg
+
+xorg.conf.example.pre: xorgconf.cpp
+	cp $(srcdir)/xorgconf.cpp $@

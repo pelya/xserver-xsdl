@@ -29,6 +29,7 @@
 #include "ephyr.h"
 
 extern Window EphyrPreExistingHostWin;
+extern Bool   EphyrWantGrayScale;
 
 void
 InitCard (char *name)
@@ -50,7 +51,24 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-  KdInitInput (&EphyrMouseFuncs, &EphyrKeyboardFuncs);
+  KdKeyboardInfo *ki;
+  KdPointerInfo *pi;
+        
+  ki = KdNewKeyboard();
+  if (!ki)
+    FatalError("Couldn't create Xephyr keyboard\n");
+  ki->driver = &EphyrKeyboardDriver;
+  KdAddKeyboardDriver(&EphyrKeyboardDriver);
+  KdAddKeyboard(ki);
+
+  pi = KdNewPointer();
+  if (!pi)
+    FatalError("Couldn't create Xephyr pointer\n");
+  pi->driver = &EphyrMouseDriver;
+  KdAddPointerDriver(&EphyrMouseDriver);
+  KdAddPointer(pi);
+
+  KdInitInput();
 }
 
 void
@@ -62,6 +80,7 @@ ddxUseMsg (void)
   ErrorF("-parent XID   Use existing window as Xephyr root win\n");
   ErrorF("-host-cursor  Re-use exisiting X host server cursor\n");
   ErrorF("-fullscreen   Attempt to run Xephyr fullscreen\n");
+  ErrorF("-grayscale    Simulate 8bit grayscale\n");
   ErrorF("-fakexa	Simulate acceleration using software rendering\n");
   ErrorF("\n");
 
@@ -92,6 +111,11 @@ ddxProcessArgument (int argc, char **argv, int i)
   else if (!strcmp (argv[i], "-fullscreen"))
     {
       hostx_use_fullscreen();
+      return 1;
+    }
+  else if (!strcmp (argv[i], "-grayscale"))
+    {
+      EphyrWantGrayScale = 1;      
       return 1;
     }
   else if (!strcmp (argv[i], "-fakexa"))

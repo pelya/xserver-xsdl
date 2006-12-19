@@ -36,6 +36,20 @@ static void lnxCloseACPI(void);
 static pointer ACPIihPtr = NULL;
 PMClose lnxACPIOpen(void);
 
+/* in milliseconds */
+#define ACPI_REOPEN_DELAY 1000
+
+static CARD32
+lnxACPIReopen(OsTimerPtr timer, CARD32 time, pointer arg)
+{
+    if (lnxACPIOpen()) {
+	TimerFree(timer);
+	return 0;
+    }
+
+    return ACPI_REOPEN_DELAY;
+}
+
 #define LINE_LENGTH 80
 
 static int
@@ -52,8 +66,7 @@ lnxACPIGetEventFromOs(int fd, pmEvent *events, int num)
 
     if (n <= 0) {
 	lnxCloseACPI();
-	sleep(1);
-	lnxACPIOpen();
+	TimerSet(NULL, 0, ACPI_REOPEN_DELAY, lnxACPIReopen, NULL);
 	return 0;
     }
     
@@ -65,7 +78,7 @@ lnxACPIGetEventFromOs(int fd, pmEvent *events, int num)
 	char *data = NULL; /* doesn't appear to be used in the kernel */
 	unsigned long int notify_l, data_l;
 
-	video = strtok(ev, "video");
+	video = strtok(ev, " ");
 
 	GFX = strtok(NULL, " ");
 #if 0
@@ -150,7 +163,7 @@ lnxACPIOpen(void)
 
     xf86PMGetEventFromOs = lnxACPIGetEventFromOs;
     xf86PMConfirmEventToOs = lnxACPIConfirmEventToOs;
-    ACPIihPtr = xf86AddInputHandler(fd,xf86HandlePMEvents,NULL);
+    ACPIihPtr = xf86AddGeneralHandler(fd,xf86HandlePMEvents,NULL);
     xf86MsgVerb(X_INFO,3,"Open ACPI successful (%s)\n", ACPI_SOCKET);
 
     return lnxCloseACPI;
@@ -165,10 +178,9 @@ lnxCloseACPI(void)
    ErrorF("ACPI: Closing device\n");
 #endif
     if (ACPIihPtr) {
-	fd = xf86RemoveInputHandler(ACPIihPtr);
+	fd = xf86RemoveGeneralHandler(ACPIihPtr);
 	shutdown(fd, 2);
 	close(fd);
 	ACPIihPtr = NULL;
     }
 }
-

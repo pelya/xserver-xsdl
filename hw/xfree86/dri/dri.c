@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/dri/dri.c,v 1.39 2003/11/10 18:21:41 tsi Exp $ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.
@@ -43,11 +42,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <sys/ioctl.h>
 
 #define NEED_REPLIES
 #define NEED_EVENTS
 #include <X11/X.h>
 #include <X11/Xproto.h>
+#include "xf86drm.h"
 #include "misc.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
@@ -68,8 +69,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "glxserver.h"
 #include "mi.h"
 #include "mipointer.h"
+#include "xf86_OSproc.h"
 
-#if defined(XFree86LOADER) && !defined(PANORAMIX)
+#if !defined(PANORAMIX)
 extern Bool noPanoramiXExtension;
 #endif
 
@@ -81,6 +83,8 @@ static unsigned int DRIDrawableValidationStamp = 0;
 static RESTYPE DRIDrawablePrivResType;
 static RESTYPE DRIContextPrivResType;
 static void    DRIDestroyDummyContext(ScreenPtr pScreen, Bool hasCtxPriv);
+
+drmServerInfo DRIDRMServerInfo;
 
 				/* Wrapper just like xf86DrvMsg, but
 				   without the verbosity level checking.
@@ -104,6 +108,7 @@ DRIDrvMsg(int scrnIndex, MessageType type, const char *format, ...)
     xf86VDrvMsgVerb(scrnIndex, type, DRI_MSG_VERBOSITY, format, ap);
     va_end(ap);
 }
+
 
 Bool
 DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
@@ -135,14 +140,9 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
      * If Xinerama is on, don't allow DRI to initialise.  It won't be usable
      * anyway.
      */
-#if defined(PANORAMIX) && !defined(XFree86LOADER)
-    xineramaInCore = TRUE;
-#elif defined(XFree86LOADER)
     if (xf86LoaderCheckSymbol("noPanoramiXExtension"))
 	xineramaInCore = TRUE;
-#endif
 
-#if defined(PANORAMIX) || defined(XFree86LOADER)
     if (xineramaInCore) {
 	if (!noPanoramiXExtension) {
 	    DRIDrvMsg(pScreen->myNum, X_WARNING,
@@ -150,7 +150,6 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 	    return FALSE;
 	}
     }
-#endif
 
     drmWasAvailable = drmAvailable();
 
@@ -578,6 +577,26 @@ DRICloseScreen(ScreenPtr pScreen)
     }
 }
 
+#define DRM_MSG_VERBOSITY 3
+
+static int dri_drm_debug_print(const char *format, va_list ap)
+{
+  xf86VDrvMsgVerb(-1, X_NONE, DRM_MSG_VERBOSITY, format, ap);
+  return 0;
+}
+
+static void dri_drm_get_perms(gid_t *group, mode_t *mode)
+{
+  *group = xf86ConfigDRI.group;
+  *mode = xf86ConfigDRI.mode;
+}
+
+drmServerInfo DRIDRMServerInfo =  {
+  dri_drm_debug_print,
+  xf86LoadKernelModule,
+  dri_drm_get_perms,
+};
+
 Bool
 DRIExtensionInit(void)
 {
@@ -999,6 +1018,10 @@ DRICreateDrawable(ScreenPtr pScreen, Drawable id,
 	pWin = (WindowPtr)pDrawable;
 	if ((pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin))) {
 	    pDRIDrawablePriv->refCount++;
+
+	    if (!pDRIDrawablePriv->hwDrawable) {
+		drmCreateDrawable(pDRIPriv->drmFD, &pDRIDrawablePriv->hwDrawable);
+	    }
 	}
 	else {
 	    /* allocate a DRI Window Private record */
@@ -1007,13 +1030,13 @@ DRICreateDrawable(ScreenPtr pScreen, Drawable id,
 	    }
 
 	    /* Only create a drm_drawable_t once */
-	    if (drmCreateDrawable(pDRIPriv->drmFD, hHWDrawable)) {
+	    if (drmCreateDrawable(pDRIPriv->drmFD,
+				  &pDRIDrawablePriv->hwDrawable)) {
 		xfree(pDRIDrawablePriv);
 		return FALSE;
 	    }
 
 	    /* add it to the list of DRI drawables for this screen */
-	    pDRIDrawablePriv->hwDrawable = *hHWDrawable;
 	    pDRIDrawablePriv->pScreen = pScreen;
 	    pDRIDrawablePriv->refCount = 1;
 	    pDRIDrawablePriv->drawableIndex = -1;
@@ -1035,6 +1058,15 @@ DRICreateDrawable(ScreenPtr pScreen, Drawable id,
 
 	    /* track this in case this window is destroyed */
 	    AddResource(id, DRIDrawablePrivResType, (pointer)pWin);
+	}
+
+	if (pDRIDrawablePriv->hwDrawable) {
+	    drmUpdateDrawableInfo(pDRIPriv->drmFD,
+				  pDRIDrawablePriv->hwDrawable,
+				  DRM_DRAWABLE_CLIPRECTS,
+				  REGION_NUM_RECTS(&pWin->clipList),
+				  REGION_RECTS(&pWin->clipList));
+	    *hHWDrawable = pDRIDrawablePriv->hwDrawable;
 	}
     }
     else { /* pixmap (or for GLX 1.3, a PBuffer) */
@@ -1820,6 +1852,11 @@ DRIClipNotify(WindowPtr pWin, int dx, int dy)
 
 	pDRIPriv->pSAREA->drawableTable[pDRIDrawablePriv->drawableIndex].stamp
 	    = DRIDrawableValidationStamp++;
+
+	drmUpdateDrawableInfo(pDRIPriv->drmFD, pDRIDrawablePriv->hwDrawable,
+			      DRM_DRAWABLE_CLIPRECTS,
+			      REGION_NUM_RECTS(&pWin->clipList),
+			      REGION_RECTS(&pWin->clipList));
     }
 
     /* call lower wrapped functions */
@@ -2081,4 +2118,72 @@ DRICreatePCIBusID(pciVideoPtr PciInfo)
     snprintf(busID, 20, "pci:%04x:%02x:%02x.%d", domain, PciInfo->bus,
 	PciInfo->device, PciInfo->func);
     return busID;
+}
+
+static void drmSIGIOHandler(int interrupt, void *closure)
+{
+    unsigned long key;
+    void          *value;
+    ssize_t       count;
+    drm_ctx_t     ctx;
+    typedef void  (*_drmCallback)(int, void *, void *);
+    char          buf[256];
+    drm_context_t    old;
+    drm_context_t    new;
+    void          *oldctx;
+    void          *newctx;
+    char          *pt;
+    drmHashEntry  *entry;
+    void *hash_table;
+
+    hash_table = drmGetHashTable();
+
+    if (!hash_table) return;
+    if (drmHashFirst(hash_table, &key, &value)) {
+	entry = value;
+	do {
+#if 0
+	    fprintf(stderr, "Trying %d\n", entry->fd);
+#endif
+	    if ((count = read(entry->fd, buf, sizeof(buf))) > 0) {
+		buf[count] = '\0';
+#if 0
+		fprintf(stderr, "Got %s\n", buf);
+#endif
+
+		for (pt = buf; *pt != ' '; ++pt); /* Find first space */
+		++pt;
+		old    = strtol(pt, &pt, 0);
+		new    = strtol(pt, NULL, 0);
+		oldctx = drmGetContextTag(entry->fd, old);
+		newctx = drmGetContextTag(entry->fd, new);
+#if 0
+		fprintf(stderr, "%d %d %p %p\n", old, new, oldctx, newctx);
+#endif
+		((_drmCallback)entry->f)(entry->fd, oldctx, newctx);
+		ctx.handle = new;
+		ioctl(entry->fd, DRM_IOCTL_NEW_CTX, &ctx);
+	    }
+	} while (drmHashNext(hash_table, &key, &value));
+    }
+}
+
+
+int drmInstallSIGIOHandler(int fd, void (*f)(int, void *, void *))
+{
+    drmHashEntry     *entry;
+
+    entry     = drmGetEntry(fd);
+    entry->f  = f;
+
+    return xf86InstallSIGIOHandler(fd, drmSIGIOHandler, 0);
+}
+
+int drmRemoveSIGIOHandler(int fd)
+{
+    drmHashEntry     *entry = drmGetEntry(fd);
+
+    entry->f = NULL;
+
+    return xf86RemoveSIGIOHandler(fd);
 }

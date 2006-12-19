@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/parser/Monitor.c,v 1.28 2003/08/24 17:37:08 dawes Exp $ */
 /* 
  * 
  * Copyright (c) 1997  Metro Link Incorporated
@@ -676,7 +675,7 @@ xf86printMonitorSection (FILE * cf, XF86ConfMonitorPtr ptr)
 					 ptr->mon_width,
 					 ptr->mon_height);
 		if ( ptr->mon_n_hsync || ptr->mon_n_vrefresh )
-		    fprintf(cf," ### Comment all HorizSync and VertSync values to use DDC:\n");
+		    fprintf(cf," ### Comment all HorizSync and VertRefresh values to use DDC:\n");
 		for (i = 0; i < ptr->mon_n_hsync; i++)
 		{
 			fprintf (cf, "\tHorizSync    %2.1f - %2.1f\n",

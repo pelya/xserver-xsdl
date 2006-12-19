@@ -1,4 +1,3 @@
-/* $Xorg: Cursor.h,v 1.3 2000/08/17 19:53:28 cpqbld Exp $ */
 /*
 
 Copyright 1993 by Davor Matic
@@ -12,7 +11,6 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/XNCursor.h,v 1.2 2002/11/23 19:27:50 tsi Exp $ */
 
 #ifndef XNESTCURSOR_H
 #define XNESTCURSOR_H
@@ -29,6 +27,7 @@ typedef struct {
 
 Bool xnestRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);
 Bool xnestUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);
+void xnestRecolorCursor(ScreenPtr pScreen, CursorPtr pCursor, Bool displayed);
 void xnestSetCursor (ScreenPtr pScreen, CursorPtr pCursor, int x, int y);
 void xnestMoveCursor (ScreenPtr pScreen, int x, int y);
 

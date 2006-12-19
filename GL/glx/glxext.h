@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxext.h,v 1.7 2003/11/17 22:20:26 dawes Exp $ */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -67,15 +66,10 @@ typedef struct {
 extern GLboolean __glXFreeContext(__GLXcontext *glxc);
 extern void __glXFlushContextCache(void);
 
-extern void __glXNoSuchRenderOpcode(GLbyte*);
-extern int __glXNoSuchSingleOpcode(__GLXclientState*, GLbyte*);
 extern void __glXErrorCallBack(__GLinterface *gc, GLenum code);
 extern void __glXClearErrorOccured(void);
 extern GLboolean __glXErrorOccured(void);
 extern void __glXResetLargeCommandStatus(__GLXclientState*);
-
-extern int __glXQueryContextInfoEXT(__GLXclientState *cl, GLbyte *pc);
-extern int __glXSwapQueryContextInfoEXT(__GLXclientState *cl, GLbyte *pc);
 
 extern int DoMakeCurrent( __GLXclientState *cl, GLXDrawable drawId,
     GLXDrawable readId, GLXContextID contextId, GLXContextTag tag );
@@ -85,12 +79,16 @@ extern int DoGetFBConfigs(__GLXclientState *cl, unsigned screen,
     GLboolean do_swap);
 extern int DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
     GLXContextID shareList, VisualID visual, GLuint screen, GLboolean isDirect);
-extern int DoCreateGLXPixmap(__GLXclientState *cl, VisualID visual,
+extern int DoCreateGLXPixmap(__GLXclientState *cl, XID fbconfigId,
     GLuint screenNum, XID pixmapId, XID glxpixmapId);
+extern int DoDestroyPixmap(__GLXclientState *cl, XID glxpixmapId);
+
+extern int DoQueryContext(__GLXclientState *cl, GLXContextID gcId);
+
+extern int DoRender(__GLXclientState *cl, GLbyte *pc, int do_swap);
+extern int DoRenderLarge(__GLXclientState *cl, GLbyte *pc, int do_swap);
 
 extern void GlxExtensionInit(void);
-
-extern Bool __glXCoreType(void);
 
 extern const char GLServerVersion[];
 extern int DoGetString(__GLXclientState *cl, GLbyte *pc, GLboolean need_swap);

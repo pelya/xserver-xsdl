@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/dri/dri.h,v 1.18 2001/03/21 16:21:40 dawes Exp $ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.
@@ -340,6 +339,8 @@ extern void DRIMoveBuffersHelper(ScreenPtr pScreen,
 
 extern char *DRICreatePCIBusID(pciVideoPtr PciInfo);
 
+extern int drmInstallSIGIOHandler(int fd, void (*f)(int, void *, void *));
+extern int drmRemoveSIGIOHandler(int fd);
 #define _DRI_H_
 
 #endif

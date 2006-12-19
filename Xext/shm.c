@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/Xext/shm.c,v 3.41 2003/12/17 23:28:56 alanh Exp $ */
 /************************************************************
 
 Copyright 1989, 1998  The Open Group
@@ -27,7 +26,6 @@ in this Software without prior written authorization from The Open Group.
 
 /* THIS IS NOT AN X CONSORTIUM STANDARD OR AN X PROJECT TEAM SPECIFICATION */
 
-/* $Xorg: shm.c,v 1.4 2001/02/09 02:04:33 xorgcvs Exp $ */
 
 #define SHM
 
@@ -573,11 +571,11 @@ ProcPanoramiXShmPutImage(register ClientPtr client)
     REQUEST_SIZE_MATCH(xShmPutImageReq);
 
     if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
-                client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
+                client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
         return BadDrawable;
 
     if(!(gc = (PanoramiXRes *)SecurityLookupIDByType(
-                client, stuff->gc, XRT_GC, SecurityReadAccess)))
+                client, stuff->gc, XRT_GC, DixReadAccess)))
         return BadGC;
 
     isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
@@ -608,7 +606,7 @@ ProcPanoramiXShmGetImage(ClientPtr client)
     DrawablePtr 	pDraw;
     xShmGetImageReply	xgi;
     ShmDescPtr		shmdesc;
-    int         	i, x, y, w, h, format;
+    int         	i, x, y, w, h, format, rc;
     Mask		plane = 0, planemask;
     long		lenPer = 0, length, widthBytesLine;
     Bool		isRoot;
@@ -623,13 +621,16 @@ ProcPanoramiXShmGetImage(ClientPtr client)
     }
 
     if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
-		client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
+		client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
 	return BadDrawable;
 
     if (draw->type == XRT_PIXMAP)
 	return ProcShmGetImage(client);
 
-    VERIFY_DRAWABLE(pDraw, stuff->drawable, client);
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
+			   DixUnknownAccess);
+    if (rc != Success)
+	return rc;
 
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, TRUE, shmdesc, client);
 
@@ -662,8 +663,12 @@ ProcPanoramiXShmGetImage(ClientPtr client)
     }
 
     drawables[0] = pDraw;
-    for(i = 1; i < PanoramiXNumScreens; i++)
-	VERIFY_DRAWABLE(drawables[i], draw->info[i].id, client);
+    for(i = 1; i < PanoramiXNumScreens; i++) {
+	rc = dixLookupDrawable(drawables+i, draw->info[i].id, client, 0, 
+			       DixUnknownAccess);
+	if (rc != Success)
+	    return rc;
+    }
 
     xgi.visual = wVisual(((WindowPtr)pDraw));
     xgi.type = X_Reply;
@@ -722,7 +727,7 @@ ProcPanoramiXShmCreatePixmap(
     PixmapPtr pMap = NULL;
     DrawablePtr pDraw;
     DepthPtr pDepth;
-    int i, j, result;
+    int i, j, result, rc;
     ShmDescPtr shmdesc;
     REQUEST(xShmCreatePixmapReq);
     PanoramiXRes *newPix;
@@ -732,7 +737,11 @@ ProcPanoramiXShmCreatePixmap(
     if (!sharedPixmaps)
 	return BadImplementation;
     LEGAL_NEW_RESOURCE(stuff->pid, client);
-    VERIFY_GEOMETRABLE(pDraw, stuff->drawable, client);
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, M_ANY,
+			   DixUnknownAccess);
+    if (rc != Success)
+	return rc;
+
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, TRUE, shmdesc, client);
     if (!stuff->width || !stuff->height)
     {
@@ -807,8 +816,8 @@ static int
 ProcShmPutImage(client)
     register ClientPtr client;
 {
-    register GCPtr pGC;
-    register DrawablePtr pDraw;
+    GCPtr pGC;
+    DrawablePtr pDraw;
     long length;
     ShmDescPtr shmdesc;
     REQUEST(xShmPutImageReq);
@@ -911,12 +920,12 @@ static int
 ProcShmGetImage(client)
     register ClientPtr client;
 {
-    register DrawablePtr pDraw;
+    DrawablePtr		pDraw;
     long		lenPer = 0, length;
     Mask		plane = 0;
     xShmGetImageReply	xgi;
     ShmDescPtr		shmdesc;
-    int			n;
+    int			n, rc;
 
     REQUEST(xShmGetImageReq);
 
@@ -926,7 +935,10 @@ ProcShmGetImage(client)
 	client->errorValue = stuff->format;
         return(BadValue);
     }
-    VERIFY_DRAWABLE(pDraw, stuff->drawable, client);
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
+			   DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, TRUE, shmdesc, client);
     if (pDraw->type == DRAWABLE_WINDOW)
     {
@@ -1044,9 +1056,9 @@ ProcShmCreatePixmap(client)
     register ClientPtr client;
 {
     PixmapPtr pMap;
-    register DrawablePtr pDraw;
+    DrawablePtr pDraw;
     DepthPtr pDepth;
-    register int i;
+    register int i, rc;
     ShmDescPtr shmdesc;
     REQUEST(xShmCreatePixmapReq);
 
@@ -1055,7 +1067,11 @@ ProcShmCreatePixmap(client)
     if (!sharedPixmaps)
 	return BadImplementation;
     LEGAL_NEW_RESOURCE(stuff->pid, client);
-    VERIFY_GEOMETRABLE(pDraw, stuff->drawable, client);
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, M_ANY,
+			   DixUnknownAccess);
+    if (rc != Success)
+	return rc;
+
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, TRUE, shmdesc, client);
     if (!stuff->width || !stuff->height)
     {

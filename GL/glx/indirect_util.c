@@ -28,7 +28,7 @@
 #include <X11/Xmd.h>
 #include <GL/gl.h>
 #include <GL/glxproto.h>
-#ifdef __linux__
+#if defined(__linux__) || defined (__GLIBC__) || defined(__GNU__)
 #include <byteswap.h>
 #elif defined(__OpenBSD__)
 #include <sys/endian.h>
@@ -52,6 +52,7 @@
 #include "glthread.h"
 #include "dispatch.h"
 #include "glxext.h"
+#include "indirect_table.h"
 #include "indirect_util.h"
 
 
@@ -185,8 +186,8 @@ __glXSendReplySwap( ClientPtr client, const void * data, size_t elements,
     }
 
     __glXReply.length =         bswap_32( reply_ints );
-    __glXReply.type =           bswap_32( X_Reply );
-    __glXReply.sequenceNumber = bswap_32( client->sequence );
+    __glXReply.type =           X_Reply;
+    __glXReply.sequenceNumber = bswap_16( client->sequence );
     __glXReply.size =           bswap_32( elements );
     __glXReply.retval =         bswap_32( retval );
 
@@ -203,4 +204,115 @@ __glXSendReplySwap( ClientPtr client, const void * data, size_t elements,
     if ( reply_ints != 0 ) {
         WriteToClient( client, reply_ints * 4, (char *) data );
     }
+}
+
+
+static int
+get_decode_index(const struct __glXDispatchInfo *dispatch_info,
+		 unsigned opcode)
+{
+    int remaining_bits;
+    int next_remain;
+    const int_fast16_t * const tree = dispatch_info->dispatch_tree;
+    int_fast16_t index;
+
+
+    remaining_bits = dispatch_info->bits;
+    if (opcode >= (1U << remaining_bits)) {
+	return -1;
+    }
+    
+    index = 0;
+    for (/* empty */; remaining_bits > 0; remaining_bits = next_remain) {
+	unsigned mask;
+	unsigned child_index;
+
+
+	/* Calculate the slice of bits used by this node.
+	 * 
+	 * If remaining_bits = 8 and tree[index] = 3, the mask of just the
+	 * remaining bits is 0x00ff and the mask for the remaining bits after
+	 * this node is 0x001f.  By taking 0x00ff & ~0x001f, we get 0x00e0.
+	 * This masks the 3 bits that we would want for this node.
+	 */
+
+	next_remain = remaining_bits - tree[index];
+	mask = ((1 << remaining_bits) - 1) &
+	  ~((1 << next_remain) - 1);
+
+
+	/* Using the mask, calculate the index of the opcode in the node.
+	 * With that index, fetch the index of the next node.
+	 */
+
+	child_index = (opcode & mask) >> next_remain;
+	index = tree[index + 1 + child_index];
+
+
+	/* If the next node is an empty leaf, the opcode is for a non-existant
+	 * function.  We're done.
+	 *
+	 * If the next node is a non-empty leaf, look up the function pointer
+	 * and return it.
+	 */
+
+	if (index == EMPTY_LEAF) {
+	    return -1;
+	}
+	else if (IS_LEAF_INDEX(index)) {
+	    unsigned func_index;
+
+
+	    /* The value stored in the tree for a leaf node is the base of
+	     * the function pointers for that leaf node.  The offset for the
+	     * function for a particular opcode is the remaining bits in the
+	     * opcode.
+	     */
+
+	    func_index = -index;
+	    func_index += opcode & ((1 << next_remain) - 1);
+	    return func_index;
+	}
+    }
+
+    /* We should *never* get here!!!
+     */
+    return -1;
+}
+
+
+void *
+__glXGetProtocolDecodeFunction(const struct __glXDispatchInfo *dispatch_info,
+			       int opcode, int swapped_version)
+{
+    const int func_index = get_decode_index(dispatch_info, opcode);
+
+    return (func_index < 0) 
+	? NULL 
+	: (void *) dispatch_info->dispatch_functions[func_index][swapped_version];
+}
+
+
+int
+__glXGetProtocolSizeData(const struct __glXDispatchInfo *dispatch_info,
+			 int opcode, __GLXrenderSizeData *data)
+{
+    if (dispatch_info->size_table != NULL) {
+	const int func_index = get_decode_index(dispatch_info, opcode);
+
+	if ((func_index >= 0) 
+	    && (dispatch_info->size_table[func_index][0] != 0)) {
+	    const int var_offset = 
+		dispatch_info->size_table[func_index][1];
+
+	    data->bytes = dispatch_info->size_table[func_index][0];
+	    data->varsize = (var_offset != ~0)
+		? dispatch_info->size_func_table[var_offset]
+		: NULL;
+
+	    return 0;
+	}
+    }
+
+    return -1;
 }

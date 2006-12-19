@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_init.c,v 1.5 2001/11/25 13:51:24 tsi Exp $ */
 /*
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -22,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
  * OF THIS SOFTWARE.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/sunos/sun_init.c,v 1.3 2005/05/21 07:46:37 alanc Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -293,23 +291,6 @@ xf86CloseConsole(void)
 #endif /* HAS_USL_VTS */
 
     close(xf86Info.consoleFd);
-
-#if defined(__SOL8__) || !defined(i386)
-
-    /*
-     * This probably shouldn't be here.  However, there is no corresponding
-     * xf86CloseKbd() routine - DWH
-     */
-
-    /* Set the keyboard into "indirect" mode and turn off even translation */
-    tmp = 0;
-    (void) ioctl(xf86Info.kbdFd, KIOCSDIRECT, &tmp);
-    tmp = TR_ASCII;
-    (void) ioctl(xf86Info.kbdFd, KIOCTRANS, &tmp);
-
-    close(xf86Info.kbdFd);
-
-#endif
 }
 
 int
@@ -359,16 +340,6 @@ xf86ProcessArgument(int argc, char **argv, int i)
 	    fb_dev[PATH_MAX - 1] = '\0';
 	    return 2;
 	}
-
-	if (!strcmp(argv[i], "-ar1")) {
-	    xf86Info.kbdDelay = atoi(argv[i + 1]) * 1000;
-	    return 2;
-	}
-
-	if (!strcmp(argv[i], "-ar2")) {
-	    xf86Info.kbdRate = atoi(argv[i + 1]) * 1000;
-	    return 2;
-	}
     }
 
 #endif
@@ -383,10 +354,6 @@ void xf86UseMsg()
 #endif
 #if defined(__SOL8__) || !defined(i386)
     ErrorF("-dev <fb>              Framebuffer device\n");
-    ErrorF("-ar1 <float>           Set autorepeat initiate time (sec)\n");
-    ErrorF("                       (if not using XKB)\n");
-    ErrorF("-ar2 <float>           Set autorepeat interval time (sec)\n");
-    ErrorF("                       (if not using XKB)\n");
 #endif
     ErrorF("-keeptty               Don't detach controlling tty\n");
     ErrorF("                       (for debugging only)\n");

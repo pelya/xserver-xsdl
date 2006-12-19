@@ -1,5 +1,4 @@
 /*
- * $XFree86: xc/programs/Xserver/hw/xfree86/xaa/xaaPict.c,v 1.18 2003/04/23 18:35:34 eich Exp $
  *
  * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -218,7 +217,13 @@ XAADoComposite (
 
     if (pDst->alphaMap || pSrc->alphaMap || (pMask && pMask->alphaMap))
 	return FALSE;
-	
+
+    if ((pSrc->repeat && pSrc->repeatType != RepeatNormal) ||
+	(pMask && pMask->repeat && pMask->repeatType != RepeatNormal))
+    {
+	return FALSE;
+    }
+
     xDst += pDst->pDrawable->x;
     yDst += pDst->pDrawable->y;
     xSrc += pSrc->pDrawable->x;
@@ -516,7 +521,10 @@ XAAComposite (CARD8      op,
        (!pSrc->repeat || (xSrc >= 0 && ySrc >= 0 &&
 			  xSrc+width<=pSrc->pDrawable->width &&
 			  ySrc+height<=pSrc->pDrawable->height)) &&
-       ((op == PictOpSrc && pSrc->format == pDst->format) ||
+       ((op == PictOpSrc &&
+	 ((pSrc->format==pDst->format) ||
+	  (pSrc->format==PICT_a8r8g8b8 && pDst->format==PICT_x8r8g8b8) ||
+	  (pSrc->format==PICT_a8b8g8r8 && pDst->format==PICT_x8b8g8r8))) ||
 	(op == PictOpOver && !pSrc->alphaMap && !pDst->alphaMap &&
 	 pSrc->format==pDst->format &&
 	 (pSrc->format==PICT_x8r8g8b8 || pSrc->format==PICT_x8b8g8r8))))

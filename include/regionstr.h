@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/include/regionstr.h,v 1.7 2005/08/24 11:18:31 daniels Exp $ */
-/* $Xorg: regionstr.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -46,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/regionstr.h,v 1.12tsi Exp $ */
 
 #ifndef REGIONSTRUCT_H
 #define REGIONSTRUCT_H
@@ -322,6 +319,9 @@ extern void miRegionEmpty(
     RegionPtr /*pReg*/);
 
 extern BoxPtr miRegionExtents(
+    RegionPtr /*pReg*/);
+
+extern void miPrintRegion(
     RegionPtr /*pReg*/);
 
 #endif /* REGIONSTRUCT_H */

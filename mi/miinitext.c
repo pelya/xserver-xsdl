@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/mi/miinitext.c,v 1.33 2006/06/01 18:47:01 daniels Exp $ */
-/* $XFree86: xc/programs/Xserver/mi/miinitext.c,v 3.67 2003/01/12 02:44:27 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -46,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: miinitext.c,v 1.4 2001/02/09 02:05:21 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -85,6 +82,7 @@ SOFTWARE.
 #include "misc.h"
 #include "extension.h"
 #include "micmap.h"
+#include "globals.h"
 
 #if defined(QNX4) /* sleaze for Watcom on QNX4 ... */
 #undef GLXEXT
@@ -107,6 +105,7 @@ SOFTWARE.
 #undef XF86DRI
 #undef DPMSExtension
 #undef FONTCACHE
+#undef COMPOSITE
 #undef DAMAGE
 #undef XFIXES
 #undef XEVIE
@@ -124,9 +123,6 @@ extern Bool noBigReqExtension;
 #endif
 #ifdef COMPOSITE
 extern Bool noCompositeExtension;
-#endif
-#ifdef DAMAGE
-extern Bool noDamageExtension;
 #endif
 #ifdef DBE
 extern Bool noDbeExtension;
@@ -245,8 +241,11 @@ typedef void (*InitExtension)(INITARGS);
 #define _XAG_SERVER_
 #include <X11/extensions/Xagstr.h>
 #endif
+#ifdef XACE
+#include "xace.h"
+#endif
 #ifdef XCSECURITY
-#define _SECURITY_SERVER
+#include "securitysrv.h"
 #include <X11/extensions/securstr.h>
 #endif
 #ifdef PANORAMIX
@@ -260,9 +259,6 @@ typedef void (*InitExtension)(INITARGS);
 #endif
 
 /* FIXME: this whole block of externs should be from the appropriate headers */
-#ifdef SHAPE
-extern void ShapeExtensionInit(INITARGS);
-#endif
 #ifdef EVI
 extern void EVIExtensionInit(INITARGS);
 #endif
@@ -318,7 +314,11 @@ extern void DbeExtensionInit(INITARGS);
 #ifdef XAPPGROUP
 extern void XagExtensionInit(INITARGS);
 #endif
+#ifdef XACE
+extern void XaceExtensionInit(INITARGS);
+#endif
 #ifdef XCSECURITY
+extern void SecurityExtensionSetup(INITARGS);
 extern void SecurityExtensionInit(INITARGS);
 #endif
 #ifdef XPRINT
@@ -529,6 +529,9 @@ InitExtensions(argc, argv)
     int		argc;
     char	*argv[];
 {
+#ifdef XCSECURITY
+    SecurityExtensionSetup();
+#endif
 #ifdef PANORAMIX
 # if !defined(PRINT_ONLY_SERVER) && !defined(NO_PANORAMIX)
   if (!noPanoramiXExtension) PanoramiXExtensionInit();
@@ -546,7 +549,7 @@ InitExtensions(argc, argv)
 #ifdef MULTIBUFFER
     if (!noMultibufferExtension) MultibufferExtensionInit();
 #endif
-#if defined(XINPUT) && !defined(NO_HW_ONLY_EXTS)
+#if defined(XINPUT)
     if (!noXInputExtension) XInputExtensionInit();
 #endif
 #ifdef XTEST
@@ -576,7 +579,7 @@ InitExtensions(argc, argv)
 #ifdef XSYNC
     if (!noSyncExtension) SyncExtensionInit();
 #endif
-#if defined(XKB) && !defined(PRINT_ONLY_SERVER) && !defined(NO_HW_ONLY_EXTS)
+#if defined(XKB) && !defined(PRINT_ONLY_SERVER)
     if (!noXkbExtension) XkbExtensionInit();
 #endif
 #ifdef XCMISC
@@ -590,6 +593,9 @@ InitExtensions(argc, argv)
 #endif
 #ifdef XAPPGROUP
     if (!noXagExtension) XagExtensionInit();
+#endif
+#ifdef XACE
+    XaceExtensionInit();
 #endif
 #ifdef XCSECURITY
     if (!noSecurityExtension) SecurityExtensionInit();
@@ -693,8 +699,11 @@ static ExtensionModule staticExtensions[] = {
 #ifdef XAPPGROUP
     { XagExtensionInit, XAGNAME, &noXagExtension, NULL, NULL },
 #endif
+#ifdef XACE
+    { XaceExtensionInit, XACE_EXTENSION_NAME, NULL, NULL, NULL },
+#endif
 #ifdef XCSECURITY
-    { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL, NULL },
+    { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, SecurityExtensionSetup, NULL },
 #endif
 #ifdef XPRINT
     { XpExtensionInit, XP_PRINTNAME, NULL, NULL, NULL },
@@ -745,6 +754,16 @@ InitExtensions(argc, argv)
 	/* Sort the extensions according the init dependencies. */
 	LoaderSortExtensions();
 	listInitialised = TRUE;
+    } else {
+	/* Call the setup functions on subsequent server resets as well */
+	for (i = 0; ExtensionModuleList[i].name != NULL; i++) {
+	    ext = &ExtensionModuleList[i];
+	    if (ext->setupFunc != NULL &&
+		(ext->disablePtr == NULL ||
+		 (ext->disablePtr != NULL && !*ext->disablePtr))) {
+		(ext->setupFunc)();
+	    }
+	}
     }
 
     for (i = 0; ExtensionModuleList[i].name != NULL; i++) {

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/ddc/vdif.h,v 1.4tsi Exp $ */
 
 #ifndef _VDIF_H
 #define _VDIF_H

@@ -159,6 +159,14 @@ default state is platform and configuration specific.
 disables DPMS (display power management services).  The default state
 is platform and configuration specific.
 .TP 8
+.BI \-extension extensionName
+disables named extension.   If an unknown extension name is specified,
+a list of accepted extension names is printed.
+.TP 8
+.BI \+extension extensionName
+enables named extension.   If an unknown extension name is specified,
+a list of accepted extension names is printed.
+.TP 8
 .B \-f \fIvolume\fP
 sets feep (bell) volume (allowable range: 0-100).
 .TP 8
@@ -181,7 +189,7 @@ prints a usage message.
 causes all remaining command line arguments to be ignored.
 .TP 8
 .B \-maxbigreqsize \fIsize\fP
-sets the maxmium big request to
+sets the maximum big request to
 .I size
 MB.
 .TP 8
@@ -449,7 +457,7 @@ the text after the /; it is used to distinguish between instances of
 
 <action> ::= a | i | e
 
-<string> ::= <dbl quoted string> | <single quoted string> | <unqouted string>
+<string> ::= <dbl quoted string> | <single quoted string> | <unquoted string>
 
 <dbl quoted string> ::= <space> " <not dqoute>* " <space>
 

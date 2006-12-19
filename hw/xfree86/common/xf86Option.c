@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Option.c,v 1.29 2003/10/18 12:34:19 dawes Exp $ */
 /*
  * Copyright (c) 1998-2003 by The XFree86 Project, Inc.
  *
@@ -143,14 +142,14 @@ xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts,
     if (defaultOpts) {
 	pInfo->options = xf86OptionListCreate(defaultOpts, -1, 0);
     }
-    if (pInfo->conf_idev->commonOptions) {
+    if (pInfo->conf_idev && pInfo->conf_idev->commonOptions) {
 	tmp = xf86optionListDup(pInfo->conf_idev->commonOptions);
 	if (pInfo->options)
 	    pInfo->options = xf86optionListMerge(pInfo->options, tmp);
 	else
 	    pInfo->options = tmp;
     }
-    if (pInfo->conf_idev->extraOptions) {
+    if (pInfo->conf_idev && pInfo->conf_idev->extraOptions) {
 	tmp = xf86optionListDup(pInfo->conf_idev->extraOptions);
 	if (pInfo->options)
 	    pInfo->options = xf86optionListMerge(pInfo->options, tmp);

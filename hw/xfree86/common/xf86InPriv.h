@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86InPriv.h,v 1.5 2003/08/24 17:36:52 dawes Exp $ */
 
 /*
  * Copyright (c) 1999 by The XFree86 Project, Inc.
@@ -35,14 +34,13 @@
 #define _xf86InPriv_h
 
 /* xf86Globals.c */
-#ifdef XFree86LOADER
 extern InputDriverPtr *xf86InputDriverList;
-#else
-extern InputDriverPtr xf86InputDriverList[];
-#endif
 extern int xf86NumInputDrivers;
 
 /* xf86Xinput.c */
 void xf86ActivateDevice(InputInfoPtr pInfo);
+
+/* xf86Helper.c */
+InputDriverPtr xf86LookupInputDriver(const char *name);
 
 #endif /* _xf86InPriv_h */

@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/common/xf86DGA.c,v 1.8 2006/02/15 20:44:13 ajax Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86DGA.c,v 1.46 2002/12/03 18:17:40 tsi Exp $ */
 /*
  * Copyright (c) 1998-2002 by The XFree86 Project, Inc.
  *
@@ -49,6 +47,8 @@
 #endif
 #include "xf86Xinput.h"
 
+#include "mi.h"
+
 static unsigned long DGAGeneration = 0;
 static int DGAScreenIndex = -1;
 
@@ -63,11 +63,7 @@ DGACopyModeInfo(
    XDGAModePtr xmode
 );
 
-#if defined(XFree86LOADER) || !defined(XFreeXDGA)
 _X_EXPORT int *XDGAEventBase = NULL;
-#else
-_X_EXPORT int *XDGAEventBase = &DGAEventBase;
-#endif
 
 #define DGA_GET_SCREEN_PRIV(pScreen) \
 	((DGAScreenPtr)((pScreen)->devPrivates[DGAScreenIndex].ptr))
@@ -913,22 +909,6 @@ DGAVTSwitch(void)
 Bool
 DGAStealKeyEvent(int index, xEvent *e)
 {
-   DGAScreenPtr pScreenPriv;
-    dgaEvent	de;
-
-   if(DGAScreenIndex < 0) /* no DGA */
-	return FALSE;
-
-   pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
-
-   if(!pScreenPriv || !pScreenPriv->grabKeyboard) /* no direct mode */
-	return FALSE;
-
-    de.u.u.type = e->u.u.type + *XDGAEventBase;
-    de.u.u.detail = e->u.u.detail;
-    de.u.event.time = e->u.keyButtonPointer.time;
-    xf86eqEnqueue ((xEvent *) &de);
-   return TRUE;
 }
 
 static int  DGAMouseX, DGAMouseY;
@@ -936,36 +916,6 @@ static int  DGAMouseX, DGAMouseY;
 Bool
 DGAStealMouseEvent(int index, xEvent *e, int dx, int dy)
 {
-   DGAScreenPtr pScreenPriv;
-    dgaEvent	de;
-
-   if(DGAScreenIndex < 0) /* no DGA */
-	return FALSE;
-
-   pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
-
-   if(!pScreenPriv || !pScreenPriv->grabMouse) /* no direct mode */
-	return FALSE;
-    
-    DGAMouseX += dx;
-    if (DGAMouseX < 0)
-	DGAMouseX = 0;
-    else if (DGAMouseX > screenInfo.screens[index]->width)
-	DGAMouseX = screenInfo.screens[index]->width;
-    DGAMouseY += dy;
-    if (DGAMouseY < 0)
-	DGAMouseY = 0;
-    else if (DGAMouseY > screenInfo.screens[index]->height)
-	DGAMouseY = screenInfo.screens[index]->height;
-    de.u.u.type = e->u.u.type + *XDGAEventBase;
-    de.u.u.detail = e->u.u.detail;
-    de.u.event.time = e->u.keyButtonPointer.time;
-    de.u.event.dx = dx;
-    de.u.event.dy = dy;
-    de.u.event.pad1 = DGAMouseX;
-    de.u.event.pad2 = DGAMouseY;
-    xf86eqEnqueue ((xEvent *) &de);
-    return TRUE;
 }
 
 Bool

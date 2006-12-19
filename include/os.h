@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/include/os.h,v 3.54 2003/10/30 21:21:06 herrb Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -46,7 +45,6 @@ SOFTWARE.
 
 ******************************************************************/
 
-/* $Xorg: os.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 
 #ifndef OS_H
 #define OS_H
@@ -88,12 +86,8 @@ typedef struct _NewClientRec *NewClientPtr;
 #define xnfstrdup(s) XNFstrdup(s)
 #endif
 
-#ifndef IN_MODULE
-#ifdef __SCO__
 #include <stdio.h>
-#endif
-#include <string.h>
-#endif
+#include <stdarg.h>
 
 /* have to put $(SIGNAL_DEFINES) in DEFINES in Imakefile to get this right */
 #ifdef SIGNALRETURNSINT
@@ -152,6 +146,10 @@ extern Bool EstablishNewConnections(
 extern void CheckConnections(void);
 
 extern void CloseDownConnection(ClientPtr /*client*/);
+
+extern void AddGeneralSocket(int /*fd*/);
+
+extern void RemoveGeneralSocket(int /*fd*/);
 
 extern void AddEnabledDevice(int /*fd*/);
 
@@ -512,15 +510,15 @@ __attribute((noreturn))
 #endif
 ;
 
+#ifdef DEBUG
+#define DebugF ErrorF
+#else
+#define DebugF(x, ...) /* */
+#endif
+
 extern void VErrorF(const char *f, va_list args);
 extern void ErrorF(const char *f, ...) _printf_attribute(1,2);
 extern void Error(char *str);
 extern void LogPrintMarkers(void);
-
-#if defined(NEED_SNPRINTF) && !defined(IN_MODULE)
-extern int snprintf(char *str, size_t size, const char *format, ...)
-	_printf_attribute(3,4);
-extern int vsnprintf(char *str, size_t size, const char *format, va_list ap);
-#endif
 
 #endif /* OS_H */

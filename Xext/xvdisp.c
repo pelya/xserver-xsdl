@@ -1,4 +1,3 @@
-/* $XdotOrg: xserver/xorg/Xext/xvdisp.c,v 1.6 2005/07/03 08:53:36 daniels Exp $ */
 /***********************************************************
 Copyright 1991 by Digital Equipment Corporation, Maynard, Massachusetts,
 and the Massachusetts Institute of Technology, Cambridge, Massachusetts.
@@ -22,7 +21,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/Xext/xvdisp.c,v 1.27 2003/07/16 01:38:31 dawes Exp $ */
 
 /*
 ** File: 
@@ -375,10 +373,8 @@ ProcXvQueryAdaptors(ClientPtr client)
   xvFormat format;
   xvAdaptorInfo ainfo;
   xvQueryAdaptorsReply rep;
-  int totalSize;
-  int na;
+  int totalSize, na, nf, rc;
   XvAdaptorPtr pa;
-  int nf;
   XvFormatPtr pf;
   WindowPtr pWin;
   ScreenPtr pScreen;
@@ -387,11 +383,9 @@ ProcXvQueryAdaptors(ClientPtr client)
   REQUEST(xvQueryAdaptorsReq);
   REQUEST_SIZE_MATCH(xvQueryAdaptorsReq);
 
-  if(!(pWin = (WindowPtr)LookupWindow(stuff->window, client) ))
-    {
-      client->errorValue = stuff->window;
-      return (BadWindow);
-    }
+  rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+  if (rc != Success)
+      return rc;
 
   pScreen = pWin->drawable.pScreen;
   pxvs = (XvScreenPtr)pScreen->devPrivates[XvScreenIndex].ptr;
@@ -533,9 +527,9 @@ ProcXvQueryEncodings(ClientPtr client)
 static int
 ProcXvPutVideo(ClientPtr client)
 {
-  register DrawablePtr pDraw;
+  DrawablePtr pDraw;
   XvPortPtr pPort;
-  register GCPtr pGC;
+  GCPtr pGC;
   int status;
 
   REQUEST(xvPutVideoReq);
@@ -579,9 +573,9 @@ ProcXvPutVideo(ClientPtr client)
 static int
 ProcXvPutStill(ClientPtr client)
 {
-  register DrawablePtr pDraw;
+  DrawablePtr pDraw;
   XvPortPtr pPort;
-  register GCPtr pGC;
+  GCPtr pGC;
   int status;
 
   REQUEST(xvPutStillReq);
@@ -626,9 +620,9 @@ ProcXvPutStill(ClientPtr client)
 static int
 ProcXvGetVideo(ClientPtr client)
 {
-  register DrawablePtr pDraw;
+  DrawablePtr pDraw;
   XvPortPtr pPort;
-  register GCPtr pGC;
+  GCPtr pGC;
   int status;
 
   REQUEST(xvGetVideoReq);
@@ -673,9 +667,9 @@ ProcXvGetVideo(ClientPtr client)
 static int
 ProcXvGetStill(ClientPtr client)
 {
-  register DrawablePtr pDraw;
+  DrawablePtr pDraw;
   XvPortPtr pPort;
-  register GCPtr pGC;
+  GCPtr pGC;
   int status;
 
   REQUEST(xvGetStillReq);
@@ -719,15 +713,14 @@ ProcXvGetStill(ClientPtr client)
 static int
 ProcXvSelectVideoNotify(ClientPtr client)
 {
-  register DrawablePtr pDraw;
+  DrawablePtr pDraw;
+  int rc;
   REQUEST(xvSelectVideoNotifyReq);
   REQUEST_SIZE_MATCH(xvSelectVideoNotifyReq);
 
-  if(!(pDraw = (DrawablePtr)LOOKUP_DRAWABLE(stuff->drawable, client) ))
-    {
-      client->errorValue = stuff->drawable;
-      return (BadWindow);
-    }
+  rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0, DixUnknownAccess);
+  if (rc != Success)
+    return rc;
 
   return XVCALL(diSelectVideoNotify)(client, pDraw, stuff->onoff);
 
@@ -824,8 +817,8 @@ ProcXvUngrabPort(ClientPtr client)
 static int
 ProcXvStopVideo(ClientPtr client)
 {
-  int status;
-  register DrawablePtr pDraw;
+  int status, rc;
+  DrawablePtr pDraw;
   XvPortPtr pPort;
   REQUEST(xvStopVideoReq);
   REQUEST_SIZE_MATCH(xvStopVideoReq);
@@ -842,11 +835,9 @@ ProcXvStopVideo(ClientPtr client)
       return (status);
     }
 
-  if(!(pDraw = LOOKUP_DRAWABLE(stuff->drawable, client) ))
-    {
-      client->errorValue = stuff->drawable;
-      return (BadDrawable);
-    }
+  rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0, DixUnknownAccess);
+  if (rc != Success)
+    return rc;
 
   return XVCALL(diStopVideo)(client, pPort, pDraw);
 
@@ -1879,11 +1870,11 @@ XineramaXvStopVideo(ClientPtr client)
    REQUEST_SIZE_MATCH(xvStopVideoReq);
 
    if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
-                client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
+                client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
         return BadDrawable;
 
    if(!(port = (PanoramiXRes *)SecurityLookupIDByType(
-                client, stuff->port, XvXRTPort, SecurityReadAccess)))
+                client, stuff->port, XvXRTPort, DixReadAccess)))
         return _XvBadPort;
 
    FOR_NSCREENS_BACKWARD(i) {
@@ -1907,7 +1898,7 @@ XineramaXvSetPortAttribute(ClientPtr client)
     REQUEST_SIZE_MATCH(xvSetPortAttributeReq);
 
     if(!(port = (PanoramiXRes *)SecurityLookupIDByType(
-                client, stuff->port, XvXRTPort, SecurityReadAccess)))
+                client, stuff->port, XvXRTPort, DixReadAccess)))
         return _XvBadPort;
 
     FOR_NSCREENS_BACKWARD(i) {
@@ -1933,15 +1924,15 @@ XineramaXvShmPutImage(ClientPtr client)
     REQUEST_SIZE_MATCH(xvShmPutImageReq);
 
     if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
-                client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
+                client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
         return BadDrawable;
 
     if(!(gc = (PanoramiXRes *)SecurityLookupIDByType(
-                client, stuff->gc, XRT_GC, SecurityReadAccess)))
+                client, stuff->gc, XRT_GC, DixReadAccess)))
         return BadGC;    
 
     if(!(port = (PanoramiXRes *)SecurityLookupIDByType(
-                client, stuff->port, XvXRTPort, SecurityReadAccess)))
+                client, stuff->port, XvXRTPort, DixReadAccess)))
         return _XvBadPort;
  
     isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
@@ -1980,15 +1971,15 @@ XineramaXvPutImage(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xvPutImageReq);
 
     if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
-                client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
+                client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
         return BadDrawable;
 
     if(!(gc = (PanoramiXRes *)SecurityLookupIDByType(
-                client, stuff->gc, XRT_GC, SecurityReadAccess)))
+                client, stuff->gc, XRT_GC, DixReadAccess)))
         return BadGC;    
 
     if(!(port = (PanoramiXRes *)SecurityLookupIDByType(
-		client, stuff->port, XvXRTPort, SecurityReadAccess)))
+		client, stuff->port, XvXRTPort, DixReadAccess)))
 	return _XvBadPort;
  
     isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
@@ -2025,15 +2016,15 @@ XineramaXvPutVideo(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xvPutVideoReq);
 
     if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
-                client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
+                client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
         return BadDrawable;
 
     if(!(gc = (PanoramiXRes *)SecurityLookupIDByType(
-                client, stuff->gc, XRT_GC, SecurityReadAccess)))
+                client, stuff->gc, XRT_GC, DixReadAccess)))
         return BadGC;
 
     if(!(port = (PanoramiXRes *)SecurityLookupIDByType(
-                client, stuff->port, XvXRTPort, SecurityReadAccess)))
+                client, stuff->port, XvXRTPort, DixReadAccess)))
         return _XvBadPort;
 
     isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;
@@ -2070,15 +2061,15 @@ XineramaXvPutStill(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xvPutImageReq);
 
     if(!(draw = (PanoramiXRes *)SecurityLookupIDByClass(
-                client, stuff->drawable, XRC_DRAWABLE, SecurityWriteAccess)))
+                client, stuff->drawable, XRC_DRAWABLE, DixWriteAccess)))
         return BadDrawable;
 
     if(!(gc = (PanoramiXRes *)SecurityLookupIDByType(
-                client, stuff->gc, XRT_GC, SecurityReadAccess)))
+                client, stuff->gc, XRT_GC, DixReadAccess)))
         return BadGC;
 
     if(!(port = (PanoramiXRes *)SecurityLookupIDByType(
-                client, stuff->port, XvXRTPort, SecurityReadAccess)))
+                client, stuff->port, XvXRTPort, DixReadAccess)))
         return _XvBadPort;
 
     isRoot = (draw->type == XRT_WINDOW) && draw->u.win.root;

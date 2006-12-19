@@ -26,7 +26,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xwin/InitOutput.c,v 1.34 2003/10/02 13:30:09 eich Exp $ */
 
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>
@@ -695,6 +694,7 @@ winFixupPaths (void)
         if (sizeof(xkbbasedir) > 0)
             xkbbasedir[sizeof(xkbbasedir)-1] = 0;
         XkbBaseDirectory = xkbbasedir;
+	XkbBinDirectory = basedir;
     }
 #endif /* XKB */
 #endif /* RELOCATE_PROJECTROOT */
@@ -943,15 +943,6 @@ ddxUseMsg(void)
 void ddxInitGlobals(void)
 {
 }
-
-#ifdef DDXTIME /* from ServerOSDefines */
-CARD32
-GetTimeInMillis (void)
-{
-  return GetTickCount ();
-}
-#endif /* DDXTIME */
-
 
 /* See Porting Layer Definition - p. 20 */
 /*

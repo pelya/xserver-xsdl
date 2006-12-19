@@ -75,7 +75,7 @@ TsReadBytes (int fd, char *buf, int len, int min)
 static void
 TsRead (int tsPort, void *closure)
 {
-    KdMouseInfo	    *mi = closure;
+    KdPointerInfo    *pi = closure;
     TS_EVENT	    event;
     int		    n;
     long	    x, y;
@@ -117,7 +117,7 @@ TsRead (int tsPort, void *closure)
 	    lastx = 0;
 	    lasty = 0;
 	}
-	KdEnqueueMouseEvent (mi, flags, x, y);
+	KdEnqueuePointerEvent (pi, flags, x, y, 0);
     }
 }
 
@@ -129,95 +129,83 @@ char	*TsNames[] = {
 
 #define NUM_TS_NAMES	(sizeof (TsNames) / sizeof (TsNames[0]))
 
-int TsInputType;
-
-static int
-TsEnable (int fd, void *closure)
-{
-    KdMouseInfo *mi = (KdMouseInfo *)closure;
-
-    return open (mi->name, 0);
-}
-
-static void
-TsDisable (int fd, void *closure)
-{
-    close (fd);
-}
-
-static int
-TsInit (void)
+static Status
+TsInit (KdPointerInfo *pi)
 {
     int		i;
     int		fd;
-    KdMouseInfo	*mi, *next;
     int		n = 0;
 
-    if (!TsInputType)
-	TsInputType = KdAllocInputType ();
-    
-    for (mi = kdMouseInfo; mi; mi = next)
-    {
-	next = mi->next;
-	if (mi->inputType)
-	    continue;
-	if (!mi->name)
-	{
-	    for (i = 0; i < NUM_TS_NAMES; i++)    
-	    {
-		fd = open (TsNames[i], 0);
-		if (fd >= 0) 
-		{
-		    mi->name = KdSaveString (TsNames[i]);
-		    break;
-		}
-	    }
-	}
-	else
-	    fd = open (mi->name, 0);
-	if (fd >= 0)
-	{
-	    struct h3600_ts_calibration cal;
-	    /*
-	     * Check to see if this is a touch screen
-	     */
-	    if (ioctl (fd, TS_GET_CAL, &cal) != -1)
-	    {
-		mi->driver = (void *) fd;
-		mi->inputType = TsInputType;
-		if (KdRegisterFd (TsInputType, fd, TsRead, (void *) mi))
-		{
-		    /* Set callbacks for vt switches etc */
-		    KdRegisterFdEnableDisable (fd, TsEnable, TsDisable);
-
-		    n++;
-		}
-	    }
-	    else
-		close (fd);
+    if (!pi->path || strcmp(pi->path, "auto") == 0) {
+        for (i = 0; i < NUM_TS_NAMES; i++)    {
+            fd = open (TsNames[i], 0);
+            if (fd >= 0) {
+                pi->path = KdSaveString (TsNames[i]);
+                break;
+            }
 	}
     }
+    else {
+        fd = open (pi->path, 0);
+    }
 
-    return 0;
+    if (fd < 0) {
+        ErrorF("TsInit: Couldn't open %s\n", pi->path);
+        return BadMatch;
+    }
+    close(fd);
+
+    pi->name = KdSaveString("H3600 Touchscreen");
+
+    return Success;
+}
+
+static Status
+TsEnable (KdPointerInfo *pi)
+{
+    int fd;
+
+    if (!pi || !pi->path)
+        return BadImplementation;
+
+    fd = open(pi->path, 0);
+
+    if (fd < 0) {
+        ErrorF("TsInit: Couldn't open %s\n", pi->path);
+        return BadMatch;
+    }
+
+    struct h3600_ts_calibration cal;
+    /*
+     * Check to see if this is a touch screen
+     */
+    if (ioctl (fd, TS_GET_CAL, &cal) != -1) {
+	mi->driverPrivate = (void *) fd;
+	if (!KdRegisterFd (fd, TsRead, (void *) mi)) {
+            close(fd);
+            return BadAlloc;
+	}
+    }
+    else {
+        ErrorF("TsEnable: %s is not a touchscreen\n", pi->path);
+	close (fd);
+        return BadMatch;
+    }
+
+    return Success;
 }
 
 static void
-TsFini (void)
+TsFini (KdPointerInfo *pi)
 {
-    KdMouseInfo	*mi;
-
-    KdUnregisterFds (TsInputType, TRUE);
-    for (mi = kdMouseInfo; mi; mi = mi->next)
-    {
-	if (mi->inputType == TsInputType)
-	{
-	    mi->driver = 0;
-	    mi->inputType = 0;
-	}
-    }
+    KdUnregisterFds (pi, (int)pi->driverPrivate, TRUE);
+    mi->driverPrivate = NULL;
 }
 
-KdMouseFuncs TsFuncs = {
+KdPointerDriver TsDriver = {
     TsInit,
-    TsFini
+    TsEnable,
+    TsDisable,
+    TsFini,
+    NULL,
 };

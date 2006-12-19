@@ -3,7 +3,6 @@
  *
  * This file is very closely based on mivaltree.c.
  */
-/* $XFree86: xc/programs/Xserver/miext/rootless/rootlessValTree.c,v 1.1tsi Exp $ */
 
 /*
  * mivaltree.c --

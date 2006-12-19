@@ -875,6 +875,8 @@ xxCopyPseudocolorRegion(ScreenPtr pScreen, RegionPtr pReg,
     register CARD16     *d;
     int w;
 
+    fbPrepareAccess((DrawablePtr)pScreen->devPrivate);
+
     dst_base = (CARD16*) ((PixmapPtr)pScreen->devPrivate)->devPrivate.ptr;
     dst_stride = (int)((PixmapPtr)pScreen->devPrivate)->devKind
 	/ sizeof (CARD16);
@@ -899,6 +901,8 @@ xxCopyPseudocolorRegion(ScreenPtr pScreen, RegionPtr pReg,
 	}
 	pbox++;
     }
+
+    fbFinishAccess(&((PixmapPtr)pScreen->devPrivate)->drawable);
 }
 
 static void
@@ -1200,7 +1204,7 @@ GCFuncs xxGCFuncs = {
     xxChangeClip, xxDestroyClip, xxCopyClip
 };
 
-GCOps xxGCOps = {
+static GCOps xxGCOps = {
     xxFillSpans, xxSetSpans, 
     xxPutImage, xxCopyArea, 
     xxCopyPlane, xxPolyPoint, 

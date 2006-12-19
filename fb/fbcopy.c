@@ -21,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbcopy.c,v 1.13 2003/11/10 18:21:47 tsi Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -104,6 +103,8 @@ fbCopyNtoN (DrawablePtr	pSrcDrawable,
 #endif
 	pbox++;
     }    
+    fbFinishAccess (pDstDrawable);
+    fbFinishAccess (pSrcDrawable);
 }
 
 void
@@ -174,6 +175,9 @@ fbCopy1toN (DrawablePtr	pSrcDrawable,
 	}
 	pbox++;
     }
+
+    fbFinishAccess (pDstDrawable);
+    fbFinishAccess (pSrcDrawable);
 }
 
 void
@@ -222,6 +226,8 @@ fbCopyNto1 (DrawablePtr	pSrcDrawable,
 			(FbStip) pPriv->and, (FbStip) pPriv->xor,
 			(FbStip) pPriv->bgand, (FbStip) pPriv->bgxor,
 			bitplane);
+	    fbFinishAccess (pDstDrawable);
+	    fbFinishAccess (pSrcDrawable);
 	}
 	else
 	{
@@ -282,6 +288,9 @@ fbCopyNto1 (DrawablePtr	pSrcDrawable,
 		      pPriv->and, pPriv->xor,
 		      pPriv->bgand, pPriv->bgxor);
 	    xfree (tmp);
+
+	    fbFinishAccess (pDstDrawable);
+	    fbFinishAccess (pSrcDrawable);
 	}
 	pbox++;
     }

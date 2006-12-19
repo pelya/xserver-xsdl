@@ -51,10 +51,8 @@ InitOutput (ScreenInfo *pScreenInfo, int argc, char **argv)
 void
 InitInput (int argc, char **argv)
 {
-    KdInitInput (&LinuxMouseFuncs, &LinuxKeyboardFuncs);
-#ifdef TOUCHSCREEN
-    KdAddMouseDriver (&TsFuncs);
-#endif
+    KdOsAddInputDrivers ();
+    KdInitInput ();
 }
 
 void

@@ -21,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbtile.c,v 1.3 2000/02/12 03:39:43 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -81,7 +80,7 @@ fbEvenTile (FbBits	*dst,
 	/*
 	 * Pick up bits for this scanline
 	 */
-	bits = *t++;
+	bits = READ(t++);
 	if (t == tileEnd) t = tile;
 	bits = FbRotLeft(bits,rot);
 	and = fbAnd(alu,bits,pm);
@@ -95,11 +94,11 @@ fbEvenTile (FbBits	*dst,
 	n = nmiddle;
 	if (!and)
 	    while (n--)
-		*dst++ = xor;
+		WRITE(dst++, xor);
 	else
 	    while (n--)
 	    {
-		*dst = FbDoRRop (*dst, and, xor);
+		WRITE(dst, FbDoRRop (READ(dst), and, xor));
 		dst++;
 	    }
 	if (endmask)

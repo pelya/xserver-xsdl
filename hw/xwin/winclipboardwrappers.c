@@ -344,13 +344,11 @@ winProcSetSelectionOwner (ClientPtr client)
   if (None != stuff->window)
     {
       /* Grab the Window from the request */
-      pWindow = (WindowPtr) SecurityLookupWindow (stuff->window, client,
-						  SecurityReadAccess);
-      if (!pWindow)
-	{
+      int rc = dixLookupWindow(&pWindow, stuff->window, client, DixReadAccess);
+      if (rc != Success) {
 	  ErrorF ("winProcSetSelectionOwner - Found BadWindow, aborting.\n");
 	  goto winProcSetSelectionOwner_Done;
-	}
+      }
     }
 
   /* Now we either have a valid window or None */

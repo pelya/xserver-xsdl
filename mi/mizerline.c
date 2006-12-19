@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/mi/mizerline.c,v 3.6 2001/08/06 20:51:20 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -45,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: mizerline.c,v 1.4 2001/02/09 02:05:22 xorgcvs Exp $ */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif

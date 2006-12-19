@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Globals.c,v 1.42 2004/01/27 01:31:44 dawes Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -94,36 +93,11 @@ InputInfoPtr xf86InputDevs = NULL;
 /* Globals that video drivers may not access */
 
 xf86InfoRec xf86Info = {
-	NULL,		/* pKeyboard */
-	NULL,		/* kbdProc */
-	NULL,		/* kbdEvents */
 	-1,		/* consoleFd */
-	-1,		/* kbdFd */
 	-1,		/* vtno */
-	-1,		/* kbdType */
-	-1,		/* kbdRate */
-	-1, 		/* kbdDelay */
-	-1,		/* bell_pitch */
-	-1,		/* bell_duration */
-	TRUE,		/* autoRepeat */
-	0,		/* leds */
-	0,		/* xleds */
 	NULL,		/* vtinit */
-	0,		/* scanPrefix */
-	FALSE,		/* capsLock */
-	FALSE,		/* numLock */
-	FALSE,		/* scrollLock */
-	FALSE,		/* modeSwitchLock */
-	FALSE,		/* composeLock */
 	FALSE,		/* vtSysreq */
 	SKWhenNeeded,	/* ddxSpecialKeys */
-	FALSE,		/* ActionKeyBindingsSet */
-#if defined(SVR4) && defined(i386)
-	FALSE,		/* panix106 */
-#endif
-#if defined(__OpenBSD__) || defined(__NetBSD__)
-	0,		/* wskbdType */
-#endif
 	NULL,		/* pMouse */
 #ifdef XINPUT
 	NULL,		/* mouseLocal */
@@ -141,20 +115,6 @@ xf86InfoRec xf86Info = {
 #ifdef CSRG_BASED
 	-1,		/* screenFd */
 	-1,		/* consType */
-#endif
-#ifdef XKB
-	NULL,		/* xkbkeymap */
-	NULL,		/* xkbkeycodes */
-	NULL,		/* xkbtypes */
-	NULL,		/* xkbcompat */
-	NULL,		/* xkbsymbols */
-	NULL,		/* xkbgeometry */
-	FALSE,		/* xkbcomponents_specified */
-	NULL,		/* xkbrules */
-	NULL,		/* xkbmodel */
-	NULL,		/* xkblayout */
-	NULL,		/* xkbvariant */
-	NULL,		/* xkboptions */
 #endif
 	FALSE,		/* allowMouseOpenFail */
 	TRUE,		/* vidModeEnabled */
@@ -189,14 +149,12 @@ Bool xf86Initialising = FALSE;
 Bool xf86ProbeFailed = FALSE;
 Bool xf86DoProbe = FALSE;
 Bool xf86DoConfigure = FALSE;
-#ifdef XFree86LOADER
 DriverPtr *xf86DriverList = NULL;
 int xf86NumDrivers = 0;
 InputDriverPtr *xf86InputDriverList = NULL;
 int xf86NumInputDrivers = 0;
 ModuleInfoPtr *xf86ModuleInfoList = NULL;
 int xf86NumModuleInfos = 0;
-#endif
 int xf86NumScreens = 0;
 
 const char *xf86VisualNames[] = {

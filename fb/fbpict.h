@@ -1,5 +1,4 @@
 /*
- * $XFree86: xc/programs/Xserver/fb/fbpict.h,v 1.7 2001/07/18 10:15:02 keithp Exp $
  *
  * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
  *
@@ -30,6 +29,13 @@
 #define _FBPICT_H_
 
 #include "renderedge.h"
+
+
+#if defined(__GNUC__)
+#define INLINE __inline__
+#else
+#define INLINE
+#endif
 
 #define FbIntMult(a,b,t) ( (t) = (a) * (b) + 0x80, ( ( ( (t)>>8 ) + (t) )>>8 ) )
 #define FbIntDiv(a,b)	 (((CARD16) (a) * 255) / (b))
@@ -68,6 +74,40 @@
 #define Green(x) (((x) >> 8) & 0xff)
 #define Blue(x) ((x) & 0xff)
 
+/**
+ * Returns TRUE if the fbComposeGetSolid can be used to get a single solid
+ * color representing every source sampling location of the picture.
+ */
+static INLINE Bool
+fbCanGetSolid(PicturePtr pict)
+{
+    if (pict->pDrawable == NULL ||
+	pict->pDrawable->width != 1 ||
+	pict->pDrawable->height != 1)
+    {
+	return FALSE;
+    }
+    if (pict->repeat != RepeatNormal)
+	return FALSE;
+
+    switch (pict->format) {
+    case PICT_a8r8g8b8:
+    case PICT_x8r8g8b8:
+    case PICT_a8b8g8r8:
+    case PICT_x8b8g8r8:
+    case PICT_r8g8b8:
+    case PICT_b8g8r8:
+    case PICT_r5g6b5:
+    case PICT_b5g6r5:
+	return TRUE;
+    default:
+	return FALSE;
+    }
+}
+
+#define fbCanGetSolid(pict) \
+(pict->pDrawable != NULL && pict->pDrawable->width == 1 && pict->pDrawable->height == 1)
+
 #define fbComposeGetSolid(pict, bits, fmt) { \
     FbBits	*__bits__; \
     FbStride	__stride__; \
@@ -77,13 +117,13 @@
     fbGetDrawable((pict)->pDrawable,__bits__,__stride__,__bpp__,__xoff__,__yoff__); \
     switch (__bpp__) { \
     case 32: \
-	(bits) = *(CARD32 *) __bits__; \
+	(bits) = READ((CARD32 *) __bits__); \
 	break; \
     case 24: \
 	(bits) = Fetch24 ((CARD8 *) __bits__); \
 	break; \
     case 16: \
-	(bits) = *(CARD16 *) __bits__; \
+	(bits) = READ((CARD16 *) __bits__); \
 	(bits) = cvt0565to8888(bits); \
 	break; \
     default: \
@@ -100,6 +140,7 @@
     /* manage missing src alpha */ \
     if ((pict)->pFormat->direct.alphaMask == 0) \
 	(bits) |= 0xff000000; \
+    fbFinishAccess ((pict)->pDrawable); \
 }
 
 #define fbComposeGetStart(pict,x,y,type,stride,line,mul) {\
@@ -121,22 +162,22 @@
 
 #if IMAGE_BYTE_ORDER == MSBFirst
 #define Fetch24(a)  ((unsigned long) (a) & 1 ? \
-		     ((*(a) << 16) | *((CARD16 *) ((a)+1))) : \
-		     ((*((CARD16 *) (a)) << 8) | *((a)+2)))
+		     ((READ(a) << 16) | READ((CARD16 *) ((a)+1))) : \
+		     ((READ((CARD16 *) (a)) << 8) | READ((a)+2)))
 #define Store24(a,v) ((unsigned long) (a) & 1 ? \
-		      ((*(a) = (CARD8) ((v) >> 16)), \
-		       (*((CARD16 *) ((a)+1)) = (CARD16) (v))) : \
-		      ((*((CARD16 *) (a)) = (CARD16) ((v) >> 8)), \
-		       (*((a)+2) = (CARD8) (v))))
+		      (WRITE(a, (CARD8) ((v) >> 16)), \
+		       WRITE((CARD16 *) ((a)+1), (CARD16) (v))) : \
+		      (WRITE((CARD16 *) (a), (CARD16) ((v) >> 8)), \
+		       WRITE((a)+2, (CARD8) (v))))
 #else
 #define Fetch24(a)  ((unsigned long) (a) & 1 ? \
-		     ((*(a)) | (*((CARD16 *) ((a)+1)) << 8)) : \
-		     ((*((CARD16 *) (a))) | (*((a)+2) << 16)))
+		     (READ(a) | (READ((CARD16 *) ((a)+1)) << 8)) : \
+		     (READ((CARD16 *) (a)) | (READ((a)+2) << 16)))
 #define Store24(a,v) ((unsigned long) (a) & 1 ? \
-		      ((*(a) = (CARD8) (v)), \
-		       (*((CARD16 *) ((a)+1)) = (CARD16) ((v) >> 8))) : \
-		      ((*((CARD16 *) (a)) = (CARD16) (v)),\
-		       (*((a)+2) = (CARD8) ((v) >> 16))))
+		      (WRITE(a, (CARD8) (v)), \
+		       WRITE((CARD16 *) ((a)+1), (CARD16) ((v) >> 8))) : \
+		      (WRITE((CARD16 *) (a), (CARD16) (v)),\
+		       WRITE((a)+2, (CARD8) ((v) >> 16))))
 #endif
 		      
 /*
@@ -320,12 +361,6 @@
 #define FASTCALL __attribute__((regparm(3)))
 #else
 #define FASTCALL
-#endif
-
-#if defined(__GNUC__)
-#define INLINE __inline__
-#else
-#define INLINE
 #endif
 
 typedef struct _FbComposeData {

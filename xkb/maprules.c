@@ -1,4 +1,3 @@
-/* $Xorg: maprules.c,v 1.4 2000/08/17 19:46:43 cpqbld Exp $ */
 /************************************************************
  Copyright (c) 1996 by Silicon Graphics Computer Systems, Inc.
 
@@ -24,7 +23,6 @@
  THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
  ********************************************************/
-/* $XFree86: xc/lib/xkbfile/maprules.c,v 3.17 2002/11/26 01:43:25 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -60,12 +58,6 @@
 #define PR_DEBUG(s)
 #define PR_DEBUG1(s,a)
 #define PR_DEBUG2(s,a,b)
-#endif
-
-#ifdef NEED_STRCASECMP
-extern int _XkbStrCaseCmp(char *s1, char *s2);
-#else
-#define _XkbStrCaseCmp strcasecmp
 #endif
 
 /***====================================================================***/
@@ -1092,20 +1084,20 @@ int			len,headingtype,extra_ndx = 0;
     for ( ; GetInputLine(file,&line,False); line.num_line= 0) {
 	if (line.line[0]=='!') {
 	    tok = strtok(&(line.line[1]), " \t");
-	    if (_XkbStrCaseCmp(tok,"model") == 0)
+	    if (strcasecmp(tok,"model") == 0)
 		headingtype = HEAD_MODEL;
-	    else if (_XkbStrCaseCmp(tok,"layout") == 0)
+	    else if (strcasecmp(tok,"layout") == 0)
 		headingtype = HEAD_LAYOUT;
-	    else if (_XkbStrCaseCmp(tok,"variant") == 0)
+	    else if (strcasecmp(tok,"variant") == 0)
 		headingtype = HEAD_VARIANT;
-	    else if (_XkbStrCaseCmp(tok,"option") == 0)
+	    else if (strcasecmp(tok,"option") == 0)
 		headingtype = HEAD_OPTION;
 	    else {
 		int i;
 		headingtype = HEAD_EXTRA;
 		extra_ndx= -1;
 		for (i=0;(i<rules->num_extra)&&(extra_ndx<0);i++) {
-		    if (!_XkbStrCaseCmp(tok,rules->extra_names[i]))
+		    if (!strcasecmp(tok,rules->extra_names[i]))
 			extra_ndx= i;
 		}
 		if (extra_ndx<0) {

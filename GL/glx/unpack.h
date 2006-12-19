@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/unpack.h,v 1.4 2002/01/14 22:47:08 tsi Exp $ */
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif

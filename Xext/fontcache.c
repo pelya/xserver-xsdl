@@ -27,7 +27,6 @@
  *
  *	Id: fontcache.c,v 1.12 1999/01/31 13:47:45 akiyama Exp $
  */
-/* $XFree86: xc/programs/Xserver/Xext/fontcache.c,v 1.7 2003/10/28 23:08:43 tsi Exp $ */
 
 /* THIS IS NOT AN X CONSORTIUM STANDARD */
 
@@ -46,8 +45,8 @@
 #include "inputstr.h"
 #include "servermd.h"
 #define _FONTCACHE_SERVER_
-#include "fontcacheP.h"
-#include "fontcachstr.h"
+#include <X11/extensions/fontcacheP.h>
+#include <X11/extensions/fontcachstr.h>
 #include <X11/Xfuncproto.h>
 
 #include "swaprep.h"

@@ -26,7 +26,6 @@
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
  *
- * $XFree86: xc/programs/Xserver/hw/xfree86/xf86cfg/loadmod.c,v 1.16 2003/03/12 16:40:28 tsi Exp $
  */
 
 #ifdef USE_MODULES
@@ -182,7 +181,7 @@ LOOKUP xfree86LookupTab[] = {
    SYMFUNC(xf86memchr)
    SYMFUNC(xf86memcmp)
    SYMFUNC(xf86memcpy)
-#if (defined(__powerpc__) && (defined(Lynx) || defined(linux))) || defined(__sparc__) || defined(__ia64__) || defined (__amd64__)
+#if (defined(__powerpc__) && (defined(Lynx) || defined(linux))) || defined(__sparc__) || defined(__sparc) || defined(__ia64__) || defined (__amd64__)
    /*
     * Some PPC, SPARC, and IA64 compilers generate calls to memcpy to handle
     * structure copies.  This causes a problem both here and in shared

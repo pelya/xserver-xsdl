@@ -374,13 +374,13 @@ void XETSwSendEvent(register xSendEventReq *data)
 {
     register char n;
     xEvent eventT;
-    void (*proc)();
+    EventSwapPtr proc;
     swapl(&(data->destination), n);
     swapl(&(data->eventMask), n);
 
     /* Swap event */
     proc = EventSwapVector[data->event.u.u.type & 0177];
-    if (!proc || (int (*)()) proc == (int (*)()) NotImplemented)   
+    if (!proc || proc == NotImplemented)
         (*proc)(&(data->event), &eventT);
     data->event = eventT;
     swaps(&(data->length), n);

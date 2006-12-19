@@ -1,5 +1,3 @@
-/* $Xorg: Keyboard.c,v 1.3 2000/08/17 19:53:28 cpqbld Exp $ */
-/* $XdotOrg: xserver/xorg/hw/xnest/Keyboard.c,v 1.9 2006/03/27 22:25:56 daniels Exp $ */
 /*
 
 Copyright 1993 by Davor Matic
@@ -13,7 +11,6 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/Keyboard.c,v 1.9 2003/09/13 21:33:09 dawes Exp $ */
 
 #define NEED_EVENTS
 #ifdef HAVE_XNEST_CONFIG_H
@@ -92,6 +89,12 @@ DeviceIntPtr xnestKeyboardDevice = NULL;
 
 void
 xnestBell(int volume, DeviceIntPtr pDev, pointer ctrl, int cls)
+{
+  XBell(xnestDisplay, volume);
+}
+
+void
+DDXRingBell(int volume, int pitch, int duration)
 {
   XBell(xnestDisplay, volume);
 }
@@ -202,9 +205,6 @@ XkbError:
 			       xnestBell, xnestChangeKeyboardControl);
 #ifdef XKB
       } else {
-	FILE *file;
-	XkbConfigRtrnRec config;
-
 	XkbComponentNamesRec names;
 	char *rules, *model, *layout, *variants, *options;
 
@@ -259,7 +259,7 @@ XkbError:
 }
 
 Bool
-LegalModifier(unsigned int key, DevicePtr pDev)
+LegalModifier(unsigned int key, DeviceIntPtr pDev)
 {
   return TRUE;
 }

@@ -22,7 +22,6 @@
  */
 
 
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/lynxos/lynx_init.c,v 3.2 1998/07/25 16:56:45 dawes Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

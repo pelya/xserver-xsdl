@@ -46,7 +46,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XConsortium: afbmisc.c,v 5.4 94/04/17 20:28:27 dpw Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

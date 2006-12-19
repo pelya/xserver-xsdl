@@ -6436,7 +6436,6 @@ static PciChipsets ZZZPciChipsets[] = {
     driver.  This is required for the dynamically loaded version:
 <p>
     <code>
-#ifdef XFree86LOADER
 static XF86ModuleVersionInfo zzzVersRec =
 {
     "zzz",
@@ -6450,7 +6449,6 @@ static XF86ModuleVersionInfo zzzVersRec =
     MOD_CLASS_VIDEODRV,
     {0,0,0,0}
 };
-#endif
     </code>
 <p>
   <item>Define a data structure to hold the driver's screen-specific data.
@@ -6508,9 +6506,7 @@ static const OptionInfoRec ZZZOptions[] = {
     the driver to the main list of drivers.
 
     <code>
-#ifdef XFree86LOADER
-
-static MODULESETUPPROTO(mgaSetup);
+static MODULESETUPPROTO(zzzSetup);
 
 XF86ModuleData zzzModuleData = { &amp;zzzVersRec, zzzSetup, NULL };
 
@@ -6540,7 +6536,6 @@ zzzSetup(pointer module, pointer opts, int *errmaj, int *errmin)
         return NULL;
     }
 }
-#endif
     </code>
 
 <sect2>GetRec, FreeRec

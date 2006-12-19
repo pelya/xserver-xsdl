@@ -1,4 +1,3 @@
-/* $XdotOrg: xc/programs/Xserver/hw/xfree86/os-support/sunos/agpgart.h,v 1.1 2005/06/09 03:11:58 alanc Exp $ */
 /*
  * AGPGART module version 0.99
  * Copyright (C) 1999 Jeff Hartmann

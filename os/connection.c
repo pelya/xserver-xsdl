@@ -1,4 +1,3 @@
-/* $Xorg: connection.c,v 1.6 2001/02/09 02:05:23 xorgcvs Exp $ */
 /***********************************************************
 
 Copyright 1987, 1989, 1998  The Open Group
@@ -45,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/os/connection.c,v 3.64 2003/10/07 22:50:42 herrb Exp $ */
 /*****************************************************************
  *  Stuff to create connections --- OS dependent
  *
@@ -148,11 +146,11 @@ extern __const__ int _nfiles;
 #include "opaque.h"
 #include "dixstruct.h"
 #ifdef XAPPGROUP
-#include <X11/extensions/Xagsrv.h>
+#include "appgroup.h"
 #endif
+#include "xace.h"
 #ifdef XCSECURITY
-#define _SECURITY_SERVER
-#include <X11/extensions/security.h>
+#include "securitysrv.h"
 #endif
 
 #ifdef X_NOT_POSIX
@@ -164,6 +162,18 @@ extern __const__ int _nfiles;
 #ifdef DNETCONN
 #include <netdnet/dn.h>
 #endif /* DNETCONN */
+
+#ifdef HAS_GETPEERUCRED
+# include <ucred.h>
+# include <zone.h>
+#endif
+
+#ifdef XSERVER_DTRACE
+# include <sys/types.h>
+typedef const char *string;
+# include "../dix/Xserver-dtrace.h"
+# include <ucred.h>
+#endif
 
 int lastfdesc;			/* maximum file descriptor */
 
@@ -549,6 +559,13 @@ AuthAudit (ClientPtr client, Bool letin,
 {
     char addr[128];
     char *out = addr;
+    int client_uid;
+    char client_uid_string[64];
+#ifdef HAS_GETPEERUCRED
+    ucred_t *peercred = NULL;
+    pid_t client_pid = -1;
+    zoneid_t client_zid = -1;
+#endif
 
     if (!len)
         strcpy(out, "local host");
@@ -585,14 +602,44 @@ AuthAudit (ClientPtr client, Bool letin,
 	default:
 	    strcpy(out, "unknown address");
 	}
+
+#ifdef HAS_GETPEERUCRED
+    if (getpeerucred(((OsCommPtr)client->osPrivate)->fd, &peercred) >= 0) {
+	client_uid = ucred_geteuid(peercred);
+	client_pid = ucred_getpid(peercred);
+	client_zid = ucred_getzoneid(peercred);
+
+	ucred_free(peercred);
+	snprintf(client_uid_string, sizeof(client_uid_string),
+		 " (uid %ld, pid %ld, zone %ld)",
+		 (long) client_uid, (long) client_pid, (long) client_zid);
+    }
+#else    
+    if (LocalClientCred(client, &client_uid, NULL) != -1) {
+	snprintf(client_uid_string, sizeof(client_uid_string),
+		 " (uid %d)", client_uid);
+    }
+#endif
+    else {
+	client_uid_string[0] = '\0';
+    }
     
-    if (proto_n)
-	AuditF("client %d %s from %s\n  Auth name: %.*s ID: %d\n", 
+#ifdef XSERVER_DTRACE
+    XSERVER_CLIENT_AUTH(client->index, addr, client_pid, client_zid);
+    if (auditTrailLevel > 1) {
+#endif
+      if (proto_n)
+	AuditF("client %d %s from %s%s\n  Auth name: %.*s ID: %d\n", 
 	       client->index, letin ? "connected" : "rejected", addr,
-	       (int)proto_n, auth_proto, auth_id);
-    else 
-	AuditF("client %d %s from %s\n", 
-	       client->index, letin ? "connected" : "rejected", addr);
+	       client_uid_string, (int)proto_n, auth_proto, auth_id);
+      else 
+	AuditF("client %d %s from %s%s\n", 
+	       client->index, letin ? "connected" : "rejected", addr,
+	       client_uid_string);
+
+#ifdef XSERVER_DTRACE
+    }
+#endif	
 }
 
 XID
@@ -659,7 +706,11 @@ ClientAuthorized(ClientPtr client,
 	    else
 	    {
 		auth_id = (XID) 0;
+#ifdef XSERVER_DTRACE
+		if ((auditTrailLevel > 1) || XSERVER_CLIENT_AUTH_ENABLED())
+#else
 		if (auditTrailLevel > 1)
+#endif
 		    AuthAudit(client, TRUE,
 			(struct sockaddr *) from, fromlen,
 			proto_n, auth_proto, auth_id);
@@ -675,7 +726,11 @@ ClientAuthorized(ClientPtr client,
 		return "Client is not authorized to connect to Server";
 	}
     }
+#ifdef XSERVER_DTRACE
+    else if ((auditTrailLevel > 1) || XSERVER_CLIENT_AUTH_ENABLED())
+#else
     else if (auditTrailLevel > 1)
+#endif
     {
 	if (_XSERVTransGetPeerAddr (trans_conn,
 	    &family, &fromlen, &from) != -1)
@@ -693,10 +748,9 @@ ClientAuthorized(ClientPtr client,
     /* indicate to Xdmcp protocol that we've opened new client */
     XdmcpOpenDisplay(priv->fd);
 #endif /* XDMCP */
-#ifdef XAPPGROUP
-    if (ClientStateCallback)
-        XagCallClientStateChange (client);
-#endif
+
+    XaceHook(XACE_AUTH_AVAIL, client, auth_id);
+
     /* At this point, if the client is authorized to change the access control
      * list, we should getpeername() information, and add the client to
      * the selfhosts list.  It's not really the host machine, but the
@@ -754,6 +808,9 @@ AllocNewConnection (XtransConnInfo trans_conn, int fd, CARD32 conn_time)
     ErrorF("AllocNewConnection: client index = %d, socket fd = %d\n",
 	   client->index, fd);
 #endif
+#ifdef XSERVER_DTRACE
+    XSERVER_CLIENT_CONNECT(client->index, fd);
+#endif	
 
     return client;
 }
@@ -986,7 +1043,7 @@ CheckConnections(void)
 	FD_ZERO(&tmask);
 	FD_SET(curclient, &tmask);
 	r = Select (curclient + 1, &tmask, NULL, NULL, &notime);
-	if (r < 0)
+	if (r < 0 && GetConnectionTranslation(curclient) > 0)
 	    CloseDownClient(clients[GetConnectionTranslation(curclient)]);
     }	
 #endif
@@ -1015,21 +1072,33 @@ CloseDownConnection(ClientPtr client)
 }
 
 _X_EXPORT void
-AddEnabledDevice(int fd)
+AddGeneralSocket(int fd)
 {
-    FD_SET(fd, &EnabledDevices);
     FD_SET(fd, &AllSockets);
     if (GrabInProgress)
 	FD_SET(fd, &SavedAllSockets);
 }
 
 _X_EXPORT void
-RemoveEnabledDevice(int fd)
+AddEnabledDevice(int fd)
 {
-    FD_CLR(fd, &EnabledDevices);
+    FD_SET(fd, &EnabledDevices);
+    AddGeneralSocket(fd);
+}
+
+_X_EXPORT void
+RemoveGeneralSocket(int fd)
+{
     FD_CLR(fd, &AllSockets);
     if (GrabInProgress)
 	FD_CLR(fd, &SavedAllSockets);
+}
+
+_X_EXPORT void
+RemoveEnabledDevice(int fd)
+{
+    FD_CLR(fd, &EnabledDevices);
+    RemoveGeneralSocket(fd);
 }
 
 /*****************

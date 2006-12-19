@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/include/dixevents.h,v 3.4 2001/09/04 14:03:27 dawes Exp $ */
 /************************************************************
 
 Copyright 1996 by Thomas E. Dickey <dickey@clark.net>
@@ -102,5 +101,9 @@ extern int ProcGrabButton(ClientPtr /* client */);
 extern int ProcUngrabButton(ClientPtr /* client */);
 
 extern int ProcRecolorCursor(ClientPtr /* client */);
+
+#ifdef PANORAMIX
+extern void PostSyntheticMotion(int x, int y, ScreenPtr pScreen, unsigned long time);
+#endif
 
 #endif /* DIXEVENTS_H */

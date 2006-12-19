@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/dri/xf86dri.c,v 1.12 2002/12/14 01:36:08 dawes Exp $ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.
@@ -81,6 +80,7 @@ static DISPATCH_PROC(ProcXF86DRIDispatch);
 static DISPATCH_PROC(ProcXF86DRIAuthConnection);
 
 static DISPATCH_PROC(SProcXF86DRIQueryVersion);
+static DISPATCH_PROC(SProcXF86DRIQueryDirectRenderingCapable);
 static DISPATCH_PROC(SProcXF86DRIDispatch);
 
 static void XF86DRIResetProc(ExtensionEntry* extEntry);
@@ -142,6 +142,9 @@ ProcXF86DRIQueryVersion(
     if (client->swapped) {
     	swaps(&rep.sequenceNumber, n);
     	swapl(&rep.length, n);
+	swaps(&rep.majorVersion, n);
+	swaps(&rep.minorVersion, n);
+	swapl(&rep.patchVersion, n);
     }
     WriteToClient(client, sizeof(xXF86DRIQueryVersionReply), (char *)&rep);
     return (client->noClientException);
@@ -154,6 +157,7 @@ ProcXF86DRIQueryDirectRenderingCapable(
 {
     xXF86DRIQueryDirectRenderingCapableReply	rep;
     Bool isCapable;
+    register int n;
 
     REQUEST(xXF86DRIQueryDirectRenderingCapableReq);
     REQUEST_SIZE_MATCH(xXF86DRIQueryDirectRenderingCapableReq);
@@ -172,8 +176,13 @@ ProcXF86DRIQueryDirectRenderingCapable(
     }
     rep.isCapable = isCapable;
 
-    if (!LocalClient(client))
+    if (!LocalClient(client) || client->swapped)
 	rep.isCapable = 0;
+
+    if (client->swapped) {
+    	swaps(&rep.sequenceNumber, n);
+    	swapl(&rep.length, n);
+    }
 
     WriteToClient(client, 
 	sizeof(xXF86DRIQueryDirectRenderingCapableReply), (char *)&rep);
@@ -377,6 +386,7 @@ ProcXF86DRICreateDrawable(
 {
     xXF86DRICreateDrawableReply	rep;
     DrawablePtr pDrawable;
+    int rc;
 
     REQUEST(xXF86DRICreateDrawableReq);
     REQUEST_SIZE_MATCH(xXF86DRICreateDrawableReq);
@@ -389,12 +399,10 @@ ProcXF86DRICreateDrawable(
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    if (!(pDrawable = (DrawablePtr)SecurityLookupDrawable(
-						(Drawable)stuff->drawable,
-						client, 
-						SecurityReadAccess))) {
-	return BadValue;
-    }
+    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
+			   DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     if (!DRICreateDrawable( screenInfo.screens[stuff->screen],
 			    (Drawable)stuff->drawable,
@@ -415,17 +423,17 @@ ProcXF86DRIDestroyDrawable(
     REQUEST(xXF86DRIDestroyDrawableReq);
     DrawablePtr pDrawable;
     REQUEST_SIZE_MATCH(xXF86DRIDestroyDrawableReq);
+    int rc;
+
     if (stuff->screen >= screenInfo.numScreens) {
 	client->errorValue = stuff->screen;
 	return BadValue;
     }
 
-    if (!(pDrawable = (DrawablePtr)SecurityLookupDrawable(
-						(Drawable)stuff->drawable,
-						client, 
-						SecurityReadAccess))) {
-	return BadValue;
-    }
+    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
+			   DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     if (!DRIDestroyDrawable( screenInfo.screens[stuff->screen], 
 			     (Drawable)stuff->drawable,
@@ -446,7 +454,7 @@ ProcXF86DRIGetDrawableInfo(
     int X, Y, W, H;
     drm_clip_rect_t * pClipRects;
     drm_clip_rect_t * pBackClipRects;
-    int backX, backY;
+    int backX, backY, rc;
 
     REQUEST(xXF86DRIGetDrawableInfoReq);
     REQUEST_SIZE_MATCH(xXF86DRIGetDrawableInfoReq);
@@ -459,12 +467,10 @@ ProcXF86DRIGetDrawableInfo(
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    if (!(pDrawable = (DrawablePtr)SecurityLookupDrawable(
-						(Drawable)stuff->drawable,
-						client, 
-						SecurityReadAccess))) {
-	return BadValue;
-    }
+    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
+			   DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     if (!DRIGetDrawableInfo( screenInfo.screens[stuff->screen],
 			     pDrawable,
@@ -627,22 +633,35 @@ SProcXF86DRIQueryVersion(
 }
 
 static int
+SProcXF86DRIQueryDirectRenderingCapable(
+    register ClientPtr client
+)
+{
+    register int n;
+    REQUEST(xXF86DRIQueryDirectRenderingCapableReq);
+    swaps(&stuff->length, n);
+    swapl(&stuff->screen, n);
+    return ProcXF86DRIQueryDirectRenderingCapable(client);
+}
+
+static int
 SProcXF86DRIDispatch (
     register ClientPtr	client
 )
 {
     REQUEST(xReq);
 
-    /* It is bound to be non-local when there is byte swapping */
-    if (!LocalClient(client))
-	return DRIErrorBase + XF86DRIClientNotLocal;
-
-    /* only local clients are allowed DRI access */
+    /*
+     * Only local clients are allowed DRI access, but remote clients still need
+     * these requests to find out cleanly.
+     */
     switch (stuff->data)
     {
     case X_XF86DRIQueryVersion:
 	return SProcXF86DRIQueryVersion(client);
+    case X_XF86DRIQueryDirectRenderingCapable:
+	return SProcXF86DRIQueryDirectRenderingCapable(client);
     default:
-	return BadRequest;
+	return DRIErrorBase + XF86DRIClientNotLocal;
     }
 }

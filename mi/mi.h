@@ -1,4 +1,3 @@
-/* $Xorg: mi.h,v 1.4 2001/02/09 02:05:20 xorgcvs Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -45,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/mi/mi.h,v 3.9 2001/08/06 20:51:16 dawes Exp $ */
 
 #ifndef MI_H
 #define MI_H
@@ -171,11 +169,11 @@ typedef struct _DeviceRec *DevicePtr;
 #endif
 
 extern Bool mieqInit(
-    DevicePtr /*pKbd*/,
-    DevicePtr /*pPtr*/
+    void
 );
 
 extern void mieqEnqueue(
+    DeviceIntPtr /*pDev*/,
     xEventPtr /*e*/
 );
 

@@ -112,6 +112,9 @@
 /* Define to 1 if you have the `geteuid' function. */
 #undef HAVE_GETEUID
 
+/* Define to 1 if you have the `getisax' function. */
+#undef HAVE_GETISAX
+
 /* Define to 1 if you have the `getopt' function. */
 #undef HAVE_GETOPT
 
@@ -123,6 +126,9 @@
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have version 2.2 (or newer) of the drm library */
+#undef HAVE_LIBDRM_2_2
 
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
@@ -222,6 +228,9 @@
 /* Support IPv6 for TCP connections */
 #undef IPv6
 
+/* Support os-specific local connections */
+#undef LOCALCONN
+
 /* Support MIT Misc extension */
 #undef MITMISC
 
@@ -230,6 +239,9 @@
 
 /* Disable some debugging code */
 #undef NDEBUG
+
+/* Enable some debugging code */
+#undef DEBUG
 
 /* Name of package */
 #undef PACKAGE
@@ -301,6 +313,9 @@
 
 /* unaligned word accesses behave as expected */
 #undef WORKING_UNALIGNED_INT
+
+/* Build X-ACE extension */
+#undef XACE
 
 /* Support XCMisc extension */
 #undef XCMISC
@@ -432,5 +447,26 @@
 
 /* Define to 1 if modules should avoid the libcwrapper */
 #undef NO_LIBCWRAPPER
+
+/* Support D-BUS */
+#undef HAVE_DBUS
+
+/* Use only built-in fonts */
+#undef BUILTIN_FONTS
+
+/* Avoid using font servers */
+#undef NOFONTSERVERACCESS
+
+/* Use an empty root cursor */
+#undef NULL_ROOT_CURSOR
+
+/* Have a monotonic clock from clock_gettime() */
+#undef MONOTONIC_CLOCK
+
+/* Define to 1 if the DTrace Xserver provider probes should be built in */
+#undef XSERVER_DTRACE
+
+/* Path to XErrorDB file */
+#undef XERRORDB_PATH
 
 #endif /* _DIX_CONFIG_H_ */

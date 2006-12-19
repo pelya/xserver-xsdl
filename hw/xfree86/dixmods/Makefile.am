@@ -18,6 +18,7 @@ module_LTLIBRARIES = libafb.la \
                      libcfb.la \
                      libcfb32.la \
                      libfb.la \
+                     libwfb.la \
                      libmfb.la \
                      libshadow.la
 
@@ -31,7 +32,7 @@ fontsmoduledir = $(moduledir)/fonts
 fontsmodule_LTLIBRARIES = libfreetype.la \
                           libtype1.la
 
-AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@ @SERVER_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@
 INCLUDES = @XORG_INCS@ \
            -I$(top_srcdir)/afb \
            -I$(top_srcdir)/cfb \
@@ -64,6 +65,12 @@ libdbe_la_SOURCES = dbemodule.c
 libfb_la_LDFLAGS = -avoid-version
 libfb_la_LIBADD = $(top_builddir)/fb/libfb.la
 libfb_la_SOURCES = $(top_builddir)/fb/fbcmap.c fbmodule.c
+libfb_la_CFLAGS = -DXFree86Server $(AM_CFLAGS)
+
+libwfb_la_LDFLAGS = -avoid-version
+libwfb_la_LIBADD = $(top_builddir)/fb/libwfb.la
+libwfb_la_SOURCES = $(top_builddir)/fb/fbcmap.c fbmodule.c
+libwfb_la_CFLAGS = -DXFree86Server $(AM_CFLAGS) -DFB_ACCESS_WRAPPER
 
 libglx_la_LDFLAGS = -avoid-version
 if AIGLX
@@ -93,8 +100,10 @@ libtype1_la_LDFLAGS = -avoid-version
 libtype1_la_SOURCES = type1mod.c
 
 libdixmods_la_SOURCES = $(top_srcdir)/mi/miinitext.c
+libdixmods_la_CFLAGS = -DXFree86LOADER $(AM_CFLAGS)
 
 libxorgxkb_la_SOURCES = xkbVT.c xkbPrivate.c xkbKillSrv.c
+libxorgxkb_la_LIBADD = $(top_builddir)/dix/libdix.la
 
 libxtrap_la_LDFLAGS = -avoid-version
 libxtrap_la_LIBADD = $(top_builddir)/XTrap/libxtrap.la

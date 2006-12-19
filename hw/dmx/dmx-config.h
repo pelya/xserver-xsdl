@@ -93,6 +93,5 @@
 #undef DAMAGE
 #undef COMPOSITE
 #undef FONTCACHE
-#undef XFree86LOADER
 
 #endif /* DMX_CONFIG_H */

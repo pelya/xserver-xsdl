@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86_OSlib.h,v 3.94 2003/11/03 05:11:51 tsi Exp $ */
 /*
  * Copyright 1990, 1991 by Thomas Roell, Dinkelscherben, Germany
  * Copyright 1992 by David Dawes <dawes@XFree86.org>
@@ -67,7 +66,6 @@
  */
 
 /* $XConsortium: xf86_OSlib.h /main/22 1996/10/27 11:06:31 kaleb $ */
-/* $XdotOrg: xserver/xorg/hw/xfree86/os-support/xf86_OSlib.h,v 1.14 2005/12/29 08:42:49 airlied Exp $ */
 
 /*
  * This is private, and should not be included by any drivers.  Drivers
@@ -236,15 +234,6 @@ typedef signed long xf86ssize_t;
 # if defined(ATT) && !defined(i386)
 #  define i386 /* not defined in ANSI C mode */
 # endif /* ATT && !i386 */
-
-# if (defined(ATT) || defined(SVR4)) && !defined(sun)
-#  ifndef __UNIXWARE__
-#   ifndef XQUEUE
-#    define XQUEUE
-#   endif
-#  endif
-#  include <sys/xque.h>
-# endif /* ATT || SVR4 */
 
 # ifdef SYSV
 #  if !defined(ISC) || defined(ISC202) || defined(ISC22)

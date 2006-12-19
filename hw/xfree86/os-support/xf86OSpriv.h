@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/xf86OSpriv.h,v 1.6 2003/08/24 17:37:03 dawes Exp $ */
 /*
  * Copyright (c) 1999-2000 by The XFree86 Project, Inc.
  *

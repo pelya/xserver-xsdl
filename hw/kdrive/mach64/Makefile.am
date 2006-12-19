@@ -30,8 +30,4 @@ MACH64_LIBS =						\
 Xmach64_LDADD = 					\
 	$(MACH64_LIBS)					\
 	@KDRIVE_LIBS@					\
-	@XSERVER_LIBS@					\
-	$(TSLIB_FLAG)
-
-
-Xmach64_DEPENDENCIES = $(MACH64_LIBS) @KDRIVE_LIBS@
+	@XSERVER_LIBS@

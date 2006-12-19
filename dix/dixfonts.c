@@ -1,5 +1,3 @@
-/* $XdotOrg: xserver/xorg/dix/dixfonts.c,v 1.9 2006/02/15 20:44:12 ajax Exp $ */
-/* $XFree86: xc/programs/Xserver/dix/dixfonts.c,v 3.28 2003/11/08 02:02:03 dawes Exp $ */
 /************************************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
 
@@ -49,7 +47,6 @@ dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 
 ******************************************************************/
-/* $Xorg: dixfonts.c,v 1.4 2000/08/17 19:48:18 cpqbld Exp $ */
 
 #define NEED_REPLIES
 #ifdef HAVE_DIX_CONFIG_H
@@ -158,11 +155,6 @@ QueueFontWakeup(FontPathElementPtr fpe)
 
     for (i = 0; i < num_slept_fpes; i++) {
 	if (slept_fpes[i] == fpe) {
-
-#ifdef DEBUG
-	    fprintf(stderr, "re-queueing fpe wakeup\n");
-#endif
-
 	    return;
 	}
     }
@@ -1186,7 +1178,7 @@ doPolyText(ClientPtr client, register PTclosurePtr c)
     if (c->slept &&
 	c->pDraw &&
 	c->pDraw != (DrawablePtr)SecurityLookupIDByClass(client, c->did,
-					RC_DRAWABLE, SecurityWriteAccess))
+					RC_DRAWABLE, DixWriteAccess))
     {
 	/* Our drawable has disappeared.  Treat like client died... ask
 	   the FPE code to clean up after client and avoid further
@@ -1216,7 +1208,7 @@ doPolyText(ClientPtr client, register PTclosurePtr c)
 		 | ((Font)*(c->pElt+2)) << 16
 		 | ((Font)*(c->pElt+1)) << 24;
 	    pFont = (FontPtr)SecurityLookupIDByType(client, fid, RT_FONT,
-						    SecurityReadAccess);
+						    DixReadAccess);
 	    if (!pFont)
 	    {
 		client->errorValue = fid;
@@ -1471,7 +1463,7 @@ doImageText(ClientPtr client, register ITclosurePtr c)
     if (c->slept &&
 	c->pDraw &&
 	c->pDraw != (DrawablePtr)SecurityLookupIDByClass(client, c->did,
-					RC_DRAWABLE, SecurityWriteAccess))
+					RC_DRAWABLE, DixWriteAccess))
     {
 	/* Our drawable has disappeared.  Treat like client died... ask
 	   the FPE code to clean up after client. */
@@ -1889,7 +1881,7 @@ InitFonts ()
 {
     patternCache = MakeFontPatternCache();
 
-#ifndef KDRIVESERVER
+#ifndef BUILTIN_FONTS
     if (screenInfo.numScreens > screenInfo.numVideoScreens) {
 	PrinterFontRegisterFpeFunctions();
 	FontFileCheckRegisterFpeFunctions();
@@ -1897,10 +1889,11 @@ InitFonts ()
     } else 
 #endif
     {
-#ifdef KDRIVESERVER
-	BuiltinRegisterFpeFunctions();
-#endif
+#ifdef BUILTIN_FONTS
+        BuiltinRegisterFpeFunctions();
+#else
 	FontFileRegisterFpeFunctions();
+#endif
 #ifndef NOFONTSERVERACCESS
 	fs_register_fpe_functions();
 #endif
@@ -2023,7 +2016,7 @@ FontPtr
 find_old_font(XID id)
 {
     return (FontPtr) SecurityLookupIDByType(NullClient, id, RT_NONE,
-					    SecurityUnknownAccess);
+					    DixUnknownAccess);
 }
 
 Font
@@ -2062,11 +2055,6 @@ init_fs_handlers(FontPathElementPtr fpe, BlockHandlerProcPtr block_handler)
 	fs_handlers_installed = 0;
     }
     if (fs_handlers_installed == 0) {
-
-#ifdef DEBUG
-	fprintf(stderr, "adding FS b & w handlers\n");
-#endif
-
 	if (!RegisterBlockAndWakeupHandlers(block_handler,
 					    FontWakeup, (pointer) 0))
 	    return AllocError;
@@ -2082,55 +2070,9 @@ remove_fs_handlers(FontPathElementPtr fpe, BlockHandlerProcPtr block_handler, Bo
     if (all) {
 	/* remove the handlers if no one else is using them */
 	if (--fs_handlers_installed == 0) {
-
-#ifdef DEBUG
-	    fprintf(stderr, "removing FS b & w handlers\n");
-#endif
-
 	    RemoveBlockAndWakeupHandlers(block_handler, FontWakeup,
 					 (pointer) 0);
 	}
     }
     RemoveFontWakeup(fpe);
 }
-
-#ifdef DEBUG
-#define GLWIDTHBYTESPADDED(bits,nbytes) \
-	((nbytes) == 1 ? (((bits)+7)>>3)        /* pad to 1 byte */ \
-	:(nbytes) == 2 ? ((((bits)+15)>>3)&~1)  /* pad to 2 bytes */ \
-	:(nbytes) == 4 ? ((((bits)+31)>>3)&~3)  /* pad to 4 bytes */ \
-	:(nbytes) == 8 ? ((((bits)+63)>>3)&~7)  /* pad to 8 bytes */ \
-	: 0)
-
-#define GLYPH_SIZE(ch, nbytes)          \
-	GLWIDTHBYTESPADDED((ch)->metrics.rightSideBearing - \
-			(ch)->metrics.leftSideBearing, (nbytes))
-void
-dump_char_ascii(CharInfoPtr cip)
-{
-    int         r,
-                l;
-    int         bpr;
-    int         byte;
-    static unsigned maskTab[] = {
-	(1 << 7), (1 << 6), (1 << 5), (1 << 4),
-	(1 << 3), (1 << 2), (1 << 1), (1 << 0),
-    };
-
-    bpr = GLYPH_SIZE(cip, 4);
-    for (r = 0; r < (cip->metrics.ascent + cip->metrics.descent); r++) {
-	pointer     row = (pointer) cip->bits + r * bpr;
-
-	byte = 0;
-	for (l = 0; l <= (cip->metrics.rightSideBearing -
-			  cip->metrics.leftSideBearing); l++) {
-	    if (maskTab[l & 7] & row[l >> 3])
-		putchar('X');
-	    else
-		putchar('.');
-	}
-	putchar('\n');
-    }
-}
-
-#endif

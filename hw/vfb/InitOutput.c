@@ -1,4 +1,3 @@
-/* $Xorg: InitOutput.c,v 1.4 2001/02/09 02:04:45 xorgcvs Exp $ */
 /*
 
 Copyright 1993, 1998  The Open Group
@@ -26,7 +25,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/vfb/InitOutput.c,v 3.25 2003/11/15 04:01:56 dawes Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -255,10 +253,12 @@ OsVendorFatalError()
 {
 }
 
+#if defined(DDXBEFORERESET)
 void ddxBeforeReset(void)
 {
     return;
 }
+#endif
 
 void
 ddxUseMsg()
@@ -364,6 +364,9 @@ ddxProcessArgument(int argc, char *argv[], int i)
     if (strcmp (argv[i], "-render") == 0)	/* -render */
     {
 	Render = FALSE;
+#ifdef COMPOSITE
+	noCompositeExtension = TRUE;
+#endif
 	return 1;
     }
 
@@ -447,17 +450,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
     return 0;
 }
-
-#ifdef DDXTIME /* from ServerOSDefines */
-CARD32
-GetTimeInMillis()
-{
-    struct timeval  tp;
-
-    X_GETTIMEOFDAY(&tp);
-    return(tp.tv_sec * 1000) + (tp.tv_usec / 1000);
-}
-#endif
 
 static ColormapPtr InstalledMaps[MAXSCREENS];
 

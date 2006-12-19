@@ -21,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbpixmap.c,v 1.9 2001/05/29 04:54:09 keithp Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -161,6 +160,8 @@ fbPixmapToRegion(PixmapPtr pPix)
     FirstRect = REGION_BOXPTR(pReg);
     rects = FirstRect;
 
+    fbPrepareAccess(&pPix->drawable);
+
     pwLine = (FbBits *) pPix->devPrivate.ptr;
     nWidth = pPix->devKind >> (FB_SHIFT-3);
 
@@ -175,7 +176,7 @@ fbPixmapToRegion(PixmapPtr pPix)
 	irectLineStart = rects - FirstRect;
 	/* If the Screen left most bit of the word is set, we're starting in
 	 * a box */
-	if(*pw & mask0)
+	if(READ(pw) & mask0)
 	{
 	    fInBox = TRUE;
 	    rx1 = 0;
@@ -186,7 +187,7 @@ fbPixmapToRegion(PixmapPtr pPix)
 	pwLineEnd = pw + (width >> FB_SHIFT);
 	for (base = 0; pw < pwLineEnd; base += FB_UNIT)
 	{
-	    w = *pw++;
+	    w = READ(pw++);
 	    if (fInBox)
 	    {
 		if (!~w)
@@ -227,7 +228,7 @@ fbPixmapToRegion(PixmapPtr pPix)
 	if(width & FB_MASK)
 	{
 	    /* Process final partial word on line */
-	    w = *pw++;
+	    w = READ(pw++);
 	    for(ib = 0; ib < (width & FB_MASK); ib++)
 	    {
 	        /* If the Screen left most bit of the word is set, we're
@@ -312,6 +313,8 @@ fbPixmapToRegion(PixmapPtr pPix)
 	    pReg->data = (RegDataPtr)NULL;
 	}
     }
+
+    fbFinishAccess(&pPix->drawable);
 #ifdef DEBUG
     if (!miValidRegion(pReg))
 	FatalError("Assertion failed file %s, line %d: expr\n", __FILE__, __LINE__);
@@ -363,6 +366,7 @@ fbValidateDrawable (DrawablePtr pDrawable)
     if (!fbValidateBits (first, stride, FB_HEAD_BITS) ||
 	!fbValidateBits (last, stride, FB_TAIL_BITS))
 	fbInitializeDrawable(pDrawable);
+    fbFinishAccess (pDrawable);
 }
 
 void
@@ -384,5 +388,6 @@ fbInitializeDrawable (DrawablePtr pDrawable)
     last = bits + stride * pDrawable->height;
     fbSetBits (first, stride, FB_HEAD_BITS);
     fbSetBits (last, stride, FB_TAIL_BITS);
+    fbFinishAccess (pDrawable);
 }
 #endif /* FB_DEBUG */

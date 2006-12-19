@@ -12,7 +12,7 @@ endif
 
 INCLUDES = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
 
-AM_CFLAGS = $(DIX_CFLAGS) @SERVER_DEFINES@ @LOADER_DEFINES@
+AM_CFLAGS = $(DIX_CFLAGS)
 
 if XORG
 sdk_HEADERS = xvdix.h xvmcext.h
@@ -32,6 +32,10 @@ MODULE_SRCS =			\
 	shape.c			\
 	sync.c			\
 	xcmisc.c
+
+# Extra configuration files ship with some extensions
+SERVERCONFIGdir = $(libdir)/xserver
+SERVERCONFIG_DATA =
 
 # Optional sources included if extension enabled by configure.ac rules
 
@@ -65,14 +69,26 @@ if XINERAMA
 BUILTIN_SRCS += $(XINERAMA_SRCS)
 endif
 
+# X-ACE extension: provides hooks for building security policy extensions
+# like XC-Security, X-SELinux & XTSol
+XACE_SRCS = xace.c xace.h xacestr.h
+if XACE
+BUILTIN_SRCS += $(XACE_SRCS)
+endif
+
 # Security extension: multi-level security to protect clients from each other
-XCSECURITY_SRCS = security.c
+XCSECURITY_SRCS = security.c securitysrv.h
 if XCSECURITY   
 BUILTIN_SRCS += $(XCSECURITY_SRCS)
 
-SERVERCONFIGdir = $(libdir)/xserver
-SERVERCONFIG_DATA = SecurityPolicy
+SERVERCONFIG_DATA += SecurityPolicy
 AM_CFLAGS += -DDEFAULTPOLICYFILE=\"$(SERVERCONFIGdir)/SecurityPolicy\"
+endif
+
+XCALIBRATE_SRCS = xcalibrate.c
+if XCALIBRATE
+BUILTIN_SRCS += $(XCALIBRATE_SRCS)
+# XCalibrare needs tslib
 endif
 
 # X EVent Interception Extension: allows accessibility helpers & composite
@@ -144,12 +160,14 @@ libXextmodule_la_SOURCES =	$(MODULE_SRCS)
 endif
 
 EXTRA_DIST = \
-	SecurityPolicy \
+	$(SERVERCONFIG_DATA) \
 	$(MITSHM_SRCS) \
 	$(XV_SRCS) \
 	$(RES_SRCS) \
 	$(SCREENSAVER_SRCS) \
+	$(XACE_SRCS) \
 	$(XCSECURITY_SRCS) \
+	$(XCALIBRATE_SRCS) \
 	$(XINERAMA_SRCS) \
 	$(XEVIE_SRCS) \
 	$(XPRINT_SRCS) \

@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/include/servermd.h,v 3.56tsi Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -45,8 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $Xorg: servermd.h,v 1.3 2000/08/17 19:53:31 cpqbld Exp $ */
-/* $XdotOrg: xc/programs/Xserver/include/servermd.h,v 1.4 2005/05/21 07:46:38 alanc Exp $ */
 
 #ifndef SERVERMD_H
 #define SERVERMD_H 1

@@ -1,5 +1,4 @@
 /*
- * $XFree86: xc/programs/Xserver/miext/shadow/shrotate.c,v 1.4tsi Exp $
  *
  * Copyright © 2001 Keith Packard, member of The XFree86 Project, Inc.
  *

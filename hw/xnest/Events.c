@@ -1,4 +1,3 @@
-/* $Xorg: Events.c,v 1.3 2000/08/17 19:53:28 cpqbld Exp $ */
 /*
 
 Copyright 1993 by Davor Matic
@@ -12,7 +11,6 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/Events.c,v 1.2 2001/08/01 00:44:57 tsi Exp $ */
 
 #ifdef HAVE_XNEST_CONFIG_H
 #include <xnest-config.h>
@@ -39,9 +37,12 @@ is" without express or implied warranty.
 #include "XNWindow.h"
 #include "Events.h"
 #include "Keyboard.h"
+#include "Pointer.h"
 #include "mipointer.h"
 
 CARD32 lastEventTime = 0;
+
+extern xEvent *xnestEvents;
 
 void
 ProcessInputEvents()
@@ -103,11 +104,12 @@ xnestCollectExposures()
 void
 xnestQueueKeyEvent(int type, unsigned int keycode)
 {
-  xEvent x;
-  x.u.u.type = type;
-  x.u.u.detail = keycode;
-  x.u.keyButtonPointer.time = lastEventTime = GetTimeInMillis();
-  mieqEnqueue(&x);
+  int i, n;
+
+  lastEventTime = GetTimeInMillis();
+  n = GetKeyboardEvents(xnestEvents, xnestKeyboardDevice, type, keycode);
+  for (i = 0; i < n; i++)
+    mieqEnqueue(xnestKeyboardDevice, xnestEvents + i);
 }
 
 void
@@ -115,6 +117,7 @@ xnestCollectEvents()
 {
   XEvent X;
   xEvent x;
+  int i, n, valuators[2];
   ScreenPtr pScreen;
 
   while (XCheckIfEvent(xnestDisplay, &X, xnestNotExposurePredicate, NULL)) {
@@ -131,30 +134,30 @@ xnestCollectEvents()
       
     case ButtonPress:
       xnestUpdateModifierState(X.xkey.state);
-      x.u.u.type = ButtonPress;
-      x.u.u.detail = X.xbutton.button;
-      x.u.keyButtonPointer.time = lastEventTime = GetTimeInMillis();
-      mieqEnqueue(&x);
+      lastEventTime = GetTimeInMillis();
+      n = GetPointerEvents(xnestEvents, xnestPointerDevice, ButtonPress,
+                           X.xbutton.button, POINTER_RELATIVE, 0, 0, NULL);
+      for (i = 0; i < n; i++)
+        mieqEnqueue(xnestPointerDevice, xnestEvents + i);
       break;
       
     case ButtonRelease:
       xnestUpdateModifierState(X.xkey.state);
-      x.u.u.type = ButtonRelease;
-      x.u.u.detail = X.xbutton.button;
-      x.u.keyButtonPointer.time = lastEventTime = GetTimeInMillis();
-      mieqEnqueue(&x);
+      lastEventTime = GetTimeInMillis();
+      n = GetPointerEvents(xnestEvents, xnestPointerDevice, ButtonRelease,
+                           X.xbutton.button, POINTER_RELATIVE, 0, 0, NULL);
+      for (i = 0; i < n; i++)
+        mieqEnqueue(xnestPointerDevice, xnestEvents + i);
       break;
       
     case MotionNotify:
-#if 0
-      x.u.u.type = MotionNotify;
-      x.u.keyButtonPointer.rootX = X.xmotion.x;
-      x.u.keyButtonPointer.rootY = X.xmotion.y;
-      x.u.keyButtonPointer.time = lastEventTime = GetTimeInMillis();
-      mieqEnqueue(&x);
-#endif 
-      miPointerAbsoluteCursor (X.xmotion.x, X.xmotion.y, 
-			       lastEventTime = GetTimeInMillis());
+      valuators[0] = X.xmotion.x;
+      valuators[1] = X.xmotion.y;
+      lastEventTime = GetTimeInMillis();
+      n = GetPointerEvents(xnestEvents, xnestPointerDevice, MotionNotify,
+                           0, POINTER_ABSOLUTE, 0, 2, valuators);
+      for (i = 0; i < n; i++)
+        mieqEnqueue(xnestPointerDevice, xnestEvents + i);
       break;
       
     case FocusIn:
@@ -181,15 +184,13 @@ xnestCollectEvents()
 	pScreen = xnestScreen(X.xcrossing.window);
 	if (pScreen) {
 	  NewCurrentScreen(pScreen, X.xcrossing.x, X.xcrossing.y);
-#if 0
-	  x.u.u.type = MotionNotify;
-	  x.u.keyButtonPointer.rootX = X.xcrossing.x;
-	  x.u.keyButtonPointer.rootY = X.xcrossing.y;
-	  x.u.keyButtonPointer.time = lastEventTime = GetTimeInMillis();
-	  mieqEnqueue(&x);
-#endif
-	  miPointerAbsoluteCursor (X.xcrossing.x, X.xcrossing.y, 
-				   lastEventTime = GetTimeInMillis());
+          valuators[0] = X.xcrossing.x;
+          valuators[1] = X.xcrossing.y;
+          lastEventTime = GetTimeInMillis();
+          n = GetPointerEvents(xnestEvents, xnestPointerDevice, MotionNotify,
+                               0, POINTER_ABSOLUTE, 0, 2, valuators);
+          for (i = 0; i < n; i++)
+            mieqEnqueue(xnestPointerDevice, xnestEvents + i);
 	  xnestDirectInstallColormaps(pScreen);
 	}
       }

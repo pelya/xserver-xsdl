@@ -112,7 +112,9 @@ extern void dmxTriFan(CARD8 op,
 		      INT16 xSrc, INT16 ySrc,
 		      int npoint, xPointFixed *points);
 
+extern int dmxBECreateGlyphSet(int idx, GlyphSetPtr glyphSet);
 extern Bool dmxBEFreeGlyphSet(ScreenPtr pScreen, GlyphSetPtr glyphSet);
+extern int dmxBECreatePicture(PicturePtr pPicture);
 extern Bool dmxBEFreePicture(PicturePtr pPicture);
 
 extern int dmxPictPrivateIndex;		/**< Index for picture private data */

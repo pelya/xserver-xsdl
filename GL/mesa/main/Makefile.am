@@ -2,9 +2,7 @@ noinst_LTLIBRARIES = libmain.la
 
 AM_CFLAGS = \
 	$(DIX_CFLAGS) \
-	@SERVER_DEFINES@ \
-	@MODULE_DEFINES@ \
-	@LOADER_DEFINES@ \
+	-DXFree86Server \
 	@GLX_DEFINES@
 
 INCLUDES = -I@MESA_SOURCE@/include \
@@ -29,6 +27,7 @@ nodist_libmain_la_SOURCES = accum.c \
                     api_loopback.c \
                     api_noop.c \
                     api_validate.c \
+                    arrayobj.c \
                     attrib.c \
                     blend.c \
                     bufferobj.c \
@@ -61,6 +60,7 @@ nodist_libmain_la_SOURCES = accum.c \
                     light.c \
                     lines.c \
                     matrix.c \
+                    mipmap.c \
                     mm.c \
                     occlude.c \
                     pixel.c \

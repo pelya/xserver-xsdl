@@ -1,4 +1,3 @@
-/* $XdotOrg: xserver/xorg/hw/xfree86/i2c/fi1236.c,v 1.9 2006/02/10 22:00:25 anholt Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -99,6 +98,7 @@ xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "MT2032: Company code 0x%02x%02x, pa
 }
 
 /* might be buggy */
+#if 0
 static void MT2032_shutdown(FI1236Ptr f)
 {
 CARD8 data[10];
@@ -124,6 +124,7 @@ I2C_WriteRead(&(f->d), (I2CByte *)data, 4, NULL, 0);
 
 usleep(15000);
 }
+#endif
 
 static void MT2032_dump_status(FI1236Ptr f);
 
@@ -131,7 +132,7 @@ static void MT2032_init(FI1236Ptr f)
 {
 CARD8 data[10];
 CARD8 value;
-CARD8 xogc;
+CARD8 xogc = 0x00;
 
 MT2032_getid(f);
 
@@ -479,7 +480,7 @@ if(type==TUNER_TYPE_MT2032){
 }
 
 
-CARD32 AFC_TimerCallback(OsTimerPtr timer, CARD32 time, pointer data){
+static CARD32 AFC_TimerCallback(OsTimerPtr timer, CARD32 time, pointer data){
 FI1236Ptr f=(FI1236Ptr)data;
 if(FI1236_AFC(f))return 150;
 	else {
@@ -517,7 +518,7 @@ void FI1236_tune(FI1236Ptr f, CARD32 frequency)
 
 	 xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "Setting tuner band to %d\n", f->tuner_data.band);
 
-    xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "Setting tuner frequency to %d\n", frequency);
+    xf86DrvMsg(f->d.pI2CBus->scrnIndex, X_INFO, "Setting tuner frequency to %d\n", (int)frequency);
 
 	 if ((f->type == TUNER_TYPE_FM1216ME) || (f->type == TUNER_TYPE_FI1236W))
 	 {

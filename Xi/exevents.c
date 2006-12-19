@@ -71,8 +71,7 @@ SOFTWARE.
 #include "exglobals.h"
 #include "dixevents.h"	/* DeliverFocusedEvent */
 #include "dixgrabs.h"	/* CreateGrab() */
-
-#include "chgptr.h"
+#include "scrnintstr.h"
 
 #define WID(w) ((w) ? ((w)->drawable.id) : 0)
 #define AllModifiersMask ( \
@@ -302,7 +301,12 @@ _X_EXPORT void
 InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
 		       int resolution, int min_res, int max_res)
 {
-    register AxisInfoPtr ax = dev->valuator->axes + axnum;
+    register AxisInfoPtr ax;
+   
+    if (!dev || !dev->valuator)
+        return;
+
+    ax = dev->valuator->axes + axnum;
 
     ax->min_value = minval;
     ax->max_value = maxval;
@@ -501,6 +505,7 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
     WindowPtr pWin, confineTo;
     CursorPtr cursor;
     GrabPtr grab;
+    int rc;
 
     if ((this_device_mode != GrabModeSync) &&
 	(this_device_mode != GrabModeAsync)) {
@@ -520,15 +525,15 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 	client->errorValue = ownerEvents;
 	return BadValue;
     }
-    pWin = LookupWindow(grabWindow, client);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, grabWindow, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     if (rconfineTo == None)
 	confineTo = NullWindow;
     else {
-	confineTo = LookupWindow(rconfineTo, client);
-	if (!confineTo)
-	    return BadWindow;
+	rc = dixLookupWindow(&confineTo, rconfineTo, client, DixUnknownAccess);
+	if (rc != Success)
+	    return rc;
     }
     if (rcursor == None)
 	cursor = NullCursor;
@@ -558,6 +563,7 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
     WindowPtr pWin;
     GrabPtr grab;
     KeyClassPtr k = dev->key;
+    int rc;
 
     if (k == NULL)
 	return BadMatch;
@@ -584,9 +590,9 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 	client->errorValue = ownerEvents;
 	return BadValue;
     }
-    pWin = LookupWindow(grabWindow, client);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, grabWindow, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
 
     grab = CreateGrab(client->index, dev, pWin,
 		      mask, ownerEvents, this_device_mode, other_devices_mode,
@@ -806,7 +812,7 @@ SendEvent(ClientPtr client, DeviceIntPtr d, Window dest, Bool propagate,
 	} else
 	    effectiveFocus = pWin = inputFocus;
     } else
-	pWin = LookupWindow(dest, client);
+	dixLookupWindow(&pWin, dest, client, DixUnknownAccess);
     if (!pWin)
 	return BadWindow;
     if ((propagate != xFalse) && (propagate != xTrue)) {
@@ -898,7 +904,7 @@ SetModifierMapping(ClientPtr client, DeviceIntPtr dev, int len, int rlen,
 	return MappingBusy;
     } else {
 	for (i = 0; i < inputMapLen; i++) {
-	    if (inputMap[i] && !LegalModifier(inputMap[i], (DevicePtr) dev)) {
+	    if (inputMap[i] && !LegalModifier(inputMap[i], dev)) {
 		return MappingFailed;
 	    }
 	}
@@ -1208,4 +1214,45 @@ ShouldFreeInputMasks(WindowPtr pWin, Bool ignoreSelectedEvents)
 	return TRUE;
     else
 	return FALSE;
+}
+
+/***********************************************************************
+ *
+ * Walk through the window tree, finding all clients that want to know
+ * about the Event.
+ *
+ */
+
+void
+FindInterestedChildren(DeviceIntPtr dev, WindowPtr p1, Mask mask,
+                       xEvent * ev, int count)
+{
+    WindowPtr p2;
+
+    while (p1) {
+        p2 = p1->firstChild;
+        (void)DeliverEventsToWindow(p1, ev, count, mask, NullGrab, dev->id);
+        FindInterestedChildren(dev, p2, mask, ev, count);
+        p1 = p1->nextSib;
+    }
+}
+
+/***********************************************************************
+ *
+ * Send an event to interested clients in all windows on all screens.
+ *
+ */
+
+void
+SendEventToAllWindows(DeviceIntPtr dev, Mask mask, xEvent * ev, int count)
+{
+    int i;
+    WindowPtr pWin, p1;
+
+    for (i = 0; i < screenInfo.numScreens; i++) {
+        pWin = WindowTable[i];
+        (void)DeliverEventsToWindow(pWin, ev, count, mask, NullGrab, dev->id);
+        p1 = pWin->firstChild;
+        FindInterestedChildren(dev, p1, mask, ev, count);
+    }
 }

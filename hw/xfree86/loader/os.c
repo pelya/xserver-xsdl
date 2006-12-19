@@ -1,5 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/loader/os.c,v 1.4 2003/10/15 16:29:04 dawes Exp $ */
-
 /*
  * Copyright (c) 1999-2002 by The XFree86 Project, Inc.
  *
@@ -35,9 +33,11 @@
 
 /*
  * OSNAME is a standard form of the OS name that may be used by the
- * loader and by OS-specific modules.
+ * loader and by OS-specific modules.  OSNAME here is different from what's in
+ * dix-config.h
  */
 
+#undef OSNAME
 #if defined(__linux__)
 #define OSNAME "linux"
 #elif defined(__FreeBSD__)

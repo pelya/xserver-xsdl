@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/cfb/cfbgc.c,v 1.5 2001/01/17 22:36:35 dawes Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -46,7 +45,6 @@ SOFTWARE.
 
 ******************************************************************/
 
-/* $Xorg: cfbgc.c,v 1.4 2001/02/09 02:04:37 xorgcvs Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

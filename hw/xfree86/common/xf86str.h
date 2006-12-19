@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86str.h,v 1.97 2003/10/30 17:36:56 tsi Exp $ */
 
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
@@ -120,13 +119,19 @@ typedef enum {
     MODE_ERROR	= -1	/* error condition */
 } ModeStatus;
 
+/*
+ * The mode sets are, from best to worst: USERDEF, DRIVER, and DEFAULT/BUILTIN.
+ * Preferred will bubble a mode to the top within a set.
+ */
 # define M_T_BUILTIN 0x01        /* built-in mode */
 # define M_T_CLOCK_C (0x02 | M_T_BUILTIN) /* built-in mode - configure clock */
 # define M_T_CRTC_C  (0x04 | M_T_BUILTIN) /* built-in mode - configure CRTC  */
 # define M_T_CLOCK_CRTC_C  (M_T_CLOCK_C | M_T_CRTC_C)
                                /* built-in mode - configure CRTC and clock */
+# define M_T_PREFERRED 0x08	/* preferred mode within a set */
 # define M_T_DEFAULT 0x10	/* (VESA) default modes */
 # define M_T_USERDEF 0x20	/* One of the modes from the config file */
+# define M_T_DRIVER  0x40	/* Supplied by the driver (EDID, etc) */
 
 /* Video mode */
 typedef struct _DisplayModeRec {
@@ -208,6 +213,7 @@ typedef struct {
     pointer		options;
     pointer		DDC;
     Bool                reducedblanking; /* Allow CVT reduced blanking modes? */
+    int			maxPixClock;	 /* in kHz, like mode->Clock */
 } MonRec, *MonPtr;
 
 /* the list of clock ranges */
@@ -318,7 +324,6 @@ typedef struct _DriverRec {
 #define HaveDriverFuncs 1
 
 
-#ifdef XFree86LOADER
 /*
  * The optional module list struct. This allows modules exporting helping
  * functions to configuration tools, the Xserver, or any other
@@ -332,7 +337,6 @@ typedef struct _ModuleInfoRec {
     const OptionInfoRec * (*AvailableOptions)(void *unused);
     pointer		unused[8];	/* leave some space for more fields */
 } ModuleInfoRec, *ModuleInfoPtr;
-#endif
 
 /*
  * These are the private bus types.  New types can be added here.  Types

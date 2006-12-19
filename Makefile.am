@@ -26,15 +26,6 @@ if GLX
 GLX_DIR=GL
 endif
 
-if XPRINT
-XPDDX_DIR=Xprint
-XPCONFIG_DIR=XpConfig
-endif
-
-if XINPUT
-XINPUT_DIR=Xi
-endif
-
 if DBE
 DBE_DIR=dbe
 endif
@@ -50,7 +41,7 @@ SUBDIRS = \
 	os \
 	randr \
 	render  \
-	$(XINPUT_DIR) \
+	Xi \
 	xkb \
 	$(DBE_DIR) \
 	$(MFB_DIR) \
@@ -64,9 +55,8 @@ SUBDIRS = \
 	$(COMPOSITE_DIR) \
 	$(GLX_DIR) \
 	exa \
-	hw \
-	$(XPDDX_DIR) \
-	$(XPCONFIG_DIR)
+	config \
+	hw
 
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = xorg-server.m4
@@ -101,9 +91,8 @@ DIST_SUBDIRS = \
 	composite \
 	GL \
 	exa \
-	hw \
-	Xprint \
-	XpConfig
+	config \
+	hw
 
 # gross hack
 relink: all

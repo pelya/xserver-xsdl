@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/glx/glxutil.c,v 1.5 2001/03/21 16:29:37 dawes Exp $ */
 /*
 ** License Applicability. Except to the extent portions of this file are
 ** made subject to an alternative license as permitted in the SGI Free
@@ -41,7 +40,6 @@
 #include <pixmapstr.h>
 #include <windowstr.h>
 #include "glxutil.h"
-#include "GL/glx_ansic.h"
 
 /************************************************************************/
 
@@ -82,7 +80,7 @@ __glXCalloc(size_t numElements, size_t elementSize)
 	/* XXX: handle out of memory error */
 	return NULL;
     }
-    __glXMemset(addr, 0, size);
+    memset(addr, 0, size);
     return addr;
 }
 

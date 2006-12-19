@@ -21,7 +21,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XFree86: xc/programs/Xserver/fb/fbimage.c,v 1.7 2001/05/29 04:54:09 keithp Exp $ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -69,7 +68,7 @@ fbPutImage (DrawablePtr	pDrawable,
 	break;
     case XYPixmap:
 	srcStride = BitmapBytePad(w + leftPad) / sizeof (FbStip);
-	for (i = 1 << (pDrawable->depth - 1); i; i >>= 1)
+	for (i = (unsigned long)1 << (pDrawable->depth - 1); i; i >>= 1)
 	{
 	    if (i & pGC->planemask)
 	    {
@@ -171,6 +170,8 @@ fbPutZImage (DrawablePtr	pDrawable,
 		   pm,
 		   dstBpp);
     }
+
+    fbFinishAccess (pDrawable);
 }
 	     
 void
@@ -278,6 +279,8 @@ fbPutXYImage (DrawablePtr	pDrawable,
 		      fgand, fgxor, bgand, bgxor);
 	}
     }
+
+    fbFinishAccess (pDrawable);
 }
 
 void
@@ -362,4 +365,6 @@ fbGetImage (DrawablePtr	    pDrawable,
 		    fbXorStip(GXcopy,0,FB_STIP_ALLONES),
 		    planeMask);
     }
+
+    fbFinishAccess (pDrawable);
 }

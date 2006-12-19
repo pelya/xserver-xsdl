@@ -1,4 +1,3 @@
-/* $Xorg: Init.c,v 1.3 2000/08/17 19:53:28 cpqbld Exp $ */
 /*
 
 Copyright 1993 by Davor Matic
@@ -12,7 +11,6 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86: xc/programs/Xserver/hw/xnest/Init.c,v 3.24 2003/01/15 02:34:14 torrey Exp $ */
 
 #ifdef HAVE_XNEST_CONFIG_H
 #include <xnest-config.h>
@@ -46,6 +44,8 @@ is" without express or implied warranty.
 #endif
 
 Bool xnestDoFullGeneration = True;
+
+xEvent *xnestEvents = NULL;
 
 void
 InitOutput(ScreenInfo *screenInfo, int argc, char *argv[])
@@ -94,10 +94,15 @@ InitInput(int argc, char *argv[])
   xnestPointerDevice = AddInputDevice(xnestPointerProc, TRUE);
   xnestKeyboardDevice = AddInputDevice(xnestKeyboardProc, TRUE);
 
+  if (!xnestEvents)
+      xnestEvents = (xEvent *) xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+  if (!xnestEvents)
+      FatalError("couldn't allocate room for events\n");
+
   RegisterPointerDevice(xnestPointerDevice);
   RegisterKeyboardDevice(xnestKeyboardDevice);
 
-  mieqInit((DevicePtr)xnestKeyboardDevice, (DevicePtr)xnestPointerDevice);
+  mieqInit();
 
   AddEnabledDevice(XConnectionNumber(xnestDisplay));
 

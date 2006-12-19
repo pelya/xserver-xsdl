@@ -1,4 +1,3 @@
-/* $Xorg: miwideline.c,v 1.4 2001/02/09 02:05:22 xorgcvs Exp $ */
 /*
 
 Copyright 1988, 1998  The Open Group
@@ -26,7 +25,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86: xc/programs/Xserver/mi/miwideline.c,v 1.12 2001/12/14 20:00:28 dawes Exp $ */
 
 /* Author:  Keith Packard, MIT X Consortium */
 
@@ -2072,7 +2070,7 @@ miWideDash (pDrawable, pGC, mode, npt, pPts)
     Bool	    endIsFg = FALSE, startIsFg = FALSE;
     Bool            firstIsFg = FALSE, prevIsFg = FALSE;
 
-#ifndef XFree86Server
+#if 0
     /* XXX backward compatibility */
     if (pGC->lineWidth == 0)
     {

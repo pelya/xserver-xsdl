@@ -42,13 +42,13 @@
 #ifdef BITSSTORE
 #define STORE(b,x)  BITSSTORE(b,x)
 #else
-#define STORE(b,x)  (*(b) = (x))
+#define STORE(b,x)  WRITE((b), (x))
 #endif
 
 #ifdef BITSRROP
 #define RROP(b,a,x)	BITSRROP(b,a,x)
 #else
-#define RROP(b,a,x)	(*(b) = FbDoRRop (*(b), (a), (x)))
+#define RROP(b,a,x)	WRITE((b), FbDoRRop (READ(b), (a), (x)))
 #endif
 
 #ifdef BITSUNIT
@@ -119,6 +119,8 @@ BRESSOLID (DrawablePtr	pDrawable,
 	    e += e3;
 	}
     }
+
+    fbFinishAccess (pDrawable);
 }
 #endif
 
@@ -263,6 +265,8 @@ onOffOdd:
 		dashlen = len;
 	}
     }
+
+    fbFinishAccess (pDrawable);
 }
 #endif
 
@@ -541,18 +545,18 @@ ARC (FbBits	*dst,
 # define WRITE_ADDR4(n)	    ((n))
 #endif
 
-#define WRITE1(d,n,fg)	    ((d)[WRITE_ADDR1(n)] = (BITS) (fg))
+#define WRITE1(d,n,fg)	    WRITE(d + WRITE_ADDR1(n), (BITS) (fg))
 
 #ifdef BITS2
-# define WRITE2(d,n,fg)	    (*((BITS2 *) &((d)[WRITE_ADDR2(n)])) = (BITS2) (fg))
+# define WRITE2(d,n,fg)	    WRITE((BITS2 *) &((d)[WRITE_ADDR2(n)]), (BITS2) (fg))
 #else
-# define WRITE2(d,n,fg)	    WRITE1(d,(n)+1,WRITE1(d,n,fg))
+# define WRITE2(d,n,fg)	    (WRITE1(d,n,fg), WRITE1(d,(n)+1,fg))
 #endif
 
 #ifdef BITS4
-# define WRITE4(d,n,fg)	    (*((BITS4 *) &((d)[WRITE_ADDR4(n)])) = (BITS4) (fg))
+# define WRITE4(d,n,fg)	    WRITE((BITS4 *) &((d)[WRITE_ADDR4(n)]), (BITS4) (fg))
 #else
-# define WRITE4(d,n,fg)	    WRITE2(d,(n)+2,WRITE2(d,n,fg))
+# define WRITE4(d,n,fg)	    (WRITE2(d,n,fg), WRITE2(d,(n)+2,fg))
 #endif
 
 void
@@ -710,8 +714,10 @@ POLYLINE (DrawablePtr	pDrawable,
 		       intToX(pt2) + xoff, intToY(pt2) + yoff,
 		       npt == 0 && pGC->capStyle != CapNotLast,
 		       &dashoffset);
-	    if (!npt)
+	    if (!npt) {
+		fbFinishAccess (pDrawable);
 		return;
+	    }
 	    pt1 = pt2;
 	    pt2 = *pts++;
 	    npt--;
@@ -776,6 +782,7 @@ POLYLINE (DrawablePtr	pDrawable,
 		    {
 			RROP(bits,and,xor);
 		    }
+		    fbFinishAccess (pDrawable);
 		    return;
 		}
 		pt1 = pt2;
@@ -786,6 +793,8 @@ POLYLINE (DrawablePtr	pDrawable,
     	    }
 	}
     }
+
+    fbFinishAccess (pDrawable);
 }
 #endif
 
@@ -883,20 +892,20 @@ POLYSEGMENT (DrawablePtr    pDrawable,
 		FbMaskBits (dstX, width, startmask, nmiddle, endmask);
 		if (startmask)
 		{
-		    *dstLine = FbDoMaskRRop (*dstLine, andBits, xorBits, startmask);
+		    WRITE(dstLine, FbDoMaskRRop (READ(dstLine), andBits, xorBits, startmask));
 		    dstLine++;
 		}
 		if (!andBits)
 		    while (nmiddle--)
-			*dstLine++ = xorBits;
+			WRITE(dstLine++, xorBits);
 		else
 		    while (nmiddle--)
 		    {
-			*dstLine = FbDoRRop (*dstLine, andBits, xorBits);
+			WRITE(dstLine, FbDoRRop (READ(dstLine), andBits, xorBits));
 			dstLine++;
 		    }
 		if (endmask)
-		    *dstLine = FbDoMaskRRop (*dstLine, andBits, xorBits, endmask);
+		    WRITE(dstLine, FbDoMaskRRop (READ(dstLine), andBits, xorBits, endmask));
 	    }
 	    else
 	    {
@@ -950,6 +959,8 @@ POLYSEGMENT (DrawablePtr    pDrawable,
 	    }
 	}
     }
+
+    fbFinishAccess (pDrawable);
 }
 #endif
 

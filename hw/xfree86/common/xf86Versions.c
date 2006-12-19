@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/hw/xfree86/common/xf86Versions.c,v 1.2 2003/08/24 20:01:19 dawes Exp $ */
 /*
  * Copyright (c) 2003 by The XFree86 Project, Inc.
  *
@@ -32,7 +31,6 @@
 
 #include "xf86.h"
 #include "xf86OSmouse.h"
-#include "xf86OSKbd.h"
 
 static CARD32 registeredVersions[NUM_BUILTIN_IFS];
 
@@ -52,8 +50,6 @@ xf86GetBuiltinInterfaceVersion(BuiltinInterface iface, int flags)
     switch (iface) {
     case BUILTIN_IF_OSMOUSE:
 	return OS_MOUSE_VERSION_CURRENT;
-    case BUILTIN_IF_OSKBD:
-	return OS_KBD_VERSION_CURRENT;
     default:
 	xf86Msg(X_ERROR, "xf86GetBuiltinInterfaceVersion: internal error: "
 		"interface %d not handled\n", iface);

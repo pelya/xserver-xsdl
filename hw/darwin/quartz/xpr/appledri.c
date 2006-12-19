@@ -1,4 +1,3 @@
-/* $XFree86: xc/programs/Xserver/GL/dri/xf86dri.c,v 1.10 2000/12/07 20:26:14 dawes Exp $ */
 /**************************************************************************
 
 Copyright 1998-1999 Precision Insight, Inc., Cedar Park, Texas.
@@ -214,6 +213,7 @@ ProcAppleDRICreateSurface(
     DrawablePtr pDrawable;
     xp_surface_id sid;
     unsigned int key[2];
+    int rc;
 
     REQUEST(xAppleDRICreateSurfaceReq);
     REQUEST_SIZE_MATCH(xAppleDRICreateSurfaceReq);
@@ -221,12 +221,10 @@ ProcAppleDRICreateSurface(
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    if (!(pDrawable = (DrawablePtr)SecurityLookupDrawable(
-                                                (Drawable)stuff->drawable,
-                                                client, 
-                                                SecurityReadAccess))) {
-        return BadValue;
-    }
+    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
+			   DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     rep.key_0 = rep.key_1 = rep.uid = 0;
 
@@ -253,13 +251,12 @@ ProcAppleDRIDestroySurface(
     REQUEST(xAppleDRIDestroySurfaceReq);
     DrawablePtr pDrawable;
     REQUEST_SIZE_MATCH(xAppleDRIDestroySurfaceReq);
+    int rc;
 
-    if (!(pDrawable = (DrawablePtr)SecurityLookupDrawable(
-                                                (Drawable)stuff->drawable,
-                                                client, 
-                                                SecurityReadAccess))) {
-        return BadValue;
-    }
+    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
+			   DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     if (!DRIDestroySurface( screenInfo.screens[stuff->screen], 
                             (Drawable)stuff->drawable,

@@ -1,4 +1,3 @@
-/* $Xorg: extension.h,v 1.4 2001/02/09 02:05:15 xorgcvs Exp $ */
 /***********************************************************
 
 Copyright 1987, 1998  The Open Group
@@ -45,7 +44,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XFree86: xc/programs/Xserver/include/extension.h,v 1.5 2001/12/14 19:59:54 dawes Exp $ */
 
 #ifndef EXTENSION_H
 #define EXTENSION_H 
@@ -55,6 +53,18 @@ _XFUNCPROTOBEGIN
 extern unsigned short StandardMinorOpcode(ClientPtr /*client*/);
 
 extern unsigned short MinorOpcodeOfRequest(ClientPtr /*client*/);
+
+extern Bool EnableDisableExtension(char *name, Bool enable);
+
+extern void EnableDisableExtensionError(char *name, Bool enable);
+
+extern void ResetExtensionPrivates(void);
+
+extern int AllocateExtensionPrivateIndex(void);
+
+extern Bool AllocateExtensionPrivate(
+    int /*index*/,
+    unsigned /*amount*/);
 
 extern void InitExtensions(int argc, char **argv);
 
