@@ -81,107 +81,6 @@ SOFTWARE.
         return(BadIDChoice);\
     }
 
-/* XXX if you are using this macro, you are probably not generating Match
- * errors where appropriate */
-#define LOOKUP_DRAWABLE(did, client)\
-    ((client->lastDrawableID == did) ? \
-     client->lastDrawable : (DrawablePtr)LookupDrawable(did, client))
-
-#ifdef XACE
-
-#define SECURITY_VERIFY_DRAWABLE(pDraw, did, client, mode)\
-    {\
-	pDraw = (DrawablePtr) SecurityLookupIDByClass(client, did, \
-						      RC_DRAWABLE, mode);\
-	if (!pDraw) \
-	{\
-	    client->errorValue = did; \
-	    return BadDrawable;\
-	}\
-	if (pDraw->type == UNDRAWABLE_WINDOW)\
-	    return BadMatch;\
-    }
-
-#define SECURITY_VERIFY_GEOMETRABLE(pDraw, did, client, mode)\
-    {\
-	pDraw = (DrawablePtr) SecurityLookupIDByClass(client, did, \
-						      RC_DRAWABLE, mode);\
-	if (!pDraw) \
-	{\
-	    client->errorValue = did; \
-	    return BadDrawable;\
-	}\
-    }
-
-#define SECURITY_VERIFY_GC(pGC, rid, client, mode)\
-	pGC = (GC *) SecurityLookupIDByType(client, rid, RT_GC, mode);\
-    if (!pGC)\
-    {\
-	client->errorValue = rid;\
-	return (BadGC);\
-    }
-
-#define VERIFY_DRAWABLE(pDraw, did, client)\
-	SECURITY_VERIFY_DRAWABLE(pDraw, did, client, SecurityUnknownAccess)
-
-#define VERIFY_GEOMETRABLE(pDraw, did, client)\
-	SECURITY_VERIFY_GEOMETRABLE(pDraw, did, client, SecurityUnknownAccess)
-
-#define VERIFY_GC(pGC, rid, client)\
-	SECURITY_VERIFY_GC(pGC, rid, client, SecurityUnknownAccess)
-
-#else /* not XACE */
-
-#define VERIFY_DRAWABLE(pDraw, did, client)\
-    if (client->lastDrawableID == did)\
-	pDraw = client->lastDrawable;\
-    else \
-    {\
-	pDraw = (DrawablePtr) LookupIDByClass(did, RC_DRAWABLE);\
-	if (!pDraw) \
-	{\
-	    client->errorValue = did; \
-	    return BadDrawable;\
-	}\
-	if (pDraw->type == UNDRAWABLE_WINDOW)\
-	    return BadMatch;\
-    }
-
-#define VERIFY_GEOMETRABLE(pDraw, did, client)\
-    if (client->lastDrawableID == did)\
-	pDraw = client->lastDrawable;\
-    else \
-    {\
-	pDraw = (DrawablePtr) LookupIDByClass(did, RC_DRAWABLE);\
-	if (!pDraw) \
-	{\
-	    client->errorValue = did; \
-	    return BadDrawable;\
-	}\
-    }
-
-#define VERIFY_GC(pGC, rid, client)\
-    if (client->lastGCID == rid)\
-        pGC = client->lastGC;\
-    else\
-	pGC = (GC *)LookupIDByType(rid, RT_GC);\
-    if (!pGC)\
-    {\
-	client->errorValue = rid;\
-	return (BadGC);\
-    }
-
-#define SECURITY_VERIFY_DRAWABLE(pDraw, did, client, mode)\
-	VERIFY_DRAWABLE(pDraw, did, client)
-
-#define SECURITY_VERIFY_GEOMETRABLE(pDraw, did, client, mode)\
-	VERIFY_GEOMETRABLE(pDraw, did, client)
-
-#define SECURITY_VERIFY_GC(pGC, rid, client, mode)\
-	VERIFY_GC(pGC, rid, client)
-
-#endif /* XACE */
-
 /*
  * We think that most hardware implementations of DBE will want
  * LookupID*(dbe_back_buffer_id) to return the window structure that the
@@ -239,10 +138,15 @@ SOFTWARE.
     if ((stuff->gc == INVALID) || (client->lastGCID != stuff->gc) ||\
 	(client->lastDrawableID != drawID))\
     {\
-	SECURITY_VERIFY_GEOMETRABLE(pDraw, drawID, client, SecurityWriteAccess);\
-	SECURITY_VERIFY_GC(pGC, stuff->gc, client, SecurityReadAccess);\
-	if ((pGC->depth != pDraw->depth) ||\
-	    (pGC->pScreen != pDraw->pScreen))\
+	int rc;\
+	rc = dixLookupDrawable(&(pDraw), drawID, client, M_ANY,\
+			       DixWriteAccess);\
+	if (rc != Success)\
+	    return rc;\
+	rc = dixLookupGC(&(pGC), stuff->gc, client, DixReadAccess);\
+	if (rc != Success)\
+	    return rc;\
+	if ((pGC->depth != pDraw->depth) || (pGC->pScreen != pDraw->pScreen))\
 	    return (BadMatch);\
 	client->lastDrawable = pDraw;\
 	client->lastDrawableID = drawID;\
@@ -375,47 +279,41 @@ extern int CompareISOLatin1Lowered(
     unsigned char * /*b*/,
     int blen);
 
-#ifdef XACE
+extern int dixLookupWindow(
+    WindowPtr *result,
+    XID id,
+    ClientPtr client,
+    Mask access_mode);
 
-extern WindowPtr SecurityLookupWindow(
-    XID /*rid*/,
-    ClientPtr /*client*/,
-    Mask /*access_mode*/);
+extern int dixLookupDrawable(
+    DrawablePtr *result,
+    XID id,
+    ClientPtr client,
+    Mask type_mask,
+    Mask access_mode);
 
-extern pointer SecurityLookupDrawable(
-    XID /*rid*/,
-    ClientPtr /*client*/,
-    Mask /*access_mode*/);
+extern int dixLookupGC(
+    GCPtr *result,
+    XID id,
+    ClientPtr client,
+    Mask access_mode);
 
-extern WindowPtr LookupWindow(
-    XID /*rid*/,
-    ClientPtr /*client*/);
+extern int dixLookupClient(
+    ClientPtr *result,
+    XID id,
+    ClientPtr client,
+    Mask access_mode);
 
-extern pointer LookupDrawable(
-    XID /*rid*/,
-    ClientPtr /*client*/);
-
-#else
-
-extern WindowPtr LookupWindow(
-    XID /*rid*/,
-    ClientPtr /*client*/);
-
-extern pointer LookupDrawable(
-    XID /*rid*/,
-    ClientPtr /*client*/);
-
-#define SecurityLookupWindow(rid, client, access_mode) \
-	LookupWindow(rid, client)
-
-#define SecurityLookupDrawable(rid, client, access_mode) \
-	LookupDrawable(rid, client)
-
-#endif /* XACE */
-
-extern ClientPtr LookupClient(
-    XID /*rid*/,
-    ClientPtr /*client*/);
+/*
+ * These are deprecated compatibility functions and will be removed soon!
+ * Please use the new dixLookup*() functions above.
+ */
+extern WindowPtr SecurityLookupWindow(XID, ClientPtr, Mask);
+extern WindowPtr LookupWindow(XID, ClientPtr);
+extern pointer SecurityLookupDrawable(XID, ClientPtr, Mask);
+extern pointer LookupDrawable(XID, ClientPtr);
+extern ClientPtr LookupClient(XID, ClientPtr);
+/* end deprecated functions */
 
 extern void NoopDDA(void);
 

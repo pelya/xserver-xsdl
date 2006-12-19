@@ -304,16 +304,18 @@ get_detailed_timing_section(Uchar *c, struct detailed_timings *r)
   r->misc = MISC;
 }
 
+#define MAX_EDID_MINOR 3
 
 static Bool
 validate_version(int scrnIndex, struct edid_version *r)
 {
     if (r->version != 1)
 	return FALSE;
-    if (r->revision > 3) {
-	xf86DrvMsg(scrnIndex, X_ERROR,"EDID Version 1.%i not yet supported\n",
-		   r->revision);
-	return FALSE;
-    }
+
+    if (r->revision > MAX_EDID_MINOR)
+	xf86DrvMsg(scrnIndex, X_WARNING,
+		   "Assuming version 1.%d is compatible with 1.%d\n",
+		   r->revision, MAX_EDID_MINOR);
+
     return TRUE;
 }

@@ -489,6 +489,8 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     int num_events = 0, final_valuator = 0;
     CARD32 ms = 0;
     deviceKeyButtonPointer *kbp = NULL;
+    /* Thanks to a broken lib, we _always_ have to chase DeviceMotionNotifies
+     * with DeviceValuators. */
     Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
     DeviceIntPtr pointer = NULL;
     int x = 0, y = 0;
@@ -505,14 +507,15 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     else
         num_events = 1;
 
+    if (type == MotionNotify && num_valuators <= 0) {
+        return 0;
+    }
+
     /* Do we need to send a DeviceValuator event? */
-    if ((num_valuators + first_valuator) > 2 && sendValuators) {
+    if (sendValuators) {
         if ((((num_valuators - 1) / 6) + 1) > MAX_VALUATOR_EVENTS)
             num_valuators = MAX_VALUATOR_EVENTS * 6;
         num_events += ((num_valuators - 1) / 6) + 1;
-    }
-    else if (type == MotionNotify && num_valuators <= 0) {
-        return 0;
     }
 
     final_valuator = num_valuators + first_valuator;
@@ -546,7 +549,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
             y = valuators[1 - first_valuator];
         }
         else {
-                y = pointer->valuator->lasty;
+            y = pointer->valuator->lasty;
         }
     }
     else {
@@ -606,7 +609,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     kbp->root_y = y;
 
     events++;
-    if (final_valuator > 2 && sendValuators) {
+    if (sendValuators) {
         kbp->deviceid |= MORE_EVENTS;
         clipValuators(pDev, first_valuator, num_valuators, valuators);
         events = getValuatorEvents(events, pDev, first_valuator,
@@ -754,7 +757,7 @@ void
 PostSyntheticMotion(DeviceIntPtr pDev, 
                     int x, 
                     int y, 
-                    ScreenPtr pScreen,
+                    int screen,
                     unsigned long time) 
 {
     xEvent xE;
@@ -764,8 +767,8 @@ PostSyntheticMotion(DeviceIntPtr pDev,
        will translate from sprite screen to screen 0 upon reentry
        to the DIX layer. */
     if (!noPanoramiXExtension) {
-        x += panoramiXdataPtr[0].x - panoramiXdataPtr[pScreen->myNum].x;
-        y += panoramiXdataPtr[0].y - panoramiXdataPtr[pScreen->myNum].y;
+        x += panoramiXdataPtr[0].x - panoramiXdataPtr[screen].x;
+        y += panoramiXdataPtr[0].y - panoramiXdataPtr[screen].y;
     }
 #endif
 

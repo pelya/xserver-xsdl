@@ -600,7 +600,7 @@ ProcSecurityRevokeAuthorization(
     REQUEST_SIZE_MATCH(xSecurityRevokeAuthorizationReq);
 
     pAuth = (SecurityAuthorizationPtr)SecurityLookupIDByType(client,
-	stuff->authId, SecurityAuthorizationResType, SecurityDestroyAccess);
+	stuff->authId, SecurityAuthorizationResType, DixDestroyAccess);
     if (!pAuth)
 	return SecurityErrorBase + XSecurityBadAuthorization;
 
@@ -966,7 +966,7 @@ CALLBACK(SecurityCheckResourceIDAccess)
     int cid, reqtype;
 
     if (TRUSTLEVEL(client) == XSecurityClientTrusted ||
-	SecurityUnknownAccess == access_mode)
+	DixUnknownAccess == access_mode)
 	return;       /* for compatibility, we have to allow access */
 
     cid = CLIENT_ID(id);
@@ -1217,7 +1217,7 @@ CALLBACK(SecurityCheckHostlistAccess)
     if (TRUSTLEVEL(rec->client) != XSecurityClientTrusted)
     {
 	rec->rval = FALSE;
-	if (rec->access_mode == SecurityWriteAccess)
+	if (rec->access_mode == DixWriteAccess)
 	    SecurityAudit("client %d attempted to change host access\n",
 			  rec->client->index);
 	else
@@ -1798,11 +1798,11 @@ CALLBACK(SecurityCheckPropertyAccess)
 	     * executed a continue, which will skip the follwing code.
 	     */
 	    action = XaceAllowOperation;
-	    if (access_mode & SecurityReadAccess)
+	    if (access_mode & DixReadAccess)
 		action = max(action, pacl->readAction);
-	    if (access_mode & SecurityWriteAccess)
+	    if (access_mode & DixWriteAccess)
 		action = max(action, pacl->writeAction);
-	    if (access_mode & SecurityDestroyAccess)
+	    if (access_mode & DixDestroyAccess)
 		action = max(action, pacl->destroyAction);
 	    break;
 	} /* end for each pacl */

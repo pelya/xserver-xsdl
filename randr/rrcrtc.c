@@ -136,7 +136,7 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 		break;
 	if (j == crtc->numOutputs)
 	{
-	    RROutputChanged (outputs[i]);
+	    RROutputChanged (outputs[i], FALSE);
 	    RRCrtcChanged (crtc, FALSE);
 	}
     }
@@ -151,7 +151,7 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 		break;
 	if (i == numOutputs)
 	{
-	    RROutputChanged (crtc->outputs[j]);
+	    RROutputChanged (crtc->outputs[j], FALSE);
 	    RRCrtcChanged (crtc, FALSE);
 	}
     }
@@ -457,7 +457,7 @@ ProcRRGetCrtcInfo (ClientPtr client)
     int				i, j, k, n;
     
     REQUEST_SIZE_MATCH(xRRGetCrtcInfoReq);
-    crtc = LookupCrtc(client, stuff->crtc, SecurityReadAccess);
+    crtc = LookupCrtc(client, stuff->crtc, DixReadAccess);
 
     if (!crtc)
 	return RRErrorBase + BadRRCrtc;
@@ -698,7 +698,15 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	 */
 	if (pScrPriv->rrScreenSetSize)
 	{
-	    if (stuff->x + mode->mode.width > pScreen->width)
+	    int source_width = mode->mode.width;
+	    int	source_height = mode->mode.height;
+
+	    if (rotation == RR_Rotate_90 || rotation == RR_Rotate_270)
+	    {
+		source_width = mode->mode.height;
+		source_height = mode->mode.width;
+	    }
+	    if (stuff->x + source_width > pScreen->width)
 	    {
 		client->errorValue = stuff->x;
 		if (outputs)
@@ -706,7 +714,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 		return BadValue;
 	    }
 	    
-	    if (stuff->y + mode->mode.height > pScreen->height)
+	    if (stuff->y + source_height > pScreen->height)
 	    {
 		client->errorValue = stuff->y;
 		if (outputs)
@@ -766,7 +774,7 @@ ProcRRGetCrtcGammaSize (ClientPtr client)
     int				n;
 
     REQUEST_SIZE_MATCH(xRRGetCrtcGammaSizeReq);
-    crtc = LookupCrtc (client, stuff->crtc, SecurityReadAccess);
+    crtc = LookupCrtc (client, stuff->crtc, DixReadAccess);
     if (!crtc)
 	return RRErrorBase + BadRRCrtc;
     
@@ -793,7 +801,7 @@ ProcRRGetCrtcGamma (ClientPtr client)
     unsigned long		len;
     
     REQUEST_SIZE_MATCH(xRRGetCrtcGammaReq);
-    crtc = LookupCrtc (client, stuff->crtc, SecurityReadAccess);
+    crtc = LookupCrtc (client, stuff->crtc, DixReadAccess);
     if (!crtc)
 	return RRErrorBase + BadRRCrtc;
     
@@ -826,7 +834,7 @@ ProcRRSetCrtcGamma (ClientPtr client)
     CARD16			*red, *green, *blue;
     
     REQUEST_SIZE_MATCH(xRRSetCrtcGammaReq);
-    crtc = LookupCrtc (client, stuff->crtc, SecurityWriteAccess);
+    crtc = LookupCrtc (client, stuff->crtc, DixWriteAccess);
     if (!crtc)
 	return RRErrorBase + BadRRCrtc;
     

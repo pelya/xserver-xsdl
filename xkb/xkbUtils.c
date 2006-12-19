@@ -1144,6 +1144,11 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                         memcpy(dtype->map, stype->map,
                                stype->map_count * sizeof(XkbKTMapEntryRec));
                     }
+                    else {
+                        if (dtype->map && i < dst->map->num_types)
+                            xfree(dtype->map);
+                        dtype->map = NULL;
+                    }
 
                     if (stype->preserve) {
                         if (stype->map_count != dtype->map_count &&
@@ -1168,17 +1173,22 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                         memcpy(dtype->preserve, stype->preserve,
                                stype->map_count * sizeof(XkbModsRec));
                     }
+                    else {
+                        if (dtype->preserve && i < dst->map->num_types)
+                            xfree(dtype->preserve);
+                        dtype->preserve = NULL;
+                    }
 
                     dtype->map_count = stype->map_count;
                 }
                 else {
-                    if (dtype->map_count) {
+                    if (dtype->map_count && i < dst->map->num_types) {
                         if (dtype->map)
                             xfree(dtype->map);
                         if (dtype->preserve)
                             xfree(dtype->preserve);
-                        dtype->map_count = 0;
                     }
+                    dtype->map_count = 0;
                     dtype->map = NULL;
                     dtype->preserve = NULL;
                 }

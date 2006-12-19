@@ -98,7 +98,7 @@ Equipment Corporation.
 #include <X11/fonts/font.h>
 #include "opaque.h"
 #include "servermd.h"
-#include "config.h"
+#include "hotplug.h"
 #include "site.h"
 #include "dixfont.h"
 #include "extnsionst.h"
@@ -309,9 +309,9 @@ main(int argc, char *argv[], char *envp[])
 	DPMSPowerLevel = 0;
 #endif
 	InitBlockAndWakeupHandlers();
-        configInitialise();
 	/* Perform any operating system dependent initializations you'd like */
-	OsInit();		
+	OsInit();
+        configInitialise();
 	if(serverGeneration == 1)
 	{
 	    CreateWellKnownSockets();

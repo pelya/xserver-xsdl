@@ -98,7 +98,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     base = INTPriv(pInt)->base = xnfalloc(SYS_BIOS);
 
     pvp = xf86GetPciInfoForEntity(entityIndex);
-    if (pvp) pInt->Tag = ((pciConfigPtr)(pvp->thisCard))->tag;
+    if (pvp) pInt->Tag = pciTag(pvp->bus, pvp->device, pvp->func);
 
     /*
      * we need to map video RAM MMIO as some chipsets map mmio

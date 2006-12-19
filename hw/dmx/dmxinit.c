@@ -624,7 +624,7 @@ void InitOutput(ScreenInfo *pScreenInfo, int argc, char *argv[])
     }
 
     /* Make sure that the command-line arguments are sane. */
-    if (dmxAddRemoveScreens && (!noRenderExtension || dmxGLXProxy)) {
+    if (dmxAddRemoveScreens && dmxGLXProxy) {
 	/* Currently it is not possible to support GLX and Render
 	 * extensions with dynamic screen addition/removal due to the
 	 * state that each extension keeps, which cannot be restored. */

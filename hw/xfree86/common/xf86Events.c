@@ -789,8 +789,6 @@ xf86ReleaseKeys(DeviceIntPtr pDev)
     xEvent ke;
     int i = 0, j = 0, nevents = 0;
 
-    ErrorF("releasekeys: called on device %s (%d)\n", pDev->name, pDev->id);
-
     if (!pDev || !pDev->key)
         return;
 

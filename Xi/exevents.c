@@ -506,6 +506,7 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
     WindowPtr pWin, confineTo;
     CursorPtr cursor;
     GrabPtr grab;
+    int rc;
 
     if ((this_device_mode != GrabModeSync) &&
 	(this_device_mode != GrabModeAsync)) {
@@ -525,15 +526,15 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 	client->errorValue = ownerEvents;
 	return BadValue;
     }
-    pWin = LookupWindow(grabWindow, client);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, grabWindow, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     if (rconfineTo == None)
 	confineTo = NullWindow;
     else {
-	confineTo = LookupWindow(rconfineTo, client);
-	if (!confineTo)
-	    return BadWindow;
+	rc = dixLookupWindow(&confineTo, rconfineTo, client, DixUnknownAccess);
+	if (rc != Success)
+	    return rc;
     }
     if (rcursor == None)
 	cursor = NullCursor;
@@ -563,6 +564,7 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
     WindowPtr pWin;
     GrabPtr grab;
     KeyClassPtr k = dev->key;
+    int rc;
 
     if (k == NULL)
 	return BadMatch;
@@ -589,9 +591,9 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 	client->errorValue = ownerEvents;
 	return BadValue;
     }
-    pWin = LookupWindow(grabWindow, client);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, grabWindow, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
 
     grab = CreateGrab(client->index, dev, pWin,
 		      mask, ownerEvents, this_device_mode, other_devices_mode,
@@ -811,7 +813,7 @@ SendEvent(ClientPtr client, DeviceIntPtr d, Window dest, Bool propagate,
 	} else
 	    effectiveFocus = pWin = inputFocus;
     } else
-	pWin = LookupWindow(dest, client);
+	dixLookupWindow(&pWin, dest, client, DixUnknownAccess);
     if (!pWin)
 	return BadWindow;
     if ((propagate != xFalse) && (propagate != xTrue)) {

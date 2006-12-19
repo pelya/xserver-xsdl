@@ -75,10 +75,7 @@ TsRead (int fd, void *closure)
 
     while (ts_read(private->tsDev, &event, 1) == 1) {
         if (event.pressure) {
-            if (event.pressure > pi->dixdev->absolute->button_threshold) 
-                flags = KD_BUTTON_8;
-            else
-                flags = KD_BUTTON_1;
+            flags = KD_BUTTON_1;
 
             /* 
              * Here we test for the touch screen driver actually being on the
@@ -113,9 +110,8 @@ TsRead (int fd, void *closure)
 static Status
 TslibEnable (KdPointerInfo *pi)
 {
-  struct TslibPrivate *private = pi->driverPrivate;
+    struct TslibPrivate *private = pi->driverPrivate;
 
-    private->holdThumbEvents = 1;
     private->raw_event_hook = NULL;
     private->raw_event_closure = NULL;
     private->tsDev = ts_open(pi->path, 0);
@@ -126,9 +122,6 @@ TslibEnable (KdPointerInfo *pi)
             close(private->fd);
         return BadAlloc;
     }
-    if (pi->dixdev && pi->dixdev->absolute &&
-        pi->dixdev->absolute->button_threshold == 0)
-        pi->dixdev->absolute->button_threshold = 115;
 
     KdRegisterFd(private->fd, TsRead, pi);
   
@@ -141,12 +134,12 @@ TslibDisable (KdPointerInfo *pi)
 {
     struct TslibPrivate *private = pi->driverPrivate;
 
-    if (private->fd) {
-        KdUnregisterFd(pi, private->fd);
-        close(private->fd);
-    }
+    if (private->fd)
+        KdUnregisterFd(pi, private->fd, TRUE);
+
     if (private->tsDev)
         ts_close(private->tsDev);
+
     private->fd = 0;
     private->tsDev = NULL;
 }
@@ -156,7 +149,6 @@ static Status
 TslibInit (KdPointerInfo *pi)
 {
     int		        fd = 0, i = 0;
-    char                devpath[PATH_MAX], devname[TS_NAME_SIZE];
     DIR                 *inputdir = NULL;
     struct dirent       *inputent = NULL;
     struct tsdev        *tsDev = NULL;

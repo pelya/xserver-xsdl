@@ -302,9 +302,9 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
     DeviceIntPtr pDev;
 
     sourcefont = (FontPtr) SecurityLookupIDByType(client, source, RT_FONT,
-						  SecurityReadAccess);
+						  DixReadAccess);
     maskfont = (FontPtr) SecurityLookupIDByType(client, mask, RT_FONT,
-						SecurityReadAccess);
+						DixReadAccess);
 
     if (!sourcefont)
     {

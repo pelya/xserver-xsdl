@@ -106,7 +106,7 @@ extern int ProcRecolorCursor(ClientPtr /* client */);
 extern void PostSyntheticMotion(DeviceIntPtr pDev, 
                                 int x, 
                                 int y, 
-                                ScreenPtr pScreen, 
+                                int screen,
                                 unsigned long time);
 #endif
 

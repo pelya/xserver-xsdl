@@ -1119,9 +1119,6 @@ ddxGiveUp()
     DGAShutdown();
 #endif
 
-    while (xf86NumScreens)
-	xf86DeleteScreen(xf86NumScreens - 1, 0);
-
     xf86CloseConsole();
 
     xf86CloseLog();
