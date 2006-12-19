@@ -336,16 +336,21 @@ exaTryDriverComposite(CARD8		op,
     struct _Pixmap scratch;
     ExaMigrationRec pixmaps[3];
 
+    pSrcPix = exaGetDrawablePixmap(pSrc->pDrawable);
+    pDstPix = exaGetDrawablePixmap(pDst->pDrawable);
+    if (pMask)
+	pMaskPix = exaGetDrawablePixmap(pMask->pDrawable);
+
     /* Bail if we might exceed coord limits by rendering from/to these.  We
      * should really be making some scratch pixmaps with offsets and coords
      * adjusted to deal with this, but it hasn't been done yet.
      */
-    if (pSrc->pDrawable->width > pExaScr->info->maxX ||
-	pSrc->pDrawable->height > pExaScr->info->maxY ||
-	pDst->pDrawable->width > pExaScr->info->maxX ||
-	pDst->pDrawable->height > pExaScr->info->maxY || 
-	(pMask && (pMask->pDrawable->width > pExaScr->info->maxX ||
-		   pMask->pDrawable->height > pExaScr->info->maxY)))
+    if (pSrcPix->drawable.width > pExaScr->info->maxX ||
+	pSrcPix->drawable.height > pExaScr->info->maxY ||
+	pDstPix->drawable.width > pExaScr->info->maxX ||
+	pDstPix->drawable.height > pExaScr->info->maxY || 
+	(pMask && (pMaskPix->drawable.width > pExaScr->info->maxX ||
+		   pMaskPix->drawable.height > pExaScr->info->maxY)))
     {
 	return -1;
     }
