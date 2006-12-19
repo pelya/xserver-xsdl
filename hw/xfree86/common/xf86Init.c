@@ -100,6 +100,8 @@
 
 static void xf86PrintBanner(void);
 static void xf86PrintMarkers(void);
+static void xf86PrintDefaultModulePath(void);
+static void xf86PrintDefaultLibraryPath(void);
 static void xf86RunVtInit(void);
 
 #ifdef __UNIXOS2__
@@ -1376,6 +1378,16 @@ ddxProcessArgument(int argc, char **argv, int i)
     xf86PrintBanner();
     exit(0);
   }
+  if (!strcmp(argv[i],"-showDefaultModulePath"))
+  {
+    xf86PrintDefaultModulePath();
+    exit(0);
+  }
+  if (!strcmp(argv[i],"-showDefaultLibPath"))
+  {
+    xf86PrintDefaultLibraryPath();
+    exit(0);
+  }
   /* Notice the -fp flag, but allow it to pass to the dix layer */
   if (!strcmp(argv[i], "-fp"))
   {
@@ -1625,6 +1637,8 @@ ddxUseMsg()
   ErrorF("-ignoreABI             make module ABI mismatches non-fatal\n");
   ErrorF("-isolateDevice bus_id  restrict device resets to bus_id (PCI only)\n");
   ErrorF("-version               show the server version\n");
+  ErrorF("-showDefaultModulePath show the server default module path\n");
+  ErrorF("-showDefaultLibPath    show the server default library path\n");
   /* OS-specific usage */
   xf86UseMsg();
   ErrorF("\n");
@@ -1745,6 +1759,18 @@ static void
 xf86PrintMarkers()
 {
   LogPrintMarkers();
+}
+
+static void
+xf86PrintDefaultModulePath(void)
+{
+  ErrorF("%s\n", DEFAULT_MODULE_PATH);
+}
+
+static void
+xf86PrintDefaultLibraryPath(void)
+{
+  ErrorF("%s\n", DEFAULT_LIBRARY_PATH);
 }
 
 static void

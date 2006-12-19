@@ -227,7 +227,7 @@ int ProcStoreColors(
 
     REQUEST_AT_LEAST_SIZE (xXcupStoreColorsReq);
     pcmp = (ColormapPtr) SecurityLookupIDByType (client, stuff->cmap,
-						 RT_COLORMAP, SecurityWriteAccess);
+						 RT_COLORMAP, DixWriteAccess);
 
     if (pcmp) {
 	int ncolors, n;

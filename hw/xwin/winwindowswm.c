@@ -203,7 +203,7 @@ ProcWindowsWMSelectInput (register ClientPtr client)
 
   REQUEST_SIZE_MATCH (xWindowsWMSelectInputReq);
   pHead = (WMEventPtr *)SecurityLookupIDByType(client, eventResource,
-					       EventType, SecurityWriteAccess);
+					       EventType, DixWriteAccess);
   if (stuff->mask != 0)
     {
       if (pHead)
@@ -441,7 +441,7 @@ ProcWindowsWMFrameDraw (register ClientPtr client)
   WindowPtr pWin;
   win32RootlessWindowPtr pRLWinPriv;
   RECT rcNew;
-  int nCmdShow;
+  int nCmdShow, rc;
   RegionRec newShape;
   ScreenPtr pScreen;
 
@@ -450,11 +450,9 @@ ProcWindowsWMFrameDraw (register ClientPtr client)
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("ProcWindowsWMFrameDraw\n");
 #endif
-  if (!(pWin = SecurityLookupWindow((Drawable)stuff->window,
-				    client, SecurityReadAccess)))
-    {
-      return BadValue;
-    }
+  rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+  if (rc != Success)
+      return rc;
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("ProcWindowsWMFrameDraw - Window found\n");
 #endif
@@ -538,6 +536,7 @@ ProcWindowsWMFrameSetTitle(
   REQUEST(xWindowsWMFrameSetTitleReq);
   WindowPtr pWin;
   win32RootlessWindowPtr pRLWinPriv;
+  int rc;
 
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("ProcWindowsWMFrameSetTitle\n");
@@ -545,11 +544,9 @@ ProcWindowsWMFrameSetTitle(
 
   REQUEST_AT_LEAST_SIZE(xWindowsWMFrameSetTitleReq);
 
-  if (!(pWin = SecurityLookupWindow((Drawable)stuff->window,
-				    client, SecurityReadAccess)))
-    {
-      return BadValue;
-    }
+  rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+  if (rc != Success)
+      return rc;
 #if CYGMULTIWINDOW_DEBUG
   ErrorF ("ProcWindowsWMFrameSetTitle - Window found\n");
 #endif

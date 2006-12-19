@@ -694,6 +694,7 @@ winFixupPaths (void)
         if (sizeof(xkbbasedir) > 0)
             xkbbasedir[sizeof(xkbbasedir)-1] = 0;
         XkbBaseDirectory = xkbbasedir;
+	XkbBinDirectory = basedir;
     }
 #endif /* XKB */
 #endif /* RELOCATE_PROJECTROOT */

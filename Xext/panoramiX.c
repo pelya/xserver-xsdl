@@ -958,12 +958,13 @@ ProcPanoramiXGetState(ClientPtr client)
 	REQUEST(xPanoramiXGetStateReq);
     	WindowPtr			pWin;
 	xPanoramiXGetStateReply		rep;
-	register int			n;
+	register int			n, rc;
 	
 	REQUEST_SIZE_MATCH(xPanoramiXGetStateReq);
-	pWin = LookupWindow (stuff->window, client);
-	if (!pWin)
-	     return BadWindow;
+	rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+	if (rc != Success)
+	    return rc;
+
 	rep.type = X_Reply;
 	rep.length = 0;
 	rep.sequenceNumber = client->sequence;
@@ -984,12 +985,13 @@ ProcPanoramiXGetScreenCount(ClientPtr client)
 	REQUEST(xPanoramiXGetScreenCountReq);
     	WindowPtr			pWin;
 	xPanoramiXGetScreenCountReply	rep;
-	register int			n;
+	register int			n, rc;
 
 	REQUEST_SIZE_MATCH(xPanoramiXGetScreenCountReq);
-	pWin = LookupWindow (stuff->window, client);
-	if (!pWin)
-	     return BadWindow;
+	rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+	if (rc != Success)
+	    return rc;
+
 	rep.type = X_Reply;
 	rep.length = 0;
 	rep.sequenceNumber = client->sequence;
@@ -1009,12 +1011,13 @@ ProcPanoramiXGetScreenSize(ClientPtr client)
 	REQUEST(xPanoramiXGetScreenSizeReq);
     	WindowPtr			pWin;
 	xPanoramiXGetScreenSizeReply	rep;
-	register int			n;
+	register int			n, rc;
 	
 	REQUEST_SIZE_MATCH(xPanoramiXGetScreenSizeReq);
-	pWin = LookupWindow (stuff->window, client);
-	if (!pWin)
-	     return BadWindow;
+	rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+	if (rc != Success)
+	    return rc;
+
 	rep.type = X_Reply;
 	rep.length = 0;
 	rep.sequenceNumber = client->sequence;

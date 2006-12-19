@@ -50,7 +50,7 @@ ARCH_SOURCES = \
 endif
 
 # FIXME: NetBSD Aperture defines (configure.ac)
-AM_CFLAGS = -DUSESTDRES $(XORG_CFLAGS)
+AM_CFLAGS = -DUSESTDRES $(XORG_CFLAGS) $(DIX_CFLAGS)
 
 INCLUDES = $(XORG_INCS)
 

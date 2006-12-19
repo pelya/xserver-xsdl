@@ -202,9 +202,7 @@ SOFTWARE.
 #include "dixstruct.h"
 #include "osdep.h"
 
-#ifdef XACE
 #include "xace.h"
-#endif
 
 #ifndef PATH_MAX
 #ifdef MAXPATHLEN
@@ -1528,11 +1526,11 @@ AuthorizedClient(ClientPtr client)
 {
     if (!client || defeatAccessControl)
 	return TRUE;
-#ifdef XACE
+
     /* untrusted clients can't change host access */
-    if (!XaceHook(XACE_HOSTLIST_ACCESS, client, SecurityWriteAccess))
+    if (!XaceHook(XACE_HOSTLIST_ACCESS, client, DixWriteAccess))
 	return FALSE;
-#endif
+
     return LocalClient(client);
 }
 

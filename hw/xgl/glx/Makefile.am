@@ -15,7 +15,7 @@ AM_CFLAGS = \
 	-I$(top_srcdir)/GL/include \
 	-I@MESA_SOURCE@/include \
 	-I@MESA_SOURCE@/src/mesa/glapi \
-	 \
+	 $(DIX_CFLAGS) \
 	-DHAVE_XGL_CONFIG_H \
 	-DHAVE_DIX_CONFIG_H \
 	$(XGLXMODULES_CFLAGS)

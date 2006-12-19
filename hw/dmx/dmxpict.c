@@ -223,6 +223,36 @@ Bool dmxBEFreeGlyphSet(ScreenPtr pScreen, GlyphSetPtr glyphSet)
     return FALSE;
 }
 
+/** Create \a glyphSet on the backend screen number \a idx. */
+int dmxBECreateGlyphSet(int idx, GlyphSetPtr glyphSet)
+{
+    XRenderPictFormat *pFormat;
+    DMXScreenInfo     *dmxScreen = &dmxScreens[idx];
+    dmxGlyphPrivPtr    glyphPriv = DMX_GET_GLYPH_PRIV(glyphSet);
+    PictFormatPtr      pFmt      = glyphSet->format;
+    int              (*oldErrorHandler)(Display *, XErrorEvent *);
+
+    pFormat = dmxFindFormat(dmxScreen, pFmt);
+    if (!pFormat) {
+	return BadMatch;
+    }
+
+    dmxGlyphLastError = 0;
+    oldErrorHandler = XSetErrorHandler(dmxGlyphErrorHandler);
+
+    /* Catch when this fails */
+    glyphPriv->glyphSets[idx]
+	= XRenderCreateGlyphSet(dmxScreen->beDisplay, pFormat);
+
+    XSetErrorHandler(oldErrorHandler);
+
+    if (dmxGlyphLastError) {
+	return dmxGlyphLastError;
+    }
+
+    return Success;
+}
+
 /** Create a Glyph Set on each screen.  Save the glyphset ID from each
  *  screen in the Glyph Set's private structure.  Fail if the format
  *  requested is not available or if the Glyph Set cannot be created on
@@ -235,40 +265,32 @@ static int dmxProcRenderCreateGlyphSet(ClientPtr client)
     ret = dmxSaveRenderVector[stuff->renderReqType](client);
 
     if (ret == Success) {
-	int              (*oldErrorHandler)(Display *, XErrorEvent *);
 	GlyphSetPtr        glyphSet;
 	dmxGlyphPrivPtr    glyphPriv;
 	int                i;
-	PictFormatPtr      pFmt;
-	XRenderPictFormat *pFormat;
 
 	/* Look up glyphSet that was just created ???? */
 	/* Store glyphsets from backends in glyphSet->devPrivate ????? */
 	/* Make sure we handle all errors here!! */
 	
 	glyphSet = SecurityLookupIDByType(client, stuff->gsid, GlyphSetType,
-					  SecurityDestroyAccess);
+					  DixDestroyAccess);
 	glyphPriv = xalloc(sizeof(dmxGlyphPrivRec));
 	if (!glyphPriv) return BadAlloc;
         glyphPriv->glyphSets = NULL;
         MAXSCREENSALLOC_RETURN(glyphPriv->glyphSets, BadAlloc);
 	DMX_SET_GLYPH_PRIV(glyphSet, glyphPriv);
 
-	pFmt = SecurityLookupIDByType(client, stuff->format, PictFormatType,
-				      SecurityReadAccess);
-
-	oldErrorHandler = XSetErrorHandler(dmxGlyphErrorHandler);
-
 	for (i = 0; i < dmxNumScreens; i++) {
 	    DMXScreenInfo *dmxScreen = &dmxScreens[i];
+	    int beret;
 
 	    if (!dmxScreen->beDisplay) {
 		glyphPriv->glyphSets[i] = 0;
 		continue;
 	    }
 
-	    pFormat = dmxFindFormat(dmxScreen, pFmt);
-	    if (!pFormat) {
+	    if ((beret = dmxBECreateGlyphSet(i, glyphSet)) != Success) {
 		int  j;
 
 		/* Free the glyph sets we've allocated thus far */
@@ -278,30 +300,9 @@ static int dmxProcRenderCreateGlyphSet(ClientPtr client)
 		/* Free the resource created by render */
 		FreeResource(stuff->gsid, RT_NONE);
 
-		ret = BadMatch;
-		break;
-	    }
-
-	    /* Catch when this fails */
-	    glyphPriv->glyphSets[i]
-		= XRenderCreateGlyphSet(dmxScreen->beDisplay, pFormat);
-
-	    if (dmxGlyphLastError) {
-		int  j;
-
-		/* Free the glyph sets we've allocated thus far */
-		for (j = 0; j < i; j++)
-		    dmxBEFreeGlyphSet(screenInfo.screens[j], glyphSet);
-
-		/* Free the resource created by render */
-		FreeResource(stuff->gsid, RT_NONE);
-
-		ret = dmxGlyphLastError;
-		break;
+		return beret;
 	    }
 	}
-
-	XSetErrorHandler(oldErrorHandler);
     }
 
     return ret;
@@ -315,7 +316,7 @@ static int dmxProcRenderFreeGlyphSet(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xRenderFreeGlyphSetReq);
     glyphSet = SecurityLookupIDByType(client, stuff->glyphset, GlyphSetType,
-				      SecurityDestroyAccess);
+				      DixDestroyAccess);
 
     if (glyphSet && glyphSet->refcnt == 1) {
 	dmxGlyphPrivPtr  glyphPriv = DMX_GET_GLYPH_PRIV(glyphSet);
@@ -358,7 +359,7 @@ static int dmxProcRenderAddGlyphs(ClientPtr client)
 	int              nbytes;
 
 	glyphSet = SecurityLookupIDByType(client, stuff->glyphset,
-					  GlyphSetType, SecurityReadAccess);
+					  GlyphSetType, DixReadAccess);
 	glyphPriv = DMX_GET_GLYPH_PRIV(glyphSet);
 
 	nglyphs = stuff->nglyphs;
@@ -401,7 +402,7 @@ static int dmxProcRenderFreeGlyphs(ClientPtr client)
 
     REQUEST_AT_LEAST_SIZE(xRenderFreeGlyphsReq);
     glyphSet = SecurityLookupIDByType(client, stuff->glyphset, GlyphSetType,
-				      SecurityWriteAccess);
+				      DixWriteAccess);
 
     if (glyphSet) {
 	dmxGlyphPrivPtr  glyphPriv = DMX_GET_GLYPH_PRIV(glyphSet);
@@ -473,13 +474,13 @@ static int dmxProcRenderCompositeGlyphs(ClientPtr client)
 	dmxGlyphPrivPtr    glyphPriv;
 
 	pSrc = SecurityLookupIDByType(client, stuff->src, PictureType,
-				      SecurityReadAccess);
+				      DixReadAccess);
 	pSrcPriv = DMX_GET_PICT_PRIV(pSrc);
 	if (!pSrcPriv->pict)
 	    return ret;
 
 	pDst = SecurityLookupIDByType(client, stuff->dst, PictureType,
-				      SecurityWriteAccess);
+				      DixWriteAccess);
 	pDstPriv = DMX_GET_PICT_PRIV(pDst);
 	if (!pDstPriv->pict)
 	    return ret;
@@ -496,7 +497,7 @@ static int dmxProcRenderCompositeGlyphs(ClientPtr client)
 
 	if (stuff->maskFormat)
 	    pFmt = SecurityLookupIDByType(client, stuff->maskFormat,
-					  PictFormatType, SecurityReadAccess);
+					  PictFormatType, DixReadAccess);
 	else
 	    pFmt = NULL;
 
@@ -547,7 +548,7 @@ static int dmxProcRenderCompositeGlyphs(ClientPtr client)
 	curElt = elts;
 
 	glyphSet = SecurityLookupIDByType(client, stuff->glyphset,
-					  GlyphSetType, SecurityReadAccess);
+					  GlyphSetType, DixReadAccess);
 	glyphPriv = DMX_GET_GLYPH_PRIV(glyphSet);
 
 	while (buffer + sizeof(xGlyphElt) < end) {
@@ -558,7 +559,7 @@ static int dmxProcRenderCompositeGlyphs(ClientPtr client)
 		glyphSet = SecurityLookupIDByType(client,
 						  *((CARD32 *)buffer),
 						  GlyphSetType,
-						  SecurityReadAccess);
+						  DixReadAccess);
 		glyphPriv = DMX_GET_GLYPH_PRIV(glyphSet);
 		buffer += 4;
 	    } else {
@@ -622,7 +623,7 @@ static int dmxProcRenderSetPictureTransform(ClientPtr client)
     REQUEST(xRenderSetPictureTransformReq);
 
     REQUEST_SIZE_MATCH(xRenderSetPictureTransformReq);
-    VERIFY_PICTURE(pPicture, stuff->picture, client, SecurityWriteAccess,
+    VERIFY_PICTURE(pPicture, stuff->picture, client, DixWriteAccess,
 		   RenderErrBase + BadPicture);
 
     /* For the following to work with PanoramiX, it assumes that Render
@@ -663,7 +664,7 @@ static int dmxProcRenderSetPictureFilter(ClientPtr client)
     REQUEST(xRenderSetPictureFilterReq);
 
     REQUEST_AT_LEAST_SIZE(xRenderSetPictureFilterReq);
-    VERIFY_PICTURE(pPicture, stuff->picture, client, SecurityWriteAccess,
+    VERIFY_PICTURE(pPicture, stuff->picture, client, DixWriteAccess,
 		   RenderErrBase + BadPicture);
 
     /* For the following to work with PanoramiX, it assumes that Render
@@ -751,6 +752,20 @@ void dmxCreatePictureList(WindowPtr pWindow)
 
 	pPicture = pPicture->pNext;
     }
+}
+
+/** Create \a pPicture on the backend. */
+int dmxBECreatePicture(PicturePtr pPicture)
+{
+    dmxPictPrivPtr    pPictPriv = DMX_GET_PICT_PRIV(pPicture);
+
+    /* Create picutre on BE */
+    pPictPriv->pict = dmxDoCreatePicture(pPicture);
+
+    /* Flush changes to the backend server */
+    dmxValidatePicture(pPicture, (1 << (CPLastBit+1)) - 1);
+
+    return Success;
 }
 
 /** Create a picture.  This function handles the CreatePicture
@@ -853,7 +868,11 @@ int dmxChangePictureClip(PicturePtr pPicture, int clipType,
 	/* The clip has already been changed into a region by the mi
 	 * routine called above.
 	 */
-	if (pPicture->clientClip) {
+	if (clipType == CT_NONE) {
+	    /* Disable clipping, show all */
+	    XFixesSetPictureClipRegion(dmxScreen->beDisplay,
+				       pPictPriv->pict, 0, 0, None);
+	} else if (pPicture->clientClip) {
 	    RegionPtr   pClip = pPicture->clientClip;
 	    BoxPtr      pBox  = REGION_RECTS(pClip);
 	    int         nBox  = REGION_NUM_RECTS(pClip);

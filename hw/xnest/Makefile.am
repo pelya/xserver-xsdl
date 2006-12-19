@@ -51,6 +51,7 @@ Xnest_LDFLAGS =
 
 AM_CFLAGS = -DHAVE_XNEST_CONFIG_H \
             -DNO_HW_ONLY_EXTS \
+            -DXFree86Server \
             $(DIX_CFLAGS) \
             $(XNESTMODULES_CFLAGS)
 

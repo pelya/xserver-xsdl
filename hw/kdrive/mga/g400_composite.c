@@ -286,10 +286,8 @@ mgaCheckComposite(int op, PicturePtr pSrcPicture, PicturePtr pMaskPicture,
     if (pMaskPicture->componentAlpha)
 	MGA_FALLBACK(("Component alpha unsupported"));
 
-    switch (pDstPicture->format) {
-    case PICT_a8:
+    if (pDstPicture->format == PICT_a8)
 	MGA_FALLBACK(("render to A8 unsupported"));
-    }
 
     return TRUE;
 }

@@ -137,9 +137,7 @@ of the copyright holder.
 extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
 #endif
 
-#ifdef XACE
 #include "xace.h"
-#endif
 
 #ifdef XSERVER_DTRACE
 #include <sys/types.h>
@@ -2230,16 +2228,15 @@ static int
 XineramaWarpPointer(ClientPtr client)
 {
     WindowPtr	dest = NULL;
-    int		x, y;
+    int		x, y, rc;
 
     REQUEST(xWarpPointerReq);
 
 
-    if (stuff->dstWid != None)
-    {
-	dest = SecurityLookupWindow(stuff->dstWid, client, SecurityReadAccess);
-	if (!dest)
-	    return BadWindow;
+    if (stuff->dstWid != None) {
+	rc = dixLookupWindow(&dest, stuff->dstWid, client, DixReadAccess);
+	if (rc != Success)
+	    return rc;
     }
     x = sprite.hotPhys.x;
     y = sprite.hotPhys.y;
@@ -2250,8 +2247,9 @@ XineramaWarpPointer(ClientPtr client)
  	XID 	winID = stuff->srcWid;
         WindowPtr source;
 	
-	source = SecurityLookupWindow(winID, client, SecurityReadAccess);
-	if (!source) return BadWindow;
+	rc = dixLookupWindow(&source, winID, client, DixReadAccess);
+	if (rc != Success)
+	    return rc;
 
 	winX = source->drawable.x;
 	winY = source->drawable.y;
@@ -2303,7 +2301,7 @@ int
 ProcWarpPointer(ClientPtr client)
 {
     WindowPtr	dest = NULL;
-    int		x, y;
+    int		x, y, rc;
     ScreenPtr	newScreen;
 
     REQUEST(xWarpPointerReq);
@@ -2315,11 +2313,10 @@ ProcWarpPointer(ClientPtr client)
 	return XineramaWarpPointer(client);
 #endif
 
-    if (stuff->dstWid != None)
-    {
-	dest = SecurityLookupWindow(stuff->dstWid, client, SecurityReadAccess);
-	if (!dest)
-	    return BadWindow;
+    if (stuff->dstWid != None) {
+	rc = dixLookupWindow(&dest, stuff->dstWid, client, DixReadAccess);
+	if (rc != Success)
+	    return rc;
     }
     x = sprite.hotPhys.x;
     y = sprite.hotPhys.y;
@@ -2330,8 +2327,9 @@ ProcWarpPointer(ClientPtr client)
  	XID 	winID = stuff->srcWid;
         WindowPtr source;
 	
-	source = SecurityLookupWindow(winID, client, SecurityReadAccess);
-	if (!source) return BadWindow;
+	rc = dixLookupWindow(&source, winID, client, DixReadAccess);
+	if (rc != Success)
+	    return rc;
 
 	winX = source->drawable.x;
 	winY = source->drawable.y;
@@ -2463,10 +2461,8 @@ CheckPassiveGrabsOnWindow(
 	     (grab->confineTo->realized && 
 				BorderSizeNotEmpty(grab->confineTo))))
 	{
-#ifdef XACE
 	    if (!XaceHook(XACE_DEVICE_ACCESS, wClient(pWin), device, FALSE))
 		return FALSE;
-#endif
 #ifdef XKB
 	    if (!noXkbExtension) {
 		XE_KBPTR.state &= 0x1f00;
@@ -2827,9 +2823,7 @@ drawable.id:0;
     if (deactivateGrab)
         (*keybd->DeactivateGrab)(keybd);
 
-#ifdef XACE
     XaceHook(XACE_KEY_AVAIL, xE, keybd, count);
-#endif
 }
 
 #ifdef XKB
@@ -3253,17 +3247,13 @@ EnterLeaveEvent(
     if ((type == EnterNotify) && (mask & KeymapStateMask))
     {
 	xKeymapEvent ke;
-
-#ifdef XACE
 	ClientPtr client = grab ? rClient(grab)
 				: clients[CLIENT_ID(pWin->drawable.id)];
-	if (!XaceHook(XACE_DEVICE_ACCESS, client, keybd, FALSE))
-	{
-	    bzero((char *)&ke.map[0], 31);
-	}
+	if (XaceHook(XACE_DEVICE_ACCESS, client, keybd, FALSE))
+	    memmove((char *)&ke.map[0], (char *)&keybd->key->down[1], 31);
 	else
-#endif
-	memmove((char *)&ke.map[0], (char *)&keybd->key->down[1], 31);
+	    bzero((char *)&ke.map[0], 31);
+
 	ke.type = KeymapNotify;
 	if (grab)
 	    (void)TryClientEvents(rClient(grab), (xEvent *)&ke, 1, mask,
@@ -3349,15 +3339,12 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, register WindowPtr 
 	((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
     {
 	xKeymapEvent ke;
-#ifdef XACE
 	ClientPtr client = clients[CLIENT_ID(pWin->drawable.id)];
-	if (!XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
-	{
-	    bzero((char *)&ke.map[0], 31);
-	}
+	if (XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
+	    memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
 	else
-#endif
-	memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
+	    bzero((char *)&ke.map[0], 31);
+
 	ke.type = KeymapNotify;
 	(void)DeliverEventsToWindow(pWin, (xEvent *)&ke, 1,
 				    KeymapStateMask, NullGrab, 0);
@@ -3545,8 +3532,8 @@ SetInputFocus(
     Bool followOK)
 {
     register FocusClassPtr focus;
-    register WindowPtr focusWin;
-    int mode;
+    WindowPtr focusWin;
+    int mode, rc;
     TimeStamp time;
 
     UpdateCurrentTime();
@@ -3563,14 +3550,12 @@ SetInputFocus(
 	focusWin = (WindowPtr)(long)focusID;
     else if ((focusID == FollowKeyboard) && followOK)
 	focusWin = inputInfo.keyboard->focus->win;
-    else if (!(focusWin = SecurityLookupWindow(focusID, client,
-					       SecurityReadAccess)))
-	return BadWindow;
-    else
-    {
+    else {
+	rc = dixLookupWindow(&focusWin, focusID, client, DixReadAccess);
+	if (rc != Success)
+	    return rc;
  	/* It is a match error to try to set the input focus to an 
 	unviewable window. */
-
 	if(!focusWin->realized)
 	    return(BadMatch);
     }
@@ -3620,10 +3605,10 @@ ProcSetInputFocus(client)
     REQUEST(xSetInputFocusReq);
 
     REQUEST_SIZE_MATCH(xSetInputFocusReq);
-#ifdef XACE
+
     if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
 	return Success;
-#endif
+
     return SetInputFocus(client, inputInfo.keyboard, stuff->focus,
 			 stuff->revertTo, stuff->time, FALSE);
 }
@@ -3659,6 +3644,7 @@ ProcGrabPointer(ClientPtr client)
     CursorPtr cursor, oldCursor;
     REQUEST(xGrabPointerReq);
     TimeStamp time;
+    int rc;
 
     REQUEST_SIZE_MATCH(xGrabPointerReq);
     UpdateCurrentTime();
@@ -3684,24 +3670,24 @@ ProcGrabPointer(ClientPtr client)
 	client->errorValue = stuff->eventMask;
         return BadValue;
     }
-    pWin = SecurityLookupWindow(stuff->grabWindow, client, SecurityReadAccess);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
     if (stuff->confineTo == None)
 	confineTo = NullWindow;
     else 
     {
-	confineTo = SecurityLookupWindow(stuff->confineTo, client,
-					 SecurityReadAccess);
-	if (!confineTo)
-	    return BadWindow;
+	rc = dixLookupWindow(&confineTo, stuff->confineTo, client,
+			     DixReadAccess);
+	if (rc != Success)
+	    return rc;
     }
     if (stuff->cursor == None)
 	cursor = NullCursor;
     else
     {
 	cursor = (CursorPtr)SecurityLookupIDByType(client, stuff->cursor,
-						RT_CURSOR, SecurityReadAccess);
+						RT_CURSOR, DixReadAccess);
 	if (!cursor)
 	{
 	    client->errorValue = stuff->cursor;
@@ -3775,7 +3761,7 @@ ProcChangeActivePointerGrab(ClientPtr client)
     else
     {
 	newCursor = (CursorPtr)SecurityLookupIDByType(client, stuff->cursor,
-						RT_CURSOR, SecurityReadAccess);
+						RT_CURSOR, DixReadAccess);
 	if (!newCursor)
 	{
 	    client->errorValue = stuff->cursor;
@@ -3825,9 +3811,10 @@ GrabDevice(register ClientPtr client, register DeviceIntPtr dev,
            unsigned this_mode, unsigned other_mode, Window grabWindow, 
            unsigned ownerEvents, Time ctime, Mask mask, CARD8 *status)
 {
-    register WindowPtr pWin;
+    WindowPtr pWin;
     register GrabPtr grab;
     TimeStamp time;
+    int rc;
 
     UpdateCurrentTime();
     if ((this_mode != GrabModeSync) && (this_mode != GrabModeAsync))
@@ -3845,9 +3832,9 @@ GrabDevice(register ClientPtr client, register DeviceIntPtr dev,
 	client->errorValue = ownerEvents;
         return BadValue;
     }
-    pWin = SecurityLookupWindow(grabWindow, client, SecurityReadAccess);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, grabWindow, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
     time = ClientTimeToServerTime(ctime);
     grab = dev->grab;
     if (grab && !SameClient(grab, client))
@@ -3885,18 +3872,17 @@ ProcGrabKeyboard(ClientPtr client)
     int result;
 
     REQUEST_SIZE_MATCH(xGrabKeyboardReq);
-#ifdef XACE
-    if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
-    {
+
+    if (XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
+	result = GrabDevice(client, inputInfo.keyboard, stuff->keyboardMode,
+			    stuff->pointerMode, stuff->grabWindow,
+			    stuff->ownerEvents, stuff->time,
+			    KeyPressMask | KeyReleaseMask, &rep.status);
+    else {
 	result = Success;
 	rep.status = AlreadyGrabbed;
     }
-    else
-#endif
-    result = GrabDevice(client, inputInfo.keyboard, stuff->keyboardMode,
-			stuff->pointerMode, stuff->grabWindow,
-			stuff->ownerEvents, stuff->time,
-			KeyPressMask | KeyReleaseMask, &rep.status);
+
     if (result != Success)
 	return result;
     rep.type = X_Reply;
@@ -3932,11 +3918,12 @@ ProcQueryPointer(ClientPtr client)
     WindowPtr pWin, t;
     REQUEST(xResourceReq);
     DeviceIntPtr mouse = inputInfo.pointer;
+    int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pWin = SecurityLookupWindow(stuff->id, client, SecurityReadAccess);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
     if (mouse->valuator->motionHintWindow)
 	MaybeStopHint(mouse, client);
     rep.type = X_Reply;
@@ -4100,8 +4087,8 @@ ProcSendEvent(ClientPtr client)
 	    effectiveFocus = pWin = inputFocus;
     }
     else
-	pWin = SecurityLookupWindow(stuff->destination, client,
-				    SecurityReadAccess);
+	dixLookupWindow(&pWin, stuff->destination, client, DixReadAccess);
+
     if (!pWin)
 	return BadWindow;
     if ((stuff->propagate != xFalse) && (stuff->propagate != xTrue))
@@ -4137,11 +4124,12 @@ ProcUngrabKey(ClientPtr client)
     WindowPtr pWin;
     GrabRec tempGrab;
     DeviceIntPtr keybd = inputInfo.keyboard;
+    int rc;
 
     REQUEST_SIZE_MATCH(xUngrabKeyReq);
-    pWin = SecurityLookupWindow(stuff->grabWindow, client, SecurityReadAccess);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     if (((stuff->key > keybd->key->curKeySyms.maxKeyCode) ||
 	 (stuff->key < keybd->key->curKeySyms.minKeyCode))
@@ -4178,6 +4166,7 @@ ProcGrabKey(ClientPtr client)
     REQUEST(xGrabKeyReq);
     GrabPtr grab;
     DeviceIntPtr keybd = inputInfo.keyboard;
+    int rc;
 
     REQUEST_SIZE_MATCH(xGrabKeyReq);
     if ((stuff->ownerEvents != xTrue) && (stuff->ownerEvents != xFalse))
@@ -4210,9 +4199,9 @@ ProcGrabKey(ClientPtr client)
 	client->errorValue = stuff->modifiers;
 	return BadValue;
     }
-    pWin = SecurityLookupWindow(stuff->grabWindow, client, SecurityReadAccess);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     grab = CreateGrab(client->index, keybd, pWin, 
 	(Mask)(KeyPressMask | KeyReleaseMask), (Bool)stuff->ownerEvents,
@@ -4232,6 +4221,7 @@ ProcGrabButton(ClientPtr client)
     REQUEST(xGrabButtonReq);
     CursorPtr cursor;
     GrabPtr grab;
+    int rc;
 
     REQUEST_SIZE_MATCH(xGrabButtonReq);
     if ((stuff->pointerMode != GrabModeSync) &&
@@ -4262,23 +4252,23 @@ ProcGrabButton(ClientPtr client)
 	client->errorValue = stuff->eventMask;
         return BadValue;
     }
-    pWin = SecurityLookupWindow(stuff->grabWindow, client, SecurityReadAccess);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
     if (stuff->confineTo == None)
        confineTo = NullWindow;
     else {
-	confineTo = SecurityLookupWindow(stuff->confineTo, client,
-					 SecurityReadAccess);
-	if (!confineTo)
-	    return BadWindow;
+	rc = dixLookupWindow(&confineTo, stuff->confineTo, client,
+			     DixReadAccess);
+	if (rc != Success)
+	    return rc;
     }
     if (stuff->cursor == None)
 	cursor = NullCursor;
     else
     {
 	cursor = (CursorPtr)SecurityLookupIDByType(client, stuff->cursor,
-						RT_CURSOR, SecurityReadAccess);
+						RT_CURSOR, DixReadAccess);
 	if (!cursor)
 	{
 	    client->errorValue = stuff->cursor;
@@ -4303,6 +4293,7 @@ ProcUngrabButton(ClientPtr client)
     REQUEST(xUngrabButtonReq);
     WindowPtr pWin;
     GrabRec tempGrab;
+    int rc;
 
     REQUEST_SIZE_MATCH(xUngrabButtonReq);
     if ((stuff->modifiers != AnyModifier) &&
@@ -4311,9 +4302,9 @@ ProcUngrabButton(ClientPtr client)
 	client->errorValue = stuff->modifiers;
 	return BadValue;
     }
-    pWin = SecurityLookupWindow(stuff->grabWindow, client, SecurityReadAccess);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
     tempGrab.resource = client->clientAsMask;
     tempGrab.device = inputInfo.pointer;
     tempGrab.window = pWin;
@@ -4465,7 +4456,7 @@ ProcRecolorCursor(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xRecolorCursorReq);
     pCursor = (CursorPtr)SecurityLookupIDByType(client, stuff->cursor,
-					RT_CURSOR, SecurityWriteAccess);
+					RT_CURSOR, DixWriteAccess);
     if ( !pCursor) 
     {
 	client->errorValue = stuff->cursor;

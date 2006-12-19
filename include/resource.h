@@ -220,10 +220,11 @@ extern pointer LookupClientResourceComplex(
  * simultaneously.
  */
 
-#define SecurityUnknownAccess	0	/* don't know intentions */
-#define SecurityReadAccess	(1<<0)	/* inspecting the object */
-#define SecurityWriteAccess	(1<<1)	/* changing the object */
-#define SecurityDestroyAccess	(1<<2)	/* destroying the object */
+#define DixUnknownAccess	0	/* don't know intentions */
+#define DixReadAccess		(1<<0)	/* inspecting the object */
+#define DixWriteAccess		(1<<1)	/* changing the object */
+#define DixReadWriteAccess	(DixReadAccess|DixWriteAccess)
+#define DixDestroyAccess	(1<<2)	/* destroying the object */
 
 extern pointer SecurityLookupIDByType(
     ClientPtr /*client*/,

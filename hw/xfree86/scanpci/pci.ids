@@ -11,7 +11,7 @@
 #	This file can be distributed under either the GNU General Public License
 #	(version 2 or higher) or the 3-clause BSD License.
 #
-#	Daily snapshot on Tue 2006-10-03 01:05:01
+#	Daily snapshot on Wed 2006-12-06 02:05:02
 #
 
 # Vendors, devices and subsystems. Please keep sorted.
@@ -3012,20 +3012,22 @@
 	2200  QLA2200 64-bit Fibre Channel Adapter
 		1077 0002  QLA2200
 	2300  QLA2300 64-bit Fibre Channel Adapter
-	2312  QLA2312 Fibre Channel Adapter
+	2312  ISP2312-based 2Gb Fibre Channel to PCI-X HBA
 		103c 0131  2Gb Fibre Channel - Single port [A7538A]
 		103c 12ba  2Gb Fibre Channel - Dual port [A6826A]
-	2322  QLA2322 Fibre Channel Adapter
-	2422  QLA2422 Fibre Channel Adapter
+	2322  ISP2322-based 2Gb Fibre Channel to PCI-X HBA
+	2422  ISP2422-based 4Gb Fibre Channel to PCI-X HBA
 		103c 12d7  4Gb Fibre Channel [AB379A]
 		103c 12dd  4Gb Fibre Channel [AB429A]
-	2432  QLA2432 Fibre Channel Adapter
-	3010  QLA3010 Network Adapter
-	3022  QLA3022 Network Adapter
-	4010  QLA4010 iSCSI TOE Adapter
-	4022  QLA4022 iSCSI TOE Adapter
-	6312  QLA6312 Fibre Channel Adapter
-	6322  QLA6322 Fibre Channel Adapter
+	2432  ISP2432-based 4Gb Fibre Channel to PCI Express HBA
+	3022  ISP4022-based Ethernet NIC
+	3032  ISP4032-based Ethernet NIC
+	4010  ISP4010-based iSCSI TOE HBA
+	4022  ISP4022-based iSCSI TOE HBA
+	4032  ISP4032-based iSCSI TOE IPv6 HBA
+	5432  SP232-based 4Gb Fibre Channel to PCI Express HBA
+	6312  SP202-based 2Gb Fibre Channel to PCI-X HBA
+	6322  SP212-based 2Gb Fibre Channel to PCI-X HBA
 1078  Cyrix Corporation
 	0000  5510 [Grappa]
 	0001  PCI Master
@@ -10565,7 +10567,9 @@
 		16be 1040  V.9X DSP Data Fax Modem
 	1043  PRO/Wireless LAN 2100 3B Mini PCI Adapter
 		103c 08b0  tc1100 tablet
+		8086 2522  Samsung P30 integrated WLAN
 		8086 2527  MIM2000/Centrino
+		8086 2581  Toshiba Satellite M10
 	1048  PRO/10GbE LR Server Adapter
 		8086 a01f  PRO/10GbE LR Server Adapter
 		8086 a11f  PRO/10GbE LR Server Adapter
@@ -10583,6 +10587,10 @@
 	1051  82801EB/ER (ICH5/ICH5R) integrated LAN Controller
 	1052  PRO/100 VM Network Connection
 	1053  PRO/100 VM Network Connection
+	1054  PRO/100 VE Network Connection
+	1055  PRO/100 VM Network Connection
+	1056  PRO/100 VE Network Connection
+	1057  PRO/100 VE Network Connection
 	1059  82551QM Ethernet Controller
 	105b  82546GB Gigabit Ethernet Controller (Copper)
 	105e  82571EB Gigabit Ethernet Controller
@@ -10673,19 +10681,30 @@
 	108c  82573E Gigabit Ethernet Controller (Copper)
 	108e  82573E KCS (Active Management)
 	108f  Active Management Technology - SOL
+	1091  PRO/100 VM Network Connection
 	1092  PRO/100 VE Network Connection
+	1093  PRO/100 VM Network Connection
+	1094  PRO/100 VE Network Connection
+	1095  PRO/100 VE Network Connection
 	1096  80003ES2LAN Gigabit Ethernet Controller (Copper)
 	1097  631xESB/632xESB DPT LAN Controller (Fiber)
 	1098  80003ES2LAN Gigabit Ethernet Controller (Serdes)
 	1099  82546GB Gigabit Ethernet Controller (Copper)
 		8086 1099  PRO/1000 GT Quad Port Server Adapter
 	109a  82573L Gigabit Ethernet Controller
+		1179 ff10  PRO/1000 PL
 		17aa 2001  ThinkPad T60
 		17aa 207e  Thinkpad X60s
 		8086 109a  PRO/1000 PL Network Connection
 	109b  82546GB PRO/1000 GF Quad Port Server Adapter
+	109e  82597EX 10GbE Ethernet Controller
+		8086 a01f  PRO/10GbE CX4 Server Adapter
+		8086 a11f  PRO/10GbE CX4 Server Adapter
 	10a0  82571EB PRO/1000 AT Quad Port Bypass Adapter
 	10a1  82571EB PRO/1000 AF Quad Port Bypass Adapter
+	10a4  82571EB Gigabit Ethernet Controller
+		8086 10a4  PRO/1000 PT Quad Port Server Adapter
+		8086 11a4  PRO/1000 PT Quad Port Server Adapter
 	10b0  82573L PRO/1000 PL Network Connection
 	10b2  82573V PRO/1000 PM Network Connection
 	10b3  82573E PRO/1000 PM Network Connection
@@ -10699,6 +10718,11 @@
 		8086 1093  PRO/1000 PT Desktop Adapter
 	10ba  80003ES2LAN Gigabit Ethernet Controller (Copper)
 	10bb  80003ES2LAN Gigabit Ethernet Controller (Serdes)
+	10bc  82571EB Gigabit Ethernet Controller (Copper)
+		8086 10bc  PRO/1000 PT Quad Port LP Server Adapter
+		8086 11bc  PRO/1000 PT Quad Port LP Server Adapter
+	10c4  82562GT 10/100 Network Connection
+	10c5  82562G 10/100 Network Connection
 	1107  PRO/1000 MF Server Adapter (LX)
 	1130  82815 815 Chipset Host Bridge and Memory Controller Hub
 		1025 1016  Travelmate 612 TX
@@ -10946,6 +10970,9 @@
 	1a31  82845 845 (Brookdale) Chipset AGP Bridge
 	1a38  5000 Series Chipset DMA Engine
 	1a48  PRO/10GbE SR Server Adapter
+	1b48  82597EX 10GbE Ethernet Controller
+		8086 a01f  PRO/10GbE LR Server Adapter
+		8086 a11f  PRO/10GbE LR Server Adapter
 	2410  82801AA ISA Bridge (LPC)
 	2411  82801AA IDE
 	2412  82801AA USB
@@ -10998,6 +11025,7 @@
 		147b 0507  TH7II-RAID
 		8086 4532  D815EEA2 mainboard
 	2445  82801BA/BAM AC'97 Audio
+		0e11 000b  Compaq Deskpro EN Audio
 		0e11 0088  Evo D500
 		1014 01c6  Netvista A40/A40p
 		1025 1016  Travelmate 612 TX
@@ -11010,6 +11038,7 @@
 		104d 80df  Vaio PCG-FX403
 	2448  82801 Mobile PCI Bridge
 		103c 099c  NX6110/NC6120
+		144d c00c  P30 notebook
 		1734 1055  Amilo M1420
 	2449  82801BA/BAM/CA/CAM Ethernet Controller
 		0e11 0012  EtherExpress PRO/100 VM
@@ -11129,6 +11158,7 @@
 		103c 0890  NC6000 laptop
 		103c 08b0  tc1100 tablet
 		1071 8160  MIM2000
+		144d c00c  P30 notebook
 		1462 5800  845PE Max (MS-6580)
 		1509 2990  Averatec 5110H laptop
 		1734 1004  D1451 Mainboard (SCENIC N300, i845GV)
@@ -11160,6 +11190,7 @@
 		103c 0890  NC6000 laptop
 		103c 08b0  tc1100 tablet
 		1071 8160  MIM2000
+		144d c00c  P30 notebook
 		1462 5800  845PE Max (MS-6580)
 		1509 2990  Averatec 5110H
 		1734 1004  D1451 Mainboard (SCENIC N300, i845GV)
@@ -11177,6 +11208,7 @@
 		103c 0890  NC6000 laptop
 		103c 08b0  tc1100 tablet
 		1071 8160  MIM2000
+		144d c00c  P30 notebook
 		1458 a002  GA-8PE667 Ultra
 		1462 5800  845PE Max (MS-6580)
 		1734 1005  D1451 (SCENIC N300, i845GV) Sigmatel STAC9750T
@@ -11190,6 +11222,7 @@
 		103c 0890  NC6000 laptop
 		103c 08b0  tc1100 tablet
 		1071 8160  MIM2000
+		144d c00c  P30 notebook
 	24c7  82801DB/DBL/DBM (ICH4/ICH4-L/ICH4-M) USB UHCI Controller #3
 		1014 0267  NetVista A30p
 		1014 052d  Thinkpad R50e model 1634
@@ -11201,6 +11234,7 @@
 		103c 0890  NC6000 laptop
 		103c 08b0  tc1100 tablet
 		1071 8160  MIM2000
+		144d c00c  P30 notebook
 		1462 5800  845PE Max (MS-6580)
 		1509 2990  Averatec 5110H
 		1734 1004  D1451 Mainboard (SCENIC N300, i845GV)
@@ -11215,6 +11249,7 @@
 		103c 0890  NC6000 laptop
 		103c 08b0  tc1100 tablet
 		1071 8160  MIM2000
+		144d c00c  P30 notebook
 		1734 1055  Amilo M1420
 		8086 4541  Latitude D400
 	24cb  82801DB (ICH4) IDE Controller
@@ -11225,6 +11260,7 @@
 		1734 1004  D1451 Mainboard (SCENIC N300, i845GV)
 		4c53 1090  Cx9 / Vx9 mainboard
 	24cc  82801DBM (ICH4-M) LPC Interface Bridge
+		144d c00c  P30 notebook
 		1734 1055  Amilo M1420
 	24cd  82801DB/DBM (ICH4/ICH4-M) USB2 EHCI Controller
 		1014 0267  NetVista A30p
@@ -11240,6 +11276,7 @@
 		103c 08b0  tc1100 tablet
 		1071 8160  MIM2000
 		1179 ff00  Satellite 2430
+		144d c00c  P30 notebook
 		1462 3981  845PE Max (MS-6580)
 		1509 1968  Averatec 5110H
 		1734 1004  D1451 Mainboard (SCENIC N300, i845GV)
@@ -11278,6 +11315,7 @@
 		1014 02ed  xSeries server mainboard
 		1028 0156  Precision 360
 		1028 0169  Precision 470
+		103c 12bc  d330 uT
 		1043 80a6  P4P800 Mainboard
 		1458 24d2  GA-8IPE1000 Pro2 motherboard (865PE)
 		1462 7280  865PE Neo2 (MS-6728)
@@ -11304,6 +11342,7 @@
 		8086 4c43  Desktop Board D865GLC
 		8086 524c  D865PERL mainboard
 	24d5  82801EB/ER (ICH5/ICH5R) AC'97 Audio Controller
+		100a 147b  Abit IS7-E motherboard
 		1028 0169  Precision 470
 		103c 006a  NX9500
 		103c 12bc  d330 uT
@@ -11427,6 +11466,7 @@
 		1734 1004  D1451 Mainboard (SCENIC N300, i845GV)
 	2570  82865G/PE/P DRAM Controller/Host-Hub Interface
 		103c 006a  NX9500
+		103c 12bc  d330 uT
 		1043 80f2  P5P800-MX Mainboard
 		1458 2570  GA-8IPE1000 Pro2 motherboard (865PE)
 	2571  82865G/PE/P PCI to AGP Controller
@@ -11533,7 +11573,7 @@
 	25e5  5000 Series Chipset PCI Express x4 Port 5
 	25e6  5000 Series Chipset PCI Express x4 Port 6
 	25e7  5000 Series Chipset PCI Express x4 Port 7
-	25f0  5000 Series Chipset Error Reporting Registers
+	25f0  5000 Series Chipset FSB Registers
 	25f1  5000 Series Chipset Reserved Registers
 	25f3  5000 Series Chipset Reserved Registers
 	25f5  5000 Series Chipset FBD Registers
@@ -11554,7 +11594,7 @@
 	2609  E8500/E8501 PCI Express x8 Port B
 	260a  E8500/E8501 PCI Express x8 Port A
 	260c  E8500/E8501 IMI Registers
-	2610  E8500/E8501 Front Side Bus, Boot, and Interrupt Registers
+	2610  E8500/E8501 FSB Registers
 	2611  E8500/E8501 Address Mapping Registers
 	2612  E8500/E8501 RAS Registers
 	2613  E8500/E8501 Reserved Registers
@@ -11713,6 +11753,7 @@
 		107b 5048  E4500
 		8086 544e  DeskTop Board D945GTP
 	27b9  82801GBM (ICH7-M) LPC Interface Bridge
+		10f7 8338  Panasonic CF-Y5 laptop
 		17aa 2009  ThinkPad T60/R60 series
 	27bd  82801GHM (ICH7-M DH) LPC Interface Bridge
 	27c0  82801GB/GR/GH (ICH7 Family) Serial ATA Storage Controller IDE
@@ -11749,9 +11790,12 @@
 	27d6  82801G (ICH7 Family) PCI Express Port 4
 	27d8  82801G (ICH7 Family) High Definition Audio Controller
 		107b 5048  E4500
+		10f7 8338  Panasonic CF-Y5 laptop
+		1179 ff31  Toshiba America Information Systems:AC97 Data Fax SoftModem with SmartCP
 		152d 0753  Softmodem
 		17aa 2010  ThinkPad T60/R60 series
 	27da  82801G (ICH7 Family) SMBus Controller
+		10f7 8338  Panasonic CF-Y5 laptop
 		17aa 200f  ThinkPad T60/R60 series
 		8086 544e  DeskTop Board D945GTP
 	27dc  82801G (ICH7 Family) LAN Controller
@@ -11760,6 +11804,7 @@
 	27de  82801G (ICH7 Family) AC'97 Audio Controller
 	27df  82801G (ICH7 Family) IDE Controller
 		107b 5048  E4500
+		10f7 8338  Panasonic CF-Y5 laptop
 		17aa 200c  Thinkpad R60e model 0657
 		8086 544e  DeskTop Board D945GTP
 	27e0  82801GR/GH/GHM (ICH7 Family) PCI Express Port 5
@@ -11770,21 +11815,28 @@
 	2814  82801HO (ICH8DO) LPC Interface Controller
 	2815  Mobile LPC Interface Controller
 	2820  82801H (ICH8 Family) 4 port SATA IDE Controller
-	2821  82801HB (ICH8) SATA AHCI Controller
+		1462 7235  P965 Neo MS-7235 mainboard
+	2821  82801HR/HO/HH (ICH8R/DO/DH) 6 port SATA AHCI Controller
 	2822  82801HR/HO/HH (ICH8R/DO/DH) SATA RAID Controller
-	2824  82801HR/HO/HH (ICH8R/DO/DH) SATA AHCI Controller
+	2824  82801HB (ICH8) 4 port SATA AHCI Controller
 	2825  82801H (ICH8 Family) 2 port SATA IDE Controller
+		1462 7235  P965 Neo MS-7235 mainboard
 	2828  Mobile SATA IDE Controller
 	2829  Mobile SATA AHCI Controller
 	282a  Mobile SATA RAID Controller
 	2830  82801H (ICH8 Family) USB UHCI #1
+		1462 7235  P965 Neo MS-7235 mainboard
 	2831  82801H (ICH8 Family) USB UHCI #2
+		1462 7235  P965 Neo MS-7235 mainboard
 	2832  82801H (ICH8 Family) USB UHCI #3
 	2834  82801H (ICH8 Family) USB UHCI #4
+		1462 7235  P965 Neo MS-7235 mainboard
 	2835  82801H (ICH8 Family) USB UHCI #5
 	2836  82801H (ICH8 Family) USB2 EHCI #1
+		1462 7235  P965 Neo MS-7235 mainboard
 	283a  82801H (ICH8 Family) USB2 EHCI #2
 	283e  82801H (ICH8 Family) SMBus Controller
+		1462 7235  P965 Neo MS-7235 mainboard
 	283f  82801H (ICH8 Family) PCI Express Port 1
 	2841  82801H (ICH8 Family) PCI Express Port 2
 	2843  82801H (ICH8 Family) PCI Express Port 3
@@ -11831,12 +11883,15 @@
 	2a07  Mobile KT Controller
 	3092  Integrated RAID
 	3200  GD31244 PCI-X SATA HBA
+		1775 c200  C2K onboard SATA host bus adapter
 	3340  82855PM Processor to I/O Controller
 		1025 005a  TravelMate 290
 		103c 088c  NC8000 laptop
 		103c 0890  NC6000 laptop
 		103c 08b0  tc1100 tablet
+		144d c00c  P30 notebook
 	3341  82855PM Processor to AGP Controller
+		144d c00c  P30 notebook
 	3500  6311ESB/6321ESB PCI Express Upstream Port
 	3501  6310ESB PCI Express Upstream Port
 	3504  6311ESB/6321ESB I/OxAPIC Interrupt Controller

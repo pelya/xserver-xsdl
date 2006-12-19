@@ -69,9 +69,7 @@ SOFTWARE.
 #ifdef XKB
 #include <X11/extensions/XKBsrv.h>
 #endif
-#ifdef XACE
 #include "xace.h"
-#endif
 
 #include "dispatch.h"
 #include "swaprep.h"
@@ -1178,10 +1176,8 @@ DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
                 }
             }
 
-#ifdef XACE
             if (!XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE))
                 return BadAccess;
-#endif 
 
             /* None of the modifiers (old or new) may be down while we change
              * the map. */
@@ -1302,14 +1298,12 @@ ProcChangeKeyboardMapping(ClientPtr client)
 	    return BadValue;
     }
 
-#ifdef XACE
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key) {
             if (!XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE))
                 return BadAccess;
         }
     }
-#endif 
 
     keysyms.minKeyCode = stuff->firstKeyCode;
     keysyms.maxKeyCode = stuff->firstKeyCode + stuff->keyCodes - 1;
@@ -1655,7 +1649,6 @@ ProcChangeKeyboardControl (ClientPtr client)
     if (client->req_len != (sizeof(xChangeKeyboardControlReq)>>2)+Ones(vmask))
 	return BadLength;
 
-#ifdef XACE
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) &&
             pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
@@ -1663,7 +1656,6 @@ ProcChangeKeyboardControl (ClientPtr client)
                 return BadAccess;
         }
     }
-#endif 
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) &&
@@ -1848,16 +1840,16 @@ ProcGetMotionEvents(ClientPtr client)
     WindowPtr pWin;
     xTimecoord * coords = (xTimecoord *) NULL;
     xGetMotionEventsReply rep;
-    int     i, count, xmin, xmax, ymin, ymax;
+    int i, count, xmin, xmax, ymin, ymax, rc;
     unsigned long nEvents;
     DeviceIntPtr mouse = inputInfo.pointer;
     TimeStamp start, stop;
     REQUEST(xGetMotionEventsReq);
 
     REQUEST_SIZE_MATCH(xGetMotionEventsReq);
-    pWin = SecurityLookupWindow(stuff->window, client, TRUE);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     if (mouse->valuator->motionHintWindow)
 	MaybeStopHint(mouse, client);
     rep.type = X_Reply;
@@ -1920,15 +1912,13 @@ ProcQueryKeymap(ClientPtr client)
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.length = 2;
-#ifdef XACE
-    if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
-    {
-	bzero((char *)&rep.map[0], 32);
-    }
+
+    if (XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
+	for (i = 0; i<32; i++)
+	    rep.map[i] = down[i];
     else
-#endif
-    for (i = 0; i<32; i++)
-	rep.map[i] = down[i];
+	bzero((char *)&rep.map[0], 32);
+
     WriteReplyToClient(client, sizeof(xQueryKeymapReply), &rep);
     return Success;
 }

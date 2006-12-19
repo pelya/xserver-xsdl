@@ -21,8 +21,9 @@ Xvfb_LDFLAGS =
 AM_CFLAGS = -DHAVE_DIX_CONFIG_H \
             -DNO_HW_ONLY_EXTS \
             -DNO_MODULE_EXTS \
- \
-            $(XVFBMODULES_CFLAGS)
+            -DXFree86Server \
+            $(XVFBMODULES_CFLAGS) \
+	    $(DIX_CFLAGS)
 
 # Man page
 include $(top_srcdir)/cpprules.in

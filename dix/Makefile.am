@@ -52,7 +52,7 @@ Xserver-dtrace.h: $(srcdir)/Xserver.d
 dtrace-dix.o: $(top_srcdir)/dix/Xserver.d $(am_libdix_la_OBJECTS)
 	$(DTRACE) -G -C -o $@ -s $(top_srcdir)/dix/Xserver.d .libs/*.o
 
-noinst_LIBRARIES = dix.O
+noinst_PROGRAMS = dix.O
 
 dix.O: dtrace-dix.o $(am_libdix_la_OBJECTS)
 	ld -r -o $@ .libs/*.o

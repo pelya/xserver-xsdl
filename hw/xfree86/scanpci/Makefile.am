@@ -8,7 +8,7 @@ libscanpci_la_SOURCES = xf86ScanPci.c
 
 INCLUDES = $(XORG_INCS)
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 
 BUILT_SOURCES = xf86PciIds.h
 

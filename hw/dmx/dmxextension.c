@@ -1056,6 +1056,116 @@ static Bool dmxCompareScreens(DMXScreenInfo *new, DMXScreenInfo *old)
     return TRUE;
 }
 
+#ifdef RENDER
+/** Restore Render's picture */
+static void dmxBERestoreRenderPict(pointer value, XID id, pointer n)
+{
+    PicturePtr   pPicture = value;               /* The picture */
+    DrawablePtr  pDraw    = pPicture->pDrawable; /* The picture's drawable */
+    int          scrnNum  = (int)n;
+
+    if (pDraw->pScreen->myNum != scrnNum) {
+	/* Picture not on the screen we are restoring*/
+	return;
+    }
+
+    if (pDraw->type == DRAWABLE_PIXMAP) {
+	PixmapPtr  pPixmap = (PixmapPtr)pDraw;
+	
+	/* Create and restore the pixmap drawable */
+	dmxBECreatePixmap(pPixmap);
+	dmxBERestorePixmap(pPixmap);
+    }
+
+    dmxBECreatePicture(pPicture);
+}
+
+/** Restore Render's glyphs */
+static void dmxBERestoreRenderGlyph(pointer value, XID id, pointer n)
+{
+    GlyphSetPtr      glyphSet   = value;
+    int              scrnNum    = (int)n;
+    dmxGlyphPrivPtr  glyphPriv  = DMX_GET_GLYPH_PRIV(glyphSet);
+    DMXScreenInfo   *dmxScreen  = &dmxScreens[scrnNum];
+    GlyphRefPtr      table;
+    char            *images;
+    Glyph           *gids;
+    XGlyphInfo      *glyphs;
+    char            *pos;
+    int              beret;
+    int              len_images = 0;
+    int              i;
+    int              ctr;
+
+    if (glyphPriv->glyphSets[scrnNum]) {
+	/* Only restore glyphs on the screen we are attaching */
+	return;
+    }
+
+    /* First we must create the glyph set on the backend. */
+    if ((beret = dmxBECreateGlyphSet(scrnNum, glyphSet)) != Success) {
+	dmxLog(dmxWarning,
+	       "\tdmxBERestoreRenderGlyph failed to create glyphset!\n");
+	return;
+    }
+
+    /* Now for the complex part, restore the glyph data */
+    table = glyphSet->hash.table;
+
+    /* We need to know how much memory to allocate for this part */
+    for (i = 0; i < glyphSet->hash.hashSet->size; i++) {
+	GlyphRefPtr  gr = &table[i];
+	GlyphPtr     gl = gr->glyph;
+
+	if (!gl || gl == DeletedGlyph) continue;
+	len_images += gl->size - sizeof(gl->info);
+    }
+
+    /* Now allocate the memory we need */
+    images = ALLOCATE_LOCAL(len_images*sizeof(char));
+    gids   = ALLOCATE_LOCAL(glyphSet->hash.tableEntries*sizeof(Glyph));
+    glyphs = ALLOCATE_LOCAL(glyphSet->hash.tableEntries*sizeof(XGlyphInfo));
+
+    memset(images, 0, len_images * sizeof(char));
+    pos = images;
+    ctr = 0;
+    
+    /* Fill the allocated memory with the proper data */
+    for (i = 0; i < glyphSet->hash.hashSet->size; i++) {
+	GlyphRefPtr  gr = &table[i];
+	GlyphPtr     gl = gr->glyph;
+
+	if (!gl || gl == DeletedGlyph) continue;
+
+	/* First lets put the data into gids */
+	gids[ctr] = gr->signature;
+
+	/* Next do the glyphs data structures */
+	glyphs[ctr].width  = gl->info.width;
+	glyphs[ctr].height = gl->info.height;
+	glyphs[ctr].x      = gl->info.x;
+	glyphs[ctr].y      = gl->info.y;
+	glyphs[ctr].xOff   = gl->info.xOff;
+	glyphs[ctr].yOff   = gl->info.yOff;
+
+	/* Copy the images from the DIX's data into the buffer */
+	memcpy(pos, gl+1, gl->size - sizeof(gl->info));
+	pos += gl->size - sizeof(gl->info);
+	ctr++;
+    }
+    
+    /* Now restore the glyph data */
+    XRenderAddGlyphs(dmxScreen->beDisplay, glyphPriv->glyphSets[scrnNum],
+		     gids,glyphs, glyphSet->hash.tableEntries, images,
+		     len_images);
+
+    /* Clean up */
+    DEALLOCATE_LOCAL(len_images);
+    DEALLOCATE_LOCAL(gids);
+    DEALLOCATE_LOCAL(glyphs);    
+}
+#endif
+
 /** Reattach previously detached back-end screen. */
 int dmxAttachScreen(int idx, DMXScreenAttributesPtr attr)
 {
@@ -1173,6 +1283,20 @@ int dmxAttachScreen(int idx, DMXScreenAttributesPtr attr)
 
     /* Create window hierarchy (top down) */
     dmxBECreateWindowTree(idx);
+
+#ifdef RENDER
+    /* Restore the picture state for RENDER */
+    for (i = currentMaxClients; --i >= 0; )
+	if (clients[i])
+	    FindClientResourcesByType(clients[i],PictureType, 
+				      dmxBERestoreRenderPict,(pointer)idx);
+
+    /* Restore the glyph state for RENDER */
+    for (i = currentMaxClients; --i >= 0; )
+	if (clients[i])
+	    FindClientResourcesByType(clients[i],GlyphSetType, 
+				      dmxBERestoreRenderGlyph,(pointer)idx);
+#endif
 
     /* Refresh screen by generating exposure events for all windows */
     dmxForceExposures(idx);
@@ -1362,8 +1486,15 @@ static void dmxBEDestroyResources(pointer value, XID id, RESTYPE type,
 #ifdef RENDER
     } else if ((type & TypeMask) == (PictureType & TypeMask)) {
 	PicturePtr  pPict = value;
-	if (pPict->pDrawable->pScreen->myNum == scrnNum)
+	if (pPict->pDrawable->pScreen->myNum == scrnNum) {
+	    /* Free the pixmaps on the backend if needed */
+	    if (pPict->pDrawable->type == DRAWABLE_PIXMAP) {
+		PixmapPtr pPixmap = (PixmapPtr)(pPict->pDrawable);
+		dmxBESavePixmap(pPixmap);
+		dmxBEFreePixmap(pPixmap);
+	    }
 	    dmxBEFreePicture((PicturePtr)value);
+	}
     } else if ((type & TypeMask) == (GlyphSetType & TypeMask)) {
 	dmxBEFreeGlyphSet(pScreen, (GlyphSetPtr)value);
 #endif

@@ -98,7 +98,7 @@ Equipment Corporation.
 #include <X11/fonts/font.h>
 #include "opaque.h"
 #include "servermd.h"
-#include "config.h"
+#include "hotplug.h"
 #include "site.h"
 #include "dixfont.h"
 #include "extnsionst.h"
@@ -309,9 +309,9 @@ main(int argc, char *argv[], char *envp[])
 	DPMSPowerLevel = 0;
 #endif
 	InitBlockAndWakeupHandlers();
-        configInitialise();
 	/* Perform any operating system dependent initializations you'd like */
-	OsInit();		
+	OsInit();
+        configInitialise();
 	if(serverGeneration == 1)
 	{
 	    CreateWellKnownSockets();
@@ -414,21 +414,24 @@ main(int argc, char *argv[], char *envp[])
 		ErrorF("failed to set default font path '%s'",
 			defaultFontPath);
 	}
-	if (!SetDefaultFont(defaultTextFont))
+	if (!SetDefaultFont(defaultTextFont)) {
 	    FatalError("could not open default font '%s'", defaultTextFont);
+	}
 #ifdef NULL_ROOT_CURSOR
         cm.width = 0;
         cm.height = 0;
         cm.xhot = 0;
         cm.yhot = 0;
 
-        if (!(rootCursor = AllocCursor(NULL, NULL, &cm, 0, 0, 0, 0, 0, 0)))
+        if (!(rootCursor = AllocCursor(NULL, NULL, &cm, 0, 0, 0, 0, 0, 0))) {
             FatalError("could not create empty root cursor");
+	}
         AddResource(FakeClientID(0), RT_CURSOR, (pointer)rootCursor);
 #else
-	if (!(rootCursor = CreateRootCursor(defaultCursorFont, 0)))
+	if (!(rootCursor = CreateRootCursor(defaultCursorFont, 0))) {
 	    FatalError("could not open default cursor font '%s'",
 		       defaultCursorFont);
+	}
 #endif
 #ifdef DPMSExtension
  	/* check all screens, looking for DPMS Capabilities */
@@ -452,13 +455,15 @@ main(int argc, char *argv[], char *envp[])
 
 #ifdef PANORAMIX
 	if (!noPanoramiXExtension) {
-	    if (!PanoramiXCreateConnectionBlock())
+	    if (!PanoramiXCreateConnectionBlock()) {
 		FatalError("could not create connection block info");
+	    }
 	} else
 #endif
 	{
-	    if (!CreateConnectionBlock())
+	    if (!CreateConnectionBlock()) {
 	    	FatalError("could not create connection block info");
+	    }
 	}
 
 	Dispatch();

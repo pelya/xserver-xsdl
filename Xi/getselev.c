@@ -98,8 +98,7 @@ SProcXGetSelectedExtensionEvents(register ClientPtr client)
 int
 ProcXGetSelectedExtensionEvents(register ClientPtr client)
 {
-    int i;
-    int total_length = 0;
+    int i, rc, total_length = 0;
     xGetSelectedExtensionEventsReply rep;
     WindowPtr pWin;
     XEventClass *buf = NULL;
@@ -118,9 +117,10 @@ ProcXGetSelectedExtensionEvents(register ClientPtr client)
     rep.this_client_count = 0;
     rep.all_clients_count = 0;
 
-    if (!(pWin = LookupWindow(stuff->window, client))) {
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    if (rc != Success) {
 	SendErrorToClient(client, IReqCode, X_GetSelectedExtensionEvents, 0,
-			  BadWindow);
+			  rc);
 	return Success;
     }
 

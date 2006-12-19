@@ -126,9 +126,7 @@ Equipment Corporation.
 #ifdef XAPPGROUP
 #include "appgroup.h"
 #endif
-#ifdef XACE
 #include "xace.h"
-#endif
 
 /******
  * Window stuff for server 
@@ -531,9 +529,7 @@ InitRootWindow(WindowPtr pWin)
     /* We SHOULD check for an error value here XXX */
     (*pScreen->ChangeWindowAttributes)(pWin, backFlag);
 
-#ifdef XACE
     XaceHook(XACE_WINDOW_INIT, serverClient, pWin);
-#endif
 
     MapWindow(pWin, serverClient);
 }
@@ -738,18 +734,16 @@ CreateWindow(Window wid, register WindowPtr pParent, int x, int y, unsigned w,
     }
 
     pWin->borderWidth = bw;
-#ifdef XACE
+
     /*  can't let untrusted clients have background None windows;
      *  they make it too easy to steal window contents
      */
-    if (!XaceHook(XACE_BACKGRND_ACCESS, client, pWin))
-    {
+    if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin))
+	pWin->backgroundState = None;
+    else {
 	pWin->backgroundState = BackgroundPixel;
 	pWin->background.pixel = 0;
     }
-    else
-#endif
-    pWin->backgroundState = None;
 
     pWin->borderIsPixel = pParent->borderIsPixel;
     pWin->border = pParent->border;
@@ -769,9 +763,7 @@ CreateWindow(Window wid, register WindowPtr pParent, int x, int y, unsigned w,
     REGION_NULL(pScreen, &pWin->winSize);
     REGION_NULL(pScreen, &pWin->borderSize);
 
-#ifdef XACE
     XaceHook(XACE_WINDOW_INIT, client, pWin);
-#endif
 
     pHead = RealChildHead(pParent);
     if (pHead)
@@ -1036,24 +1028,18 @@ ChangeWindowAttributes(register WindowPtr pWin, Mask vmask, XID *vlist, ClientPt
 		borderRelative = TRUE;
 	    if (pixID == None)
 	    {
-#ifdef XACE
 		/*  can't let untrusted clients have background None windows */
-		if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin))
-		{
-#endif
-		if (pWin->backgroundState == BackgroundPixmap)
-		    (*pScreen->DestroyPixmap)(pWin->background.pixmap);
-		if (!pWin->parent)
-		    MakeRootTile(pWin);
-		else
-		    pWin->backgroundState = None;
-#ifdef XACE
-		}
-		else
-		{ /* didn't change the background to None, so don't tell ddx */
+		if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin)) {
+		    if (pWin->backgroundState == BackgroundPixmap)
+			(*pScreen->DestroyPixmap)(pWin->background.pixmap);
+		    if (!pWin->parent)
+			MakeRootTile(pWin);
+		    else
+			pWin->backgroundState = None;
+		} else {
+		    /* didn't change the backgrnd to None, so don't tell ddx */
 		    index2 = 0; 
 		}
-#endif
 	    }
 	    else if (pixID == ParentRelative)
 	    {
@@ -1076,7 +1062,7 @@ ChangeWindowAttributes(register WindowPtr pWin, Mask vmask, XID *vlist, ClientPt
 	    else
 	    {	
 		pPixmap = (PixmapPtr)SecurityLookupIDByType(client, pixID,
-						RT_PIXMAP, SecurityReadAccess);
+						RT_PIXMAP, DixReadAccess);
 		if (pPixmap != (PixmapPtr) NULL)
 		{
 		    if	((pPixmap->drawable.depth != pWin->drawable.depth) ||
@@ -1137,7 +1123,7 @@ ChangeWindowAttributes(register WindowPtr pWin, Mask vmask, XID *vlist, ClientPt
 	    else
 	    {	
 		pPixmap = (PixmapPtr)SecurityLookupIDByType(client, pixID,
-					RT_PIXMAP, SecurityReadAccess);
+					RT_PIXMAP, DixReadAccess);
 		if (pPixmap)
 		{
 		    if	((pPixmap->drawable.depth != pWin->drawable.depth) ||
@@ -1347,7 +1333,7 @@ ChangeWindowAttributes(register WindowPtr pWin, Mask vmask, XID *vlist, ClientPt
 		goto PatchUp;
 	    }
 	    pCmap = (ColormapPtr)SecurityLookupIDByType(client, cmap,
-					      RT_COLORMAP, SecurityReadAccess);
+					      RT_COLORMAP, DixReadAccess);
 	    if (!pCmap)
 	    {
 		error = BadColor;
@@ -1423,7 +1409,7 @@ ChangeWindowAttributes(register WindowPtr pWin, Mask vmask, XID *vlist, ClientPt
 	    else
 	    {
 		pCursor = (CursorPtr)SecurityLookupIDByType(client, cursorID,
-						RT_CURSOR, SecurityReadAccess);
+						RT_CURSOR, DixReadAccess);
 		if (!pCursor)
 		{
 		    error = BadCursor;
@@ -2313,7 +2299,7 @@ ConfigureWindow(register WindowPtr pWin, register Mask mask, XID *vlist, ClientP
 	    sibwid = (Window ) *pVlist;
 	    pVlist++;
 	    pSib = (WindowPtr )SecurityLookupIDByType(client, sibwid,
-						RT_WINDOW, SecurityReadAccess);
+						RT_WINDOW, DixReadAccess);
 	    if (!pSib)
 	    {
 		client->errorValue = sibwid;
@@ -2739,11 +2725,9 @@ MapWindow(register WindowPtr pWin, ClientPtr client)
     if (pWin->mapped)
 	return(Success);
 
-#ifdef XACE
     /*  general check for permission to map window */
     if (!XaceHook(XACE_MAP_ACCESS, client, pWin))
 	 return Success;
-#endif	
 
     pScreen = pWin->drawable.pScreen;
     if ( (pParent = pWin->parent) )

@@ -1092,8 +1092,8 @@ int XETrapRequestVector(ClientPtr client)
             pdata->hdr.client = client->index;  /* stuff client index in hdr */
             if (BitIsTrue(penv->cur.data_config_flags_data,XETrapWinXY))
             {
-                window_ptr = (WindowPtr) LookupDrawable(stuff->id, client);
-                if (window_ptr == 0L)
+		if (Success != dixLookupDrawable(&window_ptr, stuff->id,
+						 client, 0, DixUnknownAccess))
                 {   /* Failed...invalidate the X and Y coordinate data. */
                     pdata->hdr.win_x = -1L;
                     pdata->hdr.win_y = -1L;

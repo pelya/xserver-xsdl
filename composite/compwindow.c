@@ -93,10 +93,10 @@ typedef struct _compPixmapVisit {
 static Bool
 compRepaintBorder (ClientPtr pClient, pointer closure)
 {
-    WindowPtr	pWindow = LookupWindow ((XID) closure, pClient);
+    WindowPtr pWindow;
+    int rc = dixLookupWindow(&pWindow, (XID)closure, pClient,DixUnknownAccess);
 
-    if (pWindow)
-    {
+    if (rc == Success) {
 	RegionRec exposed;
 
 	REGION_NULL(pScreen, &exposed);

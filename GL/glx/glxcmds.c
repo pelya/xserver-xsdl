@@ -441,6 +441,7 @@ static int GetDrawableOrPixmap( __GLXcontext *glxc, GLXDrawable drawId,
     __GLcontextModes *modes;
     __GLXdrawable *pGlxDraw;
     __GLXpixmap *drawPixmap = NULL;
+    int rc;
 
     /* This is the GLX 1.3 case - the client passes in a GLXWindow and
      * we just return the __GLXdrawable.  The first time a GLXPixmap
@@ -466,8 +467,8 @@ static int GetDrawableOrPixmap( __GLXcontext *glxc, GLXDrawable drawId,
      * GLXWindow with the same XID as an X Window, so we wont get any
      * resource ID clashes.  Effectively, the X Window is now also a
      * GLXWindow. */
-    pDraw = (DrawablePtr) LookupDrawable(drawId, client);
-    if (pDraw) {
+    rc = dixLookupDrawable(&pDraw, drawId, client, 0, DixUnknownAccess);
+    if (rc == Success) {
 	if (pDraw->type == DRAWABLE_WINDOW) {
 	    VisualID vid = wVisual((WindowPtr)pDraw);
 
@@ -1199,12 +1200,12 @@ static int ValidateCreateDrawable(ClientPtr client,
     ScreenPtr pScreen;
     VisualPtr pVisual;
     __GLXscreen *pGlxScreen;
-    int i;
+    int i, rc;
 
     LEGAL_NEW_RESOURCE(glxDrawableId, client);
 
-    pDraw = (DrawablePtr) LookupDrawable(drawablId, client);
-    if (!pDraw || pDraw->type != type) {
+    rc = dixLookupDrawable(&pDraw, drawablId, client, 0, DixUnknownAccess);
+    if (rc != Success || pDraw->type != type) {
 	client->errorValue = drawablId;
 	return type == DRAWABLE_WINDOW ? BadWindow : BadPixmap;
     }
@@ -2034,10 +2035,11 @@ int __glXDisp_BindSwapBarrierSGIX(__GLXclientState *cl, GLbyte *pc)
     xGLXBindSwapBarrierSGIXReq *req = (xGLXBindSwapBarrierSGIXReq *) pc;
     XID drawable = req->drawable;
     int barrier = req->barrier;
-    DrawablePtr pDraw = (DrawablePtr) LookupDrawable(drawable, client);
-    int screen;
+    DrawablePtr pDraw;
+    int screen, rc;
 
-    if (pDraw && (pDraw->type == DRAWABLE_WINDOW)) {
+    rc = dixLookupDrawable(&pDraw, drawable, client, 0, DixUnknownAccess);
+    if (rc == Success && (pDraw->type == DRAWABLE_WINDOW)) {
 	screen = pDraw->pScreen->myNum;
         if (__glXSwapBarrierFuncs &&
             __glXSwapBarrierFuncs[screen].bindSwapBarrierFunc) {

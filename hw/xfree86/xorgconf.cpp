@@ -56,7 +56,6 @@ XCOMM command (or a combination of both methods)
     FontPath	MISCFONTPATH
     FontPath	T1FONTPATH
     FontPath	TRUETYPEFONTPATH
-    FontPath	CIDFONTPATH
     FontPath	DPI75FONTPATH
     FontPath	DPI100FONTPATH
 

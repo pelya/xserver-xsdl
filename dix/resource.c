@@ -148,9 +148,7 @@ Equipment Corporation.
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 #endif
-#ifdef XACE
 #include "xace.h"
-#endif
 #include <assert.h>
 
 #ifdef XSERVER_DTRACE
@@ -904,11 +902,10 @@ SecurityLookupIDByType(ClientPtr client, XID id, RESTYPE rtype, Mask mode)
 		break;
 	    }
     }
-#ifdef XACE
     if (retval && client && 
 	!XaceHook(XACE_RESOURCE_ACCESS, client, id, rtype, mode, retval))
 	retval = NULL;
-#endif
+
     return retval;
 }
 
@@ -932,11 +929,10 @@ SecurityLookupIDByClass(ClientPtr client, XID id, RESTYPE classes, Mask mode)
 		break;
 	    }
     }
-#ifdef XACE
     if (retval && client &&
 	!XaceHook(XACE_RESOURCE_ACCESS, client, id, res->type, mode, retval))
 	retval = NULL;
-#endif
+
     return retval;
 }
 
@@ -948,12 +944,12 @@ _X_EXPORT pointer
 LookupIDByType(XID id, RESTYPE rtype)
 {
     return SecurityLookupIDByType(NullClient, id, rtype,
-				  SecurityUnknownAccess);
+				  DixUnknownAccess);
 }
 
 _X_EXPORT pointer
 LookupIDByClass(XID id, RESTYPE classes)
 {
     return SecurityLookupIDByClass(NullClient, id, classes,
-				   SecurityUnknownAccess);
+				   DixUnknownAccess);
 }
