@@ -109,9 +109,8 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 	    (*pExaScr->info->Solid) (pPixmap,
 				     fullX1 + off_x, fullY1 + off_y,
 				     fullX2 + off_x, fullY1 + 1 + off_y);
-	    exaDrawableDirty (pDrawable,
-			      fullX1 + off_x, fullY1 + off_y,
-			      fullX2 + off_x, fullY1 + 1 + off_y);
+	    exaPixmapDirty (pPixmap, fullX1 + off_x, fullY1 + off_y,
+			    fullX2 + off_x, fullY1 + 1 + off_y);
 	}
 	else
 	{
@@ -130,9 +129,8 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 			(*pExaScr->info->Solid) (pPixmap,
 						 partX1 + off_x, fullY1 + off_y,
 						 partX2 + off_x, fullY1 + 1 + off_y);
-			exaDrawableDirty (pDrawable,
-					  partX1 + off_x, fullY1 + off_y,
-					  partX2 + off_x, fullY1 + 1 + off_y);
+			exaPixmapDirty (pPixmap, partX1 + off_x, fullY1 + off_y,
+					partX2 + off_x, fullY1 + 1 + off_y);
 		    }
 		}
 		pbox++;
@@ -233,7 +231,7 @@ exaPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 
 	    exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
 	}
-	exaDrawableDirty(pDrawable, x1 + xoff, y1 + yoff, x2 + xoff, y2 + yoff);
+	exaPixmapDirty(pPix, x1 + xoff, y1 + yoff, x2 + xoff, y2 + yoff);
     }
 
     return;
@@ -362,9 +360,8 @@ exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 				       dst_off_y + pbox->y1 + i,
 				       pbox->x2 - pbox->x1, 1);
 	}
-	exaDrawableDirty(pDstDrawable,
-			 dst_off_x + pbox->x1, dst_off_y + pbox->y1,
-			 dst_off_x + pbox->x2, dst_off_y + pbox->y2);
+	exaPixmapDirty(pDstPixmap, dst_off_x + pbox->x1, dst_off_y + pbox->y1,
+		       dst_off_x + pbox->x2, dst_off_y + pbox->y2);
     }
     if (dirsetup != 0)
 	pExaScr->info->DoneCopy(pDstPixmap);
@@ -437,9 +434,9 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 				    pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
 				    pbox->x2 - pbox->x1,
 				    pbox->y2 - pbox->y1);
-	    exaDrawableDirty (pDstDrawable,
-			      pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
-			      pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
+	    exaPixmapDirty (pDstPixmap,
+			    pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
+			    pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
 	    pbox++;
 	}
 	(*pExaScr->info->DoneCopy) (pDstPixmap);
@@ -460,9 +457,7 @@ fallback:
     exaFinishAccess (pDstDrawable, EXA_PREPARE_DEST);
     while (nbox--)
     {
-	exaDrawableDirty (pDstDrawable,
-			  pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
-			  pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
+	exaDrawableDirty (pDstDrawable, pbox->x1, pbox->y1, pbox->x2, pbox->y2);
 	pbox++;
     }
 }
@@ -704,9 +699,8 @@ exaPolyFillRect(DrawablePtr pDrawable,
 	    (*pExaScr->info->Solid) (pPixmap,
 				     fullX1 + xoff, fullY1 + yoff,
 				     fullX2 + xoff, fullY2 + yoff);
-	    exaDrawableDirty (pDrawable,
-			      fullX1 + xoff, fullY1 + yoff,
-			      fullX2 + xoff, fullY2 + yoff);
+	    exaPixmapDirty (pPixmap, fullX1 + xoff, fullY1 + yoff,
+			    fullX2 + xoff, fullY2 + yoff);
 	}
 	else
 	{
@@ -736,9 +730,8 @@ exaPolyFillRect(DrawablePtr pDrawable,
 		    (*pExaScr->info->Solid) (pPixmap,
 					     partX1 + xoff, partY1 + yoff,
 					     partX2 + xoff, partY2 + yoff);
-		    exaDrawableDirty (pDrawable,
-				      partX1 + xoff, partY1 + yoff,
-				      partX2 + xoff, partY2 + yoff);
+		    exaPixmapDirty (pPixmap, partX1 + xoff, partY1 + yoff,
+				    partX2 + xoff, partY2 + yoff);
 		}
 	    }
 	}
@@ -769,9 +762,6 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
     pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
-
-    /* We need to initialize x/yoff for tracking damage in the fallback case */
-    pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
 
     if (pExaScr->swappedOut ||
 	pPixmap->drawable.width > pExaScr->info->maxX ||
@@ -825,13 +815,14 @@ fallback:
 	if (partY2 <= partY1)
 	    continue;
 
-	if (!fallback)
+	if (!fallback) {
 	    (*pExaScr->info->Solid) (pPixmap,
 				     partX1 + xoff, partY1 + yoff,
 				     partX2 + xoff, partY2 + yoff);
-	exaDrawableDirty (pDrawable,
-			  partX1 + xoff, partY1 + yoff,
-			  partX2 + xoff, partY2 + yoff);
+	    exaPixmapDirty (pPixmap, partX1 + xoff, partY1 + yoff,
+			    partX2 + xoff, partY2 + yoff);
+	} else
+	    exaDrawableDirty (pDrawable, partX1, partY1, partX2, partY2);
     }
 
     if (fallback)
@@ -950,12 +941,17 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
 			  pPriv->fg,
 			  gx + dstXoff,
 			  gHeight);
+		exaDrawableDirty (pDrawable, gx, gy, gx + gWidth, gy + gHeight);
 	    }
 	    else
 	    {
+		RegionPtr pClip = fbGetCompositeClip(pGC);
+		int nbox;
+		BoxPtr pbox;
+
 		gStride = GLYPHWIDTHBYTESPADDED(pci) / sizeof (FbStip);
 		fbPutXYImage (pDrawable,
-			      fbGetCompositeClip(pGC),
+			      pClip,
 			      pPriv->fg,
 			      pPriv->bg,
 			      pPriv->pm,
@@ -969,9 +965,19 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
 			      (FbStip *) pglyph,
 			      gStride,
 			      0);
+
+		for (nbox = REGION_NUM_RECTS(pClip), pbox = REGION_RECTS(pClip);
+		     nbox--; pbox++) {
+		    int x1 = max(gx, pbox->x1), x2 = min(gx + gWidth, pbox->x2);
+		    int y1 = max(gy, pbox->y1), y2 = min(gy + gHeight, pbox->y2);
+
+		    if (x1 >= x2 || y1 >= y2)
+			continue;
+
+		    exaDrawableDirty (pDrawable, gx, gy, gx + gWidth,
+				      gy + gHeight);
+		}
 	    }
-	    exaDrawableDirty(pDrawable, gx + dstXoff, gy + dstYoff,
-			     gx + dstXoff + gWidth, gy + dstYoff + gHeight);
 	}
 	x += pci->metrics.characterWidth;
     }
@@ -1062,9 +1068,8 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
 	    (*pExaScr->info->Solid) (pPixmap,
 				     pBox->x1 + xoff, pBox->y1 + yoff,
 				     pBox->x2 + xoff, pBox->y2 + yoff);
-	    exaDrawableDirty (pDrawable,
-			      pBox->x1 + xoff, pBox->y1 + yoff,
-			      pBox->x2 + xoff, pBox->y2 + yoff);
+	    exaPixmapDirty (pPixmap, pBox->x1 + xoff, pBox->y1 + yoff,
+			    pBox->x2 + xoff, pBox->y2 + yoff);
 	    pBox++;
 	}
 	(*pExaScr->info->DoneSolid) (pPixmap);
@@ -1081,9 +1086,7 @@ fallback:
 	exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 	while (nbox--)
 	{
-	    exaDrawableDirty (pDrawable,
-			      pBox->x1 + xoff, pBox->y1 + yoff,
-			      pBox->x2 + xoff, pBox->y2 + yoff);
+	    exaDrawableDirty (pDrawable, pBox->x1, pBox->y1, pBox->x2, pBox->y2);
 	    pBox++;
 	}
     }
@@ -1122,9 +1125,6 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     pixmaps[1].as_dst = FALSE;
     pixmaps[1].as_src = TRUE;
     pixmaps[1].pPix = pTile;
-
-    /* We need to initialize x/yoff for tracking damage in the fallback case */
-    pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
 
     if (pPixmap->drawable.width > pExaScr->info->maxX ||
 	pPixmap->drawable.height > pExaScr->info->maxY ||
@@ -1182,8 +1182,8 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 		dstY += h;
 		tileY = 0;
 	    }
-	    exaDrawableDirty (pDrawable, pBox->x1 + xoff, pBox->y1 + yoff,
-			      pBox->x2 + xoff, pBox->y2 + yoff);
+	    exaPixmapDirty (pPixmap, pBox->x1 + xoff, pBox->y1 + yoff,
+			    pBox->x2 + xoff, pBox->y2 + yoff);
 	    pBox++;
 	}
 	(*pExaScr->info->DoneCopy) (pPixmap);
@@ -1202,8 +1202,7 @@ fallback:
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
     while (nbox--)
     {
-	exaDrawableDirty (pDrawable, pBox->x1 + xoff, pBox->y1 + yoff,
-			  pBox->x2 + xoff, pBox->y2 + yoff);
+	exaDrawableDirty (pDrawable, pBox->x1, pBox->y1, pBox->x2, pBox->y2);
 	pBox++;
     }
 }

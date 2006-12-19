@@ -302,9 +302,8 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 	(*pExaScr->info->Solid) (pDstPix,
 				 pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
 				 pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
-	exaDrawableDirty (pDst->pDrawable,
-			  pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
-			  pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
+	exaPixmapDirty (pDstPix, pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
+			pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
 	pbox++;
     }
     (*pExaScr->info->DoneSolid) (pDstPix);
@@ -447,9 +446,8 @@ exaTryDriverComposite(CARD8		op,
 				     pbox->y1 + dst_off_y,
 				     pbox->x2 - pbox->x1,
 				     pbox->y2 - pbox->y1);
-	exaDrawableDirty (pDst->pDrawable,
-			  pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
-			  pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
+	exaPixmapDirty (pDstPix, pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
+			pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
 	pbox++;
     }
     (*pExaScr->info->DoneComposite) (pDstPix);
@@ -712,18 +710,19 @@ void
 exaRasterizeTrapezoid (PicturePtr pPicture, xTrapezoid  *trap,
 		       int x_off, int y_off)
 {
+    DrawablePtr pDraw = pPicture->pDrawable;
     ExaMigrationRec pixmaps[1];
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = TRUE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pPicture->pDrawable);
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDraw);
     exaDoMigration(pixmaps, 1, FALSE);
 
-    exaPrepareAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+    exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
     fbRasterizeTrapezoid(pPicture, trap, x_off, y_off);
-    exaDrawableDirty(pPicture->pDrawable, 0, 0,
-		     pPicture->pDrawable->width, pPicture->pDrawable->height);
-    exaFinishAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+    exaDrawableDirty(pDraw, pDraw->x, pDraw->y,
+		     pDraw->x + pDraw->width, pDraw->y + pDraw->height);
+    exaFinishAccess(pDraw, EXA_PREPARE_DEST);
 }
 
 /**
@@ -734,18 +733,19 @@ void
 exaAddTriangles (PicturePtr pPicture, INT16 x_off, INT16 y_off, int ntri,
 		 xTriangle *tris)
 {
+    DrawablePtr pDraw = pPicture->pDrawable;
     ExaMigrationRec pixmaps[1];
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = TRUE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pPicture->pDrawable);
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDraw);
     exaDoMigration(pixmaps, 1, FALSE);
 
-    exaPrepareAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+    exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
     fbAddTriangles(pPicture, x_off, y_off, ntri, tris);
-    exaFinishAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
-    exaDrawableDirty(pPicture->pDrawable, 0, 0,
-		     pPicture->pDrawable->width, pPicture->pDrawable->height);
+    exaDrawableDirty(pDraw, pDraw->x, pDraw->y,
+		     pDraw->x + pDraw->width, pDraw->y + pDraw->height);
+    exaFinishAccess(pDraw, EXA_PREPARE_DEST);
 }
 
 /**
@@ -1036,8 +1036,8 @@ exaGlyphs (CARD8	op,
 			     0, 0, glyph->info.width, glyph->info.height, 0, 0);
 	    }
 
-	    exaDrawableDirty (&pPixmap->drawable, 0, 0,
-			      glyph->info.width, glyph->info.height);
+	    exaPixmapDirty (pPixmap, 0, 0,
+			    glyph->info.width, glyph->info.height);
 
 	    if (maskFormat)
 	    {

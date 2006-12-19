@@ -122,27 +122,77 @@ exaGetDrawablePixmap(DrawablePtr pDrawable)
 }	
 
 /**
+ * Sets the offsets to add to coordinates to make them address the same bits in
+ * the backing drawable. These coordinates are nonzero only for redirected
+ * windows.
+ */
+static void
+exaGetDrawableDeltas (DrawablePtr pDrawable, PixmapPtr pPixmap,
+		      int *xp, int *yp)
+{
+#ifdef COMPOSITE
+    if (pDrawable->type == DRAWABLE_WINDOW) {
+	*xp = -pPixmap->screen_x;
+	*yp = -pPixmap->screen_y;
+	return;
+    }
+#endif
+
+    *xp = 0;
+    *yp = 0;
+}
+
+/**
+ * exaPixmapDirty() marks a pixmap as dirty, allowing for
+ * optimizations in pixmap migration when no changes have occurred.
+ */
+void
+exaPixmapDirty (PixmapPtr pPix, int x1, int y1, int x2, int y2)
+{
+    ExaPixmapPriv(pPix);
+    BoxRec box;
+    RegionPtr pDamageReg;
+    RegionRec region;
+
+    if (!pExaPixmap)
+	return;
+	
+    box.x1 = max(x1, 0);
+    box.y1 = max(y1, 0);
+    box.x2 = min(x2, pPix->drawable.width);
+    box.y2 = min(y2, pPix->drawable.height);
+
+    if (box.x1 >= box.x2 || box.y1 >= box.y2)
+	return;
+
+    pDamageReg = DamageRegion(pExaPixmap->pDamage);
+
+    REGION_INIT(pScreen, &region, &box, 1);
+    REGION_UNION(pScreen, pDamageReg, pDamageReg, &region);
+    REGION_UNINIT(pScreen, &region);
+}
+
+/**
  * exaDrawableDirty() marks a pixmap backing a drawable as dirty, allowing for
  * optimizations in pixmap migration when no changes have occurred.
  */
 void
 exaDrawableDirty (DrawablePtr pDrawable, int x1, int y1, int x2, int y2)
 {
-    ExaPixmapPrivPtr pExaPixmap;
-    RegionPtr pDamageReg;
-    BoxRec box = { .x1 = max(x1,0), .x2 = min(x2,pDrawable->width),
-		   .y1 = max(y1,0), .y2 = min(y2,pDrawable->height) };
-    RegionRec region;
+    PixmapPtr pPix = exaGetDrawablePixmap(pDrawable);
+    int xoff, yoff;
 
-    pExaPixmap = ExaGetPixmapPriv(exaGetDrawablePixmap (pDrawable));
-    if (!pExaPixmap || box.x1 >= box.x2 || box.y1 >= box.y2)
+    x1 = max(x1, pDrawable->x);
+    y1 = max(y1, pDrawable->y);
+    x2 = min(x2, pDrawable->x + pDrawable->width);
+    y2 = min(y2, pDrawable->y + pDrawable->height);
+
+    if (x1 >= x2 || y1 >= y2)
 	return;
-	
-    pDamageReg = DamageRegion(pExaPixmap->pDamage);
 
-    REGION_INIT(pScreen, &region, &box, 1);
-    REGION_UNION(pScreen, pDamageReg, pDamageReg, &region);
-    REGION_UNINIT(pScreen, &region);
+    exaGetDrawableDeltas(pDrawable, pPix, &xoff, &yoff);
+
+    exaPixmapDirty(pPix, x1 + xoff, y1 + yoff, x2 + xoff, y2 + yoff);
 }
 
 static Bool
@@ -289,32 +339,14 @@ exaDrawableIsOffscreen (DrawablePtr pDrawable)
 /**
  * Returns the pixmap which backs a drawable, and the offsets to add to
  * coordinates to make them address the same bits in the backing drawable.
- * These coordinates are nonzero only for redirected windows.
  */
 PixmapPtr
 exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
 {
-    PixmapPtr	pPixmap;
-    int		x, y;
+    PixmapPtr	pPixmap = exaGetDrawablePixmap (pDrawable);
 
-    if (pDrawable->type == DRAWABLE_WINDOW) {
-	pPixmap = (*pDrawable->pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
-#ifdef COMPOSITE
-	x = -pPixmap->screen_x;
-	y = -pPixmap->screen_y;
-#else
-	x = 0;
-	y = 0;
-#endif
-    }
-    else
-    {
-	pPixmap = (PixmapPtr) pDrawable;
-	x = 0;
-	y = 0;
-    }
-    *xp = x;
-    *yp = y;
+    exaGetDrawableDeltas (pDrawable, pPixmap, xp, yp);
+
     if (exaPixmapIsOffscreen (pPixmap))
 	return pPixmap;
     else
@@ -428,7 +460,7 @@ exaValidateGC (GCPtr pGC, unsigned long changes, DrawablePtr pDrawable)
 		exaPrepareAccess(&pOldTile->drawable, EXA_PREPARE_SRC);
 		pNewTile = fb24_32ReformatTile (pOldTile,
 						pDrawable->bitsPerPixel);
-		exaDrawableDirty(&pNewTile->drawable, 0, 0, pNewTile->drawable.width, pNewTile->drawable.height);
+		exaPixmapDirty(pNewTile, 0, 0, pNewTile->drawable.width, pNewTile->drawable.height);
 		exaFinishAccess(&pOldTile->drawable, EXA_PREPARE_SRC);
 	    }
 	    if (pNewTile)
@@ -449,9 +481,9 @@ exaValidateGC (GCPtr pGC, unsigned long changes, DrawablePtr pDrawable)
 	     */
 	    exaMoveOutPixmap(pGC->tile.pixmap);
 	    fbPadPixmap (pGC->tile.pixmap);
-	    exaDrawableDirty(&pGC->tile.pixmap->drawable, 0, 0,
-			     pGC->tile.pixmap->drawable.width,
-			     pGC->tile.pixmap->drawable.height);
+	    exaPixmapDirty(pGC->tile.pixmap, 0, 0,
+			   pGC->tile.pixmap->drawable.width,
+			   pGC->tile.pixmap->drawable.height);
 	}
 	/* Mask out the GCTile change notification, now that we've done FB's
 	 * job for it.

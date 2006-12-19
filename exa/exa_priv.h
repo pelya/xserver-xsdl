@@ -340,6 +340,9 @@ void
 exaFinishAccess(DrawablePtr pDrawable, int index);
 
 void
+exaPixmapDirty(PixmapPtr pPix, int x1, int y1, int x2, int y2);
+
+void
 exaDrawableDirty(DrawablePtr pDrawable, int x1, int y1, int x2, int y2);
 
 Bool
