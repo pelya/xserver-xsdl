@@ -69,6 +69,7 @@ RROldModeAdd (RROutputPtr output, RRScreenSizePtr size, int refresh)
     output->modes = modes;
     output->changed = TRUE;
     pScrPriv->changed = TRUE;
+    pScrPriv->configChanged = TRUE;
     return mode;
 }
 
@@ -205,6 +206,7 @@ RRGetInfo (ScreenPtr pScreen)
     
     rotations = 0;
     pScrPriv->changed = FALSE;
+    pScrPriv->configChanged = FALSE;
     
     if (!(*pScrPriv->rrGetInfo) (pScreen, &rotations))
 	return FALSE;

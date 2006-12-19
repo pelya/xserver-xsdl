@@ -216,11 +216,14 @@ typedef struct _rrScrPriv {
     TimeStamp		    lastSetTime;	/* last changed by client */
     TimeStamp		    lastConfigTime;	/* possible configs changed */
     RRCloseScreenProcPtr    CloseScreen;
+
     Bool		    changed;		/* some config changed */
+    Bool		    configChanged;	/* configuration changed */
+    Bool		    layoutChanged;	/* screen layout changed */
+
     CARD16		    minWidth, minHeight;
     CARD16		    maxWidth, maxHeight;
     CARD16		    width, height;	/* last known screen size */
-    Bool		    layoutChanged;	/* screen layout changed */
 
     int			    numOutputs;
     RROutputPtr		    *outputs;
@@ -619,10 +622,13 @@ ProcRRDeleteOutputMode (ClientPtr client);
 /* rroutput.c */
 
 /*
- * Notify the output of some change
+ * Notify the output of some change. configChanged indicates whether
+ * any external configuration (mode list, clones, connected status)
+ * has changed, or whether the change was strictly internal
+ * (which crtc is in use)
  */
 void
-RROutputChanged (RROutputPtr output);
+RROutputChanged (RROutputPtr output, Bool configChanged);
 
 /*
  * Create an output

@@ -1209,7 +1209,7 @@ ChangePicture (PicturePtr	pPicture,
 			pAlpha = (PicturePtr) SecurityLookupIDByType(client,
 								     pid, 
 								     PictureType, 
-								     SecurityWriteAccess|SecurityReadAccess);
+								     DixWriteAccess|DixReadAccess);
 			if (!pAlpha)
 			{
 			    client->errorValue = pid;
@@ -1271,7 +1271,7 @@ ChangePicture (PicturePtr	pPicture,
 			pPixmap = (PixmapPtr)SecurityLookupIDByType(client,
 								    pid, 
 								    RT_PIXMAP,
-								    SecurityReadAccess);
+								    DixReadAccess);
 			if (!pPixmap)
 			{
 			    client->errorValue = pid;

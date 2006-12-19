@@ -271,7 +271,7 @@ dixChangeGC(ClientPtr client, register GC *pGC, register BITS32 mask, CARD32 *pC
 		{
 		    NEXTVAL(XID, newpix);
 		    pPixmap = (PixmapPtr)SecurityLookupIDByType(client,
-					newpix, RT_PIXMAP, SecurityReadAccess);
+					newpix, RT_PIXMAP, DixReadAccess);
 		}
 		if (pPixmap)
 		{
@@ -307,7 +307,7 @@ dixChangeGC(ClientPtr client, register GC *pGC, register BITS32 mask, CARD32 *pC
 		{
 		    NEXTVAL(XID, newstipple)
 		    pPixmap = (PixmapPtr)SecurityLookupIDByType(client,
-				newstipple, RT_PIXMAP, SecurityReadAccess);
+				newstipple, RT_PIXMAP, DixReadAccess);
 		}
 		if (pPixmap)
 		{
@@ -349,7 +349,7 @@ dixChangeGC(ClientPtr client, register GC *pGC, register BITS32 mask, CARD32 *pC
 		{
 		    NEXTVAL(XID, newfont)
 		    pFont = (FontPtr)SecurityLookupIDByType(client, newfont,
-						RT_FONT, SecurityReadAccess);
+						RT_FONT, DixReadAccess);
 		}
 		if (pFont)
 		{
@@ -416,7 +416,7 @@ dixChangeGC(ClientPtr client, register GC *pGC, register BITS32 mask, CARD32 *pC
 		    }
 		    else
 		        pPixmap = (PixmapPtr)SecurityLookupIDByType(client,
-					pid, RT_PIXMAP, SecurityReadAccess);
+					pid, RT_PIXMAP, DixReadAccess);
 		}
 
 		if (pPixmap)

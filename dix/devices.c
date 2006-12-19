@@ -1840,16 +1840,16 @@ ProcGetMotionEvents(ClientPtr client)
     WindowPtr pWin;
     xTimecoord * coords = (xTimecoord *) NULL;
     xGetMotionEventsReply rep;
-    int     i, count, xmin, xmax, ymin, ymax;
+    int i, count, xmin, xmax, ymin, ymax, rc;
     unsigned long nEvents;
     DeviceIntPtr mouse = inputInfo.pointer;
     TimeStamp start, stop;
     REQUEST(xGetMotionEventsReq);
 
     REQUEST_SIZE_MATCH(xGetMotionEventsReq);
-    pWin = SecurityLookupWindow(stuff->window, client, TRUE);
-    if (!pWin)
-	return BadWindow;
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     if (mouse->valuator->motionHintWindow)
 	MaybeStopHint(mouse, client);
     rep.type = X_Reply;

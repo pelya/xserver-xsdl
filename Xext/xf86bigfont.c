@@ -445,11 +445,10 @@ ProcXF86BigfontQueryFont(
 #endif
     client->errorValue = stuff->id;		/* EITHER font or gc */
     pFont = (FontPtr)SecurityLookupIDByType(client, stuff->id, RT_FONT,
-					    SecurityReadAccess);
+					    DixReadAccess);
     if (!pFont) {
-	/* can't use VERIFY_GC because it might return BadGC */
 	GC *pGC = (GC *) SecurityLookupIDByType(client, stuff->id, RT_GC,
-						SecurityReadAccess);
+						DixReadAccess);
         if (!pGC) {
 	    client->errorValue = stuff->id;
             return BadFont;    /* procotol spec says only error is BadFont */

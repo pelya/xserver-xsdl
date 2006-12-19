@@ -32,6 +32,10 @@
 #include <dix-config.h>
 #endif
 
+#ifdef MITSHM
+#include "shmint.h"
+#endif
+
 #include <stdlib.h>
 
 #include "exa_priv.h"
@@ -610,6 +614,13 @@ exaDriverInit (ScreenPtr		pScreen,
     miDisableCompositeWrapper(pScreen);
 #endif
 
+#ifdef MITSHM
+    /* Re-register with the MI funcs, which don't allow shared pixmaps.
+     * Shared pixmaps are almost always a performance loss for us, but this
+     * still allows for SHM PutImage.
+     */
+    ShmRegisterFuncs(pScreen, NULL);
+#endif
     /*
      * Hookup offscreen pixmaps
      */

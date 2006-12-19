@@ -49,12 +49,12 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
 
     if (pExaScr->swappedOut ||
 	pGC->fillStyle != FillSolid ||
-	pDrawable->width > pExaScr->info->maxX ||
-	pDrawable->height > pExaScr->info->maxY)
+	pPixmap->drawable.width > pExaScr->info->maxX ||
+	pPixmap->drawable.height > pExaScr->info->maxY)
     {
 	exaDoMigration (pixmaps, 1, FALSE);
 	ExaCheckFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
@@ -380,19 +380,19 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDstDrawable);
+    pixmaps[0].pPix = pDstPixmap = exaGetDrawablePixmap (pDstDrawable);
     pixmaps[1].as_dst = FALSE;
     pixmaps[1].as_src = TRUE;
-    pixmaps[1].pPix = exaGetDrawablePixmap (pSrcDrawable);
+    pixmaps[1].pPix = pSrcPixmap = exaGetDrawablePixmap (pSrcDrawable);
 
     /* Respect maxX/maxY in a trivial way: don't set up drawing when we might
      * violate the limits.  The proper solution would be a temporary pixmap
      * adjusted so that the drawing happened within limits.
      */
-    if (pSrcDrawable->width > pExaScr->info->maxX ||
-	pSrcDrawable->height > pExaScr->info->maxY ||
-	pDstDrawable->width > pExaScr->info->maxX ||
-	pDstDrawable->height > pExaScr->info->maxY)
+    if (pSrcPixmap->drawable.width > pExaScr->info->maxX ||
+	pSrcPixmap->drawable.height > pExaScr->info->maxY ||
+	pDstPixmap->drawable.width > pExaScr->info->maxX ||
+	pDstPixmap->drawable.height > pExaScr->info->maxY)
     {
 	exaDoMigration (pixmaps, 2, FALSE);
 	goto fallback;
@@ -401,7 +401,8 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     }
 
     /* Mixed directions must be handled specially if the card is lame */
-    if (pExaScr->info->flags & EXA_TWO_BITBLT_DIRECTIONS && (dx*dy) < 0) {
+    if (pExaScr->info->flags & EXA_TWO_BITBLT_DIRECTIONS &&
+	reverse != upsidedown) {
 	if (!exaCopyNtoNTwoDir(pSrcDrawable, pDstDrawable, pGC, pbox, nbox,
 			       dx, dy))
 	    goto fallback;
@@ -411,7 +412,7 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     if ((pSrcPixmap = exaGetOffscreenPixmap (pSrcDrawable, &src_off_x, &src_off_y)) &&
 	(pDstPixmap = exaGetOffscreenPixmap (pDstDrawable, &dst_off_x, &dst_off_y)) &&
 	(*pExaScr->info->PrepareCopy) (pSrcPixmap, pDstPixmap,
-				       dx, dy,
+				       reverse ? -1 : 1, upsidedown ? -1 : 1,
 				       pGC ? pGC->alu : GXcopy,
 				       pGC ? pGC->planemask : FB_ALLONES))
     {
@@ -621,12 +622,12 @@ exaPolyFillRect(DrawablePtr pDrawable,
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
  
     if (pExaScr->swappedOut ||
 	pGC->fillStyle != FillSolid ||
-	pDrawable->width > pExaScr->info->maxX ||
-	pDrawable->height > pExaScr->info->maxY)
+	pPixmap->drawable.width > pExaScr->info->maxX ||
+	pPixmap->drawable.height > pExaScr->info->maxY)
     {
 	exaDoMigration (pixmaps, 1, FALSE);
 	ExaCheckPolyFillRect (pDrawable, pGC, nrect, prect);
@@ -738,11 +739,11 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
  
     if (pExaScr->swappedOut ||
-	pDrawable->width > pExaScr->info->maxX ||
-	pDrawable->height > pExaScr->info->maxY)
+	pPixmap->drawable.width > pExaScr->info->maxX ||
+	pPixmap->drawable.height > pExaScr->info->maxY)
     {
 	exaDoMigration (pixmaps, 1, FALSE);
 	goto fallback;
@@ -997,10 +998,10 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
  
-    if (pDrawable->width > pExaScr->info->maxX ||
-	pDrawable->height > pExaScr->info->maxY)
+    if (pPixmap->drawable.width > pExaScr->info->maxX ||
+	pPixmap->drawable.height > pExaScr->info->maxY)
     {
 	exaDoMigration (pixmaps, 1, FALSE);
 	goto fallback;
@@ -1064,13 +1065,13 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
     pixmaps[1].as_dst = FALSE;
     pixmaps[1].as_src = TRUE;
     pixmaps[1].pPix = pTile;
 
-    if (pDrawable->width > pExaScr->info->maxX ||
-	pDrawable->height > pExaScr->info->maxY ||
+    if (pPixmap->drawable.width > pExaScr->info->maxX ||
+	pPixmap->drawable.height > pExaScr->info->maxY ||
 	tileWidth > pExaScr->info->maxX ||
 	tileHeight > pExaScr->info->maxY)
     {

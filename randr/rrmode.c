@@ -108,12 +108,15 @@ RRModePtr *
 RRModesForScreen (ScreenPtr pScreen, int *num_ret)
 {
     rrScrPriv(pScreen);
-    int	o;
+    int	o, c;
     RRModePtr	*screen_modes;
     int		num_screen_modes = 0;
 
     screen_modes = xalloc ((num_modes ? num_modes : 1) * sizeof (RRModePtr));
     
+    /*
+     * Add modes from all outputs
+     */
     for (o = 0; o < pScrPriv->numOutputs; o++)
     {
 	RROutputPtr	output = pScrPriv->outputs[o];
@@ -128,6 +131,24 @@ RRModesForScreen (ScreenPtr pScreen, int *num_ret)
 	    if (n == num_screen_modes)
 		screen_modes[num_screen_modes++] = mode;
 	}
+    }
+    /*
+     * Add modes from all crtcs. The goal is to
+     * make sure all available and active modes
+     * are visible to the client
+     */
+    for (c = 0; c < pScrPriv->numCrtcs; c++)
+    {
+	RRCrtcPtr	crtc = pScrPriv->crtcs[c];
+	RRModePtr	mode = crtc->mode;
+	int		n;
+
+	if (!mode) continue;
+	for (n = 0; n < num_screen_modes; n++)
+	    if (screen_modes[n] == mode)
+		break;
+	if (n == num_screen_modes)
+	    screen_modes[num_screen_modes++] = mode;
     }
     *num_ret = num_screen_modes;
     return screen_modes;

@@ -262,9 +262,9 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
     GlyphSharePtr pShare;
 
     sourcefont = (FontPtr) SecurityLookupIDByType(client, source, RT_FONT,
-						  SecurityReadAccess);
+						  DixReadAccess);
     maskfont = (FontPtr) SecurityLookupIDByType(client, mask, RT_FONT,
-						SecurityReadAccess);
+						DixReadAccess);
 
     if (!sourcefont)
     {

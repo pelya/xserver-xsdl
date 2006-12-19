@@ -386,6 +386,7 @@ ProcXF86DRICreateDrawable(
 {
     xXF86DRICreateDrawableReply	rep;
     DrawablePtr pDrawable;
+    int rc;
 
     REQUEST(xXF86DRICreateDrawableReq);
     REQUEST_SIZE_MATCH(xXF86DRICreateDrawableReq);
@@ -398,12 +399,10 @@ ProcXF86DRICreateDrawable(
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    if (!(pDrawable = (DrawablePtr)SecurityLookupDrawable(
-						(Drawable)stuff->drawable,
-						client, 
-						SecurityReadAccess))) {
-	return BadValue;
-    }
+    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
+			   DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     if (!DRICreateDrawable( screenInfo.screens[stuff->screen],
 			    (Drawable)stuff->drawable,
@@ -424,17 +423,17 @@ ProcXF86DRIDestroyDrawable(
     REQUEST(xXF86DRIDestroyDrawableReq);
     DrawablePtr pDrawable;
     REQUEST_SIZE_MATCH(xXF86DRIDestroyDrawableReq);
+    int rc;
+
     if (stuff->screen >= screenInfo.numScreens) {
 	client->errorValue = stuff->screen;
 	return BadValue;
     }
 
-    if (!(pDrawable = (DrawablePtr)SecurityLookupDrawable(
-						(Drawable)stuff->drawable,
-						client, 
-						SecurityReadAccess))) {
-	return BadValue;
-    }
+    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
+			   DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     if (!DRIDestroyDrawable( screenInfo.screens[stuff->screen], 
 			     (Drawable)stuff->drawable,
@@ -455,7 +454,7 @@ ProcXF86DRIGetDrawableInfo(
     int X, Y, W, H;
     drm_clip_rect_t * pClipRects;
     drm_clip_rect_t * pBackClipRects;
-    int backX, backY;
+    int backX, backY, rc;
 
     REQUEST(xXF86DRIGetDrawableInfoReq);
     REQUEST_SIZE_MATCH(xXF86DRIGetDrawableInfoReq);
@@ -468,12 +467,10 @@ ProcXF86DRIGetDrawableInfo(
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    if (!(pDrawable = (DrawablePtr)SecurityLookupDrawable(
-						(Drawable)stuff->drawable,
-						client, 
-						SecurityReadAccess))) {
-	return BadValue;
-    }
+    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
+			   DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     if (!DRIGetDrawableInfo( screenInfo.screens[stuff->screen],
 			     pDrawable,

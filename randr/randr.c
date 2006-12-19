@@ -415,7 +415,11 @@ RRTellChanged (ScreenPtr pScreen)
     if (pScrPriv->changed)
     {
 	UpdateCurrentTime ();
-	pScrPriv->lastConfigTime = currentTime;
+	if (pScrPriv->configChanged)
+	{
+	    pScrPriv->lastConfigTime = currentTime;
+	    pScrPriv->configChanged = FALSE;
+	}
 	pScrPriv->changed = FALSE;
 	WalkTree (pScreen, TellChanged, (pointer) pScreen);
 	for (i = 0; i < pScrPriv->numOutputs; i++)
