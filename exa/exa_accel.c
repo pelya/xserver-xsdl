@@ -401,7 +401,8 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     }
 
     /* Mixed directions must be handled specially if the card is lame */
-    if (pExaScr->info->flags & EXA_TWO_BITBLT_DIRECTIONS && (dx*dy) < 0) {
+    if (pExaScr->info->flags & EXA_TWO_BITBLT_DIRECTIONS &&
+	reverse != upsidedown) {
 	if (!exaCopyNtoNTwoDir(pSrcDrawable, pDstDrawable, pGC, pbox, nbox,
 			       dx, dy))
 	    goto fallback;
@@ -411,7 +412,7 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     if ((pSrcPixmap = exaGetOffscreenPixmap (pSrcDrawable, &src_off_x, &src_off_y)) &&
 	(pDstPixmap = exaGetOffscreenPixmap (pDstDrawable, &dst_off_x, &dst_off_y)) &&
 	(*pExaScr->info->PrepareCopy) (pSrcPixmap, pDstPixmap,
-				       dx, dy,
+				       reverse ? -1 : 1, upsidedown ? -1 : 1,
 				       pGC ? pGC->alu : GXcopy,
 				       pGC ? pGC->planemask : FB_ALLONES))
     {
