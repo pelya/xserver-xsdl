@@ -124,11 +124,12 @@ _X_EXPORT void
 xf86ProcessCommonOptions(LocalDevicePtr local,
                          pointer	list)
 {
-    if (!xf86SetBoolOption(list, "AlwaysCore", 0) ||
+    if (xf86SetBoolOption(list, "AlwaysCore", 0) ||
         xf86SetBoolOption(list, "SendCoreEvents", 0) ||
         xf86SetBoolOption(list, "CorePointer", 0) ||
         xf86SetBoolOption(list, "CoreKeyboard", 0)) {
         local->flags |= XI86_ALWAYS_CORE;
+        local->flags |= XI86_SHARED_POINTER;
         xf86Msg(X_CONFIG, "%s: always reports core events\n", local->name);
     }
 

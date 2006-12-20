@@ -38,6 +38,15 @@ Files:
 	include/mpxevents.h
 	include/mpxextinit.h
 
+____________________________________________________________
+xfree86: fix xf86ProcessCommonOptions() core and shared pointer assignment
+
+Files:
+	hw/xfree86/common/xf86Xinput.c
+
+TAG: mpx-0.3.0
+
+
 == 18.12.06 ==
 mi:     removing MPX ifdefs
 	global sprite renaming in mipointer and misprite
