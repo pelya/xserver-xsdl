@@ -131,6 +131,10 @@ AssignTypeAndName (
 	char *                 /* name */
 	);
 
+Bool MayNeedPointer(
+        DeviceIntPtr            /* dev */
+        );
+
 void
 MakeDeviceTypeAtoms (
 	void

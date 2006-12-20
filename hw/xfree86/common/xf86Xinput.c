@@ -171,7 +171,8 @@ xf86ActivateDevice(LocalDevicePtr local)
         local->dev = dev;      
         
         dev->coreEvents = local->flags & XI86_ALWAYS_CORE;
-        dev->isMPDev = !(local->flags & XI86_SHARED_POINTER);
+        dev->isMPDev = 
+            MayNeedPointer(dev) && !(local->flags & XI86_SHARED_POINTER);
         InitSprite(dev, dev->isMPDev);
 
         RegisterOtherDevice(dev);

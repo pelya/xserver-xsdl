@@ -21,6 +21,15 @@ Files:
 
 Note: This commit requires libXi additions to use the new functions.
 
+____________________________________________________________
+
+xfree86:  fix xf86ActivateDevice(): only set to MP device if not a keyboard
+
+Files:
+	hw/xfree86/common/xf86Xinput.c
+	include/extinit.h
+	Xi/extinit.c
+
 == 18.12.06 ==
 mi:     removing MPX ifdefs
 	global sprite renaming in mipointer and misprite

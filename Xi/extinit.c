@@ -868,6 +868,21 @@ AssignTypeAndName(DeviceIntPtr dev, Atom type, char *name)
 
 /***********************************************************************
  *
+ * Returns true if a device may require a pointer (is not a keyboard).
+ *
+ */
+_X_EXPORT Bool
+MayNeedPointer(DeviceIntPtr dev)
+{
+    /* return false if device is a keyboard */
+    if (dev_type[0].type == dev->type)
+        return FALSE;
+  
+    return TRUE;
+}
+
+/***********************************************************************
+ *
  * Make device type atoms.
  *
  */
