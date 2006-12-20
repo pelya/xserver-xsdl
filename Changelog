@@ -30,6 +30,14 @@ Files:
 	include/extinit.h
 	Xi/extinit.c
 
+____________________________________________________________
+removing MPX extension files
+
+Files:
+	mpx/
+	include/mpxevents.h
+	include/mpxextinit.h
+
 == 18.12.06 ==
 mi:     removing MPX ifdefs
 	global sprite renaming in mipointer and misprite
