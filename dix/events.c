@@ -324,7 +324,6 @@ static CARD8 criticalEvents[32] =
 };
 
 #ifdef PANORAMIX
-static void ConfineToShape(DeviceIntPtr pDev, RegionPtr shape, int *px, int *py);
 static void PostNewCursor(DeviceIntPtr pDev);
 
 #define SyntheticMotion(dev, x, y) \
@@ -700,7 +699,7 @@ SetCriticalEvent(int event)
 }
 
 #ifdef SHAPE
-static void
+void
 ConfineToShape(DeviceIntPtr pDev, RegionPtr shape, int *px, int *py)
 {
     BoxRec box;

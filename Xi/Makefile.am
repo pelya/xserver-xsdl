@@ -54,6 +54,8 @@ libXi_la_SOURCES =	\
 	listdev.h \
 	opendev.c \
 	opendev.h \
+	querydp.c \
+	querydp.h \
 	queryst.c \
 	queryst.h \
 	selectev.c \
@@ -75,6 +77,8 @@ libXi_la_SOURCES =	\
 	ungrdevb.c \
 	ungrdevb.h \
 	ungrdevk.c \
-	ungrdevk.h
+	ungrdevk.h \
+	warpdevp.c \
+	warpdevp.h 
 
 EXTRA_DIST = stubs.c

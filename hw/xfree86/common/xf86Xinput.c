@@ -132,10 +132,10 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
         xf86Msg(X_CONFIG, "%s: always reports core events\n", local->name);
     }
 
-    if (xf86SetBoolOption(list, "IsMPDevice", 0)) {
-        local->flags |= XI86_MP_DEVICE;
-        xf86Msg(X_CONFIG, "%s: is MP device\n", local->name);
-    }
+    if (xf86SetBoolOption(list, "SharedPointer", 0)) {
+        local->flags &= ~XI86_SHARED_POINTER;
+        xf86Msg(X_CONFIG, "%s: is shared device\n", local->name);
+    } 
 
     if (xf86SetBoolOption(list, "SendDragEvents", 1)) {
         local->flags |= XI86_SEND_DRAG_EVENTS;
@@ -171,7 +171,7 @@ xf86ActivateDevice(LocalDevicePtr local)
         local->dev = dev;      
         
         dev->coreEvents = local->flags & XI86_ALWAYS_CORE;
-        dev->isMPDev = (local->flags & XI86_MP_DEVICE);
+        dev->isMPDev = !(local->flags & XI86_SHARED_POINTER);
         InitSprite(dev, dev->isMPDev);
 
         RegisterOtherDevice(dev);

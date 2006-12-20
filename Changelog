@@ -1,4 +1,27 @@
-== 14.12.06 ==
+== 20.12.06 ==
+xfree86: Changing "IsMPDevice" to "SharedPointer" option. Devices will default 
+	 to MP devices.
+
+Xi:	Adding QueryDevicePointer request/reply
+	Adding WarpDevicePointer request/reply
+
+Files: 
+	hw/xfree86/common/xf86Xinput.c
+	hw/xfree86/common/xf86Cursor.c
+	hw/xfree86/common/xf86Xinput.h
+	Xi/extinit.c
+	Xi/querydp.c
+	Xi/querydp.h
+	Xi/Makefile.am
+	Xi/warpdevp.c
+	Xi/warpdevp.h
+	dix/cursor.c
+	dix/events.c
+	dix/dix.h
+
+Note: This commit requires libXi additions to use the new functions.
+
+== 18.12.06 ==
 mi:     removing MPX ifdefs
 	global sprite renaming in mipointer and misprite
 	fixed: multiple remove cursor call in miSpriteInstallColormap

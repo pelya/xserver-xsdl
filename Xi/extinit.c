@@ -98,6 +98,7 @@ SOFTWARE.
 #include "gtmotion.h"
 #include "listdev.h"
 #include "opendev.h"
+#include "querydp.h"
 #include "queryst.h"
 #include "selectev.h"
 #include "sendexev.h"
@@ -110,6 +111,7 @@ SOFTWARE.
 #include "ungrdev.h"
 #include "ungrdevb.h"
 #include "ungrdevk.h"
+#include "warpdevp.h"
 
 static Mask lastExtEventMask = 1;
 int ExtEventIndex;
@@ -334,6 +336,10 @@ ProcIDispatch(register ClientPtr client)
 	return (ProcXGetDeviceControl(client));
     else if (stuff->data == X_ChangeDeviceControl)
 	return (ProcXChangeDeviceControl(client));
+    else if (stuff->data == X_QueryDevicePointer)
+        return (ProcXQueryDevicePointer(client));
+    else if (stuff->data == X_WarpDevicePointer)
+        return (ProcXWarpDevicePointer(client));
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -423,6 +429,10 @@ SProcIDispatch(register ClientPtr client)
 	return (SProcXGetDeviceControl(client));
     else if (stuff->data == X_ChangeDeviceControl)
 	return (SProcXChangeDeviceControl(client));
+    else if (stuff->data == X_QueryDevicePointer)
+	return (SProcXQueryDevicePointer(client));
+    else if (stuff->data == X_WarpDevicePointer)
+	return (SProcXWarpDevicePointer(client));
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -495,6 +505,9 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
     else if (rep->RepType == X_ChangeDeviceControl)
 	SRepXChangeDeviceControl(client, len,
 				 (xChangeDeviceControlReply *) rep);
+    else if (rep->RepType == X_QueryDevicePointer)
+	SRepXQueryDevicePointer(client, len,
+				 (xQueryDevicePointerReply *) rep);
     else {
 	FatalError("XINPUT confused sending swapped reply");
     }

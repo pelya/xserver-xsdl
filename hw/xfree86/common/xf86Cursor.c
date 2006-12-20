@@ -434,9 +434,9 @@ xf86WarpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
     int    sigstate;
     sigstate = xf86BlockSIGIO ();
-  miPointerWarpCursor(pDev, pScreen,x,y);
+    miPointerWarpCursor(pDev, pScreen, x, y);
 
-  xf86Info.currentScreen = pScreen;
+    xf86Info.currentScreen = pScreen;
     xf86UnblockSIGIO (sigstate);
 }
 

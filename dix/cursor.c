@@ -117,9 +117,6 @@ FreeCursor(pointer value, XID cid)
     ScreenPtr	pscr;
     DeviceIntPtr pDev; 
 
-    /* FIXME: MPX: When FreeClientRessources is called, it calls FreeCursor
-     * too often. Refcnt gots < 0 and FreeCursorBits segfaults because the
-     * memory is already freed. */
     MPXDBG("freecursor refcount %d\n", pCurs->refcnt);
     if ( --pCurs->refcnt != 0)
 	return(Success);

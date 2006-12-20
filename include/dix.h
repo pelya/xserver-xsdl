@@ -416,6 +416,13 @@ extern void SetMaskForEvent(
     Mask /* mask */,
     int /* event */);
 
+#ifdef SHAPE
+extern void ConfineToShape(
+    DeviceIntPtr /* pDev */, 
+    RegionPtr /* shape */, 
+    int*      /* px */,
+    int*      /* py */);
+#endif
 
 extern Bool IsParent(
     WindowPtr /* maybeparent */,
