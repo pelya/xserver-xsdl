@@ -403,18 +403,18 @@ AssignServerState(void)
 
     /* get a SID from the context */
     if (avc_context_to_sid(basectx, &state->sid) < 0)
-	FatalError("Client %d: couldn't get security ID for client\n", 0);
+	FatalError("Client %d: context_to_sid(%s) failed\n", 0, basectx);
 
     /* get contexts and then SIDs for each resource type */
     for (i=0; i<NRES; i++) {
 	if (security_compute_create(basectx, basectx, sClasses[i],
 				    &objctx) < 0)
-	    FatalError("Client %d: couldn't get context for class %x\n", 0,
-		       sClasses[i]);
+	    FatalError("Client %d: compute_create(base=%s, cls=%d) failed\n",
+		       0, basectx, sClasses[i]);
 
 	if (avc_context_to_sid(objctx, &state->rsid[i]) < 0)
-	    FatalError("Client %d: couldn't get SID for class %x\n", 0,
-		       sClasses[i]);
+	    FatalError("Client %d: context_to_sid(%s) failed\n",
+		       0, objctx);
 
 	freecon(objctx);
     }
@@ -455,19 +455,19 @@ AssignClientState(ClientPtr client)
 
     /* get a SID from the context */
     if (avc_context_to_sid(basectx, &state->sid) < 0)
-	FatalError("Client %d: couldn't get security ID for client\n",
-		   client->index);
+	FatalError("Client %d: context_to_sid(%s) failed\n",
+		   client->index, basectx);
 
     /* get contexts and then SIDs for each resource type */
     for (i=0; i<NRES; i++) {
 	if (security_compute_create(basectx, basectx, sClasses[i],
 				    &objctx) < 0)
-	    FatalError("Client %d: couldn't get context for class %x\n",
-		       client->index, sClasses[i]);
+	    FatalError("Client %d: compute_create(base=%s, cls=%d) failed\n",
+		       client->index, basectx, sClasses[i]);
 
 	if (avc_context_to_sid(objctx, &state->rsid[i]) < 0)
-	    FatalError("Client %d: couldn't get SID for class %x\n",
-		       client->index, sClasses[i]);
+	    FatalError("Client %d: context_to_sid(%s) failed\n",
+		       client->index, objctx);
 
 	freecon(objctx);
     }
@@ -1078,11 +1078,11 @@ CALLBACK(XSELinuxProperty)
     if (!propsid)
 	return;
 
-    if (rec->access_mode & SecurityReadAccess)
+    if (rec->access_mode & DixReadAccess)
 	perm |= PROPERTY__READ;
-    if (rec->access_mode & SecurityWriteAccess)
+    if (rec->access_mode & DixWriteAccess)
 	perm |= PROPERTY__WRITE;
-    if (rec->access_mode & SecurityDestroyAccess)
+    if (rec->access_mode & DixDestroyAccess)
 	perm |= PROPERTY__FREE;
     if (!rec->access_mode)
 	perm = PROPERTY__READ | PROPERTY__WRITE | PROPERTY__FREE;
@@ -1176,7 +1176,7 @@ CALLBACK(XSELinuxDrawable)
 CALLBACK(XSELinuxHostlist)
 {
     XaceHostlistAccessRec *rec = (XaceHostlistAccessRec*)calldata;
-    access_vector_t perm = (rec->access_mode == SecurityReadAccess) ?
+    access_vector_t perm = (rec->access_mode == DixReadAccess) ?
 	XSERVER__GETHOSTLIST : XSERVER__SETHOSTLIST;
 
     if (!ServerPerm(rec->client, SECCLASS_XSERVER, perm))
