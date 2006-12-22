@@ -19,13 +19,47 @@ root_window_context			system_u:object_r:root_window_t:s0
 # property type may not be omitted.  The default rule may appear in
 # any position (it need not be the last property rule listed).
 #
-property WM_NAME			wm_property_t
-property WM_CLASS			wm_property_t
-property WM_ICON_NAME			wm_property_t
-property WM_HINTS			wm_property_t
-property WM_NORMAL_HINTS		wm_property_t
-property WM_COMMAND			wm_property_t
+# Properties set by typical clients: WM, _NET_WM, etc.
+property WM_NAME			client_property_t
+property WM_CLASS			client_property_t
+property WM_ICON_NAME			client_property_t
+property WM_HINTS			client_property_t
+property WM_NORMAL_HINTS		client_property_t
+property WM_COMMAND			client_property_t
+property WM_CLIENT_MACHINE		client_property_t
+property WM_LOCALE_NAME			client_property_t
+property WM_CLIENT_LEADER		client_property_t
+property WM_STATE			client_property_t
+property WM_PROTOCOLS			client_property_t
+property WM_WINDOW_ROLE			client_property_t
+property WM_TRANSIENT_FOR		client_property_t
+property _NET_WM_NAME			client_property_t
+property _NET_WM_ICON			client_property_t
+property _NET_WM_ICON_NAME		client_property_t
+property _NET_WM_PID			client_property_t
+property _NET_WM_STATE			client_property_t
+property _NET_WM_DESKTOP		client_property_t
+property _NET_WM_SYNC_REQUEST_COUNTER	client_property_t
+property _NET_WM_WINDOW_TYPE		client_property_t
+property _NET_WM_USER_TIME		client_property_t
+property _MOTIF_DRAG_RECEIVER_INFO	client_property_t
+property XdndAware			client_property_t
 
+# Properties written by xrdb
+property RESOURCE_MANAGER		rm_property_t
+property SCREEN_RESOURCES		rm_property_t
+
+# Properties written by window managers
+property _MIT_PRIORITY_COLORS		wm_property_t
+
+# Properties used for security labeling
+property _SELINUX_CLIENT_CONTEXT	seclabel_property_t
+
+# Properties used to communicate screen information
+property XFree86_VT			info_property_t
+property XFree86_DDC_EDID1_RAWDATA	info_property_t
+
+# Cut buffers
 property CUT_BUFFER0			cut_buffer_property_t
 property CUT_BUFFER1			cut_buffer_property_t
 property CUT_BUFFER2			cut_buffer_property_t
@@ -35,6 +69,7 @@ property CUT_BUFFER5			cut_buffer_property_t
 property CUT_BUFFER6			cut_buffer_property_t
 property CUT_BUFFER7			cut_buffer_property_t
 
+# Default fallback type
 property default			unknown_property_t
 
 #
@@ -45,40 +80,64 @@ property default			unknown_property_t
 # extension type may not be omitted.  The default rule may appear in
 # any position (it need not be the last extension rule listed).
 #
+# Standard extensions
 extension BIG-REQUESTS			std_ext_t
 extension DOUBLE-BUFFER			std_ext_t
-extension DPMS				screensaver_ext_t
 extension Extended-Visual-Information	std_ext_t
-extension FontCache			font_ext_t
-extension GLX				std_ext_t
-extension LBX				std_ext_t
-extension MIT-SCREEN-SAVER		screensaver_ext_t
-extension MIT-SHM			shmem_ext_t
 extension MIT-SUNDRY-NONSTANDARD	std_ext_t
+extension SHAPE				std_ext_t
+extension SYNC				std_ext_t
+extension XC-MISC			std_ext_t
+extension XFIXES			std_ext_t
+extension XFree86-Misc			std_ext_t
+extension XpExtension                   std_ext_t
+
+# Screen management and multihead extensions
+extension RANDR				output_ext_t
+extension XINERAMA			std_ext_t
+
+# Input extensions
+extension XInputExtension		input_ext_t
+extension XKEYBOARD			input_ext_t
+
+# Screensaver, power management extensions
+extension DPMS				screensaver_ext_t
+extension MIT-SCREEN-SAVER		screensaver_ext_t
+
+# Fonting extensions
+extension FontCache			font_ext_t
+extension XFree86-Bigfont		font_ext_t
+
+# Shared memory extensions
+extension MIT-SHM			shmem_ext_t
+
+# Accelerated graphics, OpenGL, direct rendering extensions
+extension DAMAGE			accelgraphics_ext_t
+extension GLX				accelgraphics_ext_t
 extension NV-CONTROL			accelgraphics_ext_t
 extension NV-GLX			accelgraphics_ext_t
 extension NVIDIA-GLX			accelgraphics_ext_t
-extension RANDR				std_ext_t
-extension RECORD			debug_ext_t
 extension RENDER			std_ext_t
+extension XFree86-DGA			accelgraphics_ext_t
+
+# Debugging, testing, and recording extensions
+extension RECORD			debug_ext_t
+extension X-Resource			debug_ext_t
+extension XTEST				debug_ext_t
+
+# Extensions just for window managers
+extension TOG-CUP			windowmgr_ext_t
+
+# Security-related extensions
 extension SECURITY			security_ext_t
 extension SELinux			security_ext_t
-extension SHAPE				std_ext_t
-extension SYNC				sync_ext_t
-extension TOG-CUP			windowmgr_ext_t
-extension X-Resource			debug_ext_t
 extension XAccessControlExtension	security_ext_t
-extension XACEUSR			security_ext_t
 extension XC-APPGROUP			security_ext_t
-extension XC-MISC			std_ext_t
-extension XFree86-Bigfont		font_ext_t
-extension XFree86-DGA			accelgraphics_ext_t
-extension XFree86-Misc			std_ext_t
+
+# Video extensions
 extension XFree86-VidModeExtension	video_ext_t
-extension XInputExtension		input_ext_t
-extension XKEYBOARD			input_ext_t
-extension XpExtension                   std_ext_t
-extension XTEST				debug_ext_t
 extension XVideo			video_ext_t
 extension XVideo-MotionCompensation	video_ext_t
+
+# Default fallback type
 extension default			unknown_ext_t
