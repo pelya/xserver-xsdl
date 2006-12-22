@@ -224,6 +224,7 @@ typedef struct _rrScrPriv {
     CARD16		    minWidth, minHeight;
     CARD16		    maxWidth, maxHeight;
     CARD16		    width, height;	/* last known screen size */
+    CARD16		    mmWidth, mmHeight;	/* last known screen size */
 
     int			    numOutputs;
     RROutputPtr		    *outputs;

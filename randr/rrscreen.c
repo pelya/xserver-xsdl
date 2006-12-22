@@ -158,11 +158,15 @@ RRScreenSizeNotify (ScreenPtr	pScreen)
      * pixel size
      */
     if (pScrPriv->width == pScreen->width &&
-	pScrPriv->height == pScreen->height)
+	pScrPriv->height == pScreen->height &&
+	pScrPriv->mmWidth == pScreen->mmWidth &&
+	pScrPriv->mmHeight == pScreen->mmHeight)
 	return;
     
     pScrPriv->width = pScreen->width;
     pScrPriv->height = pScreen->height;
+    pScrPriv->mmWidth = pScreen->mmWidth;
+    pScrPriv->mmHeight = pScreen->mmHeight;
     pScrPriv->changed = TRUE;
 /*    pScrPriv->sizeChanged = TRUE; */
 
