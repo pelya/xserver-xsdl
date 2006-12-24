@@ -368,10 +368,8 @@ AllocateArea(
    /* look through the free boxes */
    for(i = 0; i < num; i++, boxp++) {
 	x = boxp->x1;
-	if(granularity) {
-	    int tmp = x % granularity;
-	    if(tmp) x += (granularity - tmp);
-	}
+	if (granularity > 1)
+	    x = ((x + granularity - 1) / granularity) * granularity;
 
 	if(((boxp->y2 - boxp->y1) < h) || ((boxp->x2 - x) < w))
 	   continue;
@@ -398,10 +396,8 @@ AllocateArea(
 
 	   boxp = &(link->area.box);
 	   x = boxp->x1;
- 	   if(granularity) {
-		int tmp = x % granularity;
-		if(tmp) x += (granularity - tmp);
-	   }
+ 	   if (granularity > 1)
+		x = ((x + granularity - 1) / granularity) * granularity;
 
 	   if(((boxp->y2 - boxp->y1) < h) || ((boxp->x2 - x) < w)) {
 		link = link->next;
@@ -685,10 +681,8 @@ localQueryLargestOffscreenArea(
 
     while(nbox--) {
 	x = pbox->x1;
-	if(granularity) {
-	   int tmp = x % granularity;
-	   if(tmp) x += (granularity - tmp);
-        }
+	if (granularity > 1)
+	   x = ((x + granularity - 1) / granularity) * granularity;
 
 	w = pbox->x2 - x;
 	h = pbox->y2 - pbox->y1;
@@ -845,7 +839,9 @@ AllocateLinear(
    while (linear) {
  	/* Make sure we get a free area that's not an XY fallback case */
       if (!linear->area && linear->free) {
-	 offset = (linear->linear.offset + granularity) & ~granularity;
+	 offset = linear->linear.offset;
+	 if (granularity > 1)
+	    offset = ((offset + granularity - 1) / granularity) * granularity;
 	 end = offset+size;
 	 if (end <= (linear->linear.offset + linear->linear.size))
 	    break;
@@ -935,17 +931,20 @@ localAllocateOffscreenLinear(
    extents = REGION_EXTENTS(pScreen, offman->InitialBoxes);
    pitch = extents->x2 - extents->x1;
 
-   if (gran && gran > pitch) {
-	/* we can't match the specified alignment with XY allocations */
-	xfree(link);
-	return NULL;
-   }
-   if (gran && (pitch % gran)) {
-       /* pitch and granularity aren't a perfect match, let's allocate
-	* a bit more so we can align later on
-	*/
-       length += gran - 1;
-   }
+   if (gran > 1) {
+        if (gran > pitch) {
+            /* we can't match the specified alignment with XY allocations */
+            xfree(link);
+            return NULL;
+        }
+
+        if (pitch % gran) {
+            /* pitch and granularity aren't a perfect match, let's allocate
+             * a bit more so we can align later on
+             */
+            length += gran - 1;
+        }
+    }
 
    if(length < pitch) { /* special case */
 	w = length;
@@ -968,8 +967,8 @@ localAllocateOffscreenLinear(
 	linear->pScreen = pScreen;
 	linear->size = h * w;
 	linear->offset = (pitch * area->box.y1) + area->box.x1;
-	if (gran && linear->offset % gran)
-		linear->offset += gran - (linear->offset % gran);
+	if (gran > 1)
+            linear->offset += ((linear->offset + gran - 1) / gran) * gran;
 	linear->granularity = gran;
 	linear->MoveLinearCallback = moveCB;
 	linear->RemoveLinearCallback = removeCB;
@@ -1435,9 +1434,12 @@ xf86AllocateLinearOffscreenArea (
    extents = REGION_EXTENTS(pScreen, offman->InitialBoxes);
    w = extents->x2 - extents->x1;
 
-   if(gran && ((gran > w) || (w % gran))) {
-	/* we can't match the specified alignment with XY allocations */
-	return NULL;
+   if (gran > 1) {
+	if (gran > w)
+	    return NULL;
+
+	if (w % gran)
+	    length += gran - 1;
    }
 
    if(length <= w) { /* special case */
