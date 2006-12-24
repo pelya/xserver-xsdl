@@ -53,7 +53,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#ifndef __linux__
+#ifndef __GLIBC__
 #include <time.h>
 #else
 /* The world's most shocking hack, to ensure we get clock_gettime() and
