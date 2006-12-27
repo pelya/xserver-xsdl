@@ -103,7 +103,7 @@ extern int ProcUngrabButton(ClientPtr /* client */);
 extern int ProcRecolorCursor(ClientPtr /* client */);
 
 #ifdef PANORAMIX
-extern void PostSyntheticMotion(int x, int y, ScreenPtr pScreen, unsigned long time);
+extern void PostSyntheticMotion(int x, int y, int screen, unsigned long time);
 #endif
 
 #endif /* DIXEVENTS_H */

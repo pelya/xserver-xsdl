@@ -761,7 +761,7 @@ SwitchCorePointer(DeviceIntPtr pDev)
  * to shift the pointer to get it inside the new bounds.
  */
 void
-PostSyntheticMotion(int x, int y, ScreenPtr pScreen, unsigned long time)
+PostSyntheticMotion(int x, int y, int screen, unsigned long time)
 {
     xEvent xE;
 
@@ -770,8 +770,8 @@ PostSyntheticMotion(int x, int y, ScreenPtr pScreen, unsigned long time)
        will translate from sprite screen to screen 0 upon reentry
        to the DIX layer. */
     if (!noPanoramiXExtension) {
-        x += panoramiXdataPtr[0].x - panoramiXdataPtr[pScreen->myNum].x;
-        y += panoramiXdataPtr[0].y - panoramiXdataPtr[pScreen->myNum].y;
+        x += panoramiXdataPtr[0].x - panoramiXdataPtr[screen].x;
+        y += panoramiXdataPtr[0].y - panoramiXdataPtr[screen].y;
     }
 #endif
 
