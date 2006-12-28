@@ -412,10 +412,4 @@ exaGlyphs (CARD8	op,
 void
 exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
 
-void
-exaMoveInPixmap (PixmapPtr pPixmap);
-
-void
-exaMoveOutPixmap (PixmapPtr pPixmap);
-
 #endif /* EXAPRIV_H */
