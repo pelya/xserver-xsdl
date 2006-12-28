@@ -622,7 +622,7 @@ exaDriverInit (ScreenPtr		pScreen,
 
     pScreen->devPrivates[exaScreenPrivateIndex].ptr = (pointer) pExaScr;
 
-    pExaScr->migration = ExaMigrationSmart;
+    pExaScr->migration = ExaMigrationAlways;
 
     exaDDXDriverInit(pScreen);
 
