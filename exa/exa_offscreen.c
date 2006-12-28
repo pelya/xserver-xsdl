@@ -390,6 +390,7 @@ ExaOffscreenMarkUsed (PixmapPtr pPixmap)
 	    if (area->state == ExaOffscreenRemovable)
 		area->score = (area->score * 7) / 8;
 	}
+	iter = 0;
     }
 }
 
