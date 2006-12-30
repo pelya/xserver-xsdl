@@ -496,7 +496,7 @@ fbdevHWSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode, Bool check)
 	fbdevHWPtr fPtr = FBDEVHWPTR(pScrn);
 	struct fb_var_screeninfo req_var = fPtr->var, set_var;
 	
-	TRACE_ENTER("ModeInit");
+	TRACE_ENTER("SetMode");
 
 	xfree2fbdev_fblayout(pScrn, &req_var);
 	xfree2fbdev_timing(mode, &req_var);
@@ -528,7 +528,8 @@ fbdevHWSetMode(ScrnInfoPtr pScrn, DisplayModePtr mode, Bool check)
 		return FALSE;
 	}
 
-	fPtr->var = set_var;
+	if (!check)
+		fPtr->var = set_var;
 
 	return TRUE;
 }
