@@ -183,7 +183,8 @@ print_xfree_mode(char *txt, DisplayModePtr mode)
 static void
 xfree2fbdev_fblayout(ScrnInfoPtr pScrn, struct fb_var_screeninfo *var)
 {
-	var->xres_virtual   = pScrn->virtualX;
+	var->xres_virtual   = pScrn->displayWidth ? pScrn->displayWidth :
+			      pScrn->virtualX;
 	var->yres_virtual   = pScrn->virtualY;
 	var->bits_per_pixel = pScrn->bitsPerPixel;
 	var->red.length     = pScrn->weight.red;
