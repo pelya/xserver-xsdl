@@ -745,6 +745,17 @@ fbdevHWModeInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 			   "FBIOGET_VSCREENINFO: %s\n", strerror(errno));
 		return FALSE;
 	}
+
+	/* XXX: This is a hack, but it should be a NOP for all the setups that
+	 * worked before and actually seems to fix some others...
+	 */
+	pScrn->offset.red   = fPtr->var.red.offset;
+	pScrn->offset.green = fPtr->var.green.offset;
+	pScrn->offset.blue  = fPtr->var.blue.offset;
+	pScrn->mask.red     = ((1 << fPtr->var.red.length) - 1) << fPtr->var.red.offset;
+	pScrn->mask.green   = ((1 << fPtr->var.green.length) - 1) << fPtr->var.green.offset;
+	pScrn->mask.blue    = ((1 << fPtr->var.blue.length) - 1) << fPtr->var.blue.offset;
+
 	return TRUE;
 }
 
