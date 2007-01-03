@@ -52,6 +52,12 @@ in this Software without prior written authorization from The Open Group.
 # include   "extinit.h"
 # include   "exglobals.h"
 
+#ifdef DPMSExtension
+# include "dpmsproc.h"
+# define DPMS_SERVER
+# include <X11/extensions/dpms.h>
+#endif
+
 #define QUEUE_SIZE  256
 
 typedef struct _Event {
@@ -183,6 +189,13 @@ mieqProcessInputEvents()
     while (miEventQueue.head != miEventQueue.tail) {
         if (screenIsSaved == SCREEN_SAVER_ON)
             SaveScreens (SCREEN_SAVER_OFF, ScreenSaverReset);
+#ifdef DPMSExtension
+        else if (DPMSPowerLevel != DPMSModeOn)
+            SetScreenSaverTimer();
+
+        if (DPMSPowerLevel != DPMSModeOn)
+            DPMSSet(DPMSModeOn);
+#endif
 
         e = &miEventQueue.events[miEventQueue.head];
         /* Assumption - screen switching can only occur on motion events. */
