@@ -99,6 +99,64 @@ fi
 
 AC_TYPE_PID_T
 
+# Checks for headers/macros for byte swapping
+# Known variants:
+#	<byteswap.h> bswap_16, bswap_32, bswap_64  (glibc)
+#	<sys/endian.h> __swap16, __swap32, __swap64 (OpenBSD)
+#	<sys/endian.h> bswap16, bswap32, bswap64 (other BSD's)
+#	and a fallback to local macros if none of the above are found
+
+# if <byteswap.h> is found, assume it's the correct version
+AC_CHECK_HEADERS([byteswap.h])
+
+# if <sys/endian.h> is found, have to check which version
+AC_CHECK_HEADER([sys/endian.h], [HAVE_SYS_ENDIAN_H="yes"], [HAVE_SYS_ENDIAN_H="no"])
+
+if test "x$HAVE_SYS_ENDIAN_H" = "xyes" ; then
+	AC_MSG_CHECKING([for __swap16 variant of <sys/endian.h> byteswapping macros])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([
+#include <sys/endian.h>
+ ], [
+int a = 1, b;
+b = __swap16(a);
+ ])
+], [SYS_ENDIAN__SWAP='yes'], [SYS_ENDIAN__SWAP='no'])
+	AC_MSG_RESULT([$SYS_ENDIAN__SWAP])
+
+	AC_MSG_CHECKING([for bswap_16 variant of <sys/endian.h> byteswapping macros])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([
+#include <sys/endian.h>
+ ], [
+int a = 1, b;
+b = bswap_16(a);
+ ])
+], [SYS_ENDIAN_BSWAP='yes'], [SYS_ENDIAN_BSWAP='no'])
+	AC_MSG_RESULT([$SYS_ENDIAN_BSWAP])
+
+    	if test "$SYS_ENDIAN_BSWAP" = "yes" ; then
+		USE_SYS_ENDIAN_H=yes
+		BSWAP=bswap_
+	else	
+	    	if test "$SYS_ENDIAN__SWAP" = "yes" ; then
+			USE_SYS_ENDIAN_H=yes
+			BSWAP=__swap
+		else
+			USE_SYS_ENDIAN_H=no
+		fi
+	fi
+
+	if test "$USE_SYS_ENDIAN_H" = "yes" ; then
+	    AC_DEFINE([USE_SYS_ENDIAN_H], 1, 
+		[Define to use byteswap macros from <sys/endian.h>])
+	    AC_DEFINE_UNQUOTED([bswap_16], ${BSWAP}16, 
+			[Define to 16-bit byteswap macro])
+	    AC_DEFINE_UNQUOTED([bswap_32], ${BSWAP}32, 
+			[Define to 32-bit byteswap macro])
+	    AC_DEFINE_UNQUOTED([bswap_64], ${BSWAP}64, 
+			[Define to 64-bit byteswap macro])
+	fi
+fi
+
 dnl Checks for library functions.
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr \

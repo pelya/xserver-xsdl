@@ -39,18 +39,22 @@
 #include "glthread.h"
 #include "dispatch.h"
 
-#if defined(__linux__) || defined (__GLIBC__) || defined (__GNU__)
+#if defined(HAVE_BYTESWAP_H)
 #include <byteswap.h>
-#elif defined(__OpenBSD__)
+#elif defined(USE_SYS_ENDIAN_H)
 #include <sys/endian.h>
-#define bswap_16 __swap16
-#define bswap_32 __swap32
-#define bswap_64 __swap64
 #else
-#include <sys/endian.h>
-#define bswap_16 bswap16
-#define bswap_32 bswap32
-#define bswap_64 bswap64
+#define	bswap_16(value)  \
+ 	((((value) & 0xff) << 8) | ((value) >> 8))
+
+#define	bswap_32(value)	\
+ 	(((uint32_t)bswap_16((uint16_t)((value) & 0xffff)) << 16) | \
+ 	(uint32_t)bswap_16((uint16_t)((value) >> 16)))
+ 
+#define	bswap_64(value)	\
+ 	(((uint64_t)bswap_32((uint32_t)((value) & 0xffffffff)) \
+ 	    << 32) | \
+ 	(uint64_t)bswap_32((uint32_t)((value) >> 32)))
 #endif
 
 int __glXDisp_GetCompressedTexImageARB(struct __GLXclientStateRec *cl, GLbyte *pc)
