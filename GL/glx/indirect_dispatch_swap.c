@@ -25,10 +25,6 @@
  * SOFTWARE.
  */
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include <X11/Xmd.h>
 #include <GL/gl.h>
 #include <GL/glxproto.h>
