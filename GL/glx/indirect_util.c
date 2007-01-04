@@ -23,29 +23,21 @@
  * SOFTWARE.
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <string.h>
 
 #include <X11/Xmd.h>
 #include <GL/gl.h>
 #include <GL/glxproto.h>
-#if defined(__linux__) || defined (__GLIBC__) || defined(__GNU__)
-#include <byteswap.h>
-#elif defined(__OpenBSD__)
-#include <sys/endian.h>
-#define bswap_16 __swap16
-#define bswap_32 __swap32
-#define bswap_64 __swap64
-#else
-#include <sys/endian.h>
-#define bswap_16 bswap16
-#define bswap_32 bswap32
-#define bswap_64 bswap64
-#endif
 #include <inttypes.h>
 #include "indirect_size.h"
 #include "indirect_size_get.h"
 #include "indirect_dispatch.h"
 #include "glxserver.h"
+#include "glxbyteorder.h"
 #include "singlesize.h"
 #include "glapitable.h"
 #include "glapi.h"

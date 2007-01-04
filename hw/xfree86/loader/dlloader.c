@@ -113,6 +113,10 @@ DLFindSymbol(const char *name)
     DLModuleList *l;
     void *p;
 
+    p = dlsym(RTLD_DEFAULT, name);
+    if (p != NULL)
+	return p;
+
     for (l = dlModuleList; l != NULL; l = l->next) {
         p = DLFindSymbolLocal(l->module, name);
 	if (p)

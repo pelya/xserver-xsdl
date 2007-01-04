@@ -39,7 +39,6 @@
 #include "glthread.h"
 #include "dispatch.h"
 #include "glapioffsets.h"
-
 #include "glxbyteorder.h"
 
 static int DoSwapInterval(__GLXclientState *cl, GLbyte *pc, int do_swap);
