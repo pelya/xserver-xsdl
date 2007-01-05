@@ -39,6 +39,7 @@
 #include <byteswap.h>
 #elif defined(USE_SYS_ENDIAN_H)
 #include <sys/endian.h>
+#else
 #define	bswap_16(value)  \
  	((((value) & 0xff) << 8) | ((value) >> 8))
 
