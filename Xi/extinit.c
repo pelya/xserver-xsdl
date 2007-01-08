@@ -74,6 +74,7 @@ SOFTWARE.
 
 /* modules local to Xi */
 #include "allowev.h"
+#include "chdevcur.h"
 #include "chgdctl.h"
 #include "chgfctl.h"
 #include "chgkbd.h"
@@ -340,6 +341,8 @@ ProcIDispatch(register ClientPtr client)
         return (ProcXQueryDevicePointer(client));
     else if (stuff->data == X_WarpDevicePointer)
         return (ProcXWarpDevicePointer(client));
+    else if (stuff->data == X_ChangeDeviceCursor)
+        return (ProcXChangeDeviceCursor(client));
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }

@@ -70,6 +70,13 @@ SOFTWARE.
 #define SameBorder(as, a, bs, b)				\
     EqualPixUnion(as, a, bs, b)
 
+/* used as NULL-terminated list */
+typedef struct _DevCursorNode {
+    CursorPtr                   cursor;
+    DeviceIntPtr                dev;
+    struct _DevCursorNode*      next;
+} DevCursNodeRec, *DevCursNodePtr, *DevCursorList;
+
 typedef struct _WindowOpt {
     VisualID		visual;		   /* default: same as parent */
     CursorPtr		cursor;		   /* default: window.cursorNone */
@@ -89,6 +96,7 @@ typedef struct _WindowOpt {
 #ifdef XINPUT
     struct _OtherInputMasks *inputMasks;   /* default: NULL */
 #endif
+    DevCursorList       deviceCursors;     /* default: NULL */
 } WindowOptRec, *WindowOptPtr;
 
 #define BackgroundPixel	    2L

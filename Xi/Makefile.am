@@ -5,6 +5,8 @@ AM_CFLAGS = $(DIX_CFLAGS)
 libXi_la_SOURCES =	\
 	allowev.c \
 	allowev.h \
+        chdevcur.c \
+        chdevcur.h \
 	chgdctl.c \
 	chgdctl.h \
 	chgfctl.c \

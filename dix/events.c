@@ -921,6 +921,7 @@ PostNewCursor(DeviceIntPtr pDev)
     register    WindowPtr win;
     register    GrabPtr grab = pDev->grab;
     SpritePtr   pSprite = pDev->pSprite;
+    CursorPtr   pCursor;
 
     if (syncEvents.playingEvents)
 	return;
@@ -939,11 +940,19 @@ PostNewCursor(DeviceIntPtr pDev)
     else
 	win = pSprite->win;
     for (; win; win = win->parent)
-	if (win->optional && win->optional->cursor != NullCursor)
-	{
-	    ChangeToCursor(pDev, win->optional->cursor);
-	    return;
+    {
+	if (win->optional) 
+        {
+            pCursor = WindowGetDeviceCursor(win, pDev);
+            if (!pCursor && win->optional->cursor != NullCursor)
+                pCursor = win->optional->cursor;
+            if (pCursor)
+            {
+                ChangeToCursor(pDev, pCursor);
+                return;
+            }
 	}
+    }
 }
 
 _X_EXPORT WindowPtr

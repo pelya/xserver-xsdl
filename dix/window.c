@@ -110,6 +110,7 @@ Equipment Corporation.
 #include "validate.h"
 #include "windowstr.h"
 #include "input.h"
+#include "inputstr.h"
 #include "resource.h"
 #include "colormapst.h"
 #include "cursorstr.h"
@@ -135,11 +136,20 @@ Equipment Corporation.
  *    GetWindowAttributes, DeleteWindow, DestroySubWindows,
  *    HandleSaveSet, ReparentWindow, MapWindow, MapSubWindows,
  *    UnmapWindow, UnmapSubWindows, ConfigureWindow, CirculateWindow,
- *
+ *    ChangeWindowDeviceCursor
  ******/
 
 static unsigned char _back_lsb[4] = {0x88, 0x22, 0x44, 0x11};
 static unsigned char _back_msb[4] = {0x11, 0x44, 0x22, 0x88};
+
+static Bool WindowParentHasDeviceCursor(WindowPtr pWin, 
+                                        DeviceIntPtr pDev, 
+                                        CursorPtr pCurs);
+static Bool 
+WindowSeekDeviceCursor(WindowPtr pWin, 
+                       DeviceIntPtr pDev, 
+                       DevCursNodePtr* pNode, 
+                       DevCursNodePtr* pPrev);
 
 _X_EXPORT int screenIsSaved = SCREEN_SAVER_OFF;
 
@@ -440,6 +450,7 @@ CreateRootWindow(ScreenPtr pScreen)
 #endif
 #ifdef XINPUT
     pWin->optional->inputMasks = NULL;
+    pWin->optional->deviceCursors = NULL;
 #endif
     pWin->optional->colormap = pScreen->defColormap;
     pWin->optional->visual = pScreen->rootVisual;
@@ -3639,6 +3650,17 @@ CheckWindowOptionalNeed (register WindowPtr w)
     if (optional->inputMasks != NULL)
 	return;
 #endif
+    if (optional->deviceCursors != NULL)
+    {
+        DevCursNodePtr pNode = optional->deviceCursors;
+        while(pNode)
+        {
+            if (pNode->cursor != None)
+                return;
+            pNode = pNode->next;
+        }
+    }
+
     parentOptional = FindWindowWithOptional(w)->optional;
     if (optional->visual != parentOptional->visual)
 	return;
@@ -3683,6 +3705,7 @@ MakeWindowOptional (register WindowPtr pWin)
 #endif
 #ifdef XINPUT
     optional->inputMasks = NULL;
+    optional->deviceCursors = NULL;
 #endif
     parentOptional = FindWindowWithOptional(pWin)->optional;
     optional->visual = parentOptional->visual;
@@ -3731,9 +3754,226 @@ DisposeWindowOptional (register WindowPtr pWin)
     }
     else
 	pWin->cursorIsNone = TRUE;
+
+    if (pWin->optional->deviceCursors)
+    {
+        DevCursorList pList;
+        DevCursorList pPrev;
+        pList = pWin->optional->deviceCursors;
+        while(pList)
+        {
+            if (pList->cursor)
+                FreeCursor(pList->cursor, (XID)0);
+            pPrev = pList;
+            pList = pList->next;
+            xfree(pPrev);
+        }
+        pWin->optional->deviceCursors = NULL;
+    }
+
     xfree (pWin->optional);
     pWin->optional = NULL;
 }
+
+/*
+ * Changes the cursor struct for the given device and the given window.
+ * A cursor that does not have a device cursor set will use whatever the
+ * standard cursor is for the window. If all devices have a cursor set,
+ * changing the window cursor (e.g. using XDefineCursor()) will not have any
+ * visible effect. Only when one of the device cursors is set to None again,
+ * this device's cursor will display the changed standard cursor.
+ * 
+ * CursorIsNone of the window struct is NOT modified if you set a device
+ * cursor. 
+ *
+ * Assumption: If there is a node for a device in the list, the device has a
+ * cursor. If the cursor is set to None, it is inherited by the parent.
+ */
+int ChangeWindowDeviceCursor(register WindowPtr pWin, 
+                              DeviceIntPtr pDev, 
+                              CursorPtr pCursor) 
+{
+    DevCursNodePtr pNode, pPrev;
+    CursorPtr pOldCursor = NULL;
+    ScreenPtr pScreen;
+    WindowPtr pChild;
+
+    if (!pWin->optional && !MakeWindowOptional(pWin))
+        return BadAlloc;
+
+    /* 1) Check if window has device cursor set
+     *  Yes: 1.1) swap cursor with given cursor if parent does not have same
+     *            cursor, free old cursor
+     *       1.2) free old cursor, use parent cursor
+     *  No: 1.1) add node to beginning of list.
+     *      1.2) add cursor to node if parent does not have same cursor
+     *      1.3) use parent cursor if parent does not have same cursor
+     *  2) Patch up children if child has a devcursor
+     *  2.1) if child has cursor None, it inherited from parent, set to old
+     *  cursor
+     *  2.2) if child has same cursor as new cursor, remove and set to None
+     */
+
+    pScreen = pWin->drawable.pScreen;
+
+    if (WindowSeekDeviceCursor(pWin, pDev, &pNode, &pPrev))
+    {
+        /* has device cursor */
+
+        if (pNode->cursor == pCursor)
+            return Success;
+
+        pOldCursor = pNode->cursor;
+
+        if (!pCursor) /* remove from list */
+        {
+            pPrev->next = pNode->next;
+            xfree(pNode);
+        }
+
+    } else
+    {
+        /* no device cursor yet */
+        DevCursNodePtr pNewNode;
+
+        if (!pCursor)
+            return Success;
+
+        pNewNode = (DevCursNodePtr)xalloc(sizeof(DevCursNodeRec));
+        pNewNode->dev = pDev;
+        pNewNode->next = pWin->optional->deviceCursors;
+        pWin->optional->deviceCursors = pNewNode;
+        pNode = pNewNode;
+
+    }
+
+    if (pCursor && WindowParentHasDeviceCursor(pWin, pDev, pCursor))
+        pNode->cursor = None;
+    else
+    {
+        pNode->cursor = pCursor;
+        pCursor->refcnt++;
+    }
+
+    pNode = pPrev = NULL;
+    /* fix up children */
+    for (pChild = pWin->firstChild; pChild; pChild = pChild->nextSib)
+    {
+        if (WindowSeekDeviceCursor(pChild, pDev, &pNode, &pPrev))
+        {
+            if (pNode->cursor == None) /* inherited from parent */
+            {
+                pNode->cursor = pOldCursor;
+                pOldCursor->refcnt++;
+            } else if (pNode->cursor == pCursor)
+            {
+                pNode->cursor = None;
+                FreeCursor(pCursor, (Cursor)0); /* fix up refcnt */
+            }
+        }
+    }
+
+    if (pWin->realized)
+        WindowHasNewCursor(pWin);
+
+    if (pOldCursor)
+        FreeCursor(pOldCursor, (Cursor)0);
+
+    /* FIXME: We SHOULD check for an error value here XXX  
+       (comment taken from ChangeWindowAttributes) */
+    (*pScreen->ChangeWindowAttributes)(pWin, CWCursor);
+
+    return Success;
+}
+
+/* Get device cursor for given device or None if none is set */
+CursorPtr WindowGetDeviceCursor(WindowPtr pWin, DeviceIntPtr pDev)
+{
+    DevCursorList pList;
+
+    if (!pWin->optional || !pWin->optional->deviceCursors)
+        return NULL;
+
+    pList = pWin->optional->deviceCursors;
+
+    while(pList)
+    {
+        if (pList->dev == pDev)
+        {
+            if (pList->cursor == None) /* inherited from parent */
+                return WindowGetDeviceCursor(pWin->parent, pDev);
+            else
+                return pList->cursor;
+        }
+        pList = pList->next;
+    }
+    return NULL;
+}
+
+/* Searches for a DevCursorNode for the given window and device. If one is
+ * found, return True and set pNode and pPrev to the node and to the node
+ * before the node respectively. Otherwise return False.
+ */
+static Bool 
+WindowSeekDeviceCursor(WindowPtr pWin, 
+                       DeviceIntPtr pDev, 
+                       DevCursNodePtr* pNode, 
+                       DevCursNodePtr* pPrev)
+{
+    DevCursorList pList;
+
+    if (!pWin->optional)
+        return FALSE;
+
+    pList = pWin->optional->deviceCursors;
+    while(pList)
+    {
+        if (pList->next)
+        {
+            if (pList->next->dev == pDev)
+            {
+                *pNode = pList->next;
+                *pPrev = pList;
+                return TRUE;
+            }
+        }
+        pList = pList->next;
+    }
+    return FALSE;
+}
+
+/* Return True if a parent has the same device cursor set or False if
+ * otherwise 
+ */ 
+static Bool 
+WindowParentHasDeviceCursor(WindowPtr pWin, 
+                            DeviceIntPtr pDev, 
+                            CursorPtr pCursor)
+{
+    WindowPtr pParent;
+    DevCursNodePtr pParentNode, pParentPrev;
+
+    pParent = pWin->parent;
+    while(pParent)
+    {
+        if (WindowSeekDeviceCursor(pParent, pDev, 
+                    &pParentNode, &pParentPrev))
+        {
+            /* if there is a node in the list, the win has a dev cursor */
+            if (!pParentNode->cursor) /* inherited. loop needs to cont. */
+            {
+            } else if (pParentNode->cursor == pCursor) /* inherit */
+                return TRUE;
+            else  /* different cursor */
+                return FALSE;
+        } 
+        else 
+            /* parent does not have a device cursor for our device */
+            return FALSE;
+    }
+    return FALSE;
+}
+
 
 #ifndef NOLOGOHACK
 static void
