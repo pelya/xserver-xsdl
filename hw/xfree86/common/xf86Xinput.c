@@ -134,7 +134,7 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
     }
 
     if (xf86SetBoolOption(list, "SharedPointer", 0)) {
-        local->flags &= ~XI86_SHARED_POINTER;
+        local->flags |= XI86_SHARED_POINTER;
         xf86Msg(X_CONFIG, "%s: is shared device\n", local->name);
     } 
 

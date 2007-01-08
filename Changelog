@@ -11,6 +11,12 @@ Files:
 	Xi/chdevcur.h
 	Xi/Makefile.am
 
+____________________________________________________________
+
+xfree86:  fix XI86_SHARED_POINTER flag setting 
+
+File:
+	hw/xfree86/common/xf86Xinput.c
 
 == 20.12.06 ==
 xfree86: Changing "IsMPDevice" to "SharedPointer" option. Devices will default 
