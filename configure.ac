@@ -353,6 +353,9 @@ case $host_os in
 	DRI=yes
 	KDRIVE_HW=yes
 	;;
+  *solaris*)
+	PKG_CHECK_EXISTS(libdrm, DRI=yes, DRI=no)
+	;;
 esac
 AM_CONDITIONAL(KDRIVE_HW, test "x$KDRIVE_HW" = xyes)
 
@@ -363,6 +366,8 @@ if test "x$use_x86_asm" = xyes && test "x$GCC" = xyes ; then
     #error Not supported
 #endif
 ], mmx_capable=yes, mmx_capable=no)
+else
+	mmx_capable=no
 fi
 AC_MSG_RESULT([$mmx_capable])
 AM_CONDITIONAL(MMX_CAPABLE, [test "x$mmx_capable" = xyes])
