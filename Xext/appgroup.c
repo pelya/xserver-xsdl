@@ -355,13 +355,15 @@ int AttrValidate(
     AppGroupPtr pAppGrp)
 {
     WindowPtr pWin;
-    int idepth, ivids, found;
+    int idepth, ivids, found, rc;
     ScreenPtr pScreen;
     DepthPtr pDepth;
     ColormapPtr pColormap;
 
-    pWin = LookupWindow (pAppGrp->default_root, client);
-    /* XXX check that pWin is not NULL */
+    rc = dixLookupWindow(&pWin, pAppGrp->default_root, client,
+			 DixUnknownAccess);
+    if (rc != Success)
+	return rc;
     pScreen = pWin->drawable.pScreen;
     if (WindowTable[pScreen->myNum]->drawable.id != pAppGrp->default_root)
 	return BadWindow;
@@ -432,7 +434,7 @@ int ProcXagDestroy(
 
     REQUEST_SIZE_MATCH (xXagDestroyReq);
     pAppGrp = (AppGroupPtr)SecurityLookupIDByType (client, 
-		(XID)stuff->app_group, RT_APPGROUP, SecurityReadAccess);
+		(XID)stuff->app_group, RT_APPGROUP, DixReadAccess);
     if (!pAppGrp) return XagBadAppGroup;
     FreeResource ((XID)stuff->app_group, RT_NONE);
     if (--XagCallbackRefCount == 0)
@@ -451,7 +453,7 @@ int ProcXagGetAttr(
 
     REQUEST_SIZE_MATCH (xXagGetAttrReq);
     pAppGrp = (AppGroupPtr)SecurityLookupIDByType (client, 
-		(XID)stuff->app_group, RT_APPGROUP, SecurityReadAccess);
+		(XID)stuff->app_group, RT_APPGROUP, DixReadAccess);
     if (!pAppGrp) return XagBadAppGroup;
     rep.type = X_Reply;
     rep.length = 0;
@@ -483,10 +485,13 @@ int ProcXagQuery(
     ClientPtr pClient;
     AppGroupPtr pAppGrp;
     REQUEST (xXagQueryReq);
-    int n;
+    int n, rc;
 
     REQUEST_SIZE_MATCH (xXagQueryReq);
-    pClient = LookupClient (stuff->resource, client);
+    rc = dixLookupClient(&pClient, stuff->resource, client, DixUnknownAccess);
+    if (rc != Success)
+	return rc;
+
     for (pAppGrp = appGrpList; pAppGrp != NULL; pAppGrp = pAppGrp->next)
 	for (n = 0; n < pAppGrp->nclients; n++)
 	    if (pAppGrp->clients[n] == pClient) {

@@ -716,6 +716,12 @@ exaGetPixmapSize(PixmapPtr pPix);
 void
 exaEnableDisableFBAccess (int index, Bool enable);
 
+void
+exaMoveInPixmap (PixmapPtr pPixmap);
+
+void
+exaMoveOutPixmap (PixmapPtr pPixmap);
+
 /**
  * Returns TRUE if the given planemask covers all the significant bits in the
  * pixel values for pDrawable.

@@ -105,6 +105,7 @@ ProcXUngrabDeviceButton(ClientPtr client)
     DeviceIntPtr mdev;
     WindowPtr pWin;
     GrabRec temporaryGrab;
+    int rc;
 
     REQUEST(xUngrabDeviceButtonReq);
     REQUEST_SIZE_MATCH(xUngrabDeviceButtonReq);
@@ -134,9 +135,9 @@ ProcXUngrabDeviceButton(ClientPtr client)
     } else
 	mdev = (DeviceIntPtr) LookupKeyboardDevice();
 
-    pWin = LookupWindow(stuff->grabWindow, client);
-    if (!pWin) {
-	SendErrorToClient(client, IReqCode, X_UngrabDeviceButton, 0, BadWindow);
+    rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixUnknownAccess);
+    if (rc != Success) {
+	SendErrorToClient(client, IReqCode, X_UngrabDeviceButton, 0, rc);
 	return Success;
     }
 

@@ -32,6 +32,10 @@
 #include <dix-config.h>
 #endif
 
+#ifdef MITSHM
+#include "shmint.h"
+#endif
+
 #include <stdlib.h>
 
 #include "exa_priv.h"
@@ -118,17 +122,77 @@ exaGetDrawablePixmap(DrawablePtr pDrawable)
 }	
 
 /**
+ * Sets the offsets to add to coordinates to make them address the same bits in
+ * the backing drawable. These coordinates are nonzero only for redirected
+ * windows.
+ */
+static void
+exaGetDrawableDeltas (DrawablePtr pDrawable, PixmapPtr pPixmap,
+		      int *xp, int *yp)
+{
+#ifdef COMPOSITE
+    if (pDrawable->type == DRAWABLE_WINDOW) {
+	*xp = -pPixmap->screen_x;
+	*yp = -pPixmap->screen_y;
+	return;
+    }
+#endif
+
+    *xp = 0;
+    *yp = 0;
+}
+
+/**
+ * exaPixmapDirty() marks a pixmap as dirty, allowing for
+ * optimizations in pixmap migration when no changes have occurred.
+ */
+void
+exaPixmapDirty (PixmapPtr pPix, int x1, int y1, int x2, int y2)
+{
+    ExaPixmapPriv(pPix);
+    BoxRec box;
+    RegionPtr pDamageReg;
+    RegionRec region;
+
+    if (!pExaPixmap)
+	return;
+	
+    box.x1 = max(x1, 0);
+    box.y1 = max(y1, 0);
+    box.x2 = min(x2, pPix->drawable.width);
+    box.y2 = min(y2, pPix->drawable.height);
+
+    if (box.x1 >= box.x2 || box.y1 >= box.y2)
+	return;
+
+    pDamageReg = DamageRegion(pExaPixmap->pDamage);
+
+    REGION_INIT(pScreen, &region, &box, 1);
+    REGION_UNION(pScreen, pDamageReg, pDamageReg, &region);
+    REGION_UNINIT(pScreen, &region);
+}
+
+/**
  * exaDrawableDirty() marks a pixmap backing a drawable as dirty, allowing for
  * optimizations in pixmap migration when no changes have occurred.
  */
 void
-exaDrawableDirty (DrawablePtr pDrawable)
+exaDrawableDirty (DrawablePtr pDrawable, int x1, int y1, int x2, int y2)
 {
-    ExaPixmapPrivPtr pExaPixmap;
+    PixmapPtr pPix = exaGetDrawablePixmap(pDrawable);
+    int xoff, yoff;
 
-    pExaPixmap = ExaGetPixmapPriv(exaGetDrawablePixmap (pDrawable));
-    if (pExaPixmap != NULL)
-	pExaPixmap->dirty = TRUE;
+    x1 = max(x1, pDrawable->x);
+    y1 = max(y1, pDrawable->y);
+    x2 = min(x2, pDrawable->x + pDrawable->width);
+    y2 = min(y2, pDrawable->y + pDrawable->height);
+
+    if (x1 >= x2 || y1 >= y2)
+	return;
+
+    exaGetDrawableDeltas(pDrawable, pPix, &xoff, &yoff);
+
+    exaPixmapDirty(pPix, x1 + xoff, y1 + yoff, x2 + xoff, y2 + yoff);
 }
 
 static Bool
@@ -149,6 +213,7 @@ exaDestroyPixmap (PixmapPtr pPixmap)
 	    pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
 	    pPixmap->devKind = pExaPixmap->sys_pitch;
 	}
+	REGION_UNINIT(pPixmap->drawable.pScreen, &pExaPixmap->validReg);
     }
     return fbDestroyPixmap (pPixmap);
 }
@@ -216,7 +281,20 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 	return NULL;
     }
 
-    pExaPixmap->dirty = FALSE;
+    /* Set up damage tracking */
+    pExaPixmap->pDamage = DamageCreate (NULL, NULL, DamageReportNone, TRUE,
+					pScreen, pPixmap);
+
+    if (pExaPixmap->pDamage == NULL) {
+	fbDestroyPixmap (pPixmap);
+	return NULL;
+    }
+
+    DamageRegister (&pPixmap->drawable, pExaPixmap->pDamage);
+    DamageSetReportAfterOp (pExaPixmap->pDamage, TRUE);
+
+    /* None of the pixmap bits are valid initially */
+    REGION_NULL(pScreen, &pExaPixmap->validReg);
 
     return pPixmap;
 }
@@ -261,32 +339,14 @@ exaDrawableIsOffscreen (DrawablePtr pDrawable)
 /**
  * Returns the pixmap which backs a drawable, and the offsets to add to
  * coordinates to make them address the same bits in the backing drawable.
- * These coordinates are nonzero only for redirected windows.
  */
 PixmapPtr
 exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
 {
-    PixmapPtr	pPixmap;
-    int		x, y;
+    PixmapPtr	pPixmap = exaGetDrawablePixmap (pDrawable);
 
-    if (pDrawable->type == DRAWABLE_WINDOW) {
-	pPixmap = (*pDrawable->pScreen->GetWindowPixmap) ((WindowPtr) pDrawable);
-#ifdef COMPOSITE
-	x = -pPixmap->screen_x;
-	y = -pPixmap->screen_y;
-#else
-	x = 0;
-	y = 0;
-#endif
-    }
-    else
-    {
-	pPixmap = (PixmapPtr) pDrawable;
-	x = 0;
-	y = 0;
-    }
-    *xp = x;
-    *yp = y;
+    exaGetDrawableDeltas (pDrawable, pPixmap, xp, yp);
+
     if (exaPixmapIsOffscreen (pPixmap))
 	return pPixmap;
     else
@@ -334,8 +394,7 @@ exaPrepareAccess(DrawablePtr pDrawable, int index)
 /**
  * exaFinishAccess() is EXA's wrapper for the driver's FinishAccess() handler.
  *
- * It deals with marking drawables as dirty, and calling the driver's
- * FinishAccess() only if necessary.
+ * It deals with calling the driver's FinishAccess() only if necessary.
  */
 void
 exaFinishAccess(DrawablePtr pDrawable, int index)
@@ -344,9 +403,6 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
     ExaScreenPriv  (pScreen);
     PixmapPtr	    pPixmap;
     ExaPixmapPrivPtr pExaPixmap;
-
-    if (index == EXA_PREPARE_DEST)
-	exaDrawableDirty (pDrawable);
 
     pPixmap = exaGetDrawablePixmap (pDrawable);
 
@@ -373,7 +429,7 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
  * accelerated or may sync the card and fall back to fb.
  */
 static void
-exaValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
+exaValidateGC (GCPtr pGC, unsigned long changes, DrawablePtr pDrawable)
 {
     /* fbValidateGC will do direct access to pixmaps if the tiling has changed.
      * Preempt fbValidateGC by doing its work and masking the change out, so
@@ -404,6 +460,7 @@ exaValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
 		exaPrepareAccess(&pOldTile->drawable, EXA_PREPARE_SRC);
 		pNewTile = fb24_32ReformatTile (pOldTile,
 						pDrawable->bitsPerPixel);
+		exaPixmapDirty(pNewTile, 0, 0, pNewTile->drawable.width, pNewTile->drawable.height);
 		exaFinishAccess(&pOldTile->drawable, EXA_PREPARE_SRC);
 	    }
 	    if (pNewTile)
@@ -419,9 +476,14 @@ exaValidateGC (GCPtr pGC, Mask changes, DrawablePtr pDrawable)
 	if (!pGC->tileIsPixel && FbEvenTile (pGC->tile.pixmap->drawable.width *
 					     pDrawable->bitsPerPixel))
 	{
-	    exaPrepareAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
+	    /* XXX This fixes corruption with tiled pixmaps, but may just be a
+	     * workaround for broken drivers
+	     */
+	    exaMoveOutPixmap(pGC->tile.pixmap);
 	    fbPadPixmap (pGC->tile.pixmap);
-	    exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
+	    exaPixmapDirty(pGC->tile.pixmap, 0, 0,
+			   pGC->tile.pixmap->drawable.width,
+			   pGC->tile.pixmap->drawable.height);
 	}
 	/* Mask out the GCTile change notification, now that we've done FB's
 	 * job for it.
@@ -560,7 +622,7 @@ exaDriverInit (ScreenPtr		pScreen,
 
     pScreen->devPrivates[exaScreenPrivateIndex].ptr = (pointer) pExaScr;
 
-    pExaScr->migration = ExaMigrationSmart;
+    pExaScr->migration = ExaMigrationAlways;
 
     exaDDXDriverInit(pScreen);
 
@@ -610,6 +672,13 @@ exaDriverInit (ScreenPtr		pScreen,
     miDisableCompositeWrapper(pScreen);
 #endif
 
+#ifdef MITSHM
+    /* Re-register with the MI funcs, which don't allow shared pixmaps.
+     * Shared pixmaps are almost always a performance loss for us, but this
+     * still allows for SHM PutImage.
+     */
+    ShmRegisterFuncs(pScreen, NULL);
+#endif
     /*
      * Hookup offscreen pixmaps
      */

@@ -33,6 +33,7 @@
 #include "indirect_size_get.h"
 #include "indirect_dispatch.h"
 #include "glxserver.h"
+#include "glxbyteorder.h"
 #include "indirect_util.h"
 #include "singlesize.h"
 #include "glapitable.h"

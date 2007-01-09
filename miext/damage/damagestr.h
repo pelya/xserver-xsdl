@@ -48,6 +48,9 @@ typedef struct _damage {
     
     DamageReportFunc	damageReport;
     DamageDestroyFunc	damageDestroy;
+
+    Bool		reportAfter;
+    RegionRec		pendingDamage;
 } DamageRec;
 
 typedef struct _damageScrPriv {

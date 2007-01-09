@@ -903,7 +903,7 @@ AllocColor (ColormapPtr pmap,
 	{
 	    ColormapPtr prootmap = (ColormapPtr)
 		SecurityLookupIDByType (clients[client], pmap->pScreen->defColormap,
-					 RT_COLORMAP, SecurityReadAccess);
+					 RT_COLORMAP, DixReadAccess);
 
 	    if (pmap->class == prootmap->class)
 		FindColorInRootCmap (prootmap, prootmap->red, entries, &rgb, 
@@ -920,7 +920,7 @@ AllocColor (ColormapPtr pmap,
 	{
 	    ColormapPtr prootmap = (ColormapPtr)
 		SecurityLookupIDByType (clients[client], pmap->pScreen->defColormap,
-					 RT_COLORMAP, SecurityReadAccess);
+					 RT_COLORMAP, DixReadAccess);
 
 	    if (pmap->class == prootmap->class)
 	    {

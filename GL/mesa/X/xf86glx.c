@@ -78,6 +78,7 @@ typedef struct __GLXMESAdrawable __GLXMESAdrawable;
 struct __GLXMESAscreen {
     __GLXscreen   base;
     int           index;
+    int		  num_vis;
     XMesaVisual  *xm_vis;
 };
 
@@ -280,7 +281,7 @@ __glXMesaScreenDestroy(__GLXscreen *screen)
     __GLXMESAscreen *mesaScreen = (__GLXMESAscreen *) screen;
     int i;
 
-    for (i = 0; i < screen->numVisuals; i++) {
+    for (i = 0; i < mesaScreen->num_vis; i++) {
 	if (mesaScreen->xm_vis[i])
 	    XMesaDestroyVisual(mesaScreen->xm_vis[i]);
     }
@@ -389,6 +390,7 @@ static void init_screen_visuals(__GLXMESAscreen *screen)
 
     xfree(used);
 
+    screen->num_vis = pScreen->numVisuals;
     screen->xm_vis = pXMesaVisual;
 }
 

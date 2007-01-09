@@ -159,6 +159,14 @@ default state is platform and configuration specific.
 disables DPMS (display power management services).  The default state
 is platform and configuration specific.
 .TP 8
+.BI \-extension extensionName
+disables named extension.   If an unknown extension name is specified,
+a list of accepted extension names is printed.
+.TP 8
+.BI \+extension extensionName
+enables named extension.   If an unknown extension name is specified,
+a list of accepted extension names is printed.
+.TP 8
 .B \-f \fIvolume\fP
 sets feep (bell) volume (allowable range: 0-100).
 .TP 8

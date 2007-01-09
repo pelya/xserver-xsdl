@@ -99,6 +99,64 @@ fi
 
 AC_TYPE_PID_T
 
+# Checks for headers/macros for byte swapping
+# Known variants:
+#	<byteswap.h> bswap_16, bswap_32, bswap_64  (glibc)
+#	<sys/endian.h> __swap16, __swap32, __swap64 (OpenBSD)
+#	<sys/endian.h> bswap16, bswap32, bswap64 (other BSD's)
+#	and a fallback to local macros if none of the above are found
+
+# if <byteswap.h> is found, assume it's the correct version
+AC_CHECK_HEADERS([byteswap.h])
+
+# if <sys/endian.h> is found, have to check which version
+AC_CHECK_HEADER([sys/endian.h], [HAVE_SYS_ENDIAN_H="yes"], [HAVE_SYS_ENDIAN_H="no"])
+
+if test "x$HAVE_SYS_ENDIAN_H" = "xyes" ; then
+	AC_MSG_CHECKING([for __swap16 variant of <sys/endian.h> byteswapping macros])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([
+#include <sys/endian.h>
+ ], [
+int a = 1, b;
+b = __swap16(a);
+ ])
+], [SYS_ENDIAN__SWAP='yes'], [SYS_ENDIAN__SWAP='no'])
+	AC_MSG_RESULT([$SYS_ENDIAN__SWAP])
+
+	AC_MSG_CHECKING([for bswap_16 variant of <sys/endian.h> byteswapping macros])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([
+#include <sys/endian.h>
+ ], [
+int a = 1, b;
+b = bswap_16(a);
+ ])
+], [SYS_ENDIAN_BSWAP='yes'], [SYS_ENDIAN_BSWAP='no'])
+	AC_MSG_RESULT([$SYS_ENDIAN_BSWAP])
+
+    	if test "$SYS_ENDIAN_BSWAP" = "yes" ; then
+		USE_SYS_ENDIAN_H=yes
+		BSWAP=bswap_
+	else	
+	    	if test "$SYS_ENDIAN__SWAP" = "yes" ; then
+			USE_SYS_ENDIAN_H=yes
+			BSWAP=__swap
+		else
+			USE_SYS_ENDIAN_H=no
+		fi
+	fi
+
+	if test "$USE_SYS_ENDIAN_H" = "yes" ; then
+	    AC_DEFINE([USE_SYS_ENDIAN_H], 1, 
+		[Define to use byteswap macros from <sys/endian.h>])
+	    AC_DEFINE_UNQUOTED([bswap_16], ${BSWAP}16, 
+			[Define to 16-bit byteswap macro])
+	    AC_DEFINE_UNQUOTED([bswap_32], ${BSWAP}32, 
+			[Define to 32-bit byteswap macro])
+	    AC_DEFINE_UNQUOTED([bswap_64], ${BSWAP}64, 
+			[Define to 64-bit byteswap macro])
+	fi
+fi
+
 dnl Checks for library functions.
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr \
@@ -295,6 +353,9 @@ case $host_os in
 	DRI=yes
 	KDRIVE_HW=yes
 	;;
+  *solaris*)
+	PKG_CHECK_EXISTS(libdrm, DRI=yes, DRI=no)
+	;;
 esac
 AM_CONDITIONAL(KDRIVE_HW, test "x$KDRIVE_HW" = xyes)
 
@@ -305,6 +366,8 @@ if test "x$use_x86_asm" = xyes && test "x$GCC" = xyes ; then
     #error Not supported
 #endif
 ], mmx_capable=yes, mmx_capable=no)
+else
+	mmx_capable=no
 fi
 AC_MSG_RESULT([$mmx_capable])
 AM_CONDITIONAL(MMX_CAPABLE, [test "x$mmx_capable" = xyes])
@@ -545,7 +608,7 @@ XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] damageproto xcmiscproto xextproto xproto xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4] [kbproto >= 1.0.3]"
+REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto xproto xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4] [kbproto >= 1.0.3]"
 REQUIRED_LIBS="xfont xau fontenc"
 
 if test "x$DBUS" = xauto; then
@@ -616,7 +679,7 @@ fi
 
 if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
 	PKG_CHECK_MODULES([XLIB], [x11])
-	PKG_CHECK_MODULES([GL], [glproto >= 1.4.7])
+	PKG_CHECK_MODULES([GL], [glproto >= 1.4.8])
 	AC_SUBST(XLIB_CFLAGS)
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
 	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
@@ -1007,7 +1070,7 @@ dnl ---------------------------------------------------------------------------
 dnl DMX DDX
 
 AC_MSG_CHECKING([whether to build Xdmx DDX])
-PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfont xi dmxproto xau $XDMCP_MODULES], [have_dmx=yes], [have_dmx=no])
+PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto xau $XDMCP_MODULES], [have_dmx=yes], [have_dmx=no])
 if test "x$DMX" = xauto; then
 	DMX="$have_dmx"
 fi

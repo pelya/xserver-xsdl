@@ -35,6 +35,7 @@
 #endif
 
 #include "glxserver.h"
+#include "glxbyteorder.h"
 #include "glxext.h"
 #include "singlesize.h"
 #include "unpack.h"
@@ -45,20 +46,6 @@
 #include "glthread.h"
 #include "dispatch.h"
 #include "glapioffsets.h"
-
-#if defined(__linux__) || defined (__GLIBC__) || defined (__GNU__)
-#include <byteswap.h>
-#elif defined(__OpenBSD__)
-#include <sys/endian.h>
-#define bswap_16 __swap16
-#define bswap_32 __swap32
-#define bswap_64 __swap64
-#else
-#include <sys/endian.h>
-#define bswap_16 bswap16
-#define bswap_32 bswap32
-#define bswap_64 bswap64
-#endif
 
 static int DoGetProgramString(struct __GLXclientStateRec *cl, GLbyte *pc,
     unsigned get_programiv_offset, unsigned get_program_string_offset,

@@ -243,6 +243,10 @@ Bool RRScreenInit(ScreenPtr pScreen)
     pScrPriv->maxWidth = pScrPriv->minWidth = pScreen->width;
     pScrPriv->maxHeight = pScrPriv->minHeight = pScreen->height;
     
+    pScrPriv->width = pScreen->width;
+    pScrPriv->height = pScreen->height;
+    pScrPriv->mmWidth = pScreen->mmWidth;
+    pScrPriv->mmHeight = pScreen->mmHeight;
 #if RANDR_12_INTERFACE
     pScrPriv->rrScreenSetSize = NULL;
     pScrPriv->rrCrtcSet = NULL;
@@ -415,7 +419,11 @@ RRTellChanged (ScreenPtr pScreen)
     if (pScrPriv->changed)
     {
 	UpdateCurrentTime ();
-	pScrPriv->lastConfigTime = currentTime;
+	if (pScrPriv->configChanged)
+	{
+	    pScrPriv->lastConfigTime = currentTime;
+	    pScrPriv->configChanged = FALSE;
+	}
 	pScrPriv->changed = FALSE;
 	WalkTree (pScreen, TellChanged, (pointer) pScreen);
 	for (i = 0; i < pScrPriv->numOutputs; i++)
