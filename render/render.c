@@ -47,6 +47,12 @@
 #include <X11/Xfuncproto.h>
 #include "cursorstr.h"
 
+#if HAVE_STDINT_H
+#include <stdint.h>
+#elif !defined(UINT32_MAX)
+#define UINT32_MAX 0xffffffffU
+#endif
+
 static int ProcRenderQueryVersion (ClientPtr pClient);
 static int ProcRenderQueryPictFormats (ClientPtr pClient);
 static int ProcRenderQueryPictIndexValues (ClientPtr pClient);
@@ -1105,11 +1111,14 @@ ProcRenderAddGlyphs (ClientPtr client)
     }
 
     nglyphs = stuff->nglyphs;
+    if (nglyphs > UINT32_MAX / sizeof(GlyphNewRec))
+	    return BadAlloc;
+
     if (nglyphs <= NLOCALGLYPH)
 	glyphsBase = glyphsLocal;
     else
     {
-	glyphsBase = (GlyphNewPtr) ALLOCATE_LOCAL (nglyphs * sizeof (GlyphNewRec));
+	glyphsBase = (GlyphNewPtr) Xalloc (nglyphs * sizeof (GlyphNewRec));
 	if (!glyphsBase)
 	    return BadAlloc;
     }
@@ -1166,7 +1175,7 @@ ProcRenderAddGlyphs (ClientPtr client)
     }
 
     if (glyphsBase != glyphsLocal)
-	DEALLOCATE_LOCAL (glyphsBase);
+	Xfree (glyphsBase);
     return client->noClientException;
 bail:
     while (glyphs != glyphsBase)
@@ -1175,7 +1184,7 @@ bail:
 	xfree (glyphs->glyph);
     }
     if (glyphsBase != glyphsLocal)
-	DEALLOCATE_LOCAL (glyphsBase);
+	Xfree (glyphsBase);
     return err;
 }
 
