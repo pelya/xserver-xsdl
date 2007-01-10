@@ -6,9 +6,14 @@ PLATFORM_DEFINES = -DOS_PROBE_PCI_CHIPSET=lnxProbePciChipset
 PLATFORM_INCLUDES = -I$(srcdir)/../shared
 endif
 if LINUX_ALPHA
-PLATFORM_PCI_SUPPORT = lnx_ev56.c \
+noinst_LTLIBRARIES += liblinuxev56.la
+PLATFORM_PCI_SUPPORT = \
        $(srcdir)/lnx_axp.c \
        $(srcdir)/../shared/xf86Axp.c
+
+liblinuxev56_la_CFLAGS = -mcpu=ev56
+
+liblinuxev56_la_SOURCES = lnx_ev56.c
 endif
 
 if LNXACPI
@@ -48,3 +53,7 @@ EXTRA_DIST = \
 	$(LNX_EXTRA_SRCS) \
 	lnx.h \
 	$(srcdir)/../shared/xf86Axp.h
+
+if LINUX_ALPHA
+liblinux_la_LIBADD = liblinuxev56.la
+endif
