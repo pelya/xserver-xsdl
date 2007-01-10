@@ -419,16 +419,8 @@
 /* Endian order */
 #undef X_BYTE_ORDER
 
-/* BSD-compliant source */
-#undef _BSD_SOURCE
-
-/* POSIX-compliant source */
-#undef _POSIX_SOURCE
-
-#ifndef _XOPEN_SOURCE
-/* X/Open-compliant source */
-#undef _XOPEN_SOURCE
-#endif
+/* Enable GNU and other extensions to the C environment for GLIBC */
+#undef _GNU_SOURCE
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const

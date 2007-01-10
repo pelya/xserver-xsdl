@@ -1757,20 +1757,13 @@ AC_SUBST(XKB_COMPILED_DIR)
 dnl and the rest of these are generic, so they're in config.h
 AC_DEFINE(XResExtension, 1, [Build XRes extension])
 
-dnl CYGWIN does not define fd_set if _POSIX_SOURCE is defined
-dnl _*_SOURCE on Solaris restricts to the standards, and removes non-standard
-dnl functions which X uses
-case $host_os in
-	cygwin*) ;;
-	solaris*) ;;
-        darwin*) ;;
-	freebsd*|netbsd*|openbsd*) ;;
-	*) 
-		AC_DEFINE(_POSIX_SOURCE, 1, [POSIX-compliant source])
-		AC_DEFINE(_XOPEN_SOURCE, 500, [X/Open-compliant source])
-		AC_DEFINE(_BSD_SOURCE, 1, [BSD-compliant source])
-		;;
-esac
+AC_TRY_COMPILE([
+#include <features.h>
+#ifndef __GLIBC__
+#error not glibc
+#endif
+], [], [AC_DEFINE(_GNU_SOURCE, 1,
+	[ Enable GNU and other extensions to the C environment for glibc])])
 
 AC_DEFINE_DIR(PROJECTROOT, prefix, [Overall prefix])
 
