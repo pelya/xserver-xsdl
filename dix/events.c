@@ -3322,12 +3322,16 @@ EnterLeaveEvent(
     register WindowPtr pWin,
     Window child)
 {
-    xEvent		event;
+    xEvent              event;
     register DeviceIntPtr keybd = inputInfo.keyboard;
     WindowPtr		focus;
     register DeviceIntPtr mouse = pDev;
     register GrabPtr	grab = mouse->grab;
     Mask		mask;
+
+    deviceEnterNotify   *devEnterLeave;
+    int                 mskidx;
+    OtherInputMasks     *inputMasks;
 
     if ((pWin == mouse->valuator->motionHintWindow) &&
 	(detail != NotifyInferior))
@@ -3342,33 +3346,35 @@ EnterLeaveEvent(
     {
 	mask = pWin->eventMask | wOtherEventMasks(pWin);
     }
+
+    event.u.u.type = type;
+    event.u.u.detail = detail;
+    event.u.enterLeave.time = currentTime.milliseconds;
+    event.u.enterLeave.rootX = pDev->pSprite->hot.x;
+    event.u.enterLeave.rootY = pDev->pSprite->hot.y;
+    /* Counts on the same initial structure of crossing & button events! */
+    FixUpEventFromWindow(mouse, &event, pWin, None, FALSE);
+    /* Enter/Leave events always set child */
+    event.u.enterLeave.child = child;
+    event.u.enterLeave.flags = event.u.keyButtonPointer.sameScreen ?
+        ELFlagSameScreen : 0;
+#ifdef XKB
+    if (!noXkbExtension) {
+        event.u.enterLeave.state = mouse->button->state & 0x1f00;
+        event.u.enterLeave.state |= 
+            XkbGrabStateFromRec(&keybd->key->xkbInfo->state);
+    } else
+#endif
+        event.u.enterLeave.state = keybd->key->state | mouse->button->state;
+    event.u.enterLeave.mode = mode;
+    focus = keybd->focus->win;
+    if ((focus != NoneWin) &&
+            ((pWin == focus) || (focus == PointerRootWin) ||
+             IsParent(focus, pWin)))
+        event.u.enterLeave.flags |= ELFlagFocus;
+
     if (mask & filters[type])
     {
-	event.u.u.type = type;
-	event.u.u.detail = detail;
-	event.u.enterLeave.time = currentTime.milliseconds;
-	event.u.enterLeave.rootX = pDev->pSprite->hot.x;
-	event.u.enterLeave.rootY = pDev->pSprite->hot.y;
-	/* Counts on the same initial structure of crossing & button events! */
-	FixUpEventFromWindow(mouse, &event, pWin, None, FALSE);
-	/* Enter/Leave events always set child */
-	event.u.enterLeave.child = child;
-	event.u.enterLeave.flags = event.u.keyButtonPointer.sameScreen ?
-					    ELFlagSameScreen : 0;
-#ifdef XKB
-	if (!noXkbExtension) {
-	    event.u.enterLeave.state = mouse->button->state & 0x1f00;
-	    event.u.enterLeave.state |= 
-			XkbGrabStateFromRec(&keybd->key->xkbInfo->state);
-	} else
-#endif
-	event.u.enterLeave.state = keybd->key->state | mouse->button->state;
-	event.u.enterLeave.mode = mode;
-	focus = keybd->focus->win;
-	if ((focus != NoneWin) &&
-	    ((pWin == focus) || (focus == PointerRootWin) ||
-	     IsParent(focus, pWin)))
-	    event.u.enterLeave.flags |= ELFlagFocus;
 	if (grab)
 	    (void)TryClientEvents(rClient(grab), &event, 1, mask,
 				  filters[type], grab);
@@ -3376,6 +3382,27 @@ EnterLeaveEvent(
 	    (void)DeliverEventsToWindow(pDev, pWin, &event, 1, filters[type],
 					NullGrab, 0);
     }
+
+    devEnterLeave = (deviceEnterNotify*)&event;
+    devEnterLeave->type = (type == EnterNotify) ? DeviceEnterNotify :
+        DeviceLeaveNotify;
+    devEnterLeave->type = (type == EnterNotify) ? DeviceEnterNotify :
+        DeviceLeaveNotify;
+    devEnterLeave->deviceid = pDev->id;
+    mskidx = pDev->id;
+    inputMasks = wOtherInputMasks(pWin);
+    if (inputMasks && 
+       (filters[devEnterLeave->type] & inputMasks->deliverableEvents[mskidx]))
+    {
+        if (grab)
+            (void)TryClientEvents(rClient(grab), (xEvent*)devEnterLeave, 1,
+                                  mask, filters[devEnterLeave->type], grab);
+	else
+	    (void)DeliverEventsToWindow(pDev, pWin, (xEvent*)devEnterLeave, 
+                                        1, filters[devEnterLeave->type], 
+                                        NullGrab, pDev->id);
+    }
+
     if ((type == EnterNotify) && (mask & KeymapStateMask))
     {
 	xKeymapEvent ke;

@@ -84,7 +84,7 @@ ProcXQueryDevicePointer(register ClientPtr client)
     REQUEST_SIZE_MATCH(xQueryDevicePointerReq);
 
     pDev = LookupDeviceIntRec(stuff->deviceid);
-    if (pDev == NULL) {
+    if (pDev == NULL || pDev->valuator == NULL) {
         SendErrorToClient(client, IReqCode, X_QueryDevicePointer,
                 stuff->deviceid, BadDevice); 
         return Success;

@@ -170,6 +170,8 @@ Mask DeviceOwnerGrabButtonMask;
 Mask DeviceButtonGrabMask;
 Mask DeviceButtonMotionMask;
 Mask DevicePresenceNotifyMask;
+Mask DeviceEnterWindowMask;
+Mask DeviceLeaveWindowMask;
 
 int DeviceValuator;
 int DeviceKeyPress;
@@ -187,6 +189,8 @@ int DeviceButtonStateNotify;
 int DeviceMappingNotify;
 int ChangeDeviceNotify;
 int DevicePresenceNotify;
+int DeviceEnterNotify;
+int DeviceLeaveNotify;
 
 int RT_INPUTCLIENT;
 
@@ -251,6 +255,8 @@ XInputExtensionInit(void)
 	EventSwapVector[DeviceButtonStateNotify] = SEventIDispatch;
 	EventSwapVector[DeviceMappingNotify] = SEventIDispatch;
 	EventSwapVector[ChangeDeviceNotify] = SEventIDispatch;
+	EventSwapVector[DeviceEnterNotify] = SEventIDispatch;
+	EventSwapVector[DeviceLeaveNotify] = SEventIDispatch;
     } else {
 	FatalError("IExtensionInit: AddExtensions failed\n");
     }
@@ -436,6 +442,8 @@ SProcIDispatch(register ClientPtr client)
 	return (SProcXQueryDevicePointer(client));
     else if (stuff->data == X_WarpDevicePointer)
 	return (SProcXWarpDevicePointer(client));
+    else if (stuff->data == X_ChangeDeviceCursor)
+        return (SProcXChangeDeviceCursor(client));
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -566,6 +574,10 @@ SEventIDispatch(xEvent * from, xEvent * to)
 	DO_SWAP(SDeviceMappingNotifyEvent, deviceMappingNotify);
     else if (type == ChangeDeviceNotify)
 	DO_SWAP(SChangeDeviceNotifyEvent, changeDeviceNotify);
+    else if (type == DeviceEnterNotify)
+        DO_SWAP(SDeviceEnterNotifyEvent, deviceEnterNotify);
+    else if (type == DeviceLeaveNotify)
+        DO_SWAP(SDeviceLeaveNotifyEvent, deviceLeaveNotify);
     else {
 	FatalError("XInputExtension: Impossible event!\n");
     }
@@ -671,6 +683,31 @@ SDevicePresenceNotifyEvent (devicePresenceNotify *from, devicePresenceNotify *to
     swaps(&to->control, n);
 }
 
+void SDeviceEnterNotifyEvent (deviceEnterNotify *from, deviceEnterNotify *to)
+{
+    register char n;
+
+    *to = *from;
+    swaps(&to->sequenceNumber,n);
+    swapl(&to->time, n);
+}
+
+void SDeviceLeaveNotifyEvent (deviceLeaveNotify *from, deviceLeaveNotify *to)
+{
+    register char n;
+
+    *to = *from;
+    swaps(&to->sequenceNumber,n);
+    swapl(&to->time, n);
+    swapl(&to->root, n);
+    swapl(&to->event, n);
+    swapl(&to->child, n);
+    swaps(&to->rootX, n);
+    swaps(&to->rootY, n);
+    swaps(&to->eventX, n);
+    swaps(&to->eventY, n);
+}
+
 /************************************************************************
  *
  * This function sets up extension event types and masks.
@@ -698,6 +735,8 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     DeviceKeyStateNotify = ChangeDeviceNotify + 1;
     DeviceButtonStateNotify = DeviceKeyStateNotify + 1;
     DevicePresenceNotify = DeviceButtonStateNotify + 1;
+    DeviceEnterNotify = DevicePresenceNotify + 1;
+    DeviceLeaveNotify = DeviceEnterNotify + 1;
 
     event_base[KeyClass] = DeviceKeyPress;
     event_base[ButtonClass] = DeviceButtonPress;
@@ -773,6 +812,15 @@ FixExtensionEvents(ExtensionEntry * extEntry)
 
     DevicePresenceNotifyMask = GetNextExtEventMask();
     SetEventInfo(DevicePresenceNotifyMask, _devicePresence);
+
+    DeviceEnterWindowMask = GetNextExtEventMask();
+    SetMaskForExtEvent(DeviceEnterWindowMask, DeviceEnterNotify);
+    AllowPropagateSuppress(DeviceEnterWindowMask);
+
+    DeviceLeaveWindowMask = GetNextExtEventMask();
+    SetMaskForExtEvent(DeviceLeaveWindowMask, DeviceLeaveNotify);
+    AllowPropagateSuppress(DeviceLeaveWindowMask);
+
     SetEventInfo(0, _noExtensionEvent);
 }
 
@@ -814,6 +862,8 @@ RestoreExtensionEvents(void)
     DeviceKeyStateNotify = 13;
     DeviceButtonStateNotify = 13;
     DevicePresenceNotify = 14;
+    DeviceEnterNotify = 15;
+    DeviceLeaveNotify = 16;
 
     BadDevice = 0;
     BadEvent = 1;
@@ -852,6 +902,8 @@ IResetProc(ExtensionEntry * unused)
     EventSwapVector[DeviceMappingNotify] = NotImplemented;
     EventSwapVector[ChangeDeviceNotify] = NotImplemented;
     EventSwapVector[DevicePresenceNotify] = NotImplemented;
+    EventSwapVector[DeviceEnterNotify] = NotImplemented;
+    EventSwapVector[DeviceLeaveNotify] = NotImplemented;
     RestoreExtensionEvents();
 }
 

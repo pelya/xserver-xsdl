@@ -110,6 +110,18 @@ SDevicePresenceNotifyEvent (
        );
 
 void
+SDeviceEnterNotifyEvent (
+        deviceEnterNotify * /* from */,
+        deviceEnterNotify * /* to */
+        );
+
+void
+SDeviceLeaveNotifyEvent (
+        deviceLeaveNotify * /* from */,
+        deviceLeaveNotify * /* to */
+        );
+
+void
 FixExtensionEvents (
 	ExtensionEntry 	*      /* extEntry */
 	);
