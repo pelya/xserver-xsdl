@@ -280,14 +280,14 @@ ProcDamageSubtract (ClientPtr client)
 }
 
 static int
-ProcDamagePost (ClientPtr client)
+ProcDamageAdd (ClientPtr client)
 {
-    REQUEST(xDamagePostReq);
+    REQUEST(xDamageAddReq);
     DrawablePtr	    pDrawable;
     RegionPtr	    pRegion;
     int		    rc;
 
-    REQUEST_SIZE_MATCH(xDamagePostReq);
+    REQUEST_SIZE_MATCH(xDamageAddReq);
     VERIFY_REGION(pRegion, stuff->region, client, DixWriteAccess);
     rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
 			   DixReadAccess);
@@ -307,7 +307,7 @@ ProcDamagePost (ClientPtr client)
 /* Major version controls available requests */
 static const int version_requests[] = {
     X_DamageQueryVersion,	/* before client sends QueryVersion */
-    X_DamagePost,		/* Version 1 */
+    X_DamageAdd,		/* Version 1 */
 };
 
 #define NUM_VERSION_REQUESTS	(sizeof (version_requests) / sizeof (version_requests[0]))
@@ -319,7 +319,7 @@ int	(*ProcDamageVector[XDamageNumberRequests])(ClientPtr) = {
     ProcDamageDestroy,
     ProcDamageSubtract,
 /*************** Version 1.1 ****************/
-    ProcDamagePost,
+    ProcDamageAdd,
 };
 
 
@@ -389,10 +389,10 @@ SProcDamageSubtract (ClientPtr client)
 }
 
 static int
-SProcDamagePost (ClientPtr client)
+SProcDamageAdd (ClientPtr client)
 {
     register int n;
-    REQUEST(xDamagePostReq);
+    REQUEST(xDamageAddReq);
 
     swaps (&stuff->length, n);
     REQUEST_SIZE_MATCH(xDamageSubtractReq);
@@ -408,7 +408,7 @@ int	(*SProcDamageVector[XDamageNumberRequests])(ClientPtr) = {
     SProcDamageDestroy,
     SProcDamageSubtract,
 /*************** Version 1.1 ****************/
-    SProcDamagePost,
+    SProcDamageAdd,
 };
 
 static int
