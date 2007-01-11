@@ -235,10 +235,7 @@ mieqProcessInputEvents()
              * Use dev to get the correct processing function but supply
              *  e->pDev to pass the correct device 
              */
-            if (e->pDev->isMPDev)
-                dev->public.processInputProc(e->event, e->pDev, e->nevents);
-            else
-                dev->public.processInputProc(e->event, dev, e->nevents);
+            dev->public.processInputProc(e->event, e->pDev, e->nevents);
         }
 
         /* Update the sprite now. Next event may be from different device. */

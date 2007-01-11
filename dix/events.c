@@ -2172,7 +2172,7 @@ void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
                 REGION_TRANSLATE(pSprite->screen, &pSprite->Reg2,    xoff, yoff);
 
             /* FIXME: if we call ConfineCursorToWindow, must we do anything else? */
-            if ((grab = inputInfo.pointer->grab) && grab->confineTo) {
+            if ((grab = pDev->grab) && grab->confineTo) {
                 if (grab->confineTo->drawable.pScreen 
                         != pSprite->hotPhys.pScreen)
                     pSprite->hotPhys.x = pSprite->hotPhys.y = 0;
@@ -3902,6 +3902,7 @@ ProcGrabPointer(ClientPtr client)
 	    oldCursor = grab->cursor;
 	}
 	tempGrab.cursor = cursor;
+        /* FIXME: refcnt?? */
 	tempGrab.resource = client->clientAsMask;
 	tempGrab.ownerEvents = stuff->ownerEvents;
 	tempGrab.eventMask = stuff->eventMask;
@@ -3958,7 +3959,7 @@ ProcChangeActivePointerGrab(ClientPtr client)
     grab->cursor = newCursor;
     if (newCursor)
 	newCursor->refcnt++;
-    PostNewCursor(inputInfo.pointer);
+    PostNewCursor(device);
     if (oldCursor)
 	FreeCursor(oldCursor, (Cursor)0);
     grab->eventMask = stuff->eventMask;
@@ -4213,6 +4214,7 @@ InitSprite(DeviceIntPtr pDev, Bool hasCursor)
         SpritePtr pSprite = (SpritePtr)xalloc(sizeof(SpriteRec));
         if (!pSprite)
             FatalError("failed to allocate sprite struct");
+        memset(pSprite, 0, sizeof(SpriteRec));
         pSprite->hot.pScreen = pSprite->hotPhys.pScreen = (ScreenPtr)NULL;
         pSprite->win = NullWindow;
         pSprite->current = NullCursor;
