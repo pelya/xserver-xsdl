@@ -298,7 +298,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     /* xf86Bus.c */
     SYMFUNC(xf86CheckPciSlot)
     SYMFUNC(xf86ClaimPciSlot)
-    SYMFUNC(xf86GetPciEntity)
     SYMFUNC(xf86ClaimIsaSlot)
     SYMFUNC(xf86ClaimFbSlot)
     SYMFUNC(xf86ClaimNoSlot)

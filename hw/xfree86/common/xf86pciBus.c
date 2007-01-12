@@ -1002,24 +1002,6 @@ xf86GetPciInfoForEntity(int entityIndex)
       : NULL;
 }
 
-_X_EXPORT int
-xf86GetPciEntity(int bus, int dev, int func)
-{
-    int i;
-    
-    for (i = 0; i < xf86NumEntities; i++) {
-	const EntityPtr p = xf86Entities[i];
-
-	if ((p->busType == BUS_PCI) &&
-	    (p->pciBusId.bus == bus) &&
-	    (p->pciBusId.device == dev) &&
-	    (p->pciBusId.func == func)) {
-	    return i;
-	}
-    }
-    return -1;
-}
-
 /*
  * xf86CheckPciMemBase() checks that the memory base value matches one of the
  * PCI base address register values for the given PCI device.
@@ -1040,10 +1022,21 @@ xf86CheckPciMemBase( struct pci_device * pPci, memType base )
  */
 
 _X_EXPORT Bool
-xf86CheckPciSlot( const struct pci_device * d )
+xf86CheckPciSlot(const struct pci_device *d)
 {
-    return (xf86GetPciEntity(PCI_MAKE_BUS(d->domain, d->bus),
-			     d->dev, d->func) == -1);
+    int i;
+
+    for (i = 0; i < xf86NumEntities; i++) {
+	const EntityPtr p = xf86Entities[i];
+
+	if ((p->busType == BUS_PCI) &&
+	    (p->pciBusId.bus == PCI_MAKE_BUS(d->domain, d->bus)) &&
+	    (p->pciBusId.device == d->dev) &&
+	    (p->pciBusId.func == d->func)) {
+	    return FALSE;
+	}
+    }
+    return TRUE;
 }
 
 

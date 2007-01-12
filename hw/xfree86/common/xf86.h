@@ -134,7 +134,6 @@ GDevPtr xf86GetDevFromEntity(int entityIndex, int instance);
 void xf86RemoveEntityFromScreen(ScrnInfoPtr pScrn, int entityIndex);
 EntityInfoPtr xf86GetEntityInfo(int entityIndex);
 struct pci_device * xf86GetPciInfoForEntity(int entityIndex);
-int xf86GetPciEntity(int bus, int dev, int func);
 Bool xf86SetEntityFuncs(int entityIndex, EntityProc init,
 			EntityProc enter, EntityProc leave, pointer);
 void xf86DeallocateResourcesForEntity(int entityIndex, unsigned long type);
