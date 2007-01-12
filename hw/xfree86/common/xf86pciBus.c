@@ -97,21 +97,6 @@ static struct pci_device ** xf86PciVideoInfo = NULL;	/* PCI probe for video hw *
       || IS_VGA(c) )
 
 
-#define B2M(tag,base) pciBusAddrToHostAddr(tag,PCI_MEM,base)
-#define B2I(tag,base) pciBusAddrToHostAddr(tag,PCI_IO,base)
-
-#define PCI_M_RANGE(range,tag,begin,end,type) \
-	{ \
-	    RANGE(range, B2M(tag, begin), B2M(tag, end), \
-		  RANGE_TYPE(type, xf86GetPciDomain(tag))); \
-	}
-#define PCI_I_RANGE(range,tag,begin,end,type) \
-	{ \
-	    RANGE(range, B2I(tag, begin), B2I(tag, end), \
-		  RANGE_TYPE(type, xf86GetPciDomain(tag))); \
-	}
-
-
 _X_EXPORT void
 xf86FormatPciBusNumber(int busnum, char *buffer)
 {
