@@ -538,7 +538,7 @@ xf86MapLegacyIO(struct pci_device *dev)
     const PCITAG tag = PCI_MAKE_TAG(PCI_MAKE_BUS(dev->domain, dev->bus),
 				    dev->dev, dev->func);
     const int domain = xf86GetPciDomain(tag);
-    const struct pci_device *bridge = xf86GetPciHostConfigFromTag(Tag);
+    const struct pci_device *bridge = xf86GetPciHostConfigFromTag(tag);
     int fd;
 
     if ((domain <= 0) || (domain >= MAX_DOMAINS))
@@ -550,7 +550,7 @@ xf86MapLegacyIO(struct pci_device *dev)
     /* Permanently map all of I/O space */
     if ((fd = linuxOpenLegacy(bridge, "legacy_io")) < 0) {
 	    DomainMmappedIO[domain] = linuxMapPci(-1, VIDMEM_MMIO, bridge,
-						  0, linuxGetIOSize(tag),
+						  0, linuxGetIOSize(bridge),
 						  PCIIOC_MMAP_IS_IO);
 	    /* ia64 can't mmap legacy IO port space */
 	    if (!DomainMmappedIO[domain])
