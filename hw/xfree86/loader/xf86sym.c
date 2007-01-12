@@ -703,7 +703,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
 
     SYMFUNC(pciTag)
     SYMFUNC(pciBusAddrToHostAddr)
-    SYMFUNC(pciHostAddrToBusAddr)
     SYMFUNC(xf86scanpci)
 
     /* Loader functions */

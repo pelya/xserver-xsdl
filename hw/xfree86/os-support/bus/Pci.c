@@ -19,7 +19,6 @@
  *	pciTag()               - Return tag for a given PCI bus, device, &
  *                               function
  *	pciBusAddrToHostAddr() - Convert a PCI address to a host address
- *	pciHostAddrToBusAddr() - Convert a host address to a PCI address
  *	xf86scanpci()          - Return info about all PCI devices
  *	xf86GetPciDomain()     - Return domain number from a PCITAG
  *	xf86MapDomainMemory()  - Like xf86MapPciMem() but can handle
@@ -258,20 +257,6 @@ pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
   if ((bus >= 0) && (bus < pciNumBuses) && pciBusInfo[bus] &&
 	pciBusInfo[bus]->funcs->pciAddrBusToHost)
 	  return (*pciBusInfo[bus]->funcs->pciAddrBusToHost)(tag, type, addr);
-  else
-	  return(addr);
-}
-
-_X_EXPORT ADDRESS
-pciHostAddrToBusAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
-{
-  int bus = PCI_BUS_FROM_TAG(tag);
-
-  pciInit();
-
-  if ((bus >= 0) && (bus < pciNumBuses) && pciBusInfo[bus] &&
-	pciBusInfo[bus]->funcs->pciAddrHostToBus)
-	  return (*pciBusInfo[bus]->funcs->pciAddrHostToBus)(tag, type, addr);
   else
 	  return(addr);
 }
