@@ -593,18 +593,13 @@ xf86MapLegacyIO(struct pci_device *dev)
  * The number of bytes read on success or -1 on failure.
  */
 _X_EXPORT int
-xf86ReadLegacyVideoBIOS(PCITAG Tag, unsigned char *Buf)
+xf86ReadLegacyVideoBIOS(struct pci_device *dev, unsigned char *Buf)
 {
     const ADDRESS Base = V_BIOS;
     const int Len = V_BIOS_SIZE * 2;
     const int pagemask = getpagesize() - 1;
     const ADDRESS offset = Base & ~pagemask;
     const unsigned long size = ((Base + Len + pagemask) & ~pagemask) - offset;
-    const struct pci_device * const dev = 
-      pci_device_find_by_slot(PCI_DOM_FROM_TAG(Tag),
-			      PCI_BUS_NO_DOM(PCI_BUS_FROM_TAG(Tag)),
-			      PCI_DEV_FROM_TAG(Tag),
-			      PCI_FUNC_FROM_TAG(Tag));
     unsigned char *ptr, *src;
     int len;
 
@@ -615,7 +610,7 @@ xf86ReadLegacyVideoBIOS(PCITAG Tag, unsigned char *Buf)
 	return dev->rom_size;
     }
 
-    ptr = xf86MapDomainMemory(-1, VIDMEM_READONLY, Tag, offset, size);
+    ptr = xf86MapDomainMemory(-1, VIDMEM_READONLY, dev, offset, size);
 
     if (!ptr)
 	return -1;
