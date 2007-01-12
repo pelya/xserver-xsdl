@@ -252,7 +252,6 @@ typedef enum {
 /* Public PCI access functions */
 ADDRESS	      pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr);
 PCITAG	      pciTag(int busnum, int devnum, int funcnum);
-int	      pciGetBaseSize(PCITAG tag, int indx, Bool destructive, Bool *min);
 Bool xf86scanpci(void);
 
 extern int pciNumBuses;
