@@ -1025,9 +1025,17 @@ xf86CheckPciSlot(const struct pci_device *d)
 }
 
 
-static void
-pciTagConvertRange2Host(PCITAG tag, resRange *pRange)
+void
+pciConvertRange2Host(int entityIndex, resRange *pRange)
 {
+    struct pci_device *const pvp = xf86GetPciInfoForEntity(entityIndex);
+    const PCITAG tag = PCI_MAKE_TAG(PCI_MAKE_BUS(pvp->domain, pvp->bus),
+				    pvp->dev, pvp->func);
+
+    if (pvp == NULL) {
+	return;
+    }
+
     if (!(pRange->type & ResBus))
 	return;
 
@@ -1065,16 +1073,4 @@ pciTagConvertRange2Host(PCITAG tag, resRange *pRange)
     /* Set domain number */
     pRange->type &= ~(ResDomain | ResBus);
     pRange->type |= xf86GetPciDomain(tag) << 24;
-}
-
-void
-pciConvertRange2Host(int entityIndex, resRange *pRange)
-{
-    const struct pci_device * const pvp = xf86GetPciInfoForEntity(entityIndex);
-
-    if ( pvp != NULL ) {
-	const PCITAG tag = PCI_MAKE_TAG( PCI_MAKE_BUS( pvp->domain, pvp->bus ),
-					 pvp->dev, pvp->func );
-	pciTagConvertRange2Host(tag, pRange);
-    }
 }
