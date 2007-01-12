@@ -513,11 +513,9 @@ linuxOpenLegacy(struct pci_device *dev, char *name)
  * the legacy ISA memory space (memory in a domain between 0 and 1MB).
  */
 _X_EXPORT pointer
-xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
+xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,
 		    ADDRESS Base, unsigned long Size)
 {
-    int domain = xf86GetPciDomain(Tag);
-    const struct pci_device *dev = xf86GetPciHostConfigFromTag(Tag);
     int fd = -1;
     pointer addr;
 

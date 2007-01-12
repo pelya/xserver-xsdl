@@ -40,7 +40,7 @@ typedef struct {
     int bp;
     int flags;
     int stackseg;
-    PCITAG Tag;
+    struct pci_device *dev;
     IOADDRESS ioBase;
 } xf86Int10InfoRec, *xf86Int10InfoPtr;
 

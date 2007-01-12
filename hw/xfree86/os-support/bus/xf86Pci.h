@@ -260,9 +260,9 @@ extern int pciNumBuses;
 
 /* Domain access functions.  Some of these probably shouldn't be public */
 int	      xf86GetPciDomain(PCITAG tag);
-pointer	      xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
-				  ADDRESS Base, unsigned long Size);
+pointer xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,
+    ADDRESS Base, unsigned long Size);
 IOADDRESS xf86MapLegacyIO(struct pci_device *dev);
-int xf86ReadLegacyVideoBIOS(PCITAG Tag, unsigned char *Buf);
+int xf86ReadLegacyVideoBIOS(struct pci_device *dev, unsigned char *Buf);
 
 #endif /* _XF86PCI_H */

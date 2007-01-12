@@ -1638,7 +1638,6 @@ vgaHWGetHWRec(ScrnInfoPtr scrp)
 {
     vgaRegPtr regp;
     vgaHWPtr hwp;
-    struct pci_device * pvp;
     int i;
     
     /*
@@ -1724,9 +1723,7 @@ vgaHWGetHWRec(ScrnInfoPtr scrp)
     vgaHWSetStdFuncs(hwp);
 
     hwp->PIOOffset = scrp->domainIOBase;
-    if ((pvp = xf86GetPciInfoForEntity(scrp->entityList[0])))
-	hwp->Tag = pciTag( PCI_MAKE_BUS( pvp->domain, pvp->bus ),
-			   pvp->dev, pvp->func );
+    hwp->dev = xf86GetPciInfoForEntity(scrp->entityList[0]);
 
     return TRUE;
 }
@@ -1778,7 +1775,7 @@ vgaHWMapMem(ScrnInfoPtr scrp)
 #ifdef DEBUG
     ErrorF("Mapping VGAMem\n");
 #endif
-    hwp->Base = xf86MapDomainMemory(scr_index, VIDMEM_MMIO_32BIT, hwp->Tag,
+    hwp->Base = xf86MapDomainMemory(scr_index, VIDMEM_MMIO_32BIT, hwp->dev,
 				    hwp->MapPhys, hwp->MapSize);
     return hwp->Base != NULL;
 }

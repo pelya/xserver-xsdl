@@ -819,12 +819,11 @@ int1A_handler(xf86Int10InfoPtr pInt)
 static struct pci_device *
 findPci(xf86Int10InfoPtr pInt, unsigned short bx)
 {
-    const unsigned domain = PCI_DOM_FROM_TAG( pInt->Tag );
     const unsigned bus =  (bx >> 8) & 0x00FF;
     const unsigned dev =  (bx >> 3) & 0x001F;
     const unsigned func = (bx     ) & 0x0007;
 
-    return pci_device_find_by_slot(domain, bus, dev, func);
+    return pci_device_find_by_slot(pInt->dev->domain, bus, dev, func);
 }
 
 static CARD32

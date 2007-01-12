@@ -319,7 +319,7 @@ xf86GetPciDomain(PCITAG Tag)
 }
 
 _X_EXPORT pointer
-xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
+xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,
 		    ADDRESS Base, unsigned long Size)
 {
     return xf86MapVidMem(ScreenNum, Flags, Base, Size);
@@ -333,7 +333,7 @@ xf86MapLegacyIO(struct pci_device *dev)
 }
 
 _X_EXPORT int
-xf86ReadLegacyVideoBIOS(PCITAG Tag, unsigned char *Buf)
+xf86ReadLegacyVideoBIOS(struct pci_device *dev, unsigned char *Buf)
 {
     const unsigned Len = (2 * 0x10000);
     ADDRESS Base = 0xC0000;

@@ -69,7 +69,6 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     void* base = 0;
     void* vbiosMem = 0;
     void* options = NULL;
-    struct pci_device * pvp;
     int screen;
     legacyVGARec vga;
     xf86int10BiosLocation bios;
@@ -98,14 +97,10 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     pInt->scrnIndex = screen;
     base = INTPriv(pInt)->base = xnfalloc(SYS_BIOS);
 
-    /* FIXME: Shouldn't this be a failure case?  Leaving Tag as 0 seems like
+    /* FIXME: Shouldn't this be a failure case?  Leaving dev as NULL seems like
      * FIXME: an error
      */
-    pvp = xf86GetPciInfoForEntity(entityIndex);
-    if (pvp != NULL) {
-	pInt->Tag = PCI_MAKE_TAG(PCI_MAKE_BUS(pvp->domain, pvp->bus),
-				 pvp->dev, pvp->func);
-    }
+    pInt->dev = xf86GetPciInfoForEntity(entityIndex);
 
     /*
      * we need to map video RAM MMIO as some chipsets map mmio
@@ -221,7 +216,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
      */
     vbiosMem = (char *)base + V_BIOS;
     (void)memset(vbiosMem, 0, 2 * V_BIOS_SIZE);
-    if (xf86ReadLegacyVideoBIOS(pInt->Tag, vbiosMem) < V_BIOS_SIZE) {
+    if (xf86ReadLegacyVideoBIOS(pInt->dev, vbiosMem) < V_BIOS_SIZE) {
 	xf86DrvMsg(screen, X_WARNING,
 		   "Unable to retrieve all of segment 0x0C0000.\n");
     }
@@ -299,7 +294,7 @@ MapVRam(xf86Int10InfoPtr pInt)
     int size = ((VRAM_SIZE + pagesize - 1) / pagesize) * pagesize;
 
     INTPriv(pInt)->vRam = xf86MapDomainMemory(pInt->scrnIndex, VIDMEM_MMIO,
-					      pInt->Tag, V_RAM, size);
+					      pInt->dev, V_RAM, size);
 
     pInt->ioBase = xf86Screens[pInt->scrnIndex]->domainIOBase;
 }
