@@ -63,15 +63,12 @@
 static ADDRESS linuxTransAddrBusToHost(PCITAG tag, PciAddrType type, ADDRESS addr);
 #if defined(__powerpc__)
 static ADDRESS linuxPpcBusAddrToHostAddr(PCITAG, PciAddrType, ADDRESS);
-static ADDRESS linuxPpcHostAddrToBusAddr(PCITAG, PciAddrType, ADDRESS);
 #endif
 
 static pciBusFuncs_t linuxFuncs0 = {
 #if defined(__powerpc__)
-/* pciAddrHostToBus */	linuxPpcHostAddrToBusAddr,
 /* pciAddrBusToHost */	linuxPpcBusAddrToHostAddr,
 #else
-/* pciAddrHostToBus */	pciAddrNOOP,
 /* linuxTransAddrBusToHost is busted on sparc64 but the PCI rework tree
  * makes it all moot, so we kludge it for now */
 #if defined(__sparc__)
@@ -232,24 +229,6 @@ linuxPpcBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
 	ADDRESS iobase = syscall(__NR_pciconfig_iobase, 2,
 		    PCI_BUS_FROM_TAG(tag), PCI_DFN_FROM_TAG(tag));
 	return (addr + iobase);
-    }
-    else return addr;
-}
-
-static ADDRESS
-linuxPpcHostAddrToBusAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
-{
-    if (type == PCI_MEM)
-    {
-	ADDRESS membase = syscall(__NR_pciconfig_iobase, 1,
-		    PCI_BUS_FROM_TAG(tag), PCI_DFN_FROM_TAG(tag));
-	return (addr - membase);
-    }
-    else if (type == PCI_IO)
-    {
-	ADDRESS iobase = syscall(__NR_pciconfig_iobase, 2,
-		    PCI_BUS_FROM_TAG(tag), PCI_DFN_FROM_TAG(tag));
-	return (addr - iobase);
     }
     else return addr;
 }

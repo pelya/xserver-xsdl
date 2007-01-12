@@ -321,7 +321,6 @@ extern void XF86SCANPCI_WRAPPER(scanpciWrapperOpt flags);
  * (e.g. a primary PCI bus and all of its secondaries)
  */
 typedef struct pci_bus_funcs {
-	ADDRESS (*pciAddrHostToBus)(PCITAG, PciAddrType, ADDRESS);
 	ADDRESS (*pciAddrBusToHost)(PCITAG, PciAddrType, ADDRESS);
 	/*
 	 * The next three are optional.  If NULL, the corresponding function is
