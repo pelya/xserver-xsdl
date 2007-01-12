@@ -117,7 +117,6 @@ FreeCursor(pointer value, XID cid)
     ScreenPtr	pscr;
     DeviceIntPtr pDev; 
 
-    MPXDBG("freecursor refcount %d\n", pCurs->refcnt);
     if ( --pCurs->refcnt != 0)
 	return(Success);
 
