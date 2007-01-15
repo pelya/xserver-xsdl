@@ -1072,5 +1072,5 @@ pciConvertRange2Host(int entityIndex, resRange *pRange)
 
     /* Set domain number */
     pRange->type &= ~(ResDomain | ResBus);
-    pRange->type |= xf86GetPciDomain(tag) << 24;
+    pRange->type |= pvp->domain << 24;
 }

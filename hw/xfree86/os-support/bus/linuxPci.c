@@ -99,22 +99,26 @@ static const struct pci_id_match match_host_bridge = {
     0x0000ffff00, 0
 };
 
-
-static Bool	domain_support = FALSE;
+#ifndef INCLUDE_XF86_NO_DOMAIN
+#define MAX_DOMAINS 257
+static pointer DomainMmappedIO[MAX_DOMAINS];
+#endif
 
 void
 linuxPciInit(void)
 {
 	struct stat st;
+
+#ifndef INCLUDE_XF86_NO_DOMAIN
+    (void) memset(DomainMmappedIO, 0, sizeof(DomainMmappedIO));
+#endif
+
 	if ((xf86Info.pciFlags == PCIForceNone) ||
 	    (-1 == stat("/proc/bus/pci", &st))) {
 		/* when using this as default for all linux architectures,
 		   we'll need a fallback for 2.0 kernels here */
 		return;
 	}
-#ifndef INCLUDE_XF86_NO_DOMAIN
-	domain_support = linuxDomainSupport();
-#endif
 	pciNumBuses    = 1;
 	pciBusInfo[0]  = &linuxPci0;
 }
@@ -337,10 +341,12 @@ linuxGetSizesStruct(const struct pci_device *dev)
     int          i;
 
     /* Look up vendor/device */
-    for (i = 0;  i < NUM_SIZES;  i++) {
-	if ((dev->vendor_id == pciControllerSizes[i].vendor)
-	    && (dev->device_id == pciControllerSizes[i].device)) {
-	    return & pciControllerSizes[i];
+    if (dev != NULL) {
+	for (i = 0;  i < NUM_SIZES;  i++) {
+	    if ((dev->vendor_id == pciControllerSizes[i].vendor)
+		&& (dev->device_id == pciControllerSizes[i].device)) {
+		return & pciControllerSizes[i];
+	    }
 	}
     }
 
@@ -353,29 +359,6 @@ linuxGetIOSize(const struct pci_device *dev)
 {
     const struct pciSizes * const sizes = linuxGetSizesStruct(dev);
     return sizes->io_size;
-}
-
-_X_EXPORT int
-xf86GetPciDomain(PCITAG Tag)
-{
-    const struct pci_device *dev;
-    int fd, result;
-
-    dev = xf86GetPciHostConfigFromTag(Tag);
-
-    if (!dev)
-	return 1;		/* Domain 0 is reserved */
-
-    if ((result = PCI_DOM_FROM_TAG(Tag)) != 0)
-	return result;
-
-    if ((fd = linuxPciOpenFile(dev, FALSE)) < 0)
-	return 0;
-
-    if ((result = ioctl(fd, PCIIOC_CONTROLLER, 0)) < 0)
-	return 0;
-
-    return result + 1;		/* Domain 0 is reserved */
 }
 
 static pointer
@@ -446,41 +429,30 @@ linuxMapPci(int ScreenNum, int Flags, struct pci_device *dev,
     return NULL;
 }
 
-#define MAX_DOMAINS 257
-static pointer DomainMmappedIO[MAX_DOMAINS];
-
 static int
 linuxOpenLegacy(struct pci_device *dev, char *name)
 {
-#define PREFIX "/sys/class/pci_bus/%04x:%02x/%s"
-    char *path;
-    int domain, bus;
+    static const char PREFIX[] = "/sys/class/pci_bus/%04x:%02x/legacy_%s";
+    char path[sizeof(PREFIX) + 3];
     pciBusInfo_t *pBusInfo;
-    int fd;
-
-    path = xalloc(strlen(PREFIX) + strlen(name));
-    if (!path)
-	return -1;
+    int fd = -1;
 
     while (dev != NULL) {
-	sprintf(path, PREFIX, dev->domain, dev->bus, name);
+	snprintf(path, sizeof(path) - 1, PREFIX, dev->domain, dev->bus, name);
 	fd = open(path, O_RDWR);
 	if (fd >= 0) {
-	    xfree(path);
 	    return fd;
 	}
 
 	pBusInfo = pciBusInfo[PCI_MAKE_BUS(dev->domain, dev->bus)];
-	if (!pBusInfo || (bridge == pBusInfo->bridge) ||
+	if (!pBusInfo || (dev == pBusInfo->bridge) ||
 	   !pBusInfo->bridge) {
-	    xfree(path);
 	    return -1;
 	}
 
 	dev = pBusInfo->bridge;
     }
 
-    xfree(path);
     return fd;
 }
 
@@ -537,24 +509,22 @@ xf86MapLegacyIO(struct pci_device *dev)
 {
     const PCITAG tag = PCI_MAKE_TAG(PCI_MAKE_BUS(dev->domain, dev->bus),
 				    dev->dev, dev->func);
-    const int domain = xf86GetPciDomain(tag);
-    const struct pci_device *bridge = xf86GetPciHostConfigFromTag(tag);
+    const int domain = dev->domain;
+    struct pci_device *bridge = xf86GetPciHostConfigFromTag(tag);
     int fd;
 
-    if ((domain <= 0) || (domain >= MAX_DOMAINS))
+    if (domain >= MAX_DOMAINS)
 	FatalError("xf86MapLegacyIO():  domain out of range\n");
 
     if (DomainMmappedIO[domain])
 	return (IOADDRESS)DomainMmappedIO[domain];
 
     /* Permanently map all of I/O space */
-    if ((fd = linuxOpenLegacy(bridge, "legacy_io")) < 0) {
-	    DomainMmappedIO[domain] = linuxMapPci(-1, VIDMEM_MMIO, bridge,
-						  0, linuxGetIOSize(bridge),
-						  PCIIOC_MMAP_IS_IO);
-	    /* ia64 can't mmap legacy IO port space */
-	    if (!DomainMmappedIO[domain])
-		return 0;
+    fd = linuxOpenLegacy(bridge, "legacy_io");
+    if (fd < 0) {
+	DomainMmappedIO[domain] = linuxMapPci(-1, VIDMEM_MMIO, bridge,
+					      0, linuxGetIOSize(bridge),
+					      PCIIOC_MMAP_IS_IO);
     }
     else { /* legacy_io file exists, encode fd */
 	DomainMmappedIO[domain] = (pointer)(fd << 24);
@@ -574,8 +544,8 @@ xf86MapLegacyIO(struct pci_device *dev)
 _X_EXPORT int
 xf86ReadLegacyVideoBIOS(struct pci_device *dev, unsigned char *Buf)
 {
-    const ADDRESS Base = V_BIOS;
-    const int Len = V_BIOS_SIZE * 2;
+    const ADDRESS Base = 0xC0000;
+    const int Len = 0x10000 * 2;
     const int pagemask = getpagesize() - 1;
     const ADDRESS offset = Base & ~pagemask;
     const unsigned long size = ((Base + Len + pagemask) & ~pagemask) - offset;
@@ -596,12 +566,12 @@ xf86ReadLegacyVideoBIOS(struct pci_device *dev, unsigned char *Buf)
 
     /* Using memcpy() here can hang the system */
     src = ptr + (Base - offset);
-    for (len = 0; len < V_BIOS_SIZE; len++) {
+    for (len = 0; len < (Len / 2); len++) {
 	Buf[len] = src[len];
     }
 
-    if ((buf[0] == 0x55) && (buf[1] == 0xAA) && (buf[2] > 0x80)) {
-	for ( /* empty */ ; len < (2 * V_BIOS_SIZE); len++) {
+    if ((Buf[0] == 0x55) && (Buf[1] == 0xAA) && (Buf[2] > 0x80)) {
+	for ( /* empty */ ; len < Len; len++) {
 	    Buf[len] = src[len];
 	}
     }
@@ -615,15 +585,13 @@ resPtr
 xf86BusAccWindowsFromOS(void)
 {
     struct pci_device *dev;
-    sturct pci_device_iterator *iter;
+    struct pci_device_iterator *iter;
     resPtr        pRes = NULL;
     resRange      range;
 
     iter = pci_id_match_iterator_create(& match_host_bridge);
     while ((dev = pci_device_next(iter)) != NULL) {
-	const PCITAG tag = PCI_MAKE_TAG(PCI_MAKE_BUS(dev->domain, dev->bus),
-					dev->dev, dev->func);
-	const int domain = xf86GetPciDomain(tag);
+	const int domain = dev->domain;
 	const struct pciSizes * const sizes = linuxGetSizesStruct(dev);
 
 	RANGE(range, 0, (ADDRESS)(sizes->mem_size - 1),
@@ -634,8 +602,14 @@ xf86BusAccWindowsFromOS(void)
 	      RANGE_TYPE(ResExcIoBlock, domain));
 	pRes = xf86AddResToList(pRes, &range, -1);
 
+	/* FIXME: The old code reserved domain 0 for a special purpose.  The
+	 * FIXME: new code just uses whatever domains the kernel tells it,
+	 * FIXME: but there is no way to get a domain < 0.  What should
+	 * FIXME: happen here?
+	 *
 	if (domain <= 0)
 	  break;
+	 */
     }
 
     pci_iterator_destroy(iter);
@@ -654,14 +628,12 @@ resPtr
 xf86AccResFromOS(resPtr pRes)
 {
     struct pci_device *dev;
-    sturct pci_device_iterator *iter;
+    struct pci_device_iterator *iter;
     resRange      range;
 
     iter = pci_id_match_iterator_create(& match_host_bridge);
     while ((dev = pci_device_next(iter)) != NULL) {
-	const PCITAG tag = PCI_MAKE_TAG(PCI_MAKE_BUS(dev->domain, dev->bus),
-					dev->dev, dev->func);
-	const int domain = xf86GetPciDomain(tag);
+	const int domain = dev->domain;
 	const struct pciSizes * const sizes = linuxGetSizesStruct(dev);
 
 	/*
@@ -692,8 +664,14 @@ xf86AccResFromOS(resPtr pRes)
 	      RANGE_TYPE(ResExcIoBlock, domain));
 	pRes = xf86AddResToList(pRes, &range, -1);
 
+	/* FIXME: The old code reserved domain 0 for a special purpose.  The
+	 * FIXME: new code just uses whatever domains the kernel tells it,
+	 * FIXME: but there is no way to get a domain < 0.  What should
+	 * FIXME: happen here?
+	 *
 	if (domain <= 0)
 	  break;
+	 */
     }
 
     pci_iterator_destroy(iter);

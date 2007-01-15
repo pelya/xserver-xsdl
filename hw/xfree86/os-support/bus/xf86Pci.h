@@ -106,6 +106,7 @@
 #include <X11/Xarch.h>
 #include <X11/Xfuncproto.h>
 #include "misc.h"
+#include <pciaccess.h>
 
 /*
  * PCI cfg space definitions (e.g. stuff right out of the PCI spec)
@@ -257,7 +258,6 @@ Bool xf86scanpci(void);
 extern int pciNumBuses;
 
 /* Domain access functions.  Some of these probably shouldn't be public */
-int	      xf86GetPciDomain(PCITAG tag);
 pointer xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,
     ADDRESS Base, unsigned long Size);
 IOADDRESS xf86MapLegacyIO(struct pci_device *dev);

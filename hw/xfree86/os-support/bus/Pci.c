@@ -20,7 +20,6 @@
  *                               function
  *	pciBusAddrToHostAddr() - Convert a PCI address to a host address
  *	xf86scanpci()          - Return info about all PCI devices
- *	xf86GetPciDomain()     - Return domain number from a PCITAG
  *	xf86MapDomainMemory()  - Like xf86MapPciMem() but can handle
  *                               domain/host address translation
  *	xf86MapLegacyIO()      - Maps PCI I/O spaces
@@ -296,12 +295,6 @@ xf86scanpci(void)
 }
 
 #ifdef INCLUDE_XF86_NO_DOMAIN
-
-_X_EXPORT int
-xf86GetPciDomain(PCITAG Tag)
-{
-    return 0;
-}
 
 _X_EXPORT pointer
 xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,

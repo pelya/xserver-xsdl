@@ -248,7 +248,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86MapVidMem)
     SYMFUNC(xf86UnMapVidMem)
     SYMFUNC(xf86MapReadSideEffects)
-    SYMFUNC(xf86GetPciDomain)
     SYMFUNC(xf86MapDomainMemory)
     SYMFUNC(xf86ReadLegacyVideoBIOS)
     SYMFUNC(xf86UDelay)

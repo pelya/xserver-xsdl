@@ -283,6 +283,8 @@
 #error No PCI support available for this architecture/OS combination
 #endif
 
+#undef INCLUDE_XF86_NO_DOMAIN
+
 extern void ARCH_PCI_INIT(void);
 #if defined(ARCH_PCI_OS_INIT)
 extern void ARCH_PCI_OS_INIT(void);
