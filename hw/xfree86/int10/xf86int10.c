@@ -769,7 +769,7 @@ int1A_handler(xf86Int10InfoPtr pInt)
 	return 1;
     case 0xb10b:
 	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
-	    pci_device_cfg_write_u8(dev, & X86_CL, X86_EDI);
+	    pci_device_cfg_write_u8(dev, X86_CL, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
@@ -782,7 +782,7 @@ int1A_handler(xf86Int10InfoPtr pInt)
 	return 1;
     case 0xb10c:
 	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
-	    pci_device_cfg_write_u16(dev, & X86_CX, X86_EDI);
+	    pci_device_cfg_write_u16(dev, X86_CX, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
@@ -795,7 +795,7 @@ int1A_handler(xf86Int10InfoPtr pInt)
 	return 1;
     case 0xb10d:
 	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
-	    pci_device_cfg_write_u32(dev, & X86_ECX, X86_EDI);
+	    pci_device_cfg_write_u32(dev, X86_ECX, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {

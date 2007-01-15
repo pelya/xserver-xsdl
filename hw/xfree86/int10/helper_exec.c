@@ -494,7 +494,7 @@ pciCfg1out(CARD16 addr, CARD32 val)
 	return 1;
     }
     if (addr == 0xCFC) {
-	pci_device_cfg_write_u32(Int10Current->dev, & val, OFFSET(PciCfg1Addr));
+	pci_device_cfg_write_u32(Int10Current->dev, val, OFFSET(PciCfg1Addr));
 	return 1;
     }
     return 0;
@@ -533,7 +533,7 @@ pciCfg1outw(CARD16 addr, CARD16 val)
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	const unsigned offset = addr - 0xCFC;
 
-	pci_device_cfg_write_u16(Int10Current->dev, & val, OFFSET(PciCfg1Addr) + offset);
+	pci_device_cfg_write_u16(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }
     return 0;
@@ -572,7 +572,7 @@ pciCfg1outb(CARD16 addr, CARD8 val)
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	const unsigned offset = addr - 0xCFC;
 
-	pci_device_cfg_write_u8(Int10Current->dev, & val, OFFSET(PciCfg1Addr) + offset);
+	pci_device_cfg_write_u8(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }
     return 0;

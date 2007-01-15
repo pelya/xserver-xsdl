@@ -260,7 +260,7 @@ pciIoAccessEnable(void* arg)
     ErrorF("pciIoAccessEnable: 0x%05lx\n", *(PCITAG *)arg);
 #endif
     pArg->ctrl |= SETBITS | PCI_CMD_MASTER_ENABLE;
-    pci_device_cfg_write_u32( pArg->dev, & pArg->ctrl, PCI_CMD_STAT_REG );
+    pci_device_cfg_write_u32(pArg->dev, pArg->ctrl, PCI_CMD_STAT_REG);
 #endif
 }
 
@@ -272,7 +272,7 @@ pciIoAccessDisable(void* arg)
     ErrorF("pciIoAccessDisable: 0x%05lx\n", *(PCITAG *)arg);
 #endif
     pArg->ctrl &= ~SETBITS;
-    pci_device_cfg_write_u32( pArg->dev, & pArg->ctrl, PCI_CMD_STAT_REG );
+    pci_device_cfg_write_u32(pArg->dev, pArg->ctrl, PCI_CMD_STAT_REG);
 #endif
 }
 
@@ -286,7 +286,7 @@ pciIo_MemAccessEnable(void* arg)
     ErrorF("pciIo_MemAccessEnable: 0x%05lx\n", *(PCITAG *)arg);
 #endif
     pArg->ctrl |= SETBITS | PCI_CMD_MASTER_ENABLE;
-    pci_device_cfg_write_u32( pArg->dev, & pArg->ctrl, PCI_CMD_STAT_REG );
+    pci_device_cfg_write_u32(pArg->dev, pArg->ctrl, PCI_CMD_STAT_REG);
 #endif
 }
 
@@ -298,7 +298,7 @@ pciIo_MemAccessDisable(void* arg)
     ErrorF("pciIo_MemAccessDisable: 0x%05lx\n", *(PCITAG *)arg);
 #endif
     pArg->ctrl &= ~SETBITS;
-    pci_device_cfg_write_u32( pArg->dev, & pArg->ctrl, PCI_CMD_STAT_REG );
+    pci_device_cfg_write_u32(pArg->dev, pArg->ctrl, PCI_CMD_STAT_REG);
 #endif
 }
 
@@ -312,7 +312,7 @@ pciMemAccessEnable(void* arg)
     ErrorF("pciMemAccessEnable: 0x%05lx\n", *(PCITAG *)arg);
 #endif
     pArg->ctrl |= SETBITS | PCI_CMD_MASTER_ENABLE;
-    pci_device_cfg_write_u32( pArg->dev, & pArg->ctrl, PCI_CMD_STAT_REG );
+    pci_device_cfg_write_u32(pArg->dev, pArg->ctrl, PCI_CMD_STAT_REG);
 #endif
 }
 
@@ -324,7 +324,7 @@ pciMemAccessDisable(void* arg)
     ErrorF("pciMemAccessDisable: 0x%05lx\n", *(PCITAG *)arg);
 #endif
     pArg->ctrl &= ~SETBITS;
-    pci_device_cfg_write_u32( pArg->dev, & pArg->ctrl, PCI_CMD_STAT_REG );
+    pci_device_cfg_write_u32(pArg->dev, pArg->ctrl, PCI_CMD_STAT_REG);
 #endif
 }
 #undef SETBITS
@@ -347,7 +347,7 @@ pciBusAccessEnable(BusAccPtr ptr)
     if ((ctrl & MASKBITS) != PCI_PCI_BRIDGE_VGA_EN) {
 	ctrl = (ctrl | PCI_PCI_BRIDGE_VGA_EN) &
 	    ~(PCI_PCI_BRIDGE_MASTER_ABORT_EN | PCI_PCI_BRIDGE_SECONDARY_RESET);
-	pci_device_cfg_write_u16( dev, & ctrl, PCI_PCI_BRIDGE_CONTROL_REG );
+	pci_device_cfg_write_u16(dev, ctrl, PCI_PCI_BRIDGE_CONTROL_REG);
     }
 #endif
 }
@@ -366,7 +366,7 @@ pciBusAccessDisable(BusAccPtr ptr)
     pci_device_cfg_read_u16( dev, & ctrl, PCI_PCI_BRIDGE_CONTROL_REG );
     if (ctrl & MASKBITS) {
 	ctrl &= ~(MASKBITS | PCI_PCI_BRIDGE_SECONDARY_RESET);
-	pci_device_cfg_write_u16( dev, & ctrl, PCI_PCI_BRIDGE_CONTROL_REG );
+	pci_device_cfg_write_u16(dev, ctrl, PCI_PCI_BRIDGE_CONTROL_REG);
     }
 #endif
 }
@@ -459,17 +459,17 @@ restorePciState( struct pci_device * dev, pciSavePtr ptr)
     int i;
     
     /* disable card before setting anything */
-    pci_device_cfg_write_bits( dev, PCI_CMD_MEM_ENABLE | PCI_CMD_IO_ENABLE, 0,
-			       PCI_CMD_STAT_REG );
+    pci_device_cfg_write_bits(dev, PCI_CMD_MEM_ENABLE | PCI_CMD_IO_ENABLE, 0,
+			      PCI_CMD_STAT_REG);
 
-    pci_device_cfg_write_u32( dev, & ptr->biosBase, PCI_CMD_BIOS_REG );
+    pci_device_cfg_write_u32(dev, ptr->biosBase, PCI_CMD_BIOS_REG);
 
     for ( i = 0; i < 6; i++ ) {
-	pci_device_cfg_write_u32( dev, & ptr->base[i], 
-				 PCI_CMD_BASE_REG + (i * 4) );
+	pci_device_cfg_write_u32(dev, ptr->base[i],
+				 PCI_CMD_BASE_REG + (i * 4));
     }
 
-    pci_device_cfg_write_u32( dev, & ptr->command, PCI_CMD_STAT_REG );
+    pci_device_cfg_write_u32(dev, ptr->command, PCI_CMD_STAT_REG);
 #endif
 }
 
@@ -507,7 +507,7 @@ restorePciBusState(BusAccPtr ptr)
     if ((ctrl ^ ptr->busdep.pci.save.control) & MASKBITS) {
 	ctrl &= ~(MASKBITS | PCI_PCI_BRIDGE_SECONDARY_RESET);
 	ctrl |= ptr->busdep.pci.save.control & MASKBITS;
-	pci_device_cfg_write_u16( dev, & ctrl, PCI_PCI_BRIDGE_CONTROL_REG );
+	pci_device_cfg_write_u16(dev, ctrl, PCI_PCI_BRIDGE_CONTROL_REG);
     }
 #endif
 }
