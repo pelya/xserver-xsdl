@@ -432,8 +432,8 @@ linuxMapPci(int ScreenNum, int Flags, struct pci_device *dev,
 static int
 linuxOpenLegacy(struct pci_device *dev, char *name)
 {
-    static const char PREFIX[] = "/sys/class/pci_bus/%04x:%02x/legacy_%s";
-    char path[sizeof(PREFIX) + 3];
+    static const char PREFIX[] = "/sys/class/pci_bus/%04x:%02x/%s";
+    char path[sizeof(PREFIX) + 10];
     pciBusInfo_t *pBusInfo;
     int fd = -1;
 
