@@ -298,6 +298,12 @@ RRConfigureOutputProperty (RROutputPtr output, Atom property,
     if (prop->valid_values)
 	xfree (prop->valid_values);
     prop->valid_values = new_values;
+
+    if (add) {
+	prop->next = output->properties;
+	output->properties = prop;
+    }
+
     return Success;
 }
 
