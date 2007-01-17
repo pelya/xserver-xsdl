@@ -112,9 +112,8 @@ FindPCIVideoInfo(void)
 {
     int i = 0, k;
     int num = 0;
-    struct pci_device * info;
-    struct pci_slot_match   m;
-    struct pci_device_iterator * iter;
+    struct pci_device *info;
+    struct pci_device_iterator *iter;
 
 
     if (!xf86scanpci()) {
@@ -122,29 +121,13 @@ FindPCIVideoInfo(void)
 	return;
     }
 
-    if ( (xf86IsolateDevice.bus != 0)
-	 || (xf86IsolateDevice.device != 0) 
-	 || (xf86IsolateDevice.func != 0) ) {
-	m.domain = PCI_DOM_FROM_BUS( xf86IsolateDevice.bus );
-	m.bus = PCI_BUS_NO_DOMAIN( xf86IsolateDevice.bus );
-	m.dev = xf86IsolateDevice.device;
-	m.func = xf86IsolateDevice.func;
-    }
-    else {
-	m.domain = PCI_MATCH_ANY;
-	m.bus = PCI_MATCH_ANY;
-	m.dev = PCI_MATCH_ANY;
-	m.func = PCI_MATCH_ANY;
-    }
-
-    iter = pci_slot_match_iterator_create( & m );
-
-    while ( (info = pci_device_next( iter )) != NULL ) {
-	if ( PCIINFOCLASSES( info->device_class ) ) {
+    iter = pci_slot_match_iterator_create(& xf86IsolateDevice);
+    while ((info = pci_device_next(iter)) != NULL) {
+	if (PCIINFOCLASSES(info->device_class)) {
 	    num++;
-	    xf86PciVideoInfo = xnfrealloc( xf86PciVideoInfo,
-					   (sizeof( struct pci_device * ) 
-					    * (num + 1)) );
+	    xf86PciVideoInfo = xnfrealloc(xf86PciVideoInfo,
+					  (sizeof(struct pci_device *)
+					   * (num + 1)));
 	    xf86PciVideoInfo[num] = NULL;
 	    xf86PciVideoInfo[num - 1] = info;
 

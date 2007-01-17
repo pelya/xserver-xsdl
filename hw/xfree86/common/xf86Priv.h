@@ -78,7 +78,7 @@ extern Bool xf86BestRefresh;
 extern Gamma xf86Gamma;
 extern char *xf86ServerName;
 extern Bool xf86ShowUnresolved;
-extern PciBusId xf86IsolateDevice;
+extern struct pci_slot_match xf86IsolateDevice;
 
 /* Other parameters */
 
