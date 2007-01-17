@@ -1785,8 +1785,9 @@ ddxProcessArgument(int argc, char **argv, int i)
        FatalError("Bus types other than PCI not yet isolable\n");
     }
     if (sscanf(argv[i], "PCI:%d:%d:%d", &bus, &device, &func) == 3) {
-       xf86IsolateDevice.bus = bus;
-       xf86IsolateDevice.device = device;
+       xf86IsolateDevice.domain = PCI_DOM_FROM_BUS(bus);
+       xf86IsolateDevice.bus = PCI_BUS_NO_DOMAIN(bus);
+       xf86IsolateDevice.dev = device;
        xf86IsolateDevice.func = func;
        return 2;
     } else {
