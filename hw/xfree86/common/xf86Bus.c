@@ -2983,14 +2983,15 @@ xf86FindPrimaryDevice()
         CheckGenericGA();
     if (primaryBus.type != BUS_NONE) {
 	char *bus;
-	char *loc = xnfcalloc(1,9);
-	if (loc == NULL) return;
+	char loc[16];
 
 	switch (primaryBus.type) {
 	case BUS_PCI:
 	    bus = "PCI";
-	    sprintf(loc," %2.2x:%2.2x:%1.1x",primaryBus.id.pci.bus,
-	    primaryBus.id.pci.device,primaryBus.id.pci.func);
+	    snprintf(loc, sizeof(loc), " %2.2x:%2.2x:%1.1x",
+		     primaryBus.id.pci.bus,
+		     primaryBus.id.pci.device,
+		     primaryBus.id.pci.func);
 	    break;
 	case BUS_ISA:
 	    bus = "ISA";
@@ -2998,17 +2999,15 @@ xf86FindPrimaryDevice()
 	    break;
 	case BUS_SBUS:
 	    bus = "SBUS";
-	    sprintf(loc," %2.2x",primaryBus.id.sbus.fbNum);
+	    snprintf(loc, sizeof(loc), " %2.2x", primaryBus.id.sbus.fbNum);
 	    break;
 	default:
 	    bus = "";
 	    loc[0] = '\0';
 	}
-	
+
 	xf86MsgVerb(X_INFO, 2, "Primary Device is: %s%s\n",bus,loc);
-	xfree(loc);
     }
-    
 }
 
 #if !defined(__sparc) && !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__)
