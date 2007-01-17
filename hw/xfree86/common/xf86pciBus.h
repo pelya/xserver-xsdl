@@ -47,9 +47,6 @@ typedef struct {
 } pciArg;
 
 typedef struct {
-    int busnum;
-    int devnum;
-    int funcnum;
     pciArg arg;
     xf86AccessRec ioAccess;
     xf86AccessRec io_memAccess;

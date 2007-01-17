@@ -569,9 +569,6 @@ initPciState(void)
 	    pcaccp = xnfalloc( sizeof( pciAccRec ) );
 	    pvp->user_data = (intptr_t) pcaccp;
 
-	    pcaccp->busnum = PCI_MAKE_BUS(pvp->domain, pvp->bus);
-	    pcaccp->devnum = pvp->dev; 
-	    pcaccp->funcnum = pvp->func;
 	    pcaccp->arg.dev = pvp;
 	    pcaccp->ioAccess.AccessDisable = pciIoAccessDisable;
 	    pcaccp->ioAccess.AccessEnable = pciIoAccessEnable;
