@@ -1991,11 +1991,9 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
         if (retEntities[numFound - 1] == -1 && instances[i].screen > 0) {
 	    for (j = 0; j < xf86NumEntities; j++) {
 	        EntityPtr pEnt = xf86Entities[j];
-	        if (pEnt->busType != BUS_PCI)
+	        if (pEnt->bus.type != BUS_PCI)
 		    continue;
-	        if (pEnt->pciBusId.bus == PCI_MAKE_BUS( pPci->domain, pPci->bus ) &&
-		    pEnt->pciBusId.device == pPci->dev &&
-		    pEnt->pciBusId.func == pPci->func) {
+	        if (pEnt->bus.id.pci == pPci) {
 		    retEntities[numFound - 1] = j;
 		    xf86AddDevToEntity(j, instances[i].dev);
 		    break;

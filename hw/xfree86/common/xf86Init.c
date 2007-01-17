@@ -329,10 +329,10 @@ probe_devices_from_device_sections(DriverPtr drvp)
 #endif
 	
 		/* Allocate an entry in the lists to be returned */
-		entry = xf86ClaimPciSlot( pPci, drvp, device_id,
-					  devList[i], devList[i]->active );
+		entry = xf86ClaimPciSlot(pPci, drvp, device_id,
+					  devList[i], devList[i]->active);
 
-		if ( (entry == -1) && (devList[i]->screen > 0) ) {
+		if ((entry == -1) && (devList[i]->screen > 0)) {
 		    unsigned k;
 
 		    for ( k = 0; k < xf86NumEntities; k++ ) {
@@ -340,19 +340,17 @@ probe_devices_from_device_sections(DriverPtr drvp)
 			if (pEnt->busType != BUS_PCI)
 			  continue;
 
-			if (pEnt->pciBusId.bus == PCI_MAKE_BUS( pPci->domain, pPci->bus ) &&
-			    pEnt->pciBusId.device == pPci->dev &&
-			    pEnt->pciBusId.func == pPci->func) {
+			if (pEnt->bus.id.pci == pPci) {
 			    entry = k;
-			    xf86AddDevToEntity( k, devList[i] );
+			    xf86AddDevToEntity(k, devList[i]);
 			    break;
 			}
 		    }
 		}
 		
-		if ( entry != -1 ) {
-		    if ( (*drvp->PciProbe)( drvp, entry, pPci,
-					    devices[j].match_data ) ) {
+		if (entry != -1) {
+		    if ((*drvp->PciProbe)(drvp, entry, pPci,
+					  devices[j].match_data)) {
 			foundScreen = TRUE;
 		    }
 		}

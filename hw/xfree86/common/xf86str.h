@@ -378,11 +378,7 @@ typedef enum {
     BUS_last    /* Keep last */
 } BusType;
 
-typedef struct {
-    int		bus;
-    int		device;
-    int		func;
-} PciBusId;
+struct pci_device;
 
 typedef struct {
     unsigned int dummy;
@@ -396,7 +392,7 @@ typedef struct _bus {
     BusType type;
     union {
 	IsaBusId isa;
-	PciBusId pci;
+	struct pci_device *pci;
 	SbusBusId sbus;
     } id;
 } BusRec, *BusPtr;

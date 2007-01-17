@@ -91,7 +91,6 @@ typedef struct {
 #define NEED_SHARED (NEED_MEM_SHARED | NEED_IO_SHARED)
 
 #define busType bus.type
-#define pciBusId bus.id.pci
 #define isaBusId bus.id.isa
 #define sbusBusId bus.id.sbus
 

@@ -254,9 +254,7 @@ xf86IsEntityPrimary(int entityIndex)
 
     switch (pEnt->busType) {
     case BUS_PCI:
-	return (pEnt->pciBusId.bus == primaryBus.id.pci.bus &&
-		pEnt->pciBusId.device == primaryBus.id.pci.device &&
-		pEnt->pciBusId.func == primaryBus.id.pci.func);
+	return (pEnt->bus.id.pci == primaryBus.id.pci);
     case BUS_ISA:
 	return TRUE;
     case BUS_SBUS:
@@ -1863,11 +1861,7 @@ busTypeSpecific(EntityPtr pEnt, xf86AccessPtr *acc_mem,
 	*acc_mem = *acc_io = *acc_mem_io = &AccessNULL;
 	break;
     case BUS_PCI: {
-	struct pci_device * const dev = 
-	  pci_device_find_by_slot( PCI_DOM_FROM_BUS( pEnt->pciBusId.bus ),
-				   PCI_BUS_NO_DOMAIN( pEnt->pciBusId.bus ),
-				   pEnt->pciBusId.device,
-				   pEnt->pciBusId.func );
+	struct pci_device *const dev = pEnt->bus.id.pci;
 
 	if ((dev != NULL) && ((void *)dev->user_data != NULL)) {
 	    pciAccPtr const paccp = (pciAccPtr) dev->user_data;
@@ -2988,10 +2982,11 @@ xf86FindPrimaryDevice()
 	switch (primaryBus.type) {
 	case BUS_PCI:
 	    bus = "PCI";
-	    snprintf(loc, sizeof(loc), " %2.2x:%2.2x:%1.1x",
-		     primaryBus.id.pci.bus,
-		     primaryBus.id.pci.device,
-		     primaryBus.id.pci.func);
+	    snprintf(loc, sizeof(loc), " %2.2x@%2.2x:%2.2x:%1.1x",
+		     primaryBus.id.pci->bus,
+		     primaryBus.id.pci->domain,
+		     primaryBus.id.pci->dev,
+		     primaryBus.id.pci->func);
 	    break;
 	case BUS_ISA:
 	    bus = "ISA";

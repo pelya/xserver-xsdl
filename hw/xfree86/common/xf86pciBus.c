@@ -149,9 +149,7 @@ FindPCIVideoInfo(void)
 		&& ((num == 1) || IS_VGA(info->device_class))) {
 		if (primaryBus.type == BUS_NONE) {
 		    primaryBus.type = BUS_PCI;
-		    primaryBus.id.pci.bus = PCI_MAKE_BUS( info->domain, info->bus );
-		    primaryBus.id.pci.device = info->dev;
-		    primaryBus.id.pci.func = info->func;
+		    primaryBus.id.pci = info;
 		} else {
 		    xf86Msg(X_NOTICE,
 			    "More than one possible primary device found\n");
@@ -801,10 +799,8 @@ xf86ClaimPciSlot(struct pci_device * d, DriverPtr drvp,
 	p = xf86Entities[num];
 	p->driver = drvp;
 	p->chipset = chipset;
-	p->busType = BUS_PCI;
-	p->pciBusId.bus = bus;
-	p->pciBusId.device = d->dev;
-	p->pciBusId.func = d->func;
+	p->bus.type = BUS_PCI;
+	p->bus.id.pci = d;
 	p->active = active;
 	p->inUse = FALSE;
 	if (dev)
@@ -937,14 +933,9 @@ xf86ComparePciBusString(const char *busID, int bus, int device, int func)
  */
  
 _X_EXPORT Bool
-xf86IsPrimaryPci( struct pci_device * pPci )
+xf86IsPrimaryPci(struct pci_device *pPci)
 {
-    const unsigned busnum = PCI_MAKE_BUS( pPci->domain, pPci->bus );
-
-    return ((primaryBus.type == BUS_PCI)
-	    && (busnum == primaryBus.id.pci.bus)
-	    && (pPci->dev == primaryBus.id.pci.device)
-	    && (pPci->func == primaryBus.id.pci.func));
+    return ((primaryBus.type == BUS_PCI) && (pPci == primaryBus.id.pci));
 }
 
 /*
@@ -959,12 +950,7 @@ xf86GetPciInfoForEntity(int entityIndex)
 	return NULL;
 
     p = xf86Entities[entityIndex];
-    return (p->busType == BUS_PCI)
-      ? pci_device_find_by_slot(PCI_DOM_FROM_BUS(p->pciBusId.bus),
-				PCI_BUS_NO_DOMAIN(p->pciBusId.bus),
-				p->pciBusId.device,
-				p->pciBusId.func)
-      : NULL;
+    return (p->bus.type == BUS_PCI) ? p->bus.id.pci : NULL;
 }
 
 /*
@@ -994,10 +980,7 @@ xf86CheckPciSlot(const struct pci_device *d)
     for (i = 0; i < xf86NumEntities; i++) {
 	const EntityPtr p = xf86Entities[i];
 
-	if ((p->busType == BUS_PCI) &&
-	    (p->pciBusId.bus == PCI_MAKE_BUS(d->domain, d->bus)) &&
-	    (p->pciBusId.device == d->dev) &&
-	    (p->pciBusId.func == d->func)) {
+	if ((p->bus.type == BUS_PCI) && (p->bus.id.pci == d)) {
 	    return FALSE;
 	}
     }
