@@ -100,11 +100,6 @@ specifies a file which contains a collection of authorization records used
 to authenticate access.  See also the \fIxdm\fP(1) and 
 \fIXsecurity\fP(__miscmansuffix__) manual pages.
 .TP 8
-.B bc
-disables certain kinds of error checking, for bug compatibility with
-previous releases (e.g., to work around bugs in R2 and R3 xterms and toolkits).
-Deprecated.
-.TP 8
 .B \-bs
 disables backing store support on all screens.
 .TP 8
@@ -265,6 +260,10 @@ the server will report the default value, NotUseful.  This behavior is
 required by the X protocol, which allows the server to exceed the
 client's backing store expectations but does not provide a way to tell
 the client that it is doing so.
+.TP 8
+.B \-wr
+sets the default root window to solid white instead of the standard root weave
+pattern.
 .TP 8
 .B \-x \fIextension\fP
 loads the specified extension at init.
