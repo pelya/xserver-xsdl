@@ -1,12 +1,21 @@
 bin_PROGRAMS = Xvfb
+noinst_LIBRARIES = libfbcmap.a
+
+AM_CFLAGS = -DHAVE_DIX_CONFIG_H \
+            -DNO_HW_ONLY_EXTS \
+            -DNO_MODULE_EXTS \
+            $(XVFBMODULES_CFLAGS) \
+	    $(DIX_CFLAGS)
 
 SRCS =	InitInput.c \
 	InitOutput.c \
 	lk201kbd.h \
 	$(top_srcdir)/Xext/dpmsstubs.c \
 	$(top_srcdir)/Xi/stubs.c \
-	$(top_srcdir)/mi/miinitext.c \
-	$(top_srcdir)/fb/fbcmap.c
+	$(top_srcdir)/mi/miinitext.c
+
+libfbcmap_a_CFLAGS = $(AM_CFLAGS) -DXFree86Server
+libfbcmap_a_SOURCES = $(top_srcdir)/fb/fbcmap.c
 
 Xvfb_SOURCES = $(SRCS)
 
@@ -14,16 +23,8 @@ Xvfb_LDADD = $(XORG_CORE_LIBS) \
              $(XVFB_LIBS) \
              $(XSERVER_LIBS) \
              $(EXTENSION_LIBS) \
-             $(XVFBMODULES_LIBS)
-
-Xvfb_LDFLAGS =
-
-AM_CFLAGS = -DHAVE_DIX_CONFIG_H \
-            -DNO_HW_ONLY_EXTS \
-            -DNO_MODULE_EXTS \
-            -DXFree86Server \
-            $(XVFBMODULES_CFLAGS) \
-	    $(DIX_CFLAGS)
+             $(XVFBMODULES_LIBS) \
+	     libfbcmap.a
 
 # Man page
 include $(top_srcdir)/cpprules.in
