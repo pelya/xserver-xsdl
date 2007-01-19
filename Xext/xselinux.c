@@ -128,9 +128,6 @@ Atom atom_client_ctx;
 /* security context for non-local clients */
 static char *XSELinuxNonlocalContextDefault = NULL;
 
-/* security context for the root window */
-static char *XSELinuxRootWindowContext = NULL;
-
 /* Selection stuff from dix */
 extern Selection *CurrentSelections;
 extern int NumCurrentSelections;
@@ -1241,9 +1238,7 @@ static char *XSELinuxKeywords[] = {
     "extension",
 #define XSELinuxKeywordNonlocalContext 3
     "nonlocal_context",
-#define XSELinuxKeywordRootWindowContext 4
-    "root_window_context",
-#define XSELinuxKeywordDefault 5
+#define XSELinuxKeywordDefault 4
     "default"
 };
 
@@ -1582,39 +1577,6 @@ XSELinuxParseNonlocalContext(char *p)
 } /* XSELinuxParseNonlocalContext */
 
 static Bool
-XSELinuxParseRootWindowContext(char *p)
-{
-    char *context;
-
-    context = XSELinuxParseString(&p);
-    if (!context || (strlen(context) == 0))
-    {
-        return FALSE;
-    }
-
-    if (XSELinuxRootWindowContext != NULL)
-    {
-        return FALSE;
-    }
-
-    /* validate the context */
-    if (security_check_context(context))
-    {
-        return FALSE;
-    }
-
-    XSELinuxRootWindowContext = (char *)xalloc(strlen(context)+1);
-    if (!XSELinuxRootWindowContext)
-    {
-        ErrorF("XSELinux: out of memory\n");
-        return FALSE;
-    }
-    strcpy(XSELinuxRootWindowContext, context);
-
-    return TRUE;
-} /* XSELinuxParseRootWindowContext */
-
-static Bool
 XSELinuxLoadConfigFile(void)
 {
     FILE *f;
@@ -1630,7 +1592,6 @@ XSELinuxLoadConfigFile(void)
     propertyTypes = extensionTypes = NULL;
     XSELinuxPropertyTypeDefault = XSELinuxExtensionTypeDefault = NULL;
     XSELinuxNonlocalContextDefault = NULL;
-    XSELinuxRootWindowContext = NULL;
 
 #ifndef __UNIXOS2__
     f = fopen(XSELINUXCONFIGFILE, "r");
@@ -1671,10 +1632,6 @@ XSELinuxLoadConfigFile(void)
                 validLine = XSELinuxParseNonlocalContext(p);
                 break;
 
-            case XSELinuxKeywordRootWindowContext:
-                validLine = XSELinuxParseRootWindowContext(p);
-                break;
-
             default:
                 validLine = (*p == '\0');
                 break;
@@ -1704,11 +1661,6 @@ XSELinuxLoadConfigFile(void)
     else if (XSELinuxNonlocalContextDefault == NULL)
     {
         ErrorF("XSELinux: No default context for non-local clients specified\n");
-        goto out;
-    }
-    else if (XSELinuxRootWindowContext == NULL)
-    {
-        ErrorF("XSELinux: No context specified for the root window\n");
         goto out;
     }
 
@@ -1780,10 +1732,6 @@ XSELinuxFreeConfigData(void)
     /* finally, take care of the context for non-local connections */
     xfree(XSELinuxNonlocalContextDefault);
     XSELinuxNonlocalContextDefault = NULL;
-
-    /* ... and for the root window */
-    xfree(XSELinuxRootWindowContext);
-    XSELinuxRootWindowContext = NULL;
 } /* XSELinuxFreeConfigData */
 
 /* Extension dispatch functions */
@@ -1890,10 +1838,6 @@ XSELinuxExtensionInit(INITARGS)
 
     /* Load the config file.  If this fails, shut down the server,
      * since an unknown security status is worse than no security.
-     *
-     * Note that this must come before we assign a security state
-     * for the serverClient, because the serverClient's root windows
-     * are assigned a context based on data in the config file.
      */
     if (XSELinuxLoadConfigFile() != TRUE)
     {
