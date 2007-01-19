@@ -59,15 +59,16 @@ property _SELINUX_CLIENT_CONTEXT	seclabel_property_t
 property XFree86_VT			info_property_t
 property XFree86_DDC_EDID1_RAWDATA	info_property_t
 
-# Cut buffers
-property CUT_BUFFER0			cut_buffer_property_t
-property CUT_BUFFER1			cut_buffer_property_t
-property CUT_BUFFER2			cut_buffer_property_t
-property CUT_BUFFER3			cut_buffer_property_t
-property CUT_BUFFER4			cut_buffer_property_t
-property CUT_BUFFER5			cut_buffer_property_t
-property CUT_BUFFER6			cut_buffer_property_t
-property CUT_BUFFER7			cut_buffer_property_t
+# Clipboard and selection properties
+property CUT_BUFFER0			clipboard_property_t
+property CUT_BUFFER1			clipboard_property_t
+property CUT_BUFFER2			clipboard_property_t
+property CUT_BUFFER3			clipboard_property_t
+property CUT_BUFFER4			clipboard_property_t
+property CUT_BUFFER5			clipboard_property_t
+property CUT_BUFFER6			clipboard_property_t
+property CUT_BUFFER7			clipboard_property_t
+property _XT_SELECTION_0		clipboard_property_t
 
 # Default fallback type
 property default			unknown_property_t
