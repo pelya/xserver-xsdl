@@ -187,9 +187,16 @@ xfree2fbdev_fblayout(ScrnInfoPtr pScrn, struct fb_var_screeninfo *var)
 			      pScrn->virtualX;
 	var->yres_virtual   = pScrn->virtualY;
 	var->bits_per_pixel = pScrn->bitsPerPixel;
-	var->red.length     = pScrn->weight.red;
-	var->green.length   = pScrn->weight.green;
-	var->blue.length    = pScrn->weight.blue;
+	if (pScrn->defaultVisual == TrueColor ||
+	    pScrn->defaultVisual == DirectColor) {
+	    var->red.length     = pScrn->weight.red;
+	    var->green.length   = pScrn->weight.green;
+	    var->blue.length    = pScrn->weight.blue;
+	} else {
+	    var->red.length     = 8;
+	    var->green.length   = 8;
+	    var->blue.length    = 8;
+	}
 }
 
 static void
@@ -746,15 +753,18 @@ fbdevHWModeInit(ScrnInfoPtr pScrn, DisplayModePtr mode)
 		return FALSE;
 	}
 
-	/* XXX: This is a hack, but it should be a NOP for all the setups that
-	 * worked before and actually seems to fix some others...
-	 */
-	pScrn->offset.red   = fPtr->var.red.offset;
-	pScrn->offset.green = fPtr->var.green.offset;
-	pScrn->offset.blue  = fPtr->var.blue.offset;
-	pScrn->mask.red     = ((1 << fPtr->var.red.length) - 1) << fPtr->var.red.offset;
-	pScrn->mask.green   = ((1 << fPtr->var.green.length) - 1) << fPtr->var.green.offset;
-	pScrn->mask.blue    = ((1 << fPtr->var.blue.length) - 1) << fPtr->var.blue.offset;
+	if (pScrn->defaultVisual == TrueColor ||
+	    pScrn->defaultVisual == DirectColor) {
+	    /* XXX: This is a hack, but it should be a NOP for all the setups that
+	     * worked before and actually seems to fix some others...
+	     */
+	    pScrn->offset.red   = fPtr->var.red.offset;
+	    pScrn->offset.green = fPtr->var.green.offset;
+	    pScrn->offset.blue  = fPtr->var.blue.offset;
+	    pScrn->mask.red     = ((1 << fPtr->var.red.length) - 1) << fPtr->var.red.offset;
+	    pScrn->mask.green   = ((1 << fPtr->var.green.length) - 1) << fPtr->var.green.offset;
+	    pScrn->mask.blue    = ((1 << fPtr->var.blue.length) - 1) << fPtr->var.blue.offset;
+	}
 
 	return TRUE;
 }
