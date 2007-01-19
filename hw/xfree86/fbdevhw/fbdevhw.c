@@ -229,23 +229,23 @@ xfree2fbdev_timing(DisplayModePtr mode, struct fb_var_screeninfo *var)
 }
 
 static Bool
-fbdev_modes_equal(struct fb_var_screeninfo *one, struct fb_var_screeninfo *two)
+fbdev_modes_equal(struct fb_var_screeninfo *set, struct fb_var_screeninfo *req)
 {
-	return (one->xres_virtual == two->xres_virtual &&
-		one->yres_virtual == two->yres_virtual &&
-		one->bits_per_pixel == two->bits_per_pixel &&
-		one->red.length == two->red.length &&
-		one->green.length == two->green.length &&
-		one->blue.length == two->blue.length &&
-		one->xres == two->xres && one->yres == two->yres &&
-		one->pixclock == two->pixclock &&
-		one->right_margin == two->right_margin &&
-		one->hsync_len == two->hsync_len &&
-		one->left_margin == two->left_margin &&
-		one->lower_margin == two->lower_margin &&
-		one->vsync_len == two->vsync_len &&
-		one->upper_margin == two->upper_margin &&
-		one->sync == two->sync && one->vmode == two->vmode);
+	return (set->xres_virtual >= req->xres_virtual &&
+		set->yres_virtual == req->yres_virtual &&
+		set->bits_per_pixel == req->bits_per_pixel &&
+		set->red.length == req->red.length &&
+		set->green.length == req->green.length &&
+		set->blue.length == req->blue.length &&
+		set->xres == req->xres && set->yres == req->yres &&
+		set->pixclock == req->pixclock &&
+		set->right_margin == req->right_margin &&
+		set->hsync_len == req->hsync_len &&
+		set->left_margin == req->left_margin &&
+		set->lower_margin == req->lower_margin &&
+		set->vsync_len == req->vsync_len &&
+		set->upper_margin == req->upper_margin &&
+		set->sync == req->sync && set->vmode == req->vmode);
 }
 
 static void
