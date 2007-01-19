@@ -864,6 +864,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     int api_ver = COPY_SUB_BUFFER_INTERNAL_VERSION;
     drm_magic_t magic;
     drmVersionPtr version;
+    int newlyopened;
     char *driverName;
     drm_handle_t  hFB;
     int        junk;
@@ -914,10 +915,10 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 	goto handle_error;
     }
 
-    fd = drmOpen(NULL, BusID);
+    fd = drmOpenOnce(NULL, BusID, &newlyopened);
 
     if (fd < 0) {
-	LogMessage(X_ERROR, "AIGLX error: drmOpen failed (%s)\n",
+	LogMessage(X_ERROR, "AIGLX error: drmOpenOnce failed (%s)\n",
 		   strerror(-fd));
 	goto handle_error;
     }
@@ -940,7 +941,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 	drm_version.patch = -1;
     }
 
-    if (!DRIAuthConnection(pScreen, magic)) {
+    if (newlyopened && !DRIAuthConnection(pScreen, magic)) {
 	LogMessage(X_ERROR, "AIGLX error: DRIAuthConnection failed\n");
 	goto handle_error;
     }
@@ -1082,7 +1083,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 	xfree(dev_priv);
 
     if (fd >= 0)
-	drmClose(fd);
+	drmCloseOnce(fd);
 
     DRICloseConnection(pScreen);
 
