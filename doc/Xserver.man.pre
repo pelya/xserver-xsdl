@@ -397,19 +397,13 @@ base directory for keyboard layout files.  This option is not available
 for setuid X servers (i.e., when the X server's real and effective uids
 are different).
 .TP 8
-.B \-ar1 \fImilliseconds\fP
+.B \-ardelay \fImilliseconds\fP
 sets the autorepeat delay (length of time in milliseconds that a key must
 be depressed before autorepeat starts).
 .TP 8
-.B \-ar2 \fImilliseconds\fP
+.B \-arinterval \fImilliseconds\fP
 sets the autorepeat interval (length of time in milliseconds that should
 elapse between autorepeat-generated keystrokes).
-.TP 8
-.B \-noloadxkb
-disables loading of an XKB keymap description on server startup.
-.TP 8
-.B \-xkbdb \fIfilename\fP
-uses \fIfilename\fP for default keyboard keymaps.
 .TP 8
 .B \-xkbmap \fIfilename\fP
 loads keyboard description in \fIfilename\fP on server startup.
