@@ -543,6 +543,13 @@ RRCrtcGammaSetSize (RRCrtcPtr	crtc,
 		    int		size);
 
 /*
+ * Set the allowable rotations of the CRTC.
+ */
+Bool
+RRCrtcSetRotations (RRCrtcPtr crtc,
+		    Rotation rotations);
+
+/*
  * Destroy a Crtc at shutdown
  */
 void

@@ -22,6 +22,32 @@
 
 #include "randrstr.h"
 
+/**
+ * Returns the width/height that the crtc scans out from the framebuffer
+ */
+static void
+RRCrtcGetScanoutSize(RRCrtcPtr crtc, int *width, int *height)
+{
+    if (crtc->mode == NULL) {
+	*width = 0;
+	*height = 0;
+	return;
+    }
+
+    switch (crtc->rotation & 0xf) {
+    case RR_Rotate_0:
+    case RR_Rotate_180:
+	*width = crtc->mode->mode.width;
+	*height = crtc->mode->mode.height;
+	break;
+    case RR_Rotate_90:
+    case RR_Rotate_270:
+	*width = crtc->mode->mode.height;
+	*height = crtc->mode->mode.width;
+	break;
+    }
+}
+
 /*
  * When the pointer moves, check to see if the specified position is outside
  * any of theavailable CRTCs and move it to a 'sensible' place if so, where
@@ -34,11 +60,15 @@ static Bool
 RRCrtcContainsPosition (RRCrtcPtr crtc, int x, int y)
 {
     RRModePtr   mode = crtc->mode;
-    
+    int		scan_width, scan_height;
+
     if (!mode)
 	return FALSE;
-    if (crtc->x <= x && x < crtc->x + mode->mode.width &&
-	crtc->y <= y && y < crtc->y + mode->mode.height)
+
+    RRCrtcGetScanoutSize (crtc, &scan_width, &scan_height);
+
+    if (crtc->x <= x && x < crtc->x + scan_width &&
+	crtc->y <= y && y < crtc->y + scan_height)
 	return TRUE;
     return FALSE;
 }
@@ -54,28 +84,32 @@ RRPointerToNearestCrtc (ScreenPtr pScreen, int x, int y, RRCrtcPtr skip)
     RRCrtcPtr	nearest = NULL;
     int		best = 0;
     int		best_dx = 0, best_dy = 0;
-    
+
     for (c = 0; c < pScrPriv->numCrtcs; c++)
     {
 	RRCrtcPtr   crtc = pScrPriv->crtcs[c];
 	RRModePtr   mode = crtc->mode;
 	int	    dx, dy;
 	int	    dist;
+	int	    scan_width, scan_height;
 
 	if (!mode)
 	    continue;
 	if (crtc == skip)
 	    continue;
+
+	RRCrtcGetScanoutSize (crtc, &scan_width, &scan_height);
+
 	if (x < crtc->x)
 	    dx = crtc->x - x;
-	else if (x > crtc->x + mode->mode.width)
-	    dx = x - (crtc->x + mode->mode.width);
+	else if (x > crtc->x + scan_width)
+	    dx = x - (crtc->x + scan_width);
 	else
 	    dx = 0;
 	if (y < crtc->y)
 	    dy = crtc->y - x;
-	else if (y > crtc->y + mode->mode.height)
-	    dy = y - (crtc->y + mode->mode.height);
+	else if (y > crtc->y + scan_height)
+	    dy = y - (crtc->y + scan_height);
 	else
 	    dy = 0;
 	dist = dx + dy;

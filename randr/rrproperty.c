@@ -125,6 +125,7 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 {
     RRPropertyPtr		    prop;
     xRROutputPropertyNotifyEvent    event;
+    rrScrPrivPtr		    pScrPriv = rrGetScrPriv(output->pScreen);
     int				    sizeInBytes;
     int				    totalSize;
     pointer			    data;
@@ -213,6 +214,13 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 	prop->next = output->properties;
 	output->properties = prop;
     }
+
+    if (!prop->is_pending) {
+	/* What should we do in case of failure? */
+	pScrPriv->rrOutputSetProperty(output->pScreen, output,
+				      prop->propertyName, prop_value);
+    }
+
     if (sendevent)
     {
 	event.type = RREventBase + RRNotify;
@@ -298,6 +306,12 @@ RRConfigureOutputProperty (RROutputPtr output, Atom property,
     if (prop->valid_values)
 	xfree (prop->valid_values);
     prop->valid_values = new_values;
+
+    if (add) {
+	prop->next = output->properties;
+	output->properties = prop;
+    }
+
     return Success;
 }
 

@@ -427,6 +427,16 @@ RRCrtcGammaSetSize (RRCrtcPtr	crtc,
 }
 
 /*
+ * Set the allowable rotations of the CRTC.
+ */
+Bool
+RRCrtcSetRotations (RRCrtcPtr crtc,
+		    Rotation rotations)
+{
+    crtc->rotations = rotations;
+}
+
+/*
  * Initialize crtc type
  */
 Bool
