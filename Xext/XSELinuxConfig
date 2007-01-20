@@ -19,58 +19,58 @@ nonlocal_context			system_u:object_r:remote_xclient_t:s0
 # any position (it need not be the last property rule listed).
 #
 # Properties set by typical clients: WM, _NET_WM, etc.
-property WM_NAME			client_property_t
-property WM_CLASS			client_property_t
-property WM_ICON_NAME			client_property_t
-property WM_HINTS			client_property_t
-property WM_NORMAL_HINTS		client_property_t
-property WM_COMMAND			client_property_t
-property WM_CLIENT_MACHINE		client_property_t
-property WM_LOCALE_NAME			client_property_t
-property WM_CLIENT_LEADER		client_property_t
-property WM_STATE			client_property_t
-property WM_PROTOCOLS			client_property_t
-property WM_WINDOW_ROLE			client_property_t
-property WM_TRANSIENT_FOR		client_property_t
-property _NET_WM_NAME			client_property_t
-property _NET_WM_ICON			client_property_t
-property _NET_WM_ICON_NAME		client_property_t
-property _NET_WM_PID			client_property_t
-property _NET_WM_STATE			client_property_t
-property _NET_WM_DESKTOP		client_property_t
-property _NET_WM_SYNC_REQUEST_COUNTER	client_property_t
-property _NET_WM_WINDOW_TYPE		client_property_t
-property _NET_WM_USER_TIME		client_property_t
-property _MOTIF_DRAG_RECEIVER_INFO	client_property_t
-property XdndAware			client_property_t
+property WM_NAME			client_xproperty_t
+property WM_CLASS			client_xproperty_t
+property WM_ICON_NAME			client_xproperty_t
+property WM_HINTS			client_xproperty_t
+property WM_NORMAL_HINTS		client_xproperty_t
+property WM_COMMAND			client_xproperty_t
+property WM_CLIENT_MACHINE		client_xproperty_t
+property WM_LOCALE_NAME			client_xproperty_t
+property WM_CLIENT_LEADER		client_xproperty_t
+property WM_STATE			client_xproperty_t
+property WM_PROTOCOLS			client_xproperty_t
+property WM_WINDOW_ROLE			client_xproperty_t
+property WM_TRANSIENT_FOR		client_xproperty_t
+property _NET_WM_NAME			client_xproperty_t
+property _NET_WM_ICON			client_xproperty_t
+property _NET_WM_ICON_NAME		client_xproperty_t
+property _NET_WM_PID			client_xproperty_t
+property _NET_WM_STATE			client_xproperty_t
+property _NET_WM_DESKTOP		client_xproperty_t
+property _NET_WM_SYNC_REQUEST_COUNTER	client_xproperty_t
+property _NET_WM_WINDOW_TYPE		client_xproperty_t
+property _NET_WM_USER_TIME		client_xproperty_t
+property _MOTIF_DRAG_RECEIVER_INFO	client_xproperty_t
+property XdndAware			client_xproperty_t
 
 # Properties written by xrdb
-property RESOURCE_MANAGER		rm_property_t
-property SCREEN_RESOURCES		rm_property_t
+property RESOURCE_MANAGER		rm_xproperty_t
+property SCREEN_RESOURCES		rm_xproperty_t
 
 # Properties written by window managers
-property _MIT_PRIORITY_COLORS		wm_property_t
+property _MIT_PRIORITY_COLORS		wm_xproperty_t
 
 # Properties used for security labeling
-property _SELINUX_CLIENT_CONTEXT	seclabel_property_t
+property _SELINUX_CLIENT_CONTEXT	seclabel_xproperty_t
 
 # Properties used to communicate screen information
-property XFree86_VT			info_property_t
-property XFree86_DDC_EDID1_RAWDATA	info_property_t
+property XFree86_VT			info_xproperty_t
+property XFree86_DDC_EDID1_RAWDATA	info_xproperty_t
 
 # Clipboard and selection properties
-property CUT_BUFFER0			clipboard_property_t
-property CUT_BUFFER1			clipboard_property_t
-property CUT_BUFFER2			clipboard_property_t
-property CUT_BUFFER3			clipboard_property_t
-property CUT_BUFFER4			clipboard_property_t
-property CUT_BUFFER5			clipboard_property_t
-property CUT_BUFFER6			clipboard_property_t
-property CUT_BUFFER7			clipboard_property_t
-property _XT_SELECTION_0		clipboard_property_t
+property CUT_BUFFER0			clipboard_xproperty_t
+property CUT_BUFFER1			clipboard_xproperty_t
+property CUT_BUFFER2			clipboard_xproperty_t
+property CUT_BUFFER3			clipboard_xproperty_t
+property CUT_BUFFER4			clipboard_xproperty_t
+property CUT_BUFFER5			clipboard_xproperty_t
+property CUT_BUFFER6			clipboard_xproperty_t
+property CUT_BUFFER7			clipboard_xproperty_t
+property _XT_SELECTION_0		clipboard_xproperty_t
 
 # Default fallback type
-property default			unknown_property_t
+property default			unknown_xproperty_t
 
 #
 # Extension rules map an extension name to a SELinux type.  The type must
@@ -81,63 +81,63 @@ property default			unknown_property_t
 # any position (it need not be the last extension rule listed).
 #
 # Standard extensions
-extension BIG-REQUESTS			std_ext_t
-extension DOUBLE-BUFFER			std_ext_t
-extension Extended-Visual-Information	std_ext_t
-extension MIT-SUNDRY-NONSTANDARD	std_ext_t
-extension SHAPE				std_ext_t
-extension SYNC				std_ext_t
-extension XC-MISC			std_ext_t
-extension XFIXES			std_ext_t
-extension XFree86-Misc			std_ext_t
-extension XpExtension                   std_ext_t
+extension BIG-REQUESTS			std_xext_t
+extension DOUBLE-BUFFER			std_xext_t
+extension Extended-Visual-Information	std_xext_t
+extension MIT-SUNDRY-NONSTANDARD	std_xext_t
+extension SHAPE				std_xext_t
+extension SYNC				std_xext_t
+extension XC-MISC			std_xext_t
+extension XFIXES			std_xext_t
+extension XFree86-Misc			std_xext_t
+extension XpExtension                   std_xext_t
 
 # Screen management and multihead extensions
-extension RANDR				output_ext_t
-extension XINERAMA			std_ext_t
+extension RANDR				output_xext_t
+extension XINERAMA			std_xext_t
 
 # Input extensions
-extension XInputExtension		input_ext_t
-extension XKEYBOARD			input_ext_t
+extension XInputExtension		input_xext_t
+extension XKEYBOARD			input_xext_t
 
 # Screensaver, power management extensions
-extension DPMS				screensaver_ext_t
-extension MIT-SCREEN-SAVER		screensaver_ext_t
+extension DPMS				screensaver_xext_t
+extension MIT-SCREEN-SAVER		screensaver_xext_t
 
 # Fonting extensions
-extension FontCache			font_ext_t
-extension XFree86-Bigfont		font_ext_t
+extension FontCache			font_xext_t
+extension XFree86-Bigfont		font_xext_t
 
 # Shared memory extensions
-extension MIT-SHM			shmem_ext_t
+extension MIT-SHM			shmem_xext_t
 
 # Accelerated graphics, OpenGL, direct rendering extensions
-extension DAMAGE			accelgraphics_ext_t
-extension GLX				accelgraphics_ext_t
-extension NV-CONTROL			accelgraphics_ext_t
-extension NV-GLX			accelgraphics_ext_t
-extension NVIDIA-GLX			accelgraphics_ext_t
-extension RENDER			std_ext_t
-extension XFree86-DGA			accelgraphics_ext_t
+extension DAMAGE			accelgraphics_xext_t
+extension GLX				accelgraphics_xext_t
+extension NV-CONTROL			accelgraphics_xext_t
+extension NV-GLX			accelgraphics_xext_t
+extension NVIDIA-GLX			accelgraphics_xext_t
+extension RENDER			std_xext_t
+extension XFree86-DGA			accelgraphics_xext_t
 
 # Debugging, testing, and recording extensions
-extension RECORD			debug_ext_t
-extension X-Resource			debug_ext_t
-extension XTEST				debug_ext_t
+extension RECORD			debug_xext_t
+extension X-Resource			debug_xext_t
+extension XTEST				debug_xext_t
 
 # Extensions just for window managers
-extension TOG-CUP			windowmgr_ext_t
+extension TOG-CUP			windowmgr_xext_t
 
 # Security-related extensions
-extension SECURITY			security_ext_t
-extension SELinux			security_ext_t
-extension XAccessControlExtension	security_ext_t
-extension XC-APPGROUP			security_ext_t
+extension SECURITY			security_xext_t
+extension SELinux			security_xext_t
+extension XAccessControlExtension	security_xext_t
+extension XC-APPGROUP			security_xext_t
 
 # Video extensions
-extension XFree86-VidModeExtension	video_ext_t
-extension XVideo			video_ext_t
-extension XVideo-MotionCompensation	video_ext_t
+extension XFree86-VidModeExtension	video_xext_t
+extension XVideo			video_xext_t
+extension XVideo-MotionCompensation	video_xext_t
 
 # Default fallback type
-extension default			unknown_ext_t
+extension default			unknown_xext_t
