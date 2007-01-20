@@ -314,36 +314,75 @@ IDPerm(ClientPtr sclient,
 }
 
 /*
- * ObjectSIDByLabel - get SID for an extension or property.
+ * GetPropertySID - compute SID for a property object.
  *
  * Arguments:
- * class: should be SECCLASS_XEXTENSION or SECCLASS_PROPERTY.
- * name: name of the extension or property.
+ * basecontext: context of client owning the property.
+ * name: name of the property.
  *
  * Returns: proper SID for the object or NULL on error.
  */
 static security_id_t
-ObjectSIDByLabel(security_context_t basecontext, security_class_t class,
-                 const char *name)
+GetPropertySID(security_context_t base, const char *name)
+{
+    security_context_t new, result;
+    context_t con;
+    security_id_t sid = NULL;
+    char **ptr, *type = NULL;
+
+    /* make a new context-manipulation object */
+    con = context_new(base);
+    if (!con)
+	goto out;
+
+    /* look in the mappings of names to types */
+    for (ptr = propertyTypes; *ptr; ptr+=2)
+	if (!strcmp(*ptr, name))
+	    break;
+    type = ptr[1];
+
+    /* set the role and type in the context (user unchanged) */
+    if (context_type_set(con, type) ||
+	context_role_set(con, "object_r"))
+	goto out2;
+
+    /* get a context string from the context-manipulation object */
+    new = context_str(con);
+    if (!new)
+	goto out2;
+
+    /* perform a transition to obtain the final context */
+    if (security_compute_create(base, new, SECCLASS_PROPERTY, &result) < 0)
+	goto out2;
+
+    /* get a SID for the context */
+    avc_context_to_sid(result, &sid);
+    freecon(result);
+  out2:
+    context_free(con);
+  out:
+    return sid;
+}
+
+/*
+ * GetExtensionSID - compute SID for an extension object.
+ *
+ * Arguments:
+ * name: name of the extension.
+ *
+ * Returns: proper SID for the object or NULL on error.
+ */
+static security_id_t
+GetExtensionSID(const char *name)
 {
     security_context_t base, new;
     context_t con;
     security_id_t sid = NULL;
     char **ptr, *type = NULL;
 
-    if (basecontext != NULL)
-    {
-        /* use the supplied context */
-        base = strdup(basecontext);
-        if (base == NULL)
-            goto out;
-    }
-    else
-    {
-        /* get server context */
-        if (getcon(&base) < 0)
-            goto out;
-    }
+    /* get server context */
+    if (getcon(&base) < 0)
+	goto out;
 
     /* make a new context-manipulation object */
     con = context_new(base);
@@ -351,8 +390,7 @@ ObjectSIDByLabel(security_context_t basecontext, security_class_t class,
 	goto out2;
 
     /* look in the mappings of names to types */
-    ptr = (class == SECCLASS_PROPERTY) ? propertyTypes : extensionTypes;
-    for (; *ptr; ptr+=2)
+    for (ptr = extensionTypes; *ptr; ptr+=2)
 	if (!strcmp(*ptr, name))
 	    break;
     type = ptr[1];
@@ -368,8 +406,7 @@ ObjectSIDByLabel(security_context_t basecontext, security_class_t class,
 	goto out3;
 
     /* get a SID for the context */
-    if (avc_context_to_sid(new, &sid) < 0)
-	goto out3;
+    avc_context_to_sid(new, &sid);
 
   out3:
     context_free(con);
@@ -1028,7 +1065,7 @@ CALLBACK(XSELinuxExtDispatch)
     /* XXX there should be a separate callback for this */
     if (!EXTENSIONSID(ext))
     {
-	extsid = ObjectSIDByLabel(NULL, SECCLASS_XEXTENSION, ext->name);
+	extsid = GetExtensionSID(ext->name);
 	if (!extsid)
 	    return;
 	EXTENSIONSID(ext) = extsid;
@@ -1071,7 +1108,7 @@ CALLBACK(XSELinuxProperty)
     if (!tclient || !HAVESTATE(tclient))
         return;
 
-    propsid = ObjectSIDByLabel(SID(tclient)->ctx, SECCLASS_PROPERTY, propname);
+    propsid = GetPropertySID(SID(tclient)->ctx, propname);
     if (!propsid)
 	return;
 
