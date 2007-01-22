@@ -105,9 +105,6 @@ fbCanGetSolid(PicturePtr pict)
     }
 }
 
-#define fbCanGetSolid(pict) \
-(pict->pDrawable != NULL && pict->pDrawable->width == 1 && pict->pDrawable->height == 1)
-
 #define fbComposeGetSolid(pict, bits, fmt) { \
     FbBits	*__bits__; \
     FbStride	__stride__; \
