@@ -301,14 +301,6 @@ extern void XF86SCANPCI_WRAPPER(scanpciWrapperOpt flags);
  */
 typedef struct pci_bus_funcs {
 	ADDRESS (*pciAddrBusToHost)(PCITAG, PciAddrType, ADDRESS);
-	/*
-	 * The next three are optional.  If NULL, the corresponding function is
-	 * to be performed generically.
-	 */
-	CARD16  (*pciControlBridge)(int, CARD16, CARD16);
-	void    (*pciGetBridgeBuses)(int, int *, int *, int *);
-	/* Use pointer's to avoid #include recursion */
-	void    (*pciGetBridgeResources)(int, pointer *, pointer *, pointer *);
 } pciBusFuncs_t, *pciBusFuncs_p;
 
 /*

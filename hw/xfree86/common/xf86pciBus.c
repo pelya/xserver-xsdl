@@ -353,38 +353,6 @@ pciBusAccessDisable(BusAccPtr ptr)
 }
 #undef MASKBITS
 
-/* move to OS layer */
-static void
-pciDrvBusAccessEnable(BusAccPtr ptr)
-{
-#if 0
-    int bus = ptr->busdep.pci.bus;
-
-#ifdef DEBUG
-    ErrorF("pciDrvBusAccessEnable: bus=%d\n", bus);
-#endif
-    (*pciBusInfo[bus]->funcs->pciControlBridge)(bus,
-						PCI_PCI_BRIDGE_VGA_EN,
-						PCI_PCI_BRIDGE_VGA_EN);
-#endif
-}
-
-/* move to OS layer */
-static void
-pciDrvBusAccessDisable(BusAccPtr ptr)
-{
-#if 0
-    int bus = ptr->busdep.pci.bus;
-
-#ifdef DEBUG
-    ErrorF("pciDrvBusAccessDisable: bus=%d\n", bus);
-#endif
-    (*pciBusInfo[bus]->funcs->pciControlBridge)(bus,
-						PCI_PCI_BRIDGE_VGA_EN, 0);
-#endif
-}
-
-
 static void
 pciSetBusAccess(BusAccPtr ptr)
 {
@@ -494,34 +462,6 @@ restorePciBusState(BusAccPtr ptr)
 }
 #undef MASKBITS
 
-/* move to OS layer */
-static void
-savePciDrvBusState(BusAccPtr ptr)
-{
-#if 0
-    int bus = ptr->busdep.pci.bus;
-
-    ptr->busdep.pci.save.control =
-	(*pciBusInfo[bus]->funcs->pciControlBridge)(bus, 0, 0);
-    /* Allow master aborts to complete normally on this bus */
-    (*pciBusInfo[bus]->funcs->pciControlBridge)(bus,
-						PCI_PCI_BRIDGE_MASTER_ABORT_EN,
-						0);
-#endif
-}
-
-/* move to OS layer */
-static void
-restorePciDrvBusState(BusAccPtr ptr)
-{
-#if 0
-    int bus = ptr->busdep.pci.bus;
-
-    (*pciBusInfo[bus]->funcs->pciControlBridge)(bus, (CARD16)(-1),
-					        ptr->busdep.pci.save.control);
-#endif
-}
-
 
 /*
  * xf86Bus.c interface
@@ -619,16 +559,7 @@ initPciBusState(void)
 
 	pbap->set_f = pciSetBusAccess;
 	
-	if ((secondary >= 0) && (secondary < pciNumBuses) &&
-	    (pBusInfo = pciBusInfo[secondary]) &&
-	    pBusInfo->funcs->pciControlBridge) {
-	    pbap->type = BUS_PCI;
-	    pbap->save_f = savePciDrvBusState;
-	    pbap->restore_f = restorePciDrvBusState;
-	    pbap->enable_f = pciDrvBusAccessEnable;
-	    pbap->disable_f = pciDrvBusAccessDisable;
-	    savePciDrvBusState(pbap);
-	} else switch (subclass) {
+	switch (subclass) {
 	case PCI_SUBCLASS_BRIDGE_HOST:
 	    pbap->type = BUS_PCI;
 	    break;

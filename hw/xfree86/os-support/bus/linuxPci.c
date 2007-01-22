@@ -77,10 +77,6 @@ static pciBusFuncs_t linuxFuncs0 = {
 /* pciAddrBusToHost */	linuxTransAddrBusToHost,
 #endif /* __sparc64__ */
 #endif
-
-/* pciControlBridge */		NULL,
-/* pciGetBridgeBuses */		NULL,
-/* pciGetBridgeResources */	NULL,
 };
 
 static pciBusInfo_t linuxPci0 = {
