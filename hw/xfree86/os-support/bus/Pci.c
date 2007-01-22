@@ -238,11 +238,6 @@ pciInit(void)
 #endif
 
 	ARCH_PCI_INIT();
-#if defined(ARCH_PCI_OS_INIT)
-	if (pciNumBuses <= 0) {
-	    ARCH_PCI_OS_INIT();
-	}
-#endif
     }
 }
 

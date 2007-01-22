@@ -281,12 +281,7 @@ void ix86PciSelectCfgmech(void)
      * We rely on xf86Info.pciFlags to tell which mechanisms to try....
      */
     switch (xf86Info.pciFlags) {
-
 	case PCIOsConfig:
-#ifdef ARCH_PCI_OS_INIT
-	    return;
-#endif
-	    
 	case PCIProbe1:
 	    if (!xf86EnableIO())
 		return;

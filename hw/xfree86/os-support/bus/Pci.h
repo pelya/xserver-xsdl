@@ -216,11 +216,12 @@
 # endif
 # define XF86SCANPCI_WRAPPER ia64ScanPCIWrapper
 #elif defined(__i386__) || defined(i386)
-# define ARCH_PCI_INIT ix86PciInit
-# define INCLUDE_XF86_NO_DOMAIN
 # if defined(linux)
-#  define ARCH_PCI_OS_INIT linuxPciInit
+#  define ARCH_PCI_INIT linuxPciInit
+# else
+#  define ARCH_PCI_INIT ix86PciInit
 # endif
+# define INCLUDE_XF86_NO_DOMAIN
 #elif defined(__mc68000__)
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
@@ -270,13 +271,12 @@
 #elif defined(__amd64__) || defined(__amd64)
 # if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 #  define ARCH_PCI_INIT freebsdPciInit
+# elif defined(linux)
+#  define ARCH_PCI_INIT linuxPciInit
 # else
 #  define ARCH_PCI_INIT ix86PciInit
 # endif
 # define INCLUDE_XF86_NO_DOMAIN
-# if defined(linux)
-#  define ARCH_PCI_OS_INIT linuxPciInit
-# endif
 #endif
 
 #ifndef ARCH_PCI_INIT
@@ -286,9 +286,6 @@
 #undef INCLUDE_XF86_NO_DOMAIN
 
 extern void ARCH_PCI_INIT(void);
-#if defined(ARCH_PCI_OS_INIT)
-extern void ARCH_PCI_OS_INIT(void);
-#endif
 
 #if defined(XF86SCANPCI_WRAPPER)
 typedef enum {
