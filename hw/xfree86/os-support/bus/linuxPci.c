@@ -137,6 +137,10 @@ linuxPciOpenFile(struct pci_device *dev, Bool write)
     struct stat	ignored;
     static int is26 = -1;
 
+    if (dev == NULL) {
+	return -1;
+    }
+
     if (is26 == -1) {
 	is26 = (stat("/sys/bus/pci", &ignored) < 0) ? 0 : 1;
     }
@@ -286,18 +290,41 @@ linuxPpcBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
 
 /* This probably shouldn't be Linux-specific */
 static struct pci_device *
-xf86GetPciHostConfigFromTag(PCITAG Tag)
+get_parent_bridge(struct pci_device *dev)
 {
-    int bus = PCI_BUS_FROM_TAG(Tag);
-    pciBusInfo_t *pBusInfo;
+    struct pci_id_match bridge_match = {
+	PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY,
+	(PCI_CLASS_BRIDGE << 16) | (PCI_SUBCLASS_BRIDGE_PCI << 8),
+	0
+    };
+    struct pci_device *bridge;
+    struct pci_device_iterator *iter;
 
-    while ((bus < pciNumBuses) && (pBusInfo = pciBusInfo[bus])) {
-	if (bus == pBusInfo->primary_bus)
-	    return pBusInfo->bridge;
-	bus = pBusInfo->primary_bus;
+    if (dev == NULL) {
+	return NULL;
     }
 
-    return NULL;	/* Bad data */
+    iter = pci_id_match_iterator_create(& bridge_match);
+    if (iter == NULL) {
+	return NULL;
+    }
+
+    while ((bridge = pci_device_next(iter)) != NULL) {
+	if (bridge->domain == dev->domain) {
+	    const struct pci_bridge_info *info = 
+		pci_device_get_bridge_info(bridge);
+
+	    if (info != NULL) {
+		if (info->secondary_bus == dev->bus) {
+		    break;
+		}
+	    }
+	}
+    }
+
+    pci_iterator_destroy(iter);
+
+    return bridge;
 }
 
 /*
@@ -375,8 +402,9 @@ linuxMapPci(int ScreenNum, int Flags, struct pci_device *dev,
 
 	xf86InitVidMem();
 
-	/* FIXME: What if dev == NULL? */
-
+	/* If dev is NULL, linuxPciOpenFile will return -1, and this routine
+	 * will fail gracefully.
+	 */
 	if (((fd = linuxPciOpenFile(dev, FALSE)) < 0) ||
 	    (ioctl(fd, mmap_ioctl, 0) < 0))
 	    break;
@@ -434,7 +462,6 @@ linuxOpenLegacy(struct pci_device *dev, char *name)
 {
     static const char PREFIX[] = "/sys/class/pci_bus/%04x:%02x/%s";
     char path[sizeof(PREFIX) + 10];
-    pciBusInfo_t *pBusInfo;
     int fd = -1;
 
     while (dev != NULL) {
@@ -444,13 +471,7 @@ linuxOpenLegacy(struct pci_device *dev, char *name)
 	    return fd;
 	}
 
-	pBusInfo = pciBusInfo[PCI_MAKE_BUS(dev->domain, dev->bus)];
-	if (!pBusInfo || (dev == pBusInfo->bridge) ||
-	   !pBusInfo->bridge) {
-	    return -1;
-	}
-
-	dev = pBusInfo->bridge;
+	dev = get_parent_bridge(dev);
     }
 
     return fd;
@@ -507,27 +528,24 @@ xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,
 IOADDRESS
 xf86MapLegacyIO(struct pci_device *dev)
 {
-    const PCITAG tag = PCI_MAKE_TAG(PCI_MAKE_BUS(dev->domain, dev->bus),
-				    dev->dev, dev->func);
     const int domain = dev->domain;
-    struct pci_device *bridge = xf86GetPciHostConfigFromTag(tag);
+    struct pci_device *bridge = get_parent_bridge(dev);
     int fd;
 
     if (domain >= MAX_DOMAINS)
 	FatalError("xf86MapLegacyIO():  domain out of range\n");
 
-    if (DomainMmappedIO[domain])
-	return (IOADDRESS)DomainMmappedIO[domain];
-
-    /* Permanently map all of I/O space */
-    fd = linuxOpenLegacy(bridge, "legacy_io");
-    if (fd < 0) {
-	DomainMmappedIO[domain] = linuxMapPci(-1, VIDMEM_MMIO, bridge,
-					      0, linuxGetIOSize(bridge),
-					      PCIIOC_MMAP_IS_IO);
-    }
-    else { /* legacy_io file exists, encode fd */
-	DomainMmappedIO[domain] = (pointer)(fd << 24);
+    if (DomainMmappedIO[domain] == NULL) {
+	/* Permanently map all of I/O space */
+	fd = linuxOpenLegacy(bridge, "legacy_io");
+	if (fd < 0) {
+	    DomainMmappedIO[domain] = linuxMapPci(-1, VIDMEM_MMIO, bridge,
+						  0, linuxGetIOSize(bridge),
+						  PCIIOC_MMAP_IS_IO);
+	}
+	else { /* legacy_io file exists, encode fd */
+	    DomainMmappedIO[domain] = (pointer)(fd << 24);
+	}
     }
 
     return (IOADDRESS)DomainMmappedIO[domain];
