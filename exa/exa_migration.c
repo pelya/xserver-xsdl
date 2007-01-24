@@ -249,7 +249,7 @@ exaCopyDirtyToFb (PixmapPtr pPixmap)
  * Called when the memory manager decides it's time to kick the pixmap out of
  * framebuffer entirely.
  */
-static void
+void
 exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
 {
     PixmapPtr pPixmap = area->privData;
