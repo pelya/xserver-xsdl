@@ -549,6 +549,9 @@ Bool
 RRCrtcSetRotations (RRCrtcPtr crtc,
 		    Rotation rotations);
 
+void
+RRCrtcGetScanoutSize(RRCrtcPtr crtc, int *width, int *height);
+
 /*
  * Destroy a Crtc at shutdown
  */
