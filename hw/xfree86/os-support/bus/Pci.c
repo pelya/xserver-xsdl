@@ -23,8 +23,6 @@
  *	xf86MapDomainMemory()  - Like xf86MapPciMem() but can handle
  *                               domain/host address translation
  *	xf86MapLegacyIO()      - Maps PCI I/O spaces
- *	xf86ReadLegacyVideoBIOS() - Like xf86ReadPciBIOS() but can handle
- *                               domain/host address translation
  *
  * The actual PCI backend driver is selected by the pciInit() function
  * (see below)  using either compile time definitions, run-time checks,
@@ -303,45 +301,6 @@ xf86MapLegacyIO(struct pci_device *dev)
 {
     (void) dev;
     return 0;
-}
-
-_X_EXPORT int
-xf86ReadLegacyVideoBIOS(struct pci_device *dev, unsigned char *Buf)
-{
-    const unsigned Len = (2 * 0x10000);
-    ADDRESS Base = 0xC0000;
-    int ret, length, rlength;
-
-    /* Read in 64kB chunks */
-    ret = 0;
-
-    for (length = 0x10000; length > 0; /* empty */) {
-	rlength = xf86ReadBIOS(Base, 0, & Buf[ret], length);
-	if (rlength < 0) {
-	    ret = rlength;
-	    break;
-	}
-
-	ret += rlength;
-	length -= rlength;
-	Base += rlength;
-    }
-
-    if ((Buf[0] == 0x55) && (Buf[1] == 0xAA) && (Buf[2] > 0x80)) {
-	for (length = 0x10000; length > 0; /* empty */) {
-	    rlength = xf86ReadBIOS(Base, 0, & Buf[ret], length);
-	    if (rlength < 0) {
-		ret = rlength;
-		break;
-	    }
-
-	    ret += rlength;
-	    length -= rlength;
-	    Base += rlength;
-	}
-    }
-
-    return ret;
 }
 
 #endif /* INCLUDE_XF86_NO_DOMAIN */

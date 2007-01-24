@@ -261,6 +261,5 @@ extern int pciNumBuses;
 pointer xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,
     ADDRESS Base, unsigned long Size);
 IOADDRESS xf86MapLegacyIO(struct pci_device *dev);
-int xf86ReadLegacyVideoBIOS(struct pci_device *dev, unsigned char *Buf);
 
 #endif /* _XF86PCI_H */

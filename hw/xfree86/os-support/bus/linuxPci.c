@@ -547,54 +547,6 @@ xf86MapLegacyIO(struct pci_device *dev)
     return (IOADDRESS)DomainMmappedIO[domain];
 }
 
-/**
- * Read legacy VGA video BIOS associated with specified domain.
- * 
- * Attempts to read up to 128KiB of legacy VGA video BIOS.
- * 
- * \return
- * The number of bytes read on success or -1 on failure.
- */
-_X_EXPORT int
-xf86ReadLegacyVideoBIOS(struct pci_device *dev, unsigned char *Buf)
-{
-    const ADDRESS Base = 0xC0000;
-    const int Len = 0x10000 * 2;
-    const int pagemask = getpagesize() - 1;
-    const ADDRESS offset = Base & ~pagemask;
-    const unsigned long size = ((Base + Len + pagemask) & ~pagemask) - offset;
-    unsigned char *ptr, *src;
-    int len;
-
-
-    /* Try to use the civilized PCI interface first.
-     */
-    if (pci_device_read_rom(dev, Buf) == 0) {
-	return dev->rom_size;
-    }
-
-    ptr = xf86MapDomainMemory(-1, VIDMEM_READONLY, dev, offset, size);
-
-    if (!ptr)
-	return -1;
-
-    /* Using memcpy() here can hang the system */
-    src = ptr + (Base - offset);
-    for (len = 0; len < (Len / 2); len++) {
-	Buf[len] = src[len];
-    }
-
-    if ((Buf[0] == 0x55) && (Buf[1] == 0xAA) && (Buf[2] > 0x80)) {
-	for ( /* empty */ ; len < Len; len++) {
-	    Buf[len] = src[len];
-	}
-    }
-
-    xf86UnMapVidMem(-1, ptr, size);
-
-    return Len;
-}
-
 resPtr
 xf86BusAccWindowsFromOS(void)
 {

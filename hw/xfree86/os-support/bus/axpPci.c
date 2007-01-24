@@ -361,34 +361,6 @@ xf86MapLegacyIO(struct pci_device *dev)
     return pDomain->mapped_io;
 }
 
-_X_EXPORT int
-xf86ReadLegacyVideoBIOS(PCITAG Tag, unsigned char *Buf)
-{
-    const unsigned long pagemask = xf86getpagesize() - 1;
-    const ADDRESS Base = 0xC0000;
-    const int Len = 0x20000;
-    const ADDRESS MapBase = Base & ~pagemask;
-    unsigned long MapSize = ((Base + Len + pagemask) & ~pagemask) - MapBase;
-    unsigned char *MappedAddr;
-    int i;
-
-
-    /*
-     * VIDMEM_MMIO in order to get sparse mapping on sparse memory systems
-     * so we can use mmio functions to read (that way we can really get byte
-     * at a time reads on dense memory systems with byte/word instructions.
-     */
-    MappedAddr = xf86MapDomainMemory(-1, VIDMEM_READONLY | VIDMEM_MMIO, 
-                                     Tag, MapBase, MapSize);
-
-    for (i = 0; i < Len; i++) {
-	*Buf++ = xf86ReadMmio8(MappedAddr, Base - MapBase + i);
-    }
-    
-    xf86UnMapVidMem(-1, MappedAddr, MapSize);
-    return Len;
-}
-
 resPtr
 xf86PciBusAccWindowsFromOS(void)
 {

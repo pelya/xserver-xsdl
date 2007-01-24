@@ -648,30 +648,6 @@ xf86MapLegacyIO(int ScreenNum, int Flags, PCITAG Tag,
     return (IOADDRESS)pDomain->io + Base;
 }
 
-_X_EXPORT int
-xf86ReadLegacyVideoBIOS(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
-{
-    unsigned char *ptr, *src;
-    ADDRESS offset;
-    unsigned long size;
-    int len;
-
-    /* Ensure page boundaries */
-    offset = Base & ~pagemask;
-    size = ((Base + Len + pagemask) & ~pagemask) - offset;
-
-    ptr = xf86MapDomainMemory(-1, VIDMEM_READONLY, Tag, offset, size);
-
-    /* Using memcpy() here hangs the system */
-    src = ptr + (Base - offset);
-    for (len = Len;  len-- > 0;)
-	    *Buf++ = *src++;
-
-    xf86UnMapVidMem(-1, ptr, size);
-
-    return Len;
-}
-
 resPtr
 xf86BusAccWindowsFromOS(void)
 {
