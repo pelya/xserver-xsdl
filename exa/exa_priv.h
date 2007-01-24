@@ -412,4 +412,7 @@ exaGlyphs (CARD8	op,
 void
 exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel);
 
+void
+exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area);
+
 #endif /* EXAPRIV_H */

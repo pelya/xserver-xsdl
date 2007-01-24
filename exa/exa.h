@@ -39,7 +39,7 @@
 #include "fb.h"
 
 #define EXA_VERSION_MAJOR   2
-#define EXA_VERSION_MINOR   0
+#define EXA_VERSION_MINOR   1
 #define EXA_VERSION_RELEASE 0
 
 typedef struct _ExaOffscreenArea ExaOffscreenArea;
@@ -73,8 +73,8 @@ struct _ExaOffscreenArea {
 typedef struct _ExaDriver {
     /**
      * exa_major and exa_minor should be set by the driver to the version of
-     * EXA which the driver was compiled for (or configures itself at runtime to
-     * support).  This allows EXA to extend the structure for new features
+     * EXA which the driver was compiled for (or configures itself at runtime
+     * to support).  This allows EXA to extend the structure for new features
      * without breaking ABI for drivers compiled against older versions.
      */
     int exa_major, exa_minor;

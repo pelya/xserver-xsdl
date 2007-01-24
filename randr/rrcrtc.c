@@ -397,6 +397,32 @@ RRCrtcGammaNotify (RRCrtcPtr	crtc)
     return TRUE;    /* not much going on here */
 }
 
+/**
+ * Returns the width/height that the crtc scans out from the framebuffer
+ */
+void
+RRCrtcGetScanoutSize(RRCrtcPtr crtc, int *width, int *height)
+{
+    if (crtc->mode == NULL) {
+	*width = 0;
+	*height = 0;
+	return;
+    }
+
+    switch (crtc->rotation & 0xf) {
+    case RR_Rotate_0:
+    case RR_Rotate_180:
+	*width = crtc->mode->mode.width;
+	*height = crtc->mode->mode.height;
+	break;
+    case RR_Rotate_90:
+    case RR_Rotate_270:
+	*width = crtc->mode->mode.height;
+	*height = crtc->mode->mode.width;
+	break;
+    }
+}
+
 /*
  * Set the size of the gamma table at server startup time
  */
@@ -434,6 +460,7 @@ RRCrtcSetRotations (RRCrtcPtr crtc,
 		    Rotation rotations)
 {
     crtc->rotations = rotations;
+    return TRUE;
 }
 
 /*
