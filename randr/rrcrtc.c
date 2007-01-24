@@ -460,6 +460,7 @@ RRCrtcSetRotations (RRCrtcPtr crtc,
 		    Rotation rotations)
 {
     crtc->rotations = rotations;
+    return TRUE;
 }
 
 /*
