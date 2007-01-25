@@ -398,11 +398,11 @@ AC_ARG_ENABLE(debug,         AS_HELP_STRING([--enable-debug],
 AC_ARG_WITH(int10,           AS_HELP_STRING([--with-int10=BACKEND], [int10 backend: vm86, x86emu or stub]),
 				[INT10="$withval"],
 				[INT10="$DEFAULT_INT10"])
-AC_ARG_WITH(vendor-name,     AS_HELP_STRING([--with-vendor-string=VENDOR],
+AC_ARG_WITH(vendor-name,     AS_HELP_STRING([--with-vendor-name=VENDOR],
 				  [Vendor string reported by the server]),
 			     	[ VENDOR_STRING="$withval" ],
 			     	[ VENDOR_STRING="$DEFAULT_VENDOR_NAME" ])
-AC_ARG_WITH(vendor-name-short, AS_HELP_STRING([--with-vendor-string-short=VENDOR],
+AC_ARG_WITH(vendor-name-short, AS_HELP_STRING([--with-vendor-name-short=VENDOR],
 				  [Short version of vendor string reported by the server]),
 			     	[ VENDOR_STRING_SHORT="$withval" ],
 			     	[ VENDOR_STRING_SHORT="$DEFAULT_VENDOR_NAME_SHORT" ])
