@@ -290,10 +290,12 @@ ProcRRXineramaQueryScreens(ClientPtr client)
 	    RRCrtcPtr	crtc = pScrPriv->crtcs[i];
 	    if (RRXineramaCrtcActive (crtc))
 	    {
+	        int width, height;
+		RRCrtcGetScanoutSize (crtc, &width, &height);
 		scratch.x_org  = crtc->x;
 		scratch.y_org  = crtc->y;
-		scratch.width  = crtc->mode->mode.width;
-		scratch.height = crtc->mode->mode.height;
+		scratch.width  = width;
+		scratch.height = height;
 		if(client->swapped) {
 		    register int n;
 		    swaps(&scratch.x_org, n);

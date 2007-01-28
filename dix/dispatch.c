@@ -3752,6 +3752,8 @@ InitClientPrivates(ClientPtr client)
     client->devPrivates = ppriv;
     sizes = clientPrivateSizes;
     ptr = (char *)(ppriv + clientPrivateLen);
+    if (ppriv)
+	bzero(ppriv, totalClientSize - sizeof(ClientRec));
     for (i = clientPrivateLen; --i >= 0; ppriv++, sizes++)
     {
 	if ( (size = *sizes) )

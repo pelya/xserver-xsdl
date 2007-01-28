@@ -549,11 +549,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
             y = valuators[1 - first_valuator];
         }
         else {
-<<<<<<< HEAD/dix/getevents.c
             y = pointer->valuator->lasty;
-=======
-                y = pointer->valuator->lasty;
->>>>>>> ca5ebe3971d8ebcfed00c5ebcd026cdd0ce0c6ba/dix/getevents.c
         }
     }
     else {

@@ -169,18 +169,7 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
 	if (height > maxHeight) maxHeight = height;
     }
 
-    if (minWidth != pScrPriv->minWidth) {
-	pScrPriv->minWidth = minWidth; pScrPriv->changed = TRUE;
-    }
-    if (maxWidth != pScrPriv->maxWidth) {
-	pScrPriv->maxWidth = maxWidth; pScrPriv->changed = TRUE;
-    }
-    if (minHeight != pScrPriv->minHeight) {
-	pScrPriv->minHeight = minHeight; pScrPriv->changed = TRUE;
-    }
-    if (maxHeight != pScrPriv->maxHeight) {
-	pScrPriv->maxHeight = maxHeight; pScrPriv->changed = TRUE;
-    }
+    RRScreenSetSizeRange (pScreen, minWidth, minHeight, maxWidth, maxHeight);
 
     /* notice current mode */
     if (newMode)
@@ -219,7 +208,6 @@ RRGetInfo (ScreenPtr pScreen)
     return TRUE;
 }
 
-#if RANDR_12_INTERFACE
 /*
  * Register the range of sizes for the screen
  */
@@ -234,12 +222,19 @@ RRScreenSetSizeRange (ScreenPtr	pScreen,
 
     if (!pScrPriv)
 	return;
+    if (pScrPriv->minWidth == minWidth && pScrPriv->minHeight == minHeight &&
+	pScrPriv->maxWidth == maxWidth && pScrPriv->maxHeight == maxHeight)
+    {
+	return;
+    }
+	
     pScrPriv->minWidth  = minWidth;
     pScrPriv->minHeight = minHeight;
     pScrPriv->maxWidth  = maxWidth;
     pScrPriv->maxHeight = maxHeight;
+    pScrPriv->changed = TRUE;
+    pScrPriv->configChanged = TRUE;
 }
-#endif
 
 #ifdef RANDR_10_INTERFACE
 static Bool

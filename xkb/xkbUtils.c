@@ -1497,30 +1497,33 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                 return FALSE;
         }
 
-        if (src->compat->sym_interpret) {
-            if (src->compat->size_si != dst->compat->size_si) {
+        if (src->compat->sym_interpret && src->compat->num_si) {
+            if (src->compat->num_si != dst->compat->size_si) {
                 if (dst->compat->sym_interpret)
                     tmp = xrealloc(dst->compat->sym_interpret,
-                                   src->compat->size_si *
+                                   src->compat->num_si *
                                      sizeof(XkbSymInterpretRec));
                 else
-                    tmp = xalloc(src->compat->size_si *
+                    tmp = xalloc(src->compat->num_si *
                                  sizeof(XkbSymInterpretRec));
                 if (!tmp)
                     return FALSE;
                 dst->compat->sym_interpret = tmp;
             }
             memcpy(dst->compat->sym_interpret, src->compat->sym_interpret,
-                   src->compat->size_si * sizeof(XkbSymInterpretRec));
+                   src->compat->num_si * sizeof(XkbSymInterpretRec));
+
+            dst->compat->num_si = src->compat->num_si;
+            dst->compat->size_si = src->compat->num_si;
         }
         else {
-            if (dst->compat->sym_interpret) {
+            if (dst->compat->sym_interpret && dst->compat->size_si)
                 xfree(dst->compat->sym_interpret);
-                dst->compat->sym_interpret = NULL;
-            }
+
+            dst->compat->sym_interpret = NULL;
+            dst->compat->num_si = 0;
+            dst->compat->size_si = 0;
         }
-        dst->compat->num_si = src->compat->num_si;
-        dst->compat->size_si = src->compat->size_si;
 
         memcpy(dst->compat->groups, src->compat->groups,
                XkbNumKbdGroups * sizeof(XkbModsRec));

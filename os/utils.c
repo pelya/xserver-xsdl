@@ -53,23 +53,6 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include <dix-config.h>
 #endif
 
-/* The world's most shocking hack, to ensure we get clock_gettime() and
- * CLOCK_MONOTONIC. */
-#ifdef sun              /* Needed to tell Solaris headers not to restrict to */
-#define __EXTENSIONS__  /* only the functions defined in POSIX 199309.       */
-#endif
-
-#ifdef _POSIX_C_SOURCE
-#define _SAVED_POSIX_C_SOURCE _POSIX_C_SOURCE
-#undef _POSIX_C_SOURCE
-#endif
-#define _POSIX_C_SOURCE 199309L
-#include <time.h>
-#undef _POSIX_C_SOURCE
-#ifdef _SAVED_POSIX_C_SOURCE
-#define _POSIX_C_SOURCE _SAVED_POSIX_C_SOURCE
-#endif
-
 #ifdef __CYGWIN__
 #include <stdlib.h>
 #include <signal.h>
@@ -80,6 +63,7 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #endif
 #include <X11/Xos.h>
 #include <stdio.h>
+#include <time.h>
 #include "misc.h"
 #include <X11/X.h>
 #define XSERV_t

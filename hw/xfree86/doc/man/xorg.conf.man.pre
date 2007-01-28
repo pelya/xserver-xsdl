@@ -649,7 +649,7 @@ being
 that are passed to the module when it is loaded.
 .PP
 Example: the extmod module (which contains a miscellaneous group of
-server extensions) can be loaded, with the __xservername__-DGA extension
+server extensions) can be loaded, with the XFree86-DGA extension
 disabled by using the following entry:
 .PP
 .RS 4

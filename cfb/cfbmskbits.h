@@ -32,10 +32,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include	<X11/X.h>
 #include	<X11/Xmd.h>
 #include	"servermd.h"
-#if defined(XFREE86) || ( defined(__OpenBSD__) && defined(__alpha__) ) \
-	|| (defined(__bsdi__))
 #include	"compiler.h"
-#endif
 
 /*
  * ==========================================================================

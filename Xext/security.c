@@ -946,10 +946,10 @@ SecurityAuditResourceIDAccess(
  *	rtype is its type or class.
  *	access_mode represents the intended use of the resource; see
  *	  resource.h.
- *	rval is a pointer to the resource structure for this resource.
+ *	res is a pointer to the resource structure for this resource.
  *
  * Returns:
- *	If access is granted, the value of rval that was passed in, else NULL.
+ *	If access is granted, the value of rval that was passed in, else FALSE.
  *
  * Side Effects:
  *	Disallowed resource accesses are audited.

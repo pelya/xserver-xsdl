@@ -35,11 +35,15 @@ static Bool
 RRCrtcContainsPosition (RRCrtcPtr crtc, int x, int y)
 {
     RRModePtr   mode = crtc->mode;
-    
+    int		scan_width, scan_height;
+
     if (!mode)
 	return FALSE;
-    if (crtc->x <= x && x < crtc->x + mode->mode.width &&
-	crtc->y <= y && y < crtc->y + mode->mode.height)
+
+    RRCrtcGetScanoutSize (crtc, &scan_width, &scan_height);
+
+    if (crtc->x <= x && x < crtc->x + scan_width &&
+	crtc->y <= y && y < crtc->y + scan_height)
 	return TRUE;
     return FALSE;
 }
@@ -55,28 +59,32 @@ RRPointerToNearestCrtc (ScreenPtr pScreen, int x, int y, RRCrtcPtr skip)
     RRCrtcPtr	nearest = NULL;
     int		best = 0;
     int		best_dx = 0, best_dy = 0;
-    
+
     for (c = 0; c < pScrPriv->numCrtcs; c++)
     {
 	RRCrtcPtr   crtc = pScrPriv->crtcs[c];
 	RRModePtr   mode = crtc->mode;
 	int	    dx, dy;
 	int	    dist;
+	int	    scan_width, scan_height;
 
 	if (!mode)
 	    continue;
 	if (crtc == skip)
 	    continue;
+
+	RRCrtcGetScanoutSize (crtc, &scan_width, &scan_height);
+
 	if (x < crtc->x)
 	    dx = crtc->x - x;
-	else if (x > crtc->x + mode->mode.width)
-	    dx = x - (crtc->x + mode->mode.width);
+	else if (x > crtc->x + scan_width)
+	    dx = x - (crtc->x + scan_width);
 	else
 	    dx = 0;
 	if (y < crtc->y)
 	    dy = crtc->y - x;
-	else if (y > crtc->y + mode->mode.height)
-	    dy = y - (crtc->y + mode->mode.height);
+	else if (y > crtc->y + scan_height)
+	    dy = y - (crtc->y + scan_height);
 	else
 	    dy = 0;
 	dist = dx + dy;

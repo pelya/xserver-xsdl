@@ -93,6 +93,9 @@
 /* Define to 1 if you have the <asm/mtrr.h> header file. */
 #undef HAVE_ASM_MTRR_H
 
+/* Define to 1 if you have the <byteswap.h> header file. */
+#undef HAVE_BYTESWAP_H
+
 /* Define to 1 if you have the <dbm.h> header file. */
 #undef HAVE_DBM_H
 
@@ -311,6 +314,9 @@
 /* Use rgb.txt directly */
 #undef USE_RGB_TXT
 
+/* Define to use byteswap macros from <sys/endian.h> */
+#undef USE_SYS_ENDIAN_H
+
 /* unaligned word accesses behave as expected */
 #undef WORKING_UNALIGNED_INT
 
@@ -413,16 +419,8 @@
 /* Endian order */
 #undef X_BYTE_ORDER
 
-/* BSD-compliant source */
-#undef _BSD_SOURCE
-
-/* POSIX-compliant source */
-#undef _POSIX_SOURCE
-
-#ifndef _XOPEN_SOURCE
-/* X/Open-compliant source */
-#undef _XOPEN_SOURCE
-#endif
+/* Enable GNU and other extensions to the C environment for GLIBC */
+#undef _GNU_SOURCE
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
@@ -468,5 +466,14 @@
 
 /* Path to XErrorDB file */
 #undef XERRORDB_PATH
+
+/* Define to 16-bit byteswap macro */
+#undef bswap_16
+
+/* Define to 32-bit byteswap macro */
+#undef bswap_32
+
+/* Define to 64-bit byteswap macro */
+#undef bswap_64
 
 #endif /* _DIX_CONFIG_H_ */
