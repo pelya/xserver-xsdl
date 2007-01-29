@@ -137,6 +137,8 @@ _X_EXPORT miPointerSpriteFuncRec miSpritePointerFuncs = {
 
 static void miSpriteRemoveCursor(DeviceIntPtr pDev, 
                                  ScreenPtr pScreen); 
+static void miSpriteSaveUnderCursor(DeviceIntPtr pDev,
+                                 ScreenPtr pScreen);
 static void miSpriteRestoreCursor(DeviceIntPtr pDev,
                                  ScreenPtr pScreen);
 
@@ -524,6 +526,18 @@ miSpriteBlockHandler (i, blockData, pTimeout, pReadmask)
             if (!pCursorInfo->isUp && pCursorInfo->shouldBeUp)
             {
                 SPRITE_DEBUG (("BlockHandler restore\n"));
+                miSpriteSaveUnderCursor (pDev, pScreen);
+            }
+        }
+    }
+    for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
+    {
+        if (DevHasCursor(pDev))
+        {
+            pCursorInfo = &pPriv->pDevCursors[pDev->id];
+            if (!pCursorInfo->isUp && pCursorInfo->shouldBeUp)
+            {
+                SPRITE_DEBUG (("BlockHandler restore\n"));
                 miSpriteRestoreCursor (pDev, pScreen);
             }
         }
@@ -891,14 +905,15 @@ miSpriteSetCursor (pDev, pScreen, pCursor, x, y)
 	else
 #endif
 	{
-	    SPRITE_DEBUG (("SetCursor remove\n"));
+	    SPRITE_DEBUG (("SetCursor remove %d\n", pDev->id));
 	    miSpriteRemoveCursor (pDev, pScreen);
 	}
     }
 
     if (!pPointer->isUp && pPointer->pCursor)
     {
-	SPRITE_DEBUG (("SetCursor restore\n"));
+	SPRITE_DEBUG (("SetCursor restore %d\n", pDev->id));
+        miSpriteSaveUnderCursor(pDev, pScreen);
 	miSpriteRestoreCursor (pDev, pScreen);
     }
 
@@ -944,6 +959,7 @@ miSpriteRemoveCursor (pDev, pScreen)
 
     miSpriteIsUpFALSE (pCursorInfo, pScreen, pScreenPriv);
     pCursorInfo->pCacheWin = NullWindow;
+    miSpriteDisableDamage(pScreen, pScreenPriv);
     if (!(*pScreenPriv->funcs->RestoreUnderCursor) (pDev,
                                          pScreen,
 					 pCursorInfo->saved.x1,
@@ -955,8 +971,52 @@ miSpriteRemoveCursor (pDev, pScreen)
     {
 	miSpriteIsUpTRUE (pCursorInfo, pScreen, pScreenPriv);
     }
+    miSpriteEnableDamage(pScreen, pScreenPriv);
     DamageDrawInternal (pScreen, FALSE);
 }
+
+/*
+ * Called from the block handler, saves area under cursor
+ * before waiting for something to do.
+ */
+
+static void 
+miSpriteSaveUnderCursor(pDev, pScreen)
+    DeviceIntPtr pDev;
+    ScreenPtr	pScreen;
+{
+    miSpriteScreenPtr   pScreenPriv;
+    int			x, y;
+    CursorPtr		pCursor;
+    miCursorInfoPtr     pCursorInfo;
+
+    DamageDrawInternal (pScreen, TRUE);
+    pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
+    pCursorInfo = pScreenPriv->cp;
+
+    if (DevHasCursor(pDev))
+        pCursorInfo = &pScreenPriv->pDevCursors[pDev->id];
+
+    miSpriteComputeSaved (pDev, pScreen);
+    pCursor = pCursorInfo->pCursor;
+
+    x = pCursorInfo->x - (int)pCursor->bits->xhot;
+    y = pCursorInfo->y - (int)pCursor->bits->yhot;
+    miSpriteDisableDamage(pScreen, pScreenPriv);
+
+    (*pScreenPriv->funcs->SaveUnderCursor) (pDev,
+                                      pScreen,
+				      pCursorInfo->saved.x1,
+				      pCursorInfo->saved.y1,
+                                      pCursorInfo->saved.x2 -
+                                      pCursorInfo->saved.x1,
+                                      pCursorInfo->saved.y2 -
+                                      pCursorInfo->saved.y1);
+    SPRITE_DEBUG(("SaveUnderCursor %d\n", pDev->id));
+    miSpriteEnableDamage(pScreen, pScreenPriv);
+    DamageDrawInternal (pScreen, FALSE);
+}
+
 
 /*
  * Called from the block handler, restores the cursor
@@ -985,25 +1045,18 @@ miSpriteRestoreCursor (pDev, pScreen)
 
     x = pCursorInfo->x - (int)pCursor->bits->xhot;
     y = pCursorInfo->y - (int)pCursor->bits->yhot;
-    if ((*pScreenPriv->funcs->SaveUnderCursor) (pDev,
-                                      pScreen,
-				      pCursorInfo->saved.x1,
-				      pCursorInfo->saved.y1,
-                                      pCursorInfo->saved.x2 -
-                                      pCursorInfo->saved.x1,
-                                      pCursorInfo->saved.y2 -
-                                      pCursorInfo->saved.y1))
+    miSpriteDisableDamage(pScreen, pScreenPriv);
+    SPRITE_DEBUG(("RestoreCursor %d\n", pDev->id));
+    if (pCursorInfo->checkPixels)
+        miSpriteFindColors (pCursorInfo, pScreen);
+    if ((*pScreenPriv->funcs->PutUpCursor) (pDev, pScreen, 
+                pCursor, x, y,
+                pCursorInfo->colors[SOURCE_COLOR].pixel,
+                pCursorInfo->colors[MASK_COLOR].pixel))
     {
-	if (pCursorInfo->checkPixels)
-	    miSpriteFindColors (pCursorInfo, pScreen);
-	if ((*pScreenPriv->funcs->PutUpCursor) (pDev, pScreen, 
-                                  pCursor, x, y,
-				  pCursorInfo->colors[SOURCE_COLOR].pixel,
-				  pCursorInfo->colors[MASK_COLOR].pixel))
-	{
-	    miSpriteIsUpTRUE (pCursorInfo, pScreen, pScreenPriv);
-	}
+        miSpriteIsUpTRUE (pCursorInfo, pScreen, pScreenPriv);
     }
+    miSpriteEnableDamage(pScreen, pScreenPriv);
     DamageDrawInternal (pScreen, FALSE);
 }
 
