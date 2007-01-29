@@ -401,7 +401,8 @@ linuxMapPci(int ScreenNum, int Flags, struct pci_device *dev,
 	/* If dev is NULL, linuxPciOpenFile will return -1, and this routine
 	 * will fail gracefully.
 	 */
-	if (((fd = linuxPciOpenFile(dev, FALSE)) < 0) ||
+        prot = ((Flags & VIDMEM_READONLY) == 0);
+        if (((fd = linuxPciOpenFile(Tag, prot)) < 0) ||
 	    (ioctl(fd, mmap_ioctl, 0) < 0))
 	    break;
 
