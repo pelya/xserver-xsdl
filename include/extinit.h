@@ -121,6 +121,12 @@ SDeviceLeaveNotifyEvent (
         deviceLeaveNotify * /* to */
         );
 
+void 
+SPointerKeyboardPairingChangedNotifyEvent (
+        pairingChangedNotify * /* from */,
+        pairingChangedNotify * /* to */
+        );
+
 void
 FixExtensionEvents (
 	ExtensionEntry 	*      /* extEntry */
@@ -143,7 +149,7 @@ AssignTypeAndName (
 	char *                 /* name */
 	);
 
-Bool MayNeedPointer(
+Bool IsPointerDevice(
         DeviceIntPtr            /* dev */
         );
 

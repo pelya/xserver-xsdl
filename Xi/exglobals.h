@@ -52,6 +52,9 @@ extern Mask DeviceOwnerGrabButtonMask;
 extern Mask DeviceButtonGrabMask;
 extern Mask DeviceButtonMotionMask;
 extern Mask DevicePresenceNotifyMask;
+extern Mask DeviceEnterWindowMask;
+extern Mask DeviceLeaveWindowMask;
+extern Mask PointerKeyboardPairingChangedNotifyMask;
 extern Mask PropagateMask[];
 
 extern int DeviceValuator;
@@ -72,6 +75,7 @@ extern int ChangeDeviceNotify;
 extern int DevicePresenceNotify;
 extern int DeviceEnterNotify;
 extern int DeviceLeaveNotify;
+extern int PointerKeyboardPairingChangedNotify;
 
 extern int RT_INPUTCLIENT;
 

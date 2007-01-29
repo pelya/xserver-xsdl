@@ -242,15 +242,13 @@ static int spriteTraceGood;
 
 
 /** 
- * True for the core pointer and any MPX device. 
- * False for any other device (including keyboards).
- * Does ID checking for sane range as well.
+ * True if device owns a cursor, false if device shares a cursor sprite with
+ * another device.
  */
 _X_EXPORT Bool
 DevHasCursor(DeviceIntPtr pDev) 
 {
-    return (pDev == inputInfo.pointer || 
-            (pDev->isMPDev && pDev->id < MAX_DEVICES)); 
+    return pDev->spriteOwner;
 }
 
 #ifdef XEVIE
@@ -4225,9 +4223,11 @@ InitSprite(DeviceIntPtr pDev, Bool hasCursor)
         pSprite->confined = FALSE;
 
         pDev->pSprite = pSprite;
+        pDev->spriteOwner = TRUE;
     } else
     {
         pDev->pSprite = inputInfo.pointer->pSprite;
+        pDev->spriteOwner = FALSE;
     }
 }
 

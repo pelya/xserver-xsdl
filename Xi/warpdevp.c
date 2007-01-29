@@ -85,7 +85,8 @@ ProcXWarpDevicePointer(register ClientPtr client)
 
     pDev = LookupDeviceIntRec(stuff->deviceid);
     if (pDev == NULL) {
-        SendErrorToClient(client, IReqCode, X_WarpDevicePointer, 0,
+        SendErrorToClient(client, IReqCode, X_WarpDevicePointer,
+                stuff->deviceid,
                 BadDevice); 
         return Success;
     }

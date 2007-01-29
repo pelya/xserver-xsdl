@@ -80,6 +80,7 @@ SOFTWARE.
 #include "chgkbd.h"
 #include "chgprop.h"
 #include "chgptr.h"
+#include "chpkpair.h"
 #include "closedev.h"
 #include "devbell.h"
 #include "getbmap.h"
@@ -172,6 +173,7 @@ Mask DeviceButtonMotionMask;
 Mask DevicePresenceNotifyMask;
 Mask DeviceEnterWindowMask;
 Mask DeviceLeaveWindowMask;
+Mask PointerKeyboardPairingChangedMask;
 
 int DeviceValuator;
 int DeviceKeyPress;
@@ -191,6 +193,7 @@ int ChangeDeviceNotify;
 int DevicePresenceNotify;
 int DeviceEnterNotify;
 int DeviceLeaveNotify;
+int PointerKeyboardPairingChangedNotify;
 
 int RT_INPUTCLIENT;
 
@@ -257,6 +260,7 @@ XInputExtensionInit(void)
 	EventSwapVector[ChangeDeviceNotify] = SEventIDispatch;
 	EventSwapVector[DeviceEnterNotify] = SEventIDispatch;
 	EventSwapVector[DeviceLeaveNotify] = SEventIDispatch;
+	EventSwapVector[PointerKeyboardPairingChangedNotify] = SEventIDispatch;
     } else {
 	FatalError("IExtensionInit: AddExtensions failed\n");
     }
@@ -349,6 +353,8 @@ ProcIDispatch(register ClientPtr client)
         return (ProcXWarpDevicePointer(client));
     else if (stuff->data == X_ChangeDeviceCursor)
         return (ProcXChangeDeviceCursor(client));
+    else if (stuff->data == X_ChangePointerKeyboardPairing)
+        return (ProcXChangePointerKeyboardPairing(client));
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -444,6 +450,8 @@ SProcIDispatch(register ClientPtr client)
 	return (SProcXWarpDevicePointer(client));
     else if (stuff->data == X_ChangeDeviceCursor)
         return (SProcXChangeDeviceCursor(client));
+    else if (stuff->data == X_ChangePointerKeyboardPairing)
+        return (SProcXChangePointerKeyboardPairing(client));
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -578,6 +586,8 @@ SEventIDispatch(xEvent * from, xEvent * to)
         DO_SWAP(SDeviceEnterNotifyEvent, deviceEnterNotify);
     else if (type == DeviceLeaveNotify)
         DO_SWAP(SDeviceLeaveNotifyEvent, deviceLeaveNotify);
+    else if (type == PointerKeyboardPairingChangedNotify)
+        DO_SWAP(SPointerKeyboardPairingChangedNotifyEvent, pairingChangedNotify);
     else {
 	FatalError("XInputExtension: Impossible event!\n");
     }
@@ -708,6 +718,16 @@ void SDeviceLeaveNotifyEvent (deviceLeaveNotify *from, deviceLeaveNotify *to)
     swaps(&to->eventY, n);
 }
 
+void SPointerKeyboardPairingChangedNotifyEvent (pairingChangedNotify *from, 
+                                                pairingChangedNotify *to)
+{
+    register char n;
+
+    *to = *from;
+    swaps(&to->sequenceNumber, n);
+    swapl(&to->time, n);
+}
+
 /************************************************************************
  *
  * This function sets up extension event types and masks.
@@ -737,6 +757,7 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     DevicePresenceNotify = DeviceButtonStateNotify + 1;
     DeviceEnterNotify = DevicePresenceNotify + 1;
     DeviceLeaveNotify = DeviceEnterNotify + 1;
+    PointerKeyboardPairingChangedNotify = DeviceLeaveNotify + 1;
 
     event_base[KeyClass] = DeviceKeyPress;
     event_base[ButtonClass] = DeviceButtonPress;
@@ -821,6 +842,11 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     SetMaskForExtEvent(DeviceLeaveWindowMask, DeviceLeaveNotify);
     AllowPropagateSuppress(DeviceLeaveWindowMask);
 
+    PointerKeyboardPairingChangedMask = GetNextExtEventMask();
+    SetMaskForExtEvent(PointerKeyboardPairingChangedMask, 
+            PointerKeyboardPairingChangedNotify);
+    AllowPropagateSuppress(PointerKeyboardPairingChangedMask);
+
     SetEventInfo(0, _noExtensionEvent);
 }
 
@@ -864,6 +890,7 @@ RestoreExtensionEvents(void)
     DevicePresenceNotify = 14;
     DeviceEnterNotify = 15;
     DeviceLeaveNotify = 16;
+    PointerKeyboardPairingChangedNotify = 17;
 
     BadDevice = 0;
     BadEvent = 1;
@@ -904,6 +931,7 @@ IResetProc(ExtensionEntry * unused)
     EventSwapVector[DevicePresenceNotify] = NotImplemented;
     EventSwapVector[DeviceEnterNotify] = NotImplemented;
     EventSwapVector[DeviceLeaveNotify] = NotImplemented;
+    EventSwapVector[PointerKeyboardPairingChangedNotify] = NotImplemented;
     RestoreExtensionEvents();
 }
 
@@ -923,17 +951,17 @@ AssignTypeAndName(DeviceIntPtr dev, Atom type, char *name)
 
 /***********************************************************************
  *
- * Returns true if a device may require a pointer (is not a keyboard).
+ * Returns true if a device may require a pointer (is a mouse).
+ * FIXME: Other devices should be able to get a pointer too...
  *
  */
 _X_EXPORT Bool
-MayNeedPointer(DeviceIntPtr dev)
+IsPointerDevice(DeviceIntPtr dev)
 {
-    /* return false if device is a keyboard */
-    if (dev_type[0].type == dev->type)
-        return FALSE;
+    if (dev_type[1].type == dev->type)
+        return TRUE;
   
-    return TRUE;
+    return FALSE;
 }
 
 /***********************************************************************

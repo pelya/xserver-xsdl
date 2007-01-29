@@ -171,11 +171,24 @@ xf86ActivateDevice(LocalDevicePtr local)
         dev->public.devicePrivate = (pointer) local;
         local->dev = dev;      
         
-        dev->coreEvents = local->flags & XI86_ALWAYS_CORE;
-        dev->isMPDev = 
-            MayNeedPointer(dev) && !(local->flags & XI86_SHARED_POINTER);
-        InitSprite(dev, dev->isMPDev);
+        dev->coreEvents = local->flags & XI86_ALWAYS_CORE; 
+        dev->isMPDev = !(local->flags & XI86_SHARED_POINTER);
 
+#ifdef XKB
+        if (!IsPointerDevice(dev))
+        {
+        /* FIXME: that's not the nice way to do it. XKB wraps the previously
+         * set procs, so if we don't have them here, our event will disappear
+         * in a black hole.*/
+            dev->public.processInputProc = CoreProcessKeyboardEvent;
+            dev->public.realInputProc = CoreProcessKeyboardEvent;
+            if (!noXkbExtension)
+                XkbSetExtension(dev, ProcessKeyboardEvent);
+        }
+#endif
+
+        /* Only create a new sprite if it's a non-shared pointer */
+        InitSprite(dev, IsPointerDevice(dev) && dev->isMPDev);
         RegisterOtherDevice(dev);
 
         if (serverGeneration == 1) 

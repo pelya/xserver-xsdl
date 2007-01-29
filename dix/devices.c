@@ -1072,8 +1072,8 @@ InitKeyboardDeviceStruct(DevicePtr device, KeySymsPtr pKeySyms,
 }
 
 _X_EXPORT void
-SendMappingNotify(unsigned request, unsigned firstKeyCode, unsigned count, 
-                  ClientPtr client)
+SendMappingNotify(DeviceIntPtr pDev, unsigned request, unsigned firstKeyCode,
+        unsigned count, ClientPtr client)
 {
     int i;
     xEvent event;
@@ -1088,8 +1088,7 @@ SendMappingNotify(unsigned request, unsigned firstKeyCode, unsigned count,
 #ifdef XKB
     if (!noXkbExtension &&
 	((request == MappingKeyboard) || (request == MappingModifier))) {
-	XkbApplyMappingChange(inputInfo.keyboard,request,firstKeyCode,count,
-									client);
+	XkbApplyMappingChange(pDev,request,firstKeyCode,count, client);
     }
 #endif
 
@@ -1253,7 +1252,7 @@ ProcSetModifierMapping(ClientPtr client)
                                        stuff->numKeyPerModifier);
 
     /* FIXME: Send mapping notifies for all the extended devices as well. */
-    SendMappingNotify(MappingModifier, 0, 0, client);
+    SendMappingNotify(inputInfo.keyboard, MappingModifier, 0, 0, client);
     WriteReplyToClient(client, sizeof(xSetModifierMappingReply), &rep);
     return client->noClientException;
 }
@@ -1324,8 +1323,8 @@ ProcChangeKeyboardMapping(ClientPtr client)
     }
 
     /* FIXME: Send mapping notifies for all the extended devices as well. */
-    SendMappingNotify(MappingKeyboard, stuff->firstKeyCode, stuff->keyCodes,
-                      client);
+    SendMappingNotify(inputInfo.keyboard, MappingKeyboard,
+            stuff->firstKeyCode, stuff->keyCodes, client);
     return client->noClientException;
 }
 
@@ -1393,7 +1392,7 @@ ProcSetPointerMapping(ClientPtr client)
     }
 
     /* FIXME: Send mapping notifies for all the extended devices as well. */
-    SendMappingNotify(MappingPointer, 0, 0, client);
+    SendMappingNotify(inputInfo.pointer, MappingPointer, 0, 0, client);
     WriteReplyToClient(client, sizeof(xSetPointerMappingReply), &rep);
     return Success;
 }

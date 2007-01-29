@@ -323,6 +323,7 @@ extern Bool InitKeyboardDeviceStruct(
     KbdCtrlProcPtr /*controlProc*/);
 
 extern void SendMappingNotify(
+    DeviceIntPtr /* pDev */,
     unsigned int /*request*/,
     unsigned int /*firstKeyCode*/,
     unsigned int /*count*/,

@@ -724,7 +724,7 @@ SwitchCoreKeyboard(DeviceIntPtr pDev)
         }
 #endif
 
-        SendMappingNotify(MappingKeyboard, ckeyc->curKeySyms.minKeyCode,
+        SendMappingNotify(pDev, MappingKeyboard, ckeyc->curKeySyms.minKeyCode,
                           (ckeyc->curKeySyms.maxKeyCode -
                            ckeyc->curKeySyms.minKeyCode),
                           serverClient);

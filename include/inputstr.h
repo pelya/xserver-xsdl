@@ -178,7 +178,7 @@ typedef struct _ButtonClassRec {
 } ButtonClassRec, *ButtonClassPtr;
 
 typedef struct _FocusClassRec {
-    WindowPtr	win;
+    WindowPtr	win; /* May be set to a int constant (e.g. PointerRootWin)! */
     int		revert;
     TimeStamp	time;
     WindowPtr	*trace;
@@ -355,7 +355,12 @@ typedef struct _DeviceIntRec {
     int			nPrivates;
     DeviceUnwrapProc    unwrapProc;
     Bool                isMPDev;           /* TRUE if multipointer device */
+    /* Each devices has a sprite. However, keyboards and shared pointers do
+       not in fact own a sprite but rather have their pointer set to the
+       sprite of another device. pSprite always has to point to a valid
+       sprite. spriteOwner indicates whether it is the device's sprite. */
     SpritePtr           pSprite;        /* sprite information */
+    Bool                spriteOwner;    /* FALSE if shared sprite, see above*/
 } DeviceIntRec;
 
 typedef struct {

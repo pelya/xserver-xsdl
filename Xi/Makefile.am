@@ -19,6 +19,8 @@ libXi_la_SOURCES =	\
 	chgprop.h \
 	chgptr.c \
 	chgptr.h \
+	chpkpair.c \
+	chpkpair.h \ 
 	closedev.c \
 	closedev.h \
 	devbell.c \
