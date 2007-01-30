@@ -725,6 +725,11 @@ xf86SetModeCrtc(DisplayModePtr p, int adjustFlags)
         p->CrtcVSyncEnd         *= p->VScan;
         p->CrtcVTotal           *= p->VScan;
     }
+    p->CrtcVBlankStart = min(p->CrtcVSyncStart, p->CrtcVDisplay);
+    p->CrtcVBlankEnd = max(p->CrtcVSyncEnd, p->CrtcVTotal);
+    p->CrtcHBlankStart = min(p->CrtcHSyncStart, p->CrtcHDisplay);
+    p->CrtcHBlankEnd = max(p->CrtcHSyncEnd, p->CrtcHTotal);
+
     p->CrtcHAdjusted = FALSE;
     p->CrtcVAdjusted = FALSE;
 }
