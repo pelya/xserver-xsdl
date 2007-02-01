@@ -870,7 +870,7 @@ ProcRRSetCrtcGamma (ClientPtr client)
     unsigned long		len;
     CARD16			*red, *green, *blue;
     
-    REQUEST_SIZE_MATCH(xRRSetCrtcGammaReq);
+    REQUEST_AT_LEAST_SIZE(xRRSetCrtcGammaReq);
     crtc = LookupCrtc (client, stuff->crtc, DixWriteAccess);
     if (!crtc)
 	return RRErrorBase + BadRRCrtc;
