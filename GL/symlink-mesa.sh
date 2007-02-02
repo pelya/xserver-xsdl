@@ -85,15 +85,6 @@ symlink_mesa_math() {
     done
 }
 
-symlink_mesa_ac() {
-    src_dir src/mesa/array_cache
-    dst_dir mesa/array_cache
-
-    for src in $REAL_SRC_DIR/*.c $REAL_SRC_DIR/*.h; do
-        action `basename $src`
-    done
-}
-
 symlink_mesa_swrast() {
     src_dir src/mesa/swrast
     dst_dir mesa/swrast
@@ -203,7 +194,6 @@ symlink_mesa_x8664() {
 symlink_mesa() {
     symlink_mesa_main
     symlink_mesa_math
-    symlink_mesa_ac
     symlink_mesa_swrast
     symlink_mesa_ss
     symlink_mesa_tnl
