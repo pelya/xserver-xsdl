@@ -58,9 +58,6 @@
 #include <GL/glxproto.h>
 #include <GL/glxint.h>
 
-/* For glxscreens.h */
-typedef struct __GLXdrawablePrivateRec __GLXdrawablePrivate;
-
 #include "glxscreens.h"
 #include "glxdrawable.h"
 #include "glxcontext.h"
