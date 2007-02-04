@@ -30,3 +30,5 @@ tnl/*.c
 tnl/*.h
 x86
 x86-64
+vbo/*.c
+vbo/*.h
