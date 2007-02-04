@@ -148,6 +148,15 @@ symlink_mesa_shader_slang_library() {
     done
 }        
 
+symlink_mesa_vbo() {
+    src_dir src/mesa/vbo
+    dst_dir mesa/vbo
+
+    for src in $REAL_SRC_DIR/*.c $REAL_SRC_DIR/*.h; do
+        action `basename $src`
+    done
+}
+
 symlink_mesa_x() {
     src_dir src/mesa/drivers/x11
     dst_dir mesa/X
@@ -205,6 +214,7 @@ symlink_mesa() {
     symlink_mesa_glapi
     symlink_mesa_ppc
     symlink_mesa_sparc
+    symlink_mesa_vbo
     symlink_mesa_x86
     symlink_mesa_x8664
 }
