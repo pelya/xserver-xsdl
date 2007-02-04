@@ -1838,7 +1838,6 @@ Makefile
 GL/Makefile
 GL/glx/Makefile
 GL/mesa/Makefile
-GL/mesa/array_cache/Makefile
 GL/mesa/glapi/Makefile
 GL/mesa/main/Makefile
 GL/mesa/math/Makefile
