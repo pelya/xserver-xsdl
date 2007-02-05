@@ -244,14 +244,6 @@ mieqProcessInputEvents()
                 dev = e->pDev;
             }
 
-            /* FIXME: Keyboard extension devices do not have devPrivates
-             * initialized, resulting in a segfault in XkbHandleActions. */
-            if (e->event[0].u.u.type == DeviceKeyPress || 
-                    e->event[0].u.u.type == DeviceKeyRelease ||
-                    e->event[0].u.u.type == KeyPress ||
-                    e->event[0].u.u.type == KeyRelease)
-                e->pDev = dev = inputInfo.keyboard;
-
             /* MPX devices send both core and Xi events. 
              * Use dev to get the correct processing function but supply
              *  e->pDev to pass the correct device 
