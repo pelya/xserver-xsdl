@@ -62,6 +62,7 @@ SOFTWARE.
 #define POINTER_RELATIVE (1 << 1)
 #define POINTER_ABSOLUTE (1 << 2)
 #define POINTER_ACCELERATE (1 << 3)
+#define POINTER_CORE_ONLY (1 << 4) /* do not generate XI event */
 
 #define MAP_LENGTH	256
 #define DOWN_LENGTH	32	/* 256/8 => number of bytes to hold 256 bits */

@@ -481,6 +481,9 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
  * events is not NULL-terminated; the return value is the number of events.
  * The DDX is responsible for allocating the event structure in the first
  * place via GetMaximumEventsNum(), and for freeing it.
+ *
+ * If flag has POINTER_CORE_ONLY set, no XI or valuator event will be
+ * generated.
  */
 _X_EXPORT int
 GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
@@ -494,6 +497,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
     DeviceIntPtr pointer = NULL;
     int x = 0, y = 0;
+    Bool coreOnly = (flags & POINTER_CORE_ONLY);
 
     /* Sanity checks. */
     if (type != MotionNotify && type != ButtonPress && type != ButtonRelease)
@@ -502,7 +506,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     if ((type == ButtonPress || type == ButtonRelease) && !pDev->button)
         return 0;
 
-    if (pDev->coreEvents || pDev->isMPDev)
+    if (!coreOnly && (pDev->coreEvents || pDev->isMPDev))
         num_events = 2;
     else
         num_events = 1;
@@ -512,7 +516,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     }
 
     /* Do we need to send a DeviceValuator event? */
-    if (sendValuators) {
+    if (!coreOnly & sendValuators) {
         if ((((num_valuators - 1) / 6) + 1) > MAX_VALUATOR_EVENTS)
             num_valuators = MAX_VALUATOR_EVENTS * 6;
         num_events += ((num_valuators - 1) / 6) + 1;
@@ -608,16 +612,19 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     kbp->root_x = x;
     kbp->root_y = y;
 
-    events++;
-    if (sendValuators) {
-        kbp->deviceid |= MORE_EVENTS;
-        clipValuators(pDev, first_valuator, num_valuators, valuators);
-        events = getValuatorEvents(events, pDev, first_valuator,
-                                   num_valuators, valuators);
+    if (!coreOnly)
+    {
+        events++;
+        if (sendValuators) {
+            kbp->deviceid |= MORE_EVENTS;
+            clipValuators(pDev, first_valuator, num_valuators, valuators);
+            events = getValuatorEvents(events, pDev, first_valuator,
+                    num_valuators, valuators);
+        }
     }
 
     /* MPX devices always send core events */
-    if (pDev->coreEvents || pDev->isMPDev) {
+    if (coreOnly || pDev->coreEvents || pDev->isMPDev) {
         events->u.u.type = type;
         events->u.keyButtonPointer.time = ms;
         events->u.keyButtonPointer.rootX = x;

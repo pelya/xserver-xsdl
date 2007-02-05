@@ -540,6 +540,10 @@ void
 miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
                      unsigned long time)
 {
+    xEvent* events;
+    int i, nevents;
+    int valuators[2];
+    int flags;
     miPointerPtr pPointer = MIPOINTER(pDev);
     SetupScreen(pScreen);
 
@@ -556,4 +560,29 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
     pPointer->x = x;
     pPointer->y = y;
     pPointer->pScreen = pScreen;
+
+    /* generate event here */
+    valuators[0] = x;
+    valuators[1] = y;
+    events = (xEvent*)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+    if (!events)
+    {
+        FatalError("Could not allocate event store.\n");
+	return;
+    }
+
+    flags = POINTER_ABSOLUTE;
+
+    /* If called from ProcWarpCursor, pDev is the VCP and we must not generate
+      an XI event. */
+    if (pDev == inputInfo.pointer)
+        flags |= POINTER_CORE_ONLY;
+
+    nevents = GetPointerEvents(events, pDev, MotionNotify, 0,
+                               flags, 0, 2, valuators);
+
+    for (i = 0; i < nevents; i++)
+        mieqEnqueue(pDev, &events[i]);
+
+    xfree(events);
 }
