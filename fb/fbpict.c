@@ -189,6 +189,23 @@ fbCompositeSolidMask_nx8888x8888C (CARD8      op,
     fbComposeGetStart (pDst, xDst, yDst, CARD32, dstStride, dstLine, 1);
     fbComposeGetStart (pMask, xMask, yMask, CARD32, maskStride, maskLine, 1);
 
+    {
+	comp_image_t src, msk, dst;
+	comp_pixel_t src_pixel;
+	comp_format_t msk_format = { 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff };
+	
+	src_pixel.red   = src & 0x000000ff;
+	src_pixel.green = src & 0x0000ff00;
+	src_pixel.blue  = src & 0x00ff0000;
+	src_pixel.alpha = src & 0xff000000;
+	
+	comp_image_init_solid (&src, &src_pixel);
+	comp_image_init_bits  (&msk, maskLine, maskStride, &msk_format);
+	comp_image_init_bits  (&dst, dstLine, dstStride, &dst_format);
+
+	comp_over_c (src, msk, dst, srcX, srcY, mskX, mskY, dstX, dstY);
+    }
+    
     while (height--)
     {
 	dst = dstLine;
@@ -1516,7 +1533,9 @@ static unsigned int detectCPUFeatures(void) {
             features |= SSE;
         if (result & (1 << 26))
             features |= SSE2;
-        if ((result & MMX) && !(result & SSE) && (strcmp(vendor, "AuthenticAMD") == 0)) {
+        if ((features & MMX) && !(features & SSE) &&
+            (strcmp(vendor, "AuthenticAMD") == 0 ||
+             strcmp(vendor, "Geode by NSC") == 0)) {
             /* check for AMD MMX extensions */
 
             unsigned int result;            
