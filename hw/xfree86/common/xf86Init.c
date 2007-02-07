@@ -1769,12 +1769,8 @@ xf86LoadModules(char **list, pointer *optlist)
 
     for (i = 0; list[i] != NULL; i++) {
 
-#ifndef NORMALISE_MODULE_NAME
-	name = xstrdup(list[i]);
-#else
 	/* Normalise the module name */
 	name = xf86NormalizeName(list[i]);
-#endif
 
 	/* Skip empty names */
 	if (name == NULL || *name == '\0')

@@ -2429,12 +2429,8 @@ xf86LoadOneModule(char *name, pointer opt)
     if (!name)
 	return NULL;
 
-#ifndef NORMALISE_MODULE_NAME
-    Name = xstrdup(name);
-#else
     /* Normalise the module name */
     Name = xf86NormalizeName(name);
-#endif
 
     /* Skip empty names */
     if (Name == NULL)
