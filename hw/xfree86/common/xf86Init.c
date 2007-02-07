@@ -230,9 +230,6 @@ PostConfigInit(void)
 #ifdef SIGXFSZ
        signal(SIGXFSZ,xf86SigHandler);
 #endif
-#ifdef MEMDEBUG
-       signal(SIGUSR2,xf86SigMemDebug);
-#endif
     }
 
 #ifdef XF86PM

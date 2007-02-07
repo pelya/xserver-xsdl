@@ -764,16 +764,6 @@ xf86SigHandler(int signo)
   FatalError("Caught signal %d.  Server aborting\n", signo);
 }
 
-#ifdef MEMDEBUG
-void
-xf86SigMemDebug(int signo)
-{
-    CheckMemory();
-    (void) signal(signo, xf86SigMemDebug);
-    return;
-}
-#endif
-
 static void
 xf86ReleaseKeys(DeviceIntPtr pDev)
 {
