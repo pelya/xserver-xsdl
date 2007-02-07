@@ -268,17 +268,6 @@ configureInputSection (void)
     /* Crude mechanism to auto-detect mouse (os dependent) */
     { 
 	int fd;
-#if 0 && defined linux
-	/* Our autodetection code can do a better job */
-	int len;
-	char path[32];
-
-	if ((len = readlink(DFLT_MOUSE_DEV, path, sizeof(path) - 1)) > 0) {
-	    path[len] = '\0';
-	    if (strstr(path, "psaux") != NULL)
-		DFLT_MOUSE_PROTO = "PS/2";
-	}
-#endif
 #ifdef WSCONS_SUPPORT
 	fd = open("/dev/wsmouse", 0);
 	if (fd > 0) {
@@ -318,29 +307,6 @@ configureInputSection (void)
 				xstrdup("4 5 6 7"));
     ptr = (XF86ConfInputPtr)xf86addListItem((glp)ptr, (glp)mouse);
     return ptr;
-}
-
-static XF86ConfDRIPtr
-configureDRISection (void)
-{
-#ifdef NOTYET
-    parsePrologue (XF86ConfDRIPtr, XF86ConfDRIRec)
-
-    return ptr;
-#else
-    return NULL;
-#endif
-}
-
-static XF86ConfVendorPtr
-configureVendorSection (void)
-{
-    parsePrologue (XF86ConfVendorPtr, XF86ConfVendorRec)
-
-    return NULL;
-#if 0
-    return ptr;
-#endif
 }
 
 static XF86ConfScreenPtr
@@ -562,29 +528,6 @@ configureLayoutSection (void)
     }
 
     return ptr;
-}
-
-static XF86ConfModesPtr
-configureModesSection (void)
-{
-#ifdef NOTYET
-    parsePrologue (XF86ConfModesPtr, XF86ConfModesRec)
-
-    return ptr;
-#else
-    return NULL;
-#endif
-}
-
-static XF86ConfVideoAdaptorPtr
-configureVideoAdaptorSection (void)
-{
-    parsePrologue (XF86ConfVideoAdaptorPtr, XF86ConfVideoAdaptorRec)
-
-    return NULL;
-#if 0
-    return ptr;
-#endif
 }
 
 static XF86ConfFlagsPtr
@@ -859,10 +802,10 @@ DoConfigure()
     xf86config->conf_files = configureFilesSection();
     xf86config->conf_modules = configureModuleSection();
     xf86config->conf_flags = configureFlagsSection();
-    xf86config->conf_videoadaptor_lst = configureVideoAdaptorSection();
-    xf86config->conf_modes_lst = configureModesSection();
-    xf86config->conf_vendor_lst = configureVendorSection();
-    xf86config->conf_dri = configureDRISection();
+    xf86config->conf_videoadaptor_lst = NULL;
+    xf86config->conf_modes_lst = NULL;
+    xf86config->conf_vendor_lst = NULL;
+    xf86config->conf_dri = NULL;
     xf86config->conf_input_lst = configureInputSection();
     xf86config->conf_layout_lst = configureLayoutSection();
 
