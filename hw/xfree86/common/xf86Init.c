@@ -881,14 +881,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     xf86Msg(xf86Info.randRFrom, "RandR %s\n",
 	    xf86Info.disableRandR ? "disabled" : "enabled");
 #endif
-#ifdef NOT_USED
-      /*
-       * Here we have to let the driver getting access of the VT. Note that
-       * this doesn't mean that the graphics board may access automatically
-       * the monitor. If the monitor is shared this is done in xf86CrossScreen!
-       */
-      if (!xf86Info.sharedMonitor) (xf86Screens[i]->EnterLeaveMonitor)(ENTER);
-#endif
   }
 
   xf86PostScreenInit();
