@@ -28,8 +28,6 @@
 /*
  * This file contains the interfaces to the bus-specific code
  */
-#define INCLUDE_DEPRECATED 1
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
@@ -3451,25 +3449,3 @@ pciConvertRange2Host(int entityIndex, resRange *pRange)
     tag = TAG(pvp);
     pciTagConvertRange2Host(tag, pRange);
 }
-
-
-#ifdef INCLUDE_DEPRECATED
-_X_EXPORT void
-xf86EnablePciBusMaster(pciVideoPtr pPci, Bool enable)
-{
-    CARD32 temp;
-    PCITAG tag;
-
-    if (!pPci) return;
-
-    tag = pciTag(pPci->bus, pPci->device, pPci->func);
-    temp = pciReadLong(tag, PCI_CMD_STAT_REG);
-    if (enable) {
-	updateAccessInfoStatusControlInfo(tag, temp | PCI_CMD_MASTER_ENABLE);
-	pciWriteLong(tag, PCI_CMD_STAT_REG, temp | PCI_CMD_MASTER_ENABLE);
-    } else {
-	updateAccessInfoStatusControlInfo(tag, temp & ~PCI_CMD_MASTER_ENABLE);
-	pciWriteLong(tag, PCI_CMD_STAT_REG, temp & ~PCI_CMD_MASTER_ENABLE);
-    }
-}
-#endif /* INCLUDE_DEPRECATED */
