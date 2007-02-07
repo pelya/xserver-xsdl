@@ -761,27 +761,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	}
     }
 
-#if BITMAP_SCANLINE_UNIT == 64
-    /*
-     * cfb24 doesn't currently work on architectures with a 64 bit
-     * BITMAP_SCANLINE_UNIT, so check for 24 bit pixel size for pixmaps
-     * or framebuffers.
-     */
-    {
-	Bool usesCfb24 = FALSE;
-
-	if (PIX24TOBPP(pix24) == 24)
-	    usesCfb24 = TRUE;
-	for (i = 0; i < xf86NumScreens; i++)
-	    if (xf86Screens[i]->bitsPerPixel == 24)
-		usesCfb24 = TRUE;
-	if (usesCfb24) {
-	    FatalError("24-bit pixel size is not supported on systems with"
-			" 64-bit scanlines.\n");
-	}
-    }
-#endif
-
 #ifdef XKB
     xf86InitXkb();
 #endif
