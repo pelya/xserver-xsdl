@@ -313,39 +313,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
         LoaderSetOptions(LDR_OPT_ABI_MISMATCH_NONFATAL);
     }
 
-#ifdef TESTING
-    {
-	char **list, **l;
-	const char *subdirs[] = {
-		"drivers",
-		NULL
-	};
-	const char *patlist[] = {
-		"(.*)_drv\\.so",
-		"(.*)_drv\\.o",
-		NULL
-	};
-	ErrorF("Getting module listing...\n");
-	list = LoaderListDirs(NULL, NULL);
-	if (list)
-	    for (l = list; *l; l++)
-		ErrorF("module: %s\n", *l);
-	LoaderFreeDirList(list);
-	ErrorF("Getting video driver listing...\n");
-	list = LoaderListDirs(subdirs, NULL);
-	if (list)
-	    for (l = list; *l; l++)
-		ErrorF("video driver: %s\n", *l);
-	LoaderFreeDirList(list);
-	ErrorF("Getting driver listing...\n");
-	list = LoaderListDirs(NULL, patlist);
-	if (list)
-	    for (l = list; *l; l++)
-		ErrorF("video driver: %s\n", *l);
-	LoaderFreeDirList(list);
-    }
-#endif
-	
     /* Force load mandatory base modules */
     if (!xf86LoadModules(baseModules, NULL))
 	FatalError("Unable to load required base modules, Exiting...\n");
