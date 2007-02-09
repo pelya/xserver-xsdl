@@ -8,7 +8,6 @@ AM_CFLAGS = \
 INCLUDES = -I@MESA_SOURCE@/include \
            -I../grammar \
            -I../../X \
-           -I../../array_cache \
            -I../../glapi \
            -I../../main \
            -I../../math \

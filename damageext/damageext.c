@@ -35,6 +35,13 @@ int		DamageClientPrivateIndex;
 RESTYPE		DamageExtType;
 RESTYPE		DamageExtWinType;
 
+/* Version of the damage extension supported by the server, as opposed to the
+ * DAMAGE_* defines from damageproto for what version the proto header
+ * supports.
+ */
+#define SERVER_DAMAGE_MAJOR	1
+#define SERVER_DAMAGE_MINOR	1
+
 #define prScreen	screenInfo.screens[0]
 
 static void
@@ -143,16 +150,16 @@ ProcDamageQueryVersion(ClientPtr client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    if (stuff->majorVersion < DAMAGE_MAJOR) {
+    if (stuff->majorVersion < SERVER_DAMAGE_MAJOR) {
 	rep.majorVersion = stuff->majorVersion;
 	rep.minorVersion = stuff->minorVersion;
     } else {
-	rep.majorVersion = DAMAGE_MAJOR;
-	if (stuff->majorVersion == DAMAGE_MAJOR && 
-	    stuff->minorVersion < DAMAGE_MINOR)
+	rep.majorVersion = SERVER_DAMAGE_MAJOR;
+	if (stuff->majorVersion == SERVER_DAMAGE_MAJOR && 
+	    stuff->minorVersion < SERVER_DAMAGE_MINOR)
 	    rep.minorVersion = stuff->minorVersion;
 	else
-	    rep.minorVersion = DAMAGE_MINOR;
+	    rep.minorVersion = SERVER_DAMAGE_MINOR;
     }
     pDamageClient->major_version = rep.majorVersion;
     pDamageClient->minor_version = rep.minorVersion;
