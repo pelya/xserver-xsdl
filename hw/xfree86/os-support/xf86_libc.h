@@ -428,7 +428,7 @@ typedef int xf86jmp_buf[1024];
 #define toupper(i)		xf86toupper(i)
 #undef ungetc
 #define ungetc(i,FP)		xf86ungetc(i,FP)
-#undef vfprinf
+#undef vfprintf
 #define vfprintf(p,f,a)		xf86vfprintf(p,f,a)
 #undef vsnprintf
 #define vsnprintf(s,n,f,a)	xf86vsnprintf(s,n,f,a)
