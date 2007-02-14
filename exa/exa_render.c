@@ -572,9 +572,7 @@ exaComposite(CARD8	op,
     if (pExaScr->swappedOut ||
 	pSrc->pDrawable == NULL || (pMask != NULL && pMask->pDrawable == NULL))
     {
-	ExaCheckComposite (op, pSrc, pMask, pDst, xSrc, ySrc,
-			   xMask, yMask, xDst, yDst, width, height);
-        return;
+	goto fallback;
     }
 
     /* Remove repeat in source if useless */
@@ -683,12 +681,18 @@ exaComposite(CARD8	op,
 	}
     }
 
+fallback:
 #if DEBUG_TRACE_FALL
     exaPrintCompositeFallback (op, pSrc, pMask, pDst);
 #endif
 
     ExaCheckComposite (op, pSrc, pMask, pDst, xSrc, ySrc,
 		      xMask, yMask, xDst, yDst, width, height);
+    exaDrawableDirty(pDst->pDrawable,
+		     pDst->pDrawable->x + xDst,
+		     pDst->pDrawable->y + yDst,
+		     pDst->pDrawable->x + xDst + width,
+		     pDst->pDrawable->y + yDst + height);
 
 done:
     pSrc->repeat = saveSrcRepeat;
