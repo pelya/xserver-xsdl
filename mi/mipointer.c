@@ -474,6 +474,10 @@ void
 miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
                      unsigned long time)
 {
+    xEvent* events;
+    int i, nevents;
+    int valuators[2];
+
     SetupScreen(pScreen);
 
     if (pDev && (pDev->coreEvents || pDev == inputInfo.pointer) &&
@@ -488,4 +492,23 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
     miPointer.x = x;
     miPointer.y = y;
     miPointer.pScreen = pScreen;
+
+    /* generate motion notify */
+    valuators[0] = x;
+    valuators[1] = y;
+
+    events = (xEvent*)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+    if (!events)
+    {
+        FatalError("Could not allocate event store.\n");
+        return;
+    }
+
+    nevents = GetPointerEvents(events, pDev, MotionNotify, 0,
+                               POINTER_ABSOLUTE, 0, 2, valuators);
+
+    for (i = 0; i < nevents; i++)
+        mieqEnqueue(pDev, &events[i]);
+
+    xfree(events);
 }

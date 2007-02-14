@@ -489,6 +489,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
     DeviceIntPtr cp = inputInfo.pointer;
     int x = 0, y = 0;
+    Bool coreOnly = (pDev == inputInfo.pointer);
 
     /* Sanity checks. */
     if (type != MotionNotify && type != ButtonPress && type != ButtonRelease)
@@ -497,7 +498,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     if ((type == ButtonPress || type == ButtonRelease) && !pDev->button)
         return 0;
 
-    if (pDev->coreEvents)
+    if (!coreOnly && pDev->coreEvents)
         num_events = 2;
     else
         num_events = 1;
@@ -507,7 +508,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     }
 
     /* Do we need to send a DeviceValuator event? */
-    if (sendValuators) {
+    if (!coreOnly && sendValuators) {
         if ((((num_valuators - 1) / 6) + 1) > MAX_VALUATOR_EVENTS)
             num_valuators = MAX_VALUATOR_EVENTS * 6;
         num_events += ((num_valuators - 1) / 6) + 1;
@@ -520,10 +521,6 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         return 0;
 
     ms = GetTimeInMillis();
-
-    kbp = (deviceKeyButtonPointer *) events;
-    kbp->time = ms;
-    kbp->deviceid = pDev->id;
 
     /* Set x and y based on whether this is absolute or relative, and
      * accelerate if we need to. */
@@ -602,29 +599,37 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     pDev->valuator->lastx = x;
     pDev->valuator->lasty = y;
 
-    if (type == MotionNotify) {
-        kbp->type = DeviceMotionNotify;
-    }
-    else {
-        if (type == ButtonPress)
-            kbp->type = DeviceButtonPress;
-        else if (type == ButtonRelease)
-            kbp->type = DeviceButtonRelease;
-        kbp->detail = pDev->button->map[buttons];
+    if (!coreOnly)
+    {
+        kbp = (deviceKeyButtonPointer *) events;
+        kbp->time = ms;
+        kbp->deviceid = pDev->id;
+
+        if (type == MotionNotify) {
+            kbp->type = DeviceMotionNotify;
+        }
+        else {
+            if (type == ButtonPress)
+                kbp->type = DeviceButtonPress;
+            else if (type == ButtonRelease)
+                kbp->type = DeviceButtonRelease;
+            kbp->detail = pDev->button->map[buttons];
+        }
+
+        kbp->root_x = x;
+        kbp->root_y = y;
+
+        events++;
+        if (sendValuators) {
+            kbp->deviceid |= MORE_EVENTS;
+            clipValuators(pDev, first_valuator, num_valuators, valuators);
+            events = getValuatorEvents(events, pDev, first_valuator,
+                                       num_valuators, valuators);
+        }
     }
 
-    kbp->root_x = x;
-    kbp->root_y = y;
-
-    events++;
-    if (sendValuators) {
-        kbp->deviceid |= MORE_EVENTS;
-        clipValuators(pDev, first_valuator, num_valuators, valuators);
-        events = getValuatorEvents(events, pDev, first_valuator,
-                                   num_valuators, valuators);
-    }
-
-    if (pDev->coreEvents) {
+    /* for some reason inputInfo.pointer does not have coreEvents set */
+    if (coreOnly || pDev->coreEvents) {
         events->u.u.type = type;
         events->u.keyButtonPointer.time = ms;
         events->u.keyButtonPointer.rootX = x;
