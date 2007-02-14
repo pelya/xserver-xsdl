@@ -648,6 +648,14 @@ exaPolyFillRect(DrawablePtr pDrawable,
     {
 	exaDoMigration (pixmaps, 1, FALSE);
 	ExaCheckPolyFillRect (pDrawable, pGC, nrect, prect);
+	while (nrect-- >= 0) {
+	    exaDrawableDirty(pDrawable,
+			     pDrawable->x + prect->x,
+			     pDrawable->y + prect->y,
+			     pDrawable->x + prect->x + prect->width,
+			     pDrawable->y + prect->y + prect->height);
+	    prect++;
+	}
 	return;
     } else {
 	exaDoMigration (pixmaps, 1, TRUE);

@@ -47,13 +47,6 @@ configurations, doing batch processing with \fIXvfb\fP as a background
 rendering engine, load testing, as an aid to porting the X server to a
 new platform, and providing an unobtrusive way to run applications
 that don't really need an X server but insist on having one anyway.
-.SH BUILDING
-To build \fIXvfb\fP, put the following in your host.def and remake.
-.PP
-\&#define BuildServer YES /\(** if you aren't already building other servers */
-.br
-\&#define XVirtualFramebufferServer YES
-
 .SH OPTIONS
 .PP
 In addition to the normal server options described in the \fIXserver(1)\fP
@@ -116,14 +109,14 @@ The server will listen for connections as server number 1, will have the
 default screen configuration (one screen, 1280x1024x12), and screen 1
 will be depth 16 1600x1200.
 .TP 8
-Xvfb -pixdepths 3 27 -fbdir /usr/tmp
+Xvfb -pixdepths 3 27 -fbdir /var/tmp
 The server will listen for connections as server number 0, will have the
 default screen configuration (one screen, 1280x1024x12),
 will also support pixmap
 depths of 3 and 27, 
-and will use memory mapped files in /usr/tmp for the framebuffer.
+and will use memory mapped files in /var/tmp for the framebuffer.
 .TP 8
-xwud -in /usr/tmp/Xvfb_screen0
+xwud -in /var/tmp/Xvfb_screen0
 Displays screen 0 of the server started by the preceding example.
 .SH "SEE ALSO"
 .PP

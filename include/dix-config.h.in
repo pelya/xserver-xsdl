@@ -15,6 +15,9 @@
 /* Operating System Vendor */
 #undef OSVENDOR
 
+/* Builder string */
+#undef BUILDERSTRING
+
 /* Default font path */
 #undef COMPILEDDEFAULTFONTPATH
 
