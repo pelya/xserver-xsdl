@@ -402,7 +402,7 @@ linuxMapPci(int ScreenNum, int Flags, struct pci_device *dev,
 	 * will fail gracefully.
 	 */
         prot = ((Flags & VIDMEM_READONLY) == 0);
-        if (((fd = linuxPciOpenFile(Tag, prot)) < 0) ||
+        if (((fd = linuxPciOpenFile(dev, prot)) < 0) ||
 	    (ioctl(fd, mmap_ioctl, 0) < 0))
 	    break;
 
