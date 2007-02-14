@@ -482,8 +482,6 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
  * The DDX is responsible for allocating the event structure in the first
  * place via GetMaximumEventsNum(), and for freeing it.
  *
- * If flag has POINTER_CORE_ONLY set, no XI or valuator event will be
- * generated.
  */
 _X_EXPORT int
 GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
@@ -497,7 +495,8 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
     DeviceIntPtr pointer = NULL;
     int x = 0, y = 0;
-    Bool coreOnly = (flags & POINTER_CORE_ONLY);
+    /* The core pointer must not send Xi events. */
+    Bool coreOnly = (pDev == inputInfo.pointer);
 
     /* Sanity checks. */
     if (type != MotionNotify && type != ButtonPress && type != ButtonRelease)
@@ -529,10 +528,6 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         return 0;
 
     ms = GetTimeInMillis();
-
-    kbp = (deviceKeyButtonPointer *) events;
-    kbp->time = ms;
-    kbp->deviceid = pDev->id;
 
     if (!pDev->coreEvents || pDev->isMPDev)
         pointer = pDev;
@@ -598,22 +593,27 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     pDev->valuator->lastx = x;
     pDev->valuator->lasty = y;
 
-    if (type == MotionNotify) {
-        kbp->type = DeviceMotionNotify;
-    }
-    else {
-        if (type == ButtonPress)
-            kbp->type = DeviceButtonPress;
-        else if (type == ButtonRelease)
-            kbp->type = DeviceButtonRelease;
-        kbp->detail = pDev->button->map[buttons];
-    }
-
-    kbp->root_x = x;
-    kbp->root_y = y;
-
+    /* create Xi event */
     if (!coreOnly)
     {
+        kbp = (deviceKeyButtonPointer *) events;
+        kbp->time = ms;
+        kbp->deviceid = pDev->id;
+
+        if (type == MotionNotify) {
+            kbp->type = DeviceMotionNotify;
+        }
+        else {
+            if (type == ButtonPress)
+                kbp->type = DeviceButtonPress;
+            else if (type == ButtonRelease)
+                kbp->type = DeviceButtonRelease;
+            kbp->detail = pDev->button->map[buttons];
+        }
+
+        kbp->root_x = x;
+        kbp->root_y = y;
+
         events++;
         if (sendValuators) {
             kbp->deviceid |= MORE_EVENTS;

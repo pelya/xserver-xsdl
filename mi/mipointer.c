@@ -543,7 +543,6 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
     xEvent* events;
     int i, nevents;
     int valuators[2];
-    int flags;
     miPointerPtr pPointer = MIPOINTER(pDev);
     SetupScreen(pScreen);
 
@@ -571,15 +570,8 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
 	return;
     }
 
-    flags = POINTER_ABSOLUTE;
-
-    /* If called from ProcWarpCursor, pDev is the VCP and we must not generate
-      an XI event. */
-    if (pDev == inputInfo.pointer)
-        flags |= POINTER_CORE_ONLY;
-
     nevents = GetPointerEvents(events, pDev, MotionNotify, 0,
-                               flags, 0, 2, valuators);
+                               POINTER_ABSOLUTE, 0, 2, valuators);
 
     for (i = 0; i < nevents; i++)
         mieqEnqueue(pDev, &events[i]);
