@@ -515,7 +515,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     }
 
     /* Do we need to send a DeviceValuator event? */
-    if (!coreOnly & sendValuators) {
+    if (!coreOnly && sendValuators) {
         if ((((num_valuators - 1) / 6) + 1) > MAX_VALUATOR_EVENTS)
             num_valuators = MAX_VALUATOR_EVENTS * 6;
         num_events += ((num_valuators - 1) / 6) + 1;
