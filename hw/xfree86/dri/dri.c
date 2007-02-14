@@ -1007,6 +1007,55 @@ DRITransitionTo2d(ScreenPtr pScreen)
 }
 
 
+static int
+DRIDCNTreeTraversal(WindowPtr pWin, pointer data)
+{
+    DRIDrawablePrivPtr pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
+
+    if (pDRIDrawablePriv) {
+	ScreenPtr pScreen = pWin->drawable.pScreen;
+	DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+
+	if (REGION_NUM_RECTS(&pWin->clipList) > 0) {
+	    WindowPtr *pDRIWindows = (WindowPtr*)data;
+	    int i = 0;
+
+	    while (pDRIWindows[i])
+		i++;
+
+	    pDRIWindows[i] = pWin;
+
+	    pDRIPriv->nrWalked++;
+	}
+
+	if (pDRIPriv->nrWindows == pDRIPriv->nrWalked)
+	    return WT_STOPWALKING;
+    }
+
+    return WT_WALKCHILDREN;
+}
+
+static void
+DRIDriverClipNotify(ScreenPtr pScreen)
+{
+    DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+
+    if (pDRIPriv->pDriverInfo->ClipNotify) {
+	WindowPtr *pDRIWindows = xcalloc(sizeof(WindowPtr), pDRIPriv->nrWindows);
+	DRIInfoPtr pDRIInfo = pDRIPriv->pDriverInfo;
+
+	if (pDRIPriv->nrWindows > 0) {
+	    pDRIPriv->nrWalked = 0;
+	    TraverseTree(WindowTable[pScreen->myNum], DRIDCNTreeTraversal,
+			 (pointer)pDRIWindows);
+	}
+
+	pDRIInfo->ClipNotify(pScreen, pDRIWindows, pDRIPriv->nrWindows);
+
+	xfree(pDRIWindows);
+    }
+}
+
 static void
 DRIIncreaseNumberVisible(ScreenPtr pScreen)
 {
@@ -1022,6 +1071,8 @@ DRIIncreaseNumberVisible(ScreenPtr pScreen)
     default:
 	break;
     }
+
+    DRIDriverClipNotify(pScreen);
 }
 
 static void
@@ -1039,6 +1090,8 @@ DRIDecreaseNumberVisible(ScreenPtr pScreen)
     default:
 	break;
     }
+
+    DRIDriverClipNotify(pScreen);
 }
 
 Bool
@@ -1880,6 +1933,8 @@ DRIClipNotify(WindowPtr pWin, int dx, int dy)
 	    DRIIncreaseNumberVisible(pScreen);
 	else if (!nrects && pDRIDrawablePriv->nrects)
 	    DRIDecreaseNumberVisible(pScreen);
+	else
+	    DRIDriverClipNotify(pScreen);
 
 	pDRIDrawablePriv->nrects = nrects;
 

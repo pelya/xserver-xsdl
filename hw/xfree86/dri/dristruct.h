@@ -89,6 +89,7 @@ typedef struct _DRIScreenPrivRec
     DRIInfoPtr		pDriverInfo;
     int                 nrWindows;
     int                 nrWindowsVisible;
+    int                 nrWalked;
     drm_clip_rect_t  private_buffer_rect; /* management of private buffers */
     DrawablePtr         fullscreen; /* pointer to fullscreen drawable */
     drm_clip_rect_t  fullscreen_rect; /* fake rect for fullscreen mode */
