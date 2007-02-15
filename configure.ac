@@ -1737,6 +1737,11 @@ AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
 AM_CONDITIONAL(KDRIVEVESA, [test x"$ac_cv_header_sys_vm86_h" = xyes])
 AM_CONDITIONAL(KDRIVEFBDEV, [test x"$ac_cv_header_linux_fb_h" = xyes])
 
+dnl XDarwin DDX (FIXME)
+AM_CONDITIONAL(XQUARTZ, false)
+AM_CONDITIONAL(HAVE_X_PLUGIN, false)
+AM_CONDITIONAL(HAVE_AGL_FRAMEWORK, false)
+
 dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
 AC_DEFINE(__XKBDEFRULES__, "xorg", [Default XKB rules])
 AC_DEFINE_DIR(XKB_BASE_DIRECTORY, XKBPATH, [Path to XKB data])
