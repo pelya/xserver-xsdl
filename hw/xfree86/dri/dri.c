@@ -1134,10 +1134,10 @@ DRICreateDrawable(ScreenPtr pScreen, Drawable id,
 	    pWin->devPrivates[DRIWindowPrivIndex].ptr =
 						(pointer)pDRIDrawablePriv;
 
+	    pDRIPriv->nrWindows++;
+
 	    if (pDRIDrawablePriv->nrects)
 		DRIIncreaseNumberVisible(pScreen);
-
-	    pDRIPriv->nrWindows++;
 
 	    /* track this in case this window is destroyed */
 	    AddResource(id, DRIDrawablePrivResType, (pointer)pWin);
@@ -1210,13 +1210,13 @@ DRIDrawablePrivDelete(pointer pResource, XID id)
 	    return FALSE;
 	}
 
-	if (pDRIDrawablePriv->nrects)
-	    DRIDecreaseNumberVisible(pDrawable->pScreen);
-
 	xfree(pDRIDrawablePriv);
 	pWin->devPrivates[DRIWindowPrivIndex].ptr = NULL;
 
 	pDRIPriv->nrWindows--;
+
+	if (REGION_NUM_RECTS(&pWin->clipList))
+	    DRIDecreaseNumberVisible(pDrawable->pScreen);
     }
     else { /* pixmap (or for GLX 1.3, a PBuffer) */
 	/* NOT_DONE */
