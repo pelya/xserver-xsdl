@@ -675,6 +675,8 @@ ephyrRestore (KdCardInfo *card)
 void
 ephyrScreenFini (KdScreenInfo *screen)
 {
+    xfree(screen->driver);
+    screen->driver = NULL;
 }
 
 /*  
