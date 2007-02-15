@@ -2043,7 +2043,7 @@ XYToWindow(int x, int y)
     return spriteTrace[spriteTraceGood-1];
 }
 
-static Bool
+Bool
 CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 {
     WindowPtr prevSpriteWin;
@@ -2190,61 +2190,65 @@ void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
 void
 DefineInitialRootWindow(register WindowPtr win)
 {
-    register ScreenPtr pScreen = win->drawable.pScreen;
-    SpritePtr pSprite;
     DeviceIntPtr pDev = inputInfo.devices;
+
+#ifdef XEVIE
+    xeviewin = win;
+#endif
+    ROOT = win;
 
     while (pDev)
     {
         if (DevHasCursor(pDev))
-        {
-            pSprite = pDev->pSprite;
-
-            pSprite->hotPhys.pScreen = pScreen;
-            pSprite->hotPhys.x = pScreen->width / 2;
-            pSprite->hotPhys.y = pScreen->height / 2;
-            pSprite->hot = pSprite->hotPhys;
-            pSprite->hotLimits.x2 = pScreen->width;
-            pSprite->hotLimits.y2 = pScreen->height;
-#ifdef XEVIE
-            xeviewin =
-#endif
-                pSprite->win = win;
-            pSprite->current = wCursor (win);
-            pSprite->current->refcnt++;
-            spriteTraceGood = 1;
-            ROOT = win;
-            (*pScreen->CursorLimits) ( pDev, pScreen, pSprite->current,
-                                       &pSprite->hotLimits, &pSprite->physLimits);
-            pSprite->confined = FALSE;
-
-            (*pScreen->ConstrainCursor) (pDev, pScreen,
-                                         &pSprite->physLimits);
-            (*pScreen->SetCursorPosition) (pDev, pScreen, pSprite->hot.x,
-                                           pSprite->hot.y,
-                                           FALSE); 
-            (*pScreen->DisplayCursor) (pDev, pScreen, pSprite->current);
-
-#ifdef PANORAMIX
-            if(!noPanoramiXExtension) {
-                pSprite->hotLimits.x1 = -panoramiXdataPtr[0].x;
-                pSprite->hotLimits.y1 = -panoramiXdataPtr[0].y;
-                pSprite->hotLimits.x2 = PanoramiXPixWidth  - panoramiXdataPtr[0].x;
-                pSprite->hotLimits.y2 = PanoramiXPixHeight - panoramiXdataPtr[0].y;
-                pSprite->physLimits = pSprite->hotLimits;
-                pSprite->confineWin = NullWindow;
-#ifdef SHAPE
-                pSprite->hotShape = NullRegion;
-#endif
-                pSprite->screen = pScreen;
-                /* gotta UNINIT these someplace */
-                REGION_NULL(pScreen, &pSprite->Reg1);
-                REGION_NULL(pScreen, &pSprite->Reg2);
-            }
-#endif
-        }
+            InitializeSprite(pDev, win);
         pDev = pDev->next;
     }
+}
+
+void 
+InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
+{
+    SpritePtr pSprite;
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+
+    pSprite = pDev->pSprite;
+    pSprite->hotPhys.pScreen = pScreen;
+    pSprite->hotPhys.x = pScreen->width / 2;
+    pSprite->hotPhys.y = pScreen->height / 2;
+    pSprite->hot = pSprite->hotPhys;
+    pSprite->hotLimits.x2 = pScreen->width;
+    pSprite->hotLimits.y2 = pScreen->height;
+    pSprite->win = pWin;
+    pSprite->current = wCursor (pWin);
+    pSprite->current->refcnt++;
+
+    (*pScreen->CursorLimits) ( pDev, pScreen, pSprite->current,
+                               &pSprite->hotLimits, &pSprite->physLimits);
+    pSprite->confined = FALSE;
+
+    (*pScreen->ConstrainCursor) (pDev, pScreen,
+                                 &pSprite->physLimits);
+    (*pScreen->SetCursorPosition) (pDev, pScreen, pSprite->hot.x,
+                                   pSprite->hot.y,
+                                   FALSE); 
+    (*pScreen->DisplayCursor) (pDev, pScreen, pSprite->current);
+#ifdef PANORAMIX
+    if(!noPanoramiXExtension) {
+        pSprite->hotLimits.x1 = -panoramiXdataPtr[0].x;
+        pSprite->hotLimits.y1 = -panoramiXdataPtr[0].y;
+        pSprite->hotLimits.x2 = PanoramiXPixWidth  - panoramiXdataPtr[0].x;
+        pSprite->hotLimits.y2 = PanoramiXPixHeight - panoramiXdataPtr[0].y;
+        pSprite->physLimits = pSprite->hotLimits;
+        pSprite->confineWin = NullWindow;
+#ifdef SHAPE
+        pSprite->hotShape = NullRegion;
+#endif
+        pSprite->screen = pScreen;
+        /* gotta UNINIT these someplace */
+        REGION_NULL(pScreen, &pSprite->Reg1);
+        REGION_NULL(pScreen, &pSprite->Reg2);
+    }
+#endif
 }
 
 /*

@@ -494,6 +494,10 @@ extern int DeliverDeviceEvents(
 extern void DefineInitialRootWindow(
     WindowPtr /* win */);
 
+extern void InitializeSprite(
+    DeviceIntPtr /* pDev */,
+    WindowPtr    /* pWin */);
+
 extern void WindowHasNewCursor(
     WindowPtr /* pWin */);
 
@@ -578,6 +582,10 @@ extern int DeliverEvents(
     int /*count*/,
     WindowPtr /*otherParent*/);
 
+extern Bool
+CheckMotion(
+    xEvent* /* xE */, 
+    DeviceIntPtr /* pDev */);
 
 extern void WriteEventsToClient(
     ClientPtr /*pClient*/,

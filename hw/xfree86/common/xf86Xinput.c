@@ -129,7 +129,6 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
         xf86SetBoolOption(list, "CorePointer", 0) ||
         xf86SetBoolOption(list, "CoreKeyboard", 0)) {
         local->flags |= XI86_ALWAYS_CORE;
-        local->flags |= XI86_SHARED_POINTER;
         xf86Msg(X_CONFIG, "%s: always reports core events\n", local->name);
     }
 
@@ -378,6 +377,16 @@ NewInputDeviceRequest (InputOption *options)
         }
     }
 
+    if (!drv) {
+        xf86Msg(X_ERROR, "No input driver specified (ignoring)\n");
+        return BadMatch;
+    }
+
+    if (!idev->identifier) {
+        xf86Msg(X_ERROR, "No device identifier specified (ignoring)\n");
+        return BadMatch;
+    }
+
     if (!drv->PreInit) {
         xf86Msg(X_ERROR,
                 "Input driver `%s' has no PreInit function (ignoring)\n",
@@ -407,9 +416,13 @@ NewInputDeviceRequest (InputOption *options)
     xf86ActivateDevice(pInfo);
 
     dev = pInfo->dev;
-    dev->inited = ((*dev->deviceProc)(dev, DEVICE_INIT) == Success);
+    ActivateDevice(dev);
     if (dev->inited && dev->startup)
         EnableDevice(dev);
+
+    /* send enter/leave event, update sprite window */
+    InitializeSprite(dev, GetCurrentRootWindow());
+    CheckMotion(NULL, dev);
 
     return Success;
 }
