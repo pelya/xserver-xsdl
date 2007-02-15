@@ -570,7 +570,8 @@ linuxMapPci(int ScreenNum, int Flags, PCITAG Tag,
 
 	xf86InitVidMem();
 
-	if (((fd = linuxPciOpenFile(Tag ,FALSE)) < 0) ||
+       prot = ((Flags & VIDMEM_READONLY) == 0);
+       if (((fd = linuxPciOpenFile(Tag, prot)) < 0) ||
 	    (ioctl(fd, mmap_ioctl, 0) < 0))
 	    break;
 

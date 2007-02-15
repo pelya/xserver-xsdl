@@ -2,8 +2,6 @@ X/drivers
 X/glxheader.h
 X/xmesaP.h
 X/xm*.c
-array_cache/*.c
-array_cache/*.h
 mesa/drivers
 mesa/glxheader.h
 mesa/xm*.c
@@ -30,3 +28,5 @@ tnl/*.c
 tnl/*.h
 x86
 x86-64
+vbo/*.c
+vbo/*.h

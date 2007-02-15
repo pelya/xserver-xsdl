@@ -100,11 +100,6 @@ specifies a file which contains a collection of authorization records used
 to authenticate access.  See also the \fIxdm\fP(1) and 
 \fIXsecurity\fP(__miscmansuffix__) manual pages.
 .TP 8
-.B bc
-disables certain kinds of error checking, for bug compatibility with
-previous releases (e.g., to work around bugs in R2 and R3 xterms and toolkits).
-Deprecated.
-.TP 8
 .B \-bs
 disables backing store support on all screens.
 .TP 8
@@ -266,6 +261,10 @@ required by the X protocol, which allows the server to exceed the
 client's backing store expectations but does not provide a way to tell
 the client that it is doing so.
 .TP 8
+.B \-wr
+sets the default root window to solid white instead of the standard root weave
+pattern.
+.TP 8
 .B \-x \fIextension\fP
 loads the specified extension at init.
 This is a no-op for most implementations.
@@ -398,19 +397,13 @@ base directory for keyboard layout files.  This option is not available
 for setuid X servers (i.e., when the X server's real and effective uids
 are different).
 .TP 8
-.B \-ar1 \fImilliseconds\fP
+.B \-ardelay \fImilliseconds\fP
 sets the autorepeat delay (length of time in milliseconds that a key must
 be depressed before autorepeat starts).
 .TP 8
-.B \-ar2 \fImilliseconds\fP
+.B \-arinterval \fImilliseconds\fP
 sets the autorepeat interval (length of time in milliseconds that should
 elapse between autorepeat-generated keystrokes).
-.TP 8
-.B \-noloadxkb
-disables loading of an XKB keymap description on server startup.
-.TP 8
-.B \-xkbdb \fIfilename\fP
-uses \fIfilename\fP for default keyboard keymaps.
 .TP 8
 .B \-xkbmap \fIfilename\fP
 loads keyboard description in \fIfilename\fP on server startup.

@@ -243,6 +243,10 @@ Bool RRScreenInit(ScreenPtr pScreen)
     pScrPriv->maxWidth = pScrPriv->minWidth = pScreen->width;
     pScrPriv->maxHeight = pScrPriv->minHeight = pScreen->height;
     
+    pScrPriv->width = pScreen->width;
+    pScrPriv->height = pScreen->height;
+    pScrPriv->mmWidth = pScreen->mmWidth;
+    pScrPriv->mmHeight = pScreen->mmHeight;
 #if RANDR_12_INTERFACE
     pScrPriv->rrScreenSetSize = NULL;
     pScrPriv->rrCrtcSet = NULL;

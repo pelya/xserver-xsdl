@@ -46,8 +46,6 @@ libxf4bpp_la_SOURCES = \
         mfbzerarc.c \
         vgamodule.c
 
-libxf4bpp_la_LIBADD = ../xf1bpp/libxf1bpp.la
-
 EXTRA_DIST = OScompiler.h ibmTrace.h ppcGCstr.h ppcSpMcro.h vgaReg.h \
              vgaVideo.h wm3.h NOTES
 

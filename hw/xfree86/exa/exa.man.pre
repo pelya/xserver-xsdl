@@ -35,6 +35,6 @@ Default: No.
 Chooses an alternate pixmap migration heuristic, for debugging purposes.  The
 default is intended to be the best performing one for general use, though others
 may help with specific use cases.  Available options include \*qalways\*q,
-\*qgreedy\*q, and \*qsmart\*q.  Default: smart.
+\*qgreedy\*q, and \*qsmart\*q.  Default: always.
 .SH AUTHORS
 Authors include: Keith Packard, Eric Anholt, Zack Rusin, and Michel Dänzer

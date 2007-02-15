@@ -2,7 +2,6 @@ noinst_LTLIBRARIES = libX.la
 
 INCLUDES = -I@MESA_SOURCE@/include \
            -I../X \
-           -I../array_cache \
            -I../glapi \
            -I../main \
            -I../math \

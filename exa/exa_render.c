@@ -302,12 +302,12 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 	(*pExaScr->info->Solid) (pDstPix,
 				 pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
 				 pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
+	exaPixmapDirty (pDstPix, pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
+			pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
 	pbox++;
     }
-
     (*pExaScr->info->DoneSolid) (pDstPix);
     exaMarkSync(pDst->pDrawable->pScreen);
-    exaDrawableDirty (pDst->pDrawable);
 
     REGION_UNINIT(pDst->pDrawable->pScreen, &region);
     return 1;
@@ -446,12 +446,12 @@ exaTryDriverComposite(CARD8		op,
 				     pbox->y1 + dst_off_y,
 				     pbox->x2 - pbox->x1,
 				     pbox->y2 - pbox->y1);
+	exaPixmapDirty (pDstPix, pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
+			pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
 	pbox++;
     }
-
     (*pExaScr->info->DoneComposite) (pDstPix);
     exaMarkSync(pDst->pDrawable->pScreen);
-    exaDrawableDirty (pDst->pDrawable);
 
     REGION_UNINIT(pDst->pDrawable->pScreen, &region);
     return 1;
@@ -572,9 +572,7 @@ exaComposite(CARD8	op,
     if (pExaScr->swappedOut ||
 	pSrc->pDrawable == NULL || (pMask != NULL && pMask->pDrawable == NULL))
     {
-	ExaCheckComposite (op, pSrc, pMask, pDst, xSrc, ySrc,
-			   xMask, yMask, xDst, yDst, width, height);
-        return;
+	goto fallback;
     }
 
     /* Remove repeat in source if useless */
@@ -683,12 +681,18 @@ exaComposite(CARD8	op,
 	}
     }
 
+fallback:
 #if DEBUG_TRACE_FALL
     exaPrintCompositeFallback (op, pSrc, pMask, pDst);
 #endif
 
     ExaCheckComposite (op, pSrc, pMask, pDst, xSrc, ySrc,
 		      xMask, yMask, xDst, yDst, width, height);
+    exaDrawableDirty(pDst->pDrawable,
+		     pDst->pDrawable->x + xDst,
+		     pDst->pDrawable->y + yDst,
+		     pDst->pDrawable->x + xDst + width,
+		     pDst->pDrawable->y + yDst + height);
 
 done:
     pSrc->repeat = saveSrcRepeat;
@@ -710,16 +714,19 @@ void
 exaRasterizeTrapezoid (PicturePtr pPicture, xTrapezoid  *trap,
 		       int x_off, int y_off)
 {
+    DrawablePtr pDraw = pPicture->pDrawable;
     ExaMigrationRec pixmaps[1];
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = TRUE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pPicture->pDrawable);
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDraw);
     exaDoMigration(pixmaps, 1, FALSE);
 
-    exaPrepareAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+    exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
     fbRasterizeTrapezoid(pPicture, trap, x_off, y_off);
-    exaFinishAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+    exaDrawableDirty(pDraw, pDraw->x, pDraw->y,
+		     pDraw->x + pDraw->width, pDraw->y + pDraw->height);
+    exaFinishAccess(pDraw, EXA_PREPARE_DEST);
 }
 
 /**
@@ -730,16 +737,19 @@ void
 exaAddTriangles (PicturePtr pPicture, INT16 x_off, INT16 y_off, int ntri,
 		 xTriangle *tris)
 {
+    DrawablePtr pDraw = pPicture->pDrawable;
     ExaMigrationRec pixmaps[1];
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = TRUE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pPicture->pDrawable);
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDraw);
     exaDoMigration(pixmaps, 1, FALSE);
 
-    exaPrepareAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+    exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
     fbAddTriangles(pPicture, x_off, y_off, ntri, tris);
-    exaFinishAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+    exaDrawableDirty(pDraw, pDraw->x, pDraw->y,
+		     pDraw->x + pDraw->width, pDraw->y + pDraw->height);
+    exaFinishAccess(pDraw, EXA_PREPARE_DEST);
 }
 
 /**
@@ -989,15 +999,17 @@ exaGlyphs (CARD8	op,
 	     * First we try to use UploadToScreen, if we can, then we fall back
 	     * to a plain exaCopyArea in case of failure.
 	     */
-	    if (!pExaScr->info->UploadToScreen ||
-		!exaPixmapIsOffscreen(pPixmap) ||
-		!(*pExaScr->info->UploadToScreen) (pPixmap, 0, 0,
+	    if (pExaScr->info->UploadToScreen &&
+		exaPixmapIsOffscreen(pPixmap) &&
+		(*pExaScr->info->UploadToScreen) (pPixmap, 0, 0,
 					glyph->info.width,
 					glyph->info.height,
 					glyphdata,
 					PixmapBytePad(glyph->info.width,
 						      list->format->depth)))
 	    {
+		exaMarkSync (pScreen);
+	    } else {
 		/* Set up the scratch pixmap/GC for doing a CopyArea. */
 		if (pScratchPixmap == NULL) {
 		    /* Get a scratch pixmap to wrap the original glyph data */
@@ -1028,9 +1040,10 @@ exaGlyphs (CARD8	op,
 
 		exaCopyArea (&pScratchPixmap->drawable, &pPixmap->drawable, pGC,
 			     0, 0, glyph->info.width, glyph->info.height, 0, 0);
-	    } else {
-		exaDrawableDirty (&pPixmap->drawable);
 	    }
+
+	    exaPixmapDirty (pPixmap, 0, 0,
+			    glyph->info.width, glyph->info.height);
 
 	    if (maskFormat)
 	    {

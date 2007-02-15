@@ -219,7 +219,7 @@ dixLookupDrawable(DrawablePtr *pDraw, XID id, ClientPtr client,
 	pTmp = client->lastDrawable;
 
 	/* an access check is required for cached drawables */
-	rtype = (pTmp->type | M_WINDOW) ? RT_WINDOW : RT_PIXMAP;
+	rtype = (type & M_WINDOW) ? RT_WINDOW : RT_PIXMAP;
 	if (!XaceHook(XACE_RESOURCE_ACCESS, client, id, rtype, access, pTmp))
 	    return BadDrawable;
     } else
@@ -227,10 +227,10 @@ dixLookupDrawable(DrawablePtr *pDraw, XID id, ClientPtr client,
 						   access);
     if (!pTmp)
 	return BadDrawable;
-    if (!((1 << pTmp->type) | (type ? type : M_DRAWABLE)))
+    if (!((1 << pTmp->type) & (type ? type : M_DRAWABLE)))
 	return BadMatch;
 
-    if (pTmp->type | M_DRAWABLE) {
+    if (type & M_DRAWABLE) {
 	client->lastDrawable = pTmp;
 	client->lastDrawableID = id;
 	client->lastGCID = INVALID;

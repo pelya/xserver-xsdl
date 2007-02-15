@@ -31,6 +31,7 @@
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include <X11/extensions/XKB.h>
+#include <assert.h>
 
 typedef struct {
     void                *framebuffer;

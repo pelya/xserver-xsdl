@@ -99,6 +99,64 @@ fi
 
 AC_TYPE_PID_T
 
+# Checks for headers/macros for byte swapping
+# Known variants:
+#	<byteswap.h> bswap_16, bswap_32, bswap_64  (glibc)
+#	<sys/endian.h> __swap16, __swap32, __swap64 (OpenBSD)
+#	<sys/endian.h> bswap16, bswap32, bswap64 (other BSD's)
+#	and a fallback to local macros if none of the above are found
+
+# if <byteswap.h> is found, assume it's the correct version
+AC_CHECK_HEADERS([byteswap.h])
+
+# if <sys/endian.h> is found, have to check which version
+AC_CHECK_HEADER([sys/endian.h], [HAVE_SYS_ENDIAN_H="yes"], [HAVE_SYS_ENDIAN_H="no"])
+
+if test "x$HAVE_SYS_ENDIAN_H" = "xyes" ; then
+	AC_MSG_CHECKING([for __swap16 variant of <sys/endian.h> byteswapping macros])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([
+#include <sys/endian.h>
+ ], [
+int a = 1, b;
+b = __swap16(a);
+ ])
+], [SYS_ENDIAN__SWAP='yes'], [SYS_ENDIAN__SWAP='no'])
+	AC_MSG_RESULT([$SYS_ENDIAN__SWAP])
+
+	AC_MSG_CHECKING([for bswap_16 variant of <sys/endian.h> byteswapping macros])
+	AC_LINK_IFELSE([AC_LANG_PROGRAM([
+#include <sys/endian.h>
+ ], [
+int a = 1, b;
+b = bswap_16(a);
+ ])
+], [SYS_ENDIAN_BSWAP='yes'], [SYS_ENDIAN_BSWAP='no'])
+	AC_MSG_RESULT([$SYS_ENDIAN_BSWAP])
+
+    	if test "$SYS_ENDIAN_BSWAP" = "yes" ; then
+		USE_SYS_ENDIAN_H=yes
+		BSWAP=bswap_
+	else	
+	    	if test "$SYS_ENDIAN__SWAP" = "yes" ; then
+			USE_SYS_ENDIAN_H=yes
+			BSWAP=__swap
+		else
+			USE_SYS_ENDIAN_H=no
+		fi
+	fi
+
+	if test "$USE_SYS_ENDIAN_H" = "yes" ; then
+	    AC_DEFINE([USE_SYS_ENDIAN_H], 1, 
+		[Define to use byteswap macros from <sys/endian.h>])
+	    AC_DEFINE_UNQUOTED([bswap_16], ${BSWAP}16, 
+			[Define to 16-bit byteswap macro])
+	    AC_DEFINE_UNQUOTED([bswap_32], ${BSWAP}32, 
+			[Define to 32-bit byteswap macro])
+	    AC_DEFINE_UNQUOTED([bswap_64], ${BSWAP}64, 
+			[Define to 64-bit byteswap macro])
+	fi
+fi
+
 dnl Checks for library functions.
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr \
@@ -295,6 +353,9 @@ case $host_os in
 	DRI=yes
 	KDRIVE_HW=yes
 	;;
+  *solaris*)
+	PKG_CHECK_EXISTS(libdrm, DRI=yes, DRI=no)
+	;;
 esac
 AM_CONDITIONAL(KDRIVE_HW, test "x$KDRIVE_HW" = xyes)
 
@@ -305,6 +366,8 @@ if test "x$use_x86_asm" = xyes && test "x$GCC" = xyes ; then
     #error Not supported
 #endif
 ], mmx_capable=yes, mmx_capable=no)
+else
+	mmx_capable=no
 fi
 AC_MSG_RESULT([$mmx_capable])
 AM_CONDITIONAL(MMX_CAPABLE, [test "x$mmx_capable" = xyes])
@@ -335,11 +398,11 @@ AC_ARG_ENABLE(debug,         AS_HELP_STRING([--enable-debug],
 AC_ARG_WITH(int10,           AS_HELP_STRING([--with-int10=BACKEND], [int10 backend: vm86, x86emu or stub]),
 				[INT10="$withval"],
 				[INT10="$DEFAULT_INT10"])
-AC_ARG_WITH(vendor-name,     AS_HELP_STRING([--with-vendor-string=VENDOR],
+AC_ARG_WITH(vendor-name,     AS_HELP_STRING([--with-vendor-name=VENDOR],
 				  [Vendor string reported by the server]),
 			     	[ VENDOR_STRING="$withval" ],
 			     	[ VENDOR_STRING="$DEFAULT_VENDOR_NAME" ])
-AC_ARG_WITH(vendor-name-short, AS_HELP_STRING([--with-vendor-string-short=VENDOR],
+AC_ARG_WITH(vendor-name-short, AS_HELP_STRING([--with-vendor-name-short=VENDOR],
 				  [Short version of vendor string reported by the server]),
 			     	[ VENDOR_STRING_SHORT="$withval" ],
 			     	[ VENDOR_STRING_SHORT="$DEFAULT_VENDOR_NAME_SHORT" ])
@@ -385,6 +448,9 @@ AC_ARG_WITH(os-name,         AS_HELP_STRING([--with-os-name=OSNAME], [Name of OS
 AC_ARG_WITH(os-vendor,       AS_HELP_STRING([--with-os-vendor=OSVENDOR], [Name of OS vendor]),
 				[ OSVENDOR="$withval" ],
 				[ OSVENDOR="" ])
+AC_ARG_WITH(builderstring,   AS_HELP_STRING([--with-builderstring=BUILDERSTRING], [Additional builder string]),
+				[ BUILDERSTRING="$withval" ]
+				[ ])
 AC_ARG_WITH(mesa-source,     AS_HELP_STRING([--with-mesa-source=MESA_SOURCE], [Path to Mesa source tree]),
                                 [ MESA_SOURCE="$withval" ],
                                 [ MESA_SOURCE="" ])
@@ -546,7 +612,7 @@ XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] damageproto xcmiscproto xextproto xproto xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4] [kbproto >= 1.0.3]"
+REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto xproto xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4] [kbproto >= 1.0.3]"
 REQUIRED_LIBS="xfont xau fontenc"
 
 if test "x$DBUS" = xauto; then
@@ -617,7 +683,7 @@ fi
 
 if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
 	PKG_CHECK_MODULES([XLIB], [x11])
-	PKG_CHECK_MODULES([GL], [glproto >= 1.4.7])
+	PKG_CHECK_MODULES([GL], [glproto >= 1.4.8])
 	AC_SUBST(XLIB_CFLAGS)
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
 	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
@@ -885,6 +951,8 @@ AC_DEFINE_UNQUOTED(XORG_MAN_VERSION, ["$VENDOR_MAN_VERSION"], [Vendor man versio
 AC_DEFINE_UNQUOTED(BUILDERADDR, ["$BUILDERADDR"], [Builder address])
 AC_DEFINE_UNQUOTED(OSNAME, ["$OSNAME"], [Operating System Name])
 AC_DEFINE_UNQUOTED(OSVENDOR, ["$OSVENDOR"], [Operating System Vendor])
+AC_DEFINE_UNQUOTED(BUILDERSTRING, ["$BUILDERSTRING"], [Builder string])
+
 AC_SUBST([VENDOR_STRING])
 AC_SUBST([VENDOR_STRING_SHORT])
 AC_SUBST([VENDOR_RELEASE])
@@ -1708,20 +1776,13 @@ AC_SUBST(XKB_COMPILED_DIR)
 dnl and the rest of these are generic, so they're in config.h
 AC_DEFINE(XResExtension, 1, [Build XRes extension])
 
-dnl CYGWIN does not define fd_set if _POSIX_SOURCE is defined
-dnl _*_SOURCE on Solaris restricts to the standards, and removes non-standard
-dnl functions which X uses
-case $host_os in
-	cygwin*) ;;
-	solaris*) ;;
-        darwin*) ;;
-	freebsd*|netbsd*|openbsd*) ;;
-	*) 
-		AC_DEFINE(_POSIX_SOURCE, 1, [POSIX-compliant source])
-		AC_DEFINE(_XOPEN_SOURCE, 500, [X/Open-compliant source])
-		AC_DEFINE(_BSD_SOURCE, 1, [BSD-compliant source])
-		;;
-esac
+AC_TRY_COMPILE([
+#include <features.h>
+#ifndef __GLIBC__
+#error not glibc
+#endif
+], [], [AC_DEFINE(_GNU_SOURCE, 1,
+	[ Enable GNU and other extensions to the C environment for glibc])])
 
 AC_DEFINE_DIR(PROJECTROOT, prefix, [Overall prefix])
 
@@ -1796,7 +1857,6 @@ Makefile
 GL/Makefile
 GL/glx/Makefile
 GL/mesa/Makefile
-GL/mesa/array_cache/Makefile
 GL/mesa/glapi/Makefile
 GL/mesa/main/Makefile
 GL/mesa/math/Makefile
@@ -1806,6 +1866,7 @@ GL/mesa/shader/slang/Makefile
 GL/mesa/swrast/Makefile
 GL/mesa/swrast_setup/Makefile
 GL/mesa/tnl/Makefile
+GL/mesa/vbo/Makefile
 GL/mesa/X/Makefile
 include/Makefile
 afb/Makefile

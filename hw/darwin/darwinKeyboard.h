@@ -29,7 +29,7 @@
 
 #define XK_TECHNICAL		// needed to get XK_Escape
 #define XK_PUBLISHING
-#include "keysym.h"
+#include "X11/keysym.h"
 #include "inputstr.h"
 
 // Each key can generate 4 glyphs. They are, in order:

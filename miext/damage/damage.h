@@ -81,4 +81,7 @@ void
 DamageDamageRegion (DrawablePtr	    pDrawable,
 		    const RegionPtr pRegion);
 
+void
+DamageSetReportAfterOp (DamagePtr pDamage, Bool reportAfter);
+
 #endif /* _DAMAGE_H_ */

@@ -903,7 +903,7 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
      * check the elements in the path
      */
     if (PathIsAbsolute(module))
-	xstrdup(module);
+	found = xstrdup(module);
     path_elem = pathlist;
     while (!found && *path_elem != NULL) {
 	found = FindModule(m, *path_elem, subdirlist, patterns);

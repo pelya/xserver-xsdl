@@ -224,6 +224,7 @@ typedef struct _rrScrPriv {
     CARD16		    minWidth, minHeight;
     CARD16		    maxWidth, maxHeight;
     CARD16		    width, height;	/* last known screen size */
+    CARD16		    mmWidth, mmHeight;	/* last known screen size */
 
     int			    numOutputs;
     RROutputPtr		    *outputs;
@@ -540,6 +541,16 @@ RRCrtcGammaNotify (RRCrtcPtr	crtc);
 Bool
 RRCrtcGammaSetSize (RRCrtcPtr	crtc,
 		    int		size);
+
+/*
+ * Set the allowable rotations of the CRTC.
+ */
+Bool
+RRCrtcSetRotations (RRCrtcPtr crtc,
+		    Rotation rotations);
+
+void
+RRCrtcGetScanoutSize(RRCrtcPtr crtc, int *width, int *height);
 
 /*
  * Destroy a Crtc at shutdown
