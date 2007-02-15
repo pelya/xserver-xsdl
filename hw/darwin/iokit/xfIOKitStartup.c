@@ -29,6 +29,11 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
+
+#if HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include "darwin.h"
 #include "darwinKeyboard.h"
 #include "micmap.h"
@@ -57,7 +62,9 @@ void DarwinHandleGUI(
  */
 void DarwinGlxExtensionInit(void)
 {
-    GlxExtensionInit();
+#ifdef GLXEXT
+    	GlxExtensionInit();
+#endif
 }
 
 
@@ -67,7 +74,9 @@ void DarwinGlxExtensionInit(void)
 void DarwinGlxWrapInitVisuals(
     miInitVisualsProcPtr *procPtr)
 {
+#ifdef GLXEXT
     GlxWrapInitVisuals(procPtr);
+#endif
 }
 
 
