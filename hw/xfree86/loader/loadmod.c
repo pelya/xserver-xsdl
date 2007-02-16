@@ -768,7 +768,7 @@ LoadSubModule(ModuleDescPtr parent, const char *module,
 
     submod = doLoadModule(module, NULL, subdirlist, patternlist, options,
 			  modreq, errmaj, errmin, LD_FLAG_GLOBAL);
-    if (submod) {
+    if (submod && submod != (ModuleDescPtr) 1) {
 	parent->child = AddSibling(parent->child, submod);
 	submod->parent = parent;
     }
@@ -799,7 +799,7 @@ LoadSubModuleLocal(ModuleDescPtr parent, const char *module,
 
     submod = doLoadModule(module, NULL, subdirlist, patternlist, options,
 			  modreq, errmaj, errmin, 0);
-    if (submod) {
+    if (submod && submod != (ModuleDescPtr) 1) {
 	parent->child = AddSibling(parent->child, submod);
 	submod->parent = parent;
     }
@@ -838,6 +838,11 @@ DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent)
     return ret;
 }
 
+static const char *compiled_in_modules[] = {
+    "ddc",
+    "i2c",
+    NULL
+};
 
 static ModuleDescPtr
 doLoadModule(const char *module, const char *path, const char **subdirlist,
@@ -856,8 +861,16 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
     PatternPtr patterns = NULL;
     int noncanonical = 0;
     char *m = NULL;
+    char **cim;
 
     xf86MsgVerb(X_INFO, 3, "LoadModule: \"%s\"", module);
+
+    for (cim = compiled_in_modules; *cim; cim++)
+	if (!strcmp (module, *cim))
+	{
+	    xf86MsgVerb(X_INFO, 3, "Module alread ybuilt-in");
+	    return (ModuleDescPtr) 1;
+	}
 
     patterns = InitPatterns(patternlist);
     name = LoaderGetCanonicalName(module, patterns);
@@ -1108,6 +1121,9 @@ UnloadDriver(ModuleDescPtr mod)
 static void
 UnloadModuleOrDriver(ModuleDescPtr mod)
 {
+    if (mod == (ModuleDescPtr) 1)
+	return;
+
     if (mod == NULL || mod->name == NULL)
 	return;
 
@@ -1156,6 +1172,8 @@ FreeModuleDesc(ModuleDescPtr head)
 {
     ModuleDescPtr sibs, prev;
 
+    if (head == (ModuleDescPtr) 1)
+	return;
     /*
      * only free it if it's not marked as in use. In use means that it may
      * be unloaded someday, and UnloadModule or UnloadDriver will free it
@@ -1338,7 +1356,7 @@ LoaderGetCanonicalName(const char *modname, PatternPtr patterns)
 unsigned long
 LoaderGetModuleVersion(ModuleDescPtr mod)
 {
-    if (!mod || !mod->VersionInfo)
+    if (!mod || mod == (ModuleDescPtr) 1 || !mod->VersionInfo)
 	return 0;
 
     return MODULE_VERSION_NUMERIC(mod->VersionInfo->majorversion,

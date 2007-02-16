@@ -199,10 +199,11 @@ xf86CursorEnableDisableFBAccess(
 	pScreen->devPrivates[xf86CursorScreenIndex].ptr;
 
     if (!enable && ScreenPriv->CurrentCursor != NullCursor) {
-	ScreenPriv->SavedCursor = ScreenPriv->CurrentCursor;
+	CursorPtr   currentCursor = ScreenPriv->CurrentCursor;
 	xf86CursorSetCursor(pScreen, NullCursor, ScreenPriv->x, ScreenPriv->y);
 	ScreenPriv->isUp = FALSE;
 	ScreenPriv->SWCursor = TRUE;
+	ScreenPriv->SavedCursor = currentCursor;
     }
 
     if (ScreenPriv->EnableDisableFBAccess)

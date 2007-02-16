@@ -12,7 +12,7 @@ DOC_SUBDIR = doc
 
 SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support parser rac \
           ramdac shadowfb vbe vgahw xaa xf1bpp xf4bpp xf8_16bpp \
-	  xf8_32bpp loader scanpci dixmods exa \
+	  xf8_32bpp loader scanpci dixmods exa modes \
 	  $(DRI_SUBDIR) $(XF86UTILS_SUBDIR) $(DOC_SUBDIR)
 
 DIST_SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support \
@@ -47,6 +47,9 @@ XORG_LIBS = \
 	    rac/librac.a \
             parser/libxf86config.a \
 	    dixmods/libdixmods.la \
+	    modes/libxf86modes.a \
+	    ddc/libddc.a \
+	    i2c/libi2c.a \
             @XORG_LIBS@
 
 Xorg_DEPENDENCIES = \
