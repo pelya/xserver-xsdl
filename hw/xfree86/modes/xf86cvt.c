@@ -40,6 +40,7 @@
 #endif
 
 #include "xf86.h"
+#include "xf86Modes.h"
 
 #include <string.h>
 

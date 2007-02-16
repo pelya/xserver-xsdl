@@ -36,6 +36,13 @@
 
 double xf86ModeHSync(DisplayModePtr mode);
 double xf86ModeVRefresh(DisplayModePtr mode);
+
+int
+xf86ModeWidth (DisplayModePtr mode, Rotation rotation);
+    
+int
+xf86ModeHeight (DisplayModePtr mode, Rotation rotation);
+
 DisplayModePtr xf86DuplicateMode(DisplayModePtr pMode);
 DisplayModePtr xf86DuplicateModes(ScrnInfoPtr pScrn,
 				       DisplayModePtr modeList);

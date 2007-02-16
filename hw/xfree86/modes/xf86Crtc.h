@@ -112,16 +112,22 @@ typedef struct _xf86CrtcFuncs {
 		 int size);
 
     /**
+     * Allocate the shadow area, delay the pixmap creation until needed
+     */
+    void *
+    (*shadow_allocate) (xf86CrtcPtr crtc, int width, int height);
+    
+    /**
      * Create shadow pixmap for rotation support
      */
     PixmapPtr
-    (*shadow_create) (xf86CrtcPtr crtc, int width, int height);
+    (*shadow_create) (xf86CrtcPtr crtc, void *data, int width, int height);
     
     /**
      * Destroy shadow pixmap
      */
     void
-    (*shadow_destroy) (xf86CrtcPtr crtc, PixmapPtr pPixmap);
+    (*shadow_destroy) (xf86CrtcPtr crtc, PixmapPtr pPixmap, void *data);
 
     /**
      * Clean up driver-specific bits of the crtc
@@ -159,6 +165,8 @@ struct _xf86Crtc {
     DisplayModeRec  mode;
     Rotation	    rotation;
     PixmapPtr	    rotatedPixmap;
+    void	    *rotatedData;
+    
     /**
      * Position on screen
      *
@@ -355,6 +363,11 @@ struct _xf86Output {
      * Desired initial position
      */
     int			initial_x, initial_y;
+
+    /**
+     * Desired initial rotation
+     */
+    Rotation		initial_rotation;
 
     /**
      * Current connection status

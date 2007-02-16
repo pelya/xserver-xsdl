@@ -94,6 +94,36 @@ xf86ModeVRefresh(DisplayModePtr mode)
     return refresh;
 }
 
+int
+xf86ModeWidth (DisplayModePtr mode, Rotation rotation)
+{
+    switch (rotation & 0xf) {
+    case RR_Rotate_0:
+    case RR_Rotate_180:
+	return mode->HDisplay;
+    case RR_Rotate_90:
+    case RR_Rotate_270:
+	return mode->VDisplay;
+    default:
+	return 0;
+    }
+}
+
+int
+xf86ModeHeight (DisplayModePtr mode, Rotation rotation)
+{
+    switch (rotation & 0xf) {
+    case RR_Rotate_0:
+    case RR_Rotate_180:
+	return mode->VDisplay;
+    case RR_Rotate_90:
+    case RR_Rotate_270:
+	return mode->HDisplay;
+    default:
+	return 0;
+    }
+}
+
 /** Sets a default mode name of <width>x<height> on a mode. */
 void
 xf86SetModeDefaultName(DisplayModePtr mode)

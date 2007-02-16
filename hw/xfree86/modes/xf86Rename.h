@@ -74,5 +74,7 @@
 #define xf86RandR12SetRotations XF86NAME(xf86RandR12SetRotations)
 #define xf86SaveScreen XF86NAME(xf86SaveScreen)
 #define xf86CrtcSetScreenSubpixelOrder XF86NAME(xf86CrtcSetScreenSubpixelOrder)
+#define xf86ModeWidth XF86NAME(xf86ModeWidth)
+#define xf86ModeHeight XF86NAME(xf86ModeHeight)
 
 #endif /* _XF86RENAME_H_ */

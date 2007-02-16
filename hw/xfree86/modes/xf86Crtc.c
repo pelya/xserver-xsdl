@@ -344,6 +344,7 @@ typedef enum {
     OPTION_MIN_CLOCK,
     OPTION_MAX_CLOCK,
     OPTION_IGNORE,
+    OPTION_ROTATE,
 } OutputOpts;
 
 static OptionInfoRec xf86OutputOptions[] = {
@@ -358,6 +359,7 @@ static OptionInfoRec xf86OutputOptions[] = {
     {OPTION_MIN_CLOCK,	    "MinClock",		OPTV_FREQ,    {0}, FALSE },
     {OPTION_MAX_CLOCK,	    "MaxClock",		OPTV_FREQ,    {0}, FALSE },
     {OPTION_IGNORE,	    "Ignore",		OPTV_BOOLEAN, {0}, FALSE },
+    {OPTION_ROTATE,	    "Rotate",		OPTV_STRING,  {0}, FALSE },
     {-1,		    NULL,		OPTV_NONE,    {0}, FALSE },
 };
 
@@ -411,6 +413,29 @@ static Bool
 xf86OutputIgnored (xf86OutputPtr    output)
 {
     return xf86ReturnOptValBool (output->options, OPTION_IGNORE, FALSE);
+}
+
+static char *direction[4] = {
+    "normal", 
+    "left", 
+    "inverted", 
+    "right"
+};
+
+static Rotation
+xf86OutputInitialRotation (xf86OutputPtr output)
+{
+    char    *rotate_name = xf86GetOptValString (output->options, 
+						OPTION_ROTATE);
+    int	    i;
+
+    if (!rotate_name)
+	return RR_Rotate_0;
+    
+    for (i = 0; i < 4; i++)
+	if (xf86nameCompare (direction[i], rotate_name) == 0)
+	    return (1 << i);
+    return RR_Rotate_0;
 }
 
 xf86OutputPtr
@@ -533,8 +558,12 @@ xf86DefaultMode (xf86OutputPtr output, int width, int height)
 	int	    preferred = (mode->type & M_T_PREFERRED) != 0;
 	int	    diff;
 
-	if (mode->HDisplay > width || mode->VDisplay > height) continue;
-	dpi = (mode->HDisplay * 254) / (mm_height * 10);
+	if (xf86ModeWidth (mode, output->initial_rotation) > width ||
+	    xf86ModeHeight (mode, output->initial_rotation) > height)
+	    continue;
+	
+	/* yes, use VDisplay here, not xf86ModeHeight */
+	dpi = (mode->VDisplay * 254) / (mm_height * 10);
 	diff = dpi - 96;
 	diff = diff < 0 ? -diff : diff;
 	if (target_mode == NULL || (preferred > target_preferred) ||
@@ -549,7 +578,8 @@ xf86DefaultMode (xf86OutputPtr output, int width, int height)
 }
 
 static DisplayModePtr
-xf86ClosestMode (xf86OutputPtr output, DisplayModePtr match,
+xf86ClosestMode (xf86OutputPtr output, 
+		 DisplayModePtr match, Rotation match_rotation,
 		 int width, int height)
 {
     DisplayModePtr  target_mode = NULL;
@@ -564,14 +594,17 @@ xf86ClosestMode (xf86OutputPtr output, DisplayModePtr match,
 	int	    dx, dy;
 	int	    diff;
 
-	if (mode->HDisplay > width || mode->VDisplay > height) continue;
+	if (xf86ModeWidth (mode, output->initial_rotation) > width ||
+	    xf86ModeHeight (mode, output->initial_rotation) > height)
+	    continue;
 	
 	/* exact matches are preferred */
-	if (xf86ModesEqual (mode, match))
+	if (output->initial_rotation == match_rotation &&
+	    xf86ModesEqual (mode, match))
 	    return mode;
 	
-	dx = match->HDisplay - mode->HDisplay;
-	dy = match->VDisplay - mode->VDisplay;
+	dx = xf86ModeWidth (match, match_rotation) - xf86ModeWidth (mode, output->initial_rotation);
+	dy = xf86ModeHeight (match, match_rotation) - xf86ModeHeight (mode, output->initial_rotation);
 	diff = dx * dx + dy * dy;
 	if (target_mode == NULL || diff < target_diff)
 	{
@@ -589,7 +622,10 @@ xf86OutputHasPreferredMode (xf86OutputPtr output, int width, int height)
 
     for (mode = output->probed_modes; mode; mode = mode->next)
     {
-	if (mode->HDisplay > width || mode->VDisplay > height) continue;
+	if (xf86ModeWidth (mode, output->initial_rotation) > width ||
+	    xf86ModeHeight (mode, output->initial_rotation) > height)
+	    continue;
+
 	if (mode->type & M_T_PREFERRED)
 	    return TRUE;
     }
@@ -605,7 +641,7 @@ xf86PickCrtcs (ScrnInfoPtr	scrn,
 	       int		height)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
-    int		    c, o, l;
+    int		    c, o;
     xf86OutputPtr   output;
     xf86CrtcPtr	    crtc;
     xf86CrtcPtr	    *crtcs;
@@ -663,13 +699,11 @@ xf86PickCrtcs (ScrnInfoPtr	scrn,
 	     * see if they can be cloned
 	     */
 	    if (xf86ModesEqual (modes[o], modes[n]) &&
+		config->output[0]->initial_rotation == config->output[n]->initial_rotation &&
 		config->output[o]->initial_x == config->output[n]->initial_x &&
 		config->output[o]->initial_y == config->output[n]->initial_y)
 	    {
-		for (l = 0; l < config->num_output; l++)
-		    if (output->possible_clones & (1 << l))
-			break;
-		if (l == config->num_output)
+		if ((output->possible_clones & (1 << o)) == 0)
 		    continue;		/* nope, try next CRTC */
 	    }
 	    else
@@ -712,8 +746,8 @@ xf86DefaultScreenLimits (ScrnInfoPtr scrn, int *widthp, int *heightp)
 
 	if (crtc->enabled)
 	{
-	    crtc_width = crtc->x + crtc->desiredMode.HDisplay;
-	    crtc_height = crtc->y + crtc->desiredMode.VDisplay;
+	    crtc_width = crtc->x + xf86ModeWidth (&crtc->desiredMode, crtc->desiredRotation);
+	    crtc_height = crtc->y + xf86ModeHeight (&crtc->desiredMode, crtc->desiredRotation);
 	}
 	for (o = 0; o < config->num_output; o++) 
 	{
@@ -727,8 +761,12 @@ xf86DefaultScreenLimits (ScrnInfoPtr scrn, int *widthp, int *heightp)
 		    {
 			if (mode->HDisplay > crtc_width)
 			    crtc_width = mode->HDisplay;
+			if (mode->VDisplay > crtc_width)
+			    crtc_width = mode->VDisplay;
 			if (mode->VDisplay > crtc_height)
 			    crtc_height = mode->VDisplay;
+			if (mode->HDisplay > crtc_height)
+			    crtc_height = mode->HDisplay;
 		    }
 		}
 	}
@@ -858,16 +896,16 @@ xf86InitialOutputPositions (ScrnInfoPtr scrn, DisplayModePtr *modes)
 		output->initial_y = relative->initial_y;
 		switch (relation) {
 		case OPTION_BELOW:
-		    output->initial_y += modes[or]->VDisplay;
+		    output->initial_y += xf86ModeHeight (modes[or], relative->initial_rotation);
 		    break;
 		case OPTION_RIGHT_OF:
-		    output->initial_x += modes[or]->HDisplay;
+		    output->initial_x += xf86ModeWidth (modes[or], relative->initial_rotation);
 		    break;
 		case OPTION_ABOVE:
-		    output->initial_y -= modes[o]->VDisplay;
+		    output->initial_y -= xf86ModeHeight (modes[or], relative->initial_rotation);
 		    break;
 		case OPTION_LEFT_OF:
-		    output->initial_x -= modes[o]->HDisplay;
+		    output->initial_x -= xf86ModeWidth (modes[or], relative->initial_rotation);
 		    break;
 		default:
 		    break;
@@ -1208,6 +1246,8 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	    }
 	}
 	
+	output->initial_rotation = xf86OutputInitialRotation (output);
+
 #ifdef DEBUG_REPROBE
 	if (output->probed_modes != NULL) {
 	    xf86DrvMsg(scrn->scrnIndex, X_INFO,
@@ -1310,6 +1350,7 @@ xf86InitialConfiguration (ScrnInfoPtr	    scrn)
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
     int			o, c;
     DisplayModePtr	target_mode = NULL;
+    Rotation		target_rotation = RR_Rotate_0;
     xf86CrtcPtr		*crtcs;
     DisplayModePtr	*modes;
     Bool		*enabled;
@@ -1351,6 +1392,7 @@ xf86InitialConfiguration (ScrnInfoPtr	    scrn)
 	    xf86OutputHasPreferredMode (output, width, height))
 	{
 	    target_mode = xf86DefaultMode (output, width, height);
+	    target_rotation = output->initial_rotation;
 	    if (target_mode)
 	    {
 		modes[o] = target_mode;
@@ -1367,6 +1409,7 @@ xf86InitialConfiguration (ScrnInfoPtr	    scrn)
 	    if (enabled[o])
 	    {
 		target_mode = xf86DefaultMode (output, width, height);
+		target_rotation = output->initial_rotation;
 		if (target_mode)
 		{
 		    modes[o] = target_mode;
@@ -1381,7 +1424,7 @@ xf86InitialConfiguration (ScrnInfoPtr	    scrn)
 	xf86OutputPtr output = config->output[o];
 	
 	if (enabled[o] && !modes[o])
-	    modes[o] = xf86ClosestMode (output, target_mode, width, height);
+	    modes[o] = xf86ClosestMode (output, target_mode, target_rotation, width, height);
     }
 
     /*
@@ -1429,6 +1472,7 @@ xf86InitialConfiguration (ScrnInfoPtr	    scrn)
 	if (mode && crtc)
 	{
 	    crtc->desiredMode = *mode;
+	    crtc->desiredRotation = output->initial_rotation;
 	    crtc->enabled = TRUE;
 	    crtc->x = output->initial_x;
 	    crtc->y = output->initial_y;
