@@ -24,4 +24,4 @@ sdk_HEADERS = \
 	xf86RandR12.h \
 	xf86Rename.h
 
-AM_CFLAGS = $(XORG_CFLAGS)
+AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
