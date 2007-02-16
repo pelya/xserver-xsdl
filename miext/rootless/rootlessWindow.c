@@ -33,6 +33,10 @@
 #include <dix-config.h>
 #endif
 
+#include <stddef.h> /* For NULL */
+#include <limits.h> /* For CHAR_BIT */
+#include <assert.h>
+
 #include "rootlessCommon.h"
 #include "rootlessWindow.h"
 
@@ -325,8 +329,8 @@ RootlessEnsureFrame(WindowPtr pWin)
     RootlessWindowRec *winRec;
 #ifdef SHAPE
     RegionRec shape;
-    RegionPtr pShape = NULL;
 #endif
+    RegionPtr pShape = NULL;
 
     if (WINREC(pWin) != NULL)
         return WINREC(pWin);

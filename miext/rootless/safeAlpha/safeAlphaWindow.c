@@ -32,6 +32,10 @@
  * Copyright © 1998 Keith Packard
  */
 
+
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
 #include "fb.h"
 #include "safeAlpha.h"
 #include "rootlessCommon.h"

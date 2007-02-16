@@ -33,6 +33,7 @@
 #include <dix-config.h>
 #endif
 
+#include <stddef.h> /* For NULL */
 #include "mi.h"
 #include "scrnintstr.h"
 #include "gcstruct.h"
