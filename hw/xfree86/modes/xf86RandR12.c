@@ -394,8 +394,8 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
     for (c = 0; c < config->num_crtc; c++)
     {
 	xf86CrtcPtr crtc = config->crtc[c];
-	int	    crtc_width = crtc->x + crtc->mode.HDisplay;
-	int	    crtc_height = crtc->y + crtc->mode.VDisplay;
+	int	    crtc_width = crtc->x + xf86ModeWidth (&crtc->mode, crtc->rotation);
+	int	    crtc_height = crtc->y + xf86ModeHeight (&crtc->mode, crtc->rotation);
 	
 	if (crtc->enabled && crtc_width > width)
 	    width = crtc_width;
