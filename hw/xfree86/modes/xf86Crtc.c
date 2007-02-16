@@ -313,7 +313,8 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 
     /* XXX free adjustedmode */
     ret = TRUE;
-    xf86CrtcSetScreenSubpixelOrder (scrn->pScreen);
+    if (scrn->pScreen)
+	xf86CrtcSetScreenSubpixelOrder (scrn->pScreen);
 
 done:
     if (!ret) {
