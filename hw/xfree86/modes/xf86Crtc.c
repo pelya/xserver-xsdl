@@ -41,6 +41,9 @@
 #define DPMS_SERVER
 #include "X11/extensions/dpms.h"
 #include "X11/Xatom.h"
+#ifdef RENDER
+#include "picturestr.h"
+#endif
 
 /*
  * Initialize xf86CrtcConfig structure

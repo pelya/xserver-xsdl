@@ -28,7 +28,6 @@
 #include "xf86Rename.h"
 #endif
 #include "xf86Modes.h"
-#include "xf86Parser.h"
 #include "damage.h"
 
 /* Compat definitions for older X Servers. */

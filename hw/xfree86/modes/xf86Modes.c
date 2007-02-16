@@ -36,11 +36,6 @@
 #endif
 #endif
 
-#include <stddef.h>
-#include <string.h>
-#include <stdio.h>
-
-#include "xf86.h"
 #include "xf86Modes.h"
 #include "xf86Priv.h"
 

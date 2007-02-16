@@ -35,6 +35,8 @@
 #include "xf86Crtc.h"
 #include "xf86Modes.h"
 #include "gcstruct.h"
+#include "scrnintstr.h"
+#include "windowstr.h"
 
 static Bool
 xf86_dga_get_modes (ScreenPtr pScreen)
