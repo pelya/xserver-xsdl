@@ -552,4 +552,12 @@ xf86DiDGAInit (ScreenPtr pScreen, unsigned long dga_address);
 Bool
 xf86DiDGAReInit (ScreenPtr pScreen);
 
+/*
+ * Set the subpixel order reported for the screen using
+ * the information from the outputs
+ */
+
+void
+xf86CrtcSetScreenSubpixelOrder (ScreenPtr pScreen);
+
 #endif /* _XF86CRTC_H_ */

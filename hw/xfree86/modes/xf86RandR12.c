@@ -433,6 +433,7 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 	randrp->virtualX = pScrn->virtualX;
 	randrp->virtualY = pScrn->virtualY;
     }
+    xf86CrtcSetScreenSubpixelOrder (pScreen);
 #if RANDR_12_INTERFACE
     if (xf86RandR12CreateScreenResources12 (pScreen))
 	return TRUE;

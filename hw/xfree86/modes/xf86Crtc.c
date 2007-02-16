@@ -144,6 +144,71 @@ xf86CrtcInUse (xf86CrtcPtr crtc)
     return FALSE;
 }
 
+void
+xf86CrtcSetScreenSubpixelOrder (ScreenPtr pScreen)
+{
+#ifdef RENDER
+    int			subpixel_order = SubPixelUnknown;
+    Bool		has_none = FALSE;
+    ScrnInfoPtr		scrn = xf86Screens[pScreen->myNum];
+    xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
+    int			c, o;
+
+    for (c = 0; c < xf86_config->num_crtc; c++)
+    {
+	xf86CrtcPtr crtc = xf86_config->crtc[c];
+	
+	for (o = 0; o < xf86_config->num_output; o++)
+	{
+	    xf86OutputPtr   output = xf86_config->output[o];
+
+	    if (output->crtc == crtc)
+	    {
+		switch (output->subpixel_order) {
+		case SubPixelNone:
+		    has_none = TRUE;
+		    break;
+		case SubPixelUnknown:
+		    break;
+		default:
+		    subpixel_order = output->subpixel_order;
+		    break;
+		}
+	    }
+	    if (subpixel_order != SubPixelUnknown)
+		break;
+	}
+	if (subpixel_order != SubPixelUnknown)
+	{
+	    static const int circle[4] = {
+		SubPixelHorizontalRGB,
+		SubPixelVerticalRGB,
+		SubPixelHorizontalBGR,
+		SubPixelVerticalBGR,
+	    };
+	    int	rotate;
+	    int c;
+	    for (rotate = 0; rotate < 4; rotate++)
+		if (crtc->rotation & (1 << rotate))
+		    break;
+	    for (c = 0; c < 4; c++)
+		if (circle[c] == subpixel_order)
+		    break;
+	    c = (c + rotate) & 0x3;
+	    if ((crtc->rotation & RR_Reflect_X) && !(c & 1))
+		c ^= 2;
+	    if ((crtc->rotation & RR_Reflect_Y) && (c & 1))
+		c ^= 2;
+	    subpixel_order = circle[c];
+	    break;
+	}
+    }
+    if (subpixel_order == SubPixelUnknown && has_none)
+	subpixel_order = SubPixelNone;
+    PictureSetSubpixelOrder (pScreen, subpixel_order);
+#endif
+}
+
 /**
  * Sets the given video mode on the given crtc
  */
@@ -245,6 +310,8 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 
     /* XXX free adjustedmode */
     ret = TRUE;
+    xf86CrtcSetScreenSubpixelOrder (scrn->pScreen);
+
 done:
     if (!ret) {
 	crtc->x = saved_x;
