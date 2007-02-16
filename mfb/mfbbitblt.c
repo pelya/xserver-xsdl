@@ -400,20 +400,22 @@ int dstx, dsty;
 static unsigned long	copyPlaneGeneration;
 static int		copyPlaneScreenIndex = -1;
 
+typedef RegionPtr (*CopyPlaneFuncPtr)(
+    DrawablePtr         /* pSrcDrawable */,
+    DrawablePtr         /* pDstDrawable */,
+    GCPtr               /* pGC */,
+    int                 /* srcx */,
+    int                 /* srcy */,
+    int                 /* width */,
+    int                 /* height */,
+    int                 /* dstx */,
+    int                 /* dsty */,
+    unsigned long       /* bitPlane */);
+
 Bool
 mfbRegisterCopyPlaneProc (pScreen, proc)
     ScreenPtr	pScreen;
-    RegionPtr	(*proc)(
-        DrawablePtr         /* pSrcDrawable */,
-        DrawablePtr         /* pDstDrawable */,
-        GCPtr               /* pGC */,
-        int                 /* srcx */,
-        int                 /* srcy */,
-        int                 /* width */,
-        int                 /* height */,
-        int                 /* dstx */,
-        int                 /* dsty */,
-        unsigned long       /* bitPlane */);
+    CopyPlaneFuncPtr proc;
 {
     if (copyPlaneGeneration != serverGeneration)
     {
@@ -422,7 +424,7 @@ mfbRegisterCopyPlaneProc (pScreen, proc)
 	    return FALSE;
 	copyPlaneGeneration = serverGeneration;
     }
-    pScreen->devPrivates[copyPlaneScreenIndex].fptr = proc;
+    pScreen->devPrivates[copyPlaneScreenIndex].fptr = (CopyPlaneFuncPtr)proc;
     return TRUE;
 }
 
@@ -468,7 +470,7 @@ unsigned long plane;
     if (pSrcDrawable->depth != 1)
     {
 	if (copyPlaneScreenIndex >= 0 &&
-	    (copyPlane =
+	    (copyPlane = (CopyPlaneFuncPtr)
 		pSrcDrawable->pScreen->devPrivates[copyPlaneScreenIndex].fptr)
 	    )
 	{
