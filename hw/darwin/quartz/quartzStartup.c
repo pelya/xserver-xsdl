@@ -37,7 +37,7 @@
 #include "quartz.h"
 #include "opaque.h"
 #include "micmap.h"
-
+#include <assert.h>
 int NSApplicationMain(int argc, char *argv[]);
 
 char **envpGlobal;      // argcGlobal and argvGlobal
@@ -52,6 +52,9 @@ static GlxWrapInitVisualsPtr GlxWrapInitVisuals = NULL;
 
 typedef Bool (*QuartzModeBundleInitPtr)(void);
 
+void * __DarwinglXMesaProvider = NULL;
+typedef void (*GlxPushProviderPtr)(void *);
+GlxPushProviderPtr GlxPushProvider = NULL;
 
 /*
  * DarwinHandleGUI
@@ -186,7 +189,7 @@ static void LoadGlxBundle(void)
 
     // Choose the bundle to load
     ErrorF("Loading GLX bundle ");
-    if (quartzUseAGL) {
+    if (/*quartzUseAGL*/0) {
         bundleName = CFStringCreateWithCStringNoCopy(kCFAllocatorDefault,
                                                      quartzOpenGLBundle,
                                                      kCFStringEncodingASCII,
@@ -213,6 +216,14 @@ static void LoadGlxBundle(void)
     }
 
     // Find the GLX init functions
+
+
+    __DarwinglXMesaProvider = (void *) CFBundleGetDataPointerForName(
+			       glxBundle, CFSTR("__glXMesaProvider"));
+
+    GlxPushProvider = (void *) CFBundleGetFunctionPointerForName(
+                                glxBundle, CFSTR("GlxPushProvider"));
+
     GlxExtensionInit = (void *) CFBundleGetFunctionPointerForName(
                                 glxBundle, CFSTR("GlxExtensionInit"));
 
@@ -228,6 +239,18 @@ static void LoadGlxBundle(void)
     CFRelease(bundleURL);
 }
 
+
+/*
+ * DarwinGlxExtensionInit
+ *  Initialize the GLX extension.
+ */
+void DarwinGlxPushProvider(void *impl)
+{
+    if (!GlxExtensionInit)
+        LoadGlxBundle();
+	
+    GlxPushProvider(impl);
+}
 
 /*
  * DarwinGlxExtensionInit

@@ -35,6 +35,9 @@
  * use or other dealings in this Software without prior written authorization.
  */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/quartzCocoa.m,v 1.5 2004/06/08 22:58:10 torrey Exp $ */
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 
 #include "quartzCommon.h"
 

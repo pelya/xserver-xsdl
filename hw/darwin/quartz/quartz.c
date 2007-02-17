@@ -29,14 +29,16 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #include "quartzCommon.h"
 #include "quartz.h"
 #include "darwin.h"
 #include "quartzAudio.h"
 #include "pseudoramiX.h"
 #define _APPLEWM_SERVER_
-#include "applewm.h"
+#include "X11/extensions/applewm.h"
 #include "applewmExt.h"
 
 // X headers

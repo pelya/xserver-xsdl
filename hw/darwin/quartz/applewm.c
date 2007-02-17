@@ -24,7 +24,9 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 **************************************************************************/
-
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #include "quartzCommon.h"
 
 #define NEED_REPLIES
@@ -43,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <X11/Xatom.h>
 #include "darwin.h"
 #define _APPLEWM_SERVER_
-#include "applewmstr.h"
+#include "X11/extensions/applewmstr.h"
 #include "applewmExt.h"
 
 #define DEFINE_ATOM_HELPER(func,atom_name)                      \
