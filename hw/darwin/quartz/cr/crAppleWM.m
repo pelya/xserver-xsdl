@@ -27,16 +27,18 @@
  * use or other dealings in this Software without prior written authorization.
  */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/xpr/xprFrame.c,v 1.2 2003/06/30 01:45:13 torrey Exp $ */
-
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #include "quartzCommon.h"
 #include "cr.h"
 
 #undef BOOL
 #define BOOL xBOOL
 #include "rootless.h"
-#include "X.h"
+#include "X11/X.h"
 #define _APPLEWM_SERVER_
-#include "applewm.h"
+#include "X11/extensions/applewm.h"
 #include "applewmExt.h"
 #undef BOOL
 

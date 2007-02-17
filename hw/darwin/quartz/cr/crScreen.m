@@ -29,7 +29,9 @@
  * use or other dealings in this Software without prior written authorization.
  */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.5 2003/11/12 20:21:52 torrey Exp $ */
-
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #include "quartzCommon.h"
 #include "cr.h"
 
