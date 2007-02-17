@@ -213,7 +213,11 @@ CoreKeyboardBell(int volume, DeviceIntPtr pDev, pointer arg, int something)
 {
     KeybdCtrl *ctrl = arg;
 
+#ifdef __DARWIN__
+    // not yet implemented :(
+#else
     DDXRingBell(volume, ctrl->bell_pitch, ctrl->bell_duration);
+#endif
 }
 
 static void

@@ -338,12 +338,14 @@ extern void XFree86DGAExtensionInit(INITARGS);
 #endif
 #ifdef GLXEXT
 typedef struct __GLXprovider __GLXprovider;
+#ifndef __DARWIN__
 extern __GLXprovider __glXMesaProvider;
 extern void GlxPushProvider(__GLXprovider *impl);
-#ifndef __DARWIN__
 extern void GlxExtensionInit(INITARGS);
 extern void GlxWrapInitVisuals(miInitVisualsProcPtr *);
 #else
+extern __GLXprovider* __DarwinglXMesaProvider;
+extern void DarwinGlxPushProvider(__GLXprovider *impl);
 extern void DarwinGlxExtensionInit(INITARGS);
 extern void DarwinGlxWrapInitVisuals(miInitVisualsProcPtr *);
 #endif
@@ -629,13 +631,14 @@ InitExtensions(argc, argv)
     if (!noXFree86DRIExtension) XFree86DRIExtensionInit();
 #endif
 #endif
-#ifdef GLXEXT
 
-    GlxPushProvider(&__glXMesaProvider);
+#ifdef GLXEXT
 #ifndef __DARWIN__
+    GlxPushProvider(&__glXMesaProvider);
     if (!noGlxExtension) GlxExtensionInit();
 #else
     if (!noGlxExtension) DarwinGlxExtensionInit();
+    GlxPushProvider(&__glXMesaProvider);
 #endif
 #endif
 #ifdef XFIXES
