@@ -1741,6 +1741,7 @@ dnl XDarwin DDX (FIXME)
 AM_CONDITIONAL(XQUARTZ, false)
 AM_CONDITIONAL(HAVE_X_PLUGIN, false)
 AM_CONDITIONAL(HAVE_AGL_FRAMEWORK, false)
+AM_CONDITIONAL(BUILD_DARWIN, false)
 
 dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
 AC_DEFINE(__XKBDEFRULES__, "xorg", [Default XKB rules])
