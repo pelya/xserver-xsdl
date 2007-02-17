@@ -2061,9 +2061,6 @@ hw/darwin/bundle/Swedish.lproj/Makefile
 hw/darwin/bundle/ko.lproj/Makefile
 hw/darwin/iokit/Makefile
 hw/darwin/quartz/Makefile
-hw/darwin/quartz/cr/Makefile
-hw/darwin/quartz/fullscreen/Makefile
-hw/darwin/quartz/xpr/Makefile
 hw/darwin/utils/Makefile
 hw/kdrive/Makefile
 hw/kdrive/ati/Makefile

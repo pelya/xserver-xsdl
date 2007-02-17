@@ -35,7 +35,7 @@
 #include "Xplugin.h"
 #include "x-hash.h"
 #include "x-list.h"
-#include "applewmExt.h"
+#include "quartz/applewmExt.h"
 
 #include "propertyst.h"
 #include "dix.h"

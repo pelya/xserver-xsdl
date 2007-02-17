@@ -3,7 +3,7 @@ libdarwin_XINPUT_SRCS = darwinXinput.c
 
 AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@
 AM_CPPFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@
-INCLUDES = @XORG_INCS@
+INCLUDES = @XORG_INCS@ -I../../miext/rootless
 
 DEFS = @DEFS@ -DUSE_NEW_CLUT
 
@@ -19,7 +19,6 @@ SUBDIRS = \
 
 
 darwinappdir = @APPLE_APPLICATIONS_DIR@/XDarwin.app
-
 
 libdarwinShared_a_SOURCES = darwin.c \
 			  darwinEvents.c \
@@ -66,6 +65,7 @@ XDarwin_LDFLAGS =  \
 		 -Wl,-framework,IOKit
 
 XDarwin_CFLAGS = -DINXDARWIN
+
 if XQUARTZ
 macosdir = $(darwinappdir)/Contents/MacOS
 
@@ -74,8 +74,8 @@ DEFS += -DDARWIN_WITH_QUARTZ -DXFree86Server
 macos_PROGRAMS = XDarwinApp
 
 XDarwinApp_SOURCES = \
-               	$(top_srcdir)/fb/fbcmap.c \
-               	$(top_srcdir)/mi/miinitext.c \
+                $(top_srcdir)/fb/fbcmap.c \
+                $(top_srcdir)/mi/miinitext.c \
 		$(top_srcdir)/Xi/stubs.c 
 
 XDarwinApp_LDADD = \
@@ -118,21 +118,24 @@ XDarwinApp_LDFLAGS =  \
 		 -Wl,-framework,CoreAudio \
 		 -Wl,-framework,IOKit
 
+XDarwinApp_CFLAGS = -DINXDARWINAPP
 HOOK_TARGETS = xquartz-install-hook
 
 
 crplugindir = $(darwinappdir)/Contents/Resources/cr.bundle/Contents/MacOS
 crplugin_LTLIBRARIES = cr.la
-cr_la_SOURCES =
+cr_la_SOURCES = \
+		quartz/cr/crAppleWM.m \
+		quartz/cr/crFrame.m \
+		quartz/cr/crScreen.m \
+		quartz/fullscreen/quartzCursor.m \
+		quartz/cr/XView.m
+
 cr_la_LIBADD = \
-		quartz/cr/crAppleWM.o \
-		quartz/cr/crFrame.o \
-		quartz/cr/crScreen.o \
-		quartz/fullscreen/quartzCursor.o \
-		quartz/cr/XView.o \
 		$(top_builddir)/miext/rootless/librootless.la \
 		$(top_builddir)/miext/rootless/safeAlpha/libsafeAlpha.la \
 		$(top_builddir)/miext/rootless/accel/librlAccel.la
+
 cr_la_LDFLAGS = -shrext '' -Wl,-framework,ApplicationServices \
 		-Wl,-framework,Cocoa \
 		-Wl,-framework,Carbon \
@@ -143,10 +146,11 @@ cr_la_DEPENDENCIES = XDarwinApp
 
 fullscreenplugindir = $(darwinappdir)/Contents/Resources/fullscreen.bundle/Contents/MacOS
 fullscreenplugin_LTLIBRARIES = fullscreen.la
-fullscreen_la_SOURCES =
+fullscreen_la_SOURCES = \
+		quartz/fullscreen/fullscreen.c \
+		quartz/fullscreen/quartzCursor.c
+
 fullscreen_la_LIBADD = \
-		quartz/fullscreen/fullscreen.o \
-		quartz/fullscreen/quartzCursor.o \
 		$(top_builddir)/miext/shadow/libshadow.la
 
 fullscreen_la_LDFLAGS = -shrext '' -Wl,-framework,ApplicationServices \
@@ -175,20 +179,22 @@ if HAVE_X_PLUGIN
 
 xprplugindir = $(darwinappdir)/Contents/Resources/xpr.bundle/Contents/MacOS
 xprplugin_LTLIBRARIES = xpr.la
-xpr_la_SOURCES =
+xpr_la_SOURCES = \
+		quartz/xpr/appledri.c \
+		quartz/xpr/dri.c \
+		quartz/xpr/xprAppleWM.c \
+		quartz/xpr/xprCursor.c \
+		quartz/xpr/xprFrame.c \
+		quartz/xpr/xprScreen.c \
+		quartz/xpr/x-hash.c \
+		quartz/xpr/x-hook.c \
+		quartz/xpr/x-list.c
+
 xpr_la_LIBADD = \
-		quartz/xpr/appledri.o \
-		quartz/xpr/dri.o \
-		quartz/xpr/xprAppleWM.o \
-		quartz/xpr/xprCursor.o \
-		quartz/xpr/xprFrame.o \
-		quartz/xpr/xprScreen.o \
-		quartz/xpr/x-hash.o \
-		quartz/xpr/x-hook.o \
-		quartz/xpr/x-list.o \
 		$(top_builddir)/miext/rootless/librootless.la \
 		$(top_builddir)/miext/rootless/safeAlpha/libsafeAlpha.la \
 		$(top_builddir)/miext/rootless/accel/librlAccel.la
+
 xpr_la_LDFLAGS = -shrext '' -Wl,-framework,ApplicationServices \
 		-lXplugin \
 		-XCClinker -bundle_loader -XCClinker XDarwinApp \

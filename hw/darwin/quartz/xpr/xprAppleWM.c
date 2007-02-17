@@ -31,11 +31,10 @@
 #include <xorg-config.h>
 #endif
 #include "xpr.h"
-#include "applewmExt.h"
+#include "quartz/applewmExt.h"
 #include "rootless.h"
 #include "Xplugin.h"
 #include <X11/X.h>
-
 
 static int xprSetWindowLevel(
     WindowPtr pWin,

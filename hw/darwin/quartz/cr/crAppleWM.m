@@ -30,8 +30,8 @@
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
-#include "quartzCommon.h"
-#include "cr.h"
+#include "quartz/quartzCommon.h"
+#include "quartz/cr/cr.h"
 
 #undef BOOL
 #define BOOL xBOOL
@@ -39,7 +39,7 @@
 #include "X11/X.h"
 #define _APPLEWM_SERVER_
 #include "X11/extensions/applewm.h"
-#include "applewmExt.h"
+#include "quartz/applewmExt.h"
 #undef BOOL
 
 #define StdDocumentStyleMask (NSTitledWindowMask | \
