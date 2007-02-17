@@ -128,7 +128,7 @@ cr_la_SOURCES = \
 		quartz/cr/crAppleWM.m \
 		quartz/cr/crFrame.m \
 		quartz/cr/crScreen.m \
-		quartz/fullscreen/quartzCursor.m \
+		quartz/fullscreen/quartzCursor.c \
 		quartz/cr/XView.m
 
 cr_la_LIBADD = \
