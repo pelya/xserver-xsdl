@@ -1253,37 +1253,6 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 	XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
 	XORG_LIBS="$COMPOSITE_LIB $MI_LIB $FIXES_LIB $XEXTXORG_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XPSTUBS_LIB $OS_LIB"
 
-	if test "x$DGA" = xauto; then
-		PKG_CHECK_MODULES(DGA, xf86dgaproto, [DGA=yes], [DGA=no])
-	fi
-	if test "x$DGA" = xyes; then
-		XORG_MODULES="$XORG_MODULES xf86dgaproto"
-		AC_DEFINE(DGA, 1, [Support DGA extension])
-		AC_DEFINE(XFreeXDGA, 1, [Build XDGA support])
-	fi
-
-	if test "x$XF86MISC" = xauto; then
-		PKG_CHECK_MODULES(XF86MISC, xf86miscproto, [XF86MISC=yes], [XF86MISC=no])
-	fi
-	if test "x$XF86MISC" = xyes; then
-		XORG_MODULES="$XORG_MODULES xf86miscproto"
-		AC_DEFINE(XF86MISC, 1, [Support XFree86 miscellaneous extensions])
-	fi
-
-	if test "x$XF86VIDMODE" = xauto; then
-		PKG_CHECK_MODULES(XF86VIDMODE, xf86vidmodeproto, [XF86VIDMODE=yes], [XF86VIDMODE=no])
-	fi
-	if test "x$XF86VIDMODE" = xyes; then
-		XORG_MODULES="$XORG_MODULES xf86vidmodeproto"
-		AC_DEFINE(XF86VIDMODE, 1, [Support XFree86 Video Mode extension])
-	fi
-
-	if test -n "$XORG_MODULES"; then
-	        PKG_CHECK_MODULES(XORG_MODULES, [$XORG_MODULES])
-	        XORG_CFLAGS="$XORG_CFLAGS $XORG_MODULES_CFLAGS"
-	        XORG_LIBS="$XORG_LIBS $XORG_MODULES_LIBS"
-	fi
-
 dnl Check to see if dlopen is in default libraries (like Solaris, which
 dnl has it in libc), or if libdl is needed to get it.
 	AC_CHECK_FUNC([dlopen], [], 
@@ -1312,17 +1281,19 @@ return 0;}
                    XQUARTZ=no
                  fi
                fi
-               AC_CACHE_CHECK([for AGL framework],xorg_cv_AGL_framework,[
-               save_LDFLAGS=$LDFLAGS
-               LDFLAGS="$LDFLAGS -framework AGL"
-               AC_LINK_IFELSE([char aglEnable();
-int main() {
-aglEnable();
-return 0;}
-               ],[xorg_cv_AGL_framework=yes],
-               [xorg_cv_AGL_framework=no])
-               LDFLAGS=$save_LDFLAGS
-               ])
+#	       glxAGL / glxCGL don't work yet
+#               AC_CACHE_CHECK([for AGL framework],xorg_cv_AGL_framework,[
+#               save_LDFLAGS=$LDFLAGS
+#               LDFLAGS="$LDFLAGS -framework AGL"
+#               AC_LINK_IFELSE([char aglEnable();
+#int main() {
+#aglEnable();
+#return 0;}
+#               ],[xorg_cv_AGL_framework=yes],
+#               [xorg_cv_AGL_framework=no])
+#               LDFLAGS=$save_LDFLAGS
+#               ])
+               xorg_cv_AGL_framework=no
                AC_CHECK_LIB([Xplugin],[xp_init],[:])
                AC_SUBST([APPLE_APPLICATIONS_DIR])
                CFLAGS="${CFLAGS} -D__DARWIN__"
@@ -1331,15 +1302,15 @@ return 0;}
                PLIST_VENDOR_WEB=$VENDOR_WEB
                AC_SUBST([PLIST_VENDOR_WEB])
                # Not sure that we should be disabling all these...
-               if test "x$XF86MISC" = xyes; then
+               if test "x$XF86MISC" = xyes || test "x$XF86MISC" = xauto; then
                        AC_MSG_NOTICE([Disabling XF86Misc extension])
                        XF86MISC=no
                fi
-               if test "x$XF86VIDMODE" = xyes; then
+               if test "x$XF86VIDMODE" = xyes || test "x$XF86VIDMODE" = xauto; then
                        AC_MSG_NOTICE([Disabling XF86VidMode extension])
                        XF86VIDMODE=no
                fi
-               if test "x$DGA" = xyes; then
+               if test "x$DGA" = xyes || test "x$DGA" = xauto; then
                        AC_MSG_NOTICE([Disabling DGA extension])
                        DGA=no
                fi
@@ -1499,6 +1470,37 @@ return 0;}
 	if test "x$XORG_OS_PCI" = x ; then
 		XORG_OS_PCI=$XORG_OS
 	fi
+	if test "x$DGA" = xauto; then
+		PKG_CHECK_MODULES(DGA, xf86dgaproto, [DGA=yes], [DGA=no])
+	fi
+	if test "x$DGA" = xyes; then
+		XORG_MODULES="$XORG_MODULES xf86dgaproto"
+		AC_DEFINE(DGA, 1, [Support DGA extension])
+		AC_DEFINE(XFreeXDGA, 1, [Build XDGA support])
+	fi
+
+	if test "x$XF86MISC" = xauto; then
+		PKG_CHECK_MODULES(XF86MISC, xf86miscproto, [XF86MISC=yes], [XF86MISC=no])
+	fi
+	if test "x$XF86MISC" = xyes; then
+		XORG_MODULES="$XORG_MODULES xf86miscproto"
+		AC_DEFINE(XF86MISC, 1, [Support XFree86 miscellaneous extensions])
+	fi
+
+	if test "x$XF86VIDMODE" = xauto; then
+		PKG_CHECK_MODULES(XF86VIDMODE, xf86vidmodeproto, [XF86VIDMODE=yes], [XF86VIDMODE=no])
+	fi
+	if test "x$XF86VIDMODE" = xyes; then
+		XORG_MODULES="$XORG_MODULES xf86vidmodeproto"
+		AC_DEFINE(XF86VIDMODE, 1, [Support XFree86 Video Mode extension])
+	fi
+
+	if test -n "$XORG_MODULES"; then
+	        PKG_CHECK_MODULES(XORG_MODULES, [$XORG_MODULES])
+	        XORG_CFLAGS="$XORG_CFLAGS $XORG_MODULES_CFLAGS"
+	        XORG_LIBS="$XORG_LIBS $XORG_MODULES_LIBS"
+	fi
+
 	AC_SUBST([XORG_LIBS])
 	AC_SUBST([XORG_INCS])
 	AC_SUBST([XORG_OS])
