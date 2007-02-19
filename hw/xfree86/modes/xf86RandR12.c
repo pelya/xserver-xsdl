@@ -728,6 +728,54 @@ xf86RandR12OutputSetProperty (ScreenPtr pScreen,
     return output->funcs->set_property(output, property, value);
 }
 
+static Bool
+xf86RandR12OutputValidateMode (ScreenPtr    pScreen,
+			       RROutputPtr  randr_output,
+			       RRModePtr    randr_mode)
+{
+    xf86OutputPtr   output = randr_output->devPrivate;
+    DisplayModePtr  mode = randr_mode->devPrivate;
+
+    if (!mode)
+    {
+	mode = xalloc (sizeof (DisplayModeRec) + randr_mode->mode.nameLength + 1);
+	if (!mode)
+	    return FALSE;
+	mode->name = (char *) mode + 1;
+	memcpy (mode->name, randr_mode->name, randr_mode->mode.nameLength);
+	mode->name[randr_mode->mode.nameLength] = '\0';
+	mode->Clock = randr_mode->mode.dotClock / 1000;
+	mode->HDisplay = randr_mode->mode.width;
+	mode->HSyncStart = randr_mode->mode.hSyncStart;
+	mode->HSyncEnd = randr_mode->mode.hSyncEnd;
+	mode->HTotal = randr_mode->mode.hTotal;
+	mode->HSkew = randr_mode->mode.hSkew;
+	
+	mode->VDisplay = randr_mode->mode.height;
+	mode->VSyncStart = randr_mode->mode.vSyncStart;
+	mode->VSyncEnd = randr_mode->mode.vSyncEnd;
+	mode->VTotal = randr_mode->mode.vTotal;
+    
+	mode->Flags = randr_mode->mode.modeFlags;
+	randr_mode->devPrivate = mode;
+    }
+    if (!output->funcs->mode_valid (output, mode))
+	return FALSE;
+    return TRUE;
+}
+
+static void
+xf86RandR12ModeDestroy (ScreenPtr pScreen, RRModePtr randr_mode)
+{
+    DisplayModePtr  mode = randr_mode->devPrivate;
+
+    if (mode)
+    {
+	xfree (mode);
+	randr_mode->devPrivate = NULL;
+    }
+}
+
 /**
  * Given a list of xf86 modes and a RandR Output object, construct
  * RandR modes and assign them to the output
@@ -958,6 +1006,8 @@ xf86RandR12Init12 (ScreenPtr pScreen)
     rp->rrCrtcSet = xf86RandR12CrtcSet;
     rp->rrCrtcSetGamma = xf86RandR12CrtcSetGamma;
     rp->rrOutputSetProperty = xf86RandR12OutputSetProperty;
+    rp->rrOutputValidateMode = xf86RandR12OutputValidateMode;
+    rp->rrModeDestroy = xf86RandR12ModeDestroy;
     rp->rrSetConfig = NULL;
     pScrn->PointerMoved = xf86RandR12PointerMoved;
     if (!xf86RandR12CreateObjects12 (pScreen))

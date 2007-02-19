@@ -666,10 +666,15 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	    return BadMatch;
 	}
 	/* validate mode for this output */
-	for (j = 0; j < outputs[i]->numModes; j++)
-	    if (outputs[i]->modes[j] == mode)
+	for (j = 0; j < outputs[i]->numModes + outputs[i]->numUserModes; j++)
+	{
+	    RRModePtr	m = (j < outputs[i]->numModes ? 
+			     outputs[i]->modes[j] :
+			     outputs[i]->userModes[j - outputs[i]->numModes]);
+	    if (m == mode)
 		break;
-	if (j == outputs[i]->numModes)
+	}
+	if (j == outputs[i]->numModes + outputs[i]->numUserModes)
 	{
 	    if (outputs)
 		xfree (outputs);

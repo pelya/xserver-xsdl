@@ -157,9 +157,11 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
     pScrPriv->nSizes = 0;
 	    
     /* find size bounds */
-    for (i = 0; i < output->numModes; i++) 
+    for (i = 0; i < output->numModes + output->numUserModes; i++) 
     {
-	RRModePtr   mode = output->modes[i];
+	RRModePtr   mode = (i < output->numModes ? 
+			    output->modes[i] : 
+			    output->userModes[i-output->numModes]);
         CARD16	    width = mode->mode.width;
         CARD16	    height = mode->mode.height;
 	

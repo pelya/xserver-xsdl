@@ -80,7 +80,7 @@ struct _rrMode {
     xRRModeInfo	    mode;
     char	    *name;
     void	    *devPrivate;
-    Bool	    userDefined;
+    ScreenPtr	    userScreen;
 };
 
 struct _rrPropertyValue {
@@ -135,6 +135,8 @@ struct _rrOutput {
     int		    numModes;
     int		    numPreferred;
     RRModePtr	    *modes;
+    int		    numUserModes;
+    RRModePtr	    *userModes;
     Bool	    changed;
     RRPropertyPtr   properties;
     void	    *devPrivate;
@@ -163,6 +165,13 @@ typedef Bool (*RROutputSetPropertyProcPtr) (ScreenPtr		pScreen,
 					    RROutputPtr		output,
 					    Atom		property,
 					    RRPropertyValuePtr	value);
+
+typedef Bool (*RROutputValidateModeProcPtr) (ScreenPtr		pScreen,
+					     RROutputPtr	output,
+					     RRModePtr		mode);
+
+typedef void (*RRModeDestroyProcPtr) (ScreenPtr	    pScreen,
+				      RRModePtr	    mode);
 
 #endif
 
@@ -208,6 +217,8 @@ typedef struct _rrScrPriv {
     RRCrtcSetProcPtr	    rrCrtcSet;
     RRCrtcSetGammaProcPtr   rrCrtcSetGamma;
     RROutputSetPropertyProcPtr	rrOutputSetProperty;
+    RROutputValidateModeProcPtr	rrOutputValidateMode;
+    RRModeDestroyProcPtr	rrModeDestroy;
 #endif
     
     /*
@@ -394,6 +405,15 @@ miRROutputSetProperty (ScreenPtr	    pScreen,
 		       Atom		    property,
 		       RRPropertyValuePtr   value);
 
+Bool
+miRROutputValidateMode (ScreenPtr	    pScreen,
+			RROutputPtr	    output,
+			RRModePtr	    mode);
+
+void
+miRRModeDestroy (ScreenPtr  pScreen,
+		 RRModePtr  mode);
+
 /* randr.c */
 /*
  * Send all pending events
@@ -549,6 +569,11 @@ Bool
 RRCrtcSetRotations (RRCrtcPtr crtc,
 		    Rotation rotations);
 
+/*
+ * Return the area of the frame buffer scanned out by the crtc,
+ * taking into account the current mode and rotation
+ */
+
 void
 RRCrtcGetScanoutSize(RRCrtcPtr crtc, int *width, int *height);
 
@@ -671,6 +696,14 @@ RROutputSetModes (RROutputPtr	output,
 		  RRModePtr	*modes,
 		  int		numModes,
 		  int		numPreferred);
+
+int
+RROutputAddUserMode (RROutputPtr    output,
+		     RRModePtr	    mode);
+
+int
+RROutputDeleteUserMode (RROutputPtr output,
+			RRModePtr   mode);
 
 Bool
 RROutputSetCrtcs (RROutputPtr	output,
