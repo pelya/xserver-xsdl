@@ -78,7 +78,9 @@ XFixesSelectionCallback (CallbackListPtr *callbacks, pointer data, pointer args)
     }
     for (e = selectionEvents; e; e = e->next)
     {
-	if (e->selection == selection->selection && (e->eventMask & eventMask))
+	if (e->selection == selection->selection && 
+	    (e->eventMask & eventMask) &&
+	    !e->pClient->clientGone)
 	{
 	    xXFixesSelectionNotifyEvent	ev;
 
