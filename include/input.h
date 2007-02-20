@@ -454,4 +454,11 @@ extern void DDXRingBell(
     int pitch,
     int duration);
 
+extern int PairDevices(ClientPtr client, 
+                       DeviceIntPtr pointer, 
+                       DeviceIntPtr keyboard);
+
+extern Bool RegisterPairingClient(ClientPtr client);
+extern Bool UnregisterPairingClient(ClientPtr client);
+
 #endif /* INPUT_H */

@@ -102,6 +102,7 @@ SOFTWARE.
 #include "opendev.h"
 #include "querydp.h"
 #include "queryst.h"
+#include "regpair.h"
 #include "selectev.h"
 #include "sendexev.h"
 #include "chgkmap.h"
@@ -355,6 +356,8 @@ ProcIDispatch(register ClientPtr client)
         return (ProcXChangeDeviceCursor(client));
     else if (stuff->data == X_ChangePointerKeyboardPairing)
         return (ProcXChangePointerKeyboardPairing(client));
+    else if (stuff->data == X_RegisterPairingClient)
+        return (ProcXRegisterPairingClient(client));
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -452,6 +455,8 @@ SProcIDispatch(register ClientPtr client)
         return (SProcXChangeDeviceCursor(client));
     else if (stuff->data == X_ChangePointerKeyboardPairing)
         return (SProcXChangePointerKeyboardPairing(client));
+    else if (stuff->data == X_RegisterPairingClient)
+        return (SProcXRegisterPairingClient(client));
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -527,6 +532,9 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
     else if (rep->RepType == X_QueryDevicePointer)
 	SRepXQueryDevicePointer(client, len,
 				 (xQueryDevicePointerReply *) rep);
+    else if (rep->RepType == X_RegisterPairingClient)
+	SRepXRegisterPairingClient(client, len,
+				 (xRegisterPairingClientReply *) rep);
     else {
 	FatalError("XINPUT confused sending swapped reply");
     }

@@ -62,6 +62,8 @@ libXi_la_SOURCES =	\
 	querydp.h \
 	queryst.c \
 	queryst.h \
+	regpair.c \
+	regpair.h \
 	selectev.c \
 	selectev.h \
 	sendexev.c \

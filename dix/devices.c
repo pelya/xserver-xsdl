@@ -81,6 +81,9 @@ SOFTWARE.
 
 int CoreDevicePrivatesIndex = 0, CoreDevicePrivatesGeneration = -1;
 
+/* The client that is allowed to change pointer-keyboard pairings. */
+static ClientPtr pairingClient = NULL;
+
 DeviceIntPtr
 AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 {
@@ -1926,5 +1929,54 @@ ProcQueryKeymap(ClientPtr client)
 	bzero((char *)&rep.map[0], 32);
 
     WriteReplyToClient(client, sizeof(xQueryKeymapReply), &rep);
+ 
+   return Success;
+}
+
+/* Pair the keyboard to the pointer device. Keyboard events will follow the
+ * pointer sprite. 
+ */
+int 
+PairDevices(ClientPtr client, DeviceIntPtr pointer, DeviceIntPtr keyboard)
+{
+    if (!pairingClient)
+        RegisterPairingClient(client);
+    else if (pairingClient != client)
+        return BadAccess;
+
+    keyboard->pSprite = pointer->pSprite;
     return Success;
+}
+
+/*
+ * Register a client to be able to pair devices. 
+ */
+Bool
+RegisterPairingClient(ClientPtr client)
+{
+    if (!pairingClient)
+    {
+        pairingClient = client;
+    } else if (pairingClient != client)
+    {
+        return False;
+    }
+    return True;
+}
+
+/*
+ * Unregister pairing client;
+ */
+Bool 
+UnregisterPairingClient(ClientPtr client)
+{
+    if (pairingClient) 
+    {
+        if ( pairingClient == client)
+        {
+            pairingClient = NULL;
+        } else 
+            return False;
+    }
+    return True;
 }

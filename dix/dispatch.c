@@ -3568,6 +3568,7 @@ CloseDownClient(register ClientPtr client)
 	DeleteClientFromAnySelections(client);
 	ReleaseActiveGrabs(client);
 	DeleteClientFontStuff(client);
+        UnregisterPairingClient(client); /* other clients can pair devices */
 	if (!really_close_down)
 	{
 	    /*  This frees resources that should never be retained
