@@ -452,7 +452,7 @@ the text after the /; it is used to distinguish between instances of
 
 <string> ::= <dbl quoted string> | <single quoted string> | <unquoted string>
 
-<dbl quoted string> ::= <space> " <not dqoute>* " <space>
+<dbl quoted string> ::= <space> " <not dquote>* " <space>
 
 <single quoted string> ::= <space> ' <not squote>* ' <space>
 
@@ -463,7 +463,7 @@ the text after the /; it is used to distinguish between instances of
 Character sets:
 
 <not newline> ::= any character except '\en'
-<not dqoute>  ::= any character except "
+<not dquote>  ::= any character except "
 <not squote>  ::= any character except '
 <not space>   ::= any character except those in <space>
 .fi
