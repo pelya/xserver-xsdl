@@ -20,7 +20,9 @@ libXi_la_SOURCES =	\
 	chgptr.c \
 	chgptr.h \
 	chpkpair.c \
-	chpkpair.h \ 
+	chpkpair.h \
+	chaccess.c \
+	chaccess.h \
 	closedev.c \
 	closedev.h \
 	devbell.c \
@@ -46,6 +48,8 @@ libXi_la_SOURCES =	\
 	getselev.h \
 	getvers.c \
 	getvers.h \
+        grabacc.c \
+        grabacc.h \
 	grabdev.c \
 	grabdev.h \
 	grabdevb.c \
@@ -62,6 +66,8 @@ libXi_la_SOURCES =	\
 	querydp.h \
 	queryst.c \
 	queryst.h \
+	qryacces.c \
+	qryacces.h \
 	regpair.c \
 	regpair.h \
 	selectev.c \

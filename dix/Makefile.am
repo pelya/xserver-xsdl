@@ -5,6 +5,7 @@ AM_CFLAGS = $(DIX_CFLAGS) \
 	-DVENDOR_RELEASE="@VENDOR_RELEASE@"
 
 libdix_la_SOURCES = 	\
+        access.c        \
 	atom.c		\
 	colormap.c	\
 	cursor.c	\

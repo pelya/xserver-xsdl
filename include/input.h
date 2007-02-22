@@ -445,6 +445,37 @@ extern void SwitchCorePointer(DeviceIntPtr pDev);
 extern DeviceIntPtr LookupDeviceIntRec(
     CARD8 deviceid);
 
+/* Pairing input devices */
+extern int PairDevices(ClientPtr client, 
+                       DeviceIntPtr pointer, 
+                       DeviceIntPtr keyboard);
+
+extern Bool RegisterPairingClient(ClientPtr client);
+extern Bool UnregisterPairingClient(ClientPtr client);
+
+/* Window/device based access control */
+extern Bool ACRegisterClient(ClientPtr client);
+extern Bool ACUnregisterClient(ClientPtr client);
+extern int ACClearWindowAccess(ClientPtr client,
+                        WindowPtr win,
+                        int what);
+extern int ACChangeWindowAccess(ClientPtr client, 
+                                WindowPtr win, 
+                                int defaultRule,
+                                DeviceIntPtr* perm_devices,
+                                int npermit,
+                                DeviceIntPtr* deny_devices,
+                                int ndeny);
+extern void ACQueryWindowAccess(WindowPtr win, 
+                                int* defaultRule,
+                                DeviceIntPtr** perm,
+                                int* nperm,
+                                DeviceIntPtr** deny,
+                                int* ndeny);
+
+extern Bool ACDeviceAllowed(WindowPtr win, 
+                            DeviceIntPtr dev);
+
 /* Implemented by the DDX. */
 extern int NewInputDeviceRequest(
     InputOption *options);
@@ -453,12 +484,5 @@ extern void DDXRingBell(
     int volume,
     int pitch,
     int duration);
-
-extern int PairDevices(ClientPtr client, 
-                       DeviceIntPtr pointer, 
-                       DeviceIntPtr keyboard);
-
-extern Bool RegisterPairingClient(ClientPtr client);
-extern Bool UnregisterPairingClient(ClientPtr client);
 
 #endif /* INPUT_H */

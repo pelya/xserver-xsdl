@@ -1663,6 +1663,9 @@ DeliverEventsToWindow(DeviceIntPtr pDev, register WindowPtr pWin, xEvent
     Mask deliveryMask = 0; /* If a grab occurs due to a button press, then
 		              this mask is the mask of the grab. */
     int type = pEvents->u.u.type;
+    
+    if (!ACDeviceAllowed(pWin, pDev))
+        return 0;
 
     /* CantBeFiltered means only window owner gets the event */
     if ((filter == CantBeFiltered) || !(type & EXTENSION_EVENT_BASE))
@@ -2748,16 +2751,20 @@ DeliverGrabbedEvent(register xEvent *xE, register DeviceIntPtr thisDev,
     }
     if (!deliveries)
     {
-	FixUpEventFromWindow(thisDev, xE, grab->window, None, TRUE);
-	deliveries = TryClientEvents(rClient(grab), xE, count,
-				     (Mask)grab->eventMask,
-				     filters[xE->u.u.type], grab);
-	if (deliveries && (xE->u.u.type == MotionNotify
+        if (ACDeviceAllowed(grab->window, thisDev))
+        {
+
+            FixUpEventFromWindow(thisDev, xE, grab->window, None, TRUE);
+            deliveries = TryClientEvents(rClient(grab), xE, count,
+                    (Mask)grab->eventMask,
+                    filters[xE->u.u.type], grab);
+            if (deliveries && (xE->u.u.type == MotionNotify
 #ifdef XINPUT
-			   || xE->u.u.type == DeviceMotionNotify
+                        || xE->u.u.type == DeviceMotionNotify
 #endif
-			   ))
-	    thisDev->valuator->motionHintWindow = grab->window;
+                        ))
+                thisDev->valuator->motionHintWindow = grab->window;
+        }
     }
     if (deliveries && !deactivateGrab && (xE->u.u.type != MotionNotify
 #ifdef XINPUT

@@ -77,6 +77,14 @@ typedef struct _DevCursorNode {
     struct _DevCursorNode*      next;
 } DevCursNodeRec, *DevCursNodePtr, *DevCursorList;
 
+typedef struct _WindowAccessRec {
+    int                  defaultRule;      /* WindowAccessDenyAll */
+    DeviceIntPtr*        perm;
+    int                  nperm;
+    DeviceIntPtr*        deny;
+    int                  ndeny;
+} WindowAccessRec, *WindowAccessPtr;
+
 typedef struct _WindowOpt {
     VisualID		visual;		   /* default: same as parent */
     CursorPtr		cursor;		   /* default: window.cursorNone */
@@ -97,6 +105,7 @@ typedef struct _WindowOpt {
     struct _OtherInputMasks *inputMasks;   /* default: NULL */
 #endif
     DevCursorList       deviceCursors;     /* default: NULL */
+    WindowAccessRec     access;
 } WindowOptRec, *WindowOptPtr;
 
 #define BackgroundPixel	    2L

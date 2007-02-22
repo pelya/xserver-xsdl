@@ -74,6 +74,7 @@ SOFTWARE.
 
 /* modules local to Xi */
 #include "allowev.h"
+#include "chaccess.h"
 #include "chdevcur.h"
 #include "chgdctl.h"
 #include "chgfctl.h"
@@ -94,12 +95,14 @@ SOFTWARE.
 #include "getselev.h"
 #include "getvers.h"
 #include "getvers.h"
+#include "grabacc.h"
 #include "grabdev.h"
 #include "grabdevb.h"
 #include "grabdevk.h"
 #include "gtmotion.h"
 #include "listdev.h"
 #include "opendev.h"
+#include "qryacces.c"
 #include "querydp.h"
 #include "queryst.h"
 #include "regpair.h"
@@ -358,6 +361,12 @@ ProcIDispatch(register ClientPtr client)
         return (ProcXChangePointerKeyboardPairing(client));
     else if (stuff->data == X_RegisterPairingClient)
         return (ProcXRegisterPairingClient(client));
+    else if (stuff->data == X_GrabAccessControl)
+        return (ProcXGrabAccessControl(client));
+    else if (stuff->data == X_ChangeWindowAccess)
+        return (ProcXChangeWindowAccess(client));
+    else if (stuff->data == X_QueryWindowAccess)
+        return ProcXQueryWindowAccess(client);
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -457,6 +466,12 @@ SProcIDispatch(register ClientPtr client)
         return (SProcXChangePointerKeyboardPairing(client));
     else if (stuff->data == X_RegisterPairingClient)
         return (SProcXRegisterPairingClient(client));
+    else if (stuff->data == X_GrabAccessControl)
+        return (SProcXGrabAccessControl(client));
+    else if (stuff->data == X_ChangeWindowAccess)
+        return (SProcXChangeWindowAccess(client));
+    else if (stuff->data == X_QueryWindowAccess)
+        return SProcXQueryWindowAccess(client);
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -531,10 +546,16 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
 				 (xChangeDeviceControlReply *) rep);
     else if (rep->RepType == X_QueryDevicePointer)
 	SRepXQueryDevicePointer(client, len,
-				 (xQueryDevicePointerReply *) rep);
+				(xQueryDevicePointerReply *) rep);
     else if (rep->RepType == X_RegisterPairingClient)
 	SRepXRegisterPairingClient(client, len,
-				 (xRegisterPairingClientReply *) rep);
+				  (xRegisterPairingClientReply *) rep);
+    else if (rep->RepType == X_GrabAccessControl)
+        SRepXGrabAccessControl(client, len,
+                                  (xGrabAccessControlReply*) rep);
+    else if (rep->RepType == X_QueryWindowAccess)
+        SRepXQueryWindowAccess(client, len,
+                               (xQueryWindowAccessReply*) rep);
     else {
 	FatalError("XINPUT confused sending swapped reply");
     }

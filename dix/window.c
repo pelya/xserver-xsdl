@@ -452,6 +452,13 @@ CreateRootWindow(ScreenPtr pScreen)
     pWin->optional->inputMasks = NULL;
     pWin->optional->deviceCursors = NULL;
 #endif
+
+    pWin->optional->access.perm = NULL;
+    pWin->optional->access.deny = NULL;
+    pWin->optional->access.nperm = 0;
+    pWin->optional->access.ndeny = 0;
+    pWin->optional->access.defaultRule = 0;
+
     pWin->optional->colormap = pScreen->defColormap;
     pWin->optional->visual = pScreen->rootVisual;
 
@@ -505,7 +512,6 @@ CreateRootWindow(ScreenPtr pScreen)
 		
     if (disableSaveUnders)
 	pScreen->saveUnderSupport = NotUseful;
-
     return TRUE;
 }
 
@@ -522,6 +528,7 @@ InitRootWindow(WindowPtr pWin)
     pWin->cursorIsNone = FALSE;
     pWin->optional->cursor = rootCursor;
     rootCursor->refcnt++;
+
 
     if (!blackRoot && !whiteRoot) {
         MakeRootTile(pWin);
@@ -3660,6 +3667,9 @@ CheckWindowOptionalNeed (register WindowPtr w)
             pNode = pNode->next;
         }
     }
+    if (optional->access.nperm != 0 ||
+            optional->access.ndeny != 0)
+        return;
 
     parentOptional = FindWindowWithOptional(w)->optional;
     if (optional->visual != parentOptional->visual)
@@ -3705,8 +3715,12 @@ MakeWindowOptional (register WindowPtr pWin)
 #endif
 #ifdef XINPUT
     optional->inputMasks = NULL;
-    optional->deviceCursors = NULL;
 #endif
+    optional->deviceCursors = NULL;
+    optional->access.nperm = 0;
+    optional->access.ndeny = 0;
+    optional->access.perm = NULL;
+    optional->access.deny = NULL;
     parentOptional = FindWindowWithOptional(pWin)->optional;
     optional->visual = parentOptional->visual;
     if (!pWin->cursorIsNone)
@@ -3770,6 +3784,9 @@ DisposeWindowOptional (register WindowPtr pWin)
         }
         pWin->optional->deviceCursors = NULL;
     }
+
+    xfree(pWin->optional->access.perm);
+    xfree(pWin->optional->access.deny);
 
     xfree (pWin->optional);
     pWin->optional = NULL;
