@@ -31,6 +31,7 @@ sdk_HEADERS =		\
 	os.h		\
 	pixmap.h	\
 	pixmapstr.h	\
+	privates.h	\
 	property.h	\
 	propertyst.h	\
 	region.h	\
