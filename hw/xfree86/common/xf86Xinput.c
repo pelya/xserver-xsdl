@@ -421,7 +421,8 @@ NewInputDeviceRequest (InputOption *options)
         EnableDevice(dev);
 
     /* send enter/leave event, update sprite window */
-    InitializeSprite(dev, GetCurrentRootWindow());
+    if (dev->spriteOwner)
+        InitializeSprite(dev, GetCurrentRootWindow());
     CheckMotion(NULL, dev);
 
     return Success;
