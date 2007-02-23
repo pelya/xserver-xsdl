@@ -1,4 +1,4 @@
-module_LIBRARIES = libi2c.a
+noinst_LIBRARIES = libi2c.a
 
 multimediadir = $(moduledir)/multimedia
 multimedia_LTLIBRARIES =	\
