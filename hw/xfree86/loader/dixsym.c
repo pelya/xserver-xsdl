@@ -63,6 +63,7 @@
 #include "globals.h"
 #include "os.h"
 #include "osdep.h"
+#include "privates.h"
 #include "resource.h"
 #include "servermd.h"
 #include "scrnintstr.h"
@@ -259,6 +260,11 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(GetScratchPixmapHeader)
     SYMFUNC(FreeScratchPixmapHeader)
     /* privates.c */
+    SYMFUNC(dixRequestPrivate)
+    SYMFUNC(dixRequestSinglePrivate)
+    SYMFUNC(dixLookupPrivate)
+    SYMFUNC(dixRegisterPrivateInitFunc)
+    SYMFUNC(dixRegisterPrivateDeleteFunc)
     SYMFUNC(AllocateExtensionPrivate)
     SYMFUNC(AllocateExtensionPrivateIndex)
     SYMFUNC(AllocateClientPrivate)
