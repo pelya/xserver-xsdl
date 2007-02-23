@@ -89,6 +89,7 @@ Equipment Corporation.
 #include "os.h"
 #include "windowstr.h"
 #include "resource.h"
+#include "privates.h"
 #include "dixstruct.h"
 #include "gcstruct.h"
 #include "extension.h"
@@ -356,6 +357,7 @@ main(int argc, char *argv[], char *envp[])
 	InitAtoms();
 	InitEvents();
 	InitGlyphCaching();
+	dixResetPrivates();
 	ResetExtensionPrivates();
 	ResetClientPrivates();
 	ResetScreenPrivates();
