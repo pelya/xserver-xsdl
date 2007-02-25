@@ -97,6 +97,12 @@ typedef struct _xf86CrtcFuncs {
 		  DisplayModePtr adjusted_mode);
 
     /**
+     * Prepare CRTC for an upcoming mode set.
+     */
+    void
+    (*prepare)(xf86CrtcPtr crtc);
+
+    /**
      * Callback for setting up a video mode after fixups have been made.
      */
     void
@@ -104,6 +110,12 @@ typedef struct _xf86CrtcFuncs {
 		DisplayModePtr mode,
 		DisplayModePtr adjusted_mode,
 		int x, int y);
+
+    /**
+     * Commit mode changes to a CRTC
+     */
+    void
+    (*commit)(xf86CrtcPtr crtc);
 
     /* Set the color ramps for the CRTC to the given values. */
     void
@@ -262,6 +274,18 @@ typedef struct _xf86OutputFuncs {
     (*mode_fixup)(xf86OutputPtr output,
 		  DisplayModePtr mode,
 		  DisplayModePtr adjusted_mode);
+
+    /**
+     * Callback for preparing mode changes on an output
+     */
+    void
+    (*prepare)(xf86OutputPtr output);
+
+    /**
+     * Callback for committing mode changes on an output
+     */
+    void
+    (*commit)(xf86OutputPtr output);
 
     /**
      * Callback for setting up a video mode after fixups have been made.

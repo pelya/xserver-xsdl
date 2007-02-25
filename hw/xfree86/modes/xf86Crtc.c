@@ -282,7 +282,7 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 	goto done;
     }
 
-    /* Disable the outputs and CRTCs before setting the mode. */
+    /* Prepare the outputs and CRTCs before setting the mode. */
     for (i = 0; i < xf86_config->num_output; i++) {
 	xf86OutputPtr output = xf86_config->output[i];
 
@@ -290,10 +290,10 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 	    continue;
 
 	/* Disable the output as the first thing we do. */
-	output->funcs->dpms(output, DPMSModeOff);
+	output->funcs->prepare(output);
     }
 
-    crtc->funcs->dpms(crtc, DPMSModeOff);
+    crtc->funcs->prepare(crtc);
 
     /* Set up the DPLL and any output state that needs to adjust or depend
      * on the DPLL.
@@ -307,12 +307,12 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
     }
 
     /* Now, enable the clocks, plane, pipe, and outputs that we set up. */
-    crtc->funcs->dpms(crtc, DPMSModeOn);
+    crtc->funcs->commit(crtc);
     for (i = 0; i < xf86_config->num_output; i++) 
     {
 	xf86OutputPtr output = xf86_config->output[i];
 	if (output->crtc == crtc)
-	    output->funcs->dpms(output, DPMSModeOn);
+	    output->funcs->commit(output);
     }
 
     /* XXX free adjustedmode */
