@@ -667,6 +667,27 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	    return BadMatch;
 	}
     }
+    /* validate clones */
+    for (i = 0; i < numOutputs; i++)
+    {
+	for (j = 0; j < numOutputs; j++)
+	{
+	    int k;
+	    if (i == j)
+		continue;
+	    for (k = 0; k < outputs[i]->numClones; k++)
+	    {
+		if (outputs[i]->clones[k] == outputs[j])
+		    break;
+	    }
+	    if (k == outputs[i]->numClones)
+	    {
+		if (outputs)
+		    xfree (outputs);
+		return BadMatch;
+	    }
+	}
+    }
 
     pScreen = crtc->pScreen;
     pScrPriv = rrGetScrPriv(pScreen);
