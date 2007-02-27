@@ -37,7 +37,7 @@ Xquartz_SOURCES = \
                   $(top_srcdir)/Xi/stubs.c \
                   apple/X11Application.m \
                   apple/X11Controller.m \
-                  quartz/XServer.m \
+                  quartz/Xserver.m \
                   quartz/Preferences.m \
                   quartz/applewm.c \
                   quartz/keysym2ucs.c \
@@ -90,6 +90,7 @@ XDarwin_LDADD = \
 Xquartz_LDADD = \
 		$(top_builddir)/dix/dixfonts.lo \
 		$(top_builddir)/dix/libdix.la \
+		$(top_builddir)/config/libconfig.a \
 		$(top_builddir)/os/libos.la \
 		./libdarwinShared.a \
 		$(top_builddir)/dix/libxpstubs.la \
@@ -122,7 +123,7 @@ Xquartz_LDFLAGS =  \
                  -XCClinker -Objc \
                  -Wl,-u,_miDCInitialize \
                  -Wl,-framework,Carbon \
-                 -Wl,-framework,ApplicationServices \
+                 -Wl,-framework,OpenGL \
                  -Wl,-framework,Cocoa \
                  -Wl,-framework,CoreAudio \
                  -Wl,-framework,IOKit

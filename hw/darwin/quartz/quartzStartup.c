@@ -42,10 +42,12 @@
 char **envpGlobal;      // argcGlobal and argvGlobal
                         // are from dix/globals.c
 
-#ifdef INX11APP
+#ifdef INXQUARTZ
 void X11ControllerMain(int argc, char *argv[], void (*server_thread) (void *), void *server_arg);
+# ifdef GLXEXT
 void GlxExtensionInit(void);
 void GlxWrapInitVisuals(miInitVisualsProcPtr *);
+# endif
 
 static void server_thread (void *arg) {
   extern int main (int argc, char **argv, char **envp);
@@ -53,19 +55,18 @@ static void server_thread (void *arg) {
 }
 #else
 int NSApplicationMain(int argc, char *argv[]);
+typedef Bool (*QuartzModeBundleInitPtr)(void);
 
+# ifdef GLXEXT
 // GLX bundle function pointers
 typedef void (*GlxExtensionInitPtr)(void); 
 static GlxExtensionInitPtr GlxExtensionInit = NULL;
-
 typedef void (*GlxWrapInitVisualsPtr)(miInitVisualsProcPtr *);
 static GlxWrapInitVisualsPtr GlxWrapInitVisuals = NULL;
-
-typedef Bool (*QuartzModeBundleInitPtr)(void);
-
 void * __DarwinglXMesaProvider = NULL;
 typedef void (*GlxPushProviderPtr)(void *);
 GlxPushProviderPtr GlxPushProvider = NULL;
+# endif
 #endif
 
 /*
@@ -123,7 +124,7 @@ void DarwinHandleGUI(
         }
     }
 
-#ifdef INX11APP
+#ifdef INXQUARTZ
     /* Initially I ran the X server on the main thread, and received
        events on the second thread. But now we may be using Carbon,
        that needs to run on the main thread. (Otherwise, when it's
@@ -143,7 +144,7 @@ void DarwinHandleGUI(
     exit(main_exit);
 }
 
-#ifndef INX11APP
+#ifndef INXQUARTZ
 /*
  * QuartzLoadDisplayBundle
  *  Try to load the appropriate bundle containing the back end display code.
@@ -201,7 +202,7 @@ Bool QuartzLoadDisplayBundle(
     return TRUE;
 }
 
-
+#ifdef GLXEXT
 /*
  * LoadGlxBundle
  *  The Quartz mode X server needs to dynamically load the appropriate
@@ -268,7 +269,7 @@ static void LoadGlxBundle(void)
     CFRelease(bundleName);
     CFRelease(bundleURL);
 }
-
+# endif
 #else
 
 Bool QuartzLoadDisplayBundle(const char *dpyBundleName)
@@ -278,9 +279,10 @@ Bool QuartzLoadDisplayBundle(const char *dpyBundleName)
 
 #endif
 
+#ifdef GLXEXT
 void DarwinGlxPushProvider(void *impl)
 {
-#ifndef INX11APP
+#ifndef INXQUARTZ
     if (!GlxExtensionInit)
         LoadGlxBundle();
 #endif
@@ -294,7 +296,7 @@ void DarwinGlxPushProvider(void *impl)
  */
 void DarwinGlxExtensionInit(void)
 {
-#ifndef INX11APP
+#ifndef INXQUARTZ
     if (!GlxExtensionInit)
         LoadGlxBundle();
 #endif
@@ -308,13 +310,13 @@ void DarwinGlxExtensionInit(void)
 void DarwinGlxWrapInitVisuals(
     miInitVisualsProcPtr *procPtr)
 {
-#ifndef INX11APP
+#ifndef INXQUARTZ
     if (!GlxWrapInitVisuals)
         LoadGlxBundle();
 #endif
     GlxWrapInitVisuals(procPtr);
 }
-
+#endif
 
 int DarwinModeProcessArgument( int argc, char *argv[], int i )
 {
