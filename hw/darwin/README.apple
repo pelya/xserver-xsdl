@@ -1,5 +1,5 @@
-This repository contains patches to the modular X.org server code to allow
-it to be compiled on Darwin/OS X; this would not have been possible
+This directory contains a port of the XDarwin code to the modular X.org
+codebase to be compiled on Darwin/OS X; this would not have been possible
 without the help of Torrey Lyons and Peter O'Gorman, to whom I am
 grateful for their patches, time and moral support.
 
