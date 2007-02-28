@@ -85,7 +85,7 @@ XDarwin_LDADD = \
 		$(top_builddir)/miext/rootless/safeAlpha/libsafeAlpha.la \
 		$(top_builddir)/miext/rootless/accel/librlAccel.la \
 		@XORG_LIBS@ \
-		-lXau -lXdmcp -lXfont -lfreetype
+		$(XSERVER_LIBS)
 
 Xquartz_LDADD = \
 		$(top_builddir)/dix/dixfonts.lo \
@@ -112,7 +112,7 @@ Xquartz_LDADD = \
 		$(top_builddir)/miext/rootless/safeAlpha/libsafeAlpha.la \
 		$(top_builddir)/miext/rootless/accel/librlAccel.la \
 		@XORG_LIBS@ \
-		-lXau -lXdmcp -lXfont -lfreetype -lXplugin
+		$(XSERVER_LIBS) -lXplugin
 
 XDarwin_LDFLAGS =  \
                  -XCClinker -Objc \
@@ -175,7 +175,7 @@ XDarwinApp_LDADD = \
 		 $(top_builddir)/miext/rootless/safeAlpha/libsafeAlpha.la \
 		 $(top_builddir)/miext/rootless/accel/librlAccel.la \
 		 @XORG_LIBS@ \
-		 -lXau -lXdmcp -lXfont -lfreetype \
+		 $(XSERVER_LIBS) \
 		 $(top_builddir)/fb/libfb.la 
 
 XDarwinApp_LDFLAGS =  \
