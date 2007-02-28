@@ -540,6 +540,10 @@ AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--enable-xprint], [Build Xprint ex
 AC_ARG_ENABLE(xgl,            AS_HELP_STRING([--enable-xgl], [Build Xgl server (default: no)]), [XGL=$enableval], [XGL=no])
 AC_ARG_ENABLE(xglx,           AS_HELP_STRING([--enable-xglx], [Build Xglx xgl module (default: no)]), [XGLX=$enableval], [XGLX=no])
 AC_ARG_ENABLE(xegl,           AS_HELP_STRING([--enable-xegl], [Build Xegl xgl module (default: no)]), [XEGL=$enableval], [XEGL=no])
+dnl legacy fb support
+AC_ARG_ENABLE(mfb,            AS_HELP_STRING([--enable-mfb], [Build legacy mono framebuffer support (default: enabled)]), [MFB=$enableval], [MFB=$XORG])
+AC_ARG_ENABLE(cfb,            AS_HELP_STRING([--enable-cfb], [Build legacy color framebuffer support (default: enabled)]), [CFB=$enableval], [CFB=$XORG])
+AC_ARG_ENABLE(afb,            AS_HELP_STRING([--enable-afb], [Build legacy advanced framebuffer support (default: enabled)]), [AFB=$enableval], [AFB=$XORG])
 dnl kdrive and its subsystems
 AC_ARG_ENABLE(kdrive,         AS_HELP_STRING([--enable-kdrive], [Build kdrive servers (default: no)]), [KDRIVE=$enableval], [KDRIVE=no])
 AC_ARG_ENABLE(xephyr,         AS_HELP_STRING([--enable-xephyr], [Build the kdrive Xephyr server (default: auto)]), [XEPHYR=$enableval], [XEPHYR=auto])
@@ -1561,12 +1565,19 @@ AM_CONDITIONAL([LINUX_ALPHA], [test "x$linux_alpha" = xyes])
 AM_CONDITIONAL([LNXACPI], [test "x$linux_acpi" = xyes])
 AM_CONDITIONAL([SOLARIS_USL_CONSOLE], [test "x$solaris_usl_console" = xyes])
 AM_CONDITIONAL([SOLARIS_ASM_INLINE], [test "x$solaris_asm_inline" = xyes])
-AM_CONDITIONAL(MFB, [test "x$XORG" = xyes])
-AM_CONDITIONAL(CFB, [test "x$XORG" = xyes])
-AM_CONDITIONAL(AFB, [test "x$XORG" = xyes])
 AM_CONDITIONAL([BUILD_DARWIN],[test "X$build_darwin" = Xyes])
 AM_CONDITIONAL([XQUARTZ],[test "X$XQUARTZ" = Xyes])
 AM_CONDITIONAL(DGA, [test "x$DGA" = xyes])
+
+dnl legacy fb support
+AM_CONDITIONAL(MFB, [test "x$MFB" = xyes])
+AM_CONDITIONAL(CFB, [test "x$CFB" = xyes])
+AM_CONDITIONAL(AFB, [test "x$AFB" = xyes])
+if test "x$MFB" = xyes -o "x$CFB" = xyes -o "x$AFB" = xyes; then
+	if test "x$XORG" != xyes; then
+		AC_MSG_ERROR([legacy fb support requires the Xorg server])
+	fi
+fi
 
 dnl Xprint DDX
 
