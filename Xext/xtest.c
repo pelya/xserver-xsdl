@@ -316,7 +316,7 @@ ProcXTestFakeInput(client)
 #ifdef XINPUT
 	if (!extension)
 #endif /* XINPUT */
-	    dev = (DeviceIntPtr)LookupKeyboardDevice();
+	    dev = inputInfo.keyboard;
 	if (ev->u.u.detail < dev->key->curKeySyms.minKeyCode ||
 	    ev->u.u.detail > dev->key->curKeySyms.maxKeyCode)
 	{
@@ -360,7 +360,8 @@ ProcXTestFakeInput(client)
 	    break;
 	}
 #endif /* XINPUT */
-	dev = (DeviceIntPtr)LookupPointerDevice();
+        if (!dev)
+            dev = inputInfo.pointer;
 	if (ev->u.keyButtonPointer.root == None)
 	    root = GetCurrentRootWindow();
 	else
@@ -378,7 +379,7 @@ ProcXTestFakeInput(client)
 	if (ev->u.u.detail == xTrue)
 	{
 	    int x, y;
-	    GetSpritePosition(inputInfo.pointer, &x, &y);
+	    GetSpritePosition(dev, &x, &y);
 	    ev->u.keyButtonPointer.rootX += x;
 	    ev->u.keyButtonPointer.rootY += y;
 	}
@@ -442,13 +443,15 @@ ProcXTestFakeInput(client)
 	    (dev, root->drawable.pScreen,
 	     ev->u.keyButtonPointer.rootX,
 	     ev->u.keyButtonPointer.rootY, FALSE);
+        dev->valuator->lastx = ev->u.keyButtonPointer.rootX;
+        dev->valuator->lasty = ev->u.keyButtonPointer.rootY;
 	break;
     case ButtonPress:
     case ButtonRelease:
 #ifdef XINPUT
 	if (!extension)
 #endif /* XINPUT */
-	    dev = (DeviceIntPtr)LookupPointerDevice();
+	    dev = inputInfo.pointer;
 	if (!ev->u.u.detail || ev->u.u.detail > dev->button->numButtons)
 	{
 	    client->errorValue = ev->u.u.detail;
