@@ -407,6 +407,25 @@ struct _xf86Output {
 #endif
 };
 
+typedef struct _xf86CrtcConfigFuncs {
+    /**
+     * Requests that the driver resize the screen.
+     *
+     * The driver is responsible for updating scrn->virtualX and scrn->virtualY.
+     * If the requested size cannot be set, the driver should leave those values
+     * alone and return FALSE.
+     *
+     * A naive driver that cannot reallocate the screen may simply change
+     * virtual[XY].  A more advanced driver will want to also change the
+     * devPrivate.ptr and devKind of the screen pixmap, update any offscreen
+     * pixmaps it may have moved, and change pScrn->displayWidth.
+     */
+    Bool
+    (*resize)(ScrnInfoPtr	scrn,
+	      int		width,
+	      int		height);
+} xf86CrtcConfigFuncsRec, *xf86CrtcConfigFuncsPtr;
+
 typedef struct _xf86CrtcConfig {
     int			num_output;
     xf86OutputPtr	*output;
@@ -435,6 +454,8 @@ typedef struct _xf86CrtcConfig {
     int			dga_width, dga_height, dga_stride;
     DisplayModePtr	dga_save_mode;
 
+    const xf86CrtcConfigFuncsRec *funcs;
+
 } xf86CrtcConfigRec, *xf86CrtcConfigPtr;
 
 extern int xf86CrtcConfigPrivateIndex;
@@ -446,7 +467,8 @@ extern int xf86CrtcConfigPrivateIndex;
  */
 
 void
-xf86CrtcConfigInit (ScrnInfoPtr		scrn);
+xf86CrtcConfigInit (ScrnInfoPtr				scrn,
+		    const xf86CrtcConfigFuncsRec	*funcs);
 
 void
 xf86CrtcSetSizeRange (ScrnInfoPtr scrn,

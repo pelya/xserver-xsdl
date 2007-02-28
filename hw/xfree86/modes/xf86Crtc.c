@@ -52,13 +52,17 @@
 int xf86CrtcConfigPrivateIndex = -1;
 
 void
-xf86CrtcConfigInit (ScrnInfoPtr scrn)
+xf86CrtcConfigInit (ScrnInfoPtr scrn,
+		    const xf86CrtcConfigFuncsRec *funcs)
 {
     xf86CrtcConfigPtr	config;
     
     if (xf86CrtcConfigPrivateIndex == -1)
 	xf86CrtcConfigPrivateIndex = xf86AllocateScrnInfoPrivateIndex();
     config = xnfcalloc (1, sizeof (xf86CrtcConfigRec));
+
+    config->funcs = funcs;
+
     scrn->privates[xf86CrtcConfigPrivateIndex].ptr = config;
 }
  

@@ -335,8 +335,9 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
 {
     XF86RandRInfoPtr	randrp = XF86RANDRINFO(pScreen);
     ScrnInfoPtr		pScrn = XF86SCRNINFO(pScreen);
+    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(pScrn);
     WindowPtr		pRoot = WindowTable[pScreen->myNum];
-    Bool 		ret = TRUE;
+    Bool		ret = FALSE;
 
     if (randrp->virtualX == -1 || randrp->virtualY == -1)
     {
@@ -345,20 +346,26 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
     }
     if (pRoot)
 	(*pScrn->EnableDisableFBAccess) (pScreen->myNum, FALSE);
-    pScrn->virtualX = width;
-    pScrn->virtualY = height;
 
-    pScreen->width = pScrn->virtualX;
-    pScreen->height = pScrn->virtualY;
+    /* Let the driver update virtualX and virtualY */
+    if (!(*config->funcs->resize)(pScrn, width, height))
+	goto finish;
+
+    ret = TRUE;
+
+    pScreen->width = width;
+    pScreen->height = height;
     pScreen->mmWidth = mmWidth;
     pScreen->mmHeight = mmHeight;
 
     xf86SetViewport (pScreen, pScreen->width-1, pScreen->height-1);
     xf86SetViewport (pScreen, 0, 0);
+
+finish:
     if (pRoot)
 	(*pScrn->EnableDisableFBAccess) (pScreen->myNum, TRUE);
 #if RANDR_12_INTERFACE
-    if (WindowTable[pScreen->myNum])
+    if (WindowTable[pScreen->myNum] && ret)
 	RRScreenSizeNotify (pScreen);
 #endif
     return ret;
@@ -904,15 +911,14 @@ xf86RandR12CreateScreenResources12 (ScreenPtr pScreen)
 {
     int			c;
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
-    XF86RandRInfoPtr	randrp = XF86RANDRINFO(pScreen);
     xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(pScrn);
 
     for (c = 0; c < config->num_crtc; c++)
 	xf86RandR12CrtcNotify (config->crtc[c]->randr_crtc);
     
     
-    RRScreenSetSizeRange (pScreen, 320, 240,
-			  randrp->virtualX, randrp->virtualY);
+    RRScreenSetSizeRange (pScreen, config->minWidth, config->minHeight,
+			  config->maxWidth, config->maxHeight);
     return TRUE;
 }
 
