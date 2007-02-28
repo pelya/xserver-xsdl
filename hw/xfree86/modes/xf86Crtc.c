@@ -734,12 +734,16 @@ xf86PickCrtcs (ScrnInfoPtr	scrn,
 
 /*
  * Compute the virtual size necessary to place all of the available
- * crtcs in the specified configuration and also large enough to
- * resize any crtc to the largest available mode
+ * crtcs in the specified configuration.
+ *
+ * canGrow indicates that the driver can make the screen larger than its initial
+ * configuration.  If FALSE, this function will enlarge the screen to include
+ * the largest available mode.
  */
 
 static void
-xf86DefaultScreenLimits (ScrnInfoPtr scrn, int *widthp, int *heightp)
+xf86DefaultScreenLimits (ScrnInfoPtr scrn, int *widthp, int *heightp,
+			 Bool canGrow)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
     int	    width = 0, height = 0;
@@ -757,26 +761,28 @@ xf86DefaultScreenLimits (ScrnInfoPtr scrn, int *widthp, int *heightp)
 	    crtc_width = crtc->x + xf86ModeWidth (&crtc->desiredMode, crtc->desiredRotation);
 	    crtc_height = crtc->y + xf86ModeHeight (&crtc->desiredMode, crtc->desiredRotation);
 	}
-	for (o = 0; o < config->num_output; o++) 
-	{
-	    xf86OutputPtr   output = config->output[o];
+	if (!canGrow) {
+	    for (o = 0; o < config->num_output; o++)
+	    {
+		xf86OutputPtr   output = config->output[o];
 
-	    for (s = 0; s < config->num_crtc; s++)
-		if (output->possible_crtcs & (1 << s))
-		{
-		    DisplayModePtr  mode;
-		    for (mode = output->probed_modes; mode; mode = mode->next)
+		for (s = 0; s < config->num_crtc; s++)
+		    if (output->possible_crtcs & (1 << s))
 		    {
-			if (mode->HDisplay > crtc_width)
-			    crtc_width = mode->HDisplay;
-			if (mode->VDisplay > crtc_width)
-			    crtc_width = mode->VDisplay;
-			if (mode->VDisplay > crtc_height)
-			    crtc_height = mode->VDisplay;
-			if (mode->HDisplay > crtc_height)
-			    crtc_height = mode->HDisplay;
+			DisplayModePtr  mode;
+			for (mode = output->probed_modes; mode; mode = mode->next)
+			{
+			    if (mode->HDisplay > crtc_width)
+				crtc_width = mode->HDisplay;
+			    if (mode->VDisplay > crtc_width)
+				crtc_width = mode->VDisplay;
+			    if (mode->VDisplay > crtc_height)
+				crtc_height = mode->VDisplay;
+			    if (mode->HDisplay > crtc_height)
+				crtc_height = mode->HDisplay;
+			}
 		    }
-		}
+	    }
 	}
 	if (crtc_width > width)
 	    width = crtc_width;
@@ -1350,10 +1356,17 @@ xf86SetScrnInfoModes (ScrnInfoPtr scrn)
  *
  * Given auto-detected (and, eventually, configured) values,
  * construct a usable configuration for the system
+ *
+ * canGrow indicates that the driver can resize the screen to larger than its
+ * initially configured size via the config->funcs->resize hook.  If TRUE, this
+ * function will set virtualX and virtualY to match the initial configuration
+ * and leave config->max{Width,Height} alone.  If FALSE, it will bloat
+ * virtual[XY] to include the largest modes and set config->max{Width,Height}
+ * accordingly.
  */
 
 Bool
-xf86InitialConfiguration (ScrnInfoPtr	    scrn)
+xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
     int			o, c;
@@ -1491,9 +1504,10 @@ xf86InitialConfiguration (ScrnInfoPtr	    scrn)
     if (scrn->display->virtualX == 0)
     {
 	/*
-	 * Expand virtual size to cover potential mode switches
+	 * Expand virtual size to cover the current config and potential mode
+	 * switches, if the driver can't enlarge the screen later.
 	 */
-	xf86DefaultScreenLimits (scrn, &width, &height);
+	xf86DefaultScreenLimits (scrn, &width, &height, canGrow);
     
 	scrn->display->virtualX = width;
 	scrn->display->virtualY = height;
@@ -1503,7 +1517,23 @@ xf86InitialConfiguration (ScrnInfoPtr	    scrn)
 	scrn->virtualX = width;
     if (height > scrn->virtualY)
 	scrn->virtualY = height;
-    
+
+    /*
+     * Make sure the configuration isn't too small.
+     */
+    if (width < config->minWidth || height < config->minHeight)
+	return FALSE;
+
+    /*
+     * Limit the crtc config to virtual[XY] if the driver can't grow the
+     * desktop.
+     */
+    if (!canGrow)
+    {
+	xf86CrtcSetSizeRange (scrn, config->minWidth, config->minHeight,
+			      width, height);
+    }
+
     /* Mirror output modes to scrn mode list */
     xf86SetScrnInfoModes (scrn);
     

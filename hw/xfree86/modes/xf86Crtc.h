@@ -545,7 +545,7 @@ void
 xf86SetScrnInfoModes (ScrnInfoPtr pScrn);
 
 Bool
-xf86InitialConfiguration (ScrnInfoPtr pScrn);
+xf86InitialConfiguration (ScrnInfoPtr pScrn, Bool canGrow);
 
 void
 xf86DPMSSet(ScrnInfoPtr pScrn, int PowerManagementMode, int flags);
