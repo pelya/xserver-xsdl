@@ -1937,14 +1937,21 @@ ProcQueryKeymap(ClientPtr client)
  * pointer sprite. 
  */
 int 
-PairDevices(ClientPtr client, DeviceIntPtr pointer, DeviceIntPtr keyboard)
+PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
 {
     if (!pairingClient)
         RegisterPairingClient(client);
     else if (pairingClient != client)
         return BadAccess;
 
-    keyboard->pSprite = pointer->pSprite;
+    if (kbd->spriteOwner)
+    {
+        xfree(kbd->pSprite);
+        kbd->pSprite = NULL;
+        kbd->spriteOwner = FALSE;
+    }
+
+    kbd->pSprite = ptr->pSprite;
     return Success;
 }
 

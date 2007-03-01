@@ -240,7 +240,6 @@ static WindowPtr *spriteTrace = (WindowPtr *)NULL;
 static int spriteTraceSize = 0;
 static int spriteTraceGood;
 
-
 /** 
  * True if device owns a cursor, false if device shares a cursor sprite with
  * another device.
@@ -2212,8 +2211,16 @@ void
 InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
 {
     SpritePtr pSprite;
-    ScreenPtr pScreen = pWin->drawable.pScreen;
+    ScreenPtr pScreen; 
 
+    if (!pDev->pSprite)
+    {
+        pDev->pSprite = (SpritePtr)xcalloc(1, sizeof(SpriteRec));
+        if (!pDev->pSprite)
+            FatalError("InitializeSprite: failed to allocate sprite struct");
+    }
+
+    pScreen = (pWin) ? pWin->drawable.pScreen : (ScreenPtr)NULL;
     pSprite = pDev->pSprite;
     pSprite->hotPhys.pScreen = pScreen;
     pSprite->hotPhys.x = pScreen->width / 2;
@@ -2222,8 +2229,12 @@ InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
     pSprite->hotLimits.x2 = pScreen->width;
     pSprite->hotLimits.y2 = pScreen->height;
     pSprite->win = pWin;
-    pSprite->current = wCursor (pWin);
-    pSprite->current->refcnt++;
+    if (pWin)
+    {
+        pSprite->current = wCursor(pWin);
+        pSprite->current->refcnt++;
+    } else
+        pSprite->current = NullCursor;
 
     (*pScreen->CursorLimits) ( pDev, pScreen, pSprite->current,
                                &pSprite->hotLimits, &pSprite->physLimits);
@@ -2252,6 +2263,8 @@ InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
         REGION_NULL(pScreen, &pSprite->Reg2);
     }
 #endif
+
+    pDev->spriteOwner = TRUE;
 }
 
 /*

@@ -316,7 +316,7 @@ ProcXTestFakeInput(client)
 #ifdef XINPUT
 	if (!extension)
 #endif /* XINPUT */
-	    dev = inputInfo.keyboard;
+	    dev = (DeviceIntPtr)LookupKeyboardDevice();
 	if (ev->u.u.detail < dev->key->curKeySyms.minKeyCode ||
 	    ev->u.u.detail > dev->key->curKeySyms.maxKeyCode)
 	{
@@ -361,7 +361,7 @@ ProcXTestFakeInput(client)
 	}
 #endif /* XINPUT */
         if (!dev)
-            dev = inputInfo.pointer;
+            dev = (DeviceIntPtr*)LookupPointerDevice();
 	if (ev->u.keyButtonPointer.root == None)
 	    root = GetCurrentRootWindow();
 	else
@@ -427,7 +427,7 @@ ProcXTestFakeInput(client)
 #ifdef PANORAMIX
 	if ((!noPanoramiXExtension
 	     && root->drawable.pScreen->myNum 
-                != XineramaGetCursorScreen(inputInfo.pointer))
+                != XineramaGetCursorScreen(dev))
 	    || (noPanoramiXExtension && root != GetCurrentRootWindow()))
 
 #else
@@ -451,7 +451,7 @@ ProcXTestFakeInput(client)
 #ifdef XINPUT
 	if (!extension)
 #endif /* XINPUT */
-	    dev = inputInfo.pointer;
+            dev = (DeviceIntPtr*)LookupPointerDevice();
 	if (!ev->u.u.detail || ev->u.u.detail > dev->button->numButtons)
 	{
 	    client->errorValue = ev->u.u.detail;
