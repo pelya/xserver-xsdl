@@ -357,7 +357,8 @@ main(int argc, char *argv[], char *envp[])
 	InitAtoms();
 	InitEvents();
 	InitGlyphCaching();
-	dixResetPrivates();
+	if (!dixResetPrivates())
+	    FatalError("couldn't init private data storage");
 	ResetExtensionPrivates();
 	ResetClientPrivates();
 	ResetScreenPrivates();

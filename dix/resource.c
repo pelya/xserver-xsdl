@@ -169,6 +169,12 @@ static void RebuildTable(
 #define INITHASHSIZE 6
 #define MAXHASHSIZE 11
 
+typedef struct _Resource {
+    struct _Resource	*next;
+    XID			id;
+    RESTYPE		type;
+    pointer		value;
+} ResourceRec, *ResourcePtr;
 #define NullResource ((ResourcePtr)NULL)
 
 typedef struct _ClientResource {

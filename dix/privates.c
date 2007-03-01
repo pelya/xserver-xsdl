@@ -31,6 +31,7 @@ from The Open Group.
 #endif
 
 #include <X11/X.h>
+#include <stddef.h>
 #include "scrnintstr.h"
 #include "misc.h"
 #include "os.h"
@@ -45,315 +46,265 @@ from The Open Group.
 #include "inputstr.h"
 #include "extnsionst.h"
 
-typedef struct _PrivateDescItem {
-    int index;
+typedef struct _PrivateDesc {
+    devprivate_key_t *key;
     RESTYPE type;
     pointer parent;
     unsigned size;
     CallbackListPtr initfuncs;
     CallbackListPtr deletefuncs;
-} PrivateDescItemRec, *PrivateDescItemPtr;
-
-/* keeps track of whether resource objects have been created */
-static char *instances = NULL;
-static RESTYPE instancesSize = 0;
-static char anyInstances = 0;
+    struct _PrivateDesc *next;
+} PrivateDescRec;
 
 /* list of all allocated privates */
-static PrivateDescItemPtr items = NULL;
-static unsigned itemsSize = 0;
-static unsigned nextPrivateIndex = 0;
+static PrivateDescRec *items = NULL;
 
-/* number of extra slots to add when resizing the tables */
-#define PRIV_TAB_INCREMENT 48
-/* set in index value for privates registered after resources were created */
-#define PRIV_DYN_MASK (1<<30)
-/* descriptor item lookup convenience macro */
-#define GET_DESCRIPTOR(index) (items + ((index) & (PRIV_DYN_MASK - 1)))
-/* type mask convenience macro */
-#define TYPE_BITS(type) ((type) & TypeMask)
-
-static _X_INLINE ResourcePtr
-findResourceBucket(RESTYPE type, pointer instance) {
-    ResourcePtr res = *((ResourcePtr *)instance);
-
-    while (res->type != type)
-	res = res->nexttype;
-    return res;
+static _X_INLINE PrivateDescRec *
+findItem(devprivate_key_t *const key)
+{
+    PrivateDescRec *item = items;
+    while (item) {
+	if (item->key == key)
+	    return item;
+	item = item->next;
+    }
+    return NULL;
 }
 
 /*
- * Request functions; the latter calls the former internally.
+ * Request pre-allocated space in resources of a given type.
  */
 _X_EXPORT int
-dixRequestPrivate(RESTYPE type, unsigned size, pointer parent)
+dixRequestPrivate(RESTYPE type, devprivate_key_t *const key,
+		  unsigned size, pointer parent)
 {
-    int index = nextPrivateIndex;
+    PrivateDescRec *item = findItem(key);
+    if (item) {
+	assert(item->type == type);
+	if (size > item->size)
+	    item->size = size;
+    } else {
+	item = (PrivateDescRec *)xalloc(sizeof(PrivateDescRec));
+	if (!item)
+	    return FALSE;
+	memset(item, 0, sizeof(PrivateDescRec));
 
-    /* check if privates descriptor table needs to be resized */
-    if (nextPrivateIndex >= itemsSize) {
-	unsigned bytes;
-	unsigned size = itemsSize;
-
-	while (nextPrivateIndex >= size)
-	    size += PRIV_TAB_INCREMENT;
-
-	bytes = size * sizeof(PrivateDescItemRec);
-	items = (PrivateDescItemPtr)xrealloc(items, bytes);
-	if (!items) {
-	    itemsSize = nextPrivateIndex = 0;
-	    return -1;
-	}
-	memset(items + itemsSize, 0,
-	       (size - itemsSize) * sizeof(PrivateDescItemRec));
+	/* add privates descriptor */
+	item->key = key;
+	item->type = type;
+	item->parent = parent;
+	item->size = size;
+	item->next = items;
+	items = item;
     }
-
-    /* figure out if resource instances already exist */
-    if ((type != RC_ANY && instances[TYPE_BITS(type)]) ||
-	(type == RC_ANY && anyInstances))
-	index |= PRIV_DYN_MASK;
-
-    /* add privates descriptor */
-    items[nextPrivateIndex].index = index;
-    items[nextPrivateIndex].type = type;
-    items[nextPrivateIndex].parent = parent;
-    items[nextPrivateIndex].size = size;
-    nextPrivateIndex++;
-    return index;
-}
-
-_X_EXPORT int
-dixRequestSinglePrivate(RESTYPE type, unsigned size, pointer instance)
-{
-    PrivatePtr ptr;
-    ResourcePtr res = findResourceBucket(type, instance);
-    int index = dixRequestPrivate(type, size, instance);
-    if (index < 0)
-	return index;
-
-    ptr = (PrivatePtr)xalloc(sizeof(PrivateRec) + size);
-    if (!ptr)
-	return -1;
-    ptr->index = index;
-    ptr->value = ptr + 1;
-    ptr->next = res->privates;
-    res->privates = ptr;
-    return index;
+    return TRUE;
 }
 
 /*
- * Lookup function (some of this could be static inlined)
+ * Allocate a private and attach it to an existing object.
  */
-_X_EXPORT pointer
-dixLookupPrivate(RESTYPE type, int index, pointer instance)
+_X_EXPORT pointer *
+dixAllocatePrivate(PrivateRec **privates, devprivate_key_t *const key)
 {
-    ResourcePtr res = findResourceBucket(type, instance);
-    PrivatePtr ptr = res->privates;
-    PrivateDescItemPtr item;
-    PrivateCallbackRec calldata;
+    PrivateDescRec *item = findItem(key);
+    PrivateRec *ptr;
+    unsigned size = sizeof(PrivateRec);
+    
+    if (item)
+	size += item->size;
 
-    /* see if private has already been allocated (likely) */
-    while (ptr) {
-	if (ptr->index == index)
-	    return ptr->value;
-	ptr = ptr->next;
-    }
-
-    /* past this point, need to create private on the fly */
-    /* create the new private */
-    item = GET_DESCRIPTOR(index);
-    ptr = (PrivatePtr)xalloc(sizeof(PrivateRec) + item->size);
+    ptr = (PrivateRec *)xalloc(size);
     if (!ptr)
 	return NULL;
-    memset(ptr, 0, sizeof(PrivateRec) + item->size);
-    ptr->index = index;
-    ptr->value = ptr + 1;
-    ptr->next = res->privates;
-    res->privates = ptr;
+    memset(ptr, 0, size);
+    ptr->key = key;
+    ptr->value = (size > sizeof(PrivateRec)) ? (ptr + 1) : NULL;
+    ptr->next = *privates;
+    *privates = ptr;
 
     /* call any init funcs and return */
-    calldata.value = ptr->value;
-    calldata.index = index;
-    calldata.resource = res;
-    CallCallbacks(&item->initfuncs, &calldata);
-    return ptr->value;
+    if (item) {
+	PrivateCallbackRec calldata = { key, ptr->value };
+	CallCallbacks(&item->initfuncs, &calldata);
+    }
+    return &ptr->value;
+}
+
+/*
+ * Allocates pre-requested privates in a single chunk.
+ */
+_X_EXPORT PrivateRec *
+dixAllocatePrivates(RESTYPE type, pointer parent)
+{
+    unsigned count = 0, size = 0;
+    PrivateCallbackRec calldata;
+    PrivateDescRec *item;
+    PrivateRec *ptr;
+    char *value;
+
+    /* first pass figures out total size */
+    for (item = items; item; item = item->next)
+	if ((item->type == type || item->type == RC_ANY) &&
+	    (item->parent == NULL || item->parent == parent)) {
+
+	    size += sizeof(PrivateRec) + item->size;
+	    count++;
+	}
+
+    /* allocate one chunk of memory for everything */
+    ptr = (PrivateRec *)xalloc(size);
+    if (!ptr)
+	return NULL;
+    memset(ptr, 0, size);
+    value = (char *)(ptr + count);
+
+    /* second pass sets up records and calls init funcs */
+    count = 0;
+    for (item = items; item; item = item->next)
+	if ((item->type == type || item->type == RC_ANY) &&
+	    (item->parent == NULL || item->parent == parent)) {
+
+	    ptr[count].key = calldata.key = item->key;
+	    ptr[count].dontfree = (count > 0);
+	    ptr[count].value = calldata.value = (items->size ? value : NULL);
+	    ptr[count].next = ptr + (count + 1);
+
+	    CallCallbacks(&item->initfuncs, &calldata);
+
+	    count++;
+	    value += item->size;
+	}
+
+    if (count > 0)
+	ptr[count-1].next = NULL;
+
+    return ptr;
+}
+
+/*
+ * Called to free privates at object deletion time.
+ */
+_X_EXPORT void
+dixFreePrivates(PrivateRec *privates)
+{
+    PrivateRec *ptr, *next;
+    PrivateDescRec *item;
+    PrivateCallbackRec calldata;
+
+    /* first pass calls the delete callbacks */
+    for (ptr = privates; ptr; ptr = ptr->next) {
+	item = findItem(ptr->key);
+	if (item) {
+	    calldata.key = ptr->key;
+	    calldata.value = ptr->value;
+	    CallCallbacks(&item->deletefuncs, &calldata);
+	}
+    }
+	
+    /* second pass frees the memory */
+    ptr = privates;
+    while (ptr) {
+	if (ptr->dontfree)
+	    ptr = ptr->next;
+	else {
+	    next = ptr->next;
+	    while (next && next->dontfree)
+		next = next->next;
+
+	    xfree(ptr);
+	    ptr = next;
+	}
+    }
+
+    /* no more use of privates permitted */
+    *privates = NULL;
 }
 
 /*
  * Callback registration
  */
 _X_EXPORT int
-dixRegisterPrivateInitFunc(RESTYPE type, int index,
+dixRegisterPrivateInitFunc(devprivate_key_t *const key,
 			   CallbackProcPtr callback, pointer data)
 {
-    return AddCallback(&GET_DESCRIPTOR(index)->initfuncs, callback, data);
+    PrivateDescRec *item = findItem(key);
+    if (!item)
+	return FALSE;
+    return AddCallback(&item->initfuncs, callback, data);
 }
 
 _X_EXPORT int
-dixRegisterPrivateDeleteFunc(RESTYPE type, int index,
+dixRegisterPrivateDeleteFunc(devprivate_key_t *const key,
 			     CallbackProcPtr callback, pointer data)
 {
-    return AddCallback(&GET_DESCRIPTOR(index)->deletefuncs, callback, data);
+    PrivateDescRec *item = findItem(key);
+    if (!item)
+	return FALSE;
+    return AddCallback(&item->deletefuncs, callback, data);
 }
 
-/*
- * Internal function called from the main loop to reset the subsystem.
- */
-void
-dixResetPrivates(void)
-{
-    if (items)
-	xfree(items);
-    items = NULL;
-    itemsSize = 0;
-    nextPrivateIndex = 0;
-    
-    if (instances)
-	xfree(instances);
-    instances = NULL;
-    instancesSize = 0;
-    anyInstances = 0;
-}
+/* Table of devPrivates offsets */
+static unsigned *offsets = NULL;
+static unsigned offsetsSize = 0;
 
 /*
- * Internal function called from CreateNewResourceType.
+ * Specify where the devPrivates field is located in a structure type
  */
-int
-dixUpdatePrivates(void)
+_X_EXPORT int
+dixRegisterPrivateOffset(RESTYPE type, unsigned offset)
 {
-    RESTYPE next = lastResourceType + 1;
+    type = type & TypeMask;
 
-    /* check if instances table needs to be resized */
-    if (next >= instancesSize) {
-	RESTYPE size = instancesSize;
-
-	while (next >= size)
-	    size += PRIV_TAB_INCREMENT;
-
-	instances = (char *)xrealloc(instances, size);
-	if (!instances) {
-	    instancesSize = 0;
+    /* resize offsets table if necessary */
+    while (type >= offsetsSize) {
+	offsets = (unsigned *)xrealloc(offsets,
+				       offsetsSize * 2 * sizeof(unsigned));
+	if (!offsets) {
+	    offsetsSize = 0;
 	    return FALSE;
 	}
-	memset(instances + instancesSize, 0, size - instancesSize);
-	instancesSize = size;
+	offsetsSize *= 2;
     }
+
+    offsets[type] = offset;
     return TRUE;
 }
 
-/*
- * Internal function called from dixAddResource.
- * Allocates a ResourceRec along with any private space all in one chunk.
- */
-ResourcePtr
-dixAllocateResourceRec(RESTYPE type, pointer instance, pointer parent)
+_X_EXPORT unsigned
+dixLookupPrivateOffset(RESTYPE type)
 {
-    unsigned i, count = 0, size = sizeof(ResourceRec);
-    ResourcePtr res;
-    PrivatePtr ptr;
-    char *value;
-    
-    /* first pass figures out total size */
-    for (i=0; i<nextPrivateIndex; i++)
-	if (items[i].type == type &&
-	    (items[i].parent == NULL || items[i].parent == parent)) {
-
-	    size += sizeof(PrivateRec) + items[i].size;
-	    count++;
-	}
-
-    /* allocate resource bucket */
-    res = (ResourcePtr)xalloc(size);
-    if (!res)
-	return res;
-    memset(res, 0, size);
-    ptr = (PrivatePtr)(res + 1);
-    value = (char *)(ptr + count);
-    res->privates = (count > 0) ? ptr : NULL;
-
-    /* second pass sets up privates records */
-    count = 0;
-    for (i=0; i<nextPrivateIndex; i++)
-	if (items[i].type == type &&
-	    (items[i].parent == NULL || items[i].parent == parent)) {
-
-	    ptr[count].index = items[i].index;
-	    ptr[count].value = value;
-	    ptr[count].next = ptr + (count + 1);
-	    count++;
-	    value += items[i].size;
-	}
-
-    if (count > 0)
-	ptr[count-1].next = NULL;
-
-    /* hook up back-pointer to resource record(s) */
-    if (type & RC_PRIVATES) {
-	res->nexttype = *((ResourcePtr *)instance);
-	*((ResourcePtr *)instance) = res;
-    }
-
-    instances[TYPE_BITS(type)] = anyInstances = 1;
-    return res;
-}
-    
-/*
- * Internal function called from dixAddResource.
- * Calls the init functions on a newly allocated resource.
- */
-void
-dixCallPrivateInitFuncs(ResourcePtr res)
-{
-    PrivatePtr ptr = res->privates;
-    PrivateCallbackRec calldata;
-
-    calldata.resource = res;
-    while (ptr) {
-	calldata.value = ptr->value;
-	calldata.index = ptr->index;
-	CallCallbacks(&GET_DESCRIPTOR(ptr->index)->initfuncs, &calldata);
-	ptr = ptr->next;
-    }
+    assert(type & RC_PRIVATES);
+    type = type & TypeMask;
+    assert(type < offsetsSize);
+    return offsets[type];
 }
 
 /*
- * Internal function called from the various delete resource functions.
- * Calls delete callbacks before freeing the ResourceRec and other bits.
+ * Called from the main loop to reset the subsystem.
  */
-void
-dixFreeResourceRec(ResourcePtr res)
+int
+dixResetPrivates(void)
 {
-    ResourcePtr *tmp;
-    PrivatePtr ptr, next, base;
-    PrivateCallbackRec calldata;
-
-    /* first pass calls the delete callbacks */
-    ptr = res->privates;
-    calldata.resource = res;
-    while (ptr) {
-	calldata.value = ptr->value;
-	calldata.index = ptr->index;
-	CallCallbacks(&GET_DESCRIPTOR(ptr->index)->deletefuncs, &calldata);
-	ptr = ptr->next;
+    PrivateDescRec *next;
+    while (items) {
+	next = items->next;
+	xfree(items);
+	items = next;
     }
 
-    /* second pass frees any off-struct private records */
-    ptr = res->privates;
-    base = (PrivatePtr)(res + 1);
-    while (ptr && ptr != base) {
-	next = ptr->next;
-	xfree(ptr);
-	ptr = next;
-    }
+    if (offsets)
+	xfree(offsets);
 
-    /* remove the record from the nexttype linked list and free it*/
-    if (res->type & RC_PRIVATES) {
-	tmp = (ResourcePtr *)res->value;
-	while (*tmp != res)
-	    tmp = &(*tmp)->nexttype;
-	*tmp = (*tmp)->nexttype;
-    }
-    xfree(res);
+    offsetsSize = 16;
+    offsets = (unsigned *)xalloc(offsetsSize * sizeof(unsigned));
+    if (!offsets)
+	return FALSE;
+
+    /* register basic resource offsets */
+    if (!dixRegisterPrivateOffset(RT_WINDOW, offsetof(WindowRec,devPrivates)))
+	return FALSE;
+
+    return TRUE;
 }
 
 /*

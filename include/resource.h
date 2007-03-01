@@ -53,26 +53,9 @@ SOFTWARE.
  * STUFF FOR RESOURCES 
  *****************************************************************/
 
-/* Resource structures */
+/* classes for Resource routines */
 
 typedef unsigned long RESTYPE;
-
-typedef struct _Private {
-    int			index;
-    pointer		value;
-    struct _Private	*next;
-} PrivateRec, *PrivatePtr;
-
-typedef struct _Resource {
-    struct _Resource	*next;
-    struct _Resource	*nexttype;
-    XID			id;
-    RESTYPE		type;
-    pointer		value;
-    PrivatePtr		privates;
-} ResourceRec, *ResourcePtr;
-
-/* classes for Resource routines */
 
 #define RC_VANILLA	((RESTYPE)0)
 #define RC_CACHED	((RESTYPE)1<<31)
@@ -84,8 +67,8 @@ typedef struct _Resource {
  */
 #define RC_NEVERRETAIN	((RESTYPE)1<<29)
 /*  Use class RC_PRIVATES for resources that support extra private data.
- *  Resources having this class must provide a field of type ResourcePtr
- *  at the top of the resource structure, which must be initalized to NULL.
+ *  Resources having this class must provide a field of type PrivateRec *.
+ *  Refer to the X server documentation on devPrivates for the details.
  */
 #define RC_PRIVATES	((RESTYPE)1<<28)
 #define RC_LASTPREDEF	RC_PRIVATES

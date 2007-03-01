@@ -19,59 +19,141 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * STUFF FOR PRIVATES
  *****************************************************************/
 
-/*
- * Request private space for your driver/module in all resources of a type.
- * A non-null pScreen argument restricts to resources on a given screen.
- */
-extern int
-dixRequestPrivate(RESTYPE type, unsigned size, pointer pScreen);
+typedef struct _PrivateKey {
+    int unused;
+} devprivate_key_t;
+
+typedef struct _Private {
+    devprivate_key_t	*key;
+    int			dontfree;
+    pointer		value;
+    struct _Private	*next;
+} PrivateRec;
 
 /*
- * Request private space in just one individual resource object.
+ * Request pre-allocated private space for your driver/module.
+ * A non-null pScreen argument restricts to objects on a given screen.
  */
 extern int
-dixRequestSinglePrivate(RESTYPE type, unsigned size, pointer instance);
+dixRequestPrivate(RESTYPE type, devprivate_key_t *const key,
+		  unsigned size, pointer pScreen);
+
+/*
+ * Allocates a new private and attaches it to an existing object.
+ */
+extern pointer *
+dixAllocatePrivate(PrivateRec **privates, devprivate_key_t *const key);
 
 /*
  * Look up a private pointer.
  */
-extern pointer
-dixLookupPrivate(RESTYPE type, int index, pointer instance);
+static _X_INLINE pointer
+dixLookupPrivate(PrivateRec **privates, devprivate_key_t *const key)
+{
+    PrivateRec *rec = *privates;
+    pointer *ptr;
+
+    while (rec) {
+	if (rec->key == key)
+	    return rec->value;
+	rec = rec->next;
+    }
+
+    ptr = dixAllocatePrivate(privates, key);
+    return ptr ? *ptr : NULL;
+}
+
+/*
+ * Look up the address of a private pointer.
+ */
+static _X_INLINE pointer *
+dixLookupPrivateAddr(PrivateRec **privates, devprivate_key_t *const key)
+{
+    PrivateRec *rec = *privates;
+
+    while (rec) {
+	if (rec->key == key)
+	    return &rec->value;
+	rec = rec->next;
+    }
+
+    return dixAllocatePrivate(privates, key);
+}
+
+/*
+ * Set a private pointer.
+ */
+static _X_INLINE int
+dixSetPrivate(PrivateRec **privates, devprivate_key_t *const key, pointer val)
+{
+    PrivateRec *rec;
+
+ top:
+    rec = *privates;
+    while (rec) {
+	if (rec->key == key) {
+	    rec->value = val;
+	    return TRUE;
+	}
+	rec = rec->next;
+    }
+
+    if (!dixAllocatePrivate(privates, key))
+	return FALSE;
+    goto top;
+}
 
 /*
  * Register callbacks to be called on private allocation/freeing.
  * The calldata argument to the callbacks is a PrivateCallbackPtr.
  */
 typedef struct _PrivateCallback {
+    devprivate_key_t *key;	/* private registration key */
     pointer value;		/* pointer to private */
-    int index;			/* registration index */
-    ResourcePtr resource;	/* resource record (do not modify!) */
-} PrivateCallbackRec, *PrivateCallbackPtr;
+} PrivateCallbackRec;
 
 extern int
-dixRegisterPrivateInitFunc(RESTYPE type, int index,
+dixRegisterPrivateInitFunc(devprivate_key_t *const key,
 			   CallbackProcPtr callback, pointer userdata);
 
 extern int
-dixRegisterPrivateDeleteFunc(RESTYPE type, int index,
+dixRegisterPrivateDeleteFunc(devprivate_key_t *const key,
 			     CallbackProcPtr callback, pointer userdata);
 
 /*
- * Internal functions
+ * Allocates all pre-requested private space in one chunk.
+ */
+extern PrivateRec *
+dixAllocatePrivates(RESTYPE type, pointer parent);
+
+/*
+ * Frees any private space that is not part of an object.
  */
 extern void
+dixFreePrivates(PrivateRec *privates);
+
+/*
+ * Resets the subsystem, called from the main loop.
+ */
+extern int
 dixResetPrivates(void);
 
+/*
+ * These next two functions are necessary because the position of
+ * the devPrivates field varies by structure and calling code might
+ * only know the resource type, not the structure definition.
+ */
+
+/*
+ * Looks up the offset where the devPrivates field is located by type.
+ */
+extern unsigned
+dixLookupPrivateOffset(RESTYPE type);
+
+/*
+ * Specifies the offset where the devPrivates field is located.
+ */
 extern int
-dixUpdatePrivates(void);
-
-extern ResourcePtr
-dixAllocateResourceRec(RESTYPE type, pointer value, pointer parent);
-
-extern void
-dixCallPrivateInitFuncs(ResourcePtr res);
-
-extern void
-dixFreeResourceRec(ResourcePtr res);
+dixRegisterPrivateOffset(RESTYPE type, unsigned offset);
 
 #endif /* PRIVATES_H */
