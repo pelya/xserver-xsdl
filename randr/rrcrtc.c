@@ -290,6 +290,12 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	    RRScreenRate	    rate;
 	    Bool		    ret;
 
+	    if (!mode)
+	    {
+		RRCrtcNotify (crtc, NULL, x, y, rotation, 0, NULL);
+		return TRUE;
+	    }
+
 	    size.width = mode->mode.width;
 	    size.height = mode->mode.height;
 	    if (outputs[0]->mmWidth && outputs[0]->mmHeight)
@@ -310,7 +316,10 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	     * Old 1.0 interface tied screen size to mode size
 	     */
 	    if (ret)
+	    {
 		RRCrtcNotify (crtc, mode, x, y, rotation, 1, outputs);
+		RRScreenSizeNotify (pScreen);
+	    }
 	    return ret;
 	}
 #endif
