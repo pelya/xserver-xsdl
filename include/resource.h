@@ -183,12 +183,6 @@ extern Bool AddResource(
     RESTYPE /*type*/,
     pointer /*value*/);
 
-extern Bool dixAddResource(
-    XID /*id*/,
-    RESTYPE /*type*/,
-    pointer /*value*/,
-    pointer /*parent*/);
-
 extern void FreeResource(
     XID /*id*/,
     RESTYPE /*skipDeleteFuncType*/);

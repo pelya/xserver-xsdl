@@ -135,7 +135,6 @@ Equipment Corporation.
 #include "misc.h"
 #include "os.h"
 #include "resource.h"
-#include "privates.h"
 #include "dixstruct.h" 
 #include "opaque.h"
 #include "windowstr.h"
@@ -206,8 +205,6 @@ CreateNewResourceType(DeleteType deleteFunc)
     DeleteType *funcs;
 
     if (next & lastResourceClass)
-	return 0;
-    if (!dixUpdatePrivates())
 	return 0;
     funcs = (DeleteType *)xrealloc(DeleteFuncs,
 				   (next + 1) * sizeof(DeleteType));
@@ -454,7 +451,7 @@ FakeClientID(register int client)
 }
 
 _X_EXPORT Bool
-dixAddResource(XID id, RESTYPE type, pointer value, pointer parent)
+AddResource(XID id, RESTYPE type, pointer value)
 {
     int client;
     register ClientResourceRec *rrec;
@@ -475,7 +472,7 @@ dixAddResource(XID id, RESTYPE type, pointer value, pointer parent)
 	(rrec->hashsize < MAXHASHSIZE))
 	RebuildTable(client);
     head = &rrec->resources[Hash(client, id)];
-    res = dixAllocateResourceRec(type, value, parent);
+    res = (ResourcePtr)xalloc(sizeof(ResourceRec));
     if (!res)
     {
 	(*DeleteFuncs[type & TypeMask])(value, id);
@@ -489,14 +486,7 @@ dixAddResource(XID id, RESTYPE type, pointer value, pointer parent)
     rrec->elements++;
     if (!(id & SERVER_BIT) && (id >= rrec->expectID))
 	rrec->expectID = id + 1;
-    dixCallPrivateInitFuncs(res);
     return TRUE;
-}
-
-_X_EXPORT Bool
-AddResource(XID id, RESTYPE type, pointer value)
-{
-    return dixAddResource(id, type, value, NULL);
 }
 
 static void
@@ -580,7 +570,7 @@ FreeResource(XID id, RESTYPE skipDeleteFuncType)
 		    FlushClientCaches(res->id);
 		if (rtype != skipDeleteFuncType)
 		    (*DeleteFuncs[rtype & TypeMask])(res->value, res->id);
-		dixFreeResourceRec(res);
+		xfree(res);
 		if (*eltptr != elements)
 		    prev = head; /* prev may no longer be valid */
 		gotOne = TRUE;
@@ -624,7 +614,7 @@ FreeResourceByType(XID id, RESTYPE type, Bool skipFree)
 		    FlushClientCaches(res->id);
 		if (!skipFree)
 		    (*DeleteFuncs[type & TypeMask])(res->value, res->id);
-		dixFreeResourceRec(res);
+		xfree(res);
 		break;
 	    }
 	    else
@@ -789,7 +779,7 @@ FreeClientNeverRetainResources(ClientPtr client)
 		if (rtype & RC_CACHED)
 		    FlushClientCaches(this->id);
 		(*DeleteFuncs[rtype & TypeMask])(this->value, this->id);
-		dixFreeResourceRec(this);
+		xfree(this);
 	    }
 	    else
 		prev = &this->next;
@@ -839,7 +829,7 @@ FreeClientResources(ClientPtr client)
 	    if (rtype & RC_CACHED)
 		FlushClientCaches(this->id);
 	    (*DeleteFuncs[rtype & TypeMask])(this->value, this->id);
-	    dixFreeResourceRec(this);
+	    xfree(this);
 	}
     }
     xfree(clientTable[client->index].resources);
