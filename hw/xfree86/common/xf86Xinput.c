@@ -188,9 +188,9 @@ xf86ActivateDevice(LocalDevicePtr local)
 
         /* Only create a new sprite if it's a non-shared pointer */
         if (IsPointerDevice(dev) && dev->isMPDev)
-            InitializeSprite(pDev, NullWindow);
+            InitializeSprite(dev, GetCurrentRootWindow());
         else 
-            PairDevices(pairingClient, inputInfo.pointer, pDev);
+            PairDevices(NULL, inputInfo.pointer, dev);
 
         RegisterOtherDevice(dev);
 
@@ -425,8 +425,6 @@ NewInputDeviceRequest (InputOption *options)
         EnableDevice(dev);
 
     /* send enter/leave event, update sprite window */
-    if (dev->spriteOwner)
-        InitializeSprite(dev, GetCurrentRootWindow());
     CheckMotion(NULL, dev);
 
     return Success;

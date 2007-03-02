@@ -450,6 +450,8 @@ extern int PairDevices(ClientPtr client,
                        DeviceIntPtr pointer, 
                        DeviceIntPtr keyboard);
 
+extern DeviceIntPtr GetPairedPointer(DeviceIntPtr kbd);
+
 extern Bool RegisterPairingClient(ClientPtr client);
 extern Bool UnregisterPairingClient(ClientPtr client);
 

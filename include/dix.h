@@ -602,6 +602,12 @@ extern int TryClientEvents(
 
 extern void WindowsRestructured(void);
 
+extern DeviceIntPtr PickPointer(
+    ClientPtr /* client */);
+
+extern DeviceIntPtr PickKeyboard(
+    ClientPtr /* client */);
+
 #ifdef PANORAMIX
 extern void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff);
 #endif

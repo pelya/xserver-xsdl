@@ -342,6 +342,7 @@ InitCoreDevices()
         dev->ActivateGrab = ActivateKeyboardGrab;
         dev->DeactivateGrab = DeactivateKeyboardGrab;
         dev->coreEvents = FALSE;
+        dev->spriteOwner = FALSE;
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
             FatalError("Couldn't allocate keyboard devPrivates\n");
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
@@ -369,12 +370,12 @@ InitCoreDevices()
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
             FatalError("Couldn't allocate pointer devPrivates\n");
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
-        InitSprite(dev, TRUE);
+        InitializeSprite(dev, NullWindow);
         (void)ActivateDevice(dev);
         inputInfo.pointer = dev;
         /* the core keyboard is initialised by now. set the keyboard's sprite
          * to the core pointer's sprite. */
-        InitSprite(inputInfo.keyboard, FALSE);
+        PairDevices(pairingClient, inputInfo.pointer, inputInfo.keyboard);
     }
 }
 
@@ -421,6 +422,7 @@ CloseDevice(register DeviceIntPtr dev)
     StringFeedbackPtr s, snext;
     BellFeedbackPtr b, bnext;
     LedFeedbackPtr l, lnext;
+    int j;
 
     if (dev->inited)
 	(void)(*dev->deviceProc)(dev, DEVICE_CLOSE);
@@ -503,6 +505,13 @@ CloseDevice(register DeviceIntPtr dev)
     
     if (DevHasCursor(dev))
         xfree((pointer)dev->pSprite);
+
+    /* a client may have the device set as client pointer */
+    for (j = 0; j < currentMaxClients; j++)
+    {
+        if (clients[j]->clientPtr == dev)
+            PickPointer(clients[j]);
+    }
 
     xfree(dev->sync.event);
     xfree(dev);
@@ -1953,6 +1962,25 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
 
     kbd->pSprite = ptr->pSprite;
     return Success;
+}
+
+/* Return the pointer that is paired with the given keyboard. If no pointer is
+ * paired, return the virtual core pointer 
+ */ 
+DeviceIntPtr
+GetPairedPointer(DeviceIntPtr kbd)
+{
+    DeviceIntPtr ptr = inputInfo.devices;
+    while(ptr)
+    {
+        if (ptr->pSprite == kbd->pSprite && ptr->spriteOwner)
+        {
+            return ptr;
+        }
+        ptr = ptr->next;
+    }
+
+    return inputInfo.pointer;
 }
 
 /*

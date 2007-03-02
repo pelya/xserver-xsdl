@@ -3730,6 +3730,8 @@ void InitClient(ClientPtr client, int i, pointer ospriv)
     client->smart_stop_tick = SmartScheduleTime;
     client->smart_check_tick = SmartScheduleTime;
 #endif
+
+    client->clientPtr = NULL;
 }
 
 int

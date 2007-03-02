@@ -140,6 +140,8 @@ typedef struct _Client {
     long    smart_stop_tick;
     long    smart_check_tick;
 #endif
+    
+    DeviceIntPtr clientPtr;
 }           ClientRec;
 
 #ifdef SMART_SCHEDULE

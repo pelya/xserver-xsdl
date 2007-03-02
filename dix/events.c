@@ -1508,8 +1508,8 @@ int
 ProcAllowEvents(register ClientPtr client)
 {
     TimeStamp		time;
-    DeviceIntPtr	mouse = inputInfo.pointer;
-    DeviceIntPtr	keybd = inputInfo.keyboard;
+    DeviceIntPtr	mouse = PickPointer(client);
+    DeviceIntPtr	keybd = PickKeyboard(client);
     REQUEST(xAllowEventsReq);
 
     REQUEST_SIZE_MATCH(xAllowEventsReq);
@@ -2103,7 +2103,7 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
     pSprite->win = XYToWindow(pSprite->hot.x, pSprite->hot.y);
 #ifdef notyet
     if (!(pSprite->win->deliverableEvents &
-	  Motion_Filter(inputInfo.pointer->button))
+	  Motion_Filter(pDev->button))
 	!syncEvents.playingEvents)
     {
 	/* XXX Do PointerNonInterestBox here */
@@ -2220,15 +2220,23 @@ InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
             FatalError("InitializeSprite: failed to allocate sprite struct");
     }
 
-    pScreen = (pWin) ? pWin->drawable.pScreen : (ScreenPtr)NULL;
     pSprite = pDev->pSprite;
+    pDev->spriteOwner = TRUE;
+
+    pScreen = (pWin) ? pWin->drawable.pScreen : (ScreenPtr)NULL;
+    pSprite->hot.pScreen = pScreen;
     pSprite->hotPhys.pScreen = pScreen;
-    pSprite->hotPhys.x = pScreen->width / 2;
-    pSprite->hotPhys.y = pScreen->height / 2;
+    if (pScreen)
+    {
+        pSprite->hotPhys.x = pScreen->width / 2;
+        pSprite->hotPhys.y = pScreen->height / 2;
+        pSprite->hotLimits.x2 = pScreen->width;
+        pSprite->hotLimits.y2 = pScreen->height;
+    }
+
     pSprite->hot = pSprite->hotPhys;
-    pSprite->hotLimits.x2 = pScreen->width;
-    pSprite->hotLimits.y2 = pScreen->height;
     pSprite->win = pWin;
+
     if (pWin)
     {
         pSprite->current = wCursor(pWin);
@@ -2236,16 +2244,19 @@ InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
     } else
         pSprite->current = NullCursor;
 
-    (*pScreen->CursorLimits) ( pDev, pScreen, pSprite->current,
-                               &pSprite->hotLimits, &pSprite->physLimits);
-    pSprite->confined = FALSE;
+    if (pScreen)
+    {
+        (*pScreen->CursorLimits) ( pDev, pScreen, pSprite->current,
+                                   &pSprite->hotLimits, &pSprite->physLimits);
+        pSprite->confined = FALSE;
 
-    (*pScreen->ConstrainCursor) (pDev, pScreen,
-                                 &pSprite->physLimits);
-    (*pScreen->SetCursorPosition) (pDev, pScreen, pSprite->hot.x,
-                                   pSprite->hot.y,
-                                   FALSE); 
-    (*pScreen->DisplayCursor) (pDev, pScreen, pSprite->current);
+        (*pScreen->ConstrainCursor) (pDev, pScreen,
+                                     &pSprite->physLimits);
+        (*pScreen->SetCursorPosition) (pDev, pScreen, pSprite->hot.x,
+                                       pSprite->hot.y,
+                                       FALSE); 
+        (*pScreen->DisplayCursor) (pDev, pScreen, pSprite->current);
+    }
 #ifdef PANORAMIX
     if(!noPanoramiXExtension) {
         pSprite->hotLimits.x1 = -panoramiXdataPtr[0].x;
@@ -2264,7 +2275,6 @@ InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
     }
 #endif
 
-    pDev->spriteOwner = TRUE;
 }
 
 /*
@@ -2370,7 +2380,7 @@ XineramaWarpPointer(ClientPtr client)
 {
     WindowPtr	dest = NULL;
     int		x, y, rc;
-    SpritePtr   pSprite = inputInfo.pointer->pSprite;
+    SpritePtr   pSprite = PickPointer(client)->pSprite;
 
     REQUEST(xWarpPointerReq);
 
@@ -2429,9 +2439,9 @@ XineramaWarpPointer(ClientPtr client)
     else if (y >= pSprite->physLimits.y2)
 	y = pSprite->physLimits.y2 - 1;
     if (pSprite->hotShape)
-	ConfineToShape(inputInfo.pointer, pSprite->hotShape, &x, &y);
+	ConfineToShape(PickPointer(client), pSprite->hotShape, &x, &y);
 
-    XineramaSetCursorPosition(inputInfo.pointer, x, y, TRUE);
+    XineramaSetCursorPosition(PickPointer(client), x, y, TRUE);
 
     return Success;
 }
@@ -2445,7 +2455,7 @@ ProcWarpPointer(ClientPtr client)
     WindowPtr	dest = NULL;
     int		x, y, rc;
     ScreenPtr	newScreen;
-    SpritePtr   pSprite = inputInfo.pointer->pSprite;
+    SpritePtr   pSprite = PickPointer(client)->pSprite;
 
     REQUEST(xWarpPointerReq);
 
@@ -2518,14 +2528,14 @@ ProcWarpPointer(ClientPtr client)
 	    y = pSprite->physLimits.y2 - 1;
 #if defined(SHAPE)
 	if (pSprite->hotShape)
-	    ConfineToShape(inputInfo.pointer, pSprite->hotShape, &x, &y);
+	    ConfineToShape(PickPointer(client), pSprite->hotShape, &x, &y);
 #endif
-        (*newScreen->SetCursorPosition)(inputInfo.pointer, newScreen, x, y,
+        (*newScreen->SetCursorPosition)(PickPointer(client), newScreen, x, y,
                                         TRUE); 
     }
-    else if (!PointerConfinedToScreen(inputInfo.pointer))
+    else if (!PointerConfinedToScreen(PickPointer(client)))
     {
-	NewCurrentScreen(inputInfo.pointer, newScreen, x, y);
+	NewCurrentScreen(PickPointer(client), newScreen, x, y);
     }
     return Success;
 }
@@ -2892,7 +2902,7 @@ drawable.id:0;
 #endif
     )))
 #endif
-    XE_KBPTR.state = (keyc->state | inputInfo.pointer->button->state);
+    XE_KBPTR.state = (keyc->state | GetPairedPointer(keybd)->button->state);
     XE_KBPTR.rootX = keybd->pSprite->hot.x;
     XE_KBPTR.rootY = keybd->pSprite->hot.y;
     key = xE->u.u.detail;
@@ -2925,7 +2935,7 @@ drawable.id:0;
 		}
 		return;
 	    }
-	    inputInfo.pointer->valuator->motionHintWindow = NullWindow;
+	    GetPairedPointer(keybd)->valuator->motionHintWindow = NullWindow;
 	    *kptr |= bit;
 	    keyc->prev_state = keyc->state;
 	    for (i = 0, mask = 1; modifiers; i++, mask <<= 1)
@@ -2947,7 +2957,7 @@ drawable.id:0;
 	case KeyRelease: 
 	    if (!(*kptr & bit)) /* guard against duplicates */
 		return;
-	    inputInfo.pointer->valuator->motionHintWindow = NullWindow;
+	    GetPairedPointer(keybd)->valuator->motionHintWindow = NullWindow;
 	    *kptr &= ~bit;
 	    keyc->prev_state = keyc->state;
 	    for (i = 0, mask = 1; modifiers; i++, mask <<= 1)
@@ -3837,7 +3847,7 @@ int
 ProcGrabPointer(ClientPtr client)
 {
     xGrabPointerReply rep;
-    DeviceIntPtr device = inputInfo.pointer;
+    DeviceIntPtr device = PickPointer(client);
     GrabPtr grab;
     WindowPtr pWin, confineTo;
     CursorPtr cursor, oldCursor;
@@ -3945,7 +3955,7 @@ ProcGrabPointer(ClientPtr client)
 int
 ProcChangeActivePointerGrab(ClientPtr client)
 {
-    DeviceIntPtr device = inputInfo.pointer;
+    DeviceIntPtr device = PickPointer(client);
     register GrabPtr grab = device->grab;
     CursorPtr newCursor, oldCursor;
     REQUEST(xChangeActivePointerGrabReq);
@@ -3991,7 +4001,7 @@ ProcChangeActivePointerGrab(ClientPtr client)
 int
 ProcUngrabPointer(ClientPtr client)
 {
-    DeviceIntPtr device = inputInfo.pointer;
+    DeviceIntPtr device = PickPointer(client);
     GrabPtr grab;
     TimeStamp time;
     REQUEST(xResourceReq);
@@ -4122,7 +4132,7 @@ ProcQueryPointer(ClientPtr client)
 {
     xQueryPointerReply rep;
     WindowPtr pWin, t;
-    DeviceIntPtr mouse = inputInfo.pointer;
+    DeviceIntPtr mouse = PickPointer(client);
     SpritePtr pSprite = mouse->pSprite;
     int rc;
 
@@ -4224,37 +4234,6 @@ InitEvents()
 }
 
 
-/**
- * Initialize a sprite structure for the given device. If hasCursor is False,
- * let the device use the core pointer's sprite structure.
- */
-void 
-InitSprite(DeviceIntPtr pDev, Bool hasCursor)
-{
-    if (hasCursor)
-    {
-        SpritePtr pSprite = (SpritePtr)xalloc(sizeof(SpriteRec));
-        if (!pSprite)
-            FatalError("failed to allocate sprite struct");
-        memset(pSprite, 0, sizeof(SpriteRec));
-        pSprite->hot.pScreen = pSprite->hotPhys.pScreen = (ScreenPtr)NULL;
-        pSprite->win = NullWindow;
-        pSprite->current = NullCursor;
-        pSprite->hotLimits.x1 = 0;
-        pSprite->hotLimits.y1 = 0;
-        pSprite->hotLimits.x2 = 0;
-        pSprite->hotLimits.y2 = 0;
-        pSprite->confined = FALSE;
-
-        pDev->pSprite = pSprite;
-        pDev->spriteOwner = TRUE;
-    } else
-    {
-        pDev->pSprite = inputInfo.pointer->pSprite;
-        pDev->spriteOwner = FALSE;
-    }
-}
-
 void
 CloseDownEvents(void)
 {
@@ -4268,7 +4247,7 @@ ProcSendEvent(ClientPtr client)
 {
     WindowPtr pWin;
     WindowPtr effectiveFocus = NullWindow; /* only set if dest==InputFocus */
-    SpritePtr pSprite = inputInfo.pointer->pSprite;
+    SpritePtr pSprite = PickPointer(client)->pSprite;
     REQUEST(xSendEventReq);
 
     REQUEST_SIZE_MATCH(xSendEventReq);
@@ -4335,8 +4314,8 @@ ProcSendEvent(ClientPtr client)
     {
 	for (;pWin; pWin = pWin->parent)
 	{
-            if (DeliverEventsToWindow(inputInfo.pointer, pWin, &stuff->event,
-                                    1, stuff->eventMask, NullGrab, 0))
+            if (DeliverEventsToWindow(PickPointer(client), pWin,
+                        &stuff->event, 1, stuff->eventMask, NullGrab, 0))
 		return Success;
 	    if (pWin == effectiveFocus)
 		return Success;
@@ -4346,8 +4325,8 @@ ProcSendEvent(ClientPtr client)
 	}
     }
     else
-        (void)DeliverEventsToWindow(inputInfo.pointer, pWin, &stuff->event, 1,
-                                    stuff->eventMask, NullGrab, 0);
+        (void)DeliverEventsToWindow(PickPointer(client), pWin, &stuff->event,
+                                    1, stuff->eventMask, NullGrab, 0);
     return Success;
 }
 
@@ -4511,7 +4490,7 @@ ProcGrabButton(ClientPtr client)
     }
 
 
-    grab = CreateGrab(client->index, inputInfo.pointer, pWin, 
+    grab = CreateGrab(client->index, PickPointer(client), pWin, 
         (Mask)stuff->eventMask, (Bool)stuff->ownerEvents,
         (Bool) stuff->keyboardMode, (Bool)stuff->pointerMode,
         inputInfo.keyboard, stuff->modifiers, ButtonPress,
@@ -4540,7 +4519,7 @@ ProcUngrabButton(ClientPtr client)
     if (rc != Success)
 	return rc;
     tempGrab.resource = client->clientAsMask;
-    tempGrab.device = inputInfo.pointer;
+    tempGrab.device = PickPointer(client);
     tempGrab.window = pWin;
     tempGrab.modifiersDetail.exact = stuff->modifiers;
     tempGrab.modifiersDetail.pMask = NULL;
@@ -4694,7 +4673,7 @@ ProcRecolorCursor(ClientPtr client)
     int		nscr;
     ScreenPtr	pscr;
     Bool 	displayed;
-    SpritePtr   pSprite = inputInfo.pointer->pSprite;
+    SpritePtr   pSprite = PickPointer(client)->pSprite;
     REQUEST(xRecolorCursorReq);
 
     REQUEST_SIZE_MATCH(xRecolorCursorReq);
@@ -4723,7 +4702,7 @@ ProcRecolorCursor(ClientPtr client)
 	else
 #endif
 	    displayed = (pscr == pSprite->hotPhys.pScreen);
-	( *pscr->RecolorCursor)(inputInfo.pointer, pscr, pCursor,
+	( *pscr->RecolorCursor)(PickPointer(client), pscr, pCursor,
 				(pCursor == pSprite->current) && displayed);
     }
     return (Success);
@@ -4810,3 +4789,59 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 	(void)WriteToClient(pClient, count * sizeof(xEvent), (char *) events);
     }
 }
+
+/* PickPointer will pick an appropriate pointer for the given client.
+ *
+ * If a client pointer is set, it will pick the client pointer, otherwise the
+ * first available pointer in the list. If no physical device is attached, it
+ * will pick the core pointer.
+ */
+_X_EXPORT DeviceIntPtr
+PickPointer(ClientPtr client)
+{
+    if (!client->clientPtr)
+    {
+        /* look if there is a real device attached */
+        DeviceIntPtr it = inputInfo.devices;
+        while (it)
+        {
+            if (it != inputInfo.pointer && it->spriteOwner)
+            {
+                client->clientPtr = it;
+                break;
+            }
+            it = it->next;
+        }
+
+        if (!it)
+        {
+            ErrorF("Picking VCP\n");
+            client->clientPtr = inputInfo.pointer;
+        }
+    }
+    return client->clientPtr;
+}
+
+/* PickKeyboard will pick an appropriate keyboard for the given client by
+ * searching the list of devices for the keyboard device that is paired with
+ * the client's pointer.
+ * If no pointer is paired with the keyboard, the virtual core keyboard is
+ * returned.
+ */
+_X_EXPORT DeviceIntPtr
+PickKeyboard(ClientPtr client)
+{
+    DeviceIntPtr dev;
+    DeviceIntPtr ptr = inputInfo.devices;
+    ptr = PickPointer(client);
+
+    while(dev)
+    {
+        if (ptr->pSprite == dev->pSprite)
+            return dev;
+        dev = dev->next;
+    }
+
+    return inputInfo.keyboard;
+}
+
