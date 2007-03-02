@@ -1570,6 +1570,9 @@ AM_CONDITIONAL([XQUARTZ],[test "X$XQUARTZ" = Xyes])
 AM_CONDITIONAL(DGA, [test "x$DGA" = xyes])
 
 dnl legacy fb support
+test "x$MFB" = xauto && MFB="$XORG"
+test "x$CFB" = xauto && CFB="$XORG"
+test "x$AFB" = xauto && AFB="$XORG"
 AM_CONDITIONAL(MFB, [test "x$MFB" = xyes])
 AM_CONDITIONAL(CFB, [test "x$CFB" = xyes])
 AM_CONDITIONAL(AFB, [test "x$AFB" = xyes])
