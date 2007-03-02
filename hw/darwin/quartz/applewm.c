@@ -446,7 +446,11 @@ ProcAppleWMSetWindowMenu(
         }
     }
 
+#ifdef INXQUARTZ
+    X11ApplicationSetWindowMenu (nitems, items, shortcuts);
+#else
     QuartzSetWindowMenu (nitems, items, shortcuts);
+#endif
 
     free(items);
     free(shortcuts);
@@ -462,10 +466,12 @@ ProcAppleWMSetWindowMenuCheck(
     REQUEST(xAppleWMSetWindowMenuCheckReq);
 
     REQUEST_SIZE_MATCH(xAppleWMSetWindowMenuCheckReq);
-
+#ifdef INXQUARTZ
+    X11ApplicationSetWindowMenuCheck(stuff->index);
+#else
     QuartzMessageMainThread(kQuartzSetWindowMenuCheck, &stuff->index,
                             sizeof(stuff->index));
-
+#endif
     return (client->noClientException);
 }
 
@@ -475,9 +481,11 @@ ProcAppleWMSetFrontProcess(
 )
 {
     REQUEST_SIZE_MATCH(xAppleWMSetFrontProcessReq);
-
+#ifdef INXQUARTZ
+    X11ApplicationSetFrontProcess();
+#else
     QuartzMessageMainThread(kQuartzSetFrontProcess, NULL, 0);
-
+#endif
     return (client->noClientException);
 }
 
@@ -516,9 +524,12 @@ ProcAppleWMSetCanQuit(
     REQUEST(xAppleWMSetCanQuitReq);
 
     REQUEST_SIZE_MATCH(xAppleWMSetCanQuitReq);
-
+#ifdef INXQUARTZ
+    X11ApplicationSetCanQuit(stuff->state);
+#else
     QuartzMessageMainThread(kQuartzSetCanQuit, &stuff->state,
                             sizeof(stuff->state));
+#endif
 
     return (client->noClientException);
 }

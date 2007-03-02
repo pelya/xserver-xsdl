@@ -867,7 +867,8 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
     int valuators[2];
     float count;
     xEvent xe;
-    
+    char nullbyte=0;
+
     bzero(&xe, sizeof(xe));
     input_check_flag++;
 	
@@ -886,10 +887,10 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
       pointer_y = (screen.origin.y + screen.size.height) - location.y;
     }
     
-    ErrorF("send_nsevent: type=%d pointer=(%d,%d)\n", type, pointer_x, pointer_y);
+//    ErrorF("send_nsevent: type=%d pointer=(%d,%d)\n", type, pointer_x, pointer_y);
     
     valuators[0] = pointer_x;
-    valuators[1] = pointer_y;
+    valuators[1] = pointer_y - aquaMenuBarHeight;
     state = convert_flags ([e modifierFlags]);
     
     switch (type) {
@@ -916,12 +917,8 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
       num_events = GetPointerEvents(quartzEvents, darwinPointer, ev_type, ev_button, 
 				    POINTER_ABSOLUTE, 0, 2, valuators);
       
-      ErrorF("GetPointerEvents returned %d events\n", num_events);
-      for(i=0; i<num_events; i++) {
-	ErrorF("qe[%d].u.u.type=%d\n", i, quartzEvents[i].u.u.type);
-//				quartzEvents[i].u.keyButtonPointer.state = state;
+      for(i=0; i<num_events; i++)
 	mieqEnqueue (darwinPointer,&quartzEvents[i]);
-      }
       break;
     case NSScrollWheel: 
       count = [e deltaY];
@@ -929,28 +926,23 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
       for (count = fabs(count); count > 0.0; count = count - 1.0f) {
 	num_events = GetPointerEvents(quartzEvents, darwinPointer, ButtonPress, ev_button, 
 				      POINTER_ABSOLUTE, 0, 2, valuators);
-	for(i=0; i<num_events; i++) {
-//						quartzEvents[i].u.keyButtonPointer.state = state;
+	for(i=0; i<num_events; i++) 
 	  mieqEnqueue(darwinPointer,&quartzEvents[i]);
-	}
 	num_events = GetPointerEvents(quartzEvents, darwinPointer, ButtonRelease, ev_button, 
 				      POINTER_ABSOLUTE, 0, 2, valuators);
-	for(i=0; i<num_events; i++) {
-//						quartzEvents[i].u.keyButtonPointer.state = state;
+	for(i=0; i<num_events; i++)
 	  mieqEnqueue(darwinPointer,&quartzEvents[i]);
-	}
       }
       break;
       
-    case NSKeyDown:
+    case NSKeyDown:  // do we need to translate these keyCodes?
     case NSKeyUp:
       num_events = GetKeyboardEvents(quartzEvents, darwinKeyboard, 
 				     (type == NSKeyDown)?KeyPress:KeyRelease, [e keyCode]);
-      for(i=0; i<num_events; i++) {
-//				quartzEvents[i].u.keyButtonPointer.state = state;
+      for(i=0; i<num_events; i++) 
 	mieqEnqueue(darwinKeyboard,&quartzEvents[i]);
-      }
       break;
+
     case NSFlagsChanged:
       xe.u.u.type = kXDarwinUpdateModifiers;
       xe.u.clientMessage.u.l.longs0 = [e modifierFlags];
@@ -958,5 +950,6 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
       break;
     default: break; /* for gcc */
     }	
-    //	UpdateCurrentTime();
+    //  <daniels> bushing: oh, i ... er ... christ.
+    write(darwinEventWriteFD, &nullbyte, 1);
 }

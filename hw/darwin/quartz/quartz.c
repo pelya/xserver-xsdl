@@ -160,7 +160,11 @@ void DarwinModeInitInput(
     int argc,
     char **argv )
 {
+#ifdef INXQUARTZ
+  X11ApplicationServerReady();
+#else
     QuartzMessageMainThread(kQuartzServerStarted, NULL, 0);
+#endif
 
     // Do final display mode specific initialization before handling events
     if (quartzProcs->InitInput)
@@ -274,7 +278,9 @@ static void QuartzHide(void)
         }
     }
     quartzServerVisible = FALSE;
+#ifndef INXQUARTZ
     QuartzMessageMainThread(kQuartzServerHidden, NULL, 0);
+#endif
 }
 
 
