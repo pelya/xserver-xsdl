@@ -97,8 +97,8 @@ int XETrapSimulateXEvent(register xXTrapInputReq *request,
     xEvent xev;
     register int x = request->input.x;
     register int y = request->input.y;
-    DevicePtr keydev = LookupKeyboardDevice();
-    DevicePtr ptrdev = LookupPointerDevice();
+    DevicePtr keydev = (DevicePtr)PickKeyboard(client);
+    DevicePtr ptrdev = (DevicePtr)PickPointer(client);
 
     if (request->input.screen < screenInfo.numScreens)
     {

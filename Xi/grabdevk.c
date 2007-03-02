@@ -137,7 +137,7 @@ ProcXGrabDeviceKey(ClientPtr client)
 	    return Success;
 	}
     } else
-	mdev = (DeviceIntPtr) LookupKeyboardDevice();
+	mdev = PickKeyboard(client);
 
     class = (XEventClass *) (&stuff[1]);	/* first word of values */
 

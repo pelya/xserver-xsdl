@@ -597,6 +597,8 @@ RemoveDevice(DeviceIntPtr dev)
 int
 NumMotionEvents()
 {
+    /* only called to fill data in initial connection reply. 
+     * VCP is ok here, it is the only fixed device we have. */
     return inputInfo.pointer->valuator->numMotionEvents;
 }
 
@@ -1376,6 +1378,7 @@ ProcSetPointerMapping(ClientPtr client)
     REQUEST(xSetPointerMappingReq);
     BYTE *map;
     int ret;
+    DeviceIntPtr ptr = PickPointer(client);
     xSetPointerMappingReply rep;
 
     REQUEST_AT_LEAST_SIZE(xSetPointerMappingReq);
@@ -1389,14 +1392,18 @@ ProcSetPointerMapping(ClientPtr client)
     
     /* So we're bounded here by the number of core buttons.  This check
      * probably wants disabling through XFixes. */
-    if (stuff->nElts != inputInfo.pointer->button->numButtons) {
+    /* MPX: With ClientPointer, we can return the right number of buttons.
+     * Let's just hope nobody changed ClientPointer between GetPointerMapping
+     * and SetPointerMapping
+     */
+    if (stuff->nElts != ptr->button->numButtons) {
 	client->errorValue = stuff->nElts;
 	return BadValue;
     }
     if (BadDeviceMap(&map[0], (int)stuff->nElts, 1, 255, &client->errorValue))
 	return BadValue;
 
-    ret = DoSetPointerMapping(inputInfo.pointer, map, stuff->nElts);
+    ret = DoSetPointerMapping(ptr, map, stuff->nElts);
     if (ret != Success) {
         rep.success = ret;
         WriteReplyToClient(client, sizeof(xSetPointerMappingReply), &rep);
@@ -1404,7 +1411,7 @@ ProcSetPointerMapping(ClientPtr client)
     }
 
     /* FIXME: Send mapping notifies for all the extended devices as well. */
-    SendMappingNotify(inputInfo.pointer, MappingPointer, 0, 0, client);
+    SendMappingNotify(ptr, MappingPointer, 0, 0, client);
     WriteReplyToClient(client, sizeof(xSetPointerMappingReply), &rep);
     return Success;
 }
@@ -1414,7 +1421,8 @@ ProcGetKeyboardMapping(ClientPtr client)
 {
     xGetKeyboardMappingReply rep;
     REQUEST(xGetKeyboardMappingReq);
-    KeySymsPtr curKeySyms = &inputInfo.keyboard->key->curKeySyms;
+    DeviceIntPtr kbd = PickKeyboard(client);
+    KeySymsPtr curKeySyms = &kbd->key->curKeySyms;
 
     REQUEST_SIZE_MATCH(xGetKeyboardMappingReq);
 
@@ -1449,7 +1457,9 @@ int
 ProcGetPointerMapping(ClientPtr client)
 {
     xGetPointerMappingReply rep;
-    ButtonClassPtr butc = inputInfo.pointer->button;
+    /* Apps may get different values each time they call GetPointerMapping as
+     * the ClientPointer could change. */
+    ButtonClassPtr butc = PickPointer(client)->button;
 
     REQUEST_SIZE_MATCH(xReq);
     rep.type = X_Reply;
@@ -1753,7 +1763,7 @@ ProcBell(ClientPtr client)
 int
 ProcChangePointerControl(ClientPtr client)
 {
-    DeviceIntPtr mouse = inputInfo.pointer;
+    DeviceIntPtr mouse = PickPointer(client);
     PtrCtrl ctrl;		/* might get BadValue part way through */
     REQUEST(xChangePointerControlReq);
 
@@ -1809,7 +1819,7 @@ ProcChangePointerControl(ClientPtr client)
 
 
     for (mouse = inputInfo.devices; mouse; mouse = mouse->next) {
-        if ((mouse->coreEvents || mouse == inputInfo.pointer) &&
+        if ((mouse->coreEvents || mouse == PickPointer(client)) &&
             mouse->ptrfeed && mouse->ptrfeed->CtrlProc) {
             mouse->ptrfeed->ctrl = ctrl;
             (*mouse->ptrfeed->CtrlProc)(mouse, &mouse->ptrfeed->ctrl);
@@ -1822,7 +1832,8 @@ ProcChangePointerControl(ClientPtr client)
 int
 ProcGetPointerControl(ClientPtr client)
 {
-    register PtrCtrl *ctrl = &inputInfo.pointer->ptrfeed->ctrl;
+    DeviceIntPtr ptr = PickPointer(client);
+    PtrCtrl *ctrl = &ptr->ptrfeed->ctrl;
     xGetPointerControlReply rep;
 
     REQUEST_SIZE_MATCH(xReq);
@@ -1860,7 +1871,7 @@ ProcGetMotionEvents(ClientPtr client)
     xGetMotionEventsReply rep;
     int i, count, xmin, xmax, ymin, ymax, rc;
     unsigned long nEvents;
-    DeviceIntPtr mouse = inputInfo.pointer;
+    DeviceIntPtr mouse = PickPointer(client);
     TimeStamp start, stop;
     REQUEST(xGetMotionEventsReq);
 

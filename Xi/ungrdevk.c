@@ -132,7 +132,7 @@ ProcXUngrabDeviceKey(ClientPtr client)
 	    return Success;
 	}
     } else
-	mdev = (DeviceIntPtr) LookupKeyboardDevice();
+	mdev = PickKeyboard(client);
 
     rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixUnknownAccess);
     if (rc != Success) {
