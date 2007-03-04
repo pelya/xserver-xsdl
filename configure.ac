@@ -1298,6 +1298,8 @@ return 0;}
 #               LDFLAGS=$save_LDFLAGS
 #               ])
                xorg_cv_AGL_framework=no
+	       DARWIN_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
+	       AC_SUBST([DARWIN_LIBS])
                AC_CHECK_LIB([Xplugin],[xp_init],[:])
                AC_SUBST([APPLE_APPLICATIONS_DIR])
                CFLAGS="${CFLAGS} -D__DARWIN__"
