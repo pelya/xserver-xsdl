@@ -1543,6 +1543,132 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 }
 
 /**
+ * In the current world order, there are lists of modes per output, which may
+ * or may not include the mode that was asked to be set by XFree86's mode
+ * selection.  Find the closest one, in the following preference order:
+ *
+ * - Equality
+ * - Closer in size to the requested mode, but no larger
+ * - Closer in refresh rate to the requested mode.
+ */
+
+DisplayModePtr
+xf86OutputFindClosestMode (xf86OutputPtr output, DisplayModePtr desired)
+{
+    DisplayModePtr	best = NULL, scan = NULL;
+
+    for (scan = output->probed_modes; scan != NULL; scan = scan->next) 
+    {
+	/* If there's an exact match, we're done. */
+	if (xf86ModesEqual(scan, desired)) {
+	    best = desired;
+	    break;
+	}
+
+	/* Reject if it's larger than the desired mode. */
+	if (scan->HDisplay > desired->HDisplay || 
+	    scan->VDisplay > desired->VDisplay)
+	{
+	    continue;
+	}
+
+	/*
+	 * If we haven't picked a best mode yet, use the first
+	 * one in the size range
+	 */
+	if (best == NULL) 
+	{
+	    best = scan;
+	    continue;
+	}
+
+	/* Find if it's closer to the right size than the current best
+	 * option.
+	 */
+	if ((scan->HDisplay > best->HDisplay &&
+	     scan->VDisplay >= best->VDisplay) ||
+	    (scan->HDisplay >= best->HDisplay &&
+	     scan->VDisplay > best->VDisplay))
+	{
+	    best = scan;
+	    continue;
+	}
+
+	/* Find if it's still closer to the right refresh than the current
+	 * best resolution.
+	 */
+	if (scan->HDisplay == best->HDisplay &&
+	    scan->VDisplay == best->VDisplay &&
+	    (fabs(scan->VRefresh - desired->VRefresh) <
+	     fabs(best->VRefresh - desired->VRefresh))) {
+	    best = scan;
+	}
+    }
+    return best;
+}
+
+/**
+ * When setting a mode through XFree86-VidModeExtension or XFree86-DGA,
+ * take the specified mode and apply it to the crtc connected to the compat
+ * output. Then, find similar modes for the other outputs, as with the
+ * InitialConfiguration code above. The goal is to clone the desired
+ * mode across all outputs that are currently active.
+ */
+
+Bool
+xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
+{
+    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(pScrn);
+    Bool		ok = TRUE;
+    xf86OutputPtr	compat_output = config->output[config->compat_output];
+    DisplayModePtr	compat_mode;
+    int			c;
+
+    /*
+     * Let the compat output drive the final mode selection
+     */
+    compat_mode = xf86OutputFindClosestMode (compat_output, desired);
+    if (compat_mode)
+	desired = compat_mode;
+    
+    for (c = 0; c < config->num_crtc; c++)
+    {
+	xf86CrtcPtr	crtc = config->crtc[c];
+	DisplayModePtr	crtc_mode = NULL;
+	int		o;
+
+	if (!crtc->enabled)
+	    continue;
+	
+	for (o = 0; o < config->num_output; o++)
+	{
+	    xf86OutputPtr   output = config->output[o];
+	    DisplayModePtr  output_mode;
+
+	    /* skip outputs not on this crtc */
+	    if (output->crtc != crtc)
+		continue;
+	    
+	    if (crtc_mode)
+	    {
+		output_mode = xf86OutputFindClosestMode (output, crtc_mode);
+		if (output_mode != crtc_mode)
+		    output->crtc = NULL;
+	    }
+	    else
+		crtc_mode = xf86OutputFindClosestMode (output, desired);
+	}
+	if (!xf86CrtcSetMode (crtc, crtc_mode, rotation, 0, 0))
+	    ok = FALSE;
+	else
+	    crtc->desiredMode = *crtc_mode;
+    }
+    xf86DisableUnusedFunctions(pScrn);
+    return ok;
+}
+
+
+/**
  * Set the DPMS power mode of all outputs and CRTCs.
  *
  * If the new mode is off, it will turn off outputs and then CRTCs.

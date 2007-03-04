@@ -594,6 +594,12 @@ xf86SaveScreen(ScreenPtr pScreen, int mode);
 void
 xf86DisableUnusedFunctions(ScrnInfoPtr pScrn);
 
+DisplayModePtr
+xf86OutputFindClosestMode (xf86OutputPtr output, DisplayModePtr desired);
+    
+Bool
+xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation);
+
 /**
  * Set the EDID information for the specified output
  */
