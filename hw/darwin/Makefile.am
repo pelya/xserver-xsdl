@@ -275,7 +275,7 @@ install-data-hook: $(HOOK_TARGETS)
 
 xquartz-install-hook:
 	mv $(DESTDIR)$(macosdir)/XDarwinApp $(DESTDIR)$(macosdir)/XDarwin
-	cd apple && xcodebuild install
+        cd apple && xcodebuild CFLAGS="$(XSERVERCFLAGS_CFLAGS)" LDFLAGS="$(XSERVERCFLAGS_LIBS)"
 
 EXTRA_DIST = \
 	darwin.c \
