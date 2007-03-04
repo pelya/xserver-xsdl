@@ -601,10 +601,10 @@ display_exists_p (int number)
     int idisplay, iscreen;
     char *conn_auth_name, *conn_auth_data;
     int conn_auth_namelen, conn_auth_datalen;
-	
+#ifdef USE_XTRANS_INTERNALS	
     extern void *_X11TransConnectDisplay ();
     extern void _XDisconnectDisplay ();
-	
+#endif	
     /* Since connecting to the display waits for a few seconds if the
 	 display doesn't exist, check for trivial non-existence - if the
 	 socket in /tmp exists or not.. (note: if the socket exists, the
@@ -613,7 +613,7 @@ display_exists_p (int number)
     sprintf (buf, "/tmp/.X11-unix/X%d", number);
     if (access (buf, F_OK) != 0)
 		return FALSE;
-	
+#ifdef USE_XTRANS_INTERNALS	
     /* This is a private function that we shouldn't really be calling,
 	 but it's the best way to see if the server exists (without
 	 needing to hold the necessary authentication to use it) */
@@ -626,6 +626,7 @@ display_exists_p (int number)
 		return FALSE;
 	
     _XDisconnectDisplay (conn);
+#endif
     return TRUE;
 }
 
