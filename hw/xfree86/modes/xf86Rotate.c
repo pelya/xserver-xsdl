@@ -143,10 +143,9 @@ xf86RotateCrtcRedisplay (xf86CrtcPtr crtc, RegionPtr region)
 			 &include_inferiors,
 			 serverClient,
 			 &error);
-    if (!src) {
-	ErrorF("couldn't create src pict\n");
+    if (!src)
 	return;
-    }
+
     dst = CreatePicture (None,
 			 &dst_pixmap->drawable,
 			 format,
@@ -154,10 +153,8 @@ xf86RotateCrtcRedisplay (xf86CrtcPtr crtc, RegionPtr region)
 			 NULL,
 			 serverClient,
 			 &error);
-    if (!dst) {
-	ErrorF("couldn't create src pict\n");
+    if (!dst)
 	return;
-    }
 
     memset (&transform, '\0', sizeof (transform));
     transform.matrix[2][2] = IntToxFixed(1);
@@ -198,17 +195,13 @@ xf86RotateCrtcRedisplay (xf86CrtcPtr crtc, RegionPtr region)
     }
 
     error = SetPictureTransform (src, &transform);
-    if (error) {
-	ErrorF("Couldn't set transform\n");
+    if (error)
 	return;
-    }
 
     while (n--)
     {
 	BoxRec	dst_box;
 
-	ErrorF ("painting %d,%d - %d,%d\n",
-		b->x1, b->y1, b->x2, b->y2);
 	xf86TransformBox (&dst_box, b, crtc->rotation,
 			  crtc->x, crtc->y,
 			  crtc->mode.HDisplay, crtc->mode.VDisplay);
@@ -235,8 +228,6 @@ xf86CrtcDamageShadow (xf86CrtcPtr crtc)
     damage_box.x2 = crtc->x + xf86ModeWidth (&crtc->mode, crtc->rotation);
     damage_box.y1 = crtc->y;
     damage_box.y2 = crtc->y + xf86ModeHeight (&crtc->mode, crtc->rotation);
-    ErrorF ("damaged %d,%d - %d,%d\n",
-	    damage_box.x1, damage_box.y1, damage_box.x2, damage_box.y2);
     REGION_INIT (pScreen, &damage_region, &damage_box, 1);
     DamageDamageRegion (&(*pScreen->GetScreenPixmap)(pScreen)->drawable,
 			&damage_region);
