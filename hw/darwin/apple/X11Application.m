@@ -855,21 +855,58 @@ convert_flags (unsigned int nsflags) {
     return xflags;
 }
 
+/* Sends a null byte down darwinEventWriteFD, which will cause the
+   Dispatch() event loop to check out event queue */
+void DarwinPokeEQ(void) {
+  char nullbyte=0;
+  input_check_flag++;
+  //  <daniels> bushing: oh, i ... er ... christ.
+  write(darwinEventWriteFD, &nullbyte, 1);
+}
+
+void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y) {
+  int i;
+  int valuators[2] = {pointer_x, pointer_y};
+  int num_events = GetPointerEvents(darwinEvents, darwinPointer, ev_type, ev_button, 
+				    POINTER_ABSOLUTE, 0, 2, valuators);
+      
+  for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
+  DarwinPokeEQ();
+}
+
+void DarwinSendKeyboardEvents(int ev_type, int keycode) {
+  int i;
+  int num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE);
+  for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard,&darwinEvents[i]);
+  DarwinPokeEQ();
+}
+
+/* Send the appropriate number of button 4 / 5 clicks to emulate scroll wheel */
+void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y) {
+  int i;
+  int ev_button = count > 0.0f ? 4 : 5;
+  int valuators[2] = {pointer_x, pointer_y};
+
+  for (count = fabs(count); count > 0.0; count = count - 1.0f) {
+    int num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonPress, ev_button, 
+				      POINTER_ABSOLUTE, 0, 2, valuators);
+    for(i=0; i<num_events; i++) mieqEnqueue(darwinPointer,&darwinEvents[i]);
+    num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonRelease, ev_button, 
+				      POINTER_ABSOLUTE, 0, 2, valuators);
+    for(i=0; i<num_events; i++) mieqEnqueue(darwinPointer,&darwinEvents[i]);
+  }
+  DarwinPokeEQ();
+}
+
 // This code should probably be merged with that in XDarwin's XServer.m - BB
 static void send_nsevent (NSEventType type, NSEvent *e) {
-    static unsigned int button_state = 0;
+  //    static unsigned int button_state = 0;
     NSRect screen;
     NSPoint location;
     NSWindow *window;
     int pointer_x, pointer_y, ev_button, ev_type; 
-    int num_events=0, i=0, state;
-    int valuators[2];
-    float count;
+    //    int num_events=0, i=0, state;
     xEvent xe;
-    char nullbyte=0;
-
-    bzero(&xe, sizeof(xe));
-    input_check_flag++;
 	
     /* convert location to global top-left coordinates */
     location = [e locationInWindow];
@@ -886,11 +923,8 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
       pointer_y = (screen.origin.y + screen.size.height) - location.y;
     }
     
-//    ErrorF("send_nsevent: type=%d pointer=(%d,%d)\n", type, pointer_x, pointer_y);
-    
-    valuators[0] = pointer_x;
-    valuators[1] = pointer_y - aquaMenuBarHeight;
-    state = convert_flags ([e modifierFlags]);
+    pointer_y -= aquaMenuBarHeight;
+    //    state = convert_flags ([e modifierFlags]);
     
     switch (type) {
     case NSLeftMouseDown:    ev_button=1; ev_type=ButtonPress; goto handle_mouse;
@@ -905,50 +939,34 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
     case NSMouseMoved: ev_button=0; ev_type=MotionNotify; goto handle_mouse;
     handle_mouse:
       
-      if(ev_type==ButtonPress) {
+      /* I'm not sure the below code is necessary or useful (-bb)
+	if(ev_type==ButtonPress) {
 	if (!quartzProcs->IsX11Window([e window], [e windowNumber])) {
 	  fprintf(stderr, "Dropping event because it's not a window\n");
 	  break;
 	}
 	button_state |= (1 << ev_button);
+	DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y);
       } else if (ev_type==ButtonRelease && (button_state & (1 << ev_button)) == 0) break;
-      
-      num_events = GetPointerEvents(darwinEvents, darwinPointer, ev_type, ev_button, 
-				    POINTER_ABSOLUTE, 0, 2, valuators);
-      
-      for(i=0; i<num_events; i++)
-	mieqEnqueue (darwinPointer,&darwinEvents[i]);
+      */
+      DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y);
       break;
     case NSScrollWheel: 
-      count = [e deltaY];
-      ev_button = count > 0.0f ? 4 : 5;
-      for (count = fabs(count); count > 0.0; count = count - 1.0f) {
-	num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonPress, ev_button, 
-				      POINTER_ABSOLUTE, 0, 2, valuators);
-	for(i=0; i<num_events; i++) 
-	  mieqEnqueue(darwinPointer,&darwinEvents[i]);
-	num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonRelease, ev_button, 
-				      POINTER_ABSOLUTE, 0, 2, valuators);
-	for(i=0; i<num_events; i++)
-	  mieqEnqueue(darwinPointer,&darwinEvents[i]);
-      }
+      DarwinSendScrollEvents([e deltaY], pointer_x, pointer_y);
       break;
       
     case NSKeyDown:  // do we need to translate these keyCodes?
     case NSKeyUp:
-      num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, 
-				     (type == NSKeyDown)?KeyPress:KeyRelease, [e keyCode]);
-      for(i=0; i<num_events; i++) 
-	mieqEnqueue(darwinKeyboard,&darwinEvents[i]);
+      DarwinSendKeyboardEvents((type == NSKeyDown)?KeyPress:KeyRelease, [e keyCode]);
       break;
 
     case NSFlagsChanged:
+      bzero(&xe, sizeof(xe));
       xe.u.u.type = kXDarwinUpdateModifiers;
       xe.u.clientMessage.u.l.longs0 = [e modifierFlags];
       DarwinEQEnqueue (&xe);
+      DarwinPokeEQ();
       break;
     default: break; /* for gcc */
     }	
-    //  <daniels> bushing: oh, i ... er ... christ.
-    write(darwinEventWriteFD, &nullbyte, 1);
 }

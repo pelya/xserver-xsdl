@@ -269,7 +269,7 @@ void ProcessInputEvents(void) {
     static int darwinFakeMouseButtonMask = 0;
     input_check_flag=0;
 
-    ErrorF("calling mieqProcessInputEvents\n");
+    //    ErrorF("calling mieqProcessInputEvents\n");
     mieqProcessInputEvents();
 
     // Empty the signaling pipe
@@ -292,12 +292,12 @@ void ProcessInputEvents(void) {
         xe.u.keyButtonPointer.rootY -= darwinMainScreenY +
                 dixScreenOrigins[miPointerCurrentScreen()->myNum].y;
 	
-	ErrorF("old rootX = (%d,%d) darwinMainScreen = (%d,%d) dixScreenOrigins[%d]=(%d,%d)\n",
+	/*	ErrorF("old rootX = (%d,%d) darwinMainScreen = (%d,%d) dixScreenOrigins[%d]=(%d,%d)\n",
 	       xe.u.keyButtonPointer.rootX, xe.u.keyButtonPointer.rootY,
 	       darwinMainScreenX, darwinMainScreenY,
 	       miPointerCurrentScreen()->myNum,
 	       dixScreenOrigins[miPointerCurrentScreen()->myNum].x,
-	       dixScreenOrigins[miPointerCurrentScreen()->myNum].y);
+	       dixScreenOrigins[miPointerCurrentScreen()->myNum].y); */
 
 	//Assumption - screen switching can only occur on motion events
 
