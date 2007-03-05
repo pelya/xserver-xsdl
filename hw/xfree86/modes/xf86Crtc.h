@@ -41,6 +41,20 @@
 typedef struct _xf86Crtc xf86CrtcRec, *xf86CrtcPtr;
 typedef struct _xf86Output xf86OutputRec, *xf86OutputPtr;
 
+/* define a standard for connector types */
+typedef enum _xf86ConnectorType {
+   XF86ConnectorNone,
+   XF86ConnectorVGA,
+   XF86ConnectorDVI_I,
+   XF86ConnectorDVI_D,
+   XF86ConnectorDVI_A,
+   XF86ConnectorComposite,
+   XF86ConnectorSvideo,
+   XF86ConnectorComponent,
+   XF86ConnectorLFP,
+   XF86ConnectorProprietary,
+} xf86ConnectorType;
+
 typedef enum _xf86OutputStatus {
    XF86OutputStatusConnected,
    XF86OutputStatusDisconnected,
@@ -617,5 +631,11 @@ xf86DiDGAReInit (ScreenPtr pScreen);
 
 void
 xf86CrtcSetScreenSubpixelOrder (ScreenPtr pScreen);
+
+/*
+ * Get a standard string name for a connector type 
+ */
+char *
+xf86ConnectorGetName(xf86ConnectorType connector);
 
 #endif /* _XF86CRTC_H_ */

@@ -1738,3 +1738,12 @@ xf86OutputGetEDID (xf86OutputPtr output, I2CBusPtr pDDCBus)
 
     return xf86DoEDID_DDC2 (scrn->scrnIndex, pDDCBus);
 }
+
+static char *_xf86ConnectorNames[] = { "None", "VGA", "DVI-I", "DVI-D",
+				      "DVI-A", "Composite", "S-Video",
+				      "Component", "LFP", "Proprietary" };
+char *
+xf86ConnectorGetName(xf86ConnectorType connector)
+{
+    return _xf86ConnectorNames[connector];
+}
