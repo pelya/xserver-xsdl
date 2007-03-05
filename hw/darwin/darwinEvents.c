@@ -74,6 +74,7 @@ typedef struct _EventQueue {
 } EventQueueRec, *EventQueuePtr;
 
 static EventQueueRec darwinEventQueue;
+xEvent *darwinEvents;
 
 /*
  * DarwinPressModifierMask
@@ -179,6 +180,7 @@ static void DarwinSimulateMouseClick(
 
 
 Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) { 
+    darwinEvents = (xEvent *)malloc(sizeof(xEvent) * GetMaximumEventsNum());
     mieqInit();
     darwinEventQueue.head = darwinEventQueue.tail = 0;
     darwinEventQueue.lastEventTime = GetTimeInMillis ();

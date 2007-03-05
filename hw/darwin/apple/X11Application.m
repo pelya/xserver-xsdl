@@ -56,7 +56,7 @@ extern int darwinFakeButtons, input_check_flag;
 // extern Bool enable_stereo; 
 Bool enable_stereo;  //<-- this needs to go back to being an extern once glxCGL is fixed
 
-static xEvent *quartzEvents;
+extern xEvent *darwinEvents;
 
 X11Application *X11App;
 
@@ -805,7 +805,6 @@ void X11ApplicationMain (int argc, const char *argv[],
     pool = [[NSAutoreleasePool alloc] init];
 	
     X11App = (X11Application *) [X11Application sharedApplication];
-    quartzEvents = (xEvent *)malloc(sizeof(xEvent) * GetMaximumEventsNum());
 
     init_ports ();
 	
@@ -914,33 +913,33 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
 	button_state |= (1 << ev_button);
       } else if (ev_type==ButtonRelease && (button_state & (1 << ev_button)) == 0) break;
       
-      num_events = GetPointerEvents(quartzEvents, darwinPointer, ev_type, ev_button, 
+      num_events = GetPointerEvents(darwinEvents, darwinPointer, ev_type, ev_button, 
 				    POINTER_ABSOLUTE, 0, 2, valuators);
       
       for(i=0; i<num_events; i++)
-	mieqEnqueue (darwinPointer,&quartzEvents[i]);
+	mieqEnqueue (darwinPointer,&darwinEvents[i]);
       break;
     case NSScrollWheel: 
       count = [e deltaY];
       ev_button = count > 0.0f ? 4 : 5;
       for (count = fabs(count); count > 0.0; count = count - 1.0f) {
-	num_events = GetPointerEvents(quartzEvents, darwinPointer, ButtonPress, ev_button, 
+	num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonPress, ev_button, 
 				      POINTER_ABSOLUTE, 0, 2, valuators);
 	for(i=0; i<num_events; i++) 
-	  mieqEnqueue(darwinPointer,&quartzEvents[i]);
-	num_events = GetPointerEvents(quartzEvents, darwinPointer, ButtonRelease, ev_button, 
+	  mieqEnqueue(darwinPointer,&darwinEvents[i]);
+	num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonRelease, ev_button, 
 				      POINTER_ABSOLUTE, 0, 2, valuators);
 	for(i=0; i<num_events; i++)
-	  mieqEnqueue(darwinPointer,&quartzEvents[i]);
+	  mieqEnqueue(darwinPointer,&darwinEvents[i]);
       }
       break;
       
     case NSKeyDown:  // do we need to translate these keyCodes?
     case NSKeyUp:
-      num_events = GetKeyboardEvents(quartzEvents, darwinKeyboard, 
+      num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, 
 				     (type == NSKeyDown)?KeyPress:KeyRelease, [e keyCode]);
       for(i=0; i<num_events; i++) 
-	mieqEnqueue(darwinKeyboard,&quartzEvents[i]);
+	mieqEnqueue(darwinKeyboard,&darwinEvents[i]);
       break;
 
     case NSFlagsChanged:
