@@ -48,7 +48,7 @@
 
 // Macros to build the path name
 #ifndef XBINDIR
-#define XBINDIR /usr/X11R6/bin
+#define XBINDIR /usr/X11/bin
 #endif
 #define STR(s) #s
 #define XSTRPATH(s) STR(s) "/"
@@ -124,7 +124,7 @@ int main(
 
         // Otherwise query LaunchServices for the location of the XDarwin application
         theStatus = LSFindApplicationForInfo(kLSUnknownCreator,
-                                             CFSTR("org.xfree86.XDarwin"),
+                                             CFSTR("org.x.x11"),
                                              NULL, NULL, &appURL);
         if (theStatus) {
             fprintf(stderr, "Could not find the XDarwin application. (Error = 0x%lx)\n", theStatus);

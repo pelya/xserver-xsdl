@@ -35,6 +35,9 @@
 /* Support Damage extension */
 #undef DAMAGE
 
+/* Build for darwin with Quartz support */
+#undef DARWIN_WITH_QUARTZ
+
 /* Use OsVendorInit */
 #undef DDXOSINIT
 
@@ -423,7 +426,17 @@
 #undef XVENDORNAME
 
 /* Endian order */
-#undef X_BYTE_ORDER
+#undef _X_BYTE_ORDER
+/* Deal with multiple architecture compiles on Mac OS X */
+#ifndef __APPLE_CC__
+#define X_BYTE_ORDER _X_BYTE_ORDER
+#else
+#ifdef __BIG_ENDIAN__
+#define X_BYTE_ORDER X_BIG_ENDIAN
+#else
+#define X_BYTE_ORDER X_LITTLE_ENDIAN
+#endif
+#endif
 
 /* Enable GNU and other extensions to the C environment for GLIBC */
 #undef _GNU_SOURCE

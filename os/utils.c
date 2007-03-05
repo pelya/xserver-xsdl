@@ -1871,7 +1871,7 @@ Fopen(char *file, char *type)
     pidlist = cur;
 
 #ifdef DEBUG
-    ErrorF("Popen: `%s', fp = %p\n", command, iop);
+    ErrorF("Fopen(%s), fp = %p\n", file, iop);
 #endif
 
     return iop;

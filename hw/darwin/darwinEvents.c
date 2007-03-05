@@ -1,9 +1,9 @@
 /*
- * Darwin event queue and event handling
- */
-/*
-Copyright (c) 2002-2004 Torrey T. Lyons. All Rights Reserved.
+Darwin event queue and event handling
+
+Copyright 2007 Apple Inc.
 Copyright 2004 Kaleb S. KEITHLEY. All Rights Reserved.
+Copyright (c) 2002-2004 Torrey T. Lyons. All Rights Reserved.
 
 This file is based on mieq.c by Keith Packard,
 which contains the following copyright:
@@ -61,6 +61,8 @@ typedef struct _Event {
     ScreenPtr   pScreen;
 } EventRec, *EventPtr;
 
+int input_check_zero, input_check_flag;
+
 typedef struct _EventQueue {
     HWEventQueueType    head, tail; /* long for SetInputCheck */
     CARD32      lastEventTime;      /* to avoid time running backwards */
@@ -72,7 +74,7 @@ typedef struct _EventQueue {
 } EventQueueRec, *EventQueuePtr;
 
 static EventQueueRec darwinEventQueue;
-
+xEvent *darwinEvents;
 
 /*
  * DarwinPressModifierMask
@@ -177,18 +179,16 @@ static void DarwinSimulateMouseClick(
 }
 
 
-Bool
-DarwinEQInit(
-    DevicePtr pKbd,
-    DevicePtr pPtr)
-{
+Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) { 
+    darwinEvents = (xEvent *)malloc(sizeof(xEvent) * GetMaximumEventsNum());
+    mieqInit();
     darwinEventQueue.head = darwinEventQueue.tail = 0;
     darwinEventQueue.lastEventTime = GetTimeInMillis ();
     darwinEventQueue.pKbd = pKbd;
     darwinEventQueue.pPtr = pPtr;
     darwinEventQueue.pEnqueueScreen = screenInfo.screens[0];
     darwinEventQueue.pDequeueScreen = darwinEventQueue.pEnqueueScreen;
-    SetInputCheck (&darwinEventQueue.head, &darwinEventQueue.tail);
+    SetInputCheck(&input_check_zero, &input_check_flag);
     return TRUE;
 }
 
@@ -199,11 +199,10 @@ DarwinEQInit(
  *    DarwinEQEnqueue    - called from event gathering thread
  *    ProcessInputEvents - called from X server thread
  *  DarwinEQEnqueue should never be called from more than one thread.
+ * 
+ * This should be deprecated in favor of miEQEnqueue -- BB
  */
-void
-DarwinEQEnqueue(
-    const xEvent *e)
-{
+void DarwinEQEnqueue(const xEvent *e) {
     HWEventQueueType oldtail, newtail;
     char byte = 0;
 
@@ -213,13 +212,12 @@ DarwinEQEnqueue(
     // This is difficult to do in a thread-safe way and rarely useful.
 
     newtail = oldtail + 1;
-    if (newtail == QUEUE_SIZE)
-        newtail = 0;
+    if (newtail == QUEUE_SIZE) newtail = 0;
     /* Toss events which come in late */
-    if (newtail == darwinEventQueue.head)
-        return;
+    if (newtail == darwinEventQueue.head) return;
 
     darwinEventQueue.events[oldtail].event = *e;
+
     /*
      * Make sure that event times don't go backwards - this
      * is "unnecessary", but very useful
@@ -244,20 +242,13 @@ DarwinEQEnqueue(
  * DarwinEQPointerPost
  *  Post a pointer event. Used by the mipointer.c routines.
  */
-void
-DarwinEQPointerPost(
-    xEvent *e)
-{
+void DarwinEQPointerPost(xEvent *e) {
     (*darwinEventQueue.pPtr->processInputProc)
             (e, (DeviceIntPtr)darwinEventQueue.pPtr, 1);
 }
 
 
-void
-DarwinEQSwitchScreen(
-    ScreenPtr   pScreen,
-    Bool        fromDIX)
-{
+void DarwinEQSwitchScreen(ScreenPtr pScreen, Bool fromDIX) {
     darwinEventQueue.pEnqueueScreen = pScreen;
     if (fromDIX)
         darwinEventQueue.pDequeueScreen = pScreen;
@@ -268,8 +259,7 @@ DarwinEQSwitchScreen(
  * ProcessInputEvents
  *  Read and process events from the event queue until it is empty.
  */
-void ProcessInputEvents(void)
-{
+void ProcessInputEvents(void) {
     EventRec *e;
     int     x, y;
     xEvent  xe;
@@ -277,12 +267,15 @@ void ProcessInputEvents(void)
     // button number and modifier mask of currently pressed fake button
     static int darwinFakeMouseButtonDown = 0;
     static int darwinFakeMouseButtonMask = 0;
+    input_check_flag=0;
+
+    //    ErrorF("calling mieqProcessInputEvents\n");
+    mieqProcessInputEvents();
 
     // Empty the signaling pipe
     x = sizeof(xe);
-    while (x == sizeof(xe)) {
+    while (x == sizeof(xe)) 
         x = read(darwinEventReadFD, &xe, sizeof(xe));
-    }
 
     while (darwinEventQueue.head != darwinEventQueue.tail)
     {
@@ -298,10 +291,16 @@ void ProcessInputEvents(void)
                 dixScreenOrigins[miPointerCurrentScreen()->myNum].x;
         xe.u.keyButtonPointer.rootY -= darwinMainScreenY +
                 dixScreenOrigins[miPointerCurrentScreen()->myNum].y;
+	
+	/*	ErrorF("old rootX = (%d,%d) darwinMainScreen = (%d,%d) dixScreenOrigins[%d]=(%d,%d)\n",
+	       xe.u.keyButtonPointer.rootX, xe.u.keyButtonPointer.rootY,
+	       darwinMainScreenX, darwinMainScreenY,
+	       miPointerCurrentScreen()->myNum,
+	       dixScreenOrigins[miPointerCurrentScreen()->myNum].x,
+	       dixScreenOrigins[miPointerCurrentScreen()->myNum].y); */
 
-        /*
-         * Assumption - screen switching can only occur on motion events
-         */
+	//Assumption - screen switching can only occur on motion events
+
         if (e->pScreen != darwinEventQueue.pDequeueScreen)
         {
             darwinEventQueue.pDequeueScreen = e->pScreen;

@@ -217,7 +217,8 @@ axpPciInit()
 	 * only set up the root bus for each domain (hose) and the bridged 
 	 * buses will be set up as they are found.
 	 */
-	bus = PCI_MAKE_BUS(domain, 0);
+	/* make a bus with both the domain and the root bus in it */
+	bus = PCI_MAKE_BUS(domain, pDomain->root_bus);
 	pciBusInfo[bus] = xnfalloc(sizeof(pciBusInfo_t));
 	(void)memset(pciBusInfo[bus], 0, sizeof(pciBusInfo_t));
 
@@ -249,7 +250,7 @@ axpPciBusFromTag(PCITAG tag)
 	|| !(pDomain = pBusInfo->pciBusPriv)
 	|| (pDomain->domain != PCI_DOM_FROM_TAG(tag))) return -1;
 
-    bus = PCI_BUS_NO_DOMAIN(bus) + pDomain->root_bus;
+    bus = PCI_BUS_NO_DOMAIN(bus); /* should just be root_bus */
     dfn = PCI_DFN_FROM_TAG(tag);
     if (_iobase(IOBASE_HOSE, -1, bus, dfn) != pDomain->hose) return -1;
 

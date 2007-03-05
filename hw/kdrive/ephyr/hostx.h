@@ -56,7 +56,7 @@ typedef struct {
   int             minKeyCode;
   int             maxKeyCode;
   int             mapWidth;
-  KeySym         *map;
+  CARD32         *map;
 } EphyrKeySyms;
 
 struct EphyrHostXEvent

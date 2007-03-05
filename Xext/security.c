@@ -1187,6 +1187,7 @@ CALLBACK(SecurityCheckMapAccess)
     if (STATEPTR(rec->client) &&
 	(TRUSTLEVEL(rec->client) != XSecurityClientTrusted) &&
 	(pWin->drawable.class == InputOnly) &&
+	pWin->parent && pWin->parent->parent &&
 	(TRUSTLEVEL(wClient(pWin->parent)) == XSecurityClientTrusted))
 
 	rec->rval = FALSE;

@@ -130,8 +130,8 @@ typedef signed long xf86ssize_t;
 # include <errno.h>
 
 # if defined(_NEED_SYSI86)
-#  include <sys/immu.h>
 #  if !(defined (sun) && defined (SVR4))
+#    include <sys/immu.h>
 #    include <sys/region.h>
 #  endif
 #  include <sys/proc.h>

@@ -15,6 +15,8 @@
 
 static const OptionInfoRec *DDCAvailableOptions(void *unused);
 
+#if DDC_MODULE
+
 static MODULESETUPPROTO(ddcSetup);
 
 static XF86ModuleVersionInfo ddcVersRec =
@@ -56,6 +58,8 @@ ddcSetup(pointer module, pointer opts, int *errmaj, int *errmin)
      */
     return (pointer)1;
 }
+
+#endif
 
 #define RETRIES 4
 

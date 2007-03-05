@@ -29,19 +29,21 @@
  * use or other dealings in this Software without prior written authorization.
  */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.5 2003/11/12 20:21:52 torrey Exp $ */
-
-#include "quartzCommon.h"
-#include "cr.h"
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+#include "quartz/quartzCommon.h"
+#include "quartz/cr/cr.h"
 
 #undef BOOL
 #define BOOL xBOOL
 #include "darwin.h"
-#include "quartz.h"
-#include "quartzCursor.h"
+#include "quartz/quartz.h"
+#include "quartz/quartzCursor.h"
 #include "rootless.h"
-#include "safeAlpha.h"
-#include "pseudoramiX.h"
-#include "applewmExt.h"
+#include "safeAlpha/safeAlpha.h"
+#include "quartz/pseudoramiX.h"
+#include "quartz/applewmExt.h"
 
 #include "regionstr.h"
 #include "scrnintstr.h"

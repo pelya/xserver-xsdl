@@ -27,18 +27,20 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-
-#include "quartzCommon.h"
-#include "quartz.h"
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+#include "quartz/quartzCommon.h"
+#include "quartz/quartz.h"
 #include "xpr.h"
-#include "pseudoramiX.h"
+#include "quartz/pseudoramiX.h"
 #include "darwin.h"
 #include "rootless.h"
-#include "safeAlpha.h"
+#include "safeAlpha/safeAlpha.h"
 #include "dri.h"
 #include "globals.h"
 #include "Xplugin.h"
-#include "applewmExt.h"
+#include "quartz/applewmExt.h"
 
 #ifdef DAMAGE
 # include "damage.h"
@@ -46,7 +48,6 @@
 
 // Name of GLX bundle for native OpenGL
 static const char *xprOpenGLBundle = "glxCGL.bundle";
-
 
 /*
  * eventHandler
@@ -98,7 +99,6 @@ eventHandler(unsigned int type, const void *arg,
     }
 }
 
-
 /*
  * displayScreenBounds
  *  Return the display ID for a particular display index.
@@ -116,7 +116,6 @@ displayAtIndex(int index)
     else
         return kCGNullDirectDisplay;
 }
-
 
 /*
  * displayScreenBounds
@@ -139,7 +138,6 @@ displayScreenBounds(CGDirectDisplayID id)
 
     return frame;
 }
-
 
 /*
  * xprAddPseudoramiXScreens
@@ -196,7 +194,6 @@ xprAddPseudoramiXScreens(int *x, int *y, int *width, int *height)
     xfree(displayList);
 }
 
-
 /*
  * xprDisplayInit
  *  Find number of CoreGraphics displays and initialize Xplugin.
@@ -219,9 +216,7 @@ xprDisplayInit(void)
         darwinScreensFound =  1;
 
     if (xp_init(XP_IN_BACKGROUND) != Success)
-    {
         FatalError("Could not initialize the Xplugin library.");
-    }
 
     xp_select_events(XP_EVENT_DISPLAY_CHANGED
                      | XP_EVENT_WINDOW_STATE_CHANGED
@@ -233,7 +228,6 @@ xprDisplayInit(void)
     AppleDRIExtensionInit();
     xprAppleWMInit();
 }
-
 
 /*
  * xprAddScreen
@@ -304,7 +298,6 @@ xprAddScreen(int index, ScreenPtr pScreen)
     return TRUE;
 }
 
-
 /*
  * xprSetupScreen
  *  Setup the screen for rootless access.
@@ -341,7 +334,6 @@ xprSetupScreen(int index, ScreenPtr pScreen)
     return DRIFinishScreenInit(pScreen);
 }
 
-
 /*
  * xprUpdateScreen
  *  Update screen after configuation change.
@@ -358,7 +350,6 @@ xprUpdateScreen(ScreenPtr pScreen)
     RootlessUpdateScreenPixmap(pScreen);
 }
 
-
 /*
  * xprInitInput
  *  Finalize xpr specific setup.
@@ -374,7 +365,6 @@ xprInitInput(int argc, char **argv)
     for (i = 0; i < screenInfo.numScreens; i++)
         AppleWMSetScreenOrigin(WindowTable[i]);
 }
-
 
 /*
  * Quartz display mode function list.
@@ -400,7 +390,6 @@ static QuartzModeProcsRec xprModeProcs = {
     DRICreateSurface,
     DRIDestroySurface
 };
-
 
 /*
  * QuartzModeBundleInit

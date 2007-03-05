@@ -8,16 +8,24 @@ if XF86UTILS
 XF86UTILS_SUBDIR = utils
 endif
 
+if MFB
+MFB_SUBDIR = xf1bpp xf4bpp
+endif
+
+if CFB
+CFB_SUBDIR = xf8_16bpp xf8_32bpp
+endif
+
 DOC_SUBDIR = doc
 
 SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support parser rac \
-          ramdac shadowfb vbe vgahw xaa xf1bpp xf4bpp xf8_16bpp \
-	  xf8_32bpp loader scanpci dixmods exa \
+	  ramdac shadowfb vbe vgahw xaa $(MFB_SUBDIR) $(CFB_SUBDIR) \
+	  loader scanpci dixmods exa modes \
 	  $(DRI_SUBDIR) $(XF86UTILS_SUBDIR) $(DOC_SUBDIR)
 
 DIST_SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support \
                parser rac ramdac shadowfb vbe vgahw xaa xf1bpp xf4bpp \
-               xf8_16bpp xf8_32bpp loader scanpci dixmods dri exa \
+               xf8_16bpp xf8_32bpp loader scanpci dixmods dri exa modes \
 	       utils doc
 
 bin_PROGRAMS = Xorg
@@ -47,6 +55,9 @@ XORG_LIBS = \
 	    rac/librac.a \
             parser/libxf86config.a \
 	    dixmods/libdixmods.la \
+	    modes/libxf86modes.a \
+	    ddc/libddc.a \
+	    i2c/libi2c.a \
             @XORG_LIBS@
 
 Xorg_DEPENDENCIES = \

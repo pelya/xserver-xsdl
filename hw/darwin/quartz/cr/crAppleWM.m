@@ -27,17 +27,19 @@
  * use or other dealings in this Software without prior written authorization.
  */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/xpr/xprFrame.c,v 1.2 2003/06/30 01:45:13 torrey Exp $ */
-
-#include "quartzCommon.h"
-#include "cr.h"
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+#include "quartz/quartzCommon.h"
+#include "quartz/cr/cr.h"
 
 #undef BOOL
 #define BOOL xBOOL
 #include "rootless.h"
-#include "X.h"
+#include "X11/X.h"
 #define _APPLEWM_SERVER_
-#include "applewm.h"
-#include "applewmExt.h"
+#include "X11/extensions/applewm.h"
+#include "quartz/applewmExt.h"
 #undef BOOL
 
 #define StdDocumentStyleMask (NSTitledWindowMask | \

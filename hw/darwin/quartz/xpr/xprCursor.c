@@ -30,8 +30,10 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-
-#include "quartzCommon.h"
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+#include "quartz/quartzCommon.h"
 #include "xpr.h"
 #include "darwin.h"
 #include "Xplugin.h"

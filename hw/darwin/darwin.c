@@ -204,6 +204,12 @@ DarwinPrintBanner()
 }
 
 
+void DDXRingBell(int volume, int pitch, int duration)
+{
+  // FIXME -- make some noise, yo
+}
+
+
 /*
  * DarwinSaveScreen
  *  X screensaver support. Not implemented.

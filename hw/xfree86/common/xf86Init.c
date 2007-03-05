@@ -36,6 +36,7 @@
 #endif
 
 #include <stdlib.h>
+#include <errno.h>
 
 #undef HAS_UTSNAME
 #if !defined(WIN32) && !defined(__UNIXOS2__)
