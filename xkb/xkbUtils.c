@@ -1220,7 +1220,6 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                     tmp = xalloc(src->max_key_code + 1);
                 if (!tmp)
                     return FALSE;
-                /*dst->map->syms = tmp;*/
                 dst->map->modmap = tmp;
             }
             memcpy(dst->map->modmap, src->map->modmap, src->max_key_code + 1);

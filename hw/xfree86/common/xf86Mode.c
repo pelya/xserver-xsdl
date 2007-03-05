@@ -368,6 +368,7 @@ xf86HandleBuiltinMode(ScrnInfoPtr scrp,
     return MODE_OK;
 }
 
+#if 0
 /** Calculates the horizontal sync rate of a mode */
 _X_EXPORT double
 xf86ModeHSync(DisplayModePtr mode)
@@ -411,6 +412,7 @@ xf86SetModeDefaultName(DisplayModePtr mode)
 
     mode->name = XNFprintf("%dx%d", mode->HDisplay, mode->VDisplay);
 }
+#endif
 
 /*
  * xf86LookupMode
@@ -680,6 +682,7 @@ xf86LookupMode(ScrnInfoPtr scrp, DisplayModePtr modep,
 }
 
 
+#if 0
 /*
  * xf86SetModeCrtc
  *
@@ -725,49 +728,17 @@ xf86SetModeCrtc(DisplayModePtr p, int adjustFlags)
         p->CrtcVSyncEnd         *= p->VScan;
         p->CrtcVTotal           *= p->VScan;
     }
-    p->CrtcHAdjusted = FALSE;
-    p->CrtcVAdjusted = FALSE;
-
-    /*
-     * XXX
-     *
-     * The following is taken from VGA, but applies to other cores as well.
-     */
     p->CrtcVBlankStart = min(p->CrtcVSyncStart, p->CrtcVDisplay);
     p->CrtcVBlankEnd = max(p->CrtcVSyncEnd, p->CrtcVTotal);
-    if ((p->CrtcVBlankEnd - p->CrtcVBlankStart) >= 127) {
-        /* 
-         * V Blanking size must be < 127.
-         * Moving blank start forward is safer than moving blank end
-         * back, since monitors clamp just AFTER the sync pulse (or in
-         * the sync pulse), but never before.
-         */
-        p->CrtcVBlankStart = p->CrtcVBlankEnd - 127;
-	/*
-	 * If VBlankStart is now > VSyncStart move VBlankStart
-	 * to VSyncStart using the maximum width that fits into
-	 * VTotal.
-	 */
-	if (p->CrtcVBlankStart > p->CrtcVSyncStart) {
-	    p->CrtcVBlankStart = p->CrtcVSyncStart;
-	    p->CrtcVBlankEnd = min(p->CrtcHBlankStart + 127, p->CrtcVTotal);
-	}
-    }
     p->CrtcHBlankStart = min(p->CrtcHSyncStart, p->CrtcHDisplay);
     p->CrtcHBlankEnd = max(p->CrtcHSyncEnd, p->CrtcHTotal);
 
-    if ((p->CrtcHBlankEnd - p->CrtcHBlankStart) >= 63 * 8) {
-        /*
-         * H Blanking size must be < 63*8. Same remark as above.
-         */
-        p->CrtcHBlankStart = p->CrtcHBlankEnd - 63 * 8;
-	if (p->CrtcHBlankStart > p->CrtcHSyncStart) {
-	    p->CrtcHBlankStart = p->CrtcHSyncStart;
-	    p->CrtcHBlankEnd = min(p->CrtcHBlankStart + 63 * 8, p->CrtcHTotal);
-	}
-    }
+    p->CrtcHAdjusted = FALSE;
+    p->CrtcVAdjusted = FALSE;
 }
+#endif
 
+#if 0
 /**
  * Allocates and returns a copy of pMode, including pointers within pMode.
  */
@@ -848,6 +819,7 @@ xf86ModesEqual(DisplayModePtr pMode1, DisplayModePtr pMode2)
 	return FALSE;
      }
 }
+#endif
 
 /*
  * xf86CheckModeForMonitor
@@ -2074,6 +2046,7 @@ add(char **p, char *new)
     strcat(*p, new);
 }
 
+#if 0
 _X_EXPORT void
 xf86PrintModeline(int scrnIndex,DisplayModePtr mode)
 {
@@ -2109,6 +2082,7 @@ xf86PrintModeline(int scrnIndex,DisplayModePtr mode)
 		   mode->VTotal, flags);
     xfree(flags);
 }
+#endif
 
 _X_EXPORT void
 xf86PrintModes(ScrnInfoPtr scrp)
@@ -2179,6 +2153,7 @@ xf86PrintModes(ScrnInfoPtr scrp)
     } while (p != NULL && p != scrp->modes);
 }
 
+#if 0
 /**
  * Adds the new mode into the mode list, and returns the new list
  *
@@ -2202,3 +2177,4 @@ xf86ModesAdd(DisplayModePtr modes, DisplayModePtr new)
 
     return modes;
 }
+#endif

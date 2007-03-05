@@ -205,6 +205,7 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
     pDRIPriv->directRenderingSupport = TRUE;
     pDRIPriv->pDriverInfo = pDRIInfo;
     pDRIPriv->nrWindows = 0;
+    pDRIPriv->nrWindowsVisible = 0;
     pDRIPriv->fullscreen = NULL;
 
     pDRIPriv->createDummyCtx     = pDRIInfo->createDummyCtx;
@@ -1007,6 +1008,93 @@ DRITransitionTo2d(ScreenPtr pScreen)
 }
 
 
+static int
+DRIDCNTreeTraversal(WindowPtr pWin, pointer data)
+{
+    DRIDrawablePrivPtr pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
+
+    if (pDRIDrawablePriv) {
+	ScreenPtr pScreen = pWin->drawable.pScreen;
+	DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+
+	if (REGION_NUM_RECTS(&pWin->clipList) > 0) {
+	    WindowPtr *pDRIWindows = (WindowPtr*)data;
+	    int i = 0;
+
+	    while (pDRIWindows[i])
+		i++;
+
+	    pDRIWindows[i] = pWin;
+
+	    pDRIPriv->nrWalked++;
+	}
+
+	if (pDRIPriv->nrWindows == pDRIPriv->nrWalked)
+	    return WT_STOPWALKING;
+    }
+
+    return WT_WALKCHILDREN;
+}
+
+static void
+DRIDriverClipNotify(ScreenPtr pScreen)
+{
+    DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+
+    if (pDRIPriv->pDriverInfo->ClipNotify) {
+	WindowPtr *pDRIWindows = xcalloc(sizeof(WindowPtr), pDRIPriv->nrWindows);
+	DRIInfoPtr pDRIInfo = pDRIPriv->pDriverInfo;
+
+	if (pDRIPriv->nrWindows > 0) {
+	    pDRIPriv->nrWalked = 0;
+	    TraverseTree(WindowTable[pScreen->myNum], DRIDCNTreeTraversal,
+			 (pointer)pDRIWindows);
+	}
+
+	pDRIInfo->ClipNotify(pScreen, pDRIWindows, pDRIPriv->nrWindows);
+
+	xfree(pDRIWindows);
+    }
+}
+
+static void
+DRIIncreaseNumberVisible(ScreenPtr pScreen)
+{
+    DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+
+    switch (++pDRIPriv->nrWindowsVisible) {
+    case 1:
+	DRITransitionTo3d( pScreen );
+	break;
+    case 2:
+	DRITransitionToSharedBuffers( pScreen );
+	break;
+    default:
+	break;
+    }
+
+    DRIDriverClipNotify(pScreen);
+}
+
+static void
+DRIDecreaseNumberVisible(ScreenPtr pScreen)
+{
+    DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+
+    switch (--pDRIPriv->nrWindowsVisible) {
+    case 0:
+	DRITransitionTo2d( pScreen );
+	break;
+    case 1:
+	DRITransitionToPrivateBuffers( pScreen );
+	break;
+    default:
+	break;
+    }
+
+    DRIDriverClipNotify(pScreen);
+}
+
 Bool
 DRICreateDrawable(ScreenPtr pScreen, Drawable id,
                   DrawablePtr pDrawable, drm_drawable_t * hHWDrawable)
@@ -1041,21 +1129,16 @@ DRICreateDrawable(ScreenPtr pScreen, Drawable id,
 	    pDRIDrawablePriv->pScreen = pScreen;
 	    pDRIDrawablePriv->refCount = 1;
 	    pDRIDrawablePriv->drawableIndex = -1;
+	    pDRIDrawablePriv->nrects = REGION_NUM_RECTS(&pWin->clipList);
 
 	    /* save private off of preallocated index */
 	    pWin->devPrivates[DRIWindowPrivIndex].ptr =
 						(pointer)pDRIDrawablePriv;
 
-	    switch (++pDRIPriv->nrWindows) {
-	    case 1:
-	       DRITransitionTo3d( pScreen );
-	       break;
-	    case 2:
-	       DRITransitionToSharedBuffers( pScreen );
-	       break;
-	    default:
-	       break;
-	    }
+	    pDRIPriv->nrWindows++;
+
+	    if (pDRIDrawablePriv->nrects)
+		DRIIncreaseNumberVisible(pScreen);
 
 	    /* track this in case this window is destroyed */
 	    AddResource(id, DRIDrawablePrivResType, (pointer)pWin);
@@ -1127,19 +1210,14 @@ DRIDrawablePrivDelete(pointer pResource, XID id)
 			       pDRIDrawablePriv->hwDrawable)) {
 	    return FALSE;
 	}
+
 	xfree(pDRIDrawablePriv);
 	pWin->devPrivates[DRIWindowPrivIndex].ptr = NULL;
 
-	switch (--pDRIPriv->nrWindows) {
-	case 0:
-	   DRITransitionTo2d( pDrawable->pScreen );
-	   break;
-	case 1:
-	   DRITransitionToPrivateBuffers( pDrawable->pScreen );
-	   break;
-	default:
-	   break;
-	}
+	pDRIPriv->nrWindows--;
+
+	if (REGION_NUM_RECTS(&pWin->clipList))
+	    DRIDecreaseNumberVisible(pDrawable->pScreen);
     }
     else { /* pixmap (or for GLX 1.3, a PBuffer) */
 	/* NOT_DONE */
@@ -1277,7 +1355,7 @@ DRIGetDrawableInfo(ScreenPtr pScreen,
 	    *backX = *X;
 	    *backY = *Y;
 
-	    if (pDRIPriv->nrWindows == 1 && *numClipRects) {
+	    if (pDRIPriv->nrWindowsVisible == 1 && *numClipRects) {
 	       /* Use a single cliprect. */
 
 	       int x0 = *X;
@@ -1653,7 +1731,7 @@ DRICopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 
     if(!pDRIPriv) return;
 
-    if(pDRIPriv->nrWindows > 0) {
+    if(pDRIPriv->nrWindowsVisible > 0) {
        RegionRec reg;
 
        REGION_NULL(pScreen, &reg);
@@ -1845,19 +1923,28 @@ DRIClipNotify(WindowPtr pWin, int dx, int dy)
     if(!pDRIPriv) return;
 
     if ((pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin))) {
+        int nrects = REGION_NUM_RECTS(&pWin->clipList);
 
         if(!pDRIPriv->windowsTouched) {
             DRILockTree(pScreen);
             pDRIPriv->windowsTouched = TRUE;
         }
 
+	if (nrects && !pDRIDrawablePriv->nrects)
+	    DRIIncreaseNumberVisible(pScreen);
+	else if (!nrects && pDRIDrawablePriv->nrects)
+	    DRIDecreaseNumberVisible(pScreen);
+	else
+	    DRIDriverClipNotify(pScreen);
+
+	pDRIDrawablePriv->nrects = nrects;
+
 	pDRIPriv->pSAREA->drawableTable[pDRIDrawablePriv->drawableIndex].stamp
 	    = DRIDrawableValidationStamp++;
 
 	drmUpdateDrawableInfo(pDRIPriv->drmFD, pDRIDrawablePriv->hwDrawable,
 			      DRM_DRAWABLE_CLIPRECTS,
-			      REGION_NUM_RECTS(&pWin->clipList),
-			      REGION_RECTS(&pWin->clipList));
+			      nrects, REGION_RECTS(&pWin->clipList));
     }
 
     /* call lower wrapped functions */

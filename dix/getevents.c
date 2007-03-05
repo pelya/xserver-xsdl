@@ -619,7 +619,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
             kbp->deviceid |= MORE_EVENTS;
             clipValuators(pDev, first_valuator, num_valuators, valuators);
             events = getValuatorEvents(events, pDev, first_valuator,
-                    num_valuators, valuators);
+                                       num_valuators, valuators);
         }
     }
 

@@ -64,6 +64,7 @@ Equipment Corporation.
 #include "opaque.h"
 #include "dixfontstr.h"
 #include "closestr.h"
+#include "dixfont.h"
 
 #ifdef DEBUG
 #include	<stdio.h>

@@ -27,13 +27,14 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #include "xpr.h"
-#include "applewmExt.h"
+#include "quartz/applewmExt.h"
 #include "rootless.h"
 #include "Xplugin.h"
 #include <X11/X.h>
-
 
 static int xprSetWindowLevel(
     WindowPtr pWin,

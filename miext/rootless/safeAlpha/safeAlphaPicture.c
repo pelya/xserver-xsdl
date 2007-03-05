@@ -33,15 +33,19 @@
  * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
  */
 
+
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
 #ifdef RENDER
 
+#include <stddef.h> /* For NULL */
 #include "fb.h"
 #include "picturestr.h"
 #include "mipict.h"
 #include "fbpict.h"
 #include "safeAlpha.h"
 #include "rootlessCommon.h"
-
 # define mod(a,b)	((b) == 1 ? 0 : (a) >= 0 ? (a) % (b) : (b) - (-a) % (b))
 
 

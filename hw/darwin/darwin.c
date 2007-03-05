@@ -30,6 +30,10 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "os.h"
@@ -197,6 +201,12 @@ DarwinPrintBanner()
 #endif
   ErrorF("\tBefore reporting problems, check "__VENDORDWEBSUPPORT__"\n"
 	 "\tto make sure that you have the latest version.\n");
+}
+
+
+void DDXRingBell(int volume, int pitch, int duration)
+{
+  // FIXME -- make some noise, yo
 }
 
 
@@ -409,9 +419,9 @@ static int DarwinMouseProc(
             InitPointerDeviceStruct( (DevicePtr)pPointer,
                         map,
                         5,   // numbuttons (4 & 5 are scroll wheel)
-                        miPointerGetMotionEvents,
+                        GetMotionHistory,
                         DarwinChangePointerControl,
-                        0 );
+                        GetMotionHistorySize(), 2 );
 #ifdef XINPUT
             InitValuatorAxisStruct( pPointer,
                                     0,     // X axis

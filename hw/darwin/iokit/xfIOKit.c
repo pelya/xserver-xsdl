@@ -34,6 +34,10 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
+#if HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Xproto.h>
 #include "os.h"
@@ -51,6 +55,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <assert.h>
 
 #include <mach/mach_interface.h>
 

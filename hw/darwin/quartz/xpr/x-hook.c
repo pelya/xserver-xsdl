@@ -28,7 +28,9 @@
    promote the sale, use or other dealings in this Software without
    prior written authorization. */
 /* $XFree86: $ */
-
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #include "x-hook.h"
 #include <stdlib.h>
 #include <assert.h>

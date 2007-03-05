@@ -34,7 +34,9 @@ Equipment Corporation.
 ******************************************************************/
 
 #include "pseudoramiX.h"
-
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #include "extnsionst.h"
 #include "dixstruct.h"
 #include "window.h"

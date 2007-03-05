@@ -72,7 +72,7 @@
 #include <architecture/byte_order.h>  // For the NXSwap*
 #include "darwin.h"
 #include "darwinKeyboard.h"
-
+#include <assert.h>
 #define AltMask         Mod1Mask
 #define MetaMask        Mod2Mask
 #define FunctionMask    Mod3Mask

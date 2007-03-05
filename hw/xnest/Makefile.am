@@ -1,4 +1,10 @@
 bin_PROGRAMS = Xnest
+noinst_LIBRARIES = libfbcmap.a
+
+AM_CFLAGS = -DHAVE_XNEST_CONFIG_H \
+            -DNO_HW_ONLY_EXTS \
+            $(DIX_CFLAGS) \
+            $(XNESTMODULES_CFLAGS)
 
 SRCS =	Args.c \
 	Args.h \
@@ -37,23 +43,17 @@ SRCS =	Args.c \
 	xnest-config.h \
 	$(top_srcdir)/Xext/dpmsstubs.c \
 	$(top_srcdir)/Xi/stubs.c \
-	$(top_srcdir)/mi/miinitext.c \
-	$(top_srcdir)/fb/fbcmap.c
+	$(top_srcdir)/mi/miinitext.c
 
+libfbcmap_a_SOURCES = $(top_srcdir)/fb/fbcmap.c
+libfbcmap_a_CFLAGS = $(AM_CFLAGS) -DXFree86Server
 
 Xnest_SOURCES = $(SRCS)
 
 Xnest_LDADD = $(XORG_CORE_LIBS) \
               $(XNEST_LIBS) \
-              $(XNESTMODULES_LIBS)
-
-Xnest_LDFLAGS =
-
-AM_CFLAGS = -DHAVE_XNEST_CONFIG_H \
-            -DNO_HW_ONLY_EXTS \
-            -DXFree86Server \
-            $(DIX_CFLAGS) \
-            $(XNESTMODULES_CFLAGS)
+              $(XNESTMODULES_LIBS) \
+	      libfbcmap.a
 
 EXTRA_DIST = os2Stub.c \
              icon \

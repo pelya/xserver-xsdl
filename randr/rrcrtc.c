@@ -290,6 +290,12 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	    RRScreenRate	    rate;
 	    Bool		    ret;
 
+	    if (!mode)
+	    {
+		RRCrtcNotify (crtc, NULL, x, y, rotation, 0, NULL);
+		return TRUE;
+	    }
+
 	    size.width = mode->mode.width;
 	    size.height = mode->mode.height;
 	    if (outputs[0]->mmWidth && outputs[0]->mmHeight)
@@ -310,7 +316,10 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	     * Old 1.0 interface tied screen size to mode size
 	     */
 	    if (ret)
+	    {
 		RRCrtcNotify (crtc, mode, x, y, rotation, 1, outputs);
+		RRScreenSizeNotify (pScreen);
+	    }
 	    return ret;
 	}
 #endif
@@ -667,6 +676,27 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	    return BadMatch;
 	}
     }
+    /* validate clones */
+    for (i = 0; i < numOutputs; i++)
+    {
+	for (j = 0; j < numOutputs; j++)
+	{
+	    int k;
+	    if (i == j)
+		continue;
+	    for (k = 0; k < outputs[i]->numClones; k++)
+	    {
+		if (outputs[i]->clones[k] == outputs[j])
+		    break;
+	    }
+	    if (k == outputs[i]->numClones)
+	    {
+		if (outputs)
+		    xfree (outputs);
+		return BadMatch;
+	    }
+	}
+    }
 
     pScreen = crtc->pScreen;
     pScrPriv = rrGetScrPriv(pScreen);
@@ -870,7 +900,7 @@ ProcRRSetCrtcGamma (ClientPtr client)
     unsigned long		len;
     CARD16			*red, *green, *blue;
     
-    REQUEST_SIZE_MATCH(xRRSetCrtcGammaReq);
+    REQUEST_AT_LEAST_SIZE(xRRSetCrtcGammaReq);
     crtc = LookupCrtc (client, stuff->crtc, DixWriteAccess);
     if (!crtc)
 	return RRErrorBase + BadRRCrtc;

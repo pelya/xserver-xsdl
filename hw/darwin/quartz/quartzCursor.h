@@ -36,6 +36,7 @@
 #include "screenint.h"
 
 Bool QuartzInitCursor(ScreenPtr pScreen);
+void QuartzReallySetCursor(void);
 void QuartzSuspendXCursor(ScreenPtr pScreen);
 void QuartzResumeXCursor(ScreenPtr pScreen, int x, int y);
 

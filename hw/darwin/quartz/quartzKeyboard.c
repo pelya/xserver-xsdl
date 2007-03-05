@@ -33,13 +33,16 @@
    prior written authorization.
 */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #include "quartzCommon.h"
 
 #include <CoreServices/CoreServices.h>
 #include <Carbon/Carbon.h>
 
 #include "darwinKeyboard.h"
-#include "keysym.h"
+#include "X11/keysym.h"
 #include "keysym2ucs.h"
 
 #ifdef HAS_KL_API

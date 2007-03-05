@@ -93,6 +93,8 @@ static void miPointerMove(DeviceIntPtr pDev, ScreenPtr pScreen,
                           int x, int y,
                           unsigned long time);
 
+static xEvent* events; /* for WarpPointer MotionNotifies */
+
 _X_EXPORT Bool
 miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
     ScreenPtr		    pScreen;
@@ -162,6 +164,7 @@ miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
             pPointer->y = 0;
     }
 
+    events = NULL;
     return TRUE;
 }
 
@@ -187,6 +190,8 @@ miPointerCloseScreen (index, pScreen)
 
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
     xfree ((pointer) pScreenPriv);
+    xfree ((pointer) events);
+    events = NULL;
     return (*pScreen->CloseScreen) (index, pScreen);
 }
 
@@ -532,7 +537,31 @@ miPointerGetPosition(DeviceIntPtr pDev, int *x, int *y)
 void
 miPointerMove (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y, unsigned long time)
 {
-    miPointerMoved(pDev, pScreen, x, y, time);
+    int i, nevents;
+    int valuators[2];
+
+    miPointerMoved(inputInfo.pointer, pScreen, x, y, time);
+
+    /* generate motion notify */
+    valuators[0] = x;
+    valuators[1] = y;
+
+    if (!events)
+    {
+        events = (xEvent*)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+
+        if (!events)
+        {
+            FatalError("Could not allocate event store.\n");
+            return;
+        }
+    }
+
+    nevents = GetPointerEvents(events, inputInfo.pointer, MotionNotify, 0,
+                               POINTER_ABSOLUTE, 0, 2, valuators);
+
+    for (i = 0; i < nevents; i++)
+        mieqEnqueue(inputInfo.pointer, &events[i]);
 }
 
 /* Move the pointer on the current screen,  and update the sprite. */
@@ -540,8 +569,6 @@ void
 miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
                      unsigned long time)
 {
-    xEvent* events;
-    int i, nevents;
     int valuators[2];
     miPointerPtr pPointer = MIPOINTER(pDev);
     SetupScreen(pScreen);
@@ -559,22 +586,4 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
     pPointer->x = x;
     pPointer->y = y;
     pPointer->pScreen = pScreen;
-
-    /* generate event here */
-    valuators[0] = x;
-    valuators[1] = y;
-    events = (xEvent*)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
-    if (!events)
-    {
-        FatalError("Could not allocate event store.\n");
-	return;
-    }
-
-    nevents = GetPointerEvents(events, pDev, MotionNotify, 0,
-                               POINTER_ABSOLUTE, 0, 2, valuators);
-
-    for (i = 0; i < nevents; i++)
-        mieqEnqueue(pDev, &events[i]);
-
-    xfree(events);
 }

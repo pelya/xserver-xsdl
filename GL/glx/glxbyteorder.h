@@ -39,6 +39,11 @@
 #include <byteswap.h>
 #elif defined(USE_SYS_ENDIAN_H)
 #include <sys/endian.h>
+#elif defined(__APPLE__)
+#include <libkern/OSByteOrder.h>
+#define bswap_16 OSSwapInt16
+#define bswap_32 OSSwapInt32
+#define bswap_64 OSSwapInt64
 #else
 #define	bswap_16(value)  \
  	((((value) & 0xff) << 8) | ((value) >> 8))

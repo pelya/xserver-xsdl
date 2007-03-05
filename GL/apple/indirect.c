@@ -1,11 +1,10 @@
 /*
  * GLX implementation that uses Apple's OpenGL.framework
  * (Indirect rendering path)
- */
-/*
- * Copyright (c) 2002 Greg Parker. All Rights Reserved.
- * Copyright (c) 2002 Apple Computer, Inc.
+ *
+ * Copyright (c) 2007 Apple Inc.
  * Copyright (c) 2004 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2002 Greg Parker. All Rights Reserved.
  *
  * Portions of this file are copied from Mesa's xf86glx.c,
  * which contains the following copyright:
@@ -39,11 +38,12 @@
 #include "dri.h"
 #include "quartz.h"
 
-#include <CoreGraphics/CoreGraphics.h>
+//#include <CoreGraphics/CoreGraphics.h>
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/CGLContext.h>
 
 // X11 and X11's glx
+#include <GL/gl.h>
 #include <miscstruct.h>
 #include <windowstr.h>
 #include <resource.h>
@@ -61,11 +61,16 @@
 #include "x-hash.h"
 #include "x-list.h"
 
+#include <dispatch.h>
+
 #include "glcontextmodes.h"
+#include <glapi.h>
+#include <glapitable.h>
 
 // ggs: needed to call back to glx with visual configs
 extern void GlxSetVisualConfigs(int nconfigs, __GLXvisualConfig *configs, void **configprivs);
 
+#define GLAQUA_DEBUG 1
 
 // Write debugging output, or not
 #ifdef GLAQUA_DEBUG
@@ -74,60 +79,116 @@ extern void GlxSetVisualConfigs(int nconfigs, __GLXvisualConfig *configs, void *
 #define GLAQUA_DEBUG_MSG(a, ...)
 #endif
 
-
-// The following GL functions don't have an EXT suffix in OpenGL.framework.
-GLboolean glAreTexturesResidentEXT(GLsizei a, const GLuint *b, GLboolean *c) {
-    return glAreTexturesResident(a, b, c);
-}
-void glDeleteTexturesEXT(GLsizei d, const GLuint *e) {
-    glDeleteTextures(d, e);
-}
-void glGenTexturesEXT(GLsizei f, GLuint *g) {
-    glGenTextures(f, g);
-}
-GLboolean glIsTextureEXT(GLuint h) {
-    return glIsTexture(h);
-}
+static void setup_dispatch_table(void);
 
 // some prototypes
-static Bool glAquaScreenProbe(int screen);
+static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen);
 static Bool glAquaInitVisuals(VisualPtr *visualp, DepthPtr *depthp,
                               int *nvisualp, int *ndepthp,
                               int *rootDepthp, VisualID *defaultVisp,
                               unsigned long sizes, int bitsPerRGB);
 static void glAquaSetVisualConfigs(int nconfigs, __GLXvisualConfig *configs,
                                    void **privates);
+
 static __GLinterface *glAquaCreateContext(__GLimports *imports,
                                           __GLcontextModes *mode,
                                           __GLinterface *shareGC);
-static void glAquaCreateBuffer(__GLXdrawablePrivate *glxPriv);
 static void glAquaResetExtension(void);
+static void __glXAquaContextDestroy(__GLXcontext *baseContext);
+static int __glXAquaContextMakeCurrent(__GLXcontext *baseContext);
+static int __glXAquaContextLoseCurrent(__GLXcontext *baseContext);
+static int __glXAquaContextForceCurrent(__GLXcontext *baseContext);
+static int __glXAquaContextCopy(__GLXcontext *baseDst, __GLXcontext *baseSrc, unsigned long mask);
+static __GLXdrawable * __glXAquaContextCreateDrawable(__GLXcontext *context, DrawablePtr pDraw, XID drawId);
 
-/*
- * This structure is statically allocated in the __glXScreens[]
- * structure.  This struct is not used anywhere other than in
- * __glXScreenInit to initialize each of the active screens
- * (__glXActiveScreens[]).  Several of the fields must be initialized by
- * the screenProbe routine before they are copied to the active screens
- * struct.  In particular, the contextCreate, modes, numVisuals,
- * and numUsableVisuals fields must be initialized.
- */
-static __GLXscreenInfo __glDDXScreenInfo = {
-    glAquaScreenProbe,   /* Must be generic and handle all screens */
-    glAquaCreateContext, /* Substitute screen's createContext routine */
-    glAquaCreateBuffer,  /* Substitute screen's createBuffer routine */
-    NULL,                 /* Set up modes in probe */
-    NULL,                 /* Set up pVisualPriv in probe */
-    0,                    /* Set up numVisuals in probe */
-    0,                    /* Set up numUsableVisuals in probe */
-    "Vendor String",      /* GLXvendor is overwritten by __glXScreenInit */
-    "Version String",     /* GLXversion is overwritten by __glXScreenInit */
-    "Extensions String",  /* GLXextensions is overwritten by __glXScreenInit */
-    NULL                  /* WrappedPositionWindow is overwritten */
+static CGLPixelFormatObj makeFormat(__GLcontextModes *mode);
+
+__GLXprovider __glXMesaProvider = {
+  __glXAquaScreenProbe,
+  "Core OpenGL",
+    NULL
 };
 
-void *__glXglDDXScreenInfo(void) {
-    return &__glDDXScreenInfo;
+__GLXprovider *
+GlxGetMesaProvider (void)
+{
+  ErrorF("GlxGetMesaProvider\n");
+  return &__glXMesaProvider;
+}
+
+typedef struct __GLXAquaScreen   __GLXAquaScreen;
+typedef struct __GLXAquaContext  __GLXAquaContext;
+typedef struct __GLXAquaDrawable __GLXAquaDrawable;
+
+struct __GLXAquaScreen {
+  __GLXscreen   base;
+  int           index;
+    int num_vis;
+    __GLcontextModes *modes;
+};
+
+static __GLXAquaScreen glAquaScreens[MAXSCREENS];
+
+struct __GLXAquaContext {
+  __GLXcontext base;
+  CGLContextObj ctx;
+  CGLPixelFormatObj pixelFormat;
+  xp_surface_id sid;
+  unsigned isAttached :1;
+};
+
+struct __GLXAquaDrawable {
+  __GLXdrawable base;
+    DrawablePtr pDraw;
+    xp_surface_id sid;
+};
+
+static __GLXcontext *
+__glXAquaScreenCreateContext(__GLXscreen *screen,
+			     __GLcontextModes *modes,
+			     __GLXcontext *baseShareContext)
+{
+  __GLXAquaContext *context;
+  __GLXAquaContext *shareContext = (__GLXAquaContext *) baseShareContext;
+  CGLError gl_err;
+  
+  GLAQUA_DEBUG_MSG("glXAquaScreenCreateContext\n");
+
+  context = malloc (sizeof (__GLXAquaContext));
+  if (context == NULL) return NULL;
+
+  memset(context, 0, sizeof *context);
+
+  context->base.pGlxScreen = screen;
+  context->base.modes      = modes;
+
+  context->base.destroy        = __glXAquaContextDestroy;
+  context->base.makeCurrent    = __glXAquaContextMakeCurrent;
+  context->base.loseCurrent    = __glXAquaContextLoseCurrent;
+  context->base.copy           = __glXAquaContextCopy;
+  context->base.forceCurrent   = __glXAquaContextForceCurrent;
+  context->base.createDrawable = __glXAquaContextCreateDrawable;
+
+  context->pixelFormat = makeFormat(modes);
+  if (!context->pixelFormat) {
+        free(context);
+        return NULL;
+  }
+
+  context->ctx = NULL;
+  gl_err = CGLCreateContext(context->pixelFormat,
+                            shareContext ? shareContext->ctx : NULL,
+                            &context->ctx);
+
+  if (gl_err != 0) {
+      ErrorF("CGLCreateContext error: %s\n", CGLErrorString(gl_err));
+      CGLDestroyPixelFormat(context->pixelFormat);
+      free(context);
+      return NULL;
+    }
+	setup_dispatch_table();
+    GLAQUA_DEBUG_MSG("glAquaCreateContext done\n");
+  return &context->base;
 }
 
 static __GLXextensionInfo __glDDXExtensionInfo = {
@@ -138,118 +199,43 @@ static __GLXextensionInfo __glDDXExtensionInfo = {
 };
 
 void *__glXglDDXExtensionInfo(void) {
+  GLAQUA_DEBUG_MSG("glXAglDDXExtensionInfo\n");
     return &__glDDXExtensionInfo;
 }
-
-// prototypes
-
-static GLboolean glAquaDestroyContext(__GLcontext *gc);
-static GLboolean glAquaLoseCurrent(__GLcontext *gc);
-static GLboolean glAquaMakeCurrent(__GLcontext *gc);
-static GLboolean glAquaShareContext(__GLcontext *gc, __GLcontext *gcShare);
-static GLboolean glAquaCopyContext(__GLcontext *dst, const __GLcontext *src,
-                                    GLuint mask);
-static GLboolean glAquaForceCurrent(__GLcontext *gc);
-
-/* Drawing surface notification callbacks */
-static GLboolean glAquaNotifyResize(__GLcontext *gc);
-static void glAquaNotifyDestroy(__GLcontext *gc);
-static void glAquaNotifySwapBuffers(__GLcontext *gc);
-
-/* Dispatch table override control for external agents like libGLS */
-static struct __GLdispatchStateRec* glAquaDispatchExec(__GLcontext *gc);
-static void glAquaBeginDispatchOverride(__GLcontext *gc);
-static void glAquaEndDispatchOverride(__GLcontext *gc);
-
-static __GLexports glAquaExports = {
-    glAquaDestroyContext,
-    glAquaLoseCurrent,
-    glAquaMakeCurrent,
-    glAquaShareContext,
-    glAquaCopyContext,
-    glAquaForceCurrent,
-
-    glAquaNotifyResize,
-    glAquaNotifyDestroy,
-    glAquaNotifySwapBuffers,
-
-    glAquaDispatchExec,
-    glAquaBeginDispatchOverride,
-    glAquaEndDispatchOverride
-};
-
-typedef struct {
-    int num_vis;
-    __GLcontextModes *modes;
-    void **priv;
-
-    // wrapped screen functions
-    RealizeWindowProcPtr RealizeWindow;
-    UnrealizeWindowProcPtr UnrealizeWindow;
-} glAquaScreenRec;
-
-static glAquaScreenRec glAquaScreens[MAXSCREENS];
-
-// __GLdrawablePrivate->private
-typedef struct {
-    DrawablePtr pDraw;
-    xp_surface_id sid;
-} GLAquaDrawableRec;
-
-struct __GLcontextRec {
-    struct __GLinterfaceRec interface; // required to be first
-
-    CGLContextObj ctx;
-    CGLPixelFormatObj pixelFormat;
-
-    /* set when attached */
-    xp_surface_id sid;
-
-    unsigned isAttached :1;
-};
 
 /* maps from surface id -> list of __GLcontext */
 static x_hash_table *surface_hash;
 
-
-// Context manipulation; return GL_FALSE on failure
-static GLboolean glAquaDestroyContext(__GLcontext *gc)
-{
+static void __glXAquaContextDestroy(__GLXcontext *baseContext) {
     x_list *lst;
 
-    GLAQUA_DEBUG_MSG("glAquaDestroyContext (ctx 0x%x)\n",
-                     (unsigned int) gc->ctx);
+    __GLXAquaContext *context = (__GLXAquaContext *) baseContext;
 
-    if (gc != NULL)
-    {
-        if (gc->sid != 0 && surface_hash != NULL)
-        {
-            lst = x_hash_table_lookup(surface_hash, (void *) gc->sid, NULL);
-            lst = x_list_remove(lst, gc);
-            x_hash_table_insert(surface_hash, (void *) gc->sid, lst);
-        }
+    GLAQUA_DEBUG_MSG("glAquaContextDestroy (ctx 0x%x)\n",
+                     (unsigned int) baseContext);
+    if (context != NULL) {
+      if (context->sid != 0 && surface_hash != NULL) {
+		lst = x_hash_table_lookup(surface_hash, (void *) context->sid, NULL);
+		lst = x_list_remove(lst, context);
+		x_hash_table_insert(surface_hash, (void *) context->sid, lst);
+      }
 
-        if (gc->ctx != NULL)
-            CGLDestroyContext(gc->ctx);
+      if (context->ctx != NULL) CGLDestroyContext(context->ctx);
 
-        if (gc->pixelFormat != NULL)
-            CGLDestroyPixelFormat(gc->pixelFormat);
-
-        free(gc);
+      if (context->pixelFormat != NULL)	CGLDestroyPixelFormat(context->pixelFormat);
+      
+      free(context);
     }
-
-    return GL_TRUE;
 }
 
-static GLboolean glAquaLoseCurrent(__GLcontext *gc)
-{
+static int __glXAquaContextLoseCurrent(__GLXcontext *baseContext) {
     CGLError gl_err;
 
-    GLAQUA_DEBUG_MSG("glAquaLoseCurrent (ctx 0x%x)\n", (unsigned int) gc->ctx);
+    GLAQUA_DEBUG_MSG("glAquaLoseCurrent (ctx 0x%p)\n", baseContext);
 
     gl_err = CGLSetCurrentContext(NULL);
     if (gl_err != 0)
-        ErrorF("CGLSetCurrentContext error: %s\n", CGLErrorString(gl_err));
+      ErrorF("CGLSetCurrentContext error: %s\n", CGLErrorString(gl_err));
 
     __glXLastContext = NULL; // Mesa does this; why?
 
@@ -258,141 +244,139 @@ static GLboolean glAquaLoseCurrent(__GLcontext *gc)
 
 /* Called when a surface is destroyed as a side effect of destroying
    the window it's attached to. */
-static void surface_notify(void *_arg, void *data)
-{
-    DRISurfaceNotifyArg *arg = _arg;
-    GLAquaDrawableRec *aquaPriv = data;
-    __GLcontext *gc;
+static void surface_notify(void *_arg, void *data) {
+    DRISurfaceNotifyArg *arg = (DRISurfaceNotifyArg *)_arg;
+    __GLXAquaDrawable *draw = (__GLXAquaDrawable *)data;
+    __GLXAquaContext *context;
     x_list *lst;
-
-    switch (arg->kind)
-    {
+	if(_arg == NULL || data == NULL) {
+		ErrorF("surface_notify called with bad params");
+		return;
+	}
+	
+    GLAQUA_DEBUG_MSG("surface_notify(%p, %p)\n", _arg, data);
+    switch (arg->kind) {
     case AppleDRISurfaceNotifyDestroyed:
         if (surface_hash != NULL)
             x_hash_table_remove(surface_hash, (void *) arg->id);
-
-        aquaPriv->pDraw = NULL;
-        aquaPriv->sid = 0;
+	        draw->base->pDraw = NULL;
+			draw->sid = 0;
         break;
 
     case AppleDRISurfaceNotifyChanged:
-        if (surface_hash != NULL)
-        {
+        if (surface_hash != NULL) {
             lst = x_hash_table_lookup(surface_hash, (void *) arg->id, NULL);
             for (; lst != NULL; lst = lst->next)
             {
-                gc = lst->data;
-                xp_update_gl_context(gc->ctx);
+                context = lst->data;
+                xp_update_gl_context(context->ctx);
             }
         }
         break;
+	default:
+		ErrorF("surface_notify: unknown kind %d\n", arg->kind);
+		break;
     }
 }
 
-static void unattach(__GLcontext *gc)
-{
-    x_list *lst;
-
-    if (gc->isAttached)
-    {
-        GLAQUA_DEBUG_MSG("unattaching\n");
-
-        if (surface_hash != NULL)
-        {
-            lst = x_hash_table_lookup(surface_hash, (void *) gc->sid, NULL);
-            lst = x_list_remove(lst, gc);
-            x_hash_table_insert(surface_hash, (void *) gc->sid, lst);
-        }
-
-        CGLClearDrawable(gc->ctx);
-        gc->isAttached = FALSE;
-        gc->sid = 0;
-    }
-}
-
-static void attach(__GLcontext *gc, __GLdrawablePrivate *glPriv)
-{
-    __GLXdrawablePrivate *glxPriv;
-    GLAquaDrawableRec *aquaPriv;
+static void attach(__GLXAquaContext *context, __GLXAquaDrawable *draw) {
     DrawablePtr pDraw;
+	GLAQUA_DEBUG_MSG("attach(%p, %p)\n", context, draw);
+    pDraw = draw->base.pDraw;
 
-    glxPriv = (__GLXdrawablePrivate *)glPriv->other;
-    aquaPriv = (GLAquaDrawableRec *)glPriv->private;
-    pDraw = glxPriv->pDraw;
-
-    if (aquaPriv->sid == 0)
-    {
-        if (!quartzProcs->CreateSurface(pDraw->pScreen, pDraw->id, pDraw,
-                                        0, &aquaPriv->sid, NULL,
-                                        surface_notify, aquaPriv))
-        {
+    if (draw->sid == 0) {
+//        if (!quartzProcs->CreateSurface(pDraw->pScreen, pDraw->id, pDraw,
+        if (!DRICreateSurface(pDraw->pScreen, pDraw->id, pDraw,
+                                        0, &draw->sid, NULL,
+                                        surface_notify, draw))
             return;
-        }
-        aquaPriv->pDraw = pDraw;
-    }
+        draw->pDraw = pDraw;
+	} 
 
-    if (!gc->isAttached || gc->sid != aquaPriv->sid)
-    {
+    if (!context->isAttached || context->sid != draw->sid) {
         x_list *lst;
 
-        if (xp_attach_gl_context(gc->ctx, aquaPriv->sid) != Success)
-        {
-            quartzProcs->DestroySurface(pDraw->pScreen, pDraw->id, pDraw,
-                                        surface_notify, aquaPriv);
+        if (xp_attach_gl_context(context->ctx, draw->sid) != Success) {
+//            quartzProcs->DestroySurface(pDraw->pScreen, pDraw->id, pDraw,
+            DRIDestroySurface(pDraw->pScreen, pDraw->id, pDraw,
+								surface_notify, draw);
             if (surface_hash != NULL)
-                x_hash_table_remove(surface_hash, (void *) aquaPriv->sid);
+                x_hash_table_remove(surface_hash, (void *) draw->sid);
 
-            aquaPriv->sid = 0;
+            draw->sid = 0;
             return;
         }
 
-        gc->isAttached = TRUE;
-        gc->sid = aquaPriv->sid;
+        context->isAttached = TRUE;
+        context->sid = draw->sid;
 
         if (surface_hash == NULL)
             surface_hash = x_hash_table_new(NULL, NULL, NULL, NULL);
 
-        lst = x_hash_table_lookup(surface_hash, (void *) gc->sid, NULL);
-        if (x_list_find(lst, gc) == NULL)
-        {
-            lst = x_list_prepend(lst, gc);
-            x_hash_table_insert(surface_hash, (void *) gc->sid, lst);
+        lst = x_hash_table_lookup(surface_hash, (void *) context->sid, NULL);
+        if (x_list_find(lst, context) == NULL) {
+            lst = x_list_prepend(lst, context);
+            x_hash_table_insert(surface_hash, (void *) context->sid, lst);
         }
 
         GLAQUA_DEBUG_MSG("attached 0x%x to 0x%x\n", (unsigned int) pDraw->id,
-                         (unsigned int) aquaPriv->sid);
+                         (unsigned int) draw->sid);
+    } 
+}
+
+static void unattach(__GLXAquaContext *context) {
+	x_list *lst;
+	GLAQUA_DEBUG_MSG("unattach\n");
+	if (context == NULL) {
+		ErrorF("Tried to unattach a null context\n");
+		return;
+	}
+    if (context->isAttached) {
+        GLAQUA_DEBUG_MSG("unattaching\n");
+
+        if (surface_hash != NULL) {
+            lst = x_hash_table_lookup(surface_hash, (void *) context->sid, NULL);
+            lst = x_list_remove(lst, context);
+            x_hash_table_insert(surface_hash, (void *) context->sid, lst);
+        }
+
+        CGLClearDrawable(context->ctx);
+        context->isAttached = FALSE;
+        context->sid = 0;
     }
 }
 
-static GLboolean glAquaMakeCurrent(__GLcontext *gc)
-{
-    __GLdrawablePrivate *glPriv = gc->interface.imports.getDrawablePrivate(gc);
+static int __glXAquaContextMakeCurrent(__GLXcontext *baseContext) {
     CGLError gl_err;
+    __GLXAquaContext *context = (__GLXAquaContext *) baseContext;
+	__GLXAquaDrawable *drawPriv = (__GLXAquaDrawable *) context->base.drawPriv;
+    __GLXAquaDrawable *readPriv = (__GLXAquaDrawable *) context->base.readPriv;
 
-    GLAQUA_DEBUG_MSG("glAquaMakeCurrent (ctx 0x%x)\n", (unsigned int) gc->ctx);
+    GLAQUA_DEBUG_MSG("glAquaMakeCurrent (ctx 0x%p)\n", baseContext);
+    
+    attach(context, drawPriv);
 
-    attach(gc, glPriv);
-
-    gl_err = CGLSetCurrentContext(gc->ctx);
+    gl_err = CGLSetCurrentContext(context->ctx);
     if (gl_err != 0)
         ErrorF("CGLSetCurrentContext error: %s\n", CGLErrorString(gl_err));
-
+    
     return gl_err == 0;
 }
 
 static GLboolean glAquaShareContext(__GLcontext *gc, __GLcontext *gcShare)
 {
   GLAQUA_DEBUG_MSG("glAquaShareContext unimplemented\n");
-
   return GL_TRUE;
 }
 
-static GLboolean glAquaCopyContext(__GLcontext *dst, const __GLcontext *src,
-                                   GLuint mask)
+static int __glXAquaContextCopy(__GLXcontext *baseDst, __GLXcontext *baseSrc, unsigned long mask)
 {
     CGLError gl_err;
 
-    GLAQUA_DEBUG_MSG("glAquaCopyContext\n");
+    __GLXAquaContext *dst = (__GLXAquaContext *) baseDst;
+    __GLXAquaContext *src = (__GLXAquaContext *) baseSrc;
+
+    GLAQUA_DEBUG_MSG("GLXAquaContextCopy\n");
 
     gl_err = CGLCopyContext(src->ctx, dst->ctx, mask);
     if (gl_err != 0)
@@ -401,14 +385,13 @@ static GLboolean glAquaCopyContext(__GLcontext *dst, const __GLcontext *src,
     return gl_err == 0;
 }
 
-static GLboolean glAquaForceCurrent(__GLcontext *gc)
+static int __glXAquaContextForceCurrent(__GLXcontext *baseContext)
 {
     CGLError gl_err;
+    __GLXAquaContext *context = (__GLXAquaContext *) baseContext;
+    GLAQUA_DEBUG_MSG("glAquaForceCurrent (ctx %p)\n", context->ctx);
 
-    GLAQUA_DEBUG_MSG("glAquaForceCurrent (ctx 0x%x)\n",
-                     (unsigned int) gc->ctx);
-
-    gl_err = CGLSetCurrentContext(gc->ctx);
+    gl_err = CGLSetCurrentContext(context->ctx);
     if (gl_err != 0)
         ErrorF("CGLSetCurrentContext error: %s\n", CGLErrorString(gl_err));
 
@@ -417,45 +400,41 @@ static GLboolean glAquaForceCurrent(__GLcontext *gc)
 
 /* Drawing surface notification callbacks */
 
-static GLboolean glAquaNotifyResize(__GLcontext *gc)
-{
-    GLAQUA_DEBUG_MSG("unimplemented glAquaNotifyResize");
+static GLboolean __glXAquaDrawableResize(__GLXdrawable *base)  {
+    GLAQUA_DEBUG_MSG("unimplemented glAquaDrawableResize\n");
     return GL_TRUE;
 }
 
-static void glAquaNotifyDestroy(__GLcontext *gc)
-{
+static void glAquaNotifyDestroy(__GLcontext *gc) {
     GLAQUA_DEBUG_MSG("unimplemented glAquaNotifyDestroy");
 }
 
-static void glAquaNotifySwapBuffers(__GLcontext *gc)
-{
-    GLAQUA_DEBUG_MSG("unimplemented glAquaNotifySwapBuffers");
+static GLboolean __glXAquaDrawableSwapBuffers(__GLXdrawable *base) {
+    __GLXAquaDrawable *glxPriv = (__GLXAquaDrawable *) base;
+    CGLError gl_err;
+	__GLXAquaContext * drawableCtx;
+//    GLAQUA_DEBUG_MSG("glAquaDrawableSwapBuffers(%p)\n",base);
+	
+	if(!base) {
+		ErrorF("glXAquaDrawbleSwapBuffers passed NULL\n");
+	    return GL_FALSE;
+	}
+
+    drawableCtx = (__GLXAquaContext *)base->drawGlxc;
+
+    if (drawableCtx != NULL && drawableCtx->ctx != NULL) {
+        gl_err = CGLFlushDrawable(drawableCtx->ctx);
+        if (gl_err != 0)
+            ErrorF("CGLFlushDrawable error: %s\n", CGLErrorString(gl_err));
+    }
+    return GL_TRUE;
 }
 
-/* Dispatch table override control for external agents like libGLS */
-static struct __GLdispatchStateRec* glAquaDispatchExec(__GLcontext *gc)
-{
-    GLAQUA_DEBUG_MSG("unimplemented glAquaDispatchExec");
-    return NULL;
-}
-
-static void glAquaBeginDispatchOverride(__GLcontext *gc)
-{
-    GLAQUA_DEBUG_MSG("unimplemented glAquaBeginDispatchOverride");
-}
-
-static void glAquaEndDispatchOverride(__GLcontext *gc)
-{
-    GLAQUA_DEBUG_MSG("unimplemented glAquaEndDispatchOverride");
-}
-
-static CGLPixelFormatObj makeFormat(__GLcontextModes *mode)
-{
+static CGLPixelFormatObj makeFormat(__GLcontextModes *mode) {
     int i;
     CGLPixelFormatAttribute attr[64]; // currently uses max of 30
     CGLPixelFormatObj result;
-    long n_formats;
+    GLint n_formats;
     CGLError gl_err;
     
     GLAQUA_DEBUG_MSG("makeFormat\n");
@@ -491,10 +470,12 @@ static CGLPixelFormatObj makeFormat(__GLcontextModes *mode)
         attr[i++] = mode->accumRedBits + mode->accumGreenBits
                     + mode->accumBlueBits + mode->accumAlphaBits;
     }
+	
     if (mode->haveDepthBuffer) {
         attr[i++] = kCGLPFADepthSize;
         attr[i++] = mode->depthBits;
     }
+	
     if (mode->haveStencilBuffer) {
         attr[i++] = kCGLPFAStencilSize;
         attr[i++] = mode->stencilBits;
@@ -520,129 +501,6 @@ static CGLPixelFormatObj makeFormat(__GLcontextModes *mode)
 
     return result;
 }
-
-static __GLinterface *glAquaCreateContext(__GLimports *imports,
-                                          __GLcontextModes *mode,
-                                          __GLinterface *shareGC)
-{
-    __GLcontext *result;
-    __GLcontext *sharectx = (__GLcontext *)shareGC;
-    CGLError gl_err;
-
-    GLAQUA_DEBUG_MSG("glAquaCreateContext\n");
-
-    result = (__GLcontext *)calloc(1, sizeof(__GLcontext));
-    if (!result) return NULL;
-
-    result->interface.imports = *imports;
-    result->interface.exports = glAquaExports;
-
-    result->pixelFormat = makeFormat(mode);
-    if (!result->pixelFormat) {
-        free(result);
-        return NULL;
-    }
-
-    result->ctx = NULL;
-    gl_err = CGLCreateContext(result->pixelFormat,
-                              sharectx ? sharectx->ctx : NULL,
-                              &result->ctx);
-
-    if (gl_err != 0) {
-        ErrorF("CGLCreateContext error: %s\n", CGLErrorString(gl_err));
-        CGLDestroyPixelFormat(result->pixelFormat);
-        free(result);
-        return NULL;
-    }
-
-    GLAQUA_DEBUG_MSG("glAquaCreateContext done\n");
-    return (__GLinterface *)result;
-}
-
-Bool
-glAquaRealizeWindow(WindowPtr pWin)
-{
-    // If this window has GL contexts, tell them to reattach
-    Bool result;
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-    glAquaScreenRec *screenPriv = &glAquaScreens[pScreen->myNum];
-    __GLXdrawablePrivate *glxPriv;
-
-    GLAQUA_DEBUG_MSG("glAquaRealizeWindow\n");
-
-    // Allow the window to be created (RootlessRealizeWindow is inside our wrap)
-    pScreen->RealizeWindow = screenPriv->RealizeWindow;
-    result = pScreen->RealizeWindow(pWin);
-    pScreen->RealizeWindow = glAquaRealizeWindow;
-
-    // The Aqua window will already have been created (windows are
-    // realized from top down)
-
-    // Re-attach this window's GL contexts, if any.
-    glxPriv = __glXFindDrawablePrivate(pWin->drawable.id);
-    if (glxPriv) {
-        __GLXcontext *gx;
-        __GLcontext *gc;
-        __GLdrawablePrivate *glPriv = &glxPriv->glPriv;
-        GLAQUA_DEBUG_MSG("glAquaRealizeWindow is GL drawable!\n");
-
-        // GL contexts bound to this window for drawing
-        for (gx = glxPriv->drawGlxc; gx != NULL; gx = gx->next) {
-            gc = (__GLcontext *)gx->gc;
-            attach(gc, glPriv);
-        }
-
-        // GL contexts bound to this window for reading
-        for (gx = glxPriv->readGlxc; gx != NULL; gx = gx->next) {
-            gc = (__GLcontext *)gx->gc;
-            attach(gc, glPriv);
-        }
-    }
-
-    return result;
-}
-
-Bool
-glAquaUnrealizeWindow(WindowPtr pWin)
-{
-    // If this window has GL contexts, tell them to unattach
-    Bool result;
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-    glAquaScreenRec *screenPriv = &glAquaScreens[pScreen->myNum];
-    __GLXdrawablePrivate *glxPriv;
-
-    GLAQUA_DEBUG_MSG("glAquaUnrealizeWindow\n");
-
-    // The Aqua window may have already been destroyed (windows
-    // are unrealized from top down)
-
-    // Unattach this window's GL contexts, if any.
-    glxPriv = __glXFindDrawablePrivate(pWin->drawable.id);
-    if (glxPriv) {
-        __GLXcontext *gx;
-        __GLcontext *gc;
-        GLAQUA_DEBUG_MSG("glAquaUnealizeWindow is GL drawable!\n");
-
-        // GL contexts bound to this window for drawing
-        for (gx = glxPriv->drawGlxc; gx != NULL; gx = gx->next) {
-            gc = (__GLcontext *)gx->gc;
-            unattach(gc);
-        }
-
-        // GL contexts bound to this window for reading
-        for (gx = glxPriv->readGlxc; gx != NULL; gx = gx->next) {
-            gc = (__GLcontext *)gx->gc;
-            unattach(gc);
-        }
-    }
-
-    pScreen->UnrealizeWindow = screenPriv->UnrealizeWindow;
-    result = pScreen->UnrealizeWindow(pWin);
-    pScreen->UnrealizeWindow = glAquaUnrealizeWindow;
-
-    return result;
-}
-
 
 // Originally copied from Mesa
 
@@ -821,15 +679,15 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
 
     /* Alloc space for the list of new GLX visuals */
     pNewVisualConfigs = (__GLXvisualConfig *)
-                     __glXMalloc(numNewConfigs * sizeof(__GLXvisualConfig));
+                     malloc(numNewConfigs * sizeof(__GLXvisualConfig));
     if (!pNewVisualConfigs) {
         return FALSE;
     }
 
     /* Alloc space for the list of new GLX visual privates */
-    pNewVisualPriv = (void **) __glXMalloc(numNewConfigs * sizeof(void *));
+    pNewVisualPriv = (void **) malloc(numNewConfigs * sizeof(void *));
     if (!pNewVisualPriv) {
-        __glXFree(pNewVisualConfigs);
+        free(pNewVisualConfigs);
         return FALSE;
     }
 
@@ -879,40 +737,40 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
     numConfigs = 0;
 
     /* Alloc temp space for the list of orig VisualIDs for each new visual */
-    orig_vid = (VisualID *)__glXMalloc(numNewVisuals * sizeof(VisualID));
+    orig_vid = (VisualID *)malloc(numNewVisuals * sizeof(VisualID));
     if (!orig_vid) {
-        __glXFree(pNewVisualPriv);
-        __glXFree(pNewVisualConfigs);
+        free(pNewVisualPriv);
+        free(pNewVisualConfigs);
         return FALSE;
     }
 
     /* Alloc space for the list of glXVisuals */
     modes = _gl_context_modes_create(numNewVisuals, sizeof(__GLcontextModes));
     if (modes == NULL) {
-        __glXFree(orig_vid);
-        __glXFree(pNewVisualPriv);
-        __glXFree(pNewVisualConfigs);
+        free(orig_vid);
+        free(pNewVisualPriv);
+        free(pNewVisualConfigs);
         return FALSE;
     }
 
     /* Alloc space for the list of glXVisualPrivates */
-    glXVisualPriv = (void **)__glXMalloc(numNewVisuals * sizeof(void *));
+    glXVisualPriv = (void **)malloc(numNewVisuals * sizeof(void *));
     if (!glXVisualPriv) {
         _gl_context_modes_destroy( modes );
-        __glXFree(orig_vid);
-        __glXFree(pNewVisualPriv);
-        __glXFree(pNewVisualConfigs);
+        free(orig_vid);
+        free(pNewVisualPriv);
+        free(pNewVisualConfigs);
         return FALSE;
     }
 
     /* Alloc space for the new list of the X server's visuals */
-    pVisualNew = (VisualPtr)__glXMalloc(numNewVisuals * sizeof(VisualRec));
+    pVisualNew = (VisualPtr)malloc(numNewVisuals * sizeof(VisualRec));
     if (!pVisualNew) {
-        __glXFree(glXVisualPriv);
+        free(glXVisualPriv);
         _gl_context_modes_destroy( modes );
-        __glXFree(orig_vid);
-        __glXFree(pNewVisualPriv);
-        __glXFree(pNewVisualConfigs);
+        free(orig_vid);
+        free(pNewVisualPriv);
+        free(pNewVisualConfigs);
         return FALSE;
     }
 
@@ -1007,7 +865,7 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
 
     /* Save the GLX visuals in the screen structure */
     glAquaScreens[screenInfo.numScreens-1].num_vis = numNewVisuals;
-    glAquaScreens[screenInfo.numScreens-1].priv = glXVisualPriv;
+    //    glAquaScreens[screenInfo.numScreens-1].priv = glXVisualPriv;
 
     /* Set up depth's VisualIDs */
     for (i = 0; i < ndepth; i++) {
@@ -1022,7 +880,7 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
                 numVids++;
 
         /* Allocate a new list of VisualIDs for this depth */
-        pVids = (VisualID *)__glXMalloc(numVids * sizeof(VisualID));
+        pVids = (VisualID *)malloc(numVids * sizeof(VisualID));
 
         /* Initialize the new list of VisualIDs for this depth */
         for (j = 0; j < pdepth[i].numVids; j++)
@@ -1031,7 +889,7 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
                 pVids[n++] = pVisualNew[k].vid;
 
         /* Update this depth's list of VisualIDs */
-        __glXFree(pdepth[i].vids);
+        free(pdepth[i].vids);
         pdepth[i].vids = pVids;
         pdepth[i].numVids = numVids;
     }
@@ -1041,21 +899,22 @@ static Bool init_visuals(int *nvisualp, VisualPtr *visualp,
     *visualp = pVisualNew;
 
     /* Free the old list of the X server's visuals */
-    __glXFree(pVisual);
+    free(pVisual);
 
     /* Clean up temporary allocations */
-    __glXFree(orig_vid);
-    __glXFree(pNewVisualPriv);
-    __glXFree(pNewVisualConfigs);
+    free(orig_vid);
+    free(pNewVisualPriv);
+    free(pNewVisualConfigs);
 
     /* Free the private list created by DDX HW driver */
     if (visualPrivates)
-        xfree(visualPrivates);
+        free(visualPrivates);
     visualPrivates = NULL;
 
     return TRUE;
 }
 
+Bool enable_stereo = FALSE;
 /* based on code in i830_dri.c
    This ends calling glAquaSetVisualConfigs to set the static
    numconfigs, etc. */
@@ -1066,20 +925,22 @@ glAquaInitVisualConfigs(void)
     __GLXvisualConfig  *lclVisualConfigs  = NULL;
     void              **lclVisualPrivates = NULL;
 
-    int depth, aux, buffers, stencil, accum;
+    int stereo, depth, aux, buffers, stencil, accum;
     int i = 0;
 
     GLAQUA_DEBUG_MSG("glAquaInitVisualConfigs ");
         
     /* count num configs:
+        2 stereo (on, off) (optional)
         2 Z buffer (0, 24 bit)
         2 AUX buffer (0, 2)
         2 buffers (single, double)
         2 stencil (0, 8 bit)
         2 accum (0, 64 bit)
-        = 32 configs */
+        = 64 configs with stereo, or 32 without */
 
-    lclNumConfigs = 2 * 2 * 2 * 2 * 2; /* 32 */
+    if (enable_stereo) lclNumConfigs = 2 * 2 * 2 * 2 * 2 * 2; /* 64 */
+    else               lclNumConfigs = 2 * 2 * 2 * 2 * 2; /* 32 */
 
     /* alloc */
     lclVisualConfigs = xcalloc(sizeof(__GLXvisualConfig), lclNumConfigs);
@@ -1088,54 +949,55 @@ glAquaInitVisualConfigs(void)
     /* fill in configs */
     if (NULL != lclVisualConfigs) {
         i = 0; /* current buffer */
-        for (depth = 0; depth < 2; depth++) {
+        for (stereo = 0; stereo < (enable_stereo ? 2 : 1); stereo++) {
+	  for (depth = 0; depth < 2; depth++) {
             for (aux = 0; aux < 2; aux++) {
-                for (buffers = 0; buffers < 2; buffers++) {
-                    for (stencil = 0; stencil < 2; stencil++) {
-                        for (accum = 0; accum < 2; accum++) {
-                            lclVisualConfigs[i].vid = -1;
-                            lclVisualConfigs[i].class = -1;
-                            lclVisualConfigs[i].rgba = TRUE;
-                            lclVisualConfigs[i].redSize = -1;
-                            lclVisualConfigs[i].greenSize = -1;
-                            lclVisualConfigs[i].blueSize = -1;
-                            lclVisualConfigs[i].redMask = -1;
-                            lclVisualConfigs[i].greenMask = -1;
-                            lclVisualConfigs[i].blueMask = -1;
-                            lclVisualConfigs[i].alphaMask = 0;
-                            if (accum) {
-                                lclVisualConfigs[i].accumRedSize = 16;
-                                lclVisualConfigs[i].accumGreenSize = 16;
-                                lclVisualConfigs[i].accumBlueSize = 16;
-                                lclVisualConfigs[i].accumAlphaSize = 16;
-                            }
-                            else {
-                                lclVisualConfigs[i].accumRedSize = 0;
-                                lclVisualConfigs[i].accumGreenSize = 0;
-                                lclVisualConfigs[i].accumBlueSize = 0;
-                                lclVisualConfigs[i].accumAlphaSize = 0;
-                            }
-                            lclVisualConfigs[i].doubleBuffer = buffers ? TRUE : FALSE;
-                            lclVisualConfigs[i].stereo = FALSE;
-                            lclVisualConfigs[i].bufferSize = -1;
-
-                            lclVisualConfigs[i].depthSize = depth? 24 : 0;
-                            lclVisualConfigs[i].stencilSize = stencil ? 8 : 0;
-                            lclVisualConfigs[i].auxBuffers = aux ? 2 : 0;
-                            lclVisualConfigs[i].level = 0;
-                            lclVisualConfigs[i].visualRating = GLX_NONE_EXT;
-                            lclVisualConfigs[i].transparentPixel = 0;
-                            lclVisualConfigs[i].transparentRed = 0;
-                            lclVisualConfigs[i].transparentGreen = 0;
-                            lclVisualConfigs[i].transparentBlue = 0;
-                            lclVisualConfigs[i].transparentAlpha = 0;
-                            lclVisualConfigs[i].transparentIndex = 0;
-                            i++;
-                        }
-                    }
-                }
+	      for (buffers = 0; buffers < 2; buffers++) {
+		for (stencil = 0; stencil < 2; stencil++) {
+		  for (accum = 0; accum < 2; accum++) {
+		    lclVisualConfigs[i].vid = -1;
+		    lclVisualConfigs[i].class = -1;
+		    lclVisualConfigs[i].rgba = TRUE;
+		    lclVisualConfigs[i].redSize = -1;
+		    lclVisualConfigs[i].greenSize = -1;
+		    lclVisualConfigs[i].blueSize = -1;
+		    lclVisualConfigs[i].redMask = -1;
+		    lclVisualConfigs[i].greenMask = -1;
+		    lclVisualConfigs[i].blueMask = -1;
+		    lclVisualConfigs[i].alphaMask = 0;
+		    if (accum) {
+		      lclVisualConfigs[i].accumRedSize = 16;
+		      lclVisualConfigs[i].accumGreenSize = 16;
+		      lclVisualConfigs[i].accumBlueSize = 16;
+		      lclVisualConfigs[i].accumAlphaSize = 16;
+		    } else {
+		      lclVisualConfigs[i].accumRedSize = 0;
+		      lclVisualConfigs[i].accumGreenSize = 0;
+		      lclVisualConfigs[i].accumBlueSize = 0;
+		      lclVisualConfigs[i].accumAlphaSize = 0;
+		    }
+		    lclVisualConfigs[i].doubleBuffer = buffers ? TRUE : FALSE;
+		    lclVisualConfigs[i].stereo = stereo ? TRUE : FALSE;
+		    lclVisualConfigs[i].bufferSize = -1;
+		    
+		    lclVisualConfigs[i].depthSize = depth? 24 : 0;
+		    lclVisualConfigs[i].stencilSize = stencil ? 8 : 0;
+		    lclVisualConfigs[i].auxBuffers = aux ? 2 : 0;
+		    lclVisualConfigs[i].level = 0;
+		    lclVisualConfigs[i].visualRating = GLX_NONE_EXT;
+		    lclVisualConfigs[i].transparentPixel = 0;
+		    lclVisualConfigs[i].transparentRed = 0;
+		    lclVisualConfigs[i].transparentGreen = 0;
+		    lclVisualConfigs[i].transparentBlue = 0;
+		    lclVisualConfigs[i].transparentAlpha = 0;
+		    lclVisualConfigs[i].transparentIndex = 0;
+		    i++;
+		  }
+		}
+	      }
             }
-        }
+	  }
+	}
     }
     if (i != lclNumConfigs)
         GLAQUA_DEBUG_MSG("glAquaInitVisualConfigs failed to alloc visual configs");
@@ -1171,7 +1033,7 @@ static Bool glAquaInitVisuals(VisualPtr *visualp, DepthPtr *depthp,
                         *ndepthp, *depthp, *rootDepthp);
 }
 
-
+#if 0
 static void fixup_visuals(int screen)
 {
     ScreenPtr pScreen = screenInfo.screens[screen];
@@ -1204,27 +1066,35 @@ static void fixup_visuals(int screen)
         }
     }
 }
+#endif
+static void __glXAquaScreenDestroy(__GLXscreen *screen) {
 
-static void init_screen_visuals(int screen)
-{
-    ScreenPtr pScreen = screenInfo.screens[screen];
-    __GLcontextModes *modes;
-    int *used;
-    int i, j;
+	GLAQUA_DEBUG_MSG("glXAquaScreenDestroy(%p)\n", screen);
+  __glXScreenDestroy(screen);
 
+  free(screen);
+}
+
+static void init_screen_visuals(__GLXAquaScreen *screen) {
+  ScreenPtr pScreen = screen->base.pScreen;
+  
+  __GLcontextModes *modes;
+  int *used;
+  int i, j;
+  
     GLAQUA_DEBUG_MSG("init_screen_visuals\n");
 
     /* FIXME: Change 'used' to be a array of bits (rather than of ints),
      * FIXME: create a stack array of 8 or 16 bytes.  If 'numVisuals' is less
      * FIXME: than 64 or 128 the stack array can be used instead of calling
-     * FIXME: __glXMalloc / __glXFree.  If nothing else, convert 'used' to
+     * FIXME: malloc / free.  If nothing else, convert 'used' to
      * FIXME: array of bytes instead of ints!
      */
-    used = (int *)__glXMalloc(pScreen->numVisuals * sizeof(int));
-    __glXMemset(used, 0, pScreen->numVisuals * sizeof(int));
+    used = (int *)malloc(pScreen->numVisuals * sizeof(int));
+    memset(used, 0, pScreen->numVisuals * sizeof(int));
 
     i = 0;
-    for ( modes = glAquaScreens[screen].modes 
+    for ( modes = screen -> base.modes
           ; modes != NULL
           ; modes = modes->next ) {
         const int vis_class = _gl_convert_to_x_visual_type( modes->visualType );
@@ -1261,102 +1131,70 @@ static void init_screen_visuals(int screen)
         i++;
     }
 
-    __glXFree(used);
+    free(used);
 }
 
-static Bool glAquaScreenProbe(int screen)
-{
-    ScreenPtr pScreen;
-    glAquaScreenRec *screenPriv;
+static __GLXscreen * __glXAquaScreenProbe(ScreenPtr pScreen) {
+  __GLXAquaScreen *screen;
+  GLAQUA_DEBUG_MSG("glXAquaScreenProbe\n");
+  if (screen == NULL) return NULL;
 
-    GLAQUA_DEBUG_MSG("glAquaScreenProbe\n");
+  screen = malloc(sizeof *screen);
 
-    /*
-     * Set up the current screen's visuals.
-     */
-    __glDDXScreenInfo.modes = glAquaScreens[screen].modes;
-    __glDDXScreenInfo.pVisualPriv = glAquaScreens[screen].priv;
-    __glDDXScreenInfo.numVisuals =
-        __glDDXScreenInfo.numUsableVisuals = glAquaScreens[screen].num_vis;
+  __glXScreenInit(&screen->base, pScreen);
 
-    /*
-     * Set the current screen's createContext routine.  This could be
-     * wrapped by a DDX GLX context creation routine.
-     */
-    __glDDXScreenInfo.createContext = glAquaCreateContext;
+  screen->base.destroy       = __glXAquaScreenDestroy;
+  screen->base.createContext = __glXAquaScreenCreateContext;
+  screen->base.pScreen       = pScreen;
 
-    /*
-     * The ordering of the rgb compenents might have been changed by the
-     * driver after mi initialized them.
-     */
-    fixup_visuals(screen);
+  init_screen_visuals(screen);
 
-    /*
-     * Find the GLX visuals that are supported by this screen and create
-     * XMesa's visuals.
-     */
-    init_screen_visuals(screen);
-
-    /*
-     * Wrap RealizeWindow and UnrealizeWindow on this screen
-     */
-    pScreen = screenInfo.screens[screen];
-    screenPriv = &glAquaScreens[screen];
-    screenPriv->RealizeWindow = pScreen->RealizeWindow;
-    pScreen->RealizeWindow = glAquaRealizeWindow;
-    screenPriv->UnrealizeWindow = pScreen->UnrealizeWindow;
-    pScreen->UnrealizeWindow = glAquaUnrealizeWindow;
-
-    return TRUE;
+  return &screen->base;
 }
 
-static GLboolean glAquaSwapBuffers(__GLXdrawablePrivate *glxPriv)
-{
-    // swap buffers on only *one* of the contexts
-    // (e.g. the last one for drawing)
-    __GLcontext *gc = (__GLcontext *)glxPriv->drawGlxc->gc;
-    CGLError gl_err;
-
-    GLAQUA_DEBUG_MSG("glAquaSwapBuffers\n");
-
-    if (gc != NULL && gc->ctx != NULL)
-    {
-        gl_err = CGLFlushDrawable(gc->ctx);
-        if (gl_err != 0)
-            ErrorF("CGLFlushDrawable error: %s\n", CGLErrorString(gl_err));
-    }
-
-    return GL_TRUE;
-}
-
-static void glAquaDestroyDrawablePrivate(__GLdrawablePrivate *glPriv)
-{
+static void __glXAquaDrawableDestroy(__GLXdrawable *base) {
     GLAQUA_DEBUG_MSG("glAquaDestroyDrawablePrivate\n");
 
     /* It doesn't work to call DRIDestroySurface here, the drawable's
        already gone.. But dri.c notices the window destruction and
        frees the surface itself. */
 
-    free(glPriv->private);
-    glPriv->private = NULL;
+    free(base);
 }
 
-static void glAquaCreateBuffer(__GLXdrawablePrivate *glxPriv)
+static __GLXdrawable *
+__glXAquaContextCreateDrawable(__GLXcontext *context,
+			       DrawablePtr pDraw,
+			       XID drawId)
 {
-    GLAquaDrawableRec *aquaPriv = malloc(sizeof(GLAquaDrawableRec));
-    __GLdrawablePrivate *glPriv = &glxPriv->glPriv;
+  __GLXAquaDrawable *glxPriv;
+  __GLXscreen *pGlxScreen;
 
-    aquaPriv->sid = 0;
-    aquaPriv->pDraw = NULL;
+  GLAQUA_DEBUG_MSG("glAquaContextCreateDrawable(%p,%p,%d)\n", context, pDraw, drawId);
+  if (glxPriv == NULL) return NULL;
+  glxPriv = xalloc(sizeof *glxPriv);
 
-    GLAQUA_DEBUG_MSG("glAquaCreateBuffer\n");
+  memset(glxPriv, 0, sizeof *glxPriv);
 
-    // replace swapBuffers (original is never called)
-    glxPriv->swapBuffers = glAquaSwapBuffers;
+  if (!__glXDrawableInit(&glxPriv->base, context, pDraw, drawId)) {
+    xfree(glxPriv);
+    return NULL;
+  }
 
-    // stash private data
-    glPriv->private = aquaPriv;
-    glPriv->freePrivate = glAquaDestroyDrawablePrivate;
+  glxPriv->base.destroy       = __glXAquaDrawableDestroy;
+  glxPriv->base.resize        = __glXAquaDrawableResize;
+  glxPriv->base.swapBuffers   = __glXAquaDrawableSwapBuffers;
+
+  pGlxScreen = __glXActiveScreens[pDraw->pScreen->myNum];
+
+  if (glxPriv->base.type == DRAWABLE_WINDOW) {
+    VisualID vid = wVisual((WindowPtr)pDraw);
+
+    glxPriv->base.modes = _gl_context_modes_find_visual(pGlxScreen->modes, vid);
+  } else 
+    glxPriv->base.modes = glxPriv->base.pGlxPixmap->modes;
+
+    return &glxPriv->base;
 }
 
 static void glAquaResetExtension(void)
@@ -1376,4 +1214,1240 @@ GLuint __glFloorLog2(GLuint val)
         val >>= 1;
     }
     return c;
+}
+
+static void setup_dispatch_table(void) {
+	struct _glapi_table *disp=_glapi_get_dispatch();
+
+ SET_NewList(disp, glNewList);
+ SET_EndList(disp, glEndList);
+ SET_CallList(disp, glCallList);
+ SET_CallLists(disp, glCallLists);
+ SET_DeleteLists(disp, glDeleteLists);
+ SET_GenLists(disp, glGenLists);
+ SET_ListBase(disp, glListBase);
+ SET_Begin(disp, glBegin);
+ SET_Bitmap(disp, glBitmap);
+ SET_Color3b(disp, glColor3b);
+ SET_Color3bv(disp, glColor3bv);
+ SET_Color3d(disp, glColor3d);
+ SET_Color3dv(disp, glColor3dv);
+ SET_Color3f(disp, glColor3f);
+ SET_Color3fv(disp, glColor3fv);
+ SET_Color3i(disp, glColor3i);
+ SET_Color3iv(disp, glColor3iv);
+ SET_Color3s(disp, glColor3s);
+ SET_Color3sv(disp, glColor3sv);
+ SET_Color3ub(disp, glColor3ub);
+ SET_Color3ubv(disp, glColor3ubv);
+ SET_Color3ui(disp, glColor3ui);
+ SET_Color3uiv(disp, glColor3uiv);
+ SET_Color3us(disp, glColor3us);
+ SET_Color3usv(disp, glColor3usv);
+ SET_Color4b(disp, glColor4b);
+ SET_Color4bv(disp, glColor4bv);
+ SET_Color4d(disp, glColor4d);
+ SET_Color4dv(disp, glColor4dv);
+ SET_Color4f(disp, glColor4f);
+ SET_Color4fv(disp, glColor4fv);
+ SET_Color4i(disp, glColor4i);
+ SET_Color4iv(disp, glColor4iv);
+ SET_Color4s(disp, glColor4s);
+ SET_Color4sv(disp, glColor4sv);
+ SET_Color4ub(disp, glColor4ub);
+ SET_Color4ubv(disp, glColor4ubv);
+ SET_Color4ui(disp, glColor4ui);
+ SET_Color4uiv(disp, glColor4uiv);
+ SET_Color4us(disp, glColor4us);
+ SET_Color4usv(disp, glColor4usv);
+ SET_EdgeFlag(disp, glEdgeFlag);
+ SET_EdgeFlagv(disp, glEdgeFlagv);
+ SET_End(disp, glEnd);
+ SET_Indexd(disp, glIndexd);
+ SET_Indexdv(disp, glIndexdv);
+ SET_Indexf(disp, glIndexf);
+ SET_Indexfv(disp, glIndexfv);
+ SET_Indexi(disp, glIndexi);
+ SET_Indexiv(disp, glIndexiv);
+ SET_Indexs(disp, glIndexs);
+ SET_Indexsv(disp, glIndexsv);
+ SET_Normal3b(disp, glNormal3b);
+ SET_Normal3bv(disp, glNormal3bv);
+ SET_Normal3d(disp, glNormal3d);
+ SET_Normal3dv(disp, glNormal3dv);
+ SET_Normal3f(disp, glNormal3f);
+ SET_Normal3fv(disp, glNormal3fv);
+ SET_Normal3i(disp, glNormal3i);
+ SET_Normal3iv(disp, glNormal3iv);
+ SET_Normal3s(disp, glNormal3s);
+ SET_Normal3sv(disp, glNormal3sv);
+ SET_RasterPos2d(disp, glRasterPos2d);
+ SET_RasterPos2dv(disp, glRasterPos2dv);
+ SET_RasterPos2f(disp, glRasterPos2f);
+ SET_RasterPos2fv(disp, glRasterPos2fv);
+ SET_RasterPos2i(disp, glRasterPos2i);
+ SET_RasterPos2iv(disp, glRasterPos2iv);
+ SET_RasterPos2s(disp, glRasterPos2s);
+ SET_RasterPos2sv(disp, glRasterPos2sv);
+ SET_RasterPos3d(disp, glRasterPos3d);
+ SET_RasterPos3dv(disp, glRasterPos3dv);
+ SET_RasterPos3f(disp, glRasterPos3f);
+ SET_RasterPos3fv(disp, glRasterPos3fv);
+ SET_RasterPos3i(disp, glRasterPos3i);
+ SET_RasterPos3iv(disp, glRasterPos3iv);
+ SET_RasterPos3s(disp, glRasterPos3s);
+ SET_RasterPos3sv(disp, glRasterPos3sv);
+ SET_RasterPos4d(disp, glRasterPos4d);
+ SET_RasterPos4dv(disp, glRasterPos4dv);
+ SET_RasterPos4f(disp, glRasterPos4f);
+ SET_RasterPos4fv(disp, glRasterPos4fv);
+ SET_RasterPos4i(disp, glRasterPos4i);
+ SET_RasterPos4iv(disp, glRasterPos4iv);
+ SET_RasterPos4s(disp, glRasterPos4s);
+ SET_RasterPos4sv(disp, glRasterPos4sv);
+ SET_Rectd(disp, glRectd);
+ SET_Rectdv(disp, glRectdv);
+ SET_Rectf(disp, glRectf);
+ SET_Rectfv(disp, glRectfv);
+ SET_Recti(disp, glRecti);
+ SET_Rectiv(disp, glRectiv);
+ SET_Rects(disp, glRects);
+ SET_Rectsv(disp, glRectsv);
+ SET_TexCoord1d(disp, glTexCoord1d);
+ SET_TexCoord1dv(disp, glTexCoord1dv);
+ SET_TexCoord1f(disp, glTexCoord1f);
+ SET_TexCoord1fv(disp, glTexCoord1fv);
+ SET_TexCoord1i(disp, glTexCoord1i);
+ SET_TexCoord1iv(disp, glTexCoord1iv);
+ SET_TexCoord1s(disp, glTexCoord1s);
+ SET_TexCoord1sv(disp, glTexCoord1sv);
+ SET_TexCoord2d(disp, glTexCoord2d);
+ SET_TexCoord2dv(disp, glTexCoord2dv);
+ SET_TexCoord2f(disp, glTexCoord2f);
+ SET_TexCoord2fv(disp, glTexCoord2fv);
+ SET_TexCoord2i(disp, glTexCoord2i);
+ SET_TexCoord2iv(disp, glTexCoord2iv);
+ SET_TexCoord2s(disp, glTexCoord2s);
+ SET_TexCoord2sv(disp, glTexCoord2sv);
+ SET_TexCoord3d(disp, glTexCoord3d);
+ SET_TexCoord3dv(disp, glTexCoord3dv);
+ SET_TexCoord3f(disp, glTexCoord3f);
+ SET_TexCoord3fv(disp, glTexCoord3fv);
+ SET_TexCoord3i(disp, glTexCoord3i);
+ SET_TexCoord3iv(disp, glTexCoord3iv);
+ SET_TexCoord3s(disp, glTexCoord3s);
+ SET_TexCoord3sv(disp, glTexCoord3sv);
+ SET_TexCoord4d(disp, glTexCoord4d);
+ SET_TexCoord4dv(disp, glTexCoord4dv);
+ SET_TexCoord4f(disp, glTexCoord4f);
+ SET_TexCoord4fv(disp, glTexCoord4fv);
+ SET_TexCoord4i(disp, glTexCoord4i);
+ SET_TexCoord4iv(disp, glTexCoord4iv);
+ SET_TexCoord4s(disp, glTexCoord4s);
+ SET_TexCoord4sv(disp, glTexCoord4sv);
+ SET_Vertex2d(disp, glVertex2d);
+ SET_Vertex2dv(disp, glVertex2dv);
+ SET_Vertex2f(disp, glVertex2f);
+ SET_Vertex2fv(disp, glVertex2fv);
+ SET_Vertex2i(disp, glVertex2i);
+ SET_Vertex2iv(disp, glVertex2iv);
+ SET_Vertex2s(disp, glVertex2s);
+ SET_Vertex2sv(disp, glVertex2sv);
+ SET_Vertex3d(disp, glVertex3d);
+ SET_Vertex3dv(disp, glVertex3dv);
+ SET_Vertex3f(disp, glVertex3f);
+ SET_Vertex3fv(disp, glVertex3fv);
+ SET_Vertex3i(disp, glVertex3i);
+ SET_Vertex3iv(disp, glVertex3iv);
+ SET_Vertex3s(disp, glVertex3s);
+ SET_Vertex3sv(disp, glVertex3sv);
+ SET_Vertex4d(disp, glVertex4d);
+ SET_Vertex4dv(disp, glVertex4dv);
+ SET_Vertex4f(disp, glVertex4f);
+ SET_Vertex4fv(disp, glVertex4fv);
+ SET_Vertex4i(disp, glVertex4i);
+ SET_Vertex4iv(disp, glVertex4iv);
+ SET_Vertex4s(disp, glVertex4s);
+ SET_Vertex4sv(disp, glVertex4sv);
+ SET_ClipPlane(disp, glClipPlane);
+ SET_ColorMaterial(disp, glColorMaterial);
+ SET_CullFace(disp, glCullFace);
+ SET_Fogf(disp, glFogf);
+ SET_Fogfv(disp, glFogfv);
+ SET_Fogi(disp, glFogi);
+ SET_Fogiv(disp, glFogiv);
+ SET_FrontFace(disp, glFrontFace);
+ SET_Hint(disp, glHint);
+ SET_Lightf(disp, glLightf);
+ SET_Lightfv(disp, glLightfv);
+ SET_Lighti(disp, glLighti);
+ SET_Lightiv(disp, glLightiv);
+ SET_LightModelf(disp, glLightModelf);
+ SET_LightModelfv(disp, glLightModelfv);
+ SET_LightModeli(disp, glLightModeli);
+ SET_LightModeliv(disp, glLightModeliv);
+ SET_LineStipple(disp, glLineStipple);
+ SET_LineWidth(disp, glLineWidth);
+ SET_Materialf(disp, glMaterialf);
+ SET_Materialfv(disp, glMaterialfv);
+ SET_Materiali(disp, glMateriali);
+ SET_Materialiv(disp, glMaterialiv);
+ SET_PointSize(disp, glPointSize);
+ SET_PolygonMode(disp, glPolygonMode);
+ SET_PolygonStipple(disp, glPolygonStipple);
+ SET_Scissor(disp, glScissor);
+ SET_ShadeModel(disp, glShadeModel);
+ SET_TexParameterf(disp, glTexParameterf);
+ SET_TexParameterfv(disp, glTexParameterfv);
+ SET_TexParameteri(disp, glTexParameteri);
+ SET_TexParameteriv(disp, glTexParameteriv);
+ SET_TexImage1D(disp, glTexImage1D);
+ SET_TexImage2D(disp, glTexImage2D);
+ SET_TexEnvf(disp, glTexEnvf);
+ SET_TexEnvfv(disp, glTexEnvfv);
+ SET_TexEnvi(disp, glTexEnvi);
+ SET_TexEnviv(disp, glTexEnviv);
+ SET_TexGend(disp, glTexGend);
+ SET_TexGendv(disp, glTexGendv);
+ SET_TexGenf(disp, glTexGenf);
+ SET_TexGenfv(disp, glTexGenfv);
+ SET_TexGeni(disp, glTexGeni);
+ SET_TexGeniv(disp, glTexGeniv);
+ SET_FeedbackBuffer(disp, glFeedbackBuffer);
+ SET_SelectBuffer(disp, glSelectBuffer);
+ SET_RenderMode(disp, glRenderMode);
+ SET_InitNames(disp, glInitNames);
+ SET_LoadName(disp, glLoadName);
+ SET_PassThrough(disp, glPassThrough);
+ SET_PopName(disp, glPopName);
+ SET_PushName(disp, glPushName);
+ SET_DrawBuffer(disp, glDrawBuffer);
+ SET_Clear(disp, glClear);
+ SET_ClearAccum(disp, glClearAccum);
+ SET_ClearIndex(disp, glClearIndex);
+ SET_ClearColor(disp, glClearColor);
+ SET_ClearStencil(disp, glClearStencil);
+ SET_ClearDepth(disp, glClearDepth);
+ SET_StencilMask(disp, glStencilMask);
+ SET_ColorMask(disp, glColorMask);
+ SET_DepthMask(disp, glDepthMask);
+ SET_IndexMask(disp, glIndexMask);
+ SET_Accum(disp, glAccum);
+ SET_Disable(disp, glDisable);
+ SET_Enable(disp, glEnable);
+ SET_Finish(disp, glFinish);
+ SET_Flush(disp, glFlush);
+ SET_PopAttrib(disp, glPopAttrib);
+ SET_PushAttrib(disp, glPushAttrib);
+ SET_Map1d(disp, glMap1d);
+ SET_Map1f(disp, glMap1f);
+ SET_Map2d(disp, glMap2d);
+ SET_Map2f(disp, glMap2f);
+ SET_MapGrid1d(disp, glMapGrid1d);
+ SET_MapGrid1f(disp, glMapGrid1f);
+ SET_MapGrid2d(disp, glMapGrid2d);
+ SET_MapGrid2f(disp, glMapGrid2f);
+ SET_EvalCoord1d(disp, glEvalCoord1d);
+ SET_EvalCoord1dv(disp, glEvalCoord1dv);
+ SET_EvalCoord1f(disp, glEvalCoord1f);
+ SET_EvalCoord1fv(disp, glEvalCoord1fv);
+ SET_EvalCoord2d(disp, glEvalCoord2d);
+ SET_EvalCoord2dv(disp, glEvalCoord2dv);
+ SET_EvalCoord2f(disp, glEvalCoord2f);
+ SET_EvalCoord2fv(disp, glEvalCoord2fv);
+ SET_EvalMesh1(disp, glEvalMesh1);
+ SET_EvalPoint1(disp, glEvalPoint1);
+ SET_EvalMesh2(disp, glEvalMesh2);
+ SET_EvalPoint2(disp, glEvalPoint2);
+ SET_AlphaFunc(disp, glAlphaFunc);
+ SET_BlendFunc(disp, glBlendFunc);
+ SET_LogicOp(disp, glLogicOp);
+ SET_StencilFunc(disp, glStencilFunc);
+ SET_StencilOp(disp, glStencilOp);
+ SET_DepthFunc(disp, glDepthFunc);
+ SET_PixelZoom(disp, glPixelZoom);
+ SET_PixelTransferf(disp, glPixelTransferf);
+ SET_PixelTransferi(disp, glPixelTransferi);
+ SET_PixelStoref(disp, glPixelStoref);
+ SET_PixelStorei(disp, glPixelStorei);
+ SET_PixelMapfv(disp, glPixelMapfv);
+ SET_PixelMapuiv(disp, glPixelMapuiv);
+ SET_PixelMapusv(disp, glPixelMapusv);
+ SET_ReadBuffer(disp, glReadBuffer);
+ SET_CopyPixels(disp, glCopyPixels);
+ SET_ReadPixels(disp, glReadPixels);
+ SET_DrawPixels(disp, glDrawPixels);
+ SET_GetBooleanv(disp, glGetBooleanv);
+ SET_GetClipPlane(disp, glGetClipPlane);
+ SET_GetDoublev(disp, glGetDoublev);
+ SET_GetError(disp, glGetError);
+ SET_GetFloatv(disp, glGetFloatv);
+ SET_GetIntegerv(disp, glGetIntegerv);
+ SET_GetLightfv(disp, glGetLightfv);
+ SET_GetLightiv(disp, glGetLightiv);
+ SET_GetMapdv(disp, glGetMapdv);
+ SET_GetMapfv(disp, glGetMapfv);
+ SET_GetMapiv(disp, glGetMapiv);
+ SET_GetMaterialfv(disp, glGetMaterialfv);
+ SET_GetMaterialiv(disp, glGetMaterialiv);
+ SET_GetPixelMapfv(disp, glGetPixelMapfv);
+ SET_GetPixelMapuiv(disp, glGetPixelMapuiv);
+ SET_GetPixelMapusv(disp, glGetPixelMapusv);
+ SET_GetPolygonStipple(disp, glGetPolygonStipple);
+ SET_GetString(disp, glGetString);
+ SET_GetTexEnvfv(disp, glGetTexEnvfv);
+ SET_GetTexEnviv(disp, glGetTexEnviv);
+ SET_GetTexGendv(disp, glGetTexGendv);
+ SET_GetTexGenfv(disp, glGetTexGenfv);
+ SET_GetTexGeniv(disp, glGetTexGeniv);
+ SET_GetTexImage(disp, glGetTexImage);
+ SET_GetTexParameterfv(disp, glGetTexParameterfv);
+ SET_GetTexParameteriv(disp, glGetTexParameteriv);
+ SET_GetTexLevelParameterfv(disp, glGetTexLevelParameterfv);
+ SET_GetTexLevelParameteriv(disp, glGetTexLevelParameteriv);
+ SET_IsEnabled(disp, glIsEnabled);
+ SET_IsList(disp, glIsList);
+ SET_DepthRange(disp, glDepthRange);
+ SET_Frustum(disp, glFrustum);
+ SET_LoadIdentity(disp, glLoadIdentity);
+ SET_LoadMatrixf(disp, glLoadMatrixf);
+ SET_LoadMatrixd(disp, glLoadMatrixd);
+ SET_MatrixMode(disp, glMatrixMode);
+ SET_MultMatrixf(disp, glMultMatrixf);
+ SET_MultMatrixd(disp, glMultMatrixd);
+ SET_Ortho(disp, glOrtho);
+ SET_PopMatrix(disp, glPopMatrix);
+ SET_PushMatrix(disp, glPushMatrix);
+ SET_Rotated(disp, glRotated);
+ SET_Rotatef(disp, glRotatef);
+ SET_Scaled(disp, glScaled);
+ SET_Scalef(disp, glScalef);
+ SET_Translated(disp, glTranslated);
+ SET_Translatef(disp, glTranslatef);
+ SET_Viewport(disp, glViewport);
+ SET_ArrayElement(disp, glArrayElement);
+ SET_BindTexture(disp, glBindTexture);
+ SET_ColorPointer(disp, glColorPointer);
+ SET_DisableClientState(disp, glDisableClientState);
+ SET_DrawArrays(disp, glDrawArrays);
+ SET_DrawElements(disp, glDrawElements);
+ SET_EdgeFlagPointer(disp, glEdgeFlagPointer);
+ SET_EnableClientState(disp, glEnableClientState);
+ SET_IndexPointer(disp, glIndexPointer);
+ SET_Indexub(disp, glIndexub);
+ SET_Indexubv(disp, glIndexubv);
+ SET_InterleavedArrays(disp, glInterleavedArrays);
+ SET_NormalPointer(disp, glNormalPointer);
+ SET_PolygonOffset(disp, glPolygonOffset);
+ SET_TexCoordPointer(disp, glTexCoordPointer);
+ SET_VertexPointer(disp, glVertexPointer);
+ SET_AreTexturesResident(disp, glAreTexturesResident); 
+ SET_CopyTexImage1D(disp, glCopyTexImage1D);
+ SET_CopyTexImage2D(disp, glCopyTexImage2D);
+ SET_CopyTexSubImage1D(disp, glCopyTexSubImage1D);
+ SET_CopyTexSubImage2D(disp, glCopyTexSubImage2D);
+ SET_DeleteTextures(disp, glDeleteTextures);
+ SET_GenTextures(disp, glGenTextures);
+ SET_GetPointerv(disp, glGetPointerv);
+ SET_IsTexture(disp, glIsTexture);
+ SET_PrioritizeTextures(disp, glPrioritizeTextures);
+ SET_TexSubImage1D(disp, glTexSubImage1D);
+ SET_TexSubImage2D(disp, glTexSubImage2D);
+ SET_PopClientAttrib(disp, glPopClientAttrib);
+ SET_PushClientAttrib(disp, glPushClientAttrib);
+ SET_BlendColor(disp, glBlendColor);
+ SET_BlendEquation(disp, glBlendEquation);
+ SET_DrawRangeElements(disp, glDrawRangeElements);
+ SET_ColorTable(disp, glColorTable);
+ SET_ColorTableParameterfv(disp, glColorTableParameterfv);
+ SET_ColorTableParameteriv(disp, glColorTableParameteriv);
+ SET_CopyColorTable(disp, glCopyColorTable);
+ SET_GetColorTable(disp, glGetColorTable);
+ SET_GetColorTableParameterfv(disp, glGetColorTableParameterfv);
+ SET_GetColorTableParameteriv(disp, glGetColorTableParameteriv);
+ SET_ColorSubTable(disp, glColorSubTable);
+ SET_CopyColorSubTable(disp, glCopyColorSubTable);
+ SET_ConvolutionFilter1D(disp, glConvolutionFilter1D);
+ SET_ConvolutionFilter2D(disp, glConvolutionFilter2D);
+ SET_ConvolutionParameterf(disp, glConvolutionParameterf);
+ SET_ConvolutionParameterfv(disp, glConvolutionParameterfv);
+ SET_ConvolutionParameteri(disp, glConvolutionParameteri);
+ SET_ConvolutionParameteriv(disp, glConvolutionParameteriv);
+ SET_CopyConvolutionFilter1D(disp, glCopyConvolutionFilter1D);
+ SET_CopyConvolutionFilter2D(disp, glCopyConvolutionFilter2D);
+ SET_GetConvolutionFilter(disp, glGetConvolutionFilter);
+ SET_GetConvolutionParameterfv(disp, glGetConvolutionParameterfv);
+ SET_GetConvolutionParameteriv(disp, glGetConvolutionParameteriv);
+ SET_GetSeparableFilter(disp, glGetSeparableFilter);
+ SET_SeparableFilter2D(disp, glSeparableFilter2D);
+ SET_GetHistogram(disp, glGetHistogram);
+ SET_GetHistogramParameterfv(disp, glGetHistogramParameterfv);
+ SET_GetHistogramParameteriv(disp, glGetHistogramParameteriv);
+ SET_GetMinmax(disp, glGetMinmax);
+ SET_GetMinmaxParameterfv(disp, glGetMinmaxParameterfv);
+ SET_GetMinmaxParameteriv(disp, glGetMinmaxParameteriv);
+ SET_Histogram(disp, glHistogram);
+ SET_Minmax(disp, glMinmax);
+ SET_ResetHistogram(disp, glResetHistogram);
+ SET_ResetMinmax(disp, glResetMinmax);
+ SET_TexImage3D(disp, glTexImage3D);
+ SET_TexSubImage3D(disp, glTexSubImage3D);
+ SET_CopyTexSubImage3D(disp, glCopyTexSubImage3D);
+ SET_ActiveTextureARB(disp, glActiveTextureARB);
+ SET_ClientActiveTextureARB(disp, glClientActiveTextureARB);
+ SET_MultiTexCoord1dARB(disp, glMultiTexCoord1dARB);
+ SET_MultiTexCoord1dvARB(disp, glMultiTexCoord1dvARB);
+ SET_MultiTexCoord1fARB(disp, glMultiTexCoord1fARB);
+ SET_MultiTexCoord1fvARB(disp, glMultiTexCoord1fvARB);
+ SET_MultiTexCoord1iARB(disp, glMultiTexCoord1iARB);
+ SET_MultiTexCoord1ivARB(disp, glMultiTexCoord1ivARB);
+ SET_MultiTexCoord1sARB(disp, glMultiTexCoord1sARB);
+ SET_MultiTexCoord1svARB(disp, glMultiTexCoord1svARB);
+ SET_MultiTexCoord2dARB(disp, glMultiTexCoord2dARB);
+ SET_MultiTexCoord2dvARB(disp, glMultiTexCoord2dvARB);
+ SET_MultiTexCoord2fARB(disp, glMultiTexCoord2fARB);
+ SET_MultiTexCoord2fvARB(disp, glMultiTexCoord2fvARB);
+ SET_MultiTexCoord2iARB(disp, glMultiTexCoord2iARB);
+ SET_MultiTexCoord2ivARB(disp, glMultiTexCoord2ivARB);
+ SET_MultiTexCoord2sARB(disp, glMultiTexCoord2sARB);
+ SET_MultiTexCoord2svARB(disp, glMultiTexCoord2svARB);
+ SET_MultiTexCoord3dARB(disp, glMultiTexCoord3dARB);
+ SET_MultiTexCoord3dvARB(disp, glMultiTexCoord3dvARB);
+ SET_MultiTexCoord3fARB(disp, glMultiTexCoord3fARB);
+ SET_MultiTexCoord3fvARB(disp, glMultiTexCoord3fvARB);
+ SET_MultiTexCoord3iARB(disp, glMultiTexCoord3iARB);
+ SET_MultiTexCoord3ivARB(disp, glMultiTexCoord3ivARB);
+ SET_MultiTexCoord3sARB(disp, glMultiTexCoord3sARB);
+ SET_MultiTexCoord3svARB(disp, glMultiTexCoord3svARB);
+ SET_MultiTexCoord4dARB(disp, glMultiTexCoord4dARB);
+ SET_MultiTexCoord4dvARB(disp, glMultiTexCoord4dvARB);
+ SET_MultiTexCoord4fARB(disp, glMultiTexCoord4fARB);
+ SET_MultiTexCoord4fvARB(disp, glMultiTexCoord4fvARB);
+ SET_MultiTexCoord4iARB(disp, glMultiTexCoord4iARB);
+ SET_MultiTexCoord4ivARB(disp, glMultiTexCoord4ivARB);
+ SET_MultiTexCoord4sARB(disp, glMultiTexCoord4sARB);
+ SET_MultiTexCoord4svARB(disp, glMultiTexCoord4svARB);
+ SET_LoadTransposeMatrixfARB(disp, glLoadTransposeMatrixfARB);
+ SET_LoadTransposeMatrixdARB(disp, glLoadTransposeMatrixdARB);
+ SET_MultTransposeMatrixfARB(disp, glMultTransposeMatrixfARB);
+ SET_MultTransposeMatrixdARB(disp, glMultTransposeMatrixdARB);
+ SET_SampleCoverageARB(disp, glSampleCoverageARB);
+ SET_DrawBuffersARB(disp, glDrawBuffersARB);
+/* SET_PolygonOffsetEXT(disp, glPolygonOffsetEXT);
+ SET_GetTexFilterFuncSGIS(disp, glGetTexFilterFuncSGIS);
+ SET_TexFilterFuncSGIS(disp, glTexFilterFuncSGIS);
+ SET_GetHistogramEXT(disp, glGetHistogramEXT);
+ SET_GetHistogramParameterfvEXT(disp, glGetHistogramParameterfvEXT);
+ SET_GetHistogramParameterivEXT(disp, glGetHistogramParameterivEXT);
+ SET_GetMinmaxEXT(disp, glGetMinmaxEXT);
+ SET_GetMinmaxParameterfvEXT(disp, glGetMinmaxParameterfvEXT);
+ SET_GetMinmaxParameterivEXT(disp, glGetMinmaxParameterivEXT);
+ SET_GetConvolutionFilterEXT(disp, glGetConvolutionFilterEXT);
+ SET_GetConvolutionParameterfvEXT(disp, glGetConvolutionParameterfvEXT);
+ SET_GetConvolutionParameterivEXT(disp, glGetConvolutionParameterivEXT);
+ SET_GetSeparableFilterEXT(disp, glGetSeparableFilterEXT);
+ SET_GetColorTableSGI(disp, glGetColorTableSGI);
+ SET_GetColorTableParameterfvSGI(disp, glGetColorTableParameterfvSGI);
+ SET_GetColorTableParameterivSGI(disp, glGetColorTableParameterivSGI);
+ SET_PixelTexGenSGIX(disp, glPixelTexGenSGIX);
+ SET_PixelTexGenParameteriSGIS(disp, glPixelTexGenParameteriSGIS);
+ SET_PixelTexGenParameterivSGIS(disp, glPixelTexGenParameterivSGIS);
+ SET_PixelTexGenParameterfSGIS(disp, glPixelTexGenParameterfSGIS);
+ SET_PixelTexGenParameterfvSGIS(disp, glPixelTexGenParameterfvSGIS);
+ SET_GetPixelTexGenParameterivSGIS(disp, glGetPixelTexGenParameterivSGIS);
+ SET_GetPixelTexGenParameterfvSGIS(disp, glGetPixelTexGenParameterfvSGIS);
+ SET_TexImage4DSGIS(disp, glTexImage4DSGIS);
+ SET_TexSubImage4DSGIS(disp, glTexSubImage4DSGIS); */
+ SET_AreTexturesResidentEXT(disp, glAreTexturesResident);
+ SET_GenTexturesEXT(disp, glGenTextures);
+ SET_IsTextureEXT(disp, glIsTexture);
+/* SET_DetailTexFuncSGIS(disp, glDetailTexFuncSGIS);
+ SET_GetDetailTexFuncSGIS(disp, glGetDetailTexFuncSGIS);
+ SET_SharpenTexFuncSGIS(disp, glSharpenTexFuncSGIS);
+ SET_GetSharpenTexFuncSGIS(disp, glGetSharpenTexFuncSGIS);
+ SET_SampleMaskSGIS(disp, glSampleMaskSGIS);
+ SET_SamplePatternSGIS(disp, glSamplePatternSGIS);
+ SET_ColorPointerEXT(disp, glColorPointerEXT);
+ SET_EdgeFlagPointerEXT(disp, glEdgeFlagPointerEXT);
+ SET_IndexPointerEXT(disp, glIndexPointerEXT);
+ SET_NormalPointerEXT(disp, glNormalPointerEXT);
+ SET_TexCoordPointerEXT(disp, glTexCoordPointerEXT);
+ SET_VertexPointerEXT(disp, glVertexPointerEXT);
+ SET_SpriteParameterfSGIX(disp, glSpriteParameterfSGIX);
+ SET_SpriteParameterfvSGIX(disp, glSpriteParameterfvSGIX);
+ SET_SpriteParameteriSGIX(disp, glSpriteParameteriSGIX);
+ SET_SpriteParameterivSGIX(disp, glSpriteParameterivSGIX);
+ SET_PointParameterfEXT(disp, glPointParameterfEXT);
+ SET_PointParameterfvEXT(disp, glPointParameterfvEXT);
+ SET_GetInstrumentsSGIX(disp, glGetInstrumentsSGIX);
+ SET_InstrumentsBufferSGIX(disp, glInstrumentsBufferSGIX);
+ SET_PollInstrumentsSGIX(disp, glPollInstrumentsSGIX);
+ SET_ReadInstrumentsSGIX(disp, glReadInstrumentsSGIX);
+ SET_StartInstrumentsSGIX(disp, glStartInstrumentsSGIX);
+ SET_StopInstrumentsSGIX(disp, glStopInstrumentsSGIX);
+ SET_FrameZoomSGIX(disp, glFrameZoomSGIX);
+ SET_TagSampleBufferSGIX(disp, glTagSampleBufferSGIX);
+ SET_ReferencePlaneSGIX(disp, glReferencePlaneSGIX);
+ SET_FlushRasterSGIX(disp, glFlushRasterSGIX);
+ SET_GetListParameterfvSGIX(disp, glGetListParameterfvSGIX);
+ SET_GetListParameterivSGIX(disp, glGetListParameterivSGIX);
+ SET_ListParameterfSGIX(disp, glListParameterfSGIX);
+ SET_ListParameterfvSGIX(disp, glListParameterfvSGIX);
+ SET_ListParameteriSGIX(disp, glListParameteriSGIX);
+ SET_ListParameterivSGIX(disp, glListParameterivSGIX);
+ SET_FragmentColorMaterialSGIX(disp, glFragmentColorMaterialSGIX);
+ SET_FragmentLightfSGIX(disp, glFragmentLightfSGIX);
+ SET_FragmentLightfvSGIX(disp, glFragmentLightfvSGIX);
+ SET_FragmentLightiSGIX(disp, glFragmentLightiSGIX);
+ SET_FragmentLightivSGIX(disp, glFragmentLightivSGIX);
+ SET_FragmentLightModelfSGIX(disp, glFragmentLightModelfSGIX);
+ SET_FragmentLightModelfvSGIX(disp, glFragmentLightModelfvSGIX);
+ SET_FragmentLightModeliSGIX(disp, glFragmentLightModeliSGIX);
+ SET_FragmentLightModelivSGIX(disp, glFragmentLightModelivSGIX);
+ SET_FragmentMaterialfSGIX(disp, glFragmentMaterialfSGIX);
+ SET_FragmentMaterialfvSGIX(disp, glFragmentMaterialfvSGIX);
+ SET_FragmentMaterialiSGIX(disp, glFragmentMaterialiSGIX);
+ SET_FragmentMaterialivSGIX(disp, glFragmentMaterialivSGIX);
+ SET_GetFragmentLightfvSGIX(disp, glGetFragmentLightfvSGIX);
+ SET_GetFragmentLightivSGIX(disp, glGetFragmentLightivSGIX);
+ SET_GetFragmentMaterialfvSGIX(disp, glGetFragmentMaterialfvSGIX);
+ SET_GetFragmentMaterialivSGIX(disp, glGetFragmentMaterialivSGIX);
+ SET_LightEnviSGIX(disp, glLightEnviSGIX); 
+ SET_VertexWeightfEXT(disp, glVertexWeightfEXT);
+ SET_VertexWeightfvEXT(disp, glVertexWeightfvEXT);
+ SET_VertexWeightPointerEXT(disp, glVertexWeightPointerEXT);
+ SET_FlushVertexArrayRangeNV(disp, glFlushVertexArrayRangeNV);
+ SET_VertexArrayRangeNV(disp, glVertexArrayRangeNV);
+ SET_CombinerParameterfvNV(disp, glCombinerParameterfvNV);
+ SET_CombinerParameterfNV(disp, glCombinerParameterfNV);
+ SET_CombinerParameterivNV(disp, glCombinerParameterivNV);
+ SET_CombinerParameteriNV(disp, glCombinerParameteriNV);
+ SET_CombinerInputNV(disp, glCombinerInputNV);
+ SET_CombinerOutputNV(disp, glCombinerOutputNV);
+ SET_FinalCombinerInputNV(disp, glFinalCombinerInputNV);
+ SET_GetCombinerInputParameterfvNV(disp, glGetCombinerInputParameterfvNV);
+ SET_GetCombinerInputParameterivNV(disp, glGetCombinerInputParameterivNV);
+ SET_GetCombinerOutputParameterfvNV(disp, glGetCombinerOutputParameterfvNV);
+ SET_GetCombinerOutputParameterivNV(disp, glGetCombinerOutputParameterivNV);
+ SET_GetFinalCombinerInputParameterfvNV(disp, glGetFinalCombinerInputParameterfvNV);
+ SET_GetFinalCombinerInputParameterivNV(disp, glGetFinalCombinerInputParameterivNV);
+ SET_ResizeBuffersMESA(disp, glResizeBuffersMESA);
+ SET_WindowPos2dMESA(disp, glWindowPos2dMESA);
+ SET_WindowPos2dvMESA(disp, glWindowPos2dvMESA);
+ SET_WindowPos2fMESA(disp, glWindowPos2fMESA);
+ SET_WindowPos2fvMESA(disp, glWindowPos2fvMESA);
+ SET_WindowPos2iMESA(disp, glWindowPos2iMESA);
+ SET_WindowPos2ivMESA(disp, glWindowPos2ivMESA);
+ SET_WindowPos2sMESA(disp, glWindowPos2sMESA);
+ SET_WindowPos2svMESA(disp, glWindowPos2svMESA);
+ SET_WindowPos3dMESA(disp, glWindowPos3dMESA);
+ SET_WindowPos3dvMESA(disp, glWindowPos3dvMESA);
+ SET_WindowPos3fMESA(disp, glWindowPos3fMESA);
+ SET_WindowPos3fvMESA(disp, glWindowPos3fvMESA);
+ SET_WindowPos3iMESA(disp, glWindowPos3iMESA);
+ SET_WindowPos3ivMESA(disp, glWindowPos3ivMESA);
+ SET_WindowPos3sMESA(disp, glWindowPos3sMESA);
+ SET_WindowPos3svMESA(disp, glWindowPos3svMESA);
+ SET_WindowPos4dMESA(disp, glWindowPos4dMESA);
+ SET_WindowPos4dvMESA(disp, glWindowPos4dvMESA);
+ SET_WindowPos4fMESA(disp, glWindowPos4fMESA);
+ SET_WindowPos4fvMESA(disp, glWindowPos4fvMESA);
+ SET_WindowPos4iMESA(disp, glWindowPos4iMESA);
+ SET_WindowPos4ivMESA(disp, glWindowPos4ivMESA);
+ SET_WindowPos4sMESA(disp, glWindowPos4sMESA);
+ SET_WindowPos4svMESA(disp, glWindowPos4svMESA);
+ SET_BlendFuncSeparateEXT(disp, glBlendFuncSeparateEXT);
+ SET_IndexMaterialEXT(disp, glIndexMaterialEXT);
+ SET_IndexFuncEXT(disp, glIndexFuncEXT);
+ SET_LockArraysEXT(disp, glLockArraysEXT);
+ SET_UnlockArraysEXT(disp, glUnlockArraysEXT);
+ SET_CullParameterdvEXT(disp, glCullParameterdvEXT);
+ SET_CullParameterfvEXT(disp, glCullParameterfvEXT);
+ SET_HintPGI(disp, glHintPGI);
+ SET_FogCoordfEXT(disp, glFogCoordfEXT);
+ SET_FogCoordfvEXT(disp, glFogCoordfvEXT);
+ SET_FogCoorddEXT(disp, glFogCoorddEXT);
+ SET_FogCoorddvEXT(disp, glFogCoorddvEXT);
+ SET_FogCoordPointerEXT(disp, glFogCoordPointerEXT);
+ SET_GetColorTableEXT(disp, glGetColorTableEXT);
+ SET_GetColorTableParameterivEXT(disp, glGetColorTableParameterivEXT);
+ SET_GetColorTableParameterfvEXT(disp, glGetColorTableParameterfvEXT);
+ SET_TbufferMask3DFX(disp, glTbufferMask3DFX);
+ SET_CompressedTexImage3DARB(disp, glCompressedTexImage3DARB);
+ SET_CompressedTexImage2DARB(disp, glCompressedTexImage2DARB);
+ SET_CompressedTexImage1DARB(disp, glCompressedTexImage1DARB);
+ SET_CompressedTexSubImage3DARB(disp, glCompressedTexSubImage3DARB);
+ SET_CompressedTexSubImage2DARB(disp, glCompressedTexSubImage2DARB);
+ SET_CompressedTexSubImage1DARB(disp, glCompressedTexSubImage1DARB);
+ SET_GetCompressedTexImageARB(disp, glGetCompressedTexImageARB);
+ SET_SecondaryColor3bEXT(disp, glSecondaryColor3bEXT);
+ SET_SecondaryColor3bvEXT(disp, glSecondaryColor3bvEXT);
+ SET_SecondaryColor3dEXT(disp, glSecondaryColor3dEXT);
+ SET_SecondaryColor3dvEXT(disp, glSecondaryColor3dvEXT);
+ SET_SecondaryColor3fEXT(disp, glSecondaryColor3fEXT);
+ SET_SecondaryColor3fvEXT(disp, glSecondaryColor3fvEXT);
+ SET_SecondaryColor3iEXT(disp, glSecondaryColor3iEXT);
+ SET_SecondaryColor3ivEXT(disp, glSecondaryColor3ivEXT);
+ SET_SecondaryColor3sEXT(disp, glSecondaryColor3sEXT);
+ SET_SecondaryColor3svEXT(disp, glSecondaryColor3svEXT);
+ SET_SecondaryColor3ubEXT(disp, glSecondaryColor3ubEXT);
+ SET_SecondaryColor3ubvEXT(disp, glSecondaryColor3ubvEXT);
+ SET_SecondaryColor3uiEXT(disp, glSecondaryColor3uiEXT);
+ SET_SecondaryColor3uivEXT(disp, glSecondaryColor3uivEXT);
+ SET_SecondaryColor3usEXT(disp, glSecondaryColor3usEXT);
+ SET_SecondaryColor3usvEXT(disp, glSecondaryColor3usvEXT);
+ SET_SecondaryColorPointerEXT(disp, glSecondaryColorPointerEXT);
+ SET_AreProgramsResidentNV(disp, glAreProgramsResidentNV);
+ SET_BindProgramNV(disp, glBindProgramNV);
+ SET_DeleteProgramsNV(disp, glDeleteProgramsNV);
+ SET_ExecuteProgramNV(disp, glExecuteProgramNV);
+ SET_GenProgramsNV(disp, glGenProgramsNV);
+ SET_GetProgramParameterdvNV(disp, glGetProgramParameterdvNV);
+ SET_GetProgramParameterfvNV(disp, glGetProgramParameterfvNV);
+ SET_GetProgramivNV(disp, glGetProgramivNV);
+ SET_GetProgramStringNV(disp, glGetProgramStringNV);
+ SET_GetTrackMatrixivNV(disp, glGetTrackMatrixivNV);
+ SET_GetVertexAttribdvARB(disp, glGetVertexAttribdvARB);
+ SET_GetVertexAttribfvARB(disp, glGetVertexAttribfvARB);
+ SET_GetVertexAttribivARB(disp, glGetVertexAttribivARB);
+ SET_GetVertexAttribPointervNV(disp, glGetVertexAttribPointervNV);
+ SET_IsProgramNV(disp, glIsProgramNV);
+ SET_LoadProgramNV(disp, glLoadProgramNV);
+ SET_ProgramParameter4dNV(disp, glProgramParameter4dNV);
+ SET_ProgramParameter4dvNV(disp, glProgramParameter4dvNV);
+ SET_ProgramParameter4fNV(disp, glProgramParameter4fNV);
+ SET_ProgramParameter4fvNV(disp, glProgramParameter4fvNV);
+ SET_ProgramParameters4dvNV(disp, glProgramParameters4dvNV);
+ SET_ProgramParameters4fvNV(disp, glProgramParameters4fvNV);
+ SET_RequestResidentProgramsNV(disp, glRequestResidentProgramsNV);
+ SET_TrackMatrixNV(disp, glTrackMatrixNV);
+ SET_VertexAttribPointerNV(disp, glVertexAttribPointerNV);
+ SET_VertexAttrib1dARB(disp, glVertexAttrib1dARB);
+ SET_VertexAttrib1dvARB(disp, glVertexAttrib1dvARB);
+ SET_VertexAttrib1fARB(disp, glVertexAttrib1fARB);
+ SET_VertexAttrib1fvARB(disp, glVertexAttrib1fvARB);
+ SET_VertexAttrib1sARB(disp, glVertexAttrib1sARB);
+ SET_VertexAttrib1svARB(disp, glVertexAttrib1svARB);
+ SET_VertexAttrib2dARB(disp, glVertexAttrib2dARB);
+ SET_VertexAttrib2dvARB(disp, glVertexAttrib2dvARB);
+ SET_VertexAttrib2fARB(disp, glVertexAttrib2fARB);
+ SET_VertexAttrib2fvARB(disp, glVertexAttrib2fvARB);
+ SET_VertexAttrib2sARB(disp, glVertexAttrib2sARB);
+ SET_VertexAttrib2svARB(disp, glVertexAttrib2svARB);
+ SET_VertexAttrib3dARB(disp, glVertexAttrib3dARB);
+ SET_VertexAttrib3dvARB(disp, glVertexAttrib3dvARB);
+ SET_VertexAttrib3fARB(disp, glVertexAttrib3fARB);
+ SET_VertexAttrib3fvARB(disp, glVertexAttrib3fvARB);
+ SET_VertexAttrib3sARB(disp, glVertexAttrib3sARB);
+ SET_VertexAttrib3svARB(disp, glVertexAttrib3svARB);
+ SET_VertexAttrib4dARB(disp, glVertexAttrib4dARB);
+ SET_VertexAttrib4dvARB(disp, glVertexAttrib4dvARB);
+ SET_VertexAttrib4fARB(disp, glVertexAttrib4fARB);
+ SET_VertexAttrib4fvARB(disp, glVertexAttrib4fvARB);
+ SET_VertexAttrib4sARB(disp, glVertexAttrib4sARB);
+ SET_VertexAttrib4svARB(disp, glVertexAttrib4svARB);
+ SET_VertexAttrib4NubARB(disp, glVertexAttrib4NubARB);
+ SET_VertexAttrib4NubvARB(disp, glVertexAttrib4NubvARB);
+ SET_VertexAttribs1dvNV(disp, glVertexAttribs1dvNV);
+ SET_VertexAttribs1fvNV(disp, glVertexAttribs1fvNV);
+ SET_VertexAttribs1svNV(disp, glVertexAttribs1svNV);
+ SET_VertexAttribs2dvNV(disp, glVertexAttribs2dvNV);
+ SET_VertexAttribs2fvNV(disp, glVertexAttribs2fvNV);
+ SET_VertexAttribs2svNV(disp, glVertexAttribs2svNV);
+ SET_VertexAttribs3dvNV(disp, glVertexAttribs3dvNV);
+ SET_VertexAttribs3fvNV(disp, glVertexAttribs3fvNV);
+ SET_VertexAttribs3svNV(disp, glVertexAttribs3svNV);
+ SET_VertexAttribs4dvNV(disp, glVertexAttribs4dvNV);
+ SET_VertexAttribs4fvNV(disp, glVertexAttribs4fvNV);
+ SET_VertexAttribs4svNV(disp, glVertexAttribs4svNV);
+ SET_VertexAttribs4ubvNV(disp, glVertexAttribs4ubvNV);
+ SET_PointParameteriNV(disp, glPointParameteriNV);
+ SET_PointParameterivNV(disp, glPointParameterivNV);
+ SET_MultiDrawArraysEXT(disp, glMultiDrawArraysEXT);
+ SET_MultiDrawElementsEXT(disp, glMultiDrawElementsEXT);
+ SET_ActiveStencilFaceEXT(disp, glActiveStencilFaceEXT);
+ SET_DeleteFencesNV(disp, glDeleteFencesNV);
+ SET_GenFencesNV(disp, glGenFencesNV);
+ SET_IsFenceNV(disp, glIsFenceNV);
+ SET_TestFenceNV(disp, glTestFenceNV);
+ SET_GetFenceivNV(disp, glGetFenceivNV);
+ SET_FinishFenceNV(disp, glFinishFenceNV);
+ SET_SetFenceNV(disp, glSetFenceNV);
+ SET_VertexAttrib4bvARB(disp, glVertexAttrib4bvARB);
+ SET_VertexAttrib4ivARB(disp, glVertexAttrib4ivARB);
+ SET_VertexAttrib4ubvARB(disp, glVertexAttrib4ubvARB);
+ SET_VertexAttrib4usvARB(disp, glVertexAttrib4usvARB);
+ SET_VertexAttrib4uivARB(disp, glVertexAttrib4uivARB);
+ SET_VertexAttrib4NbvARB(disp, glVertexAttrib4NbvARB);
+ SET_VertexAttrib4NsvARB(disp, glVertexAttrib4NsvARB);
+ SET_VertexAttrib4NivARB(disp, glVertexAttrib4NivARB);
+ SET_VertexAttrib4NusvARB(disp, glVertexAttrib4NusvARB);
+ SET_VertexAttrib4NuivARB(disp, glVertexAttrib4NuivARB);
+ SET_VertexAttribPointerARB(disp, glVertexAttribPointerARB);
+ SET_EnableVertexAttribArrayARB(disp, glEnableVertexAttribArrayARB);
+ SET_DisableVertexAttribArrayARB(disp, glDisableVertexAttribArrayARB);
+ SET_ProgramStringARB(disp, glProgramStringARB);
+ SET_ProgramEnvParameter4dARB(disp, glProgramEnvParameter4dARB);
+ SET_ProgramEnvParameter4dvARB(disp, glProgramEnvParameter4dvARB);
+ SET_ProgramEnvParameter4fARB(disp, glProgramEnvParameter4fARB);
+ SET_ProgramEnvParameter4fvARB(disp, glProgramEnvParameter4fvARB);
+ SET_ProgramLocalParameter4dARB(disp, glProgramLocalParameter4dARB);
+ SET_ProgramLocalParameter4dvARB(disp, glProgramLocalParameter4dvARB);
+ SET_ProgramLocalParameter4fARB(disp, glProgramLocalParameter4fARB);
+ SET_ProgramLocalParameter4fvARB(disp, glProgramLocalParameter4fvARB);
+ SET_GetProgramEnvParameterdvARB(disp, glGetProgramEnvParameterdvARB);
+ SET_GetProgramEnvParameterfvARB(disp, glGetProgramEnvParameterfvARB);
+ SET_GetProgramLocalParameterdvARB(disp, glGetProgramLocalParameterdvARB);
+ SET_GetProgramLocalParameterfvARB(disp, glGetProgramLocalParameterfvARB);
+ SET_GetProgramivARB(disp, glGetProgramivARB);
+ SET_GetProgramStringARB(disp, glGetProgramStringARB);
+ SET_ProgramNamedParameter4fNV(disp, glProgramNamedParameter4fNV);
+ SET_ProgramNamedParameter4dNV(disp, glProgramNamedParameter4dNV);
+ SET_ProgramNamedParameter4fvNV(disp, glProgramNamedParameter4fvNV);
+ SET_ProgramNamedParameter4dvNV(disp, glProgramNamedParameter4dvNV);
+ SET_GetProgramNamedParameterfvNV(disp, glGetProgramNamedParameterfvNV);
+ SET_GetProgramNamedParameterdvNV(disp, glGetProgramNamedParameterdvNV);
+ SET_BindBufferARB(disp, glBindBufferARB);
+ SET_BufferDataARB(disp, glBufferDataARB);
+ SET_BufferSubDataARB(disp, glBufferSubDataARB);
+ SET_DeleteBuffersARB(disp, glDeleteBuffersARB);
+ SET_GenBuffersARB(disp, glGenBuffersARB);
+ SET_GetBufferParameterivARB(disp, glGetBufferParameterivARB);
+ SET_GetBufferPointervARB(disp, glGetBufferPointervARB);
+ SET_GetBufferSubDataARB(disp, glGetBufferSubDataARB);
+ SET_IsBufferARB(disp, glIsBufferARB);
+ SET_MapBufferARB(disp, glMapBufferARB);
+ SET_UnmapBufferARB(disp, glUnmapBufferARB);
+ SET_DepthBoundsEXT(disp, glDepthBoundsEXT);
+ SET_GenQueriesARB(disp, glGenQueriesARB);
+ SET_DeleteQueriesARB(disp, glDeleteQueriesARB);
+ SET_IsQueryARB(disp, glIsQueryARB);
+ SET_BeginQueryARB(disp, glBeginQueryARB);
+ SET_EndQueryARB(disp, glEndQueryARB);
+ SET_GetQueryivARB(disp, glGetQueryivARB);
+ SET_GetQueryObjectivARB(disp, glGetQueryObjectivARB);
+ SET_GetQueryObjectuivARB(disp, glGetQueryObjectuivARB);
+ SET_MultiModeDrawArraysIBM(disp, glMultiModeDrawArraysIBM);
+ SET_MultiModeDrawElementsIBM(disp, glMultiModeDrawElementsIBM);
+ SET_BlendEquationSeparateEXT(disp, glBlendEquationSeparateEXT);
+ SET_DeleteObjectARB(disp, glDeleteObjectARB);
+ SET_GetHandleARB(disp, glGetHandleARB);
+ SET_DetachObjectARB(disp, glDetachObjectARB);
+ SET_CreateShaderObjectARB(disp, glCreateShaderObjectARB);
+ SET_ShaderSourceARB(disp, glShaderSourceARB);
+ SET_CompileShaderARB(disp, glCompileShaderARB);
+ SET_CreateProgramObjectARB(disp, glCreateProgramObjectARB);
+ SET_AttachObjectARB(disp, glAttachObjectARB);
+ SET_LinkProgramARB(disp, glLinkProgramARB);
+ SET_UseProgramObjectARB(disp, glUseProgramObjectARB);
+ SET_ValidateProgramARB(disp, glValidateProgramARB);
+ SET_Uniform1fARB(disp, glUniform1fARB);
+ SET_Uniform2fARB(disp, glUniform2fARB);
+ SET_Uniform3fARB(disp, glUniform3fARB);
+ SET_Uniform4fARB(disp, glUniform4fARB);
+ SET_Uniform1iARB(disp, glUniform1iARB);
+ SET_Uniform2iARB(disp, glUniform2iARB);
+ SET_Uniform3iARB(disp, glUniform3iARB);
+ SET_Uniform4iARB(disp, glUniform4iARB);
+ SET_Uniform1fvARB(disp, glUniform1fvARB);
+ SET_Uniform2fvARB(disp, glUniform2fvARB);
+ SET_Uniform3fvARB(disp, glUniform3fvARB);
+ SET_Uniform4fvARB(disp, glUniform4fvARB);
+ SET_Uniform1ivARB(disp, glUniform1ivARB);
+ SET_Uniform2ivARB(disp, glUniform2ivARB);
+ SET_Uniform3ivARB(disp, glUniform3ivARB);
+ SET_Uniform4ivARB(disp, glUniform4ivARB);
+ SET_UniformMatrix2fvARB(disp, glUniformMatrix2fvARB);
+ SET_UniformMatrix3fvARB(disp, glUniformMatrix3fvARB);
+ SET_UniformMatrix4fvARB(disp, glUniformMatrix4fvARB);
+ SET_GetObjectParameterfvARB(disp, glGetObjectParameterfvARB);
+ SET_GetObjectParameterivARB(disp, glGetObjectParameterivARB);
+ SET_GetInfoLogARB(disp, glGetInfoLogARB);
+ SET_GetAttachedObjectsARB(disp, glGetAttachedObjectsARB);
+ SET_GetUniformLocationARB(disp, glGetUniformLocationARB);
+ SET_GetActiveUniformARB(disp, glGetActiveUniformARB);
+ SET_GetUniformfvARB(disp, glGetUniformfvARB);
+ SET_GetUniformivARB(disp, glGetUniformivARB);
+ SET_GetShaderSourceARB(disp, glGetShaderSourceARB);
+ SET_BindAttribLocationARB(disp, glBindAttribLocationARB);
+ SET_GetActiveAttribARB(disp, glGetActiveAttribARB);
+ SET_GetAttribLocationARB(disp, glGetAttribLocationARB);
+ SET_GetVertexAttribdvNV(disp, glGetVertexAttribdvNV);
+ SET_GetVertexAttribfvNV(disp, glGetVertexAttribfvNV);
+ SET_GetVertexAttribivNV(disp, glGetVertexAttribivNV);
+ SET_VertexAttrib1dNV(disp, glVertexAttrib1dNV);
+ SET_VertexAttrib1dvNV(disp, glVertexAttrib1dvNV);
+ SET_VertexAttrib1fNV(disp, glVertexAttrib1fNV);
+ SET_VertexAttrib1fvNV(disp, glVertexAttrib1fvNV);
+ SET_VertexAttrib1sNV(disp, glVertexAttrib1sNV);
+ SET_VertexAttrib1svNV(disp, glVertexAttrib1svNV);
+ SET_VertexAttrib2dNV(disp, glVertexAttrib2dNV);
+ SET_VertexAttrib2dvNV(disp, glVertexAttrib2dvNV);
+ SET_VertexAttrib2fNV(disp, glVertexAttrib2fNV);
+ SET_VertexAttrib2fvNV(disp, glVertexAttrib2fvNV);
+ SET_VertexAttrib2sNV(disp, glVertexAttrib2sNV);
+ SET_VertexAttrib2svNV(disp, glVertexAttrib2svNV);
+ SET_VertexAttrib3dNV(disp, glVertexAttrib3dNV);
+ SET_VertexAttrib3dvNV(disp, glVertexAttrib3dvNV);
+ SET_VertexAttrib3fNV(disp, glVertexAttrib3fNV);
+ SET_VertexAttrib3fvNV(disp, glVertexAttrib3fvNV);
+ SET_VertexAttrib3sNV(disp, glVertexAttrib3sNV);
+ SET_VertexAttrib3svNV(disp, glVertexAttrib3svNV);
+ SET_VertexAttrib4dNV(disp, glVertexAttrib4dNV);
+ SET_VertexAttrib4dvNV(disp, glVertexAttrib4dvNV);
+ SET_VertexAttrib4fNV(disp, glVertexAttrib4fNV);
+ SET_VertexAttrib4fvNV(disp, glVertexAttrib4fvNV);
+ SET_VertexAttrib4sNV(disp, glVertexAttrib4sNV);
+ SET_VertexAttrib4svNV(disp, glVertexAttrib4svNV);
+ SET_VertexAttrib4ubNV(disp, glVertexAttrib4ubNV);
+ SET_VertexAttrib4ubvNV(disp, glVertexAttrib4ubvNV);
+ SET_GenFragmentShadersATI(disp, glGenFragmentShadersATI);
+ SET_BindFragmentShaderATI(disp, glBindFragmentShaderATI);
+ SET_DeleteFragmentShaderATI(disp, glDeleteFragmentShaderATI);
+ SET_BeginFragmentShaderATI(disp, glBeginFragmentShaderATI);
+ SET_EndFragmentShaderATI(disp, glEndFragmentShaderATI);
+ SET_PassTexCoordATI(disp, glPassTexCoordATI);
+ SET_SampleMapATI(disp, glSampleMapATI);
+ SET_ColorFragmentOp1ATI(disp, glColorFragmentOp1ATI);
+ SET_ColorFragmentOp2ATI(disp, glColorFragmentOp2ATI);
+ SET_ColorFragmentOp3ATI(disp, glColorFragmentOp3ATI);
+ SET_AlphaFragmentOp1ATI(disp, glAlphaFragmentOp1ATI);
+ SET_AlphaFragmentOp2ATI(disp, glAlphaFragmentOp2ATI);
+ SET_AlphaFragmentOp3ATI(disp, glAlphaFragmentOp3ATI);
+ SET_SetFragmentShaderConstantATI(disp, glSetFragmentShaderConstantATI);
+ SET_IsRenderbufferEXT(disp, glIsRenderbufferEXT);
+ SET_BindRenderbufferEXT(disp, glBindRenderbufferEXT);
+ SET_DeleteRenderbuffersEXT(disp, glDeleteRenderbuffersEXT);
+ SET_GenRenderbuffersEXT(disp, glGenRenderbuffersEXT);
+ SET_RenderbufferStorageEXT(disp, glRenderbufferStorageEXT);
+ SET_GetRenderbufferParameterivEXT(disp, glGetRenderbufferParameterivEXT);
+ SET_IsFramebufferEXT(disp, glIsFramebufferEXT);
+ SET_BindFramebufferEXT(disp, glBindFramebufferEXT);
+ SET_DeleteFramebuffersEXT(disp, glDeleteFramebuffersEXT);
+ SET_GenFramebuffersEXT(disp, glGenFramebuffersEXT);
+ SET_CheckFramebufferStatusEXT(disp, glCheckFramebufferStatusEXT);
+ SET_FramebufferTexture1DEXT(disp, glFramebufferTexture1DEXT);
+ SET_FramebufferTexture2DEXT(disp, glFramebufferTexture2DEXT);
+ SET_FramebufferTexture3DEXT(disp, glFramebufferTexture3DEXT);
+ SET_FramebufferRenderbufferEXT(disp, glFramebufferRenderbufferEXT);
+ SET_GetFramebufferAttachmentParameterivEXT(disp, glGetFramebufferAttachmentParameterivEXT);
+ SET_GenerateMipmapEXT(disp, glGenerateMipmapEXT);
+ SET_StencilFuncSeparate(disp, glStencilFuncSeparate);
+ SET_StencilOpSeparate(disp, glStencilOpSeparate);
+ SET_StencilMaskSeparate(disp, glStencilMaskSeparate);
+ SET_GetQueryObjecti64vEXT(disp, glGetQueryObjecti64vEXT);
+ SET_GetQueryObjectui64vEXT(disp, glGetQueryObjectui64vEXT);
+ SET_BlitFramebufferEXT(disp, glBlitFramebufferEXT);
+ SET_LoadTransposeMatrixfARB(disp, glLoadTransposeMatrixfARB);
+ SET_LoadTransposeMatrixdARB(disp, glLoadTransposeMatrixdARB);
+ SET_MultTransposeMatrixfARB(disp, glMultTransposeMatrixfARB);
+ SET_MultTransposeMatrixdARB(disp, glMultTransposeMatrixdARB);
+ SET_SampleCoverageARB(disp, glSampleCoverageARB);
+ SET_DrawBuffersARB(disp, glDrawBuffersARB);
+ SET_PolygonOffsetEXT(disp, glPolygonOffsetEXT);
+ SET_GetTexFilterFuncSGIS(disp, glGetTexFilterFuncSGIS);
+ SET_TexFilterFuncSGIS(disp, glTexFilterFuncSGIS);
+ SET_GetHistogramEXT(disp, glGetHistogramEXT);
+ SET_GetHistogramParameterfvEXT(disp, glGetHistogramParameterfvEXT);
+ SET_GetHistogramParameterivEXT(disp, glGetHistogramParameterivEXT);
+ SET_GetMinmaxEXT(disp, glGetMinmaxEXT);
+ SET_GetMinmaxParameterfvEXT(disp, glGetMinmaxParameterfvEXT);
+ SET_GetMinmaxParameterivEXT(disp, glGetMinmaxParameterivEXT);
+ SET_GetConvolutionFilterEXT(disp, glGetConvolutionFilterEXT);
+ SET_GetConvolutionParameterfvEXT(disp, glGetConvolutionParameterfvEXT);
+ SET_GetConvolutionParameterivEXT(disp, glGetConvolutionParameterivEXT);
+ SET_GetSeparableFilterEXT(disp, glGetSeparableFilterEXT);
+ SET_GetColorTableSGI(disp, glGetColorTableSGI);
+ SET_GetColorTableParameterfvSGI(disp, glGetColorTableParameterfvSGI);
+ SET_GetColorTableParameterivSGI(disp, glGetColorTableParameterivSGI);
+ SET_PixelTexGenSGIX(disp, glPixelTexGenSGIX);
+ SET_PixelTexGenParameteriSGIS(disp, glPixelTexGenParameteriSGIS);
+ SET_PixelTexGenParameterivSGIS(disp, glPixelTexGenParameterivSGIS);
+ SET_PixelTexGenParameterfSGIS(disp, glPixelTexGenParameterfSGIS);
+ SET_PixelTexGenParameterfvSGIS(disp, glPixelTexGenParameterfvSGIS);
+ SET_GetPixelTexGenParameterivSGIS(disp, glGetPixelTexGenParameterivSGIS);
+ SET_GetPixelTexGenParameterfvSGIS(disp, glGetPixelTexGenParameterfvSGIS);
+ SET_TexImage4DSGIS(disp, glTexImage4DSGIS);
+ SET_TexSubImage4DSGIS(disp, glTexSubImage4DSGIS);
+ SET_AreTexturesResidentEXT(disp, glAreTexturesResidentEXT);
+ SET_GenTexturesEXT(disp, glGenTexturesEXT);
+ SET_IsTextureEXT(disp, glIsTextureEXT);
+ SET_DetailTexFuncSGIS(disp, glDetailTexFuncSGIS);
+ SET_GetDetailTexFuncSGIS(disp, glGetDetailTexFuncSGIS);
+ SET_SharpenTexFuncSGIS(disp, glSharpenTexFuncSGIS);
+ SET_GetSharpenTexFuncSGIS(disp, glGetSharpenTexFuncSGIS);
+ SET_SampleMaskSGIS(disp, glSampleMaskSGIS);
+ SET_SamplePatternSGIS(disp, glSamplePatternSGIS);
+ SET_ColorPointerEXT(disp, glColorPointerEXT);
+ SET_EdgeFlagPointerEXT(disp, glEdgeFlagPointerEXT);
+ SET_IndexPointerEXT(disp, glIndexPointerEXT);
+ SET_NormalPointerEXT(disp, glNormalPointerEXT);
+ SET_TexCoordPointerEXT(disp, glTexCoordPointerEXT);
+ SET_VertexPointerEXT(disp, glVertexPointerEXT);
+ SET_SpriteParameterfSGIX(disp, glSpriteParameterfSGIX);
+ SET_SpriteParameterfvSGIX(disp, glSpriteParameterfvSGIX);
+ SET_SpriteParameteriSGIX(disp, glSpriteParameteriSGIX);
+ SET_SpriteParameterivSGIX(disp, glSpriteParameterivSGIX);
+ SET_PointParameterfEXT(disp, glPointParameterfEXT);
+ SET_PointParameterfvEXT(disp, glPointParameterfvEXT);
+ SET_GetInstrumentsSGIX(disp, glGetInstrumentsSGIX);
+ SET_InstrumentsBufferSGIX(disp, glInstrumentsBufferSGIX);
+ SET_PollInstrumentsSGIX(disp, glPollInstrumentsSGIX);
+ SET_ReadInstrumentsSGIX(disp, glReadInstrumentsSGIX);
+ SET_StartInstrumentsSGIX(disp, glStartInstrumentsSGIX);
+ SET_StopInstrumentsSGIX(disp, glStopInstrumentsSGIX);
+ SET_FrameZoomSGIX(disp, glFrameZoomSGIX);
+ SET_TagSampleBufferSGIX(disp, glTagSampleBufferSGIX);
+ SET_ReferencePlaneSGIX(disp, glReferencePlaneSGIX);
+ SET_FlushRasterSGIX(disp, glFlushRasterSGIX);
+ SET_GetListParameterfvSGIX(disp, glGetListParameterfvSGIX);
+ SET_GetListParameterivSGIX(disp, glGetListParameterivSGIX);
+ SET_ListParameterfSGIX(disp, glListParameterfSGIX);
+ SET_ListParameterfvSGIX(disp, glListParameterfvSGIX);
+ SET_ListParameteriSGIX(disp, glListParameteriSGIX);
+ SET_ListParameterivSGIX(disp, glListParameterivSGIX);
+ SET_FragmentColorMaterialSGIX(disp, glFragmentColorMaterialSGIX);
+ SET_FragmentLightfSGIX(disp, glFragmentLightfSGIX);
+ SET_FragmentLightfvSGIX(disp, glFragmentLightfvSGIX);
+ SET_FragmentLightiSGIX(disp, glFragmentLightiSGIX);
+ SET_FragmentLightivSGIX(disp, glFragmentLightivSGIX);
+ SET_FragmentLightModelfSGIX(disp, glFragmentLightModelfSGIX);
+ SET_FragmentLightModelfvSGIX(disp, glFragmentLightModelfvSGIX);
+ SET_FragmentLightModeliSGIX(disp, glFragmentLightModeliSGIX);
+ SET_FragmentLightModelivSGIX(disp, glFragmentLightModelivSGIX);
+ SET_FragmentMaterialfSGIX(disp, glFragmentMaterialfSGIX);
+ SET_FragmentMaterialfvSGIX(disp, glFragmentMaterialfvSGIX);
+ SET_FragmentMaterialiSGIX(disp, glFragmentMaterialiSGIX);
+ SET_FragmentMaterialivSGIX(disp, glFragmentMaterialivSGIX);
+ SET_GetFragmentLightfvSGIX(disp, glGetFragmentLightfvSGIX);
+ SET_GetFragmentLightivSGIX(disp, glGetFragmentLightivSGIX);
+ SET_GetFragmentMaterialfvSGIX(disp, glGetFragmentMaterialfvSGIX);
+ SET_GetFragmentMaterialivSGIX(disp, glGetFragmentMaterialivSGIX);
+ SET_LightEnviSGIX(disp, glLightEnviSGIX);
+ SET_VertexWeightfEXT(disp, glVertexWeightfEXT);
+ SET_VertexWeightfvEXT(disp, glVertexWeightfvEXT);
+ SET_VertexWeightPointerEXT(disp, glVertexWeightPointerEXT);
+ SET_FlushVertexArrayRangeNV(disp, glFlushVertexArrayRangeNV);
+ SET_VertexArrayRangeNV(disp, glVertexArrayRangeNV);
+ SET_CombinerParameterfvNV(disp, glCombinerParameterfvNV);
+ SET_CombinerParameterfNV(disp, glCombinerParameterfNV);
+ SET_CombinerParameterivNV(disp, glCombinerParameterivNV);
+ SET_CombinerParameteriNV(disp, glCombinerParameteriNV);
+ SET_CombinerInputNV(disp, glCombinerInputNV);
+ SET_CombinerOutputNV(disp, glCombinerOutputNV);
+ SET_FinalCombinerInputNV(disp, glFinalCombinerInputNV);
+ SET_GetCombinerInputParameterfvNV(disp, glGetCombinerInputParameterfvNV);
+ SET_GetCombinerInputParameterivNV(disp, glGetCombinerInputParameterivNV);
+ SET_GetCombinerOutputParameterfvNV(disp, glGetCombinerOutputParameterfvNV);
+ SET_GetCombinerOutputParameterivNV(disp, glGetCombinerOutputParameterivNV);
+ SET_GetFinalCombinerInputParameterfvNV(disp, glGetFinalCombinerInputParameterfvNV);
+ SET_GetFinalCombinerInputParameterivNV(disp, glGetFinalCombinerInputParameterivNV);
+ SET_ResizeBuffersMESA(disp, glResizeBuffersMESA);
+ SET_WindowPos2dMESA(disp, glWindowPos2dMESA);
+ SET_WindowPos2dvMESA(disp, glWindowPos2dvMESA);
+ SET_WindowPos2fMESA(disp, glWindowPos2fMESA);
+ SET_WindowPos2fvMESA(disp, glWindowPos2fvMESA);
+ SET_WindowPos2iMESA(disp, glWindowPos2iMESA);
+ SET_WindowPos2ivMESA(disp, glWindowPos2ivMESA);
+ SET_WindowPos2sMESA(disp, glWindowPos2sMESA);
+ SET_WindowPos2svMESA(disp, glWindowPos2svMESA);
+ SET_WindowPos3dMESA(disp, glWindowPos3dMESA);
+ SET_WindowPos3dvMESA(disp, glWindowPos3dvMESA);
+ SET_WindowPos3fMESA(disp, glWindowPos3fMESA);
+ SET_WindowPos3fvMESA(disp, glWindowPos3fvMESA);
+ SET_WindowPos3iMESA(disp, glWindowPos3iMESA);
+ SET_WindowPos3ivMESA(disp, glWindowPos3ivMESA);
+ SET_WindowPos3sMESA(disp, glWindowPos3sMESA);
+ SET_WindowPos3svMESA(disp, glWindowPos3svMESA);
+ SET_WindowPos4dMESA(disp, glWindowPos4dMESA);
+ SET_WindowPos4dvMESA(disp, glWindowPos4dvMESA);
+ SET_WindowPos4fMESA(disp, glWindowPos4fMESA);
+ SET_WindowPos4fvMESA(disp, glWindowPos4fvMESA);
+ SET_WindowPos4iMESA(disp, glWindowPos4iMESA);
+ SET_WindowPos4ivMESA(disp, glWindowPos4ivMESA);
+ SET_WindowPos4sMESA(disp, glWindowPos4sMESA);
+ SET_WindowPos4svMESA(disp, glWindowPos4svMESA);
+ SET_BlendFuncSeparateEXT(disp, glBlendFuncSeparateEXT);
+ SET_IndexMaterialEXT(disp, glIndexMaterialEXT);
+ SET_IndexFuncEXT(disp, glIndexFuncEXT);
+ SET_LockArraysEXT(disp, glLockArraysEXT);
+ SET_UnlockArraysEXT(disp, glUnlockArraysEXT);
+ SET_CullParameterdvEXT(disp, glCullParameterdvEXT);
+ SET_CullParameterfvEXT(disp, glCullParameterfvEXT);
+ SET_HintPGI(disp, glHintPGI);
+ SET_FogCoordfEXT(disp, glFogCoordfEXT);
+ SET_FogCoordfvEXT(disp, glFogCoordfvEXT);
+ SET_FogCoorddEXT(disp, glFogCoorddEXT);
+ SET_FogCoorddvEXT(disp, glFogCoorddvEXT);
+ SET_FogCoordPointerEXT(disp, glFogCoordPointerEXT);
+ SET_GetColorTableEXT(disp, glGetColorTableEXT);
+ SET_GetColorTableParameterivEXT(disp, glGetColorTableParameterivEXT);
+ SET_GetColorTableParameterfvEXT(disp, glGetColorTableParameterfvEXT);
+ SET_TbufferMask3DFX(disp, glTbufferMask3DFX);
+ SET_CompressedTexImage3DARB(disp, glCompressedTexImage3DARB);
+ SET_CompressedTexImage2DARB(disp, glCompressedTexImage2DARB);
+ SET_CompressedTexImage1DARB(disp, glCompressedTexImage1DARB);
+ SET_CompressedTexSubImage3DARB(disp, glCompressedTexSubImage3DARB);
+ SET_CompressedTexSubImage2DARB(disp, glCompressedTexSubImage2DARB);
+ SET_CompressedTexSubImage1DARB(disp, glCompressedTexSubImage1DARB);
+ SET_GetCompressedTexImageARB(disp, glGetCompressedTexImageARB);
+ SET_SecondaryColor3bEXT(disp, glSecondaryColor3bEXT);
+ SET_SecondaryColor3bvEXT(disp, glSecondaryColor3bvEXT);
+ SET_SecondaryColor3dEXT(disp, glSecondaryColor3dEXT);
+ SET_SecondaryColor3dvEXT(disp, glSecondaryColor3dvEXT);
+ SET_SecondaryColor3fEXT(disp, glSecondaryColor3fEXT);
+ SET_SecondaryColor3fvEXT(disp, glSecondaryColor3fvEXT);
+ SET_SecondaryColor3iEXT(disp, glSecondaryColor3iEXT);
+ SET_SecondaryColor3ivEXT(disp, glSecondaryColor3ivEXT);
+ SET_SecondaryColor3sEXT(disp, glSecondaryColor3sEXT);
+ SET_SecondaryColor3svEXT(disp, glSecondaryColor3svEXT);
+ SET_SecondaryColor3ubEXT(disp, glSecondaryColor3ubEXT);
+ SET_SecondaryColor3ubvEXT(disp, glSecondaryColor3ubvEXT);
+ SET_SecondaryColor3uiEXT(disp, glSecondaryColor3uiEXT);
+ SET_SecondaryColor3uivEXT(disp, glSecondaryColor3uivEXT);
+ SET_SecondaryColor3usEXT(disp, glSecondaryColor3usEXT);
+ SET_SecondaryColor3usvEXT(disp, glSecondaryColor3usvEXT);
+ SET_SecondaryColorPointerEXT(disp, glSecondaryColorPointerEXT);
+ SET_AreProgramsResidentNV(disp, glAreProgramsResidentNV);
+ SET_BindProgramNV(disp, glBindProgramNV);
+ SET_DeleteProgramsNV(disp, glDeleteProgramsNV);
+ SET_ExecuteProgramNV(disp, glExecuteProgramNV);
+ SET_GenProgramsNV(disp, glGenProgramsNV);
+ SET_GetProgramParameterdvNV(disp, glGetProgramParameterdvNV);
+ SET_GetProgramParameterfvNV(disp, glGetProgramParameterfvNV);
+ SET_GetProgramivNV(disp, glGetProgramivNV);
+ SET_GetProgramStringNV(disp, glGetProgramStringNV);
+ SET_GetTrackMatrixivNV(disp, glGetTrackMatrixivNV);
+ SET_GetVertexAttribdvARB(disp, glGetVertexAttribdvARB);
+ SET_GetVertexAttribfvARB(disp, glGetVertexAttribfvARB);
+ SET_GetVertexAttribivARB(disp, glGetVertexAttribivARB);
+ SET_GetVertexAttribPointervNV(disp, glGetVertexAttribPointervNV);
+ SET_IsProgramNV(disp, glIsProgramNV);
+ SET_LoadProgramNV(disp, glLoadProgramNV);
+ SET_ProgramParameter4dNV(disp, glProgramParameter4dNV);
+ SET_ProgramParameter4dvNV(disp, glProgramParameter4dvNV);
+ SET_ProgramParameter4fNV(disp, glProgramParameter4fNV);
+ SET_ProgramParameter4fvNV(disp, glProgramParameter4fvNV);
+ SET_ProgramParameters4dvNV(disp, glProgramParameters4dvNV);
+ SET_ProgramParameters4fvNV(disp, glProgramParameters4fvNV);
+ SET_RequestResidentProgramsNV(disp, glRequestResidentProgramsNV);
+ SET_TrackMatrixNV(disp, glTrackMatrixNV);
+ SET_VertexAttribPointerNV(disp, glVertexAttribPointerNV);
+ SET_VertexAttrib1dARB(disp, glVertexAttrib1dARB);
+ SET_VertexAttrib1dvARB(disp, glVertexAttrib1dvARB);
+ SET_VertexAttrib1fARB(disp, glVertexAttrib1fARB);
+ SET_VertexAttrib1fvARB(disp, glVertexAttrib1fvARB);
+ SET_VertexAttrib1sARB(disp, glVertexAttrib1sARB);
+ SET_VertexAttrib1svARB(disp, glVertexAttrib1svARB);
+ SET_VertexAttrib2dARB(disp, glVertexAttrib2dARB);
+ SET_VertexAttrib2dvARB(disp, glVertexAttrib2dvARB);
+ SET_VertexAttrib2fARB(disp, glVertexAttrib2fARB);
+ SET_VertexAttrib2fvARB(disp, glVertexAttrib2fvARB);
+ SET_VertexAttrib2sARB(disp, glVertexAttrib2sARB);
+ SET_VertexAttrib2svARB(disp, glVertexAttrib2svARB);
+ SET_VertexAttrib3dARB(disp, glVertexAttrib3dARB);
+ SET_VertexAttrib3dvARB(disp, glVertexAttrib3dvARB);
+ SET_VertexAttrib3fARB(disp, glVertexAttrib3fARB);
+ SET_VertexAttrib3fvARB(disp, glVertexAttrib3fvARB);
+ SET_VertexAttrib3sARB(disp, glVertexAttrib3sARB);
+ SET_VertexAttrib3svARB(disp, glVertexAttrib3svARB);
+ SET_VertexAttrib4dARB(disp, glVertexAttrib4dARB);
+ SET_VertexAttrib4dvARB(disp, glVertexAttrib4dvARB);
+ SET_VertexAttrib4fARB(disp, glVertexAttrib4fARB);
+ SET_VertexAttrib4fvARB(disp, glVertexAttrib4fvARB);
+ SET_VertexAttrib4sARB(disp, glVertexAttrib4sARB);
+ SET_VertexAttrib4svARB(disp, glVertexAttrib4svARB);
+ SET_VertexAttrib4NubARB(disp, glVertexAttrib4NubARB);
+ SET_VertexAttrib4NubvARB(disp, glVertexAttrib4NubvARB);
+ SET_VertexAttribs1dvNV(disp, glVertexAttribs1dvNV);
+ SET_VertexAttribs1fvNV(disp, glVertexAttribs1fvNV);
+ SET_VertexAttribs1svNV(disp, glVertexAttribs1svNV);
+ SET_VertexAttribs2dvNV(disp, glVertexAttribs2dvNV);
+ SET_VertexAttribs2fvNV(disp, glVertexAttribs2fvNV);
+ SET_VertexAttribs2svNV(disp, glVertexAttribs2svNV);
+ SET_VertexAttribs3dvNV(disp, glVertexAttribs3dvNV);
+ SET_VertexAttribs3fvNV(disp, glVertexAttribs3fvNV);
+ SET_VertexAttribs3svNV(disp, glVertexAttribs3svNV);
+ SET_VertexAttribs4dvNV(disp, glVertexAttribs4dvNV);
+ SET_VertexAttribs4fvNV(disp, glVertexAttribs4fvNV);
+ SET_VertexAttribs4svNV(disp, glVertexAttribs4svNV);
+ SET_VertexAttribs4ubvNV(disp, glVertexAttribs4ubvNV);
+ SET_PointParameteriNV(disp, glPointParameteriNV);
+ SET_PointParameterivNV(disp, glPointParameterivNV);
+ SET_MultiDrawArraysEXT(disp, glMultiDrawArraysEXT);
+ SET_MultiDrawElementsEXT(disp, glMultiDrawElementsEXT);
+ SET_ActiveStencilFaceEXT(disp, glActiveStencilFaceEXT);
+ SET_DeleteFencesNV(disp, glDeleteFencesNV);
+ SET_GenFencesNV(disp, glGenFencesNV);
+ SET_IsFenceNV(disp, glIsFenceNV);
+ SET_TestFenceNV(disp, glTestFenceNV);
+ SET_GetFenceivNV(disp, glGetFenceivNV);
+ SET_FinishFenceNV(disp, glFinishFenceNV);
+ SET_SetFenceNV(disp, glSetFenceNV);
+ SET_VertexAttrib4bvARB(disp, glVertexAttrib4bvARB);
+ SET_VertexAttrib4ivARB(disp, glVertexAttrib4ivARB);
+ SET_VertexAttrib4ubvARB(disp, glVertexAttrib4ubvARB);
+ SET_VertexAttrib4usvARB(disp, glVertexAttrib4usvARB);
+ SET_VertexAttrib4uivARB(disp, glVertexAttrib4uivARB);
+ SET_VertexAttrib4NbvARB(disp, glVertexAttrib4NbvARB);
+ SET_VertexAttrib4NsvARB(disp, glVertexAttrib4NsvARB);
+ SET_VertexAttrib4NivARB(disp, glVertexAttrib4NivARB);
+ SET_VertexAttrib4NusvARB(disp, glVertexAttrib4NusvARB);
+ SET_VertexAttrib4NuivARB(disp, glVertexAttrib4NuivARB);
+ SET_VertexAttribPointerARB(disp, glVertexAttribPointerARB);
+ SET_EnableVertexAttribArrayARB(disp, glEnableVertexAttribArrayARB);
+ SET_DisableVertexAttribArrayARB(disp, glDisableVertexAttribArrayARB);
+ SET_ProgramStringARB(disp, glProgramStringARB);
+ SET_ProgramEnvParameter4dARB(disp, glProgramEnvParameter4dARB);
+ SET_ProgramEnvParameter4dvARB(disp, glProgramEnvParameter4dvARB);
+ SET_ProgramEnvParameter4fARB(disp, glProgramEnvParameter4fARB);
+ SET_ProgramEnvParameter4fvARB(disp, glProgramEnvParameter4fvARB);
+ SET_ProgramLocalParameter4dARB(disp, glProgramLocalParameter4dARB);
+ SET_ProgramLocalParameter4dvARB(disp, glProgramLocalParameter4dvARB);
+ SET_ProgramLocalParameter4fARB(disp, glProgramLocalParameter4fARB);
+ SET_ProgramLocalParameter4fvARB(disp, glProgramLocalParameter4fvARB);
+ SET_GetProgramEnvParameterdvARB(disp, glGetProgramEnvParameterdvARB);
+ SET_GetProgramEnvParameterfvARB(disp, glGetProgramEnvParameterfvARB);
+ SET_GetProgramLocalParameterdvARB(disp, glGetProgramLocalParameterdvARB);
+ SET_GetProgramLocalParameterfvARB(disp, glGetProgramLocalParameterfvARB);
+ SET_GetProgramivARB(disp, glGetProgramivARB);
+ SET_GetProgramStringARB(disp, glGetProgramStringARB);
+ SET_ProgramNamedParameter4fNV(disp, glProgramNamedParameter4fNV);
+ SET_ProgramNamedParameter4dNV(disp, glProgramNamedParameter4dNV);
+ SET_ProgramNamedParameter4fvNV(disp, glProgramNamedParameter4fvNV);
+ SET_ProgramNamedParameter4dvNV(disp, glProgramNamedParameter4dvNV);
+ SET_GetProgramNamedParameterfvNV(disp, glGetProgramNamedParameterfvNV);
+ SET_GetProgramNamedParameterdvNV(disp, glGetProgramNamedParameterdvNV);
+ SET_BindBufferARB(disp, glBindBufferARB);
+ SET_BufferDataARB(disp, glBufferDataARB);
+ SET_BufferSubDataARB(disp, glBufferSubDataARB);
+ SET_DeleteBuffersARB(disp, glDeleteBuffersARB);
+ SET_GenBuffersARB(disp, glGenBuffersARB);
+ SET_GetBufferParameterivARB(disp, glGetBufferParameterivARB);
+ SET_GetBufferPointervARB(disp, glGetBufferPointervARB);
+ SET_GetBufferSubDataARB(disp, glGetBufferSubDataARB);
+ SET_IsBufferARB(disp, glIsBufferARB);
+ SET_MapBufferARB(disp, glMapBufferARB);
+ SET_UnmapBufferARB(disp, glUnmapBufferARB);
+ SET_DepthBoundsEXT(disp, glDepthBoundsEXT);
+ SET_GenQueriesARB(disp, glGenQueriesARB);
+ SET_DeleteQueriesARB(disp, glDeleteQueriesARB);
+ SET_IsQueryARB(disp, glIsQueryARB);
+ SET_BeginQueryARB(disp, glBeginQueryARB);
+ SET_EndQueryARB(disp, glEndQueryARB);
+ SET_GetQueryivARB(disp, glGetQueryivARB);
+ SET_GetQueryObjectivARB(disp, glGetQueryObjectivARB);
+ SET_GetQueryObjectuivARB(disp, glGetQueryObjectuivARB);
+ SET_MultiModeDrawArraysIBM(disp, glMultiModeDrawArraysIBM);
+ SET_MultiModeDrawElementsIBM(disp, glMultiModeDrawElementsIBM);
+ SET_BlendEquationSeparateEXT(disp, glBlendEquationSeparateEXT);
+ SET_DeleteObjectARB(disp, glDeleteObjectARB);
+ SET_GetHandleARB(disp, glGetHandleARB);
+ SET_DetachObjectARB(disp, glDetachObjectARB);
+ SET_CreateShaderObjectARB(disp, glCreateShaderObjectARB);
+ SET_ShaderSourceARB(disp, glShaderSourceARB);
+ SET_CompileShaderARB(disp, glCompileShaderARB);
+ SET_CreateProgramObjectARB(disp, glCreateProgramObjectARB);
+ SET_AttachObjectARB(disp, glAttachObjectARB);
+ SET_LinkProgramARB(disp, glLinkProgramARB);
+ SET_UseProgramObjectARB(disp, glUseProgramObjectARB);
+ SET_ValidateProgramARB(disp, glValidateProgramARB);
+ SET_Uniform1fARB(disp, glUniform1fARB);
+ SET_Uniform2fARB(disp, glUniform2fARB);
+ SET_Uniform3fARB(disp, glUniform3fARB);
+ SET_Uniform4fARB(disp, glUniform4fARB);
+ SET_Uniform1iARB(disp, glUniform1iARB);
+ SET_Uniform2iARB(disp, glUniform2iARB);
+ SET_Uniform3iARB(disp, glUniform3iARB);
+ SET_Uniform4iARB(disp, glUniform4iARB);
+ SET_Uniform1fvARB(disp, glUniform1fvARB);
+ SET_Uniform2fvARB(disp, glUniform2fvARB);
+ SET_Uniform3fvARB(disp, glUniform3fvARB);
+ SET_Uniform4fvARB(disp, glUniform4fvARB);
+ SET_Uniform1ivARB(disp, glUniform1ivARB);
+ SET_Uniform2ivARB(disp, glUniform2ivARB);
+ SET_Uniform3ivARB(disp, glUniform3ivARB);
+ SET_Uniform4ivARB(disp, glUniform4ivARB);
+ SET_UniformMatrix2fvARB(disp, glUniformMatrix2fvARB);
+ SET_UniformMatrix3fvARB(disp, glUniformMatrix3fvARB);
+ SET_UniformMatrix4fvARB(disp, glUniformMatrix4fvARB);
+ SET_GetObjectParameterfvARB(disp, glGetObjectParameterfvARB);
+ SET_GetObjectParameterivARB(disp, glGetObjectParameterivARB);
+ SET_GetInfoLogARB(disp, glGetInfoLogARB);
+ SET_GetAttachedObjectsARB(disp, glGetAttachedObjectsARB);
+ SET_GetUniformLocationARB(disp, glGetUniformLocationARB);
+ SET_GetActiveUniformARB(disp, glGetActiveUniformARB);
+ SET_GetUniformfvARB(disp, glGetUniformfvARB);
+ SET_GetUniformivARB(disp, glGetUniformivARB);
+ SET_GetShaderSourceARB(disp, glGetShaderSourceARB);
+ SET_BindAttribLocationARB(disp, glBindAttribLocationARB);
+ SET_GetActiveAttribARB(disp, glGetActiveAttribARB);
+ SET_GetAttribLocationARB(disp, glGetAttribLocationARB);
+ SET_GetVertexAttribdvNV(disp, glGetVertexAttribdvNV);
+ SET_GetVertexAttribfvNV(disp, glGetVertexAttribfvNV);
+ SET_GetVertexAttribivNV(disp, glGetVertexAttribivNV);
+ SET_VertexAttrib1dNV(disp, glVertexAttrib1dNV);
+ SET_VertexAttrib1dvNV(disp, glVertexAttrib1dvNV);
+ SET_VertexAttrib1fNV(disp, glVertexAttrib1fNV);
+ SET_VertexAttrib1fvNV(disp, glVertexAttrib1fvNV);
+ SET_VertexAttrib1sNV(disp, glVertexAttrib1sNV);
+ SET_VertexAttrib1svNV(disp, glVertexAttrib1svNV);
+ SET_VertexAttrib2dNV(disp, glVertexAttrib2dNV);
+ SET_VertexAttrib2dvNV(disp, glVertexAttrib2dvNV);
+ SET_VertexAttrib2fNV(disp, glVertexAttrib2fNV);
+ SET_VertexAttrib2fvNV(disp, glVertexAttrib2fvNV);
+ SET_VertexAttrib2sNV(disp, glVertexAttrib2sNV);
+ SET_VertexAttrib2svNV(disp, glVertexAttrib2svNV);
+ SET_VertexAttrib3dNV(disp, glVertexAttrib3dNV);
+ SET_VertexAttrib3dvNV(disp, glVertexAttrib3dvNV);
+ SET_VertexAttrib3fNV(disp, glVertexAttrib3fNV);
+ SET_VertexAttrib3fvNV(disp, glVertexAttrib3fvNV);
+ SET_VertexAttrib3sNV(disp, glVertexAttrib3sNV);
+ SET_VertexAttrib3svNV(disp, glVertexAttrib3svNV);
+ SET_VertexAttrib4dNV(disp, glVertexAttrib4dNV);
+ SET_VertexAttrib4dvNV(disp, glVertexAttrib4dvNV);
+ SET_VertexAttrib4fNV(disp, glVertexAttrib4fNV);
+ SET_VertexAttrib4fvNV(disp, glVertexAttrib4fvNV);
+ SET_VertexAttrib4sNV(disp, glVertexAttrib4sNV);
+ SET_VertexAttrib4svNV(disp, glVertexAttrib4svNV);
+ SET_VertexAttrib4ubNV(disp, glVertexAttrib4ubNV);
+ SET_VertexAttrib4ubvNV(disp, glVertexAttrib4ubvNV);
+ SET_GenFragmentShadersATI(disp, glGenFragmentShadersATI);
+ SET_BindFragmentShaderATI(disp, glBindFragmentShaderATI);
+ SET_DeleteFragmentShaderATI(disp, glDeleteFragmentShaderATI);
+ SET_BeginFragmentShaderATI(disp, glBeginFragmentShaderATI);
+ SET_EndFragmentShaderATI(disp, glEndFragmentShaderATI);
+ SET_PassTexCoordATI(disp, glPassTexCoordATI);
+ SET_SampleMapATI(disp, glSampleMapATI);
+ SET_ColorFragmentOp1ATI(disp, glColorFragmentOp1ATI);
+ SET_ColorFragmentOp2ATI(disp, glColorFragmentOp2ATI);
+ SET_ColorFragmentOp3ATI(disp, glColorFragmentOp3ATI);
+ SET_AlphaFragmentOp1ATI(disp, glAlphaFragmentOp1ATI);
+ SET_AlphaFragmentOp2ATI(disp, glAlphaFragmentOp2ATI);
+ SET_AlphaFragmentOp3ATI(disp, glAlphaFragmentOp3ATI);
+ SET_SetFragmentShaderConstantATI(disp, glSetFragmentShaderConstantATI);
+ SET_IsRenderbufferEXT(disp, glIsRenderbufferEXT);
+ SET_BindRenderbufferEXT(disp, glBindRenderbufferEXT);
+ SET_DeleteRenderbuffersEXT(disp, glDeleteRenderbuffersEXT);
+ SET_GenRenderbuffersEXT(disp, glGenRenderbuffersEXT);
+ SET_RenderbufferStorageEXT(disp, glRenderbufferStorageEXT);
+ SET_GetRenderbufferParameterivEXT(disp, glGetRenderbufferParameterivEXT);
+ SET_IsFramebufferEXT(disp, glIsFramebufferEXT);
+ SET_BindFramebufferEXT(disp, glBindFramebufferEXT);
+ SET_DeleteFramebuffersEXT(disp, glDeleteFramebuffersEXT);
+ SET_GenFramebuffersEXT(disp, glGenFramebuffersEXT);
+ SET_CheckFramebufferStatusEXT(disp, glCheckFramebufferStatusEXT);
+ SET_FramebufferTexture1DEXT(disp, glFramebufferTexture1DEXT);
+ SET_FramebufferTexture2DEXT(disp, glFramebufferTexture2DEXT);
+ SET_FramebufferTexture3DEXT(disp, glFramebufferTexture3DEXT);
+ SET_FramebufferRenderbufferEXT(disp, glFramebufferRenderbufferEXT);
+ SET_GetFramebufferAttachmentParameterivEXT(disp, glGetFramebufferAttachmentParameterivEXT);
+ SET_GenerateMipmapEXT(disp, glGenerateMipmapEXT);
+ SET_StencilFuncSeparate(disp, glStencilFuncSeparate);
+ SET_StencilOpSeparate(disp, glStencilOpSeparate);
+ SET_StencilMaskSeparate(disp, glStencilMaskSeparate);
+ SET_GetQueryObjecti64vEXT(disp, glGetQueryObjecti64vEXT);
+ SET_GetQueryObjectui64vEXT(disp, glGetQueryObjectui64vEXT);
+ SET_BlitFramebufferEXT(disp, glBlitFramebufferEXT); */
+
 }

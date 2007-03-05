@@ -410,7 +410,7 @@ ProcRRConfigureOutputProperty (ClientPtr client)
     RROutputPtr				output;
     int					num_valid;
     
-    REQUEST_SIZE_MATCH(xRRConfigureOutputPropertyReq);
+    REQUEST_AT_LEAST_SIZE(xRRConfigureOutputPropertyReq);
 
     output = LookupOutput (client, stuff->output, DixReadAccess);
     

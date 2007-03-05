@@ -656,7 +656,7 @@ hostx_paint_debug_rect(int x,     int y,
 void
 hostx_load_keymap(void)
 {
-  KeySym          *keymap;
+  XID             *keymap;
   int              host_width, min_keycode, max_keycode, width;
   int              i,j;
 
@@ -677,7 +677,7 @@ hostx_load_keymap(void)
    */
   width = (host_width > 4) ? 4 : host_width;
 
-  ephyrKeySyms.map = (KeySym *)calloc(sizeof(KeySym),
+  ephyrKeySyms.map = (CARD32 *)calloc(sizeof(CARD32),
                                       (max_keycode - min_keycode + 1) *
                                       width);
   if (!ephyrKeySyms.map)
@@ -685,7 +685,7 @@ hostx_load_keymap(void)
 
   for (i=0; i<(max_keycode - min_keycode+1); i++)
     for (j=0; j<width; j++)
-      ephyrKeySyms.map[(i*width)+j] = keymap[(i*host_width) + j];
+      ephyrKeySyms.map[(i*width)+j] = (CARD32) keymap[(i*host_width) + j];
 
   EPHYR_DBG("keymap width, host:%d kdrive:%d", host_width, width);
   

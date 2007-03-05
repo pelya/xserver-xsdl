@@ -572,9 +572,7 @@ exaComposite(CARD8	op,
     if (pExaScr->swappedOut ||
 	pSrc->pDrawable == NULL || (pMask != NULL && pMask->pDrawable == NULL))
     {
-	ExaCheckComposite (op, pSrc, pMask, pDst, xSrc, ySrc,
-			   xMask, yMask, xDst, yDst, width, height);
-        return;
+	goto fallback;
     }
 
     /* Remove repeat in source if useless */
@@ -683,12 +681,18 @@ exaComposite(CARD8	op,
 	}
     }
 
+fallback:
 #if DEBUG_TRACE_FALL
     exaPrintCompositeFallback (op, pSrc, pMask, pDst);
 #endif
 
     ExaCheckComposite (op, pSrc, pMask, pDst, xSrc, ySrc,
 		      xMask, yMask, xDst, yDst, width, height);
+    exaDrawableDirty(pDst->pDrawable,
+		     pDst->pDrawable->x + xDst,
+		     pDst->pDrawable->y + yDst,
+		     pDst->pDrawable->x + xDst + width,
+		     pDst->pDrawable->y + yDst + height);
 
 done:
     pSrc->repeat = saveSrcRepeat;
@@ -995,15 +999,17 @@ exaGlyphs (CARD8	op,
 	     * First we try to use UploadToScreen, if we can, then we fall back
 	     * to a plain exaCopyArea in case of failure.
 	     */
-	    if (!pExaScr->info->UploadToScreen ||
-		!exaPixmapIsOffscreen(pPixmap) ||
-		!(*pExaScr->info->UploadToScreen) (pPixmap, 0, 0,
+	    if (pExaScr->info->UploadToScreen &&
+		exaPixmapIsOffscreen(pPixmap) &&
+		(*pExaScr->info->UploadToScreen) (pPixmap, 0, 0,
 					glyph->info.width,
 					glyph->info.height,
 					glyphdata,
 					PixmapBytePad(glyph->info.width,
 						      list->format->depth)))
 	    {
+		exaMarkSync (pScreen);
+	    } else {
 		/* Set up the scratch pixmap/GC for doing a CopyArea. */
 		if (pScratchPixmap == NULL) {
 		    /* Get a scratch pixmap to wrap the original glyph data */

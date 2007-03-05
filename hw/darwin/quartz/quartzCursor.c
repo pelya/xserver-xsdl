@@ -30,6 +30,9 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #include "quartzCommon.h"
 #include "quartzCursor.h"
 #include "darwin.h"
@@ -90,7 +93,9 @@ static pthread_cond_t cursorCondition;
         /* Acquire lock and tell the main thread to change cursor */    \
         pthread_mutex_lock(&cursorMutex);                               \
         currentCursor = (CCrsrHandle) (cursorH);                        \
+#ifndef INXQUARTZ
         QuartzMessageMainThread(kQuartzCursorUpdate, NULL, 0);          \
+#endif
                                                                         \
         /* Wait for the main thread to change the cursor */             \
         pthread_cond_wait(&cursorCondition, &cursorMutex);              \
