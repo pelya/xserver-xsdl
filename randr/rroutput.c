@@ -366,7 +366,7 @@ RROutputInit (void)
 int
 ProcRRGetOutputInfo (ClientPtr client)
 {
-    REQUEST(xRRGetOutputInfoReq);;
+    REQUEST(xRRGetOutputInfoReq);
     xRRGetOutputInfoReply	rep;
     RROutputPtr			output;
     CARD8			*extra;
