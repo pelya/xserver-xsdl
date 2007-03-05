@@ -215,9 +215,6 @@ dixFreePrivates(PrivateRec *privates)
 	    ptr = next;
 	}
     }
-
-    /* no more use of privates permitted */
-    *privates = NULL;
 }
 
 /*
