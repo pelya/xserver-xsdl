@@ -189,8 +189,10 @@ xf86ActivateDevice(LocalDevicePtr local)
         /* Only create a new sprite if it's a non-shared pointer */
         if (IsPointerDevice(dev) && dev->isMPDev)
             InitializeSprite(dev, GetCurrentRootWindow());
-        else 
-            PairDevices(NULL, inputInfo.pointer, dev);
+        else {
+            /* pair with a free device */
+            PairDevices(NULL, GuessFreePointerDevice(), dev);
+        }
 
         RegisterOtherDevice(dev);
 

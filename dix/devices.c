@@ -2026,3 +2026,45 @@ UnregisterPairingClient(ClientPtr client)
     }
     return True;
 }
+
+/* Guess a pointer that could be a good one for pairing. Any pointer that is
+ * not yet paired with keyboard is considered a good one. 
+ * If no pointer is found, the last real pointer is chosen. If that doesn't
+ * work either, we take the core pointer.
+ */
+DeviceIntPtr
+GuessFreePointerDevice()
+{
+    DeviceIntPtr it, it2;
+    DeviceIntPtr lastRealPtr = NULL;
+        
+    it = inputInfo.devices;
+
+    while(it)
+    {
+        /* found device with a sprite? */
+        if (it != inputInfo.pointer && it->spriteOwner)
+        {
+            lastRealPtr = it;
+
+            it2 = inputInfo.devices;
+            while(it2)
+            {
+                /* something paired with it? */
+                if (it != it2 && it2->pSprite == it->pSprite)
+                    break;
+
+                it2 = it2->next;
+            }
+
+            if (it2)
+                break;
+
+            /* woohoo! no pairing set up for 'it' yet */
+            return it;
+        }
+        it = it->next;
+    }
+
+    return (lastRealPtr) ? lastRealPtr : inputInfo.pointer;
+}
