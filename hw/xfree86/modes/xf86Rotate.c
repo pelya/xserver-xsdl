@@ -69,31 +69,44 @@ compWindowFormat (WindowPtr pWin)
 }
 
 static void
-xf86RotateBox (BoxPtr dst, BoxPtr src, Rotation rotation,
-	       int dest_width, int dest_height)
+xf86TranslateBox (BoxPtr b, int dx, int dy)
 {
+    b->x1 += dx;
+    b->y1 += dy;
+    b->x2 += dx;
+    b->y2 += dy;
+}
+
+static void
+xf86TransformBox (BoxPtr dst, BoxPtr src, Rotation rotation,
+		  int xoff, int yoff,
+		  int dest_width, int dest_height)
+{
+    BoxRec  stmp = *src;
+    
+    xf86TranslateBox (&stmp, -xoff, -yoff);
     switch (rotation & 0xf) {
     default:
     case RR_Rotate_0:
-	*dst = *src;
+	*dst = stmp;
 	break;
     case RR_Rotate_90:
-	dst->x1 = src->y1;
-	dst->y1 = dest_height - src->x2;
-	dst->x2 = src->y2;
-	dst->y2 = dest_height - src->x1;
+	dst->x1 = stmp.y1;
+	dst->y1 = dest_height - stmp.x2;
+	dst->x2 = stmp.y2;
+	dst->y2 = dest_height - stmp.x1;
 	break;
     case RR_Rotate_180:
-	dst->x1 = dest_width - src->x2;
-	dst->y1 = dest_height - src->y2;
-	dst->x2 = dest_width - src->x1;
-	dst->y2 = dest_height - src->y1;
+	dst->x1 = dest_width - stmp.x2;
+	dst->y1 = dest_height - stmp.y2;
+	dst->x2 = dest_width - stmp.x1;
+	dst->y2 = dest_height - stmp.y1;
 	break;
     case RR_Rotate_270:
-	dst->x1 = dest_width - src->y2;
-	dst->y1 = src->x1;
-	dst->y2 = src->x2;
-	dst->x2 = dest_width - src->y1;
+	dst->x1 = dest_width - stmp.y2;
+	dst->y1 = stmp.x1;
+	dst->y2 = stmp.x2;
+	dst->x2 = dest_width - stmp.y1;
 	break;
     }
     if (rotation & RR_Reflect_X) {
@@ -194,8 +207,11 @@ xf86RotateCrtcRedisplay (xf86CrtcPtr crtc, RegionPtr region)
     {
 	BoxRec	dst_box;
 
-	xf86RotateBox (&dst_box, b, crtc->rotation,
-		       crtc->mode.HDisplay, crtc->mode.VDisplay);
+	ErrorF ("painting %d,%d - %d,%d\n",
+		b->x1, b->y1, b->x2, b->y2);
+	xf86TransformBox (&dst_box, b, crtc->rotation,
+			  crtc->x, crtc->y,
+			  crtc->mode.HDisplay, crtc->mode.VDisplay);
 	CompositePicture (PictOpSrc,
 			  src, NULL, dst,
 			  dst_box.x1, dst_box.y1, 0, 0, dst_box.x1, dst_box.y1,
@@ -205,6 +221,26 @@ xf86RotateCrtcRedisplay (xf86CrtcPtr crtc, RegionPtr region)
     }
     FreePicture (src, None);
     FreePicture (dst, None);
+}
+
+static void
+xf86CrtcDamageShadow (xf86CrtcPtr crtc)
+{
+    ScrnInfoPtr	pScrn = crtc->scrn;
+    BoxRec	damage_box;
+    RegionRec   damage_region;
+    ScreenPtr	pScreen = pScrn->pScreen;
+
+    damage_box.x1 = crtc->x;
+    damage_box.x2 = crtc->x + xf86ModeWidth (&crtc->mode, crtc->rotation);
+    damage_box.y1 = crtc->y;
+    damage_box.y2 = crtc->y + xf86ModeHeight (&crtc->mode, crtc->rotation);
+    ErrorF ("damaged %d,%d - %d,%d\n",
+	    damage_box.x1, damage_box.y1, damage_box.x2, damage_box.y2);
+    REGION_INIT (pScreen, &damage_region, &damage_box, 1);
+    DamageDamageRegion (&(*pScreen->GetScreenPixmap)(pScreen)->drawable,
+			&damage_region);
+    REGION_UNINIT (pScreen, &damage_region);
 }
 
 static void
@@ -220,9 +256,6 @@ xf86RotatePrepare (ScreenPtr pScreen)
 	
 	if (crtc->rotatedData && !crtc->rotatedPixmap)
 	{
-	    BoxRec	    damage_box;
-	    RegionRec   damage_region;
-
 	    crtc->rotatedPixmap = crtc->funcs->shadow_create (crtc,
 							     crtc->rotatedData,
 							     crtc->mode.HDisplay,
@@ -231,14 +264,7 @@ xf86RotatePrepare (ScreenPtr pScreen)
 	    DamageRegister (&(*pScreen->GetScreenPixmap)(pScreen)->drawable,
 			    xf86_config->rotationDamage);
 	    
-	    damage_box.x1 = 0;
-	    damage_box.y1 = 0;
-	    damage_box.x2 = xf86ModeWidth (&crtc->mode, crtc->rotation);
-	    damage_box.y2 = xf86ModeHeight (&crtc->mode, crtc->rotation);
-	    REGION_INIT (pScreen, &damage_region, &damage_box, 1);
-	    DamageDamageRegion (&(*pScreen->GetScreenPixmap)(pScreen)->drawable,
-				&damage_region);
-	    REGION_UNINIT (pScreen, &damage_region);
+	    xf86CrtcDamageShadow (crtc);
 	}
     }
 }
@@ -357,6 +383,12 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
 	    if (!shadowData)
 		goto bail1;
 	    crtc->rotatedData = shadowData;
+	    /* shadow will be damaged in xf86RotatePrepare */
+	}
+	else
+	{
+	    /* mark shadowed area as damaged so it will be repainted */
+	    xf86CrtcDamageShadow (crtc);
 	}
 	
 	if (!xf86_config->rotationDamage)
