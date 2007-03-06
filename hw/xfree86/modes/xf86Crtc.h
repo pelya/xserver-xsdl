@@ -644,4 +644,12 @@ xf86CrtcSetScreenSubpixelOrder (ScreenPtr pScreen);
 char *
 xf86ConnectorGetName(xf86ConnectorType connector);
 
+/*
+ * Using the desired mode information in each crtc, set
+ * modes (used in EnterVT functions, or at server startup)
+ */
+
+Bool
+xf86SetDesiredModes (ScrnInfoPtr pScrn);
+
 #endif /* _XF86CRTC_H_ */

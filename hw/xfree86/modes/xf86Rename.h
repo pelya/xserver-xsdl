@@ -76,5 +76,8 @@
 #define xf86CrtcSetScreenSubpixelOrder XF86NAME(xf86CrtcSetScreenSubpixelOrder)
 #define xf86ModeWidth XF86NAME(xf86ModeWidth)
 #define xf86ModeHeight XF86NAME(xf86ModeHeight)
+#define xf86OutputFindClosestMode XF86NAME(xf86OutputFindClosestMode)
+#define xf86SetSingleMode XF86NAME(xf86SetSingleMode)
+#define xf86SetDesiredModes XF86NAME(xf86SetDesiredModes)
 
 #endif /* _XF86RENAME_H_ */
