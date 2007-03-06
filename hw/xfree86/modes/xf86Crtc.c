@@ -1542,6 +1542,63 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
     return TRUE;
 }
 
+/*
+ * Using the desired mode information in each crtc, set
+ * modes (used in EnterVT functions, or at server startup)
+ */
+
+Bool
+xf86SetDesiredModes (ScrnInfoPtr scrn)
+{
+    xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(scrn);
+    int			c;
+
+    for (c = 0; c < config->num_crtc; c++)
+    {
+	xf86CrtcPtr	crtc = config->crtc[c];
+	xf86OutputPtr	output = NULL;
+	int		o;
+
+	if (config->output[config->compat_output]->crtc == crtc)
+	    output = config->output[config->compat_output];
+	else
+	{
+	    for (o = 0; o < config->num_output; o++)
+		if (config->output[o]->crtc == crtc)
+		{
+		    output = config->output[o];
+		    break;
+		}
+	}
+	/*
+	 * Skip disabled crtcs
+	 */
+	if (!output)
+	    continue;
+
+	/* Mark that we'll need to re-set the mode for sure */
+	memset(&crtc->mode, 0, sizeof(crtc->mode));
+	if (!crtc->desiredMode.CrtcHDisplay)
+	{
+	    DisplayModePtr  mode = xf86OutputFindClosestMode (output, scrn->currentMode);
+
+	    if (!mode)
+		return FALSE;
+	    crtc->desiredMode = *mode;
+	    crtc->desiredRotation = RR_Rotate_0;
+	    crtc->desiredX = 0;
+	    crtc->desiredY = 0;
+	}
+
+	if (!xf86CrtcSetMode (crtc, &crtc->desiredMode, crtc->desiredRotation,
+			      crtc->desiredX, crtc->desiredY))
+	    return FALSE;
+    }
+
+    xf86DisableUnusedFunctions(scrn);
+    return TRUE;
+}
+
 /**
  * In the current world order, there are lists of modes per output, which may
  * or may not include the mode that was asked to be set by XFree86's mode
