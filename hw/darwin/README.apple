@@ -22,20 +22,14 @@ The server builds 4 targets:
 Known issues:
 
 * AGL and CGL support for 3D indirect acceleration does not work;
-  indirect.c needs to be rewritten.
+  indirect.c has been rewritten, but not yet integrated into this source tree.
 
 * Fullscreen mode does not work; I don't know why.
-
-* The keyboard and mouse do not work at all; they worked in X11R7.1,
-  and I believe that they were broken by the events changes in dix/.
 
 * Some features in X11.app are not yet implemented; these are marked
   with #ifdef DARWIN_DDX_MISSING in the code.
 
 * The build system code could probably be cleaned up slightly.
-
-* Most testing of this code has occurred under 10.5, but it should
-  also work under 10.4.
 
 Any patches or code contributions would be most welcome and may be
 sent to me at bbyer@apple.com.
