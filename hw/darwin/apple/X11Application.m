@@ -919,11 +919,7 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
       break;
 
     case NSFlagsChanged:
-      bzero(&xe, sizeof(xe));
-      xe.u.u.type = kXDarwinUpdateModifiers;
-      xe.u.clientMessage.u.l.longs0 = [e modifierFlags];
-      DarwinEQEnqueue (&xe);
-      DarwinPokeEQ();
+      DarwinUpdateModKeys([e modifierFlags]);
       break;
     default: break; /* for gcc */
     }	
