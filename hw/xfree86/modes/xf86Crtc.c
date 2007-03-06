@@ -879,13 +879,17 @@ xf86InitialOutputPositions (ScrnInfoPtr scrn, DisplayModePtr *modes)
 		{
 		    xf86OutputPtr	out_rel = config->output[or];
 		    XF86ConfMonitorPtr	rel_mon = out_rel->conf_monitor;
-		    char		*name;
 
 		    if (rel_mon)
-			name = rel_mon->mon_identifier;
-		    else
-			name = out_rel->name;
-		    if (!strcmp (relative_name, name))
+		    {
+			if (xf86nameCompare (rel_mon->mon_identifier,
+					      relative_name) == 0)
+			{
+			    relative = config->output[or];
+			    break;
+			}
+		    }
+		    if (strcmp (out_rel->name, relative_name) == 0)
 		    {
 			relative = config->output[or];
 			break;
