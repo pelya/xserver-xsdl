@@ -43,11 +43,7 @@ fbCreatePixmapBpp (ScreenPtr pScreen, int width, int height, int depth, int bpp)
     if (paddedWidth / 4 > 32767 || height > 32767)
 	return NullPixmap;
     datasize = height * paddedWidth;
-#ifdef PIXPRIV
     base = pScreen->totalPixmapSize;
-#else
-    base = sizeof (PixmapRec);
-#endif
     adjust = 0;
     if (base & 7)
 	adjust = 8 - (base & 7);

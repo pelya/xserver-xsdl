@@ -309,7 +309,6 @@ AllocateGCPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
 /*
  *  pixmap private machinery
  */
-#ifdef PIXPRIV
 static int  pixmapPrivateCount;
 
 void
@@ -355,7 +354,6 @@ AllocatePixmapPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
     pScreen->totalPixmapSize = BitmapBytePad(pScreen->totalPixmapSize * 8);
     return TRUE;
 }
-#endif
 
 
 /*

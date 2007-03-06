@@ -102,12 +102,8 @@ afbCreatePixmap(pScreen, width, height, depth)
 	pPixmap->drawable.height = height;
 	pPixmap->devKind = paddedWidth;
 	pPixmap->refcnt = 1;
-#ifdef PIXPRIV
 	pPixmap->devPrivate.ptr =  datasize ?
 				(pointer)((char *)pPixmap + pScreen->totalPixmapSize) : NULL;
-#else
-	pPixmap->devPrivate.ptr = (pointer)(pPixmap + 1);
-#endif
 	return(pPixmap);
 }
 
