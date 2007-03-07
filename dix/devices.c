@@ -347,7 +347,15 @@ InitCoreDevices()
             FatalError("Couldn't allocate keyboard devPrivates\n");
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
         (void)ActivateDevice(dev);
+
+        /* Enable device, and then remove it from the device list. Virtual
+         * devices are kept separate, not in the standard device list. 
+         */
+        if (dev->inited && dev->startup)
+            EnableDevice(dev);
+        inputInfo.off_devices = inputInfo.devices = NULL;
         inputInfo.keyboard = dev;
+        inputInfo.keyboard->next = NULL;
     }
 
     if (!inputInfo.pointer) {
@@ -372,7 +380,17 @@ InitCoreDevices()
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
         InitializeSprite(dev, NullWindow);
         (void)ActivateDevice(dev);
+
+        /* Enable device, and then remove it from the device list. Virtual
+         * devices are kept separate, not in the standard device list. 
+         */
+        if (dev->inited && dev->startup)
+            EnableDevice(dev);
+        inputInfo.off_devices = inputInfo.devices = NULL;
         inputInfo.pointer = dev;
+        inputInfo.pointer->next = NULL;
+
+
         /* the core keyboard is initialised by now. set the keyboard's sprite
          * to the core pointer's sprite. */
         PairDevices(pairingClient, inputInfo.pointer, inputInfo.keyboard);
@@ -382,7 +400,7 @@ InitCoreDevices()
 int
 InitAndStartDevices()
 {
-    register DeviceIntPtr dev, next;
+    DeviceIntPtr dev, next;
 
     for (dev = inputInfo.off_devices; dev; dev = dev->next) {
         DebugF("(dix) initialising device %d\n", dev->id);
@@ -395,21 +413,25 @@ InitAndStartDevices()
 	if (dev->inited && dev->startup)
 	    (void)EnableDevice(dev);
     }
-    for (dev = inputInfo.devices;
-	 dev && (dev != inputInfo.keyboard);
-	 dev = dev->next)
-    if (!dev || (dev != inputInfo.keyboard)) {
+
+    if (!inputInfo.keyboard) {
 	ErrorF("No core keyboard\n");
 	return BadImplementation;
     }
-    for (dev = inputInfo.devices;
-	 dev && (dev != inputInfo.pointer);
-	 dev = dev->next)
-	;
-    if (!dev || (dev != inputInfo.pointer)) {
+    if (!inputInfo.pointer) {
 	ErrorF("No core pointer\n");
 	return BadImplementation;
     }
+
+    /* All of the devices are started up now. Try to pair each keyboard with a
+     * real pointer, if possible. */
+    for (dev = inputInfo.devices; dev; dev = dev->next)
+    {
+        if (!DevHasCursor(dev))
+            PairDevices(NULL, GuessFreePointerDevice(), dev);
+    }
+
+
     return Success;
 }
 
@@ -2043,7 +2065,7 @@ GuessFreePointerDevice()
     while(it)
     {
         /* found device with a sprite? */
-        if (it != inputInfo.pointer && it->spriteOwner)
+        if (it->spriteOwner)
         {
             lastRealPtr = it;
 
@@ -2057,11 +2079,9 @@ GuessFreePointerDevice()
                 it2 = it2->next;
             }
 
-            if (it2)
-                break;
-
             /* woohoo! no pairing set up for 'it' yet */
-            return it;
+            if (!it2)
+                return it;
         }
         it = it->next;
     }

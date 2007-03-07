@@ -302,7 +302,7 @@ miPointerWarpCursor (pDev, pScreen, x, y)
 
     if (GenerateEvent)
     {
-	miPointerMoved (pDev, pScreen, x, y, GetTimeInMillis()); 
+	miPointerMove (pDev, pScreen, x, y, GetTimeInMillis()); 
     }
     else
     {
@@ -346,8 +346,8 @@ miPointerUpdateSprite (DeviceIntPtr pDev)
     int			x, y, devx, devy;
     miPointerPtr        pPointer;
 
-    if (!pDev || 
-            !(pDev->coreEvents || pDev == inputInfo.pointer || pDev->isMPDev))
+    if (!pDev || pDev == inputInfo.pointer || 
+            !(pDev->coreEvents || pDev->isMPDev))
         return;
 
     pPointer = MIPOINTER(pDev);
@@ -540,7 +540,7 @@ miPointerMove (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y, unsigned long
     int i, nevents;
     int valuators[2];
 
-    miPointerMoved(inputInfo.pointer, pScreen, x, y, time);
+    miPointerMoved(pDev, pScreen, x, y, time);
 
     /* generate motion notify */
     valuators[0] = x;

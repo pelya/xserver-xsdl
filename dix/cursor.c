@@ -440,6 +440,33 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
     for (nscr = 0; nscr < screenInfo.numScreens; nscr++)
     {
         pscr = screenInfo.screens[nscr];
+
+        if (!(*pscr->RealizeCursor)(inputInfo.pointer, pscr, pCurs))
+        {
+            DeviceIntPtr pDevIt = inputInfo.devices; /*dev iterator*/
+            /* Realize for core pointer failed. Unrealize everything from
+             * previous screens.
+             */ 
+            while (--nscr >= 0)
+            {
+                pscr = screenInfo.screens[nscr];
+                /* now unrealize all devices on previous screens */
+                ( *pscr->UnrealizeCursor)(inputInfo.pointer, pscr, pCurs);
+
+                pDevIt = inputInfo.devices;
+                while (pDevIt)
+                {
+                    if (DevHasCursor(pDevIt))
+                        ( *pscr->UnrealizeCursor)(pDevIt, pscr, pCurs);
+                    pDevIt = pDevIt->next;
+                }
+                ( *pscr->UnrealizeCursor)(pDev, pscr, pCurs);
+            }
+            FreeCursorBits(bits);
+            xfree(pCurs);
+            return BadAlloc;
+        }
+
         for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
         {
             if (DevHasCursor(pDev))
@@ -459,10 +486,15 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
                             ( *pscr->UnrealizeCursor)(pDevIt, pscr, pCurs);
                         pDevIt = pDevIt->next;
                     }
+
+                    (*pscr->UnrealizeCursor)(inputInfo.pointer, pscr, pCurs);
+
                     while (--nscr >= 0)
                     {
                         pscr = screenInfo.screens[nscr];
                         /* now unrealize all devices on previous screens */
+                        ( *pscr->UnrealizeCursor)(inputInfo.pointer, pscr, pCurs);
+
                         pDevIt = inputInfo.devices;
                         while (pDevIt)
                         {

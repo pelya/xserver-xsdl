@@ -104,12 +104,12 @@ RegisterOtherDevice(DeviceIntPtr device)
 }
 
  /*ARGSUSED*/ void
-ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
+ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 {
-    register BYTE *kptr;
-    register int i;
-    register CARD16 modifiers;
-    register CARD16 mask;
+    BYTE *kptr;
+    int i;
+    CARD16 modifiers;
+    CARD16 mask;
     GrabPtr grab = other->grab;
     Bool deactivateDeviceGrab = FALSE;
     int key = 0, bit = 0, rootX, rootY;
@@ -229,7 +229,9 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 	    }
 	}
 
-	if (other->fromPassiveGrab && (key == other->activatingKey))
+	if (other->fromPassiveGrab && 
+            !other->grab->coreGrab &&
+            (key == other->activatingKey))
 	    deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == DeviceButtonPress) {
         if (!b)
@@ -267,7 +269,9 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 	if (xE->u.u.detail <= 5)
 	    b->state &= ~((Button1Mask >> 1) << xE->u.u.detail);
 	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
-        if (!b->state && other->fromPassiveGrab)
+        if (!b->state 
+            && other->fromPassiveGrab
+            && !other->grab->coreGrab)
             deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == ProximityIn)
 	other->valuator->mode &= ~OutOfProximity;

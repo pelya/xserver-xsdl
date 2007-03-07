@@ -247,7 +247,7 @@ static int spriteTraceGood;
 _X_EXPORT Bool
 DevHasCursor(DeviceIntPtr pDev) 
 {
-    return pDev->spriteOwner;
+    return (pDev != inputInfo.pointer && pDev->spriteOwner);
 }
 
 #ifdef XEVIE
@@ -1663,6 +1663,8 @@ DeliverEventsToWindow(DeviceIntPtr pDev, register WindowPtr pWin, xEvent
 		              this mask is the mask of the grab. */
     int type = pEvents->u.u.type;
     
+    /* if a  is denied, we return 0. This could cause the caller to
+     * traverse the parent. May be bad! (whot) */
     if (!ACDeviceAllowed(pWin, pDev))
         return 0;
 
@@ -1727,6 +1729,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, register WindowPtr pWin, xEvent
 	tempGrab.pointerMode = GrabModeAsync;
 	tempGrab.confineTo = NullWindow;
 	tempGrab.cursor = NullCursor;
+        tempGrab.coreGrab = True;
 	(*inputInfo.pointer->ActivateGrab)(pDev, &tempGrab,
 					   currentTime, TRUE);
     }
@@ -1868,8 +1871,8 @@ FixUpEventFromWindow(
 }
 
 int
-DeliverDeviceEvents(register WindowPtr pWin, register xEvent *xE, GrabPtr grab, 
-                    register WindowPtr stopAt, DeviceIntPtr dev, int count)
+DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab, 
+                    WindowPtr stopAt, DeviceIntPtr dev, int count)
 {
     Window child = None;
     int type = xE->u.u.type;
@@ -1878,7 +1881,7 @@ DeliverDeviceEvents(register WindowPtr pWin, register xEvent *xE, GrabPtr grab,
 
     if (type & EXTENSION_EVENT_BASE)
     {
-	register OtherInputMasks *inputMasks;
+	OtherInputMasks *inputMasks;
 	int mskidx = dev->id;
 
 	inputMasks = wOtherInputMasks(pWin);
@@ -2199,6 +2202,8 @@ DefineInitialRootWindow(register WindowPtr win)
 #endif
     ROOT = win;
 
+    InitializeSprite(inputInfo.pointer, win);
+
     while (pDev)
     {
         if (DevHasCursor(pDev))
@@ -2274,7 +2279,6 @@ InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
         REGION_NULL(pScreen, &pSprite->Reg2);
     }
 #endif
-
 }
 
 /*
@@ -3943,6 +3947,7 @@ ProcGrabPointer(ClientPtr client)
 	tempGrab.keyboardMode = stuff->keyboardMode;
 	tempGrab.pointerMode = stuff->pointerMode;
 	tempGrab.device = device;
+        tempGrab.coreGrab = True;
 	(*device->ActivateGrab)(device, &tempGrab, time, FALSE);
 	if (oldCursor)
 	    FreeCursor (oldCursor, (Cursor)0);
