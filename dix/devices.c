@@ -494,6 +494,9 @@ CloseDevice(register DeviceIntPtr dev)
 	XkbRemoveResourceClient((DevicePtr)dev,dev->xkb_interest->resource);
 #endif
 
+    if (dev->devPrivates)
+	xfree(dev->devPrivates);
+
     xfree(dev->sync.event);
     xfree(dev);
 }
