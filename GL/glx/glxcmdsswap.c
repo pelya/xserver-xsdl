@@ -496,10 +496,10 @@ int __glXDispSwap_CopySubBufferMESA(__GLXclientState *cl, GLbyte *pc)
     GLXDrawable		 *drawId;
     int			 *buffer;
 
+    __GLX_DECLARE_SWAP_VARIABLES;
+
     (void) drawId;
     (void) buffer;
-
-    __GLX_DECLARE_SWAP_VARIABLES;
 
     pc += __GLX_VENDPRIV_HDR_SIZE;
 

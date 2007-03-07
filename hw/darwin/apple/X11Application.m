@@ -855,48 +855,6 @@ convert_flags (unsigned int nsflags) {
     return xflags;
 }
 
-/* Sends a null byte down darwinEventWriteFD, which will cause the
-   Dispatch() event loop to check out event queue */
-void DarwinPokeEQ(void) {
-  char nullbyte=0;
-  input_check_flag++;
-  //  <daniels> bushing: oh, i ... er ... christ.
-  write(darwinEventWriteFD, &nullbyte, 1);
-}
-
-void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y) {
-  int i;
-  int valuators[2] = {pointer_x, pointer_y};
-  int num_events = GetPointerEvents(darwinEvents, darwinPointer, ev_type, ev_button, 
-				    POINTER_ABSOLUTE, 0, 2, valuators);
-      
-  for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
-  DarwinPokeEQ();
-}
-
-void DarwinSendKeyboardEvents(int ev_type, int keycode) {
-  int i;
-  int num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE);
-  for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard,&darwinEvents[i]);
-  DarwinPokeEQ();
-}
-
-/* Send the appropriate number of button 4 / 5 clicks to emulate scroll wheel */
-void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y) {
-  int i;
-  int ev_button = count > 0.0f ? 4 : 5;
-  int valuators[2] = {pointer_x, pointer_y};
-
-  for (count = fabs(count); count > 0.0; count = count - 1.0f) {
-    int num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonPress, ev_button, 
-				      POINTER_ABSOLUTE, 0, 2, valuators);
-    for(i=0; i<num_events; i++) mieqEnqueue(darwinPointer,&darwinEvents[i]);
-    num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonRelease, ev_button, 
-				      POINTER_ABSOLUTE, 0, 2, valuators);
-    for(i=0; i<num_events; i++) mieqEnqueue(darwinPointer,&darwinEvents[i]);
-  }
-  DarwinPokeEQ();
-}
 
 // This code should probably be merged with that in XDarwin's XServer.m - BB
 static void send_nsevent (NSEventType type, NSEvent *e) {
@@ -961,11 +919,7 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
       break;
 
     case NSFlagsChanged:
-      bzero(&xe, sizeof(xe));
-      xe.u.u.type = kXDarwinUpdateModifiers;
-      xe.u.clientMessage.u.l.longs0 = [e modifierFlags];
-      DarwinEQEnqueue (&xe);
-      DarwinPokeEQ();
+      DarwinUpdateModKeys([e modifierFlags]);
       break;
     default: break; /* for gcc */
     }	

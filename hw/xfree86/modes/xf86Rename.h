@@ -31,6 +31,7 @@
 #define xf86CrtcDestroy XF86NAME(xf86CrtcDestroy)
 #define xf86CrtcInUse XF86NAME(xf86CrtcInUse)
 #define xf86CrtcRotate XF86NAME(xf86CrtcRotate)
+#define xf86CrtcScreenInit XF86NAME(xf86CrtcScreenInit)
 #define xf86CrtcSetMode XF86NAME(xf86CrtcSetMode)
 #define xf86CrtcSetSizeRange XF86NAME(xf86CrtcSetSizeRange)
 #define xf86CVTMode XF86NAME(xf86CVTMode)
@@ -76,5 +77,8 @@
 #define xf86CrtcSetScreenSubpixelOrder XF86NAME(xf86CrtcSetScreenSubpixelOrder)
 #define xf86ModeWidth XF86NAME(xf86ModeWidth)
 #define xf86ModeHeight XF86NAME(xf86ModeHeight)
+#define xf86OutputFindClosestMode XF86NAME(xf86OutputFindClosestMode)
+#define xf86SetSingleMode XF86NAME(xf86SetSingleMode)
+#define xf86SetDesiredModes XF86NAME(xf86SetDesiredModes)
 
 #endif /* _XF86RENAME_H_ */

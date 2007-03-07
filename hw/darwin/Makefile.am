@@ -112,7 +112,7 @@ macos_PROGRAMS = XDarwinApp
 macos_SCRIPTS = x11app
 
 x11app:
-	cd apple && xcodebuild
+	cd apple && xcodebuild CFLAGS="$(XSERVERCFLAGS_CFLAGS)" LDFLAGS="$(XSERVERCFLAGS_LIBS)"
 
 XDarwinApp_SOURCES = \
                 $(top_srcdir)/fb/fbcmap.c \
@@ -275,7 +275,7 @@ install-data-hook: $(HOOK_TARGETS)
 
 xquartz-install-hook:
 	mv $(DESTDIR)$(macosdir)/XDarwinApp $(DESTDIR)$(macosdir)/XDarwin
-        cd apple && xcodebuild CFLAGS="$(XSERVERCFLAGS_CFLAGS)" LDFLAGS="$(XSERVERCFLAGS_LIBS)"
+	cd apple && xcodebuild install
 
 EXTRA_DIST = \
 	darwin.c \

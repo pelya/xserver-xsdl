@@ -280,10 +280,8 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(AllocateColormapPrivateIndex)
     SYMFUNC(AllocateDevicePrivateIndex)
     SYMFUNC(AllocateDevicePrivate)
-#ifdef PIXPRIV
     SYMFUNC(AllocatePixmapPrivateIndex)
     SYMFUNC(AllocatePixmapPrivate)
-#endif
     /* resource.c */
     SYMFUNC(AddResource)
     SYMFUNC(ChangeResourceValue)

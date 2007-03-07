@@ -364,9 +364,7 @@ main(int argc, char *argv[], char *envp[])
 	ResetScreenPrivates();
 	ResetWindowPrivates();
 	ResetGCPrivates();
-#ifdef PIXPRIV
 	ResetPixmapPrivates();
-#endif
 	ResetColormapPrivates();
 	ResetFontPrivateIndex();
 	ResetDevicePrivateIndex();
@@ -734,11 +732,9 @@ AddScreen(
     pScreen->GCPrivateSizes = (unsigned *)NULL;
     pScreen->totalGCSize =
         ((sizeof(GC) + sizeof(long) - 1) / sizeof(long)) * sizeof(long);
-#ifdef PIXPRIV
     pScreen->PixmapPrivateLen = 0;
     pScreen->PixmapPrivateSizes = (unsigned *)NULL;
     pScreen->totalPixmapSize = BitmapBytePad(sizeof(PixmapRec)*8);
-#endif
     pScreen->ClipNotify = 0;	/* for R4 ddx compatibility */
     pScreen->CreateScreenResources = 0;
     
@@ -802,9 +798,7 @@ FreeScreen(ScreenPtr pScreen)
 {
     xfree(pScreen->WindowPrivateSizes);
     xfree(pScreen->GCPrivateSizes);
-#ifdef PIXPRIV
     xfree(pScreen->PixmapPrivateSizes);
-#endif
     xfree(pScreen->devPrivates);
     xfree(pScreen);
 }
