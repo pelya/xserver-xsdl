@@ -279,8 +279,8 @@ dixLookupPrivateOffset(RESTYPE type)
 /*
  * Called from the main loop to reset the subsystem.
  */
-static void ResetExtensionPrivates(void);
-static void ResetClientPrivates(void);
+static int ResetExtensionPrivates(void);
+static int ResetClientPrivates(void);
 static void ResetScreenPrivates(void);
 static void ResetWindowPrivates(void);
 static void ResetGCPrivates(void);
@@ -307,8 +307,8 @@ dixResetPrivates(void)
 	return FALSE;
 
     /* reset legacy devPrivates support */
-    ResetExtensionPrivates();
-    ResetClientPrivates();
+    if (!ResetExtensionPrivates() || !ResetClientPrivates())
+	return FALSE;
     ResetScreenPrivates();
     ResetWindowPrivates();
     ResetGCPrivates();
@@ -317,10 +317,14 @@ dixResetPrivates(void)
     ResetDevicePrivateIndex();
 
     /* register basic resource offsets */
-    if (!dixRegisterPrivateOffset(RT_WINDOW, offsetof(WindowRec,devPrivates)))
-	return FALSE;
-
-    return TRUE;
+    return dixRegisterPrivateOffset(RT_WINDOW,
+				    offsetof(WindowRec, devPrivates)) &&
+	dixRegisterPrivateOffset(RT_PIXMAP,
+				 offsetof(PixmapRec, devPrivates)) &&
+	dixRegisterPrivateOffset(RT_GC,
+				 offsetof(GC, devPrivates)) &&
+	dixRegisterPrivateOffset(RT_COLORMAP,
+				 offsetof(ColormapRec, devPrivates));
 }
 
 /*
@@ -343,15 +347,18 @@ int extensionPrivateLen;
 unsigned *extensionPrivateSizes;
 unsigned totalExtensionSize;
 
-static void
+static int
 ResetExtensionPrivates()
 {
-    extensionPrivateCount = 0;
-    extensionPrivateLen = 0;
+    extensionPrivateCount = 1;
+    extensionPrivateLen = 1;
     xfree(extensionPrivateSizes);
-    extensionPrivateSizes = (unsigned *)NULL;
-    totalExtensionSize =
-	((sizeof(ExtensionEntry) + sizeof(long) - 1) / sizeof(long)) * sizeof(long);
+    extensionPrivateSizes = (unsigned *)xalloc(sizeof(unsigned));
+    if (!extensionPrivateSizes)
+	return FALSE;
+    *extensionPrivateSizes = 0;
+    totalExtensionSize = PadToLong(sizeof(ExtensionEntry)) + sizeof(DevUnion);
+    return TRUE;
 }
 
 _X_EXPORT int
@@ -400,15 +407,18 @@ int clientPrivateLen;
 unsigned *clientPrivateSizes;
 unsigned totalClientSize;
 
-static void
+static int
 ResetClientPrivates()
 {
-    clientPrivateCount = 0;
-    clientPrivateLen = 0;
+    clientPrivateCount = 1;
+    clientPrivateLen = 1;
     xfree(clientPrivateSizes);
-    clientPrivateSizes = (unsigned *)NULL;
-    totalClientSize =
-	((sizeof(ClientRec) + sizeof(long) - 1) / sizeof(long)) * sizeof(long);
+    clientPrivateSizes = (unsigned *)xalloc(sizeof(unsigned));
+    if (!clientPrivateSizes)
+	return FALSE;
+    *clientPrivateSizes = 0;
+    totalClientSize = PadToLong(sizeof(ClientRec)) + sizeof(DevUnion);
+    return TRUE;
 }
 
 _X_EXPORT int
@@ -457,7 +467,7 @@ int  screenPrivateCount;
 static void
 ResetScreenPrivates()
 {
-    screenPrivateCount = 0;
+    screenPrivateCount = 1;
 }
 
 /* this can be called after some screens have been created,
@@ -499,7 +509,7 @@ static int  windowPrivateCount;
 static void
 ResetWindowPrivates()
 {
-    windowPrivateCount = 0;
+    windowPrivateCount = 1;
 }
 
 _X_EXPORT int
@@ -549,7 +559,7 @@ static int  gcPrivateCount;
 static void
 ResetGCPrivates()
 {
-    gcPrivateCount = 0;
+    gcPrivateCount = 1;
 }
 
 _X_EXPORT int
@@ -598,7 +608,7 @@ static int  pixmapPrivateCount;
 static void
 ResetPixmapPrivates()
 {
-    pixmapPrivateCount = 0;
+    pixmapPrivateCount = 1;
 }
 
 _X_EXPORT int
@@ -649,7 +659,7 @@ int  colormapPrivateCount;
 static void
 ResetColormapPrivates()
 {
-    colormapPrivateCount = 0;
+    colormapPrivateCount = 1;
 }
 
 
@@ -734,5 +744,5 @@ AllocateDevicePrivate(DeviceIntPtr device, int index)
 static void
 ResetDevicePrivateIndex(void)
 {
-    devicePrivateIndex = 0;
+    devicePrivateIndex = 1;
 }

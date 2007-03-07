@@ -715,18 +715,28 @@ AddScreen(
 	xfree(pScreen);
 	return -1;
     }
+
+    /* must pre-allocate one private for the new devPrivates support */
+    pScreen->WindowPrivateLen = 1;
+    pScreen->WindowPrivateSizes = (unsigned *)xalloc(sizeof(unsigned));
+    pScreen->totalWindowSize = PadToLong(sizeof(WindowRec)) + sizeof(DevUnion);
+    pScreen->GCPrivateLen = 1;
+    pScreen->GCPrivateSizes = (unsigned *)xalloc(sizeof(unsigned));
+    pScreen->totalGCSize = PadToLong(sizeof(GC)) + sizeof(DevUnion);
+    pScreen->PixmapPrivateLen = 1;
+    pScreen->PixmapPrivateSizes = (unsigned *)xalloc(sizeof(unsigned));
+    pScreen->totalPixmapSize = BitmapBytePad(8 * (sizeof(PixmapRec) +
+						  sizeof(DevUnion)));
+    if (pScreen->WindowPrivateSizes && pScreen->GCPrivateSizes &&
+	pScreen->PixmapPrivateSizes)
+	*pScreen->WindowPrivateSizes = *pScreen->GCPrivateSizes =
+	    *pScreen->PixmapPrivateSizes = 0;
+    else {
+	xfree(pScreen);
+	return -1;
+    }
+
     pScreen->myNum = i;
-    pScreen->WindowPrivateLen = 0;
-    pScreen->WindowPrivateSizes = (unsigned *)NULL;
-    pScreen->totalWindowSize =
-        ((sizeof(WindowRec) + sizeof(long) - 1) / sizeof(long)) * sizeof(long);
-    pScreen->GCPrivateLen = 0;
-    pScreen->GCPrivateSizes = (unsigned *)NULL;
-    pScreen->totalGCSize =
-        ((sizeof(GC) + sizeof(long) - 1) / sizeof(long)) * sizeof(long);
-    pScreen->PixmapPrivateLen = 0;
-    pScreen->PixmapPrivateSizes = (unsigned *)NULL;
-    pScreen->totalPixmapSize = BitmapBytePad(sizeof(PixmapRec)*8);
     pScreen->ClipNotify = 0;	/* for R4 ddx compatibility */
     pScreen->CreateScreenResources = 0;
     

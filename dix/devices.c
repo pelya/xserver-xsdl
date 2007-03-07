@@ -124,8 +124,15 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 #ifdef XKB
     dev->xkb_interest = NULL;
 #endif
-    dev->nPrivates = 0;
-    dev->devPrivates = NULL;
+    /* must pre-allocate one private for the new devPrivates support */
+    dev->nPrivates = 1;
+    dev->devPrivates = (DevUnion *)xalloc(sizeof(DevUnion));
+    if (!dev->devPrivates) {
+	xfree(dev);
+	return NULL;
+    }
+    dev->devPrivates[0].ptr = NULL;
+
     dev->unwrapProc = NULL;
     dev->coreEvents = TRUE;
     dev->inited = FALSE;
