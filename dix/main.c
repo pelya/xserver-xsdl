@@ -359,15 +359,7 @@ main(int argc, char *argv[], char *envp[])
 	InitGlyphCaching();
 	if (!dixResetPrivates())
 	    FatalError("couldn't init private data storage");
-	ResetExtensionPrivates();
-	ResetClientPrivates();
-	ResetScreenPrivates();
-	ResetWindowPrivates();
-	ResetGCPrivates();
-	ResetPixmapPrivates();
-	ResetColormapPrivates();
 	ResetFontPrivateIndex();
-	ResetDevicePrivateIndex();
 	InitCallbackManager();
 	InitVisualWrap();
 	InitOutput(&screenInfo, argc, argv);

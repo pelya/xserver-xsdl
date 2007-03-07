@@ -591,8 +591,6 @@ void
 ScreenRestructured (ScreenPtr pScreen);
 #endif
 
-extern void ResetClientPrivates(void);
-
 extern int AllocateClientPrivateIndex(void);
 
 extern Bool AllocateClientPrivate(

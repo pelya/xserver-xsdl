@@ -279,6 +279,15 @@ dixLookupPrivateOffset(RESTYPE type)
 /*
  * Called from the main loop to reset the subsystem.
  */
+static void ResetExtensionPrivates(void);
+static void ResetClientPrivates(void);
+static void ResetScreenPrivates(void);
+static void ResetWindowPrivates(void);
+static void ResetGCPrivates(void);
+static void ResetPixmapPrivates(void);
+static void ResetColormapPrivates(void);
+static void ResetDevicePrivateIndex(void);
+
 int
 dixResetPrivates(void)
 {
@@ -296,6 +305,16 @@ dixResetPrivates(void)
     offsets = (unsigned *)xalloc(offsetsSize * sizeof(unsigned));
     if (!offsets)
 	return FALSE;
+
+    /* reset legacy devPrivates support */
+    ResetExtensionPrivates();
+    ResetClientPrivates();
+    ResetScreenPrivates();
+    ResetWindowPrivates();
+    ResetGCPrivates();
+    ResetPixmapPrivates();
+    ResetColormapPrivates();
+    ResetDevicePrivateIndex();
 
     /* register basic resource offsets */
     if (!dixRegisterPrivateOffset(RT_WINDOW, offsetof(WindowRec,devPrivates)))
@@ -324,7 +343,7 @@ int extensionPrivateLen;
 unsigned *extensionPrivateSizes;
 unsigned totalExtensionSize;
 
-void
+static void
 ResetExtensionPrivates()
 {
     extensionPrivateCount = 0;
@@ -381,7 +400,7 @@ int clientPrivateLen;
 unsigned *clientPrivateSizes;
 unsigned totalClientSize;
 
-void
+static void
 ResetClientPrivates()
 {
     clientPrivateCount = 0;
@@ -435,7 +454,7 @@ AllocateClientPrivate(int index2, unsigned amount)
 
 int  screenPrivateCount;
 
-void
+static void
 ResetScreenPrivates()
 {
     screenPrivateCount = 0;
@@ -477,7 +496,7 @@ AllocateScreenPrivateIndex()
 
 static int  windowPrivateCount;
 
-void
+static void
 ResetWindowPrivates()
 {
     windowPrivateCount = 0;
@@ -527,7 +546,7 @@ AllocateWindowPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
 
 static int  gcPrivateCount;
 
-void
+static void
 ResetGCPrivates()
 {
     gcPrivateCount = 0;
@@ -576,7 +595,7 @@ AllocateGCPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
  */
 static int  pixmapPrivateCount;
 
-void
+static void
 ResetPixmapPrivates()
 {
     pixmapPrivateCount = 0;
@@ -627,7 +646,7 @@ AllocatePixmapPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
 
 int  colormapPrivateCount;
 
-void
+static void
 ResetColormapPrivates()
 {
     colormapPrivateCount = 0;
@@ -712,7 +731,7 @@ AllocateDevicePrivate(DeviceIntPtr device, int index)
     }
 }
 
-void
+static void
 ResetDevicePrivateIndex(void)
 {
     devicePrivateIndex = 0;
