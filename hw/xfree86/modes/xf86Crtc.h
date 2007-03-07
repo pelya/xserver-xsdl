@@ -494,6 +494,7 @@ typedef struct _xf86CrtcConfig {
 
     const xf86CrtcConfigFuncsRec *funcs;
 
+    CreateScreenResourcesProcPtr    CreateScreenResources;
 } xf86CrtcConfigRec, *xf86CrtcConfigPtr;
 
 extern int xf86CrtcConfigPrivateIndex;
@@ -523,25 +524,6 @@ xf86CrtcCreate (ScrnInfoPtr		scrn,
 void
 xf86CrtcDestroy (xf86CrtcPtr		crtc);
 
-
-/**
- * Allocate a crtc for the specified output
- *
- * Find a currently unused CRTC which is suitable for
- * the specified output
- */
-
-xf86CrtcPtr 
-xf86AllocCrtc (xf86OutputPtr		output);
-
-/**
- * Free a crtc
- *
- * Mark the crtc as unused by any outputs
- */
-
-void
-xf86FreeCrtc (xf86CrtcPtr		crtc);
 
 /**
  * Sets the given video mode on the given crtc
@@ -581,6 +563,9 @@ xf86ProbeOutputModes (ScrnInfoPtr pScrn, int maxX, int maxY);
 
 void
 xf86SetScrnInfoModes (ScrnInfoPtr pScrn);
+
+Bool
+xf86CrtcScreenInit (ScreenPtr pScreen);
 
 Bool
 xf86InitialConfiguration (ScrnInfoPtr pScrn, Bool canGrow);

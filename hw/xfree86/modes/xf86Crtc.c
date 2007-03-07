@@ -545,6 +545,60 @@ xf86OutputDestroy (xf86OutputPtr output)
     xfree (output);
 }
 
+/*
+ * Called during CreateScreenResources to hook up RandR
+ */
+static Bool
+xf86CrtcCreateScreenResources (ScreenPtr screen)
+{
+    ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
+    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+
+    screen->CreateScreenResources = config->CreateScreenResources;
+    
+    if (!(*screen->CreateScreenResources)(screen))
+	return FALSE;
+
+    if (!xf86RandR12CreateScreenResources (screen))
+	return FALSE;
+
+    return TRUE;
+}
+
+/*
+ * Called at ScreenInit time to set up
+ */
+Bool
+xf86CrtcScreenInit (ScreenPtr screen)
+{
+    ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
+    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+    int			c;
+
+    /* Rotation */
+    xf86DrvMsg(scrn->scrnIndex, X_INFO, "RandR 1.2 enabled, ignore the following RandR disabled message.\n");
+    xf86DisableRandR(); /* Disable old RandR extension support */
+    xf86RandR12Init (screen);
+
+    /* support all rotations if every crtc has the shadow alloc funcs */
+    for (c = 0; c < config->num_crtc; c++)
+    {
+	xf86CrtcPtr crtc = config->crtc[c];
+	if (!crtc->funcs->shadow_allocate || !crtc->funcs->shadow_create)
+	    break;
+    }
+    if (c == config->num_crtc)
+	xf86RandR12SetRotations (screen, RR_Rotate_0 | RR_Rotate_90 |
+				 RR_Rotate_180 | RR_Rotate_270);
+    else
+	xf86RandR12SetRotations (screen, RR_Rotate_0);
+    
+    /* Wrap CreateScreenResources so we can initialize the RandR code */
+    config->CreateScreenResources = screen->CreateScreenResources;
+    screen->CreateScreenResources = xf86CrtcCreateScreenResources;
+    return TRUE;
+}
+
 static DisplayModePtr
 xf86DefaultMode (xf86OutputPtr output, int width, int height)
 {
