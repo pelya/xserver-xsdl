@@ -112,7 +112,7 @@ dixSetPrivate(PrivateRec **privates, devprivate_key_t *const key, pointer val)
  */
 typedef struct _PrivateCallback {
     devprivate_key_t *key;	/* private registration key */
-    pointer value;		/* pointer to private */
+    pointer *value;		/* address of private pointer */
 } PrivateCallbackRec;
 
 extern int

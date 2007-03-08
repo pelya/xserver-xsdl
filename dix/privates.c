@@ -117,7 +117,7 @@ dixAllocatePrivate(PrivateRec **privates, devprivate_key_t *const key)
 
     /* call any init funcs and return */
     if (item) {
-	PrivateCallbackRec calldata = { key, ptr->value };
+	PrivateCallbackRec calldata = { key, &ptr->value };
 	CallCallbacks(&item->initfuncs, &calldata);
     }
     return &ptr->value;
@@ -138,7 +138,7 @@ dixFreePrivates(PrivateRec *privates)
 	item = findItem(ptr->key);
 	if (item) {
 	    calldata.key = ptr->key;
-	    calldata.value = ptr->value;
+	    calldata.value = &ptr->value;
 	    CallCallbacks(&item->deletefuncs, &calldata);
 	}
     }
