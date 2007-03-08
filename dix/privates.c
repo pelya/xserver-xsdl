@@ -48,8 +48,6 @@ from The Open Group.
 
 typedef struct _PrivateDesc {
     devprivate_key_t *key;
-    RESTYPE type;
-    pointer parent;
     unsigned size;
     CallbackListPtr initfuncs;
     CallbackListPtr deletefuncs;
@@ -72,15 +70,13 @@ findItem(devprivate_key_t *const key)
 }
 
 /*
- * Request pre-allocated space in resources of a given type.
+ * Request pre-allocated space.
  */
 _X_EXPORT int
-dixRequestPrivate(RESTYPE type, devprivate_key_t *const key,
-		  unsigned size, pointer parent)
+dixRequestPrivate(devprivate_key_t *const key, unsigned size)
 {
     PrivateDescRec *item = findItem(key);
     if (item) {
-	assert(item->type == type);
 	if (size > item->size)
 	    item->size = size;
     } else {
@@ -91,8 +87,6 @@ dixRequestPrivate(RESTYPE type, devprivate_key_t *const key,
 
 	/* add privates descriptor */
 	item->key = key;
-	item->type = type;
-	item->parent = parent;
 	item->size = size;
 	item->next = items;
 	items = item;
@@ -116,7 +110,6 @@ dixAllocatePrivate(PrivateRec **privates, devprivate_key_t *const key)
     ptr = (PrivateRec *)xalloc(size);
     if (!ptr)
 	return NULL;
-    memset(ptr, 0, size);
     ptr->key = key;
     ptr->value = (size > sizeof(PrivateRec)) ? (ptr + 1) : NULL;
     ptr->next = *privates;
@@ -128,57 +121,6 @@ dixAllocatePrivate(PrivateRec **privates, devprivate_key_t *const key)
 	CallCallbacks(&item->initfuncs, &calldata);
     }
     return &ptr->value;
-}
-
-/*
- * Allocates pre-requested privates in a single chunk.
- */
-_X_EXPORT PrivateRec *
-dixAllocatePrivates(RESTYPE type, pointer parent)
-{
-    unsigned count = 0, size = 0;
-    PrivateCallbackRec calldata;
-    PrivateDescRec *item;
-    PrivateRec *ptr;
-    char *value;
-
-    /* first pass figures out total size */
-    for (item = items; item; item = item->next)
-	if ((item->type == type || item->type == RC_ANY) &&
-	    (item->parent == NULL || item->parent == parent)) {
-
-	    size += sizeof(PrivateRec) + item->size;
-	    count++;
-	}
-
-    /* allocate one chunk of memory for everything */
-    ptr = (PrivateRec *)xalloc(size);
-    if (!ptr)
-	return NULL;
-    memset(ptr, 0, size);
-    value = (char *)(ptr + count);
-
-    /* second pass sets up records and calls init funcs */
-    count = 0;
-    for (item = items; item; item = item->next)
-	if ((item->type == type || item->type == RC_ANY) &&
-	    (item->parent == NULL || item->parent == parent)) {
-
-	    ptr[count].key = calldata.key = item->key;
-	    ptr[count].dontfree = (count > 0);
-	    ptr[count].value = calldata.value = (items->size ? value : NULL);
-	    ptr[count].next = ptr + (count + 1);
-
-	    CallCallbacks(&item->initfuncs, &calldata);
-
-	    count++;
-	    value += item->size;
-	}
-
-    if (count > 0)
-	ptr[count-1].next = NULL;
-
-    return ptr;
 }
 
 /*
@@ -204,16 +146,9 @@ dixFreePrivates(PrivateRec *privates)
     /* second pass frees the memory */
     ptr = privates;
     while (ptr) {
-	if (ptr->dontfree)
-	    ptr = ptr->next;
-	else {
-	    next = ptr->next;
-	    while (next && next->dontfree)
-		next = next->next;
-
-	    xfree(ptr);
-	    ptr = next;
-	}
+	next = ptr->next;
+	xfree(ptr);
+	ptr = next;
     }
 }
 
@@ -225,8 +160,11 @@ dixRegisterPrivateInitFunc(devprivate_key_t *const key,
 			   CallbackProcPtr callback, pointer data)
 {
     PrivateDescRec *item = findItem(key);
-    if (!item)
-	return FALSE;
+    if (!item) {
+	if (!dixRequestPrivate(key, 0))
+	    return FALSE;
+	item = findItem(key);
+    }
     return AddCallback(&item->initfuncs, callback, data);
 }
 
@@ -235,8 +173,11 @@ dixRegisterPrivateDeleteFunc(devprivate_key_t *const key,
 			     CallbackProcPtr callback, pointer data)
 {
     PrivateDescRec *item = findItem(key);
-    if (!item)
-	return FALSE;
+    if (!item) {
+	if (!dixRequestPrivate(key, 0))
+	    return FALSE;
+	item = findItem(key);
+    }
     return AddCallback(&item->deletefuncs, callback, data);
 }
 

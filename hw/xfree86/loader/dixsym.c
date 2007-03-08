@@ -264,7 +264,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(dixRegisterPrivateInitFunc)
     SYMFUNC(dixRegisterPrivateDeleteFunc)
     SYMFUNC(dixAllocatePrivate)
-    SYMFUNC(dixAllocatePrivates)
     SYMFUNC(dixFreePrivates)
     SYMFUNC(dixRegisterPrivateOffset)
     SYMFUNC(dixLookupPrivateOffset)

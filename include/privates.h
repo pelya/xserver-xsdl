@@ -19,13 +19,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * STUFF FOR PRIVATES
  *****************************************************************/
 
-typedef struct _PrivateKey {
-    int unused;
-} devprivate_key_t;
+typedef char devprivate_key_t;
 
 typedef struct _Private {
     devprivate_key_t	*key;
-    int			dontfree;
     pointer		value;
     struct _Private	*next;
 } PrivateRec;
@@ -39,11 +36,10 @@ typedef struct _Private {
 
 /*
  * Request pre-allocated private space for your driver/module.
- * A non-null pScreen argument restricts to objects on a given screen.
+ * Calling this is not necessary if only a pointer by itself is needed.
  */
 extern int
-dixRequestPrivate(RESTYPE type, devprivate_key_t *const key,
-		  unsigned size, pointer pScreen);
+dixRequestPrivate(devprivate_key_t *const key, unsigned size);
 
 /*
  * Allocates a new private and attaches it to an existing object.
@@ -128,13 +124,7 @@ dixRegisterPrivateDeleteFunc(devprivate_key_t *const key,
 			     CallbackProcPtr callback, pointer userdata);
 
 /*
- * Allocates all pre-requested private space in one chunk.
- */
-extern PrivateRec *
-dixAllocatePrivates(RESTYPE type, pointer parent);
-
-/*
- * Frees any private space that is not part of an object.
+ * Frees private data.
  */
 extern void
 dixFreePrivates(PrivateRec *privates);
