@@ -77,10 +77,10 @@ void FreeAtom(NodePtr patom);
 _X_EXPORT Atom 
 MakeAtom(char *string, unsigned len, Bool makeit)
 {
-    register    NodePtr * np;
+    NodePtr * np;
     unsigned i;
-    int     comp;
-    register unsigned int   fp = 0;
+    int comp;
+    unsigned int fp = 0;
 
     np = &atomRoot;
     for (i = 0; i < (len+1)/2; i++)
@@ -107,7 +107,7 @@ MakeAtom(char *string, unsigned len, Bool makeit)
     }
     if (makeit)
     {
-	register NodePtr nd;
+	NodePtr nd;
 
 	nd = (NodePtr) xalloc(sizeof(NodeRec));
 	if (!nd)

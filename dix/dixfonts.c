@@ -1145,9 +1145,9 @@ static XID clearGC[] = { CT_NONE };
 #define clearGCmask (GCClipMask)
 
 int
-doPolyText(ClientPtr client, register PTclosurePtr c)
+doPolyText(ClientPtr client, PTclosurePtr c)
 {
-    register FontPtr pFont = c->pGC->font, oldpFont;
+    FontPtr pFont = c->pGC->font, oldpFont;
     Font	fid, oldfid;
     int err = Success, lgerr;	/* err is in X error, not font error, space */
     enum { NEVER_SLEPT, START_SLEEP, SLEEPING } client_state = NEVER_SLEPT;
@@ -1447,7 +1447,7 @@ PolyText(ClientPtr client, DrawablePtr pDraw, GC *pGC, unsigned char *pElt,
 #undef FontShiftSize
 
 int
-doImageText(ClientPtr client, register ITclosurePtr c)
+doImageText(ClientPtr client, ITclosurePtr c)
 {
     int err = Success, lgerr;	/* err is in X error, not font error, space */
     FontPathElementPtr fpe;

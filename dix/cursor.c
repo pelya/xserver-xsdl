@@ -86,7 +86,7 @@ FreeCursorBits(CursorBitsPtr bits)
 #endif
     if (bits->refcnt == 0)
     {
-	register GlyphSharePtr *prev, this;
+	GlyphSharePtr *prev, this;
 
 	for (prev = &sharedGlyphs;
 	     (this = *prev) && (this->bits != bits);
@@ -135,7 +135,7 @@ FreeCursor(pointer value, XID cid)
 static void
 CheckForEmptyMask(CursorBitsPtr bits)
 {
-    register unsigned char *msk = bits->mask;
+    unsigned char *msk = bits->mask;
     int n = BitmapBytePad(bits->width) * bits->height;
 
     bits->emptyMask = FALSE;
@@ -305,8 +305,8 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
 	}
 	if (!maskfont)
 	{
-	    register long n;
-	    register unsigned char *mskptr;
+	    long n;
+	    unsigned char *mskptr;
 
 	    n = BitmapBytePad(cm.width)*(long)cm.height;
 	    mskptr = mskbits = (unsigned char *)xalloc(n);

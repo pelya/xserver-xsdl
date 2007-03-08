@@ -84,7 +84,7 @@ int CoreDevicePrivatesIndex = 0, CoreDevicePrivatesGeneration = -1;
 DeviceIntPtr
 AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 {
-    register DeviceIntPtr dev, *prev; /* not a typo */
+    DeviceIntPtr dev, *prev; /* not a typo */
 
     if (inputInfo.numDevices >= MAX_DEVICES)
 	return (DeviceIntPtr)NULL;
@@ -140,9 +140,9 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 }
 
 Bool
-EnableDevice(register DeviceIntPtr dev)
+EnableDevice(DeviceIntPtr dev)
 {
-    register DeviceIntPtr *prev;
+    DeviceIntPtr *prev;
     int ret;
 
     for (prev = &inputInfo.off_devices;
@@ -166,9 +166,9 @@ EnableDevice(register DeviceIntPtr dev)
 }
 
 Bool
-DisableDevice(register DeviceIntPtr dev)
+DisableDevice(DeviceIntPtr dev)
 {
-    register DeviceIntPtr *prev;
+    DeviceIntPtr *prev;
 
     for (prev = &inputInfo.devices;
 	 *prev && (*prev != dev);
@@ -315,7 +315,7 @@ CorePointerProc(DeviceIntPtr pDev, int what)
 void
 InitCoreDevices()
 {
-    register DeviceIntPtr dev;
+    DeviceIntPtr dev;
 
     if (CoreDevicePrivatesGeneration != serverGeneration) {
         CoreDevicePrivatesIndex = AllocateDevicePrivateIndex();
@@ -374,7 +374,7 @@ InitCoreDevices()
 int
 InitAndStartDevices()
 {
-    register DeviceIntPtr dev, next;
+    DeviceIntPtr dev, next;
 
     for (dev = inputInfo.off_devices; dev; dev = dev->next) {
         DebugF("(dix) initialising device %d\n", dev->id);
@@ -406,7 +406,7 @@ InitAndStartDevices()
 }
 
 static void
-CloseDevice(register DeviceIntPtr dev)
+CloseDevice(DeviceIntPtr dev)
 {
     KbdFeedbackPtr k, knext;
     PtrFeedbackPtr p, pnext;
@@ -504,7 +504,7 @@ CloseDevice(register DeviceIntPtr dev)
 void
 CloseDownDevices()
 {
-    register DeviceIntPtr dev, next;
+    DeviceIntPtr dev, next;
 
     for (dev = inputInfo.devices; dev; dev = next)
     {
@@ -634,7 +634,7 @@ QueryMinMaxKeyCodes(KeyCode *minCode, KeyCode *maxCode)
 }
 
 Bool
-SetKeySymsMap(register KeySymsPtr dst, register KeySymsPtr src)
+SetKeySymsMap(KeySymsPtr dst, KeySymsPtr src)
 {
     int i, j;
     int rowDif = src->minKeyCode - dst->minKeyCode;
@@ -683,7 +683,7 @@ SetKeySymsMap(register KeySymsPtr dst, register KeySymsPtr src)
 }
 
 static Bool
-InitModMap(register KeyClassPtr keyc)
+InitModMap(KeyClassPtr keyc)
 {
     int i, j;
     CARD8 keysPerModifier[8];
@@ -728,7 +728,7 @@ _X_EXPORT Bool
 InitKeyClassDeviceStruct(DeviceIntPtr dev, KeySymsPtr pKeySyms, CARD8 pModifiers[])
 {
     int i;
-    register KeyClassPtr keyc;
+    KeyClassPtr keyc;
     
     keyc = (KeyClassPtr)xalloc(sizeof(KeyClassRec));
     if (!keyc)
@@ -763,10 +763,10 @@ InitKeyClassDeviceStruct(DeviceIntPtr dev, KeySymsPtr pKeySyms, CARD8 pModifiers
 }
 
 _X_EXPORT Bool
-InitButtonClassDeviceStruct(register DeviceIntPtr dev, int numButtons, 
+InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons, 
                             CARD8 *map)
 {
-    register ButtonClassPtr butc;
+    ButtonClassPtr butc;
     int i;
 
     butc = (ButtonClassPtr)xalloc(sizeof(ButtonClassRec));
@@ -792,7 +792,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
                               int numMotionEvents, int mode)
 {
     int i;
-    register ValuatorClassPtr valc;
+    ValuatorClassPtr valc;
 
     if (!dev)
         return FALSE;
@@ -834,7 +834,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
 _X_EXPORT Bool
 InitAbsoluteClassDeviceStruct(DeviceIntPtr dev)
 {
-    register AbsoluteClassPtr abs;
+    AbsoluteClassPtr abs;
 
     abs = (AbsoluteClassPtr)xalloc(sizeof(AbsoluteClassRec));
     if (!abs)
@@ -864,7 +864,7 @@ InitAbsoluteClassDeviceStruct(DeviceIntPtr dev)
 _X_EXPORT Bool
 InitFocusClassDeviceStruct(DeviceIntPtr dev)
 {
-    register FocusClassPtr focc;
+    FocusClassPtr focc;
 
     focc = (FocusClassPtr)xalloc(sizeof(FocusClassRec));
     if (!focc)
@@ -883,7 +883,7 @@ _X_EXPORT Bool
 InitKbdFeedbackClassDeviceStruct(DeviceIntPtr dev, BellProcPtr bellProc, 
                                  KbdCtrlProcPtr controlProc)
 {
-    register KbdFeedbackPtr feedc;
+    KbdFeedbackPtr feedc;
 
     feedc = (KbdFeedbackPtr)xalloc(sizeof(KbdFeedbackClassRec));
     if (!feedc)
@@ -910,7 +910,7 @@ InitKbdFeedbackClassDeviceStruct(DeviceIntPtr dev, BellProcPtr bellProc,
 _X_EXPORT Bool
 InitPtrFeedbackClassDeviceStruct(DeviceIntPtr dev, PtrCtrlProcPtr controlProc)
 {
-    register PtrFeedbackPtr feedc;
+    PtrFeedbackPtr feedc;
 
     feedc = (PtrFeedbackPtr)xalloc(sizeof(PtrFeedbackClassRec));
     if (!feedc)
@@ -948,7 +948,7 @@ InitStringFeedbackClassDeviceStruct (
       int max_symbols, int num_symbols_supported, KeySym *symbols)
 {
     int i;
-    register StringFeedbackPtr feedc;
+    StringFeedbackPtr feedc;
 
     feedc = (StringFeedbackPtr)xalloc(sizeof(StringFeedbackClassRec));
     if (!feedc)
@@ -986,7 +986,7 @@ _X_EXPORT Bool
 InitBellFeedbackClassDeviceStruct (DeviceIntPtr dev, BellProcPtr bellProc, 
                                    BellCtrlProcPtr controlProc)
 {
-    register BellFeedbackPtr feedc;
+    BellFeedbackPtr feedc;
 
     feedc = (BellFeedbackPtr)xalloc(sizeof(BellFeedbackClassRec));
     if (!feedc)
@@ -1005,7 +1005,7 @@ InitBellFeedbackClassDeviceStruct (DeviceIntPtr dev, BellProcPtr bellProc,
 _X_EXPORT Bool
 InitLedFeedbackClassDeviceStruct (DeviceIntPtr dev, LedCtrlProcPtr controlProc)
 {
-    register LedFeedbackPtr feedc;
+    LedFeedbackPtr feedc;
 
     feedc = (LedFeedbackPtr)xalloc(sizeof(LedFeedbackClassRec));
     if (!feedc)
@@ -1026,7 +1026,7 @@ InitLedFeedbackClassDeviceStruct (DeviceIntPtr dev, LedCtrlProcPtr controlProc)
 _X_EXPORT Bool
 InitIntegerFeedbackClassDeviceStruct (DeviceIntPtr dev, IntegerCtrlProcPtr controlProc)
 {
-    register IntegerFeedbackPtr feedc;
+    IntegerFeedbackPtr feedc;
 
     feedc = (IntegerFeedbackPtr)xalloc(sizeof(IntegerFeedbackClassRec));
     if (!feedc)
@@ -1112,9 +1112,9 @@ SendMappingNotify(unsigned request, unsigned firstKeyCode, unsigned count,
  * sort it to do the checking. How often is it called? Just being lazy?
  */
 Bool
-BadDeviceMap(register BYTE *buff, int length, unsigned low, unsigned high, XID *errval)
+BadDeviceMap(BYTE *buff, int length, unsigned low, unsigned high, XID *errval)
 {
-    register int     i, j;
+    int i, j;
 
     for (i = 0; i < length; i++)
 	if (buff[i])		       /* only check non-zero elements */
@@ -1136,12 +1136,12 @@ BadDeviceMap(register BYTE *buff, int length, unsigned low, unsigned high, XID *
 
 Bool
 AllModifierKeysAreUp(dev, map1, per1, map2, per2)
-    register DeviceIntPtr dev;
-    register CARD8 *map1, *map2;
+    DeviceIntPtr dev;
+    CARD8 *map1, *map2;
     int per1, per2;
 {
-    register int i, j, k;
-    register CARD8 *down = dev->key->down;
+    int i, j, k;
+    CARD8 *down = dev->key->down;
 
     for (i = 8; --i >= 0; map2 += per2)
     {
@@ -1258,7 +1258,7 @@ int
 ProcGetModifierMapping(ClientPtr client)
 {
     xGetModifierMappingReply rep;
-    register KeyClassPtr keyc = inputInfo.keyboard->key;
+    KeyClassPtr keyc = inputInfo.keyboard->key;
 
     REQUEST_SIZE_MATCH(xReq);
     rep.type = X_Reply;
@@ -1459,7 +1459,7 @@ NoteLedState(DeviceIntPtr keybd, int led, Bool on)
 _X_EXPORT int
 Ones(unsigned long mask)             /* HACKMEM 169 */
 {
-    register unsigned long y;
+    unsigned long y;
 
     y = (mask >> 1) &033333333333;
     y = mask - y - ((y >>1) & 033333333333);
@@ -1676,7 +1676,7 @@ int
 ProcGetKeyboardControl (ClientPtr client)
 {
     int i;
-    register KeybdCtrl *ctrl = &inputInfo.keyboard->kbdfeed->ctrl;
+    KeybdCtrl *ctrl = &inputInfo.keyboard->kbdfeed->ctrl;
     xGetKeyboardControlReply rep;
 
     REQUEST_SIZE_MATCH(xReq);
@@ -1698,7 +1698,7 @@ ProcGetKeyboardControl (ClientPtr client)
 int
 ProcBell(ClientPtr client)
 {
-    register DeviceIntPtr keybd = inputInfo.keyboard;
+    DeviceIntPtr keybd = inputInfo.keyboard;
     int base = keybd->kbdfeed->ctrl.bell;
     int newpercent;
     REQUEST(xBellReq);
@@ -1807,7 +1807,7 @@ ProcChangePointerControl(ClientPtr client)
 int
 ProcGetPointerControl(ClientPtr client)
 {
-    register PtrCtrl *ctrl = &inputInfo.pointer->ptrfeed->ctrl;
+    PtrCtrl *ctrl = &inputInfo.pointer->ptrfeed->ctrl;
     xGetPointerControlReply rep;
 
     REQUEST_SIZE_MATCH(xReq);
@@ -1822,7 +1822,7 @@ ProcGetPointerControl(ClientPtr client)
 }
 
 void
-MaybeStopHint(register DeviceIntPtr dev, ClientPtr client)
+MaybeStopHint(DeviceIntPtr dev, ClientPtr client)
 {
     GrabPtr grab = dev->grab;
 
