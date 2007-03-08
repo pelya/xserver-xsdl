@@ -1706,6 +1706,12 @@ DeliverEventsToWindow(DeviceIntPtr pDev, register WindowPtr pWin, xEvent
 	if (filter != CantBeFiltered &&
 	    !((wOtherEventMasks(pWin)|pWin->eventMask) & filter))
 	    return 0;
+
+       /* core event? check for grab interference */
+        if (!(type & EXTENSION_EVENT_BASE) && 
+            IsInterferingGrab(wClient(pWin), pDev, pEvents))
+                return 0;
+
 	if ( (attempt = TryClientEvents(wClient(pWin), pEvents, count,
 				      pWin->eventMask, filter, grab)) )
 	{
@@ -1734,6 +1740,11 @@ DeliverEventsToWindow(DeviceIntPtr pDev, register WindowPtr pWin, xEvent
 	    other = (InputClients *)wOtherClients(pWin);
 	for (; other; other = other->next)
 	{
+           /* core event? check for grab interference */
+            if (!(type & EXTENSION_EVENT_BASE) && 
+                IsInterferingGrab(rClient(other), pDev, pEvents))
+                    continue;
+
 	    if ( (attempt = TryClientEvents(rClient(other), pEvents, count,
 					  other->mask[mskidx], filter, grab)) )
 	    {
@@ -4903,5 +4914,51 @@ PickKeyboard(ClientPtr client)
     }
 
     return inputInfo.keyboard;
+}
+
+/* A client that has one or more core grabs does not get core events from
+ * devices it does not have a grab on. Legacy applications behave bad
+ * otherwise because they are not used to it and the events interfere.
+ * Only applies for core events.
+ *
+ * Return true if a core event from the device would interfere and should not
+ * be delivered.
+ */
+Bool 
+IsInterferingGrab(ClientPtr client, DeviceIntPtr dev, xEvent* event)
+{
+    DeviceIntPtr it = inputInfo.devices;
+
+    if (dev->coreGrab.grab && SameClient(dev->coreGrab.grab, client))
+        return FALSE;
+
+    switch(event->u.u.type)
+    {
+        case KeyPress:
+        case KeyRelease:
+        case ButtonPress:
+        case ButtonRelease:
+        case MotionNotify:
+        case EnterNotify:
+        case LeaveNotify:
+            break;
+        default:
+            return FALSE;
+    }
+
+    while(it)
+    {
+        if (it != dev)
+        {
+            if (it->coreGrab.grab && SameClient(it->coreGrab.grab, client))
+            {
+                return TRUE;
+
+            }
+        }
+        it = it->next;
+    }
+
+    return FALSE;
 }
 
