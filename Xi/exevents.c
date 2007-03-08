@@ -99,8 +99,17 @@ RegisterOtherDevice(DeviceIntPtr device)
 {
     device->public.processInputProc = ProcessOtherEvent;
     device->public.realInputProc = ProcessOtherEvent;
-    (device)->ActivateGrab = ActivateKeyboardGrab;
-    (device)->DeactivateGrab = DeactivateKeyboardGrab;
+    (device)->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
+    (device)->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
+    if (IsPointerDevice(device))
+    {
+        (device)->coreGrab.ActivateGrab = ActivatePointerGrab;
+        (device)->coreGrab.DeactivateGrab = DeactivatePointerGrab;
+    } else
+    {
+        (device)->coreGrab.ActivateGrab = ActivateKeyboardGrab;
+        (device)->coreGrab.DeactivateGrab = DeactivateKeyboardGrab;
+    }
 }
 
  /*ARGSUSED*/ void
@@ -110,7 +119,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
     int i;
     CARD16 modifiers;
     CARD16 mask;
-    GrabPtr grab = other->grab;
+    GrabPtr grab = other->deviceGrab.grab;
     Bool deactivateDeviceGrab = FALSE;
     int key = 0, bit = 0, rootX, rootY;
     ButtonClassPtr b = other->button;
@@ -203,7 +212,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 	    }
 	}
 	if (!grab && CheckDeviceGrabs(other, xE, 0, count)) {
-	    other->activatingKey = key;
+	    other->deviceGrab.activatingKey = key;
 	    return;
 	}
     } else if (xE->u.u.type == DeviceKeyRelease) {
@@ -229,9 +238,9 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 	    }
 	}
 
-	if (other->fromPassiveGrab && 
-            !other->grab->coreGrab &&
-            (key == other->activatingKey))
+	if (other->deviceGrab.fromPassiveGrab && 
+            !other->deviceGrab.grab->coreGrab &&
+            (key == other->deviceGrab.activatingKey))
 	    deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == DeviceButtonPress) {
         if (!b)
@@ -270,8 +279,8 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 	    b->state &= ~((Button1Mask >> 1) << xE->u.u.detail);
 	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
         if (!b->state 
-            && other->fromPassiveGrab
-            && !other->grab->coreGrab)
+            && other->deviceGrab.fromPassiveGrab
+            && !other->deviceGrab.grab->coreGrab)
             deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == ProximityIn)
 	other->valuator->mode &= ~OutOfProximity;
@@ -287,7 +296,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 			    other, count);
 
     if (deactivateDeviceGrab == TRUE)
-	(*other->DeactivateGrab) (other);
+	(*other->deviceGrab.DeactivateGrab) (other);
 }
 
 _X_EXPORT int
@@ -663,7 +672,7 @@ SelectForWindow(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client,
     if (dev->valuator)
 	if ((dev->valuator->motionHintWindow == pWin) &&
 	    (mask & DevicePointerMotionHintMask) &&
-	    !(check & DevicePointerMotionHintMask) && !dev->grab)
+	    !(check & DevicePointerMotionHintMask) && !dev->deviceGrab.grab)
 	    dev->valuator->motionHintWindow = NullWindow;
     RecalculateDeviceDeliverableEvents(pWin);
     return Success;
@@ -1034,8 +1043,8 @@ DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
      * any input focus changes.
      * Deactivating a device grab should cause focus events. */
 
-    if (dev->grab && (dev->grab->window == pWin))
-	(*dev->DeactivateGrab) (dev);
+    if (dev->deviceGrab.grab && (dev->deviceGrab.grab->window == pWin))
+	(*dev->deviceGrab.DeactivateGrab) (dev);
 
     /* If the focus window is a root window (ie. has no parent) 
      * then don't delete the focus from it. */
@@ -1045,7 +1054,7 @@ DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
 
 	/* If a grab is in progress, then alter the mode of focus events. */
 
-	if (dev->grab)
+	if (dev->deviceGrab.grab)
 	    focusEventMode = NotifyWhileGrabbed;
 
 	switch (dev->focus->revert) {
@@ -1139,7 +1148,7 @@ CheckDeviceGrabAndHintWindow(WindowPtr pWin, int type,
 	tempGrab.pointerMode = GrabModeAsync;
 	tempGrab.confineTo = NullWindow;
 	tempGrab.cursor = NullCursor;
-	(*dev->ActivateGrab) (dev, &tempGrab, currentTime, TRUE);
+	(*dev->deviceGrab.ActivateGrab) (dev, &tempGrab, currentTime, TRUE);
     }
 }
 
@@ -1162,7 +1171,7 @@ void
 MaybeStopDeviceHint(register DeviceIntPtr dev, ClientPtr client)
 {
     WindowPtr pWin;
-    GrabPtr grab = dev->grab;
+    GrabPtr grab = dev->deviceGrab.grab;
 
     pWin = dev->valuator->motionHintWindow;
 

@@ -138,7 +138,7 @@ ProcXChangeDeviceControl(ClientPtr client)
             ret = BadMatch;
             goto out;
 	}
-	if ((dev->grab) && !SameClient(dev->grab, client)) {
+	if ((dev->deviceGrab.grab) && !SameClient(dev->deviceGrab.grab, client)) {
 	    rep.status = AlreadyGrabbed;
             ret = Success;
             goto out;

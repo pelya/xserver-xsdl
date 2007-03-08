@@ -106,12 +106,12 @@ ProcXUngrabDevice(register ClientPtr client)
 	SendErrorToClient(client, IReqCode, X_UngrabDevice, 0, BadDevice);
 	return Success;
     }
-    grab = dev->grab;
+    grab = dev->deviceGrab.grab;
 
     time = ClientTimeToServerTime(stuff->time);
     if ((CompareTimeStamps(time, currentTime) != LATER) &&
-	(CompareTimeStamps(time, dev->grabTime) != EARLIER) &&
+	(CompareTimeStamps(time, dev->deviceGrab.grabTime) != EARLIER) &&
 	(grab) && SameClient(grab, client))
-	(*dev->DeactivateGrab) (dev);
+	(*dev->deviceGrab.DeactivateGrab) (dev);
     return Success;
 }

@@ -104,14 +104,27 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     dev->public.enqueueInputProc = EnqueueEvent;
     dev->deviceProc = deviceProc;
     dev->startup = autoStart;
-    dev->sync.frozen = FALSE;
-    dev->sync.other = NullGrab;
-    dev->sync.state = NOT_GRABBED;
-    dev->sync.event = (xEvent *) NULL;
-    dev->sync.evcount = 0;
-    dev->grab = NullGrab;
-    dev->grabTime = currentTime;
-    dev->fromPassiveGrab = FALSE;
+
+    /* core grab defaults */
+    dev->coreGrab.sync.frozen = FALSE;
+    dev->coreGrab.sync.other = NullGrab;
+    dev->coreGrab.sync.state = NOT_GRABBED;
+    dev->coreGrab.sync.event = (xEvent *) NULL;
+    dev->coreGrab.sync.evcount = 0;
+    dev->coreGrab.grab = NullGrab;
+    dev->coreGrab.grabTime = currentTime;
+    dev->coreGrab.fromPassiveGrab = FALSE;
+
+    /* device grab defaults */
+    dev->deviceGrab.sync.frozen = FALSE;
+    dev->deviceGrab.sync.other = NullGrab;
+    dev->deviceGrab.sync.state = NOT_GRABBED;
+    dev->deviceGrab.sync.event = (xEvent *) NULL;
+    dev->deviceGrab.sync.evcount = 0;
+    dev->deviceGrab.grab = NullGrab;
+    dev->deviceGrab.grabTime = currentTime;
+    dev->deviceGrab.fromPassiveGrab = FALSE;
+
     dev->key = (KeyClassPtr)NULL;
     dev->valuator = (ValuatorClassPtr)NULL;
     dev->button = (ButtonClassPtr)NULL;
@@ -339,8 +352,8 @@ InitCoreDevices()
         dev->public.processInputProc = ProcessKeyboardEvent;
         dev->public.realInputProc = ProcessKeyboardEvent;
 #endif
-        dev->ActivateGrab = ActivateKeyboardGrab;
-        dev->DeactivateGrab = DeactivateKeyboardGrab;
+        dev->coreGrab.ActivateGrab = ActivateKeyboardGrab;
+        dev->coreGrab.DeactivateGrab = DeactivateKeyboardGrab;
         dev->coreEvents = FALSE;
         dev->spriteOwner = FALSE;
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
@@ -372,8 +385,8 @@ InitCoreDevices()
         dev->public.processInputProc = ProcessPointerEvent;
         dev->public.realInputProc = ProcessPointerEvent;
 #endif
-        dev->ActivateGrab = ActivatePointerGrab;
-        dev->DeactivateGrab = DeactivatePointerGrab;
+        dev->coreGrab.ActivateGrab = ActivatePointerGrab;
+        dev->coreGrab.DeactivateGrab = DeactivatePointerGrab;
         dev->coreEvents = FALSE;
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
             FatalError("Couldn't allocate pointer devPrivates\n");
@@ -535,7 +548,8 @@ CloseDevice(register DeviceIntPtr dev)
             PickPointer(clients[j]);
     }
 
-    xfree(dev->sync.event);
+    xfree(dev->coreGrab.sync.event);
+    xfree(dev->deviceGrab.sync.event);
     xfree(dev);
 }
 
@@ -1872,7 +1886,7 @@ ProcGetPointerControl(ClientPtr client)
 void
 MaybeStopHint(register DeviceIntPtr dev, ClientPtr client)
 {
-    GrabPtr grab = dev->grab;
+    GrabPtr grab = dev->coreGrab.grab;
 
     if ((grab && SameClient(grab, client) &&
 	 ((grab->eventMask & PointerMotionHintMask) ||

@@ -455,7 +455,7 @@ extern DeviceIntPtr GetPairedPointer(DeviceIntPtr kbd);
 extern Bool RegisterPairingClient(ClientPtr client);
 extern Bool UnregisterPairingClient(ClientPtr client);
 
-extern DeviceIntPtr GuessFreePointerDevice();
+extern DeviceIntPtr GuessFreePointerDevice(void);
 
 /* Window/device based access control */
 extern Bool ACRegisterClient(ClientPtr client);

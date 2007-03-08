@@ -125,7 +125,7 @@ ProcXSetDeviceValuators(register ClientPtr client)
 	return Success;
     }
 
-    if ((dev->grab) && !SameClient(dev->grab, client))
+    if ((dev->deviceGrab.grab) && !SameClient(dev->deviceGrab.grab, client))
 	rep.status = AlreadyGrabbed;
     else
 	rep.status = SetDeviceValuators(client, dev, (int *)&stuff[1],

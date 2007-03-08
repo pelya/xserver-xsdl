@@ -808,6 +808,7 @@ XkbFilterEvents(ClientPtr pClient,int nEvents,xEvent *xE)
 int	i, button_mask;
 DeviceIntPtr pXDev = (DeviceIntPtr)LookupKeyboardDevice();
 XkbSrvInfoPtr	xkbi;
+GrabInfoPtr grabinfo;
 
     xkbi= pXDev->key->xkbInfo;
     if ( pClient->xkbClientFlags & _XkbClientInitialized ) {
@@ -831,7 +832,9 @@ XkbSrvInfoPtr	xkbi;
 	     	(_XkbIsReleaseEvent(xE[0].u.u.type)) ) {
 	    return False;
 	}
-	if ((pXDev->grab != NullGrab) && pXDev->fromPassiveGrab &&
+        /* just coreGrab is fine, pXDev is inputInfo.keyboard (see above) */
+	if ((pXDev->coreGrab.grab != NullGrab) 
+                && pXDev->coreGrab.fromPassiveGrab &&
 	    ((xE[0].u.u.type==KeyPress)||(xE[0].u.u.type==KeyRelease))) {
 	    register unsigned state,flags;
 

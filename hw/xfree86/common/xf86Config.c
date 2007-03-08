@@ -2478,8 +2478,6 @@ xf86HandleConfigFile(Bool autoconfig)
              return CONFIG_PARSE_ERROR;
     }
 
-    checkInput(&xf86ConfigLayout);
-
     /*
      * Handle some command line options that can override some of the
      * ServerFlags settings.

@@ -822,10 +822,13 @@ CALLBACK(SecurityCheckDeviceAccess)
     untrusted_got_event = FALSE;
     found_event_window = FALSE;
 
-    if (dev->grab)
+    /* We can just use coreGrab as a comment a few lines above clearly states
+       "device security other than keyboard is not implemented yet". The core
+       kbd should never have a device grab set. */
+    if (dev->coreGrab.grab)
     {
 	untrusted_got_event =
-	    (TRUSTLEVEL(rClient(dev->grab)) != XSecurityClientTrusted);
+          (TRUSTLEVEL(rClient(dev->coreGrab.grab)) != XSecurityClientTrusted);
     }
     else
     {

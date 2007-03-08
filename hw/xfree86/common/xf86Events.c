@@ -290,12 +290,13 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 	break;
     case ACTION_DISABLEGRAB:
 	if (!xf86Info.grabInfo.disabled && xf86Info.grabInfo.allowDeactivate) {
-	  if (inputInfo.pointer && inputInfo.pointer->grab != NULL &&
-	      inputInfo.pointer->DeactivateGrab)
-	    inputInfo.pointer->DeactivateGrab(inputInfo.pointer);
-	  if (inputInfo.keyboard && inputInfo.keyboard->grab != NULL &&
-	      inputInfo.keyboard->DeactivateGrab)
-	    inputInfo.keyboard->DeactivateGrab(inputInfo.keyboard);
+	  if (inputInfo.pointer && inputInfo.pointer->coreGrab.grab != NULL &&
+	      inputInfo.pointer->coreGrab.DeactivateGrab)
+	    inputInfo.pointer->coreGrab.DeactivateGrab(inputInfo.pointer);
+	  if (inputInfo.keyboard && 
+                  inputInfo.keyboard->coreGrab.grab != NULL &&
+	      inputInfo.keyboard->coreGrab.DeactivateGrab)
+	    inputInfo.keyboard->coreGrab.DeactivateGrab(inputInfo.keyboard);
 	}
 	break;
     case ACTION_CLOSECLIENT:
@@ -303,10 +304,11 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 	  ClientPtr pointer, keyboard, server;
 
 	  pointer = keyboard = server = NULL;
-	  if (inputInfo.pointer && inputInfo.pointer->grab != NULL)
-	    pointer = clients[CLIENT_ID(inputInfo.pointer->grab->resource)];
-	  if (inputInfo.keyboard && inputInfo.keyboard->grab != NULL) {
-	    keyboard = clients[CLIENT_ID(inputInfo.keyboard->grab->resource)];
+	  if (inputInfo.pointer && inputInfo.pointer->coreGrab.grab != NULL)
+	    pointer = clients[CLIENT_ID(inputInfo.pointer->coreGrab.grab->resource)];
+	  if (inputInfo.keyboard && inputInfo.keyboard->coreGrab.grab != NULL)
+          {
+	    keyboard = clients[CLIENT_ID(inputInfo.keyboard->coreGrab.grab->resource)];
 	    if (keyboard == pointer)
 	      keyboard = NULL;
 	  }

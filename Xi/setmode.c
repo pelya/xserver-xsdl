@@ -113,7 +113,7 @@ ProcXSetDeviceMode(register ClientPtr client)
 	SendErrorToClient(client, IReqCode, X_SetDeviceMode, 0, BadMatch);
 	return Success;
     }
-    if ((dev->grab) && !SameClient(dev->grab, client))
+    if ((dev->deviceGrab.grab) && !SameClient(dev->deviceGrab.grab, client))
 	rep.status = AlreadyGrabbed;
     else
 	rep.status = SetDeviceMode(client, dev, stuff->mode);

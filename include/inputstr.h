@@ -300,11 +300,31 @@ typedef struct {
 #define FROZEN_NO_EVENT		5
 #define FROZEN_WITH_EVENT	6
 #define THAW_OTHERS		7
+typedef struct _GrabInfoRec {
+    TimeStamp	    grabTime;
+    Bool            fromPassiveGrab;
+    GrabRec         activeGrab;
+    GrabPtr         grab;
+    CARD8           activatingKey;
+    void	    (*ActivateGrab) (
+                    DeviceIntPtr /*device*/,
+                    GrabPtr /*grab*/,
+                    TimeStamp /*time*/,
+                    Bool /*autoGrab*/);
+    void	    (*DeactivateGrab)(
+                    DeviceIntPtr /*device*/);
+    struct {
+	Bool		frozen;
+	int		state;
+	GrabPtr		other;		/* if other grab has this frozen */
+	xEvent		*event;		/* saved to be replayed */
+	int		evcount;
+    } sync;
+} GrabInfoRec, *GrabInfoPtr;
 
 typedef struct _DeviceIntRec {
     DeviceRec	public;
     DeviceIntPtr next;
-    TimeStamp	grabTime;
     Bool	startup;		/* true if needs to be turned on at
 				          server intialization time */
     DeviceProc	deviceProc;		/* proc(DevicePtr, DEVICE_xx). It is
@@ -313,27 +333,11 @@ typedef struct _DeviceIntRec {
     Bool	inited;			/* TRUE if INIT returns Success */
     Bool        enabled;                /* TRUE if ON returns Success */
     Bool        coreEvents;             /* TRUE if device also sends core */
-    GrabPtr	grab;			/* the grabber - used by DIX */
-    struct {
-	Bool		frozen;
-	int		state;
-	GrabPtr		other;		/* if other grab has this frozen */
-	xEvent		*event;		/* saved to be replayed */
-	int		evcount;
-    } sync;
+    GrabInfoRec coreGrab;               /* grab on core events */
+    GrabInfoRec deviceGrab;             /* grab on device events */
     Atom		type;
     char		*name;
     CARD8		id;
-    CARD8		activatingKey;
-    Bool		fromPassiveGrab;
-    GrabRec		activeGrab;
-    void		(*ActivateGrab) (
-			DeviceIntPtr /*device*/,
-			GrabPtr /*grab*/,
-			TimeStamp /*time*/,
-			Bool /*autoGrab*/);
-    void		(*DeactivateGrab)(
-			DeviceIntPtr /*device*/);
     KeyClassPtr		key;
     ValuatorClassPtr	valuator;
     ButtonClassPtr	button;
