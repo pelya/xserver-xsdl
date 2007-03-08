@@ -1158,7 +1158,10 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	output->status = (*output->funcs->detect)(output);
 
 	if (output->status == XF86OutputStatusDisconnected)
+	{
+	    xf86OutputSetEDID (output, NULL);
 	    continue;
+	}
 
 	memset (&mon_rec, '\0', sizeof (mon_rec));
 	
