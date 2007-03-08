@@ -193,6 +193,17 @@ _X_EXPORT RESTYPE TypeMask;
 
 static DeleteType *DeleteFuncs = (DeleteType *)NULL;
 
+_X_EXPORT CallbackListPtr ResourceStateCallback;
+
+static _X_INLINE void
+CallResourceStateCallback(ResourceState state, ResourceRec *res)
+{
+    if (ResourceStateCallback) {
+	ResourceStateInfoRec rsi = { state, res->id, res->type, res->value };
+	CallCallbacks(&ResourceStateCallback, &rsi);
+    }
+}
+
 #ifdef XResExtension
 
 _X_EXPORT Atom * ResourceNames = NULL;
@@ -492,6 +503,7 @@ AddResource(XID id, RESTYPE type, pointer value)
     rrec->elements++;
     if (!(id & SERVER_BIT) && (id >= rrec->expectID))
 	rrec->expectID = id + 1;
+    CallResourceStateCallback(ResourceStateAdding, res);
     return TRUE;
 }
 
@@ -572,6 +584,9 @@ FreeResource(XID id, RESTYPE skipDeleteFuncType)
 #endif		    
 		*prev = res->next;
 		elements = --*eltptr;
+
+		CallResourceStateCallback(ResourceStateFreeing, res);
+
 		if (rtype & RC_CACHED)
 		    FlushClientCaches(res->id);
 		if (rtype != skipDeleteFuncType)
@@ -616,6 +631,9 @@ FreeResourceByType(XID id, RESTYPE type, Bool skipFree)
 			      res->value, TypeNameString(res->type));
 #endif		    		    
 		*prev = res->next;
+
+		CallResourceStateCallback(ResourceStateFreeing, res);
+
 		if (type & RC_CACHED)
 		    FlushClientCaches(res->id);
 		if (!skipFree)
@@ -782,6 +800,9 @@ FreeClientNeverRetainResources(ClientPtr client)
 			      this->value, TypeNameString(this->type));
 #endif		    
 		*prev = this->next;
+
+		CallResourceStateCallback(ResourceStateFreeing, this);
+
 		if (rtype & RC_CACHED)
 		    FlushClientCaches(this->id);
 		(*DeleteFuncs[rtype & TypeMask])(this->value, this->id);
@@ -832,6 +853,9 @@ FreeClientResources(ClientPtr client)
 			  this->value, TypeNameString(this->type));
 #endif		    
 	    *head = this->next;
+
+	    CallResourceStateCallback(ResourceStateFreeing, this);
+
 	    if (rtype & RC_CACHED)
 		FlushClientCaches(this->id);
 	    (*DeleteFuncs[rtype & TypeMask])(this->value, this->id);

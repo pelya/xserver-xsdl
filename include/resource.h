@@ -120,6 +120,19 @@ typedef unsigned long RESTYPE;
 
 #define BAD_RESOURCE 0xe0000000
 
+/* Resource state callback */
+extern CallbackListPtr ResourceStateCallback;
+
+typedef enum {ResourceStateAdding,
+	      ResourceStateFreeing} ResourceState;
+
+typedef struct {
+    ResourceState state;
+    XID id;
+    RESTYPE type;
+    pointer value;
+} ResourceStateInfoRec;
+
 typedef int (*DeleteType)(
     pointer /*value*/,
     XID /*id*/);

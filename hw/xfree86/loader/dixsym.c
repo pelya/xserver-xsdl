@@ -300,6 +300,7 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(FindAllClientResources)
     SYMVAR(lastResourceType)
     SYMVAR(TypeMask)
+    SYMVAR(ResourceStateCallback)
 #ifdef RES
     SYMFUNC(RegisterResourceName)
     SYMVAR(ResourceNames)
