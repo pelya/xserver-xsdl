@@ -142,9 +142,10 @@ dixResetPrivates(void);
  */
 
 /*
- * Looks up the offset where the devPrivates field is located by type.
+ * Looks up the offset where the devPrivates field is located.
+ * Returns -1 if no offset has been registered for the resource type.
  */
-extern unsigned
+extern int
 dixLookupPrivateOffset(RESTYPE type);
 
 /*

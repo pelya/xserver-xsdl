@@ -195,12 +195,14 @@ dixRegisterPrivateOffset(RESTYPE type, unsigned offset)
 
     /* resize offsets table if necessary */
     while (type >= offsetsSize) {
-	offsets = (unsigned *)xrealloc(offsets,
-				       offsetsSize * 2 * sizeof(unsigned));
+	unsigned i = offsetsSize * 2 * sizeof(int);
+	offsets = (unsigned *)xrealloc(offsets, i);
 	if (!offsets) {
 	    offsetsSize = 0;
 	    return FALSE;
 	}
+	for (i=offsetsSize; i < 2*offsetsSize; i++)
+	    offsets[i] = -1;
 	offsetsSize *= 2;
     }
 
@@ -208,10 +210,9 @@ dixRegisterPrivateOffset(RESTYPE type, unsigned offset)
     return TRUE;
 }
 
-_X_EXPORT unsigned
+_X_EXPORT int
 dixLookupPrivateOffset(RESTYPE type)
 {
-    assert(type & RC_PRIVATES);
     type = type & TypeMask;
     assert(type < offsetsSize);
     return offsets[type];
@@ -233,19 +234,22 @@ int
 dixResetPrivates(void)
 {
     PrivateDescRec *next;
+    unsigned i;
+
+    /* reset internal structures */
     while (items) {
 	next = items->next;
 	xfree(items);
 	items = next;
     }
-
     if (offsets)
 	xfree(offsets);
-
     offsetsSize = 16;
     offsets = (unsigned *)xalloc(offsetsSize * sizeof(unsigned));
     if (!offsets)
 	return FALSE;
+    for (i=0; i < offsetsSize; i++)
+	offsets[i] = -1;
 
     /* reset legacy devPrivates support */
     if (!ResetExtensionPrivates() || !ResetClientPrivates())

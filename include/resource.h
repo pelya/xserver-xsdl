@@ -66,12 +66,7 @@ typedef unsigned long RESTYPE;
  *  Extensions can use this too!
  */
 #define RC_NEVERRETAIN	((RESTYPE)1<<29)
-/*  Use class RC_PRIVATES for resources that support extra private data.
- *  Resources having this class must provide a field of type PrivateRec *.
- *  Refer to the X server documentation on devPrivates for the details.
- */
-#define RC_PRIVATES	((RESTYPE)1<<28)
-#define RC_LASTPREDEF	RC_PRIVATES
+#define RC_LASTPREDEF	RC_NEVERRETAIN
 #define RC_ANY		(~(RESTYPE)0)
 
 /* types for Resource routines */
