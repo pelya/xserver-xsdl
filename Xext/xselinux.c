@@ -57,42 +57,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define XSELINUXCONFIGFILE  NULL
 #endif
 
-
-/* Make sure a locally connecting client has a valid context.  The context
- * for this client is retrieved again later on in AssignClientState(), but
- * by that point it's too late to reject the client.
- */
-static char *
-XSELinuxValidContext (ClientPtr client)
-{
-    security_context_t ctx = NULL;
-    XtransConnInfo ci = ((OsCommPtr)client->osPrivate)->trans_conn;
-    char reason[256];
-    char *ret = (char *)NULL;
-
-    if (_XSERVTransIsLocal(ci))
-    {
-        int fd = _XSERVTransGetConnectionNumber(ci);
-        if (getpeercon(fd, &ctx) < 0)
-        {
-            snprintf(reason, sizeof(reason), "Failed to retrieve SELinux context from socket");
-            ret = reason;
-            goto out;
-        }
-        if (security_check_context(ctx))
-        {
-            snprintf(reason, sizeof(reason), "Client's SELinux context is invalid: %s", ctx);
-            ret = reason;
-        }
-
-        freecon(ctx);
-    }
-
-out:
-    return ret;
-}
-
-
 /* devPrivates in client and extension */
 static int clientPrivateIndex;
 static int extnsnPrivateIndex;
