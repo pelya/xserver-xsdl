@@ -76,6 +76,8 @@ libXi_la_SOURCES =	\
 	sendexev.h \
 	setbmap.c \
 	setbmap.h \
+	setcptr.c \
+	setcptr.h \
 	setdval.c \
 	setdval.h \
 	setfocus.c \

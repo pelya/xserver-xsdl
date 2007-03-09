@@ -603,16 +603,16 @@ extern int TryClientEvents(
 
 extern void WindowsRestructured(void);
 
+extern Bool SetClientPointer(
+        ClientPtr /* client */, 
+        ClientPtr /* setter */, 
+        DeviceIntPtr /* device */);
+
 extern DeviceIntPtr PickPointer(
     ClientPtr /* client */);
 
 extern DeviceIntPtr PickKeyboard(
     ClientPtr /* client */);
-
-extern Bool IsInterferingGrab(
-    ClientPtr /* client */,
-    DeviceIntPtr /* dev */,
-    xEvent* /* events */);
 
 #ifdef PANORAMIX
 extern void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff);

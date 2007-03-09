@@ -110,6 +110,7 @@ SOFTWARE.
 #include "sendexev.h"
 #include "chgkmap.h"
 #include "setbmap.h"
+#include "setcptr.h"
 #include "setdval.h"
 #include "setfocus.h"
 #include "setmmap.h"
@@ -367,6 +368,8 @@ ProcIDispatch(register ClientPtr client)
         return (ProcXChangeWindowAccess(client));
     else if (stuff->data == X_QueryWindowAccess)
         return ProcXQueryWindowAccess(client);
+    else if (stuff->data == X_SetClientPointer)
+        return ProcXSetClientPointer(client);
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -472,6 +475,8 @@ SProcIDispatch(register ClientPtr client)
         return (SProcXChangeWindowAccess(client));
     else if (stuff->data == X_QueryWindowAccess)
         return SProcXQueryWindowAccess(client);
+    else if (stuff->data == X_SetClientPointer)
+        return SProcXSetClientPointer(client);
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
