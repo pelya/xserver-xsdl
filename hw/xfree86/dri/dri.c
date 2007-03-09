@@ -71,6 +71,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "mipointer.h"
 #include "xf86_OSproc.h"
 
+#define PCI_BUS_NO_DOMAIN(bus) ((bus) & 0xffu)
+
 #if !defined(PANORAMIX)
 extern Bool noPanoramiXExtension;
 #endif
@@ -2202,8 +2204,8 @@ DRICreatePCIBusID(pciVideoPtr PciInfo)
 
     tag = pciTag(PciInfo->bus, PciInfo->device, PciInfo->func);
     domain = xf86GetPciDomain(tag);
-    snprintf(busID, 20, "pci:%04x:%02x:%02x.%d", domain, PciInfo->bus,
-	PciInfo->device, PciInfo->func);
+    snprintf(busID, 20, "pci:%04x:%02x:%02x.%d", domain,
+	PCI_BUS_NO_DOMAIN(PciInfo->bus), PciInfo->device, PciInfo->func);
     return busID;
 }
 
