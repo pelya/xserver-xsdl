@@ -76,12 +76,12 @@ extern int ffs(int);
 _X_EXPORT RegionPtr
 miCopyArea(pSrcDrawable, pDstDrawable,
 	    pGC, xIn, yIn, widthSrc, heightSrc, xOut, yOut)
-    register DrawablePtr 	pSrcDrawable;
-    register DrawablePtr 	pDstDrawable;
-    GCPtr 			pGC;
-    int 			xIn, yIn;
-    int 			widthSrc, heightSrc;
-    int 			xOut, yOut;
+    DrawablePtr 	pSrcDrawable;
+    DrawablePtr 	pDstDrawable;
+    GCPtr 		pGC;
+    int 		xIn, yIn;
+    int 		widthSrc, heightSrc;
+    int 		xOut, yOut;
 {
     DDXPointPtr		ppt, pptFirst;
     unsigned int	*pwidthFirst, *pwidth, *pbits;

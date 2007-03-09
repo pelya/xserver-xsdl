@@ -54,8 +54,8 @@ Author:  Bob Scheifler, MIT X Consortium
 
 _X_EXPORT void
 miFillArcSetup(arc, info)
-    register xArc *arc;
-    register miFillArcRec *info;
+    xArc *arc;
+    miFillArcRec *info;
 {
     info->y = arc->height >> 1;
     info->dy = arc->height & 1;
@@ -109,8 +109,8 @@ miFillArcSetup(arc, info)
 
 void
 miFillArcDSetup(arc, info)
-    register xArc *arc;
-    register miFillArcDRec *info;
+    xArc *arc;
+    miFillArcDRec *info;
 {
     /* h^2 * (2x - 2xorg)^2 = w^2 * h^2 - w^2 * (2y - 2yorg)^2 */
     /* even: xorg = yorg = 0   odd:  xorg = .5, yorg = -.5 */
@@ -141,13 +141,13 @@ miFillArcDSetup(arc, info)
 
 static void
 miGetArcEdge(
-	     register xArc *arc,
-	     register miSliceEdgePtr edge,
+	     xArc *arc,
+	     miSliceEdgePtr edge,
 	     int k,
 	     Bool top, 
 	     Bool left )
 {
-    register int xady, y;
+    int xady, y;
 
     y = arc->height >> 1;
     if (!(arc->width & 1))
@@ -271,13 +271,13 @@ miEllipseAngleToSlope (angle, width, height, dxp, dyp, d_dxp, d_dyp)
 
 static void
 miGetPieEdge(
-	     register xArc *arc,
-	     register int angle,
-	     register miSliceEdgePtr edge,
+	     xArc *arc,
+	     int angle,
+	     miSliceEdgePtr edge,
 	     Bool top, 
 	     Bool left )
 {
-    register int k;
+    int k;
     int	dx, dy;
 
     miEllipseAngleToSlope (angle, arc->width, arc->height, &dx, &dy, 0, 0);
@@ -316,11 +316,11 @@ miGetPieEdge(
 
 _X_EXPORT void
 miFillArcSliceSetup(arc, slice, pGC)
-    register xArc *arc;
-    register miArcSliceRec *slice;
+    xArc *arc;
+    miArcSliceRec *slice;
     GCPtr pGC;
 {
-    register int angle1, angle2;
+    int angle1, angle2;
 
     angle1 = arc->angle1;
     if (arc->angle2 < 0)
@@ -550,14 +550,14 @@ miFillEllipseI(
 	       GCPtr pGC,
 	       xArc *arc )
 {
-    register int x, y, e;
+    int x, y, e;
     int yk, xk, ym, xm, dx, dy, xorg, yorg;
     int slw;
     miFillArcRec info;
     DDXPointPtr points;
-    register DDXPointPtr pts;
+    DDXPointPtr pts;
     int *widths;
-    register int *wids;
+    int *wids;
 
     points = (DDXPointPtr)ALLOCATE_LOCAL(sizeof(DDXPointRec) * arc->height);
     if (!points)
@@ -593,14 +593,14 @@ miFillEllipseD(
 	       GCPtr pGC,
 	       xArc *arc )
 {
-    register int x, y;
+    int x, y;
     int xorg, yorg, dx, dy, slw;
     double e, yk, xk, ym, xm;
     miFillArcDRec info;
     DDXPointPtr points;
-    register DDXPointPtr pts;
+    DDXPointPtr pts;
     int *widths;
-    register int *wids;
+    int *wids;
 
     points = (DDXPointPtr)ALLOCATE_LOCAL(sizeof(DDXPointRec) * arc->height);
     if (!points)
@@ -659,14 +659,14 @@ miFillArcSliceI(
 		xArc *arc )
 {
     int yk, xk, ym, xm, dx, dy, xorg, yorg, slw;
-    register int x, y, e;
+    int x, y, e;
     miFillArcRec info;
     miArcSliceRec slice;
     int ya, xl, xr, xc;
     DDXPointPtr points;
-    register DDXPointPtr pts;
+    DDXPointPtr pts;
     int *widths;
-    register int *wids;
+    int *wids;
 
     miFillArcSetup(arc, &info);
     miFillArcSliceSetup(arc, &slice, pGC);
@@ -721,16 +721,16 @@ miFillArcSliceD(
 		GCPtr pGC,
 		xArc *arc )
 {
-    register int x, y;
+    int x, y;
     int dx, dy, xorg, yorg, slw;
     double e, yk, xk, ym, xm;
     miFillArcDRec info;
     miArcSliceRec slice;
     int ya, xl, xr, xc;
     DDXPointPtr points;
-    register DDXPointPtr pts;
+    DDXPointPtr pts;
     int *widths;
-    register int *wids;
+    int *wids;
 
     miFillArcDSetup(arc, &info);
     miFillArcSliceSetup(arc, &slice, pGC);
@@ -790,8 +790,8 @@ miPolyFillArc(pDraw, pGC, narcs, parcs)
     int		narcs;
     xArc	*parcs;
 {
-    register int i;
-    register xArc *arc;
+    int i;
+    xArc *arc;
 
     for(i = narcs, arc = parcs; --i >= 0; arc++)
     {

@@ -188,8 +188,8 @@ void miAppendSpans(spanGroup, otherGroup, spans)
     SpanGroup	*otherGroup;
     Spans       *spans;
 {
-    register    int ymin, ymax;
-    register    int spansCount;
+    int ymin, ymax;
+    int spansCount;
 
     spansCount = spans->count;
     if (spansCount > 0) {
@@ -226,21 +226,21 @@ void miFreeSpanGroup(spanGroup)
 }
 
 static void QuickSortSpansX(
-    register DDXPointRec    points[],
-    register int	    widths[],
-    register int	    numSpans )
+    DDXPointRec points[],
+    int		widths[],
+    int		numSpans )
 {
-    register int	    x;
-    register int	    i, j, m;
-    register DDXPointPtr    r;
+    int	    		x;
+    int	    		i, j, m;
+    DDXPointPtr 	r;
 
 /* Always called with numSpans > 1 */
 /* Sorts only by x, as all y should be the same */
 
 #define ExchangeSpans(a, b)				    \
 {							    \
-    DDXPointRec     tpt;				    \
-    register int    tw;					    \
+    DDXPointRec 	tpt;				    \
+    int    		tw;				    \
 							    \
     tpt = points[a]; points[a] = points[b]; points[b] = tpt;    \
     tw = widths[a]; widths[a] = widths[b]; widths[b] = tw;  \
@@ -249,7 +249,7 @@ static void QuickSortSpansX(
     do {
 	if (numSpans < 9) {
 	    /* Do insertion sort */
-	    register int xprev;
+	    int xprev;
 
 	    xprev = points[0].x;
 	    i = 1;
@@ -313,14 +313,14 @@ static void QuickSortSpansX(
 
 
 static int UniquifySpansX(
-    Spans		    *spans,
-    register DDXPointRec    *newPoints,
-    register int	    *newWidths )
+    Spans	    	*spans,
+    DDXPointRec    	*newPoints,
+    int	    		*newWidths )
 {
-    register int newx1, newx2, oldpt, i, y;
-    register DDXPointRec    *oldPoints;
-    register int	    *oldWidths;
-    int			    *startNewWidths;
+    int 		newx1, newx2, oldpt, i, y;
+    DDXPointRec		*oldPoints;
+    int	    		*oldWidths;
+    int			*startNewWidths;
 
 /* Always called with numSpans > 1 */
 /* Uniquify the spans, and stash them into newPoints and newWidths.  Return the
@@ -384,16 +384,16 @@ void miFillUniqueSpanGroup(pDraw, pGC, spanGroup)
     GCPtr	pGC;
     SpanGroup   *spanGroup;
 {
-    register int    i;
-    register Spans  *spans;
-    register Spans  *yspans;
-    register int    *ysizes;
-    register int    ymin, ylength;
+    int    		i;
+    Spans  		*spans;
+    Spans  		*yspans;
+    int    		*ysizes;
+    int    		ymin, ylength;
 
     /* Outgoing spans for one big call to FillSpans */
-    register DDXPointPtr    points;
-    register int	    *widths;
-    register int	    count;
+    DDXPointPtr    	points;
+    int	    		*widths;
+    int	    		count;
 
     if (spanGroup->count == 0) return;
 
@@ -545,8 +545,8 @@ void miFillSpanGroup(pDraw, pGC, spanGroup)
     GCPtr	pGC;
     SpanGroup   *spanGroup;
 {
-    register int    i;
-    register Spans  *spans;
+    int    i;
+    Spans  *spans;
 
     for (i = 0, spans = spanGroup->group; i != spanGroup->count; i++, spans++) {
 	(*pGC->ops->FillSpans)

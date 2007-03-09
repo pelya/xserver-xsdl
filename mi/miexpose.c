@@ -130,15 +130,15 @@ exposing is done by the backing store's GraphicsExpose function, of course.
 _X_EXPORT RegionPtr
 miHandleExposures(pSrcDrawable, pDstDrawable,
 		  pGC, srcx, srcy, width, height, dstx, dsty, plane)
-    register DrawablePtr	pSrcDrawable;
-    register DrawablePtr	pDstDrawable;
+    DrawablePtr			pSrcDrawable;
+    DrawablePtr			pDstDrawable;
     GCPtr 			pGC;
     int 			srcx, srcy;
     int 			width, height;
     int 			dstx, dsty;
     unsigned long		plane;
 {
-    register ScreenPtr pscr;
+    ScreenPtr pscr;
     RegionPtr prgnSrcClip;	/* drawable-relative source clip */
     RegionRec rgnSrcRec;
     RegionPtr prgnDstClip;	/* drawable-relative dest clip */
@@ -387,9 +387,9 @@ miSendGraphicsExpose (client, pRgn, drawable, major, minor)
     if (pRgn && !REGION_NIL(pRgn))
     {
         xEvent *pEvent;
-	register xEvent *pe;
-	register BoxPtr pBox;
-	register int i;
+	xEvent *pe;
+	BoxPtr pBox;
+	int i;
 	int numRects;
 
 	numRects = REGION_NUM_RECTS(pRgn);
@@ -431,12 +431,12 @@ void
 miSendExposures(pWin, pRgn, dx, dy)
     WindowPtr pWin;
     RegionPtr pRgn;
-    register int dx, dy;
+    int dx, dy;
 {
-    register BoxPtr pBox;
+    BoxPtr pBox;
     int numRects;
-    register xEvent *pEvent, *pe;
-    register int i;
+    xEvent *pEvent, *pe;
+    int i;
 
     pBox = REGION_RECTS(pRgn);
     numRects = REGION_NUM_RECTS(pRgn);
@@ -493,7 +493,7 @@ miSendExposures(pWin, pRgn, dx, dy)
 _X_EXPORT void 
 miWindowExposures(pWin, prgn, other_exposed)
     WindowPtr pWin;
-    register RegionPtr prgn, other_exposed;
+    RegionPtr prgn, other_exposed;
 {
     RegionPtr   exposures = prgn;
     if (pWin->backStorage && prgn)
@@ -629,7 +629,7 @@ tossGC (
 
 _X_EXPORT void
 miPaintWindow(pWin, prgn, what)
-register WindowPtr pWin;
+WindowPtr pWin;
 RegionPtr prgn;
 int what;
 {
@@ -657,10 +657,10 @@ int what;
     BoxRec box;
     WindowPtr	pBgWin;
     GCPtr pGC;
-    register int i;
-    register BoxPtr pbox;
-    register ScreenPtr pScreen = pWin->drawable.pScreen;
-    register xRectangle *prect;
+    int i;
+    BoxPtr pbox;
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+    xRectangle *prect;
     int numRects;
 
     gcmask = 0;
