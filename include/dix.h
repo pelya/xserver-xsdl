@@ -614,6 +614,11 @@ extern DeviceIntPtr PickPointer(
 extern DeviceIntPtr PickKeyboard(
     ClientPtr /* client */);
 
+extern Bool IsInterferingGrab(
+        ClientPtr /* client */,
+        DeviceIntPtr /* dev */,
+        xEvent* /* events */);
+
 #ifdef PANORAMIX
 extern void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff);
 #endif
