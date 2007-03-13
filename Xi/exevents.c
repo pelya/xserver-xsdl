@@ -113,29 +113,46 @@ RegisterOtherDevice(DeviceIntPtr device)
 }
 
  /*ARGSUSED*/ void
-ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
+ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 {
     BYTE *kptr;
     int i;
     CARD16 modifiers;
     CARD16 mask;
-    GrabPtr grab = other->deviceGrab.grab;
+    GrabPtr grab = device->deviceGrab.grab;
     Bool deactivateDeviceGrab = FALSE;
     int key = 0, bit = 0, rootX, rootY;
-    ButtonClassPtr b = other->button;
-    KeyClassPtr k = other->key;
-    ValuatorClassPtr v = other->valuator;
+    ButtonClassPtr b = device->button;
+    KeyClassPtr k = device->key;
+    ValuatorClassPtr v = device->valuator;
     deviceValuator *xV = (deviceValuator *) xE;
 
-
     if (xE->u.u.type != DeviceValuator) {
-	GetSpritePosition(other, &rootX, &rootY);
+        DeviceIntPtr mouse = NULL, kbd = NULL;
+	GetSpritePosition(device, &rootX, &rootY);
 	xE->u.keyButtonPointer.rootX = rootX;
 	xE->u.keyButtonPointer.rootY = rootY;
 	key = xE->u.u.detail;
 	NoticeEventTime(xE);
-	xE->u.keyButtonPointer.state = inputInfo.keyboard->key->state |
-	    inputInfo.pointer->button->state; /* FIXME: change for MPX */
+
+        /* If 'device' is a pointer device, we need to get the paired keyboard
+         * for the state. If there is none, the kbd bits of state are 0.
+         * If 'device' is a keyboard device, get the paired pointer and use the
+         * pointer's state for the button bits.
+         */
+        if (IsPointerDevice(device))
+        {
+            kbd = GetPairedKeyboard(device);
+            mouse = device;
+        }
+        else
+        {
+            mouse = GetPairedPointer(device);
+            kbd = device;
+        }
+        xE->u.keyButtonPointer.state = (kbd) ? (kbd->key->state) : 0;
+        xE->u.keyButtonPointer.state |= (mouse) ? (mouse->button->state) : 0;
+
 	bit = 1 << (key & 7);
     }
     if (DeviceEventCallback) {
@@ -155,7 +172,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 		    || (xV->num_valuators
 			&& (first + xV->num_valuators > v->numAxes))))
 		FatalError("Bad valuators reported for device %s\n",
-			   other->name);
+			   device->name);
 	    xV->device_state = 0;
 	    if (k)
 		xV->device_state |= k->state;
@@ -192,15 +209,15 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 	if (*kptr & bit) {	/* allow ddx to generate multiple downs */
 	    if (!modifiers) {
 		xE->u.u.type = DeviceKeyRelease;
-		ProcessOtherEvent(xE, other, count);
+		ProcessOtherEvent(xE, device, count);
 		xE->u.u.type = DeviceKeyPress;
 		/* release can have side effects, don't fall through */
-		ProcessOtherEvent(xE, other, count);
+		ProcessOtherEvent(xE, device, count);
 	    }
 	    return;
 	}
-	if (other->valuator)
-	    other->valuator->motionHintWindow = NullWindow;
+	if (device->valuator)
+	    device->valuator->motionHintWindow = NullWindow;
 	*kptr |= bit;
 	k->prev_state = k->state;
 	for (i = 0, mask = 1; modifiers; i++, mask <<= 1) {
@@ -211,8 +228,8 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 		modifiers &= ~mask;
 	    }
 	}
-	if (!grab && CheckDeviceGrabs(other, xE, 0, count)) {
-	    other->deviceGrab.activatingKey = key;
+	if (!grab && CheckDeviceGrabs(device, xE, 0, count)) {
+	    device->deviceGrab.activatingKey = key;
 	    return;
 	}
     } else if (xE->u.u.type == DeviceKeyRelease) {
@@ -223,8 +240,8 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 	if (!(*kptr & bit))	/* guard against duplicates */
 	    return;
 	modifiers = k->modifierMap[key];
-	if (other->valuator)
-	    other->valuator->motionHintWindow = NullWindow;
+	if (device->valuator)
+	    device->valuator->motionHintWindow = NullWindow;
 	*kptr &= ~bit;
 	k->prev_state = k->state;
 	for (i = 0, mask = 1; modifiers; i++, mask <<= 1) {
@@ -238,9 +255,9 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 	    }
 	}
 
-	if (other->deviceGrab.fromPassiveGrab && 
-            !other->deviceGrab.grab->coreGrab &&
-            (key == other->deviceGrab.activatingKey))
+	if (device->deviceGrab.fromPassiveGrab && 
+            !device->deviceGrab.grab->coreGrab &&
+            (key == device->deviceGrab.activatingKey))
 	    deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == DeviceButtonPress) {
         if (!b)
@@ -248,8 +265,8 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 
 	kptr = &b->down[key >> 3];
 	*kptr |= bit;
-	if (other->valuator)
-	    other->valuator->motionHintWindow = NullWindow;
+	if (device->valuator)
+	    device->valuator->motionHintWindow = NullWindow;
 	b->buttonsDown++;
 	b->motionMask = DeviceButtonMotionMask;
 	xE->u.u.detail = b->map[key];
@@ -259,7 +276,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 	    b->state |= (Button1Mask >> 1) << xE->u.u.detail;
 	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
         if (!grab)
-            if (CheckDeviceGrabs(other, xE, 0, count))
+            if (CheckDeviceGrabs(device, xE, 0, count))
                 return;
 
     } else if (xE->u.u.type == DeviceButtonRelease) {
@@ -268,8 +285,8 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 
 	kptr = &b->down[key >> 3];
 	*kptr &= ~bit;
-	if (other->valuator)
-	    other->valuator->motionHintWindow = NullWindow;
+	if (device->valuator)
+	    device->valuator->motionHintWindow = NullWindow;
 	if (!--b->buttonsDown)
 	    b->motionMask = 0;
 	xE->u.u.detail = b->map[key];
@@ -279,24 +296,24 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 	    b->state &= ~((Button1Mask >> 1) << xE->u.u.detail);
 	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
         if (!b->state 
-            && other->deviceGrab.fromPassiveGrab
-            && !other->deviceGrab.grab->coreGrab)
+            && device->deviceGrab.fromPassiveGrab
+            && !device->deviceGrab.grab->coreGrab)
             deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == ProximityIn)
-	other->valuator->mode &= ~OutOfProximity;
+	device->valuator->mode &= ~OutOfProximity;
     else if (xE->u.u.type == ProximityOut)
-	other->valuator->mode |= OutOfProximity;
+	device->valuator->mode |= OutOfProximity;
 
     if (grab)
-	DeliverGrabbedEvent(xE, other, deactivateDeviceGrab, count);
-    else if (other->focus)
-	DeliverFocusedEvent(other, xE, GetSpriteWindow(other), count);
+	DeliverGrabbedEvent(xE, device, deactivateDeviceGrab, count);
+    else if (device->focus)
+	DeliverFocusedEvent(device, xE, GetSpriteWindow(device), count);
     else
-	DeliverDeviceEvents(GetSpriteWindow(other), xE, NullGrab, NullWindow,
-			    other, count);
+	DeliverDeviceEvents(GetSpriteWindow(device), xE, NullGrab, NullWindow,
+			    device, count);
 
     if (deactivateDeviceGrab == TRUE)
-	(*other->deviceGrab.DeactivateGrab) (other);
+	(*device->deviceGrab.DeactivateGrab) (device);
 }
 
 _X_EXPORT int

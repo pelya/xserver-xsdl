@@ -2030,6 +2030,23 @@ GetPairedPointer(DeviceIntPtr kbd)
     return inputInfo.pointer;
 }
 
+/* Find the keyboard device that is paired with the given pointer. If none is
+ * found, return NULL.
+ */
+_X_EXPORT DeviceIntPtr
+GetPairedKeyboard(DeviceIntPtr ptr)
+{
+    DeviceIntPtr dev = inputInfo.devices;
+
+    while(dev)
+    {
+        if (ptr->pSprite == dev->pSprite)
+            return dev;
+        dev = dev->next;
+    }
+    return dev;
+}
+
 /*
  * Register a client to be able to pair devices. 
  */

@@ -4913,18 +4913,12 @@ PickPointer(ClientPtr client)
 _X_EXPORT DeviceIntPtr
 PickKeyboard(ClientPtr client)
 {
-    DeviceIntPtr ptr;
-    DeviceIntPtr dev = inputInfo.devices;
-    ptr = PickPointer(client);
+    DeviceIntPtr ptr = PickPointer(client);
+    DeviceIntPtr kbd;
 
-    while(dev)
-    {
-        if (ptr->pSprite == dev->pSprite)
-            return dev;
-        dev = dev->next;
-    }
+    kbd = GetPairedKeyboard(ptr);
 
-    return inputInfo.keyboard;
+    return (kbd) ? kbd : inputInfo.keyboard;
 }
 
 /* A client that has one or more core grabs does not get core events from
