@@ -3930,6 +3930,7 @@ CursorPtr WindowGetDeviceCursor(WindowPtr pWin, DeviceIntPtr pDev)
 /* Searches for a DevCursorNode for the given window and device. If one is
  * found, return True and set pNode and pPrev to the node and to the node
  * before the node respectively. Otherwise return False.
+ * If the device is the first in list, pPrev is set to NULL.
  */
 static Bool 
 WindowSeekDeviceCursor(WindowPtr pWin, 
@@ -3943,6 +3944,14 @@ WindowSeekDeviceCursor(WindowPtr pWin,
         return FALSE;
 
     pList = pWin->optional->deviceCursors;
+
+    if (pList && pList->dev == pDev)
+    {
+        *pNode = pList;
+        *pPrev = NULL;
+        return TRUE;
+    }
+
     while(pList)
     {
         if (pList->next)
