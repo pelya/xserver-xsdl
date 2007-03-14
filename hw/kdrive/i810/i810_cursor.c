@@ -78,6 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "kxv.h"
 #include "i810.h"
 #include "cursorstr.h"
+#include "inputstr.h"
 
 #define SetupCursor(s)	    KdScreenPriv(pScreen); \
 			    i810CardInfo(pScreenPriv); \
@@ -129,7 +130,7 @@ _i810MoveCursor(ScreenPtr pScreen, int x, int y)
 static void i810LoadCursor(ScreenPtr pScreen, int x, int y);
 
 static void
-i810MoveCursor (ScreenPtr pScreen, int x, int y)
+i810MoveCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
     KdScreenPriv(pScreen);
     i810ScreenInfo(pScreenPriv);
@@ -281,7 +282,7 @@ i810UnloadCursor(ScreenPtr pScreen)
 
 
 static Bool
-i810RealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
+i810RealizeCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
     KdScreenPriv(pScreen);
     i810ScreenInfo(pScreenPriv);
@@ -297,7 +298,7 @@ i810RealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
 	{
 	    int	    x, y;
 	    
-	    miPointerPosition (&x, &y);
+	    miPointerGetPosition (pDev, &x, &y);
 	    i810LoadCursor (pScreen, x, y);
 	}
     }
@@ -305,13 +306,13 @@ i810RealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
 }
 
 static Bool
-i810UnrealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
+i810UnrealizeCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
     return TRUE;
 }
 
 static void
-i810SetCursor (ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
+i810SetCursor (DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
 {
     KdScreenPriv(pScreen);
     i810ScreenInfo(pScreenPriv);

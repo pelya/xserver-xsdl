@@ -151,25 +151,25 @@ OsVendorInit (void)
 /* 'Fake' cursor stuff, could be improved */
 
 static Bool
-ephyrRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
+ephyrRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
   return TRUE;
 }
 
 static Bool
-ephyrUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
+ephyrUnrealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
   return TRUE;
 }
 
 static void
-ephyrSetCursor(ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
+ephyrSetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
 {
   ;
 }
 
 static void
-ephyrMoveCursor(ScreenPtr pScreen, int x, int y)
+ephyrMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
   ;
 }

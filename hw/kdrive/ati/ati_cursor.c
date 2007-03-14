@@ -28,9 +28,10 @@
 #include "ati_reg.h"
 #include "cursorstr.h"
 #include "ati_draw.h"
+#include "inputstr.h"
 
 static void
-ATIMoveCursor(ScreenPtr pScreen, int x, int y)
+ATIMoveCursor(DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
 	KdScreenPriv(pScreen);
 	ATICardInfo(pScreenPriv);
@@ -360,7 +361,7 @@ ATIUnloadCursor(ScreenPtr pScreen)
 }
 
 static Bool
-ATIRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
+ATIRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
 	KdScreenPriv(pScreen);
 	ATICardInfo(pScreenPriv);
@@ -375,26 +376,26 @@ ATIRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
 	{
 		int x, y;
 
-		miPointerPosition(&x, &y);
+		miPointerGetPosition(pDev, &x, &y);
 		if (atic->is_radeon)
 			RadeonLoadCursor (pScreen);
 		else
 			ClassicLoadCursor(pScreen);
 		/* Move to new position */
-		ATIMoveCursor(pScreen, x, y);
+		ATIMoveCursor(pDev, pScreen, x, y);
 	}
 
 	return TRUE;
 }
 
 static Bool
-ATIUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor)
+ATIUnrealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor)
 {
 	return TRUE;
 }
 
 static void
-ATISetCursor(ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
+ATISetCursor(DeviceIntPtr pDev, ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
 {
 	KdScreenPriv(pScreen);
 	ATICardInfo(pScreenPriv);
@@ -413,7 +414,7 @@ ATISetCursor(ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
 		else
 			ClassicLoadCursor(pScreen);
 		/* Move to new position */
-		ATIMoveCursor(pScreen, x, y);
+		ATIMoveCursor(pDev, pScreen, x, y);
 	}
 	else
 		ATIUnloadCursor(pScreen);
@@ -465,6 +466,7 @@ ATICursorSave(ScreenPtr pScreen, KdOffscreenArea *area)
 void
 ATICursorEnable(ScreenPtr pScreen)
 {
+	DeviceIntPtr pDev = inputInfo.pointer;
 	KdScreenPriv(pScreen);
 	ATICardInfo(pScreenPriv);
 	ATIScreenInfo(pScreenPriv);
@@ -489,13 +491,13 @@ ATICursorEnable(ScreenPtr pScreen)
 	if (pCurPriv->pCursor) {
 		int x, y;
 
-		miPointerPosition(&x, &y);
+		miPointerGetPosition(pDev, &x, &y);
 		if (atic->is_radeon)
 			RadeonLoadCursor(pScreen);
 		else
 			ClassicLoadCursor(pScreen);
 		/* Move to new position */
-		ATIMoveCursor(pScreen, x, y);
+		ATIMoveCursor(pDev, pScreen, x, y);
 	}
 	else
 		ATIUnloadCursor(pScreen);

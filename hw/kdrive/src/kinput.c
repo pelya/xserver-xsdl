@@ -2219,11 +2219,11 @@ KdCrossScreen(ScreenPtr pScreen, Bool entering)
 int KdCurScreen;	/* current event screen */
 
 static void
-KdWarpCursor (ScreenPtr pScreen, int x, int y)
+KdWarpCursor (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y)
 {
     KdBlockSigio ();
     KdCurScreen = pScreen->myNum;
-    miPointerWarpCursor (pScreen, x, y);
+    miPointerWarpCursor(pDev, pScreen, x, y);
     KdUnblockSigio ();
 }
 
@@ -2238,7 +2238,7 @@ void
 ProcessInputEvents ()
 {
     mieqProcessInputEvents();
-    miPointerUpdate();
+    miPointerUpdateSprite(inputInfo.pointer);
     if (kdSwitchPending)
 	KdProcessSwitch ();
     KdCheckLock ();
