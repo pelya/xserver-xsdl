@@ -3721,6 +3721,7 @@ MakeWindowOptional (register WindowPtr pWin)
     optional->access.ndeny = 0;
     optional->access.perm = NULL;
     optional->access.deny = NULL;
+    optional->access.defaultRule = 0;
     parentOptional = FindWindowWithOptional(pWin)->optional;
     optional->visual = parentOptional->visual;
     if (!pWin->cursorIsNone)

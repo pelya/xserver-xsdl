@@ -2040,7 +2040,7 @@ GetPairedKeyboard(DeviceIntPtr ptr)
 
     while(dev)
     {
-        if (ptr->pSprite == dev->pSprite)
+        if (ptr != dev && ptr->pSprite == dev->pSprite)
             return dev;
         dev = dev->next;
     }
