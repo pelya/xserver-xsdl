@@ -548,12 +548,24 @@ xf86_cursors_init (ScreenPtr screen, int max_width, int max_height, int flags)
 void
 xf86_reload_cursors (ScreenPtr screen)
 {
-    ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
-    xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
-    xf86CursorInfoPtr	cursor_info = xf86_config->cursor_info;
-    CursorPtr		cursor = xf86_config->cursor;
+    ScrnInfoPtr		scrn;
+    xf86CrtcConfigPtr   xf86_config;
+    xf86CursorInfoPtr   cursor_info;
+    CursorPtr		cursor;
     int			x, y;
     
+    /* initial mode setting will not have set a screen yet */
+    if (!screen)
+	return;
+    scrn = xf86Screens[screen->myNum];
+    xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
+
+    /* make sure the cursor code has been initialized */
+    cursor_info = xf86_config->cursor_info;
+    if (!cursor_info)
+	return;
+    
+    cursor = xf86_config->cursor;
     GetSpritePosition (&x, &y);
     if (!(cursor_info->Flags & HARDWARE_CURSOR_UPDATE_UNHIDDEN))
 	(*cursor_info->HideCursor)(scrn);
