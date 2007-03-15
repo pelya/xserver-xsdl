@@ -529,7 +529,8 @@ typedef struct _xf86CrtcConfig {
     int			maxWidth, maxHeight;
     
     /* For crtc-based rotation */
-    DamagePtr   rotationDamage;
+    DamagePtr		rotation_damage;
+    Bool		rotation_damage_registered;
 
     /* DGA */
     unsigned int	dga_flags;

@@ -251,9 +251,13 @@ xf86RotatePrepare (ScreenPtr pScreen)
 							     crtc->rotatedData,
 							     crtc->mode.HDisplay,
 							     crtc->mode.VDisplay);
-	    /* Hook damage to screen pixmap */
-	    DamageRegister (&(*pScreen->GetScreenPixmap)(pScreen)->drawable,
-			    xf86_config->rotationDamage);
+	    if (!xf86_config->rotation_damage_registered)
+	    {
+		/* Hook damage to screen pixmap */
+		DamageRegister (&(*pScreen->GetScreenPixmap)(pScreen)->drawable,
+				xf86_config->rotation_damage);
+		xf86_config->rotation_damage_registered = TRUE;
+	    }
 	    
 	    xf86CrtcDamageShadow (crtc);
 	}
@@ -265,7 +269,7 @@ xf86RotateRedisplay(ScreenPtr pScreen)
 {
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
-    DamagePtr		damage = xf86_config->rotationDamage;
+    DamagePtr		damage = xf86_config->rotation_damage;
     RegionPtr		region;
 
     if (!damage)
@@ -334,13 +338,14 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
 	    crtc->rotatedData = NULL;
 	}
 
-	if (xf86_config->rotationDamage)
+	if (xf86_config->rotation_damage)
 	{
 	    /* Free damage structure */
 	    DamageUnregister (&(*pScreen->GetScreenPixmap)(pScreen)->drawable,
-			      xf86_config->rotationDamage);
-	    DamageDestroy (xf86_config->rotationDamage);
-	    xf86_config->rotationDamage = NULL;
+			      xf86_config->rotation_damage);
+	    xf86_config->rotation_damage_registered = FALSE;
+	    DamageDestroy (xf86_config->rotation_damage);
+	    xf86_config->rotation_damage = NULL;
 	    /* Free block/wakeup handler */
 	    RemoveBlockAndWakeupHandlers (xf86RotateBlockHandler,
 					  xf86RotateWakeupHandler,
@@ -382,13 +387,13 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
 	    xf86CrtcDamageShadow (crtc);
 	}
 	
-	if (!xf86_config->rotationDamage)
+	if (!xf86_config->rotation_damage)
 	{
 	    /* Create damage structure */
-	    xf86_config->rotationDamage = DamageCreate (NULL, NULL,
+	    xf86_config->rotation_damage = DamageCreate (NULL, NULL,
 						DamageReportNone,
 						TRUE, pScreen, pScreen);
-	    if (!xf86_config->rotationDamage)
+	    if (!xf86_config->rotation_damage)
 		goto bail2;
 	    
 	    /* Assign block/wakeup handler */
@@ -402,8 +407,8 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
 	if (0)
 	{
 bail3:
-	    DamageDestroy (xf86_config->rotationDamage);
-	    xf86_config->rotationDamage = NULL;
+	    DamageDestroy (xf86_config->rotation_damage);
+	    xf86_config->rotation_damage = NULL;
 	    
 bail2:
 	    if (shadow || shadowData)
