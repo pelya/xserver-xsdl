@@ -250,6 +250,27 @@ DevHasCursor(DeviceIntPtr pDev)
     return (pDev != inputInfo.pointer && pDev->spriteOwner);
 }
 
+/*
+ * Return true if a device is a pointer, check is the same as used by XI to
+ * fill the 'use' field.
+ */
+_X_EXPORT Bool
+IsPointerDevice(DeviceIntPtr dev)
+{
+    return ((dev->valuator && dev->button) || dev == inputInfo.pointer);
+}
+
+/*
+ * Return true if a device is a keyboard, check is the same as used by XI to
+ * fill the 'use' field.
+ */
+_X_EXPORT Bool
+IsKeyboardDevice(DeviceIntPtr dev)
+{
+    return ((dev->key && dev->kbdfeed) || dev == inputInfo.keyboard);
+}
+
+
 #ifdef XEVIE
 _X_EXPORT WindowPtr xeviewin;
 _X_EXPORT HotSpot xeviehot;
@@ -4914,9 +4935,16 @@ _X_EXPORT DeviceIntPtr
 PickKeyboard(ClientPtr client)
 {
     DeviceIntPtr ptr = PickPointer(client);
-    DeviceIntPtr kbd;
+    DeviceIntPtr kbd = inputInfo.devices;
 
-    kbd = GetPairedKeyboard(ptr);
+    while(kbd)
+    {
+        if (ptr != kbd && 
+            IsKeyboardDevice(kbd) && 
+            ptr->pSprite == kbd->pSprite)
+            return kbd;
+        kbd = kbd->next;
+    }
 
     return (kbd) ? kbd : inputInfo.keyboard;
 }

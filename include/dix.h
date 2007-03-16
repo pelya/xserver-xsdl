@@ -757,4 +757,7 @@ extern int ffs(int i);
 
 extern Bool DevHasCursor(DeviceIntPtr pDev);
 
+extern Bool IsPointerDevice( DeviceIntPtr dev);
+extern Bool IsKeyboardDevice(DeviceIntPtr dev);
+
 #endif /* DIX_H */

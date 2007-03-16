@@ -149,10 +149,6 @@ AssignTypeAndName (
 	char *                 /* name */
 	);
 
-Bool IsPointerDevice(
-        DeviceIntPtr            /* dev */
-        );
-
 void
 MakeDeviceTypeAtoms (
 	void

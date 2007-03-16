@@ -221,6 +221,11 @@ ActivateDevice(DeviceIntPtr dev)
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                           (xEvent *) &ev, 1);
 
+    if (IsPointerDevice(dev) && dev->isMPDev)
+        InitializeSprite(dev, GetCurrentRootWindow());
+    else
+        PairDevices(NULL, inputInfo.pointer, dev);
+
     return ret;
 }
 
@@ -402,7 +407,6 @@ InitCoreDevices()
         inputInfo.off_devices = inputInfo.devices = NULL;
         inputInfo.pointer = dev;
         inputInfo.pointer->next = NULL;
-
 
         /* the core keyboard is initialised by now. set the keyboard's sprite
          * to the core pointer's sprite. */
@@ -1995,6 +1999,9 @@ ProcQueryKeymap(ClientPtr client)
 int 
 PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
 {
+    if (!ptr)
+        return BadDevice;
+
     if (!pairingClient)
         RegisterPairingClient(client);
     else if (pairingClient != client)
@@ -2032,6 +2039,8 @@ GetPairedPointer(DeviceIntPtr kbd)
 
 /* Find the keyboard device that is paired with the given pointer. If none is
  * found, return NULL.
+ * We also check if the paired device is a keyboard. If not (e.g. evdev brain)
+ * we don't return it. This probably needs to be fixed.
  */
 _X_EXPORT DeviceIntPtr
 GetPairedKeyboard(DeviceIntPtr ptr)
@@ -2040,7 +2049,9 @@ GetPairedKeyboard(DeviceIntPtr ptr)
 
     while(dev)
     {
-        if (ptr != dev && ptr->pSprite == dev->pSprite)
+        if (ptr != dev && 
+            IsKeyboardDevice(dev) &&
+            ptr->pSprite == dev->pSprite)
             return dev;
         dev = dev->next;
     }

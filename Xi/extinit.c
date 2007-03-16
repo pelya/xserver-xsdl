@@ -985,21 +985,6 @@ AssignTypeAndName(DeviceIntPtr dev, Atom type, char *name)
 
 /***********************************************************************
  *
- * Returns true if a device may require a pointer (is a mouse).
- * FIXME: Other devices should be able to get a pointer too...
- *
- */
-_X_EXPORT Bool
-IsPointerDevice(DeviceIntPtr dev)
-{
-    if (dev_type[1].type == dev->type)
-        return TRUE;
-  
-    return FALSE;
-}
-
-/***********************************************************************
- *
  * Make device type atoms.
  *
  */
