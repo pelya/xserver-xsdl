@@ -406,9 +406,12 @@ RROutputDestroyResource (pointer value, XID pid)
 	    }
 	}
     }
-    /* XXX destroy all modes? */
     if (output->modes)
+    {
+	for (m = 0; m < output->numModes; m++)
+	    RRModeDestroy (output->modes[m]);
 	xfree (output->modes);
+    }
     
     for (m = 0; m < output->numUserModes; m++)
 	RRModeDestroy (output->userModes[m]);

@@ -361,6 +361,8 @@ RRCrtcDestroyResource (pointer value, XID pid)
     }
     if (crtc->gammaRed)
 	xfree (crtc->gammaRed);
+    if (crtc->mode)
+	RRModeDestroy (crtc->mode);
     xfree (crtc);
     return 1;
 }
