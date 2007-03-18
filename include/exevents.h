@@ -148,10 +148,6 @@ extern void DeleteWindowFromAnyExtEvents(
 	WindowPtr              /* pWin */,
 	Bool                   /* freeResources */);
 
-extern void DeleteDeviceFromAnyExtEvents(
-	WindowPtr              /* pWin */,
-	DeviceIntPtr           /* dev */);
-
 extern int MaybeSendDeviceMotionNotifyHint (
 	deviceKeyButtonPointer * /* pEvents */,
 	Mask                   /* mask */);
@@ -164,11 +160,6 @@ extern void CheckDeviceGrabAndHintWindow (
 	ClientPtr              /* client */,
 	Mask                   /* deliveryMask */);
 
-extern Mask DeviceEventMaskForClient(
-	DeviceIntPtr           /* dev */,
-	WindowPtr              /* pWin */,
-	ClientPtr              /* client */);
-
 extern void MaybeStopDeviceHint(
 	DeviceIntPtr           /* dev */,
 	ClientPtr              /* client */);
@@ -178,13 +169,6 @@ extern int DeviceEventSuppressForWindow(
 	ClientPtr              /* client */,
 	Mask                   /* mask */,
 	int                    /* maskndx */);
-
-void FindInterestedChildren(
-        DeviceIntPtr           /* dev */,
-        WindowPtr              /* p1 */,
-        Mask                   /* mask */,
-        xEvent *               /* ev */,
-        int                    /* count */);
 
 void SendEventToAllWindows(
         DeviceIntPtr           /* dev */,

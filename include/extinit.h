@@ -37,93 +37,6 @@ XInputExtensionInit(
 	void
 	);
 
-
-int
-ProcIDispatch (
-	ClientPtr              /* client */
-	);
-
-int
-SProcIDispatch(
-	ClientPtr              /* client */
-	);
-
-void
-SReplyIDispatch (
-	ClientPtr              /* client */,
-	int                    /* len */,
-	xGrabDeviceReply *     /* rep */
-	);
-
-void
-SEventIDispatch (
-	xEvent *               /* from */,
-	xEvent *               /* to */
-	);
-
-void
-SEventDeviceValuator (
-	deviceValuator *       /* from */,
-	deviceValuator *       /* to */
-	);
-
-void
-SEventFocus (
-	deviceFocus *          /* from */,
-	deviceFocus *          /* to */
-	);
-
-void
-SDeviceStateNotifyEvent (
-	deviceStateNotify *    /* from */,
-	deviceStateNotify *    /* to */
-	);
-
-void
-SDeviceKeyStateNotifyEvent (
-	deviceKeyStateNotify * /* from */,
-	deviceKeyStateNotify * /* to */
-	);
-
-void
-SDeviceButtonStateNotifyEvent (
-	deviceButtonStateNotify * /* from */,
-	deviceButtonStateNotify * /* to */
-	);
-
-void
-SChangeDeviceNotifyEvent (
-	changeDeviceNotify *   /* from */,
-	changeDeviceNotify *   /* to */
-	);
-
-void
-SDeviceMappingNotifyEvent (
-	deviceMappingNotify *  /* from */,
-	deviceMappingNotify *  /* to */
-	);
-
-void
-SDevicePresenceNotifyEvent (
-       devicePresenceNotify * /* from */,
-       devicePresenceNotify * /* to */
-       );
-
-void
-FixExtensionEvents (
-	ExtensionEntry 	*      /* extEntry */
-	);
-
-void
-RestoreExtensionEvents (
-	void
-	);
-
-void
-IResetProc(
-	ExtensionEntry *       /* unused */
-	);
-
 void
 AssignTypeAndName (
 	DeviceIntPtr           /* dev */,
@@ -131,41 +44,9 @@ AssignTypeAndName (
 	char *                 /* name */
 	);
 
-void
-MakeDeviceTypeAtoms (
-	void
-);
-
 DeviceIntPtr
 LookupDeviceIntRec (
 	CARD8                  /* id */
-	);
-
-void
-SetExclusiveAccess (
-	Mask                   /* mask */
-	);
-
-void
-AllowPropagateSuppress (
-	Mask                   /* mask */
-	);
-
-Mask
-GetNextExtEventMask (
-	void
-);
-
-void
-SetMaskForExtEvent(
-	Mask                   /* mask */,
-	int                    /* event */
-	);
-
-void
-SetEventInfo(
-	Mask                   /* mask */,
-	int                    /* constant */
 	);
 
 #endif /* EXTINIT_H */

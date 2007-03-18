@@ -36,30 +36,6 @@ int SProcXGetDeviceControl(ClientPtr	/* client */
 int ProcXGetDeviceControl(ClientPtr	/* client */
     );
 
-void CopySwapDeviceResolution(ClientPtr /* client */ ,
-			      ValuatorClassPtr /* v */ ,
-			      char * /* buf */ ,
-			      int	/* length */
-    );
-
-void CopySwapDeviceAbsCalib (ClientPtr client,
-                             AbsoluteClassPtr dts,
-                             char *buf);
-
-void CopySwapDeviceAbsArea (ClientPtr client,
-                            AbsoluteClassPtr dts,
-                            char *buf);
-
-void CopySwapDeviceCore(ClientPtr /* client */ ,
-                        DeviceIntPtr /* dev */ ,
-                        char * /* buf */
-    );
-
-void CopySwapDeviceEnable(ClientPtr /* client */ ,
-                          DeviceIntPtr /* dev */ ,
-                          char * /* buf */
-    );
-
 void SRepXGetDeviceControl(ClientPtr /* client */ ,
 			   int /* size */ ,
 			   xGetDeviceControlReply *	/* rep */

@@ -88,6 +88,152 @@ SProcXGetDeviceControl(register ClientPtr client)
 
 /***********************************************************************
  *
+ * This procedure copies DeviceResolution data, swapping if necessary.
+ *
+ */
+
+static void
+CopySwapDeviceResolution(ClientPtr client, ValuatorClassPtr v, char *buf,
+			 int length)
+{
+    register char n;
+    AxisInfoPtr a;
+    xDeviceResolutionState *r;
+    int i, *iptr;
+
+    r = (xDeviceResolutionState *) buf;
+    r->control = DEVICE_RESOLUTION;
+    r->length = length;
+    r->num_valuators = v->numAxes;
+    buf += sizeof(xDeviceResolutionState);
+    iptr = (int *)buf;
+    for (i = 0, a = v->axes; i < v->numAxes; i++, a++)
+	*iptr++ = a->resolution;
+    for (i = 0, a = v->axes; i < v->numAxes; i++, a++)
+	*iptr++ = a->min_resolution;
+    for (i = 0, a = v->axes; i < v->numAxes; i++, a++)
+	*iptr++ = a->max_resolution;
+    if (client->swapped) {
+	swaps(&r->control, n);
+	swaps(&r->length, n);
+	swapl(&r->num_valuators, n);
+	iptr = (int *)buf;
+	for (i = 0; i < (3 * v->numAxes); i++, iptr++) {
+	    swapl(iptr, n);
+	}
+    }
+}
+
+static void CopySwapDeviceAbsCalib (ClientPtr client, AbsoluteClassPtr dts,
+                                char *buf)
+{
+    register char n;
+    xDeviceAbsCalibState *calib = (xDeviceAbsCalibState *) buf;
+
+    calib->control = DEVICE_ABS_CALIB;
+    calib->length = sizeof(calib);
+    calib->min_x = dts->min_x;
+    calib->max_x = dts->max_x;
+    calib->min_y = dts->min_y;
+    calib->max_y = dts->max_y;
+    calib->flip_x = dts->flip_x;
+    calib->flip_y = dts->flip_y;
+    calib->rotation = dts->rotation;
+    calib->button_threshold = dts->button_threshold;
+
+    if (client->swapped) {
+        swaps(&calib->control, n);
+        swaps(&calib->length, n);
+        swapl(&calib->min_x, n);
+        swapl(&calib->max_x, n);
+        swapl(&calib->min_y, n);
+        swapl(&calib->max_y, n);
+        swapl(&calib->flip_x, n);
+        swapl(&calib->flip_y, n);
+        swapl(&calib->rotation, n);
+        swapl(&calib->button_threshold, n);
+    }
+}
+
+static void CopySwapDeviceAbsArea (ClientPtr client, AbsoluteClassPtr dts,
+                                char *buf)
+{
+    register char n;
+    xDeviceAbsAreaState *area = (xDeviceAbsAreaState *) buf;
+
+    area->control = DEVICE_ABS_AREA;
+    area->length = sizeof(area);
+    area->offset_x = dts->offset_x;
+    area->offset_y = dts->offset_y;
+    area->width = dts->width;
+    area->height = dts->height;
+    area->screen = dts->screen;
+    area->following = dts->following;
+
+    if (client->swapped) {
+        swaps(&area->control, n);
+        swaps(&area->length, n);
+        swapl(&area->offset_x, n);
+        swapl(&area->offset_y, n);
+        swapl(&area->width, n);
+        swapl(&area->height, n);
+        swapl(&area->screen, n);
+        swapl(&area->following, n);
+    }
+}
+
+static void CopySwapDeviceCore (ClientPtr client, DeviceIntPtr dev, char *buf)
+{
+    register char n;
+    xDeviceCoreState *c = (xDeviceCoreState *) buf;
+
+    c->control = DEVICE_CORE;
+    c->length = sizeof(c);
+    c->status = dev->coreEvents;
+    c->iscore = (dev == inputInfo.keyboard || dev == inputInfo.pointer);
+
+    if (client->swapped) {
+        swaps(&c->control, n);
+        swaps(&c->length, n);
+        swaps(&c->status, n);
+    }
+}
+
+static void CopySwapDeviceEnable (ClientPtr client, DeviceIntPtr dev, char *buf)
+{
+    register char n;
+    xDeviceEnableState *e = (xDeviceEnableState *) buf;
+
+    e->control = DEVICE_ENABLE;
+    e->length = sizeof(e);
+    e->enable = dev->enabled;
+
+    if (client->swapped) {
+        swaps(&e->control, n);
+        swaps(&e->length, n);
+        swaps(&e->enable, n);
+    }
+}
+
+/***********************************************************************
+ *
+ * This procedure writes the reply for the xGetDeviceControl function,
+ * if the client and server have a different byte ordering.
+ *
+ */
+
+void
+SRepXGetDeviceControl(ClientPtr client, int size, xGetDeviceControlReply * rep)
+{
+    register char n;
+
+    swaps(&rep->sequenceNumber, n);
+    swapl(&rep->length, n);
+    WriteToClient(client, size, (char *)rep);
+}
+
+/***********************************************************************
+ *
  * Get the state of the specified device control.
  *
  */
@@ -185,151 +331,4 @@ ProcXGetDeviceControl(ClientPtr client)
     WriteToClient(client, total_length, savbuf);
     xfree(savbuf);
     return Success;
-}
-
-/***********************************************************************
- *
- * This procedure copies DeviceResolution data, swapping if necessary.
- *
- */
-
-void
-CopySwapDeviceResolution(ClientPtr client, ValuatorClassPtr v, char *buf,
-			 int length)
-{
-    register char n;
-    AxisInfoPtr a;
-    xDeviceResolutionState *r;
-    int i, *iptr;
-
-    r = (xDeviceResolutionState *) buf;
-    r->control = DEVICE_RESOLUTION;
-    r->length = length;
-    r->num_valuators = v->numAxes;
-    buf += sizeof(xDeviceResolutionState);
-    iptr = (int *)buf;
-    for (i = 0, a = v->axes; i < v->numAxes; i++, a++)
-	*iptr++ = a->resolution;
-    for (i = 0, a = v->axes; i < v->numAxes; i++, a++)
-	*iptr++ = a->min_resolution;
-    for (i = 0, a = v->axes; i < v->numAxes; i++, a++)
-	*iptr++ = a->max_resolution;
-    if (client->swapped) {
-	swaps(&r->control, n);
-	swaps(&r->length, n);
-	swapl(&r->num_valuators, n);
-	iptr = (int *)buf;
-	for (i = 0; i < (3 * v->numAxes); i++, iptr++) {
-	    swapl(iptr, n);
-	}
-    }
-}
-
-void CopySwapDeviceAbsCalib (ClientPtr client, AbsoluteClassPtr dts,
-                                char *buf)
-{
-    register char n;
-    xDeviceAbsCalibState *calib = (xDeviceAbsCalibState *) buf;
-
-    calib->control = DEVICE_ABS_CALIB;
-    calib->length = sizeof(calib);
-    calib->min_x = dts->min_x;
-    calib->max_x = dts->max_x;
-    calib->min_y = dts->min_y;
-    calib->max_y = dts->max_y;
-    calib->flip_x = dts->flip_x;
-    calib->flip_y = dts->flip_y;
-    calib->rotation = dts->rotation;
-    calib->button_threshold = dts->button_threshold;
-
-    if (client->swapped) {
-        swaps(&calib->control, n);
-        swaps(&calib->length, n);
-        swapl(&calib->min_x, n);
-        swapl(&calib->max_x, n);
-        swapl(&calib->min_y, n);
-        swapl(&calib->max_y, n);
-        swapl(&calib->flip_x, n);
-        swapl(&calib->flip_y, n);
-        swapl(&calib->rotation, n);
-        swapl(&calib->button_threshold, n);
-    }
-}
-
-void CopySwapDeviceAbsArea (ClientPtr client, AbsoluteClassPtr dts,
-                                char *buf)
-{
-    register char n;
-    xDeviceAbsAreaState *area = (xDeviceAbsAreaState *) buf;
-
-    area->control = DEVICE_ABS_AREA;
-    area->length = sizeof(area);
-    area->offset_x = dts->offset_x;
-    area->offset_y = dts->offset_y;
-    area->width = dts->width;
-    area->height = dts->height;
-    area->screen = dts->screen;
-    area->following = dts->following;
-
-    if (client->swapped) {
-        swaps(&area->control, n);
-        swaps(&area->length, n);
-        swapl(&area->offset_x, n);
-        swapl(&area->offset_y, n);
-        swapl(&area->width, n);
-        swapl(&area->height, n);
-        swapl(&area->screen, n);
-        swapl(&area->following, n);
-    }
-}
-
-void CopySwapDeviceCore (ClientPtr client, DeviceIntPtr dev, char *buf)
-{
-    register char n;
-    xDeviceCoreState *c = (xDeviceCoreState *) buf;
-
-    c->control = DEVICE_CORE;
-    c->length = sizeof(c);
-    c->status = dev->coreEvents;
-    c->iscore = (dev == inputInfo.keyboard || dev == inputInfo.pointer);
-
-    if (client->swapped) {
-        swaps(&c->control, n);
-        swaps(&c->length, n);
-        swaps(&c->status, n);
-    }
-}
-
-void CopySwapDeviceEnable (ClientPtr client, DeviceIntPtr dev, char *buf)
-{
-    register char n;
-    xDeviceEnableState *e = (xDeviceEnableState *) buf;
-
-    e->control = DEVICE_ENABLE;
-    e->length = sizeof(e);
-    e->enable = dev->enabled;
-
-    if (client->swapped) {
-        swaps(&e->control, n);
-        swaps(&e->length, n);
-        swaps(&e->enable, n);
-    }
-}
-
-
-/***********************************************************************
- *
- * This procedure writes the reply for the xGetDeviceControl function,
- * if the client and server have a different byte ordering.
- *
- */
-
-void
-SRepXGetDeviceControl(ClientPtr client, int size, xGetDeviceControlReply * rep)
-{
-    register char n;
-
-    swaps(&rep->sequenceNumber, n);
-    swapl(&rep->length, n);
-    WriteToClient(client, size, (char *)rep);
 }

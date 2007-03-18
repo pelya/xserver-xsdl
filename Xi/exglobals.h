@@ -45,7 +45,6 @@ extern Mask DevicePointerMotionMask;
 extern Mask DevicePointerMotionHintMask;
 extern Mask DeviceFocusChangeMask;
 extern Mask DeviceStateNotifyMask;
-extern Mask ChangeDeviceNotifyMask;
 extern Mask DeviceMappingNotifyMask;
 extern Mask DeviceOwnerGrabButtonMask;
 extern Mask DeviceButtonGrabMask;
