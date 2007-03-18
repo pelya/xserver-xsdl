@@ -120,12 +120,8 @@ xf4bppCreatePixmap( pScreen, width, height, depth )
     pPixmap->devKind = size;
     pPixmap->refcnt = 1 ;
     size = height * pPixmap->devKind ;
-#ifdef PIXPRIV
     pPixmap->devPrivate.ptr = (pointer) (((CARD8*)pPixmap)
 					 + pScreen->totalPixmapSize);
-#else
-    pPixmap->devPrivate.ptr = (pointer) (pPixmap + 1);
-#endif
     bzero( (char *) pPixmap->devPrivate.ptr, size ) ;
     return pPixmap ;
 }

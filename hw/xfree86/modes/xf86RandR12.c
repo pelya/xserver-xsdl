@@ -423,8 +423,28 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 	}
 	else
 	{
-	    mmWidth = pScreen->mmWidth;
-	    mmHeight = pScreen->mmHeight;
+	    xf86OutputPtr   output = config->output[config->compat_output];
+	    xf86CrtcPtr	    crtc = output->crtc;
+
+	    if (crtc && crtc->mode.HDisplay &&
+		output->mm_width && output->mm_height)
+	    {
+		/*
+		 * If the output has a mode and a declared size, use that
+		 * to scale the screen size
+		 */
+		DisplayModePtr	mode = &crtc->mode;
+		mmWidth = output->mm_width * width / mode->HDisplay;
+		mmHeight = output->mm_height * height / mode->VDisplay;
+	    }
+	    else
+	    {
+		/*
+		 * Otherwise, just set the screen to 96dpi
+		 */
+		mmWidth = width * 25.4 / 96;
+		mmHeight = height * 25.4 / 96;
+	    }
 	}
 	xf86DrvMsg(pScrn->scrnIndex, X_INFO,
 		   "Setting screen physical size to %d x %d\n",

@@ -968,7 +968,7 @@ localAllocateOffscreenLinear(
 	linear->size = h * w;
 	linear->offset = (pitch * area->box.y1) + area->box.x1;
 	if (gran > 1)
-            linear->offset += ((linear->offset + gran - 1) / gran) * gran;
+            linear->offset = ((linear->offset + gran - 1) / gran) * gran;
 	linear->granularity = gran;
 	linear->MoveLinearCallback = moveCB;
 	linear->RemoveLinearCallback = removeCB;

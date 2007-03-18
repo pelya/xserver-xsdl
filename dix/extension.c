@@ -81,11 +81,11 @@ extern unsigned totalExtensionSize;
 static void
 InitExtensionPrivates(ExtensionEntry *ext)
 {
-    register char *ptr;
+    char *ptr;
     DevUnion *ppriv;
-    register unsigned *sizes;
-    register unsigned size;
-    register int i;
+    unsigned *sizes;
+    unsigned size;
+    int i;
 
     if (totalExtensionSize == sizeof(ExtensionEntry))
 	ppriv = (DevUnion *)NULL;
@@ -115,7 +115,7 @@ AddExtension(char *name, int NumEvents, int NumErrors,
 	     unsigned short (*MinorOpcodeProc)(ClientPtr c3))
 {
     int i;
-    register ExtensionEntry *ext, **newexts;
+    ExtensionEntry *ext, **newexts;
 
     if (!MainProc || !SwappedMainProc || !CloseDownProc || !MinorOpcodeProc)
         return((ExtensionEntry *) NULL);
@@ -282,7 +282,7 @@ MinorOpcodeOfRequest(ClientPtr client)
 void
 CloseDownExtensions()
 {
-    register int i,j;
+    int i,j;
 
     for (i = NumExtensions - 1; i >= 0; i--)
     {
@@ -300,7 +300,7 @@ CloseDownExtensions()
     lastError = FirstExtensionError;
     for (i=0; i<MAXSCREENS; i++)
     {
-	register ScreenProcEntry *spentry = &AuxillaryScreenProcs[i];
+	ScreenProcEntry *spentry = &AuxillaryScreenProcs[i];
 
 	while (spentry->num)
 	{
@@ -363,7 +363,7 @@ ProcListExtensions(ClientPtr client)
 
     if ( NumExtensions )
     {
-        register int i, j;
+        int i, j;
 
         for (i=0;  i<NumExtensions; i++)
 	{
@@ -410,8 +410,8 @@ ProcListExtensions(ClientPtr client)
 ExtensionLookupProc 
 LookupProc(char *name, GCPtr pGC)
 {
-    register int i;
-    register ScreenProcEntry *spentry;
+    int i;
+    ScreenProcEntry *spentry;
     spentry  = &AuxillaryScreenProcs[pGC->pScreen->myNum];
     if (spentry->num)    
     {
@@ -431,8 +431,8 @@ RegisterProc(char *name, GC *pGC, ExtensionLookupProc proc)
 Bool
 RegisterScreenProc(char *name, ScreenPtr pScreen, ExtensionLookupProc proc)
 {
-    register ScreenProcEntry *spentry;
-    register ProcEntryPtr procEntry = (ProcEntryPtr)NULL;
+    ScreenProcEntry *spentry;
+    ProcEntryPtr procEntry = (ProcEntryPtr)NULL;
     char *newname;
     int i;
 

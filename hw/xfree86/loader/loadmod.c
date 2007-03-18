@@ -841,6 +841,7 @@ DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent)
 static const char *compiled_in_modules[] = {
     "ddc",
     "i2c",
+    "ramdac",
     NULL
 };
 
@@ -861,7 +862,7 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
     PatternPtr patterns = NULL;
     int noncanonical = 0;
     char *m = NULL;
-    char **cim;
+    const char **cim;
 
     xf86MsgVerb(X_INFO, 3, "LoadModule: \"%s\"", module);
 

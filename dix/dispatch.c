@@ -262,7 +262,7 @@ void
 FlushClientCaches(XID id)
 {
     int i;
-    register ClientPtr client;
+    ClientPtr client;
 
     client = clients[CLIENT_ID(id)];
     if (client == NullClient)
@@ -394,11 +394,11 @@ SmartScheduleClient (int *clientReady, int nready)
 void
 Dispatch(void)
 {
-    register int        *clientReady;     /* array of request ready clients */
-    register int	result;
-    register ClientPtr	client;
-    register int	nready;
-    register HWEventQueuePtr* icheck = checkForInput;
+    int        *clientReady;     /* array of request ready clients */
+    int	result;
+    ClientPtr	client;
+    int	nready;
+    HWEventQueuePtr* icheck = checkForInput;
 #ifdef SMART_SCHEDULE
     long			start_tick;
 #endif
@@ -594,11 +594,11 @@ ProcCreateWindow(ClientPtr client)
 }
 
 int
-ProcChangeWindowAttributes(register ClientPtr client)
+ProcChangeWindowAttributes(ClientPtr client)
 {
     WindowPtr pWin;
     REQUEST(xChangeWindowAttributesReq);
-    register int result;
+    int result;
     int len, rc;
 
     REQUEST_AT_LEAST_SIZE(xChangeWindowAttributesReq);
@@ -619,7 +619,7 @@ ProcChangeWindowAttributes(register ClientPtr client)
 }
 
 int
-ProcGetWindowAttributes(register ClientPtr client)
+ProcGetWindowAttributes(ClientPtr client)
 {
     WindowPtr pWin;
     REQUEST(xResourceReq);
@@ -636,7 +636,7 @@ ProcGetWindowAttributes(register ClientPtr client)
 }
 
 int
-ProcDestroyWindow(register ClientPtr client)
+ProcDestroyWindow(ClientPtr client)
 {
     WindowPtr pWin;
     REQUEST(xResourceReq);
@@ -652,7 +652,7 @@ ProcDestroyWindow(register ClientPtr client)
 }
 
 int
-ProcDestroySubwindows(register ClientPtr client)
+ProcDestroySubwindows(ClientPtr client)
 {
     WindowPtr pWin;
     REQUEST(xResourceReq);
@@ -667,11 +667,11 @@ ProcDestroySubwindows(register ClientPtr client)
 }
 
 int
-ProcChangeSaveSet(register ClientPtr client)
+ProcChangeSaveSet(ClientPtr client)
 {
     WindowPtr pWin;
     REQUEST(xChangeSaveSetReq);
-    register int result, rc;
+    int result, rc;
 		  
     REQUEST_SIZE_MATCH(xChangeSaveSetReq);
     rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
@@ -695,11 +695,11 @@ ProcChangeSaveSet(register ClientPtr client)
 }
 
 int
-ProcReparentWindow(register ClientPtr client)
+ProcReparentWindow(ClientPtr client)
 {
     WindowPtr pWin, pParent;
     REQUEST(xReparentWindowReq);
-    register int result, rc;
+    int result, rc;
 
     REQUEST_SIZE_MATCH(xReparentWindowReq);
     rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
@@ -728,7 +728,7 @@ ProcReparentWindow(register ClientPtr client)
 }
 
 int
-ProcMapWindow(register ClientPtr client)
+ProcMapWindow(ClientPtr client)
 {
     WindowPtr pWin;
     REQUEST(xResourceReq);
@@ -744,7 +744,7 @@ ProcMapWindow(register ClientPtr client)
 }
 
 int
-ProcMapSubwindows(register ClientPtr client)
+ProcMapSubwindows(ClientPtr client)
 {
     WindowPtr pWin;
     REQUEST(xResourceReq);
@@ -760,7 +760,7 @@ ProcMapSubwindows(register ClientPtr client)
 }
 
 int
-ProcUnmapWindow(register ClientPtr client)
+ProcUnmapWindow(ClientPtr client)
 {
     WindowPtr pWin;
     REQUEST(xResourceReq);
@@ -776,7 +776,7 @@ ProcUnmapWindow(register ClientPtr client)
 }
 
 int
-ProcUnmapSubwindows(register ClientPtr client)
+ProcUnmapSubwindows(ClientPtr client)
 {
     WindowPtr pWin;
     REQUEST(xResourceReq);
@@ -791,11 +791,11 @@ ProcUnmapSubwindows(register ClientPtr client)
 }
 
 int
-ProcConfigureWindow(register ClientPtr client)
+ProcConfigureWindow(ClientPtr client)
 {
     WindowPtr pWin;
     REQUEST(xConfigureWindowReq);
-    register int result;
+    int result;
     int len, rc;
 
     REQUEST_AT_LEAST_SIZE(xConfigureWindowReq);
@@ -814,7 +814,7 @@ ProcConfigureWindow(register ClientPtr client)
 }
 
 int
-ProcCirculateWindow(register ClientPtr client)
+ProcCirculateWindow(ClientPtr client)
 {
     WindowPtr pWin;
     REQUEST(xCirculateWindowReq);
@@ -835,7 +835,7 @@ ProcCirculateWindow(register ClientPtr client)
 }
 
 int
-GetGeometry(register ClientPtr client, xGetGeometryReply *rep)
+GetGeometry(ClientPtr client, xGetGeometryReply *rep)
 {
     DrawablePtr pDraw;
     int rc;
@@ -865,7 +865,7 @@ GetGeometry(register ClientPtr client, xGetGeometryReply *rep)
     if ((pDraw->type == UNDRAWABLE_WINDOW) ||
         ((pDraw->type == DRAWABLE_WINDOW) && (stuff->id == pDraw->id)))
     {
-        register WindowPtr pWin = (WindowPtr)pDraw;
+        WindowPtr pWin = (WindowPtr)pDraw;
 	rep->x = pWin->origin.x - wBorderWidth (pWin);
 	rep->y = pWin->origin.y - wBorderWidth (pWin);
 	rep->borderWidth = pWin->borderWidth;
@@ -880,7 +880,7 @@ GetGeometry(register ClientPtr client, xGetGeometryReply *rep)
 
 
 int
-ProcGetGeometry(register ClientPtr client)
+ProcGetGeometry(ClientPtr client)
 {
     xGetGeometryReply rep;
     int status;
@@ -894,7 +894,7 @@ ProcGetGeometry(register ClientPtr client)
 
 
 int
-ProcQueryTree(register ClientPtr client)
+ProcQueryTree(ClientPtr client)
 {
     xQueryTreeReply reply;
     int rc, numChildren = 0;
@@ -942,7 +942,7 @@ ProcQueryTree(register ClientPtr client)
 }
 
 int
-ProcInternAtom(register ClientPtr client)
+ProcInternAtom(ClientPtr client)
 {
     Atom atom;
     char *tchar;
@@ -971,7 +971,7 @@ ProcInternAtom(register ClientPtr client)
 }
 
 int
-ProcGetAtomName(register ClientPtr client)
+ProcGetAtomName(ClientPtr client)
 {
     char *str;
     xGetAtomNameReply reply;
@@ -1002,7 +1002,7 @@ extern int k5_bad();
 #endif
 
 int
-ProcSetSelectionOwner(register ClientPtr client)
+ProcSetSelectionOwner(ClientPtr client)
 {
     WindowPtr pWin;
     TimeStamp time;
@@ -1097,7 +1097,7 @@ ProcSetSelectionOwner(register ClientPtr client)
 }
 
 int
-ProcGetSelectionOwner(register ClientPtr client)
+ProcGetSelectionOwner(ClientPtr client)
 {
     REQUEST(xResourceReq);
 
@@ -1128,7 +1128,7 @@ ProcGetSelectionOwner(register ClientPtr client)
 }
 
 int
-ProcConvertSelection(register ClientPtr client)
+ProcConvertSelection(ClientPtr client)
 {
     Bool paramsOkay;
     xEvent event;
@@ -1188,7 +1188,7 @@ ProcConvertSelection(register ClientPtr client)
 }
 
 int
-ProcGrabServer(register ClientPtr client)
+ProcGrabServer(ClientPtr client)
 {
     REQUEST_SIZE_MATCH(xReq);
     if (grabState != GrabNone && client != grabClient)
@@ -1242,7 +1242,7 @@ UngrabServer(ClientPtr client)
 }
 
 int
-ProcUngrabServer(register ClientPtr client)
+ProcUngrabServer(ClientPtr client)
 {
     REQUEST_SIZE_MATCH(xReq);
     UngrabServer(client);
@@ -1250,7 +1250,7 @@ ProcUngrabServer(register ClientPtr client)
 }
 
 int
-ProcTranslateCoords(register ClientPtr client)
+ProcTranslateCoords(ClientPtr client)
 {
     REQUEST(xTranslateCoordsReq);
 
@@ -1327,7 +1327,7 @@ ProcTranslateCoords(register ClientPtr client)
 }
 
 int
-ProcOpenFont(register ClientPtr client)
+ProcOpenFont(ClientPtr client)
 {
     int	err;
     REQUEST(xOpenFontReq);
@@ -1346,7 +1346,7 @@ ProcOpenFont(register ClientPtr client)
 }
 
 int
-ProcCloseFont(register ClientPtr client)
+ProcCloseFont(ClientPtr client)
 {
     FontPtr pFont;
     REQUEST(xResourceReq);
@@ -1367,11 +1367,11 @@ ProcCloseFont(register ClientPtr client)
 }
 
 int
-ProcQueryFont(register ClientPtr client)
+ProcQueryFont(ClientPtr client)
 {
     xQueryFontReply	*reply;
     FontPtr pFont;
-    register GC *pGC;
+    GC *pGC;
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
@@ -1425,7 +1425,7 @@ ProcQueryFont(register ClientPtr client)
 }
 
 int
-ProcQueryTextExtents(register ClientPtr client)
+ProcQueryTextExtents(ClientPtr client)
 {
     REQUEST(xQueryTextExtentsReq);
     xQueryTextExtentsReply reply;
@@ -1475,7 +1475,7 @@ ProcQueryTextExtents(register ClientPtr client)
 }
 
 int
-ProcListFonts(register ClientPtr client)
+ProcListFonts(ClientPtr client)
 {
     REQUEST(xListFontsReq);
 
@@ -1486,7 +1486,7 @@ ProcListFonts(register ClientPtr client)
 }
 
 int
-ProcListFontsWithInfo(register ClientPtr client)
+ProcListFontsWithInfo(ClientPtr client)
 {
     REQUEST(xListFontsWithInfoReq);
 
@@ -1508,13 +1508,13 @@ dixDestroyPixmap(pointer value, XID pid)
 }
 
 int
-ProcCreatePixmap(register ClientPtr client)
+ProcCreatePixmap(ClientPtr client)
 {
     PixmapPtr pMap;
     DrawablePtr pDraw;
     REQUEST(xCreatePixmapReq);
     DepthPtr pDepth;
-    register int i, rc;
+    int i, rc;
 
     REQUEST_SIZE_MATCH(xCreatePixmapReq);
     client->errorValue = stuff->pid;
@@ -1571,7 +1571,7 @@ CreatePmap:
 }
 
 int
-ProcFreePixmap(register ClientPtr client)
+ProcFreePixmap(ClientPtr client)
 {
     PixmapPtr pMap;
 
@@ -1593,7 +1593,7 @@ ProcFreePixmap(register ClientPtr client)
 }
 
 int
-ProcCreateGC(register ClientPtr client)
+ProcCreateGC(ClientPtr client)
 {
     int error, rc;
     GC *pGC;
@@ -1621,7 +1621,7 @@ ProcCreateGC(register ClientPtr client)
 }
 
 int
-ProcChangeGC(register ClientPtr client)
+ProcChangeGC(ClientPtr client)
 {
     GC *pGC;
     int result;
@@ -1648,7 +1648,7 @@ ProcChangeGC(register ClientPtr client)
 }
 
 int
-ProcCopyGC(register ClientPtr client)
+ProcCopyGC(ClientPtr client)
 {
     GC *dstGC;
     GC *pGC;
@@ -1675,7 +1675,7 @@ ProcCopyGC(register ClientPtr client)
 }
 
 int
-ProcSetDashes(register ClientPtr client)
+ProcSetDashes(ClientPtr client)
 {
     GC *pGC;
     int result;
@@ -1704,7 +1704,7 @@ ProcSetDashes(register ClientPtr client)
 }
 
 int
-ProcSetClipRectangles(register ClientPtr client)
+ProcSetClipRectangles(ClientPtr client)
 {
     int	nr, result;
     GC *pGC;
@@ -1734,7 +1734,7 @@ ProcSetClipRectangles(register ClientPtr client)
 }
 
 int
-ProcFreeGC(register ClientPtr client)
+ProcFreeGC(ClientPtr client)
 {
     GC *pGC;
     int rc;
@@ -1750,7 +1750,7 @@ ProcFreeGC(register ClientPtr client)
 }
 
 int
-ProcClearToBackground(register ClientPtr client)
+ProcClearToBackground(ClientPtr client)
 {
     REQUEST(xClearAreaReq);
     WindowPtr pWin;
@@ -1777,7 +1777,7 @@ ProcClearToBackground(register ClientPtr client)
 }
 
 int
-ProcCopyArea(register ClientPtr client)
+ProcCopyArea(ClientPtr client)
 {
     DrawablePtr pDst;
     DrawablePtr pSrc;
@@ -1821,7 +1821,7 @@ ProcCopyArea(register ClientPtr client)
 }
 
 int
-ProcCopyPlane(register ClientPtr client)
+ProcCopyPlane(ClientPtr client)
 {
     DrawablePtr psrcDraw, pdstDraw;
     GC *pGC;
@@ -1872,7 +1872,7 @@ ProcCopyPlane(register ClientPtr client)
 }
 
 int
-ProcPolyPoint(register ClientPtr client)
+ProcPolyPoint(ClientPtr client)
 {
     int npoint;
     GC *pGC;
@@ -1895,7 +1895,7 @@ ProcPolyPoint(register ClientPtr client)
 }
 
 int
-ProcPolyLine(register ClientPtr client)
+ProcPolyLine(ClientPtr client)
 {
     int npoint;
     GC *pGC;
@@ -1918,7 +1918,7 @@ ProcPolyLine(register ClientPtr client)
 }
 
 int
-ProcPolySegment(register ClientPtr client)
+ProcPolySegment(ClientPtr client)
 {
     int nsegs;
     GC *pGC;
@@ -1937,7 +1937,7 @@ ProcPolySegment(register ClientPtr client)
 }
 
 int
-ProcPolyRectangle (register ClientPtr client)
+ProcPolyRectangle (ClientPtr client)
 {
     int nrects;
     GC *pGC;
@@ -1957,7 +1957,7 @@ ProcPolyRectangle (register ClientPtr client)
 }
 
 int
-ProcPolyArc(register ClientPtr client)
+ProcPolyArc(ClientPtr client)
 {
     int		narcs;
     GC *pGC;
@@ -1976,7 +1976,7 @@ ProcPolyArc(register ClientPtr client)
 }
 
 int
-ProcFillPoly(register ClientPtr client)
+ProcFillPoly(ClientPtr client)
 {
     int          things;
     GC *pGC;
@@ -2007,7 +2007,7 @@ ProcFillPoly(register ClientPtr client)
 }
 
 int
-ProcPolyFillRectangle(register ClientPtr client)
+ProcPolyFillRectangle(ClientPtr client)
 {
     int             things;
     GC *pGC;
@@ -2028,7 +2028,7 @@ ProcPolyFillRectangle(register ClientPtr client)
 }
 
 int
-ProcPolyFillArc(register ClientPtr client)
+ProcPolyFillArc(ClientPtr client)
 {
     int		narcs;
     GC *pGC;
@@ -2101,7 +2101,7 @@ ReformatImage (char *base, int nbytes, int bpp, int order)
  * boundary, even if the scanlines are padded to our satisfaction.
  */
 int
-ProcPutImage(register ClientPtr client)
+ProcPutImage(ClientPtr client)
 {
     GC *pGC;
     DrawablePtr pDraw;
@@ -2159,13 +2159,13 @@ ProcPutImage(register ClientPtr client)
 
 
 int
-DoGetImage(register ClientPtr client, int format, Drawable drawable, 
+DoGetImage(ClientPtr client, int format, Drawable drawable, 
            int x, int y, int width, int height, 
            Mask planemask, xGetImageReply **im_return)
 {
     DrawablePtr		pDraw;
     int			nlines, linesPerBuf, rc;
-    register int	linesDone;
+    int	linesDone;
     long		widthBytesLine, length;
     Mask		plane = 0;
     char		*pBuf;
@@ -2379,7 +2379,7 @@ DoGetImage(register ClientPtr client, int format, Drawable drawable,
 }
 
 int
-ProcGetImage(register ClientPtr client)
+ProcGetImage(ClientPtr client)
 {
     REQUEST(xGetImageReq);
 
@@ -2392,7 +2392,7 @@ ProcGetImage(register ClientPtr client)
 }
 
 int
-ProcPolyText(register ClientPtr client)
+ProcPolyText(ClientPtr client)
 {
     int	err;
     REQUEST(xPolyTextReq);
@@ -2421,7 +2421,7 @@ ProcPolyText(register ClientPtr client)
 }
 
 int
-ProcImageText8(register ClientPtr client)
+ProcImageText8(ClientPtr client)
 {
     int	err;
     DrawablePtr pDraw;
@@ -2451,7 +2451,7 @@ ProcImageText8(register ClientPtr client)
 }
 
 int
-ProcImageText16(register ClientPtr client)
+ProcImageText16(ClientPtr client)
 {
     int	err;
     DrawablePtr pDraw;
@@ -2482,7 +2482,7 @@ ProcImageText16(register ClientPtr client)
 
 
 int
-ProcCreateColormap(register ClientPtr client)
+ProcCreateColormap(ClientPtr client)
 {
     VisualPtr	pVisual;
     ColormapPtr	pmap;
@@ -2524,7 +2524,7 @@ ProcCreateColormap(register ClientPtr client)
 }
 
 int
-ProcFreeColormap(register ClientPtr client)
+ProcFreeColormap(ClientPtr client)
 {
     ColormapPtr pmap;
     REQUEST(xResourceReq);
@@ -2548,7 +2548,7 @@ ProcFreeColormap(register ClientPtr client)
 
 
 int
-ProcCopyColormapAndFree(register ClientPtr client)
+ProcCopyColormapAndFree(ClientPtr client)
 {
     Colormap	mid;
     ColormapPtr	pSrcMap;
@@ -2575,7 +2575,7 @@ ProcCopyColormapAndFree(register ClientPtr client)
 }
 
 int
-ProcInstallColormap(register ClientPtr client)
+ProcInstallColormap(ClientPtr client)
 {
     ColormapPtr pcmp;
     REQUEST(xResourceReq);
@@ -2596,7 +2596,7 @@ ProcInstallColormap(register ClientPtr client)
 }
 
 int
-ProcUninstallColormap(register ClientPtr client)
+ProcUninstallColormap(ClientPtr client)
 {
     ColormapPtr pcmp;
     REQUEST(xResourceReq);
@@ -2618,7 +2618,7 @@ ProcUninstallColormap(register ClientPtr client)
 }
 
 int
-ProcListInstalledColormaps(register ClientPtr client)
+ProcListInstalledColormaps(ClientPtr client)
 {
     xListInstalledColormapsReply *preply; 
     int nummaps, rc;
@@ -2651,7 +2651,7 @@ ProcListInstalledColormaps(register ClientPtr client)
 }
 
 int
-ProcAllocColor (register ClientPtr client)
+ProcAllocColor (ClientPtr client)
 {
     ColormapPtr pmap;
     int	retval;
@@ -2693,7 +2693,7 @@ ProcAllocColor (register ClientPtr client)
 }
 
 int
-ProcAllocNamedColor (register ClientPtr client)
+ProcAllocNamedColor (ClientPtr client)
 {
     ColormapPtr pcmp;
     REQUEST(xAllocNamedColorReq);
@@ -2745,7 +2745,7 @@ ProcAllocNamedColor (register ClientPtr client)
 }
 
 int
-ProcAllocColorCells (register ClientPtr client)
+ProcAllocColorCells (ClientPtr client)
 {
     ColormapPtr pcmp;
     REQUEST(xAllocColorCellsReq);
@@ -2811,7 +2811,7 @@ ProcAllocColorCells (register ClientPtr client)
 }
 
 int
-ProcAllocColorPlanes(register ClientPtr client)
+ProcAllocColorPlanes(ClientPtr client)
 {
     ColormapPtr pcmp;
     REQUEST(xAllocColorPlanesReq);
@@ -2875,7 +2875,7 @@ ProcAllocColorPlanes(register ClientPtr client)
 }
 
 int
-ProcFreeColors(register ClientPtr client)
+ProcFreeColors(ClientPtr client)
 {
     ColormapPtr pcmp;
     REQUEST(xFreeColorsReq);
@@ -2944,7 +2944,7 @@ ProcStoreColors (ClientPtr client)
 }
 
 int
-ProcStoreNamedColor (register ClientPtr client)
+ProcStoreNamedColor (ClientPtr client)
 {
     ColormapPtr pcmp;
     REQUEST(xStoreNamedColorReq);
@@ -2978,7 +2978,7 @@ ProcStoreNamedColor (register ClientPtr client)
 }
 
 int
-ProcQueryColors(register ClientPtr client)
+ProcQueryColors(ClientPtr client)
 {
     ColormapPtr pcmp;
     REQUEST(xQueryColorsReq);
@@ -3029,7 +3029,7 @@ ProcQueryColors(register ClientPtr client)
 } 
 
 int
-ProcLookupColor(register ClientPtr client)
+ProcLookupColor(ClientPtr client)
 {
     ColormapPtr pcmp;
     REQUEST(xLookupColorReq);
@@ -3067,17 +3067,16 @@ ProcLookupColor(register ClientPtr client)
 }
 
 int
-ProcCreateCursor (register ClientPtr client)
+ProcCreateCursor (ClientPtr client)
 {
-    CursorPtr	pCursor;
-
-    register PixmapPtr 	src;
-    register PixmapPtr 	msk;
+    CursorPtr		pCursor;
+    PixmapPtr 		src;
+    PixmapPtr 		msk;
     unsigned char *	srcbits;
     unsigned char *	mskbits;
     unsigned short	width, height;
     long		n;
-    CursorMetricRec cm;
+    CursorMetricRec 	cm;
 
 
     REQUEST(xCreateCursorReq);
@@ -3132,7 +3131,7 @@ ProcCreateCursor (register ClientPtr client)
 					 XYPixmap, 1, (pointer)srcbits);
     if ( msk == (PixmapPtr)NULL)
     {
-	register unsigned char *bits = mskbits;
+	unsigned char *bits = mskbits;
 	while (--n >= 0)
 	    *bits++ = ~0;
     }
@@ -3157,7 +3156,7 @@ ProcCreateCursor (register ClientPtr client)
 }
 
 int
-ProcCreateGlyphCursor (register ClientPtr client)
+ProcCreateGlyphCursor (ClientPtr client)
 {
     CursorPtr pCursor;
     int res;
@@ -3181,7 +3180,7 @@ ProcCreateGlyphCursor (register ClientPtr client)
 
 
 int
-ProcFreeCursor (register ClientPtr client)
+ProcFreeCursor (ClientPtr client)
 {
     CursorPtr pCursor;
     REQUEST(xResourceReq);
@@ -3202,7 +3201,7 @@ ProcFreeCursor (register ClientPtr client)
 }
 
 int
-ProcQueryBestSize (register ClientPtr client)
+ProcQueryBestSize (ClientPtr client)
 {
     xQueryBestSizeReply	reply;
     DrawablePtr pDraw;
@@ -3239,7 +3238,7 @@ ProcQueryBestSize (register ClientPtr client)
 
 
 int
-ProcSetScreenSaver (register ClientPtr client)
+ProcSetScreenSaver (ClientPtr client)
 {
     int blankingOption, exposureOption;
     REQUEST(xSetScreenSaverReq);
@@ -3295,7 +3294,7 @@ ProcSetScreenSaver (register ClientPtr client)
 }
 
 int
-ProcGetScreenSaver(register ClientPtr client)
+ProcGetScreenSaver(ClientPtr client)
 {
     xGetScreenSaverReply rep;
 
@@ -3312,7 +3311,7 @@ ProcGetScreenSaver(register ClientPtr client)
 }
 
 int
-ProcChangeHosts(register ClientPtr client)
+ProcChangeHosts(ClientPtr client)
 {
     REQUEST(xChangeHostsReq);
     int result;
@@ -3336,7 +3335,7 @@ ProcChangeHosts(register ClientPtr client)
 }
 
 int
-ProcListHosts(register ClientPtr client)
+ProcListHosts(ClientPtr client)
 {
     xListHostsReply reply;
     int	len, nHosts, result;
@@ -3367,7 +3366,7 @@ ProcListHosts(register ClientPtr client)
 }
 
 int
-ProcChangeAccessControl(register ClientPtr client)
+ProcChangeAccessControl(ClientPtr client)
 {
     int result;
     REQUEST(xSetAccessControlReq);
@@ -3385,7 +3384,7 @@ ProcChangeAccessControl(register ClientPtr client)
 }
 
 int
-ProcKillClient(register ClientPtr client)
+ProcKillClient(ClientPtr client)
 {
     REQUEST(xResourceReq);
     ClientPtr killclient;
@@ -3417,7 +3416,7 @@ ProcKillClient(register ClientPtr client)
 }
 
 int
-ProcSetFontPath(register ClientPtr client)
+ProcSetFontPath(ClientPtr client)
 {
     unsigned char *ptr;
     unsigned long nbytes, total;
@@ -3452,7 +3451,7 @@ ProcSetFontPath(register ClientPtr client)
 }
 
 int
-ProcGetFontPath(register ClientPtr client)
+ProcGetFontPath(ClientPtr client)
 {
     xGetFontPathReply reply;
     int stringLens, numpaths;
@@ -3474,7 +3473,7 @@ ProcGetFontPath(register ClientPtr client)
 }
 
 int
-ProcChangeCloseDownMode(register ClientPtr client)
+ProcChangeCloseDownMode(ClientPtr client)
 {
     REQUEST(xSetCloseDownModeReq);
 
@@ -3493,7 +3492,7 @@ ProcChangeCloseDownMode(register ClientPtr client)
     }
 }
 
-int ProcForceScreenSaver(register ClientPtr client)
+int ProcForceScreenSaver(ClientPtr client)
 {    
     REQUEST(xForceScreenSaverReq);
 
@@ -3509,7 +3508,7 @@ int ProcForceScreenSaver(register ClientPtr client)
     return client->noClientException;
 }
 
-int ProcNoOperation(register ClientPtr client)
+int ProcNoOperation(ClientPtr client)
 {
     REQUEST_AT_LEAST_SIZE(xReq);
     
@@ -3552,7 +3551,7 @@ InitProcVectors(void)
 char dispatchExceptionAtReset = DE_RESET;
 
 void
-CloseDownClient(register ClientPtr client)
+CloseDownClient(ClientPtr client)
 {
     Bool really_close_down = client->clientGone ||
 			     client->closeDownMode == DestroyAll;
@@ -3664,8 +3663,8 @@ KillAllClients()
 void
 CloseDownRetainedResources()
 {
-    register int i;
-    register ClientPtr client;
+    int i;
+    ClientPtr client;
 
     for (i=1; i<currentMaxClients; i++)
     {
@@ -3737,11 +3736,11 @@ void InitClient(ClientPtr client, int i, pointer ospriv)
 int
 InitClientPrivates(ClientPtr client)
 {
-    register char *ptr;
+    char *ptr;
     DevUnion *ppriv;
-    register unsigned *sizes;
-    register unsigned size;
-    register int i;
+    unsigned *sizes;
+    unsigned size;
+    int i;
 
     if (totalClientSize == sizeof(ClientRec))
 	ppriv = (DevUnion *)NULL;
@@ -3791,8 +3790,8 @@ InitClientPrivates(ClientPtr client)
 
 ClientPtr NextAvailableClient(pointer ospriv)
 {
-    register int i;
-    register ClientPtr client;
+    int i;
+    ClientPtr client;
     xReq data;
 
     i = nextFreeClientID;
@@ -3833,10 +3832,10 @@ ClientPtr NextAvailableClient(pointer ospriv)
 }
 
 int
-ProcInitialConnection(register ClientPtr client)
+ProcInitialConnection(ClientPtr client)
 {
     REQUEST(xReq);
-    register xConnClientPrefix *prefix;
+    xConnClientPrefix *prefix;
     int whichbyte = 1;
 
     prefix = (xConnClientPrefix *)((char *)stuff + sz_xReq);
@@ -3860,10 +3859,10 @@ ProcInitialConnection(register ClientPtr client)
 }
 
 int
-SendConnSetup(register ClientPtr client, char *reason)
+SendConnSetup(ClientPtr client, char *reason)
 {
-    register xWindowRoot *root;
-    register int i;
+    xWindowRoot *root;
+    int i;
     int numScreens;
     char* lConnectionInfo;
     xConnSetupPrefix* lconnSetupPrefix;
@@ -3918,8 +3917,8 @@ SendConnSetup(register ClientPtr client, char *reason)
 
     for (i=0; i<numScreens; i++) 
     {
-	register unsigned int j;
-	register xDepth *pDepth;
+	unsigned int j;
+	xDepth *pDepth;
 
         root->currentInputMask = WindowTable[i]->eventMask |
 			         wOtherEventMasks (WindowTable[i]);
@@ -3960,10 +3959,10 @@ SendConnSetup(register ClientPtr client, char *reason)
 }
 
 int
-ProcEstablishConnection(register ClientPtr client)
+ProcEstablishConnection(ClientPtr client)
 {
     char *reason, *auth_proto, *auth_string;
-    register xConnClientPrefix *prefix;
+    xConnClientPrefix *prefix;
     REQUEST(xReq);
 
     prefix = (xConnClientPrefix *)((char *)stuff + sz_xReq);
@@ -4012,7 +4011,7 @@ SendErrorToClient(ClientPtr client, unsigned majorCode, unsigned minorCode,
 void
 DeleteWindowFromAnySelections(WindowPtr pWin)
 {
-    register int i;
+    int i;
 
     for (i = 0; i< NumCurrentSelections; i++)
         if (CurrentSelections[i].pWin == pWin)
@@ -4034,7 +4033,7 @@ DeleteWindowFromAnySelections(WindowPtr pWin)
 static void
 DeleteClientFromAnySelections(ClientPtr client)
 {
-    register int i;
+    int i;
 
     for (i = 0; i< NumCurrentSelections; i++)
         if (CurrentSelections[i].client == client)

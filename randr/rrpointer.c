@@ -104,7 +104,7 @@ void
 RRPointerMoved (ScreenPtr pScreen, int x, int y)
 {
     rrScrPriv (pScreen);
-    RRCrtcPtr	pointerCrtc = pScrPriv->pointerCrtc;;
+    RRCrtcPtr	pointerCrtc = pScrPriv->pointerCrtc;
     int	c;
 
     /* Check last known CRTC */

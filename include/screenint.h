@@ -86,8 +86,6 @@ extern int AddScreen(
     int /*argc*/,
     char** /*argv*/);
 
-#ifdef PIXPRIV
-
 extern void ResetPixmapPrivates(void);
 
 extern int AllocatePixmapPrivateIndex(void);
@@ -96,8 +94,6 @@ extern Bool AllocatePixmapPrivate(
     ScreenPtr /* pScreen */,
     int /* index */,
     unsigned /* amount */);
-
-#endif /* PIXPRIV */
 
 extern void ResetColormapPrivates(void);
 

@@ -85,11 +85,11 @@ miPushPixels(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
     int		dx, dy, xOrg, yOrg;
 {
     int		h, dxDivPPW, ibEnd;
-    MiBits *pwLineStart;
-    register MiBits	*pw, *pwEnd;
-    register MiBits msk;
-    register int ib, w;
-    register int ipt;		/* index into above arrays */
+    MiBits 	*pwLineStart;
+    MiBits	*pw, *pwEnd;
+    MiBits 	msk;
+    int 	ib, w;
+    int 	ipt;		/* index into above arrays */
     Bool 	fInBox;
     DDXPointRec	pt[NPT], ptThisLine;
     int		width[NPT];

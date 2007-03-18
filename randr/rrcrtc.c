@@ -490,7 +490,7 @@ RRCrtcInit (void)
 int
 ProcRRGetCrtcInfo (ClientPtr client)
 {
-    REQUEST(xRRGetCrtcInfoReq);;
+    REQUEST(xRRGetCrtcInfoReq);
     xRRGetCrtcInfoReply	rep;
     RRCrtcPtr			crtc;
     CARD8			*extra;

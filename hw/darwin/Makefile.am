@@ -17,7 +17,6 @@ SUBDIRS = \
 	  utils \
 	  .
 
-
 darwinappdir = @APPLE_APPLICATIONS_DIR@/XDarwin.app
 
 libdarwinShared_a_SOURCES = darwin.c \
@@ -62,25 +61,11 @@ XDarwin_LDADD = \
 		$(top_builddir)/dix/dixfonts.lo \
 		$(top_builddir)/dix/libdix.la \
 		$(top_builddir)/config/libconfig.a \
-		$(top_builddir)/os/libos.la \
 		./libdarwinShared.a \
 		./iokit/libiokit.a \
-		$(top_builddir)/dix/libxpstubs.la \
 		$(top_builddir)/miext/shadow/libshadow.la \
-		$(top_builddir)/fb/libfb.la \
-		$(top_builddir)/composite/libcomposite.la \
-		$(top_builddir)/damageext/libdamageext.la \
-		$(top_builddir)/miext/damage/libdamage.la \
-		$(top_builddir)/xfixes/libxfixes.la \
 		$(top_builddir)/miext/cw/libcw.la \
-		$(top_builddir)/Xext/libXext.la \
-		$(top_builddir)/xkb/libxkb.la \
-		$(top_builddir)/xkb/libxkbstubs.la \
-		$(top_builddir)/Xi/libXi.la \
-		$(top_builddir)/dbe/libdbe.la \
-		$(top_builddir)/record/librecord.la \
-		$(top_builddir)/XTrap/libxtrap.la \
-		$(XGLX_LIBS) \
+		$(DARWIN_LIBS) \
 		$(top_builddir)/miext/rootless/librootless.la \
 		$(top_builddir)/miext/rootless/safeAlpha/libsafeAlpha.la \
 		$(top_builddir)/miext/rootless/accel/librlAccel.la \
@@ -91,23 +76,10 @@ Xquartz_LDADD = \
 		$(top_builddir)/dix/dixfonts.lo \
 		$(top_builddir)/dix/libdix.la \
 		$(top_builddir)/config/libconfig.a \
-		$(top_builddir)/os/libos.la \
 		./libdarwinShared.a \
-		$(top_builddir)/dix/libxpstubs.la \
 		$(top_builddir)/miext/shadow/libshadow.la \
-		$(top_builddir)/fb/libfb.la \
-		$(top_builddir)/composite/libcomposite.la \
-		$(top_builddir)/damageext/libdamageext.la \
-		$(top_builddir)/miext/damage/libdamage.la \
-		$(top_builddir)/xfixes/libxfixes.la \
 		$(top_builddir)/miext/cw/libcw.la \
-		$(top_builddir)/Xext/libXext.la \
-		$(top_builddir)/xkb/libxkb.la \
-		$(top_builddir)/xkb/libxkbstubs.la \
-		$(top_builddir)/Xi/libXi.la \
-		$(top_builddir)/dbe/libdbe.la \
-		$(top_builddir)/record/librecord.la \
-		$(top_builddir)/XTrap/libxtrap.la \
+		$(DARWIN_LIBS) \
 		$(top_builddir)/miext/rootless/librootless.la \
 		$(top_builddir)/miext/rootless/safeAlpha/libsafeAlpha.la \
 		$(top_builddir)/miext/rootless/accel/librlAccel.la \
@@ -140,7 +112,7 @@ macos_PROGRAMS = XDarwinApp
 macos_SCRIPTS = x11app
 
 x11app:
-	cd apple && xcodebuild
+	cd apple && xcodebuild CFLAGS="$(XSERVERCFLAGS_CFLAGS)" LDFLAGS="$(XSERVERCFLAGS_LIBS)"
 
 XDarwinApp_SOURCES = \
                 $(top_srcdir)/fb/fbcmap.c \
@@ -155,28 +127,14 @@ XDarwinApp_LDADD = \
 		./quartz/XApplication.o \
 		./libdarwinShared.a \
 		./quartz/libXQuartz.a \
-		$(top_builddir)/dix/libxpstubs.la \
 		 $(top_builddir)/miext/shadow/libshadow.la \
-		 $(top_builddir)/fb/libfb.la \
-		 $(top_builddir)/composite/libcomposite.la \
-		 $(top_builddir)/damageext/libdamageext.la \
-		 $(top_builddir)/miext/damage/libdamage.la \
-		 $(top_builddir)/xfixes/libxfixes.la \
 		 $(top_builddir)/miext/cw/libcw.la \
-		 $(top_builddir)/Xext/libXext.la \
-		 $(top_builddir)/xkb/libxkb.la \
-		 $(top_builddir)/xkb/libxkbstubs.la \
-		 $(top_builddir)/Xi/libXi.la \
-		 $(top_builddir)/dbe/libdbe.la \
-		 $(top_builddir)/record/librecord.la \
-		 $(top_builddir)/XTrap/libxtrap.la \
-		 $(XGLX_LIBS) \
+		 $(DARWIN_LIBS) \
 		 $(top_builddir)/miext/rootless/librootless.la \
 		 $(top_builddir)/miext/rootless/safeAlpha/libsafeAlpha.la \
 		 $(top_builddir)/miext/rootless/accel/librlAccel.la \
 		 @XORG_LIBS@ \
-		 $(XSERVER_LIBS) \
-		 $(top_builddir)/fb/libfb.la 
+		 $(XSERVER_LIBS)
 
 XDarwinApp_LDFLAGS =  \
 		 -XCClinker -Objc \

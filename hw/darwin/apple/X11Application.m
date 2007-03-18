@@ -56,7 +56,7 @@ extern int darwinFakeButtons, input_check_flag;
 // extern Bool enable_stereo; 
 Bool enable_stereo;  //<-- this needs to go back to being an extern once glxCGL is fixed
 
-static xEvent *quartzEvents;
+extern xEvent *darwinEvents;
 
 X11Application *X11App;
 
@@ -805,7 +805,6 @@ void X11ApplicationMain (int argc, const char *argv[],
     pool = [[NSAutoreleasePool alloc] init];
 	
     X11App = (X11Application *) [X11Application sharedApplication];
-    quartzEvents = (xEvent *)malloc(sizeof(xEvent) * GetMaximumEventsNum());
 
     init_ports ();
 	
@@ -856,21 +855,16 @@ convert_flags (unsigned int nsflags) {
     return xflags;
 }
 
+
 // This code should probably be merged with that in XDarwin's XServer.m - BB
 static void send_nsevent (NSEventType type, NSEvent *e) {
-    static unsigned int button_state = 0;
+  //    static unsigned int button_state = 0;
     NSRect screen;
     NSPoint location;
     NSWindow *window;
     int pointer_x, pointer_y, ev_button, ev_type; 
-    int num_events=0, i=0, state;
-    int valuators[2];
-    float count;
+    //    int num_events=0, i=0, state;
     xEvent xe;
-    char nullbyte=0;
-
-    bzero(&xe, sizeof(xe));
-    input_check_flag++;
 	
     /* convert location to global top-left coordinates */
     location = [e locationInWindow];
@@ -887,11 +881,8 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
       pointer_y = (screen.origin.y + screen.size.height) - location.y;
     }
     
-//    ErrorF("send_nsevent: type=%d pointer=(%d,%d)\n", type, pointer_x, pointer_y);
-    
-    valuators[0] = pointer_x;
-    valuators[1] = pointer_y - aquaMenuBarHeight;
-    state = convert_flags ([e modifierFlags]);
+    pointer_y -= aquaMenuBarHeight;
+    //    state = convert_flags ([e modifierFlags]);
     
     switch (type) {
     case NSLeftMouseDown:    ev_button=1; ev_type=ButtonPress; goto handle_mouse;
@@ -906,50 +897,30 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
     case NSMouseMoved: ev_button=0; ev_type=MotionNotify; goto handle_mouse;
     handle_mouse:
       
-      if(ev_type==ButtonPress) {
+      /* I'm not sure the below code is necessary or useful (-bb)
+	if(ev_type==ButtonPress) {
 	if (!quartzProcs->IsX11Window([e window], [e windowNumber])) {
 	  fprintf(stderr, "Dropping event because it's not a window\n");
 	  break;
 	}
 	button_state |= (1 << ev_button);
+	DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y);
       } else if (ev_type==ButtonRelease && (button_state & (1 << ev_button)) == 0) break;
-      
-      num_events = GetPointerEvents(quartzEvents, darwinPointer, ev_type, ev_button, 
-				    POINTER_ABSOLUTE, 0, 2, valuators);
-      
-      for(i=0; i<num_events; i++)
-	mieqEnqueue (darwinPointer,&quartzEvents[i]);
+      */
+      DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y);
       break;
     case NSScrollWheel: 
-      count = [e deltaY];
-      ev_button = count > 0.0f ? 4 : 5;
-      for (count = fabs(count); count > 0.0; count = count - 1.0f) {
-	num_events = GetPointerEvents(quartzEvents, darwinPointer, ButtonPress, ev_button, 
-				      POINTER_ABSOLUTE, 0, 2, valuators);
-	for(i=0; i<num_events; i++) 
-	  mieqEnqueue(darwinPointer,&quartzEvents[i]);
-	num_events = GetPointerEvents(quartzEvents, darwinPointer, ButtonRelease, ev_button, 
-				      POINTER_ABSOLUTE, 0, 2, valuators);
-	for(i=0; i<num_events; i++)
-	  mieqEnqueue(darwinPointer,&quartzEvents[i]);
-      }
+      DarwinSendScrollEvents([e deltaY], pointer_x, pointer_y);
       break;
       
     case NSKeyDown:  // do we need to translate these keyCodes?
     case NSKeyUp:
-      num_events = GetKeyboardEvents(quartzEvents, darwinKeyboard, 
-				     (type == NSKeyDown)?KeyPress:KeyRelease, [e keyCode]);
-      for(i=0; i<num_events; i++) 
-	mieqEnqueue(darwinKeyboard,&quartzEvents[i]);
+      DarwinSendKeyboardEvents((type == NSKeyDown)?KeyPress:KeyRelease, [e keyCode]);
       break;
 
     case NSFlagsChanged:
-      xe.u.u.type = kXDarwinUpdateModifiers;
-      xe.u.clientMessage.u.l.longs0 = [e modifierFlags];
-      DarwinEQEnqueue (&xe);
+      DarwinUpdateModKeys([e modifierFlags]);
       break;
     default: break; /* for gcc */
     }	
-    //  <daniels> bushing: oh, i ... er ... christ.
-    write(darwinEventWriteFD, &nullbyte, 1);
 }

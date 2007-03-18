@@ -28,6 +28,7 @@
 #include "xf86Rename.h"
 #endif
 #include "xf86Modes.h"
+#include "xf86Cursor.h"
 #include "damage.h"
 
 /* Compat definitions for older X Servers. */
@@ -37,9 +38,26 @@
 #ifndef M_T_DRIVER
 #define M_T_DRIVER	0x40
 #endif
+#ifndef HARDWARE_CURSOR_ARGB
+#define HARDWARE_CURSOR_ARGB				0x00004000
+#endif
 
 typedef struct _xf86Crtc xf86CrtcRec, *xf86CrtcPtr;
 typedef struct _xf86Output xf86OutputRec, *xf86OutputPtr;
+
+/* define a standard for connector types */
+typedef enum _xf86ConnectorType {
+   XF86ConnectorNone,
+   XF86ConnectorVGA,
+   XF86ConnectorDVI_I,
+   XF86ConnectorDVI_D,
+   XF86ConnectorDVI_A,
+   XF86ConnectorComposite,
+   XF86ConnectorSvideo,
+   XF86ConnectorComponent,
+   XF86ConnectorLFP,
+   XF86ConnectorProprietary,
+} xf86ConnectorType;
 
 typedef enum _xf86OutputStatus {
    XF86OutputStatusConnected,
@@ -97,6 +115,12 @@ typedef struct _xf86CrtcFuncs {
 		  DisplayModePtr adjusted_mode);
 
     /**
+     * Prepare CRTC for an upcoming mode set.
+     */
+    void
+    (*prepare)(xf86CrtcPtr crtc);
+
+    /**
      * Callback for setting up a video mode after fixups have been made.
      */
     void
@@ -104,6 +128,12 @@ typedef struct _xf86CrtcFuncs {
 		DisplayModePtr mode,
 		DisplayModePtr adjusted_mode,
 		int x, int y);
+
+    /**
+     * Commit mode changes to a CRTC
+     */
+    void
+    (*commit)(xf86CrtcPtr crtc);
 
     /* Set the color ramps for the CRTC to the given values. */
     void
@@ -129,6 +159,42 @@ typedef struct _xf86CrtcFuncs {
     (*shadow_destroy) (xf86CrtcPtr crtc, PixmapPtr pPixmap, void *data);
 
     /**
+     * Set cursor colors
+     */
+    void
+    (*set_cursor_colors) (xf86CrtcPtr crtc, int bg, int fg);
+
+    /**
+     * Set cursor position
+     */
+    void
+    (*set_cursor_position) (xf86CrtcPtr crtc, int x, int y);
+
+    /**
+     * Show cursor
+     */
+    void
+    (*show_cursor) (xf86CrtcPtr crtc);
+
+    /**
+     * Hide cursor
+     */
+    void
+    (*hide_cursor) (xf86CrtcPtr crtc);
+
+    /**
+     * Load monochrome image
+     */
+    void
+    (*load_cursor_image) (xf86CrtcPtr crtc, CARD8 *image);
+
+    /**
+     * Load ARGB image
+     */
+     void
+     (*load_cursor_argb) (xf86CrtcPtr crtc, CARD32 *image);
+     
+    /**
      * Clean up driver-specific bits of the crtc
      */
     void
@@ -147,12 +213,6 @@ struct _xf86Crtc {
      * Set when this CRTC is driving one or more outputs 
      */
     Bool	    enabled;
-    
-    /** Track whether cursor is within CRTC range  */
-    Bool	    cursorInRange;
-    
-    /** Track state of cursor associated with this CRTC */
-    Bool	    cursorShown;
     
     /**
      * Active mode
@@ -206,6 +266,19 @@ struct _xf86Crtc {
 #else
     void	    *randr_crtc;
 #endif
+
+    /**
+     * Current cursor is ARGB
+     */
+    Bool	    cursor_argb;
+    /**
+     * Track whether cursor is within CRTC range 
+     */
+    Bool	    cursor_in_range;
+    /**
+     * Track state of cursor associated with this CRTC
+     */
+    Bool	    cursor_shown;
 };
 
 typedef struct _xf86OutputFuncs {
@@ -262,6 +335,18 @@ typedef struct _xf86OutputFuncs {
     (*mode_fixup)(xf86OutputPtr output,
 		  DisplayModePtr mode,
 		  DisplayModePtr adjusted_mode);
+
+    /**
+     * Callback for preparing mode changes on an output
+     */
+    void
+    (*prepare)(xf86OutputPtr output);
+
+    /**
+     * Callback for committing mode changes on an output
+     */
+    void
+    (*commit)(xf86OutputPtr output);
 
     /**
      * Callback for setting up a video mode after fixups have been made.
@@ -444,7 +529,8 @@ typedef struct _xf86CrtcConfig {
     int			maxWidth, maxHeight;
     
     /* For crtc-based rotation */
-    DamagePtr   rotationDamage;
+    DamagePtr		rotation_damage;
+    Bool		rotation_damage_registered;
 
     /* DGA */
     unsigned int	dga_flags;
@@ -456,6 +542,14 @@ typedef struct _xf86CrtcConfig {
 
     const xf86CrtcConfigFuncsRec *funcs;
 
+    CreateScreenResourcesProcPtr    CreateScreenResources;
+
+    /* Cursor information */
+    xf86CursorInfoPtr	cursor_info;
+    CursorPtr		cursor;
+    CARD8		*cursor_image;
+    Bool		cursor_on;
+    CARD32		cursor_fg, cursor_bg;
 } xf86CrtcConfigRec, *xf86CrtcConfigPtr;
 
 extern int xf86CrtcConfigPrivateIndex;
@@ -485,25 +579,6 @@ xf86CrtcCreate (ScrnInfoPtr		scrn,
 void
 xf86CrtcDestroy (xf86CrtcPtr		crtc);
 
-
-/**
- * Allocate a crtc for the specified output
- *
- * Find a currently unused CRTC which is suitable for
- * the specified output
- */
-
-xf86CrtcPtr 
-xf86AllocCrtc (xf86OutputPtr		output);
-
-/**
- * Free a crtc
- *
- * Mark the crtc as unused by any outputs
- */
-
-void
-xf86FreeCrtc (xf86CrtcPtr		crtc);
 
 /**
  * Sets the given video mode on the given crtc
@@ -545,6 +620,9 @@ void
 xf86SetScrnInfoModes (ScrnInfoPtr pScrn);
 
 Bool
+xf86CrtcScreenInit (ScreenPtr pScreen);
+
+Bool
 xf86InitialConfiguration (ScrnInfoPtr pScrn, Bool canGrow);
 
 void
@@ -555,6 +633,12 @@ xf86SaveScreen(ScreenPtr pScreen, int mode);
 
 void
 xf86DisableUnusedFunctions(ScrnInfoPtr pScrn);
+
+DisplayModePtr
+xf86OutputFindClosestMode (xf86OutputPtr output, DisplayModePtr desired);
+    
+Bool
+xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation);
 
 /**
  * Set the EDID information for the specified output
@@ -594,4 +678,55 @@ xf86DiDGAReInit (ScreenPtr pScreen);
 void
 xf86CrtcSetScreenSubpixelOrder (ScreenPtr pScreen);
 
+/*
+ * Get a standard string name for a connector type 
+ */
+char *
+xf86ConnectorGetName(xf86ConnectorType connector);
+
+/*
+ * Using the desired mode information in each crtc, set
+ * modes (used in EnterVT functions, or at server startup)
+ */
+
+Bool
+xf86SetDesiredModes (ScrnInfoPtr pScrn);
+
+/**
+ * Initialize the CRTC-based cursor code. CRTC function vectors must
+ * contain relevant cursor setting functions.
+ *
+ * Driver should call this from ScreenInit function
+ */
+Bool
+xf86_cursors_init (ScreenPtr screen, int max_width, int max_height, int flags);
+
+/**
+ * Called when anything on the screen is reconfigured.
+ *
+ * Reloads cursor images as needed, then adjusts cursor positions.
+ * 
+ * Driver should call this from crtc commit function.
+ */
+void
+xf86_reload_cursors (ScreenPtr screen);
+
+/**
+ * Called from EnterVT to turn the cursors back on
+ */
+void
+xf86_show_cursors (ScrnInfoPtr scrn);
+
+/**
+ * Called by the driver to turn cursors off
+ */
+void
+xf86_hide_cursors (ScrnInfoPtr scrn);
+
+/**
+ * Clean up CRTC-based cursor code. Driver must call this at CloseScreen time.
+ */
+void
+xf86_cursors_fini (ScreenPtr screen);
+    
 #endif /* _XF86CRTC_H_ */

@@ -70,7 +70,7 @@ miPolyPoint(pDrawable, pGC, mode, npt, pptInit)
     XID			fsOld, fsNew;
     int			*pwidthInit, *pwidth;
     int			i;
-    register xPoint 	*ppt;
+    xPoint 		*ppt;
 
     /* make pointlist origin relative */
     if (mode == CoordModePrevious)

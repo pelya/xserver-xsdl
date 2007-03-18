@@ -119,9 +119,7 @@ static int pixmapFormat;
 static int shmPixFormat[MAXSCREENS];
 static ShmFuncsPtr shmFuncs[MAXSCREENS];
 static DestroyPixmapProcPtr destroyPixmap[MAXSCREENS];
-#ifdef PIXPRIV
 static int  shmPixmapPrivate;
-#endif
 static ShmFuncs miFuncs = {NULL, miShmPutImage};
 static ShmFuncs fbFuncs = {fbShmCreatePixmap, fbShmPutImage};
 
@@ -237,7 +235,6 @@ ShmExtensionInit(INITARGS)
 	    destroyPixmap[i] = screenInfo.screens[i]->DestroyPixmap;
 	    screenInfo.screens[i]->DestroyPixmap = ShmDestroyPixmap;
 	}
-#ifdef PIXPRIV
 	shmPixmapPrivate = AllocatePixmapPrivateIndex();
 	for (i = 0; i < screenInfo.numScreens; i++)
 	{
@@ -245,7 +242,6 @@ ShmExtensionInit(INITARGS)
 				       shmPixmapPrivate, 0))
 		return;
 	}
-#endif
       }
     }
     ShmSegType = CreateNewResourceType(ShmDetachSegment);
@@ -299,22 +295,7 @@ ShmDestroyPixmap (PixmapPtr pPixmap)
     if (pPixmap->refcnt == 1)
     {
 	ShmDescPtr  shmdesc;
-#ifdef PIXPRIV
 	shmdesc = (ShmDescPtr) pPixmap->devPrivates[shmPixmapPrivate].ptr;
-#else
-	char	*base = (char *) pPixmap->devPrivate.ptr;
-	
-	if (base != (pointer) (pPixmap + 1))
-	{
-	    for (shmdesc = Shmsegs; shmdesc; shmdesc = shmdesc->next)
-	    {
-		if (shmdesc->addr <= base && base <= shmdesc->addr + shmdesc->size)
-		    break;
-	    }
-	}
-	else
-	    shmdesc = 0;
-#endif
 	if (shmdesc)
 	    ShmDetachSegment ((pointer) shmdesc, pPixmap->drawable.id);
     }
@@ -781,9 +762,7 @@ CreatePmap:
 				shmdesc->addr + stuff->offset);
 
 	if (pMap) {
-#ifdef PIXPRIV
             pMap->devPrivates[shmPixmapPrivate].ptr = (pointer) shmdesc;
-#endif
             shmdesc->refcnt++;
 	    pMap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 	    pMap->drawable.id = newPix->info[j].id;
@@ -1097,9 +1076,7 @@ CreatePmap:
 			    shmdesc->addr + stuff->offset);
     if (pMap)
     {
-#ifdef PIXPRIV
 	pMap->devPrivates[shmPixmapPrivate].ptr = (pointer) shmdesc;
-#endif
 	shmdesc->refcnt++;
 	pMap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 	pMap->drawable.id = stuff->pid;
