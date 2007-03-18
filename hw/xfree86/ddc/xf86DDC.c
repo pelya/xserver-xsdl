@@ -344,7 +344,6 @@ DDCRead_DDC2(int scrnIndex, I2CBusPtr pBus, int start, int len)
 	dev->ByteTimeout = 2200; /* VESA DDC spec 3 p. 43 (+10 %) */
 	dev->StartTimeout = 550;
 	dev->BitTimeout = 40;
-	dev->ByteTimeout = 40;
 	dev->AcknTimeout = 40;
 
 	dev->pI2CBus = pBus;
