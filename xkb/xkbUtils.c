@@ -41,7 +41,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 
 #define	XKBSRV_NEED_FILE_FUNCS
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #include <X11/extensions/XKBgeom.h>
 #include "xkb.h"
 
@@ -170,44 +170,6 @@ register unsigned mask;
 	    mask|= xkb->server->vmods[i];
     }
     return mask;
-}
-
-
-Bool
-XkbApplyVModChanges(	XkbSrvInfoPtr		xkbi,
-			unsigned		changed,
-			XkbChangesPtr		changes,
-			unsigned *		needChecksRtrn,
-			XkbEventCausePtr	cause)
-{
-XkbDescPtr		xkb;
-Bool			check;
-
-    xkb= xkbi->desc;
-#ifdef DEBUG
-{
-register unsigned i,bit;
-    for (i=0,bit=1;i<XkbNumVirtualMods;i++,bit<<=1) {
-	if ((changed&bit)==0)
-	    continue;
-	if (xkbDebugFlags)
-	    ErrorF("Should be applying: change vmod %d to 0x%x\n",i,
-					xkb->server->vmods[i]);
-    }
-}
-#endif
-    check= XkbApplyVirtualModChanges(xkb,changed,changes);
-    XkbApplyVModChangesToAllDevices(xkbi->device,xkb,changed,cause);
-
-    if (needChecksRtrn!=NULL)  {
-	if (check)
-	     *needChecksRtrn= XkbStateNotifyMask|XkbIndicatorStateNotifyMask;
-	else *needChecksRtrn= 0;
-    }
-    else if (check) {
-	/* 7/12/95 (ef) -- XXX check compatibility and/or indicator state */
-    }
-    return 1;
 }
 
 /***====================================================================***/
@@ -658,7 +620,7 @@ int		changed;
     return changed;
 }
 
-void
+static void
 XkbComputeCompatState(XkbSrvInfoPtr xkbi)
 {
 CARD16 		grp_mask;
@@ -767,21 +729,6 @@ XkbCheckSecondaryEffects(	XkbSrvInfoPtr		xkbi,
     if (which&XkbIndicatorStateNotifyMask)
 	XkbUpdateIndicators(xkbi->device,XkbAllIndicatorsMask,True,changes,
 									cause);
-    return;
-}
-
-/***====================================================================***/
-
-void
-XkbSetPhysicalLockingKey(DeviceIntPtr dev,unsigned key)
-{
-XkbDescPtr	xkb;
-
-    xkb= dev->key->xkbInfo->desc;
-    if ((key>=xkb->min_key_code) && (key<=xkb->max_key_code)) {
-	xkb->server->behaviors[key].type= XkbKB_Lock|XkbKB_Permanent;
-    }
-    else ErrorF("Internal Error!  Bad XKB info in SetPhysicalLockingKey\n");
     return;
 }
 

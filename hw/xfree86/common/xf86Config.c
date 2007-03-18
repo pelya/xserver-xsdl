@@ -75,7 +75,7 @@ extern DeviceAssocRec mouse_assoc;
 #ifdef XKB
 #undef XKB_IN_SERVER
 #define XKB_IN_SERVER
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #endif
 
 #ifdef RENDER

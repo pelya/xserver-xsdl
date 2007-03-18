@@ -41,7 +41,8 @@ X11_SRCS = \
         XKBGAlloc.c \
         XKBMAlloc.c
 
-XI_SRCS = xkbPrOtherEv.c
+# ends up unused...
+# XI_SRCS = xkbPrOtherEv.c
 
 libxkb_la_SOURCES = $(DDX_SRCS) $(DIX_SRCS) $(XI_SRCS) $(XKBFILE_SRCS) \
                     $(X11_SRCS)

@@ -43,7 +43,7 @@
 #include "servermd.h"
 #include "micmap.h"
 #ifdef XKB
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #endif
 #include "xf86Xinput.h"
 

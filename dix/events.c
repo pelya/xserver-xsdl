@@ -133,7 +133,7 @@ of the copyright holder.
 
 #ifdef XKB
 #include <X11/extensions/XKBproto.h>
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
 #endif
 

@@ -39,102 +39,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 #include <X11/keysym.h>
 #define	XKBSRV_NEED_FILE_FUNCS
-#include <X11/extensions/XKBsrv.h>
-
-/***====================================================================***/
-
-#define	mapSize(m)	(sizeof(m)/sizeof(XkbKTMapEntryRec))
-static  XkbKTMapEntryRec map2Level[]= { 
-  { True, ShiftMask, {1, ShiftMask, 0} }
-};
-
-static  XkbKTMapEntryRec mapAlpha[]= { 
-  { True, ShiftMask, { 1, ShiftMask, 0 } },
-  { True, LockMask,  { 0,  LockMask, 0 } }
-};
-
-static	XkbModsRec preAlpha[]= {
-	{        0,        0, 0 },
-	{ LockMask, LockMask, 0 }
-};
-
-#define	NL_VMOD_MASK	0
-static  XkbKTMapEntryRec mapKeypad[]= { 
-	{ True,	ShiftMask, { 1, ShiftMask,            0 } },
-	{ False,        0, { 1,         0, NL_VMOD_MASK } }
-};
-
-static	XkbKeyTypeRec	canonicalTypes[XkbNumRequiredTypes] = {
-	{ { 0, 0, 0 }, 
-	  1,	/* num_levels */
-	  0,	/* map_count */
-	  NULL,		NULL,
-	  None,		NULL
-	},
-	{ { ShiftMask, ShiftMask, 0 }, 
-	  2,	/* num_levels */
-	  mapSize(map2Level),	/* map_count */
-	  map2Level,	NULL,
-	  None,		NULL
-	},
-	{ { ShiftMask|LockMask, ShiftMask|LockMask, 0 }, 
-	  2,				/* num_levels */
-	  mapSize(mapAlpha),		/* map_count */
-	  mapAlpha,	preAlpha,
-	  None,		NULL
-	},
-	{ { ShiftMask, ShiftMask, NL_VMOD_MASK },
-	  2,				/* num_levels */
-	  mapSize(mapKeypad),		/* map_count */
-	  mapKeypad,	NULL,
-	  None,		NULL
-	}
-};
-
-Status
-XkbInitCanonicalKeyTypes(XkbDescPtr xkb,unsigned which,int keypadVMod)
-{
-XkbClientMapPtr	map;
-XkbKeyTypePtr	from,to;
-Status		rtrn;
-
-    if (!xkb)
-	return BadMatch;
-    rtrn= XkbAllocClientMap(xkb,XkbKeyTypesMask,XkbNumRequiredTypes);
-    if (rtrn!=Success)
-	return rtrn;
-    map= xkb->map;
-    if ((which&XkbAllRequiredTypes)==0)
-	return Success;
-    rtrn= Success;
-    from= canonicalTypes;
-    to= map->types;
-    if (which&XkbOneLevelMask)
-	rtrn= XkbCopyKeyType(&from[XkbOneLevelIndex],&to[XkbOneLevelIndex]);
-    if ((which&XkbTwoLevelMask)&&(rtrn==Success))
-	rtrn= XkbCopyKeyType(&from[XkbTwoLevelIndex],&to[XkbTwoLevelIndex]);
-    if ((which&XkbAlphabeticMask)&&(rtrn==Success))
-	rtrn= XkbCopyKeyType(&from[XkbAlphabeticIndex],&to[XkbAlphabeticIndex]);
-    if ((which&XkbKeypadMask)&&(rtrn==Success)) {
-	XkbKeyTypePtr type;
-	rtrn= XkbCopyKeyType(&from[XkbKeypadIndex],&to[XkbKeypadIndex]);
-	type= &to[XkbKeypadIndex];
-	if ((keypadVMod>=0)&&(keypadVMod<XkbNumVirtualMods)&&(rtrn==Success)) {
-	    type->mods.vmods= (1<<keypadVMod);
-	    type->map[0].active= True;
-	    type->map[0].mods.mask= ShiftMask;
-	    type->map[0].mods.real_mods= ShiftMask;
-	    type->map[0].mods.vmods= 0;
-	    type->map[0].level= 1;
-	    type->map[1].active= False;
-	    type->map[1].mods.mask= 0;
-	    type->map[1].mods.real_mods= 0;
-	    type->map[1].mods.vmods= (1<<keypadVMod);
-	    type->map[1].level= 1;
-	}
-    }
-    return Success;
-}
+#include <xkbsrv.h>
 
 /***====================================================================***/
 
@@ -558,88 +463,6 @@ unsigned		changed,tmp;
     return True;
 }
 
-Bool
-XkbUpdateMapFromCore(	XkbDescPtr	xkb,
-			KeyCode		first_key,
-			int		num_keys,
-			int		map_width,
-			KeySym *	core_keysyms,
-			XkbChangesPtr	changes)
-{
-register int	key,last_key;
-KeySym *	syms;
-
-    syms= &core_keysyms[(first_key-xkb->min_key_code)*map_width];
-    if (changes) {
-	if (changes->map.changed&XkbKeySymsMask) {
-	    _XkbAddKeyChange(&changes->map.first_key_sym,
-	    			&changes->map.num_key_syms,first_key);
-	    if (num_keys>1) {
-		_XkbAddKeyChange(&changes->map.first_key_sym,
-						&changes->map.num_key_syms,
-						first_key+num_keys-1);
-	    }
-	}
-	else {
-	    changes->map.changed|= XkbKeySymsMask;
-	    changes->map.first_key_sym= first_key;
-	    changes->map.num_key_syms= num_keys;
-	}
-    }
-    last_key= first_key+num_keys-1;
-    for (key=first_key;key<=last_key;key++,syms+= map_width) {
-	XkbMapChangesPtr	mc;
-	unsigned		explicit;
-	KeySym			tsyms[XkbMaxSymsPerKey];
-	int	 		types[XkbNumKbdGroups];
-	int			nG;
-
-	explicit= xkb->server->explicit[key]&XkbExplicitKeyTypesMask;
-	types[XkbGroup1Index]= XkbKeyKeyTypeIndex(xkb,key,XkbGroup1Index);
-	types[XkbGroup2Index]= XkbKeyKeyTypeIndex(xkb,key,XkbGroup2Index);
-	types[XkbGroup3Index]= XkbKeyKeyTypeIndex(xkb,key,XkbGroup3Index);
-	types[XkbGroup4Index]= XkbKeyKeyTypeIndex(xkb,key,XkbGroup4Index);
-	nG= XkbKeyTypesForCoreSymbols(xkb,map_width,syms,explicit,types,tsyms);
-	if (changes)
-	     mc= &changes->map;
-	else mc= NULL;
-	XkbChangeTypesOfKey(xkb,key,nG,XkbAllGroupsMask,types,mc);
-	memcpy((char *)XkbKeySymsPtr(xkb,key),(char *)tsyms,
-					XkbKeyNumSyms(xkb,key)*sizeof(KeySym));
-	XkbApplyCompatMapToKey(xkb,key,changes);
-    }
-
-    if ((xkb->server->vmods!=NULL)&&(xkb->map->modmap!=NULL)&&(changes)&&
-	(changes->map.changed&(XkbVirtualModMapMask|XkbModifierMapMask))) {
-	unsigned char		newVMods[XkbNumVirtualMods];
-	register  unsigned 	bit,i;
-	unsigned		present;
-
-	bzero(newVMods,XkbNumVirtualMods);
-	present= 0;
-	for (key=xkb->min_key_code;key<=xkb->max_key_code;key++) {
-	    if (xkb->server->vmodmap[key]==0)
-		continue;
-	    for (i=0,bit=1;i<XkbNumVirtualMods;i++,bit<<=1) {
-		if (bit&xkb->server->vmodmap[key]) {
-		    present|= bit;
-		    newVMods[i]|= xkb->map->modmap[key];
-		}
-	    }
-	}
-	for (i=0,bit=1;i<XkbNumVirtualMods;i++,bit<<=1) {
-	    if ((bit&present)&&(newVMods[i]!=xkb->server->vmods[i])) {
-		changes->map.changed|= XkbVirtualModsMask;
-		changes->map.vmods|= bit;
-		xkb->server->vmods[i]= newVMods[i];
-	    }
-	}
-    }
-    if (changes && (changes->map.changed&XkbVirtualModsMask))
-	XkbApplyVirtualModChanges(xkb,changes->map.vmods,changes);
-    return True;
-}
-
 Status
 XkbChangeTypesOfKey(	XkbDescPtr		 xkb,
 			int		 	 key,
@@ -788,7 +611,7 @@ register unsigned mask;
 
 /***====================================================================***/
 
-Bool
+static Bool
 XkbUpdateActionVirtualMods(XkbDescPtr xkb,XkbAction *act,unsigned changed)
 {
 unsigned int	tmp;
@@ -814,7 +637,7 @@ unsigned int	tmp;
     return False;
 }
 
-void
+static void
 XkbUpdateKeyTypeVirtualMods(	XkbDescPtr	xkb,
 				XkbKeyTypePtr	type,
 				unsigned int	changed,

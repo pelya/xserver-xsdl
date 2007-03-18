@@ -143,7 +143,7 @@ int ProcInitialConnection();
 #define XKB_IN_SERVER
 #endif
 #include "inputstr.h"
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #endif
 
 #ifdef XSERVER_DTRACE

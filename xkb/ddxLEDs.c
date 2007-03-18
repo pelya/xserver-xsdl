@@ -37,10 +37,10 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include "windowstr.h"
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #include <X11/extensions/XI.h>
 
-void
+static void
 XkbDDXUpdateIndicators(DeviceIntPtr dev,CARD32 new)
 {
     dev->kbdfeed->ctrl.leds= new;

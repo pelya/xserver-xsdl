@@ -52,7 +52,7 @@ of the copyright holder.
 #include "inputstr.h"
 #include "windowstr.h"
 #include "cursorstr.h"
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 
 #include "../os/osdep.h"
 

@@ -41,7 +41,7 @@
 
 #ifdef XKB
 #define XKB_IN_SERVER
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #endif
 
 static DeviceIntPtr	pKdKeyboard, pKdPointer;

@@ -67,7 +67,7 @@ SOFTWARE.
 #define	XKB_IN_SERVER
 #endif
 #ifdef XKB
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #endif
 #include "xace.h"
 
