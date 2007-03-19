@@ -119,12 +119,6 @@ typedef struct {
     int count;
 } XaceKeyAvailRec;
 
-/* XACE_WINDOW_INIT */
-typedef struct {
-    ClientPtr client;
-    WindowPtr pWin;
-} XaceWindowRec;
-
 /* XACE_AUDIT_BEGIN */
 /* XACE_AUDIT_END */
 typedef struct {

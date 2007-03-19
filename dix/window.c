@@ -529,8 +529,6 @@ InitRootWindow(WindowPtr pWin)
     /* We SHOULD check for an error value here XXX */
     (*pScreen->ChangeWindowAttributes)(pWin, backFlag);
 
-    XaceHook(XACE_WINDOW_INIT, serverClient, pWin);
-
     MapWindow(pWin, serverClient);
 }
 
@@ -762,8 +760,6 @@ CreateWindow(Window wid, register WindowPtr pParent, int x, int y, unsigned w,
     REGION_NULL(pScreen, &pWin->borderClip);
     REGION_NULL(pScreen, &pWin->winSize);
     REGION_NULL(pScreen, &pWin->borderSize);
-
-    XaceHook(XACE_WINDOW_INIT, client, pWin);
 
     pHead = RealChildHead(pParent);
     if (pHead)

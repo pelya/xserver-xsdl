@@ -182,14 +182,6 @@ int XaceHook(int hook, ...)
 	    calldata = &rec;
 	    break;
 	}
-	case XACE_WINDOW_INIT: {
-	    XaceWindowRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, WindowPtr)
-	    };
-	    calldata = &rec;
-	    break;
-	}
 	case XACE_AUDIT_BEGIN: {
 	    XaceAuditRec rec = {
 		va_arg(ap, ClientPtr),
