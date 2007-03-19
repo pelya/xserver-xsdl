@@ -4290,6 +4290,11 @@ InitEvents()
     {
 	spriteTraceSize = 32;
 	spriteTrace = (WindowPtr *)xalloc(32*sizeof(WindowPtr));
+        /* FIXME: spriteTrace[0] needs to be NULL, otherwise
+         * GetCurrentRootWindow() in EnableDevice() may return a invalid
+         * value. (whot)
+         */
+        memset(spriteTrace, 0, 32 * sizeof(WindowPtr));
 	if (!spriteTrace)
 	    FatalError("failed to allocate spriteTrace");
     }

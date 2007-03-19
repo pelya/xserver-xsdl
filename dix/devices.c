@@ -173,6 +173,11 @@ EnableDevice(DeviceIntPtr dev)
     dev->enabled = TRUE;
     *prev = dev->next;
 
+    if (IsPointerDevice(dev) && dev->isMPDev)
+        InitializeSprite(dev, GetCurrentRootWindow());
+    else
+        PairDevices(NULL, inputInfo.pointer, dev);
+
     for (prev = &inputInfo.devices; *prev; prev = &(*prev)->next)
         ;
     *prev = dev;
@@ -220,11 +225,6 @@ ActivateDevice(DeviceIntPtr dev)
     dummyDev.id = 0;
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                           (xEvent *) &ev, 1);
-
-    if (IsPointerDevice(dev) && dev->isMPDev)
-        InitializeSprite(dev, GetCurrentRootWindow());
-    else
-        PairDevices(NULL, inputInfo.pointer, dev);
 
     return ret;
 }
@@ -447,7 +447,6 @@ InitAndStartDevices()
         if (!DevHasCursor(dev))
             PairDevices(NULL, GuessFreePointerDevice(), dev);
     }
-
 
     return Success;
 }
