@@ -1217,26 +1217,34 @@ XSELinuxClientState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
 /* Labeling callbacks */
 static void
-XSELinuxWindowInit(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+XSELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
-    XaceWindowRec *rec = (XaceWindowRec*)calldata;
+    ResourceStateInfoRec *rec = (ResourceStateInfoRec *)calldata;
+    WindowPtr pWin;
+    ClientPtr client;
     security_context_t ctx;
     int rc;
 
-    if (HAVESTATE(rec->client)) {
-	rc = avc_sid_to_context(SID(rec->client), &ctx);
+    if (rec->type != RT_WINDOW)
+	return;
+
+    pWin = (WindowPtr)rec->value;
+    client = wClient(pWin);
+
+    if (HAVESTATE(client)) {
+	rc = avc_sid_to_context(SID(client), &ctx);
 	if (rc < 0)
 	    FatalError("XSELinux: Failed to get security context!\n");
-	rc = ChangeWindowProperty(rec->pWin, atom_client_ctx, XA_STRING, 8,
+	rc = ChangeWindowProperty(pWin, atom_client_ctx, XA_STRING, 8,
 				  PropModeReplace, strlen(ctx), ctx, FALSE);
 	freecon(ctx);
     }
     else
-	rc = ChangeWindowProperty(rec->pWin, atom_client_ctx, XA_STRING, 8,
+	rc = ChangeWindowProperty(pWin, atom_client_ctx, XA_STRING, 8,
 				  PropModeReplace, 10, "UNLABELED!", FALSE);
     if (rc != Success)
 	FatalError("XSELinux: Failed to set context property on window!\n");
-} /* XSELinuxWindowInit */
+} /* XSELinuxResourceState */
 
 static char *XSELinuxKeywords[] = {
 #define XSELinuxKeywordComment 0
@@ -1836,6 +1844,8 @@ XSELinuxExtensionInit(INITARGS)
 
     if (!AddCallback(&ClientStateCallback, XSELinuxClientState, NULL))
 	return;
+    if (!AddCallback(&ResourceStateCallback, XSELinuxResourceState, NULL))
+	return;
 
     /* Create atoms for doing window labeling */
     atom_ctx = MakeAtom("_SELINUX_CONTEXT", 16, 1);
@@ -1870,7 +1880,6 @@ XSELinuxExtensionInit(INITARGS)
     XaceRegisterCallback(XACE_BACKGRND_ACCESS, XSELinuxBackgrnd, NULL);
     XaceRegisterCallback(XACE_DRAWABLE_ACCESS, XSELinuxDrawable, NULL);
     XaceRegisterCallback(XACE_PROPERTY_ACCESS, XSELinuxProperty, NULL);
-    XaceRegisterCallback(XACE_WINDOW_INIT, XSELinuxWindowInit, NULL);
     /* XaceRegisterCallback(XACE_DECLARE_EXT_SECURE, XSELinuxDeclare, NULL);
     XaceRegisterCallback(XACE_DEVICE_ACCESS, XSELinuxDevice, NULL); */
 
