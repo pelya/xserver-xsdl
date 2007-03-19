@@ -83,9 +83,6 @@ RESTYPE SecurityAuthorizationResType; /* resource type for authorizations */
 
 static RESTYPE RTEventClient;
 
-#define CALLBACK(name) static void \
-name(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
-
 /* SecurityAudit
  *
  * Arguments:
@@ -779,7 +776,9 @@ SecurityDetermineEventPropogationLimits(
  *	An audit message is generated if access is denied.
  */
 
-CALLBACK(SecurityCheckDeviceAccess)
+static void
+SecurityCheckDeviceAccess(CallbackListPtr *pcbl, pointer unused,
+			  pointer calldata)
 {
     XaceDeviceAccessRec *rec = (XaceDeviceAccessRec*)calldata;
     ClientPtr client = rec->client;
@@ -955,7 +954,9 @@ SecurityAuditResourceIDAccess(
  *	Disallowed resource accesses are audited.
  */
 
-CALLBACK(SecurityCheckResourceIDAccess)
+static void
+SecurityCheckResourceIDAccess(CallbackListPtr *pcbl, pointer unused,
+			      pointer calldata)
 {
     XaceResourceAccessRec *rec = (XaceResourceAccessRec*)calldata;
     ClientPtr client = rec->client;
@@ -1114,7 +1115,9 @@ CALLBACK(SecurityCheckResourceIDAccess)
  * if it is now zero, the timer for this authorization is started.
  */
 
-CALLBACK(SecurityClientStateCallback)
+static void
+SecurityClientStateCallback(CallbackListPtr *pcbl, pointer unused,
+			    pointer calldata)
 {
     NewClientInfoRec *pci = (NewClientInfoRec *)calldata;
     ClientPtr client = pci->client;
@@ -1171,7 +1174,9 @@ CALLBACK(SecurityClientStateCallback)
     }
 } /* SecurityClientStateCallback */
 
-CALLBACK(SecurityCheckDrawableAccess)
+static void
+SecurityCheckDrawableAccess(CallbackListPtr *pcbl, pointer unused,
+			    pointer calldata)
 {
     XaceDrawableAccessRec *rec = (XaceDrawableAccessRec*)calldata;
 
@@ -1179,7 +1184,9 @@ CALLBACK(SecurityCheckDrawableAccess)
 	rec->rval = FALSE;
 }
 
-CALLBACK(SecurityCheckMapAccess)
+static void
+SecurityCheckMapAccess(CallbackListPtr *pcbl, pointer unused,
+		       pointer calldata)
 {
     XaceMapAccessRec *rec = (XaceMapAccessRec*)calldata;
     WindowPtr pWin = rec->pWin;
@@ -1193,7 +1200,9 @@ CALLBACK(SecurityCheckMapAccess)
 	rec->rval = FALSE;
 }
 
-CALLBACK(SecurityCheckBackgrndAccess)
+static void
+SecurityCheckBackgrndAccess(CallbackListPtr *pcbl, pointer unused,
+			    pointer calldata)
 {
     XaceMapAccessRec *rec = (XaceMapAccessRec*)calldata;
 
@@ -1201,7 +1210,9 @@ CALLBACK(SecurityCheckBackgrndAccess)
 	rec->rval = FALSE;
 }
 
-CALLBACK(SecurityCheckExtAccess)
+static void
+SecurityCheckExtAccess(CallbackListPtr *pcbl, pointer unused,
+		       pointer calldata)
 {
     XaceExtAccessRec *rec = (XaceExtAccessRec*)calldata;
 
@@ -1211,7 +1222,9 @@ CALLBACK(SecurityCheckExtAccess)
 	rec->rval = FALSE;
 }
 
-CALLBACK(SecurityCheckHostlistAccess)
+static void
+SecurityCheckHostlistAccess(CallbackListPtr *pcbl, pointer unused,
+			    pointer calldata)
 {
     XaceHostlistAccessRec *rec = (XaceHostlistAccessRec*)calldata;
  
@@ -1227,7 +1240,9 @@ CALLBACK(SecurityCheckHostlistAccess)
     }
 }
 
-CALLBACK(SecurityDeclareExtSecure)
+static void
+SecurityDeclareExtSecure(CallbackListPtr *pcbl, pointer unused,
+			 pointer calldata)
 {
     XaceDeclareExtSecureRec *rec = (XaceDeclareExtSecureRec*)calldata;
 
@@ -1692,7 +1707,9 @@ SecurityMatchString(
 #endif
 
 
-CALLBACK(SecurityCheckPropertyAccess)
+static void
+SecurityCheckPropertyAccess(CallbackListPtr *pcbl, pointer unused,
+			    pointer calldata)
 {    
     XacePropertyAccessRec *rec = (XacePropertyAccessRec*)calldata;
     ClientPtr client = rec->client;

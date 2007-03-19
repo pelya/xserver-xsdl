@@ -503,8 +503,6 @@ FreeClientState(ClientPtr client)
 #define IDPERM(client, req, field, class, perm) \
     (REQUEST_SIZE_CHECK(client,req) && \
     IDPerm(client, SwapXID(client,((req*)stuff)->field), class, perm))
-#define CALLBACK(name) static void \
-name(CallbackListPtr *pcbl, pointer nulldata, pointer calldata)
 
 static int
 CheckSendEventPerms(ClientPtr client)
@@ -632,7 +630,8 @@ CheckSetSelectionOwnerPerms(ClientPtr client)
     return rval;
 }
 
-CALLBACK(XSELinuxCoreDispatch)
+static void
+XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceCoreDispatchRec *rec = (XaceCoreDispatchRec*)calldata;
     ClientPtr client = rec->client;
@@ -1017,7 +1016,8 @@ CALLBACK(XSELinuxCoreDispatch)
 	rec->rval = FALSE;
 }
 
-CALLBACK(XSELinuxExtDispatch)
+static void
+XSELinuxExtDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceExtAccessRec *rec = (XaceExtAccessRec*)calldata;
     ClientPtr client = rec->client;
@@ -1058,7 +1058,8 @@ CALLBACK(XSELinuxExtDispatch)
 	ErrorF("No client state in extension dispatcher!\n");
 } /* XSELinuxExtDispatch */
 
-CALLBACK(XSELinuxProperty)
+static void
+XSELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XacePropertyAccessRec *rec = (XacePropertyAccessRec*)calldata;
     WindowPtr pWin = rec->pWin;
@@ -1106,7 +1107,8 @@ CALLBACK(XSELinuxProperty)
     sidput(propsid);
 } /* XSELinuxProperty */
 
-CALLBACK(XSELinuxResLookup)
+static void
+XSELinuxResLookup(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceResourceAccessRec *rec = (XaceResourceAccessRec*)calldata;
     ClientPtr client = rec->client;
@@ -1147,7 +1149,8 @@ CALLBACK(XSELinuxResLookup)
 	rec->rval = FALSE;
 } /* XSELinuxResLookup */
 
-CALLBACK(XSELinuxMap)
+static void
+XSELinuxMap(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceMapAccessRec *rec = (XaceMapAccessRec*)calldata;
     if (!IDPerm(rec->client, rec->pWin->drawable.id,
@@ -1155,7 +1158,8 @@ CALLBACK(XSELinuxMap)
 	rec->rval = FALSE;
 } /* XSELinuxMap */
 
-CALLBACK(XSELinuxBackgrnd)
+static void
+XSELinuxBackgrnd(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceMapAccessRec *rec = (XaceMapAccessRec*)calldata;
     if (!IDPerm(rec->client, rec->pWin->drawable.id,
@@ -1163,7 +1167,8 @@ CALLBACK(XSELinuxBackgrnd)
 	rec->rval = FALSE;
 } /* XSELinuxBackgrnd */
 
-CALLBACK(XSELinuxDrawable)
+static void
+XSELinuxDrawable(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceDrawableAccessRec *rec = (XaceDrawableAccessRec*)calldata;
     if (!IDPerm(rec->client, rec->pDraw->id,
@@ -1171,7 +1176,8 @@ CALLBACK(XSELinuxDrawable)
 	rec->rval = FALSE;
 } /* XSELinuxDrawable */
 
-CALLBACK(XSELinuxHostlist)
+static void
+XSELinuxHostlist(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceHostlistAccessRec *rec = (XaceHostlistAccessRec*)calldata;
     access_vector_t perm = (rec->access_mode == DixReadAccess) ?
@@ -1182,7 +1188,8 @@ CALLBACK(XSELinuxHostlist)
 } /* XSELinuxHostlist */
 
 /* Extension callbacks */
-CALLBACK(XSELinuxClientState)
+static void
+XSELinuxClientState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     NewClientInfoRec *pci = (NewClientInfoRec *)calldata;
     ClientPtr client = pci->client;
@@ -1209,7 +1216,8 @@ CALLBACK(XSELinuxClientState)
 } /* XSELinuxClientState */
 
 /* Labeling callbacks */
-CALLBACK(XSELinuxWindowInit)
+static void
+XSELinuxWindowInit(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceWindowRec *rec = (XaceWindowRec*)calldata;
     security_context_t ctx;
