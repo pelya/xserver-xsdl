@@ -132,6 +132,9 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
     } else {
         xf86Msg(X_CONFIG, "%s: doesn't report drag events\n", local->name);
     }
+
+    /* Backwards compatibility. */
+    local->history_size = GetMotionHistorySize();
 }
 
 /***********************************************************************

@@ -86,6 +86,9 @@
 #define XI_PRIVATE(dev) \
 	(((LocalDevicePtr)((dev)->public.devicePrivate))->private)
 
+/* Stupid API backwards-compatibility. */
+#define TS_Raw 60
+#define TS_Scaled 61
 
 #ifdef XINPUT
 /* This holds the input driver entry and module information. */
@@ -144,6 +147,7 @@ typedef struct _LocalDeviceRec {
     InputDriverPtr	    drv;
     pointer		    module;
     pointer		    options;
+    unsigned int            history_size;
 } LocalDeviceRec, *LocalDevicePtr, InputInfoRec, *InputInfoPtr;
 
 typedef struct _DeviceAssocRec 
