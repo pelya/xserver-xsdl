@@ -566,6 +566,22 @@ xf86CrtcCreateScreenResources (ScreenPtr screen)
 }
 
 /*
+ * Clean up config on server reset
+ */
+static Bool
+xf86CrtcCloseScreen (int index, ScreenPtr screen)
+{
+    ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
+    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+    
+    screen->CloseScreen = config->CloseScreen;
+
+    xf86RotateCloseScreen (screen);
+
+    return screen->CloseScreen (index, screen);
+}
+
+/*
  * Called at ScreenInit time to set up
  */
 Bool
@@ -596,6 +612,10 @@ xf86CrtcScreenInit (ScreenPtr screen)
     /* Wrap CreateScreenResources so we can initialize the RandR code */
     config->CreateScreenResources = screen->CreateScreenResources;
     screen->CreateScreenResources = xf86CrtcCreateScreenResources;
+
+    config->CloseScreen = screen->CloseScreen;
+    screen->CloseScreen = xf86CrtcCloseScreen;
+    
     return TRUE;
 }
 
