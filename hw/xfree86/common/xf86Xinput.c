@@ -90,6 +90,10 @@
 
 #include "mi.h"
 
+#ifdef XFreeXDGA
+#include "dgaproc.h"
+#endif
+
 xEvent *xf86Events = NULL;
 
 static Bool
@@ -395,10 +399,12 @@ xf86PostMotionEvent(DeviceIntPtr	device,
 {
     va_list var;
     int i = 0, nevents = 0;
+    int dx, dy;
     Bool drag = xf86SendDragEvents(device);
     int *valuators = NULL;
     int flags = 0;
     xEvent *xE = NULL;
+    int index;
 
     if (is_absolute)
         flags = POINTER_ABSOLUTE;
@@ -411,6 +417,22 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     for (i = 0; i < num_valuators; i++)
         valuators[i] = va_arg(var, int);
     va_end(var);
+
+#if XFreeXDGA
+    if (first_valuator == 0 && num_valuators >= 2) {
+        index = miPointerGetScreen(inputInfo.pointer)->myNum;
+        if (is_absolute) {
+            dx = valuators[0] - device->valuator->lastx;
+            dy = valuators[1] - device->valuator->lasty;
+        }
+        else {
+            dx = valuators[0];
+            dy = valuators[1];
+        }
+        if (DGAStealMotionEvent(index, dx, dy))
+            goto out;
+    }
+#endif
 
     if (!xf86Events)
         xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
@@ -430,6 +452,7 @@ xf86PostMotionEvent(DeviceIntPtr	device,
         }
     }
 
+out:
     xfree(valuators);
 }
 
@@ -476,6 +499,13 @@ xf86PostButtonEvent(DeviceIntPtr	device,
     va_list var;
     int *valuators = NULL;
     int i = 0, nevents = 0;
+    int index;
+
+#if XFreeXDGA
+    index = miPointerGetScreen(inputInfo.pointer)->myNum;
+    if (DGAStealButtonEvent(index, button, is_down))
+        return;
+#endif
     
     valuators = xcalloc(sizeof(int), num_valuators);
 
@@ -552,6 +582,13 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
                       int               is_down)
 {
     int nevents = 0, i = 0;
+    int index;
+
+#if XFreeXDGA
+    index = miPointerGetScreen(inputInfo.pointer)->myNum;
+    if (DGAStealKeyEvent(index, key_code, is_down))
+        return;
+#endif
 
     if (!xf86Events)
         xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());

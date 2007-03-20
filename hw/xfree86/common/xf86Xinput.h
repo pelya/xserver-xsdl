@@ -191,6 +191,10 @@ InputInfoPtr xf86AllocateInput(InputDriverPtr drv, int flags);
 InputDriverPtr xf86LookupInputDriver(const char *name);
 InputInfoPtr xf86LookupInput(const char *name);
 void xf86DeleteInput(InputInfoPtr pInp, int flags);
+void xf86MotionHistoryAllocate(LocalDevicePtr local);
+int xf86GetMotionEvents(DeviceIntPtr dev, xTimecoord *buff,
+                        unsigned long start, unsigned long stop,
+                        ScreenPtr pScreen);
 
 /* xf86Option.c */
 void xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts,
