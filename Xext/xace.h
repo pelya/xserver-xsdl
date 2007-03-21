@@ -28,7 +28,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifdef XACE
 
 #define XACE_EXTENSION_NAME		"XAccessControlExtension"
-#define XACE_MAJOR_VERSION		1
+#define XACE_MAJOR_VERSION		2
 #define XACE_MINOR_VERSION		0
 
 #include "pixmap.h"     /* for DrawablePtr */
