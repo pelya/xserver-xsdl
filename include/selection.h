@@ -50,6 +50,7 @@ SOFTWARE.
 ******************************************************************/
 
 #include "dixstruct.h"
+#include "privates.h"
 /*
  *
  *  Selection data structures 
@@ -61,6 +62,9 @@ typedef struct _Selection {
     Window window;
     WindowPtr pWin;
     ClientPtr client;
+    ClientPtr destclient; /* support for redirection */
+    Window destwindow;    /* support for redirection */
+    PrivateRec *devPrivates;
 } Selection;
 
 #endif /* SELECTION_H */

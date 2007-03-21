@@ -1074,11 +1074,16 @@ ProcSetSelectionOwner(register ClientPtr client)
 	    NumCurrentSelections++;
 	    CurrentSelections = newsels;
 	    CurrentSelections[i].selection = stuff->selection;
+	    CurrentSelections[i].devPrivates = NULL;
 	}
+	dixFreePrivates(CurrentSelections[i].devPrivates);
         CurrentSelections[i].lastTimeChanged = time;
 	CurrentSelections[i].window = stuff->window;
+	CurrentSelections[i].destwindow = stuff->window;
 	CurrentSelections[i].pWin = pWin;
 	CurrentSelections[i].client = (pWin ? client : NullClient);
+	CurrentSelections[i].destclient = (pWin ? client : NullClient);
+	CurrentSelections[i].devPrivates = NULL;
 	if (SelectionCallback)
 	{
 	    SelectionInfoRec	info;
@@ -1115,7 +1120,7 @@ ProcGetSelectionOwner(register ClientPtr client)
 	reply.sequenceNumber = client->sequence;
         if (i < NumCurrentSelections &&
 	    XaceHook(XACE_SELECTION_ACCESS, client, &CurrentSelections[i]))
-            reply.owner = CurrentSelections[i].window;
+            reply.owner = CurrentSelections[i].destwindow;
         else
             reply.owner = None;
         WriteReplyToClient(client, sizeof(xGetSelectionOwnerReply), &reply);
@@ -1158,14 +1163,13 @@ ProcConvertSelection(register ClientPtr client)
 	{        
 	    event.u.u.type = SelectionRequest;
 	    event.u.selectionRequest.time = stuff->time;
-	    event.u.selectionRequest.owner = 
-			CurrentSelections[i].window;
+	    event.u.selectionRequest.owner = CurrentSelections[i].window;
 	    event.u.selectionRequest.requestor = stuff->requestor;
 	    event.u.selectionRequest.selection = stuff->selection;
 	    event.u.selectionRequest.target = stuff->target;
 	    event.u.selectionRequest.property = stuff->property;
 	    if (TryClientEvents(
-		CurrentSelections[i].client, &event, 1, NoEventMask,
+		CurrentSelections[i].destclient, &event, 1, NoEventMask,
 		NoEventMask /* CantBeFiltered */, NullGrab))
 		return (client->noClientException);
 	}
@@ -4020,9 +4024,11 @@ DeleteWindowFromAnySelections(WindowPtr pWin)
 		info.kind = SelectionWindowDestroy;
 		CallCallbacks(&SelectionCallback, &info);
 	    }
+	    dixFreePrivates(CurrentSelections[i].devPrivates);
             CurrentSelections[i].pWin = (WindowPtr)NULL;
             CurrentSelections[i].window = None;
 	    CurrentSelections[i].client = NullClient;
+	    CurrentSelections[i].devPrivates = NULL;
 	}
 }
 
@@ -4042,9 +4048,11 @@ DeleteClientFromAnySelections(ClientPtr client)
 		info.kind = SelectionWindowDestroy;
 		CallCallbacks(&SelectionCallback, &info);
 	    }
+	    dixFreePrivates(CurrentSelections[i].devPrivates);
             CurrentSelections[i].pWin = (WindowPtr)NULL;
             CurrentSelections[i].window = None;
 	    CurrentSelections[i].client = NullClient;
+	    CurrentSelections[i].devPrivates = NULL;
 	}
 }
 
