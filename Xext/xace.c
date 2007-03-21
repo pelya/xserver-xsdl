@@ -151,6 +151,7 @@ int XaceHook(int hook, ...)
 	    XaceSelectionAccessRec rec = {
 		va_arg(ap, ClientPtr),
 		va_arg(ap, Selection*),
+		va_arg(ap, Mask),
 		TRUE	/* default allow */
 	    };
 	    calldata = &rec;

@@ -98,6 +98,7 @@ typedef struct {
 typedef struct {
     ClientPtr client;
     Selection *selection;
+    Mask access_mode;
     int rval;
 } XaceSelectionAccessRec;
 

@@ -1119,7 +1119,8 @@ ProcGetSelectionOwner(register ClientPtr client)
 	reply.length = 0;
 	reply.sequenceNumber = client->sequence;
         if (i < NumCurrentSelections &&
-	    XaceHook(XACE_SELECTION_ACCESS, client, &CurrentSelections[i]))
+	    XaceHook(XACE_SELECTION_ACCESS, client, &CurrentSelections[i],
+		     DixReadAccess))
             reply.owner = CurrentSelections[i].destwindow;
         else
             reply.owner = None;
@@ -1159,7 +1160,8 @@ ProcConvertSelection(register ClientPtr client)
 	       CurrentSelections[i].selection != stuff->selection) i++;
 	if ((i < NumCurrentSelections) &&
 	    (CurrentSelections[i].window != None) &&
-	    XaceHook(XACE_SELECTION_ACCESS, client, &CurrentSelections[i]))
+	    XaceHook(XACE_SELECTION_ACCESS, client, &CurrentSelections[i],
+		     DixReadAccess))
 	{        
 	    event.u.u.type = SelectionRequest;
 	    event.u.selectionRequest.time = stuff->time;
