@@ -147,6 +147,16 @@ int XaceHook(int hook, ...)
 	    prv = &rec.rval;
 	    break;
 	}
+	case XACE_SELECTION_ACCESS: {
+	    XaceSelectionAccessRec rec = {
+		va_arg(ap, ClientPtr),
+		va_arg(ap, Selection*),
+		TRUE	/* default allow */
+	    };
+	    calldata = &rec;
+	    prv = &rec.rval;
+	    break;
+	}
 	case XACE_SITE_POLICY: {
 	    XaceSitePolicyRec rec = {
 		va_arg(ap, char*),

@@ -27,6 +27,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "gcstruct.h"
 #include "windowstr.h"
 #include "inputstr.h"
+#include "selection.h"
 #include "xace.h"
 
 /* XACE_CORE_DISPATCH */
@@ -92,6 +93,13 @@ typedef struct {
     Mask access_mode;
     int rval;
 } XaceHostlistAccessRec;
+
+/* XACE_SELECTION_ACCESS */
+typedef struct {
+    ClientPtr client;
+    Selection *selection;
+    int rval;
+} XaceSelectionAccessRec;
 
 /* XACE_SITE_POLICY */
 typedef struct {
