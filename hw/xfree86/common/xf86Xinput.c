@@ -423,17 +423,19 @@ xf86PostMotionEvent(DeviceIntPtr	device,
 
 #if XFreeXDGA
     if (first_valuator == 0 && num_valuators >= 2) {
-        index = miPointerGetScreen(inputInfo.pointer)->myNum;
-        if (is_absolute) {
-            dx = valuators[0] - device->valuator->lastx;
-            dy = valuators[1] - device->valuator->lasty;
+        if (miPointerGetScreen(inputInfo.pointer)) {
+            index = miPointerGetScreen(inputInfo.pointer)->myNum;
+            if (is_absolute) {
+                dx = valuators[0] - device->valuator->lastx;
+                dy = valuators[1] - device->valuator->lasty;
+            }
+            else {
+                dx = valuators[0];
+                dy = valuators[1];
+            }
+            if (DGAStealMotionEvent(index, dx, dy))
+                goto out;
         }
-        else {
-            dx = valuators[0];
-            dy = valuators[1];
-        }
-        if (DGAStealMotionEvent(index, dx, dy))
-            goto out;
     }
 #endif
 
@@ -505,9 +507,11 @@ xf86PostButtonEvent(DeviceIntPtr	device,
     int index;
 
 #if XFreeXDGA
-    index = miPointerGetScreen(inputInfo.pointer)->myNum;
-    if (DGAStealButtonEvent(index, button, is_down))
-        return;
+    if (miPointerGetScreen(inputInfo.pointer)) {
+        index = miPointerGetScreen(inputInfo.pointer)->myNum;
+        if (DGAStealButtonEvent(index, button, is_down))
+            return;
+    }
 #endif
     
     valuators = xcalloc(sizeof(int), num_valuators);
@@ -588,9 +592,11 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
     int index;
 
 #if XFreeXDGA
-    index = miPointerGetScreen(inputInfo.pointer)->myNum;
-    if (DGAStealKeyEvent(index, key_code, is_down))
-        return;
+    if (miPointerGetScreen(inputInfo.pointer)) {
+        index = miPointerGetScreen(inputInfo.pointer)->myNum;
+        if (DGAStealKeyEvent(index, key_code, is_down))
+            return;
+    }
 #endif
 
     if (!xf86Events)
