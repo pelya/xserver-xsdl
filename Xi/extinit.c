@@ -86,11 +86,13 @@ SOFTWARE.
 #include "devbell.h"
 #include "getbmap.h"
 #include "getbmap.h"
+#include "getcptr.h"
 #include "getdctl.h"
 #include "getfctl.h"
 #include "getfocus.h"
 #include "getkmap.h"
 #include "getmmap.h"
+#include "getpairp.h"
 #include "getprop.h"
 #include "getselev.h"
 #include "getvers.h"
@@ -370,6 +372,10 @@ ProcIDispatch(register ClientPtr client)
         return ProcXQueryWindowAccess(client);
     else if (stuff->data == X_SetClientPointer)
         return ProcXSetClientPointer(client);
+    else if (stuff->data == X_GetClientPointer)
+        return ProcXGetClientPointer(client);
+    else if (stuff->data == X_GetPairedPointer)
+        return ProcXGetPairedPointer(client);
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -477,6 +483,10 @@ SProcIDispatch(register ClientPtr client)
         return SProcXQueryWindowAccess(client);
     else if (stuff->data == X_SetClientPointer)
         return SProcXSetClientPointer(client);
+    else if (stuff->data == X_GetClientPointer)
+        return SProcXGetClientPointer(client);
+    else if (stuff->data == X_GetPairedPointer)
+        return SProcXGetPairedPointer(client);
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -561,6 +571,10 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
     else if (rep->RepType == X_QueryWindowAccess)
         SRepXQueryWindowAccess(client, len,
                                (xQueryWindowAccessReply*) rep);
+    else if (rep->RepType == X_GetClientPointer)
+        SRepXGetClientPointer(client, len, (xGetClientPointerReply*) rep);
+    else if (rep->RepType == X_GetPairedPointer)
+        SRepXGetPairedPointer(client, len, (xGetPairedPointerReply*) rep);
     else {
 	FatalError("XINPUT confused sending swapped reply");
     }

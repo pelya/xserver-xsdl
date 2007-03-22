@@ -32,6 +32,8 @@ libXi_la_SOURCES =	\
 	extinit.c \
 	getbmap.c \
 	getbmap.h \
+	getcptr.c \
+	getcptr.h \
 	getdctl.c \
 	getdctl.h \
 	getfctl.c \
@@ -42,6 +44,8 @@ libXi_la_SOURCES =	\
 	getkmap.h \
 	getmmap.c \
 	getmmap.h \
+	getpairp.c \
+	getpairp.h \
 	getprop.c \
 	getprop.h \
 	getselev.c \

@@ -3897,6 +3897,7 @@ int
 ProcSetInputFocus(client)
     ClientPtr client;
 {
+    DeviceIntPtr kbd = PickKeyboard(client);
     REQUEST(xSetInputFocusReq);
 
     REQUEST_SIZE_MATCH(xSetInputFocusReq);
@@ -3904,16 +3905,17 @@ ProcSetInputFocus(client)
     if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
 	return Success;
 
-    return SetInputFocus(client, inputInfo.keyboard, stuff->focus,
+    return SetInputFocus(client, kbd, stuff->focus,
 			 stuff->revertTo, stuff->time, FALSE);
 }
 
 int
 ProcGetInputFocus(ClientPtr client)
 {
+    DeviceIntPtr kbd = PickKeyboard(client);
     xGetInputFocusReply rep;
     /* REQUEST(xReq); */
-    FocusClassPtr focus = inputInfo.keyboard->focus;
+    FocusClassPtr focus = kbd->focus;
 
     REQUEST_SIZE_MATCH(xReq);
     rep.type = X_Reply;

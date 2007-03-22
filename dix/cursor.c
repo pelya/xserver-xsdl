@@ -131,7 +131,6 @@ FreeCursor(pointer value, XID cid)
     }
     FreeCursorBits(pCurs->bits);
     xfree( pCurs);
-    MPXDBG("freeing memory for cursor\n");
     return(Success);
 }
 

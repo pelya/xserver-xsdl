@@ -164,3 +164,4 @@ SRepXQueryDevicePointer(ClientPtr client, int size,
     swapl(&rep->length, n);
     WriteToClient(client, size, (char *)rep);
 }
+
