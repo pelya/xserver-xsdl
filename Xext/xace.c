@@ -22,9 +22,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 #include <stdarg.h>
-#include "windowstr.h"
 #include "scrnintstr.h"
-#include "gcstruct.h"
 #include "xacestr.h"
 #include "modinit.h"
 
@@ -97,6 +95,7 @@ int XaceHook(int hook, ...)
 	    XacePropertyAccessRec rec = {
 		va_arg(ap, ClientPtr),
 		va_arg(ap, WindowPtr),
+		va_arg(ap, PropertyPtr),
 		va_arg(ap, Atom),
 		va_arg(ap, Mask),
 		XaceAllowOperation   /* default allow */

@@ -91,6 +91,19 @@ PrintPropertys(WindowPtr pWin)
 }
 #endif
 
+static _X_INLINE PropertyPtr
+FindProperty(WindowPtr pWin, Atom propertyName)
+{
+    PropertyPtr pProp = wUserProps(pWin);
+    while (pProp)
+    {
+	if (pProp->propertyName == propertyName)
+	    break;
+	pProp = pProp->next;
+    }
+    return pProp;
+}
+
 int
 ProcRotateProperties(ClientPtr client)
 {
@@ -115,35 +128,33 @@ ProcRotateProperties(ClientPtr client)
 	return(BadAlloc);
     for (i = 0; i < stuff->nAtoms; i++)
     {
-	char action = XaceHook(XACE_PROPERTY_ACCESS, client, pWin, atoms[i],
-				DixReadAccess|DixWriteAccess);
-
-        if (!ValidAtom(atoms[i]) || (XaceErrorOperation == action)) {
+        if (!ValidAtom(atoms[i])) {
             DEALLOCATE_LOCAL(props);
 	    client->errorValue = atoms[i];
             return BadAtom;
         }
-	if (XaceIgnoreOperation == action) {
-            DEALLOCATE_LOCAL(props);
-	    return Success;
-	}
-
         for (j = i + 1; j < stuff->nAtoms; j++)
             if (atoms[j] == atoms[i])
             {
                 DEALLOCATE_LOCAL(props);
                 return BadMatch;
             }
-        pProp = wUserProps (pWin);
-        while (pProp)
-        {
-            if (pProp->propertyName == atoms[i])
-                goto found;
-	    pProp = pProp->next;
-        }
-        DEALLOCATE_LOCAL(props);
-        return BadMatch;
-found: 
+	pProp = FindProperty(pWin, atoms[i]);
+	if (!pProp) {
+	    DEALLOCATE_LOCAL(props);
+	    return BadMatch;
+	}
+	switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, pProp, atoms[i],
+			 DixReadAccess|DixWriteAccess))
+	{
+	case XaceErrorOperation:
+            DEALLOCATE_LOCAL(props);
+	    client->errorValue = atoms[i];
+            return BadAtom;
+	case XaceIgnoreOperation:
+            DEALLOCATE_LOCAL(props);
+	    return Success;
+	}
         props[i] = pProp;
     }
     delta = stuff->nPositions;
@@ -219,7 +230,8 @@ ProcChangeProperty(ClientPtr client)
 	return(BadAtom);
     }
 
-    switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, stuff->property,
+    switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin,
+		     FindProperty(pWin, stuff->property), stuff->property,
 		     DixWriteAccess))
     {
     case XaceErrorOperation:
@@ -252,14 +264,8 @@ ChangeWindowProperty(WindowPtr pWin, Atom property, Atom type, int format,
     totalSize = len * sizeInBytes;
 
     /* first see if property already exists */
+    pProp = FindProperty(pWin, property);
 
-    pProp = wUserProps (pWin);
-    while (pProp)
-    {
-	if (pProp->propertyName == property)
-	    break;
-	pProp = pProp->next;
-    }
     if (!pProp)   /* just add to list */
     {
 	if (!pWin->optional && !MakeWindowOptional (pWin))
@@ -490,8 +496,8 @@ ProcGetProperty(ClientPtr client)
 
     if (stuff->delete)
 	access_mode |= DixDestroyAccess;
-    switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, stuff->property,
-		     access_mode))
+    switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, pProp,
+		     stuff->property, access_mode))
     {
     case XaceErrorOperation:
 	client->errorValue = stuff->property;
@@ -643,7 +649,8 @@ ProcDeleteProperty(register ClientPtr client)
 	return (BadAtom);
     }
 
-    switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, stuff->property,
+    switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin,
+		     FindProperty(pWin, stuff->property), stuff->property,
 		     DixDestroyAccess))
     {
     case XaceErrorOperation:

@@ -27,6 +27,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "gcstruct.h"
 #include "windowstr.h"
 #include "inputstr.h"
+#include "propertyst.h"
 #include "selection.h"
 #include "xace.h"
 
@@ -59,6 +60,7 @@ typedef struct {
 typedef struct {
     ClientPtr client;
     WindowPtr pWin;
+    PropertyPtr pProp;
     Atom propertyName;
     Mask access_mode;
     int rval;

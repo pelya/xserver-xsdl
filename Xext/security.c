@@ -28,14 +28,8 @@ in this Software without prior written authorization from The Open Group.
 #include <dix-config.h>
 #endif
 
-#include "dixstruct.h"
-#include "extnsionst.h"
-#include "windowstr.h"
-#include "inputstr.h"
 #include "scrnintstr.h"
-#include "gcstruct.h"
 #include "colormapst.h"
-#include "propertyst.h"
 #include "xacestr.h"
 #include "securitysrv.h"
 #include <X11/extensions/securstr.h>
