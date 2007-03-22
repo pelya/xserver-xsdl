@@ -52,6 +52,17 @@ SOFTWARE.
 
 typedef struct _Property *PropertyPtr;
 
+extern int dixChangeWindowProperty(
+    ClientPtr /*pClient*/,
+    WindowPtr /*pWin*/,
+    Atom /*property*/,
+    Atom /*type*/,
+    int /*format*/,
+    int /*mode*/,
+    unsigned long /*len*/,
+    pointer /*value*/,
+    Bool /*sendevent*/);
+
 extern int ChangeWindowProperty(
     WindowPtr /*pWin*/,
     Atom /*property*/,

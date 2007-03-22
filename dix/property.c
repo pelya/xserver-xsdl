@@ -230,19 +230,9 @@ ProcChangeProperty(ClientPtr client)
 	return(BadAtom);
     }
 
-    switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin,
-		     FindProperty(pWin, stuff->property), stuff->property,
-		     DixWriteAccess))
-    {
-    case XaceErrorOperation:
-	client->errorValue = stuff->property;
-	return BadAtom;
-    case XaceIgnoreOperation:
-	return Success;
-    }
-
-    err = ChangeWindowProperty(pWin, stuff->property, stuff->type, (int)format,
-			       (int)mode, len, (pointer)&stuff[1], TRUE);
+    err = dixChangeWindowProperty(client, pWin, stuff->property, stuff->type,
+				  (int)format, (int)mode, len, &stuff[1],
+				  TRUE);
     if (err != Success)
 	return err;
     else
@@ -250,9 +240,9 @@ ProcChangeProperty(ClientPtr client)
 }
 
 _X_EXPORT int
-ChangeWindowProperty(WindowPtr pWin, Atom property, Atom type, int format, 
-                     int mode, unsigned long len, pointer value, 
-                     Bool sendevent)
+dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
+			Atom type, int format, int mode, unsigned long len,
+			pointer value, Bool sendevent)
 {
     PropertyPtr pProp;
     xEvent event;
@@ -286,12 +276,34 @@ ChangeWindowProperty(WindowPtr pWin, Atom property, Atom type, int format,
 	if (len)
 	    memmove((char *)data, (char *)value, totalSize);
 	pProp->size = len;
-        pProp->next = pWin->optional->userProps;
 	pProp->devPrivates = NULL;
+	switch (XaceHook(XACE_PROPERTY_ACCESS, pClient, pWin, pProp, property,
+			 DixWriteAccess))
+	{
+	case XaceErrorOperation:
+	    xfree(data);
+	    xfree(pProp);
+	    pClient->errorValue = property;
+	    return BadAtom;
+	case XaceIgnoreOperation:
+	    xfree(data);
+	    xfree(pProp);
+	    return Success;
+	}
+        pProp->next = pWin->optional->userProps;
         pWin->optional->userProps = pProp;
     }
     else
     {
+	switch (XaceHook(XACE_PROPERTY_ACCESS, pClient, pWin, pProp, property,
+			 DixWriteAccess))
+	{
+	case XaceErrorOperation:
+	    pClient->errorValue = property;
+	    return BadAtom;
+	case XaceIgnoreOperation:
+	    return Success;
+	}
 	/* To append or prepend to a property the request format and type
 		must match those of the already defined property.  The
 		existing format and type are irrelevant when using the mode
@@ -355,6 +367,15 @@ ChangeWindowProperty(WindowPtr pWin, Atom property, Atom type, int format,
 	DeliverEvents(pWin, &event, 1, (WindowPtr)NULL);
     }
     return(Success);
+}
+
+_X_EXPORT int
+ChangeWindowProperty(WindowPtr pWin, Atom property, Atom type, int format, 
+		     int mode, unsigned long len, pointer value, 
+		     Bool sendevent)
+{
+    return dixChangeWindowProperty(NullClient, pWin, property, type, format,
+				   mode, len, value, sendevent);
 }
 
 int

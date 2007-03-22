@@ -1715,7 +1715,7 @@ SecurityCheckPropertyAccess(CallbackListPtr *pcbl, pointer unused,
 
     /* if client trusted or window untrusted, allow operation */
 
-    if ( (TRUSTLEVEL(client) == XSecurityClientTrusted) ||
+    if (!client || (TRUSTLEVEL(client) == XSecurityClientTrusted) ||
 	 (TRUSTLEVEL(wClient(pWin)) != XSecurityClientTrusted) )
 	return;
 

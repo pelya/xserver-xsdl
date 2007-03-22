@@ -1070,7 +1070,7 @@ XSELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     char *propname = NameForAtom(rec->propertyName);
 
     tclient = wClient(pWin);
-    if (!tclient || !HAVESTATE(tclient))
+    if (!client || !tclient || !HAVESTATE(tclient))
         return;
 
     propsid = GetPropertySID(SID(tclient)->ctx, propname);

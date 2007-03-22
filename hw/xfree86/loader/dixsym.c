@@ -192,6 +192,7 @@ _X_HIDDEN void *dixLookupTab[] = {
 #endif
     /* property.c */
     SYMFUNC(ChangeWindowProperty)
+    SYMFUNC(dixChangeWindowProperty)
     /* extension.c */
     SYMFUNC(AddExtension)
     SYMFUNC(AddExtensionAlias)
