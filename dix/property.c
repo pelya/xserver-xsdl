@@ -144,7 +144,7 @@ ProcRotateProperties(ClientPtr client)
 	    DEALLOCATE_LOCAL(props);
 	    return BadMatch;
 	}
-	switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, pProp, atoms[i],
+	switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, pProp,
 			 DixReadAccess|DixWriteAccess))
 	{
 	case XaceErrorOperation:
@@ -277,8 +277,8 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 	    memmove((char *)data, (char *)value, totalSize);
 	pProp->size = len;
 	pProp->devPrivates = NULL;
-	switch (XaceHook(XACE_PROPERTY_ACCESS, pClient, pWin, pProp, property,
-			 DixWriteAccess))
+	switch (XaceHook(XACE_PROPERTY_ACCESS, pClient, pWin, pProp,
+			 DixCreateAccess))
 	{
 	case XaceErrorOperation:
 	    xfree(data);
@@ -295,7 +295,7 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
     }
     else
     {
-	switch (XaceHook(XACE_PROPERTY_ACCESS, pClient, pWin, pProp, property,
+	switch (XaceHook(XACE_PROPERTY_ACCESS, pClient, pWin, pProp,
 			 DixWriteAccess))
 	{
 	case XaceErrorOperation:
@@ -517,8 +517,7 @@ ProcGetProperty(ClientPtr client)
 
     if (stuff->delete)
 	access_mode |= DixDestroyAccess;
-    switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, pProp,
-		     stuff->property, access_mode))
+    switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin, pProp, access_mode))
     {
     case XaceErrorOperation:
 	client->errorValue = stuff->property;
@@ -671,8 +670,7 @@ ProcDeleteProperty(register ClientPtr client)
     }
 
     switch (XaceHook(XACE_PROPERTY_ACCESS, client, pWin,
-		     FindProperty(pWin, stuff->property), stuff->property,
-		     DixDestroyAccess))
+		     FindProperty(pWin, stuff->property), DixDestroyAccess))
     {
     case XaceErrorOperation:
 	client->errorValue = stuff->property;

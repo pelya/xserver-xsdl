@@ -96,7 +96,6 @@ int XaceHook(int hook, ...)
 		va_arg(ap, ClientPtr),
 		va_arg(ap, WindowPtr),
 		va_arg(ap, PropertyPtr),
-		va_arg(ap, Atom),
 		va_arg(ap, Mask),
 		XaceAllowOperation   /* default allow */
 	    };

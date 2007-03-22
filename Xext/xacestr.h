@@ -20,7 +20,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _XACESTR_H
 #define _XACESTR_H
 
-#include <X11/Xdefs.h>
 #include "dixstruct.h"
 #include "resource.h"
 #include "extnsionst.h"
@@ -61,7 +60,6 @@ typedef struct {
     ClientPtr client;
     WindowPtr pWin;
     PropertyPtr pProp;
-    Atom propertyName;
     Mask access_mode;
     int rval;
 } XacePropertyAccessRec;

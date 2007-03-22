@@ -1067,7 +1067,7 @@ XSELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     ClientPtr tclient;
     access_vector_t perm = 0;
     security_id_t propsid;
-    char *propname = NameForAtom(rec->propertyName);
+    char *propname = NameForAtom(rec->pProp->propertyName);
 
     tclient = wClient(pWin);
     if (!client || !tclient || !HAVESTATE(tclient))

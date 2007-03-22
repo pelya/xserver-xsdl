@@ -1708,7 +1708,7 @@ SecurityCheckPropertyAccess(CallbackListPtr *pcbl, pointer unused,
     XacePropertyAccessRec *rec = (XacePropertyAccessRec*)calldata;
     ClientPtr client = rec->client;
     WindowPtr pWin = rec->pWin;
-    ATOM propertyName = rec->propertyName;
+    ATOM propertyName = rec->pProp->propertyName;
     Mask access_mode = rec->access_mode;
     PropertyAccessPtr pacl;
     char action = SecurityDefaultAction;
