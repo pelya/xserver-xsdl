@@ -11,6 +11,7 @@ sdk_HEADERS =		\
 	cursor.h	\
 	cursorstr.h	\
 	dix.h		\
+	dixaccess.h	\
 	dixevents.h	\
 	dixfont.h	\
 	dixfontstr.h	\

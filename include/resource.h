@@ -48,6 +48,7 @@ SOFTWARE.
 #ifndef RESOURCE_H
 #define RESOURCE_H 1
 #include "misc.h"
+#include "dixaccess.h"
 
 /*****************************************************************
  * STUFF FOR RESOURCES 
@@ -224,20 +225,6 @@ extern pointer LookupClientResourceComplex(
     RESTYPE type,
     FindComplexResType func,
     pointer cdata);
-
-/* These are the access modes that can be passed in the last parameter
- * to SecurityLookupIDByType/Class.  The Security extension doesn't
- * currently make much use of these; they're mainly provided as an
- * example of what you might need for discretionary access control.
- * You can or these values together to indicate multiple modes
- * simultaneously.
- */
-
-#define DixUnknownAccess	0	/* don't know intentions */
-#define DixReadAccess		(1<<0)	/* inspecting the object */
-#define DixWriteAccess		(1<<1)	/* changing the object */
-#define DixReadWriteAccess	(DixReadAccess|DixWriteAccess)
-#define DixDestroyAccess	(1<<2)	/* destroying the object */
 
 extern pointer SecurityLookupIDByType(
     ClientPtr /*client*/,
