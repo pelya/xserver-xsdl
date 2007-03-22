@@ -281,6 +281,7 @@ ChangeWindowProperty(WindowPtr pWin, Atom property, Atom type, int format,
 	    memmove((char *)data, (char *)value, totalSize);
 	pProp->size = len;
         pProp->next = pWin->optional->userProps;
+	pProp->devPrivates = NULL;
         pWin->optional->userProps = pProp;
     }
     else
@@ -383,6 +384,7 @@ DeleteProperty(WindowPtr pWin, Atom propName)
         event.u.property.atom = pProp->propertyName;
 	event.u.property.time = currentTime.milliseconds;
 	DeliverEvents(pWin, &event, 1, (WindowPtr)NULL);
+	dixFreePrivates(pProp->devPrivates);
 	xfree(pProp->data);
         xfree(pProp);
     }
@@ -405,6 +407,7 @@ DeleteAllWindowProperties(WindowPtr pWin)
 	event.u.property.time = currentTime.milliseconds;
 	DeliverEvents(pWin, &event, 1, (WindowPtr)NULL);
 	pNextProp = pProp->next;
+	dixFreePrivates(pProp->devPrivates);
         xfree(pProp->data);
         xfree(pProp);
 	pProp = pNextProp;
@@ -569,6 +572,7 @@ ProcGetProperty(ClientPtr client)
 	}
 	else
 	    prevProp->next = pProp->next;
+	dixFreePrivates(pProp->devPrivates);
 	xfree(pProp->data);
 	xfree(pProp);
     }
