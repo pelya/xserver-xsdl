@@ -1589,6 +1589,8 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 	{
 	    crtc->desiredMode = *mode;
 	    crtc->desiredRotation = output->initial_rotation;
+	    crtc->desiredX = output->initial_x;
+	    crtc->desiredY = output->initial_y;
 	    crtc->enabled = TRUE;
 	    crtc->x = output->initial_x;
 	    crtc->y = output->initial_y;
@@ -1813,7 +1815,12 @@ xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
 	if (!xf86CrtcSetMode (crtc, crtc_mode, rotation, 0, 0))
 	    ok = FALSE;
 	else
+	{
 	    crtc->desiredMode = *crtc_mode;
+	    crtc->desiredRotation = rotation;
+	    crtc->desiredX = 0;
+	    crtc->desiredY = 0;
+	}
     }
     xf86DisableUnusedFunctions(pScrn);
     return ok;
