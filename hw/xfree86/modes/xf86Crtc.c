@@ -573,11 +573,25 @@ xf86CrtcCloseScreen (int index, ScreenPtr screen)
 {
     ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+    int			o, c;
     
     screen->CloseScreen = config->CloseScreen;
 
     xf86RotateCloseScreen (screen);
 
+    for (o = 0; o < config->num_output; o++)
+    {
+	xf86OutputPtr	output = config->output[o];
+
+	output->crtc = NULL;
+	output->randr_output = NULL;
+    }
+    for (c = 0; c < config->num_crtc; c++)
+    {
+	xf86CrtcPtr	crtc = config->crtc[c];
+
+	crtc->randr_crtc = NULL;
+    }
     return screen->CloseScreen (index, screen);
 }
 
