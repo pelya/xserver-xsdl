@@ -262,6 +262,8 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	   RROutputPtr  *outputs)
 {
     ScreenPtr	pScreen = crtc->pScreen;
+    Bool	ret = FALSE;
+    rrScrPriv(pScreen);
 
     /* See if nothing changed */
     if (crtc->mode == mode &&
@@ -271,61 +273,64 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	crtc->numOutputs == numOutputs &&
 	!memcmp (crtc->outputs, outputs, numOutputs * sizeof (RROutputPtr)))
     {
-	return TRUE;
+	ret = TRUE;
     }
-    if (pScreen)
+    else
     {
 #if RANDR_12_INTERFACE
-	rrScrPriv(pScreen);
 	if (pScrPriv->rrCrtcSet)
 	{
-	    return (*pScrPriv->rrCrtcSet) (pScreen, crtc, mode, x, y, 
-					   rotation, numOutputs, outputs);
+	    ret = (*pScrPriv->rrCrtcSet) (pScreen, crtc, mode, x, y, 
+					  rotation, numOutputs, outputs);
 	}
+	else
 #endif
-#if RANDR_10_INTERFACE
-	if (pScrPriv->rrSetConfig)
 	{
-	    RRScreenSize	    size;
-	    RRScreenRate	    rate;
-	    Bool		    ret;
+#if RANDR_10_INTERFACE
+	    if (pScrPriv->rrSetConfig)
+	    {
+		RRScreenSize	    size;
+		RRScreenRate	    rate;
 
-	    if (!mode)
-	    {
-		RRCrtcNotify (crtc, NULL, x, y, rotation, 0, NULL);
-		return TRUE;
+		if (!mode)
+		{
+		    RRCrtcNotify (crtc, NULL, x, y, rotation, 0, NULL);
+		    ret = TRUE;
+		}
+		else
+		{
+		    size.width = mode->mode.width;
+		    size.height = mode->mode.height;
+		    if (outputs[0]->mmWidth && outputs[0]->mmHeight)
+		    {
+			size.mmWidth = outputs[0]->mmWidth;
+			size.mmHeight = outputs[0]->mmHeight;
+		    }
+		    else
+		    {
+			size.mmWidth = pScreen->mmWidth;
+			size.mmHeight = pScreen->mmHeight;
+		    }
+		    size.nRates = 1;
+		    rate.rate = RRVerticalRefresh (&mode->mode);
+		    size.pRates = &rate;
+		    ret = (*pScrPriv->rrSetConfig) (pScreen, rotation, rate.rate, &size);
+		    /*
+		     * Old 1.0 interface tied screen size to mode size
+		     */
+		    if (ret)
+		    {
+			RRCrtcNotify (crtc, mode, x, y, rotation, 1, outputs);
+			RRScreenSizeNotify (pScreen);
+		    }
+		}
 	    }
-
-	    size.width = mode->mode.width;
-	    size.height = mode->mode.height;
-	    if (outputs[0]->mmWidth && outputs[0]->mmHeight)
-	    {
-		size.mmWidth = outputs[0]->mmWidth;
-		size.mmHeight = outputs[0]->mmHeight;
-	    }
-	    else
-	    {
-		size.mmWidth = pScreen->mmWidth;
-		size.mmHeight = pScreen->mmHeight;
-	    }
-	    size.nRates = 1;
-	    rate.rate = RRVerticalRefresh (&mode->mode);
-	    size.pRates = &rate;
-	    ret = (*pScrPriv->rrSetConfig) (pScreen, rotation, rate.rate, &size);
-	    /*
-	     * Old 1.0 interface tied screen size to mode size
-	     */
-	    if (ret)
-	    {
-		RRCrtcNotify (crtc, mode, x, y, rotation, 1, outputs);
-		RRScreenSizeNotify (pScreen);
-	    }
-	    return ret;
-	}
 #endif
-	RRTellChanged (pScreen);
+	}
+	if (ret)
+	    RRTellChanged (pScreen);
     }
-    return FALSE;
+    return ret;
 }
 
 /*
@@ -718,6 +723,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	goto sendReply;
     }
     
+#if 0
     /*
      * if the client's config timestamp is not the same as the last config
      * timestamp, then the config information isn't up-to-date and
@@ -728,6 +734,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	rep.status = RRSetConfigInvalidConfigTime;
 	goto sendReply;
     }
+#endif
     
     /*
      * Validate requested rotation
