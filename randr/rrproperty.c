@@ -177,8 +177,6 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 		RRDestroyOutputProperty (prop);
 	    return BadAlloc;
 	}
-	if (len)
-	    memmove((char *)new_value.data, (char *)value, total_size);
 	new_value.size = len;
 	new_value.type = type;
 	new_value.format = format;
