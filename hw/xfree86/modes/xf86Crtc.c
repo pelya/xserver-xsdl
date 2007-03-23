@@ -1923,7 +1923,7 @@ xf86OutputSetEDIDProperty (xf86OutputPtr output, void *data, int data_len)
 
     if (data_len != 0) {
 	RRChangeOutputProperty(output->randr_output, edid_atom, XA_INTEGER, 8,
-			       PropModeReplace, data_len, data, FALSE);
+			       PropModeReplace, data_len, data, FALSE, TRUE);
     } else {
 	RRDeleteOutputProperty(output->randr_output, edid_atom);
     }

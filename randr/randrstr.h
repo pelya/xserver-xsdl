@@ -761,10 +761,13 @@ RRQueryOutputProperty (RROutputPtr output, Atom property);
 void
 RRDeleteOutputProperty (RROutputPtr output, Atom property);
 
+Bool
+RRPostPendingProperty (RROutputPtr output, Atom property);
+    
 int
 RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 			int format, int mode, unsigned long len,
-			pointer value, Bool sendevent);
+			pointer value, Bool sendevent, Bool pending);
 
 int
 RRConfigureOutputProperty (RROutputPtr output, Atom property,
