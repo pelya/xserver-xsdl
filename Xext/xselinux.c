@@ -1070,7 +1070,7 @@ XSELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     char *propname = NameForAtom(rec->pProp->propertyName);
 
     tclient = wClient(pWin);
-    if (!client || !tclient || !HAVESTATE(tclient))
+    if (!tclient || !HAVESTATE(tclient))
         return;
 
     propsid = GetPropertySID(SID(tclient)->ctx, propname);
@@ -1235,13 +1235,15 @@ XSELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	rc = avc_sid_to_context(SID(client), &ctx);
 	if (rc < 0)
 	    FatalError("XSELinux: Failed to get security context!\n");
-	rc = ChangeWindowProperty(pWin, atom_client_ctx, XA_STRING, 8,
-				  PropModeReplace, strlen(ctx), ctx, FALSE);
+	rc = dixChangeWindowProperty(serverClient,
+				     pWin, atom_client_ctx, XA_STRING, 8,
+				     PropModeReplace, strlen(ctx), ctx, FALSE);
 	freecon(ctx);
     }
     else
-	rc = ChangeWindowProperty(pWin, atom_client_ctx, XA_STRING, 8,
-				  PropModeReplace, 10, "UNLABELED!", FALSE);
+	rc = dixChangeWindowProperty(serverClient,
+				     pWin, atom_client_ctx, XA_STRING, 8,
+				     PropModeReplace, 10, "UNLABELED!", FALSE);
     if (rc != Success)
 	FatalError("XSELinux: Failed to set context property on window!\n");
 } /* XSELinuxResourceState */

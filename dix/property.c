@@ -374,7 +374,7 @@ ChangeWindowProperty(WindowPtr pWin, Atom property, Atom type, int format,
 		     int mode, unsigned long len, pointer value, 
 		     Bool sendevent)
 {
-    return dixChangeWindowProperty(NullClient, pWin, property, type, format,
+    return dixChangeWindowProperty(serverClient, pWin, property, type, format,
 				   mode, len, value, sendevent);
 }
 
