@@ -133,19 +133,12 @@ miRandRInit (ScreenPtr pScreen)
     if (!mode)
 	return FALSE;
     
-    crtc = RRCrtcCreate (NULL);
+    crtc = RRCrtcCreate (pScreen, NULL);
     if (!crtc)
 	return FALSE;
-    if (!RRCrtcAttachScreen (crtc, pScreen))
-    {
-	RRCrtcDestroy (crtc);
-	return FALSE;
-    }
     
-    output = RROutputCreate ("screen", 6, NULL);
+    output = RROutputCreate (pScreen, "screen", 6, NULL);
     if (!output)
-	return FALSE;
-    if (!RROutputAttachScreen (output, pScreen))
 	return FALSE;
     if (!RROutputSetClones (output, NULL, 0))
 	return FALSE;

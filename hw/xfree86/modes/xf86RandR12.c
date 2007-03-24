@@ -1011,8 +1011,7 @@ xf86RandR12CreateObjects12 (ScreenPtr pScreen)
     {
 	xf86CrtcPtr    crtc = config->crtc[c];
 	
-	crtc->randr_crtc = RRCrtcCreate (crtc);
-	RRCrtcAttachScreen (crtc->randr_crtc, pScreen);
+	crtc->randr_crtc = RRCrtcCreate (pScreen, crtc);
 	RRCrtcGammaSetSize (crtc->randr_crtc, 256);
     }
     /*
@@ -1022,13 +1021,13 @@ xf86RandR12CreateObjects12 (ScreenPtr pScreen)
     {
 	xf86OutputPtr	output = config->output[o];
 
-	output->randr_output = RROutputCreate (output->name, 
+	output->randr_output = RROutputCreate (pScreen, output->name, 
 					       strlen (output->name),
 					       output);
-	RROutputAttachScreen (output->randr_output, pScreen);
 
 	if (output->funcs->create_resources != NULL)
 	    output->funcs->create_resources(output);
+	RRPostPendingProperties (output->randr_output);
     }
     return TRUE;
 }

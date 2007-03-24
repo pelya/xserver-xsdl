@@ -91,18 +91,11 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
     if (pScrPriv->numOutputs == 0 &&
 	pScrPriv->numCrtcs == 0)
     {
-	crtc = RRCrtcCreate (NULL);
+	crtc = RRCrtcCreate (pScreen, NULL);
 	if (!crtc)
 	    return;
-	if (!RRCrtcAttachScreen (crtc, pScreen))
-	{
-	    RRCrtcDestroy (crtc);
-	    return;
-	}
-	output = RROutputCreate ("default", 7, NULL);
+	output = RROutputCreate (pScreen, "default", 7, NULL);
 	if (!output)
-	    return;
-	if (!RROutputAttachScreen (output, pScreen))
 	    return;
 	RROutputSetCrtcs (output, &crtc, 1);
 	RROutputSetCrtc (output, crtc);

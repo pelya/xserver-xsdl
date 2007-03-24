@@ -27,7 +27,7 @@
 static void
 RRDeliverEvent (ScreenPtr pScreen, xEvent *event, CARD32 mask)
 {
-    
+
 }
 
 void
@@ -50,7 +50,7 @@ RRDeleteAllOutputProperties (RROutputPtr output)
 	    xfree(prop->current.data);
 	if (prop->pending.data)
 	    xfree(prop->pending.data);
-        xfree(prop);
+	xfree(prop);
     }
 }
 
@@ -67,7 +67,7 @@ static RRPropertyPtr
 RRCreateOutputProperty (Atom property)
 {
     RRPropertyPtr   prop;
-    
+
     prop = (RRPropertyPtr)xalloc(sizeof(RRPropertyRec));
     if (!prop)
 	return NULL;
@@ -139,7 +139,7 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
     prop = RRQueryOutputProperty (output, property);
     if (!prop)   /* just add to list */
     {
-        prop = RRCreateOutputProperty (property);
+	prop = RRCreateOutputProperty (property);
 	if (!prop)
 	    return(BadAlloc);
 	add = TRUE;
@@ -149,11 +149,11 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 	prop_value = &prop->pending;
     else
 	prop_value = &prop->current;
-    
+
     /* To append or prepend to a property the request format and type
-	    must match those of the already defined property.  The
-	    existing format and type are irrelevant when using the mode
-	    "PropModeReplace" since they will be written over. */
+     must match those of the already defined property.  The
+     existing format and type are irrelevant when using the mode
+     "PropModeReplace" since they will be written over. */
 
     if ((format != prop_value->format) && (mode != PropModeReplace))
 	return(BadMatch);
@@ -167,8 +167,8 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 
     if (mode == PropModeReplace || len > 0)
     {
-	pointer	    new_data, old_data;
-	
+	pointer	    new_data = NULL, old_data = NULL;
+
 	total_size = total_len * size_in_bytes;
 	new_value.data = (pointer)xalloc (total_size);
 	if (!new_value.data && total_size)
@@ -197,11 +197,12 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 				  (prop_value->size * size_in_bytes));
 	    break;
 	}
-	memcpy ((char *) new_data, (char *) value, len * size_in_bytes);
+	if (new_data)
+	    memcpy ((char *) new_data, (char *) value, len * size_in_bytes);
 	if (old_data)
 	    memcpy ((char *) old_data, (char *) prop_value->data, 
 		    prop_value->size * size_in_bytes);
-	
+
 	if (pending && pScrPriv->rrOutputSetProperty &&
 	    !pScrPriv->rrOutputSetProperty(output->pScreen, output,
 					   prop->propertyName, &new_value))
@@ -214,17 +215,20 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 	    xfree (prop_value->data);
 	*prop_value = new_value;
     }
-    
+
     else if (len == 0)
     {
 	/* do nothing */
     }
-    
+
     if (add)
     {
 	prop->next = output->properties;
 	output->properties = prop;
     }
+
+    if (pending && prop->is_pending)
+	output->pendingProperties = TRUE;
 
     if (sendevent)
     {
@@ -240,30 +244,45 @@ RRChangeOutputProperty (RROutputPtr output, Atom property, Atom type,
 }
 
 Bool
-RRPostPendingProperty (RROutputPtr output, Atom property)
+RRPostPendingProperties (RROutputPtr output)
 {
-    RRPropertyPtr		    prop = RRQueryOutputProperty (output, property);
-    RRPropertyValuePtr		    pending_value;
-    RRPropertyValuePtr		    current_value;
-    
-    if (!prop)
-	return FALSE;
-    if (!prop->is_pending)
-	return FALSE;
-    pending_value = &prop->pending;
-    current_value = &prop->current;
+    RRPropertyValuePtr	pending_value;
+    RRPropertyValuePtr	current_value;
+    RRPropertyPtr	property;
+    Bool		ret = TRUE;
 
-    if (pending_value->type == current_value->type &&
-	pending_value->format == current_value->format &&
-	pending_value->size == current_value->size &&
-	!memcmp (pending_value->data, current_value->data, pending_value->size))
+    if (!output->pendingProperties)
 	return TRUE;
     
-    if (RRChangeOutputProperty (output, property, 
-				pending_value->type, pending_value->format, PropModeReplace,
-				pending_value->size, pending_value->data, TRUE, FALSE) != Success)
-	return FALSE;
-    return TRUE;
+    output->pendingProperties = FALSE;
+    for (property = output->properties; property; property = property->next)
+    {
+	/* Skip non-pending properties */
+	if (!property->is_pending)
+	    continue;
+	
+	pending_value = &property->pending;
+	current_value = &property->current;
+
+	/*
+	 * If the pending and current values are equal, don't mark it
+	 * as changed (which would deliver an event)
+	 */
+	if (pending_value->type == current_value->type &&
+	    pending_value->format == current_value->format &&
+	    pending_value->size == current_value->size &&
+	    !memcmp (pending_value->data, current_value->data,
+		     pending_value->size))
+	    continue;
+
+	if (RRChangeOutputProperty (output, property->propertyName,
+				    pending_value->type, pending_value->format,
+				    PropModeReplace, pending_value->size,
+				    pending_value->data, TRUE,
+				    FALSE) != Success)
+	    ret = FALSE;
+    }
+    return ret;
 }
 
 RRPropertyPtr

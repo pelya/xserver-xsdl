@@ -312,7 +312,13 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
     {
 	xf86OutputPtr output = xf86_config->output[i];
 	if (output->crtc == crtc)
+	{
 	    output->funcs->commit(output);
+#ifdef RANDR_12_INTERFACE
+	    if (output->randr_output)
+		RRPostPendingProperties (output->randr_output);
+#endif
+	}
     }
 
     /* XXX free adjustedmode */

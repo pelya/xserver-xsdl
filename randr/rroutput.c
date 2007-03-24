@@ -47,19 +47,35 @@ RROutputChanged (RROutputPtr output, Bool configChanged)
  */
 
 RROutputPtr
-RROutputCreate (const char  *name,
+RROutputCreate (ScreenPtr   pScreen,
+		const char  *name,
 		int	    nameLength,
 		void	    *devPrivate)
 {
-    RROutputPtr	output;
+    RROutputPtr	    output;
+    RROutputPtr	    *outputs;
+    rrScrPrivPtr    pScrPriv;
 
     if (!RRInit())
 	return NULL;
+    
+    pScrPriv = rrGetScrPriv(pScreen);
+
+    if (pScrPriv->numOutputs)
+	outputs = xrealloc (pScrPriv->outputs, 
+			    (pScrPriv->numOutputs + 1) * sizeof (RROutputPtr));
+    else
+	outputs = xalloc (sizeof (RROutputPtr));
+    if (!outputs)
+	return FALSE;
+
+    pScrPriv->outputs = outputs;
+    
     output = xalloc (sizeof (RROutputRec) + nameLength + 1);
     if (!output)
 	return NULL;
     output->id = FakeClientID (0);
-    output->pScreen = NULL;
+    output->pScreen = pScreen;
     output->name = (char *) (output + 1);
     output->nameLength = nameLength;
     memcpy (output->name, name, nameLength);
@@ -85,35 +101,10 @@ RROutputCreate (const char  *name,
     if (!AddResource (output->id, RROutputType, (pointer) output))
 	return NULL;
 
+    pScrPriv->outputs[pScrPriv->numOutputs++] = output;
     return output;
 }
 
-/*
- * Attach an Output to a screen. This is done as a separate step
- * so that an xf86-based driver can create Outputs in PreInit
- * before the Screen has been created
- */
-
-Bool
-RROutputAttachScreen (RROutputPtr output, ScreenPtr pScreen)
-{
-    rrScrPriv (pScreen);
-    RROutputPtr	*outputs;
-    
-    if (pScrPriv->numOutputs)
-	outputs = xrealloc (pScrPriv->outputs, 
-			    (pScrPriv->numOutputs + 1) * sizeof (RROutputPtr));
-    else
-	outputs = xalloc (sizeof (RROutputPtr));
-    if (!outputs)
-	return FALSE;
-    output->pScreen = pScreen;
-    pScrPriv->outputs = outputs;
-    pScrPriv->outputs[pScrPriv->numOutputs++] = output;
-    RROutputChanged (output, FALSE);
-    return TRUE;
-}
-		      
 /*
  * Notify extension that output parameters have been changed
  */
