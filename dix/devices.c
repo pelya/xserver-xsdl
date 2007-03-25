@@ -238,7 +238,7 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
         keySyms.mapWidth = 4;
         keySyms.map = (KeySym *)xcalloc(sizeof(KeySym),
                                         (keySyms.maxKeyCode -
-                                         keySyms.minKeyCode) *
+                                         keySyms.minKeyCode + 1) *
                                         keySyms.mapWidth);
         if (!keySyms.map) {
             ErrorF("Couldn't allocate core keymap\n");
