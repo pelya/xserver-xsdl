@@ -85,18 +85,6 @@ extern RegionPtr miCopyArea(
     int /*yOut*/
 );
 
-extern void miOpqStipDrawable(
-    DrawablePtr /*pDraw*/,
-    GCPtr /*pGC*/,
-    RegionPtr /*prgnSrc*/,
-    MiBits * /*pbits*/,
-    int /*srcx*/,
-    int /*w*/,
-    int /*h*/,
-    int /*dstx*/,
-    int /*dsty*/
-);
-
 extern RegionPtr miCopyPlane(
     DrawablePtr /*pSrcDrawable*/,
     DrawablePtr /*pDstDrawable*/,
@@ -143,15 +131,6 @@ extern void miRecolorCursor(
 );
 
 /* midash.c */
-
-extern miDashPtr miDashLine(
-    int /*npt*/,
-    DDXPointPtr /*ppt*/,
-    unsigned int /*nDash*/,
-    unsigned char * /*pDash*/,
-    unsigned int /*offset*/,
-    int * /*pnseg*/
-);
 
 extern void miStepDash(
     int /*dist*/,
@@ -326,16 +305,6 @@ extern void miPolySegment(
 
 /* mipolytext.c */
 
-extern int miPolyText(
-    DrawablePtr /*pDraw*/,
-    GCPtr /*pGC*/,
-    int /*x*/,
-    int /*y*/,
-    int /*count*/,
-    char * /*chars*/,
-    FontEncoding /*fontEncoding*/
-);
-
 extern int miPolyText8(
     DrawablePtr /*pDraw*/,
     GCPtr /*pGC*/,
@@ -352,16 +321,6 @@ extern int miPolyText16(
     int /*y*/,
     int /*count*/,
     unsigned short * /*chars*/
-);
-
-extern int miImageText(
-    DrawablePtr /*pDraw*/,
-    GCPtr /*pGC*/,
-    int /*x*/,
-    int /*y*/,
-    int /*count*/,
-    char * /*chars*/,
-    FontEncoding /*fontEncoding*/
 );
 
 extern void miImageText8(
@@ -403,10 +362,6 @@ extern Bool miRectAlloc(
     int /*n*/
 );
 
-extern void miSetExtents(
-    RegionPtr /*pReg*/
-);
-
 extern int miFindMaxBand(
     RegionPtr /*prgn*/
 );
@@ -417,7 +372,6 @@ extern Bool miValidRegion(
 );
 #endif
 
-extern Bool miRegionDataCopy(RegionPtr dst, RegionPtr src);
 extern Bool miRegionBroken(RegionPtr pReg);
 
 /* miscrinit.c */
@@ -430,11 +384,6 @@ extern Bool miModifyPixmapHeader(
     int /*bitsPerPixel*/,
     int /*devKind*/,
     pointer /*pPixData*/
-);
-
-extern Bool miCloseScreen(
-    int /*index*/,
-    ScreenPtr /*pScreen*/
 );
 
 extern Bool miCreateScreenResources(

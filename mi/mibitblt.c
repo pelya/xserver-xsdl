@@ -400,13 +400,9 @@ miGetPlane(
  * Note how the clipped out bits of the bitmap are always the background
  * color so that the stipple never causes FillRect to draw them.
  */
-void
-miOpqStipDrawable(pDraw, pGC, prgnSrc, pbits, srcx, w, h, dstx, dsty)
-    DrawablePtr pDraw;
-    GCPtr	pGC;
-    RegionPtr	prgnSrc;
-    MiBits	*pbits;
-    int		srcx, w, h, dstx, dsty;
+static void
+miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
+		  MiBits *pbits, int srcx, int w, int h, int dstx, int dsty)
 {
     int		oldfill, i;
     unsigned long oldfg;

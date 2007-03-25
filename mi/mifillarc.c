@@ -107,10 +107,8 @@ miFillArcSetup(arc, info)
     }
 }
 
-void
-miFillArcDSetup(arc, info)
-    xArc *arc;
-    miFillArcDRec *info;
+static void
+miFillArcDSetup(xArc *arc, miFillArcDRec *info)
 {
     /* h^2 * (2x - 2xorg)^2 = w^2 * h^2 - w^2 * (2y - 2yorg)^2 */
     /* even: xorg = yorg = 0   odd:  xorg = .5, yorg = -.5 */
@@ -188,15 +186,9 @@ miGetArcEdge(
     }
 }
 
-void
-miEllipseAngleToSlope (angle, width, height, dxp, dyp, d_dxp, d_dyp)
-    int	    angle;
-    int	    width;
-    int	    height;
-    int	    *dxp;
-    int	    *dyp;
-    double  *d_dxp;
-    double  *d_dyp;
+static void
+miEllipseAngleToSlope (int angle, int width, int height, int *dxp, int *dyp,
+		       double *d_dxp, double *d_dyp)
 {
     int	    dx, dy;
     double  d_dx, d_dy, scale;
