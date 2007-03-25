@@ -69,7 +69,7 @@ extern FontPtr defaultFont;
 
 static Bool CreateDefaultTile(GCPtr pGC);
 
-unsigned char DefaultDash[2] = {4, 4};
+static unsigned char DefaultDash[2] = {4, 4};
 
 _X_EXPORT void
 ValidateGC(DrawablePtr pDraw, GC *pGC)

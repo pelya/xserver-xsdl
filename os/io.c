@@ -111,11 +111,11 @@ _X_EXPORT CallbackListPtr       FlushCallback;
 #define ETEST(err) (err == EAGAIN || err == EWOULDBLOCK || err == ENOSPC)
 #endif
 
-Bool CriticalOutputPending;
-int timesThisConnection = 0;
-ConnectionInputPtr FreeInputs = (ConnectionInputPtr)NULL;
-ConnectionOutputPtr FreeOutputs = (ConnectionOutputPtr)NULL;
-OsCommPtr AvailableInput = (OsCommPtr)NULL;
+static Bool CriticalOutputPending;
+static int timesThisConnection = 0;
+static ConnectionInputPtr FreeInputs = (ConnectionInputPtr)NULL;
+static ConnectionOutputPtr FreeOutputs = (ConnectionOutputPtr)NULL;
+static OsCommPtr AvailableInput = (OsCommPtr)NULL;
 
 #define get_req_len(req,cli) ((cli)->swapped ? \
 			      lswaps((req)->length) : (req)->length)

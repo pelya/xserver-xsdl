@@ -44,10 +44,6 @@ extern Bool DPMSCapableFlag;
 #endif
 
 #ifdef PANORAMIX
-extern Bool PanoramiXMapped;
-extern Bool PanoramiXVisibilityNotifySent;
-extern Bool PanoramiXWindowExposureSent;
-extern Bool PanoramiXOneExposeRequest;
 extern Bool PanoramiXExtensionDisabledHack;
 #endif
 

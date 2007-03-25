@@ -297,8 +297,8 @@ long	    SmartScheduleSlice = SMART_SCHEDULE_DEFAULT_INTERVAL;
 long	    SmartScheduleInterval = SMART_SCHEDULE_DEFAULT_INTERVAL;
 long	    SmartScheduleMaxSlice = SMART_SCHEDULE_MAX_SLICE;
 long	    SmartScheduleTime;
-ClientPtr   SmartLastClient;
-int	    SmartLastIndex[SMART_MAX_PRIORITY-SMART_MIN_PRIORITY+1];
+static ClientPtr   SmartLastClient;
+static int	   SmartLastIndex[SMART_MAX_PRIORITY-SMART_MIN_PRIORITY+1];
 int         SmartScheduleClient(int *clientReady, int nready);
 
 #ifdef SMART_DEBUG

@@ -245,10 +245,6 @@ _X_EXPORT Bool noXvExtension = FALSE;
 Bool CoreDump;
 
 #ifdef PANORAMIX
-Bool PanoramiXVisibilityNotifySent = FALSE;
-Bool PanoramiXMapped = FALSE;
-Bool PanoramiXWindowExposureSent = FALSE;
-Bool PanoramiXOneExposeRequest = FALSE;
 Bool PanoramiXExtensionDisabledHack = FALSE;
 #endif
 
@@ -271,7 +267,7 @@ long Memory_fail = 0;
 #include <stdlib.h>  /* for random() */
 #endif
 
-char *dev_tty_from_init = NULL;		/* since we need to parse it anyway */
+static char *dev_tty_from_init = NULL;	/* since we need to parse it anyway */
 
 OsSigHandlerPtr
 OsSignal(sig, handler)

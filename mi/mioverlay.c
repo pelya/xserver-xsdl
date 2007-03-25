@@ -54,8 +54,8 @@ typedef struct {
 } miOverlayScreenRec, *miOverlayScreenPtr;
 
 static unsigned long miOverlayGeneration = 0;
-int miOverlayWindowIndex = -1;
-int miOverlayScreenIndex = -1;
+static int miOverlayWindowIndex = -1;
+static int miOverlayScreenIndex = -1;
 
 static void RebuildTree(WindowPtr);
 static Bool HasUnderlayChildren(WindowPtr);

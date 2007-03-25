@@ -156,7 +156,7 @@ extern Mask      xevieFilters[128];
 extern int       xevieEventSent;
 extern int       xevieKBEventSent;
 int    xeviegrabState = 0;
-xEvent *xeviexE;
+static xEvent *xeviexE;
 #endif
 
 #include <X11/extensions/XIproto.h>

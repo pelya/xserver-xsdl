@@ -116,7 +116,7 @@ extern char *__XOS2RedirRoot(char *path);
  *  A portable, but restricted, version of strtoul().  It only understands
  *  hex, octal, and decimal.  But it's good enough for our needs.
  */
-unsigned int
+static unsigned int
 xf86strToUL (char *str)
 {
 	int base = 10;
@@ -913,20 +913,6 @@ xf86parseError (char *format,...)
 	va_list ap;
 
 	ErrorF ("Parse error on line %d of section %s in file %s\n\t",
-		 configLineNo, configSection, configPath);
-	va_start (ap, format);
-	VErrorF (format, ap);
-	va_end (ap);
-
-	ErrorF ("\n");
-}
-
-void
-xf86parseWarning (char *format,...)
-{
-	va_list ap;
-
-	ErrorF ("Parse warning on line %d of section %s in file %s\n\t",
 		 configLineNo, configSection, configPath);
 	va_start (ap, format);
 	VErrorF (format, ap);

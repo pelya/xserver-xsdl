@@ -51,7 +51,7 @@
 int	CompScreenPrivateIndex;
 int	CompWindowPrivateIndex;
 int	CompSubwindowsPrivateIndex;
-int	CompGeneration;
+static int	CompGeneration;
 
 
 static Bool

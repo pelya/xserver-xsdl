@@ -28,12 +28,12 @@
 
 #include "damageextint.h"
 
-unsigned char	DamageReqCode;
-int		DamageEventBase;
-int		DamageErrorBase;
-int		DamageClientPrivateIndex;
-RESTYPE		DamageExtType;
-RESTYPE		DamageExtWinType;
+static unsigned char	DamageReqCode;
+static int		DamageEventBase;
+static int		DamageErrorBase;
+static int		DamageClientPrivateIndex;
+static RESTYPE		DamageExtType;
+static RESTYPE		DamageExtWinType;
 
 /* Version of the damage extension supported by the server, as opposed to the
  * DAMAGE_* defines from damageproto for what version the proto header
@@ -319,7 +319,7 @@ static const int version_requests[] = {
 
 #define NUM_VERSION_REQUESTS	(sizeof (version_requests) / sizeof (version_requests[0]))
     
-int	(*ProcDamageVector[XDamageNumberRequests])(ClientPtr) = {
+static int (*ProcDamageVector[XDamageNumberRequests])(ClientPtr) = {
 /*************** Version 1 ******************/
     ProcDamageQueryVersion,
     ProcDamageCreate,
@@ -408,7 +408,7 @@ SProcDamageAdd (ClientPtr client)
     return (*ProcDamageVector[stuff->damageReqType]) (client);
 }
 
-int	(*SProcDamageVector[XDamageNumberRequests])(ClientPtr) = {
+static int (*SProcDamageVector[XDamageNumberRequests])(ClientPtr) = {
 /*************** Version 1 ******************/
     SProcDamageQueryVersion,
     SProcDamageCreate,
@@ -478,7 +478,7 @@ FreeDamageExtWin (pointer value, XID wid)
     return Success;
 }
 
-void
+static void
 SDamageNotifyEvent (xDamageNotifyEvent *from,
 		    xDamageNotifyEvent *to)
 {

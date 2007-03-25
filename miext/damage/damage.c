@@ -72,6 +72,12 @@
 
 #define pixmapDamage(pPixmap)		damagePixPriv(pPixmap)
 
+static int damageScrPrivateIndex;
+static int damagePixPrivateIndex;
+static int damageGCPrivateIndex;
+static int damageWinPrivateIndex;
+static int damageGeneration;
+
 static DamagePtr *
 getDrawableDamageRef (DrawablePtr pDrawable)
 {
@@ -368,12 +374,12 @@ static void damageChangeClip(GCPtr, int, pointer, int);
 static void damageDestroyClip(GCPtr);
 static void damageCopyClip(GCPtr, GCPtr);
 
-GCFuncs damageGCFuncs = {
+static GCFuncs damageGCFuncs = {
     damageValidateGC, damageChangeGC, damageCopyGC, damageDestroyGC,
     damageChangeClip, damageDestroyClip, damageCopyClip
 };
 
-extern GCOps damageGCOps;
+static GCOps damageGCOps;
 
 static Bool
 damageCreateGC(GCPtr pGC)
@@ -1686,7 +1692,7 @@ damageCopyWindow(WindowPtr	pWindow,
     wrap (pScrPriv, pScreen, CopyWindow, damageCopyWindow);
 }
 
-GCOps damageGCOps = {
+static GCOps damageGCOps = {
     damageFillSpans, damageSetSpans,
     damagePutImage, damageCopyArea,
     damageCopyPlane, damagePolyPoint,
@@ -1786,12 +1792,6 @@ damageCloseScreen (int i, ScreenPtr pScreen)
     xfree (pScrPriv);
     return (*pScreen->CloseScreen) (i, pScreen);
 }
-
-int damageScrPrivateIndex;
-int damagePixPrivateIndex;
-int damageGCPrivateIndex;
-int damageWinPrivateIndex;
-int damageGeneration;
 
 Bool
 DamageSetup (ScreenPtr pScreen)

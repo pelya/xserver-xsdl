@@ -312,7 +312,7 @@ miAllocateGCPrivateIndex()
 }
 
 _X_EXPORT int miZeroLineScreenIndex;
-unsigned int miZeroLineGeneration = 0;
+static unsigned int miZeroLineGeneration = 0;
 
 _X_EXPORT void
 miSetZeroLineBias(pScreen, bias)

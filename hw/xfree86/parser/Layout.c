@@ -382,24 +382,7 @@ xf86printLayoutSection (FILE * cf, XF86ConfLayoutPtr ptr)
 	}
 }
 
-void
-xf86freeLayoutList (XF86ConfLayoutPtr ptr)
-{
-	XF86ConfLayoutPtr prev;
-
-	while (ptr)
-	{
-		TestFree (ptr->lay_identifier);
-		TestFree (ptr->lay_comment);
-		xf86freeAdjacencyList (ptr->lay_adjacency_lst);
-		xf86freeInputrefList (ptr->lay_input_lst);
-		prev = ptr;
-		ptr = ptr->list.next;
-		xf86conffree (prev);
-	}
-}
-
-void
+static void
 xf86freeAdjacencyList (XF86ConfAdjacencyPtr ptr)
 {
 	XF86ConfAdjacencyPtr prev;
@@ -419,7 +402,7 @@ xf86freeAdjacencyList (XF86ConfAdjacencyPtr ptr)
 
 }
 
-void
+static void
 xf86freeInputrefList (XF86ConfInputrefPtr ptr)
 {
 	XF86ConfInputrefPtr prev;
@@ -433,6 +416,23 @@ xf86freeInputrefList (XF86ConfInputrefPtr ptr)
 		xf86conffree (prev);
 	}
 
+}
+
+void
+xf86freeLayoutList (XF86ConfLayoutPtr ptr)
+{
+	XF86ConfLayoutPtr prev;
+
+	while (ptr)
+	{
+		TestFree (ptr->lay_identifier);
+		TestFree (ptr->lay_comment);
+		xf86freeAdjacencyList (ptr->lay_adjacency_lst);
+		xf86freeInputrefList (ptr->lay_input_lst);
+		prev = ptr;
+		ptr = ptr->list.next;
+		xf86conffree (prev);
+	}
 }
 
 #define CheckScreen(str, ptr)\

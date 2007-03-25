@@ -116,7 +116,7 @@ int ExtEventIndex;
 Mask ExtValidMasks[EMASKSIZE];
 Mask ExtExclusiveMasks[EMASKSIZE];
 
-struct dev_type
+static struct dev_type
 {
     Atom type;
     char *name;
@@ -152,7 +152,7 @@ XExtEventInfo EventInfo[32];
 
 int IReqCode = 0;
 int BadDevice = 0;
-int BadEvent = 1;
+static int BadEvent = 1;
 int BadMode = 2;
 int DeviceBusy = 3;
 int BadClass = 4;

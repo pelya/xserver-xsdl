@@ -91,8 +91,6 @@ typedef struct _GlyphList {
     PictFormatPtr   format;
 } GlyphListRec, *GlyphListPtr;
 
-extern GlyphHashRec	globalGlyphs[GlyphFormatNum];
-
 GlyphHashSetPtr
 FindGlyphHashSet (CARD32 filled);
 

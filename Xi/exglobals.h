@@ -37,7 +37,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 extern int IReqCode;
 extern int BadDevice;
-extern int BadEvent;
 extern int BadMode;
 extern int DeviceBusy;
 extern int BadClass;

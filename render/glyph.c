@@ -77,11 +77,11 @@ static GlyphHashSetRec glyphHashSets[] = {
 
 #define NGLYPHHASHSETS	(sizeof(glyphHashSets)/sizeof(glyphHashSets[0]))
 
-const CARD8	glyphDepths[GlyphFormatNum] = { 1, 4, 8, 16, 32 };
+static const CARD8	glyphDepths[GlyphFormatNum] = { 1, 4, 8, 16, 32 };
 
-GlyphHashRec	globalGlyphs[GlyphFormatNum];
+static GlyphHashRec	globalGlyphs[GlyphFormatNum];
 
-int		globalTotalGlyphPrivateSize = 0;
+static int	globalTotalGlyphPrivateSize = 0;
 
 static int	glyphPrivateCount = 0;
 

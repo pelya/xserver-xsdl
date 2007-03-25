@@ -234,12 +234,6 @@ extern void ClearConnectionTranslation();
  
 extern Bool NewOutputPending;
 extern Bool AnyClientsWriteBlocked;
-extern Bool CriticalOutputPending;
-
-extern int timesThisConnection;
-extern ConnectionInputPtr FreeInputs;
-extern ConnectionOutputPtr FreeOutputs;
-extern OsCommPtr AvailableInput;
 
 extern WorkQueuePtr workQueue;
 

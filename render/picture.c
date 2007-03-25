@@ -43,7 +43,7 @@
 
 _X_EXPORT int	PictureScreenPrivateIndex = -1;
 int		PictureWindowPrivateIndex;
-int		PictureGeneration;
+static int	PictureGeneration;
 RESTYPE		PictureType;
 RESTYPE		PictFormatType;
 RESTYPE		GlyphSetType;

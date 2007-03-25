@@ -61,9 +61,7 @@
 #include "selection.h"
 #include "xfixes.h"
 
-extern unsigned char	XFixesReqCode;
 extern int		XFixesEventBase;
-extern int		XFixesClientPrivateIndex;
 
 typedef struct _XFixesClient {
     CARD32	major_version;
@@ -73,7 +71,6 @@ typedef struct _XFixesClient {
 #define GetXFixesClient(pClient)    ((XFixesClientPtr) (pClient)->devPrivates[XFixesClientPrivateIndex].ptr)
 
 extern int	(*ProcXFixesVector[XFixesNumberRequests])(ClientPtr);
-extern int	(*SProcXFixesVector[XFixesNumberRequests])(ClientPtr);
 
 /* Initialize extension at server startup time */
 

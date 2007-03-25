@@ -246,7 +246,7 @@ CreateNewResourceClass()
     return next;
 }
 
-ClientResourceRec clientTable[MAXCLIENTS];
+static ClientResourceRec clientTable[MAXCLIENTS];
 
 /*****************
  * InitClientResources

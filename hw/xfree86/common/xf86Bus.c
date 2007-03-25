@@ -2847,7 +2847,7 @@ xf86IsListSubsetOf(resPtr list, resPtr BaseList)
     return TRUE;
 }
 
-resPtr
+static resPtr
 findIntersect(resRange Range, resPtr list)
 {
     resRange range;

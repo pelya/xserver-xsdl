@@ -411,11 +411,11 @@ XdmcpRegisterAuthentication (
  * set by the manager of the host to be connected to.
  */
 
-ARRAY8		noAuthenticationName = {(CARD16) 0, (CARD8Ptr) 0};
-ARRAY8		noAuthenticationData = {(CARD16) 0, (CARD8Ptr) 0};
-ARRAY8Ptr	AuthenticationName = &noAuthenticationName;
-ARRAY8Ptr	AuthenticationData = &noAuthenticationData;
-AuthenticationFuncsPtr	AuthenticationFuncs;
+static ARRAY8		noAuthenticationName = {(CARD16) 0, (CARD8Ptr) 0};
+static ARRAY8		noAuthenticationData = {(CARD16) 0, (CARD8Ptr) 0};
+static ARRAY8Ptr	AuthenticationName = &noAuthenticationName;
+static ARRAY8Ptr	AuthenticationData = &noAuthenticationData;
+static AuthenticationFuncsPtr	AuthenticationFuncs;
 
 void
 XdmcpSetAuthentication (ARRAY8Ptr name)
@@ -547,7 +547,7 @@ XdmcpRegisterAuthorization (char *name, int namelen)
  * Register the DisplayClass string
  */
 
-ARRAY8	DisplayClass;
+static ARRAY8	DisplayClass;
 
 void
 XdmcpRegisterDisplayClass (char *name, int length)
@@ -565,7 +565,7 @@ XdmcpRegisterDisplayClass (char *name, int length)
  * Register the Manufacturer display ID
  */
 
-ARRAY8 ManufacturerDisplayID;
+static ARRAY8 ManufacturerDisplayID;
 
 void
 XdmcpRegisterManufacturerDisplayID (char *name, int length)
@@ -776,7 +776,7 @@ XdmcpAddHost(
  * do the appropriate thing
  */
 
-ARRAY8	UnwillingMessage = { (CARD8) 14, (CARD8 *) "Host unwilling" };
+static ARRAY8	UnwillingMessage = { (CARD8) 14, (CARD8 *) "Host unwilling" };
 
 static void
 receive_packet(int socketfd)

@@ -66,7 +66,7 @@ SOFTWARE.
 #define LAST_EVENT  128
 #define LAST_ERROR 255
 
-ScreenProcEntry AuxillaryScreenProcs[MAXSCREENS];
+static ScreenProcEntry AuxillaryScreenProcs[MAXSCREENS];
 
 static ExtensionEntry **extensions = (ExtensionEntry **)NULL;
 
