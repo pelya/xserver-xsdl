@@ -102,7 +102,7 @@ ProcXWarpDevicePointer(register ClientPtr client)
         }
     }
 
-    pSprite = pDev->pSprite;
+    pSprite = pDev->spriteInfo->sprite;
     x = pSprite->hotPhys.x;
     y = pSprite->hotPhys.y;
 

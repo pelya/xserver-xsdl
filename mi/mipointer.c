@@ -346,8 +346,7 @@ miPointerUpdateSprite (DeviceIntPtr pDev)
     int			x, y, devx, devy;
     miPointerPtr        pPointer;
 
-    if (!pDev || pDev == inputInfo.pointer || 
-            !(pDev->coreEvents || pDev->isMPDev))
+    if (!pDev || pDev == inputInfo.pointer || !pDev->coreEvents)
         return;
 
     pPointer = MIPOINTER(pDev);
@@ -481,8 +480,7 @@ miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y, unsigned long time)
     if (!pScreen)
 	return;	    /* called before ready */
 
-    if (!pDev || 
-            !(pDev->coreEvents || pDev == inputInfo.pointer || pDev->isMPDev))
+    if (!pDev || !(pDev->coreEvents || pDev == inputInfo.pointer))
         return;
 
     if (*x < 0 || *x >= pScreen->width || *y < 0 || *y >= pScreen->height)
@@ -574,7 +572,7 @@ miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
     SetupScreen(pScreen);
 
 
-    if (pDev && (pDev->coreEvents || pDev == inputInfo.pointer || pDev->isMPDev)
+    if (pDev && (pDev->coreEvents || pDev == inputInfo.pointer)
         && !pScreenPriv->waitForUpdate && pScreen == pPointer->pSpriteScreen)
     {
 	pPointer->devx = x;

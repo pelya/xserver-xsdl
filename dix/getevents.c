@@ -505,7 +505,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     if ((type == ButtonPress || type == ButtonRelease) && !pDev->button)
         return 0;
 
-    if (!coreOnly && (pDev->coreEvents || pDev->isMPDev))
+    if (!coreOnly && (pDev->coreEvents))
         num_events = 2;
     else
         num_events = 1;
@@ -529,10 +529,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
 
     ms = GetTimeInMillis();
 
-    if (!pDev->coreEvents || pDev->isMPDev)
-        pointer = pDev;
-    else 
-        pointer = inputInfo.pointer;
+    pointer = pDev;
 
     /* Set x and y based on whether this is absolute or relative, and
      * accelerate if we need to. */
@@ -585,11 +582,6 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
 
     updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
 
-    if (pDev->coreEvents && !pDev->isMPDev) {
-        /* set the virtual core pointer's coordinates */
-        inputInfo.pointer->valuator->lastx = x;
-        inputInfo.pointer->valuator->lasty = y;
-    }
     pDev->valuator->lastx = x;
     pDev->valuator->lasty = y;
 
@@ -623,8 +615,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         }
     }
 
-    /* MPX devices always send core events */
-    if (coreOnly || pDev->coreEvents || pDev->isMPDev) {
+    if (coreOnly || pDev->coreEvents) {
         events->u.u.type = type;
         events->u.keyButtonPointer.time = ms;
         events->u.keyButtonPointer.rootX = x;

@@ -115,7 +115,7 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
                                       &laste->event[0];
 
     /* avoid merging events from different devices */
-    if (e->u.u.type == MotionNotify && pDev->isMPDev)
+    if (e->u.u.type == MotionNotify)
         isMotion = pDev->id;
     else if (e->u.u.type == MotionNotify)
         isMotion = inputInfo.pointer->id;
@@ -235,10 +235,7 @@ mieqProcessInputEvents()
             else if (e->event[0].u.u.type == MotionNotify ||
                      e->event[0].u.u.type == ButtonPress ||
                      e->event[0].u.u.type == ButtonRelease) {
-                if (!e->pDev->isMPDev)
-                    SwitchCorePointer(e->pDev);
                 dev = inputInfo.pointer;
-
             }
             else {
                 dev = e->pDev;
@@ -252,8 +249,7 @@ mieqProcessInputEvents()
         }
 
         /* Update the sprite now. Next event may be from different device. */
-        if (e->event[0].u.u.type == MotionNotify && 
-                (e->pDev->isMPDev || e->pDev->coreEvents))
+        if (e->event[0].u.u.type == MotionNotify && e->pDev->coreEvents)
         {
             miPointerUpdateSprite(e->pDev);
         }

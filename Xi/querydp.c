@@ -101,7 +101,7 @@ ProcXQueryDevicePointer(register ClientPtr client)
     if (pDev->valuator->motionHintWindow)
         MaybeStopHint(pDev, client);
 
-    pSprite = pDev->pSprite;
+    pSprite = pDev->spriteInfo->sprite;
     rep.repType = X_Reply;
     rep.RepType = X_QueryDevicePointer;
     rep.length = 0;
@@ -111,7 +111,7 @@ ProcXQueryDevicePointer(register ClientPtr client)
     rep.rootX = pSprite->hot.x;
     rep.rootY = pSprite->hot.y;
     rep.child = None;
-    rep.shared = (pDev->isMPDev) ? xFalse : xTrue; 
+    rep.shared = (pDev->spriteInfo->spriteOwner) ? xFalse : xTrue; 
 
     if (pSprite->hot.pScreen == pWin->drawable.pScreen)
     {

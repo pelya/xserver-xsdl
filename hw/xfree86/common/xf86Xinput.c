@@ -171,7 +171,7 @@ xf86ActivateDevice(LocalDevicePtr local)
         local->dev = dev;      
         
         dev->coreEvents = local->flags & XI86_ALWAYS_CORE; 
-        dev->isMPDev = !(local->flags & XI86_SHARED_POINTER);
+        dev->spriteInfo->spriteOwner = !(local->flags & XI86_SHARED_POINTER);
 
 #ifdef XKB
         if (!IsPointerDevice(dev))

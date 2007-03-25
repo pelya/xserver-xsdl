@@ -322,6 +322,15 @@ typedef struct _GrabInfoRec {
     } sync;
 } GrabInfoRec, *GrabInfoPtr;
 
+typedef struct _SpriteInfoRec {
+    /* sprite must always point to a valid sprite. For devices sharing the
+     * sprite, let sprite point to a paired spriteOwner's sprite. */
+    SpritePtr           sprite;      /* sprite information */
+    Bool                spriteOwner; /* True if device owns the sprite */
+    DeviceIntPtr        paired;      /* the real owner of the sprite or
+                                        NULL if spriteOwner is TRUE*/
+} SpriteInfoRec, *SpriteInfoPtr;
+
 typedef struct _DeviceIntRec {
     DeviceRec	public;
     DeviceIntPtr next;
@@ -358,13 +367,7 @@ typedef struct _DeviceIntRec {
     DevUnion		*devPrivates;
     int			nPrivates;
     DeviceUnwrapProc    unwrapProc;
-    Bool                isMPDev;           /* TRUE if multipointer device */
-    /* Each device has a sprite. However, keyboards and shared pointers do
-       not in fact own a sprite but rather have their pointer set to the
-       sprite of another device. pSprite always has to point to a valid
-       sprite. spriteOwner indicates whether it is the device's sprite. */
-    SpritePtr           pSprite;        /* sprite information */
-    Bool                spriteOwner;    /* FALSE if shared sprite, see above*/
+    SpriteInfoPtr       spriteInfo;
 } DeviceIntRec;
 
 typedef struct {

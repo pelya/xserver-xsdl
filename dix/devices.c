@@ -147,6 +147,13 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     dev->inited = FALSE;
     dev->enabled = FALSE;
 
+    /* sprite defaults */
+    dev->spriteInfo = (SpriteInfoPtr)xcalloc(sizeof(SpriteInfoRec), 1);
+    if (!dev->spriteInfo)
+        return (DeviceIntPtr)NULL;
+    dev->spriteInfo->sprite = NULL;
+    dev->spriteInfo->spriteOwner = FALSE;
+
     for (prev = &inputInfo.off_devices; *prev; prev = &(*prev)->next)
         ;
     *prev = dev;
@@ -173,7 +180,7 @@ EnableDevice(DeviceIntPtr dev)
     dev->enabled = TRUE;
     *prev = dev->next;
 
-    if (IsPointerDevice(dev) && dev->isMPDev)
+    if (IsPointerDevice(dev) && dev->spriteInfo->spriteOwner)
         InitializeSprite(dev, GetCurrentRootWindow());
     else
         PairDevices(NULL, inputInfo.pointer, dev);
@@ -360,7 +367,7 @@ InitCoreDevices()
         dev->coreGrab.ActivateGrab = ActivateKeyboardGrab;
         dev->coreGrab.DeactivateGrab = DeactivateKeyboardGrab;
         dev->coreEvents = FALSE;
-        dev->spriteOwner = FALSE;
+        dev->spriteInfo->spriteOwner = FALSE;
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
             FatalError("Couldn't allocate keyboard devPrivates\n");
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
@@ -542,7 +549,7 @@ CloseDevice(DeviceIntPtr dev)
 #endif
     
     if (DevHasCursor(dev))
-        xfree((pointer)dev->pSprite);
+        xfree((pointer)dev->spriteInfo->sprite);
 
     /* a client may have the device set as client pointer */
     for (j = 0; j < currentMaxClients; j++)
@@ -556,6 +563,7 @@ CloseDevice(DeviceIntPtr dev)
 
     xfree(dev->coreGrab.sync.event);
     xfree(dev->deviceGrab.sync.event);
+    xfree(dev->spriteInfo);
     xfree(dev);
 }
 
@@ -2009,14 +2017,14 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
     else if (pairingClient != client)
         return BadAccess;
 
-    if (kbd->spriteOwner)
+    if (kbd->spriteInfo->spriteOwner)
     {
-        xfree(kbd->pSprite);
-        kbd->pSprite = NULL;
-        kbd->spriteOwner = FALSE;
+        xfree(kbd->spriteInfo->sprite);
+        kbd->spriteInfo->sprite = NULL;
+        kbd->spriteInfo->spriteOwner = FALSE;
     }
 
-    kbd->pSprite = ptr->pSprite;
+    kbd->spriteInfo->sprite = ptr->spriteInfo->sprite;
     return Success;
 }
 
@@ -2029,7 +2037,8 @@ GetPairedPointer(DeviceIntPtr kbd)
     DeviceIntPtr ptr = inputInfo.devices;
     while(ptr)
     {
-        if (ptr->pSprite == kbd->pSprite && ptr->spriteOwner)
+        if (ptr->spriteInfo->sprite == kbd->spriteInfo->sprite && 
+                ptr->spriteInfo->spriteOwner)
         {
             return ptr;
         }
@@ -2053,7 +2062,7 @@ GetPairedKeyboard(DeviceIntPtr ptr)
     {
         if (ptr != dev && 
             IsKeyboardDevice(dev) &&
-            ptr->pSprite == dev->pSprite)
+            ptr->spriteInfo->sprite == dev->spriteInfo->sprite)
             return dev;
         dev = dev->next;
     }
@@ -2109,7 +2118,7 @@ GuessFreePointerDevice()
     while(it)
     {
         /* found device with a sprite? */
-        if (it->spriteOwner)
+        if (it->spriteInfo->spriteOwner)
         {
             lastRealPtr = it;
 
@@ -2117,7 +2126,8 @@ GuessFreePointerDevice()
             while(it2)
             {
                 /* something paired with it? */
-                if (it != it2 && it2->pSprite == it->pSprite)
+                if (it != it2 && 
+                        it2->spriteInfo->sprite == it->spriteInfo->sprite)
                     break;
 
                 it2 = it2->next;
