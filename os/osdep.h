@@ -210,10 +210,6 @@ extern void FreeOsBuffers(
 
 #include "dix.h"
 
-extern ConnectionInputPtr AllocateInputBuffer(void);
-
-extern ConnectionOutputPtr AllocateOutputBuffer(void);
-
 extern fd_set AllSockets;
 extern fd_set AllClients;
 extern fd_set LastSelectMask;
@@ -293,14 +289,12 @@ extern XID AuthSecurityCheck (AuthCheckArgs);
 /* in xdmcp.c */
 extern void XdmcpUseMsg (void);
 extern int XdmcpOptions(int argc, char **argv, int i);
-extern void XdmcpSetAuthentication (ARRAY8Ptr name);
 extern void XdmcpRegisterConnection (
     int	    type,
     char    *address,
     int	    addrlen);
 extern void XdmcpRegisterAuthorizations (void);
 extern void XdmcpRegisterAuthorization (char *name, int namelen);
-extern void XdmcpRegisterDisplayClass (char *name, int length);
 extern void XdmcpInit (void);
 extern void XdmcpReset (void);
 extern void XdmcpOpenDisplay(int sock);
@@ -313,8 +307,6 @@ extern void XdmcpRegisterAuthentication (
     ValidatorFunc Validator,
     GeneratorFunc Generator,
     AddAuthorFunc AddAuth);
-extern int XdmcpCheckAuthentication (ARRAY8Ptr Name, ARRAY8Ptr Data, int packet_type);
-extern int XdmcpAddAuthorization (ARRAY8Ptr name, ARRAY8Ptr data);
 
 struct sockaddr_in;
 extern void XdmcpRegisterBroadcastAddress (struct sockaddr_in *addr);

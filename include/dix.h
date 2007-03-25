@@ -220,8 +220,6 @@ extern int dixDestroyPixmap(
     pointer /*value*/,
     XID /*pid*/);
 
-extern void CloseDownRetainedResources(void);
-
 extern void InitClient(
     ClientPtr /*client*/,
     int /*i*/,
@@ -243,24 +241,9 @@ extern void DeleteWindowFromAnySelections(
 extern void MarkClientException(
     ClientPtr /*client*/);
 
-extern int GetGeometry(
-    ClientPtr /*client*/,
-    xGetGeometryReply* /* wa */);
-
 extern int SendConnSetup(
     ClientPtr /*client*/,
     char* /*reason*/);
-
-extern int DoGetImage(
-    ClientPtr	/*client*/,
-    int /*format*/,
-    Drawable /*drawable*/,
-    int /*x*/, 
-    int /*y*/, 
-    int /*width*/, 
-    int /*height*/,
-    Mask /*planemask*/,
-    xGetImageReply ** /*im_return*/);
 
 #if defined(DDXBEFORERESET)
 extern void ddxBeforeReset (void);
@@ -631,10 +614,6 @@ typedef struct _CallbackProcs {
     CallCallbacksProcPtr	CallCallbacks;
     DeleteCallbackListProcPtr	DeleteCallbackList;
 } CallbackFuncsRec, *CallbackFuncsPtr;
-
-extern Bool CreateCallbackList(
-    CallbackListPtr * /*pcbl*/,
-    CallbackFuncsPtr /*cbfuncs*/);
 
 extern Bool AddCallback(
     CallbackListPtr * /*pcbl*/,

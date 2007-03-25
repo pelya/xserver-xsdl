@@ -907,17 +907,6 @@ FreeGC(pointer value, XID gid)
     return(Success);
 }
 
-void
-SetGCMask(GCPtr pGC, Mask selectMask, Mask newDataMask)
-{
-    pGC->stateChanges = (~selectMask & pGC->stateChanges) |
-		        (selectMask & newDataMask);
-    if (selectMask & newDataMask)
-        pGC->serialNumber |= GC_CHANGE_SERIAL_BIT;        
-}
-
-
-
 /* CreateScratchGC(pScreen, depth)
     like CreateGC, but doesn't do the default tile or stipple,
 since we can't create them without already having a GC.  any code

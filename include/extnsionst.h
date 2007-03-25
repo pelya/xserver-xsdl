@@ -85,31 +85,10 @@ extern void NotImplemented (	/* FIXME: this may move to another file... */
 	xEvent *,
 	xEvent *);
 
-typedef void (* ExtensionLookupProc)(
-#ifdef EXTENSION_PROC_ARGS
-    EXTENSION_PROC_ARGS
-#else
-    /* args no longer indeterminate */
-    char *name,
-    GCPtr pGC
-#endif
-);
-
-typedef struct _ProcEntry {
-    char *name;
-    ExtensionLookupProc proc;
-} ProcEntryRec, *ProcEntryPtr;
-
-typedef struct _ScreenProcEntry {
-    int num;
-    ProcEntryPtr procList;
-} ScreenProcEntry;
-
 #define    SetGCVector(pGC, VectorElement, NewRoutineAddress, Atom)    \
     pGC->VectorElement = NewRoutineAddress;
 
 #define    GetGCValue(pGC, GCElement)    (pGC->GCElement)
-
 
 extern ExtensionEntry *AddExtension(
     char* /*name*/,
@@ -127,20 +106,6 @@ extern Bool AddExtensionAlias(
 
 extern ExtensionEntry *CheckExtension(const char *extname);
 extern ExtensionEntry *GetExtensionEntry(int major);
-
-extern ExtensionLookupProc LookupProc(
-    char* /*name*/,
-    GCPtr /*pGC*/);
-
-extern Bool RegisterProc(
-    char* /*name*/,
-    GCPtr /*pGC*/,
-    ExtensionLookupProc /*proc*/);
-
-extern Bool RegisterScreenProc(
-    char* /*name*/,
-    ScreenPtr /*pScreen*/,
-    ExtensionLookupProc /*proc*/);
 
 extern void DeclareExtensionSecurity(
     char * /*extname*/,

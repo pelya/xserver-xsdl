@@ -126,11 +126,6 @@ extern int FreeGC(
     pointer /*pGC*/,
     XID /*gid*/);
 
-extern void SetGCMask(
-    GCPtr /*pGC*/,
-    Mask /*selectMask*/,
-    Mask /*newDataMask*/);
-
 extern GCPtr CreateScratchGC(
     ScreenPtr /*pScreen*/,
     unsigned /*depth*/);

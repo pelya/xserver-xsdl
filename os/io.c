@@ -90,6 +90,11 @@ SOFTWARE.
 _X_EXPORT CallbackListPtr       ReplyCallback;
 _X_EXPORT CallbackListPtr       FlushCallback;
 
+static ConnectionInputPtr AllocateInputBuffer(void);
+static ConnectionOutputPtr AllocateOutputBuffer(void);
+static xReqPtr PeekNextRequest(xReqPtr req, ClientPtr client, Bool readmore);
+static void SkipRequests(xReqPtr req, ClientPtr client, int numskipped);
+
 /* check for both EAGAIN and EWOULDBLOCK, because some supposedly POSIX
  * systems are broken and return EWOULDBLOCK when they should return EAGAIN
  */
@@ -635,7 +640,7 @@ ResetCurrentRequest(ClientPtr client)
  *
  **********************/
 
-xReqPtr
+static xReqPtr
 PeekNextRequest(
     xReqPtr req,	/* request we're starting from */
     ClientPtr client,	/* client whose requests we're skipping */
@@ -697,7 +702,7 @@ PeekNextRequest(
 
 _X_EXPORT CallbackListPtr SkippedRequestsCallback = NULL;
 
-void
+static void
 SkipRequests(
     xReqPtr req,	/* last request being skipped */
     ClientPtr client,   /* client whose requests we're skipping */
@@ -1165,7 +1170,7 @@ FlushClient(ClientPtr who, OsCommPtr oc, char *extraBuf, int extraCount)
     return extraCount; /* return only the amount explicitly requested */
 }
 
-ConnectionInputPtr
+static ConnectionInputPtr
 AllocateInputBuffer(void)
 {
     ConnectionInputPtr oci;
@@ -1186,7 +1191,7 @@ AllocateInputBuffer(void)
     return oci;
 }
 
-ConnectionOutputPtr
+static ConnectionOutputPtr
 AllocateOutputBuffer(void)
 {
     ConnectionOutputPtr oco;

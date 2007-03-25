@@ -299,7 +299,6 @@ long	    SmartScheduleMaxSlice = SMART_SCHEDULE_MAX_SLICE;
 long	    SmartScheduleTime;
 static ClientPtr   SmartLastClient;
 static int	   SmartLastIndex[SMART_MAX_PRIORITY-SMART_MIN_PRIORITY+1];
-int         SmartScheduleClient(int *clientReady, int nready);
 
 #ifdef SMART_DEBUG
 long	    SmartLastPrint;
@@ -308,7 +307,7 @@ long	    SmartLastPrint;
 void        Dispatch(void);
 void        InitProcVectors(void);
 
-int
+static int
 SmartScheduleClient (int *clientReady, int nready)
 {
     ClientPtr	pClient;
@@ -834,7 +833,7 @@ ProcCirculateWindow(ClientPtr client)
     return(client->noClientException);
 }
 
-int
+static int
 GetGeometry(ClientPtr client, xGetGeometryReply *rep)
 {
     DrawablePtr pDraw;
@@ -2157,8 +2156,7 @@ ProcPutImage(ClientPtr client)
      return (client->noClientException);
 }
 
-
-int
+static int
 DoGetImage(ClientPtr client, int format, Drawable drawable, 
            int x, int y, int width, int height, 
            Mask planemask, xGetImageReply **im_return)
@@ -3383,6 +3381,28 @@ ProcChangeAccessControl(ClientPtr client)
     return (result);
 }
 
+/*********************
+ * CloseDownRetainedResources
+ *
+ *    Find all clients that are gone and have terminated in RetainTemporary 
+ *    and destroy their resources.
+ *********************/
+
+static void
+CloseDownRetainedResources(void)
+{
+    int i;
+    ClientPtr client;
+
+    for (i=1; i<currentMaxClients; i++)
+    {
+        client = clients[i];
+        if (client && (client->closeDownMode == RetainTemporary)
+	    && (client->clientGone))
+	    CloseDownClient(client);
+    }
+}
+
 int
 ProcKillClient(ClientPtr client)
 {
@@ -3649,28 +3669,6 @@ KillAllClients()
             clients[i]->closeDownMode = DestroyAll;
             CloseDownClient(clients[i]);     
         }
-}
-
-/*********************
- * CloseDownRetainedResources
- *
- *    Find all clients that are gone and have terminated in RetainTemporary 
- *    and  destroy their resources.
- *********************/
-
-void
-CloseDownRetainedResources()
-{
-    int i;
-    ClientPtr client;
-
-    for (i=1; i<currentMaxClients; i++)
-    {
-        client = clients[i];
-        if (client && (client->closeDownMode == RetainTemporary)
-	    && (client->clientGone))
-	    CloseDownClient(client);
-    }
 }
 
 extern int clientPrivateLen;
