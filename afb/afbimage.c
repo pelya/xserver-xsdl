@@ -42,39 +42,8 @@ afbPutImage(pDraw, pGC, depth, x, y, width, height, leftPad, format, pImage)
 			(void)(*pGC->ops->CopyPlane)((DrawablePtr)pPixmap, pDraw, pGC, leftPad,
 												  0, width, height, x, y, 1);
 		else {
-#if 0
-			/* XXX: bit plane order wronge ! */
-			pPixmap->drawable.depth = 1;
-			pPixmap->drawable.bitsPerPixel = 1;
-
-			switch (pGC->alu) {
-				case GXcopy:
-					doBitBlt = afbDoBitbltCopy;
-					break;
-				case GXxor:
-					doBitBlt = afbDoBitbltXor;
-					break;
-				case GXcopyInverted:
-					doBitBlt = afbDoBitbltCopyInverted;
-					break;
-				case GXor:
-					doBitBlt = afbDoBitbltOr;
-					break;
-				default:
-					doBitBlt = afbDoBitbltGeneral;
-					break;
-			}
-
-			for (plane = (1L << (pPixmap->drawable.depth - 1)); plane;
-				  plane >>= 1) {
-				(void)afbBitBlt((DrawablePtr)pPixmap, pDraw, pGC, leftPad, 0,
-									  width, height, x, y, doBitBlt, plane);
-				/* pDraw->devKind += sizeDst; */
-			}
-#else
 			(void)(*pGC->ops->CopyArea)((DrawablePtr)pPixmap, pDraw, pGC, leftPad,
 												 0, width, height, x, y);
-#endif
 		}
 
 		pGC->fExpose = TRUE;

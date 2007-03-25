@@ -78,27 +78,6 @@ extern void afbDoBitblt(
 	unsigned long /*planemask*/
 );
 
-extern RegionPtr afbBitBlt(
-	DrawablePtr /*pSrc*/,
-	DrawablePtr /*pDst*/,
-	GCPtr /*pGC*/,
-	int /*srcx*/,
-	int /*srcy*/,
-	int /*width*/,
-	int /*height*/,
-	int /*dstx*/,
-	int /*dsty*/,
-	void (*doBitBlt)(
-		DrawablePtr /*pSrc*/,
-		DrawablePtr /*pDst*/,
-		int /*alu*/,
-		RegionPtr /*prgnDst*/,
-		DDXPointPtr /*pptSrc*/,
-		unsigned long /*planemask*/
-        ),
-	unsigned long /*planemask*/
-);
-
 extern RegionPtr afbCopyArea(
 	DrawablePtr /*pSrcDrawable*/,
 	DrawablePtr /*pDstDrawable*/,
@@ -111,27 +90,6 @@ extern RegionPtr afbCopyArea(
 	int /*dsty*/
 );
 
-extern RegionPtr afbCopyPlane(
-	DrawablePtr /*pSrcDrawable*/,
-	DrawablePtr /*pDstDrawable*/,
-	GCPtr/*pGC*/,
-	int /*srcx*/,
-	int /*srcy*/,
-	int /*width*/,
-	int /*height*/,
-	int /*dstx*/,
-	int /*dsty*/,
-	unsigned long /*plane*/
-);
-
-extern void afbCopy1ToN(
-	DrawablePtr /*pSrc*/,
-	DrawablePtr /*pDst*/,
-	int /*alu*/,
-	RegionPtr /*prgnDst*/,
-	DDXPointPtr /*pptSrc*/,
-	unsigned long /*planemask*/
-);
 /* afbbltC.c */
 
 extern void afbDoBitbltCopy(
@@ -273,23 +231,6 @@ extern Bool afbInitializeColormap(
 	ColormapPtr /*pmap*/
 );
 
-extern int afbExpandDirectColors(
-	ColormapPtr /*pmap*/,
-	int /*ndefs*/,
-	xColorItem * /*indefs*/,
-	xColorItem * /*outdefs*/
-);
-
-extern Bool afbCreateDefColormap(
-	ScreenPtr /*pScreen*/
-);
-
-extern Bool afbSetVisualTypes(
-	int /*depth*/,
-	int /*visuals*/,
-	int /*bitsPerRGB*/
-);
-
 extern Bool afbInitVisuals(
 	VisualPtr * /*visualp*/,
 	DepthPtr * /*depthp*/,
@@ -410,35 +351,12 @@ extern Bool afbCreateGC(
 	GCPtr /*pGC*/
 );
 
-extern void afbValidateGC(
-	GCPtr /*pGC*/,
-	unsigned long /*changes*/,
-	DrawablePtr /*pDrawable*/
-);
-
-extern void afbDestroyGC(
-	GCPtr /*pGC*/
-);
-
 extern void afbReduceRop(
 	int /*alu*/,
 	Pixel /*src*/,
 	unsigned long /*planemask*/,
 	int /*depth*/,
 	unsigned char * /*rrops*/
-);
-
-extern void afbReduceOpaqueStipple (
-	Pixel /*fg*/,
-	Pixel /*bg*/,
-	unsigned long /*planemask*/,
-	int /*depth*/,
-	unsigned char * /*rrops*/
-);
-
-extern void afbComputeCompositeClip(
-   GCPtr /*pGC*/,
-   DrawablePtr /*pDrawable*/
 );
 
 /* afbgetsp.c */
@@ -588,14 +506,6 @@ extern Bool afbDestroyPixmap(
 	PixmapPtr /*pPixmap*/
 );
 
-extern PixmapPtr afbCopyPixmap(
-	PixmapPtr /*pSrc*/
-);
-
-extern void afbPadPixmap(
-	PixmapPtr /*pPixmap*/
-);
-
 extern void afbXRotatePixmap(
 	PixmapPtr /*pPix*/,
 	int /*rw*/
@@ -637,19 +547,8 @@ extern void afbPushPixels(
 	int /*xOrg*/,
 	int /*yOrg*/
 );
-/* afbscrclse.c */
 
-extern Bool afbCloseScreen(
-	int /*index*/,
-	ScreenPtr /*pScreen*/
-);
 /* afbscrinit.c */
-
-extern Bool afbAllocatePrivates(
-	ScreenPtr /*pScreen*/,
-	int * /*pWinIndex*/,
-	int * /*pGCIndex*/
-);
 
 extern Bool afbScreenInit(
 	ScreenPtr /*pScreen*/,
@@ -659,15 +558,6 @@ extern Bool afbScreenInit(
 	int /*dpix*/,
 	int /*dpiy*/,
 	int /*width*/
-);
-
-extern PixmapPtr afbGetWindowPixmap(
-	WindowPtr /*pWin*/
-);
-
-extern void afbSetWindowPixmap(
-	WindowPtr /*pWin*/,
-	PixmapPtr /*pPix*/
 );
 
 /* afbseg.c */
@@ -686,20 +576,6 @@ extern void afbSegmentSD(
 	xSegment * /*pSeg*/
 );
 /* afbsetsp.c */
-
-extern void afbSetScanline(
-	int /*y*/,
-	int /*xOrigin*/,
-	int /*xStart*/,
-	int /*xEnd*/,
-	PixelType * /*psrc*/,
-	int /*alu*/,
-	PixelType * /*pdstBase*/,
-	int /*widthDst*/,
-	int /*sizeDst*/,
-	int /*depthDst*/,
-	int /*sizeSrc*/
-);
 
 extern void afbSetSpans(
 	DrawablePtr /*pDrawable*/,

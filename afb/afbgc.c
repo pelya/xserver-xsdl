@@ -69,6 +69,9 @@ SOFTWARE.
 
 #include "maskbits.h"
 
+static void afbDestroyGC(GCPtr);
+static void afbValidateGC(GCPtr, unsigned long, DrawablePtr);
+
 static GCFuncs afbFuncs = {
 		afbValidateGC,
 		miChangeGC,
@@ -102,6 +105,33 @@ static GCOps afbGCOps = {
 		afbPushPixels
 };
 
+static void
+afbReduceOpaqueStipple(PixelType fg, PixelType bg, unsigned long planemask,
+		       int depth, unsigned char *rop)
+{
+	register int d;
+	register Pixel mask = 1;
+
+	bg ^= fg;
+
+	for (d = 0; d < depth; d++, mask <<= 1) {
+		if (!(planemask & mask))
+			rop[d] = RROP_NOP;
+		else if (!(bg & mask)) {
+			/* Both fg and bg have a 0 or 1 in this plane */
+			if (fg & mask)
+				rop[d] = RROP_WHITE;
+			else
+				rop[d] = RROP_BLACK;
+		} else {
+			/* Both fg and bg have different bits on this plane */
+			if (fg & mask)
+				rop[d] = RROP_COPY;
+			else
+				rop[d] = RROP_INVERT;
+		}
+	}
+}
 
 Bool
 afbCreateGC(pGC)
@@ -136,6 +166,95 @@ afbCreateGC(pGC)
 	return TRUE;
 }
 
+static void
+afbComputeCompositeClip(GCPtr pGC, DrawablePtr pDrawable)
+{
+	if (pDrawable->type == DRAWABLE_WINDOW) {
+		WindowPtr pWin = (WindowPtr) pDrawable;
+		RegionPtr pregWin;
+		Bool freeTmpClip, freeCompClip;
+
+	if (pGC->subWindowMode == IncludeInferiors) {
+		pregWin = NotClippedByChildren(pWin);
+		freeTmpClip = TRUE;
+	} else {
+		pregWin = &pWin->clipList;
+		freeTmpClip = FALSE;
+	}
+	freeCompClip = pGC->freeCompClip;
+
+	/*
+	 * if there is no client clip, we can get by with just keeping the
+	 * pointer we got, and remembering whether or not should destroy (or
+	 * maybe re-use) it later.  this way, we avoid unnecessary copying of
+	 * regions.  (this wins especially if many clients clip by children
+	 * and have no client clip.)
+	 */
+	if (pGC->clientClipType == CT_NONE) {
+		if (freeCompClip)
+			REGION_DESTROY(pGC->pScreen, pGC->pCompositeClip);
+			pGC->pCompositeClip = pregWin;
+			pGC->freeCompClip = freeTmpClip;
+		} else {
+			/*
+			 * we need one 'real' region to put into the composite clip. if
+			 * pregWin the current composite clip are real, we can get rid of
+			 * one. if pregWin is real and the current composite clip isn't,
+			 * use pregWin for the composite clip. if the current composite
+			 * clip is real and pregWin isn't, use the current composite
+			 * clip. if neither is real, create a new region.
+			 */
+
+			REGION_TRANSLATE(pGC->pScreen, pGC->clientClip,
+			pDrawable->x + pGC->clipOrg.x,
+			pDrawable->y + pGC->clipOrg.y);
+
+			if (freeCompClip) {
+				REGION_INTERSECT(pGC->pScreen, pGC->pCompositeClip, pregWin,
+									  pGC->clientClip);
+				if (freeTmpClip)
+					REGION_DESTROY(pGC->pScreen, pregWin);
+			} else if (freeTmpClip) {
+				REGION_INTERSECT(pGC->pScreen, pregWin, pregWin, pGC->clientClip);
+				pGC->pCompositeClip = pregWin;
+			} else {
+				pGC->pCompositeClip = REGION_CREATE(pGC->pScreen, NullBox, 0);
+				REGION_INTERSECT(pGC->pScreen, pGC->pCompositeClip,
+				pregWin, pGC->clientClip);
+			}
+			pGC->freeCompClip = TRUE;
+			REGION_TRANSLATE(pGC->pScreen, pGC->clientClip,
+			-(pDrawable->x + pGC->clipOrg.x),
+			-(pDrawable->y + pGC->clipOrg.y));
+		}
+	}	/* end of composite clip for a window */
+	else {
+		BoxRec pixbounds;
+
+		/* XXX should we translate by drawable.x/y here ? */
+		pixbounds.x1 = 0;
+		pixbounds.y1 = 0;
+		pixbounds.x2 = pDrawable->width;
+		pixbounds.y2 = pDrawable->height;
+
+		if (pGC->freeCompClip) {
+			REGION_RESET(pGC->pScreen, pGC->pCompositeClip, &pixbounds);
+		} else {
+			pGC->freeCompClip = TRUE;
+			pGC->pCompositeClip = REGION_CREATE(pGC->pScreen, &pixbounds, 1);
+		}
+
+		if (pGC->clientClipType == CT_REGION) {
+			REGION_TRANSLATE(pGC->pScreen, pGC->pCompositeClip, -pGC->clipOrg.x,
+								  -pGC->clipOrg.y);
+			REGION_INTERSECT(pGC->pScreen, pGC->pCompositeClip,
+								  pGC->pCompositeClip, pGC->clientClip);
+			REGION_TRANSLATE(pGC->pScreen, pGC->pCompositeClip, pGC->clipOrg.x,
+								  pGC->clipOrg.y);
+		}
+	}	/* end of composite clip for pixmap */
+} /* end afbComputeCompositeClip */
+
 /* Clipping conventions
 		if the drawable is a window
 			CT_REGION ==> pCompositeClip really is the composite
@@ -147,7 +266,7 @@ afbCreateGC(pGC)
 */
 
 /*ARGSUSED*/
-void
+static void
 afbValidateGC(pGC, changes, pDrawable)
 	register GCPtr 		pGC;
 	unsigned long		changes;
@@ -434,7 +553,7 @@ afbValidateGC(pGC, changes, pDrawable)
 	} /* end of new_fill */
 }
 
-void
+static void
 afbDestroyGC(pGC)
 	GCPtr pGC;
 {
@@ -443,58 +562,6 @@ afbDestroyGC(pGC)
 	if (pGC->freeCompClip)
 		REGION_DESTROY(pGC->pScreen, pGC->pCompositeClip);
 	miDestroyGCOps(pGC->ops);
-}
-
-/* table to map alu(src, dst) to alu(~src, dst) */
-int afbInverseAlu[16] = {
-		GXclear,
-		GXandInverted,
-		GXnor,
-		GXcopyInverted,
-		GXand,
-		GXnoop,
-		GXequiv,
-		GXorInverted,
-		GXandReverse,
-		GXxor,
-		GXinvert,
-		GXnand,
-		GXcopy,
-		GXor,
-		GXorReverse,
-		GXset
-};
-
-void
-afbReduceOpaqueStipple(fg, bg, planemask, depth, rop)
-register PixelType fg;
-register PixelType bg;
-register unsigned long planemask;
-int depth;
-register unsigned char *rop;
-{
-	register int d;
-	register Pixel mask = 1;
-
-	bg ^= fg;
-
-	for (d = 0; d < depth; d++, mask <<= 1) {
-		if (!(planemask & mask))
-			rop[d] = RROP_NOP;
-		else if (!(bg & mask)) {
-			/* Both fg and bg have a 0 or 1 in this plane */
-			if (fg & mask)
-				rop[d] = RROP_WHITE;
-			else
-				rop[d] = RROP_BLACK;
-		} else {
-			/* Both fg and bg have different bits on this plane */
-			if (fg & mask)
-				rop[d] = RROP_COPY;
-			else
-				rop[d] = RROP_INVERT;
-		}
-	}
 }
 
 void
@@ -615,94 +682,3 @@ afbReduceRop(alu, src, planemask, depth, rop)
 			}
 	}
 }
-
-void
-afbComputeCompositeClip(pGC, pDrawable)
-	GCPtr pGC;
-	DrawablePtr pDrawable;
-{
-	if (pDrawable->type == DRAWABLE_WINDOW) {
-		WindowPtr pWin = (WindowPtr) pDrawable;
-		RegionPtr pregWin;
-		Bool freeTmpClip, freeCompClip;
-
-	if (pGC->subWindowMode == IncludeInferiors) {
-		pregWin = NotClippedByChildren(pWin);
-		freeTmpClip = TRUE;
-	} else {
-		pregWin = &pWin->clipList;
-		freeTmpClip = FALSE;
-	}
-	freeCompClip = pGC->freeCompClip;
-
-	/*
-	 * if there is no client clip, we can get by with just keeping the
-	 * pointer we got, and remembering whether or not should destroy (or
-	 * maybe re-use) it later.  this way, we avoid unnecessary copying of
-	 * regions.  (this wins especially if many clients clip by children
-	 * and have no client clip.)
-	 */
-	if (pGC->clientClipType == CT_NONE) {
-		if (freeCompClip)
-			REGION_DESTROY(pGC->pScreen, pGC->pCompositeClip);
-			pGC->pCompositeClip = pregWin;
-			pGC->freeCompClip = freeTmpClip;
-		} else {
-			/*
-			 * we need one 'real' region to put into the composite clip. if
-			 * pregWin the current composite clip are real, we can get rid of
-			 * one. if pregWin is real and the current composite clip isn't,
-			 * use pregWin for the composite clip. if the current composite
-			 * clip is real and pregWin isn't, use the current composite
-			 * clip. if neither is real, create a new region.
-			 */
-
-			REGION_TRANSLATE(pGC->pScreen, pGC->clientClip,
-			pDrawable->x + pGC->clipOrg.x,
-			pDrawable->y + pGC->clipOrg.y);
-
-			if (freeCompClip) {
-				REGION_INTERSECT(pGC->pScreen, pGC->pCompositeClip, pregWin,
-									  pGC->clientClip);
-				if (freeTmpClip)
-					REGION_DESTROY(pGC->pScreen, pregWin);
-			} else if (freeTmpClip) {
-				REGION_INTERSECT(pGC->pScreen, pregWin, pregWin, pGC->clientClip);
-				pGC->pCompositeClip = pregWin;
-			} else {
-				pGC->pCompositeClip = REGION_CREATE(pGC->pScreen, NullBox, 0);
-				REGION_INTERSECT(pGC->pScreen, pGC->pCompositeClip,
-				pregWin, pGC->clientClip);
-			}
-			pGC->freeCompClip = TRUE;
-			REGION_TRANSLATE(pGC->pScreen, pGC->clientClip,
-			-(pDrawable->x + pGC->clipOrg.x),
-			-(pDrawable->y + pGC->clipOrg.y));
-		}
-	}	/* end of composite clip for a window */
-	else {
-		BoxRec pixbounds;
-
-		/* XXX should we translate by drawable.x/y here ? */
-		pixbounds.x1 = 0;
-		pixbounds.y1 = 0;
-		pixbounds.x2 = pDrawable->width;
-		pixbounds.y2 = pDrawable->height;
-
-		if (pGC->freeCompClip) {
-			REGION_RESET(pGC->pScreen, pGC->pCompositeClip, &pixbounds);
-		} else {
-			pGC->freeCompClip = TRUE;
-			pGC->pCompositeClip = REGION_CREATE(pGC->pScreen, &pixbounds, 1);
-		}
-
-		if (pGC->clientClipType == CT_REGION) {
-			REGION_TRANSLATE(pGC->pScreen, pGC->pCompositeClip, -pGC->clipOrg.x,
-								  -pGC->clipOrg.y);
-			REGION_INTERSECT(pGC->pScreen, pGC->pCompositeClip,
-								  pGC->pCompositeClip, pGC->clientClip);
-			REGION_TRANSLATE(pGC->pScreen, pGC->pCompositeClip, pGC->clipOrg.x,
-								  pGC->clipOrg.y);
-		}
-	}	/* end of composite clip for pixmap */
-} /* end afbComputeCompositeClip */
