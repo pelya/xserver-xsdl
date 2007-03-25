@@ -66,7 +66,6 @@ int xf86validateMonitor(XF86ConfigPtr p, XF86ConfScreenPtr screen);
 /* Pointer.c */
 XF86ConfInputPtr xf86parsePointerSection(void);
 /* Screen.c */
-XF86ConfDisplayPtr xf86parseDisplaySubSection(void);
 XF86ConfScreenPtr xf86parseScreenSection(void);
 void xf86printScreenSection(FILE *cf, XF86ConfScreenPtr ptr);
 void xf86freeScreenList(XF86ConfScreenPtr ptr);
@@ -76,16 +75,13 @@ void xf86freeModeList(XF86ModePtr ptr);
 int xf86validateScreen(XF86ConfigPtr p);
 /* Vendor.c */
 XF86ConfVendorPtr xf86parseVendorSection(void);
-XF86ConfVendSubPtr xf86parseVendorSubSection (void);
 void xf86freeVendorList(XF86ConfVendorPtr p);
 void xf86printVendorSection(FILE * cf, XF86ConfVendorPtr ptr);
 void xf86freeVendorSubList (XF86ConfVendSubPtr ptr);
 /* Video.c */
-XF86ConfVideoPortPtr xf86parseVideoPortSubSection(void);
 XF86ConfVideoAdaptorPtr xf86parseVideoAdaptorSection(void);
 void xf86printVideoAdaptorSection(FILE *cf, XF86ConfVideoAdaptorPtr ptr);
 void xf86freeVideoAdaptorList(XF86ConfVideoAdaptorPtr ptr);
-void xf86freeVideoPortList(XF86ConfVideoPortPtr ptr);
 /* scan.c */
 int xf86getToken(xf86ConfigSymTabRec *tab);
 int xf86getSubToken(char **comment);
