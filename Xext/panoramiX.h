@@ -94,18 +94,6 @@ typedef struct {
     (a).root = WindowTable[0]->drawable.id;          \
 }
 
-#define FORCE_WIN(a) {                                  \
-    if ((win = PanoramiXFindIDOnAnyScreen(XRT_WINDOW, a))) { \
-        (a) = win->info[0].id; /* Real ID */       	   \
-    }                                                      \
-}
-
-#define FORCE_CMAP(a) {                                  \
-    if ((win = PanoramiXFindIDOnAnyScreen(XRT_COLORMAP, a))) { \
-        (a) = win->info[0].id; /* Real ID */       	   \
-    }                                                      \
-}
-
 #define IS_SHARED_PIXMAP(r) (((r)->type == XRT_PIXMAP) && (r)->u.pix.shared)
 
 #define SKIP_FAKE_WINDOW(a) if(!LookupIDByType(a, XRT_WINDOW)) return
