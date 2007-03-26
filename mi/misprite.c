@@ -320,11 +320,11 @@ miSpriteGetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart)
 
     if (pDrawable->type == DRAWABLE_WINDOW && pScreenPriv->isUp)
     {
-	register DDXPointPtr    pts;
-	register int    	*widths;
-	register int    	nPts;
-	register int    	xorg,
-				yorg;
+	DDXPointPtr    	pts;
+	int    		*widths;
+	int    		nPts;
+	int    		xorg,
+			yorg;
 
 	xorg = pDrawable->x;
 	yorg = pDrawable->y;

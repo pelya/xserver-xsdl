@@ -74,6 +74,7 @@ typedef struct _EventQueue {
     EventRec         events[QUEUE_SIZE]; /* static allocation for signals */
     ScreenPtr        pEnqueueScreen;     /* screen events are being delivered to */
     ScreenPtr        pDequeueScreen;     /* screen events are being dispatched to */
+    mieqHandler      handlers[128];      /* custom event handler */
 } EventQueueRec, *EventQueuePtr;
 
 static EventQueueRec miEventQueue;
@@ -81,11 +82,15 @@ static EventQueueRec miEventQueue;
 Bool
 mieqInit()
 {
+    int i;
+
     miEventQueue.head = miEventQueue.tail = 0;
     miEventQueue.lastEventTime = GetTimeInMillis ();
     miEventQueue.lastMotion = FALSE;
     miEventQueue.pEnqueueScreen = screenInfo.screens[0];
     miEventQueue.pDequeueScreen = miEventQueue.pEnqueueScreen;
+    for (i = 0; i < 128; i++)
+        miEventQueue.handlers[i] = NULL;
     SetInputCheck(&miEventQueue.head, &miEventQueue.tail);
     return TRUE;
 }
@@ -178,6 +183,16 @@ mieqSwitchScreen(ScreenPtr pScreen, Bool fromDIX)
 	miEventQueue.pDequeueScreen = pScreen;
 }
 
+void
+mieqSetHandler(int event, mieqHandler handler)
+{
+    if (handler && miEventQueue.handlers[event])
+        ErrorF("mieq: warning: overriding existing handler %p with %p for "
+               "event %d\n", miEventQueue.handlers[event], handler, event);
+
+    miEventQueue.handlers[event] = handler;
+}
+
 /* Call this from ProcessInputEvents(). */
 void
 mieqProcessInputEvents()
@@ -214,6 +229,15 @@ mieqProcessInputEvents()
                 miEventQueue.head = 0;
             else
                 ++miEventQueue.head;
+
+            /* If someone's registered a custom event handler, let them
+             * steal it. */
+            if (miEventQueue.handlers[e->event->u.u.type]) {
+                miEventQueue.handlers[e->event->u.u.type](miEventQueue.pDequeueScreen->myNum,
+                                                          e->event, dev,
+                                                          e->nevents);
+                return;
+            }
 
             /* If this is a core event, make sure our keymap, et al, is
              * changed to suit. */

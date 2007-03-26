@@ -312,7 +312,13 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
     {
 	xf86OutputPtr output = xf86_config->output[i];
 	if (output->crtc == crtc)
+	{
 	    output->funcs->commit(output);
+#ifdef RANDR_12_INTERFACE
+	    if (output->randr_output)
+		RRPostPendingProperties (output->randr_output);
+#endif
+	}
     }
 
     /* XXX free adjustedmode */
@@ -566,6 +572,36 @@ xf86CrtcCreateScreenResources (ScreenPtr screen)
 }
 
 /*
+ * Clean up config on server reset
+ */
+static Bool
+xf86CrtcCloseScreen (int index, ScreenPtr screen)
+{
+    ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
+    xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
+    int			o, c;
+    
+    screen->CloseScreen = config->CloseScreen;
+
+    xf86RotateCloseScreen (screen);
+
+    for (o = 0; o < config->num_output; o++)
+    {
+	xf86OutputPtr	output = config->output[o];
+
+	output->crtc = NULL;
+	output->randr_output = NULL;
+    }
+    for (c = 0; c < config->num_crtc; c++)
+    {
+	xf86CrtcPtr	crtc = config->crtc[c];
+
+	crtc->randr_crtc = NULL;
+    }
+    return screen->CloseScreen (index, screen);
+}
+
+/*
  * Called at ScreenInit time to set up
  */
 Bool
@@ -596,6 +632,10 @@ xf86CrtcScreenInit (ScreenPtr screen)
     /* Wrap CreateScreenResources so we can initialize the RandR code */
     config->CreateScreenResources = screen->CreateScreenResources;
     screen->CreateScreenResources = xf86CrtcCreateScreenResources;
+
+    config->CloseScreen = screen->CloseScreen;
+    screen->CloseScreen = xf86CrtcCloseScreen;
+    
     return TRUE;
 }
 
@@ -1158,7 +1198,10 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	output->status = (*output->funcs->detect)(output);
 
 	if (output->status == XF86OutputStatusDisconnected)
+	{
+	    xf86OutputSetEDID (output, NULL);
 	    continue;
+	}
 
 	memset (&mon_rec, '\0', sizeof (mon_rec));
 	
@@ -1552,6 +1595,8 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 	{
 	    crtc->desiredMode = *mode;
 	    crtc->desiredRotation = output->initial_rotation;
+	    crtc->desiredX = output->initial_x;
+	    crtc->desiredY = output->initial_y;
 	    crtc->enabled = TRUE;
 	    crtc->x = output->initial_x;
 	    crtc->y = output->initial_y;
@@ -1776,7 +1821,12 @@ xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
 	if (!xf86CrtcSetMode (crtc, crtc_mode, rotation, 0, 0))
 	    ok = FALSE;
 	else
+	{
 	    crtc->desiredMode = *crtc_mode;
+	    crtc->desiredRotation = rotation;
+	    crtc->desiredX = 0;
+	    crtc->desiredY = 0;
+	}
     }
     xf86DisableUnusedFunctions(pScrn);
     return ok;
@@ -1886,7 +1936,7 @@ xf86OutputSetEDIDProperty (xf86OutputPtr output, void *data, int data_len)
 
     if (data_len != 0) {
 	RRChangeOutputProperty(output->randr_output, edid_atom, XA_INTEGER, 8,
-			       PropModeReplace, data_len, data, FALSE);
+			       PropModeReplace, data_len, data, FALSE, TRUE);
     } else {
 	RRDeleteOutputProperty(output->randr_output, edid_atom);
     }

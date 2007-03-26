@@ -257,7 +257,7 @@ CreateNewResourceClass()
     return next;
 }
 
-ClientResourceRec clientTable[MAXCLIENTS];
+static ClientResourceRec clientTable[MAXCLIENTS];
 
 /*****************
  * InitClientResources
@@ -268,7 +268,7 @@ ClientResourceRec clientTable[MAXCLIENTS];
 Bool
 InitClientResources(ClientPtr client)
 {
-    register int i, j;
+    int i, j;
  
     if (client == serverClient)
     {
@@ -325,7 +325,7 @@ InitClientResources(ClientPtr client)
 
 
 static int
-Hash(int client, register XID id)
+Hash(int client, XID id)
 {
     id &= RESOURCE_ID_MASK;
     switch (clientTable[client].hashsize)
@@ -348,12 +348,12 @@ Hash(int client, register XID id)
 
 static XID
 AvailableID(
-    register int client,
-    register XID id,
-    register XID maxid,
-    register XID goodid)
+    int client,
+    XID id,
+    XID maxid,
+    XID goodid)
 {
-    register ResourcePtr res;
+    ResourcePtr res;
 
     if ((goodid >= id) && (goodid <= maxid))
 	return goodid;
@@ -371,10 +371,10 @@ AvailableID(
 _X_EXPORT void
 GetXIDRange(int client, Bool server, XID *minp, XID *maxp)
 {
-    register XID id, maxid;
-    register ResourcePtr *resp;
-    register ResourcePtr res;
-    register int i;
+    XID id, maxid;
+    ResourcePtr *resp;
+    ResourcePtr res;
+    int i;
     XID goodid;
 
     id = (Mask)client << CLIENTOFFSET;
@@ -447,7 +447,7 @@ GetXIDList(ClientPtr pClient, unsigned count, XID *pids)
  */
 
 _X_EXPORT XID
-FakeClientID(register int client)
+FakeClientID(int client)
 {
     XID id, maxid;
 
@@ -471,8 +471,8 @@ _X_EXPORT Bool
 AddResource(XID id, RESTYPE type, pointer value)
 {
     int client;
-    register ClientResourceRec *rrec;
-    register ResourcePtr res, *head;
+    ClientResourceRec *rrec;
+    ResourcePtr res, *head;
     	
 #ifdef XSERVER_DTRACE
     XSERVER_RESOURCE_ALLOC(id, type, value, TypeNameString(type));
@@ -510,10 +510,10 @@ AddResource(XID id, RESTYPE type, pointer value)
 static void
 RebuildTable(int client)
 {
-    register int j;
-    register ResourcePtr res, next;
+    int j;
+    ResourcePtr res, next;
     ResourcePtr **tails, *resources;
-    register ResourcePtr **tptr, *rptr;
+    ResourcePtr **tptr, *rptr;
 
     /*
      * For now, preserve insertion order, since some ddx layers depend
@@ -560,9 +560,9 @@ _X_EXPORT void
 FreeResource(XID id, RESTYPE skipDeleteFuncType)
 {
     int		cid;
-    register    ResourcePtr res;
-    register	ResourcePtr *prev, *head;
-    register	int *eltptr;
+    ResourcePtr res;
+    ResourcePtr *prev, *head;
+    int *eltptr;
     int		elements;
     Bool	gotOne = FALSE;
 
@@ -615,8 +615,8 @@ _X_EXPORT void
 FreeResourceByType(XID id, RESTYPE type, Bool skipFree)
 {
     int		cid;
-    register    ResourcePtr res;
-    register	ResourcePtr *prev, *head;
+    ResourcePtr res;
+    ResourcePtr *prev, *head;
     if (((cid = CLIENT_ID(id)) < MAXCLIENTS) && clientTable[cid].buckets)
     {
 	head = &clientTable[cid].resources[Hash(cid, id)];
@@ -662,7 +662,7 @@ _X_EXPORT Bool
 ChangeResourceValue (XID id, RESTYPE rtype, pointer value)
 {
     int    cid;
-    register    ResourcePtr res;
+    ResourcePtr res;
 
     if (((cid = CLIENT_ID(id)) < MAXCLIENTS) && clientTable[cid].buckets)
     {
@@ -693,10 +693,10 @@ FindClientResourcesByType(
     FindResType func,
     pointer cdata
 ){
-    register ResourcePtr *resources;
-    register ResourcePtr this, next;
+    ResourcePtr *resources;
+    ResourcePtr this, next;
     int i, elements;
-    register int *eltptr;
+    int *eltptr;
 
     if (!client)
 	client = serverClient;
@@ -724,10 +724,10 @@ FindAllClientResources(
     FindAllRes func,
     pointer cdata
 ){
-    register ResourcePtr *resources;
-    register ResourcePtr this, next;
+    ResourcePtr *resources;
+    ResourcePtr this, next;
     int i, elements;
-    register int *eltptr;
+    int *eltptr;
 
     if (!client)
         client = serverClient;
@@ -817,8 +817,8 @@ FreeClientNeverRetainResources(ClientPtr client)
 void
 FreeClientResources(ClientPtr client)
 {
-    register ResourcePtr *resources;
-    register ResourcePtr this;
+    ResourcePtr *resources;
+    ResourcePtr this;
     int j;
 
     /* This routine shouldn't be called with a null client, but just in
@@ -880,7 +880,7 @@ FreeAllResources()
 }
 
 _X_EXPORT Bool
-LegalNewID(XID id, register ClientPtr client)
+LegalNewID(XID id, ClientPtr client)
 {
 
 #ifdef PANORAMIX
@@ -911,7 +911,7 @@ _X_EXPORT pointer
 SecurityLookupIDByType(ClientPtr client, XID id, RESTYPE rtype, Mask mode)
 {
     int    cid;
-    register    ResourcePtr res;
+    ResourcePtr res;
     pointer retval = NULL;
 
     if (((cid = CLIENT_ID(id)) < MAXCLIENTS) &&
@@ -938,7 +938,7 @@ _X_EXPORT pointer
 SecurityLookupIDByClass(ClientPtr client, XID id, RESTYPE classes, Mask mode)
 {
     int    cid;
-    register ResourcePtr res = NULL;
+    ResourcePtr res = NULL;
     pointer retval = NULL;
 
     if (((cid = CLIENT_ID(id)) < MAXCLIENTS) &&

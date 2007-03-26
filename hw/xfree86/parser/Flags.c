@@ -441,15 +441,6 @@ xf86uLongToString(unsigned long i)
 	return s;
 }
 
-void
-xf86debugListOptions(XF86OptionPtr Options)
-{
-	while (Options) {
-		ErrorF("Option: %s Value: %s\n",Options->opt_name,Options->opt_val);
-		Options = Options->list.next;
-	}
-}
-
 XF86OptionPtr
 xf86parseOption(XF86OptionPtr head)
 {

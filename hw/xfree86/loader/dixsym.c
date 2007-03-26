@@ -87,7 +87,7 @@
 #endif
 #include "selection.h"
 #ifdef XKB
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 extern int XkbDfltRepeatDelay, XkbDfltRepeatInterval;
 #endif
 

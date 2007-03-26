@@ -124,9 +124,3 @@ extern Bool miZeroArcSetup(
     miZeroArcRec * /*info*/,
     Bool /*ok360*/
 );
-
-extern DDXPointPtr miZeroArcPts(
-    xArc * /*arc*/,
-    DDXPointPtr /*pts*/
-);
-

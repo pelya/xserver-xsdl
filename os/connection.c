@@ -175,7 +175,7 @@ typedef const char *string;
 # include <ucred.h>
 #endif
 
-int lastfdesc;			/* maximum file descriptor */
+static int lastfdesc;		/* maximum file descriptor */
 
 fd_set WellKnownConnections;	/* Listener mask */
 fd_set EnabledDevices;		/* mask for input devices that are on */
@@ -189,7 +189,7 @@ int MaxClients = 0;
 Bool NewOutputPending;		/* not yet attempted to write some new output */
 Bool AnyClientsWriteBlocked;	/* true if some client blocked on write */
 
-Bool RunFromSmartParent;	/* send SIGUSR1 to parent process */
+static Bool RunFromSmartParent;	/* send SIGUSR1 to parent process */
 Bool PartialNetwork;		/* continue even if unable to bind all addrs */
 static Pid_t ParentProcess;
 #ifdef __UNIXOS2__
@@ -298,9 +298,9 @@ void ClearConnectionTranslation(void)
 }
 #endif
 
-XtransConnInfo 	*ListenTransConns = NULL;
-int	       	*ListenTransFds = NULL;
-int		ListenTransCount;
+static XtransConnInfo 	*ListenTransConns = NULL;
+static int	       	*ListenTransFds = NULL;
+static int		ListenTransCount;
 
 static void ErrorConnMax(XtransConnInfo /* trans_conn */);
 

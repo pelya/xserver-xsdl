@@ -53,7 +53,6 @@ char ** xf86ModulelistFromConfig(pointer **);
 char ** xf86DriverlistFromConfig(void);
 char ** xf86DriverlistFromCompile(void);
 char ** xf86InputDriverlistFromConfig(void);
-char ** xf86InputDriverlistFromCompile(void);
 Bool xf86BuiltinInputDriver(const char *);
 ConfigStatus xf86HandleConfigFile(Bool);
 

@@ -39,7 +39,7 @@ XVisualInfo *xnestVisuals;
 int xnestNumVisuals;
 int xnestDefaultVisualIndex;
 Colormap *xnestDefaultColormaps;
-int xnestNumDefaultColormaps;
+static int xnestNumDefaultColormaps;
 int *xnestDepths;
 int xnestNumDepths;
 XPixmapFormatValues *xnestPixmapFormats;

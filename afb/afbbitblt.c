@@ -67,9 +67,6 @@ SOFTWARE.
 #include "afb.h"
 #include "maskbits.h"
 
-
-static unsigned char afbRropsOS[AFB_MAX_DEPTH];
-
 /* CopyArea and CopyPlane for a monchrome frame buffer
 
 
@@ -126,34 +123,7 @@ afbDoBitblt(DrawablePtr pSrc, DrawablePtr pDst, int alu, RegionPtr prgnDst, DDXP
 typedef void (*afb_blit_func)
     (DrawablePtr, DrawablePtr, int, RegionPtr, DDXPointPtr, unsigned long);
 
-RegionPtr
-afbCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GC *pGC, int srcx, int srcy, int width, int height, int dstx, int dsty)
-{
-	afb_blit_func doBitBlt;
-
-	switch (pGC->alu) {
-		case GXcopy:
-			doBitBlt = afbDoBitbltCopy;
-			break;
-		case GXxor:
-			doBitBlt = afbDoBitbltXor;
-			break;
-		case GXcopyInverted:
-			doBitBlt = afbDoBitbltCopyInverted;
-			break;
-		case GXor:
-			doBitBlt = afbDoBitbltOr;
-			break;
-		default:
-			doBitBlt = afbDoBitbltGeneral;
-			break;
-	}
-
-	return(afbBitBlt(pSrcDrawable, pDstDrawable, pGC, srcx, srcy,
-			 width, height, dstx, dsty, doBitBlt, pGC->planemask));
-}
-
-RegionPtr
+static RegionPtr
 afbBitBlt(register DrawablePtr pSrcDrawable, register DrawablePtr pDstDrawable, register GC *pGC, int srcx, int srcy, int width, int height, int dstx, int dsty, afb_blit_func doBitBlt, long unsigned int planemask)
 {
 	RegionPtr prgnSrcClip = NULL;		/* may be a new region, or just a copy */
@@ -346,102 +316,28 @@ afbBitBlt(register DrawablePtr pSrcDrawable, register DrawablePtr pDstDrawable, 
 }
 
 RegionPtr
-afbCopyPlane(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, register GC *pGC, int srcx, int srcy, int width, int height, int dstx, int dsty, long unsigned int plane)
+afbCopyArea(DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable, GC *pGC, int srcx, int srcy, int width, int height, int dstx, int dsty)
 {
-	int alu;
-	RegionPtr		prgnExposed = NULL;
-	unsigned long old_planemask;
+	afb_blit_func doBitBlt;
 
-	if (pDstDrawable->depth == 1) {
-		old_planemask = pGC->planemask;
-		pGC->planemask = plane;
-		if ((pGC->fgPixel & 1) == 1 && (pGC->bgPixel & 1) == 0) {
-			prgnExposed = (*pGC->ops->CopyArea)(pSrcDrawable, pDstDrawable,
-							 pGC, srcx, srcy, width, height, dstx, dsty);
-		} else if ((pGC->fgPixel & 1) == (pGC->bgPixel & 1)) {
-			unsigned char rop;
-
-			afbReduceRop(pGC->alu, pGC->fgPixel, 1, 1, &rop);
-			alu = pGC->alu;
-			pGC->alu = rop;
-			prgnExposed = (*pGC->ops->CopyArea)(pSrcDrawable, pDstDrawable, pGC,
-															srcx, srcy, width, height, dstx,
-															dsty);
-			pGC->alu = alu;
-		} else { /* need to invert the src */
-			alu = pGC->alu;
-			pGC->alu = afbInverseAlu[alu];
-			prgnExposed = (*pGC->ops->CopyArea)(pSrcDrawable, pDstDrawable, pGC,
-															srcx, srcy, width, height, dstx,
-															dsty);
-			pGC->alu = alu;
-		}
-		pGC->planemask = old_planemask;
-	} else {
-		int free_pixmap = FALSE;
-		PixmapPtr pBitmap = (PixmapPtr)pSrcDrawable;
-		ScreenPtr pScreen = pSrcDrawable->pScreen;
-		GCPtr pGC1 = NULL;
-
-		if (pSrcDrawable == pDstDrawable ||
-			pSrcDrawable->type == DRAWABLE_WINDOW || pSrcDrawable->depth != 1) {
-			/* Copy a plane from source drawable to a tmp 1-bit deep pixmap */
-			/* XXX: Range check width and height */
-			pBitmap = (*pScreen->CreatePixmap)(pScreen, width, height, 1);
-
-			if (!pBitmap)
-				return(NULL);
-			pGC1 = GetScratchGC(1, pScreen);
-			if (!pGC1) {
-				(*pScreen->DestroyPixmap)(pBitmap);
-				return(NULL);
-			}
-			ValidateGC((DrawablePtr)pBitmap, pGC1);
-			(void)afbBitBlt(pSrcDrawable, (DrawablePtr)pBitmap, pGC1, srcx, srcy,
-								  width, height, 0, 0, afbDoBitbltCopy, plane);
-			free_pixmap = TRUE;
-		}
-#if 0
-		else {
-			/* XXX: could cope with N-deep pixmap source case without using tmp
-			 * src bitmap by setting up a scratch pixmap header and fiddle
-			 * around with the pbits pointer.
-			 */
-		}
-#endif
-		afbReduceOpaqueStipple(pGC->fgPixel, pGC->bgPixel, pGC->planemask,
-										pGC->depth, afbRropsOS);
-		(void)afbBitBlt((DrawablePtr)pBitmap, pDstDrawable, pGC, 0, 0, width,
-							  height, dstx, dsty, afbCopy1ToN, pGC->planemask);
-		if (free_pixmap) {
-			(*pScreen->DestroyPixmap)(pBitmap);
-			FreeScratchGC(pGC1);
-		}
-
-		if (pGC->fExpose)
-			prgnExposed = miHandleExposures(pSrcDrawable, pDstDrawable, pGC, srcx,
-													  srcy, width, height, dstx, dsty,
-													  plane);
+	switch (pGC->alu) {
+		case GXcopy:
+			doBitBlt = afbDoBitbltCopy;
+			break;
+		case GXxor:
+			doBitBlt = afbDoBitbltXor;
+			break;
+		case GXcopyInverted:
+			doBitBlt = afbDoBitbltCopyInverted;
+			break;
+		case GXor:
+			doBitBlt = afbDoBitbltOr;
+			break;
+		default:
+			doBitBlt = afbDoBitbltGeneral;
+			break;
 	}
-	return prgnExposed;
-}
 
-void
-afbCopy1ToN(DrawablePtr pSrc, DrawablePtr pDst, int alu, RegionPtr prgnDst, DDXPointPtr pptSrc, long unsigned int planemask)
-{
-	int numRects = REGION_NUM_RECTS(prgnDst);
-	BoxPtr pbox = REGION_RECTS(prgnDst);
-	int r;
-
-	for (r = 0; r < numRects; r++, pbox++, pptSrc++) {
-		int dx = pptSrc->x;
-		int dy = pptSrc->y;
-
-		if (alu == GXcopy)
-			afbOpaqueStippleAreaCopy(pDst, 1, pbox, alu, (PixmapPtr)pSrc, dx, dy,
-											  afbRropsOS, planemask);
-		else
-			afbOpaqueStippleAreaGeneral(pDst, 1, pbox, alu, (PixmapPtr)pSrc, dx,
-												  dy, afbRropsOS, planemask);
-	}
+	return(afbBitBlt(pSrcDrawable, pDstDrawable, pGC, srcx, srcy,
+			 width, height, dstx, dsty, doBitBlt, pGC->planemask));
 }

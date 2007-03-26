@@ -97,8 +97,8 @@ static miZeroArcPtRec oob = {65536, 65536, 0};
 
 _X_EXPORT Bool
 miZeroArcSetup(arc, info, ok360)
-    register xArc *arc;
-    register miZeroArcRec *info;
+    xArc *arc;
+    miZeroArcRec *info;
     Bool ok360;
 {
     int l;
@@ -401,14 +401,12 @@ miZeroArcSetup(arc, info, ok360)
 
 #define DoPix(idx,xval,yval) if (mask & (1 << idx)) Pixelate(xval, yval);
 
-DDXPointPtr
-miZeroArcPts(arc, pts)
-    xArc *arc;
-    register DDXPointPtr pts;
+static DDXPointPtr
+miZeroArcPts(xArc *arc, DDXPointPtr pts)
 {
     miZeroArcRec info;
-    register int x, y, a, b, d, mask;
-    register int k1, k3, dx, dy;
+    int x, y, a, b, d, mask;
+    int k1, k3, dx, dy;
     Bool do360;
 
     do360 = miZeroArcSetup(arc, &info, TRUE);
@@ -509,14 +507,14 @@ miZeroArcDashPts(
     GCPtr pGC,
     xArc *arc,
     DashInfo *dinfo,
-    register DDXPointPtr points,
+    DDXPointPtr points,
     int maxPts,
-    register DDXPointPtr *evenPts, 
-    register DDXPointPtr *oddPts )
+    DDXPointPtr *evenPts, 
+    DDXPointPtr *oddPts )
 {
     miZeroArcRec info;
-    register int x, y, a, b, d, mask;
-    register int k1, k3, dx, dy;
+    int x, y, a, b, d, mask;
+    int k1, k3, dx, dy;
     int dashRemaining;
     DDXPointPtr arcPts[4];
     DDXPointPtr startPts[5], endPts[5];
@@ -715,11 +713,11 @@ miZeroPolyArc(pDraw, pGC, narcs, parcs)
     xArc	*parcs;
 {
     int maxPts = 0;
-    register int n, maxw = 0;
-    register xArc *arc;
-    register int i;
+    int n, maxw = 0;
+    xArc *arc;
+    int i;
     DDXPointPtr points, pts, oddPts;
-    register DDXPointPtr pt;
+    DDXPointPtr pt;
     int numPts;
     Bool dospans;
     int *widths = NULL;

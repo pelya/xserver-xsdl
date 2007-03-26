@@ -171,9 +171,6 @@ extern RESTYPE		CompositeClientSubwindowsType;
  * compalloc.c
  */
 
-void
-compReportDamage (DamagePtr pDamage, RegionPtr pRegion, void *closure);
-
 Bool
 compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update);
 
@@ -291,18 +288,6 @@ compWindowUpdate (WindowPtr pWin);
 
 void
 deleteCompOverlayClientsForScreen (ScreenPtr pScreen);
-
-int
-ProcCompositeGetOverlayWindow (ClientPtr client);
-
-int
-ProcCompositeReleaseOverlayWindow (ClientPtr client);
-
-int
-SProcCompositeGetOverlayWindow (ClientPtr client);
-
-int
-SProcCompositeReleaseOverlayWindow (ClientPtr client);
 
 WindowPtr
 CompositeRealChildHead (WindowPtr pWin);

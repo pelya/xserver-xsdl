@@ -1427,6 +1427,8 @@ return 0;}
 			fi
 			if test "${OS_MINOR}" -lt 8 ; then
 				solaris_usl_console="yes"
+			else
+				XORG_CFLAGS="$XORG_CFLAGS -DXF86PM"
 			fi
 			;;
 		  *)

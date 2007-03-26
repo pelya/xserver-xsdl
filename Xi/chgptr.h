@@ -45,12 +45,4 @@ void SendEventToAllWindows(DeviceIntPtr /* dev */ ,
 			   int	/* count */
     );
 
-void FindInterestedChildren(	/* FIXME: could be static? */
-			       DeviceIntPtr /* dev */ ,
-			       WindowPtr /* p1 */ ,
-			       Mask /* mask */ ,
-			       xEvent * /* ev */ ,
-			       int	/* count */
-    );
-
 #endif /* CHGPTR_H */

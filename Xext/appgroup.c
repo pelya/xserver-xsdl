@@ -116,8 +116,7 @@ int XagAppGroupFree(
     return Success;
 }
 
-/* static */
-void XagClientStateChange(
+static void XagClientStateChange(
     CallbackListPtr* pcbl,
     pointer nulldata,
     pointer calldata)
@@ -169,21 +168,6 @@ void XagClientStateChange(
 	}
 	pClient->appgroup = NULL; /* redundant, pClient will be freed */
 	break;
-    }
-}
-
-void
-XagExtensionInit(INITARGS)
-{
-    if (AddExtension (XAGNAME,
-		      0,
-		      XagNumberErrors,
-		      ProcXagDispatch,
-		      SProcXagDispatch,
-		      XagResetProc,
-		      StandardMinorOpcode)) {
-	RT_APPGROUP = CreateNewResourceType (XagAppGroupFree);
-	XaceRegisterCallback(XACE_AUTH_AVAIL, XagCallClientStateChange, NULL);
     }
 }
 
@@ -393,8 +377,7 @@ int AttrValidate(
     return client->noClientException;
 }
 
-/* static */
-int ProcXagCreate (
+static int ProcXagCreate (
     register ClientPtr client)
 {
     REQUEST (xXagCreateReq);
@@ -425,8 +408,7 @@ int ProcXagCreate (
     return client->noClientException;
 }
 
-/* static */
-int ProcXagDestroy(
+static int ProcXagDestroy(
     register ClientPtr client)
 {
     AppGroupPtr pAppGrp;
@@ -743,18 +725,7 @@ XID XagId(
     return (client->appgroup ? client->appgroup->appgroupId : 0);
 }
 
-void XagGetDeltaInfo(
-    ClientPtr client,
-    CARD32* buf)
-{
-    *buf++ = (CARD32) client->appgroup->default_root;
-    *buf++ = (CARD32) client->appgroup->root_visual;
-    *buf++ = (CARD32) client->appgroup->default_colormap;
-    *buf++ = (CARD32) client->appgroup->black_pixel;
-    *buf = (CARD32) client->appgroup->white_pixel;
-}
-
-void XagCallClientStateChange(
+static void XagCallClientStateChange(
     CallbackListPtr *pcbl,
     pointer nulldata,
     pointer calldata)
@@ -783,5 +754,20 @@ void XagCallClientStateChange(
 
 	clientinfo.client = pClient;
 	XagClientStateChange (NULL, NULL, (pointer)&clientinfo);
+    }
+}
+
+void
+XagExtensionInit(INITARGS)
+{
+    if (AddExtension (XAGNAME,
+		      0,
+		      XagNumberErrors,
+		      ProcXagDispatch,
+		      SProcXagDispatch,
+		      XagResetProc,
+		      StandardMinorOpcode)) {
+	RT_APPGROUP = CreateNewResourceType (XagAppGroupFree);
+	XaceRegisterCallback(XACE_AUTH_AVAIL, XagCallClientStateChange, NULL);
     }
 }

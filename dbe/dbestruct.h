@@ -221,11 +221,6 @@ typedef struct _DbeScreenPrivRec
     void	(*ResetProc)(
 		ScreenPtr /*pScreen*/
 );
-    void	(*ValidateBuffer)(
-		WindowPtr /*pWin*/,
-		XID /*bufId*/,
-		Bool /*dstbuffer*/
-);
 
     /* Device-specific private information.
      */

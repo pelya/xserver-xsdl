@@ -109,7 +109,7 @@ extern void miSetZeroLineBias(
 }
   
 #define SWAPINT(i, j) \
-{  register int _t = i;  i = j;  j = _t; }
+{  int _t = i;  i = j;  j = _t; }
 
 #define SWAPPT(i, j) \
 {  DDXPointRec _t; _t = i;  i = j; j = _t; }

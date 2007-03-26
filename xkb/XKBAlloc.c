@@ -35,7 +35,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/Xproto.h>
 #include "misc.h"
 #include "inputstr.h"
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #include <X11/extensions/XKBgeom.h>
 
 /***===================================================================***/
@@ -259,7 +259,7 @@ XkbAllocControls(XkbDescPtr xkb,unsigned which)
 }
 
 /*ARGSUSED*/
-void
+static void
 XkbFreeControls(XkbDescPtr xkb,unsigned which,Bool freeMap)
 {
     if (freeMap && (xkb!=NULL) && (xkb->ctrls!=NULL)) {
@@ -284,7 +284,7 @@ XkbAllocIndicatorMaps(XkbDescPtr xkb)
     return Success;
 }
 
-void
+static void
 XkbFreeIndicatorMaps(XkbDescPtr xkb)
 {
     if ((xkb!=NULL)&&(xkb->indicators!=NULL)) {
@@ -333,156 +333,5 @@ XkbFreeKeyboard(XkbDescPtr xkb,unsigned which,Bool freeAll)
 	XkbFreeControls(xkb,XkbAllControlsMask,True);
     if (freeAll)
 	_XkbFree(xkb);
-    return;
-}
-
-/***====================================================================***/
-
-XkbDeviceLedInfoPtr
-XkbAddDeviceLedInfo(XkbDeviceInfoPtr devi,unsigned ledClass,unsigned ledId)
-{
-XkbDeviceLedInfoPtr	devli;
-register int		i;
-
-    if ((!devi)||(!XkbSingleXIClass(ledClass))||(!XkbSingleXIId(ledId)))
-	return NULL;
-    for (i=0,devli=devi->leds;i<devi->num_leds;i++,devli++) {
-	if ((devli->led_class==ledClass)&&(devli->led_id==ledId))
-	    return devli;
-    }
-    if (devi->num_leds>=devi->sz_leds) {
-	XkbDeviceLedInfoRec *prev_leds = devi->leds;
-	
-	if (devi->sz_leds>0)	devi->sz_leds*= 2;
-	else			devi->sz_leds= 1;
-	devi->leds= _XkbTypedRealloc(devi->leds,devi->sz_leds,
-							XkbDeviceLedInfoRec);
-	if (!devi->leds) {
-	    _XkbFree(prev_leds);
-	    devi->sz_leds= devi->num_leds= 0;
-	    return NULL;
-	}
-	i= devi->num_leds;
-	for (devli=&devi->leds[i];i<devi->sz_leds;i++,devli++) {
-	    bzero(devli,sizeof(XkbDeviceLedInfoRec));
-	    devli->led_class= XkbXINone;
-	    devli->led_id= XkbXINone;
-	}
-    }
-    devli= &devi->leds[devi->num_leds++];
-    bzero(devli,sizeof(XkbDeviceLedInfoRec));
-    devli->led_class= ledClass;
-    devli->led_id= ledId;
-    return devli;
-}
-
-Status
-XkbResizeDeviceButtonActions(XkbDeviceInfoPtr devi,unsigned newTotal)
-{
-    XkbAction *prev_btn_acts;
-
-    if ((!devi)||(newTotal>255))
-	return BadValue;
-    if ((devi->btn_acts!=NULL)&&(newTotal==devi->num_btns))
-	return Success;
-    if (newTotal==0) {
-	if (devi->btn_acts!=NULL) {
-	    _XkbFree(devi->btn_acts);
-	    devi->btn_acts= NULL;
-	}
-	devi->num_btns= 0;
-	return Success;
-    }
-    prev_btn_acts = devi->btn_acts;
-    devi->btn_acts= _XkbTypedRealloc(devi->btn_acts,newTotal,XkbAction);
-    if (devi->btn_acts==NULL) {
-	_XkbFree(prev_btn_acts);
-	devi->num_btns= 0;
-	return BadAlloc;
-    }
-    if (newTotal>devi->num_btns) {
-	XkbAction *act;
-	act= &devi->btn_acts[devi->num_btns];
-	bzero((char *)act,(newTotal-devi->num_btns)*sizeof(XkbAction));
-    }
-    devi->num_btns= newTotal;
-    return Success;
-}
-
-/*ARGSUSED*/
-XkbDeviceInfoPtr
-XkbAllocDeviceInfo(unsigned deviceSpec,unsigned nButtons,unsigned szLeds)
-{
-XkbDeviceInfoPtr	devi;
-
-    devi= _XkbTypedCalloc(1,XkbDeviceInfoRec);
-    if (devi!=NULL) {
-	devi->device_spec= deviceSpec;
-	devi->has_own_state= False;
-	devi->num_btns= 0;
-	devi->btn_acts= NULL;
-	if (nButtons>0) {
-	    devi->num_btns= nButtons;
-	    devi->btn_acts= _XkbTypedCalloc(nButtons,XkbAction);
-	    if (!devi->btn_acts) {
-		_XkbFree(devi);
-		return NULL;
-	    }
-	}
-	devi->dflt_kbd_fb= XkbXINone;
-	devi->dflt_led_fb= XkbXINone;
-	devi->num_leds= 0;
-	devi->sz_leds= 0;
-	devi->leds= NULL;
-	if (szLeds>0) {
-	    devi->sz_leds= szLeds;
-	    devi->leds= _XkbTypedCalloc(szLeds,XkbDeviceLedInfoRec);
-	    if (!devi->leds) {
-		if (devi->btn_acts)
-		    _XkbFree(devi->btn_acts);
-		_XkbFree(devi);
-		return NULL;
-	    }
-	}
-    }
-    return devi;
-}
-
-
-void 
-XkbFreeDeviceInfo(XkbDeviceInfoPtr devi,unsigned which,Bool freeDevI)
-{
-    if (devi) {
-	if (freeDevI) {
-	    which= XkbXI_AllDeviceFeaturesMask;
-	    if (devi->name) {
-		_XkbFree(devi->name);
-		devi->name= NULL;
-	    }
-	}
-	if ((which&XkbXI_ButtonActionsMask)&&(devi->btn_acts)) {
-	    _XkbFree(devi->btn_acts);
-	    devi->num_btns= 0;
-	    devi->btn_acts= NULL;
-	}
-	if ((which&XkbXI_IndicatorsMask)&&(devi->leds)) {
-	    register int i;
-	    if ((which&XkbXI_IndicatorsMask)==XkbXI_IndicatorsMask) {
-		_XkbFree(devi->leds);
-		devi->sz_leds= devi->num_leds= 0;
-		devi->leds= NULL;
-	    }
-	    else {
-		XkbDeviceLedInfoPtr	devli;
-		for (i=0,devli=devi->leds;i<devi->num_leds;i++,devli++) {
-		    if (which&XkbXI_IndicatorMapsMask)
-			 bzero((char *)&devli->maps[0],sizeof(devli->maps));
-		    else bzero((char *)&devli->names[0],sizeof(devli->names));
-		}
-	    }
-	}
-	if (freeDevI)
-	    _XkbFree(devi);
-    }
     return;
 }

@@ -1170,6 +1170,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMVAR(pciNumBuses)
 
     /* modes */
+    SYMVAR(xf86CrtcConfigPrivateIndex)
     SYMFUNC(xf86CrtcConfigInit)
     SYMFUNC(xf86CrtcConfigPrivateIndex)
     SYMFUNC(xf86CrtcCreate)
@@ -1220,6 +1221,11 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86RandR12SetConfig)
     SYMFUNC(xf86RandR12SetRotations)
 #endif
+    SYMFUNC(xf86_cursors_init)
+    SYMFUNC(xf86_reload_cursors)
+    SYMFUNC(xf86_show_cursors)
+    SYMFUNC(xf86_hide_cursors)
+    SYMFUNC(xf86_cursors_fini)
 
     SYMFUNC(xf86DoEDID_DDC1)
     SYMFUNC(xf86DoEDID_DDC2)

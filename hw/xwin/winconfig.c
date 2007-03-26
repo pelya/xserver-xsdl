@@ -40,7 +40,7 @@
 #ifndef XKB_IN_SERVER
 #define XKB_IN_SERVER
 #endif
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #endif
 
 #ifdef XWIN_XF86CONFIG

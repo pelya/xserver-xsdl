@@ -628,7 +628,7 @@ typedef struct _xf86_file_ {
 	char*	fname;
 } XF86FILE_priv;
 
-XF86FILE_priv stdhnd[3] = {
+static XF86FILE_priv stdhnd[3] = {
 	{ 0, XF86FILE_magic, NULL, "$stdinp$" },
 	{ 0, XF86FILE_magic, NULL, "$stdout$" },
 	{ 0, XF86FILE_magic, NULL, "$stderr$" }

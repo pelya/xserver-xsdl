@@ -1,10 +1,4 @@
 /*
- * mipointer.h
- *
- */
-
-
-/*
 
 Copyright 1989, 1998  The Open Group
 
@@ -171,15 +165,6 @@ extern void miPointerSetPosition(
 
 extern void miPointerUpdateSprite(
     DeviceIntPtr pDev);
-
-/* Moves the sprite to x, y on the current screen, and updates the event
- * history. */
-extern void miPointerMoved(
-    DeviceIntPtr pDev,
-    ScreenPtr pScreen,
-    int x,
-    int y,
-    unsigned long time);
 
 extern int miPointerScreenIndex;
 

@@ -49,7 +49,7 @@ Window xnestScreenSaverWindows[MAXSCREENS];
 extern void GlxWrapInitVisuals(miInitVisualsProcPtr *);
 #endif
 
-int xnestScreenGeneration = -1;
+static int xnestScreenGeneration = -1;
 
 ScreenPtr
 xnestScreen(Window window)

@@ -100,7 +100,6 @@ extern int xf86NumModuleInfos;
 extern int xf86NumDrivers;
 extern Bool xf86Resetting;
 extern Bool xf86Initialising;
-extern Bool xf86ProbeFailed;
 extern int xf86NumScreens;
 extern pciVideoPtr *xf86PciVideoInfo;
 extern xf86CurrentAccessRec xf86CurrentAccess;
@@ -155,7 +154,6 @@ extern int pciTestMultiDeviceCard(int bus, int dev, int func, PCITAG** pTag);
 
 /* xf86Config.c */
 
-Bool xf86PathIsAbsolute(const char *path);
 Bool xf86PathIsSafe(const char *path);
 
 /* xf86DefaultModes */

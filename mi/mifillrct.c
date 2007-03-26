@@ -74,16 +74,16 @@ miPolyFillRect(pDrawable, pGC, nrectFill, prectInit)
     xRectangle	*prectInit;  	/* Pointer to first rectangle to fill */
 {
     int i;
-    register int	height;
-    register int	width;
-    register xRectangle *prect; 
-    int			xorg;
-    register int	yorg;
-    int			maxheight;
-    DDXPointPtr		pptFirst;
-    register DDXPointPtr ppt;
-    int			*pwFirst;
-    register int 	*pw;
+    int	height;
+    int	width;
+    xRectangle *prect; 
+    int	xorg;
+    int	yorg;
+    int	maxheight;
+    DDXPointPtr	pptFirst;
+    DDXPointPtr ppt;
+    int	*pwFirst;
+    int *pw;
 
     if (pGC->miTranslate)
     {

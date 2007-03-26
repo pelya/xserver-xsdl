@@ -71,13 +71,6 @@ extern void miAppendSpans(
     Spans * /*spans*/
 );
 
-/* Paint a span group, possibly with some overlap */
-extern void miFillSpanGroup(
-    DrawablePtr /*pDraw*/,
-    GCPtr /*pGC*/,
-    SpanGroup * /*spanGroup*/
-);
-
 /* Paint a span group, insuring that each pixel is painted at most once */
 extern void miFillUniqueSpanGroup(
     DrawablePtr /*pDraw*/,
@@ -87,15 +80,6 @@ extern void miFillUniqueSpanGroup(
 
 /* Free up data in a span group.  MUST BE DONE or you'll suffer memory leaks */
 extern void miFreeSpanGroup(
-    SpanGroup * /*spanGroup*/
-);
-
-extern void miSubtractSpans(
-    SpanGroup * /*spanGroup*/,
-    Spans * /*sub*/
-);
-
-extern void miDisposeSpanGroup(
     SpanGroup * /*spanGroup*/
 );
 

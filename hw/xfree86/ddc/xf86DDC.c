@@ -15,52 +15,6 @@
 
 static const OptionInfoRec *DDCAvailableOptions(void *unused);
 
-#if DDC_MODULE
-
-static MODULESETUPPROTO(ddcSetup);
-
-static XF86ModuleVersionInfo ddcVersRec =
-{
-    "ddc",
-    MODULEVENDORSTRING,
-    MODINFOSTRING1,
-    MODINFOSTRING2,
-    XORG_VERSION_CURRENT,
-    1, 0, 0,
-    ABI_CLASS_VIDEODRV,		/* needs the video driver ABI */
-    ABI_VIDEODRV_VERSION,
-    MOD_CLASS_NONE,
-    {0,0,0,0}
-};
-
-_X_EXPORT XF86ModuleData ddcModuleData = { &ddcVersRec, ddcSetup, NULL };
-
-ModuleInfoRec DDC = {
-    1,
-    "DDC",
-    NULL,
-    0,
-    DDCAvailableOptions,
-};
-
-static pointer
-ddcSetup(pointer module, pointer opts, int *errmaj, int *errmin)
-{
-    static Bool setupDone = FALSE;
-
-    if (!setupDone) {
-	setupDone = TRUE;
-	xf86AddModuleInfo(&DDC, module);
-    } 
-    /*
-     * The return value must be non-NULL on success even though there
-     * is no TearDownProc.
-     */
-    return (pointer)1;
-}
-
-#endif
-
 #define RETRIES 4
 
 static unsigned char *EDIDRead_DDC1(
@@ -337,6 +291,12 @@ DDCRead_DDC2(int scrnIndex, I2CBusPtr pBus, int start, int len)
     unsigned char *R_Buffer;
     int i;
     
+    /*
+     * Slow down the bus so that older monitors don't 
+     * miss things.
+     */
+    pBus->RiseFallTime = 20;
+    
     if (!(dev = xf86I2CFindDev(pBus, 0x00A0))) {
 	dev = xf86CreateI2CDevRec();
 	dev->DevName = "ddc2";
@@ -344,7 +304,6 @@ DDCRead_DDC2(int scrnIndex, I2CBusPtr pBus, int start, int len)
 	dev->ByteTimeout = 2200; /* VESA DDC spec 3 p. 43 (+10 %) */
 	dev->StartTimeout = 550;
 	dev->BitTimeout = 40;
-	dev->ByteTimeout = 40;
 	dev->AcknTimeout = 40;
 
 	dev->pI2CBus = pBus;

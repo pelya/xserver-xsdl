@@ -197,8 +197,6 @@ static void receive_packet(int /*socketfd*/);
 
 static void send_packet(void);
 
-extern void XdmcpDeadSession(char * /*reason*/);
-
 static void timeout(void);
 
 static void restart(void);
@@ -213,10 +211,23 @@ static void XdmcpWakeupHandler(
     int /*i*/,
     pointer /*LastSelectMask*/);
 
-void XdmcpRegisterManufacturerDisplayID(
-    char    * /*name*/,
-    int	    /*length*/);
+/*
+ * Register the Manufacturer display ID
+ */
 
+static ARRAY8 ManufacturerDisplayID;
+
+static void
+XdmcpRegisterManufacturerDisplayID (char *name, int length)
+{
+    int	    i;
+
+    XdmcpDisposeARRAY8 (&ManufacturerDisplayID);
+    if (!XdmcpAllocARRAY8 (&ManufacturerDisplayID, length))
+	return;
+    for (i = 0; i < length; i++)
+	ManufacturerDisplayID.data[i] = (CARD8) name[i];
+}
 
 static unsigned short	xdm_udp_port = XDM_UDP_PORT;
 static Bool	OneSession = FALSE;
@@ -411,13 +422,13 @@ XdmcpRegisterAuthentication (
  * set by the manager of the host to be connected to.
  */
 
-ARRAY8		noAuthenticationName = {(CARD16) 0, (CARD8Ptr) 0};
-ARRAY8		noAuthenticationData = {(CARD16) 0, (CARD8Ptr) 0};
-ARRAY8Ptr	AuthenticationName = &noAuthenticationName;
-ARRAY8Ptr	AuthenticationData = &noAuthenticationData;
-AuthenticationFuncsPtr	AuthenticationFuncs;
+static ARRAY8		noAuthenticationName = {(CARD16) 0, (CARD8Ptr) 0};
+static ARRAY8		noAuthenticationData = {(CARD16) 0, (CARD8Ptr) 0};
+static ARRAY8Ptr	AuthenticationName = &noAuthenticationName;
+static ARRAY8Ptr	AuthenticationData = &noAuthenticationData;
+static AuthenticationFuncsPtr	AuthenticationFuncs;
 
-void
+static void
 XdmcpSetAuthentication (ARRAY8Ptr name)
 {
     int	i;
@@ -547,9 +558,9 @@ XdmcpRegisterAuthorization (char *name, int namelen)
  * Register the DisplayClass string
  */
 
-ARRAY8	DisplayClass;
+static ARRAY8	DisplayClass;
 
-void
+static void
 XdmcpRegisterDisplayClass (char *name, int length)
 {
     int	    i;
@@ -559,24 +570,6 @@ XdmcpRegisterDisplayClass (char *name, int length)
 	return;
     for (i = 0; i < length; i++)
 	DisplayClass.data[i] = (CARD8) name[i];
-}
-
-/*
- * Register the Manufacturer display ID
- */
-
-ARRAY8 ManufacturerDisplayID;
-
-void
-XdmcpRegisterManufacturerDisplayID (char *name, int length)
-{
-    int	    i;
-
-    XdmcpDisposeARRAY8 (&ManufacturerDisplayID);
-    if (!XdmcpAllocARRAY8 (&ManufacturerDisplayID, length))
-	return;
-    for (i = 0; i < length; i++)
-	ManufacturerDisplayID.data[i] = (CARD8) name[i];
 }
 
 /* 
@@ -776,7 +769,7 @@ XdmcpAddHost(
  * do the appropriate thing
  */
 
-ARRAY8	UnwillingMessage = { (CARD8) 14, (CARD8 *) "Host unwilling" };
+static ARRAY8	UnwillingMessage = { (CARD8) 14, (CARD8 *) "Host unwilling" };
 
 static void
 receive_packet(int socketfd)
@@ -867,7 +860,7 @@ send_packet(void)
  * timeouts, or Keepalive failure.
  */
 
-void
+static void
 XdmcpDeadSession (char *reason)
 {
     ErrorF ("XDM: %s, declaring session dead\n", reason);
@@ -960,21 +953,16 @@ restart(void)
     send_packet();
 }
 
-int
-XdmcpCheckAuthentication (
-    ARRAY8Ptr	Name,
-    ARRAY8Ptr	Data,
-    int	packet_type)
+static int
+XdmcpCheckAuthentication (ARRAY8Ptr Name, ARRAY8Ptr Data, int packet_type)
 {
     return (XdmcpARRAY8Equal (Name, AuthenticationName) &&
 	    (AuthenticationName->length == 0 ||
 	     (*AuthenticationFuncs->Validator) (AuthenticationData, Data, packet_type)));
 }
 
-int
-XdmcpAddAuthorization (
-    ARRAY8Ptr	name,
-    ARRAY8Ptr	data)
+static int
+XdmcpAddAuthorization (ARRAY8Ptr name, ARRAY8Ptr data)
 {
     AddAuthorFunc AddAuth;
 

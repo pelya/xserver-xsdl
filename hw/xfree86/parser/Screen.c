@@ -83,7 +83,7 @@ static xf86ConfigSymTabRec DisplayTab[] =
 
 #define CLEANUP xf86freeDisplayList
 
-XF86ConfDisplayPtr
+static XF86ConfDisplayPtr
 xf86parseDisplaySubSection (void)
 {
 	int token;

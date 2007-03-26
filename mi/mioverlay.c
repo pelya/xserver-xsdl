@@ -54,8 +54,8 @@ typedef struct {
 } miOverlayScreenRec, *miOverlayScreenPtr;
 
 static unsigned long miOverlayGeneration = 0;
-int miOverlayWindowIndex = -1;
-int miOverlayScreenIndex = -1;
+static int miOverlayWindowIndex = -1;
+static int miOverlayScreenIndex = -1;
 
 static void RebuildTree(WindowPtr);
 static Bool HasUnderlayChildren(WindowPtr);
@@ -1019,7 +1019,7 @@ miOverlayMoveWindow(
 static void 
 miOverlayWindowExposures(
     WindowPtr pWin,
-    register RegionPtr prgn,
+    RegionPtr prgn,
     RegionPtr other_exposed
 ){
     RegionPtr   exposures = prgn;
@@ -1106,7 +1106,7 @@ miOverlayRecomputeExposures (
     WindowPtr	pWin,
     pointer	value 
 ){
-    register ScreenPtr pScreen;
+    ScreenPtr pScreen;
     miOverlayTwoRegions	*pValid = (miOverlayTwoRegions*)value;
     miOverlayTreePtr pTree = MIOVERLAY_GET_WINDOW_TREE(pWin);
 
@@ -1161,10 +1161,10 @@ miOverlayResizeWindow(
     DDXPointRec oldpt;
     RegionPtr oldRegion = NULL, oldRegion2 = NULL;
     WindowPtr pFirstChange;
-    register WindowPtr pChild;
+    WindowPtr pChild;
     RegionPtr	gravitate[StaticGravity + 1];
     RegionPtr	gravitate2[StaticGravity + 1];
-    register unsigned g;
+    unsigned 	g;
     int		nx, ny;		/* destination x,y */
     int		newx, newy;	/* new inner window position */
     RegionPtr	pRegion = NULL;
@@ -1669,7 +1669,7 @@ miOverlayChangeBorderWidth(
     unsigned int width
 ){
     int oldwidth;
-    register ScreenPtr pScreen;
+    ScreenPtr pScreen;
     Bool WasViewable = (Bool)(pWin->viewable);
     Bool HadBorder;
 #ifdef DO_SAVE_UNDERS

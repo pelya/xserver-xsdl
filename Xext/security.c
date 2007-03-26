@@ -71,7 +71,7 @@ typedef struct {
 #define AUTHID(client) \
     (((SecurityClientStateRec*)STATEPTR(client))->authId)
 
-CallbackListPtr SecurityValidateGroupCallback = NULL;  /* see security.h */
+static CallbackListPtr SecurityValidateGroupCallback = NULL;
 
 RESTYPE SecurityAuthorizationResType; /* resource type for authorizations */
 

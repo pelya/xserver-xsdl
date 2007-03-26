@@ -125,8 +125,8 @@ miResolveColor(unsigned short *pred, unsigned short *pgreen,
 _X_EXPORT Bool
 miInitializeColormap(ColormapPtr pmap)
 {
-    register unsigned i;
-    register VisualPtr pVisual;
+    unsigned i;
+    VisualPtr pVisual;
     unsigned lim, maxent, shift;
 
     pVisual = pmap->pVisual;
@@ -211,13 +211,13 @@ _X_EXPORT int
 miExpandDirectColors(ColormapPtr pmap, int ndef, xColorItem *indefs,
 			xColorItem *outdefs)
 {
-    register int    red, green, blue;
-    int		    maxred, maxgreen, maxblue;
-    int		    stepred, stepgreen, stepblue;
-    VisualPtr	    pVisual;
-    register int    pixel;
-    register int    nresult;
-    register int    i;
+    int	        red, green, blue;
+    int	        maxred, maxgreen, maxblue;
+    int	        stepred, stepgreen, stepblue;
+    VisualPtr   pVisual;
+    int         pixel;
+    int         nresult;
+    int         i;
 
     pVisual = pmap->pVisual;
 

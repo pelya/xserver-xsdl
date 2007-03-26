@@ -2082,7 +2082,7 @@ Implements the IMUL instruction and side effects.
 void imul_long_direct(u32 *res_lo, u32* res_hi,u32 d, u32 s)
 {
 #ifdef	__HAS_LONG_LONG__
-	s64 res = (s32)d * (s32)s;
+	s64 res = (s64)(s32)d * (s32)s;
 
 	*res_lo = (u32)res;
 	*res_hi = (u32)(res >> 32);
@@ -2174,7 +2174,7 @@ Implements the MUL instruction and side effects.
 void mul_long(u32 s)
 {
 #ifdef	__HAS_LONG_LONG__
-	u64 res = (u32)M.x86.R_EAX * (u32)s;
+	u64 res = (u64)M.x86.R_EAX * s;
 
 	M.x86.R_EAX = (u32)res;
 	M.x86.R_EDX = (u32)(res >> 32);

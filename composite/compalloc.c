@@ -48,7 +48,7 @@
 
 #include "compint.h"
 
-void
+static void
 compReportDamage (DamagePtr pDamage, RegionPtr pRegion, void *closure)
 {
     WindowPtr	    pWin = (WindowPtr) closure;

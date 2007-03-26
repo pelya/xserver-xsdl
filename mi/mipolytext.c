@@ -66,30 +66,6 @@ SOFTWARE.
 #include	"dixfontstr.h"
 #include	"mi.h"
 
-int
-miPolyText(pDraw, pGC, x, y, count, chars, fontEncoding)
-    DrawablePtr pDraw;
-    GCPtr	pGC;
-    int		x, y;
-    int		count;
-    char 	*chars;
-    FontEncoding fontEncoding;
-{
-    unsigned long n, i;
-    int w;
-    CharInfoPtr charinfo[255];	/* encoding only has 1 byte for count */
-
-    GetGlyphs(pGC->font, (unsigned long)count, (unsigned char *)chars,
-	      fontEncoding, &n, charinfo);
-    w = 0;
-    for (i=0; i < n; i++) w += charinfo[i]->metrics.characterWidth;
-    if (n != 0)
-        (*pGC->ops->PolyGlyphBlt)(
-	    pDraw, pGC, x, y, n, charinfo, FONTGLYPHS(pGC->font));
-    return x+w;
-}
-
-
 _X_EXPORT int
 miPolyText8(pDraw, pGC, x, y, count, chars)
     DrawablePtr pDraw;
@@ -111,7 +87,6 @@ miPolyText8(pDraw, pGC, x, y, count, chars)
 	    pDraw, pGC, x, y, n, charinfo, FONTGLYPHS(pGC->font));
     return x+w;
 }
-
 
 _X_EXPORT int
 miPolyText16(pDraw, pGC, x, y, count, chars)
@@ -136,31 +111,6 @@ miPolyText16(pDraw, pGC, x, y, count, chars)
     return x+w;
 }
 
-
-int
-miImageText(pDraw, pGC, x, y, count, chars, fontEncoding)
-    DrawablePtr pDraw;
-    GCPtr	pGC;
-    int 	x, y;
-    int 	count;
-    char 	*chars;
-    FontEncoding fontEncoding;
-{
-    unsigned long n, i;
-    FontPtr font = pGC->font;
-    int w;
-    CharInfoPtr charinfo[255];
-
-    GetGlyphs(font, (unsigned long)count, (unsigned char *)chars,
-	      fontEncoding, &n, charinfo);
-    w = 0;
-    for (i=0; i < n; i++) w += charinfo[i]->metrics.characterWidth;
-    if (n !=0 )
-        (*pGC->ops->ImageGlyphBlt)(pDraw, pGC, x, y, n, charinfo, FONTGLYPHS(font));
-    return x+w;
-}
-
-
 _X_EXPORT void
 miImageText8(pDraw, pGC, x, y, count, chars)
     DrawablePtr pDraw;
@@ -178,7 +128,6 @@ miImageText8(pDraw, pGC, x, y, count, chars)
     if (n !=0 )
         (*pGC->ops->ImageGlyphBlt)(pDraw, pGC, x, y, n, charinfo, FONTGLYPHS(font));
 }
-
 
 _X_EXPORT void
 miImageText16(pDraw, pGC, x, y, count, chars)

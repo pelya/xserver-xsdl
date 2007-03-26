@@ -28,6 +28,7 @@
 #include "xf86Rename.h"
 #endif
 #include "xf86Modes.h"
+#include "xf86Cursor.h"
 #include "damage.h"
 
 /* Compat definitions for older X Servers. */
@@ -36,6 +37,9 @@
 #endif
 #ifndef M_T_DRIVER
 #define M_T_DRIVER	0x40
+#endif
+#ifndef HARDWARE_CURSOR_ARGB
+#define HARDWARE_CURSOR_ARGB				0x00004000
 #endif
 
 typedef struct _xf86Crtc xf86CrtcRec, *xf86CrtcPtr;
@@ -155,6 +159,42 @@ typedef struct _xf86CrtcFuncs {
     (*shadow_destroy) (xf86CrtcPtr crtc, PixmapPtr pPixmap, void *data);
 
     /**
+     * Set cursor colors
+     */
+    void
+    (*set_cursor_colors) (xf86CrtcPtr crtc, int bg, int fg);
+
+    /**
+     * Set cursor position
+     */
+    void
+    (*set_cursor_position) (xf86CrtcPtr crtc, int x, int y);
+
+    /**
+     * Show cursor
+     */
+    void
+    (*show_cursor) (xf86CrtcPtr crtc);
+
+    /**
+     * Hide cursor
+     */
+    void
+    (*hide_cursor) (xf86CrtcPtr crtc);
+
+    /**
+     * Load monochrome image
+     */
+    void
+    (*load_cursor_image) (xf86CrtcPtr crtc, CARD8 *image);
+
+    /**
+     * Load ARGB image
+     */
+     void
+     (*load_cursor_argb) (xf86CrtcPtr crtc, CARD32 *image);
+     
+    /**
      * Clean up driver-specific bits of the crtc
      */
     void
@@ -173,12 +213,6 @@ struct _xf86Crtc {
      * Set when this CRTC is driving one or more outputs 
      */
     Bool	    enabled;
-    
-    /** Track whether cursor is within CRTC range  */
-    Bool	    cursorInRange;
-    
-    /** Track state of cursor associated with this CRTC */
-    Bool	    cursorShown;
     
     /**
      * Active mode
@@ -232,6 +266,19 @@ struct _xf86Crtc {
 #else
     void	    *randr_crtc;
 #endif
+
+    /**
+     * Current cursor is ARGB
+     */
+    Bool	    cursor_argb;
+    /**
+     * Track whether cursor is within CRTC range 
+     */
+    Bool	    cursor_in_range;
+    /**
+     * Track state of cursor associated with this CRTC
+     */
+    Bool	    cursor_shown;
 };
 
 typedef struct _xf86OutputFuncs {
@@ -482,7 +529,8 @@ typedef struct _xf86CrtcConfig {
     int			maxWidth, maxHeight;
     
     /* For crtc-based rotation */
-    DamagePtr   rotationDamage;
+    DamagePtr		rotation_damage;
+    Bool		rotation_damage_registered;
 
     /* DGA */
     unsigned int	dga_flags;
@@ -495,6 +543,15 @@ typedef struct _xf86CrtcConfig {
     const xf86CrtcConfigFuncsRec *funcs;
 
     CreateScreenResourcesProcPtr    CreateScreenResources;
+
+    CloseScreenProcPtr		    CloseScreen;
+
+    /* Cursor information */
+    xf86CursorInfoPtr	cursor_info;
+    CursorPtr		cursor;
+    CARD8		*cursor_image;
+    Bool		cursor_on;
+    CARD32		cursor_fg, cursor_bg;
 } xf86CrtcConfigRec, *xf86CrtcConfigPtr;
 
 extern int xf86CrtcConfigPrivateIndex;
@@ -537,6 +594,12 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
  */
 Bool
 xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation);
+
+/*
+ * Clean up rotation during CloseScreen
+ */
+void
+xf86RotateCloseScreen (ScreenPtr pScreen);
 
 /**
  * Return whether any output is assigned to the crtc
@@ -637,4 +700,41 @@ xf86ConnectorGetName(xf86ConnectorType connector);
 Bool
 xf86SetDesiredModes (ScrnInfoPtr pScrn);
 
+/**
+ * Initialize the CRTC-based cursor code. CRTC function vectors must
+ * contain relevant cursor setting functions.
+ *
+ * Driver should call this from ScreenInit function
+ */
+Bool
+xf86_cursors_init (ScreenPtr screen, int max_width, int max_height, int flags);
+
+/**
+ * Called when anything on the screen is reconfigured.
+ *
+ * Reloads cursor images as needed, then adjusts cursor positions.
+ * 
+ * Driver should call this from crtc commit function.
+ */
+void
+xf86_reload_cursors (ScreenPtr screen);
+
+/**
+ * Called from EnterVT to turn the cursors back on
+ */
+void
+xf86_show_cursors (ScrnInfoPtr scrn);
+
+/**
+ * Called by the driver to turn cursors off
+ */
+void
+xf86_hide_cursors (ScrnInfoPtr scrn);
+
+/**
+ * Clean up CRTC-based cursor code. Driver must call this at CloseScreen time.
+ */
+void
+xf86_cursors_fini (ScreenPtr screen);
+    
 #endif /* _XF86CRTC_H_ */

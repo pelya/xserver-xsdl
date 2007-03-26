@@ -73,6 +73,20 @@ miRROutputSetProperty (ScreenPtr	    pScreen,
     return TRUE;
 }
 
+Bool
+miRROutputValidateMode (ScreenPtr	    pScreen,
+			RROutputPtr	    output,
+			RRModePtr	    mode)
+{
+    return FALSE;
+}
+
+void
+miRRModeDestroy (ScreenPtr  pScreen,
+		 RRModePtr  mode)
+{
+}
+
 /*
  * This function assumes that only a single depth can be
  * displayed at a time, but that all visuals of that depth
@@ -102,7 +116,8 @@ miRandRInit (ScreenPtr pScreen)
     pScrPriv->rrCrtcSet = miRRCrtcSet;
     pScrPriv->rrCrtcSetGamma = miRRCrtcSetGamma;
     pScrPriv->rrOutputSetProperty = miRROutputSetProperty;
-    
+    pScrPriv->rrOutputValidateMode = miRROutputValidateMode;
+    pScrPriv->rrModeDestroy = miRRModeDestroy;
     
     RRScreenSetSizeRange (pScreen,
 			  pScreen->width, pScreen->height,
@@ -118,19 +133,12 @@ miRandRInit (ScreenPtr pScreen)
     if (!mode)
 	return FALSE;
     
-    crtc = RRCrtcCreate (NULL);
+    crtc = RRCrtcCreate (pScreen, NULL);
     if (!crtc)
 	return FALSE;
-    if (!RRCrtcAttachScreen (crtc, pScreen))
-    {
-	RRCrtcDestroy (crtc);
-	return FALSE;
-    }
     
-    output = RROutputCreate ("screen", 6, NULL);
+    output = RROutputCreate (pScreen, "screen", 6, NULL);
     if (!output)
-	return FALSE;
-    if (!RROutputAttachScreen (output, pScreen))
 	return FALSE;
     if (!RROutputSetClones (output, NULL, 0))
 	return FALSE;

@@ -44,7 +44,7 @@
 #include "dix.h"
 #include <X11/extensions/XKBstr.h>
 #define XKBSRV_NEED_FILE_FUNCS	1
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #include <X11/extensions/XKBgeom.h>
 #include "xkb.h"
 
@@ -129,76 +129,6 @@ unsigned	set,rtrn;
 	    break;
     }
     return rtrn;
-}
-
-/***===================================================================***/
-
-Bool
-XkbLookupGroupAndLevel(	XkbDescPtr 	xkb,
-			int 		key,
-			int *		mods_inout,
-			int *		grp_inout,
-			int *		lvl_rtrn)
-{
-int		nG,eG;
-
-    if ((!xkb)||(!XkbKeycodeInRange(xkb,key))||(!grp_inout))
-	return False;
-
-    nG= XkbKeyNumGroups(xkb,key);
-    eG= *grp_inout;
-
-    if ( nG==0 ) {
-	*grp_inout= 0;
-	if (lvl_rtrn!=NULL)
-	    *lvl_rtrn= 0;
-	return False;
-    }
-    else if ( nG==1 ) {
-	eG= 0;
-    }
-    else if ( eG>=nG ) {
-	unsigned gI= XkbKeyGroupInfo(xkb,key);
-	switch (XkbOutOfRangeGroupAction(gI)) {
-	    default:
-		eG %= nG;
-		break;
-	    case XkbClampIntoRange:
-		eG = nG-1;
-		break;
-	    case XkbRedirectIntoRange:
-		eG = XkbOutOfRangeGroupNumber(gI);
-		if (eG>=nG)
-		    eG= 0;
-		break;
-	}
-    }
-    *grp_inout= eG;
-    if (mods_inout!=NULL) {
-	XkbKeyTypePtr	type;
-	int		preserve;
-
-	type = XkbKeyKeyType(xkb,key,eG);
-	if (lvl_rtrn!=NULL)
-	    *lvl_rtrn= 0;
-	preserve= 0;
-	if (type->map) { /* find the shift level */
-	    register int i;
-	    register XkbKTMapEntryPtr entry;
-	    for (i=0,entry=type->map;i<type->map_count;i++,entry++) {
-		if ((entry->active)&&
-			(((*mods_inout)&type->mods.mask)==entry->mods.mask)){
-		    if (lvl_rtrn!=NULL)
-			*lvl_rtrn= entry->level;
-		    if (type->preserve)
-			preserve= type->preserve[i].mask;
-		    break;
-		}
-	    }
-	}
-	(*mods_inout)&= ~(type->mods.mask&(~preserve));
-    }
-    return True;
 }
 
 /***===================================================================***/
@@ -416,15 +346,6 @@ XkbFileInfo	finfo;
 
 /***====================================================================***/
 
-/*ARGSUSED*/
-Status
-XkbMergeFile(XkbDescPtr xkb,XkbFileInfo finfo)
-{
-    return BadImplementation;
-}
-
-/***====================================================================***/
-
 int
 XkbFindKeycodeByName(XkbDescPtr xkb,char *name,Bool use_aliases)
 {
@@ -480,34 +401,6 @@ unsigned	rtrn;
 	if (orig&XkmKeyNamesMask)		rtrn|= XkbGBN_KeyNamesMask;
 	if (orig&XkmGeometryMask)		rtrn|= XkbGBN_GeometryMask;
 	if (orig!=0)				rtrn|= XkbGBN_OtherNamesMask;
-    }
-    return rtrn;
-}
-
-unsigned
-XkbConvertXkbComponents(Bool toXkm,unsigned orig)
-{
-unsigned	rtrn;
-
-    rtrn= 0;
-    if (toXkm) {
-	if (orig&XkbClientMapMask)	rtrn|= XkmTypesMask|XkmSymbolsMask;
-	if (orig&XkbServerMapMask)	rtrn|= XkmTypesMask|XkmSymbolsMask;
-	if (orig&XkbCompatMapMask)	rtrn|= XkmCompatMapMask;
-	if (orig&XkbIndicatorMapMask)	rtrn|= XkmIndicatorsMask;
-	if (orig&XkbNamesMask)		rtrn|= XkmKeyNamesMask;
-	if (orig&XkbGeometryMask)	rtrn|= XkmGeometryMask;
-    }
-    else {
-	if (orig!=0)			rtrn|= XkbNamesMask;
-	if (orig&XkmTypesMask)		rtrn|= XkbClientMapMask;
-	if (orig&XkmCompatMapMask)
-		rtrn|= XkbCompatMapMask|XkbIndicatorMapMask;
-	if (orig&XkmSymbolsMask)	rtrn|=XkbClientMapMask|XkbServerMapMask;
-	if (orig&XkmIndicatorsMask)	rtrn|= XkbIndicatorMapMask;
-	if (orig&XkmKeyNamesMask)	
-		rtrn|= XkbNamesMask|XkbIndicatorMapMask;
-	if (orig&XkmGeometryMask)	rtrn|= XkbGeometryMask;
     }
     return rtrn;
 }

@@ -19,10 +19,10 @@ extern int PanoramiXGetGeometry(ClientPtr client);
 extern int PanoramiXTranslateCoords(ClientPtr client);	
 extern int PanoramiXCreatePixmap(ClientPtr client);
 extern int PanoramiXFreePixmap(ClientPtr client);
-extern int PanoramiXCreateGC(ClientPtr client);
 extern int PanoramiXChangeGC(ClientPtr client);
 extern int PanoramiXCopyGC(ClientPtr client);
 extern int PanoramiXCopyColormapAndFree(ClientPtr client);
+extern int PanoramiXCreateGC(ClientPtr client);
 extern int PanoramiXSetDashes(ClientPtr client);
 extern int PanoramiXSetClipRectangles(ClientPtr client);
 extern int PanoramiXFreeGC(ClientPtr client);
@@ -64,7 +64,6 @@ PROC_EXTERN(ProcPanoramiXGetScreenSize);
  
 PROC_EXTERN(ProcXineramaQueryScreens);
 PROC_EXTERN(ProcXineramaIsActive);
-extern Bool XineramaCreateGC(GCPtr pGC);
 
 extern int SProcPanoramiXDispatch(ClientPtr client);
 
@@ -72,6 +71,4 @@ extern char *ConnectionInfo;
 extern int connBlockScreenStart;
 extern xConnSetupPrefix connSetupPrefix;
 
-extern ScreenInfo *GlobalScrInfo;
 extern int (* SavedProcVector[256]) (ClientPtr client);
-

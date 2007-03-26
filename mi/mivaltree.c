@@ -112,13 +112,13 @@ miShapedWindowIn (pScreen, universe, bounding, rect, x, y)
     ScreenPtr	pScreen;
     RegionPtr	universe, bounding;
     BoxPtr	rect;
-    register int x, y;
+    int 	x, y;
 {
-    BoxRec  box;
-    register BoxPtr  boundBox;
-    int	    nbox;
-    Bool    someIn, someOut;
-    register int t, x1, y1, x2, y2;
+    BoxRec  	box;
+    BoxPtr	boundBox;
+    int		nbox;
+    Bool	someIn, someOut;
+    int 	t, x1, y1, x2, y2;
 
     nbox = REGION_NUM_RECTS (bounding);
     boundBox = REGION_RECTS (bounding);
@@ -202,16 +202,16 @@ miRegisterRedirectBorderClipProc (SetRedirectBorderClipProcPtr setBorderClip,
  */
 static void
 miComputeClips (
-    register WindowPtr	pParent,
-    register ScreenPtr	pScreen,
-    register RegionPtr	universe,
+    WindowPtr	pParent,
+    ScreenPtr	pScreen,
+    RegionPtr	universe,
     VTKind		kind,
     RegionPtr		exposed ) /* for intermediate calculations */
 {
     int			dx,
 			dy;
     RegionRec		childUniverse;
-    register WindowPtr	pChild;
+    WindowPtr		pChild;
     int     	  	oldVis, newVis;
     BoxRec		borderSize;
     RegionRec		childUnion;
@@ -535,10 +535,10 @@ miComputeClips (
 
 static void
 miTreeObscured(
-    register WindowPtr pParent )
+    WindowPtr pParent )
 {
-    register WindowPtr pChild;
-    register int    oldVis;
+    WindowPtr 	pChild;
+    int    	oldVis;
 
     pChild = pParent;
     while (1)
@@ -609,8 +609,8 @@ miValidateTree (pParent, pChild, kind)
     RegionRec		childUnion; /* the space covered by borderSize for
 				     * all marked children */
     RegionRec		exposed;    /* For intermediate calculations */
-    register ScreenPtr	pScreen;
-    register WindowPtr	pWin;
+    ScreenPtr		pScreen;
+    WindowPtr		pWin;
     Bool		overlap;
     int			viewvals;
     Bool		forward;

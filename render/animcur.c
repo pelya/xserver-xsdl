@@ -87,8 +87,8 @@ static CursorBits   animCursorBits = {
     empty, empty, 2, 1, 1, 0, 0, 1
 };
 
-int	AnimCurScreenPrivateIndex = -1;
-int	AnimCurGeneration;
+static int AnimCurScreenPrivateIndex = -1;
+static int AnimCurGeneration;
 
 #define IsAnimCur(c)	    ((c)->bits == &animCursorBits)
 #define GetAnimCur(c)	    ((AnimCurPtr) ((c) + 1))

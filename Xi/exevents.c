@@ -994,33 +994,7 @@ ChangeKeyMapping(ClientPtr client,
     return client->noClientException;
 }
 
-void
-DeleteWindowFromAnyExtEvents(WindowPtr pWin, Bool freeResources)
-{
-    int i;
-    DeviceIntPtr dev;
-    InputClientsPtr ic;
-    struct _OtherInputMasks *inputMasks;
-
-    for (dev = inputInfo.devices; dev; dev = dev->next) {
-	if (dev == inputInfo.pointer || dev == inputInfo.keyboard)
-	    continue;
-	DeleteDeviceFromAnyExtEvents(pWin, dev);
-    }
-
-    for (dev = inputInfo.off_devices; dev; dev = dev->next)
-	DeleteDeviceFromAnyExtEvents(pWin, dev);
-
-    if (freeResources)
-	while ((inputMasks = wOtherInputMasks(pWin)) != 0) {
-	    ic = inputMasks->inputClients;
-	    for (i = 0; i < EMASKSIZE; i++)
-		inputMasks->dontPropagateMask[i] = 0;
-	    FreeResource(ic->resource, RT_NONE);
-	}
-}
-
-void
+static void
 DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
 {
     WindowPtr parent;
@@ -1085,6 +1059,32 @@ DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
 	    dev->valuator->motionHintWindow = NullWindow;
 }
 
+void
+DeleteWindowFromAnyExtEvents(WindowPtr pWin, Bool freeResources)
+{
+    int i;
+    DeviceIntPtr dev;
+    InputClientsPtr ic;
+    struct _OtherInputMasks *inputMasks;
+
+    for (dev = inputInfo.devices; dev; dev = dev->next) {
+	if (dev == inputInfo.pointer || dev == inputInfo.keyboard)
+	    continue;
+	DeleteDeviceFromAnyExtEvents(pWin, dev);
+    }
+
+    for (dev = inputInfo.off_devices; dev; dev = dev->next)
+	DeleteDeviceFromAnyExtEvents(pWin, dev);
+
+    if (freeResources)
+	while ((inputMasks = wOtherInputMasks(pWin)) != 0) {
+	    ic = inputMasks->inputClients;
+	    for (i = 0; i < EMASKSIZE; i++)
+		inputMasks->dontPropagateMask[i] = 0;
+	    FreeResource(ic->resource, RT_NONE);
+	}
+}
+
 int
 MaybeSendDeviceMotionNotifyHint(deviceKeyButtonPointer * pEvents, Mask mask)
 {
@@ -1138,7 +1138,7 @@ CheckDeviceGrabAndHintWindow(WindowPtr pWin, int type,
     }
 }
 
-Mask
+static Mask
 DeviceEventMaskForClient(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client)
 {
     register InputClientsPtr other;
@@ -1223,7 +1223,7 @@ ShouldFreeInputMasks(WindowPtr pWin, Bool ignoreSelectedEvents)
  *
  */
 
-void
+static void
 FindInterestedChildren(DeviceIntPtr dev, WindowPtr p1, Mask mask,
                        xEvent * ev, int count)
 {

@@ -82,16 +82,6 @@ extern int XaceHook(
 /* From the original Security extension...
  */
 
-/* Proc vectors for untrusted clients, swapped and unswapped versions.
- * These are the same as the normal proc vectors except that extensions
- * that haven't declared themselves secure will have ProcBadRequest plugged
- * in for their major opcode dispatcher.  This prevents untrusted clients
- * from guessing extension major opcodes and using the extension even though
- * the extension can't be listed or queried.
- */
-extern int (*UntrustedProcVector[256])(ClientPtr client);
-extern int (*SwappedUntrustedProcVector[256])(ClientPtr client);
-
 extern void XaceCensorImage(
     ClientPtr client,
     RegionPtr pVisibleRegion,

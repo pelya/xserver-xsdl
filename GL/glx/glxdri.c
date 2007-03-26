@@ -495,6 +495,7 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
     context->base.loseCurrent       = __glXDRIcontextLoseCurrent;
     context->base.copy              = __glXDRIcontextCopy;
     context->base.forceCurrent      = __glXDRIcontextForceCurrent;
+    context->base.pScreen           = screen->base.pScreen;
 
     context->base.textureFromPixmap = &__glXDRItextureFromPixmap;
 
