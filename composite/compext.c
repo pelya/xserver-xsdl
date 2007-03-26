@@ -678,6 +678,12 @@ CompositeExtensionInit (void)
     ExtensionEntry  *extEntry;
     int		    s;
 
+    /* Ensure that Render is initialized on all screens. */
+    for (s = 0; s < screenInfo.numScreens; s++) {
+	if (GetPictureScreenIfSet(screenInfo.screens[s]) == NULL)
+	    return;
+    }
+
     CompositeClientWindowType = CreateNewResourceType (FreeCompositeClientWindow);
     if (!CompositeClientWindowType)
 	return;
