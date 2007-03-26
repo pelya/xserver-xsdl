@@ -129,12 +129,6 @@ typedef struct _Window {
     unsigned		viewable:1;	/* realized && InputOutput */
     unsigned		dontPropagate:3;/* index into DontPropagateMasks */
     unsigned		forcedBS:1;	/* system-supplied backingStore */
-#ifdef NEED_DBE_BUF_BITS
-#define DBE_FRONT_BUFFER 1
-#define DBE_BACK_BUFFER  0
-    unsigned		dstBuffer:1;	/* destination buffer for rendering */
-    unsigned		srcBuffer:1;	/* source buffer for rendering */
-#endif
 #ifdef COMPOSITE
     unsigned		redirectDraw:1;	/* rendering is redirected from here */
 #endif

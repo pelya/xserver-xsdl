@@ -1803,8 +1803,6 @@ ProcCopyArea(ClientPtr client)
     else
         pSrc = pDst;
 
-    SET_DBE_SRCBUF(pSrc, stuff->srcDrawable);
-
     pRgn = (*pGC->ops->CopyArea)(pSrc, pDst, pGC, stuff->srcX, stuff->srcY,
 				 stuff->width, stuff->height, 
 				 stuff->dstX, stuff->dstY);
@@ -1846,8 +1844,6 @@ ProcCopyPlane(ClientPtr client)
     }
     else
         psrcDraw = pdstDraw;
-
-    SET_DBE_SRCBUF(psrcDraw, stuff->srcDrawable);
 
     /* Check to see if stuff->bitPlane has exactly ONE good bit set */
     if(stuff->bitPlane == 0 || (stuff->bitPlane & (stuff->bitPlane - 1)) ||
@@ -2207,8 +2203,6 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
 	    return(BadMatch);
 	xgi.visual = None;
     }
-
-    SET_DBE_SRCBUF(pDraw, drawable);
 
     xgi.type = X_Reply;
     xgi.sequenceNumber = client->sequence;

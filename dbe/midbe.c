@@ -759,11 +759,6 @@ miDbeResetProc(ScreenPtr pScreen)
 
 } /* miDbeResetProc() */
 
-static void
-miDbeNopValidateBuffer(WindowPtr pWin, XID bufId, Bool dstbuffer)
-{
-}
-
 
 /******************************************************************************
  *
@@ -820,9 +815,6 @@ miDbeInit(ScreenPtr pScreen, DbeScreenPrivPtr pDbeScreenPriv)
     pDbeScreenPriv->EndIdiom              = 0;
     pDbeScreenPriv->ResetProc             = miDbeResetProc;
     pDbeScreenPriv->WinPrivDelete         = miDbeWinPrivDelete;
-
-    /* The mi implementation doesn't need buffer validation. */
-    pDbeScreenPriv->ValidateBuffer	  = miDbeNopValidateBuffer;
 
     return(TRUE);
 

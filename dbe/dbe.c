@@ -82,36 +82,6 @@ static Bool	firstRegistrationPass = TRUE;
 
 /******************************************************************************
  *
- * DBE DIX Procedure: DbeValidateBuffer
- *
- * Description:
- *
- *     This function is called from VALIDATE_DRAWABLE_AND_GC and from
- *     various places in dispatch.c if the server has been compiled with
- *     the flags -DNEED_DBE_BUF_BITS and -DNEED_DBE_BUF_VALIDATE.  
- *     When pWin->dstBuffer changes, this function will be called with pWin
- *     as the first argument, the drawable ID that was specified as the
- *     second argument (could be a back buffer id), and True for the third
- *     argument.
- *     When pWin->srcBuffer changes, the third argument will be False, and
- *     the first two arguments are as described for dstBuffer.
- *
- *     This function should prepare the hardware to access the specified
- *     buffer for reads (if dstbuf is False) or writes (if dstbuf is True).
- *
- *****************************************************************************/
-
-void
-DbeValidateBuffer(WindowPtr pWin, XID drawID, Bool dstbuf)
-{
-    DbeScreenPrivPtr pDbeScreenPriv = DBE_SCREEN_PRIV_FROM_WINDOW(pWin);
-    if (pDbeScreenPriv->ValidateBuffer)
-	(*pDbeScreenPriv->ValidateBuffer)(pWin, drawID, dstbuf);
-}
-
-
-/******************************************************************************
- *
  * DBE DIX Procedure: DbeRegisterFunction
  *
  * Description:
@@ -317,7 +287,6 @@ DbeStubScreen(DbeScreenPrivPtr pDbeScreenPriv, int *nStubbedScreens)
     pDbeScreenPriv->EndIdiom            = NULL;
     pDbeScreenPriv->WinPrivDelete       = NULL;
     pDbeScreenPriv->ResetProc           = NULL;
-    pDbeScreenPriv->ValidateBuffer	= NULL;
 
     (*nStubbedScreens)++;
 
