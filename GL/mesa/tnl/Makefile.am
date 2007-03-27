@@ -23,7 +23,6 @@ nodist_libtnl_la_SOURCES = t_context.c \
                       t_pipeline.c \
                       t_vb_arbprogram.c \
                       t_vb_arbprogram_sse.c \
-                      t_vb_arbshader.c \
                       t_vb_cull.c \
                       t_vb_fog.c \
                       t_vb_light.c \
