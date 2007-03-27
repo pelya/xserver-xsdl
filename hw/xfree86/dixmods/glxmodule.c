@@ -95,8 +95,8 @@ __glXMesaProxyScreenProbe(ScreenPtr pScreen)
   static __GLXprovider *provider;
 
   if (provider == NULL) {
-    GLcore = LoadSubModuleLocal(glxModule, "GLcore", NULL, NULL, NULL, NULL, 
-				NULL, NULL);
+    GLcore = LoadSubModule(glxModule, "GLcore", NULL, NULL, NULL, NULL, 
+			   NULL, NULL);
     if (GLcore == NULL)
       return NULL;
 
