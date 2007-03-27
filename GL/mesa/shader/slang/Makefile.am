@@ -37,4 +37,4 @@ nodist_libslang_la_SOURCES = slang_builtin.c \
 		      slang_storage.c \
 		      slang_typeinfo.c \
 		      slang_utility.c \
-		      slang_variable.c
+		      slang_vartable.c
