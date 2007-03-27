@@ -18,8 +18,7 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I../.. \
            -I$(top_srcdir)/hw/xfree86/os-support
 
-nodist_libslang_la_SOURCES = s
-		      slang_builtin.c \
+nodist_libslang_la_SOURCES = slang_builtin.c \
 		      slang_codegen.c \
 		      slang_compile.c \
 		      slang_compile_function.c \
