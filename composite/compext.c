@@ -678,9 +678,22 @@ CompositeExtensionInit (void)
     ExtensionEntry  *extEntry;
     int		    s;
 
-    /* Ensure that Render is initialized on all screens. */
     for (s = 0; s < screenInfo.numScreens; s++) {
-	if (GetPictureScreenIfSet(screenInfo.screens[s]) == NULL)
+	ScreenPtr pScreen = screenInfo.screens[s];
+	VisualPtr vis;
+
+	/* Composite on 8bpp pseudocolor root windows appears to fail, so
+	 * just disable it on anything pseudocolor for safety.
+	 */
+	for (vis = pScreen->visuals; vis->vid != pScreen->rootVisual; vis++)
+	    ;
+	if ((vis->class | DynamicClass) == PseudoColor)
+	    return;
+
+	/* Ensure that Render is initialized, which is required for automatic
+	 * compositing.
+	 */
+	if (GetPictureScreenIfSet(pScreen) == NULL)
 	    return;
     }
 
