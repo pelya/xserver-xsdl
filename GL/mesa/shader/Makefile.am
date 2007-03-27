@@ -27,8 +27,13 @@ nodist_libshader_la_SOURCES = \
                       atifragshader.c \
                       nvfragparse.c \
                       nvprogram.c \
-                      nvvertexec.c \
-		      nvvertparse.c \
+                      nvvertparse.c \
+                      prog_debug.c \
+                      prog_execute.c \
+                      prog_instruction.c \
+                      prog_parameter.c \
+                      prog_print.c \
                       program.c \
-                      shaderobjects.c \
-		      shaderobjects_3dlabs.c
+                      programopt.c \
+                      prog_statevars.c \
+                      shader_api.c
