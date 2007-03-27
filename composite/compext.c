@@ -696,6 +696,11 @@ CompositeExtensionInit (void)
 	if (GetPictureScreenIfSet(pScreen) == NULL)
 	    return;
     }
+    /* Xinerama's rewriting of window drawing before Composite gets to it
+     * breaks Composite.
+     */
+    if (!noPanoramiXExtension)
+	return;
 
     CompositeClientWindowType = CreateNewResourceType (FreeCompositeClientWindow);
     if (!CompositeClientWindowType)
