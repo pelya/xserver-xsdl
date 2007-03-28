@@ -1640,9 +1640,6 @@ XAAGetPixelFromRGBA (
 extern GCOps XAAFallbackOps;
 extern GCOps *XAAGetFallbackOps(void);
 extern GCFuncs XAAGCFuncs;
-extern int XAAScreenIndex;	/* XXX DONTUSE */
-extern int XAAGCIndex;		/* XXX DONTUSE */
-extern int XAAPixmapIndex;	/* XXX DONTUSE */
 extern int XAAGetScreenIndex(void);
 extern int XAAGetGCIndex(void);
 extern int XAAGetPixmapIndex(void);

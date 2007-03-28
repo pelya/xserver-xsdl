@@ -42,14 +42,9 @@ static int  XAASetDGAMode(int index, int num, DGADevicePtr devRet);
 static void XAAEnableDisableFBAccess (int index, Bool enable);
 static Bool XAAChangeWindowAttributes (WindowPtr pWin, unsigned long mask);
 
-/*
- * XXX These three should be static, but that breaks ABI compat with XF4.4
- * and Xorg 6.7.0 modules.  DO NOT use them in new code, you should never
- * be setting them, and you've got Get functions below.
- */
-int XAAScreenIndex = -1;
-int XAAGCIndex = -1;
-int XAAPixmapIndex = -1;
+static int XAAScreenIndex = -1;
+static int XAAGCIndex = -1;
+static int XAAPixmapIndex = -1;
 
 static unsigned long XAAGeneration = 0;
 
