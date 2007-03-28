@@ -208,9 +208,6 @@ _X_HIDDEN void *miLookupTab[] = {
 #ifdef RENDER
     SYMFUNC(miGlyphExtents)
 #endif
-#ifdef COMPOSITE
-    SYMFUNC(miDisableCompositeWrapper)
-#endif
 #ifdef DAMAGE
     SYMFUNC(DamageDamageRegion)
 #endif

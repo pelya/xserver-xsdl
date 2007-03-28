@@ -227,6 +227,14 @@ XAAInit(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
     if(infoRec->Flags & MICROSOFT_ZERO_LINE_BIAS)
 	miSetZeroLineBias(pScreen, OCTANT1 | OCTANT2 | OCTANT3 | OCTANT4);
 
+#ifdef COMPOSITE
+    /* Initialize the composite wrapper.  This needs to happen after the
+     * wrapping above (so it comes before us), but before all other extensions,
+     * so it doesn't confuse them. (particularly damage).
+     */
+    miInitializeCompositeWrapper(pScreen);
+#endif
+
     return TRUE;
 }
 
