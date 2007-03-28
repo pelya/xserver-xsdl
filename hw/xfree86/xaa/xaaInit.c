@@ -42,14 +42,9 @@ static int  XAASetDGAMode(int index, int num, DGADevicePtr devRet);
 static void XAAEnableDisableFBAccess (int index, Bool enable);
 static Bool XAAChangeWindowAttributes (WindowPtr pWin, unsigned long mask);
 
-/*
- * XXX These three should be static, but that breaks ABI compat with XF4.4
- * and Xorg 6.7.0 modules.  DO NOT use them in new code, you should never
- * be setting them, and you've got Get functions below.
- */
-int XAAScreenIndex = -1;
-int XAAGCIndex = -1;
-int XAAPixmapIndex = -1;
+static int XAAScreenIndex = -1;
+static int XAAGCIndex = -1;
+static int XAAPixmapIndex = -1;
 
 static unsigned long XAAGeneration = 0;
 
@@ -226,6 +221,14 @@ XAAInit(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
 
     if(infoRec->Flags & MICROSOFT_ZERO_LINE_BIAS)
 	miSetZeroLineBias(pScreen, OCTANT1 | OCTANT2 | OCTANT3 | OCTANT4);
+
+#ifdef COMPOSITE
+    /* Initialize the composite wrapper.  This needs to happen after the
+     * wrapping above (so it comes before us), but before all other extensions,
+     * so it doesn't confuse them. (particularly damage).
+     */
+    miInitializeCompositeWrapper(pScreen);
+#endif
 
     return TRUE;
 }

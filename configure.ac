@@ -867,10 +867,6 @@ AC_DEFINE(DAMAGE,1,[Support Damage extension])
 DAMAGE_LIB='$(top_builddir)/damageext/libdamageext.la'
 DAMAGE_INC='-I$(top_srcdir)/damageext'
 MIEXT_DAMAGE_LIB='$(top_builddir)/miext/damage/libdamage.la'
-dnl damage (may) need the composite wrapper when composite is enabled
-if test "$COMPOSITE" = yes; then
-	MIEXT_DAMAGE_LIB="$MIEXT_DAMAGE_LIB "'$(top_builddir)/miext/cw/libcw.la'
-fi
 MIEXT_DAMAGE_INC='-I$(top_srcdir)/miext/damage'
 
 AC_DEFINE(XINPUT, 1, [Support X Input extension])

@@ -1831,16 +1831,6 @@ DamageSetup (ScreenPtr pScreen)
     if (!pScrPriv)
 	return FALSE;
 
-#ifdef COMPOSITE
-    /* This is a kludge to ensure wrapping order with the composite wrapper.
-     * If it's done from compinit.c, then DamageSetup may be called before the
-     * extension init phase, so that cw will be higher in the wrapping chain and
-     * rewrite drawables before damage gets to it, causing confusion.
-     */
-    if (!noCompositeExtension)
-	miInitializeCompositeWrapper (pScreen);
-#endif
-	
     pScrPriv->internalLevel = 0;
     pScrPriv->pScreenDamage = 0;
 

@@ -136,10 +136,7 @@ _X_EXPORT Bool noTestExtensions;
 _X_EXPORT Bool noBigReqExtension = FALSE;
 #endif
 #ifdef COMPOSITE
- /* COMPOSITE is disabled by default for now until the
-  * interface is stable */
- #define COMPOSITE_DEFAULT FALSE
-_X_EXPORT Bool noCompositeExtension = !COMPOSITE_DEFAULT;
+_X_EXPORT Bool noCompositeExtension = FALSE;
 #endif
 
 #ifdef DAMAGE

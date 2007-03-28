@@ -668,10 +668,6 @@ exaDriverInit (ScreenPtr		pScreen,
     }
 #endif
 
-#ifdef COMPOSITE
-    miDisableCompositeWrapper(pScreen);
-#endif
-
 #ifdef MITSHM
     /* Re-register with the MI funcs, which don't allow shared pixmaps.
      * Shared pixmaps are almost always a performance loss for us, but this
