@@ -37,7 +37,6 @@ typedef struct {
 } XaceCoreDispatchRec;
 
 /* XACE_RESOURCE_ACCESS */
-/* XACE_RESOURCE_CREATE */
 typedef struct {
     ClientPtr client;
     XID id;
@@ -79,7 +78,7 @@ typedef struct {
     int rval;
 } XaceMapAccessRec;
 
-/* XACE_EXT_DISPATCH_ACCESS */
+/* XACE_EXT_DISPATCH */
 /* XACE_EXT_ACCESS */
 typedef struct {
     ClientPtr client;
