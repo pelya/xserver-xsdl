@@ -34,6 +34,7 @@ nodist_libswrast_la_SOURCES = s_aaline.c \
                       s_drawpix.c \
                       s_feedback.c \
                       s_fog.c \
+		      s_fragprog.c \
                       s_imaging.c \
                       s_lines.c \
                       s_logic.c \
