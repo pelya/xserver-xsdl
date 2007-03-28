@@ -125,7 +125,7 @@ struct _OsTimerRec {
 };
 
 static void DoTimer(OsTimerPtr timer, CARD32 now, OsTimerPtr *prev);
-static void CheckAllTimers(CARD32 now);
+static void CheckAllTimers(void);
 static OsTimerPtr timers = NULL;
 
 /*****************
@@ -204,7 +204,7 @@ WaitForSomething(int *pClientsReady)
 	    timeout = timers->expires - now;
             if (timeout > 0 && timeout > timers->delta + 250) {
                 /* time has rewound.  reset the timers. */
-                CheckAllTimers(now);
+                CheckAllTimers();
             }
 
 	    if (timers) {
@@ -436,11 +436,14 @@ ANYSET(FdMask *src)
 /* If time has rewound, re-run every affected timer.
  * Timers might drop out of the list, so we have to restart every time. */
 static void
-CheckAllTimers(CARD32 now)
+CheckAllTimers(void)
 {
     OsTimerPtr timer;
+    CARD32 now;
 
 start:
+    now = GetTimeInMillis();
+
     for (timer = timers; timer; timer = timer->next) {
         if (timer->expires - now > timer->delta + 250) {
             TimerForce(timer);
