@@ -729,6 +729,14 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
 
     pWin->borderWidth = bw;
 
+    /*  security creation/labeling check
+     */
+    if (!XaceHook(XACE_RESOURCE_ACCESS, wid, RT_WINDOW, DixCreateAccess, pWin))
+    {
+	xfree(pWin);
+	*error = BadAccess;
+	return NullWindow;
+    }
     /*  can't let untrusted clients have background None windows;
      *  they make it too easy to steal window contents
      */
