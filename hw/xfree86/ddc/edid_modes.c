@@ -107,6 +107,19 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
 {
     DisplayModePtr Mode;
 
+    /*
+     * Refuse to create modes that are insufficiently large.  64 is a random
+     * number, maybe the spec says something about what the minimum is.  In
+     * particular I see this frequently with _old_ EDID, 1.0 or so, so maybe
+     * our parser is just being too aggresive there.
+     */
+    if (timing->h_active < 64 || timing->v_active < 64) {
+	xf86DrvMsg(scrnIndex, X_INFO,
+		   "%s: Ignoring tiny %dx%d mode\n", __func__,
+		   timing->h_active, timing->v_active);
+	return NULL;
+    }
+
     /* We don't do stereo */
     if (timing->stereo) {
         xf86DrvMsg(scrnIndex, X_INFO,
