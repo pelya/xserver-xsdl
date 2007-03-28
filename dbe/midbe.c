@@ -59,21 +59,12 @@
 
 #include <stdio.h>
 
-/* DEFINES */
-
-
-/* TYPEDEFS */
-
-
-/* GLOBALS */
-
 static int	miDbePrivPrivGeneration  =  0;
 static int	miDbeWindowPrivPrivIndex = -1;
-RESTYPE		dbeDrawableResType;
-RESTYPE		dbeWindowPrivResType;
-int		dbeScreenPrivIndex = -1;
-int		dbeWindowPrivIndex = -1;
-
+static RESTYPE	dbeDrawableResType;
+static RESTYPE	dbeWindowPrivResType;
+static int	dbeScreenPrivIndex = -1;
+static int	dbeWindowPrivIndex = -1;
 
 
 /******************************************************************************
@@ -768,11 +759,6 @@ miDbeResetProc(ScreenPtr pScreen)
 
 } /* miDbeResetProc() */
 
-static void
-miDbeNopValidateBuffer(WindowPtr pWin, XID bufId, Bool dstbuffer)
-{
-}
-
 
 /******************************************************************************
  *
@@ -829,9 +815,6 @@ miDbeInit(ScreenPtr pScreen, DbeScreenPrivPtr pDbeScreenPriv)
     pDbeScreenPriv->EndIdiom              = 0;
     pDbeScreenPriv->ResetProc             = miDbeResetProc;
     pDbeScreenPriv->WinPrivDelete         = miDbeWinPrivDelete;
-
-    /* The mi implementation doesn't need buffer validation. */
-    pDbeScreenPriv->ValidateBuffer	  = miDbeNopValidateBuffer;
 
     return(TRUE);
 

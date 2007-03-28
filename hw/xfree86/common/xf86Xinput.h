@@ -86,6 +86,9 @@
 #define XI_PRIVATE(dev) \
 	(((LocalDevicePtr)((dev)->public.devicePrivate))->private)
 
+/* Stupid API backwards-compatibility. */
+#define TS_Raw 60
+#define TS_Scaled 61
 
 #ifdef XINPUT
 /* This holds the input driver entry and module information. */
@@ -144,6 +147,7 @@ typedef struct _LocalDeviceRec {
     InputDriverPtr	    drv;
     pointer		    module;
     pointer		    options;
+    unsigned int            history_size;
 } LocalDeviceRec, *LocalDevicePtr, InputInfoRec, *InputInfoPtr;
 
 typedef struct _DeviceAssocRec 
@@ -191,6 +195,10 @@ InputInfoPtr xf86AllocateInput(InputDriverPtr drv, int flags);
 InputDriverPtr xf86LookupInputDriver(const char *name);
 InputInfoPtr xf86LookupInput(const char *name);
 void xf86DeleteInput(InputInfoPtr pInp, int flags);
+void xf86MotionHistoryAllocate(LocalDevicePtr local);
+int xf86GetMotionEvents(DeviceIntPtr dev, xTimecoord *buff,
+                        unsigned long start, unsigned long stop,
+                        ScreenPtr pScreen);
 
 /* xf86Option.c */
 void xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts,

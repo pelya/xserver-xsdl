@@ -225,7 +225,7 @@ AllocateWindowPrivateIndex()
 }
 
 _X_EXPORT Bool
-AllocateWindowPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
+AllocateWindowPrivate(ScreenPtr pScreen, int index2, unsigned amount)
 {
     unsigned oldamount;
 
@@ -275,7 +275,7 @@ AllocateGCPrivateIndex()
 }
 
 _X_EXPORT Bool
-AllocateGCPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
+AllocateGCPrivate(ScreenPtr pScreen, int index2, unsigned amount)
 {
     unsigned oldamount;
 
@@ -309,7 +309,6 @@ AllocateGCPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
 /*
  *  pixmap private machinery
  */
-#ifdef PIXPRIV
 static int  pixmapPrivateCount;
 
 void
@@ -325,7 +324,7 @@ AllocatePixmapPrivateIndex()
 }
 
 _X_EXPORT Bool
-AllocatePixmapPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
+AllocatePixmapPrivate(ScreenPtr pScreen, int index2, unsigned amount)
 {
     unsigned oldamount;
 
@@ -355,7 +354,6 @@ AllocatePixmapPrivate(register ScreenPtr pScreen, int index2, unsigned amount)
     pScreen->totalPixmapSize = BitmapBytePad(pScreen->totalPixmapSize * 8);
     return TRUE;
 }
-#endif
 
 
 /*

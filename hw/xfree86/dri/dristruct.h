@@ -53,6 +53,7 @@ typedef struct _DRIDrawablePrivRec
     int			drawableIndex;
     ScreenPtr		pScreen;
     int 		refCount;
+    int 		nrects;
 } DRIDrawablePrivRec, *DRIDrawablePrivPtr;
 
 struct _DRIContextPrivRec
@@ -87,6 +88,8 @@ typedef struct _DRIScreenPrivRec
     void**		partial3DContextStore; /* parital 3D context        */
     DRIInfoPtr		pDriverInfo;
     int                 nrWindows;
+    int                 nrWindowsVisible;
+    int                 nrWalked;
     drm_clip_rect_t  private_buffer_rect; /* management of private buffers */
     DrawablePtr         fullscreen; /* pointer to fullscreen drawable */
     drm_clip_rect_t  fullscreen_rect; /* fake rect for fullscreen mode */

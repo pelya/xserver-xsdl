@@ -36,7 +36,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/extensions/XI.h>
 #include "inputstr.h"
 #include "windowstr.h"
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #include "xkb.h"
 
 /***====================================================================***/
@@ -331,7 +331,7 @@ Time 		 	time = 0;
     return;
 }
 
-void
+static void
 XkbSendIndicatorNotify(DeviceIntPtr kbd,int xkbType,xkbIndicatorNotify *pEv)
 {
 int		initialized;
@@ -969,48 +969,6 @@ XkbInterestPtr	interest;
 	return interest;
     }
     return NULL;
-}
-
-int
-XkbRemoveClient(DevicePtr inDev,ClientPtr client)
-{
-XkbSrvInfoPtr	xkbi;
-DeviceIntPtr	dev = (DeviceIntPtr)inDev;
-XkbInterestPtr	interest;
-unsigned long	autoCtrls,autoValues;
-Bool		found;
-
-    found= False;
-    autoCtrls= autoValues= 0;
-    if ( dev->xkb_interest ) {
-	interest = dev->xkb_interest;
-	if (interest && (interest->client==client)){
-	    dev->xkb_interest = interest->next;
-	    autoCtrls= interest->autoCtrls;
-	    autoValues= interest->autoCtrlValues;
-	    _XkbFree(interest);
-	    found= True;
-	}
-	while ((!found)&&(interest->next)) {
-	    if (interest->next->client==client) {
-		XkbInterestPtr	victim = interest->next;
-		interest->next = victim->next;
-		autoCtrls= victim->autoCtrls;
-		autoValues= victim->autoCtrlValues;
-		_XkbFree(victim);
-		found= True;
-	    }
-	    interest = interest->next;
-	}
-    }
-    if (found && autoCtrls && dev->key && dev->key->xkbInfo ) {
-	XkbEventCauseRec cause;
-
-	xkbi= dev->key->xkbInfo;
-	XkbSetCauseXkbReq(&cause,X_kbPerClientFlags,client);
-	XkbEnableDisableControls(xkbi,autoCtrls,autoValues,NULL,&cause);
-    }
-    return found;
 }
 
 int

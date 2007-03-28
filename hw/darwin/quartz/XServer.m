@@ -36,18 +36,20 @@
  */
 /* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.3 2004/07/30 19:12:17 torrey Exp $ */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.19 2003/11/24 05:39:01 torrey Exp $ */
-
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #include "quartzCommon.h"
 
 #define BOOL xBOOL
-#include "X.h"
-#include "Xproto.h"
+#include "X11/X.h"
+#include "X11/Xproto.h"
 #include "os.h"
 #include "opaque.h"
 #include "darwin.h"
 #include "quartz.h"
 #define _APPLEWM_SERVER_
-#include "applewm.h"
+#include "X11/extensions/applewm.h"
 #include "applewmExt.h"
 #undef BOOL
 
@@ -830,13 +832,13 @@ static io_connect_t root_port;
                     chdir(tem);
 
                 /* Setup environment */
-                snprintf(buf, sizeof(buf), ":%s", display);
-                setenv("DISPLAY", buf, TRUE);
+//              snprintf(buf, sizeof(buf), ":%s", display);
+//              setenv("DISPLAY", buf, TRUE);
                 tem = getenv("PATH");
                 if (tem != NULL && tem[0] != NULL)
-                    snprintf(buf, sizeof(buf), "%s:/usr/X11R6/bin", tem);
+                    snprintf(buf, sizeof(buf), "%s:/usr/X11/bin", tem);
                 else
-                    snprintf(buf, sizeof(buf), "/bin:/usr/bin:/usr/X11R6/bin");
+                    snprintf(buf, sizeof(buf), "/bin:/usr/bin:/usr/X11/bin");
                 setenv("PATH", buf, TRUE);
 
                 execvp(argv[0], (char **const) argv);

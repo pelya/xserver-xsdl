@@ -69,7 +69,7 @@ static int nDevToConfig = 0, CurrentDriver;
 
 _X_EXPORT xf86MonPtr ConfiguredMonitor;
 Bool xf86DoConfigurePass1 = TRUE;
-Bool foundMouse = FALSE;
+static Bool foundMouse = FALSE;
 
 #if defined(__UNIXOS2__)
 #define DFLT_MOUSE_DEV "mouse$"

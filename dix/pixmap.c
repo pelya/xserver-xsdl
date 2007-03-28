@@ -109,7 +109,6 @@ _X_EXPORT PixmapPtr
 AllocatePixmap(ScreenPtr pScreen, int pixDataSize)
 {
     PixmapPtr pPixmap;
-#ifdef PIXPRIV
     char *ptr;
     DevUnion *ppriv;
     unsigned *sizes;
@@ -136,9 +135,6 @@ AllocatePixmap(ScreenPtr pScreen, int pixDataSize)
         else
 	    ppriv->ptr = (pointer)NULL;
     }
-#else
-    pPixmap = (PixmapPtr)xalloc(sizeof(PixmapRec) + pixDataSize);
-#endif
 
 #ifdef _XSERVER64
     if (pPixmap) {

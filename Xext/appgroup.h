@@ -50,12 +50,6 @@ extern ClientPtr XagLeader(
     ClientPtr			/* client */
 );
 
-extern void XagCallClientStateChange(
-    CallbackListPtr *		/* pcbl */,
-    pointer 			/* nulldata */,
-    pointer 			/* calldata */
-);
-
 extern Bool XagIsControlledRoot (
     ClientPtr			/* client */,
     WindowPtr			/* pParent */
@@ -64,22 +58,6 @@ extern Bool XagIsControlledRoot (
 extern XID XagId (
     ClientPtr			/* client */
 );
-
-extern void XagGetDeltaInfo (
-    ClientPtr			/* client */,
-    CARD32*			/* buf */
-);
-
-extern void XagClientStateChange(
-    CallbackListPtr* pcbl,
-    pointer nulldata,
-    pointer calldata);
-
-extern int ProcXagCreate (
-    register ClientPtr client);
-
-extern int ProcXagDestroy(
-    register ClientPtr client);
 
 _XFUNCPROTOEND
 

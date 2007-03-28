@@ -76,12 +76,12 @@ extern int ffs(int);
 _X_EXPORT RegionPtr
 miCopyArea(pSrcDrawable, pDstDrawable,
 	    pGC, xIn, yIn, widthSrc, heightSrc, xOut, yOut)
-    register DrawablePtr 	pSrcDrawable;
-    register DrawablePtr 	pDstDrawable;
-    GCPtr 			pGC;
-    int 			xIn, yIn;
-    int 			widthSrc, heightSrc;
-    int 			xOut, yOut;
+    DrawablePtr 	pSrcDrawable;
+    DrawablePtr 	pDstDrawable;
+    GCPtr 		pGC;
+    int 		xIn, yIn;
+    int 		widthSrc, heightSrc;
+    int 		xOut, yOut;
 {
     DDXPointPtr		ppt, pptFirst;
     unsigned int	*pwidthFirst, *pwidth, *pbits;
@@ -400,13 +400,9 @@ miGetPlane(
  * Note how the clipped out bits of the bitmap are always the background
  * color so that the stipple never causes FillRect to draw them.
  */
-void
-miOpqStipDrawable(pDraw, pGC, prgnSrc, pbits, srcx, w, h, dstx, dsty)
-    DrawablePtr pDraw;
-    GCPtr	pGC;
-    RegionPtr	prgnSrc;
-    MiBits	*pbits;
-    int		srcx, w, h, dstx, dsty;
+static void
+miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
+		  MiBits *pbits, int srcx, int w, int h, int dstx, int dsty)
 {
     int		oldfill, i;
     unsigned long oldfg;

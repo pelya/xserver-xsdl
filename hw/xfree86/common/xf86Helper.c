@@ -2986,3 +2986,16 @@ xf86IsUnblank(int mode)
 	return TRUE;
     }
 }
+
+_X_EXPORT void
+xf86MotionHistoryAllocate(LocalDevicePtr local)
+{
+    AllocateMotionHistory(local->dev);
+}
+
+_X_EXPORT int
+xf86GetMotionEvents(DeviceIntPtr pDev, xTimecoord *buff, unsigned long start,
+                    unsigned long stop, ScreenPtr pScreen)
+{
+    return GetMotionHistory(pDev, buff, start, stop, pScreen);
+}

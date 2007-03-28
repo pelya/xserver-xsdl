@@ -1,5 +1,3 @@
-/* $XFree86$ */
-
 /* #include "XKBfile.h" */
 
 extern int ProcXkbUseExtension(ClientPtr client);
@@ -29,49 +27,9 @@ extern int ProcXkbGetDeviceInfo(ClientPtr client);
 extern int ProcXkbSetDeviceInfo(ClientPtr client);
 extern int ProcXkbSetDebuggingFlags(ClientPtr client);
 
-extern int XkbSetRepeatRate(DeviceIntPtr dev, int timeout, int interval, int major, int minor);
-extern int XkbGetRepeatRate(DeviceIntPtr dev, int *timeout, int *interval);
-
 extern void XkbExtensionInit(void);
 
-extern Status XkbComputeGetIndicatorMapReplySize(
-    XkbIndicatorPtr             indicators,
-    xkbGetIndicatorMapReply     *rep);
-extern int XkbSendIndicatorMap(
-    ClientPtr                   client,
-    XkbIndicatorPtr             indicators,
-    xkbGetIndicatorMapReply     *rep);
-
-extern void XkbComputeCompatState(XkbSrvInfoPtr xkbi);
-extern void XkbSetPhysicalLockingKey(DeviceIntPtr dev, unsigned key);
-
 extern Bool XkbFilterEvents(ClientPtr pClient, int nEvents, xEvent *xE);
-
-extern Bool XkbApplyLEDChangeToKeyboard(
-    XkbSrvInfoPtr           xkbi,
-    XkbIndicatorMapPtr      map,
-    Bool                    on,
-    XkbChangesPtr           change);
-
-extern Bool XkbWriteRulesProp(ClientPtr client, pointer closure);
-
-extern XkbAction XkbGetButtonAction(DeviceIntPtr kbd, DeviceIntPtr dev, int button);
-
-/* extern Status XkbMergeFile(XkbDescPtr xkb, XkbFileInfo finfo); */
-
-extern Bool XkbDDXCompileNamedKeymap(
-    XkbDescPtr              xkb,
-    XkbComponentNamesPtr    names,
-    char *                  nameRtrn,
-    int                     nameRtrnLen);
-
-extern Bool XkbDDXCompileKeymapByNames(
-    XkbDescPtr              xkb,
-    XkbComponentNamesPtr    names,
-    unsigned                want,
-    unsigned                need,
-    char *                  nameRtrn,
-    int                     nameRtrnLen);
 
 extern Bool XkbCopyKeymap(
     XkbDescPtr              src,

@@ -37,7 +37,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 extern int IReqCode;
 extern int BadDevice;
-extern int BadEvent;
 extern int BadMode;
 extern int DeviceBusy;
 extern int BadClass;
@@ -46,7 +45,6 @@ extern Mask DevicePointerMotionMask;
 extern Mask DevicePointerMotionHintMask;
 extern Mask DeviceFocusChangeMask;
 extern Mask DeviceStateNotifyMask;
-extern Mask ChangeDeviceNotifyMask;
 extern Mask DeviceMappingNotifyMask;
 extern Mask DeviceOwnerGrabButtonMask;
 extern Mask DeviceButtonGrabMask;

@@ -1,9 +1,4 @@
 /*
- * mipointer.c
- */
-
-
-/*
 
 Copyright 1989, 1998  The Open Group
 
@@ -70,6 +65,8 @@ static Bool miPointerSetCursorPosition(ScreenPtr pScreen, int x, int y,
 static Bool miPointerCloseScreen(int index, ScreenPtr pScreen);
 static void miPointerMove(ScreenPtr pScreen, int x, int y, unsigned long time);
 
+static xEvent* events; /* for WarpPointer MotionNotifies */
+
 _X_EXPORT Bool
 miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
     ScreenPtr		    pScreen;
@@ -128,6 +125,9 @@ miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
     miPointer.confined = FALSE;
     miPointer.x = 0;
     miPointer.y = 0;
+
+    events = NULL;
+
     return TRUE;
 }
 
@@ -144,6 +144,8 @@ miPointerCloseScreen (index, pScreen)
 	miPointer.pSpriteScreen = 0;
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
     xfree ((pointer) pScreenPriv);
+    xfree ((pointer) events);
+    events = NULL;
     return (*pScreen->CloseScreen) (index, pScreen);
 }
 
@@ -402,6 +404,27 @@ miPointerAbsoluteCursor (int x, int y, unsigned long time)
     miPointerSetPosition(inputInfo.pointer, &x, &y, time);
 }
 
+/* Move the pointer on the current screen,  and update the sprite. */
+static void
+miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
+                     unsigned long time)
+{
+    SetupScreen(pScreen);
+
+    if (pDev && (pDev->coreEvents || pDev == inputInfo.pointer) &&
+        !pScreenPriv->waitForUpdate && pScreen == miPointer.pSpriteScreen)
+    {
+	miPointer.devx = x;
+	miPointer.devy = y;
+	if(!miPointer.pCursor->bits->emptyMask)
+	    (*pScreenPriv->spriteFuncs->MoveCursor) (pScreen, x, y);
+    }
+
+    miPointer.x = x;
+    miPointer.y = y;
+    miPointer.pScreen = pScreen;
+}
+
 _X_EXPORT void
 miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y, unsigned long time)
 {
@@ -466,49 +489,29 @@ miPointerGetPosition(DeviceIntPtr pDev, int *x, int *y)
 void
 miPointerMove (ScreenPtr pScreen, int x, int y, unsigned long time)
 {
-    miPointerMoved(inputInfo.pointer, pScreen, x, y, time);
-}
-
-/* Move the pointer on the current screen,  and update the sprite. */
-void
-miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
-                     unsigned long time)
-{
-    xEvent* events;
     int i, nevents;
     int valuators[2];
 
-    SetupScreen(pScreen);
-
-    if (pDev && (pDev->coreEvents || pDev == inputInfo.pointer) &&
-        !pScreenPriv->waitForUpdate && pScreen == miPointer.pSpriteScreen)
-    {
-	miPointer.devx = x;
-	miPointer.devy = y;
-	if(!miPointer.pCursor->bits->emptyMask)
-	    (*pScreenPriv->spriteFuncs->MoveCursor) (pScreen, x, y);
-    }
-
-    miPointer.x = x;
-    miPointer.y = y;
-    miPointer.pScreen = pScreen;
+    miPointerMoved(inputInfo.pointer, pScreen, x, y, time);
 
     /* generate motion notify */
     valuators[0] = x;
     valuators[1] = y;
 
-    events = (xEvent*)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
     if (!events)
     {
-        FatalError("Could not allocate event store.\n");
-        return;
+        events = (xEvent*)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+
+        if (!events)
+        {
+            FatalError("Could not allocate event store.\n");
+            return;
+        }
     }
 
-    nevents = GetPointerEvents(events, pDev, MotionNotify, 0,
+    nevents = GetPointerEvents(events, inputInfo.pointer, MotionNotify, 0,
                                POINTER_ABSOLUTE, 0, 2, valuators);
 
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(pDev, &events[i]);
-
-    xfree(events);
+        mieqEnqueue(inputInfo.pointer, &events[i]);
 }

@@ -36,7 +36,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include "windowstr.h"
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 
 int
 XkbDDXTerminateServer(DeviceIntPtr dev,KeyCode key,XkbAction *act)

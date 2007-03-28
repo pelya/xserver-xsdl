@@ -42,7 +42,7 @@
 #endif
 
 #ifdef XKB
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #endif
 
 #include <X11/extensions/XI.h>
@@ -1915,11 +1915,6 @@ KdEnqueueKeyboardEvent(KdKeyboardInfo   *ki,
     KeybdCtrl *ctrl = NULL;
     int type, nEvents, i;
 
-#ifdef DEBUG
-    ErrorF("enqueuing kb event (scancode %d, %s)\n", scan_code, is_up ? "up" : "down");
-    ErrorF("event is from %s\n", ki->name);
-#endif
-    
     if (!ki || !ki->dixdev || !ki->dixdev->kbdfeed || !ki->dixdev->key)
 	return;
 
@@ -1947,9 +1942,6 @@ KdEnqueueKeyboardEvent(KdKeyboardInfo   *ki,
 	}
 	
         nEvents = GetKeyboardEvents(kdEvents, ki->dixdev, type, key_code);
-#ifdef DEBUG
-        ErrorF("KdEnqueueKeyboardEvent: got %d events from GKE\n", nEvents);
-#endif
         for (i = 0; i < nEvents; i++)
             KdQueueEvent(ki->dixdev, kdEvents + i);
     }
@@ -2009,12 +2001,6 @@ KdEnqueuePointerEvent(KdPointerInfo *pi, unsigned long flags, int rx, int ry,
     }
     z = rz;
 
-#ifdef DEBUG
-    ErrorF("sending motion notification for (%d, %d, %d)\n", x, y, z);
-    ErrorF("  comes from (%d, %d, %d)\n", rx, ry, rz);
-    ErrorF("  is %s\n", (flags & KD_MOUSE_DELTA) ? "relative" : "absolute");
-#endif
-
     if (flags & KD_MOUSE_DELTA)
         dixflags = POINTER_RELATIVE & POINTER_ACCELERATE;
     else
@@ -2028,9 +2014,6 @@ KdEnqueuePointerEvent(KdPointerInfo *pi, unsigned long flags, int rx, int ry,
          button <<= 1, n++) {
         if (((pi->buttonState & button) ^ (buttons & button)) &&
            !(buttons & button)) {
-#ifdef DEBUG
-            ErrorF("  posting button release %d\n", n);
-#endif
             _KdEnqueuePointerEvent(pi, ButtonRelease, x, y, z, n,
                                    dixflags, FALSE);
 	}
@@ -2039,9 +2022,6 @@ KdEnqueuePointerEvent(KdPointerInfo *pi, unsigned long flags, int rx, int ry,
          button <<= 1, n++) {
 	if (((pi->buttonState & button) ^ (buttons & button)) &&
 	    (buttons & button)) {
-#ifdef DEBUG
-            ErrorF("  posting button press %d\n", n);
-#endif
             _KdEnqueuePointerEvent(pi, ButtonPress, x, y, z, n,
                                    dixflags, FALSE);
         }
@@ -2056,11 +2036,6 @@ _KdEnqueuePointerEvent (KdPointerInfo *pi, int type, int x, int y, int z,
 {
     int nEvents = 0, i = 0;
     int valuators[3] = { x, y, z };
-
-#ifdef DEBUG
-    ErrorF("mouse enqueuing event from device %s (%d, %d, %d; %d)\n",
-           pi->name, x, y, z, b);
-#endif
 
     /* TRUE from KdHandlePointerEvent, means 'we swallowed the event'. */
     if (!force && KdHandlePointerEvent(pi, type, x, y, z, b, absrel))

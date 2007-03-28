@@ -31,7 +31,9 @@
  * authorization.
  */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/Preferences.m,v 1.5 2004/06/08 22:58:10 torrey Exp $ */
-
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #import "quartzCommon.h"
 
 #define BOOL xBOOL
@@ -44,7 +46,7 @@
 
 // Macros to build the path name
 #ifndef XBINDIR
-#define XBINDIR /usr/X11R6/bin
+#define XBINDIR /usr/X11/bin
 #endif
 #define STR(s) #s
 #define XSTRPATH(s) STR(s)

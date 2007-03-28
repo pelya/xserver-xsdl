@@ -109,7 +109,7 @@ typedef struct {
  */
 
 #define DRIINFO_MAJOR_VERSION   5
-#define DRIINFO_MINOR_VERSION   0
+#define DRIINFO_MINOR_VERSION   1
 #define DRIINFO_PATCH_VERSION   0
 
 typedef struct {
@@ -175,6 +175,9 @@ typedef struct {
     /* New with DRI version 4.1.0 */
     void        (*TransitionSingleToMulti3D)(ScreenPtr pScreen);
     void        (*TransitionMultiToSingle3D)(ScreenPtr pScreen);
+
+    /* New with DRI version 5.1.0 */
+    void        (*ClipNotify)(ScreenPtr pScreen, WindowPtr *ppWin, int num);
 } DRIInfoRec, *DRIInfoPtr;
 
 

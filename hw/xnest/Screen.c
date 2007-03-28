@@ -49,9 +49,7 @@ Window xnestScreenSaverWindows[MAXSCREENS];
 extern void GlxWrapInitVisuals(miInitVisualsProcPtr *);
 #endif
 
-#ifdef PIXPRIV
-int xnestScreenGeneration = -1;
-#endif
+static int xnestScreenGeneration = -1;
 
 ScreenPtr
 xnestScreen(Window window)
@@ -154,7 +152,6 @@ xnestOpenScreen(int index, ScreenPtr pScreen, int argc, char *argv[])
 			    sizeof(xnestPrivGC)))) 
     return False;
 
-#ifdef PIXPRIV
   if (xnestScreenGeneration != serverGeneration) {
       if ((xnestPixmapPrivateIndex = AllocatePixmapPrivateIndex()) < 0)
 	  return False;
@@ -164,7 +161,6 @@ xnestOpenScreen(int index, ScreenPtr pScreen, int argc, char *argv[])
   if (!AllocatePixmapPrivate(pScreen,xnestPixmapPrivateIndex,
 			     sizeof (xnestPrivPixmap)))
       return False;
-#endif
   visuals = (VisualPtr)xalloc(xnestNumVisuals * sizeof(VisualRec));
   numVisuals = 0;
 

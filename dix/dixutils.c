@@ -168,7 +168,7 @@ ISOLatin1ToLower (unsigned char source)
 _X_EXPORT void
 CopyISOLatin1Lowered(unsigned char *dest, unsigned char *source, int length)
 {
-    register int i;
+    int i;
 
     for (i = 0; i < length; i++, source++, dest++)
 	*dest = ISOLatin1ToLower (*source);
@@ -392,8 +392,8 @@ AlterSaveSetForClient(ClientPtr client, WindowPtr pWin, unsigned mode,
 void
 DeleteWindowFromAnySaveSet(WindowPtr pWin)
 {
-    register int i;
-    register ClientPtr client;
+    int i;
+    ClientPtr client;
     
     for (i = 0; i< currentMaxClients; i++)
     {    
@@ -434,7 +434,7 @@ static Bool		handlerDeleted;
 void
 BlockHandler(pointer pTimeout, pointer pReadmask)
 {
-    register int i, j;
+    int i, j;
     
     ++inHandler;
     for (i = 0; i < screenInfo.numScreens; i++)
@@ -468,7 +468,7 @@ BlockHandler(pointer pTimeout, pointer pReadmask)
 void
 WakeupHandler(int result, pointer pReadmask)
 {
-    register int i, j;
+    int i, j;
 
     ++inHandler;
     for (i = numHandlers - 1; i >= 0; i--)
@@ -882,9 +882,7 @@ static CallbackFuncsRec default_cbfuncs =
     _DeleteCallbackList
 };
 
-/* ===== Public Procedures ===== */
-
-Bool
+static Bool
 CreateCallbackList(CallbackListPtr *pcbl, CallbackFuncsPtr cbfuncs)
 {
     CallbackListPtr  cbl;
@@ -915,6 +913,8 @@ CreateCallbackList(CallbackListPtr *pcbl, CallbackFuncsPtr cbfuncs)
     numCallbackListsToCleanup++;
     return TRUE;
 }
+
+/* ===== Public Procedures ===== */
 
 _X_EXPORT Bool 
 AddCallback(CallbackListPtr *pcbl, CallbackProcPtr callback, pointer data)

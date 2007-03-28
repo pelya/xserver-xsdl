@@ -50,10 +50,10 @@
 #include "compint.h"
 
 static CARD8	CompositeReqCode;
-int		CompositeClientPrivateIndex;
+static int	CompositeClientPrivateIndex;
 RESTYPE		CompositeClientWindowType;
 RESTYPE		CompositeClientSubwindowsType;
-RESTYPE		CompositeClientOverlayType;
+static RESTYPE	CompositeClientOverlayType;
 
 static void deleteCompOverlayClient (CompOverlayClientPtr pOcToDel, 
 				     ScreenPtr pScreen);
@@ -423,7 +423,7 @@ createOverlayWindow (ScreenPtr pScreen)
     return pWin;
 }
 
-int
+static int
 ProcCompositeGetOverlayWindow (ClientPtr client)
 {
     REQUEST(xCompositeGetOverlayWindowReq); 
@@ -477,7 +477,7 @@ ProcCompositeGetOverlayWindow (ClientPtr client)
     return client->noClientException;
 }
 
-int
+static int
 ProcCompositeReleaseOverlayWindow (ClientPtr client)
 {
     REQUEST(xCompositeReleaseOverlayWindowReq); 
@@ -515,7 +515,7 @@ ProcCompositeReleaseOverlayWindow (ClientPtr client)
     return client->noClientException;
 }
 
-int (*ProcCompositeVector[CompositeNumberRequests])(ClientPtr) = {
+static int (*ProcCompositeVector[CompositeNumberRequests])(ClientPtr) = {
     ProcCompositeQueryVersion,
     ProcCompositeRedirectWindow,
     ProcCompositeRedirectSubwindows,
@@ -625,7 +625,7 @@ SProcCompositeNameWindowPixmap (ClientPtr client)
     return (*ProcCompositeVector[stuff->compositeReqType]) (client);
 }
 
-int
+static int
 SProcCompositeGetOverlayWindow (ClientPtr client)
 {
     int n;
@@ -637,7 +637,7 @@ SProcCompositeGetOverlayWindow (ClientPtr client)
     return (*ProcCompositeVector[stuff->compositeReqType]) (client);
 }
 
-int
+static int
 SProcCompositeReleaseOverlayWindow (ClientPtr client)
 {
     int n;
@@ -649,7 +649,7 @@ SProcCompositeReleaseOverlayWindow (ClientPtr client)
     return (*ProcCompositeVector[stuff->compositeReqType]) (client);
 }
 
-int (*SProcCompositeVector[CompositeNumberRequests])(ClientPtr) = {
+static int (*SProcCompositeVector[CompositeNumberRequests])(ClientPtr) = {
     SProcCompositeQueryVersion,
     SProcCompositeRedirectWindow,
     SProcCompositeRedirectSubwindows,
@@ -677,6 +677,30 @@ CompositeExtensionInit (void)
 {
     ExtensionEntry  *extEntry;
     int		    s;
+
+    for (s = 0; s < screenInfo.numScreens; s++) {
+	ScreenPtr pScreen = screenInfo.screens[s];
+	VisualPtr vis;
+
+	/* Composite on 8bpp pseudocolor root windows appears to fail, so
+	 * just disable it on anything pseudocolor for safety.
+	 */
+	for (vis = pScreen->visuals; vis->vid != pScreen->rootVisual; vis++)
+	    ;
+	if ((vis->class | DynamicClass) == PseudoColor)
+	    return;
+
+	/* Ensure that Render is initialized, which is required for automatic
+	 * compositing.
+	 */
+	if (GetPictureScreenIfSet(pScreen) == NULL)
+	    return;
+    }
+    /* Xinerama's rewriting of window drawing before Composite gets to it
+     * breaks Composite.
+     */
+    if (!noPanoramiXExtension)
+	return;
 
     CompositeClientWindowType = CreateNewResourceType (FreeCompositeClientWindow);
     if (!CompositeClientWindowType)

@@ -92,18 +92,18 @@ miPolyGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 {
     int width, height;
     PixmapPtr pPixmap;
-    int nbyLine;			/* bytes per line of padded pixmap */
+    int nbyLine;		/* bytes per line of padded pixmap */
     FontPtr pfont;
     GCPtr pGCtmp;
-    register int i;
-    register int j;
-    unsigned char *pbits;		/* buffer for PutImage */
-    register unsigned char *pb;		/* temp pointer into buffer */
-    register CharInfoPtr pci;		/* currect char info */
-    register unsigned char *pglyph;	/* pointer bits in glyph */
-    int gWidth, gHeight;		/* width and height of glyph */
-    register int nbyGlyphWidth;		/* bytes per scanline of glyph */
-    int nbyPadGlyph;			/* server padded line of glyph */
+    int i;
+    int j;
+    unsigned char *pbits;	/* buffer for PutImage */
+    unsigned char *pb;		/* temp pointer into buffer */
+    CharInfoPtr pci;		/* currect char info */
+    unsigned char *pglyph;	/* pointer bits in glyph */
+    int gWidth, gHeight;	/* width and height of glyph */
+    int nbyGlyphWidth;		/* bytes per scanline of glyph */
+    int nbyPadGlyph;		/* server padded line of glyph */
 
     XID gcvals[3];
 

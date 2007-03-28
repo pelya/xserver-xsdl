@@ -36,23 +36,20 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "misc.h"
 #include "inputstr.h"
 #define	XKBSRV_NEED_FILE_FUNCS
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #include "extnsionst.h"
 #include "xkb.h"
 
 #include <X11/extensions/XI.h>
 
 	int	XkbEventBase;
-	int	XkbErrorBase;
+static	int	XkbErrorBase;
 	int	XkbReqCode;
-	int	XkbKeyboardErrorCode;
-Atom	xkbONE_LEVEL;
-Atom	xkbTWO_LEVEL;
-Atom	xkbKEYPAD;
+static  int	XkbKeyboardErrorCode;
 CARD32	xkbDebugFlags = 0;
-CARD32	xkbDebugCtrls = 0;
+static CARD32	xkbDebugCtrls = 0;
 
-RESTYPE	RT_XKBCLIENT;
+static RESTYPE	RT_XKBCLIENT;
 
 /***====================================================================***/
 
@@ -893,52 +890,6 @@ ProcXkbSetControls(ClientPtr client)
     }
 
     return client->noClientException;
-}
-
-/* FIXME: Needs to set rate on all core-sending devices. */
-int
-XkbSetRepeatRate(DeviceIntPtr dev,int timeout,int interval,int major,int minor)
-{
-int	changed= 0;
-XkbControlsRec old,*xkb;
-
-    if ((!dev)||(!dev->key)||(!dev->key->xkbInfo))
-	return 0;
-    xkb= dev->key->xkbInfo->desc->ctrls;
-    old= *xkb;
-    if ((timeout!=0) && (xkb->repeat_delay!=timeout)) {
-	xkb->repeat_delay= timeout;
-	changed++;
-    }
-    if ((interval!=0) && (xkb->repeat_interval!=interval)) {
-	xkb->repeat_interval= interval;
-	changed++;
-    }
-    if (changed) {
-	xkbControlsNotify	cn;
-	XkbDDXChangeControls(dev,&old,xkb);
-	if (XkbComputeControlsNotify(dev,&old,xkb,&cn,False)) {
-	    cn.keycode= 0;
-	    cn.eventType = 0;
-	    cn.requestMajor = major;
-	    cn.requestMinor = minor;
-	    XkbSendControlsNotify(dev,&cn);
-	}
-    }
-    return 1;
-}
-
-int
-XkbGetRepeatRate(DeviceIntPtr dev,int *timeout,int *interval)
-{
-XkbControlsPtr	xkb;
-
-    if ((!dev)||(!dev->key)||(!dev->key->xkbInfo))
-	return 0;
-    xkb= dev->key->xkbInfo->desc->ctrls;
-    if (timeout)	*timeout= xkb->repeat_delay;
-    if (interval)	*interval= xkb->repeat_interval;
-    return 1;
 }
 
 /***====================================================================***/
@@ -2820,7 +2771,7 @@ ProcXkbGetIndicatorState(ClientPtr client)
 
 /***====================================================================***/
 
-Status
+static Status
 XkbComputeGetIndicatorMapReplySize(
     XkbIndicatorPtr		indicators,
     xkbGetIndicatorMapReply	*rep)
@@ -2837,7 +2788,7 @@ int		nIndicators;
     return Success;
 }
 
-int
+static int
 XkbSendIndicatorMap(	ClientPtr			client,
 			XkbIndicatorPtr			indicators,
 			xkbGetIndicatorMapReply *	rep)

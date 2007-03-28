@@ -33,6 +33,9 @@
 #include <dix-config.h>
 #endif
 
+#include <stddef.h> /* For NULL */
+#include <limits.h> /* For CHAR_BIT */
+
 #include "rootlessCommon.h"
 
 unsigned int rootless_CopyBytes_threshold = 0;

@@ -1,6 +1,6 @@
 xpcdir = @xpconfigdir@/C/print/models/CANONC3200-PS/fonts
 
-parentdir = @xpconfigdir@/C/print/models/PSdefault/fonts
+parentdir = ../../PSdefault/fonts
 
 XPFONTS = \
         AvantGarde-Book.pmf \
@@ -19,10 +19,10 @@ XPFONTS = \
         LubalinGraph-BookOblique.pmf \
         LubalinGraph-Demi.pmf \
         LubalinGraph-DemiOblique.pmf \
-        NewCenturySchlbk-Bold.pmf \
-        NewCenturySchlbk-BoldItalic.pmf \
-        NewCenturySchlbk-Italic.pmf \
-        NewCenturySchlbk-Roman.pmf \
+        NewCentSchlbk-Bold.pmf \
+        NewCentSchlbk-BoldItal.pmf \
+        NewCentSchlbk-Ital.pmf \
+        NewCentSchlbk-Roman.pmf \
         Souvenir-Demi.pmf \
         Souvenir-DemiItalic.pmf \
         Souvenir-Light.pmf \

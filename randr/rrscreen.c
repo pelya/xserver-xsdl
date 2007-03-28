@@ -26,6 +26,9 @@ extern char	*ConnectionInfo;
 
 static int padlength[4] = {0, 3, 2, 1};
 
+static CARD16
+RR10CurrentSizeID (ScreenPtr pScreen);
+
 /*
  * Edit connection information block so that new clients
  * see the current screen size on connect
@@ -96,10 +99,7 @@ RRDeliverScreenEvent (ClientPtr client, WindowPtr pWin, ScreenPtr pScreen)
     rrScrPriv (pScreen);
     xRRScreenChangeNotifyEvent	se;
     RRCrtcPtr	crtc = pScrPriv->numCrtcs ? pScrPriv->crtcs[0] : NULL;
-    RROutputPtr	output = pScrPriv->numOutputs ? pScrPriv->outputs[0] : NULL;
-    RRModePtr	mode = crtc ? crtc->mode : NULL;
     WindowPtr	pRoot = WindowTable[pScreen->myNum];
-    int		i;
     
     se.type = RRScreenChangeNotify + RREventBase;
     se.rotation = (CARD8) (crtc ? crtc->rotation : RR_Rotate_0);
@@ -115,32 +115,12 @@ RRDeliverScreenEvent (ClientPtr client, WindowPtr pWin, ScreenPtr pScreen)
 #endif
 
     se.sequenceNumber = client->sequence;
-    if (mode) 
-    {
-	se.sizeID = -1;
-	for (i = 0; i < output->numModes; i++)
-	    if (mode == output->modes[i])
-	    {
-		se.sizeID = i;
-		break;
-	    }
-	se.widthInPixels = mode->mode.width;
-	se.heightInPixels = mode->mode.height;
-	se.widthInMillimeters = pScreen->mmWidth;
-	se.heightInMillimeters = pScreen->mmHeight;
-    }
-    else
-    {
-	/*
-	 * This "shouldn't happen", but a broken DDX can
-	 * forget to set the current configuration on GetInfo
-	 */
-	se.sizeID = 0xffff;
-	se.widthInPixels = 0;
-	se.heightInPixels = 0;
-	se.widthInMillimeters = 0;
-	se.heightInMillimeters = 0;
-    }    
+    se.sizeID = RR10CurrentSizeID (pScreen);
+    
+    se.widthInPixels = pScreen->width;
+    se.heightInPixels = pScreen->height;
+    se.widthInMillimeters = pScreen->mmWidth;
+    se.heightInMillimeters = pScreen->mmHeight;
     WriteEventsToClient (client, 1, (xEvent *) &se);
 }
 
@@ -493,7 +473,7 @@ RR10GetData (ScreenPtr pScreen, RROutputPtr output)
 {
     RR10DataPtr	    data;
     RRScreenSizePtr size;
-    int		    nmode = output->numModes;
+    int		    nmode = output->numModes + output->numUserModes;
     int		    o, os, l, r;
     RRScreenRatePtr refresh;
     CARD16	    vRefresh;
@@ -520,11 +500,14 @@ RR10GetData (ScreenPtr pScreen, RROutputPtr output)
     /*
      * find modes not yet listed
      */
-    for (o = 0; o < output->numModes; o++)
+    for (o = 0; o < output->numModes + output->numUserModes; o++)
     {
 	if (used[o]) continue;
 	
-	mode = output->modes[o];
+	if (o < output->numModes)
+	    mode = output->modes[o];
+	else
+	    mode = output->userModes[o - output->numModes];
 	
 	l = data->nsize;
 	size[l].id = data->nsize;
@@ -544,9 +527,12 @@ RR10GetData (ScreenPtr pScreen, RROutputPtr output)
 	/*
 	 * Find all modes with matching size
 	 */
-	for (os = o; os < output->numModes; os++)
+	for (os = o; os < output->numModes + output->numUserModes; os++)
 	{
-	    mode = output->modes[os];
+	    if (os < output->numModes)
+		mode = output->modes[os];
+	    else
+		mode = output->userModes[os - output->numModes];
 	    if (mode->mode.width == size[l].width &&
 		mode->mode.height == size[l].height)
 	    {
@@ -949,3 +935,27 @@ sendReply:
     return (client->noClientException);
 }
 
+static CARD16
+RR10CurrentSizeID (ScreenPtr pScreen)
+{
+    CARD16	sizeID = 0xffff;
+    RROutputPtr output = RRFirstOutput (pScreen);
+    
+    if (output)
+    {
+	RR10DataPtr data = RR10GetData (pScreen, output);
+	if (data)
+	{
+	    int i;
+	    for (i = 0; i < data->nsize; i++)
+		if (data->sizes[i].width == pScreen->width &&
+		    data->sizes[i].height == pScreen->height)
+		{
+		    sizeID = (CARD16) i;
+		    break;
+		}
+	    xfree (data);
+	}
+    }
+    return sizeID;
+}

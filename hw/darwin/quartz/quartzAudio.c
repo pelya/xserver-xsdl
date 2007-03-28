@@ -35,7 +35,9 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #include "quartzCommon.h"
 #include "quartzAudio.h"
 
@@ -44,6 +46,7 @@
 
 #include "inputstr.h"
 #include <X11/extensions/XI.h>
+#include <assert.h>
 
 void NSBeep();
 

@@ -37,10 +37,10 @@ CallbackListPtr XaceHooks[XACE_NUM_HOOKS] = {0};
  * from guessing extension major opcodes and using the extension even though
  * the extension can't be listed or queried.
  */
-int (*UntrustedProcVector[256])(
+static int (*UntrustedProcVector[256])(
     ClientPtr /*client*/
 );
-int (*SwappedUntrustedProcVector[256])(
+static int (*SwappedUntrustedProcVector[256])(
     ClientPtr /*client*/
 );
 

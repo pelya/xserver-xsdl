@@ -1,9 +1,9 @@
 /*
- * Darwin event queue and event handling
- */
-/*
-Copyright (c) 2002-2004 Torrey T. Lyons. All Rights Reserved.
+Darwin event queue and event handling
+
+Copyright 2007 Apple Inc.
 Copyright 2004 Kaleb S. KEITHLEY. All Rights Reserved.
+Copyright (c) 2002-2004 Torrey T. Lyons. All Rights Reserved.
 
 This file is based on mieq.c by Keith Packard,
 which contains the following copyright:
@@ -61,6 +61,10 @@ typedef struct _Event {
     ScreenPtr   pScreen;
 } EventRec, *EventPtr;
 
+int input_check_zero, input_check_flag;
+
+static int old_flags = 0;  // last known modifier state
+
 typedef struct _EventQueue {
     HWEventQueueType    head, tail; /* long for SetInputCheck */
     CARD32      lastEventTime;      /* to avoid time running backwards */
@@ -72,25 +76,22 @@ typedef struct _EventQueue {
 } EventQueueRec, *EventQueuePtr;
 
 static EventQueueRec darwinEventQueue;
-
+xEvent *darwinEvents;
 
 /*
  * DarwinPressModifierMask
  *  Press or release the given modifier key, specified by its mask.
  */
 static void DarwinPressModifierMask(
-    xEvent *xe,     // must already have type, time and mouse location
+    int pressed,				    
     int mask)       // one of NX_*MASK constants
 {
     int key = DarwinModifierNXMaskToNXKey(mask);
 
     if (key != -1) {
         int keycode = DarwinModifierNXKeyToNXKeycode(key, 0);
-        if (keycode != 0) {
-            xe->u.u.detail = keycode + MIN_KEYCODE;
-            (*darwinEventQueue.pKbd->processInputProc)(xe,
-                            (DeviceIntPtr)darwinEventQueue.pKbd, 1);
-        }
+        if (keycode != 0)
+	  DarwinSendKeyboardEvents(pressed, keycode);
     }
 }
 
@@ -123,28 +124,26 @@ static void DarwinPressModifierMask(
  *  Send events to update the modifier state.
  */
 static void DarwinUpdateModifiers(
-    xEvent *xe,         // event template with time and mouse position set
     int pressed,        // KeyPress or KeyRelease
     int flags )         // modifier flags that have changed
 {
-    xe->u.u.type = pressed;
     if (flags & NX_ALPHASHIFTMASK) {
-        DarwinPressModifierMask(xe, NX_ALPHASHIFTMASK);
+        DarwinPressModifierMask(pressed, NX_ALPHASHIFTMASK);
     }
     if (flags & NX_COMMANDMASK) {
-        DarwinPressModifierMask(xe, COMMAND_MASK(flags));
+        DarwinPressModifierMask(pressed, COMMAND_MASK(flags));
     }
     if (flags & NX_CONTROLMASK) {
-        DarwinPressModifierMask(xe, CONTROL_MASK(flags));
+        DarwinPressModifierMask(pressed, CONTROL_MASK(flags));
     }
     if (flags & NX_ALTERNATEMASK) {
-        DarwinPressModifierMask(xe, ALTERNATE_MASK(flags));
+        DarwinPressModifierMask(pressed, ALTERNATE_MASK(flags));
     }
     if (flags & NX_SHIFTMASK) {
-        DarwinPressModifierMask(xe, SHIFT_MASK(flags));
+        DarwinPressModifierMask(pressed, SHIFT_MASK(flags));
     }
     if (flags & NX_SECONDARYFNMASK) {
-        DarwinPressModifierMask(xe, NX_SECONDARYFNMASK);
+        DarwinPressModifierMask(pressed, NX_SECONDARYFNMASK);
     }
 }
 
@@ -161,34 +160,33 @@ static void DarwinUpdateModifiers(
  *  simulate a button 2 press instead of Command-button 2.
  */
 static void DarwinSimulateMouseClick(
-    xEvent *xe,         // event template with time and
-                        // mouse position filled in
+    int pointer_x,
+    int pointer_y,
     int whichButton,    // mouse button to be pressed
     int modifierMask)   // modifiers used for the fake click
 {
     // first fool X into forgetting about the keys
-    DarwinUpdateModifiers(xe, KeyRelease, modifierMask);
+    DarwinUpdateModifiers(KeyRelease, modifierMask);
 
     // push the mouse button
-    xe->u.u.type = ButtonPress;
-    xe->u.u.detail = whichButton;
-    (*darwinEventQueue.pPtr->processInputProc)
-            (xe, (DeviceIntPtr)darwinEventQueue.pPtr, 1);
+    DarwinSendPointerEvents(ButtonPress, whichButton, pointer_x, pointer_y);
+    DarwinSendPointerEvents(ButtonRelease, whichButton, pointer_x, pointer_y);
+
+    // restore old modifiers
+    DarwinUpdateModifiers(KeyPress, modifierMask);
 }
 
 
-Bool
-DarwinEQInit(
-    DevicePtr pKbd,
-    DevicePtr pPtr)
-{
+Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) { 
+    darwinEvents = (xEvent *)malloc(sizeof(xEvent) * GetMaximumEventsNum());
+    mieqInit();
     darwinEventQueue.head = darwinEventQueue.tail = 0;
     darwinEventQueue.lastEventTime = GetTimeInMillis ();
     darwinEventQueue.pKbd = pKbd;
     darwinEventQueue.pPtr = pPtr;
     darwinEventQueue.pEnqueueScreen = screenInfo.screens[0];
     darwinEventQueue.pDequeueScreen = darwinEventQueue.pEnqueueScreen;
-    SetInputCheck (&darwinEventQueue.head, &darwinEventQueue.tail);
+    SetInputCheck(&input_check_zero, &input_check_flag);
     return TRUE;
 }
 
@@ -199,11 +197,10 @@ DarwinEQInit(
  *    DarwinEQEnqueue    - called from event gathering thread
  *    ProcessInputEvents - called from X server thread
  *  DarwinEQEnqueue should never be called from more than one thread.
+ * 
+ * This should be deprecated in favor of miEQEnqueue -- BB
  */
-void
-DarwinEQEnqueue(
-    const xEvent *e)
-{
+void DarwinEQEnqueue(const xEvent *e) {
     HWEventQueueType oldtail, newtail;
     char byte = 0;
 
@@ -213,13 +210,12 @@ DarwinEQEnqueue(
     // This is difficult to do in a thread-safe way and rarely useful.
 
     newtail = oldtail + 1;
-    if (newtail == QUEUE_SIZE)
-        newtail = 0;
+    if (newtail == QUEUE_SIZE) newtail = 0;
     /* Toss events which come in late */
-    if (newtail == darwinEventQueue.head)
-        return;
+    if (newtail == darwinEventQueue.head) return;
 
     darwinEventQueue.events[oldtail].event = *e;
+
     /*
      * Make sure that event times don't go backwards - this
      * is "unnecessary", but very useful
@@ -236,7 +232,7 @@ DarwinEQEnqueue(
     darwinEventQueue.tail = newtail;
 
     // Signal there is an event ready to handle
-    write(darwinEventWriteFD, &byte, 1);
+    DarwinPokeEQ();
 }
 
 
@@ -244,20 +240,13 @@ DarwinEQEnqueue(
  * DarwinEQPointerPost
  *  Post a pointer event. Used by the mipointer.c routines.
  */
-void
-DarwinEQPointerPost(
-    xEvent *e)
-{
+void DarwinEQPointerPost(xEvent *e) {
     (*darwinEventQueue.pPtr->processInputProc)
             (e, (DeviceIntPtr)darwinEventQueue.pPtr, 1);
 }
 
 
-void
-DarwinEQSwitchScreen(
-    ScreenPtr   pScreen,
-    Bool        fromDIX)
-{
+void DarwinEQSwitchScreen(ScreenPtr pScreen, Bool fromDIX) {
     darwinEventQueue.pEnqueueScreen = pScreen;
     if (fromDIX)
         darwinEventQueue.pDequeueScreen = pScreen;
@@ -268,21 +257,21 @@ DarwinEQSwitchScreen(
  * ProcessInputEvents
  *  Read and process events from the event queue until it is empty.
  */
-void ProcessInputEvents(void)
-{
+void ProcessInputEvents(void) {
     EventRec *e;
     int     x, y;
     xEvent  xe;
     static int  old_flags = 0;  // last known modifier state
     // button number and modifier mask of currently pressed fake button
-    static int darwinFakeMouseButtonDown = 0;
-    static int darwinFakeMouseButtonMask = 0;
+    input_check_flag=0;
+
+    //    ErrorF("calling mieqProcessInputEvents\n");
+    mieqProcessInputEvents();
 
     // Empty the signaling pipe
     x = sizeof(xe);
-    while (x == sizeof(xe)) {
+    while (x == sizeof(xe)) 
         x = read(darwinEventReadFD, &xe, sizeof(xe));
-    }
 
     while (darwinEventQueue.head != darwinEventQueue.tail)
     {
@@ -298,10 +287,16 @@ void ProcessInputEvents(void)
                 dixScreenOrigins[miPointerCurrentScreen()->myNum].x;
         xe.u.keyButtonPointer.rootY -= darwinMainScreenY +
                 dixScreenOrigins[miPointerCurrentScreen()->myNum].y;
+	
+	/*	ErrorF("old rootX = (%d,%d) darwinMainScreen = (%d,%d) dixScreenOrigins[%d]=(%d,%d)\n",
+	       xe.u.keyButtonPointer.rootX, xe.u.keyButtonPointer.rootY,
+	       darwinMainScreenX, darwinMainScreenY,
+	       miPointerCurrentScreen()->myNum,
+	       dixScreenOrigins[miPointerCurrentScreen()->myNum].x,
+	       dixScreenOrigins[miPointerCurrentScreen()->myNum].y); */
 
-        /*
-         * Assumption - screen switching can only occur on motion events
-         */
+	//Assumption - screen switching can only occur on motion events
+
         if (e->pScreen != darwinEventQueue.pDequeueScreen)
         {
             darwinEventQueue.pDequeueScreen = e->pScreen;
@@ -319,155 +314,35 @@ void ProcessInputEvents(void)
                 darwinEventQueue.head = 0;
             else
                 ++darwinEventQueue.head;
-            switch (xe.u.u.type)
-            {
+            switch (xe.u.u.type) {
             case KeyPress:
-                if (old_flags == 0
-                    && darwinSyncKeymap && darwinKeymapFile == NULL)
-                {
-                    /* See if keymap has changed. */
-
-                    static unsigned int last_seed;
-                    unsigned int this_seed;
-
-                    this_seed = DarwinModeSystemKeymapSeed();
-                    if (this_seed != last_seed)
-                    {
-                        last_seed = this_seed;
-                        DarwinKeyboardReload(darwinKeyboard);
-                    }
-                }
-                /* fall through */
-
             case KeyRelease:
-                xe.u.u.detail += MIN_KEYCODE;
-                (*darwinEventQueue.pKbd->processInputProc)
-                    (&xe, (DeviceIntPtr)darwinEventQueue.pKbd, 1);
-                break;
+	      ErrorF("Unexpected Keyboard event in DarwinProcessInputEvents\n");
+	      break;
 
             case ButtonPress:
-                miPointerAbsoluteCursor(xe.u.keyButtonPointer.rootX,
-                                        xe.u.keyButtonPointer.rootY,
-                                        xe.u.keyButtonPointer.time);
-                if (darwinFakeButtons && xe.u.u.detail == 1) {
-                    // Mimic multi-button mouse with modifier-clicks
-                    // If both sets of modifiers are pressed,
-                    // button 2 is clicked.
-                    if ((old_flags & darwinFakeMouse2Mask) ==
-                        darwinFakeMouse2Mask)
-                    {
-                        DarwinSimulateMouseClick(&xe, 2, darwinFakeMouse2Mask);
-                        darwinFakeMouseButtonDown = 2;
-                        darwinFakeMouseButtonMask = darwinFakeMouse2Mask;
-                        break;
-                    }
-                    else if ((old_flags & darwinFakeMouse3Mask) ==
-                             darwinFakeMouse3Mask)
-                    {
-                        DarwinSimulateMouseClick(&xe, 3, darwinFakeMouse3Mask);
-                        darwinFakeMouseButtonDown = 3;
-                        darwinFakeMouseButtonMask = darwinFakeMouse3Mask;
-                        break;
-                    }
-                }
-                (*darwinEventQueue.pPtr->processInputProc)
-                        (&xe, (DeviceIntPtr)darwinEventQueue.pPtr, 1);
+	      ErrorF("Unexpected ButtonPress event in DarwinProcessInputEvents\n");
                 break;
 
             case ButtonRelease:
-                miPointerAbsoluteCursor(xe.u.keyButtonPointer.rootX,
-                                        xe.u.keyButtonPointer.rootY,
-                                        xe.u.keyButtonPointer.time);
-                if (darwinFakeButtons && xe.u.u.detail == 1 &&
-                    darwinFakeMouseButtonDown)
-                {
-                    // If last mousedown was a fake click, don't check for
-                    // mouse modifiers here. The user may have released the
-                    // modifiers before the mouse button.
-                    xe.u.u.detail = darwinFakeMouseButtonDown;
-                    darwinFakeMouseButtonDown = 0;
-                    (*darwinEventQueue.pPtr->processInputProc)
-                            (&xe, (DeviceIntPtr)darwinEventQueue.pPtr, 1);
-
-                    // Bring modifiers back up to date
-                    DarwinUpdateModifiers(&xe, KeyPress,
-                            darwinFakeMouseButtonMask & old_flags);
-                    darwinFakeMouseButtonMask = 0;
-                } else {
-                    (*darwinEventQueue.pPtr->processInputProc)
-                            (&xe, (DeviceIntPtr)darwinEventQueue.pPtr, 1);
-                }
+	      ErrorF("Unexpected ButtonRelease event in DarwinProcessInputEvents\n");
                 break;
 
             case MotionNotify:
-                miPointerAbsoluteCursor(xe.u.keyButtonPointer.rootX,
-                                        xe.u.keyButtonPointer.rootY,
-                                        xe.u.keyButtonPointer.time);
+	      ErrorF("Unexpected ButtonRelease event in DarwinProcessInputEvents\n");
                 break;
 
             case kXDarwinUpdateModifiers:
-            {
-                // Update modifier state.
-                // Any amount of modifiers may have changed.
-                int flags = xe.u.clientMessage.u.l.longs0;
-                DarwinUpdateModifiers(&xe, KeyRelease,
-                                      old_flags & ~flags);
-                DarwinUpdateModifiers(&xe, KeyPress,
-                                      ~old_flags & flags);
-                old_flags = flags;
-                break;
-            }
+	      ErrorF("Unexpected ButtonRelease event in DarwinProcessInputEvents\n");
+	      break;
 
             case kXDarwinUpdateButtons:
-            {
-                long hwDelta = xe.u.clientMessage.u.l.longs0;
-                long hwButtons = xe.u.clientMessage.u.l.longs1;
-                int i;
+	      ErrorF("Unexpected XDarwinScrollWheel event in DarwinProcessInputEvents\n");
+	      break;
 
-                for (i = 1; i < 5; i++) {
-                    if (hwDelta & (1 << i)) {
-                        // IOKit and X have different numbering for the
-                        // middle and right mouse buttons.
-                        if (i == 1) {
-                            xe.u.u.detail = 3;
-                        } else if (i == 2) {
-                            xe.u.u.detail = 2;
-                        } else {
-                            xe.u.u.detail = i + 1;
-                        }
-                        if (hwButtons & (1 << i)) {
-                            xe.u.u.type = ButtonPress;
-                        } else {
-                            xe.u.u.type = ButtonRelease;
-                        }
-                        (*darwinEventQueue.pPtr->processInputProc)
-                    (&xe, (DeviceIntPtr)darwinEventQueue.pPtr, 1);
-                    }
-                }
-                break;
-            }
-
-            case kXDarwinScrollWheel:
-            {
-                short count = xe.u.clientMessage.u.s.shorts0;
-
-                if (count > 0) {
-                    xe.u.u.detail = SCROLLWHEELUPFAKE;
-                } else {
-                    xe.u.u.detail = SCROLLWHEELDOWNFAKE;
-                    count = -count;
-                }
-
-                for (; count; --count) {
-                    xe.u.u.type = ButtonPress;
-                    (*darwinEventQueue.pPtr->processInputProc)
-                            (&xe, (DeviceIntPtr)darwinEventQueue.pPtr, 1);
-                    xe.u.u.type = ButtonRelease;
-                    (*darwinEventQueue.pPtr->processInputProc)
-                            (&xe, (DeviceIntPtr)darwinEventQueue.pPtr, 1);
-                }
-                break;
-            }
+            case kXDarwinScrollWheel: 
+	      ErrorF("Unexpected XDarwinScrollWheel event in DarwinProcessInputEvents\n");
+	      break;
 
             default:
                 // Check for mode specific event
@@ -476,5 +351,96 @@ void ProcessInputEvents(void)
         }
     }
 
-    miPointerUpdate();
+    //    miPointerUpdate();
+}
+
+/* Sends a null byte down darwinEventWriteFD, which will cause the
+   Dispatch() event loop to check out event queue */
+void DarwinPokeEQ(void) {
+  char nullbyte=0;
+  input_check_flag++;
+  //  <daniels> bushing: oh, i ... er ... christ.
+  write(darwinEventWriteFD, &nullbyte, 1);
+}
+
+void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y) {
+  static int darwinFakeMouseButtonDown = 0;
+  static int darwinFakeMouseButtonMask = 0;
+  int i, num_events;
+  int valuators[2] = {pointer_x, pointer_y};
+  if (ev_type == ButtonPress && darwinFakeButtons && ev_button == 1) {
+    // Mimic multi-button mouse with modifier-clicks
+    // If both sets of modifiers are pressed,
+    // button 2 is clicked.
+    if ((old_flags & darwinFakeMouse2Mask) == darwinFakeMouse2Mask) {
+      DarwinSimulateMouseClick(pointer_x, pointer_y, 2, darwinFakeMouse2Mask);
+      darwinFakeMouseButtonDown = 2;
+      darwinFakeMouseButtonMask = darwinFakeMouse2Mask;
+    } else if ((old_flags & darwinFakeMouse3Mask) == darwinFakeMouse3Mask) {
+      DarwinSimulateMouseClick(pointer_x, pointer_y, 3, darwinFakeMouse3Mask);
+      darwinFakeMouseButtonDown = 3;
+      darwinFakeMouseButtonMask = darwinFakeMouse3Mask;
+    }
+  }
+  if (ev_type == ButtonRelease && darwinFakeButtons && darwinFakeMouseButtonDown) {
+    // If last mousedown was a fake click, don't check for
+    // mouse modifiers here. The user may have released the
+    // modifiers before the mouse button.
+    ev_button = darwinFakeMouseButtonDown;
+    darwinFakeMouseButtonDown = 0;
+    // Bring modifiers back up to date
+    DarwinUpdateModifiers(KeyPress, darwinFakeMouseButtonMask & old_flags);
+    darwinFakeMouseButtonMask = 0;
+  } 
+
+  num_events = GetPointerEvents(darwinEvents, darwinPointer, ev_type, ev_button, 
+				POINTER_ABSOLUTE, 0, 2, valuators);
+      
+  for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
+  DarwinPokeEQ();
+}
+
+void DarwinSendKeyboardEvents(int ev_type, int keycode) {
+  int i, num_events;
+  if (old_flags == 0 && darwinSyncKeymap && darwinKeymapFile == NULL) {
+    /* See if keymap has changed. */
+
+    static unsigned int last_seed;
+    unsigned int this_seed;
+
+    this_seed = DarwinModeSystemKeymapSeed();
+    if (this_seed != last_seed) {
+      last_seed = this_seed;
+      DarwinKeyboardReload(darwinKeyboard);
+    }
+  }
+
+  num_events = GetKeyboardEvents(darwinEvents, darwinKeyboard, ev_type, keycode + MIN_KEYCODE);
+  for(i=0; i<num_events; i++) mieqEnqueue(darwinKeyboard,&darwinEvents[i]);
+  DarwinPokeEQ();
+}
+
+/* Send the appropriate number of button 4 / 5 clicks to emulate scroll wheel */
+void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y) {
+  int i;
+  int ev_button = count > 0.0f ? 4 : 5;
+  int valuators[2] = {pointer_x, pointer_y};
+
+  for (count = fabs(count); count > 0.0; count = count - 1.0f) {
+    int num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonPress, ev_button, 
+				      POINTER_ABSOLUTE, 0, 2, valuators);
+    for(i=0; i<num_events; i++) mieqEnqueue(darwinPointer,&darwinEvents[i]);
+    num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonRelease, ev_button, 
+				      POINTER_ABSOLUTE, 0, 2, valuators);
+    for(i=0; i<num_events; i++) mieqEnqueue(darwinPointer,&darwinEvents[i]);
+  }
+  DarwinPokeEQ();
+}
+
+/* Send the appropriate KeyPress/KeyRelease events to GetKeyboardEvents to
+   reflect changing modifier flags (alt, control, meta, etc) */
+void DarwinUpdateModKeys(int flags) {
+  DarwinUpdateModifiers(KeyRelease, old_flags & ~flags);
+  DarwinUpdateModifiers(KeyPress, ~old_flags & flags);
+  old_flags = flags;
 }

@@ -18,23 +18,23 @@ INCLUDES = -I@MESA_SOURCE@/include \
            -I../.. \
            -I$(top_srcdir)/hw/xfree86/os-support
 
-nodist_libslang_la_SOURCES = slang_analyse.c \
-		      slang_assemble_assignment.c \
-		      slang_assemble.c \
-		      slang_assemble_conditional.c \
-		      slang_assemble_constructor.c \
-		      slang_assemble_typeinfo.c \
+nodist_libslang_la_SOURCES = slang_builtin.c \
+		      slang_codegen.c \
 		      slang_compile.c \
 		      slang_compile_function.c \
 		      slang_compile_operation.c \
 		      slang_compile_struct.c \
 		      slang_compile_variable.c \
-		      slang_execute.c \
-		      slang_execute_x86.c \
-		      slang_export.c \
-		      slang_library_texsample.c \
+		      slang_emit.c \
+		      slang_ir.c \
+		      slang_label.c \
 		      slang_library_noise.c \
 		      slang_link.c \
+		      slang_log.c \
 		      slang_preprocess.c \
+		      slang_print.c \
+		      slang_simplify.c \
 		      slang_storage.c \
-		      slang_utility.c
+		      slang_typeinfo.c \
+		      slang_utility.c \
+		      slang_vartable.c

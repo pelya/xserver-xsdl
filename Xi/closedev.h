@@ -36,14 +36,4 @@ int SProcXCloseDevice(ClientPtr	/* client */
 int ProcXCloseDevice(ClientPtr	/* client */
     );
 
-void DeleteEventsFromChildren(DeviceIntPtr /* dev */ ,
-			      WindowPtr /* p1 */ ,
-			      ClientPtr	/* client */
-    );
-
-void DeleteDeviceEvents(DeviceIntPtr /* dev */ ,
-			WindowPtr /* pWin */ ,
-			ClientPtr	/* client */
-    );
-
 #endif /* CLOSEDEV_H */

@@ -745,6 +745,13 @@ CheckVersion(const char *module, XF86ModuleVersionInfo * data,
     return TRUE;
 }
 
+static ModuleDescPtr
+AddSibling(ModuleDescPtr head, ModuleDescPtr new)
+{
+    new->sib = head;
+    return (new);
+}
+
 _X_EXPORT ModuleDescPtr
 LoadSubModule(ModuleDescPtr parent, const char *module,
 	      const char **subdirlist, const char **patternlist,
@@ -768,42 +775,35 @@ LoadSubModule(ModuleDescPtr parent, const char *module,
 
     submod = doLoadModule(module, NULL, subdirlist, patternlist, options,
 			  modreq, errmaj, errmin, LD_FLAG_GLOBAL);
-    if (submod) {
+    if (submod && submod != (ModuleDescPtr) 1) {
 	parent->child = AddSibling(parent->child, submod);
 	submod->parent = parent;
     }
     return submod;
 }
 
-ModuleDescPtr
-LoadSubModuleLocal(ModuleDescPtr parent, const char *module,
-		   const char **subdirlist, const char **patternlist,
-		   pointer options, const XF86ModReqInfo * modreq,
-		   int *errmaj, int *errmin)
+static ModuleDescPtr
+NewModuleDesc(const char *name)
 {
-    ModuleDescPtr submod;
+    ModuleDescPtr mdp = xalloc(sizeof(ModuleDesc));
 
-    xf86MsgVerb(X_INFO, 3, "Loading local sub module \"%s\"\n", module);
-
-    if (PathIsAbsolute(module))
-    {
-	xf86Msg(X_ERROR,
-		"LoadSubModule: Absolute module path not permitted: \"%s\"\n",
-		module);
-	if (errmaj)
-	    *errmaj = LDR_BADUSAGE;
-	if (errmin)
-	    *errmin = 0;
-	return NULL;
+    if (mdp) {
+	mdp->child = NULL;
+	mdp->sib = NULL;
+	mdp->parent = NULL;
+	mdp->demand_next = NULL;
+	mdp->name = xstrdup(name);
+	mdp->filename = NULL;
+	mdp->identifier = NULL;
+	mdp->client_id = 0;
+	mdp->in_use = 0;
+	mdp->handle = -1;
+	mdp->SetupProc = NULL;
+	mdp->TearDownProc = NULL;
+	mdp->TearDownData = NULL;
     }
 
-    submod = doLoadModule(module, NULL, subdirlist, patternlist, options,
-			  modreq, errmaj, errmin, 0);
-    if (submod) {
-	parent->child = AddSibling(parent->child, submod);
-	submod->parent = parent;
-    }
-    return submod;
+    return (mdp);
 }
 
 _X_EXPORT ModuleDescPtr
@@ -838,6 +838,12 @@ DuplicateModule(ModuleDescPtr mod, ModuleDescPtr parent)
     return ret;
 }
 
+static const char *compiled_in_modules[] = {
+    "ddc",
+    "i2c",
+    "ramdac",
+    NULL
+};
 
 static ModuleDescPtr
 doLoadModule(const char *module, const char *path, const char **subdirlist,
@@ -856,8 +862,16 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
     PatternPtr patterns = NULL;
     int noncanonical = 0;
     char *m = NULL;
+    const char **cim;
 
     xf86MsgVerb(X_INFO, 3, "LoadModule: \"%s\"", module);
+
+    for (cim = compiled_in_modules; *cim; cim++)
+	if (!strcmp (module, *cim))
+	{
+	    xf86MsgVerb(X_INFO, 3, "Module already built-in\n");
+	    return (ModuleDescPtr) 1;
+	}
 
     patterns = InitPatterns(patternlist);
     name = LoaderGetCanonicalName(module, patterns);
@@ -1085,22 +1099,8 @@ LoadModule(const char *module, const char *path, const char **subdirlist,
 		      modreq, errmaj, errmin, LD_FLAG_GLOBAL);
 }
 
-ModuleDescPtr
-LoadDriver(const char *module, const char *path, int handle, pointer options,
-	   int *errmaj, int *errmin)
-{
-    return LoadModule(module, path, NULL, NULL, options, NULL, errmaj,
-		      errmin);
-}
-
 void
 UnloadModule(ModuleDescPtr mod)
-{
-    UnloadModuleOrDriver(mod);
-}
-
-void
-UnloadDriver(ModuleDescPtr mod)
 {
     UnloadModuleOrDriver(mod);
 }
@@ -1108,6 +1108,9 @@ UnloadDriver(ModuleDescPtr mod)
 static void
 UnloadModuleOrDriver(ModuleDescPtr mod)
 {
+    if (mod == (ModuleDescPtr) 1)
+	return;
+
     if (mod == NULL || mod->name == NULL)
 	return;
 
@@ -1151,14 +1154,16 @@ UnloadSubModule(ModuleDescPtr mod)
     xfree(mod);
 }
 
-void
+static void
 FreeModuleDesc(ModuleDescPtr head)
 {
     ModuleDescPtr sibs, prev;
 
+    if (head == (ModuleDescPtr) 1)
+	return;
     /*
      * only free it if it's not marked as in use. In use means that it may
-     * be unloaded someday, and UnloadModule or UnloadDriver will free it
+     * be unloaded someday, and UnloadModule will free it
      */
     if (head->in_use)
 	return;
@@ -1171,38 +1176,6 @@ FreeModuleDesc(ModuleDescPtr head)
 	TestFree(prev->name);
 	xfree(prev);
     }
-}
-
-ModuleDescPtr
-NewModuleDesc(const char *name)
-{
-    ModuleDescPtr mdp = xalloc(sizeof(ModuleDesc));
-
-    if (mdp) {
-	mdp->child = NULL;
-	mdp->sib = NULL;
-	mdp->parent = NULL;
-	mdp->demand_next = NULL;
-	mdp->name = xstrdup(name);
-	mdp->filename = NULL;
-	mdp->identifier = NULL;
-	mdp->client_id = 0;
-	mdp->in_use = 0;
-	mdp->handle = -1;
-	mdp->SetupProc = NULL;
-	mdp->TearDownProc = NULL;
-	mdp->TearDownData = NULL;
-    }
-
-    return (mdp);
-}
-
-ModuleDescPtr
-AddSibling(ModuleDescPtr head, ModuleDescPtr new)
-{
-    new->sib = head;
-    return (new);
-
 }
 
 static void
@@ -1338,7 +1311,7 @@ LoaderGetCanonicalName(const char *modname, PatternPtr patterns)
 unsigned long
 LoaderGetModuleVersion(ModuleDescPtr mod)
 {
-    if (!mod || !mod->VersionInfo)
+    if (!mod || mod == (ModuleDescPtr) 1 || !mod->VersionInfo)
 	return 0;
 
     return MODULE_VERSION_NUMERIC(mod->VersionInfo->majorversion,

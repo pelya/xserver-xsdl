@@ -49,15 +49,11 @@
 /** Initialize a private area in \a pScreen for pixmap information. */
 Bool dmxInitPixmap(ScreenPtr pScreen)
 {
-#ifdef PIXPRIV
     if (!AllocatePixmapPrivate(pScreen, dmxPixPrivateIndex,
 			       sizeof(dmxPixPrivRec)))
 	return FALSE;
 
     return TRUE;
-#else
-#error Must define PIXPRIV to compile DMX X server
-#endif
 }
 
 /** Create a pixmap on the back-end server. */

@@ -1796,6 +1796,15 @@ convertRange2Host(int entityIndex, resRange *pRange)
     }
 }
 
+static void
+xf86ConvertListToHost(int entityIndex, resPtr list)
+{
+    while (list) {
+	convertRange2Host(entityIndex, &list->val);
+	list = list->next;
+    }
+}
+
 /*
  * xf86RegisterResources() -- attempts to register listed resources.
  * If list is NULL it tries to obtain resources implicitly. Function
@@ -2835,18 +2844,7 @@ xf86IsSubsetOf(resRange range, resPtr list)
     return ret;
 }
 
-Bool
-xf86IsListSubsetOf(resPtr list, resPtr BaseList)
-{
-    while (list) {
-	if (! xf86IsSubsetOf(list->val,BaseList))
-	    return FALSE;
-	list = list->next;
-    }
-    return TRUE;
-}
-
-resPtr
+static resPtr
 findIntersect(resRange Range, resPtr list)
 {
     resRange range;
@@ -3068,15 +3066,6 @@ xf86NoSharedResources(int screenIndex,resType res)
       }
     }
     return TRUE;
-}
-
-void
-xf86ConvertListToHost(int entityIndex, resPtr list)
-{
-    while (list) {
-	convertRange2Host(entityIndex, &list->val);
-	list = list->next;
-    }
 }
 
 _X_EXPORT void

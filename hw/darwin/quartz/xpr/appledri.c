@@ -35,6 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
 
+#ifdef HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #define NEED_REPLIES
 #define NEED_EVENTS
 #include <X11/X.h>

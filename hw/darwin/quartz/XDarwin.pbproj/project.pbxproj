@@ -387,7 +387,7 @@
 	<key>CFBundleIconFile</key>
 	<string>XDarwin.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.xfree86.XDarwin</string>
+	<string>org.x.x11</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

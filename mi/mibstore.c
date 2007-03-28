@@ -152,11 +152,11 @@ static void	    miBSClearBackingRegion(WindowPtr pWin, RegionPtr pRgn);
 
 #define copyData(src,dst,n,morecopy) \
 { \
-    register short *srcCopy = (short *)(src); \
-    register short *dstCopy = (short *)(dst); \
-    register int i; \
-    register int bsx = pBackingStore->x; \
-    register int bsy = pBackingStore->y; \
+    short *srcCopy = (short *)(src); \
+    short *dstCopy = (short *)(dst); \
+    int i; \
+    int bsx = pBackingStore->x; \
+    int bsy = pBackingStore->y; \
     for (i = n; --i >= 0; ) \
     { \
 	*dstCopy++ = *srcCopy++ - bsx; \
@@ -1010,7 +1010,7 @@ miBSSetSpans(pDrawable, pGC, psrc, ppt, pwidth, nspans, fSorted)
     DrawablePtr		pDrawable;
     GCPtr		pGC;
     char		*psrc;
-    register DDXPointPtr ppt;
+    DDXPointPtr 	ppt;
     int			*pwidth;
     int			nspans;
     int			fSorted;
@@ -1150,8 +1150,8 @@ miBSDoCopy(
     }	    	  	*boxes;	    /* Array of box/drawable pairs covering
 				     * source box. */
     int  	  	*sequence;  /* Sequence of boxes to move */
-    register int  	i, j, k, l, y;
-    register BoxPtr	pBox;
+    int  		i, j, k, l, y;
+    BoxPtr		pBox;
     int	    	  	dx, dy, nrects;
     Bool    	  	graphicsExposures;
     CopyPlaneProcPtr  	pixCopyProc;
@@ -1591,7 +1591,7 @@ static RegionPtr
 miBSCopyPlane (pSrc, pDst, pGC, srcx, srcy, w, h, dstx, dsty, plane)
     DrawablePtr	  pSrc;
     DrawablePtr	  pDst;
-    register GC   *pGC;
+    GC  	 *pGC;
     int     	  srcx,
 		  srcy;
     int     	  w,
@@ -1901,9 +1901,9 @@ miBSPolyArc(pDrawable, pGC, narcs, parcs)
 static void
 miBSFillPolygon(pDrawable, pGC, shape, mode, count, pPts)
     DrawablePtr		pDrawable;
-    register GCPtr	pGC;
+    GCPtr		pGC;
     int			shape, mode;
-    register int	count;
+    int			count;
     DDXPointPtr		pPts;
 {
     DDXPointPtr	pPtsCopy;
@@ -2546,8 +2546,8 @@ static void
 miBSAllocate(pWin)
     WindowPtr 	  pWin;
 {
-    register miBSWindowPtr  pBackingStore;
-    register ScreenPtr 	    pScreen;
+    miBSWindowPtr  	pBackingStore;
+    ScreenPtr 	   	pScreen;
 	
     if (pWin->drawable.pScreen->backingStoreSupport == NotUseful)
 	return;
@@ -2648,7 +2648,7 @@ miBSFree(pWin)
     WindowPtr pWin;
 {
     miBSWindowPtr 	pBackingStore;
-    register ScreenPtr	pScreen;
+    ScreenPtr		pScreen;
 
     pScreen = pWin->drawable.pScreen;
 
@@ -2792,9 +2792,9 @@ miResizeBackingStore(
  */
 static void
 miBSSaveDoomedAreas(pWin, pObscured, dx, dy)
-    register WindowPtr pWin;
-    RegionPtr 	       pObscured;
-    int		       dx, dy;
+    WindowPtr		pWin;
+    RegionPtr		pObscured;
+    int			dx, dy;
 {
     miBSWindowPtr 	pBackingStore;
     ScreenPtr	  	pScreen;
@@ -2899,14 +2899,14 @@ miBSSaveDoomedAreas(pWin, pObscured, dx, dy)
  */
 static RegionPtr
 miBSRestoreAreas(pWin, prgnExposed)
-    register WindowPtr pWin;
+    WindowPtr pWin;
     RegionPtr prgnExposed;
 {
     PixmapPtr pBackingPixmap;
     miBSWindowPtr pBackingStore;
     RegionPtr prgnSaved;
     RegionPtr prgnRestored;
-    register ScreenPtr pScreen;
+    ScreenPtr pScreen;
     RegionPtr exposures = prgnExposed;
 
     pScreen = pWin->drawable.pScreen;
@@ -3097,15 +3097,15 @@ miBSTranslateBackingStore(pWin, windx, windy, oldClip, oldx, oldy)
     int     	  oldx;		/* old window position */
     int     	  oldy;
 {
-    register miBSWindowPtr 	pBackingStore;
-    register RegionPtr 	    	pSavedRegion;
-    register RegionPtr 	    	newSaved, doomed;
-    register ScreenPtr		pScreen;
-    BoxRec			extents;
-    int     	  scrdx;	/* bit translation distance on screen */
-    int     	  scrdy;
-    int		  dx;		/* distance window moved  on screen */
-    int		  dy;
+    miBSWindowPtr 	pBackingStore;
+    RegionPtr 	    	pSavedRegion;
+    RegionPtr 	    	newSaved, doomed;
+    ScreenPtr		pScreen;
+    BoxRec		extents;
+    int 		scrdx;	/* bit translation distance on screen */
+    int     	  	scrdy;
+    int			dx;		/* distance window moved  on screen */
+    int			dy;
 
     pScreen = pWin->drawable.pScreen;
     pBackingStore = (miBSWindowPtr)(pWin->backStorage);
@@ -3815,9 +3815,9 @@ miBSExposeCopy (pSrc, pDst, pGC, prgnExposed, srcx, srcy, dstx, dsty, plane)
     miBSWindowPtr	pBackingStore;
     CopyPlaneProcPtr 	copyProc;
     GCPtr		pScratchGC;
-    register BoxPtr	pBox;
-    register int  	i;
-    register int  	dx, dy;
+    BoxPtr		pBox;
+    int  		i;
+    int  		dx, dy;
     BITS32		gcMask;
 
     if (!REGION_NOTEMPTY(pGC->pScreen, prgnExposed))

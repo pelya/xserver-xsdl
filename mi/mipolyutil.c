@@ -73,16 +73,12 @@ SOFTWARE.
  *     bucket.  Finally, we can insert it.
  *
  */
-Bool
-miInsertEdgeInET(ET, ETE, scanline, SLLBlock, iSLLBlock)
-    EdgeTable *ET;
-    EdgeTableEntry *ETE;
-    int scanline;
-    ScanLineListBlock **SLLBlock;
-    int *iSLLBlock;
+static Bool
+miInsertEdgeInET(EdgeTable *ET, EdgeTableEntry *ETE,  int scanline,
+		 ScanLineListBlock **SLLBlock, int *iSLLBlock)
 {
-    register EdgeTableEntry *start, *prev;
-    register ScanLineList *pSLL, *pPrevSLL;
+    EdgeTableEntry *start, *prev;
+    ScanLineList *pSLL, *pPrevSLL;
     ScanLineListBlock *tmpSLLBlock;
 
     /*
@@ -166,15 +162,15 @@ miInsertEdgeInET(ET, ETE, scanline, SLLBlock, iSLLBlock)
 
 Bool
 miCreateETandAET(count, pts, ET, AET, pETEs, pSLLBlock)
-    register int count;
-    register DDXPointPtr pts;
+    int count;
+    DDXPointPtr pts;
     EdgeTable *ET;
     EdgeTableEntry *AET;
-    register EdgeTableEntry *pETEs;
+    EdgeTableEntry *pETEs;
     ScanLineListBlock   *pSLLBlock;
 {
-    register DDXPointPtr top, bottom;
-    register DDXPointPtr PrevPt, CurrPt;
+    DDXPointPtr top, bottom;
+    DDXPointPtr PrevPt, CurrPt;
     int iSLLBlock = 0;
 
     int dy;
@@ -262,10 +258,10 @@ miCreateETandAET(count, pts, ET, AET, pETEs, pSLLBlock)
 
 void
 miloadAET(AET, ETEs)
-    register EdgeTableEntry *AET, *ETEs;
+    EdgeTableEntry *AET, *ETEs;
 {
-    register EdgeTableEntry *pPrevAET;
-    register EdgeTableEntry *tmp;
+    EdgeTableEntry *pPrevAET;
+    EdgeTableEntry *tmp;
 
     pPrevAET = AET;
     AET = AET->next;
@@ -310,11 +306,11 @@ miloadAET(AET, ETEs)
  */
 void
 micomputeWAET(AET)
-    register EdgeTableEntry *AET;
+    EdgeTableEntry *AET;
 {
-    register EdgeTableEntry *pWETE;
-    register int inside = 1;
-    register int isInside = 0;
+    EdgeTableEntry *pWETE;
+    int inside = 1;
+    int isInside = 0;
 
     AET->nextWETE = (EdgeTableEntry *)NULL;
     pWETE = AET;
@@ -349,12 +345,12 @@ micomputeWAET(AET)
 
 int
 miInsertionSort(AET)
-    register EdgeTableEntry *AET;
+    EdgeTableEntry *AET;
 {
-    register EdgeTableEntry *pETEchase;
-    register EdgeTableEntry *pETEinsert;
-    register EdgeTableEntry *pETEchaseBackTMP;
-    register int changed = 0;
+    EdgeTableEntry *pETEchase;
+    EdgeTableEntry *pETEinsert;
+    EdgeTableEntry *pETEchaseBackTMP;
+    int changed = 0;
 
     AET = AET->next;
     while (AET) 
@@ -386,9 +382,9 @@ miInsertionSort(AET)
  */
 void
 miFreeStorage(pSLLBlock)
-    register ScanLineListBlock   *pSLLBlock;
+    ScanLineListBlock   *pSLLBlock;
 {
-    register ScanLineListBlock   *tmpSLLBlock;
+    ScanLineListBlock   *tmpSLLBlock;
 
     while (pSLLBlock) 
     {

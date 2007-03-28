@@ -1,0 +1,35 @@
+This directory contains a port of the XDarwin code to the modular X.org
+codebase to be compiled on Darwin/OS X; this would not have been possible
+without the help of Torrey Lyons and Peter O'Gorman, to whom I am
+grateful for their patches, time and moral support.
+
+The server builds 4 targets:
+
+* XDarwin: this server runs on Darwin systems without Quartz
+  (i.e. non-OS X); it has not been well-tested.
+
+* XDarwinApp: this builds XDarwin.app, which is a full X server using
+  Quartz.  It has loadable module support for AGL and CGL, and well as
+  fullscreen and rootless support.
+
+* Xquartz: this server runs on Quartz-based systems, and is meant to
+  work with X11.app
+
+* x11app: this builds a version of Apple's X11.app using patches by
+  Torrey Lyons; most, but not all, functionality of Apple's original
+  X11.app is present in this release.
+
+Known issues:
+
+* AGL and CGL support for 3D indirect acceleration does not work;
+  indirect.c has been rewritten, but not yet integrated into this source tree.
+
+* Fullscreen mode does not work; I don't know why.
+
+* Some features in X11.app are not yet implemented; these are marked
+  with #ifdef DARWIN_DDX_MISSING in the code.
+
+* The build system code could probably be cleaned up slightly.
+
+Any patches or code contributions would be most welcome and may be
+sent to me at bbyer@apple.com.

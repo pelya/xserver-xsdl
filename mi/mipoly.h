@@ -180,14 +180,6 @@ typedef struct _ScanLineListBlock {
 
 /* mipolyutil.c */
 
-extern Bool miInsertEdgeInET(
-    EdgeTable * /*ET*/,
-    EdgeTableEntry * /*ETE*/,
-    int /*scanline*/,
-    ScanLineListBlock ** /*SLLBlock*/,
-    int * /*iSLLBlock*/
-);
-
 extern Bool miCreateETandAET(
     int /*count*/,
     DDXPointPtr /*pts*/,

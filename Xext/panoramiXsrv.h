@@ -12,14 +12,11 @@ extern int PanoramiXNumScreens;
 extern PanoramiXData *panoramiXdataPtr;
 extern int PanoramiXPixWidth;
 extern int PanoramiXPixHeight;
-extern RegionRec PanoramiXScreenRegion;
 extern XID *PanoramiXVisualTable;
 
 extern void PanoramiXConsolidate(void);
 extern Bool PanoramiXCreateConnectionBlock(void);
 extern PanoramiXRes * PanoramiXFindIDByScrnum(RESTYPE, XID, int);
-extern PanoramiXRes * PanoramiXFindIDOnAnyScreen(RESTYPE, XID);
-extern WindowPtr PanoramiXChangeWindow(int, WindowPtr);
 extern Bool XineramaRegisterConnectionBlockCallback(void (*func)(void));
 extern int XineramaDeleteResource(pointer, XID);
 

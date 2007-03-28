@@ -77,7 +77,7 @@ typedef struct {
 #define AUTHID(client) \
     (((SecurityClientStateRec*)STATEPTR(client))->authId)
 
-CallbackListPtr SecurityValidateGroupCallback = NULL;  /* see security.h */
+static CallbackListPtr SecurityValidateGroupCallback = NULL;
 
 RESTYPE SecurityAuthorizationResType; /* resource type for authorizations */
 
@@ -1187,6 +1187,7 @@ CALLBACK(SecurityCheckMapAccess)
     if (STATEPTR(rec->client) &&
 	(TRUSTLEVEL(rec->client) != XSecurityClientTrusted) &&
 	(pWin->drawable.class == InputOnly) &&
+	pWin->parent && pWin->parent->parent &&
 	(TRUSTLEVEL(wClient(pWin->parent)) == XSecurityClientTrusted))
 
 	rec->rval = FALSE;

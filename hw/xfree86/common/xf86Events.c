@@ -126,9 +126,9 @@ extern Bool noXkbExtension;
  */
 
 #ifdef USE_VT_SYSREQ
-Bool VTSysreqToggle = FALSE;
+static Bool VTSysreqToggle = FALSE;
 #endif /* !USE_VT_SYSREQ */
-Bool VTSwitchEnabled = TRUE;		/* Allows run-time disabling for
+_X_EXPORT Bool VTSwitchEnabled = TRUE;	/* Allows run-time disabling for
                                          *BSD and for avoiding VT
                                          switches when using the DRI
                                          automatic full screen mode.*/

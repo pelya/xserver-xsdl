@@ -86,7 +86,7 @@
 #endif
 #include "selection.h"
 #ifdef XKB
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 extern int XkbDfltRepeatDelay, XkbDfltRepeatInterval;
 #endif
 
@@ -271,10 +271,8 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(AllocateColormapPrivateIndex)
     SYMFUNC(AllocateDevicePrivateIndex)
     SYMFUNC(AllocateDevicePrivate)
-#ifdef PIXPRIV
     SYMFUNC(AllocatePixmapPrivateIndex)
     SYMFUNC(AllocatePixmapPrivate)
-#endif
     /* resource.c */
     SYMFUNC(AddResource)
     SYMFUNC(ChangeResourceValue)

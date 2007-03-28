@@ -102,12 +102,8 @@ afbCreatePixmap(pScreen, width, height, depth)
 	pPixmap->drawable.height = height;
 	pPixmap->devKind = paddedWidth;
 	pPixmap->refcnt = 1;
-#ifdef PIXPRIV
 	pPixmap->devPrivate.ptr =  datasize ?
 				(pointer)((char *)pPixmap + pScreen->totalPixmapSize) : NULL;
-#else
-	pPixmap->devPrivate.ptr = (pointer)(pPixmap + 1);
-#endif
 	return(pPixmap);
 }
 
@@ -122,9 +118,8 @@ afbDestroyPixmap(pPixmap)
 }
 
 
-PixmapPtr
-afbCopyPixmap(pSrc)
-	register PixmapPtr pSrc;
+static PixmapPtr
+afbCopyPixmap(PixmapPtr pSrc)
 {
 	register PixmapPtr pDst;
 	int size;
@@ -152,9 +147,8 @@ afbCopyPixmap(pSrc)
 	  zero out area to be filled with replicate
 	  left shift and or in original as many times as needed
 */
-void
-afbPadPixmap(pPixmap)
-	PixmapPtr pPixmap;
+static void
+afbPadPixmap(PixmapPtr pPixmap)
 {
 	register int width = pPixmap->drawable.width;
 	register int h;

@@ -102,7 +102,6 @@ extern int xf86NumModuleInfos;
 extern int xf86NumDrivers;
 extern Bool xf86Resetting;
 extern Bool xf86Initialising;
-extern Bool xf86ProbeFailed;
 extern int xf86NumScreens;
 extern xf86CurrentAccessRec xf86CurrentAccess;
 extern const char *xf86VisualNames[];
@@ -153,7 +152,6 @@ extern void xf86PostScreenInit(void);
 
 /* xf86Config.c */
 
-Bool xf86PathIsAbsolute(const char *path);
 Bool xf86PathIsSafe(const char *path);
 
 /* xf86DefaultModes */

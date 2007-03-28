@@ -303,15 +303,15 @@ configSetup(void)
     if (!configData)
         configData = (struct config_data *) xcalloc(sizeof(struct config_data), 1);
     if (!configData) {
-        ErrorF("[dbus] failed to allocate data struct.\n");
+        ErrorF("[dbus] failed to allocate data struct\n");
         return FALSE;
     }
 
     dbus_error_init(&error);
     configData->connection = dbus_bus_get(DBUS_BUS_SYSTEM, &error);
     if (!configData->connection || dbus_error_is_set(&error)) {
-        ErrorF("[dbus] some kind of error occurred: %s (%s)\n", error.name,
-                error.message);
+        DebugF("[dbus] some kind of error occurred while connecting: %s (%s)\n",
+               error.name, error.message);
         dbus_error_free(&error);
         xfree(configData);
         configData = NULL;

@@ -58,6 +58,9 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
+#if HAVE_XORG_CONFIG_H
+#include <xorg-config.h>
+#endif
 #include "scrnintstr.h"
 #include "cursorstr.h"
 #include "mipointrst.h"
@@ -67,7 +70,7 @@
 #include <IOKit/hidsystem/IOHIDLib.h>
 #include "darwin.h"
 #include "xfIOKit.h"
-
+#include <assert.h>
 #define DUMP_DARWIN_CURSOR FALSE
 
 #define CURSOR_PRIV(pScreen) \

@@ -90,10 +90,9 @@ SOFTWARE.
 | GCFunction | GCPlaneMask | GCFillStyle | GC_CALL_VALIDATE_BIT         \
 | GCClipXOrigin | GCClipYOrigin | GCClipMask | GCSubwindowMode )
 
+static void xf4bppValidateGC(GCPtr, unsigned long, DrawablePtr);
+static void xf4bppDestroyGC(GC *);
 
-/* GJA -- we modified the following function to get rid of
- * the records in file vgaData.c
- */
 static GCFuncs vgaGCFuncs = {
 	xf4bppValidateGC,
 	(void (*)(GCPtr, unsigned long))NoopDDA,
@@ -196,7 +195,7 @@ register GCPtr pGC ;
 	return TRUE ;
 }
 
-void
+static void
 xf4bppDestroyGC( pGC )
     register GC	*pGC ;
 
@@ -292,7 +291,7 @@ return 0 ;
 	    CT_other ==> pCompositeClip is the pixmap bounding box
 */
 
-void
+static void
 xf4bppValidateGC( pGC, changes, pDrawable )
     GCPtr         pGC;
     unsigned long changes;

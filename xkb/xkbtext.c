@@ -44,7 +44,7 @@
 #include "dix.h"
 #include <X11/extensions/XKBstr.h>
 #define XKBSRV_NEED_FILE_FUNCS	1
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #include <X11/extensions/XKBgeom.h>
 
 /***====================================================================***/
@@ -445,100 +445,6 @@ char *		buf;
 	    len+= strlen(&buf[len]);
 	}
     }
-    return buf;
-}
-
-char *
-XkbAccessXDetailText(unsigned state,unsigned format)
-{
-char *buf,*prefix;
-
-    buf= tbGetBuffer(32);
-    if (format==XkbMessage)	prefix= "";
-    else			prefix= "XkbAXN_";
-    switch (state){
-	case XkbAXN_SKPress:	sprintf(buf,"%sSKPress",prefix); break;
-	case XkbAXN_SKAccept:	sprintf(buf,"%sSKAccept",prefix); break;
-	case XkbAXN_SKRelease:	sprintf(buf,"%sSKRelease",prefix); break;
-	case XkbAXN_SKReject:	sprintf(buf,"%sSKReject",prefix); break;
-	case XkbAXN_BKAccept:	sprintf(buf,"%sBKAccept",prefix); break;
-	case XkbAXN_BKReject:	sprintf(buf,"%sBKReject",prefix); break;
-	case XkbAXN_AXKWarning:	sprintf(buf,"%sAXKWarning",prefix); break;
-	default:		sprintf(buf,"ILLEGAL"); break;
-    }
-    return buf;
-}
-
-static char *nknNames[] = {
-	"keycodes", "geometry", "deviceID"
-};
-#define	NUM_NKN	(sizeof(nknNames)/sizeof(char *))
-
-char *
-XkbNKNDetailMaskText(unsigned detail,unsigned format)
-{
-char *buf,*prefix,*suffix;
-register int 		i;
-register unsigned	bit;
-int			len,plen,slen;
-
-
-    if ((detail&XkbAllNewKeyboardEventsMask)==0) {
-	char *tmp = "";
-	if (format==XkbCFile)			tmp= "0";
-	else if (format==XkbMessage)		tmp= "none";
-	buf=  tbGetBuffer(strlen(tmp)+1);
-	strcpy(buf,tmp);
-	return buf;
-    }
-    else if ((detail&XkbAllNewKeyboardEventsMask)==XkbAllNewKeyboardEventsMask){
-	char *	tmp;
-	if (format==XkbCFile)		tmp= "XkbAllNewKeyboardEventsMask";
-	else 				tmp= "all";
-	buf=  tbGetBuffer(strlen(tmp)+1);
-	strcpy(buf,tmp);
-	return buf;
-    }
-    if (format==XkbMessage) {
-	prefix= "";
-	suffix= "";
-	slen= plen= 0;
-    }
-    else {
-	prefix= "XkbNKN_";
-	plen= 7;
-	if (format==XkbCFile)
-	     suffix= "Mask";
-	else suffix= "";
-	slen= strlen(suffix);
-    }
-    for (len=0,i=0,bit=1;i<NUM_NKN;i++,bit<<=1) {
-	if (detail&bit) {
-	    if (len!=0)	len+= 1;	/* room for '+' or '|' */
-	    len+= plen+slen+strlen(nknNames[i]);
-	}
-    }
-    buf= tbGetBuffer(len+1);
-    buf[0]= '\0';
-    for (len=0,i=0,bit=1;i<NUM_NKN;i++,bit<<=1) {
-	if (detail&bit) {
-	    if (len!=0) {
-		if (format==XkbCFile)	buf[len++]= '|';
-		else			buf[len++]= '+';
-	    }
-	    if (plen) {
-		strcpy(&buf[len],prefix);
-		len+= plen;
-	    }
-	    strcpy(&buf[len],nknNames[i]);
-	    len+= strlen(nknNames[i]);
-	    if (slen) {
-		strcpy(&buf[len],suffix);
-		len+= slen;
-	    }
-	}
-    }
-    buf[len++]= '\0';
     return buf;
 }
 

@@ -143,7 +143,8 @@ CursorDisplayCursor (ScreenPtr pScreen,
 	CursorCurrent = pCursor;
 	for (e = cursorEvents; e; e = e->next)
 	{
-	    if (e->eventMask & XFixesDisplayCursorNotifyMask)
+	    if ((e->eventMask & XFixesDisplayCursorNotifyMask) &&
+		!e->pClient->clientGone)
 	    {
 		xXFixesCursorNotifyEvent	ev;
 		ev.type = XFixesEventBase + XFixesCursorNotify;

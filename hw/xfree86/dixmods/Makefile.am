@@ -14,12 +14,23 @@ if DBE
 DBEMOD = libdbe.la
 endif
 
-module_LTLIBRARIES = libafb.la \
-                     libcfb.la \
-                     libcfb32.la \
+if AFB
+AFBMOD = libafb.la
+endif
+
+if CFB
+CFBMOD = libcfb.la libcfb32.la
+endif
+
+if MFB
+MFBMOD = libmfb.la
+endif
+
+module_LTLIBRARIES = $(AFBMOD) \
+                     $(CFBMOD) \
                      libfb.la \
                      libwfb.la \
-                     libmfb.la \
+                     $(MFBMOD) \
                      libshadow.la
 
 extsmoduledir = $(moduledir)/extensions

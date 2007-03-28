@@ -83,7 +83,7 @@ static xf86ConfigSymTabRec ModuleTab[] =
 
 #define CLEANUP xf86freeModules
 
-XF86LoadPtr
+static XF86LoadPtr
 xf86parseModuleSubSection (XF86LoadPtr head, char *name)
 {
 	int token;

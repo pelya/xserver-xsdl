@@ -234,8 +234,8 @@ static Bool NewHost(int /*family*/,
 		    int /*len*/,
 		    int /* addingLocalHosts */);
 
-int LocalClientCredAndGroups(ClientPtr client, int *pUid, int *pGid, 
-                             int **pSuppGids, int *nSuppGids);
+static int LocalClientCredAndGroups(ClientPtr client, int *pUid, int *pGid, 
+				    int **pSuppGids, int *nSuppGids);
 
 
 /* XFree86 bug #156: To keep track of which hosts were explicitly requested in
@@ -1431,7 +1431,7 @@ LocalClientCred(ClientPtr client, int *pUid, int *pGid)
  *
  * Used by localuser & localgroup ServerInterpreted access control forms below
  */
-int
+static int
 LocalClientCredAndGroups(ClientPtr client, int *pUid, int *pGid, 
 			 int **pSuppGids, int *nSuppGids)
 {

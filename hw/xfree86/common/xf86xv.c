@@ -110,7 +110,7 @@ static void xf86XVAdjustFrame(int index, int x, int y, int flags);
 static Bool xf86XVInitAdaptors(ScreenPtr, XF86VideoAdaptorPtr*, int);
 
 
-int XF86XVWindowIndex = -1;
+static int XF86XVWindowIndex = -1;
 int XF86XvScreenIndex = -1;
 static unsigned long XF86XVGeneration = 0;
 static unsigned long PortResource = 0;

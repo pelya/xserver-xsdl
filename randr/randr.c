@@ -230,7 +230,7 @@ Bool RRScreenInit(ScreenPtr pScreen)
 	RRScreenGeneration = serverGeneration;
     }
 
-    pScrPriv = (rrScrPrivPtr) xalloc (sizeof (rrScrPrivRec));
+    pScrPriv = (rrScrPrivPtr) xcalloc (1, sizeof (rrScrPrivRec));
     if (!pScrPriv)
 	return FALSE;
 

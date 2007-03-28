@@ -32,9 +32,7 @@ is" without express or implied warranty.
 #include "Screen.h"
 #include "XNPixmap.h"
 
-#ifdef PIXPRIV
 int xnestPixmapPrivateIndex;	    
-#endif
 
 PixmapPtr
 xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth)
@@ -57,12 +55,8 @@ xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth)
   pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
   pPixmap->refcnt = 1;
   pPixmap->devKind = PixmapBytePad(width, depth);
-#ifdef PIXPRIV
   pPixmap->devPrivates[xnestPixmapPrivateIndex].ptr =
       (pointer)((char *)pPixmap + pScreen->totalPixmapSize);
-#else
-  pPixmap->devPrivate.ptr = (pointer)(pPixmap + 1);
-#endif
   if (width && height)
       xnestPixmapPriv(pPixmap)->pixmap = 
 	  XCreatePixmap(xnestDisplay, 

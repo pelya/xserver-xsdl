@@ -70,24 +70,6 @@ afbInitializeColormap(register ColormapPtr pmap)
 	return miInitializeColormap(pmap);
 }
 
-int
-afbExpandDirectColors(ColormapPtr pmap, int ndef, xColorItem *indefs, xColorItem *outdefs)
-{
-	return miExpandDirectColors(pmap, ndef, indefs, outdefs);
-}
-
-Bool
-afbCreateDefColormap(ScreenPtr pScreen)
-{
-	return miCreateDefColormap(pScreen);
-}
-
-Bool
-afbSetVisualTypes(int depth, int visuals, int bitsPerRGB)
-{
-	return miSetVisualTypes(depth, visuals, bitsPerRGB, -1);
-}
-
 /*
  * Given a list of formats for a screen, create a list
  * of visuals and depths for the screen which correspond to

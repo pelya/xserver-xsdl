@@ -441,6 +441,8 @@ ProcXTestFakeInput(client)
 	    (root->drawable.pScreen,
 	     ev->u.keyButtonPointer.rootX,
 	     ev->u.keyButtonPointer.rootY, FALSE);
+        dev->valuator->lastx = ev->u.keyButtonPointer.rootX;
+        dev->valuator->lasty = ev->u.keyButtonPointer.rootY;
 	break;
     case ButtonPress:
     case ButtonRelease:

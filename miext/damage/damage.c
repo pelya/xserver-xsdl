@@ -72,6 +72,12 @@
 
 #define pixmapDamage(pPixmap)		damagePixPriv(pPixmap)
 
+static int damageScrPrivateIndex;
+static int damagePixPrivateIndex;
+static int damageGCPrivateIndex;
+static int damageWinPrivateIndex;
+static int damageGeneration;
+
 static DamagePtr *
 getDrawableDamageRef (DrawablePtr pDrawable)
 {
@@ -368,12 +374,12 @@ static void damageChangeClip(GCPtr, int, pointer, int);
 static void damageDestroyClip(GCPtr);
 static void damageCopyClip(GCPtr, GCPtr);
 
-GCFuncs damageGCFuncs = {
+static GCFuncs damageGCFuncs = {
     damageValidateGC, damageChangeGC, damageCopyGC, damageDestroyGC,
     damageChangeClip, damageDestroyClip, damageCopyClip
 };
 
-extern GCOps damageGCOps;
+static GCOps damageGCOps;
 
 static Bool
 damageCreateGC(GCPtr pGC)
@@ -1686,7 +1692,7 @@ damageCopyWindow(WindowPtr	pWindow,
     wrap (pScrPriv, pScreen, CopyWindow, damageCopyWindow);
 }
 
-GCOps damageGCOps = {
+static GCOps damageGCOps = {
     damageFillSpans, damageSetSpans,
     damagePutImage, damageCopyArea,
     damageCopyPlane, damagePolyPoint,
@@ -1787,12 +1793,6 @@ damageCloseScreen (int i, ScreenPtr pScreen)
     return (*pScreen->CloseScreen) (i, pScreen);
 }
 
-int damageScrPrivateIndex;
-int damagePixPrivateIndex;
-int damageGCPrivateIndex;
-int damageWinPrivateIndex;
-int damageGeneration;
-
 Bool
 DamageSetup (ScreenPtr pScreen)
 {
@@ -1831,16 +1831,6 @@ DamageSetup (ScreenPtr pScreen)
     if (!pScrPriv)
 	return FALSE;
 
-#ifdef COMPOSITE
-    /* This is a kludge to ensure wrapping order with the composite wrapper.
-     * If it's done from compinit.c, then DamageSetup may be called before the
-     * extension init phase, so that cw will be higher in the wrapping chain and
-     * rewrite drawables before damage gets to it, causing confusion.
-     */
-    if (!noCompositeExtension)
-	miInitializeCompositeWrapper (pScreen);
-#endif
-	
     pScrPriv->internalLevel = 0;
     pScrPriv->pScreenDamage = 0;
 

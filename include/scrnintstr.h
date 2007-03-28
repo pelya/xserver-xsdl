@@ -558,11 +558,9 @@ typedef struct _Screen {
 
     PixmapPtr pScratchPixmap;		/* scratch pixmap "pool" */
 
-#ifdef PIXPRIV
     int			PixmapPrivateLen;
     unsigned int		*PixmapPrivateSizes;
     unsigned int		totalPixmapSize;
-#endif
 
     MarkWindowProcPtr		MarkWindow;
     MarkOverlappedWindowsProcPtr MarkOverlappedWindows;
