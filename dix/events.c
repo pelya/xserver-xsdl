@@ -4433,7 +4433,7 @@ ProcUngrabKey(ClientPtr client)
     REQUEST(xUngrabKeyReq);
     WindowPtr pWin;
     GrabRec tempGrab;
-    DeviceIntPtr keybd = inputInfo.keyboard;
+    DeviceIntPtr keybd = PickKeyboard(client);
     int rc;
 
     REQUEST_SIZE_MATCH(xUngrabKeyReq);
@@ -4475,7 +4475,7 @@ ProcGrabKey(ClientPtr client)
     WindowPtr pWin;
     REQUEST(xGrabKeyReq);
     GrabPtr grab;
-    DeviceIntPtr keybd = inputInfo.keyboard;
+    DeviceIntPtr keybd = PickKeyboard(client);
     int rc;
 
     REQUEST_SIZE_MATCH(xGrabKeyReq);
