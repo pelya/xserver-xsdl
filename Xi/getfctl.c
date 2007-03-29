@@ -75,9 +75,9 @@ SOFTWARE.
  */
 
 int
-SProcXGetFeedbackControl(register ClientPtr client)
+SProcXGetFeedbackControl(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xGetFeedbackControlReq);
     swaps(&stuff->length, n);
@@ -94,7 +94,7 @@ static void
 CopySwapKbdFeedback(ClientPtr client, KbdFeedbackPtr k, char **buf)
 {
     int i;
-    register char n;
+    char n;
     xKbdFeedbackState *k2;
 
     k2 = (xKbdFeedbackState *) * buf;
@@ -128,7 +128,7 @@ CopySwapKbdFeedback(ClientPtr client, KbdFeedbackPtr k, char **buf)
 static void
 CopySwapPtrFeedback(ClientPtr client, PtrFeedbackPtr p, char **buf)
 {
-    register char n;
+    char n;
     xPtrFeedbackState *p2;
 
     p2 = (xPtrFeedbackState *) * buf;
@@ -156,7 +156,7 @@ CopySwapPtrFeedback(ClientPtr client, PtrFeedbackPtr p, char **buf)
 static void
 CopySwapIntegerFeedback(ClientPtr client, IntegerFeedbackPtr i, char **buf)
 {
-    register char n;
+    char n;
     xIntegerFeedbackState *i2;
 
     i2 = (xIntegerFeedbackState *) * buf;
@@ -185,7 +185,7 @@ static void
 CopySwapStringFeedback(ClientPtr client, StringFeedbackPtr s, char **buf)
 {
     int i;
-    register char n;
+    char n;
     xStringFeedbackState *s2;
     KeySym *kptr;
 
@@ -221,7 +221,7 @@ CopySwapStringFeedback(ClientPtr client, StringFeedbackPtr s, char **buf)
 static void
 CopySwapLedFeedback(ClientPtr client, LedFeedbackPtr l, char **buf)
 {
-    register char n;
+    char n;
     xLedFeedbackState *l2;
 
     l2 = (xLedFeedbackState *) * buf;
@@ -247,7 +247,7 @@ CopySwapLedFeedback(ClientPtr client, LedFeedbackPtr l, char **buf)
 static void
 CopySwapBellFeedback(ClientPtr client, BellFeedbackPtr b, char **buf)
 {
-    register char n;
+    char n;
     xBellFeedbackState *b2;
 
     b2 = (xBellFeedbackState *) * buf;
@@ -276,7 +276,7 @@ void
 SRepXGetFeedbackControl(ClientPtr client, int size,
 			xGetFeedbackControlReply * rep)
 {
-    register char n;
+    char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);
@@ -295,7 +295,7 @@ ProcXGetFeedbackControl(ClientPtr client)
 {
     int total_length = 0;
     char *buf, *savbuf;
-    register DeviceIntPtr dev;
+    DeviceIntPtr dev;
     KbdFeedbackPtr k;
     PtrFeedbackPtr p;
     IntegerFeedbackPtr i;

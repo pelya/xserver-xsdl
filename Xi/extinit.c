@@ -216,7 +216,7 @@ static XExtensionVersion thisversion = { XI_Present,
  */
 
 static int
-ProcIDispatch(register ClientPtr client)
+ProcIDispatch(ClientPtr client)
 {
     REQUEST(xReq);
     if (stuff->data == X_GetExtensionVersion)
@@ -305,7 +305,7 @@ ProcIDispatch(register ClientPtr client)
  */
 
 static int
-SProcIDispatch(register ClientPtr client)
+SProcIDispatch(ClientPtr client)
 {
     REQUEST(xReq);
     if (stuff->data == X_GetExtensionVersion)
@@ -464,8 +464,8 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
 static void
 SEventDeviceValuator(deviceValuator * from, deviceValuator * to)
 {
-    register char n;
-    register int i;
+    char n;
+    int i;
     INT32 *ip B32;
 
     *to = *from;
@@ -480,7 +480,7 @@ SEventDeviceValuator(deviceValuator * from, deviceValuator * to)
 static void
 SEventFocus(deviceFocus * from, deviceFocus * to)
 {
-    register char n;
+    char n;
 
     *to = *from;
     swaps(&to->sequenceNumber, n);
@@ -491,8 +491,8 @@ SEventFocus(deviceFocus * from, deviceFocus * to)
 static void
 SDeviceStateNotifyEvent(deviceStateNotify * from, deviceStateNotify * to)
 {
-    register int i;
-    register char n;
+    int i;
+    char n;
     INT32 *ip B32;
 
     *to = *from;
@@ -508,7 +508,7 @@ static void
 SDeviceKeyStateNotifyEvent(deviceKeyStateNotify * from,
 			   deviceKeyStateNotify * to)
 {
-    register char n;
+    char n;
 
     *to = *from;
     swaps(&to->sequenceNumber, n);
@@ -518,7 +518,7 @@ static void
 SDeviceButtonStateNotifyEvent(deviceButtonStateNotify * from,
 			      deviceButtonStateNotify * to)
 {
-    register char n;
+    char n;
 
     *to = *from;
     swaps(&to->sequenceNumber, n);
@@ -527,7 +527,7 @@ SDeviceButtonStateNotifyEvent(deviceButtonStateNotify * from,
 static void
 SChangeDeviceNotifyEvent(changeDeviceNotify * from, changeDeviceNotify * to)
 {
-    register char n;
+    char n;
 
     *to = *from;
     swaps(&to->sequenceNumber, n);
@@ -537,7 +537,7 @@ SChangeDeviceNotifyEvent(changeDeviceNotify * from, changeDeviceNotify * to)
 static void
 SDeviceMappingNotifyEvent(deviceMappingNotify * from, deviceMappingNotify * to)
 {
-    register char n;
+    char n;
 
     *to = *from;
     swaps(&to->sequenceNumber, n);
@@ -547,7 +547,7 @@ SDeviceMappingNotifyEvent(deviceMappingNotify * from, deviceMappingNotify * to)
 static void
 SDevicePresenceNotifyEvent (devicePresenceNotify *from, devicePresenceNotify *to)
 {
-    register char n;
+    char n;
 
     *to = *from;
     swaps(&to->sequenceNumber,n);

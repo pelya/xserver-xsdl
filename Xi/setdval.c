@@ -75,9 +75,9 @@ SOFTWARE.
  */
 
 int
-SProcXSetDeviceValuators(register ClientPtr client)
+SProcXSetDeviceValuators(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xSetDeviceValuatorsReq);
     swaps(&stuff->length, n);
@@ -91,7 +91,7 @@ SProcXSetDeviceValuators(register ClientPtr client)
  */
 
 int
-ProcXSetDeviceValuators(register ClientPtr client)
+ProcXSetDeviceValuators(ClientPtr client)
 {
     DeviceIntPtr dev;
     xSetDeviceValuatorsReply rep;
@@ -152,7 +152,7 @@ void
 SRepXSetDeviceValuators(ClientPtr client, int size,
 			xSetDeviceValuatorsReply * rep)
 {
-    register char n;
+    char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);

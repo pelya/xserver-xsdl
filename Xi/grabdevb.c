@@ -77,11 +77,11 @@ SOFTWARE.
  */
 
 int
-SProcXGrabDeviceButton(register ClientPtr client)
+SProcXGrabDeviceButton(ClientPtr client)
 {
-    register char n;
-    register long *p;
-    register int i;
+    char n;
+    long *p;
+    int i;
 
     REQUEST(xGrabDeviceButtonReq);
     swaps(&stuff->length, n);
