@@ -196,11 +196,10 @@ AllocCursorARGB(unsigned char *psrcbits, unsigned char *pmaskbits, CARD32 *argb,
     bits->height = cm->height;
     bits->xhot = cm->xhot;
     bits->yhot = cm->yhot;
-    bits->refcnt = -1;
+    pCurs->refcnt = 0;		
     CheckForEmptyMask(bits);
 
     pCurs->bits = bits;
-    pCurs->refcnt = 1;		
 #ifdef XFIXES
     pCurs->serialNumber = ++cursorSerial;
     pCurs->name = None;
@@ -224,6 +223,7 @@ AllocCursorARGB(unsigned char *psrcbits, unsigned char *pmaskbits, CARD32 *argb,
         {
             if (DevHasCursor(pDev))
             {
+                pCurs->refcnt++;
                 if (!( *pscr->RealizeCursor)(pDev, pscr, pCurs))
                 {
                     /* Realize failed for device pDev on screen pscr.
@@ -419,7 +419,7 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
     }
     CheckForEmptyMask(bits);
     pCurs->bits = bits;
-    pCurs->refcnt = 1;
+    pCurs->refcnt = 0;
 #ifdef XFIXES
     pCurs->serialNumber = ++cursorSerial;
     pCurs->name = None;
@@ -440,6 +440,7 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
     {
         pscr = screenInfo.screens[nscr];
 
+        pCurs->refcnt++;
         if (!(*pscr->RealizeCursor)(inputInfo.pointer, pscr, pCurs))
         {
             DeviceIntPtr pDevIt = inputInfo.devices; /*dev iterator*/
@@ -470,6 +471,7 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
         {
             if (DevHasCursor(pDev))
             {
+                pCurs->refcnt++;
                 if (!( *pscr->RealizeCursor)(pDev, pscr, pCurs))
                 {
                     /* Realize failed for device pDev on screen pscr.
