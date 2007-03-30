@@ -503,10 +503,11 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
                                               GetMaximumEventsNum(),
 #endif
                                               Relative);
+                ErrorF("MOTION BUFFER SIZE %d\n", GetMaximumEventsNum());
 #ifdef XINPUT
                 for (i = 0; i < info.numRelAxes; i++)
                     InitValuatorAxisStruct(pDevice, i, info.minval[0],
-                                           info.maxval[0], info.res[0],
+                                           /*1280*/info.maxval[0], info.res[0],
                                            info.minres[0], info.maxres[0]);
 #endif
             } else if (info.numRelAxes) {
@@ -517,7 +518,7 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
 #ifdef XINPUT
                 for (i = 0; i < info.numRelAxes; i++)
                     InitValuatorAxisStruct(pDevice, i, info.minval[0],
-                                           info.maxval[0], info.res[0],
+                                           /*1280*/info.maxval[0], info.res[0],
                                            info.minres[0], info.maxres[0]);
 #endif
             } else if (info.numAbsAxes) {
@@ -528,7 +529,7 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
 #ifdef XINPUT
                 for (i = 0; i < info.numAbsAxes; i++)
                     InitValuatorAxisStruct(pDevice, i+info.numRelAxes,
-                                           info.minval[i+1], info.maxval[i+1],
+                                           info.minval[i+1], /*1280*/info.maxval[i+1],
                                            info.res[i+1], info.minres[i+1],
                                            info.maxres[i+1]);
 #endif

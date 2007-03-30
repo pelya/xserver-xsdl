@@ -464,9 +464,8 @@ void dmxBackendCollectEvents(DevicePtr pDev,
 #if 11/*BP*/
         case ButtonPress:
         case ButtonRelease:
-           /*
            ErrorF("press/release at %d, %d\n", X.xbutton.x, X.xbutton.y);
-           */
+           /* fall-through */
 #endif
 	default:
                                 /* Pass the whole event here, because

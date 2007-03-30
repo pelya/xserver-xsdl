@@ -638,9 +638,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
                                        /*pDev*/p,
                                        /*KeyPress*/type,
                                        /*n*/detail);
-           /*
-           ErrorF("NEW KEY EVENT %d  n=%d\n", detail, nevents);
-           */
+           ErrorF("KEY %d  n=%d\n", detail, nevents);
            for (i = 0; i < nevents; i++)
               mieqEnqueue(p, events + i);
            xfree(events);
@@ -659,6 +657,10 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
            xEvent *events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
            valuators[0] = e->xbutton.x;
            valuators[1] = e->xbutton.y;
+           /*
+           valuators[0] = dmxGlobalX;
+           valuators[1] = dmxGlobalY;
+           */
            valuators[2] = e->xbutton.button;
            nevents = GetPointerEvents(events,
                                       /*pDev*/p,
@@ -666,11 +668,10 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
                                       detail,
                                       POINTER_ABSOLUTE,
                                       0, 0, valuators);
-           /*
-           ErrorF("NEW PTR EVENT %d (%d,%d,%d) n=%d\n",
-                  detail, valuators[0], valuators[1], valuators[2],
-                  nevents);
-           */
+
+           ErrorF("BUTTON %d, %d %d  n=%d\n",
+                  valuators[0], valuators[1], valuators[2], nevents);
+
            for (i = 0; i < nevents; i++)
               mieqEnqueue(p, events + i);
            xfree(events);
@@ -698,6 +699,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
                                       detail,
                                       POINTER_ABSOLUTE,
                                       0, 0, valuators);
+           ErrorF("MOTION %d, %d  n = %d\n", valuators[0], valuators[1], nevents);
            /*
            ErrorF("NEW MOTION %d st %d (%d,%d,%d) n=%d\n",
                   detail, e->xmotion.state,
