@@ -395,7 +395,7 @@ void dmxBackendCollectEvents(DevicePtr pDev,
             }
             break;
 	case MotionNotify:
-#if 00 /*BP*/
+#if 001 /*BP*/
             DMXDBG9("dmxBackendCollectEvents: MotionNotify %d/%d (mi %d)"
                     " newscreen=%d: %d %d (e=%d; last=%d,%d)\n",
                     dmxScreen->index, priv->myScreen,

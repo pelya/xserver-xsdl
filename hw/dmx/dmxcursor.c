@@ -889,7 +889,7 @@ static void dmxSetCursor(ScreenPtr pScreen, CursorPtr pCursor, int x, int y)
     gx = start->rootXOrigin + x;
     gy = start->rootYOrigin + y;
     if (x && y && (GX != gx || GY != gy))
-        dmxCoreMotion(gx, gy, 0, DMX_NO_BLOCK);
+        dmxCoreMotion(NULL, gx, gy, 0, DMX_NO_BLOCK);
     
     if (!start->over || !dmxCursorDoMultiCursors || start->cursorNotShared) {
         _dmxSetCursor(pScreen, pCursor, x, y);
