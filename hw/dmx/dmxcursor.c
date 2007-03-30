@@ -182,7 +182,12 @@ static void dmxCrossScreen(ScreenPtr pScreen, Bool entering)
 static void dmxWarpCursor(ScreenPtr pScreen, int x, int y)
 {
     DMXDBG3("dmxWarpCursor(%d,%d,%d)\n", pScreen->myNum, x, y);
+#if 11 /*BP*/
+    /* This call is depracated.  Replace with???? */
     miPointerWarpCursor(pScreen, x, y);
+#else
+    pScreen->SetCursorPosition(pScreen, x, y, FALSE);
+#endif
 }
 
 miPointerScreenFuncRec dmxPointerCursorFuncs =
@@ -190,7 +195,7 @@ miPointerScreenFuncRec dmxPointerCursorFuncs =
     dmxCursorOffScreen,
     dmxCrossScreen,
     dmxWarpCursor,
-    dmxeqEnqueue,
+    dmxeqEnqueue,        /*XXX incompatible type/function! */
     dmxeqSwitchScreen
 };
 
@@ -939,8 +944,13 @@ void dmxCheckCursor(void)
         pScreen                  = screenInfo.screens[dmxScreen->index];
 
         if (!dmxOnScreen(x, y, dmxScreen)) {
+#if 00
             if (firstScreen && i == miPointerCurrentScreen()->myNum)
                 miPointerSetNewScreen(firstScreen->index, x, y);
+#else
+            if (firstScreen && i == miPointerGetScreen(inputInfo.pointer)->myNum)
+                miPointerSetScreen(inputInfo.pointer, firstScreen->index, x, y);
+#endif
             _dmxSetCursor(pScreen, NULL,
                           x - dmxScreen->rootXOrigin,
                           y - dmxScreen->rootYOrigin);

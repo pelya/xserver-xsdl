@@ -72,6 +72,7 @@
 #include "input.h"
 #include "mipointer.h"
 #include "windowstr.h"
+#include "mi.h"
 
 #ifdef XINPUT
 #include <X11/extensions/XI.h>
@@ -221,6 +222,57 @@ static DMXLocalInputInfoRec DMXLocalDevices[] = {
     },
     { NULL }                    /* Must be last */
 };
+
+
+#if 11 /*BP*/
+void
+DDXRingBell(int volume, int pitch, int duration)
+{
+   /* NO-OP */
+}
+
+/* taken from kdrive/src/kinput.c: */
+static void
+dmxKbdCtrl (DeviceIntPtr pDevice, KeybdCtrl *ctrl)
+{
+#if 0
+    KdKeyboardInfo *ki;
+
+    for (ki = kdKeyboards; ki; ki = ki->next) {
+        if (ki->dixdev && ki->dixdev->id == pDevice->id)
+            break;
+    }
+
+    if (!ki || !ki->dixdev || ki->dixdev->id != pDevice->id || !ki->driver)
+        return;
+
+    KdSetLeds(ki, ctrl->leds);
+    ki->bellPitch = ctrl->bell_pitch;
+    ki->bellDuration = ctrl->bell_duration; 
+#endif
+}
+
+/* taken from kdrive/src/kinput.c: */
+static void
+dmxBell(int volume, DeviceIntPtr pDev, pointer arg, int something)
+{
+#if 0
+    KeybdCtrl *ctrl = arg;
+    KdKeyboardInfo *ki = NULL;
+    
+    for (ki = kdKeyboards; ki; ki = ki->next) {
+        if (ki->dixdev && ki->dixdev->id == pDev->id)
+            break;
+    }
+
+    if (!ki || !ki->dixdev || ki->dixdev->id != pDev->id || !ki->driver)
+        return;
+    
+    KdRingBell(ki, volume, ctrl->bell_pitch, ctrl->bell_duration);
+#endif
+}
+
+#endif /*BP*/
 
 static void _dmxChangePointerControl(DMXLocalInputInfoPtr dmxLocal,
                                      PtrCtrl *ctrl)
@@ -427,7 +479,15 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
             break;
         }
         if (info.keyClass) {
+#if 00 /*BP*/
             InitKeyClassDeviceStruct(pDevice, &info.keySyms, info.modMap);
+#else
+            DevicePtr pDev = (DevicePtr) pDevice;
+            InitKeyboardDeviceStruct(pDev,
+                                     &info.keySyms,
+                                     info.modMap,
+                                     dmxBell, dmxKbdCtrl);
+#endif
         }
         if (info.buttonClass) {
             InitButtonClassDeviceStruct(pDevice, info.numButtons, info.map);
@@ -435,8 +495,13 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
         if (info.valuatorClass) {
             if (info.numRelAxes && dmxLocal->sendsCore) {
                 InitValuatorClassDeviceStruct(pDevice, info.numRelAxes,
+#if 00 /*BP*/
                                               miPointerGetMotionEvents,
                                               miPointerGetMotionBufferSize(),
+#else
+                                              GetMotionHistory,
+                                              GetMaximumEventsNum(),
+#endif
                                               Relative);
 #ifdef XINPUT
                 for (i = 0; i < info.numRelAxes; i++)
@@ -520,12 +585,26 @@ static void dmxProcessInputEvents(DMXInputInfo *dmxInput)
 {
     int i;
 
+    /*
+    ErrorF("%s\n", __FUNCTION__);
+    */
+
     dmxeqProcessInputEvents();
+#if 00 /*BP*/
     miPointerUpdate();
+#endif
     if (dmxInput->detached) return;
     for (i = 0; i < dmxInput->numDevs; i += dmxInput->devs[i]->binding)
-        if (dmxInput->devs[i]->process_input)
+        if (dmxInput->devs[i]->process_input) {
+#if 11 /*BP*/
+            miPointerUpdateSprite(dmxInput->devs[i]->pDevice);
+#endif
             dmxInput->devs[i]->process_input(dmxInput->devs[i]->private);
+        }
+
+#if 11 /*BP*/
+    mieqProcessInputEvents();
+#endif
 }
 
 static void dmxUpdateWindowInformation(DMXInputInfo *dmxInput,
@@ -710,8 +789,13 @@ static DeviceIntPtr dmxAddDevice(DMXLocalInputInfoPtr dmxLocal)
 
     registerProcPtr(pDevice);
 
-    if (dmxLocal->isCore && dmxLocal->type == DMX_LOCAL_MOUSE)
+    if (dmxLocal->isCore && dmxLocal->type == DMX_LOCAL_MOUSE) {
+#if 00 /*BP*/
         miRegisterPointerDevice(screenInfo.screens[0], pDevice);
+#else
+        /* Nothing? dmxDeviceOnOff() should get called to init, right? */
+#endif
+    }
 
     if (dmxLocal->create_private)
         dmxLocal->private = dmxLocal->create_private(pDevice);

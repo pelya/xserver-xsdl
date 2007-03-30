@@ -56,6 +56,7 @@
 #include "opaque.h"
 #include "inputstr.h"
 #include "mipointer.h"
+#include "mi.h"
 
 #ifdef XINPUT
 #include "XIstubs.h"
@@ -216,11 +217,20 @@ void dmxCoreMotion(int x, int y, int delta, DMXBlockType block)
     if ((dmxScreen = dmxFindFirstScreen(dmxGlobalX, dmxGlobalY))) {
         localX = dmxGlobalX - dmxScreen->rootXOrigin;
         localY = dmxGlobalY - dmxScreen->rootYOrigin;
+#if 00 /*BP*/
         if ((pScreen = miPointerCurrentScreen())
+#else
+        if ((pScreen = miPointerGetScreen(inputInfo.pointer))
+#endif
             && pScreen->myNum == dmxScreen->index) {
                                 /* Screen is old screen */
             if (block) dmxSigioBlock();
+#if 00 /*BP*/
             miPointerAbsoluteCursor(localX, localY, GetTimeInMillis());
+#else
+            miPointerSetPosition(inputInfo.pointer, &localX, &localY,
+                                 GetTimeInMillis());
+#endif
             if (block) dmxSigioUnblock();
         } else {
                                 /* Screen is new */
@@ -228,13 +238,28 @@ void dmxCoreMotion(int x, int y, int delta, DMXBlockType block)
                     pScreen->myNum, dmxScreen->index, localX, localY);
             if (block) dmxSigioBlock();
             dmxeqProcessInputEvents();
+#if 00 /*BP*/
             miPointerSetNewScreen(dmxScreen->index, localX, localY);
             miPointerAbsoluteCursor(localX, localY, GetTimeInMillis());
+#else
+            miPointerSetScreen(inputInfo.pointer, dmxScreen->index,
+                               localX, localY);
+            miPointerSetPosition(inputInfo.pointer, &localX, &localY,
+                                 GetTimeInMillis());
+#endif
             if (block) dmxSigioUnblock();
         }
+#if 00 /*BP*/
         miPointerPosition(&localX, &localY);
+#else
+        miPointerGetPosition(inputInfo.pointer, &localX, &localY);
+#endif
 
+#if 00 /*BP*/
         if ((pScreen = miPointerCurrentScreen())) {
+#else
+        if ((pScreen = miPointerGetScreen(inputInfo.pointer))) {
+#endif
             dmxGlobalX = localX + dmxScreens[pScreen->myNum].rootXOrigin;
             dmxGlobalY = localY + dmxScreens[pScreen->myNum].rootYOrigin;
             DMXDBG6("   Moved to dmxGlobalX=%d dmxGlobalY=%d"
@@ -604,16 +629,87 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
             return;
         if (dmxLocal->sendsCore && dmxLocal != dmxLocalCoreKeyboard)
             xE.u.u.detail = dmxFixup(pDev, detail, keySym);
+#if 11/*BP*/
+        {
+           DeviceIntPtr p = dmxLocal->pDevice;
+           int i, nevents;
+           xEvent *events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+           nevents = GetKeyboardEvents(events,
+                                       /*pDev*/p,
+                                       /*KeyPress*/type,
+                                       /*n*/detail);
+           /*
+           ErrorF("NEW KEY EVENT %d  n=%d\n", detail, nevents);
+           */
+           for (i = 0; i < nevents; i++)
+              mieqEnqueue(p, events + i);
+           xfree(events);
+           return;
+        }
+#endif
         break;
     case ButtonPress:
     case ButtonRelease:
+#if 00 /*BP*/
         detail = dmxGetButtonMapping(dmxLocal, detail);
+#else
+        {
+           DeviceIntPtr p = dmxLocal->pDevice;
+           int i, nevents, valuators[3];
+           xEvent *events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+           valuators[0] = e->xbutton.x;
+           valuators[1] = e->xbutton.y;
+           valuators[2] = e->xbutton.button;
+           nevents = GetPointerEvents(events,
+                                      /*pDev*/p,
+                                      /*KeyPress*/type,
+                                      detail,
+                                      POINTER_ABSOLUTE,
+                                      0, 0, valuators);
+           /*
+           ErrorF("NEW PTR EVENT %d (%d,%d,%d) n=%d\n",
+                  detail, valuators[0], valuators[1], valuators[2],
+                  nevents);
+           */
+           for (i = 0; i < nevents; i++)
+              mieqEnqueue(p, events + i);
+           xfree(events);
+           return;
+        }
+#endif
         break;
     case MotionNotify:
         /* All MotionNotify events should be sent via dmxCoreMotion and
          * dmxExtMotion -- no input driver should build motion events by
          * hand. */
+#if 00 /*BP*/
         dmxLog(dmxError, "dmxEnqueueXEvent: MotionNotify not allowed here\n");
+#else
+        {
+           DeviceIntPtr p = dmxLocal->pDevice;
+           int i, nevents, valuators[3];
+           xEvent *events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+           valuators[0] = e->xmotion.x;
+           valuators[1] = e->xmotion.y;
+           valuators[2] = e->xmotion.state;
+           nevents = GetPointerEvents(events,
+                                      /*pDev*/p,
+                                      /*KeyPress*/type,
+                                      detail,
+                                      POINTER_ABSOLUTE,
+                                      0, 0, valuators);
+           /*
+           ErrorF("NEW MOTION %d st %d (%d,%d,%d) n=%d\n",
+                  detail, e->xmotion.state,
+                  valuators[0], valuators[1], valuators[2],
+                  nevents);
+           */
+           for (i = 0; i < nevents; i++)
+              mieqEnqueue(p, events + i);
+           xfree(events);
+           return;
+        }
+#endif
         break;
                                 /* Always ignore these events */
     case EnterNotify:
@@ -623,6 +719,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
                                  * modifier map on the backend/console
                                  * input device so that we have complete
                                  * control of the input device LEDs. */
+       ErrorF("Enter/Leave/Keymap/Mapping\n");
         return;
     default:
 #ifdef XINPUT
@@ -652,7 +749,16 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
     if (!dmxLocal->sendsCore) dmxEnqueueExtEvent(dmxLocal, &xE, block);
     else
 #endif
+#if 00 /*BP*/
         dmxeqEnqueue(&xE);
+#else
+    /* never get here! */
+    if (0) {
+       DeviceIntPtr p = dmxLocal->pDevice;
+       ErrorF("enque %d\n", type);
+       mieqEnqueue(p, &xE);
+    }
+#endif
 }
 
 /** A pointer to this routine is passed to low-level input drivers so
