@@ -101,7 +101,7 @@ RegisterOtherDevice(DeviceIntPtr device)
     device->public.realInputProc = ProcessOtherEvent;
     (device)->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
     (device)->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
-    if (IsPointerDevice(device))
+    if (DeviceIsPointerType(device))
     {
         (device)->coreGrab.ActivateGrab = ActivatePointerGrab;
         (device)->coreGrab.DeactivateGrab = DeactivatePointerGrab;

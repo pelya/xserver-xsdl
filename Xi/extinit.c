@@ -983,6 +983,22 @@ IResetProc(ExtensionEntry * unused)
     RestoreExtensionEvents();
 }
 
+/*****************************************************************
+ *
+ * Returns TRUE if the device has some sort of pointer type.
+ *
+ */
+
+Bool
+DeviceIsPointerType(DeviceIntPtr dev)
+{
+    if (dev_type[1].type == dev->type)
+        return TRUE;
+
+    return FALSE;
+}
+
+
 /***********************************************************************
  *
  * Assign an id and type to an input device.

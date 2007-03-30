@@ -174,7 +174,7 @@ xf86ActivateDevice(LocalDevicePtr local)
         dev->spriteInfo->spriteOwner = !(local->flags & XI86_SHARED_POINTER);
 
 #ifdef XKB
-        if (!IsPointerDevice(dev))
+        if (!DeviceIsPointerType(dev))
         {
         /* FIXME: that's not the nice way to do it. XKB wraps the previously
          * set procs, so if we don't have them here, our event will disappear

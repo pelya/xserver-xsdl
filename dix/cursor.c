@@ -179,7 +179,7 @@ AllocCursorARGB(unsigned char *psrcbits, unsigned char *pmaskbits, CARD32 *argb,
     ScreenPtr 	pscr;
     DeviceIntPtr pDev; 
 
-    pCurs = (CursorPtr)xalloc(sizeof(CursorRec) + sizeof(CursorBits));
+    pCurs = (CursorPtr)xcalloc(sizeof(CursorRec) + sizeof(CursorBits), 1);
     if (!pCurs)
     {
 	xfree(psrcbits);
@@ -196,7 +196,7 @@ AllocCursorARGB(unsigned char *psrcbits, unsigned char *pmaskbits, CARD32 *argb,
     bits->height = cm->height;
     bits->xhot = cm->xhot;
     bits->yhot = cm->yhot;
-    pCurs->refcnt = 0;		
+    pCurs->refcnt = 1;		
     CheckForEmptyMask(bits);
 
     pCurs->bits = bits;
@@ -215,6 +215,8 @@ AllocCursorARGB(unsigned char *psrcbits, unsigned char *pmaskbits, CARD32 *argb,
 
     /*
      * realize the cursor for every screen
+     * Do not change the refcnt, this will be changed when ChangeToCursor
+     * actually changes the sprite.
      */
     for (nscr = 0; nscr < screenInfo.numScreens; nscr++)
     {
@@ -223,7 +225,6 @@ AllocCursorARGB(unsigned char *psrcbits, unsigned char *pmaskbits, CARD32 *argb,
         {
             if (DevHasCursor(pDev))
             {
-                pCurs->refcnt++;
                 if (!( *pscr->RealizeCursor)(pDev, pscr, pCurs))
                 {
                     /* Realize failed for device pDev on screen pscr.
@@ -325,7 +326,7 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
     }
     if (pShare)
     {
-	pCurs = (CursorPtr)xalloc(sizeof(CursorRec));
+	pCurs = (CursorPtr)xcalloc(sizeof(CursorRec), 1);
 	if (!pCurs)
 	    return BadAlloc;
 	bits = pShare->bits;
@@ -367,7 +368,8 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
 	}
 	if (sourcefont != maskfont)
 	{
-	    pCurs = (CursorPtr)xalloc(sizeof(CursorRec) + sizeof(CursorBits));
+	    pCurs = 
+                (CursorPtr)xcalloc(sizeof(CursorRec) + sizeof(CursorBits), 1);
 	    if (pCurs)
 		bits = (CursorBitsPtr)((char *)pCurs + sizeof(CursorRec));
 	    else
@@ -375,9 +377,9 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
 	}
 	else
 	{
-	    pCurs = (CursorPtr)xalloc(sizeof(CursorRec));
+	    pCurs = (CursorPtr)xcalloc(sizeof(CursorRec), 1);
 	    if (pCurs)
-		bits = (CursorBitsPtr)xalloc(sizeof(CursorBits));
+		bits = (CursorBitsPtr)xcalloc(sizeof(CursorBits), 1);
 	    else
 		bits = (CursorBitsPtr)NULL;
 	}
@@ -417,9 +419,10 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
 	    sharedGlyphs = pShare;
 	}
     }
+
     CheckForEmptyMask(bits);
     pCurs->bits = bits;
-    pCurs->refcnt = 0;
+    pCurs->refcnt = 1;
 #ifdef XFIXES
     pCurs->serialNumber = ++cursorSerial;
     pCurs->name = None;
@@ -440,38 +443,10 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
     {
         pscr = screenInfo.screens[nscr];
 
-        pCurs->refcnt++;
-        if (!(*pscr->RealizeCursor)(inputInfo.pointer, pscr, pCurs))
-        {
-            DeviceIntPtr pDevIt = inputInfo.devices; /*dev iterator*/
-            /* Realize for core pointer failed. Unrealize everything from
-             * previous screens.
-             */ 
-            while (--nscr >= 0)
-            {
-                pscr = screenInfo.screens[nscr];
-                /* now unrealize all devices on previous screens */
-                ( *pscr->UnrealizeCursor)(inputInfo.pointer, pscr, pCurs);
-
-                pDevIt = inputInfo.devices;
-                while (pDevIt)
-                {
-                    if (DevHasCursor(pDevIt))
-                        ( *pscr->UnrealizeCursor)(pDevIt, pscr, pCurs);
-                    pDevIt = pDevIt->next;
-                }
-                ( *pscr->UnrealizeCursor)(pDev, pscr, pCurs);
-            }
-            FreeCursorBits(bits);
-            xfree(pCurs);
-            return BadAlloc;
-        }
-
         for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
         {
             if (DevHasCursor(pDev))
             {
-                pCurs->refcnt++;
                 if (!( *pscr->RealizeCursor)(pDev, pscr, pCurs))
                 {
                     /* Realize failed for device pDev on screen pscr.

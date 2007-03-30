@@ -142,6 +142,11 @@ IResetProc(
 	ExtensionEntry *       /* unused */
 	);
 
+Bool
+DeviceIsPointerType(
+        DeviceIntPtr dev
+        );
+
 void
 AssignTypeAndName (
 	DeviceIntPtr           /* dev */,

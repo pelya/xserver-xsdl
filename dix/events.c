@@ -4024,7 +4024,6 @@ ProcGrabPointer(ClientPtr client)
 	    oldCursor = grab->cursor;
 	}
 	tempGrab.cursor = cursor;
-        /* FIXME: refcnt?? */
 	tempGrab.resource = client->clientAsMask;
 	tempGrab.ownerEvents = stuff->ownerEvents;
 	tempGrab.eventMask = stuff->eventMask;
