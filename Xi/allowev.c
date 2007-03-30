@@ -76,9 +76,9 @@ SOFTWARE.
  */
 
 int
-SProcXAllowDeviceEvents(register ClientPtr client)
+SProcXAllowDeviceEvents(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xAllowDeviceEventsReq);
     swaps(&stuff->length, n);
@@ -94,7 +94,7 @@ SProcXAllowDeviceEvents(register ClientPtr client)
  */
 
 int
-ProcXAllowDeviceEvents(register ClientPtr client)
+ProcXAllowDeviceEvents(ClientPtr client)
 {
     TimeStamp time;
     DeviceIntPtr thisdev;

@@ -78,9 +78,9 @@ SOFTWARE.
  */
 
 int
-SProcXChangeKeyboardDevice(register ClientPtr client)
+SProcXChangeKeyboardDevice(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xChangeKeyboardDeviceReq);
     swaps(&stuff->length, n);
@@ -96,7 +96,7 @@ SProcXChangeKeyboardDevice(register ClientPtr client)
  */
 
 int
-ProcXChangeKeyboardDevice(register ClientPtr client)
+ProcXChangeKeyboardDevice(ClientPtr client)
 {
     REQUEST(xChangeKeyboardDeviceReq);
     REQUEST_SIZE_MATCH(xChangeKeyboardDeviceReq);

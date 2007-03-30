@@ -77,9 +77,9 @@ SOFTWARE.
  */
 
 int
-SProcXListInputDevices(register ClientPtr client)
+SProcXListInputDevices(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xListInputDevicesReq);
     swaps(&stuff->length, n);
@@ -144,9 +144,9 @@ CopyDeviceName(char **namebuf, char *name)
  */
 
 static void
-CopySwapButtonClass(register ClientPtr client, ButtonClassPtr b, char **buf)
+CopySwapButtonClass(ClientPtr client, ButtonClassPtr b, char **buf)
 {
-    register char n;
+    char n;
     xButtonInfoPtr b2;
 
     b2 = (xButtonInfoPtr) * buf;
@@ -166,10 +166,10 @@ CopySwapButtonClass(register ClientPtr client, ButtonClassPtr b, char **buf)
  */
 
 static void
-CopySwapDevice(register ClientPtr client, DeviceIntPtr d, int num_classes,
+CopySwapDevice(ClientPtr client, DeviceIntPtr d, int num_classes,
 	       char **buf)
 {
-    register char n;
+    char n;
     xDeviceInfoPtr dev;
 
     dev = (xDeviceInfoPtr) * buf;
@@ -200,9 +200,9 @@ CopySwapDevice(register ClientPtr client, DeviceIntPtr d, int num_classes,
  */
 
 static void
-CopySwapKeyClass(register ClientPtr client, KeyClassPtr k, char **buf)
+CopySwapKeyClass(ClientPtr client, KeyClassPtr k, char **buf)
 {
-    register char n;
+    char n;
     xKeyInfoPtr k2;
 
     k2 = (xKeyInfoPtr) * buf;
@@ -230,10 +230,10 @@ CopySwapKeyClass(register ClientPtr client, KeyClassPtr k, char **buf)
  */
 
 static int
-CopySwapValuatorClass(register ClientPtr client, ValuatorClassPtr v, char **buf)
+CopySwapValuatorClass(ClientPtr client, ValuatorClassPtr v, char **buf)
 {
     int i, j, axes, t_axes;
-    register char n;
+    char n;
     xValuatorInfoPtr v2;
     AxisInfo *a;
     xAxisInfoPtr a2;
@@ -305,7 +305,7 @@ ListDeviceInfo(ClientPtr client, DeviceIntPtr d, xDeviceInfoPtr dev,
  */
 
 int
-ProcXListInputDevices(register ClientPtr client)
+ProcXListInputDevices(ClientPtr client)
 {
     xListInputDevicesReply rep;
     int numdevs = 0;
@@ -367,7 +367,7 @@ ProcXListInputDevices(register ClientPtr client)
 void
 SRepXListInputDevices(ClientPtr client, int size, xListInputDevicesReply * rep)
 {
-    register char n;
+    char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);

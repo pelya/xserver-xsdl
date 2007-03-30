@@ -522,7 +522,7 @@ void
 XAASync(ScreenPtr pScreen)
 {
     XAAScreenPtr pScreenPriv = 
-	(XAAScreenPtr) pScreen->devPrivates[XAAScreenIndex].ptr;
+	(XAAScreenPtr) pScreen->devPrivates[XAAGetScreenIndex()].ptr;
     XAAInfoRecPtr infoRec = pScreenPriv->AccelInfoRec;
 
     if(infoRec->NeedToSync) {

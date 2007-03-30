@@ -80,9 +80,9 @@ SOFTWARE.
  */
 
 int
-SProcXUngrabDeviceKey(register ClientPtr client)
+SProcXUngrabDeviceKey(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xUngrabDeviceKeyReq);
     swaps(&stuff->length, n);

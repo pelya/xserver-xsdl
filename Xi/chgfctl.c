@@ -78,9 +78,9 @@ SOFTWARE.
  */
 
 int
-SProcXChangeFeedbackControl(register ClientPtr client)
+SProcXChangeFeedbackControl(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xChangeFeedbackControlReq);
     swaps(&stuff->length, n);
@@ -99,7 +99,7 @@ static int
 ChangeKbdFeedback(ClientPtr client, DeviceIntPtr dev, long unsigned int mask,
 		  KbdFeedbackPtr k, xKbdFeedbackCtl * f)
 {
-    register char n;
+    char n;
     KeybdCtrl kctrl;
     int t;
     int key = DO_ALL;
@@ -231,7 +231,7 @@ static int
 ChangePtrFeedback(ClientPtr client, DeviceIntPtr dev, long unsigned int mask,
 		  PtrFeedbackPtr p, xPtrFeedbackCtl * f)
 {
-    register char n;
+    char n;
     PtrCtrl pctrl;	/* might get BadValue part way through */
 
     if (client->swapped) {
@@ -303,7 +303,7 @@ ChangeIntegerFeedback(ClientPtr client, DeviceIntPtr dev,
 		      long unsigned int mask, IntegerFeedbackPtr i,
 		      xIntegerFeedbackCtl * f)
 {
-    register char n;
+    char n;
 
     if (client->swapped) {
 	swaps(&f->length, n);
@@ -326,8 +326,8 @@ ChangeStringFeedback(ClientPtr client, DeviceIntPtr dev,
 		     long unsigned int mask, StringFeedbackPtr s,
 		     xStringFeedbackCtl * f)
 {
-    register char n;
-    register long *p;
+    char n;
+    long *p;
     int i, j;
     KeySym *syms, *sup_syms;
 
@@ -376,7 +376,7 @@ ChangeBellFeedback(ClientPtr client, DeviceIntPtr dev,
 		   long unsigned int mask, BellFeedbackPtr b,
 		   xBellFeedbackCtl * f)
 {
-    register char n;
+    char n;
     int t;
     BellCtrl bctrl;	/* might get BadValue part way through */
 
@@ -440,7 +440,7 @@ static int
 ChangeLedFeedback(ClientPtr client, DeviceIntPtr dev, long unsigned int mask,
 		  LedFeedbackPtr l, xLedFeedbackCtl * f)
 {
-    register char n;
+    char n;
     LedCtrl lctrl;	/* might get BadValue part way through */
 
     if (client->swapped) {
@@ -520,7 +520,7 @@ ProcXChangeFeedbackControl(ClientPtr client)
 	break;
     case StringFeedbackClass:
     {
-	register char n;
+	char n;
 	xStringFeedbackCtl *f = ((xStringFeedbackCtl *) & stuff[1]);
 
 	if (client->swapped) {
