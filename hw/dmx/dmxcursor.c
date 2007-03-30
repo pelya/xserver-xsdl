@@ -130,14 +130,16 @@ static Bool dmxCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
     int           globalX;
     int           globalY;
     
-    if (screenInfo.numScreens == 1) return FALSE;
+    if (screenInfo.numScreens == 1)
+        return FALSE;
 
                                 /* On current screen? */
     dmxScreen = &dmxScreens[(*ppScreen)->myNum];
     if (localX >= 0
         && localX < dmxScreen->rootWidth
         && localY >= 0
-        && localY < dmxScreen->rootHeight) return FALSE;
+        && localY < dmxScreen->rootHeight)
+        return FALSE;
 
                                 /* Convert to global coordinate space */
     globalX = dmxScreen->rootXOrigin + localX;
@@ -162,7 +164,8 @@ static Bool dmxCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
             && globalX < dmxScreen->rootXOrigin + dmxScreen->rootWidth
             && globalY >= dmxScreen->rootYOrigin
             && globalY < dmxScreen->rootYOrigin + dmxScreen->rootHeight) {
-            if (dmxScreen->index == (*ppScreen)->myNum) return FALSE;
+            if (dmxScreen->index == (*ppScreen)->myNum)
+                return FALSE;
             *ppScreen = screenInfo.screens[dmxScreen->index];
             *x        = globalX - dmxScreen->rootXOrigin;
             *y        = globalY - dmxScreen->rootYOrigin;
