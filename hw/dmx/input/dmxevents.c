@@ -655,19 +655,19 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
            DeviceIntPtr p = dmxLocal->pDevice;
            int i, nevents, valuators[3];
            xEvent *events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+           /*
            valuators[0] = e->xbutton.x;
            valuators[1] = e->xbutton.y;
-           /*
+           */
            valuators[0] = dmxGlobalX;
            valuators[1] = dmxGlobalY;
-           */
            valuators[2] = e->xbutton.button;
            nevents = GetPointerEvents(events,
                                       /*pDev*/p,
                                       /*KeyPress*/type,
                                       detail,
                                       POINTER_ABSOLUTE,
-                                      0, 0, valuators);
+                                      0, 1, valuators);
 
            ErrorF("BUTTON %d, %d %d  n=%d\n",
                   valuators[0], valuators[1], valuators[2], nevents);
@@ -698,7 +698,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
                                       /*KeyPress*/type,
                                       detail,
                                       POINTER_ABSOLUTE,
-                                      0, 0, valuators);
+                                      0, 1, valuators);
            ErrorF("MOTION %d, %d  n = %d\n", valuators[0], valuators[1], nevents);
            /*
            ErrorF("NEW MOTION %d st %d (%d,%d,%d) n=%d\n",
