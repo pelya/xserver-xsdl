@@ -598,7 +598,6 @@ xf86CrtcCloseScreen (int index, ScreenPtr screen)
     {
 	xf86OutputPtr	output = config->output[o];
 
-	output->crtc = NULL;
 	output->randr_output = NULL;
     }
     for (c = 0; c < config->num_crtc; c++)
