@@ -358,7 +358,8 @@ void dmxBackendCollectEvents(DevicePtr pDev,
 	switch (X.type) {
         case EnterNotify:
             dmxCommonSaveState(priv);
-            if (entered++) continue;
+            if (entered++)
+                continue;
             priv->entered = 1;
             ignoreLeave   = 1;
             DMXDBG5("dmxBackendCollectEvents: Enter %lu %d,%d; GRAB %s %p\n",
@@ -382,7 +383,8 @@ void dmxBackendCollectEvents(DevicePtr pDev,
                 continue;
             }
             dmxCommonRestoreState(priv);
-            if (left++) continue;
+            if (left++)
+                continue;
             DMXDBG7("dmxBackendCollectEvents: Leave %lu %d,%d %d %d %s %s\n",
                     X.xcrossing.root, X.xcrossing.x, X.xcrossing.y,
                     X.xcrossing.detail, X.xcrossing.focus,
@@ -403,7 +405,8 @@ void dmxBackendCollectEvents(DevicePtr pDev,
                     priv->newscreen,
                     X.xmotion.x, X.xmotion.y,
                     entered, priv->lastX, priv->lastY);
-            if (dmxBackendPendingMotionEvent(priv, TRUE)) continue;
+            if (dmxBackendPendingMotionEvent(priv, TRUE))
+                continue;
             if (!(dmxScreen = dmxBackendFindWindow(priv, X.xmotion.window)))
                 dmxLog(dmxFatal,
                        "   Event on non-existant window %lu\n",
