@@ -662,70 +662,56 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
 {
     GETDMXINPUTFROMPDEV;
     xEvent xE;
+    DeviceIntPtr p = dmxLocal->pDevice;
+    int i, nevents, valuators[3];
+    xEvent *events;
 
     DMXDBG2("dmxEnqueue: Enqueuing type=%d detail=0x%0x\n", type, detail);
 
     switch (type) {
     case KeyPress:
     case KeyRelease:
-        if (!keySym) keySym = dmxKeyCodeToKeySym(dmxLocal, detail);
+        if (!keySym)
+            keySym = dmxKeyCodeToKeySym(dmxLocal, detail);
         if (dmxCheckFunctionKeys(dmxLocal, type, keySym))
             return;
         if (dmxLocal->sendsCore && dmxLocal != dmxLocalCoreKeyboard)
             xE.u.u.detail = dmxFixup(pDev, detail, keySym);
-        {
-           DeviceIntPtr p = dmxLocal->pDevice;
-           int i, nevents;
-           xEvent *events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
-           ErrorF("KEY %d\n", detail);
-           nevents = GetKeyboardEvents(events, p, type, detail);
-           for (i = 0; i < nevents; i++)
-              mieqEnqueue(p, events + i);
-           xfree(events);
-           return;
-        }
-        break;
+
+        events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        ErrorF("KEY %d\n", detail);
+        nevents = GetKeyboardEvents(events, p, type, detail);
+        for (i = 0; i < nevents; i++)
+            mieqEnqueue(p, events + i);
+        xfree(events);
+        return;
+
     case ButtonPress:
     case ButtonRelease:
         detail = dmxGetButtonMapping(dmxLocal, detail);
-        {
-           DeviceIntPtr p = dmxLocal->pDevice;
-           int i, nevents, valuators[3];
-           xEvent *events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
-           valuators[2] = e->xbutton.button;
-           nevents = GetPointerEvents(events, p, type, detail,
-                                      POINTER_ABSOLUTE,
-                                      0,   /* first_valuator = 0 */
-                                      0,   /* num_valuators = 0 */
-                                      valuators);
+        events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        nevents = GetPointerEvents(events, p, type, detail,
+                                   POINTER_ABSOLUTE,
+                                   0,   /* first_valuator = 0 */
+                                   0,   /* num_valuators = 0 */
+                                   valuators);
+        for (i = 0; i < nevents; i++)
+            mieqEnqueue(p, events + i);
+        xfree(events);
+        return;
 
-           ErrorF("BUTTON %d, %d %d  n=%d\n",
-                  valuators[0], valuators[1], valuators[2], nevents);
-
-           for (i = 0; i < nevents; i++)
-              mieqEnqueue(p, events + i);
-           xfree(events);
-           return;
-        }
-        break;
     case MotionNotify:
-        {
-           DeviceIntPtr p = dmxLocal->pDevice;
-           int i, nevents, valuators[3];
-           xEvent *events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
-           valuators[0] = e->xmotion.x;
-           valuators[1] = e->xmotion.y;
-           valuators[2] = e->xmotion.state;
-           nevents = GetPointerEvents(events, p, type, detail, 
-                                      POINTER_ABSOLUTE, 0, 3, valuators);
-           ErrorF("MOTION %d, %d  n = %d\n", valuators[0], valuators[1], nevents);
-           for (i = 0; i < nevents; i++)
-              mieqEnqueue(p, events + i);
-           xfree(events);
-           return;
-        }
-        break;
-                                /* Always ignore these events */
+        events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        valuators[0] = e->xmotion.x;
+        valuators[1] = e->xmotion.y;
+        valuators[2] = e->xmotion.state;
+        nevents = GetPointerEvents(events, p, type, detail, 
+                                   POINTER_ABSOLUTE, 0, 3, valuators);
+        for (i = 0; i < nevents; i++)
+            mieqEnqueue(p, events + i);
+        xfree(events);
+        return;
+
     case EnterNotify:
     case LeaveNotify:
     case KeymapNotify:
@@ -754,25 +740,19 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
         return;
     }
 
+#if 00 /* dead code? */
     memset(&xE, 0, sizeof(xE));
     xE.u.u.type                = type;
     xE.u.u.detail              = detail;
     xE.u.keyButtonPointer.time = GetTimeInMillis();
 
 #ifdef XINPUT
-    if (!dmxLocal->sendsCore) dmxEnqueueExtEvent(dmxLocal, &xE, block);
+    if (!dmxLocal->sendsCore)
+        dmxEnqueueExtEvent(dmxLocal, &xE, block);
     else
 #endif
-#if 00 /*BP*/
         dmxeqEnqueue(&xE);
-#else
-    /* never get here! */
-    if (0) {
-       DeviceIntPtr p = dmxLocal->pDevice;
-       ErrorF("enque %d\n", type);
-       mieqEnqueue(p, &xE);
-    }
-#endif
+#endif /*00*/
 }
 
 /** A pointer to this routine is passed to low-level input drivers so
