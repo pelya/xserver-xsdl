@@ -194,30 +194,20 @@ DMXScreenInfo *dmxFindFirstScreen(int x, int y)
 
 #if 11/*BP*/
 
+/**
+ * Enqueue a motion event.
+ */
 static void enqueueMotion(DevicePtr pDev, int x, int y)
 {
-    GETDMXINPUTFROMPDEV;
+    GETDMXLOCALFROMPDEV;
     DeviceIntPtr p = dmxLocal->pDevice;
     int i, nevents, valuators[3];
     xEvent *events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
-    int detail = 0;
-
+    int detail = 0;  /* XXX should this be mask of pressed buttons? */
     valuators[0] = x;
     valuators[1] = y;
-    valuators[2] = detail;
-    nevents = GetPointerEvents(events,
-                               /*pDev*/p,
-                               MotionNotify,
-                               detail,
-                               POINTER_ABSOLUTE,
-                               0, 2, valuators);
-    ErrorF("MOTION2 %d, %d  n = %d\n", valuators[0], valuators[1], nevents);
-    /*
-      ErrorF("NEW MOTION %d st %d (%d,%d,%d) n=%d\n",
-      detail, e->xmotion.state,
-      valuators[0], valuators[1], valuators[2],
-      nevents);
-    */
+    nevents = GetPointerEvents(events, p, MotionNotify, detail,
+                               POINTER_ABSOLUTE, 0, 2, valuators);
     for (i = 0; i < nevents; i++)
        mieqEnqueue(p, events + i);
     xfree(events);
@@ -347,8 +337,6 @@ void dmxCoreMotion(DevicePtr pDev, int x, int y, int delta, DMXBlockType block)
     if (dmxGlobalX >= dmxGlobalWidth)  dmxGlobalX = dmxGlobalWidth  + delta -1;
     if (dmxGlobalY >= dmxGlobalHeight) dmxGlobalY = dmxGlobalHeight + delta -1;
     
-    ErrorF("Global Pos: %d, %d\n", dmxGlobalX, dmxGlobalY);
-
     if ((dmxScreen = dmxFindFirstScreen(dmxGlobalX, dmxGlobalY))) {
         localX = dmxGlobalX - dmxScreen->rootXOrigin;
         localY = dmxGlobalY - dmxScreen->rootYOrigin;
@@ -397,7 +385,6 @@ void dmxCoreMotion(DevicePtr pDev, int x, int y, int delta, DMXBlockType block)
 #endif
             dmxGlobalX = localX + dmxScreens[pScreen->myNum].rootXOrigin;
             dmxGlobalY = localY + dmxScreens[pScreen->myNum].rootYOrigin;
-           ErrorF("Global is now %d, %d\n", dmxGlobalX, dmxGlobalY);
             DMXDBG6("   Moved to dmxGlobalX=%d dmxGlobalY=%d"
                     " on screen index=%d/%d localX=%d localY=%d\n",
                     dmxGlobalX, dmxGlobalY,
@@ -750,7 +737,7 @@ static int dmxFixup(DevicePtr pDev, int detail, KeySym keySym)
     return keyCode ? keyCode : detail;
 }
 
-/** Enqueue a non-motion event from the \a pDev device with the
+/** Enqueue an event from the \a pDev device with the
  * specified \a type and \a detail.  If the event is a KeyPress or
  * KeyRelease event, then the \a keySym is also specified.
  *
@@ -778,10 +765,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
            DeviceIntPtr p = dmxLocal->pDevice;
            int i, nevents;
            xEvent *events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
-           nevents = GetKeyboardEvents(events,
-                                       /*pDev*/p,
-                                       /*KeyPress*/type,
-                                       /*n*/detail);
+           nevents = GetKeyboardEvents(events, p, type, detail);
            ErrorF("KEY %d  n=%d\n", detail, nevents);
            for (i = 0; i < nevents; i++)
               mieqEnqueue(p, events + i);
@@ -795,6 +779,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
 #if 00 /*BP*/
         detail = dmxGetButtonMapping(dmxLocal, detail);
 #else
+        detail = dmxGetButtonMapping(dmxLocal, detail);
         {
            DeviceIntPtr p = dmxLocal->pDevice;
            int i, nevents, valuators[3];
