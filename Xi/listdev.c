@@ -116,6 +116,10 @@ ProcXListInputDevices(register ClientPtr client)
 
     AddOtherInputDevices();
 
+    SizeDeviceInfo(inputInfo.keyboard, &namesize, &size);
+    SizeDeviceInfo(inputInfo.pointer, &namesize, &size);
+    numdevs = 2;
+
     for (d = inputInfo.devices; d; d = d->next) {
 	SizeDeviceInfo(d, &namesize, &size);
         numdevs++;
@@ -132,6 +136,11 @@ ProcXListInputDevices(register ClientPtr client)
     savbuf = devbuf;
 
     dev = (xDeviceInfoPtr) devbuf;
+    ListDeviceInfo(client, inputInfo.keyboard, dev++, 
+                   &devbuf, &classbuf, &namebuf);
+    ListDeviceInfo(client, inputInfo.pointer, dev++,
+                   &devbuf, &classbuf, &namebuf);
+
     for (d = inputInfo.devices; d; d = d->next, dev++)
 	ListDeviceInfo(client, d, dev, &devbuf, &classbuf, &namebuf);
     for (d = inputInfo.off_devices; d; d = d->next, dev++)
