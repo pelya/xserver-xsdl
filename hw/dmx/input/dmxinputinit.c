@@ -505,7 +505,6 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
                                               GetMaximumEventsNum(),
 #endif
                                               Relative);
-                ErrorF("MOTION BUFFER SIZE %d\n", GetMaximumEventsNum());
 #ifdef XINPUT
                 for (i = 0; i < info.numRelAxes; i++)
                     InitValuatorAxisStruct(pDevice, i, info.minval[0],
@@ -587,10 +586,6 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
 static void dmxProcessInputEvents(DMXInputInfo *dmxInput)
 {
     int i;
-
-    /*
-    ErrorF("%s\n", __FUNCTION__);
-    */
 
     dmxeqProcessInputEvents();
 #if 00 /*BP*/
