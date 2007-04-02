@@ -401,10 +401,8 @@ miZeroArcSetup(arc, info, ok360)
 
 #define DoPix(idx,xval,yval) if (mask & (1 << idx)) Pixelate(xval, yval);
 
-DDXPointPtr
-miZeroArcPts(arc, pts)
-    xArc *arc;
-    DDXPointPtr pts;
+static DDXPointPtr
+miZeroArcPts(xArc *arc, DDXPointPtr pts)
 {
     miZeroArcRec info;
     int x, y, a, b, d, mask;

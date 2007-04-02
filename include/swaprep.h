@@ -91,9 +91,6 @@ extern void SQueryPointerReply(
     int /* size */,
     xQueryPointerReply * /* pRep */);
 
-extern void SwapTimecoord(
-    xTimecoord * /* pCoord */);
-
 extern void SwapTimeCoordWrite(
     ClientPtr /* pClient */,
     int /* size */,
@@ -174,9 +171,6 @@ extern void SAllocColorPlanesReply(
     int /* size */,
     xAllocColorPlanesReply * /* pRep */);
 
-extern void SwapRGB(
-    xrgb * /* prgb */);
-
 extern void SQColorsExtend(
     ClientPtr /* pClient */,
     int /* size */,
@@ -254,18 +248,6 @@ extern void WriteSConnectionInfo(
     ClientPtr /* pClient */,
     unsigned long /* size */,
     char * /* pInfo */);
-
-extern void SwapConnSetup(
-    xConnSetup * /* pConnSetup */,
-    xConnSetup * /* pConnSetupT */);
-
-extern void SwapWinRoot(
-    xWindowRoot * /* pRoot */,
-    xWindowRoot * /* pRootT */);
-
-extern void SwapVisual(
-    xVisualType * /* pVis */,
-    xVisualType * /* pVisT */);
 
 extern void SwapConnSetupPrefix(
     xConnSetupPrefix * /* pcspFrom */,

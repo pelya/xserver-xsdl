@@ -77,13 +77,225 @@ SOFTWARE.
  */
 
 int
-SProcXListInputDevices(register ClientPtr client)
+SProcXListInputDevices(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xListInputDevicesReq);
     swaps(&stuff->length, n);
     return (ProcXListInputDevices(client));
+}
+
+/***********************************************************************
+ *
+ * This procedure calculates the size of the information to be returned
+ * for an input device.
+ *
+ */
+
+static void
+SizeDeviceInfo(DeviceIntPtr d, int *namesize, int *size)
+{
+    int chunks;
+
+    *namesize += 1;
+    if (d->name)
+	*namesize += strlen(d->name);
+    if (d->key != NULL)
+	*size += sizeof(xKeyInfo);
+    if (d->button != NULL)
+	*size += sizeof(xButtonInfo);
+    if (d->valuator != NULL) {
+	chunks = ((int)d->valuator->numAxes + 19) / VPC;
+	*size += (chunks * sizeof(xValuatorInfo) +
+		  d->valuator->numAxes * sizeof(xAxisInfo));
+    }
+}
+
+/***********************************************************************
+ *
+ * This procedure copies data to the DeviceInfo struct, swapping if necessary.
+ *
+ * We need the extra byte in the allocated buffer, because the trailing null
+ * hammers one extra byte, which is overwritten by the next name except for
+ * the last name copied.
+ *
+ */
+
+static void
+CopyDeviceName(char **namebuf, char *name)
+{
+    char *nameptr = (char *)*namebuf;
+
+    if (name) {
+	*nameptr++ = strlen(name);
+	strcpy(nameptr, name);
+	*namebuf += (strlen(name) + 1);
+    } else {
+	*nameptr++ = 0;
+	*namebuf += 1;
+    }
+}
+
+/***********************************************************************
+ *
+ * This procedure copies ButtonClass information, swapping if necessary.
+ *
+ */
+
+static void
+CopySwapButtonClass(ClientPtr client, ButtonClassPtr b, char **buf)
+{
+    char n;
+    xButtonInfoPtr b2;
+
+    b2 = (xButtonInfoPtr) * buf;
+    b2->class = ButtonClass;
+    b2->length = sizeof(xButtonInfo);
+    b2->num_buttons = b->numButtons;
+    if (client->swapped) {
+	swaps(&b2->num_buttons, n);	/* macro - braces are required */
+    }
+    *buf += sizeof(xButtonInfo);
+}
+
+/***********************************************************************
+ *
+ * This procedure copies data to the DeviceInfo struct, swapping if necessary.
+ *
+ */
+
+static void
+CopySwapDevice(ClientPtr client, DeviceIntPtr d, int num_classes,
+	       char **buf)
+{
+    char n;
+    xDeviceInfoPtr dev;
+
+    dev = (xDeviceInfoPtr) * buf;
+
+    dev->id = d->id;
+    dev->type = d->type;
+    dev->num_classes = num_classes;
+    if (d == inputInfo.keyboard)
+	dev->use = IsXKeyboard;
+    else if (d == inputInfo.pointer)
+	dev->use = IsXPointer;
+    else if (d->key && d->kbdfeed)
+        dev->use = IsXExtensionKeyboard;
+    else if (d->valuator && d->button)
+        dev->use = IsXExtensionPointer;
+    else
+	dev->use = IsXExtensionDevice;
+    if (client->swapped) {
+	swapl(&dev->type, n);	/* macro - braces are required */
+    }
+    *buf += sizeof(xDeviceInfo);
+}
+
+/***********************************************************************
+ *
+ * This procedure copies KeyClass information, swapping if necessary.
+ *
+ */
+
+static void
+CopySwapKeyClass(ClientPtr client, KeyClassPtr k, char **buf)
+{
+    char n;
+    xKeyInfoPtr k2;
+
+    k2 = (xKeyInfoPtr) * buf;
+    k2->class = KeyClass;
+    k2->length = sizeof(xKeyInfo);
+    k2->min_keycode = k->curKeySyms.minKeyCode;
+    k2->max_keycode = k->curKeySyms.maxKeyCode;
+    k2->num_keys = k2->max_keycode - k2->min_keycode + 1;
+    if (client->swapped) {
+	swaps(&k2->num_keys, n);
+    }
+    *buf += sizeof(xKeyInfo);
+}
+
+/***********************************************************************
+ *
+ * This procedure copies ValuatorClass information, swapping if necessary.
+ *
+ * Devices may have up to 255 valuators.  The length of a ValuatorClass is
+ * defined to be sizeof(ValuatorClassInfo) + num_axes * sizeof (xAxisInfo).
+ * The maximum length is therefore (8 + 255 * 12) = 3068.  However, the 
+ * length field is one byte.  If a device has more than 20 valuators, we
+ * must therefore return multiple valuator classes to the client.
+ *
+ */
+
+static int
+CopySwapValuatorClass(ClientPtr client, ValuatorClassPtr v, char **buf)
+{
+    int i, j, axes, t_axes;
+    char n;
+    xValuatorInfoPtr v2;
+    AxisInfo *a;
+    xAxisInfoPtr a2;
+
+    for (i = 0, axes = v->numAxes; i < ((v->numAxes + 19) / VPC);
+	 i++, axes -= VPC) {
+	t_axes = axes < VPC ? axes : VPC;
+	if (t_axes < 0)
+	    t_axes = v->numAxes % VPC;
+	v2 = (xValuatorInfoPtr) * buf;
+	v2->class = ValuatorClass;
+	v2->length = sizeof(xValuatorInfo) + t_axes * sizeof(xAxisInfo);
+	v2->num_axes = t_axes;
+	v2->mode = v->mode & DeviceMode;
+	v2->motion_buffer_size = v->numMotionEvents;
+	if (client->swapped) {
+	    swapl(&v2->motion_buffer_size, n);
+	}
+	*buf += sizeof(xValuatorInfo);
+	a = v->axes + (VPC * i);
+	a2 = (xAxisInfoPtr) * buf;
+	for (j = 0; j < t_axes; j++) {
+	    a2->min_value = a->min_value;
+	    a2->max_value = a->max_value;
+	    a2->resolution = a->resolution;
+	    if (client->swapped) {
+		swapl(&a2->min_value, n);
+		swapl(&a2->max_value, n);
+		swapl(&a2->resolution, n);
+	    }
+	    a2++;
+	    a++;
+	    *buf += sizeof(xAxisInfo);
+	}
+    }
+    return (i);
+}
+
+/***********************************************************************
+ *
+ * This procedure lists information to be returned for an input device.
+ *
+ */
+
+static void
+ListDeviceInfo(ClientPtr client, DeviceIntPtr d, xDeviceInfoPtr dev,
+	       char **devbuf, char **classbuf, char **namebuf)
+{
+    CopyDeviceName(namebuf, d->name);
+    CopySwapDevice(client, d, 0, devbuf);
+    if (d->key != NULL) {
+	CopySwapKeyClass(client, d->key, classbuf);
+	dev->num_classes++;
+    }
+    if (d->button != NULL) {
+	CopySwapButtonClass(client, d->button, classbuf);
+	dev->num_classes++;
+    }
+    if (d->valuator != NULL) {
+	dev->num_classes +=
+	    CopySwapValuatorClass(client, d->valuator, classbuf);
+    }
 }
 
 /***********************************************************************
@@ -93,7 +305,7 @@ SProcXListInputDevices(register ClientPtr client)
  */
 
 int
-ProcXListInputDevices(register ClientPtr client)
+ProcXListInputDevices(ClientPtr client)
 {
     xListInputDevicesReply rep;
     int numdevs = 0;
@@ -156,218 +368,6 @@ ProcXListInputDevices(register ClientPtr client)
 
 /***********************************************************************
  *
- * This procedure calculates the size of the information to be returned
- * for an input device.
- *
- */
-
-void
-SizeDeviceInfo(DeviceIntPtr d, int *namesize, int *size)
-{
-    int chunks;
-
-    *namesize += 1;
-    if (d->name)
-	*namesize += strlen(d->name);
-    if (d->key != NULL)
-	*size += sizeof(xKeyInfo);
-    if (d->button != NULL)
-	*size += sizeof(xButtonInfo);
-    if (d->valuator != NULL) {
-	chunks = ((int)d->valuator->numAxes + 19) / VPC;
-	*size += (chunks * sizeof(xValuatorInfo) +
-		  d->valuator->numAxes * sizeof(xAxisInfo));
-    }
-}
-
-/***********************************************************************
- *
- * This procedure lists information to be returned for an input device.
- *
- */
-
-void
-ListDeviceInfo(ClientPtr client, DeviceIntPtr d, xDeviceInfoPtr dev,
-	       char **devbuf, char **classbuf, char **namebuf)
-{
-    CopyDeviceName(namebuf, d->name);
-    CopySwapDevice(client, d, 0, devbuf);
-    if (d->key != NULL) {
-	CopySwapKeyClass(client, d->key, classbuf);
-	dev->num_classes++;
-    }
-    if (d->button != NULL) {
-	CopySwapButtonClass(client, d->button, classbuf);
-	dev->num_classes++;
-    }
-    if (d->valuator != NULL) {
-	dev->num_classes +=
-	    CopySwapValuatorClass(client, d->valuator, classbuf);
-    }
-}
-
-/***********************************************************************
- *
- * This procedure copies data to the DeviceInfo struct, swapping if necessary.
- *
- * We need the extra byte in the allocated buffer, because the trailing null
- * hammers one extra byte, which is overwritten by the next name except for
- * the last name copied.
- *
- */
-
-void
-CopyDeviceName(char **namebuf, char *name)
-{
-    char *nameptr = (char *)*namebuf;
-
-    if (name) {
-	*nameptr++ = strlen(name);
-	strcpy(nameptr, name);
-	*namebuf += (strlen(name) + 1);
-    } else {
-	*nameptr++ = 0;
-	*namebuf += 1;
-    }
-}
-
-/***********************************************************************
- *
- * This procedure copies data to the DeviceInfo struct, swapping if necessary.
- *
- */
-
-void
-CopySwapDevice(register ClientPtr client, DeviceIntPtr d, int num_classes,
-	       char **buf)
-{
-    register char n;
-    xDeviceInfoPtr dev;
-
-    dev = (xDeviceInfoPtr) * buf;
-
-    dev->id = d->id;
-    dev->type = d->type;
-    dev->num_classes = num_classes;
-    if (d == inputInfo.keyboard)
-	dev->use = IsXKeyboard;
-    else if (d == inputInfo.pointer)
-	dev->use = IsXPointer;
-    else if (d->key && d->kbdfeed)
-        dev->use = IsXExtensionKeyboard;
-    else if (d->valuator && d->button)
-        dev->use = IsXExtensionPointer;
-    else
-	dev->use = IsXExtensionDevice;
-    if (client->swapped) {
-	swapl(&dev->type, n);	/* macro - braces are required */
-    }
-    *buf += sizeof(xDeviceInfo);
-}
-
-/***********************************************************************
- *
- * This procedure copies KeyClass information, swapping if necessary.
- *
- */
-
-void
-CopySwapKeyClass(register ClientPtr client, KeyClassPtr k, char **buf)
-{
-    register char n;
-    xKeyInfoPtr k2;
-
-    k2 = (xKeyInfoPtr) * buf;
-    k2->class = KeyClass;
-    k2->length = sizeof(xKeyInfo);
-    k2->min_keycode = k->curKeySyms.minKeyCode;
-    k2->max_keycode = k->curKeySyms.maxKeyCode;
-    k2->num_keys = k2->max_keycode - k2->min_keycode + 1;
-    if (client->swapped) {
-	swaps(&k2->num_keys, n);
-    }
-    *buf += sizeof(xKeyInfo);
-}
-
-/***********************************************************************
- *
- * This procedure copies ButtonClass information, swapping if necessary.
- *
- */
-
-void
-CopySwapButtonClass(register ClientPtr client, ButtonClassPtr b, char **buf)
-{
-    register char n;
-    xButtonInfoPtr b2;
-
-    b2 = (xButtonInfoPtr) * buf;
-    b2->class = ButtonClass;
-    b2->length = sizeof(xButtonInfo);
-    b2->num_buttons = b->numButtons;
-    if (client->swapped) {
-	swaps(&b2->num_buttons, n);	/* macro - braces are required */
-    }
-    *buf += sizeof(xButtonInfo);
-}
-
-/***********************************************************************
- *
- * This procedure copies ValuatorClass information, swapping if necessary.
- *
- * Devices may have up to 255 valuators.  The length of a ValuatorClass is
- * defined to be sizeof(ValuatorClassInfo) + num_axes * sizeof (xAxisInfo).
- * The maximum length is therefore (8 + 255 * 12) = 3068.  However, the 
- * length field is one byte.  If a device has more than 20 valuators, we
- * must therefore return multiple valuator classes to the client.
- *
- */
-
-int
-CopySwapValuatorClass(register ClientPtr client, ValuatorClassPtr v, char **buf)
-{
-    int i, j, axes, t_axes;
-    register char n;
-    xValuatorInfoPtr v2;
-    AxisInfo *a;
-    xAxisInfoPtr a2;
-
-    for (i = 0, axes = v->numAxes; i < ((v->numAxes + 19) / VPC);
-	 i++, axes -= VPC) {
-	t_axes = axes < VPC ? axes : VPC;
-	if (t_axes < 0)
-	    t_axes = v->numAxes % VPC;
-	v2 = (xValuatorInfoPtr) * buf;
-	v2->class = ValuatorClass;
-	v2->length = sizeof(xValuatorInfo) + t_axes * sizeof(xAxisInfo);
-	v2->num_axes = t_axes;
-	v2->mode = v->mode & DeviceMode;
-	v2->motion_buffer_size = v->numMotionEvents;
-	if (client->swapped) {
-	    swapl(&v2->motion_buffer_size, n);
-	}
-	*buf += sizeof(xValuatorInfo);
-	a = v->axes + (VPC * i);
-	a2 = (xAxisInfoPtr) * buf;
-	for (j = 0; j < t_axes; j++) {
-	    a2->min_value = a->min_value;
-	    a2->max_value = a->max_value;
-	    a2->resolution = a->resolution;
-	    if (client->swapped) {
-		swapl(&a2->min_value, n);
-		swapl(&a2->max_value, n);
-		swapl(&a2->resolution, n);
-	    }
-	    a2++;
-	    a++;
-	    *buf += sizeof(xAxisInfo);
-	}
-    }
-    return (i);
-}
-
-/***********************************************************************
- *
  * This procedure writes the reply for the XListInputDevices function,
  * if the client and server have a different byte ordering.
  *
@@ -376,7 +376,7 @@ CopySwapValuatorClass(register ClientPtr client, ValuatorClassPtr v, char **buf)
 void
 SRepXListInputDevices(ClientPtr client, int size, xListInputDevicesReply * rep)
 {
-    register char n;
+    char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);

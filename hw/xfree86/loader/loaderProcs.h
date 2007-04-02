@@ -97,9 +97,6 @@ void LoadFont(FontModule *);
 void UnloadModule(ModuleDescPtr);
 void UnloadSubModule(ModuleDescPtr);
 void UnloadDriver(ModuleDescPtr);
-void FreeModuleDesc(ModuleDescPtr mod);
-ModuleDescPtr NewModuleDesc(const char *);
-ModuleDescPtr AddSibling(ModuleDescPtr head, ModuleDescPtr new);
 void LoaderSetPath(const char *path);
 void LoaderSortExtensions(void);
 
@@ -108,7 +105,6 @@ unsigned long LoaderGetModuleVersion(ModuleDescPtr mod);
 
 void LoaderResetOptions(void);
 void LoaderSetOptions(unsigned long);
-void LoaderClearOptions(unsigned long);
 
 /* Options for LoaderSetOptions */
 #define LDR_OPT_ABI_MISMATCH_NONFATAL		0x0001

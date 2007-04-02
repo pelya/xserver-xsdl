@@ -301,25 +301,6 @@ DoMono
 }
 
 void
-xf4bppOffDrawMonoImage( pWin, data, x, y, w, h, fg, alu, planes )
-WindowPtr pWin; /* GJA */
-unsigned char *data;
-int x, y, w, h ;
-unsigned long int fg ;
-int alu ;
-unsigned long int planes;
-{
-
-	if ( ( alu == GXnoop ) || !( planes &= VGA_ALLPLANES ) )
-		return ;
-
-	DoMono( pWin, w, x, y, (const unsigned char *) data, h,
-		      w, ( ( w + 31 ) & ~31 ) >> 3, h, 0, 0, alu,
-		      (int)planes, (int)fg) ;
-
-}
-
-void
 xf4bppOffFillStipple( pWin, pStipple, fg, alu, planes, x, y, w, h, xSrc, ySrc )
 WindowPtr pWin; /* GJA */
 register PixmapPtr const pStipple ;

@@ -93,7 +93,7 @@ void
 SRepXGrabAccessControl(ClientPtr client, int size, 
         xGrabAccessControlReply* rep)
 {
-    register char n;
+    char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);

@@ -82,11 +82,7 @@ typedef struct _damageGCPriv {
     GCFuncs *funcs;
 } DamageGCPrivRec, *DamageGCPrivPtr;
 
-extern int damageScrPrivateIndex;
-extern int damagePixPrivateIndex;
-extern int damageGCPrivateIndex;
-extern int damageWinPrivateIndex;
-
+/* XXX should move these into damage.c, damageScrPrivateIndex is static */
 #define damageGetScrPriv(pScr) \
     ((DamageScrPrivPtr) (pScr)->devPrivates[damageScrPrivateIndex].ptr)
 

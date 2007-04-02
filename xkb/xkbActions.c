@@ -36,14 +36,14 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/keysym.h>
 #include "misc.h"
 #include "inputstr.h"
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #include "xkb.h"
 #include <ctype.h>
 
 static unsigned int _xkbServerGeneration;
-int xkbDevicePrivateIndex = -1;
+static int xkbDevicePrivateIndex = -1;
 
-void
+static void
 xkbUnwrapProc(DeviceIntPtr device, DeviceHandleProc proc,
                    pointer data)
 {
@@ -216,7 +216,7 @@ static XkbAction 	fake;
     return fake;
 }
 
-XkbAction
+static XkbAction
 XkbGetButtonAction(DeviceIntPtr kbd,DeviceIntPtr dev,int button)
 {
 XkbAction fake;

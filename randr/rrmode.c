@@ -48,25 +48,13 @@ RRModeEqual (xRRModeInfo *a, xRRModeInfo *b)
 static int	    num_modes;
 static RRModePtr    *modes;
 
-RRModePtr
-RRModeGet (xRRModeInfo	*modeInfo,
-	   const char	*name)
+static RRModePtr
+RRModeCreate (xRRModeInfo   *modeInfo,
+	      const char    *name,
+	      ScreenPtr	    userScreen)
 {
-    int	i;
-    RRModePtr	mode;
-    RRModePtr	*newModes;
-
-    for (i = 0; i < num_modes; i++)
-    {
-	mode = modes[i];
-	if (RRModeEqual (&mode->mode, modeInfo) &&
-	    !memcmp (name, mode->name, modeInfo->nameLength))
-	{
-	    ++mode->refcnt;
-	    return mode;
-	}
-    }
-
+    RRModePtr	mode, *newModes;
+    
     if (!RRInit ())
 	return NULL;
 
@@ -78,7 +66,7 @@ RRModeGet (xRRModeInfo	*modeInfo,
     mode->name = (char *) (mode + 1);
     memcpy (mode->name, name, modeInfo->nameLength);
     mode->name[modeInfo->nameLength] = '\0';
-    mode->userDefined = FALSE;
+    mode->userScreen = userScreen;
 
     if (num_modes)
 	newModes = xrealloc (modes, (num_modes + 1) * sizeof (RRModePtr));
@@ -104,11 +92,75 @@ RRModeGet (xRRModeInfo	*modeInfo,
     return mode;
 }
 
+static RRModePtr
+RRModeFindByName (const char	*name,
+		  CARD16    	nameLength)
+{
+    int		i;
+    RRModePtr	mode;
+
+    for (i = 0; i < num_modes; i++)
+    {
+	mode = modes[i];
+	if (mode->mode.nameLength == nameLength &&
+	    !memcmp (name, mode->name, nameLength))
+	{
+	    return mode;
+	}
+    }
+    return NULL;
+}
+
+RRModePtr
+RRModeGet (xRRModeInfo	*modeInfo,
+	   const char	*name)
+{
+    int	i;
+
+    for (i = 0; i < num_modes; i++)
+    {
+	RRModePtr   mode = modes[i];
+	if (RRModeEqual (&mode->mode, modeInfo) &&
+	    !memcmp (name, mode->name, modeInfo->nameLength))
+	{
+	    ++mode->refcnt;
+	    return mode;
+	}
+    }
+
+    return RRModeCreate (modeInfo, name, NULL);
+}
+
+static RRModePtr
+RRModeCreateUser (ScreenPtr	pScreen,
+		  xRRModeInfo	*modeInfo,
+		  const char	*name,
+		  int		*error)
+{
+    RRModePtr	mode;
+
+    mode = RRModeFindByName (name, modeInfo->nameLength);
+    if (mode)
+    {
+	*error = BadName;
+	return NULL;
+    }
+    
+    mode = RRModeCreate (modeInfo, name, pScreen);
+    if (!mode)
+    {
+	*error = BadAlloc;
+	return NULL;
+    }
+    *error = Success;
+    return mode;
+}
+
 RRModePtr *
 RRModesForScreen (ScreenPtr pScreen, int *num_ret)
 {
     rrScrPriv(pScreen);
-    int	o, c;
+    int		o, c, m;
     RRModePtr	*screen_modes;
     int		num_screen_modes = 0;
 
@@ -122,9 +174,11 @@ RRModesForScreen (ScreenPtr pScreen, int *num_ret)
 	RROutputPtr	output = pScrPriv->outputs[o];
 	int		m, n;
 
-	for (m = 0; m < output->numModes; m++)
+	for (m = 0; m < output->numModes + output->numUserModes; m++)
 	{
-	    RRModePtr	mode = output->modes[m];
+	    RRModePtr   mode = (m < output->numModes ? 
+				output->modes[m] : 
+				output->userModes[m-output->numModes]);
 	    for (n = 0; n < num_screen_modes; n++)
 		if (screen_modes[n] == mode)
 		    break;
@@ -150,6 +204,23 @@ RRModesForScreen (ScreenPtr pScreen, int *num_ret)
 	if (n == num_screen_modes)
 	    screen_modes[num_screen_modes++] = mode;
     }
+    /*
+     * Add all user modes for this screen
+     */
+    for (m = 0; m < num_modes; m++)
+    {
+	RRModePtr	mode = modes[m];
+	int		n;
+
+	if (mode->userScreen != pScreen)
+	    continue;
+	for (n = 0; n < num_screen_modes; n++)
+	    if (screen_modes[n] == mode)
+		break;
+	if (n == num_screen_modes)
+	    screen_modes[num_screen_modes++] = mode;
+    }
+    
     *num_ret = num_screen_modes;
     return screen_modes;
 }
@@ -205,38 +276,122 @@ int
 ProcRRCreateMode (ClientPtr client)
 {
     REQUEST(xRRCreateModeReq);
+    xRRCreateModeReply	rep;
+    WindowPtr		pWin;
+    ScreenPtr		pScreen;
+    rrScrPrivPtr	pScrPriv;
+    xRRModeInfo		*modeInfo;
+    long		units_after;
+    char		*name;
+    int			error, rc;
+    RRModePtr		mode;
     
-    REQUEST_SIZE_MATCH(xRRCreateModeReq);
-    (void) stuff;
-    return BadImplementation; 
+    REQUEST_AT_LEAST_SIZE (xRRCreateModeReq);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
+
+    pScreen = pWin->drawable.pScreen;
+    pScrPriv = rrGetScrPriv(pScreen);
+    
+    modeInfo = &stuff->modeInfo;
+    name = (char *) (stuff + 1);
+    units_after = (stuff->length - (sizeof (xRRCreateModeReq) >> 2));
+
+    /* check to make sure requested name fits within the data provided */
+    if ((int) (modeInfo->nameLength + 3) >> 2 > units_after)
+	return BadLength;
+
+    mode = RRModeCreateUser (pScreen, modeInfo, name, &error);
+    if (!mode)
+	return error;
+
+    rep.type = X_Reply;
+    rep.pad0 = 0;
+    rep.sequenceNumber = client->sequence;
+    rep.length = 0;
+    rep.mode = mode->mode.id;
+    if (client->swapped)
+    {
+	int n;
+    	swaps(&rep.sequenceNumber, n);
+    	swapl(&rep.length, n);
+	swapl(&rep.mode, n);
+    }
+    WriteToClient(client, sizeof(xRRCreateModeReply), (char *)&rep);
+    
+    return client->noClientException;
 }
 
 int
 ProcRRDestroyMode (ClientPtr client)
 {
     REQUEST(xRRDestroyModeReq);
+    RRModePtr	mode;
     
     REQUEST_SIZE_MATCH(xRRDestroyModeReq);
-    (void) stuff;
-    return BadImplementation; 
+    mode = LookupIDByType (stuff->mode, RRModeType);
+    if (!mode)
+    {
+	client->errorValue = stuff->mode;
+	return RRErrorBase + BadRRMode;
+    }
+    if (!mode->userScreen)
+	return BadMatch;
+    if (mode->refcnt > 1)
+	return BadAccess;
+    FreeResource (stuff->mode, 0);
+    return Success;
 }
 
 int
 ProcRRAddOutputMode (ClientPtr client)
 {
     REQUEST(xRRAddOutputModeReq);
+    RRModePtr	mode;
+    RROutputPtr	output;
     
     REQUEST_SIZE_MATCH(xRRAddOutputModeReq);
-    (void) stuff;
-    return BadImplementation; 
+    output = LookupOutput(client, stuff->output, DixReadAccess);
+
+    if (!output)
+    {
+	client->errorValue = stuff->output;
+	return RRErrorBase + BadRROutput;
+    }
+    
+    mode = LookupIDByType (stuff->mode, RRModeType);
+    if (!mode)
+    {
+	client->errorValue = stuff->mode;
+	return RRErrorBase + BadRRMode;
+    }
+    
+    return RROutputAddUserMode (output, mode);
 }
 
 int
 ProcRRDeleteOutputMode (ClientPtr client)
 {
     REQUEST(xRRDeleteOutputModeReq);
+    RRModePtr	mode;
+    RROutputPtr	output;
     
     REQUEST_SIZE_MATCH(xRRDeleteOutputModeReq);
-    (void) stuff;
-    return BadImplementation; 
+    output = LookupOutput(client, stuff->output, DixReadAccess);
+
+    if (!output)
+    {
+	client->errorValue = stuff->output;
+	return RRErrorBase + BadRROutput;
+    }
+    
+    mode = LookupIDByType (stuff->mode, RRModeType);
+    if (!mode)
+    {
+	client->errorValue = stuff->mode;
+	return RRErrorBase + BadRRMode;
+    }
+    
+    return RROutputDeleteUserMode (output, mode);
 }

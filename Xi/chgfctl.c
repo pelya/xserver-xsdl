@@ -78,9 +78,9 @@ SOFTWARE.
  */
 
 int
-SProcXChangeFeedbackControl(register ClientPtr client)
+SProcXChangeFeedbackControl(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xChangeFeedbackControlReq);
     swaps(&stuff->length, n);
@@ -89,141 +89,17 @@ SProcXChangeFeedbackControl(register ClientPtr client)
     return (ProcXChangeFeedbackControl(client));
 }
 
-/***********************************************************************
- *
- * Change the control attributes.
- *
- */
-
-int
-ProcXChangeFeedbackControl(ClientPtr client)
-{
-    unsigned len;
-    DeviceIntPtr dev;
-    KbdFeedbackPtr k;
-    PtrFeedbackPtr p;
-    IntegerFeedbackPtr i;
-    StringFeedbackPtr s;
-    BellFeedbackPtr b;
-    LedFeedbackPtr l;
-
-    REQUEST(xChangeFeedbackControlReq);
-    REQUEST_AT_LEAST_SIZE(xChangeFeedbackControlReq);
-
-    len = stuff->length - (sizeof(xChangeFeedbackControlReq) >> 2);
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
-	SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl, 0,
-			  BadDevice);
-	return Success;
-    }
-
-    switch (stuff->feedbackid) {
-    case KbdFeedbackClass:
-	if (len != (sizeof(xKbdFeedbackCtl) >> 2)) {
-	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
-			      0, BadLength);
-	    return Success;
-	}
-	for (k = dev->kbdfeed; k; k = k->next)
-	    if (k->ctrl.id == ((xKbdFeedbackCtl *) & stuff[1])->id) {
-		ChangeKbdFeedback(client, dev, stuff->mask, k,
-				  (xKbdFeedbackCtl *) & stuff[1]);
-		return Success;
-	    }
-	break;
-    case PtrFeedbackClass:
-	if (len != (sizeof(xPtrFeedbackCtl) >> 2)) {
-	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
-			      0, BadLength);
-	    return Success;
-	}
-	for (p = dev->ptrfeed; p; p = p->next)
-	    if (p->ctrl.id == ((xPtrFeedbackCtl *) & stuff[1])->id) {
-		ChangePtrFeedback(client, dev, stuff->mask, p,
-				  (xPtrFeedbackCtl *) & stuff[1]);
-		return Success;
-	    }
-	break;
-    case StringFeedbackClass:
-    {
-	register char n;
-	xStringFeedbackCtl *f = ((xStringFeedbackCtl *) & stuff[1]);
-
-	if (client->swapped) {
-	    swaps(&f->num_keysyms, n);
-	}
-	if (len != ((sizeof(xStringFeedbackCtl) >> 2) + f->num_keysyms)) {
-	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
-			      0, BadLength);
-	    return Success;
-	}
-	for (s = dev->stringfeed; s; s = s->next)
-	    if (s->ctrl.id == ((xStringFeedbackCtl *) & stuff[1])->id) {
-		ChangeStringFeedback(client, dev, stuff->mask, s,
-				     (xStringFeedbackCtl *) & stuff[1]);
-		return Success;
-	    }
-	break;
-    }
-    case IntegerFeedbackClass:
-	if (len != (sizeof(xIntegerFeedbackCtl) >> 2)) {
-	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
-			      0, BadLength);
-	    return Success;
-	}
-	for (i = dev->intfeed; i; i = i->next)
-	    if (i->ctrl.id == ((xIntegerFeedbackCtl *) & stuff[1])->id) {
-		ChangeIntegerFeedback(client, dev, stuff->mask, i,
-				      (xIntegerFeedbackCtl *) & stuff[1]);
-		return Success;
-	    }
-	break;
-    case LedFeedbackClass:
-	if (len != (sizeof(xLedFeedbackCtl) >> 2)) {
-	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
-			      0, BadLength);
-	    return Success;
-	}
-	for (l = dev->leds; l; l = l->next)
-	    if (l->ctrl.id == ((xLedFeedbackCtl *) & stuff[1])->id) {
-		ChangeLedFeedback(client, dev, stuff->mask, l,
-				  (xLedFeedbackCtl *) & stuff[1]);
-		return Success;
-	    }
-	break;
-    case BellFeedbackClass:
-	if (len != (sizeof(xBellFeedbackCtl) >> 2)) {
-	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
-			      0, BadLength);
-	    return Success;
-	}
-	for (b = dev->bell; b; b = b->next)
-	    if (b->ctrl.id == ((xBellFeedbackCtl *) & stuff[1])->id) {
-		ChangeBellFeedback(client, dev, stuff->mask, b,
-				   (xBellFeedbackCtl *) & stuff[1]);
-		return Success;
-	    }
-	break;
-    default:
-	break;
-    }
-
-    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl, 0, BadMatch);
-    return Success;
-}
-
 /******************************************************************************
  *
  * This procedure changes KbdFeedbackClass data.
  *
  */
 
-int
+static int
 ChangeKbdFeedback(ClientPtr client, DeviceIntPtr dev, long unsigned int mask,
 		  KbdFeedbackPtr k, xKbdFeedbackCtl * f)
 {
-    register char n;
+    char n;
     KeybdCtrl kctrl;
     int t;
     int key = DO_ALL;
@@ -351,11 +227,11 @@ ChangeKbdFeedback(ClientPtr client, DeviceIntPtr dev, long unsigned int mask,
  *
  */
 
-int
+static int
 ChangePtrFeedback(ClientPtr client, DeviceIntPtr dev, long unsigned int mask,
 		  PtrFeedbackPtr p, xPtrFeedbackCtl * f)
 {
-    register char n;
+    char n;
     PtrCtrl pctrl;	/* might get BadValue part way through */
 
     if (client->swapped) {
@@ -422,12 +298,12 @@ ChangePtrFeedback(ClientPtr client, DeviceIntPtr dev, long unsigned int mask,
  *
  */
 
-int
+static int
 ChangeIntegerFeedback(ClientPtr client, DeviceIntPtr dev,
 		      long unsigned int mask, IntegerFeedbackPtr i,
 		      xIntegerFeedbackCtl * f)
 {
-    register char n;
+    char n;
 
     if (client->swapped) {
 	swaps(&f->length, n);
@@ -445,13 +321,13 @@ ChangeIntegerFeedback(ClientPtr client, DeviceIntPtr dev,
  *
  */
 
-int
+static int
 ChangeStringFeedback(ClientPtr client, DeviceIntPtr dev,
 		     long unsigned int mask, StringFeedbackPtr s,
 		     xStringFeedbackCtl * f)
 {
-    register char n;
-    register long *p;
+    char n;
+    long *p;
     int i, j;
     KeySym *syms, *sup_syms;
 
@@ -495,12 +371,12 @@ ChangeStringFeedback(ClientPtr client, DeviceIntPtr dev,
  *
  */
 
-int
+static int
 ChangeBellFeedback(ClientPtr client, DeviceIntPtr dev,
 		   long unsigned int mask, BellFeedbackPtr b,
 		   xBellFeedbackCtl * f)
 {
-    register char n;
+    char n;
     int t;
     BellCtrl bctrl;	/* might get BadValue part way through */
 
@@ -560,11 +436,11 @@ ChangeBellFeedback(ClientPtr client, DeviceIntPtr dev,
  *
  */
 
-int
+static int
 ChangeLedFeedback(ClientPtr client, DeviceIntPtr dev, long unsigned int mask,
 		  LedFeedbackPtr l, xLedFeedbackCtl * f)
 {
-    register char n;
+    char n;
     LedCtrl lctrl;	/* might get BadValue part way through */
 
     if (client->swapped) {
@@ -585,3 +461,128 @@ ChangeLedFeedback(ClientPtr client, DeviceIntPtr dev, long unsigned int mask,
 
     return Success;
 }
+
+/***********************************************************************
+ *
+ * Change the control attributes.
+ *
+ */
+
+int
+ProcXChangeFeedbackControl(ClientPtr client)
+{
+    unsigned len;
+    DeviceIntPtr dev;
+    KbdFeedbackPtr k;
+    PtrFeedbackPtr p;
+    IntegerFeedbackPtr i;
+    StringFeedbackPtr s;
+    BellFeedbackPtr b;
+    LedFeedbackPtr l;
+
+    REQUEST(xChangeFeedbackControlReq);
+    REQUEST_AT_LEAST_SIZE(xChangeFeedbackControlReq);
+
+    len = stuff->length - (sizeof(xChangeFeedbackControlReq) >> 2);
+    dev = LookupDeviceIntRec(stuff->deviceid);
+    if (dev == NULL) {
+	SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl, 0,
+			  BadDevice);
+	return Success;
+    }
+
+    switch (stuff->feedbackid) {
+    case KbdFeedbackClass:
+	if (len != (sizeof(xKbdFeedbackCtl) >> 2)) {
+	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
+			      0, BadLength);
+	    return Success;
+	}
+	for (k = dev->kbdfeed; k; k = k->next)
+	    if (k->ctrl.id == ((xKbdFeedbackCtl *) & stuff[1])->id) {
+		ChangeKbdFeedback(client, dev, stuff->mask, k,
+				  (xKbdFeedbackCtl *) & stuff[1]);
+		return Success;
+	    }
+	break;
+    case PtrFeedbackClass:
+	if (len != (sizeof(xPtrFeedbackCtl) >> 2)) {
+	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
+			      0, BadLength);
+	    return Success;
+	}
+	for (p = dev->ptrfeed; p; p = p->next)
+	    if (p->ctrl.id == ((xPtrFeedbackCtl *) & stuff[1])->id) {
+		ChangePtrFeedback(client, dev, stuff->mask, p,
+				  (xPtrFeedbackCtl *) & stuff[1]);
+		return Success;
+	    }
+	break;
+    case StringFeedbackClass:
+    {
+	char n;
+	xStringFeedbackCtl *f = ((xStringFeedbackCtl *) & stuff[1]);
+
+	if (client->swapped) {
+	    swaps(&f->num_keysyms, n);
+	}
+	if (len != ((sizeof(xStringFeedbackCtl) >> 2) + f->num_keysyms)) {
+	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
+			      0, BadLength);
+	    return Success;
+	}
+	for (s = dev->stringfeed; s; s = s->next)
+	    if (s->ctrl.id == ((xStringFeedbackCtl *) & stuff[1])->id) {
+		ChangeStringFeedback(client, dev, stuff->mask, s,
+				     (xStringFeedbackCtl *) & stuff[1]);
+		return Success;
+	    }
+	break;
+    }
+    case IntegerFeedbackClass:
+	if (len != (sizeof(xIntegerFeedbackCtl) >> 2)) {
+	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
+			      0, BadLength);
+	    return Success;
+	}
+	for (i = dev->intfeed; i; i = i->next)
+	    if (i->ctrl.id == ((xIntegerFeedbackCtl *) & stuff[1])->id) {
+		ChangeIntegerFeedback(client, dev, stuff->mask, i,
+				      (xIntegerFeedbackCtl *) & stuff[1]);
+		return Success;
+	    }
+	break;
+    case LedFeedbackClass:
+	if (len != (sizeof(xLedFeedbackCtl) >> 2)) {
+	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
+			      0, BadLength);
+	    return Success;
+	}
+	for (l = dev->leds; l; l = l->next)
+	    if (l->ctrl.id == ((xLedFeedbackCtl *) & stuff[1])->id) {
+		ChangeLedFeedback(client, dev, stuff->mask, l,
+				  (xLedFeedbackCtl *) & stuff[1]);
+		return Success;
+	    }
+	break;
+    case BellFeedbackClass:
+	if (len != (sizeof(xBellFeedbackCtl) >> 2)) {
+	    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl,
+			      0, BadLength);
+	    return Success;
+	}
+	for (b = dev->bell; b; b = b->next)
+	    if (b->ctrl.id == ((xBellFeedbackCtl *) & stuff[1])->id) {
+		ChangeBellFeedback(client, dev, stuff->mask, b,
+				   (xBellFeedbackCtl *) & stuff[1]);
+		return Success;
+	    }
+	break;
+    default:
+	break;
+    }
+
+    SendErrorToClient(client, IReqCode, X_ChangeFeedbackControl, 0, BadMatch);
+    return Success;
+}
+

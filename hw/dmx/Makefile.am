@@ -2,7 +2,6 @@ DIST_SUBDIRS = input config glxProxy examples doc
 
 SUBDIRS = input config examples
 bin_PROGRAMS = Xdmx
-noinst_LIBRARIES = libfbcmap.a
 
 if XINERAMA
 PANORAMIX_SRCS = $(top_srcdir)/Xext/panoramiX.c
@@ -17,6 +16,9 @@ GLX_INCS = -I$(top_srcdir)/hw/xfree86/dixmods/extmod \
 GLX_DEFS = @GL_CFLAGS@ 
 endif
 
+# It's essential that fbcmap.c be compiled with this flag for DMX to work!!
+DMX_CFLAGS = -DXFree86Server=1
+
 if BUILDDOCS
 SUBDIRS += doc
 endif
@@ -26,10 +28,8 @@ AM_CFLAGS = \
       $(DIX_CFLAGS) \
       $(GLX_INCS) \
       $(GLX_DEFS) \
+      $(DMX_CFLAGS) \
       @DMXMODULES_CFLAGS@
-
-libfbcmap_a_SOURCES = libfbcmap.a
-libfbcmap_a_CFLAGS = $(AM_CFLAGS) -DXFree86Server
 
 Xdmx_SOURCES = dmx.c \
                dmxcb.c \
@@ -76,6 +76,7 @@ Xdmx_SOURCES = dmx.c \
                dmxwindow.c \
                dmxwindow.h \
                $(top_srcdir)/mi/miinitext.c \
+               $(top_srcdir)/fb/fbcmap.c \
                $(GLX_SRCS) 
 
 
@@ -89,7 +90,6 @@ Xdmx_LDADD = $(XORG_CORE_LIBS) \
              $(GLX_LIBS) \
              input/libdmxinput.a \
              config/libdmxconfig.a \
-	     libfbcmap.a \
              @DMXMODULES_LIBS@
 
 # Man page

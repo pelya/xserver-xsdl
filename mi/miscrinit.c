@@ -126,12 +126,8 @@ miModifyPixmapHeader(pPixmap, width, height, depth, bitsPerPixel, devKind,
     return TRUE;
 }
 
-
-/*ARGSUSED*/
-Bool
-miCloseScreen (iScreen, pScreen)
-    int		iScreen;
-    ScreenPtr	pScreen;
+static Bool
+miCloseScreen (int iScreen, ScreenPtr pScreen)
 {
     return ((*pScreen->DestroyPixmap)((PixmapPtr)pScreen->devPrivate));
 }
@@ -312,7 +308,7 @@ miAllocateGCPrivateIndex()
 }
 
 _X_EXPORT int miZeroLineScreenIndex;
-unsigned int miZeroLineGeneration = 0;
+static unsigned int miZeroLineGeneration = 0;
 
 _X_EXPORT void
 miSetZeroLineBias(pScreen, bias)

@@ -78,11 +78,11 @@ SOFTWARE.
  */
 
 int
-SProcXChangeDeviceDontPropagateList(register ClientPtr client)
+SProcXChangeDeviceDontPropagateList(ClientPtr client)
 {
-    register char n;
-    register long *p;
-    register int i;
+    char n;
+    long *p;
+    int i;
 
     REQUEST(xChangeDeviceDontPropagateListReq);
     swaps(&stuff->length, n);
@@ -104,7 +104,7 @@ SProcXChangeDeviceDontPropagateList(register ClientPtr client)
  */
 
 int
-ProcXChangeDeviceDontPropagateList(register ClientPtr client)
+ProcXChangeDeviceDontPropagateList(ClientPtr client)
 {
     int i, rc;
     WindowPtr pWin;

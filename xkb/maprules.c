@@ -48,7 +48,7 @@
 #include "dix.h"
 #include <X11/extensions/XKBstr.h>
 #define XKBSRV_NEED_FILE_FUNCS
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 
 #ifdef DEBUG
 #define PR_DEBUG(s)		fprintf(stderr,s)

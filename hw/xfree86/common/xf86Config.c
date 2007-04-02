@@ -75,7 +75,7 @@ extern DeviceAssocRec mouse_assoc;
 #ifdef XKB
 #undef XKB_IN_SERVER
 #define XKB_IN_SERVER
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #endif
 
 #ifdef RENDER
@@ -537,25 +537,6 @@ xf86DriverlistFromCompile(void)
 
     return driverlist;
 }
-
-
-char **
-xf86InputDriverlistFromCompile(void)
-{
-    static char **driverlist = NULL;
-    static Bool generated = FALSE;
-
-    /* This string is modified in-place */
-    static char drivernames[] = IDRIVERS;
-
-    if (!generated) {
-        generated = TRUE;
-	driverlist = GenerateDriverlist("input", drivernames);
-    }
-
-    return driverlist;
-}
-
 
 /*
  * xf86ConfigError --
@@ -2502,17 +2483,8 @@ xf86HandleConfigFile(Bool autoconfig)
     return CONFIG_OK;
 }
 
-
-/* These make the equivalent parser functions visible to the common layer. */
-Bool
-xf86PathIsAbsolute(const char *path)
-{
-    return (xf86pathIsAbsolute(path) != 0);
-}
-
 Bool
 xf86PathIsSafe(const char *path)
 {
     return (xf86pathIsSafe(path) != 0);
 }
-

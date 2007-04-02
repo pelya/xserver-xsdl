@@ -79,9 +79,9 @@ extern int ExtEventIndex;
  */
 
 int
-SProcXGetDeviceDontPropagateList(register ClientPtr client)
+SProcXGetDeviceDontPropagateList(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xGetDeviceDontPropagateListReq);
     swaps(&stuff->length, n);
@@ -97,7 +97,7 @@ SProcXGetDeviceDontPropagateList(register ClientPtr client)
  */
 
 int
-ProcXGetDeviceDontPropagateList(register ClientPtr client)
+ProcXGetDeviceDontPropagateList(ClientPtr client)
 {
     CARD16 count = 0;
     int i, rc;
@@ -187,7 +187,7 @@ void
 SRepXGetDeviceDontPropagateList(ClientPtr client, int size,
 				xGetDeviceDontPropagateListReply * rep)
 {
-    register char n;
+    char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);

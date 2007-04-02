@@ -52,7 +52,7 @@ of the copyright holder.
 #include "inputstr.h"
 #include "windowstr.h"
 #include "cursorstr.h"
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 
 #include "../os/osdep.h"
 
@@ -105,7 +105,7 @@ typedef struct {
 } xevieKeycQueueRec, *xevieKeycQueuePtr;
 
 #define KEYC_QUEUE_SIZE	    100
-xevieKeycQueueRec keycq[KEYC_QUEUE_SIZE] = {{0, NULL}};
+static xevieKeycQueueRec keycq[KEYC_QUEUE_SIZE] = {{0, NULL}};
 static int keycqHead = 0, keycqTail = 0;
 
 static int              ProcDispatch (ClientPtr), SProcDispatch (ClientPtr);

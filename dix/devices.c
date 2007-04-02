@@ -67,7 +67,7 @@ SOFTWARE.
 #define	XKB_IN_SERVER
 #endif
 #ifdef XKB
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #endif
 #include "xace.h"
 
@@ -79,7 +79,8 @@ SOFTWARE.
 #include "exglobals.h"
 #include "exevents.h"
 
-int CoreDevicePrivatesIndex = 0, CoreDevicePrivatesGeneration = -1;
+int CoreDevicePrivatesIndex = 0;
+static int CoreDevicePrivatesGeneration = -1;
 
 /* The client that is allowed to change pointer-keyboard pairings. */
 static ClientPtr pairingClient = NULL;
@@ -994,16 +995,16 @@ InitPtrFeedbackClassDeviceStruct(DeviceIntPtr dev, PtrCtrlProcPtr controlProc)
 }
 
 
-LedCtrl defaultLedControl = {
+static LedCtrl defaultLedControl = {
 	DEFAULT_LEDS, DEFAULT_LEDS_MASK, 0};
 
-BellCtrl defaultBellControl = {
+static BellCtrl defaultBellControl = {
 	DEFAULT_BELL,
 	DEFAULT_BELL_PITCH,
 	DEFAULT_BELL_DURATION,
 	0};
 
-IntegerCtrl defaultIntegerControl = {
+static IntegerCtrl defaultIntegerControl = {
 	DEFAULT_INT_RESOLUTION,
 	DEFAULT_INT_MIN_VALUE,
 	DEFAULT_INT_MAX_VALUE,

@@ -425,15 +425,8 @@ static unsigned long lrustamp;
 static arcCacheRec *lastCacheHit = &arcCache[0];
 static RESTYPE cacheType;
 
-/*
- * External so it can be called when low on memory.
- * Call with a zero ID in that case.
- */
-/*ARGSUSED*/
-int
-miFreeArcCache (data, id)
-    pointer data;
-    XID	    id;
+static int
+miFreeArcCache (pointer data, XID id)
 {
     int k;
     arcCacheRec *cent;
@@ -3136,8 +3129,8 @@ struct finalSpanChunk {
 
 static struct finalSpanChunk	*chunks;
 
-struct finalSpan *
-realAllocSpan ()
+static struct finalSpan *
+realAllocSpan (void)
 {
 	struct finalSpanChunk	*newChunk;
 	struct finalSpan	*span;

@@ -62,9 +62,9 @@ from the author.
  */
 
 int
-SProcXQueryDevicePointer(register ClientPtr client)
+SProcXQueryDevicePointer(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xQueryDevicePointerReq);
     swaps(&stuff->length, n);
@@ -72,7 +72,7 @@ SProcXQueryDevicePointer(register ClientPtr client)
 }
 
 int
-ProcXQueryDevicePointer(register ClientPtr client)
+ProcXQueryDevicePointer(ClientPtr client)
 {
     int rc;
     xQueryDevicePointerReply rep;
@@ -158,7 +158,7 @@ void
 SRepXQueryDevicePointer(ClientPtr client, int size, 
         xQueryDevicePointerReply * rep)
 {
-    register char n;
+    char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);

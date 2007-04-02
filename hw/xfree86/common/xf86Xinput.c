@@ -99,6 +99,10 @@
 
 #include "mi.h"
 
+#ifdef XFreeXDGA
+#include "dgaproc.h"
+#endif
+
 xEvent *xf86Events = NULL;
 
 static Bool
@@ -142,6 +146,9 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
     } else {
         xf86Msg(X_CONFIG, "%s: doesn't report drag events\n", local->name);
     }
+
+    /* Backwards compatibility. */
+    local->history_size = GetMotionHistorySize();
 }
 
 /***********************************************************************
@@ -440,10 +447,12 @@ xf86PostMotionEvent(DeviceIntPtr	device,
 {
     va_list var;
     int i = 0, nevents = 0;
+    int dx, dy;
     Bool drag = xf86SendDragEvents(device);
     int *valuators = NULL;
     int flags = 0;
     xEvent *xE = NULL;
+    int index;
 
     if (is_absolute)
         flags = POINTER_ABSOLUTE;
@@ -456,6 +465,24 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     for (i = 0; i < num_valuators; i++)
         valuators[i] = va_arg(var, int);
     va_end(var);
+
+#if XFreeXDGA
+    if (first_valuator == 0 && num_valuators >= 2) {
+        if (miPointerGetScreen(inputInfo.pointer)) {
+            index = miPointerGetScreen(inputInfo.pointer)->myNum;
+            if (is_absolute) {
+                dx = valuators[0] - device->valuator->lastx;
+                dy = valuators[1] - device->valuator->lasty;
+            }
+            else {
+                dx = valuators[0];
+                dy = valuators[1];
+            }
+            if (DGAStealMotionEvent(index, dx, dy))
+                goto out;
+        }
+    }
+#endif
 
     if (!xf86Events)
         xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
@@ -475,6 +502,7 @@ xf86PostMotionEvent(DeviceIntPtr	device,
         }
     }
 
+out:
     xfree(valuators);
 }
 
@@ -521,13 +549,15 @@ xf86PostButtonEvent(DeviceIntPtr	device,
     va_list var;
     int *valuators = NULL;
     int i = 0, nevents = 0;
-    int flags = 0;
+    int index;
 
-    if (is_absolute)
-        flags = POINTER_ABSOLUTE;
-    else
-        flags = POINTER_RELATIVE;
-
+#if XFreeXDGA
+    if (miPointerGetScreen(inputInfo.pointer)) {
+        index = miPointerGetScreen(inputInfo.pointer)->myNum;
+        if (DGAStealButtonEvent(index, button, is_down))
+            return;
+    }
+#endif
     valuators = xcalloc(sizeof(int), num_valuators);
 
     va_start(var, num_valuators);
@@ -542,7 +572,7 @@ xf86PostButtonEvent(DeviceIntPtr	device,
 
     nevents = GetPointerEvents(xf86Events, device,
                                is_down ? ButtonPress : ButtonRelease, button,
-                               flags,
+                               (is_absolute) ? POINTER_ABSOLUTE : POINTER_RELATIVE,
                                first_valuator, num_valuators, valuators);
 
     for (i = 0; i < nevents; i++)
@@ -602,6 +632,15 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
                       int               is_down)
 {
     int nevents = 0, i = 0;
+    int index;
+
+#if XFreeXDGA
+    if (miPointerGetScreen(inputInfo.pointer)) {
+        index = miPointerGetScreen(inputInfo.pointer)->myNum;
+        if (DGAStealKeyEvent(index, key_code, is_down))
+            return;
+    }
+#endif
 
     if (!xf86Events)
         xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());

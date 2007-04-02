@@ -78,9 +78,7 @@ void miInitSpanGroup(spanGroup)
 #define YMIN(spans) (spans->points[0].y)
 #define YMAX(spans)  (spans->points[spans->count-1].y)
 
-void miSubtractSpans (spanGroup, sub)
-    SpanGroup	*spanGroup;
-    Spans	*sub;
+static void miSubtractSpans (SpanGroup *spanGroup, Spans *sub)
 {
     int		i, subCount, spansCount;
     int		ymin, ymax, xmin, xmax;
@@ -364,9 +362,8 @@ static int UniquifySpansX(
     return (newWidths - startNewWidths) + 1;
 } /* UniquifySpansX */
 
-void
-miDisposeSpanGroup (spanGroup)
-    SpanGroup	*spanGroup;
+static void
+miDisposeSpanGroup (SpanGroup *spanGroup)
 {
     int	    i;
     Spans   *spans;
@@ -538,24 +535,3 @@ void miFillUniqueSpanGroup(pDraw, pGC, spanGroup)
     spanGroup->ymin = MAXSHORT;
     spanGroup->ymax = MINSHORT;
 }
-
-
-void miFillSpanGroup(pDraw, pGC, spanGroup)
-    DrawablePtr pDraw;
-    GCPtr	pGC;
-    SpanGroup   *spanGroup;
-{
-    int    i;
-    Spans  *spans;
-
-    for (i = 0, spans = spanGroup->group; i != spanGroup->count; i++, spans++) {
-	(*pGC->ops->FillSpans)
-	    (pDraw, pGC, spans->count, spans->points, spans->widths, TRUE);
-	xfree(spans->points);
-	xfree(spans->widths);
-    }
-
-    spanGroup->count = 0;
-    spanGroup->ymin = MAXSHORT;
-    spanGroup->ymax = MINSHORT;
-} /* FillSpanGroup */

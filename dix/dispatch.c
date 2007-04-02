@@ -143,7 +143,7 @@ int ProcInitialConnection();
 #define XKB_IN_SERVER
 #endif
 #include "inputstr.h"
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #endif
 
 #ifdef XSERVER_DTRACE
@@ -297,9 +297,8 @@ long	    SmartScheduleSlice = SMART_SCHEDULE_DEFAULT_INTERVAL;
 long	    SmartScheduleInterval = SMART_SCHEDULE_DEFAULT_INTERVAL;
 long	    SmartScheduleMaxSlice = SMART_SCHEDULE_MAX_SLICE;
 long	    SmartScheduleTime;
-ClientPtr   SmartLastClient;
-int	    SmartLastIndex[SMART_MAX_PRIORITY-SMART_MIN_PRIORITY+1];
-int         SmartScheduleClient(int *clientReady, int nready);
+static ClientPtr   SmartLastClient;
+static int	   SmartLastIndex[SMART_MAX_PRIORITY-SMART_MIN_PRIORITY+1];
 
 #ifdef SMART_DEBUG
 long	    SmartLastPrint;
@@ -308,7 +307,7 @@ long	    SmartLastPrint;
 void        Dispatch(void);
 void        InitProcVectors(void);
 
-int
+static int
 SmartScheduleClient (int *clientReady, int nready)
 {
     ClientPtr	pClient;
@@ -834,7 +833,7 @@ ProcCirculateWindow(ClientPtr client)
     return(client->noClientException);
 }
 
-int
+static int
 GetGeometry(ClientPtr client, xGetGeometryReply *rep)
 {
     DrawablePtr pDraw;
@@ -1804,8 +1803,6 @@ ProcCopyArea(ClientPtr client)
     else
         pSrc = pDst;
 
-    SET_DBE_SRCBUF(pSrc, stuff->srcDrawable);
-
     pRgn = (*pGC->ops->CopyArea)(pSrc, pDst, pGC, stuff->srcX, stuff->srcY,
 				 stuff->width, stuff->height, 
 				 stuff->dstX, stuff->dstY);
@@ -1847,8 +1844,6 @@ ProcCopyPlane(ClientPtr client)
     }
     else
         psrcDraw = pdstDraw;
-
-    SET_DBE_SRCBUF(psrcDraw, stuff->srcDrawable);
 
     /* Check to see if stuff->bitPlane has exactly ONE good bit set */
     if(stuff->bitPlane == 0 || (stuff->bitPlane & (stuff->bitPlane - 1)) ||
@@ -2157,8 +2152,7 @@ ProcPutImage(ClientPtr client)
      return (client->noClientException);
 }
 
-
-int
+static int
 DoGetImage(ClientPtr client, int format, Drawable drawable, 
            int x, int y, int width, int height, 
            Mask planemask, xGetImageReply **im_return)
@@ -2209,8 +2203,6 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
 	    return(BadMatch);
 	xgi.visual = None;
     }
-
-    SET_DBE_SRCBUF(pDraw, drawable);
 
     xgi.type = X_Reply;
     xgi.sequenceNumber = client->sequence;
@@ -3383,6 +3375,28 @@ ProcChangeAccessControl(ClientPtr client)
     return (result);
 }
 
+/*********************
+ * CloseDownRetainedResources
+ *
+ *    Find all clients that are gone and have terminated in RetainTemporary 
+ *    and destroy their resources.
+ *********************/
+
+static void
+CloseDownRetainedResources(void)
+{
+    int i;
+    ClientPtr client;
+
+    for (i=1; i<currentMaxClients; i++)
+    {
+        client = clients[i];
+        if (client && (client->closeDownMode == RetainTemporary)
+	    && (client->clientGone))
+	    CloseDownClient(client);
+    }
+}
+
 int
 ProcKillClient(ClientPtr client)
 {
@@ -3651,28 +3665,6 @@ KillAllClients()
             clients[i]->closeDownMode = DestroyAll;
             CloseDownClient(clients[i]);     
         }
-}
-
-/*********************
- * CloseDownRetainedResources
- *
- *    Find all clients that are gone and have terminated in RetainTemporary 
- *    and  destroy their resources.
- *********************/
-
-void
-CloseDownRetainedResources()
-{
-    int i;
-    ClientPtr client;
-
-    for (i=1; i<currentMaxClients; i++)
-    {
-        client = clients[i];
-        if (client && (client->closeDownMode == RetainTemporary)
-	    && (client->clientGone))
-	    CloseDownClient(client);
-    }
 }
 
 extern int clientPrivateLen;

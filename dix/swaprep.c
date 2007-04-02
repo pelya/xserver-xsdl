@@ -317,7 +317,7 @@ SQueryPointerReply(ClientPtr pClient, int size, xQueryPointerReply *pRep)
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-void
+static void
 SwapTimecoord(xTimecoord* pCoord)
 {
     char n;
@@ -584,7 +584,7 @@ SAllocColorPlanesReply(ClientPtr pClient, int size, xAllocColorPlanesReply *pRep
     (void)WriteToClient(pClient, size, (char *) pRep);
 }
 
-void
+static void
 SwapRGB(xrgb *prgb)
 {
     char n;
@@ -1159,6 +1159,58 @@ SKeymapNotifyEvent(xEvent *from, xEvent *to)
     *to = *from;
 }
 
+static void
+SwapConnSetup(xConnSetup *pConnSetup, xConnSetup *pConnSetupT)
+{
+    cpswapl(pConnSetup->release, pConnSetupT->release);
+    cpswapl(pConnSetup->ridBase, pConnSetupT->ridBase);
+    cpswapl(pConnSetup->ridMask, pConnSetupT->ridMask);
+    cpswapl(pConnSetup->motionBufferSize, pConnSetupT->motionBufferSize);
+    cpswaps(pConnSetup->nbytesVendor, pConnSetupT->nbytesVendor);
+    cpswaps(pConnSetup->maxRequestSize, pConnSetupT->maxRequestSize);
+    pConnSetupT->minKeyCode = pConnSetup->minKeyCode;
+    pConnSetupT->maxKeyCode = pConnSetup->maxKeyCode;
+    pConnSetupT->numRoots = pConnSetup->numRoots;
+    pConnSetupT->numFormats = pConnSetup->numFormats;
+    pConnSetupT->imageByteOrder = pConnSetup->imageByteOrder;
+    pConnSetupT->bitmapBitOrder = pConnSetup->bitmapBitOrder;
+    pConnSetupT->bitmapScanlineUnit = pConnSetup->bitmapScanlineUnit;
+    pConnSetupT->bitmapScanlinePad = pConnSetup->bitmapScanlinePad;
+}
+
+static void
+SwapWinRoot(xWindowRoot *pRoot, xWindowRoot *pRootT)
+{
+    cpswapl(pRoot->windowId, pRootT->windowId);
+    cpswapl(pRoot->defaultColormap, pRootT->defaultColormap);
+    cpswapl(pRoot->whitePixel, pRootT->whitePixel);
+    cpswapl(pRoot->blackPixel, pRootT->blackPixel);
+    cpswapl(pRoot->currentInputMask, pRootT->currentInputMask);
+    cpswaps(pRoot->pixWidth, pRootT->pixWidth);
+    cpswaps(pRoot->pixHeight, pRootT->pixHeight);
+    cpswaps(pRoot->mmWidth, pRootT->mmWidth);
+    cpswaps(pRoot->mmHeight, pRootT->mmHeight);
+    cpswaps(pRoot->minInstalledMaps, pRootT->minInstalledMaps);
+    cpswaps(pRoot->maxInstalledMaps, pRootT->maxInstalledMaps);
+    cpswapl(pRoot->rootVisualID, pRootT->rootVisualID);
+    pRootT->backingStore = pRoot->backingStore;
+    pRootT->saveUnders = pRoot->saveUnders;
+    pRootT->rootDepth = pRoot->rootDepth;
+    pRootT->nDepths = pRoot->nDepths;
+}
+
+static void
+SwapVisual(xVisualType *pVis, xVisualType *pVisT)
+{
+    cpswapl(pVis->visualID, pVisT->visualID);
+    pVisT->class = pVis->class;
+    pVisT->bitsPerRGB = pVis->bitsPerRGB;
+    cpswaps(pVis->colormapEntries, pVisT->colormapEntries);
+    cpswapl(pVis->redMask, pVisT->redMask);
+    cpswapl(pVis->greenMask, pVisT->greenMask);
+    cpswapl(pVis->blueMask, pVisT->blueMask);
+}
+
 _X_EXPORT void
 SwapConnSetupInfo(
     char 	*pInfo,
@@ -1210,7 +1262,6 @@ SwapConnSetupInfo(
     }
 }
 
-
 void
 WriteSConnectionInfo(ClientPtr pClient, unsigned long size, char *pInfo)
 {
@@ -1225,58 +1276,6 @@ WriteSConnectionInfo(ClientPtr pClient, unsigned long size, char *pInfo)
     SwapConnSetupInfo(pInfo, pInfoTBase);
     (void)WriteToClient(pClient, (int)size, (char *) pInfoTBase);
     DEALLOCATE_LOCAL(pInfoTBase);
-}
-
-void
-SwapConnSetup(xConnSetup *pConnSetup, xConnSetup *pConnSetupT)
-{
-    cpswapl(pConnSetup->release, pConnSetupT->release);
-    cpswapl(pConnSetup->ridBase, pConnSetupT->ridBase);
-    cpswapl(pConnSetup->ridMask, pConnSetupT->ridMask);
-    cpswapl(pConnSetup->motionBufferSize, pConnSetupT->motionBufferSize);
-    cpswaps(pConnSetup->nbytesVendor, pConnSetupT->nbytesVendor);
-    cpswaps(pConnSetup->maxRequestSize, pConnSetupT->maxRequestSize);
-    pConnSetupT->minKeyCode = pConnSetup->minKeyCode;
-    pConnSetupT->maxKeyCode = pConnSetup->maxKeyCode;
-    pConnSetupT->numRoots = pConnSetup->numRoots;
-    pConnSetupT->numFormats = pConnSetup->numFormats;
-    pConnSetupT->imageByteOrder = pConnSetup->imageByteOrder;
-    pConnSetupT->bitmapBitOrder = pConnSetup->bitmapBitOrder;
-    pConnSetupT->bitmapScanlineUnit = pConnSetup->bitmapScanlineUnit;
-    pConnSetupT->bitmapScanlinePad = pConnSetup->bitmapScanlinePad;
-}
-
-void
-SwapWinRoot(xWindowRoot *pRoot, xWindowRoot *pRootT)
-{
-    cpswapl(pRoot->windowId, pRootT->windowId);
-    cpswapl(pRoot->defaultColormap, pRootT->defaultColormap);
-    cpswapl(pRoot->whitePixel, pRootT->whitePixel);
-    cpswapl(pRoot->blackPixel, pRootT->blackPixel);
-    cpswapl(pRoot->currentInputMask, pRootT->currentInputMask);
-    cpswaps(pRoot->pixWidth, pRootT->pixWidth);
-    cpswaps(pRoot->pixHeight, pRootT->pixHeight);
-    cpswaps(pRoot->mmWidth, pRootT->mmWidth);
-    cpswaps(pRoot->mmHeight, pRootT->mmHeight);
-    cpswaps(pRoot->minInstalledMaps, pRootT->minInstalledMaps);
-    cpswaps(pRoot->maxInstalledMaps, pRootT->maxInstalledMaps);
-    cpswapl(pRoot->rootVisualID, pRootT->rootVisualID);
-    pRootT->backingStore = pRoot->backingStore;
-    pRootT->saveUnders = pRoot->saveUnders;
-    pRootT->rootDepth = pRoot->rootDepth;
-    pRootT->nDepths = pRoot->nDepths;
-}
-
-void
-SwapVisual(xVisualType *pVis, xVisualType *pVisT)
-{
-    cpswapl(pVis->visualID, pVisT->visualID);
-    pVisT->class = pVis->class;
-    pVisT->bitsPerRGB = pVis->bitsPerRGB;
-    cpswaps(pVis->colormapEntries, pVisT->colormapEntries);
-    cpswapl(pVis->redMask, pVisT->redMask);
-    cpswapl(pVis->greenMask, pVisT->greenMask);
-    cpswapl(pVis->blueMask, pVisT->blueMask);
 }
 
 _X_EXPORT void

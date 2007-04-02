@@ -60,9 +60,9 @@ from the author.
  *
  */
 
-int SProcXChangePointerKeyboardPairing(register ClientPtr client)
+int SProcXChangePointerKeyboardPairing(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xChangePointerKeyboardPairingReq);
     swaps(&stuff->length, n);
@@ -70,7 +70,7 @@ int SProcXChangePointerKeyboardPairing(register ClientPtr client)
 }
 
 int
-ProcXChangePointerKeyboardPairing(register ClientPtr client)
+ProcXChangePointerKeyboardPairing(ClientPtr client)
 {
     DeviceIntPtr pPointer, pKeyboard;
     int ret;

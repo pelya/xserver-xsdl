@@ -39,7 +39,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 #include <X11/keysym.h>
 #define	XKBSRV_NEED_FILE_FUNCS
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 
 /***====================================================================***/
 
@@ -220,7 +220,7 @@ XkbServerMapPtr map;
 
 /***====================================================================***/
 
-Status
+static Status
 XkbCopyKeyType(XkbKeyTypePtr from,XkbKeyTypePtr into)
 {
     if ((!from)||(!into))
@@ -273,82 +273,6 @@ register int i,rtrn;
 	    return rtrn;
     }
     return Success;
-}
-
-XkbKeyTypePtr
-XkbAddKeyType(	XkbDescPtr	xkb,
-		Atom 		name,
-		int 		map_count,
-		Bool 		want_preserve,
-		int		num_lvls)
-{
-register int 	i;
-unsigned	tmp;
-XkbKeyTypePtr	type;
-XkbClientMapPtr	map;
-
-    if ((!xkb)||(num_lvls<1))
-	return NULL;
-    map= xkb->map;
-    if ((map)&&(map->types)) {
-	for (i=0;i<map->num_types;i++) {
-	    if (map->types[i].name==name) {
-		Status status;
-		status=XkbResizeKeyType(xkb,i,map_count,want_preserve,num_lvls);
-		return (status==Success?&map->types[i]:NULL);
-	    }
-	}
-    }
-    if ((!map)||(!map->types)||(!map->num_types<XkbNumRequiredTypes)) {
-	tmp= XkbNumRequiredTypes+1;
-	if (XkbAllocClientMap(xkb,XkbKeyTypesMask,tmp)!=Success)
-	    return NULL;
-        map = xkb->map;
-	tmp= 0;
-	if (map->num_types<=XkbKeypadIndex)
-	    tmp|= XkbKeypadMask;
-	if (map->num_types<=XkbAlphabeticIndex)
-	    tmp|= XkbAlphabeticMask;
-	if (map->num_types<=XkbTwoLevelIndex)
-	    tmp|= XkbTwoLevelMask;
-	if (map->num_types<=XkbOneLevelIndex)
-	    tmp|= XkbOneLevelMask;
-	if (XkbInitCanonicalKeyTypes(xkb,tmp,XkbNoModifier)==Success) {
-	    for (i=0;i<map->num_types;i++) {
-		Status status;
-		if (map->types[i].name!=name)
-		    continue;
-		status=XkbResizeKeyType(xkb,i,map_count,want_preserve,num_lvls);
-		return (status==Success?&map->types[i]:NULL);
-	    }
-	}
-    }
-    if ((map->num_types<=map->size_types)&&
-	(XkbAllocClientMap(xkb,XkbKeyTypesMask,map->num_types+1)!=Success)) {
-	return NULL;
-    }
-    type= &map->types[map->num_types];
-    map->num_types++;
-    bzero((char *)type,sizeof(XkbKeyTypeRec));
-    type->num_levels=	num_lvls;
-    type->map_count=	map_count;
-    type->name=		name;
-    if (map_count>0) {
-	type->map=	_XkbTypedCalloc(map_count,XkbKTMapEntryRec);
-	if (!type->map) {
-	    map->num_types--;
-	    return NULL;
-	}
-	if (want_preserve) {
-	    type->preserve=	_XkbTypedCalloc(map_count,XkbModsRec);
-	    if (!type->preserve) {
-		_XkbFree(type->map);
-		map->num_types--;
-		return NULL;
-	    }
-	}
-    }
-    return type;
 }
 
 Status
@@ -475,7 +399,7 @@ KeyCode		matchingKeys[XkbMaxKeyCount],nMatchingKeys;
 	}
 	if (nResize>0) {
 	    int nextMatch;
-	    xkb->map->size_syms= (nTotal*12)/10;
+	    xkb->map->size_syms= (nTotal*15)/10;
 	    newSyms = _XkbTypedCalloc(xkb->map->size_syms,KeySym);
 	    if (newSyms==NULL)
 		return BadAlloc;

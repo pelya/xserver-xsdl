@@ -77,7 +77,7 @@ int afbScreenPrivateIndex;
 
 static unsigned long afbGeneration = 0;
 
-BSFuncRec afbBSFuncRec = {
+static BSFuncRec afbBSFuncRec = {
 	afbSaveAreas,
 	afbRestoreAreas,
 	(BackingStoreSetClipmaskRgnProcPtr) 0,
@@ -85,7 +85,7 @@ BSFuncRec afbBSFuncRec = {
 	(BackingStoreGetSpansPixmapProcPtr) 0,
 };
 
-Bool
+static Bool
 afbCloseScreen(int index, ScreenPtr pScreen)
 {
 	int d;
@@ -119,7 +119,29 @@ afbCreateScreenResources(ScreenPtr pScreen)
 	return(retval);
 }
 
-Bool
+static PixmapPtr
+afbGetWindowPixmap(WindowPtr pWin)
+{
+#ifdef PIXMAP_PER_WINDOW
+    return (PixmapPtr)(pWin->devPrivates[frameWindowPrivateIndex].ptr);
+#else
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+
+    return (* pScreen->GetScreenPixmap)(pScreen);
+#endif
+}
+
+static void
+afbSetWindowPixmap(WindowPtr pWin, PixmapPtr pPix)
+{
+#ifdef PIXMAP_PER_WINDOW
+    pWin->devPrivates[frameWindowPrivateIndex].ptr = (pointer)pPix;
+#else
+    (* pWin->drawable.pScreen->SetScreenPixmap)(pPix);
+#endif
+}
+
+static Bool
 afbAllocatePrivates(ScreenPtr pScreen, int *pWinIndex, int *pGCIndex)
 {
 	if (afbGeneration != serverGeneration) {
@@ -215,26 +237,4 @@ afbScreenInit(register ScreenPtr pScreen, pointer pbits, int xsize, int ysize, i
 	pScreen->devPrivate = oldDevPrivate;
 
 	return TRUE;
-}
-
-PixmapPtr
-afbGetWindowPixmap(WindowPtr pWin)
-{
-#ifdef PIXMAP_PER_WINDOW
-    return (PixmapPtr)(pWin->devPrivates[frameWindowPrivateIndex].ptr);
-#else
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-
-    return (* pScreen->GetScreenPixmap)(pScreen);
-#endif
-}
-
-void
-afbSetWindowPixmap(WindowPtr pWin, PixmapPtr pPix)
-{
-#ifdef PIXMAP_PER_WINDOW
-    pWin->devPrivates[frameWindowPrivateIndex].ptr = (pointer)pPix;
-#else
-    (* pWin->drawable.pScreen->SetScreenPixmap)(pPix);
-#endif
 }

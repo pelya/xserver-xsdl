@@ -473,7 +473,7 @@ RR10GetData (ScreenPtr pScreen, RROutputPtr output)
 {
     RR10DataPtr	    data;
     RRScreenSizePtr size;
-    int		    nmode = output->numModes;
+    int		    nmode = output->numModes + output->numUserModes;
     int		    o, os, l, r;
     RRScreenRatePtr refresh;
     CARD16	    vRefresh;
@@ -500,11 +500,14 @@ RR10GetData (ScreenPtr pScreen, RROutputPtr output)
     /*
      * find modes not yet listed
      */
-    for (o = 0; o < output->numModes; o++)
+    for (o = 0; o < output->numModes + output->numUserModes; o++)
     {
 	if (used[o]) continue;
 	
-	mode = output->modes[o];
+	if (o < output->numModes)
+	    mode = output->modes[o];
+	else
+	    mode = output->userModes[o - output->numModes];
 	
 	l = data->nsize;
 	size[l].id = data->nsize;
@@ -524,9 +527,12 @@ RR10GetData (ScreenPtr pScreen, RROutputPtr output)
 	/*
 	 * Find all modes with matching size
 	 */
-	for (os = o; os < output->numModes; os++)
+	for (os = o; os < output->numModes + output->numUserModes; os++)
 	{
-	    mode = output->modes[os];
+	    if (os < output->numModes)
+		mode = output->modes[os];
+	    else
+		mode = output->userModes[os - output->numModes];
 	    if (mode->mode.width == size[l].width &&
 		mode->mode.height == size[l].height)
 	    {

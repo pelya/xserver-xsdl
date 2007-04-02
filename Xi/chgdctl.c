@@ -78,9 +78,9 @@ SOFTWARE.
  */
 
 int
-SProcXChangeDeviceControl(register ClientPtr client)
+SProcXChangeDeviceControl(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xChangeDeviceControlReq);
     swaps(&stuff->length, n);
@@ -287,7 +287,7 @@ void
 SRepXChangeDeviceControl(ClientPtr client, int size,
 			 xChangeDeviceControlReply * rep)
 {
-    register char n;
+    char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);

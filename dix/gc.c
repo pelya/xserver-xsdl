@@ -69,7 +69,7 @@ extern FontPtr defaultFont;
 
 static Bool CreateDefaultTile(GCPtr pGC);
 
-unsigned char DefaultDash[2] = {4, 4};
+static unsigned char DefaultDash[2] = {4, 4};
 
 _X_EXPORT void
 ValidateGC(DrawablePtr pDraw, GC *pGC)
@@ -906,17 +906,6 @@ FreeGC(pointer value, XID gid)
     xfree(pGC);
     return(Success);
 }
-
-void
-SetGCMask(GCPtr pGC, Mask selectMask, Mask newDataMask)
-{
-    pGC->stateChanges = (~selectMask & pGC->stateChanges) |
-		        (selectMask & newDataMask);
-    if (selectMask & newDataMask)
-        pGC->serialNumber |= GC_CHANGE_SERIAL_BIT;        
-}
-
-
 
 /* CreateScratchGC(pScreen, depth)
     like CreateGC, but doesn't do the default tile or stipple,

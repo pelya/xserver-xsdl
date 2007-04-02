@@ -47,19 +47,35 @@ RROutputChanged (RROutputPtr output, Bool configChanged)
  */
 
 RROutputPtr
-RROutputCreate (const char  *name,
+RROutputCreate (ScreenPtr   pScreen,
+		const char  *name,
 		int	    nameLength,
 		void	    *devPrivate)
 {
-    RROutputPtr	output;
+    RROutputPtr	    output;
+    RROutputPtr	    *outputs;
+    rrScrPrivPtr    pScrPriv;
 
     if (!RRInit())
 	return NULL;
+    
+    pScrPriv = rrGetScrPriv(pScreen);
+
+    if (pScrPriv->numOutputs)
+	outputs = xrealloc (pScrPriv->outputs, 
+			    (pScrPriv->numOutputs + 1) * sizeof (RROutputPtr));
+    else
+	outputs = xalloc (sizeof (RROutputPtr));
+    if (!outputs)
+	return FALSE;
+
+    pScrPriv->outputs = outputs;
+    
     output = xalloc (sizeof (RROutputRec) + nameLength + 1);
     if (!output)
 	return NULL;
     output->id = FakeClientID (0);
-    output->pScreen = NULL;
+    output->pScreen = pScreen;
     output->name = (char *) (output + 1);
     output->nameLength = nameLength;
     memcpy (output->name, name, nameLength);
@@ -76,6 +92,8 @@ RROutputCreate (const char  *name,
     output->numModes = 0;
     output->numPreferred = 0;
     output->modes = NULL;
+    output->numUserModes = 0;
+    output->userModes = NULL;
     output->properties = NULL;
     output->changed = FALSE;
     output->devPrivate = devPrivate;
@@ -83,35 +101,10 @@ RROutputCreate (const char  *name,
     if (!AddResource (output->id, RROutputType, (pointer) output))
 	return NULL;
 
+    pScrPriv->outputs[pScrPriv->numOutputs++] = output;
     return output;
 }
 
-/*
- * Attach an Output to a screen. This is done as a separate step
- * so that an xf86-based driver can create Outputs in PreInit
- * before the Screen has been created
- */
-
-Bool
-RROutputAttachScreen (RROutputPtr output, ScreenPtr pScreen)
-{
-    rrScrPriv (pScreen);
-    RROutputPtr	*outputs;
-    
-    if (pScrPriv->numOutputs)
-	outputs = xrealloc (pScrPriv->outputs, 
-			    (pScrPriv->numOutputs + 1) * sizeof (RROutputPtr));
-    else
-	outputs = xalloc (sizeof (RROutputPtr));
-    if (!outputs)
-	return FALSE;
-    output->pScreen = pScreen;
-    pScrPriv->outputs = outputs;
-    pScrPriv->outputs[pScrPriv->numOutputs++] = output;
-    RROutputChanged (output, FALSE);
-    return TRUE;
-}
-		      
 /*
  * Notify extension that output parameters have been changed
  */
@@ -190,6 +183,74 @@ RROutputSetModes (RROutputPtr	output,
     output->numPreferred = numPreferred;
     RROutputChanged (output, TRUE);
     return TRUE;
+}
+
+int
+RROutputAddUserMode (RROutputPtr    output,
+		     RRModePtr	    mode)
+{
+    int		m;
+    ScreenPtr	pScreen = output->pScreen;
+    rrScrPriv(pScreen);
+    RRModePtr	*newModes;
+
+    /* Check to see if this mode is already listed for this output */
+    for (m = 0; m < output->numModes + output->numUserModes; m++)
+    {
+	RRModePtr   e = (m < output->numModes ?
+			 output->modes[m] :
+			 output->userModes[m - output->numModes]);
+	if (mode == e)
+	    return Success;
+    }
+
+    /* Check with the DDX to see if this mode is OK */
+    if (pScrPriv->rrOutputValidateMode)
+	if (!pScrPriv->rrOutputValidateMode (pScreen, output, mode))
+	    return BadMatch;
+
+    if (output->userModes)
+	newModes = xrealloc (output->userModes,
+			     (output->numUserModes + 1) * sizeof (RRModePtr));
+    else
+	newModes = xalloc (sizeof (RRModePtr));
+    if (!newModes)
+	return BadAlloc;
+
+    output->userModes = newModes;
+    output->userModes[output->numUserModes++] = mode;
+    ++mode->refcnt;
+    RROutputChanged (output, TRUE);
+    RRTellChanged (pScreen);
+    return Success;
+}
+
+int
+RROutputDeleteUserMode (RROutputPtr output,
+			RRModePtr   mode)
+{
+    int		m;
+    
+    /* Find this mode in the user mode list */
+    for (m = 0; m < output->numUserModes; m++)
+    {
+	RRModePtr   e = output->userModes[m];
+
+	if (mode == e)
+	    break;
+    }
+    /* Not there, access error */
+    if (m == output->numUserModes)
+	return BadAccess;
+
+    /* make sure the mode isn't active for this output */
+    if (output->crtc && output->crtc->mode == mode)
+	return BadMatch;
+
+    memmove (output->userModes + m, output->userModes + m + 1,
+	     (output->numUserModes - m - 1) * sizeof (RRModePtr));
+    RRModeDestroy (mode);
+    return Success;
 }
 
 Bool
@@ -308,9 +369,9 @@ RRDeliverOutputEvent(ClientPtr client, WindowPtr pWin, RROutputPtr output)
  * Destroy a Output at shutdown
  */
 void
-RROutputDestroy (RROutputPtr crtc)
+RROutputDestroy (RROutputPtr output)
 {
-    FreeResource (crtc->id, 0);
+    FreeResource (output->id, 0);
 }
 
 static int
@@ -318,6 +379,7 @@ RROutputDestroyResource (pointer value, XID pid)
 {
     RROutputPtr	output = (RROutputPtr) value;
     ScreenPtr	pScreen = output->pScreen;
+    int		m;
 
     if (pScreen)
     {
@@ -336,7 +398,17 @@ RROutputDestroyResource (pointer value, XID pid)
 	}
     }
     if (output->modes)
+    {
+	for (m = 0; m < output->numModes; m++)
+	    RRModeDestroy (output->modes[m]);
 	xfree (output->modes);
+    }
+    
+    for (m = 0; m < output->numUserModes; m++)
+	RRModeDestroy (output->userModes[m]);
+    if (output->userModes)
+	xfree (output->userModes);
+
     if (output->crtcs)
 	xfree (output->crtcs);
     if (output->clones)
@@ -383,7 +455,10 @@ ProcRRGetOutputInfo (ClientPtr client)
     output = LookupOutput(client, stuff->output, DixReadAccess);
 
     if (!output)
+    {
+	client->errorValue = stuff->output;
 	return RRErrorBase + BadRROutput;
+    }
 
     pScreen = output->pScreen;
     pScrPriv = rrGetScrPriv(pScreen);
@@ -398,13 +473,13 @@ ProcRRGetOutputInfo (ClientPtr client)
     rep.connection = output->connection;
     rep.subpixelOrder = output->subpixelOrder;
     rep.nCrtcs = output->numCrtcs;
-    rep.nModes = output->numModes;
+    rep.nModes = output->numModes + output->numUserModes;
     rep.nPreferred = output->numPreferred;
     rep.nClones = output->numClones;
     rep.nameLength = output->nameLength;
     
     extraLen = ((output->numCrtcs + 
-		 output->numModes + 
+		 output->numModes + output->numUserModes +
 		 output->numClones +
 		 ((rep.nameLength + 3) >> 2)) << 2);
 
@@ -420,7 +495,7 @@ ProcRRGetOutputInfo (ClientPtr client)
 
     crtcs = (RRCrtc *) extra;
     modes = (RRMode *) (crtcs + output->numCrtcs);
-    clones = (RROutput *) (modes + output->numModes);
+    clones = (RROutput *) (modes + output->numModes + output->numUserModes);
     name = (char *) (clones + output->numClones);
     
     for (i = 0; i < output->numCrtcs; i++)
@@ -429,9 +504,12 @@ ProcRRGetOutputInfo (ClientPtr client)
 	if (client->swapped)
 	    swapl (&crtcs[i], n);
     }
-    for (i = 0; i < output->numModes; i++)
+    for (i = 0; i < output->numModes + output->numUserModes; i++)
     {
-	modes[i] = output->modes[i]->mode.id;
+	if (i < output->numModes)
+	    modes[i] = output->modes[i]->mode.id;
+	else
+	    modes[i] = output->userModes[i - output->numModes]->mode.id;
 	if (client->swapped)
 	    swapl (&modes[i], n);
     }

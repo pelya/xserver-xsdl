@@ -81,7 +81,7 @@ ddxUseMsg (void)
   ErrorF("-host-cursor  Re-use exisiting X host server cursor\n");
   ErrorF("-fullscreen   Attempt to run Xephyr fullscreen\n");
   ErrorF("-grayscale    Simulate 8bit grayscale\n");
-  ErrorF("-fakexa	Simulate acceleration using software rendering\n");
+  ErrorF("-fakexa       Simulate acceleration using software rendering\n");
   ErrorF("\n");
 
   exit(1);

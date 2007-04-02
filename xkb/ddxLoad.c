@@ -44,7 +44,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "scrnintstr.h"
 #include "windowstr.h"
 #define	XKBSRV_NEED_FILE_FUNCS
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #include <X11/extensions/XI.h>
 #include "xkb.h"
 
@@ -211,7 +211,7 @@ OutputDirectory(
     }
 }
 
-Bool
+static Bool
 XkbDDXCompileNamedKeymap(	XkbDescPtr		xkb,
 				XkbComponentNamesPtr	names,
 				char *			nameRtrn,
@@ -298,7 +298,7 @@ char 	*cmd = NULL,file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
     return False;
 }
 
-Bool    	
+static Bool    	
 XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 				XkbComponentNamesPtr	names,
 				unsigned		want,
@@ -432,7 +432,7 @@ char tmpname[PATH_MAX];
     return False;
 }
 
-FILE *
+static FILE *
 XkbDDXOpenConfigFile(char *mapName,char *fileNameRtrn,int fileNameRtrnLen)
 {
 char	buf[PATH_MAX],xkm_output_dir[PATH_MAX];

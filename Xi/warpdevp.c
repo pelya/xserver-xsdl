@@ -59,9 +59,9 @@ from the author.
  */
 
 int
-SProcXWarpDevicePointer(register ClientPtr client)
+SProcXWarpDevicePointer(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xWarpDevicePointerReq);
     swaps(&stuff->length, n);
@@ -69,7 +69,7 @@ SProcXWarpDevicePointer(register ClientPtr client)
 }
 
 int
-ProcXWarpDevicePointer(register ClientPtr client)
+ProcXWarpDevicePointer(ClientPtr client)
 {
     int err;
     int x, y;

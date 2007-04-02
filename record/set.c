@@ -164,10 +164,10 @@ BitVectorIterateSet(RecordSetPtr pSet, RecordSetIteratePtr pIter,
     return (RecordSetIteratePtr)(long)(pInterval->last + 1);
 }
 
-RecordSetOperations BitVectorSetOperations = {
+static RecordSetOperations BitVectorSetOperations = {
     BitVectorDestroySet, BitVectorIsMemberOfSet, BitVectorIterateSet };
 
-RecordSetOperations BitVectorNoFreeOperations = {
+static RecordSetOperations BitVectorNoFreeOperations = {
     NoopDestroySet, BitVectorIsMemberOfSet, BitVectorIterateSet };
 
 static int
@@ -277,10 +277,10 @@ IntervalListIterateSet(RecordSetPtr pSet, RecordSetIteratePtr pIter,
 	return (RecordSetIteratePtr)NULL;
 }
 
-RecordSetOperations IntervalListSetOperations = {
+static RecordSetOperations IntervalListSetOperations = {
     IntervalListDestroySet, IntervalListIsMemberOfSet, IntervalListIterateSet };
 
-RecordSetOperations IntervalListNoFreeOperations = {
+static RecordSetOperations IntervalListNoFreeOperations = {
     NoopDestroySet, IntervalListIsMemberOfSet, IntervalListIterateSet };
 
 static int

@@ -81,59 +81,6 @@ SOFTWARE.
         return(BadIDChoice);\
     }
 
-/*
- * We think that most hardware implementations of DBE will want
- * LookupID*(dbe_back_buffer_id) to return the window structure that the
- * id is a back buffer for.  Since both front and back buffers will
- * return the same structure, you need to be able to distinguish
- * somewhere what kind of buffer (front/back) was being asked for, so
- * that ddx can render to the right place.  That's the problem that the
- * following code solves.  Note: we couldn't embed this in the LookupID*
- * functions because the VALIDATE_DRAWABLE_AND_GC macro often circumvents
- * those functions by checking a one-element cache.  That's why we're
- * mucking with VALIDATE_DRAWABLE_AND_GC.
- * 
- * If you put -DNEED_DBE_BUF_BITS into PervasiveDBEDefines, the window
- * structure will have two additional bits defined, srcBuffer and
- * dstBuffer, and their values will be maintained via the macros
- * SET_DBE_DSTBUF and SET_DBE_SRCBUF (below).  If you also
- * put -DNEED_DBE_BUF_VALIDATE into PervasiveDBEDefines, the function
- * DbeValidateBuffer will be called any time the bits change to give you
- * a chance to do some setup.  See the DBE code for more details on this
- * function.  We put in these levels of conditionality so that you can do
- * just what you need to do, and no more.  If neither of these defines
- * are used, the bits won't be there, and VALIDATE_DRAWABLE_AND_GC will
- * be unchanged.	dpw
- */
-
-#if defined(NEED_DBE_BUF_BITS)
-#define SET_DBE_DSTBUF(_pDraw, _drawID) \
-        SET_DBE_BUF(_pDraw, _drawID, dstBuffer, TRUE)
-#define SET_DBE_SRCBUF(_pDraw, _drawID) \
-        SET_DBE_BUF(_pDraw, _drawID, srcBuffer, FALSE)
-#if defined (NEED_DBE_BUF_VALIDATE)
-#define SET_DBE_BUF(_pDraw, _drawID, _whichBuffer, _dstbuf) \
-    if (_pDraw->type == DRAWABLE_WINDOW)\
-    {\
-	int thisbuf = (_pDraw->id == _drawID);\
-	if (thisbuf != ((WindowPtr)_pDraw)->_whichBuffer)\
-	{\
-	     ((WindowPtr)_pDraw)->_whichBuffer = thisbuf;\
-	     DbeValidateBuffer((WindowPtr)_pDraw, _drawID, _dstbuf);\
-	}\
-     }
-#else /* want buffer bits, but don't need to call DbeValidateBuffer */
-#define SET_DBE_BUF(_pDraw, _drawID, _whichBuffer, _dstbuf) \
-    if (_pDraw->type == DRAWABLE_WINDOW)\
-    {\
-	((WindowPtr)_pDraw)->_whichBuffer = (_pDraw->id == _drawID);\
-    }
-#endif /* NEED_DBE_BUF_VALIDATE */
-#else /* don't want buffer bits in window */
-#define SET_DBE_DSTBUF(_pDraw, _drawID) /**/
-#define SET_DBE_SRCBUF(_pDraw, _drawID) /**/
-#endif /* NEED_DBE_BUF_BITS */
-
 #define VALIDATE_DRAWABLE_AND_GC(drawID, pDraw, pGC, client)\
     if ((stuff->gc == INVALID) || (client->lastGCID != stuff->gc) ||\
 	(client->lastDrawableID != drawID))\
@@ -158,7 +105,6 @@ SOFTWARE.
         pGC = client->lastGC;\
         pDraw = client->lastDrawable;\
     }\
-    SET_DBE_DSTBUF(pDraw, drawID);\
     if (pGC->serialNumber != pDraw->serialNumber)\
 	ValidateGC(pDraw, pGC);
 
@@ -220,8 +166,6 @@ extern int dixDestroyPixmap(
     pointer /*value*/,
     XID /*pid*/);
 
-extern void CloseDownRetainedResources(void);
-
 extern void InitClient(
     ClientPtr /*client*/,
     int /*i*/,
@@ -243,24 +187,9 @@ extern void DeleteWindowFromAnySelections(
 extern void MarkClientException(
     ClientPtr /*client*/);
 
-extern int GetGeometry(
-    ClientPtr /*client*/,
-    xGetGeometryReply* /* wa */);
-
 extern int SendConnSetup(
     ClientPtr /*client*/,
     char* /*reason*/);
-
-extern int DoGetImage(
-    ClientPtr	/*client*/,
-    int /*format*/,
-    Drawable /*drawable*/,
-    int /*x*/, 
-    int /*y*/, 
-    int /*width*/, 
-    int /*height*/,
-    Mask /*planemask*/,
-    xGetImageReply ** /*im_return*/);
 
 #if defined(DDXBEFORERESET)
 extern void ddxBeforeReset (void);
@@ -668,10 +597,6 @@ typedef struct _CallbackProcs {
     CallCallbacksProcPtr	CallCallbacks;
     DeleteCallbackListProcPtr	DeleteCallbackList;
 } CallbackFuncsRec, *CallbackFuncsPtr;
-
-extern Bool CreateCallbackList(
-    CallbackListPtr * /*pcbl*/,
-    CallbackFuncsPtr /*cbfuncs*/);
 
 extern Bool AddCallback(
     CallbackListPtr * /*pcbl*/,

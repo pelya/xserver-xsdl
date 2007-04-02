@@ -189,101 +189,6 @@ _LoaderListPop(int handle)
     return 0;
 }
 
-/*
- * _LoaderHandleToName() will return the name of the first module with a
- * given handle. This requires getting the last module on the LIFO with
- * the given handle.
- */
-char *
-_LoaderHandleToName(int handle)
-{
-    loaderPtr item = listHead;
-    loaderPtr aritem = NULL;
-    loaderPtr lastitem = NULL;
-
-    if (handle < 0) {
-	return "(built-in)";
-    }
-    while (item) {
-	if (item->handle == handle) {
-	    if (strchr(item->name, ':') == NULL)
-		aritem = item;
-	    else
-		lastitem = item;
-	}
-	item = item->next;
-    }
-
-    if (aritem)
-	return aritem->name;
-
-    if (lastitem)
-	return lastitem->name;
-
-    return 0;
-}
-
-/*
- * _LoaderHandleToCanonicalName() will return the cname of the first module
- * with a given handle. This requires getting the last module on the LIFO with
- * the given handle.
- */
-char *
-_LoaderHandleToCanonicalName(int handle)
-{
-    loaderPtr item = listHead;
-    loaderPtr lastitem = NULL;
-
-    if (handle < 0) {
-	return "(built-in)";
-    }
-    while (item) {
-	if (item->handle == handle) {
-	    lastitem = item;
-	}
-	item = item->next;
-    }
-
-    if (lastitem)
-	return lastitem->cname;
-
-    return NULL;
-}
-
-/*
- * _LoaderModuleToName() will return the name of the first module with a
- * given handle. This requires getting the last module on the LIFO with
- * the given handle.
- */
-char *
-_LoaderModuleToName(int module)
-{
-    loaderPtr item = listHead;
-    loaderPtr aritem = NULL;
-    loaderPtr lastitem = NULL;
-
-    if (module < 0) {
-	return "(built-in)";
-    }
-    while (item) {
-	if (item->module == module) {
-	    if (strchr(item->name, ':') == NULL)
-		aritem = item;
-	    else
-		lastitem = item;
-	}
-	item = item->next;
-    }
-
-    if (aritem)
-	return aritem->name;
-
-    if (lastitem)
-	return lastitem->name;
-
-    return 0;
-}
-
 /* These four are just ABI stubs */
 _X_EXPORT void
 LoaderRefSymbols(const char *sym0, ...)
@@ -450,33 +355,12 @@ LoaderUnload(int handle)
     return 0;
 }
 
-void
-LoaderDuplicateSymbol(const char *symbol, const int handle)
-{
-    ErrorF("Duplicate symbol %s in %s\n", symbol,
-	   listHead ? listHead->name : "(built-in)");
-    ErrorF("Also defined in %s\n", _LoaderHandleToName(handle));
-    FatalError("Module load failure\n");
-}
-
 unsigned long LoaderOptions = 0;
-
-void
-LoaderResetOptions(void)
-{
-    LoaderOptions = 0;
-}
 
 void
 LoaderSetOptions(unsigned long opts)
 {
     LoaderOptions |= opts;
-}
-
-void
-LoaderClearOptions(unsigned long opts)
-{
-    LoaderOptions &= ~opts;
 }
 
 _X_EXPORT int

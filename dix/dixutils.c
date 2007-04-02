@@ -882,9 +882,7 @@ static CallbackFuncsRec default_cbfuncs =
     _DeleteCallbackList
 };
 
-/* ===== Public Procedures ===== */
-
-Bool
+static Bool
 CreateCallbackList(CallbackListPtr *pcbl, CallbackFuncsPtr cbfuncs)
 {
     CallbackListPtr  cbl;
@@ -915,6 +913,8 @@ CreateCallbackList(CallbackListPtr *pcbl, CallbackFuncsPtr cbfuncs)
     numCallbackListsToCleanup++;
     return TRUE;
 }
+
+/* ===== Public Procedures ===== */
 
 _X_EXPORT Bool 
 AddCallback(CallbackListPtr *pcbl, CallbackProcPtr callback, pointer data)

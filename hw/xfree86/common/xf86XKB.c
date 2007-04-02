@@ -73,7 +73,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define XF86_OS_PRIVS
 #include "xf86_OSlib.h"
 
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 
 void
 xf86InitXkb(void)

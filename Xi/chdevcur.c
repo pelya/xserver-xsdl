@@ -59,9 +59,9 @@ from the author.
  */
 
 int
-SProcXChangeDeviceCursor(register ClientPtr client)
+SProcXChangeDeviceCursor(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xChangeDeviceCursorReq);
     swaps(&stuff->length, n);
@@ -69,7 +69,7 @@ SProcXChangeDeviceCursor(register ClientPtr client)
     return (ProcXChangeDeviceCursor(client));
 }
 
-int ProcXChangeDeviceCursor(register ClientPtr client)
+int ProcXChangeDeviceCursor(ClientPtr client)
 {
     int err;
     WindowPtr pWin    = NULL;

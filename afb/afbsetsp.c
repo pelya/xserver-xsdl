@@ -73,20 +73,10 @@ SOFTWARE.
  * boxes, we may not want to start grabbing bits at psrc but at some offset
  * further on.)
  */
-void
-afbSetScanline(y, xOrigin, xStart, xEnd, psrc, alu, pdstBase, widthDst,
-					 sizeDst, depthDst, sizeSrc)
-	int y;
-	int xOrigin;					/* where this scanline starts */
-	int xStart;						/* first bit to use from scanline */
-	int xEnd;						/* last bit to use from scanline + 1 */
-	register PixelType *psrc;
-	register int alu;				/* raster op */
-	PixelType *pdstBase;			/* start of the drawable */
-	int widthDst;					/* width of drawable in words */
-	int sizeDst;
-	int depthDst;
-	int sizeSrc;
+static void
+afbSetScanline(int y, int xOrigin, int xStart, int xEnd, PixelType *psrc,
+	       int alu, PixelType *pdstBase, int widthDst, int sizeDst,
+	       int depthDst, int sizeSrc)
 {
 	int w;							/* width of scanline in bits */
 	register PixelType *pdst;	/* where to put the bits */

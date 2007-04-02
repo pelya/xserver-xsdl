@@ -77,9 +77,9 @@ SOFTWARE.
  */
 
 int
-SProcXCloseDevice(register ClientPtr client)
+SProcXCloseDevice(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xCloseDeviceReq);
     swaps(&stuff->length, n);
@@ -89,12 +89,59 @@ SProcXCloseDevice(register ClientPtr client)
 
 /***********************************************************************
  *
+ * Clear out event selections and passive grabs from a window for the
+ * specified device.
+ *
+ */
+
+static void
+DeleteDeviceEvents(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client)
+{
+    InputClientsPtr others;
+    OtherInputMasks *pOthers;
+    GrabPtr grab, next;
+
+    if ((pOthers = wOtherInputMasks(pWin)) != 0)
+	for (others = pOthers->inputClients; others; others = others->next)
+	    if (SameClient(others, client))
+		others->mask[dev->id] = NoEventMask;
+
+    for (grab = wPassiveGrabs(pWin); grab; grab = next) {
+	next = grab->next;
+	if ((grab->device == dev) &&
+	    (client->clientAsMask == CLIENT_BITS(grab->resource)))
+	    FreeResource(grab->resource, RT_NONE);
+    }
+}
+
+/***********************************************************************
+ *
+ * Walk througth the window tree, deleting event selections for this client
+ * from this device from all windows.
+ *
+ */
+
+static void
+DeleteEventsFromChildren(DeviceIntPtr dev, WindowPtr p1, ClientPtr client)
+{
+    WindowPtr p2;
+
+    while (p1) {
+	p2 = p1->firstChild;
+	DeleteDeviceEvents(dev, p1, client);
+	DeleteEventsFromChildren(dev, p2, client);
+	p1 = p1->nextSib;
+    }
+}
+
+/***********************************************************************
+ *
  * This procedure closes an input device.
  *
  */
 
 int
-ProcXCloseDevice(register ClientPtr client)
+ProcXCloseDevice(ClientPtr client)
 {
     int i;
     WindowPtr pWin, p1;
@@ -125,51 +172,4 @@ ProcXCloseDevice(register ClientPtr client)
 
     CloseInputDevice(d, client);
     return Success;
-}
-
-/***********************************************************************
- *
- * Walk througth the window tree, deleting event selections for this client
- * from this device from all windows.
- *
- */
-
-void
-DeleteEventsFromChildren(DeviceIntPtr dev, WindowPtr p1, ClientPtr client)
-{
-    WindowPtr p2;
-
-    while (p1) {
-	p2 = p1->firstChild;
-	DeleteDeviceEvents(dev, p1, client);
-	DeleteEventsFromChildren(dev, p2, client);
-	p1 = p1->nextSib;
-    }
-}
-
-/***********************************************************************
- *
- * Clear out event selections and passive grabs from a window for the
- * specified device.
- *
- */
-
-void
-DeleteDeviceEvents(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client)
-{
-    InputClientsPtr others;
-    OtherInputMasks *pOthers;
-    GrabPtr grab, next;
-
-    if ((pOthers = wOtherInputMasks(pWin)) != 0)
-	for (others = pOthers->inputClients; others; others = others->next)
-	    if (SameClient(others, client))
-		others->mask[dev->id] = NoEventMask;
-
-    for (grab = wPassiveGrabs(pWin); grab; grab = next) {
-	next = grab->next;
-	if ((grab->device == dev) &&
-	    (client->clientAsMask == CLIENT_BITS(grab->resource)))
-	    FreeResource(grab->resource, RT_NONE);
-    }
 }

@@ -242,7 +242,11 @@ static int dmxBackendOffscreen(int screen, int x, int y)
 void dmxBackendUpdatePosition(pointer private, int x, int y)
 {
     GETPRIVFROMPRIVATE;
+#if 00 /*BP*/
     int           screen      = miPointerCurrentScreen()->myNum;
+#else
+    int           screen      = miPointerGetScreen(inputInfo.pointer)->myNum;
+#endif
     DMXScreenInfo *dmxScreen  = &dmxScreens[priv->myScreen];
     int           oldRelative = priv->relative;
     int           topscreen   = dmxBackendFindOverlapping(priv, screen, x, y);
@@ -391,6 +395,7 @@ void dmxBackendCollectEvents(DevicePtr pDev,
             }
             break;
 	case MotionNotify:
+#if 001 /*BP*/
             DMXDBG9("dmxBackendCollectEvents: MotionNotify %d/%d (mi %d)"
                     " newscreen=%d: %d %d (e=%d; last=%d,%d)\n",
                     dmxScreen->index, priv->myScreen,
@@ -443,12 +448,25 @@ void dmxBackendCollectEvents(DevicePtr pDev,
                         (dmxScreen->rootYOrigin + X.xmotion.y
                          - dmxScreen->rootY));
             }
+#else
+            /*
+            ErrorF("motion %d, %d, %d\n",
+                   X.xmotion.x, X.xmotion.y, X.xmotion.state);
+            */
+            enqueue(priv->mou, X.type, 0/*X.xbutton.button*/, 0, &X, block);
+#endif
 	    break;
 
         case KeyPress:
         case KeyRelease:
             enqueue(priv->kbd, X.type, X.xkey.keycode, 0, NULL, block);
             break;
+#if 11/*BP*/
+        case ButtonPress:
+        case ButtonRelease:
+           ErrorF("press/release at %d, %d\n", X.xbutton.x, X.xbutton.y);
+           /* fall-through */
+#endif
 	default:
                                 /* Pass the whole event here, because
                                  * this may be an extension event. */

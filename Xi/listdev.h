@@ -36,44 +36,6 @@ int SProcXListInputDevices(ClientPtr	/* client */
 int ProcXListInputDevices(ClientPtr	/* client */
     );
 
-void SizeDeviceInfo(DeviceIntPtr /* d */ ,
-		    int * /* namesize */ ,
-		    int *	/* size */
-    );
-
-void ListDeviceInfo(ClientPtr /* client */ ,
-		    DeviceIntPtr /* d */ ,
-		    xDeviceInfoPtr /* dev */ ,
-		    char ** /* devbuf */ ,
-		    char ** /* classbuf */ ,
-		    char **	/* namebuf */
-    );
-
-void CopyDeviceName(char ** /* namebuf */ ,
-		    char *	/* name */
-    );
-
-void CopySwapDevice(ClientPtr /* client */ ,
-		    DeviceIntPtr /* d */ ,
-		    int /* num_classes */ ,
-		    char **	/* buf */
-    );
-
-void CopySwapKeyClass(ClientPtr /* client */ ,
-		      KeyClassPtr /* k */ ,
-		      char **	/* buf */
-    );
-
-void CopySwapButtonClass(ClientPtr /* client */ ,
-			 ButtonClassPtr /* b */ ,
-			 char **	/* buf */
-    );
-
-int CopySwapValuatorClass(ClientPtr /* client */ ,
-			  ValuatorClassPtr /* v */ ,
-			  char **	/* buf */
-    );
-
 void SRepXListInputDevices(ClientPtr /* client */ ,
 			   int /* size */ ,
 			   xListInputDevicesReply *	/* rep */

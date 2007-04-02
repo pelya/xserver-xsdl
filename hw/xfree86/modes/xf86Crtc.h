@@ -544,6 +544,8 @@ typedef struct _xf86CrtcConfig {
 
     CreateScreenResourcesProcPtr    CreateScreenResources;
 
+    CloseScreenProcPtr		    CloseScreen;
+
     /* Cursor information */
     xf86CursorInfoPtr	cursor_info;
     CursorPtr		cursor;
@@ -592,6 +594,12 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
  */
 Bool
 xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation);
+
+/*
+ * Clean up rotation during CloseScreen
+ */
+void
+xf86RotateCloseScreen (ScreenPtr pScreen);
 
 /**
  * Return whether any output is assigned to the crtc

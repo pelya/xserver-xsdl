@@ -149,14 +149,6 @@ void xf4bppTilePixmapFS(
 Bool xf4bppCreateGC(
     GCPtr
 );
-void xf4bppDestroyGC(
-    GC *
-);
-void xf4bppValidateGC(
-    GCPtr,
-    unsigned long,
-    DrawablePtr
-);
 
 /* ppcGetSp.c */
 void xf4bppGetSpans(

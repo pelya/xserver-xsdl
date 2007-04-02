@@ -1004,12 +1004,22 @@ The
 .B Identifier
 entry specifies the unique name for this monitor.  The
 .B Monitor
-section provides information about the specifications of the monitor,
-monitor-specific
+section may be used to provide information about the specifications of the
+monitor, monitor-specific
 .BR Options ,
-and information about the video modes to use with the monitor.  Specifying
-video modes is optional because the server now has a built-in list of
-VESA standard modes.  When modes are specified explicitly in the
+and information about the video modes to use with the monitor.
+.PP
+With RandR 1.2-enabled drivers, monitor sections are tied to specific outputs 
+of the video card.  Each output has a name, and the server will look for a
+Monitor named
+.B \*qMonitor-outputname\*q
+for configuration of that output (for example, 
+.B \*qMonitor-VGA\*q
+for a VGA output)
+.PP
+Specifying video modes is optional because the server will use the DDC or other
+information provided by the monitor to automatically configure the list of
+modes available.  When modes are specified explicitly in the
 .B Monitor
 section (with the
 .BR Modes ,
@@ -1017,7 +1027,8 @@ section (with the
 or
 .B UseModes
 keywords), built-in modes with the same names are not included.  Built-in
-modes with different names are, however, still implicitly included.
+modes with different names are, however, still implicitly included, when they
+meet the requirements of the monitor.
 .PP
 The entries that may be used in
 .B Monitor
@@ -1214,6 +1225,62 @@ monitors do not require it.  The default is off.
 This optional entry specifies the vertical refresh rate that the server
 should aim for when selecting video modes.  Without this option, the
 default is to prefer modes with higher refresh rates.
+.TP 7
+.BI "Option " "\*qPreferredMode\*q  " \*qstring\*q
+This optional entry specifies a mode to be marked as the preferred initial mode
+of the monitor.
+(RandR 1.2-supporting drivers only)
+.TP 7
+.BI "Option " "\*qPosition\*q  " "\*qx y\*q"
+This optional entry specifies the position of the monitor within the X
+screen.
+(RandR 1.2-supporting drivers only)
+.TP 7
+.BI "Option " "\*qLeftOf\*q  " \*qmonitor\*q
+This optional entry specifies that the monitor should be positioned to the
+left of the monitor of the given name.
+(RandR 1.2-supporting drivers only)
+.TP 7
+.BI "Option " "\*qRightOf\*q  " \*qmonitor\*q
+This optional entry specifies that the monitor should be positioned to the
+right of the monitor of the given name.
+(RandR 1.2-supporting drivers only)
+.TP 7
+.BI "Option " "\*qAbove\*q  " \*qmonitor\*q
+This optional entry specifies that the monitor should be positioned above the
+monitor of the given name.
+(RandR 1.2-supporting drivers only)
+.TP 7
+.BI "Option " "\*qBelow\*q  " \*qmonitor\*q
+This optional entry specifies that the monitor should be positioned below the
+monitor of the given name.
+(RandR 1.2-supporting drivers only)
+.TP 7
+.BI "Option " "\*qEnable\*q  " \*qbool\*q
+This optional entry specifies whether the monitor should be turned on
+at startup.  By default, the server will attempt to enable all connected
+monitors.
+(RandR 1.2-supporting drivers only)
+.TP 7
+.BI "Option " "\*qMinClock\*q  " \*qfrequency\*q
+This optional entry specifies the minimum dot clock, in kHz, that is supported
+by the monitor.
+.TP 7
+.BI "Option " "\*qMaxClock\*q  " \*qfrequency\*q
+This optional entry specifies the maximum dot clock, in kHz, that is supported
+by the monitor.
+.TP 7
+.BI "Option " "\*qIgnore\*q  " \*qbool\*q
+This optional entry specifies that the monitor should be ignored entirely,
+and not reported through RandR.  This is useful if the hardware reports the
+presence of outputs that don't exist.
+(RandR 1.2-supporting drivers only)
+.TP 7
+.BI "Option " "\*qRotate\*q  " \*qrotation\*q
+This optional entry specifies the initial rotation of the given monitor.
+Valid values for rotation are \*qnormal\*q, \*qleft\*q, \*qright\*q, and
+\*qinverted\*q.
+(RandR 1.2-supporting drivers only)
 
 .SH MODES SECTION
 The config file may have multiple

@@ -745,6 +745,13 @@ CheckVersion(const char *module, XF86ModuleVersionInfo * data,
     return TRUE;
 }
 
+static ModuleDescPtr
+AddSibling(ModuleDescPtr head, ModuleDescPtr new)
+{
+    new->sib = head;
+    return (new);
+}
+
 _X_EXPORT ModuleDescPtr
 LoadSubModule(ModuleDescPtr parent, const char *module,
 	      const char **subdirlist, const char **patternlist,
@@ -775,35 +782,28 @@ LoadSubModule(ModuleDescPtr parent, const char *module,
     return submod;
 }
 
-ModuleDescPtr
-LoadSubModuleLocal(ModuleDescPtr parent, const char *module,
-		   const char **subdirlist, const char **patternlist,
-		   pointer options, const XF86ModReqInfo * modreq,
-		   int *errmaj, int *errmin)
+static ModuleDescPtr
+NewModuleDesc(const char *name)
 {
-    ModuleDescPtr submod;
+    ModuleDescPtr mdp = xalloc(sizeof(ModuleDesc));
 
-    xf86MsgVerb(X_INFO, 3, "Loading local sub module \"%s\"\n", module);
-
-    if (PathIsAbsolute(module))
-    {
-	xf86Msg(X_ERROR,
-		"LoadSubModule: Absolute module path not permitted: \"%s\"\n",
-		module);
-	if (errmaj)
-	    *errmaj = LDR_BADUSAGE;
-	if (errmin)
-	    *errmin = 0;
-	return NULL;
+    if (mdp) {
+	mdp->child = NULL;
+	mdp->sib = NULL;
+	mdp->parent = NULL;
+	mdp->demand_next = NULL;
+	mdp->name = xstrdup(name);
+	mdp->filename = NULL;
+	mdp->identifier = NULL;
+	mdp->client_id = 0;
+	mdp->in_use = 0;
+	mdp->handle = -1;
+	mdp->SetupProc = NULL;
+	mdp->TearDownProc = NULL;
+	mdp->TearDownData = NULL;
     }
 
-    submod = doLoadModule(module, NULL, subdirlist, patternlist, options,
-			  modreq, errmaj, errmin, 0);
-    if (submod && submod != (ModuleDescPtr) 1) {
-	parent->child = AddSibling(parent->child, submod);
-	submod->parent = parent;
-    }
-    return submod;
+    return (mdp);
 }
 
 _X_EXPORT ModuleDescPtr
@@ -869,7 +869,7 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
     for (cim = compiled_in_modules; *cim; cim++)
 	if (!strcmp (module, *cim))
 	{
-	    xf86MsgVerb(X_INFO, 3, "Module alread ybuilt-in");
+	    xf86MsgVerb(X_INFO, 3, "Module already built-in\n");
 	    return (ModuleDescPtr) 1;
 	}
 
@@ -1099,22 +1099,8 @@ LoadModule(const char *module, const char *path, const char **subdirlist,
 		      modreq, errmaj, errmin, LD_FLAG_GLOBAL);
 }
 
-ModuleDescPtr
-LoadDriver(const char *module, const char *path, int handle, pointer options,
-	   int *errmaj, int *errmin)
-{
-    return LoadModule(module, path, NULL, NULL, options, NULL, errmaj,
-		      errmin);
-}
-
 void
 UnloadModule(ModuleDescPtr mod)
-{
-    UnloadModuleOrDriver(mod);
-}
-
-void
-UnloadDriver(ModuleDescPtr mod)
 {
     UnloadModuleOrDriver(mod);
 }
@@ -1168,7 +1154,7 @@ UnloadSubModule(ModuleDescPtr mod)
     xfree(mod);
 }
 
-void
+static void
 FreeModuleDesc(ModuleDescPtr head)
 {
     ModuleDescPtr sibs, prev;
@@ -1177,7 +1163,7 @@ FreeModuleDesc(ModuleDescPtr head)
 	return;
     /*
      * only free it if it's not marked as in use. In use means that it may
-     * be unloaded someday, and UnloadModule or UnloadDriver will free it
+     * be unloaded someday, and UnloadModule will free it
      */
     if (head->in_use)
 	return;
@@ -1190,38 +1176,6 @@ FreeModuleDesc(ModuleDescPtr head)
 	TestFree(prev->name);
 	xfree(prev);
     }
-}
-
-ModuleDescPtr
-NewModuleDesc(const char *name)
-{
-    ModuleDescPtr mdp = xalloc(sizeof(ModuleDesc));
-
-    if (mdp) {
-	mdp->child = NULL;
-	mdp->sib = NULL;
-	mdp->parent = NULL;
-	mdp->demand_next = NULL;
-	mdp->name = xstrdup(name);
-	mdp->filename = NULL;
-	mdp->identifier = NULL;
-	mdp->client_id = 0;
-	mdp->in_use = 0;
-	mdp->handle = -1;
-	mdp->SetupProc = NULL;
-	mdp->TearDownProc = NULL;
-	mdp->TearDownData = NULL;
-    }
-
-    return (mdp);
-}
-
-ModuleDescPtr
-AddSibling(ModuleDescPtr head, ModuleDescPtr new)
-{
-    new->sib = head;
-    return (new);
-
 }
 
 static void

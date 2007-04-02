@@ -42,7 +42,7 @@
 #endif
 
 #ifdef XKB
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #endif
 
 #include <X11/extensions/XI.h>

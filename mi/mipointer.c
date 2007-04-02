@@ -1,9 +1,4 @@
 /*
- * mipointer.c
- */
-
-
-/*
 
 Copyright 1989, 1998  The Open Group
 
@@ -467,6 +462,30 @@ miPointerAbsoluteCursor (int x, int y, unsigned long time)
     miPointerSetPosition(inputInfo.pointer, &x, &y, time);
 }
 
+/* Move the pointer on the current screen,  and update the sprite. */
+static void
+miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
+                     unsigned long time)
+{
+    int valuators[2];
+    miPointerPtr pPointer = MIPOINTER(pDev);
+    SetupScreen(pScreen);
+
+
+    if (pDev && (pDev->coreEvents || pDev == inputInfo.pointer)
+        && !pScreenPriv->waitForUpdate && pScreen == pPointer->pSpriteScreen)
+    {
+	pPointer->devx = x;
+	pPointer->devy = y;
+	if(!pPointer->pCursor->bits->emptyMask)
+	    (*pScreenPriv->spriteFuncs->MoveCursor) (pDev, pScreen, x, y);
+    }
+
+    pPointer->x = x;
+    pPointer->y = y;
+    pPointer->pScreen = pScreen;
+}
+
 _X_EXPORT void
 miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y, unsigned long time)
 {
@@ -560,28 +579,4 @@ miPointerMove (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y, unsigned long
 
     for (i = 0; i < nevents; i++)
         mieqEnqueue(inputInfo.pointer, &events[i]);
-}
-
-/* Move the pointer on the current screen,  and update the sprite. */
-void
-miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
-                     unsigned long time)
-{
-    int valuators[2];
-    miPointerPtr pPointer = MIPOINTER(pDev);
-    SetupScreen(pScreen);
-
-
-    if (pDev && (pDev->coreEvents || pDev == inputInfo.pointer)
-        && !pScreenPriv->waitForUpdate && pScreen == pPointer->pSpriteScreen)
-    {
-	pPointer->devx = x;
-	pPointer->devy = y;
-	if(!pPointer->pCursor->bits->emptyMask)
-	    (*pScreenPriv->spriteFuncs->MoveCursor) (pDev, pScreen, x, y);
-    }
-
-    pPointer->x = x;
-    pPointer->y = y;
-    pPointer->pScreen = pScreen;
 }

@@ -14,7 +14,6 @@ AM_CFLAGS = \
 	-I@MESA_SOURCE@/src/mesa/glapi \
 	-I@MESA_SOURCE@/src/mesa/main \
 	-DXFree86Server \
-	-DNO_LIBCWRAPPER \
 	@GLX_DEFINES@
 
 # none yet

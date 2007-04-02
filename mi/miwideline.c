@@ -67,17 +67,11 @@ static void miLineArc(DrawablePtr pDraw, GCPtr pGC,
  * spans-based polygon filler
  */
 
-void
-miFillPolyHelper (pDrawable, pGC, pixel, spanData, y, overall_height,
-		  left, right, left_count, right_count)
-    DrawablePtr	pDrawable;
-    GCPtr	pGC;
-    unsigned long   pixel;
-    SpanDataPtr	spanData;
-    int		y;			/* start y coordinate */
-    int		overall_height;		/* height of entire segment */
-    PolyEdgePtr	left, right;
-    int		left_count, right_count;
+static void
+miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
+		  SpanDataPtr spanData, int y, int overall_height,
+		  PolyEdgePtr left, PolyEdgePtr right,
+		  int left_count, int right_count)
 {
     int left_x = 0, left_e = 0;
     int	left_stepx = 0;
@@ -873,11 +867,8 @@ miLineArcD (
     return (pts - points);
 }
 
-int
-miRoundJoinFace (face, edge, leftEdge)
-    LineFacePtr face;
-    PolyEdgePtr edge;
-    Bool	*leftEdge;
+static int
+miRoundJoinFace (LineFacePtr face, PolyEdgePtr edge, Bool *leftEdge)
 {
     int	    y;
     int	    dx, dy;
@@ -1114,16 +1105,10 @@ miLineArc (
     }
 }
 
-void
-miLineProjectingCap (pDrawable, pGC, pixel, spanData, face, isLeft, xorg, yorg, isInt)
-    DrawablePtr		pDrawable;
-    GCPtr  		pGC;
-    unsigned long	pixel;
-    SpanDataPtr		spanData;
-    LineFacePtr 	face;
-    Bool	    	isLeft;
-    double	    	xorg, yorg;
-    Bool	    	isInt;
+static void
+miLineProjectingCap (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
+		     SpanDataPtr spanData, LineFacePtr face, Bool isLeft,
+		     double xorg, double yorg, Bool isInt)
 {
     int	xorgi = 0, yorgi = 0;
     int	lw;
@@ -1506,11 +1491,8 @@ miWideSegment (
     }
 }
 
-SpanDataPtr
-miSetupSpanData (pGC, spanData, npt)
-    GCPtr pGC;
-    SpanDataPtr	spanData;
-    int		npt;
+static SpanDataPtr
+miSetupSpanData (GCPtr pGC, SpanDataPtr spanData, int npt)
 {
     if ((npt < 3 && pGC->capStyle != CapRound) || miSpansEasyRop(pGC->alu))
 	return (SpanDataPtr) NULL;
@@ -1520,11 +1502,8 @@ miSetupSpanData (pGC, spanData, npt)
     return spanData;
 }
 
-void
-miCleanupSpanData (pDrawable, pGC, spanData)
-    DrawablePtr	pDrawable;
-    GCPtr	pGC;
-    SpanDataPtr	spanData;
+static void
+miCleanupSpanData (DrawablePtr pDrawable, GCPtr pGC, SpanDataPtr spanData)
 {
     if (pGC->lineStyle == LineDoubleDash)
     {

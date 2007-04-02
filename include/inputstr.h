@@ -63,7 +63,7 @@ SOFTWARE.
 
 #define EMASKSIZE	MAX_DEVICES
 
-extern int CoreDevicePrivatesIndex, CoreDevicePrivatesGeneration;
+extern int CoreDevicePrivatesIndex;
 
 /* Kludge: OtherClients and InputClients must be compatible, see code */
 

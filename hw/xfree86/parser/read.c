@@ -73,6 +73,25 @@ static xf86ConfigSymTabRec TopLevelTab[] =
 
 #define CLEANUP xf86freeConfig
 
+/* 
+ * This function resolves name references and reports errors if the named
+ * objects cannot be found.
+ */
+static int
+xf86validateConfig (XF86ConfigPtr p)
+{
+	if (!xf86validateDevice (p))
+		return FALSE;
+	if (!xf86validateScreen (p))
+		return FALSE;
+	if (!xf86validateInput (p))
+		return FALSE;
+	if (!xf86validateLayout (p))
+		return FALSE;
+
+	return (TRUE);
+}
+
 XF86ConfigPtr
 xf86readConfigFile (void)
 {
@@ -217,25 +236,6 @@ xf86readConfigFile (void)
 }
 
 #undef CLEANUP
-
-/* 
- * This function resolves name references and reports errors if the named
- * objects cannot be found.
- */
-int
-xf86validateConfig (XF86ConfigPtr p)
-{
-	if (!xf86validateDevice (p))
-		return FALSE;
-	if (!xf86validateScreen (p))
-		return FALSE;
-	if (!xf86validateInput (p))
-		return FALSE;
-	if (!xf86validateLayout (p))
-		return FALSE;
-
-	return (TRUE);
-}
 
 /* 
  * adds an item to the end of the linked list. Any record whose first field

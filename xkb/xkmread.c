@@ -41,7 +41,7 @@
 #include "inputstr.h"
 #include <X11/extensions/XKBstr.h>
 #define	 XKBSRV_NEED_FILE_FUNCS
-#include <X11/extensions/XKBsrv.h>
+#include <xkbsrv.h>
 #include <X11/extensions/XKBgeom.h>
 
 Atom
@@ -1096,18 +1096,6 @@ unsigned i,size_toc;
 	fread(&toc[i],SIZEOF(xkmSectionInfo),1,file);
     }
     return 1;
-}
-
-xkmSectionInfo *
-XkmFindTOCEntry(xkmFileInfo *finfo,xkmSectionInfo *toc,unsigned type)
-{
-register int i;
-
-    for (i=0;i<finfo->num_toc;i++) {
-	if (toc[i].type==type)
-	    return &toc[i];
-    }
-    return NULL;
 }
 
 Bool
