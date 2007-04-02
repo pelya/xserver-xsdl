@@ -592,12 +592,16 @@ void dmxBackendInit(DevicePtr pDev)
 /** Get information about the backend pointer (for initialization). */
 void dmxBackendMouGetInfo(DevicePtr pDev, DMXLocalInitInfoPtr info)
 {
+    const DMXScreenInfo *dmxScreen = dmxBackendInitPrivate(pDev);
+
     info->buttonClass      = 1;
     dmxCommonMouGetMap(pDev, info->map, &info->numButtons);
     info->valuatorClass    = 1;
     info->numRelAxes       = 2;
     info->minval[0]        = 0;
-    info->maxval[0]        = 0;
+    info->minval[1]        = 0;
+    info->maxval[0]        = dmxScreen->beWidth;
+    info->maxval[1]        = dmxScreen->beHeight;
     info->res[0]           = 1;
     info->minres[0]        = 0;
     info->maxres[0]        = 1;
