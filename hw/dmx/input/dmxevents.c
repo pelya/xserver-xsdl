@@ -112,7 +112,8 @@ static int dmxCheckFunctionKeys(DMXLocalInputInfoPtr dmxLocal,
     DMXDBG3("dmxCheckFunctionKeys: keySym=0x%04x %s state=0x%04x\n",
             keySym, type == KeyPress ? "press" : "release", state);
 
-    if ((state & (ControlMask|Mod1Mask)) != (ControlMask|Mod1Mask)) return 0;
+    if ((state & (ControlMask|Mod1Mask)) != (ControlMask|Mod1Mask))
+       return 0;
 
     switch (keySym) {
     case XK_g:
@@ -147,16 +148,25 @@ static void dmxEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal, xEvent *e,
     int                    type      = e->u.u.type;
 
     switch (e->u.u.type) {
-    case KeyPress:      type = DeviceKeyPress;      break;
-    case KeyRelease:    type = DeviceKeyRelease;    break;
-    case ButtonPress:   type = DeviceButtonPress;   break;
-    case ButtonRelease: type = DeviceButtonRelease; break;
+    case KeyPress:
+        type = DeviceKeyPress;
+        break;
+    case KeyRelease:
+        type = DeviceKeyRelease;
+        break;
+    case ButtonPress:
+        type = DeviceButtonPress;
+        break;
+    case ButtonRelease:
+        type = DeviceButtonRelease;
+        break;
     case MotionNotify:
         dmxLog(dmxError,
                "dmxEnqueueExtEvent: MotionNotify not allowed here\n");
         return;
     default:
-        if (e->u.u.type == ProximityIn || e->u.u.type == ProximityOut) break;
+        if (e->u.u.type == ProximityIn || e->u.u.type == ProximityOut)
+            break;
         dmxLogInput(dmxInput,
                     "dmxEnqueueExtEvent: Unhandled %s event (%d)\n",
                     e->u.u.type >= LASTEvent ? "extension" : "non-extension",
@@ -174,9 +184,11 @@ static void dmxEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal, xEvent *e,
     xv->num_valuators  = 0;
     xv->first_valuator = 0;
 
-    if (block) dmxSigioBlock();
+    if (block)
+        dmxSigioBlock();
     dmxeqEnqueue(xE);
-    if (block) dmxSigioUnblock();
+    if (block)
+        dmxSigioUnblock();
 }
 #endif
 
@@ -186,7 +198,8 @@ DMXScreenInfo *dmxFindFirstScreen(int x, int y)
 
     for (i = 0; i < dmxNumScreens; i++) {
         DMXScreenInfo *dmxScreen = &dmxScreens[i];
-        if (dmxOnScreen(x, y, dmxScreen)) return dmxScreen;
+        if (dmxOnScreen(x, y, dmxScreen))
+            return dmxScreen;
     }
     return NULL;
 }
@@ -223,7 +236,8 @@ dmxCoreMotion(DevicePtr pDev, int x, int y, int delta, DMXBlockType block)
     int           localY;
     int           i;
 
-    if (!dmxGlobalInvalid && dmxGlobalX == x && dmxGlobalY == y) return;
+    if (!dmxGlobalInvalid && dmxGlobalX == x && dmxGlobalY == y)
+        return;
     
     DMXDBG5("dmxCoreMotion(%d,%d,%d) dmxGlobalX=%d dmxGlobalY=%d\n",
             x, y, delta, dmxGlobalX, dmxGlobalY);
@@ -232,10 +246,14 @@ dmxCoreMotion(DevicePtr pDev, int x, int y, int delta, DMXBlockType block)
     dmxGlobalX       = x;
     dmxGlobalY       = y;
 
-    if (dmxGlobalX < 0)                dmxGlobalX = 0;
-    if (dmxGlobalY < 0)                dmxGlobalY = 0;
-    if (dmxGlobalX >= dmxGlobalWidth)  dmxGlobalX = dmxGlobalWidth  + delta -1;
-    if (dmxGlobalY >= dmxGlobalHeight) dmxGlobalY = dmxGlobalHeight + delta -1;
+    if (dmxGlobalX < 0)
+        dmxGlobalX = 0;
+    if (dmxGlobalY < 0)
+        dmxGlobalY = 0;
+    if (dmxGlobalX >= dmxGlobalWidth)
+        dmxGlobalX = dmxGlobalWidth  + delta -1;
+    if (dmxGlobalY >= dmxGlobalHeight)
+        dmxGlobalY = dmxGlobalHeight + delta -1;
     
     if ((dmxScreen = dmxFindFirstScreen(dmxGlobalX, dmxGlobalY))) {
         localX = dmxGlobalX - dmxScreen->rootXOrigin;
@@ -283,7 +301,6 @@ dmxCoreMotion(DevicePtr pDev, int x, int y, int delta, DMXBlockType block)
                                  * drivers */
     for (i = 0, dmxInput = &dmxInputs[0]; i < dmxNumInputs; i++, dmxInput++) {
         int j;
-
         for (j = 0; j < dmxInput->numDevs; j += dmxInput->devs[j]->binding)
             if (!dmxInput->detached
                 && dmxInput->devs[j]->sendsCore
@@ -386,10 +403,12 @@ static void dmxExtMotion(DMXLocalInputInfoPtr dmxLocal,
         }
     }
 
-    if (block) dmxSigioBlock();
+    if (block)
+        dmxSigioBlock();
     dmxPointerPutMotionEvent(pDevice, firstAxis, axesCount, v, xev->time);
     dmxeqEnqueue(xE);
-    if (block) dmxSigioUnblock();
+    if (block)
+        dmxSigioUnblock();
 }
 
 static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
@@ -403,7 +422,8 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
     XDeviceKeyEvent        *ke     = (XDeviceKeyEvent *)e;
     XDeviceMotionEvent     *me     = (XDeviceMotionEvent *)e;
 
-    if (!e) return -1;          /* No extended event passed, cannot handle */
+    if (!e)
+        return -1;          /* No extended event passed, cannot handle */
     
     if ((XID)dmxLocal->deviceId != ke->deviceid) {
                                 /* Search for the correct dmxLocal,
@@ -414,7 +434,8 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
         DMXInputInfo *dmxInput = &dmxInputs[dmxLocal->inputIdx];
         for (i = 0; i < dmxInput->numDevs; i++) {
             dmxLocal = dmxInput->devs[i];
-            if ((XID)dmxLocal->deviceId == ke->deviceid) break;
+            if ((XID)dmxLocal->deviceId == ke->deviceid)
+                break;
         }
     }
 
@@ -463,9 +484,11 @@ static int dmxTranslateAndEnqueueExtEvent(DMXLocalInputInfoPtr dmxLocal,
         xv->valuator4      = ke->axis_data[4];
         xv->valuator5      = ke->axis_data[5];
 
-        if (block) dmxSigioBlock();
+        if (block)
+            dmxSigioBlock();
         dmxeqEnqueue(xE);
-        if (block) dmxSigioUnblock();
+        if (block)
+            dmxSigioUnblock();
         break;
 
     case XI_DeviceMotionNotify:
@@ -568,7 +591,8 @@ static KeySym dmxKeyCodeToKeySym(DMXLocalInputInfoPtr dmxLocal,
     if (!dmxLocal || !dmxLocal->pDevice || !dmxLocal->pDevice->key)
         return NoSymbol;
     pKeySyms = &dmxLocal->pDevice->key->curKeySyms;
-    if (!pKeySyms) return NoSymbol;
+    if (!pKeySyms)
+        return NoSymbol;
     
     if (keyCode > pKeySyms->minKeyCode && keyCode <= pKeySyms->maxKeyCode) {
         DMXDBG2("dmxKeyCodeToKeySym: Translated keyCode=%d to keySym=0x%04x\n",
@@ -617,8 +641,10 @@ static int dmxFixup(DevicePtr pDev, int detail, KeySym keySym)
                dmxLocal->pDevice->name);
         return NoSymbol;
     }
-    if (!keySym) keySym = dmxKeyCodeToKeySym(dmxLocal, detail);
-    if (keySym == NoSymbol) return detail;
+    if (!keySym)
+        keySym = dmxKeyCodeToKeySym(dmxLocal, detail);
+    if (keySym == NoSymbol)
+        return detail;
     keyCode = dmxKeySymToKeyCode(dmxLocalCoreKeyboard, keySym, detail);
 
     return keyCode ? keyCode : detail;
