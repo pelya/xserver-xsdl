@@ -192,8 +192,6 @@ DMXScreenInfo *dmxFindFirstScreen(int x, int y)
 }
 
 
-#if 11/*BP*/
-
 /**
  * Enqueue a motion event.
  */
@@ -215,8 +213,8 @@ static void enqueueMotion(DevicePtr pDev, int x, int y)
 }
 
 
-static void
-dmxCoreMotion2(DevicePtr pDev, int x, int y, int delta, DMXBlockType block)
+void
+dmxCoreMotion(DevicePtr pDev, int x, int y, int delta, DMXBlockType block)
 {
     DMXScreenInfo *dmxScreen;
     DMXInputInfo  *dmxInput;
@@ -239,8 +237,6 @@ dmxCoreMotion2(DevicePtr pDev, int x, int y, int delta, DMXBlockType block)
     if (dmxGlobalX >= dmxGlobalWidth)  dmxGlobalX = dmxGlobalWidth  + delta -1;
     if (dmxGlobalY >= dmxGlobalHeight) dmxGlobalY = dmxGlobalHeight + delta -1;
     
-    ErrorF("Global Pos: %d, %d\n", dmxGlobalX, dmxGlobalY);
-
     if ((dmxScreen = dmxFindFirstScreen(dmxGlobalX, dmxGlobalY))) {
         localX = dmxGlobalX - dmxScreen->rootXOrigin;
         localY = dmxGlobalY - dmxScreen->rootYOrigin;
@@ -249,13 +245,8 @@ dmxCoreMotion2(DevicePtr pDev, int x, int y, int delta, DMXBlockType block)
                                 /* Screen is old screen */
             if (block)
                 dmxSigioBlock();
-#if 000
-            miPointerSetPosition(inputInfo.pointer, &localX, &localY,
-                                 GetTimeInMillis());
-#else
             if (pDev)
                enqueueMotion(pDev, localX, localY);
-#endif
             if (block)
                 dmxSigioUnblock();
         } else {
@@ -267,13 +258,8 @@ dmxCoreMotion2(DevicePtr pDev, int x, int y, int delta, DMXBlockType block)
             dmxeqProcessInputEvents();
             miPointerSetScreen(inputInfo.pointer, dmxScreen->index,
                                localX, localY);
-#if 000
-            miPointerSetPosition(inputInfo.pointer, &localX, &localY,
-                                 GetTimeInMillis());
-#else
             if (pDev)
                enqueueMotion(pDev, localX, localY);
-#endif
             if (block)
                 dmxSigioUnblock();
         }
@@ -292,105 +278,6 @@ dmxCoreMotion2(DevicePtr pDev, int x, int y, int delta, DMXBlockType block)
                     localX, localY);
         }
 #endif
-    }
-                                /* Send updates down to all core input
-                                 * drivers */
-    for (i = 0, dmxInput = &dmxInputs[0]; i < dmxNumInputs; i++, dmxInput++) {
-        int j;
-
-        for (j = 0; j < dmxInput->numDevs; j += dmxInput->devs[j]->binding)
-            if (!dmxInput->detached
-                && dmxInput->devs[j]->sendsCore
-                && dmxInput->devs[j]->update_position)
-                dmxInput->devs[j]->update_position(dmxInput->devs[j]->private,
-                                                   dmxGlobalX, dmxGlobalY);
-    }
-    if (!dmxScreen) ProcessInputEvents();
-}
-#endif
-
-void dmxCoreMotion(DevicePtr pDev, int x, int y, int delta, DMXBlockType block)
-{
-    DMXScreenInfo *dmxScreen;
-    DMXInputInfo  *dmxInput;
-    ScreenPtr     pScreen;
-    int           localX;
-    int           localY;
-    int           i;
-
-#if 11/*BP*/
-    dmxCoreMotion2(pDev, x, y, delta, block);
-    return;
-#endif
-
-    if (!dmxGlobalInvalid && dmxGlobalX == x && dmxGlobalY == y) return;
-    
-    DMXDBG5("dmxCoreMotion(%d,%d,%d) dmxGlobalX=%d dmxGlobalY=%d\n",
-            x, y, delta, dmxGlobalX, dmxGlobalY);
-
-    dmxGlobalInvalid = 0;
-    dmxGlobalX       = x;
-    dmxGlobalY       = y;
-
-    if (dmxGlobalX < 0)                dmxGlobalX = 0;
-    if (dmxGlobalY < 0)                dmxGlobalY = 0;
-    if (dmxGlobalX >= dmxGlobalWidth)  dmxGlobalX = dmxGlobalWidth  + delta -1;
-    if (dmxGlobalY >= dmxGlobalHeight) dmxGlobalY = dmxGlobalHeight + delta -1;
-    
-    if ((dmxScreen = dmxFindFirstScreen(dmxGlobalX, dmxGlobalY))) {
-        localX = dmxGlobalX - dmxScreen->rootXOrigin;
-        localY = dmxGlobalY - dmxScreen->rootYOrigin;
-#if 00 /*BP*/
-        if ((pScreen = miPointerCurrentScreen())
-#else
-        if ((pScreen = miPointerGetScreen(inputInfo.pointer))
-#endif
-            && pScreen->myNum == dmxScreen->index) {
-                                /* Screen is old screen */
-            if (block) dmxSigioBlock();
-#if 00 /*BP*/
-            miPointerAbsoluteCursor(localX, localY, GetTimeInMillis());
-#else
-            miPointerSetPosition(inputInfo.pointer, &localX, &localY,
-                                 GetTimeInMillis());
-#endif
-            if (block) dmxSigioUnblock();
-        } else {
-                                /* Screen is new */
-            DMXDBG4("   New screen: old=%d new=%d localX=%d localY=%d\n",
-                    pScreen->myNum, dmxScreen->index, localX, localY);
-            if (block) dmxSigioBlock();
-            dmxeqProcessInputEvents();
-#if 00 /*BP*/
-            miPointerSetNewScreen(dmxScreen->index, localX, localY);
-            miPointerAbsoluteCursor(localX, localY, GetTimeInMillis());
-#else
-            miPointerSetScreen(inputInfo.pointer, dmxScreen->index,
-                               localX, localY);
-            miPointerSetPosition(inputInfo.pointer, &localX, &localY,
-                                 GetTimeInMillis());
-#endif
-            if (block) dmxSigioUnblock();
-        }
-#if 00 /*BP*/
-        miPointerPosition(&localX, &localY);
-#else
-        miPointerGetPosition(inputInfo.pointer, &localX, &localY);
-#endif
-
-#if 00 /*BP*/
-        if ((pScreen = miPointerCurrentScreen())) {
-#else
-        if ((pScreen = miPointerGetScreen(inputInfo.pointer))) {
-#endif
-            dmxGlobalX = localX + dmxScreens[pScreen->myNum].rootXOrigin;
-            dmxGlobalY = localY + dmxScreens[pScreen->myNum].rootYOrigin;
-            DMXDBG6("   Moved to dmxGlobalX=%d dmxGlobalY=%d"
-                    " on screen index=%d/%d localX=%d localY=%d\n",
-                    dmxGlobalX, dmxGlobalY,
-                    dmxScreen ? dmxScreen->index : -1, pScreen->myNum,
-                    localX, localY);
-        }
     }
                                 /* Send updates down to all core input
                                  * drivers */
@@ -760,25 +647,20 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
             return;
         if (dmxLocal->sendsCore && dmxLocal != dmxLocalCoreKeyboard)
             xE.u.u.detail = dmxFixup(pDev, detail, keySym);
-#if 11/*BP*/
         {
            DeviceIntPtr p = dmxLocal->pDevice;
            int i, nevents;
            xEvent *events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+           ErrorF("KEY %d\n", detail);
            nevents = GetKeyboardEvents(events, p, type, detail);
-           ErrorF("KEY %d  n=%d\n", detail, nevents);
            for (i = 0; i < nevents; i++)
               mieqEnqueue(p, events + i);
            xfree(events);
            return;
         }
-#endif
         break;
     case ButtonPress:
     case ButtonRelease:
-#if 00 /*BP*/
-        detail = dmxGetButtonMapping(dmxLocal, detail);
-#else
         detail = dmxGetButtonMapping(dmxLocal, detail);
         {
            DeviceIntPtr p = dmxLocal->pDevice;
@@ -799,15 +681,8 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
            xfree(events);
            return;
         }
-#endif
         break;
     case MotionNotify:
-        /* All MotionNotify events should be sent via dmxCoreMotion and
-         * dmxExtMotion -- no input driver should build motion events by
-         * hand. */
-#if 00 /*BP*/
-        dmxLog(dmxError, "dmxEnqueueXEvent: MotionNotify not allowed here\n");
-#else
         {
            DeviceIntPtr p = dmxLocal->pDevice;
            int i, nevents, valuators[3];
@@ -815,25 +690,14 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
            valuators[0] = e->xmotion.x;
            valuators[1] = e->xmotion.y;
            valuators[2] = e->xmotion.state;
-           nevents = GetPointerEvents(events,
-                                      /*pDev*/p,
-                                      /*KeyPress*/type,
-                                      detail,
-                                      POINTER_ABSOLUTE,
-                                      0, 3, valuators);
+           nevents = GetPointerEvents(events, p, type, detail, 
+                                      POINTER_ABSOLUTE, 0, 3, valuators);
            ErrorF("MOTION %d, %d  n = %d\n", valuators[0], valuators[1], nevents);
-           /*
-           ErrorF("NEW MOTION %d st %d (%d,%d,%d) n=%d\n",
-                  detail, e->xmotion.state,
-                  valuators[0], valuators[1], valuators[2],
-                  nevents);
-           */
            for (i = 0; i < nevents; i++)
               mieqEnqueue(p, events + i);
            xfree(events);
            return;
         }
-#endif
         break;
                                 /* Always ignore these events */
     case EnterNotify:
