@@ -109,11 +109,11 @@ static int dmxCheckFunctionKeys(DMXLocalInputInfoPtr dmxLocal,
     else if (dmxLocal->pDevice->key)
         state = dmxLocal->pDevice->key->state;
     
-    DMXDBG3("dmxCheckFunctionKeys: keySym=0x%04x %s state=0x%04x\n",
+    ErrorF/*DMXDBG3*/("dmxCheckFunctionKeys: keySym=0x%04x %s state=0x%04x\n",
             keySym, type == KeyPress ? "press" : "release", state);
 
     if ((state & (ControlMask|Mod1Mask)) != (ControlMask|Mod1Mask))
-       return 0;
+        return 0;
 
     switch (keySym) {
     case XK_g:
@@ -679,7 +679,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
             xE.u.u.detail = dmxFixup(pDev, detail, keySym);
 
         events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
-        ErrorF("KEY %d\n", detail);
+        ErrorF("KEY %d  sym %d\n", detail, (int) keySym);
         nevents = GetKeyboardEvents(events, p, type, detail);
         for (i = 0; i < nevents; i++)
             mieqEnqueue(p, events + i);
@@ -719,12 +719,12 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
                                  * modifier map on the backend/console
                                  * input device so that we have complete
                                  * control of the input device LEDs. */
-       ErrorF("Enter/Leave/Keymap/Mapping\n");
         return;
     default:
 #ifdef XINPUT
         if (type == ProximityIn || type == ProximityOut) {
-            if (dmxLocal->sendsCore) return; /* Not a core event */
+            if (dmxLocal->sendsCore)
+                return; /* Not a core event */
             break;
         }
 #endif
