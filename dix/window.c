@@ -731,7 +731,8 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
 
     /*  security creation/labeling check
      */
-    if (!XaceHook(XACE_RESOURCE_ACCESS, wid, RT_WINDOW, DixCreateAccess, pWin))
+    if (!XaceHook(XACE_RESOURCE_ACCESS, client,
+		  wid, RT_WINDOW, DixCreateAccess, pWin))
     {
 	xfree(pWin);
 	*error = BadAccess;
