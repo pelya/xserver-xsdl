@@ -103,17 +103,36 @@ static int dmxCheckFunctionKeys(DMXLocalInputInfoPtr dmxLocal,
 {
     DMXInputInfo   *dmxInput = &dmxInputs[dmxLocal->inputIdx];
     unsigned short state = 0;
-    
+
+#if 1 /* hack to detect ctrl-alt-q, etc */
+    static int ctrl = 0, alt = 0;
+    /* keep track of ctrl/alt key status */
+    if (type == KeyPress && keySym == 0xffe3) {
+        ctrl = 1;
+    }
+    else if (type == KeyRelease && keySym == 0xffe3) {
+        ctrl = 0;
+    }
+    else if (type == KeyPress && keySym == 0xffe9) {
+        alt = 1;
+    }
+    else if (type == KeyRelease && keySym == 0xffe9) {
+        alt = 0;
+    }
+    if (!ctrl || !alt)
+        return 0;
+#else
     if (dmxLocal->sendsCore)
         state = dmxLocalCoreKeyboard->pDevice->key->state;
     else if (dmxLocal->pDevice->key)
         state = dmxLocal->pDevice->key->state;
     
-    ErrorF/*DMXDBG3*/("dmxCheckFunctionKeys: keySym=0x%04x %s state=0x%04x\n",
+    DMXDBG3("dmxCheckFunctionKeys: keySym=0x%04x %s state=0x%04x\n",
             keySym, type == KeyPress ? "press" : "release", state);
 
     if ((state & (ControlMask|Mod1Mask)) != (ControlMask|Mod1Mask))
         return 0;
+#endif
 
     switch (keySym) {
     case XK_g:
@@ -679,7 +698,7 @@ void dmxEnqueue(DevicePtr pDev, int type, int detail, KeySym keySym,
             xE.u.u.detail = dmxFixup(pDev, detail, keySym);
 
         events = Xcalloc(sizeof(xEvent), GetMaximumEventsNum());
-        ErrorF("KEY %d  sym %d\n", detail, (int) keySym);
+        /*ErrorF("KEY %d  sym %d\n", detail, (int) keySym);*/
         nevents = GetKeyboardEvents(events, p, type, detail);
         for (i = 0; i < nevents; i++)
             mieqEnqueue(p, events + i);
