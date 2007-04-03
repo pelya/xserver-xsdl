@@ -141,7 +141,7 @@ ProcXGrabDevice(ClientPtr client)
     error = GrabDevice(client, dev, stuff->this_device_mode,
 		       stuff->other_devices_mode, stuff->grabWindow,
 		       stuff->ownerEvents, stuff->time,
-		       tmp[stuff->deviceid].mask, &rep.status);
+		       tmp[stuff->deviceid].mask, &rep.status, FALSE);
 
     if (error != Success) {
 	SendErrorToClient(client, IReqCode, X_GrabDevice, 0, error);

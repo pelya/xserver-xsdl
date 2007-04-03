@@ -485,7 +485,8 @@ extern int GrabDevice(
     unsigned /* ownerEvents */,
     Time /* ctime */,
     Mask /* mask */,
-    CARD8 * /* status */);
+    CARD8 * /* status */,
+    Bool /* coreGrab */);
 
 extern void InitEvents(void);
 extern void InitSprite(

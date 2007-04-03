@@ -4110,12 +4110,14 @@ ProcUngrabPointer(ClientPtr client)
 int
 GrabDevice(ClientPtr client, DeviceIntPtr dev, 
            unsigned this_mode, unsigned other_mode, Window grabWindow, 
-           unsigned ownerEvents, Time ctime, Mask mask, CARD8 *status)
+           unsigned ownerEvents, Time ctime, Mask mask, CARD8 *status,
+           Bool coreGrab)
 {
     WindowPtr pWin;
     GrabPtr grab;
     TimeStamp time;
     int rc;
+    GrabInfoPtr grabInfo = (coreGrab) ? &dev->coreGrab : &dev->deviceGrab;
 
     UpdateCurrentTime();
     if ((this_mode != GrabModeSync) && (this_mode != GrabModeAsync))
@@ -4137,16 +4139,16 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
     if (rc != Success)
 	return rc;
     time = ClientTimeToServerTime(ctime);
-    grab = dev->coreGrab.grab;
+    grab = grabInfo->grab;
     if (grab && !SameClient(grab, client))
 	*status = AlreadyGrabbed;
     else if (!pWin->realized)
 	*status = GrabNotViewable;
     else if ((CompareTimeStamps(time, currentTime) == LATER) ||
-	     (CompareTimeStamps(time, dev->coreGrab.grabTime) == EARLIER))
+	     (CompareTimeStamps(time, grabInfo->grabTime) == EARLIER))
 	*status = GrabInvalidTime;
-    else if (dev->coreGrab.sync.frozen &&
-	     dev->coreGrab.sync.other && !SameClient(dev->coreGrab.sync.other, client))
+    else if (grabInfo->sync.frozen &&
+	     grabInfo->sync.other && !SameClient(grabInfo->sync.other, client))
 	*status = GrabFrozen;
     else
     {
@@ -4164,7 +4166,7 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 	tempGrab.device = dev;
         tempGrab.cursor = NULL;
 
-	(*dev->coreGrab.ActivateGrab)(dev, &tempGrab, time, FALSE);
+	(*grabInfo->ActivateGrab)(dev, &tempGrab, time, FALSE);
 	*status = GrabSuccess;
     }
     return Success;
@@ -4184,7 +4186,7 @@ ProcGrabKeyboard(ClientPtr client)
 	result = GrabDevice(client, keyboard, stuff->keyboardMode,
 			    stuff->pointerMode, stuff->grabWindow,
 			    stuff->ownerEvents, stuff->time,
-			    KeyPressMask | KeyReleaseMask, &rep.status);
+			    KeyPressMask | KeyReleaseMask, &rep.status, TRUE);
     else {
 	result = Success;
 	rep.status = AlreadyGrabbed;
