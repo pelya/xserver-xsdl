@@ -30,6 +30,7 @@ in this Software without prior written authorization from The Open Group.
 
 #include "scrnintstr.h"
 #include "colormapst.h"
+#include "privates.h"
 #include "xacestr.h"
 #include "securitysrv.h"
 #include <X11/extensions/securstr.h>
@@ -53,23 +54,23 @@ in this Software without prior written authorization from The Open Group.
 
 static int SecurityErrorBase;  /* first Security error number */
 static int SecurityEventBase;  /* first Security event number */
-static int securityClientPrivateIndex;
-static int securityExtnsnPrivateIndex;
+static devprivate_key_t stateKey;
 
 /* this is what we store as client security state */
 typedef struct {
+    int haveState;
     unsigned int trustLevel;
     XID authId;
 } SecurityClientStateRec;
 
-#define STATEVAL(extnsn) \
-    ((extnsn)->devPrivates[securityExtnsnPrivateIndex].val)
-#define STATEPTR(client) \
-    ((client)->devPrivates[securityClientPrivateIndex].ptr)
-#define TRUSTLEVEL(client) \
-    (((SecurityClientStateRec*)STATEPTR(client))->trustLevel)
-#define AUTHID(client) \
-    (((SecurityClientStateRec*)STATEPTR(client))->authId)
+#define EXTLEVEL(extnsn) ((Bool) \
+    dixLookupPrivate(DEVPRIV_PTR(extnsn), &stateKey))
+#define HAVESTATE(client) (((SecurityClientStateRec *) \
+    dixLookupPrivate(DEVPRIV_PTR(client), &stateKey))->haveState)
+#define TRUSTLEVEL(client) (((SecurityClientStateRec *) \
+    dixLookupPrivate(DEVPRIV_PTR(client), &stateKey))->trustLevel)
+#define AUTHID(client)(((SecurityClientStateRec *) \
+    dixLookupPrivate(DEVPRIV_PTR(client), &stateKey))->authId)
 
 static CallbackListPtr SecurityValidateGroupCallback = NULL;
 
@@ -1149,7 +1150,7 @@ SecurityClientStateCallback(CallbackListPtr *pcbl, pointer unused,
 	    SecurityAuthorizationPtr pAuth;
 
 	    /* client may not have any state (bad authorization) */
-	    if (!STATEPTR(client))
+	    if (!HAVESTATE(client))
 		break;
 
 	    pAuth = (SecurityAuthorizationPtr)LookupIDByType(AUTHID(client),
@@ -1185,7 +1186,7 @@ SecurityCheckMapAccess(CallbackListPtr *pcbl, pointer unused,
     XaceMapAccessRec *rec = (XaceMapAccessRec*)calldata;
     WindowPtr pWin = rec->pWin;
 
-    if (STATEPTR(rec->client) &&
+    if (HAVESTATE(rec->client) &&
 	(TRUSTLEVEL(rec->client) != XSecurityClientTrusted) &&
 	(pWin->drawable.class == InputOnly) &&
 	pWin->parent && pWin->parent->parent &&
@@ -1211,7 +1212,7 @@ SecurityCheckExtAccess(CallbackListPtr *pcbl, pointer unused,
     XaceExtAccessRec *rec = (XaceExtAccessRec*)calldata;
 
     if ((TRUSTLEVEL(rec->client) != XSecurityClientTrusted) &&
-	!STATEVAL(rec->ext))
+	!EXTLEVEL(rec->ext))
 
 	rec->rval = FALSE;
 }
@@ -1241,7 +1242,7 @@ SecurityDeclareExtSecure(CallbackListPtr *pcbl, pointer unused,
     XaceDeclareExtSecureRec *rec = (XaceDeclareExtSecureRec*)calldata;
 
     /* security state for extensions is simply a boolean trust value */
-    STATEVAL(rec->ext) = rec->secure;
+    dixSetPrivate(DEVPRIV_PTR(rec->ext), &stateKey, (pointer)rec->secure);
 }
 
 /**********************************************************************/
@@ -1887,29 +1888,14 @@ XSecurityOptions(argc, argv, i)
 void
 SecurityExtensionSetup(INITARGS)
 {
-    /* Allocate the client private index */
-    securityClientPrivateIndex = AllocateClientPrivateIndex();
-    if (!AllocateClientPrivate(securityClientPrivateIndex,
-			       sizeof (SecurityClientStateRec)))
-	FatalError("SecurityExtensionSetup: Can't allocate client private.\n");
-
-    /* Allocate the extension private index */
-    securityExtnsnPrivateIndex = AllocateExtensionPrivateIndex();
-    if (!AllocateExtensionPrivate(securityExtnsnPrivateIndex, 0))
-	FatalError("SecurityExtensionSetup: Can't allocate extnsn private.\n");
-
-    /* register callbacks */
-#define XaceRC XaceRegisterCallback
-    XaceRC(XACE_RESOURCE_ACCESS, SecurityCheckResourceIDAccess, NULL);
-    XaceRC(XACE_DEVICE_ACCESS, SecurityCheckDeviceAccess, NULL);
-    XaceRC(XACE_PROPERTY_ACCESS, SecurityCheckPropertyAccess, NULL);
-    XaceRC(XACE_DRAWABLE_ACCESS, SecurityCheckDrawableAccess, NULL);
-    XaceRC(XACE_MAP_ACCESS, SecurityCheckMapAccess, NULL);
-    XaceRC(XACE_BACKGRND_ACCESS, SecurityCheckBackgrndAccess, NULL);
-    XaceRC(XACE_EXT_DISPATCH, SecurityCheckExtAccess, NULL);
-    XaceRC(XACE_EXT_ACCESS, SecurityCheckExtAccess, NULL);
-    XaceRC(XACE_HOSTLIST_ACCESS, SecurityCheckHostlistAccess, NULL);
-    XaceRC(XACE_DECLARE_EXT_SECURE, SecurityDeclareExtSecure, NULL);
+    /* FIXME: this is here so it is registered before other extensions
+     * init themselves.  This also required commit 5e946dd853a4ebc... to
+     * call the setup functions on each server reset.
+     *
+     * The extension security bit should be delivered in some other way,
+     * either in a symbol or in the module data.
+     */
+    XaceRegisterCallback(XACE_DECLARE_EXT_SECURE, SecurityDeclareExtSecure, 0);
 } /* SecurityExtensionSetup */
 
 
@@ -1939,6 +1925,10 @@ SecurityExtensionInit(INITARGS)
 
     RTEventClient |= RC_NEVERRETAIN;
 
+    /* Allocate the private storage */
+    if (!dixRequestPrivate(&stateKey, sizeof(SecurityClientStateRec)))
+	FatalError("SecurityExtensionSetup: Can't allocate client private.\n");
+
     if (!AddCallback(&ClientStateCallback, SecurityClientStateCallback, NULL))
 	return;
 
@@ -1955,4 +1945,15 @@ SecurityExtensionInit(INITARGS)
 
     SecurityLoadPropertyAccessList();
 
+    /* register callbacks */
+#define XaceRC XaceRegisterCallback
+    XaceRC(XACE_RESOURCE_ACCESS, SecurityCheckResourceIDAccess, NULL);
+    XaceRC(XACE_DEVICE_ACCESS, SecurityCheckDeviceAccess, NULL);
+    XaceRC(XACE_PROPERTY_ACCESS, SecurityCheckPropertyAccess, NULL);
+    XaceRC(XACE_DRAWABLE_ACCESS, SecurityCheckDrawableAccess, NULL);
+    XaceRC(XACE_MAP_ACCESS, SecurityCheckMapAccess, NULL);
+    XaceRC(XACE_BACKGRND_ACCESS, SecurityCheckBackgrndAccess, NULL);
+    XaceRC(XACE_EXT_DISPATCH, SecurityCheckExtAccess, NULL);
+    XaceRC(XACE_EXT_ACCESS, SecurityCheckExtAccess, NULL);
+    XaceRC(XACE_HOSTLIST_ACCESS, SecurityCheckHostlistAccess, NULL);
 } /* SecurityExtensionInit */
