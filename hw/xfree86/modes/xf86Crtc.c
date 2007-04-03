@@ -377,6 +377,15 @@ static OptionInfoRec xf86OutputOptions[] = {
     {-1,		    NULL,		OPTV_NONE,    {0}, FALSE },
 };
 
+enum {
+    OPTION_MODEDEBUG,
+};
+
+static OptionInfoRec xf86DeviceOptions[] = {
+    {OPTION_MODEDEBUG,	    "ModeDebug",	OPTV_STRING,  {0}, FALSE },
+    {-1,		    NULL,		OPTV_NONE,    {0}, FALSE },
+};
+
 static void
 xf86OutputSetMonitor (xf86OutputPtr output)
 {
@@ -1160,8 +1169,6 @@ xf86SortModes (DisplayModePtr input)
     return output;
 }
 
-#define DEBUG_REPROBE 1
-
 void
 xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 {
@@ -1330,7 +1337,8 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	    if (mode->status == MODE_OK)
 		mode->status = (*output->funcs->mode_valid)(output, mode);
 	
-	xf86PruneInvalidModes(scrn, &output->probed_modes, TRUE);
+	xf86PruneInvalidModes(scrn, &output->probed_modes,
+			      config->debug_modes);
 	
 	output->probed_modes = xf86SortModes (output->probed_modes);
 	
@@ -1363,17 +1371,17 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	
 	output->initial_rotation = xf86OutputInitialRotation (output);
 
-#ifdef DEBUG_REPROBE
-	if (output->probed_modes != NULL) {
-	    xf86DrvMsg(scrn->scrnIndex, X_INFO,
-		       "Printing probed modes for output %s\n",
-		       output->name);
-	} else {
-	    xf86DrvMsg(scrn->scrnIndex, X_INFO,
-		       "No remaining probed modes for output %s\n",
-		       output->name);
+	if (config->debug_modes) {
+	    if (output->probed_modes != NULL) {
+		xf86DrvMsg(scrn->scrnIndex, X_INFO,
+			   "Printing probed modes for output %s\n",
+			   output->name);
+	    } else {
+		xf86DrvMsg(scrn->scrnIndex, X_INFO,
+			   "No remaining probed modes for output %s\n",
+			   output->name);
+	    }
 	}
-#endif
 	for (mode = output->probed_modes; mode != NULL; mode = mode->next)
 	{
 	    /* The code to choose the best mode per pipe later on will require
@@ -1382,9 +1390,8 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	    mode->VRefresh = xf86ModeVRefresh(mode);
 	    xf86SetModeCrtc(mode, INTERLACE_HALVE_V);
 
-#ifdef DEBUG_REPROBE
-	    xf86PrintModeline(scrn->scrnIndex, mode);
-#endif
+	    if (config->debug_modes)
+		xf86PrintModeline(scrn->scrnIndex, mode);
 	}
     }
 }
@@ -1478,6 +1485,15 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
     Bool		*enabled;
     int			width;
     int			height;
+
+    /* Set up the device options */
+    config->options = xnfalloc (sizeof (xf86DeviceOptions));
+    memcpy (config->options, xf86DeviceOptions, sizeof (xf86DeviceOptions));
+    xf86ProcessOptions (scrn->scrnIndex,
+			scrn->options,
+			config->options);
+    config->debug_modes = xf86ReturnOptValBool (config->options,
+						OPTION_MODEDEBUG, FALSE);
 
     if (scrn->display->virtualX)
 	width = scrn->display->virtualX;
@@ -1962,10 +1978,12 @@ xf86OutputSetEDID (xf86OutputPtr output, xf86MonPtr edid_mon)
     
     output->MonInfo = edid_mon;
 
-    /* Debug info for now, at least */
-    xf86DrvMsg(scrn->scrnIndex, X_INFO, "EDID for output %s\n", output->name);
-    xf86PrintEDID(edid_mon);
-    
+    if (config->debug_modes) {
+	xf86DrvMsg(scrn->scrnIndex, X_INFO, "EDID for output %s\n",
+		   output->name);
+	xf86PrintEDID(edid_mon);
+    }
+
     /* Set the DDC properties for the 'compat' output */
     if (output == config->output[config->compat_output])
         xf86SetDDCproperties(scrn, edid_mon);

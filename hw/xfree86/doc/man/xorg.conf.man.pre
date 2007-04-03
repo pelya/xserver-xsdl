@@ -958,6 +958,10 @@ the driver-specific documentation recommends it.
 This optional entry specifies the pixel clock frequency that is used
 for the regular text mode.  The frequency is specified in MHz.  This is
 rarely used.
+.TP 7
+.BI "Option \*qModeDebug\*q \*q" boolean \*q
+Enable printing of additional debugging information about modesetting to
+the server log.
 .ig
 .TP 7
 This optional entry allows an IRQ number to be specified.
