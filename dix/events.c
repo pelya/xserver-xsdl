@@ -4637,7 +4637,7 @@ DeleteWindowFromAnyEvents(WindowPtr pWin, Bool freeResources)
     WindowPtr		parent;
     DeviceIntPtr	mouse = inputInfo.pointer;
     DeviceIntPtr	keybd = inputInfo.keyboard;
-    FocusClassPtr	focus = keybd->focus;
+    FocusClassPtr	focus;
     OtherClientsPtr	oc;
     GrabPtr		passive;
     GrabPtr             grab; 
@@ -4650,62 +4650,82 @@ DeleteWindowFromAnyEvents(WindowPtr pWin, Bool freeResources)
 	((grab->window == pWin) || (grab->confineTo == pWin)))
 	(*mouse->coreGrab.DeactivateGrab)(mouse);
 
-    /* Deactivating a keyboard grab should cause focus events. */
 
+    /* Deactivating a keyboard grab should cause focus events. */
     grab = keybd->coreGrab.grab;
     if (grab && (grab->window == pWin))
 	(*keybd->coreGrab.DeactivateGrab)(keybd);
 
-    /* If the focus window is a root window (ie. has no parent) then don't 
-	delete the focus from it. */
-    
-    if ((pWin == focus->win) && (pWin->parent != NullWindow))
+    /* And now the real devices */
+    for (mouse = inputInfo.devices; mouse; mouse = mouse->next)
     {
-	int focusEventMode = NotifyNormal;
-
- 	/* If a grab is in progress, then alter the mode of focus events. */
-
-	if (keybd->coreGrab.grab)
-	    focusEventMode = NotifyWhileGrabbed;
-
-	switch (focus->revert)
-	{
-	case RevertToNone:
-	    DoFocusEvents(keybd, pWin, NoneWin, focusEventMode);
-	    focus->win = NoneWin;
-	    focus->traceGood = 0;
-	    break;
-	case RevertToParent:
-	    parent = pWin;
-	    do
-	    {
-		parent = parent->parent;
-		focus->traceGood--;
-	    } while (!parent->realized
-/* This would be a good protocol change -- windows being reparented
-   during SaveSet processing would cause the focus to revert to the
-   nearest enclosing window which will survive the death of the exiting
-   client, instead of ending up reverting to a dying window and thence
-   to None
- */
-#ifdef NOTDEF
- 	      || clients[CLIENT_ID(parent->drawable.id)]->clientGone
-#endif
-		);
-	    DoFocusEvents(keybd, pWin, parent, focusEventMode);
-	    focus->win = parent;
-	    focus->revert = RevertToNone;
-	    break;
-	case RevertToPointerRoot:
-	    DoFocusEvents(keybd, pWin, PointerRootWin, focusEventMode);
-	    focus->win = PointerRootWin;
-	    focus->traceGood = 0;
-	    break;
-	}
+        grab = mouse->coreGrab.grab;
+        if (grab && ((grab->window == pWin) || (grab->confineTo == pWin)))
+            (*mouse->coreGrab.DeactivateGrab)(mouse);
     }
 
-    if (mouse->valuator->motionHintWindow == pWin)
-	mouse->valuator->motionHintWindow = NullWindow;
+
+    for (keybd = inputInfo.devices; keybd; keybd = keybd->next)
+    {
+        if (IsKeyboardDevice(keybd))
+        {
+            focus = keybd->focus;
+
+            /* If the focus window is a root window (ie. has no parent) then don't 
+               delete the focus from it. */
+
+            if ((pWin == focus->win) && (pWin->parent != NullWindow))
+            {
+                int focusEventMode = NotifyNormal;
+
+                /* If a grab is in progress, then alter the mode of focus events. */
+
+                if (keybd->coreGrab.grab)
+                    focusEventMode = NotifyWhileGrabbed;
+
+                switch (focus->revert)
+                {
+                    case RevertToNone:
+                        DoFocusEvents(keybd, pWin, NoneWin, focusEventMode);
+                        focus->win = NoneWin;
+                        focus->traceGood = 0;
+                        break;
+                    case RevertToParent:
+                        parent = pWin;
+                        do
+                        {
+                            parent = parent->parent;
+                            focus->traceGood--;
+                        } while (!parent->realized
+                                /* This would be a good protocol change -- windows being reparented
+                                   during SaveSet processing would cause the focus to revert to the
+                                   nearest enclosing window which will survive the death of the exiting
+                                   client, instead of ending up reverting to a dying window and thence
+                                   to None
+                                 */
+#ifdef NOTDEF
+                                || clients[CLIENT_ID(parent->drawable.id)]->clientGone
+#endif
+                                );
+                        DoFocusEvents(keybd, pWin, parent, focusEventMode);
+                        focus->win = parent;
+                        focus->revert = RevertToNone;
+                        break;
+                    case RevertToPointerRoot:
+                        DoFocusEvents(keybd, pWin, PointerRootWin, focusEventMode);
+                        focus->win = PointerRootWin;
+                        focus->traceGood = 0;
+                        break;
+                }
+            }
+        }
+
+        if (IsPointerDevice(keybd))
+        {
+            if (keybd->valuator->motionHintWindow == pWin)
+                keybd->valuator->motionHintWindow = NullWindow;
+        }
+    }
 
     if (freeResources)
     {
