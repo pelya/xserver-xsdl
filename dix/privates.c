@@ -107,7 +107,7 @@ dixAllocatePrivate(PrivateRec **privates, devprivate_key_t *const key)
     if (item)
 	size += item->size;
 
-    ptr = (PrivateRec *)xalloc(size);
+    ptr = (PrivateRec *)xcalloc(size, 1);
     if (!ptr)
 	return NULL;
     ptr->key = key;
