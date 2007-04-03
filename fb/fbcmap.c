@@ -40,7 +40,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "fb.h"
 
 #ifdef XFree86Server
-#error "You should be compiling fbcmap_mi.c intead of fbcmap.c!"
+#error "You should be compiling fbcmap_mi.c instead of fbcmap.c!"
 #endif
 
 
