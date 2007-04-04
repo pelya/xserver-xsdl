@@ -123,11 +123,7 @@ FreeCursor(pointer value, XID cid)
     for (nscr = 0; nscr < screenInfo.numScreens; nscr++)
     {
 	pscr = screenInfo.screens[nscr];
-        for(pDev = inputInfo.devices; pDev; pDev = pDev->next)
-        {
-            if (DevHasCursor(pDev))
-                (void)( *pscr->UnrealizeCursor)(pDev, pscr, pCurs);
-        }
+        (void)( *pscr->UnrealizeCursor)(pDev, pscr, pCurs);
     }
     FreeCursorBits(pCurs->bits);
     xfree( pCurs);
