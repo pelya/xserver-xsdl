@@ -134,6 +134,7 @@ int ProcInitialConnection();
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
 #endif
+#include "privates.h"
 #include "xace.h"
 #ifdef XAPPGROUP
 #include "appgroup.h"
@@ -3651,6 +3652,7 @@ CloseDownClient(ClientPtr client)
 #ifdef SMART_SCHEDULE
 	SmartLastClient = NullClient;
 #endif
+	dixFreePrivates(*DEVPRIV_PTR(client));
 	xfree(client);
 
 	while (!clients[currentMaxClients-1])

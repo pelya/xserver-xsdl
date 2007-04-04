@@ -126,6 +126,7 @@ Equipment Corporation.
 #ifdef XAPPGROUP
 #include "appgroup.h"
 #endif
+#include "privates.h"
 #include "xace.h"
 
 /******
@@ -975,6 +976,7 @@ DeleteWindow(pointer value, XID wid)
 	if (pWin->prevSib)
 	    pWin->prevSib->nextSib = pWin->nextSib;
     }
+    dixFreePrivates(*DEVPRIV_PTR(pWin));
     xfree(pWin);
     return Success;
 }

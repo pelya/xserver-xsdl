@@ -103,6 +103,7 @@ Equipment Corporation.
 #include "site.h"
 #include "dixfont.h"
 #include "extnsionst.h"
+#include "privates.h"
 #ifdef XPRINT
 #include "DiPrint.h"
 #endif
@@ -496,6 +497,7 @@ main(int argc, char *argv[], char *envp[])
 
 	FreeAuditTimer();
 
+	dixFreePrivates(*DEVPRIV_PTR(serverClient));
 	xfree(serverClient->devPrivates);
 	serverClient->devPrivates = NULL;
 
@@ -801,6 +803,7 @@ FreeScreen(ScreenPtr pScreen)
     xfree(pScreen->WindowPrivateSizes);
     xfree(pScreen->GCPrivateSizes);
     xfree(pScreen->PixmapPrivateSizes);
+    dixFreePrivates(*DEVPRIV_PTR(pScreen));
     xfree(pScreen->devPrivates);
     xfree(pScreen);
 }

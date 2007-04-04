@@ -59,6 +59,7 @@ SOFTWARE.
 #include "gcstruct.h"
 #include "scrnintstr.h"
 #include "dispatch.h"
+#include "privates.h"
 #include "xace.h"
 
 #define EXTENSION_BASE  128
@@ -290,6 +291,7 @@ CloseDownExtensions()
 	for (j = extensions[i]->num_aliases; --j >= 0;)
 	    xfree(extensions[i]->aliases[j]);
 	xfree(extensions[i]->aliases);
+	dixFreePrivates(*DEVPRIV_PTR(extensions[i]));
 	xfree(extensions[i]);
     }
     xfree(extensions);

@@ -63,6 +63,7 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "resource.h"
 #include "windowstr.h"
+#include "privates.h"
 
 extern XID clientErrorValue;
 extern int colormapPrivateCount;
@@ -474,6 +475,7 @@ FreeColormap (pointer value, XID mid)
         }
     }
 
+    dixFreePrivates(*DEVPRIV_PTR(pmap));
     if (pmap->devPrivates)
 	xfree(pmap->devPrivates);
 

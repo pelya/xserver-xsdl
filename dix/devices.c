@@ -69,6 +69,7 @@ SOFTWARE.
 #ifdef XKB
 #include <xkbsrv.h>
 #endif
+#include "privates.h"
 #include "xace.h"
 
 #include "dispatch.h"
@@ -502,6 +503,7 @@ CloseDevice(DeviceIntPtr dev)
 	XkbRemoveResourceClient((DevicePtr)dev,dev->xkb_interest->resource);
 #endif
 
+    dixFreePrivates(*DEVPRIV_PTR(dev));
     if (dev->devPrivates)
 	xfree(dev->devPrivates);
 
