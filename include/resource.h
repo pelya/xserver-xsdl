@@ -212,32 +212,18 @@ extern Bool LegalNewID(
     XID /*id*/,
     ClientPtr /*client*/);
 
-extern pointer LookupIDByType(
-    XID /*id*/,
-    RESTYPE /*rtype*/);
-
-extern pointer LookupIDByClass(
-    XID /*id*/,
-    RESTYPE /*classes*/);
-
 extern pointer LookupClientResourceComplex(
     ClientPtr client,
     RESTYPE type,
     FindComplexResType func,
     pointer cdata);
 
-extern pointer SecurityLookupIDByType(
-    ClientPtr /*client*/,
-    XID /*id*/,
-    RESTYPE /*rtype*/,
-    Mask /*access_mode*/);
-
-extern pointer SecurityLookupIDByClass(
-    ClientPtr /*client*/,
-    XID /*id*/,
-    RESTYPE /*classes*/,
-    Mask /*access_mode*/);
-
+extern int dixLookupResource(
+    pointer *result,
+    XID id,
+    RESTYPE rtype,
+    ClientPtr client,
+    Mask access_mode);
 
 extern void GetXIDRange(
     int /*client*/,
@@ -257,6 +243,35 @@ extern RESTYPE TypeMask;
 extern Atom *ResourceNames;
 void RegisterResourceName(RESTYPE type, char* name);
 #endif
+
+/*
+ * These are deprecated compatibility functions and will be removed soon!
+ * Please use the noted replacements instead.
+ */
+
+/* replaced by dixLookupResource */
+extern pointer SecurityLookupIDByType(
+    ClientPtr client,
+    XID id,
+    RESTYPE rtype,
+    Mask access_mode);
+
+/* replaced by dixLookupResource */
+extern pointer SecurityLookupIDByClass(
+    ClientPtr client,
+    XID id,
+    RESTYPE classes,
+    Mask access_mode);
+
+/* replaced by dixLookupResource */
+extern pointer LookupIDByType(
+    XID id,
+    RESTYPE rtype);
+
+/* replaced by dixLookupResource */
+extern pointer LookupIDByClass(
+    XID id,
+    RESTYPE classes);
 
 #endif /* RESOURCE_H */
 

@@ -899,81 +899,31 @@ LegalNewID(XID id, ClientPtr client)
 	     !LookupIDByClass(id, RC_ANY)));
 }
 
-/* SecurityLookupIDByType and SecurityLookupIDByClass:
- * These are the heart of the resource ID security system.  They take
- * two additional arguments compared to the old LookupID functions:
- * the client doing the lookup, and the access mode (see resource.h).
- * The resource is returned if it exists and the client is allowed access,
- * else NULL is returned.
- */
-
-_X_EXPORT pointer
-SecurityLookupIDByType(ClientPtr client, XID id, RESTYPE rtype, Mask mode)
+_X_EXPORT int
+dixLookupResource(pointer *result, XID id, RESTYPE rtype,
+		  ClientPtr client, Mask mode)
 {
-    int    cid;
-    ResourcePtr res;
-    pointer retval = NULL;
-
-    if (((cid = CLIENT_ID(id)) < MAXCLIENTS) &&
-	clientTable[cid].buckets)
-    {
-	res = clientTable[cid].resources[Hash(cid, id)];
-
-	for (; res; res = res->next)
-	    if ((res->id == id) && (res->type == rtype))
-	    {
-		retval = res->value;
-		break;
-	    }
-    }
-    if (retval && client && 
-	!XaceHook(XACE_RESOURCE_ACCESS, client, id, rtype, mode, retval))
-	retval = NULL;
-
-    return retval;
-}
-
-
-_X_EXPORT pointer
-SecurityLookupIDByClass(ClientPtr client, XID id, RESTYPE classes, Mask mode)
-{
-    int    cid;
+    int cid = CLIENT_ID(id);
+    int istype = (rtype & TypeMask) && (rtype != RC_ANY);
     ResourcePtr res = NULL;
-    pointer retval = NULL;
 
-    if (((cid = CLIENT_ID(id)) < MAXCLIENTS) &&
-	clientTable[cid].buckets)
-    {
+    *result = NULL;
+    client->errorValue = id;
+
+    if ((cid < MAXCLIENTS) && clientTable[cid].buckets) {
 	res = clientTable[cid].resources[Hash(cid, id)];
 
 	for (; res; res = res->next)
-	    if ((res->id == id) && (res->type & classes))
-	    {
-		retval = res->value;
+	    if ((res->id == id) && ((istype && res->type == rtype) ||
+				    (!istype && res->type & rtype)))
 		break;
-	    }
     }
-    if (retval && client &&
-	!XaceHook(XACE_RESOURCE_ACCESS, client, id, res->type, mode, retval))
-	retval = NULL;
-
-    return retval;
-}
-
-/* We can't replace the LookupIDByType and LookupIDByClass functions with
- * macros because of compatibility with loadable servers.
- */
-
-_X_EXPORT pointer
-LookupIDByType(XID id, RESTYPE rtype)
-{
-    return SecurityLookupIDByType(NullClient, id, rtype,
-				  DixUnknownAccess);
-}
-
-_X_EXPORT pointer
-LookupIDByClass(XID id, RESTYPE classes)
-{
-    return SecurityLookupIDByClass(NullClient, id, classes,
-				   DixUnknownAccess);
+    if (res) {
+	if (client && !XaceHook(XACE_RESOURCE_ACCESS, client, id, res->type,
+				mode, res->value))
+	    return BadAccess;
+	*result = res->value;
+	return Success;
+    }
+    return BadValue;
 }

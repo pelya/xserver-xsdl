@@ -233,17 +233,6 @@ extern int dixLookupClient(
     ClientPtr client,
     Mask access_mode);
 
-/*
- * These are deprecated compatibility functions and will be removed soon!
- * Please use the new dixLookup*() functions above.
- */
-extern WindowPtr SecurityLookupWindow(XID, ClientPtr, Mask);
-extern WindowPtr LookupWindow(XID, ClientPtr);
-extern pointer SecurityLookupDrawable(XID, ClientPtr, Mask);
-extern pointer LookupDrawable(XID, ClientPtr);
-extern ClientPtr LookupClient(XID, ClientPtr);
-/* end deprecated functions */
-
 extern void NoopDDA(void);
 
 extern int AlterSaveSetForClient(
@@ -640,5 +629,37 @@ extern int xstrcasecmp(char *s1, char *s2);
 
 /* ffs.c */
 extern int ffs(int i);
+
+/*
+ * These are deprecated compatibility functions and will be removed soon!
+ * Please use the noted replacements instead.
+ */
+
+/* replaced by dixLookupWindow */
+extern WindowPtr SecurityLookupWindow(
+    XID id,
+    ClientPtr client,
+    Mask access_mode);
+
+/* replaced by dixLookupWindow */
+extern WindowPtr LookupWindow(
+    XID id,
+    ClientPtr client);
+
+/* replaced by dixLookupDrawable */
+extern pointer SecurityLookupDrawable(
+    XID id,
+    ClientPtr client,
+    Mask access_mode);
+
+/* replaced by dixLookupDrawable */
+extern pointer LookupDrawable(
+    XID id,
+    ClientPtr client);
+
+/* replaced by dixLookupClient */
+extern ClientPtr LookupClient(
+    XID id,
+    ClientPtr client);
 
 #endif /* DIX_H */

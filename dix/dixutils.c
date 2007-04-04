@@ -223,8 +223,8 @@ dixLookupDrawable(DrawablePtr *pDraw, XID id, ClientPtr client,
 	if (!XaceHook(XACE_RESOURCE_ACCESS, client, id, rtype, access, pTmp))
 	    return BadDrawable;
     } else
-	pTmp = (DrawablePtr)SecurityLookupIDByClass(client, id, RC_DRAWABLE,
-						   access);
+	dixLookupResource((void **)&pTmp, id, RC_DRAWABLE, client, access);
+
     if (!pTmp)
 	return BadDrawable;
     if (!((1 << pTmp->type) & (type ? type : M_DRAWABLE)))
@@ -264,10 +264,11 @@ dixLookupGC(GCPtr *pGC, XID id, ClientPtr client, Mask access)
 _X_EXPORT int
 dixLookupClient(ClientPtr *pClient, XID rid, ClientPtr client, Mask access)
 {
-    pointer pRes = (pointer)SecurityLookupIDByClass(client, rid, RC_ANY,
-						    DixReadAccess);
+    pointer pRes;
     int clientIndex = CLIENT_ID(rid);
     client->errorValue = rid;
+
+    dixLookupResource(&pRes, rid, RC_ANY, client, DixReadAccess);
 
     if (clientIndex && pRes && clients[clientIndex] && !(rid & SERVER_BIT)) {
 	*pClient = clients[clientIndex];
@@ -276,62 +277,6 @@ dixLookupClient(ClientPtr *pClient, XID rid, ClientPtr client, Mask access)
     *pClient = NULL;
     return BadValue;
 }
-
-/*
- * These are deprecated compatibility functions and will be removed soon!
- * Please use the new dixLookup*() functions above.
- */
-_X_EXPORT _X_DEPRECATED WindowPtr
-SecurityLookupWindow(XID id, ClientPtr client, Mask access_mode)
-{
-    WindowPtr pWin;
-    int i = dixLookupWindow(&pWin, id, client, access_mode);
-    static int warn = 1;
-    if (warn-- > 0)
-	ErrorF("Warning: LookupWindow()/SecurityLookupWindow() "
-	       "are deprecated.  Please convert your driver/module "
-	       "to use dixLookupWindow().\n");
-    return (i == Success) ? pWin : NULL;
-}
-
-_X_EXPORT _X_DEPRECATED WindowPtr
-LookupWindow(XID id, ClientPtr client)
-{
-    return SecurityLookupWindow(id, client, DixUnknownAccess);
-}
-
-_X_EXPORT _X_DEPRECATED pointer
-SecurityLookupDrawable(XID id, ClientPtr client, Mask access_mode)
-{
-    DrawablePtr pDraw;
-    int i = dixLookupDrawable(&pDraw, id, client, M_DRAWABLE, access_mode);
-    static int warn = 1;
-    if (warn-- > 0)
-	ErrorF("Warning: LookupDrawable()/SecurityLookupDrawable() "
-	       "are deprecated.  Please convert your driver/module "
-	       "to use dixLookupDrawable().\n");
-    return (i == Success) ? pDraw : NULL;
-}
-
-_X_EXPORT _X_DEPRECATED pointer
-LookupDrawable(XID id, ClientPtr client)
-{
-    return SecurityLookupDrawable(id, client, DixUnknownAccess);
-}
-
-_X_EXPORT _X_DEPRECATED ClientPtr
-LookupClient(XID id, ClientPtr client)
-{
-    ClientPtr pClient;
-    int i = dixLookupClient(&pClient, id, client, DixUnknownAccess);
-    static int warn = 1;
-    if (warn-- > 0)
-	ErrorF("Warning: LookupClient() is deprecated.  Please convert your "
-	       "driver/module to use dixLookupClient().\n");
-    return (i == Success) ? pClient : NULL;
-}
-
-/* end deprecated functions */
 
 int
 AlterSaveSetForClient(ClientPtr client, WindowPtr pWin, unsigned mode,
