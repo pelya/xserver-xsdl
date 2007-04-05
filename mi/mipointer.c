@@ -467,7 +467,6 @@ static void
 miPointerMoved (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y,
                      unsigned long time)
 {
-    int valuators[2];
     miPointerPtr pPointer = MIPOINTER(pDev);
     SetupScreen(pScreen);
 
@@ -574,9 +573,8 @@ miPointerMove (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y, unsigned long
         }
     }
 
-    nevents = GetPointerEvents(events, inputInfo.pointer, MotionNotify, 0,
-                               POINTER_ABSOLUTE, 0, 2, valuators);
+    nevents = GetPointerEvents(events, pDev, MotionNotify, 0, POINTER_ABSOLUTE, 0, 2, valuators);
 
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(inputInfo.pointer, &events[i]);
+        mieqEnqueue(pDev, &events[i]);
 }
