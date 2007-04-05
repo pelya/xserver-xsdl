@@ -788,7 +788,7 @@ ATIPseudoDMAInit(ScreenPtr pScreen)
 		atis->cce_pri_size = MMIO_IN32(mmio, RADEON_REG_CP_CSQ_CNTL) &
 		    R200_CSQ_CNT_PRIMARY_MASK;
 		MMIO_OUT32(mmio, RADEON_REG_ME_CNTL, RADEON_ME_MODE_FREE_RUN);
-	} if (atic->is_radeon) {
+	} else if (atic->is_radeon) {
 		MMIO_OUT32(mmio, RADEON_REG_CP_CSQ_CNTL,
 		    RADEON_CSQ_PRIPIO_INDDIS);
 		atis->cce_pri_size = MMIO_IN32(mmio, RADEON_REG_CP_CSQ_CNTL) &

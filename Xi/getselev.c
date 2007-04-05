@@ -77,9 +77,9 @@ SOFTWARE.
  */
 
 int
-SProcXGetSelectedExtensionEvents(register ClientPtr client)
+SProcXGetSelectedExtensionEvents(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xGetSelectedExtensionEventsReq);
     swaps(&stuff->length, n);
@@ -96,7 +96,7 @@ SProcXGetSelectedExtensionEvents(register ClientPtr client)
  */
 
 int
-ProcXGetSelectedExtensionEvents(register ClientPtr client)
+ProcXGetSelectedExtensionEvents(ClientPtr client)
 {
     int i, rc, total_length = 0;
     xGetSelectedExtensionEventsReply rep;
@@ -177,7 +177,7 @@ void
 SRepXGetSelectedExtensionEvents(ClientPtr client, int size,
 				xGetSelectedExtensionEventsReply * rep)
 {
-    register char n;
+    char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);

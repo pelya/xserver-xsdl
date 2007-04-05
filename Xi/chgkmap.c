@@ -76,11 +76,11 @@ SOFTWARE.
  */
 
 int
-SProcXChangeDeviceKeyMapping(register ClientPtr client)
+SProcXChangeDeviceKeyMapping(ClientPtr client)
 {
-    register char n;
-    register long *p;
-    register int i, count;
+    char n;
+    long *p;
+    int i, count;
 
     REQUEST(xChangeDeviceKeyMappingReq);
     swaps(&stuff->length, n);
@@ -101,7 +101,7 @@ SProcXChangeDeviceKeyMapping(register ClientPtr client)
  */
 
 int
-ProcXChangeDeviceKeyMapping(register ClientPtr client)
+ProcXChangeDeviceKeyMapping(ClientPtr client)
 {
     int ret;
     unsigned len;

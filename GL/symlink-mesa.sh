@@ -225,9 +225,6 @@ symlink_glx() {
     dst_dir glx
 
     action indirect_size.h
-
-    src_dir src/mesa/drivers/dri/common
-
     action glcontextmodes.c
     action glcontextmodes.h
 

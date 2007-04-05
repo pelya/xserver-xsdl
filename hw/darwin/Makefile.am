@@ -26,12 +26,12 @@ libdarwinShared_a_SOURCES = darwin.c \
 
 bin_PROGRAMS = XDarwin Xquartz
 XDarwin_SOURCES = \
-                  $(top_srcdir)/fb/fbcmap.c \
+                  $(top_srcdir)/fb/fbcmap_mi.c \
                   $(top_srcdir)/mi/miinitext.c \
                   $(top_srcdir)/Xi/stubs.c
 
 Xquartz_SOURCES = \
-                  $(top_srcdir)/fb/fbcmap.c \
+                  $(top_srcdir)/fb/fbcmap_mi.c \
                   $(top_srcdir)/mi/miinitext.c \
                   $(top_srcdir)/Xi/stubs.c \
                   apple/X11Application.m \
@@ -115,7 +115,7 @@ x11app:
 	cd apple && xcodebuild CFLAGS="$(XSERVERCFLAGS_CFLAGS)" LDFLAGS="$(XSERVERCFLAGS_LIBS)"
 
 XDarwinApp_SOURCES = \
-                $(top_srcdir)/fb/fbcmap.c \
+                $(top_srcdir)/fb/fbcmap_mi.c \
                 $(top_srcdir)/mi/miinitext.c \
 		$(top_srcdir)/Xi/stubs.c 
 

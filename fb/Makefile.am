@@ -78,4 +78,4 @@ libwfb_la_SOURCES = $(libfb_la_SOURCES)
 
 libfb_la_LIBADD = libfbmmx.la
 
-EXTRA_DIST = fbcmap.c
+EXTRA_DIST = fbcmap.c fbcmap_mi.c

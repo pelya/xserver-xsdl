@@ -75,9 +75,9 @@ SOFTWARE.
  */
 
 int
-SProcXGetDeviceControl(register ClientPtr client)
+SProcXGetDeviceControl(ClientPtr client)
 {
-    register char n;
+    char n;
 
     REQUEST(xGetDeviceControlReq);
     swaps(&stuff->length, n);
@@ -96,7 +96,7 @@ static void
 CopySwapDeviceResolution(ClientPtr client, ValuatorClassPtr v, char *buf,
 			 int length)
 {
-    register char n;
+    char n;
     AxisInfoPtr a;
     xDeviceResolutionState *r;
     int i, *iptr;
@@ -127,7 +127,7 @@ CopySwapDeviceResolution(ClientPtr client, ValuatorClassPtr v, char *buf,
 static void CopySwapDeviceAbsCalib (ClientPtr client, AbsoluteClassPtr dts,
                                 char *buf)
 {
-    register char n;
+    char n;
     xDeviceAbsCalibState *calib = (xDeviceAbsCalibState *) buf;
 
     calib->control = DEVICE_ABS_CALIB;
@@ -158,7 +158,7 @@ static void CopySwapDeviceAbsCalib (ClientPtr client, AbsoluteClassPtr dts,
 static void CopySwapDeviceAbsArea (ClientPtr client, AbsoluteClassPtr dts,
                                 char *buf)
 {
-    register char n;
+    char n;
     xDeviceAbsAreaState *area = (xDeviceAbsAreaState *) buf;
 
     area->control = DEVICE_ABS_AREA;
@@ -184,7 +184,7 @@ static void CopySwapDeviceAbsArea (ClientPtr client, AbsoluteClassPtr dts,
 
 static void CopySwapDeviceCore (ClientPtr client, DeviceIntPtr dev, char *buf)
 {
-    register char n;
+    char n;
     xDeviceCoreState *c = (xDeviceCoreState *) buf;
 
     c->control = DEVICE_CORE;
@@ -201,7 +201,7 @@ static void CopySwapDeviceCore (ClientPtr client, DeviceIntPtr dev, char *buf)
 
 static void CopySwapDeviceEnable (ClientPtr client, DeviceIntPtr dev, char *buf)
 {
-    register char n;
+    char n;
     xDeviceEnableState *e = (xDeviceEnableState *) buf;
 
     e->control = DEVICE_ENABLE;
@@ -225,7 +225,7 @@ static void CopySwapDeviceEnable (ClientPtr client, DeviceIntPtr dev, char *buf)
 void
 SRepXGetDeviceControl(ClientPtr client, int size, xGetDeviceControlReply * rep)
 {
-    register char n;
+    char n;
 
     swaps(&rep->sequenceNumber, n);
     swapl(&rep->length, n);
@@ -243,7 +243,7 @@ ProcXGetDeviceControl(ClientPtr client)
 {
     int total_length = 0;
     char *buf, *savbuf;
-    register DeviceIntPtr dev;
+    DeviceIntPtr dev;
     xGetDeviceControlReply rep;
 
     REQUEST(xGetDeviceControlReq);

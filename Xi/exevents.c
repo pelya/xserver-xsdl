@@ -104,12 +104,12 @@ RegisterOtherDevice(DeviceIntPtr device)
 }
 
  /*ARGSUSED*/ void
-ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
+ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 {
-    register BYTE *kptr;
-    register int i;
-    register CARD16 modifiers;
-    register CARD16 mask;
+    BYTE *kptr;
+    int i;
+    CARD16 modifiers;
+    CARD16 mask;
     GrabPtr grab = other->grab;
     Bool deactivateDeviceGrab = FALSE;
     int key = 0, bit = 0, rootX, rootY;
@@ -288,7 +288,7 @@ ProcessOtherEvent(xEventPtr xE, register DeviceIntPtr other, int count)
 _X_EXPORT int
 InitProximityClassDeviceStruct(DeviceIntPtr dev)
 {
-    register ProximityClassPtr proxc;
+    ProximityClassPtr proxc;
 
     proxc = (ProximityClassPtr) xalloc(sizeof(ProximityClassRec));
     if (!proxc)
@@ -301,7 +301,7 @@ _X_EXPORT void
 InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
 		       int resolution, int min_res, int max_res)
 {
-    register AxisInfoPtr ax;
+    AxisInfoPtr ax;
    
     if (!dev || !dev->valuator)
         return;
@@ -378,7 +378,7 @@ FixDeviceValuator(DeviceIntPtr dev, deviceValuator * ev, ValuatorClassPtr v,
 
 void
 DeviceFocusEvent(DeviceIntPtr dev, int type, int mode, int detail,
-		 register WindowPtr pWin)
+		 WindowPtr pWin)
 {
     deviceFocus event;
 
@@ -703,9 +703,9 @@ MakeInputMasks(WindowPtr pWin)
 void
 RecalculateDeviceDeliverableEvents(WindowPtr pWin)
 {
-    register InputClientsPtr others;
+    InputClientsPtr others;
     struct _OtherInputMasks *inputMasks;	/* default: NULL */
-    register WindowPtr pChild, tmp;
+    WindowPtr pChild, tmp;
     int i;
 
     pChild = pWin;
@@ -739,9 +739,9 @@ RecalculateDeviceDeliverableEvents(WindowPtr pWin)
 }
 
 int
-InputClientGone(register WindowPtr pWin, XID id)
+InputClientGone(WindowPtr pWin, XID id)
 {
-    register InputClientsPtr other, prev;
+    InputClientsPtr other, prev;
 
     if (!wOtherInputMasks(pWin))
 	return (Success);
@@ -839,7 +839,7 @@ SendEvent(ClientPtr client, DeviceIntPtr d, Window dest, Bool propagate,
 int
 SetButtonMapping(ClientPtr client, DeviceIntPtr dev, int nElts, BYTE * map)
 {
-    register int i;
+    int i;
     ButtonClassPtr b = dev->button;
 
     if (b == NULL)
@@ -865,7 +865,7 @@ SetModifierMapping(ClientPtr client, DeviceIntPtr dev, int len, int rlen,
 {
     KeyCode *map = NULL;
     int inputMapLen;
-    register int i;
+    int i;
 
     *k = dev->key;
     if (*k == NULL)
@@ -1141,7 +1141,7 @@ CheckDeviceGrabAndHintWindow(WindowPtr pWin, int type,
 static Mask
 DeviceEventMaskForClient(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client)
 {
-    register InputClientsPtr other;
+    InputClientsPtr other;
 
     if (!wOtherInputMasks(pWin))
 	return 0;
@@ -1154,7 +1154,7 @@ DeviceEventMaskForClient(DeviceIntPtr dev, WindowPtr pWin, ClientPtr client)
 }
 
 void
-MaybeStopDeviceHint(register DeviceIntPtr dev, ClientPtr client)
+MaybeStopDeviceHint(DeviceIntPtr dev, ClientPtr client)
 {
     WindowPtr pWin;
     GrabPtr grab = dev->grab;

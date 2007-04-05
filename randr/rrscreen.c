@@ -116,11 +116,19 @@ RRDeliverScreenEvent (ClientPtr client, WindowPtr pWin, ScreenPtr pScreen)
 
     se.sequenceNumber = client->sequence;
     se.sizeID = RR10CurrentSizeID (pScreen);
-    
-    se.widthInPixels = pScreen->width;
-    se.heightInPixels = pScreen->height;
-    se.widthInMillimeters = pScreen->mmWidth;
-    se.heightInMillimeters = pScreen->mmHeight;
+
+    if (se.rotation & (RR_Rotate_90 | RR_Rotate_270)) {
+	se.widthInPixels = pScreen->height;
+	se.heightInPixels = pScreen->width;
+	se.widthInMillimeters = pScreen->mmHeight;
+	se.heightInMillimeters = pScreen->mmWidth;
+    } else {
+	se.widthInPixels = pScreen->width;
+	se.heightInPixels = pScreen->height;
+	se.widthInMillimeters = pScreen->mmWidth;
+	se.heightInMillimeters = pScreen->mmHeight;
+    }
+
     WriteEventsToClient (client, 1, (xEvent *) &se);
 }
 

@@ -128,11 +128,11 @@ HandleDevicePresenceMask(ClientPtr client, WindowPtr win,
  */
 
 int
-SProcXSelectExtensionEvent(register ClientPtr client)
+SProcXSelectExtensionEvent(ClientPtr client)
 {
-    register char n;
-    register long *p;
-    register int i;
+    char n;
+    long *p;
+    int i;
 
     REQUEST(xSelectExtensionEventReq);
     swaps(&stuff->length, n);
@@ -154,7 +154,7 @@ SProcXSelectExtensionEvent(register ClientPtr client)
  */
 
 int
-ProcXSelectExtensionEvent(register ClientPtr client)
+ProcXSelectExtensionEvent(ClientPtr client)
 {
     int ret;
     int i;

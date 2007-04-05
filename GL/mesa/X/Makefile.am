@@ -20,13 +20,11 @@ INCLUDES = -I@MESA_SOURCE@/include \
 AM_CFLAGS = \
 	$(DIX_CFLAGS) \
 	-DXFree86Server \
-	@GLX_DEFINES@ \
-	-DXFree86Server
+	@GLX_DEFINES@
 
 libX_la_SOURCES = xf86glx.c \
                   xf86glx_util.c \
-                  xf86glx_util.h \
-                  xf86glxint.h
+                  xf86glx_util.h
 
 nodist_libX_la_SOURCES = \
                   xm_api.c \

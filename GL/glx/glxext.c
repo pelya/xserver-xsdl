@@ -275,7 +275,7 @@ static GLboolean errorOccured = GL_FALSE;
 /*
 ** The GL was will call this routine if an error occurs.
 */
-void __glXErrorCallBack(__GLinterface *gc, GLenum code)
+void __glXErrorCallBack(GLenum code)
 {
     errorOccured = GL_TRUE;
 }

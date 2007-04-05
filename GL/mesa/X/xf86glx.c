@@ -37,39 +37,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 #include <string.h>
-#include <regionstr.h>
-#include <resource.h>
-#include <GL/gl.h>
-#include <GL/glxint.h>
-#include <GL/glxtokens.h>
-#include <scrnintstr.h>
-#include <windowstr.h>
-#include <config.h>
+
+#include <GL/xmesa.h>
+#include <GL/internal/glcore.h>
 #include <glxserver.h>
 #include <glxscreens.h>
 #include <glxdrawable.h>
 #include <glxcontext.h>
-#include <glxext.h>
 #include <glxutil.h>
-#include "context.h"
 #include "xmesaP.h"
-#include "context.h"
 
 #include "glcontextmodes.h"
 #include "os.h"
-
-/*
- * This define is for the glcore.h header file.
- * If you add it here, then make sure you also add it in
- * ../../../glx/Imakefile.
- */
-#if 0
-#define DEBUG
-#include <GL/internal/glcore.h>
-#undef DEBUG
-#else
-#include <GL/internal/glcore.h>
-#endif
 
 typedef struct __GLXMESAscreen   __GLXMESAscreen;
 typedef struct __GLXMESAcontext  __GLXMESAcontext;
@@ -218,8 +197,7 @@ __glXMesaContextCopy(__GLXcontext *baseDst,
     __GLXMESAcontext *dst = (__GLXMESAcontext *) baseDst;
     __GLXMESAcontext *src = (__GLXMESAcontext *) baseSrc;
 
-    _mesa_copy_context(&src->xmesa->mesa, &dst->xmesa->mesa, mask);
-    return GL_TRUE;
+    return XMesaCopyContext(src->xmesa, dst->xmesa, mask);
 }
 
 static int
@@ -227,7 +205,7 @@ __glXMesaContextForceCurrent(__GLXcontext *baseContext)
 {
     __GLXMESAcontext *context = (__GLXMESAcontext *) baseContext;
 
-    GlxSetRenderTables (context->xmesa->mesa.CurrentDispatch);
+    /* GlxSetRenderTables() call for XGL moved in XMesaForceCurrent() */
 
     return XMesaForceCurrent(context->xmesa);
 }
