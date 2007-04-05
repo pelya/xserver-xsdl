@@ -79,6 +79,7 @@ in this Software without prior written authorization from The Open Group.
 
 #include "windowstr.h"
 #include "gcstruct.h"
+#include "privates.h"
 
 #include "Ps.h"
 
@@ -111,9 +112,13 @@ PsCreatePixmap(
   pPixmap->devKind               = 0;
   pPixmap->refcnt                = 1;
 
+  pPixmap->devPrivates = (DevUnion *)xcalloc(1, sizeof(DevUnion));
+  if( !pPixmap->devPrivates )
+    { xfree(pPixmap); return NullPixmap; }
+
   pPixmap->devPrivate.ptr = (PsPixmapPrivPtr)xcalloc(1, sizeof(PsPixmapPrivRec));
   if( !pPixmap->devPrivate.ptr )
-    { xfree(pPixmap); return NullPixmap; }
+    { xfree(pPixmap->devPrivates); xfree(pPixmap); return NullPixmap; }
   return pPixmap;
 }
 
@@ -196,6 +201,7 @@ PsDestroyPixmap(PixmapPtr pPixmap)
   PsScrubPixmap(pPixmap);
 
   xfree(priv);
+  dixFreePrivates(*DEVPRIV_PTR(pPixmap));
   xfree(pPixmap);
   return TRUE;
 }

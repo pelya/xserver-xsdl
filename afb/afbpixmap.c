@@ -113,6 +113,7 @@ afbDestroyPixmap(pPixmap)
 {
 	if(--pPixmap->refcnt)
 		return(TRUE);
+	dixFreePrivates(*DEVPRIV_PTR(pPixmap));
 	xfree(pPixmap);
 	return(TRUE);
 }

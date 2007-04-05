@@ -45,6 +45,7 @@
 
 #include "pixmapstr.h"
 #include "servermd.h"
+#include "privates.h"
 
 /** Initialize a private area in \a pScreen for pixmap information. */
 Bool dmxInitPixmap(ScreenPtr pScreen)
@@ -173,6 +174,7 @@ Bool dmxDestroyPixmap(PixmapPtr pPixmap)
 	    dmxSync(dmxScreen, FALSE);
 	}
     }
+    dixFreePrivates(*DEVPRIV_PTR(pPixmap));
     xfree(pPixmap);
 
 #if 0

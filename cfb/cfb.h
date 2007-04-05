@@ -37,6 +37,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "colormap.h"
 #include "miscstruct.h"
 #include "servermd.h"
+#include "privates.h"
 #include "windowstr.h"
 #include "mfb.h"
 #undef PixelType

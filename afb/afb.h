@@ -55,6 +55,7 @@ SOFTWARE.
 #include "gc.h"
 #include "colormap.h"
 #include "regionstr.h"
+#include "privates.h"
 #include "mibstore.h"
 #include "mfb.h"
 

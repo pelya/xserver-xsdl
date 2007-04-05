@@ -24,6 +24,7 @@ is" without express or implied warranty.
 #include "regionstr.h"
 #include "gc.h"
 #include "servermd.h"
+#include "privates.h"
 #include "mi.h"
 
 #include "Xnest.h"
@@ -74,6 +75,7 @@ xnestDestroyPixmap(PixmapPtr pPixmap)
   if(--pPixmap->refcnt)
     return TRUE;
   XFreePixmap(xnestDisplay, xnestPixmap(pPixmap));
+  dixFreePrivates(*DEVPRIV_PTR(pPixmap));
   xfree(pPixmap);
   return TRUE;
 }

@@ -58,6 +58,7 @@ SOFTWARE.
 #include "region.h"
 #include "gc.h"
 #include "colormap.h"
+#include "privates.h"
 #include "miscstruct.h"
 #include "mibstore.h"
 
