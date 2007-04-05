@@ -720,20 +720,17 @@ AddScreen(
 
     /* must pre-allocate one private for the new devPrivates support */
     pScreen->WindowPrivateLen = 1;
-    pScreen->WindowPrivateSizes = (unsigned *)xalloc(sizeof(unsigned));
+    pScreen->WindowPrivateSizes = (unsigned *)xcalloc(1, sizeof(unsigned));
     pScreen->totalWindowSize = PadToLong(sizeof(WindowRec)) + sizeof(DevUnion);
     pScreen->GCPrivateLen = 1;
-    pScreen->GCPrivateSizes = (unsigned *)xalloc(sizeof(unsigned));
+    pScreen->GCPrivateSizes = (unsigned *)xcalloc(1, sizeof(unsigned));
     pScreen->totalGCSize = PadToLong(sizeof(GC)) + sizeof(DevUnion);
     pScreen->PixmapPrivateLen = 1;
-    pScreen->PixmapPrivateSizes = (unsigned *)xalloc(sizeof(unsigned));
+    pScreen->PixmapPrivateSizes = (unsigned *)xcalloc(1, sizeof(unsigned));
     pScreen->totalPixmapSize = BitmapBytePad(8 * (sizeof(PixmapRec) +
 						  sizeof(DevUnion)));
-    if (pScreen->WindowPrivateSizes && pScreen->GCPrivateSizes &&
-	pScreen->PixmapPrivateSizes)
-	*pScreen->WindowPrivateSizes = *pScreen->GCPrivateSizes =
-	    *pScreen->PixmapPrivateSizes = 0;
-    else {
+    if (!pScreen->WindowPrivateSizes || !pScreen->GCPrivateSizes ||
+	!pScreen->PixmapPrivateSizes) {
 	xfree(pScreen);
 	return -1;
     }

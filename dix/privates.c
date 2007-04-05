@@ -298,10 +298,9 @@ ResetExtensionPrivates()
     extensionPrivateCount = 1;
     extensionPrivateLen = 1;
     xfree(extensionPrivateSizes);
-    extensionPrivateSizes = (unsigned *)xalloc(sizeof(unsigned));
+    extensionPrivateSizes = (unsigned *)xcalloc(1, sizeof(unsigned));
     if (!extensionPrivateSizes)
 	return FALSE;
-    *extensionPrivateSizes = 0;
     totalExtensionSize = PadToLong(sizeof(ExtensionEntry)) + sizeof(DevUnion);
     return TRUE;
 }
@@ -358,10 +357,9 @@ ResetClientPrivates()
     clientPrivateCount = 1;
     clientPrivateLen = 1;
     xfree(clientPrivateSizes);
-    clientPrivateSizes = (unsigned *)xalloc(sizeof(unsigned));
+    clientPrivateSizes = (unsigned *)xcalloc(1, sizeof(unsigned));
     if (!clientPrivateSizes)
 	return FALSE;
-    *clientPrivateSizes = 0;
     totalClientSize = PadToLong(sizeof(ClientRec)) + sizeof(DevUnion);
     return TRUE;
 }
