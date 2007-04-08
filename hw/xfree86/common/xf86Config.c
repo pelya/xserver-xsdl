@@ -1287,9 +1287,13 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
      * always synthesize a 'mouse' section configured to send core
      * events, unless a 'void' section is found, in which case the user
      * probably wants to run footless.
+     *
+     * If you're using an evdev keyboard and expect a default mouse
+     * section ... deal.
      */
     for (i = servlayoutp->inputs; i->identifier && i->driver; i++) {
-	if (!strcmp(i->driver, "void") || !strcmp(i->driver, "mouse")) {
+	if (!strcmp(i->driver, "void") || !strcmp(i->driver, "mouse") ||
+            !strcmp(i->driver, "vmmouse") || !strcmp(i->driver, "evdev")) {
 	    found = 1; break;
 	}
     }
