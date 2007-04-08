@@ -58,7 +58,7 @@ in this Software without prior written authorization from The Open Group.
 # include <X11/extensions/dpms.h>
 #endif
 
-#define QUEUE_SIZE  256
+#define QUEUE_SIZE  512
 
 typedef struct _Event {
     xEvent          event[7];
