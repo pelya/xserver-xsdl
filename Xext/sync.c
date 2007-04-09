@@ -2509,7 +2509,7 @@ ServertimeBracketValues(pCounter, pbracket_less, pbracket_greater)
 }
 
 static void
-SyncInitServerTime()
+SyncInitServerTime(void)
 {
     CARD64 resolution;
 

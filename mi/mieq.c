@@ -80,7 +80,7 @@ typedef struct _EventQueue {
 static EventQueueRec miEventQueue;
 
 Bool
-mieqInit()
+mieqInit(void)
 {
     int i;
 
@@ -195,7 +195,7 @@ mieqSetHandler(int event, mieqHandler handler)
 
 /* Call this from ProcessInputEvents(). */
 void
-mieqProcessInputEvents()
+mieqProcessInputEvents(void)
 {
     EventRec *e = NULL;
     int x = 0, y = 0;

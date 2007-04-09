@@ -314,7 +314,7 @@ CorePointerProc(DeviceIntPtr pDev, int what)
 }
 
 void
-InitCoreDevices()
+InitCoreDevices(void)
 {
     DeviceIntPtr dev;
 
@@ -373,7 +373,7 @@ InitCoreDevices()
 }
 
 int
-InitAndStartDevices()
+InitAndStartDevices(void)
 {
     DeviceIntPtr dev, next;
 
@@ -503,7 +503,7 @@ CloseDevice(DeviceIntPtr dev)
 }
 
 void
-CloseDownDevices()
+CloseDownDevices(void)
 {
     DeviceIntPtr dev, next;
 
@@ -580,7 +580,7 @@ RemoveDevice(DeviceIntPtr dev)
 }
 
 int
-NumMotionEvents()
+NumMotionEvents(void)
 {
     return inputInfo.pointer->valuator->numMotionEvents;
 }
@@ -598,13 +598,13 @@ RegisterKeyboardDevice(DeviceIntPtr device)
 }
 
 _X_EXPORT DevicePtr
-LookupKeyboardDevice()
+LookupKeyboardDevice(void)
 {
     return inputInfo.keyboard ? &inputInfo.keyboard->public : NULL;
 }
 
 _X_EXPORT DevicePtr
-LookupPointerDevice()
+LookupPointerDevice(void)
 {
     return inputInfo.pointer ? &inputInfo.pointer->public : NULL;
 }

@@ -844,7 +844,7 @@ ConfineCursorToWindow(WindowPtr pWin, Bool generateEvents, Bool confineToScreen)
 }
 
 _X_EXPORT Bool
-PointerConfinedToScreen()
+PointerConfinedToScreen(void)
 {
     return sprite.confined;
 }
@@ -913,19 +913,19 @@ PostNewCursor(void)
 }
 
 _X_EXPORT WindowPtr
-GetCurrentRootWindow()
+GetCurrentRootWindow(void)
 {
     return ROOT;
 }
 
 _X_EXPORT WindowPtr
-GetSpriteWindow()
+GetSpriteWindow(void)
 {
     return sprite.win;
 }
 
 _X_EXPORT CursorPtr
-GetSpriteCursor()
+GetSpriteCursor(void)
 {
     return sprite.current;
 }
@@ -939,7 +939,7 @@ GetSpritePosition(int *px, int *py)
 
 #ifdef PANORAMIX
 _X_EXPORT int
-XineramaGetCursorScreen()
+XineramaGetCursorScreen(void)
 {
     if(!noPanoramiXExtension) {
 	return sprite.screen->myNum;
@@ -1114,7 +1114,7 @@ FreezeThaw(DeviceIntPtr dev, Bool frozen)
 }
 
 void
-ComputeFreezes()
+ComputeFreezes(void)
 {
     DeviceIntPtr replayDev = syncEvents.replayDev;
     int i;
@@ -2047,7 +2047,7 @@ CheckMotion(xEvent *xE)
 }
 
 _X_EXPORT void
-WindowsRestructured()
+WindowsRestructured(void)
 {
     (void) CheckMotion((xEvent *)NULL);
 }
@@ -3970,7 +3970,7 @@ ProcQueryPointer(ClientPtr client)
 }
 
 void
-InitEvents()
+InitEvents(void)
 {
     int i;
 

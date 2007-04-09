@@ -410,13 +410,13 @@ configReconnect(OsTimerPtr timer, CARD32 time, pointer arg)
 }
 
 void
-configInitialise()
+configInitialise(void)
 {
     TimerSet(NULL, 0, 1, configReconnect, NULL);
 }
 
 void
-configFini()
+configFini(void)
 {
     DBusError error;
 

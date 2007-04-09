@@ -544,7 +544,7 @@ static int padlength[4] = {0, 3, 2, 1};
 static
 #endif
 Bool
-CreateConnectionBlock()
+CreateConnectionBlock(void)
 {
     xConnSetup setup;
     xWindowRoot root;

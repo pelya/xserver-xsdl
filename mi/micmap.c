@@ -385,7 +385,7 @@ static int  miVisualPriority[] = {
 static miVisualsPtr	miVisuals;
 
 _X_EXPORT void
-miClearVisualTypes()
+miClearVisualTypes(void)
 {
     miVisualsPtr v;
 
@@ -690,7 +690,7 @@ miDoInitVisuals(VisualPtr *visualp, DepthPtr *depthp, int *nvisualp,
 }
 
 void
-miResetInitVisuals()
+miResetInitVisuals(void)
 {
     miInitVisualsProc = miDoInitVisuals;
 }

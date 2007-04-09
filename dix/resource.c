@@ -235,7 +235,7 @@ CreateNewResourceType(DeleteType deleteFunc)
 }
 
 _X_EXPORT RESTYPE
-CreateNewResourceClass()
+CreateNewResourceClass(void)
 {
     RESTYPE next = lastResourceClass >> 1;
 
@@ -844,7 +844,7 @@ FreeClientResources(ClientPtr client)
 }
 
 void
-FreeAllResources()
+FreeAllResources(void)
 {
     int	i;
 

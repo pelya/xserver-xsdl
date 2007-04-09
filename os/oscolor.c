@@ -102,7 +102,7 @@ typedef struct _builtinColor {
 #define NUM_BUILTIN_COLORS  (sizeof (BuiltinColors) / sizeof (BuiltinColors[0]))
 
 Bool
-OsInitColors()
+OsInitColors(void)
 {
     return TRUE;
 }

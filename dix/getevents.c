@@ -73,7 +73,7 @@ extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
  * Pick some arbitrary size for Xi motion history.
  */
 _X_EXPORT int
-GetMotionHistorySize()
+GetMotionHistorySize(void)
 {
     return MOTION_HISTORY_SIZE;
 }
@@ -183,7 +183,7 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
  * xEvent *events = xcalloc(sizeof(xEvent), GetMaximumEventsNum());
  */
 _X_EXPORT int
-GetMaximumEventsNum() {
+GetMaximumEventsNum(void) {
     /* Two base events -- core and device, plus valuator events.  Multiply
      * by two if we're doing key repeats. */
     int ret = 2 + MAX_VALUATOR_EVENTS;
