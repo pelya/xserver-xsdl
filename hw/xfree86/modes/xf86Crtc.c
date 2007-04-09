@@ -233,8 +233,6 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
     int			saved_x, saved_y;
     Rotation		saved_rotation;
 
-    adjusted_mode = xf86DuplicateMode(mode);
-
     crtc->enabled = xf86CrtcInUse (crtc);
     
     if (!crtc->enabled)
@@ -242,6 +240,8 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 	/* XXX disable crtc? */
 	return TRUE;
     }
+
+    adjusted_mode = xf86DuplicateMode(mode);
 
     didLock = crtc->funcs->lock (crtc);
 
@@ -1833,6 +1833,11 @@ xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
 	    else
 		crtc_mode = xf86OutputFindClosestMode (output, desired);
 	}
+	if (!crtc_mode)
+	{
+	    crtc->enabled = FALSE;
+	    continue;
+	}
 	if (!xf86CrtcSetMode (crtc, crtc_mode, rotation, 0, 0))
 	    ok = FALSE;
 	else
@@ -1844,6 +1849,7 @@ xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
 	}
     }
     xf86DisableUnusedFunctions(pScrn);
+    xf86RandR12TellChanged (pScrn->pScreen);
     return ok;
 }
 
