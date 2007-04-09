@@ -605,6 +605,9 @@ CloseDownDevices()
 {
     DeviceIntPtr dev, next;
 
+    CloseDevice(inputInfo.keyboard);
+    CloseDevice(inputInfo.pointer);
+
     for (dev = inputInfo.devices; dev; dev = next)
     {
 	next = dev->next;
