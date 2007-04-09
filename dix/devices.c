@@ -85,6 +85,9 @@ static int CoreDevicePrivatesGeneration = -1;
 /* The client that is allowed to change pointer-keyboard pairings. */
 static ClientPtr pairingClient = NULL;
 
+/** 
+ * Alloc memory for new sprite, reset to default values 
+ */ 
 DeviceIntPtr
 AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 {
@@ -163,6 +166,12 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     return dev;
 }
 
+/**
+ * Enable the device through the driver, initialize the DIX sprite or pair the
+ * device, add the device to the device list.
+ *
+ * After calling EnableDevice(), a device can and will send events.
+ */
 Bool
 EnableDevice(DeviceIntPtr dev)
 {
@@ -194,6 +203,9 @@ EnableDevice(DeviceIntPtr dev)
     return TRUE;
 }
 
+/**
+ * Shut device down through drivers, remove from device list.
+ */  
 Bool
 DisableDevice(DeviceIntPtr dev)
 {
@@ -341,6 +353,14 @@ CorePointerProc(DeviceIntPtr pDev, int what)
     return Success;
 }
 
+/**
+ * Initialize a virtual core keyboard and a virtual core pointer. 
+ *
+ * Both devices are not tied to physical devices, but guarantee that there is
+ * always a keyboard and a pointer present and keep the protocol semantics.
+ * Both core devices are NOT part of the device list and act only as a
+ * fallback if no physical device is available.
+ */
 void
 InitCoreDevices()
 {
@@ -422,6 +442,13 @@ InitCoreDevices()
     }
 }
 
+/**
+ * Activate and enable all devices. 
+ *
+ * After InitAndStartDevices() all devices are finished with their setup
+ * routines and start emitting events.
+ * Each physical keyboard is paired with the first available unpaired pointer.
+ */
 int
 InitAndStartDevices()
 {
@@ -459,6 +486,9 @@ InitAndStartDevices()
     return Success;
 }
 
+/**
+ * Shut down device and free memory.
+ */
 static void
 CloseDevice(DeviceIntPtr dev)
 {
