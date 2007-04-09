@@ -53,6 +53,18 @@ typedef struct _miPointerSpriteFuncRec {
                     int  /* x */,
                     int  /* y */
                     );
+    Bool        (*DeviceCursorInitialize)(
+                    DeviceIntPtr /* pDev */,
+                    ScreenPtr /* pScr */
+                    );
+    void        (*DeviceCursorCleanup)(
+                    DeviceIntPtr /* pDev */,
+                    ScreenPtr /* pScr */
+                    );
+    void        (*UndisplayCursor)(
+                    DeviceIntPtr /* pDev */,
+                    ScreenPtr /* pScr */
+                    );
 } miPointerSpriteFuncRec, *miPointerSpriteFuncPtr;
 
 typedef struct _miPointerScreenFuncRec {

@@ -89,6 +89,14 @@ typedef struct {
 		int /*dx*/,
 		int /*dy*/
 );
+    Bool	(*DeviceCursorInitialize)(
+                DeviceIntPtr /*pDev*/,
+		ScreenPtr /*pScreen*/
+);
+    void	(*DeviceCursorCleanup)(
+                DeviceIntPtr /*pDev*/,
+		ScreenPtr /*pScreen*/
+);
 
 } miSpriteCursorFuncRec, *miSpriteCursorFuncPtr;
 

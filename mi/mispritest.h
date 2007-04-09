@@ -53,9 +53,6 @@ typedef struct {
     WindowPtr	    pCacheWin;		/* window the cursor last seen in */
     Bool	    isInCacheWin;
     Bool	    checkPixels;	/* check colormap collision */
-    xColorItem	    colors[2];
-    ColormapPtr	    pInstalledMap;
-    ColormapPtr	    pColormap;
 } miCursorInfoRec, *miCursorInfoPtr;
 
 /*
@@ -81,13 +78,17 @@ typedef struct {
     
     /* os layer procedures */
     ScreenBlockHandlerProcPtr		BlockHandler;
+    
+    /* device cursor procedures */
+    DeviceCursorInitializeProcPtr       DeviceCursorInitialize;
+    DeviceCursorCleanupProcPtr          DeviceCursorCleanup;
 
-    miCursorInfoPtr  cp;                 /* core pointer */
-
+    xColorItem	    colors[2];
+    ColormapPtr     pInstalledMap;
+    ColormapPtr     pColormap;
     VisualPtr	    pVisual;
     miSpriteCursorFuncPtr    funcs;
     DamagePtr	    pDamage;		/* damage tracking structure */
-    miCursorInfoPtr pDevCursors;         /* all cursors' info */
 } miSpriteScreenRec, *miSpriteScreenPtr;
 
 #define SOURCE_COLOR	0

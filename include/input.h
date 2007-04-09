@@ -190,6 +190,8 @@ extern int InitAndStartDevices(void);
 
 extern void CloseDownDevices(void);
 
+extern void UndisplayDevices(void);
+
 extern int RemoveDevice(
     DeviceIntPtr /*dev*/);
 

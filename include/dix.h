@@ -424,6 +424,10 @@ extern int DeliverDeviceEvents(
 extern void DefineInitialRootWindow(
     WindowPtr /* win */);
 
+extern void SetupSprite(
+    DeviceIntPtr /* pDev */,
+    ScreenPtr    /* pScreen */);
+
 extern void InitializeSprite(
     DeviceIntPtr /* pDev */,
     WindowPtr    /* pWin */);

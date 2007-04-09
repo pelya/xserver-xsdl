@@ -54,18 +54,12 @@ static unsigned long miPointerGeneration = 0;
 #define GetScreenPrivate(s) ((miPointerScreenPtr) ((s)->devPrivates[miPointerScreenIndex].ptr))
 #define SetupScreen(s)	miPointerScreenPtr  pScreenPriv = GetScreenPrivate(s)
 
-/*
- * until more than one pointer device exists.
- */
+static int miPointerPrivatesIndex = 0;
 
-static miPointerPtr miCorePointer;
-
-/* Multipointers 
- * ID of a device == index in this array.
- */
-static miPointerRec miPointers[MAX_DEVICES];
 #define MIPOINTER(dev) \
-    (DevHasCursor((dev))) ? &miPointers[(dev)->id] : miCorePointer
+    ((DevHasCursor((dev))) ? \
+        (miPointerPtr) dev->devPrivates[miPointerPrivatesIndex].ptr : \
+        (miPointerPtr) inputInfo.pointer->devPrivates[miPointerPrivatesIndex].ptr)
 
 static Bool miPointerRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
                                    CursorPtr pCursor);
@@ -73,6 +67,7 @@ static Bool miPointerUnrealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen,
                                      CursorPtr pCursor);
 static Bool miPointerDisplayCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
                                    CursorPtr pCursor);
+static void miPointerUndisplayCursor(DeviceIntPtr pDev, ScreenPtr pScreen);
 static void miPointerConstrainCursor(DeviceIntPtr pDev, ScreenPtr pScreen,
                                      BoxPtr pBox); 
 static void miPointerPointerNonInterestBox(DeviceIntPtr pDev, 
@@ -87,6 +82,9 @@ static Bool miPointerCloseScreen(int index, ScreenPtr pScreen);
 static void miPointerMove(DeviceIntPtr pDev, ScreenPtr pScreen, 
                           int x, int y,
                           unsigned long time);
+static Bool miPointerDeviceInitialize(DeviceIntPtr pDev, ScreenPtr pScreen);
+static void miPointerDeviceCleanup(DeviceIntPtr pDev,
+                                   ScreenPtr pScreen);
 
 static xEvent* events; /* for WarpPointer MotionNotifies */
 
@@ -98,8 +96,6 @@ miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
     Bool		    waitForUpdate;
 {
     miPointerScreenPtr	pScreenPriv;
-    miPointerPtr        pPointer;
-    int                 ptrIdx;
 
     if (miPointerGeneration != serverGeneration)
     {
@@ -131,33 +127,17 @@ miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
     pScreen->ConstrainCursor = miPointerConstrainCursor;
     pScreen->CursorLimits = miPointerCursorLimits;
     pScreen->DisplayCursor = miPointerDisplayCursor;
+    pScreen->UndisplayCursor = miPointerUndisplayCursor;
+    pScreen->UndisplayCursor = miPointerUndisplayCursor;
     pScreen->RealizeCursor = miPointerRealizeCursor;
     pScreen->UnrealizeCursor = miPointerUnrealizeCursor;
     pScreen->SetCursorPosition = miPointerSetCursorPosition;
     pScreen->RecolorCursor = miRecolorCursor;
     pScreen->PointerNonInterestBox = miPointerPointerNonInterestBox;
+    pScreen->DeviceCursorInitialize = miPointerDeviceInitialize;
+    pScreen->DeviceCursorCleanup = miPointerDeviceCleanup;
 
-    /*
-     * set up the pointer object
-     * virtual core pointer ID is always 1, so we let it point to the matching
-     * index in the array.
-     */
-    miCorePointer = &miPointers[1];
-    for(ptrIdx = 0; ptrIdx < MAX_DEVICES; ptrIdx++)
-    {
-            pPointer = &miPointers[ptrIdx];
-            pPointer->pScreen = NULL;
-            pPointer->pSpriteScreen = NULL;
-            pPointer->pCursor = NULL;
-            pPointer->pSpriteCursor = NULL;
-            pPointer->limits.x1 = 0;
-            pPointer->limits.x2 = 32767;
-            pPointer->limits.y1 = 0;
-            pPointer->limits.y2 = 32767;
-            pPointer->confined = FALSE;
-            pPointer->x = 0;
-            pPointer->y = 0;
-    }
+    miPointerPrivatesIndex = AllocateDevicePrivateIndex();
 
     events = NULL;
     return TRUE;
@@ -169,19 +149,29 @@ miPointerCloseScreen (index, pScreen)
     ScreenPtr	pScreen;
 {
     miPointerPtr pPointer;
-    int ptrIdx;
+    DeviceIntPtr pDev;
 
     SetupScreen(pScreen);
 
-    for(ptrIdx = 0; ptrIdx < MAX_DEVICES; ptrIdx++)
+#if 0
+    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
-        pPointer = &miPointers[ptrIdx];
+        if (DevHasCursor(pDev))
+        {
+            pPointer = MIPOINTER(pDev);
 
-        if (pScreen == pPointer->pScreen)
-            pPointer->pScreen = 0;
-        if (pScreen == pPointer->pSpriteScreen)
-            pPointer->pSpriteScreen = 0;
+            if (pScreen == pPointer->pScreen)
+                pPointer->pScreen = 0;
+            if (pScreen == pPointer->pSpriteScreen)
+                pPointer->pSpriteScreen = 0;
+        }
     }
+
+    if (MIPOINTER(inputInfo.pointer)->pScreen == pScreen)
+        MIPOINTER(inputInfo.pointer)->pScreen = 0;
+    if (MIPOINTER(inputInfo.pointer)->pSpriteScreen == pScreen)
+        MIPOINTER(inputInfo.pointer)->pSpriteScreen = 0;
+#endif
 
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
     xfree ((pointer) pScreenPriv);
@@ -226,6 +216,15 @@ miPointerDisplayCursor (pDev, pScreen, pCursor)
     pPointer->pScreen = pScreen;
     miPointerUpdateSprite(pDev);
     return TRUE;
+}
+
+static void
+miPointerUndisplayCursor(pDev, pScreen)
+    DeviceIntPtr pDev;
+    ScreenPtr 	 pScreen;
+{
+    SetupScreen(pScreen);
+    (*pScreenPriv->spriteFuncs->UndisplayCursor)(pDev, pScreen);
 }
 
 static void
@@ -280,6 +279,65 @@ miPointerSetCursorPosition(pDev, pScreen, x, y, generateEvent)
 	miPointerUpdateSprite(pDev);
     return TRUE;
 }
+
+/* Set up sprite information for the device. 
+   This function will be called once for each device after it is initialized
+   in the DIX.
+ */ 
+static Bool
+miPointerDeviceInitialize(pDev, pScreen)
+    DeviceIntPtr pDev;
+    ScreenPtr pScreen;
+{
+    miPointerPtr pPointer;
+    SetupScreen (pScreen);
+
+    if (!AllocateDevicePrivate(pDev, miPointerPrivatesIndex))
+        return FALSE;
+
+    pPointer = xalloc(sizeof(miPointerRec));
+    if (!pPointer)
+        return FALSE;
+
+    pPointer->pScreen = NULL;
+    pPointer->pSpriteScreen = NULL;
+    pPointer->pCursor = NULL;
+    pPointer->pSpriteCursor = NULL;
+    pPointer->limits.x1 = 0;
+    pPointer->limits.x2 = 32767;
+    pPointer->limits.y1 = 0;
+    pPointer->limits.y2 = 32767;
+    pPointer->confined = FALSE;
+    pPointer->x = 0;
+    pPointer->y = 0;
+
+    if (!((*pScreenPriv->spriteFuncs->DeviceCursorInitialize)(pDev, pScreen)))
+    {
+        xfree(pPointer);
+        return FALSE;
+    }
+
+    pDev->devPrivates[miPointerPrivatesIndex].ptr = pPointer;
+    return TRUE;
+}
+
+/* Clean up after device. 
+   This function will be called once before the device is freed in the DIX
+ */
+static void
+miPointerDeviceCleanup(pDev, pScreen)
+    DeviceIntPtr pDev;
+    ScreenPtr pScreen;
+{
+    if (DevHasCursor(pDev))
+    {
+        SetupScreen(pScreen);
+        (*pScreenPriv->spriteFuncs->DeviceCursorCleanup)(pDev, pScreen);
+        xfree(pDev->devPrivates[miPointerPrivatesIndex].ptr);
+        pDev->devPrivates[miPointerPrivatesIndex].ptr = NULL;
+    }
+}
+
 
 /* Once signals are ignored, the WarpCursor function can call this */
 
@@ -413,7 +471,8 @@ miPointerUpdateSprite (DeviceIntPtr pDev)
 void
 miPointerDeltaCursor (int dx, int dy, unsigned long time)
 {
-    int x = miCorePointer->x + dx, y = miCorePointer->y + dy;
+    int x = MIPOINTER(inputInfo.pointer)->x = dx;
+    int y = MIPOINTER(inputInfo.pointer)->y = dy;
 
     miPointerSetPosition(inputInfo.pointer, &x, &y, time);
 }

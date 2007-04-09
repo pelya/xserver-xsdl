@@ -466,6 +466,8 @@ main(int argc, char *argv[], char *envp[])
 
 	Dispatch();
 
+        UndisplayDevices();
+
 	/* Now free up whatever must be freed */
 	if (screenIsSaved == SCREEN_SAVER_ON)
 	    SaveScreens(SCREEN_SAVER_OFF, ScreenSaverReset);

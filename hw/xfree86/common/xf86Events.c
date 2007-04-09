@@ -247,9 +247,13 @@ ProcessInputEvents ()
 
   mieqProcessInputEvents();
 
-  /* FIXME: This is a problem if we have multiple pointers */
-  miPointerGetPosition(inputInfo.pointer, &x, &y);
-  xf86SetViewport(xf86Info.currentScreen, x, y);
+  /* PIE can be called after devices have been shut down. Blame DGA. */
+  if (inputInfo.pointer)
+  {
+      /* FIXME: This is a problem if we have multiple pointers */
+      miPointerGetPosition(inputInfo.pointer, &x, &y);
+      xf86SetViewport(xf86Info.currentScreen, x, y);
+  }
 }
 
 void

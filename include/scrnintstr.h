@@ -431,6 +431,18 @@ typedef    void (* MarkUnrealizedWindowProcPtr)(
 	WindowPtr /*pWin*/,
 	Bool /*fromConfigure*/);
 
+typedef    void (* UndisplayCursorProcPtr)(
+        DeviceIntPtr /* pDev */,
+        ScreenPtr    /* pScreen */);
+
+typedef    Bool (* DeviceCursorInitializeProcPtr)(
+        DeviceIntPtr /* pDev */,
+        ScreenPtr    /* pScreen */);
+
+typedef    void (* DeviceCursorCleanupProcPtr)(
+        DeviceIntPtr /* pDev */,
+        ScreenPtr    /* pScreen */);
+
 typedef struct _Screen {
     int			myNum;	/* index of this instance in Screens[] */
     ATOM		id;
@@ -587,6 +599,10 @@ typedef struct _Screen {
     ChangeBorderWidthProcPtr	ChangeBorderWidth;
     MarkUnrealizedWindowProcPtr	MarkUnrealizedWindow;
 
+    /* Device cursor procedures */
+    UndisplayCursorProcPtr        UndisplayCursor;
+    DeviceCursorInitializeProcPtr DeviceCursorInitialize;
+    DeviceCursorCleanupProcPtr    DeviceCursorCleanup;
 } ScreenRec;
 
 typedef struct _ScreenInfo {

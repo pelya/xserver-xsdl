@@ -225,18 +225,29 @@ DisableDevice(DeviceIntPtr dev)
     return TRUE;
 }
 
+/**
+ * Initialize device through driver, allocate memory for cursor sprite (if
+ * applicable) and send a PresenceNotify event to all clients.
+ *
+ * Must be called before EnableDevice.
+ */
 int
 ActivateDevice(DeviceIntPtr dev)
 {
     int ret = Success;
     devicePresenceNotify ev;
     DeviceIntRec dummyDev;
+    ScreenPtr pScreen = screenInfo.screens[0];
 
     if (!dev || !dev->deviceProc)
         return BadImplementation;
 
     ret = (*dev->deviceProc) (dev, DEVICE_INIT);
     dev->inited = (ret == Success);
+
+    /* Initialize memory for sprites. */
+    if (IsPointerDevice(dev))
+        pScreen->DeviceCursorInitialize(dev, pScreen);
     
     ev.type = DevicePresenceNotify;
     ev.time = currentTime.milliseconds;
@@ -497,10 +508,15 @@ CloseDevice(DeviceIntPtr dev)
     StringFeedbackPtr s, snext;
     BellFeedbackPtr b, bnext;
     LedFeedbackPtr l, lnext;
+    ScreenPtr screen = screenInfo.screens[0];
     int j;
 
     if (dev->inited)
 	(void)(*dev->deviceProc)(dev, DEVICE_CLOSE);
+
+    /* free sprite memory */
+    if (IsPointerDevice(dev))
+        screen->DeviceCursorCleanup(dev, screen);
 
     xfree(dev->name);
 
@@ -624,6 +640,22 @@ CloseDownDevices()
     inputInfo.pointer = NULL;
 }
 
+/**
+ * Remove the cursor sprite for all devices. This needs to be done before any
+ * resources are freed or any device is deleted.
+ */
+void 
+UndisplayDevices()
+{
+    DeviceIntPtr dev;
+    ScreenPtr screen = screenInfo.screens[0];
+
+    for (dev = inputInfo.devices; dev; dev = dev->next)
+    {
+        screen->UndisplayCursor(dev, screen);
+    }
+}
+
 int
 RemoveDevice(DeviceIntPtr dev)
 {
@@ -631,23 +663,26 @@ RemoveDevice(DeviceIntPtr dev)
     int ret = BadMatch;
     devicePresenceNotify ev;
     DeviceIntRec dummyDev;
+    ScreenPtr screen = screenInfo.screens[0];
 
     DebugF("(dix) removing device %d\n", dev->id);
 
     if (!dev || dev == inputInfo.keyboard || dev == inputInfo.pointer)
         return BadImplementation;
 
+    screen->UndisplayCursor(dev, screen);
+
     prev = NULL;
     for (tmp = inputInfo.devices; tmp; (prev = tmp), (tmp = next)) {
 	next = tmp->next;
 	if (tmp == dev) {
-	    CloseDevice(tmp);
 
 	    if (prev==NULL)
 		inputInfo.devices = next;
 	    else
 		prev->next = next;
 
+	    CloseDevice(tmp);
 	    ret = Success;
 	}
     }
