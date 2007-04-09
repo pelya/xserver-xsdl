@@ -556,7 +556,10 @@ CloseDevice(DeviceIntPtr dev)
     for (j = 0; j < currentMaxClients; j++)
     {
         if (clients[j]->clientPtr == dev)
-            PickPointer(clients[j]);
+        {
+            clients[j]->clientPtr = NULL;
+            clients[j]->clientPtr = PickPointer(clients[j]);
+        }
     }
 
     if (dev->devPrivates)
