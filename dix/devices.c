@@ -424,7 +424,6 @@ InitCoreDevices()
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
             FatalError("Couldn't allocate pointer devPrivates\n");
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
-        InitializeSprite(dev, NullWindow);
         (void)ActivateDevice(dev);
 
         /* Enable device, and then remove it from the device list. Virtual
