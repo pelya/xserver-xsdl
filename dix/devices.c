@@ -431,8 +431,13 @@ CloseDevice(DeviceIntPtr dev)
 	xfree(dev->key);
     }
 
-    if (dev->valuator)
+    if (dev->valuator) {
+        /* Counterpart to 'biggest hack ever' in init. */
+        if (dev->valuator->motion &&
+            dev->valuator->GetMotionProc == GetMotionHistory)
+            xfree(dev->valuator->motion);
         xfree(dev->valuator);
+    }
 
     if (dev->button) {
 #ifdef XKB
