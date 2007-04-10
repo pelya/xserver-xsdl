@@ -2374,3 +2374,8 @@ NewInputDeviceRequest(InputOption *options)
 
     return Success;
 }
+
+void
+DeleteInputDeviceRequest(DeviceIntPtr pDev)
+{
+}

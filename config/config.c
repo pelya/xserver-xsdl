@@ -212,7 +212,7 @@ configRemoveDevice(DBusMessage *message, DBusMessageIter *iter,
      * already been removed. */
     OsBlockSignals();
     ProcessInputEvents();
-    RemoveDevice(pDev);
+    DeleteInputDeviceRequest(pDev);
     OsReleaseSignals();
 
     return Success;

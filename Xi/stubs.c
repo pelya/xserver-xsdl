@@ -230,3 +230,15 @@ NewInputDeviceRequest(InputOption *options)
 {
     return BadValue;
 }
+
+/****************************************************************************
+ *
+ * Caller: configRemoveDevice (and others)
+ *
+ * Remove the specified device previously added.
+ *
+ */
+void
+DeleteInputDeviceRequest(DeviceIntPtr dev)
+{
+}

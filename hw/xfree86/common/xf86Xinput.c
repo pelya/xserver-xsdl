@@ -427,6 +427,26 @@ unwind:
     return rval;
 }
 
+void
+DeleteInputDeviceRequest(DeviceIntPtr pDev)
+{
+    LocalDevicePtr pInfo = (LocalDevicePtr) pDev->public.devicePrivate;
+    InputDriverPtr drv = pInfo->drv;
+    IDevRec *idev = pInfo->conf_idev;
+
+    RemoveDevice(pDev);
+
+    if(drv->UnInit)
+        drv->UnInit(drv, pInfo, 0);
+    else
+        xf86DeleteInput(pInfo, 0);
+
+    xfree(idev->driver);
+    xfree(idev->identifier);
+    xf86optionListFree(idev->commonOptions);
+    xfree(idev);
+}
+
 /* 
  * convenient functions to post events
  */

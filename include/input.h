@@ -446,6 +446,8 @@ extern DeviceIntPtr LookupDeviceIntRec(
 /* Implemented by the DDX. */
 extern int NewInputDeviceRequest(
     InputOption *options);
+extern void DeleteInputDeviceRequest(
+    DeviceIntPtr dev);
 
 extern void DDXRingBell(
     int volume,
