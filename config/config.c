@@ -92,12 +92,15 @@ configTeardown(void)
 }
 
 static int
-configAddDevice(DBusMessage *message, DBusMessageIter *iter, DBusError *error)
+configAddDevice(DBusMessage *message, DBusMessageIter *iter, 
+                DBusMessage *reply, DBusMessageIter *r_iter,
+                DBusError *error)
 {
     DBusMessageIter subiter;
     InputOption *tmpo = NULL, *options = NULL;
     char *tmp = NULL;
     int ret = BadMatch;
+    DeviceIntPtr dev = NULL;
 
     DebugF("[config] adding device\n");
 
@@ -165,12 +168,28 @@ configAddDevice(DBusMessage *message, DBusMessageIter *iter, DBusError *error)
         dbus_message_iter_next(iter);
     }
 
-    ret = NewInputDeviceRequest(options);
-    if (ret != Success)
+    ret = NewInputDeviceRequest(options, &dev);
+    if (ret != Success) {
         DebugF("[config] NewInputDeviceRequest failed\n");
+        goto unwind;
+    }
 
-    /* Fall through, must deallocate memory we've allocated */
+    if (!dev) {
+        DebugF("[config] NewInputDeviceRequest succeeded, without device\n"); 
+        ret = BadMatch;
+        goto unwind;
+    }
+
+    if (!dbus_message_iter_append_basic(r_iter, DBUS_TYPE_INT32, &(dev->id))) {
+        ErrorF("[config] couldn't append to iterator\n");
+        ret = BadAlloc;
+        goto unwind;
+    }
+
 unwind:
+    if (dev && ret != Success)
+        RemoveDevice(dev);
+
     while (options) {
         tmpo = options;
         options = options->next;
@@ -218,16 +237,46 @@ unwind:
     return ret;
 }
 
+static int
+configListDevices(DBusMessage *message, DBusMessageIter *iter,
+                   DBusMessage *reply, DBusMessageIter *r_iter,
+                   DBusError *error)
+{
+    DeviceIntPtr d;
+    int ret = BadMatch;
+
+    for (d = inputInfo.devices; d; d = d->next) {
+        if (!dbus_message_iter_append_basic(r_iter, DBUS_TYPE_INT32,
+                                            &(d->id))) {
+            ErrorF("[config] couldn't append to iterator\n");
+            ret = BadAlloc;
+            goto unwind;
+        }
+        if (!dbus_message_iter_append_basic(r_iter, DBUS_TYPE_STRING,
+                                            &(d->name))) {
+            ErrorF("[config] couldn't append to iterator\n");
+            ret = BadAlloc;
+            goto unwind;
+        }
+    }
+
+unwind:
+    return ret;
+}
+
 static DBusHandlerResult
 configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
 {
     DBusMessageIter iter;
     DBusError error;
     DBusMessage *reply;
+    DBusMessageIter r_iter;
     DBusConnection *bus = closure;
     int ret = BadDrawable; /* nonsensical value */
 
     dbus_error_init(&error);
+
+    DebugF("[config] received a message\n");
 
     if (strcmp(dbus_message_get_interface(message),
                "org.x.config.input") == 0) {
@@ -237,26 +286,33 @@ configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
             return DBUS_HANDLER_RESULT_NEED_MEMORY; /* ?? */
         }
 
+        if (!(reply = dbus_message_new_method_return(message))) {
+            ErrorF("[config] failed to create the reply message\n");
+            dbus_error_free(&error);
+            return DBUS_HANDLER_RESULT_NEED_MEMORY;
+        }
+        dbus_message_iter_init_append(reply, &r_iter);
+        
         if (strcmp(dbus_message_get_member(message), "add") == 0)
-            ret = configAddDevice(message, &iter, &error);
+            ret = configAddDevice(message, &iter, reply, &r_iter, &error);
         else if (strcmp(dbus_message_get_member(message), "remove") == 0)
             ret = configRemoveDevice(message, &iter, &error);
+        else if (strcmp(dbus_message_get_member(message), "listDevices") == 0)
+            ret = configListDevices(message, &iter, reply, &r_iter, &error);
         if (ret != BadDrawable && ret != BadAlloc) {
-            reply = dbus_message_new_method_return(message);
-            dbus_message_iter_init_append(reply, &iter);
 
-            if (!dbus_message_iter_append_basic(&iter, DBUS_TYPE_INT32, &ret)) {
-                ErrorF("[config] couldn't append to iterator\n");
-                dbus_error_free(&error);
-                return DBUS_HANDLER_RESULT_HANDLED;
-            }
+            if (!strlen(dbus_message_get_signature(reply)))
+                if (!dbus_message_iter_append_basic(&r_iter, DBUS_TYPE_INT32, &ret)) {
+                    ErrorF("[config] couldn't append to iterator\n");
+                    dbus_error_free(&error);
+                    return DBUS_HANDLER_RESULT_HANDLED;
+                }
 
             if (!dbus_connection_send(bus, reply, NULL))
                 ErrorF("[config] failed to send reply\n");
-            dbus_connection_flush(bus);
-
-            dbus_message_unref(reply);
         }
+        dbus_message_unref(reply);
+        dbus_connection_flush(bus);
     }
 
     dbus_error_free(&error);
