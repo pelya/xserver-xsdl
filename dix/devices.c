@@ -86,15 +86,27 @@ DeviceIntPtr
 AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 {
     DeviceIntPtr dev, *prev; /* not a typo */
+    DeviceIntPtr devtmp;
+    int devid;
+    char devind[MAX_DEVICES];
 
-    if (inputInfo.numDevices >= MAX_DEVICES)
+    /* Find next available id */
+    memset(devind, 0, sizeof(char)*MAX_DEVICES);
+    for (devtmp = inputInfo.devices; devtmp; devtmp = devtmp->next)
+	devind[devtmp->id]++;
+    for (devtmp = inputInfo.off_devices; devtmp; devtmp = devtmp->next)
+	devind[devtmp->id]++;
+    for (devid = 0; devid < MAX_DEVICES && devind[devid]; devid++)
+	;
+
+    if (devid >= MAX_DEVICES)
 	return (DeviceIntPtr)NULL;
     dev = (DeviceIntPtr) xcalloc(sizeof(DeviceIntRec), 1);
     if (!dev)
 	return (DeviceIntPtr)NULL;
     dev->name = (char *)NULL;
     dev->type = 0;
-    dev->id = inputInfo.numDevices;
+    dev->id = devid;
     inputInfo.numDevices++;
     dev->public.on = FALSE;
     dev->public.processInputProc = (ProcessInputProc)NoopDDA;
@@ -572,6 +584,7 @@ RemoveDevice(DeviceIntPtr dev)
     }
     
     if (ret == Success) {
+        inputInfo.numDevices--;
         ev.type = DevicePresenceNotify;
         ev.time = currentTime.milliseconds;
         ev.devchange = 0;
