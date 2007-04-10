@@ -315,7 +315,7 @@ AddOtherInputDevices()
 #endif
 
 int
-NewInputDeviceRequest (InputOption *options)
+NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
 {
     IDevRec *idev = NULL;
     InputDriverPtr drv = NULL;
@@ -409,6 +409,7 @@ NewInputDeviceRequest (InputOption *options)
     if (dev->inited && dev->startup)
         EnableDevice(dev);
 
+    *pdev = dev;
     return Success;
 
 unwind:

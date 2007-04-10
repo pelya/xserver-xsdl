@@ -2307,7 +2307,7 @@ ChangeDeviceControl(register ClientPtr client, DeviceIntPtr pDev,
 }
 
 int
-NewInputDeviceRequest(InputOption *options)
+NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
 {
     InputOption *option = NULL;
     KdPointerInfo *pi = NULL;
@@ -2370,6 +2370,12 @@ NewInputDeviceRequest(InputOption *options)
             ErrorF("couldn't add or enable keyboard\n");
             return BadImplementation;
         }
+    }
+
+    if (pi) {
+        *pdev = pi->dixdev;
+    } else if(ki) {
+        *pdev = ki->dixdev;
     }
 
     return Success;

@@ -226,7 +226,7 @@ ChangeDeviceControl(ClientPtr client, DeviceIntPtr dev,
  *
  */
 int
-NewInputDeviceRequest(InputOption *options)
+NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
 {
     return BadValue;
 }
