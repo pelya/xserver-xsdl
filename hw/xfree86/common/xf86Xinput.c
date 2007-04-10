@@ -322,6 +322,7 @@ NewInputDeviceRequest (InputOption *options)
     InputInfoPtr pInfo = NULL;
     InputOption *option = NULL;
     DeviceIntPtr dev = NULL;
+    int rval = Success;
 
     idev = xcalloc(sizeof(*idev), 1);
     if (!idev)
@@ -329,64 +330,101 @@ NewInputDeviceRequest (InputOption *options)
 
     for (option = options; option; option = option->next) {
         if (strcmp(option->key, "driver") == 0) {
-            if (!xf86LoadOneModule(option->value, NULL))
-                return BadName;
+            if (idev->driver) {
+                rval = BadRequest;
+                goto unwind;
+            }
+            /* Memory leak for every attached device if we don't
+             * test if the module is already loaded first */
             drv = xf86LookupInputDriver(option->value);
+            if (!drv)
+                if(xf86LoadOneModule(option->value, NULL))
+                    drv = xf86LookupInputDriver(option->value);
             if (!drv) {
                 xf86Msg(X_ERROR, "No input driver matching `%s'\n",
                         option->value);
-                return BadName;
+                rval = BadName;
+                goto unwind;
             }
             idev->driver = xstrdup(option->value);
             if (!idev->driver) {
-                xfree(idev);
-                return BadAlloc;
+                rval = BadAlloc;
+                goto unwind;
             }
         }
         if (strcmp(option->key, "name") == 0 ||
             strcmp(option->key, "identifier") == 0) {
+            if (idev->identifier) {
+                rval = BadRequest;
+                goto unwind;
+            }
             idev->identifier = xstrdup(option->value);
             if (!idev->identifier) {
-                xfree(idev);
-                return BadAlloc;
+                rval = BadAlloc;
+                goto unwind;
             }
         }
+    }
+    if(!idev->driver || !idev->identifier) {
+        xf86Msg(X_ERROR, "No input driver/identifier specified (ignoring)\n");
+        rval = BadRequest;
+        goto unwind;
     }
 
     if (!drv->PreInit) {
         xf86Msg(X_ERROR,
                 "Input driver `%s' has no PreInit function (ignoring)\n",
                 drv->driverName);
-        return BadImplementation;
+        rval = BadImplementation;
+        goto unwind;
     }
 
-    idev->commonOptions = NULL;
-    for (option = options; option; option = option->next)
+    for (option = options; option; option = option->next) {
+        /* Steal option key/value strings from the provided list.
+         * We need those strings, the InputOption list doesn't. */
         idev->commonOptions = xf86addNewOption(idev->commonOptions,
                                                option->key, option->value);
-    idev->extraOptions = NULL;
+        option->key = NULL;
+        option->value = NULL;
+    }
 
     pInfo = drv->PreInit(drv, idev, 0);
 
     if (!pInfo) {
         xf86Msg(X_ERROR, "PreInit returned NULL for \"%s\"\n", idev->identifier);
-        return BadMatch;
+        rval = BadMatch;
+        goto unwind;
     }
     else if (!(pInfo->flags & XI86_CONFIGURED)) {
         xf86Msg(X_ERROR, "PreInit failed for input device \"%s\"\n",
                 idev->identifier);
-        xf86DeleteInput(pInfo, 0);
-        return BadMatch;
+        rval = BadMatch;
+        goto unwind;
     }
 
     xf86ActivateDevice(pInfo);
 
     dev = pInfo->dev;
-    dev->inited = ((*dev->deviceProc)(dev, DEVICE_INIT) == Success);
+    ActivateDevice(dev);
     if (dev->inited && dev->startup)
         EnableDevice(dev);
 
     return Success;
+
+unwind:
+    if(pInfo) {
+        if(drv->UnInit)
+            drv->UnInit(drv, pInfo, 0);
+        else
+            xf86DeleteInput(pInfo, 0);
+    }
+    if(idev->driver)
+        xfree(idev->driver);
+    if(idev->identifier)
+        xfree(idev->identifier);
+    xf86optionListFree(idev->commonOptions);
+    xfree(idev);
+    return rval;
 }
 
 /* 
