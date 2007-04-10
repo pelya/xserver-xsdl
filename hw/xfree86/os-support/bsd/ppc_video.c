@@ -56,6 +56,9 @@
 static pointer ppcMapVidMem(int, unsigned long, unsigned long, int flags);
 static void ppcUnmapVidMem(int, pointer, unsigned long);
 
+Bool xf86EnableIO(void);
+void xf86DisableIO(void);
+
 void
 xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 {
@@ -63,6 +66,7 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 	pVidMem->mapMem = ppcMapVidMem;
 	pVidMem->unmapMem = ppcUnmapVidMem;
 	pVidMem->initialised = TRUE;
+	xf86EnableIO();
 }
 
 
@@ -138,3 +142,32 @@ xf86EnableInterrupts()
 
 	return;
 }
+
+Bool xf86EnableIO()
+{
+        int fd = xf86Info.screenFd;
+
+        xf86MsgVerb(X_WARNING, 3, "xf86EnableIO %d\n", fd);
+        if (ioBase == MAP_FAILED)
+        {
+                ioBase=mmap(NULL, 0x10000, PROT_READ|PROT_WRITE, MAP_SHARED, fd,
+                    0xf2000000);
+                xf86MsgVerb(X_INFO, 3, "xf86EnableIO: %08x\n", ioBase);
+                if (ioBase == MAP_FAILED) {
+                        xf86MsgVerb(X_WARNING, 3, "Can't map IO space!\n");
+			return FALSE;
+		}
+        }
+	return TRUE;
+}
+
+void xf86DisableIO()
+{
+
+        if (ioBase != MAP_FAILED)
+        {
+                munmap(__UNVOLATILE(ioBase), 0x10000);
+                ioBase = MAP_FAILED;
+        }
+}
+

@@ -38,8 +38,7 @@ ARCH_SOURCES = i386_video.c
 endif
 
 if PPC_VIDEO
-ARCH_SOURCES = ppc_video.c \
-	$(srcdir)/../shared/ioperm_noop.c
+ARCH_SOURCES = ppc_video.c
 endif
 
 if SPARC64_VIDEO
