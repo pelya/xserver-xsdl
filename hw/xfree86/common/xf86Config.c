@@ -1271,7 +1271,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 			      (count + 1) * sizeof(IDevRec));
 	    indp[count - 1] = Pointer;
 	    indp[count - 1].extraOptions =
-				xf86addNewOption(NULL, "CorePointer", NULL);
+				xf86addNewOption(NULL, xnfstrdup("CorePointer"), NULL);
 	    indp[count].identifier = NULL;
 	    servlayoutp->inputs = indp;
 	}
@@ -1310,7 +1310,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 			      (count + 1) * sizeof(IDevRec));
 	    indp[count - 1] = Pointer;
 	    indp[count - 1].extraOptions =
-				xf86addNewOption(NULL, "AlwaysCore", NULL);
+				xf86addNewOption(NULL, xnfstrdup("AlwaysCore"), NULL);
 	    indp[count].identifier = NULL;
 	    servlayoutp->inputs = indp;
 	}
@@ -1401,7 +1401,7 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 			      (count + 1) * sizeof(IDevRec));
 	    indp[count - 1] = Keyboard;
 	    indp[count - 1].extraOptions =
-				xf86addNewOption(NULL, "CoreKeyboard", NULL);
+				xf86addNewOption(NULL, xnfstrdup("CoreKeyboard"), NULL);
 	    indp[count].identifier = NULL;
 	    servlayoutp->inputs = indp;
 	}

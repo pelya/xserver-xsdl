@@ -2111,7 +2111,7 @@ LayoutConfig(void)
 		    else
 			iref->iref_option_lst =
 			    xf86addNewOption(iref->iref_option_lst,
-					  "CorePointer", NULL);
+					  XtNewString("CorePointer"), NULL);
 		    option = xf86findOption(mref->iref_option_lst,
 					    "CorePointer");
 		    XtFree(option->opt_name);
@@ -2209,7 +2209,7 @@ LayoutConfig(void)
 		    else
 			iref->iref_option_lst =
 			    xf86addNewOption(iref->iref_option_lst,
-					  "CoreKeyboard", NULL);
+					  XtNewString("CoreKeyboard"), NULL);
 		    option = xf86findOption(kref->iref_option_lst,
 					    "CoreKeyboard");
 		    XtFree(option->opt_name);
