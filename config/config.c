@@ -110,6 +110,11 @@ configAddDevice(DBusMessage *message, DBusMessageIter *iter, DBusError *error)
 
     options->key = xstrdup("_source");
     options->value = xstrdup("client/dbus");
+    if(!options->key || !options->value) {
+        ErrorF("[config] couldn't allocate first key/value pair\n");
+        ret = BadAlloc;
+        goto unwind;
+    }
 
     while (dbus_message_iter_get_arg_type(iter) == DBUS_TYPE_ARRAY) {
         tmpo = (InputOption *) xcalloc(sizeof(InputOption), 1);
@@ -118,6 +123,8 @@ configAddDevice(DBusMessage *message, DBusMessageIter *iter, DBusError *error)
             ret = BadAlloc;
             goto unwind;
         }
+        tmpo->next = options;
+        options = tmpo;
 
         dbus_message_iter_recurse(iter, &subiter);
 
@@ -132,8 +139,8 @@ configAddDevice(DBusMessage *message, DBusMessageIter *iter, DBusError *error)
                    tmp);
             MALFORMED_MESSAGE();
         }
-        tmpo->key = xstrdup(tmp);
-        if (!tmpo->key) {
+        options->key = xstrdup(tmp);
+        if (!options->key) {
             ErrorF("[config] couldn't duplicate key!\n");
             ret = BadAlloc;
             goto unwind;
@@ -148,15 +155,13 @@ configAddDevice(DBusMessage *message, DBusMessageIter *iter, DBusError *error)
         dbus_message_iter_get_basic(&subiter, &tmp);
         if (!tmp)
             MALFORMED_MESSAGE();
-        tmpo->value = xstrdup(tmp);
-        if (!tmpo->value) {
+        options->value = xstrdup(tmp);
+        if (!options->value) {
             ErrorF("[config] couldn't duplicate option!\n");
             ret = BadAlloc;
             goto unwind;
         }
 
-        tmpo->next = options;
-        options = tmpo;
         dbus_message_iter_next(iter);
     }
 
@@ -164,16 +169,8 @@ configAddDevice(DBusMessage *message, DBusMessageIter *iter, DBusError *error)
     if (ret != Success)
         DebugF("[config] NewInputDeviceRequest failed\n");
 
-    return ret;
-
+    /* Fall through, must deallocate memory we've allocated */
 unwind:
-    if (tmpo->key)
-        xfree(tmpo->key);
-    if (tmpo->value)
-        xfree(tmpo->value);
-    if (tmpo)
-        xfree(tmpo);
-
     while (options) {
         tmpo = options;
         options = options->next;
