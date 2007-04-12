@@ -2270,7 +2270,10 @@ DefineInitialRootWindow(WindowPtr win)
     while (pDev)
     {
         if (DevHasCursor(pDev))
+        {
             InitializeSprite(pDev, win);
+            win->devPrivates[EnterLeavePrivatesIndex].val++;
+        }
         pDev = pDev->next;
     }
 }
@@ -3447,6 +3450,7 @@ EnterLeaveEvent(
     GrabPtr	        grab = mouse->coreGrab.grab;
     GrabPtr	        devgrab = mouse->deviceGrab.grab;
     Mask		mask;
+    long*               inWindow; /* no of sprites inside pWin */
 
     deviceEnterNotify   *devEnterLeave;
     int                 mskidx;
@@ -3492,14 +3496,23 @@ EnterLeaveEvent(
              IsParent(focus, pWin)))
         event.u.enterLeave.flags |= ELFlagFocus;
 
+    inWindow = &pWin->devPrivates[EnterLeavePrivatesIndex].val;
+
+    (type == EnterNotify) ? (*inWindow)++ : (*inWindow)--;
+
     if (mask & filters[type])
     {
-	if (grab)
-	    (void)TryClientEvents(rClient(grab), &event, 1, mask,
-				  filters[type], grab);
-	else
-	    (void)DeliverEventsToWindow(pDev, pWin, &event, 1, filters[type],
-					NullGrab, 0);
+        /* only send core events for the first device to enter and the last
+           one to leave */
+        if ((*inWindow) == (LeaveNotify - type))
+        {
+            if (grab)
+                (void)TryClientEvents(rClient(grab), &event, 1, mask,
+                                      filters[type], grab);
+            else
+                (void)DeliverEventsToWindow(pDev, pWin, &event, 1, filters[type],
+                                            NullGrab, 0);
+        }
     }
 
     devEnterLeave = (deviceEnterNotify*)&event;

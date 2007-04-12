@@ -268,4 +268,6 @@ extern void DisableMapUnmapEvents(
 extern void EnableMapUnmapEvents(
     WindowPtr /* pWin */ );
 
+Bool InitWindowPrivates(
+    ScreenPtr /* screen */);
 #endif /* WINDOW_H */

@@ -155,6 +155,8 @@ _X_EXPORT int screenIsSaved = SCREEN_SAVER_OFF;
 
 _X_EXPORT ScreenSaverStuffRec savedScreenInfo[MAXSCREENS];
 
+_X_EXPORT int EnterLeavePrivatesIndex = -1;
+
 #if 0
 extern void DeleteWindowFromAnyEvents();
 extern Mask EventMaskForClient();
@@ -3967,6 +3969,22 @@ WindowParentHasDeviceCursor(WindowPtr pWin,
             return FALSE;
     }
     return FALSE;
+}
+
+/**
+ * Initialize some mandatory devPrivates for windows. 
+ *
+ * At the moment, this includes only the enter/leave semaphore.
+ *
+ * Returns TRUE on success.
+ */
+_X_EXPORT Bool
+InitWindowPrivates(ScreenPtr screen)
+{
+    if (EnterLeavePrivatesIndex == -1)
+        EnterLeavePrivatesIndex = AllocateWindowPrivateIndex();
+
+    return AllocateWindowPrivate(screen, EnterLeavePrivatesIndex, 0);
 }
 
 #ifndef NOLOGOHACK

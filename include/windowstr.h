@@ -216,6 +216,7 @@ typedef struct _ScreenSaverStuff {
 
 extern int screenIsSaved;
 extern ScreenSaverStuffRec savedScreenInfo[MAXSCREENS];
+extern int EnterLeavePrivatesIndex;
 
 /*
  * this is the configuration parameter "NO_BACK_SAVE"

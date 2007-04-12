@@ -391,6 +391,8 @@ main(int argc, char *argv[], char *envp[])
 		FatalError("failed to create scratch GCs");
 	    if (!CreateDefaultStipple(i))
 		FatalError("failed to create default stipple");
+            if (!InitWindowPrivates(pScreen))
+                FatalError("Failed to init window privates.");
 	    if (!CreateRootWindow(pScreen))
 		FatalError("failed to create root window");
 	}
