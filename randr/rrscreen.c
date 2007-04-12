@@ -116,11 +116,19 @@ RRDeliverScreenEvent (ClientPtr client, WindowPtr pWin, ScreenPtr pScreen)
 
     se.sequenceNumber = client->sequence;
     se.sizeID = RR10CurrentSizeID (pScreen);
-    
-    se.widthInPixels = pScreen->width;
-    se.heightInPixels = pScreen->height;
-    se.widthInMillimeters = pScreen->mmWidth;
-    se.heightInMillimeters = pScreen->mmHeight;
+
+    if (se.rotation & (RR_Rotate_90 | RR_Rotate_270)) {
+	se.widthInPixels = pScreen->height;
+	se.heightInPixels = pScreen->width;
+	se.widthInMillimeters = pScreen->mmHeight;
+	se.heightInMillimeters = pScreen->mmWidth;
+    } else {
+	se.widthInPixels = pScreen->width;
+	se.heightInPixels = pScreen->height;
+	se.widthInMillimeters = pScreen->mmWidth;
+	se.heightInMillimeters = pScreen->mmHeight;
+    }
+
     WriteEventsToClient (client, 1, (xEvent *) &se);
 }
 
@@ -733,6 +741,7 @@ ProcRRSetScreenConfig (ClientPtr client)
     RRModePtr		    mode;
     RR10DataPtr		    pData = NULL;
     RRScreenSizePtr    	    pSize;
+    int			    width, height;
     
     UpdateCurrentTime ();
 
@@ -875,8 +884,14 @@ ProcRRSetScreenConfig (ClientPtr client)
      * If the screen size is changing, adjust all of the other outputs
      * to fit the new size, mirroring as much as possible
      */
-    if (mode->mode.width != pScreen->width || 
-	mode->mode.height != pScreen->height)
+    width = mode->mode.width;
+    height = mode->mode.height;
+    if (rotation & (RR_Rotate_90|RR_Rotate_270))
+    {
+	width = mode->mode.height;
+	height = mode->mode.width;
+    }
+    if (width != pScreen->width || height != pScreen->height)
     {
 	int	c;
 
@@ -890,7 +905,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 		goto sendReply;
 	    }
 	}
-	if (!RRScreenSizeSet (pScreen, mode->mode.width, mode->mode.height,
+	if (!RRScreenSizeSet (pScreen, width, height,
 			      pScreen->mmWidth, pScreen->mmHeight))
 	{
 	    rep.status = RRSetConfigFailed;

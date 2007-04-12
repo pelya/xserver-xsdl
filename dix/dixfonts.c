@@ -1878,7 +1878,7 @@ DeleteClientFontStuff(ClientPtr client)
 }
 
 void
-InitFonts ()
+InitFonts (void)
 {
     patternCache = MakeFontPatternCache();
 
@@ -1997,7 +1997,7 @@ RegisterFPEFunctions(NameCheckFunc name_func,
 }
 
 void
-FreeFonts()
+FreeFonts(void)
 {
     if (patternCache) {
 	FreeFontPatternCache(patternCache);

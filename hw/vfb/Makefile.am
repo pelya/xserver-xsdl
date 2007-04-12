@@ -14,8 +14,8 @@ SRCS =	InitInput.c \
 	$(top_srcdir)/Xi/stubs.c \
 	$(top_srcdir)/mi/miinitext.c
 
-libfbcmap_a_CFLAGS = $(AM_CFLAGS) -DXFree86Server
-libfbcmap_a_SOURCES = $(top_srcdir)/fb/fbcmap.c
+libfbcmap_a_CFLAGS = $(AM_CFLAGS)
+libfbcmap_a_SOURCES = $(top_srcdir)/fb/fbcmap_mi.c
 
 Xvfb_SOURCES = $(SRCS)
 

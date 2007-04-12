@@ -92,15 +92,27 @@ DeviceIntPtr
 AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 {
     DeviceIntPtr dev, *prev; /* not a typo */
+    DeviceIntPtr devtmp;
+    int devid;
+    char devind[MAX_DEVICES];
 
-    if (inputInfo.numDevices >= MAX_DEVICES)
+    /* Find next available id */
+    memset(devind, 0, sizeof(char)*MAX_DEVICES);
+    for (devtmp = inputInfo.devices; devtmp; devtmp = devtmp->next)
+	devind[devtmp->id]++;
+    for (devtmp = inputInfo.off_devices; devtmp; devtmp = devtmp->next)
+	devind[devtmp->id]++;
+    for (devid = 0; devid < MAX_DEVICES && devind[devid]; devid++)
+	;
+
+    if (devid >= MAX_DEVICES)
 	return (DeviceIntPtr)NULL;
     dev = (DeviceIntPtr) xcalloc(sizeof(DeviceIntRec), 1);
     if (!dev)
 	return (DeviceIntPtr)NULL;
     dev->name = (char *)NULL;
     dev->type = 0;
-    dev->id = inputInfo.numDevices;
+    dev->id = devid;
     inputInfo.numDevices++;
     dev->public.on = FALSE;
     dev->public.processInputProc = (ProcessInputProc)NoopDDA;
@@ -373,7 +385,7 @@ CorePointerProc(DeviceIntPtr pDev, int what)
  * fallback if no physical device is available.
  */
 void
-InitCoreDevices()
+InitCoreDevices(void)
 {
     DeviceIntPtr dev;
 
@@ -460,7 +472,7 @@ InitCoreDevices()
  * Each physical keyboard is paired with the first available unpaired pointer.
  */
 int
-InitAndStartDevices()
+InitAndStartDevices(void)
 {
     DeviceIntPtr dev, next;
 
@@ -530,8 +542,13 @@ CloseDevice(DeviceIntPtr dev)
 	xfree(dev->key);
     }
 
-    if (dev->valuator)
+    if (dev->valuator) {
+        /* Counterpart to 'biggest hack ever' in init. */
+        if (dev->valuator->motion &&
+            dev->valuator->GetMotionProc == GetMotionHistory)
+            xfree(dev->valuator->motion);
         xfree(dev->valuator);
+    }
 
     if (dev->button) {
 #ifdef XKB
@@ -617,7 +634,7 @@ CloseDevice(DeviceIntPtr dev)
 }
 
 void
-CloseDownDevices()
+CloseDownDevices(void)
 {
     DeviceIntPtr dev, next;
 
@@ -703,6 +720,7 @@ RemoveDevice(DeviceIntPtr dev)
     }
     
     if (ret == Success) {
+        inputInfo.numDevices--;
         ev.type = DevicePresenceNotify;
         ev.time = currentTime.milliseconds;
         ev.devchange = 0;
@@ -716,7 +734,7 @@ RemoveDevice(DeviceIntPtr dev)
 }
 
 int
-NumMotionEvents()
+NumMotionEvents(void)
 {
     /* only called to fill data in initial connection reply. 
      * VCP is ok here, it is the only fixed device we have. */
@@ -736,13 +754,13 @@ RegisterKeyboardDevice(DeviceIntPtr device)
 }
 
 _X_EXPORT DevicePtr
-LookupKeyboardDevice()
+LookupKeyboardDevice(void)
 {
     return inputInfo.keyboard ? &inputInfo.keyboard->public : NULL;
 }
 
 _X_EXPORT DevicePtr
-LookupPointerDevice()
+LookupPointerDevice(void)
 {
     return inputInfo.pointer ? &inputInfo.pointer->public : NULL;
 }

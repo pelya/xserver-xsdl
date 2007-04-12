@@ -89,6 +89,12 @@ InitOutput(
 
 }
 
+void
+DDXRingBell(int volume, int pitch, int duration)
+{
+   /* dummy func; link fails without */
+}
+
 static void
 BellProc(
     int volume,

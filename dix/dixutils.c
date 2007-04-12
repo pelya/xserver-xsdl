@@ -550,7 +550,7 @@ RemoveBlockAndWakeupHandlers (BlockHandlerProcPtr blockHandler,
 }
 
 void
-InitBlockAndWakeupHandlers ()
+InitBlockAndWakeupHandlers (void)
 {
     xfree (handlers);
     handlers = (BlockHandlerPtr) 0;
@@ -950,7 +950,7 @@ DeleteCallbackList(CallbackListPtr *pcbl)
 }
 
 void 
-InitCallbackManager()
+InitCallbackManager(void)
 {
     int i;
 

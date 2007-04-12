@@ -53,7 +53,7 @@ ProcessInputEvents()
 }
 
 int
-TimeSinceLastInputEvent()
+TimeSinceLastInputEvent(void)
 {
     if (lastEventTime == 0)
         lastEventTime = GetTimeInMillis();
@@ -61,7 +61,7 @@ TimeSinceLastInputEvent()
 }
 
 void
-SetTimeSinceLastInputEvent()
+SetTimeSinceLastInputEvent(void)
 {
   lastEventTime = GetTimeInMillis();
 }
@@ -79,7 +79,7 @@ xnestNotExposurePredicate(Display *display, XEvent *event, char *args)
 }
 
 void
-xnestCollectExposures()
+xnestCollectExposures(void)
 {
   XEvent X;
   WindowPtr pWin;
@@ -114,7 +114,7 @@ xnestQueueKeyEvent(int type, unsigned int keycode)
 }
 
 void
-xnestCollectEvents()
+xnestCollectEvents(void)
 {
   XEvent X;
   xEvent x;

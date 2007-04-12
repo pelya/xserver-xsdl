@@ -198,21 +198,21 @@ addNewOption2 (XF86OptionPtr head, char *name, char *val, int used)
 {
 	XF86OptionPtr new, old = NULL;
 
-	/* Don't allow duplicates */
- 	if (head != NULL && (old = xf86findOption(head, name)) != NULL)
- 		new = old;
- 	else {
+	/* Don't allow duplicates, free old strings */
+	if (head != NULL && (old = xf86findOption(head, name)) != NULL) {
+		new = old;
+		xf86conffree(new->opt_name);
+		xf86conffree(new->opt_val);
+	}
+	else
 		new = xf86confcalloc (1, sizeof (XF86OptionRec));
- 		new->list.next = NULL;
- 	}
- 	new->opt_name = name;
- 	new->opt_val = val;
- 	new->opt_used = used;
-	
-  	if (old == NULL)
-		return ((XF86OptionPtr) xf86addListItem ((glp) head, (glp) new));
- 	else 
- 		return head;
+	new->opt_name = name;
+	new->opt_val = val;
+	new->opt_used = used;
+
+	if (old)
+		return head;
+	return ((XF86OptionPtr) xf86addListItem ((glp) head, (glp) new));
 }
 
 XF86OptionPtr

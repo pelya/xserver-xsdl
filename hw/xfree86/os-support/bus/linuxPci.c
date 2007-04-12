@@ -773,8 +773,8 @@ xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
     bus  = PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(Tag));
     dev  = PCI_DEV_FROM_TAG(Tag);
     func = PCI_FUNC_FROM_TAG(Tag);
-    sprintf(file, "/sys/devices/pci%04x:%02x/%04x:%02x:%02x.%1x/rom",
-	    dom, bus, dom, bus, dev, func);
+    sprintf(file, "/sys/bus/pci/devices/%04x:%02x:%02x.%1x/rom",
+	    dom, bus, dev, func);
 
     /*
      * If the caller wants the ROM and the sysfs rom interface exists,

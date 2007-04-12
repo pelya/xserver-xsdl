@@ -322,6 +322,9 @@ exaPixmapIsOffscreen(PixmapPtr p)
     if (p->devPrivate.ptr == NULL)
 	return TRUE;
 
+    if (pExaScr->info->PixmapIsOffscreen)
+	return pExaScr->info->PixmapIsOffscreen(p);
+
     return ((unsigned long) ((CARD8 *) p->devPrivate.ptr -
 			     (CARD8 *) pExaScr->info->memoryBase) <
 	    pExaScr->info->memorySize);

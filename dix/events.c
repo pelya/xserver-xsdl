@@ -974,7 +974,7 @@ PostNewCursor(DeviceIntPtr pDev)
 }
 
 _X_EXPORT WindowPtr
-GetCurrentRootWindow()
+GetCurrentRootWindow(void)
 {
     return ROOT;
 }
@@ -1179,7 +1179,7 @@ FreezeThaw(DeviceIntPtr dev, Bool frozen)
 }
 
 void
-ComputeFreezes()
+ComputeFreezes(void)
 {
     DeviceIntPtr replayDev = syncEvents.replayDev;
     int i;
@@ -2190,7 +2190,7 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 }
 
 _X_EXPORT void
-WindowsRestructured()
+WindowsRestructured(void)
 {
     DeviceIntPtr pDev = inputInfo.devices;
     while(pDev)
@@ -4281,7 +4281,7 @@ ProcQueryPointer(ClientPtr client)
 }
 
 void
-InitEvents()
+InitEvents(void)
 {
     int i;
 

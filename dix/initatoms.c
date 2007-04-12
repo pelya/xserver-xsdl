@@ -11,7 +11,7 @@
 #include <X11/Xatom.h>
 #include "misc.h"
 #include "dix.h"
-void MakePredeclaredAtoms()
+void MakePredeclaredAtoms(void)
 {
     if (MakeAtom("PRIMARY", 7, 1) != XA_PRIMARY) AtomError();
     if (MakeAtom("SECONDARY", 9, 1) != XA_SECONDARY) AtomError();

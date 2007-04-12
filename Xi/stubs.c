@@ -226,7 +226,19 @@ ChangeDeviceControl(ClientPtr client, DeviceIntPtr dev,
  *
  */
 int
-NewInputDeviceRequest(InputOption *options)
+NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
 {
     return BadValue;
+}
+
+/****************************************************************************
+ *
+ * Caller: configRemoveDevice (and others)
+ *
+ * Remove the specified device previously added.
+ *
+ */
+void
+DeleteInputDeviceRequest(DeviceIntPtr dev)
+{
 }

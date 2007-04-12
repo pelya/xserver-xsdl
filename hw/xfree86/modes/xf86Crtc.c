@@ -233,8 +233,6 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
     int			saved_x, saved_y;
     Rotation		saved_rotation;
 
-    adjusted_mode = xf86DuplicateMode(mode);
-
     crtc->enabled = xf86CrtcInUse (crtc);
     
     if (!crtc->enabled)
@@ -242,6 +240,8 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 	/* XXX disable crtc? */
 	return TRUE;
     }
+
+    adjusted_mode = xf86DuplicateMode(mode);
 
     didLock = crtc->funcs->lock (crtc);
 
@@ -374,6 +374,15 @@ static OptionInfoRec xf86OutputOptions[] = {
     {OPTION_MAX_CLOCK,	    "MaxClock",		OPTV_FREQ,    {0}, FALSE },
     {OPTION_IGNORE,	    "Ignore",		OPTV_BOOLEAN, {0}, FALSE },
     {OPTION_ROTATE,	    "Rotate",		OPTV_STRING,  {0}, FALSE },
+    {-1,		    NULL,		OPTV_NONE,    {0}, FALSE },
+};
+
+enum {
+    OPTION_MODEDEBUG,
+};
+
+static OptionInfoRec xf86DeviceOptions[] = {
+    {OPTION_MODEDEBUG,	    "ModeDebug",	OPTV_STRING,  {0}, FALSE },
     {-1,		    NULL,		OPTV_NONE,    {0}, FALSE },
 };
 
@@ -589,7 +598,6 @@ xf86CrtcCloseScreen (int index, ScreenPtr screen)
     {
 	xf86OutputPtr	output = config->output[o];
 
-	output->crtc = NULL;
 	output->randr_output = NULL;
     }
     for (c = 0; c < config->num_crtc; c++)
@@ -1160,8 +1168,6 @@ xf86SortModes (DisplayModePtr input)
     return output;
 }
 
-#define DEBUG_REPROBE 1
-
 void
 xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 {
@@ -1330,7 +1336,8 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	    if (mode->status == MODE_OK)
 		mode->status = (*output->funcs->mode_valid)(output, mode);
 	
-	xf86PruneInvalidModes(scrn, &output->probed_modes, TRUE);
+	xf86PruneInvalidModes(scrn, &output->probed_modes,
+			      config->debug_modes);
 	
 	output->probed_modes = xf86SortModes (output->probed_modes);
 	
@@ -1363,17 +1370,17 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	
 	output->initial_rotation = xf86OutputInitialRotation (output);
 
-#ifdef DEBUG_REPROBE
-	if (output->probed_modes != NULL) {
-	    xf86DrvMsg(scrn->scrnIndex, X_INFO,
-		       "Printing probed modes for output %s\n",
-		       output->name);
-	} else {
-	    xf86DrvMsg(scrn->scrnIndex, X_INFO,
-		       "No remaining probed modes for output %s\n",
-		       output->name);
+	if (config->debug_modes) {
+	    if (output->probed_modes != NULL) {
+		xf86DrvMsg(scrn->scrnIndex, X_INFO,
+			   "Printing probed modes for output %s\n",
+			   output->name);
+	    } else {
+		xf86DrvMsg(scrn->scrnIndex, X_INFO,
+			   "No remaining probed modes for output %s\n",
+			   output->name);
+	    }
 	}
-#endif
 	for (mode = output->probed_modes; mode != NULL; mode = mode->next)
 	{
 	    /* The code to choose the best mode per pipe later on will require
@@ -1382,9 +1389,8 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	    mode->VRefresh = xf86ModeVRefresh(mode);
 	    xf86SetModeCrtc(mode, INTERLACE_HALVE_V);
 
-#ifdef DEBUG_REPROBE
-	    xf86PrintModeline(scrn->scrnIndex, mode);
-#endif
+	    if (config->debug_modes)
+		xf86PrintModeline(scrn->scrnIndex, mode);
 	}
     }
 }
@@ -1478,6 +1484,15 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
     Bool		*enabled;
     int			width;
     int			height;
+
+    /* Set up the device options */
+    config->options = xnfalloc (sizeof (xf86DeviceOptions));
+    memcpy (config->options, xf86DeviceOptions, sizeof (xf86DeviceOptions));
+    xf86ProcessOptions (scrn->scrnIndex,
+			scrn->options,
+			config->options);
+    config->debug_modes = xf86ReturnOptValBool (config->options,
+						OPTION_MODEDEBUG, FALSE);
 
     if (scrn->display->virtualX)
 	width = scrn->display->virtualX;
@@ -1818,6 +1833,11 @@ xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
 	    else
 		crtc_mode = xf86OutputFindClosestMode (output, desired);
 	}
+	if (!crtc_mode)
+	{
+	    crtc->enabled = FALSE;
+	    continue;
+	}
 	if (!xf86CrtcSetMode (crtc, crtc_mode, rotation, 0, 0))
 	    ok = FALSE;
 	else
@@ -1829,6 +1849,7 @@ xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
 	}
     }
     xf86DisableUnusedFunctions(pScrn);
+    xf86RandR12TellChanged (pScrn->pScreen);
     return ok;
 }
 
@@ -1962,10 +1983,12 @@ xf86OutputSetEDID (xf86OutputPtr output, xf86MonPtr edid_mon)
     
     output->MonInfo = edid_mon;
 
-    /* Debug info for now, at least */
-    xf86DrvMsg(scrn->scrnIndex, X_INFO, "EDID for output %s\n", output->name);
-    xf86PrintEDID(edid_mon);
-    
+    if (config->debug_modes) {
+	xf86DrvMsg(scrn->scrnIndex, X_INFO, "EDID for output %s\n",
+		   output->name);
+	xf86PrintEDID(edid_mon);
+    }
+
     /* Set the DDC properties for the 'compat' output */
     if (output == config->output[config->compat_output])
         xf86SetDDCproperties(scrn, edid_mon);

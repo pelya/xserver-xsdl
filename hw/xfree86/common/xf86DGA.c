@@ -249,14 +249,11 @@ DGACloseScreen(int i, ScreenPtr pScreen)
    DGAScreenPtr pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
 
    if (XDGAEventBase) {
-       OsBlockSignals();
-       ProcessInputEvents();
        mieqSetHandler(*XDGAEventBase + MotionNotify, NULL);
        mieqSetHandler(*XDGAEventBase + ButtonPress, NULL);
        mieqSetHandler(*XDGAEventBase + ButtonRelease, NULL);
        mieqSetHandler(*XDGAEventBase + KeyPress, NULL);
        mieqSetHandler(*XDGAEventBase + KeyRelease, NULL);
-       OsReleaseSignals();
     }
 
    FreeMarkedVisuals(pScreen);

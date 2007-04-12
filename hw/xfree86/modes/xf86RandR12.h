@@ -33,5 +33,6 @@ Bool xf86RandR12SetConfig(ScreenPtr pScreen, Rotation rotation, int rate,
 Rotation xf86RandR12GetRotation(ScreenPtr pScreen);
 void xf86RandR12GetOriginalVirtualSize(ScrnInfoPtr pScrn, int *x, int *y);
 Bool xf86RandR12PreInit (ScrnInfoPtr pScrn);
+void xf86RandR12TellChanged (ScreenPtr pScreen);
 
 #endif /* _XF86_RANDR_H_ */
