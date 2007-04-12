@@ -3436,7 +3436,7 @@ CommonAncestor(
 
 static void
 EnterLeaveEvent(
-    DeviceIntPtr pDev,
+    DeviceIntPtr mouse,
     int type,
     int mode,
     int detail,
@@ -3444,9 +3444,8 @@ EnterLeaveEvent(
     Window child)
 {
     xEvent              event;
-    DeviceIntPtr        keybd = inputInfo.keyboard;
     WindowPtr		focus;
-    DeviceIntPtr        mouse = pDev;
+    DeviceIntPtr        keybd;
     GrabPtr	        grab = mouse->coreGrab.grab;
     GrabPtr	        devgrab = mouse->deviceGrab.grab;
     Mask		mask;
@@ -3455,6 +3454,9 @@ EnterLeaveEvent(
     deviceEnterNotify   *devEnterLeave;
     int                 mskidx;
     OtherInputMasks     *inputMasks;
+
+    if (!(keybd = GetPairedKeyboard(mouse)))
+        keybd = inputInfo.keyboard;
 
     if ((pWin == mouse->valuator->motionHintWindow) &&
 	(detail != NotifyInferior))
@@ -3473,8 +3475,8 @@ EnterLeaveEvent(
     event.u.u.type = type;
     event.u.u.detail = detail;
     event.u.enterLeave.time = currentTime.milliseconds;
-    event.u.enterLeave.rootX = pDev->spriteInfo->sprite->hot.x;
-    event.u.enterLeave.rootY = pDev->spriteInfo->sprite->hot.y;
+    event.u.enterLeave.rootX = mouse->spriteInfo->sprite->hot.x;
+    event.u.enterLeave.rootY = mouse->spriteInfo->sprite->hot.y;
     /* Counts on the same initial structure of crossing & button events! */
     FixUpEventFromWindow(mouse, &event, pWin, None, FALSE);
     /* Enter/Leave events always set child */
@@ -3510,7 +3512,7 @@ EnterLeaveEvent(
                 (void)TryClientEvents(rClient(grab), &event, 1, mask,
                                       filters[type], grab);
             else
-                (void)DeliverEventsToWindow(pDev, pWin, &event, 1, filters[type],
+                (void)DeliverEventsToWindow(mouse, pWin, &event, 1, filters[type],
                                             NullGrab, 0);
         }
     }
@@ -3520,8 +3522,8 @@ EnterLeaveEvent(
         DeviceLeaveNotify;
     devEnterLeave->type = (type == EnterNotify) ? DeviceEnterNotify :
         DeviceLeaveNotify;
-    devEnterLeave->deviceid = pDev->id;
-    mskidx = pDev->id;
+    devEnterLeave->deviceid = mouse->id;
+    mskidx = mouse->id;
     inputMasks = wOtherInputMasks(pWin);
     if (inputMasks && 
        (filters[devEnterLeave->type] & inputMasks->deliverableEvents[mskidx]))
@@ -3530,9 +3532,9 @@ EnterLeaveEvent(
             (void)TryClientEvents(rClient(devgrab), (xEvent*)devEnterLeave, 1,
                                 mask, filters[devEnterLeave->type], devgrab);
 	else
-	    (void)DeliverEventsToWindow(pDev, pWin, (xEvent*)devEnterLeave, 
+	    (void)DeliverEventsToWindow(mouse, pWin, (xEvent*)devEnterLeave, 
                                         1, filters[devEnterLeave->type], 
-                                        NullGrab, pDev->id);
+                                        NullGrab, mouse->id);
     }
 
     if ((type == EnterNotify) && (mask & KeymapStateMask))
@@ -3550,7 +3552,7 @@ EnterLeaveEvent(
 	    (void)TryClientEvents(rClient(grab), (xEvent *)&ke, 1, mask,
 				  KeymapStateMask, grab);
 	else
-	    (void)DeliverEventsToWindow(pDev, pWin, (xEvent *)&ke, 1,
+	    (void)DeliverEventsToWindow(mouse, pWin, (xEvent *)&ke, 1,
 					KeymapStateMask, NullGrab, 0);
     }
 }
