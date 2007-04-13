@@ -2787,9 +2787,9 @@ CheckDeviceGrabs(DeviceIntPtr device, xEvent *xE,
 void
 DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
 {
+    DeviceIntPtr pointer;
     WindowPtr focus = keybd->focus->win;
     int mskidx = 0;
-
     if (focus == FollowKeyboardWin)
 	focus = inputInfo.keyboard->focus->win;
     if (!focus)
@@ -2804,8 +2804,11 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
 	if (DeliverDeviceEvents(window, xE, NullGrab, focus, keybd, count))
 	    return;
     }
+    pointer = GetPairedPointer(keybd);
+    if (!pointer)
+        pointer = inputInfo.pointer;
     /* just deliver it to the focus window */
-    FixUpEventFromWindow(inputInfo.pointer, xE, focus, None, FALSE);
+    FixUpEventFromWindow(pointer, xE, focus, None, FALSE);
     if (xE->u.u.type & EXTENSION_EVENT_BASE)
 	mskidx = keybd->id;
     (void)DeliverEventsToWindow(keybd, focus, xE, count, filters[xE->u.u.type],
@@ -3632,13 +3635,8 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
 {
     xEvent event;
 
-#ifdef XINPUT
     if (dev != inputInfo.keyboard)
-    {
 	DeviceFocusEvent(dev, type, mode, detail, pWin);
-	return;
-    }
-#endif
     event.u.focus.mode = mode;
     event.u.u.type = type;
     event.u.u.detail = detail;
@@ -3846,6 +3844,8 @@ SetInputFocus(
     WindowPtr focusWin;
     int mode, rc;
     TimeStamp time;
+    DeviceIntPtr keybd; /* used for FollowKeyboard or FollowKeyboardWin */
+
 
     UpdateCurrentTime();
     if ((revertTo != RevertToParent) &&
@@ -3857,10 +3857,22 @@ SetInputFocus(
 	return BadValue;
     }
     time = ClientTimeToServerTime(ctime);
+
+    if (IsKeyboardDevice(dev))
+        keybd = dev;
+    else
+    {
+        keybd = GetPairedKeyboard(dev);
+        if (!keybd) 
+            keybd = inputInfo.keyboard;
+    }
+
     if ((focusID == None) || (focusID == PointerRoot))
 	focusWin = (WindowPtr)(long)focusID;
     else if ((focusID == FollowKeyboard) && followOK)
-	focusWin = inputInfo.keyboard->focus->win;
+    {
+	focusWin = keybd->focus->win;
+    }
     else {
 	rc = dixLookupWindow(&focusWin, focusID, client, DixReadAccess);
 	if (rc != Success)
@@ -3876,7 +3888,7 @@ SetInputFocus(
 	return Success;
     mode = (dev->coreGrab.grab) ? NotifyWhileGrabbed : NotifyNormal;
     if (focus->win == FollowKeyboardWin)
-	DoFocusEvents(dev, inputInfo.keyboard->focus->win, focusWin, mode);
+	DoFocusEvents(dev, keybd->focus->win, focusWin, mode);
     else
 	DoFocusEvents(dev, focus->win, focusWin, mode);
     focus->time = time;
