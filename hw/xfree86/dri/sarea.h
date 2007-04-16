@@ -89,4 +89,9 @@ typedef struct _XF86DRISAREA {
     drm_context_t			dummy_context;
 } XF86DRISAREARec, *XF86DRISAREAPtr;
 
+typedef struct _XF86DRILSAREA  {
+    drmLock                     lock;
+    drmLock                     otherLocks[31];
+} XF86DRILSAREARec, *XF86DRILSAREAPtr;
+
 #endif

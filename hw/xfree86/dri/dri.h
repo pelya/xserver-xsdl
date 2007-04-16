@@ -107,7 +107,7 @@ typedef struct {
  */
 
 #define DRIINFO_MAJOR_VERSION   5
-#define DRIINFO_MINOR_VERSION   1
+#define DRIINFO_MINOR_VERSION   2
 #define DRIINFO_PATCH_VERSION   0
 
 typedef struct {
@@ -176,8 +176,16 @@ typedef struct {
 
     /* New with DRI version 5.1.0 */
     void        (*ClipNotify)(ScreenPtr pScreen, WindowPtr *ppWin, int num);
+
+    /* New with DRI version 5.2.0 */
+    Bool                allocSarea;
+    Bool                keepFDOpen;
 } DRIInfoRec, *DRIInfoPtr;
 
+
+extern Bool DRIOpenDRMMaster(ScrnInfoPtr pScrn, unsigned long sAreaSize,
+			     const char *busID,
+			     const char *drmDriverName);
 
 extern Bool DRIScreenInit(ScreenPtr pScreen,
                           DRIInfoPtr pDRIInfo,
@@ -344,6 +352,14 @@ extern char *DRICreatePCIBusID(pciVideoPtr PciInfo);
 
 extern int drmInstallSIGIOHandler(int fd, void (*f)(int, void *, void *));
 extern int drmRemoveSIGIOHandler(int fd);
+extern int DRIMasterFD(ScrnInfoPtr pScrn);
+
+extern void *DRIMasterSareaPointer(ScrnInfoPtr pScrn);
+
+extern drm_handle_t DRIMasterSareaHandle(ScrnInfoPtr pScrn);
+
+
+
 #define _DRI_H_
 
 #endif
