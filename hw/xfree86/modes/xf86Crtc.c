@@ -414,10 +414,25 @@ xf86OutputSetMonitor (xf86OutputPtr output)
     xfree (option_name);
     output->conf_monitor = xf86findMonitor (monitor,
 					    xf86configptr->conf_monitor_lst);
+    /*
+     * Find the monitor section of the screen and use that
+     */
+    if (!output->conf_monitor && output->use_screen_monitor)
+	output->conf_monitor = xf86findMonitor (output->scrn->monitor->id,
+						xf86configptr->conf_monitor_lst);
     if (output->conf_monitor)
+    {
+	xf86DrvMsg (output->scrn->scrnIndex, X_INFO,
+		    "Output %s using monitor section %s\n",
+		    output->name, output->conf_monitor->mon_identifier);
 	xf86ProcessOptions (output->scrn->scrnIndex,
 			    output->conf_monitor->mon_option_lst,
 			    output->options);
+    }
+    else
+	xf86DrvMsg (output->scrn->scrnIndex, X_INFO,
+		    "Output %s has no monitor section\n",
+		    output->name);
 }
 
 static Bool
@@ -463,7 +478,7 @@ xf86OutputInitialRotation (xf86OutputPtr output)
 
 xf86OutputPtr
 xf86OutputCreate (ScrnInfoPtr		    scrn,
-		  const xf86OutputFuncsRec *funcs,
+		  const xf86OutputFuncsRec  *funcs,
 		  const char		    *name)
 {
     xf86OutputPtr	output, *outputs;
@@ -486,6 +501,10 @@ xf86OutputCreate (ScrnInfoPtr		    scrn,
 	strcpy (output->name, name);
     }
     output->subpixel_order = SubPixelUnknown;
+    /*
+     * Use the old per-screen monitor section for the first output
+     */
+    output->use_screen_monitor = (xf86_config->num_output == 0);
 #ifdef RANDR_12_INTERFACE
     output->randr_output = NULL;
 #endif
@@ -534,6 +553,16 @@ xf86OutputRename (xf86OutputPtr output, const char *name)
     if (xf86OutputIgnored (output))
 	return FALSE;
     return TRUE;
+}
+
+void
+xf86OutputUseScreenMonitor (xf86OutputPtr output, Bool use_screen_monitor)
+{
+    if (use_screen_monitor != output->use_screen_monitor)
+    {
+	output->use_screen_monitor = use_screen_monitor;
+	xf86OutputSetMonitor (output);
+    }
 }
 
 void
