@@ -436,15 +436,29 @@ xf86OutputSetMonitor (xf86OutputPtr output)
 }
 
 static Bool
-xf86OutputEnabled (xf86OutputPtr    output)
+xf86OutputEnabled (xf86OutputPtr output)
 {
-    /* Check to see if this output was disabled in the config file */
-    if (xf86ReturnOptValBool (output->options, OPTION_ENABLE, TRUE) == FALSE ||
-	xf86ReturnOptValBool (output->options, OPTION_DISABLE, FALSE) == TRUE)
+    Bool    enable, disable;
+
+    /* check to see if this output was enabled in the config file */
+    if (xf86GetOptValBool (output->options, OPTION_ENABLE, &enable) && enable)
     {
+	xf86DrvMsg (output->scrn->scrnIndex, X_INFO,
+		    "Output %s enabled by config file\n", output->name);
+	return TRUE;
+    }
+    /* or if this output was disabled in the config file */
+    if (xf86GetOptValBool (output->options, OPTION_DISABLE, &disable) && disable)
+    {
+	xf86DrvMsg (output->scrn->scrnIndex, X_INFO,
+		    "Output %s disabled by config file\n", output->name);
 	return FALSE;
     }
-    return TRUE;
+    /* otherwise, enable if it is not disconnected */
+    enable = output->status != XF86OutputStatusDisconnected;
+    xf86DrvMsg (output->scrn->scrnIndex, X_INFO,
+    	    "Output %s %sconnected\n", output->name, enable ? "" : "dis");
+    return enable;
 }
 
 static Bool
@@ -1232,7 +1246,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	 */
 	output->status = (*output->funcs->detect)(output);
 
-	if (output->status == XF86OutputStatusDisconnected)
+	if (!xf86OutputEnabled (output))
 	{
 	    xf86OutputSetEDID (output, NULL);
 	    continue;
@@ -1543,8 +1557,7 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 	xf86OutputPtr output = config->output[o];
 	
 	modes[o] = NULL;
-	enabled[o] = (xf86OutputEnabled (output) &&
-		      output->status != XF86OutputStatusDisconnected);
+	enabled[o] = xf86OutputEnabled (output);
     }
     
     /*
@@ -1589,8 +1602,20 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
     {
 	xf86OutputPtr output = config->output[o];
 	
-	if (enabled[o] && !modes[o])
-	    modes[o] = xf86ClosestMode (output, target_mode, target_rotation, width, height);
+	if (enabled[o])
+	{
+	    if (!modes[o])
+		modes[o] = xf86ClosestMode (output, target_mode,
+					    target_rotation, width, height);
+	    if (!modes[o])
+		xf86DrvMsg (scrn->scrnIndex, X_ERROR,
+			    "Output %s enabled but has no modes\n",
+			    output->name);
+	    else
+		xf86DrvMsg (scrn->scrnIndex, X_INFO,
+			    "Output %s using initial mode %s\n",
+			    output->name, modes[o]->name);
+	}
     }
 
     /*
