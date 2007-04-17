@@ -2272,7 +2272,7 @@ DefineInitialRootWindow(WindowPtr win)
         if (DevHasCursor(pDev))
         {
             InitializeSprite(pDev, win);
-            win->devPrivates[EnterLeavePrivatesIndex].val++;
+            win->devPrivates[FocusPrivatesIndex].val++;
         }
         pDev = pDev->next;
     }
@@ -3452,7 +3452,7 @@ EnterLeaveEvent(
     GrabPtr	        grab = mouse->coreGrab.grab;
     GrabPtr	        devgrab = mouse->deviceGrab.grab;
     Mask		mask;
-    long*               inWindow; /* no of sprites inside pWin */
+    int*                inWindow; /* no of sprites inside pWin */
     Bool                sendevent = FALSE;        
 
     deviceEnterNotify   *devEnterLeave;
@@ -3502,7 +3502,7 @@ EnterLeaveEvent(
              IsParent(focus, pWin)))
         event.u.enterLeave.flags |= ELFlagFocus;
 
-    inWindow = &pWin->devPrivates[EnterLeavePrivatesIndex].val;
+    inWindow = &((FocusSemaphoresPtr)pWin->devPrivates[FocusPrivatesIndex].ptr)->enterleave;
 
     /*
      * Sending multiple core enter/leave events to the same window confuse the
@@ -3665,28 +3665,80 @@ static void
 FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
 {
     xEvent event;
+    int* numFoci; /* no of foci the window has already */
+    Bool sendevent = FALSE;
+    FocusSemaphoresPtr focus;
 
     if (dev != inputInfo.keyboard)
 	DeviceFocusEvent(dev, type, mode, detail, pWin);
-    event.u.focus.mode = mode;
-    event.u.u.type = type;
-    event.u.u.detail = detail;
-    event.u.focus.window = pWin->drawable.id;
-    (void)DeliverEventsToWindow(dev, pWin, &event, 1, filters[type], NullGrab,
-                                0);
-    if ((type == FocusIn) &&
-	((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
-    {
-	xKeymapEvent ke;
-	ClientPtr client = clients[CLIENT_ID(pWin->drawable.id)];
-	if (XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
-	    memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
-	else
-	    bzero((char *)&ke.map[0], 31);
 
-	ke.type = KeymapNotify;
-	(void)DeliverEventsToWindow(dev, pWin, (xEvent *)&ke, 1,
-				    KeymapStateMask, NullGrab, 0);
+    /*
+     * Same procedure as for Enter/Leave events.
+     *
+     * Sending multiple core FocusIn/Out events to the same window may confuse
+     * the client.  
+     * We can send multiple events that have detail NotifyVirtual,
+     * NotifyNonlinearVirtual, NotifyPointerRoot, NotifyDetailNone or
+     * NotifyPointer however.
+     *
+     * For standard events (NotifyAncestor, NotifyInferior, NotifyNonlinear)
+     * we only send an FocusIn event for the first kbd to set the focus. A
+     * FocusOut event is sent for the last kbd to set the focus away from the
+     * window.. 
+     *
+     * For events with Virtual detail, we send them only to a window that does
+     * not have a focus from another keyboard.
+     *
+     * For a window tree in the form of 
+     *
+     * A -> Bf -> C -> D 
+     *  \               (where B and E have focus)
+     *    -> Ef         
+     *    
+     * If the focus changes from E into D, a FocusOut is sent to E, a
+     * FocusIn is sent to D, a FocusIn with detail
+     * NotifyNonlinearVirtual to C and nothing to B.
+     */
+
+    numFoci =
+        &((FocusSemaphoresPtr)pWin->devPrivates[FocusPrivatesIndex].ptr)->focusinout;
+    if (detail != NotifyVirtual && 
+            detail != NotifyNonlinearVirtual && 
+            detail != NotifyPointer &&
+            detail != NotifyPointerRoot &&
+            detail != NotifyDetailNone)
+    {
+        (type == FocusIn) ? (*numFoci)++ : (*numFoci)--;
+        if (((*numFoci) == (FocusOut - type)))
+            sendevent = TRUE;
+    } else
+    {
+        if (!(*numFoci))
+            sendevent = TRUE;
+    }
+
+    if (sendevent)
+    {
+        event.u.focus.mode = mode;
+        event.u.u.type = type;
+        event.u.u.detail = detail;
+        event.u.focus.window = pWin->drawable.id;
+        (void)DeliverEventsToWindow(dev, pWin, &event, 1, filters[type], NullGrab,
+                                    0);
+        if ((type == FocusIn) &&
+                ((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
+        {
+            xKeymapEvent ke;
+            ClientPtr client = clients[CLIENT_ID(pWin->drawable.id)];
+            if (XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
+                memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
+            else
+                bzero((char *)&ke.map[0], 31);
+
+            ke.type = KeymapNotify;
+            (void)DeliverEventsToWindow(dev, pWin, (xEvent *)&ke, 1,
+                                        KeymapStateMask, NullGrab, 0);
+        }
     }
 }
 

@@ -155,7 +155,7 @@ _X_EXPORT int screenIsSaved = SCREEN_SAVER_OFF;
 
 _X_EXPORT ScreenSaverStuffRec savedScreenInfo[MAXSCREENS];
 
-_X_EXPORT int EnterLeavePrivatesIndex = -1;
+_X_EXPORT int FocusPrivatesIndex = -1;
 
 #if 0
 extern void DeleteWindowFromAnyEvents();
@@ -312,6 +312,12 @@ SetWindowToDefaults(WindowPtr pWin)
 #ifdef COMPOSITE
     pWin->redirectDraw = 0;
 #endif
+
+    ((FocusSemaphoresPtr)
+     pWin->devPrivates[FocusPrivatesIndex].ptr)->enterleave = 0;
+    ((FocusSemaphoresPtr)
+     pWin->devPrivates[FocusPrivatesIndex].ptr)->focusinout = 0;
+
 }
 
 static void
@@ -3981,10 +3987,11 @@ WindowParentHasDeviceCursor(WindowPtr pWin,
 _X_EXPORT Bool
 InitWindowPrivates(ScreenPtr screen)
 {
-    if (EnterLeavePrivatesIndex == -1)
-        EnterLeavePrivatesIndex = AllocateWindowPrivateIndex();
+    if (FocusPrivatesIndex == -1)
+        FocusPrivatesIndex = AllocateWindowPrivateIndex();
 
-    return AllocateWindowPrivate(screen, EnterLeavePrivatesIndex, 0);
+    return AllocateWindowPrivate(screen, FocusPrivatesIndex, 
+            sizeof(FocusSemaphoresRec));
 }
 
 #ifndef NOLOGOHACK
