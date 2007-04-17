@@ -1281,9 +1281,6 @@ static char *SecurityKeywords[] = {
 
 #define NUMKEYWORDS (sizeof(SecurityKeywords) / sizeof(char *))
 
-#undef PROPDEBUG
-/*#define PROPDEBUG  1*/
-
 static void
 SecurityFreePropertyAccessList(void)
 {
@@ -1638,32 +1635,6 @@ SecurityLoadPropertyAccessList(void)
 		   lineNumber, SecurityPolicyFile);
     } /* end while more input */
 
-#ifdef PROPDEBUG
-    {
-	PropertyAccessPtr pacl;
-	char *op = "aie";
-	for (pacl = PropertyAccessList; pacl; pacl = pacl->next)
-	{
-	    ErrorF("property %s ", NameForAtom(pacl->name));
-	    switch (pacl->windowRestriction)
-	    {
-		case SecurityAnyWindow: ErrorF("any "); break;
-		case SecurityRootWindow: ErrorF("root "); break;
-		case SecurityWindowWithProperty:
-		{
-		    ErrorF("%s ", NameForAtom(pacl->mustHaveProperty));
-		    if (pacl->mustHaveValue)
-			ErrorF(" = \"%s\" ", pacl->mustHaveValue);
-
-		}
-		break;
-	    }
-	    ErrorF("%cr %cw %cd\n", op[pacl->readAction],
-		   op[pacl->writeAction], op[pacl->destroyAction]);
-	}
-    }
-#endif /* PROPDEBUG */
-
     fclose(f);
 } /* SecurityLoadPropertyAccessList */
 
@@ -1696,11 +1667,6 @@ SecurityMatchString(
 	     && (*cs == '\0') );
 } /* SecurityMatchString */
 
-#ifdef PROPDEBUG
-#include <sys/types.h>
-#include <sys/stat.h>
-#endif
-
 
 static void
 SecurityCheckPropertyAccess(CallbackListPtr *pcbl, pointer unused,
@@ -1719,25 +1685,6 @@ SecurityCheckPropertyAccess(CallbackListPtr *pcbl, pointer unused,
     if ((TRUSTLEVEL(client) == XSecurityClientTrusted) ||
 	 (TRUSTLEVEL(wClient(pWin)) != XSecurityClientTrusted) )
 	return;
-
-#ifdef PROPDEBUG
-    /* For testing, it's more convenient if the property rules file gets
-     * reloaded whenever it changes, so we can rapidly try things without
-     * having to reset the server.
-     */
-    {
-	struct stat buf;
-	static time_t lastmod = 0;
-	int ret = stat(SecurityPolicyFile , &buf);
-	if ( (ret == 0) && (buf.st_mtime > lastmod) )
-	{
-	    ErrorF("reloading property rules\n");
-	    SecurityFreePropertyAccessList();
-	    SecurityLoadPropertyAccessList();
-	    lastmod = buf.st_mtime;
-	}
-    }
-#endif
 
     /* If the property atom is bigger than any atoms on the list, 
      * we know we won't find it, so don't even bother looking.
