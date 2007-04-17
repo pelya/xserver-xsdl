@@ -281,7 +281,7 @@ static void DoEnterLeaveEvents(
     WindowPtr fromWin,
     WindowPtr toWin,
     int mode
-);
+); 
 
 static WindowPtr XYToWindow(
     int x,
@@ -3453,6 +3453,7 @@ EnterLeaveEvent(
     GrabPtr	        devgrab = mouse->deviceGrab.grab;
     Mask		mask;
     long*               inWindow; /* no of sprites inside pWin */
+    Bool                sendevent = FALSE;        
 
     deviceEnterNotify   *devEnterLeave;
     int                 mskidx;
@@ -3503,21 +3504,51 @@ EnterLeaveEvent(
 
     inWindow = &pWin->devPrivates[EnterLeavePrivatesIndex].val;
 
-    (type == EnterNotify) ? (*inWindow)++ : (*inWindow)--;
+    /*
+     * Sending multiple core enter/leave events to the same window confuse the
+     * client.  
+     * We can send multiple events that have detail NotifyVirtual or
+     * NotifyNonlinearVirtual however.
+     *
+     * For standard events (NotifyAncestor, NotifyInferior, NotifyNonlinear)
+     * we only send an enter event for the first pointer to enter. A leave
+     * event is sent for the last pointer to leave. 
+     *
+     * For events with Virtual detail, we send them only to a window that does
+     * not have a pointer inside.
+     *
+     * For a window tree in the form of 
+     *
+     * A -> Bp -> C -> D 
+     *  \               (where B and E have pointers)
+     *    -> Ep         
+     *    
+     * If the pointer moves from E into D, a LeaveNotify is sent to E, an
+     * EnterNotify is sent to D, an EnterNotify with detail
+     * NotifyNonlinearVirtual to C and nothing to B.
+     */
 
-    if (mask & filters[type])
+    if (event.u.u.detail != NotifyVirtual && 
+            event.u.u.detail != NotifyNonlinearVirtual)
     {
-        /* only send core events for the first device to enter and the last
-           one to leave */
-        if ((*inWindow) == (LeaveNotify - type))
-        {
-            if (grab)
-                (void)TryClientEvents(rClient(grab), &event, 1, mask,
-                                      filters[type], grab);
-            else
-                (void)DeliverEventsToWindow(mouse, pWin, &event, 1, filters[type],
-                                            NullGrab, 0);
-        }
+        (type == EnterNotify) ? (*inWindow)++ : (*inWindow)--;
+
+        if (((*inWindow) == (LeaveNotify - type)))
+            sendevent = TRUE;
+    } else
+    {
+        if (!(*inWindow))
+            sendevent = TRUE;
+    }
+
+    if ((mask & filters[type]) && sendevent)
+    {
+        if (grab)
+            (void)TryClientEvents(rClient(grab), &event, 1, mask,
+                                  filters[type], grab);
+        else
+            (void)DeliverEventsToWindow(mouse, pWin, &event, 1, filters[type],
+                                        NullGrab, 0);
     }
 
     devEnterLeave = (deviceEnterNotify*)&event;
