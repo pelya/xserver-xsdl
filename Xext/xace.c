@@ -61,10 +61,10 @@ int XaceHook(int hook, ...)
 	case XACE_CORE_DISPATCH: {
 	    XaceCoreDispatchRec rec = {
 		va_arg(ap, ClientPtr),
-		TRUE	/* default allow */
+		Success /* default allow */
 	    };
 	    calldata = &rec;
-	    prv = &rec.rval;
+	    prv = &rec.status;
 	    break;
 	}
 	case XACE_RESOURCE_ACCESS: {
@@ -74,10 +74,10 @@ int XaceHook(int hook, ...)
 		va_arg(ap, RESTYPE),
 		va_arg(ap, Mask),
 		va_arg(ap, pointer),
-		TRUE	/* default allow */
+		Success /* default allow */
 	    };
 	    calldata = &rec;
-	    prv = &rec.rval;
+	    prv = &rec.status;
 	    break;
 	}
 	case XACE_DEVICE_ACCESS: {
@@ -85,10 +85,10 @@ int XaceHook(int hook, ...)
 		va_arg(ap, ClientPtr),
 		va_arg(ap, DeviceIntPtr),
 		va_arg(ap, Bool),
-		TRUE	/* default allow */
+		Success /* default allow */
 	    };
 	    calldata = &rec;
-	    prv = &rec.rval;
+	    prv = &rec.status;
 	    break;
 	}
 	case XACE_PROPERTY_ACCESS: {
@@ -97,20 +97,20 @@ int XaceHook(int hook, ...)
 		va_arg(ap, WindowPtr),
 		va_arg(ap, PropertyPtr),
 		va_arg(ap, Mask),
-		XaceAllowOperation   /* default allow */
+		Success /* default allow */
 	    };
 	    calldata = &rec;
-	    prv = &rec.rval;
+	    prv = &rec.status;
 	    break;
 	}
 	case XACE_DRAWABLE_ACCESS: {
 	    XaceDrawableAccessRec rec = {
 		va_arg(ap, ClientPtr),
 		va_arg(ap, DrawablePtr),
-		TRUE	/* default allow */
+		Success /* default allow */
 	    };
 	    calldata = &rec;
-	    prv = &rec.rval;
+	    prv = &rec.status;
 	    break;
 	}
 	case XACE_MAP_ACCESS:
@@ -118,10 +118,10 @@ int XaceHook(int hook, ...)
 	    XaceMapAccessRec rec = {
 		va_arg(ap, ClientPtr),
 		va_arg(ap, WindowPtr),
-		TRUE	/* default allow */
+		Success /* default allow */
 	    };
 	    calldata = &rec;
-	    prv = &rec.rval;
+	    prv = &rec.status;
 	    break;
 	}
 	case XACE_EXT_DISPATCH:
@@ -129,20 +129,20 @@ int XaceHook(int hook, ...)
 	    XaceExtAccessRec rec = {
 		va_arg(ap, ClientPtr),
 		va_arg(ap, ExtensionEntry*),
-		TRUE	/* default allow */
+		Success /* default allow */
 	    };
 	    calldata = &rec;
-	    prv = &rec.rval;
+	    prv = &rec.status;
 	    break;
 	}
 	case XACE_HOSTLIST_ACCESS: {
 	    XaceHostlistAccessRec rec = {
 		va_arg(ap, ClientPtr),
 		va_arg(ap, Mask),
-		TRUE	/* default allow */
+		Success /* default allow */
 	    };
 	    calldata = &rec;
-	    prv = &rec.rval;
+	    prv = &rec.status;
 	    break;
 	}
 	case XACE_SELECTION_ACCESS: {
@@ -150,20 +150,20 @@ int XaceHook(int hook, ...)
 		va_arg(ap, ClientPtr),
 		va_arg(ap, Selection*),
 		va_arg(ap, Mask),
-		TRUE	/* default allow */
+		Success /* default allow */
 	    };
 	    calldata = &rec;
-	    prv = &rec.rval;
+	    prv = &rec.status;
 	    break;
 	}
 	case XACE_SITE_POLICY: {
 	    XaceSitePolicyRec rec = {
 		va_arg(ap, char*),
 		va_arg(ap, int),
-		FALSE	/* default unrecognized */
+		BadValue /* default unrecognized */
 	    };
 	    calldata = &rec;
-	    prv = &rec.rval;
+	    prv = &rec.status;
 	    break;
 	}
 	case XACE_DECLARE_EXT_SECURE: {
@@ -271,13 +271,14 @@ static int
 XaceCatchDispatchProc(ClientPtr client)
 {
     REQUEST(xReq);
-    int major = stuff->reqType;
+    int rc, major = stuff->reqType;
 
     if (!ProcVector[major])
 	return (BadRequest);
 
-    if (!XaceHook(XACE_CORE_DISPATCH, client))
-	return (BadAccess);
+    rc = XaceHook(XACE_CORE_DISPATCH, client);
+    if (rc != Success)
+        return rc;
 
     return client->swapped ? 
 	(* SwappedProcVector[major])(client) :
@@ -294,7 +295,7 @@ XaceCatchExtProc(ClientPtr client)
     if (!ext || !ProcVector[major])
 	return (BadRequest);
 
-    if (!XaceHook(XACE_EXT_DISPATCH, client, ext))
+    if (XaceHook(XACE_EXT_DISPATCH, client, ext) != Success)
 	return (BadRequest); /* pretend extension doesn't exist */
 
     return client->swapped ?

@@ -1120,7 +1120,7 @@ ProcGetSelectionOwner(ClientPtr client)
 	reply.sequenceNumber = client->sequence;
         if (i < NumCurrentSelections &&
 	    XaceHook(XACE_SELECTION_ACCESS, client, &CurrentSelections[i],
-		     DixReadAccess))
+		     DixReadAccess) == Success)
             reply.owner = CurrentSelections[i].destwindow;
         else
             reply.owner = None;
@@ -1161,7 +1161,7 @@ ProcConvertSelection(ClientPtr client)
 	if ((i < NumCurrentSelections) &&
 	    (CurrentSelections[i].window != None) &&
 	    XaceHook(XACE_SELECTION_ACCESS, client, &CurrentSelections[i],
-		     DixReadAccess))
+		     DixReadAccess) == Success)
 	{        
 	    event.u.u.type = SelectionRequest;
 	    event.u.selectionRequest.time = stuff->time;
@@ -2276,7 +2276,7 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
     }
 
     if (pDraw->type == DRAWABLE_WINDOW &&
-	!XaceHook(XACE_DRAWABLE_ACCESS, client, pDraw))
+	XaceHook(XACE_DRAWABLE_ACCESS, client, pDraw) != Success)
     {
 	pVisibleRegion = NotClippedByChildren((WindowPtr)pDraw);
 	if (pVisibleRegion)
@@ -3343,8 +3343,9 @@ ProcListHosts(ClientPtr client)
     REQUEST_SIZE_MATCH(xListHostsReq);
 
     /* untrusted clients can't list hosts */
-    if (!XaceHook(XACE_HOSTLIST_ACCESS, client, DixReadAccess))
-	return BadAccess;
+    result = XaceHook(XACE_HOSTLIST_ACCESS, client, DixReadAccess);
+    if (result != Success)
+	return result;
 
     result = GetHosts(&pdata, &nHosts, &len, &reply.enabled);
     if (result != Success)

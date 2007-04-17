@@ -806,7 +806,7 @@ SecurityCheckDeviceAccess(CallbackListPtr *pcbl, pointer unused,
 	    case X_SetModifierMapping:
 		SecurityAudit("client %d attempted request %d\n",
 			      client->index, reqtype);
-		rec->rval = FALSE;
+		rec->status = BadAccess;
 		return;
 	    default:
 		break;
@@ -875,7 +875,7 @@ SecurityCheckDeviceAccess(CallbackListPtr *pcbl, pointer unused,
 	else
 	    SecurityAudit("client %d attempted to access device %d (%s)\n",
 			  client->index, dev->id, devname);
-	rec->rval = FALSE;
+	rec->status = BadAccess;
     }
     return;
 } /* SecurityCheckDeviceAccess */
@@ -1084,7 +1084,7 @@ SecurityCheckResourceIDAccess(CallbackListPtr *pcbl, pointer unused,
     return;
   deny:
     SecurityAuditResourceIDAccess(client, id);
-    rec->rval = FALSE;	/* deny access */
+    rec->status = BadAccess; /* deny access */
 } /* SecurityCheckResourceIDAccess */
 
 
@@ -1176,7 +1176,7 @@ SecurityCheckDrawableAccess(CallbackListPtr *pcbl, pointer unused,
     XaceDrawableAccessRec *rec = (XaceDrawableAccessRec*)calldata;
 
     if (TRUSTLEVEL(rec->client) != XSecurityClientTrusted)
-	rec->rval = FALSE;
+	rec->status = BadAccess;
 }
 
 static void
@@ -1192,7 +1192,7 @@ SecurityCheckMapAccess(CallbackListPtr *pcbl, pointer unused,
 	pWin->parent && pWin->parent->parent &&
 	(TRUSTLEVEL(wClient(pWin->parent)) == XSecurityClientTrusted))
 
-	rec->rval = FALSE;
+	rec->status = BadAccess;
 }
 
 static void
@@ -1202,7 +1202,7 @@ SecurityCheckBackgrndAccess(CallbackListPtr *pcbl, pointer unused,
     XaceMapAccessRec *rec = (XaceMapAccessRec*)calldata;
 
     if (TRUSTLEVEL(rec->client) != XSecurityClientTrusted)
-	rec->rval = FALSE;
+	rec->status = BadAccess;
 }
 
 static void
@@ -1214,7 +1214,7 @@ SecurityCheckExtAccess(CallbackListPtr *pcbl, pointer unused,
     if ((TRUSTLEVEL(rec->client) != XSecurityClientTrusted) &&
 	!EXTLEVEL(rec->ext))
 
-	rec->rval = FALSE;
+	rec->status = BadAccess;
 }
 
 static void
@@ -1225,7 +1225,7 @@ SecurityCheckHostlistAccess(CallbackListPtr *pcbl, pointer unused,
  
     if (TRUSTLEVEL(rec->client) != XSecurityClientTrusted)
     {
-	rec->rval = FALSE;
+	rec->status = BadAccess;
 	if (rec->access_mode == DixWriteAccess)
 	    SecurityAudit("client %d attempted to change host access\n",
 			  rec->client->index);
@@ -1255,14 +1255,14 @@ typedef struct _PropertyAccessRec {
 #define SecurityAnyWindow          0
 #define SecurityRootWindow         1
 #define SecurityWindowWithProperty 2
-    char readAction;
-    char writeAction;
-    char destroyAction;
+    int readAction;
+    int writeAction;
+    int destroyAction;
     struct _PropertyAccessRec *next;
 } PropertyAccessRec, *PropertyAccessPtr;
 
 static PropertyAccessPtr PropertyAccessList = NULL;
-static char SecurityDefaultAction = XaceErrorOperation;
+static int SecurityDefaultAction = BadAtom;
 static char *SecurityPolicyFile = DEFAULTPOLICYFILE;
 static ATOM SecurityMaxPropertyName = 0;
 
@@ -1372,8 +1372,8 @@ SecurityParsePropertyAccessRule(
 {
     char *propname;
     char c;
-    char action = SecurityDefaultAction;
-    char readAction, writeAction, destroyAction;
+    int action = SecurityDefaultAction;
+    int readAction, writeAction, destroyAction;
     PropertyAccessPtr pacl, prev, cur;
     char *mustHaveProperty = NULL;
     char *mustHaveValue = NULL;
@@ -1418,9 +1418,9 @@ SecurityParsePropertyAccessRule(
     {
 	switch (c)
 	{
-	    case 'i': action = XaceIgnoreOperation; break;
-	    case 'a': action = XaceAllowOperation;  break;
-	    case 'e': action = XaceErrorOperation;  break;
+	    case 'i': action = XaceIgnoreError; break;
+	    case 'a': action = Success;  break;
+	    case 'e': action = BadAtom;  break;
 
 	    case 'r': readAction    = action; break;
 	    case 'w': writeAction   = action; break;
@@ -1678,7 +1678,7 @@ SecurityCheckPropertyAccess(CallbackListPtr *pcbl, pointer unused,
     ATOM propertyName = rec->pProp->propertyName;
     Mask access_mode = rec->access_mode;
     PropertyAccessPtr pacl;
-    char action = SecurityDefaultAction;
+    int action = SecurityDefaultAction;
 
     /* if client trusted or window untrusted, allow operation */
 
@@ -1757,7 +1757,7 @@ SecurityCheckPropertyAccess(CallbackListPtr *pcbl, pointer unused,
 	     * If pacl doesn't apply, something above should have
 	     * executed a continue, which will skip the follwing code.
 	     */
-	    action = XaceAllowOperation;
+	    action = Success;
 	    if (access_mode & DixReadAccess)
 		action = max(action, pacl->readAction);
 	    if (access_mode & DixWriteAccess)
@@ -1768,19 +1768,18 @@ SecurityCheckPropertyAccess(CallbackListPtr *pcbl, pointer unused,
 	} /* end for each pacl */
     } /* end if propertyName <= SecurityMaxPropertyName */
 
-    if (XaceAllowOperation != action)
+    if (action != Success)
     { /* audit the access violation */
 	int cid = CLIENT_ID(pWin->drawable.id);
 	int reqtype = ((xReq *)client->requestBuffer)->reqType;
-	char *actionstr = (XaceIgnoreOperation == action) ?
-							"ignored" : "error";
+	char *actionstr = (XaceIgnoreError == action) ? "ignored" : "error";
 	SecurityAudit("client %d attempted request %d with window 0x%x property %s (atom 0x%x) of client %d, %s\n",
 		client->index, reqtype, pWin->drawable.id,
 		      NameForAtom(propertyName), propertyName, cid, actionstr);
     }
     /* return codes increase with strictness */
-    if (action > rec->rval)
-        rec->rval = action;
+    if (action != Success)
+        rec->status = action;
 } /* SecurityCheckPropertyAccess */
 
 

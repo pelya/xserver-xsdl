@@ -33,7 +33,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* XACE_CORE_DISPATCH */
 typedef struct {
     ClientPtr client;
-    int rval;
+    int status;
 } XaceCoreDispatchRec;
 
 /* XACE_RESOURCE_ACCESS */
@@ -43,7 +43,7 @@ typedef struct {
     RESTYPE rtype;
     Mask access_mode;
     pointer res;
-    int rval;
+    int status;
 } XaceResourceAccessRec;
 
 /* XACE_DEVICE_ACCESS */
@@ -51,7 +51,7 @@ typedef struct {
     ClientPtr client;
     DeviceIntPtr dev;
     Bool fromRequest;
-    int rval;
+    int status;
 } XaceDeviceAccessRec;
 
 /* XACE_PROPERTY_ACCESS */
@@ -60,14 +60,14 @@ typedef struct {
     WindowPtr pWin;
     PropertyPtr pProp;
     Mask access_mode;
-    int rval;
+    int status;
 } XacePropertyAccessRec;
 
 /* XACE_DRAWABLE_ACCESS */
 typedef struct {
     ClientPtr client;
     DrawablePtr pDraw;
-    int rval;
+    int status;
 } XaceDrawableAccessRec;
 
 /* XACE_MAP_ACCESS */
@@ -75,7 +75,7 @@ typedef struct {
 typedef struct {
     ClientPtr client;
     WindowPtr pWin;
-    int rval;
+    int status;
 } XaceMapAccessRec;
 
 /* XACE_EXT_DISPATCH */
@@ -83,14 +83,14 @@ typedef struct {
 typedef struct {
     ClientPtr client;
     ExtensionEntry *ext;
-    int rval;
+    int status;
 } XaceExtAccessRec;
 
 /* XACE_HOSTLIST_ACCESS */
 typedef struct {
     ClientPtr client;
     Mask access_mode;
-    int rval;
+    int status;
 } XaceHostlistAccessRec;
 
 /* XACE_SELECTION_ACCESS */
@@ -98,14 +98,14 @@ typedef struct {
     ClientPtr client;
     Selection *selection;
     Mask access_mode;
-    int rval;
+    int status;
 } XaceSelectionAccessRec;
 
 /* XACE_SITE_POLICY */
 typedef struct {
     char *policyString;
     int len;
-    int rval;
+    int status;
 } XaceSitePolicyRec;
 
 /* XACE_DECLARE_EXT_SECURE */

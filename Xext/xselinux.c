@@ -193,7 +193,7 @@ SwapXID(ClientPtr client, XID id)
  * class: Security class of the server object being accessed.
  * perm: Permissions required on the object.
  *
- * Returns: boolean TRUE=allowed, FALSE=denied.
+ * Returns: X status code.
  */
 static int
 ServerPerm(ClientPtr client,
@@ -211,18 +211,19 @@ ServerPerm(ClientPtr client,
         if (avc_has_perm(SID(client), RSID(serverClient,idx), class,
                          perm, &AEREF(client), &auditdata) < 0)
         {
-            if (errno != EACCES)
-                ErrorF("ServerPerm: unexpected error %d\n", errno);
-            return FALSE;
+            if (errno == EACCES)
+		return BadAccess;
+	    ErrorF("ServerPerm: unexpected error %d\n", errno);
+	    return BadValue;
         }
     }
     else
     {
 	ErrorF("No client state in server-perm check!\n");
-        return TRUE;
+        return Success;
     }
 
-    return TRUE;
+    return Success;
 }
 
 /*
@@ -234,7 +235,7 @@ ServerPerm(ClientPtr client,
  * class: Security class of the resource being accessed.
  * perm: Permissions required on the resource.
  *
- * Returns: boolean TRUE=allowed, FALSE=denied.
+ * Returns: X status code.
  */
 static int
 IDPerm(ClientPtr sclient,
@@ -247,7 +248,7 @@ IDPerm(ClientPtr sclient,
     XSELinuxAuditRec auditdata;
 
     if (id == None)
-	return TRUE;
+	return Success;
 
     CheckXID(id);
     tclient = clients[CLIENT_ID(id)];
@@ -259,7 +260,7 @@ IDPerm(ClientPtr sclient,
      */
     if (!tclient || !HAVESTATE(tclient) || !HAVESTATE(sclient))
     {
-	return TRUE;
+	return Success;
     }
 
     auditdata.client = sclient;
@@ -269,12 +270,13 @@ IDPerm(ClientPtr sclient,
     if (avc_has_perm(SID(sclient), RSID(tclient,idx), class,
 		     perm, &AEREF(sclient), &auditdata) < 0)
     {
-	if (errno != EACCES)
-	    ErrorF("IDPerm: unexpected error %d\n", errno);
-	return FALSE;
+	if (errno == EACCES)
+	    return BadAccess;
+	ErrorF("IDPerm: unexpected error %d\n", errno);
+	return BadValue;
     }
 
-    return TRUE;
+    return Success;
 }
 
 /*
@@ -501,8 +503,9 @@ FreeClientState(ClientPtr client)
 #define REQUEST_SIZE_CHECK(client, req) \
     (client->req_len >= (sizeof(req) >> 2))
 #define IDPERM(client, req, field, class, perm) \
-    (REQUEST_SIZE_CHECK(client,req) && \
-    IDPerm(client, SwapXID(client,((req*)stuff)->field), class, perm))
+    (REQUEST_SIZE_CHECK(client,req) ? \
+     IDPerm(client, SwapXID(client,((req*)stuff)->field), class, perm) : \
+     BadLength)
 
 static int
 CheckSendEventPerms(ClientPtr client)
@@ -513,7 +516,7 @@ CheckSendEventPerms(ClientPtr client)
 
     /* might need type bounds checking here */
     if (!REQUEST_SIZE_CHECK(client, xSendEventReq))
-	return FALSE;
+	return BadLength;
 
     switch (stuff->event.u.u.type) {
 	case SelectionClear:
@@ -574,11 +577,11 @@ static int
 CheckConvertSelectionPerms(ClientPtr client)
 {
     register char n;
-    int rval = TRUE;
+    int rval = Success;
     REQUEST(xConvertSelectionReq);
 
     if (!REQUEST_SIZE_CHECK(client, xConvertSelectionReq))
-	return FALSE;
+	return BadLength;
 
     if (client->swapped)
     {
@@ -591,24 +594,26 @@ CheckConvertSelectionPerms(ClientPtr client)
 	int i = 0;
 	while ((i < NumCurrentSelections) &&
 	       CurrentSelections[i].selection != stuff->selection) i++;
-	if (i < NumCurrentSelections)
-	    rval = rval && IDPerm(client, CurrentSelections[i].window,
-				  SECCLASS_WINDOW, WINDOW__CLIENTCOMEVENT);
-    }
-    rval = rval && IDPerm(client, stuff->requestor,
+	if (i < NumCurrentSelections) {
+	    rval = IDPerm(client, CurrentSelections[i].window,
 			  SECCLASS_WINDOW, WINDOW__CLIENTCOMEVENT);
-    return rval;
+	    if (rval != Success)
+		return rval;
+	}
+    }
+    return IDPerm(client, stuff->requestor,
+		  SECCLASS_WINDOW, WINDOW__CLIENTCOMEVENT);
 }
 
 static int
 CheckSetSelectionOwnerPerms(ClientPtr client)
 {
     register char n;
-    int rval = TRUE;
+    int rval = Success;
     REQUEST(xSetSelectionOwnerReq);
 
     if (!REQUEST_SIZE_CHECK(client, xSetSelectionOwnerReq))
-	return FALSE;
+	return BadLength;
 
     if (client->swapped)
     {
@@ -621,13 +626,15 @@ CheckSetSelectionOwnerPerms(ClientPtr client)
 	int i = 0;
 	while ((i < NumCurrentSelections) &&
 	       CurrentSelections[i].selection != stuff->selection) i++;
-	if (i < NumCurrentSelections)
-	    rval = rval && IDPerm(client, CurrentSelections[i].window,
-				  SECCLASS_WINDOW, WINDOW__CHSELECTION);
-    }
-    rval = rval && IDPerm(client, stuff->window,
+	if (i < NumCurrentSelections) {
+	    rval = IDPerm(client, CurrentSelections[i].window,
 			  SECCLASS_WINDOW, WINDOW__CHSELECTION);
-    return rval;
+	    if (rval != Success)
+		return rval;
+	}
+    }
+    return IDPerm(client, stuff->window,
+			  SECCLASS_WINDOW, WINDOW__CHSELECTION);
 }
 
 static void
@@ -636,7 +643,7 @@ XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     XaceCoreDispatchRec *rec = (XaceCoreDispatchRec*)calldata;
     ClientPtr client = rec->client;
     REQUEST(xReq);
-    Bool rval;
+    int rval = Success, rval2 = Success, rval3 = Success;
 
     switch(stuff->reqType) {
     /* Drawable class control requirements */
@@ -668,9 +675,9 @@ XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     case X_CopyArea:
     case X_CopyPlane:
 	rval = IDPERM(client, xCopyAreaReq, srcDrawable,
-		      SECCLASS_DRAWABLE, DRAWABLE__COPY)
-	    && IDPERM(client, xCopyAreaReq, dstDrawable,
-		      SECCLASS_DRAWABLE, DRAWABLE__DRAW);
+		      SECCLASS_DRAWABLE, DRAWABLE__COPY);
+	rval2 = IDPERM(client, xCopyAreaReq, dstDrawable,
+		       SECCLASS_DRAWABLE, DRAWABLE__DRAW);
 	break;
     case X_GetImage:
 	rval = IDPERM(client, xGetImageReq, drawable,
@@ -712,12 +719,12 @@ XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     case X_CreateWindow:
 	rval = IDPERM(client, xCreateWindowReq, wid,
 		      SECCLASS_WINDOW,
-		      WINDOW__CREATE | WINDOW__SETATTR | WINDOW__MOVE)
-	    && IDPERM(client, xCreateWindowReq, parent,
-		      SECCLASS_WINDOW,
-		      WINDOW__CHSTACK | WINDOW__ADDCHILD)
-	    && IDPERM(client, xCreateWindowReq, wid,
-		      SECCLASS_DRAWABLE, DRAWABLE__CREATE);
+		      WINDOW__CREATE | WINDOW__SETATTR | WINDOW__MOVE);
+	rval2 = IDPERM(client, xCreateWindowReq, parent,
+		       SECCLASS_WINDOW,
+		       WINDOW__CHSTACK | WINDOW__ADDCHILD);
+	rval3 = IDPERM(client, xCreateWindowReq, wid,
+		       SECCLASS_DRAWABLE, DRAWABLE__CREATE);
 	break;
     case X_DeleteProperty:
 	rval = IDPERM(client, xDeletePropertyReq, window,
@@ -728,9 +735,9 @@ XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     case X_DestroySubwindows:
 	rval = IDPERM(client, xResourceReq, id,
 		      SECCLASS_WINDOW,
-		      WINDOW__ENUMERATE | WINDOW__UNMAP | WINDOW__DESTROY)
-	    && IDPERM(client, xResourceReq, id,
-		      SECCLASS_DRAWABLE, DRAWABLE__DESTROY);
+		      WINDOW__ENUMERATE | WINDOW__UNMAP | WINDOW__DESTROY);
+	rval2 = IDPERM(client, xResourceReq, id,
+		       SECCLASS_DRAWABLE, DRAWABLE__DESTROY);
 	break;
     case X_GetMotionEvents:
 	rval = IDPERM(client, xGetMotionEventsReq, window,
@@ -768,26 +775,26 @@ XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	break;
     case X_ReparentWindow:
 	rval = IDPERM(client, xReparentWindowReq, window,
-		      SECCLASS_WINDOW, WINDOW__CHPARENT | WINDOW__MOVE)
-	    && IDPERM(client, xReparentWindowReq, parent,
-		      SECCLASS_WINDOW, WINDOW__CHSTACK | WINDOW__ADDCHILD);
+		      SECCLASS_WINDOW, WINDOW__CHPARENT | WINDOW__MOVE);
+	rval2 = IDPERM(client, xReparentWindowReq, parent,
+		       SECCLASS_WINDOW, WINDOW__CHSTACK | WINDOW__ADDCHILD);
 	break;
     case X_SendEvent:
 	rval = CheckSendEventPerms(client);
 	break;
     case X_SetInputFocus:
 	rval = IDPERM(client, xSetInputFocusReq, focus,
-		      SECCLASS_WINDOW, WINDOW__SETFOCUS)
-	    && ServerPerm(client, SECCLASS_XINPUT, XINPUT__SETFOCUS);
+		      SECCLASS_WINDOW, WINDOW__SETFOCUS);
+	rval2 = ServerPerm(client, SECCLASS_XINPUT, XINPUT__SETFOCUS);
 	break;
     case X_SetSelectionOwner:
 	rval = CheckSetSelectionOwnerPerms(client);
 	break;
     case X_TranslateCoords:
 	rval = IDPERM(client, xTranslateCoordsReq, srcWid,
-		      SECCLASS_WINDOW, WINDOW__GETATTR)
-	    && IDPERM(client, xTranslateCoordsReq, dstWid,
 		      SECCLASS_WINDOW, WINDOW__GETATTR);
+	rval2 = IDPERM(client, xTranslateCoordsReq, dstWid,
+		       SECCLASS_WINDOW, WINDOW__GETATTR);
 	break;
     case X_UnmapWindow:
     case X_UnmapSubwindows:
@@ -798,10 +805,10 @@ XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	break;
     case X_WarpPointer:
 	rval = IDPERM(client, xWarpPointerReq, srcWid,
-		      SECCLASS_WINDOW, WINDOW__GETATTR)
-	    && IDPERM(client, xWarpPointerReq, dstWid,
-		      SECCLASS_WINDOW, WINDOW__GETATTR)
-	    && ServerPerm(client, SECCLASS_XINPUT, XINPUT__WARPPOINTER);
+		      SECCLASS_WINDOW, WINDOW__GETATTR);
+	rval2 = IDPERM(client, xWarpPointerReq, dstWid,
+		       SECCLASS_WINDOW, WINDOW__GETATTR);
+	rval3 = ServerPerm(client, SECCLASS_XINPUT, XINPUT__WARPPOINTER);
 	break;
 
     /* Input class control requirements */
@@ -852,16 +859,16 @@ XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	break;
     case X_CopyColormapAndFree:
 	rval = IDPERM(client, xCopyColormapAndFreeReq, mid,
-		      SECCLASS_COLORMAP, COLORMAP__CREATE)
-	    && IDPERM(client, xCopyColormapAndFreeReq, srcCmap,
-		      SECCLASS_COLORMAP,
-		      COLORMAP__READ | COLORMAP__FREE);
+		      SECCLASS_COLORMAP, COLORMAP__CREATE);
+	rval2 = IDPERM(client, xCopyColormapAndFreeReq, srcCmap,
+		       SECCLASS_COLORMAP,
+		       COLORMAP__READ | COLORMAP__FREE);
 	break;
     case X_CreateColormap:
 	rval = IDPERM(client, xCreateColormapReq, mid,
-		      SECCLASS_COLORMAP, COLORMAP__CREATE)
-	    && IDPERM(client, xCreateColormapReq, window,
-		      SECCLASS_DRAWABLE, DRAWABLE__DRAW);
+		      SECCLASS_COLORMAP, COLORMAP__CREATE);
+	rval2 = IDPERM(client, xCreateColormapReq, window,
+		       SECCLASS_DRAWABLE, DRAWABLE__DRAW);
 	break;
     case X_FreeColormap:
 	rval = IDPERM(client, xResourceReq, id,
@@ -873,8 +880,8 @@ XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	break;
     case X_InstallColormap:
 	rval = IDPERM(client, xResourceReq, id,
-		      SECCLASS_COLORMAP, COLORMAP__INSTALL)
-	    && ServerPerm(client, SECCLASS_COLORMAP, COLORMAP__INSTALL);
+		      SECCLASS_COLORMAP, COLORMAP__INSTALL);
+	rval2 = ServerPerm(client, SECCLASS_COLORMAP, COLORMAP__INSTALL);
 	break;
     case X_ListInstalledColormaps:
 	rval = ServerPerm(client, SECCLASS_COLORMAP, COLORMAP__LIST);
@@ -891,8 +898,8 @@ XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	break;
     case X_UninstallColormap:
 	rval = IDPERM(client, xResourceReq, id,
-		      SECCLASS_COLORMAP, COLORMAP__UNINSTALL)
-	    && ServerPerm(client, SECCLASS_COLORMAP, COLORMAP__UNINSTALL);
+		      SECCLASS_COLORMAP, COLORMAP__UNINSTALL);
+	rval2 = ServerPerm(client, SECCLASS_COLORMAP, COLORMAP__UNINSTALL);
 	break;
 
     /* Font class control requirements */
@@ -907,18 +914,18 @@ XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 		      SECCLASS_DRAWABLE, DRAWABLE__DRAW);
 	break;
     case X_OpenFont:
-	rval = ServerPerm(client, SECCLASS_FONT, FONT__LOAD)
-	    && IDPERM(client, xOpenFontReq, fid,
-		      SECCLASS_FONT, FONT__USE);
+	rval = ServerPerm(client, SECCLASS_FONT, FONT__LOAD);
+	rval2 = IDPERM(client, xOpenFontReq, fid,
+		       SECCLASS_FONT, FONT__USE);
 	break;
     case X_PolyText8:
     case X_PolyText16:
 	/* Font accesses checked through the resource manager */
-	rval = ServerPerm(client, SECCLASS_FONT, FONT__LOAD)
-	    && IDPERM(client, xPolyTextReq, gc,
-		      SECCLASS_GC, GC__SETATTR)
-	    && IDPERM(client, xPolyTextReq, drawable,
-		      SECCLASS_DRAWABLE, DRAWABLE__DRAW);
+	rval = ServerPerm(client, SECCLASS_FONT, FONT__LOAD);
+	rval2 = IDPERM(client, xPolyTextReq, gc,
+		       SECCLASS_GC, GC__SETATTR);
+	rval3 = IDPERM(client, xPolyTextReq, drawable,
+		       SECCLASS_DRAWABLE, DRAWABLE__DRAW);
 	break;
 
     /* Pixmap class control requirements */
@@ -934,19 +941,19 @@ XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     /* Cursor class control requirements */
     case X_CreateCursor:
 	rval = IDPERM(client, xCreateCursorReq, cid,
-		      SECCLASS_CURSOR, CURSOR__CREATE)
-	    && IDPERM(client, xCreateCursorReq, source,
-		      SECCLASS_DRAWABLE, DRAWABLE__DRAW)
-	    && IDPERM(client, xCreateCursorReq, mask,
-		      SECCLASS_DRAWABLE, DRAWABLE__COPY);
+		      SECCLASS_CURSOR, CURSOR__CREATE);
+	rval2 = IDPERM(client, xCreateCursorReq, source,
+		       SECCLASS_DRAWABLE, DRAWABLE__DRAW);
+	rval3 = IDPERM(client, xCreateCursorReq, mask,
+		       SECCLASS_DRAWABLE, DRAWABLE__COPY);
 	break;
     case X_CreateGlyphCursor:
 	rval = IDPERM(client, xCreateGlyphCursorReq, cid,
-		      SECCLASS_CURSOR, CURSOR__CREATEGLYPH)
-	    && IDPERM(client, xCreateGlyphCursorReq, source,
-		      SECCLASS_FONT, FONT__USE)
-	    && IDPERM(client, xCreateGlyphCursorReq, mask,
-		      SECCLASS_FONT, FONT__USE);
+		      SECCLASS_CURSOR, CURSOR__CREATEGLYPH);
+	rval2 = IDPERM(client, xCreateGlyphCursorReq, source,
+		       SECCLASS_FONT, FONT__USE);
+	rval3 = IDPERM(client, xCreateGlyphCursorReq, mask,
+		       SECCLASS_FONT, FONT__USE);
 	break;
     case X_RecolorCursor:
 	rval = IDPERM(client, xRecolorCursorReq, cursor,
@@ -970,9 +977,9 @@ XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	break;
     case X_CopyGC:
 	rval = IDPERM(client, xCopyGCReq, srcGC,
-		      SECCLASS_GC, GC__GETATTR)
-	    && IDPERM(client, xCopyGCReq, dstGC,
-		      SECCLASS_GC, GC__SETATTR);
+		      SECCLASS_GC, GC__GETATTR);
+	rval2 = IDPERM(client, xCopyGCReq, dstGC,
+		       SECCLASS_GC, GC__SETATTR);
 	break;
     case X_FreeGC:
 	rval = IDPERM(client, xResourceReq, id,
@@ -1009,11 +1016,14 @@ XSELinuxCoreDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	break;
 
     default:
-	rval = TRUE;
 	break;
     }
-    if (!rval)
-	rec->rval = FALSE;
+    if (rval != Success)
+	rec->status = rval;
+    if (rval2 != Success)
+	rec->status = rval2;
+    if (rval != Success)
+	rec->status = rval3;
 }
 
 static void
@@ -1050,9 +1060,10 @@ XSELinuxExtDispatch(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	if (avc_has_perm(SID(client), extsid, SECCLASS_XEXTENSION,
 			 perm, &AEREF(client), &auditdata) < 0)
 	{
-	    if (errno != EACCES)
-		ErrorF("ExtDispatch: unexpected error %d\n", errno);
-	    rec->rval = FALSE;
+	    if (errno == EACCES)
+		rec->status = BadAccess;
+	    ErrorF("ExtDispatch: unexpected error %d\n", errno);
+	    rec->status = BadValue;
 	}
     } else
 	ErrorF("No client state in extension dispatcher!\n");
@@ -1096,9 +1107,10 @@ XSELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	if (avc_has_perm(SID(client), propsid, SECCLASS_PROPERTY,
 			 perm, &AEREF(client), &auditdata) < 0)
 	{
-	    if (errno != EACCES)
-		ErrorF("Property: unexpected error %d\n", errno);
-	    rec->rval = XaceIgnoreOperation;
+	    if (errno == EACCES)
+		rec->status = BadAccess;
+	    ErrorF("Property: unexpected error %d\n", errno);
+	    rec->status = BadValue;
 	}
     } else
 	ErrorF("No client state in property callback!\n");
@@ -1114,7 +1126,7 @@ XSELinuxResLookup(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     ClientPtr client = rec->client;
     REQUEST(xReq);
     access_vector_t perm = 0;
-    Bool rval = TRUE;
+    int rval = Success;
 
     /* serverClient requests OK */
     if (client->index == 0)
@@ -1145,35 +1157,35 @@ XSELinuxResLookup(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	default:
 	    break;
     }
-    if (!rval)
-	rec->rval = FALSE;
+    if (rval != Success)
+	rec->status = rval;
 } /* XSELinuxResLookup */
 
 static void
 XSELinuxMap(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceMapAccessRec *rec = (XaceMapAccessRec*)calldata;
-    if (!IDPerm(rec->client, rec->pWin->drawable.id,
-		SECCLASS_WINDOW, WINDOW__MAP))
-	rec->rval = FALSE;
+    if (IDPerm(rec->client, rec->pWin->drawable.id,
+               SECCLASS_WINDOW, WINDOW__MAP) != Success)
+	rec->status = BadAccess;
 } /* XSELinuxMap */
 
 static void
 XSELinuxBackgrnd(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceMapAccessRec *rec = (XaceMapAccessRec*)calldata;
-    if (!IDPerm(rec->client, rec->pWin->drawable.id,
-		SECCLASS_WINDOW, WINDOW__TRANSPARENT))
-	rec->rval = FALSE;
+    if (IDPerm(rec->client, rec->pWin->drawable.id,
+               SECCLASS_WINDOW, WINDOW__TRANSPARENT) != Success)
+	rec->status = BadAccess;
 } /* XSELinuxBackgrnd */
 
 static void
 XSELinuxDrawable(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceDrawableAccessRec *rec = (XaceDrawableAccessRec*)calldata;
-    if (!IDPerm(rec->client, rec->pDraw->id,
-		SECCLASS_DRAWABLE, DRAWABLE__COPY))
-	rec->rval = FALSE;
+    if (IDPerm(rec->client, rec->pDraw->id,
+               SECCLASS_DRAWABLE, DRAWABLE__COPY) != Success)
+	rec->status = BadAccess;
 } /* XSELinuxDrawable */
 
 static void
@@ -1183,8 +1195,8 @@ XSELinuxHostlist(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     access_vector_t perm = (rec->access_mode == DixReadAccess) ?
 	XSERVER__GETHOSTLIST : XSERVER__SETHOSTLIST;
 
-    if (!ServerPerm(rec->client, SECCLASS_XSERVER, perm))
-	rec->rval = FALSE;
+    if (ServerPerm(rec->client, SECCLASS_XSERVER, perm) != Success)
+	rec->status = BadAccess;
 } /* XSELinuxHostlist */
 
 /* Extension callbacks */

@@ -20,10 +20,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _XACE_H
 #define _XACE_H
 
-/* Hook return codes */
-#define XaceErrorOperation  0
-#define XaceAllowOperation  1
-#define XaceIgnoreOperation 2
+/* Special value used for ignore operation.  This is a deprecated feature
+ * only for Security extension support.  Do not use in new code.
+ */
+#define XaceIgnoreError BadRequest
 
 #ifdef XACE
 
@@ -97,10 +97,10 @@ extern void XaceCensorImage(
 /* Define calls away when XACE is not being built. */
 
 #ifdef __GNUC__
-#define XaceHook(args...) XaceAllowOperation
+#define XaceHook(args...) Success
 #define XaceCensorImage(args...) { ; }
 #else
-#define XaceHook(...) XaceAllowOperation
+#define XaceHook(...) Success
 #define XaceCensorImage(...) { ; }
 #endif
 

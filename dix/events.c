@@ -2682,7 +2682,7 @@ CheckPassiveGrabsOnWindow(
 	     (grab->confineTo->realized && 
 				BorderSizeNotEmpty(grab->confineTo))))
 	{
-	    if (!XaceHook(XACE_DEVICE_ACCESS, wClient(pWin), device, FALSE))
+	    if (XaceHook(XACE_DEVICE_ACCESS, wClient(pWin), device, FALSE))
 		return FALSE;
 #ifdef XKB
 	    if (!noXkbExtension) {
@@ -3529,7 +3529,7 @@ EnterLeaveEvent(
 	xKeymapEvent ke;
 	ClientPtr client = grab ? rClient(grab)
 				: clients[CLIENT_ID(pWin->drawable.id)];
-	if (XaceHook(XACE_DEVICE_ACCESS, client, keybd, FALSE))
+	if (XaceHook(XACE_DEVICE_ACCESS, client, keybd, FALSE) == Success)
 	    memmove((char *)&ke.map[0], (char *)&keybd->key->down[1], 31);
 	else
 	    bzero((char *)&ke.map[0], 31);
@@ -3636,7 +3636,7 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
     {
 	xKeymapEvent ke;
 	ClientPtr client = clients[CLIENT_ID(pWin->drawable.id)];
-	if (XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE))
+	if (XaceHook(XACE_DEVICE_ACCESS, client, dev, FALSE) == Success)
 	    memmove((char *)&ke.map[0], (char *)&dev->key->down[1], 31);
 	else
 	    bzero((char *)&ke.map[0], 31);
@@ -3924,7 +3924,7 @@ ProcSetInputFocus(client)
 
     REQUEST_SIZE_MATCH(xSetInputFocusReq);
 
-    if (!XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
+    if (XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
 	return Success;
 
     return SetInputFocus(client, inputInfo.keyboard, stuff->focus,
@@ -4239,15 +4239,14 @@ ProcGrabKeyboard(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xGrabKeyboardReq);
 
-    if (XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
-	result = GrabDevice(client, inputInfo.keyboard, stuff->keyboardMode,
+    if (XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE)) {
+	result = Success;
+	rep.status = AlreadyGrabbed;
+    } else
+        result = GrabDevice(client, inputInfo.keyboard, stuff->keyboardMode,
 			    stuff->pointerMode, stuff->grabWindow,
 			    stuff->ownerEvents, stuff->time,
 			    KeyPressMask | KeyReleaseMask, &rep.status);
-    else {
-	result = Success;
-	rep.status = AlreadyGrabbed;
-    }
 
     if (result != Success)
 	return result;

@@ -918,12 +918,16 @@ dixLookupResource(pointer *result, XID id, RESTYPE rtype,
 				    (!istype && res->type & rtype)))
 		break;
     }
-    if (res) {
-	if (client && !XaceHook(XACE_RESOURCE_ACCESS, client, id, res->type,
-				mode, res->value))
-	    return BadAccess;
-	*result = res->value;
-	return Success;
+    if (!res)
+	return BadValue;
+
+    if (client) {
+	cid = XaceHook(XACE_RESOURCE_ACCESS, client, id, res->type,
+		       mode, res->value);
+	if (cid != Success)
+	    return cid;
     }
-    return BadValue;
+
+    *result = res->value;
+    return Success;
 }

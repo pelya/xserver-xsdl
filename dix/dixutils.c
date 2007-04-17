@@ -209,6 +209,8 @@ dixLookupDrawable(DrawablePtr *pDraw, XID id, ClientPtr client,
 {
     DrawablePtr pTmp;
     RESTYPE rtype;
+    int rc;
+
     *pDraw = NULL;
     client->errorValue = id;
 
@@ -220,8 +222,9 @@ dixLookupDrawable(DrawablePtr *pDraw, XID id, ClientPtr client,
 
 	/* an access check is required for cached drawables */
 	rtype = (type & M_WINDOW) ? RT_WINDOW : RT_PIXMAP;
-	if (!XaceHook(XACE_RESOURCE_ACCESS, client, id, rtype, access, pTmp))
-	    return BadDrawable;
+	rc = XaceHook(XACE_RESOURCE_ACCESS, client, id, rtype, access, pTmp);
+        if (rc != Success)
+	    return rc;
     } else
 	dixLookupResource((void **)&pTmp, id, RC_DRAWABLE, client, access);
 

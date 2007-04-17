@@ -1206,7 +1206,7 @@ DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
                 }
             }
 
-            if (!XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE))
+            if (XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE) != Success)
                 return BadAccess;
 
             /* None of the modifiers (old or new) may be down while we change
@@ -1330,7 +1330,7 @@ ProcChangeKeyboardMapping(ClientPtr client)
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key) {
-            if (!XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE))
+            if (XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE) != Success)
                 return BadAccess;
         }
     }
@@ -1682,7 +1682,7 @@ ProcChangeKeyboardControl (ClientPtr client)
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) &&
             pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
-            if (!XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE))
+            if (XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE) != Success)
                 return BadAccess;
         }
     }
@@ -1944,10 +1944,10 @@ ProcQueryKeymap(ClientPtr client)
     rep.length = 2;
 
     if (XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
+	bzero((char *)&rep.map[0], 32);
+    else
 	for (i = 0; i<32; i++)
 	    rep.map[i] = down[i];
-    else
-	bzero((char *)&rep.map[0], 32);
 
     WriteReplyToClient(client, sizeof(xQueryKeymapReply), &rep);
     return Success;

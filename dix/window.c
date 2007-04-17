@@ -732,17 +732,16 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
 
     /*  security creation/labeling check
      */
-    if (!XaceHook(XACE_RESOURCE_ACCESS, client,
-		  wid, RT_WINDOW, DixCreateAccess, pWin))
-    {
+    *error = XaceHook(XACE_RESOURCE_ACCESS, client, wid, RT_WINDOW,
+		      DixCreateAccess, pWin);
+    if (*error != Success) {
 	xfree(pWin);
-	*error = BadAccess;
 	return NullWindow;
     }
     /*  can't let untrusted clients have background None windows;
      *  they make it too easy to steal window contents
      */
-    if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin))
+    if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin) == Success)
 	pWin->backgroundState = None;
     else {
 	pWin->backgroundState = BackgroundPixel;
@@ -1052,7 +1051,7 @@ ChangeWindowAttributes(WindowPtr pWin, Mask vmask, XID *vlist, ClientPtr client)
 	    if (pixID == None)
 	    {
 		/*  can't let untrusted clients have background None windows */
-		if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin)) {
+		if (XaceHook(XACE_BACKGRND_ACCESS, client, pWin) == Success) {
 		    if (pWin->backgroundState == BackgroundPixmap)
 			(*pScreen->DestroyPixmap)(pWin->background.pixmap);
 		    if (!pWin->parent)
@@ -2773,7 +2772,7 @@ MapWindow(WindowPtr pWin, ClientPtr client)
 	return(Success);
 
     /*  general check for permission to map window */
-    if (!XaceHook(XACE_MAP_ACCESS, client, pWin))
+    if (XaceHook(XACE_MAP_ACCESS, client, pWin) != Success)
 	 return Success;
 
     pScreen = pWin->drawable.pScreen;
