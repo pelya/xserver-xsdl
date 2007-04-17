@@ -221,7 +221,7 @@ LogInit(const char *fname, const char *backup)
 }
 
 void
-LogClose()
+LogClose(void)
 {
     if (logFile) {
 	fclose(logFile);
@@ -616,7 +616,7 @@ Error(char *str)
 }
 
 void
-LogPrintMarkers()
+LogPrintMarkers(void)
 {
     /* Show what the message marker symbols mean. */
     ErrorF("Markers: ");

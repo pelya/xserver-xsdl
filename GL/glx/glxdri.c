@@ -829,12 +829,16 @@ static Bool
 glxDRIEnterVT (int index, int flags)
 {
     __GLXDRIscreen *screen = (__GLXDRIscreen *) __glXgetActiveScreen(index);
+    Bool ret;
 
     LogMessage(X_INFO, "AIGLX: Resuming AIGLX clients after VT switch\n");
 
+    if (!(*screen->enterVT) (index, flags))
+	return FALSE;
+    
     glxResumeClients();
 
-    return (*screen->enterVT) (index, flags);
+    return TRUE;
 }
 
 static void

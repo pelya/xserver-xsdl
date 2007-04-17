@@ -40,9 +40,6 @@
 **
 */
 
-/* XXX: should be defined somewhere globally */
-#define CAPI
-
 #include "GL/internal/glcore.h"
 
 typedef struct __GLXtextureFromPixmap __GLXtextureFromPixmap;

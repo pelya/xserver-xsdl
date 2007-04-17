@@ -176,7 +176,7 @@ xnestOpenDisplay(int argc, char *argv[])
 }
 
 void
-xnestCloseDisplay()
+xnestCloseDisplay(void)
 {
   if (!xnestDoFullGeneration || !xnestDisplay) return;
 

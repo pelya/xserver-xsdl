@@ -153,7 +153,7 @@ static int XvdiSendVideoNotify(XvPortPtr, DrawablePtr, int);
 */
 
 void 
-XvExtensionInit()
+XvExtensionInit(void)
 {
   ExtensionEntry *extEntry;
 
@@ -205,7 +205,7 @@ XvExtensionInit()
 }
 
 static Bool
-CreateResourceTypes()
+CreateResourceTypes(void)
 
 {
   
@@ -335,13 +335,13 @@ XvResetProc(ExtensionEntry* extEntry)
 }
 
 _X_EXPORT int
-XvGetScreenIndex()
+XvGetScreenIndex(void)
 {
   return XvScreenIndex;
 }
 
 _X_EXPORT unsigned long
-XvGetRTPort()
+XvGetRTPort(void)
 {
   return XvRTPort;
 }

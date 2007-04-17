@@ -219,7 +219,7 @@ SetInputCheck(HWEventQueuePtr c0, HWEventQueuePtr c1)
 }
 
 _X_EXPORT void
-UpdateCurrentTime()
+UpdateCurrentTime(void)
 {
     TimeStamp systime;
 
@@ -238,7 +238,7 @@ UpdateCurrentTime()
 
 /* Like UpdateCurrentTime, but can't call ProcessInputEvents */
 _X_EXPORT void
-UpdateCurrentTimeIf()
+UpdateCurrentTimeIf(void)
 {
     TimeStamp systime;
 
@@ -251,7 +251,7 @@ UpdateCurrentTimeIf()
 }
 
 void
-InitSelections()
+InitSelections(void)
 {
     if (CurrentSelections)
 	xfree(CurrentSelections);
@@ -3661,7 +3661,7 @@ CloseDownClient(ClientPtr client)
 }
 
 static void
-KillAllClients()
+KillAllClients(void)
 {
     int i;
     for (i=1; i<currentMaxClients; i++)

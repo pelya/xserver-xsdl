@@ -86,13 +86,13 @@ static int	globalTotalGlyphPrivateSize = 0;
 static int	glyphPrivateCount = 0;
 
 void
-ResetGlyphPrivates ()
+ResetGlyphPrivates (void)
 {
     glyphPrivateCount = 0;
 }
 
 int
-AllocateGlyphPrivateIndex ()
+AllocateGlyphPrivateIndex (void)
 {
     return glyphPrivateCount++;
 }

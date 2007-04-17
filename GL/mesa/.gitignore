@@ -1,6 +1,6 @@
 X/drivers
 X/glxheader.h
-X/xmesaP.h
+X/xm*.h
 X/xm*.c
 mesa/drivers
 mesa/glxheader.h

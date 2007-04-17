@@ -293,7 +293,7 @@ unsigned *extensionPrivateSizes;
 unsigned totalExtensionSize;
 
 static int
-ResetExtensionPrivates()
+ResetExtensionPrivates(void)
 {
     extensionPrivateCount = 1;
     extensionPrivateLen = 1;
@@ -306,7 +306,7 @@ ResetExtensionPrivates()
 }
 
 _X_EXPORT int
-AllocateExtensionPrivateIndex()
+AllocateExtensionPrivateIndex(void)
 {
     return extensionPrivateCount++;
 }
@@ -352,7 +352,7 @@ unsigned *clientPrivateSizes;
 unsigned totalClientSize;
 
 static int
-ResetClientPrivates()
+ResetClientPrivates(void)
 {
     clientPrivateCount = 1;
     clientPrivateLen = 1;
@@ -365,7 +365,7 @@ ResetClientPrivates()
 }
 
 _X_EXPORT int
-AllocateClientPrivateIndex()
+AllocateClientPrivateIndex(void)
 {
     return clientPrivateCount++;
 }
@@ -408,7 +408,7 @@ AllocateClientPrivate(int index2, unsigned amount)
 int  screenPrivateCount;
 
 static void
-ResetScreenPrivates()
+ResetScreenPrivates(void)
 {
     screenPrivateCount = 1;
 }
@@ -417,7 +417,7 @@ ResetScreenPrivates()
  * so we have to worry about resizing existing devPrivates
  */
 _X_EXPORT int
-AllocateScreenPrivateIndex()
+AllocateScreenPrivateIndex(void)
 {
     int		idx;
     int		i;
@@ -450,13 +450,13 @@ AllocateScreenPrivateIndex()
 static int  windowPrivateCount;
 
 static void
-ResetWindowPrivates()
+ResetWindowPrivates(void)
 {
     windowPrivateCount = 1;
 }
 
 _X_EXPORT int
-AllocateWindowPrivateIndex()
+AllocateWindowPrivateIndex(void)
 {
     return windowPrivateCount++;
 }
@@ -500,13 +500,13 @@ AllocateWindowPrivate(ScreenPtr pScreen, int index2, unsigned amount)
 static int  gcPrivateCount;
 
 static void
-ResetGCPrivates()
+ResetGCPrivates(void)
 {
     gcPrivateCount = 1;
 }
 
 _X_EXPORT int
-AllocateGCPrivateIndex()
+AllocateGCPrivateIndex(void)
 {
     return gcPrivateCount++;
 }
@@ -549,13 +549,13 @@ AllocateGCPrivate(ScreenPtr pScreen, int index2, unsigned amount)
 static int  pixmapPrivateCount;
 
 static void
-ResetPixmapPrivates()
+ResetPixmapPrivates(void)
 {
     pixmapPrivateCount = 1;
 }
 
 _X_EXPORT int
-AllocatePixmapPrivateIndex()
+AllocatePixmapPrivateIndex(void)
 {
     return pixmapPrivateCount++;
 }
@@ -600,7 +600,7 @@ AllocatePixmapPrivate(ScreenPtr pScreen, int index2, unsigned amount)
 int  colormapPrivateCount;
 
 static void
-ResetColormapPrivates()
+ResetColormapPrivates(void)
 {
     colormapPrivateCount = 1;
 }
@@ -661,7 +661,7 @@ AllocateColormapPrivateIndex (InitCmapPrivFunc initPrivFunc)
 static int devicePrivateIndex = 0;
 
 _X_EXPORT int
-AllocateDevicePrivateIndex()
+AllocateDevicePrivateIndex(void)
 {
     return devicePrivateIndex++;
 }

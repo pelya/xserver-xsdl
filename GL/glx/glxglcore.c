@@ -45,7 +45,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <glxdrawable.h>
 #include <glxcontext.h>
 #include <glxutil.h>
-#include "xmesaP.h"
 
 #include "glcontextmodes.h"
 #include "os.h"

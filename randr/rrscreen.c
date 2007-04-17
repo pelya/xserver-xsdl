@@ -741,6 +741,7 @@ ProcRRSetScreenConfig (ClientPtr client)
     RRModePtr		    mode;
     RR10DataPtr		    pData = NULL;
     RRScreenSizePtr    	    pSize;
+    int			    width, height;
     
     UpdateCurrentTime ();
 
@@ -883,8 +884,14 @@ ProcRRSetScreenConfig (ClientPtr client)
      * If the screen size is changing, adjust all of the other outputs
      * to fit the new size, mirroring as much as possible
      */
-    if (mode->mode.width != pScreen->width || 
-	mode->mode.height != pScreen->height)
+    width = mode->mode.width;
+    height = mode->mode.height;
+    if (rotation & (RR_Rotate_90|RR_Rotate_270))
+    {
+	width = mode->mode.height;
+	height = mode->mode.width;
+    }
+    if (width != pScreen->width || height != pScreen->height)
     {
 	int	c;
 
@@ -898,7 +905,7 @@ ProcRRSetScreenConfig (ClientPtr client)
 		goto sendReply;
 	    }
 	}
-	if (!RRScreenSizeSet (pScreen, mode->mode.width, mode->mode.height,
+	if (!RRScreenSizeSet (pScreen, width, height,
 			      pScreen->mmWidth, pScreen->mmHeight))
 	{
 	    rep.status = RRSetConfigFailed;

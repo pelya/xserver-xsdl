@@ -168,6 +168,8 @@ symlink_mesa_x() {
     action xm_api.c
     action xm_buffer.c
     action xm_dd.c
+    action xm_image.c
+    action xm_image.h
     action xm_line.c
     action xm_span.c
     action xm_tri.c

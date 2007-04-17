@@ -1048,6 +1048,28 @@ xf86RandR12CreateScreenResources12 (ScreenPtr pScreen)
     return TRUE;
 }
 
+/*
+ * Something happened within the screen configuration due
+ * to DGA, VidMode or hot key. Tell RandR
+ */
+
+void
+xf86RandR12TellChanged (ScreenPtr pScreen)
+{
+    ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
+    xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(pScrn);
+    XF86RandRInfoPtr	randrp = XF86RANDRINFO(pScreen);
+    int			c;
+
+    if (!randrp)
+	return;
+    xf86RandR12SetInfo12 (pScreen);
+    for (c = 0; c < config->num_crtc; c++)
+	xf86RandR12CrtcNotify (config->crtc[c]->randr_crtc);
+
+    RRTellChanged (pScreen);
+}
+
 static void
 xf86RandR12PointerMoved (int scrnIndex, int x, int y)
 {

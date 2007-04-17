@@ -64,6 +64,8 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/Xos.h>
 #include <stdio.h>
 #include <time.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include "misc.h"
 #include <X11/X.h>
 #define XSERV_t
@@ -795,7 +797,13 @@ ProcessCommandLine(int argc, char *argv[])
 		UseMsg();
 	}
 	else if ( strcmp( argv[i], "-core") == 0)
+	{
+	    struct rlimit   core_limit;
 	    CoreDump = TRUE;
+	    getrlimit (RLIMIT_CORE, &core_limit);
+	    core_limit.rlim_cur = core_limit.rlim_max;
+	    setrlimit (RLIMIT_CORE, &core_limit);
+	}
 	else if ( strcmp( argv[i], "-dpi") == 0)
 	{
 	    if(++i < argc)
