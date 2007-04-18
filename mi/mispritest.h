@@ -76,6 +76,7 @@ typedef struct {
     WindowPtr	    pCacheWin;		/* window the cursor last seen in */
     Bool	    isInCacheWin;
     Bool	    checkPixels;	/* check colormap collision */
+    int		    internalDraw;
     xColorItem	    colors[2];
     ColormapPtr	    pInstalledMap;
     ColormapPtr	    pColormap;

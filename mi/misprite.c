@@ -288,7 +288,8 @@ miSpriteGetImage (pDrawable, sx, sy, w, h, format, planemask, pdstLine)
 
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
 
-    if (pDrawable->type == DRAWABLE_WINDOW &&
+    if (pScreenPriv->internalDraw == 0 &&
+	pDrawable->type == DRAWABLE_WINDOW &&
         pScreenPriv->isUp &&
 	ORG_OVERLAP(&pScreenPriv->saved,pDrawable->x,pDrawable->y, sx, sy, w, h))
     {
@@ -318,7 +319,8 @@ miSpriteGetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart)
 
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
 
-    if (pDrawable->type == DRAWABLE_WINDOW && pScreenPriv->isUp)
+    if (pScreenPriv->internalDraw == 0 &&
+	pDrawable->type == DRAWABLE_WINDOW && pScreenPriv->isUp)
     {
 	DDXPointPtr    	pts;
 	int    		*widths;
@@ -360,7 +362,8 @@ miSpriteSourceValidate (pDrawable, x, y, width, height)
 
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
 
-    if (pDrawable->type == DRAWABLE_WINDOW && pScreenPriv->isUp &&
+    if (pScreenPriv->internalDraw == 0 &&
+	pDrawable->type == DRAWABLE_WINDOW && pScreenPriv->isUp &&
 	ORG_OVERLAP(&pScreenPriv->saved, pDrawable->x, pDrawable->y,
 		    x, y, width, height))
     {
@@ -386,7 +389,8 @@ miSpriteCopyWindow (WindowPtr pWindow, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     /*
      * Damage will take care of destination check
      */
-    if (pScreenPriv->isUp &&
+    if (pScreenPriv->internalDraw == 0 &&
+	pScreenPriv->isUp &&
 	RECT_IN_REGION (pScreen, prgnSrc, &pScreenPriv->saved) != rgnOUT)
     {
 	SPRITE_DEBUG (("CopyWindow remove\n"));
@@ -826,4 +830,29 @@ miSpriteComputeSaved (pScreen)
     pScreenPriv->saved.y1 = y - hpad;
     pScreenPriv->saved.x2 = pScreenPriv->saved.x1 + w + wpad * 2;
     pScreenPriv->saved.y2 = pScreenPriv->saved.y1 + h + hpad * 2;
+}
+
+/**
+ * Enables internal drawing support, which disables removal of the
+ * cursor when the screen pixmap is sourced from.
+ *
+ * This can be used to allow software cursors to be read by RandR rotation
+ * shadow code.
+ */
+void
+miSpriteDrawInternal(ScreenPtr pScreen, Bool enable)
+{
+    miSpriteScreenPtr   pScreenPriv;
+
+    /* Check that miSprite has been set up this generation */
+    if (miSpriteGeneration != serverGeneration)
+	return;
+
+    pScreenPriv = (miSpriteScreenPtr)
+	pScreen->devPrivates[miSpriteScreenIndex].ptr;
+
+    if (enable)
+	pScreenPriv->internalDraw++;
+    else
+	pScreenPriv->internalDraw--;
 }
