@@ -33,3 +33,7 @@ org.x.config.input:
          i
         is the signature.
         Same return values as org.x.config.input.add.
+
+    org.x.config.input.listDevices:
+        Lists the currently active devices.
+        Return value is sequence of <id> <name> <id> <name> ...
