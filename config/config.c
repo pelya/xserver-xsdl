@@ -308,12 +308,15 @@ configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
 
         if (ret != BadDrawable && ret != BadAlloc) {
             if (!strlen(dbus_message_get_signature(reply)))
+            {
+                ret = -ret; /* return errors as negative numbers */
                 if (!dbus_message_iter_append_basic(&r_iter, DBUS_TYPE_INT32, &ret)) {
                     ErrorF("[config] couldn't append to iterator\n");
                     dbus_message_unref(reply);
                     dbus_error_free(&error);
                     return DBUS_HANDLER_RESULT_HANDLED;
                 }
+            }
 
             if (!dbus_connection_send(bus, reply, NULL))
                 ErrorF("[config] failed to send reply\n");
