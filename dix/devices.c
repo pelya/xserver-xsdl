@@ -523,6 +523,9 @@ CloseDevice(DeviceIntPtr dev)
     ScreenPtr screen = screenInfo.screens[0];
     int j;
 
+    if (!dev)
+        return;
+
     if (dev->inited)
 	(void)(*dev->deviceProc)(dev, DEVICE_CLOSE);
 
