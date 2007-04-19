@@ -473,6 +473,9 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
     pDRIPriv->pLockRefCount = &pDRIEntPriv->lockRefCount;
     pDRIPriv->pLockingContext = &pDRIEntPriv->lockingContext;
 
+    if (!pDRIEntPriv->keepFDOpen)
+	pDRIEntPriv->keepFDOpen = pDRIInfo->keepFDOpen;
+
     pDRIEntPriv->refCount++;
 
     return TRUE;
