@@ -278,8 +278,18 @@ xf86RotateRedisplay(ScreenPtr pScreen)
     region = DamageRegion(damage);
     if (REGION_NOTEMPTY(pScreen, region)) 
     {
-	int		    c;
-	
+	int			c;
+	SourceValidateProcPtr	SourceValidate;
+
+	/*
+	 * SourceValidate is used by the software cursor code
+	 * to pull the cursor off of the screen when reading
+	 * bits from the frame buffer. Bypassing this function
+	 * leaves the software cursor in place
+	 */
+	SourceValidate = pScreen->SourceValidate;
+	pScreen->SourceValidate = NULL;
+
 	for (c = 0; c < xf86_config->num_crtc; c++)
 	{
 	    xf86CrtcPtr	    crtc = xf86_config->crtc[c];
@@ -304,6 +314,7 @@ xf86RotateRedisplay(ScreenPtr pScreen)
 		REGION_UNINIT (pScreen, &crtc_damage);
 	    }
 	}
+	pScreen->SourceValidate = SourceValidate;
 	DamageEmpty(damage);
     }
 }
