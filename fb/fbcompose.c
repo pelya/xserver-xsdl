@@ -2795,79 +2795,234 @@ static void fbFetch(PicturePtr pict, int x, int y, int width, CARD32 *buffer, CA
 #define DIV(a,b) ((((a) < 0) == ((b) < 0)) ? (a) / (b) :		\
 		  ((a) - (b) + 1 - (((b) < 0) << 1)) / (b))
 
-static CARD32
-xRenderColorMultToCard32 (xRenderColor *c)
+typedef struct
 {
-    return
-	((((CARD32) c->red   * c->alpha) >> 24) << 16) |
-	((((CARD32) c->green * c->alpha) >> 24) <<  8) |
-	((((CARD32) c->blue  * c->alpha) >> 24) <<  0) |
-	((((CARD32) c->alpha		 ) >> 8)  << 24);
+    CARD32        left_ag;
+    CARD32        left_rb;
+    CARD32        right_ag;
+    CARD32        right_rb;
+    int32_t       left_x;
+    int32_t       right_x;
+    int32_t       width_x;
+    int32_t       stepper;
+    
+    PictGradientStopPtr      stops;
+    int                      num_stops;
+    unsigned int             spread;
+} GradientWalker;
+
+static void
+_gradient_walker_init (GradientWalker  *walker,
+		       SourcePictPtr    pGradient,
+		       unsigned int     spread)
+{
+    walker->num_stops = pGradient->gradient.nstops;
+    walker->stops     = pGradient->gradient.stops;
+    walker->left_x    = 0;
+    walker->right_x   = 0x10000;
+    walker->width_x   = 0;  /* will force a reset */
+    walker->stepper   = 0;
+    walker->left_ag   = 0;
+    walker->left_rb   = 0;
+    walker->right_ag  = 0;
+    walker->right_rb  = 0;
+    walker->spread    = spread;
 }
 
-static CARD32 gradientPixel(const SourcePictPtr pGradient, xFixed_48_16 pos, unsigned int spread)
+static void
+_gradient_walker_reset (GradientWalker  *walker,
+                        xFixed_32_32     pos)
 {
-    int ipos = (pos * pGradient->gradient.stopRange - 1) >> 16;
-
-    /* calculate the actual offset. */
-    if (ipos < 0 || ipos >= pGradient->gradient.stopRange)
+    int32_t                  x, left_x, right_x;
+    xRenderColor          *left_c, *right_c;
+    int                      n, count = walker->num_stops;
+    PictGradientStopPtr      stops = walker->stops;
+    
+    static const xRenderColor   transparent_black = { 0, 0, 0, 0 };
+    
+    switch (walker->spread)
     {
-	if (pGradient->type == SourcePictTypeConical || spread == RepeatNormal)
-	{
-	    ipos = ipos % pGradient->gradient.stopRange;
-	    ipos = ipos < 0 ? pGradient->gradient.stopRange + ipos : ipos;
-
+    case RepeatNormal:
+	x = (int32_t)pos & 0xFFFF;
+	for (n = 0; n < count; n++)
+	    if (x < stops[n].x)
+		break;
+	if (n == 0) {
+	    left_x =  stops[count-1].x - 0x10000;
+	    left_c = &stops[count-1].color;
+	} else {
+	    left_x =  stops[n-1].x;
+	    left_c = &stops[n-1].color;
 	}
-	else if (spread == RepeatReflect)
-	{
-	    const int limit = pGradient->gradient.stopRange * 2 - 1;
-
-	    ipos = ipos % limit;
-	    ipos = ipos < 0 ? limit + ipos : ipos;
-	    ipos = ipos >= pGradient->gradient.stopRange ? limit - ipos : ipos;
-
+	
+	if (n == count) {
+	    right_x =  stops[0].x + 0x10000;
+	    right_c = &stops[0].color;
+	} else {
+	    right_x =  stops[n].x;
+	    right_c = &stops[n].color;
 	}
-	else if (spread == RepeatPad)
-	{
-	    if (ipos < 0)
-		ipos = 0;
-	    else
-		ipos = pGradient->gradient.stopRange - 1;
+	left_x  += (pos - x);
+	right_x += (pos - x);
+	break;
+	
+    case RepeatPad:
+	for (n = 0; n < count; n++)
+	    if (pos < stops[n].x)
+		break;
+	
+	if (n == 0) {
+	    left_x =  INT_MIN;
+	    left_c = &stops[0].color;
+	} else {
+	    left_x =  stops[n-1].x;
+	    left_c = &stops[n-1].color;
 	}
-	else  /* RepeatNone */
+	
+	if (n == count) {
+	    right_x =  INT_MAX;
+	    right_c = &stops[n-1].color;
+	} else {
+	    right_x =  stops[n].x;
+	    right_c = &stops[n].color;
+	}
+	break;
+	
+    case RepeatReflect:
+	x = (int32_t)pos & 0xFFFF;
+	if ((int32_t)pos & 0x10000)
+	    x = 0x10000 - x;
+	for (n = 0; n < count; n++)
+	    if (x < stops[n].x)
+		break;
+	
+	if (n == 0) {
+	    left_x =  -stops[0].x;
+	    left_c = &stops[0].color;
+	} else {
+	    left_x =  stops[n-1].x;
+	    left_c = &stops[n-1].color;
+	}
+	
+	if (n == count) {
+	    right_x = 0x20000 - stops[n-1].x;
+	    right_c = &stops[n-1].color;
+	} else {
+	    right_x =  stops[n].x;
+	    right_c = &stops[n].color;
+	}
+	
+	if ((int32_t)pos & 0x10000) {
+	    xRenderColor  *tmp_c;
+	    int32_t          tmp_x;
+	    
+	    tmp_x   = 0x20000 - right_x;
+	    right_x = 0x20000 - left_x;
+	    left_x  = tmp_x;
+	    
+	    tmp_c   = right_c;
+	    right_c = left_c;
+	    left_c  = tmp_c;
+	}
+	left_x  += (pos - x);
+	right_x += (pos - x);
+	break;
+	
+    default:  /* RepeatNone */
+	for (n = 0; n < count; n++)
+	    if (pos < stops[n].x)
+		break;
+	
+	if (n == 0)
 	{
-	    return 0;
+	    left_x  =  INT_MIN;
+	    right_x =  stops[0].x;
+	    left_c  = right_c = (xRenderColor*) &transparent_black;
+	}
+	else if (n == count)
+	{
+	    left_x  = stops[n-1].x;
+	    right_x = INT_MAX;
+	    left_c  = right_c = (xRenderColor*) &transparent_black;
+	}
+	else
+	{
+	    left_x  =  stops[n-1].x;
+	    right_x =  stops[n].x;
+	    left_c  = &stops[n-1].color;
+	    right_c = &stops[n].color;
 	}
     }
-
-    if (pGradient->gradient.colorTableSize)
+    
+    walker->left_x   = left_x;
+    walker->right_x  = right_x;
+    walker->width_x  = right_x - left_x;
+    walker->left_ag  = ((left_c->alpha >> 8) << 16)   | (left_c->green >> 8);
+    walker->left_rb  = ((left_c->red & 0xff00) << 8)  | (left_c->blue >> 8);
+    walker->right_ag = ((right_c->alpha >> 8) << 16)  | (right_c->green >> 8);
+    walker->right_rb = ((right_c->red & 0xff00) << 8) | (right_c->blue >> 8);
+    
+    if ( walker->width_x == 0                      ||
+	 ( walker->left_ag == walker->right_ag &&
+	   walker->left_rb == walker->right_rb )   )
     {
-	return pGradient->gradient.colorTable[ipos];
+	walker->width_x = 1;
+	walker->stepper = 0;
     }
     else
     {
-	int i;
-
-	if (ipos <= pGradient->gradient.stops->x)
-	    return xRenderColorMultToCard32 (&pGradient->gradient.stops->color);
-
-	for (i = 1; i < pGradient->gradient.nstops; i++)
-	{
-	    if (pGradient->gradient.stops[i].x >= ipos)
-		return PictureGradientColor (&pGradient->gradient.stops[i - 1],
-					     &pGradient->gradient.stops[i],
-					     ipos);
-	}
-
-	return xRenderColorMultToCard32 (&pGradient->gradient.stops[--i].color);
+	walker->stepper = ((1 << 24) + walker->width_x/2)/walker->width_x;
     }
+}
+
+#define  GRADIENT_WALKER_NEED_RESET(w,x)				\
+    ( (x) < (w)->left_x || (x) - (w)->left_x >= (w)->width_x )
+
+/* the following assumes that GRADIENT_WALKER_NEED_RESET(w,x) is FALSE */
+static CARD32
+_gradient_walker_pixel (GradientWalker  *walker,
+                        xFixed_32_32     x)
+{
+    int  dist, idist;
+    CARD32  t1, t2, a, color;
+    
+    if (GRADIENT_WALKER_NEED_RESET (walker, x))
+        _gradient_walker_reset (walker, x);
+    
+    dist  = ((int)(x - walker->left_x)*walker->stepper) >> 16;
+    idist = 256 - dist;
+    
+    /* combined INTERPOLATE and premultiply */
+    t1 = walker->left_rb*idist + walker->right_rb*dist;
+    t1 = (t1 >> 8) & 0xff00ff;
+    
+    t2  = walker->left_ag*idist + walker->right_ag*dist;
+    t2 &= 0xff00ff00;
+    
+    color = t2 & 0xff000000;
+    a     = t2 >> 24;
+    
+    t1  = t1*a + 0x800080;
+    t1  = (t1 + ((t1 >> 8) & 0xff00ff)) >> 8;
+    
+    t2  = (t2 >> 8)*a + 0x800080;
+    t2  = (t2 + ((t2 >> 8) & 0xff00ff));
+    
+    return (color | (t1 & 0xff00ff) | (t2 & 0xff00));
 }
 
 static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *buffer, CARD32 *mask, CARD32 maskBits)
 {
+#if 0
     SourcePictPtr pGradient = pict->pSourcePict;
     CARD32 *end = buffer + width;
-
+#endif
+     SourcePictPtr   pGradient = pict->pSourcePict;
+     GradientWalker  walker;
+     CARD32         *end = buffer + width;
+ 
+     _gradient_walker_init (&walker, pGradient, pict->repeat);
+    
     if (pGradient->type == SourcePictTypeSolidFill) {
         register CARD32 color = pGradient->solidFill.color;
         while (buffer < end) {
@@ -2877,7 +3032,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
         PictVector v, unit;
         xFixed_32_32 l;
         xFixed_48_16 dx, dy, a, b, off;
-
+	
         /* reference point is the center of the pixel */
         v.vector[0] = IntToxFixed(x) + xFixed1/2;
         v.vector[1] = IntToxFixed(y) + xFixed1/2;
@@ -2917,20 +3072,29 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 	    {
 		register CARD32 color;
 
-		color = gradientPixel (pGradient, t, pict->repeat);
+		color = _gradient_walker_pixel( &walker, t );
 		while (buffer < end)
 		    *buffer++ = color;
 	    }
 	    else
 	    {
-		while (buffer < end) {
-		    if (!mask || *mask++ & maskBits)
-		    {
-			*buffer = gradientPixel (pGradient, t, pict->repeat);
-		    }
-		    ++buffer;
-		    t += inc;
-		}
+                if (!mask) {
+                    while (buffer < end)
+                    {
+                        *buffer = _gradient_walker_pixel (&walker, t);
+                        buffer += 1;
+                        t      += inc;
+                    }
+                } else {
+                    while (buffer < end) {
+                        if (*mask++ & maskBits)
+                        {
+                            *buffer = _gradient_walker_pixel (&walker, t);
+                        }
+                        buffer += 1;
+                        t      += inc;
+                    }
+                }
 	    }
 	}
 	else /* projective transformation */
@@ -2954,7 +3118,10 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 		    t = ((a * x + b * y) >> 16) + off;
 		}
 
+#if 0
 		color = gradientPixel (pGradient, t, pict->repeat);
+#endif
+ 		color = _gradient_walker_pixel( &walker, t );
 		while (buffer < end)
 		    *buffer++ = color;
 	    }
@@ -2972,7 +3139,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 			    y = ((xFixed_48_16)v.vector[1] << 16) / v.vector[2];
 			    t = ((a*x + b*y) >> 16) + off;
 			}
-			*buffer = gradientPixel(pGradient, t, pict->repeat);
+			*buffer = _gradient_walker_pixel (&walker, t);
 		    }
 		    ++buffer;
 		    v.vector[0] += unit.vector[0];
@@ -3016,19 +3183,22 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 
                 while (buffer < end) {
 		    double b, c, det, s;
-
+		    
 		    if (!mask || *mask++ & maskBits)
 		    {
+			xFixed_48_16  t;
+			
 			b = 2*(rx*pGradient->radial.dx + ry*pGradient->radial.dy);
 			c = -(rx*rx + ry*ry);
 			det = (b * b) - (4 * pGradient->radial.a * c);
 			s = (-b + sqrt(det))/(2. * pGradient->radial.a);
-			WRITE(buffer, gradientPixel(pGradient,
-						    (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536),
-						    pict->repeatType));
+			
+			t = (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536);
+			
+			*buffer = _gradient_walker_pixel (&walker, t);
 		    }
 		    ++buffer;
-
+		    
                     rx += cx;
                     ry += cy;
                 }
@@ -3039,6 +3209,8 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 
 		    if (!mask || *mask++ & maskBits)
 		    {
+			xFixed_48_16  t;
+			
 			if (rz != 0) {
 			    x = rx/rz;
 			    y = ry/rz;
@@ -3051,12 +3223,12 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 			c = -(x*x + y*y);
 			det = (b * b) - (4 * pGradient->radial.a * c);
 			s = (-b + sqrt(det))/(2. * pGradient->radial.a);
-			*buffer = gradientPixel(pGradient,
-						(xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536),
-						pict->repeat);
+			t = (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536);
+			
+			*buffer = _gradient_walker_pixel (&walker, t);
 		    }
 		    ++buffer;
-
+		    
                     rx += cx;
                     ry += cy;
                     rz += cz;
@@ -3071,12 +3243,14 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                 while (buffer < end) {
 		    double angle;
 
-		    if (!mask || *mask++ & maskBits)
+                    if (!mask || *mask++ & maskBits)
 		    {
-			angle = atan2(ry, rx) + a;
-
-			*buffer = gradientPixel(pGradient, (xFixed_48_16) (angle * (65536. / (2*M_PI))),
-						pict->repeat);
+                        xFixed_48_16   t;
+			
+                        angle = atan2(ry, rx) + a;
+			t     = (xFixed_48_16) (angle * (65536. / (2*M_PI)));
+			
+			*buffer = _gradient_walker_pixel (&walker, t);
 		    }
 
                     ++buffer;
@@ -3085,9 +3259,13 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                 }
             } else {
                 while (buffer < end) {
-                    double x, y, angle;
-		    if (!mask || *mask++ & maskBits)
-		    {
+                    double x, y;
+                    double angle;
+		    
+                    if (!mask || *mask++ & maskBits)
+                    {
+			xFixed_48_16  t;
+			
 			if (rz != 0) {
 			    x = rx/rz;
 			    y = ry/rz;
@@ -3097,9 +3275,11 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 			x -= pGradient->conical.center.x/65536.;
 			y -= pGradient->conical.center.y/65536.;
 			angle = atan2(y, x) + a;
-			*buffer = gradientPixel(pGradient, (xFixed_48_16) (angle * (65536. / (2*M_PI))),
-						pict->repeat);
+			t     = (xFixed_48_16) (angle * (65536. / (2*M_PI)));
+			
+			*buffer = _gradient_walker_pixel (&walker, t);
 		    }
+		    
                     ++buffer;
                     rx += cx;
                     ry += cy;
