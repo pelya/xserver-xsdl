@@ -25,6 +25,12 @@
 
 #include "local_xf86Rename.h"
 
+#define xf86_cursors_fini XF86NAME(xf86_cursors_fini)
+#define xf86_cursors_init XF86NAME(xf86_cursors_init)
+#define xf86_hide_cursors XF86NAME(xf86_hide_cursors)
+#define xf86_reload_cursors XF86NAME(xf86_reload_cursors)
+#define xf86_show_cursors XF86NAME(xf86_show_cursors)
+#define xf86ConnectorGetName XF86NAME(xf86ConnectorGetName)
 #define xf86CrtcConfigInit XF86NAME(xf86CrtcConfigInit)
 #define xf86CrtcConfigPrivateIndex XF86NAME(xf86CrtcConfigPrivateIndex)
 #define xf86CrtcCreate XF86NAME(xf86CrtcCreate)
@@ -35,6 +41,7 @@
 #define xf86CrtcSetMode XF86NAME(xf86CrtcSetMode)
 #define xf86CrtcSetSizeRange XF86NAME(xf86CrtcSetSizeRange)
 #define xf86CVTMode XF86NAME(xf86CVTMode)
+#define xf86DDCMonitorSet XF86NAME(xf86DDCMonitorSet)
 #define xf86DisableUnusedFunctions XF86NAME(xf86DisableUnusedFunctions)
 #define xf86DPMSSet XF86NAME(xf86DPMSSet)
 #define xf86DuplicateMode XF86NAME(xf86DuplicateMode)
@@ -52,9 +59,11 @@
 #define xf86OutputGetEDIDModes XF86NAME(xf86OutputGetEDIDModes)
 #define xf86OutputRename XF86NAME(xf86OutputRename)
 #define xf86OutputSetEDID XF86NAME(xf86OutputSetEDID)
+#define xf86OutputUseScreenMonitor XF86NAME(xf86OutputUseScreenMonitor)
 #define xf86PrintModeline XF86NAME(xf86PrintModeline)
 #define xf86ProbeOutputModes XF86NAME(xf86ProbeOutputModes)
 #define xf86PruneInvalidModes XF86NAME(xf86PruneInvalidModes)
+#define xf86RotateCloseScreen XF86NAME(xf86RotateCloseScreen)
 #define xf86SetModeCrtc XF86NAME(xf86SetModeCrtc)
 #define xf86SetModeDefaultName XF86NAME(xf86SetModeDefaultName)
 #define xf86SetScrnInfoModes XF86NAME(xf86SetScrnInfoModes)

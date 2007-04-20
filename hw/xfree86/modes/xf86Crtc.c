@@ -1903,7 +1903,9 @@ xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
 	}
     }
     xf86DisableUnusedFunctions(pScrn);
+#if RANDR_12_INTERFACE
     xf86RandR12TellChanged (pScrn->pScreen);
+#endif
     return ok;
 }
 
