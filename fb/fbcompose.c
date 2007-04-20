@@ -3351,7 +3351,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
 				y = MOD(v.vector[1]>>16, pict->pDrawable->height);
 				x = MOD(v.vector[0]>>16, pict->pDrawable->width);
 			    }
-			    buffer[i] = fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
+			    buffer[i] = fetch(bits + (y + dy)*stride, x + dx, indexed);
 			}
 		    }
 
@@ -3374,7 +3374,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
 				x = MOD(v.vector[0]>>16, pict->pDrawable->width);
 			    }
 			    if (POINT_IN_REGION (0, pict->pCompositeClip, x, y, &box))
-				buffer[i] = fetch(bits + (y + pict->pDrawable->y)*stride, x + pict->pDrawable->x, indexed);
+				buffer[i] = fetch(bits + (y + dy)*stride, x + dx, indexed);
 			    else
 				buffer[i] = 0;
 			}
