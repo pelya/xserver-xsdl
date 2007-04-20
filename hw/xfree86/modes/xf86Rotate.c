@@ -39,7 +39,6 @@
 #include "xf86Crtc.h"
 #include "xf86Modes.h"
 #include "xf86RandR12.h"
-#include "misprite.h"
 #include "X11/extensions/render.h"
 #define DPMS_SERVER
 #include "X11/extensions/dpms.h"
@@ -280,11 +279,7 @@ xf86RotateRedisplay(ScreenPtr pScreen)
     if (REGION_NOTEMPTY(pScreen, region)) 
     {
 	int		    c;
-
-#if XORG_VERSION_CURRENT >= XORG_VERSION_NUMERIC(7,2,0,0,dummy)
-	/* Disable software cursor removal for this drawing */
-	miSpriteDrawInternal(pScreen, TRUE);
-#endif
+	
 	for (c = 0; c < xf86_config->num_crtc; c++)
 	{
 	    xf86CrtcPtr	    crtc = xf86_config->crtc[c];
@@ -309,9 +304,6 @@ xf86RotateRedisplay(ScreenPtr pScreen)
 		REGION_UNINIT (pScreen, &crtc_damage);
 	    }
 	}
-#if XORG_VERSION_CURRENT >= XORG_VERSION_NUMERIC(7,2,0,0,dummy)
-	miSpriteDrawInternal(pScreen, FALSE);
-#endif
 	DamageEmpty(damage);
     }
 }

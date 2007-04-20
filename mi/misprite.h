@@ -92,5 +92,3 @@ extern Bool miSpriteInitialize(
     miSpriteCursorFuncPtr /*cursorFuncs*/,
     miPointerScreenFuncPtr /*screenFuncs*/
 );
-
-void miSpriteDrawInternal(ScreenPtr pScreen, Bool enable);
