@@ -2803,12 +2803,13 @@ typedef struct
     CARD32        right_rb;
     int32_t       left_x;
     int32_t       right_x;
-    int32_t       width_x;
     int32_t       stepper;
     
     PictGradientStopPtr      stops;
     int                      num_stops;
     unsigned int             spread;
+
+    int		  need_reset;
 } GradientWalker;
 
 static void
@@ -2820,13 +2821,14 @@ _gradient_walker_init (GradientWalker  *walker,
     walker->stops     = pGradient->gradient.stops;
     walker->left_x    = 0;
     walker->right_x   = 0x10000;
-    walker->width_x   = 0;  /* will force a reset */
     walker->stepper   = 0;
     walker->left_ag   = 0;
     walker->left_rb   = 0;
     walker->right_ag  = 0;
     walker->right_rb  = 0;
     walker->spread    = spread;
+
+    walker->need_reset = TRUE;
 }
 
 static void
@@ -2958,27 +2960,29 @@ _gradient_walker_reset (GradientWalker  *walker,
     
     walker->left_x   = left_x;
     walker->right_x  = right_x;
-    walker->width_x  = right_x - left_x;
     walker->left_ag  = ((left_c->alpha >> 8) << 16)   | (left_c->green >> 8);
     walker->left_rb  = ((left_c->red & 0xff00) << 8)  | (left_c->blue >> 8);
     walker->right_ag = ((right_c->alpha >> 8) << 16)  | (right_c->green >> 8);
     walker->right_rb = ((right_c->red & 0xff00) << 8) | (right_c->blue >> 8);
     
-    if ( walker->width_x == 0                      ||
+    if ( walker->left_x == walker->right_x                ||
 	 ( walker->left_ag == walker->right_ag &&
 	   walker->left_rb == walker->right_rb )   )
     {
-	walker->width_x = 1;
 	walker->stepper = 0;
     }
     else
     {
-	walker->stepper = ((1 << 24) + walker->width_x/2)/walker->width_x;
+	int32_t width = right_x - left_x;
+	walker->stepper = ((1 << 24) + width/2)/width;
     }
+
+    walker->need_reset = FALSE;
 }
 
 #define  GRADIENT_WALKER_NEED_RESET(w,x)				\
-    ( (x) < (w)->left_x || (x) - (w)->left_x >= (w)->width_x )
+    ( (w)->need_reset || (x) < (w)->left_x || (x) >= (w)->right_x)
+
 
 /* the following assumes that GRADIENT_WALKER_NEED_RESET(w,x) is FALSE */
 static CARD32
