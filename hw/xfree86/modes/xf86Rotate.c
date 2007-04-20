@@ -284,7 +284,7 @@ xf86RotateRedisplay(ScreenPtr pScreen)
 	{
 	    xf86CrtcPtr	    crtc = xf86_config->crtc[c];
 
-	    if (crtc->rotation != RR_Rotate_0)
+	    if (crtc->rotation != RR_Rotate_0 && crtc->enabled)
 	    {
 		BoxRec	    box;
 		RegionRec   crtc_damage;
@@ -338,7 +338,8 @@ xf86RotateDestroy (xf86CrtcPtr crtc)
     }
 
     for (c = 0; c < xf86_config->num_crtc; c++)
-	if (crtc->rotatedPixmap || crtc->rotatedData)
+	if (xf86_config->crtc[c]->rotatedPixmap ||
+	    xf86_config->crtc[c]->rotatedData)
 	    return;
 
     /*
