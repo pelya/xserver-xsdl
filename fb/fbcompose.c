@@ -3019,10 +3019,6 @@ _gradient_walker_pixel (GradientWalker  *walker,
 
 static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *buffer, CARD32 *mask, CARD32 maskBits)
 {
-#if 0
-    SourcePictPtr pGradient = pict->pSourcePict;
-    CARD32 *end = buffer + width;
-#endif
      SourcePictPtr   pGradient = pict->pSourcePict;
      GradientWalker  walker;
      CARD32         *end = buffer + width;
