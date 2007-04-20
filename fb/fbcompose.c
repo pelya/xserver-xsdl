@@ -2064,114 +2064,116 @@ static CombineFuncU fbCombineFuncU[] = {
     fbCombineConjointXorU,
 };
 
-static FASTCALL void
-fbCombineMaskC (CARD32 *src, CARD32 *mask, int width)
+static INLINE void
+fbCombineMaskC (CARD32 *src, CARD32 *mask)
 {
-    int i;
-    for (i = 0; i < width; ++i) {
-        CARD32 a = READ(mask + i);
+    CARD32 a = *mask;
 
-        CARD32	x;
-        CARD16	xa;
+    CARD32	x;
+    CARD16	xa;
 
-        if (!a)
-        {
-            WRITE(src + i, 0);
-            continue;
-        }
-
-        x = READ(src + i);
-        if (a == 0xffffffff)
-        {
-            x = x >> 24;
-            x |= x << 8;
-            x |= x << 16;
-            WRITE(mask + i, x);
-            continue;
-        }
-
-        xa = x >> 24;
-        FbByteMulC(x, a);
-        WRITE(src + i, x);
-        FbByteMul(a, xa);
-        WRITE(mask + i, a);
+    if (!a)
+    {
+	WRITE(src, 0);
+	return;
     }
+
+    x = READ(src);
+    if (a == 0xffffffff)
+    {
+	x = x >> 24;
+	x |= x << 8;
+	x |= x << 16;
+	WRITE(mask, x);
+	return;
+    }
+
+    xa = x >> 24;
+    FbByteMulC(x, a);
+    WRITE(src, x);
+    FbByteMul(a, xa);
+    WRITE(mask, a);
 }
 
-static FASTCALL void
-fbCombineMaskValueC (CARD32 *src, const CARD32 *mask, int width)
+static INLINE void
+fbCombineMaskValueC (CARD32 *src, const CARD32 *mask)
 {
-    int i;
-    for (i = 0; i < width; ++i) {
-        CARD32 a = READ(mask + i);
-        CARD32	x;
+    CARD32 a = READ(mask);
+    CARD32	x;
 
-        if (!a)
-        {
-            WRITE(src + i, 0);
-            continue;
-        }
-
-        if (a == 0xffffffff)
-            continue;
-
-        x = READ(src + i);
-        FbByteMulC(x, a);
-        WRITE(src + i, x);
+    if (!a)
+    {
+	WRITE(src, 0);
+	return;
     }
+
+    if (a == 0xffffffff)
+	return;
+
+    x = READ(src);
+    FbByteMulC(x, a);
+    WRITE(src,x);
 }
 
-
-static FASTCALL void
-fbCombineMaskAlphaC (const CARD32 *src, CARD32 *mask, int width)
+static INLINE void
+fbCombineMaskAlphaC (const CARD32 *src, CARD32 *mask)
 {
-    int i;
-    for (i = 0; i < width; ++i) {
-        CARD32 a = READ(mask + i);
-        CARD32	x;
+    CARD32 a = READ(mask);
+    CARD32	x;
 
-        if (!a)
-            continue;
+    if (!a)
+	return;
 
-        x = READ(src + i) >> 24;
-        if (x == 0xff)
-            continue;
-        if (a == 0xffffffff)
-        {
-            x = x >> 24;
-            x |= x << 8;
-            x |= x << 16;
-            WRITE(mask + i, x);
-            continue;
-        }
-
-        FbByteMul(a, x);
-        WRITE(mask + i, a);
+    x = READ(src) >> 24;
+    if (x == 0xff)
+	return;
+    if (a == 0xffffffff)
+    {
+	x = x >> 24;
+	x |= x << 8;
+	x |= x << 16;
+	WRITE(mask, x);
+	return;
     }
+
+    FbByteMul(a, x);
+    WRITE(mask, a);
 }
 
 static FASTCALL void
 fbCombineClearC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
-    memset(dest, 0, width*sizeof(CARD32));
+    MEMSET_WRAPPED(dest, 0, width*sizeof(CARD32));
 }
 
 static FASTCALL void
 fbCombineSrcC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
-    fbCombineMaskValueC(src, mask, width);
-    MEMCPY_WRAPPED(dest, src, width*sizeof(CARD32));
+    int i;
+
+    for (i = 0; i < width; ++i) {
+	CARD32 s = READ(src + i);
+	CARD32 m = READ(mask + i);
+
+	fbCombineMaskValueC (&s, &m);
+
+	WRITE(dest, s);
+    }
 }
 
 static FASTCALL void
 fbCombineOverC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
     int i;
-    fbCombineMaskC(src, mask, width);
-    for (i = 0; i < width; ++i) {
-        CARD32  s = READ(src + i);
-        CARD32  a = ~READ(mask + i);
 
+    for (i = 0; i < width; ++i) {
+	CARD32 s = READ(src + i);
+	CARD32 m = READ(mask + i);
+	CARD32 a;
+
+	fbCombineMaskC (&s, &m);
+
+	a = ~m;
         if (a != 0xffffffff)
         {
             if (a)
@@ -2189,7 +2191,7 @@ static FASTCALL void
 fbCombineOverReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
     int i;
-    fbCombineMaskValueC(src, mask, width);
+
     for (i = 0; i < width; ++i) {
         CARD32 d = READ(dest + i);
         CARD32 a = ~d >> 24;
@@ -2197,6 +2199,10 @@ fbCombineOverReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
         if (a)
         {
             CARD32 s = READ(src + i);
+	    CARD32 m = READ(mask + i);
+
+	    fbCombineMaskValueC (&s, &m);
+
             if (a != 0xff)
             {
                 FbByteMulAdd(s, a, d);
@@ -2210,14 +2216,17 @@ static FASTCALL void
 fbCombineInC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
     int i;
-    fbCombineMaskValueC(src, mask, width);
+
     for (i = 0; i < width; ++i) {
         CARD32 d = READ(dest + i);
         CARD16 a = d >> 24;
         CARD32 s = 0;
         if (a)
         {
-            s = READ(src + i);
+	    CARD32 m = READ(mask + i);
+
+	    s = READ(src + i);
+	    fbCombineMaskValueC (&s, &m);
             if (a != 0xff)
             {
                 FbByteMul(s, a);
@@ -2231,10 +2240,15 @@ static FASTCALL void
 fbCombineInReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
     int i;
-    fbCombineMaskAlphaC(src, mask, width);
-    for (i = 0; i < width; ++i) {
-        CARD32 a = READ(mask + i);
 
+    for (i = 0; i < width; ++i) {
+        CARD32 s = READ(src + i);
+        CARD32 m = READ(mask + i);
+        CARD32 a;
+
+	fbCombineMaskAlphaC (&s, &m);
+
+	a = m;
         if (a != 0xffffffff)
         {
             CARD32 d = 0;
@@ -2243,7 +2257,7 @@ fbCombineInReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
                 d = READ(dest + i);
                 FbByteMulC(d, a);
             }
-            WRITE(dest + i, d);
+            WRITE(dest + i, d); 
         }
     }
 }
@@ -2252,14 +2266,18 @@ static FASTCALL void
 fbCombineOutC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
     int i;
-    fbCombineMaskValueC(src, mask, width);
+
     for (i = 0; i < width; ++i) {
         CARD32 d = READ(dest + i);
         CARD16 a = ~d >> 24;
         CARD32 s = 0;
         if (a)
         {
-            s = READ(src + i);
+	    CARD32 m = READ(mask + i);
+
+	    s = READ(src + i);
+	    fbCombineMaskValueC (&s, &m);
+
             if (a != 0xff)
             {
                 FbByteMul(s, a);
@@ -2273,10 +2291,15 @@ static FASTCALL void
 fbCombineOutReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
     int i;
-    fbCombineMaskAlphaC(src, mask, width);
-    for (i = 0; i < width; ++i) {
-        CARD32 a = ~READ(mask + i);
 
+    for (i = 0; i < width; ++i) {
+	CARD32 s = READ(src + i);
+	CARD32 m = READ(mask + i);
+	CARD32 a;
+
+	fbCombineMaskAlphaC (&s, &m);
+
+        a = ~m;
         if (a != 0xffffffff)
         {
             CARD32 d = 0;
@@ -2294,12 +2317,18 @@ static FASTCALL void
 fbCombineAtopC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
     int i;
-    fbCombineMaskC(src, mask, width);
+
     for (i = 0; i < width; ++i) {
         CARD32 d = READ(dest + i);
         CARD32 s = READ(src + i);
-        CARD32 ad = ~READ(mask + i);
+        CARD32 m = READ(mask + i);
+        CARD32 ad;
         CARD16 as = d >> 24;
+
+	fbCombineMaskC (&s, &m);
+
+        ad = ~m;
+
         FbByteAddMulC(d, ad, s, as);
         WRITE(dest + i, d);
     }
@@ -2309,13 +2338,19 @@ static FASTCALL void
 fbCombineAtopReverseC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
     int i;
-    fbCombineMaskC(src, mask, width);
+
     for (i = 0; i < width; ++i) {
 
         CARD32 d = READ(dest + i);
         CARD32 s = READ(src + i);
-        CARD32 ad = READ(mask + i);
+        CARD32 m = READ(mask + i);
+        CARD32 ad;
         CARD16 as = ~d >> 24;
+
+	fbCombineMaskC (&s, &m);
+
+	ad = m;
+
         FbByteAddMulC(d, ad, s, as);
         WRITE(dest + i, d);
     }
@@ -2325,12 +2360,18 @@ static FASTCALL void
 fbCombineXorC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
     int i;
-    fbCombineMaskC(src, mask, width);
+
     for (i = 0; i < width; ++i) {
         CARD32 d = READ(dest + i);
         CARD32 s = READ(src + i);
-        CARD32 ad = ~READ(mask + i);
+        CARD32 m = READ(mask + i);
+        CARD32 ad;
         CARD16 as = ~d >> 24;
+
+	fbCombineMaskC (&s, &m);
+
+	ad = ~m;
+
         FbByteAddMulC(d, ad, s, as);
         WRITE(dest + i, d);
     }
@@ -2340,10 +2381,14 @@ static FASTCALL void
 fbCombineAddC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
     int i;
-    fbCombineMaskValueC(src, mask, width);
+
     for (i = 0; i < width; ++i) {
         CARD32 s = READ(src + i);
+        CARD32 m = READ(mask + i);
         CARD32 d = READ(dest + i);
+
+	fbCombineMaskValueC (&s, &m);
+
         FbByteAdd(d, s);
         WRITE(dest + i, d);
     }
@@ -2353,7 +2398,7 @@ static FASTCALL void
 fbCombineSaturateC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 {
     int i;
-    fbCombineMaskC(src, mask, width);
+
     for (i = 0; i < width; ++i) {
         CARD32  s, d;
         CARD16  sa, sr, sg, sb, da;
@@ -2362,10 +2407,14 @@ fbCombineSaturateC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
 
         d = READ(dest + i);
         s = READ(src + i);
-        sa = (READ(mask + i) >> 24);
-        sr = (READ(mask + i) >> 16) & 0xff;
-        sg = (READ(mask + i) >>  8) & 0xff;
-        sb = (READ(mask + i)      ) & 0xff;
+	m = READ(mask + i);
+
+	fbCombineMaskC (&s, &m);
+
+        sa = (m >> 24);
+        sr = (m >> 16) & 0xff;
+        sg = (m >>  8) & 0xff;
+        sb = (m      ) & 0xff;
         da = ~d >> 24;
 
         if (sb <= da)
@@ -2396,7 +2445,7 @@ static FASTCALL void
 fbCombineDisjointGeneralC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width, CARD8 combine)
 {
     int i;
-    fbCombineMaskC(src, mask, width);
+
     for (i = 0; i < width; ++i) {
         CARD32  s, d;
         CARD32  m,n,o,p;
@@ -2406,9 +2455,13 @@ fbCombineDisjointGeneralC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width, C
         CARD8   da;
 
         s = READ(src + i);
-        sa = READ(mask + i);
+        m = READ(mask + i);
         d = READ(dest + i);
         da = d >> 24;
+
+	fbCombineMaskC (&s, &m);
+
+	sa = m;
 
         switch (combine & CombineA) {
         default:
@@ -2516,7 +2569,7 @@ static FASTCALL void
 fbCombineConjointGeneralC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width, CARD8 combine)
 {
     int i;
-    fbCombineMaskC(src, mask, width);
+
     for (i = 0; i < width; ++i) {
         CARD32  s, d;
         CARD32  m,n,o,p;
@@ -2526,9 +2579,13 @@ fbCombineConjointGeneralC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width, C
         CARD8   da;
 
         s = READ(src + i);
-        sa = READ(mask + i);
+        m = READ(mask + i);
         d = READ(dest + i);
         da = d >> 24;
+
+	fbCombineMaskC (&s, &m);
+
+        sa = m;
 
         switch (combine & CombineA) {
         default:
