@@ -2916,13 +2916,15 @@ _gradient_walker_reset (GradientWalker  *walker,
 	    xRenderColor  *tmp_c;
 	    int32_t          tmp_x;
 	    
-	    tmp_x   = 0x20000 - right_x;
-	    right_x = 0x20000 - left_x;
+	    tmp_x   = 0x10000 - right_x;
+	    right_x = 0x10000 - left_x;
 	    left_x  = tmp_x;
 	    
 	    tmp_c   = right_c;
 	    right_c = left_c;
 	    left_c  = tmp_c;
+
+	    x = 0x10000 - x;
 	}
 	left_x  += (pos - x);
 	right_x += (pos - x);
@@ -3074,14 +3076,14 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 
 		color = _gradient_walker_pixel( &walker, t );
 		while (buffer < end)
-		    *buffer++ = color;
+		    WRITE(buffer++, color);
 	    }
 	    else
 	    {
                 if (!mask) {
                     while (buffer < end)
                     {
-                        *buffer = _gradient_walker_pixel (&walker, t);
+                        WRITE(buffer, _gradient_walker_pixel (&walker, t));
                         buffer += 1;
                         t      += inc;
                     }
@@ -3089,7 +3091,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                     while (buffer < end) {
                         if (*mask++ & maskBits)
                         {
-                            *buffer = _gradient_walker_pixel (&walker, t);
+                            WRITE(buffer, _gradient_walker_pixel (&walker, t));
                         }
                         buffer += 1;
                         t      += inc;
@@ -3118,12 +3120,9 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 		    t = ((a * x + b * y) >> 16) + off;
 		}
 
-#if 0
-		color = gradientPixel (pGradient, t, pict->repeat);
-#endif
  		color = _gradient_walker_pixel( &walker, t );
 		while (buffer < end)
-		    *buffer++ = color;
+		    WRITE(buffer++, color);
 	    }
 	    else
 	    {
@@ -3139,7 +3138,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 			    y = ((xFixed_48_16)v.vector[1] << 16) / v.vector[2];
 			    t = ((a*x + b*y) >> 16) + off;
 			}
-			*buffer = _gradient_walker_pixel (&walker, t);
+			WRITE(buffer, _gradient_walker_pixel (&walker, t));
 		    }
 		    ++buffer;
 		    v.vector[0] += unit.vector[0];
@@ -3195,7 +3194,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 			
 			t = (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536);
 			
-			*buffer = _gradient_walker_pixel (&walker, t);
+			WRITE(buffer, _gradient_walker_pixel (&walker, t));
 		    }
 		    ++buffer;
 		    
@@ -3225,7 +3224,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 			s = (-b + sqrt(det))/(2. * pGradient->radial.a);
 			t = (xFixed_48_16)((s*pGradient->radial.m + pGradient->radial.b)*65536);
 			
-			*buffer = _gradient_walker_pixel (&walker, t);
+			WRITE(buffer, _gradient_walker_pixel (&walker, t));
 		    }
 		    ++buffer;
 		    
@@ -3250,7 +3249,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
                         angle = atan2(ry, rx) + a;
 			t     = (xFixed_48_16) (angle * (65536. / (2*M_PI)));
 			
-			*buffer = _gradient_walker_pixel (&walker, t);
+			WRITE(buffer, _gradient_walker_pixel (&walker, t));
 		    }
 
                     ++buffer;
@@ -3277,7 +3276,7 @@ static void fbFetchSourcePict(PicturePtr pict, int x, int y, int width, CARD32 *
 			angle = atan2(y, x) + a;
 			t     = (xFixed_48_16) (angle * (65536. / (2*M_PI)));
 			
-			*buffer = _gradient_walker_pixel (&walker, t);
+			WRITE(buffer, _gradient_walker_pixel (&walker, t));
 		    }
 		    
                     ++buffer;
@@ -3342,7 +3341,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
 		    if (!mask || mask[i] & maskBits)
 		    {
 			if (!v.vector[2]) {
-			    buffer[i] = 0;
+			    WRITE(buffer + i, 0);
 			} else {
 			    if (!affine) {
 				y = MOD(DIV(v.vector[1],v.vector[2]), pict->pDrawable->height);
@@ -3351,7 +3350,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
 				y = MOD(v.vector[1]>>16, pict->pDrawable->height);
 				x = MOD(v.vector[0]>>16, pict->pDrawable->width);
 			    }
-			    buffer[i] = fetch(bits + (y + dy)*stride, x + dx, indexed);
+			    WRITE(buffer + i, fetch(bits + (y + dy)*stride, x + dx, indexed));
 			}
 		    }
 
@@ -3364,7 +3363,7 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
 		    if (!mask || mask[i] & maskBits)
 		    {
 			if (!v.vector[2]) {
-			    buffer[i] = 0;
+			    WRITE(buffer + i, 0);
 			} else {
 			    if (!affine) {
 				y = MOD(DIV(v.vector[1],v.vector[2]), pict->pDrawable->height);
@@ -3374,9 +3373,9 @@ static void fbFetchTransformed(PicturePtr pict, int x, int y, int width, CARD32 
 				x = MOD(v.vector[0]>>16, pict->pDrawable->width);
 			    }
 			    if (POINT_IN_REGION (0, pict->pCompositeClip, x, y, &box))
-				buffer[i] = fetch(bits + (y + dy)*stride, x + dx, indexed);
+				WRITE(buffer + i, fetch(bits + (y + dy)*stride, x + dx, indexed));
 			    else
-				buffer[i] = 0;
+				WRITE(buffer + i, 0);
 			}
 		    }
 
