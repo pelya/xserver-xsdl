@@ -4146,6 +4146,9 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
 	    }
 	}
     }
+
+    if (!store)
+	fbFinishAccess (data->dest->pDrawable);
 }
 
 void
