@@ -1241,6 +1241,7 @@ DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
             }
             else {
                 pDev->key->modifierKeyMap = NULL;
+                pDev->key->maxKeysPerModifier = 0;
             }
         }
     }
