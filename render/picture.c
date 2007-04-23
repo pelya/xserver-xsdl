@@ -1051,23 +1051,6 @@ CreateRadialGradientPicture (Picture pid, xPointFixed *inner, xPointFixed *outer
     radial = &pPicture->pSourcePict->radial;
 
     radial->type = SourcePictTypeRadial;
-#if 0
-    {
-        double x = (double)innerRadius / (double)outerRadius;
-        radial->dx = (outer->x - inner->x);
-        radial->dy = (outer->y - inner->y);
-        radial->fx = (inner->x) - x*radial->dx;
-        radial->fy = (inner->y) - x*radial->dy;
-        radial->m = 1./(1+x);
-        radial->b = -x*radial->m;
-        radial->dx /= 65536.;
-        radial->dy /= 65536.;
-        radial->fx /= 65536.;
-        radial->fy /= 65536.;
-        x = outerRadius/65536.;
-        radial->a = x*x - radial->dx*radial->dx - radial->dy*radial->dy;
-    }
-#endif
     radial->c1.x = inner->x;
     radial->c1.y = inner->y;
     radial->c1.radius = innerRadius;
