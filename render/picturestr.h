@@ -105,17 +105,26 @@ typedef struct _PictLinearGradient {
     xPointFixed p2;
 } PictLinearGradient, *PictLinearGradientPtr;
 
+typedef struct _PictCircle {
+    xFixed x;
+    xFixed y;
+    xFixed radius;
+} PictCircle, *PictCirclePtr;
+
 typedef struct _PictRadialGradient {
     unsigned int type;
+    unsigned int class;
     int nstops;
     PictGradientStopPtr stops;
-    double fx;
-    double fy;
-    double dx;
-    double dy;
-    double a;
-    double m;
-    double b;
+    int stopRange;
+    CARD32 *colorTable;
+    int colorTableSize;
+    PictCircle c1;
+    PictCircle c2;
+    double cdx;
+    double cdy;
+    double dr;
+    double A;
 } PictRadialGradient, *PictRadialGradientPtr;
 
 typedef struct _PictConicalGradient {
