@@ -123,6 +123,14 @@ fbCanGetSolid(PicturePtr pict)
 	(bits) = READ((CARD16 *) __bits__); \
 	(bits) = cvt0565to8888(bits); \
 	break; \
+    case 8: \
+	(bits) = READ((CARD8 *) __bits__); \
+	(bits) = (bits) << 24; \
+	break; \
+    case 1: \
+	(bits) = READ((CARD32 *) __bits__);			\
+	(bits) = FbLeftStipBits((bits),1) ? 0xff000000 : 0x00000000;\
+	break; \
     default: \
 	return; \
     } \
