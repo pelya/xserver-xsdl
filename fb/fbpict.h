@@ -121,7 +121,7 @@ fbCanGetSolid(PicturePtr pict)
 	break; \
     case 16: \
 	(bits) = READ((CARD16 *) __bits__); \
-	(bits) = cvt0565to8888(bits); \
+	(bits) = cvt0565to0888(bits); \
 	break; \
     case 8: \
 	(bits) = READ((CARD8 *) __bits__); \
@@ -161,7 +161,7 @@ fbCanGetSolid(PicturePtr pict)
 #define cvt8888to0565(s)    ((((s) >> 3) & 0x001f) | \
 			     (((s) >> 5) & 0x07e0) | \
 			     (((s) >> 8) & 0xf800))
-#define cvt0565to8888(s)    (((((s) << 3) & 0xf8) | (((s) >> 2) & 0x7)) | \
+#define cvt0565to0888(s)    (((((s) << 3) & 0xf8) | (((s) >> 2) & 0x7)) | \
 			     ((((s) << 5) & 0xfc00) | (((s) >> 1) & 0x300)) | \
 			     ((((s) << 8) & 0xf80000) | (((s) << 3) & 0x70000)))
 
