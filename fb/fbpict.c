@@ -783,47 +783,6 @@ fbCompositeSrc_8888x0565 (CARD8      op,
     fbFinishAccess (pSrc->pDrawable);
 }
 
-#if 0
-void
-fbCompositeSrc_0565x0565 (CARD8      op,
-			  PicturePtr pSrc,
-			  PicturePtr pMask,
-			  PicturePtr pDst,
-			  INT16      xSrc,
-			  INT16      ySrc,
-			  INT16      xMask,
-			  INT16      yMask,
-			  INT16      xDst,
-			  INT16      yDst,
-			  CARD16     width,
-			  CARD16     height)
-{
-    CARD16	*dstLine, *dst;
-    CARD16	*srcLine, *src;
-    FbStride	dstStride, srcStride;
-    CARD16	w;
-
-    fbComposeGetStart (pSrc, xSrc, ySrc, CARD16, srcStride, srcLine, 1);
-
-    fbComposeGetStart (pDst, xDst, yDst, CARD16, dstStride, dstLine, 1);
-
-    while (height--)
-    {
-	dst = dstLine;
-	dstLine += dstStride;
-	src = srcLine;
-	srcLine += srcStride;
-	w = width;
-
-	while (w--)
-	    WRITE(dst, READ(src++));
-    }
-
-    fbFinishAccess (pDst->pDrawable);
-    fbFinishAccess (pSrc->pDrawable);
-}
-#endif
-
 void
 fbCompositeSrcAdd_8000x8000 (CARD8	op,
 			     PicturePtr pSrc,
