@@ -187,7 +187,7 @@ void xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval,
 void xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum);
 void xf86AddEnabledDevice(InputInfoPtr pInfo);
 void xf86RemoveEnabledDevice(InputInfoPtr pInfo);
-void xf86DisableDevice(DeviceIntPtr dev);
+void xf86DisableDevice(DeviceIntPtr dev, Bool panic);
 void xf86EnableDevice(DeviceIntPtr dev);
 
 /* xf86Helper.c */

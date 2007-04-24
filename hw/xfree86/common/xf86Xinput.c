@@ -771,11 +771,30 @@ xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum)
  * Device will be moved to the off_devices list, but it will still be there
  * until you really clean up after it.
  * Notifies the client about an inactive device.
+ * 
+ * @param panic True if device is unrecoverable and needs to be removed.
  */
 _X_EXPORT void
-xf86DisableDevice(DeviceIntPtr dev)
+xf86DisableDevice(DeviceIntPtr dev, Bool panic)
 {
-    DisableDevice(dev);
+    devicePresenceNotify ev;
+    DeviceIntRec dummyDev;
+
+    if(!panic)
+    {
+        DisableDevice(dev);
+    } else
+    {
+        ev.type = DevicePresenceNotify;
+        ev.time = currentTime.milliseconds;
+        ev.devchange = DeviceUnrecoverable;
+        ev.deviceid = dev->id;
+        dummyDev.id = 0;
+        SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
+                (xEvent *) &ev, 1);
+
+        DeleteInputDeviceRequest(dev);
+    }
 }
 
 /**

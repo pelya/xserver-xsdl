@@ -577,6 +577,7 @@ RemoveDevice(DeviceIntPtr dev)
         return BadImplementation;
 
     deviceid = dev->id;
+    DisableDevice(dev);
 
     prev = NULL;
     for (tmp = inputInfo.devices; tmp; (prev = tmp), (tmp = next)) {
