@@ -1085,7 +1085,7 @@ fbComposite (CARD8      op,
 #endif
 	    if (pMask == 0)
 	    {
-		if (pSrc->format_code == pDst->format_code)
+		if (pSrc->format == pDst->format)
 		    func = fbCompositeSrcSrc_nxn;
 	    }
 	break;
