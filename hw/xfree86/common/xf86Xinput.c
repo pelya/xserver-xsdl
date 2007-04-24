@@ -764,4 +764,29 @@ xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum)
     }
 }
 
+
+/**
+ * Deactivate a device. Call this function from the driver if you receive a
+ * read error or something else that spoils your day.
+ * Device will be moved to the off_devices list, but it will still be there
+ * until you really clean up after it.
+ * Notifies the client about an inactive device.
+ */
+_X_EXPORT void
+xf86DisableDevice(DeviceIntPtr dev)
+{
+    DisableDevice(dev);
+}
+
+/**
+ * Reactivate a device. Call this function from the driver if you just found
+ * out that the read error wasn't quite that bad after all.
+ * Device will be re-activated, and an event sent to the client. 
+ */
+_X_EXPORT void
+xf86EnableDevice(DeviceIntPtr dev)
+{
+    EnableDevice(dev);
+}
+
 /* end of xf86Xinput.c */

@@ -187,6 +187,8 @@ void xf86InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval,
 void xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum);
 void xf86AddEnabledDevice(InputInfoPtr pInfo);
 void xf86RemoveEnabledDevice(InputInfoPtr pInfo);
+void xf86DisableDevice(DeviceIntPtr dev);
+void xf86EnableDevice(DeviceIntPtr dev);
 
 /* xf86Helper.c */
 void xf86AddInputDriver(InputDriverPtr driver, pointer module, int flags);
@@ -203,6 +205,7 @@ int xf86GetMotionEvents(DeviceIntPtr dev, xTimecoord *buff,
 /* xf86Option.c */
 void xf86CollectInputOptions(InputInfoPtr pInfo, const char **defaultOpts,
 			     pointer extraOpts);
+
 
 /* Legacy hatred */
 #define SendCoreEvents 59
