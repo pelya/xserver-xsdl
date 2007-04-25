@@ -428,6 +428,14 @@ RRXineramaExtensionInit(void)
 	return;
 #endif
 
+    /*
+     * Xinerama isn't capable enough to have multiple protocol screens each
+     * with their own output geometry.  So if there's more than one protocol
+     * screen, just don't even try.
+     */
+    if (screenInfo.numScreens > 1)
+	return;
+
     (void) AddExtension(PANORAMIX_PROTOCOL_NAME, 0,0,
 			ProcRRXineramaDispatch,
 			SProcRRXineramaDispatch,
