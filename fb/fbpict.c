@@ -123,7 +123,7 @@ fbIn (CARD32 x, CARD8 y)
 
 
 #if IMAGE_BYTE_ORDER == LSBFirst
-#define setupPackedReader(count,temp,where,workingWhere,workingVal) count=(int)where; \
+#define setupPackedReader(count,temp,where,workingWhere,workingVal) count=(long)where; \
 					temp=count&3; \
 					where-=temp; \
 					workingWhere=(CARD32 *)where; \
@@ -136,7 +136,7 @@ fbIn (CARD32 x, CARD8 y)
         #define writePacked(what) workingoDest>>=8; workingoDest|=(what<<24); ww--; if(!ww) { ww=4; WRITE (wodst++, workingoDest); } 
 #else
 	#warning "I havn't tested fbCompositeTrans_0888xnx0888() on big endian yet!"
-	#define setupPackedReader(count,temp,where,workingWhere,workingVal) count=(int)where; \
+	#define setupPackedReader(count,temp,where,workingWhere,workingVal) count=(long)where; \
 					temp=count&3; \
 					where-=temp; \
 					workingWhere=(CARD32 *)where; \
@@ -331,7 +331,7 @@ fbCompositeSolidMask_nx8x0888 (CARD8      op,
     while (height--)
     {
 	/* fixme: cleanup unused */
-	unsigned int wt, wd;
+	unsigned long wt, wd;
 	CARD32 workingiDest;
 	CARD32 *widst;
  	
@@ -1074,7 +1074,7 @@ fbCompositeTrans_0565xnx0565(CARD8      op,
 	srcLine += srcStride;
 	w = width;
 	
-	if(((int)src&1)==1)
+	if(((long)src&1)==1)
 	{
 	    s_16 = READ(src++);
 	    d_16 = READ(dst);
@@ -1082,7 +1082,7 @@ fbCompositeTrans_0565xnx0565(CARD8      op,
 	    w--;
 	}
 	isrc=(CARD32 *)src;
-	if(((int)dst&1)==0)
+	if(((long)dst&1)==0)
 	{
 	    idst=(CARD32 *)dst;
 	    while (w>1)
@@ -1173,7 +1173,7 @@ fbCompositeTrans_0888xnx0888(CARD8      op,
     fbComposeGetStart (pDst, xDst, yDst, CARD8, dstStride, dstLine, 3);
     
     {
-	unsigned int ws,wt;
+	unsigned long ws,wt;
 	CARD32 workingSource;
 	CARD32 *wsrc, *wdst, *widst;
 	CARD32 rs, rd, nd;
@@ -1196,7 +1196,7 @@ fbCompositeTrans_0888xnx0888(CARD8      op,
 		setupPackedReader(ws,wt,isrc,wsrc,workingSource);
 		
 		/* get to word aligned */
-		switch(!(int)src&3)
+		switch(~(long)dst&3)
 		{
 		case 1:
 		    readPackedSource(rs);
@@ -1272,7 +1272,7 @@ fbCompositeTrans_0888xnx0888(CARD8      op,
 		srcLine += srcStride;
 		w = width*3;
 		/* get to word aligned */
-		switch(!(int)src&3)
+		switch(~(long)src&3)
 		{
 		case 1:
 		    rd=alphamaskCombine24(READ(src++), READ(dst))>>8;
