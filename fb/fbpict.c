@@ -894,6 +894,61 @@ fbCompositeSrcAdd_8888x8888 (CARD8	op,
     fbFinishAccess (pSrc->pDrawable);
 }
 
+static void
+fbCompositeSrcAdd_8888x8x8 (CARD8      op,
+			    PicturePtr pSrc,
+			    PicturePtr pMask,
+			    PicturePtr pDst,
+			    INT16      xSrc,
+			    INT16      ySrc,
+			    INT16      xMask,
+			    INT16      yMask,
+			    INT16      xDst,
+			    INT16      yDst,
+			    CARD16     width,
+			    CARD16     height)
+{
+    CARD8	*dstLine, *dst;
+    CARD8	*maskLine, *mask;
+    FbStride	dstStride, maskStride;
+    CARD16	w;
+    CARD32	src;
+    CARD8	sa;
+
+    fbComposeGetStart (pDst, xDst, yDst, CARD8, dstStride, dstLine, 1);
+    fbComposeGetStart (pMask, xMask, yMask, CARD8, maskStride, maskLine, 1);
+    fbComposeGetSolid (pSrc, src, pDst->format);
+    sa = (src >> 24);
+
+    while (height--)
+    {
+	dst = dstLine;
+	dstLine += dstStride;
+	mask = maskLine;
+	maskLine += maskStride;
+	w = width;
+
+	while (w--)
+	{
+	    CARD16	tmp;
+	    CARD16	a;
+	    CARD32	m, d;
+	    CARD32	r;
+
+	    a = READ(mask++);
+	    d = READ(dst);
+
+	    m = FbInU (sa, 0, a, tmp);
+	    r = FbAdd (m, d, 0, tmp);
+
+	    WRITE(dst++, r);
+	}
+    }
+    
+    fbFinishAccess(pDst->pDrawable);
+    fbFinishAccess(pMask->pDrawable);
+}
+
 void
 fbCompositeSrcAdd_1000x1000 (CARD8	op,
 			     PicturePtr pSrc,
@@ -1587,6 +1642,8 @@ fbComposite (CARD8      op,
 		default:
 		    break;
 		}
+		if (func != fbCompositeGeneral)
+		    srcRepeat = FALSE;
 	    }
 	    else if (! srcRepeat) /* has mask and non-repeating source */
 	    {
@@ -1669,8 +1726,6 @@ fbComposite (CARD8      op,
 			}
 		    }
 		}
-		if (func != fbCompositeGeneral)
-		    srcRepeat = FALSE;
 	    }
 	    else if (maskRepeat &&
 		     pMask->pDrawable->width == 1 &&
@@ -1885,6 +1940,18 @@ fbComposite (CARD8      op,
 		break;
 	    default:
 		break;
+	    }
+	}
+	else
+	{
+	    if ((pSrc->format == PICT_a8r8g8b8	||
+		 pSrc->format == PICT_a8b8g8r8) &&
+		fbCanGetSolid (pSrc)		&&
+		pMask->format == PICT_a8	&&
+		pDst->format == PICT_a8)
+	    {
+		srcRepeat = FALSE;
+		func = fbCompositeSrcAdd_8888x8x8;
 	    }
 	}
 	break;
