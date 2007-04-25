@@ -1461,9 +1461,9 @@ fbComposite (CARD8      op,
     int		    n;
     BoxPtr	    pbox;
     CompositeFunc   func = NULL;
-    Bool	    srcRepeat = pSrc->pDrawable && pSrc->repeat;
+    Bool	    srcRepeat = pSrc->pDrawable && pSrc->repeatType == RepeatNormal;
     Bool	    maskRepeat = FALSE;
-    Bool	    srcTransform = pSrc->pDrawable && pSrc->transform;
+    Bool	    srcTransform = pSrc->transform != 0;
     Bool	    maskTransform = FALSE;
     Bool	    srcAlphaMap = pSrc->alphaMap != 0;
     Bool	    maskAlphaMap = FALSE;
@@ -1479,9 +1479,6 @@ fbComposite (CARD8      op,
     }
 #endif
 
-    if (pSrc->filter == PictFilterConvolution)
-	srcTransform = TRUE;
-    
     xDst += pDst->pDrawable->x;
     yDst += pDst->pDrawable->y;
     if (pSrc->pDrawable) {
@@ -1517,21 +1514,6 @@ fbComposite (CARD8      op,
         && (pSrc->filter != PictFilterConvolution)
         && (!pMask || pMask->filter != PictFilterConvolution))
     switch (op) {
-    case PictOpSrc:
-#ifdef USE_MMX
-	if (!pMask && pSrc->format == pDst->format &&
-	    pSrc->format != PICT_a8 && pSrc->pDrawable != pDst->pDrawable)
-	{
-	    func = fbCompositeCopyAreammx;
-	}
-	else
-#endif
-	    if (pMask == 0)
-	    {
-		if (pSrc->format == pDst->format)
-		    func = fbCompositeSrcSrc_nxn;
-	    }
-	break;
     case PictOpOver:
 	if (pMask)
 	{
@@ -1974,6 +1956,21 @@ fbComposite (CARD8      op,
 		func = fbCompositeSrcAdd_8888x8x8;
 	    }
 	}
+	break;
+    case PictOpSrc:
+#ifdef USE_MMX
+	if (!pMask && pSrc->format == pDst->format &&
+	    pSrc->format != PICT_a8 && pSrc->pDrawable != pDst->pDrawable)
+	{
+	    func = fbCompositeCopyAreammx;
+	}
+	else
+#endif
+	    if (pMask == 0)
+	    {
+		if (pSrc->format == pDst->format)
+		    func = fbCompositeSrcSrc_nxn;
+	    }
 	break;
     }
 
