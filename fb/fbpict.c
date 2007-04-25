@@ -1463,6 +1463,8 @@ fbComposite (CARD8      op,
     CompositeFunc   func = NULL;
     Bool	    srcRepeat = pSrc->pDrawable && pSrc->repeat;
     Bool	    maskRepeat = FALSE;
+    Bool	    srcTransform = pSrc->pDrawable && pSrc->transform;
+    Bool	    maskTransform = FALSE;
     Bool	    srcAlphaMap = pSrc->alphaMap != 0;
     Bool	    maskAlphaMap = FALSE;
     Bool	    dstAlphaMap = pDst->alphaMap != 0;
@@ -1476,23 +1478,42 @@ fbComposite (CARD8      op,
         mmx_setup = TRUE;
     }
 #endif
-        
+
+    if (pSrc->filter == PictFilterConvolution)
+	srcTransform = TRUE;
+    
     xDst += pDst->pDrawable->x;
     yDst += pDst->pDrawable->y;
     if (pSrc->pDrawable) {
         xSrc += pSrc->pDrawable->x;
         ySrc += pSrc->pDrawable->y;
     }
+
+    if (srcRepeat && srcTransform &&
+	pSrc->pDrawable->width == 1 &&
+	pSrc->pDrawable->height == 1)
+	srcTransform = FALSE;
+    
     if (pMask && pMask->pDrawable)
     {
 	xMask += pMask->pDrawable->x;
 	yMask += pMask->pDrawable->y;
 	maskRepeat = pMask->repeat == RepeatNormal;
+
+	if (pMask->filter == PictFilterConvolution)
+	    maskTransform = TRUE;
+
 	maskAlphaMap = pMask->alphaMap != 0;
+
+	if (maskRepeat && maskTransform &&
+	    pMask->pDrawable->width == 1 &&
+	    pMask->pDrawable->height == 1)
+	    maskTransform = FALSE;
+	    
     }
 
     if (pSrc->pDrawable && (!pMask || pMask->pDrawable)
-        && !pSrc->transform && !(pMask && pMask->transform)
+        && !srcTransform && !maskTransform
         && !maskAlphaMap && !srcAlphaMap && !dstAlphaMap
         && (pSrc->filter != PictFilterConvolution)
         && (!pMask || pMask->filter != PictFilterConvolution))
@@ -1977,6 +1998,12 @@ fbComposite (CARD8      op,
                                    height))
         return;
 
+    /* if we are transforming, we handle repeats in fbFetchTransformed */
+    if (srcTransform)
+	srcRepeat = FALSE;
+    if (maskTransform)
+	maskRepeat = FALSE;
+    
     n = REGION_NUM_RECTS (&region);
     pbox = REGION_RECTS (&region);
     while (n--)
