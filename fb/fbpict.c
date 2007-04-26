@@ -1641,8 +1641,6 @@ fbComposite (CARD8      op,
 		    default:
 			break;
 		    }
-		default:
-		    break;
 		}
 		if (func != fbCompositeGeneral)
 		    srcRepeat = FALSE;
@@ -1969,19 +1967,73 @@ fbComposite (CARD8      op,
 	}
 	break;
     case PictOpSrc:
-#ifdef USE_MMX
-	if (!pMask && pSrc->format == pDst->format &&
-	    pSrc->format != PICT_a8 && pSrc->pDrawable != pDst->pDrawable)
+	if (pMask)
 	{
-	    func = fbCompositeCopyAreammx;
+#ifdef USE_MMX
+	    if (fbCanGetSolid (pSrc))
+	    {
+		if (pMask->format == PICT_a8)
+		{
+		    switch (pDst->format)
+		    {
+		    case PICT_a8r8g8b8:
+		    case PICT_x8r8g8b8:
+		    case PICT_a8b8g8r8:
+		    case PICT_x8b8g8r8:
+			if (fbHaveMMX())
+			{
+			    srcRepeat = FALSE;
+			    func = fbCompositeSolidMaskSrc_nx8x8888mmx;
+			}
+			break;
+		    default:
+			break;
+		    }
+		}
+	    }
+#endif
 	}
 	else
-#endif
-	    if (pMask == 0)
+	{
+	    if (pSrc->format == pDst->format)
 	    {
-		if (pSrc->format == pDst->format)
+#ifdef USE_MMX
+		if (pSrc->pDrawable != pDst->pDrawable && fbHaveMMX() &&
+		    (PICT_FORMAT_BPP (pSrc->format) == 16 ||
+		     PICT_FORMAT_BPP (pSrc->format) == 32))
+		    func = fbCompositeCopyAreammx;
+		else
+#endif
 		    func = fbCompositeSrcSrc_nxn;
 	    }
+	}
+	break;
+    case PictOpIn:
+#ifdef USE_MMX
+	if (pSrc->format == PICT_a8 &&
+	    pDst->format == PICT_a8 &&
+	    !pMask)
+	{
+	    if (fbHaveMMX())
+		func = fbCompositeIn_8x8mmx;
+	}
+	else if (srcRepeat && pMask && !pMask->componentAlpha &&
+		 (pSrc->format == PICT_a8r8g8b8 ||
+		  pSrc->format == PICT_a8b8g8r8)   &&
+		 (pMask->format == PICT_a8)        &&
+		 pDst->format == PICT_a8)
+	{
+	    if (fbHaveMMX())
+	    {
+		srcRepeat = FALSE;
+		func = fbCompositeIn_nx8x8mmx;
+	    }
+	}
+#else
+	func = NULL;
+#endif
+       break;
+    default:
 	break;
     }
 
@@ -1991,26 +2043,16 @@ fbComposite (CARD8      op,
          return;
     }
 
-    if (!miComputeCompositeRegion (&region,
- 				   pSrc,
- 				   pMask,
- 				   pDst,
- 				   xSrc,
- 				   ySrc,
- 				   xMask,
- 				   yMask,
- 				   xDst,
- 				   yDst,
- 				   width,
-                                   height))
-        return;
-
     /* if we are transforming, we handle repeats in fbFetchTransformed */
     if (srcTransform)
 	srcRepeat = FALSE;
     if (maskTransform)
 	maskRepeat = FALSE;
     
+    if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst, xSrc, ySrc,
+				   xMask, yMask, xDst, yDst, width, height))
+        return;
+
     n = REGION_NUM_RECTS (&region);
     pbox = REGION_RECTS (&region);
     while (n--)
