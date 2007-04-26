@@ -1647,7 +1647,7 @@ fbComposite (CARD8      op,
 		if (func != fbCompositeGeneral)
 		    srcRepeat = FALSE;
 	    }
-	    else if (! srcRepeat) /* has mask and non-repeating source */
+	    else if (!srcRepeat) /* has mask and non-repeating source */
 	    {
 		if (pSrc->pDrawable == pMask->pDrawable &&
 		    xSrc == xMask && ySrc == yMask &&
@@ -1712,43 +1712,54 @@ fbComposite (CARD8      op,
 		    }
 		    break;
 		}
-		else
+		else if (maskRepeat &&
+			 pMask->pDrawable->width == 1 &&
+			 pMask->pDrawable->height == 1)
 		{
-		    /* non-repeating source, repeating mask => translucent window */
-		    if (fbCanGetSolid(pMask))
-		    {
-			if (pSrc->format == PICT_x8r8g8b8 &&
-			    pDst->format == PICT_x8r8g8b8 &&
-			    pMask->format == PICT_a8)
-			{
+		    switch (pSrc->format) {
+		    case PICT_r5g6b5:
+		    case PICT_b5g6r5:
+			if (pDst->format == pSrc->format)
+			    func = fbCompositeTrans_0565xnx0565;
+			break;
+		    case PICT_r8g8b8:
+		    case PICT_b8g8r8:
+			if (pDst->format == pSrc->format)
+			    func = fbCompositeTrans_0888xnx0888;
+			break;
 #ifdef USE_MMX
-			    if (fbHaveMMX())
-				func = fbCompositeSrc_8888x8x8888mmx;
+		    case PICT_x8r8g8b8:
+			if ((pDst->format == PICT_a8r8g8b8 ||
+			     pDst->format == PICT_x8r8g8b8) &&
+			    pMask->format == PICT_a8 && fbHaveMMX())
+			    func = fbCompositeSrc_x888x8x8888mmx;
+			break;
+		    case PICT_x8b8g8r8:
+			if ((pDst->format == PICT_a8b8g8r8 ||
+			     pDst->format == PICT_x8b8g8r8) &&
+			    pMask->format == PICT_a8 && fbHaveMMX())
+			    func = fbCompositeSrc_x888x8x8888mmx;
+			break;
+		    case PICT_a8r8g8b8:
+			if ((pDst->format == PICT_a8r8g8b8 ||
+			     pDst->format == PICT_x8r8g8b8) &&
+			    pMask->format == PICT_a8 && fbHaveMMX())
+			    func = fbCompositeSrc_8888x8x8888mmx;
+			break;
+		    case PICT_a8b8g8r8:
+			if ((pDst->format == PICT_a8b8g8r8 ||
+			     pDst->format == PICT_x8b8g8r8) &&
+			    pMask->format == PICT_a8 && fbHaveMMX())
+			    func = fbCompositeSrc_8888x8x8888mmx;
+			break;
 #endif
-			}
+		    default:
+			break;
 		    }
+		    
+		    if (func != fbCompositeGeneral)
+			maskRepeat = FALSE;
 		}
-	    }
-	    else if (maskRepeat &&
-		     pMask->pDrawable->width == 1 &&
-		     pMask->pDrawable->height == 1)
-	    {
-		switch (pSrc->format) {
-		case PICT_r5g6b5:
-		case PICT_b5g6r5:
-		    if (pDst->format == pSrc->format)
-		        func = fbCompositeTrans_0565xnx0565;
-		    break;
- 		case PICT_r8g8b8:
- 		case PICT_b8g8r8:
- 		    if (pDst->format == pSrc->format)
- 		        func = fbCompositeTrans_0888xnx0888;
- 		    break;
-		default:
-		    break;
-		}
-		if (func != fbCompositeGeneral)
-		    maskRepeat = FALSE;
 	    }
 	}
 	else /* no mask */
