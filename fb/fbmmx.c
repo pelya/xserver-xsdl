@@ -85,30 +85,40 @@
 
 typedef unsigned long long ullong;
 
+#ifdef __GNUC__
+typedef ullong mmxdatafield;
+#endif
+#ifdef _MSC_VER
+typedef unsigned __int64 ullong;
+typedef __m64 mmxdatafield;
+#endif
+
 typedef struct
 {
-    ullong mmx_4x00ff;
-    ullong mmx_4x0080;
-    ullong mmx_565_rgb;
-    ullong mmx_565_unpack_multiplier;
-    ullong mmx_565_r;
-    ullong mmx_565_g;
-    ullong mmx_565_b;
-    ullong mmx_mask_0;
-    ullong mmx_mask_1;
-    ullong mmx_mask_2;
-    ullong mmx_mask_3;
-    ullong mmx_full_alpha;
-    ullong mmx_ffff0000ffff0000;
-    ullong mmx_0000ffff00000000;
-    ullong mmx_000000000000ffff;
+    mmxdatafield mmx_4x00ff;
+    mmxdatafield mmx_4x0080;
+    mmxdatafield mmx_565_rgb;
+    mmxdatafield mmx_565_unpack_multiplier;
+    mmxdatafield mmx_565_r;
+    mmxdatafield mmx_565_g;
+    mmxdatafield mmx_565_b;
+    mmxdatafield mmx_mask_0;
+    mmxdatafield mmx_mask_1;
+    mmxdatafield mmx_mask_2;
+    mmxdatafield mmx_mask_3;
+    mmxdatafield mmx_full_alpha;
+    mmxdatafield mmx_ffff0000ffff0000;
+    mmxdatafield mmx_0000ffff00000000;
+    mmxdatafield mmx_000000000000ffff;
 } MMXData;
 
 static const MMXData c =
 {
+#ifdef __GNUC__
     .mmx_4x00ff =			0x00ff00ff00ff00ffULL,
     .mmx_4x0080 =			0x0080008000800080ULL,
     .mmx_565_rgb =			0x000001f0003f001fULL,
+    .mmx_565_unpack_multiplier =	0x0000008404100840ULL,
     .mmx_565_r =			0x000000f800000000ULL,
     .mmx_565_g =			0x0000000000fc0000ULL,
     .mmx_565_b =			0x00000000000000f8ULL,
@@ -117,15 +127,42 @@ static const MMXData c =
     .mmx_mask_2 =			0xffff0000ffffffffULL,
     .mmx_mask_3 =			0x0000ffffffffffffULL,
     .mmx_full_alpha =			0x00ff000000000000ULL,
-    .mmx_565_unpack_multiplier =	0x0000008404100840ULL,
     .mmx_ffff0000ffff0000 =		0xffff0000ffff0000ULL,
     .mmx_0000ffff00000000 =		0x0000ffff00000000ULL,
     .mmx_000000000000ffff =		0x000000000000ffffULL,
+#endif
+#ifdef _MSC_VER
+    { 0x00ff00ff00ff00ffUI64 },
+    { 0x0080008000800080UI64 },
+    { 0x000001f0003f001fUI64 },
+    { 0x0000008404100840UI64 },
+    { 0x000000f800000000UI64 },
+    { 0x0000000000fc0000UI64 },
+    { 0x00000000000000f8UI64 },
+    { 0xffffffffffff0000UI64 },
+    { 0xffffffff0000ffffUI64 },
+    { 0xffff0000ffffffffUI64 },
+    { 0x0000ffffffffffffUI64 },
+    { 0x00ff000000000000UI64 },
+    { 0xffff0000ffff0000UI64 },
+    { 0x0000ffff00000000UI64 },
+    { 0x000000000000ffffUI64 },
+#endif
 };
 
-#define MC(x) ((__m64) c.mmx_##x)
+#ifdef _MSC_VER
+#undef inline
+#define inline __forceinline
+#endif
 
-static __inline__ __m64
+#ifdef __GNUC__
+#define MC(x) ((__m64) c.mmx_##x)
+#endif
+#ifdef _MSC_VER
+#define MC(x) c.mmx_##x
+#endif
+
+static inline __m64
 shift (__m64 v, int s)
 {
     if (s > 0)
@@ -136,13 +173,13 @@ shift (__m64 v, int s)
 	return v;
 }
 
-static __inline__ __m64
+static inline __m64
 negate (__m64 mask)
 {
     return _mm_xor_si64 (mask, MC(4x00ff));
 }
 
-static __inline__ __m64
+static inline __m64
 pix_multiply (__m64 a, __m64 b)
 {
     __m64 res;
@@ -155,7 +192,7 @@ pix_multiply (__m64 a, __m64 b)
     return res;
 }
 
-static __inline__ __m64
+static inline __m64
 pix_add (__m64 a, __m64 b)
 {
     return  _mm_adds_pu8 (a, b);
@@ -163,19 +200,19 @@ pix_add (__m64 a, __m64 b)
 
 #ifdef USE_SSE
 
-static __inline__ __m64
+static inline __m64
 expand_alpha (__m64 pixel)
 {
     return _mm_shuffle_pi16 (pixel, _MM_SHUFFLE(3, 3, 3, 3));
 }
 
-static __inline__ __m64
+static inline __m64
 expand_alpha_rev (__m64 pixel)
 {
     return _mm_shuffle_pi16 (pixel, _MM_SHUFFLE(0, 0, 0, 0));
 }    
 
-static __inline__ __m64
+static inline __m64
 invert_colors (__m64 pixel)
 {
     return _mm_shuffle_pi16 (pixel, _MM_SHUFFLE(3, 0, 1, 2));
@@ -183,7 +220,7 @@ invert_colors (__m64 pixel)
 
 #else
 
-static __inline__ __m64
+static inline __m64
 expand_alpha (__m64 pixel)
 {
     __m64 t1, t2;
@@ -197,7 +234,7 @@ expand_alpha (__m64 pixel)
     return t1;
 }
 
-static __inline__ __m64
+static inline __m64
 expand_alpha_rev (__m64 pixel)
 {
     __m64 t1, t2;
@@ -214,7 +251,7 @@ expand_alpha_rev (__m64 pixel)
     return t1;
 }
 
-static __inline__ __m64
+static inline __m64
 invert_colors (__m64 pixel)
 {
     __m64 x, y, z;
@@ -236,13 +273,13 @@ invert_colors (__m64 pixel)
 
 #endif
 
-static __inline__ __m64
+static inline __m64
 over (__m64 src, __m64 srca, __m64 dest)
 {
     return  _mm_adds_pu8 (src, pix_multiply(dest, negate(srca)));
 }
 
-static __inline__ __m64
+static inline __m64
 over_rev_non_pre (__m64 src, __m64 dest)
 {
     __m64 srca = expand_alpha (src);
@@ -251,14 +288,15 @@ over_rev_non_pre (__m64 src, __m64 dest)
     return over(pix_multiply(invert_colors(src), srcfaaa), srca, dest);
 }
 
-static __inline__ __m64
+static inline __m64
 in (__m64 src,
     __m64 mask)
 {
     return pix_multiply (src, mask);
 }
 
-static __inline__ __m64
+#ifndef _MSC_VER
+static inline __m64
 in_over (__m64 src,
 	 __m64 srca,
 	 __m64 mask,
@@ -266,20 +304,23 @@ in_over (__m64 src,
 {
     return over(in(src, mask), pix_multiply(srca, mask), dest);
 }
+#else
+#define in_over(src, srca, mask, dest) over(in(src, mask), pix_multiply(srca, mask), dest)
+#endif
 
-static __inline__ __m64
+static inline __m64
 load8888 (CARD32 v)
 {
     return _mm_unpacklo_pi8 (_mm_cvtsi32_si64 (v), _mm_setzero_si64());
 }
 
-static __inline__ __m64
+static inline __m64
 pack8888 (__m64 lo, __m64 hi)
 {
     return _mm_packs_pu16 (lo, hi);
 }
 
-static __inline__ CARD32
+static inline CARD32
 store8888 (__m64 v)
 {
     return _mm_cvtsi64_si32(pack8888(v, _mm_setzero_si64()));
@@ -299,7 +340,7 @@ store8888 (__m64 v)
  * Note the trick here - the top word is shifted by another nibble to
  * avoid it bumping into the middle word
  */
-static __inline__ __m64
+static inline __m64
 expand565 (__m64 pixel, int pos)
 {
     __m64 p = pixel;
@@ -319,7 +360,7 @@ expand565 (__m64 pixel, int pos)
     return _mm_srli_pi16 (pixel, 8);
 }
 
-static __inline__ __m64
+static inline __m64
 expand8888 (__m64 in, int pos)
 {
     if (pos == 0)
@@ -328,7 +369,7 @@ expand8888 (__m64 in, int pos)
 	return _mm_unpackhi_pi8 (in, _mm_setzero_si64());
 }
 
-static __inline__ __m64
+static inline __m64
 pack565 (__m64 pixel, __m64 target, int pos)
 {
     __m64 p = pixel;
@@ -358,20 +399,28 @@ pack565 (__m64 pixel, __m64 target, int pos)
     return _mm_or_si64 (b, p);
 }
 
-static __inline__ __m64
+#ifndef _MSC_VER
+static inline __m64
 pix_add_mul (__m64 x, __m64 a, __m64 y, __m64 b)
 {
-    x = _mm_mullo_pi16 (x, a);                  
-    y = _mm_mullo_pi16 (y, b);                  
-    x = _mm_srli_pi16(x, 1);                    
-    y = _mm_srli_pi16(y, 1);                    
-    x = _mm_adds_pu16 (x, y);                    
-    x = _mm_adds_pu16 (x, _mm_srli_pi16 (x, 8)); 
+    x = _mm_mullo_pi16 (x, a);
+    y = _mm_mullo_pi16 (y, b);
     x = _mm_adds_pu16 (x, MC(4x0080));
-    x = _mm_srli_pi16 (x, 7);
+    x = _mm_adds_pu16 (x, y);
+    x = _mm_adds_pu16 (x, _mm_srli_pi16 (x, 8));
+    x = _mm_srli_pi16 (x, 8);
 
     return x;
 }
+#else
+#define pix_add_mul(x, a, y, b) \
+( x = _mm_mullo_pi16 (x, a), \
+  y = _mm_mullo_pi16 (y, b), \
+  x = _mm_adds_pu16 (x, MC(4x0080)), \
+  x = _mm_adds_pu16 (x, y), \
+  x = _mm_adds_pu16 (x, _mm_srli_pi16 (x, 8)), \
+  _mm_srli_pi16 (x, 8) )
+#endif
 
 /* --------------- MMX code patch for fbcompose.c --------------------- */
 
@@ -590,7 +639,7 @@ mmxCombineSaturateU (CARD32 *dest, const CARD32 *src, int width)
         CARD32 da = ~d >> 24;
 
         if (sa > da) {
-            __m64 msa = load8888(FbIntDiv(da, sa));
+            __m64 msa = load8888(FbIntDiv(da, sa))<<24;
             msa = expand_alpha_rev(msa);
             ms = pix_multiply(ms, msa);
         }
