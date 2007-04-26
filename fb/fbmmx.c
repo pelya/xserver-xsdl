@@ -640,7 +640,7 @@ mmxCombineSaturateU (CARD32 *dest, const CARD32 *src, int width)
 
         if (sa > da) {
             __m64 msa = load8888(FbIntDiv(da, sa) << 24);
-            msa = expand_alpha_rev(msa);
+            msa = expand_alpha(msa);
             ms = pix_multiply(ms, msa);
         }
         md = pix_add(md, ms);
