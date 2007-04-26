@@ -79,6 +79,7 @@ static int miSpriteDevPrivatesIndex;
        (miCursorInfoPtr) dev->devPrivates[miSpriteDevPrivatesIndex].ptr : \
        (miCursorInfoPtr) inputInfo.pointer->devPrivates[miSpriteDevPrivatesIndex].ptr)
 
+
 /*
  * screen wrappers
  */
@@ -175,6 +176,7 @@ miSpriteReportDamage (DamagePtr pDamage, RegionPtr pRegion, void *closure)
             pCursorInfo = MISPRITE(pDev);
 
             if (pCursorInfo->isUp &&
+                pCursorInfo->pScreen == pScreen && 
                 RECT_IN_REGION (pScreen, pRegion, &pCursorInfo->saved) 
                          != rgnOUT) 
             {
@@ -277,7 +279,6 @@ miSpriteInitialize (pScreen, cursorFuncs, screenFuncs)
     damageRegister = 0;
     miSpriteDevPrivatesIndex = AllocateDevicePrivateIndex();
 
-
     return TRUE;
 }
 
@@ -340,6 +341,7 @@ miSpriteGetImage (pDrawable, sx, sy, w, h, format, planemask, pdstLine)
              pCursorInfo = MISPRITE(pDev);
              if (pDrawable->type == DRAWABLE_WINDOW &&
                      pCursorInfo->isUp &&
+                     pCursorInfo->pScreen == pScreen &&
                      ORG_OVERLAP(&pCursorInfo->saved,pDrawable->x,pDrawable->y, 
                          sx, sy, w, h)) 
              {
@@ -379,7 +381,9 @@ miSpriteGetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart)
         {
             pCursorInfo = MISPRITE(pDev);
 
-            if (pDrawable->type == DRAWABLE_WINDOW && pCursorInfo->isUp)
+            if (pDrawable->type == DRAWABLE_WINDOW && 
+                    pCursorInfo->isUp && 
+                    pCursorInfo->pScreen == pScreen)
             {
                 DDXPointPtr    pts;
                 int    	       *widths;
@@ -431,6 +435,7 @@ miSpriteSourceValidate (pDrawable, x, y, width, height)
         {
             pCursorInfo = MISPRITE(pDev);
             if (pDrawable->type == DRAWABLE_WINDOW && pCursorInfo->isUp &&
+                    pCursorInfo->pScreen == pScreen && 
                     ORG_OVERLAP(&pCursorInfo->saved, pDrawable->x, pDrawable->y,
                         x, y, width, height))
             {
@@ -466,7 +471,7 @@ miSpriteCopyWindow (WindowPtr pWindow, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
             /*
              * Damage will take care of destination check
              */
-            if (pCursorInfo->isUp &&
+            if (pCursorInfo->isUp && pCursorInfo->pScreen == pScreen &&
                     RECT_IN_REGION (pScreen, prgnSrc, &pCursorInfo->saved) != rgnOUT)
             {
                 SPRITE_DEBUG (("CopyWindow remove\n"));
@@ -504,7 +509,9 @@ miSpriteBlockHandler (i, blockData, pTimeout, pReadmask)
         if (DevHasCursor(pDev))
         {
             pCursorInfo = MISPRITE(pDev);
-            if (!pCursorInfo->isUp && pCursorInfo->shouldBeUp)
+            if (!pCursorInfo->isUp 
+                    && pCursorInfo->pScreen == pScreen 
+                    && pCursorInfo->shouldBeUp)
             {
                 SPRITE_DEBUG (("BlockHandler restore\n"));
                 miSpriteSaveUnderCursor (pDev, pScreen);
@@ -516,7 +523,9 @@ miSpriteBlockHandler (i, blockData, pTimeout, pReadmask)
         if (DevHasCursor(pDev))
         {
             pCursorInfo = MISPRITE(pDev);
-            if (!pCursorInfo->isUp && pCursorInfo->shouldBeUp)
+            if (!pCursorInfo->isUp && 
+                    pCursorInfo->pScreen == pScreen && 
+                    pCursorInfo->shouldBeUp)
             {
                 SPRITE_DEBUG (("BlockHandler restore\n"));
                 miSpriteRestoreCursor (pDev, pScreen);
@@ -552,7 +561,7 @@ miSpriteInstallColormap (pMap)
             {
                 pCursorInfo = MISPRITE(pDev);
                 pCursorInfo->checkPixels = TRUE;
-                if (pCursorInfo->isUp)
+                if (pCursorInfo->isUp && pCursorInfo->pScreen == pScreen)
                     miSpriteRemoveCursor(pDev, pScreen);
             }
         }
@@ -639,7 +648,7 @@ miSpriteStoreColors (pMap, ndef, pdef)
                 {
                     pCursorInfo = MISPRITE(pDev);
                     pCursorInfo->checkPixels = TRUE;
-                    if (pCursorInfo->isUp)
+                    if (pCursorInfo->isUp && pCursorInfo->pScreen == pScreen)
                         miSpriteRemoveCursor (pDev, pScreen);
                 }
             }
@@ -711,7 +720,7 @@ miSpriteSaveDoomedAreas (pWin, pObscured, dx, dy)
         if(DevHasCursor(pDev))
         {
             pCursorInfo = MISPRITE(pDev);
-            if (pCursorInfo->isUp)
+            if (pCursorInfo->isUp && pCursorInfo->pScreen == pScreen)
             {
                 cursorBox = pCursorInfo->saved;
 
@@ -930,6 +939,7 @@ miSpriteDeviceCursorInitialize(pDev, pScreen)
     pCursorInfo->pCacheWin = NullWindow;
     pCursorInfo->isInCacheWin = FALSE;
     pCursorInfo->checkPixels = TRUE;
+    pCursorInfo->pScreen = FALSE;
 
     ret = (*pScreenPriv->funcs->DeviceCursorInitialize)(pDev, pScreen);
     if (!ret)
@@ -1075,6 +1085,7 @@ miSpriteRestoreCursor (pDev, pScreen)
                 pScreenPriv->colors[MASK_COLOR].pixel))
     {
         miSpriteIsUpTRUE (pCursorInfo, pScreen, pScreenPriv);
+        pCursorInfo->pScreen = pScreen;
     }
     miSpriteEnableDamage(pScreen, pScreenPriv);
     DamageDrawInternal (pScreen, FALSE);

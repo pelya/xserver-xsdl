@@ -53,6 +53,7 @@ typedef struct {
     WindowPtr	    pCacheWin;		/* window the cursor last seen in */
     Bool	    isInCacheWin;
     Bool	    checkPixels;	/* check colormap collision */
+    ScreenPtr       pScreen;
 } miCursorInfoRec, *miCursorInfoPtr;
 
 /*

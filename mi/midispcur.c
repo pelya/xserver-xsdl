@@ -488,6 +488,15 @@ miDCPutUpCursor (pDev, pScreen, pCursor, x, y, source, mask)
 #ifdef ARGB_CURSOR
     if (pPriv->pPicture)
     {
+        /* see comment in miDCPutUpCursor */
+        if (pBuffer->pRootPicture && 
+                pBuffer->pRootPicture->pDrawable &&
+                pBuffer->pRootPicture->pDrawable->pScreen != pScreen)
+        {
+            tossPict(pBuffer->pRootPicture);
+            pBuffer->pRootPicture = NULL;
+        }
+
 	if (!EnsurePicture(pBuffer->pRootPicture, &pWin->drawable, pWin))
 	    return FALSE;
 	CompositePicture (PictOpOver,
@@ -502,6 +511,25 @@ miDCPutUpCursor (pDev, pScreen, pCursor, x, y, source, mask)
     else
 #endif
     {
+        /**
+         * XXX: Before MPX, the sourceGC and maskGC were attached to the
+         * screen, and would switch as the screen switches.  With mpx we have
+         * the GC's attached to the device now, so each time we switch screen
+         * we need to make sure the GC's are allocated on the new screen.
+         * This is ... not optimal. (whot)
+         */
+        if (pBuffer->pSourceGC && pScreen != pBuffer->pSourceGC->pScreen)
+        {
+            tossGC(pBuffer->pSourceGC);
+            pBuffer->pSourceGC = NULL;
+        }
+
+        if (pBuffer->pMaskGC && pScreen != pBuffer->pMaskGC->pScreen)
+        {
+            tossGC(pBuffer->pMaskGC);
+            pBuffer->pMaskGC = NULL;
+        }
+
 	if (!EnsureGC(pBuffer->pSourceGC, pWin))
 	    return FALSE;
 	if (!EnsureGC(pBuffer->pMaskGC, pWin))
@@ -544,6 +572,12 @@ miDCSaveUnderCursor (pDev, pScreen, x, y, w, h)
 	if (!pSave)
 	    return FALSE;
     }
+    /* see comment in miDCPutUpCursor */
+    if (pBuffer->pSaveGC && pBuffer->pSaveGC->pScreen != pScreen)
+    {
+        tossGC(pBuffer->pSaveGC);
+        pBuffer->pSaveGC = NULL;
+    }
     if (!EnsureGC(pBuffer->pSaveGC, pWin))
 	return FALSE;
     pGC = pBuffer->pSaveGC;
@@ -573,6 +607,12 @@ miDCRestoreUnderCursor (pDev, pScreen, x, y, w, h)
     pWin = WindowTable[pScreen->myNum];
     if (!pSave)
 	return FALSE;
+    /* see comment in miDCPutUpCursor */
+    if (pBuffer->pRestoreGC && pBuffer->pRestoreGC->pScreen != pScreen)
+    {
+        tossGC(pBuffer->pRestoreGC);
+        pBuffer->pRestoreGC = NULL;
+    }
     if (!EnsureGC(pBuffer->pRestoreGC, pWin))
 	return FALSE;
     pGC = pBuffer->pRestoreGC;
@@ -606,6 +646,12 @@ miDCChangeSave (pDev, pScreen, x, y, w, h, dx, dy)
      */
     if (!pSave)
 	return FALSE;
+    /* see comment in miDCPutUpCursor */
+    if (pBuffer->pRestoreGC && pBuffer->pRestoreGC->pScreen != pScreen)
+    {
+        tossGC(pBuffer->pRestoreGC);
+        pBuffer->pRestoreGC = NULL;
+    }
     if (!EnsureGC(pBuffer->pRestoreGC, pWin))
 	return FALSE;
     pGC = pBuffer->pRestoreGC;
@@ -645,6 +691,12 @@ miDCChangeSave (pDev, pScreen, x, y, w, h, dx, dy)
     {
 	(*pGC->ops->CopyArea) ((DrawablePtr) pSave, (DrawablePtr) pWin, pGC,
 			       0, sourcey, -dx, copyh, x + dx, desty);
+    }
+    /* see comment in miDCPutUpCursor */
+    if (pBuffer->pSaveGC && pBuffer->pSaveGC->pScreen != pScreen)
+    {
+        tossGC(pBuffer->pSaveGC);
+        pBuffer->pSaveGC = NULL;
     }
     if (!EnsureGC(pBuffer->pSaveGC, pWin))
 	return FALSE;
@@ -788,6 +840,15 @@ miDCMoveCursor (pDev, pScreen, pCursor, x, y, w, h, dx, dy, source, mask)
 #ifdef ARGB_CURSOR
     if (pPriv->pPicture)
     {
+        /* see comment in miDCPutUpCursor */
+        if (pBuffer->pTempPicture && 
+                pBuffer->pTempPicture->pDrawable &&
+                pBuffer->pTempPicture->pDrawable->pScreen != pScreen)
+        {
+            tossPict(pBuffer->pTempPicture);
+            pBuffer->pTempPicture = NULL;
+        }
+
 	if (!EnsurePicture(pBuffer->pTempPicture, &pTemp->drawable, pWin))
 	    return FALSE;
 	CompositePicture (PictOpOver,
@@ -822,6 +883,12 @@ miDCMoveCursor (pDev, pScreen, pCursor, x, y, w, h, dx, dy, source, mask)
 		     source, mask);
     }
 
+    /* see comment in miDCPutUpCursor */
+    if (pBuffer->pRestoreGC && pBuffer->pRestoreGC->pScreen != pScreen)
+    {
+        tossGC(pBuffer->pRestoreGC);
+        pBuffer->pRestoreGC = NULL;
+    }
     /*
      * copy the temporary pixmap onto the screen
      */
