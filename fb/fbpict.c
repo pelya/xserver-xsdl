@@ -1962,7 +1962,12 @@ fbComposite (CARD8      op,
 		pDst->format == PICT_a8)
 	    {
 		srcRepeat = FALSE;
-		func = fbCompositeSrcAdd_8888x8x8;
+#ifdef USE_MMX
+		if (fbHaveMMX())
+		    func = fbCompositeSrcAdd_8888x8x8mmx;
+		else
+#endif
+		    func = fbCompositeSrcAdd_8888x8x8;
 	    }
 	}
 	break;
