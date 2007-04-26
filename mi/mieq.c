@@ -67,6 +67,9 @@ in this Software without prior written authorization from The Open Group.
 
 #define QUEUE_SIZE  512
 
+#define EnqueueScreen(dev) dev->spriteInfo->sprite->pEnqueueScreen
+#define DequeueScreen(dev) dev->spriteInfo->sprite->pDequeueScreen
+
 typedef struct _Event {
     xEvent          event[7];
     int             nevents;
@@ -79,8 +82,6 @@ typedef struct _EventQueue {
     CARD32           lastEventTime;      /* to avoid time running backwards */
     int              lastMotion;         /* device ID if last event motion? */
     EventRec         events[QUEUE_SIZE]; /* static allocation for signals */
-    ScreenPtr        pEnqueueScreen;     /* screen events are being delivered to */
-    ScreenPtr        pDequeueScreen;     /* screen events are being dispatched to */
     mieqHandler      handlers[128];      /* custom event handler */
 } EventQueueRec, *EventQueuePtr;
 
@@ -94,8 +95,6 @@ mieqInit(void)
     miEventQueue.head = miEventQueue.tail = 0;
     miEventQueue.lastEventTime = GetTimeInMillis ();
     miEventQueue.lastMotion = FALSE;
-    miEventQueue.pEnqueueScreen = screenInfo.screens[0];
-    miEventQueue.pDequeueScreen = miEventQueue.pEnqueueScreen;
     for (i = 0; i < 128; i++)
         miEventQueue.handlers[i] = NULL;
     SetInputCheck(&miEventQueue.head, &miEventQueue.tail);
@@ -179,18 +178,18 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
 
     miEventQueue.lastEventTime =
 	miEventQueue.events[oldtail].event[0].u.keyButtonPointer.time;
-    miEventQueue.events[oldtail].pScreen = miEventQueue.pEnqueueScreen;
+    miEventQueue.events[oldtail].pScreen = EnqueueScreen(pDev);
     miEventQueue.events[oldtail].pDev = pDev;
 
     miEventQueue.lastMotion = isMotion;
 }
 
 void
-mieqSwitchScreen(ScreenPtr pScreen, Bool fromDIX)
+mieqSwitchScreen(DeviceIntPtr pDev, ScreenPtr pScreen, Bool fromDIX)
 {
-    miEventQueue.pEnqueueScreen = pScreen;
+    EnqueueScreen(pDev) = pScreen;
     if (fromDIX)
-	miEventQueue.pDequeueScreen = pScreen;
+	DequeueScreen(pDev) = pScreen;
 }
 
 void
@@ -224,15 +223,15 @@ mieqProcessInputEvents(void)
 
         e = &miEventQueue.events[miEventQueue.head];
         /* Assumption - screen switching can only occur on motion events. */
-        if (e->pScreen != miEventQueue.pDequeueScreen) {
-            miEventQueue.pDequeueScreen = e->pScreen;
+        if (e->pScreen != DequeueScreen(e->pDev)) {
+            DequeueScreen(e->pDev) = e->pScreen;
             x = e->event[0].u.keyButtonPointer.rootX;
             y = e->event[0].u.keyButtonPointer.rootY;
             if (miEventQueue.head == QUEUE_SIZE - 1)
                 miEventQueue.head = 0;
             else
                 ++miEventQueue.head;
-            NewCurrentScreen (e->pDev, miEventQueue.pDequeueScreen, x, y);
+            NewCurrentScreen (e->pDev, DequeueScreen(e->pDev), x, y);
         }
         else {
             if (miEventQueue.head == QUEUE_SIZE - 1)
@@ -243,7 +242,8 @@ mieqProcessInputEvents(void)
             /* If someone's registered a custom event handler, let them
              * steal it. */
             if (miEventQueue.handlers[e->event->u.u.type]) {
-                miEventQueue.handlers[e->event->u.u.type](miEventQueue.pDequeueScreen->myNum,
+                miEventQueue.handlers[e->event->u.u.type](
+						  DequeueScreen(e->pDev)->myNum,
                                                           e->event, dev,
                                                           e->nevents);
                 return;

@@ -357,7 +357,7 @@ extern Bool IsParent(
     WindowPtr /* maybeparent */,
     WindowPtr /* child */);
 
-extern WindowPtr GetCurrentRootWindow(void);
+extern WindowPtr GetCurrentRootWindow(DeviceIntPtr pDev);
 
 extern WindowPtr GetSpriteWindow(DeviceIntPtr pDev);
 

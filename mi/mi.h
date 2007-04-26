@@ -158,6 +158,7 @@ extern void mieqEnqueue(
 );
 
 extern void mieqSwitchScreen(
+    DeviceIntPtr /* pDev */,
     ScreenPtr /*pScreen*/,
     Bool /*fromDIX*/
 );

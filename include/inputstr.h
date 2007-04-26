@@ -287,6 +287,18 @@ typedef struct {
     WindowPtr   windows[MAXSCREENS];
     WindowPtr	confineWin;	/* confine window */ 
 #endif
+    /* The window trace information is used at dix/events.c to avoid having
+     * to compute all the windows between the root and the current pointer
+     * window each time a button or key goes down. The grabs on each of those
+     * windows must be checked.
+     * spriteTraces should only be used at dix/events.c! */
+    WindowPtr *spriteTrace;
+    int spriteTraceSize;
+    int spriteTraceGood;
+
+    ScreenPtr pEnqueueScreen; /* screen events are being delivered to */
+    ScreenPtr pDequeueScreen; /* screen events are being dispatched to */
+
 } SpriteRec, *SpritePtr;
 
 /* states for devices */

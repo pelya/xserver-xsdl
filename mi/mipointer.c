@@ -351,7 +351,7 @@ miPointerWarpCursor (pDev, pScreen, x, y)
     SetupScreen (pScreen);
 
     if (pPointer->pScreen != pScreen)
-	(*pScreenPriv->screenFuncs->NewEventScreen) (pScreen, TRUE);
+	(*pScreenPriv->screenFuncs->NewEventScreen) (pDev, pScreen, TRUE);
 
     if (GenerateEvent)
     {
@@ -492,7 +492,7 @@ miPointerSetScreen(DeviceIntPtr pDev, int screen_no, int x, int y)
 
 	pScreen = screenInfo.screens[screen_no];
 	pScreenPriv = GetScreenPrivate (pScreen);
-	(*pScreenPriv->screenFuncs->NewEventScreen) (pScreen, FALSE);
+	(*pScreenPriv->screenFuncs->NewEventScreen) (pDev, pScreen, FALSE);
 	NewCurrentScreen (pDev, pScreen, x, y);
 
         pPointer->limits.x2 = pScreen->width;
@@ -570,7 +570,8 @@ miPointerSetPosition(DeviceIntPtr pDev, int *x, int *y, unsigned long time)
 	    if (newScreen != pScreen)
 	    {
 		pScreen = newScreen;
-		(*pScreenPriv->screenFuncs->NewEventScreen) (pScreen, FALSE);
+		(*pScreenPriv->screenFuncs->NewEventScreen) (pDev, pScreen,
+							     FALSE);
 		pScreenPriv = GetScreenPrivate (pScreen);
 	    	/* Smash the confine to the new screen */
                 pPointer->limits.x2 = pScreen->width;

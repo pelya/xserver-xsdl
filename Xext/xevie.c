@@ -463,7 +463,7 @@ XevieKbdProcessInputProc(xEvent *xE, DeviceIntPtr dev, int count)
             xevieModifiersOn = TRUE;
 
         xE->u.keyButtonPointer.event = xeviewin->drawable.id;
-        xE->u.keyButtonPointer.root = GetCurrentRootWindow()->drawable.id;
+        xE->u.keyButtonPointer.root = GetCurrentRootWindow(dev)->drawable.id;
         xE->u.keyButtonPointer.child = (xeviewin->firstChild)
             ? xeviewin->firstChild->drawable.id:0;
         xE->u.keyButtonPointer.rootX = xeviehot.x;

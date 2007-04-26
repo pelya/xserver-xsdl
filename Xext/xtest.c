@@ -363,7 +363,7 @@ ProcXTestFakeInput(client)
         if (!dev)
             dev = PickPointer(client);
 	if (ev->u.keyButtonPointer.root == None)
-	    root = GetCurrentRootWindow();
+	    root = GetCurrentRootWindow(dev);
 	else
 	{
 	    rc = dixLookupWindow(&root, ev->u.keyButtonPointer.root, client,
@@ -428,10 +428,10 @@ ProcXTestFakeInput(client)
 	if ((!noPanoramiXExtension
 	     && root->drawable.pScreen->myNum 
                 != XineramaGetCursorScreen(dev))
-	    || (noPanoramiXExtension && root != GetCurrentRootWindow()))
+	    || (noPanoramiXExtension && root != GetCurrentRootWindow(dev)))
 
 #else
-	if (root != GetCurrentRootWindow())
+	if (root != GetCurrentRootWindow(dev))
 #endif
 	{
 	    NewCurrentScreen(dev, root->drawable.pScreen,

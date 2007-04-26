@@ -498,7 +498,6 @@ main(int argc, char *argv[], char *envp[])
 	    FreeScreen(screenInfo.screens[i]);
 	    screenInfo.numScreens = i;
 	}
-  	CloseDownEvents();
 	xfree(WindowTable);
 	WindowTable = NULL;
 	FreeFonts();

@@ -194,6 +194,14 @@ EnableDevice(DeviceIntPtr dev)
 	 *prev && (*prev != dev);
 	 prev = &(*prev)->next)
 	;
+
+    /* Sprites will be initialized with their 'windows' just when inside the
+     * DefineInitialRootWindow function! */
+    if (IsPointerDevice(dev) && dev->spriteInfo->spriteOwner)
+        InitializeSprite(dev, NullWindow);
+    else
+        PairDevices(NULL, inputInfo.pointer, dev);
+
     if ((*prev != dev) || !dev->inited ||
 	((ret = (*dev->deviceProc)(dev, DEVICE_ON)) != Success)) {
         ErrorF("couldn't enable device %d\n", dev->id);
@@ -201,11 +209,6 @@ EnableDevice(DeviceIntPtr dev)
     }
     dev->enabled = TRUE;
     *prev = dev->next;
-
-    if (IsPointerDevice(dev) && dev->spriteInfo->spriteOwner)
-        InitializeSprite(dev, GetCurrentRootWindow());
-    else
-        PairDevices(NULL, inputInfo.pointer, dev);
 
     for (prev = &inputInfo.devices; *prev; prev = &(*prev)->next)
         ;
@@ -270,6 +273,11 @@ ActivateDevice(DeviceIntPtr dev)
                           (xEvent *) &ev, 1);
 
     return ret;
+}
+
+int
+DeactivateDevice(DeviceIntPtr dev)
+{
 }
 
 static void
@@ -614,8 +622,10 @@ CloseDevice(DeviceIntPtr dev)
 	XkbRemoveResourceClient((DevicePtr)dev,dev->xkb_interest->resource);
 #endif
     
-    if (DevHasCursor(dev))
-        xfree((pointer)dev->spriteInfo->sprite);
+    if (DevHasCursor(dev)) {
+        xfree(dev->spriteInfo->sprite->spriteTrace);
+        xfree(dev->spriteInfo->sprite);
+    }
 
     /* a client may have the device set as client pointer */
     for (j = 0; j < currentMaxClients; j++)

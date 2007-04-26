@@ -107,7 +107,7 @@ ProcXQueryDevicePointer(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
     rep.mask = pDev->button->state | inputInfo.keyboard->key->state;
-    rep.root = (GetCurrentRootWindow())->drawable.id;
+    rep.root = (GetCurrentRootWindow(pDev))->drawable.id;
     rep.rootX = pSprite->hot.x;
     rep.rootY = pSprite->hot.y;
     rep.child = None;

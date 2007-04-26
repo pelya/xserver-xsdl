@@ -88,6 +88,7 @@ typedef struct _miPointerScreenFuncRec {
                     xEventPtr /* event */
                     );
     void	(*NewEventScreen)(
+		    DeviceIntPtr /* pDev */,
                     ScreenPtr /* pScr */,
 		    Bool /* fromDIX */
                     );

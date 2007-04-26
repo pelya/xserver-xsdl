@@ -135,9 +135,15 @@ RRPointerMoved (ScreenPtr pScreen, int x, int y)
 void
 RRPointerScreenConfigured (ScreenPtr pScreen)
 {
-    WindowPtr	pRoot = GetCurrentRootWindow ();
+    WindowPtr	pRoot = GetCurrentRootWindow (inputInfo.pointer);
     ScreenPtr	pCurrentScreen = pRoot ? pRoot->drawable.pScreen : NULL;
     int		x, y;
+
+    /* XXX: GetCurrentRootWindow revices an argument, It is inputInfo.pointer,
+     * but I really think this is wrong...  What do we do here? This was made so
+     * that it can compile, but I don't think randr should assume there is just
+     * one pointer. There might be more than one pointer on the screen! So, what
+     * to do? What happens? */
 
     if (pScreen != pCurrentScreen)
 	return;
