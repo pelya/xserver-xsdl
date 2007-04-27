@@ -31,6 +31,7 @@ nodist_libslang_la_SOURCES = slang_builtin.c \
 		      slang_library_noise.c \
 		      slang_link.c \
 		      slang_log.c \
+		      slang_mem.c \
 		      slang_preprocess.c \
 		      slang_print.c \
 		      slang_simplify.c \

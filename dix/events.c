@@ -113,6 +113,10 @@ of the copyright holder.
  * Author: Peter Hutterer <peter@cs.unisa.edu.au>
  */
 
+/** @file
+ * This file handles event delivery and a big part of the server-side protocol
+ * handling (the parts for input devices).
+ */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -174,7 +178,9 @@ static xEvent *xeviexE;
 #include "dixevents.h"
 #include "dixgrabs.h"
 #include "dispatch.h"
-
+/**
+ * Extension events type numbering starts at EXTENSION_EVENT_BASE.
+ */
 #define EXTENSION_EVENT_BASE  64
 
 #define NoSuchEvent 0x80000000	/* so doesn't match NoEventMask */
@@ -220,6 +226,28 @@ _X_EXPORT CallbackListPtr DeviceEventCallback;
 Mask DontPropagateMasks[DNPMCOUNT];
 static int DontPropagateRefCnts[DNPMCOUNT];
 
+/**
+ * Main input device struct. 
+ *     inputInfo.pointer 
+ *     is the core pointer. Referred to as "virtual core pointer", "VCP",
+ *     "core pointer" or inputInfo.pointer. There is exactly one core pointer,
+ *     but multiple devices may send core events. If a device generates core
+ *     events, those events will appear to originate from the core pointer.
+ * 
+ *     inputInfo.keyboard
+ *     is the core keyboard ("virtual core keyboard", "VCK", "core keyboard").
+ *     See inputInfo.pointer.
+ * 
+ *     inputInfo.devices
+ *     linked list containing all devices including VCK and VCP. The VCK will
+ *     always be the first entry, the VCP the second entry in the device list.
+ *
+ *     inputInfo.off_devices
+ *     Devices that have not been initialized and are thus turned off.
+ *
+ *     inputInfo.numDevices
+ *     Total number of devices.
+ */
 _X_EXPORT InputInfo inputInfo;
 
 static struct {
@@ -262,7 +290,6 @@ IsKeyboardDevice(DeviceIntPtr dev)
     return ((dev->key && dev->kbdfeed) || dev == inputInfo.keyboard);
 }
 
-
 #ifdef XEVIE
 _X_EXPORT WindowPtr xeviewin;
 _X_EXPORT HotSpot xeviehot;
@@ -281,6 +308,9 @@ static WindowPtr XYToWindow(
     int y
 );
 
+/**
+ * Max event opcode.
+ */
 extern int lastEvent;
 
 static Mask lastEventMask;
@@ -890,6 +920,13 @@ PointerConfinedToScreen(DeviceIntPtr pDev)
     return pDev->spriteInfo->sprite->confined;
 }
 
+/**
+ * Update the sprite cursor to the given cursor.
+ *
+ * ChangeToCursor() will display the new cursor and free the old cursor (if
+ * applicable). If the provided cursor is already the updated cursor, nothing
+ * happens.
+ */
 static void
 ChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 {
@@ -917,7 +954,9 @@ ChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
     }
 }
 
-/* returns true if b is a descendent of a */
+/**
+ * @returns true if b is a descendent of a 
+ */
 Bool
 IsParent(WindowPtr a, WindowPtr b)
 {
@@ -926,6 +965,11 @@ IsParent(WindowPtr a, WindowPtr b)
     return FALSE;
 }
 
+/**
+ * Update the cursor displayed on the screen.
+ *
+ * Called whenever a cursor may have changed shape or position.  
+ */
 static void
 PostNewCursor(DeviceIntPtr pDev)
 {
@@ -977,18 +1021,27 @@ GetCurrentRootWindow(DeviceIntPtr dev)
     return RootWindow(dev);
 }
 
+/**
+ * @return window underneath the cursor sprite.
+ */
 _X_EXPORT WindowPtr
 GetSpriteWindow(DeviceIntPtr pDev)
 {
     return pDev->spriteInfo->sprite->win;
 }
 
+/**
+ * @return current sprite cursor.
+ */
 _X_EXPORT CursorPtr
 GetSpriteCursor(DeviceIntPtr pDev)
 {
     return pDev->spriteInfo->sprite->current;
 }
 
+/**
+ * Set x/y current sprite position in screen coordinates.
+ */
 _X_EXPORT void
 GetSpritePosition(DeviceIntPtr pDev, int *px, int *py)
 {
@@ -1315,6 +1368,19 @@ CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
     ComputeFreezes();
 }
 
+/**
+ * Activate a pointer grab on the given device. A pointer grab will cause all
+ * core pointer events to be delivered to the grabbing client only. Can cause
+ * the cursor to change if a grab cursor is set.
+ * 
+ * As a pointer grab can only be issued on the core devices, mouse is always
+ * inputInfo.pointer. Extension devices are set up for ActivateKeyboardGrab().
+ * 
+ * @param mouse The device to grab.
+ * @param grab The grab structure, needs to be setup.
+ * @param autoGrab True if the grab was caused by a button down event and not
+ * explicitely by a client. 
+ */
 void
 ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab, 
                     TimeStamp time, Bool autoGrab)
@@ -1346,6 +1412,12 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
     CheckGrabForSyncs(mouse,(Bool)grab->pointerMode, (Bool)grab->keyboardMode);
 }
 
+/**
+ * Delete grab on given device, update the sprite.
+ *
+ * As a pointer grab can only be issued on the core devices, mouse is always
+ * inputInfo.pointer. Extension devices are set up for ActivateKeyboardGrab().
+ */
 void
 DeactivatePointerGrab(DeviceIntPtr mouse)
 {
@@ -1371,6 +1443,11 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
     ComputeFreezes();
 }
 
+/**
+ * Activate a keyboard grab on the given device. 
+ *
+ * Extension devices have ActivateKeyboardGrab() set as their grabbing proc.
+ */
 void
 ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time, Bool passive)
 {
@@ -1397,6 +1474,9 @@ ActivateKeyboardGrab(DeviceIntPtr keybd, GrabPtr grab, TimeStamp time, Bool pass
     CheckGrabForSyncs(keybd, (Bool)grab->keyboardMode, (Bool)grab->pointerMode);
 }
 
+/**
+ * Delete keyboard grab for the given device. 
+ */
 void
 DeactivateKeyboardGrab(DeviceIntPtr keybd)
 {
@@ -1550,6 +1630,11 @@ AllowSome(ClientPtr client,
     }
 }
 
+/**
+ * Server-side protocol handling for AllowEvents request.
+ *
+ * Release some events from a frozen device. Only applicable for core devices.
+ */
 int
 ProcAllowEvents(ClientPtr client)
 {
@@ -1593,6 +1678,9 @@ ProcAllowEvents(ClientPtr client)
     return Success;
 }
 
+/**
+ * Deactivate grabs from any device that has been grabbed by the client.
+ */
 void
 ReleaseActiveGrabs(ClientPtr client)
 {
@@ -1625,6 +1713,30 @@ ReleaseActiveGrabs(ClientPtr client)
  *            The following procedures deal with delivering events        *
  **************************************************************************/
 
+/**
+ * Deliver the given events to the given client.
+ *
+ * More than one event may be delivered at a time. This is the case with
+ * DeviceMotionNotifies which may be followed by DeviceValuator events.
+ *
+ * TryClientEvents() is the last station before actually writing the events to
+ * the socket. Anything that is not filtered here, will get delivered to the
+ * client. 
+ * An event is only delivered if 
+ *   - mask and filter match up.
+ *   - no other client has a grab on the device that caused the event.
+ * 
+ *
+ * @param client The target client to deliver to.
+ * @param pEvents The events to be delivered.
+ * @param count Number of elements in pEvents.
+ * @param mask Event mask as set by the window.
+ * @param filter Mask based on event type.
+ * @param grab Possible grab on the device that caused the event. 
+ *
+ * @return 1 if event was delivered, 0 if not or -1 if grab was not set by the
+ * client.
+ */
 _X_EXPORT int
 TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask, 
                  Mask filter, GrabPtr grab)
@@ -1703,6 +1815,23 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
     }
 }
 
+/**
+ * Deliver events to a window. At this point, we do not yet know if the event
+ * actually needs to be delivered. May activate a grab if the event is a
+ * button press.
+ *
+ * More than one event may be delivered at a time. This is the case with
+ * DeviceMotionNotifies which may be followed by DeviceValuator events.
+ * 
+ * @param pWin The window that would get the event.
+ * @param pEvents The events to be delivered.
+ * @param count Number of elements in pEvents.
+ * @param filter Mask based on event type.
+ * @param grab Possible grab on the device that caused the event. 
+ * @param mskidx Mask index, depending on device that caused event.
+ *
+ * @return Number of events delivered to various clients.
+ */
 int
 DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         *pEvents, int count, Mask filter, GrabPtr grab, int mskidx)
@@ -1838,6 +1967,15 @@ XineramaTryClientEventsResult(
 }
 #endif
 
+/**
+ * Try to deliver events to the interested parties.
+ *
+ * @param pWin The window that would get the event.
+ * @param pEvents The events to be delivered.
+ * @param count Number of elements in pEvents.
+ * @param filter Mask based on event type.
+ * @param dontClient Don't deliver to the dontClient.
+ */
 int
 MaybeDeliverEventsToClient(WindowPtr pWin, xEvent *pEvents, 
                            int count, Mask filter, ClientPtr dontClient)
@@ -1875,6 +2013,14 @@ MaybeDeliverEventsToClient(WindowPtr pWin, xEvent *pEvents,
     return 2;
 }
 
+/**
+ * Adjust event fields to comply with the window properties.
+ *
+ * @param xE Event to be modified in place
+ * @param pWin The window to get the information from.
+ * @param child Child window setting for event (if applicable)
+ * @param calcChild If True, calculate the child window.
+ */
 static void
 FixUpEventFromWindow(
     DeviceIntPtr pDev,
@@ -1932,6 +2078,22 @@ FixUpEventFromWindow(
     }
 }
 
+/**
+ * Deliver events caused by input devices. Called for all core input events
+ * and XI events. No filtering of events happens before DeliverDeviceEvents(),
+ * it will be called for any event that comes out of the event queue.
+ * 
+ * For all core events, dev is either inputInfo.pointer or inputInfo.keyboard.
+ * For all extension events, dev is the device that caused the event.
+ *
+ * @param pWin Window to deliver event to.
+ * @param xE Events to deliver.
+ * @param grab Possible grab on a device.
+ * @param stopAt Don't recurse up to the root window.
+ * @param dev The device that is responsible for the event.
+ * @param count number of events in xE.
+ *
+ */
 int
 DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab, 
                     WindowPtr stopAt, DeviceIntPtr dev, int count)
@@ -1995,7 +2157,19 @@ DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
     return 0;
 }
 
-/* not useful for events that propagate up the tree or extension events */
+/**
+ * Deliver event to a window and it's immediate parent. Used for most window
+ * events (CreateNotify, ConfigureNotify, etc.). Not useful for events that
+ * propagate up the tree or extension events 
+ *
+ * In case of a ReparentNotify event, the event will be delivered to the
+ * otherParent as well.
+ *
+ * @param pWin Window to deliver events to.
+ * @param xE Events to deliver.
+ * @param count number of events in xE.
+ * @param otherParent Used for ReparentNotify events.
+ */
 _X_EXPORT int
 DeliverEvents(WindowPtr pWin, xEvent *xE, int count, 
               WindowPtr otherParent)
@@ -2062,6 +2236,17 @@ PointInBorderSize(WindowPtr pWin, int x, int y)
     return FALSE;
 }
 
+/**
+ * Traversed from the root window to the window at the position x/y. While
+ * traversing, it sets up the traversal history in the spriteTrace array.
+ * After completing, the spriteTrace history is set in the following way:
+ *   spriteTrace[0] ... root window
+ *   spriteTrace[1] ... top level window that encloses x/y
+ *       ...
+ *   spriteTrace[spriteTraceGood - 1] ... window at x/y
+ *
+ * @returns the window at the given coordinates.
+ */
 static WindowPtr 
 XYToWindow(DeviceIntPtr pDev, int x, int y)
 {
@@ -2113,6 +2298,12 @@ XYToWindow(DeviceIntPtr pDev, int x, int y)
     return pSprite->spriteTrace[pSprite->spriteTraceGood-1];
 }
 
+/**
+ * Update the sprite coordinates based on the event. Update the cursor
+ * position, then update the event with the new coordinates that may have been
+ * changed. If the window underneath the sprite has changed, change to new
+ * cursor and send enter/leave events.
+ */
 Bool
 CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 {
@@ -2191,6 +2382,10 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
     return TRUE;
 }
 
+/**
+ * Windows have restructured, we need to update the sprite position and the
+ * sprite's cursor.
+ */
 _X_EXPORT void
 WindowsRestructured(void)
 {
@@ -2257,6 +2452,10 @@ void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
 }
 #endif
 
+/**
+ * Set the given window to sane values, display the cursor in the center of
+ * the screen. Called from main() with the root window on the first screen.
+ */
 void
 DefineInitialRootWindow(WindowPtr win)
 {
@@ -2537,6 +2736,10 @@ XineramaWarpPointer(ClientPtr client)
 #endif
 
 
+/**
+ * Server-side protocol handling for WarpPointer request.
+ * Warps the cursor position to the coordinates given in the request.
+ */
 int
 ProcWarpPointer(ClientPtr client)
 {
@@ -2648,8 +2851,15 @@ BorderSizeNotEmpty(DeviceIntPtr pDev, WindowPtr pWin)
      return FALSE;
 }
 
-/* "CheckPassiveGrabsOnWindow" checks to see if the event passed in causes a
-	passive grab set on the window to be activated. */
+/** 
+ * "CheckPassiveGrabsOnWindow" checks to see if the event passed in causes a
+ * passive grab set on the window to be activated. 
+ * 
+ * @param pWin The window that may be subject to a passive grab.
+ * @param device Device that caused the event.
+ * @param xE List of events (multiple ones for DeviceMotionNotify)
+ * @count number of elements in xE.
+ */
 
 static Bool
 CheckPassiveGrabsOnWindow(
@@ -2803,6 +3013,16 @@ CheckDeviceGrabs(DeviceIntPtr device, xEvent *xE,
     return FALSE;
 }
 
+/**
+ * Called for keyboard events to deliver event to whatever client owns the
+ * focus. Event is delivered to the keyboard's focus window, the root window
+ * or to the window owning the input focus.
+ *
+ * @param keybd The keyboard originating the event.
+ * @param xE The event list.
+ * @param window Window underneath the sprite.
+ * @param count number of events in xE.
+ */
 void
 DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
 {
@@ -2834,6 +3054,13 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
 				NullGrab, mskidx);
 }
 
+/**
+ * Deliver an event from a device that is currently grabbed. Uses
+ * DeliverDeviceEvents() for further delivery if a ownerEvents is set on the
+ * grab. If not, TryClientEvents() is used.
+ *
+ * @param deactivateGrab True if the device's grab should be deactivated.
+ */
 void
 DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev, 
                     Bool deactivateGrab, int count)
@@ -2930,6 +3157,17 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
 	}
 }
 
+/**
+ * Main keyboard event processing function for core keyboard events. 
+ * Updates the events fields from the current pointer state and delivers the
+ * event.
+ *
+ * For key events, xE will always be a single event.
+ *
+ * @param xE Event list
+ * @param keybd The device that caused an event.
+ * @param count Number of elements in xE.
+ */
 void
 #ifdef XKB
 CoreProcessKeyboardEvent (xEvent *xE, DeviceIntPtr keybd, int count)
@@ -3133,6 +3371,18 @@ FixKeyState (xEvent *xE, DeviceIntPtr keybd)
 }
 #endif
 
+/** 
+ * Main pointer event processing function for core pointer events. 
+ * For motion events: update the sprite.
+ * For all other events: Update the event fields based on the current sprite
+ * state.
+ *
+ * For core pointer events, xE will always be a single event.
+ *
+ * @param xE Event list
+ * @param mouse The device that caused an event.
+ * @param count Number of elements in xE.
+ */
 void
 #ifdef XKB
 CoreProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
@@ -3248,6 +3498,18 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
 #define AtMostOneClient \
 	(SubstructureRedirectMask | ResizeRedirectMask | ButtonPressMask)
 
+/**
+ * Recalculate which events may be deliverable for the given window.
+ * Recalculated mask is used for quicker determination which events may be
+ * delivered to a window.
+ *
+ * The otherEventMasks on a WindowOptional is the combination of all event
+ * masks set by all clients on the window.
+ * deliverableEventMask is the combination of the eventMask and the
+ * otherEventMask.
+ *
+ * Traverses to siblings and parents of the window.
+ */
 void
 RecalculateDeliverableEvents(pWin)
     WindowPtr pWin;
@@ -3446,6 +3708,9 @@ EventSuppressForWindow(WindowPtr pWin, ClientPtr client,
     return Success;
 }
 
+/**
+ * @return The window that is the first ancestor of both a and b.
+ */
 static WindowPtr 
 CommonAncestor(
     WindowPtr a,
@@ -3456,6 +3721,10 @@ CommonAncestor(
     return NullWindow;
 }
 
+/**
+ * Assembles an EnterNotify or LeaveNotify and sends it event to the client. 
+ * The core devices are used to fill in the event fields.
+ */
 static void
 EnterLeaveEvent(
     DeviceIntPtr mouse,
@@ -3610,6 +3879,10 @@ EnterLeaveEvent(
     }
 }
 
+/**
+ * Send enter notifies to all parent windows up to ancestor.
+ * This function recurses.
+ */
 static void
 EnterNotifies(DeviceIntPtr pDev, 
               WindowPtr ancestor, 
@@ -3625,6 +3898,11 @@ EnterNotifies(DeviceIntPtr pDev,
     EnterLeaveEvent(pDev, EnterNotify, mode, detail, parent,
                     child->drawable.id); }
 
+
+/**
+ * Send leave notifies to all parent windows up to ancestor.
+ * This function recurses.
+ */
 static void
 LeaveNotifies(DeviceIntPtr pDev, 
               WindowPtr child, 
@@ -3644,6 +3922,13 @@ LeaveNotifies(DeviceIntPtr pDev,
     }
 }
 
+/**
+ * Figure out if enter/leave events are necessary and send them to the
+ * appropriate windows.
+ * 
+ * @param fromWin Window the sprite moved out of.
+ * @param toWin Window the sprite moved into.
+ */
 static void
 DoEnterLeaveEvents(DeviceIntPtr pDev, 
         WindowPtr fromWin, 
@@ -3933,6 +4218,23 @@ DoFocusEvents(DeviceIntPtr dev, WindowPtr fromWin, WindowPtr toWin, int mode)
     }
 }
 
+/**
+ * Set the input focus to the given window. Subsequent keyboard events will be
+ * delivered to the given window.
+ * 
+ * Usually called from ProcSetInputFocus as result of a client request. If so,
+ * the device is the inputInfo.keyboard.
+ * If called from ProcXSetInputFocus as result of a client xinput request, the
+ * device is set to the device specified by the client.
+ *
+ * @param client Client that requested input focus change.
+ * @param dev Focus device. 
+ * @param focusID The window to obtain the focus. Can be PointerRoot or None.
+ * @param revertTo Specifies where the focus reverts to when window becomes
+ * unviewable.
+ * @param ctime Specifies the time.
+ * @param followOK True if pointer is allowed to follow the keyboard.
+ */
 int
 SetInputFocus(
     ClientPtr client,
@@ -4023,6 +4325,11 @@ SetInputFocus(
     return Success;
 }
 
+/**
+ * Server-side protocol handling for SetInputFocus request.
+ *
+ * Sets the input focus for the virtual core keyboard.
+ */
 int
 ProcSetInputFocus(client)
     ClientPtr client;
@@ -4039,6 +4346,12 @@ ProcSetInputFocus(client)
 			 stuff->revertTo, stuff->time, FALSE);
 }
 
+/**
+ * Server-side protocol handling for GetInputFocus request.
+ * 
+ * Sends the current input focus for the virtual core keyboard back to the
+ * client.
+ */
 int
 ProcGetInputFocus(ClientPtr client)
 {
@@ -4061,6 +4374,12 @@ ProcGetInputFocus(ClientPtr client)
     return Success;
 }
 
+/**
+ * Server-side protocol handling for Grabpointer request.
+ *
+ * Sets an active grab on the inputInfo.pointer and returns success status to
+ * client.
+ */
 int
 ProcGrabPointer(ClientPtr client)
 {
@@ -4171,6 +4490,14 @@ ProcGrabPointer(ClientPtr client)
     return Success;
 }
 
+/**
+ * Server-side protocol handling for ChangeActivePointerGrab request.
+ *
+ * Changes properties of the grab hold by the client. If the client does not
+ * hold an active grab on the device, nothing happens. 
+ *
+ * Works on the core pointer only.
+ */
 int
 ProcChangeActivePointerGrab(ClientPtr client)
 {
@@ -4217,6 +4544,11 @@ ProcChangeActivePointerGrab(ClientPtr client)
     return Success;
 }
 
+/**
+ * Server-side protocol handling for UngrabPointer request.
+ *
+ * Deletes the pointer grab on the core pointer device.
+ */
 int
 ProcUngrabPointer(ClientPtr client)
 {
@@ -4236,6 +4568,24 @@ ProcUngrabPointer(ClientPtr client)
     return Success;
 }
 
+/**
+ * Sets a grab on the given device.
+ * 
+ * Called from ProcGrabKeyboard to work on the inputInfo.keyboard.
+ * Called from ProcXGrabDevice to work on the device specified by the client.
+ * 
+ * The parameters this_mode and other_mode represent the keyboard_mode and
+ * pointer_mode parameters of XGrabKeyboard(). 
+ * See man page for details on all the parameters
+ * 
+ * @param client Client that owns the grab.
+ * @param dev The device to grab. 
+ * @param this_mode GrabModeSync or GrabModeAsync
+ * @param other_mode GrabModeSync or GrabModeAsync
+ * @param status Return code to be returned to the caller.
+ * 
+ * @returns Success or BadValue.
+ */
 int
 GrabDevice(ClientPtr client, DeviceIntPtr dev, 
            unsigned this_mode, unsigned other_mode, Window grabWindow, 
@@ -4301,6 +4651,11 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
     return Success;
 }
 
+/**
+ * Server-side protocol handling for GrabKeyboard request.
+ *
+ * Grabs the inputInfo.keyboad and returns success status to client.
+ */
 int
 ProcGrabKeyboard(ClientPtr client)
 {
@@ -4330,6 +4685,11 @@ ProcGrabKeyboard(ClientPtr client)
     return Success;
 }
 
+/**
+ * Server-side protocol handling for UngrabKeyboard request.
+ *
+ * Deletes a possible grab on the inputInfo.keyboard.
+ */
 int
 ProcUngrabKeyboard(ClientPtr client)
 {
@@ -4349,6 +4709,11 @@ ProcUngrabKeyboard(ClientPtr client)
     return Success;
 }
 
+/**
+ * Server-side protocol handling for QueryPointer request.
+ *
+ * Returns the current state and position of the core pointer to the client. 
+ */
 int
 ProcQueryPointer(ClientPtr client)
 {
@@ -4409,6 +4774,10 @@ ProcQueryPointer(ClientPtr client)
     return(Success);    
 }
 
+/**
+ * Initializes the device list and the DIX sprite to sane values. Allocates
+ * trace memory used for quick window traversal.
+ */
 void
 InitEvents(void)
 {
@@ -4457,6 +4826,11 @@ CloseDownEvents(void)
 
 }
 
+/**
+ * Server-side protocol handling for SendEvent request.
+ *
+ * Locates the window to send the event to and forwards the event. 
+ */
 int
 ProcSendEvent(ClientPtr client)
 {
@@ -4545,6 +4919,12 @@ ProcSendEvent(ClientPtr client)
     return Success;
 }
 
+/**
+ * Server-side protocol handling for UngrabKey request.
+ *
+ * Deletes a passive grab for the given key. Only works on the
+ * inputInfo.keyboard.
+ */
 int
 ProcUngrabKey(ClientPtr client)
 {
@@ -4587,6 +4967,12 @@ ProcUngrabKey(ClientPtr client)
     return(Success);
 }
 
+/**
+ * Server-side protocol handling for GrabKey request.
+ *
+ * Creates a grab for the inputInfo.keyboard and adds it to the list of
+ * passive grabs. 
+ */
 int
 ProcGrabKey(ClientPtr client)
 {
@@ -4642,6 +5028,12 @@ ProcGrabKey(ClientPtr client)
 }
 
 
+/**
+ * Server-side protocol handling for GrabButton request.
+ *
+ * Creates a grab for the inputInfo.pointer and adds it as a passive grab to
+ * the list.
+ */
 int
 ProcGrabButton(ClientPtr client)
 {
@@ -4715,6 +5107,11 @@ ProcGrabButton(ClientPtr client)
     return AddPassiveGrabToList(grab);
 }
 
+/**
+ * Server-side protocol handling for UngrabButton request.
+ *
+ * Deletes a passive grab on the inputInfo.pointer from the list.
+ */
 int
 ProcUngrabButton(ClientPtr client)
 {
@@ -4748,6 +5145,17 @@ ProcUngrabButton(ClientPtr client)
     return(Success);
 }
 
+/**
+ * Deactivate any grab that may be on the window, remove the focus.
+ * Delete any XInput extension events from the window too. Does not change the
+ * window mask. Use just before the window is deleted.
+ *
+ * If freeResources is set, passive grabs on the window are deleted.
+ *
+ * @param pWin The window to delete events from.
+ * @param freeResources True if resources associated with the window should be
+ * deleted.
+ */
 void
 DeleteWindowFromAnyEvents(WindowPtr pWin, Bool freeResources)
 {
@@ -4859,7 +5267,9 @@ DeleteWindowFromAnyEvents(WindowPtr pWin, Bool freeResources)
 }
 
 /**
- * Call this whenever some window at or below pWin has changed geometry 
+ * Call this whenever some window at or below pWin has changed geometry. If
+ * there is a grab on the window, the cursor will be re-confined into the
+ * window.
  */
 _X_EXPORT void
 CheckCursorConfinement(WindowPtr pWin)
@@ -4903,6 +5313,9 @@ EventMaskForClient(WindowPtr pWin, ClientPtr client)
     return 0;
 }
 
+/**
+ * Server-side protocol handling for RecolorCursor request.
+ */
 int
 ProcRecolorCursor(ClientPtr client)
 {
@@ -4945,6 +5358,20 @@ ProcRecolorCursor(ClientPtr client)
     return (Success);
 }
 
+/**
+ * Write the given events to a client, swapping the byte order if necessary.
+ * To swap the byte ordering, a callback is called that has to be set up for
+ * the given event type.
+ *
+ * In the case of DeviceMotionNotify trailed by DeviceValuators, the events
+ * can be more than one. Usually it's just one event. 
+ *
+ * Do not modify the event structure passed in. See comment below.
+ * 
+ * @param pClient Client to send events to.
+ * @param count Number of events.
+ * @param events The event list.
+ */
 _X_EXPORT void
 WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 {

@@ -370,6 +370,7 @@ __glGetBooleanv_size(GLenum e)
     case GL_PROJECTION_STACK_DEPTH:
     case GL_TEXTURE_STACK_DEPTH:
     case GL_ATTRIB_STACK_DEPTH:
+    case GL_CLIENT_ATTRIB_STACK_DEPTH:
     case GL_ALPHA_TEST:
     case GL_ALPHA_TEST_FUNC:
     case GL_ALPHA_TEST_REF:
@@ -448,6 +449,7 @@ __glGetBooleanv_size(GLenum e)
     case GL_MAX_NAME_STACK_DEPTH:
     case GL_MAX_PROJECTION_STACK_DEPTH:
     case GL_MAX_TEXTURE_STACK_DEPTH:
+    case GL_MAX_CLIENT_ATTRIB_STACK_DEPTH:
     case GL_SUBPIXEL_BITS:
     case GL_INDEX_BITS:
     case GL_RED_BITS:

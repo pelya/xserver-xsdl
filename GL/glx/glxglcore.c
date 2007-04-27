@@ -45,7 +45,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <glxdrawable.h>
 #include <glxcontext.h>
 #include <glxutil.h>
-#include "xmesaP.h"
 
 #include "glcontextmodes.h"
 #include "os.h"
@@ -259,12 +258,14 @@ __glXMesaScreenDestroy(__GLXscreen *screen)
     __GLXMESAscreen *mesaScreen = (__GLXMESAscreen *) screen;
     int i;
 
-    for (i = 0; i < mesaScreen->num_vis; i++) {
-	if (mesaScreen->xm_vis[i])
-	    XMesaDestroyVisual(mesaScreen->xm_vis[i]);
-    }
+    if (mesaScreen->xm_vis) {
+	for (i = 0; i < mesaScreen->num_vis; i++) {
+	    if (mesaScreen->xm_vis[i])
+		XMesaDestroyVisual(mesaScreen->xm_vis[i]);
+	}
 
-    xfree(mesaScreen->xm_vis);
+	xfree(mesaScreen->xm_vis);
+    }
 
     __glXScreenDestroy(screen);
 

@@ -382,9 +382,9 @@ AC_DEFINE_UNQUOTED(OSNAME, "$OSNAME",
 DEFAULT_VENDOR_NAME="The X.Org Foundation"
 DEFAULT_VENDOR_NAME_SHORT="X.Org"
 DEFAULT_VERSION_MAJOR=7
-DEFAULT_VERSION_MINOR=1
-DEFAULT_VERSION_PATCH=99
-DEFAULT_VERSION_SNAP=2
+DEFAULT_VERSION_MINOR=2
+DEFAULT_VERSION_PATCH=0
+DEFAULT_VERSION_SNAP=0
 DEFAULT_RELEASE_DATE="21 December 2005"
 DEFAULT_VENDOR_WEB="http://wiki.x.org"
 
@@ -628,7 +628,7 @@ XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto xproto xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4] [kbproto >= 1.0.3]"
+REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto xproto xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4.2] [kbproto >= 1.0.3]"
 REQUIRED_LIBS="xfont xau fontenc"
 
 if test "x$DBUS" = xauto; then
@@ -986,7 +986,6 @@ else
 fi
 CWRAP_LIB='$(top_builddir)/os/libcwrapper.la'
 MI_LIB='$(top_builddir)/mi/libmi.la'
-MINIMI_LIB='$(top_builddir)/mi/libminimi.la'
 MI_EXT_LIB='$(top_builddir)/mi/libmiext.la'
 MI_INC='-I$(top_srcdir)/mi'
 FB_LIB='$(top_builddir)/fb/libfb.la'

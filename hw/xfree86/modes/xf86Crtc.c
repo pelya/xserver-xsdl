@@ -414,22 +414,51 @@ xf86OutputSetMonitor (xf86OutputPtr output)
     xfree (option_name);
     output->conf_monitor = xf86findMonitor (monitor,
 					    xf86configptr->conf_monitor_lst);
+    /*
+     * Find the monitor section of the screen and use that
+     */
+    if (!output->conf_monitor && output->use_screen_monitor)
+	output->conf_monitor = xf86findMonitor (output->scrn->monitor->id,
+						xf86configptr->conf_monitor_lst);
     if (output->conf_monitor)
+    {
+	xf86DrvMsg (output->scrn->scrnIndex, X_INFO,
+		    "Output %s using monitor section %s\n",
+		    output->name, output->conf_monitor->mon_identifier);
 	xf86ProcessOptions (output->scrn->scrnIndex,
 			    output->conf_monitor->mon_option_lst,
 			    output->options);
+    }
+    else
+	xf86DrvMsg (output->scrn->scrnIndex, X_INFO,
+		    "Output %s has no monitor section\n",
+		    output->name);
 }
 
 static Bool
-xf86OutputEnabled (xf86OutputPtr    output)
+xf86OutputEnabled (xf86OutputPtr output)
 {
-    /* Check to see if this output was disabled in the config file */
-    if (xf86ReturnOptValBool (output->options, OPTION_ENABLE, TRUE) == FALSE ||
-	xf86ReturnOptValBool (output->options, OPTION_DISABLE, FALSE) == TRUE)
+    Bool    enable, disable;
+
+    /* check to see if this output was enabled in the config file */
+    if (xf86GetOptValBool (output->options, OPTION_ENABLE, &enable) && enable)
     {
+	xf86DrvMsg (output->scrn->scrnIndex, X_INFO,
+		    "Output %s enabled by config file\n", output->name);
+	return TRUE;
+    }
+    /* or if this output was disabled in the config file */
+    if (xf86GetOptValBool (output->options, OPTION_DISABLE, &disable) && disable)
+    {
+	xf86DrvMsg (output->scrn->scrnIndex, X_INFO,
+		    "Output %s disabled by config file\n", output->name);
 	return FALSE;
     }
-    return TRUE;
+    /* otherwise, enable if it is not disconnected */
+    enable = output->status != XF86OutputStatusDisconnected;
+    xf86DrvMsg (output->scrn->scrnIndex, X_INFO,
+    	    "Output %s %sconnected\n", output->name, enable ? "" : "dis");
+    return enable;
 }
 
 static Bool
@@ -463,7 +492,7 @@ xf86OutputInitialRotation (xf86OutputPtr output)
 
 xf86OutputPtr
 xf86OutputCreate (ScrnInfoPtr		    scrn,
-		  const xf86OutputFuncsRec *funcs,
+		  const xf86OutputFuncsRec  *funcs,
 		  const char		    *name)
 {
     xf86OutputPtr	output, *outputs;
@@ -486,6 +515,10 @@ xf86OutputCreate (ScrnInfoPtr		    scrn,
 	strcpy (output->name, name);
     }
     output->subpixel_order = SubPixelUnknown;
+    /*
+     * Use the old per-screen monitor section for the first output
+     */
+    output->use_screen_monitor = (xf86_config->num_output == 0);
 #ifdef RANDR_12_INTERFACE
     output->randr_output = NULL;
 #endif
@@ -534,6 +567,16 @@ xf86OutputRename (xf86OutputPtr output, const char *name)
     if (xf86OutputIgnored (output))
 	return FALSE;
     return TRUE;
+}
+
+void
+xf86OutputUseScreenMonitor (xf86OutputPtr output, Bool use_screen_monitor)
+{
+    if (use_screen_monitor != output->use_screen_monitor)
+    {
+	output->use_screen_monitor = use_screen_monitor;
+	xf86OutputSetMonitor (output);
+    }
 }
 
 void
@@ -1203,7 +1246,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	 */
 	output->status = (*output->funcs->detect)(output);
 
-	if (output->status == XF86OutputStatusDisconnected)
+	if (!xf86OutputEnabled (output))
 	{
 	    xf86OutputSetEDID (output, NULL);
 	    continue;
@@ -1514,8 +1557,7 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 	xf86OutputPtr output = config->output[o];
 	
 	modes[o] = NULL;
-	enabled[o] = (xf86OutputEnabled (output) &&
-		      output->status != XF86OutputStatusDisconnected);
+	enabled[o] = xf86OutputEnabled (output);
     }
     
     /*
@@ -1560,8 +1602,20 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
     {
 	xf86OutputPtr output = config->output[o];
 	
-	if (enabled[o] && !modes[o])
-	    modes[o] = xf86ClosestMode (output, target_mode, target_rotation, width, height);
+	if (enabled[o])
+	{
+	    if (!modes[o])
+		modes[o] = xf86ClosestMode (output, target_mode,
+					    target_rotation, width, height);
+	    if (!modes[o])
+		xf86DrvMsg (scrn->scrnIndex, X_ERROR,
+			    "Output %s enabled but has no modes\n",
+			    output->name);
+	    else
+		xf86DrvMsg (scrn->scrnIndex, X_INFO,
+			    "Output %s using initial mode %s\n",
+			    output->name, modes[o]->name);
+	}
     }
 
     /*
@@ -1849,7 +1903,9 @@ xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
 	}
     }
     xf86DisableUnusedFunctions(pScrn);
+#if RANDR_12_INTERFACE
     xf86RandR12TellChanged (pScrn->pScreen);
+#endif
     return ok;
 }
 

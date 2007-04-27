@@ -75,6 +75,7 @@ SOFTWARE.
 #include "swaprep.h"
 #include "dixevents.h"
 
+#include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"
 #include "exevents.h"
@@ -189,6 +190,8 @@ EnableDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr *prev;
     int ret;
+    DeviceIntRec dummyDev;
+    devicePresenceNotify ev;
 
     for (prev = &inputInfo.off_devices;
 	 *prev && (*prev != dev);
@@ -215,6 +218,14 @@ EnableDevice(DeviceIntPtr dev)
     *prev = dev;
     dev->next = NULL;
 
+    ev.type = DevicePresenceNotify;
+    ev.time = currentTime.milliseconds;
+    ev.devchange = DeviceEnabled;
+    ev.deviceid = dev->id;
+    dummyDev.id = 0;
+    SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
+                          (xEvent *) &ev, 1);
+
     return TRUE;
 }
 
@@ -225,6 +236,8 @@ Bool
 DisableDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr *prev;
+    DeviceIntRec dummyDev;
+    devicePresenceNotify ev;
 
     for (prev = &inputInfo.devices;
 	 *prev && (*prev != dev);
@@ -237,6 +250,15 @@ DisableDevice(DeviceIntPtr dev)
     *prev = dev->next;
     dev->next = inputInfo.off_devices;
     inputInfo.off_devices = dev;
+
+    ev.type = DevicePresenceNotify;
+    ev.time = currentTime.milliseconds;
+    ev.devchange = DeviceDisabled;
+    ev.deviceid = dev->id;
+    dummyDev.id = 0;
+    SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
+                          (xEvent *) &ev, 1);
+
     return TRUE;
 }
 
@@ -266,8 +288,8 @@ ActivateDevice(DeviceIntPtr dev)
     
     ev.type = DevicePresenceNotify;
     ev.time = currentTime.milliseconds;
-    ev.devchange = 0;
-    ev.deviceid = 0;
+    ev.devchange = DeviceAdded;
+    ev.deviceid = dev->id;
     dummyDev.id = 0;
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                           (xEvent *) &ev, 1);
@@ -694,6 +716,7 @@ RemoveDevice(DeviceIntPtr dev)
     devicePresenceNotify ev;
     DeviceIntRec dummyDev;
     ScreenPtr screen = screenInfo.screens[0];
+    int deviceid;
 
     DebugF("(dix) removing device %d\n", dev->id);
 
@@ -701,6 +724,9 @@ RemoveDevice(DeviceIntPtr dev)
         return BadImplementation;
 
     screen->UndisplayCursor(dev, screen);
+
+    deviceid = dev->id;
+    DisableDevice(dev);
 
     prev = NULL;
     for (tmp = inputInfo.devices; tmp; (prev = tmp), (tmp = next)) {
@@ -736,8 +762,8 @@ RemoveDevice(DeviceIntPtr dev)
         inputInfo.numDevices--;
         ev.type = DevicePresenceNotify;
         ev.time = currentTime.milliseconds;
-        ev.devchange = 0;
-        ev.deviceid = 0;
+        ev.devchange = DeviceRemoved;
+        ev.deviceid = deviceid;
         dummyDev.id = 0;
         SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                               (xEvent *) &ev, 1);
@@ -1391,6 +1417,7 @@ DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
             }
             else {
                 pDev->key->modifierKeyMap = NULL;
+                pDev->key->maxKeysPerModifier = 0;
             }
         }
     }

@@ -518,6 +518,7 @@ ProcRRGetCrtcInfo (ClientPtr client)
     RROutput			*outputs;
     RROutput			*possible;
     int				i, j, k, n;
+    int				width, height;
     
     REQUEST_SIZE_MATCH(xRRGetCrtcInfoReq);
     crtc = LookupCrtc(client, stuff->crtc, DixReadAccess);
@@ -540,8 +541,9 @@ ProcRRGetCrtcInfo (ClientPtr client)
     rep.timestamp = pScrPriv->lastSetTime.milliseconds;
     rep.x = crtc->x;
     rep.y = crtc->y;
-    rep.width = mode ? mode->mode.width : 0;
-    rep.height = mode ? mode->mode.height : 0;
+    RRCrtcGetScanoutSize (crtc, &width, &height);
+    rep.width = width;
+    rep.height = height;
     rep.mode = mode ? mode->mode.id : 0;
     rep.rotation = crtc->rotation;
     rep.rotations = crtc->rotations;

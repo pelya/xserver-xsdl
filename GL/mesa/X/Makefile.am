@@ -22,8 +22,6 @@ AM_CFLAGS = \
 	-DXFree86Server \
 	@GLX_DEFINES@
 
-libX_la_SOURCES = xf86glx.c
-
 nodist_libX_la_SOURCES = \
                   xm_api.c \
 		  xm_buffer.c \
