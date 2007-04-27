@@ -1700,7 +1700,9 @@ fbSolidFillmmx (DrawablePtr	pDraw,
     CARD8	*byte_line;
     FbBits      *bits;
     int		xoff, yoff;
+#ifdef __GNUC__
     __m64	v1, v2, v3, v4, v5, v6, v7;
+#endif
     
     CHECKPOINT();
     
@@ -1730,6 +1732,7 @@ fbSolidFillmmx (DrawablePtr	pDraw,
     fill = ((ullong)xor << 32) | xor;
     vfill = (__m64)fill;
     
+#ifdef __GNUC__
     __asm__ (
 	"movq		%7,	%0\n"
 	"movq		%7,	%1\n"
@@ -1741,6 +1744,7 @@ fbSolidFillmmx (DrawablePtr	pDraw,
 	: "=y" (v1), "=y" (v2), "=y" (v3),
 	  "=y" (v4), "=y" (v5), "=y" (v6), "=y" (v7)
 	: "y" (vfill));
+#endif
     
     while (height--)
     {
@@ -1766,6 +1770,7 @@ fbSolidFillmmx (DrawablePtr	pDraw,
 
 	while (w >= 64)
 	{
+#ifdef __GNUC__
 	    __asm__ (
 		"movq	%1,	  (%0)\n"
 		"movq	%2,	 8(%0)\n"
@@ -1780,7 +1785,16 @@ fbSolidFillmmx (DrawablePtr	pDraw,
 		  "y" (vfill), "y" (v1), "y" (v2), "y" (v3),
 		  "y" (v4), "y" (v5), "y" (v6), "y" (v7)
 		: "memory");
-	    
+#else
+	    *(__m64*) (d +  0) = vfill;
+	    *(__m64*) (d +  8) = vfill;
+	    *(__m64*) (d + 16) = vfill;
+	    *(__m64*) (d + 24) = vfill;
+	    *(__m64*) (d + 32) = vfill;
+	    *(__m64*) (d + 40) = vfill;
+	    *(__m64*) (d + 48) = vfill;
+	    *(__m64*) (d + 56) = vfill;
+#endif    
 	    w -= 64;
 	    d += 64;
 	}
@@ -2823,6 +2837,7 @@ fbCopyAreammx (DrawablePtr	pSrc,
 	
 	while (w >= 64)
 	{
+#ifdef __GNUC__
 	    __asm__ (
 		"movq	  (%1),	  %%mm0\n"
 		"movq	 8(%1),	  %%mm1\n"
@@ -2846,6 +2861,24 @@ fbCopyAreammx (DrawablePtr	pSrc,
 		: "memory",
 		  "%mm0", "%mm1", "%mm2", "%mm3",
 		  "%mm4", "%mm5", "%mm6", "%mm7");
+#else
+	    __m64 v0 = *(__m64 *)(s + 0);
+	    __m64 v1 = *(__m64 *)(s + 8);
+	    __m64 v2 = *(__m64 *)(s + 16);
+	    __m64 v3 = *(__m64 *)(s + 24);
+	    __m64 v4 = *(__m64 *)(s + 32);
+	    __m64 v5 = *(__m64 *)(s + 40);
+	    __m64 v6 = *(__m64 *)(s + 48);
+	    __m64 v7 = *(__m64 *)(s + 56);
+	    *(__m64 *)(d + 0)  = v0;
+	    *(__m64 *)(d + 8)  = v1;
+	    *(__m64 *)(d + 16) = v2;
+	    *(__m64 *)(d + 24) = v3;
+	    *(__m64 *)(d + 32) = v4;
+	    *(__m64 *)(d + 40) = v5;
+	    *(__m64 *)(d + 48) = v6;
+	    *(__m64 *)(d + 56) = v7;
+#endif	    
 	    
 	    w -= 64;
 	    s += 64;
