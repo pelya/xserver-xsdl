@@ -1900,7 +1900,7 @@ fbCompositeSolidMaskSrc_nx8x8888mmx (CARD8      op,
 	    }
 	    else
 	    {
-		*dst = 0;
+		*(ullong *)dst = 0;
 	    }
 
 	    mask += 2;
