@@ -915,12 +915,36 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
     int		    dstBpp;
     int		    dstXoff, dstYoff;
     FbBits	    depthMask;
+    PixmapPtr	    pPixmap = exaGetDrawablePixmap(pDrawable);
+    ExaMigrationRec pixmaps[1];
+    int		    xBack, widthBack, yBack, heightBack;
+
+    for (ppci = ppciInit, n = nglyph, widthBack = 0; n; n--)
+	widthBack += (*ppci++)->metrics.characterWidth;
+
+    xBack = x;
+    if (widthBack < 0)
+    {
+	xBack += widthBack;
+	widthBack = -widthBack;
+    }
+    yBack = y - FONTASCENT(pGC->font);
+    heightBack = FONTASCENT(pGC->font) + FONTDESCENT(pGC->font);
+
+    if (xBack >= pDrawable->width || yBack >= pDrawable->height ||
+	(xBack + widthBack) <= 0 || (yBack + heightBack) <= 0)
+	return;
+
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = TRUE;
+    pixmaps[0].pPix = pPixmap;
 
     depthMask = FbFullMask(pDrawable->depth);
     if ((pGC->planemask & depthMask) != depthMask)
     {
+	exaDoMigration(pixmaps, 1, FALSE);
 	ExaCheckImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppciInit, pglyphBase);
-	return;
+	goto damage;
     }
     glyph = NULL;
     switch (pDrawable->bitsPerPixel) {
@@ -932,6 +956,8 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
 
     x += pDrawable->x;
     y += pDrawable->y;
+    xBack += pDrawable->x;
+    yBack += pDrawable->y;
 
     if (TERMINALFONT (pGC->font) && !glyph)
     {
@@ -939,23 +965,6 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
     }
     else
     {
-	int		xBack, widthBack;
-	int		yBack, heightBack;
-
-	ppci = ppciInit;
-	n = nglyph;
-	widthBack = 0;
-	while (n--)
-	    widthBack += (*ppci++)->metrics.characterWidth;
-
-        xBack = x;
-	if (widthBack < 0)
-	{
-	    xBack += widthBack;
-	    widthBack = -widthBack;
-	}
-	yBack = y - FONTASCENT(pGC->font);
-	heightBack = FONTASCENT(pGC->font) + FONTDESCENT(pGC->font);
         exaSolidBoxClipped (pDrawable,
 			    fbGetCompositeClip(pGC),
 			    pGC->planemask,
@@ -968,74 +977,50 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
     }
 
     EXA_FALLBACK(("to %p (%c)\n", pDrawable, exaDrawableLocation(pDrawable)));
+    exaDoMigration(pixmaps, 1, FALSE);
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     exaPrepareAccessGC (pGC);
 
     fbGetDrawable (pDrawable, dst, dstStride, dstBpp, dstXoff, dstYoff);
 
-    ppci = ppciInit;
-    while (nglyph--)
+    for (ppci = ppciInit; nglyph; nglyph--, x += pci->metrics.characterWidth)
     {
 	pci = *ppci++;
-	pglyph = FONTGLYPHBITS(pglyphBase, pci);
 	gWidth = GLYPHWIDTHPIXELS(pci);
 	gHeight = GLYPHHEIGHTPIXELS(pci);
-	if (gWidth && gHeight)
+	gx = x + pci->metrics.leftSideBearing;
+	gy = y - pci->metrics.ascent;
+
+	if (!gWidth || !gHeight || (gx + gWidth) <= xBack ||
+	    (gy + gHeight) <= yBack || gx >= (xBack + widthBack) ||
+	    gy >= (yBack + heightBack))
+	    continue;
+
+	pglyph = FONTGLYPHBITS(pglyphBase, pci);
+
+	if (glyph && gWidth <= sizeof (FbStip) * 8 &&
+	    fbGlyphIn (fbGetCompositeClip(pGC), gx, gy, gWidth, gHeight))
 	{
-	    gx = x + pci->metrics.leftSideBearing;
-	    gy = y - pci->metrics.ascent;
-	    if (glyph && gWidth <= sizeof (FbStip) * 8 &&
-		fbGlyphIn (fbGetCompositeClip(pGC), gx, gy, gWidth, gHeight))
-	    {
-		(*glyph) (dst + (gy + dstYoff) * dstStride,
-			  dstStride,
-			  dstBpp,
-			  (FbStip *) pglyph,
-			  pPriv->fg,
-			  gx + dstXoff,
-			  gHeight);
-		exaDrawableDirty (pDrawable, gx, gy, gx + gWidth, gy + gHeight);
-	    }
-	    else
-	    {
-		RegionPtr pClip = fbGetCompositeClip(pGC);
-		int nbox;
-		BoxPtr pbox;
-
-		gStride = GLYPHWIDTHBYTESPADDED(pci) / sizeof (FbStip);
-		fbPutXYImage (pDrawable,
-			      pClip,
-			      pPriv->fg,
-			      pPriv->bg,
-			      pPriv->pm,
-			      GXcopy,
-			      opaque,
-
-			      gx,
-			      gy,
-			      gWidth, gHeight,
-
-			      (FbStip *) pglyph,
-			      gStride,
-			      0);
-
-		for (nbox = REGION_NUM_RECTS(pClip), pbox = REGION_RECTS(pClip);
-		     nbox--; pbox++) {
-		    int x1 = max(gx, pbox->x1), x2 = min(gx + gWidth, pbox->x2);
-		    int y1 = max(gy, pbox->y1), y2 = min(gy + gHeight, pbox->y2);
-
-		    if (x1 >= x2 || y1 >= y2)
-			continue;
-
-		    exaDrawableDirty (pDrawable, gx, gy, gx + gWidth,
-				      gy + gHeight);
-		}
-	    }
+	    (*glyph) (dst + (gy + dstYoff) * dstStride, dstStride, dstBpp,
+		      (FbStip *) pglyph, pPriv->fg, gx + dstXoff, gHeight);
 	}
-	x += pci->metrics.characterWidth;
+	else
+	{
+	    RegionPtr pClip = fbGetCompositeClip(pGC);
+
+	    gStride = GLYPHWIDTHBYTESPADDED(pci) / sizeof (FbStip);
+	    fbPutXYImage (pDrawable, pClip, pPriv->fg, pPriv->bg, pPriv->pm,
+			  GXcopy, opaque, gx, gy, gWidth, gHeight,
+			  (FbStip *) pglyph, gStride, 0);
+	}
     }
     exaFinishAccessGC (pGC);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
+
+damage:
+    exaGetDrawableDeltas(pDrawable, pPixmap, &dstXoff, &dstYoff);
+    exaPixmapDirty(pPixmap, xBack + dstXoff, yBack + dstYoff,
+		   xBack + dstXoff + widthBack, yBack + dstYoff + heightBack);
 }
 
 const GCOps exaOps = {
