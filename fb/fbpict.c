@@ -140,7 +140,7 @@ fbIn (CARD32 x, CARD8 y)
 					temp=count&3; \
 					where-=temp; \
 					workingWhere=(CARD32 *)where; \
-                                        workingVal=READ(workingWhere)++; \
+                                        workingVal=READ(workingWhere++); \
 					count=4-temp; \
 					workingVal<<=(8*temp)
         #define readPacked(where,x,y,z) {if(!(x)) { (x)=4; y = READ(z++); } where=(y)>>24; (y)<<=8; (x)--;}
