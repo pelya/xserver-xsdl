@@ -126,7 +126,7 @@ exaGetDrawablePixmap(DrawablePtr pDrawable)
  * the backing drawable. These coordinates are nonzero only for redirected
  * windows.
  */
-static void
+void
 exaGetDrawableDeltas (DrawablePtr pDrawable, PixmapPtr pPixmap,
 		      int *xp, int *yp)
 {

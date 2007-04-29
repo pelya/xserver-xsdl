@@ -1043,10 +1043,12 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     REGION_UNINIT(pWin->drawable.pScreen, &rgnDst);
 }
 
-static void
+static Bool
 exaFillRegionSolid (DrawablePtr	pDrawable,
 		    RegionPtr	pRegion,
-		    Pixel	pixel)
+		    Pixel	pixel,
+		    CARD32	planemask,
+		    CARD32	alu)
 {
     ExaScreenPriv(pDrawable->pScreen);
     PixmapPtr pPixmap;
@@ -1062,22 +1064,19 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     if (pPixmap->drawable.width > pExaScr->info->maxX ||
 	pPixmap->drawable.height > pExaScr->info->maxY)
     {
-	exaDoMigration (pixmaps, 1, FALSE);
 	goto fallback;
     } else {
 	exaDoMigration (pixmaps, 1, TRUE);
     }
 
     if ((pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) &&
-	(*pExaScr->info->PrepareSolid) (pPixmap, GXcopy, FB_ALLONES, pixel))
+	(*pExaScr->info->PrepareSolid) (pPixmap, alu, planemask, pixel))
     {
 	while (nbox--)
 	{
 	    (*pExaScr->info->Solid) (pPixmap,
 				     pBox->x1 + xoff, pBox->y1 + yoff,
 				     pBox->x2 + xoff, pBox->y2 + yoff);
-	    exaPixmapDirty (pPixmap, pBox->x1 + xoff, pBox->y1 + yoff,
-			    pBox->x2 + xoff, pBox->y2 + yoff);
 	    pBox++;
 	}
 	(*pExaScr->info->DoneSolid) (pPixmap);
@@ -1086,27 +1085,30 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     else
     {
 fallback:
+	if (alu != GXcopy || planemask != FB_ALLONES)
+	    return FALSE;
 	EXA_FALLBACK(("to %p (%c)\n", pDrawable,
 		      exaDrawableLocation(pDrawable)));
+	exaDoMigration (pixmaps, 1, FALSE);
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fbFillRegionSolid (pDrawable, pRegion, 0,
 			   fbReplicatePixel (pixel, pDrawable->bitsPerPixel));
 	exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
-	while (nbox--)
-	{
-	    exaDrawableDirty (pDrawable, pBox->x1, pBox->y1, pBox->x2, pBox->y2);
-	    pBox++;
-	}
     }
+
+    return TRUE;
 }
 
 /* Try to do an accelerated tile of the pTile into pRegion of pDrawable.
  * Based on fbFillRegionTiled(), fbTile().
  */
-static void
+Bool
 exaFillRegionTiled (DrawablePtr	pDrawable,
 		    RegionPtr	pRegion,
-		    PixmapPtr	pTile)
+		    PixmapPtr	pTile,
+		    DDXPointPtr pPatOrg,
+		    CARD32	planemask,
+		    CARD32	alu)
 {
     ExaScreenPriv(pDrawable->pScreen);
     PixmapPtr pPixmap;
@@ -1122,10 +1124,10 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     /* If we're filling with a solid color, grab it out and go to
      * FillRegionSolid, saving numerous copies.
      */
-    if (tileWidth == 1 && tileHeight == 1) {
-	exaFillRegionSolid(pDrawable, pRegion, exaGetPixmapFirstPixel (pTile));
-	return;
-    }
+    if (tileWidth == 1 && tileHeight == 1)
+	return exaFillRegionSolid(pDrawable, pRegion,
+				  exaGetPixmapFirstPixel (pTile), planemask,
+				  alu);
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
@@ -1139,7 +1141,6 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 	tileWidth > pExaScr->info->maxX ||
 	tileHeight > pExaScr->info->maxY)
     {
-	exaDoMigration (pixmaps, 2, FALSE);
 	goto fallback;
     } else {
 	exaDoMigration (pixmaps, 2, TRUE);
@@ -1153,8 +1154,9 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     if (!exaPixmapIsOffscreen(pTile))
 	goto fallback;
 
-    if ((*pExaScr->info->PrepareCopy) (exaGetOffscreenPixmap((DrawablePtr)pTile, &tileXoff, &tileYoff), pPixmap, 0, 0, GXcopy,
-				       FB_ALLONES))
+    if ((*pExaScr->info->PrepareCopy) (exaGetOffscreenPixmap((DrawablePtr)pTile,
+							     &tileXoff, &tileYoff),
+				       pPixmap, 0, 0, alu, planemask))
     {
 	while (nbox--)
 	{
@@ -1162,7 +1164,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 	    int dstY = pBox->y1;
 	    int tileY;
 
-	    tileY = (dstY - pDrawable->y) % tileHeight;
+	    tileY = (dstY - pDrawable->y - pPatOrg->y) % tileHeight;
 	    while (height > 0) {
 		int width = pBox->x2 - pBox->x1;
 		int dstX = pBox->x1;
@@ -1173,7 +1175,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 		    h = height;
 		height -= h;
 
-		tileX = (dstX - pDrawable->x) % tileWidth;
+		tileX = (dstX - pDrawable->x - pPatOrg->x) % tileWidth;
 		while (width > 0) {
 		    int w = tileWidth - tileX;
 		    if (w > width)
@@ -1190,38 +1192,44 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 		dstY += h;
 		tileY = 0;
 	    }
-	    exaPixmapDirty (pPixmap, pBox->x1 + xoff, pBox->y1 + yoff,
-			    pBox->x2 + xoff, pBox->y2 + yoff);
 	    pBox++;
 	}
 	(*pExaScr->info->DoneCopy) (pPixmap);
 	exaMarkSync(pDrawable->pScreen);
-	return;
+	return TRUE;
     }
 
 fallback:
+    if (alu != GXcopy || planemask != FB_ALLONES)
+	return FALSE;
     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pTile, pDrawable,
 		  exaDrawableLocation(&pTile->drawable),
 		  exaDrawableLocation(pDrawable)));
+    exaDoMigration (pixmaps, 2, FALSE);
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     exaPrepareAccess ((DrawablePtr)pTile, EXA_PREPARE_SRC);
     fbFillRegionTiled (pDrawable, pRegion, pTile);
     exaFinishAccess ((DrawablePtr)pTile, EXA_PREPARE_SRC);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
-    while (nbox--)
-    {
-	exaDrawableDirty (pDrawable, pBox->x1, pBox->y1, pBox->x2, pBox->y2);
-	pBox++;
-    }
+
+    return TRUE;
 }
 
 void
 exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 {
     ExaScreenPriv (pWin->drawable.pScreen);
-    if (!REGION_NUM_RECTS(pRegion))
+    PixmapPtr pPixmap = exaGetDrawablePixmap((DrawablePtr)pWin);
+    int xoff, yoff;
+    BoxPtr pBox;
+    int nbox = REGION_NUM_RECTS(pRegion);
+
+    if (!nbox)
 	return;
+
     if (!pExaScr->swappedOut) {
+	DDXPointRec zeros = { 0, 0 };
+
         switch (what) {
         case PW_BACKGROUND:
             switch (pWin->backgroundState) {
@@ -1235,25 +1243,41 @@ exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
                                                                  what);
                 return;
             case BackgroundPixel:
-                exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->background.pixel);
-                return;
+		exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->background.pixel,
+				   FB_ALLONES, GXcopy);
+                goto damage;
             case BackgroundPixmap:
-                exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->background.pixmap);
-                return;
+                exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->background.pixmap,
+				   &zeros, FB_ALLONES, GXcopy);
+                goto damage;
             }
             break;
         case PW_BORDER:
             if (pWin->borderIsPixel) {
-                exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->border.pixel);
-                return;
+                exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->border.pixel,
+				   FB_ALLONES, GXcopy);
+                goto damage;
             } else {
-                exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->border.pixmap);
-                return;
+                exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->border.pixmap,
+				   &zeros, FB_ALLONES, GXcopy);
+                goto damage;
             }
             break;
         }
     }
     ExaCheckPaintWindow (pWin, pRegion, what);
+
+damage:
+    exaGetDrawableDeltas((DrawablePtr)pWin, pPixmap, &xoff, &yoff);
+
+    pBox = REGION_RECTS(pRegion);
+
+    while (nbox--)
+    {
+	exaPixmapDirty (pPixmap, pBox->x1 + xoff, pBox->y1 + yoff,
+			pBox->x2 + xoff, pBox->y2 + yoff);
+	pBox++;
+    }
 }
 
 /**
