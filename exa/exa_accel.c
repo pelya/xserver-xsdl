@@ -618,6 +618,9 @@ exaPolySegment (DrawablePtr pDrawable, GCPtr pGC, int nseg,
     DEALLOCATE_LOCAL(prect);
 }
 
+static Bool exaFillRegionSolid (DrawablePtr pDrawable, RegionPtr pRegion,
+				Pixel pixel, CARD32 planemask, CARD32 alu);
+
 static void
 exaPolyFillRect(DrawablePtr pDrawable,
 		GCPtr	    pGC,
@@ -626,7 +629,7 @@ exaPolyFillRect(DrawablePtr pDrawable,
 {
     ExaScreenPriv (pDrawable->pScreen);
     RegionPtr	    pClip = fbGetCompositeClip(pGC);
-    PixmapPtr	    pPixmap;
+    PixmapPtr	    pPixmap = exaGetDrawablePixmap(pDrawable);
     register BoxPtr pbox;
     BoxPtr	    pextent;
     int		    extentX1, extentX2, extentY1, extentY2;
@@ -635,39 +638,80 @@ exaPolyFillRect(DrawablePtr pDrawable,
     int		    xoff, yoff;
     int		    xorg, yorg;
     int		    n;
-    ExaMigrationRec pixmaps[1];
+    ExaMigrationRec pixmaps[2];
+    RegionPtr pReg = RECTS_TO_REGION(pScreen, nrect, prect, CT_UNSORTED);
+    RegionPtr pDamageReg = DamageRegion(ExaGetPixmapPriv(pPixmap)->pDamage);
+
+    /* Compute intersection of rects and clip region */
+    REGION_TRANSLATE(pScreen, pReg, pDrawable->x, pDrawable->y);
+    REGION_INTERSECT(pScreen, pReg, pClip, pReg);
+
+    if (!REGION_NUM_RECTS(pReg)) {
+	REGION_DESTROY(pScreen, pReg);
+	return;
+    }
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pPix = pPixmap;
  
+    exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
+
     if (pExaScr->swappedOut ||
-	pGC->fillStyle != FillSolid ||
 	pPixmap->drawable.width > pExaScr->info->maxX ||
 	pPixmap->drawable.height > pExaScr->info->maxY)
     {
-	exaDoMigration (pixmaps, 1, FALSE);
-	ExaCheckPolyFillRect (pDrawable, pGC, nrect, prect);
-	while (nrect-- >= 0) {
-	    exaDrawableDirty(pDrawable,
-			     pDrawable->x + prect->x,
-			     pDrawable->y + prect->y,
-			     pDrawable->x + prect->x + prect->width,
-			     pDrawable->y + prect->y + prect->height);
-	    prect++;
-	}
-	return;
-    } else {
-	exaDoMigration (pixmaps, 1, TRUE);
+	goto fallback;
     }
 
-    if (!(pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) ||
+    /* For ROPs where overlaps don't matter, convert rectangles to region and
+     * call exaFillRegion{Solid,Tiled}.
+     */
+    if ((pGC->fillStyle == FillSolid || pGC->fillStyle == FillTiled) &&
+	(pGC->alu == GXcopy || pGC->alu == GXclear || pGC->alu == GXnoop ||
+	 pGC->alu == GXcopyInverted || pGC->alu == GXset)) {
+	if (((pGC->fillStyle == FillSolid || pGC->tileIsPixel) &&
+	     exaFillRegionSolid(pDrawable, pReg, pGC->fillStyle == FillSolid ?
+				pGC->fgPixel : pGC->tile.pixel,	pGC->planemask,
+				pGC->alu)) ||
+	    (pGC->fillStyle == FillTiled && !pGC->tileIsPixel &&
+	     exaFillRegionTiled(pDrawable, pReg, pGC->tile.pixmap, &pGC->patOrg,
+				pGC->planemask, pGC->alu))) {
+	    goto damage;
+	}
+    }
+
+    if (pGC->fillStyle != FillSolid &&
+	!(pGC->tileIsPixel && pGC->fillStyle == FillTiled))
+    {
+	goto fallback;
+    }
+
+    exaDoMigration (pixmaps, 1, TRUE);
+
+    if (!exaPixmapIsOffscreen (pPixmap) ||
 	!(*pExaScr->info->PrepareSolid) (pPixmap,
 					 pGC->alu,
 					 pGC->planemask,
 					 pGC->fgPixel))
     {
+fallback:
+	if (pGC->fillStyle == FillTiled && !pGC->tileIsPixel) {
+	    pixmaps[1].as_dst = FALSE;
+	    pixmaps[1].as_src = TRUE;
+	    pixmaps[1].pPix = pGC->tile.pixmap;
+	    exaDoMigration (pixmaps, 2, FALSE);
+	} else {
+	    exaDoMigration (pixmaps, 1, FALSE);
+	}
+
 	ExaCheckPolyFillRect (pDrawable, pGC, nrect, prect);
+
+damage:
+	REGION_TRANSLATE(pScreen, pReg, xoff, yoff);
+	REGION_UNION(pScreen, pDamageReg, pReg, pDamageReg);
+	REGION_DESTROY(pScreen, pReg);
+
 	return;
     }
 
@@ -715,7 +759,8 @@ exaPolyFillRect(DrawablePtr pDrawable,
 	    pbox = REGION_RECTS(pClip);
 	    /*
 	     * clip the rectangle to each box in the clip region
-	     * this is logically equivalent to calling Intersect()
+	     * this is logically equivalent to calling Intersect(),
+	     * but rectangles may overlap each other here.
 	     */
 	    while(n--)
 	    {

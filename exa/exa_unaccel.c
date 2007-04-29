@@ -201,32 +201,11 @@ ExaCheckPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
 {
     EXA_FALLBACK(("to %p (%c)\n", pDrawable, exaDrawableLocation(pDrawable)));
 
-    if (nrect) {
-	int x1 = max(prect->x, 0), y1 = max(prect->y, 0);
-	int x2 = min(prect->x + prect->width, pDrawable->width);
-	int y2 = min(prect->y + prect->height, pDrawable->height);
-
-	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
-	exaPrepareAccessGC (pGC);
-	fbPolyFillRect (pDrawable, pGC, nrect, prect);
-	exaFinishAccessGC (pGC);
-	exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
-
-	/* Only track bounding box of damage, as this path can degenerate to
-	 * zillions of damage boxes
-	 */
-	while (--nrect)
-	{
-	    prect++;
-	    x1 = min(x1, prect->x);
-	    x2 = max(x2, prect->x + prect->width);
-	    y1 = min(y1, prect->y);
-	    y2 = max(y2, prect->y + prect->height);
-	}
-
-	exaDrawableDirty (pDrawable, pDrawable->x + x1, pDrawable->y + y1,
-			  pDrawable->x + x2, pDrawable->y + y2);
-    }
+    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+    exaPrepareAccessGC (pGC);
+    fbPolyFillRect (pDrawable, pGC, nrect, prect);
+    exaFinishAccessGC (pGC);
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 
 void
