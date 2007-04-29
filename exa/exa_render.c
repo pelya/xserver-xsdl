@@ -651,6 +651,45 @@ exaComposite(CARD8	op,
 		REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 		goto done;
 	    }
+	    else if (pSrcPixmap && !pSrc->transform &&
+		     pSrc->repeatType == RepeatNormal)
+	    {
+		RegionRec region;
+		DDXPointRec srcOrg;
+
+		/* Let's see if the driver can do the repeat in one go */
+		if (pExaScr->info->PrepareComposite && !pSrc->alphaMap &&
+		    !pDst->alphaMap)
+		{
+		    ret = exaTryDriverComposite(op, pSrc, pMask, pDst, xSrc,
+						ySrc, xMask, yMask, xDst, yDst,
+						width, height);
+		    if (ret == 1)
+			goto done;
+		}
+
+		/* Now see if we can use exaFillRegionTiled() */
+		xDst += pDst->pDrawable->x;
+		yDst += pDst->pDrawable->y;
+		xSrc += pSrc->pDrawable->x;
+		ySrc += pSrc->pDrawable->y;
+
+		if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst, xSrc,
+					       ySrc, xMask, yMask, xDst, yDst,
+					       width, height))
+		    goto done;
+
+		srcOrg.x = (xSrc - xDst) % pSrcPixmap->drawable.width;
+		srcOrg.y = (ySrc - yDst) % pSrcPixmap->drawable.height;
+
+		ret = exaFillRegionTiled(pDst->pDrawable, &region, pSrcPixmap,
+					 &srcOrg, FB_ALLONES, GXcopy);
+
+		REGION_UNINIT(pDst->pDrawable->pScreen, &region);
+
+		if (ret)
+		    goto done;
+	    }
 	}
     }
 
