@@ -1495,7 +1495,7 @@ fbComposite (CARD8      op,
     {
 	xMask += pMask->pDrawable->x;
 	yMask += pMask->pDrawable->y;
-	maskRepeat = pMask->repeat == RepeatNormal;
+	maskRepeat = pMask->repeatType == RepeatNormal;
 
 	if (pMask->filter == PictFilterConvolution)
 	    maskTransform = TRUE;
