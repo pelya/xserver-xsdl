@@ -845,10 +845,11 @@ exaGlyphs (CARD8	op,
     PixmapPtr	pPixmap = NULL;
     PicturePtr	pPicture;
     PixmapPtr   pMaskPixmap = NULL;
+    PixmapPtr   pDstPixmap = exaGetDrawablePixmap(pDst->pDrawable);
     PicturePtr  pMask;
     ScreenPtr   pScreen = pDst->pDrawable->pScreen;
     int		width = 0, height = 0;
-    int		x, y;
+    int		x, y, x1, y1, xoff, yoff;
     int		xDst = list->xOff, yDst = list->yOff;
     int		n;
     int		error;
@@ -892,7 +893,12 @@ exaGlyphs (CARD8	op,
 	xRectangle  rect;
 	
 	miGlyphExtents (nlist, list, glyphs, &extents);
-	
+
+	extents.x1 = max(extents.x1, 0);
+	extents.y1 = max(extents.y1, 0);
+	extents.x2 = min(extents.x2, pDst->pDrawable->width);
+	extents.y2 = min(extents.y2, pDst->pDrawable->height);
+
 	if (extents.x2 <= extents.x1 || extents.y2 <= extents.y1)
 	    return;
 	width = extents.x2 - extents.x1;
@@ -918,6 +924,7 @@ exaGlyphs (CARD8	op,
 	rect.width = width;
 	rect.height = height;
 	(*pGC->ops->PolyFillRect) (&pMaskPixmap->drawable, pGC, 1, &rect);
+	exaPixmapDirty(pMaskPixmap, 0, 0, width, height);
 	FreeScratchGC (pGC);
 	x = -extents.x1;
 	y = -extents.y1;
@@ -928,6 +935,8 @@ exaGlyphs (CARD8	op,
 	x = 0;
 	y = 0;
     }
+
+    exaGetDrawableDeltas(pDst->pDrawable, pDstPixmap, &xoff, &yoff);
 
     while (nlist--)
     {
@@ -983,13 +992,21 @@ exaGlyphs (CARD8	op,
 	pixmaps[0].as_dst = TRUE;
 	pixmaps[0].as_src = TRUE;
 	pixmaps[0].pPix = pPixmap;
-	exaDoMigration (pixmaps, 1, TRUE);
+	exaDoMigration (pixmaps, 1, pExaScr->info->PrepareComposite != NULL);
 
 	while (n--)
 	{
 	    GlyphPtr glyph = *glyphs++;
 	    pointer glyphdata = (pointer) (glyph + 1);
-	    
+	    DrawablePtr pCmpDrw = (maskFormat ? pMask : pDst)->pDrawable;
+
+	    x1 = x - glyph->info.x;
+	    y1 = y - glyph->info.y;
+
+	    if (x1 >= pCmpDrw->width || y1 >= pCmpDrw->height ||
+		(x1 + glyph->info.width) <= 0 || (y1 + glyph->info.height) <= 0)
+		goto nextglyph;
+
 	    (*pScreen->ModifyPixmapHeader) (pScratchPixmap, 
 					    glyph->info.width,
 					    glyph->info.height,
@@ -1048,17 +1065,22 @@ exaGlyphs (CARD8	op,
 	    if (maskFormat)
 	    {
 		exaComposite (PictOpAdd, pPicture, NULL, pMask, 0, 0, 0, 0,
-			      x - glyph->info.x, y - glyph->info.y,
-			      glyph->info.width, glyph->info.height);
+			      x1, y1, glyph->info.width, glyph->info.height);
+		exaPixmapDirty(pMaskPixmap, x1, y1, x1 + glyph->info.width,
+			       y1 + glyph->info.height);
 	    }
 	    else
 	    {
 		exaComposite (op, pSrc, pPicture, pDst,
-			      xSrc + (x - glyph->info.x) - xDst,
-			      ySrc + (y - glyph->info.y) - yDst,
-			      0, 0, x - glyph->info.x, y - glyph->info.y,
-			      glyph->info.width, glyph->info.height);
+			      xSrc + x1 - xDst, ySrc + y1 - yDst,
+			      0, 0, x1, y1, glyph->info.width,
+			      glyph->info.height);
+		x1 += pDst->pDrawable->x + xoff;
+		y1 += pDst->pDrawable->y + yoff;
+		exaPixmapDirty(pDstPixmap, x1, y1, x1 + glyph->info.width,
+			       y1 + glyph->info.height);
 	    }
+nextglyph:
 	    x += glyph->info.xOff;
 	    y += glyph->info.yOff;
 	}
