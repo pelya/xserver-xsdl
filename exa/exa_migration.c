@@ -464,12 +464,10 @@ exaAssertNotDirty (PixmapPtr pPixmap)
     BoxPtr pBox = REGION_RECTS(pValidReg);
     Bool ret = TRUE;
 
-    if (pExaPixmap == NULL || pExaPixmap->fb_ptr == NULL)
+    if (!nbox || exaPixmapIsPinned(pPixmap) || pExaPixmap->fb_ptr == NULL)
 	return ret;
 
-    dst = pExaPixmap->sys_ptr;
     dst_pitch = pExaPixmap->sys_pitch;
-    src = pExaPixmap->fb_ptr;
     src_pitch = pExaPixmap->fb_pitch;
     cpp = pPixmap->drawable.bitsPerPixel / 8;
 
@@ -486,21 +484,18 @@ exaAssertNotDirty (PixmapPtr pPixmap)
 		continue;
 
 	    rowbytes = (pBox->x2 - pBox->x1) * cpp;
-	    src += pBox->y1 * src_pitch + pBox->x1 * cpp;
-	    dst += pBox->y1 * dst_pitch + pBox->x1 * cpp;
+	    src = pExaPixmap->fb_ptr + pBox->y1 * src_pitch + pBox->x1 * cpp;
+	    dst = pExaPixmap->sys_ptr + pBox->y1 * dst_pitch + pBox->x1 * cpp;
 
-	    for (y = pBox->y2 - pBox->y1; y; y--) {
-		if (memcmp(dst + pBox->y1 * dst_pitch + pBox->x1 * cpp,
-			   src + pBox->y1 * src_pitch + pBox->x1 * cpp,
-			   (pBox->x2 - pBox->x1) * cpp) != 0) {
+	    for (y = pBox->y1; y < pBox->y2;
+		 y++, src += src_pitch, dst += dst_pitch) {
+		if (memcmp(dst, src, rowbytes) != 0) {
 		    ret = FALSE;
+		    exaPixmapDirty(pPixmap, pBox->x1, pBox->y1, pBox->x2,
+				   pBox->y2);
 		    break;
 		}
-		src += src_pitch;
-		dst += dst_pitch;
 	    }
-	    src -= pBox->y1 * src_pitch + pBox->x1 * cpp;
-	    dst -= pBox->y1 * dst_pitch + pBox->x1 * cpp;
     }
     exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
 
