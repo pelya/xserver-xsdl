@@ -154,8 +154,9 @@ exaPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     int xoff, yoff;
     int src_stride, bpp = pDrawable->bitsPerPixel;
 
-    if (pExaScr->swappedOut || pExaScr->info->UploadToScreen == NULL)
-	goto migrate_and_fallback;
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = FALSE;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
 
     /* Don't bother with under 8bpp, XYPixmaps. */
     if (format != ZPixmap || bpp < 8)
@@ -165,10 +166,14 @@ exaPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     if (!EXA_PM_IS_SOLID(pDrawable, pGC->planemask) || pGC->alu != GXcopy)
 	goto migrate_and_fallback;
 
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    if (pExaScr->swappedOut)
+	goto fallback;
+
     exaDoMigration (pixmaps, 1, TRUE);
+
+    if (pExaScr->info->UploadToScreen == NULL)
+	goto fallback;
+
     pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
 
     if (pPix == NULL)
@@ -221,25 +226,23 @@ exaPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 
 	    fbBltStip((FbStip *)bits + (y1 - y) * (src_stride / sizeof(FbStip)),
 		      src_stride / sizeof(FbStip),
-		      (x1 - x) * bpp,
-		      dst + (y1 + yoff) * dst_stride,
+		      (x1 - x) * dstBpp,
+		      dst + (y1 + dstYoff) * dst_stride,
 		      dst_stride,
-		      (x1 + xoff) * bpp,
-		      (x2 - x1) * bpp,
+		      (x1 + dstXoff) * dstBpp,
+		      (x2 - x1) * dstBpp,
 		      y2 - y1,
-		      GXcopy, FB_ALLONES, bpp);
+		      GXcopy, FB_ALLONES, dstBpp);
 
 	    exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
 	}
+
 	exaPixmapDirty(pPix, x1 + xoff, y1 + yoff, x2 + xoff, y2 + yoff);
     }
 
     return;
 
 migrate_and_fallback:
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
     exaDoMigration (pixmaps, 1, FALSE);
 
 fallback:

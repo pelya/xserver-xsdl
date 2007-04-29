@@ -88,10 +88,15 @@ ExaCheckPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth,
 		 int x, int y, int w, int h, int leftPad, int format,
 		 char *bits)
 {
+    PixmapPtr pPixmap = exaGetDrawablePixmap(pDrawable);
+    int xoff, yoff;
+
     EXA_FALLBACK(("to %p (%c)\n", pDrawable, exaDrawableLocation(pDrawable)));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     fbPutImage (pDrawable, pGC, depth, x, y, w, h, leftPad, format, bits);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
+    exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
+    exaPixmapDirty(pPixmap, x + xoff, y + yoff, x + xoff + w, y + yoff + h);
 }
 
 RegionPtr
