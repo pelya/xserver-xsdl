@@ -74,6 +74,7 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 					 pGC->planemask,
 					 pGC->fgPixel))
     {
+	exaDoMigration (pixmaps, 1, FALSE);
 	ExaCheckFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
 	return;
     }
@@ -109,8 +110,6 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 	    (*pExaScr->info->Solid) (pPixmap,
 				     fullX1 + off_x, fullY1 + off_y,
 				     fullX2 + off_x, fullY1 + 1 + off_y);
-	    exaPixmapDirty (pPixmap, fullX1 + off_x, fullY1 + off_y,
-			    fullX2 + off_x, fullY1 + 1 + off_y);
 	}
 	else
 	{
@@ -129,8 +128,6 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 			(*pExaScr->info->Solid) (pPixmap,
 						 partX1 + off_x, fullY1 + off_y,
 						 partX2 + off_x, fullY1 + 1 + off_y);
-			exaPixmapDirty (pPixmap, partX1 + off_x, fullY1 + off_y,
-					partX2 + off_x, fullY1 + 1 + off_y);
 		    }
 		}
 		pbox++;
