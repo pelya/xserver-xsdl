@@ -826,20 +826,19 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
 	pPixmap->drawable.width > pExaScr->info->maxX ||
 	pPixmap->drawable.height > pExaScr->info->maxY)
     {
-	exaDoMigration (pixmaps, 1, FALSE);
-	goto fallback;
+	fallback = TRUE;
     } else {
 	exaDoMigration (pixmaps, 1, TRUE);
     }
 
-    pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
+    exaGetDrawableDeltas (pDrawable, pPixmap, &xoff, &yoff);
 
-    if (!pPixmap ||
+    if (fallback || !exaPixmapIsOffscreen(pPixmap) ||
 	!(*pExaScr->info->PrepareSolid) (pPixmap, GXcopy, pm, fg))
     {
-fallback:
 	EXA_FALLBACK(("to %p (%c)\n", pDrawable,
 		      exaDrawableLocation(pDrawable)));
+	exaDoMigration (pixmaps, 1, FALSE);
 	fallback = TRUE;
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fg = fbReplicatePixel (fg, pDrawable->bitsPerPixel);
@@ -878,10 +877,10 @@ fallback:
 	    (*pExaScr->info->Solid) (pPixmap,
 				     partX1 + xoff, partY1 + yoff,
 				     partX2 + xoff, partY2 + yoff);
-	    exaPixmapDirty (pPixmap, partX1 + xoff, partY1 + yoff,
-			    partX2 + xoff, partY2 + yoff);
-	} else
-	    exaDrawableDirty (pDrawable, partX1, partY1, partX2, partY2);
+	}
+
+	exaPixmapDirty (pPixmap, partX1 + xoff, partY1 + yoff, partX2 + xoff,
+			partY2 + yoff);
     }
 
     if (fallback)
