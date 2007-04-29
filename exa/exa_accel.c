@@ -390,6 +390,7 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     int	    src_off_x, src_off_y;
     int	    dst_off_x, dst_off_y;
     ExaMigrationRec pixmaps[2];
+    Bool fallback = FALSE;
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
@@ -407,62 +408,64 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	pDstPixmap->drawable.width > pExaScr->info->maxX ||
 	pDstPixmap->drawable.height > pExaScr->info->maxY)
     {
-	exaDoMigration (pixmaps, 2, FALSE);
-	goto fallback;
+	fallback = TRUE;
     } else {
 	exaDoMigration (pixmaps, 2, TRUE);
     }
 
     /* Mixed directions must be handled specially if the card is lame */
-    if (pExaScr->info->flags & EXA_TWO_BITBLT_DIRECTIONS &&
+    if (!fallback && (pExaScr->info->flags & EXA_TWO_BITBLT_DIRECTIONS) &&
 	reverse != upsidedown) {
-	if (!exaCopyNtoNTwoDir(pSrcDrawable, pDstDrawable, pGC, pbox, nbox,
+	if (exaCopyNtoNTwoDir(pSrcDrawable, pDstDrawable, pGC, pbox, nbox,
 			       dx, dy))
-	    goto fallback;
-	return;
+	    return;
+	fallback = TRUE;
     }
 
-    if ((pSrcPixmap = exaGetOffscreenPixmap (pSrcDrawable, &src_off_x, &src_off_y)) &&
-	(pDstPixmap = exaGetOffscreenPixmap (pDstDrawable, &dst_off_x, &dst_off_y)) &&
-	(*pExaScr->info->PrepareCopy) (pSrcPixmap, pDstPixmap,
-				       reverse ? -1 : 1, upsidedown ? -1 : 1,
-				       pGC ? pGC->alu : GXcopy,
-				       pGC ? pGC->planemask : FB_ALLONES))
+    pSrcPixmap = exaGetDrawablePixmap (pSrcDrawable);
+    pDstPixmap = exaGetDrawablePixmap (pDstDrawable);
+
+    exaGetDrawableDeltas (pSrcDrawable, pSrcPixmap, &src_off_x, &src_off_y);
+    exaGetDrawableDeltas (pDstDrawable, pDstPixmap, &dst_off_x, &dst_off_y);
+
+    if (fallback || !exaPixmapIsOffscreen(pSrcPixmap) ||
+	!exaPixmapIsOffscreen(pDstPixmap) ||
+	!(*pExaScr->info->PrepareCopy) (pSrcPixmap, pDstPixmap, reverse ? -1 : 1,
+					upsidedown ? -1 : 1,
+					pGC ? pGC->alu : GXcopy,
+					pGC ? pGC->planemask : FB_ALLONES)) {
+	fallback = TRUE;
+	EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrcDrawable, pDstDrawable,
+		      exaDrawableLocation(pSrcDrawable),
+		      exaDrawableLocation(pDstDrawable)));
+	exaDoMigration (pixmaps, 2, FALSE);
+	exaPrepareAccess (pDstDrawable, EXA_PREPARE_DEST);
+	exaPrepareAccess (pSrcDrawable, EXA_PREPARE_SRC);
+	fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC,
+		    pbox, nbox, dx, dy, reverse, upsidedown,
+		    bitplane, closure);
+	exaFinishAccess (pSrcDrawable, EXA_PREPARE_SRC);
+	exaFinishAccess (pDstDrawable, EXA_PREPARE_DEST);
+    }
+
+    while (nbox--)
     {
-	while (nbox--)
-	{
+	if (!fallback)
 	    (*pExaScr->info->Copy) (pDstPixmap,
 				    pbox->x1 + dx + src_off_x,
 				    pbox->y1 + dy + src_off_y,
 				    pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
-				    pbox->x2 - pbox->x1,
-				    pbox->y2 - pbox->y1);
-	    exaPixmapDirty (pDstPixmap,
-			    pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
-			    pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
-	    pbox++;
-	}
-	(*pExaScr->info->DoneCopy) (pDstPixmap);
-	exaMarkSync(pDstDrawable->pScreen);
-	return;
-    }
-
-fallback:
-    EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrcDrawable, pDstDrawable,
-		  exaDrawableLocation(pSrcDrawable),
-		  exaDrawableLocation(pDstDrawable)));
-    exaPrepareAccess (pDstDrawable, EXA_PREPARE_DEST);
-    exaPrepareAccess (pSrcDrawable, EXA_PREPARE_SRC);
-    fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC,
-		pbox, nbox, dx, dy, reverse, upsidedown,
-		bitplane, closure);
-    exaFinishAccess (pSrcDrawable, EXA_PREPARE_SRC);
-    exaFinishAccess (pDstDrawable, EXA_PREPARE_DEST);
-    while (nbox--)
-    {
-	exaDrawableDirty (pDstDrawable, pbox->x1, pbox->y1, pbox->x2, pbox->y2);
+				    pbox->x2 - pbox->x1, pbox->y2 - pbox->y1);
+	exaPixmapDirty (pDstPixmap, pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
+			pbox->x2  + dst_off_x, pbox->y2 + dst_off_y);
 	pbox++;
     }
+
+    if (fallback)
+	return;
+
+    (*pExaScr->info->DoneCopy) (pDstPixmap);
+    exaMarkSync (pDstDrawable->pScreen);
 }
 
 RegionPtr
