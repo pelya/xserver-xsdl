@@ -54,7 +54,7 @@ ExaOffscreenValidate (ScreenPtr pScreen)
 	assert (area->offset >= area->base_offset &&
 		area->offset < (area->base_offset + area->size));
 	if (prev)
-	    assert (prev->base_offset + prev->area.size == area->base_offset);
+	    assert (prev->base_offset + prev->size == area->base_offset);
 	prev = area;
     }
     assert (prev->base_offset + prev->size == pExaScr->info->memorySize);
