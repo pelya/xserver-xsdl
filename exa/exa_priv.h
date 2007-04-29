@@ -351,9 +351,6 @@ void
 exaGetDrawableDeltas (DrawablePtr pDrawable, PixmapPtr pPixmap,
 		      int *xp, int *yp);
 
-void
-exaDrawableDirty(DrawablePtr pDrawable, int x1, int y1, int x2, int y2);
-
 Bool
 exaDrawableIsOffscreen (DrawablePtr pDrawable);
 

@@ -764,6 +764,7 @@ exaRasterizeTrapezoid (PicturePtr pPicture, xTrapezoid  *trap,
 {
     DrawablePtr pDraw = pPicture->pDrawable;
     ExaMigrationRec pixmaps[1];
+    int xoff, yoff;
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = TRUE;
@@ -772,8 +773,10 @@ exaRasterizeTrapezoid (PicturePtr pPicture, xTrapezoid  *trap,
 
     exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
     fbRasterizeTrapezoid(pPicture, trap, x_off, y_off);
-    exaDrawableDirty(pDraw, pDraw->x, pDraw->y,
-		     pDraw->x + pDraw->width, pDraw->y + pDraw->height);
+    exaGetDrawableDeltas(pDraw, pixmaps[0].pPix, &xoff, &yoff);
+    exaPixmapDirty(pixmaps[0].pPix, pDraw->x + xoff, pDraw->y + yoff,
+		   pDraw->x + xoff + pDraw->width,
+		   pDraw->y + yoff + pDraw->height);
     exaFinishAccess(pDraw, EXA_PREPARE_DEST);
 }
 
@@ -787,6 +790,7 @@ exaAddTriangles (PicturePtr pPicture, INT16 x_off, INT16 y_off, int ntri,
 {
     DrawablePtr pDraw = pPicture->pDrawable;
     ExaMigrationRec pixmaps[1];
+    int xoff, yoff;
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = TRUE;
@@ -795,8 +799,10 @@ exaAddTriangles (PicturePtr pPicture, INT16 x_off, INT16 y_off, int ntri,
 
     exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
     fbAddTriangles(pPicture, x_off, y_off, ntri, tris);
-    exaDrawableDirty(pDraw, pDraw->x, pDraw->y,
-		     pDraw->x + pDraw->width, pDraw->y + pDraw->height);
+    exaGetDrawableDeltas(pDraw, pixmaps[0].pPix, &xoff, &yoff);
+    exaPixmapDirty(pixmaps[0].pPix, pDraw->x + xoff, pDraw->y + yoff,
+		   pDraw->x + xoff + pDraw->width,
+		   pDraw->y + yoff + pDraw->height);
     exaFinishAccess(pDraw, EXA_PREPARE_DEST);
 }
 
