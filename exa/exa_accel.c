@@ -1330,27 +1330,22 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
     int xoff, yoff;
     Bool ok;
 
-    if (pExaScr->swappedOut || pExaScr->info->DownloadFromScreen == NULL)
-	goto fallback;
+    if (pExaScr->info->DownloadFromScreen == NULL)
+	goto migrate_and_fallback;
 
     /* Only cover the ZPixmap, solid copy case. */
     if (format != ZPixmap || !EXA_PM_IS_SOLID(pDrawable, planeMask))
-	goto fallback;
+	goto migrate_and_fallback;
 
     /* Only try to handle the 8bpp and up cases, since we don't want to think
      * about <8bpp.
      */
     if (pDrawable->bitsPerPixel < 8)
+	goto migrate_and_fallback;
+
+    if (pExaScr->swappedOut)
 	goto fallback;
 
-    /* Migrate, but assume that we could accelerate the download. It is up to
-     * the migration scheme to ensure that this case doesn't result in bad
-     * moving of pixmaps.
-     */
-    pixmaps[0].as_dst = FALSE;
-    pixmaps[0].as_src = TRUE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
-    exaDoMigration (pixmaps, 1, TRUE);
     pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
     if (pPix == NULL)
 	goto fallback;
@@ -1365,12 +1360,12 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 	return;
     }
 
-fallback:
+migrate_and_fallback:
     pixmaps[0].as_dst = FALSE;
     pixmaps[0].as_src = TRUE;
     pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
     exaDoMigration (pixmaps, 1, FALSE);
-
+fallback:
     ExaCheckGetImage (pDrawable, x, y, w, h, format, planeMask, d);
 }
 
