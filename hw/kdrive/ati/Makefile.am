@@ -62,3 +62,6 @@ Xati_LDADD = \
 	$(ATI_LIBS)			\
 	@KDRIVE_LIBS@			\
 	@XSERVER_LIBS@
+
+relink:
+	rm -f $(bin_PROGRAMS) && make $(bin_PROGRAMS)

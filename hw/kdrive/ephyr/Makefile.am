@@ -29,3 +29,6 @@ Xephyr_LDADD = 						\
 	../../../exa/libexa.la				\
 	@KDRIVE_LIBS@					\
         @XEPHYR_LIBS@
+
+relink:
+	rm -f $(bin_PROGRAMS) && make $(bin_PROGRAMS)

@@ -11,3 +11,6 @@ Xsdl_LDADD = @KDRIVE_PURE_LIBS@				\
 	@KDRIVE_LIBS@                                  \
 	@XSERVER_LIBS@					\
 	@XSDL_LIBS@
+
+relink:
+	rm -f $(bin_PROGRAMS) && make $(bin_PROGRAMS)

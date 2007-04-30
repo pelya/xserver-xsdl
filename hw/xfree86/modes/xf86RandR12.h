@@ -24,6 +24,9 @@
 #define _XF86_RANDR_H_
 #include <randrstr.h>
 #include <X11/extensions/render.h>
+#if XF86_MODES_RENAME
+#include "xf86Rename.h"
+#endif
 
 Bool xf86RandR12CreateScreenResources (ScreenPtr pScreen);
 Bool xf86RandR12Init(ScreenPtr pScreen);
