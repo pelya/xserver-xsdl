@@ -236,6 +236,8 @@ _X_EXPORT Bool noXIdleExtension = FALSE;
 _X_EXPORT Bool noXvExtension = FALSE;
 #endif
 
+_X_EXPORT Bool noGEExtension = FALSE;
+
 #define X_INCLUDE_NETDB_H
 #include <X11/Xos_r.h>
 

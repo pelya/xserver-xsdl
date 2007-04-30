@@ -77,6 +77,18 @@ typedef struct _DevCursorNode {
     struct _DevCursorNode*      next;
 } DevCursNodeRec, *DevCursNodePtr, *DevCursorList;
 
+typedef struct _GEClientRec {
+    Mask        eventMask[MAXEXTENSIONS];
+    ClientPtr   client;
+    struct _GEClientRec* next;
+} GEClientRec, *GEClientPtr;
+
+/* Mask structure for GE extension. Allows one mask per extension. */
+typedef struct _GEEventMasks {
+    Mask        eventMasks[MAXEXTENSIONS];
+    struct _GEClientRec*  geClients;
+} GEEventMasksRec, *GEEventMasksPtr;
+
 typedef struct _WindowAccessRec {
     int                  defaultRule;      /* WindowAccessDenyAll */
     DeviceIntPtr*        perm;
@@ -105,6 +117,7 @@ typedef struct _WindowOpt {
     struct _OtherInputMasks *inputMasks;   /* default: NULL */
 #endif
     DevCursorList       deviceCursors;     /* default: NULL */
+    struct _GEEventMasks* geMasks;         /* default: NULL */
     WindowAccessRec     access;
 } WindowOptRec, *WindowOptPtr;
 

@@ -215,6 +215,7 @@ extern Bool noXIdleExtension;
 #ifdef XV
 extern Bool noXvExtension;
 #endif
+extern Bool noGEExtension;
 
 #ifndef XFree86LOADER
 #define INITARGS void
@@ -386,6 +387,7 @@ extern void DamageExtensionInit(INITARGS);
 #ifdef COMPOSITE
 extern void CompositeExtensionInit(INITARGS);
 #endif
+extern void GEExtensionInit(INITARGS);
 
 /* The following is only a small first step towards run-time
  * configurable extensions.
@@ -398,6 +400,7 @@ typedef struct {
 static ExtensionToggle ExtensionToggleList[] =
 {
     /* sort order is extension name string as shown in xdpyinfo */
+    { "Generic Events", &noGEExtension },
 #ifdef BIGREQS
     { "BIG-REQUESTS", &noBigReqExtension },
 #endif
@@ -531,6 +534,8 @@ InitExtensions(argc, argv)
     int		argc;
     char	*argv[];
 {
+    if (!noGEExtension) GEExtensionInit();
+
 #ifdef XCSECURITY
     SecurityExtensionSetup();
 #endif
@@ -684,6 +689,7 @@ InitVisualWrap()
 #else /* XFree86LOADER */
 /* List of built-in (statically linked) extensions */
 static ExtensionModule staticExtensions[] = {
+    { GEExtensionInit, "Generic Event Extension", &noGEExtension, NULL, NULL},
 #ifdef MITSHM
     { ShmExtensionInit, SHMNAME, &noMITShmExtension, NULL, NULL },
 #endif

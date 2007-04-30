@@ -23,7 +23,8 @@ BUILTIN_SRCS =			\
 	shape.c			\
 	sleepuntil.c		\
 	sleepuntil.h		\
-	xtest.c
+	xtest.c                 \
+        geext.c
 
 # Sources always included in libXextmodule.la & libXext.la
 MODULE_SRCS =			\
@@ -178,5 +179,6 @@ EXTRA_DIST = \
 	$(EXTRA_MULTIBUFFER_SRCS) \
 	$(FONTCACHE_SRCS) \
 	$(BIGFONT_SRCS) \
-	$(DPMS_SRCS)
+	$(DPMS_SRCS) \
+        $(GE_SRCS)
 

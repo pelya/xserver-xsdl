@@ -178,6 +178,11 @@ static xEvent *xeviexE;
 #include "dixevents.h"
 #include "dixgrabs.h"
 #include "dispatch.h"
+
+#include <X11/extensions/ge.h>
+#include "geext.h"
+#include "geint.h"
+
 /**
  * Extension events type numbering starts at EXTENSION_EVENT_BASE.
  */
@@ -259,6 +264,9 @@ static struct {
 } syncEvents;
 
 #define RootWindow(dev) dev->spriteInfo->sprite->spriteTrace[0]
+
+static xEvent* swapEvent = NULL;
+static int swapEventLen = 0;
 
 /** 
  * True if device owns a cursor, false if device shares a cursor sprite with
@@ -1850,7 +1858,8 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         return 0;
 
     /* CantBeFiltered means only window owner gets the event */
-    if ((filter == CantBeFiltered) || !(type & EXTENSION_EVENT_BASE))
+    if ((filter == CantBeFiltered) || 
+            (!(type & EXTENSION_EVENT_BASE) && type != GenericEvent))
     {
 	/* if nobody ever wants to see this event, skip some work */
 	if (filter != CantBeFiltered &&
@@ -1875,37 +1884,70 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
     }
     if (filter != CantBeFiltered)
     {
-	if (type & EXTENSION_EVENT_BASE)
-	{
-	    OtherInputMasks *inputMasks;
+        /* Handle generic events */
+        if (type == GenericEvent)
+        {
+            GEClientPtr pClient;
+            /* FIXME: We don't do more than one GenericEvent at a time yet. */
+            if (count > 1)
+            {
+                ErrorF("Do not send more than one GenericEvent at a time!\n");
+                return 0;
+            }
 
-	    inputMasks = wOtherInputMasks(pWin);
-	    if (!inputMasks ||
-		!(inputMasks->inputEvents[mskidx] & filter))
-		return 0;
-	    other = inputMasks->inputClients;
-	}
-	else
-	    other = (InputClients *)wOtherClients(pWin);
-	for (; other; other = other->next)
-	{
-            /* core event? check for grab interference */
-            if (!(type & EXTENSION_EVENT_BASE) &&
-                    IsInterferingGrab(rClient(other), pWin, pDev, pEvents))
-                continue;
+            /* if we get here, filter should be set to the GE specific mask.
+               check if any client wants it */
+            if (!GEMaskIsSet(pWin, GEEXT(pEvents), filter))
+                return 0;
 
-	    if ( (attempt = TryClientEvents(rClient(other), pEvents, count,
-					  other->mask[mskidx], filter, grab)) )
-	    {
-		if (attempt > 0)
-		{
-		    deliveries++;
-		    client = rClient(other);
-		    deliveryMask = other->mask[mskidx];
-		} else
-		    nondeliveries--;
-	    }
-	}
+            /* run through all clients, deliver event */
+            for (pClient = GECLIENT(pWin); pClient; pClient = pClient->next)
+            {
+                if (pClient->eventMask[GEEXTIDX(pEvents)] & filter)
+                {
+                    if (TryClientEvents(pClient->client, pEvents, count, 
+                            pClient->eventMask[GEEXTIDX(pEvents)], filter, grab) > 0)
+                    {
+                        deliveries++;
+                    } else 
+                        nondeliveries--;
+                }
+            }
+        }
+        else {
+            /* Traditional event */
+            if (type & EXTENSION_EVENT_BASE)
+            {
+                OtherInputMasks *inputMasks;
+
+                inputMasks = wOtherInputMasks(pWin);
+                if (!inputMasks ||
+                        !(inputMasks->inputEvents[mskidx] & filter))
+                    return 0;
+                other = inputMasks->inputClients;
+            }
+            else
+                other = (InputClients *)wOtherClients(pWin);
+            for (; other; other = other->next)
+            {
+                /* core event? check for grab interference */
+                if (!(type & EXTENSION_EVENT_BASE) &&
+                        IsInterferingGrab(rClient(other), pWin, pDev, pEvents))
+                    continue;
+
+                if ( (attempt = TryClientEvents(rClient(other), pEvents, count,
+                                other->mask[mskidx], filter, grab)) )
+                {
+                    if (attempt > 0)
+                    {
+                        deliveries++;
+                        client = rClient(other);
+                        deliveryMask = other->mask[mskidx];
+                    } else
+                        nondeliveries--;
+                }
+            }
+        }
     }
     if ((type == ButtonPress) && deliveries && (!grab))
     {
@@ -5378,8 +5420,9 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 #ifdef PANORAMIX
     xEvent    eventCopy;
 #endif
-    xEvent    eventTo, *eventFrom;
-    int       i;
+    xEvent    *eventTo, *eventFrom;
+    int       i,
+              eventlength = sizeof(xEvent);
 
 #ifdef XKB
     if ((!noXkbExtension)&&(!XkbFilterEvents(pClient, count, events)))
@@ -5436,21 +5479,53 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 	}
     }
 #endif	
+    /* Just a safety check to make sure we only have one GenericEvent, it just
+     * makes things easier for me right now. (whot) */
+    for (i = 1; i < count; i++)
+    {
+        if (events[i].u.u.type == GenericEvent)
+        {
+            ErrorF("TryClientEvents: Only one GenericEvent at a time.");
+            return; 
+        }
+    }
+
+    if (events->u.u.type == GenericEvent)
+    {
+        eventlength += ((xGenericEvent*)events)->length * 4;
+        if (eventlength > swapEventLen)
+        {
+            swapEventLen = eventlength;
+            swapEvent = Xrealloc(swapEvent, swapEventLen);
+            if (!swapEvent)
+            {
+                FatalError("WriteEventsToClient: Out of memory.\n");
+                return;
+            }
+        }
+    }
+
     if(pClient->swapped)
     {
 	for(i = 0; i < count; i++)
 	{
 	    eventFrom = &events[i];
+            eventTo = swapEvent;
+
 	    /* Remember to strip off the leading bit of type in case
 	       this event was sent with "SendEvent." */
 	    (*EventSwapVector[eventFrom->u.u.type & 0177])
-		(eventFrom, &eventTo);
-	    (void)WriteToClient(pClient, sizeof(xEvent), (char *)&eventTo);
+		(eventFrom, eventTo);
+
+	    (void)WriteToClient(pClient, eventlength, (char *)&eventTo);
 	}
     }
     else
     {
-	(void)WriteToClient(pClient, count * sizeof(xEvent), (char *) events);
+        /* only one GenericEvent, remember? that means either count is 1 and
+         * eventlength is arbitrary or eventlength is 32 and count doesn't
+         * matter. And we're all set. Woohoo. */
+	(void)WriteToClient(pClient, count * eventlength, (char *) events);
     }
 }
 

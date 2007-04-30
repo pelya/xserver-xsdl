@@ -455,6 +455,7 @@ CreateRootWindow(ScreenPtr pScreen)
 #ifdef XINPUT
     pWin->optional->inputMasks = NULL;
     pWin->optional->deviceCursors = NULL;
+    pWin->optional->geMasks = NULL;
 #endif
 
     pWin->optional->access.perm = NULL;
@@ -3700,6 +3701,9 @@ CheckWindowOptionalNeed (WindowPtr w)
             optional->access.ndeny != 0)
         return;
 
+    if (optional->geMasks != NULL)
+        return;
+
     parentOptional = FindWindowWithOptional(w)->optional;
     if (optional->visual != parentOptional->visual)
 	return;
@@ -3746,6 +3750,19 @@ MakeWindowOptional (WindowPtr pWin)
     optional->inputMasks = NULL;
 #endif
     optional->deviceCursors = NULL;
+
+    optional->geMasks = (GEEventMasksPtr)xalloc(sizeof(GEEventMasksRec));
+    if (!optional->geMasks)
+    {
+        xfree(optional);
+        return FALSE;
+    } else {
+        int i;
+        optional->geMasks->geClients = 0;
+        for (i = 0; i < MAXEXTENSIONS; i++)
+            optional->geMasks->eventMasks[i] = 0;
+    }
+
     optional->access.nperm = 0;
     optional->access.ndeny = 0;
     optional->access.perm = NULL;
