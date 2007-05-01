@@ -2501,23 +2501,10 @@ void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
 void
 DefineInitialRootWindow(WindowPtr win)
 {
-    DeviceIntPtr pDev = inputInfo.devices;
-
 #ifdef XEVIE
     xeviewin = win;
 #endif
 
-    InitializeSprite(inputInfo.pointer, win);
-
-    while (pDev)
-    {
-        if (DevHasCursor(pDev))
-        {
-            InitializeSprite(pDev, win);
-            ((FocusSemaphoresPtr)win->devPrivates[FocusPrivatesIndex].ptr)->enterleave++;
-        }
-        pDev = pDev->next;
-    }
 }
 
 void 

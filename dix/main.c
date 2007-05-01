@@ -396,10 +396,6 @@ main(int argc, char *argv[], char *envp[])
 	    if (!CreateRootWindow(pScreen))
 		FatalError("failed to create root window");
 	}
-        InitCoreDevices();
-	InitInput(argc, argv);
-	if (InitAndStartDevices() != Success)
-	    FatalError("failed to initialize core devices");
 
 	InitFonts();
 #ifdef BUILTIN_FONTS
@@ -451,6 +447,12 @@ main(int argc, char *argv[], char *envp[])
 	for (i = 0; i < screenInfo.numScreens; i++)
 	    InitRootWindow(WindowTable[i]);
 	DefineInitialRootWindow(WindowTable[0]);
+
+        InitCoreDevices();
+	InitInput(argc, argv);
+	if (InitAndStartDevices(WindowTable[0]) != Success)
+	    FatalError("failed to initialize core devices");
+
 	SaveScreens(SCREEN_SAVER_FORCER, ScreenSaverReset);
 
 #ifdef PANORAMIX

@@ -202,10 +202,11 @@ EnableDevice(DeviceIntPtr dev)
 	 prev = &(*prev)->next)
 	;
 
-    /* Sprites will be initialized with their 'windows' just when inside the
-     * DefineInitialRootWindow function! */
+    /* Sprites pop up on the first root window, so we can supply it directly
+     * here. 
+     */
     if (IsPointerDevice(dev) && dev->spriteInfo->spriteOwner)
-        InitializeSprite(dev, NullWindow);
+        InitializeSprite(dev, WindowTable[0]);
     else
         PairDevices(NULL, inputInfo.pointer, dev);
 
@@ -299,11 +300,6 @@ ActivateDevice(DeviceIntPtr dev)
                           (xEvent *) &ev, 1);
 
     return ret;
-}
-
-int
-DeactivateDevice(DeviceIntPtr dev)
-{
 }
 
 static void
@@ -451,14 +447,7 @@ InitCoreDevices(void)
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
         (void)ActivateDevice(dev);
 
-        /* Enable device, and then remove it from the device list. Virtual
-         * devices are kept separate, not in the standard device list. 
-         */
-        if (dev->inited && dev->startup)
-            EnableDevice(dev);
-        inputInfo.off_devices = inputInfo.devices = NULL;
         inputInfo.keyboard = dev;
-        inputInfo.keyboard->next = NULL;
     }
 
     if (!inputInfo.pointer) {
@@ -478,48 +467,31 @@ InitCoreDevices(void)
         dev->coreGrab.ActivateGrab = ActivatePointerGrab;
         dev->coreGrab.DeactivateGrab = DeactivatePointerGrab;
         dev->coreEvents = FALSE;
+        dev->spriteInfo->spriteOwner = TRUE;
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
             FatalError("Couldn't allocate pointer devPrivates\n");
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
         (void)ActivateDevice(dev);
 
-        /* Enable device, and then remove it from the device list. Virtual
-         * devices are kept separate, not in the standard device list. 
-         */
-        if (dev->inited && dev->startup)
-            EnableDevice(dev);
-        inputInfo.off_devices = inputInfo.devices = NULL;
         inputInfo.pointer = dev;
-        inputInfo.pointer->next = NULL;
-
-        /* the core keyboard is initialised by now. set the keyboard's sprite
-         * to the core pointer's sprite. */
-        PairDevices(pairingClient, inputInfo.pointer, inputInfo.keyboard);
     }
 }
 
 /**
  * Activate and enable all devices. 
  *
- * After InitAndStartDevices() all devices are finished with their setup
- * routines and start emitting events.
- * Each physical keyboard is paired with the first available unpaired pointer.
+ * InitAndStartDevices needs to be called AFTER the windows are initialized.
+ * Devices will start sending events after InitAndStartDevices() has
+ * completed.
  */
 int
-InitAndStartDevices(void)
+InitAndStartDevices(WindowPtr root)
 {
     DeviceIntPtr dev, next;
 
     for (dev = inputInfo.off_devices; dev; dev = dev->next) {
         DebugF("(dix) initialising device %d\n", dev->id);
 	ActivateDevice(dev);
-    }
-    for (dev = inputInfo.off_devices; dev; dev = next)
-    {
-        DebugF("(dix) enabling device %d\n", dev->id);
-	next = dev->next;
-	if (dev->inited && dev->startup)
-	    (void)EnableDevice(dev);
     }
 
     if (!inputInfo.keyboard) {
@@ -531,12 +503,37 @@ InitAndStartDevices(void)
 	return BadImplementation;
     }
 
-    /* All of the devices are started up now. Try to pair each keyboard with a
-     * real pointer, if possible. */
+    /* Now enable all devices */
+    if (inputInfo.keyboard->inited && inputInfo.keyboard->startup)
+        EnableDevice(inputInfo.keyboard);
+    if (inputInfo.pointer->inited && inputInfo.pointer->startup)
+        EnableDevice(inputInfo.pointer);
+
+    /* Remove VCP and VCK from device list */
+    inputInfo.devices = NULL;
+    inputInfo.keyboard->next = inputInfo.pointer->next = NULL;
+
+    /* enable real devices */
+    for (dev = inputInfo.off_devices; dev; dev = next)
+    {
+        DebugF("(dix) enabling device %d\n", dev->id);
+	next = dev->next;
+	if (dev->inited && dev->startup)
+	    (void)EnableDevice(dev);
+    }
+
+    /* All of the devices are started up now. Pair VCK with VCP, then
+     * pair each real keyboard with a real pointer. 
+     */ 
+    PairDevices(NULL, inputInfo.pointer, inputInfo.keyboard);
+
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
         if (!DevHasCursor(dev))
             PairDevices(NULL, GuessFreePointerDevice(), dev);
+        else
+            /* enter/leave counter on root window */
+            ((FocusSemaphoresPtr)root->devPrivates[FocusPrivatesIndex].ptr)->enterleave++;
     }
 
     return Success;
