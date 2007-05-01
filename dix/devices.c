@@ -2158,6 +2158,7 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
     }
 
     kbd->spriteInfo->sprite = ptr->spriteInfo->sprite;
+    kbd->spriteInfo->paired = ptr;
     return Success;
 }
 

@@ -2528,9 +2528,25 @@ InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
 
     if (!pDev->spriteInfo->sprite)
     {
+        DeviceIntPtr it;
+
         pDev->spriteInfo->sprite = (SpritePtr)xcalloc(1, sizeof(SpriteRec));
         if (!pDev->spriteInfo->sprite)
             FatalError("InitializeSprite: failed to allocate sprite struct");
+
+        /* We may have paired another device with this device before our
+         * device had a actual sprite. We need to check for this and reset the
+         * sprite field for all paired devices.
+         *
+         * The VCK is always paired with the VCP before the VCP has a sprite.
+         */
+        for (it = inputInfo.devices; it; it = it->next)
+        {
+            if (it->spriteInfo->paired == pDev)
+                it->spriteInfo->sprite = pDev->spriteInfo->sprite;
+        }
+        if (inputInfo.keyboard->spriteInfo->paired == pDev)
+            inputInfo.keyboard->spriteInfo->sprite = pDev->spriteInfo->sprite;
     }
 
     pSprite = pDev->spriteInfo->sprite;
