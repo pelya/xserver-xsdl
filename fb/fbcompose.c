@@ -4027,7 +4027,7 @@ static void fbStoreExternalAlpha(PicturePtr pict, int x, int y, int width, CARD3
 typedef void (*scanStoreProc)(PicturePtr , int , int , int , CARD32 *);
 typedef void (*scanFetchProc)(PicturePtr , int , int , int , CARD32 * , CARD32 *, CARD32);
 
-static void
+void
 fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
 {
     CARD32 *src_buffer = scanline_buffer;

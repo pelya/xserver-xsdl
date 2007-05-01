@@ -1018,14 +1018,6 @@ fbCompositeSolidMask_nx1xn (CARD8      op,
     FbBits	src;
 
     fbComposeGetSolid(pSrc, src, pDst->format);
-
-    if ((src & 0xff000000) != 0xff000000)
-    {
-	fbCompositeGeneral  (op, pSrc, pMask, pDst,
-			     xSrc, ySrc, xMask, yMask, xDst, yDst,
-			     width, height);
-	return;
-    }
     fbGetStipDrawable (pMask->pDrawable, maskBits, maskStride, maskBpp, maskXoff, maskYoff);
     fbGetDrawable (pDst->pDrawable, dstBits, dstStride, dstBpp, dstXoff, dstYoff);
 
@@ -1443,6 +1435,48 @@ fbCompositeSolidSrc_nxn  (CARD8	op,
 }
  */
 
+#define SCANLINE_BUFFER_LENGTH 2048
+ 
+static void
+fbCompositeRectWrapper  (CARD8	   op,
+			 PicturePtr pSrc,
+			 PicturePtr pMask,
+			 PicturePtr pDst,
+			 INT16      xSrc,
+			 INT16      ySrc,
+			 INT16      xMask,
+			 INT16      yMask,
+			 INT16      xDst,
+			 INT16      yDst,
+			 CARD16     width,
+			 CARD16     height)
+{
+    CARD32 _scanline_buffer[SCANLINE_BUFFER_LENGTH * 3];
+    CARD32 *scanline_buffer = _scanline_buffer;
+    FbComposeData data;
+
+    data.op = op;
+    data.src = pSrc;
+    data.mask = pMask;
+    data.dest = pDst;
+    data.xSrc = xSrc;
+    data.ySrc = ySrc;
+    data.xMask = xMask;
+    data.yMask = yMask;
+    data.xDest = xDst;
+    data.yDest = yDst;
+    data.width = width;
+    data.height = height;
+
+    if (width > SCANLINE_BUFFER_LENGTH)
+        scanline_buffer = (CARD32 *) malloc(width * 3 * sizeof(CARD32));
+
+    fbCompositeRect (&data, scanline_buffer);
+
+    if (scanline_buffer != _scanline_buffer)
+	free(scanline_buffer);
+}
+
 void
 fbComposite (CARD8      op,
 	     PicturePtr pSrc,
@@ -1632,8 +1666,14 @@ fbComposite (CARD8      op,
 			case PICT_x8r8g8b8:
 			case PICT_a8b8g8r8:
 			case PICT_x8b8g8r8:
-			    func = fbCompositeSolidMask_nx1xn;
+			{
+			    FbBits src;
+
+			    fbComposeGetSolid(pSrc, src, pDst->format);
+			    if ((src & 0xff000000) == 0xff000000)
+				func = fbCompositeSolidMask_nx1xn;
 			    break;
+			}
 			default:
 			    break;
 			}
@@ -1642,7 +1682,7 @@ fbComposite (CARD8      op,
 			break;
 		    }
 		}
-		if (func != fbCompositeGeneral)
+		if (func)
 		    srcRepeat = FALSE;
 	    }
 	    else if (!srcRepeat) /* has mask and non-repeating source */
@@ -1755,7 +1795,7 @@ fbComposite (CARD8      op,
 			break;
 		    }
 		    
-		    if (func != fbCompositeGeneral)
+		    if (func)
 			maskRepeat = FALSE;
 		}
 	    }
@@ -2043,9 +2083,7 @@ fbComposite (CARD8      op,
     }
 
     if (!func) {
-         /* no fast path, use the general code */
-         fbCompositeGeneral(op, pSrc, pMask, pDst, xSrc, ySrc, xMask, yMask, xDst, yDst, width, height);
-         return;
+	func = fbCompositeRectWrapper;
     }
 
     /* if we are transforming, we handle repeats in fbFetchTransformed */
