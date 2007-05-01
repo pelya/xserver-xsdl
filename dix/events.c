@@ -2514,7 +2514,7 @@ DefineInitialRootWindow(WindowPtr win)
         if (DevHasCursor(pDev))
         {
             InitializeSprite(pDev, win);
-            win->devPrivates[FocusPrivatesIndex].val++;
+            ((FocusSemaphoresPtr)win->devPrivates[FocusPrivatesIndex].ptr)->enterleave++;
         }
         pDev = pDev->next;
     }
