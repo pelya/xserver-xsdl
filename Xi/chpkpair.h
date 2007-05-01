@@ -36,5 +36,10 @@ int SProcXChangePointerKeyboardPairing(ClientPtr	/* client */
 int ProcXChangePointerKeyboardPairing(ClientPtr	/* client */
     );
 
+void 
+SPointerKeyboardPairingChangedNotifyEvent (pairingChangedNotify* /* from */, 
+                                           pairingChangedNotify* /* to */
+   );
+
 #endif /* WARPDEVP_H */
 

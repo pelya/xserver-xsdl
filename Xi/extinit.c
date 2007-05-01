@@ -65,6 +65,8 @@ SOFTWARE.
 #include "extnsionst.h"	/* extension entry   */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
+#include <X11/extensions/geproto.h>
+#include "geext.h" /* extension interfaces for ge */
 
 #include "dixevents.h"
 #include "exevents.h"
@@ -121,6 +123,8 @@ SOFTWARE.
 #include "ungrdevb.h"
 #include "ungrdevk.h"
 #include "warpdevp.h"
+#include "xiselev.h"
+
 
 static Mask lastExtEventMask = 1;
 int ExtEventIndex;
@@ -180,7 +184,6 @@ Mask DeviceButtonMotionMask;
 Mask DevicePresenceNotifyMask;
 Mask DeviceEnterWindowMask;
 Mask DeviceLeaveWindowMask;
-Mask PointerKeyboardPairingChangedMask;
 
 int DeviceValuator;
 int DeviceKeyPress;
@@ -200,6 +203,8 @@ int ChangeDeviceNotify;
 int DevicePresenceNotify;
 int DeviceEnterNotify;
 int DeviceLeaveNotify;
+
+/* GE events */
 int PointerKeyboardPairingChangedNotify;
 
 int RT_INPUTCLIENT;
@@ -224,6 +229,26 @@ static XExtensionVersion thisversion = { XI_Present,
     XI_Add_DevicePresenceNotify_Major,
     XI_Add_DevicePresenceNotify_Minor
 };
+
+/****************************************************************
+ *
+ * EventSwap for generic events coming from the GE extension.
+ */
+
+static void 
+XIGEEventSwap(xGenericEvent* from, xGenericEvent* to)
+{
+    int n;
+
+    swaps(&from->sequenceNumber, n);
+    switch(from->evtype)
+    {
+        case XI_PointerKeyboardPairingChangedNotify:
+            SPointerKeyboardPairingChangedNotifyEvent
+                ((pairingChangedNotify*)from, (pairingChangedNotify*)to);
+            break;
+    }
+}
 
 /*************************************************************************
  *
@@ -314,6 +339,8 @@ ProcIDispatch(ClientPtr client)
         return (ProcXChangeDeviceCursor(client));
     else if (stuff->data == X_ChangePointerKeyboardPairing)
         return (ProcXChangePointerKeyboardPairing(client));
+    else if (stuff->data == X_XiSelectEvent)
+        return (ProcXiSelectEvent(client));
     else if (stuff->data == X_RegisterPairingClient)
         return (ProcXRegisterPairingClient(client));
     else if (stuff->data == X_GrabAccessControl)
@@ -425,6 +452,8 @@ SProcIDispatch(ClientPtr client)
         return (SProcXChangeDeviceCursor(client));
     else if (stuff->data == X_ChangePointerKeyboardPairing)
         return (SProcXChangePointerKeyboardPairing(client));
+    else if (stuff->data == X_XiSelectEvent)
+        return (SProcXiSelectEvent(client));
     else if (stuff->data == X_RegisterPairingClient)
         return (SProcXRegisterPairingClient(client));
     else if (stuff->data == X_GrabAccessControl)
@@ -659,16 +688,6 @@ SDeviceLeaveNotifyEvent (deviceLeaveNotify *from, deviceLeaveNotify *to)
     swaps(&to->eventY, n);
 }
 
-static void 
-SPointerKeyboardPairingChangedNotifyEvent (pairingChangedNotify *from, 
-                                                pairingChangedNotify *to)
-{
-    char n;
-
-    *to = *from;
-    swaps(&to->sequenceNumber, n);
-    swapl(&to->time, n);
-}
 
 /**************************************************************************
  *
@@ -792,7 +811,10 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     DevicePresenceNotify = DeviceButtonStateNotify + 1;
     DeviceEnterNotify = DevicePresenceNotify + 1;
     DeviceLeaveNotify = DeviceEnterNotify + 1;
-    PointerKeyboardPairingChangedNotify = DeviceLeaveNotify + 1;
+
+    /* GE Events */
+    PointerKeyboardPairingChangedNotify =
+        XI_PointerKeyboardPairingChangedNotify;
 
     event_base[KeyClass] = DeviceKeyPress;
     event_base[ButtonClass] = DeviceButtonPress;
@@ -877,11 +899,6 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     SetMaskForExtEvent(DeviceLeaveWindowMask, DeviceLeaveNotify);
     AllowPropagateSuppress(DeviceLeaveWindowMask);
 
-    PointerKeyboardPairingChangedMask = GetNextExtEventMask();
-    SetMaskForExtEvent(PointerKeyboardPairingChangedMask, 
-            PointerKeyboardPairingChangedNotify);
-    AllowPropagateSuppress(PointerKeyboardPairingChangedMask);
-
     SetEventInfo(0, _noExtensionEvent);
 }
 
@@ -925,7 +942,6 @@ RestoreExtensionEvents(void)
     DevicePresenceNotify = 14;
     DeviceEnterNotify = 15;
     DeviceLeaveNotify = 16;
-    PointerKeyboardPairingChangedNotify = 17;
 
     BadDevice = 0;
     BadEvent = 1;
@@ -1095,8 +1111,6 @@ SEventIDispatch(xEvent * from, xEvent * to)
         DO_SWAP(SDeviceEnterNotifyEvent, deviceEnterNotify);
     else if (type == DeviceLeaveNotify)
         DO_SWAP(SDeviceLeaveNotifyEvent, deviceLeaveNotify);
-    else if (type == PointerKeyboardPairingChangedNotify)
-        DO_SWAP(SPointerKeyboardPairingChangedNotifyEvent, pairingChangedNotify);
     else {
 	FatalError("XInputExtension: Impossible event!\n");
     }
@@ -1144,7 +1158,6 @@ XInputExtensionInit(void)
 	EventSwapVector[ChangeDeviceNotify] = SEventIDispatch;
 	EventSwapVector[DeviceEnterNotify] = SEventIDispatch;
 	EventSwapVector[DeviceLeaveNotify] = SEventIDispatch;
-	EventSwapVector[PointerKeyboardPairingChangedNotify] = SEventIDispatch;
     } else {
 	FatalError("IExtensionInit: AddExtensions failed\n");
     }

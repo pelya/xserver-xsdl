@@ -44,11 +44,14 @@ from the author.
 #include "windowstr.h"	/* window structure  */
 #include "scrnintstr.h"	/* screen structure  */
 #include <X11/extensions/XI.h>
+#include <X11/extensions/XInput.h>
 #include <X11/extensions/XIproto.h>
+#include <X11/extensions/geproto.h>
 #include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
+#include "geext.h"
 
 
 #include "chpkpair.h"
@@ -74,6 +77,7 @@ ProcXChangePointerKeyboardPairing(ClientPtr client)
 {
     DeviceIntPtr pPointer, pKeyboard;
     int ret;
+    pairingChangedNotify ev; 
 
     REQUEST(xChangePointerKeyboardPairingReq);
     REQUEST_SIZE_MATCH(xChangePointerKeyboardPairingReq);
@@ -105,6 +109,27 @@ ProcXChangePointerKeyboardPairing(ClientPtr client)
     }
 
 
-    /* TODO: generate event here... */
+    memset(&ev, 0, sizeof(pairingChangedNotify));
+    GEInitEvent(GEV(&ev), IReqCode);
+    ev.evtype = XI_PointerKeyboardPairingChangedNotify;
+    ev.pointer = pPointer->id;
+    ev.keyboard = pKeyboard->id;
+    ev.length = 0;
+    ev.time = currentTime.milliseconds;
+    SendEventToAllWindows(inputInfo.pointer, 
+            XI_PointerKeyboardPairingChangedMask,
+            (xEvent*)&ev, 1);
     return Success;
+}
+
+/* Event swap proc */
+void 
+SPointerKeyboardPairingChangedNotifyEvent (pairingChangedNotify *from, 
+                                                pairingChangedNotify *to)
+{
+    char n;
+
+    *to = *from;
+    swaps(&to->sequenceNumber, n);
+    swapl(&to->time, n);
 }
