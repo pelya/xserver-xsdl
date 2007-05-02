@@ -1019,6 +1019,7 @@ __glXCreateARGBConfig(__GLXscreen *screen)
     VisualPtr visual;
     int i;
 
+    /* search for a 32-bit visual */
     visual = NULL;
     for (i = 0; i < screen->pScreen->numVisuals; i++) 
 	if (screen->pScreen->visuals[i].nplanes == 32) {
@@ -1037,8 +1038,22 @@ __glXCreateARGBConfig(__GLXscreen *screen)
     if (modes == NULL)
 	return;
 
-    modes->next = screen->modes;
-    screen->modes = modes;
+    /* Insert this new mode at the TAIL of the linked list.
+     * Previously, the mode was incorrectly inserted at the head of the
+     * list, causing find_mesa_visual() to be off by one.  This would
+     * GLX clients to blow up if they attempted to use the last mode
+     * in the list!
+     */
+    {
+        __GLcontextModes *prev = NULL, *m;
+        for (m = screen->modes; m; m = m->next)
+            prev = m;
+        if (prev)
+            prev->next = modes;
+        else
+            screen->modes = modes;
+    }
+
     screen->numUsableVisuals++;
     screen->numVisuals++;
 
@@ -1104,6 +1119,9 @@ int DoGetFBConfigs(__GLXclientState *cl, unsigned screen, GLboolean do_swap)
     }
     pGlxScreen = __glXActiveScreens[screen];
 
+    /* Create the "extra" 32bpp ARGB visual, if not already added.
+     * XXX This is questionable place to do so!  Re-examine this someday.
+     */
     __glXCreateARGBConfig(pGlxScreen);
 
     reply.numFBConfigs = pGlxScreen->numUsableVisuals;
