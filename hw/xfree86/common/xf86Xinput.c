@@ -103,7 +103,7 @@
 #include "dgaproc.h"
 #endif
 
-xEvent *xf86Events = NULL;
+EventListPtr xf86Events = NULL;
 
 static Bool
 xf86SendDragEvents(DeviceIntPtr	device)
@@ -544,7 +544,7 @@ xf86PostMotionEvent(DeviceIntPtr	device,
 #endif
 
     if (!xf86Events)
-        xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        xf86Events = InitEventList(GetMaximumEventsNum());
     if (!xf86Events)
         FatalError("Couldn't allocate event store\n");
 
@@ -553,11 +553,11 @@ xf86PostMotionEvent(DeviceIntPtr	device,
                                valuators);
 
     for (i = 0; i < nevents; i++) {
-        xE = xf86Events + i;
+        xE = (xf86Events + i)->event;
         /* Don't post core motion events for devices not registered to send
          * drag events. */
         if (xE->u.u.type != MotionNotify || drag) {
-            mieqEnqueue(device, xf86Events + i);
+            mieqEnqueue(device, (xf86Events + i)->event);
         }
     }
 
@@ -583,7 +583,7 @@ xf86PostProximityEvent(DeviceIntPtr	device,
     va_end(var);
 
     if (!xf86Events)
-        xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        xf86Events = InitEventList(GetMaximumEventsNum());
     if (!xf86Events)
         FatalError("Couldn't allocate event store\n");
 
@@ -591,7 +591,7 @@ xf86PostProximityEvent(DeviceIntPtr	device,
                                  is_in ? ProximityIn : ProximityOut, 
                                  first_valuator, num_valuators, valuators);
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(device, xf86Events + i);
+        mieqEnqueue(device, (xf86Events + i)->event);
 
     xfree(valuators);
 }
@@ -625,7 +625,7 @@ xf86PostButtonEvent(DeviceIntPtr	device,
     va_end(var);
 
     if (!xf86Events)
-        xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        xf86Events = InitEventList(GetMaximumEventsNum());
     if (!xf86Events)
         FatalError("Couldn't allocate event store\n");
 
@@ -635,7 +635,7 @@ xf86PostButtonEvent(DeviceIntPtr	device,
                                first_valuator, num_valuators, valuators);
 
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(device, xf86Events + i);
+        mieqEnqueue(device, (xf86Events + i)->event);
 
     xfree(valuators);
 }
@@ -658,7 +658,7 @@ xf86PostKeyEvent(DeviceIntPtr	device,
            "broken.\n");
 
     if (!xf86Events)
-        xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        xf86Events = InitEventList(GetMaximumEventsNum());
     if (!xf86Events)
         FatalError("Couldn't allocate event store\n");
 
@@ -682,7 +682,7 @@ xf86PostKeyEvent(DeviceIntPtr	device,
     }
 
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(device, xf86Events + i);
+        mieqEnqueue(device, (xf86Events + i)->event);
 }
 
 _X_EXPORT void
@@ -702,7 +702,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
 #endif
 
     if (!xf86Events)
-        xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        xf86Events = InitEventList(GetMaximumEventsNum());
     if (!xf86Events)
         FatalError("Couldn't allocate event store\n");
 
@@ -710,7 +710,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
                                 is_down ? KeyPress : KeyRelease, key_code);
 
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(device, xf86Events + i);
+        mieqEnqueue(device, (xf86Events + i)->event);
 }
 
 _X_EXPORT LocalDevicePtr

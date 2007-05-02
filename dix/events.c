@@ -367,6 +367,14 @@ static Mask filters[128] =
 	CantBeFiltered		       /* MappingNotify */
 };
 
+
+/** 
+ * same principle as filters, but one set of filters for each extension.
+ * The extension is responsible for setting the filters by calling 
+ * SetGenericFilter().
+ */
+static Mask* generic_filters[MAXEXTENSIONS];
+
 static CARD8 criticalEvents[32] =
 {
     0x7c				/* key and button events */
@@ -2176,24 +2184,53 @@ DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
     }
     else
     {
-	if (!(filter & pWin->deliverableEvents))
-	    return 0;
-	while (pWin)
-	{
-	    if ((wOtherEventMasks(pWin)|pWin->eventMask) & filter)
-	    {
-		FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
-		deliveries = DeliverEventsToWindow(dev, pWin, xE, count, filter,
-						   grab, 0);
-		if (deliveries > 0)
-		    return deliveries;
-	    }
-	    if ((deliveries < 0) ||
-		(pWin == stopAt) ||
-		(filter & wDontPropagateMask(pWin)))
-		return 0;
-	    child = pWin->drawable.id;
-	    pWin = pWin->parent;
+        /* handle generic events */
+        if (type == GenericEvent)
+        {
+            xGenericEvent* ge = (xGenericEvent*)xE;
+
+            if (count > 1)
+            {
+                ErrorF("Do not send more than one GenericEvent at a time!\n");
+                return 0;
+            }
+            filter = generic_filters[GEEXTIDX(xE)][ge->evtype];
+
+            while(pWin)
+            {
+                if (GEMaskIsSet(pWin, GEEXT(xE), filter))
+                {
+                    deliveries = DeliverEventsToWindow(dev, pWin, xE, count, 
+                                                        filter, grab, 0);
+                    if (deliveries > 0)
+                        return deliveries;
+                }
+
+                pWin = pWin->parent;
+            }
+        } 
+        else
+        {
+            /* core protocol events */
+            if (!(filter & pWin->deliverableEvents))
+                return 0;
+            while (pWin)
+            {
+                if ((wOtherEventMasks(pWin)|pWin->eventMask) & filter)
+                {
+                    FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
+                    deliveries = DeliverEventsToWindow(dev, pWin, xE, count, filter,
+                            grab, 0);
+                    if (deliveries > 0)
+                        return deliveries;
+                }
+                if ((deliveries < 0) ||
+                        (pWin == stopAt) ||
+                        (filter & wDontPropagateMask(pWin)))
+                    return 0;
+                child = pWin->drawable.id;
+                pWin = pWin->parent;
+            }
 	}
     }
     return 0;
@@ -5660,3 +5697,15 @@ IsInterferingGrab(ClientPtr client, WindowPtr win, DeviceIntPtr dev, xEvent* eve
     return mayInterfere;
 }
 
+/**
+ * Set the filters for a extension. 
+ * The filters array needs to contain the Masks that are applicable for each
+ * event type for the given extension.
+ * e.g. if generic event type 2 should be let through for windows with
+ * MyExampleMask set, make sure that filters[2] == MyExampleMask.
+ */
+_X_EXPORT void 
+SetGenericFilter(int extension, Mask* filters)
+{
+    generic_filters[extension & 0x7f] = filters;
+}

@@ -314,13 +314,14 @@ clipValuators(DeviceIntPtr pDev, int first_valuator, int num_valuators,
  *        last posted, not just x and y; otherwise relative non-x/y
  *        valuators, though a very narrow use case, will be broken.
  */
-static xEvent *
-getValuatorEvents(xEvent *events, DeviceIntPtr pDev, int first_valuator,
+static EventList *
+getValuatorEvents(EventList *events, DeviceIntPtr pDev, int first_valuator,
                   int num_valuators, int *valuators) {
-    deviceValuator *xv = (deviceValuator *) events;
+    deviceValuator *xv;
     int i = 0, final_valuator = first_valuator + num_valuators;
 
-    for (i = first_valuator; i < final_valuator; i += 6, xv++, events++) {
+    for (i = first_valuator; i < final_valuator; i += 6, events++) {
+        xv = (deviceValuator*)events->event;
         xv->type = DeviceValuator;
         xv->first_valuator = i;
         xv->num_valuators = num_valuators;
@@ -353,7 +354,7 @@ getValuatorEvents(xEvent *events, DeviceIntPtr pDev, int first_valuator,
  * valuators.
  */
 _X_EXPORT int
-GetKeyboardEvents(xEvent *events, DeviceIntPtr pDev, int type, int key_code) {
+GetKeyboardEvents(EventList *events, DeviceIntPtr pDev, int type, int key_code) {
     return GetKeyboardValuatorEvents(events, pDev, type, key_code, 0, 0, NULL);
 }
 
@@ -376,7 +377,7 @@ GetKeyboardEvents(xEvent *events, DeviceIntPtr pDev, int type, int key_code) {
  * KeyPresses.
  */
 _X_EXPORT int
-GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
+GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
                           int key_code, int first_valuator,
                           int num_valuators, int *valuators) {
     int numEvents = 0;
@@ -448,7 +449,7 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
 
     ms = GetTimeInMillis();
 
-    kbp = (deviceKeyButtonPointer *) events;
+    kbp = (deviceKeyButtonPointer *) events->event;
     kbp->time = ms;
     kbp->deviceid = pDev->id;
     if (type == KeyPress)
@@ -465,31 +466,85 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
     }
 
     if (pDev->coreEvents) {
-        events->u.keyButtonPointer.time = ms;
-        events->u.u.type = type;
-        events->u.u.detail = key_code;
+        xEvent* evt = events->event;
+        evt->u.keyButtonPointer.time = ms;
+        evt->u.u.type = type;
+        evt->u.u.detail = key_code;
     }
 
     return numEvents;
 }
 
+/**
+ * Initialize an event list and fill with 32 byte sized events. 
+ * This event list is to be passed into GetPointerEvents() and
+ * GetKeyboardEvents().
+ *
+ * @param num_events Number of elements in list.
+ */
+_X_EXPORT EventListPtr
+InitEventList(int num_events)
+{
+    EventListPtr events;
+    int i;
+
+    events = (EventListPtr)xcalloc(num_events, sizeof(EventList));
+    if (!events)
+        return NULL;
+
+    for (i = 0; i < num_events; i++)
+    {
+        events[i].evlen = sizeof(xEvent);
+        events[i].event = xcalloc(1, sizeof(xEvent));
+        if (!events[i].event)
+        {
+            /* rollback */
+            while(i--)
+                xfree(events[i].event);
+            xfree(events);
+            events = NULL;
+            break;
+        }
+    }
+
+    return events;
+}
 
 /**
- * Generate a series of xEvents (returned in xE) representing pointer
- * motion, or button presses.  Xi and XKB-aware.
+ * Free an event list.
+ *
+ * @param list The list to be freed.
+ * @param num_events Number of elements in list.
+ */
+_X_EXPORT void
+FreeEventList(EventListPtr list, int num_events)
+{
+    if (!list)
+        return;
+    while(num_events--)
+        xfree(list[num_events].event);
+    xfree(list);
+}
+
+/**
+ * Generate a series of xEvents (filled into the EventList) representing
+ * pointer motion, or button presses.  Xi and XKB-aware.
  *
  * events is not NULL-terminated; the return value is the number of events.
  * The DDX is responsible for allocating the event structure in the first
- * place via GetMaximumEventsNum(), and for freeing it.
+ * place via InitEventList() and GetMaximumEventsNum(), and for freeing it.
  *
  */
 _X_EXPORT int
-GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
+GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
                  int flags, int first_valuator, int num_valuators,
                  int *valuators) {
-    int num_events = 0, final_valuator = 0;
+    int num_events = 0, final_valuator = 0, i;
     CARD32 ms = 0;
+    CARD32* valptr;
     deviceKeyButtonPointer *kbp = NULL;
+    rawDeviceEvent* ev;
+
     /* Thanks to a broken lib, we _always_ have to chase DeviceMotionNotifies
      * with DeviceValuators. */
     Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
@@ -506,9 +561,9 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         return 0;
 
     if (!coreOnly && (pDev->coreEvents))
-        num_events = 2;
+        num_events = 3;
     else
-        num_events = 1;
+        num_events = 2;
 
     if (type == MotionNotify && num_valuators <= 0) {
         return 0;
@@ -529,6 +584,34 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
 
     ms = GetTimeInMillis();
 
+
+    /* fill up the raw event, after checking that it is large enough to
+     * accommodate all valuators. 
+     */
+    if (events->evlen < 
+            (sizeof(xEvent) + ((num_valuators - 4) * sizeof(CARD32))))
+    {
+        events->evlen = sizeof(xEvent) + 
+            ((num_valuators - 4) * sizeof(CARD32));
+        events->event = realloc(events->event, events->evlen);
+        if (!events->event)
+            FatalError("Could not allocate event storage.\n");
+    }
+
+    ev = (rawDeviceEvent*)events->event;
+    ev->type = GenericEvent;
+    ev->evtype = XI_RawDeviceEvent;
+    ev->extension = IReqCode;
+    ev->length = (num_valuators > 4) ? (num_valuators - 4) : 0;
+    ev->buttons = buttons;
+    ev->num_valuators = num_valuators;
+    ev->first_valuator = first_valuator;
+    ev->deviceid = pDev->id;
+    valptr = &(ev->valuator0);
+    for (i = 0; i < num_valuators; i++, valptr++)
+        *valptr = valuators[i];
+
+    events++;
     pointer = pDev;
 
     /* Set x and y based on whether this is absolute or relative, and
@@ -588,7 +671,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     /* create Xi event */
     if (!coreOnly)
     {
-        kbp = (deviceKeyButtonPointer *) events;
+        kbp = (deviceKeyButtonPointer *) events->event;
         kbp->time = ms;
         kbp->deviceid = pDev->id;
 
@@ -616,19 +699,20 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     }
 
     if (coreOnly || pDev->coreEvents) {
-        events->u.u.type = type;
-        events->u.keyButtonPointer.time = ms;
-        events->u.keyButtonPointer.rootX = x;
-        events->u.keyButtonPointer.rootY = y;
+        xEvent* evt = events->event;
+        evt->u.u.type = type;
+        evt->u.keyButtonPointer.time = ms;
+        evt->u.keyButtonPointer.rootX = x;
+        evt->u.keyButtonPointer.rootY = y;
 
         if (type == ButtonPress || type == ButtonRelease) {
             /* We hijack SetPointerMapping to work on all core-sending
              * devices, so we use the device-specific map here instead of
              * the core one. */
-            events->u.u.detail = pDev->button->map[buttons];
+            evt->u.u.detail = pDev->button->map[buttons];
         }
         else {
-            events->u.u.detail = 0;
+            evt->u.u.detail = 0;
         }
     }
 
@@ -644,11 +728,11 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
  * place via GetMaximumEventsNum(), and for freeing it.
  */
 _X_EXPORT int
-GetProximityEvents(xEvent *events, DeviceIntPtr pDev, int type,
+GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
                    int first_valuator, int num_valuators, int *valuators)
 {
     int num_events = 0;
-    deviceKeyButtonPointer *kbp = (deviceKeyButtonPointer *) events;
+    deviceKeyButtonPointer *kbp = (deviceKeyButtonPointer *) events->event;
 
     /* Sanity checks. */
     if (type != ProximityIn && type != ProximityOut)

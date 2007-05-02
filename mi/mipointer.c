@@ -86,7 +86,7 @@ static Bool miPointerDeviceInitialize(DeviceIntPtr pDev, ScreenPtr pScreen);
 static void miPointerDeviceCleanup(DeviceIntPtr pDev,
                                    ScreenPtr pScreen);
 
-static xEvent* events; /* for WarpPointer MotionNotifies */
+static EventList* events; /* for WarpPointer MotionNotifies */
 
 _X_EXPORT Bool
 miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
@@ -175,7 +175,7 @@ miPointerCloseScreen (index, pScreen)
 
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
     xfree ((pointer) pScreenPriv);
-    xfree ((pointer) events);
+    FreeEventList(events, GetMaximumEventsNum());
     events = NULL;
     return (*pScreen->CloseScreen) (index, pScreen);
 }
@@ -624,7 +624,7 @@ miPointerMove (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y, unsigned long
 
     if (!events)
     {
-        events = (xEvent*)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+        events = InitEventList(GetMaximumEventsNum());
 
         if (!events)
         {
@@ -635,6 +635,8 @@ miPointerMove (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y, unsigned long
 
     nevents = GetPointerEvents(events, pDev, MotionNotify, 0, POINTER_ABSOLUTE, 0, 2, valuators);
 
+    OsBlockSignals();
     for (i = 0; i < nevents; i++)
-        mieqEnqueue(pDev, &events[i]);
+        mieqEnqueue(pDev, events[i].event);
+    OsReleaseSignals();
 }

@@ -56,6 +56,7 @@ in this Software without prior written authorization from The Open Group.
 # include   "scrnintstr.h"
 # include   <X11/extensions/XI.h>
 # include   <X11/extensions/XIproto.h>
+# include   <X11/extensions/geproto.h>
 # include   "extinit.h"
 # include   "exglobals.h"
 
@@ -71,7 +72,7 @@ in this Software without prior written authorization from The Open Group.
 #define DequeueScreen(dev) dev->spriteInfo->sprite->pDequeueScreen
 
 typedef struct _Event {
-    xEvent          event[7];
+    EventListPtr    events;
     int             nevents;
     ScreenPtr	    pScreen;
     DeviceIntPtr    pDev; /* device this event _originated_ from */
@@ -97,6 +98,13 @@ mieqInit(void)
     miEventQueue.lastMotion = FALSE;
     for (i = 0; i < 128; i++)
         miEventQueue.handlers[i] = NULL;
+    for (i = 0; i < QUEUE_SIZE; i++)
+    {
+        EventListPtr evlist = InitEventList(7); /* 1 + MAX_VALUATOR_EVENTS */
+        if (!evlist)
+            FatalError("Could not allocate event queue.\n");
+        miEventQueue.events[i].events = evlist;
+    }
     SetInputCheck(&miEventQueue.head, &miEventQueue.tail);
     return TRUE;
 }
@@ -112,23 +120,26 @@ void
 mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
 {
     HWEventQueueType       oldtail = miEventQueue.tail, newtail;
+    EventListPtr           evt;
     int                    isMotion = 0;
-    deviceValuator         *v = (deviceValuator *) e;
-    EventPtr               laste = &miEventQueue.events[oldtail - 1];
-    deviceKeyButtonPointer *lastkbp = (deviceKeyButtonPointer *)
-                                      &laste->event[0];
+    int evlen;
 
     /* avoid merging events from different devices */
     if (e->u.u.type == MotionNotify)
         isMotion = pDev->id;
-    else if (e->u.u.type == MotionNotify)
-        isMotion = inputInfo.pointer->id;
     else if (e->u.u.type == DeviceMotionNotify)
         isMotion = pDev->id | (1 << 8); /* flag to indicate DeviceMotion */
 
     /* We silently steal valuator events: just tack them on to the last
      * motion event they need to be attached to.  Sigh. */
     if (e->u.u.type == DeviceValuator) {
+        deviceValuator         *v = (deviceValuator *) e;
+        EventPtr               laste;
+        deviceKeyButtonPointer *lastkbp;
+
+        laste = &miEventQueue.events[(oldtail ? oldtail : QUEUE_SIZE)- 1];
+        lastkbp = (deviceKeyButtonPointer *) laste->events->event;
+
         if (laste->nevents > 6) {
             ErrorF("mieqEnqueue: more than six valuator events; dropping.\n");
             return;
@@ -142,7 +153,8 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
             ErrorF("mieqEnequeue: out-of-order valuator event; dropping.\n");
             return;
         }
-        memcpy(&(laste->event[laste->nevents++]), e, sizeof(xEvent));
+
+        memcpy((laste->events[laste->nevents++].event), e, sizeof(xEvent));
         return;
     }
 
@@ -166,18 +178,27 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
 	miEventQueue.tail = newtail;
     }
 
-    memcpy(&(miEventQueue.events[oldtail].event[0]), e, sizeof(xEvent));
+    evlen = sizeof(xEvent);
+    if (e->u.u.type == GenericEvent)
+        evlen += ((xGenericEvent*)e)->length * 4;
+
+    evt = miEventQueue.events[oldtail].events;
+    if (evt->evlen < evlen)
+    {
+        evt->evlen = evlen;
+        evt->event = xrealloc(evt->event, evt->evlen);
+    }
+
+    memcpy(evt->event, e, evlen);
     miEventQueue.events[oldtail].nevents = 1;
 
     /* Make sure that event times don't go backwards - this
      * is "unnecessary", but very useful. */
     if (e->u.keyButtonPointer.time < miEventQueue.lastEventTime &&
 	miEventQueue.lastEventTime - e->u.keyButtonPointer.time < 10000)
-	miEventQueue.events[oldtail].event[0].u.keyButtonPointer.time =
-	    miEventQueue.lastEventTime;
+        evt->event->u.keyButtonPointer.time = miEventQueue.lastEventTime;
 
-    miEventQueue.lastEventTime =
-	miEventQueue.events[oldtail].event[0].u.keyButtonPointer.time;
+    miEventQueue.lastEventTime = evt->event->u.keyButtonPointer.time;
     miEventQueue.events[oldtail].pScreen = EnqueueScreen(pDev);
     miEventQueue.events[oldtail].pDev = pDev;
 
@@ -209,6 +230,7 @@ mieqProcessInputEvents(void)
     EventRec *e = NULL;
     int x = 0, y = 0;
     DeviceIntPtr dev = NULL;
+    xEvent* event;
 
     while (miEventQueue.head != miEventQueue.tail) {
         if (screenIsSaved == SCREEN_SAVER_ON)
@@ -225,8 +247,8 @@ mieqProcessInputEvents(void)
         /* Assumption - screen switching can only occur on motion events. */
         if (e->pScreen != DequeueScreen(e->pDev)) {
             DequeueScreen(e->pDev) = e->pScreen;
-            x = e->event[0].u.keyButtonPointer.rootX;
-            y = e->event[0].u.keyButtonPointer.rootY;
+            x = e->events[0].event->u.keyButtonPointer.rootX;
+            y = e->events[0].event->u.keyButtonPointer.rootY;
             if (miEventQueue.head == QUEUE_SIZE - 1)
                 miEventQueue.head = 0;
             else
@@ -241,39 +263,60 @@ mieqProcessInputEvents(void)
 
             /* If someone's registered a custom event handler, let them
              * steal it. */
-            if (miEventQueue.handlers[e->event->u.u.type]) {
-                miEventQueue.handlers[e->event->u.u.type](
-						  DequeueScreen(e->pDev)->myNum,
-                                                          e->event, dev,
-                                                          e->nevents);
+            if (miEventQueue.handlers[e->events->event->u.u.type]) {
+                miEventQueue.handlers[e->events->event->u.u.type](
+                                              DequeueScreen(e->pDev)->myNum,
+                                                      e->events->event, dev,
+                                                      e->nevents);
                 return;
             }
 
             /* If this is a core event, make sure our keymap, et al, is
              * changed to suit. */
-            if (e->event[0].u.u.type == KeyPress ||
-                e->event[0].u.u.type == KeyRelease) {
+            if (e->events->event[0].u.u.type == KeyPress ||
+                e->events->event[0].u.u.type == KeyRelease) {
                 SwitchCoreKeyboard(e->pDev);
                 dev = inputInfo.keyboard;
             }
-            else if (e->event[0].u.u.type == MotionNotify ||
-                     e->event[0].u.u.type == ButtonPress ||
-                     e->event[0].u.u.type == ButtonRelease) {
+            else if (e->events->event[0].u.u.type == MotionNotify ||
+                     e->events->event[0].u.u.type == ButtonPress ||
+                     e->events->event[0].u.u.type == ButtonRelease) {
                 dev = inputInfo.pointer;
             }
             else {
                 dev = e->pDev;
             }
 
+
+            /* FIXME: Bad hack. The only event where we actually get multiple
+             * events at once is a DeviceMotionNotify followed by
+             * DeviceValuators. For now it's save enough to just take the
+             * event directly or copy the bunch of events and pass in the
+             * copy. Eventually the interface for the processInputProc needs
+             * to be changed. (whot)
+             */ 
+            if (e->nevents > 1)
+            {
+                int i;
+                event = xcalloc(e->nevents, sizeof(xEvent));
+                for (i = 0; i < e->nevents; i++)
+                    memcpy(&event[i], e->events[i].event, sizeof(xEvent));
+            }
+            else 
+                event = e->events->event;
+
             /* MPX devices send both core and Xi events. 
              * Use dev to get the correct processing function but supply
              *  e->pDev to pass the correct device 
              */
-            dev->public.processInputProc(e->event, e->pDev, e->nevents);
+            dev->public.processInputProc(event, e->pDev, e->nevents);
+
+            if (e->nevents > 1)
+                xfree(event);
         }
 
         /* Update the sprite now. Next event may be from different device. */
-        if (e->event[0].u.u.type == MotionNotify && e->pDev->coreEvents)
+        if (e->events->event[0].u.u.type == MotionNotify && e->pDev->coreEvents)
         {
             miPointerUpdateSprite(e->pDev);
         }

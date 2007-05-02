@@ -131,6 +131,13 @@ int ExtEventIndex;
 Mask ExtValidMasks[EMASKSIZE];
 Mask ExtExclusiveMasks[EMASKSIZE];
 
+
+static Mask xi_filters[3] = {
+    XI_PointerKeyboardPairingChangedNotifyMask,
+    XI_RandomStringEventMask,
+    XI_RawDeviceEventMask,  
+};
+
 static struct dev_type
 {
     Atom type;
@@ -1158,6 +1165,9 @@ XInputExtensionInit(void)
 	EventSwapVector[ChangeDeviceNotify] = SEventIDispatch;
 	EventSwapVector[DeviceEnterNotify] = SEventIDispatch;
 	EventSwapVector[DeviceLeaveNotify] = SEventIDispatch;
+
+        /* init GE events */
+        SetGenericFilter(IReqCode, xi_filters);
     } else {
 	FatalError("IExtensionInit: AddExtensions failed\n");
     }

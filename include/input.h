@@ -85,6 +85,15 @@ typedef struct _OtherClients *OtherClientsPtr;
 typedef struct _InputClients *InputClientsPtr;
 typedef struct _DeviceIntRec *DeviceIntPtr;
 
+typedef struct _EventList {
+    xEvent* event;
+    int evlen; /* length of allocated memory for event in bytes.  This is not
+                  the actual length of the event. The event's actual length is
+                  32 for standard events or 32 +
+                  ((xGenericEvent*)event)->length * 4 for GenericEvents */
+} EventList, *EventListPtr;
+
+
 typedef int (*DeviceProc)(
     DeviceIntPtr /*device*/,
     int /*what*/);
@@ -390,8 +399,11 @@ extern void InitInput(
 
 extern int GetMaximumEventsNum(void);
 
+extern EventListPtr InitEventList(int num_events);
+extern void FreeEventList(EventListPtr list, int num_events);
+
 extern int GetPointerEvents(
-    xEvent *events,
+    EventListPtr events,
     DeviceIntPtr pDev,
     int type,
     int buttons,
@@ -401,13 +413,13 @@ extern int GetPointerEvents(
     int *valuators);
 
 extern int GetKeyboardEvents(
-    xEvent *events,
+    EventListPtr events,
     DeviceIntPtr pDev,
     int type,
     int key_code);
 
 extern int GetKeyboardValuatorEvents(
-    xEvent *events,
+    EventListPtr events,
     DeviceIntPtr pDev,
     int type,
     int key_code,
@@ -416,7 +428,7 @@ extern int GetKeyboardValuatorEvents(
     int *valuators);
 
 extern int GetProximityEvents(
-    xEvent *events,
+    EventListPtr events,
     DeviceIntPtr pDev,
     int type,
     int first_valuator,

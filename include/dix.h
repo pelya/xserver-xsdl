@@ -691,4 +691,8 @@ extern Bool DevHasCursor(DeviceIntPtr pDev);
 extern Bool IsPointerDevice( DeviceIntPtr dev);
 extern Bool IsKeyboardDevice(DeviceIntPtr dev);
 
+
+/* GE stuff */
+void SetGenericFilter(int extension, Mask* filters);
+
 #endif /* DIX_H */

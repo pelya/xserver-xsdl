@@ -61,6 +61,7 @@ SOFTWARE.
 #include <X11/Xproto.h>
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
+#include <X11/extensions/geproto.h>
 #include "inputstr.h"
 #include "windowstr.h"
 #include "miscstruct.h"
@@ -127,7 +128,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     ValuatorClassPtr v = device->valuator;
     deviceValuator *xV = (deviceValuator *) xE;
 
-    if (xE->u.u.type != DeviceValuator) {
+    if (xE->u.u.type != DeviceValuator && xE->u.u.type != GenericEvent) {
         DeviceIntPtr mouse = NULL, kbd = NULL;
 	GetSpritePosition(device, &rootX, &rootY);
 	xE->u.keyButtonPointer.rootX = rootX;
