@@ -131,5 +131,7 @@ SPointerKeyboardPairingChangedNotifyEvent (pairingChangedNotify *from,
 
     *to = *from;
     swaps(&to->sequenceNumber, n);
+    swapl(&to->length, n);
+    swapl(&to->evtype, n);
     swapl(&to->time, n);
 }

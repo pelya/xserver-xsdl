@@ -238,25 +238,6 @@ static XExtensionVersion thisversion = { XI_Present,
     XI_Add_DevicePresenceNotify_Minor
 };
 
-/****************************************************************
- *
- * EventSwap for generic events coming from the GE extension.
- */
-
-static void 
-XIGEEventSwap(xGenericEvent* from, xGenericEvent* to)
-{
-    int n;
-
-    swaps(&from->sequenceNumber, n);
-    switch(from->evtype)
-    {
-        case XI_PointerKeyboardPairingChangedNotify:
-            SPointerKeyboardPairingChangedNotifyEvent
-                ((pairingChangedNotify*)from, (pairingChangedNotify*)to);
-            break;
-    }
-}
 
 /*************************************************************************
  *
@@ -700,6 +681,22 @@ SDeviceLeaveNotifyEvent (deviceLeaveNotify *from, deviceLeaveNotify *to)
     swaps(&to->eventY, n);
 }
 
+static void
+SRawDeviceEvent(rawDeviceEvent* from, rawDeviceEvent *to)
+{
+    char n;
+    int i;
+    CARD32* valptr;
+    
+
+    *to = *from;
+    swaps(&to->sequenceNumber, n);
+    swapl(&to->length, n);
+    swapl(&to->evtype, n);
+    valptr = &to->valuator0;
+    for (i = 0; i < from->num_valuators; i++, valptr++)
+        swapl(valptr, n);
+}
 
 /**************************************************************************
  *
@@ -994,7 +991,6 @@ IResetProc(ExtensionEntry * unused)
     EventSwapVector[DevicePresenceNotify] = NotImplemented;
     EventSwapVector[DeviceEnterNotify] = NotImplemented;
     EventSwapVector[DeviceLeaveNotify] = NotImplemented;
-    EventSwapVector[PointerKeyboardPairingChangedNotify] = NotImplemented;
     RestoreExtensionEvents();
 }
 
@@ -1128,6 +1124,29 @@ SEventIDispatch(xEvent * from, xEvent * to)
     }
 }
 
+/****************************************************************
+ *
+ * EventSwap for generic events coming from the GE extension.
+ */
+
+static void 
+XIGEEventSwap(xGenericEvent* from, xGenericEvent* to)
+{
+    int n;
+
+    swaps(&from->sequenceNumber, n);
+    switch(from->evtype)
+    {
+        case XI_PointerKeyboardPairingChangedNotify:
+            SPointerKeyboardPairingChangedNotifyEvent
+                ((pairingChangedNotify*)from, (pairingChangedNotify*)to);
+            break;
+        case XI_RawDeviceEvent:
+            SRawDeviceEvent((rawDeviceEvent*)from, (rawDeviceEvent*)to);
+            break;
+    }
+}
+
 /**********************************************************************
  *
  * IExtensionInit - initialize the input extension.
@@ -1172,6 +1191,7 @@ XInputExtensionInit(void)
 	EventSwapVector[DeviceLeaveNotify] = SEventIDispatch;
 
         /* init GE events */
+        GERegisterExtension(IReqCode, XIGEEventSwap);
         SetGenericFilter(IReqCode, xi_filters);
     } else {
 	FatalError("IExtensionInit: AddExtensions failed\n");
