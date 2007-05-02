@@ -86,6 +86,7 @@ SOFTWARE.
 #include "chpkpair.h"
 #include "closedev.h"
 #include "devbell.h"
+#include "fakedevdata.h"
 #include "getbmap.h"
 #include "getbmap.h"
 #include "getcptr.h"
@@ -133,8 +134,8 @@ Mask ExtExclusiveMasks[EMASKSIZE];
 
 
 static Mask xi_filters[3] = {
-    XI_PointerKeyboardPairingChangedNotifyMask,
-    XI_RandomStringEventMask,
+    XI_PointerKeyboardPairingChangedMask,
+    XI_RandomStringMask,
     XI_RawDeviceEventMask,  
 };
 
@@ -362,6 +363,8 @@ ProcIDispatch(ClientPtr client)
         return ProcXGetClientPointer(client);
     else if (stuff->data == X_GetPairedPointer)
         return ProcXGetPairedPointer(client);
+    else if (stuff->data == X_FakeDeviceData)
+        return ProcXFakeDeviceData(client);
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -475,6 +478,8 @@ SProcIDispatch(ClientPtr client)
         return SProcXGetClientPointer(client);
     else if (stuff->data == X_GetPairedPointer)
         return SProcXGetPairedPointer(client);
+    else if (stuff->data == X_FakeDeviceData)
+        return SProcXFakeDeviceData(client);
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }

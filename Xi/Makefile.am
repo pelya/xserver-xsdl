@@ -30,6 +30,8 @@ libXi_la_SOURCES =	\
 	exevents.c \
 	exglobals.h \
 	extinit.c \
+	fakedevdata.c \
+	fakedevdata.h \
 	getbmap.c \
 	getbmap.h \
 	getcptr.c \
