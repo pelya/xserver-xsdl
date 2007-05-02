@@ -374,11 +374,6 @@ fi
 AC_MSG_RESULT([$mmx_capable])
 AM_CONDITIONAL(MMX_CAPABLE, [test "x$mmx_capable" = xyes])
 
-
-OSNAME=`uname -srm`
-AC_DEFINE_UNQUOTED(OSNAME, "$OSNAME", 
-	[Define to OS Name string to display for build OS in Xorg log])
-
 DEFAULT_VENDOR_NAME="The X.Org Foundation"
 DEFAULT_VENDOR_NAME_SHORT="X.Org"
 DEFAULT_VERSION_MAJOR=7
@@ -444,9 +439,9 @@ AC_ARG_WITH(builder-addr,    AS_HELP_STRING([--with-builder-addr=ADDRESS],
 				  [Builder address (default: xorg@lists.freedesktop.org)]),
 				[ BUILDERADDR="$withval" ],
 				[ BUILDERADDR="xorg@lists.freedesktop.org" ])
-AC_ARG_WITH(os-name,         AS_HELP_STRING([--with-os-name=OSNAME], [Name of OS (default: UNKNOWN)]),
+AC_ARG_WITH(os-name,         AS_HELP_STRING([--with-os-name=OSNAME], [Name of OS (default: output of "uname -srm")]),
 				[ OSNAME="$withval" ],
-				[ OSNAME="UNKNOWN" ])
+				[ OSNAME=`uname -srm` ])
 AC_ARG_WITH(os-vendor,       AS_HELP_STRING([--with-os-vendor=OSVENDOR], [Name of OS vendor]),
 				[ OSVENDOR="$withval" ],
 				[ OSVENDOR="" ])
@@ -948,6 +943,11 @@ AC_DEFINE_UNQUOTED(XORG_RELEASE, ["$VENDOR_RELEASE_STRING"], [Vendor release])
 AC_DEFINE_UNQUOTED(XORG_DATE, ["$RELEASE_DATE"], [Vendor release])
 AC_DEFINE_UNQUOTED(XORG_MAN_VERSION, ["$VENDOR_MAN_VERSION"], [Vendor man version])
 AC_DEFINE_UNQUOTED(BUILDERADDR, ["$BUILDERADDR"], [Builder address])
+
+if test -z "$OSNAME"; then
+    OSNAME="UNKNOWN"
+fi
+
 AC_DEFINE_UNQUOTED(OSNAME, ["$OSNAME"], [Operating System Name])
 AC_DEFINE_UNQUOTED(OSVENDOR, ["$OSVENDOR"], [Operating System Vendor])
 AC_DEFINE_UNQUOTED(BUILDERSTRING, ["$BUILDERSTRING"], [Builder string])
