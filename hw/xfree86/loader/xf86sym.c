@@ -97,6 +97,9 @@
 #include "xf86DDC.h"
 #include "edid.h"
 
+#include "xf86RamDac.h"
+#include "BT.h"
+
 #ifndef HAS_GLIBC_SIGSETJMP
 #if defined(setjmp) && defined(__GNU_LIBRARY__) && \
     (!defined(__GLIBC__) || (__GLIBC__ < 2) || \
@@ -1255,4 +1258,14 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86I2CWriteRead)
     SYMFUNC(xf86I2CWriteVec)
     SYMFUNC(xf86I2CWriteWord)
+
+    /* ramdac */
+    SYMFUNC(RamDacInit)
+    SYMFUNC(RamDacCreateInfoRec)
+    SYMFUNC(RamDacDestroyInfoRec)
+    SYMFUNC(RamDacHelperCreateInfoRec)
+    SYMFUNC(RamDacFreeRec)
+    SYMFUNC(RamDacHandleColormaps)
+    SYMFUNC(RamDacGetHWIndex)
+    SYMFUNC(BTramdacProbe)
 };
