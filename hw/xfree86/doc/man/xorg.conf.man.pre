@@ -639,6 +639,20 @@ Example: the Type 1 font rasteriser can be loaded with the following entry:
 .B "Load \*qtype1\*q"
 .RE
 .RE
+.TP 7
+.BI "Disable  \*q" modulename \*q
+This instructs the server to not load the module called
+.IR modulename .
+Some modules are loaded by default in the server, and this overrides that
+default. If a
+.B Load
+instruction is given for the same module, it overrides the 
+.B Disable
+instruction and the module is loaded. The module name given should be the
+module's standard name, not the module file name. As with the
+.B Load
+instruction, the standard name is case-sensitive, and does not include the
+"lib" prefix, or the ".a", ".o", or ".so" suffixes.
 .PP
 The second form of entry is a
 .BR SubSection,

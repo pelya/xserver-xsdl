@@ -254,6 +254,7 @@ xf86ModulelistFromConfig(pointer **optlist)
     char *ignore[] = { "GLcore", "speedo", "bitmap", "drm", NULL };
     pointer *optarray;
     XF86LoadPtr modp;
+    Bool found;
     
     /*
      * make sure the config file has been parsed and that we have a
@@ -266,35 +267,73 @@ xf86ModulelistFromConfig(pointer **optlist)
     }
     
     if (xf86configptr->conf_modules) {
-	/*
-	 * Walk the list of modules in the "Module" section to determine how
-	 * many we have.
-	 */
-	modp = xf86configptr->conf_modules->mod_load_lst;
-	while (modp) {
-            for (i = 0; ignore[i]; i++) {
-                if (strcmp(modp->load_name, ignore[i]) == 0)
-                    modp->ignore = 1;
+        /* Walk the disable list and let people know what we've parsed to
+         * not be loaded 
+         */
+        modp = xf86configptr->conf_modules->mod_disable_lst;
+        while (modp) {
+            xf86Msg(X_WARNING, "\"%s\" will not be loaded unless you've specified it to be loaded elsewhere.\n", modp->load_name);
+	        modp = (XF86LoadPtr) modp->list.next;
+        }
+        /*
+         * Walk the default settings table. For each module listed to be
+         * loaded, make sure it's in the mod_load_lst. If it's not, make
+         * sure it's not in the mod_no_load_lst. If it's not disabled,
+         * append it to mod_load_lst
+         */
+         for (i=0 ; ModuleDefaults[i].name != NULL ; i++) {
+            if (ModuleDefaults[i].toLoad == FALSE) {
+                xf86Msg(X_WARNING, "\"%s\" is not to be loaded by default. Skipping.\n", ModuleDefaults[i].name);
+                continue;
             }
-            if (!modp->ignore)
-	        count++;
-	    modp = (XF86LoadPtr) modp->list.next;
-	}
+            found = FALSE;
+            modp = xf86configptr->conf_modules->mod_load_lst;
+            while (modp) {
+                if (strcmp(modp->load_name, ModuleDefaults[i].name) == 0) {
+                    found = TRUE;
+                    break;
+                }
+	        modp = (XF86LoadPtr) modp->list.next;
+            }
+            if (found == FALSE) {
+                modp = xf86configptr->conf_modules->mod_disable_lst;
+                while (modp) {
+                    if (strcmp(modp->load_name, ModuleDefaults[i].name) == 0) {
+                        found = TRUE;
+                        break;
+                    }
+	                modp = (XF86LoadPtr) modp->list.next;
+                }
+            }
+            if (found == FALSE) {
+	            XF86ConfModulePtr ptr = xf86configptr->conf_modules;
+	            ptr = xf86addNewLoadDirective(ptr, ModuleDefaults[i].name, XF86_LOAD_MODULE, ModuleDefaults[i].load_opt);
+            }
+         }
     } else {
 	xf86configptr->conf_modules = xnfcalloc(1, sizeof(XF86ConfModuleRec));
+	for (i=0 ; ModuleDefaults[i].name != NULL ; i++) {
+	    if (ModuleDefaults[i].toLoad == TRUE) {
+		XF86ConfModulePtr ptr = xf86configptr->conf_modules;
+		ptr = xf86addNewLoadDirective(ptr, ModuleDefaults[i].name, XF86_LOAD_MODULE, ModuleDefaults[i].load_opt);
+	    }
+	}
     }
 
-    if (count == 0) {
-	XF86ConfModulePtr ptr = xf86configptr->conf_modules;
-	ptr = xf86addNewLoadDirective(ptr, "extmod", XF86_LOAD_MODULE, NULL);
-	ptr = xf86addNewLoadDirective(ptr, "dbe", XF86_LOAD_MODULE, NULL);
-	ptr = xf86addNewLoadDirective(ptr, "glx", XF86_LOAD_MODULE, NULL);
-	ptr = xf86addNewLoadDirective(ptr, "freetype", XF86_LOAD_MODULE, NULL);
-	ptr = xf86addNewLoadDirective(ptr, "type1", XF86_LOAD_MODULE, NULL);
-	ptr = xf86addNewLoadDirective(ptr, "record", XF86_LOAD_MODULE, NULL);
-	ptr = xf86addNewLoadDirective(ptr, "dri", XF86_LOAD_MODULE, NULL);
-	count = 7;
-    }
+	    /*
+	     * Walk the list of modules in the "Module" section to determine how
+	     * many we have.
+	    */
+	    modp = xf86configptr->conf_modules->mod_load_lst;
+	    while (modp) {
+                for (i = 0; ignore[i]; i++) {
+                    if (strcmp(modp->load_name, ignore[i]) == 0)
+                        modp->ignore = 1;
+                }
+                if (!modp->ignore)
+	            count++;
+	        modp = (XF86LoadPtr) modp->list.next;
+	    }
 
     /*
      * allocate the memory and walk the list again to fill in the pointers
@@ -303,22 +342,22 @@ xf86ModulelistFromConfig(pointer **optlist)
     optarray = xnfalloc((count + 1) * sizeof(pointer));
     count = 0;
     if (xf86configptr->conf_modules) {
-	modp = xf86configptr->conf_modules->mod_load_lst;
-	while (modp) {
+	    modp = xf86configptr->conf_modules->mod_load_lst;
+	    while (modp) {
             if (!modp->ignore) {
-	        modulearray[count] = modp->load_name;
-	        optarray[count] = modp->load_opt;
-	        count++;
+	            modulearray[count] = modp->load_name;
+	            optarray[count] = modp->load_opt;
+	            count++;
             }
-	    modp = (XF86LoadPtr) modp->list.next;
-	}
+	        modp = (XF86LoadPtr) modp->list.next;
+	    }
     }
     modulearray[count] = NULL;
     optarray[count] = NULL;
     if (optlist)
-	*optlist = optarray;
+	    *optlist = optarray;
     else
-	xfree(optarray);
+	    xfree(optarray);
     return modulearray;
 }
 
