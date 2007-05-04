@@ -604,16 +604,24 @@ configFiles(XF86ConfFilesPtr fileconf)
   char *log_buf;
 
   /* FontPath */
-
   /* Try XF86Config FontPath first */
   if (!xf86fpFlag) {
    if (fileconf) {
     if (fileconf->file_fontpath) {
       char *f = xf86ValidateFontPath(fileconf->file_fontpath);
       pathFrom = X_CONFIG;
-      if (*f)
-        defaultFontPath = f;
-      else {
+      if (*f) {
+        if (xf86Info.useDefaultFontPath) {
+          xf86Msg(X_WARNING, "Including the default font path %s.\n", defaultFontPath);
+          char *g = xnfalloc(strlen(defaultFontPath) + strlen(f) + 3);
+          strcpy(g, f);
+          strcat(g, ",");
+          defaultFontPath = strcat(g, defaultFontPath);
+          xfree(f);
+        } else {
+          defaultFontPath = f;
+        }
+      } else {
 	xf86Msg(X_WARNING,
 	    "FontPath is completely invalid.  Using compiled-in default.\n");
         fontPath = NULL;
@@ -781,6 +789,7 @@ typedef enum {
     FLAG_AIGLX,
     FLAG_IGNORE_ABI,
     FLAG_ALLOW_EMPTY_INPUT,
+    FLAG_USE_DEFAULT_FONT_PATH
 } FlagValues;
    
 static OptionInfoRec FlagOptions[] = {
@@ -855,6 +864,8 @@ static OptionInfoRec FlagOptions[] = {
   { FLAG_ALLOW_EMPTY_INPUT,     "AllowEmptyInput",              OPTV_BOOLEAN,
         {0}, FALSE },
   { FLAG_IGNORE_ABI,			"IgnoreABI",			OPTV_BOOLEAN,
+	{0}, FALSE },
+  { FLAG_USE_DEFAULT_FONT_PATH,  "UseDefaultFontPath",			OPTV_BOOLEAN,
 	{0}, FALSE },
   { -1,				NULL,				OPTV_NONE,
 	{0}, FALSE },
@@ -1054,6 +1065,13 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     xf86Info.allowEmptyInput = FALSE;
     if (xf86GetOptValBool(FlagOptions, FLAG_ALLOW_EMPTY_INPUT, &value))
         xf86Info.allowEmptyInput = TRUE;
+
+    xf86Info.useDefaultFontPath = TRUE;
+    xf86Info.useDefaultFontPathFrom = X_DEFAULT;
+    if (xf86GetOptValBool(FlagOptions, FLAG_USE_DEFAULT_FONT_PATH, &value)) {
+	xf86Info.useDefaultFontPath = value;
+	xf86Info.useDefaultFontPathFrom = X_CONFIG;
+    }
 
 /* Make sure that timers don't overflow CARD32's after multiplying */
 #define MAX_TIME_IN_MIN (0x7fffffff / MILLI_PER_MIN)
@@ -2490,9 +2508,9 @@ xf86HandleConfigFile(Bool autoconfig)
 
     /* Now process everything else */
 
-    if (!configFiles(xf86configptr->conf_files) ||
-        !configServerFlags(xf86configptr->conf_flags,
+    if (!configServerFlags(xf86configptr->conf_flags,
 			   xf86ConfigLayout.options) ||
+         !configFiles(xf86configptr->conf_files) ||
 	!configExtensions(xf86configptr->conf_extensions)
 #ifdef XF86DRI
 	|| !configDRI(xf86configptr->conf_dri)
