@@ -229,7 +229,7 @@ typedef struct _ExaDriver {
      * @{
      */
     /**
-     * PrepareCopy() sets up the driver for doing a copy within offscreen
+     * PrepareCopy() sets up the driver for doing a copy within video 
      * memory.
      *
      * @param pSrcPixmap source pixmap
