@@ -290,6 +290,7 @@ xf86ModulelistFromConfig(pointer **optlist)
             modp = xf86configptr->conf_modules->mod_load_lst;
             while (modp) {
                 if (strcmp(modp->load_name, ModuleDefaults[i].name) == 0) {
+                    xf86Msg(X_INFO, "\"%s\" will be loaded. This was enabled by default and also specified in the config file.\n", ModuleDefaults[i].name);
                     found = TRUE;
                     break;
                 }
@@ -299,6 +300,7 @@ xf86ModulelistFromConfig(pointer **optlist)
                 modp = xf86configptr->conf_modules->mod_disable_lst;
                 while (modp) {
                     if (strcmp(modp->load_name, ModuleDefaults[i].name) == 0) {
+                        xf86Msg(X_INFO, "\"%s\" will be loaded even though the default is to disable it.\n", ModuleDefaults[i].name);
                         found = TRUE;
                         break;
                     }
@@ -308,6 +310,7 @@ xf86ModulelistFromConfig(pointer **optlist)
             if (found == FALSE) {
 	            XF86ConfModulePtr ptr = xf86configptr->conf_modules;
 	            ptr = xf86addNewLoadDirective(ptr, ModuleDefaults[i].name, XF86_LOAD_MODULE, ModuleDefaults[i].load_opt);
+                xf86Msg(X_INFO, "\"%s\" will be loaded by default.\n", ModuleDefaults[i].name);
             }
          }
     } else {
