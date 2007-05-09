@@ -100,36 +100,15 @@ double	cbrt(double);
 #undef max
 #undef min
 
-#if defined (__GNUC__) && !defined (__STRICT_ANSI__)
-#define USE_INLINE
-#endif
-
-#ifdef USE_INLINE
-inline static int max (const int x, const int y)
+_X_INLINE static int max (const int x, const int y)
 {
 	return x>y? x:y;
 }
 
-inline static int min (const int x, const int y)
+_X_INLINE static int min (const int x, const int y)
 {
 	return x<y? x:y;
 }
-
-#else
-
-static int
-max (int x, int y)
-{
-	return x>y? x:y;
-}
-
-static int
-min (int x, int y)
-{
-	return x<y? x:y;
-}
-
-#endif
 
 struct bound {
 	double	min, max;

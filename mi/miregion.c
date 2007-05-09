@@ -81,15 +81,10 @@ Equipment Corporation.
 
 #include "regionstr.h"
 #include <X11/Xprotostr.h>
+#include <X11/Xfuncproto.h>
 #include "gc.h"
 #include "mi.h"
 #include "mispans.h"
-
-#if defined (__GNUC__) && !defined (NO_INLINES)
-#define INLINE	__inline
-#else
-#define INLINE
-#endif
 
 #undef assert
 #ifdef DEBUG
@@ -506,7 +501,7 @@ miRegionCopy(dst, src)
  *
  *-----------------------------------------------------------------------
  */
-INLINE static int
+_X_INLINE static int
 miCoalesce (
     RegionPtr	pReg,	    	/* Region to coalesce		     */
     int	    	  	prevStart,  	/* Index of start of previous band   */
@@ -590,7 +585,7 @@ miCoalesce (
  *-----------------------------------------------------------------------
  */
 
-INLINE static Bool
+_X_INLINE static Bool
 miAppendNonO (
     RegionPtr	pReg,
     BoxPtr	r,
