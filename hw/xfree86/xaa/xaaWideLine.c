@@ -32,10 +32,6 @@ Original mi code written by Keith Packard.
 #include "xaa.h"
 #include "xaalocal.h"
 
-#ifdef ICEILTEMPDECL
-ICEILTEMPDECL
-#endif
-
 #define DRAW_POINT(pScrn, x, y) \
   if(hardClip) (*infoRec->SubsequentSolidFillRect)(pScrn, x, y, 1, 1); \
   else XAAPointHelper(pScrn, x, y)

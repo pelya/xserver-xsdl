@@ -77,10 +77,6 @@ static double miDasin(double v);
 static double miDatan2(double dy, double dx);
 double	cbrt(double);
 
-#ifdef ICEILTEMPDECL
-ICEILTEMPDECL
-#endif
-
 /*
  * some interesting sematic interpretation of the protocol:
  *

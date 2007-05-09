@@ -52,10 +52,6 @@ from The Open Group.
 #include "miwideline.h"
 #include "mi.h"
 
-#ifdef ICEILTEMPDECL
-ICEILTEMPDECL
-#endif
-
 static void miLineArc(DrawablePtr pDraw, GCPtr pGC,
 		      unsigned long pixel, SpanDataPtr spanData,
 		      LineFacePtr leftFace,
