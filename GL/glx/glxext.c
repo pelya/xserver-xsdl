@@ -145,7 +145,6 @@ static int ClientGone(int clientIndex, XID id)
 	for (i=0; i < cl->numCurrentContexts; i++) {
 	    cx = cl->currentContexts[i];
 	    if (cx) {
-		__glXDeassociateContext(cx);
 		cx->isCurrent = GL_FALSE;
 		if (!cx->idExists) {
 		    __glXFreeContext(cx);

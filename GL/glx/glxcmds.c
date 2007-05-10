@@ -73,6 +73,8 @@ GlxSetRenderTables (struct _glapi_table *table)
 void
 __glXContextDestroy(__GLXcontext *context)
 {
+    if (!context->isDirect)
+	__glXDeassociateContext(context);
     __glXFlushContextCache();
 }
 
