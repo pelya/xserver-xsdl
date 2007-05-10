@@ -51,14 +51,7 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#if defined(_XOPEN_SOURCE) || defined(__QNXNTO__) \
-	|| (defined(sun) && defined(__SVR4))
 #include <math.h>
-#else
-#define _XOPEN_SOURCE	/* to get prototype for hypot on some systems */
-#include <math.h>
-#undef _XOPEN_SOURCE
-#endif
 #include <X11/X.h>
 #include <X11/Xprotostr.h>
 #include "misc.h"
@@ -75,7 +68,17 @@ static double miDsin(double a);
 static double miDcos(double a);
 static double miDasin(double v);
 static double miDatan2(double dy, double dx);
-double	cbrt(double);
+
+#ifndef HAVE_CBRT
+static double
+cbrt(double x)
+{
+    if (x > 0.0)
+	return pow(x, 1.0/3.0);
+    else
+	return -pow(-x, 1.0/3.0);
+}
+#endif
 
 /*
  * some interesting sematic interpretation of the protocol:

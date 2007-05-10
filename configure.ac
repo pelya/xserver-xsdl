@@ -182,6 +182,7 @@ AC_CHECK_FUNC([mmap], AC_DEFINE(HAS_MMAP, 1, [Have the `mmap' function.]))
 
 dnl Find the math libary
 AC_CHECK_LIB(m, sqrt)
+AC_CHECK_LIB(m, cbrt, AC_DEFINE(HAVE_CBRT, 1, [Have the 'cbrt' function]))
 
 AC_CHECK_HEADERS([ndbm.h dbm.h rpcsvc/dbm.h])
 
