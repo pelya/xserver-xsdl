@@ -67,5 +67,3 @@ libmi_la_SOURCES = 	\
 	mizerarc.h	\
 	mizerclip.c	\
 	mizerline.c
-
-INCLUDES = -I$(top_srcdir)/mfb

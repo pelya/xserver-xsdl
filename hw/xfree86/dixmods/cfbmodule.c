@@ -28,10 +28,7 @@
 #include <xorg-config.h>
 #endif
 
-#define PSZ 8
-
 #include "xf86Module.h"
-#include "cfb.h"
 
 static MODULESETUPPROTO(cfbSetup);
 
