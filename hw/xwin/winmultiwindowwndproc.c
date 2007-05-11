@@ -38,6 +38,7 @@
 #include "winmultiwindowclass.h"
 #include "winprefs.h"
 #include "winmsg.h"
+#include "inputstr.h"
 
 /*
  * External global variables
@@ -494,8 +495,8 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
 	break;
 
       /* Has the mouse pointer crossed screens? */
-      if (s_pScreen != miPointerCurrentScreen ())
-	miPointerSetNewScreen (s_pScreenInfo->dwScreen,
+      if (s_pScreen != miPointerGetScreen(inputInfo.pointer))
+	miPointerSetScreen (inputInfo.pointer, s_pScreenInfo->dwScreen,
 			       ptMouse.x - s_pScreenInfo->dwXOffset,
 			       ptMouse.y - s_pScreenInfo->dwYOffset);
 
