@@ -623,9 +623,11 @@ XEXT_INC='-I$(top_srcdir)/Xext'
 XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
+PIXMAN="[pixman >= 0.9.0]"
+
 dnl Core modules for most extensions, et al.
 REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto xproto xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4.2] [kbproto >= 1.0.3]"
-REQUIRED_LIBS="xfont xau fontenc"
+REQUIRED_LIBS="xfont xau fontenc $PIXMAN"
 
 if test "x$DBUS" = xauto; then
        PKG_CHECK_MODULES(DBUS, dbus-1, [DBUS=yes], [DBUS=no])
@@ -1103,7 +1105,7 @@ dnl ---------------------------------------------------------------------------
 dnl DMX DDX
 
 AC_MSG_CHECKING([whether to build Xdmx DDX])
-PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto xau $XDMCP_MODULES], [have_dmx=yes], [have_dmx=no])
+PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto xau $XDMCP_MODULES $PIXMAN], [have_dmx=yes], [have_dmx=no])
 if test "x$DMX" = xauto; then
 	DMX="$have_dmx"
 fi
