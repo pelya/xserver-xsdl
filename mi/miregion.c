@@ -85,6 +85,7 @@ Equipment Corporation.
 #include "gc.h"
 #include "mi.h"
 #include "mispans.h"
+#include <pixman/pixman.h>
 
 #undef assert
 #ifdef DEBUG
@@ -217,6 +218,12 @@ _X_EXPORT RegDataRec miEmptyData = {0, 0};
 
 RegDataRec  miBrokenData = {0, 0};
 static RegionRec   miBrokenRegion = { { 0, 0, 0, 0 }, &miBrokenData };
+
+extern void
+InitRegions (void)
+{
+    pixman_region_set_static_pointers (&miEmptyBox, &miEmptyData, &miBrokenData);
+}
 
 _X_EXPORT void
 miPrintRegion(rgn)

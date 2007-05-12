@@ -225,6 +225,8 @@ extern RegDataRec miBrokenData;
 
 /* moved from mi.h */
 
+extern void InitRegions (void);
+
 extern RegionPtr miRegionCreate(
     BoxPtr /*rect*/,
     int /*size*/);
