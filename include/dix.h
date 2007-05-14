@@ -51,6 +51,8 @@ SOFTWARE.
 #include "gc.h"
 #include "window.h"
 #include "input.h"
+#include "cursor.h"
+#include <X11/extensions/XI.h>
 
 #define EARLIER -1
 #define SAMETIME 0
@@ -693,6 +695,19 @@ extern Bool IsKeyboardDevice(DeviceIntPtr dev);
 
 
 /* GE stuff */
-void SetGenericFilter(int extension, Mask* filters);
+extern void SetGenericFilter(int extension, Mask* filters);
+
+extern int ExtGrabDevice(ClientPtr client,
+                         DeviceIntPtr dev,
+                         int grabmode,
+                         int device_mode,
+                         WindowPtr grabWindow,
+                         WindowPtr confineTo,
+                         TimeStamp ctime,
+                         Bool ownerEvents,
+                         CursorPtr cursor, 
+                         Mask core_mask, 
+                         Mask xi_mask,
+                         GenericMaskPtr ge_masks);
 
 #endif /* DIX_H */

@@ -102,6 +102,22 @@ typedef struct _DetailRec {		/* Grab details may be bit masks */
     Mask                *pMask;
 } DetailRec;
 
+typedef struct _GenericMaskRec {
+    int                 extension;
+    Mask                mask;
+    struct _GenericMaskRec* next;
+} GenericMaskRec;
+
+/**
+ * Central struct for device grabs. 
+ * The same struct is used for both core grabs and device grabs, with
+ * different fields being set. 
+ * If the grab is a core grab (GrabPointer/GrabKeyboard), then the eventMask
+ * is a combination of standard event masks (i.e. PointerMotionMask |
+ * ButtonPressMask).
+ * If the grab is a device grab (GrabDevice), then the eventMask is a
+ * combination of event masks for a given XI event type (see SetEventInfo).
+ */
 typedef struct _GrabRec {
     GrabPtr		next;		/* for chain of passive grabs */
     XID			resource;
@@ -119,6 +135,7 @@ typedef struct _GrabRec {
     WindowPtr		confineTo;	/* always NULL for keyboards */
     CursorPtr		cursor;		/* always NULL for keyboards */
     Mask		eventMask;
+    GenericMaskPtr      genericMasks;   /* null terminated list */
 } GrabRec;
 
 typedef struct _KeyClassRec {

@@ -29,6 +29,8 @@ libXi_la_SOURCES =	\
 	devbell.h \
 	exevents.c \
 	exglobals.h \
+        extgrbdev.c \
+        extgrbdev.h \
 	extinit.c \
 	fakedevdata.c \
 	fakedevdata.h \

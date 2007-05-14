@@ -85,6 +85,7 @@ SOFTWARE.
 #include "chgptr.h"
 #include "chpkpair.h"
 #include "closedev.h"
+#include "extgrbdev.h"
 #include "devbell.h"
 #include "fakedevdata.h"
 #include "getbmap.h"
@@ -346,6 +347,8 @@ ProcIDispatch(ClientPtr client)
         return ProcXGetPairedPointer(client);
     else if (stuff->data == X_FakeDeviceData)
         return ProcXFakeDeviceData(client);
+    else if (stuff->data == X_ExtendedGrabDevice)
+        return ProcXExtendedGrabDevice(client);
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -461,6 +464,8 @@ SProcIDispatch(ClientPtr client)
         return SProcXGetPairedPointer(client);
     else if (stuff->data == X_FakeDeviceData)
         return SProcXFakeDeviceData(client);
+    else if (stuff->data == X_ExtendedGrabDevice)
+        return SProcXExtendedGrabDevice(client);
     else {
 	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
     }
@@ -549,6 +554,8 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
         SRepXGetClientPointer(client, len, (xGetClientPointerReply*) rep);
     else if (rep->RepType == X_GetPairedPointer)
         SRepXGetPairedPointer(client, len, (xGetPairedPointerReply*) rep);
+    else if (rep->RepType == X_ExtendedGrabDevice)
+        SRepXExtendedGrabDevice(client, len, (xExtendedGrabDeviceReply*) rep);
     else {
 	FatalError("XINPUT confused sending swapped reply");
     }

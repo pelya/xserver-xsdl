@@ -155,6 +155,13 @@ ProcXGrabDevice(ClientPtr client)
  *
  * This procedure creates an event mask from a list of XEventClasses.
  *
+ * Procedure is as follows: 
+ * An XEventClass is (deviceid << 8 | eventtype). For each entry in the list,
+ * get the device. Then run through all available event indices (those are
+ * set when XI starts up) and binary OR's the device's mask to whatever the
+ * event mask for the given event type was. 
+ *
+ * mask has to be size EMASKSIZE and pre-allocated.
  */
 
 int

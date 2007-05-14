@@ -243,6 +243,7 @@ typedef struct _Box *BoxPtr;
 typedef struct _xEvent *xEventPtr;
 typedef struct _xRectangle *xRectanglePtr;
 typedef struct _GrabRec *GrabPtr;
+typedef struct _GenericMaskRec *GenericMaskPtr;
 
 /*  typedefs from other places - duplicated here to minimize the amount
  *  of unnecessary junk that one would normally have to include to get

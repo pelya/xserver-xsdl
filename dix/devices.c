@@ -653,7 +653,7 @@ CloseDevice(DeviceIntPtr dev)
     /* a client may have the device set as client pointer */
     for (j = 0; j < currentMaxClients; j++)
     {
-        if (clients[j]->clientPtr == dev)
+        if (clients[j] && clients[j]->clientPtr == dev)
         {
             clients[j]->clientPtr = NULL;
             clients[j]->clientPtr = PickPointer(clients[j]);
