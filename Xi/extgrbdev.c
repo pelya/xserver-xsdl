@@ -45,11 +45,14 @@ from the author.
 #include "scrnintstr.h"	/* screen structure  */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
+#include <X11/extensions/Xge.h>
 #include "gestr.h"
 #include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
+
+#include "grabdev.h"    /* CreateMaskFromList */
 
 #include "extgrbdev.h"
 
@@ -68,9 +71,8 @@ SProcXExtendedGrabDevice(ClientPtr client)
     swapl(&stuff->time, n);
     swapl(&stuff->confine_to, n);
     swapl(&stuff->cursor, n);
-    swaps(&stuff->event_mask, n);
     swaps(&stuff->event_count, n);
-    swaps(&stuff->ge_event_count, n);
+    swaps(&stuff->generic_event_count, n);
 
     p = (long *)&stuff[1];
     for (i = 0; i < stuff->event_count; i++) {
@@ -78,7 +80,7 @@ SProcXExtendedGrabDevice(ClientPtr client)
 	p++;
     }
 
-    for (i = 0; i < stuff->ge_event_count; i++) {
+    for (i = 0; i < stuff->generic_event_count; i++) {
         p++; /* first 4 bytes are extension type and padding */
         swapl(p, n);
         p++;
@@ -93,7 +95,7 @@ ProcXExtendedGrabDevice(ClientPtr client)
 {
     xExtendedGrabDeviceReply rep;
     DeviceIntPtr             dev;
-    int                      err, 
+    int                      err = Success, 
                              errval = 0,
                              i;
     WindowPtr                grab_window, 
@@ -101,14 +103,25 @@ ProcXExtendedGrabDevice(ClientPtr client)
     CursorPtr                cursor = NULL;
     struct tmask             tmp[EMASKSIZE];
     TimeStamp                time;
-    XgeEventMask*            xgeMask;
+    XGenericEventMask*       xgeMask;
     GenericMaskPtr           gemasks = NULL;
 
     REQUEST(xExtendedGrabDeviceReq);
     REQUEST_AT_LEAST_SIZE(xExtendedGrabDeviceReq);
 
-    if (stuff->length != (sizeof(xExtendedGrabDeviceReq) >> 2) + 
-            stuff->event_count + 2 * stuff->ge_event_count)
+    if (stuff->ungrab)
+    {
+        REQUEST_SIZE_MATCH(xExtendedGrabDeviceReq);
+    }
+
+    rep.repType         = X_Reply;
+    rep.RepType         = X_ExtendedGrabDevice;
+    rep.sequenceNumber  = client->sequence;
+    rep.length          = 0;
+
+    if (!stuff->ungrab && /* other fields are undefined for ungrab */
+            (stuff->length != (sizeof(xExtendedGrabDeviceReq) >> 2) + 
+            stuff->event_count + 2 * stuff->generic_event_count))
     {
         errval = 0;
         err = BadLength;
@@ -120,6 +133,13 @@ ProcXExtendedGrabDevice(ClientPtr client)
         errval = stuff->deviceid;
         err = BadDevice;
 	goto cleanup;
+    }
+
+
+    if (stuff->ungrab)
+    {
+        ExtUngrabDevice(client, dev);
+        goto cleanup;
     }
 
     err = dixLookupWindow(&grab_window, 
@@ -159,11 +179,6 @@ ProcXExtendedGrabDevice(ClientPtr client)
         }
     }
 
-    rep.repType         = X_Reply;
-    rep.RepType         = X_ExtendedGrabDevice;
-    rep.sequenceNumber  = client->sequence;
-    rep.length          = 0;
-
     if (CreateMaskFromList(client, 
                            (XEventClass*)&stuff[1],
                            stuff->event_count, 
@@ -174,10 +189,10 @@ ProcXExtendedGrabDevice(ClientPtr client)
 
     time = ClientTimeToServerTime(stuff->time);
 
-    if (stuff->ge_event_count)
+    if (stuff->generic_event_count)
     {
         xgeMask = 
-            (XgeEventMask*)(((XEventClass*)&stuff[1]) + stuff->event_count);
+            (XGenericEventMask*)(((XEventClass*)&stuff[1]) + stuff->event_count);
 
         gemasks = xcalloc(1, sizeof(GenericMaskRec));
         gemasks->extension = xgeMask->extension;
@@ -185,7 +200,7 @@ ProcXExtendedGrabDevice(ClientPtr client)
         gemasks->next = NULL;
         xgeMask++;
 
-        for (i = 1; i < stuff->ge_event_count; i++, xgeMask++)
+        for (i = 1; i < stuff->generic_event_count; i++, xgeMask++)
         {
             gemasks->next = xcalloc(1, sizeof(GenericMaskRec));
             gemasks = gemasks->next;
@@ -195,9 +210,9 @@ ProcXExtendedGrabDevice(ClientPtr client)
         }
     }
 
-    ExtGrabDevice(client, dev, stuff->grabmode, stuff->device_mode, 
+    ExtGrabDevice(client, dev, stuff->device_mode, 
                   grab_window, confineTo, time, stuff->owner_events, 
-                  cursor, stuff->event_mask, tmp[stuff->deviceid].mask, 
+                  cursor, tmp[stuff->deviceid].mask, 
                   gemasks);
 
     if (err != Success) {

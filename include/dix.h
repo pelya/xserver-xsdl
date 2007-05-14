@@ -699,15 +699,16 @@ extern void SetGenericFilter(int extension, Mask* filters);
 
 extern int ExtGrabDevice(ClientPtr client,
                          DeviceIntPtr dev,
-                         int grabmode,
                          int device_mode,
                          WindowPtr grabWindow,
                          WindowPtr confineTo,
                          TimeStamp ctime,
                          Bool ownerEvents,
                          CursorPtr cursor, 
-                         Mask core_mask, 
                          Mask xi_mask,
                          GenericMaskPtr ge_masks);
+
+extern int ExtUngrabDevice(ClientPtr client,
+                         DeviceIntPtr dev);
 
 #endif /* DIX_H */

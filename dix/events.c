@@ -3161,11 +3161,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
     xEvent *dxE;
     SpritePtr pSprite = thisDev->spriteInfo->sprite;
 
-    if (xE->u.u.type & EXTENSION_EVENT_BASE || xE->u.u.type == GenericEvent)
-        grabinfo = &thisDev->deviceGrab;
-    else
-        grabinfo = &thisDev->deviceGrab;
-
+    grabinfo = &thisDev->deviceGrab;
     grab = grabinfo->grab;
 
     if (grab->ownerEvents)
@@ -5743,24 +5739,18 @@ SetGenericFilter(int extension, Mask* filters)
 
 
 /**
- * Grab a device for core events, XI events or XGE events.
- * 
- * The latter also applies to generic events.
+ * Grab a device for XI events and XGE events.
  * grabmode is used to ungrab a device.
- * 
- *
  */
 _X_EXPORT int
 ExtGrabDevice(ClientPtr client, 
               DeviceIntPtr dev, 
-              int grabmode, 
               int device_mode,
               WindowPtr grabWindow, 
               WindowPtr confineTo, 
               TimeStamp ctime, 
               Bool ownerEvents, 
               CursorPtr cursor, 
-              Mask core_mask, 
               Mask xi_mask, 
               GenericMaskPtr ge_masks)
 {
@@ -5769,72 +5759,72 @@ ExtGrabDevice(ClientPtr client,
 
     UpdateCurrentTime();
 
-    if (grabmode & DeviceOnlyGrab)
-    {
-        grabinfo = &dev->deviceGrab;
+    grabinfo = &dev->deviceGrab;
 
-        if (grabinfo->grab && !SameClient(grabinfo->grab, client))
-            return AlreadyGrabbed;
+    if (grabinfo->grab && !SameClient(grabinfo->grab, client))
+        return AlreadyGrabbed;
 
-        if (!grabWindow->realized)
-            return GrabNotViewable;
+    if (!grabWindow->realized)
+        return GrabNotViewable;
 
-        if ((CompareTimeStamps(ctime, currentTime) == LATER) ||
+    if ((CompareTimeStamps(ctime, currentTime) == LATER) ||
             (CompareTimeStamps(ctime, grabinfo->grabTime) == EARLIER))
-            return GrabInvalidTime;
+        return GrabInvalidTime;
 
-        if (grabinfo->sync.frozen && grabinfo->sync.other &&
-                !SameClient(grabinfo->sync.other, client))
-            return GrabFrozen;
+    if (grabinfo->sync.frozen && grabinfo->sync.other &&
+            !SameClient(grabinfo->sync.other, client))
+        return GrabFrozen;
 
-        memset(&newGrab, 0, sizeof(GrabRec));
-        newGrab.window         = grabWindow;
-        newGrab.resource       = client->clientAsMask;
-        newGrab.ownerEvents    = ownerEvents;
-        newGrab.device         = dev;
-        newGrab.cursor         = cursor;
-        newGrab.confineTo      = confineTo;
-        newGrab.eventMask      = xi_mask;
-        newGrab.genericMasks   = NULL;
+    memset(&newGrab, 0, sizeof(GrabRec));
+    newGrab.window         = grabWindow;
+    newGrab.resource       = client->clientAsMask;
+    newGrab.ownerEvents    = ownerEvents;
+    newGrab.device         = dev;
+    newGrab.cursor         = cursor;
+    newGrab.confineTo      = confineTo;
+    newGrab.eventMask      = xi_mask;
+    newGrab.genericMasks   = NULL;
 
-        if (ge_masks)
-        {
-            GenericMaskPtr last;
-            newGrab.genericMasks  = xcalloc(1, sizeof(GenericMaskRec));
-            *newGrab.genericMasks = *ge_masks;
-            newGrab.genericMasks->next = NULL;
-            ge_masks = ge_masks->next;
-            last     = newGrab.genericMasks;
-
-            while(ge_masks)
-            {
-                last->next = xcalloc(1, sizeof(GenericMaskRec));
-                last = last->next;
-                *last = *ge_masks;
-                ge_masks = ge_masks->next;
-            }
-        }
-
-        if (IsPointerDevice(dev))
-        {
-            newGrab.keyboardMode = GrabModeAsync;
-            newGrab.pointerMode  = device_mode;
-        } else
-        {
-            newGrab.keyboardMode = device_mode;
-            newGrab.pointerMode  = GrabModeAsync;
-        }
-
-        (*grabinfo->ActivateGrab)(dev, &newGrab, ctime, FALSE);
-    }
-
-    if (grabmode & UngrabAll)
+    if (ge_masks)
     {
-        grabinfo = &dev->deviceGrab;
-        if (grabinfo->grab && SameClient(grabinfo->grab, client))
-            (*grabinfo->DeactivateGrab)(dev);
+        GenericMaskPtr last;
+        newGrab.genericMasks  = xcalloc(1, sizeof(GenericMaskRec));
+        *newGrab.genericMasks = *ge_masks;
+        newGrab.genericMasks->next = NULL;
+        ge_masks = ge_masks->next;
+        last     = newGrab.genericMasks;
+
+        while(ge_masks)
+        {
+            last->next = xcalloc(1, sizeof(GenericMaskRec));
+            last = last->next;
+            *last = *ge_masks;
+            ge_masks = ge_masks->next;
+        }
     }
 
+    if (IsPointerDevice(dev))
+    {
+        newGrab.keyboardMode = GrabModeAsync;
+        newGrab.pointerMode  = device_mode;
+    } else
+    {
+        newGrab.keyboardMode = device_mode;
+        newGrab.pointerMode  = GrabModeAsync;
+    }
+
+    (*grabinfo->ActivateGrab)(dev, &newGrab, ctime, FALSE);
     return GrabSuccess;
 }
+
+
+_X_EXPORT int
+ExtUngrabDevice(ClientPtr client, DeviceIntPtr dev)
+{
+    GrabInfoPtr grabinfo = &dev->deviceGrab;
+    if (grabinfo->grab && SameClient(grabinfo->grab, client))
+        (*grabinfo->DeactivateGrab)(dev);
+    return GrabSuccess;
+}
+
 
