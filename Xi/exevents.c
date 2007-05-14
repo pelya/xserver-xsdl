@@ -100,16 +100,14 @@ RegisterOtherDevice(DeviceIntPtr device)
 {
     device->public.processInputProc = ProcessOtherEvent;
     device->public.realInputProc = ProcessOtherEvent;
-    (device)->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
-    (device)->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
     if (DeviceIsPointerType(device))
     {
-        (device)->coreGrab.ActivateGrab = ActivatePointerGrab;
-        (device)->coreGrab.DeactivateGrab = DeactivatePointerGrab;
-    } else
+        (device)->deviceGrab.ActivateGrab = ActivatePointerGrab;
+        (device)->deviceGrab.DeactivateGrab = DeactivatePointerGrab;
+    } else 
     {
-        (device)->coreGrab.ActivateGrab = ActivateKeyboardGrab;
-        (device)->coreGrab.DeactivateGrab = DeactivateKeyboardGrab;
+        (device)->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
+        (device)->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
     }
 }
 

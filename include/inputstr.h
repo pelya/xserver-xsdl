@@ -371,8 +371,7 @@ typedef struct _DeviceIntRec {
     Bool	inited;			/* TRUE if INIT returns Success */
     Bool        enabled;                /* TRUE if ON returns Success */
     Bool        coreEvents;             /* TRUE if device also sends core */
-    GrabInfoRec coreGrab;               /* grab on core events */
-    GrabInfoRec deviceGrab;             /* grab on device events */
+    GrabInfoRec deviceGrab;             /* grab on the device */
     Atom		type;
     char		*name;
     CARD8		id;

@@ -1114,7 +1114,7 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
     else
     {
 	/* If the keyboard is actively grabbed, deliver a grabbed core event */
-	if (keybd->coreGrab.grab && !keybd->coreGrab.fromPassiveGrab)
+	if (keybd->deviceGrab.grab && !keybd->deviceGrab.fromPassiveGrab)
 	{
             /* I've got no clue if that is correct but only working on core
              * grabs seems the right thing here. (whot) */
@@ -1195,7 +1195,7 @@ DGAProcessPointerEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr mouse)
     else
     {
 	/* If the pointer is actively grabbed, deliver a grabbed core event */
-	if (mouse->coreGrab.grab && !mouse->coreGrab.fromPassiveGrab)
+	if (mouse->deviceGrab.grab && !mouse->deviceGrab.fromPassiveGrab)
 	{
             /* I've got no clue if that is correct but only working on core
              * grabs seems the right thing here. (whot) */

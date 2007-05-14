@@ -126,16 +126,6 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     dev->deviceProc = deviceProc;
     dev->startup = autoStart;
 
-    /* core grab defaults */
-    dev->coreGrab.sync.frozen = FALSE;
-    dev->coreGrab.sync.other = NullGrab;
-    dev->coreGrab.sync.state = NOT_GRABBED;
-    dev->coreGrab.sync.event = (xEvent *) NULL;
-    dev->coreGrab.sync.evcount = 0;
-    dev->coreGrab.grab = NullGrab;
-    dev->coreGrab.grabTime = currentTime;
-    dev->coreGrab.fromPassiveGrab = FALSE;
-
     /* device grab defaults */
     dev->deviceGrab.sync.frozen = FALSE;
     dev->deviceGrab.sync.other = NullGrab;
@@ -438,8 +428,8 @@ InitCoreDevices(void)
         dev->public.processInputProc = ProcessKeyboardEvent;
         dev->public.realInputProc = ProcessKeyboardEvent;
 #endif
-        dev->coreGrab.ActivateGrab = ActivateKeyboardGrab;
-        dev->coreGrab.DeactivateGrab = DeactivateKeyboardGrab;
+        dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
+        dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
         dev->coreEvents = FALSE;
         dev->spriteInfo->spriteOwner = FALSE;
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
@@ -464,8 +454,8 @@ InitCoreDevices(void)
         dev->public.processInputProc = ProcessPointerEvent;
         dev->public.realInputProc = ProcessPointerEvent;
 #endif
-        dev->coreGrab.ActivateGrab = ActivatePointerGrab;
-        dev->coreGrab.DeactivateGrab = DeactivatePointerGrab;
+        dev->deviceGrab.ActivateGrab = ActivatePointerGrab;
+        dev->deviceGrab.DeactivateGrab = DeactivatePointerGrab;
         dev->coreEvents = FALSE;
         dev->spriteInfo->spriteOwner = TRUE;
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
@@ -663,7 +653,6 @@ CloseDevice(DeviceIntPtr dev)
     if (dev->devPrivates)
 	xfree(dev->devPrivates);
 
-    xfree(dev->coreGrab.sync.event);
     xfree(dev->deviceGrab.sync.event);
     xfree(dev->spriteInfo);
     xfree(dev);
@@ -2030,7 +2019,7 @@ ProcGetPointerControl(ClientPtr client)
 void
 MaybeStopHint(DeviceIntPtr dev, ClientPtr client)
 {
-    GrabPtr grab = dev->coreGrab.grab;
+    GrabPtr grab = dev->deviceGrab.grab;
 
     if ((grab && SameClient(grab, client) &&
 	 ((grab->eventMask & PointerMotionHintMask) ||

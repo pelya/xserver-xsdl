@@ -832,9 +832,8 @@ GrabInfoPtr grabinfo;
 	     	(_XkbIsReleaseEvent(xE[0].u.u.type)) ) {
 	    return False;
 	}
-        /* just coreGrab is fine, pXDev is inputInfo.keyboard (see above) */
-	if ((pXDev->coreGrab.grab != NullGrab) 
-                && pXDev->coreGrab.fromPassiveGrab &&
+	if ((pXDev->deviceGrab.grab != NullGrab) 
+                && pXDev->deviceGrab.fromPassiveGrab &&
 	    ((xE[0].u.u.type==KeyPress)||(xE[0].u.u.type==KeyRelease))) {
 	    register unsigned state,flags;
 

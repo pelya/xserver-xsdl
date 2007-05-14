@@ -111,7 +111,7 @@ ProcXUngrabDevice(ClientPtr client)
     time = ClientTimeToServerTime(stuff->time);
     if ((CompareTimeStamps(time, currentTime) != LATER) &&
 	(CompareTimeStamps(time, dev->deviceGrab.grabTime) != EARLIER) &&
-	(grab) && SameClient(grab, client))
+	(grab) && SameClient(grab, client) && !grab->coreGrab)
 	(*dev->deviceGrab.DeactivateGrab) (dev);
     return Success;
 }
