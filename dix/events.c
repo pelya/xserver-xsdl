@@ -1881,7 +1881,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 	    return 0;
         
         if (!(type & EXTENSION_EVENT_BASE) && 
-            IsInterferingGrab(wClient(pWin), pWin, pDev, pEvents))
+            IsInterferingGrab(wClient(pWin), pDev, pEvents))
                 return 0;
 
 	if ( (attempt = TryClientEvents(wClient(pWin), pEvents, count,
@@ -1946,7 +1946,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
             {
                 /* core event? check for grab interference */
                 if (!(type & EXTENSION_EVENT_BASE) &&
-                        IsInterferingGrab(rClient(other), pWin, pDev, pEvents))
+                        IsInterferingGrab(rClient(other), pDev, pEvents))
                     continue;
 
                 if ( (attempt = TryClientEvents(rClient(other), pEvents, count,
@@ -5666,19 +5666,15 @@ PickKeyboard(ClientPtr client)
 /* A client that has one or more core grabs does not get core events from
  * devices it does not have a grab on. Legacy applications behave bad
  * otherwise because they are not used to it and the events interfere.
- * The one exception is: if we're about to send an event to a window that is
- * specified as grab window, we still do it. This makes popup menus
- * half-useable for WMs that don't set the ClientPointer.
  * Only applies for core events.
  *
  * Return true if a core event from the device would interfere and should not
  * be delivered.
  */
 Bool 
-IsInterferingGrab(ClientPtr client, WindowPtr win, DeviceIntPtr dev, xEvent* event)
+IsInterferingGrab(ClientPtr client, DeviceIntPtr dev, xEvent* event)
 {
-    DeviceIntPtr it;
-    Bool mayInterfere = FALSE;
+    DeviceIntPtr it = inputInfo.devices;
 
     if (dev->deviceGrab.grab && SameClient(dev->deviceGrab.grab, client))
         return FALSE;
@@ -5697,31 +5693,19 @@ IsInterferingGrab(ClientPtr client, WindowPtr win, DeviceIntPtr dev, xEvent* eve
             return FALSE;
     }
 
-    it = inputInfo.devices;
     while(it)
     {
         if (it != dev)
         {
             if (it->deviceGrab.grab && SameClient(it->deviceGrab.grab, client))
             {
-                /* there's a client with a grab on some device. 
-                 * if we're delivering to the very same window that is
-                 * grabbed (or a child), we're good */
-                WindowPtr parent = win;
-                while(parent)
-                {
-                    if (it->deviceGrab.grab->window == parent)
-                        return FALSE;
-                    parent = parent->parent;
-                }
-
-                mayInterfere = TRUE;
+                return TRUE;
             }
         }
         it = it->next;
     }
 
-    return mayInterfere;
+    return FALSE;
 }
 
 /**

@@ -552,7 +552,6 @@ extern DeviceIntPtr PickKeyboard(
 
 extern Bool IsInterferingGrab(
         ClientPtr /* client */,
-        WindowPtr /* win */,
         DeviceIntPtr /* dev */,
         xEvent* /* events */);
 
