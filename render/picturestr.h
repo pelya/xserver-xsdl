@@ -73,7 +73,10 @@ typedef struct _PictSolidFill {
     CARD32 color;
 } PictSolidFill, *PictSolidFillPtr;
 
-typedef struct pixman_gradient_stop PictGradientStop, *PictGradientStopPtr;
+typedef struct _PictGradientStop {
+    xFixed x;
+    xRenderColor color;
+} PictGradientStop, *PictGradientStopPtr;
 
 typedef struct _PictGradient {
     unsigned int type;
