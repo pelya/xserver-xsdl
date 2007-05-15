@@ -54,13 +54,8 @@ typedef struct _PictFormat {
     IndexFormatRec  index;
 } PictFormatRec;
 
-typedef struct _PictVector {
-    xFixed	    vector[3];
-} PictVector, *PictVectorPtr;
-
-typedef struct _PictTransform {
-    xFixed	    matrix[3][3];
-} PictTransform, *PictTransformPtr;
+typedef struct pixman_vector PictVector, *PictVectorPtr;
+typedef struct pixman_transform PictTransform, *PictTransformPtr;
 
 #define PICT_GRADIENT_STOPTABLE_SIZE 1024
 #define SourcePictTypeSolidFill 0
@@ -78,10 +73,7 @@ typedef struct _PictSolidFill {
     CARD32 color;
 } PictSolidFill, *PictSolidFillPtr;
 
-typedef struct _PictGradientStop {
-    xFixed x;
-    xRenderColor color;
-} PictGradientStop, *PictGradientStopPtr;
+typedef struct pixman_gradient_stop PictGradientStop, *PictGradientStopPtr;
 
 typedef struct _PictGradient {
     unsigned int type;
