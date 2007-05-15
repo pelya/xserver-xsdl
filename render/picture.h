@@ -25,6 +25,8 @@
 #ifndef _PICTURE_H_
 #define _PICTURE_H_
 
+#include <pixman/pixman.h>
+
 typedef struct _DirectFormat	*DirectFormatPtr;
 typedef struct _PictFormat	*PictFormatPtr;
 typedef struct _Picture		*PicturePtr;
@@ -171,54 +173,35 @@ extern int	RenderClientPrivateIndex;
 
 /* Fixed point updates from Carl Worth, USC, Information Sciences Institute */
 
-#if defined(WIN32) && !defined(__GNUC__)
-typedef __int64		xFixed_32_32;
-#else
-#  if defined (_LP64) || \
-      defined(__alpha__) || defined(__alpha) || \
-      defined(ia64) || defined(__ia64__) || \
-      defined(__sparc64__) || \
-      defined(__s390x__) || \
-      defined(amd64) || defined (__amd64__) || \
-      (defined(sgi) && (_MIPS_SZLONG == 64))
-typedef long		xFixed_32_32;
-# else
-#  if defined(__GNUC__) && \
-    ((__GNUC__ > 2) || \
-     ((__GNUC__ == 2) && defined(__GNUC_MINOR__) && (__GNUC_MINOR__ > 7)))
-__extension__
-#  endif
-typedef long long int	xFixed_32_32;
-# endif
-#endif
+typedef pixman_fixed_32_32_t	xFixed_32_32;
 
-typedef xFixed_32_32	xFixed_48_16;
+typedef pixman_fixed_48_16_t	xFixed_48_16;
 
-#define MAX_FIXED_48_16	    ((xFixed_48_16) 0x7fffffff)
-#define MIN_FIXED_48_16	    (-((xFixed_48_16) 1 << 31))
+#define MAX_FIXED_48_16		pixman_max_fixed_48_16
+#define MIN_FIXED_48_16		pixman_min_fixed_48_16
 
-typedef CARD32		xFixed_1_31;
-typedef CARD32		xFixed_1_16;
-typedef INT32		xFixed_16_16;
+typedef pixman_fixed_1_31_t	xFixed_1_31;
+typedef pixman_fixed_1_16_t	xFixed_1_16;
+typedef pixman_fixed_16_16_t	xFixed_16_16;
 
 /*
  * An unadorned "xFixed" is the same as xFixed_16_16, 
  * (since it's quite common in the code) 
  */
-typedef	xFixed_16_16	xFixed;
+typedef	pixman_fixed_t	xFixed;
 #define XFIXED_BITS	16
 
-#define xFixedToInt(f)	(int) ((f) >> XFIXED_BITS)
-#define IntToxFixed(i)	((xFixed) (i) << XFIXED_BITS)
-#define xFixedE		((xFixed) 1)
-#define xFixed1		(IntToxFixed(1))
-#define xFixed1MinusE	(xFixed1 - xFixedE)
-#define xFixedFrac(f)	((f) & xFixed1MinusE)
-#define xFixedFloor(f)	((f) & ~xFixed1MinusE)
-#define xFixedCeil(f)	xFixedFloor((f) + xFixed1MinusE)
+#define xFixedToInt(f)	pixman_fixed_to_int(f)
+#define IntToxFixed(i)	pixman_int_to_fixed(i)
+#define xFixedE		pixman_fixed_e
+#define xFixed1		pixman_fixed_1
+#define xFixed1MinusE	pixman_fixed_1_minus_e
+#define xFixedFrac(f)	pixman_fixed_frac(f)
+#define xFixedFloor(f)	pixman_fixed_floor(f)
+#define xFixedCeil(f)	pixman_fixed_ceil(f)
 
-#define xFixedFraction(f)	((f) & xFixed1MinusE)
-#define xFixedMod2(f)		((f) & (xFixed1 | xFixed1MinusE))
+#define xFixedFraction(f)	pixman_fixed_fraction(f)
+#define xFixedMod2(f)		pixman_fixed_mod2(f)
 
 /* whether 't' is a well defined not obviously empty trapezoid */
 #define xTrapezoidValid(t)  ((t)->left.p1.y != (t)->left.p2.y && \

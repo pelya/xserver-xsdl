@@ -1879,9 +1879,6 @@ AddTraps (PicturePtr	pPicture,
     (*ps->AddTraps) (pPicture, xOff, yOff, ntrap, traps);
 }
 
-#define MAX_FIXED_48_16	    ((xFixed_48_16) 0x7fffffff)
-#define MIN_FIXED_48_16	    (-((xFixed_48_16) 1 << 31))
-
 _X_EXPORT Bool
 PictureTransformPoint3d (PictTransformPtr transform,
                          PictVectorPtr	vector)
