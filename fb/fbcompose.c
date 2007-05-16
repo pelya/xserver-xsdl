@@ -180,6 +180,7 @@ fbFetch_b8g8r8 (const FbBits *bits, int x, int width, CARD32 *buffer, miIndexedP
         b |= (READ(pixel++) << 8);
         b |= (READ(pixel++));
 #endif
+	WRITE(buffer++, b);
     }
 }
 
