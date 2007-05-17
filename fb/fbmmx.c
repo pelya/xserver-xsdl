@@ -295,6 +295,14 @@ in (__m64 src,
     return pix_multiply (src, mask);
 }
 
+static inline __m64
+in_over_full_src_alpha (__m64 src, __m64 mask, __m64 dest)
+{
+    src = _mm_or_si64 (src, MC(full_alpha));
+
+    return over(in (src, mask), mask, dest);
+}
+
 #ifndef _MSC_VER
 static inline __m64
 in_over (__m64 src,
@@ -1299,7 +1307,7 @@ fbCompositeSrc_x888x8x8888mmx (CARD8	op,
 
 	while (w && (unsigned long)dst & 7)
 	{
-	    __m64 s = load8888 (*src);
+	    __m64 s = load8888 (*src | 0xff000000);
 	    __m64 d = load8888 (*dst);
 
 	    *dst = store8888 (in_over (s, srca, vmask, d));
@@ -1309,75 +1317,26 @@ fbCompositeSrc_x888x8x8888mmx (CARD8	op,
 	    src++;
 	}
 
-	while (w >= 16)
+	while (w >= 2)
 	{
-	    __m64 vd0 = *(__m64 *)(dst + 0);
-	    __m64 vd1 = *(__m64 *)(dst + 2);
-	    __m64 vd2 = *(__m64 *)(dst + 4);
-	    __m64 vd3 = *(__m64 *)(dst + 6);
-	    __m64 vd4 = *(__m64 *)(dst + 8);
-	    __m64 vd5 = *(__m64 *)(dst + 10);
-	    __m64 vd6 = *(__m64 *)(dst + 12);
-	    __m64 vd7 = *(__m64 *)(dst + 14);
-
-	    __m64 vs0 = *(__m64 *)(src + 0);
-	    __m64 vs1 = *(__m64 *)(src + 2);
-	    __m64 vs2 = *(__m64 *)(src + 4);
-	    __m64 vs3 = *(__m64 *)(src + 6);
-	    __m64 vs4 = *(__m64 *)(src + 8);
-	    __m64 vs5 = *(__m64 *)(src + 10);
-	    __m64 vs6 = *(__m64 *)(src + 12);
-	    __m64 vs7 = *(__m64 *)(src + 14);
+	    
+	    __m64 vd0 = *(__m64 *)(dst);
+	    __m64 vs0 = *(__m64 *)(src);
 
 	    vd0 = pack8888 (
-		in_over (expand8888 (vs0, 0), srca, vmask, expand8888 (vd0, 0)),
-		in_over (expand8888 (vs0, 1), srca, vmask, expand8888 (vd0, 1)));
+		in_over_full_src_alpha (expand8888 (vs0, 0), vmask, expand8888 (vd0, 0)),
+		in_over_full_src_alpha (expand8888 (vs0, 1), vmask, expand8888 (vd0, 1)));
 
-	    vd1 = pack8888 (
-		in_over (expand8888 (vs1, 0), srca, vmask, expand8888 (vd1, 0)),
-		in_over (expand8888 (vs1, 1), srca, vmask, expand8888 (vd1, 1)));
+	    *(__m64 *)(dst) = vd0;
 
-	    vd2 = pack8888 (
-		in_over (expand8888 (vs2, 0), srca, vmask, expand8888 (vd2, 0)),
-		in_over (expand8888 (vs2, 1), srca, vmask, expand8888 (vd2, 1)));
-
-	    vd3 = pack8888 (
-		in_over (expand8888 (vs3, 0), srca, vmask, expand8888 (vd3, 0)),
-		in_over (expand8888 (vs3, 1), srca, vmask, expand8888 (vd3, 1)));
-
-	    vd4 = pack8888 (
-		in_over (expand8888 (vs4, 0), srca, vmask, expand8888 (vd4, 0)),
-		in_over (expand8888 (vs4, 1), srca, vmask, expand8888 (vd4, 1)));
-
-	    vd5 = pack8888 (
-		in_over (expand8888 (vs5, 0), srca, vmask, expand8888 (vd5, 0)),
-		in_over (expand8888 (vs5, 1), srca, vmask, expand8888 (vd5, 1)));
-
-	    vd6 = pack8888 (
-		in_over (expand8888 (vs6, 0), srca, vmask, expand8888 (vd6, 0)),
-		in_over (expand8888 (vs6, 1), srca, vmask, expand8888 (vd6, 1)));
-
-	    vd7 = pack8888 (
-		in_over (expand8888 (vs7, 0), srca, vmask, expand8888 (vd7, 0)),
-		in_over (expand8888 (vs7, 1), srca, vmask, expand8888 (vd7, 1)));
-
-	    *(__m64 *)(dst + 0) = vd0;
-	    *(__m64 *)(dst + 2) = vd1;
-	    *(__m64 *)(dst + 4) = vd2;
-	    *(__m64 *)(dst + 6) = vd3;
-	    *(__m64 *)(dst + 8) = vd4;
-	    *(__m64 *)(dst + 10) = vd5;
-	    *(__m64 *)(dst + 12) = vd6;
-	    *(__m64 *)(dst + 14) = vd7;
-
-	    w -= 16;
-	    dst += 16;
-	    src += 16;
+	    w -= 2;
+	    dst += 2;
+	    src += 2;
 	}
 
 	while (w)
 	{
-	    __m64 s = load8888 (*src);
+	    __m64 s = load8888 (*src | 0xff000000);
 	    __m64 d = load8888 (*dst);
 
 	    *dst = store8888 (in_over (s, srca, vmask, d));
