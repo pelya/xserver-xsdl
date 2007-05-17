@@ -246,11 +246,10 @@ GEExtensionInit(void)
 /*                interface for extensions                  */
 /************************************************************/
 
-/* Register extension with GE. 
- * Requires the event swap function as parameter. The function will be called
- * each time an event is sent to a client with different byte order.
- * Returns extension offset. This offset is to be used in all generic events
- * sent to the client.
+/* Register an extension with GE. The given swap function will be called each
+ * time an event is sent to a client with different byte order.
+ * @param extension The extensions major opcode 
+ * @param ev_swap the event swap function.  
  */
 void GERegisterExtension(
         int extension, 
@@ -266,7 +265,8 @@ void GERegisterExtension(
 
 
 /* Sets type and extension field for a generic event. This is just an
- * auxiliary function, extensions could do it manually too. */
+ * auxiliary function, extensions could do it manually too. 
+ */ 
 void GEInitEvent(xGenericEvent* ev, int extension)
 {
     ev->type = GenericEvent;

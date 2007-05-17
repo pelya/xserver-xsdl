@@ -51,7 +51,6 @@ from the author.
     (((pWin)->optional) ? (pWin)->optional->geMasks->geClients : NULL)
 
 /* Interface for other extensions */
-Mask GENextMask(int extension);
 void GEWindowSetMask(ClientPtr pClient, WindowPtr pWin, int extension, Mask mask);
 void GERegisterExtension(
         int extension,

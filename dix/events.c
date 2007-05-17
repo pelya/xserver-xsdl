@@ -1523,10 +1523,6 @@ DeactivateKeyboardGrab(DeviceIntPtr keybd)
     ComputeFreezes();
 }
 
-/* 
- * Core flag decides whether to work on the deviceGrab or deviceGrab sync
- * fields.
- */
 void
 AllowSome(ClientPtr client, 
           TimeStamp time, 
@@ -1538,7 +1534,7 @@ AllowSome(ClientPtr client,
     TimeStamp grabTime;
     DeviceIntPtr dev;
     GrabInfoPtr devgrabinfo, 
-                grabinfo = (core) ? &thisDev->deviceGrab : &thisDev->deviceGrab;
+                grabinfo = &thisDev->deviceGrab;
 
     thisGrabbed = grabinfo->grab && SameClient(grabinfo->grab, client);
     thisSynced = FALSE;
@@ -1547,7 +1543,7 @@ AllowSome(ClientPtr client,
     grabTime = grabinfo->grabTime;
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
-        devgrabinfo = (core) ? &dev->deviceGrab : &dev->deviceGrab;
+        devgrabinfo = &dev->deviceGrab;
 
 	if (dev == thisDev)
 	    continue;
@@ -1593,7 +1589,7 @@ AllowSome(ClientPtr client,
 	    {
 		for (dev = inputInfo.devices; dev; dev = dev->next)
 		{
-                    devgrabinfo = (core) ? &dev->deviceGrab : &dev->deviceGrab;
+                    devgrabinfo = &dev->deviceGrab;
 		    if (devgrabinfo->grab 
                             && SameClient(devgrabinfo->grab, client))
 			devgrabinfo->sync.state = THAWED;
@@ -1609,7 +1605,7 @@ AllowSome(ClientPtr client,
 	    {
 		for (dev = inputInfo.devices; dev; dev = dev->next)
 		{
-                    devgrabinfo = (core) ? &dev->deviceGrab : &dev->deviceGrab;
+                    devgrabinfo = &dev->deviceGrab;
 		    if (devgrabinfo->grab 
                             && SameClient(devgrabinfo->grab, client))
 			devgrabinfo->sync.state = FREEZE_BOTH_NEXT_EVENT;
@@ -1902,7 +1898,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         if (type == GenericEvent)
         {
             GEClientPtr pClient;
-            /* FIXME: We don't do more than one GenericEvent at a time yet. */
+            /* We don't do more than one GenericEvent at a time. */
             if (count > 1)
             {
                 ErrorF("Do not send more than one GenericEvent at a time!\n");
@@ -3013,8 +3009,7 @@ CheckPassiveGrabsOnWindow(
 				tempGrab.modifiersDetail.exact&(~0x1f00);
 	    }
 #endif
-            grabinfo = (xE->u.u.type & EXTENSION_EVENT_BASE) ? 
-                &device->deviceGrab : &device->deviceGrab;
+            grabinfo = &device->deviceGrab;
 	    (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
  
 	    FixUpEventFromWindow(device, xE, grab->window, None, TRUE);
@@ -4703,7 +4698,7 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
     GrabPtr grab;
     TimeStamp time;
     int rc;
-    GrabInfoPtr grabInfo = (deviceGrab) ? &dev->deviceGrab : &dev->deviceGrab;
+    GrabInfoPtr grabInfo = &dev->deviceGrab;
 
     UpdateCurrentTime();
     if ((this_mode != GrabModeSync) && (this_mode != GrabModeAsync))
@@ -4751,7 +4746,7 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 	tempGrab.eventMask = mask;
 	tempGrab.device = dev;
         tempGrab.cursor = NULL;
-        tempGrab.coreGrab = deviceGrab;
+        tempGrab.coreGrab = (deviceGrab) ? FALSE : TRUE;
         tempGrab.genericMasks = NULL;
 
 	(*grabInfo->ActivateGrab)(dev, &tempGrab, time, FALSE);

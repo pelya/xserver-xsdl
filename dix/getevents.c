@@ -603,6 +603,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     ev->evtype = XI_RawDeviceEvent;
     ev->extension = IReqCode;
     ev->length = (num_valuators > 4) ? (num_valuators - 4) : 0;
+    ev->event_type = type;
     ev->buttons = buttons;
     ev->num_valuators = num_valuators;
     ev->first_valuator = first_valuator;

@@ -134,6 +134,10 @@ Mask ExtValidMasks[EMASKSIZE];
 Mask ExtExclusiveMasks[EMASKSIZE];
 
 
+/**
+ * Filters for various generic events. 
+ * Evtype is index, mask is value at index.
+ */
 static Mask xi_filters[3] = {
     XI_PointerKeyboardPairingChangedMask,
     XI_RandomStringMask,
@@ -212,9 +216,6 @@ int ChangeDeviceNotify;
 int DevicePresenceNotify;
 int DeviceEnterNotify;
 int DeviceLeaveNotify;
-
-/* GE events */
-int PointerKeyboardPairingChangedNotify;
 
 int RT_INPUTCLIENT;
 
@@ -827,10 +828,6 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     DevicePresenceNotify = DeviceButtonStateNotify + 1;
     DeviceEnterNotify = DevicePresenceNotify + 1;
     DeviceLeaveNotify = DeviceEnterNotify + 1;
-
-    /* GE Events */
-    PointerKeyboardPairingChangedNotify =
-        XI_PointerKeyboardPairingChangedNotify;
 
     event_base[KeyClass] = DeviceKeyPress;
     event_base[ButtonClass] = DeviceButtonPress;
