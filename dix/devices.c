@@ -1011,7 +1011,7 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
         AllocateMotionHistory(dev);
 
     for (i=0; i<numAxes; i++) {
-        InitValuatorAxisStruct(dev, i, 0, -1, 0, 0, 0);
+        InitValuatorAxisStruct(dev, i, -1, -1, 0, 0, 0);
 	valc->axisVal[i]=0;
     }
     return TRUE;
