@@ -3940,11 +3940,14 @@ EnterLeaveEvent(
                                         NullGrab, 0);
     }
 
+    /* we don't have enough bytes, so we squash flags and mode into 
+       one byte, and use the last byte for the deviceid. */
     devEnterLeave = (deviceEnterNotify*)&event;
     devEnterLeave->type = (type == EnterNotify) ? DeviceEnterNotify :
         DeviceLeaveNotify;
     devEnterLeave->type = (type == EnterNotify) ? DeviceEnterNotify :
         DeviceLeaveNotify;
+    devEnterLeave->mode |= (event.u.enterLeave.flags << 4);
     devEnterLeave->deviceid = mouse->id;
     mskidx = mouse->id;
     inputMasks = wOtherInputMasks(pWin);
