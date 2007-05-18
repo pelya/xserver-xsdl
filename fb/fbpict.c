@@ -1036,6 +1036,10 @@ create_bits_picture (PicturePtr pict)
      */
     pixman_image_set_clip_region (image, pict->pCompositeClip);
     
+    /* Indexed table */
+    if (pict->pFormat->index.devPrivate)
+	pixman_image_set_indexed (image, pict->pFormat->index.devPrivate);
+    
     fbFinishAccess (pict->pDrawable);
 
     return image;
