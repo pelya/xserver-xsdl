@@ -1553,7 +1553,6 @@ fbCombineSrcU (CARD32 *dest, const CARD32 *src, int width)
     MEMCPY_WRAPPED(dest, src, width*sizeof(CARD32));
 }
 
-
 static FASTCALL void
 fbCombineOverU (CARD32 *dest, const CARD32 *src, int width)
 {
@@ -4028,6 +4027,7 @@ static void fbStoreExternalAlpha(PicturePtr pict, int x, int y, int width, CARD3
 typedef void (*scanStoreProc)(PicturePtr , int , int , int , CARD32 *);
 typedef void (*scanFetchProc)(PicturePtr , int , int , int , CARD32 * , CARD32 *, CARD32);
 
+#if 0
 void
 fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
 {
@@ -4294,6 +4294,7 @@ fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer)
     if (!store)
 	fbFinishAccess (data->dest->pDrawable);
 }
+#endif
 
 void
 fbCompositeGeneral (CARD8	op,
