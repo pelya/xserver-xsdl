@@ -931,218 +931,222 @@ fbCompositeSrcSrc_nxn  (CARD8	   op,
     fbFinishAccess(pDst->pDrawable);
 }
 
-/*
- * Solid fill
-void
-fbCompositeSolidSrc_nxn  (CARD8	op,
-			  PicturePtr pSrc,
-			  PicturePtr pMask,
-			  PicturePtr pDst,
-			  INT16      xSrc,
-			  INT16      ySrc,
-			  INT16      xMask,
-			  INT16      yMask,
-			  INT16      xDst,
-			  INT16      yDst,
-			  CARD16     width,
-			  CARD16     height)
+static pixman_image_t *
+create_solid_fill_image (PicturePtr pict)
 {
+    PictSolidFill *solid = &pict->pSourcePict->solidFill;
+    pixman_color_t color;
+    CARD32 a, r, g, b;
     
+    a = (solid->color & 0xff000000) >> 24;
+    r = (solid->color & 0x00ff0000) >> 16;
+    g = (solid->color & 0x0000ff00) >>  8;
+    b = (solid->color & 0x000000ff) >>  0;
+    
+    color.alpha = (a << 8) | a;
+    color.red =   (r << 8) | r;
+    color.green = (g << 8) | g;
+    color.blue =  (b << 8) | b;
+    
+    return pixman_image_create_solid_fill (&color);
 }
- */
 
-#define SCANLINE_BUFFER_LENGTH 2048
+static pixman_image_t *
+create_linear_gradient_image (PictGradient *gradient)
+{
+    PictLinearGradient *linear = (PictLinearGradient *)gradient;
+    pixman_point_fixed_t p1;
+    pixman_point_fixed_t p2;
+    
+    p1.x = linear->p1.x;
+    p1.y = linear->p1.y;
+    p2.x = linear->p2.x;
+    p2.y = linear->p2.y;
+    
+    return pixman_image_create_linear_gradient (
+	&p1, &p2, (pixman_gradient_stop_t *)gradient->stops, gradient->nstops);
+}
+
+static pixman_image_t *
+create_radial_gradient_image (PictGradient *gradient)
+{
+    PictRadialGradient *radial = (PictRadialGradient *)gradient;
+    pixman_point_fixed_t c1;
+    pixman_point_fixed_t c2;
+    
+    c1.x = radial->c1.x;
+    c1.y = radial->c1.y;
+    c2.x = radial->c2.x;
+    c2.y = radial->c2.y;
+    
+    return pixman_image_create_radial_gradient (
+	&c1, &c2, radial->c1.radius,
+	radial->c2.radius,
+	(pixman_gradient_stop_t *)gradient->stops, gradient->nstops);
+}
+
+static pixman_image_t *
+create_conical_gradient_image (PictGradient *gradient)
+{
+    PictConicalGradient *conical = (PictConicalGradient *)gradient;
+    pixman_point_fixed_t center;
+    
+    center.x = conical->center.x;
+    center.y = conical->center.y;
+    
+    return pixman_image_create_conical_gradient (
+	&center, conical->angle, (pixman_gradient_stop_t *)gradient->stops,
+	gradient->nstops);
+}
+
+static pixman_image_t *
+create_bits_picture (PicturePtr pict)
+{
+    FbBits *bits;
+    FbStride stride;
+    int bpp, xoff, yoff;
+    pixman_image_t *image;
+    
+    fbGetDrawable (pict->pDrawable, bits, stride, bpp, xoff, yoff);
+    
+    bits += yoff * stride + xoff;
+    
+    image = pixman_image_create_bits (
+	pict->format,
+	pict->pDrawable->width, pict->pDrawable->height,
+	(uint32_t *)bits, stride * sizeof (FbStride));
+    
+    
+#ifdef FB_ACCESS_WRAPPER
+#if FB_SHIFT==5
+    
+    pixman_image_set_accessors (image,
+				(pixman_read_memory_func_t)wfbReadMemory,
+				(pixman_write_memory_func_t)wfbWriteMemory);
+    
+#else
+    
+#error The pixman library only works when FbBits is 32 bits wide
+    
+#endif
+#endif
+    
+    /* pCompositeClip is undefined for source pictures, so
+     * only set the clip region for pictures with drawables
+     */
+    pixman_image_set_clip_region (image, pict->pCompositeClip);
+    
+    fbFinishAccess (pict->pDrawable);
+
+    return image;
+}
+
+static pixman_image_t *image_from_pict (PicturePtr pict);
+
+static void
+set_image_properties (pixman_image_t *image, PicturePtr pict)
+{
+    pixman_repeat_t repeat;
+    pixman_filter_t filter;
+    
+    if (pict->transform)
+    {
+	pixman_image_set_transform (
+	    image, (pixman_transform_t *)pict->transform);
+    }
+    
+    switch (pict->repeatType)
+    {
+    default:
+    case RepeatNone:
+	repeat = PIXMAN_REPEAT_NONE;
+	break;
+	
+    case RepeatPad:
+	repeat = PIXMAN_REPEAT_PAD;
+	break;
+	
+    case RepeatNormal:
+	repeat = PIXMAN_REPEAT_NORMAL;
+	break;
+	
+    case RepeatReflect:
+	repeat = PIXMAN_REPEAT_REFLECT;
+	break;
+    }
+    
+    pixman_image_set_repeat (image, repeat);
+    
+    if (pict->alphaMap)
+    {
+	pixman_image_t *alpha_map = image_from_pict (pict->alphaMap);
+	
+	pixman_image_set_alpha_map (
+	    image, alpha_map, pict->alphaOrigin.x, pict->alphaOrigin.y);
+	
+	pixman_image_unref (alpha_map);
+    }
+    
+    pixman_image_set_component_alpha (image, pict->componentAlpha);
+
+    switch (pict->filter)
+    {
+    default:
+    case PictFilterNearest:
+    case PictFilterFast:
+	filter = PIXMAN_FILTER_NEAREST;
+	break;
+	
+    case PictFilterBilinear:
+    case PictFilterGood:
+	filter = PIXMAN_FILTER_BILINEAR;
+	break;
+	
+    case PictFilterConvolution:
+	filter = PIXMAN_FILTER_CONVOLUTION;
+	break;
+    }
+    
+    pixman_image_set_filter (image, filter, (pixman_fixed_t *)pict->filter_params, pict->filter_nparams);
+}
 
 static pixman_image_t *
 image_from_pict (PicturePtr pict)
 {
-    pixman_image_t *result = NULL;
+    pixman_image_t *image = NULL;
 
     if (!pict)
 	return NULL;
-    
-    if (pict->pSourcePict)
+
+    if (pict->pDrawable)
     {
-	SourcePictPtr sp = pict->pSourcePict;
+	image = create_bits_picture (pict);
+    }
+    else if (pict->pSourcePict)
+    {
+	SourcePict *sp = pict->pSourcePict;
 	
 	if (sp->type == SourcePictTypeSolidFill)
 	{
-	    PictSolidFill *solid = &pict->pSourcePict->solidFill;
-	    pixman_color_t color;
-	    CARD32 a, r, g, b;
-
-	    a = (solid->color & 0xff000000) >> 24;
-	    r = (solid->color & 0x00ff0000) >> 16;
-	    g = (solid->color & 0x0000ff00) >>  8;
-	    b = (solid->color & 0x000000ff) >>  0;
-
-	    color.alpha = (a << 8) | a;
-	    color.red =   (r << 8) | r;
-	    color.green = (g << 8) | g;
-	    color.blue =  (b << 8) | b;
-	    
-	    result = pixman_image_create_solid_fill (&color);
+	    image = create_solid_fill_image (pict);
 	}
 	else
 	{
 	    PictGradient *gradient = &pict->pSourcePict->gradient;
-
+	    
 	    if (sp->type == SourcePictTypeLinear)
-	    {
-		PictLinearGradient *linear = &pict->pSourcePict->linear;
-		pixman_point_fixed_t p1;
-		pixman_point_fixed_t p2;
-
-		p1.x = linear->p1.x;
-		p1.y = linear->p1.y;
-		p2.x = linear->p2.x;
-		p2.y = linear->p2.y;
-		
-		result = pixman_image_create_linear_gradient (
-		    &p1, &p2, (pixman_gradient_stop_t *)gradient->stops, gradient->nstops);
-	    }
+		image = create_linear_gradient_image (gradient);
 	    else if (sp->type == SourcePictTypeRadial)
-	    {
-		PictRadialGradient *radial = &pict->pSourcePict->radial;
-		
-		pixman_point_fixed_t c1;
-		pixman_point_fixed_t c2;
-
-		c1.x = radial->c1.x;
-		c1.y = radial->c1.y;
-		c2.x = radial->c2.x;
-		c2.y = radial->c2.y;
-		
-		result = pixman_image_create_radial_gradient (
-		    &c1, &c2, radial->c1.radius,
-		    radial->c2.radius,
-		    (pixman_gradient_stop_t *)gradient->stops, gradient->nstops);
-	    }
+		image = create_radial_gradient_image (gradient);
 	    else if (sp->type == SourcePictTypeConical)
-	    {
-		PictConicalGradient *conical = &pict->pSourcePict->conical;
-		pixman_point_fixed_t center;
-
-		center.x = conical->center.x;
-		center.y = conical->center.y;
-		
-		result = pixman_image_create_conical_gradient (
-		    &center, conical->angle, (pixman_gradient_stop_t *)gradient->stops,
-		    gradient->nstops);
-	    }
-	    else
-	    {
-		/* Shouldn't happen */
-		result = NULL;
-	    }
+		image = create_conical_gradient_image (gradient);
 	}
-    }
-    else if (pict->pDrawable)
-    {
-	FbBits *bits;
-	FbStride stride;
-	int bpp, xoff, yoff;
-
-	fbGetDrawable (pict->pDrawable, bits, stride, bpp, xoff, yoff);
-
-	bits += yoff * stride + xoff;
-	
-	result = pixman_image_create_bits (
-	    pict->format,
-	    pict->pDrawable->width, pict->pDrawable->height,
-	    (uint32_t *)bits, stride * sizeof (FbStride));
-
-
-#ifdef FB_ACCESS_WRAPPER
-#if FB_SHIFT==5
-	
-	pixman_image_set_accessors (
-	    result,
-	    (pixman_read_memory_func_t)wfbReadMemory,
-	    (pixman_write_memory_func_t)wfbWriteMemory);
-#else
-
-#error The pixman library only works with sizeof (FbBits) == 5
-
-#endif
-#endif
-	
-	/* pCompositeClip is undefined for source pictures, so
-	 * only set the clip region for pictures with drawables
-	 */
-	pixman_image_set_clip_region (
-	    result, pict->pCompositeClip);
-
-	fbFinishAccess (pict->pDrawable);
-    }
-
-    if (result)
-    {
-	pixman_repeat_t repeat;
-	pixman_filter_t filter;
-	
-	if (pict->transform)
-	{
-	    pixman_image_set_transform (
-		result, (pixman_transform_t *)pict->transform);
-	}
-
-	switch (pict->repeatType)
-	{
-	default:
-	case RepeatNone:
-	    repeat = PIXMAN_REPEAT_NONE;
-	    break;
-
-	case RepeatPad:
-	    repeat = PIXMAN_REPEAT_PAD;
-	    break;
-
-	case RepeatNormal:
-	    repeat = PIXMAN_REPEAT_NORMAL;
-	    break;
-
-	case RepeatReflect:
-	    repeat = PIXMAN_REPEAT_REFLECT;
-	    break;
-	}
-
-	pixman_image_set_repeat (result, repeat);
-
-	if (pict->alphaMap)
-	{
-	    pixman_image_t *alpha_map = image_from_pict (pict->alphaMap);
-
-	    pixman_image_set_alpha_map (
-		result, alpha_map, pict->alphaOrigin.x, pict->alphaOrigin.y);
-
-	    pixman_image_unref (alpha_map);
-	}
-
-	pixman_image_set_component_alpha (result, pict->componentAlpha);
-
-	switch (pict->filter)
-	{
-	default:
-	case PictFilterNearest:
-	case PictFilterFast:
-	    filter = PIXMAN_FILTER_NEAREST;
-	    break;
-
-	case PictFilterBilinear:
-	case PictFilterGood:
-	    filter = PIXMAN_FILTER_BILINEAR;
-	    break;
-
-	case PictFilterConvolution:
-	    filter = PIXMAN_FILTER_CONVOLUTION;
-	    break;
-	}
-
-	pixman_image_set_filter (result, filter, (pixman_fixed_t *)pict->filter_params, pict->filter_nparams);
     }
     
-    return result;
+    if (image)
+	set_image_properties (image, pict);
+    
+    return image;
 }
 
 static void
@@ -1180,6 +1184,8 @@ out:
 }    
 
 #if 0
+#define SCANLINE_BUFFER_LENGTH 2048
+
 static void
 oldfbCompositeRectWrapper  (CARD8	   op,
 			 PicturePtr pSrc,
