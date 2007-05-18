@@ -878,10 +878,15 @@ mmxCombineAddC (CARD32 *dest, CARD32 *src, CARD32 *mask, int width)
     _mm_empty();
 }
 
+#if 0
+/* FIXME: this should be reinstated after adding fbmmx to pixman */
 extern FbComposeFunctions composeFunctions;
+#endif
 
 void fbComposeSetupMMX(void)
 {
+#if 0
+/* FIXME: this should be reinstated after adding fbmmx to pixman */
     /* check if we have MMX support and initialize accordingly */
     if (fbHaveMMX()) {
         composeFunctions.combineU[PictOpOver] = mmxCombineOverU;
@@ -910,6 +915,7 @@ void fbComposeSetupMMX(void)
 
         composeFunctions.combineMaskU = mmxCombineMaskU;
     } 
+#endif
 }
 
 
