@@ -1723,8 +1723,26 @@ Bool
 xf86SetDesiredModes (ScrnInfoPtr scrn)
 {
     xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(scrn);
-    int			c;
+    int			c, o;
 
+    /*
+     * Turn off everything so mode setting is done
+     * with hardware in a consistent state
+     */
+    for (o = 0; o < config->num_output; o++) 
+    {
+	xf86OutputPtr  output = config->output[o];
+	(*output->funcs->dpms)(output, DPMSModeOff);
+    }
+
+    for (c = 0; c < config->num_crtc; c++) 
+    {
+	xf86CrtcPtr crtc = config->crtc[c];
+
+	crtc->funcs->dpms(crtc, DPMSModeOff);
+	memset(&crtc->mode, 0, sizeof(crtc->mode));
+    }
+    
     for (c = 0; c < config->num_crtc; c++)
     {
 	xf86CrtcPtr	crtc = config->crtc[c];
