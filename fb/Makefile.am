@@ -42,7 +42,6 @@ libfb_la_SOURCES = 	\
 	fbblt.c		\
 	fbbltone.c	\
 	fbbstore.c	\
-	fbcompose.c	\
 	fbcopy.c	\
 	fbfill.c	\
 	fbfillrect.c	\

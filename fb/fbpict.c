@@ -1183,50 +1183,6 @@ out:
 	pixman_image_unref (dest);
 }    
 
-#if 0
-#define SCANLINE_BUFFER_LENGTH 2048
-
-static void
-oldfbCompositeRectWrapper  (CARD8	   op,
-			 PicturePtr pSrc,
-			 PicturePtr pMask,
-			 PicturePtr pDst,
-			 INT16      xSrc,
-			 INT16      ySrc,
-			 INT16      xMask,
-			 INT16      yMask,
-			 INT16      xDst,
-			 INT16      yDst,
-			 CARD16     width,
-			 CARD16     height)
-{
-    CARD32 _scanline_buffer[SCANLINE_BUFFER_LENGTH * 3];
-    CARD32 *scanline_buffer = _scanline_buffer;
-    FbComposeData data;
-
-    data.op = op;
-    data.src = pSrc;
-    data.mask = pMask;
-    data.dest = pDst;
-    data.xSrc = xSrc;
-    data.ySrc = ySrc;
-    data.xMask = xMask;
-    data.yMask = yMask;
-    data.xDest = xDst;
-    data.yDest = yDst;
-    data.width = width;
-    data.height = height;
-
-    if (width > SCANLINE_BUFFER_LENGTH)
-        scanline_buffer = (CARD32 *) malloc(width * 3 * sizeof(CARD32));
-
-    fbCompositeRect (&data, scanline_buffer);
-
-    if (scanline_buffer != _scanline_buffer)
-	free(scanline_buffer);
-}
-#endif
-
 void
 fbWalkCompositeRegion (CARD8 op,
 		       PicturePtr pSrc,
@@ -1930,6 +1886,25 @@ fbComposite (CARD8      op,
     fbWalkCompositeRegion (op, pSrc, pMask, pDst, xSrc, ySrc,
 			   xMask, yMask, xDst, yDst, width, height,
 			   srcRepeat, maskRepeat, func);
+}
+
+void
+fbCompositeGeneral (CARD8	op,
+		    PicturePtr	pSrc,
+		    PicturePtr	pMask,
+		    PicturePtr	pDst,
+		    INT16	xSrc,
+		    INT16	ySrc,
+		    INT16	xMask,
+		    INT16	yMask,
+		    INT16	xDst,
+		    INT16	yDst,
+		    CARD16	width,
+		    CARD16	height)
+{
+    return fbComposite (op, pSrc, pMask, pDst,
+			xSrc, ySrc, xMask, yMask, xDst, yDst,
+			width, height);
 }
 
 #endif /* RENDER */
