@@ -4695,7 +4695,7 @@ int
 GrabDevice(ClientPtr client, DeviceIntPtr dev, 
            unsigned this_mode, unsigned other_mode, Window grabWindow, 
            unsigned ownerEvents, Time ctime, Mask mask, CARD8 *status,
-           Bool deviceGrab)
+           Bool coreGrab)
 {
     WindowPtr pWin;
     GrabPtr grab;
@@ -4749,7 +4749,7 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 	tempGrab.eventMask = mask;
 	tempGrab.device = dev;
         tempGrab.cursor = NULL;
-        tempGrab.coreGrab = (deviceGrab) ? FALSE : TRUE;
+        tempGrab.coreGrab = coreGrab;
         tempGrab.genericMasks = NULL;
 
 	(*grabInfo->ActivateGrab)(dev, &tempGrab, time, FALSE);
