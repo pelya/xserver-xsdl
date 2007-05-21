@@ -1809,7 +1809,7 @@ configImpliedLayout(serverLayoutPtr servlayoutp, XF86ConfScreenPtr conf_screen)
     indp = xnfalloc(sizeof(IDevRec));
     indp->identifier = NULL;
     servlayoutp->inputs = indp;
-    if (!xf86Info.allowEmptyInput && checkCoreInputDevices(servlayoutp, TRUE))
+    if (!xf86Info.allowEmptyInput && !checkCoreInputDevices(servlayoutp, TRUE))
 	return FALSE;
     
     return TRUE;
