@@ -46,7 +46,6 @@ from the author.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include <X11/extensions/Xge.h>
-#include "gestr.h"
 #include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
