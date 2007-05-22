@@ -2210,6 +2210,19 @@ DRIGetContext(ScreenPtr pScreen)
     return pDRIPriv->myContext;
 }
 
+void
+DRIGetTexOffsetFuncs(ScreenPtr pScreen,
+		     DRITexOffsetStartProcPtr *texOffsetStartFunc,
+		     DRITexOffsetFinishProcPtr *texOffsetFinishFunc)
+{
+    DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+
+    if (!pDRIPriv) return;
+
+    *texOffsetStartFunc  = pDRIPriv->pDriverInfo->texOffsetStart;
+    *texOffsetFinishFunc = pDRIPriv->pDriverInfo->texOffsetFinish;
+}
+
 /* This lets get at the unwrapped functions so that they can correctly
  * call the lowerlevel functions, and choose whether they will be
  * called at every level of recursion (eg in validatetree).
