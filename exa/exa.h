@@ -229,7 +229,7 @@ typedef struct _ExaDriver {
      * @{
      */
     /**
-     * PrepareCopy() sets up the driver for doing a copy within offscreen
+     * PrepareCopy() sets up the driver for doing a copy within video 
      * memory.
      *
      * @param pSrcPixmap source pixmap
@@ -720,6 +720,9 @@ exaOffscreenAlloc(ScreenPtr pScreen, int size, int align,
 
 ExaOffscreenArea *
 exaOffscreenFree(ScreenPtr pScreen, ExaOffscreenArea *area);
+
+void
+ExaOffscreenMarkUsed (PixmapPtr pPixmap);
 
 unsigned long
 exaGetPixmapOffset(PixmapPtr pPix);

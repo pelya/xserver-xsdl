@@ -232,14 +232,14 @@ _X_EXPORT int            pciNumBuses = 0;     /* Actual number of PCI buses */
 int            pciMaxBusNum = MAX_PCI_BUSES;
 static Bool    inProbe = FALSE;
 
-static pciConfigPtr pci_devp[MAX_PCI_DEVICES + 1] = {NULL, };
+static pciConfigPtr *pci_devp = NULL;
 
 static int readPciBios( PCITAG Tag, CARD8* tmp, ADDRESS hostbase,
 			unsigned char * buf, int len, PciBiosType BiosType );
 
 static int (*pciOSHandleBIOS)(PCITAG Tag, int basereg, unsigned char *buf, int len);
 
-int xf86MaxPciDevs = MAX_PCI_DEVICES;
+int xf86MaxPciDevs = 0;
 
 /*
  * Platform specific PCI function pointers.
@@ -272,6 +272,14 @@ pciInit()
 	if (pciNumBuses <= 0)
 	    ARCH_PCI_OS_INIT();
 #endif
+	if (xf86MaxPciDevs == 0) {
+	    xf86Msg(X_WARNING,
+		    "OS did not count PCI devices, guessing wildly\n");
+	    xf86MaxPciDevs = MAX_PCI_DEVICES;
+	}
+	if (pci_devp)
+	    xfree(pci_devp);
+	pci_devp = xnfcalloc(xf86MaxPciDevs + 1, sizeof(pciConfigPtr));
 }
 
 void pciSetOSBIOSPtr(int (*bios_fn)(PCITAG Tag, int basereg, unsigned char * buf, int len))
@@ -920,7 +928,7 @@ xf86scanpci(int flags)
      * result in an endless recursion if platform/OS specific PCI
      * bus probing code calls this function from with in it.
      */
-    if (done || pci_devp[0])
+    if (done || pci_devp)
 	return pci_devp;
 
     done = TRUE;

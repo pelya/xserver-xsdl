@@ -255,6 +255,7 @@ main(int argc, char *argv[], char *envp[])
     display = "0";
 
     InitGlobals();
+    InitRegions();
 #ifdef XPRINT
     PrinterInitGlobals();
 #endif

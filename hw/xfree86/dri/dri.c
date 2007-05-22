@@ -473,6 +473,9 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
     pDRIPriv->pLockRefCount = &pDRIEntPriv->lockRefCount;
     pDRIPriv->pLockingContext = &pDRIEntPriv->lockingContext;
 
+    if (!pDRIEntPriv->keepFDOpen)
+	pDRIEntPriv->keepFDOpen = pDRIInfo->keepFDOpen;
+
     pDRIEntPriv->refCount++;
 
     return TRUE;
@@ -2205,6 +2208,19 @@ DRIGetContext(ScreenPtr pScreen)
     if (!pDRIPriv) return 0;
 
     return pDRIPriv->myContext;
+}
+
+void
+DRIGetTexOffsetFuncs(ScreenPtr pScreen,
+		     DRITexOffsetStartProcPtr *texOffsetStartFunc,
+		     DRITexOffsetFinishProcPtr *texOffsetFinishFunc)
+{
+    DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+
+    if (!pDRIPriv) return;
+
+    *texOffsetStartFunc  = pDRIPriv->pDriverInfo->texOffsetStart;
+    *texOffsetFinishFunc = pDRIPriv->pDriverInfo->texOffsetFinish;
 }
 
 /* This lets get at the unwrapped functions so that they can correctly

@@ -82,6 +82,7 @@ XF86ConfFilesRec, *XF86ConfFilesPtr;
 /* Values for load_type */
 #define XF86_LOAD_MODULE	0
 #define XF86_LOAD_DRIVER	1
+#define XF86_DISABLE_MODULE	2
 
 typedef struct
 {
@@ -97,6 +98,7 @@ XF86LoadRec, *XF86LoadPtr;
 typedef struct
 {
 	XF86LoadPtr mod_load_lst;
+    XF86LoadPtr mod_disable_lst;
 	char *mod_comment;
 }
 XF86ConfModuleRec, *XF86ConfModulePtr;

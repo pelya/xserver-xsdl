@@ -254,6 +254,7 @@ xf86ModulelistFromConfig(pointer **optlist)
     char *ignore[] = { "GLcore", "speedo", "bitmap", "drm", NULL };
     pointer *optarray;
     XF86LoadPtr modp;
+    Bool found;
     
     /*
      * make sure the config file has been parsed and that we have a
@@ -266,35 +267,76 @@ xf86ModulelistFromConfig(pointer **optlist)
     }
     
     if (xf86configptr->conf_modules) {
-	/*
-	 * Walk the list of modules in the "Module" section to determine how
-	 * many we have.
-	 */
-	modp = xf86configptr->conf_modules->mod_load_lst;
-	while (modp) {
-            for (i = 0; ignore[i]; i++) {
-                if (strcmp(modp->load_name, ignore[i]) == 0)
-                    modp->ignore = 1;
+        /* Walk the disable list and let people know what we've parsed to
+         * not be loaded 
+         */
+        modp = xf86configptr->conf_modules->mod_disable_lst;
+        while (modp) {
+            xf86Msg(X_WARNING, "\"%s\" will not be loaded unless you've specified it to be loaded elsewhere.\n", modp->load_name);
+	        modp = (XF86LoadPtr) modp->list.next;
+        }
+        /*
+         * Walk the default settings table. For each module listed to be
+         * loaded, make sure it's in the mod_load_lst. If it's not, make
+         * sure it's not in the mod_no_load_lst. If it's not disabled,
+         * append it to mod_load_lst
+         */
+         for (i=0 ; ModuleDefaults[i].name != NULL ; i++) {
+            if (ModuleDefaults[i].toLoad == FALSE) {
+                xf86Msg(X_WARNING, "\"%s\" is not to be loaded by default. Skipping.\n", ModuleDefaults[i].name);
+                continue;
             }
-            if (!modp->ignore)
-	        count++;
-	    modp = (XF86LoadPtr) modp->list.next;
-	}
+            found = FALSE;
+            modp = xf86configptr->conf_modules->mod_load_lst;
+            while (modp) {
+                if (strcmp(modp->load_name, ModuleDefaults[i].name) == 0) {
+                    xf86Msg(X_INFO, "\"%s\" will be loaded. This was enabled by default and also specified in the config file.\n", ModuleDefaults[i].name);
+                    found = TRUE;
+                    break;
+                }
+	        modp = (XF86LoadPtr) modp->list.next;
+            }
+            if (found == FALSE) {
+                modp = xf86configptr->conf_modules->mod_disable_lst;
+                while (modp) {
+                    if (strcmp(modp->load_name, ModuleDefaults[i].name) == 0) {
+                        xf86Msg(X_INFO, "\"%s\" will be loaded even though the default is to disable it.\n", ModuleDefaults[i].name);
+                        found = TRUE;
+                        break;
+                    }
+	                modp = (XF86LoadPtr) modp->list.next;
+                }
+            }
+            if (found == FALSE) {
+	            XF86ConfModulePtr ptr = xf86configptr->conf_modules;
+	            ptr = xf86addNewLoadDirective(ptr, ModuleDefaults[i].name, XF86_LOAD_MODULE, ModuleDefaults[i].load_opt);
+                xf86Msg(X_INFO, "\"%s\" will be loaded by default.\n", ModuleDefaults[i].name);
+            }
+         }
     } else {
 	xf86configptr->conf_modules = xnfcalloc(1, sizeof(XF86ConfModuleRec));
+	for (i=0 ; ModuleDefaults[i].name != NULL ; i++) {
+	    if (ModuleDefaults[i].toLoad == TRUE) {
+		XF86ConfModulePtr ptr = xf86configptr->conf_modules;
+		ptr = xf86addNewLoadDirective(ptr, ModuleDefaults[i].name, XF86_LOAD_MODULE, ModuleDefaults[i].load_opt);
+	    }
+	}
     }
 
-    if (count == 0) {
-	XF86ConfModulePtr ptr = xf86configptr->conf_modules;
-	ptr = xf86addNewLoadDirective(ptr, "extmod", XF86_LOAD_MODULE, NULL);
-	ptr = xf86addNewLoadDirective(ptr, "dbe", XF86_LOAD_MODULE, NULL);
-	ptr = xf86addNewLoadDirective(ptr, "glx", XF86_LOAD_MODULE, NULL);
-	ptr = xf86addNewLoadDirective(ptr, "freetype", XF86_LOAD_MODULE, NULL);
-	ptr = xf86addNewLoadDirective(ptr, "type1", XF86_LOAD_MODULE, NULL);
-	ptr = xf86addNewLoadDirective(ptr, "record", XF86_LOAD_MODULE, NULL);
-	ptr = xf86addNewLoadDirective(ptr, "dri", XF86_LOAD_MODULE, NULL);
-	count = 7;
-    }
+	    /*
+	     * Walk the list of modules in the "Module" section to determine how
+	     * many we have.
+	    */
+	    modp = xf86configptr->conf_modules->mod_load_lst;
+	    while (modp) {
+                for (i = 0; ignore[i]; i++) {
+                    if (strcmp(modp->load_name, ignore[i]) == 0)
+                        modp->ignore = 1;
+                }
+                if (!modp->ignore)
+	            count++;
+	        modp = (XF86LoadPtr) modp->list.next;
+	    }
 
     /*
      * allocate the memory and walk the list again to fill in the pointers
@@ -303,22 +345,22 @@ xf86ModulelistFromConfig(pointer **optlist)
     optarray = xnfalloc((count + 1) * sizeof(pointer));
     count = 0;
     if (xf86configptr->conf_modules) {
-	modp = xf86configptr->conf_modules->mod_load_lst;
-	while (modp) {
+	    modp = xf86configptr->conf_modules->mod_load_lst;
+	    while (modp) {
             if (!modp->ignore) {
-	        modulearray[count] = modp->load_name;
-	        optarray[count] = modp->load_opt;
-	        count++;
+	            modulearray[count] = modp->load_name;
+	            optarray[count] = modp->load_opt;
+	            count++;
             }
-	    modp = (XF86LoadPtr) modp->list.next;
-	}
+	        modp = (XF86LoadPtr) modp->list.next;
+	    }
     }
     modulearray[count] = NULL;
     optarray[count] = NULL;
     if (optlist)
-	*optlist = optarray;
+	    *optlist = optarray;
     else
-	xfree(optarray);
+	    xfree(optarray);
     return modulearray;
 }
 
@@ -565,16 +607,24 @@ configFiles(XF86ConfFilesPtr fileconf)
   char *log_buf;
 
   /* FontPath */
-
   /* Try XF86Config FontPath first */
   if (!xf86fpFlag) {
    if (fileconf) {
     if (fileconf->file_fontpath) {
       char *f = xf86ValidateFontPath(fileconf->file_fontpath);
       pathFrom = X_CONFIG;
-      if (*f)
-        defaultFontPath = f;
-      else {
+      if (*f) {
+        if (xf86Info.useDefaultFontPath) {
+          xf86Msg(X_WARNING, "Including the default font path %s.\n", defaultFontPath);
+          char *g = xnfalloc(strlen(defaultFontPath) + strlen(f) + 3);
+          strcpy(g, f);
+          strcat(g, ",");
+          defaultFontPath = strcat(g, defaultFontPath);
+          xfree(f);
+        } else {
+          defaultFontPath = f;
+        }
+      } else {
 	xf86Msg(X_WARNING,
 	    "FontPath is completely invalid.  Using compiled-in default.\n");
         fontPath = NULL;
@@ -742,6 +792,7 @@ typedef enum {
     FLAG_AIGLX,
     FLAG_IGNORE_ABI,
     FLAG_ALLOW_EMPTY_INPUT,
+    FLAG_USE_DEFAULT_FONT_PATH
 } FlagValues;
    
 static OptionInfoRec FlagOptions[] = {
@@ -816,6 +867,8 @@ static OptionInfoRec FlagOptions[] = {
   { FLAG_ALLOW_EMPTY_INPUT,     "AllowEmptyInput",              OPTV_BOOLEAN,
         {0}, FALSE },
   { FLAG_IGNORE_ABI,			"IgnoreABI",			OPTV_BOOLEAN,
+	{0}, FALSE },
+  { FLAG_USE_DEFAULT_FONT_PATH,  "UseDefaultFontPath",			OPTV_BOOLEAN,
 	{0}, FALSE },
   { -1,				NULL,				OPTV_NONE,
 	{0}, FALSE },
@@ -1015,6 +1068,13 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     xf86Info.allowEmptyInput = FALSE;
     if (xf86GetOptValBool(FlagOptions, FLAG_ALLOW_EMPTY_INPUT, &value))
         xf86Info.allowEmptyInput = TRUE;
+
+    xf86Info.useDefaultFontPath = TRUE;
+    xf86Info.useDefaultFontPathFrom = X_DEFAULT;
+    if (xf86GetOptValBool(FlagOptions, FLAG_USE_DEFAULT_FONT_PATH, &value)) {
+	xf86Info.useDefaultFontPath = value;
+	xf86Info.useDefaultFontPathFrom = X_CONFIG;
+    }
 
 /* Make sure that timers don't overflow CARD32's after multiplying */
 #define MAX_TIME_IN_MIN (0x7fffffff / MILLI_PER_MIN)
@@ -1749,7 +1809,7 @@ configImpliedLayout(serverLayoutPtr servlayoutp, XF86ConfScreenPtr conf_screen)
     indp = xnfalloc(sizeof(IDevRec));
     indp->identifier = NULL;
     servlayoutp->inputs = indp;
-    if (!xf86Info.allowEmptyInput && checkCoreInputDevices(servlayoutp, TRUE))
+    if (!xf86Info.allowEmptyInput && !checkCoreInputDevices(servlayoutp, TRUE))
 	return FALSE;
     
     return TRUE;
@@ -2451,9 +2511,9 @@ xf86HandleConfigFile(Bool autoconfig)
 
     /* Now process everything else */
 
-    if (!configFiles(xf86configptr->conf_files) ||
-        !configServerFlags(xf86configptr->conf_flags,
+    if (!configServerFlags(xf86configptr->conf_flags,
 			   xf86ConfigLayout.options) ||
+         !configFiles(xf86configptr->conf_files) ||
 	!configExtensions(xf86configptr->conf_extensions)
 #ifdef XF86DRI
 	|| !configDRI(xf86configptr->conf_dri)

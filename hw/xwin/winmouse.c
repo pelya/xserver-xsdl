@@ -100,9 +100,10 @@ winMouseProc (DeviceIntPtr pDeviceInt, int iState)
       InitPointerDeviceStruct (pDevice,
 			       map,
 			       lngMouseButtons + lngWheelEvents,
-			       miPointerGetMotionEvents,
+			       GetMotionHistory,
 			       winMouseCtrl,
-			       miPointerGetMotionBufferSize ());
+			       GetMotionHistorySize(),
+			       2);
       free(map);
 
 #if defined(XFree86Server) && defined(XINPUT)

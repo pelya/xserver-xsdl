@@ -18,4 +18,7 @@ Xfbdev_LDADD = 						\
 	libfbdev.a					\
 	@KDRIVE_LIBS@					\
 	@XSERVER_LIBS@
+
+relink:
+	rm -f $(bin_PROGRAMS) && make $(bin_PROGRAMS)
 endif

@@ -143,6 +143,7 @@ RenderEdgeInit (RenderEdge	*e,
     dx = x_bot - x_top;
     dy = y_bot - y_top;
     e->dy = dy;
+    e->dx = 0;
     if (dy)
     {
 	if (dx >= 0)

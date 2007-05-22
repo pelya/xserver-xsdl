@@ -29,7 +29,6 @@
 #endif
 
 #include "xf86Module.h"
-#include "afb.h"
 
 static MODULESETUPPROTO(afbSetup);
 

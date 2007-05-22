@@ -107,8 +107,11 @@ typedef struct {
  */
 
 #define DRIINFO_MAJOR_VERSION   5
-#define DRIINFO_MINOR_VERSION   2
+#define DRIINFO_MINOR_VERSION   3
 #define DRIINFO_PATCH_VERSION   0
+
+typedef unsigned long long (*DRITexOffsetStartProcPtr)(PixmapPtr pPix);
+typedef void (*DRITexOffsetFinishProcPtr)(PixmapPtr pPix);
 
 typedef struct {
     /* driver call back functions
@@ -180,6 +183,10 @@ typedef struct {
     /* New with DRI version 5.2.0 */
     Bool                allocSarea;
     Bool                keepFDOpen;
+
+    /* New with DRI version 5.3.0 */
+    DRITexOffsetStartProcPtr  texOffsetStart;
+    DRITexOffsetFinishProcPtr texOffsetFinish;
 } DRIInfoRec, *DRIInfoPtr;
 
 
@@ -358,7 +365,9 @@ extern void *DRIMasterSareaPointer(ScrnInfoPtr pScrn);
 
 extern drm_handle_t DRIMasterSareaHandle(ScrnInfoPtr pScrn);
 
-
+extern void DRIGetTexOffsetFuncs(ScreenPtr pScreen,
+				 DRITexOffsetStartProcPtr *texOffsetStartFunc,
+				 DRITexOffsetFinishProcPtr *texOffsetFinishFunc);
 
 #define _DRI_H_
 

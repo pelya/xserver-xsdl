@@ -86,6 +86,11 @@ static Bool quirk_prefer_large_60 (int scrnIndex, xf86MonPtr DDC)
     if (memcmp (DDC->vendor.name, "ACR", 4) == 0 &&
 	DDC->vendor.prod_id == 44358)
 	return TRUE;
+
+    /* Samsung SyncMaster 226BW */
+    if (memcmp (DDC->vendor.name, "SAM", 4) == 0 &&
+	DDC->vendor.prod_id == 638)
+	return TRUE;
     
     return FALSE;
 }

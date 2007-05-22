@@ -445,10 +445,7 @@ GetWindowName (Display *pDisplay, Window iWin, char **ppName)
     }
   else
     {
-      XmbTextPropertyToTextList (pDisplay, &xtpName, &ppList, &nNum);
-
-      /* */
-      if (nNum && ppList && *ppList)
+      if (XmbTextPropertyToTextList (pDisplay, &xtpName, &ppList, &nNum) >= Success && nNum > 0 && *ppList)
 	{
 	  *ppName = strdup (*ppList);
 	  XFreeStringList (ppList);

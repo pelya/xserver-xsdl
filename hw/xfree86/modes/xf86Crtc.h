@@ -562,6 +562,10 @@ typedef struct _xf86CrtcConfig {
     OptionInfoPtr	options;
 
     Bool		debug_modes;
+
+    /* wrap screen BlockHandler for rotation */
+    ScreenBlockHandlerProcPtr	BlockHandler;
+
 } xf86CrtcConfigRec, *xf86CrtcConfigPtr;
 
 extern int xf86CrtcConfigPrivateIndex;

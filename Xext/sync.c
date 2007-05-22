@@ -243,6 +243,11 @@ SyncInitServerTime(
     void
 );
 
+static void
+SyncInitIdleTime(
+    void
+);
+
 static void 
 SyncResetProc(
     ExtensionEntry * /* extEntry */
@@ -2400,6 +2405,7 @@ SyncExtensionInit(INITARGS)
      * because there is always a servertime counter.
      */
     SyncInitServerTime();
+    SyncInitIdleTime();
 
 #ifdef DEBUG
     fprintf(stderr, "Sync Extension %d.%d\n",
@@ -2519,4 +2525,117 @@ SyncInitServerTime(void)
 			    XSyncCounterNeverDecreases,
 			    ServertimeQueryValue, ServertimeBracketValues);
     pnext_time = NULL;
+}
+
+
+
+/*
+ * IDLETIME implementation
+ */
+
+static pointer IdleTimeCounter;
+static XSyncValue *pIdleTimeValueLess;
+static XSyncValue *pIdleTimeValueGreater;
+
+static void
+IdleTimeQueryValue (pointer pCounter, CARD64 *pValue_return)
+{
+    CARD32 idle = GetTimeInMillis() - lastDeviceEventTime.milliseconds;
+    XSyncIntsToValue (pValue_return, idle, 0);
+}
+
+static void
+IdleTimeBlockHandler (pointer env,
+                      struct timeval **wt,
+                      pointer LastSelectMask)
+{
+    XSyncValue idle;
+
+    if (!pIdleTimeValueLess && !pIdleTimeValueGreater)
+	return;
+
+    IdleTimeQueryValue (NULL, &idle);
+
+    if (pIdleTimeValueLess &&
+        XSyncValueLessOrEqual (idle, *pIdleTimeValueLess))
+    {
+	AdjustWaitForDelay (wt, 0);
+    }
+    else if (pIdleTimeValueGreater)
+    {
+	unsigned long timeout = 0;
+
+	if (XSyncValueLessThan (idle, *pIdleTimeValueGreater))
+	{
+	    XSyncValue value;
+	    Bool overflow;
+
+	    XSyncValueSubtract (&value, *pIdleTimeValueGreater,
+	                        idle, &overflow);
+	    timeout = XSyncValueLow32 (value);
+	}
+
+	AdjustWaitForDelay (wt, timeout);
+    }
+}
+
+static void
+IdleTimeWakeupHandler (pointer env,
+                       int rc,
+                       pointer LastSelectMask)
+{
+    XSyncValue idle;
+
+    if (!pIdleTimeValueLess && !pIdleTimeValueGreater)
+	return;
+
+    IdleTimeQueryValue (NULL, &idle);
+
+    if ((pIdleTimeValueGreater &&
+         XSyncValueGreaterThan (idle, *pIdleTimeValueGreater)) ||
+        (pIdleTimeValueLess && XSyncValueLessThan (idle, *pIdleTimeValueLess)))
+    {
+	SyncChangeCounter (IdleTimeCounter, idle);
+    }
+}
+
+static void
+IdleTimeBracketValues (pointer pCounter,
+                       CARD64 *pbracket_less,
+                       CARD64 *pbracket_greater)
+{
+    Bool registered = (pIdleTimeValueLess || pIdleTimeValueGreater);
+
+    if (registered && !pbracket_less && !pbracket_greater)
+    {
+	RemoveBlockAndWakeupHandlers(IdleTimeBlockHandler,
+	                             IdleTimeWakeupHandler,
+	                             NULL);
+    }
+    else if (!registered && (pbracket_less || pbracket_greater))
+    {
+	RegisterBlockAndWakeupHandlers(IdleTimeBlockHandler,
+	                               IdleTimeWakeupHandler,
+	                               NULL);
+    }
+
+    pIdleTimeValueGreater = pbracket_greater;
+    pIdleTimeValueLess    = pbracket_less;
+}
+
+static void
+SyncInitIdleTime (void)
+{
+    CARD64 resolution;
+    XSyncValue idle;
+
+    IdleTimeQueryValue (NULL, &idle);
+    XSyncIntToValue (&resolution, 4);
+
+    IdleTimeCounter = SyncCreateSystemCounter ("IDLETIME", idle, resolution,
+                                               XSyncCounterUnrestricted,
+                                               IdleTimeQueryValue,
+                                               IdleTimeBracketValues);
+
+    pIdleTimeValueLess = pIdleTimeValueGreater = NULL;
 }

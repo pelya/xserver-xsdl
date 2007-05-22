@@ -280,11 +280,6 @@ configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
 
     if (strcmp(dbus_message_get_interface(message),
                "org.x.config.input") == 0) {
-        if (!dbus_message_iter_init(message, &iter)) {
-            ErrorF("[config] failed to init iterator\n");
-            dbus_error_free(&error);
-            return DBUS_HANDLER_RESULT_NEED_MEMORY; /* ?? */
-        }
 
         if (!(reply = dbus_message_new_method_return(message))) {
             ErrorF("[config] failed to create the reply message\n");
@@ -292,21 +287,36 @@ configMessage(DBusConnection *connection, DBusMessage *message, void *closure)
             return DBUS_HANDLER_RESULT_NEED_MEMORY;
         }
         dbus_message_iter_init_append(reply, &r_iter);
-        
-        if (strcmp(dbus_message_get_member(message), "add") == 0)
-            ret = configAddDevice(message, &iter, reply, &r_iter, &error);
-        else if (strcmp(dbus_message_get_member(message), "remove") == 0)
-            ret = configRemoveDevice(message, &iter, &error);
-        else if (strcmp(dbus_message_get_member(message), "listDevices") == 0)
-            ret = configListDevices(message, &iter, reply, &r_iter, &error);
-        if (ret != BadDrawable && ret != BadAlloc) {
 
+        /* listDevices doesn't take any arguments */
+        if (strcmp(dbus_message_get_member(message), "listDevices") == 0)
+            ret = configListDevices(message, NULL, reply, &r_iter, &error);
+        else 
+        {
+            if (!dbus_message_iter_init(message, &iter)) {
+                ErrorF("[config] failed to init iterator\n");
+                dbus_message_unref(reply);
+                dbus_error_free(&error);
+                return DBUS_HANDLER_RESULT_NEED_MEMORY; /* ?? */
+            }
+
+            if (strcmp(dbus_message_get_member(message), "add") == 0)
+                ret = configAddDevice(message, &iter, reply, &r_iter, &error);
+            else if (strcmp(dbus_message_get_member(message), "remove") == 0)
+                ret = configRemoveDevice(message, &iter, &error);
+        }
+
+        if (ret != BadDrawable && ret != BadAlloc) {
             if (!strlen(dbus_message_get_signature(reply)))
+            {
+                ret = -ret; /* return errors as negative numbers */
                 if (!dbus_message_iter_append_basic(&r_iter, DBUS_TYPE_INT32, &ret)) {
                     ErrorF("[config] couldn't append to iterator\n");
+                    dbus_message_unref(reply);
                     dbus_error_free(&error);
                     return DBUS_HANDLER_RESULT_HANDLED;
                 }
+            }
 
             if (!dbus_connection_send(bus, reply, NULL))
                 ErrorF("[config] failed to send reply\n");

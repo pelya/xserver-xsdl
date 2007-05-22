@@ -182,6 +182,7 @@ AC_CHECK_FUNC([mmap], AC_DEFINE(HAS_MMAP, 1, [Have the `mmap' function.]))
 
 dnl Find the math libary
 AC_CHECK_LIB(m, sqrt)
+AC_CHECK_LIB(m, cbrt, AC_DEFINE(HAVE_CBRT, 1, [Have the 'cbrt' function]))
 
 AC_CHECK_HEADERS([ndbm.h dbm.h rpcsvc/dbm.h])
 
@@ -374,17 +375,12 @@ fi
 AC_MSG_RESULT([$mmx_capable])
 AM_CONDITIONAL(MMX_CAPABLE, [test "x$mmx_capable" = xyes])
 
-
-OSNAME=`uname -srm`
-AC_DEFINE_UNQUOTED(OSNAME, "$OSNAME", 
-	[Define to OS Name string to display for build OS in Xorg log])
-
 DEFAULT_VENDOR_NAME="The X.Org Foundation"
 DEFAULT_VENDOR_NAME_SHORT="X.Org"
 DEFAULT_VERSION_MAJOR=7
-DEFAULT_VERSION_MINOR=1
-DEFAULT_VERSION_PATCH=99
-DEFAULT_VERSION_SNAP=2
+DEFAULT_VERSION_MINOR=2
+DEFAULT_VERSION_PATCH=0
+DEFAULT_VERSION_SNAP=0
 DEFAULT_RELEASE_DATE="21 December 2005"
 DEFAULT_VENDOR_WEB="http://wiki.x.org"
 
@@ -444,9 +440,9 @@ AC_ARG_WITH(builder-addr,    AS_HELP_STRING([--with-builder-addr=ADDRESS],
 				  [Builder address (default: xorg@lists.freedesktop.org)]),
 				[ BUILDERADDR="$withval" ],
 				[ BUILDERADDR="xorg@lists.freedesktop.org" ])
-AC_ARG_WITH(os-name,         AS_HELP_STRING([--with-os-name=OSNAME], [Name of OS (default: UNKNOWN)]),
+AC_ARG_WITH(os-name,         AS_HELP_STRING([--with-os-name=OSNAME], [Name of OS (default: output of "uname -srm")]),
 				[ OSNAME="$withval" ],
-				[ OSNAME="UNKNOWN" ])
+				[ OSNAME=`uname -srm` ])
 AC_ARG_WITH(os-vendor,       AS_HELP_STRING([--with-os-vendor=OSVENDOR], [Name of OS vendor]),
 				[ OSVENDOR="$withval" ],
 				[ OSVENDOR="" ])
@@ -628,9 +624,11 @@ XEXT_INC='-I$(top_srcdir)/Xext'
 XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
+PIXMAN="[pixman >= 0.9.0]"
+
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto xproto xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4] [kbproto >= 1.0.3]"
-REQUIRED_LIBS="xfont xau fontenc"
+REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto xproto xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4.2] [kbproto >= 1.0.3]"
+REQUIRED_LIBS="xfont xau fontenc $PIXMAN"
 
 if test "x$DBUS" = xauto; then
        PKG_CHECK_MODULES(DBUS, dbus-1, [DBUS=yes], [DBUS=no])
@@ -962,6 +960,11 @@ AC_DEFINE_UNQUOTED(XORG_RELEASE, ["$VENDOR_RELEASE_STRING"], [Vendor release])
 AC_DEFINE_UNQUOTED(XORG_DATE, ["$RELEASE_DATE"], [Vendor release])
 AC_DEFINE_UNQUOTED(XORG_MAN_VERSION, ["$VENDOR_MAN_VERSION"], [Vendor man version])
 AC_DEFINE_UNQUOTED(BUILDERADDR, ["$BUILDERADDR"], [Builder address])
+
+if test -z "$OSNAME"; then
+    OSNAME="UNKNOWN"
+fi
+
 AC_DEFINE_UNQUOTED(OSNAME, ["$OSNAME"], [Operating System Name])
 AC_DEFINE_UNQUOTED(OSVENDOR, ["$OSVENDOR"], [Operating System Vendor])
 AC_DEFINE_UNQUOTED(BUILDERSTRING, ["$BUILDERSTRING"], [Builder string])
@@ -1000,7 +1003,6 @@ else
 fi
 CWRAP_LIB='$(top_builddir)/os/libcwrapper.la'
 MI_LIB='$(top_builddir)/mi/libmi.la'
-MINIMI_LIB='$(top_builddir)/mi/libminimi.la'
 MI_EXT_LIB='$(top_builddir)/mi/libmiext.la'
 MI_INC='-I$(top_srcdir)/mi'
 FB_LIB='$(top_builddir)/fb/libfb.la'
@@ -1117,7 +1119,7 @@ dnl ---------------------------------------------------------------------------
 dnl DMX DDX
 
 AC_MSG_CHECKING([whether to build Xdmx DDX])
-PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto xau $XDMCP_MODULES], [have_dmx=yes], [have_dmx=no])
+PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto xau $XDMCP_MODULES $PIXMAN], [have_dmx=yes], [have_dmx=no])
 if test "x$DMX" = xauto; then
 	DMX="$have_dmx"
 fi

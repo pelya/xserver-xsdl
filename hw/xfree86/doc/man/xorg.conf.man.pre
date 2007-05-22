@@ -604,6 +604,11 @@ the builtin handler will be used.
 .BI "Option \*qAIGLX\*q \*q" boolean \*q
 enable or disable AIGLX. AIGLX is enabled by default.
 .TP 7
+.BI "Option \*qUseDefaultFontPath\*q \*q" boolean \*q
+Include the default font path even if other paths are specified in
+xorg.conf. If enabled, other font paths are included as well. Enabled by
+default.
+.TP 7
 .BI "Option \*qIgnoreABI\*q \*q" boolean \*q
 Allow modules built for a different, potentially incompatible version of
 the X server to load. Disabled by default.
@@ -639,6 +644,20 @@ Example: the Type 1 font rasteriser can be loaded with the following entry:
 .B "Load \*qtype1\*q"
 .RE
 .RE
+.TP 7
+.BI "Disable  \*q" modulename \*q
+This instructs the server to not load the module called
+.IR modulename .
+Some modules are loaded by default in the server, and this overrides that
+default. If a
+.B Load
+instruction is given for the same module, it overrides the 
+.B Disable
+instruction and the module is loaded. The module name given should be the
+module's standard name, not the module file name. As with the
+.B Load
+instruction, the standard name is case-sensitive, and does not include the
+"lib" prefix, or the ".a", ".o", or ".so" suffixes.
 .PP
 The second form of entry is a
 .BR SubSection,

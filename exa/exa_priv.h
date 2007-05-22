@@ -113,6 +113,7 @@ typedef struct {
     enum ExaMigrationHeuristic	 migration;
     Bool			 hideOffscreenPixmapData;
     Bool			 checkDirtyCorrectness;
+    unsigned			 disableFbCount;
 } ExaScreenPrivRec, *ExaScreenPrivPtr;
 
 /*
@@ -287,6 +288,10 @@ exaGetPixmapFirstPixel (PixmapPtr pPixmap);
 void
 exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
 
+Bool
+exaFillRegionTiled (DrawablePtr	pDrawable, RegionPtr pRegion, PixmapPtr pTile,
+		    DDXPointPtr pPatOrg, CARD32 planemask, CARD32 alu);
+
 void
 exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what);
 
@@ -318,9 +323,6 @@ ExaCheckComposite (CARD8      op,
 
 /* exa_offscreen.c */
 void
-ExaOffscreenMarkUsed (PixmapPtr pPixmap);
-
-void
 ExaOffscreenSwapOut (ScreenPtr pScreen);
 
 void
@@ -343,7 +345,8 @@ void
 exaPixmapDirty(PixmapPtr pPix, int x1, int y1, int x2, int y2);
 
 void
-exaDrawableDirty(DrawablePtr pDrawable, int x1, int y1, int x2, int y2);
+exaGetDrawableDeltas (DrawablePtr pDrawable, PixmapPtr pPixmap,
+		      int *xp, int *yp);
 
 Bool
 exaDrawableIsOffscreen (DrawablePtr pDrawable);

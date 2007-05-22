@@ -102,6 +102,9 @@
 /* Define to 1 if you have the <byteswap.h> header file. */
 #undef HAVE_BYTESWAP_H
 
+/* Define to 1 if you have cbrt */
+#undef HAVE_CBRT
+
 /* Define to 1 if you have the <dbm.h> header file. */
 #undef HAVE_DBM_H
 

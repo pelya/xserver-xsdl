@@ -170,6 +170,7 @@ typedef enum {
     /* Module tokens */
     LOAD,
     LOAD_DRIVER,
+    DISABLE,
     
     /* Device tokens */
     DRIVER,

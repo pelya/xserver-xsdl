@@ -264,7 +264,7 @@ xf86RotatePrepare (ScreenPtr pScreen)
     }
 }
 
-static void
+static Bool
 xf86RotateRedisplay(ScreenPtr pScreen)
 {
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
@@ -273,18 +273,28 @@ xf86RotateRedisplay(ScreenPtr pScreen)
     RegionPtr		region;
 
     if (!damage)
-	return;
+	return FALSE;
     xf86RotatePrepare (pScreen);
     region = DamageRegion(damage);
     if (REGION_NOTEMPTY(pScreen, region)) 
     {
-	int		    c;
-	
+	int			c;
+	SourceValidateProcPtr	SourceValidate;
+
+	/*
+	 * SourceValidate is used by the software cursor code
+	 * to pull the cursor off of the screen when reading
+	 * bits from the frame buffer. Bypassing this function
+	 * leaves the software cursor in place
+	 */
+	SourceValidate = pScreen->SourceValidate;
+	pScreen->SourceValidate = NULL;
+
 	for (c = 0; c < xf86_config->num_crtc; c++)
 	{
 	    xf86CrtcPtr	    crtc = xf86_config->crtc[c];
 
-	    if (crtc->rotation != RR_Rotate_0)
+	    if (crtc->rotation != RR_Rotate_0 && crtc->enabled)
 	    {
 		BoxRec	    box;
 		RegionRec   crtc_damage;
@@ -304,21 +314,28 @@ xf86RotateRedisplay(ScreenPtr pScreen)
 		REGION_UNINIT (pScreen, &crtc_damage);
 	    }
 	}
+	pScreen->SourceValidate = SourceValidate;
 	DamageEmpty(damage);
     }
+    return TRUE;
 }
 
 static void
-xf86RotateBlockHandler(pointer data, OSTimePtr pTimeout, pointer pRead)
+xf86RotateBlockHandler(int screenNum, pointer blockData,
+		       pointer pTimeout, pointer pReadmask)
 {
-    ScreenPtr pScreen = (ScreenPtr) data;
+    ScreenPtr		pScreen = screenInfo.screens[screenNum];
+    ScrnInfoPtr		pScrn = xf86Screens[screenNum];
+    xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
 
-    xf86RotateRedisplay(pScreen);
-}
-
-static void
-xf86RotateWakeupHandler(pointer data, int i, pointer LastSelectMask)
-{
+    pScreen->BlockHandler = xf86_config->BlockHandler;
+    (*pScreen->BlockHandler) (screenNum, blockData, pTimeout, pReadmask);
+    if (xf86RotateRedisplay(pScreen))
+    {
+	/* Re-wrap if rotation is still happening */
+	xf86_config->BlockHandler = pScreen->BlockHandler;
+	pScreen->BlockHandler = xf86RotateBlockHandler;
+    }
 }
 
 static void
@@ -338,7 +355,8 @@ xf86RotateDestroy (xf86CrtcPtr crtc)
     }
 
     for (c = 0; c < xf86_config->num_crtc; c++)
-	if (crtc->rotatedPixmap || crtc->rotatedData)
+	if (xf86_config->crtc[c]->rotatedPixmap ||
+	    xf86_config->crtc[c]->rotatedData)
 	    return;
 
     /*
@@ -355,10 +373,6 @@ xf86RotateDestroy (xf86CrtcPtr crtc)
 	}
 	DamageDestroy (xf86_config->rotation_damage);
 	xf86_config->rotation_damage = NULL;
-	/* Free block/wakeup handler */
-	RemoveBlockAndWakeupHandlers (xf86RotateBlockHandler,
-				      xf86RotateWakeupHandler,
-				      (pointer) pScreen);
     }
 }
 
@@ -428,20 +442,12 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
 	    if (!xf86_config->rotation_damage)
 		goto bail2;
 	    
-	    /* Assign block/wakeup handler */
-	    if (!RegisterBlockAndWakeupHandlers (xf86RotateBlockHandler,
-						 xf86RotateWakeupHandler,
-						 (pointer) pScreen))
-	    {
-		goto bail3;
-	    }
+	    /* Wrap block handler */
+	    xf86_config->BlockHandler = pScreen->BlockHandler;
+	    pScreen->BlockHandler = xf86RotateBlockHandler;
 	}
 	if (0)
 	{
-bail3:
-	    DamageDestroy (xf86_config->rotation_damage);
-	    xf86_config->rotation_damage = NULL;
-	    
 bail2:
 	    if (shadow || shadowData)
 	    {

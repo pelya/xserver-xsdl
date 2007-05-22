@@ -126,7 +126,7 @@ exaGetDrawablePixmap(DrawablePtr pDrawable)
  * the backing drawable. These coordinates are nonzero only for redirected
  * windows.
  */
-static void
+void
 exaGetDrawableDeltas (DrawablePtr pDrawable, PixmapPtr pPixmap,
 		      int *xp, int *yp)
 {
@@ -170,29 +170,6 @@ exaPixmapDirty (PixmapPtr pPix, int x1, int y1, int x2, int y2)
     REGION_INIT(pScreen, &region, &box, 1);
     REGION_UNION(pScreen, pDamageReg, pDamageReg, &region);
     REGION_UNINIT(pScreen, &region);
-}
-
-/**
- * exaDrawableDirty() marks a pixmap backing a drawable as dirty, allowing for
- * optimizations in pixmap migration when no changes have occurred.
- */
-void
-exaDrawableDirty (DrawablePtr pDrawable, int x1, int y1, int x2, int y2)
-{
-    PixmapPtr pPix = exaGetDrawablePixmap(pDrawable);
-    int xoff, yoff;
-
-    x1 = max(x1, pDrawable->x);
-    y1 = max(y1, pDrawable->y);
-    x2 = min(x2, pDrawable->x + pDrawable->width);
-    y2 = min(y2, pDrawable->y + pDrawable->height);
-
-    if (x1 >= x2 || y1 >= y2)
-	return;
-
-    exaGetDrawableDeltas(pDrawable, pPix, &xoff, &yoff);
-
-    exaPixmapDirty(pPix, x1 + xoff, y1 + yoff, x2 + xoff, y2 + yoff);
 }
 
 static Bool

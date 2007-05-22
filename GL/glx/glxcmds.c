@@ -1019,6 +1019,7 @@ __glXCreateARGBConfig(__GLXscreen *screen)
     VisualPtr visual;
     int i;
 
+    /* search for a 32-bit visual */
     visual = NULL;
     for (i = 0; i < screen->pScreen->numVisuals; i++) 
 	if (screen->pScreen->visuals[i].nplanes == 32) {
@@ -1037,8 +1038,22 @@ __glXCreateARGBConfig(__GLXscreen *screen)
     if (modes == NULL)
 	return;
 
-    modes->next = screen->modes;
-    screen->modes = modes;
+    /* Insert this new mode at the TAIL of the linked list.
+     * Previously, the mode was incorrectly inserted at the head of the
+     * list, causing find_mesa_visual() to be off by one.  This would
+     * GLX clients to blow up if they attempted to use the last mode
+     * in the list!
+     */
+    {
+        __GLcontextModes *prev = NULL, *m;
+        for (m = screen->modes; m; m = m->next)
+            prev = m;
+        if (prev)
+            prev->next = modes;
+        else
+            screen->modes = modes;
+    }
+
     screen->numUsableVisuals++;
     screen->numVisuals++;
 
@@ -1104,6 +1119,9 @@ int DoGetFBConfigs(__GLXclientState *cl, unsigned screen, GLboolean do_swap)
     }
     pGlxScreen = __glXActiveScreens[screen];
 
+    /* Create the "extra" 32bpp ARGB visual, if not already added.
+     * XXX This is questionable place to do so!  Re-examine this someday.
+     */
     __glXCreateARGBConfig(pGlxScreen);
 
     reply.numFBConfigs = pGlxScreen->numUsableVisuals;
@@ -1661,6 +1679,7 @@ DoGetDrawableAttributes(__GLXclientState *cl, XID drawId)
     xGLXGetDrawableAttributesReply reply;
     CARD32 attributes[4];
     int numAttribs;
+    PixmapPtr	pixmap;
 
     glxPixmap = (__GLXpixmap *)LookupIDByType(drawId, __glXPixmapRes);
     if (!glxPixmap) {
@@ -1675,9 +1694,18 @@ DoGetDrawableAttributes(__GLXclientState *cl, XID drawId)
     reply.numAttribs = numAttribs;
 
     attributes[0] = GLX_TEXTURE_TARGET_EXT;
-    attributes[1] = GLX_TEXTURE_RECTANGLE_EXT;
     attributes[2] = GLX_Y_INVERTED_EXT;
     attributes[3] = GL_FALSE;
+
+    /* XXX this is merely less wrong, see fdo bug #8991 */
+    pixmap = (PixmapPtr) glxPixmap->pDraw;
+    if ((pixmap->drawable.width & (pixmap->drawable.width - 1)) ||
+	(pixmap->drawable.height & (pixmap->drawable.height - 1))
+	/* || strstr(CALL_GetString(GL_EXTENSIONS,
+	             "GL_ARB_texture_non_power_of_two")) */)
+	attributes[1] = GLX_TEXTURE_RECTANGLE_EXT;
+    else
+	attributes[1] = GLX_TEXTURE_2D_EXT;
 
     if (client->swapped) {
 	__glXSwapGetDrawableAttributesReply(client, &reply, attributes);
