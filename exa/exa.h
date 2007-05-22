@@ -721,6 +721,9 @@ exaOffscreenAlloc(ScreenPtr pScreen, int size, int align,
 ExaOffscreenArea *
 exaOffscreenFree(ScreenPtr pScreen, ExaOffscreenArea *area);
 
+void
+ExaOffscreenMarkUsed (PixmapPtr pPixmap);
+
 unsigned long
 exaGetPixmapOffset(PixmapPtr pPix);
 

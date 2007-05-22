@@ -323,9 +323,6 @@ ExaCheckComposite (CARD8      op,
 
 /* exa_offscreen.c */
 void
-ExaOffscreenMarkUsed (PixmapPtr pPixmap);
-
-void
 ExaOffscreenSwapOut (ScreenPtr pScreen);
 
 void
