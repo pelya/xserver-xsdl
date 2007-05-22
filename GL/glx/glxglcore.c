@@ -106,11 +106,11 @@ __glXMesaDrawableSwapBuffers(__GLXdrawable *base)
      * why we need to re-take the lock and swap in the server context
      * before calling XMesaSwapBuffers() here.  /me shakes head. */
 
-    __glXenterServer();
+    __glXenterServer(GL_FALSE);
 
     XMesaSwapBuffers(glxPriv->xm_buf);
 
-    __glXleaveServer();
+    __glXleaveServer(GL_FALSE);
 
     return GL_TRUE;
 }

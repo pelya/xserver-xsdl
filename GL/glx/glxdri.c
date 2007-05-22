@@ -76,6 +76,11 @@ struct __GLXDRIscreen {
     xf86EnterVTProc *enterVT;
     xf86LeaveVTProc *leaveVT;
 
+    DRITexOffsetStartProcPtr texOffsetStart;
+    DRITexOffsetFinishProcPtr texOffsetFinish;
+    __GLXpixmap* texOffsetOverride[16];
+    GLuint lastTexOffsetOverride;
+
     unsigned char glx_enable_bits[__GLX_EXT_BYTES];
 };
 
@@ -125,30 +130,75 @@ struct __GLXDRIdrawable {
 static const char CREATE_NEW_SCREEN_FUNC[] =
     "__driCreateNewScreen_" STRINGIFY (INTERNAL_VERSION);
 
-/* The DRI driver entry point version wasn't bumped when the
- * copySubBuffer functionality was added to the DRI drivers, but the
- * functionality is still conditional on the value of the
- * internal_api_version passed to __driCreateNewScreen.  However, the
- * screen constructor doesn't fail for a DRI driver that's older than
- * the passed in version number, so there's no way we can know for
- * sure that we can actually use the copySubBuffer functionality.  But
- * since the earliest (and at this point only) released mesa version
- * (6.5) that uses the 20050727 entry point does have copySubBuffer,
- * we'll just settle for that.  We still have to pass in a higher to
- * the screen constructor to enable the functionality.
- */
-#define COPY_SUB_BUFFER_INTERNAL_VERSION 20060314
 
 static void
-__glXDRIleaveServer(void)
+__glXDRIleaveServer(GLboolean rendering)
 {
-  DRIBlockHandler(NULL, NULL, NULL);
+    int i;
+
+    for (i = 0; rendering && i < screenInfo.numScreens; i++) {
+	__GLXDRIscreen * const screen =
+	    (__GLXDRIscreen *) __glXgetActiveScreen(i);
+	GLuint lastOverride = screen->lastTexOffsetOverride;
+
+	if (lastOverride) {
+	    __GLXpixmap **texOffsetOverride = screen->texOffsetOverride;
+	    int j;
+
+	    for (j = 0; j < lastOverride; j++) {
+		__GLXpixmap *pGlxPix = texOffsetOverride[j];
+
+		if (pGlxPix && pGlxPix->texname) {
+		    pGlxPix->offset =
+			screen->texOffsetStart((PixmapPtr)pGlxPix->pDraw);
+		}
+	    }
+	}
+    }
+
+    DRIBlockHandler(NULL, NULL, NULL);
+
+    for (i = 0; rendering && i < screenInfo.numScreens; i++) {
+	__GLXDRIscreen * const screen =
+	    (__GLXDRIscreen *) __glXgetActiveScreen(i);
+	GLuint lastOverride = screen->lastTexOffsetOverride;
+
+	if (lastOverride) {
+	    __GLXpixmap **texOffsetOverride = screen->texOffsetOverride;
+	    int j;
+
+	    for (j = 0; j < lastOverride; j++) {
+		__GLXpixmap *pGlxPix = texOffsetOverride[j];
+
+		if (pGlxPix && pGlxPix->texname) {
+		    screen->driScreen.setTexOffset(pGlxPix->pDRICtx,
+						   pGlxPix->texname,
+						   pGlxPix->offset,
+						   pGlxPix->pDraw->depth,
+						   ((PixmapPtr)pGlxPix->pDraw)->
+						   devKind);
+		}
+	    }
+	}
+    }
 }
     
 static void
-__glXDRIenterServer(void)
+__glXDRIenterServer(GLboolean rendering)
 {
-  DRIWakeupHandler(NULL, 0, NULL);
+    int i;
+
+    for (i = 0; rendering && i < screenInfo.numScreens; i++) {
+	__GLXDRIscreen * const screen =
+	    (__GLXDRIscreen *) __glXgetActiveScreen(i);
+
+	if (screen->lastTexOffsetOverride) {
+	    CALL_Flush(GET_DISPATCH(), ());
+	    break;
+	}
+    }
+
+    DRIWakeupHandler(NULL, 0, NULL);
 }
 
 /**
@@ -289,19 +339,6 @@ __glXDRIcontextForceCurrent(__GLXcontext *baseContext)
 					      &context->driContext);
 }
 
-static int
-glxCountBits(int word)
-{
-    int ret = 0;
-
-    while (word) {
-        ret += (word & 1);
-        word >>= 1;
-    }
-
-    return ret;
-}
-
 static void
 glxFillAlphaChannel (PixmapPtr pixmap, int x, int y, int width, int height)
 {
@@ -335,19 +372,75 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
 		     int buffer,
 		     __GLXpixmap *glxPixmap)
 {
-    RegionPtr	pRegion;
+    RegionPtr	pRegion = NULL;
     PixmapPtr	pixmap;
-    int		bpp;
+    int		w, h, bpp, override = 0;
     GLenum	target, format, type;
+    ScreenPtr pScreen = glxPixmap->pScreen;
+    __GLXDRIscreen * const screen =
+	(__GLXDRIscreen *) __glXgetActiveScreen(pScreen->myNum);
 
     pixmap = (PixmapPtr) glxPixmap->pDraw;
-    if (!glxPixmap->pDamage) {
-        glxPixmap->pDamage = DamageCreate(NULL, NULL, DamageReportNone,
-					  TRUE, glxPixmap->pScreen, NULL);
-	if (!glxPixmap->pDamage)
-            return BadAlloc;
+    w = pixmap->drawable.width;
+    h = pixmap->drawable.height;
 
-	DamageRegister ((DrawablePtr) pixmap, glxPixmap->pDamage);
+    if (h & (h - 1) || w & (w - 1))
+	target = GL_TEXTURE_RECTANGLE_ARB;
+    else
+	target = GL_TEXTURE_2D;
+
+    if (screen->texOffsetStart && screen->driScreen.setTexOffset) {
+	__GLXpixmap **texOffsetOverride = screen->texOffsetOverride;
+	int i, firstEmpty = 16, texname;
+
+	for (i = 0; i < 16; i++) {
+	    if (texOffsetOverride[i] == glxPixmap)
+		goto alreadyin; 
+
+	    if (firstEmpty == 16 && !texOffsetOverride[i])
+		firstEmpty = i;
+	}
+
+	if (firstEmpty == 16) {
+	    ErrorF("%s: Failed to register texture offset override\n", __func__);
+	    goto nooverride;
+	}
+
+	if (firstEmpty >= screen->lastTexOffsetOverride)
+	    screen->lastTexOffsetOverride = firstEmpty + 1;
+
+	texOffsetOverride[firstEmpty] = glxPixmap;
+
+alreadyin:
+	override = 1;
+
+	glxPixmap->pDRICtx = &((__GLXDRIcontext*)baseContext)->driContext;
+
+	CALL_GetIntegerv(GET_DISPATCH(), (target == GL_TEXTURE_2D ?
+					  GL_TEXTURE_BINDING_2D :
+					  GL_TEXTURE_BINDING_RECTANGLE_NV,
+					  &texname));
+
+	if (texname == glxPixmap->texname)
+	    return Success;
+
+	glxPixmap->texname = texname;
+
+	screen->driScreen.setTexOffset(glxPixmap->pDRICtx, texname, 0,
+				       pixmap->drawable.depth, pixmap->devKind);
+    }
+nooverride:
+
+    if (!glxPixmap->pDamage) {
+	if (!override) {
+	    glxPixmap->pDamage = DamageCreate(NULL, NULL, DamageReportNone,
+					      TRUE, pScreen, NULL);
+	    if (!glxPixmap->pDamage)
+		return BadAlloc;
+
+	    DamageRegister ((DrawablePtr) pixmap, glxPixmap->pDamage);
+	}
+
 	pRegion = NULL;
     } else {
 	pRegion = DamageRegion(glxPixmap->pDamage);
@@ -360,30 +453,22 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
 	bpp = 4;
 	format = GL_BGRA;
 	type =
-#if X_BYTE_ORDER == X_LITTLE_ENDIAN
-	    GL_UNSIGNED_BYTE;
-#else
-	    GL_UNSIGNED_INT_8_8_8_8_REV;
+#if X_BYTE_ORDER == X_BIG_ENDIAN
+	    !override ? GL_UNSIGNED_INT_8_8_8_8_REV :
 #endif
+	    GL_UNSIGNED_BYTE;
     } else {
 	bpp = 2;
 	format = GL_RGB;
 	type = GL_UNSIGNED_SHORT_5_6_5;
     }
 
-    if (!(glxCountBits(pixmap->drawable.width) == 1 &&
-	  glxCountBits(pixmap->drawable.height) == 1)
-	/* || strstr(CALL_GetString(GL_EXTENSIONS,
-	             "GL_ARB_texture_non_power_of_two")) */)
-	target = GL_TEXTURE_RECTANGLE_ARB;
-    else
-	target = GL_TEXTURE_2D;
-
     CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_ROW_LENGTH,
 				       pixmap->devKind / bpp) );
+
     if (pRegion == NULL)
     {
-	if (pixmap->drawable.depth == 24)
+	if (!override && pixmap->drawable.depth == 24)
 	    glxFillAlphaChannel(pixmap,
 				pixmap->drawable.x,
 				pixmap->drawable.y,
@@ -404,8 +489,8 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
 			  0,
 			  format,
 			  type,
-			  pixmap->devPrivate.ptr) );
-    } else {
+			  override ? NULL : pixmap->devPrivate.ptr) );
+    } else if (!override) {
         int i, numRects;
 	BoxPtr p;
 
@@ -436,7 +521,8 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
 	}
     }
 
-    DamageEmpty(glxPixmap->pDamage);
+    if (!override)
+	DamageEmpty(glxPixmap->pDamage);
 
     return Success;
 }
@@ -446,6 +532,40 @@ __glXDRIreleaseTexImage(__GLXcontext *baseContext,
 			int buffer,
 			__GLXpixmap *pixmap)
 {
+    ScreenPtr pScreen = pixmap->pScreen;
+    __GLXDRIscreen * const screen =
+	(__GLXDRIscreen *) __glXgetActiveScreen(pScreen->myNum);
+    GLuint lastOverride = screen->lastTexOffsetOverride;
+
+    if (lastOverride) {
+	__GLXpixmap **texOffsetOverride = screen->texOffsetOverride;
+	int i;
+
+	for (i = 0; i < lastOverride; i++) {
+	    if (texOffsetOverride[i] == pixmap) {
+		if (screen->texOffsetFinish)
+		    screen->texOffsetFinish((PixmapPtr)pixmap->pDraw);
+
+		texOffsetOverride[i] = NULL;
+
+		if (i + 1 == lastOverride) {
+		    lastOverride = 0;
+
+		    while (i--) {
+			if (texOffsetOverride[i]) {
+			    lastOverride = i + 1;
+			    break;
+			}
+		    }
+
+		    screen->lastTexOffsetOverride = lastOverride;
+
+		    break;
+		}
+	    }
+	}
+    }
+
     return Success;
 }
 
@@ -666,9 +786,9 @@ static GLboolean createContext(__DRInativeDisplay *dpy, int screen,
     fakeID = FakeClientID(0);
     *(XID *) contextID = fakeID;
 
-    __glXDRIenterServer();
+    __glXDRIenterServer(GL_FALSE);
     retval = DRICreateContext(pScreen, visual, fakeID, hw_context);
-    __glXDRIleaveServer();
+    __glXDRIleaveServer(GL_FALSE);
     return retval;
 }
 
@@ -677,9 +797,9 @@ static GLboolean destroyContext(__DRInativeDisplay *dpy, int screen,
 {
     GLboolean retval;
 
-    __glXDRIenterServer();
+    __glXDRIenterServer(GL_FALSE);
     retval = DRIDestroyContext(screenInfo.screens[screen], context);
-    __glXDRIleaveServer();
+    __glXDRIleaveServer(GL_FALSE);
     return retval;
 }
 
@@ -694,12 +814,12 @@ createDrawable(__DRInativeDisplay *dpy, int screen,
     if (!pDrawable)
 	return GL_FALSE;
 
-    __glXDRIenterServer();
+    __glXDRIenterServer(GL_FALSE);
     retval = DRICreateDrawable(screenInfo.screens[screen],
 			    drawable,
 			    pDrawable,
 			    hHWDrawable);
-    __glXDRIleaveServer();
+    __glXDRIleaveServer(GL_FALSE);
     return retval;
 }
 
@@ -713,11 +833,11 @@ destroyDrawable(__DRInativeDisplay *dpy, int screen, __DRIid drawable)
     if (!pDrawable)
 	return GL_FALSE;
 
-    __glXDRIenterServer();
+    __glXDRIenterServer(GL_FALSE);
     retval = DRIDestroyDrawable(screenInfo.screens[screen],
 			     drawable,
 			     pDrawable);
-    __glXDRIleaveServer();
+    __glXDRIleaveServer(GL_FALSE);
     return retval;
 }
 
@@ -754,14 +874,14 @@ getDrawableInfo(__DRInativeDisplay *dpy, int screen,
 	return GL_FALSE;
     }
 
-    __glXDRIenterServer();
+    __glXDRIenterServer(GL_FALSE);
     retval = DRIGetDrawableInfo(screenInfo.screens[screen],
 				pDrawable, index, stamp,
 				x, y, width, height,
 				numClipRects, &pClipRects,
 				backX, backY,
 				numBackClipRects, &pBackClipRects);
-    __glXDRIleaveServer();
+    __glXDRIleaveServer(GL_FALSE);
 
     if (*numClipRects > 0) {
 	size = sizeof (drm_clip_rect_t) * *numClipRects;
@@ -866,7 +986,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     __DRIframebuffer  framebuffer;
     int   fd = -1;
     int   status;
-    int api_ver = COPY_SUB_BUFFER_INTERNAL_VERSION;
+    int api_ver = 20070121;
     drm_magic_t magic;
     drmVersionPtr version;
     int newlyopened;
@@ -1047,6 +1167,9 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 	LogMessage(X_ERROR, "AIGLX error: Calling driver entry point failed");
 	goto handle_error;
     }
+
+    DRIGetTexOffsetFuncs(pScreen, &screen->texOffsetStart,
+			 &screen->texOffsetFinish);
 
     __glXScreenInit(&screen->base, pScreen);
 
