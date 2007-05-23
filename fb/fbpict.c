@@ -384,6 +384,19 @@ fbComposite (CARD8      op,
     pixman_region16_t region;
     pixman_image_t *src, *mask, *dest;
     
+    xDst += pDst->pDrawable->x;
+    yDst += pDst->pDrawable->y;
+    if (pSrc->pDrawable)
+    {
+        xSrc += pSrc->pDrawable->x;
+        ySrc += pSrc->pDrawable->y;
+    }
+    if (pMask && pMask->pDrawable)
+    {
+	xMask += pMask->pDrawable->x;
+	yMask += pMask->pDrawable->y;
+    }
+
     if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst, xSrc, ySrc,
 				   xMask, yMask, xDst, yDst, width, height))
         return;
