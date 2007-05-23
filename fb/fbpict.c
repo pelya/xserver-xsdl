@@ -108,7 +108,8 @@ create_conical_gradient_image (PictGradient *gradient)
 }
 
 static pixman_image_t *
-create_bits_picture (PicturePtr pict)
+create_bits_picture (PicturePtr pict,
+		     Bool       has_clip)
 {
     FbBits *bits;
     FbStride stride;
@@ -142,7 +143,8 @@ create_bits_picture (PicturePtr pict)
     /* pCompositeClip is undefined for source pictures, so
      * only set the clip region for pictures with drawables
      */
-    pixman_image_set_clip_region (image, pict->pCompositeClip);
+    if (has_clip)
+	pixman_image_set_clip_region (image, pict->pCompositeClip);
     
     /* Indexed table */
     if (pict->pFormat->index.devPrivate)
@@ -150,114 +152,6 @@ create_bits_picture (PicturePtr pict)
     
     fbFinishAccess (pict->pDrawable);
 
-    return image;
-}
-
-static pixman_image_t *image_from_pict (PicturePtr pict);
-
-static void
-set_image_properties (pixman_image_t *image, PicturePtr pict)
-{
-    pixman_repeat_t repeat;
-    pixman_filter_t filter;
-    
-    if (pict->transform)
-    {
-	pixman_image_set_transform (
-	    image, (pixman_transform_t *)pict->transform);
-    }
-    
-    switch (pict->repeatType)
-    {
-    default:
-    case RepeatNone:
-	repeat = PIXMAN_REPEAT_NONE;
-	break;
-	
-    case RepeatPad:
-	repeat = PIXMAN_REPEAT_PAD;
-	break;
-	
-    case RepeatNormal:
-	repeat = PIXMAN_REPEAT_NORMAL;
-	break;
-	
-    case RepeatReflect:
-	repeat = PIXMAN_REPEAT_REFLECT;
-	break;
-    }
-    
-    pixman_image_set_repeat (image, repeat);
-    
-    if (pict->alphaMap)
-    {
-	pixman_image_t *alpha_map = image_from_pict (pict->alphaMap);
-	
-	pixman_image_set_alpha_map (
-	    image, alpha_map, pict->alphaOrigin.x, pict->alphaOrigin.y);
-	
-	pixman_image_unref (alpha_map);
-    }
-    
-    pixman_image_set_component_alpha (image, pict->componentAlpha);
-
-    switch (pict->filter)
-    {
-    default:
-    case PictFilterNearest:
-    case PictFilterFast:
-	filter = PIXMAN_FILTER_NEAREST;
-	break;
-	
-    case PictFilterBilinear:
-    case PictFilterGood:
-	filter = PIXMAN_FILTER_BILINEAR;
-	break;
-	
-    case PictFilterConvolution:
-	filter = PIXMAN_FILTER_CONVOLUTION;
-	break;
-    }
-    
-    pixman_image_set_filter (image, filter, (pixman_fixed_t *)pict->filter_params, pict->filter_nparams);
-}
-
-static pixman_image_t *
-image_from_pict (PicturePtr pict)
-{
-    pixman_image_t *image = NULL;
-
-    if (!pict)
-	return NULL;
-
-    if (pict->pDrawable)
-    {
-	image = create_bits_picture (pict);
-    }
-    else if (pict->pSourcePict)
-    {
-	SourcePict *sp = pict->pSourcePict;
-	
-	if (sp->type == SourcePictTypeSolidFill)
-	{
-	    image = create_solid_fill_image (pict);
-	}
-	else
-	{
-	    PictGradient *gradient = &pict->pSourcePict->gradient;
-	    
-	    if (sp->type == SourcePictTypeLinear)
-		image = create_linear_gradient_image (gradient);
-	    else if (sp->type == SourcePictTypeRadial)
-		image = create_radial_gradient_image (gradient);
-	    else if (sp->type == SourcePictTypeConical)
-		image = create_conical_gradient_image (gradient);
-	}
-    }
-    
-    if (image)
-	set_image_properties (image, pict);
-    
     return image;
 }
 
@@ -401,9 +295,9 @@ fbComposite (CARD8      op,
 				   xMask, yMask, xDst, yDst, width, height))
         return;
 
-    src = image_from_pict (pSrc);
-    mask = image_from_pict (pMask);
-    dest = image_from_pict (pDst);
+    src = image_from_pict (pSrc, TRUE);
+    mask = image_from_pict (pMask, TRUE);
+    dest = image_from_pict (pDst, TRUE);
 
     if (src && dest && !(pMask && !mask))
     {
@@ -465,6 +359,116 @@ fbPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
 
     return TRUE;
 }
+
+static void
+set_image_properties (pixman_image_t *image, PicturePtr pict)
+{
+    pixman_repeat_t repeat;
+    pixman_filter_t filter;
+    
+    if (pict->transform)
+    {
+	pixman_image_set_transform (
+	    image, (pixman_transform_t *)pict->transform);
+    }
+    
+    switch (pict->repeatType)
+    {
+    default:
+    case RepeatNone:
+	repeat = PIXMAN_REPEAT_NONE;
+	break;
+	
+    case RepeatPad:
+	repeat = PIXMAN_REPEAT_PAD;
+	break;
+	
+    case RepeatNormal:
+	repeat = PIXMAN_REPEAT_NORMAL;
+	break;
+	
+    case RepeatReflect:
+	repeat = PIXMAN_REPEAT_REFLECT;
+	break;
+    }
+    
+    pixman_image_set_repeat (image, repeat);
+    
+    if (pict->alphaMap)
+    {
+	pixman_image_t *alpha_map = image_from_pict (pict->alphaMap, TRUE);
+	
+	pixman_image_set_alpha_map (
+	    image, alpha_map, pict->alphaOrigin.x, pict->alphaOrigin.y);
+	
+	pixman_image_unref (alpha_map);
+    }
+    
+    pixman_image_set_component_alpha (image, pict->componentAlpha);
+
+    switch (pict->filter)
+    {
+    default:
+    case PictFilterNearest:
+    case PictFilterFast:
+	filter = PIXMAN_FILTER_NEAREST;
+	break;
+	
+    case PictFilterBilinear:
+    case PictFilterGood:
+	filter = PIXMAN_FILTER_BILINEAR;
+	break;
+	
+    case PictFilterConvolution:
+	filter = PIXMAN_FILTER_CONVOLUTION;
+	break;
+    }
+    
+    pixman_image_set_filter (image, filter, (pixman_fixed_t *)pict->filter_params, pict->filter_nparams);
+}
+
+pixman_image_t *
+image_from_pict (PicturePtr pict,
+		 Bool       has_clip)
+{
+    pixman_image_t *image = NULL;
+
+    if (!pict)
+	return NULL;
+
+    if (pict->pDrawable)
+    {
+	image = create_bits_picture (pict, has_clip);
+    }
+    else if (pict->pSourcePict)
+    {
+	SourcePict *sp = pict->pSourcePict;
+	
+	if (sp->type == SourcePictTypeSolidFill)
+	{
+	    image = create_solid_fill_image (pict);
+	}
+	else
+	{
+	    PictGradient *gradient = &pict->pSourcePict->gradient;
+	    
+	    if (sp->type == SourcePictTypeLinear)
+		image = create_linear_gradient_image (gradient);
+	    else if (sp->type == SourcePictTypeRadial)
+		image = create_radial_gradient_image (gradient);
+	    else if (sp->type == SourcePictTypeConical)
+		image = create_conical_gradient_image (gradient);
+	}
+    }
+    
+    if (image)
+	set_image_properties (image, pict);
+    
+    return image;
+}
+
+
+
 
 #ifdef USE_MMX
 /* The CPU detection code needs to be in a file not compiled with

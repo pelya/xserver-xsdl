@@ -412,18 +412,6 @@ fbCompositeGeneral (CARD8	op,
 		    CARD16	width,
 		    CARD16	height);
 
-
-/* fbedge.c */
-void
-fbRasterizeEdges (FbBits	*buf,
-		  int		bpp,
-		  int		width,
-		  int		stride,
-		  RenderEdge	*l,
-		  RenderEdge	*r,
-		  xFixed	t,
-		  xFixed	b);
-
 /* fbpict.c */
 void
 fbComposite (CARD8      op,
