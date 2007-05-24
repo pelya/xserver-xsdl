@@ -123,19 +123,19 @@ b = __swap16(a);
 ], [SYS_ENDIAN__SWAP='yes'], [SYS_ENDIAN__SWAP='no'])
 	AC_MSG_RESULT([$SYS_ENDIAN__SWAP])
 
-	AC_MSG_CHECKING([for bswap_16 variant of <sys/endian.h> byteswapping macros])
+	AC_MSG_CHECKING([for bswap16 variant of <sys/endian.h> byteswapping macros])
 	AC_LINK_IFELSE([AC_LANG_PROGRAM([
 #include <sys/endian.h>
  ], [
 int a = 1, b;
-b = bswap_16(a);
+b = bswap16(a);
  ])
 ], [SYS_ENDIAN_BSWAP='yes'], [SYS_ENDIAN_BSWAP='no'])
 	AC_MSG_RESULT([$SYS_ENDIAN_BSWAP])
 
     	if test "$SYS_ENDIAN_BSWAP" = "yes" ; then
 		USE_SYS_ENDIAN_H=yes
-		BSWAP=bswap_
+		BSWAP=bswap
 	else	
 	    	if test "$SYS_ENDIAN__SWAP" = "yes" ; then
 			USE_SYS_ENDIAN_H=yes
