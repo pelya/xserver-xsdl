@@ -979,6 +979,9 @@ xf86XVEnlistPortInWindow(WindowPtr pWin, XvPortRecPrivatePtr portPriv)
 	winPriv->next = PrivRoot;
 	pWin->devPrivates[XF86XVWindowIndex].ptr = (pointer)winPriv;
    }
+
+   portPriv->pDraw = (DrawablePtr)pWin;
+
    return Success;
 }
 
@@ -1375,7 +1378,6 @@ xf86XVPutVideo(
   result =  xf86XVEnlistPortInWindow((WindowPtr)pDraw, portPriv);
   if(result != Success) return result;
 
-  portPriv->pDraw = pDraw;
   portPriv->type = XvInputMask;
 
   /* save a copy of these parameters */
@@ -1479,7 +1481,6 @@ xf86XVPutStill(
 
      xf86XVEnlistPortInWindow((WindowPtr)pDraw, portPriv);
      portPriv->isOn = XV_ON;
-     portPriv->pDraw = pDraw;
      portPriv->drw_x = drw_x;  portPriv->drw_y = drw_y;
      portPriv->drw_w = drw_w;  portPriv->drw_h = drw_h;
      portPriv->type = 0;  /* no mask means it's transient and should
@@ -1529,7 +1530,6 @@ xf86XVGetVideo(
   result =  xf86XVEnlistPortInWindow((WindowPtr)pDraw, portPriv);
   if(result != Success) return result;
 
-  portPriv->pDraw = pDraw;
   portPriv->type = XvOutputMask;
 
   /* save a copy of these parameters */
@@ -1784,7 +1784,6 @@ xf86XVPutImage(
 	(portPriv->AdaptorRec->flags & VIDEO_OVERLAID_IMAGES)) {
 
      portPriv->isOn = XV_ON;
-     portPriv->pDraw = pDraw;
      portPriv->drw_x = drw_x;  portPriv->drw_y = drw_y;
      portPriv->drw_w = drw_w;  portPriv->drw_h = drw_h;
      portPriv->type = 0;  /* no mask means it's transient and should
