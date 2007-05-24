@@ -425,6 +425,7 @@ InitAndStartDevices(void)
     for (dev = inputInfo.devices;
 	 dev && (dev != inputInfo.keyboard);
 	 dev = dev->next)
+	;
     if (!dev || (dev != inputInfo.keyboard)) {
 	ErrorF("No core keyboard\n");
 	return BadImplementation;
