@@ -329,7 +329,7 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
         return BadAlloc;
 
     for (option = options; option; option = option->next) {
-        if (strcmp(option->key, "driver") == 0) {
+        if (strcasecmp(option->key, "driver") == 0) {
             if (idev->driver) {
                 rval = BadRequest;
                 goto unwind;
@@ -352,8 +352,8 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
                 goto unwind;
             }
         }
-        if (strcmp(option->key, "name") == 0 ||
-            strcmp(option->key, "identifier") == 0) {
+        if (strcasecmp(option->key, "name") == 0 ||
+            strcasecmp(option->key, "identifier") == 0) {
             if (idev->identifier) {
                 rval = BadRequest;
                 goto unwind;
