@@ -119,10 +119,12 @@ _X_EXPORT void
 xf86ProcessCommonOptions(LocalDevicePtr local,
                          pointer	list)
 {
-    if (!xf86SetBoolOption(list, "AlwaysCore", 0) ||
-        xf86SetBoolOption(list, "SendCoreEvents", 0) ||
-        xf86SetBoolOption(list, "CorePointer", 0) ||
-        xf86SetBoolOption(list, "CoreKeyboard", 0)) {
+    if (xf86SetBoolOption(list, "AlwaysCore", 0) ||
+        !xf86SetBoolOption(list, "SendCoreEvents", 1) ||
+        !xf86SetBoolOption(list, "CorePointer", 1) ||
+        !xf86SetBoolOption(list, "CoreKeyboard", 1)) {
+        xf86Msg(X_CONFIG, "%s: doesn't report core events\n", local->name);
+    } else {
         local->flags |= XI86_ALWAYS_CORE;
         xf86Msg(X_CONFIG, "%s: always reports core events\n", local->name);
     }
