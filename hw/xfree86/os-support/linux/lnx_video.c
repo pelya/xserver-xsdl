@@ -567,7 +567,7 @@ xf86EnableIO(void)
 #endif
 	}
 	close(fd);
-#elif !defined(__mc68000__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__hppa__)
+#elif !defined(__mc68000__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__hppa__) && !defined(__s390__)
         if (ioperm(0, 1024, 1) || iopl(3)) {
                 if (errno == ENODEV)
                         ErrorF("xf86EnableIOPorts: no I/O ports found\n");

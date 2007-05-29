@@ -979,6 +979,9 @@ xf86XVEnlistPortInWindow(WindowPtr pWin, XvPortRecPrivatePtr portPriv)
 	winPriv->next = PrivRoot;
 	pWin->devPrivates[XF86XVWindowIndex].ptr = (pointer)winPriv;
    }
+
+   portPriv->pDraw = (DrawablePtr)pWin;
+
    return Success;
 }
 
@@ -1375,7 +1378,6 @@ xf86XVPutVideo(
   result =  xf86XVEnlistPortInWindow((WindowPtr)pDraw, portPriv);
   if(result != Success) return result;
 
-  portPriv->pDraw = pDraw;
   portPriv->type = XvInputMask;
 
   /* save a copy of these parameters */
@@ -1479,7 +1481,6 @@ xf86XVPutStill(
 
      xf86XVEnlistPortInWindow((WindowPtr)pDraw, portPriv);
      portPriv->isOn = XV_ON;
-     portPriv->pDraw = pDraw;
      portPriv->drw_x = drw_x;  portPriv->drw_y = drw_y;
      portPriv->drw_w = drw_w;  portPriv->drw_h = drw_h;
      portPriv->type = 0;  /* no mask means it's transient and should
@@ -1529,7 +1530,6 @@ xf86XVGetVideo(
   result =  xf86XVEnlistPortInWindow((WindowPtr)pDraw, portPriv);
   if(result != Success) return result;
 
-  portPriv->pDraw = pDraw;
   portPriv->type = XvOutputMask;
 
   /* save a copy of these parameters */
@@ -1784,7 +1784,6 @@ xf86XVPutImage(
 	(portPriv->AdaptorRec->flags & VIDEO_OVERLAID_IMAGES)) {
 
      portPriv->isOn = XV_ON;
-     portPriv->pDraw = pDraw;
      portPriv->drw_x = drw_x;  portPriv->drw_y = drw_y;
      portPriv->drw_w = drw_w;  portPriv->drw_h = drw_h;
      portPriv->type = 0;  /* no mask means it's transient and should
@@ -1876,42 +1875,35 @@ xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes)
 _X_EXPORT void
 xf86XVFillKeyHelper (ScreenPtr pScreen, CARD32 key, RegionPtr clipboxes)
 {
-   XF86XVScreenPtr ScreenPriv = GET_XF86XV_SCREEN(pScreen);
    DrawablePtr root = &WindowTable[pScreen->myNum]->drawable;
    XID pval[2];
    BoxPtr pbox = REGION_RECTS(clipboxes);
    int i, nbox = REGION_NUM_RECTS(clipboxes);
    xRectangle *rects;
+   GCPtr gc;
 
    if(!xf86Screens[pScreen->myNum]->vtSema) return;
 
-   if(!ScreenPriv->videoGC) {
-       int status;
-       pval[0] = key;
-       pval[1] = IncludeInferiors;
-       ScreenPriv->videoGC = CreateGC(root, GCForeground | GCSubwindowMode,
-				      pval, &status);
-       if(!ScreenPriv->videoGC) return;
-       ValidateGC(root, ScreenPriv->videoGC);
-   } else if (key != ScreenPriv->videoGC->fgPixel){
-       pval[0] = key;
-       ChangeGC(ScreenPriv->videoGC, GCForeground, pval);
-       ValidateGC(root, ScreenPriv->videoGC);
-   }
+   gc = GetScratchGC(root->depth, pScreen);
+   pval[0] = key;
+   pval[1] = IncludeInferiors;
+   (void) ChangeGC(gc, GCForeground|GCSubwindowMode, pval);
+   ValidateGC(root, gc);
 
-   rects = ALLOCATE_LOCAL(nbox * sizeof(xRectangle));
+   rects = xalloc (nbox * sizeof(xRectangle));
 
-   for(i = 0; i < nbox; i++, pbox++) {
+   for(i = 0; i < nbox; i++, pbox++) 
+   {
       rects[i].x = pbox->x1;
       rects[i].y = pbox->y1;
       rects[i].width = pbox->x2 - pbox->x1;
       rects[i].height = pbox->y2 - pbox->y1;
    }
-
-   (*ScreenPriv->videoGC->ops->PolyFillRect)(
-			     root, ScreenPriv->videoGC, nbox, rects);
-
-   DEALLOCATE_LOCAL(rects);
+   
+   (*gc->ops->PolyFillRect)(root, gc, nbox, rects);
+   
+   xfree (rects);
+   FreeScratchGC (gc);
 }
 
 /* xf86XVClipVideoHelper -
