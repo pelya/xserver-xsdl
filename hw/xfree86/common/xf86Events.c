@@ -1208,31 +1208,3 @@ _X_EXPORT void
 DDXRingBell(int volume, int pitch, int duration) {
     xf86OSRingBell(volume, pitch, duration);
 }
-
-#ifdef WSCONS_SUPPORT
-
-/* XXX Currently XKB is mandatory. */
-
-extern int WSKbdToKeycode(int);
-
-void
-xf86PostWSKbdEvent(struct wscons_event *event)
-{
-  int type = event->type;
-  int value = event->value;
-  unsigned int keycode;
-  int blocked;
-
-  if (type == WSCONS_EVENT_KEY_UP || type == WSCONS_EVENT_KEY_DOWN) {
-    Bool down = (type == WSCONS_EVENT_KEY_DOWN ? TRUE : FALSE);
-
-    /* map the scancodes to standard XFree86 scancode */  	
-    keycode = WSKbdToKeycode(value);
-    if (!down) keycode |= 0x80;
-    /* It seems better to block SIGIO there */
-    blocked = xf86BlockSIGIO();
-    xf86PostKbdEvent(keycode);
-    xf86UnblockSIGIO(blocked);
-  }
-}
-#endif /* WSCONS_SUPPORT */
