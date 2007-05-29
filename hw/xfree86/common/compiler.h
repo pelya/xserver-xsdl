@@ -1365,7 +1365,7 @@ do {									\
 #    define write_mem_barrier()   /* NOP */
 
 #    if !defined(__SUNPRO_C)
-#    if !defined(FAKEIT) && !defined(__mc68000__) && !defined(__arm__) && !defined(__sh__) && !defined(__hppa__)
+#    if !defined(FAKEIT) && !defined(__mc68000__) && !defined(__arm__) && !defined(__sh__) && !defined(__hppa__) && !defined(__s390__)
 #     ifdef GCCUSESGAS
 
 /*
