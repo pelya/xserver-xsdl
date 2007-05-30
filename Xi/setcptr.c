@@ -70,6 +70,7 @@ ProcXSetClientPointer(ClientPtr client)
 {
     DeviceIntPtr pDev;
     WindowPtr pWin;
+    ClientPtr targetClient;
     int err;
 
     REQUEST(xSetClientPointerReq);
@@ -93,9 +94,11 @@ ProcXSetClientPointer(ClientPtr client)
                     stuff->win, err);
             return Success;
         }
-    }
+        targetClient= wClient(pWin);
+    } else
+        targetClient = client;
     
-    if (!SetClientPointer(wClient(pWin), client, pDev))
+    if (!SetClientPointer(targetClient, client, pDev))
     {
         SendErrorToClient(client, IReqCode, X_SetClientPointer, 
                 stuff->win, BadAccess);
