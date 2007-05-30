@@ -96,6 +96,11 @@
 #endif
 #include "xf86DDC.h"
 #include "edid.h"
+#include "xf86Cursor.h"
+#include "xf86RamDac.h"
+#include "BT.h"
+#include "IBM.h"
+#include "TI.h"
 
 #ifndef HAS_GLIBC_SIGSETJMP
 #if defined(setjmp) && defined(__GNU_LIBRARY__) && \
@@ -1255,4 +1260,50 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86I2CWriteRead)
     SYMFUNC(xf86I2CWriteVec)
     SYMFUNC(xf86I2CWriteWord)
+
+    /* ramdac/xf86RamDac.c */
+    SYMFUNC(RamDacCreateInfoRec)
+    SYMFUNC(RamDacHelperCreateInfoRec)
+    SYMFUNC(RamDacDestroyInfoRec)
+    SYMFUNC(RamDacHelperDestroyInfoRec)
+    SYMFUNC(RamDacInit)
+    SYMFUNC(RamDacHandleColormaps)
+    SYMFUNC(RamDacFreeRec)
+    SYMFUNC(RamDacGetHWIndex)
+    SYMVAR(RamDacHWPrivateIndex)
+    SYMVAR(RamDacScreenPrivateIndex)
+
+    /* ramdac/xf86Cursor.c */
+    SYMFUNC(xf86InitCursor)
+    SYMFUNC(xf86CreateCursorInfoRec)
+    SYMFUNC(xf86DestroyCursorInfoRec)
+    SYMFUNC(xf86ForceHWCursor)
+
+    /* ramdac/BT.c */
+    SYMFUNC(BTramdacProbe)
+    SYMFUNC(BTramdacSave)
+    SYMFUNC(BTramdacRestore)
+    SYMFUNC(BTramdacSetBpp)
+
+    /* ramdac/IBM.c */
+    SYMFUNC(IBMramdacProbe)
+    SYMFUNC(IBMramdacSave)
+    SYMFUNC(IBMramdacRestore)
+    SYMFUNC(IBMramdac526SetBpp)
+    SYMFUNC(IBMramdac640SetBpp)
+    SYMFUNC(IBMramdac526CalculateMNPCForClock)
+    SYMFUNC(IBMramdac640CalculateMNPCForClock)
+    SYMFUNC(IBMramdac526HWCursorInit)
+    SYMFUNC(IBMramdac640HWCursorInit)
+    SYMFUNC(IBMramdac526SetBppWeak)
+
+    /* ramdac/TI.c */
+    SYMFUNC(TIramdacCalculateMNPForClock)
+    SYMFUNC(TIramdacProbe)
+    SYMFUNC(TIramdacSave)
+    SYMFUNC(TIramdacRestore)
+    SYMFUNC(TIramdac3026SetBpp)
+    SYMFUNC(TIramdac3030SetBpp)
+    SYMFUNC(TIramdacHWCursorInit)
+    SYMFUNC(TIramdacLoadPalette)
 };
