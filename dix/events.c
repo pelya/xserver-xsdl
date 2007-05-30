@@ -237,22 +237,24 @@ static int DontPropagateRefCnts[DNPMCOUNT];
  *     inputInfo.pointer 
  *     is the core pointer. Referred to as "virtual core pointer", "VCP",
  *     "core pointer" or inputInfo.pointer. There is exactly one core pointer,
- *     but multiple devices may send core events. If a device generates core
- *     events, those events will appear to originate from the core pointer.
+ *     but multiple devices may send core events. The VCP is only used if no
+ *     physical device is connected and does not have a visible cursor. 
+ *     Before the integration of MPX, any core request would operate on the
+ *     VCP/VCK. Core events would always come from one of those two. Now both
+ *     are only fallback devices if no physical devices are available.
  * 
  *     inputInfo.keyboard
  *     is the core keyboard ("virtual core keyboard", "VCK", "core keyboard").
  *     See inputInfo.pointer.
  * 
  *     inputInfo.devices
- *     linked list containing all devices including VCK and VCP. The VCK will
- *     always be the first entry, the VCP the second entry in the device list.
+ *     linked list containing all devices BUT NOT INCLUDING VCK and VCP. 
  *
  *     inputInfo.off_devices
  *     Devices that have not been initialized and are thus turned off.
  *
  *     inputInfo.numDevices
- *     Total number of devices.
+ *     Total number of devices (not counting VCP and VCK).
  */
 _X_EXPORT InputInfo inputInfo;
 
@@ -1387,11 +1389,12 @@ CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
 
 /**
  * Activate a pointer grab on the given device. A pointer grab will cause all
- * core pointer events to be delivered to the grabbing client only. Can cause
- * the cursor to change if a grab cursor is set.
+ * core pointer events of this device to be delivered to the grabbing client only. 
+ * No other device will send core events to the grab client while the grab is
+ * on, but core events will be sent to other clients.
+ * Can cause the cursor to change if a grab cursor is set.
  * 
- * As a pointer grab can only be issued on the core devices, mouse is always
- * inputInfo.pointer. Extension devices are set up for ActivateKeyboardGrab().
+ * Extension devices are set up for ActivateKeyboardGrab().
  * 
  * @param mouse The device to grab.
  * @param grab The grab structure, needs to be setup.
@@ -1433,8 +1436,7 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
 /**
  * Delete grab on given device, update the sprite.
  *
- * As a pointer grab can only be issued on the core devices, mouse is always
- * inputInfo.pointer. Extension devices are set up for ActivateKeyboardGrab().
+ * Extension devices are set up for ActivateKeyboardGrab().
  */
 void
 DeactivatePointerGrab(DeviceIntPtr mouse)
@@ -1651,7 +1653,7 @@ AllowSome(ClientPtr client,
 /**
  * Server-side protocol handling for AllowEvents request.
  *
- * Release some events from a frozen device. Only applicable for core devices.
+ * Release some events from a frozen device. 
  */
 int
 ProcAllowEvents(ClientPtr client)
@@ -2135,9 +2137,6 @@ FixUpEventFromWindow(
  * Deliver events caused by input devices. Called for all core input events
  * and XI events. No filtering of events happens before DeliverDeviceEvents(),
  * it will be called for any event that comes out of the event queue.
- * 
- * For all core events, dev is either inputInfo.pointer or inputInfo.keyboard.
- * For all extension events, dev is the device that caused the event.
  *
  * @param pWin Window to deliver event to.
  * @param xE Events to deliver.
@@ -2535,8 +2534,8 @@ void ReinitializeRootWindow(WindowPtr win, int xoff, int yoff)
 #endif
 
 /**
- * Set the given window to sane values, display the cursor in the center of
- * the screen. Called from main() with the root window on the first screen.
+ * Called from main() with the root window on the first screen. Used to do a
+ * lot more when MPX wasn't around yet. Things change.
  */
 void
 DefineInitialRootWindow(WindowPtr win)
@@ -2547,6 +2546,21 @@ DefineInitialRootWindow(WindowPtr win)
 
 }
 
+/**
+ * Initialize a sprite for the given device and set it to some sane values. If
+ * the device already has a sprite alloc'd, don't realloc but just reset to
+ * default values.
+ * If a window is supplied, the sprite will be initialized with the window's
+ * cursor and positioned in the center of the window's screen. The root window
+ * is a good choice to pass in here.
+ *
+ * It's a good idea to call it only for pointer devices, unless you have a
+ * really talented keyboard.
+ *
+ * @param pDev The device to initialize.
+ * @param pWin The window where to generate the sprite in.
+ * 
+ */
 void 
 InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
 {
@@ -3824,7 +3838,7 @@ CommonAncestor(
 
 /**
  * Assembles an EnterNotify or LeaveNotify and sends it event to the client. 
- * The core devices are used to fill in the event fields.
+ * Uses the paired keyboard to get some additional information.
  */
 static void
 EnterLeaveEvent(
@@ -4453,7 +4467,7 @@ ProcSetInputFocus(client)
 /**
  * Server-side protocol handling for GetInputFocus request.
  * 
- * Sends the current input focus for the virtual core keyboard back to the
+ * Sends the current input focus for the client's keyboard back to the
  * client.
  */
 int
@@ -4481,8 +4495,8 @@ ProcGetInputFocus(ClientPtr client)
 /**
  * Server-side protocol handling for Grabpointer request.
  *
- * Sets an active grab on the inputInfo.pointer and returns success status to
- * client.
+ * Sets an active grab on the client's ClientPointer and returns success
+ * status to client.
  */
 int
 ProcGrabPointer(ClientPtr client)
@@ -4601,7 +4615,7 @@ ProcGrabPointer(ClientPtr client)
  * Changes properties of the grab hold by the client. If the client does not
  * hold an active grab on the device, nothing happens. 
  *
- * Works on the core pointer only.
+ * Works on the client's ClientPointer.
  */
 int
 ProcChangeActivePointerGrab(ClientPtr client)
@@ -4652,7 +4666,7 @@ ProcChangeActivePointerGrab(ClientPtr client)
 /**
  * Server-side protocol handling for UngrabPointer request.
  *
- * Deletes the pointer grab on the core pointer device.
+ * Deletes the pointer grab on the client's ClientPointer device.
  */
 int
 ProcUngrabPointer(ClientPtr client)
@@ -4676,7 +4690,7 @@ ProcUngrabPointer(ClientPtr client)
 /**
  * Sets a grab on the given device.
  * 
- * Called from ProcGrabKeyboard to work on the inputInfo.keyboard.
+ * Called from ProcGrabKeyboard to work on the client's keyboard.
  * Called from ProcXGrabDevice to work on the device specified by the client.
  * 
  * The parameters this_mode and other_mode represent the keyboard_mode and
@@ -4761,7 +4775,7 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 /**
  * Server-side protocol handling for GrabKeyboard request.
  *
- * Grabs the inputInfo.keyboad and returns success status to client.
+ * Grabs the client's keyboard and returns success status to client.
  */
 int
 ProcGrabKeyboard(ClientPtr client)
@@ -4795,7 +4809,7 @@ ProcGrabKeyboard(ClientPtr client)
 /**
  * Server-side protocol handling for UngrabKeyboard request.
  *
- * Deletes a possible grab on the inputInfo.keyboard.
+ * Deletes a possible grab on the client's keyboard.
  */
 int
 ProcUngrabKeyboard(ClientPtr client)
@@ -4819,7 +4833,8 @@ ProcUngrabKeyboard(ClientPtr client)
 /**
  * Server-side protocol handling for QueryPointer request.
  *
- * Returns the current state and position of the core pointer to the client. 
+ * Returns the current state and position of the client's ClientPointer to the
+ * client. 
  */
 int
 ProcQueryPointer(ClientPtr client)
@@ -5029,8 +5044,8 @@ ProcSendEvent(ClientPtr client)
 /**
  * Server-side protocol handling for UngrabKey request.
  *
- * Deletes a passive grab for the given key. Only works on the
- * inputInfo.keyboard.
+ * Deletes a passive grab for the given key. Works on the
+ * client's keyboard.
  */
 int
 ProcUngrabKey(ClientPtr client)
@@ -5077,8 +5092,8 @@ ProcUngrabKey(ClientPtr client)
 /**
  * Server-side protocol handling for GrabKey request.
  *
- * Creates a grab for the inputInfo.keyboard and adds it to the list of
- * passive grabs. 
+ * Creates a grab for the client's keyboard and adds it to the list of passive
+ * grabs. 
  */
 int
 ProcGrabKey(ClientPtr client)
@@ -5138,8 +5153,8 @@ ProcGrabKey(ClientPtr client)
 /**
  * Server-side protocol handling for GrabButton request.
  *
- * Creates a grab for the inputInfo.pointer and adds it as a passive grab to
- * the list.
+ * Creates a grab for the client's ClientPointer and adds it as a passive grab
+ * to the list.
  */
 int
 ProcGrabButton(ClientPtr client)
@@ -5217,7 +5232,7 @@ ProcGrabButton(ClientPtr client)
 /**
  * Server-side protocol handling for UngrabButton request.
  *
- * Deletes a passive grab on the inputInfo.pointer from the list.
+ * Deletes a passive grab on the client's ClientPointer from the list.
  */
 int
 ProcUngrabButton(ClientPtr client)
@@ -5597,6 +5612,12 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 /*
  * Set the client pointer for the given client. Second parameter setter could
  * be used in the future to determine access rights. Unused for now.
+ *
+ * A client can have exactly one ClientPointer. Each time a
+ * request/reply/event is processed and the choice of devices is ambiguous
+ * (e.g. QueryPointer request), the server will pick the ClientPointer (see
+ * PickPointer()). 
+ * If a keyboard is needed, the first keyboard paired with the CP is used.
  */
 _X_EXPORT Bool
 SetClientPointer(ClientPtr client, ClientPtr setter, DeviceIntPtr device)
