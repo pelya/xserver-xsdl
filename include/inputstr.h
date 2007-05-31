@@ -117,6 +117,9 @@ typedef struct _GenericMaskRec {
  * ButtonPressMask).
  * If the grab is a device grab (GrabDevice), then the eventMask is a
  * combination of event masks for a given XI event type (see SetEventInfo).
+ *
+ * If the grab is a result of a ButtonPress, then eventMask is the core mask
+ * and deviceMask is set to the XI event mask for the grab.
  */
 typedef struct _GrabRec {
     GrabPtr		next;		/* for chain of passive grabs */
@@ -135,6 +138,7 @@ typedef struct _GrabRec {
     WindowPtr		confineTo;	/* always NULL for keyboards */
     CursorPtr		cursor;		/* always NULL for keyboards */
     Mask		eventMask;
+    Mask                deviceMask;     
     GenericMaskPtr      genericMasks;   /* null terminated list */
 } GrabRec;
 

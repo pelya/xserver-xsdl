@@ -1839,6 +1839,10 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
  * Deliver events to a window. At this point, we do not yet know if the event
  * actually needs to be delivered. May activate a grab if the event is a
  * button press.
+ * 
+ * Core events are always delivered to the window owner. If the filter is
+ * something other than CantBeFiltered, the event is also delivered to other
+ * clients with the matching mask on the window.
  *
  * More than one event may be delivered at a time. This is the case with
  * DeviceMotionNotifies which may be followed by DeviceValuator events.
@@ -1964,6 +1968,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
     if ((type == ButtonPress) && deliveries && (!grab))
     {
 	GrabRec tempGrab;
+        OtherInputMasks *inputMasks;
 
 	tempGrab.device = pDev;
 	tempGrab.resource = client->clientAsMask;
@@ -1975,6 +1980,11 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 	tempGrab.confineTo = NullWindow;
 	tempGrab.cursor = NullCursor;
         tempGrab.coreGrab = True;
+
+        /* get the XI device mask */
+        inputMasks = wOtherInputMasks(pWin);
+        tempGrab.deviceMask = (inputMasks) ? inputMasks->inputEvents[pDev->id]: 0;
+
         tempGrab.genericMasks = NULL;
 	(*inputInfo.pointer->deviceGrab.ActivateGrab)(pDev, &tempGrab,
 					   currentTime, TRUE);
@@ -3221,10 +3231,14 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
                         grab);
             } else 
             {
+                Mask mask = grab->eventMask;
+                if (grabinfo->fromPassiveGrab && (xE->u.u.type &
+                            EXTENSION_EVENT_BASE))
+                    mask = grab->deviceMask;
+
                 FixUpEventFromWindow(thisDev, xE, grab->window, None, TRUE);
                 deliveries = TryClientEvents(rClient(grab), xE, count,
-                        (Mask)grab->eventMask,
-                        filters[xE->u.u.type], grab);
+                        mask, filters[xE->u.u.type], grab);
             }
             if (deliveries && (xE->u.u.type == MotionNotify
 #ifdef XINPUT
@@ -5716,7 +5730,8 @@ IsInterferingGrab(ClientPtr client, DeviceIntPtr dev, xEvent* event)
     {
         if (it != dev)
         {
-            if (it->deviceGrab.grab && SameClient(it->deviceGrab.grab, client))
+            if (it->deviceGrab.grab && SameClient(it->deviceGrab.grab, client)
+                        && !it->deviceGrab.fromPassiveGrab)
             {
                 return TRUE;
             }
