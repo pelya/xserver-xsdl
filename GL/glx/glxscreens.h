@@ -79,18 +79,12 @@ struct __GLXscreen {
     char *GLXversion;
     char *GLXextensions;
 
-    /*
-    ** Things that are not statically set.
-    */
-    Bool (*WrappedPositionWindow)(WindowPtr pWin, int x, int y);
-
+    Bool (*PositionWindow)(WindowPtr pWin, int x, int y);
+    Bool (*CloseScreen)(int index, ScreenPtr pScreen);
 };
 
 
 void __glXScreenInit(__GLXscreen *screen, ScreenPtr pScreen);
 void __glXScreenDestroy(__GLXscreen *screen);
-
-void __glXInitScreens(void);
-extern void __glXResetScreens(void);
 
 #endif /* !__GLX_screens_h__ */

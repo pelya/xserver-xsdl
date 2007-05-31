@@ -103,7 +103,7 @@ __glXDRIleaveServer(GLboolean rendering)
 
     for (i = 0; rendering && i < screenInfo.numScreens; i++) {
 	__GLXDRIscreen * const screen =
-	    (__GLXDRIscreen *) __glXgetActiveScreen(i);
+	    (__GLXDRIscreen *) glxGetScreen(screenInfo.screens[i]);
 	GLuint lastOverride = screen->lastTexOffsetOverride;
 
 	if (lastOverride) {
@@ -125,7 +125,7 @@ __glXDRIleaveServer(GLboolean rendering)
 
     for (i = 0; rendering && i < screenInfo.numScreens; i++) {
 	__GLXDRIscreen * const screen =
-	    (__GLXDRIscreen *) __glXgetActiveScreen(i);
+	    (__GLXDRIscreen *) glxGetScreen(screenInfo.screens[i]);
 	GLuint lastOverride = screen->lastTexOffsetOverride;
 
 	if (lastOverride) {
@@ -153,8 +153,8 @@ __glXDRIenterServer(GLboolean rendering)
     int i;
 
     for (i = 0; rendering && i < screenInfo.numScreens; i++) {
-	__GLXDRIscreen * const screen =
-	    (__GLXDRIscreen *) __glXgetActiveScreen(i);
+	__GLXDRIscreen * const screen = (__GLXDRIscreen *)
+	    glxGetScreen(screenInfo.screens[i]);
 
 	if (screen->lastTexOffsetOverride) {
 	    CALL_Flush(GET_DISPATCH(), ());
@@ -205,7 +205,7 @@ __glXDRIdrawableSwapInterval(__GLXdrawable *baseDrawable, int interval)
 {
     __GLXDRIdrawable *draw = (__GLXDRIdrawable *) baseDrawable;
     __GLXDRIscreen *screen = (__GLXDRIscreen *)
-	__glXgetActiveScreen(baseDrawable->pDraw->pScreen->myNum);
+	glxGetScreen(baseDrawable->pDraw->pScreen);
 
     if (screen->swapControl)
 	screen->swapControl->setSwapInterval(&draw->driDrawable, interval);
@@ -220,7 +220,7 @@ __glXDRIdrawableCopySubBuffer(__GLXdrawable *basePrivate,
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) basePrivate;
     __GLXDRIscreen *screen = (__GLXDRIscreen *)
-	__glXgetActiveScreen(basePrivate->pDraw->pScreen->myNum);
+	glxGetScreen(basePrivate->pDraw->pScreen);
 
     if (screen->copySubBuffer)
 	screen->copySubBuffer->copySubBuffer(&private->driDrawable,
@@ -328,8 +328,7 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
     int		bpp, override = 0, texname;
     GLenum	format, type;
     ScreenPtr pScreen = glxPixmap->pScreen;
-    __GLXDRIscreen * const screen =
-	(__GLXDRIscreen *) __glXgetActiveScreen(pScreen->myNum);
+    __GLXDRIscreen * const screen = (__GLXDRIscreen *) glxGetScreen(pScreen);
 
     CALL_GetIntegerv(GET_DISPATCH(), (glxPixmap->target == GL_TEXTURE_2D ?
 				      GL_TEXTURE_BINDING_2D :
@@ -482,7 +481,7 @@ __glXDRIreleaseTexImage(__GLXcontext *baseContext,
 {
     ScreenPtr pScreen = pixmap->pScreen;
     __GLXDRIscreen * const screen =
-	(__GLXDRIscreen *) __glXgetActiveScreen(pScreen->myNum);
+	(__GLXDRIscreen *) glxGetScreen(pScreen);
     GLuint lastOverride = screen->lastTexOffsetOverride;
 
     if (lastOverride) {
@@ -801,7 +800,8 @@ static const char dri_driver_path[] = DRI_DRIVER_PATH;
 static Bool
 glxDRIEnterVT (int index, int flags)
 {
-    __GLXDRIscreen *screen = (__GLXDRIscreen *) __glXgetActiveScreen(index);
+    __GLXDRIscreen *screen = (__GLXDRIscreen *) 
+	glxGetScreen(screenInfo.screens[index]);
 
     LogMessage(X_INFO, "AIGLX: Resuming AIGLX clients after VT switch\n");
 
@@ -816,7 +816,8 @@ glxDRIEnterVT (int index, int flags)
 static void
 glxDRILeaveVT (int index, int flags)
 {
-    __GLXDRIscreen *screen = (__GLXDRIscreen *) __glXgetActiveScreen(index);
+    __GLXDRIscreen *screen = (__GLXDRIscreen *)
+	glxGetScreen(screenInfo.screens[index]);
 
     LogMessage(X_INFO, "AIGLX: Suspending AIGLX clients for VT switch\n");
 

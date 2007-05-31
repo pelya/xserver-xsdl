@@ -45,7 +45,6 @@ __GLXcontext *__glXLastContext;
 ** X resources.
 */
 RESTYPE __glXContextRes;
-RESTYPE __glXClientRes;
 RESTYPE __glXPixmapRes;
 RESTYPE __glXDrawableRes;
 RESTYPE __glXSwapBarrierRes;
@@ -55,11 +54,7 @@ RESTYPE __glXSwapBarrierRes;
 */
 xGLXSingleReply __glXReply;
 
-/*
-** A set of state for each client.  The 0th one is unused because client
-** indices start at 1, not 0.
-*/
-static __GLXclientState *__glXClients[MAXCLIENTS + 1];
+static int glxClientPrivateIndex;
 
 /*
 ** Client that called into GLX dispatch.
@@ -77,29 +72,6 @@ static int __glXDispatch(ClientPtr);
 static void ResetExtension(ExtensionEntry* extEntry)
 {
     __glXFlushContextCache();
-    __glXResetScreens();
-}
-
-/*
-** Initialize the per-client context storage.
-*/
-static void ResetClientState(int clientIndex)
-{
-    __GLXclientState *cl = __glXClients[clientIndex];
-
-    if (cl->returnBuf) xfree(cl->returnBuf);
-    if (cl->largeCmdBuf) xfree(cl->largeCmdBuf);
-    if (cl->currentContexts) xfree(cl->currentContexts);
-    memset(cl, 0, sizeof(__GLXclientState));
-    /*
-    ** By default, assume that the client supports
-    ** GLX major version 1 minor version 0 protocol.
-    */
-    cl->GLClientmajorVersion = 1;
-    cl->GLClientminorVersion = 0;
-    if (cl->GLClientextensions)
-	xfree(cl->GLClientextensions);
-
 }
 
 /*
@@ -124,39 +96,6 @@ static int ContextGone(__GLXcontext* cx, XID id)
     cx->idExists = GL_FALSE;
     if (!cx->isCurrent) {
 	__glXFreeContext(cx);
-    }
-
-    return True;
-}
-
-/*
-** Free a client's state.
-*/
-static int ClientGone(int clientIndex, XID id)
-{
-    __GLXcontext *cx;
-    __GLXclientState *cl = __glXClients[clientIndex];
-    int i;
-
-    if (cl) {
-	/*
-	** Free all the contexts that are current for this client.
-	*/
-	for (i=0; i < cl->numCurrentContexts; i++) {
-	    cx = cl->currentContexts[i];
-	    if (cx) {
-		cx->isCurrent = GL_FALSE;
-		if (!cx->idExists) {
-		    __glXFreeContext(cx);
-		}
-	    }
-	}
-	/*
-	** Re-initialize the client state structure.  Don't free it because
-	** we'll probably get another client with this index and use the struct
-	** again.  There is a maximum of MAXCLIENTS of these structures.
-	*/
-	ResetClientState(clientIndex);
     }
 
     return True;
@@ -309,7 +248,64 @@ int __glXError(int error)
     return __glXErrorBase + error;
 }
 
+__GLXclientState *
+glxGetClient(ClientPtr pClient)
+{
+    return (__GLXclientState *) pClient->devPrivates[glxClientPrivateIndex].ptr;
+}
+
+static void
+glxClientCallback (CallbackListPtr	*list,
+		   pointer		closure,
+		   pointer		data)
+{
+    NewClientInfoRec	*clientinfo = (NewClientInfoRec *) data;
+    ClientPtr		pClient = clientinfo->client;
+    __GLXclientState	*cl = glxGetClient(pClient);
+    __GLXcontext	*cx;
+    int i;
+
+    switch (pClient->clientState) {
+    case ClientStateRunning:
+	/*
+	** By default, assume that the client supports
+	** GLX major version 1 minor version 0 protocol.
+	*/
+	cl->GLClientmajorVersion = 1;
+	cl->GLClientminorVersion = 0;
+	cl->client = pClient;
+	break;
+
+    case ClientStateGone:
+	for (i = 0; i < cl->numCurrentContexts; i++) {
+	    cx = cl->currentContexts[i];
+	    if (cx) {
+		cx->isCurrent = GL_FALSE;
+		if (!cx->idExists)
+		    __glXFreeContext(cx);
+	    }
+	}
+
+	if (cl->returnBuf) xfree(cl->returnBuf);
+	if (cl->largeCmdBuf) xfree(cl->largeCmdBuf);
+	if (cl->currentContexts) xfree(cl->currentContexts);
+	if (cl->GLClientextensions) xfree(cl->GLClientextensions);
+	break;
+
+    default:
+	break;
+    }
+}
+
 /************************************************************************/
+
+static __GLXprovider *__glXProviderStack;
+
+void GlxPushProvider(__GLXprovider *provider)
+{
+    provider->next = __glXProviderStack;
+    __glXProviderStack = provider;
+}
 
 /*
 ** Initialize the GLX extension.
@@ -317,13 +313,21 @@ int __glXError(int error)
 void GlxExtensionInit(void)
 {
     ExtensionEntry *extEntry;
+    ScreenPtr pScreen;
     int i;
+    __GLXprovider *p;
 
     __glXContextRes = CreateNewResourceType((DeleteType)ContextGone);
-    __glXClientRes = CreateNewResourceType((DeleteType)ClientGone);
     __glXPixmapRes = CreateNewResourceType((DeleteType)PixmapGone);
     __glXDrawableRes = CreateNewResourceType((DeleteType)DrawableGone);
     __glXSwapBarrierRes = CreateNewResourceType((DeleteType)SwapBarrierGone);
+
+    glxClientPrivateIndex = AllocateClientPrivateIndex ();
+    if (!AllocateClientPrivate (glxClientPrivateIndex,
+				sizeof (__GLXclientState)))
+	return;
+    if (!AddCallback (&ClientStateCallback, glxClientCallback, 0))
+	return;
 
     /*
     ** Add extension to server extensions.
@@ -343,17 +347,17 @@ void GlxExtensionInit(void)
 
     __glXErrorBase = extEntry->errorBase;
 
-    /*
-    ** Initialize table of client state.  There is never a client 0.
-    */
-    for (i = 1; i <= MAXCLIENTS; i++) {
-	__glXClients[i] = 0;
-    }
+    for (i = 0; i < screenInfo.numScreens; i++) {
+	pScreen = screenInfo.screens[i];
 
-    /*
-    ** Initialize screen specific data.
-    */
-    __glXInitScreens();
+	for (p = __glXProviderStack; p != NULL; p = p->next) {
+	    if (p->screenProbe(pScreen) != NULL)
+		LogMessage(X_INFO,
+			   "GLX: Initialized %s GL provider for screen %d\n",
+			   p->name, i);
+	    break;
+	}
+    }
 }
 
 /************************************************************************/
@@ -421,11 +425,9 @@ void glxSuspendClients(void)
 {
     int i;
 
-    for (i = 1; i <= MAXCLIENTS; i++) {
-	if (__glXClients[i] == NULL || !__glXClients[i]->inUse)
-	    continue;
-
-	IgnoreClient(__glXClients[i]->client);
+    for (i = 1; i < currentMaxClients; i++) {
+	if (glxGetClient(clients[i])->inUse)
+	    IgnoreClient(clients[i]);
     }
 
     glxBlockClients = TRUE;
@@ -438,11 +440,9 @@ void glxResumeClients(void)
 
     glxBlockClients = FALSE;
 
-    for (i = 1; i <= MAXCLIENTS; i++) {
-	if (__glXClients[i] == NULL || !__glXClients[i]->inUse)
-	    continue;
-
-	AttendClient(__glXClients[i]->client);
+    for (i = 1; i < currentMaxClients; i++) {
+	if (glxGetClient(clients[i])->inUse)
+	    AttendClient(clients[i]);
     }
 
     __glXleaveServer(GL_FALSE);
@@ -504,29 +504,9 @@ static int __glXDispatch(ClientPtr client)
     int retval;
 
     opcode = stuff->glxCode;
-    cl = __glXClients[client->index];
-    if (!cl) {
-	cl = (__GLXclientState *) xalloc(sizeof(__GLXclientState));
-	 __glXClients[client->index] = cl;
-	if (!cl) {
-	    return BadAlloc;
-	}
-	memset(cl, 0, sizeof(__GLXclientState));
-    }
-    
-    if (!cl->inUse) {
-	/*
-	** This is first request from this client.  Associate a resource
-	** with the client so we will be notified when the client dies.
-	*/
-	XID xid = FakeClientID(client->index);
-	if (!AddResource( xid, __glXClientRes, (pointer)(long)client->index)) {
-	    return BadAlloc;
-	}
-	ResetClientState(client->index);
-	cl->inUse = GL_TRUE;
-	cl->client = client;
-    }
+    cl = glxGetClient(client);
+    /* Mark it in use so we suspend it on VT switch. */
+    cl->inUse = TRUE;
 
     /*
     ** If we're expecting a glXRenderLarge request, this better be one.

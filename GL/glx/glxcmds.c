@@ -131,8 +131,8 @@ int DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
 	return BadValue;
     }
     pScreen = screenInfo.screens[screen];
-    pGlxScreen = __glXActiveScreens[screen];
-    
+    pGlxScreen = glxGetScreen(pScreen);
+
     /*
     ** Check if the visual ID is valid for this screen.
     */
@@ -149,7 +149,7 @@ int DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
 
     /*
     ** Get configuration of the visual.  This assumes that the
-    ** glXActiveScreens structure contains visual configurations only for the
+    ** glxScreen structure contains visual configurations only for the
     ** subset of Visuals that are supported by this implementation of the
     ** OpenGL.
     */
@@ -931,7 +931,7 @@ int DoGetVisualConfigs(__GLXclientState *cl, unsigned screen,
 	client->errorValue = screen;
 	return BadValue;
     }
-    pGlxScreen = __glXActiveScreens[screen];
+    pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
 
     reply.numVisuals = pGlxScreen->numUsableVisuals;
     reply.numProps = __GLX_TOTAL_CONFIG;
@@ -1119,7 +1119,7 @@ int DoGetFBConfigs(__GLXclientState *cl, unsigned screen, GLboolean do_swap)
 	client->errorValue = screen;
 	return BadValue;
     }
-    pGlxScreen = __glXActiveScreens[screen];
+    pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
 
     /* Create the "extra" 32bpp ARGB visual, if not already added.
      * XXX This is questionable place to do so!  Re-examine this someday.
@@ -1245,7 +1245,7 @@ static int ValidateCreateDrawable(ClientPtr client,
     }
 
     /* Get configuration of the visual. */
-    pGlxScreen = __glXgetActiveScreen(screenNum);
+    pGlxScreen = glxGetScreen(pScreen);
     *modes = _gl_context_modes_find_visual(pGlxScreen->modes, fbconfigId);
     if (*modes == NULL) {
 	/* Visual not support on this screen by this OpenGL implementation. */
@@ -1286,7 +1286,7 @@ int DoCreateGLXPixmap(__GLXclientState *cl, XID fbconfigId,
 	return BadAlloc;
     }
     pGlxPixmap->pDraw = pDraw;
-    pGlxPixmap->pGlxScreen = __glXgetActiveScreen(screenNum);
+    pGlxPixmap->pGlxScreen = glxGetScreen(pDraw->pScreen);
     pGlxPixmap->pScreen = pDraw->pScreen;
     pGlxPixmap->idExists = True;
 #ifdef XF86DRI
@@ -1430,7 +1430,7 @@ int __glXDisp_CreateWindow(__GLXclientState *cl, GLbyte *pc)
     /* FIXME: We need to check that the window visual is compatible
      * with the specified fbconfig. */
 
-    screen = __glXgetActiveScreen(req->screen);
+    screen = glxGetScreen(screenInfo.screens[req->screen]);
     glxPriv = screen->createDrawable(screen, pDraw, req->glxwindow, modes);
     if (glxPriv == NULL)
 	return BadAlloc;
@@ -2368,7 +2368,7 @@ int __glXDisp_QueryExtensionsString(__GLXclientState *cl, GLbyte *pc)
 	return BadValue;
     }
 
-    ptr = __glXActiveScreens[screen]->GLXextensions;
+    ptr = glxGetScreen(screenInfo.screens[screen])->GLXextensions;
 
     n = strlen(ptr) + 1;
     length = __GLX_PAD(n) >> 2;
@@ -2404,6 +2404,7 @@ int __glXDisp_QueryServerString(__GLXclientState *cl, GLbyte *pc)
     size_t n, length;
     const char *ptr;
     char *buf;
+    __GLXscreen *pGlxScreen;
 
     name = req->name;
     screen = req->screen;
@@ -2414,15 +2415,17 @@ int __glXDisp_QueryServerString(__GLXclientState *cl, GLbyte *pc)
 	client->errorValue = screen;
 	return BadValue;
     }
+    pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
+
     switch(name) {
 	case GLX_VENDOR:
-	    ptr = __glXActiveScreens[screen]->GLXvendor;
+	    ptr = pGlxScreen->GLXvendor;
 	    break;
 	case GLX_VERSION:
-	    ptr = __glXActiveScreens[screen]->GLXversion;
+	    ptr = pGlxScreen->GLXversion;
 	    break;
 	case GLX_EXTENSIONS:
-	    ptr = __glXActiveScreens[screen]->GLXextensions;
+	    ptr = pGlxScreen->GLXextensions;
 	    break;
 	default:
 	    return BadValue; 
