@@ -181,12 +181,6 @@ static char GLXServerExtensions[] =
 			"GLX_MESA_copy_sub_buffer "
 			;
 
-__GLXSwapBarrierExtensionFuncs *__glXSwapBarrierFuncs = NULL;
-static int __glXNumSwapBarrierFuncs = 0;
-__GLXHyperpipeExtensionFuncs *__glXHyperpipeFuncs = NULL;
-static int __glXNumHyperpipeFuncs = 0;
-
-
 /*
 ** This hook gets called when a window moves or changes size.
 */
@@ -256,34 +250,16 @@ static Bool glxPositionWindow(WindowPtr pWin, int x, int y)
 
 void __glXHyperpipeInit(int screen, __GLXHyperpipeExtensionFuncs *funcs)
 {
-    if (__glXNumHyperpipeFuncs < screen + 1) {
-        __glXHyperpipeFuncs = xrealloc(__glXHyperpipeFuncs,
-                                           (screen+1) * sizeof(__GLXHyperpipeExtensionFuncs));
-        __glXNumHyperpipeFuncs = screen + 1;
-    }
+    __GLXscreen *pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
 
-    __glXHyperpipeFuncs[screen].queryHyperpipeNetworkFunc =
-        *funcs->queryHyperpipeNetworkFunc;
-    __glXHyperpipeFuncs[screen].queryHyperpipeConfigFunc =
-        *funcs->queryHyperpipeConfigFunc;
-    __glXHyperpipeFuncs[screen].destroyHyperpipeConfigFunc =
-        *funcs->destroyHyperpipeConfigFunc;
-    __glXHyperpipeFuncs[screen].hyperpipeConfigFunc =
-        *funcs->hyperpipeConfigFunc;
+    pGlxScreen->hyperpipeFuncs = funcs;
 }
 
 void __glXSwapBarrierInit(int screen, __GLXSwapBarrierExtensionFuncs *funcs)
 {
-    if (__glXNumSwapBarrierFuncs < screen + 1) {
-        __glXSwapBarrierFuncs = xrealloc(__glXSwapBarrierFuncs,
-                                           (screen+1) * sizeof(__GLXSwapBarrierExtensionFuncs));
-        __glXNumSwapBarrierFuncs = screen + 1;
-    }
+    __GLXscreen *pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
 
-    __glXSwapBarrierFuncs[screen].bindSwapBarrierFunc =
-        funcs->bindSwapBarrierFunc;
-    __glXSwapBarrierFuncs[screen].queryMaxSwapBarriersFunc =
-        funcs->queryMaxSwapBarriersFunc;
+    pGlxScreen->swapBarrierFuncs = funcs;
 }
 
 static Bool

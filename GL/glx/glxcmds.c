@@ -2088,13 +2088,14 @@ int __glXDisp_BindSwapBarrierSGIX(__GLXclientState *cl, GLbyte *pc)
     int barrier = req->barrier;
     DrawablePtr pDraw;
     int screen, rc;
+    __GLXscreen *pGlxScreen;
 
     rc = dixLookupDrawable(&pDraw, drawable, client, 0, DixUnknownAccess);
+    pGlxScreen = glxGetScreen(pDraw->pScreen);
     if (rc == Success && (pDraw->type == DRAWABLE_WINDOW)) {
 	screen = pDraw->pScreen->myNum;
-        if (__glXSwapBarrierFuncs &&
-            __glXSwapBarrierFuncs[screen].bindSwapBarrierFunc) {
-            int ret = __glXSwapBarrierFuncs[screen].bindSwapBarrierFunc(screen, drawable, barrier);
+        if (pGlxScreen->swapBarrierFuncs) {
+            int ret = pGlxScreen->swapBarrierFuncs->bindSwapBarrierFunc(screen, drawable, barrier);
             if (ret == Success) {
                 if (barrier)
                     /* add source for cleanup when drawable is gone */
@@ -2118,10 +2119,11 @@ int __glXDisp_QueryMaxSwapBarriersSGIX(__GLXclientState *cl, GLbyte *pc)
                                     (xGLXQueryMaxSwapBarriersSGIXReq *) pc;
     xGLXQueryMaxSwapBarriersSGIXReply reply;
     int screen = req->screen;
+    __GLXscreen *pGlxScreen;
 
-    if (__glXSwapBarrierFuncs &&
-        __glXSwapBarrierFuncs[screen].queryMaxSwapBarriersFunc)
-        reply.max = __glXSwapBarrierFuncs[screen].queryMaxSwapBarriersFunc(screen);
+    pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
+    if (pGlxScreen->swapBarrierFuncs)
+        reply.max = pGlxScreen->swapBarrierFuncs->queryMaxSwapBarriersFunc(screen);
     else
         reply.max = 0;
 
@@ -2154,11 +2156,12 @@ int __glXDisp_QueryHyperpipeNetworkSGIX(__GLXclientState *cl, GLbyte *pc)
     int npipes=0;
 
     int n= 0;
+    __GLXscreen *pGlxScreen;
 
-    if (__glXHyperpipeFuncs &&
-        __glXHyperpipeFuncs[screen].queryHyperpipeNetworkFunc != NULL) {
+    pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
+    if (pGlxScreen->hyperpipeFuncs) {
         rdata =
-            (__glXHyperpipeFuncs[screen].queryHyperpipeNetworkFunc(screen, &npipes, &n));
+            (pGlxScreen->hyperpipeFuncs->queryHyperpipeNetworkFunc(screen, &npipes, &n));
     }
     length = __GLX_PAD(n) >> 2;
     reply.type = X_Reply;
@@ -2191,13 +2194,13 @@ int __glXDisp_DestroyHyperpipeConfigSGIX (__GLXclientState *cl, GLbyte *pc)
     int screen = req->screen;
     int  success = GLX_BAD_HYPERPIPE_SGIX;
     int hpId ;
+    __GLXscreen *pGlxScreen;
 
     hpId = req->hpId;
 
-
-    if (__glXHyperpipeFuncs &&
-        __glXHyperpipeFuncs[screen].destroyHyperpipeConfigFunc != NULL) {
-        success = __glXHyperpipeFuncs[screen].destroyHyperpipeConfigFunc(screen, hpId);
+    pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
+    if (pGlxScreen->hyperpipeFuncs) {
+        success = pGlxScreen->hyperpipeFuncs->destroyHyperpipeConfigFunc(screen, hpId);
     }
 
     reply.type = X_Reply;
@@ -2229,12 +2232,13 @@ int __glXDisp_QueryHyperpipeConfigSGIX(__GLXclientState *cl, GLbyte *pc)
     int npipes=0;
     int n= 0;
     int hpId;
+    __GLXscreen *pGlxScreen;
 
     hpId = req->hpId;
 
-    if (__glXHyperpipeFuncs &&
-        __glXHyperpipeFuncs[screen].queryHyperpipeConfigFunc != NULL) {
-        rdata = __glXHyperpipeFuncs[screen].queryHyperpipeConfigFunc(screen, hpId,&npipes, &n);
+    pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
+    if (pGlxScreen->hyperpipeFuncs) {
+        rdata = pGlxScreen->hyperpipeFuncs->queryHyperpipeConfigFunc(screen, hpId,&npipes, &n);
     }
 
     length = __GLX_PAD(n) >> 2;
@@ -2272,14 +2276,15 @@ int __glXDisp_HyperpipeConfigSGIX(__GLXclientState *cl, GLbyte *pc)
 
     int npipes=0, networkId;
     int hpId=-1;
+    __GLXscreen *pGlxScreen;
 
+    pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
     networkId = (int)req->networkId;
     npipes = (int)req->npipes;
     rdata = (void *)(req +1);
 
-    if (__glXHyperpipeFuncs &&
-        __glXHyperpipeFuncs[screen].hyperpipeConfigFunc != NULL) {
-        __glXHyperpipeFuncs[screen].hyperpipeConfigFunc(screen,networkId,
+    if (pGlxScreen->hyperpipeFuncs) {
+        pGlxScreen->hyperpipeFuncs->hyperpipeConfigFunc(screen,networkId,
                                                         &hpId, &npipes,
                                                         (void *) rdata);
     }

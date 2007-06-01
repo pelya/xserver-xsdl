@@ -42,6 +42,21 @@
 
 #include "GL/internal/glcore.h"
 
+typedef struct {
+    void * (* queryHyperpipeNetworkFunc)(int, int *, int *);
+    void * (* queryHyperpipeConfigFunc)(int, int, int *, int *);
+    int    (* destroyHyperpipeConfigFunc)(int, int);
+    void * (* hyperpipeConfigFunc)(int, int, int *, int *, void *);
+} __GLXHyperpipeExtensionFuncs;
+
+typedef struct {
+    int    (* bindSwapBarrierFunc)(int, XID, int);
+    int    (* queryMaxSwapBarriersFunc)(int);
+} __GLXSwapBarrierExtensionFuncs;
+
+void __glXHyperpipeInit(int screen, __GLXHyperpipeExtensionFuncs *funcs);
+void __glXSwapBarrierInit(int screen, __GLXSwapBarrierExtensionFuncs *funcs);
+
 /*
 ** Screen dependent data.  These methods are the interface between the DIX
 ** and DDX layers of the GLX server extension.  The methods provide an
@@ -61,6 +76,9 @@ struct __GLXscreen {
 				     __GLcontextModes *modes);
     int            (*swapInterval)  (__GLXdrawable *drawable,
 				     int interval);
+
+    __GLXHyperpipeExtensionFuncs *hyperpipeFuncs;
+    __GLXSwapBarrierExtensionFuncs *swapBarrierFuncs;
 
     ScreenPtr pScreen;
 

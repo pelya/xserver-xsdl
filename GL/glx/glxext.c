@@ -198,9 +198,10 @@ extern RESTYPE __glXSwapBarrierRes;
 
 static int SwapBarrierGone(int screen, XID drawable)
 {
-    if (__glXSwapBarrierFuncs &&
-        __glXSwapBarrierFuncs[screen].bindSwapBarrierFunc != NULL) {
-        __glXSwapBarrierFuncs[screen].bindSwapBarrierFunc(screen, drawable, 0);
+    __GLXscreen *pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
+
+    if (pGlxScreen->swapBarrierFuncs) {
+        pGlxScreen->swapBarrierFuncs->bindSwapBarrierFunc(screen, drawable, 0);
     }
     FreeResourceByType(drawable, __glXSwapBarrierRes, FALSE);
     return True;
