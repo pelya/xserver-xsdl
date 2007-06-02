@@ -1890,7 +1890,7 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 		       virtX, virtY, vx, vy);
 	    virtX = vx;
 	    virtY = vy;
-	    linePitch = miScanLineWidth(vx, vy, linePitch, apertureSize,
+	    linePitch = miScanLineWidth(vx, vy, minPitch, apertureSize,
 					BankFormat, pitchInc);
 	}
     }
