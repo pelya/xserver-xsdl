@@ -615,7 +615,7 @@ configFiles(XF86ConfFilesPtr fileconf)
       pathFrom = X_CONFIG;
       if (*f) {
         if (xf86Info.useDefaultFontPath) {
-          xf86Msg(X_WARNING, "Including the default font path %s.\n", defaultFontPath);
+          xf86Msg(X_DEFAULT, "Including the default font path %s.\n", defaultFontPath);
           char *g = xnfalloc(strlen(defaultFontPath) + strlen(f) + 3);
           strcpy(g, f);
           strcat(g, ",");
@@ -632,7 +632,7 @@ configFiles(XF86ConfFilesPtr fileconf)
       }
     } 
    } else {
-      xf86Msg(X_WARNING,
+      xf86Msg(X_DEFAULT,
 	    "No FontPath specified.  Using compiled-in default.\n");
       pathFrom = X_DEFAULT;
    }
@@ -1474,13 +1474,13 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     }
 
     if (pointerMsg) {
-	xf86Msg(X_WARNING, "The core pointer device wasn't specified "
+	xf86Msg(X_DEFAULT, "The core pointer device wasn't specified "
 		"explicitly in the layout.\n"
 		"\tUsing the %s.\n", pointerMsg);
     }
 
     if (keyboardMsg) {
-	xf86Msg(X_WARNING, "The core keyboard device wasn't specified "
+	xf86Msg(X_DEFAULT, "The core keyboard device wasn't specified "
 		"explicitly in the layout.\n"
 		"\tUsing the %s.\n", keyboardMsg);
     }
@@ -1937,7 +1937,7 @@ configScreen(confScreenPtr screenp, XF86ConfScreenPtr conf_screen, int scrnum,
     }
 
     if (defaultMonitor) {
-	xf86Msg(X_WARNING, "No monitor specified for screen \"%s\".\n"
+	xf86Msg(X_DEFAULT, "No monitor specified for screen \"%s\".\n"
 		"\tUsing a default monitor configuration.\n", screenp->id);
     }
     return TRUE;
@@ -2457,7 +2457,7 @@ xf86HandleConfigFile(Bool autoconfig)
 
     if (xf86configptr->conf_layout_lst == NULL || xf86ScreenName != NULL) {
 	if (xf86ScreenName == NULL) {
-	    xf86Msg(X_WARNING,
+	    xf86Msg(X_DEFAULT,
 		    "No Layout section.  Using the first Screen section.\n");
 	}
 	if (!configImpliedLayout(&xf86ConfigLayout,
