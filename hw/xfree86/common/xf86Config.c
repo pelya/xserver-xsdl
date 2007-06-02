@@ -131,9 +131,9 @@ static Bool configInput(IDevPtr inputp, XF86ConfInputPtr conf_input,
 static Bool configDisplay(DispPtr displayp, XF86ConfDisplayPtr conf_display);
 static Bool addDefaultModes(MonPtr monitorp);
 #ifdef XF86DRI
-static Bool configDRI(XF86ConfDRIPtr drip);
+static void configDRI(XF86ConfDRIPtr drip);
 #endif
-static Bool configExtensions(XF86ConfExtensionsPtr conf_ext);
+static void configExtensions(XF86ConfExtensionsPtr conf_ext);
 
 /*
  * xf86GetPathElem --
@@ -598,7 +598,7 @@ xf86ConfigError(char *msg, ...)
     return;
 }
 
-static Bool
+static void
 configFiles(XF86ConfFilesPtr fileconf)
 {
   MessageType pathFrom = X_DEFAULT;
@@ -2228,7 +2228,7 @@ configDevice(GDevPtr devicep, XF86ConfDevicePtr conf_device, Bool active)
 }
 
 #ifdef XF86DRI
-static Bool
+static void
 configDRI(XF86ConfDRIPtr drip)
 {
     int                count = 0;
@@ -2269,12 +2269,10 @@ configDRI(XF86ConfDRIPtr drip)
 	    xf86ConfigDRI.bufs[i].flags = 0;
 	}
     }
-
-    return TRUE;
 }
 #endif
 
-static Bool
+static void
 configExtensions(XF86ConfExtensionsPtr conf_ext)
 {
     XF86OptionPtr o;
@@ -2309,11 +2307,9 @@ configExtensions(XF86ConfExtensionsPtr conf_ext)
 		       xf86NameCmp(val, "false") == 0) {
 		enable = !enable;
 	    } else {
-		xf86Msg(X_ERROR,
-			"%s is not a valid value for the Extension option\n",
-			val);
+		xf86Msg(X_WARNING, "Ignoring unrecognized value \"%s\"\n", val);
 		xfree(n);
-		return FALSE;
+		continue;
 	    }
 
 	    if (EnableDisableExtension(name, enable)) {
@@ -2326,8 +2322,6 @@ configExtensions(XF86ConfExtensionsPtr conf_ext)
 	    xfree(n);
 	}
     }
-
-    return TRUE;
 }
 
 static Bool
@@ -2510,18 +2504,16 @@ xf86HandleConfigFile(Bool autoconfig)
     }
 
     /* Now process everything else */
-
-    if (!configServerFlags(xf86configptr->conf_flags,
-			   xf86ConfigLayout.options) ||
-         !configFiles(xf86configptr->conf_files) ||
-	!configExtensions(xf86configptr->conf_extensions)
-#ifdef XF86DRI
-	|| !configDRI(xf86configptr->conf_dri)
-#endif
-       ) {
+    if (!configServerFlags(xf86configptr->conf_flags,xf86ConfigLayout.options)){
              ErrorF ("Problem when converting the config data structures\n");
              return CONFIG_PARSE_ERROR;
     }
+
+    configFiles(xf86configptr->conf_files);
+    configExtensions(xf86configptr->conf_extensions);
+#ifdef XF86DRI
+    configDRI(xf86configptr->conf_dri);
+#endif
 
     checkInput(&xf86ConfigLayout);
 
