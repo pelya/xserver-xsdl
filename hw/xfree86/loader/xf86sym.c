@@ -1236,8 +1236,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86DoEDID_DDC2)
     SYMFUNC(xf86InterpretEDID)
     SYMFUNC(xf86PrintEDID)
-    SYMFUNC(xf86InterpretVdif)
-    SYMFUNC(xf86print_vdif)
     SYMFUNC(xf86DDCMonitorSet)
     SYMFUNC(xf86SetDDCproperties)
 
