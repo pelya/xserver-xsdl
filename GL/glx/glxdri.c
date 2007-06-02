@@ -1001,13 +1001,10 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     size_t buffer_size;
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
 
-    if (!xf86LoaderCheckSymbol("DRIQueryDirectRenderingCapable")) {
-	LogMessage(X_ERROR, "AIGLX: DRI module not loaded\n");
-	return NULL;
-    }
-
-    if (!DRIQueryDirectRenderingCapable(pScreen, &isCapable) || !isCapable) {
-	LogMessage(X_ERROR,
+    if (!xf86LoaderCheckSymbol("DRIQueryDirectRenderingCapable") ||
+	!DRIQueryDirectRenderingCapable(pScreen, &isCapable) ||
+	!isCapable) {
+	LogMessage(X_INFO,
 		   "AIGLX: Screen %d is not DRI capable\n", pScreen->myNum);
 	return NULL;
     }
