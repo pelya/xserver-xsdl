@@ -26,6 +26,8 @@
 #define _FB_H_
 
 #include <X11/X.h>
+#include <pixman/pixman.h>
+
 #include "scrnintstr.h"
 #include "pixmap.h"
 #include "pixmapstr.h"

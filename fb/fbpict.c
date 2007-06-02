@@ -30,7 +30,6 @@
 #include <string.h>
 
 #include "fb.h"
-#include <pixman/pixman.h>
 
 #ifdef RENDER
 

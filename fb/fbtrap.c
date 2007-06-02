@@ -30,8 +30,6 @@
 
 #ifdef RENDER
 
-#include <pixman/pixman.h>
-
 #include "picturestr.h"
 #include "mipict.h"
 #include "renderedge.h"
