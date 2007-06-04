@@ -463,9 +463,18 @@ xf86PostMotionEvent(DeviceIntPtr	device,
 {
     va_list var;
     int i = 0;
-    int *valuators = NULL;
-    
-    valuators = xcalloc(sizeof(int), num_valuators);
+    static int *valuators = NULL;
+    static int n_valuators = 0;
+
+    if (num_valuators > n_valuators) {
+	xfree (valuators);
+	valuators = NULL;
+    }
+
+    if (!valuators) {
+	valuators = xcalloc(sizeof(int), num_valuators);
+	n_valuators = num_valuators;
+    }
 
     va_start(var, num_valuators);
     for (i = 0; i < num_valuators; i++)
@@ -473,7 +482,6 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     va_end(var);
 
     xf86PostMotionEventP(device, is_absolute, first_valuator, num_valuators, valuators);
-    xfree(valuators);
 }
 
 _X_EXPORT void
