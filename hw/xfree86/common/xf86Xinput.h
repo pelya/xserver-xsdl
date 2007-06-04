@@ -163,6 +163,8 @@ extern InputInfoPtr xf86InputDevs;
 void InitExtInput(void);
 void xf86PostMotionEvent(DeviceIntPtr device, int is_absolute,
 			 int first_valuator, int num_valuators, ...);
+void xf86PostMotionEventP(DeviceIntPtr device, int is_absolute,
+			 int first_valuator, int num_valuators, int *valuators);
 void xf86PostProximityEvent(DeviceIntPtr device, int is_in,
 			    int first_valuator, int num_valuators, ...);
 void xf86PostButtonEvent(DeviceIntPtr device, int is_absolute, int button,

@@ -462,18 +462,8 @@ xf86PostMotionEvent(DeviceIntPtr	device,
                     ...)
 {
     va_list var;
-    int i = 0, nevents = 0;
-    int dx, dy;
-    Bool drag = xf86SendDragEvents(device);
+    int i = 0;
     int *valuators = NULL;
-    int flags = 0;
-    xEvent *xE = NULL;
-    int index;
-
-    if (is_absolute)
-        flags = POINTER_ABSOLUTE;
-    else
-        flags = POINTER_RELATIVE | POINTER_ACCELERATE;
     
     valuators = xcalloc(sizeof(int), num_valuators);
 
@@ -481,6 +471,29 @@ xf86PostMotionEvent(DeviceIntPtr	device,
     for (i = 0; i < num_valuators; i++)
         valuators[i] = va_arg(var, int);
     va_end(var);
+
+    xf86PostMotionEventP(device, is_absolute, first_valuator, num_valuators, valuators);
+    xfree(valuators);
+}
+
+_X_EXPORT void
+xf86PostMotionEventP(DeviceIntPtr	device,
+                    int			is_absolute,
+                    int			first_valuator,
+                    int			num_valuators,
+                    int			*valuators)
+{
+    int i = 0, nevents = 0;
+    int dx, dy;
+    Bool drag = xf86SendDragEvents(device);
+    xEvent *xE = NULL;
+    int index;
+    int flags = 0;
+
+    if (is_absolute)
+        flags = POINTER_ABSOLUTE;
+    else
+        flags = POINTER_RELATIVE | POINTER_ACCELERATE;
 
 #if XFreeXDGA
     if (first_valuator == 0 && num_valuators >= 2) {
@@ -495,7 +508,7 @@ xf86PostMotionEvent(DeviceIntPtr	device,
                 dy = valuators[1];
             }
             if (DGAStealMotionEvent(index, dx, dy))
-                goto out;
+                return;
         }
     }
 #endif
@@ -517,9 +530,6 @@ xf86PostMotionEvent(DeviceIntPtr	device,
             mieqEnqueue(device, xf86Events + i);
         }
     }
-
-out:
-    xfree(valuators);
 }
 
 _X_EXPORT void
