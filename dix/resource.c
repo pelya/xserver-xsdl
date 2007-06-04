@@ -908,7 +908,6 @@ dixLookupResource(pointer *result, XID id, RESTYPE rtype,
     ResourcePtr res = NULL;
 
     *result = NULL;
-    client->errorValue = id;
 
     if ((cid < MAXCLIENTS) && clientTable[cid].buckets) {
 	res = clientTable[cid].resources[Hash(cid, id)];
@@ -922,6 +921,7 @@ dixLookupResource(pointer *result, XID id, RESTYPE rtype,
 	return BadValue;
 
     if (client) {
+	client->errorValue = id;
 	cid = XaceHook(XACE_RESOURCE_ACCESS, client, id, res->type,
 		       mode, res->value);
 	if (cid != Success)
