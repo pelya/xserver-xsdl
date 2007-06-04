@@ -101,7 +101,7 @@ xf86SendDragEvents(DeviceIntPtr	device)
 {
     LocalDevicePtr local = (LocalDevicePtr) device->public.devicePrivate;
     
-    if (device->button->buttonsDown > 0)
+    if (device->button && device->button->buttonsDown > 0)
         return (local->flags & XI86_SEND_DRAG_EVENTS);
     else
         return (TRUE);
