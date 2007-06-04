@@ -1169,10 +1169,6 @@ ResetHosts (char *display)
     struct nodeent 	*np;
     struct dn_naddr 	dnaddr, *dnaddrp, *dnet_addr();
 #endif
-#ifdef K5AUTH
-    krb5_principal      princ;
-    krb5_data		kbuf;
-#endif
     int			family = 0;
     pointer		addr;
     int 		len;
@@ -1252,13 +1248,6 @@ ResetHosts (char *display)
 	    hostname = ohostname + 4;
 	}
 #endif
-#ifdef K5AUTH
-	else if (!strncmp("krb:", lhostname, 4))
-	{
-	    family = FamilyKrb5Principal;
-	    hostname = ohostname + 4;
-	}
-#endif
 	else if (!strncmp("si:", lhostname, 3))
 	{
 	    family = FamilyServerInterpreted;
@@ -1301,16 +1290,6 @@ ResetHosts (char *display)
     	}
 	else
 #endif /* DNETCONN */
-#ifdef K5AUTH
-	if (family == FamilyKrb5Principal)
-	{
-            krb5_parse_name(hostname, &princ);
-	    XauKrb5Encode(princ, &kbuf);
-	    (void) NewHost(FamilyKrb5Principal, kbuf.data, kbuf.length, FALSE);
-	    krb5_free_principal(princ);
-        }
-	else
-#endif
 #ifdef SECURE_RPC
 	if ((family == FamilyNetname) || (strchr(hostname, '@')))
 	{
@@ -1552,11 +1531,6 @@ AddHost (ClientPtr	client,
 	len = length;
 	LocalHostEnabled = TRUE;
 	break;
-#ifdef K5AUTH
-    case FamilyKrb5Principal:
-        len = length;
-        break;
-#endif
 #ifdef SECURE_RPC
     case FamilyNetname:
 	len = length;
@@ -1655,11 +1629,6 @@ RemoveHost (
 	len = length;
 	LocalHostEnabled = FALSE;
 	break;
-#ifdef K5AUTH
-    case FamilyKrb5Principal:
-        len = length;
-	break;
-#endif
 #ifdef SECURE_RPC
     case FamilyNetname:
 	len = length;
