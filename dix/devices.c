@@ -901,6 +901,7 @@ InitAbsoluteClassDeviceStruct(DeviceIntPtr dev)
     abs->width = -1;
     abs->height = -1;
     abs->following = 0;
+    abs->screen = 0;
 
     dev->absolute = abs;
 
