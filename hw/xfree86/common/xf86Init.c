@@ -1730,8 +1730,16 @@ xf86PrintBanner()
     t.tm_mday = BUILD_DATE % 100;
     t.tm_mon = (BUILD_DATE / 100) % 100 - 1;
     t.tm_year = BUILD_DATE / 10000 - 1900;
+#if defined(BUILD_TIME)
+    t.tm_sec = BUILD_TIME % 100;
+    t.tm_min = (BUILD_TIME / 100) % 100;
+    t.tm_hour = (BUILD_TIME / 10000);
+    if (strftime(buf, sizeof(buf), "%d %B %Y  %I:%M:%s%p", &t))
+       ErrorF("Build Date: %s\n", buf);
+#else
     if (strftime(buf, sizeof(buf), "%d %B %Y", &t))
        ErrorF("Build Date: %s\n", buf);
+#endif
   }
 #endif
 #if defined(CLOG_DATE) && (CLOG_DATE > 19000000)
