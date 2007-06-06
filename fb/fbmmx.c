@@ -356,29 +356,5 @@ fbCopyAreammx (DrawablePtr	pSrc,
     return TRUE;
 }
 
-void
-fbCompositeCopyAreammx (CARD8		op,
-			PicturePtr	pSrc,
-			PicturePtr	pMask,
-			PicturePtr	pDst,
-			INT16		xSrc,
-			INT16		ySrc,
-			INT16		xMask,
-			INT16		yMask,
-			INT16		xDst,
-			INT16		yDst,
-			CARD16		width,
-			CARD16		height)
-{
-    fbCopyAreammx (pSrc->pDrawable,
-		   pDst->pDrawable,
-		   xSrc, ySrc,
-		   xDst, yDst,
-		   width, height);
-}
-
-
-
-
 #endif /* RENDER */
 #endif /* USE_MMX */
