@@ -1518,13 +1518,18 @@ DRIGetDrawableInfo(ScreenPtr pScreen,
 	       if (x1 > pScreen->width) x1 = pScreen->width;
 	       if (y1 > pScreen->height) y1 = pScreen->height;
 
-	       pDRIPriv->private_buffer_rect.x1 = x0;
-	       pDRIPriv->private_buffer_rect.y1 = y0;
-	       pDRIPriv->private_buffer_rect.x2 = x1;
-	       pDRIPriv->private_buffer_rect.y2 = y1;
+	       if (y0 >= y1 || x0 >= x1) {
+		    *numBackClipRects = 0;
+		    *pBackClipRects = NULL;
+	       } else {
+		    pDRIPriv->private_buffer_rect.x1 = x0;
+		    pDRIPriv->private_buffer_rect.y1 = y0;
+		    pDRIPriv->private_buffer_rect.x2 = x1;
+		    pDRIPriv->private_buffer_rect.y2 = y1;
 
-	       *numBackClipRects = 1;
-	       *pBackClipRects = &(pDRIPriv->private_buffer_rect);
+		    *numBackClipRects = 1;
+		    *pBackClipRects = &(pDRIPriv->private_buffer_rect);
+	       }
 	    } else {
 	       /* Use the frontbuffer cliprects for back buffers.  */
 	       *numBackClipRects = 0;
