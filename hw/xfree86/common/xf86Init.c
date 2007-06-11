@@ -1733,7 +1733,7 @@ xf86PrintBanner()
 #if defined(BUILD_TIME)
     t.tm_sec = BUILD_TIME % 100;
     t.tm_min = (BUILD_TIME / 100) % 100;
-    t.tm_hour = (BUILD_TIME / 10000);
+    t.tm_hour = (BUILD_TIME / 10000) % 100;
     if (strftime(buf, sizeof(buf), "%d %B %Y  %I:%M:%s%p", &t))
        ErrorF("Build Date: %s\n", buf);
 #else
