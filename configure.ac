@@ -629,7 +629,7 @@ XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 PIXMAN="[pixman >= 0.9.0]"
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto xproto xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4.2] [kbproto >= 1.0.3]"
+REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto [xproto >= 7.0.9] xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4.2] [kbproto >= 1.0.3]"
 REQUIRED_LIBS="xfont xau fontenc $PIXMAN"
 
 if test "x$DBUS" = xauto; then
