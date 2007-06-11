@@ -64,17 +64,13 @@ fbCopyNtoN (DrawablePtr	pSrcDrawable,
 	if (pm == FB_ALLONES && alu == GXcopy && !reverse &&
 	    !upsidedown && fbHaveMMX())
 	{
-	    if (!fbCopyAreammx (pSrcDrawable,
-				pDstDrawable,
-				
-				(pbox->x1 + dx),
-				(pbox->y1 + dy),
-				
-				(pbox->x1),
-				(pbox->y1),
-				
-				(pbox->x2 - pbox->x1),
-				(pbox->y2 - pbox->y1)))
+	    if (!fbBltmmx (src, dst, srcStride, dstStride, srcBpp, dstBpp,
+			   (pbox->x1 + dx + srcXoff),
+			   (pbox->y1 + dy + srcYoff),
+			   (pbox->x1 + srcXoff),
+			   (pbox->y1 + srcYoff),
+			   (pbox->x2 - pbox->x1),
+			   (pbox->y2 - pbox->y1)))
 		goto fallback;
 	    else
 		goto next;

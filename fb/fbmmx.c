@@ -208,34 +208,20 @@ fbSolidFillmmx (DrawablePtr	pDraw,
 }
 
 Bool
-fbCopyAreammx (DrawablePtr	pSrc,
-	       DrawablePtr	pDst,
-	       int		src_x,
-	       int		src_y,
-	       int		dst_x,
-	       int		dst_y,
-	       int		width,
-	       int		height)
+fbBltmmx (FbBits *src_bits,
+	  FbBits *dst_bits,
+	  FbStride src_stride,
+	  FbStride dst_stride,
+	  int src_bpp,
+	  int dst_bpp,
+	  int src_x, int src_y,
+	  int dst_x, int dst_y,
+	  int width, int height)
 {
-    FbBits *	src_bits;
-    FbStride	src_stride;
-    int		src_bpp;
-    int		src_xoff;
-    int		src_yoff;
-
-    FbBits *	dst_bits;
-    FbStride	dst_stride;
-    int		dst_bpp;
-    int		dst_xoff;
-    int		dst_yoff;
-
     CARD8 *	src_bytes;
     CARD8 *	dst_bytes;
     int		byte_width;
     
-    fbGetDrawable(pSrc, src_bits, src_stride, src_bpp, src_xoff, src_yoff);
-    fbGetDrawable(pDst, dst_bits, dst_stride, dst_bpp, dst_xoff, dst_yoff);
-
     if (src_bpp != dst_bpp)
 	return FALSE;
     
@@ -243,16 +229,16 @@ fbCopyAreammx (DrawablePtr	pSrc,
     {
 	src_stride = src_stride * sizeof (FbBits) / 2;
 	dst_stride = dst_stride * sizeof (FbBits) / 2;
-	src_bytes = (CARD8 *)(((CARD16 *)src_bits) + src_stride * (src_y + src_yoff) + (src_x + src_xoff));
-	dst_bytes = (CARD8 *)(((CARD16 *)dst_bits) + dst_stride * (dst_y + dst_yoff) + (dst_x + dst_xoff));
+	src_bytes = (CARD8 *)(((CARD16 *)src_bits) + src_stride * (src_y) + (src_x));
+	dst_bytes = (CARD8 *)(((CARD16 *)dst_bits) + dst_stride * (dst_y) + (dst_x));
 	byte_width = 2 * width;
 	src_stride *= 2;
 	dst_stride *= 2;
     } else if (src_bpp == 32) {
 	src_stride = src_stride * sizeof (FbBits) / 4;
 	dst_stride = dst_stride * sizeof (FbBits) / 4;
-	src_bytes = (CARD8 *)(((CARD32 *)src_bits) + src_stride * (src_y + src_yoff) + (src_x + src_xoff));
-	dst_bytes = (CARD8 *)(((CARD32 *)dst_bits) + dst_stride * (dst_y + dst_yoff) + (dst_x + dst_xoff));
+	src_bytes = (CARD8 *)(((CARD32 *)src_bits) + src_stride * (src_y) + (src_x));
+	dst_bytes = (CARD8 *)(((CARD32 *)dst_bits) + dst_stride * (dst_y) + (dst_x));
 	byte_width = 4 * width;
 	src_stride *= 4;
 	dst_stride *= 4;
@@ -353,7 +339,39 @@ fbCopyAreammx (DrawablePtr	pSrc,
     }
     
     _mm_empty();
+
     return TRUE;
+}
+
+Bool
+fbCopyAreammx (DrawablePtr	pSrc,
+	       DrawablePtr	pDst,
+	       int		src_x,
+	       int		src_y,
+	       int		dst_x,
+	       int		dst_y,
+	       int		width,
+	       int		height)
+{
+    FbBits *	src_bits;
+    FbStride	src_stride;
+    int		src_bpp;
+    int		src_xoff;
+    int		src_yoff;
+
+    FbBits *	dst_bits;
+    FbStride	dst_stride;
+    int		dst_bpp;
+    int		dst_xoff;
+    int		dst_yoff;
+    
+    fbGetDrawable(pSrc, src_bits, src_stride, src_bpp, src_xoff, src_yoff);
+    fbGetDrawable(pDst, dst_bits, dst_stride, dst_bpp, dst_xoff, dst_yoff);
+
+    return fbBltmmx (src_bits, dst_bits, src_stride, dst_stride, src_bpp, dst_bpp,
+		     src_x + src_xoff, src_y + src_yoff,
+		     dst_x + dst_xoff, dst_y + dst_yoff,
+		     width, height);
 }
 
 #endif /* RENDER */
