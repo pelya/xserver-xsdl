@@ -661,6 +661,10 @@ AddTraps (PicturePtr	pPicture,
 	  int		ntraps,
 	  xTrap		*traps);
 
+pixman_image_t *
+PixmanImageFromPicture (PicturePtr pPict,
+			Bool hasClip);
+
 PicturePtr
 CreateSolidPicture (Picture pid,
                     xRenderColor *color,

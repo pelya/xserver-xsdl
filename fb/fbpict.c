@@ -38,122 +38,6 @@
 #include "fbpict.h"
 #include "fbmmx.h"
 
-static pixman_image_t *
-create_solid_fill_image (PicturePtr pict)
-{
-    PictSolidFill *solid = &pict->pSourcePict->solidFill;
-    pixman_color_t color;
-    CARD32 a, r, g, b;
-    
-    a = (solid->color & 0xff000000) >> 24;
-    r = (solid->color & 0x00ff0000) >> 16;
-    g = (solid->color & 0x0000ff00) >>  8;
-    b = (solid->color & 0x000000ff) >>  0;
-    
-    color.alpha = (a << 8) | a;
-    color.red =   (r << 8) | r;
-    color.green = (g << 8) | g;
-    color.blue =  (b << 8) | b;
-    
-    return pixman_image_create_solid_fill (&color);
-}
-
-static pixman_image_t *
-create_linear_gradient_image (PictGradient *gradient)
-{
-    PictLinearGradient *linear = (PictLinearGradient *)gradient;
-    pixman_point_fixed_t p1;
-    pixman_point_fixed_t p2;
-    
-    p1.x = linear->p1.x;
-    p1.y = linear->p1.y;
-    p2.x = linear->p2.x;
-    p2.y = linear->p2.y;
-    
-    return pixman_image_create_linear_gradient (
-	&p1, &p2, (pixman_gradient_stop_t *)gradient->stops, gradient->nstops);
-}
-
-static pixman_image_t *
-create_radial_gradient_image (PictGradient *gradient)
-{
-    PictRadialGradient *radial = (PictRadialGradient *)gradient;
-    pixman_point_fixed_t c1;
-    pixman_point_fixed_t c2;
-    
-    c1.x = radial->c1.x;
-    c1.y = radial->c1.y;
-    c2.x = radial->c2.x;
-    c2.y = radial->c2.y;
-    
-    return pixman_image_create_radial_gradient (
-	&c1, &c2, radial->c1.radius,
-	radial->c2.radius,
-	(pixman_gradient_stop_t *)gradient->stops, gradient->nstops);
-}
-
-static pixman_image_t *
-create_conical_gradient_image (PictGradient *gradient)
-{
-    PictConicalGradient *conical = (PictConicalGradient *)gradient;
-    pixman_point_fixed_t center;
-    
-    center.x = conical->center.x;
-    center.y = conical->center.y;
-    
-    return pixman_image_create_conical_gradient (
-	&center, conical->angle, (pixman_gradient_stop_t *)gradient->stops,
-	gradient->nstops);
-}
-
-static pixman_image_t *
-create_bits_picture (PicturePtr pict,
-		     Bool       has_clip)
-{
-    FbBits *bits;
-    FbStride stride;
-    int bpp, xoff, yoff;
-    pixman_image_t *image;
-    
-    fbGetDrawable (pict->pDrawable, bits, stride, bpp, xoff, yoff);
-    
-    bits += yoff * stride + xoff;
-    
-    image = pixman_image_create_bits (
-	pict->format,
-	pict->pDrawable->width, pict->pDrawable->height,
-	(uint32_t *)bits, stride * sizeof (FbStride));
-    
-    
-#ifdef FB_ACCESS_WRAPPER
-#if FB_SHIFT==5
-    
-    pixman_image_set_accessors (image,
-				(pixman_read_memory_func_t)wfbReadMemory,
-				(pixman_write_memory_func_t)wfbWriteMemory);
-    
-#else
-    
-#error The pixman library only works when FbBits is 32 bits wide
-    
-#endif
-#endif
-    
-    /* pCompositeClip is undefined for source pictures, so
-     * only set the clip region for pictures with drawables
-     */
-    if (has_clip)
-	pixman_image_set_clip_region (image, pict->pCompositeClip);
-    
-    /* Indexed table */
-    if (pict->pFormat->index.devPrivate)
-	pixman_image_set_indexed (image, pict->pFormat->index.devPrivate);
-    
-    fbFinishAccess (pict->pDrawable);
-
-    return image;
-}
-
 #define mod(a,b) ((b) == 1 ? 0 : (a) >= 0 ? (a) % (b) : (b) - (-a) % (b))
 
 void
@@ -274,7 +158,6 @@ fbComposite (CARD8      op,
 	     CARD16     width,
 	     CARD16     height)
 {
-    pixman_region16_t region;
     pixman_image_t *src, *mask, *dest;
     
     xDst += pDst->pDrawable->x;
@@ -290,10 +173,10 @@ fbComposite (CARD8      op,
 	yMask += pMask->pDrawable->y;
     }
 
-    if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst, xSrc, ySrc,
-				   xMask, yMask, xDst, yDst, width, height))
-        return;
-
+    miCompositeSourceValidate (pSrc, xSrc, ySrc, width, height);
+    if (pMask)
+	miCompositeSourceValidate (pMask, xMask, yMask, width, height);
+    
     src = image_from_pict (pSrc, TRUE);
     mask = image_from_pict (pMask, TRUE);
     dest = image_from_pict (pDst, TRUE);
@@ -302,10 +185,9 @@ fbComposite (CARD8      op,
     {
 	pixman_image_composite (op, src, mask, dest,
 				xSrc, ySrc, xMask, yMask, xDst, yDst,
-				width, height, &region);
+				width, height);
+	    
     }
-    
-    pixman_region_fini (&region);
     
     if (src)
 	pixman_image_unref (src);
@@ -336,27 +218,125 @@ fbCompositeGeneral (CARD8	op,
 
 #endif /* RENDER */
 
-Bool
-fbPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
+static pixman_image_t *
+create_solid_fill_image (PicturePtr pict)
 {
+    PictSolidFill *solid = &pict->pSourcePict->solidFill;
+    pixman_color_t color;
+    CARD32 a, r, g, b;
+    
+    a = (solid->color & 0xff000000) >> 24;
+    r = (solid->color & 0x00ff0000) >> 16;
+    g = (solid->color & 0x0000ff00) >>  8;
+    b = (solid->color & 0x000000ff) >>  0;
+    
+    color.alpha = (a << 8) | a;
+    color.red =   (r << 8) | r;
+    color.green = (g << 8) | g;
+    color.blue =  (b << 8) | b;
+    
+    return pixman_image_create_solid_fill (&color);
+}
 
-#ifdef RENDER
+static pixman_image_t *
+create_linear_gradient_image (PictGradient *gradient)
+{
+    PictLinearGradient *linear = (PictLinearGradient *)gradient;
+    pixman_point_fixed_t p1;
+    pixman_point_fixed_t p2;
+    
+    p1.x = linear->p1.x;
+    p1.y = linear->p1.y;
+    p2.x = linear->p2.x;
+    p2.y = linear->p2.y;
+    
+    return pixman_image_create_linear_gradient (
+	&p1, &p2, (pixman_gradient_stop_t *)gradient->stops, gradient->nstops);
+}
 
-    PictureScreenPtr    ps;
+static pixman_image_t *
+create_radial_gradient_image (PictGradient *gradient)
+{
+    PictRadialGradient *radial = (PictRadialGradient *)gradient;
+    pixman_point_fixed_t c1;
+    pixman_point_fixed_t c2;
+    
+    c1.x = radial->c1.x;
+    c1.y = radial->c1.y;
+    c2.x = radial->c2.x;
+    c2.y = radial->c2.y;
+    
+    return pixman_image_create_radial_gradient (
+	&c1, &c2, radial->c1.radius,
+	radial->c2.radius,
+	(pixman_gradient_stop_t *)gradient->stops, gradient->nstops);
+}
 
-    if (!miPictureInit (pScreen, formats, nformats))
-	return FALSE;
-    ps = GetPictureScreen(pScreen);
-    ps->Composite = fbComposite;
-    ps->Glyphs = miGlyphs;
-    ps->CompositeRects = miCompositeRects;
-    ps->RasterizeTrapezoid = fbRasterizeTrapezoid;
-    ps->AddTraps = fbAddTraps;
-    ps->AddTriangles = fbAddTriangles;
+static pixman_image_t *
+create_conical_gradient_image (PictGradient *gradient)
+{
+    PictConicalGradient *conical = (PictConicalGradient *)gradient;
+    pixman_point_fixed_t center;
+    
+    center.x = conical->center.x;
+    center.y = conical->center.y;
+    
+    return pixman_image_create_conical_gradient (
+	&center, conical->angle, (pixman_gradient_stop_t *)gradient->stops,
+	gradient->nstops);
+}
 
-#endif /* RENDER */
+static pixman_image_t *
+create_bits_picture (PicturePtr pict,
+		     Bool       has_clip)
+{
+    FbBits *bits;
+    FbStride stride;
+    int bpp, xoff, yoff;
+    pixman_image_t *image;
+    
+    fbGetDrawable (pict->pDrawable, bits, stride, bpp, xoff, yoff);
+    
+    bits += yoff * stride + xoff;
+    
+    image = pixman_image_create_bits (
+	pict->format,
+	pict->pDrawable->width, pict->pDrawable->height,
+	(uint32_t *)bits, stride * sizeof (FbStride));
+    
+    
+#ifdef FB_ACCESS_WRAPPER
+#if FB_SHIFT==5
+    
+    pixman_image_set_accessors (image,
+				(pixman_read_memory_func_t)wfbReadMemory,
+				(pixman_write_memory_func_t)wfbWriteMemory);
+    
+#else
+    
+#error The pixman library only works when FbBits is 32 bits wide
+    
+#endif
+#endif
+    
+    /* pCompositeClip is undefined for source pictures, so
+     * only set the clip region for pictures with drawables
+     */
+    if (has_clip)
+    {
+	if (pict->clientClipType != CT_NONE)
+	    pixman_image_set_has_client_clip (image, TRUE);
+	
+	pixman_image_set_clip_region (image, pict->pCompositeClip);
+    }
+    
+    /* Indexed table */
+    if (pict->pFormat->index.devPrivate)
+	pixman_image_set_indexed (image, pict->pFormat->index.devPrivate);
+    
+    fbFinishAccess (pict->pDrawable);
 
-    return TRUE;
+    return image;
 }
 
 static void
@@ -428,7 +408,7 @@ set_image_properties (pixman_image_t *image, PicturePtr pict)
 
 pixman_image_t *
 image_from_pict (PicturePtr pict,
-		 Bool       has_clip)
+		 Bool has_clip)
 {
     pixman_image_t *image = NULL;
 
@@ -466,8 +446,28 @@ image_from_pict (PicturePtr pict,
     return image;
 }
 
+Bool
+fbPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
+{
 
+#ifdef RENDER
 
+    PictureScreenPtr    ps;
+
+    if (!miPictureInit (pScreen, formats, nformats))
+	return FALSE;
+    ps = GetPictureScreen(pScreen);
+    ps->Composite = fbComposite;
+    ps->Glyphs = miGlyphs;
+    ps->CompositeRects = miCompositeRects;
+    ps->RasterizeTrapezoid = fbRasterizeTrapezoid;
+    ps->AddTraps = fbAddTraps;
+    ps->AddTriangles = fbAddTriangles;
+
+#endif /* RENDER */
+
+    return TRUE;
+}
 
 #ifdef USE_MMX
 /* The CPU detection code needs to be in a file not compiled with

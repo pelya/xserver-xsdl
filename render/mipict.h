@@ -88,6 +88,12 @@ miClipPicture (RegionPtr    pRegion,
 	       INT16	    xPict,
 	       INT16	    yPict);
 
+void
+miCompositeSourceValidate (PicturePtr	pPicture,
+			   INT16	x,
+			   INT16	y,
+			   CARD16	width,
+			   CARD16	height);
 Bool
 miComputeCompositeRegion (RegionPtr	pRegion,
 			  PicturePtr	pSrc,
