@@ -1863,11 +1863,15 @@ DRITreeTraversal(WindowPtr pWin, pointer data)
     if(pDRIDrawablePriv) {
         ScreenPtr pScreen = pWin->drawable.pScreen;
         DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
-        RegionPtr reg = (RegionPtr)data;
 
-        REGION_UNION(pScreen, reg, reg, &(pWin->clipList));
+	if(REGION_NUM_RECTS(&(pWin->clipList)) > 0) {
+	   RegionPtr reg = (RegionPtr)data;
 
-        if(pDRIPriv->nrWindows == 1)
+	   REGION_UNION(pScreen, reg, reg, &(pWin->clipList));
+	   pDRIPriv->nrWalked++;
+	}
+
+	if(pDRIPriv->nrWindows == pDRIPriv->nrWalked)
 	   return WT_STOPWALKING;
     }
     return WT_WALKCHILDREN;
@@ -1885,6 +1889,7 @@ DRICopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
        RegionRec reg;
 
        REGION_NULL(pScreen, &reg);
+       pDRIPriv->nrWalked = 0;
        TraverseTree(pWin, DRITreeTraversal, (pointer)(&reg));
 
        if(REGION_NOTEMPTY(pScreen, &reg)) {
