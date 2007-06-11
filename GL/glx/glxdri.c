@@ -886,8 +886,32 @@ getDrawableInfo(__DRInativeDisplay *dpy, int screen,
     if (*numClipRects > 0) {
 	size = sizeof (drm_clip_rect_t) * *numClipRects;
 	*ppClipRects = xalloc (size);
-	if (*ppClipRects != NULL)
-	    memcpy (*ppClipRects, pClipRects, size);
+
+	/* Clip cliprects to screen dimensions (redirected windows) */
+	if (*ppClipRects != NULL) {
+	    ScreenPtr pScreen = screenInfo.screens[screen];
+	    int i, j;
+
+	    for (i = 0, j = 0; i < *numClipRects; i++) {
+	        (*ppClipRects)[j].x1 = max(pClipRects[i].x1, 0);
+		(*ppClipRects)[j].y1 = max(pClipRects[i].y1, 0);
+		(*ppClipRects)[j].x2 = min(pClipRects[i].x2, pScreen->width);
+		(*ppClipRects)[j].y2 = min(pClipRects[i].y2, pScreen->height);
+
+		if ((*ppClipRects)[j].x1 < (*ppClipRects)[j].x2 &&
+		    (*ppClipRects)[j].y1 < (*ppClipRects)[j].y2) {
+		    j++;
+		}
+	    }
+
+	    if (*numClipRects != j) {
+		*numClipRects = j;
+		*ppClipRects = xrealloc (*ppClipRects,
+					 sizeof (drm_clip_rect_t) *
+					 *numClipRects);
+	    }
+	} else
+	    *numClipRects = 0;
     }
     else {
       *ppClipRects = NULL;
@@ -1001,13 +1025,10 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     size_t buffer_size;
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
 
-    if (!xf86LoaderCheckSymbol("DRIQueryDirectRenderingCapable")) {
-	LogMessage(X_ERROR, "AIGLX: DRI module not loaded\n");
-	return NULL;
-    }
-
-    if (!DRIQueryDirectRenderingCapable(pScreen, &isCapable) || !isCapable) {
-	LogMessage(X_ERROR,
+    if (!xf86LoaderCheckSymbol("DRIQueryDirectRenderingCapable") ||
+	!DRIQueryDirectRenderingCapable(pScreen, &isCapable) ||
+	!isCapable) {
+	LogMessage(X_INFO,
 		   "AIGLX: Screen %d is not DRI capable\n", pScreen->myNum);
 	return NULL;
     }

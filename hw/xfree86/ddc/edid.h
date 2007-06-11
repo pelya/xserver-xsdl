@@ -12,8 +12,6 @@
 #ifndef _EDID_H_
 #define _EDID_H_ 
 
-#include "vdif.h"
-
 /* read complete EDID record */
 #define EDID1_LEN 128
 #define BITS_PER_BYTE 9
@@ -453,7 +451,7 @@ typedef struct {
   struct established_timings timings1;
   struct std_timings timings2[8];
   struct detailed_monitor_section det_mon[4];
-  xf86vdifPtr vdif;
+  void *vdif; /* unused */
   int no_sections;
   Uchar *rawData;
 } xf86Monitor, *xf86MonPtr;

@@ -1518,13 +1518,18 @@ DRIGetDrawableInfo(ScreenPtr pScreen,
 	       if (x1 > pScreen->width) x1 = pScreen->width;
 	       if (y1 > pScreen->height) y1 = pScreen->height;
 
-	       pDRIPriv->private_buffer_rect.x1 = x0;
-	       pDRIPriv->private_buffer_rect.y1 = y0;
-	       pDRIPriv->private_buffer_rect.x2 = x1;
-	       pDRIPriv->private_buffer_rect.y2 = y1;
+	       if (y0 >= y1 || x0 >= x1) {
+		    *numBackClipRects = 0;
+		    *pBackClipRects = NULL;
+	       } else {
+		    pDRIPriv->private_buffer_rect.x1 = x0;
+		    pDRIPriv->private_buffer_rect.y1 = y0;
+		    pDRIPriv->private_buffer_rect.x2 = x1;
+		    pDRIPriv->private_buffer_rect.y2 = y1;
 
-	       *numBackClipRects = 1;
-	       *pBackClipRects = &(pDRIPriv->private_buffer_rect);
+		    *numBackClipRects = 1;
+		    *pBackClipRects = &(pDRIPriv->private_buffer_rect);
+	       }
 	    } else {
 	       /* Use the frontbuffer cliprects for back buffers.  */
 	       *numBackClipRects = 0;
@@ -1863,11 +1868,15 @@ DRITreeTraversal(WindowPtr pWin, pointer data)
     if(pDRIDrawablePriv) {
         ScreenPtr pScreen = pWin->drawable.pScreen;
         DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
-        RegionPtr reg = (RegionPtr)data;
 
-        REGION_UNION(pScreen, reg, reg, &(pWin->clipList));
+	if(REGION_NUM_RECTS(&(pWin->clipList)) > 0) {
+	   RegionPtr reg = (RegionPtr)data;
 
-        if(pDRIPriv->nrWindows == 1)
+	   REGION_UNION(pScreen, reg, reg, &(pWin->clipList));
+	   pDRIPriv->nrWalked++;
+	}
+
+	if(pDRIPriv->nrWindows == pDRIPriv->nrWalked)
 	   return WT_STOPWALKING;
     }
     return WT_WALKCHILDREN;
@@ -1885,6 +1894,7 @@ DRICopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
        RegionRec reg;
 
        REGION_NULL(pScreen, &reg);
+       pDRIPriv->nrWalked = 0;
        TraverseTree(pWin, DRITreeTraversal, (pointer)(&reg));
 
        if(REGION_NOTEMPTY(pScreen, &reg)) {

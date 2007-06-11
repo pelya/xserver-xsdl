@@ -207,10 +207,6 @@ extern int (* ProcVector[256]) (ClientPtr /*client*/);
 
 extern int (* SwappedProcVector[256]) (ClientPtr /*client*/);
 
-#ifdef K5AUTH
-extern int (*k5_Vector[256])(ClientPtr /*client*/);
-#endif
-
 extern ReplySwapPtr ReplySwapVector[256];
 
 extern int ProcBadRequest(ClientPtr /*client*/);

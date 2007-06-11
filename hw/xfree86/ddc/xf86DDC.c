@@ -38,12 +38,6 @@ static unsigned char* EDID1Read_DDC2(
     I2CBusPtr pBus
 );
 
-static unsigned char * VDIFRead(
-    int scrnIndex, 
-    I2CBusPtr pBus, 
-    int start
-);
-
 static unsigned char * DDCRead_DDC2(
     int scrnIndex,
     I2CBusPtr pBus, 
@@ -138,7 +132,6 @@ xf86DoEDID_DDC2(int scrnIndex, I2CBusPtr pBus)
 {
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
     unsigned char *EDID_block = NULL;
-    unsigned char *VDIF_Block = NULL;
     xf86MonPtr tmp = NULL;
     /* Default DDC and DDC2 to enabled. */
     Bool noddc = FALSE, noddc2 = FALSE;
@@ -171,11 +164,6 @@ xf86DoEDID_DDC2(int scrnIndex, I2CBusPtr pBus)
     else
         ErrorF("Sections to follow: %i\n",tmp->no_sections);
 #endif
-    if (tmp) {
-        VDIF_Block = 
-            VDIFRead(scrnIndex, pBus, EDID1_LEN * (tmp->no_sections + 1));    
-        tmp->vdif = xf86InterpretVdif(VDIF_Block);
-    }
     
     return tmp;
 }
@@ -251,35 +239,6 @@ static unsigned char*
 EDID1Read_DDC2(int scrnIndex, I2CBusPtr pBus)
 {
     return  DDCRead_DDC2(scrnIndex, pBus, 0, EDID1_LEN);
-}
-
-static unsigned char*
-VDIFRead(int scrnIndex, I2CBusPtr pBus, int start)
-{
-    unsigned char * Buffer, *v_buffer = NULL, *v_bufferp = NULL;
-    int i, num = 0;
-
-    /* read VDIF length in 64 byte blocks */
-    Buffer = DDCRead_DDC2(scrnIndex, pBus,start,64);
-    if (Buffer == NULL)
-	return NULL;
-#ifdef DEBUG
-    ErrorF("number of 64 bit blocks: %i\n",Buffer[0]);
-#endif
-    if ((num = Buffer[0]) > 0)
-	v_buffer = v_bufferp = xalloc(sizeof(unsigned char) * 64 * num);
-
-    for (i = 0; i < num; i++) {
-	Buffer = DDCRead_DDC2(scrnIndex, pBus,start,64);
-	if (Buffer == NULL) {
-	    xfree (v_buffer);
-	    return NULL;
-	}
-	memcpy(v_bufferp,Buffer,63); /* 64th byte is checksum */
-	xfree(Buffer);
-	v_bufferp += 63;
-    }
-    return v_buffer;
 }
 
 static unsigned char *

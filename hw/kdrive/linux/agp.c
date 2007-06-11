@@ -65,7 +65,7 @@ of the copyright holder.
 
 #include <linux/agpgart.h>
 
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 #include <sys/ioctl.h>
 #include <sys/agpio.h>
 #endif

@@ -27,7 +27,7 @@
 #include <xorg-config.h>
 #endif
 
-#if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
+#if defined (SYSCONS_SUPPORT)
 #include <sys/kbio.h>
 #endif
 
@@ -77,7 +77,7 @@ xf86OSRingBell(int loudness, int pitch, int duration)
                         wsb.pitch = pitch;
                         wsb.period = duration;
                         wsb.volume = loudness;
-                        ioctl(KBD_FD(xf86Info), WSKBDIO_COMPLEXBELL,
+                        ioctl(xf86Info.consoleFd, WSKBDIO_COMPLEXBELL,
                                       &wsb);
                         break;
 #endif

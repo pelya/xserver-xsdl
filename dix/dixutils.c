@@ -271,7 +271,7 @@ dixLookupClient(ClientPtr *pClient, XID rid, ClientPtr client, Mask access)
     int clientIndex = CLIENT_ID(rid);
     client->errorValue = rid;
 
-    dixLookupResource(&pRes, rid, RC_ANY, client, DixReadAccess);
+    dixLookupResource(&pRes, rid, RC_ANY, client, access);
 
     if (clientIndex && pRes && clients[clientIndex] && !(rid & SERVER_BIT)) {
 	*pClient = clients[clientIndex];

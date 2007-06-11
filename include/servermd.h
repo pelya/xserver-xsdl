@@ -515,7 +515,15 @@ SOFTWARE.
 #define GLYPHPADBYTES		4
 #define GETLEFTBITS_ALIGNMENT	1
 #endif
- 
+
+/* linux on IBM S/390 */
+#if defined (linux) && defined (__s390__)
+#define IMAGE_BYTE_ORDER	MSBFirst
+#define BITMAP_BIT_ORDER	MSBFirst
+#define GLYPHPADBYTES		4
+#define GETLEFTBITS_ALIGNMENT	1
+#endif /* linux/s390 */ 
+
 /* size of buffer to use with GetImage, measured in bytes. There's obviously
  * a trade-off between the amount of stack (or whatever ALLOCATE_LOCAL gives
  * you) used and the number of times the ddx routine has to be called.

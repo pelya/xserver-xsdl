@@ -145,16 +145,6 @@ typedef struct _connectionOutput {
     int count;
 } ConnectionOutput, *ConnectionOutputPtr;
 
-#ifdef K5AUTH
-typedef struct _k5_state {
-    int		stageno;	/* current stage of auth protocol */
-    pointer	srvcreds;	/* server credentials */
-    pointer	srvname;	/* server principal name */
-    pointer	ktname;		/* key table: principal-key pairs */
-    pointer	skey;		/* session key */
-}           k5_state;
-#endif
-
 struct _osComm;
 
 #define AuthInitArgs void
@@ -190,9 +180,6 @@ typedef struct _osComm {
     ConnectionInputPtr input;
     ConnectionOutputPtr output;
     XID	auth_id;		/* authorization id */
-#ifdef K5AUTH
-    k5_state	authstate;	/* state of setup auth conversation */
-#endif
     CARD32 conn_time;		/* timestamp if not established, else 0  */
     struct _XtransConnInfo *trans_conn; /* transport connection object */
 } OsCommRec, *OsCommPtr;
@@ -271,16 +258,6 @@ extern int  SecureRPCAdd      (AuthAddCArgs);
 extern int  SecureRPCFromID   (AuthFromIDArgs);
 extern int  SecureRPCRemove   (AuthRemCArgs);
 extern int  SecureRPCReset    (AuthRstCArgs);
-#endif
-
-/* in k5auth.c */
-#ifdef K5AUTH
-extern XID  K5Check           (AuthCheckArgs);
-extern XID  K5ToID            (AuthToIDArgs);
-extern int  K5Add             (AuthAddCArgs);
-extern int  K5FromID          (AuthFromIDArgs);
-extern int  K5Remove          (AuthRemCArgs);
-extern int  K5Reset           (AuthRstCArgs);
 #endif
 
 /* in secauth.c */

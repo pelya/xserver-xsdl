@@ -123,19 +123,19 @@ b = __swap16(a);
 ], [SYS_ENDIAN__SWAP='yes'], [SYS_ENDIAN__SWAP='no'])
 	AC_MSG_RESULT([$SYS_ENDIAN__SWAP])
 
-	AC_MSG_CHECKING([for bswap_16 variant of <sys/endian.h> byteswapping macros])
+	AC_MSG_CHECKING([for bswap16 variant of <sys/endian.h> byteswapping macros])
 	AC_LINK_IFELSE([AC_LANG_PROGRAM([
 #include <sys/endian.h>
  ], [
 int a = 1, b;
-b = bswap_16(a);
+b = bswap16(a);
  ])
 ], [SYS_ENDIAN_BSWAP='yes'], [SYS_ENDIAN_BSWAP='no'])
 	AC_MSG_RESULT([$SYS_ENDIAN_BSWAP])
 
     	if test "$SYS_ENDIAN_BSWAP" = "yes" ; then
 		USE_SYS_ENDIAN_H=yes
-		BSWAP=bswap_
+		BSWAP=bswap
 	else	
 	    	if test "$SYS_ENDIAN__SWAP" = "yes" ; then
 			USE_SYS_ENDIAN_H=yes
@@ -165,20 +165,20 @@ AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr \
 AC_FUNC_ALLOCA
 dnl Old HAS_* names used in os/*.c.
 AC_CHECK_FUNC([getdtablesize],
-	AC_DEFINE(HAS_GETDTABLESIZE, 1, [Have the `getdtablesize' function.]))
+	AC_DEFINE(HAS_GETDTABLESIZE, 1, [Have the 'getdtablesize' function.]))
 AC_CHECK_FUNC([getifaddrs],
-	AC_DEFINE(HAS_GETIFADDRS, 1, [Have the `getifaddrs' function.]))
+	AC_DEFINE(HAS_GETIFADDRS, 1, [Have the 'getifaddrs' function.]))
 AC_CHECK_FUNC([getpeereid],
-	AC_DEFINE(HAS_GETPEEREID, 1, [Have the `getpeereid' function.]))
+	AC_DEFINE(HAS_GETPEEREID, 1, [Have the 'getpeereid' function.]))
 AC_CHECK_FUNC([getpeerucred],
-	AC_DEFINE(HAS_GETPEERUCRED, 1, [Have the `getpeerucred' function.]))
+	AC_DEFINE(HAS_GETPEERUCRED, 1, [Have the 'getpeerucred' function.]))
 AC_CHECK_FUNC([strlcat], HAVE_STRLCAT=yes, HAVE_STRLCAT=no)
 AM_CONDITIONAL(NEED_STRLCAT, [test x$HAVE_STRLCAT = xno])	
 
 AM_CONDITIONAL(NEED_VSNPRINTF, [test x$HAVE_VSNPRINTF = xno])
 
 dnl Check for mmap support for Xvfb
-AC_CHECK_FUNC([mmap], AC_DEFINE(HAS_MMAP, 1, [Have the `mmap' function.]))
+AC_CHECK_FUNC([mmap], AC_DEFINE(HAS_MMAP, 1, [Have the 'mmap' function.]))
 
 dnl Find the math libary
 AC_CHECK_LIB(m, sqrt)
@@ -465,6 +465,9 @@ AC_ARG_WITH(xkb-output,       AS_HELP_STRING([--with-xkb-output=PATH], [Path to 
 AC_ARG_WITH(rgb-path,         AS_HELP_STRING([--with-rgb-path=PATH], [Path to RGB database (default: ${datadir}/X11/rgb)]),
 				[ RGBPATH="$withval" ],
 				[ RGBPATH="${datadir}/X11/rgb" ])
+AC_ARG_WITH(serverconfig-path, AS_HELP_STRING([--with-serverconfig-path=PATH], [Path to server config (default: ${libdir}/xserver)]),
+				[ SERVERCONFIG="$withval" ],
+				[ SERVERCONFIG="${libdir}/xserver" ])
 APPLE_APPLICATIONS_DIR="${bindir}/Applications"
 AC_ARG_WITH(apple-applications-dir,AS_HELP_STRING([--with-apple-applications-dir=PATH], [Path to the Applications directory (default: ${bindir}/Applications)]),
                                [ APPLE_APPLICATIONS_DIR="${withval}" ].
@@ -624,10 +627,10 @@ XEXT_INC='-I$(top_srcdir)/Xext'
 XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
-PIXMAN="[pixman >= 0.9.0]"
+PIXMAN="[pixman >= 0.9.1]"
 
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto xproto xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4.2] [kbproto >= 1.0.3]"
+REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto [xproto >= 7.0.9] xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4.2] [kbproto >= 1.0.3]"
 REQUIRED_LIBS="xfont xau fontenc $PIXMAN"
 
 if test "x$DBUS" = xauto; then
@@ -889,7 +892,7 @@ XKB_LIB='$(top_builddir)/xkb/libxkb.la'
 XKB_STUB_LIB='$(top_builddir)/xkb/libxkbstubs.la'
 
 AC_CHECK_FUNC(strcasecmp, [], AC_DEFINE([NEED_STRCASECMP], 1,
-                                        [Do not have `strcasecmp'.]))
+                                        [Do not have 'strcasecmp'.]))
 
 if test "x$NULL_ROOT_CURSOR" = xyes; then
         AC_DEFINE(NULL_ROOT_CURSOR, 1, [Use an empty root cursor])
@@ -952,6 +955,7 @@ VENDOR_MAN_VERSION="Version ${VENDOR_VERSION_STRING}"
 
 AC_DEFINE_DIR(COMPILEDDEFAULTFONTPATH, FONTPATH, [Default font path])
 AC_DEFINE_DIR(RGB_DB, RGBPATH, [Default RGB path])
+AC_DEFINE_DIR(SERVERCONFIGdir, SERVERCONFIG, [Server config path])
 AC_DEFINE_DIR(BASE_FONT_PATH, FONTDIR, [Default base font path])
 AC_DEFINE_DIR(DRI_DRIVER_PATH, DRI_DRIVER_PATH, [Default DRI driver path])
 AC_DEFINE_UNQUOTED(XVENDORNAME, ["$VENDOR_STRING"], [Vendor name])
@@ -1610,7 +1614,7 @@ AC_MSG_CHECKING([whether to build Xprint DDX])
 AC_MSG_RESULT([$XPRINT])
 
 if test "x$XPRINT" = xyes; then
-	PKG_CHECK_MODULES([XPRINT], [printproto x11 xfont $XDMCP_MODULES xau])
+	PKG_CHECK_MODULES([XPRINT], [printproto x11 xfont $XDMCP_MODULES xau $PIXMAN])
 	XPRINT_EXTENSIONS="$XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $RENDER_LIB $COMPOSITE_LIB $RANDR_LIB $XI_LIB $FIXES_LIB $DAMAGE_LIB $XI_LIB $GLX_LIBS"
 	XPRINT_LIBS="$DIX_LIB $CONFIG_LIB $XKB_LIB $XKB_STUB_LIB $XPRINT_EXTENSIONS $MI_LIB $MIEXT_DAMAGE_LIB $CWRAP_LIB $OS_LIB $LIBS $XPRINT_LIBS"
 	AC_SUBST([XPRINT_CFLAGS])
@@ -1958,6 +1962,8 @@ AM_CONDITIONAL(SUN_KBD_MODE, [test x$KBD_MODE_TYPE = xsun])
 
 BUILD_DATE="$(date +'%Y%m%d')"
 AC_SUBST([BUILD_DATE])
+BUILD_TIME="$(date +'1%H%M%S')"
+AC_SUBST([BUILD_TIME])
 
 DIX_CFLAGS="-DHAVE_DIX_CONFIG_H $XSERVER_CFLAGS"
 

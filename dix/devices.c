@@ -432,6 +432,7 @@ InitAndStartDevices(void)
     for (dev = inputInfo.devices;
 	 dev && (dev != inputInfo.keyboard);
 	 dev = dev->next)
+	;
     if (!dev || (dev != inputInfo.keyboard)) {
 	ErrorF("No core keyboard\n");
 	return BadImplementation;
@@ -908,6 +909,7 @@ InitAbsoluteClassDeviceStruct(DeviceIntPtr dev)
     abs->width = -1;
     abs->height = -1;
     abs->following = 0;
+    abs->screen = 0;
 
     dev->absolute = abs;
 

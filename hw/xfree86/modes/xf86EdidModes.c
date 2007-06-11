@@ -71,7 +71,11 @@ static Bool quirk_dt_sync_hm_vp (int scrnIndex, xf86MonPtr DDC)
     if (memcmp (DDC->vendor.name, "VSC", 4) == 0 &&
 	DDC->vendor.prod_id == 58653)
 	return TRUE;
-
+    /* Samsung SyncMaster 205BW */
+    if (memcmp (DDC->vendor.name, "SAM", 4) == 0 &&
+	DDC->vendor.prod_id == 541)
+	return TRUE;
+     
     return FALSE;
 }
 

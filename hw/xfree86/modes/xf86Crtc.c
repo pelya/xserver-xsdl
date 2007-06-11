@@ -1217,8 +1217,15 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
     int			o;
 
-    if (maxX == 0 || maxY == 0)
-	xf86RandR12GetOriginalVirtualSize (scrn, &maxX, &maxY);
+    /* When canGrow was TRUE in the initial configuration we have to
+     * compare against the maximum values so that we don't drop modes.
+     * When canGrow was FALSE, the maximum values would have been clamped
+     * anyway.
+     */
+    if (maxX == 0 || maxY == 0) {
+	maxX = config->maxWidth;
+	maxY = config->maxHeight;
+    }
 
     /* Elide duplicate modes before defaulting code uses them */
     xf86PruneDuplicateMonitorModes (scrn->monitor);

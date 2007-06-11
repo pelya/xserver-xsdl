@@ -42,61 +42,16 @@ fbAddTraps (PicturePtr	pPicture,
 	    int		ntrap,
 	    xTrap	*traps)
 {
-    FbBits	*buf;
-    int		bpp;
-    int		width;
-    int		stride;
-    int		height;
-    int		pxoff, pyoff;
+    pixman_image_t *image = image_from_pict (pPicture, FALSE);
 
-    xFixed	x_off_fixed;
-    xFixed	y_off_fixed;
-    RenderEdge  l, r;
-    xFixed	t, b;
+    if (!image)
+	return;
     
-    fbGetDrawable (pPicture->pDrawable, buf, stride, bpp, pxoff, pyoff);
-
-    width = pPicture->pDrawable->width;
-    height = pPicture->pDrawable->height;
-    x_off += pxoff;
-    y_off += pyoff;
-    
-    x_off_fixed = IntToxFixed(y_off);
-    y_off_fixed = IntToxFixed(y_off);
-
-    while (ntrap--)
-    {
-	t = traps->top.y + y_off_fixed;
-	if (t < 0)
-	    t = 0;
-	t = RenderSampleCeilY (t, bpp);
-    
-	b = traps->bot.y + y_off_fixed;
-	if (xFixedToInt (b) >= height)
-	    b = IntToxFixed (height) - 1;
-	b = RenderSampleFloorY (b, bpp);
-	
-	if (b >= t)
-	{
-	    /* initialize edge walkers */
-	    RenderEdgeInit (&l, bpp, t,
-			    traps->top.l + x_off_fixed,
-			    traps->top.y + y_off_fixed,
-			    traps->bot.l + x_off_fixed,
-			    traps->bot.y + y_off_fixed);
-	
-	    RenderEdgeInit (&r, bpp, t,
-			    traps->top.r + x_off_fixed,
-			    traps->top.y + y_off_fixed,
-			    traps->bot.r + x_off_fixed,
-			    traps->bot.y + y_off_fixed);
-	    
-	    fbRasterizeEdges (buf, bpp, width, stride, &l, &r, t, b);
-	}
-	traps++;
-    }
+    pixman_add_traps (image, x_off, y_off, ntrap, (pixman_trap_t *)traps);
 
     fbFinishAccess (pPicture->pDrawable);
+
+    pixman_image_unref (image);
 }
 
 void
@@ -105,50 +60,16 @@ fbRasterizeTrapezoid (PicturePtr    pPicture,
 		      int	    x_off,
 		      int	    y_off)
 {
-    FbBits	*buf;
-    int		bpp;
-    int		width;
-    int		stride;
-    int		height;
-    int		pxoff, pyoff;
+    pixman_image_t *image = image_from_pict (pPicture, FALSE);
 
-    xFixed	x_off_fixed;
-    xFixed	y_off_fixed;
-    RenderEdge	l, r;
-    xFixed	t, b;
-    
-    if (!xTrapezoidValid (trap))
+    if (!image)
 	return;
 
-    fbGetDrawable (pPicture->pDrawable, buf, stride, bpp, pxoff, pyoff);
-
-    width = pPicture->pDrawable->width;
-    height = pPicture->pDrawable->height;
-    x_off += pxoff;
-    y_off += pyoff;
-    
-    x_off_fixed = IntToxFixed(x_off);
-    y_off_fixed = IntToxFixed(y_off);
-    t = trap->top + y_off_fixed;
-    if (t < 0)
-	t = 0;
-    t = RenderSampleCeilY (t, bpp);
-
-    b = trap->bottom + y_off_fixed;
-    if (xFixedToInt (b) >= height)
-	b = IntToxFixed (height) - 1;
-    b = RenderSampleFloorY (b, bpp);
-    
-    if (b >= t)
-    {
-	/* initialize edge walkers */
-	RenderLineFixedEdgeInit (&l, bpp, t, &trap->left, x_off, y_off);
-	RenderLineFixedEdgeInit (&r, bpp, t, &trap->right, x_off, y_off);
-	
-	fbRasterizeEdges (buf, bpp, width, stride, &l, &r, t, b);
-    }
+    pixman_rasterize_trapezoid (image, (pixman_trapezoid_t *)trap, x_off, y_off);
 
     fbFinishAccess (pPicture->pDrawable);
+
+    pixman_image_unref (image);
 }
 
 static int
