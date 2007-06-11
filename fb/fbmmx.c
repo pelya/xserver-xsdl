@@ -202,26 +202,6 @@ fbFillmmx (FbBits *bits,
 }
 
 Bool
-fbSolidFillmmx (DrawablePtr	pDraw,
-		int		x,
-		int		y,
-		int		width,
-		int		height,
-		FbBits		xor)
-{ 
-    FbStride	stride;
-    int		bpp;
-    FbBits      *bits;
-    int		xoff, yoff;
-    
-    CHECKPOINT();
-    
-    fbGetDrawable(pDraw, bits, stride, bpp, xoff, yoff);
-
-    return fbFillmmx (bits, stride, bpp, x + xoff, y + yoff, width, height, xor);
-}
-
-Bool
 fbBltmmx (FbBits *src_bits,
 	  FbBits *dst_bits,
 	  FbStride src_stride,
@@ -355,37 +335,6 @@ fbBltmmx (FbBits *src_bits,
     _mm_empty();
 
     return TRUE;
-}
-
-Bool
-fbCopyAreammx (DrawablePtr	pSrc,
-	       DrawablePtr	pDst,
-	       int		src_x,
-	       int		src_y,
-	       int		dst_x,
-	       int		dst_y,
-	       int		width,
-	       int		height)
-{
-    FbBits *	src_bits;
-    FbStride	src_stride;
-    int		src_bpp;
-    int		src_xoff;
-    int		src_yoff;
-
-    FbBits *	dst_bits;
-    FbStride	dst_stride;
-    int		dst_bpp;
-    int		dst_xoff;
-    int		dst_yoff;
-    
-    fbGetDrawable(pSrc, src_bits, src_stride, src_bpp, src_xoff, src_yoff);
-    fbGetDrawable(pDst, dst_bits, dst_stride, dst_bpp, dst_xoff, dst_yoff);
-
-    return fbBltmmx (src_bits, dst_bits, src_stride, dst_stride, src_bpp, dst_bpp,
-		     src_x + src_xoff, src_y + src_yoff,
-		     dst_x + dst_xoff, dst_y + dst_yoff,
-		     width, height);
 }
 
 #endif /* RENDER */

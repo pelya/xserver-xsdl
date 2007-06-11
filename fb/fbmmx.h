@@ -53,14 +53,6 @@ Bool fbBltmmx (FbBits *src_bits,
 	       int src_x, int src_y,
 	       int dst_x, int dst_y,
 	       int width, int height);
-Bool fbCopyAreammx (DrawablePtr	pSrc,
-		    DrawablePtr	pDst,
-		    int		src_x,
-		    int		src_y,
-		    int		dst_x,
-		    int		dst_y,
-		    int		width,
-		    int		height);
 Bool fbFillmmx (FbBits *bits,
 		FbStride stride,
 		int bpp,
@@ -69,11 +61,4 @@ Bool fbFillmmx (FbBits *bits,
 		int width,
 		int height,
 		FbBits xor);
-Bool fbSolidFillmmx (DrawablePtr	pDraw,
-		     int		x,
-		     int		y,
-		     int		width,
-		     int		height,
-		     FbBits		xor);
-
 #endif /* USE_MMX */
