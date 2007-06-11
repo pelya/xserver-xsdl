@@ -88,6 +88,6 @@ driSetup(pointer module, pointer opts, int *errmaj, int *errmin)
     drmSetServerInfo(&DRIDRMServerInfo);
 
     /* Need a non-NULL return value to indicate success */
-    return 1;
+    return (pointer)1;
 }
 
