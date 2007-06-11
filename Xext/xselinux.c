@@ -22,8 +22,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * All rights reserved.
  */
 
-#include <selinux/flask.h>
-#include <selinux/av_permissions.h>
 #include <selinux/selinux.h>
 #include <selinux/context.h>
 #include <selinux/avc.h>
@@ -95,6 +93,42 @@ static char *XSELinuxNonlocalContextDefault = NULL;
 /* Selection stuff from dix */
 extern Selection *CurrentSelections;
 extern int NumCurrentSelections;
+
+/* Dynamically allocated security classes and permissions */
+static struct security_class_mapping map[] = {
+    { "drawable",
+      { "create", "destroy", "draw", "copy", "getattr", NULL }},
+    { "window",
+      { "addchild", "create", "destroy", "map", "unmap", "chstack",
+	"chproplist", "chprop", "listprop", "getattr", "setattr", "setfocus",
+	"move", "chselection", "chparent", "ctrllife", "enumerate",
+	"transparent", "mousemotion", "clientcomevent", "inputevent",
+	"drawevent", "windowchangeevent", "windowchangerequest",
+	"serverchangeevent", "extensionevent", NULL }},
+    { "gc",
+      { "create", "free", "getattr", "setattr", NULL }},
+    { "font",
+      { "load", "free", "getattr", "use", NULL }},
+    { "colormap",
+      { "create", "free", "install", "uninstall", "list", "read", "store",
+	"getattr", "setattr", NULL }},
+    { "property",
+      { "create", "free", "read", "write", NULL }},
+    { "cursor",
+      { "create", "createglyph", "free", "assign", "setattr", NULL }},
+    { "xclient",
+      { "kill", NULL }},
+    { "xinput",
+      { "lookup", "getattr", "setattr", "setfocus", "warppointer",
+	"activegrab", "passivegrab", "ungrab", "bell", "mousemotion",
+	"relabelinput", NULL }},
+    { "xserver",
+      { "screensaver", "gethostlist", "sethostlist", "getfontpath",
+	"setfontpath", "getattr", "grab", "ungrab", NULL }},
+    { "xextension",
+      { "query", "use", NULL }},
+    { NULL }
+};
 
 /*
  * list of classes corresponding to SIDs in the
@@ -1849,6 +1883,10 @@ XSELinuxExtensionInit(INITARGS)
     {
         ErrorF("XSELinux: Extension failed to load: SELinux not enabled\n");
         return;
+    }
+
+    if (selinux_set_mapping(map) < 0) {
+	FatalError("XSELinux: Failed to set up security class mapping\n");
     }
 
     if (avc_init("xserver", NULL, &alc, NULL, NULL) < 0)
