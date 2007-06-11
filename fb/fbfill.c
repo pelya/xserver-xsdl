@@ -221,13 +221,13 @@ fbSolidBoxClipped (DrawablePtr	pDrawable,
 #ifdef USE_MMX
 	if (!and && fbHaveMMX())
 	{
-		if (fbSolidFillmmx (pDrawable,
-		                    partX1, partY1,
-				    (partX2 - partX1), (partY2 - partY1),
-				    xor)) {
-			fbFinishAccess (pDrawable);
-			return;
-		}
+	    if (fbFillmmx (dst, dstStride, dstBpp,
+			   partX1 + dstXoff, partX2 + dstYoff, (partX2 - partX1), (partY2 - partY1),
+			   xor))
+	    {
+		fbFinishAccess (pDrawable);
+		return;
+	    }
 	}
 #endif
 	fbSolid (dst + (partY1 + dstYoff) * dstStride,

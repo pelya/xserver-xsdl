@@ -233,26 +233,27 @@ fbFillRegionSolid (DrawablePtr	pDrawable,
     while (n--)
     {
 #ifdef USE_MMX
-        if (!has_mmx || !fbSolidFillmmx (pDrawable,
-	                                pbox->x1,
-					pbox->y1,
-					(pbox->x2 - pbox->x1),
-					(pbox->y2 - pbox->y1), xor)) {
+	if (!has_mmx || !fbFillmmx (dst, dstStride, dstBpp,
+				    pbox->x1 + dstXoff, pbox->y1 + dstYoff,
+				    (pbox->x2 - pbox->x1),
+				    (pbox->y2 - pbox->y1),
+				    xor))
+	{
 #endif
-	fbSolid (dst + (pbox->y1 + dstYoff) * dstStride,
-		 dstStride,
-		 (pbox->x1 + dstXoff) * dstBpp,
-		 dstBpp,
-		 (pbox->x2 - pbox->x1) * dstBpp,
-		 pbox->y2 - pbox->y1,
-		 and, xor);
+	    fbSolid (dst + (pbox->y1 + dstYoff) * dstStride,
+		     dstStride,
+		     (pbox->x1 + dstXoff) * dstBpp,
+		     dstBpp,
+		     (pbox->x2 - pbox->x1) * dstBpp,
+		     pbox->y2 - pbox->y1,
+		     and, xor);
 #ifdef USE_MMX
 	}
 #endif
 	fbValidateDrawable (pDrawable);
 	pbox++;
     }
-
+    
     fbFinishAccess (pDrawable);
 }
 

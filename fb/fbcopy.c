@@ -60,17 +60,17 @@ fbCopyNtoN (DrawablePtr	pSrcDrawable,
 
     while (nbox--)
     {
-#ifdef USE_MMX
+#ifndef FB_ACCESS_WRAPPER /* pixman_blt() doesn't support accessors yet */
 	if (pm == FB_ALLONES && alu == GXcopy && !reverse &&
-	    !upsidedown && fbHaveMMX())
+	    !upsidedown)
 	{
-	    if (!fbBltmmx (src, dst, srcStride, dstStride, srcBpp, dstBpp,
-			   (pbox->x1 + dx + srcXoff),
-			   (pbox->y1 + dy + srcYoff),
-			   (pbox->x1 + srcXoff),
-			   (pbox->y1 + srcYoff),
-			   (pbox->x2 - pbox->x1),
-			   (pbox->y2 - pbox->y1)))
+	    if (!pixman_blt ((uint32_t *)src, (uint32_t *)dst, srcStride, dstStride, srcBpp, dstBpp,
+			     (pbox->x1 + dx + srcXoff),
+			     (pbox->y1 + dy + srcYoff),
+			     (pbox->x1 + srcXoff),
+			     (pbox->y1 + srcYoff),
+			     (pbox->x2 - pbox->x1),
+			     (pbox->y2 - pbox->y1)))
 		goto fallback;
 	    else
 		goto next;
@@ -94,7 +94,7 @@ fbCopyNtoN (DrawablePtr	pSrcDrawable,
 	       
 	       reverse,
 	       upsidedown);
-#ifdef USE_MMX
+#ifndef FB_ACCESS_WRAPPER
     next:
 #endif
 	pbox++;
