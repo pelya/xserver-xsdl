@@ -265,7 +265,7 @@ _X_EXPORT int
 dixLookupClient(ClientPtr *pClient, XID rid, ClientPtr client, Mask access)
 {
     pointer pRes = (pointer)SecurityLookupIDByClass(client, rid, RC_ANY,
-						    DixReadAccess);
+						    access);
     int clientIndex = CLIENT_ID(rid);
     client->errorValue = rid;
 
