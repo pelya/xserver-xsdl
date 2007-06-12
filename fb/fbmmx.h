@@ -44,15 +44,6 @@ Bool fbHaveMMX(void);
 
 #ifdef USE_MMX
 
-Bool fbBltmmx (FbBits *src_bits,
-	       FbBits *dst_bits,
-	       FbStride src_stride,
-	       FbStride dst_stride,
-	       int src_bpp,
-	       int dst_bpp,
-	       int src_x, int src_y,
-	       int dst_x, int dst_y,
-	       int width, int height);
 Bool fbFillmmx (FbBits *bits,
 		FbStride stride,
 		int bpp,
