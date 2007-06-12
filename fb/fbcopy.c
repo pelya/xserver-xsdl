@@ -29,7 +29,6 @@
 #include <stdlib.h>
 
 #include "fb.h"
-#include "fbmmx.h"
 
 void
 fbCopyNtoN (DrawablePtr	pSrcDrawable,

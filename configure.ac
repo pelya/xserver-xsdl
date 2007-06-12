@@ -362,19 +362,6 @@ case $host_os in
 esac
 AM_CONDITIONAL(KDRIVE_HW, test "x$KDRIVE_HW" = xyes)
 
-AC_MSG_CHECKING(for MMX capable platform)
-if test "x$use_x86_asm" = xyes && test "x$GCC" = xyes ; then
-	AC_PREPROC_IFELSE([
-#if (!defined (__GNUC__) || __GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
-    #error Not supported
-#endif
-], mmx_capable=yes, mmx_capable=no)
-else
-	mmx_capable=no
-fi
-AC_MSG_RESULT([$mmx_capable])
-AM_CONDITIONAL(MMX_CAPABLE, [test "x$mmx_capable" = xyes])
-
 DEFAULT_VENDOR_NAME="The X.Org Foundation"
 DEFAULT_VENDOR_NAME_SHORT="X.Org"
 DEFAULT_VERSION_MAJOR=7

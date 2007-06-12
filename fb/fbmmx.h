@@ -42,14 +42,3 @@ Bool fbHaveMMX(void);
 #define fbHaveMMX() FALSE
 #endif
 
-#ifdef USE_MMX
-
-Bool fbFillmmx (FbBits *bits,
-		FbStride stride,
-		int bpp,
-		int x,
-		int y,
-		int width,
-		int height,
-		FbBits xor);
-#endif /* USE_MMX */
