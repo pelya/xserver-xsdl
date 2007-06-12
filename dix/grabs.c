@@ -91,6 +91,7 @@ CreateGrab(
 		      (device == inputInfo.pointer));
     grab->window = window;
     grab->eventMask = eventMask;
+    grab->deviceMask = 0;
     grab->ownerEvents = ownerEvents;
     grab->keyboardMode = keyboardMode;
     grab->pointerMode = pointerMode;
@@ -104,6 +105,7 @@ CreateGrab(
     grab->detail.pMask = NULL;
     grab->confineTo = confineTo;
     grab->cursor = cursor;
+    grab->genericMasks = NULL;
     if (cursor)
 	cursor->refcnt++;
     return grab;
