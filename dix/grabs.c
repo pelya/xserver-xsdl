@@ -269,6 +269,42 @@ GrabMatchesSecond(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
     return FALSE;
 }
 
+static Bool
+GrabsAreIdentical(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
+{
+    if (pFirstGrab->device != pSecondGrab->device || 
+	(pFirstGrab->modifierDevice != pSecondGrab->modifierDevice) ||
+	(pFirstGrab->type != pSecondGrab->type))
+	return FALSE;
+
+    if (!(DetailSupersedesSecond(pFirstGrab->detail, 
+                               pSecondGrab->detail, 
+                               (unsigned short)AnyKey) && 
+        DetailSupersedesSecond(pSecondGrab->detail,
+                               pFirstGrab->detail,
+                               (unsigned short)AnyKey)))
+        return FALSE;
+
+    if (!(DetailSupersedesSecond(pFirstGrab->modifiersDetail, 
+                               pSecondGrab->modifiersDetail, 
+                               (unsigned short)AnyModifier) && 
+        DetailSupersedesSecond(pSecondGrab->modifiersDetail,
+                               pFirstGrab->modifiersDetail,
+                               (unsigned short)AnyModifier)))
+        return FALSE;
+
+    return TRUE;
+}
+
+
+/**
+ * Prepend the new grab to the list of passive grabs on the window.
+ * Any previously existing grab that matches the new grab will be removed.
+ * Adding a new grab that would override another client's grab will result in
+ * a BadAccess.
+ * 
+ * @return Success or X error code on failure.
+ */
 int
 AddPassiveGrabToList(GrabPtr pGrab)
 {
@@ -291,6 +327,17 @@ AddPassiveGrabToList(GrabPtr pGrab)
 	FreeGrab(pGrab);
 	return BadAlloc;
     }
+
+    /* Remove all grabs that match the new one exactly */
+    for (grab = wPassiveGrabs(pGrab->window); grab; grab = grab->next)
+    {
+	if (GrabsAreIdentical(pGrab, grab))
+	{
+            DeletePassiveGrabFromList(grab);
+            break;
+	} 
+    }
+
     pGrab->next = pGrab->window->optional->passiveGrabs;
     pGrab->window->optional->passiveGrabs = pGrab;
     if (AddResource(pGrab->resource, RT_PASSIVEGRAB, (pointer)pGrab))
