@@ -442,7 +442,7 @@ xf86InputDriverlistFromConfig()
 {
     int count = 0;
     char **modulearray;
-    IDevPtr idp;
+    IDevPtr* idp;
     
     /*
      * make sure the config file has been parsed and that we have a
@@ -460,7 +460,7 @@ xf86InputDriverlistFromConfig()
      */
     if (xf86ConfigLayout.inputs) {
         idp = xf86ConfigLayout.inputs;
-        while (idp->identifier) {
+        while (*idp) {
 	    count++;
 	    idp++;
         }
@@ -475,8 +475,8 @@ xf86InputDriverlistFromConfig()
     modulearray = xnfalloc((count + 1) * sizeof(char*));
     count = 0;
     idp = xf86ConfigLayout.inputs;
-    while (idp->identifier) {
-        modulearray[count] = idp->driver;
+    while (idp && *idp) {
+        modulearray[count] = (*idp)->driver;
 	count++;
 	idp++;
     }
@@ -1185,7 +1185,8 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
     IDevPtr corePointer = NULL, coreKeyboard = NULL;
     Bool foundPointer = FALSE, foundKeyboard = FALSE;
     const char *pointerMsg = NULL, *keyboardMsg = NULL;
-    IDevPtr indp, i;
+    IDevPtr *devs, /* iterator */
+            indp;
     IDevRec Pointer, Keyboard;
     XF86ConfInputPtr confInput;
     XF86ConfInputRec defPtr, defKbd;
@@ -1198,7 +1199,8 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
      * in the active ServerLayout.  If more than one is specified for either,
      * remove the core attribute from the later ones.
      */
-    for (indp = servlayoutp->inputs; indp->identifier; indp++) {
+    for (devs = servlayoutp->inputs; devs && *devs; devs++) {
+        indp = *devs;
 	pointer opt1 = NULL, opt2 = NULL;
 	if (indp->commonOptions &&
 	    xf86CheckBoolOption(indp->commonOptions, "CorePointer", FALSE)) {
@@ -1263,11 +1265,15 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	 * removed.
 	 */
 	if (corePointer) {
-	    for (indp = servlayoutp->inputs; indp->identifier; indp++)
-		if (indp == corePointer)
+	    for (devs = servlayoutp->inputs; devs && *devs; devs++)
+		if (*devs == corePointer)
+                {
+                    xfree(*devs);
+                    *devs = (IDevPtr)0x1; /* ensure we dont skip next loop*/
 		    break;
-	    for (; indp->identifier; indp++)
-		indp[0] = indp[1];
+                }
+	    for (; devs && *devs; devs++)
+		devs[0] = devs[1];
 	    count--;
 	}
 	corePointer = NULL;
@@ -1327,13 +1333,14 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	foundPointer = configInput(&Pointer, confInput, from);
         if (foundPointer) {
 	    count++;
-	    indp = xnfrealloc(servlayoutp->inputs,
-			      (count + 1) * sizeof(IDevRec));
-	    indp[count - 1] = Pointer;
-	    indp[count - 1].extraOptions =
+	    devs = xnfrealloc(servlayoutp->inputs,
+			      (count + 1) * sizeof(IDevPtr));
+            devs[count - 1] = xnfalloc(sizeof(IDevRec));
+	    *devs[count - 1] = Pointer;
+	    devs[count - 1]->extraOptions =
 				xf86addNewOption(NULL, xnfstrdup("CorePointer"), NULL);
-	    indp[count].identifier = NULL;
-	    servlayoutp->inputs = indp;
+	    devs[count]->identifier = NULL;
+	    servlayoutp->inputs = devs;
 	}
     }
 
@@ -1351,9 +1358,9 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
      * If you're using an evdev keyboard and expect a default mouse
      * section ... deal.
      */
-    for (i = servlayoutp->inputs; i->identifier && i->driver; i++) {
-	if (!strcmp(i->driver, "void") || !strcmp(i->driver, "mouse") ||
-            !strcmp(i->driver, "vmmouse") || !strcmp(i->driver, "evdev")) {
+    for (devs = servlayoutp->inputs; devs && *devs; devs++) {
+	if (!strcmp((*devs)->driver, "void") || !strcmp((*devs)->driver, "mouse") ||
+            !strcmp((*devs)->driver, "vmmouse") || !strcmp((*devs)->driver, "evdev")) {
 	    found = 1; break;
 	}
     }
@@ -1366,13 +1373,14 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	foundPointer = configInput(&Pointer, confInput, from);
         if (foundPointer) {
 	    count++;
-	    indp = xnfrealloc(servlayoutp->inputs,
-			      (count + 1) * sizeof(IDevRec));
-	    indp[count - 1] = Pointer;
-	    indp[count - 1].extraOptions =
+	    devs = xnfrealloc(servlayoutp->inputs,
+			      (count + 1) * sizeof(IDevPtr));
+            devs[count - 1] = xnfalloc(sizeof(IDevRec));
+	    *devs[count - 1] = Pointer;
+	    devs[count - 1]->extraOptions =
 				xf86addNewOption(NULL, xnfstrdup("AlwaysCore"), NULL);
-	    indp[count].identifier = NULL;
-	    servlayoutp->inputs = indp;
+	    devs[count]->identifier = NULL;
+	    servlayoutp->inputs = devs;
 	}
     }
 
@@ -1393,11 +1401,15 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	 * removed.
 	 */
 	if (coreKeyboard) {
-	    for (indp = servlayoutp->inputs; indp->identifier; indp++)
-		if (indp == coreKeyboard)
+	    for (devs = servlayoutp->inputs; devs && *devs; devs++)
+		if (*devs == coreKeyboard)
+                {
+                    xfree(*devs);
+                    *devs = (IDevPtr)0x1; /* ensure we dont skip next loop */
 		    break;
-	    for (; indp->identifier; indp++)
-		indp[0] = indp[1];
+                }
+	    for (; devs && *devs; devs++)
+		devs[0] = devs[1];
 	    count--;
 	}
 	coreKeyboard = NULL;
@@ -1457,13 +1469,14 @@ checkCoreInputDevices(serverLayoutPtr servlayoutp, Bool implicitLayout)
 	foundKeyboard = configInput(&Keyboard, confInput, from);
         if (foundKeyboard) {
 	    count++;
-	    indp = xnfrealloc(servlayoutp->inputs,
-			      (count + 1) * sizeof(IDevRec));
-	    indp[count - 1] = Keyboard;
-	    indp[count - 1].extraOptions =
+	    devs = xnfrealloc(servlayoutp->inputs,
+			      (count + 1) * sizeof(IDevPtr));
+            devs[count - 1] = xnfalloc(sizeof(IDevRec));
+	    *devs[count - 1] = Keyboard;
+	    devs[count - 1]->extraOptions =
 				xf86addNewOption(NULL, xnfstrdup("CoreKeyboard"), NULL);
-	    indp[count].identifier = NULL;
-	    servlayoutp->inputs = indp;
+	    devs[count]->identifier = NULL;
+	    servlayoutp->inputs = devs;
 	}
     }
 
@@ -1519,7 +1532,7 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
     MessageType from;
     screenLayoutPtr slp;
     GDevPtr gdp;
-    IDevPtr indp;
+    IDevPtr* indp;
     int i = 0, j;
 
     if (!servlayoutp)
@@ -1731,16 +1744,19 @@ configLayout(serverLayoutPtr servlayoutp, XF86ConfLayoutPtr conf_layout,
     ErrorF("Found %d input devices in the layout section %s",
            count, conf_layout->lay_identifier);
 #endif
-    indp = xnfalloc((count + 1) * sizeof(IDevRec));
-    indp[count].identifier = NULL;
+    indp = xnfcalloc((count + 1), sizeof(IDevPtr));
+    indp[count] = NULL;
     irp = conf_layout->lay_input_lst;
     count = 0;
     while (irp) {
-	if (!configInput(&indp[count], irp->iref_inputdev, X_CONFIG)) {
-	    xfree(indp);
-	    return FALSE;
+        indp[count] = xnfalloc(sizeof(IDevRec));
+	if (!configInput(indp[count], irp->iref_inputdev, X_CONFIG)) {
+            while(count--) 
+                xfree(indp[count]);
+            xfree(indp);
+            return FALSE;
 	}
-	indp[count].extraOptions = irp->iref_option_lst;
+	indp[count]->extraOptions = irp->iref_option_lst;
         count++;
         irp = (XF86ConfInputrefPtr)irp->list.next;
     }
@@ -1764,7 +1780,7 @@ configImpliedLayout(serverLayoutPtr servlayoutp, XF86ConfScreenPtr conf_screen)
     MessageType from;
     XF86ConfScreenPtr s;
     screenLayoutPtr slp;
-    IDevPtr indp;
+    IDevPtr *indp;
 
     if (!servlayoutp)
 	return FALSE;
@@ -1806,8 +1822,8 @@ configImpliedLayout(serverLayoutPtr servlayoutp, XF86ConfScreenPtr conf_screen)
     servlayoutp->inactives = xnfcalloc(1, sizeof(GDevRec));
     servlayoutp->options = NULL;
     /* Set up an empty input device list, then look for some core devices. */
-    indp = xnfalloc(sizeof(IDevRec));
-    indp->identifier = NULL;
+    indp = xnfalloc(sizeof(IDevPtr));
+    *indp = NULL;
     servlayoutp->inputs = indp;
     if (!xf86Info.allowEmptyInput && !checkCoreInputDevices(servlayoutp, TRUE))
 	return FALSE;

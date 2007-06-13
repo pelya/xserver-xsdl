@@ -981,7 +981,7 @@ InitInput(argc, argv)
      int     	  argc;
      char    	  **argv;
 {
-    IDevPtr pDev;
+    IDevPtr* pDev;
     InputDriverPtr pDrv;
     InputInfoPtr pInfo;
 
@@ -990,9 +990,9 @@ InitInput(argc, argv)
 
     if (serverGeneration == 1) {
 	/* Call the PreInit function for each input device instance. */
-	for (pDev = xf86ConfigLayout.inputs; pDev && pDev->identifier; pDev++) {
-	    if ((pDrv = xf86LookupInputDriver(pDev->driver)) == NULL) {
-		xf86Msg(X_ERROR, "No Input driver matching `%s'\n", pDev->driver);
+	for (pDev = xf86ConfigLayout.inputs; pDev && *pDev; pDev++) {
+	    if ((pDrv = xf86LookupInputDriver((*pDev)->driver)) == NULL) {
+		xf86Msg(X_ERROR, "No Input driver matching `%s'\n", (*pDev)->driver);
 		/* XXX For now, just continue. */
 		continue;
 	    }
@@ -1002,14 +1002,14 @@ InitInput(argc, argv)
 		    pDrv->driverName);
 		continue;
 	    }
-	    pInfo = pDrv->PreInit(pDrv, pDev, 0);
+	    pInfo = pDrv->PreInit(pDrv, *pDev, 0);
 	    if (!pInfo) {
 		xf86Msg(X_ERROR, "PreInit returned NULL for \"%s\"\n",
-			pDev->identifier);
+			(*pDev)->identifier);
 		continue;
 	    } else if (!(pInfo->flags & XI86_CONFIGURED)) {
 		xf86Msg(X_ERROR, "PreInit failed for input device \"%s\"\n",
-			pDev->identifier);
+			(*pDev)->identifier);
 		xf86DeleteInput(pInfo, 0);
 		continue;
 	    }
