@@ -85,7 +85,6 @@ typedef struct _DRIScreenPrivRec
     int			drmFD;	      /* File descriptor for /dev/video/?   */
     drm_handle_t   	hSAREA;	      /* Handle to SAREA, for mapping       */
     XF86DRISAREAPtr	pSAREA;	      /* Mapped pointer to SAREA            */
-    drm_handle_t   	hFrameBuffer; /* Handle to framebuffer, for mapping */
     drm_context_t          myContext;    /* DDX Driver's context               */
     DRIContextPrivPtr   myContextPriv;/* Pointer to server's private area   */
     DRIContextPrivPtr   lastPartial3DContext;  /* last one partially saved  */

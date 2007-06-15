@@ -311,6 +311,8 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
     Bool                xineramaInCore = FALSE;
     DRIEntPrivPtr       pDRIEntPriv;
     ScrnInfoPtr         pScrn = xf86Screens[pScreen->myNum];
+    DRIContextFlags	flags    = 0;
+    DRIContextPrivPtr	pDRIContextPriv;
 
     /* If the DRI extension is disabled, do not initialize the DRI */
     if (noXFree86DRIExtension) {
@@ -416,23 +418,29 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
     pDRIPriv->hLSAREA = pDRIEntPriv->hLSAREA;
     pDRIPriv->pLSAREA = pDRIEntPriv->pLSAREA;
 
-    if (drmAddMap( pDRIPriv->drmFD,
-		   (drm_handle_t)pDRIPriv->pDriverInfo->frameBufferPhysicalAddress,
-		   pDRIPriv->pDriverInfo->frameBufferSize,
-		   DRM_FRAME_BUFFER,
-		   0,
-		   &pDRIPriv->hFrameBuffer) < 0)
+    if (!pDRIPriv->pDriverInfo->dontMapFrameBuffer)
     {
-	pDRIPriv->directRenderingSupport = FALSE;
-	pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
-	drmUnmap(pDRIPriv->pSAREA, pDRIPriv->pDriverInfo->SAREASize);
-	drmClose(pDRIPriv->drmFD);
-        DRIDrvMsg(pScreen->myNum, X_INFO,
-                  "[drm] drmAddMap failed\n");
-	return FALSE;
+	if (drmAddMap( pDRIPriv->drmFD,
+		       (drm_handle_t)pDRIPriv->pDriverInfo->frameBufferPhysicalAddress,
+		       pDRIPriv->pDriverInfo->frameBufferSize,
+		       DRM_FRAME_BUFFER,
+		       0,
+		       &pDRIPriv->pDriverInfo->hFrameBuffer) < 0)
+	    {
+		pDRIPriv->directRenderingSupport = FALSE;
+		pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
+		drmUnmap(pDRIPriv->pSAREA, pDRIPriv->pDriverInfo->SAREASize);
+		drmClose(pDRIPriv->drmFD);
+		DRIDrvMsg(pScreen->myNum, X_INFO,
+			  "[drm] drmAddMap failed\n");
+		return FALSE;
+	    }
+	DRIDrvMsg(pScreen->myNum, X_INFO, "[drm] framebuffer handle = %p\n",
+		  pDRIPriv->pDriverInfo->hFrameBuffer);
+    } else {
+	DRIDrvMsg(pScreen->myNum, X_INFO,
+		  "[drm] framebuffer mapped by ddx driver\n");
     }
-    DRIDrvMsg(pScreen->myNum, X_INFO, "[drm] framebuffer handle = %p\n",
-	      pDRIPriv->hFrameBuffer);
 
     if (pDRIEntPriv->resOwner == NULL) {
 	pDRIEntPriv->resOwner = pScreen;
@@ -479,21 +487,14 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 
     pDRIEntPriv->refCount++;
 
-    return TRUE;
-}
-
-Bool
-DRIFinishScreenInit(ScreenPtr pScreen)
-{
-    DRIScreenPrivPtr  pDRIPriv = DRI_SCREEN_PRIV(pScreen);
-    DRIInfoPtr        pDRIInfo = pDRIPriv->pDriverInfo;
-    DRIContextFlags   flags    = 0;
-    DRIContextPrivPtr pDRIContextPriv;
-
-				/* Set up flags for DRICreateContextPriv */
+    /* Set up flags for DRICreateContextPriv */
     switch (pDRIInfo->driverSwapMethod) {
-    case DRI_KERNEL_SWAP:    flags = DRI_CONTEXT_2DONLY;    break;
-    case DRI_HIDE_X_CONTEXT: flags = DRI_CONTEXT_PRESERVED; break;
+    case DRI_KERNEL_SWAP:
+	flags = DRI_CONTEXT_2DONLY;
+	break;
+    case DRI_HIDE_X_CONTEXT:
+	flags = DRI_CONTEXT_PRESERVED;
+	break;
     }
 
     if (!(pDRIContextPriv = DRICreateContextPriv(pScreen,
@@ -579,6 +580,15 @@ DRIFinishScreenInit(ScreenPtr pScreen)
     default:
 	break;
     }
+
+    return TRUE;
+}
+
+Bool
+DRIFinishScreenInit(ScreenPtr pScreen)
+{
+    DRIScreenPrivPtr  pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+    DRIInfoPtr        pDRIInfo = pDRIPriv->pDriverInfo;
 
     /* Wrap DRI support */
     if (pDRIInfo->wrap.ValidateTree) {
@@ -1592,7 +1602,7 @@ DRIGetDeviceInfo(ScreenPtr pScreen,
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
 
-    *hFrameBuffer = pDRIPriv->hFrameBuffer;
+    *hFrameBuffer = pDRIPriv->pDriverInfo->hFrameBuffer;
     *fbOrigin = 0;
     *fbSize = pDRIPriv->pDriverInfo->frameBufferSize;
     *fbStride = pDRIPriv->pDriverInfo->frameBufferStride;

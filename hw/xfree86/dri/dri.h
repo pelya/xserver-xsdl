@@ -107,7 +107,7 @@ typedef struct {
  */
 
 #define DRIINFO_MAJOR_VERSION   5
-#define DRIINFO_MINOR_VERSION   3
+#define DRIINFO_MINOR_VERSION   4
 #define DRIINFO_PATCH_VERSION   0
 
 typedef unsigned long long (*DRITexOffsetStartProcPtr)(PixmapPtr pPix);
@@ -187,6 +187,12 @@ typedef struct {
     /* New with DRI version 5.3.0 */
     DRITexOffsetStartProcPtr  texOffsetStart;
     DRITexOffsetFinishProcPtr texOffsetFinish;
+
+    /* New with DRI version 5.4.0 */
+    int			dontMapFrameBuffer;
+    drm_handle_t   	hFrameBuffer; /* Handle to framebuffer, either
+				       * mapped by DDX driver or DRI */
+    
 } DRIInfoRec, *DRIInfoPtr;
 
 
