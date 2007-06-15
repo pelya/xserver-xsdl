@@ -2963,6 +2963,7 @@ BorderSizeNotEmpty(DeviceIntPtr pDev, WindowPtr pWin)
 /** 
  * "CheckPassiveGrabsOnWindow" checks to see if the event passed in causes a
  * passive grab set on the window to be activated. 
+ * If a passive grab is activated, the event will be delivered to the client.
  * 
  * @param pWin The window that may be subject to a passive grab.
  * @param device Device that caused the event.
@@ -3064,16 +3065,26 @@ CheckPassiveGrabsOnWindow(
 }
 
 /**
-"CheckDeviceGrabs" handles both keyboard and pointer events that may cause
-a passive grab to be activated.  If the event is a keyboard event, the
-ancestors of the focus window are traced down and tried to see if they have
-any passive grabs to be activated.  If the focus window itself is reached and
-it's descendants contain they pointer, the ancestors of the window that the
-pointer is in are then traced down starting at the focus window, otherwise no
-grabs are activated.  If the event is a pointer event, the ancestors of the
-window that the pointer is in are traced down starting at the root until
-CheckPassiveGrabs causes a passive grab to activate or all the windows are
-tried. PRH
+ * CheckDeviceGrabs handles both keyboard and pointer events that may cause
+ * a passive grab to be activated.  
+ *
+ * If the event is a keyboard event, the ancestors of the focus window are
+ * traced down and tried to see if they have any passive grabs to be
+ * activated.  If the focus window itself is reached and it's descendants
+ * contain the pointer, the ancestors of the window that the pointer is in
+ * are then traced down starting at the focus window, otherwise no grabs are
+ * activated.  
+ * If the event is a pointer event, the ancestors of the window that the
+ * pointer is in are traced down starting at the root until CheckPassiveGrabs
+ * causes a passive grab to activate or all the windows are
+ * tried. PRH
+ *
+ * If a grab is activated, the event has been sent to the client already!
+ *
+ * @param device The device that caused the event.
+ * @param xE The event to handle (most likely {Device}ButtonPress).
+ * @param count Number of events in list.
+ * @return TRUE if a grab has been activated or false otherwise.
 */
 
 Bool
