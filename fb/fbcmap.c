@@ -39,7 +39,12 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "resource.h"
 #include "fb.h"
 
-#ifndef XFree86Server
+#ifdef XFree86Server
+#error "You should be compiling fbcmap_mi.c instead of fbcmap.c!"
+#endif
+
+
+
 ColormapPtr FbInstalledMaps[MAXSCREENS];
 
 int
@@ -584,87 +589,3 @@ fbInitVisuals (VisualPtr    *visualp,
     *defaultVisp = depth[i].vids[j];
     return TRUE;
 }
-#else
-
-#include "micmap.h"
-
-int
-fbListInstalledColormaps(ScreenPtr pScreen, Colormap *pmaps)
-{
-    return miListInstalledColormaps(pScreen, pmaps);
-}
-
-void
-fbInstallColormap(ColormapPtr pmap)
-{
-    miInstallColormap(pmap);
-}
-
-void
-fbUninstallColormap(ColormapPtr pmap)
-{
-    miUninstallColormap(pmap);
-}
-
-void
-fbResolveColor(unsigned short   *pred,
-	       unsigned short   *pgreen,
-	       unsigned short   *pblue,
-	       VisualPtr	pVisual)
-{
-    miResolveColor(pred, pgreen, pblue, pVisual);
-}
-
-Bool
-fbInitializeColormap(ColormapPtr pmap)
-{
-    return miInitializeColormap(pmap);
-}
-
-int
-fbExpandDirectColors (ColormapPtr   pmap,
-		      int	    ndef,
-		      xColorItem    *indefs,
-		      xColorItem    *outdefs)
-{
-    return miExpandDirectColors(pmap, ndef, indefs, outdefs);
-}
-
-Bool
-fbCreateDefColormap(ScreenPtr pScreen)
-{
-    return miCreateDefColormap(pScreen);
-}
-
-void
-fbClearVisualTypes(void)
-{
-    miClearVisualTypes();
-}
-
-Bool
-fbSetVisualTypes (int depth, int visuals, int bitsPerRGB)
-{
-    return miSetVisualTypes(depth, visuals, bitsPerRGB, -1);
-}
-
-/*
- * Given a list of formats for a screen, create a list
- * of visuals and depths for the screen which coorespond to
- * the set which can be used with this version of fb.
- */
-
-Bool
-fbInitVisuals (VisualPtr    *visualp, 
-	       DepthPtr	    *depthp,
-	       int	    *nvisualp,
-	       int	    *ndepthp,
-	       int	    *rootDepthp,
-	       VisualID	    *defaultVisp,
-	       unsigned long	sizes,
-	       int	    bitsPerRGB)
-{
-    return miInitVisuals(visualp, depthp, nvisualp, ndepthp, rootDepthp,
-			 defaultVisp, sizes, bitsPerRGB, -1);
-}
-#endif

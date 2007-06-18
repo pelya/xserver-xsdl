@@ -43,20 +43,12 @@ extern xf86MonPtr xf86InterpretEDID(
     int screenIndex, Uchar *block
 );
 
-extern xf86vdifPtr xf86InterpretVdif(
-    CARD8 *c
-);
-
 extern void 
 xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC);
 
 extern Bool xf86SetDDCproperties(
     ScrnInfoPtr pScreen,
     xf86MonPtr DDC
-);
-
-extern void xf86print_vdif(
-    xf86vdifPtr v
 );
 
 DisplayModePtr xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC);

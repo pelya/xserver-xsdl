@@ -45,8 +45,8 @@ SRCS =	Args.c \
 	$(top_srcdir)/Xi/stubs.c \
 	$(top_srcdir)/mi/miinitext.c
 
-libfbcmap_a_SOURCES = $(top_srcdir)/fb/fbcmap.c
-libfbcmap_a_CFLAGS = $(AM_CFLAGS) -DXFree86Server
+libfbcmap_a_SOURCES = $(top_srcdir)/fb/fbcmap_mi.c
+libfbcmap_a_CFLAGS = $(AM_CFLAGS)
 
 Xnest_SOURCES = $(SRCS)
 

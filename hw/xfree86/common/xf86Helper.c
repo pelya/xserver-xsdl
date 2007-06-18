@@ -374,8 +374,11 @@ xf86DeleteInput(InputInfoPtr pInp, int flags)
     if (pInp->drv)
 	pInp->drv->refCount--;
 
+    /* This should *really* be handled in drv->UnInit(dev) call instead */
+#if 0
     if (pInp->private)
 	xfree(pInp->private);
+#endif
 
     /* Remove the entry from the list. */
     if (pInp == xf86InputDevs)

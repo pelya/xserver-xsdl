@@ -242,11 +242,7 @@ static int dmxBackendOffscreen(int screen, int x, int y)
 void dmxBackendUpdatePosition(pointer private, int x, int y)
 {
     GETPRIVFROMPRIVATE;
-#if 00 /*BP*/
-    int           screen      = miPointerCurrentScreen()->myNum;
-#else
     int           screen      = miPointerGetScreen(inputInfo.pointer)->myNum;
-#endif
     DMXScreenInfo *dmxScreen  = &dmxScreens[priv->myScreen];
     int           oldRelative = priv->relative;
     int           topscreen   = dmxBackendFindOverlapping(priv, screen, x, y);
@@ -358,7 +354,8 @@ void dmxBackendCollectEvents(DevicePtr pDev,
 	switch (X.type) {
         case EnterNotify:
             dmxCommonSaveState(priv);
-            if (entered++) continue;
+            if (entered++)
+                continue;
             priv->entered = 1;
             ignoreLeave   = 1;
             DMXDBG5("dmxBackendCollectEvents: Enter %lu %d,%d; GRAB %s %p\n",
@@ -382,7 +379,8 @@ void dmxBackendCollectEvents(DevicePtr pDev,
                 continue;
             }
             dmxCommonRestoreState(priv);
-            if (left++) continue;
+            if (left++)
+                continue;
             DMXDBG7("dmxBackendCollectEvents: Leave %lu %d,%d %d %d %s %s\n",
                     X.xcrossing.root, X.xcrossing.x, X.xcrossing.y,
                     X.xcrossing.detail, X.xcrossing.focus,
@@ -395,7 +393,6 @@ void dmxBackendCollectEvents(DevicePtr pDev,
             }
             break;
 	case MotionNotify:
-#if 00 /*BP*/
             DMXDBG9("dmxBackendCollectEvents: MotionNotify %d/%d (mi %d)"
                     " newscreen=%d: %d %d (e=%d; last=%d,%d)\n",
                     dmxScreen->index, priv->myScreen,
@@ -403,7 +400,8 @@ void dmxBackendCollectEvents(DevicePtr pDev,
                     priv->newscreen,
                     X.xmotion.x, X.xmotion.y,
                     entered, priv->lastX, priv->lastY);
-            if (dmxBackendPendingMotionEvent(priv, TRUE)) continue;
+            if (dmxBackendPendingMotionEvent(priv, TRUE))
+                continue;
             if (!(dmxScreen = dmxBackendFindWindow(priv, X.xmotion.window)))
                 dmxLog(dmxFatal,
                        "   Event on non-existant window %lu\n",
@@ -448,26 +446,15 @@ void dmxBackendCollectEvents(DevicePtr pDev,
                         (dmxScreen->rootYOrigin + X.xmotion.y
                          - dmxScreen->rootY));
             }
-#else
-            /*
-            ErrorF("motion %d, %d, %d\n",
-                   X.xmotion.x, X.xmotion.y, X.xmotion.state);
-            */
-            enqueue(priv->mou, X.type, 0/*X.xbutton.button*/, 0, &X, block);
-#endif
 	    break;
 
         case KeyPress:
         case KeyRelease:
             enqueue(priv->kbd, X.type, X.xkey.keycode, 0, NULL, block);
             break;
-#if 11/*BP*/
         case ButtonPress:
         case ButtonRelease:
-           /*
-           ErrorF("press/release at %d, %d\n", X.xbutton.x, X.xbutton.y);
-           */
-#endif
+            /* fall-through */
 	default:
                                 /* Pass the whole event here, because
                                  * this may be an extension event. */
@@ -590,12 +577,16 @@ void dmxBackendInit(DevicePtr pDev)
 /** Get information about the backend pointer (for initialization). */
 void dmxBackendMouGetInfo(DevicePtr pDev, DMXLocalInitInfoPtr info)
 {
+    const DMXScreenInfo *dmxScreen = dmxBackendInitPrivate(pDev);
+
     info->buttonClass      = 1;
     dmxCommonMouGetMap(pDev, info->map, &info->numButtons);
     info->valuatorClass    = 1;
     info->numRelAxes       = 2;
     info->minval[0]        = 0;
-    info->maxval[0]        = 0;
+    info->minval[1]        = 0;
+    info->maxval[0]        = dmxScreen->beWidth;
+    info->maxval[1]        = dmxScreen->beHeight;
     info->res[0]           = 1;
     info->minres[0]        = 0;
     info->maxres[0]        = 1;

@@ -109,8 +109,11 @@ typedef struct {
  */
 
 #define DRIINFO_MAJOR_VERSION   5
-#define DRIINFO_MINOR_VERSION   1
+#define DRIINFO_MINOR_VERSION   3
 #define DRIINFO_PATCH_VERSION   0
+
+typedef unsigned long long (*DRITexOffsetStartProcPtr)(PixmapPtr pPix);
+typedef void (*DRITexOffsetFinishProcPtr)(PixmapPtr pPix);
 
 typedef struct {
     /* driver call back functions
@@ -178,8 +181,20 @@ typedef struct {
 
     /* New with DRI version 5.1.0 */
     void        (*ClipNotify)(ScreenPtr pScreen, WindowPtr *ppWin, int num);
+
+    /* New with DRI version 5.2.0 */
+    Bool                allocSarea;
+    Bool                keepFDOpen;
+
+    /* New with DRI version 5.3.0 */
+    DRITexOffsetStartProcPtr  texOffsetStart;
+    DRITexOffsetFinishProcPtr texOffsetFinish;
 } DRIInfoRec, *DRIInfoPtr;
 
+
+extern Bool DRIOpenDRMMaster(ScrnInfoPtr pScrn, unsigned long sAreaSize,
+			     const char *busID,
+			     const char *drmDriverName);
 
 extern Bool DRIScreenInit(ScreenPtr pScreen,
                           DRIInfoPtr pDRIInfo,
@@ -346,6 +361,16 @@ extern char *DRICreatePCIBusID(const struct pci_device *PciInfo);
 
 extern int drmInstallSIGIOHandler(int fd, void (*f)(int, void *, void *));
 extern int drmRemoveSIGIOHandler(int fd);
+extern int DRIMasterFD(ScrnInfoPtr pScrn);
+
+extern void *DRIMasterSareaPointer(ScrnInfoPtr pScrn);
+
+extern drm_handle_t DRIMasterSareaHandle(ScrnInfoPtr pScrn);
+
+extern void DRIGetTexOffsetFuncs(ScreenPtr pScreen,
+				 DRITexOffsetStartProcPtr *texOffsetStartFunc,
+				 DRITexOffsetFinishProcPtr *texOffsetFinishFunc);
+
 #define _DRI_H_
 
 #endif

@@ -860,12 +860,17 @@ void dmxConsoleInit(DevicePtr pDev)
  * for pointers. */
 void dmxConsoleMouGetInfo(DevicePtr pDev, DMXLocalInitInfoPtr info)
 {
+    GETPRIVFROMPDEV;
+
     info->buttonClass      = 1;
     dmxCommonMouGetMap(pDev, info->map, &info->numButtons);
     info->valuatorClass    = 1;
     info->numRelAxes       = 2;
-    info->minval[0]        = 0;
-    info->maxval[0]        = 0;
+    info->minval[0] = 0;
+    info->minval[1] = 0;
+    /* max possible console window size: */
+    info->maxval[0] = DisplayWidth(priv->display, DefaultScreen(priv->display));
+    info->maxval[1] = DisplayHeight(priv->display, DefaultScreen(priv->display));
     info->res[0]           = 1;
     info->minres[0]        = 0;
     info->maxres[0]        = 1;

@@ -75,6 +75,7 @@ SOFTWARE.
 #include "swaprep.h"
 #include "dixevents.h"
 
+#include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"
 #include "exevents.h"
@@ -86,15 +87,27 @@ DeviceIntPtr
 AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 {
     DeviceIntPtr dev, *prev; /* not a typo */
+    DeviceIntPtr devtmp;
+    int devid;
+    char devind[MAX_DEVICES];
 
-    if (inputInfo.numDevices >= MAX_DEVICES)
+    /* Find next available id */
+    memset(devind, 0, sizeof(char)*MAX_DEVICES);
+    for (devtmp = inputInfo.devices; devtmp; devtmp = devtmp->next)
+	devind[devtmp->id]++;
+    for (devtmp = inputInfo.off_devices; devtmp; devtmp = devtmp->next)
+	devind[devtmp->id]++;
+    for (devid = 0; devid < MAX_DEVICES && devind[devid]; devid++)
+	;
+
+    if (devid >= MAX_DEVICES)
 	return (DeviceIntPtr)NULL;
     dev = (DeviceIntPtr) xcalloc(sizeof(DeviceIntRec), 1);
     if (!dev)
 	return (DeviceIntPtr)NULL;
     dev->name = (char *)NULL;
     dev->type = 0;
-    dev->id = inputInfo.numDevices;
+    dev->id = devid;
     inputInfo.numDevices++;
     dev->public.on = FALSE;
     dev->public.processInputProc = (ProcessInputProc)NoopDDA;
@@ -145,6 +158,8 @@ EnableDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr *prev;
     int ret;
+    DeviceIntRec dummyDev;
+    devicePresenceNotify ev;
 
     for (prev = &inputInfo.off_devices;
 	 *prev && (*prev != dev);
@@ -163,6 +178,14 @@ EnableDevice(DeviceIntPtr dev)
     *prev = dev;
     dev->next = NULL;
 
+    ev.type = DevicePresenceNotify;
+    ev.time = currentTime.milliseconds;
+    ev.devchange = DeviceEnabled;
+    ev.deviceid = dev->id;
+    dummyDev.id = 0;
+    SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
+                          (xEvent *) &ev, 1);
+
     return TRUE;
 }
 
@@ -170,6 +193,8 @@ Bool
 DisableDevice(DeviceIntPtr dev)
 {
     DeviceIntPtr *prev;
+    DeviceIntRec dummyDev;
+    devicePresenceNotify ev;
 
     for (prev = &inputInfo.devices;
 	 *prev && (*prev != dev);
@@ -182,6 +207,15 @@ DisableDevice(DeviceIntPtr dev)
     *prev = dev->next;
     dev->next = inputInfo.off_devices;
     inputInfo.off_devices = dev;
+
+    ev.type = DevicePresenceNotify;
+    ev.time = currentTime.milliseconds;
+    ev.devchange = DeviceDisabled;
+    ev.deviceid = dev->id;
+    dummyDev.id = 0;
+    SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
+                          (xEvent *) &ev, 1);
+
     return TRUE;
 }
 
@@ -200,8 +234,8 @@ ActivateDevice(DeviceIntPtr dev)
     
     ev.type = DevicePresenceNotify;
     ev.time = currentTime.milliseconds;
-    ev.devchange = 0;
-    ev.deviceid = 0;
+    ev.devchange = DeviceAdded;
+    ev.deviceid = dev->id;
     dummyDev.id = 0;
     SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                           (xEvent *) &ev, 1);
@@ -314,7 +348,7 @@ CorePointerProc(DeviceIntPtr pDev, int what)
 }
 
 void
-InitCoreDevices()
+InitCoreDevices(void)
 {
     DeviceIntPtr dev;
 
@@ -373,7 +407,7 @@ InitCoreDevices()
 }
 
 int
-InitAndStartDevices()
+InitAndStartDevices(void)
 {
     DeviceIntPtr dev, next;
 
@@ -391,6 +425,7 @@ InitAndStartDevices()
     for (dev = inputInfo.devices;
 	 dev && (dev != inputInfo.keyboard);
 	 dev = dev->next)
+	;
     if (!dev || (dev != inputInfo.keyboard)) {
 	ErrorF("No core keyboard\n");
 	return BadImplementation;
@@ -431,8 +466,13 @@ CloseDevice(DeviceIntPtr dev)
 	xfree(dev->key);
     }
 
-    if (dev->valuator)
+    if (dev->valuator) {
+        /* Counterpart to 'biggest hack ever' in init. */
+        if (dev->valuator->motion &&
+            dev->valuator->GetMotionProc == GetMotionHistory)
+            xfree(dev->valuator->motion);
         xfree(dev->valuator);
+    }
 
     if (dev->button) {
 #ifdef XKB
@@ -503,7 +543,7 @@ CloseDevice(DeviceIntPtr dev)
 }
 
 void
-CloseDownDevices()
+CloseDownDevices(void)
 {
     DeviceIntPtr dev, next;
 
@@ -530,11 +570,15 @@ RemoveDevice(DeviceIntPtr dev)
     int ret = BadMatch;
     devicePresenceNotify ev;
     DeviceIntRec dummyDev;
+    int deviceid;
 
     DebugF("(dix) removing device %d\n", dev->id);
 
     if (!dev || dev == inputInfo.keyboard || dev == inputInfo.pointer)
         return BadImplementation;
+
+    deviceid = dev->id;
+    DisableDevice(dev);
 
     prev = NULL;
     for (tmp = inputInfo.devices; tmp; (prev = tmp), (tmp = next)) {
@@ -567,10 +611,11 @@ RemoveDevice(DeviceIntPtr dev)
     }
     
     if (ret == Success) {
+        inputInfo.numDevices--;
         ev.type = DevicePresenceNotify;
         ev.time = currentTime.milliseconds;
-        ev.devchange = 0;
-        ev.deviceid = 0;
+        ev.devchange = DeviceRemoved;
+        ev.deviceid = deviceid;
         dummyDev.id = 0;
         SendEventToAllWindows(&dummyDev, DevicePresenceNotifyMask,
                               (xEvent *) &ev, 1);
@@ -580,7 +625,7 @@ RemoveDevice(DeviceIntPtr dev)
 }
 
 int
-NumMotionEvents()
+NumMotionEvents(void)
 {
     return inputInfo.pointer->valuator->numMotionEvents;
 }
@@ -598,13 +643,13 @@ RegisterKeyboardDevice(DeviceIntPtr device)
 }
 
 _X_EXPORT DevicePtr
-LookupKeyboardDevice()
+LookupKeyboardDevice(void)
 {
     return inputInfo.keyboard ? &inputInfo.keyboard->public : NULL;
 }
 
 _X_EXPORT DevicePtr
-LookupPointerDevice()
+LookupPointerDevice(void)
 {
     return inputInfo.pointer ? &inputInfo.pointer->public : NULL;
 }
@@ -856,6 +901,7 @@ InitAbsoluteClassDeviceStruct(DeviceIntPtr dev)
     abs->width = -1;
     abs->height = -1;
     abs->following = 0;
+    abs->screen = 0;
 
     dev->absolute = abs;
 
@@ -1223,6 +1269,7 @@ DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
             }
             else {
                 pDev->key->modifierKeyMap = NULL;
+                pDev->key->maxKeysPerModifier = 0;
             }
         }
     }

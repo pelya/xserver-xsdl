@@ -452,7 +452,7 @@ ProcXF86DRIGetDrawableInfo(
     xXF86DRIGetDrawableInfoReply	rep;
     DrawablePtr pDrawable;
     int X, Y, W, H;
-    drm_clip_rect_t * pClipRects;
+    drm_clip_rect_t * pClipRects, *pClippedRects;
     drm_clip_rect_t * pBackClipRects;
     int backX, backY, rc;
 
@@ -502,8 +502,35 @@ ProcXF86DRIGetDrawableInfo(
     if (rep.numBackClipRects) 
        rep.length += sizeof(drm_clip_rect_t) * rep.numBackClipRects;    
 
-    if (rep.numClipRects) 
+    pClippedRects = pClipRects;
+
+    if (rep.numClipRects) {
+       /* Clip cliprects to screen dimensions (redirected windows) */
+       pClippedRects = xalloc(rep.numClipRects * sizeof(drm_clip_rect_t));
+
+       if (pClippedRects) {
+	    ScreenPtr pScreen = screenInfo.screens[stuff->screen];
+	    int i, j;
+
+	    for (i = 0, j = 0; i < rep.numClipRects; i++) {
+		pClippedRects[j].x1 = max(pClipRects[i].x1, 0);
+		pClippedRects[j].y1 = max(pClipRects[i].y1, 0);
+		pClippedRects[j].x2 = min(pClipRects[i].x2, pScreen->width);
+		pClippedRects[j].y2 = min(pClipRects[i].y2, pScreen->height);
+
+		if (pClippedRects[j].x1 < pClippedRects[j].x2 &&
+		    pClippedRects[j].y1 < pClippedRects[j].y2) {
+		    j++;
+		}
+	    }
+
+	    rep.numClipRects = j;
+       } else {
+	    rep.numClipRects = 0;
+       }
+
        rep.length += sizeof(drm_clip_rect_t) * rep.numClipRects;
+    }
     
     rep.length = ((rep.length + 3) & ~3) >> 2;
 
@@ -512,7 +539,8 @@ ProcXF86DRIGetDrawableInfo(
     if (rep.numClipRects) {
 	WriteToClient(client,  
 		      sizeof(drm_clip_rect_t) * rep.numClipRects,
-		      (char *)pClipRects);
+		      (char *)pClippedRects);
+	xfree(pClippedRects);
     }
 
     if (rep.numBackClipRects) {

@@ -51,12 +51,11 @@ SOFTWARE.
 #include "misc.h"
 #include <X11/Xprotostr.h>
 #include "gc.h"
+#include <pixman/pixman.h>
 
 typedef xPoint DDXPointRec;
 
-typedef struct _Box {
-    short x1, y1, x2, y2;
-} BoxRec;
+typedef struct pixman_box16 BoxRec;
 
 typedef union _DevUnion {
     pointer		ptr;

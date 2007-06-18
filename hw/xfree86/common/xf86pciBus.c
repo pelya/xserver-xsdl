@@ -539,7 +539,6 @@ initPciBusState(void)
     struct pci_device *dev;
     struct pci_device_iterator *iter;
     BusAccPtr pbap, pbap_tmp;
-    pciBusInfo_t *pBusInfo;
 
     iter = pci_id_match_iterator_create(& bridge_match);
     while((dev = pci_device_next(iter)) != NULL) {

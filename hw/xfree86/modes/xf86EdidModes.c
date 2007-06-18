@@ -71,7 +71,11 @@ static Bool quirk_dt_sync_hm_vp (int scrnIndex, xf86MonPtr DDC)
     if (memcmp (DDC->vendor.name, "VSC", 4) == 0 &&
 	DDC->vendor.prod_id == 58653)
 	return TRUE;
-
+    /* Samsung SyncMaster 205BW */
+    if (memcmp (DDC->vendor.name, "SAM", 4) == 0 &&
+	DDC->vendor.prod_id == 541)
+	return TRUE;
+     
     return FALSE;
 }
 
@@ -80,6 +84,16 @@ static Bool quirk_prefer_large_60 (int scrnIndex, xf86MonPtr DDC)
     /* Belinea 10 15 55 */
     if (memcmp (DDC->vendor.name, "MAX", 4) == 0 &&
 	DDC->vendor.prod_id == 1516)
+	return TRUE;
+    
+    /* Acer AL1706 */
+    if (memcmp (DDC->vendor.name, "ACR", 4) == 0 &&
+	DDC->vendor.prod_id == 44358)
+	return TRUE;
+
+    /* Samsung SyncMaster 226BW */
+    if (memcmp (DDC->vendor.name, "SAM", 4) == 0 &&
+	DDC->vendor.prod_id == 638)
 	return TRUE;
     
     return FALSE;

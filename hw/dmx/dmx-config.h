@@ -66,7 +66,7 @@
     ((year-2000) *     10000) + \
     ((month)     *       100) + \
     ((day)       *         1)
-#define VENDOR_RELEASE  DMX_VENDOR_RELEASE(1,2,2004,6,30)
+#define VENDOR_RELEASE  DMX_VENDOR_RELEASE(1,2,2007,4,24)
 #define VENDOR_STRING   "DMX Project"
 
 /* Enable the DMX extension */

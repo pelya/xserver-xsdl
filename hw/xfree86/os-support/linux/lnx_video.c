@@ -62,7 +62,8 @@ static Bool ExtendedEnabled = FALSE;
 #elif !defined(__powerpc__) && \
       !defined(__mc68000__) && \
       !defined(__sparc__) && \
-      !defined(__mips__)
+      !defined(__mips__) && \
+      !defined(__arm__)
 
 /*
  * Due to conflicts with "compiler.h", don't rely on <sys/io.h> to declare
@@ -567,7 +568,7 @@ xf86EnableIO(void)
 #endif
 	}
 	close(fd);
-#elif !defined(__mc68000__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__hppa__)
+#elif !defined(__mc68000__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__hppa__) && !defined(__s390__) && !defined(__arm__)
         if (ioperm(0, 1024, 1) || iopl(3)) {
                 if (errno == ENODEV)
                         ErrorF("xf86EnableIOPorts: no I/O ports found\n");
@@ -603,73 +604,21 @@ xf86DisableIO(void)
 	return;
 }
 
-
-/***************************************************************************/
-/* Interrupt Handling section                                              */
-/***************************************************************************/
-
-/* XXX The #ifdefs should be made simpler. */
+/*
+ * Don't use these two functions.  They can't possibly work.  If you actually
+ * need interrupts off for something, you ought to be doing it in the kernel
+ * anyway.
+ */
 
 _X_EXPORT Bool
 xf86DisableInterrupts()
 {
-#if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__ia64__) && !defined(__sh__) && !defined(__hppa__) && !defined(__arm__) && !defined(__s390__)
-	if (!ExtendedEnabled)
-	    if (iopl(3) || ioperm(0, 1024, 1))
-			return (FALSE);
-#endif
-#if defined(__alpha__) || defined(__mc68000__) || defined(__powerpc__) || defined(__sparc__) || defined(__mips__) || defined(__arm__) || defined(__sh__) || defined(__ia64__) || defined(__hppa__) || defined(__s390__)
-#else
-# ifdef __GNUC__
-#  if defined(__ia64__)
-#   if 0
-	__asm__ __volatile__ (";; rsm psr.i;; srlz.d" ::: "memory");
-#   endif
-#  else
-      __asm__ __volatile__("cli");
-#  endif
-# else
-	asm("cli");
-# endif
-#endif
-#if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__ia64__) && !defined(__hppa__) && !defined(__arm__) && !defined(__s390__)
-	if (!ExtendedEnabled) {
-	    iopl(0);
-	    ioperm(0, 1024, 0);
-	}
-	
-#endif
 	return (TRUE);
 }
 
 _X_EXPORT void
 xf86EnableInterrupts()
 {
-#if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__ia64__) && !defined(__sh__) && !defined(__hppa__) && !defined(__arm__) && !defined(__s390__)
-	if (!ExtendedEnabled)
-	    if (iopl(3) || ioperm(0, 1024, 1))
-			return;
-#endif
-#if defined(__alpha__) || defined(__mc68000__) || defined(__powerpc__) || defined(__sparc__) || defined(__mips__) || defined(__arm__) || defined(__sh__) || defined(__ia64__) || defined(__hppa__) || defined(__s390__)
-#else
-# ifdef __GNUC__
-#  if defined(__ia64__)
-#   if 0
-	__asm__ __volatile__ (";; ssm psr.i;; srlz.d" ::: "memory");
-#   endif
-#  else
-      __asm__ __volatile__("sti");
-#  endif
-# else
-	asm("sti");
-# endif
-#endif
-#if !defined(__mc68000__) && !defined(__powerpc__) && !defined(__sparc__) && !defined(__mips__) && !defined(__sh__) && !defined(__ia64__) && !defined(__hppa__) && !defined(__arm__) && !defined(__s390__)
-	if (!ExtendedEnabled) {
-	    iopl(0);
-	    ioperm(0, 1024, 0);
-	}
-#endif
 	return;
 }
 

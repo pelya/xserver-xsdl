@@ -337,6 +337,7 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
     ScrnInfoPtr		pScrn = XF86SCRNINFO(pScreen);
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(pScrn);
     WindowPtr		pRoot = WindowTable[pScreen->myNum];
+    PixmapPtr		pScrnPix = (*pScreen->GetScreenPixmap)(pScreen);
     Bool		ret = FALSE;
 
     if (randrp->virtualX == -1 || randrp->virtualY == -1)
@@ -353,8 +354,8 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
 
     ret = TRUE;
 
-    pScreen->width = width;
-    pScreen->height = height;
+    pScreen->width = pScrnPix->drawable.width = width;
+    pScreen->height = pScrnPix->drawable.height = height;
     pScreen->mmWidth = mmWidth;
     pScreen->mmHeight = mmHeight;
 
@@ -1046,6 +1047,28 @@ xf86RandR12CreateScreenResources12 (ScreenPtr pScreen)
     RRScreenSetSizeRange (pScreen, config->minWidth, config->minHeight,
 			  config->maxWidth, config->maxHeight);
     return TRUE;
+}
+
+/*
+ * Something happened within the screen configuration due
+ * to DGA, VidMode or hot key. Tell RandR
+ */
+
+void
+xf86RandR12TellChanged (ScreenPtr pScreen)
+{
+    ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
+    xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(pScrn);
+    XF86RandRInfoPtr	randrp = XF86RANDRINFO(pScreen);
+    int			c;
+
+    if (!randrp)
+	return;
+    xf86RandR12SetInfo12 (pScreen);
+    for (c = 0; c < config->num_crtc; c++)
+	xf86RandR12CrtcNotify (config->crtc[c]->randr_crtc);
+
+    RRTellChanged (pScreen);
 }
 
 static void

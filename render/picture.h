@@ -25,6 +25,8 @@
 #ifndef _PICTURE_H_
 #define _PICTURE_H_
 
+#include <pixman/pixman.h>
+
 typedef struct _DirectFormat	*DirectFormatPtr;
 typedef struct _PictFormat	*PictFormatPtr;
 typedef struct _Picture		*PicturePtr;
@@ -34,12 +36,7 @@ typedef struct _Picture		*PicturePtr;
  * sample implementation allows only packed RGB and GBR
  * representations for data to simplify software rendering,
  */
-#define PICT_FORMAT(bpp,type,a,r,g,b)	(((bpp) << 24) |  \
-					 ((type) << 16) | \
-					 ((a) << 12) | \
-					 ((r) << 8) | \
-					 ((g) << 4) | \
-					 ((b)))
+#define PICT_FORMAT(bpp,type,a,r,g,b)	PIXMAN_FORMAT(bpp, type, a, r, g, b)
 
 /*
  * gray/color formats use a visual index instead of argb
@@ -48,77 +45,77 @@ typedef struct _Picture		*PicturePtr;
 					 ((type) << 16) | \
 					 ((vi)))
 
-#define PICT_FORMAT_BPP(f)	(((f) >> 24)       )
-#define PICT_FORMAT_TYPE(f)	(((f) >> 16) & 0xff)
-#define PICT_FORMAT_A(f)	(((f) >> 12) & 0x0f)
-#define PICT_FORMAT_R(f)	(((f) >>  8) & 0x0f)
-#define PICT_FORMAT_G(f)	(((f) >>  4) & 0x0f)
-#define PICT_FORMAT_B(f)	(((f)      ) & 0x0f)
-#define PICT_FORMAT_RGB(f)	(((f)      ) & 0xfff)
-#define PICT_FORMAT_VIS(f)	(((f)      ) & 0xffff)
+#define PICT_FORMAT_BPP(f)	PIXMAN_FORMAT_BPP(f)
+#define PICT_FORMAT_TYPE(f)	PIXMAN_FORMAT_TYPE(f)
+#define PICT_FORMAT_A(f)	PIXMAN_FORMAT_A(f)
+#define PICT_FORMAT_R(f)	PIXMAN_FORMAT_R(f)
+#define PICT_FORMAT_G(f)	PIXMAN_FORMAT_G(f)
+#define PICT_FORMAT_B(f)	PIXMAN_FORMAT_B(f)
+#define PICT_FORMAT_RGB(f)	PIXMAN_FORMAT_RGB(f)
+#define PICT_FORMAT_VIS(f)	PIXMAN_FORMAT_VIS(f)
 
-#define PICT_TYPE_OTHER	0
-#define PICT_TYPE_A	1
-#define PICT_TYPE_ARGB	2
-#define PICT_TYPE_ABGR	3
-#define PICT_TYPE_COLOR	4
-#define PICT_TYPE_GRAY	5
+#define PICT_TYPE_OTHER		PIXMAN_TYPE_OTHER
+#define PICT_TYPE_A		PIXMAN_TYPE_A
+#define PICT_TYPE_ARGB		PIXMAN_TYPE_ARGB
+#define PICT_TYPE_ABGR		PIXMAN_TYPE_ABGR
+#define PICT_TYPE_COLOR		PIXMAN_TYPE_COLOR
+#define PICT_TYPE_GRAY		PIXMAN_TYPE_GRAY
 
-#define PICT_FORMAT_COLOR(f)	(PICT_FORMAT_TYPE(f) & 2)
+#define PICT_FORMAT_COLOR(f)	PIXMAN_FORMAT_COLOR(f)
 
 /* 32bpp formats */
 typedef enum _PictFormatShort {
-   PICT_a8r8g8b8 =	PICT_FORMAT(32,PICT_TYPE_ARGB,8,8,8,8),
-   PICT_x8r8g8b8 =	PICT_FORMAT(32,PICT_TYPE_ARGB,0,8,8,8),
-   PICT_a8b8g8r8 =	PICT_FORMAT(32,PICT_TYPE_ABGR,8,8,8,8),
-   PICT_x8b8g8r8 =	PICT_FORMAT(32,PICT_TYPE_ABGR,0,8,8,8),
+    PICT_a8r8g8b8 =	PIXMAN_a8r8g8b8,
+    PICT_x8r8g8b8 =	PIXMAN_x8r8g8b8,
+    PICT_a8b8g8r8 =	PIXMAN_a8b8g8r8,
+    PICT_x8b8g8r8 =	PIXMAN_x8b8g8r8,
 
 /* 24bpp formats */
-   PICT_r8g8b8 =	PICT_FORMAT(24,PICT_TYPE_ARGB,0,8,8,8),
-   PICT_b8g8r8 =	PICT_FORMAT(24,PICT_TYPE_ABGR,0,8,8,8),
+    PICT_r8g8b8 =	PIXMAN_r8g8b8,
+    PICT_b8g8r8 =	PIXMAN_b8g8r8,
 
 /* 16bpp formats */
-   PICT_r5g6b5 =	PICT_FORMAT(16,PICT_TYPE_ARGB,0,5,6,5),
-   PICT_b5g6r5 =	PICT_FORMAT(16,PICT_TYPE_ABGR,0,5,6,5),
+    PICT_r5g6b5 =	PIXMAN_r5g6b5,
+    PICT_b5g6r5 =	PIXMAN_b5g6r5,
 
-   PICT_a1r5g5b5 =	PICT_FORMAT(16,PICT_TYPE_ARGB,1,5,5,5),
-   PICT_x1r5g5b5 =	PICT_FORMAT(16,PICT_TYPE_ARGB,0,5,5,5),
-   PICT_a1b5g5r5 =	PICT_FORMAT(16,PICT_TYPE_ABGR,1,5,5,5),
-   PICT_x1b5g5r5 =	PICT_FORMAT(16,PICT_TYPE_ABGR,0,5,5,5),
-   PICT_a4r4g4b4 =	PICT_FORMAT(16,PICT_TYPE_ARGB,4,4,4,4),
-   PICT_x4r4g4b4 =	PICT_FORMAT(16,PICT_TYPE_ARGB,0,4,4,4),
-   PICT_a4b4g4r4 =	PICT_FORMAT(16,PICT_TYPE_ABGR,4,4,4,4),
-   PICT_x4b4g4r4 =	PICT_FORMAT(16,PICT_TYPE_ABGR,0,4,4,4),
+    PICT_a1r5g5b5 =	PIXMAN_a1r5g5b5,
+    PICT_x1r5g5b5 =	PIXMAN_x1r5g5b5,
+    PICT_a1b5g5r5 =	PIXMAN_a1b5g5r5,
+    PICT_x1b5g5r5 =	PIXMAN_x1b5g5r5,
+    PICT_a4r4g4b4 =	PIXMAN_a4r4g4b4,
+    PICT_x4r4g4b4 =	PIXMAN_x4r4g4b4,
+    PICT_a4b4g4r4 =	PIXMAN_a4b4g4r4,
+    PICT_x4b4g4r4 =	PIXMAN_x4b4g4r4,
 
 /* 8bpp formats */
-   PICT_a8 =		PICT_FORMAT(8,PICT_TYPE_A,8,0,0,0),
-   PICT_r3g3b2 =	PICT_FORMAT(8,PICT_TYPE_ARGB,0,3,3,2),
-   PICT_b2g3r3 =	PICT_FORMAT(8,PICT_TYPE_ABGR,0,3,3,2),
-   PICT_a2r2g2b2 =	PICT_FORMAT(8,PICT_TYPE_ARGB,2,2,2,2),
-   PICT_a2b2g2r2 =	PICT_FORMAT(8,PICT_TYPE_ABGR,2,2,2,2),
+    PICT_a8 =		PIXMAN_a8,
+    PICT_r3g3b2 =	PIXMAN_r3g3b2,
+    PICT_b2g3r3 =	PIXMAN_b2g3r3,
+    PICT_a2r2g2b2 =	PIXMAN_a2r2g2b2,
+    PICT_a2b2g2r2 =	PIXMAN_a2b2g2r2,
 
-   PICT_c8 =		PICT_FORMAT(8,PICT_TYPE_COLOR,0,0,0,0),
-   PICT_g8 =		PICT_FORMAT(8,PICT_TYPE_GRAY,0,0,0,0),
+    PICT_c8 =		PIXMAN_c8,
+    PICT_g8 =		PIXMAN_g8,
 
-   PICT_x4a4 =		PICT_FORMAT(8,PICT_TYPE_A,4,0,0,0),
+    PICT_x4a4 =		PIXMAN_x4a4,
 				    
-   PICT_x4c4 =		PICT_FORMAT(8,PICT_TYPE_COLOR,0,0,0,0),
-   PICT_x4g4 =		PICT_FORMAT(8,PICT_TYPE_GRAY,0,0,0,0),
+    PICT_x4c4 =		PIXMAN_x4c4,
+    PICT_x4g4 =		PIXMAN_x4g4,
 
 /* 4bpp formats */
-   PICT_a4 =		PICT_FORMAT(4,PICT_TYPE_A,4,0,0,0),
-   PICT_r1g2b1 =	PICT_FORMAT(4,PICT_TYPE_ARGB,0,1,2,1),
-   PICT_b1g2r1 =	PICT_FORMAT(4,PICT_TYPE_ABGR,0,1,2,1),
-   PICT_a1r1g1b1 =	PICT_FORMAT(4,PICT_TYPE_ARGB,1,1,1,1),
-   PICT_a1b1g1r1 =	PICT_FORMAT(4,PICT_TYPE_ABGR,1,1,1,1),
+    PICT_a4 =		PIXMAN_a4,
+    PICT_r1g2b1 =	PIXMAN_r1g2b1,
+    PICT_b1g2r1 =	PIXMAN_b1g2r1,
+    PICT_a1r1g1b1 =	PIXMAN_a1r1g1b1,
+    PICT_a1b1g1r1 =	PIXMAN_a1b1g1r1,
 				    
-   PICT_c4 =		PICT_FORMAT(4,PICT_TYPE_COLOR,0,0,0,0),
-   PICT_g4 =		PICT_FORMAT(4,PICT_TYPE_GRAY,0,0,0,0),
+    PICT_c4 =		PIXMAN_c4,
+    PICT_g4 =		PIXMAN_g4,
 
 /* 1bpp formats */
-   PICT_a1 =		PICT_FORMAT(1,PICT_TYPE_A,1,0,0,0),
+    PICT_a1 =		PIXMAN_a1,
 
-   PICT_g1 =		PICT_FORMAT(1,PICT_TYPE_GRAY,0,0,0,0),
+    PICT_g1 =		PIXMAN_g1,
 } PictFormatShort;
 
 /*
@@ -171,54 +168,35 @@ extern int	RenderClientPrivateIndex;
 
 /* Fixed point updates from Carl Worth, USC, Information Sciences Institute */
 
-#if defined(WIN32) && !defined(__GNUC__)
-typedef __int64		xFixed_32_32;
-#else
-#  if defined (_LP64) || \
-      defined(__alpha__) || defined(__alpha) || \
-      defined(ia64) || defined(__ia64__) || \
-      defined(__sparc64__) || \
-      defined(__s390x__) || \
-      defined(amd64) || defined (__amd64__) || \
-      (defined(sgi) && (_MIPS_SZLONG == 64))
-typedef long		xFixed_32_32;
-# else
-#  if defined(__GNUC__) && \
-    ((__GNUC__ > 2) || \
-     ((__GNUC__ == 2) && defined(__GNUC_MINOR__) && (__GNUC_MINOR__ > 7)))
-__extension__
-#  endif
-typedef long long int	xFixed_32_32;
-# endif
-#endif
+typedef pixman_fixed_32_32_t	xFixed_32_32;
 
-typedef xFixed_32_32	xFixed_48_16;
+typedef pixman_fixed_48_16_t	xFixed_48_16;
 
-#define MAX_FIXED_48_16	    ((xFixed_48_16) 0x7fffffff)
-#define MIN_FIXED_48_16	    (-((xFixed_48_16) 1 << 31))
+#define MAX_FIXED_48_16		pixman_max_fixed_48_16
+#define MIN_FIXED_48_16		pixman_min_fixed_48_16
 
-typedef CARD32		xFixed_1_31;
-typedef CARD32		xFixed_1_16;
-typedef INT32		xFixed_16_16;
+typedef pixman_fixed_1_31_t	xFixed_1_31;
+typedef pixman_fixed_1_16_t	xFixed_1_16;
+typedef pixman_fixed_16_16_t	xFixed_16_16;
 
 /*
  * An unadorned "xFixed" is the same as xFixed_16_16, 
  * (since it's quite common in the code) 
  */
-typedef	xFixed_16_16	xFixed;
+typedef	pixman_fixed_t	xFixed;
 #define XFIXED_BITS	16
 
-#define xFixedToInt(f)	(int) ((f) >> XFIXED_BITS)
-#define IntToxFixed(i)	((xFixed) (i) << XFIXED_BITS)
-#define xFixedE		((xFixed) 1)
-#define xFixed1		(IntToxFixed(1))
-#define xFixed1MinusE	(xFixed1 - xFixedE)
-#define xFixedFrac(f)	((f) & xFixed1MinusE)
-#define xFixedFloor(f)	((f) & ~xFixed1MinusE)
-#define xFixedCeil(f)	xFixedFloor((f) + xFixed1MinusE)
+#define xFixedToInt(f)	pixman_fixed_to_int(f)
+#define IntToxFixed(i)	pixman_int_to_fixed(i)
+#define xFixedE		pixman_fixed_e
+#define xFixed1		pixman_fixed_1
+#define xFixed1MinusE	pixman_fixed_1_minus_e
+#define xFixedFrac(f)	pixman_fixed_frac(f)
+#define xFixedFloor(f)	pixman_fixed_floor(f)
+#define xFixedCeil(f)	pixman_fixed_ceil(f)
 
-#define xFixedFraction(f)	((f) & xFixed1MinusE)
-#define xFixedMod2(f)		((f) & (xFixed1 | xFixed1MinusE))
+#define xFixedFraction(f)	pixman_fixed_fraction(f)
+#define xFixedMod2(f)		pixman_fixed_mod2(f)
 
 /* whether 't' is a well defined not obviously empty trapezoid */
 #define xTrapezoidValid(t)  ((t)->left.p1.y != (t)->left.p2.y && \

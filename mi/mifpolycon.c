@@ -58,10 +58,6 @@ SOFTWARE.
 static int GetFPolyYBounds(SppPointPtr pts, int n, double yFtrans,
 			   int *by, int *ty);
 
-#ifdef ICEILTEMPDECL
-ICEILTEMPDECL
-#endif
-
 /*
  *	Written by Todd Newman; April. 1987.
  *

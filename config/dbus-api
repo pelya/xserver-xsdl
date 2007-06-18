@@ -15,21 +15,23 @@ org.x.config.input:
         Option names beginning with _ are not allowed; they are reserved
         for internal use.
 
-        Returns one int32, which is an X Status, as defined in X.h.  If
-        everything is successful, Success will be returned.  BadMatch will
-        be returned if the options given do not match any device.  BadValue
-        is returned for a malformed message.
+        Returns one signed int32, which is the device id of the new device.
+        If the return value is a negative number, it represents the X
+        Status, as defined in X.h. BadMatch will be returned if the options
+        given do not match any device.  BadValue is returned for a malformed
+        message.  (Example: 8 is new device id 8. -8 is BadMatch.)
 
         Notably, BadAlloc is never returned: the server internally signals
         to D-BUS that the attempt failed for lack of memory.
-
-        The return does not notify the client of which devices were created
-        or modified as a result of this request: clients are encouraged to
-        listen for the XInput DevicePresenceNotify event to monitor changes
-        in the device list.
 
     org.x.config.input.remove:
         Takes one int32 argument, which is the device ID to remove, i.e.:
          i
         is the signature.
-        Same return values as org.x.config.input.add.
+
+        Returns one signed int32 which represents an X status as defined in
+        X.h. See org.x.config.input.add. Error codes are negative numbers.
+
+    org.x.config.input.listDevices:
+        Lists the currently active devices. No argument. 
+        Return value is sequence of <id> <name> <id> <name> ...

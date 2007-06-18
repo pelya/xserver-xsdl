@@ -253,6 +253,7 @@ main(int argc, char *argv[], char *envp[])
     display = "0";
 
     InitGlobals();
+    InitRegions();
 #ifdef XPRINT
     PrinterInitGlobals();
 #endif
@@ -544,7 +545,7 @@ static int padlength[4] = {0, 3, 2, 1};
 static
 #endif
 Bool
-CreateConnectionBlock()
+CreateConnectionBlock(void)
 {
     xConnSetup setup;
     xWindowRoot root;

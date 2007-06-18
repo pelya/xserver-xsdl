@@ -278,7 +278,7 @@ MinorOpcodeOfRequest(ClientPtr client)
 }
 
 void
-CloseDownExtensions()
+CloseDownExtensions(void)
 {
     int i,j;
 

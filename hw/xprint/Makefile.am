@@ -10,9 +10,9 @@ Xprt_CFLAGS = @DIX_CFLAGS@ @XPRINT_CFLAGS@ \
 
 Xprt_LDFLAGS = -L$(top_srcdir)
 Xprt_LDADD = @XPRINT_LIBS@ ps/libps.la raster/libraster.la  \
-	pcl/libpcl.la pcl-mono/libpcl.la ../../fb/libfb.la \
-	../../render/librender.la ../../mi/libmi.la ../../Xext/libXext.la \
-	@FREETYPE_LIBS@
+	pcl/libpcl.la pcl-mono/libpcl.la $(top_builddir)/fb/libfb.la \
+	$(top_builddir)/render/librender.la $(top_builddir)/mi/libmi.la \
+	$(top_builddir)/Xext/libXext.la  @FREETYPE_LIBS@
 
 miinitext-wrapper.c:
 	echo "#include \"$(top_srcdir)/mi/miinitext.c\"" >> $@
@@ -38,6 +38,6 @@ Xprt_SOURCES =			\
 	Util.c			\
 	miinitext-wrapper.c	\
 	dpmsstubs-wrapper.c     \
-        $(top_srcdir)/fb/fbcmap.c
+        $(top_srcdir)/fb/fbcmap_mi.c
 
 EXTRA_DIST = ValTree.c

@@ -45,7 +45,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <glxdrawable.h>
 #include <glxcontext.h>
 #include <glxutil.h>
-#include "xmesaP.h"
 
 #include "glcontextmodes.h"
 #include "os.h"
@@ -107,11 +106,11 @@ __glXMesaDrawableSwapBuffers(__GLXdrawable *base)
      * why we need to re-take the lock and swap in the server context
      * before calling XMesaSwapBuffers() here.  /me shakes head. */
 
-    __glXenterServer();
+    __glXenterServer(GL_FALSE);
 
     XMesaSwapBuffers(glxPriv->xm_buf);
 
-    __glXleaveServer();
+    __glXleaveServer(GL_FALSE);
 
     return GL_TRUE;
 }
@@ -259,12 +258,14 @@ __glXMesaScreenDestroy(__GLXscreen *screen)
     __GLXMESAscreen *mesaScreen = (__GLXMESAscreen *) screen;
     int i;
 
-    for (i = 0; i < mesaScreen->num_vis; i++) {
-	if (mesaScreen->xm_vis[i])
-	    XMesaDestroyVisual(mesaScreen->xm_vis[i]);
-    }
+    if (mesaScreen->xm_vis) {
+	for (i = 0; i < mesaScreen->num_vis; i++) {
+	    if (mesaScreen->xm_vis[i])
+		XMesaDestroyVisual(mesaScreen->xm_vis[i]);
+	}
 
-    xfree(mesaScreen->xm_vis);
+	xfree(mesaScreen->xm_vis);
+    }
 
     __glXScreenDestroy(screen);
 

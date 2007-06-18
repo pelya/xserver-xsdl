@@ -289,7 +289,7 @@ xf86CheckBoolOption(pointer optlist, const char *name, int deflt)
 _X_EXPORT pointer
 xf86ReplaceIntOption(pointer optlist, const char *name, const int val)
 {
-    char *tmp = xnfalloc(16);
+    char tmp[16];
     sprintf(tmp,"%i",val);
     return xf86AddNewOption(optlist,name,tmp);
 }
@@ -297,7 +297,7 @@ xf86ReplaceIntOption(pointer optlist, const char *name, const int val)
 _X_EXPORT pointer
 xf86ReplaceRealOption(pointer optlist, const char *name, const double val)
 {
-    char *tmp = xnfalloc(32);
+    char tmp[32];
     snprintf(tmp,32,"%f",val);
     return xf86AddNewOption(optlist,name,tmp);
 }

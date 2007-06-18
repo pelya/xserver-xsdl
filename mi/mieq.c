@@ -58,7 +58,7 @@ in this Software without prior written authorization from The Open Group.
 # include <X11/extensions/dpms.h>
 #endif
 
-#define QUEUE_SIZE  256
+#define QUEUE_SIZE  512
 
 typedef struct _Event {
     xEvent          event[7];
@@ -80,7 +80,7 @@ typedef struct _EventQueue {
 static EventQueueRec miEventQueue;
 
 Bool
-mieqInit()
+mieqInit(void)
 {
     int i;
 
@@ -108,7 +108,8 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
     HWEventQueueType       oldtail = miEventQueue.tail, newtail;
     int                    isMotion = 0;
     deviceValuator         *v = (deviceValuator *) e;
-    EventPtr               laste = &miEventQueue.events[oldtail - 1];
+    EventPtr               laste = &miEventQueue.events[(oldtail - 1) %
+							QUEUE_SIZE];
     deviceKeyButtonPointer *lastkbp = (deviceKeyButtonPointer *)
                                       &laste->event[0];
 
@@ -139,14 +140,10 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
 
     if (isMotion && isMotion == miEventQueue.lastMotion &&
         oldtail != miEventQueue.head) {
-	if (oldtail == 0)
-	    oldtail = QUEUE_SIZE;
-	oldtail = oldtail - 1;
+	oldtail = (oldtail - 1) % QUEUE_SIZE;
     }
     else {
-    	newtail = oldtail + 1;
-    	if (newtail == QUEUE_SIZE)
-	    newtail = 0;
+    	newtail = (oldtail + 1) % QUEUE_SIZE;
     	/* Toss events which come in late.  Usually this means your server's
          * stuck in an infinite loop somewhere, but SIGIO is still getting
          * handled. */
@@ -195,7 +192,7 @@ mieqSetHandler(int event, mieqHandler handler)
 
 /* Call this from ProcessInputEvents(). */
 void
-mieqProcessInputEvents()
+mieqProcessInputEvents(void)
 {
     EventRec *e = NULL;
     int x = 0, y = 0;
@@ -214,22 +211,15 @@ mieqProcessInputEvents()
 
         e = &miEventQueue.events[miEventQueue.head];
         /* Assumption - screen switching can only occur on motion events. */
+        miEventQueue.head = (miEventQueue.head + 1) % QUEUE_SIZE;
+
         if (e->pScreen != miEventQueue.pDequeueScreen) {
             miEventQueue.pDequeueScreen = e->pScreen;
             x = e->event[0].u.keyButtonPointer.rootX;
             y = e->event[0].u.keyButtonPointer.rootY;
-            if (miEventQueue.head == QUEUE_SIZE - 1)
-                miEventQueue.head = 0;
-            else
-                ++miEventQueue.head;
             NewCurrentScreen (miEventQueue.pDequeueScreen, x, y);
         }
         else {
-            if (miEventQueue.head == QUEUE_SIZE - 1)
-                miEventQueue.head = 0;
-            else
-                ++miEventQueue.head;
-
             /* If someone's registered a custom event handler, let them
              * steal it. */
             if (miEventQueue.handlers[e->event->u.u.type]) {

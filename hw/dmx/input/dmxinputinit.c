@@ -472,8 +472,10 @@ static int dmxDeviceOnOff(DeviceIntPtr pDevice, int what)
     memset(&info, 0, sizeof(info));
     switch (what) {
     case DEVICE_INIT:
-        if (dmxLocal->init) dmxLocal->init(pDev);
-        if (dmxLocal->get_info) dmxLocal->get_info(pDev, &info);
+        if (dmxLocal->init)
+            dmxLocal->init(pDev);
+        if (dmxLocal->get_info)
+            dmxLocal->get_info(pDev, &info);
         if (info.keyboard) {    /* XKEYBOARD makes this a special case */
             dmxKeyboardOn(pDevice, &info);
             break;
@@ -585,15 +587,12 @@ static void dmxProcessInputEvents(DMXInputInfo *dmxInput)
 {
     int i;
 
-    /*
-    ErrorF("%s\n", __FUNCTION__);
-    */
-
     dmxeqProcessInputEvents();
 #if 00 /*BP*/
     miPointerUpdate();
 #endif
-    if (dmxInput->detached) return;
+    if (dmxInput->detached)
+        return;
     for (i = 0; i < dmxInput->numDevs; i += dmxInput->devs[i]->binding)
         if (dmxInput->devs[i]->process_input) {
 #if 11 /*BP*/
@@ -632,7 +631,8 @@ static void dmxUpdateWindowInformation(DMXInputInfo *dmxInput,
     }
 #endif
 
-    if (dmxInput->detached) return;
+    if (dmxInput->detached)
+        return;
     for (i = 0; i < dmxInput->numDevs; i += dmxInput->devs[i]->binding)
         if (dmxInput->devs[i]->update_info)
             dmxInput->devs[i]->update_info(dmxInput->devs[i]->private,
@@ -643,7 +643,8 @@ static void dmxCollectAll(DMXInputInfo *dmxInput)
 {
     int i;
 
-    if (dmxInput->detached) return;
+    if (dmxInput->detached)
+        return;
     for (i = 0; i < dmxInput->numDevs; i += dmxInput->devs[i]->binding)
         if (dmxInput->devs[i]->collect_events)
             dmxInput->devs[i]->collect_events(&dmxInput->devs[i]
@@ -740,7 +741,8 @@ static DeviceIntPtr dmxAddDevice(DMXLocalInputInfoPtr dmxLocal)
     char         *devname;
     DMXInputInfo *dmxInput;
 
-    if (!dmxLocal) return NULL;
+    if (!dmxLocal)
+        return NULL;
     dmxInput = &dmxInputs[dmxLocal->inputIdx];
 
     if (dmxLocal->sendsCore) {

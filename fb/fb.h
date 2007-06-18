@@ -26,6 +26,8 @@
 #define _FB_H_
 
 #include <X11/X.h>
+#include <pixman/pixman.h>
+
 #include "scrnintstr.h"
 #include "pixmap.h"
 #include "pixmapstr.h"
@@ -2146,4 +2148,8 @@ void
 fbPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what);
 
 
+pixman_image_t *image_from_pict (PicturePtr pict,
+				 Bool       has_clip);
+
 #endif /* _FB_H_ */
+

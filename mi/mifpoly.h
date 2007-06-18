@@ -48,6 +48,8 @@ SOFTWARE.
 #ifndef __MIFPOLY_H__
 #define __MIFPOLY_H__
 
+#include <X11/Xfuncproto.h>
+
 #define EPSILON	0.000001
 #define ISEQUAL(a,b) (Fabs((a) - (b)) <= EPSILON)
 #define UNEQUAL(a,b) (Fabs((a) - (b)) > EPSILON)
@@ -66,20 +68,11 @@ SOFTWARE.
 #define SQSECANT 108.856472512142 /* 1/sin^2(11/2) - for 11o miter cutoff */
 #define D2SECANT 5.21671526231167 /* 1/2*sin(11/2) - max extension per width */
 
-#ifdef NOINLINEICEIL
-#define ICEIL(x) ((int)ceil(x))
-#else
-#ifdef __GNUC__
-static __inline int ICEIL(double x)
+static _X_INLINE int ICEIL(double x)
 {
     int _cTmp = x;
     return ((x == _cTmp) || (x < 0.0)) ? _cTmp : _cTmp+1;
 }
-#else
-#define ICEIL(x) ((((x) == (_cTmp = (x))) || ((x) < 0.0)) ? _cTmp : _cTmp+1)
-#define ICEILTEMPDECL static int _cTmp;
-#endif
-#endif
 
 /* Point with sub-pixel positioning.  In this case we use doubles, but
  * see mifpolycon.c for other suggestions 

@@ -312,13 +312,16 @@ configureInputSection (void)
     mouse->inp_identifier = "Mouse0";
     mouse->inp_driver = "mouse";
     mouse->inp_option_lst = 
-		xf86addNewOption(mouse->inp_option_lst, "Protocol", DFLT_MOUSE_PROTO);
+		xf86addNewOption(mouse->inp_option_lst, xstrdup("Protocol"),
+				xstrdup(DFLT_MOUSE_PROTO));
 #ifndef __SCO__
     mouse->inp_option_lst = 
-		xf86addNewOption(mouse->inp_option_lst, "Device", DFLT_MOUSE_DEV);
+		xf86addNewOption(mouse->inp_option_lst, xstrdup("Device"),
+				xstrdup(DFLT_MOUSE_DEV));
 #endif
     mouse->inp_option_lst = 
-		xf86addNewOption(mouse->inp_option_lst, "ZAxisMapping", "4 5 6 7");
+		xf86addNewOption(mouse->inp_option_lst, xstrdup("ZAxisMapping"),
+				xstrdup("4 5 6 7"));
     ptr = (XF86ConfInputPtr)xf86addListItem((glp)ptr, (glp)mouse);
     return ptr;
 }
@@ -522,7 +525,7 @@ configureLayoutSection (void)
 	iptr->iref_option_lst = NULL;
 	iptr->iref_inputdev_str = "Mouse0";
 	iptr->iref_option_lst =
-		xf86addNewOption (iptr->iref_option_lst, "CorePointer", NULL);
+		xf86addNewOption (iptr->iref_option_lst, xstrdup("CorePointer"), NULL);
 	ptr->lay_input_lst = (XF86ConfInputrefPtr)
 		xf86addListItem ((glp) ptr->lay_input_lst, (glp) iptr);
     }
@@ -535,7 +538,7 @@ configureLayoutSection (void)
 	iptr->iref_option_lst = NULL;
 	iptr->iref_inputdev_str = "Keyboard0";
 	iptr->iref_option_lst =
-		xf86addNewOption (iptr->iref_option_lst, "CoreKeyboard", NULL);
+		xf86addNewOption (iptr->iref_option_lst, xstrdup("CoreKeyboard"), NULL);
 	ptr->lay_input_lst = (XF86ConfInputrefPtr)
 		xf86addListItem ((glp) ptr->lay_input_lst, (glp) iptr);
     }
@@ -754,7 +757,7 @@ configureDDCMonitorSection (int screennum)
     }
 
     if (ConfiguredMonitor->features.dpms) {
-      ptr->mon_option_lst = xf86addNewOption(ptr->mon_option_lst, "DPMS", NULL);
+      ptr->mon_option_lst = xf86addNewOption(ptr->mon_option_lst, xstrdup("DPMS"), NULL);
     }
 
     return ptr;

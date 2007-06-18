@@ -218,7 +218,7 @@ SetInputCheck(HWEventQueuePtr c0, HWEventQueuePtr c1)
 }
 
 _X_EXPORT void
-UpdateCurrentTime()
+UpdateCurrentTime(void)
 {
     TimeStamp systime;
 
@@ -237,7 +237,7 @@ UpdateCurrentTime()
 
 /* Like UpdateCurrentTime, but can't call ProcessInputEvents */
 _X_EXPORT void
-UpdateCurrentTimeIf()
+UpdateCurrentTimeIf(void)
 {
     TimeStamp systime;
 
@@ -250,7 +250,7 @@ UpdateCurrentTimeIf()
 }
 
 void
-InitSelections()
+InitSelections(void)
 {
     if (CurrentSelections)
 	xfree(CurrentSelections);
@@ -995,10 +995,6 @@ ProcGetAtomName(ClientPtr client)
 	return (BadAtom);
     }
 }
-
-#ifdef K5AUTH
-extern int k5_bad();
-#endif
 
 int
 ProcSetSelectionOwner(ClientPtr client)
@@ -3541,12 +3537,6 @@ InitProcVectors(void)
             ProcVector[i] = SwappedProcVector[i] = ProcBadRequest;
 	    ReplySwapVector[i] = ReplyNotSwappd;
 	}
-#ifdef K5AUTH
-	if (!k5_Vector[i])
-	{
-	    k5_Vector[i] = k5_bad;
-	}
-#endif
     }
     for(i = LASTEvent; i < 128; i++)
     {
@@ -3654,7 +3644,7 @@ CloseDownClient(ClientPtr client)
 }
 
 static void
-KillAllClients()
+KillAllClients(void)
 {
     int i;
     for (i=1; i<currentMaxClients; i++)

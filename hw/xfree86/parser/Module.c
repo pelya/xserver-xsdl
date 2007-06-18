@@ -76,6 +76,7 @@ static xf86ConfigSymTabRec ModuleTab[] =
 {
 	{ENDSECTION, "endsection"},
 	{LOAD, "load"},
+    {DISABLE, "disable"}, 
 	{LOAD_DRIVER, "loaddriver"},
 	{SUBSECTION, "subsection"},
 	{-1, ""},
@@ -140,6 +141,13 @@ xf86parseModuleSection (void)
 			ptr->mod_load_lst =
 				xf86addNewLoadDirective (ptr->mod_load_lst, val.str,
 									 XF86_LOAD_MODULE, NULL);
+			break;
+		case DISABLE:
+			if (xf86getSubToken (&(ptr->mod_comment)) != STRING)
+				Error (QUOTE_MSG, "Disable");
+			ptr->mod_disable_lst =
+				xf86addNewLoadDirective (ptr->mod_disable_lst, val.str,
+									 XF86_DISABLE_MODULE, NULL);
 			break;
 		case LOAD_DRIVER:
 			if (xf86getSubToken (&(ptr->mod_comment)) != STRING)
@@ -249,6 +257,15 @@ xf86freeModules (XF86ConfModulePtr ptr)
 	if (ptr == NULL)
 		return;
 	lptr = ptr->mod_load_lst;
+	while (lptr)
+	{
+		TestFree (lptr->load_name);
+		TestFree (lptr->load_comment);
+		prev = lptr;
+		lptr = lptr->list.next;
+		xf86conffree (prev);
+	}
+	lptr = ptr->mod_disable_lst;
 	while (lptr)
 	{
 		TestFree (lptr->load_name);

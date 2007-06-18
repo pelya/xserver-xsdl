@@ -217,7 +217,7 @@ xf86AutoConfig(void)
     char buf[1024];
     struct pci_device_iterator *iter;
     struct pci_device * info = NULL;
-    char *driver = NULL;
+    const char *driver = NULL;
     ConfigStatus ret;
 
     /* Find the primary device, and get some information about it. */

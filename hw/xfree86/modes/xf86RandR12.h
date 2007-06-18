@@ -24,6 +24,9 @@
 #define _XF86_RANDR_H_
 #include <randrstr.h>
 #include <X11/extensions/render.h>
+#if XF86_MODES_RENAME
+#include "xf86Rename.h"
+#endif
 
 Bool xf86RandR12CreateScreenResources (ScreenPtr pScreen);
 Bool xf86RandR12Init(ScreenPtr pScreen);
@@ -33,5 +36,6 @@ Bool xf86RandR12SetConfig(ScreenPtr pScreen, Rotation rotation, int rate,
 Rotation xf86RandR12GetRotation(ScreenPtr pScreen);
 void xf86RandR12GetOriginalVirtualSize(ScrnInfoPtr pScrn, int *x, int *y);
 Bool xf86RandR12PreInit (ScrnInfoPtr pScrn);
+void xf86RandR12TellChanged (ScreenPtr pScreen);
 
 #endif /* _XF86_RANDR_H_ */

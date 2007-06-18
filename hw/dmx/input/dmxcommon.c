@@ -241,13 +241,15 @@ void dmxCommonKbdGetMap(DevicePtr pDev, KeySymsPtr pKeySyms, CARD8 *pModMap)
 
                                 /* Compute pModMap  */
     modifier_mapping     = XGetModifierMapping(priv->display);
-    for (i = 0; i < MAP_LENGTH; i++) pModMap[i] = 0;
+    for (i = 0; i < MAP_LENGTH; i++)
+        pModMap[i] = 0;
     for (j = 0; j < 8; j++) {
         int max_keypermod = modifier_mapping->max_keypermod;
         
         for (i = 0; i < max_keypermod; i++) {
             CARD8 keycode = modifier_mapping->modifiermap[j*max_keypermod + i];
-            if (keycode) pModMap[keycode] |= 1 << j;
+            if (keycode)
+                pModMap[keycode] |= 1 << j;
         }
     }
     XFreeModifiermap(modifier_mapping);
@@ -611,6 +613,7 @@ void dmxCommonSaveState(pointer private)
                         &priv->dmxLocal->kctrl);
 
     priv->savedModMap                   = XGetModifierMapping(priv->display);
+
     modmap                              = XNewModifiermap(0);
     XSetModifierMapping(priv->display, modmap);
     if (dmxInput->scrnIdx != -1)
@@ -627,8 +630,10 @@ void dmxCommonRestoreState(pointer private)
     int retcode = -1;
     CARD32 start;
 
-    if (dmxInput->console) priv = dmxInput->devs[0]->private;
-    if (!priv->stateSaved) return;
+    if (dmxInput->console)
+        priv = dmxInput->devs[0]->private;
+    if (!priv->stateSaved)
+        return;
     priv->stateSaved = 0;
     
     DMXDBG0("dmxCommonRestoreState\n");
@@ -645,7 +650,8 @@ void dmxCommonRestoreState(pointer private)
         CARD32 tmp;
         
         retcode = XSetModifierMapping(priv->display, priv->savedModMap);
-        if (retcode == MappingSuccess) break;
+        if (retcode == MappingSuccess)
+            break;
         if (retcode == MappingBusy)
             dmxLogInput(dmxInput, "Keyboard busy, waiting\n");
         else

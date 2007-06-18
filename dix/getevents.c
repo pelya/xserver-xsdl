@@ -73,7 +73,7 @@ extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
  * Pick some arbitrary size for Xi motion history.
  */
 _X_EXPORT int
-GetMotionHistorySize()
+GetMotionHistorySize(void)
 {
     return MOTION_HISTORY_SIZE;
 }
@@ -183,7 +183,7 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
  * xEvent *events = xcalloc(sizeof(xEvent), GetMaximumEventsNum());
  */
 _X_EXPORT int
-GetMaximumEventsNum() {
+GetMaximumEventsNum(void) {
     /* Two base events -- core and device, plus valuator events.  Multiply
      * by two if we're doing key repeats. */
     int ret = 2 + MAX_VALUATOR_EVENTS;
@@ -714,6 +714,7 @@ _X_EXPORT void
 SwitchCoreKeyboard(DeviceIntPtr pDev)
 {
     KeyClassPtr ckeyc = inputInfo.keyboard->key;
+    int i = 0;
 
     if (inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr != pDev) {
         memcpy(ckeyc->modifierMap, pDev->key->modifierMap, MAP_LENGTH);
@@ -727,6 +728,25 @@ SwitchCoreKeyboard(DeviceIntPtr pDev)
         ckeyc->curKeySyms.minKeyCode = pDev->key->curKeySyms.minKeyCode;
         ckeyc->curKeySyms.maxKeyCode = pDev->key->curKeySyms.maxKeyCode;
         SetKeySymsMap(&ckeyc->curKeySyms, &pDev->key->curKeySyms);
+
+        /*
+         * Copy state from the extended keyboard to core.  If you omit this,
+         * holding Ctrl on keyboard one, and pressing Q on keyboard two, will
+         * cause your app to quit.  This feels wrong to me, hence the below
+         * code.
+         *
+         * XXX: If you synthesise core modifier events, the state will get
+         *      clobbered here.  You'll have to work out something sensible
+         *      to fix that.  Good luck.
+         */
+
+#define KEYBOARD_MASK (ShiftMask | LockMask | ControlMask | Mod1Mask | \
+                       Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask)
+        ckeyc->state &= ~(KEYBOARD_MASK);
+        ckeyc->state |= (pDev->key->state & KEYBOARD_MASK);
+#undef KEYBOARD_MASK
+        for (i = 0; i < 8; i++)
+            ckeyc->modifierKeyCount[i] = pDev->key->modifierKeyCount[i];
 
 #ifdef XKB
         if (!noXkbExtension && pDev->key->xkbInfo && pDev->key->xkbInfo->desc) {

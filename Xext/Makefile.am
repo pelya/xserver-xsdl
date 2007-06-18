@@ -34,7 +34,6 @@ MODULE_SRCS =			\
 	xcmisc.c
 
 # Extra configuration files ship with some extensions
-SERVERCONFIGdir = $(libdir)/xserver
 SERVERCONFIG_DATA =
 
 # Optional sources included if extension enabled by configure.ac rules

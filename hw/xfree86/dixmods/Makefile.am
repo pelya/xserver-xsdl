@@ -45,9 +45,6 @@ fontsmodule_LTLIBRARIES = libfreetype.la \
 
 AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@
 INCLUDES = @XORG_INCS@ \
-           -I$(top_srcdir)/afb \
-           -I$(top_srcdir)/cfb \
-           -I$(top_srcdir)/mfb \
            -I$(top_srcdir)/dbe \
            -I$(top_srcdir)/hw/xfree86/loader \
            -I$(top_srcdir)/miext/shadow \
@@ -75,13 +72,13 @@ libdbe_la_SOURCES = dbemodule.c
 
 libfb_la_LDFLAGS = -avoid-version
 libfb_la_LIBADD = $(top_builddir)/fb/libfb.la
-libfb_la_SOURCES = $(top_builddir)/fb/fbcmap.c fbmodule.c
-libfb_la_CFLAGS = -DXFree86Server $(AM_CFLAGS)
+libfb_la_SOURCES = $(top_builddir)/fb/fbcmap_mi.c fbmodule.c
+libfb_la_CFLAGS = $(AM_CFLAGS)
 
 libwfb_la_LDFLAGS = -avoid-version
 libwfb_la_LIBADD = $(top_builddir)/fb/libwfb.la
-libwfb_la_SOURCES = $(top_builddir)/fb/fbcmap.c fbmodule.c
-libwfb_la_CFLAGS = -DXFree86Server $(AM_CFLAGS) -DFB_ACCESS_WRAPPER
+libwfb_la_SOURCES = $(top_builddir)/fb/fbcmap_mi.c fbmodule.c
+libwfb_la_CFLAGS = $(AM_CFLAGS) -DFB_ACCESS_WRAPPER
 
 libglx_la_LDFLAGS = -avoid-version
 if AIGLX

@@ -123,19 +123,19 @@ b = __swap16(a);
 ], [SYS_ENDIAN__SWAP='yes'], [SYS_ENDIAN__SWAP='no'])
 	AC_MSG_RESULT([$SYS_ENDIAN__SWAP])
 
-	AC_MSG_CHECKING([for bswap_16 variant of <sys/endian.h> byteswapping macros])
+	AC_MSG_CHECKING([for bswap16 variant of <sys/endian.h> byteswapping macros])
 	AC_LINK_IFELSE([AC_LANG_PROGRAM([
 #include <sys/endian.h>
  ], [
 int a = 1, b;
-b = bswap_16(a);
+b = bswap16(a);
  ])
 ], [SYS_ENDIAN_BSWAP='yes'], [SYS_ENDIAN_BSWAP='no'])
 	AC_MSG_RESULT([$SYS_ENDIAN_BSWAP])
 
     	if test "$SYS_ENDIAN_BSWAP" = "yes" ; then
 		USE_SYS_ENDIAN_H=yes
-		BSWAP=bswap_
+		BSWAP=bswap
 	else	
 	    	if test "$SYS_ENDIAN__SWAP" = "yes" ; then
 			USE_SYS_ENDIAN_H=yes
@@ -165,23 +165,24 @@ AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr \
 AC_FUNC_ALLOCA
 dnl Old HAS_* names used in os/*.c.
 AC_CHECK_FUNC([getdtablesize],
-	AC_DEFINE(HAS_GETDTABLESIZE, 1, [Have the `getdtablesize' function.]))
+	AC_DEFINE(HAS_GETDTABLESIZE, 1, [Have the 'getdtablesize' function.]))
 AC_CHECK_FUNC([getifaddrs],
-	AC_DEFINE(HAS_GETIFADDRS, 1, [Have the `getifaddrs' function.]))
+	AC_DEFINE(HAS_GETIFADDRS, 1, [Have the 'getifaddrs' function.]))
 AC_CHECK_FUNC([getpeereid],
-	AC_DEFINE(HAS_GETPEEREID, 1, [Have the `getpeereid' function.]))
+	AC_DEFINE(HAS_GETPEEREID, 1, [Have the 'getpeereid' function.]))
 AC_CHECK_FUNC([getpeerucred],
-	AC_DEFINE(HAS_GETPEERUCRED, 1, [Have the `getpeerucred' function.]))
+	AC_DEFINE(HAS_GETPEERUCRED, 1, [Have the 'getpeerucred' function.]))
 AC_CHECK_FUNC([strlcat], HAVE_STRLCAT=yes, HAVE_STRLCAT=no)
 AM_CONDITIONAL(NEED_STRLCAT, [test x$HAVE_STRLCAT = xno])	
 
 AM_CONDITIONAL(NEED_VSNPRINTF, [test x$HAVE_VSNPRINTF = xno])
 
 dnl Check for mmap support for Xvfb
-AC_CHECK_FUNC([mmap], AC_DEFINE(HAS_MMAP, 1, [Have the `mmap' function.]))
+AC_CHECK_FUNC([mmap], AC_DEFINE(HAS_MMAP, 1, [Have the 'mmap' function.]))
 
 dnl Find the math libary
 AC_CHECK_LIB(m, sqrt)
+AC_CHECK_LIB(m, cbrt, AC_DEFINE(HAVE_CBRT, 1, [Have the 'cbrt' function]))
 
 AC_CHECK_HEADERS([ndbm.h dbm.h rpcsvc/dbm.h])
 
@@ -361,30 +362,12 @@ case $host_os in
 esac
 AM_CONDITIONAL(KDRIVE_HW, test "x$KDRIVE_HW" = xyes)
 
-AC_MSG_CHECKING(for MMX capable platform)
-if test "x$use_x86_asm" = xyes && test "x$GCC" = xyes ; then
-	AC_PREPROC_IFELSE([
-#if (!defined (__GNUC__) || __GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
-    #error Not supported
-#endif
-], mmx_capable=yes, mmx_capable=no)
-else
-	mmx_capable=no
-fi
-AC_MSG_RESULT([$mmx_capable])
-AM_CONDITIONAL(MMX_CAPABLE, [test "x$mmx_capable" = xyes])
-
-
-OSNAME=`uname -srm`
-AC_DEFINE_UNQUOTED(OSNAME, "$OSNAME", 
-	[Define to OS Name string to display for build OS in Xorg log])
-
 DEFAULT_VENDOR_NAME="The X.Org Foundation"
 DEFAULT_VENDOR_NAME_SHORT="X.Org"
 DEFAULT_VERSION_MAJOR=7
-DEFAULT_VERSION_MINOR=1
-DEFAULT_VERSION_PATCH=99
-DEFAULT_VERSION_SNAP=2
+DEFAULT_VERSION_MINOR=2
+DEFAULT_VERSION_PATCH=0
+DEFAULT_VERSION_SNAP=0
 DEFAULT_RELEASE_DATE="21 December 2005"
 DEFAULT_VENDOR_WEB="http://wiki.x.org"
 
@@ -444,18 +427,15 @@ AC_ARG_WITH(builder-addr,    AS_HELP_STRING([--with-builder-addr=ADDRESS],
 				  [Builder address (default: xorg@lists.freedesktop.org)]),
 				[ BUILDERADDR="$withval" ],
 				[ BUILDERADDR="xorg@lists.freedesktop.org" ])
-AC_ARG_WITH(os-name,         AS_HELP_STRING([--with-os-name=OSNAME], [Name of OS (default: UNKNOWN)]),
+AC_ARG_WITH(os-name,         AS_HELP_STRING([--with-os-name=OSNAME], [Name of OS (default: output of "uname -srm")]),
 				[ OSNAME="$withval" ],
-				[ OSNAME="UNKNOWN" ])
+				[ OSNAME=`uname -srm` ])
 AC_ARG_WITH(os-vendor,       AS_HELP_STRING([--with-os-vendor=OSVENDOR], [Name of OS vendor]),
 				[ OSVENDOR="$withval" ],
 				[ OSVENDOR="" ])
 AC_ARG_WITH(builderstring,   AS_HELP_STRING([--with-builderstring=BUILDERSTRING], [Additional builder string]),
 				[ BUILDERSTRING="$withval" ]
 				[ ])
-AC_ARG_WITH(mesa-source,     AS_HELP_STRING([--with-mesa-source=MESA_SOURCE], [Path to Mesa source tree]),
-                                [ MESA_SOURCE="$withval" ],
-                                [ MESA_SOURCE="" ])
 AC_ARG_WITH(fontdir,         AS_HELP_STRING([--with-fontdir=FONTDIR], [Path to top level dir where fonts are installed (default: ${libdir}/X11/fonts)]),
                                 [ FONTDIR="$withval" ],
                                 [ FONTDIR="${libdir}/X11/fonts" ])
@@ -472,9 +452,9 @@ AC_ARG_WITH(xkb-output,       AS_HELP_STRING([--with-xkb-output=PATH], [Path to 
 AC_ARG_WITH(rgb-path,         AS_HELP_STRING([--with-rgb-path=PATH], [Path to RGB database (default: ${datadir}/X11/rgb)]),
 				[ RGBPATH="$withval" ],
 				[ RGBPATH="${datadir}/X11/rgb" ])
-AC_ARG_WITH(dri-driver-path,  AS_HELP_STRING([--with-dri-driver-path=PATH], [Path to DRI drivers (default: ${libdir}/dri)]),
-				[ DRI_DRIVER_PATH="$withval" ],
-				[ DRI_DRIVER_PATH="${libdir}/dri" ])
+AC_ARG_WITH(serverconfig-path, AS_HELP_STRING([--with-serverconfig-path=PATH], [Path to server config (default: ${libdir}/xserver)]),
+				[ SERVERCONFIG="$withval" ],
+				[ SERVERCONFIG="${libdir}/xserver" ])
 APPLE_APPLICATIONS_DIR="${bindir}/Applications"
 AC_ARG_WITH(apple-applications-dir,AS_HELP_STRING([--with-apple-applications-dir=PATH], [Path to the Applications directory (default: ${bindir}/Applications)]),
                                [ APPLE_APPLICATIONS_DIR="${withval}" ].
@@ -494,6 +474,20 @@ AC_ARG_ENABLE(null-root-cursor, AS_HELP_STRING([--enable-null-root-cursor], [Use
                                  [NULL_ROOT_CURSOR=$enableval],
                                  [NULL_ROOT_CURSOR=no])
 
+dnl GLX build options
+AC_ARG_WITH(mesa-source,     AS_HELP_STRING([--with-mesa-source=MESA_SOURCE], [Path to Mesa source tree]),
+                                [ MESA_SOURCE="$withval" ],
+                                [ MESA_SOURCE="" ])
+AC_ARG_WITH(dri-driver-path,  AS_HELP_STRING([--with-dri-driver-path=PATH], [Path to DRI drivers (default: ${libdir}/dri)]),
+				[ DRI_DRIVER_PATH="$withval" ],
+				[ DRI_DRIVER_PATH="${libdir}/dri" ])
+AC_ARG_ENABLE(aiglx,          AS_HELP_STRING([--enable-aiglx], [Build accelerated indirect GLX (default: enabled)]),
+                                [AIGLX=$enableval],
+                                [AIGLX=yes])
+AC_ARG_ENABLE(glx-tls,        AS_HELP_STRING([--enable-glx-tls], [Build GLX with TLS support (default: disabled)]),
+                                [GLX_USE_TLS=$enableval],
+                                [GLX_USE_TLS=no])
+
 dnl Extensions.
 AC_ARG_ENABLE(composite,      AS_HELP_STRING([--disable-composite], [Build Composite extension (default: enabled)]), [COMPOSITE=$enableval], [COMPOSITE=yes])
 AC_ARG_ENABLE(mitshm,         AS_HELP_STRING([--disable-shm], [Build SHM extension (default: enabled)]), [MITSHM=$enableval], [MITSHM=yes])
@@ -508,13 +502,11 @@ AC_ARG_ENABLE(screensaver,    AS_HELP_STRING([--disable-screensaver], [Build Scr
 AC_ARG_ENABLE(xdmcp,          AS_HELP_STRING([--disable-xdmcp], [Build XDMCP extension (default: auto)]), [XDMCP=$enableval], [XDMCP=auto])
 AC_ARG_ENABLE(xdm-auth-1,     AS_HELP_STRING([--disable-xdm-auth-1], [Build XDM-Auth-1 extension (default: auto)]), [XDMAUTH=$enableval], [XDMAUTH=auto])
 AC_ARG_ENABLE(glx,            AS_HELP_STRING([--disable-glx], [Build GLX extension (default: enabled)]), [GLX=$enableval], [GLX=yes])
-AC_ARG_ENABLE(aiglx,          AS_HELP_STRING([--enable-aiglx], [Build accelerated indirect GLX (default: enabled)]), [AIGLX=$enableval], [AIGLX=yes])
-AC_ARG_ENABLE(glx-tls,        AS_HELP_STRING([--enable-glx-tls], [Build GLX with TLS support (default: disabled)]), [GLX_USE_TLS=$enableval], [GLX_USE_TLS=no])
 AC_ARG_ENABLE(dri,            AS_HELP_STRING([--enable-dri], [Build DRI extension (default: auto)]), [DRI=$enableval])
 AC_ARG_ENABLE(xinerama,	      AS_HELP_STRING([--disable-xinerama], [Build Xinerama extension (default: enabled)]), [XINERAMA=$enableval], [XINERAMA=yes])
 AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF86VidMode extension (default: auto)]), [XF86VIDMODE=$enableval], [XF86VIDMODE=auto])
 AC_ARG_ENABLE(xf86misc,       AS_HELP_STRING([--disable-xf86misc], [Build XF86Misc extension (default: auto)]), [XF86MISC=$enableval], [XF86MISC=auto])
-AC_ARG_ENABLE(xace,     AS_HELP_STRING([--disable-xace], [Build X-ACE extension (default: enabled)]), [XACE=$enableval], [XACE=yes])
+AC_ARG_ENABLE(xace,           AS_HELP_STRING([--disable-xace], [Build X-ACE extension (default: enabled)]), [XACE=$enableval], [XACE=yes])
 AC_ARG_ENABLE(xcsecurity,     AS_HELP_STRING([--disable-xcsecurity], [Build Security extension (default: enabled)]), [XCSECURITY=$enableval], [XCSECURITY=$XACE])
 AC_ARG_ENABLE(appgroup,       AS_HELP_STRING([--disable-appgroup], [Build XC-APPGROUP extension (default: enabled)]), [APPGROUP=$enableval], [APPGROUP=$XCSECURITY])
 AC_ARG_ENABLE(xcalibrate,     AS_HELP_STRING([--enable-xcalibrate], [Build XCalibrate extension (default: disabled)]), [XCALIBRATE=$enableval], [XCALIBRATE=no])
@@ -621,9 +613,11 @@ XEXT_INC='-I$(top_srcdir)/Xext'
 XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
+PIXMAN="[pixman >= 0.9.2]"
+
 dnl Core modules for most extensions, et al.
-REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto xproto xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4] [kbproto >= 1.0.3]"
-REQUIRED_LIBS="xfont xau fontenc"
+REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto [xproto >= 7.0.9] xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4.2] [kbproto >= 1.0.3]"
+REQUIRED_LIBS="xfont xau fontenc $PIXMAN"
 
 if test "x$DBUS" = xauto; then
        PKG_CHECK_MODULES(DBUS, dbus-1, [DBUS=yes], [DBUS=no])
@@ -871,7 +865,7 @@ XKB_LIB='$(top_builddir)/xkb/libxkb.la'
 XKB_STUB_LIB='$(top_builddir)/xkb/libxkbstubs.la'
 
 AC_CHECK_FUNC(strcasecmp, [], AC_DEFINE([NEED_STRCASECMP], 1,
-                                        [Do not have `strcasecmp'.]))
+                                        [Do not have 'strcasecmp'.]))
 
 if test "x$NULL_ROOT_CURSOR" = xyes; then
         AC_DEFINE(NULL_ROOT_CURSOR, 1, [Use an empty root cursor])
@@ -934,6 +928,7 @@ VENDOR_MAN_VERSION="Version ${VENDOR_VERSION_STRING}"
 
 AC_DEFINE_DIR(COMPILEDDEFAULTFONTPATH, FONTPATH, [Default font path])
 AC_DEFINE_DIR(RGB_DB, RGBPATH, [Default RGB path])
+AC_DEFINE_DIR(SERVERCONFIGdir, SERVERCONFIG, [Server config path])
 AC_DEFINE_DIR(BASE_FONT_PATH, FONTDIR, [Default base font path])
 AC_DEFINE_DIR(DRI_DRIVER_PATH, DRI_DRIVER_PATH, [Default DRI driver path])
 AC_DEFINE_UNQUOTED(XVENDORNAME, ["$VENDOR_STRING"], [Vendor name])
@@ -942,6 +937,11 @@ AC_DEFINE_UNQUOTED(XORG_RELEASE, ["$VENDOR_RELEASE_STRING"], [Vendor release])
 AC_DEFINE_UNQUOTED(XORG_DATE, ["$RELEASE_DATE"], [Vendor release])
 AC_DEFINE_UNQUOTED(XORG_MAN_VERSION, ["$VENDOR_MAN_VERSION"], [Vendor man version])
 AC_DEFINE_UNQUOTED(BUILDERADDR, ["$BUILDERADDR"], [Builder address])
+
+if test -z "$OSNAME"; then
+    OSNAME="UNKNOWN"
+fi
+
 AC_DEFINE_UNQUOTED(OSNAME, ["$OSNAME"], [Operating System Name])
 AC_DEFINE_UNQUOTED(OSVENDOR, ["$OSVENDOR"], [Operating System Vendor])
 AC_DEFINE_UNQUOTED(BUILDERSTRING, ["$BUILDERSTRING"], [Builder string])
@@ -980,7 +980,6 @@ else
 fi
 CWRAP_LIB='$(top_builddir)/os/libcwrapper.la'
 MI_LIB='$(top_builddir)/mi/libmi.la'
-MINIMI_LIB='$(top_builddir)/mi/libminimi.la'
 MI_EXT_LIB='$(top_builddir)/mi/libmiext.la'
 MI_INC='-I$(top_srcdir)/mi'
 FB_LIB='$(top_builddir)/fb/libfb.la'
@@ -1097,7 +1096,7 @@ dnl ---------------------------------------------------------------------------
 dnl DMX DDX
 
 AC_MSG_CHECKING([whether to build Xdmx DDX])
-PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto xau $XDMCP_MODULES], [have_dmx=yes], [have_dmx=no])
+PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto xau $XDMCP_MODULES $PIXMAN], [have_dmx=yes], [have_dmx=no])
 if test "x$DMX" = xauto; then
 	DMX="$have_dmx"
 fi
@@ -1591,7 +1590,7 @@ AC_MSG_CHECKING([whether to build Xprint DDX])
 AC_MSG_RESULT([$XPRINT])
 
 if test "x$XPRINT" = xyes; then
-	PKG_CHECK_MODULES([XPRINT], [printproto x11 xfont $XDMCP_MODULES xau])
+	PKG_CHECK_MODULES([XPRINT], [printproto x11 xfont $XDMCP_MODULES xau $PIXMAN])
 	XPRINT_EXTENSIONS="$XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $RENDER_LIB $COMPOSITE_LIB $RANDR_LIB $XI_LIB $FIXES_LIB $DAMAGE_LIB $XI_LIB $GLX_LIBS"
 	XPRINT_LIBS="$DIX_LIB $CONFIG_LIB $XKB_LIB $XKB_STUB_LIB $XPRINT_EXTENSIONS $MI_LIB $MIEXT_DAMAGE_LIB $CWRAP_LIB $OS_LIB $LIBS $XPRINT_LIBS"
 	AC_SUBST([XPRINT_CFLAGS])
@@ -1939,6 +1938,8 @@ AM_CONDITIONAL(SUN_KBD_MODE, [test x$KBD_MODE_TYPE = xsun])
 
 BUILD_DATE="$(date +'%Y%m%d')"
 AC_SUBST([BUILD_DATE])
+BUILD_TIME="$(date +'1%H%M%S')"
+AC_SUBST([BUILD_TIME])
 
 DIX_CFLAGS="-DHAVE_DIX_CONFIG_H $XSERVER_CFLAGS"
 

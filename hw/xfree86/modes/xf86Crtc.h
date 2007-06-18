@@ -479,6 +479,9 @@ struct _xf86Output {
     /** driver private information */
     void		*driver_private;
     
+    /** Whether to use the old per-screen Monitor config section */
+    Bool		use_screen_monitor;
+
 #ifdef RANDR_12_INTERFACE
     /**
      * RandR 1.2 output structure.
@@ -552,6 +555,17 @@ typedef struct _xf86CrtcConfig {
     CARD8		*cursor_image;
     Bool		cursor_on;
     CARD32		cursor_fg, cursor_bg;
+
+    /**
+     * Options parsed from the related device section
+     */
+    OptionInfoPtr	options;
+
+    Bool		debug_modes;
+
+    /* wrap screen BlockHandler for rotation */
+    ScreenBlockHandlerProcPtr	BlockHandler;
+
 } xf86CrtcConfigRec, *xf86CrtcConfigPtr;
 
 extern int xf86CrtcConfigPrivateIndex;
@@ -611,9 +625,12 @@ xf86CrtcInUse (xf86CrtcPtr crtc);
  * Output functions
  */
 xf86OutputPtr
-xf86OutputCreate (ScrnInfoPtr		scrn,
-		      const xf86OutputFuncsRec *funcs,
-		      const char	*name);
+xf86OutputCreate (ScrnInfoPtr		    scrn,
+		  const xf86OutputFuncsRec  *funcs,
+		  const char		    *name);
+
+void
+xf86OutputUseScreenMonitor (xf86OutputPtr output, Bool use_screen_monitor);
 
 Bool
 xf86OutputRename (xf86OutputPtr output, const char *name);

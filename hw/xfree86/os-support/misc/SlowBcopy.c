@@ -35,7 +35,8 @@ xf86SlowBcopy(unsigned char *src, unsigned char *dst, int len)
 #if !defined(__sparc__) && \
     !defined(__powerpc__) && \
     !defined(__mips__) && \
-    !defined(__ia64__)
+    !defined(__ia64__) && \
+    !defined(__arm__)
 	outb(0x80, 0x00);
 #endif
     }

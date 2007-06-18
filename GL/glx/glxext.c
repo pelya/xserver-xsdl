@@ -238,9 +238,9 @@ GLboolean __glXFreeContext(__GLXcontext *cx)
      * the latter case we need to lift the DRI lock manually. */
 
     if (!glxBlockClients) {
-	__glXleaveServer();
+	__glXleaveServer(GL_FALSE);
 	cx->destroy(cx);
-	__glXenterServer();
+	__glXenterServer(GL_FALSE);
     } else {
 	cx->next = glxPendingDestroyContexts;
 	glxPendingDestroyContexts = cx;
@@ -275,7 +275,7 @@ static GLboolean errorOccured = GL_FALSE;
 /*
 ** The GL was will call this routine if an error occurs.
 */
-void __glXErrorCallBack(__GLinterface *gc, GLenum code)
+void __glXErrorCallBack(GLenum code)
 {
     errorOccured = GL_TRUE;
 }
@@ -439,49 +439,49 @@ void glxResumeClients(void)
 	AttendClient(__glXClients[i]->client);
     }
 
-    __glXleaveServer();
+    __glXleaveServer(GL_FALSE);
     for (cx = glxPendingDestroyContexts; cx != NULL; cx = next) {
 	next = cx->next;
 
 	cx->destroy(cx);
     }
     glxPendingDestroyContexts = NULL;
-    __glXenterServer();
+    __glXenterServer(GL_FALSE);
 }
 
 static void
-__glXnopEnterServer(void)
+__glXnopEnterServer(GLboolean rendering)
 {
 }
     
 static void
-__glXnopLeaveServer(void)
+__glXnopLeaveServer(GLboolean rendering)
 {
 }
 
-static void (*__glXenterServerFunc)(void) = __glXnopEnterServer;
-static void (*__glXleaveServerFunc)(void)  = __glXnopLeaveServer;
+static void (*__glXenterServerFunc)(GLboolean) = __glXnopEnterServer;
+static void (*__glXleaveServerFunc)(GLboolean)  = __glXnopLeaveServer;
 
-void __glXsetEnterLeaveServerFuncs(void (*enter)(void),
-				   void (*leave)(void))
+void __glXsetEnterLeaveServerFuncs(void (*enter)(GLboolean),
+				   void (*leave)(GLboolean))
 {
   __glXenterServerFunc = enter;
   __glXleaveServerFunc = leave;
 }
 
 
-void __glXenterServer(void)
+void __glXenterServer(GLboolean rendering)
 {
   glxServerLeaveCount--;
 
   if (glxServerLeaveCount == 0)
-    (*__glXenterServerFunc)();
+    (*__glXenterServerFunc)(rendering);
 }
 
-void __glXleaveServer(void)
+void __glXleaveServer(GLboolean rendering)
 {
   if (glxServerLeaveCount == 0)
-    (*__glXleaveServerFunc)();
+    (*__glXleaveServerFunc)(rendering);
 
   glxServerLeaveCount++;
 }
@@ -546,11 +546,12 @@ static int __glXDispatch(ClientPtr client)
 								       opcode,
 								       client->swapped);
     if (proc != NULL) {
-	__glXleaveServer();
+	GLboolean rendering = opcode <= X_GLXRenderLarge;
+	__glXleaveServer(rendering);
 
 	retval = (*proc)(cl, (GLbyte *) stuff);
 
-	__glXenterServer();
+	__glXenterServer(rendering);
     }
     else {
 	retval = BadRequest;
