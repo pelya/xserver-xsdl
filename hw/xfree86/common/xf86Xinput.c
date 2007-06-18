@@ -408,7 +408,7 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
 
     dev = pInfo->dev;
     ActivateDevice(dev);
-    if (dev->inited && dev->startup)
+    if (dev->inited && dev->startup && xf86Screens[0]->vtSema)
         EnableDevice(dev);
 
     *pdev = dev;
