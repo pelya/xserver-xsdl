@@ -248,7 +248,9 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
 	if (!grab)
 	    if (CheckDeviceGrabs(other, xE, 0, count))
-		return;
+                /* if a passive grab was activated, the event has been sent
+                 * already */
+                return;
 
     } else if (xE->u.u.type == DeviceButtonRelease) {
         if (!b)
@@ -258,7 +260,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 	*kptr &= ~bit;
 	if (other->valuator)
 	    other->valuator->motionHintWindow = NullWindow;
-	if (!--b->buttonsDown)
+        if (b->buttonsDown >= 1 && !--b->buttonsDown)
 	    b->motionMask = 0;
 	xE->u.u.detail = b->map[key];
 	if (xE->u.u.detail == 0)
