@@ -135,6 +135,7 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     dev->deviceGrab.grab = NullGrab;
     dev->deviceGrab.grabTime = currentTime;
     dev->deviceGrab.fromPassiveGrab = FALSE;
+    dev->deviceGrab.implicitGrab = FALSE;
 
     dev->key = (KeyClassPtr)NULL;
     dev->valuator = (ValuatorClassPtr)NULL;

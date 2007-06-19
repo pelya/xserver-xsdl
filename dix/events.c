@@ -209,6 +209,12 @@ static xEvent *xeviexE;
 	ShiftMask | LockMask | ControlMask | Mod1Mask | Mod2Mask | \
 	Mod3Mask | Mod4Mask | Mod5Mask )
 #define AllEventMasks (lastEventMask|(lastEventMask-1))
+
+/**
+ * Used to indicate a implicit passive grab created by a ButtonPress event.
+ * See DeliverEventsToWindow().
+ */
+#define ImplicitGrabMask (1 << 7)
 /*
  * The following relies on the fact that the Button<n>MotionMasks are equal
  * to the corresponding Button<n>Masks from the current modifier/button state.
@@ -1238,6 +1244,14 @@ PlayReleasedEvents(void)
     } 
 }
 
+/**
+ * Freeze or thaw the given devices. The device's processing proc is
+ * switched to either the real processing proc (in case of thawing) or an
+ * enqueuing processing proc (usually EnqueueEvent()).
+ *
+ * @param dev The device to freeze/thaw
+ * @param frozen True to freeze or false to thaw.
+ */
 static void
 FreezeThaw(DeviceIntPtr dev, Bool frozen)
 {
@@ -1248,6 +1262,14 @@ FreezeThaw(DeviceIntPtr dev, Bool frozen)
 	dev->public.processInputProc = dev->public.realInputProc;
 }
 
+/**
+ * Unfreeze devices and replay all events to the respective clients.
+ *
+ * ComputeFreezes takes the first event in the device's frozen event queue. It
+ * runs up the sprite tree (spriteTrace) and searches for the window to replay
+ * the events from. If it is found, it checks for passive grabs one down from
+ * the window or delivers the events.
+ */
 void
 ComputeFreezes(void)
 {
@@ -1394,7 +1416,8 @@ CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
  * on, but core events will be sent to other clients.
  * Can cause the cursor to change if a grab cursor is set.
  * 
- * Extension devices are set up for ActivateKeyboardGrab().
+ * Note that parameter autoGrab may be (True & ImplicitGrabMask) if the grab
+ * is an implicit grab caused by a ButtonPress event.
  * 
  * @param mouse The device to grab.
  * @param grab The grab structure, needs to be setup.
@@ -1428,7 +1451,8 @@ ActivatePointerGrab(DeviceIntPtr mouse, GrabPtr grab,
 	grab->cursor->refcnt++;
     grabinfo->activeGrab = *grab;
     grabinfo->grab = &grabinfo->activeGrab;
-    grabinfo->fromPassiveGrab = autoGrab;
+    grabinfo->fromPassiveGrab = autoGrab & ~ImplicitGrabMask;
+    grabinfo->implicitGrab = autoGrab & ImplicitGrabMask;
     PostNewCursor(mouse);
     CheckGrabForSyncs(mouse,(Bool)grab->pointerMode, (Bool)grab->keyboardMode);
 }
@@ -1987,7 +2011,8 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 
         tempGrab.genericMasks = NULL;
 	(*inputInfo.pointer->deviceGrab.ActivateGrab)(pDev, &tempGrab,
-					   currentTime, TRUE);
+					   currentTime, 
+                                           TRUE | ImplicitGrabMask);
     }
     else if ((type == MotionNotify) && deliveries)
 	pDev->valuator->motionHintWindow = pWin;
@@ -3243,13 +3268,19 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
             } else 
             {
                 Mask mask = grab->eventMask;
-                if (grabinfo->fromPassiveGrab && (xE->u.u.type &
-                            EXTENSION_EVENT_BASE))
+                if (grabinfo->fromPassiveGrab  &&
+                        grabinfo->implicitGrab && 
+                        (xE->u.u.type & EXTENSION_EVENT_BASE))
                     mask = grab->deviceMask;
 
                 FixUpEventFromWindow(thisDev, xE, grab->window, None, TRUE);
-                deliveries = TryClientEvents(rClient(grab), xE, count,
-                        mask, filters[xE->u.u.type], grab);
+
+                if (!(!(xE->u.u.type & EXTENSION_EVENT_BASE) &&
+                        IsInterferingGrab(rClient(grab), thisDev, xE)))
+                {
+                    deliveries = TryClientEvents(rClient(grab), xE, count,
+                            mask, filters[xE->u.u.type], grab);
+                }
             }
             if (deliveries && (xE->u.u.type == MotionNotify
 #ifdef XINPUT
@@ -4629,6 +4660,8 @@ ProcGrabPointer(ClientPtr client)
 	if (oldCursor)
 	    FreeCursor (oldCursor, (Cursor)0);
 	rep.status = GrabSuccess;
+
+        RemoveOtherCoreGrabs(client, device);
     }
     WriteReplyToClient(client, sizeof(xGrabPointerReply), &rep);
     return Success;
@@ -4798,6 +4831,47 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
 }
 
 /**
+ * Deactivate any core grabs on the given client except the given device.
+ *
+ * This fixes race conditions where clients deal with implicit passive grabs
+ * on one device, but then actively grab their client pointer, which is
+ * another device.
+ *
+ * Grabs are only removed if the other device matches the type of device. If
+ * dev is a pointer device, only other pointer grabs are removed. Likewise, if
+ * dev is a keyboard device, only keyboard grabs are removed.
+ * 
+ * If dev doesn't have a grab, do nothing and go for a beer.
+ *
+ * @param client The client that is to be limited.
+ * @param dev The only device allowed to have a grab on the client.
+ */
+
+_X_EXPORT void
+RemoveOtherCoreGrabs(ClientPtr client, DeviceIntPtr dev)
+{
+    if (!dev || !dev->deviceGrab.grab)
+        return;
+
+    DeviceIntPtr it = inputInfo.devices;
+    for (; it; it = it->next)
+    {
+        if (it == dev)
+            continue;
+        /* check for IsPointer Device */
+
+        if (it->deviceGrab.grab &&
+                it->deviceGrab.grab->coreGrab &&
+                SameClient(it->deviceGrab.grab, client))
+        {
+            if ((IsPointerDevice(dev) && IsPointerDevice(it)) ||
+                    (IsKeyboardDevice(dev) && IsKeyboardDevice(it)))
+                (*it->deviceGrab.DeactivateGrab)(it);
+        }
+    }
+}
+
+/**
  * Server-side protocol handling for GrabKeyboard request.
  *
  * Grabs the client's keyboard and returns success status to client.
@@ -4813,10 +4887,13 @@ ProcGrabKeyboard(ClientPtr client)
     REQUEST_SIZE_MATCH(xGrabKeyboardReq);
 
     if (XaceHook(XACE_DEVICE_ACCESS, client, keyboard, TRUE))
+    {
 	result = GrabDevice(client, keyboard, stuff->keyboardMode,
 			    stuff->pointerMode, stuff->grabWindow,
 			    stuff->ownerEvents, stuff->time,
 			    KeyPressMask | KeyReleaseMask, &rep.status, TRUE);
+        RemoveOtherCoreGrabs(client, keyboard);
+    }
     else {
 	result = Success;
 	rep.status = AlreadyGrabbed;
@@ -5855,5 +5932,6 @@ ExtUngrabDevice(ClientPtr client, DeviceIntPtr dev)
         (*grabinfo->DeactivateGrab)(dev);
     return GrabSuccess;
 }
+
 
 
