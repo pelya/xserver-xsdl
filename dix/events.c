@@ -745,6 +745,13 @@ XineramaChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
     }
 }
 
+#else
+#define SyntheticMotion(x, y) \
+     PostSyntheticMotion(x, y, \
+                         0, \
+                         syncEvents.playingEvents ? \
+                           syncEvents.time.milliseconds : \
+                           currentTime.milliseconds);
 
 #endif  /* PANORAMIX */
 

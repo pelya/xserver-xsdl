@@ -54,13 +54,8 @@ typedef struct _PictFormat {
     IndexFormatRec  index;
 } PictFormatRec;
 
-typedef struct _PictVector {
-    xFixed	    vector[3];
-} PictVector, *PictVectorPtr;
-
-typedef struct _PictTransform {
-    xFixed	    matrix[3][3];
-} PictTransform, *PictTransformPtr;
+typedef struct pixman_vector PictVector, *PictVectorPtr;
+typedef struct pixman_transform PictTransform, *PictTransformPtr;
 
 #define PICT_GRADIENT_STOPTABLE_SIZE 1024
 #define SourcePictTypeSolidFill 0
@@ -665,6 +660,10 @@ AddTraps (PicturePtr	pPicture,
 	  INT16		yOff,
 	  int		ntraps,
 	  xTrap		*traps);
+
+pixman_image_t *
+PixmanImageFromPicture (PicturePtr pPict,
+			Bool hasClip);
 
 PicturePtr
 CreateSolidPicture (Picture pid,

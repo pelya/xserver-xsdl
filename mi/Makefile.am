@@ -9,7 +9,6 @@ endif
 AM_CFLAGS = $(DIX_CFLAGS)
 
 libmi_la_SOURCES = 	\
-	cbrt.c		\
 	mi.h		\
 	miarc.c		\
 	mibank.c	\
@@ -68,5 +67,3 @@ libmi_la_SOURCES = 	\
 	mizerarc.h	\
 	mizerclip.c	\
 	mizerline.c
-
-INCLUDES = -I$(top_srcdir)/mfb

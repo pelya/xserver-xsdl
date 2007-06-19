@@ -50,6 +50,11 @@
 #include <machine/mtrr.h>
 #include <machine/sysarch.h>
 #include <sys/queue.h>
+#ifdef __x86_64__
+#define i386_set_mtrr x86_64_set_mtrr
+#define i386_get_mtrr x86_64_get_mtrr
+#define i386_iopl x86_64_iopl
+#endif
 #endif
 
 #if defined(__OpenBSD__) && defined(__amd64__)

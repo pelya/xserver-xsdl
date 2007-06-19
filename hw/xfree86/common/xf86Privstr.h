@@ -120,6 +120,8 @@ typedef struct {
     MessageType		randRFrom;
     Bool		aiglx;
     MessageType		aiglxFrom;
+    Bool		useDefaultFontPath;
+    MessageType		useDefaultFontPathFrom;
     Bool        ignoreABI;
     struct {
 	Bool		disabled;		/* enable/disable deactivating

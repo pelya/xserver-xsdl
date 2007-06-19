@@ -40,6 +40,7 @@
 #include "winprefs.h"
 #include "winconfig.h"
 #include "winmsg.h"
+#include "inputstr.h"
 
 #ifdef XKB
 extern BOOL winCheckKeyPressed(WPARAM wParam, LPARAM lParam);
@@ -723,8 +724,8 @@ winWindowProc (HWND hwnd, UINT message,
 	break;
 
       /* Has the mouse pointer crossed screens? */
-      if (s_pScreen != miPointerCurrentScreen ())
-	miPointerSetNewScreen (s_pScreenInfo->dwScreen,
+      if (s_pScreen != miPointerGetScreen(inputInfo.pointer))
+	miPointerSetScreen (inputInfo.pointer, s_pScreenInfo->dwScreen,
 			       GET_X_LPARAM(lParam)-s_pScreenInfo->dwXOffset,
 			       GET_Y_LPARAM(lParam)-s_pScreenInfo->dwYOffset);
 

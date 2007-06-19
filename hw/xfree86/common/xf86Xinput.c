@@ -110,7 +110,7 @@ xf86SendDragEvents(DeviceIntPtr	device)
 {
     LocalDevicePtr local = (LocalDevicePtr) device->public.devicePrivate;
     
-    if (device->button->buttonsDown > 0)
+    if (device->button && device->button->buttonsDown > 0)
         return (local->flags & XI86_SEND_DRAG_EVENTS);
     else
         return (TRUE);
@@ -129,9 +129,11 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
                          pointer	list)
 {
     if (xf86SetBoolOption(list, "AlwaysCore", 0) ||
-        xf86SetBoolOption(list, "SendCoreEvents", 0) ||
-        xf86SetBoolOption(list, "CorePointer", 0) ||
-        xf86SetBoolOption(list, "CoreKeyboard", 0)) {
+        !xf86SetBoolOption(list, "SendCoreEvents", 1) ||
+        !xf86SetBoolOption(list, "CorePointer", 1) ||
+        !xf86SetBoolOption(list, "CoreKeyboard", 1)) {
+        xf86Msg(X_CONFIG, "%s: doesn't report core events\n", local->name);
+    } else {
         local->flags |= XI86_ALWAYS_CORE;
         xf86Msg(X_CONFIG, "%s: always reports core events\n", local->name);
     }
@@ -358,7 +360,7 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
         return BadAlloc;
 
     for (option = options; option; option = option->next) {
-        if (strcmp(option->key, "driver") == 0) {
+        if (strcasecmp(option->key, "driver") == 0) {
             if (idev->driver) {
                 rval = BadRequest;
                 goto unwind;
@@ -381,8 +383,8 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
                 goto unwind;
             }
         }
-        if (strcmp(option->key, "name") == 0 ||
-            strcmp(option->key, "identifier") == 0) {
+        if (strcasecmp(option->key, "name") == 0 ||
+            strcasecmp(option->key, "identifier") == 0) {
             if (idev->identifier) {
                 rval = BadRequest;
                 goto unwind;
@@ -445,7 +447,7 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
 
     dev = pInfo->dev;
     ActivateDevice(dev);
-    if (dev->inited && dev->startup)
+    if (dev->inited && dev->startup && xf86Screens[0]->vtSema)
         EnableDevice(dev);
 
     if (!IsPointerDevice(dev))
@@ -505,25 +507,46 @@ xf86PostMotionEvent(DeviceIntPtr	device,
                     ...)
 {
     va_list var;
-    int i = 0, nevents = 0;
-    int dx, dy;
-    Bool drag = xf86SendDragEvents(device);
-    int *valuators = NULL;
-    int flags = 0;
-    xEvent *xE = NULL;
-    int index;
+    int i = 0;
+    static int *valuators = NULL;
+    static int n_valuators = 0;
 
-    if (is_absolute)
-        flags = POINTER_ABSOLUTE;
-    else
-        flags = POINTER_RELATIVE | POINTER_ACCELERATE;
+    if (num_valuators > n_valuators) {
+	xfree (valuators);
+	valuators = NULL;
+    }
 
-    valuators = xcalloc(sizeof(int), num_valuators);
+    if (!valuators) {
+	valuators = xcalloc(sizeof(int), num_valuators);
+	n_valuators = num_valuators;
+    }
 
     va_start(var, num_valuators);
     for (i = 0; i < num_valuators; i++)
         valuators[i] = va_arg(var, int);
     va_end(var);
+
+    xf86PostMotionEventP(device, is_absolute, first_valuator, num_valuators, valuators);
+}
+
+_X_EXPORT void
+xf86PostMotionEventP(DeviceIntPtr	device,
+                    int			is_absolute,
+                    int			first_valuator,
+                    int			num_valuators,
+                    int			*valuators)
+{
+    int i = 0, nevents = 0;
+    int dx, dy;
+    Bool drag = xf86SendDragEvents(device);
+    xEvent *xE = NULL;
+    int index;
+    int flags = 0;
+
+    if (is_absolute)
+        flags = POINTER_ABSOLUTE;
+    else
+        flags = POINTER_RELATIVE | POINTER_ACCELERATE;
 
 #if XFreeXDGA
     if (first_valuator == 0 && num_valuators >= 2) {
@@ -538,7 +561,7 @@ xf86PostMotionEvent(DeviceIntPtr	device,
                 dy = valuators[1];
             }
             if (DGAStealMotionEvent(index, dx, dy))
-                goto out;
+                return;
         }
     }
 #endif
@@ -560,9 +583,6 @@ xf86PostMotionEvent(DeviceIntPtr	device,
             mieqEnqueue(device, (xf86Events + i)->event);
         }
     }
-
-out:
-    xfree(valuators);
 }
 
 _X_EXPORT void

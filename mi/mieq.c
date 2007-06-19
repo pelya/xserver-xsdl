@@ -122,7 +122,8 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
     HWEventQueueType       oldtail = miEventQueue.tail, newtail;
     EventListPtr           evt;
     int                    isMotion = 0;
-    int evlen;
+    int                    evlen;
+
 
     /* avoid merging events from different devices */
     if (e->u.u.type == MotionNotify)
@@ -137,7 +138,7 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
         EventPtr               laste;
         deviceKeyButtonPointer *lastkbp;
 
-        laste = &miEventQueue.events[(oldtail ? oldtail : QUEUE_SIZE)- 1];
+        laste = &miEventQueue.events[(oldtail ? oldtail : QUEUE_SIZE) - 1];
         lastkbp = (deviceKeyButtonPointer *) laste->events->event;
 
         if (laste->nevents > 6) {
@@ -165,9 +166,7 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
 	oldtail = oldtail - 1;
     }
     else {
-    	newtail = oldtail + 1;
-    	if (newtail == QUEUE_SIZE)
-	    newtail = 0;
+    	newtail = (oldtail + 1) % QUEUE_SIZE;
     	/* Toss events which come in late.  Usually this means your server's
          * stuck in an infinite loop somewhere, but SIGIO is still getting
          * handled. */
@@ -245,22 +244,15 @@ mieqProcessInputEvents(void)
 
         e = &miEventQueue.events[miEventQueue.head];
         /* Assumption - screen switching can only occur on motion events. */
+        miEventQueue.head = (miEventQueue.head + 1) % QUEUE_SIZE;
+
         if (e->pScreen != DequeueScreen(e->pDev)) {
             DequeueScreen(e->pDev) = e->pScreen;
             x = e->events[0].event->u.keyButtonPointer.rootX;
             y = e->events[0].event->u.keyButtonPointer.rootY;
-            if (miEventQueue.head == QUEUE_SIZE - 1)
-                miEventQueue.head = 0;
-            else
-                ++miEventQueue.head;
             NewCurrentScreen (e->pDev, DequeueScreen(e->pDev), x, y);
         }
         else {
-            if (miEventQueue.head == QUEUE_SIZE - 1)
-                miEventQueue.head = 0;
-            else
-                ++miEventQueue.head;
-
             /* If someone's registered a custom event handler, let them
              * steal it. */
             if (miEventQueue.handlers[e->events->event->u.u.type]) {

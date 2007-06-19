@@ -383,6 +383,9 @@ typedef struct _FbComposeData {
     CARD16	height;
 } FbComposeData;
 
+void
+fbCompositeRect (const FbComposeData *data, CARD32 *scanline_buffer);
+
 typedef FASTCALL void (*CombineMaskU) (CARD32 *src, const CARD32 *mask, int width);
 typedef FASTCALL void (*CombineFuncU) (CARD32 *dest, const CARD32 *src, int width);
 typedef FASTCALL void (*CombineFuncC) (CARD32 *dest, CARD32 *src, CARD32 *mask, int width);
@@ -409,210 +412,7 @@ fbCompositeGeneral (CARD8	op,
 		    CARD16	width,
 		    CARD16	height);
 
-
-/* fbedge.c */
-void
-fbRasterizeEdges (FbBits	*buf,
-		  int		bpp,
-		  int		width,
-		  int		stride,
-		  RenderEdge	*l,
-		  RenderEdge	*r,
-		  xFixed	t,
-		  xFixed	b);
-
 /* fbpict.c */
-CARD32
-fbOver (CARD32 x, CARD32 y);
-
-CARD32
-fbOver24 (CARD32 x, CARD32 y);
-
-CARD32
-fbIn (CARD32 x, CARD8 y);
-
-void
-fbCompositeSolidMask_nx8x8888 (CARD8      op,
-			       PicturePtr pSrc,
-			       PicturePtr pMask,
-			       PicturePtr pDst,
-			       INT16      xSrc,
-			       INT16      ySrc,
-			       INT16      xMask,
-			       INT16      yMask,
-			       INT16      xDst,
-			       INT16      yDst,
-			       CARD16     width,
-			       CARD16     height);
-
-void
-fbCompositeSolidMask_nx8x0888 (CARD8      op,
-			       PicturePtr pSrc,
-			       PicturePtr pMask,
-			       PicturePtr pDst,
-			       INT16      xSrc,
-			       INT16      ySrc,
-			       INT16      xMask,
-			       INT16      yMask,
-			       INT16      xDst,
-			       INT16      yDst,
-			       CARD16     width,
-			       CARD16     height);
-
-void
-fbCompositeSolidMask_nx8888x8888C (CARD8      op,
-				   PicturePtr pSrc,
-				   PicturePtr pMask,
-				   PicturePtr pDst,
-				   INT16      xSrc,
-				   INT16      ySrc,
-				   INT16      xMask,
-				   INT16      yMask,
-				   INT16      xDst,
-				   INT16      yDst,
-				   CARD16     width,
-				   CARD16     height);
-
-void
-fbCompositeSolidMask_nx8x0565 (CARD8      op,
-			       PicturePtr pSrc,
-			       PicturePtr pMask,
-			       PicturePtr pDst,
-			       INT16      xSrc,
-			       INT16      ySrc,
-			       INT16      xMask,
-			       INT16      yMask,
-			       INT16      xDst,
-			       INT16      yDst,
-			       CARD16     width,
-			       CARD16     height);
-
-void
-fbCompositeSolidMask_nx8888x0565C (CARD8      op,
-				   PicturePtr pSrc,
-				   PicturePtr pMask,
-				   PicturePtr pDst,
-				   INT16      xSrc,
-				   INT16      ySrc,
-				   INT16      xMask,
-				   INT16      yMask,
-				   INT16      xDst,
-				   INT16      yDst,
-				   CARD16     width,
-				   CARD16     height);
-
-void
-fbCompositeSrc_8888x8888 (CARD8      op,
-			  PicturePtr pSrc,
-			  PicturePtr pMask,
-			  PicturePtr pDst,
-			  INT16      xSrc,
-			  INT16      ySrc,
-			  INT16      xMask,
-			  INT16      yMask,
-			  INT16      xDst,
-			  INT16      yDst,
-			  CARD16     width,
-			  CARD16     height);
-
-void
-fbCompositeSrc_8888x0888 (CARD8      op,
-			 PicturePtr pSrc,
-			 PicturePtr pMask,
-			 PicturePtr pDst,
-			 INT16      xSrc,
-			 INT16      ySrc,
-			 INT16      xMask,
-			 INT16      yMask,
-			 INT16      xDst,
-			 INT16      yDst,
-			 CARD16     width,
-			 CARD16     height);
-
-void
-fbCompositeSrc_8888x0565 (CARD8      op,
-			  PicturePtr pSrc,
-			  PicturePtr pMask,
-			  PicturePtr pDst,
-			  INT16      xSrc,
-			  INT16      ySrc,
-			  INT16      xMask,
-			  INT16      yMask,
-			  INT16      xDst,
-			  INT16      yDst,
-			  CARD16     width,
-			  CARD16     height);
-
-void
-fbCompositeSrc_0565x0565 (CARD8      op,
-			  PicturePtr pSrc,
-			  PicturePtr pMask,
-			  PicturePtr pDst,
-			  INT16      xSrc,
-			  INT16      ySrc,
-			  INT16      xMask,
-			  INT16      yMask,
-			  INT16      xDst,
-			  INT16      yDst,
-			  CARD16     width,
-			  CARD16     height);
-
-void
-fbCompositeSrcAdd_8000x8000 (CARD8	op,
-			     PicturePtr pSrc,
-			     PicturePtr pMask,
-			     PicturePtr pDst,
-			     INT16      xSrc,
-			     INT16      ySrc,
-			     INT16      xMask,
-			     INT16      yMask,
-			     INT16      xDst,
-			     INT16      yDst,
-			     CARD16     width,
-			     CARD16     height);
-
-void
-fbCompositeSrcAdd_8888x8888 (CARD8	op,
-			     PicturePtr pSrc,
-			     PicturePtr pMask,
-			     PicturePtr pDst,
-			     INT16      xSrc,
-			     INT16      ySrc,
-			     INT16      xMask,
-			     INT16      yMask,
-			     INT16      xDst,
-			     INT16      yDst,
-			     CARD16     width,
-			     CARD16     height);
-
-void
-fbCompositeSrcAdd_1000x1000 (CARD8	op,
-			     PicturePtr pSrc,
-			     PicturePtr pMask,
-			     PicturePtr pDst,
-			     INT16      xSrc,
-			     INT16      ySrc,
-			     INT16      xMask,
-			     INT16      yMask,
-			     INT16      xDst,
-			     INT16      yDst,
-			     CARD16     width,
-			     CARD16     height);
-
-void
-fbCompositeSolidMask_nx1xn (CARD8      op,
-			    PicturePtr pSrc,
-			    PicturePtr pMask,
-			    PicturePtr pDst,
-			    INT16      xSrc,
-			    INT16      ySrc,
-			    INT16      xMask,
-			    INT16      yMask,
-			    INT16      xDst,
-			    INT16      yDst,
-			    CARD16     width,
-			    CARD16     height);
-
 void
 fbComposite (CARD8      op,
 	     PicturePtr pSrc,
@@ -626,6 +426,36 @@ fbComposite (CARD8      op,
 	     INT16      yDst,
 	     CARD16     width,
 	     CARD16     height);
+
+typedef void	(*CompositeFunc) (CARD8      op,
+				  PicturePtr pSrc,
+				  PicturePtr pMask,
+				  PicturePtr pDst,
+				  INT16      xSrc,
+				  INT16      ySrc,
+				  INT16      xMask,
+                                  INT16      yMask,
+				  INT16      xDst,
+				  INT16      yDst,
+				  CARD16     width,
+				  CARD16     height);
+
+void
+fbWalkCompositeRegion (CARD8 op,
+		       PicturePtr pSrc,
+		       PicturePtr pMask,
+		       PicturePtr pDst,
+		       INT16 xSrc,
+		       INT16 ySrc,
+		       INT16 xMask,
+		       INT16 yMask,
+		       INT16 xDst,
+		       INT16 yDst,
+		       CARD16 width,
+		       CARD16 height,
+		       Bool srcRepeat,
+		       Bool maskRepeat,
+		       CompositeFunc compositeRect);
 
 /* fbtrap.c */
 

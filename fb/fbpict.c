@@ -1,6 +1,7 @@
 /*
  *
  * Copyright © 2000 SuSE, Inc.
+ * Copyright © 2007 Red Hat, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -35,2029 +36,49 @@
 #include "picturestr.h"
 #include "mipict.h"
 #include "fbpict.h"
-#include "fbmmx.h"
 
-typedef void	(*CompositeFunc) (CARD8      op,
-				  PicturePtr pSrc,
-				  PicturePtr pMask,
-				  PicturePtr pDst,
-				  INT16      xSrc,
-				  INT16      ySrc,
-				  INT16      xMask,
-                                  INT16      yMask,
-				  INT16      xDst,
-				  INT16      yDst,
-				  CARD16     width,
-				  CARD16     height);
-
-CARD32
-fbOver (CARD32 x, CARD32 y)
-{
-    CARD16  a = ~x >> 24;
-    CARD16  t;
-    CARD32  m,n,o,p;
-
-    m = FbOverU(x,y,0,a,t);
-    n = FbOverU(x,y,8,a,t);
-    o = FbOverU(x,y,16,a,t);
-    p = FbOverU(x,y,24,a,t);
-    return m|n|o|p;
-}
-
-CARD32
-fbOver24 (CARD32 x, CARD32 y)
-{
-    CARD16  a = ~x >> 24;
-    CARD16  t;
-    CARD32  m,n,o;
-
-    m = FbOverU(x,y,0,a,t);
-    n = FbOverU(x,y,8,a,t);
-    o = FbOverU(x,y,16,a,t);
-    return m|n|o;
-}
-
-CARD32
-fbIn (CARD32 x, CARD8 y)
-{
-    CARD16  a = y;
-    CARD16  t;
-    CARD32  m,n,o,p;
-
-    m = FbInU(x,0,a,t);
-    n = FbInU(x,8,a,t);
-    o = FbInU(x,16,a,t);
-    p = FbInU(x,24,a,t);
-    return m|n|o|p;
-}
-
-#define genericCombine24(a,b,c,d) (((a)*(c)+(b)*(d)))
-
-/*
- * This macro does src IN mask OVER dst when src and dst are 0888.
- * If src has alpha, this will not work
- */
-#define inOver0888(alpha, source, destval, dest) { \
- 	CARD32 dstrb=destval&0xFF00FF; CARD32 dstag=(destval>>8)&0xFF00FF; \
- 	CARD32 drb=((source&0xFF00FF)-dstrb)*alpha; CARD32 dag=(((source>>8)&0xFF00FF)-dstag)*alpha; \
-	WRITE(dest, ((((drb>>8) + dstrb) & 0x00FF00FF) | ((((dag>>8) + dstag) << 8) & 0xFF00FF00))); \
-    }
-
-/*
- * This macro does src IN mask OVER dst when src and dst are 0565 and
- * mask is a 5-bit alpha value.  Again, if src has alpha, this will not
- * work.
- */
-#define inOver0565(alpha, source, destval, dest) { \
- 	CARD16 dstrb = destval & 0xf81f; CARD16 dstg  = destval & 0x7e0; \
- 	CARD32 drb = ((source&0xf81f)-dstrb)*alpha; CARD32 dg=((source & 0x7e0)-dstg)*alpha; \
-	WRITE(dest, ((((drb>>5) + dstrb)&0xf81f) | (((dg>>5)  + dstg) & 0x7e0))); \
-    }
-
-
-#define inOver2x0565(alpha, source, destval, dest) { \
- 	CARD32 dstrb = destval & 0x07e0f81f; CARD32 dstg  = (destval & 0xf81f07e0)>>5; \
- 	CARD32 drb = ((source&0x07e0f81f)-dstrb)*alpha; CARD32 dg=(((source & 0xf81f07e0)>>5)-dstg)*alpha; \
-	WRITE(dest, ((((drb>>5) + dstrb)&0x07e0f81f) | ((((dg>>5)  + dstg)<<5) & 0xf81f07e0))); \
-    }
-
-
-#if IMAGE_BYTE_ORDER == LSBFirst
-#define setupPackedReader(count,temp,where,workingWhere,workingVal) count=(long)where; \
-					temp=count&3; \
-					where-=temp; \
-					workingWhere=(CARD32 *)where; \
-                                        workingVal=READ(workingWhere++); \
-					count=4-temp; \
-					workingVal>>=(8*temp)
-        #define readPacked(where,x,y,z) {if(!(x)) { (x)=4; y = READ(z++); } where=(y)&0xff; (y)>>=8; (x)--;}
-	#define readPackedSource(where) readPacked(where,ws,workingSource,wsrc)
-	#define readPackedDest(where) readPacked(where,wd,workingiDest,widst)
-        #define writePacked(what) workingoDest>>=8; workingoDest|=(what<<24); ww--; if(!ww) { ww=4; WRITE (wodst++, workingoDest); } 
-#else
-	#warning "I havn't tested fbCompositeTrans_0888xnx0888() on big endian yet!"
-	#define setupPackedReader(count,temp,where,workingWhere,workingVal) count=(long)where; \
-					temp=count&3; \
-					where-=temp; \
-					workingWhere=(CARD32 *)where; \
-                                        workingVal=READ(workingWhere)++; \
-					count=4-temp; \
-					workingVal<<=(8*temp)
-        #define readPacked(where,x,y,z) {if(!(x)) { (x)=4; y = READ(z++); } where=(y)>>24; (y)<<=8; (x)--;}
-	#define readPackedSource(where) readPacked(where,ws,workingSource,wsrc)
-	#define readPackedDest(where) readPacked(where,wd,workingiDest,widst)
-        #define writePacked(what) workingoDest<<=8; workingoDest|=what; ww--; if(!ww) { ww=4; WRITE(wodst++, workingoDest); } 
-#endif
-
-/*
- * Naming convention:
- *
- *  opSRCxMASKxDST
- */
+#define mod(a,b) ((b) == 1 ? 0 : (a) >= 0 ? (a) % (b) : (b) - (-a) % (b))
 
 void
-fbCompositeSolidMask_nx8x8888 (CARD8      op,
-			       PicturePtr pSrc,
-			       PicturePtr pMask,
-			       PicturePtr pDst,
-			       INT16      xSrc,
-			       INT16      ySrc,
-			       INT16      xMask,
-			       INT16      yMask,
-			       INT16      xDst,
-			       INT16      yDst,
-			       CARD16     width,
-			       CARD16     height)
-{
-    CARD32	src, srca;
-    CARD32	*dstLine, *dst, d, dstMask;
-    CARD8	*maskLine, *mask, m;
-    FbStride	dstStride, maskStride;
-    CARD16	w;
-
-    fbComposeGetSolid(pSrc, src, pDst->format);
-
-    dstMask = FbFullMask (pDst->pDrawable->depth);
-    srca = src >> 24;
-    if (src == 0)
-	return;
-
-    fbComposeGetStart (pDst, xDst, yDst, CARD32, dstStride, dstLine, 1);
-    fbComposeGetStart (pMask, xMask, yMask, CARD8, maskStride, maskLine, 1);
-
-    while (height--)
-    {
-	dst = dstLine;
-	dstLine += dstStride;
-	mask = maskLine;
-	maskLine += maskStride;
-	w = width;
-
-	while (w--)
-	{
-	    m = READ(mask++);
-	    if (m == 0xff)
-	    {
-		if (srca == 0xff)
-		    WRITE(dst, src & dstMask);
-		else
-		    WRITE(dst, fbOver (src, READ(dst)) & dstMask);
-	    }
-	    else if (m)
-	    {
-		d = fbIn (src, m);
-		WRITE(dst, fbOver (d, READ(dst)) & dstMask);
-	    }
-	    dst++;
-	}
-    }
-
-    fbFinishAccess (pMask->pDrawable);
-    fbFinishAccess (pDst->pDrawable);
-}
-
-void
-fbCompositeSolidMask_nx8888x8888C (CARD8      op,
-				   PicturePtr pSrc,
-				   PicturePtr pMask,
-				   PicturePtr pDst,
-				   INT16      xSrc,
-				   INT16      ySrc,
-				   INT16      xMask,
-				   INT16      yMask,
-				   INT16      xDst,
-				   INT16      yDst,
-				   CARD16     width,
-				   CARD16     height)
-{
-    CARD32	src, srca;
-    CARD32	*dstLine, *dst, d, dstMask;
-    CARD32	*maskLine, *mask, ma;
-    FbStride	dstStride, maskStride;
-    CARD16	w;
-    CARD32	m, n, o, p;
-
-    fbComposeGetSolid(pSrc, src, pDst->format);
-
-    dstMask = FbFullMask (pDst->pDrawable->depth);
-    srca = src >> 24;
-    if (src == 0)
-	return;
-
-    fbComposeGetStart (pDst, xDst, yDst, CARD32, dstStride, dstLine, 1);
-    fbComposeGetStart (pMask, xMask, yMask, CARD32, maskStride, maskLine, 1);
-
-    while (height--)
-    {
-	dst = dstLine;
-	dstLine += dstStride;
-	mask = maskLine;
-	maskLine += maskStride;
-	w = width;
-
-	while (w--)
-	{
-	    ma = READ(mask++);
-	    if (ma == 0xffffffff)
-	    {
-		if (srca == 0xff)
-		    WRITE(dst, src & dstMask);
-		else
-		    WRITE(dst, fbOver (src, READ(dst)) & dstMask);
-	    }
-	    else if (ma)
-	    {
-		d = READ(dst);
-#define FbInOverC(src,srca,msk,dst,i,result) { \
-    CARD16  __a = FbGet8(msk,i); \
-    CARD32  __t, __ta; \
-    CARD32  __i; \
-    __t = FbIntMult (FbGet8(src,i), __a,__i); \
-    __ta = (CARD8) ~FbIntMult (srca, __a,__i); \
-    __t = __t + FbIntMult(FbGet8(dst,i),__ta,__i); \
-    __t = (CARD32) (CARD8) (__t | (-(__t >> 8))); \
-    result = __t << (i); \
-}
-		FbInOverC (src, srca, ma, d, 0, m);
-		FbInOverC (src, srca, ma, d, 8, n);
-		FbInOverC (src, srca, ma, d, 16, o);
-		FbInOverC (src, srca, ma, d, 24, p);
-		WRITE(dst, m|n|o|p);
-	    }
-	    dst++;
-	}
-    }
-
-    fbFinishAccess (pMask->pDrawable);
-    fbFinishAccess (pDst->pDrawable);
-}
-
-#define srcAlphaCombine24(a,b) genericCombine24(a,b,srca,srcia)
-void
-fbCompositeSolidMask_nx8x0888 (CARD8      op,
-			       PicturePtr pSrc,
-			       PicturePtr pMask,
-			       PicturePtr pDst,
-			       INT16      xSrc,
-			       INT16      ySrc,
-			       INT16      xMask,
-			       INT16      yMask,
-			       INT16      xDst,
-			       INT16      yDst,
-			       CARD16     width,
-			       CARD16     height)
-{
-    CARD32	src, srca, srcia;
-    CARD8	*dstLine, *dst, *edst;
-    CARD8	*maskLine, *mask, m;
-    FbStride	dstStride, maskStride;
-    CARD16	w;
-    CARD32 rs,gs,bs,rd,gd,bd;
-
-    fbComposeGetSolid(pSrc, src, pDst->format);
-
-    srca = src >> 24;
-    srcia = 255-srca;
-    if (src == 0)
-	return;
-
-    rs=src&0xff;
-    gs=(src>>8)&0xff;
-    bs=(src>>16)&0xff;
-      
-    fbComposeGetStart (pDst, xDst, yDst, CARD8, dstStride, dstLine, 3);
-    fbComposeGetStart (pMask, xMask, yMask, CARD8, maskStride, maskLine, 1);
-
-    while (height--)
-    {
-	/* fixme: cleanup unused */
-	unsigned long wt, wd;
-	CARD32 workingiDest;
-	CARD32 *widst;
- 	
-	edst = dst = dstLine;
-	dstLine += dstStride;
-	mask = maskLine;
-	maskLine += maskStride;
-	w = width;
- 	
-#ifndef NO_MASKED_PACKED_READ
-	setupPackedReader(wd,wt,edst,widst,workingiDest);
-#endif
- 	
-	while (w--)
-	{
-#ifndef NO_MASKED_PACKED_READ
-	    readPackedDest(rd);
-	    readPackedDest(gd);
-	    readPackedDest(bd);
-#else
-	    rd = READ(edst++);
-	    gd = READ(edst++);
-	    bd = READ(edst++);
-#endif
-	    m = READ(mask++);
-	    if (m == 0xff)
-	    {
-		if (srca == 0xff)
-		{
-		    WRITE(dst++, rs);
-		    WRITE(dst++, gs);
-		    WRITE(dst++, bs);
-		}
-		else
-		{
-		    WRITE(dst++, (srcAlphaCombine24(rs, rd)>>8));
-		    WRITE(dst++, (srcAlphaCombine24(gs, gd)>>8));
-		    WRITE(dst++, (srcAlphaCombine24(bs, bd)>>8));
-		}
-	    }
-	    else if (m)
-	    {
-		int na=(srca*(int)m)>>8;
-		int nia=255-na;
-		WRITE(dst++, (genericCombine24(rs, rd, na, nia)>>8));
-		WRITE(dst++, (genericCombine24(gs, gd, na, nia)>>8));
-		WRITE(dst++, (genericCombine24(bs, bd, na, nia)>>8));
-	    }
-	    else
-	    {
-		dst+=3;
-	    }
-	}
-    }
-    
-    fbFinishAccess (pMask->pDrawable);
-    fbFinishAccess (pDst->pDrawable);
-}
-
-void
-fbCompositeSolidMask_nx8x0565 (CARD8      op,
-				  PicturePtr pSrc,
-				  PicturePtr pMask,
-				  PicturePtr pDst,
-				  INT16      xSrc,
-				  INT16      ySrc,
-				  INT16      xMask,
-				  INT16      yMask,
-				  INT16      xDst,
-				  INT16      yDst,
-				  CARD16     width,
-				  CARD16     height)
-{
-    CARD32	src, srca8, srca5;
-    CARD16	*dstLine, *dst;
-    CARD16	d;
-    CARD32	t;
-    CARD8	*maskLine, *mask, m;
-    FbStride	dstStride, maskStride;
-    CARD16	w,src16;
-    
-    fbComposeGetSolid(pSrc, src, pDst->format);
-    
-    if (src == 0)
-	return;
-      
-    srca8 = (src >> 24);
-    srca5 = (srca8 >> 3);
-    src16 = cvt8888to0565(src);
-     
-    fbComposeGetStart (pDst, xDst, yDst, CARD16, dstStride, dstLine, 1);
-    fbComposeGetStart (pMask, xMask, yMask, CARD8, maskStride, maskLine, 1);
-    
-    while (height--)
-    {
-	dst = dstLine;
-	dstLine += dstStride;
-	mask = maskLine;
-	maskLine += maskStride;
-	w = width;
- 
-	while (w--)
-	{
-	    m = READ(mask++);
-	    if (m == 0)
-		dst++;
-	    else if (srca5 == (0xff >> 3))
-	    {
-		if (m == 0xff)
-		    WRITE(dst++, src16);
-		else 
- 		{
-		    d = READ(dst);
-		    m >>= 3;
-		    inOver0565 (m, src16, d, dst++);
- 		}
-	    }
-	    else
-	    {
-		d = READ(dst);
-		if (m == 0xff) 
-		{
-		    t = fbOver24 (src, cvt0565to0888 (d));
-		}
-		else
-		{
-		    t = fbIn (src, m);
-		    t = fbOver (t, cvt0565to0888 (d));
-		}
-		WRITE(dst++, cvt8888to0565 (t));
-	    }
-	}
-    }
-    
-    fbFinishAccess (pMask->pDrawable);
-    fbFinishAccess (pDst->pDrawable);
-}
-
-static void
-fbCompositeSolidMask_nx8888x0565 (CARD8      op,
-				  PicturePtr pSrc,
-				  PicturePtr pMask,
-				  PicturePtr pDst,
-				  INT16      xSrc,
-				  INT16      ySrc,
-				  INT16      xMask,
-				  INT16      yMask,
-				  INT16      xDst,
-				  INT16      yDst,
-				  CARD16     width,
-				  CARD16     height)
-{
-    CARD32	src, srca8, srca5;
-    CARD16	*dstLine, *dst;
-    CARD16	d;
-    CARD32	*maskLine, *mask;
-    CARD32	t;
-    CARD8	m;
-    FbStride	dstStride, maskStride;
-    CARD16	w, src16;
-
-    fbComposeGetSolid(pSrc, src, pDst->format);
-
-    if (src == 0)
-	return;
-
-    srca8 = src >> 24;
-    srca5 = srca8 >> 3;
-    src16 = cvt8888to0565(src);
-
-    fbComposeGetStart (pDst, xDst, yDst, CARD16, dstStride, dstLine, 1);
-    fbComposeGetStart (pMask, xMask, yMask, CARD32, maskStride, maskLine, 1);
-
-    while (height--)
-    {
-	dst = dstLine;
-	dstLine += dstStride;
-	mask = maskLine;
-	maskLine += maskStride;
-	w = width;
-
-	while (w--)
-	{
-	    m = READ(mask++) >> 24;
-	    if (m == 0)
-		dst++;
-	    else if (srca5 == (0xff >> 3))
-	    {
-		if (m == 0xff)
-		    WRITE(dst++, src16);
-		else
-		{
-		    d = READ(dst);
-		    m >>= 3;
-		    inOver0565 (m, src16, d, dst++);
-		}
-	    }
-	    else
-	    {
-		if (m == 0xff) 
-		{
-		    d = READ(dst);
-		    t = fbOver24 (src, cvt0565to0888 (d));
-		    WRITE(dst++, cvt8888to0565 (t));
-		}
-		else
-		{
-		    d = READ(dst);
-		    t = fbIn (src, m);
-		    t = fbOver (t, cvt0565to0888 (d));
-		    WRITE(dst++, cvt8888to0565 (t));
-		}
-	    }
-	}
-    }
-}
-
-void
-fbCompositeSolidMask_nx8888x0565C (CARD8      op,
-				   PicturePtr pSrc,
-				   PicturePtr pMask,
-				   PicturePtr pDst,
-				   INT16      xSrc,
-				   INT16      ySrc,
-				   INT16      xMask,
-				   INT16      yMask,
-				   INT16      xDst,
-				   INT16      yDst,
-				   CARD16     width,
-				   CARD16     height)
-{
-    CARD32	src, srca;
-    CARD16	src16;
-    CARD16	*dstLine, *dst;
-    CARD32	d;
-    CARD32	*maskLine, *mask, ma;
-    FbStride	dstStride, maskStride;
-    CARD16	w;
-    CARD32	m, n, o;
-
-    fbComposeGetSolid(pSrc, src, pDst->format);
-
-    srca = src >> 24;
-    if (src == 0)
-	return;
-
-    src16 = cvt8888to0565(src);
-
-    fbComposeGetStart (pDst, xDst, yDst, CARD16, dstStride, dstLine, 1);
-    fbComposeGetStart (pMask, xMask, yMask, CARD32, maskStride, maskLine, 1);
-
-    while (height--)
-    {
-	dst = dstLine;
-	dstLine += dstStride;
-	mask = maskLine;
-	maskLine += maskStride;
-	w = width;
-
-	while (w--)
-	{
-	    ma = READ(mask++);
-	    if (ma == 0xffffffff)
-	    {
-		if (srca == 0xff)
-		{
-		    WRITE(dst, src16);
-		}
-		else
-		{
-		    d = READ(dst);
-		    d = fbOver24 (src, cvt0565to0888(d));
-		    WRITE(dst, cvt8888to0565(d));
-		}
-	    }
-	    else if (ma)
-	    {
-		d = READ(dst);
-		d = cvt0565to0888(d);
-		FbInOverC (src, srca, ma, d, 0, m);
-		FbInOverC (src, srca, ma, d, 8, n);
-		FbInOverC (src, srca, ma, d, 16, o);
-		d = m|n|o;
-		WRITE(dst, cvt8888to0565(d));
-	    }
-	    dst++;
-	}
-    }
-
-    fbFinishAccess (pMask->pDrawable);
-    fbFinishAccess (pDst->pDrawable);
-}
-
-void
-fbCompositeSrc_8888x8888 (CARD8      op,
-			 PicturePtr pSrc,
-			 PicturePtr pMask,
-			 PicturePtr pDst,
-			 INT16      xSrc,
-			 INT16      ySrc,
-			 INT16      xMask,
-			 INT16      yMask,
-			 INT16      xDst,
-			 INT16      yDst,
-			 CARD16     width,
-			 CARD16     height)
-{
-    CARD32	*dstLine, *dst, dstMask;
-    CARD32	*srcLine, *src, s;
-    FbStride	dstStride, srcStride;
-    CARD8	a;
-    CARD16	w;
-
-    fbComposeGetStart (pDst, xDst, yDst, CARD32, dstStride, dstLine, 1);
-    fbComposeGetStart (pSrc, xSrc, ySrc, CARD32, srcStride, srcLine, 1);
-
-    dstMask = FbFullMask (pDst->pDrawable->depth);
-
-    while (height--)
-    {
-	dst = dstLine;
-	dstLine += dstStride;
-	src = srcLine;
-	srcLine += srcStride;
-	w = width;
-
-	while (w--)
-	{
-	    s = READ(src++);
-	    a = s >> 24;
-	    if (a == 0xff)
-		WRITE(dst, s & dstMask);
-	    else if (a)
-		WRITE(dst, fbOver (s, READ(dst)) & dstMask);
-	    dst++;
-	}
-    }
-
-    fbFinishAccess (pSrc->pDrawable);
-    fbFinishAccess (pDst->pDrawable);
-}
-
-void
-fbCompositeSrc_8888x0888 (CARD8      op,
-			 PicturePtr pSrc,
-			 PicturePtr pMask,
-			 PicturePtr pDst,
-			 INT16      xSrc,
-			 INT16      ySrc,
-			 INT16      xMask,
-			 INT16      yMask,
-			 INT16      xDst,
-			 INT16      yDst,
-			 CARD16     width,
-			 CARD16     height)
-{
-    CARD8	*dstLine, *dst;
-    CARD32	d;
-    CARD32	*srcLine, *src, s;
-    CARD8	a;
-    FbStride	dstStride, srcStride;
-    CARD16	w;
-
-    fbComposeGetStart (pDst, xDst, yDst, CARD8, dstStride, dstLine, 3);
-    fbComposeGetStart (pSrc, xSrc, ySrc, CARD32, srcStride, srcLine, 1);
-
-    while (height--)
-    {
-	dst = dstLine;
-	dstLine += dstStride;
-	src = srcLine;
-	srcLine += srcStride;
-	w = width;
-
-	while (w--)
-	{
-	    s = READ(src++);
-	    a = s >> 24;
-	    if (a)
-	    {
-		if (a == 0xff)
-		    d = s;
-		else
-		    d = fbOver24 (s, Fetch24(dst));
-		Store24(dst,d);
-	    }
-	    dst += 3;
-	}
-    }
-
-    fbFinishAccess (pSrc->pDrawable);
-    fbFinishAccess (pDst->pDrawable);
-}
-
-void
-fbCompositeSrc_8888x0565 (CARD8      op,
-			 PicturePtr pSrc,
-			 PicturePtr pMask,
-			 PicturePtr pDst,
-			 INT16      xSrc,
-			 INT16      ySrc,
-			 INT16      xMask,
-			 INT16      yMask,
-			 INT16      xDst,
-			 INT16      yDst,
-			 CARD16     width,
-			 CARD16     height)
-{
-    CARD16	*dstLine, *dst;
-    CARD32	d;
-    CARD32	*srcLine, *src, s;
-    CARD8	a;
-    FbStride	dstStride, srcStride;
-    CARD16	w;
-
-    fbComposeGetStart (pSrc, xSrc, ySrc, CARD32, srcStride, srcLine, 1);
-    fbComposeGetStart (pDst, xDst, yDst, CARD16, dstStride, dstLine, 1);
-
-    while (height--)
-    {
-	dst = dstLine;
-	dstLine += dstStride;
-	src = srcLine;
-	srcLine += srcStride;
-	w = width;
-
-	while (w--)
-	{
-	    s = READ(src++);
-	    a = s >> 24;
-	    if (a)
-	    {
-		if (a == 0xff)
-		    d = s;
-		else
-		{
-		    d = READ(dst);
-		    d = fbOver24 (s, cvt0565to0888(d));
-		}
-		WRITE(dst, cvt8888to0565(d));
-	    }
-	    dst++;
-	}
-    }
-
-    fbFinishAccess (pDst->pDrawable);
-    fbFinishAccess (pSrc->pDrawable);
-}
-
-void
-fbCompositeSrcAdd_8000x8000 (CARD8	op,
-			     PicturePtr pSrc,
-			     PicturePtr pMask,
-			     PicturePtr pDst,
-			     INT16      xSrc,
-			     INT16      ySrc,
-			     INT16      xMask,
-			     INT16      yMask,
-			     INT16      xDst,
-			     INT16      yDst,
-			     CARD16     width,
-			     CARD16     height)
-{
-    CARD8	*dstLine, *dst;
-    CARD8	*srcLine, *src;
-    FbStride	dstStride, srcStride;
-    CARD16	w;
-    CARD8	s, d;
-    CARD16	t;
-
-    fbComposeGetStart (pSrc, xSrc, ySrc, CARD8, srcStride, srcLine, 1);
-    fbComposeGetStart (pDst, xDst, yDst, CARD8, dstStride, dstLine, 1);
-
-    while (height--)
-    {
-	dst = dstLine;
-	dstLine += dstStride;
-	src = srcLine;
-	srcLine += srcStride;
-	w = width;
-
-	while (w--)
-	{
-	    s = READ(src++);
-	    if (s)
-	    {
-		if (s != 0xff)
-		{
-		    d = READ(dst);
-		    t = d + s;
-		    s = t | (0 - (t >> 8));
-		}
-		WRITE(dst, s);
-	    }
-	    dst++;
-	}
-    }
-
-    fbFinishAccess (pDst->pDrawable);
-    fbFinishAccess (pSrc->pDrawable);
-}
-
-void
-fbCompositeSrcAdd_8888x8888 (CARD8	op,
-			     PicturePtr pSrc,
-			     PicturePtr pMask,
-			     PicturePtr pDst,
-			     INT16      xSrc,
-			     INT16      ySrc,
-			     INT16      xMask,
-			     INT16      yMask,
-			     INT16      xDst,
-			     INT16      yDst,
-			     CARD16     width,
-			     CARD16     height)
-{
-    CARD32	*dstLine, *dst;
-    CARD32	*srcLine, *src;
-    FbStride	dstStride, srcStride;
-    CARD16	w;
-    CARD32	s, d;
-    CARD16	t;
-    CARD32	m,n,o,p;
-
-    fbComposeGetStart (pSrc, xSrc, ySrc, CARD32, srcStride, srcLine, 1);
-    fbComposeGetStart (pDst, xDst, yDst, CARD32, dstStride, dstLine, 1);
-
-    while (height--)
-    {
-	dst = dstLine;
-	dstLine += dstStride;
-	src = srcLine;
-	srcLine += srcStride;
-	w = width;
-
-	while (w--)
-	{
-	    s = READ(src++);
-	    if (s)
-	    {
-		if (s != 0xffffffff)
-		{
-		    d = READ(dst);
-		    if (d)
-		    {
-			m = FbAdd(s,d,0,t);
-			n = FbAdd(s,d,8,t);
-			o = FbAdd(s,d,16,t);
-			p = FbAdd(s,d,24,t);
-			s = m|n|o|p;
-		    }
-		}
-		WRITE(dst, s);
-	    }
-	    dst++;
-	}
-    }
-
-    fbFinishAccess (pDst->pDrawable);
-    fbFinishAccess (pSrc->pDrawable);
-}
-
-static void
-fbCompositeSrcAdd_8888x8x8 (CARD8      op,
-			    PicturePtr pSrc,
-			    PicturePtr pMask,
-			    PicturePtr pDst,
-			    INT16      xSrc,
-			    INT16      ySrc,
-			    INT16      xMask,
-			    INT16      yMask,
-			    INT16      xDst,
-			    INT16      yDst,
-			    CARD16     width,
-			    CARD16     height)
-{
-    CARD8	*dstLine, *dst;
-    CARD8	*maskLine, *mask;
-    FbStride	dstStride, maskStride;
-    CARD16	w;
-    CARD32	src;
-    CARD8	sa;
-
-    fbComposeGetStart (pDst, xDst, yDst, CARD8, dstStride, dstLine, 1);
-    fbComposeGetStart (pMask, xMask, yMask, CARD8, maskStride, maskLine, 1);
-    fbComposeGetSolid (pSrc, src, pDst->format);
-    sa = (src >> 24);
-
-    while (height--)
-    {
-	dst = dstLine;
-	dstLine += dstStride;
-	mask = maskLine;
-	maskLine += maskStride;
-	w = width;
-
-	while (w--)
-	{
-	    CARD16	tmp;
-	    CARD16	a;
-	    CARD32	m, d;
-	    CARD32	r;
-
-	    a = READ(mask++);
-	    d = READ(dst);
-
-	    m = FbInU (sa, 0, a, tmp);
-	    r = FbAdd (m, d, 0, tmp);
-
-	    WRITE(dst++, r);
-	}
-    }
-    
-    fbFinishAccess(pDst->pDrawable);
-    fbFinishAccess(pMask->pDrawable);
-}
-
-void
-fbCompositeSrcAdd_1000x1000 (CARD8	op,
-			     PicturePtr pSrc,
-			     PicturePtr pMask,
-			     PicturePtr pDst,
-			     INT16      xSrc,
-			     INT16      ySrc,
-			     INT16      xMask,
-			     INT16      yMask,
-			     INT16      xDst,
-			     INT16      yDst,
-			     CARD16     width,
-			     CARD16     height)
-{
-    FbBits	*dstBits, *srcBits;
-    FbStride	dstStride, srcStride;
-    int		dstBpp, srcBpp;
-    int		dstXoff, dstYoff;
-    int		srcXoff, srcYoff;
-
-    fbGetDrawable(pSrc->pDrawable, srcBits, srcStride, srcBpp, srcXoff, srcYoff);
-
-    fbGetDrawable(pDst->pDrawable, dstBits, dstStride, dstBpp, dstXoff, dstYoff);
-
-    fbBlt (srcBits + srcStride * (ySrc + srcYoff),
-	   srcStride,
-	   xSrc + srcXoff,
-
-	   dstBits + dstStride * (yDst + dstYoff),
-	   dstStride,
-	   xDst + dstXoff,
-
-	   width,
-	   height,
-
-	   GXor,
-	   FB_ALLONES,
-	   srcBpp,
-
-	   FALSE,
-	   FALSE);
-
-    fbFinishAccess(pDst->pDrawable);
-    fbFinishAccess(pSrc->pDrawable);
-}
-
-void
-fbCompositeSolidMask_nx1xn (CARD8      op,
-			    PicturePtr pSrc,
-			    PicturePtr pMask,
-			    PicturePtr pDst,
-			    INT16      xSrc,
-			    INT16      ySrc,
-			    INT16      xMask,
-			    INT16      yMask,
-			    INT16      xDst,
-			    INT16      yDst,
-			    CARD16     width,
-			    CARD16     height)
-{
-    FbBits	*dstBits;
-    FbStip	*maskBits;
-    FbStride	dstStride, maskStride;
-    int		dstBpp, maskBpp;
-    int		dstXoff, dstYoff;
-    int		maskXoff, maskYoff;
-    FbBits	src;
-
-    fbComposeGetSolid(pSrc, src, pDst->format);
-
-    if ((src & 0xff000000) != 0xff000000)
-    {
-	fbCompositeGeneral  (op, pSrc, pMask, pDst,
-			     xSrc, ySrc, xMask, yMask, xDst, yDst,
-			     width, height);
-	return;
-    }
-    fbGetStipDrawable (pMask->pDrawable, maskBits, maskStride, maskBpp, maskXoff, maskYoff);
-    fbGetDrawable (pDst->pDrawable, dstBits, dstStride, dstBpp, dstXoff, dstYoff);
-
-    switch (dstBpp) {
-    case 32:
-	break;
-    case 24:
-	break;
-    case 16:
-	src = cvt8888to0565(src);
-	break;
-    }
-
-    src = fbReplicatePixel (src, dstBpp);
-
-    fbBltOne (maskBits + maskStride * (yMask + maskYoff),
-	      maskStride,
-	      xMask + maskXoff,
-
-	      dstBits + dstStride * (yDst + dstYoff),
-	      dstStride,
-	      (xDst + dstXoff) * dstBpp,
-	      dstBpp,
-
-	      width * dstBpp,
-	      height,
-
-	      0x0,
-	      src,
-	      FB_ALLONES,
-	      0x0);
-
-    fbFinishAccess (pDst->pDrawable);
-    fbFinishAccess (pMask->pDrawable);
-}
-
-# define mod(a,b)	((b) == 1 ? 0 : (a) >= 0 ? (a) % (b) : (b) - (-a) % (b))
-
-/*
- * Apply a constant alpha value in an over computation
- */
-static void
-fbCompositeSrcSrc_nxn  (CARD8	   op,
-			PicturePtr pSrc,
-			PicturePtr pMask,
-			PicturePtr pDst,
-			INT16      xSrc,
-			INT16      ySrc,
-			INT16      xMask,
-			INT16      yMask,
-			INT16      xDst,
-			INT16      yDst,
-			CARD16     width,
-			CARD16     height);
-
-static void
-fbCompositeTrans_0565xnx0565(CARD8      op,
-			     PicturePtr pSrc,
-			     PicturePtr pMask,
-			     PicturePtr pDst,
-			     INT16      xSrc,
-			     INT16      ySrc,
-			     INT16      xMask,
-			     INT16      yMask,
-			     INT16      xDst,
-			     INT16      yDst,
-			     CARD16     width,
-			     CARD16     height)
-{
-    CARD16	*dstLine, *dst;
-    CARD16	*srcLine, *src;
-    FbStride	dstStride, srcStride;
-    CARD16	w;
-    FbBits	mask;
-    CARD8	maskAlpha;
-    CARD16	s_16, d_16;
-    CARD32	s_32, d_32;
-    
-    fbComposeGetSolid (pMask, mask, pDst->format);
-    maskAlpha = mask >> 27;
-    
-    if (!maskAlpha)
-	return;
-    if (maskAlpha == 0xff)
-    {
-	fbCompositeSrcSrc_nxn (PictOpSrc, pSrc, pMask, pDst,
-			       xSrc, ySrc, xMask, yMask, xDst, yDst, 
-			       width, height);
-	return;
-    }
-
-    fbComposeGetStart (pSrc, xSrc, ySrc, CARD16, srcStride, srcLine, 1);
-    fbComposeGetStart (pDst, xDst, yDst, CARD16, dstStride, dstLine, 1);
-
-    while (height--)
-    {
-	CARD32 *isrc, *idst;
-	dst = dstLine;
-	dstLine += dstStride;
-	src = srcLine;
-	srcLine += srcStride;
-	w = width;
-	
-	if(((long)src&1)==1)
-	{
-	    s_16 = READ(src++);
-	    d_16 = READ(dst);
-	    inOver0565(maskAlpha, s_16, d_16, dst++);
-	    w--;
-	}
-	isrc=(CARD32 *)src;
-	if(((long)dst&1)==0)
-	{
-	    idst=(CARD32 *)dst;
-	    while (w>1)
-	    {
-		s_32 = READ(isrc++);
-		d_32 = READ(idst);
-		inOver2x0565(maskAlpha, s_32, d_32, idst++);
-		w-=2;
-	    }
-	    dst=(CARD16 *)idst;
-	}
-	else
-	{
-	    while (w > 1)
-	    {
-		s_32 = READ(isrc++);
-#if IMAGE_BYTE_ORDER == LSBFirst
-		s_16=s_32&0xffff;
-#else
-		s_16=s_32>>16;
-#endif
-		d_16 = READ(dst);
-		inOver0565 (maskAlpha, s_16, d_16, dst++);
-#if IMAGE_BYTE_ORDER == LSBFirst
-		s_16=s_32>>16;
-#else
-		s_16=s_32&0xffff;
-#endif
-		d_16 = READ(dst);
-		inOver0565(maskAlpha, s_16, d_16, dst++);
-		w-=2;
-	    }
-	}
-	src=(CARD16 *)isrc;
-	if(w!=0)
-	{
-	    s_16 = READ(src);
-	    d_16 = READ(dst);
-	    inOver0565(maskAlpha, s_16, d_16, dst);
-	}
-    }
-    
-    fbFinishAccess (pSrc->pDrawable);
-    fbFinishAccess (pDst->pDrawable);
-}
-
-/* macros for "i can't believe it's not fast" packed pixel handling */
-#define alphamaskCombine24(a,b) genericCombine24(a,b,maskAlpha,maskiAlpha)
-
-static void
-fbCompositeTrans_0888xnx0888(CARD8      op,
- 			     PicturePtr pSrc,
- 			     PicturePtr pMask,
- 			     PicturePtr pDst,
- 			     INT16      xSrc,
- 			     INT16      ySrc,
- 			     INT16      xMask,
- 			     INT16      yMask,
- 			     INT16      xDst,
- 			     INT16      yDst,
- 			     CARD16     width,
- 			     CARD16     height)
-{
-    CARD8	*dstLine, *dst,*idst;
-    CARD8	*srcLine, *src;
-    FbStride	dstStride, srcStride;
-    CARD16	w;
-    FbBits	mask;
-    CARD16	maskAlpha,maskiAlpha;
-    
-    fbComposeGetSolid (pMask, mask, pDst->format);
-    maskAlpha = mask >> 24;
-    maskiAlpha= 255-maskAlpha;
-    
-    if (!maskAlpha)
- 	return;
-    /*
-      if (maskAlpha == 0xff)
-      {
-      fbCompositeSrc_0888x0888 (op, pSrc, pMask, pDst,
-      xSrc, ySrc, xMask, yMask, xDst, yDst, 
-      width, height);
-      return;
-      }
-    */
-    
-    fbComposeGetStart (pSrc, xSrc, ySrc, CARD8, srcStride, srcLine, 3);
-    fbComposeGetStart (pDst, xDst, yDst, CARD8, dstStride, dstLine, 3);
-    
-    {
-	unsigned long ws,wt;
-	CARD32 workingSource;
-	CARD32 *wsrc, *wdst, *widst;
-	CARD32 rs, rd, nd;
-	CARD8 *isrc;
-	
-	
-	/* are xSrc and xDst at the same alignment?  if not, we need to be complicated :) */
-	/* if(0==0) */
-	if ((((xSrc * 3) & 3) != ((xDst * 3) & 3)) ||
-	    ((srcStride & 3) != (dstStride & 3)))
-	{
-	    while (height--)
-	    {
-		dst = dstLine;
-		dstLine += dstStride;
-		isrc = src = srcLine;
-		srcLine += srcStride;
-		w = width*3;
-		
-		setupPackedReader(ws,wt,isrc,wsrc,workingSource);
-		
-		/* get to word aligned */
-		switch(~(long)dst&3)
-		{
-		case 1:
-		    readPackedSource(rs);
-		    /* *dst++=alphamaskCombine24(rs, *dst)>>8; */
-		    rd = READ(dst);  /* make gcc happy.  hope it doens't cost us too much performance*/
-		    WRITE(dst++, alphamaskCombine24(rs, rd) >> 8);
-		    w--; if(w==0) break;
-		case 2:
-		    readPackedSource(rs);
-		    rd = READ(dst);
-		    WRITE(dst++, alphamaskCombine24(rs, rd) >> 8);
-		    w--; if(w==0) break;
-		case 3:
-		    readPackedSource(rs);
-		    rd = READ(dst);
-		    WRITE(dst++,alphamaskCombine24(rs, rd) >> 8);
-		    w--; if(w==0) break;
-		}
-		wdst=(CARD32 *)dst;
-		while (w>3)
-		{
-		    rs=READ(wsrc++);
-		    /* FIXME: write a special readPackedWord macro, which knows how to 
-		     * halfword combine
-		     */
-#if IMAGE_BYTE_ORDER == LSBFirst
-		    rd=READ(wdst);
-		    readPackedSource(nd);
-		    readPackedSource(rs);
-		    nd|=rs<<8;
-		    readPackedSource(rs);
-		    nd|=rs<<16;
-		    readPackedSource(rs);
-		    nd|=rs<<24;
-#else
-		    readPackedSource(nd);
-		    nd<<=24;
-		    readPackedSource(rs);
-		    nd|=rs<<16;
-		    readPackedSource(rs);
-		    nd|=rs<<8;
-		    readPackedSource(rs);
-		    nd|=rs;
-#endif
-		    inOver0888(maskAlpha, nd, rd, wdst++);
-		    w-=4;
-		}
-		src=(CARD8 *)wdst;
-		switch(w)
-		{
-		case 3:
-		    readPackedSource(rs);
-		    rd=READ(dst);
-		    WRITE(dst++,alphamaskCombine24(rs, rd)>>8);
-		case 2:
-		    readPackedSource(rs);
-		    rd = READ(dst);  
-		    WRITE(dst++, alphamaskCombine24(rs, rd)>>8);
-		case 1:
-		    readPackedSource(rs);
-		    rd = READ(dst);  
-		    WRITE(dst++, alphamaskCombine24(rs, rd)>>8);
-		}
-	    }
-	}
-	else
-	{
-	    while (height--)
-	    {
-		idst=dst = dstLine;
-		dstLine += dstStride;
-		src = srcLine;
-		srcLine += srcStride;
-		w = width*3;
-		/* get to word aligned */
-		switch(~(long)src&3)
-		{
-		case 1:
-		    rd=alphamaskCombine24(READ(src++), READ(dst))>>8;
-		    WRITE(dst++, rd);
-		    w--; if(w==0) break;
-		case 2:
-		    rd=alphamaskCombine24(READ(src++), READ(dst))>>8;
-		    WRITE(dst++, rd);
-		    w--; if(w==0) break;
-		case 3:
-		    rd=alphamaskCombine24(READ(src++), READ(dst))>>8;
-		    WRITE(dst++, rd);
-		    w--; if(w==0) break;
-		}
-		wsrc=(CARD32 *)src;
-		widst=(CARD32 *)dst;
-		while(w>3)
-		{
-		    rs = READ(wsrc++);
-		    rd = READ(widst);
-		    inOver0888 (maskAlpha, rs, rd, widst++);
-		    w-=4;
-		}
-		src=(CARD8 *)wsrc;
-		dst=(CARD8 *)widst;
-		switch(w)
-		{
-		case 3:
-		    rd=alphamaskCombine24(READ(src++), READ(dst))>>8;
-		    WRITE(dst++, rd);
-		case 2:
-		    rd=alphamaskCombine24(READ(src++), READ(dst))>>8;
-		    WRITE(dst++, rd);
-		case 1:
-		    rd=alphamaskCombine24(READ(src++), READ(dst))>>8;
-		    WRITE(dst++, rd);
-		}
-	    }
-	}
-    }
-}
-
-/*
- * Simple bitblt
- */
-
-static void
-fbCompositeSrcSrc_nxn  (CARD8	   op,
-			PicturePtr pSrc,
-			PicturePtr pMask,
-			PicturePtr pDst,
-			INT16      xSrc,
-			INT16      ySrc,
-			INT16      xMask,
-			INT16      yMask,
-			INT16      xDst,
-			INT16      yDst,
-			CARD16     width,
-			CARD16     height)
-{
-    FbBits	*dst;
-    FbBits	*src;
-    FbStride	dstStride, srcStride;
-    int		srcXoff, srcYoff;
-    int		dstXoff, dstYoff;
-    int		srcBpp;
-    int		dstBpp;
-    Bool	reverse = FALSE;
-    Bool	upsidedown = FALSE;
-    
-    fbGetDrawable(pSrc->pDrawable,src,srcStride,srcBpp,srcXoff,srcYoff);
-    fbGetDrawable(pDst->pDrawable,dst,dstStride,dstBpp,dstXoff,dstYoff);
-	
-    fbBlt (src + (ySrc + srcYoff) * srcStride,
-	   srcStride,
-	   (xSrc + srcXoff) * srcBpp,
- 
-	   dst + (yDst + dstYoff) * dstStride,
-	   dstStride,
-	   (xDst + dstXoff) * dstBpp,
-
-	   (width) * dstBpp,
-	   (height),
-
-	   GXcopy,
-	   FB_ALLONES,
-	   dstBpp,
-
-	   reverse,
-	   upsidedown);
-    
-    fbFinishAccess(pSrc->pDrawable);
-    fbFinishAccess(pDst->pDrawable);
-}
-
-/*
- * Solid fill
-void
-fbCompositeSolidSrc_nxn  (CARD8	op,
-			  PicturePtr pSrc,
-			  PicturePtr pMask,
-			  PicturePtr pDst,
-			  INT16      xSrc,
-			  INT16      ySrc,
-			  INT16      xMask,
-			  INT16      yMask,
-			  INT16      xDst,
-			  INT16      yDst,
-			  CARD16     width,
-			  CARD16     height)
-{
-    
-}
- */
-
-void
-fbComposite (CARD8      op,
-	     PicturePtr pSrc,
-	     PicturePtr pMask,
-	     PicturePtr pDst,
-	     INT16      xSrc,
-	     INT16      ySrc,
-	     INT16      xMask,
-	     INT16      yMask,
-	     INT16      xDst,
-	     INT16      yDst,
-	     CARD16     width,
-	     CARD16     height)
+fbWalkCompositeRegion (CARD8 op,
+		       PicturePtr pSrc,
+		       PicturePtr pMask,
+		       PicturePtr pDst,
+		       INT16 xSrc,
+		       INT16 ySrc,
+		       INT16 xMask,
+		       INT16 yMask,
+		       INT16 xDst,
+		       INT16 yDst,
+		       CARD16 width,
+		       CARD16 height,
+		       Bool srcRepeat,
+		       Bool maskRepeat,
+		       CompositeFunc compositeRect)
 {
     RegionRec	    region;
     int		    n;
     BoxPtr	    pbox;
-    CompositeFunc   func = NULL;
-    Bool	    srcRepeat = pSrc->pDrawable && pSrc->repeatType == RepeatNormal;
-    Bool	    maskRepeat = FALSE;
-    Bool	    srcTransform = pSrc->transform != 0;
-    Bool	    maskTransform = FALSE;
-    Bool	    srcAlphaMap = pSrc->alphaMap != 0;
-    Bool	    maskAlphaMap = FALSE;
-    Bool	    dstAlphaMap = pDst->alphaMap != 0;
-    int		    x_msk, y_msk, x_src, y_src, x_dst, y_dst;
     int		    w, h, w_this, h_this;
-
-#ifdef USE_MMX
-    static Bool mmx_setup = FALSE;
-    if (!mmx_setup) {
-        fbComposeSetupMMX();
-        mmx_setup = TRUE;
-    }
-#endif
-
+    int		    x_msk, y_msk, x_src, y_src, x_dst, y_dst;
+    
     xDst += pDst->pDrawable->x;
     yDst += pDst->pDrawable->y;
-    if (pSrc->pDrawable) {
+    if (pSrc->pDrawable)
+    {
         xSrc += pSrc->pDrawable->x;
         ySrc += pSrc->pDrawable->y;
     }
-
-    if (srcRepeat && srcTransform &&
-	pSrc->pDrawable->width == 1 &&
-	pSrc->pDrawable->height == 1)
-	srcTransform = FALSE;
-    
     if (pMask && pMask->pDrawable)
     {
 	xMask += pMask->pDrawable->x;
 	yMask += pMask->pDrawable->y;
-	maskRepeat = pMask->repeat == RepeatNormal;
-
-	if (pMask->filter == PictFilterConvolution)
-	    maskTransform = TRUE;
-
-	maskAlphaMap = pMask->alphaMap != 0;
-
-	if (maskRepeat && maskTransform &&
-	    pMask->pDrawable->width == 1 &&
-	    pMask->pDrawable->height == 1)
-	    maskTransform = FALSE;
     }
 
-    if (pSrc->pDrawable && (!pMask || pMask->pDrawable)
-        && !srcTransform && !maskTransform
-        && !maskAlphaMap && !srcAlphaMap && !dstAlphaMap
-        && (pSrc->filter != PictFilterConvolution)
-        && (!pMask || pMask->filter != PictFilterConvolution))
-    switch (op) {
-    case PictOpOver:
-	if (pMask)
-	{
-	    if (fbCanGetSolid(pSrc) &&
-		!maskRepeat)
-	    {
-		if (PICT_FORMAT_COLOR(pSrc->format)) {
-		    switch (pMask->format) {
-		    case PICT_a8:
-			switch (pDst->format) {
-			case PICT_r5g6b5:
-			case PICT_b5g6r5:
-#ifdef USE_MMX
-			    if (fbHaveMMX())
-				func = fbCompositeSolidMask_nx8x0565mmx;
-			    else
-#endif
-				func = fbCompositeSolidMask_nx8x0565;
-			    break;
-			case PICT_r8g8b8:
-			case PICT_b8g8r8:
-			    func = fbCompositeSolidMask_nx8x0888;
-			    break;
-			case PICT_a8r8g8b8:
-			case PICT_x8r8g8b8:
-			case PICT_a8b8g8r8:
-			case PICT_x8b8g8r8:
-#ifdef USE_MMX
-			    if (fbHaveMMX())
-				func = fbCompositeSolidMask_nx8x8888mmx;
-			    else
-#endif
-				func = fbCompositeSolidMask_nx8x8888;
-			    break;
-			default:
-			    break;
-			}
-			break;
-		    case PICT_a8r8g8b8:
-			if (pMask->componentAlpha) {
-			    switch (pDst->format) {
-			    case PICT_a8r8g8b8:
-			    case PICT_x8r8g8b8:
-#ifdef USE_MMX
-				if (fbHaveMMX())
-				    func = fbCompositeSolidMask_nx8888x8888Cmmx;
-				else
-#endif
-				    func = fbCompositeSolidMask_nx8888x8888C;
-				break;
-			    case PICT_r5g6b5:
-#ifdef USE_MMX
-				if (fbHaveMMX())
-				    func = fbCompositeSolidMask_nx8888x0565Cmmx;
-				else
-#endif
-				    func = fbCompositeSolidMask_nx8888x0565C;
-				break;
-			    default:
-				break;
-			    }
-			}
-			else
-			{
-			    switch (pDst->format) {
-                            case PICT_r5g6b5:
-                                func = fbCompositeSolidMask_nx8888x0565;
-                                break;
-			    default:
-				break;
-                            }
-			}
-			break;
-		    case PICT_a8b8g8r8:
-			if (pMask->componentAlpha) {
-			    switch (pDst->format) {
-			    case PICT_a8b8g8r8:
-			    case PICT_x8b8g8r8:
-#ifdef USE_MMX
-				if (fbHaveMMX())
-				    func = fbCompositeSolidMask_nx8888x8888Cmmx;
-				else
-#endif
-				    func = fbCompositeSolidMask_nx8888x8888C;
-				break;
-			    case PICT_b5g6r5:
-#ifdef USE_MMX
-				if (fbHaveMMX())
-				    func = fbCompositeSolidMask_nx8888x0565Cmmx;
-				else
-#endif
-				    func = fbCompositeSolidMask_nx8888x0565C;
-				break;
-			    default:
-				break;
-			    }
-			}
-			else
-			{
-			    switch (pDst->format) {
-                            case PICT_b5g6r5:
-                                func = fbCompositeSolidMask_nx8888x0565;
-                                break;
-			    default:
-				break;
-                            }
-			}
-			break;
-		    case PICT_a1:
-			switch (pDst->format) {
-			case PICT_r5g6b5:
-			case PICT_b5g6r5:
-			case PICT_r8g8b8:
-			case PICT_b8g8r8:
-			case PICT_a8r8g8b8:
-			case PICT_x8r8g8b8:
-			case PICT_a8b8g8r8:
-			case PICT_x8b8g8r8:
-			    func = fbCompositeSolidMask_nx1xn;
-			    break;
-			default:
-			    break;
-			}
-			break;
-		    default:
-			break;
-		    }
-		}
-		if (func != fbCompositeGeneral)
-		    srcRepeat = FALSE;
-	    }
-	    else if (!srcRepeat) /* has mask and non-repeating source */
-	    {
-		if (pSrc->pDrawable == pMask->pDrawable &&
-		    xSrc == xMask && ySrc == yMask &&
-		    !pMask->componentAlpha && !maskRepeat)
-		{
-		    /* source == mask: non-premultiplied data */
-		    switch (pSrc->format) {
-		    case PICT_x8b8g8r8:
-			switch (pMask->format) {
-			case PICT_a8r8g8b8:
-			case PICT_a8b8g8r8:
-			    switch (pDst->format) {
-			    case PICT_a8r8g8b8:
-			    case PICT_x8r8g8b8:
-#ifdef USE_MMX
-				if (fbHaveMMX())
-				    func = fbCompositeSrc_8888RevNPx8888mmx;
-#endif
-				break;
-			    case PICT_r5g6b5:
-#ifdef USE_MMX
-				if (fbHaveMMX())
-				    func = fbCompositeSrc_8888RevNPx0565mmx;
-#endif
-				break;
-			    default:
-				break;
-			    }
-			    break;
-			default:
-			    break;
-			}
-			break;
-		    case PICT_x8r8g8b8:
-			switch (pMask->format) {
-			case PICT_a8r8g8b8:
-			case PICT_a8b8g8r8:
-			    switch (pDst->format) {
-			    case PICT_a8b8g8r8:
-			    case PICT_x8b8g8r8:
-#ifdef USE_MMX
-				if (fbHaveMMX())
-				    func = fbCompositeSrc_8888RevNPx8888mmx;
-#endif
-				break;
-			    case PICT_r5g6b5:
-#ifdef USE_MMX
-				if (fbHaveMMX())
-				    func = fbCompositeSrc_8888RevNPx0565mmx;
-#endif
-				break;
-			    default:
-				break;
-			    }
-			    break;
-			default:
-			    break;
-			}
-			break;
-		    default:
-			break;
-		    }
-		    break;
-		}
-		else if (maskRepeat &&
-			 pMask->pDrawable->width == 1 &&
-			 pMask->pDrawable->height == 1)
-		{
-		    switch (pSrc->format) {
-		    case PICT_r5g6b5:
-		    case PICT_b5g6r5:
-			if (pDst->format == pSrc->format)
-			    func = fbCompositeTrans_0565xnx0565;
-			break;
-		    case PICT_r8g8b8:
-		    case PICT_b8g8r8:
-			if (pDst->format == pSrc->format)
-			    func = fbCompositeTrans_0888xnx0888;
-			break;
-#ifdef USE_MMX
-		    case PICT_x8r8g8b8:
-			if ((pDst->format == PICT_a8r8g8b8 ||
-			     pDst->format == PICT_x8r8g8b8) &&
-			    pMask->format == PICT_a8 && fbHaveMMX())
-			    func = fbCompositeSrc_x888x8x8888mmx;
-			break;
-		    case PICT_x8b8g8r8:
-			if ((pDst->format == PICT_a8b8g8r8 ||
-			     pDst->format == PICT_x8b8g8r8) &&
-			    pMask->format == PICT_a8 && fbHaveMMX())
-			    func = fbCompositeSrc_x888x8x8888mmx;
-			break;
-		    case PICT_a8r8g8b8:
-			if ((pDst->format == PICT_a8r8g8b8 ||
-			     pDst->format == PICT_x8r8g8b8) &&
-			    pMask->format == PICT_a8 && fbHaveMMX())
-			    func = fbCompositeSrc_8888x8x8888mmx;
-			break;
-		    case PICT_a8b8g8r8:
-			if ((pDst->format == PICT_a8b8g8r8 ||
-			     pDst->format == PICT_x8b8g8r8) &&
-			    pMask->format == PICT_a8 && fbHaveMMX())
-			    func = fbCompositeSrc_8888x8x8888mmx;
-			break;
-#endif
-		    default:
-			break;
-		    }
-		    
-		    if (func != fbCompositeGeneral)
-			maskRepeat = FALSE;
-		}
-	    }
-	}
-	else /* no mask */
-	{
-	    if (fbCanGetSolid(pSrc))
-	    {
-		/* no mask and repeating source */
-		switch (pSrc->format) {
-		case PICT_a8r8g8b8:
-		    switch (pDst->format) {
-		    case PICT_a8r8g8b8:
-		    case PICT_x8r8g8b8:
-#ifdef USE_MMX
-			if (fbHaveMMX())
-			{
-			    srcRepeat = FALSE;
-			    func = fbCompositeSolid_nx8888mmx;
-			}
-#endif
-			break;
-		    case PICT_r5g6b5:
-#ifdef USE_MMX
-			if (fbHaveMMX())
-			{
-			    srcRepeat = FALSE;
-			    func = fbCompositeSolid_nx0565mmx;
-			}
-#endif
-			break;
-		    default:
-			break;
-		    }
-		    break;
-		default:
-		    break;
-		}
-	    }
-	    else if (! srcRepeat)
-	    {
-		/*
-		 * Formats without alpha bits are just Copy with Over
-		 */
-		if (pSrc->format == pDst->format && !PICT_FORMAT_A(pSrc->format))
-		{
-#ifdef USE_MMX
-		    if (fbHaveMMX() &&
-			(pSrc->format == PICT_x8r8g8b8 || pSrc->format == PICT_x8b8g8r8))
-			func = fbCompositeCopyAreammx;
-		    else
-#endif
-			func = fbCompositeSrcSrc_nxn;
-		}
-		else switch (pSrc->format) {
-		case PICT_a8r8g8b8:
-		    switch (pDst->format) {
-		    case PICT_a8r8g8b8:
-		    case PICT_x8r8g8b8:
-#ifdef USE_MMX
-			if (fbHaveMMX())
-			    func = fbCompositeSrc_8888x8888mmx;
-			else
-#endif
-			    func = fbCompositeSrc_8888x8888;
-			break;
-		    case PICT_r8g8b8:
-			func = fbCompositeSrc_8888x0888;
-			break;
-		    case PICT_r5g6b5:
-#ifdef USE_MMX
-			if (fbHaveMMX())
-			    func = fbCompositeSrc_8888x0565mmx;
-			else
-#endif
-			    func = fbCompositeSrc_8888x0565;
-			break;
-		    default:
-			break;
-		    }
-		    break;
-		case PICT_x8r8g8b8:
-		    switch (pDst->format) {
-		    case PICT_a8r8g8b8:
-		    case PICT_x8r8g8b8:
-#ifdef USE_MMX
-			if (fbHaveMMX())
-			    func = fbCompositeCopyAreammx;
-#endif
-			break;
-		    default:
-			break;
-		    }
-		case PICT_x8b8g8r8:
-		    switch (pDst->format) {
-		    case PICT_a8b8g8r8:
-		    case PICT_x8b8g8r8:
-#ifdef USE_MMX
-			if (fbHaveMMX())
-			    func = fbCompositeCopyAreammx;
-#endif
-			break;
-		    default:
-			break;
-		    }
-		    break;
-		case PICT_a8b8g8r8:
-		    switch (pDst->format) {
-		    case PICT_a8b8g8r8:
-		    case PICT_x8b8g8r8:
-#ifdef USE_MMX
-			if (fbHaveMMX())
-			    func = fbCompositeSrc_8888x8888mmx;
-			else
-#endif
-			    func = fbCompositeSrc_8888x8888;
-			break;
-		    case PICT_b8g8r8:
-			func = fbCompositeSrc_8888x0888;
-			break;
-		    case PICT_b5g6r5:
-#ifdef USE_MMX
-			if (fbHaveMMX())
-			    func = fbCompositeSrc_8888x0565mmx;
-			else
-#endif
-			    func = fbCompositeSrc_8888x0565;
-			break;
-		    default:
-			break;
-		    }
-		    break;
-		default:
-		    break;
-		}
-	    }
-	}
-	break;
-    case PictOpAdd:
-	if (pMask == 0)
-	{
-	    switch (pSrc->format) {
-	    case PICT_a8r8g8b8:
-		switch (pDst->format) {
-		case PICT_a8r8g8b8:
-#ifdef USE_MMX
-		    if (fbHaveMMX())
-			func = fbCompositeSrcAdd_8888x8888mmx;
-		    else
-#endif
-			func = fbCompositeSrcAdd_8888x8888;
-		    break;
-		default:
-		    break;
-		}
-		break;
-	    case PICT_a8b8g8r8:
-		switch (pDst->format) {
-		case PICT_a8b8g8r8:
-#ifdef USE_MMX
-		    if (fbHaveMMX())
-			func = fbCompositeSrcAdd_8888x8888mmx;
-		    else
-#endif
-			func = fbCompositeSrcAdd_8888x8888;
-		    break;
-		default:
-		    break;
-		}
-		break;
-	    case PICT_a8:
-		switch (pDst->format) {
-		case PICT_a8:
-#ifdef USE_MMX
-		    if (fbHaveMMX())
-			func = fbCompositeSrcAdd_8000x8000mmx;
-		    else
-#endif
-			func = fbCompositeSrcAdd_8000x8000;
-		    break;
-		default:
-		    break;
-		}
-		break;
-	    case PICT_a1:
-		switch (pDst->format) {
-		case PICT_a1:
-		    func = fbCompositeSrcAdd_1000x1000;
-		    break;
-		default:
-		    break;
-		}
-		break;
-	    default:
-		break;
-	    }
-	}
-	else
-	{
-	    if ((pSrc->format == PICT_a8r8g8b8	||
-		 pSrc->format == PICT_a8b8g8r8) &&
-		fbCanGetSolid (pSrc)		&&
-		pMask->format == PICT_a8	&&
-		pDst->format == PICT_a8)
-	    {
-		srcRepeat = FALSE;
-#ifdef USE_MMX
-		if (fbHaveMMX())
-		    func = fbCompositeSrcAdd_8888x8x8mmx;
-		else
-#endif
-		    func = fbCompositeSrcAdd_8888x8x8;
-	    }
-	}
-	break;
-    case PictOpSrc:
-	if (pMask)
-	{
-#ifdef USE_MMX
-	    if (fbCanGetSolid (pSrc))
-	    {
-		if (pMask->format == PICT_a8)
-		{
-		    switch (pDst->format)
-		    {
-		    case PICT_a8r8g8b8:
-		    case PICT_x8r8g8b8:
-		    case PICT_a8b8g8r8:
-		    case PICT_x8b8g8r8:
-			if (fbHaveMMX())
-			{
-			    srcRepeat = FALSE;
-			    func = fbCompositeSolidMaskSrc_nx8x8888mmx;
-			}
-			break;
-		    default:
-			break;
-		    }
-		}
-	    }
-#endif
-	}
-	else
-	{
-	    if (pSrc->format == pDst->format)
-	    {
-#ifdef USE_MMX
-		if (pSrc->pDrawable != pDst->pDrawable && fbHaveMMX() &&
-		    (PICT_FORMAT_BPP (pSrc->format) == 16 ||
-		     PICT_FORMAT_BPP (pSrc->format) == 32))
-		    func = fbCompositeCopyAreammx;
-		else
-#endif
-		    func = fbCompositeSrcSrc_nxn;
-	    }
-	}
-	break;
-    case PictOpIn:
-#ifdef USE_MMX
-	if (pSrc->format == PICT_a8 &&
-	    pDst->format == PICT_a8 &&
-	    !pMask)
-	{
-	    if (fbHaveMMX())
-		func = fbCompositeIn_8x8mmx;
-	}
-	else if (srcRepeat && pMask && !pMask->componentAlpha &&
-		 (pSrc->format == PICT_a8r8g8b8 ||
-		  pSrc->format == PICT_a8b8g8r8)   &&
-		 (pMask->format == PICT_a8)        &&
-		 pDst->format == PICT_a8)
-	{
-	    if (fbHaveMMX())
-	    {
-		srcRepeat = FALSE;
-		func = fbCompositeIn_nx8x8mmx;
-	    }
-	}
-#else
-	func = NULL;
-#endif
-       break;
-    default:
-	break;
-    }
-
-    if (!func) {
-         /* no fast path, use the general code */
-         fbCompositeGeneral(op, pSrc, pMask, pDst, xSrc, ySrc, xMask, yMask, xDst, yDst, width, height);
-         return;
-    }
-
-    /* if we are transforming, we handle repeats in fbFetchTransformed */
-    if (srcTransform)
-	srcRepeat = FALSE;
-    if (maskTransform)
-	maskRepeat = FALSE;
-    
     if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst, xSrc, ySrc,
 				   xMask, yMask, xDst, yDst, width, height))
         return;
-
+    
     n = REGION_NUM_RECTS (&region);
     pbox = REGION_RECTS (&region);
     while (n--)
@@ -2104,9 +125,9 @@ fbComposite (CARD8      op,
 			w_this = pSrc->pDrawable->width - x_src;
 		    x_src += pSrc->pDrawable->x;
 		}
-		(*func) (op, pSrc, pMask, pDst,
-			 x_src, y_src, x_msk, y_msk, x_dst, y_dst,
-			 w_this, h_this);
+		(*compositeRect) (op, pSrc, pMask, pDst,
+				  x_src, y_src, x_msk, y_msk, x_dst, y_dst,
+				  w_this, h_this);
 		w -= w_this;
 		x_src += w_this;
 		x_msk += w_this;
@@ -2122,7 +143,307 @@ fbComposite (CARD8      op,
     REGION_UNINIT (pDst->pDrawable->pScreen, &region);
 }
 
+void
+fbComposite (CARD8      op,
+	     PicturePtr pSrc,
+	     PicturePtr pMask,
+	     PicturePtr pDst,
+	     INT16      xSrc,
+	     INT16      ySrc,
+	     INT16      xMask,
+	     INT16      yMask,
+	     INT16      xDst,
+	     INT16      yDst,
+	     CARD16     width,
+	     CARD16     height)
+{
+    pixman_image_t *src, *mask, *dest;
+    
+    xDst += pDst->pDrawable->x;
+    yDst += pDst->pDrawable->y;
+    if (pSrc->pDrawable)
+    {
+        xSrc += pSrc->pDrawable->x;
+        ySrc += pSrc->pDrawable->y;
+    }
+    if (pMask && pMask->pDrawable)
+    {
+	xMask += pMask->pDrawable->x;
+	yMask += pMask->pDrawable->y;
+    }
+
+    miCompositeSourceValidate (pSrc, xSrc, ySrc, width, height);
+    if (pMask)
+	miCompositeSourceValidate (pMask, xMask, yMask, width, height);
+    
+    src = image_from_pict (pSrc, TRUE);
+    mask = image_from_pict (pMask, TRUE);
+    dest = image_from_pict (pDst, TRUE);
+
+    if (src && dest && !(pMask && !mask))
+    {
+	pixman_image_composite (op, src, mask, dest,
+				xSrc, ySrc, xMask, yMask, xDst, yDst,
+				width, height);
+	    
+    }
+    
+    if (src)
+	pixman_image_unref (src);
+    if (mask)
+	pixman_image_unref (mask);
+    if (dest)
+	pixman_image_unref (dest);
+}
+
+void
+fbCompositeGeneral (CARD8	op,
+		    PicturePtr	pSrc,
+		    PicturePtr	pMask,
+		    PicturePtr	pDst,
+		    INT16	xSrc,
+		    INT16	ySrc,
+		    INT16	xMask,
+		    INT16	yMask,
+		    INT16	xDst,
+		    INT16	yDst,
+		    CARD16	width,
+		    CARD16	height)
+{
+    return fbComposite (op, pSrc, pMask, pDst,
+			xSrc, ySrc, xMask, yMask, xDst, yDst,
+			width, height);
+}
+
 #endif /* RENDER */
+
+static pixman_image_t *
+create_solid_fill_image (PicturePtr pict)
+{
+    PictSolidFill *solid = &pict->pSourcePict->solidFill;
+    pixman_color_t color;
+    CARD32 a, r, g, b;
+    
+    a = (solid->color & 0xff000000) >> 24;
+    r = (solid->color & 0x00ff0000) >> 16;
+    g = (solid->color & 0x0000ff00) >>  8;
+    b = (solid->color & 0x000000ff) >>  0;
+    
+    color.alpha = (a << 8) | a;
+    color.red =   (r << 8) | r;
+    color.green = (g << 8) | g;
+    color.blue =  (b << 8) | b;
+    
+    return pixman_image_create_solid_fill (&color);
+}
+
+static pixman_image_t *
+create_linear_gradient_image (PictGradient *gradient)
+{
+    PictLinearGradient *linear = (PictLinearGradient *)gradient;
+    pixman_point_fixed_t p1;
+    pixman_point_fixed_t p2;
+    
+    p1.x = linear->p1.x;
+    p1.y = linear->p1.y;
+    p2.x = linear->p2.x;
+    p2.y = linear->p2.y;
+    
+    return pixman_image_create_linear_gradient (
+	&p1, &p2, (pixman_gradient_stop_t *)gradient->stops, gradient->nstops);
+}
+
+static pixman_image_t *
+create_radial_gradient_image (PictGradient *gradient)
+{
+    PictRadialGradient *radial = (PictRadialGradient *)gradient;
+    pixman_point_fixed_t c1;
+    pixman_point_fixed_t c2;
+    
+    c1.x = radial->c1.x;
+    c1.y = radial->c1.y;
+    c2.x = radial->c2.x;
+    c2.y = radial->c2.y;
+    
+    return pixman_image_create_radial_gradient (
+	&c1, &c2, radial->c1.radius,
+	radial->c2.radius,
+	(pixman_gradient_stop_t *)gradient->stops, gradient->nstops);
+}
+
+static pixman_image_t *
+create_conical_gradient_image (PictGradient *gradient)
+{
+    PictConicalGradient *conical = (PictConicalGradient *)gradient;
+    pixman_point_fixed_t center;
+    
+    center.x = conical->center.x;
+    center.y = conical->center.y;
+    
+    return pixman_image_create_conical_gradient (
+	&center, conical->angle, (pixman_gradient_stop_t *)gradient->stops,
+	gradient->nstops);
+}
+
+static pixman_image_t *
+create_bits_picture (PicturePtr pict,
+		     Bool       has_clip)
+{
+    FbBits *bits;
+    FbStride stride;
+    int bpp, xoff, yoff;
+    pixman_image_t *image;
+    
+    fbGetDrawable (pict->pDrawable, bits, stride, bpp, xoff, yoff);
+    
+    bits += yoff * stride + xoff;
+    
+    image = pixman_image_create_bits (
+	pict->format,
+	pict->pDrawable->width, pict->pDrawable->height,
+	(uint32_t *)bits, stride * sizeof (FbStride));
+    
+    
+#ifdef FB_ACCESS_WRAPPER
+#if FB_SHIFT==5
+    
+    pixman_image_set_accessors (image,
+				(pixman_read_memory_func_t)wfbReadMemory,
+				(pixman_write_memory_func_t)wfbWriteMemory);
+    
+#else
+    
+#error The pixman library only works when FbBits is 32 bits wide
+    
+#endif
+#endif
+    
+    /* pCompositeClip is undefined for source pictures, so
+     * only set the clip region for pictures with drawables
+     */
+    if (has_clip)
+    {
+	if (pict->clientClipType != CT_NONE)
+	    pixman_image_set_has_client_clip (image, TRUE);
+	
+	pixman_image_set_clip_region (image, pict->pCompositeClip);
+    }
+    
+    /* Indexed table */
+    if (pict->pFormat->index.devPrivate)
+	pixman_image_set_indexed (image, pict->pFormat->index.devPrivate);
+    
+    fbFinishAccess (pict->pDrawable);
+
+    return image;
+}
+
+static void
+set_image_properties (pixman_image_t *image, PicturePtr pict)
+{
+    pixman_repeat_t repeat;
+    pixman_filter_t filter;
+    
+    if (pict->transform)
+    {
+	pixman_image_set_transform (
+	    image, (pixman_transform_t *)pict->transform);
+    }
+    
+    switch (pict->repeatType)
+    {
+    default:
+    case RepeatNone:
+	repeat = PIXMAN_REPEAT_NONE;
+	break;
+	
+    case RepeatPad:
+	repeat = PIXMAN_REPEAT_PAD;
+	break;
+	
+    case RepeatNormal:
+	repeat = PIXMAN_REPEAT_NORMAL;
+	break;
+	
+    case RepeatReflect:
+	repeat = PIXMAN_REPEAT_REFLECT;
+	break;
+    }
+    
+    pixman_image_set_repeat (image, repeat);
+    
+    if (pict->alphaMap)
+    {
+	pixman_image_t *alpha_map = image_from_pict (pict->alphaMap, TRUE);
+	
+	pixman_image_set_alpha_map (
+	    image, alpha_map, pict->alphaOrigin.x, pict->alphaOrigin.y);
+	
+	pixman_image_unref (alpha_map);
+    }
+    
+    pixman_image_set_component_alpha (image, pict->componentAlpha);
+
+    switch (pict->filter)
+    {
+    default:
+    case PictFilterNearest:
+    case PictFilterFast:
+	filter = PIXMAN_FILTER_NEAREST;
+	break;
+	
+    case PictFilterBilinear:
+    case PictFilterGood:
+	filter = PIXMAN_FILTER_BILINEAR;
+	break;
+	
+    case PictFilterConvolution:
+	filter = PIXMAN_FILTER_CONVOLUTION;
+	break;
+    }
+    
+    pixman_image_set_filter (image, filter, (pixman_fixed_t *)pict->filter_params, pict->filter_nparams);
+}
+
+pixman_image_t *
+image_from_pict (PicturePtr pict,
+		 Bool has_clip)
+{
+    pixman_image_t *image = NULL;
+
+    if (!pict)
+	return NULL;
+
+    if (pict->pDrawable)
+    {
+	image = create_bits_picture (pict, has_clip);
+    }
+    else if (pict->pSourcePict)
+    {
+	SourcePict *sp = pict->pSourcePict;
+	
+	if (sp->type == SourcePictTypeSolidFill)
+	{
+	    image = create_solid_fill_image (pict);
+	}
+	else
+	{
+	    PictGradient *gradient = &pict->pSourcePict->gradient;
+	    
+	    if (sp->type == SourcePictTypeLinear)
+		image = create_linear_gradient_image (gradient);
+	    else if (sp->type == SourcePictTypeRadial)
+		image = create_radial_gradient_image (gradient);
+	    else if (sp->type == SourcePictTypeConical)
+		image = create_conical_gradient_image (gradient);
+	}
+    }
+    
+    if (image)
+	set_image_properties (image, pict);
+    
+    return image;
+}
 
 Bool
 fbPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
@@ -2146,203 +467,3 @@ fbPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
 
     return TRUE;
 }
-
-#ifdef USE_MMX
-/* The CPU detection code needs to be in a file not compiled with
- * "-mmmx -msse", as gcc would generate CMOV instructions otherwise
- * that would lead to SIGILL instructions on old CPUs that don't have
- * it.
- */
-#if !defined(__amd64__) && !defined(__x86_64__)
-
-#ifdef HAVE_GETISAX
-#include <sys/auxv.h>
-#endif
-
-enum CPUFeatures {
-    NoFeatures = 0,
-    MMX = 0x1,
-    MMX_Extensions = 0x2, 
-    SSE = 0x6,
-    SSE2 = 0x8,
-    CMOV = 0x10
-};
-
-static unsigned int detectCPUFeatures(void) {
-    unsigned int features = 0;
-    unsigned int result = 0;
-
-#ifdef HAVE_GETISAX
-    if (getisax(&result, 1)) {
-        if (result & AV_386_CMOV)
-            features |= CMOV;
-        if (result & AV_386_MMX)
-            features |= MMX;
-        if (result & AV_386_AMD_MMX)
-            features |= MMX_Extensions;
-        if (result & AV_386_SSE)
-            features |= SSE;
-        if (result & AV_386_SSE2)
-            features |= SSE2;
-    }
-#else
-    char vendor[13];
-#ifdef _MSC_VER
-    int vendor0 = 0, vendor1, vendor2;
-#endif
-    vendor[0] = 0;
-    vendor[12] = 0;
-
-#ifdef __GNUC__
-    /* see p. 118 of amd64 instruction set manual Vol3 */
-    /* We need to be careful about the handling of %ebx and
-     * %esp here. We can't declare either one as clobbered
-     * since they are special registers (%ebx is the "PIC
-     * register" holding an offset to global data, %esp the
-     * stack pointer), so we need to make sure they have their
-     * original values when we access the output operands.
-     */
-    __asm__ ("pushf\n"
-             "pop %%eax\n"
-             "mov %%eax, %%ecx\n"
-             "xor $0x00200000, %%eax\n"
-             "push %%eax\n"
-             "popf\n"
-             "pushf\n"
-             "pop %%eax\n"
-             "mov $0x0, %%edx\n"
-             "xor %%ecx, %%eax\n"
-             "jz 1f\n"
-
-             "mov $0x00000000, %%eax\n"
-	     "push %%ebx\n"
-             "cpuid\n"
-             "mov %%ebx, %%eax\n"
-	     "pop %%ebx\n"
-	     "mov %%eax, %1\n"
-             "mov %%edx, %2\n"
-             "mov %%ecx, %3\n"
-             "mov $0x00000001, %%eax\n"
-	     "push %%ebx\n"
-             "cpuid\n"
-	     "pop %%ebx\n"
-             "1:\n"
-             "mov %%edx, %0\n"
-             : "=r" (result), 
-               "=m" (vendor[0]), 
-               "=m" (vendor[4]), 
-               "=m" (vendor[8])
-             :
-             : "%eax", "%ecx", "%edx"
-        );
-
-#elif defined (_MSC_VER)
-
-    _asm {
-      pushfd
-      pop eax
-      mov ecx, eax
-      xor eax, 00200000h
-      push eax
-      popfd
-      pushfd
-      pop eax
-      mov edx, 0
-      xor eax, ecx
-      jz nocpuid
-
-      mov eax, 0
-      push ebx
-      cpuid
-      mov eax, ebx
-      pop ebx
-      mov vendor0, eax
-      mov vendor1, edx
-      mov vendor2, ecx
-      mov eax, 1
-      push ebx
-      cpuid
-      pop ebx
-    nocpuid:
-      mov result, edx
-    }
-    memmove (vendor+0, &vendor0, 4);
-    memmove (vendor+4, &vendor1, 4);
-    memmove (vendor+8, &vendor2, 4);
-
-#else
-#   error unsupported compiler
-#endif
-    
-    features = 0;
-    if (result) {
-        /* result now contains the standard feature bits */
-        if (result & (1 << 15))
-            features |= CMOV;
-        if (result & (1 << 23))
-            features |= MMX;
-        if (result & (1 << 25))
-            features |= SSE;
-        if (result & (1 << 26))
-            features |= SSE2;
-        if ((features & MMX) && !(features & SSE) &&
-            (strcmp(vendor, "AuthenticAMD") == 0 ||
-             strcmp(vendor, "Geode by NSC") == 0)) {
-            /* check for AMD MMX extensions */
-#ifdef __GNUC__
-            __asm__("push %%ebx\n"
-                    "mov $0x80000000, %%eax\n"
-                    "cpuid\n"
-                    "xor %%edx, %%edx\n"
-                    "cmp $0x1, %%eax\n"
-                    "jge 2f\n"
-                    "mov $0x80000001, %%eax\n"
-                    "cpuid\n"
-                    "2:\n"
-                    "pop %%ebx\n"
-                    "mov %%edx, %0\n"
-                    : "=r" (result)
-                    :
-                    : "%eax", "%ecx", "%edx"
-                );
-#elif defined _MSC_VER
-            _asm {
-              push ebx
-              mov eax, 80000000h
-              cpuid
-              xor edx, edx
-              cmp eax, 1
-              jge notamd
-              mov eax, 80000001h
-              cpuid
-            notamd:
-              pop ebx
-              mov result, edx
-            }
-#endif
-            if (result & (1<<22))
-                features |= MMX_Extensions;
-        }
-    }
-#endif /* HAVE_GETISAX */
-
-    return features;
-}
-
-Bool
-fbHaveMMX (void)
-{
-    static Bool initialized = FALSE;
-    static Bool mmx_present;
-
-    if (!initialized)
-    {
-        unsigned int features = detectCPUFeatures();
-	mmx_present = (features & (MMX|MMX_Extensions)) == (MMX|MMX_Extensions);
-        initialized = TRUE;
-    }
-    
-    return mmx_present;
-}
-#endif /* __amd64__ */
-#endif

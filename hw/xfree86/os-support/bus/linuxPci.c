@@ -788,8 +788,10 @@ xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
 	write(fd, "1", 2);
 	lseek(fd, 0, SEEK_SET);
 
+    len = min(Len, st.st_size);
+
         /* copy the ROM until we hit Len, EOF or read error */
-        for (i = 0; i < Len && read(fd, Buf, 1) > 0; Buf++, i++)
+        for (; len && (size = read(fd, Buf, len)) > 0 ; Buf+=size, len-=size)
             ;
 
 	write(fd, "0", 2);

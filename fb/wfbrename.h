@@ -184,9 +184,11 @@
 #define fbUnmapWindow wfbUnmapWindow
 #define fbUnrealizeFont wfbUnrealizeFont
 #define fbValidateGC wfbValidateGC
+#define fbWalkCompositeRegion wfbWalkCompositeRegion
 #define fbWinPrivateIndex wfbWinPrivateIndex
 #define fbZeroLine wfbZeroLine
 #define fbZeroSegment wfbZeroSegment
+#define image_from_pict wfb_image_from_pict
 #define xxScrPrivateIndex wfbxxScrPrivateIndex
 #define xxGCPrivateIndex wfbxxGCPrivateIndex
 #define xxColormapPrivateIndex wfbxxColormapPrivateIndex

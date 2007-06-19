@@ -131,10 +131,10 @@ struct __GLXprovider {
 
 void GlxPushProvider(__GLXprovider *provider);
 
-void __glXsetEnterLeaveServerFuncs(void (*enter)(void),
-				   void (*leave)(void));
-void __glXenterServer(void);
-void __glXleaveServer(void);
+void __glXsetEnterLeaveServerFuncs(void (*enter)(GLboolean),
+				   void (*leave)(GLboolean));
+void __glXenterServer(GLboolean rendering);
+void __glXleaveServer(GLboolean rendering);
 
 void glxSuspendClients(void);
 void glxResumeClients(void);

@@ -27,7 +27,6 @@
 #endif
 
 #include "fb.h"
-#include "fbmmx.h"
 
 void
 fbFill (DrawablePtr pDrawable,
@@ -47,12 +46,15 @@ fbFill (DrawablePtr pDrawable,
 
     switch (pGC->fillStyle) {
     case FillSolid:
-#ifdef USE_MMX
-	if (!pPriv->and && fbHaveMMX())
-	    if (fbSolidFillmmx (pDrawable, x, y, width, height, pPriv->xor)) {
+#ifndef FB_ACCESS_WRAPPER
+	if (!pPriv->and)
+	{
+	    if (pixman_fill (dst, dstStride, dstBpp, x + dstXoff, y + dstYoff, width, height, pPriv->xor))
+	    {
 		fbFinishAccess (pDrawable);
 		return;
 	    }
+	}
 #endif	    
 	fbSolid (dst + (y + dstYoff) * dstStride, 
 		 dstStride, 
@@ -215,16 +217,16 @@ fbSolidBoxClipped (DrawablePtr	pDrawable,
 	if (partY2 <= partY1)
 	    continue;
 
-#ifdef USE_MMX
-	if (!and && fbHaveMMX())
+#ifndef FB_ACCESS_WRAPPER
+	if (!and)
 	{
-		if (fbSolidFillmmx (pDrawable,
-		                    partX1, partY1,
-				    (partX2 - partX1), (partY2 - partY1),
-				    xor)) {
-			fbFinishAccess (pDrawable);
-			return;
-		}
+	    if (pixman_fill (dst, dstStride, dstBpp,
+			     partX1 + dstXoff, partX2 + dstYoff, (partX2 - partX1), (partY2 - partY1),
+			     xor))
+	    {
+		fbFinishAccess (pDrawable);
+		return;
+	    }
 	}
 #endif
 	fbSolid (dst + (partY1 + dstYoff) * dstStride,

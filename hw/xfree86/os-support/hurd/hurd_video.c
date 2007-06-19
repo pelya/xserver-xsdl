@@ -117,49 +117,29 @@ xf86LinearVidMem()
 /**************************************************************************
  * I/O Permissions section                                                 
  ***************************************************************************/
-mach_port_t io_port;
+
+/*
+ * Due to conflicts with "compiler.h", don't rely on <sys/io.h> to declare
+ * this.
+ */
+extern int ioperm(unsigned long __from, unsigned long __num, int __turn_on);
 
 Bool
 xf86EnableIO()
 {
-    mach_port_t device;
-    kern_return_t err;
-
-    err = get_privileged_ports(NULL, &device);
-    if( err )
-    {
-	errno = err;
-	FatalError("xf86EnableIO() can't get_privileged_ports. (%s)\n",strerror(errno));
+    if (ioperm(0, 0xffff, 1)) {
+	FatalError("xf86EnableIO: ioperm() failed (%s)\n", strerror(errno));
+	return FALSE;
     }
-    err = device_open(device,D_READ|D_WRITE,"io",&io_port);
-    mach_port_deallocate(mach_task_self(), device);
-    if( err )
-    {
-	errno = err;
-	FatalError("xf86EnableIO() can't device_open. (%s)\n",strerror(errno));
-    }
-
-    err = i386_io_port_add(mach_thread_self (), io_port);
-    if( err )
-    {
-	errno = err;
-	FatalError("xf86EnableIO() can't i386_io_port_add.(io_port) (%s)\n",strerror(errno));
-    }
+    ioperm(0x40,4,0); /* trap access to the timer chip */
+    ioperm(0x60,4,0); /* trap access to the keyboard controller */
     return TRUE;
 }
 	
 void
 xf86DisableIO()
 {
-    kern_return_t err;
-
-    err = i386_io_port_remove(mach_thread_self (), io_port);
-    if( err )
-    {
-	errno = err;
-	FatalError("xf86DisableIO() can't i386_io_port_remove.(io_port) (%s)\n",strerror(errno));
-    }
-    mach_port_deallocate(mach_task_self(), io_port);
+    ioperm(0,0xffff,0);
     return;
 }
 

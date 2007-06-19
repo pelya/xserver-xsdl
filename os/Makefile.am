@@ -3,7 +3,6 @@ noinst_LTLIBRARIES = libos.la libcwrapper.la
 AM_CFLAGS = $(DIX_CFLAGS)
 
 # FIXME: Add support for these in configure.ac
-K5AUTH_SRCS = k5auth.c
 SECURERPC_SRCS = rpcauth.c
 INTERNALMALLOC_SRCS = xalloc.c
 
@@ -48,7 +47,7 @@ libcwrapper_la_CFLAGS = \
 	-I$(top_srcdir)/hw/xfree86/os-support \
 	$(AM_CFLAGS)
 
-EXTRA_DIST = $(K5AUTH_SRCS) $(SECURERPC_SRCS) $(INTERNALMALLOC_SRCS) \
+EXTRA_DIST = $(SECURERPC_SRCS) $(INTERNALMALLOC_SRCS) \
      $(XCSECURITY_SRCS) $(XDMCP_SRCS) $(STRLCAT_SRCS)
 
 if XSERVER_DTRACE

@@ -45,9 +45,6 @@ fontsmodule_LTLIBRARIES = libfreetype.la \
 
 AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@
 INCLUDES = @XORG_INCS@ \
-           -I$(top_srcdir)/afb \
-           -I$(top_srcdir)/cfb \
-           -I$(top_srcdir)/mfb \
            -I$(top_srcdir)/dbe \
            -I$(top_srcdir)/hw/xfree86/loader \
            -I$(top_srcdir)/miext/shadow \

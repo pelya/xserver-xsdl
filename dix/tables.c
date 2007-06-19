@@ -61,11 +61,6 @@ SOFTWARE.
 #include "swaprep.h"
 #include "swapreq.h"
 
-#ifdef K5AUTH
-extern int
-    k5_stage1(), k5_stage2(), k5_stage3(), k5_bad();
-#endif
-
 int (* InitialVector[3]) (
 	ClientPtr /* client */
     ) =
@@ -515,13 +510,3 @@ _X_EXPORT ReplySwapPtr ReplySwapVector[256] =
     ReplyNotSwappd,				/* NoOperation */
     ReplyNotSwappd
 };
-
-#ifdef K5AUTH
-int (*k5_Vector[256])() =
-{
-    k5_bad,
-    k5_stage1,
-    k5_bad,
-    k5_stage3
-};
-#endif

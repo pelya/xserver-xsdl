@@ -1217,8 +1217,15 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
     int			o;
 
-    if (maxX == 0 || maxY == 0)
-	xf86RandR12GetOriginalVirtualSize (scrn, &maxX, &maxY);
+    /* When canGrow was TRUE in the initial configuration we have to
+     * compare against the maximum values so that we don't drop modes.
+     * When canGrow was FALSE, the maximum values would have been clamped
+     * anyway.
+     */
+    if (maxX == 0 || maxY == 0) {
+	maxX = config->maxWidth;
+	maxY = config->maxHeight;
+    }
 
     /* Elide duplicate modes before defaulting code uses them */
     xf86PruneDuplicateMonitorModes (scrn->monitor);
@@ -1723,8 +1730,26 @@ Bool
 xf86SetDesiredModes (ScrnInfoPtr scrn)
 {
     xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(scrn);
-    int			c;
+    int			c, o;
 
+    /*
+     * Turn off everything so mode setting is done
+     * with hardware in a consistent state
+     */
+    for (o = 0; o < config->num_output; o++) 
+    {
+	xf86OutputPtr  output = config->output[o];
+	(*output->funcs->dpms)(output, DPMSModeOff);
+    }
+
+    for (c = 0; c < config->num_crtc; c++) 
+    {
+	xf86CrtcPtr crtc = config->crtc[c];
+
+	crtc->funcs->dpms(crtc, DPMSModeOff);
+	memset(&crtc->mode, 0, sizeof(crtc->mode));
+    }
+    
     for (c = 0; c < config->num_crtc; c++)
     {
 	xf86CrtcPtr	crtc = config->crtc[c];

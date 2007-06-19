@@ -1,4 +1,4 @@
- /*
+/*
  *
  * Copyright © 1999 Keith Packard
  *
@@ -266,19 +266,19 @@ miChangePictureFilter (PicturePtr pPicture,
 
 #define BOUND(v)	(INT16) ((v) < MINSHORT ? MINSHORT : (v) > MAXSHORT ? MAXSHORT : (v))
 
-static __inline Bool
-miClipPictureReg (RegionPtr	pRegion,
-		  RegionPtr	pClip,
+static inline pixman_bool_t
+miClipPictureReg (pixman_region16_t *	pRegion,
+		  pixman_region16_t *	pClip,
 		  int		dx,
 		  int		dy)
 {
-    if (REGION_NUM_RECTS(pRegion) == 1 &&
-	REGION_NUM_RECTS(pClip) == 1)
+    if (pixman_region_n_rects(pRegion) == 1 &&
+	pixman_region_n_rects(pClip) == 1)
     {
-	BoxPtr  pRbox = REGION_RECTS(pRegion);
-	BoxPtr  pCbox = REGION_RECTS(pClip);
+	pixman_box16_t *  pRbox = pixman_region_rectangles(pRegion, NULL);
+	pixman_box16_t *  pCbox = pixman_region_rectangles(pClip, NULL);
 	int	v;
-
+	
 	if (pRbox->x1 < (v = pCbox->x1 + dx))
 	    pRbox->x1 = BOUND(v);
 	if (pRbox->x2 > (v = pCbox->x2 + dx))
@@ -290,23 +290,23 @@ miClipPictureReg (RegionPtr	pRegion,
 	if (pRbox->x1 >= pRbox->x2 ||
 	    pRbox->y1 >= pRbox->y2)
 	{
-	    REGION_EMPTY(pScreen, pRegion);
+	    pixman_region_init (pRegion);
 	}
     }
-    else if (!REGION_NOTEMPTY (pScreen, pClip))
+    else if (!pixman_region_not_empty (pClip))
 	return FALSE;
     else
     {
 	if (dx || dy)
-	    REGION_TRANSLATE(pScreen, pRegion, -dx, -dy);
-	if (!REGION_INTERSECT (pScreen, pRegion, pRegion, pClip))
+	    pixman_region_translate (pRegion, -dx, -dy);
+	if (!pixman_region_intersect (pRegion, pRegion, pClip))
 	    return FALSE;
 	if (dx || dy)
-	    REGION_TRANSLATE(pScreen, pRegion, dx, dy);
+	    pixman_region_translate(pRegion, dx, dy);
     }
-    return REGION_NOTEMPTY(pScreen, pRegion);
+    return pixman_region_not_empty(pRegion);
 }
-		  
+
 static __inline Bool
 miClipPictureSrc (RegionPtr	pRegion,
 		  PicturePtr	pPicture,
@@ -320,13 +320,13 @@ miClipPictureSrc (RegionPtr	pRegion,
     {
 	if (pPicture->clientClipType != CT_NONE)
 	{
-	    REGION_TRANSLATE(pScreen, pRegion, 
+	    pixman_region_translate ( pRegion, 
 			     dx - pPicture->clipOrigin.x,
 			     dy - pPicture->clipOrigin.y);
 	    if (!REGION_INTERSECT (pScreen, pRegion, pRegion, 
-				   (RegionPtr) pPicture->clientClip))
+				   (RegionPtr) pPicture->pCompositeClip)) // clientClip))
 		return FALSE;
-	    REGION_TRANSLATE(pScreen, pRegion, 
+	    pixman_region_translate ( pRegion, 
 			     - (dx - pPicture->clipOrigin.x),
 			     - (dy - pPicture->clipOrigin.y));
 	}
@@ -341,7 +341,7 @@ miClipPictureSrc (RegionPtr	pRegion,
     }
 }
 
-static void
+void
 miCompositeSourceValidate (PicturePtr	pPicture,
 			   INT16	x,
 			   INT16	y,
@@ -417,6 +417,7 @@ miComputeCompositeRegion (RegionPtr	pRegion,
 			  CARD16	width,
 			  CARD16	height)
 {
+    
     int		v;
 
     pRegion->extents.x1 = xDst;
@@ -430,13 +431,13 @@ miComputeCompositeRegion (RegionPtr	pRegion,
     if (pRegion->extents.x1 >= pRegion->extents.x2 ||
 	pRegion->extents.y1 >= pRegion->extents.y2)
     {
-	REGION_EMPTY (pDst->pDrawable->pScreen, pRegion);
+	pixman_region_init (pRegion);
 	return FALSE;
     }
     /* clip against dst */
     if (!miClipPictureReg (pRegion, pDst->pCompositeClip, 0, 0))
     {
-	REGION_UNINIT (pScreen, pRegion);
+	pixman_region_fini (pRegion);
 	return FALSE;
     }
     if (pDst->alphaMap)
@@ -445,14 +446,14 @@ miComputeCompositeRegion (RegionPtr	pRegion,
 			       -pDst->alphaOrigin.x,
 			       -pDst->alphaOrigin.y))
 	{
-	    REGION_UNINIT (pScreen, pRegion);
+	    pixman_region_fini (pRegion);
 	    return FALSE;
 	}
     }
     /* clip against src */
     if (!miClipPictureSrc (pRegion, pSrc, xDst - xSrc, yDst - ySrc))
     {
-	REGION_UNINIT (pScreen, pRegion);
+	pixman_region_fini (pRegion);
 	return FALSE;
     }
     if (pSrc->alphaMap)
@@ -461,7 +462,7 @@ miComputeCompositeRegion (RegionPtr	pRegion,
 			       xDst - (xSrc + pSrc->alphaOrigin.x),
 			       yDst - (ySrc + pSrc->alphaOrigin.y)))
 	{
-	    REGION_UNINIT (pScreen, pRegion);
+	    pixman_region_fini (pRegion);
 	    return FALSE;
 	}
     }
@@ -470,7 +471,7 @@ miComputeCompositeRegion (RegionPtr	pRegion,
     {
 	if (!miClipPictureSrc (pRegion, pMask, xDst - xMask, yDst - yMask))
 	{
-	    REGION_UNINIT (pScreen, pRegion);
+	    pixman_region_fini (pRegion);
 	    return FALSE;
 	}	
 	if (pMask->alphaMap)
@@ -479,14 +480,17 @@ miComputeCompositeRegion (RegionPtr	pRegion,
 				   xDst - (xMask + pMask->alphaOrigin.x),
 				   yDst - (yMask + pMask->alphaOrigin.y)))
 	    {
-		REGION_UNINIT (pScreen, pRegion);
+		pixman_region_fini (pRegion);
 		return FALSE;
 	    }
 	}
     }
+
+    
     miCompositeSourceValidate (pSrc, xSrc, ySrc, width, height);
     if (pMask)
 	miCompositeSourceValidate (pMask, xMask, yMask, width, height);
+
     return TRUE;
 }
 

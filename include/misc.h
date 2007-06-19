@@ -239,7 +239,7 @@ extern int Ones(
     unsigned long /*mask*/);
 
 typedef struct _xPoint *DDXPointPtr;
-typedef struct _Box *BoxPtr;
+typedef struct pixman_box16 *BoxPtr;
 typedef struct _xEvent *xEventPtr;
 typedef struct _xRectangle *xRectanglePtr;
 typedef struct _GrabRec *GrabPtr;

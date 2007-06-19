@@ -41,6 +41,7 @@
 #include <X11/Xatom.h>
 #include "winmultiwindowclass.h"
 #include "winmsg.h"
+#include "inputstr.h"
 
 
 /*
@@ -538,8 +539,8 @@ winMWExtWMWindowProc (HWND hwnd, UINT message,
 	break;
 
       /* Has the mouse pointer crossed screens? */
-      if (pScreen != miPointerCurrentScreen ())
-	miPointerSetNewScreen (pScreenInfo->dwScreen,
+      if (pScreen != miPointerGetScreen(inputInfo.pointer))
+	miPointerSetScreen (inputInfo.pointer, pScreenInfo->dwScreen,
 			       ptMouse.x - pScreenInfo->dwXOffset,
 			       ptMouse.y - pScreenInfo->dwYOffset);
 

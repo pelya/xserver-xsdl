@@ -81,15 +81,11 @@ Equipment Corporation.
 
 #include "regionstr.h"
 #include <X11/Xprotostr.h>
+#include <X11/Xfuncproto.h>
 #include "gc.h"
 #include "mi.h"
 #include "mispans.h"
-
-#if defined (__GNUC__) && !defined (NO_INLINES)
-#define INLINE	__inline
-#else
-#define INLINE
-#endif
+#include <pixman/pixman.h>
 
 #undef assert
 #ifdef DEBUG
@@ -223,6 +219,43 @@ _X_EXPORT RegDataRec miEmptyData = {0, 0};
 RegDataRec  miBrokenData = {0, 0};
 static RegionRec   miBrokenRegion = { { 0, 0, 0, 0 }, &miBrokenData };
 
+extern void
+InitRegions (void)
+{
+    pixman_region_set_static_pointers (&miEmptyBox, &miEmptyData, &miBrokenData);
+}
+
+/*****************************************************************
+ *   RegionCreate(rect, size)
+ *     This routine does a simple malloc to make a structure of
+ *     REGION of "size" number of rectangles.
+ *****************************************************************/
+
+_X_EXPORT RegionPtr
+miRegionCreate(rect, size)
+    BoxPtr rect;
+    int size;
+{
+    RegionPtr pReg;
+   
+    pReg = (RegionPtr)xalloc(sizeof(RegionRec));
+    if (!pReg)
+	return &miBrokenRegion;
+
+    miRegionInit (pReg, rect, size);
+    
+    return(pReg);
+}
+
+_X_EXPORT void
+miRegionDestroy(pReg)
+    RegionPtr pReg;
+{
+    pixman_region_fini (pReg);
+    if (pReg != &miBrokenRegion)
+	xfree(pReg);
+}
+
 _X_EXPORT void
 miPrintRegion(rgn)
     RegionPtr rgn;
@@ -248,26 +281,7 @@ miRegionEqual(reg1, reg2)
     RegionPtr reg1;
     RegionPtr reg2;
 {
-    int i, num;
-    BoxPtr rects1, rects2;
-
-    if (reg1->extents.x1 != reg2->extents.x1) return FALSE;
-    if (reg1->extents.x2 != reg2->extents.x2) return FALSE;
-    if (reg1->extents.y1 != reg2->extents.y1) return FALSE;
-    if (reg1->extents.y2 != reg2->extents.y2) return FALSE;
-
-    num = REGION_NUM_RECTS(reg1);
-    if (num != REGION_NUM_RECTS(reg2)) return FALSE;
-    
-    rects1 = REGION_RECTS(reg1);
-    rects2 = REGION_RECTS(reg2);
-    for (i = 0; i != num; i++) {
-	if (rects1[i].x1 != rects2[i].x1) return FALSE;
-	if (rects1[i].x2 != rects2[i].x2) return FALSE;
-	if (rects1[i].y1 != rects2[i].y1) return FALSE;
-	if (rects1[i].y2 != rects2[i].y2) return FALSE;
-    }
-    return TRUE;
+    return pixman_region_equal (reg1, reg2);
 }
 
 #ifdef DEBUG
@@ -276,7 +290,7 @@ miValidRegion(reg)
     RegionPtr reg;
 {
     int i, numRects;
-
+    
     if ((reg->extents.x1 > reg->extents.x2) ||
 	(reg->extents.y1 > reg->extents.y2))
 	return FALSE;
@@ -291,7 +305,7 @@ miValidRegion(reg)
     {
 	BoxPtr pboxP, pboxN;
 	BoxRec box;
-
+	
 	pboxP = REGION_RECTS(reg);
 	box = *pboxP;
 	box.y2 = pboxP[numRects-1].y2;
@@ -302,7 +316,7 @@ miValidRegion(reg)
 		(pboxN->y1 >= pboxN->y2))
 		return FALSE;
 	    if (pboxN->x1 < box.x1)
-	        box.x1 = pboxN->x1;
+		box.x1 = pboxN->x1;
 	    if (pboxN->x2 > box.x2)
 		box.x2 = pboxN->x2;
 	    if ((pboxN->y1 < pboxP->y1) ||
@@ -316,44 +330,7 @@ miValidRegion(reg)
 		(box.y2 == reg->extents.y2));
     }
 }
-
 #endif /* DEBUG */
-
-
-/*****************************************************************
- *   RegionCreate(rect, size)
- *     This routine does a simple malloc to make a structure of
- *     REGION of "size" number of rectangles.
- *****************************************************************/
-
-_X_EXPORT RegionPtr
-miRegionCreate(rect, size)
-    BoxPtr rect;
-    int size;
-{
-    RegionPtr pReg;
-   
-    pReg = (RegionPtr)xalloc(sizeof(RegionRec));
-    if (!pReg)
-	return &miBrokenRegion;
-    if (rect)
-    {
-	pReg->extents = *rect;
-	pReg->data = (RegDataPtr)NULL;
-    }
-    else
-    {
-	pReg->extents = miEmptyBox;
-	if ((size > 1) && (pReg->data = xallocData(size)))
-	{
-	    pReg->data->size = size;
-	    pReg->data->numRects = 0;
-	}
-	else
-	    pReg->data = &miEmptyData;
-    }
-    return(pReg);
-}
 
 /*****************************************************************
  *   RegionInit(pReg, rect, size)
@@ -367,39 +344,16 @@ miRegionInit(pReg, rect, size)
     int size;
 {
     if (rect)
-    {
-	pReg->extents = *rect;
-	pReg->data = (RegDataPtr)NULL;
-    }
+	pixman_region_init_with_extents (pReg, rect);
     else
-    {
-	pReg->extents = miEmptyBox;
-	if ((size > 1) && (pReg->data = xallocData(size)))
-	{
-	    pReg->data->size = size;
-	    pReg->data->numRects = 0;
-	}
-	else
-	    pReg->data = &miEmptyData;
-    }
-}
-
-_X_EXPORT void
-miRegionDestroy(pReg)
-    RegionPtr pReg;
-{
-    good(pReg);
-    xfreeData(pReg);
-    if (pReg != &miBrokenRegion)
-	xfree(pReg);
+	pixman_region_init (pReg);
 }
 
 _X_EXPORT void
 miRegionUninit(pReg)
     RegionPtr pReg;
 {
-    good(pReg);
-    xfreeData(pReg);
+    pixman_region_fini (pReg);
 }
 
 Bool
@@ -458,31 +412,8 @@ miRegionCopy(dst, src)
     RegionPtr dst;
     RegionPtr src;
 {
-    good(dst);
-    good(src);
-    if (dst == src)
-	return TRUE;
-    dst->extents = src->extents;
-    if (!src->data || !src->data->size)
-    {
-	xfreeData(dst);
-	dst->data = src->data;
-	return TRUE;
-    }
-    if (!dst->data || (dst->data->size < src->data->numRects))
-    {
-	xfreeData(dst);
-	dst->data = xallocData(src->data->numRects);
-	if (!dst->data)
-	    return miRegionBreak (dst);
-	dst->data->size = src->data->numRects;
-    }
-    dst->data->numRects = src->data->numRects;
-    memmove((char *)REGION_BOXPTR(dst),(char *)REGION_BOXPTR(src), 
-	  dst->data->numRects * sizeof(BoxRec));
-    return TRUE;
+    return pixman_region_copy (dst, src);
 }
-
 
 /*======================================================================
  *	    Generic Region Operator
@@ -506,7 +437,7 @@ miRegionCopy(dst, src)
  *
  *-----------------------------------------------------------------------
  */
-INLINE static int
+_X_INLINE static int
 miCoalesce (
     RegionPtr	pReg,	    	/* Region to coalesce		     */
     int	    	  	prevStart,  	/* Index of start of previous band   */
@@ -590,7 +521,7 @@ miCoalesce (
  *-----------------------------------------------------------------------
  */
 
-INLINE static Bool
+_X_INLINE static Bool
 miAppendNonO (
     RegionPtr	pReg,
     BoxPtr	r,
@@ -914,8 +845,7 @@ miRegionOp(
  *-----------------------------------------------------------------------
  */
 static void
-miSetExtents (pReg)
-    RegionPtr pReg;
+miSetExtents (RegionPtr pReg)
 {
     BoxPtr pBox, pBoxEnd;
 
@@ -972,113 +902,13 @@ miSetExtents (pReg)
  *-----------------------------------------------------------------------
  */
 /*ARGSUSED*/
-static Bool
-miIntersectO (
-    RegionPtr	pReg,
-    BoxPtr	r1,
-    BoxPtr  	  	r1End,
-    BoxPtr	r2,
-    BoxPtr  	  	r2End,
-    short    	  	y1,
-    short    	  	y2,
-    Bool		*pOverlap)
-{
-    int  	x1;
-    int  	x2;
-    BoxPtr	pNextRect;
-
-    pNextRect = REGION_TOP(pReg);
-
-    assert(y1 < y2);
-    assert(r1 != r1End && r2 != r2End);
-
-    do {
-	x1 = max(r1->x1, r2->x1);
-	x2 = min(r1->x2, r2->x2);
-
-	/*
-	 * If there's any overlap between the two rectangles, add that
-	 * overlap to the new region.
-	 */
-	if (x1 < x2)
-	    NEWRECT(pReg, pNextRect, x1, y1, x2, y2);
-
-	/*
-	 * Advance the pointer(s) with the leftmost right side, since the next
-	 * rectangle on that list may still overlap the other region's
-	 * current rectangle.
-	 */
-	if (r1->x2 == x2) {
-	    r1++;
-	}
-	if (r2->x2 == x2) {
-	    r2++;
-	}
-    } while ((r1 != r1End) && (r2 != r2End));
-
-    return TRUE;
-}
-
-
 _X_EXPORT Bool
 miIntersect(newReg, reg1, reg2)
     RegionPtr 	newReg;     /* destination Region */
     RegionPtr 	reg1;
     RegionPtr	reg2;       /* source regions     */
 {
-    good(reg1);
-    good(reg2);
-    good(newReg);
-   /* check for trivial reject */
-    if (REGION_NIL(reg1)  || REGION_NIL(reg2) ||
-	!EXTENTCHECK(&reg1->extents, &reg2->extents))
-    {
-	/* Covers about 20% of all cases */
-	xfreeData(newReg);
-	newReg->extents.x2 = newReg->extents.x1;
-	newReg->extents.y2 = newReg->extents.y1;
-	if (REGION_NAR(reg1) || REGION_NAR(reg2))
-	{
-	    newReg->data = &miBrokenData;
-	    return FALSE;
-	}
-	else
-	    newReg->data = &miEmptyData;
-    }
-    else if (!reg1->data && !reg2->data)
-    {
-	/* Covers about 80% of cases that aren't trivially rejected */
-	newReg->extents.x1 = max(reg1->extents.x1, reg2->extents.x1);
-	newReg->extents.y1 = max(reg1->extents.y1, reg2->extents.y1);
-	newReg->extents.x2 = min(reg1->extents.x2, reg2->extents.x2);
-	newReg->extents.y2 = min(reg1->extents.y2, reg2->extents.y2);
-	xfreeData(newReg);
-	newReg->data = (RegDataPtr)NULL;
-    }
-    else if (!reg2->data && SUBSUMES(&reg2->extents, &reg1->extents))
-    {
-	return miRegionCopy(newReg, reg1);
-    }
-    else if (!reg1->data && SUBSUMES(&reg1->extents, &reg2->extents))
-    {
-	return miRegionCopy(newReg, reg2);
-    }
-    else if (reg1 == reg2)
-    {
-	return miRegionCopy(newReg, reg1);
-    }
-    else
-    {
-	/* General purpose intersection */
-	Bool overlap; /* result ignored */
-	if (!miRegionOp(newReg, reg1, reg2, miIntersectO, FALSE, FALSE,
-			&overlap))
-	    return FALSE;
-	miSetExtents(newReg);
-    }
-
-    good(newReg);
-    return(TRUE);
+    return pixman_region_intersect (newReg, reg1, reg2);
 }
 
 #define MERGERECT(r)						\
@@ -1181,77 +1011,8 @@ miUnion(newReg, reg1, reg2)
     RegionPtr 	reg1;
     RegionPtr	reg2;             /* source regions     */
 {
-    Bool overlap; /* result ignored */
-
-    /* Return TRUE if some overlap between reg1, reg2 */
-    good(reg1);
-    good(reg2);
-    good(newReg);
-    /*  checks all the simple cases */
-
-    /*
-     * Region 1 and 2 are the same
-     */
-    if (reg1 == reg2)
-    {
-	return miRegionCopy(newReg, reg1);
-    }
-
-    /*
-     * Region 1 is empty
-     */
-    if (REGION_NIL(reg1))
-    {
-	if (REGION_NAR(reg1))
-	    return miRegionBreak (newReg);
-        if (newReg != reg2)
-	    return miRegionCopy(newReg, reg2);
-        return TRUE;
-    }
-
-    /*
-     * Region 2 is empty
-     */
-    if (REGION_NIL(reg2))
-    {
-	if (REGION_NAR(reg2))
-	    return miRegionBreak (newReg);
-        if (newReg != reg1)
-	    return miRegionCopy(newReg, reg1);
-        return TRUE;
-    }
-
-    /*
-     * Region 1 completely subsumes region 2
-     */
-    if (!reg1->data && SUBSUMES(&reg1->extents, &reg2->extents))
-    {
-        if (newReg != reg1)
-	    return miRegionCopy(newReg, reg1);
-        return TRUE;
-    }
-
-    /*
-     * Region 2 completely subsumes region 1
-     */
-    if (!reg2->data && SUBSUMES(&reg2->extents, &reg1->extents))
-    {
-        if (newReg != reg2)
-	    return miRegionCopy(newReg, reg2);
-        return TRUE;
-    }
-
-    if (!miRegionOp(newReg, reg1, reg2, miUnionO, TRUE, TRUE, &overlap))
-	return FALSE;
-
-    newReg->extents.x1 = min(reg1->extents.x1, reg2->extents.x1);
-    newReg->extents.y1 = min(reg1->extents.y1, reg2->extents.y1);
-    newReg->extents.x2 = max(reg1->extents.x2, reg2->extents.x2);
-    newReg->extents.y2 = max(reg1->extents.y2, reg2->extents.y2);
-    good(newReg);
-    return TRUE;
+    return pixman_region_union (newReg, reg1, reg2);
 }
-
 
 /*======================================================================
  *	    Batch Rectangle Union
@@ -1657,6 +1418,7 @@ miRectsToRegion(nrects, prect, ctype)
     xRectangle		*prect;
     int			ctype;
 {
+    
     RegionPtr		pRgn;
     RegDataPtr		pData;
     BoxPtr		pBox;
@@ -1752,116 +1514,7 @@ miRectsToRegion(nrects, prect, ctype)
  *-----------------------------------------------------------------------
  */
 /*ARGSUSED*/
-static Bool
-miSubtractO (
-    RegionPtr	pReg,
-    BoxPtr	r1,
-    BoxPtr  	r1End,
-    BoxPtr	r2,
-    BoxPtr  	r2End,
-    short  	y1,
-    short  	y2,
-    Bool	*pOverlap)
-{
-    BoxPtr	pNextRect;
-    int  	x1;
 
-    x1 = r1->x1;
-    
-    assert(y1<y2);
-    assert(r1 != r1End && r2 != r2End);
-
-    pNextRect = REGION_TOP(pReg);
-
-    do
-    {
-	if (r2->x2 <= x1)
-	{
-	    /*
-	     * Subtrahend entirely to left of minuend: go to next subtrahend.
-	     */
-	    r2++;
-	}
-	else if (r2->x1 <= x1)
-	{
-	    /*
-	     * Subtrahend preceeds minuend: nuke left edge of minuend.
-	     */
-	    x1 = r2->x2;
-	    if (x1 >= r1->x2)
-	    {
-		/*
-		 * Minuend completely covered: advance to next minuend and
-		 * reset left fence to edge of new minuend.
-		 */
-		r1++;
-		if (r1 != r1End)
-		    x1 = r1->x1;
-	    }
-	    else
-	    {
-		/*
-		 * Subtrahend now used up since it doesn't extend beyond
-		 * minuend
-		 */
-		r2++;
-	    }
-	}
-	else if (r2->x1 < r1->x2)
-	{
-	    /*
-	     * Left part of subtrahend covers part of minuend: add uncovered
-	     * part of minuend to region and skip to next subtrahend.
-	     */
-	    assert(x1<r2->x1);
-	    NEWRECT(pReg, pNextRect, x1, y1, r2->x1, y2);
-
-	    x1 = r2->x2;
-	    if (x1 >= r1->x2)
-	    {
-		/*
-		 * Minuend used up: advance to new...
-		 */
-		r1++;
-		if (r1 != r1End)
-		    x1 = r1->x1;
-	    }
-	    else
-	    {
-		/*
-		 * Subtrahend used up
-		 */
-		r2++;
-	    }
-	}
-	else
-	{
-	    /*
-	     * Minuend used up: add any remaining piece before advancing.
-	     */
-	    if (r1->x2 > x1)
-		NEWRECT(pReg, pNextRect, x1, y1, r1->x2, y2);
-	    r1++;
-	    if (r1 != r1End)
-		x1 = r1->x1;
-	}
-    } while ((r1 != r1End) && (r2 != r2End));
-
-
-    /*
-     * Add remaining minuend rectangles to region.
-     */
-    while (r1 != r1End)
-    {
-	assert(x1<r1->x2);
-	NEWRECT(pReg, pNextRect, x1, y1, r1->x2, y2);
-	r1++;
-	if (r1 != r1End)
-	    x1 = r1->x1;
-    }
-    return TRUE;
-}
-	
 /*-
  *-----------------------------------------------------------------------
  * miSubtract --
@@ -1882,44 +1535,7 @@ miSubtract(regD, regM, regS)
     RegionPtr 	regM;
     RegionPtr	regS;          
 {
-    Bool overlap; /* result ignored */
-
-    good(regM);
-    good(regS);
-    good(regD);
-   /* check for trivial rejects */
-    if (REGION_NIL(regM) || REGION_NIL(regS) ||
-	!EXTENTCHECK(&regM->extents, &regS->extents))
-    {
-	if (REGION_NAR (regS))
-	    return miRegionBreak (regD);
-	return miRegionCopy(regD, regM);
-    }
-    else if (regM == regS)
-    {
-	xfreeData(regD);
-	regD->extents.x2 = regD->extents.x1;
-	regD->extents.y2 = regD->extents.y1;
-	regD->data = &miEmptyData;
-	return TRUE;
-    }
- 
-    /* Add those rectangles in region 1 that aren't in region 2,
-       do yucky substraction for overlaps, and
-       just throw away rectangles in region 2 that aren't in region 1 */
-    if (!miRegionOp(regD, regM, regS, miSubtractO, TRUE, FALSE, &overlap))
-	return FALSE;
-
-    /*
-     * Can't alter RegD's extents before we call miRegionOp because
-     * it might be one of the source regions and miRegionOp depends
-     * on the extents of those regions being unaltered. Besides, this
-     * way there's no checking against rectangles that will be nuked
-     * due to coalescing, so we have to examine fewer rectangles.
-     */
-    miSetExtents(regD);
-    good(regD);
-    return TRUE;
+    return pixman_region_subtract (regD, regM, regS);
 }
 
 /*======================================================================
@@ -1947,150 +1563,14 @@ miInverse(newReg, reg1, invRect)
     RegionPtr 	  reg1;         /* Region to invert */
     BoxPtr     	  invRect; 	/* Bounding box for inversion */
 {
-    RegionRec	  invReg;   	/* Quick and dirty region made from the
-				 * bounding box */
-    Bool	  overlap;	/* result ignored */
-
-    good(reg1);
-    good(newReg);
-   /* check for trivial rejects */
-    if (REGION_NIL(reg1) || !EXTENTCHECK(invRect, &reg1->extents))
-    {
-	if (REGION_NAR(reg1))
-	    return miRegionBreak (newReg);
-	newReg->extents = *invRect;
-	xfreeData(newReg);
-	newReg->data = (RegDataPtr)NULL;
-        return TRUE;
-    }
-
-    /* Add those rectangles in region 1 that aren't in region 2,
-       do yucky substraction for overlaps, and
-       just throw away rectangles in region 2 that aren't in region 1 */
-    invReg.extents = *invRect;
-    invReg.data = (RegDataPtr)NULL;
-    if (!miRegionOp(newReg, &invReg, reg1, miSubtractO, TRUE, FALSE, &overlap))
-	return FALSE;
-
-    /*
-     * Can't alter newReg's extents before we call miRegionOp because
-     * it might be one of the source regions and miRegionOp depends
-     * on the extents of those regions being unaltered. Besides, this
-     * way there's no checking against rectangles that will be nuked
-     * due to coalescing, so we have to examine fewer rectangles.
-     */
-    miSetExtents(newReg);
-    good(newReg);
-    return TRUE;
+    return pixman_region_inverse (newReg, reg1, invRect);
 }
-
-/*
- *   RectIn(region, rect)
- *   This routine takes a pointer to a region and a pointer to a box
- *   and determines if the box is outside/inside/partly inside the region.
- *
- *   The idea is to travel through the list of rectangles trying to cover the
- *   passed box with them. Anytime a piece of the rectangle isn't covered
- *   by a band of rectangles, partOut is set TRUE. Any time a rectangle in
- *   the region covers part of the box, partIn is set TRUE. The process ends
- *   when either the box has been completely covered (we reached a band that
- *   doesn't overlap the box, partIn is TRUE and partOut is false), the
- *   box has been partially covered (partIn == partOut == TRUE -- because of
- *   the banding, the first time this is true we know the box is only
- *   partially in the region) or is outside the region (we reached a band
- *   that doesn't overlap the box at all and partIn is false)
- */
-
 _X_EXPORT int
 miRectIn(region, prect)
     RegionPtr  region;
     BoxPtr     prect;
 {
-    int		x;
-    int		y;
-    BoxPtr	pbox;
-    BoxPtr	pboxEnd;
-    int		partIn, partOut;
-    int		numRects;
-
-    good(region);
-    numRects = REGION_NUM_RECTS(region);
-    /* useful optimization */
-    if (!numRects || !EXTENTCHECK(&region->extents, prect))
-        return(rgnOUT);
-
-    if (numRects == 1)
-    {
-	/* We know that it must be rgnIN or rgnPART */
-	if (SUBSUMES(&region->extents, prect))
-	    return(rgnIN);
-	else
-	    return(rgnPART);
-    }
-
-    partOut = FALSE;
-    partIn = FALSE;
-
-    /* (x,y) starts at upper left of rect, moving to the right and down */
-    x = prect->x1;
-    y = prect->y1;
-
-    /* can stop when both partOut and partIn are TRUE, or we reach prect->y2 */
-    for (pbox = REGION_BOXPTR(region), pboxEnd = pbox + numRects;
-         pbox != pboxEnd;
-         pbox++)
-    {
-
-        if (pbox->y2 <= y)
-           continue;    /* getting up to speed or skipping remainder of band */
-
-        if (pbox->y1 > y)
-        {
-           partOut = TRUE;      /* missed part of rectangle above */
-           if (partIn || (pbox->y1 >= prect->y2))
-              break;
-           y = pbox->y1;        /* x guaranteed to be == prect->x1 */
-        }
-
-        if (pbox->x2 <= x)
-           continue;            /* not far enough over yet */
-
-        if (pbox->x1 > x)
-        {
-           partOut = TRUE;      /* missed part of rectangle to left */
-           if (partIn)
-              break;
-        }
-
-        if (pbox->x1 < prect->x2)
-        {
-            partIn = TRUE;      /* definitely overlap */
-            if (partOut)
-               break;
-        }
-
-        if (pbox->x2 >= prect->x2)
-        {
-           y = pbox->y2;        /* finished with this band */
-           if (y >= prect->y2)
-              break;
-           x = prect->x1;       /* reset x out to left again */
-        }
-	else
-	{
-	    /*
-	     * Because boxes in a band are maximal width, if the first box
-	     * to overlap the rectangle doesn't completely cover it in that
-	     * band, the rectangle must be partially out, since some of it
-	     * will be uncovered in that band. partIn will have been set true
-	     * by now...
-	     */
-	    partOut = TRUE;
-	    break;
-	}
-    }
-
-    return(partIn ? ((y < prect->y2) ? rgnPART : rgnIN) : rgnOUT);
+    return pixman_region_contains_rectangle (region, prect);
 }
 
 /* TranslateRegion(pReg, x, y)
@@ -2103,83 +1583,7 @@ miTranslateRegion(pReg, x, y)
     int x;
     int y;
 {
-    int x1, x2, y1, y2;
-    int nbox;
-    BoxPtr pbox;
-
-    good(pReg);
-    pReg->extents.x1 = x1 = pReg->extents.x1 + x;
-    pReg->extents.y1 = y1 = pReg->extents.y1 + y;
-    pReg->extents.x2 = x2 = pReg->extents.x2 + x;
-    pReg->extents.y2 = y2 = pReg->extents.y2 + y;
-    if (((x1 - MINSHORT)|(y1 - MINSHORT)|(MAXSHORT - x2)|(MAXSHORT - y2)) >= 0)
-    {
-	if (pReg->data && (nbox = pReg->data->numRects))
-	{
-	    for (pbox = REGION_BOXPTR(pReg); nbox--; pbox++)
-	    {
-		pbox->x1 += x;
-		pbox->y1 += y;
-		pbox->x2 += x;
-		pbox->y2 += y;
-	    }
-	}
-	return;
-    }
-    if (((x2 - MINSHORT)|(y2 - MINSHORT)|(MAXSHORT - x1)|(MAXSHORT - y1)) <= 0)
-    {
-	pReg->extents.x2 = pReg->extents.x1;
-	pReg->extents.y2 = pReg->extents.y1;
-	xfreeData(pReg);
-	pReg->data = &miEmptyData;
-	return;
-    }
-    if (x1 < MINSHORT)
-	pReg->extents.x1 = MINSHORT;
-    else if (x2 > MAXSHORT)
-	pReg->extents.x2 = MAXSHORT;
-    if (y1 < MINSHORT)
-	pReg->extents.y1 = MINSHORT;
-    else if (y2 > MAXSHORT)
-	pReg->extents.y2 = MAXSHORT;
-    if (pReg->data && (nbox = pReg->data->numRects))
-    {
-	BoxPtr pboxout;
-
-	for (pboxout = pbox = REGION_BOXPTR(pReg); nbox--; pbox++)
-	{
-	    pboxout->x1 = x1 = pbox->x1 + x;
-	    pboxout->y1 = y1 = pbox->y1 + y;
-	    pboxout->x2 = x2 = pbox->x2 + x;
-	    pboxout->y2 = y2 = pbox->y2 + y;
-	    if (((x2 - MINSHORT)|(y2 - MINSHORT)|
-		 (MAXSHORT - x1)|(MAXSHORT - y1)) <= 0)
-	    {
-		pReg->data->numRects--;
-		continue;
-	    }
-	    if (x1 < MINSHORT)
-		pboxout->x1 = MINSHORT;
-	    else if (x2 > MAXSHORT)
-		pboxout->x2 = MAXSHORT;
-	    if (y1 < MINSHORT)
-		pboxout->y1 = MINSHORT;
-	    else if (y2 > MAXSHORT)
-		pboxout->y2 = MAXSHORT;
-	    pboxout++;
-	}
-	if (pboxout != pbox)
-	{
-	    if (pReg->data->numRects == 1)
-	    {
-		pReg->extents = *REGION_BOXPTR(pReg);
-		xfreeData(pReg);
-		pReg->data = (RegDataPtr)NULL;
-	    }
-	    else
-		miSetExtents(pReg);
-	}
-    }
+    pixman_region_translate (pReg, x, y);
 }
 
 _X_EXPORT void
@@ -2187,12 +1591,7 @@ miRegionReset(pReg, pBox)
     RegionPtr pReg;
     BoxPtr pBox;
 {
-    good(pReg);
-    assert(pBox->x1<=pBox->x2);
-    assert(pBox->y1<=pBox->y2);
-    pReg->extents = *pBox;
-    xfreeData(pReg);
-    pReg->data = (RegDataPtr)NULL;
+    pixman_region_reset (pReg, pBox);
 }
 
 _X_EXPORT Bool
@@ -2201,40 +1600,14 @@ miPointInRegion(pReg, x, y, box)
     int x, y;
     BoxPtr box;     /* "return" value */
 {
-    BoxPtr pbox, pboxEnd;
-    int numRects;
-
-    good(pReg);
-    numRects = REGION_NUM_RECTS(pReg);
-    if (!numRects || !INBOX(&pReg->extents, x, y))
-        return(FALSE);
-    if (numRects == 1)
-    {
-	*box = pReg->extents;
-	return(TRUE);
-    }
-    for (pbox = REGION_BOXPTR(pReg), pboxEnd = pbox + numRects;
-	 pbox != pboxEnd;
-	 pbox++)
-    {
-        if (y >= pbox->y2)
-	   continue;		/* not there yet */
-	if ((y < pbox->y1) || (x < pbox->x1))
-	   break;		/* missed it */
-	if (x >= pbox->x2)
-	   continue;		/* not there yet */
-	*box = *pbox;
-	return(TRUE);
-    }
-    return(FALSE);
+    return pixman_region_contains_point (pReg, x, y, box);
 }
 
 _X_EXPORT Bool
 miRegionNotEmpty(pReg)
     RegionPtr pReg;
 {
-    good(pReg);
-    return(!REGION_NIL(pReg));
+    return pixman_region_not_empty (pReg);
 }
 
 Bool
