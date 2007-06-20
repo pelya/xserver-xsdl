@@ -221,7 +221,7 @@ fbSolidBoxClipped (DrawablePtr	pDrawable,
 	if (!and)
 	{
 	    if (pixman_fill (dst, dstStride, dstBpp,
-			     partX1 + dstXoff, partX2 + dstYoff, (partX2 - partX1), (partY2 - partY1),
+			     partX1 + dstXoff, partY1 + dstYoff, (partX2 - partX1), (partY2 - partY1),
 			     xor))
 	    {
 		fbFinishAccess (pDrawable);
