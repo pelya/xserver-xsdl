@@ -643,15 +643,13 @@ exaPolyFillRect(DrawablePtr pDrawable,
     int		    n;
     ExaMigrationRec pixmaps[2];
     RegionPtr pReg = RECTS_TO_REGION(pScreen, nrect, prect, CT_UNSORTED);
-    RegionPtr pDamageReg = DamageRegion(ExaGetPixmapPriv(pPixmap)->pDamage);
 
     /* Compute intersection of rects and clip region */
     REGION_TRANSLATE(pScreen, pReg, pDrawable->x, pDrawable->y);
     REGION_INTERSECT(pScreen, pReg, pClip, pReg);
 
     if (!REGION_NUM_RECTS(pReg)) {
-	REGION_DESTROY(pScreen, pReg);
-	return;
+	goto out;
     }
 
     pixmaps[0].as_dst = TRUE;
@@ -680,7 +678,7 @@ exaPolyFillRect(DrawablePtr pDrawable,
 	    (pGC->fillStyle == FillTiled && !pGC->tileIsPixel &&
 	     exaFillRegionTiled(pDrawable, pReg, pGC->tile.pixmap, &pGC->patOrg,
 				pGC->planemask, pGC->alu))) {
-	    goto damage;
+	    goto out;
 	}
     }
 
@@ -709,13 +707,7 @@ fallback:
 	}
 
 	ExaCheckPolyFillRect (pDrawable, pGC, nrect, prect);
-
-damage:
-	REGION_TRANSLATE(pScreen, pReg, xoff, yoff);
-	REGION_UNION(pScreen, pDamageReg, pReg, pDamageReg);
-	REGION_DESTROY(pScreen, pReg);
-
-	return;
+	goto out;
     }
 
     xorg = pDrawable->x;
@@ -754,8 +746,6 @@ damage:
 	    (*pExaScr->info->Solid) (pPixmap,
 				     fullX1 + xoff, fullY1 + yoff,
 				     fullX2 + xoff, fullY2 + yoff);
-	    exaPixmapDirty (pPixmap, fullX1 + xoff, fullY1 + yoff,
-			    fullX2 + xoff, fullY2 + yoff);
 	}
 	else
 	{
@@ -786,14 +776,15 @@ damage:
 		    (*pExaScr->info->Solid) (pPixmap,
 					     partX1 + xoff, partY1 + yoff,
 					     partX2 + xoff, partY2 + yoff);
-		    exaPixmapDirty (pPixmap, partX1 + xoff, partY1 + yoff,
-				    partX2 + xoff, partY2 + yoff);
 		}
 	    }
 	}
     }
     (*pExaScr->info->DoneSolid) (pPixmap);
     exaMarkSync(pDrawable->pScreen);
+
+out:
+    REGION_DESTROY(pScreen, pReg);
 }
 
 static void
