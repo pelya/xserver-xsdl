@@ -1329,6 +1329,9 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
     int xoff, yoff;
     Bool ok;
 
+    if (pExaScr->swappedOut || (w == 1 && h == 1))
+	goto fallback;
+
     if (pExaScr->info->DownloadFromScreen == NULL)
 	goto migrate_and_fallback;
 
@@ -1341,9 +1344,6 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
      */
     if (pDrawable->bitsPerPixel < 8)
 	goto migrate_and_fallback;
-
-    if (pExaScr->swappedOut)
-	goto fallback;
 
     pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
     if (pPix == NULL)
