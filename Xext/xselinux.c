@@ -23,7 +23,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include <selinux/selinux.h>
-#include <selinux/context.h>
+#include <selinux/label.h>
 #include <selinux/avc.h>
 
 #include <libaudit.h>
@@ -69,26 +69,12 @@ typedef struct {
     char *extension;	/* extension name, if any */
 } XSELinuxAuditRec;
 
-/*
- * Table of SELinux types for property names.
- */
-static char **propertyTypes = NULL;
-static int propertyTypesCount = 0;
-char *XSELinuxPropertyTypeDefault = NULL;
-
-/*
- * Table of SELinux types for each extension.
- */
-static char **extensionTypes = NULL;
-static int extensionTypesCount = 0;
-static char *XSELinuxExtensionTypeDefault = NULL;
+/* labeling handle */
+static struct selabel_handle *label_hnd;
 
 /* Atoms for SELinux window labeling properties */
 Atom atom_ctx;
 Atom atom_client_ctx;
-
-/* security context for non-local clients */
-static char *XSELinuxNonlocalContextDefault = NULL;
 
 /* Selection stuff from dix */
 extern Selection *CurrentSelections;
@@ -325,41 +311,22 @@ IDPerm(ClientPtr sclient,
 static security_id_t
 GetPropertySID(security_context_t base, const char *name)
 {
-    security_context_t new, result;
-    context_t con;
+    security_context_t con, result;
     security_id_t sid = NULL;
-    char **ptr, *type = NULL;
-
-    /* make a new context-manipulation object */
-    con = context_new(base);
-    if (!con)
-	goto out;
 
     /* look in the mappings of names to types */
-    for (ptr = propertyTypes; *ptr; ptr+=2)
-	if (!strcmp(*ptr, name))
-	    break;
-    type = ptr[1];
-
-    /* set the role and type in the context (user unchanged) */
-    if (context_type_set(con, type) ||
-	context_role_set(con, "object_r"))
-	goto out2;
-
-    /* get a context string from the context-manipulation object */
-    new = context_str(con);
-    if (!new)
-	goto out2;
+    if (selabel_lookup(label_hnd, &con, name, SELABEL_X_PROP) < 0)
+	goto out;
 
     /* perform a transition to obtain the final context */
-    if (security_compute_create(base, new, SECCLASS_PROPERTY, &result) < 0)
+    if (security_compute_create(base, con, SECCLASS_PROPERTY, &result) < 0)
 	goto out2;
 
     /* get a SID for the context */
     avc_context_to_sid(result, &sid);
     freecon(result);
   out2:
-    context_free(con);
+    freecon(con);
   out:
     return sid;
 }
@@ -375,41 +342,26 @@ GetPropertySID(security_context_t base, const char *name)
 static security_id_t
 GetExtensionSID(const char *name)
 {
-    security_context_t base, new;
-    context_t con;
+    security_context_t base, con, result;
     security_id_t sid = NULL;
-    char **ptr, *type = NULL;
 
     /* get server context */
     if (getcon(&base) < 0)
 	goto out;
 
-    /* make a new context-manipulation object */
-    con = context_new(base);
-    if (!con)
+    /* look in the mappings of names to types */
+    if (selabel_lookup(label_hnd, &con, name, SELABEL_X_EXT) < 0)
 	goto out2;
 
-    /* look in the mappings of names to types */
-    for (ptr = extensionTypes; *ptr; ptr+=2)
-	if (!strcmp(*ptr, name))
-	    break;
-    type = ptr[1];
-
-    /* set the role and type in the context (user unchanged) */
-    if (context_type_set(con, type) ||
-	context_role_set(con, "object_r"))
-	goto out3;
-
-    /* get a context string from the context-manipulation object */
-    new = context_str(con);
-    if (!new)
+    /* perform a transition to obtain the final context */
+    if (security_compute_create(base, con, SECCLASS_XEXTENSION, &result) < 0)
 	goto out3;
 
     /* get a SID for the context */
-    avc_context_to_sid(new, &sid);
-
+    avc_context_to_sid(result, &sid);
+    freecon(result);
   out3:
-    context_free(con);
+    freecon(con);
   out2:
     freecon(base);
   out:
@@ -467,7 +419,7 @@ AssignServerState(void)
 static void
 AssignClientState(ClientPtr client)
 {
-    int i, needToFree = 0;
+    int i;
     security_context_t basectx, objctx;
     XSELinuxClientStateRec *state;
 
@@ -481,11 +433,12 @@ AssignClientState(ClientPtr client)
 	if (getpeercon(fd, &basectx) < 0)
 	    FatalError("Client %d: couldn't get context from socket\n",
 		       client->index);
-	needToFree = 1;
     }
     else
 	/* for remote clients, need to use a default context */
-	basectx = XSELinuxNonlocalContextDefault;
+	if (selabel_lookup(label_hnd, &basectx, NULL, SELABEL_X_CLIENT) < 0)
+	    FatalError("Client %d: couldn't get default remote connection context\n",
+		       client->index);
 
     /* get a SID from the context */
     if (avc_context_to_sid(basectx, &state->sid) < 0)
@@ -506,10 +459,9 @@ AssignClientState(ClientPtr client)
 	freecon(objctx);
     }
 
-    /* mark as set up, free base context if necessary, and return */
+    /* mark as set up, free base context, and return */
     state->haveState = TRUE;
-    if (needToFree)
-	freecon(basectx);
+    freecon(basectx);
 }
 
 /*
@@ -1294,509 +1246,26 @@ XSELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	FatalError("XSELinux: Failed to set context property on window!\n");
 } /* XSELinuxResourceState */
 
-static char *XSELinuxKeywords[] = {
-#define XSELinuxKeywordComment 0
-    "#",
-#define XSELinuxKeywordProperty 1
-    "property",
-#define XSELinuxKeywordExtension 2
-    "extension",
-#define XSELinuxKeywordNonlocalContext 3
-    "nonlocal_context",
-#define XSELinuxKeywordDefault 4
-    "default"
-};
-
-#define NUMKEYWORDS (sizeof(XSELinuxKeywords) / sizeof(char *))
-
-#ifndef __UNIXOS2__
-#define XSELinuxIsWhitespace(c) ( (c == ' ') || (c == '\t') || (c == '\n') )
-#else
-#define XSELinuxIsWhitespace(c) ( (c == ' ') || (c == '\t') || (c == '\n') || (c == '\r') )
-#endif
-
-static char *
-XSELinuxSkipWhitespace(
-    char *p)
-{
-    while (XSELinuxIsWhitespace(*p))
-	p++;
-    return p;
-} /* XSELinuxSkipWhitespace */
-
-static char *
-XSELinuxParseString(
-    char **rest)
-{
-    char *startOfString;
-    char *s = *rest;
-    char endChar = 0;
-
-    s = XSELinuxSkipWhitespace(s);
-
-    if (*s == '"' || *s == '\'')
-    {
-	endChar = *s++;
-	startOfString = s;
-	while (*s && (*s != endChar))
-	    s++;
-    }
-    else
-    {
-	startOfString = s;
-	while (*s && !XSELinuxIsWhitespace(*s))
-	    s++;
-    }
-    if (*s)
-    {
-	*s = '\0';
-	*rest = s + 1;
-	return startOfString;
-    }
-    else
-    {
-	*rest = s;
-	return (endChar) ? NULL : startOfString;
-    }
-} /* XSELinuxParseString */
-
-static int
-XSELinuxParseKeyword(
-    char **p)
-{
-    int i;
-    char *s = *p;
-    s = XSELinuxSkipWhitespace(s);
-    for (i = 0; i < NUMKEYWORDS; i++)
-    {
-	int len = strlen(XSELinuxKeywords[i]);
-	if (strncmp(s, XSELinuxKeywords[i], len) == 0)
-	{
-	    *p = s + len;
-	    return (i);
-	}
-    }
-    *p = s;
-    return -1;
-} /* XSELinuxParseKeyword */
-
-static Bool
-XSELinuxTypeIsValid(char *typename)
-{
-    security_context_t base, new;
-    context_t con;
-    Bool ret = FALSE;
-
-    /* get the server's context */
-    if (getcon(&base) < 0)
-        goto out;
-
-    /* make a new context-manipulation object */
-    con = context_new(base);
-    if (!con)
-        goto out_free;
-
-    /* set the role */
-    if (context_role_set(con, "object_r"))
-        goto out_free2;
-
-    /* set the type */
-    if (context_type_set(con, typename))
-        goto out_free2;
-
-    /* get a context string - note: context_str() returns a pointer
-     * to the string inside the context; the returned pointer should
-     * not be freed
-     */
-    new = context_str(con);
-    if (!new)
-        goto out_free2;
-
-    /* finally, check to see if it's valid */
-    if (security_check_context(new) == 0)
-        ret = TRUE;
-
-out_free2:
-    context_free(con);
-out_free:
-    freecon(base);
-out:
-    return ret;
-}
-
-static Bool
-XSELinuxParsePropertyTypeRule(char *p)
-{
-    int keyword;
-    char *propname = NULL, *propcopy = NULL;
-    char *typename = NULL, *typecopy = NULL;
-    char **newTypes;
-    Bool defaultPropertyType = FALSE;
-
-    /* get property name */
-    keyword = XSELinuxParseKeyword(&p);
-    if (keyword == XSELinuxKeywordDefault)
-    {
-        defaultPropertyType = TRUE;
-    }
-    else
-    {
-        propname = XSELinuxParseString(&p);
-        if (!propname || (strlen(propname) == 0))
-        {
-            return FALSE;
-        }
-    }
-
-    /* get the SELinux type corresponding to the property */
-    typename = XSELinuxParseString(&p);
-    if (!typename || (strlen(typename) == 0))
-        return FALSE;
-
-    /* validate the type */
-    if (XSELinuxTypeIsValid(typename) != TRUE)
-        return FALSE;
-
-    /* if it's the default property, save it to append to the end of the
-     * property types list
-     */
-    if (defaultPropertyType == TRUE)
-    {
-        if (XSELinuxPropertyTypeDefault != NULL)
-        {
-            return FALSE;
-        }
-        else
-        {
-            XSELinuxPropertyTypeDefault = (char *)xalloc(strlen(typename)+1);
-            if (!XSELinuxPropertyTypeDefault)
-            {
-                ErrorF("XSELinux: out of memory\n");
-                return FALSE;
-            }
-            strcpy(XSELinuxPropertyTypeDefault, typename);
-            return TRUE;
-        }
-    }
-
-    /* insert the property and type into the propertyTypes array */
-    propcopy = (char *)xalloc(strlen(propname)+1);
-    if (!propcopy)
-    {
-        ErrorF("XSELinux: out of memory\n");
-        return FALSE;
-    }
-    strcpy(propcopy, propname);
-
-    typecopy = (char *)xalloc(strlen(typename)+1);
-    if (!typecopy)
-    {
-        ErrorF("XSELinux: out of memory\n");
-        xfree(propcopy);
-        return FALSE;
-    }
-    strcpy(typecopy, typename);
-
-    newTypes = (char **)xrealloc(propertyTypes, sizeof (char *) * ((propertyTypesCount+1) * 2));
-    if (!newTypes)
-    {
-        ErrorF("XSELinux: out of memory\n");
-        xfree(propcopy);
-        xfree(typecopy);
-        return FALSE;
-    }
-
-    propertyTypesCount++;
-
-    newTypes[propertyTypesCount*2 - 2] = propcopy;
-    newTypes[propertyTypesCount*2 - 1] = typecopy;
-
-    propertyTypes = newTypes;
-
-    return TRUE;
-} /* XSELinuxParsePropertyTypeRule */
-
-static Bool
-XSELinuxParseExtensionTypeRule(char *p)
-{
-    int keyword;
-    char *extname = NULL, *extcopy = NULL;
-    char *typename = NULL, *typecopy = NULL;
-    char **newTypes;
-    Bool defaultExtensionType = FALSE;
-
-    /* get extension name */
-    keyword = XSELinuxParseKeyword(&p);
-    if (keyword == XSELinuxKeywordDefault)
-    {
-        defaultExtensionType = TRUE;
-    }
-    else
-    {
-        extname = XSELinuxParseString(&p);
-        if (!extname || (strlen(extname) == 0))
-        {
-            return FALSE;
-        }
-    }
-
-    /* get the SELinux type corresponding to the extension */
-    typename = XSELinuxParseString(&p);
-    if (!typename || (strlen(typename) == 0))
-        return FALSE;
-
-    /* validate the type */
-    if (XSELinuxTypeIsValid(typename) != TRUE)
-        return FALSE;
-
-    /* if it's the default extension, save it to append to the end of the
-     * extension types list
-     */
-    if (defaultExtensionType == TRUE)
-    {
-        if (XSELinuxExtensionTypeDefault != NULL)
-        {
-            return FALSE;
-        }
-        else
-        {
-            XSELinuxExtensionTypeDefault = (char *)xalloc(strlen(typename)+1);
-            if (!XSELinuxExtensionTypeDefault)
-            {
-                ErrorF("XSELinux: out of memory\n");
-                return FALSE;
-            }
-            strcpy(XSELinuxExtensionTypeDefault, typename);
-            return TRUE;
-        }
-    }
-
-    /* insert the extension and type into the extensionTypes array */
-    extcopy = (char *)xalloc(strlen(extname)+1);
-    if (!extcopy)
-    {
-        ErrorF("XSELinux: out of memory\n");
-        return FALSE;
-    }
-    strcpy(extcopy, extname);
-
-    typecopy = (char *)xalloc(strlen(typename)+1);
-    if (!typecopy)
-    {
-        ErrorF("XSELinux: out of memory\n");
-        xfree(extcopy);
-        return FALSE;
-    }
-    strcpy(typecopy, typename);
-
-    newTypes = (char **)xrealloc(extensionTypes, sizeof(char *) *( (extensionTypesCount+1) * 2));
-    if (!newTypes)
-    {
-        ErrorF("XSELinux: out of memory\n");
-        xfree(extcopy);
-        xfree(typecopy);
-        return FALSE;
-    }
-
-    extensionTypesCount++;
-
-    newTypes[extensionTypesCount*2 - 2] = extcopy;
-    newTypes[extensionTypesCount*2 - 1] = typecopy;
-
-    extensionTypes = newTypes;
-
-    return TRUE;
-} /* XSELinuxParseExtensionTypeRule */
-
-static Bool
-XSELinuxParseNonlocalContext(char *p)
-{
-    char *context;
-
-    context = XSELinuxParseString(&p);
-    if (!context || (strlen(context) == 0))
-    {
-        return FALSE;
-    }
-
-    if (XSELinuxNonlocalContextDefault != NULL)
-    {
-        return FALSE;
-    }
-
-    /* validate the context */
-    if (security_check_context(context))
-    {
-        return FALSE;
-    }
-
-    XSELinuxNonlocalContextDefault = (char *)xalloc(strlen(context)+1);
-    if (!XSELinuxNonlocalContextDefault)
-    {
-        ErrorF("XSELinux: out of memory\n");
-        return FALSE;
-    }
-    strcpy(XSELinuxNonlocalContextDefault, context);
-
-    return TRUE;
-} /* XSELinuxParseNonlocalContext */
-
 static Bool
 XSELinuxLoadConfigFile(void)
 {
-    FILE *f;
-    int lineNumber = 0;
-    char **newTypes;
-    Bool ret = FALSE;
+    struct selinux_opt options[] = {
+	{ SELABEL_OPT_PATH, XSELINUXCONFIGFILE },
+	{ SELABEL_OPT_VALIDATE, (char *)1 },
+    };
 
     if (!XSELINUXCONFIGFILE)
         return FALSE;
 
-    /* some initial bookkeeping */
-    propertyTypesCount = extensionTypesCount = 0;
-    propertyTypes = extensionTypes = NULL;
-    XSELinuxPropertyTypeDefault = XSELinuxExtensionTypeDefault = NULL;
-    XSELinuxNonlocalContextDefault = NULL;
-
-#ifndef __UNIXOS2__
-    f = fopen(XSELINUXCONFIGFILE, "r");
-#else
-    f = fopen((char*)__XOS2RedirRoot(XSELINUXCONFIGFILE), "r");
-#endif
-    if (!f)
-    {
-        ErrorF("Error opening XSELinux policy file %s\n", XSELINUXCONFIGFILE);
-        return FALSE;
-    }
-
-    while (!feof(f))
-    {
-        char buf[200];
-        Bool validLine;
-        char *p;
-
-        if (!(p = fgets(buf, sizeof(buf), f)))
-            break;
-        lineNumber++;
-
-        switch (XSELinuxParseKeyword(&p))
-        {
-            case XSELinuxKeywordComment:
-                validLine = TRUE;
-                break;
-
-            case XSELinuxKeywordProperty:
-                validLine = XSELinuxParsePropertyTypeRule(p);
-                break;
-
-            case XSELinuxKeywordExtension:
-                validLine = XSELinuxParseExtensionTypeRule(p);
-                break;
-
-            case XSELinuxKeywordNonlocalContext:
-                validLine = XSELinuxParseNonlocalContext(p);
-                break;
-
-            default:
-                validLine = (*p == '\0');
-                break;
-        }
-
-        if (!validLine)
-        {
-            ErrorF("XSELinux: Line %d of %s is invalid\n",
-                   lineNumber, XSELINUXCONFIGFILE);
-            goto out;
-        }
-    }
-
-    /* check to make sure the default types and the nonlocal context
-     * were specified
-     */
-    if (XSELinuxPropertyTypeDefault == NULL)
-    {
-        ErrorF("XSELinux: No default property type specified\n");
-        goto out;
-    }
-    else if (XSELinuxExtensionTypeDefault == NULL)
-    {
-        ErrorF("XSELinux: No default extension type specified\n");
-        goto out;
-    }
-    else if (XSELinuxNonlocalContextDefault == NULL)
-    {
-        ErrorF("XSELinux: No default context for non-local clients specified\n");
-        goto out;
-    }
-
-    /* Finally, append the default property and extension types to the
-     * bottoms of the propertyTypes and extensionTypes arrays, respectively.
-     * The 'name' of the property / extension is NULL.
-     */
-    newTypes = (char **)xrealloc(propertyTypes, sizeof(char *) *((propertyTypesCount+1) * 2));
-    if (!newTypes)
-    {
-        ErrorF("XSELinux: out of memory\n");
-        goto out;
-    }
-    propertyTypesCount++;
-    newTypes[propertyTypesCount*2 - 2] = NULL;
-    newTypes[propertyTypesCount*2 - 1] = XSELinuxPropertyTypeDefault;
-    propertyTypes = newTypes;
-
-    newTypes = (char **)xrealloc(extensionTypes, sizeof(char *) *((extensionTypesCount+1) * 2));
-    if (!newTypes)
-    {
-        ErrorF("XSELinux: out of memory\n");
-        goto out;
-    }
-    extensionTypesCount++;
-    newTypes[extensionTypesCount*2 - 2] = NULL;
-    newTypes[extensionTypesCount*2 - 1] = XSELinuxExtensionTypeDefault;
-    extensionTypes = newTypes;
-
-    ret = TRUE;
-
-out:
-    fclose(f);
-    return ret;
+    label_hnd = selabel_open(SELABEL_CTX_X, options, 2);
+    return !!label_hnd;
 } /* XSELinuxLoadConfigFile */
 
 static void
 XSELinuxFreeConfigData(void)
 {
-    char **ptr;
-
-    /* Free all the memory in the table until we reach the NULL, then
-     * skip one past the NULL and free the default type.  Then take care
-     * of some bookkeeping.
-     */
-    for (ptr = propertyTypes; *ptr; ptr++)
-        xfree(*ptr);
-    ptr++;
-    xfree(*ptr);
-
-    XSELinuxPropertyTypeDefault = NULL;
-    propertyTypesCount = 0;
-
-    xfree(propertyTypes);
-    propertyTypes = NULL;
-
-    /* ... and the same for the extension type table */
-    for (ptr = extensionTypes; *ptr; ptr++)
-        xfree(*ptr);
-    ptr++;
-    xfree(*ptr);
-
-    XSELinuxExtensionTypeDefault = NULL;
-    extensionTypesCount = 0;
-
-    xfree(extensionTypes);
-    extensionTypes = NULL;
-
-    /* finally, take care of the context for non-local connections */
-    xfree(XSELinuxNonlocalContextDefault);
-    XSELinuxNonlocalContextDefault = NULL;
+    selabel_close(label_hnd);
+    label_hnd = NULL;
 } /* XSELinuxFreeConfigData */
 
 /* Extension dispatch functions */
