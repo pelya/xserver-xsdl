@@ -446,6 +446,7 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
     kbp = (deviceKeyButtonPointer *) events;
     kbp->time = ms;
     kbp->deviceid = pDev->id;
+    kbp->detail = key_code;
     if (type == KeyPress)
         kbp->type = DeviceKeyPress;
     else if (type == KeyRelease)
