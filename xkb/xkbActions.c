@@ -49,10 +49,11 @@ xkbUnwrapProc(DeviceIntPtr device, DeviceHandleProc proc,
 {
     xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(device);
     ProcessInputProc tmp = device->public.processInputProc;
+    ProcessInputProc dummy; /* unused, but neede for macro */
     if(xkbPrivPtr->unwrapProc)
 	xkbPrivPtr->unwrapProc = NULL;
 
-    UNWRAP_PROCESS_INPUT_PROC(device,xkbPrivPtr);
+    UNWRAP_PROCESS_INPUT_PROC(device,xkbPrivPtr, dummy);
     proc(device,data);
     WRAP_PROCESS_INPUT_PROC(device,xkbPrivPtr,
 			    tmp,xkbUnwrapProc);
@@ -867,6 +868,7 @@ int		x,y;
 XkbStateRec	old;
 unsigned	mods,mask,oldCoreState = 0,oldCorePrevState = 0;
 xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(xkbi->device);
+ProcessInputProc backupproc;
 
     /* never actually used uninitialised, but gcc isn't smart enough
      * to work that out. */
@@ -919,10 +921,10 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(xkbi->device);
 
 	realMods = xkbi->device->key->modifierMap[ev.u.u.detail];
 	xkbi->device->key->modifierMap[ev.u.u.detail] = 0;
-	UNWRAP_PROCESS_INPUT_PROC(xkbi->device,xkbPrivPtr);
+	UNWRAP_PROCESS_INPUT_PROC(xkbi->device,xkbPrivPtr, backupproc);
 	xkbi->device->public.processInputProc(&ev,xkbi->device,1);
 	COND_WRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr,
-				     ProcessKeyboardEvent,xkbUnwrapProc);
+				     backupproc,xkbUnwrapProc);
 	xkbi->device->key->modifierMap[ev.u.u.detail] = realMods;
 	
 	if ( mask || mods ) {
@@ -960,10 +962,10 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(xkbi->device);
 
 	realMods = xkbi->device->key->modifierMap[ev.u.u.detail];
 	xkbi->device->key->modifierMap[ev.u.u.detail] = 0;
-	UNWRAP_PROCESS_INPUT_PROC(xkbi->device,xkbPrivPtr);
+	UNWRAP_PROCESS_INPUT_PROC(xkbi->device,xkbPrivPtr, backupproc);
 	xkbi->device->public.processInputProc(&ev,xkbi->device,1);
 	COND_WRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr,
-				     ProcessKeyboardEvent,xkbUnwrapProc);
+				     backupproc,xkbUnwrapProc);
 	xkbi->device->key->modifierMap[ev.u.u.detail] = realMods;
 
 	if ( mask || mods ) {
@@ -1155,6 +1157,7 @@ Bool		pressEvent;
 #ifdef XINPUT
 Bool		xiEvent;
 #endif
+ProcessInputProc backupproc;
     
 xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
 
@@ -1297,10 +1300,10 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
 	if (keyEvent) {
 	    realMods = keyc->modifierMap[key];
 	    keyc->modifierMap[key] = 0;
-	    UNWRAP_PROCESS_INPUT_PROC(dev,xkbPrivPtr);
+	    UNWRAP_PROCESS_INPUT_PROC(dev,xkbPrivPtr, backupproc);
 	    dev->public.processInputProc(xE,dev,count);
 	    COND_WRAP_PROCESS_INPUT_PROC(dev, xkbPrivPtr,
-					 ProcessKeyboardEvent,xkbUnwrapProc);
+					 backupproc,xkbUnwrapProc);
 	    keyc->modifierMap[key] = realMods;
 	}
 	else CoreProcessPointerEvent(xE,dev,count);

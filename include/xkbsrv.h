@@ -241,7 +241,8 @@ typedef struct
 	oldprocs->unwrapProc = device->unwrapProc; \
 	device->unwrapProc = unwrapproc;
 
-#define UNWRAP_PROCESS_INPUT_PROC(device, oldprocs) \
+#define UNWRAP_PROCESS_INPUT_PROC(device, oldprocs, backupproc) \
+        backupproc = device->public.processInputProc; \
 	device->public.processInputProc = oldprocs->processInputProc; \
 	device->public.realInputProc = oldprocs->realInputProc; \
 	device->unwrapProc = oldprocs->unwrapProc;
