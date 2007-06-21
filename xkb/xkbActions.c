@@ -1300,8 +1300,7 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
 	    UNWRAP_PROCESS_INPUT_PROC(dev,xkbPrivPtr);
 	    dev->public.processInputProc(xE,dev,count);
 	    COND_WRAP_PROCESS_INPUT_PROC(dev, xkbPrivPtr,
-                (dev == inputInfo.keyboard) ?  ProcessKeyboardEvent : ProcessOtherEvent, 
-                xkbUnwrapProc);
+					 ProcessKeyboardEvent,xkbUnwrapProc);
 	    keyc->modifierMap[key] = realMods;
 	}
 	else CoreProcessPointerEvent(xE,dev,count);
