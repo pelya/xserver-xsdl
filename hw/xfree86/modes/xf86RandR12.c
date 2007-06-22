@@ -96,9 +96,12 @@ xf86RandR12GetInfo (ScreenPtr pScreen, Rotation *rotations)
     }
 
     /* Re-probe the outputs for new monitors or modes */
-    xf86ProbeOutputModes (scrp, 0, 0);
-    xf86SetScrnInfoModes (scrp);
-    xf86DiDGAReInit (pScreen);
+    if (scrp->vtSema)
+    {
+	xf86ProbeOutputModes (scrp, 0, 0);
+	xf86SetScrnInfoModes (scrp);
+	xf86DiDGAReInit (pScreen);
+    }
 
     for (mode = scrp->modes; ; mode = mode->next)
     {
@@ -794,6 +797,9 @@ xf86RandR12CrtcSetGamma (ScreenPtr    pScreen,
     if (crtc->funcs->gamma_set == NULL)
 	return FALSE;
 
+    if (!crtc->scrn->vtSema)
+	return TRUE;
+
     crtc->funcs->gamma_set(crtc, randr_crtc->gammaRed, randr_crtc->gammaGreen,
 			   randr_crtc->gammaBlue, randr_crtc->gammaSize);
 
@@ -814,6 +820,11 @@ xf86RandR12OutputSetProperty (ScreenPtr pScreen,
     if (output->funcs->set_property == NULL)
 	return TRUE;
 
+    /*
+     * This function gets called even when vtSema is FALSE, as
+     * drivers will need to remember the correct value to apply
+     * when the VT switch occurs
+     */
     return output->funcs->set_property(output, property, value);
 }
 
@@ -827,6 +838,11 @@ xf86RandR12OutputValidateMode (ScreenPtr    pScreen,
     DisplayModeRec  mode;
 
     xf86RandRModeConvert (pScrn, randr_mode, &mode);
+    /*
+     * This function may be called when vtSema is FALSE, so
+     * the underlying function must either avoid touching the hardware
+     * or return FALSE when vtSema is FALSE
+     */
     if (output->funcs->mode_valid (output, &mode) != MODE_OK)
 	return FALSE;
     return TRUE;
@@ -988,6 +1004,8 @@ xf86RandR12GetInfo12 (ScreenPtr pScreen, Rotation *rotations)
 {
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
 
+    if (!pScrn->vtSema)
+	return TRUE;
     xf86ProbeOutputModes (pScrn, 0, 0);
     xf86SetScrnInfoModes (pScrn);
     xf86DiDGAReInit (pScreen);
