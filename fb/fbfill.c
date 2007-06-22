@@ -47,21 +47,17 @@ fbFill (DrawablePtr pDrawable,
     switch (pGC->fillStyle) {
     case FillSolid:
 #ifndef FB_ACCESS_WRAPPER
-	if (!pPriv->and)
-	{
-	    if (pixman_fill (dst, dstStride, dstBpp, x + dstXoff, y + dstYoff, width, height, pPriv->xor))
-	    {
-		fbFinishAccess (pDrawable);
-		return;
-	    }
-	}
+	if (pPriv->and || !pixman_fill ((uint32_t *)dst, dstStride, dstBpp,
+					x + dstXoff, y + dstYoff,
+					width, height,
+					pPriv->xor))
 #endif	    
-	fbSolid (dst + (y + dstYoff) * dstStride, 
-		 dstStride, 
-		 (x + dstXoff) * dstBpp,
-		 dstBpp,
-		 width * dstBpp, height,
-		 pPriv->and, pPriv->xor);
+	    fbSolid (dst + (y + dstYoff) * dstStride, 
+		     dstStride, 
+		     (x + dstXoff) * dstBpp,
+		     dstBpp,
+		     width * dstBpp, height,
+		     pPriv->and, pPriv->xor);
 	break;
     case FillStippled:
     case FillOpaqueStippled: {
@@ -218,25 +214,19 @@ fbSolidBoxClipped (DrawablePtr	pDrawable,
 	    continue;
 
 #ifndef FB_ACCESS_WRAPPER
-	if (!and)
-	{
-	    if (pixman_fill (dst, dstStride, dstBpp,
-			     partX1 + dstXoff, partY1 + dstYoff, (partX2 - partX1), (partY2 - partY1),
-			     xor))
-	    {
-		fbFinishAccess (pDrawable);
-		return;
-	    }
-	}
+	if (and || !pixman_fill ((uint32_t *)dst, dstStride, dstBpp,
+				 partX1 + dstXoff, partY1 + dstYoff,
+				 (partX2 - partX1), (partY2 - partY1),
+				 xor))
 #endif
-	fbSolid (dst + (partY1 + dstYoff) * dstStride,
-		 dstStride,
-		 (partX1 + dstXoff) * dstBpp,
-		 dstBpp,
-
-		 (partX2 - partX1) * dstBpp,
-		 (partY2 - partY1),
-		 and, xor);
+	    fbSolid (dst + (partY1 + dstYoff) * dstStride,
+		     dstStride,
+		     (partX1 + dstXoff) * dstBpp,
+		     dstBpp,
+		     
+		     (partX2 - partX1) * dstBpp,
+		     (partY2 - partY1),
+		     and, xor);
     }
     fbFinishAccess (pDrawable);
 }
