@@ -171,8 +171,10 @@ extern __const__ int _nfiles;
 #ifdef XSERVER_DTRACE
 # include <sys/types.h>
 typedef const char *string;
+# ifndef HAS_GETPEERUCRED
+#  define zoneid_t int
+# endif
 # include "../dix/Xserver-dtrace.h"
-# include <ucred.h>
 #endif
 
 static int lastfdesc;		/* maximum file descriptor */
@@ -563,6 +565,8 @@ AuthAudit (ClientPtr client, Bool letin,
     char client_uid_string[64];
 #ifdef HAS_GETPEERUCRED
     ucred_t *peercred = NULL;
+#endif
+#if defined(HAS_GETPEERUCRED) || defined(XSERVER_DTRACE)    
     pid_t client_pid = -1;
     zoneid_t client_zid = -1;
 #endif
