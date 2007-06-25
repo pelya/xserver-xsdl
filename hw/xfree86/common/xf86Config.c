@@ -752,7 +752,7 @@ configFiles(XF86ConfFilesPtr fileconf)
   }
 #endif
 
-  return TRUE;
+  return;
 }
 
 typedef enum {
