@@ -312,12 +312,6 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
     DRIEntPrivPtr       pDRIEntPriv;
     ScrnInfoPtr         pScrn = xf86Screens[pScreen->myNum];
 
-    if (DRIGeneration != serverGeneration) {
-	if ((DRIScreenPrivIndex = AllocateScreenPrivateIndex()) < 0)
-	    return FALSE;
-	DRIGeneration = serverGeneration;
-    }
-
     /* If the DRI extension is disabled, do not initialize the DRI */
     if (noXFree86DRIExtension) {
 	DRIDrvMsg(pScreen->myNum, X_WARNING,
@@ -347,9 +341,16 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 
     pDRIEntPriv = DRI_ENT_PRIV(pScrn);
 
+    if (DRIGeneration != serverGeneration) {
+	if ((DRIScreenPrivIndex = AllocateScreenPrivateIndex()) < 0)
+	    return FALSE;
+	DRIGeneration = serverGeneration;
+    }
+
     pDRIPriv = (DRIScreenPrivPtr) xcalloc(1, sizeof(DRIScreenPrivRec));
     if (!pDRIPriv) {
         pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
+        DRIScreenPrivIndex = -1;
         return FALSE;
     }
 
@@ -623,7 +624,7 @@ DRICloseScreen(ScreenPtr pScreen)
     DRIEntPrivPtr    pDRIEntPriv = DRI_ENT_PRIV(pScrn);
     Bool closeMaster;
 
-    if (pDRIPriv && pDRIPriv->directRenderingSupport) {
+    if (pDRIPriv) {
 
         pDRIInfo = pDRIPriv->pDriverInfo;
 
@@ -726,6 +727,7 @@ DRICloseScreen(ScreenPtr pScreen)
 
 	xfree(pDRIPriv);
 	pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
+	DRIScreenPrivIndex = -1;
     }
 }
 
