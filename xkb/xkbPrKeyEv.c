@@ -69,6 +69,13 @@ unsigned        ndx;
     /* below XKB, such as a key that physically locks.   XKB does not   */
     /* do anything to implement the behavior, but it *does* report that */
     /* key is hardwired */
+
+    /* FIXME: this is bad. The down mask is set during ProcessOtherEvent. When
+     * we start processing the core event (and eventually arrive here), the
+     * down mask is already set and Xkb thinks it's a repeat event. We just
+     * silently ignore it for now.
+     */
+#if 0
     if ((behavior.type&XkbKB_Permanent)==0) {
 	switch (behavior.type) {
 	    case XkbKB_Default:
@@ -153,6 +160,7 @@ unsigned        ndx;
 		break;
 	}
     }
+#endif
     XkbHandleActions(keybd,keybd,xE,count);
     return;
 }
