@@ -119,7 +119,7 @@ mieqInit(void)
 void
 mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
 {
-    HWEventQueueType       oldtail = miEventQueue.tail, newtail;
+    unsigned int           oldtail = miEventQueue.tail, newtail;
     EventListPtr           evt;
     int                    isMotion = 0;
     int                    evlen;
@@ -138,7 +138,7 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
         EventPtr               laste;
         deviceKeyButtonPointer *lastkbp;
 
-        laste = &miEventQueue.events[(oldtail ? oldtail : QUEUE_SIZE) - 1];
+        laste = &miEventQueue.events[(oldtail - 1) % QUEUE_SIZE];
         lastkbp = (deviceKeyButtonPointer *) laste->events->event;
 
         if (laste->nevents > 6) {
@@ -161,9 +161,7 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
 
     if (isMotion && isMotion == miEventQueue.lastMotion &&
         oldtail != miEventQueue.head) {
-	if (oldtail == 0)
-	    oldtail = QUEUE_SIZE;
-	oldtail = oldtail - 1;
+	oldtail = (oldtail - 1) % QUEUE_SIZE;
     }
     else {
     	newtail = (oldtail + 1) % QUEUE_SIZE;
