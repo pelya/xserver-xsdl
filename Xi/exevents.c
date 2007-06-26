@@ -1169,6 +1169,7 @@ CheckDeviceGrabAndHintWindow(WindowPtr pWin, int type,
 	tempGrab.pointerMode = GrabModeAsync;
 	tempGrab.confineTo = NullWindow;
 	tempGrab.cursor = NullCursor;
+        tempGrab.genericMasks = NULL;
 	(*dev->deviceGrab.ActivateGrab) (dev, &tempGrab, currentTime, TRUE);
     }
 }

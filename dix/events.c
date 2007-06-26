@@ -5912,6 +5912,7 @@ ExtGrabDevice(ClientPtr client,
             last->next = xcalloc(1, sizeof(GenericMaskRec));
             last = last->next;
             *last = *ge_masks;
+            last->next = NULL;
             ge_masks = ge_masks->next;
         }
     }
