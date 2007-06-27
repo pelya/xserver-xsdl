@@ -740,6 +740,9 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
     DevicePtr   pDev = (DevicePtr)pDevice;
     KdKeyboardInfo *ki;
     Atom xiclass;
+#ifdef XKB
+    XkbComponentNamesRec names;
+#endif
 
     if (!pDev)
 	return BadImplementation;
@@ -788,11 +791,9 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
         KdInitModMap(ki);
         KdInitAutoRepeats(ki);
 
-#ifndef XKB
+#ifdef XKB
         if (!noXkbExtension) {
             memset(&names, 0, sizeof(XkbComponentNamesRec));
-            if (XkbInitialMap) 
-                names.keymap = XkbInitialMap;
 
             XkbSetRulesDflts ("base", "pc105", "us", NULL, NULL);
             ret = XkbInitKeyboardDeviceStruct (pDevice,
