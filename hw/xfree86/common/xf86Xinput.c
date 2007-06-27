@@ -84,9 +84,7 @@
 
 #include <stdarg.h>
 
-#include "osdep.h"		/* EnabledDevices */
 #include <X11/Xpoll.h>
-#include "xf86_OSproc.h"	/* sigio stuff */
 
 #include "mi.h"
 
