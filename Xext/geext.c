@@ -41,15 +41,8 @@ int GEErrorBase;
 int GEClientPrivateIndex;
 int GEEventType; /* The opcode for all GenericEvents will have. */
 
-/* Struct to keep information about registered extensions
- */
-typedef struct _GEExtension {
-    /* event swap function */
-    void (*evswap)(xGenericEvent* from, xGenericEvent* to);
-} GEExtension, *GEExtensionPtr;
 
-/* All registered extensions */
-static GEExtension GEExtensions[MAXEXTENSIONS];
+GEExtension GEExtensions[MAXEXTENSIONS];
 
 /* Major available requests */
 static const int version_requests[] = {
@@ -249,11 +242,15 @@ GEExtensionInit(void)
 /* Register an extension with GE. The given swap function will be called each
  * time an event is sent to a client with different byte order.
  * @param extension The extensions major opcode 
- * @param ev_swap the event swap function.  
+ * @param ev_swap The event swap function.  
+ * @param ev_fill Called for an event before delivery. The extension now has
+ * the chance to fill in necessary fields for the event.
  */
 void GERegisterExtension(
         int extension, 
-        void (*ev_swap)(xGenericEvent* from, xGenericEvent* to)
+        void (*ev_swap)(xGenericEvent* from, xGenericEvent* to),
+        void (*ev_fill)(xGenericEvent* ev, DeviceIntPtr pDev, 
+                        WindowPtr pWin, GrabPtr pGrab)
         )
 {
     if ((extension & 0x7F) >=  MAXEXTENSIONS)
@@ -261,6 +258,7 @@ void GERegisterExtension(
 
     /* extension opcodes are > 128, might as well save some space here */
     GEExtensions[extension & 0x7f].evswap = ev_swap;
+    GEExtensions[extension & 0x7f].evfill = ev_fill;
 }
 
 

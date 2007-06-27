@@ -2129,6 +2129,9 @@ FixUpEventFromWindow(
 {
     SpritePtr pSprite = pDev->spriteInfo->sprite;
 
+    if (xE->u.u.type == GenericEvent) /* just a safety barrier */
+        return;
+
     if (calcChild)
     {
         WindowPtr w= pSprite->spriteTrace[pSprite->spriteTraceGood-1];
@@ -2245,6 +2248,8 @@ DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
             {
                 if (GEMaskIsSet(pWin, GEEXT(xE), filter))
                 {
+                    if (GEExtensions[GEEXTIDX(xE)].evfill)
+                        GEExtensions[GEEXTIDX(xE)].evfill(ge, dev, pWin, grab);
                     deliveries = DeliverEventsToWindow(dev, pWin, xE, count, 
                                                         filter, grab, 0);
                     if (deliveries > 0)
@@ -3270,6 +3275,8 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
                 if (!gemask)
                     return;
 
+                if (GEEventFill(xE))
+                    GEEventFill(xE)(ge, thisDev, grab->window, grab);
                 deliveries = TryClientEvents(rClient(grab), xE, count, 
                         gemask->mask,
                         generic_filters[GEEXTIDX(ge)][ge->evtype],

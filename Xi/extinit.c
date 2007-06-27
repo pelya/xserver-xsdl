@@ -1151,6 +1151,16 @@ XIGEEventSwap(xGenericEvent* from, xGenericEvent* to)
     }
 }
 
+/**
+ * EventFill to fill various fields for events before they are delivered to
+ * the client.
+ */
+static void 
+XIGEEventFill(xGenericEvent* ev, DeviceIntPtr pDev, 
+              WindowPtr pWin, GrabPtr grab)
+{
+}
+
 /**********************************************************************
  *
  * IExtensionInit - initialize the input extension.
@@ -1195,7 +1205,7 @@ XInputExtensionInit(void)
 	EventSwapVector[DeviceLeaveNotify] = SEventIDispatch;
 
         /* init GE events */
-        GERegisterExtension(IReqCode, XIGEEventSwap);
+        GERegisterExtension(IReqCode, XIGEEventSwap, XIGEEventFill);
         SetGenericFilter(IReqCode, xi_filters);
     } else {
 	FatalError("IExtensionInit: AddExtensions failed\n");

@@ -34,6 +34,23 @@ from the author.
 #define _GEEXT_H_
 #include <X11/extensions/geproto.h>
 
+/* Struct to keep information about registered extensions
+ *
+ * evswap ... use to swap event fields for different byte ordered clients.
+ * evfill ... use to fill various event fields from the given parameters.
+ */
+typedef struct _GEExtension {
+    void (*evswap)(xGenericEvent* from, xGenericEvent* to);
+    void (*evfill)(xGenericEvent* ev, 
+                    DeviceIntPtr pDev,  /* device */
+                    WindowPtr pWin,     /* event window */
+                    GrabPtr pGrab       /* current grab, may be NULL */
+                    );
+} GEExtension, *GEExtensionPtr;
+
+/* All registered extensions and their handling functions. */
+extern GEExtension GEExtensions[MAXEXTENSIONS];
+
 /* Returns the extension offset from the event */
 #define GEEXT(ev) (((xGenericEvent*)(ev))->extension)
 
@@ -50,11 +67,19 @@ from the author.
 #define GECLIENT(pWin) \
     (((pWin)->optional) ? (pWin)->optional->geMasks->geClients : NULL)
 
+/* Returns the event_fill for the given event */
+#define GEEventFill(ev) \
+    GEExtensions[GEEXTIDX(xE)].evfill
+
 /* Interface for other extensions */
 void GEWindowSetMask(ClientPtr pClient, WindowPtr pWin, int extension, Mask mask);
 void GERegisterExtension(
         int extension,
-        void (*ev_dispatch)(xGenericEvent* from, xGenericEvent* to));
+        void (*ev_dispatch)(xGenericEvent* from, xGenericEvent* to),
+        void (*ev_fill)(xGenericEvent* ev, DeviceIntPtr pDev, 
+                        WindowPtr pWin, GrabPtr pGrab)
+        );
+
 void GEInitEvent(xGenericEvent* ev, int extension);
 
 
