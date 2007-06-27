@@ -32,5 +32,7 @@ Xmach64_LDADD = 					\
 	@KDRIVE_LIBS@					\
 	@XSERVER_LIBS@
 
+Xmach64_DEPENDENCIES = @KDRIVE_LOCAL_LIBS@
+
 relink:
 	rm -f $(bin_PROGRAMS) && make $(bin_PROGRAMS)
