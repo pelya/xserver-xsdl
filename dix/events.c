@@ -2001,6 +2001,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 	GrabRec tempGrab;
         OtherInputMasks *inputMasks;
 
+        tempGrab.next = NULL;
 	tempGrab.device = pDev;
 	tempGrab.resource = client->clientAsMask;
 	tempGrab.window = pWin;
@@ -3023,6 +3024,7 @@ CheckPassiveGrabsOnWindow(
     tempGrab.detail.exact = xE->u.u.detail;
     tempGrab.detail.pMask = NULL;
     tempGrab.modifiersDetail.pMask = NULL;
+    tempGrab.next = NULL;
     for (; grab; grab = grab->next)
     {
 #ifdef XKB
@@ -4652,6 +4654,7 @@ ProcGrabPointer(ClientPtr client)
 		ConfineCursorToWindow(device, RootWindow(device), FALSE, FALSE);
 	    oldCursor = grab->cursor;
 	}
+        tempGrab.next = NULL;
 	tempGrab.cursor = cursor;
 	tempGrab.resource = client->clientAsMask;
 	tempGrab.ownerEvents = stuff->ownerEvents;
@@ -4820,6 +4823,7 @@ GrabDevice(ClientPtr client, DeviceIntPtr dev,
         /* Otherwise segfaults happen on grabbed MPX devices */
         memset(&tempGrab, 0, sizeof(GrabRec));
 
+        tempGrab.next = NULL;
 	tempGrab.window = pWin;
 	tempGrab.resource = client->clientAsMask;
 	tempGrab.ownerEvents = ownerEvents;
@@ -5192,6 +5196,7 @@ ProcUngrabKey(ClientPtr client)
     tempGrab.type = KeyPress;
     tempGrab.detail.exact = stuff->key;
     tempGrab.detail.pMask = NULL;
+    tempGrab.next = NULL;
 
     if (!DeletePassiveGrabFromList(&tempGrab))
 	return(BadAlloc);
@@ -5370,6 +5375,7 @@ ProcUngrabButton(ClientPtr client)
     tempGrab.type = ButtonPress;
     tempGrab.detail.exact = stuff->button;
     tempGrab.detail.pMask = NULL;
+    tempGrab.next = NULL;
 
     if (!DeletePassiveGrabFromList(&tempGrab))
 	return(BadAlloc);
@@ -5897,6 +5903,7 @@ ExtGrabDevice(ClientPtr client,
     newGrab.confineTo      = confineTo;
     newGrab.eventMask      = xi_mask;
     newGrab.genericMasks   = NULL;
+    newGrab.next           = NULL;
 
     if (ge_masks)
     {
