@@ -1819,11 +1819,6 @@ if test "$KDRIVE" = yes; then
 
     # check if we can build Xephyr
     PKG_CHECK_MODULES(XEPHYR, x11 xext xfont xau xdmcp, [xephyr="yes"], [xephyr="no"])
-    XEPHYR_LIBS="$XEPHYR_LIBS $XSERVER_LIBS"
-
-    # Xephyr needs nanosleep() which is in librt on Solaris
-    AC_CHECK_FUNC([nanosleep], [],
-        AC_CHECK_LIB([rt], [nanosleep], XEPHYR_LIBS="$XEPHYR_LIBS -lrt"))
 
     AC_SUBST([XEPHYR_LIBS])
     AC_SUBST([XEPHYR_INCS])
