@@ -258,7 +258,7 @@ xf86printFileSection (FILE * cf, XF86ConfFilesPtr ptr)
 			s++;
 			p = index (s, ',');
 		}
-		fprintf (cf, "\tInputdevs   \"%s\"\n", s);
+		fprintf (cf, "\tInputDevices   \"%s\"\n", s);
 	}
 	if (ptr->file_fontpath)
 	{
