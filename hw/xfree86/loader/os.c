@@ -62,8 +62,6 @@
 #define OSNAME "svr5"
 #elif defined(SVR4)
 #define OSNAME "svr4"
-#elif defined(__UNIXOS2__)
-#define OSNAME "os2"
 #else
 #define OSNAME "unknown"
 #endif

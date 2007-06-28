@@ -31,9 +31,6 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef __UNIXOS2__
-# define I_NEED_OS2_H
-#endif
 #include <X11/X.h>
 #include "xf86.h"
 #include "xf86Priv.h"
@@ -43,9 +40,6 @@
 #include "xf86_OSlib.h"
 #include "xf86Resources.h"
 
-#ifdef __UNIXOS2__
-# undef ADDRESS
-#endif
 /* Avoid Imakefile changes */
 #include "bus/Pci.h"
 

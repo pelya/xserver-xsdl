@@ -54,9 +54,6 @@ static struct MouseProtocol {
     char *name;
     int type;
 } protocols[] = {
-#ifdef __UNIXOS2__
-    {"OS2Mouse",		MTYPE_AUTOMOUSE},
-#endif
 #ifdef __SCO__
     {"OsMouse",			MTYPE_AUTOMOUSE},
 #endif

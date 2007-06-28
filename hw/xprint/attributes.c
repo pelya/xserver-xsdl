@@ -1375,7 +1375,6 @@ ReplaceAllKeywords(
     defined(__CYGWIN__) || \
     (defined(sun) && !defined(SVR4)) || \
     (defined(SVR4) && !defined(sun) && !defined(__UNIXWARE__)) || \
-    defined(__UNIXOS2__) || \
     defined(ISC) || \
     defined(Lynx) || \
     defined(__QNX__) || \

@@ -74,13 +74,11 @@ suspend (pmEvent event, Bool undo)
 	if (xf86Screens[i]->EnableDisableFBAccess)
 	    (*xf86Screens[i]->EnableDisableFBAccess) (i, FALSE);
     }
-#if !defined(__EMX__)
     pInfo = xf86InputDevs;
     while (pInfo) {
 	DisableDevice(pInfo->dev);
 	pInfo = pInfo->next;
     }
-#endif
     xf86EnterServerState(SETUP);
     for (i = 0; i < xf86NumScreens; i++) {
         xf86EnableAccess(xf86Screens[i]);
@@ -119,13 +117,11 @@ resume(pmEvent event, Bool undo)
 	    (*xf86Screens[i]->EnableDisableFBAccess) (i, TRUE);
     }
     SaveScreens(SCREEN_SAVER_FORCER, ScreenSaverReset);
-#if !defined(__EMX__)
     pInfo = xf86InputDevs;
     while (pInfo) {
 	EnableDevice(pInfo->dev);
 	pInfo = pInfo->next;
     }
-#endif
     xf86inSuspend = FALSE;
 }
 

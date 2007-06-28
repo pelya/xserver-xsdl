@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
  *
@@ -93,11 +92,7 @@ typedef enum {
 #define MODINFOSTRING2	0x10dc023a
 
 #ifndef MODULEVENDORSTRING
-#ifndef __OS2ELF__
 #define MODULEVENDORSTRING	"X.Org Foundation"
-#else
-#define MODULEVENDORSTRING	"X.Org Foundation - OS2"
-#endif
 #endif
 
 /* Error return codes for errmaj.  New codes must only be added at the end. */

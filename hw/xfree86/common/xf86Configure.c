@@ -70,10 +70,7 @@ _X_EXPORT xf86MonPtr ConfiguredMonitor;
 Bool xf86DoConfigurePass1 = TRUE;
 static Bool foundMouse = FALSE;
 
-#if defined(__UNIXOS2__)
-#define DFLT_MOUSE_DEV "mouse$"
-#define DFLT_MOUSE_PROTO "OS2Mouse"
-#elif defined(__SCO__)
+#if defined(__SCO__)
 static char *DFLT_MOUSE_PROTO = "OSMouse";
 #elif defined(__UNIXWARE__)
 static char *DFLT_MOUSE_PROTO = "OSMouse";
@@ -872,9 +869,6 @@ DoConfigure()
     if (!(home = getenv("HOME")))
     	home = "/";
     {
-#ifdef __UNIXOS2__
-#define PATH_MAX 2048
-#endif
 #if !defined(PATH_MAX)
 #define PATH_MAX 1024
 #endif
@@ -1010,13 +1004,11 @@ DoConfigure()
 	ErrorF("\n"__XSERVERNAME__" is not able to detect your mouse.\n"
 		"Edit the file and correct the Device.\n");
     } else {
-#ifndef __UNIXOS2__  /* OS/2 definitely has a mouse */
 	ErrorF("\n"__XSERVERNAME__" detected your mouse at device %s.\n"
 		"Please check your config if the mouse is still not\n"
 		"operational, as by default "__XSERVERNAME__
 	       " tries to autodetect\n"
 		"the protocol.\n",DFLT_MOUSE_DEV);
-#endif
     }
 #endif /* !__SCO__ */
 

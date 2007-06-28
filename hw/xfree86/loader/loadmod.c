@@ -118,12 +118,7 @@ static char **defaultPathList = NULL;
 static Bool
 PathIsAbsolute(const char *path)
 {
-#ifdef __UNIXOS2__
-    return (*path == '/' || (strlen(path) > 2 && isalpha(elem[0]) &&
-		elem[1] == ':' && elem[2] == '/'));
-#else
     return (*path == '/');
-#endif
 }	
 
 /*

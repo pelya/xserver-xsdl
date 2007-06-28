@@ -53,11 +53,7 @@
 #endif
 
 #ifndef XKB_RULES_DIR
-#ifndef __UNIXOS2__
 #define XKB_RULES_DIR PROJECT_ROOT "/share/X11/xkb/rules"
-#else
-#define XKB_RULES_DIR XF86CONFIGDIR "/xkb/rules"
-#endif
 #endif
 
 #define CONTROL_A	1
@@ -212,11 +208,7 @@ TextMode(void)
 		   "The "__XCONFIGFILE__" file usually resides in /etc. A "
 		   "sample "__XCONFIGFILE__" file is supplied with "
 #else
-#ifndef __UNIXOS2__
 		   "The "__XCONFIGFILE__" file usually resides in " PROJECT_ROOT "/etc/X11 "
-#else
-		   "The "__XCONFIGFILE__" file usually resides in "XF86CONFIGDIR" "
-#endif
 		   "or /etc/X11. A sample "__XCONFIGFILE__" file is supplied with "
 #endif
 		   __XSERVERNAME__"; it is configured for a standard VGA card and "
@@ -306,11 +298,7 @@ WriteXF86Config(void)
     refresh();
     xf86config = DialogInput("Write "__XCONFIGFILE__, "Write configuration to file:",
 			     10, 60, XF86Config_path ? XF86Config_path :
-#ifndef __UNIXOS2__
 			     "/etc/X11/"__XCONFIGFILE__, "  Ok  ", " Cancel ", 0);
-#else
-			     XF86CONFIGDIR"/"__XCONFIGFILE__, "  Ok  ", " Cancel ", 0);
-#endif
 
     if (xf86config == NULL)
 	return (-1);
@@ -355,9 +343,6 @@ WriteXF86Config(void)
 }
 
 static char *protocols[] = {
-#ifdef __UNIXOS2__
-    "OS2Mouse",
-#endif
 #ifdef __SCO__
     "OsMouse",
 #endif
@@ -549,8 +534,6 @@ MouseConfig(void)
 	str = "/dev/wsmouse";
 #elif defined(__FreeBSD__) || defined(__DragonFly__)
 	str = "/dev/sysmouse";
-#elif defined(__UNIXOS2__)
-	str = "mouse$";
 #elif defined(__linux__)
 	str = "/dev/input/mice";
 #else

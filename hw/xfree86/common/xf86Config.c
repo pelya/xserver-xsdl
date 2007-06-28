@@ -53,10 +53,6 @@
 #include <grp.h>
 #endif
 
-#ifdef __UNIXOS2__
-#define I_NEED_OS2_H
-#endif
-
 #include "xf86.h"
 #include "xf86Parser.h"
 #include "xf86tokens.h"
@@ -181,15 +177,8 @@ xf86ValidateFontPath(char *path)
   while (next != NULL) {
     path_elem = xf86GetPathElem(&next);
     if (*path_elem == '/') {
-#ifndef __UNIXOS2__
       dir_elem = xnfcalloc(1, strlen(path_elem) + 1);
       if ((p1 = strchr(path_elem, ':')) != 0)
-#else
-    /* OS/2 must prepend X11ROOT */
-      path_elem = (char*)__XOS2RedirRoot(path_elem);
-      dir_elem = xnfcalloc(1, strlen(path_elem) + 1);
-      if (p1 = strchr(path_elem+2, ':'))
-#endif
 	dirlen = p1 - path_elem;
       else
 	dirlen = strlen(path_elem);
@@ -213,9 +202,7 @@ xf86ValidateFontPath(char *path)
 	if (flag == 0)
 	  if (!S_ISREG(stat_buf.st_mode))
 	    flag = -1;
-#ifndef __UNIXOS2__
 	xfree(p1);
-#endif
 	if (flag != 0) {
 	  xf86Msg(X_WARNING,
 		  "`fonts.dir' not found (or not valid) in \"%s\".\n", 

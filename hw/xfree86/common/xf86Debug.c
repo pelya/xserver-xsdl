@@ -30,10 +30,6 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef __UNIXOS2__
-#define I_NEED_OS2_H
-#endif
-
 #include <sys/time.h>
 #include <unistd.h> 
 #include <X11/X.h>
