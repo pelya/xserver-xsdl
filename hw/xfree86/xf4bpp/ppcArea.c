@@ -20,7 +20,6 @@
  * SOFTWARE.
  *
 */
-/* $XConsortium: ppcArea.c /main/4 1996/02/21 17:57:02 kaleb $ */
 
 /* 
  * ppc solid area fill

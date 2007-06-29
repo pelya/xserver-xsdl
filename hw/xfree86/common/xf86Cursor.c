@@ -25,8 +25,6 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-/* $XConsortium: xf86Cursor.c /main/10 1996/10/19 17:58:23 kaleb $ */
-
 #define NEED_EVENTS
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

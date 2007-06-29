@@ -20,7 +20,6 @@
  * SOFTWARE.
  *
 */
-/* $XConsortium: emulRepAre.c /main/5 1996/02/21 17:56:16 kaleb $ */
 
 /* ppc Replicate Area -- A Divide & Conquer Algorithm
  * a "ppc" Helper Function For Stipples And Tiling

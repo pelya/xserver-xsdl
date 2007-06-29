@@ -11,8 +11,6 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86$ */
-
 
 #ifndef XNESTFONT_H
 #define XNESTFONT_H

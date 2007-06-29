@@ -1,6 +1,4 @@
 /*
- * Id: s3.c,v 1.1 1999/11/02 08:17:24 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/trio/s3.c,v 1.4 2000/05/06 22:17:52 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>

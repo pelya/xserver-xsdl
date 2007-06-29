@@ -31,8 +31,6 @@ of the copyright holder.
 
 X Window System is a trademark of The Open Group */
 
-/* $RCSId: $ */
-
 /*
  * Author:
  *   Pontus Lidman <pontus.lidman@nokia.com>

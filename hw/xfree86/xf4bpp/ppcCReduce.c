@@ -21,8 +21,6 @@
  *
 */
 
-/* $XConsortium: ppcCReduce.c /main/3 1996/02/21 17:57:17 kaleb $ */
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif

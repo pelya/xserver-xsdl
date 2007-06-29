@@ -25,8 +25,6 @@
  * Conectiva Linux.
  *
  * Author: Paulo César Pereira de Andrade <pcpa@conectiva.com.br>
- *
- * $XFree86$
  */
 
 #include "config.h"

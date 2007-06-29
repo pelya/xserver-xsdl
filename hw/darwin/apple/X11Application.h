@@ -1,5 +1,4 @@
 /* X11Application.h -- subclass of NSApplication to multiplex events
-   $Id: X11Application.h,v 1.26 2003/08/08 19:16:13 jharper Exp $
 
    Copyright (c) 2002-2007 Apple Inc. All rights reserved.
 

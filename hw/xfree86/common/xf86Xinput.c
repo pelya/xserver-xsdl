@@ -45,7 +45,6 @@
  * the sale, use or other dealings in this Software without prior written
  * authorization from the copyright holder(s) and author(s).
  */
-/* $XConsortium: xf86Xinput.c /main/14 1996/10/27 11:05:25 kaleb $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

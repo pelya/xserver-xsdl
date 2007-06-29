@@ -1,6 +1,4 @@
 /*
- * $RCSId: xc/programs/Xserver/hw/kdrive/linux/keyboard.c,v 1.10 2001/11/08 10:26:24 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  * XKB integration © 2006 Nokia Corporation, author: Tomas Frydrych <tf@o-hand.com>
  *

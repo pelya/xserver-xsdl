@@ -47,8 +47,6 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-/* $XConsortium: compiler.h /main/16 1996/10/25 15:38:34 kaleb $ */
-
 #ifndef _COMPILER_H
 
 # define _COMPILER_H

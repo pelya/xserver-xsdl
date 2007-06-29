@@ -22,7 +22,6 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XConsortium: sysv_init.c /main/4 1996/02/21 17:54:31 kaleb $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

@@ -1,6 +1,4 @@
 /*
- * Id: mach64.h,v 1.2 1999/11/02 08:17:24 keithp Exp $
- *
  * Copyright © 2001 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/mach64/mach64.h,v 1.5 2001/06/23 03:41:24 keithp Exp $ */
 
 #ifndef _MACH64_H_
 #define _MACH64_H_

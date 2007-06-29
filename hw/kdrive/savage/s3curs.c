@@ -1,6 +1,4 @@
 /*
- * Id: s3curs.c,v 1.2 1999/11/02 06:16:29 keithp Exp $
- *
  * Copyright 1999 SuSE, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -22,7 +20,6 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/savage/s3curs.c,v 1.3 2000/02/23 20:30:03 dawes Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>

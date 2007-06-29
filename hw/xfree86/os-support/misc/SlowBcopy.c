@@ -1,9 +1,6 @@
-
-/* $XConsortium: SlowBcopy.c /main/1 1996/05/07 17:14:10 kaleb $ */
 /*******************************************************************************
   for Alpha Linux
 *******************************************************************************/
-
  
 /* 
  *   Create a dependency that should be immune from the effect of register

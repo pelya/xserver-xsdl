@@ -20,7 +20,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XConsortium: bios_devmem.c /main/5 1996/10/19 18:07:41 kaleb $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

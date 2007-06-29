@@ -19,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/mach64/mach64.c,v 1.10 2002/10/14 18:01:41 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>

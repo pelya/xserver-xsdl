@@ -3,7 +3,6 @@
  * For Scancodes see notes in winkeynames.h  !!!!
  *
  */
-/* $XConsortium: xf86Keymap.h /main/14 1996/02/21 17:38:47 kaleb $ */
 
 static KeySym map[NUM_KEYCODES * GLYPHS_PER_KEY] = {
     /* 0x00 */  NoSymbol,       NoSymbol,	NoSymbol,	NoSymbol,

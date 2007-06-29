@@ -29,7 +29,6 @@
  *
  * Authors:     Earle F. Philhower, III
  */
-/* $XFree86: $ */
 
 /* Need Bool */
 #include <X11/Xdefs.h>

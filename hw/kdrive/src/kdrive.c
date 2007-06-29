@@ -1,6 +1,4 @@
 /*
- * $RCSId: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.29 2002/10/31 18:29:50 keithp Exp $ 
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its

@@ -19,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/trident/trident.c,v 1.17 2001/06/03 18:48:19 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>

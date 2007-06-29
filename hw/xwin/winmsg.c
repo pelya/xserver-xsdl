@@ -27,7 +27,6 @@
  *
  * Authors: Alexander Gottwald	
  */
-/* $XFree86$ */
 
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>

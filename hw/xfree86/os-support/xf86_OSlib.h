@@ -65,8 +65,6 @@
  *
  */
 
-/* $XConsortium: xf86_OSlib.h /main/22 1996/10/27 11:06:31 kaleb $ */
-
 /*
  * This is private, and should not be included by any drivers.  Drivers
  * may include xf86_OSproc.h to get prototypes for public interfaces.

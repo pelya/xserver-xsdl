@@ -27,7 +27,6 @@
  *
  * Tested running under a Compaq IPAQ Pocket PC running Linux
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.c,v 1.6 2002/10/14 18:01:41 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>

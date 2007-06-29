@@ -29,7 +29,6 @@
  *
  * Authors: Alexander Gottwald	
  */
-/* $Id$ */
 
 #include "win.h"
 #ifdef XWIN_XF86CONFIG

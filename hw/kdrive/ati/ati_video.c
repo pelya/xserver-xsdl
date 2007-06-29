@@ -22,7 +22,6 @@
  *
  * Based on mach64video.c by Keith Packard.
  */
-/* $RCSId$ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>

@@ -1,4 +1,3 @@
-
 /************************************************************
 
 Copyright (c) 1989  X Consortium
@@ -26,8 +25,6 @@ in this Software without prior written authorization from the X Consortium.
 
 ********************************************************/
 /* GJA -- Took mfb code and modified it. */
-
-/* $XConsortium: mfbzerarc.c /main/4 1996/02/21 17:56:52 kaleb $ */
 
 /* Derived from:
  * "Algorithm for drawing ellipses or hyperbolae with a digital plotter"

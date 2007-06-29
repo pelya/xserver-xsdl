@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright © 2000 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its

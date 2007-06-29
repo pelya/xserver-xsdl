@@ -1,9 +1,5 @@
 /* GJA -- span move routines */
 
-
-
-/* $XConsortium: vgaBitBlt.c /main/8 1996/10/27 11:06:39 kaleb $ */
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif

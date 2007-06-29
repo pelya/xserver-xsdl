@@ -29,7 +29,6 @@
  *     Header file for DIX-related DBE
  *
  *****************************************************************************/
-/* $XFree86$ */
 
 #ifndef DBE_STRUCT_H
 #define DBE_STRUCT_H

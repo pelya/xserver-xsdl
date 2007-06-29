@@ -58,10 +58,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 **************************************************************************/
 
-
-
-/* $RCSId: xc/programs/Xserver/hw/kdrive/i810/i810_cursor.c,v 1.2 2001/12/10 16:34:20 keithp Exp $ */
-
 /* i810_cursor.c: KDrive hardware cursor routines for the i810 chipset */
 
 /*

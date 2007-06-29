@@ -1,5 +1,3 @@
-/*	$NetBSD: usbvar.h,v 1.2 1999/05/11 21:15:46 augustss Exp $	*/
-
 /*
  * Copyright (c) 1999 Lennart Augustsson <augustss@netbsd.org>
  * All rights reserved.

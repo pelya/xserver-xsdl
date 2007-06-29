@@ -1,4 +1,3 @@
-
 /* Combined Purdue/PurduePlus patches, level 2.0, 1/17/89 */
 /***********************************************************
 
@@ -47,7 +46,6 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 SOFTWARE.
 
 ******************************************************************/
-/* $XConsortium: mfbimggblt.c /main/5 1996/02/21 17:56:44 kaleb $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

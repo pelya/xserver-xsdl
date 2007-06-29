@@ -90,7 +90,6 @@
  *  - Add font path "/TrueType/" and "/freefont/".
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
-/* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
 
 #ifdef HAVE_CONFIG_H
 # include "xorg-server.h"
