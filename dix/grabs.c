@@ -322,12 +322,6 @@ AddPassiveGrabToList(GrabPtr pGrab)
 	}
     }
 
-    if (!pGrab->window->optional && !MakeWindowOptional (pGrab->window))
-    {
-	FreeGrab(pGrab);
-	return BadAlloc;
-    }
-
     /* Remove all grabs that match the new one exactly */
     for (grab = wPassiveGrabs(pGrab->window); grab; grab = grab->next)
     {
@@ -336,6 +330,12 @@ AddPassiveGrabToList(GrabPtr pGrab)
             DeletePassiveGrabFromList(grab);
             break;
 	} 
+    }
+
+    if (!pGrab->window->optional && !MakeWindowOptional (pGrab->window))
+    {
+	FreeGrab(pGrab);
+	return BadAlloc;
     }
 
     pGrab->next = pGrab->window->optional->passiveGrabs;
