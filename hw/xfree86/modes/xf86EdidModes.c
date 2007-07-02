@@ -22,8 +22,9 @@
  */
 
 /**
- * @file This is a copy of edid_modes.c from the X Server, for compatibility
- * with old X Servers.
+ * @file This file covers code to convert a xf86MonPtr containing EDID-probed
+ * information into a list of modes, including applying monitor-specific
+ * quirks to fix broken EDID data.
  */
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
