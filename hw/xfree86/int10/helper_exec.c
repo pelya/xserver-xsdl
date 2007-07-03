@@ -29,7 +29,9 @@
 #define _INT10_PRIVATE
 #include "int10Defines.h"
 #include "xf86int10.h"
+#ifdef _X86EMU
 #include "x86emu/x86emui.h"
+#endif
 
 static int pciCfg1in(CARD16 addr, CARD32 *val);
 static int pciCfg1out(CARD16 addr, CARD32 val);
