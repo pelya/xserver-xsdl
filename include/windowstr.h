@@ -94,6 +94,33 @@ typedef struct _WindowOpt {
 #define BackgroundPixel	    2L
 #define BackgroundPixmap    3L
 
+/*
+ * The redirectDraw field can have one of three values:
+ *
+ *  RedirectDrawNone
+ *	A normal window; painted into the same pixmap as the parent
+ *	and clipping parent and siblings to its geometry. These
+ *	windows get a clip list equal to the intersection of their
+ *	geometry with the parent geometry, minus the geometry
+ *	of overlapping None and Clipped siblings.
+ *  RedirectDrawAutomatic
+ *	A redirected window which clips parent and sibling drawing.
+ *	Contents for these windows are manage inside the server.
+ *	These windows get an internal clip list equal to their
+ *	geometry.
+ *  RedirectDrawManual
+ *	A redirected window which does not clip parent and sibling
+ *	drawing; the window must be represented within the parent
+ *	geometry by the client performing the redirection management.
+ *	Contents for these windows are managed outside the server.
+ *	These windows get an internal clip list equal to their
+ *	geometry.
+ */
+
+#define RedirectDrawNone	0
+#define RedirectDrawAutomatic	1
+#define RedirectDrawManual	2
+
 typedef struct _Window {
     DrawableRec		drawable;
     WindowPtr		parent;		/* ancestor chain */
@@ -130,7 +157,7 @@ typedef struct _Window {
     unsigned		dontPropagate:3;/* index into DontPropagateMasks */
     unsigned		forcedBS:1;	/* system-supplied backingStore */
 #ifdef COMPOSITE
-    unsigned		redirectDraw:1;	/* rendering is redirected from here */
+    unsigned		redirectDraw:2;	/* rendering is redirected from here */
 #endif
     DevUnion		*devPrivates;
 } WindowRec;

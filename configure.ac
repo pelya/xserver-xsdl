@@ -649,7 +649,7 @@ fi
 AM_CONDITIONAL(COMPOSITE, [test "x$COMPOSITE" = xyes])
 if test "x$COMPOSITE" = xyes; then
 	AC_DEFINE(COMPOSITE, 1, [Support Composite Extension])
-	REQUIRED_MODULES="$REQUIRED_MODULES [compositeproto >= 0.3]"
+	REQUIRED_MODULES="$REQUIRED_MODULES [compositeproto >= 0.4]"
 	COMPOSITE_LIB='$(top_builddir)/composite/libcomposite.la'
 	COMPOSITE_INC='-I$(top_srcdir)/composite'
 fi
