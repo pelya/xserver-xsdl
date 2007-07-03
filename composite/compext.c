@@ -46,6 +46,9 @@
 
 #include "compint.h"
 
+#define SERVER_COMPOSITE_MAJOR	0
+#define SERVER_COMPOSITE_MINOR	4
+
 static CARD8	CompositeReqCode;
 static int	CompositeClientPrivateIndex;
 RESTYPE		CompositeClientWindowType;
@@ -130,16 +133,16 @@ ProcCompositeQueryVersion (ClientPtr client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    if (stuff->majorVersion < COMPOSITE_MAJOR) {
+    if (stuff->majorVersion < SERVER_COMPOSITE_MAJOR) {
 	rep.majorVersion = stuff->majorVersion;
 	rep.minorVersion = stuff->minorVersion;
     } else {
-	rep.majorVersion = COMPOSITE_MAJOR;
-	if (stuff->majorVersion == COMPOSITE_MAJOR && 
-	    stuff->minorVersion < COMPOSITE_MINOR)
+	rep.majorVersion = SERVER_COMPOSITE_MAJOR;
+	if (stuff->majorVersion == SERVER_COMPOSITE_MAJOR && 
+	    stuff->minorVersion < SERVER_COMPOSITE_MINOR)
 	    rep.minorVersion = stuff->minorVersion;
 	else
-	    rep.minorVersion = COMPOSITE_MINOR;
+	    rep.minorVersion = SERVER_COMPOSITE_MINOR;
     }
     pCompositeClient->major_version = rep.majorVersion;
     pCompositeClient->minor_version = rep.minorVersion;
