@@ -658,7 +658,7 @@ linuxOpenLegacy(PCITAG Tag, char *name)
 	    return fd;
 	}
 
-	pBusInfo = pciBusInfo[bus];
+	pBusInfo = pciBusInfo[PCI_BUS_FROM_TAG(Tag)];
 	if (!pBusInfo || (bridge == pBusInfo->bridge) ||
 		!(bridge = pBusInfo->bridge)) {
 	    xfree(path);
@@ -1074,7 +1074,63 @@ ia64linuxPciFindNext(void)
 	}
 
 	if (sscanf(entry->d_name, "%02x . %01x", &dev, &func) == 2) {
-	    pciDeviceTag = PCI_MAKE_TAG(PCI_MAKE_BUS(domain, bus), dev, func);
+	    CARD32 tmp;
+	    int sec_bus, pri_bus;
+	    unsigned char base_class, sub_class;
+
+	    int pciBusNum = PCI_MAKE_BUS(domain, bus);
+	    pciDeviceTag = PCI_MAKE_TAG(pciBusNum, dev, func);
+
+	    /*
+	     * Before checking for a specific devid, look for enabled
+	     * PCI to PCI bridge devices.  If one is found, create and
+	     * initialize a bus info record (if one does not already exist).
+	     */
+	    tmp = pciReadLong(pciDeviceTag, PCI_CLASS_REG);
+	    base_class = PCI_CLASS_EXTRACT(tmp);
+	    sub_class = PCI_SUBCLASS_EXTRACT(tmp);
+	    if ((base_class == PCI_CLASS_BRIDGE) &&
+		((sub_class == PCI_SUBCLASS_BRIDGE_PCI) ||
+		 (sub_class == PCI_SUBCLASS_BRIDGE_CARDBUS))) {
+		tmp = pciReadLong(pciDeviceTag, PCI_PCI_BRIDGE_BUS_REG);
+		sec_bus = PCI_SECONDARY_BUS_EXTRACT(tmp, pciDeviceTag);
+		pri_bus = PCI_PRIMARY_BUS_EXTRACT(tmp, pciDeviceTag);
+#ifdef DEBUGPCI
+		ErrorF("ia64linuxPciFindNext: pri_bus %d sec_bus %d\n",
+		       pri_bus, sec_bus);
+#endif
+		if (pciBusNum != pri_bus) {
+		    /* Some bridges do not implement the primary bus register */
+		    if ((PCI_BUS_NO_DOMAIN(pri_bus) != 0) ||
+			(sub_class != PCI_SUBCLASS_BRIDGE_CARDBUS))
+			xf86Msg(X_WARNING,
+				"ia64linuxPciFindNext:  primary bus mismatch on PCI"
+				" bridge 0x%08lx (0x%02x, 0x%02x)\n",
+				pciDeviceTag, pciBusNum, pri_bus);
+		    pri_bus = pciBusNum;
+	        }
+		if ((pri_bus < sec_bus) && (sec_bus < pciMaxBusNum) &&
+		    pciBusInfo[pri_bus]) {
+		    /*
+		     * Found a secondary PCI bus
+		     */
+		    if (!pciBusInfo[sec_bus]) {
+			pciBusInfo[sec_bus] = xnfalloc(sizeof(pciBusInfo_t));
+
+			/* Copy parents settings... */
+			*pciBusInfo[sec_bus] = *pciBusInfo[pri_bus];
+		    }
+
+		    /* ...but not everything same as parent */
+		    pciBusInfo[sec_bus]->primary_bus = pri_bus;
+		    pciBusInfo[sec_bus]->secondary = TRUE;
+		    pciBusInfo[sec_bus]->numDevices = 32;
+
+		    if (pciNumBuses <= sec_bus)
+			pciNumBuses = sec_bus + 1;
+		}
+	    }
+
 	    devid = pciReadLong(pciDeviceTag, PCI_ID_REG);
 	    if ((devid & pciDevidMask) == pciDevid)
 		/* Yes - Return it.  Otherwise, next device */
