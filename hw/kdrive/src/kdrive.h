@@ -213,9 +213,6 @@ typedef struct {
 
     CreateScreenResourcesProcPtr    CreateScreenResources;
     CloseScreenProcPtr  CloseScreen;
-#ifdef FB_OLD_SCREEN
-    miBSFuncRec	    BackingStoreFuncs;
-#endif
 } KdPrivScreenRec, *KdPrivScreenPtr;
 
 typedef enum _kdPointerState {

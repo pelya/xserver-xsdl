@@ -81,7 +81,6 @@ fbQueryBestSize (int class,
     }
 }
 
-#ifndef FB_OLD_SCREEN
 PixmapPtr
 _fbGetWindowPixmap (WindowPtr pWindow)
 {
@@ -97,7 +96,6 @@ _fbSetWindowPixmap (WindowPtr pWindow, PixmapPtr pPixmap)
     pWindow->devPrivates[fbWinPrivateIndex].ptr = (pointer) pPixmap;
 #endif
 }
-#endif
 
 Bool
 fbSetupScreen(ScreenPtr	pScreen, 
@@ -141,7 +139,6 @@ fbSetupScreen(ScreenPtr	pScreen,
     pScreen->ResolveColor = fbResolveColor;
     pScreen->BitmapToRegion = fbPixmapToRegion;
     
-#ifndef FB_OLD_SCREEN
     pScreen->GetWindowPixmap = _fbGetWindowPixmap;
     pScreen->SetWindowPixmap = _fbSetWindowPixmap;
 
@@ -150,7 +147,6 @@ fbSetupScreen(ScreenPtr	pScreen,
     pScreen->BackingStoreFuncs.SetClipmaskRgn = 0;
     pScreen->BackingStoreFuncs.GetImagePixmap = 0;
     pScreen->BackingStoreFuncs.GetSpansPixmap = 0;
-#endif
     
     return TRUE;
 }
@@ -247,11 +243,7 @@ fbFinishScreenInit(ScreenPtr	pScreen,
 	return FALSE;
     if (! miScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width,
 			rootdepth, ndepths, depths,
-			defaultVisual, nvisuals, visuals
-#ifdef FB_OLD_MISCREENINIT
-		       , (miBSFuncPtr) 0
-#endif
-		       ))
+			defaultVisual, nvisuals, visuals))
 	return FALSE;
     /* overwrite miCloseScreen with our own */
     pScreen->CloseScreen = fbCloseScreen;
@@ -311,28 +303,5 @@ fbScreenInit(ScreenPtr	pScreen,
 			    width, bpp))
 	return FALSE;
     return TRUE;
-}
-#endif
-
-
-#ifdef FB_OLD_SCREEN
-const miBSFuncRec fbBSFuncRec = {
-    fbSaveAreas,
-    fbRestoreAreas,
-    (void (*)(GCPtr, RegionPtr)) 0,
-    (PixmapPtr (*)(void)) 0,
-    (PixmapPtr (*)(void)) 0,
-};
-#endif
-
-#if 0
-void
-fbInitializeBackingStore (ScreenPtr pScreen)
-{
-#ifdef FB_OLD_SCREEN
-    miInitializeBackingStore (pScreen, (miBSFuncRec *) &fbBSFuncRec);
-#else
-    miInitializeBackingStore (pScreen);
-#endif
 }
 #endif

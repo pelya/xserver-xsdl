@@ -277,11 +277,7 @@ s3RealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
     {
 	if (pCursor)
 	{
-#ifdef FB_OLD_SCREEN
-	    short	x, y;
-#else
 	    int		x, y;
-#endif
 	    
 	    miPointerPosition (&x, &y);
 	    s3LoadCursor (pScreen, x, y);
@@ -376,11 +372,7 @@ s3CursorEnable (ScreenPtr pScreen)
     {
 	if (pCurPriv->pCursor)
 	{
-#ifdef FB_OLD_SCREEN
-	    short	x, y;
-#else
 	    int		x, y;
-#endif
 	    
 	    miPointerPosition (&x, &y);
 	    s3LoadCursor (pScreen, x, y);

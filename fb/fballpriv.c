@@ -47,10 +47,6 @@ int fbGetWinPrivateIndex(void)
 #endif
 int fbGeneration;
 
-#ifdef FB_OLD_SCREEN
-#define miAllocateGCPrivateIndex()  AllocateGCPrivateIndex()
-#endif
-
 Bool
 fbAllocatePrivates(ScreenPtr pScreen, int *pGCIndex)
 {

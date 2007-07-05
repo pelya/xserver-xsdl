@@ -293,13 +293,8 @@ KdScreenInitAsync (ScreenPtr pScreen)
     pScreen->PaintWindowBorder = KdCheckPaintWindow;
     pScreen->CopyWindow = KdCheckCopyWindow;
     
-#ifndef FB_OLD_SCREEN
     pScreen->BackingStoreFuncs.SaveAreas = KdCheckSaveAreas;
     pScreen->BackingStoreFuncs.RestoreAreas = KdCheckRestoreAreas;
-#else
-    pScreenPriv->BackingStoreFuncs.SaveAreas = KdCheckSaveAreas;
-    pScreenPriv->BackingStoreFuncs.RestoreAreas = KdCheckRestoreAreas;
-#endif
 #ifdef RENDER
     KdPictureInitAsync (pScreen);
 #endif

@@ -95,7 +95,6 @@ extern WindowPtr *WindowTable;
 void
 KdSetRootClip (ScreenPtr pScreen, BOOL enable)
 {
-#ifndef FB_OLD_SCREEN
     WindowPtr	pWin = WindowTable[pScreen->myNum];
     WindowPtr	pChild;
     Bool	WasViewable;
@@ -222,7 +221,6 @@ KdSetRootClip (ScreenPtr pScreen, BOOL enable)
     }
     if (pWin->realized)
 	WindowsRestructured ();
-#endif	/* !FB_OLD_SCREEN */
 }
 
 void
@@ -1065,14 +1063,6 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreen->SaveScreen		= KdSaveScreen;
     pScreen->CreateWindow	= KdCreateWindow;
 
-#ifdef FB_OLD_SCREEN
-    pScreenPriv->BackingStoreFuncs.SaveAreas = fbSaveAreas;
-    pScreenPriv->BackingStoreFuncs.RestoreAreas = fbSaveAreas;
-    pScreenPriv->BackingStoreFuncs.SetClipmaskRgn = 0;
-    pScreenPriv->BackingStoreFuncs.GetImagePixmap = 0;
-    pScreenPriv->BackingStoreFuncs.GetSpansPixmap = 0;
-#endif
-
 #if KD_MAX_FB > 1
     if (screen->fb[1].depth)
     {
@@ -1154,11 +1144,7 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     
 #if 0
     pScreen->backingStoreSupport = Always;
-#ifdef FB_OLD_SCREEN
-    miInitializeBackingStore (pScreen, &pScreenPriv->BackingStoreFuncs);
-#else
     miInitializeBackingStore (pScreen);
-#endif
 #endif
 
 
