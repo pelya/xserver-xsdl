@@ -1721,7 +1721,7 @@ _AM_DEPENDENCIES([OBJC])
 
 dnl kdrive DDX
 
-XEYPHR_LIBS=
+XEPHYR_LIBS=
 XEPHYR_INCS=
 XSDL_LIBS=
 XSDL_INCS=
@@ -1786,7 +1786,7 @@ if test "$KDRIVE" = yes; then
     # Xephyr needs nanosleep() which is in librt on Solaris
     AC_CHECK_FUNC([nanosleep], [],
         AC_CHECK_LIB([rt], [nanosleep], XEPHYR_LIBS="$XEPHYR_LIBS -lrt"))
-    XEPHYR_LIBS="$XEPHYR_LIBS $XSERVER_LIBS"
+    
     if test "x$TSLIB" = xyes; then
         PKG_CHECK_MODULES([TSLIB], [tslib-0.0], [HAVE_TSLIB="yes"], [HAVE_TSLIB="no"])
         if test "x$HAVE_TSLIB" = xno; then
@@ -1803,9 +1803,6 @@ if test "$KDRIVE" = yes; then
     
     KDRIVE_CFLAGS="$XSERVER_CFLAGS -DHAVE_KDRIVE_CONFIG_H $TSLIB_CFLAGS"
 
-    # dix os fb mi extension glx (NOTYET) damage shadow xpstubs
-    #KDRIVE_PURE_LIBS="$DIX_LIB $OS_LIB $FB_LIB $XEXT_LIB $MIEXT_DAMAGE_LIB \
-    #    $MIEXT_SHADOW_LIB $XPSTUBS_LIB"
     KDRIVE_PURE_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
     KDRIVE_LIB='$(top_builddir)/hw/kdrive/src/libkdrive.a'
     case $host_os in
