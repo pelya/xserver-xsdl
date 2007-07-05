@@ -63,7 +63,9 @@ Xati_LDADD = \
 	@KDRIVE_LIBS@			\
 	@XSERVER_LIBS@
 
-Xati_DEPENDENCIES = @KDRIVE_LOCAL_LIBS@
+Xati_DEPENDENCIES =	\
+	libati.a 			\
+	@KDRIVE_LOCAL_LIBS@
 
 relink:
 	rm -f $(bin_PROGRAMS) && make $(bin_PROGRAMS)
