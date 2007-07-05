@@ -1003,9 +1003,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                     if (!tmp)
                         return FALSE;
                     dst->map->types = tmp;
-                    bzero(dst->map->types +
-                            (dst->map->num_types * sizeof(XkbKeyTypeRec)),
-                          (src->map->num_types - dst->map->size_types) *
+                    bzero(dst->map->types + dst->map->num_types,
+                          (src->map->num_types - dst->map->num_types) *
                             sizeof(XkbKeyTypeRec));
                 }
                 else {
