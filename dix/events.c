@@ -3283,7 +3283,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
                 xGenericEvent* ge = ((xGenericEvent*)xE);
                 GenericMaskPtr    gemask = grab->genericMasks;
 
-                if (!gemask->eventMask[GEEXTIDX(ge)])
+                if (!gemask || !gemask->eventMask[GEEXTIDX(ge)])
                     return;
 
                 if (GEEventFill(xE))
