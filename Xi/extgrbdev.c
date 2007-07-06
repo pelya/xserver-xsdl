@@ -194,19 +194,13 @@ ProcXExtendedGrabDevice(ClientPtr client)
             (XGenericEventMask*)(((XEventClass*)&stuff[1]) + stuff->event_count);
 
         gemasks = xcalloc(1, sizeof(GenericMaskRec));
-        gemasks->extension = xgeMask->extension;
-        gemasks->mask = xgeMask->evmask;
+        gemasks->client = client;
         gemasks->next = NULL;
-        xgeMask++;
+        gemasks->eventMask[xgeMask->extension & 0x7F] = xgeMask->evmask;
 
+        xgeMask++;
         for (i = 1; i < stuff->generic_event_count; i++, xgeMask++)
-        {
-            gemasks->next = xcalloc(1, sizeof(GenericMaskRec));
-            gemasks = gemasks->next;
-            gemasks->extension = xgeMask->extension;
-            gemasks->mask = xgeMask->evmask;
-            gemasks->next = NULL;
-        }
+            gemasks->eventMask[xgeMask->extension & 0x7F]= xgeMask->evmask;
     }
 
     ExtGrabDevice(client, dev, stuff->device_mode, 
@@ -221,12 +215,8 @@ ProcXExtendedGrabDevice(ClientPtr client)
     
 cleanup:
 
-    while(gemasks)
-    {
-        GenericMaskPtr prev = gemasks;
-        gemasks = gemasks->next;
-        xfree(prev);
-    }
+    if (gemasks)
+        xfree(gemasks);
 
     if (err == Success)
     {

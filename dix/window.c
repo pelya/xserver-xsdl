@@ -3751,7 +3751,8 @@ MakeWindowOptional (WindowPtr pWin)
 #endif
     optional->deviceCursors = NULL;
 
-    optional->geMasks = (GEEventMasksPtr)xalloc(sizeof(GEEventMasksRec));
+    optional->geMasks = 
+        (GenericClientMasksPtr)xalloc(sizeof(GenericClientMasksRec));
     if (!optional->geMasks)
     {
         xfree(optional);

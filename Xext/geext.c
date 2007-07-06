@@ -207,7 +207,7 @@ GEExtensionInit(void)
 
     GEClientPrivateIndex = AllocateClientPrivateIndex(); 
     if (!AllocateClientPrivate(GEClientPrivateIndex, 
-                               sizeof(GEClientRec)))
+                               sizeof(GenericMaskRec)))
     {
         FatalError("GEExtensionInit: Alloc client private failed.\n");
     }
@@ -277,8 +277,8 @@ static void
 GERecalculateWinMask(WindowPtr pWin)
 {
     int i;
-    GEClientPtr it;
-    GEEventMasksPtr evmasks;
+    GenericMaskPtr it;
+    GenericClientMasksPtr evmasks;
 
     if (!pWin->optional)
         return;
@@ -304,7 +304,7 @@ GERecalculateWinMask(WindowPtr pWin)
 /* Set generic event mask for given window. */
 void GEWindowSetMask(ClientPtr pClient, WindowPtr pWin, int extension, Mask mask)
 {
-    GEClientPtr cli;
+    GenericMaskPtr cli;
 
     extension = (extension & 0x7F);
 
@@ -322,7 +322,7 @@ void GEWindowSetMask(ClientPtr pClient, WindowPtr pWin, int extension, Mask mask
 
     if (mask)
     {
-        GEEventMasksPtr evmasks = pWin->optional->geMasks;
+        GenericClientMasksPtr evmasks = pWin->optional->geMasks;
 
         /* check for existing client */
         cli = evmasks->geClients;
@@ -335,7 +335,7 @@ void GEWindowSetMask(ClientPtr pClient, WindowPtr pWin, int extension, Mask mask
         if (!cli)
         {
             /* new client */
-            cli  = (GEClientPtr)xcalloc(1, sizeof(GEClientRec));
+            cli  = (GenericMaskPtr)xcalloc(1, sizeof(GenericMaskRec));
             if (!cli)
             {
                 ErrorF("GE: Insufficient memory to alloc client.\n");
@@ -356,7 +356,7 @@ void GEWindowSetMask(ClientPtr pClient, WindowPtr pWin, int extension, Mask mask
             xfree(cli);
         } else 
         { 
-            GEClientPtr prev = cli;
+            GenericMaskPtr prev = cli;
             cli = cli->next;
 
             while(cli)

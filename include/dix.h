@@ -52,6 +52,7 @@ SOFTWARE.
 #include "window.h"
 #include "input.h"
 #include "cursor.h"
+#include "geext.h"
 #include <X11/extensions/XI.h>
 
 #define EARLIER -1

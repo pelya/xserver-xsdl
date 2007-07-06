@@ -53,6 +53,7 @@ SOFTWARE.
 #include "window.h"
 #include "dixstruct.h"
 #include "cursorstr.h"
+#include "geext.h"
 
 #define BitIsOn(ptr, bit) (((BYTE *) (ptr))[(bit)>>3] & (1 << ((bit) & 7)))
 
@@ -102,12 +103,6 @@ typedef struct _DetailRec {		/* Grab details may be bit masks */
     Mask                *pMask;
 } DetailRec;
 
-typedef struct _GenericMaskRec {
-    int                 extension;
-    Mask                mask;
-    struct _GenericMaskRec* next;
-} GenericMaskRec;
-
 /**
  * Central struct for device grabs. 
  * The same struct is used for both core grabs and device grabs, with
@@ -139,7 +134,7 @@ typedef struct _GrabRec {
     CursorPtr		cursor;		/* always NULL for keyboards */
     Mask		eventMask;
     Mask                deviceMask;     
-    GenericMaskPtr      genericMasks;   /* null terminated list */
+    GenericMaskPtr      genericMasks;
 } GrabRec;
 
 typedef struct _KeyClassRec {

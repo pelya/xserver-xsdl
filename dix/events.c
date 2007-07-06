@@ -1934,7 +1934,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         /* Handle generic events */
         if (type == GenericEvent)
         {
-            GEClientPtr pClient;
+            GenericMaskPtr pClient;
             /* We don't do more than one GenericEvent at a time. */
             if (count > 1)
             {
@@ -2017,7 +2017,24 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         inputMasks = wOtherInputMasks(pWin);
         tempGrab.deviceMask = (inputMasks) ? inputMasks->inputEvents[pDev->id]: 0;
 
-        tempGrab.genericMasks = NULL;
+        /* get the XGE event mask. 
+         * FIXME: needs to be freed somewhere too.
+         */
+        if (!pWin->optional || !pWin->optional->geMasks)
+            tempGrab.genericMasks = NULL;
+        else
+        {
+            GenericClientMasksPtr gemasks = pWin->optional->geMasks;
+            GenericMaskPtr geclient = gemasks->geClients;
+            while(geclient && geclient->client != client)
+                geclient = geclient->next;
+            if (geclient)
+            {
+                tempGrab.genericMasks = xcalloc(1, sizeof(GenericMaskRec));
+                *tempGrab.genericMasks = *geclient;
+                tempGrab.genericMasks->next = NULL;
+            }
+        }
 	(*inputInfo.pointer->deviceGrab.ActivateGrab)(pDev, &tempGrab,
 					   currentTime, 
                                            TRUE | ImplicitGrabMask);
@@ -3264,21 +3281,15 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
             {
                 /* find evmask for event's extension */
                 xGenericEvent* ge = ((xGenericEvent*)xE);
-                GenericMaskPtr gemask = grab->genericMasks;
-                while(gemask)
-                {
-                    if (gemask->extension == ge->extension)
-                        break;
-                    gemask = gemask->next;
-                }
+                GenericMaskPtr    gemask = grab->genericMasks;
 
-                if (!gemask)
+                if (!gemask->eventMask[GEEXTIDX(ge)])
                     return;
 
                 if (GEEventFill(xE))
                     GEEventFill(xE)(ge, thisDev, grab->window, grab);
                 deliveries = TryClientEvents(rClient(grab), xE, count, 
-                        gemask->mask,
+                        gemask->eventMask[GEEXTIDX(ge)],
                         generic_filters[GEEXTIDX(ge)][ge->evtype],
                         grab);
             } else 
@@ -4161,7 +4172,6 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
     xEvent event;
     int* numFoci; /* no of foci the window has already */
     Bool sendevent = FALSE;
-    FocusSemaphoresPtr focus;
 
     if (dev != inputInfo.keyboard)
 	DeviceFocusEvent(dev, type, mode, detail, pWin);
@@ -5914,21 +5924,9 @@ ExtGrabDevice(ClientPtr client,
 
     if (ge_masks)
     {
-        GenericMaskPtr last;
         newGrab.genericMasks  = xcalloc(1, sizeof(GenericMaskRec));
         *newGrab.genericMasks = *ge_masks;
         newGrab.genericMasks->next = NULL;
-        ge_masks = ge_masks->next;
-        last     = newGrab.genericMasks;
-
-        while(ge_masks)
-        {
-            last->next = xcalloc(1, sizeof(GenericMaskRec));
-            last = last->next;
-            *last = *ge_masks;
-            last->next = NULL;
-            ge_masks = ge_masks->next;
-        }
     }
 
     if (IsPointerDevice(dev))

@@ -34,6 +34,21 @@ from the author.
 #define _GEEXT_H_
 #include <X11/extensions/geproto.h>
 
+
+/**
+ * This struct is used both in the window and by grabs to determine the event
+ * mask for a client.
+ * A window will have a linked list of these structs, with one entry per
+ * client, null-terminated.
+ * A grab has only one instance of this struct.
+ */
+typedef struct _GenericMaskRec {
+    ClientPtr   client;                   /* client who set the event mask */
+    Mask        eventMask[MAXEXTENSIONS]; /* one mask per extension */
+    struct _GenericMaskRec* next;            
+} GenericMaskRec, *GenericMaskPtr;
+
+
 /* Struct to keep information about registered extensions
  *
  * evswap ... use to swap event fields for different byte ordered clients.
@@ -47,6 +62,7 @@ typedef struct _GEExtension {
                     GrabPtr pGrab       /* current grab, may be NULL */
                     );
 } GEExtension, *GEExtensionPtr;
+
 
 /* All registered extensions and their handling functions. */
 extern GEExtension GEExtensions[MAXEXTENSIONS];
