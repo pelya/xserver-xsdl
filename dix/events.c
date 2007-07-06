@@ -3634,6 +3634,12 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
 	    CallCallbacks(&DeviceEventCallback, (pointer)&eventinfo);
 	}
     }
+    /* We need to call CheckMotion for each event. It doesn't really give us
+       any benefit for relative devices, but absolute devices won't send
+       button events to the right position. 
+     */
+    if (!CheckMotion(xE, mouse) && xE->u.u.type == MotionNotify)
+            return;
     if (xE->u.u.type != MotionNotify)
     {
 	int  key;
@@ -3682,8 +3688,7 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
 	    FatalError("bogus pointer event from ddx");
 	}
     }
-    else if (!CheckMotion(xE, mouse))
-	return;
+
     if (grab)
 	DeliverGrabbedEvent(xE, mouse, deactivateGrab, count);
     else
