@@ -26,6 +26,5 @@
 
 void configInitialise(void);
 void configFini(void);
-void configDispatch(void);
 
 #endif /* CONFIG_H */
