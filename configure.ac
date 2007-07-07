@@ -1478,6 +1478,7 @@ return 0;}
 	fi
 	if test "x$DGA" = xyes; then
 		XORG_MODULES="$XORG_MODULES xf86dgaproto"
+		PKG_CHECK_MODULES(DGA, xf86dgaproto)
 		AC_DEFINE(DGA, 1, [Support DGA extension])
 		AC_DEFINE(XFreeXDGA, 1, [Build XDGA support])
 	fi
@@ -1487,6 +1488,7 @@ return 0;}
 	fi
 	if test "x$XF86MISC" = xyes; then
 		XORG_MODULES="$XORG_MODULES xf86miscproto"
+		PKG_CHECK_MODULES(XF86MISC, xf86miscproto)
 		AC_DEFINE(XF86MISC, 1, [Support XFree86 miscellaneous extensions])
 	fi
 
@@ -1495,6 +1497,7 @@ return 0;}
 	fi
 	if test "x$XF86VIDMODE" = xyes; then
 		XORG_MODULES="$XORG_MODULES xf86vidmodeproto"
+		PKG_CHECK_MODULES(XF86VIDMODE, xf86vidmodeproto)
 		AC_DEFINE(XF86VIDMODE, 1, [Support XFree86 Video Mode extension])
 	fi
 
