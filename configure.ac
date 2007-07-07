@@ -1838,8 +1838,6 @@ AM_CONDITIONAL(XSDLSERVER, [test x"$XSDL" = xyes])
 AM_CONDITIONAL(XEPHYR, [test "x$KDRIVE" = xyes && test "x$XEPHYR" = xyes])
 AM_CONDITIONAL(BUILD_KDRIVEFBDEVLIB, [test "x$KDRIVE" = xyes && test "x$KDRIVEFBDEVLIB" = xyes])
 AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
-AM_CONDITIONAL(KDRIVEVESA, [test x"$ac_cv_header_sys_vm86_h" = xyes])
-AM_CONDITIONAL(KDRIVEFBDEV, [test x"$ac_cv_header_linux_fb_h" = xyes])
 
 dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
 AC_DEFINE(__XKBDEFRULES__, "xorg", [Default XKB rules])
