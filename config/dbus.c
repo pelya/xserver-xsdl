@@ -36,7 +36,7 @@
 #include "input.h"
 #include "inputstr.h"
 
-#define API_VERSION 1
+#define API_VERSION 2
 
 #define MATCH_RULE "type='method_call',interface='org.x.config.input'"
 
@@ -156,11 +156,17 @@ add_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
         goto unwind;
     }
 
-    if (!dbus_message_iter_append_basic(&reply_iter, DBUS_TYPE_INT32,
-                                        &dev->id)) {
-        ErrorF("[config/dbus] couldn't append to iterator\n");
-        ret = BadAlloc;
-        goto unwind;
+    /* XXX: If we fail halfway through, we don't seem to have any way to
+     *      empty the iterator, so you'll end up with some device IDs,
+     *      plus an error.  This seems to be a shortcoming in the D-Bus
+     *      API. */
+    for (; dev; dev = dev->next) {
+        if (!dbus_message_iter_append_basic(&reply_iter, DBUS_TYPE_INT32,
+                                            &dev->id)) {
+            ErrorF("[config/dbus] couldn't append to iterator\n");
+            ret = BadAlloc;
+            goto unwind;
+        }
     }
 
 unwind:
@@ -198,7 +204,7 @@ remove_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
     }
     dbus_message_iter_init_append(reply, &reply_iter);
 
-    if (!dbus_message_get_args(message, error, DBUS_TYPE_INT32,
+    if (!dbus_message_get_args(message, error, DBUS_TYPE_UINT32,
                                &deviceid, DBUS_TYPE_INVALID)) {
         MALFORMED_MESSAGE_ERROR();
     }
@@ -232,21 +238,45 @@ static int
 list_devices(DBusMessage *message, DBusMessage *reply, DBusError *error)
 {
     DeviceIntPtr dev;
-    DBusMessageIter iter;
+    DBusMessageIter iter, subiter;
 
     dbus_message_iter_init_append(reply, &iter);
 
     for (dev = inputInfo.devices; dev; dev = dev->next) {
-        if (!dbus_message_iter_append_basic(&iter, DBUS_TYPE_INT32,
+        if (!dbus_message_iter_open_container(&iter, DBUS_TYPE_STRUCT, NULL,
+                                              &subiter)) {
+            ErrorF("[config/dbus] couldn't init container\n");
+            return BadAlloc;
+        }
+        if (!dbus_message_iter_append_basic(&subiter, DBUS_TYPE_UINT32,
                                             &dev->id)) {
             ErrorF("[config/dbus] couldn't append to iterator\n");
             return BadAlloc;
         }
-        if (!dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING,
+        if (!dbus_message_iter_append_basic(&subiter, DBUS_TYPE_STRING,
                                             &dev->name)) {
             ErrorF("[config/dbus] couldn't append to iterator\n");
             return BadAlloc;
         }
+        if (!dbus_message_iter_close_container(&iter, &subiter)) {
+            ErrorF("[config/dbus] couldn't close container\n");
+            return BadAlloc;
+        }
+    }
+
+    return Success;
+}
+
+static int
+get_version(DBusMessage *message, DBusMessage *reply, DBusError *error)
+{
+    DBusMessageIter iter;
+    unsigned int version = API_VERSION;
+
+    dbus_message_iter_init_append(reply, &iter);
+    if (!dbus_message_iter_append_basic(&iter, DBUS_TYPE_UINT32, &version)) {
+        ErrorF("[config/dbus] couldn't append version\n");
+        return BadAlloc;
     }
 
     return Success;
@@ -282,6 +312,8 @@ message_handler(DBusConnection *connection, DBusMessage *message, void *data)
         err = remove_device(message, reply, &error);
     else if (strcmp(dbus_message_get_member(message), "listDevices") == 0)
         err = list_devices(message, reply, &error);
+    else if (strcmp(dbus_message_get_member(message), "version") == 0)
+        err = get_version(message, reply, &error);
     else
         goto err_reply;
 
