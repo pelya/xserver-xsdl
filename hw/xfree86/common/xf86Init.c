@@ -982,7 +982,9 @@ OsVendorInit()
   signal(SIGCHLD, SIG_DFL);	/* Need to wait for child processes */
 #endif
   OsDelayInitColors = TRUE;
+#ifndef BUILTIN_FONTS
   loadableFonts = TRUE;
+#endif
 
   if (!beenHere)
     xf86LogInit();

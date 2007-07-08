@@ -399,14 +399,10 @@ main(int argc, char *argv[], char *envp[])
 	    FatalError("failed to initialize core devices");
 
 	InitFonts();
-#ifdef BUILTIN_FONTS
-        defaultFontPath = "built-ins";
-#else
 	if (loadableFonts) {
 	    SetFontPath(0, 0, (unsigned char *)defaultFontPath, &error);
-	} else 
-#endif
-        {
+	}
+        else {
 	    if (SetDefaultFontPath(defaultFontPath) != Success)
 		ErrorF("failed to set default font path '%s'",
 			defaultFontPath);
@@ -414,6 +410,7 @@ main(int argc, char *argv[], char *envp[])
 	if (!SetDefaultFont(defaultTextFont)) {
 	    FatalError("could not open default font '%s'", defaultTextFont);
 	}
+
 #ifdef NULL_ROOT_CURSOR
         cm.width = 0;
         cm.height = 0;
@@ -430,6 +427,7 @@ main(int argc, char *argv[], char *envp[])
 		       defaultCursorFont);
 	}
 #endif
+
 #ifdef DPMSExtension
  	/* check all screens, looking for DPMS Capabilities */
  	DPMSCapableFlag = DPMSSupported();

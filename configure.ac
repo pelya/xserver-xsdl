@@ -836,6 +836,7 @@ fi
 if test "x$BUILTIN_FONTS" = xyes; then
        AC_DEFINE(BUILTIN_FONTS, 1, [Use only built-in fonts])
        AC_DEFINE(NOFONTSERVERACCESS, 1, [Avoid using a font server])
+       FONTPATH="built-ins"
 fi
 
 if test "x$XCALIBRATE" = xyes && test "$KDRIVE" = yes; then
