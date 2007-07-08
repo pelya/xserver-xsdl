@@ -21,10 +21,32 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef HOTPLUG_H
-#define HOTPLUG_H
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
 
-void config_init(void);
-void config_fini(void);
+#ifdef HAVE_DBUS
+#include <dbus/dbus.h>
 
-#endif /* HOTPLUG_H */
+typedef void (*config_dbus_core_connect_hook)(DBusConnection *connection,
+                                              void *data);
+typedef void (*config_dbus_core_disconnect_hook)(void *data);
+
+struct config_dbus_core_hook {
+    config_dbus_core_connect_hook connect;
+    config_dbus_core_disconnect_hook disconnect;
+    void *data;
+
+    struct config_dbus_core_hook *next;
+};
+
+int config_dbus_core_init(void);
+void config_dbus_core_fini(void);
+int config_dbus_core_add_hook(struct config_dbus_core_hook *hook);
+void config_dbus_core_remove_hook(struct config_dbus_core_hook *hook);
+#endif
+
+#ifdef CONFIG_DBUS_API
+int config_dbus_init(void);
+void config_dbus_fini(void);
+#endif

@@ -519,7 +519,7 @@ AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCa
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
 AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--disable-xf86bigfont], [Build XF86 Big Font extension (default: enabled)]), [XF86BIGFONT=$enableval], [XF86BIGFONT=yes])
 AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled)]), [DPMSExtension=$enableval], [DPMSExtension=yes])
-AC_ARG_ENABLE(dbus,           AS_HELP_STRING([--disable-dbus], [Build D-BUS support (default: auto)]), [DBUS=$enableval], [DBUS=auto])
+AC_ARG_ENABLE(config-dbus,    AS_HELP_STRING([--disable-config-dbus], [Build D-BUS support (default: auto)]), [CONFIG_DBUS_API=$enableval], [CONFIG_DBUS_API=auto])
 AC_ARG_ENABLE(xfree86-utils,     AS_HELP_STRING([--enable-xfree86-utils], [Build xfree86 DDX utilities (default: enabled)]), [XF86UTILS=$enableval], [XF86UTILS=yes])
 
 dnl DDXes.
@@ -619,17 +619,32 @@ dnl Core modules for most extensions, et al.
 REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto [xproto >= 7.0.9] xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4.2] [kbproto >= 1.0.3]"
 REQUIRED_LIBS="xfont xau fontenc $PIXMAN"
 
-if test "x$DBUS" = xauto; then
-       PKG_CHECK_MODULES(DBUS, dbus-1, [DBUS=yes], [DBUS=no])
+dnl HAVE_DBUS is true if we actually have the D-Bus library, whereas
+dnl CONFIG_DBUS_API is true if we want to enable the D-Bus config
+dnl API.
+PKG_CHECK_MODULES(DBUS, dbus-1, [HAVE_DBUS=yes], [HAVE_DBUS=no])
+if test "x$HAVE_DBUS" = xyes; then
+	AC_DEFINE(HAVE_DBUS, 1, [Have D-Bus support])
 fi
-if test "x$DBUS" = xyes; then
-       PKG_CHECK_MODULES(DBUS, dbus-1)
-       AC_DEFINE(HAVE_DBUS, 1, [Have D-BUS support])
-       REQUIRED_MODULES="$REQUIRED_MODULES dbus-1"
-       REQUIRED_LIBS="$REQUIRED_LIBS dbus-1"
+AM_CONDITIONAL(HAVE_DBUS, [test "x$HAVE_DBUS" = xyes])
+
+if test "x$CONFIG_DBUS_API" = xauto; then
+	CONFIG_DBUS_API="$HAVE_DBUS"
 fi
-CONFIG_LIB='$(top_builddir)/config/libconfig.a'
-AM_CONDITIONAL(DBUS, [test "x$DBUS" = xyes])
+if test "x$CONFIG_DBUS_API" = xyes; then
+	if ! test "x$HAVE_DBUS" = xyes; then
+		AC_MSG_ERROR([D-Bus configuration API requested, but D-Bus is not installed.])
+	fi
+
+	AC_DEFINE(CONFIG_DBUS_API, 1, [Use the D-Bus input configuration API])
+	CONFIG_LIB='$(top_builddir)/config/libconfig.a'
+	NEED_DBUS="yes"
+fi
+AM_CONDITIONAL(CONFIG_DBUS_API, [test "x$CONFIG_DBUS_API" = xyes])
+
+if test "x$NEED_DBUS" = xyes; then
+	REQUIRED_LIBS="$REQUIRED_LIBS dbus-1"
+fi
 
 AM_CONDITIONAL(XV, [test "x$XV" = xyes])
 if test "x$XV" = xyes; then

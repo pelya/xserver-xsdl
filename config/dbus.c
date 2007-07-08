@@ -1,0 +1,407 @@
+/*
+ * Copyright © 2006-2007 Daniel Stone
+ *
+ * Permission to use, copy, modify, distribute, and sell this software and its
+ * documentation for any purpose is hereby granted without fee, provided that
+ * the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
+ * documentation, and that the name of the copyright holders and/or authors
+ * not be used in advertising or publicity pertaining to distribution of the
+ * software without specific, written prior permission.  The copyright holders
+ * and/or authors make no representations about the suitability of this
+ * software for any purpose.  It is provided "as is" without express or
+ * implied warranty.
+ *
+ * THE COPYRIGHT HOLDERS AND/OR AUTHORS DISCLAIM ALL WARRANTIES WITH REGARD
+ * TO THIS SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS, IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND/OR AUTHORS BE LIABLE
+ * FOR ANY SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER
+ * RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF
+ * CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+ * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
+#define DBUS_API_SUBJECT_TO_CHANGE
+#include <dbus/dbus.h>
+#include <string.h>
+
+#include <X11/X.h>
+
+#include "config-backends.h"
+#include "opaque.h" /* for 'display': there should be a better way. */
+#include "input.h"
+#include "inputstr.h"
+
+#define API_VERSION 1
+
+#define MATCH_RULE "type='method_call',interface='org.x.config.input'"
+
+#define MALFORMED_MSG "[config/dbus] malformed message, dropping"
+#define MALFORMED_MESSAGE() { DebugF(MALFORMED_MSG "\n"); \
+                            ret = BadValue; \
+                            goto unwind; }
+#define MALFORMED_MESSAGE_ERROR() { DebugF(MALFORMED_MSG ": %s, %s", \
+                                       error->name, error->message); \
+                                  ret = BadValue; \
+                                  goto unwind; }
+
+struct connection_info {
+    char busobject[32];
+    char busname[64];
+    DBusConnection *connection;
+};
+
+static void
+reset_info(struct connection_info *info)
+{
+    info->connection = NULL;
+    info->busname[0] = '\0';
+    info->busobject[0] = '\0';
+}
+
+static int
+add_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
+{
+    DBusMessageIter iter, reply_iter, subiter;
+    InputOption *tmpo = NULL, *options = NULL;
+    char *tmp = NULL;
+    int ret, err;
+    DeviceIntPtr dev = NULL;
+
+    if (!dbus_message_iter_init(message, &iter)) {
+        ErrorF("[config/dbus] couldn't initialise iterator\n");
+        return BadAlloc;
+    }
+    dbus_message_iter_init_append(reply, &reply_iter);
+
+    options = xcalloc(sizeof(*options), 1);
+    if (!options) {
+        ErrorF("[config/dbus] couldn't allocate option\n");
+        return BadAlloc;
+    }
+
+    options->key = xstrdup("_source");
+    options->value = xstrdup("client/dbus");
+    if (!options->key || !options->value) {
+        ErrorF("[config/dbus] couldn't allocate first key/value pair\n");
+        ret = BadAlloc;
+        goto unwind;
+    }
+
+    /* signature should be [ss][ss]... */
+    while (dbus_message_iter_get_arg_type(&iter) == DBUS_TYPE_ARRAY) {
+        tmpo = xcalloc(sizeof(*tmpo), 1);
+        if (!tmpo) {
+            ErrorF("[config/dbus] couldn't allocate option\n");
+            ret = BadAlloc;
+            goto unwind;
+        }
+        tmpo->next = options;
+        options = tmpo;
+
+        dbus_message_iter_recurse(&iter, &subiter);
+
+        if (dbus_message_iter_get_arg_type(&subiter) != DBUS_TYPE_STRING)
+            MALFORMED_MESSAGE();
+
+        dbus_message_iter_get_basic(&subiter, &tmp);
+        if (!tmp)
+            MALFORMED_MESSAGE();
+        /* The _ prefix refers to internal settings, and may not be given by
+         * the client. */
+        if (tmp[0] == '_') {
+            ErrorF("[config/dbus] attempted subterfuge: option name %s given\n",
+                   tmp);
+            MALFORMED_MESSAGE();
+        }
+        options->key = xstrdup(tmp);
+        if (!options->key) {
+            ErrorF("[config/dbus] couldn't duplicate key!\n");
+            ret = BadAlloc;
+            goto unwind;
+        }
+
+        if (!dbus_message_iter_has_next(&subiter))
+            MALFORMED_MESSAGE();
+        dbus_message_iter_next(&subiter);
+        if (dbus_message_iter_get_arg_type(&subiter) != DBUS_TYPE_STRING)
+            MALFORMED_MESSAGE();
+
+        dbus_message_iter_get_basic(&subiter, &tmp);
+        if (!tmp)
+            MALFORMED_MESSAGE();
+        options->value = xstrdup(tmp);
+        if (!options->value) {
+            ErrorF("[config] couldn't duplicate option!\n");
+            ret = BadAlloc;
+            goto unwind;
+        }
+
+        dbus_message_iter_next(&iter);
+    }
+
+    ret = NewInputDeviceRequest(options, &dev);
+    if (ret != Success) {
+        DebugF("[config/dbus] NewInputDeviceRequest failed\n");
+        goto unwind;
+    }
+
+    if (!dev) {
+        DebugF("[config/dbus] NewInputDeviceRequest provided no device\n");
+        ret = BadImplementation;
+        goto unwind;
+    }
+
+    if (!dbus_message_iter_append_basic(&reply_iter, DBUS_TYPE_INT32,
+                                        &dev->id)) {
+        ErrorF("[config/dbus] couldn't append to iterator\n");
+        ret = BadAlloc;
+        goto unwind;
+    }
+
+unwind:
+    if (ret != Success) {
+        if (dev)
+            RemoveDevice(dev);
+
+        err = -ret;
+        dbus_message_iter_append_basic(&reply_iter, DBUS_TYPE_INT32, &err);
+    }
+
+    while (options) {
+        tmpo = options;
+        options = options->next;
+        if (tmpo->key)
+            xfree(tmpo->key);
+        if (tmpo->value)
+            xfree(tmpo->value);
+        xfree(tmpo);
+    }
+
+    return ret;
+}
+
+static int
+remove_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
+{
+    int deviceid, ret, err;
+    DeviceIntPtr dev;
+    DBusMessageIter iter, reply_iter;
+
+    if (!dbus_message_iter_init(message, &iter)) {
+        ErrorF("[config] failed to init iterator\n");
+        return BadAlloc;
+    }
+    dbus_message_iter_init_append(reply, &reply_iter);
+
+    if (!dbus_message_get_args(message, error, DBUS_TYPE_INT32,
+                               &deviceid, DBUS_TYPE_INVALID)) {
+        MALFORMED_MESSAGE_ERROR();
+    }
+
+    dev = LookupDeviceIntRec(deviceid);
+    if (!dev) {
+        DebugF("[config] bogus device id %d given\n", deviceid);
+        ret = BadMatch;
+        goto unwind;
+    }
+
+    DebugF("[config] removing device %s (id %d)\n", dev->name, deviceid);
+
+    /* Call PIE here so we don't try to dereference a device that's
+     * already been removed. */
+    OsBlockSignals();
+    ProcessInputEvents();
+    DeleteInputDeviceRequest(dev);
+    OsReleaseSignals();
+
+    ret = Success;
+
+unwind:
+    err = (ret == Success) ? ret : -ret;
+    dbus_message_iter_append_basic(&reply_iter, DBUS_TYPE_INT32, &err);
+
+    return ret;
+}
+
+static int
+list_devices(DBusMessage *message, DBusMessage *reply, DBusError *error)
+{
+    DeviceIntPtr dev;
+    DBusMessageIter iter;
+
+    dbus_message_iter_init_append(reply, &iter);
+
+    for (dev = inputInfo.devices; dev; dev = dev->next) {
+        if (!dbus_message_iter_append_basic(&iter, DBUS_TYPE_INT32,
+                                            &dev->id)) {
+            ErrorF("[config/dbus] couldn't append to iterator\n");
+            return BadAlloc;
+        }
+        if (!dbus_message_iter_append_basic(&iter, DBUS_TYPE_STRING,
+                                            &dev->name)) {
+            ErrorF("[config/dbus] couldn't append to iterator\n");
+            return BadAlloc;
+        }
+    }
+
+    return Success;
+}
+
+static DBusHandlerResult
+message_handler(DBusConnection *connection, DBusMessage *message, void *data)
+{
+    DBusError error;
+    DBusMessage *reply;
+    struct connection_info *info = data;
+
+    /* ret is the overall D-Bus handler result, whereas err is the internal
+     * X error from our individual functions. */
+    int ret = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+    int err;
+
+    DebugF("[config/dbus] received a message for %s\n",
+           dbus_message_get_interface(message));
+
+    dbus_error_init(&error);
+
+    reply = dbus_message_new_method_return(message);
+    if (!reply) {
+        ErrorF("[config/dbus] failed to create reply\n");
+        ret = DBUS_HANDLER_RESULT_NEED_MEMORY;
+        goto err_start;
+    }
+
+    if (strcmp(dbus_message_get_member(message), "add") == 0)
+        err = add_device(message, reply, &error);
+    else if (strcmp(dbus_message_get_member(message), "remove") == 0)
+        err = remove_device(message, reply, &error);
+    else if (strcmp(dbus_message_get_member(message), "listDevices") == 0)
+        err = list_devices(message, reply, &error);
+    else
+        goto err_reply;
+
+    /* Failure to allocate is a special case. */
+    if (err == BadAlloc) {
+        ret = DBUS_HANDLER_RESULT_NEED_MEMORY;
+        goto err_reply;
+    }
+
+    /* While failure here is always an OOM, we don't return that,
+     * since that would result in devices being double-added/removed. */
+    if (dbus_connection_send(info->connection, reply, NULL))
+        dbus_connection_flush(info->connection);
+    else
+        ErrorF("[config/dbus] failed to send reply\n");
+
+    ret = DBUS_HANDLER_RESULT_HANDLED;
+
+err_reply:
+    dbus_message_unref(reply);
+err_start:
+    dbus_error_free(&error);
+
+    return ret;
+}
+
+static void
+connect_hook(DBusConnection *connection, void *data)
+{
+    DBusError error;
+    DBusObjectPathVTable vtable = { .message_function = message_handler, };
+    struct connection_info *info = data;
+
+    info->connection = connection;
+
+    dbus_error_init(&error);
+
+    if (!dbus_bus_request_name(info->connection, info->busname,
+                               0, &error)) {
+        ErrorF("[config/dbus] couldn't take over org.x.config: %s (%s)\n",
+               error.name, error.message);
+        goto err_start;
+    }
+
+    /* blocks until we get a reply. */
+    dbus_bus_add_match(info->connection, MATCH_RULE, &error);
+    if (dbus_error_is_set(&error)) {
+        ErrorF("[config/dbus] couldn't add match: %s (%s)\n", error.name,
+               error.message);
+        goto err_name;
+    }
+
+    if (!dbus_connection_register_object_path(info->connection,
+                                              info->busobject, &vtable,
+                                              info)) {
+        ErrorF("[config/dbus] couldn't register object path\n");
+        goto err_match;
+    }
+
+    DebugF("[dbus] registered %s, %s\n", info->busname, info->busobject);
+
+    dbus_error_free(&error);
+
+    return;
+
+err_match:
+    dbus_bus_remove_match(info->connection, MATCH_RULE, &error);
+err_name:
+    dbus_bus_release_name(info->connection, info->busname, &error);
+err_start:
+    dbus_error_free(&error);
+
+    reset_info(info);
+}
+
+static void
+disconnect_hook(void *data)
+{
+    struct connection_info *info = data;
+
+    reset_info(info);
+}
+
+#if 0
+void
+pre_disconnect_hook(void)
+{
+    DBusError error;
+
+    dbus_error_init(&error);
+    dbus_connection_unregister_object_path(connection_data->connection,
+                                           connection_data->busobject);
+    dbus_bus_remove_match(connection_data->connection, MATCH_RULE,
+                          &error);
+    dbus_bus_release_name(connection_data->connection,
+                          connection_data->busname, &error);
+    dbus_error_free(&error);
+}
+#endif
+
+static struct connection_info connection_data;
+static struct config_dbus_core_hook core_hook = {
+    .connect = connect_hook,
+    .disconnect = disconnect_hook,
+    .data = &connection_data,
+};
+
+int
+config_dbus_init(void)
+{
+    snprintf(connection_data.busname, sizeof(connection_data.busname),
+             "org.x.config.display%d", atoi(display));
+    snprintf(connection_data.busobject, sizeof(connection_data.busobject),
+             "/org/x/config/%d", atoi(display));
+
+    return config_dbus_core_add_hook(&core_hook);
+}
+
+void
+config_dbus_fini(void)
+{
+    config_dbus_core_remove_hook(&core_hook);
+}

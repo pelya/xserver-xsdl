@@ -310,7 +310,7 @@ main(int argc, char *argv[], char *envp[])
 	InitBlockAndWakeupHandlers();
 	/* Perform any operating system dependent initializations you'd like */
 	OsInit();
-        configInitialise();
+        config_init();
 	if(serverGeneration == 1)
 	{
 	    CreateWellKnownSockets();
@@ -482,7 +482,7 @@ main(int argc, char *argv[], char *envp[])
 	FreeAllResources();
 #endif
 
-        configFini();
+        config_fini();
 	CloseDownDevices();
 	for (i = screenInfo.numScreens - 1; i >= 0; i--)
 	{
