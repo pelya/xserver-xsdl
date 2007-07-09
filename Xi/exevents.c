@@ -129,6 +129,8 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     if (grab && grab->coreGrab && !device->deviceGrab.fromPassiveGrab)
         return;
 
+    CheckMotion(xE, device);
+
     if (xE->u.u.type != DeviceValuator && xE->u.u.type != GenericEvent) {
         DeviceIntPtr mouse = NULL, kbd = NULL;
 	GetSpritePosition(device, &rootX, &rootY);

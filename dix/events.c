@@ -2449,10 +2449,16 @@ XYToWindow(DeviceIntPtr pDev, int x, int y)
  * position, then update the event with the new coordinates that may have been
  * changed. If the window underneath the sprite has changed, change to new
  * cursor and send enter/leave events.
+ *
+ * CheckMotion() will not do anything and return FALSE if the event is not a
+ * pointer event.
+ *
+ * @return TRUE if the sprite has moved or FALSE otherwise. 
  */
 Bool
 CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 {
+    INT16     *rootX, *rootY;
     WindowPtr prevSpriteWin;
     SpritePtr pSprite = pDev->spriteInfo->sprite;
         
@@ -2465,21 +2471,44 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 
     if (xE && !syncEvents.playingEvents)
     {
-	if (pSprite->hot.pScreen != pSprite->hotPhys.pScreen)
-	{
-	    pSprite->hot.pScreen = pSprite->hotPhys.pScreen;
-	    RootWindow(pDev) = WindowTable[pSprite->hot.pScreen->myNum];
-	}
-	pSprite->hot.x = XE_KBPTR.rootX;
-	pSprite->hot.y = XE_KBPTR.rootY;
-	if (pSprite->hot.x < pSprite->physLimits.x1)
-	    pSprite->hot.x = pSprite->physLimits.x1;
-	else if (pSprite->hot.x >= pSprite->physLimits.x2)
-	    pSprite->hot.x = pSprite->physLimits.x2 - 1;
-	if (pSprite->hot.y < pSprite->physLimits.y1)
-	    pSprite->hot.y = pSprite->physLimits.y1;
-	else if (pSprite->hot.y >= pSprite->physLimits.y2)
-	    pSprite->hot.y = pSprite->physLimits.y2 - 1;
+        /* GetPointerEvents() guarantees that pointer events have the correct
+           rootX/Y set already. */
+        switch(xE->u.u.type)
+        {
+            case ButtonPress:
+            case ButtonRelease:
+            case MotionNotify:
+                rootX = &XE_KBPTR.rootX;
+                rootY = &XE_KBPTR.rootY;
+                break;
+            default:
+                if (xE->u.u.type == DeviceButtonPress ||
+                        xE->u.u.type == DeviceButtonRelease ||
+                        xE->u.u.type == DeviceMotionNotify)
+                {
+                    rootX = &((deviceKeyButtonPointer*)xE)->root_x;
+                    rootY = &((deviceKeyButtonPointer*)xE)->root_y;
+                    break;
+                }
+                /* all other events return FALSE */
+                return FALSE;
+        }
+
+        if (pSprite->hot.pScreen != pSprite->hotPhys.pScreen)
+        {
+            pSprite->hot.pScreen = pSprite->hotPhys.pScreen;
+            RootWindow(pDev) = WindowTable[pSprite->hot.pScreen->myNum];
+        }
+        pSprite->hot.x = *rootX;
+        pSprite->hot.y = *rootY;
+        if (pSprite->hot.x < pSprite->physLimits.x1)
+            pSprite->hot.x = pSprite->physLimits.x1;
+        else if (pSprite->hot.x >= pSprite->physLimits.x2)
+            pSprite->hot.x = pSprite->physLimits.x2 - 1;
+        if (pSprite->hot.y < pSprite->physLimits.y1)
+            pSprite->hot.y = pSprite->physLimits.y1;
+        else if (pSprite->hot.y >= pSprite->physLimits.y2)
+            pSprite->hot.y = pSprite->physLimits.y2 - 1;
 #ifdef SHAPE
 	if (pSprite->hotShape)
 	    ConfineToShape(pDev, pSprite->hotShape, &pSprite->hot.x, &pSprite->hot.y);
@@ -2490,16 +2519,16 @@ CheckMotion(xEvent *xE, DeviceIntPtr pDev)
 #endif
 	pSprite->hotPhys = pSprite->hot;
 
-	if ((pSprite->hotPhys.x != XE_KBPTR.rootX) ||
-	    (pSprite->hotPhys.y != XE_KBPTR.rootY))
+	if ((pSprite->hotPhys.x != *rootX) ||
+	    (pSprite->hotPhys.y != *rootY))
 	{
 	    (*pSprite->hotPhys.pScreen->SetCursorPosition)(
                 pDev, pSprite->hotPhys.pScreen,
 		pSprite->hotPhys.x, pSprite->hotPhys.y, FALSE);
 	}
 
-	XE_KBPTR.rootX = pSprite->hot.x;
-	XE_KBPTR.rootY = pSprite->hot.y;
+	*rootX = pSprite->hot.x;
+	*rootY = pSprite->hot.y;
     }
 
 #ifdef XEVIE
@@ -3635,9 +3664,8 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
 	}
     }
     /* We need to call CheckMotion for each event. It doesn't really give us
-       any benefit for relative devices, but absolute devices won't send
-       button events to the right position. 
-     */
+       any benefit for relative devices, but absolute devices may not send
+       button events to the right position otherwise. */
     if (!CheckMotion(xE, mouse) && xE->u.u.type == MotionNotify)
             return;
     if (xE->u.u.type != MotionNotify)
