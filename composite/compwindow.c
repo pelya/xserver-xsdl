@@ -481,7 +481,7 @@ compReparentWindow (WindowPtr pWin, WindowPtr pPriorParent)
     /*
      * Reset pixmap pointers as appropriate
      */
-    if (pWin->parent && pWin->redirectDraw != RedirectDrawNone)
+    if (pWin->parent && pWin->redirectDraw == RedirectDrawNone)
 	compSetPixmap (pWin, (*pScreen->GetWindowPixmap) (pWin->parent));
     /*
      * Call down to next function
