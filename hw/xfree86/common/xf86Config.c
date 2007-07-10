@@ -1,5 +1,3 @@
-
-
 /*
  * Loosely based on code bearing the following copyright:
  *
@@ -1947,11 +1945,14 @@ configScreen(confScreenPtr screenp, XF86ConfScreenPtr conf_screen, int scrnum,
 }
 
 typedef enum {
-    MON_REDUCEDBLANKING
+    MON_REDUCEDBLANKING,
+    MON_MAX_PIX_CLOCK,
 } MonitorValues;
 
 static OptionInfoRec MonitorOptions[] = {
   { MON_REDUCEDBLANKING,      "ReducedBlanking",        OPTV_BOOLEAN,
+       {0}, FALSE },
+  { MON_MAX_PIX_CLOCK,	      "MaxPixClock",		OPTV_FREQ,
        {0}, FALSE },
   { -1,                                NULL,                   OPTV_NONE,
        {0}, FALSE },
@@ -2099,11 +2100,11 @@ configMonitor(MonPtr monitorp, XF86ConfMonitorPtr conf_monitor)
 	    return FALSE;
     }
 
-    /* Check wether this Monitor accepts Reduced Blanking modelines */
     xf86ProcessOptions(-1, monitorp->options, MonitorOptions);
-
     xf86GetOptValBool(MonitorOptions, MON_REDUCEDBLANKING,
                       &monitorp->reducedblanking);
+    xf86GetOptValFreq(MonitorOptions, MON_MAX_PIX_CLOCK, OPTUNITS_KHZ,
+		      &monitorp->maxPixClock);
     return TRUE;
 }
 

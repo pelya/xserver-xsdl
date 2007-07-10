@@ -1472,6 +1472,12 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 			 scrp->monitor->vrefresh[i].lo,
 			 scrp->monitor->vrefresh[i].hi);
 	}
+	if (scrp->monitor->maxPixClock) {
+	    xf86DrvMsg(scrp->scrnIndex, X_INFO,
+		       "%s: Using maximum pixel clock of %.2f MHz\n",
+		       scrp->monitor->id,
+		       (float)scrp->monitor->maxPixClock / 1000.0);
+	}
     }
 
     /*

@@ -427,7 +427,7 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 {
     DisplayModePtr Modes = NULL, Mode;
     int i, clock;
-    Bool have_hsync = FALSE, have_vrefresh = FALSE;
+    Bool have_hsync = FALSE, have_vrefresh = FALSE, have_maxpixclock = FALSE;
 
     if (!Monitor || !DDC)
         return;
@@ -447,6 +447,7 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
     /* Skip EDID ranges if they were specified in the config file */
     have_hsync = (Monitor->nHsync != 0);
     have_vrefresh = (Monitor->nVrefresh != 0);
+    have_maxpixclock = (Monitor->maxPixClock != 0);
 
     /* Go through the detailed monitor sections */
     for (i = 0; i < DET_TIMINGS; i++) {
@@ -481,7 +482,7 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 	    }
 
 	    clock = DDC->det_mon[i].section.ranges.max_clock * 1000;
-	    if (clock > Monitor->maxPixClock)
+	    if (!have_maxpixclock && clock > Monitor->maxPixClock)
 		Monitor->maxPixClock = clock;
 
             break;
