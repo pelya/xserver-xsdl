@@ -65,7 +65,7 @@ int
 ProcXChangeWindowAccess(ClientPtr client)
 {
     int padding, err, i;
-    CARD8* deviceids = NULL;
+    XID* deviceids = NULL;
     WindowPtr win;
     DeviceIntPtr* perm_devices = NULL;
     DeviceIntPtr* deny_devices = NULL;
@@ -73,10 +73,10 @@ ProcXChangeWindowAccess(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xChangeWindowAccessReq);
     
 
-    padding = (4 - ((stuff->npermit + stuff->ndeny) % 4)) % 4;
+    padding = (4 - (((stuff->npermit + stuff->ndeny) * sizeof(XID)) % 4)) % 4;
 
     if (stuff->length != ((sizeof(xChangeWindowAccessReq)  + 
-            (stuff->npermit + stuff->ndeny + padding)) >> 2))
+            (((stuff->npermit + stuff->ndeny) * sizeof(XID)) + padding)) >> 2))
     {
         SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 
                 0, BadLength);
@@ -102,7 +102,7 @@ ProcXChangeWindowAccess(ClientPtr client)
     }
 
     if (stuff->npermit || stuff->ndeny)
-        deviceids = (CARD8*)&stuff[1];
+        deviceids = (XID*)&stuff[1];
 
     if (stuff->npermit)
     {

@@ -69,7 +69,7 @@ ProcXQueryWindowAccess(ClientPtr client)
     DeviceIntPtr *perm, *deny;
     int nperm, ndeny, i;
     int defaultRule;
-    CARD8* deviceids;
+    XID* deviceids;
     xQueryWindowAccessReply rep;
 
     REQUEST(xQueryWindowAccessReq);
@@ -88,7 +88,7 @@ ProcXQueryWindowAccess(ClientPtr client)
     rep.repType = X_Reply;
     rep.RepType = X_QueryWindowAccess;
     rep.sequenceNumber = client->sequence;
-    rep.length = (nperm + ndeny + 3) >> 2;
+    rep.length = ((nperm + ndeny) * sizeof(XID) + 3) >> 2;
     rep.defaultRule = defaultRule;
     rep.npermit = nperm;
     rep.ndeny = ndeny;
@@ -96,7 +96,7 @@ ProcXQueryWindowAccess(ClientPtr client)
 
     if (nperm + ndeny)
     {
-        deviceids = (CARD8*)xalloc((nperm + ndeny) * sizeof(CARD8));
+        deviceids = (XID*)xalloc((nperm + ndeny) * sizeof(XID));
         if (!deviceids)
         {
             ErrorF("ProcXQueryWindowAccess: xalloc failure.\n");
@@ -110,7 +110,7 @@ ProcXQueryWindowAccess(ClientPtr client)
         for (i = 0; i < ndeny; i++)
             deviceids[i + nperm] = deny[i]->id;
 
-        WriteToClient(client, nperm + ndeny, (char*)deviceids);
+        WriteToClient(client, (nperm + ndeny) * sizeof(XID), (char*)deviceids);
         xfree(deviceids);
     }
     return Success;
