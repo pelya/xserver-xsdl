@@ -1285,7 +1285,9 @@ int DoCreateGLXPixmap(__GLXclientState *cl, XID fbconfigId,
     pGlxPixmap->pGlxScreen = __glXgetActiveScreen(screenNum);
     pGlxPixmap->pScreen = pDraw->pScreen;
     pGlxPixmap->idExists = True;
+#ifdef XF86DRI
     pGlxPixmap->pDamage = NULL;
+#endif
     pGlxPixmap->refcnt = 0;
 
     pGlxPixmap->modes = modes;
