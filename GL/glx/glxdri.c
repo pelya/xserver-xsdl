@@ -758,9 +758,16 @@ static __DRIscreen *findScreen(__DRInativeDisplay *dpy, int scrn)
 
 static GLboolean windowExists(__DRInativeDisplay *dpy, __DRIid draw)
 {
-    WindowPtr pWin = (WindowPtr) LookupIDByType(draw, RT_WINDOW);
+    DrawablePtr pDrawable = (DrawablePtr) LookupIDByType(draw, RT_WINDOW);
+    int unused;
+    drm_clip_rect_t *pRects;
 
-    return pWin == NULL ? GL_FALSE : GL_TRUE;
+    return pDrawable ? DRIGetDrawableInfo(pDrawable->pScreen, pDrawable,
+					  (unsigned*)&unused, (unsigned*)&unused,
+					  &unused, &unused, &unused, &unused,
+					  &unused, &pRects, &unused, &unused,
+					  &unused, &pRects)
+		     : GL_FALSE;
 }
 
 static GLboolean createContext(__DRInativeDisplay *dpy, int screen,
@@ -815,10 +822,8 @@ createDrawable(__DRInativeDisplay *dpy, int screen,
 	return GL_FALSE;
 
     __glXDRIenterServer(GL_FALSE);
-    retval = DRICreateDrawable(screenInfo.screens[screen],
-			    drawable,
-			    pDrawable,
-			    hHWDrawable);
+    retval = DRICreateDrawable(screenInfo.screens[screen], __pGlxClient,
+			       pDrawable, hHWDrawable);
     __glXDRIleaveServer(GL_FALSE);
     return retval;
 }
@@ -834,9 +839,8 @@ destroyDrawable(__DRInativeDisplay *dpy, int screen, __DRIid drawable)
 	return GL_FALSE;
 
     __glXDRIenterServer(GL_FALSE);
-    retval = DRIDestroyDrawable(screenInfo.screens[screen],
-			     drawable,
-			     pDrawable);
+    retval = DRIDestroyDrawable(screenInfo.screens[screen], __pGlxClient,
+				pDrawable);
     __glXDRIleaveServer(GL_FALSE);
     return retval;
 }
@@ -927,7 +931,7 @@ getDrawableInfo(__DRInativeDisplay *dpy, int screen,
       *ppBackClipRects = NULL;
     }
 
-    return GL_TRUE;
+    return retval;
 }
 
 static int

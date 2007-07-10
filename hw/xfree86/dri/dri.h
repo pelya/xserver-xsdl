@@ -231,12 +231,12 @@ extern Bool DRIDestroyContext(ScreenPtr pScreen, XID context);
 extern Bool DRIContextPrivDelete(pointer pResource, XID id);
 
 extern Bool DRICreateDrawable(ScreenPtr pScreen,
-                              Drawable id,
+                              ClientPtr client,
                               DrawablePtr pDrawable,
                               drm_drawable_t * hHWDrawable);
 
 extern Bool DRIDestroyDrawable(ScreenPtr pScreen, 
-                               Drawable id,
+			       ClientPtr client,
                                DrawablePtr pDrawable);
 
 extern Bool DRIDrawablePrivDelete(pointer pResource,
@@ -298,6 +298,8 @@ extern void *DRIGetContextStore(DRIContextPrivPtr context);
 extern void DRIWindowExposures(WindowPtr pWin,
                               RegionPtr prgn,
                               RegionPtr bsreg);
+
+extern Bool DRIDestroyWindow(WindowPtr pWin);
 
 extern void DRICopyWindow(WindowPtr pWin,
                           DDXPointRec ptOldOrg,

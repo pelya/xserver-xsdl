@@ -110,6 +110,8 @@ void __glXScreenInitVisuals(__GLXscreen *screen);
 extern __GLXcontext *__glXLastContext;
 extern __GLXcontext *__glXForceCurrent(__GLXclientState*, GLXContextTag, int*);
 
+extern ClientPtr __pGlxClient;
+
 int __glXError(int error);
 
 /*
