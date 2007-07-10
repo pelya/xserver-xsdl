@@ -2020,9 +2020,8 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         /* get the XGE event mask. 
          * FIXME: needs to be freed somewhere too.
          */
-        if (!pWin->optional || !pWin->optional->geMasks)
-            tempGrab.genericMasks = NULL;
-        else
+        tempGrab.genericMasks = NULL;
+        if (pWin->optional && pWin->optional->geMasks)
         {
             GenericClientMasksPtr gemasks = pWin->optional->geMasks;
             GenericMaskPtr geclient = gemasks->geClients;
