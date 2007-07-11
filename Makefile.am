@@ -64,7 +64,17 @@ aclocal_DATA = xorg-server.m4
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = xorg-server.pc
 
-EXTRA_DIST = xorg-server.pc.in xorg-server.m4
+EXTRA_DIST = xorg-server.pc.in xorg-server.m4 ChangeLog autogen.sh
+
+MAINTAINERCLEANFILES=ChangeLog
+
+.PHONY: ChangeLog
+
+ChangeLog:
+	(GIT_DIR=$(top_srcdir)/.git git-log > .changelog.tmp && mv .changelog.tmp ChangeLog; rm -f .changelog.tmp) || \
+	(touch ChangeLog; echo 'git directory not found: installing possibly empty changelog.' >&2)
+
+dist-hook: ChangeLog
 
 DIST_SUBDIRS = \
 	doc \
