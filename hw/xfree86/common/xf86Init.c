@@ -979,6 +979,17 @@ InitInput(argc, argv)
     if (serverGeneration == 1) {
 	/* Call the PreInit function for each input device instance. */
 	for (pDev = xf86ConfigLayout.inputs; pDev && *pDev; pDev++) {
+	    /* Replace obsolete keyboard driver with kbd */
+	    if (!xf86NameCmp((*pDev)->driver, "keyboard")) {
+		xf86MsgVerb(X_WARNING, 0,
+			    "*** WARNING the legacy keyboard driver \"%s\" has been removed\n",
+			    (*pDev)->driver);
+		xf86MsgVerb(X_WARNING, 0,
+			    "*** Using the new \"kbd\" driver for \"%s\".\n",
+			    (*pDev)->identifier);
+		strcpy((*pDev)->driver, "kbd");
+            }
+
 	    if ((pDrv = xf86LookupInputDriver((*pDev)->driver)) == NULL) {
 		xf86Msg(X_ERROR, "No Input driver matching `%s'\n", (*pDev)->driver);
 		/* XXX For now, just continue. */
@@ -1833,6 +1844,11 @@ xf86LoadModules(char **list, pointer *optlist)
 	/* Skip empty names */
 	if (name == NULL || *name == '\0')
 	    continue;
+
+	/* Replace obsolete keyboard driver with kbd */
+	if (!xf86NameCmp(name, "keyboard")) {
+	    strcpy(name, "kbd");
+	}
 
 	if (optlist)
 	    opt = optlist[i];
