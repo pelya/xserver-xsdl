@@ -210,7 +210,7 @@ fbCompositeGeneral (CARD8	op,
 		    CARD16	width,
 		    CARD16	height)
 {
-    return fbComposite (op, pSrc, pMask, pDst,
+    fbComposite (op, pSrc, pMask, pDst,
 			xSrc, ySrc, xMask, yMask, xDst, yDst,
 			width, height);
 }
