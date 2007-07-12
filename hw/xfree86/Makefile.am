@@ -78,10 +78,10 @@ if SOLARIS_ASM_INLINE
 # Needs to be built before any files are compiled when using Sun compilers
 # so in*/out* inline definitions are properly processed.
 
-BUILT_SOURCES += os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il
+BUILT_SOURCES += os-support/solaris/solaris-@SOLARIS_INOUT_ARCH@.il
 
-os-support/solaris/solaris-$(SOLARIS_INOUT_ARCH).il:
-	cd os-support/solaris ; make solaris-$(SOLARIS_INOUT_ARCH).il
+os-support/solaris/solaris-@SOLARIS_INOUT_ARCH@.il:
+	cd os-support/solaris ; make solaris-@SOLARIS_INOUT_ARCH@.il
 endif
 
 # do not use $(mkdir_p) if you want automake 1.7 to work
