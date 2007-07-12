@@ -233,6 +233,9 @@
 /* System is BSD-like */
 #undef CSRG_BASED
 
+/* Solaris 8 or later? */
+#undef __SOL8__
+
 /* System has PC console */
 #undef PCCONS_SUPPORT
 
