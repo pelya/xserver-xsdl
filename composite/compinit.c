@@ -199,106 +199,83 @@ Bool CompositeRegisterAlternateVisuals (ScreenPtr pScreen, VisualID *vids,
     return compRegisterAlternateVisuals(cs, vids, nVisuals);
 }
 
-#if COMP_INCLUDE_RGB24_VISUAL
-#define NUM_COMP_ALTERNATE_VISUALS 2
-#else
-#define NUM_COMP_ALTERNATE_VISUALS 1
-#endif
-
 typedef struct _alternateVisual {
     int		depth;
     CARD32	format;
 } CompAlternateVisual;
 
-static CompAlternateVisual  altVisuals[NUM_COMP_ALTERNATE_VISUALS] = {
+static CompAlternateVisual  altVisuals[] = {
 #if COMP_INCLUDE_RGB24_VISUAL
     {	24,	PICT_r8g8b8 },
 #endif
     {	32,	PICT_a8r8g8b8 },
 };
 
+static const int NUM_COMP_ALTERNATE_VISUALS = sizeof(altVisuals) /
+					      sizeof(CompAlternateVisual);
+
 static Bool
-compAddAlternateVisuals (ScreenPtr pScreen, CompScreenPtr cs)
+compAddAlternateVisual(ScreenPtr pScreen, CompScreenPtr cs,
+		       CompAlternateVisual *alt)
 {
-    VisualPtr	    visuals;
-    DepthPtr	    depths[NUM_COMP_ALTERNATE_VISUALS];
-    PictFormatPtr   pPictFormats[NUM_COMP_ALTERNATE_VISUALS];
+    VisualPtr	    visual, visuals;
     int		    i;
     int		    numVisuals;
-    VisualID	    *vids[NUM_COMP_ALTERNATE_VISUALS];
     XID		    *installedCmaps;
     ColormapPtr	    installedCmap;
     int		    numInstalledCmaps;
-    int		    numAlternate = 0;
-    int		    alt;
-    
-    for (alt = 0; alt < NUM_COMP_ALTERNATE_VISUALS; alt++)
-    {
-	DepthPtr	depth;
-	PictFormatPtr   pPictFormat;
-	
-	depth = compFindVisuallessDepth (pScreen, altVisuals[alt].depth);
-	if (!depth)
-	    continue;
-	/*
-	 * Find the right picture format
-	 */
-	pPictFormat = PictureMatchFormat (pScreen, altVisuals[alt].depth,
-					  altVisuals[alt].format);
-	if (!pPictFormat)
-	    continue;
-
-	/*
-	 * Allocate vid list for this depth
-	 */
-	vids[numAlternate] = xalloc (sizeof (VisualID));
-	if (!vids[numAlternate])
-	    continue;
-	depths[numAlternate] = depth;
-	pPictFormats[numAlternate] = pPictFormat;
-	numAlternate++;
-    }
-    
-    if (!numAlternate)
-	return TRUE;
+    DepthPtr	    depth;
+    PictFormatPtr   pPictFormat;
+    VisualID	    *vid;
+    unsigned long   alphaMask;
 
     /*
-     * Find the installed colormaps
+     * The ARGB32 visual is always available.  Other alternate depth visuals
+     * are only provided if their depth is less than the root window depth.
+     * There's no deep reason for this.
      */
+    if (alt->depth >= pScreen->rootDepth && alt->depth != 32)
+	return FALSE;
+
+    depth = compFindVisuallessDepth (pScreen, alt->depth);
+    if (!depth)
+	return FALSE;
+
+    pPictFormat = PictureMatchFormat (pScreen, alt->depth, alt->format);
+    if (!pPictFormat)
+	return FALSE;
+
+    vid = xalloc(sizeof(VisualID));
+    if (!vid)
+	return FALSE;
+
+    /* Find the installed colormaps */
     installedCmaps = xalloc (pScreen->maxInstalledCmaps * sizeof (XID));
-    if (!installedCmaps)
-    {
-	for (alt = 0; alt < numAlternate; alt++)
-	    xfree (vids[alt]);
+    if (!installedCmaps) {
+	xfree(vid);
 	return FALSE;
     }
-    numInstalledCmaps = (*pScreen->ListInstalledColormaps) (pScreen, 
-							    installedCmaps);
-    
-    /*
-     * realloc the visual array to fit the new one in place
-     */
+    numInstalledCmaps = pScreen->ListInstalledColormaps(pScreen, 
+	    installedCmaps);
+
+    /* realloc the visual array to fit the new one in place */
     numVisuals = pScreen->numVisuals;
-    visuals = xrealloc (pScreen->visuals,
-			(numVisuals + numAlternate) * sizeof (VisualRec));
-    if (!visuals)
-    {
-	for (alt = 0; alt < numAlternate; alt++)
-	    xfree (vids[alt]);
-	xfree (installedCmaps);
+    visuals = xrealloc(pScreen->visuals, (numVisuals + 1) * sizeof(VisualRec));
+    if (!visuals) {
+	xfree(vid);
+	xfree(installedCmaps);
 	return FALSE;
     }
-    
+
     /*
      * Fix up any existing installed colormaps -- we'll assume that
      * the only ones created so far have been installed.  If this
      * isn't true, we'll have to walk the resource database looking
      * for all colormaps.
      */
-    for (i = 0; i < numInstalledCmaps; i++)
-    {
+    for (i = 0; i < numInstalledCmaps; i++) {
 	int j;
-	
+
 	installedCmap = LookupIDByType (installedCmaps[i], RT_COLORMAP);
 	if (!installedCmap)
 	    continue;
@@ -306,64 +283,62 @@ compAddAlternateVisuals (ScreenPtr pScreen, CompScreenPtr cs)
 	installedCmap->pVisual = &visuals[j];
     }
 
-    xfree (installedCmaps);
+    xfree(installedCmaps);
 
     pScreen->visuals = visuals;
-    pScreen->numVisuals = numVisuals + numAlternate;
+    visual = visuals + pScreen->numVisuals; /* the new one */
+    pScreen->numVisuals++;
 
-    for (alt = 0; alt < numAlternate; alt++)
-    {
-	DepthPtr	depth = depths[alt];
-	PictFormatPtr	pPictFormat = pPictFormats[alt];
-	VisualPtr	visual = &visuals[numVisuals + alt];
-	unsigned long	alphaMask;
-
-	/*
-	 * Initialize the visual
-	 */
+    /* Initialize the visual */
+    visual->vid = FakeClientID (0);
+    visual->bitsPerRGBValue = 8;
+    if (PICT_FORMAT_TYPE(alt->format) == PICT_TYPE_COLOR) {
+	visual->class = PseudoColor;
+	visual->nplanes = PICT_FORMAT_BPP(alt->format);
+	visual->ColormapEntries = 1 << visual->nplanes;
+    } else {
+	DirectFormatRec *direct = &pPictFormat->direct;
 	visual->class = TrueColor;
-	visual->bitsPerRGBValue = 8;
-
-	visual->vid = FakeClientID (0);
-	visual->redMask   = (((unsigned long) pPictFormat->direct.redMask) << 
-			     pPictFormat->direct.red);
-	visual->greenMask = (((unsigned long) pPictFormat->direct.greenMask) << 
-			     pPictFormat->direct.green);
-	visual->blueMask  = (((unsigned long) pPictFormat->direct.blueMask) << 
-			     pPictFormat->direct.blue);
-	alphaMask =  (((unsigned long) pPictFormat->direct.alphaMask) << 
-		      pPictFormat->direct.alpha);
-	visual->offsetRed   = pPictFormat->direct.red;
-	visual->offsetGreen = pPictFormat->direct.green;
-	visual->offsetBlue  = pPictFormat->direct.blue;
+	visual->redMask   = ((unsigned long)direct->redMask) << direct->red;
+	visual->greenMask = ((unsigned long)direct->greenMask) << direct->green;
+	visual->blueMask  = ((unsigned long)direct->blueMask) << direct->blue;
+	alphaMask = ((unsigned long)direct->alphaMask) << direct->alpha;
+	visual->offsetRed   = direct->red;
+	visual->offsetGreen = direct->green;
+	visual->offsetBlue  = direct->blue;
 	/*
 	 * Include A bits in this (unlike GLX which includes only RGB)
 	 * This lets DIX compute suitable masks for colormap allocations
 	 */
 	visual->nplanes = Ones (visual->redMask |
-				visual->greenMask |
-				visual->blueMask |
-				alphaMask);
-	/*
-	 * find widest component
-	 */
+		visual->greenMask |
+		visual->blueMask |
+		alphaMask);
+	/* find widest component */
 	visual->ColormapEntries = (1 << max (Ones (visual->redMask),
-					     max (Ones (visual->greenMask),
-						  Ones (visual->blueMask))));
-
-	/*
-	 * remember the visual ID to detect auto-update windows
-	 */
-	compRegisterAlternateVisuals(cs, &visual->vid, 1);
-	
-	/*
-	 * Fix up the depth
-	 */
-	vids[alt][0] = visual->vid;
-	depth->numVids = 1;
-	depth->vids = vids[alt];
+		    max (Ones (visual->greenMask),
+			Ones (visual->blueMask))));
     }
+
+    /* remember the visual ID to detect auto-update windows */
+    compRegisterAlternateVisuals(cs, &visual->vid, 1);
+
+    /* Fix up the depth */
+    *vid = visual->vid;
+    depth->numVids = 1;
+    depth->vids = vid;
     return TRUE;
+}
+
+static Bool
+compAddAlternateVisuals (ScreenPtr pScreen, CompScreenPtr cs)
+{
+    int alt, ret = 0;
+
+    for (alt = 0; alt < NUM_COMP_ALTERNATE_VISUALS; alt++)
+	ret |= compAddAlternateVisual(pScreen, cs, altVisuals + alt);
+
+    return !!ret;
 }
 
 Bool
