@@ -794,7 +794,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	    int source_width = mode->mode.width;
 	    int	source_height = mode->mode.height;
 
-	    if (rotation == RR_Rotate_90 || rotation == RR_Rotate_270)
+	    if ((rotation & 0xf) == RR_Rotate_90 || (rotation & 0xf) == RR_Rotate_270)
 	    {
 		source_width = mode->mode.height;
 		source_height = mode->mode.width;
