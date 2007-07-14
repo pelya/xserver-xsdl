@@ -2031,7 +2031,7 @@ xf86DisableUnusedFunctions(ScrnInfoPtr pScrn)
 static void
 xf86OutputSetEDIDProperty (xf86OutputPtr output, void *data, int data_len)
 {
-    Atom edid_atom = MakeAtom(EDID_ATOM_NAME, sizeof(EDID_ATOM_NAME), TRUE);
+    Atom edid_atom = MakeAtom(EDID_ATOM_NAME, sizeof(EDID_ATOM_NAME) - 1, TRUE);
 
     /* This may get called before the RandR resources have been created */
     if (output->randr_output == NULL)
