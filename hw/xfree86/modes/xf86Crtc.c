@@ -676,7 +676,8 @@ xf86CrtcScreenInit (ScreenPtr screen)
     }
     if (c == config->num_crtc)
 	xf86RandR12SetRotations (screen, RR_Rotate_0 | RR_Rotate_90 |
-				 RR_Rotate_180 | RR_Rotate_270);
+				 RR_Rotate_180 | RR_Rotate_270 |
+				 RR_Reflect_X | RR_Reflect_Y);
     else
 	xf86RandR12SetRotations (screen, RR_Rotate_0);
     

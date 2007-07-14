@@ -58,29 +58,73 @@ xf86_crtc_rotate_coord (Rotation    rotation,
 			int	    *x_src,
 			int	    *y_src)
 {
+    int t;
+    
+    switch (rotation & 0xf) {
+    case RR_Rotate_0:
+	break;
+    case RR_Rotate_90:
+	t = x_dst;
+	x_dst = height - y_dst - 1;
+	y_dst = t;
+	break;
+    case RR_Rotate_180:
+	x_dst = width - x_dst - 1;
+	y_dst = height - y_dst - 1;
+	break;
+    case RR_Rotate_270:
+	t = x_dst;
+	x_dst = y_dst;
+	y_dst = width - t - 1;
+	break;
+    }
     if (rotation & RR_Reflect_X)
 	x_dst = width - x_dst - 1;
     if (rotation & RR_Reflect_Y)
 	y_dst = height - y_dst - 1;
+    *x_src = x_dst;
+    *y_src = y_dst;
+}
+
+/*
+ * Given a cursor source  coordinate, rotate to a screen coordinate
+ */
+static void
+xf86_crtc_rotate_coord_back (Rotation    rotation,
+			     int	    width,
+			     int	    height,
+			     int	    x_dst,
+			     int	    y_dst,
+			     int	    *x_src,
+			     int	    *y_src)
+{
+    int t;
     
+    if (rotation & RR_Reflect_X)
+	x_dst = width - x_dst - 1;
+    if (rotation & RR_Reflect_Y)
+	y_dst = height - y_dst - 1;
+
     switch (rotation & 0xf) {
     case RR_Rotate_0:
-	*x_src = x_dst;
-	*y_src = y_dst;
 	break;
     case RR_Rotate_90:
-	*x_src = height - y_dst - 1;
-	*y_src = x_dst;
+	t = x_dst;
+	x_dst = y_dst;
+	y_dst = width - t - 1;
 	break;
     case RR_Rotate_180:
-	*x_src = width - x_dst - 1;
-	*y_src = height - y_dst - 1;
+	x_dst = width - x_dst - 1;
+	y_dst = height - y_dst - 1;
 	break;
     case RR_Rotate_270:
-	*x_src = y_dst;
-	*y_src = width - x_dst - 1;
+	t = x_dst;
+	x_dst = height - y_dst - 1;
+	y_dst = t;
 	break;
     }
+    *x_src = x_dst;
+    *y_src = y_dst;
 }
 
 /*
@@ -261,49 +305,33 @@ xf86_crtc_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     xf86CursorInfoPtr	cursor_info = xf86_config->cursor_info;
     DisplayModePtr	mode = &crtc->mode;
-    int			x_temp;
-    int			y_temp;
     Bool		in_range;
+    int			dx, dy;
 
-    /* 
-     * Move to crtc coordinate space
-     */
-    x -= crtc->x;
-    y -= crtc->y;
-    
     /*
-     * Rotate
+     * Transform position of cursor on screen
      */
-    switch ((crtc->rotation) & 0xf) {
-    case RR_Rotate_0:
-	break;
-    case RR_Rotate_90:
-	x_temp = y;
-	y_temp = mode->VDisplay - cursor_info->MaxWidth - x;
-	x = x_temp;
-	y = y_temp;
-	break;
-    case RR_Rotate_180:
-	x_temp = mode->HDisplay - cursor_info->MaxWidth - x;
-	y_temp = mode->VDisplay - cursor_info->MaxHeight - y;
-	x = x_temp;
-	y = y_temp;
-	break;
-    case RR_Rotate_270:
-	x_temp = mode->HDisplay - cursor_info->MaxHeight -  y;
-	y_temp = x;
-	x = x_temp;
-	y = y_temp;
-	break;
+    if (crtc->transform_in_use)
+    {
+	PictVector	v;
+	v.vector[0] = IntToxFixed (x); v.vector[1] = IntToxFixed (y); v.vector[2] = IntToxFixed(1);
+	PictureTransformPoint (&crtc->framebuffer_to_crtc, &v);
+	x = xFixedToInt (v.vector[0]); y = xFixedToInt (v.vector[1]);
     }
-    
+    else
+    {
+	x -= crtc->x;
+	y -= crtc->y;
+    }
     /*
-     * Reflect
+     * Transform position of cursor upper left corner
      */
-    if (crtc->rotation & RR_Reflect_X)
-	x = mode->HDisplay - cursor_info->MaxWidth - x;
-    if (crtc->rotation & RR_Reflect_Y)
-	y = mode->VDisplay - cursor_info->MaxHeight - y;
+    xf86_crtc_rotate_coord_back (crtc->rotation,
+				 cursor_info->MaxWidth,
+				 cursor_info->MaxHeight,
+				 0, 0, &dx, &dy);
+    x -= dx;
+    y -= dy;
 
     /*
      * Disable the cursor when it is outside the viewport
