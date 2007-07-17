@@ -35,10 +35,13 @@
  *
  * Solid doesn't use an extra pixmap source, and Stippled/OpaqueStippled are
  * 1bpp and never in fb, so we don't worry about them.
+ * We should worry about them for completeness sake and going forward.
  */
 void
 exaPrepareAccessGC(GCPtr pGC)
 {
+    if (pGC->stipple)
+        exaPrepareAccess(&pGC->stipple->drawable, EXA_PREPARE_SRC);
     if (pGC->fillStyle == FillTiled)
 	exaPrepareAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
 }
@@ -51,6 +54,8 @@ exaFinishAccessGC(GCPtr pGC)
 {
     if (pGC->fillStyle == FillTiled)
 	exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
+    if (pGC->stipple)
+        exaFinishAccess(&pGC->stipple->drawable, EXA_PREPARE_SRC);
 }
 
 #if DEBUG_TRACE_FALL
@@ -294,7 +299,9 @@ ExaCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what)
     EXA_FALLBACK(("from %p (%c)\n", pWin,
 		  exaDrawableLocation(&pWin->drawable)));
     exaPrepareAccess (&pWin->drawable, EXA_PREPARE_DEST);
+    exaPrepareAccessWindow(pWin);
     fbPaintWindow (pWin, pRegion, what);
+    exaFinishAccessWindow(pWin);
     exaFinishAccess (&pWin->drawable, EXA_PREPARE_DEST);
 }
 

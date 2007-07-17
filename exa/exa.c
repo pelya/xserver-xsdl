@@ -452,11 +452,9 @@ exaValidateGC (GCPtr pGC, unsigned long changes, DrawablePtr pDrawable)
 	if (!pGC->tileIsPixel && FbEvenTile (pGC->tile.pixmap->drawable.width *
 					     pDrawable->bitsPerPixel))
 	{
-	    /* XXX This fixes corruption with tiled pixmaps, but may just be a
-	     * workaround for broken drivers
-	     */
-	    exaMoveOutPixmap(pGC->tile.pixmap);
+	    exaPrepareAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
 	    fbPadPixmap (pGC->tile.pixmap);
+	    exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
 	    exaPixmapDirty(pGC->tile.pixmap, 0, 0,
 			   pGC->tile.pixmap->drawable.width,
 			   pGC->tile.pixmap->drawable.height);
@@ -467,7 +465,9 @@ exaValidateGC (GCPtr pGC, unsigned long changes, DrawablePtr pDrawable)
 	changes &= ~GCTile;
     }
 
+    exaPrepareAccessGC(pGC);
     fbValidateGC (pGC, changes, pDrawable);
+    exaFinishAccessGC(pGC);
 
     pGC->ops = (GCOps *) &exaOps;
 }
@@ -497,6 +497,47 @@ exaCreateGC (GCPtr pGC)
     return TRUE;
 }
 
+void
+exaPrepareAccessWindow(WindowPtr pWin)
+{
+    if (pWin->backgroundState == BackgroundPixmap) 
+        exaPrepareAccess(&pWin->background.pixmap->drawable, EXA_PREPARE_SRC);
+
+    if (pWin->borderIsPixel == FALSE)
+        exaPrepareAccess(&pWin->border.pixmap->drawable, EXA_PREPARE_SRC);
+}
+
+void
+exaFinishAccessWindow(WindowPtr pWin)
+{
+    if (pWin->backgroundState == BackgroundPixmap) 
+        exaFinishAccess(&pWin->background.pixmap->drawable, EXA_PREPARE_SRC);
+
+    if (pWin->borderIsPixel == FALSE)
+        exaFinishAccess(&pWin->border.pixmap->drawable, EXA_PREPARE_SRC);
+}
+
+static Bool
+exaChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
+{
+    Bool ret;
+
+    exaPrepareAccessWindow(pWin);
+    ret = fbChangeWindowAttributes(pWin, mask);
+    exaFinishAccessWindow(pWin);
+    return ret;
+}
+
+static RegionPtr
+exaBitmapToRegion(PixmapPtr pPix)
+{
+  RegionPtr ret;
+  exaPrepareAccess(&pPix->drawable, EXA_PREPARE_SRC);
+  ret = fbPixmapToRegion(pPix);
+  exaFinishAccess(&pPix->drawable, EXA_PREPARE_SRC);
+  return ret;
+}
+
 /**
  * exaCloseScreen() unwraps its wrapped screen functions and tears down EXA's
  * screen private, before calling down to the next CloseSccreen.
@@ -518,6 +559,8 @@ exaCloseScreen(int i, ScreenPtr pScreen)
     pScreen->CreatePixmap = pExaScr->SavedCreatePixmap;
     pScreen->DestroyPixmap = pExaScr->SavedDestroyPixmap;
     pScreen->CopyWindow = pExaScr->SavedCopyWindow;
+    pScreen->ChangeWindowAttributes = pExaScr->SavedChangeWindowAttributes;
+    pScreen->BitmapToRegion = pExaScr->SavedBitmapToRegion;
 #ifdef RENDER
     if (ps) {
 	ps->Composite = pExaScr->SavedComposite;
@@ -659,6 +702,12 @@ exaDriverInit (ScreenPtr		pScreen,
 
     pExaScr->SavedCopyWindow = pScreen->CopyWindow;
     pScreen->CopyWindow = exaCopyWindow;
+
+    pExaScr->SavedChangeWindowAttributes = pScreen->ChangeWindowAttributes;
+    pScreen->ChangeWindowAttributes = exaChangeWindowAttributes;
+
+    pExaScr->SavedBitmapToRegion = pScreen->BitmapToRegion;
+    pScreen->BitmapToRegion = exaBitmapToRegion;
 
     pExaScr->SavedPaintWindowBackground = pScreen->PaintWindowBackground;
     pScreen->PaintWindowBackground = exaPaintWindow;

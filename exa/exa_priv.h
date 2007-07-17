@@ -106,6 +106,8 @@ typedef struct {
     DestroyPixmapProcPtr 	 SavedDestroyPixmap;
     PaintWindowBorderProcPtr 	 SavedPaintWindowBorder;
     CopyWindowProcPtr 		 SavedCopyWindow;
+    ChangeWindowAttributesProcPtr SavedChangeWindowAttributes;
+    BitmapToRegionProcPtr        SavedBitmapToRegion;
 #ifdef RENDER
     CompositeProcPtr             SavedComposite;
     RasterizeTrapezoidProcPtr	 SavedRasterizeTrapezoid;
@@ -113,6 +115,7 @@ typedef struct {
     GlyphsProcPtr                SavedGlyphs;
     TrapezoidsProcPtr            SavedTrapezoids;
 #endif
+  
     Bool			 swappedOut;
     enum ExaMigrationHeuristic	 migration;
     Bool			 hideOffscreenPixmapData;
@@ -189,6 +192,12 @@ typedef struct _ExaMigrationRec {
  * to set EXA options or hook in screen functions to handle using EXA as the AA.
   */
 void exaDDXDriverInit (ScreenPtr pScreen);
+
+void
+exaPrepareAccessWindow(WindowPtr pWin);
+
+void
+exaFinishAccessWindow(WindowPtr pWin);
 
 /* exa_unaccel.c */
 void
