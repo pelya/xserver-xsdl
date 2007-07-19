@@ -1414,8 +1414,9 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 			output->probed_modes = mode;
 		    }
 		    mode->type |= M_T_PREFERRED;
-		    break;
 		}
+		else
+		    mode->type &= ~M_T_PREFERRED;
 	    }
 	}
 	
