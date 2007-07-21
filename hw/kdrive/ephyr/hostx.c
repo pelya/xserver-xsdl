@@ -956,3 +956,9 @@ hostx_get_event(EphyrHostXEvent *ev)
   return 0;
 }
 
+void*
+hostx_get_display(void)
+{
+    return HostX.dpy ;
+}
+

@@ -172,4 +172,7 @@ hostx_load_keymap(void);
 int
 hostx_get_event(EphyrHostXEvent *ev);
 
+void*
+hostx_get_display(void) ;
+
 #endif
