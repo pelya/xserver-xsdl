@@ -52,7 +52,6 @@ static Bool EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this) ;
 static Bool EphyrXVPrivSetAdaptorsHooks (EphyrXVPriv *a_this) ;
 static Bool EphyrXVPrivRegisterAdaptors (EphyrXVPriv *a_this,
                                          ScreenPtr a_screen) ;
-
 static void EphyrStopVideo (KdScreenInfo *a_info,
                             pointer a_xv_priv,
                             Bool a_exit);
