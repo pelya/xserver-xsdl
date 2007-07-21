@@ -27,6 +27,7 @@
 #include <kdrive-config.h>
 #endif
 #include "ephyr.h"
+#include "ephyrlog.h"
 
 extern Window EphyrPreExistingHostWin;
 extern Bool   EphyrWantGrayScale;
@@ -92,11 +93,12 @@ ddxUseMsg (void)
   KdUseMsg();
 
   ErrorF("\nXephyr Option Usage:\n");
-  ErrorF("-parent XID   Use existing window as Xephyr root win\n");
-  ErrorF("-host-cursor  Re-use exisiting X host server cursor\n");
-  ErrorF("-fullscreen   Attempt to run Xephyr fullscreen\n");
-  ErrorF("-grayscale    Simulate 8bit grayscale\n");
-  ErrorF("-fakexa       Simulate acceleration using software rendering\n");
+  ErrorF("-parent <XID>        Use existing window as Xephyr root win\n");
+  ErrorF("-host-cursor         Re-use exisiting X host server cursor\n");
+  ErrorF("-fullscreen          Attempt to run Xephyr fullscreen\n");
+  ErrorF("-grayscale           Simulate 8bit grayscale\n");
+  ErrorF("-fakexa              Simulate acceleration using software rendering\n");
+  ErrorF("-verbosity <level>   Set log verbosity level\n");
   ErrorF("\n");
 
   exit(1);
@@ -181,6 +183,21 @@ ddxProcessArgument (int argc, char **argv, int i)
       ephyrFuncs.disableAccel = ephyrDrawDisable;
       ephyrFuncs.finiAccel = ephyrDrawFini;
       return 1;
+    }
+  else if (!strcmp (argv[i], "-verbosity"))
+    {
+      if(i+1 < argc && argv[i+1][0] != '-')
+	{
+	  int verbosity=atoi (argv[i+1]) ;
+	  LogSetParameter (XLOG_VERBOSITY, verbosity) ;
+	  EPHYR_LOG ("set verbosiry to %d\n", verbosity) ;
+	  return 2 ;
+	}
+      else
+	{
+	  UseMsg() ;
+	  exit(1) ;
+	}
     }
   else if (argv[i][0] == ':')
     {
