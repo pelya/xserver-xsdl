@@ -23,11 +23,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/*  TODO:
- *
- *  o Support multiple screens, shouldn't be hard just alot of rejigging.
- */
-
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>
 #endif
@@ -35,6 +30,7 @@
 
 #include "inputstr.h"
 #include "scrnintstr.h"
+#include "ephyrlog.h"
 
 extern int KdTsPhyScreen;
 KdKeyboardInfo *ephyrKbd;
@@ -209,7 +205,7 @@ ephyrMapFramebuffer (KdScreenInfo *screen)
   KdPointerMatrix m;
   int buffer_height;
   
-  EPHYR_DBG("screen->width: %d, screen->height: %d index=%d",
+  EPHYR_LOG("screen->width: %d, screen->height: %d index=%d",
 	     screen->width, screen->height, screen->mynum);
   
   KdComputePointerMatrix (&m, scrpriv->randr, screen->width, screen->height);
@@ -245,7 +241,7 @@ ephyrMapFramebuffer (KdScreenInfo *screen)
       /* Rotated/Reflected so we need to use shadow fb */
       scrpriv->shadow = TRUE;
       
-      EPHYR_DBG("allocing shadow");
+      EPHYR_LOG("allocing shadow");
       
       KdShadowFbAlloc (screen, 0, 
 		       scrpriv->randr & (RR_Rotate_90|RR_Rotate_270));
@@ -296,7 +292,7 @@ ephyrShadowUpdate (ScreenPtr pScreen, shadowBufPtr pBuf)
   KdScreenPriv(pScreen);
   KdScreenInfo *screen = pScreenPriv->screen;
   
-  EPHYR_DBG("slow paint");
+  EPHYR_LOG("slow paint");
   
   /* FIXME: Slow Rotated/Reflected updates could be much
    * much faster efficiently updating via tranforming 
@@ -410,7 +406,7 @@ ephyrRandRGetInfo (ScreenPtr pScreen, Rotation *rotations)
   Rotation		    randr;
   int			    n = 0;
   
-  EPHYR_DBG("mark");
+  EPHYR_LOG("mark");
   
   struct { int width, height; } sizes[] = 
     {
@@ -563,7 +559,7 @@ ephyrRandRSetConfig (ScreenPtr		pScreen,
   return TRUE;
   
  bail4:
-  EPHYR_DBG("bailed");
+  EPHYR_LOG("bailed");
   
   ephyrUnmapFramebuffer (screen);
   *scrpriv = oldscr;
@@ -606,10 +602,17 @@ ephyrInitScreen (ScreenPtr pScreen)
   KdScreenPriv(pScreen);
   KdScreenInfo	*screen    = pScreenPriv->screen;
 
-  EPHYR_DBG ("pScreen->myNum:%d\n", pScreen->myNum) ;
+  EPHYR_LOG ("pScreen->myNum:%d\n", pScreen->myNum) ;
   hostx_set_screen_number (screen, pScreen->myNum);
   hostx_set_win_title (screen, "(ctrl+shift grabs mouse and keyboard)") ;
   pScreen->CreateColormap = ephyrCreateColormap;
+#ifdef XV
+  if (!ephyrInitVideo (pScreen)) {
+      EPHYR_LOG_ERROR ("failed to initialize xvideo\n") ;
+  } else {
+      EPHYR_LOG_ERROR ("initialized xvideo okay\n") ;
+  }
+#endif /*XV*/
   return TRUE;
 }
 
@@ -637,7 +640,7 @@ ephyrCreateResources (ScreenPtr pScreen)
   KdScreenInfo	*screen    = pScreenPriv->screen;
   EphyrScrPriv	*scrpriv   = screen->driver;
 
-  EPHYR_DBG("mark pScreen=%p mynum=%d shadow=%d",
+  EPHYR_LOG("mark pScreen=%p mynum=%d shadow=%d",
             pScreen, pScreen->myNum, scrpriv->shadow);
 
   if (scrpriv->shadow) 
@@ -809,20 +812,20 @@ ephyrPoll(void)
         case EPHYR_EV_MOUSE_MOTION:
           if (!ephyrMouse ||
               !((EphyrPointerPrivate *)ephyrMouse->driverPrivate)->enabled) {
-              EPHYR_DBG ("skipping mouse motion:%d\n", ephyrCurScreen) ;
+              EPHYR_LOG ("skipping mouse motion:%d\n", ephyrCurScreen) ;
               continue;
           }
           {
             if (ephyrCurScreen != ev.data.mouse_motion.screen)
               {
-                  EPHYR_DBG ("warping mouse cursor:%d\n", ephyrCurScreen) ;
+                  EPHYR_LOG ("warping mouse cursor:%d\n", ephyrCurScreen) ;
                   ephyrWarpCursor(screenInfo.screens[ev.data.mouse_motion.screen],
                                    ev.data.mouse_motion.x,
                                    ev.data.mouse_motion.y );
               }
             else
               {
-                  EPHYR_DBG ("enqueuing mouse motion:%d\n", ephyrCurScreen) ;
+                  EPHYR_LOG ("enqueuing mouse motion:%d\n", ephyrCurScreen) ;
                   KdEnqueuePointerEvent(ephyrMouse, mouseState,
                                         ev.data.mouse_motion.x,
                                         ev.data.mouse_motion.y,
@@ -834,10 +837,10 @@ ephyrPoll(void)
         case EPHYR_EV_MOUSE_PRESS:
           if (!ephyrMouse ||
               !((EphyrPointerPrivate *)ephyrMouse->driverPrivate)->enabled) {
-              EPHYR_DBG ("skipping mouse press:%d\n", ephyrCurScreen) ;
+              EPHYR_LOG ("skipping mouse press:%d\n", ephyrCurScreen) ;
               continue;
           }
-          EPHYR_DBG ("enqueuing mouse press:%d\n", ephyrCurScreen) ;
+          EPHYR_LOG ("enqueuing mouse press:%d\n", ephyrCurScreen) ;
 	  ephyrUpdateModifierState(ev.key_state);
 	  mouseState |= ev.data.mouse_down.button_num;
 	  KdEnqueuePointerEvent(ephyrMouse, mouseState|KD_MOUSE_DELTA, 0, 0, 0);
@@ -849,7 +852,7 @@ ephyrPoll(void)
               continue;
 	  ephyrUpdateModifierState(ev.key_state);
 	  mouseState &= ~ev.data.mouse_up.button_num;
-          EPHYR_DBG ("enqueuing mouse release:%d\n", ephyrCurScreen) ;
+          EPHYR_LOG ("enqueuing mouse release:%d\n", ephyrCurScreen) ;
 	  KdEnqueuePointerEvent(ephyrMouse, mouseState|KD_MOUSE_DELTA, 0, 0, 0);
 	  break;
 
@@ -886,7 +889,7 @@ ephyrGetColors (ScreenPtr pScreen, int fb, int n, xColorItem *pdefs)
 {
   /* XXX Not sure if this is right */
   
-  EPHYR_DBG("mark");
+  EPHYR_LOG("mark");
   
   while (n--)
     {

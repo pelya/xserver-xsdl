@@ -50,6 +50,8 @@ static EphyrXVPriv* EphyrXVPrivNew (void) ;
 static void EphyrXVPrivDelete (EphyrXVPriv *a_this) ;
 static Bool EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this) ;
 static Bool EphyrXVPrivSetAdaptorsHooks (EphyrXVPriv *a_this) ;
+static Bool EphyrXVPrivRegisterAdaptors (EphyrXVPriv *a_this,
+                                         ScreenPtr a_screen) ;
 
 static void EphyrStopVideo (KdScreenInfo *a_info,
                             pointer a_xv_priv,
@@ -106,9 +108,6 @@ ephyrInitVideo (ScreenPtr pScreen)
     KdScreenPriv(pScreen);
     KdScreenInfo *screen = pScreenPriv->screen;
     EphyrXVPriv *xv_priv = NULL ;
-    KdVideoAdaptorPtr *adaptors, *newAdaptors = NULL;
-    KdVideoAdaptorPtr newAdaptor = NULL;
-    int num_adaptors=0;
 
     EPHYR_LOG ("enter\n") ;
 
@@ -123,39 +122,11 @@ ephyrInitVideo (ScreenPtr pScreen)
         return FALSE ;
     }
 
-    /*
-     * TODO:
-     * queried host adaptors, now get xv_priv->adaptors and.
-     * add it to those already existing.
-     */
-    num_adaptors = KdXVListGenericAdaptors (screen, &adaptors);
-
-    if (newAdaptor) {
-        if (!num_adaptors) {
-            num_adaptors = 1;
-            adaptors = &newAdaptor;
-        } else {
-            newAdaptors = xalloc ((num_adaptors + 1) * sizeof(KdVideoAdaptorPtr*));
-            if (newAdaptors) {
-                memcpy (newAdaptors,
-                        adaptors,
-                        num_adaptors * sizeof(KdVideoAdaptorPtr));
-                newAdaptors[num_adaptors] = newAdaptor;
-                adaptors = newAdaptors;
-                num_adaptors++;
-            }
-        }
+    if (EphyrXVPrivRegisterAdaptors (xv_priv, pScreen)) {
+        EPHYR_LOG_ERROR ("failed to register adaptors\n") ;
+        return FALSE ;
     }
-
-    if (num_adaptors) {
-        KdXVScreenInit (pScreen, adaptors, num_adaptors);
-    } else {
-        EPHYR_LOG_ERROR ("XVideo not initialised\n") ;
-    }
-
-    if (newAdaptors)
-        xfree (newAdaptors);
-    return TRUE;
+    return TRUE ;
 }
 
 static EphyrXVPriv*
@@ -267,6 +238,8 @@ EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
 
     EPHYR_RETURN_VAL_IF_FAIL (a_this, FALSE) ;
 
+    EPHYR_LOG ("enter\n") ;
+
     if (!EphyrHostXVQueryAdaptors (&a_this->host_adaptors) || !a_this->host_adaptors) {
         EPHYR_LOG_ERROR ("failed to query host adaptors: %d\n", res) ;
         goto out ;
@@ -346,6 +319,7 @@ out:
         xfree (image_formats) ;
         image_formats = NULL ;
     }
+    EPHYR_LOG ("leave\n") ;
     return is_ok ;
 }
 
@@ -356,6 +330,8 @@ EphyrXVPrivSetAdaptorsHooks (EphyrXVPriv *a_this)
 
     EPHYR_RETURN_VAL_IF_FAIL (a_this, FALSE) ;
 
+    EPHYR_LOG ("enter\n") ;
+
     for (i=0; i < a_this->num_adaptors; i++) {
         a_this->adaptors[i].StopVideo = EphyrStopVideo ;
         a_this->adaptors[i].SetPortAttribute = EphyrSetPortAttribute ;
@@ -364,7 +340,51 @@ EphyrXVPrivSetAdaptorsHooks (EphyrXVPriv *a_this)
         a_this->adaptors[i].PutImage = EphyrPutImage;
         a_this->adaptors[i].QueryImageAttributes = EphyrQueryImageAttributes ;
     }
+    EPHYR_LOG ("leave\n") ;
     return TRUE ;
+}
+
+static Bool
+EphyrXVPrivRegisterAdaptors (EphyrXVPriv *a_this,
+                             ScreenPtr a_screen)
+{
+    KdScreenPriv(a_screen);
+    KdScreenInfo *screen = pScreenPriv->screen;
+    Bool is_ok = FALSE ;
+    KdVideoAdaptorPtr *adaptors=NULL, *registered_adaptors=NULL ;
+    int num_registered_adaptors=0, i=0, num_adaptors=0 ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_this && a_screen, FALSE) ;
+
+    EPHYR_LOG ("enter\n") ;
+
+    if (!a_this->num_adaptors)
+        goto out ;
+    num_registered_adaptors = KdXVListGenericAdaptors (screen, &registered_adaptors);
+    num_adaptors = num_registered_adaptors + a_this->num_adaptors ;
+    adaptors = xcalloc (num_adaptors, sizeof (KdVideoAdaptorPtr)) ;
+    if (!adaptors) {
+        EPHYR_LOG_ERROR ("failed to allocate adaptors tab\n") ;
+        goto out ;
+    }
+    memmove (adaptors, registered_adaptors, num_registered_adaptors) ;
+    for (i=0 ; i < a_this->num_adaptors; i++) {
+        *(adaptors + num_registered_adaptors + i) = &a_this->adaptors[i] ;
+    }
+    KdXVScreenInit (a_screen, adaptors, num_adaptors);
+    is_ok = TRUE ;
+
+out:
+    if (registered_adaptors) {
+        xfree (registered_adaptors) ;
+        registered_adaptors = NULL ;
+    }
+    if (adaptors) {
+        xfree (adaptors) ;
+        adaptors=NULL ;
+    }
+    EPHYR_LOG ("leave\n") ;
+    return is_ok ;
 }
 
 static void
