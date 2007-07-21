@@ -145,7 +145,7 @@ EphyrXVPrivNew (void)
         EPHYR_LOG_ERROR ("failed to query the host x for xv properties\n") ;
         goto error ;
     }
-    if (EphyrXVPrivSetAdaptorsHooks (xv_priv)) {
+    if (!EphyrXVPrivSetAdaptorsHooks (xv_priv)) {
         EPHYR_LOG_ERROR ("failed to set xv_priv hooks\n") ;
         goto error ;
     }
@@ -232,7 +232,7 @@ EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
     EphyrHostEncoding *encodings=NULL ;
     EphyrHostAttribute *attributes=NULL ;
     EphyrHostImageFormat *image_formats=NULL ;
-    int num_video_formats=0, base_port_id=0, num_attributes=0, num_formats=0, res=0, i=0 ;
+    int num_video_formats=0, base_port_id=0, num_attributes=0, num_formats=0, i=0 ;
     unsigned num_encodings=0 ;
     Bool is_ok = FALSE ;
 
@@ -240,22 +240,26 @@ EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
 
     EPHYR_LOG ("enter\n") ;
 
-    if (!EphyrHostXVQueryAdaptors (&a_this->host_adaptors) || !a_this->host_adaptors) {
-        EPHYR_LOG_ERROR ("failed to query host adaptors: %d\n", res) ;
+    if (!EphyrHostXVQueryAdaptors (&a_this->host_adaptors)) {
+        EPHYR_LOG_ERROR ("failed to query host adaptors\n") ;
         goto out ;
     }
-    a_this->num_adaptors = EphyrHostXVAdaptorArrayGetSize (a_this->host_adaptors) ;
+    if (a_this->host_adaptors)
+        a_this->num_adaptors = EphyrHostXVAdaptorArrayGetSize (a_this->host_adaptors) ;
     if (a_this->num_adaptors < 0) {
         EPHYR_LOG_ERROR ("failed to get number of host adaptors\n") ;
         goto out ;
     }
+    EPHYR_LOG ("host has %d adaptors\n", a_this->num_adaptors) ;
     /*
      * copy what we can from adaptors into a_this->adaptors
      */
-    a_this->adaptors = xcalloc (a_this->num_adaptors, sizeof (KdVideoAdaptorRec)) ;
-    if (!a_this->host_adaptors) {
-        EPHYR_LOG_ERROR ("failed to create internal adaptors\n") ;
-        goto out ;
+    if (a_this->num_adaptors) {
+        a_this->adaptors = xcalloc (a_this->num_adaptors, sizeof (KdVideoAdaptorRec)) ;
+        if (!a_this->adaptors) {
+            EPHYR_LOG_ERROR ("failed to create internal adaptors\n") ;
+            goto out ;
+        }
     }
     for (i=0; i < a_this->num_adaptors; i++) {
         int j=0 ;

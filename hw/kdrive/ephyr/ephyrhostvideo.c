@@ -64,7 +64,7 @@ EphyrHostXVQueryAdaptors (EphyrHostXVAdaptorArray **a_adaptors)
         goto out ;
 
     ret = XvQueryAdaptors (hostx_get_display (),
-                           DefaultRootWindow (hostx_get_display),
+                           DefaultRootWindow (hostx_get_display ()),
                            &result->nb_adaptors,
                            &result->adaptors) ;
     if (ret != Success) {
