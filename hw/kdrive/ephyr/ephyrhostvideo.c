@@ -71,6 +71,7 @@ EphyrHostXVQueryAdaptors (EphyrHostXVAdaptorArray **a_adaptors)
         EPHYR_LOG_ERROR ("failed to query host adaptors: %d\n", ret) ;
         goto out ;
     }
+    *a_adaptors = result ;
     is_ok = TRUE ;
 
 out:
@@ -207,13 +208,11 @@ EphyrHostXVQueryPortAttributes (int a_port_id,
                                 EphyrHostAttribute **a_attributes,
                                 int *a_num_attributes)
 {
-    XvAttribute *attributes=NULL ;
-    int num_attributes=0 ;
-
     EPHYR_RETURN_VAL_IF_FAIL (a_attributes && a_num_attributes, FALSE) ;
 
-    attributes = XvQueryPortAttributes (hostx_get_display (), a_port_id, &num_attributes) ;
-    *a_attributes = (EphyrHostAttribute*)attributes ;
+    *a_attributes = (EphyrHostAttribute*)XvQueryPortAttributes (hostx_get_display (),
+                                                                a_port_id,
+                                                                a_num_attributes);
 
     return TRUE ;
 }
