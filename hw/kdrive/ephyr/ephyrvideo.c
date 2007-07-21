@@ -1,4 +1,4 @@
-/*
+/*  
  * Xephyr - A kdrive X server thats runs in a host X window.
  *          Authored by Matthew Allum <mallum@openedhand.com>
  * 
