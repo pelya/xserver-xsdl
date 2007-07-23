@@ -694,9 +694,6 @@ RROutputSetCrtcs (RROutputPtr	output,
 		  RRCrtcPtr	*crtcs,
 		  int		numCrtcs);
 
-void
-RROutputSetCrtc (RROutputPtr output, RRCrtcPtr crtc);
-    
 Bool
 RROutputSetConnection (RROutputPtr  output,
 		       CARD8	    connection);
@@ -802,7 +799,6 @@ Query state:
 	    1.2:
 		RRScreenSetSizeRange
 		RROutputSetCrtcs
-		RROutputSetCrtc
 		RRModeGet
 		RROutputSetModes
 		RROutputSetConnection
@@ -822,7 +818,6 @@ Query state:
 		RRCrtcCreate
 		RROutputCreate
 		RROutputSetCrtcs
-		RROutputSetCrtc
 		RROutputSetConnection
 		RROutputSetSubpixelOrder
 		RROldModeAdd	• This adds modes one-at-a-time

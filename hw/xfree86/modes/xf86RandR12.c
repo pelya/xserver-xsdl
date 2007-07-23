@@ -951,7 +951,6 @@ xf86RandR12SetInfo12 (ScreenPtr pScreen)
 	    return FALSE;
 	}
 
-	RROutputSetCrtc (output->randr_output, randr_crtc);
 	RROutputSetPhysicalSize(output->randr_output, 
 				output->mm_width,
 				output->mm_height);
