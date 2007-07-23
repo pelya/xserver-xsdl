@@ -121,7 +121,7 @@ ephyrInitVideo (ScreenPtr pScreen)
         return FALSE ;
     }
 
-    if (EphyrXVPrivRegisterAdaptors (xv_priv, pScreen)) {
+    if (!EphyrXVPrivRegisterAdaptors (xv_priv, pScreen)) {
         EPHYR_LOG_ERROR ("failed to register adaptors\n") ;
         return FALSE ;
     }
@@ -266,11 +266,13 @@ EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
         if (!cur_host_adaptor)
             continue ;
         a_this->adaptors[i].type = EphyrHostXVAdaptorGetType (cur_host_adaptor) ;
+        a_this->adaptors[i].type |= XvWindowMask ;
         a_this->adaptors[i].flags = VIDEO_OVERLAID_IMAGES | VIDEO_CLIP_TO_VIEWPORT;
         if (EphyrHostXVAdaptorGetName (cur_host_adaptor))
             a_this->adaptors[i].name =
                                 strdup (EphyrHostXVAdaptorGetName (cur_host_adaptor)) ;
-        a_this->adaptors[i].name = "Xephyr Video Overlay";
+        else
+            a_this->adaptors[i].name = strdup ("Xephyr Video Overlay");
         base_port_id = EphyrHostXVAdaptorGetFirstPortID (cur_host_adaptor) ;
         if (base_port_id < 0) {
             EPHYR_LOG_ERROR ("failed to get port id for adaptor %d\n", i) ;
@@ -306,6 +308,7 @@ EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
             continue ;
         }
         a_this->adaptors[i].pImages = (KdImagePtr) image_formats ;
+        a_this->adaptors[i].nImages = num_formats ;
     }
     is_ok = TRUE ;
 
@@ -315,12 +318,8 @@ out:
         encodings = NULL ;
     }
     if (attributes) {
-        EphyrHostAttributesDelete (attributes, num_attributes) ;
+        EphyrHostAttributesDelete (attributes) ;
         attributes = NULL ;
-    }
-    if (image_formats) {
-        xfree (image_formats) ;
-        image_formats = NULL ;
     }
     EPHYR_LOG ("leave\n") ;
     return is_ok ;
@@ -374,7 +373,11 @@ EphyrXVPrivRegisterAdaptors (EphyrXVPriv *a_this,
     for (i=0 ; i < a_this->num_adaptors; i++) {
         *(adaptors + num_registered_adaptors + i) = &a_this->adaptors[i] ;
     }
-    KdXVScreenInit (a_screen, adaptors, num_adaptors);
+    if (!KdXVScreenInit (a_screen, adaptors, num_adaptors)) {
+        EPHYR_LOG_ERROR ("failed to register adaptors\n");
+        goto out ;
+    }
+    EPHYR_LOG ("registered %d adaptors\n", num_adaptors) ;
     is_ok = TRUE ;
 
 out:

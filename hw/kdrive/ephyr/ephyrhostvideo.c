@@ -28,7 +28,7 @@
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>
 #endif
-#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #include <X11/extensions/Xvlib.h>
 
 #include "hostx.h"
@@ -125,15 +125,34 @@ EphyrHostXVAdaptorGetName (const EphyrHostXVAdaptor *a_this)
     return ((XvAdaptorInfo*)a_this)->name ;
 }
 
-const EphyrHostVideoFormat*
+EphyrHostVideoFormat*
 EphyrHostXVAdaptorGetVideoFormats (const EphyrHostXVAdaptor *a_this,
                                    int *a_nb_formats)
 {
+    EphyrHostVideoFormat *formats=NULL ;
+    int nb_formats=0, i=0 ;
+    XVisualInfo *visual_info, visual_info_template ;
+    int nb_visual_info ;
+
     EPHYR_RETURN_VAL_IF_FAIL (a_this, NULL) ;
 
+    nb_formats = ((XvAdaptorInfo*)a_this)->num_formats ;
+    formats = Xcalloc (nb_formats * sizeof (EphyrHostVideoFormat)) ;
+    for (i=0; i < nb_formats; i++) {
+        memset (&visual_info_template, 0, sizeof (visual_info_template)) ;
+        visual_info_template.visualid =
+                            ((XvAdaptorInfo*)a_this)->formats[i].visual_id;
+        visual_info = XGetVisualInfo (hostx_get_display (),
+                                      VisualIDMask,
+                                      &visual_info_template,
+                                      &nb_visual_info) ;
+        formats[i].depth = ((XvAdaptorInfo*)a_this)->formats[i].depth ;
+        formats[i].visual_class = visual_info->class ;
+        XFree (visual_info) ;
+    }
     if (a_nb_formats)
-        *a_nb_formats = ((XvAdaptorInfo*)a_this)->num_formats ;
-    return (EphyrHostVideoFormat*) ((XvAdaptorInfo*)a_this)->formats ;
+        *a_nb_formats = nb_formats ;
+    return formats ;
 }
 
 int
@@ -157,16 +176,38 @@ EphyrHostXVQueryEncodings (int a_port_id,
                            EphyrHostEncoding **a_encodings,
                            unsigned int *a_num_encodings)
 {
-    int ret = 0 ;
+    EphyrHostEncoding *encodings=NULL ;
+    XvEncodingInfo *encoding_info=NULL ;
+    unsigned int num_encodings=0, i;
+    int ret=0 ;
+
     EPHYR_RETURN_VAL_IF_FAIL (a_encodings && a_num_encodings, FALSE) ;
 
     ret = XvQueryEncodings (hostx_get_display (),
                             a_port_id,
-                            a_num_encodings,
-                            (XvEncodingInfo**)a_encodings) ;
-    if (ret == Success)
-        return TRUE ;
-    return FALSE ;
+                            &num_encodings,
+                            &encoding_info) ;
+    if (num_encodings && encoding_info) {
+        encodings = Xcalloc (num_encodings * sizeof (EphyrHostEncoding)) ;
+        for (i=0; i<num_encodings; i++) {
+            encodings[i].id = encoding_info[i].encoding_id ;
+            encodings[i].name = strdup (encoding_info[i].name) ;
+            encodings[i].width = encoding_info[i].width ;
+            encodings[i].height = encoding_info[i].height ;
+            encodings[i].rate.numerator = encoding_info[i].rate.numerator ;
+            encodings[i].rate.denominator = encoding_info[i].rate.denominator ;
+        }
+    }
+    if (encoding_info) {
+        XvFreeEncodingInfo (encoding_info) ;
+        encoding_info = NULL ;
+    }
+    *a_encodings = encodings ;
+    *a_num_encodings = num_encodings ;
+
+    if (ret != Success)
+        return FALSE ;
+    return TRUE ;
 }
 
 void
@@ -187,20 +228,11 @@ EphyrHostEncodingsDelete (EphyrHostEncoding *a_encodings,
 }
 
 void
-EphyrHostAttributesDelete (EphyrHostAttribute *a_attributes,
-                           int a_num_attributes)
+EphyrHostAttributesDelete (EphyrHostAttribute *a_attributes)
 {
-    int i=0 ;
-
     if (!a_attributes)
         return ;
-    for (i=0; i < a_num_attributes; i++) {
-        if (a_attributes[i].name) {
-            xfree (a_attributes[i].name) ;
-            a_attributes[i].name = NULL ;
-        }
-    }
-    xfree (a_attributes) ;
+    XFree (a_attributes) ;
 }
 
 Bool

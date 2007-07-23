@@ -28,13 +28,12 @@
 #ifndef __EPHYRHOSTVIDEO_H__
 #define __EPHYRHOSTVIDEO_H__
 
-
 typedef void* EphyrHostXVAdaptor ;
 typedef struct _EphyrHostXVAdaptorArray EphyrHostXVAdaptorArray ;
 
 typedef struct _EphyrHostVideoFormat {
     char depth ;
-    unsigned long visual_id;
+    short visual_class;
 } EphyrHostVideoFormat ;
 
 typedef struct _EphyrHostRational {
@@ -100,9 +99,7 @@ EphyrHostXVAdaptor* EphyrHostXVAdaptorArrayAt (const EphyrHostXVAdaptorArray *a_
 
 char EphyrHostXVAdaptorGetType (const EphyrHostXVAdaptor *a_this) ;
 const char* EphyrHostXVAdaptorGetName (const EphyrHostXVAdaptor *a_this) ;
-const EphyrHostVideoFormat* EphyrHostXVAdaptorGetNbVideoFormats
-                                                (const EphyrHostXVAdaptor *a_this) ;
-const EphyrHostVideoFormat* EphyrHostXVAdaptorGetVideoFormats
+EphyrHostVideoFormat* EphyrHostXVAdaptorGetVideoFormats
                                                 (const EphyrHostXVAdaptor *a_this,
                                                  int *a_nb_formats) ;
 int EphyrHostXVAdaptorGetNbPorts (const EphyrHostXVAdaptor *a_this) ;
@@ -125,8 +122,7 @@ Bool EphyrHostXVQueryPortAttributes (int a_port_id,
                                      EphyrHostAttribute **a_attributes,
                                      int *a_num_attributes) ;
 
-void EphyrHostAttributesDelete (EphyrHostAttribute *a_attributes,
-                                int a_num_attributes) ;
+void EphyrHostAttributesDelete (EphyrHostAttribute *a_attributes) ;
 /*
  * image format
  */
