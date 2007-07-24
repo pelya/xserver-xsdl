@@ -98,6 +98,7 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
 	if (!output)
 	    return;
 	RROutputSetCrtcs (output, &crtc, 1);
+	output->crtc = crtc;
 	RROutputSetConnection (output, RR_Connected);
 #ifdef RENDER
 	RROutputSetSubpixelOrder (output, PictureGetSubpixelOrder (pScreen));
