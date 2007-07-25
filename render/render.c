@@ -1098,6 +1098,7 @@ ProcRenderAddGlyphs (ClientPtr client)
     CARD8	    *bits;
     int		    size;
     int		    err = BadAlloc;
+    int		    i;
 
     REQUEST_AT_LEAST_SIZE(xRenderAddGlyphsReq);
     glyphSet = (GlyphSetPtr) SecurityLookupIDByType (client,
@@ -1131,7 +1132,7 @@ ProcRenderAddGlyphs (ClientPtr client)
     gi = (xGlyphInfo *) (gids + nglyphs);
     bits = (CARD8 *) (gi + nglyphs);
     remain -= (sizeof (CARD32) + sizeof (xGlyphInfo)) * nglyphs;
-    while (remain >= 0 && nglyphs)
+    for (i = 0; i < nglyphs; i++)
     {
 	glyph = AllocateGlyph (gi, glyphSet->fdepth);
 	if (!glyph)
@@ -1155,21 +1156,19 @@ ProcRenderAddGlyphs (ClientPtr client)
 	gi++;
 	gids++;
 	glyphs++;
-	nglyphs--;
     }
-    if (nglyphs || remain)
+    if (remain || i < nglyphs)
     {
 	err = BadLength;
 	goto bail;
     }
-    nglyphs = stuff->nglyphs;
     if (!ResizeGlyphSet (glyphSet, nglyphs))
     {
 	err = BadAlloc;
 	goto bail;
     }
     glyphs = glyphsBase;
-    while (nglyphs--) {
+    for (i = 0; i < nglyphs; i++) {
 	AddGlyph (glyphSet, glyphs->glyph, glyphs->id);
 	glyphs++;
     }
