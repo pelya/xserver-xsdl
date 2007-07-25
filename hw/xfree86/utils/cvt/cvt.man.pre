@@ -37,6 +37,6 @@ __xconfigfile__(__filemansuffix__)
 Luc Verhaegen.
 .PP
 This program is based on the Coordinated Video Timing sample
-implementation written by Graham Loveridge. This file is publically
+implementation written by Graham Loveridge. This file is publicly
 available at <http://www.vesa.org/Public/CVT/CVTd6r1.xls>. CVT is a
 VESA trademark.
