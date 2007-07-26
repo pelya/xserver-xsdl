@@ -30,6 +30,7 @@
 #include "xf86Modes.h"
 #include "xf86Cursor.h"
 #include "damage.h"
+#include "picturestr.h"
 
 /* Compat definitions for older X Servers. */
 #ifndef M_T_PREFERRED
