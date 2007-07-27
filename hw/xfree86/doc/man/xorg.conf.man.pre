@@ -1601,13 +1601,6 @@ Note that disabling an operation will have no effect if the operation is
 not accelerated (whether due to lack of support in the hardware or in the
 driver).
 .TP 7
-.BI "Option \*qBiosLocation\*q \*q" address \*q
-Set the location of the BIOS for the Int10 module. One may select a BIOS
-of another card for posting or the legacy V_BIOS range located at 0xc0000
-or an alternative address (BUS_ISA).
-This is only useful under very special circumstances and should be used with
-extreme care.
-.TP 7
 .BI "Option \*qInitPrimary\*q \*q" boolean \*q
 Use the Int10 module to initialize the primary graphics card.
 Normally, only secondary cards are soft-booted using the Int10 module, as the

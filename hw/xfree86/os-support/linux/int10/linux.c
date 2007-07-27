@@ -88,7 +88,6 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     int pagesize; 
     memType cs;
     legacyVGARec vga;
-    xf86int10BiosLocation bios;
     Bool videoBiosMapped = FALSE;
     pciVideoPtr pvp;
     
@@ -260,13 +259,9 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 #endif
     }
 
-    xf86int10ParseBiosLocation(options,&bios);
-
-    if (xf86IsEntityPrimary(entityIndex) 
-	&& !(initPrimary(options))) {
-	if (! xf86int10GetBiosSegment(pInt, &bios, NULL)) {
+    if (xf86IsEntityPrimary(entityIndex) && !(initPrimary(options))) {
+	if (!xf86int10GetBiosSegment(pInt, NULL))
 	    goto error3;
-	}
 
 	set_return_trap(pInt);
 #ifdef _PC	
@@ -276,16 +271,11 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
   	xf86Int10SaveRestoreBIOSVars(pInt, TRUE);
 #endif
     } else {
-	const BusType location_type = xf86int10GetBiosLocationType(pInt,
-								   &bios);
+	const BusType location_type = xf86int10GetBiosLocationType(pInt);
 
 	switch (location_type) {
 	case BUS_PCI: {
-	    const int pci_entity = (bios.bus == BUS_PCI)
-	      ? xf86GetPciEntity(bios.location.pci.bus,
-				 bios.location.pci.dev,
-				 bios.location.pci.func)
-	      : pInt->entityIndex;
+	    const int pci_entity = pInt->entityIndex;
 	    
 	    if (!mapPciRom(pci_entity, (unsigned char *)(V_BIOS))) {
 	        xf86DrvMsg(screen, X_ERROR, "Cannot read V_BIOS\n");
@@ -295,9 +285,8 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	    break;
 	}
 	case BUS_ISA:
-	    if (! xf86int10GetBiosSegment(pInt, &bios, NULL)) {
+	    if (!xf86int10GetBiosSegment(pInt, NULL))
 		goto error3;
-	    }
 	    break;
 	default:
 	    goto error3;
