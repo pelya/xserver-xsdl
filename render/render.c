@@ -1134,7 +1134,7 @@ ProcRenderAddGlyphs (ClientPtr client)
     remain -= (sizeof (CARD32) + sizeof (xGlyphInfo)) * nglyphs;
     for (i = 0; i < nglyphs; i++)
     {
-	glyph = AllocateGlyph (gi, glyphSet->fdepth);
+	glyph = AllocateGlyph (&gi[i], glyphSet->fdepth);
 	if (!glyph)
 	{
 	    err = BadAlloc;
@@ -1142,7 +1142,7 @@ ProcRenderAddGlyphs (ClientPtr client)
 	}
 	
 	glyphs->glyph = glyph;
-	glyphs->id = *gids;	
+	glyphs->id = gids[i];	
 	
 	size = glyph->size - sizeof (xGlyphInfo);
 	if (remain < size)
@@ -1153,8 +1153,6 @@ ProcRenderAddGlyphs (ClientPtr client)
 	    size += 4 - (size & 3);
 	bits += size;
 	remain -= size;
-	gi++;
-	gids++;
 	glyphs++;
     }
     if (remain || i < nglyphs)
@@ -1168,10 +1166,8 @@ ProcRenderAddGlyphs (ClientPtr client)
 	goto bail;
     }
     glyphs = glyphsBase;
-    for (i = 0; i < nglyphs; i++) {
-	AddGlyph (glyphSet, glyphs->glyph, glyphs->id);
-	glyphs++;
-    }
+    for (i = 0; i < nglyphs; i++)
+	AddGlyph (glyphSet, glyphs[i].glyph, glyphs[i].id);
 
     if (glyphsBase != glyphsLocal)
 	Xfree (glyphsBase);
