@@ -239,7 +239,8 @@ compAddAlternateVisual(ScreenPtr pScreen, CompScreenPtr cs,
 
     depth = compFindVisuallessDepth (pScreen, alt->depth);
     if (!depth)
-	return FALSE;
+	/* alt->depth doesn't exist or already has alternate visuals. */
+	return TRUE;
 
     pPictFormat = PictureMatchFormat (pScreen, alt->depth, alt->format);
     if (!pPictFormat)
