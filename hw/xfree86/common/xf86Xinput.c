@@ -338,7 +338,7 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
              * test if the module is already loaded first */
             drv = xf86LookupInputDriver(option->value);
             if (!drv)
-                if(xf86LoadOneModule(option->value, NULL))
+                if (xf86LoadOneModule(option->value, NULL))
                     drv = xf86LookupInputDriver(option->value);
             if (!drv) {
                 xf86Msg(X_ERROR, "No input driver matching `%s'\n",
@@ -365,7 +365,7 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
             }
         }
     }
-    if(!idev->driver || !idev->identifier) {
+    if (!idev->driver || !idev->identifier) {
         xf86Msg(X_ERROR, "No input driver/identifier specified (ignoring)\n");
         rval = BadRequest;
         goto unwind;
