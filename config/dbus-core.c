@@ -51,8 +51,12 @@ wakeup_handler(pointer data, int err, pointer read_mask)
 {
     struct dbus_core_info *info = data;
 
-    if (info->connection && FD_ISSET(info->fd, (fd_set *) read_mask))
-        dbus_connection_read_write_dispatch(info->connection, 0);
+    if (info->connection && FD_ISSET(info->fd, (fd_set *) read_mask)) {
+        do {
+            dbus_connection_read_write_dispatch(info->connection, 0);
+        } while (dbus_connection_get_dispatch_status(info->connection) ==
+                  DBUS_DISPATCH_DATA_REMAINS);
+    }
 }
 
 static void
