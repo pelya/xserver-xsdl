@@ -31,10 +31,16 @@
 void
 config_init()
 {
-#if defined(CONFIG_DBUS_API)
+#if defined(CONFIG_DBUS_API) || defined(CONFIG_HAL)
     if (config_dbus_core_init()) {
+# ifdef CONFIG_DBUS_API
        if (!config_dbus_init())
 	    ErrorF("[config] failed to initialise D-Bus API\n");
+# endif
+# ifdef CONFIG_HAL
+        if (!config_hal_init())
+            ErrorF("[config] failed to initialise HAL\n");
+# endif
     }
     else {
 	ErrorF("[config] failed to initialise D-Bus core\n");
@@ -45,8 +51,13 @@ config_init()
 void
 config_fini()
 {
-#if defined(CONFIG_DBUS_API)
+#if defined(CONFIG_DBUS_API) || defined(CONFIG_HAL)
+# ifdef CONFIG_HAL
+    config_hal_fini();
+# endif
+# ifdef CONFIG_DBUS_API
     config_dbus_fini();
+# endif
     config_dbus_core_fini();
 #endif
 }

@@ -50,3 +50,8 @@ void config_dbus_core_remove_hook(struct config_dbus_core_hook *hook);
 int config_dbus_init(void);
 void config_dbus_fini(void);
 #endif
+
+#ifdef CONFIG_HAL
+int config_hal_init(void);
+void config_hal_fini(void);
+#endif

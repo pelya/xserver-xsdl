@@ -16,4 +16,8 @@ noinst_LIBRARIES = libconfig.a
 libconfig_a_SOURCES += dbus.c
 endif
 
-EXTRA_DIST = xorg-server.conf
+if CONFIG_HAL
+libconfig_a_SOURCES += hal.c
+endif
+
+EXTRA_DIST = xorg-server.conf x11-input.fdi

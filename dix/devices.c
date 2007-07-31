@@ -149,6 +149,7 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 #ifdef XKB
     dev->xkb_interest = NULL;
 #endif
+    dev->config_info = NULL;
     dev->nPrivates = 0;
     dev->devPrivates = NULL;
     dev->unwrapProc = NULL;

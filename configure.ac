@@ -520,6 +520,7 @@ AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extensi
 AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--disable-xf86bigfont], [Build XF86 Big Font extension (default: enabled)]), [XF86BIGFONT=$enableval], [XF86BIGFONT=yes])
 AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled)]), [DPMSExtension=$enableval], [DPMSExtension=yes])
 AC_ARG_ENABLE(config-dbus,    AS_HELP_STRING([--disable-config-dbus], [Build D-BUS support (default: auto)]), [CONFIG_DBUS_API=$enableval], [CONFIG_DBUS_API=auto])
+AC_ARG_ENABLE(config-hal,     AS_HELP_STRING([--disable-config-hal], [Build HAL support (default: auto)]), [CONFIG_HAL=$enableval], [CONFIG_HAL=auto])
 AC_ARG_ENABLE(xfree86-utils,     AS_HELP_STRING([--enable-xfree86-utils], [Build xfree86 DDX utilities (default: enabled)]), [XF86UTILS=$enableval], [XF86UTILS=yes])
 
 dnl DDXes.
@@ -637,14 +638,29 @@ if test "x$CONFIG_DBUS_API" = xyes; then
 	fi
 
 	AC_DEFINE(CONFIG_DBUS_API, 1, [Use the D-Bus input configuration API])
-	CONFIG_LIB='$(top_builddir)/config/libconfig.a'
 	NEED_DBUS="yes"
 fi
 AM_CONDITIONAL(CONFIG_DBUS_API, [test "x$CONFIG_DBUS_API" = xyes])
 
+PKG_CHECK_MODULES(HAL, hal, [HAVE_HAL=yes], [HAVE_HAL=no])
+if test "x$CONFIG_HAL" = xauto; then
+	CONFIG_HAL="$HAVE_HAL"
+fi
+if test "x$CONFIG_HAL" = xyes; then
+	if ! test "x$HAVE_HAL" = xyes; then
+		AC_MSG_ERROR([HAL hotplug API requested, but HAL is not installed.])
+	fi
+
+	AC_DEFINE(CONFIG_HAL, 1, [Use the HAL hotplug API])
+        REQUIRED_LIBS="$REQUIRED_LIBS hal"
+	NEED_DBUS="yes"
+fi
+AM_CONDITIONAL(CONFIG_HAL, [test "x$CONFIG_HAL" = xyes])
+
 if test "x$NEED_DBUS" = xyes; then
 	REQUIRED_LIBS="$REQUIRED_LIBS dbus-1"
 fi
+CONFIG_LIB='$(top_builddir)/config/libconfig.a'
 
 AM_CONDITIONAL(XV, [test "x$XV" = xyes])
 if test "x$XV" = xyes; then
