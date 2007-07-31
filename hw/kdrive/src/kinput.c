@@ -2294,6 +2294,7 @@ ChangeDeviceControl(register ClientPtr client, DeviceIntPtr pDev,
         return Success;
 
     case DEVICE_CORE:
+    case DEVICE_ENABLE:
         return Success;
 
     default:

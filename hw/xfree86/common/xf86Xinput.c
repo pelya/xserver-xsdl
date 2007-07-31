@@ -297,6 +297,7 @@ ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
       case DEVICE_RESOLUTION:
       case DEVICE_ABS_CALIB:
       case DEVICE_ABS_AREA:
+      case DEVICE_ENABLE:
         return Success;
       default:
         return BadMatch;
