@@ -490,6 +490,31 @@ HashGlyph (GlyphPtr glyph)
 				 glyph->size - sizeof (xGlyphInfo));
 }
 
+GlyphPtr
+FindGlyphByHash (CARD32	    hash,
+		 xGlyphInfo *gi,
+		 CARD8	    *bits,
+		 int	    format)
+{
+    GlyphRefPtr gr;
+    GlyphPtr template;
+
+    /* XXX: Should handle out-of-memory here */
+    template = AllocateGlyph (gi, format);
+    memcpy ((CARD8 *) (template + 1), bits,
+	    template->size - sizeof (xGlyphInfo));
+
+    gr = FindGlyphRef (&globalGlyphs[format],
+		       hash, TRUE, template);
+
+    xfree (template);
+
+    if (gr->glyph && gr->glyph != DeletedGlyph)
+	return gr->glyph;
+    else
+	return NULL;
+}
+
 #ifdef CHECK_DUPLICATES
 void
 DuplicateRef (GlyphPtr glyph, char *where)
@@ -572,7 +597,7 @@ AddGlyph (GlyphSetPtr glyphSet, GlyphPtr glyph, Glyph id)
     /* Locate existing matching glyph */
     hash = HashGlyph (glyph);
     gr = FindGlyphRef (&globalGlyphs[glyphSet->fdepth], hash, TRUE, glyph);
-    if (gr->glyph && gr->glyph != DeletedGlyph)
+    if (gr->glyph && gr->glyph != DeletedGlyph && gr->glyph != glyph)
     {
 	PictureScreenPtr ps;
 	int              i;
@@ -588,7 +613,7 @@ AddGlyph (GlyphSetPtr glyphSet, GlyphPtr glyph, Glyph id)
 	xfree (glyph);
 	glyph = gr->glyph;
     }
-    else
+    else if (gr->glyph != glyph)
     {
 	gr->glyph = glyph;
 	gr->signature = hash;

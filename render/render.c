@@ -1082,6 +1082,8 @@ ProcRenderFreeGlyphSet (ClientPtr client)
 typedef struct _GlyphNew {
     Glyph	id;
     GlyphPtr    glyph;
+    Bool	found;
+    CARD32	hash;
 } GlyphNewRec, *GlyphNewPtr;
 
 static int
@@ -1090,8 +1092,7 @@ ProcRenderAddGlyphs (ClientPtr client)
     GlyphSetPtr     glyphSet;
     REQUEST(xRenderAddGlyphsReq);
     GlyphNewRec	    glyphsLocal[NLOCALGLYPH];
-    GlyphNewPtr	    glyphsBase, glyphs;
-    GlyphPtr	    glyph;
+    GlyphNewPtr	    glyphsBase, glyphs, glyph_new;
     int		    remain, nglyphs;
     CARD32	    *gids;
     xGlyphInfo	    *gi;
@@ -1115,11 +1116,13 @@ ProcRenderAddGlyphs (ClientPtr client)
     if (nglyphs > UINT32_MAX / sizeof(GlyphNewRec))
 	    return BadAlloc;
 
-    if (nglyphs <= NLOCALGLYPH)
+    if (nglyphs <= NLOCALGLYPH) {
+	memset (glyphsLocal, 0, sizeof (glyphsLocal));
 	glyphsBase = glyphsLocal;
+    }
     else
     {
-	glyphsBase = (GlyphNewPtr) Xalloc (nglyphs * sizeof (GlyphNewRec));
+	glyphsBase = (GlyphNewPtr) Xcalloc (nglyphs * sizeof (GlyphNewRec));
 	if (!glyphsBase)
 	    return BadAlloc;
     }
@@ -1134,26 +1137,41 @@ ProcRenderAddGlyphs (ClientPtr client)
     remain -= (sizeof (CARD32) + sizeof (xGlyphInfo)) * nglyphs;
     for (i = 0; i < nglyphs; i++)
     {
-	glyph = AllocateGlyph (&gi[i], glyphSet->fdepth);
-	if (!glyph)
-	{
-	    err = BadAlloc;
-	    goto bail;
-	}
-	
-	glyphs->glyph = glyph;
-	glyphs->id = gids[i];	
-	
-	size = glyph->size - sizeof (xGlyphInfo);
+	glyph_new = &glyphs[i];
+	size = gi[i].height * PixmapBytePad (gi[i].width,
+					     glyphSet->format->depth);
 	if (remain < size)
 	    break;
-	memcpy ((CARD8 *) (glyph + 1), bits, size);
+
+	glyph_new->hash = HashGlyphInfoAndBits (&gi[i], bits, size);
+
+	glyph_new->glyph = FindGlyphByHash (glyph_new->hash,
+					    &gi[i], bits,
+					    glyphSet->fdepth);
+
+	if (glyph_new->glyph && glyph_new->glyph != DeletedGlyph)
+	{
+	    glyph_new->found = TRUE;
+	}
+	else
+	{
+	    glyph_new->found = FALSE;
+	    glyph_new->glyph = AllocateGlyph (&gi[i], glyphSet->fdepth);
+	    if (! glyph_new->glyph)
+	    {
+		err = BadAlloc;
+		goto bail;
+	    }
+
+	    memcpy ((CARD8 *) (glyph_new->glyph + 1), bits, size);
+	}
+
+	glyph_new->id = gids[i];
 	
 	if (size & 3)
 	    size += 4 - (size & 3);
 	bits += size;
 	remain -= size;
-	glyphs++;
     }
     if (remain || i < nglyphs)
     {
@@ -1165,7 +1183,6 @@ ProcRenderAddGlyphs (ClientPtr client)
 	err = BadAlloc;
 	goto bail;
     }
-    glyphs = glyphsBase;
     for (i = 0; i < nglyphs; i++)
 	AddGlyph (glyphSet, glyphs[i].glyph, glyphs[i].id);
 
@@ -1173,11 +1190,9 @@ ProcRenderAddGlyphs (ClientPtr client)
 	Xfree (glyphsBase);
     return client->noClientException;
 bail:
-    while (glyphs != glyphsBase)
-    {
-	--glyphs;
-	xfree (glyphs->glyph);
-    }
+    for (i = 0; i < nglyphs; i++)
+	if (glyphs[i].glyph && ! glyphs[i].found)
+	    xfree (glyphs[i].glyph);
     if (glyphsBase != glyphsLocal)
 	Xfree (glyphsBase);
     return err;
