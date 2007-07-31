@@ -499,14 +499,18 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     if ((type == ButtonPress || type == ButtonRelease) && !pDev->button)
         return 0;
 
+    /* FIXME: I guess it should, in theory, be possible to post button events
+     *        from devices without valuators. */
+    if (!pDev->valuator)
+        return 0;
+
     if (!coreOnly && pDev->coreEvents)
         num_events = 2;
     else
         num_events = 1;
 
-    if (type == MotionNotify && num_valuators <= 0) {
+    if (type == MotionNotify && num_valuators <= 0)
         return 0;
-    }
 
     /* Do we need to send a DeviceValuator event? */
     if (!coreOnly && sendValuators) {
