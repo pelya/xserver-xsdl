@@ -130,6 +130,14 @@ void EphyrHostAttributesDelete (EphyrHostAttribute *a_attributes) ;
 Bool EphyrHostXVQueryImageFormats (int a_port_id,
                                    EphyrHostImageFormat **a_formats,
                                    int *a_num_format) ;
-
+/*
+ * Port Attribute Get/Set
+ */
+Bool EphyrHostXVSetPortAttribute (int a_port_id,
+                                  int a_atom,
+                                  int a_attr_value) ;
+Bool EphyrHostXVGetPortAttribute (int a_port_id,
+                                  int a_atom,
+                                  int *a_attr_value) ;
 #endif /*__EPHYRHOSTVIDEO_H__*/
 

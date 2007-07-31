@@ -43,8 +43,13 @@ struct _EphyrXVPriv {
     KdVideoAdaptorPtr adaptors ;
     int num_adaptors ;
 };
-
 typedef struct _EphyrXVPriv EphyrXVPriv ;
+
+struct _EphyrPortPriv {
+    int port_number ;
+    EphyrXVPriv *xv_priv;
+};
+typedef struct _EphyrPortPriv EphyrPortPriv ;
 
 static EphyrXVPriv* EphyrXVPrivNew (void) ;
 static void EphyrXVPrivDelete (EphyrXVPriv *a_this) ;
@@ -59,12 +64,12 @@ static void EphyrStopVideo (KdScreenInfo *a_info,
 static int EphyrSetPortAttribute (KdScreenInfo *a_info,
                                   Atom a_attr_name,
                                   int a_attr_value,
-                                  pointer a_xv_priv);
+                                  pointer a_port_priv);
 
 static int EphyrGetPortAttribute (KdScreenInfo *a_screen_info,
                                   Atom a_attr_name,
                                   int *a_attr_value,
-                                  pointer a_xv_priv);
+                                  pointer a_port_priv);
 
 static void EphyrQueryBestSize (KdScreenInfo *a_info,
                                 Bool a_motion,
@@ -74,7 +79,7 @@ static void EphyrQueryBestSize (KdScreenInfo *a_info,
                                 short a_drw_h,
                                 unsigned int *a_prefered_w,
                                 unsigned int *a_prefered_h,
-                                pointer a_xv_priv);
+                                pointer a_port_priv);
 
 static int EphyrPutImage (KdScreenInfo *a_info,
                           DrawablePtr a_drawable,
@@ -92,7 +97,7 @@ static int EphyrPutImage (KdScreenInfo *a_info,
                           short a_height,
                           Bool a_sync,
                           RegionPtr a_clipping_region,
-                          pointer a_xv_priv);
+                          pointer a_port_priv);
 
 static int EphyrQueryImageAttributes (KdScreenInfo *a_info,
                                       int a_id,
@@ -231,7 +236,8 @@ EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
     EphyrHostEncoding *encodings=NULL ;
     EphyrHostAttribute *attributes=NULL ;
     EphyrHostImageFormat *image_formats=NULL ;
-    int num_video_formats=0, base_port_id=0, num_attributes=0, num_formats=0, i=0 ;
+    int num_video_formats=0, base_port_id=0,
+        num_attributes=0, num_formats=0, i=0;
     unsigned num_encodings=0 ;
     Bool is_ok = FALSE ;
 
@@ -244,7 +250,8 @@ EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
         goto out ;
     }
     if (a_this->host_adaptors)
-        a_this->num_adaptors = EphyrHostXVAdaptorArrayGetSize (a_this->host_adaptors) ;
+        a_this->num_adaptors =
+                    EphyrHostXVAdaptorArrayGetSize (a_this->host_adaptors) ;
     if (a_this->num_adaptors < 0) {
         EPHYR_LOG_ERROR ("failed to get number of host adaptors\n") ;
         goto out ;
@@ -254,7 +261,8 @@ EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
      * copy what we can from adaptors into a_this->adaptors
      */
     if (a_this->num_adaptors) {
-        a_this->adaptors = xcalloc (a_this->num_adaptors, sizeof (KdVideoAdaptorRec)) ;
+        a_this->adaptors = xcalloc (a_this->num_adaptors,
+                                    sizeof (KdVideoAdaptorRec)) ;
         if (!a_this->adaptors) {
             EPHYR_LOG_ERROR ("failed to create internal adaptors\n") ;
             goto out ;
@@ -262,15 +270,18 @@ EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
     }
     for (i=0; i < a_this->num_adaptors; i++) {
         int j=0 ;
-        cur_host_adaptor = EphyrHostXVAdaptorArrayAt (a_this->host_adaptors, i) ;
+        cur_host_adaptor =
+                   EphyrHostXVAdaptorArrayAt (a_this->host_adaptors, i) ;
         if (!cur_host_adaptor)
             continue ;
-        a_this->adaptors[i].type = EphyrHostXVAdaptorGetType (cur_host_adaptor) ;
+        a_this->adaptors[i].type =
+                        EphyrHostXVAdaptorGetType (cur_host_adaptor) ;
         a_this->adaptors[i].type |= XvWindowMask ;
-        a_this->adaptors[i].flags = VIDEO_OVERLAID_IMAGES | VIDEO_CLIP_TO_VIEWPORT;
+        a_this->adaptors[i].flags =
+                        VIDEO_OVERLAID_IMAGES | VIDEO_CLIP_TO_VIEWPORT;
         if (EphyrHostXVAdaptorGetName (cur_host_adaptor))
             a_this->adaptors[i].name =
-                                strdup (EphyrHostXVAdaptorGetName (cur_host_adaptor)) ;
+                    strdup (EphyrHostXVAdaptorGetName (cur_host_adaptor)) ;
         else
             a_this->adaptors[i].name = strdup ("Xephyr Video Overlay");
         base_port_id = EphyrHostXVAdaptorGetFirstPortID (cur_host_adaptor) ;
@@ -278,33 +289,51 @@ EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
             EPHYR_LOG_ERROR ("failed to get port id for adaptor %d\n", i) ;
             continue ;
         }
-        if (!EphyrHostXVQueryEncodings (base_port_id, &encodings, &num_encodings)) {
-            EPHYR_LOG_ERROR ("failed to get encodings for port port id %d, adaptors %d\n",
+        if (!EphyrHostXVQueryEncodings (base_port_id,
+                                        &encodings,
+                                        &num_encodings)) {
+            EPHYR_LOG_ERROR ("failed to get encodings for port port id %d,"
+                             " adaptors %d\n",
                              base_port_id, i) ;
             continue ;
         }
         a_this->adaptors[i].nEncodings = num_encodings ;
-        a_this->adaptors[i].pEncodings = videoEncodingDup (encodings, num_encodings) ;
+        a_this->adaptors[i].pEncodings =
+                            videoEncodingDup (encodings, num_encodings) ;
         video_formats = (EphyrHostVideoFormat*)
-            EphyrHostXVAdaptorGetVideoFormats (cur_host_adaptor, &num_video_formats);
+            EphyrHostXVAdaptorGetVideoFormats (cur_host_adaptor,
+                                               &num_video_formats);
         a_this->adaptors[i].pFormats = (KdVideoFormatPtr) video_formats ;
         a_this->adaptors[i].nFormats = num_video_formats ;
-        a_this->adaptors[i].nPorts = EphyrHostXVAdaptorGetNbPorts (cur_host_adaptor) ;
-        a_this->adaptors[i].pPortPrivates = xcalloc (a_this->adaptors[i].nPorts,
-                                                     sizeof (DevUnion)) ;
+        a_this->adaptors[i].nPorts =
+                            EphyrHostXVAdaptorGetNbPorts (cur_host_adaptor) ;
+        a_this->adaptors[i].pPortPrivates =
+                xcalloc (a_this->adaptors[i].nPorts,
+                         sizeof (DevUnion) + sizeof (EphyrPortPriv)) ;
         for (j=0; j < a_this->adaptors[i].nPorts; j++) {
-            a_this->adaptors[i].pPortPrivates[j].ptr = a_this ;
+            int port_priv_offset = a_this->adaptors[i].nPorts ;
+            EphyrPortPriv *port_priv =
+                (EphyrPortPriv*)
+                    &a_this->adaptors[i].pPortPrivates[port_priv_offset + j];
+            port_priv->port_number = base_port_id + j;
+            port_priv->xv_priv = a_this ;
+            a_this->adaptors[i].pPortPrivates[j].ptr = port_priv;
         }
         if (!EphyrHostXVQueryPortAttributes (base_port_id,
                                              &attributes,
                                              &num_attributes)) {
-            EPHYR_LOG_ERROR ("failed to get port attribute for adaptor %d\n", i) ;
+            EPHYR_LOG_ERROR ("failed to get port attribute "
+                             "for adaptor %d\n", i) ;
             continue ;
         }
-        a_this->adaptors[i].pAttributes = portAttributesDup (attributes, num_attributes);
+        a_this->adaptors[i].pAttributes =
+                    portAttributesDup (attributes, num_attributes);
         a_this->adaptors[i].nAttributes = num_attributes ;
-        if (!EphyrHostXVQueryImageFormats (base_port_id, &image_formats, &num_formats)) {
-            EPHYR_LOG_ERROR ("failed to get image formats for adaptor %d\n", i) ;
+        if (!EphyrHostXVQueryImageFormats (base_port_id,
+                                           &image_formats,
+                                           &num_formats)) {
+            EPHYR_LOG_ERROR ("failed to get image formats "
+                             "for adaptor %d\n", i) ;
             continue ;
         }
         a_this->adaptors[i].pImages = (KdImagePtr) image_formats ;
@@ -362,7 +391,8 @@ EphyrXVPrivRegisterAdaptors (EphyrXVPriv *a_this,
 
     if (!a_this->num_adaptors)
         goto out ;
-    num_registered_adaptors = KdXVListGenericAdaptors (screen, &registered_adaptors);
+    num_registered_adaptors =
+                KdXVListGenericAdaptors (screen, &registered_adaptors);
     num_adaptors = num_registered_adaptors + a_this->num_adaptors ;
     adaptors = xcalloc (num_adaptors, sizeof (KdVideoAdaptorPtr)) ;
     if (!adaptors) {
@@ -394,7 +424,7 @@ out:
 }
 
 static void
-EphyrStopVideo (KdScreenInfo *a_info, pointer a_xv_priv, Bool a_exit)
+EphyrStopVideo (KdScreenInfo *a_info, pointer a_port_priv, Bool a_exit)
 {
     EPHYR_LOG ("enter\n") ;
     EPHYR_LOG ("leave\n") ;
@@ -404,22 +434,62 @@ static int
 EphyrSetPortAttribute (KdScreenInfo *a_info,
                        Atom a_attr_name,
                        int a_attr_value,
-                       pointer a_xv_priv)
+                       pointer a_port_priv)
 {
-    EPHYR_LOG ("enter\n") ;
-    return 0 ;
+    int res=Success ;
+    EphyrPortPriv *port_priv = a_port_priv ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (port_priv, BadMatch) ;
+    EPHYR_RETURN_VAL_IF_FAIL (ValidAtom (a_attr_name), BadMatch) ;
+
+    EPHYR_LOG ("enter, portnum:%d, atomid:%d, attr_name:%s, attr_val:%d\n",
+               port_priv->port_number,
+               (int)a_attr_name,
+               NameForAtom (a_attr_name),
+               a_attr_value) ;
+
+    if (!EphyrHostXVSetPortAttribute (port_priv->port_number,
+                                      a_attr_name,
+                                      a_attr_value)) {
+        EPHYR_LOG_ERROR ("failed to set port attribute\n") ;
+        res = BadMatch ;
+        goto out ;
+    }
+
+    res = Success ;
+out:
     EPHYR_LOG ("leave\n") ;
+    return res ;
 }
 
 static int
 EphyrGetPortAttribute (KdScreenInfo *a_screen_info,
                        Atom a_attr_name,
                        int *a_attr_value,
-                       pointer a_xv_priv)
+                       pointer a_port_priv)
 {
-    EPHYR_LOG ("enter\n") ;
-    return 0 ;
-    EPHYR_LOG ("leave\n") ;
+    int res=Success ;
+    EphyrPortPriv *port_priv = a_port_priv ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (port_priv, BadMatch) ;
+    EPHYR_RETURN_VAL_IF_FAIL (ValidAtom (a_attr_name), BadMatch) ;
+
+    EPHYR_LOG ("enter, portnum:%d, atomid:%d, attr_name:%s\n",
+               port_priv->port_number,
+               (int)a_attr_name,
+               NameForAtom (a_attr_name)) ;
+
+    if (!EphyrHostXVGetPortAttribute (port_priv->port_number,
+                                      a_attr_name,
+                                      a_attr_value)) {
+        EPHYR_LOG_ERROR ("failed to get port attribute\n") ;
+        res = BadMatch ;
+        goto out ;
+    }
+
+    res = Success ;
+out:
+    return res ;
 }
 
 static void
@@ -431,7 +501,7 @@ EphyrQueryBestSize (KdScreenInfo *a_info,
                     short a_drw_h,
                     unsigned int *a_prefered_w,
                     unsigned int *a_prefered_h,
-                    pointer a_xv_priv)
+                    pointer a_port_priv)
 {
 }
 
@@ -452,7 +522,7 @@ EphyrPutImage (KdScreenInfo *a_info,
                short a_height,
                Bool a_sync,
                RegionPtr a_clipping_region,
-               pointer a_xv_priv)
+               pointer a_port_priv)
 {
     EPHYR_LOG ("enter\n") ;
     return 0 ;

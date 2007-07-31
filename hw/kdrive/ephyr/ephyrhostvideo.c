@@ -263,3 +263,41 @@ EphyrHostXVQueryImageFormats (int a_port_id,
     return TRUE ;
 
 }
+
+Bool
+EphyrHostXVSetPortAttribute (int a_port_id,
+                             int a_atom,
+                             int a_attr_value)
+{
+    int res=Success ;
+
+    res = XvSetPortAttribute (hostx_get_display (),
+                              a_port_id,
+                              a_atom,
+                              a_attr_value) ;
+    if (res != Success) {
+        EPHYR_LOG_ERROR ("XvSetPortAttribute() failed: %d\n", res) ;
+        return FALSE ;
+    }
+    return TRUE ;
+}
+
+Bool
+EphyrHostXVGetPortAttribute (int a_port_id,
+                             int a_atom,
+                             int *a_attr_value)
+{
+    int res=Success ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_attr_value, FALSE) ;
+
+    res = XvGetPortAttribute (hostx_get_display (),
+                              a_port_id,
+                              a_atom,
+                              a_attr_value) ;
+    if (res != Success) {
+        EPHYR_LOG_ERROR ("XvGetPortAttribute() failed: %d \n", res) ;
+        return FALSE ;
+    }
+    return TRUE ;
+}
