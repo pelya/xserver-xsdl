@@ -130,6 +130,9 @@ GlyphRefPtr
 FindGlyphRef (GlyphHashPtr hash, CARD32 signature, Bool match, GlyphPtr compare);
 
 CARD32
+HashGlyphInfoAndBits (xGlyphInfo *gi, CARD8 *data, unsigned int size);
+
+CARD32
 HashGlyph (GlyphPtr glyph);
 
 void

@@ -461,16 +461,33 @@ FindGlyphRef (GlyphHashPtr hash, CARD32 signature, Bool match, GlyphPtr compare)
 }
 
 CARD32
-HashGlyph (GlyphPtr glyph)
+HashGlyphInfoAndBits (xGlyphInfo *gi, CARD8 *data, unsigned int size)
 {
-    CARD32  *bits = (CARD32 *) &(glyph->info);
+    CARD32  *bits;
     CARD32  hash;
-    int	    n = glyph->size / sizeof (CARD32);
+    int	    n;
 
     hash = 0;
+
+    bits = (CARD32 *) gi;
+    n = sizeof (xGlyphInfo) / sizeof (CARD32);
     while (n--)
 	hash ^= *bits++;
+
+    bits = (CARD32 *) data;
+    n = size / sizeof (CARD32);
+    while (n--)
+	hash ^= *bits++;
+
     return hash;
+}
+
+CARD32
+HashGlyph (GlyphPtr glyph)
+{
+    return HashGlyphInfoAndBits (&glyph->info,
+				 (CARD8 *) (&glyph->info + 1),
+				 glyph->size - sizeof (xGlyphInfo));
 }
 
 #ifdef CHECK_DUPLICATES
