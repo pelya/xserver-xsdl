@@ -200,6 +200,8 @@ config_dbus_core_add_hook(struct config_dbus_core_hook *hook)
 
     for (prev = &bus_info.hooks; *prev; prev = &(*prev)->next)
         ;
+
+    hook->next = NULL;
     *prev = hook;
 
     /* If we're already connected, call the connect hook. */
@@ -215,8 +217,10 @@ config_dbus_core_remove_hook(struct config_dbus_core_hook *hook)
     struct config_dbus_core_hook **prev;
 
     for (prev = &bus_info.hooks; *prev; prev = &(*prev)->next) {
-        if (*prev == hook)
+        if (*prev == hook) {
             *prev = hook->next;
+            break;
+        }
     }
 }
 
