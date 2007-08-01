@@ -445,6 +445,13 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
 
     ms = GetTimeInMillis();
 
+    if (pDev->coreEvents) {
+        events->u.keyButtonPointer.time = ms;
+        events->u.u.type = type;
+        events->u.u.detail = key_code;
+        events++;
+    }
+
     kbp = (deviceKeyButtonPointer *) events;
     kbp->time = ms;
     kbp->deviceid = pDev->id;
@@ -460,12 +467,6 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
         clipValuators(pDev, first_valuator, num_valuators, valuators);
         events = getValuatorEvents(events, pDev, first_valuator,
                                    num_valuators, valuators);
-    }
-
-    if (pDev->coreEvents) {
-        events->u.keyButtonPointer.time = ms;
-        events->u.u.type = type;
-        events->u.u.detail = key_code;
     }
 
     return numEvents;
@@ -606,8 +607,27 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     pDev->valuator->lastx = x;
     pDev->valuator->lasty = y;
 
-    if (!coreOnly)
-    {
+    /* for some reason inputInfo.pointer does not have coreEvents set */
+    if (coreOnly || pDev->coreEvents) {
+        events->u.u.type = type;
+        events->u.keyButtonPointer.time = ms;
+        events->u.keyButtonPointer.rootX = x;
+        events->u.keyButtonPointer.rootY = y;
+
+        if (type == ButtonPress || type == ButtonRelease) {
+            /* We hijack SetPointerMapping to work on all core-sending
+             * devices, so we use the device-specific map here instead of
+             * the core one. */
+            events->u.u.detail = pDev->button->map[buttons];
+        }
+        else {
+            events->u.u.detail = 0;
+        }
+
+        events++;
+    }
+
+    if (!coreOnly) {
         kbp = (deviceKeyButtonPointer *) events;
         kbp->time = ms;
         kbp->deviceid = pDev->id;
@@ -632,24 +652,6 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
             clipValuators(pDev, first_valuator, num_valuators, valuators);
             events = getValuatorEvents(events, pDev, first_valuator,
                                        num_valuators, valuators);
-        }
-    }
-
-    /* for some reason inputInfo.pointer does not have coreEvents set */
-    if (coreOnly || pDev->coreEvents) {
-        events->u.u.type = type;
-        events->u.keyButtonPointer.time = ms;
-        events->u.keyButtonPointer.rootX = x;
-        events->u.keyButtonPointer.rootY = y;
-
-        if (type == ButtonPress || type == ButtonRelease) {
-            /* We hijack SetPointerMapping to work on all core-sending
-             * devices, so we use the device-specific map here instead of
-             * the core one. */
-            events->u.u.detail = pDev->button->map[buttons];
-        }
-        else {
-            events->u.u.detail = 0;
         }
     }
 
