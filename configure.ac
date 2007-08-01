@@ -1070,6 +1070,9 @@ if ! test "x$have_clock_gettime" = xno; then
         CLOCK_LIBS=""
     fi
 
+    LIBS_SAVE="$LIBS"
+    LIBS="$CLOCK_LIBS"
+
     AC_RUN_IFELSE([
 #define _POSIX_C_SOURCE 199309L
 #include <time.h>
@@ -1084,6 +1087,8 @@ int main(int argc, char *argv[]) {
 }
     ], [MONOTONIC_CLOCK=yes], [MONOTONIC_CLOCK=no],
        [MONOTONIC_CLOCK="cross compiling"])
+
+    LIBS="$LIBS_SAVE"
 else
     MONOTONIC_CLOCK=no
 fi
