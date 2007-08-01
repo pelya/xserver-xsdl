@@ -571,9 +571,13 @@ FreeGlyph (GlyphPtr glyph, int format)
 
 	for (i = 0; i < screenInfo.numScreens; i++)
 	{
-	    ps = GetPictureScreenIfSet (screenInfo.screens[i]);
+	    ScreenPtr pScreen = screenInfo.screens[i];
+
+	    (pScreen->DestroyPixmap) (GlyphPixmap (glyph)[i]);
+
+	    ps = GetPictureScreenIfSet (pScreen);
 	    if (ps)
-		(*ps->UnrealizeGlyph) (screenInfo.screens[i], glyph);
+		(*ps->UnrealizeGlyph) (pScreen, glyph);
 	}
 	
 	if (glyph->devPrivates)
@@ -665,7 +669,7 @@ AllocateGlyph (xGlyphInfo *gi, int fdepth)
     GlyphPtr	     glyph;
     int		     i;
 
-    size = gi->height * PixmapBytePad (gi->width, glyphDepths[fdepth]);
+    size = screenInfo.numScreens * sizeof (PixmapPtr);
     glyph = (GlyphPtr) xalloc (size + sizeof (GlyphRec));
     if (!glyph)
 	return 0;
@@ -685,27 +689,38 @@ AllocateGlyph (xGlyphInfo *gi, int fdepth)
 
     for (i = 0; i < screenInfo.numScreens; i++)
     {
-	ps = GetPictureScreenIfSet (screenInfo.screens[i]);
-	if (ps)
-	{
-	    if (!(*ps->RealizeGlyph) (screenInfo.screens[i], glyph))
-	    {
-		while (i--)
-		{
-		    ps = GetPictureScreenIfSet (screenInfo.screens[i]);
-		    if (ps)
-			(*ps->UnrealizeGlyph) (screenInfo.screens[i], glyph);
-		}
-		
-		if (glyph->devPrivates)
-		    xfree (glyph->devPrivates);
-		xfree (glyph);
-		return 0;
-	    }
+	ScreenPtr pScreen = screenInfo.screens[i];
+
+	GlyphPixmap (glyph)[i] = (pScreen->CreatePixmap) (pScreen,
+							  gi->width, gi->height,
+							  glyphDepths[fdepth]);
+	if (! GlyphPixmap (glyph)[i])
+	    goto bail;
+
+	ps = GetPictureScreenIfSet (pScreen);
+	if (! ps)
+	    continue;
+
+	if (!(*ps->RealizeGlyph) (pScreen, glyph)) {
+	    (pScreen->DestroyPixmap) (GlyphPixmap (glyph)[i]);
+	    goto bail;
 	}
     }
     
     return glyph;
+
+bail:
+    while (i--)
+    {
+	ps = GetPictureScreenIfSet (screenInfo.screens[i]);
+	if (ps)
+	    (*ps->UnrealizeGlyph) (screenInfo.screens[i], glyph);
+    }
+		
+    if (glyph->devPrivates)
+	xfree (glyph->devPrivates);
+    xfree (glyph);
+    return 0;
 }
     
 Bool

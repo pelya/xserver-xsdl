@@ -44,8 +44,10 @@ typedef struct _Glyph {
     unsigned char   sha1[20];
     CARD32	    size; /* info + bitmap */
     xGlyphInfo	    info;
-    /* bits follow */
+    /* per-screen pixmaps follow */
 } GlyphRec, *GlyphPtr;
+
+#define GlyphPixmap(glyph) ((PixmapPtr *) ((glyph) + 1))
 
 typedef struct _GlyphRef {
     CARD32	signature;

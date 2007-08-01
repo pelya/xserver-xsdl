@@ -112,7 +112,7 @@ miGlyphs (CARD8		op,
 	  GlyphListPtr	list,
 	  GlyphPtr	*glyphs)
 {
-    PixmapPtr	pPixmap = 0;
+    PixmapPtr	pPixmap;
     PicturePtr	pPicture;
     PixmapPtr   pMaskPixmap = 0;
     PicturePtr  pMask;
@@ -166,7 +166,6 @@ miGlyphs (CARD8		op,
 	x = 0;
 	y = 0;
     }
-    pPicture = 0;
     while (nlist--)
     {
 	x += list->xOff;
@@ -175,28 +174,14 @@ miGlyphs (CARD8		op,
 	while (n--)
 	{
 	    glyph = *glyphs++;
+	    pPixmap = GlyphPixmap (glyph)[pScreen->myNum];
+	    component_alpha = NeedsComponent(list->format->format);
+	    pPicture = CreatePicture (0, &pPixmap->drawable, list->format,
+				      CPComponentAlpha, &component_alpha, 
+				      serverClient, &error);
 	    if (!pPicture)
-	    {
-		pPixmap = GetScratchPixmapHeader (pScreen, glyph->info.width, glyph->info.height, 
-						  list->format->depth,
-						  list->format->depth, 
-						  0, (pointer) (glyph + 1));
-		if (!pPixmap)
-		    return;
-		component_alpha = NeedsComponent(list->format->format);
-		pPicture = CreatePicture (0, &pPixmap->drawable, list->format,
-					  CPComponentAlpha, &component_alpha, 
-					  serverClient, &error);
-		if (!pPicture)
-		{
-		    FreeScratchPixmapHeader (pPixmap);
-		    return;
-		}
-	    }
-	    (*pScreen->ModifyPixmapHeader) (pPixmap, 
-					    glyph->info.width, glyph->info.height,
-					    0, 0, -1, (pointer) (glyph + 1));
-	    pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
+	      return;
+
 	    if (maskFormat)
 	    {
 		CompositePicture (PictOpAdd,
@@ -224,17 +209,12 @@ miGlyphs (CARD8		op,
 				  glyph->info.width,
 				  glyph->info.height);
 	    }
+	    FreePicture ((pointer) pPicture, 0);
+
 	    x += glyph->info.xOff;
 	    y += glyph->info.yOff;
 	}
 	list++;
-	if (pPicture)
-	{
-	    FreeScratchPixmapHeader (pPixmap);
-	    FreePicture ((pointer) pPicture, 0);
-	    pPicture = 0;
-	    pPixmap = 0;
-	}
     }
     if (maskFormat)
     {

@@ -1099,7 +1099,9 @@ ProcRenderAddGlyphs (ClientPtr client)
     CARD8	    *bits;
     int		    size;
     int		    err = BadAlloc;
-    int		    i;
+    int		    i, screen;
+    PicturePtr	    pSrc = NULL, pDst = NULL;
+    PixmapPtr	    pSrcPix = NULL, pDstPix = NULL;
 
     REQUEST_AT_LEAST_SIZE(xRenderAddGlyphsReq);
     glyphSet = (GlyphSetPtr) SecurityLookupIDByType (client,
@@ -1164,7 +1166,62 @@ ProcRenderAddGlyphs (ClientPtr client)
 		goto bail;
 	    }
 
-	    memcpy ((CARD8 *) (glyph_new->glyph + 1), bits, size);
+	    for (screen = 0; screen < screenInfo.numScreens; screen++)
+	    {
+		int	    width = gi[i].width;
+		int	    height = gi[i].height;
+		int	    depth = glyphSet->format->depth;
+		ScreenPtr   pScreen;
+		int	    error;
+
+		pScreen = screenInfo.screens[screen];
+		pSrcPix = GetScratchPixmapHeader (pScreen,
+						  width, height,
+						  depth, depth,
+						  -1, bits);
+		if (! pSrcPix)
+		{
+		    err = BadAlloc;
+		    goto bail;
+		}
+
+		pSrc = CreatePicture (0, &pSrcPix->drawable,
+				      glyphSet->format, 0, NULL,
+				      serverClient, &error);
+		if (! pSrc)
+		{
+		    err = BadAlloc;
+		    goto bail;
+		}
+
+		pDstPix = GlyphPixmap (glyph_new->glyph)[screen];
+
+		pDst = CreatePicture (0, &pDstPix->drawable,
+				      glyphSet->format, 0, NULL,
+				      serverClient, &error);
+		if (! pDst)
+		{
+		    err = BadAlloc;
+		    goto bail;
+		}
+
+		CompositePicture (PictOpSrc,
+				  pSrc,
+				  None,
+				  pDst,
+				  0, 0,
+				  0, 0,
+				  0, 0,
+				  width, height);
+
+		FreePicture ((pointer) pSrc, 0);
+		pSrc = NULL;
+		FreePicture ((pointer) pDst, 0);
+		pDst = NULL;
+		FreeScratchPixmapHeader (pSrcPix);
+		pSrcPix = NULL;
+	    }
+
 	    memcpy (glyph_new->glyph->sha1, glyph_new->sha1, 20);
 	}
 
@@ -1192,6 +1249,12 @@ ProcRenderAddGlyphs (ClientPtr client)
 	Xfree (glyphsBase);
     return client->noClientException;
 bail:
+    if (pSrc)
+	FreePicture ((pointer) pSrc, 0);
+    if (pDst)
+	FreePicture ((pointer) pDst, 0);
+    if (pSrcPix)
+	FreeScratchPixmapHeader (pSrcPix);
     for (i = 0; i < nglyphs; i++)
 	if (glyphs[i].glyph && ! glyphs[i].found)
 	    xfree (glyphs[i].glyph);

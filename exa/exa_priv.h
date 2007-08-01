@@ -50,6 +50,7 @@
 #include "fboverlay.h"
 #ifdef RENDER
 #include "fbpict.h"
+#include "glyphstr.h"
 #endif
 #include "damage.h"
 
