@@ -98,7 +98,6 @@ int
 ProcXOpenDevice(ClientPtr client)
 {
     xInputClassInfo evbase[numInputClasses];
-    Bool enableit = FALSE;
     int j = 0;
     int status = Success;
     xOpenDeviceReply rep;
@@ -121,7 +120,6 @@ ProcXOpenDevice(ClientPtr client)
 	    SendErrorToClient(client, IReqCode, X_OpenDevice, 0, BadDevice);
 	    return Success;
 	}
-	enableit = TRUE;
     }
 
     OpenInputDevice(dev, client, &status);
@@ -129,8 +127,6 @@ ProcXOpenDevice(ClientPtr client)
 	SendErrorToClient(client, IReqCode, X_OpenDevice, 0, status);
 	return Success;
     }
-    if (enableit && dev->inited && dev->startup)
-	(void)EnableDevice(dev);
 
     rep.repType = X_Reply;
     rep.RepType = X_OpenDevice;

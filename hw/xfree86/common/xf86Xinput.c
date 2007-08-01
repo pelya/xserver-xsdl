@@ -204,17 +204,6 @@ OpenInputDevice(DeviceIntPtr	dev,
     if (!dev->inited)
         ActivateDevice(dev);
 
-    if (!dev->public.on) {
-        if (EnableDevice(dev)) {
-            dev->startup = FALSE;
-        }
-        else {
-            ErrorF("couldn't enable device %s\n", dev->name);
-            *status = BadDevice;
-            return;
-        }
-    }
-
     *status = Success;
 }
 
