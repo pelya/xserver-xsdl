@@ -1260,13 +1260,15 @@ static int ValidateCreateDrawable(ClientPtr client,
 ** Create a GLX Pixmap from an X Pixmap.
 */
 int DoCreateGLXPixmap(__GLXclientState *cl, XID fbconfigId,
-		      GLuint screenNum, XID pixmapId, XID glxPixmapId)
+		      GLuint screenNum, XID pixmapId, XID glxPixmapId,
+		      CARD32 *attribs, CARD32 numAttribs)
 {
     ClientPtr client = cl->client;
     DrawablePtr pDraw;
     __GLXpixmap *pGlxPixmap;
     __GLcontextModes *modes;
-    int retval;
+    GLenum target = 0;
+    int retval, i;
 
     retval = ValidateCreateDrawable (client, screenNum, fbconfigId,
 				     pixmapId, glxPixmapId,
@@ -1292,6 +1294,30 @@ int DoCreateGLXPixmap(__GLXclientState *cl, XID fbconfigId,
 
     pGlxPixmap->modes = modes;
 
+    for (i = 0; i < numAttribs; i++) {
+	if (attribs[2 * i] == GLX_TEXTURE_TARGET_EXT) {
+	    switch (attribs[2 * i + 1]) {
+	    case GLX_TEXTURE_2D_EXT:
+		target = GL_TEXTURE_2D;
+		break;
+	    case GLX_TEXTURE_RECTANGLE_EXT:
+		target = GL_TEXTURE_RECTANGLE_ARB;
+		break;
+	    }
+	}
+    }
+
+    if (!target) {
+	int w = pDraw->width, h = pDraw->height;
+
+	if (h & (h - 1) || w & (w - 1))
+	    target = GL_TEXTURE_RECTANGLE_ARB;
+	else
+	    target = GL_TEXTURE_2D;
+    }
+
+    pGlxPixmap->target = target;
+
     /*
     ** Bump the ref count on the X pixmap so it won't disappear.
     */
@@ -1304,14 +1330,16 @@ int __glXDisp_CreateGLXPixmap(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXCreateGLXPixmapReq *req = (xGLXCreateGLXPixmapReq *) pc;
     return DoCreateGLXPixmap( cl, req->visual, req->screen,
-			      req->pixmap, req->glxpixmap );
+			      req->pixmap, req->glxpixmap, NULL, 0 );
 }
 
 int __glXDisp_CreatePixmap(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXCreatePixmapReq *req = (xGLXCreatePixmapReq *) pc;
     return DoCreateGLXPixmap( cl, req->fbconfig, req->screen,
-			      req->pixmap, req->glxpixmap );
+			      req->pixmap, req->glxpixmap,
+			      (CARD32*)(req + 1),
+			      req->numAttribs );
 }
 
 int __glXDisp_CreateGLXPixmapWithConfigSGIX(__GLXclientState *cl, GLbyte *pc)
@@ -1319,7 +1347,7 @@ int __glXDisp_CreateGLXPixmapWithConfigSGIX(__GLXclientState *cl, GLbyte *pc)
     xGLXCreateGLXPixmapWithConfigSGIXReq *req = 
 	(xGLXCreateGLXPixmapWithConfigSGIXReq *) pc;
     return DoCreateGLXPixmap( cl, req->fbconfig, req->screen,
-			      req->pixmap, req->glxpixmap );
+			      req->pixmap, req->glxpixmap, NULL, 0 );
 }
 
 
@@ -1681,7 +1709,6 @@ DoGetDrawableAttributes(__GLXclientState *cl, XID drawId)
     xGLXGetDrawableAttributesReply reply;
     CARD32 attributes[4];
     int numAttribs;
-    PixmapPtr	pixmap;
 
     glxPixmap = (__GLXpixmap *)LookupIDByType(drawId, __glXPixmapRes);
     if (!glxPixmap) {
@@ -1696,18 +1723,10 @@ DoGetDrawableAttributes(__GLXclientState *cl, XID drawId)
     reply.numAttribs = numAttribs;
 
     attributes[0] = GLX_TEXTURE_TARGET_EXT;
+    attributes[1] = glxPixmap->target == GL_TEXTURE_2D ? GLX_TEXTURE_2D_EXT :
+	GLX_TEXTURE_RECTANGLE_EXT;
     attributes[2] = GLX_Y_INVERTED_EXT;
     attributes[3] = GL_FALSE;
-
-    /* XXX this is merely less wrong, see fdo bug #8991 */
-    pixmap = (PixmapPtr) glxPixmap->pDraw;
-    if ((pixmap->drawable.width & (pixmap->drawable.width - 1)) ||
-	(pixmap->drawable.height & (pixmap->drawable.height - 1))
-	/* || strstr(CALL_GetString(GL_EXTENSIONS,
-	             "GL_ARB_texture_non_power_of_two")) */)
-	attributes[1] = GLX_TEXTURE_RECTANGLE_EXT;
-    else
-	attributes[1] = GLX_TEXTURE_2D_EXT;
 
     if (client->swapped) {
 	__glXSwapGetDrawableAttributesReply(client, &reply, attributes);

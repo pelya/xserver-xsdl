@@ -80,7 +80,8 @@ extern int DoGetFBConfigs(__GLXclientState *cl, unsigned screen,
 extern int DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
     GLXContextID shareList, VisualID visual, GLuint screen, GLboolean isDirect);
 extern int DoCreateGLXPixmap(__GLXclientState *cl, XID fbconfigId,
-    GLuint screenNum, XID pixmapId, XID glxpixmapId);
+    GLuint screenNum, XID pixmapId, XID glxpixmapId, CARD32 *attribs,
+    CARD32 numAttribs);
 extern int DoDestroyPixmap(__GLXclientState *cl, XID glxpixmapId);
 
 extern int DoQueryContext(__GLXclientState *cl, GLXContextID gcId);
