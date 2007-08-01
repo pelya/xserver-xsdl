@@ -59,5 +59,9 @@ noinst_PROGRAMS = os.O
 
 os.O: dtrace.o $(am_libos_la_OBJECTS)
 	ld -r -o $@ dtrace.o .libs/*.o
-
 endif
+
+os.c:
+	touch $@
+
+CLEANFILES = os.c
