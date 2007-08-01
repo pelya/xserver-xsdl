@@ -173,10 +173,7 @@ mfbtileG.c:
 	echo "#include \"$(top_srcdir)/mfb/mfbtile.c\"" >> $@
 
 $(libxf1bppmfb_a_SOURCES):
-	for i in $(libxf1bppmfb_a_SOURCES) ; do \
-		echo "#include \"mfbmap.h\"" > $$i ; \
-		echo "#include \"$(top_srcdir)/mfb/$$i\"" >> $$i ; \
-	done
-
+	echo "#include \"mfbmap.h\"" > $$i ; \
+	echo "#include \"$(top_srcdir)/mfb/$$i\"" >> $$i ; \
 
 EXTRA_DIST = mfbmap.sh mfbunmap.sh 
