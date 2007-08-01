@@ -12,7 +12,6 @@ if CONFIG_DBUS_API
 dbusconfigdir = $(sysconfdir)/dbus-1/system.d
 dbusconfig_DATA = xorg-server.conf
 
-noinst_LIBRARIES = libconfig.a
 libconfig_a_SOURCES += dbus.c
 endif
 
