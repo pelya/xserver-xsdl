@@ -47,9 +47,7 @@ fbAddTraps (PicturePtr	pPicture,
     
     pixman_add_traps (image, x_off, y_off, ntrap, (pixman_trap_t *)traps);
 
-    fbFinishAccess (pPicture->pDrawable);
-
-    pixman_image_unref (image);
+    free_pixman_pict (pPicture, image);
 }
 
 void
@@ -65,9 +63,7 @@ fbRasterizeTrapezoid (PicturePtr    pPicture,
 
     pixman_rasterize_trapezoid (image, (pixman_trapezoid_t *)trap, x_off, y_off);
 
-    fbFinishAccess (pPicture->pDrawable);
-
-    pixman_image_unref (image);
+    free_pixman_pict (pPicture, image);
 }
 
 static int

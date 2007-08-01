@@ -2117,6 +2117,7 @@ fbPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what);
 
 pixman_image_t *image_from_pict (PicturePtr pict,
 				 Bool       has_clip);
+void free_pixman_pict (PicturePtr, pixman_image_t *);
 
 #endif /* _FB_H_ */
 
