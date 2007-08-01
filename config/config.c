@@ -27,6 +27,7 @@
 #include <dix-config.h>
 #endif
 
+#include "os.h"
 #include "hotplug.h"
 #include "config-backends.h"
 
