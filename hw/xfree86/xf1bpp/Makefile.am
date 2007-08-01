@@ -55,7 +55,7 @@ libxf1bppmfb_a_SOURCES = \
         mfbwindow.c \
         mfbzerarc.c
 
-BUILT_SOURCES = $(libxf1bppgen_a_SOURCES) $(libxf1bppgen_a_SOURCES)
+BUILT_SOURCES = $(libxf1bppmfb_a_SOURCES) $(libxf1bppgen_a_SOURCES)
 
 libxf1bpp_la_SOURCES = $(libxf1bppmfb_a_SOURCES) $(libxf1bppgen_a_SOURCES) \
         mfbmodule.c
@@ -173,7 +173,8 @@ mfbtileG.c:
 	echo "#include \"$(top_srcdir)/mfb/mfbtile.c\"" >> $@
 
 $(libxf1bppmfb_a_SOURCES):
-	echo "#include \"mfbmap.h\"" > $$i
-	echo "#include \"$(top_srcdir)/mfb/$$i\"" >> $$i
+	echo "#include \"mfbmap.h\"" > $@
+	echo "#include \"$(top_srcdir)/mfb/$@\"" >> $@
 
 EXTRA_DIST = mfbmap.sh mfbunmap.sh 
+DISTCLEANFILES = $(BUILT_SOURCES)
