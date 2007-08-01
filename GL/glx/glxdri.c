@@ -374,15 +374,13 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
 {
     RegionPtr	pRegion = NULL;
     PixmapPtr	pixmap;
-    int		w, h, bpp, override = 0;
+    int		bpp, override = 0;
     GLenum	format, type;
     ScreenPtr pScreen = glxPixmap->pScreen;
     __GLXDRIscreen * const screen =
 	(__GLXDRIscreen *) __glXgetActiveScreen(pScreen->myNum);
 
     pixmap = (PixmapPtr) glxPixmap->pDraw;
-    w = pixmap->drawable.width;
-    h = pixmap->drawable.height;
 
     if (screen->texOffsetStart && screen->driScreen.setTexOffset) {
 	__GLXpixmap **texOffsetOverride = screen->texOffsetOverride;
@@ -972,7 +970,6 @@ static Bool
 glxDRIEnterVT (int index, int flags)
 {
     __GLXDRIscreen *screen = (__GLXDRIscreen *) __glXgetActiveScreen(index);
-    Bool ret;
 
     LogMessage(X_INFO, "AIGLX: Resuming AIGLX clients after VT switch\n");
 
