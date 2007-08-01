@@ -71,7 +71,7 @@ Xorg_LDADD = $(XORG_LIBS) \
 Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
 BUILT_SOURCES = xorg.conf.example
-CLEAN = xorg.conf.example xorg.conf.example.pre
+DISTCLEANFILES += xorg.conf.example xorg.conf.example.pre
 EXTRA_DIST = xorgconf.cpp
 
 if SOLARIS_ASM_INLINE
