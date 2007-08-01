@@ -1077,7 +1077,7 @@ if ! test "x$have_clock_gettime" = xno; then
 #define _POSIX_C_SOURCE 199309L
 #include <time.h>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[[]]) {
     struct timespec tp;
 
     if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)
