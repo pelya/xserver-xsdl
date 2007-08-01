@@ -777,7 +777,9 @@ typedef enum {
     FLAG_AIGLX,
     FLAG_IGNORE_ABI,
     FLAG_ALLOW_EMPTY_INPUT,
-    FLAG_USE_DEFAULT_FONT_PATH
+    FLAG_USE_DEFAULT_FONT_PATH,
+    FLAG_AUTO_ADD_DEVICES,
+    FLAG_AUTO_ENABLE_DEVICES,
 } FlagValues;
    
 static OptionInfoRec FlagOptions[] = {
@@ -855,6 +857,10 @@ static OptionInfoRec FlagOptions[] = {
 	{0}, FALSE },
   { FLAG_USE_DEFAULT_FONT_PATH,  "UseDefaultFontPath",			OPTV_BOOLEAN,
 	{0}, FALSE },
+  { FLAG_AUTO_ADD_DEVICES,       "AutoAddDevices",                      OPTV_BOOLEAN,
+        {0}, TRUE },
+  { FLAG_AUTO_ENABLE_DEVICES,    "AutoEnableDevices",                   OPTV_BOOLEAN,
+        {0}, TRUE },
   { -1,				NULL,				OPTV_NONE,
 	{0}, FALSE },
 };
@@ -917,6 +923,30 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     if (xf86Info.ignoreABI) {
 	    xf86Msg(X_CONFIG, "Ignoring ABI Version\n");
     }
+
+    if (xf86IsOptionSet(FlagOptions, FLAG_AUTO_ADD_DEVICES)) {
+        xf86GetOptValBool(FlagOptions, FLAG_AUTO_ADD_DEVICES,
+                          &xf86Info.autoAddDevices);
+        from = X_CONFIG;
+    }
+    else {
+        xf86Info.autoAddDevices = TRUE;
+        from = X_DEFAULT;
+    }
+    xf86Msg(from, "%sutomatically adding devices\n",
+            xf86Info.autoAddDevices ? "A" : "Not a");
+
+    if (xf86IsOptionSet(FlagOptions, FLAG_AUTO_ENABLE_DEVICES)) {
+        xf86GetOptValBool(FlagOptions, FLAG_AUTO_ENABLE_DEVICES,
+                          &xf86Info.autoEnableDevices);
+        from = X_CONFIG;
+    }
+    else {
+        xf86Info.autoEnableDevices = TRUE;
+        from = X_DEFAULT;
+    }
+    xf86Msg(from, "%sutomatically enabling devices\n",
+            xf86Info.autoEnableDevices ? "A" : "Not a");
 
     /*
      * Set things up based on the config file information.  Some of these

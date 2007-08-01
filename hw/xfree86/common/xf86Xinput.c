@@ -312,6 +312,7 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
     InputOption *option = NULL;
     DeviceIntPtr dev = NULL;
     int rval = Success;
+    int is_auto = 0;
 
     idev = xcalloc(sizeof(*idev), 1);
     if (!idev)
@@ -341,6 +342,7 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
                 goto unwind;
             }
         }
+
         if (strcasecmp(option->key, "name") == 0 ||
             strcasecmp(option->key, "identifier") == 0) {
             if (idev->identifier) {
@@ -352,6 +354,17 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
                 rval = BadAlloc;
                 goto unwind;
             }
+        }
+
+        /* Right now, the only automatic config we know of is HAL. */
+        if (strcmp(option->key, "_source") == 0 &&
+            strcmp(option->value, "server/hal") == 0) {
+            if (!xf86Info.autoAddDevices) {
+                rval = BadMatch;
+                goto unwind;
+            }
+
+            is_auto = 1;
         }
     }
     if (!idev->driver || !idev->identifier) {
@@ -395,7 +408,10 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
 
     dev = pInfo->dev;
     ActivateDevice(dev);
-    if (dev->inited && dev->startup && xf86Screens[0]->vtSema)
+    /* Enable it if it's properly initialised, we're currently in the VT, and
+     * either it's a manual request, or we're automatically enabling devices. */
+    if (dev->inited && dev->startup && xf86Screens[0]->vtSema &&
+        (!is_auto || xf86Info.autoEnableDevices))
         EnableDevice(dev);
 
     *pdev = dev;
