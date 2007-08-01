@@ -39,10 +39,11 @@
 #define GlyphFormatNum	5
 
 typedef struct _Glyph {
-    CARD32	refcnt;
-    DevUnion	*devPrivates;
-    CARD32	size;	/* info + bitmap */
-    xGlyphInfo	info;
+    CARD32	    refcnt;
+    DevUnion	    *devPrivates;
+    unsigned char   sha1[20];
+    CARD32	    size; /* info + bitmap */
+    xGlyphInfo	    info;
     /* bits follow */
 } GlyphRec, *GlyphPtr;
 
@@ -127,19 +128,19 @@ GlyphHashSetPtr
 FindGlyphHashSet (CARD32 filled);
 
 GlyphRefPtr
-FindGlyphRef (GlyphHashPtr hash, CARD32 signature, Bool match, GlyphPtr compare);
+FindGlyphRef (GlyphHashPtr	hash,
+	      CARD32		signature,
+	      Bool		match,
+	      unsigned char	sha1[20]);
 
 GlyphPtr
-FindGlyphByHash (CARD32	    hash,
-		 xGlyphInfo *gi,
-		 CARD8	    *bits,
-		 int	    format);
+FindGlyphByHash (unsigned char sha1[20], int format);
 
-CARD32
-HashGlyphInfoAndBits (xGlyphInfo *gi, CARD8 *data, unsigned int size);
-
-CARD32
-HashGlyph (GlyphPtr glyph);
+int
+HashGlyph (xGlyphInfo    *gi,
+	   CARD8	 *bits,
+	   unsigned long size,
+	   unsigned char sha1[20]);
 
 void
 FreeGlyph (GlyphPtr glyph, int format);

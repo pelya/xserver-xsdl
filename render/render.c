@@ -1080,10 +1080,10 @@ ProcRenderFreeGlyphSet (ClientPtr client)
 }
 
 typedef struct _GlyphNew {
-    Glyph	id;
-    GlyphPtr    glyph;
-    Bool	found;
-    CARD32	hash;
+    Glyph	    id;
+    GlyphPtr        glyph;
+    Bool	    found;
+    unsigned char   sha1[20];
 } GlyphNewRec, *GlyphNewPtr;
 
 static int
@@ -1143,10 +1143,11 @@ ProcRenderAddGlyphs (ClientPtr client)
 	if (remain < size)
 	    break;
 
-	glyph_new->hash = HashGlyphInfoAndBits (&gi[i], bits, size);
+	err = HashGlyph (&gi[i], bits, size, glyph_new->sha1);
+	if (err)
+	    goto bail;
 
-	glyph_new->glyph = FindGlyphByHash (glyph_new->hash,
-					    &gi[i], bits,
+	glyph_new->glyph = FindGlyphByHash (glyph_new->sha1,
 					    glyphSet->fdepth);
 
 	if (glyph_new->glyph && glyph_new->glyph != DeletedGlyph)
@@ -1164,6 +1165,7 @@ ProcRenderAddGlyphs (ClientPtr client)
 	    }
 
 	    memcpy ((CARD8 *) (glyph_new->glyph + 1), bits, size);
+	    memcpy (glyph_new->glyph->sha1, glyph_new->sha1, 20);
 	}
 
 	glyph_new->id = gids[i];
