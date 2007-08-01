@@ -1,7 +1,7 @@
 AM_CFLAGS = @DIX_CFLAGS@
 
 noinst_LIBRARIES = libconfig.a
-libconfig_a_SOURCES = config.c
+libconfig_a_SOURCES = config.c config-backends.h
 
 if HAVE_DBUS
 AM_CFLAGS += @DBUS_CFLAGS@
