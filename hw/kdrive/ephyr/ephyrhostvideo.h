@@ -168,6 +168,23 @@ Bool EphyrHostGetAtom (const char* a_name,
                        int *a_atom) ;
 char* EphyrHostGetAtomName (int a_atom) ;
 
+/*
+ *PutImage
+ * (ignore clipping for now)
+ */
+Bool EphyrHostXVPutImage (int a_port_id,
+                          int a_image_id,
+                          int a_drw_x,
+                          int a_drw_y,
+                          int a_drw_w,
+                          int a_drw_h,
+                          int a_src_x,
+                          int a_src_y,
+                          int a_src_w,
+                          int a_src_h,
+                          int a_image_width,
+                          int a_image_height,
+                          unsigned char *a_buf) ;
 
 #endif /*__EPHYRHOSTVIDEO_H__*/
 

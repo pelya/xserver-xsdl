@@ -962,3 +962,8 @@ hostx_get_display(void)
     return HostX.dpy ;
 }
 
+int
+hostx_get_window(void)
+{
+    return HostX.win ;
+}

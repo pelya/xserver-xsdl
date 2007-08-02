@@ -51,6 +51,10 @@ struct _EphyrPortPriv {
 };
 typedef struct _EphyrPortPriv EphyrPortPriv ;
 
+static Bool DoSimpleClip (BoxPtr a_dst_drw,
+                          BoxPtr a_clipper,
+                          BoxPtr a_result) ;
+
 static Bool EphyrLocalAtomToHost (int a_local_atom, int *a_host_atom) ;
 
 static Bool EphyrHostAtomToLocal (int a_host_atom, int *a_local_atom) ;
@@ -114,6 +118,51 @@ static int s_base_port_id ;
 /**************
  * <helpers>
  * ************/
+
+static Bool
+DoSimpleClip (BoxPtr a_dst_box,
+              BoxPtr a_clipper,
+              BoxPtr a_result)
+{
+    BoxRec dstClippedBox ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_dst_box && a_clipper && a_result, FALSE) ;
+
+    /*
+     * setup the clipbox inside the destination.
+     */
+    dstClippedBox.x1 = a_dst_box->x1 ;
+    dstClippedBox.x2 = a_dst_box->x2 ;
+    dstClippedBox.y1 = a_dst_box->y1 ;
+    dstClippedBox.y2 = a_dst_box->y2 ;
+
+    /*
+     * if the cliper leftmost edge is inside
+     * the destination area then the leftmost edge of the resulting
+     * clipped box is the leftmost edge of the cliper.
+     */
+    if (a_clipper->x1 > dstClippedBox.x1)
+        dstClippedBox.x1 = a_clipper->x1 ;
+
+    /*
+     * if the cliper top edge is inside the destination area
+     * then the bottom horizontal edge of the resulting clipped box
+     * is the bottom edge of the cliper
+     */
+    if (a_clipper->y1 > dstClippedBox.y1)
+        dstClippedBox.y1 = a_clipper->y1 ;
+
+    /*ditto for right edge*/
+    if (a_clipper->x2 < dstClippedBox.x2)
+        dstClippedBox.x2 = a_clipper->x2 ;
+
+    /*ditto for bottom edge*/
+    if (a_clipper->y2 < dstClippedBox.y2)
+        dstClippedBox.y2 = a_clipper->y2 ;
+
+    memcpy (a_result, &dstClippedBox, sizeof (dstClippedBox)) ;
+    return TRUE ;
+}
 
 static Bool
 EphyrLocalAtomToHost (int a_local_atom, int *a_host_atom)
@@ -601,6 +650,7 @@ EphyrQueryBestSize (KdScreenInfo *a_info,
     EPHYR_LOG ("leave\n") ;
 }
 
+
 static int
 EphyrPutImage (KdScreenInfo *a_info,
                DrawablePtr a_drawable,
@@ -620,9 +670,46 @@ EphyrPutImage (KdScreenInfo *a_info,
                RegionPtr a_clipping_region,
                pointer a_port_priv)
 {
+    EphyrPortPriv *port_priv = a_port_priv ;
+    BoxRec clipped_area, dst_box ;
+    int result=BadImplementation ;
+    int drw_x=0, drw_y=0, drw_w=0, drw_h=0 ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_drawable, BadValue) ;
+
     EPHYR_LOG ("enter\n") ;
-    return 0 ;
+
+    dst_box.x1 = a_drw_x ;
+    dst_box.x2 = a_drw_x + a_drw_w;
+    dst_box.y1 = a_drw_y ;
+    dst_box.y2 = a_drw_y + a_drw_h;
+
+    if (!DoSimpleClip (&dst_box,
+                       REGION_EXTENTS (pScreen->pScreen, a_clipping_region),
+                       &clipped_area)) {
+        EPHYR_LOG_ERROR ("failed to simple clip\n") ;
+        goto out ;
+    }
+
+    drw_x = clipped_area.x1 ;
+    drw_y = clipped_area.y1 ;
+    drw_w = clipped_area.x2 - clipped_area.x1 ;
+    drw_h = clipped_area.y2 - clipped_area.y1 ;
+
+    if (!EphyrHostXVPutImage (port_priv->port_number,
+                              a_id,
+                              drw_x, drw_y, drw_w, drw_h,
+                              a_src_x, a_src_y, a_src_w, a_src_h,
+                              a_width, a_height, a_buf)) {
+        EPHYR_LOG_ERROR ("EphyrHostXVPutImage() failed\n") ;
+        goto out ;
+    }
+
+    result = Success ;
+
+out:
     EPHYR_LOG ("leave\n") ;
+    return result ;
 }
 
 static int

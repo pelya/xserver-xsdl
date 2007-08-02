@@ -544,3 +544,56 @@ EphyrHostFree (void *a_pointer)
         XFree (a_pointer) ;
 }
 
+Bool
+EphyrHostXVPutImage (int a_port_id,
+                     int a_image_id,
+                     int a_drw_x,
+                     int a_drw_y,
+                     int a_drw_w,
+                     int a_drw_h,
+                     int a_src_x,
+                     int a_src_y,
+                     int a_src_w,
+                     int a_src_h,
+                     int a_image_width,
+                     int a_image_height,
+                     unsigned char *a_buf)
+{
+    Bool is_ok=TRUE ;
+    XvImage *xv_image=NULL ;
+    GC gc=0 ;
+    XGCValues gc_values;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_buf, FALSE) ;
+
+    EPHYR_LOG ("enter\n") ;
+
+    gc = XCreateGC (hostx_get_display (), hostx_get_window (), 0L, &gc_values);
+    if (!gc) {
+        EPHYR_LOG_ERROR ("failed to create gc \n") ;
+        goto out ;
+    }
+    xv_image = (XvImage*) XvCreateImage (hostx_get_display (),
+                                         a_port_id, a_image_id,
+                                         NULL, a_image_width, a_image_height) ;
+    if (!xv_image) {
+        EPHYR_LOG_ERROR ("failed to create image\n") ;
+        goto out ;
+    }
+    xv_image->data = (char*)a_buf ;
+    XvPutImage (hostx_get_display (), a_port_id, hostx_get_window (),
+                gc, xv_image,
+                a_src_x, a_src_y, a_src_w, a_src_h,
+                a_drw_x, a_drw_y, a_drw_w, a_drw_h) ;
+    XFlush (hostx_get_display ()) ;
+    is_ok = TRUE ;
+
+out:
+
+    EPHYR_LOG ("leave\n") ;
+    if (xv_image) {
+        XFree (xv_image) ;
+        xv_image = NULL ;
+    }
+    return is_ok ;
+}

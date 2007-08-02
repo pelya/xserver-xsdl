@@ -175,4 +175,7 @@ hostx_get_event(EphyrHostXEvent *ev);
 void*
 hostx_get_display(void) ;
 
+int
+hostx_get_window(void) ;
+
 #endif
