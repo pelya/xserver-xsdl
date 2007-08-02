@@ -22,21 +22,37 @@
 #include "xf86_OSlib.h"
 #include "compiler.h"
 
-/* The outb() isn't needed on my machine, but who knows ... -- ost */
+static int really_slow_bcopy;
+
 _X_EXPORT void
-xf86SlowBcopy(unsigned char *src, unsigned char *dst, int len)
+xf86SetReallySlowBcopy(void)
+{
+	really_slow_bcopy = 1;
+}
+
+#if defined(__i386__) || defined(__x86_64__)
+static void xf86_really_slow_bcopy(unsigned char *src, unsigned char *dst, int len)
 {
     while(len--)
     {
 	*dst++ = *src++;
-#if !defined(__sparc__) && \
-    !defined(__powerpc__) && \
-    !defined(__mips__) && \
-    !defined(__ia64__) && \
-    !defined(__arm__)
 	outb(0x80, 0x00);
-#endif
     }
+}
+#endif
+
+/* The outb() isn't needed on my machine, but who knows ... -- ost */
+_X_EXPORT void
+xf86SlowBcopy(unsigned char *src, unsigned char *dst, int len)
+{
+#if defined(__i386__) || defined(__x86_64__)
+    if (really_slow_bcopy) {
+	xf86_really_slow_bcopy(src, dst, len);
+	return;
+    }
+#endif
+    while(len--)
+	*dst++ = *src++;
 }
 
 #ifdef __alpha__
