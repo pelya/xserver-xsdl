@@ -29,7 +29,12 @@
 #include <kdrive-config.h>
 #endif
 #include <X11/Xutil.h>
+#include <X11/Xlibint.h>
 #include <X11/extensions/Xvlib.h>
+#include <X11/extensions/Xvproto.h>
+#include <X11/extensions/Xext.h>
+#include <X11/extensions/extutil.h>
+#define _HAVE_XALLOC_DECLS
 
 #include "hostx.h"
 #include "ephyrhostvideo.h"
@@ -42,6 +47,61 @@
 #ifndef FALSE
 #define FALSE 0
 #endif /*FALSE*/
+
+static XExtensionInfo _xv_info_data;
+static XExtensionInfo *xv_info = &_xv_info_data;
+static char *xv_extension_name = XvName;
+static char *xv_error_string(Display *dpy, int code, XExtCodes *codes,
+                             char * buf, int n);
+static int xv_close_display(Display *dpy, XExtCodes *codes);
+static Bool xv_wire_to_event(Display *dpy, XEvent *host, xEvent *wire);
+
+static XExtensionHooks xv_extension_hooks = {
+    NULL,                               /* create_gc */
+    NULL,                               /* copy_gc */
+    NULL,                               /* flush_gc */
+    NULL,                               /* free_gc */
+    NULL,                               /* create_font */
+    NULL,                               /* free_font */
+    xv_close_display,                   /* close_display */
+    xv_wire_to_event,                   /* wire_to_event */
+    NULL,                               /* event_to_wire */
+    NULL,                               /* error */
+    xv_error_string                     /* error_string */
+};
+
+
+static char *xv_error_list[] =
+{
+   "BadPort",       /* XvBadPort     */
+   "BadEncoding",   /* XvBadEncoding */
+   "BadControl"     /* XvBadControl  */
+};
+
+
+#define XvCheckExtension(dpy, i, val) \
+  XextCheckExtension(dpy, i, xv_extension_name, val)
+#define XvGetReq(name, req) \
+        WORD64ALIGN\
+        if ((dpy->bufptr + SIZEOF(xv##name##Req)) > dpy->bufmax)\
+                _XFlush(dpy);\
+        req = (xv##name##Req *)(dpy->last_req = dpy->bufptr);\
+        req->reqType = info->codes->major_opcode;\
+        req->xvReqType = xv_##name; \
+        req->length = (SIZEOF(xv##name##Req))>>2;\
+        dpy->bufptr += SIZEOF(xv##name##Req);\
+        dpy->request++
+
+static XEXT_GENERATE_CLOSE_DISPLAY (xv_close_display, xv_info)
+
+
+static XEXT_GENERATE_FIND_DISPLAY (xv_find_display, xv_info,
+                                   xv_extension_name,
+                                   &xv_extension_hooks,
+                                   XvNumEvents, NULL)
+
+static XEXT_GENERATE_ERROR_STRING (xv_error_string, xv_extension_name,
+                                   XvNumErrors, xv_error_list)
 
 struct _EphyrHostXVAdaptorArray {
     XvAdaptorInfo *adaptors ;
@@ -59,7 +119,7 @@ EphyrHostXVQueryAdaptors (EphyrHostXVAdaptorArray **a_adaptors)
 
     EPHYR_LOG ("enter\n") ;
 
-    result = Xcalloc (sizeof (EphyrHostXVAdaptorArray)) ;
+    result = Xcalloc (1, sizeof (EphyrHostXVAdaptorArray)) ;
     if (!result)
         goto out ;
 
@@ -137,7 +197,7 @@ EphyrHostXVAdaptorGetVideoFormats (const EphyrHostXVAdaptor *a_this,
     EPHYR_RETURN_VAL_IF_FAIL (a_this, NULL) ;
 
     nb_formats = ((XvAdaptorInfo*)a_this)->num_formats ;
-    formats = Xcalloc (nb_formats * sizeof (EphyrHostVideoFormat)) ;
+    formats = Xcalloc (nb_formats, sizeof (EphyrHostVideoFormat)) ;
     for (i=0; i < nb_formats; i++) {
         memset (&visual_info_template, 0, sizeof (visual_info_template)) ;
         visual_info_template.visualid =
@@ -188,7 +248,7 @@ EphyrHostXVQueryEncodings (int a_port_id,
                             &num_encodings,
                             &encoding_info) ;
     if (num_encodings && encoding_info) {
-        encodings = Xcalloc (num_encodings * sizeof (EphyrHostEncoding)) ;
+        encodings = Xcalloc (num_encodings, sizeof (EphyrHostEncoding)) ;
         for (i=0; i<num_encodings; i++) {
             encodings[i].id = encoding_info[i].encoding_id ;
             encodings[i].name = strdup (encoding_info[i].name) ;
@@ -242,9 +302,10 @@ EphyrHostXVQueryPortAttributes (int a_port_id,
 {
     EPHYR_RETURN_VAL_IF_FAIL (a_attributes && a_num_attributes, FALSE) ;
 
-    *a_attributes = (EphyrHostAttribute*)XvQueryPortAttributes (hostx_get_display (),
-                                                                a_port_id,
-                                                                a_num_attributes);
+    *a_attributes =
+        (EphyrHostAttribute*)XvQueryPortAttributes (hostx_get_display (),
+                                                    a_port_id,
+                                                    a_num_attributes);
 
     return TRUE ;
 }
@@ -258,7 +319,9 @@ EphyrHostXVQueryImageFormats (int a_port_id,
 
     EPHYR_RETURN_VAL_IF_FAIL (a_formats && a_num_format, FALSE) ;
 
-    result = XvListImageFormats (hostx_get_display (), a_port_id, a_num_format) ;
+    result = XvListImageFormats (hostx_get_display (),
+                                 a_port_id,
+                                 a_num_format) ;
     *a_formats = (EphyrHostImageFormat*) result ;
     return TRUE ;
 
@@ -271,6 +334,8 @@ EphyrHostXVSetPortAttribute (int a_port_id,
 {
     int res=Success ;
 
+    EPHYR_LOG ("atom,value: (%d, %d)\n", a_atom, a_attr_value) ;
+
     res = XvSetPortAttribute (hostx_get_display (),
                               a_port_id,
                               a_atom,
@@ -279,6 +344,8 @@ EphyrHostXVSetPortAttribute (int a_port_id,
         EPHYR_LOG_ERROR ("XvSetPortAttribute() failed: %d\n", res) ;
         return FALSE ;
     }
+    EPHYR_LOG ("leave\n") ;
+
     return TRUE ;
 }
 
@@ -288,8 +355,12 @@ EphyrHostXVGetPortAttribute (int a_port_id,
                              int *a_attr_value)
 {
     int res=Success ;
+    Bool ret=FALSE ;
 
     EPHYR_RETURN_VAL_IF_FAIL (a_attr_value, FALSE) ;
+
+    EPHYR_LOG ("enter, a_port_id: %d, a_atomid: %d, attr_name: %s\n",
+               a_port_id, a_atom, XGetAtomName (hostx_get_display (), a_atom)) ;
 
     res = XvGetPortAttribute (hostx_get_display (),
                               a_port_id,
@@ -297,7 +368,179 @@ EphyrHostXVGetPortAttribute (int a_port_id,
                               a_attr_value) ;
     if (res != Success) {
         EPHYR_LOG_ERROR ("XvGetPortAttribute() failed: %d \n", res) ;
+        goto out ;
+    }
+    EPHYR_LOG ("atom,value: (%d, %d)\n", a_atom, *a_attr_value) ;
+
+    ret = TRUE ;
+
+out:
+    EPHYR_LOG ("leave\n") ;
+    return ret ;
+}
+
+Bool
+EphyrHostXVQueryBestSize (int a_port_id,
+                          Bool a_motion,
+                          unsigned int a_frame_w,
+                          unsigned int a_frame_h,
+                          unsigned int a_drw_w,
+                          unsigned int a_drw_h,
+                          unsigned int *a_actual_w,
+                          unsigned int *a_actual_h)
+{
+    int res=0 ;
+    Bool is_ok=FALSE ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_actual_w && a_actual_h, FALSE) ;
+
+    EPHYR_LOG ("enter: frame (%dx%d), drw (%dx%d)\n",
+               a_frame_w, a_frame_h,
+               a_drw_w, a_drw_h) ;
+
+    res = XvQueryBestSize (hostx_get_display (),
+                           a_port_id,
+                           a_motion,
+                           a_frame_w, a_frame_h,
+                           a_drw_w, a_drw_h,
+                           a_actual_w, a_actual_h) ;
+    if (res != Success) {
+        EPHYR_LOG_ERROR ("XvQueryBestSize() failed: %d\n", res) ;
+        goto out ;
+    }
+
+    EPHYR_LOG ("actual (%dx%d)\n", *a_actual_w, *a_actual_h) ;
+
+    is_ok = TRUE ;
+
+out:
+    EPHYR_LOG ("leave\n") ;
+    return is_ok ;
+}
+
+static Bool
+xv_wire_to_event(Display *dpy, XEvent *host, xEvent *wire)
+{
+    XExtDisplayInfo *info = xv_find_display (dpy);
+    XvEvent *re    = (XvEvent *)host;
+    xvEvent *event = (xvEvent *)wire;
+
+    XvCheckExtension(dpy, info, False);
+
+    switch ((event->u.u.type & 0x7F) - info->codes->first_event) {
+        case XvVideoNotify:
+            re->xvvideo.type = event->u.u.type & 0x7f;
+            re->xvvideo.serial =
+            _XSetLastRequestRead(dpy, (xGenericReply *)event);
+            re->xvvideo.send_event = ((event->u.u.type & 0x80) != 0);
+            re->xvvideo.display = dpy;
+            re->xvvideo.time = event->u.videoNotify.time;
+            re->xvvideo.reason = event->u.videoNotify.reason;
+            re->xvvideo.drawable = event->u.videoNotify.drawable;
+            re->xvvideo.port_id = event->u.videoNotify.port;
+            break;
+        case XvPortNotify:
+            re->xvport.type = event->u.u.type & 0x7f;
+            re->xvport.serial =
+            _XSetLastRequestRead(dpy, (xGenericReply *)event);
+            re->xvport.send_event = ((event->u.u.type & 0x80) != 0);
+            re->xvport.display = dpy;
+            re->xvport.time = event->u.portNotify.time;
+            re->xvport.port_id = event->u.portNotify.port;
+            re->xvport.attribute = event->u.portNotify.attribute;
+            re->xvport.value = event->u.portNotify.value;
+            break;
+        default:
+            return False;
+    }
+
+    return True ;
+}
+
+Bool
+EphyrHostXVQueryImageAttributes (int a_port_id,
+                                 int a_image_id /*image fourcc code*/,
+                                 unsigned short *a_width,
+                                 unsigned short *a_height,
+                                 int *a_image_size,
+                                 int *a_pitches,
+                                 int *a_offsets)
+{
+    Display *dpy = hostx_get_display () ;
+    Bool ret=FALSE ;
+    XExtDisplayInfo *info = xv_find_display (dpy);
+    xvQueryImageAttributesReq *req=NULL;
+    xvQueryImageAttributesReply rep;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_width, FALSE) ;
+    EPHYR_RETURN_VAL_IF_FAIL (a_height, FALSE) ;
+    EPHYR_RETURN_VAL_IF_FAIL (a_image_size, FALSE) ;
+
+    XvCheckExtension (dpy, info, FALSE);
+
+    LockDisplay (dpy);
+
+    XvGetReq (QueryImageAttributes, req);
+    req->id = a_image_id;
+    req->port = a_port_id;
+    req->width = *a_width;
+    req->height = *a_height;
+    /*
+     * read the reply
+     */
+    if (!_XReply (dpy, (xReply *)&rep, 0, xFalse)) {
+        EPHYR_LOG_ERROR ("QeryImageAttribute req failed\n") ;
+        goto out ;
+    }
+    if (a_pitches && a_offsets) {
+        _XRead (dpy,
+                (char*)a_pitches,
+                rep.num_planes << 2);
+        _XRead (dpy,
+                (char*)a_offsets,
+                rep.num_planes << 2);
+    } else {
+        _XEatData(dpy, rep.length << 2);
+    }
+    *a_width = rep.width ;
+    *a_height = rep.height ;
+    *a_image_size = rep.data_size ;
+
+    ret = TRUE ;
+
+out:
+    UnlockDisplay (dpy) ;
+    SyncHandle ();
+    return ret ;
+}
+
+Bool
+EphyrHostGetAtom (const char* a_name,
+                  Bool a_create_if_not_exists,
+                  int *a_atom)
+{
+    int atom=None ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_atom, FALSE) ;
+
+    atom = XInternAtom (hostx_get_display (), a_name, a_create_if_not_exists);
+    if (atom == None) {
         return FALSE ;
     }
+    *a_atom = atom ;
     return TRUE ;
 }
+
+char*
+EphyrHostGetAtomName (int a_atom)
+{
+    return XGetAtomName (hostx_get_display (), a_atom) ;
+}
+
+void
+EphyrHostFree (void *a_pointer)
+{
+    if (a_pointer)
+        XFree (a_pointer) ;
+}
+

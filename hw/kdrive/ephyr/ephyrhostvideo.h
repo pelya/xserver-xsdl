@@ -84,6 +84,8 @@ typedef struct _EphyrHostImageFormat {
     int scanline_order;          /* XvTopToBottom, XvBottomToTop */
 } EphyrHostImageFormat ;
 
+void EphyrHostFree (void *a_pointer) ;
+
 /*
  * host adaptor array
  */
@@ -139,5 +141,33 @@ Bool EphyrHostXVSetPortAttribute (int a_port_id,
 Bool EphyrHostXVGetPortAttribute (int a_port_id,
                                   int a_atom,
                                   int *a_attr_value) ;
+/*
+ *size query
+ */
+Bool EphyrHostXVQueryBestSize (int a_port_id,
+                               Bool a_motion,
+                               unsigned int a_frame_w,
+                               unsigned int a_frame_h,
+                               unsigned int a_drw_w,
+                               unsigned int a_drw_h,
+                               unsigned int *a_actual_w,
+                               unsigned int *a_actual_h) ;
+
+Bool EphyrHostXVQueryImageAttributes (int a_port_id,
+                                      int a_image_id /*image fourcc code*/,
+                                      unsigned short *a_width,
+                                      unsigned short *a_height,
+                                      int *a_image_size,
+                                      int *a_pitches,
+                                      int *a_offsets) ;
+/*
+ * atom
+ */
+Bool EphyrHostGetAtom (const char* a_name,
+                       Bool a_create_if_not_exists,
+                       int *a_atom) ;
+char* EphyrHostGetAtomName (int a_atom) ;
+
+
 #endif /*__EPHYRHOSTVIDEO_H__*/
 

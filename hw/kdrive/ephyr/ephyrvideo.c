@@ -51,6 +51,10 @@ struct _EphyrPortPriv {
 };
 typedef struct _EphyrPortPriv EphyrPortPriv ;
 
+static Bool EphyrLocalAtomToHost (int a_local_atom, int *a_host_atom) ;
+
+static Bool EphyrHostAtomToLocal (int a_host_atom, int *a_local_atom) ;
+
 static EphyrXVPriv* EphyrXVPrivNew (void) ;
 static void EphyrXVPrivDelete (EphyrXVPriv *a_this) ;
 static Bool EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this) ;
@@ -105,6 +109,67 @@ static int EphyrQueryImageAttributes (KdScreenInfo *a_info,
                                       unsigned short *a_h,
                                       int *a_pitches,
                                       int *a_offsets);
+static int s_base_port_id ;
+
+/**************
+ * <helpers>
+ * ************/
+
+static Bool
+EphyrLocalAtomToHost (int a_local_atom, int *a_host_atom)
+{
+    char *atom_name=NULL;
+    int host_atom=None ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_host_atom, FALSE) ;
+
+    if (!ValidAtom (a_local_atom))
+        return FALSE ;
+
+    atom_name = NameForAtom (a_local_atom) ;
+
+    if (!atom_name)
+        return FALSE ;
+
+    if (!EphyrHostGetAtom (atom_name, FALSE, &host_atom) || host_atom == None) {
+        EPHYR_LOG_ERROR ("no atom for string %s defined in host X\n",
+                         atom_name) ;
+        return FALSE ;
+    }
+    *a_host_atom = host_atom ;
+    return TRUE ;
+}
+
+static Bool
+EphyrHostAtomToLocal (int a_host_atom, int *a_local_atom)
+{
+    Bool is_ok=FALSE ;
+    char *atom_name=NULL ;
+    int atom=None ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_local_atom, FALSE) ;
+
+    atom_name = EphyrHostGetAtomName (a_host_atom) ;
+    if (!atom_name)
+        goto out ;
+
+    atom = MakeAtom (atom_name, strlen (atom_name), TRUE) ;
+    if (atom == None)
+        goto out ;
+
+    *a_local_atom = atom ;
+    is_ok = TRUE ;
+
+out:
+    if (atom_name) {
+        EphyrHostFree (atom_name) ;
+    }
+    return is_ok ;
+}
+
+/**************
+ *</helpers>
+ * ************/
 
 Bool
 ephyrInitVideo (ScreenPtr pScreen)
@@ -289,6 +354,9 @@ EphyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
             EPHYR_LOG_ERROR ("failed to get port id for adaptor %d\n", i) ;
             continue ;
         }
+        if (!s_base_port_id)
+            s_base_port_id = base_port_id ;
+
         if (!EphyrHostXVQueryEncodings (base_port_id,
                                         &encodings,
                                         &num_encodings)) {
@@ -436,7 +504,7 @@ EphyrSetPortAttribute (KdScreenInfo *a_info,
                        int a_attr_value,
                        pointer a_port_priv)
 {
-    int res=Success ;
+    int res=Success, host_atom=0 ;
     EphyrPortPriv *port_priv = a_port_priv ;
 
     EPHYR_RETURN_VAL_IF_FAIL (port_priv, BadMatch) ;
@@ -448,8 +516,14 @@ EphyrSetPortAttribute (KdScreenInfo *a_info,
                NameForAtom (a_attr_name),
                a_attr_value) ;
 
+    if (!EphyrLocalAtomToHost (a_attr_name, &host_atom)) {
+        EPHYR_LOG_ERROR ("failed to convert local atom to host atom\n") ;
+        res = BadMatch ;
+        goto out ;
+    }
+
     if (!EphyrHostXVSetPortAttribute (port_priv->port_number,
-                                      a_attr_name,
+                                      host_atom,
                                       a_attr_value)) {
         EPHYR_LOG_ERROR ("failed to set port attribute\n") ;
         res = BadMatch ;
@@ -468,7 +542,7 @@ EphyrGetPortAttribute (KdScreenInfo *a_screen_info,
                        int *a_attr_value,
                        pointer a_port_priv)
 {
-    int res=Success ;
+    int res=Success, host_atom=0 ;
     EphyrPortPriv *port_priv = a_port_priv ;
 
     EPHYR_RETURN_VAL_IF_FAIL (port_priv, BadMatch) ;
@@ -479,8 +553,14 @@ EphyrGetPortAttribute (KdScreenInfo *a_screen_info,
                (int)a_attr_name,
                NameForAtom (a_attr_name)) ;
 
+    if (!EphyrLocalAtomToHost (a_attr_name, &host_atom)) {
+        EPHYR_LOG_ERROR ("failed to convert local atom to host atom\n") ;
+        res = BadMatch ;
+        goto out ;
+    }
+
     if (!EphyrHostXVGetPortAttribute (port_priv->port_number,
-                                      a_attr_name,
+                                      host_atom,
                                       a_attr_value)) {
         EPHYR_LOG_ERROR ("failed to get port attribute\n") ;
         res = BadMatch ;
@@ -489,6 +569,7 @@ EphyrGetPortAttribute (KdScreenInfo *a_screen_info,
 
     res = Success ;
 out:
+    EPHYR_LOG ("leave\n") ;
     return res ;
 }
 
@@ -503,6 +584,21 @@ EphyrQueryBestSize (KdScreenInfo *a_info,
                     unsigned int *a_prefered_h,
                     pointer a_port_priv)
 {
+    int res=0 ;
+    EphyrPortPriv *port_priv = a_port_priv ;
+
+    EPHYR_RETURN_IF_FAIL (port_priv) ;
+
+    EPHYR_LOG ("enter\n") ;
+    res = EphyrHostXVQueryBestSize (port_priv->port_number,
+                                    a_motion,
+                                    a_src_w, a_src_h,
+                                    a_drw_w, a_drw_h,
+                                    a_prefered_w, a_prefered_h) ;
+    if (!res) {
+        EPHYR_LOG_ERROR ("Failed to query best size\n") ;
+    }
+    EPHYR_LOG ("leave\n") ;
 }
 
 static int
@@ -537,8 +633,24 @@ EphyrQueryImageAttributes (KdScreenInfo *a_info,
                            int *a_pitches,
                            int *a_offsets)
 {
-    EPHYR_LOG ("enter\n") ;
-    return 0 ;
-    EPHYR_LOG ("leave\n") ;
-}
+    int image_size=0 ;
 
+    EPHYR_RETURN_VAL_IF_FAIL (a_w && a_h, FALSE) ;
+
+    EPHYR_LOG ("enter: dim (%dx%d), pitches: %#x, offsets: %#x\n",
+               *a_w, *a_h, (unsigned int)a_pitches, (unsigned int)a_offsets) ;
+
+   if (!EphyrHostXVQueryImageAttributes (s_base_port_id,
+                                         a_id,
+                                         a_w, a_h,
+                                         &image_size,
+                                         a_pitches, a_offsets)) {
+       EPHYR_LOG_ERROR ("EphyrHostXVQueryImageAttributes() failed\n") ;
+       goto out ;
+   }
+   EPHYR_LOG ("image size: %d, dim (%dx%d)", image_size, *a_w, *a_h) ;
+
+out:
+    EPHYR_LOG ("leave\n") ;
+    return image_size ;
+}
