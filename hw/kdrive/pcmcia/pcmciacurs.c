@@ -21,7 +21,6 @@
  *
  * Authors:  Alan Hourihane, <alanh@fairlite.demon.co.uk>
  */
-/* $RCSId: $ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>

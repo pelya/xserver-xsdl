@@ -36,7 +36,6 @@ Xquartz_SOURCES = \
                   $(top_srcdir)/Xi/stubs.c \
                   apple/X11Application.m \
                   apple/X11Controller.m \
-                  quartz/Xserver.m \
                   quartz/Preferences.m \
                   quartz/applewm.c \
                   quartz/keysym2ucs.c \

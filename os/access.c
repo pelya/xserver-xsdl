@@ -1193,9 +1193,6 @@ ResetHosts (char *display)
     if (fnamelen > sizeof(fname))
 	FatalError("Display name `%s' is too long\n", display);
     sprintf(fname, ETC_HOST_PREFIX "%s" ETC_HOST_SUFFIX, display);
-#ifdef __UNIXOS2__
-    strcpy(fname, (char*)__XOS2RedirRoot(fname));
-#endif /* __UNIXOS2__ */
 
     if ((fd = fopen (fname, "r")) != 0)
     {
@@ -1206,10 +1203,6 @@ ResetHosts (char *display)
 	    continue;
     	if ((ptr = strchr(ohostname, '\n')) != 0)
     	    *ptr = 0;
-#ifdef __UNIXOS2__
-    	if ((ptr = strchr(ohostname, '\r')) != 0)
-    	    *ptr = 0;
-#endif
         hostlen = strlen(ohostname) + 1;
         for (i = 0; i < hostlen; i++)
 	    lhostname[i] = tolower(ohostname[i]);
@@ -1825,7 +1818,7 @@ ConvertAddr (
     switch (saddr->sa_family)
     {
     case AF_UNSPEC:
-#if defined(UNIXCONN) || defined(LOCALCONN) || defined(OS2PIPECONN)
+#if defined(UNIXCONN) || defined(LOCALCONN)
     case AF_UNIX:
 #endif
         return FamilyLocal;

@@ -676,7 +676,8 @@ xf86CrtcScreenInit (ScreenPtr screen)
     }
     if (c == config->num_crtc)
 	xf86RandR12SetRotations (screen, RR_Rotate_0 | RR_Rotate_90 |
-				 RR_Rotate_180 | RR_Rotate_270);
+				 RR_Rotate_180 | RR_Rotate_270 |
+				 RR_Reflect_X | RR_Reflect_Y);
     else
 	xf86RandR12SetRotations (screen, RR_Rotate_0);
     
@@ -1253,7 +1254,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	 */
 	output->status = (*output->funcs->detect)(output);
 
-	if (!xf86OutputEnabled (output))
+	if (output->status == XF86OutputStatusDisconnected)
 	{
 	    xf86OutputSetEDID (output, NULL);
 	    continue;
@@ -1413,8 +1414,9 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 			output->probed_modes = mode;
 		    }
 		    mode->type |= M_T_PREFERRED;
-		    break;
 		}
+		else
+		    mode->type &= ~M_T_PREFERRED;
 	    }
 	}
 	
@@ -2030,7 +2032,7 @@ xf86DisableUnusedFunctions(ScrnInfoPtr pScrn)
 static void
 xf86OutputSetEDIDProperty (xf86OutputPtr output, void *data, int data_len)
 {
-    Atom edid_atom = MakeAtom(EDID_ATOM_NAME, sizeof(EDID_ATOM_NAME), TRUE);
+    Atom edid_atom = MakeAtom(EDID_ATOM_NAME, sizeof(EDID_ATOM_NAME) - 1, TRUE);
 
     /* This may get called before the RandR resources have been created */
     if (output->randr_output == NULL)

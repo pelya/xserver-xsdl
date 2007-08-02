@@ -54,6 +54,7 @@ typedef struct {
     ScreenPtr pScreen;
     Bool idExists;
     int refcnt;
+    GLenum target;
 #ifdef XF86DRI
     DamagePtr pDamage;
     __DRIcontext *pDRICtx;

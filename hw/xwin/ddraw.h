@@ -1,5 +1,3 @@
-/* $Id$ */
-
 #ifndef __XWIN_DDRAW_H
 #define __XWIN_DDRAW_H
 

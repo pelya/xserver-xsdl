@@ -85,7 +85,6 @@ typedef struct _DRIScreenPrivRec
     int			drmFD;	      /* File descriptor for /dev/video/?   */
     drm_handle_t   	hSAREA;	      /* Handle to SAREA, for mapping       */
     XF86DRISAREAPtr	pSAREA;	      /* Mapped pointer to SAREA            */
-    drm_handle_t   	hFrameBuffer; /* Handle to framebuffer, for mapping */
     drm_context_t          myContext;    /* DDX Driver's context               */
     DRIContextPrivPtr   myContextPriv;/* Pointer to server's private area   */
     DRIContextPrivPtr   lastPartial3DContext;  /* last one partially saved  */
@@ -99,6 +98,7 @@ typedef struct _DRIScreenPrivRec
     DrawablePtr         fullscreen; /* pointer to fullscreen drawable */
     drm_clip_rect_t  fullscreen_rect; /* fake rect for fullscreen mode */
     DRIWrappedFuncsRec	wrap;
+    DestroyWindowProcPtr DestroyWindow;
     DrawablePtr		DRIDrawables[SAREA_MAX_DRAWABLES];
     DRIContextPrivPtr   dummyCtxPriv; /* Pointer to dummy context */
     Bool		createDummyCtx;

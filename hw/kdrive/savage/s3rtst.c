@@ -1,6 +1,4 @@
 /*
- * Id: s3rtst.c,v 1.1 1999/11/02 03:54:47 keithp Exp $
- *
  * Copyright 1999 SuSE, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -22,7 +20,6 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/savage/s3rtst.c,v 1.1 1999/11/19 13:53:57 hohndel Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>

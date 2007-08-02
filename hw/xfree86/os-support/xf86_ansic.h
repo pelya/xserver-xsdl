@@ -25,23 +25,7 @@
 #ifndef _XF86_ANSIC_H
 #define _XF86_ANSIC_H
 
-/* Handle <stdarg.h> */
-
-#ifndef __OS2ELF__
-# include <stdarg.h>
-#else /* __OS2ELF__ */
-  /* EMX/gcc_elf under OS/2 does not have native header files */
-# if !defined (_VA_LIST)
-#  define _VA_LIST
-   typedef char *va_list;
-# endif
-# define _VA_ROUND(t) ((sizeof (t) + 3) & -4)
-# if !defined (va_start)
-#  define va_start(ap,v) ap = (va_list)&v + ((sizeof (v) + 3) & -4)
-#  define va_end(ap) (ap = 0, (void)0)
-#  define va_arg(ap,t) (ap += _VA_ROUND (t), *(t *)(ap - _VA_ROUND (t)))
-# endif
-#endif /* __OS2ELF__ */
+#include <stdarg.h>
 
 /*
  * The first set of definitions are required both for modules and

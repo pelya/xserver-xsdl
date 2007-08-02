@@ -299,7 +299,7 @@ SetWindowToDefaults(WindowPtr pWin)
     pWin->dontPropagate = 0;
     pWin->forcedBS = FALSE;
 #ifdef COMPOSITE
-    pWin->redirectDraw = 0;
+    pWin->redirectDraw = RedirectDrawNone;
 #endif
 }
 
@@ -1693,10 +1693,14 @@ _X_EXPORT void
 SetWinSize (WindowPtr pWin)
 {
 #ifdef COMPOSITE
-    if (pWin->redirectDraw)
+    if (pWin->redirectDraw != RedirectDrawNone)
     {
 	BoxRec	box;
 
+	/*
+	 * Redirected clients get clip list equal to their
+	 * own geometry, not clipped to their parent
+	 */
 	box.x1 = pWin->drawable.x;
 	box.y1 = pWin->drawable.y;
 	box.x2 = pWin->drawable.x + pWin->drawable.width;
@@ -1736,10 +1740,14 @@ SetBorderSize (WindowPtr pWin)
     if (HasBorder (pWin)) {
 	bw = wBorderWidth (pWin);
 #ifdef COMPOSITE
-	if (pWin->redirectDraw)
+	if (pWin->redirectDraw != RedirectDrawNone)
 	{
 	    BoxRec	box;
 
+	    /*
+	     * Redirected clients get clip list equal to their
+	     * own geometry, not clipped to their parent
+	     */
 	    box.x1 = pWin->drawable.x - bw;
 	    box.y1 = pWin->drawable.y - bw;
 	    box.x2 = pWin->drawable.x + pWin->drawable.width + bw;

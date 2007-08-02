@@ -328,4 +328,20 @@ VBEVesaSaveRestore(vbeInfoPtr pVbe, vbeSaveRestorePtr vbe_sr,
 int VBEGetPixelClock(vbeInfoPtr pVbe, int mode, int Clock);
 Bool VBEDPMSSet(vbeInfoPtr pVbe, int mode);
 
+struct vbePanelID {
+    short hsize;
+    short vsize;
+    short fptype;
+    char redbpp;
+    char greenbpp;
+    char bluebpp;
+    char reservedbpp;
+    int reserved_offscreen_mem_size;
+    int reserved_offscreen_mem_pointer;
+    char reserved[14];
+};
+
+void VBEInterpretPanelID(int scrnIndex, struct vbePanelID *data);
+struct vbePanelID *VBEReadPanelID(vbeInfoPtr pVbe);
+
 #endif

@@ -20,7 +20,6 @@
  * SOFTWARE.
  *
 */
-/* $XConsortium: ppcSpMcro.h /main/3 1996/02/21 17:58:36 kaleb $ */
 
 /* This screwy macro is used in all the spans routines and you find
    it all over the place, so it is a macro just to tidy things up.

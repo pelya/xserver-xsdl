@@ -1,5 +1,3 @@
-/*	$NetBSD: data.c,v 1.6 1999/09/20 04:48:12 lukem Exp $	*/
-
 /*
  * Copyright (c) 1999 Lennart Augustsson <augustss@netbsd.org>
  * All rights reserved.

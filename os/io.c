@@ -70,7 +70,7 @@ SOFTWARE.
 #include <X11/Xtrans/Xtrans.h>
 #include <X11/Xmd.h>
 #include <errno.h>
-#if !defined(__UNIXOS2__) && !defined(WIN32)
+#if !defined(WIN32)
 #ifndef Lynx
 #include <sys/uio.h>
 #else
@@ -98,7 +98,6 @@ static void SkipRequests(xReqPtr req, ClientPtr client, int numskipped);
 /* check for both EAGAIN and EWOULDBLOCK, because some supposedly POSIX
  * systems are broken and return EWOULDBLOCK when they should return EAGAIN
  */
-#ifndef __UNIXOS2__
 #ifndef WIN32
 #if defined(EAGAIN) && defined(EWOULDBLOCK)
 #define ETEST(err) (err == EAGAIN || err == EWOULDBLOCK)
@@ -111,9 +110,6 @@ static void SkipRequests(xReqPtr req, ClientPtr client, int numskipped);
 #endif
 #else /* WIN32 The socket errorcodes differ from the normal errors*/
 #define ETEST(err) (err == EAGAIN || err == WSAEWOULDBLOCK)
-#endif
-#else /* __UNIXOS2__  Writing to full pipes may return ENOSPC */
-#define ETEST(err) (err == EAGAIN || err == EWOULDBLOCK || err == ENOSPC)
 #endif
 
 static Bool CriticalOutputPending;

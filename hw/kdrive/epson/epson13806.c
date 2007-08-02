@@ -1,4 +1,3 @@
-/* $Header$ */
 /*
  * Copyright 2004 by Costas Stylianou <costas.stylianou@psion.com> +44(0)7850 394095
  *

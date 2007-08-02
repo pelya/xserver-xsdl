@@ -3004,7 +3004,7 @@ xf86FindPrimaryDevice()
     
 }
 
-#if !defined(__sparc) && !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__)
+#if !defined(__sparc) && !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__) && !defined(__arm__)
 #include "vgaHW.h"
 #include "compiler.h"
 #endif

@@ -20,7 +20,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XConsortium: vgaCmap.c /main/15 1996/10/28 05:13:44 kaleb $ */
 
 
 #ifdef HAVE_XORG_CONFIG_H

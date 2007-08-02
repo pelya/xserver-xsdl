@@ -29,8 +29,6 @@
  *
  * Authors:     Earle F. Philhower, III
  */
-/* $XFree86$ */
-
 
 /*
  * Structures

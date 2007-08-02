@@ -1,31 +1,34 @@
-dnl $Id$
+dnl Copyright © 2003-2007 Keith Packard, Daniel Stone
 dnl
-dnl Copyright © 2003-2005 Keith Packard, Daniel Stone
+dnl Permission is hereby granted, free of charge, to any person obtaining a
+dnl copy of this software and associated documentation files (the "Software"),
+dnl to deal in the Software without restriction, including without limitation
+dnl the rights to use, copy, modify, merge, publish, distribute, sublicense,
+dnl and/or sell copies of the Software, and to permit persons to whom the
+dnl Software is furnished to do so, subject to the following conditions:
 dnl
-dnl Permission to use, copy, modify, distribute, and sell this software and its
-dnl documentation for any purpose is hereby granted without fee, provided that
-dnl the above copyright notice appear in all copies and that both that
-dnl copyright notice and this permission notice appear in supporting
-dnl documentation, and that the names of Keith Packard and Daniel Stone not be
-dnl used in advertising or publicity pertaining to distribution of the software
-dnl without specific, written prior permission.  Keith Packard and Daniel Stone
-dnl make no representations about the suitability of this software for any
-dnl purpose.  It is provided "as is" without express or implied warranty.
+dnl The above copyright notice and this permission notice (including the next
+dnl paragraph) shall be included in all copies or substantial portions of the
+dnl Software.
 dnl
-dnl KEITH PACKARD AND DANIEL STONE DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
-dnl SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS,
-dnl IN NO EVENT SHALL KEITH PACKARD OR DANIEL STONE BE LIABLE FOR ANY SPECIAL,
-dnl INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-dnl LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
-dnl OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-dnl PERFORMANCE OF THIS SOFTWARE.
+dnl THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+dnl IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+dnl FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+dnl THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+dnl LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+dnl FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+dnl DEALINGS IN THE SOFTWARE.
+dnl
+dnl Authors: Keith Packard <keithp@keithp.com>
+dnl          Daniel Stone <daniel@fooishbar.org>
+dnl          an unwitting cast of miscellaneous others
 dnl
 dnl Process this file with autoconf to create configure.
 
 AC_PREREQ(2.57)
 dnl This is the not the Xorg version number, it's the server version number.
 dnl Yes, that's weird.
-AC_INIT([xorg-server], 1.3.99.0, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
+AC_INIT([xorg-server], 1.3.99.1, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 AM_MAINTAINER_MODE
@@ -362,19 +365,6 @@ case $host_os in
 esac
 AM_CONDITIONAL(KDRIVE_HW, test "x$KDRIVE_HW" = xyes)
 
-AC_MSG_CHECKING(for MMX capable platform)
-if test "x$use_x86_asm" = xyes && test "x$GCC" = xyes ; then
-	AC_PREPROC_IFELSE([
-#if (!defined (__GNUC__) || __GNUC__ < 3 || (__GNUC__ == 3 && __GNUC_MINOR__ < 4))
-    #error Not supported
-#endif
-], mmx_capable=yes, mmx_capable=no)
-else
-	mmx_capable=no
-fi
-AC_MSG_RESULT([$mmx_capable])
-AM_CONDITIONAL(MMX_CAPABLE, [test "x$mmx_capable" = xyes])
-
 DEFAULT_VENDOR_NAME="The X.Org Foundation"
 DEFAULT_VENDOR_NAME_SHORT="X.Org"
 DEFAULT_VERSION_MAJOR=7
@@ -533,7 +523,8 @@ AC_ARG_ENABLE(fontcache,      AS_HELP_STRING([--enable-fontcache], [Build FontCa
 AC_ARG_ENABLE(dbe,            AS_HELP_STRING([--disable-dbe], [Build DBE extension (default: enabled)]), [DBE=$enableval], [DBE=yes])
 AC_ARG_ENABLE(xf86bigfont,    AS_HELP_STRING([--disable-xf86bigfont], [Build XF86 Big Font extension (default: enabled)]), [XF86BIGFONT=$enableval], [XF86BIGFONT=yes])
 AC_ARG_ENABLE(dpms,           AS_HELP_STRING([--disable-dpms], [Build DPMS extension (default: enabled)]), [DPMSExtension=$enableval], [DPMSExtension=yes])
-AC_ARG_ENABLE(dbus,           AS_HELP_STRING([--disable-dbus], [Build D-BUS support (default: auto)]), [DBUS=$enableval], [DBUS=auto])
+AC_ARG_ENABLE(config-dbus,    AS_HELP_STRING([--enable-config-dbus], [Build D-BUS API support (default: no)]), [CONFIG_DBUS_API=$enableval], [CONFIG_DBUS_API=no])
+AC_ARG_ENABLE(config-hal,     AS_HELP_STRING([--disable-config-hal], [Build HAL support (default: auto)]), [CONFIG_HAL=$enableval], [CONFIG_HAL=auto])
 AC_ARG_ENABLE(xfree86-utils,     AS_HELP_STRING([--enable-xfree86-utils], [Build xfree86 DDX utilities (default: enabled)]), [XF86UTILS=$enableval], [XF86UTILS=yes])
 
 dnl DDXes.
@@ -627,23 +618,53 @@ XEXT_INC='-I$(top_srcdir)/Xext'
 XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
-PIXMAN="[pixman >= 0.9.1]"
+PIXMAN="[pixman >= 0.9.2]"
 
 dnl Core modules for most extensions, et al.
 REQUIRED_MODULES="[randrproto >= 1.2] renderproto [fixesproto >= 4.0] [damageproto >= 1.1] xcmiscproto xextproto [xproto >= 7.0.9] xtrans [scrnsaverproto >= 1.1] bigreqsproto resourceproto fontsproto [inputproto >= 1.4.2] [kbproto >= 1.0.3]"
 REQUIRED_LIBS="xfont xau fontenc $PIXMAN"
 
-if test "x$DBUS" = xauto; then
-       PKG_CHECK_MODULES(DBUS, dbus-1, [DBUS=yes], [DBUS=no])
+dnl HAVE_DBUS is true if we actually have the D-Bus library, whereas
+dnl CONFIG_DBUS_API is true if we want to enable the D-Bus config
+dnl API.
+PKG_CHECK_MODULES(DBUS, dbus-1, [HAVE_DBUS=yes], [HAVE_DBUS=no])
+if test "x$HAVE_DBUS" = xyes; then
+	AC_DEFINE(HAVE_DBUS, 1, [Have D-Bus support])
 fi
-if test "x$DBUS" = xyes; then
-       PKG_CHECK_MODULES(DBUS, dbus-1)
-       AC_DEFINE(HAVE_DBUS, 1, [Have D-BUS support])
-       REQUIRED_MODULES="$REQUIRED_MODULES dbus-1"
-       REQUIRED_LIBS="$REQUIRED_LIBS dbus-1"
+AM_CONDITIONAL(HAVE_DBUS, [test "x$HAVE_DBUS" = xyes])
+
+if test "x$CONFIG_DBUS_API" = xauto; then
+	CONFIG_DBUS_API="$HAVE_DBUS"
+fi
+if test "x$CONFIG_DBUS_API" = xyes; then
+	if ! test "x$HAVE_DBUS" = xyes; then
+		AC_MSG_ERROR([D-Bus configuration API requested, but D-Bus is not installed.])
+	fi
+
+	AC_DEFINE(CONFIG_DBUS_API, 1, [Use the D-Bus input configuration API])
+	NEED_DBUS="yes"
+fi
+AM_CONDITIONAL(CONFIG_DBUS_API, [test "x$CONFIG_DBUS_API" = xyes])
+
+PKG_CHECK_MODULES(HAL, hal, [HAVE_HAL=yes], [HAVE_HAL=no])
+if test "x$CONFIG_HAL" = xauto; then
+	CONFIG_HAL="$HAVE_HAL"
+fi
+if test "x$CONFIG_HAL" = xyes; then
+	if ! test "x$HAVE_HAL" = xyes; then
+		AC_MSG_ERROR([HAL hotplug API requested, but HAL is not installed.])
+	fi
+
+	AC_DEFINE(CONFIG_HAL, 1, [Use the HAL hotplug API])
+        REQUIRED_LIBS="$REQUIRED_LIBS hal"
+	NEED_DBUS="yes"
+fi
+AM_CONDITIONAL(CONFIG_HAL, [test "x$CONFIG_HAL" = xyes])
+
+if test "x$NEED_DBUS" = xyes; then
+	REQUIRED_LIBS="$REQUIRED_LIBS dbus-1"
 fi
 CONFIG_LIB='$(top_builddir)/config/libconfig.a'
-AM_CONDITIONAL(DBUS, [test "x$DBUS" = xyes])
 
 AM_CONDITIONAL(XV, [test "x$XV" = xyes])
 if test "x$XV" = xyes; then
@@ -663,7 +684,7 @@ fi
 AM_CONDITIONAL(COMPOSITE, [test "x$COMPOSITE" = xyes])
 if test "x$COMPOSITE" = xyes; then
 	AC_DEFINE(COMPOSITE, 1, [Support Composite Extension])
-	REQUIRED_MODULES="$REQUIRED_MODULES [compositeproto >= 0.3]"
+	REQUIRED_MODULES="$REQUIRED_MODULES [compositeproto >= 0.4]"
 	COMPOSITE_LIB='$(top_builddir)/composite/libcomposite.la'
 	COMPOSITE_INC='-I$(top_srcdir)/composite'
 fi
@@ -848,6 +869,7 @@ fi
 if test "x$BUILTIN_FONTS" = xyes; then
        AC_DEFINE(BUILTIN_FONTS, 1, [Use only built-in fonts])
        AC_DEFINE(NOFONTSERVERACCESS, 1, [Avoid using a font server])
+       FONTPATH="built-ins"
 fi
 
 if test "x$XCALIBRATE" = xyes && test "$KDRIVE" = yes; then
@@ -1062,11 +1084,14 @@ if ! test "x$have_clock_gettime" = xno; then
         CLOCK_LIBS=""
     fi
 
+    LIBS_SAVE="$LIBS"
+    LIBS="$CLOCK_LIBS"
+
     AC_RUN_IFELSE([
 #define _POSIX_C_SOURCE 199309L
 #include <time.h>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[[]]) {
     struct timespec tp;
 
     if (clock_gettime(CLOCK_MONOTONIC, &tp) == 0)
@@ -1076,6 +1101,8 @@ int main(int argc, char *argv[]) {
 }
     ], [MONOTONIC_CLOCK=yes], [MONOTONIC_CLOCK=no],
        [MONOTONIC_CLOCK="cross compiling"])
+
+    LIBS="$LIBS_SAVE"
 else
     MONOTONIC_CLOCK=no
 fi
@@ -1191,7 +1218,7 @@ AC_MSG_RESULT([$XNEST])
 AM_CONDITIONAL(XNEST, [test "x$XNEST" = xyes])
 
 if test "x$XNEST" = xyes; then
-	XNEST_LIBS="$XSERVER_LIBS $FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $CWRAP_LIB $OS_LIB $LIBS"
+	XNEST_LIBS="$MI_LIB $CONFIG_LIB $XSERVER_LIBS $FB_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $CWRAP_LIB $OS_LIB $LIBS"
 	AC_SUBST([XNEST_LIBS])
 fi
 
@@ -1505,6 +1532,7 @@ return 0;}
 	fi
 	if test "x$DGA" = xyes; then
 		XORG_MODULES="$XORG_MODULES xf86dgaproto"
+		PKG_CHECK_MODULES(DGA, xf86dgaproto)
 		AC_DEFINE(DGA, 1, [Support DGA extension])
 		AC_DEFINE(XFreeXDGA, 1, [Build XDGA support])
 	fi
@@ -1514,6 +1542,7 @@ return 0;}
 	fi
 	if test "x$XF86MISC" = xyes; then
 		XORG_MODULES="$XORG_MODULES xf86miscproto"
+		PKG_CHECK_MODULES(XF86MISC, xf86miscproto)
 		AC_DEFINE(XF86MISC, 1, [Support XFree86 miscellaneous extensions])
 	fi
 
@@ -1522,6 +1551,7 @@ return 0;}
 	fi
 	if test "x$XF86VIDMODE" = xyes; then
 		XORG_MODULES="$XORG_MODULES xf86vidmodeproto"
+		PKG_CHECK_MODULES(XF86VIDMODE, xf86vidmodeproto)
 		AC_DEFINE(XF86VIDMODE, 1, [Support XFree86 Video Mode extension])
 	fi
 
@@ -1748,7 +1778,7 @@ _AM_DEPENDENCIES([OBJC])
 
 dnl kdrive DDX
 
-XEYPHR_LIBS=
+XEPHYR_LIBS=
 XEPHYR_INCS=
 XSDL_LIBS=
 XSDL_INCS=
@@ -1813,7 +1843,7 @@ if test "$KDRIVE" = yes; then
     # Xephyr needs nanosleep() which is in librt on Solaris
     AC_CHECK_FUNC([nanosleep], [],
         AC_CHECK_LIB([rt], [nanosleep], XEPHYR_LIBS="$XEPHYR_LIBS -lrt"))
-    XEPHYR_LIBS="$XEPHYR_LIBS $XSERVER_LIBS"
+    
     if test "x$TSLIB" = xyes; then
         PKG_CHECK_MODULES([TSLIB], [tslib-0.0], [HAVE_TSLIB="yes"], [HAVE_TSLIB="no"])
         if test "x$HAVE_TSLIB" = xno; then
@@ -1830,9 +1860,6 @@ if test "$KDRIVE" = yes; then
     
     KDRIVE_CFLAGS="$XSERVER_CFLAGS -DHAVE_KDRIVE_CONFIG_H $TSLIB_CFLAGS"
 
-    # dix os fb mi extension glx (NOTYET) damage shadow xpstubs
-    #KDRIVE_PURE_LIBS="$DIX_LIB $OS_LIB $FB_LIB $XEXT_LIB $MIEXT_DAMAGE_LIB \
-    #    $MIEXT_SHADOW_LIB $XPSTUBS_LIB"
     KDRIVE_PURE_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
     KDRIVE_LIB='$(top_builddir)/hw/kdrive/src/libkdrive.a'
     case $host_os in
@@ -1842,15 +1869,11 @@ if test "$KDRIVE" = yes; then
 	    ;;
     esac
     KDRIVE_STUB_LIB='$(top_builddir)/hw/kdrive/src/libkdrivestubs.a'
-    KDRIVE_LIBS="$XSERVERLIBS_LIBS $DIX_LIB $CONFIG_LIB $KDRIVE_LIB $TSLIB_LIBS $KDRIVE_OS_LIB $KDRIVE_PURE_LIBS $KDRIVE_STUB_LIB"
+    KDRIVE_LOCAL_LIBS="$DIX_LIB $CONFIG_LIB $KDRIVE_LIB $TSLIB_LIBS $KDRIVE_OS_LIB $KDRIVE_PURE_LIBS $KDRIVE_STUB_LIB"
+    KDRIVE_LIBS="$XSERVERLIBS_LIBS $KDRIVE_LOCAL_LIBS"
 
     # check if we can build Xephyr
     PKG_CHECK_MODULES(XEPHYR, x11 xext xfont xau xdmcp, [xephyr="yes"], [xephyr="no"])
-    XEPHYR_LIBS="$XEPHYR_LIBS $XSERVER_LIBS"
-
-    # Xephyr needs nanosleep() which is in librt on Solaris
-    AC_CHECK_FUNC([nanosleep], [],
-        AC_CHECK_LIB([rt], [nanosleep], XEPHYR_LIBS="$XEPHYR_LIBS -lrt"))
 
     AC_SUBST([XEPHYR_LIBS])
     AC_SUBST([XEPHYR_INCS])
@@ -1861,6 +1884,7 @@ AC_SUBST([KDRIVE_INCS])
 AC_SUBST([KDRIVE_PURE_INCS])
 AC_SUBST([KDRIVE_CFLAGS])
 AC_SUBST([KDRIVE_PURE_LIBS])
+AC_SUBST([KDRIVE_LOCAL_LIBS])
 AC_SUBST([KDRIVE_LIBS])
 AM_CONDITIONAL(KDRIVELINUX, [test "x$KDRIVELINUX" = xyes])
 AM_CONDITIONAL(TSLIB, [test "x$HAVE_TSLIB" = xyes])
@@ -1871,8 +1895,6 @@ AM_CONDITIONAL(XSDLSERVER, [test x"$XSDL" = xyes])
 AM_CONDITIONAL(XEPHYR, [test "x$KDRIVE" = xyes && test "x$XEPHYR" = xyes])
 AM_CONDITIONAL(BUILD_KDRIVEFBDEVLIB, [test "x$KDRIVE" = xyes && test "x$KDRIVEFBDEVLIB" = xyes])
 AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
-AM_CONDITIONAL(KDRIVEVESA, [test x"$ac_cv_header_sys_vm86_h" = xyes])
-AM_CONDITIONAL(KDRIVEFBDEV, [test x"$ac_cv_header_linux_fb_h" = xyes])
 
 dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
 AC_DEFINE(__XKBDEFRULES__, "xorg", [Default XKB rules])

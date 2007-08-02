@@ -286,15 +286,6 @@ RROutputSetCrtcs (RROutputPtr	output,
     return TRUE;
 }
 
-void
-RROutputSetCrtc (RROutputPtr output, RRCrtcPtr crtc)
-{
-    if (output->crtc == crtc)
-	return;
-    output->crtc = crtc;
-    RROutputChanged (output, FALSE);
-}
-
 Bool
 RROutputSetConnection (RROutputPtr  output,
 		       CARD8	    connection)

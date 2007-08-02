@@ -46,8 +46,6 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-#define INCLUDE_DEPRECATED 1
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
@@ -150,9 +148,7 @@ extern void _Qp_uitoq(unsigned int *, unsigned int);
 #endif
 
 #if defined(__GNUC__)
-#ifndef __UNIXOS2__
 extern long __div64(long, long);
-#endif
 extern long __divdf3(long, long);
 extern long __divdi3(long, long);
 extern long __divsf3(long, long);
@@ -160,9 +156,7 @@ extern long __divsi3(long, long);
 extern long __moddi3(long, long);
 extern long __modsi3(long, long);
 
-#ifndef __UNIXOS2__
 extern long __mul64(long, long);
-#endif
 extern long __muldf3(long, long);
 extern long __muldi3(long, long);
 extern long __mulsf3(long, long);
@@ -172,18 +166,14 @@ extern long __udivsi3(long, long);
 extern long __umoddi3(long, long);
 extern long __umodsi3(long, long);
 
-#ifndef __UNIXOS2__
 #pragma weak __div64
-#endif
 #pragma weak __divdf3
 #pragma weak __divdi3
 #pragma weak __divsf3
 #pragma weak __divsi3
 #pragma weak __moddi3
 #pragma weak __modsi3
-#ifndef __UNIXOS2__
 #pragma weak __mul64
-#endif
 #pragma weak __muldf3
 #pragma weak __muldi3
 #pragma weak __mulsf3
@@ -358,9 +348,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86FindScreenForEntity)
     SYMFUNC(xf86FindPciDeviceVendor)
     SYMFUNC(xf86FindPciClass)
-#ifdef INCLUDE_DEPRECATED
-    SYMFUNC(xf86EnablePciBusMaster)
-#endif
     SYMFUNC(xf86RegisterStateChangeNotificationCallback)
     SYMFUNC(xf86DeregisterStateChangeNotificationCallback)
     SYMFUNC(xf86NoSharedResources)
@@ -719,15 +706,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(DPMSSet)
     SYMFUNC(DPMSSupported)
 #endif
-/* xf86Debug.c */
-#ifdef BUILDDEBUG
-    SYMFUNC(xf86Break1)
-    SYMFUNC(xf86Break2)
-    SYMFUNC(xf86Break3)
-    SYMFUNC(xf86SPTimestamp)
-    SYMFUNC(xf86STimestamp)
-#endif
-
     SYMFUNC(pciFindFirst)
     SYMFUNC(pciFindNext)
     SYMFUNC(pciWriteByte)
@@ -1066,7 +1044,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
 # endif
 #endif
 #if defined(__GNUC__)
-#if !defined(__UNIXOS2__) && !defined(Lynx)
+#if !defined(Lynx)
     SYMFUNC(__div64)
 #endif
 #if !defined(Lynx)	/* FIXME: test on others than x86 and !3.1.0a/x86 */
@@ -1081,7 +1059,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
 #if !defined(Lynx)
     SYMFUNC(__modsi3)
 #endif
-#if !defined(__UNIXOS2__) && !defined(Lynx)
+#if !defined(Lynx)
     SYMFUNC(__mul64)
 #endif
 #if !defined(Lynx)
@@ -1140,13 +1118,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMVAR(xf86Screens)
     SYMVAR(byte_reversed)
     SYMVAR(xf86inSuspend)
-    /* debugging variables */
-#ifdef BUILDDEBUG
-    SYMVAR(xf86p8bit)
-    SYMVAR(xf86DummyVar1)
-    SYMVAR(xf86DummyVar2)
-    SYMVAR(xf86DummyVar3)
-#endif
 
     /* predefined resource lists from xf86Bus.h */
     SYMVAR(resVgaExclusive)

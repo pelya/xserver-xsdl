@@ -1,6 +1,4 @@
 /*************************************************************************************
- * $Id$
- * 
  * Copyright (C) 2005 Bogdan D. bogdand@users.sourceforge.net
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
@@ -22,7 +20,6 @@
  * otherwise to promote the sale, use or other dealings in this Software without prior written 
  * authorization from the author.
  *
- * $Log$
  * Revision 1.3  2005/09/24 21:56:00  bogdand
  * Changed the license to a X/MIT one
  *

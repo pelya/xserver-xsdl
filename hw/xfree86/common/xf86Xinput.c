@@ -45,7 +45,6 @@
  * the sale, use or other dealings in this Software without prior written
  * authorization from the copyright holder(s) and author(s).
  */
-/* $XConsortium: xf86Xinput.c /main/14 1996/10/27 11:05:25 kaleb $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -84,9 +83,7 @@
 
 #include <stdarg.h>
 
-#include "osdep.h"		/* EnabledDevices */
 #include <X11/Xpoll.h>
-#include "xf86_OSproc.h"	/* sigio stuff */
 
 #include "mi.h"
 
@@ -207,17 +204,6 @@ OpenInputDevice(DeviceIntPtr	dev,
     if (!dev->inited)
         ActivateDevice(dev);
 
-    if (!dev->public.on) {
-        if (EnableDevice(dev)) {
-            dev->startup = FALSE;
-        }
-        else {
-            ErrorF("couldn't enable device %s\n", dev->name);
-            *status = BadDevice;
-            return;
-        }
-    }
-
     *status = Success;
 }
 
@@ -300,6 +286,7 @@ ChangeDeviceControl (ClientPtr client, DeviceIntPtr dev, xDeviceCtl *control)
       case DEVICE_RESOLUTION:
       case DEVICE_ABS_CALIB:
       case DEVICE_ABS_AREA:
+      case DEVICE_ENABLE:
         return Success;
       default:
         return BadMatch;
@@ -325,6 +312,7 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
     InputOption *option = NULL;
     DeviceIntPtr dev = NULL;
     int rval = Success;
+    int is_auto = 0;
 
     idev = xcalloc(sizeof(*idev), 1);
     if (!idev)
@@ -340,7 +328,7 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
              * test if the module is already loaded first */
             drv = xf86LookupInputDriver(option->value);
             if (!drv)
-                if(xf86LoadOneModule(option->value, NULL))
+                if (xf86LoadOneModule(option->value, NULL))
                     drv = xf86LookupInputDriver(option->value);
             if (!drv) {
                 xf86Msg(X_ERROR, "No input driver matching `%s'\n",
@@ -354,6 +342,7 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
                 goto unwind;
             }
         }
+
         if (strcasecmp(option->key, "name") == 0 ||
             strcasecmp(option->key, "identifier") == 0) {
             if (idev->identifier) {
@@ -366,8 +355,19 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
                 goto unwind;
             }
         }
+
+        /* Right now, the only automatic config we know of is HAL. */
+        if (strcmp(option->key, "_source") == 0 &&
+            strcmp(option->value, "server/hal") == 0) {
+            if (!xf86Info.autoAddDevices) {
+                rval = BadMatch;
+                goto unwind;
+            }
+
+            is_auto = 1;
+        }
     }
-    if(!idev->driver || !idev->identifier) {
+    if (!idev->driver || !idev->identifier) {
         xf86Msg(X_ERROR, "No input driver/identifier specified (ignoring)\n");
         rval = BadRequest;
         goto unwind;
@@ -408,7 +408,10 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
 
     dev = pInfo->dev;
     ActivateDevice(dev);
-    if (dev->inited && dev->startup)
+    /* Enable it if it's properly initialised, we're currently in the VT, and
+     * either it's a manual request, or we're automatically enabling devices. */
+    if (dev->inited && dev->startup && xf86Screens[0]->vtSema &&
+        (!is_auto || xf86Info.autoEnableDevices))
         EnableDevice(dev);
 
     *pdev = dev;

@@ -104,6 +104,19 @@ FindProperty(WindowPtr pWin, Atom propertyName)
     return pProp;
 }
 
+static void
+deliverPropertyNotifyEvent(WindowPtr pWin, int state, Atom atom)
+{
+    xEvent event;
+
+    event.u.u.type = PropertyNotify;
+    event.u.property.window = pWin->drawable.id;
+    event.u.property.state = state;
+    event.u.property.atom = atom;
+    event.u.property.time = currentTime.milliseconds;
+    DeliverEvents(pWin, &event, 1, (WindowPtr)NULL);
+}
+
 int
 ProcRotateProperties(ClientPtr client)
 {
@@ -113,7 +126,6 @@ ProcRotateProperties(ClientPtr client)
     Atom * atoms;
     PropertyPtr * props;               /* array of pointer */
     PropertyPtr pProp;
-    xEvent event;
 
     REQUEST_FIXED_SIZE(xRotatePropertiesReq, stuff->nAtoms << 2);
     UpdateCurrentTime();
@@ -164,16 +176,9 @@ ProcRotateProperties(ClientPtr client)
             delta += stuff->nAtoms;
     	for (i = 0; i < stuff->nAtoms; i++)
  	{
-	    /* Generate a PropertyNotify event for each property whose value
-		is changed in the order in which they appear in the request. */
+	    deliverPropertyNotifyEvent(pWin, PropertyNewValue,
+				       props[i]->propertyName);
  
- 	    event.u.u.type = PropertyNotify;
-            event.u.property.window = pWin->drawable.id;
-    	    event.u.property.state = PropertyNewValue;
-	    event.u.property.atom = props[i]->propertyName;	
-	    event.u.property.time = currentTime.milliseconds;
-	    DeliverEvents(pWin, &event, 1, (WindowPtr)NULL);
-	
             props[i]->propertyName = atoms[(i + delta) % stuff->nAtoms];
 	}
     }
@@ -241,7 +246,6 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 			pointer value, Bool sendevent)
 {
     PropertyPtr pProp;
-    xEvent event;
     int sizeInBytes, totalSize, rc;
     pointer data;
 
@@ -344,15 +348,10 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
             pProp->size += len;
 	}
     }
+
     if (sendevent)
-    {
-	event.u.u.type = PropertyNotify;
-	event.u.property.window = pWin->drawable.id;
-	event.u.property.state = PropertyNewValue;
-	event.u.property.atom = pProp->propertyName;
-	event.u.property.time = currentTime.milliseconds;
-	DeliverEvents(pWin, &event, 1, (WindowPtr)NULL);
-    }
+	deliverPropertyNotifyEvent(pWin, PropertyNewValue, pProp->propertyName);
+
     return(Success);
 }
 
@@ -369,7 +368,6 @@ int
 DeleteProperty(WindowPtr pWin, Atom propName)
 {
     PropertyPtr pProp, prevProp;
-    xEvent event;
 
     if (!(pProp = wUserProps (pWin)))
 	return(Success);
@@ -392,12 +390,7 @@ DeleteProperty(WindowPtr pWin, Atom propName)
         {
             prevProp->next = pProp->next;
         }
-	event.u.u.type = PropertyNotify;
-	event.u.property.window = pWin->drawable.id;
-	event.u.property.state = PropertyDelete;
-        event.u.property.atom = pProp->propertyName;
-	event.u.property.time = currentTime.milliseconds;
-	DeliverEvents(pWin, &event, 1, (WindowPtr)NULL);
+	deliverPropertyNotifyEvent(pWin, PropertyDelete, pProp->propertyName);
 	dixFreePrivates(pProp->devPrivates);
 	xfree(pProp->data);
         xfree(pProp);
@@ -409,17 +402,11 @@ void
 DeleteAllWindowProperties(WindowPtr pWin)
 {
     PropertyPtr pProp, pNextProp;
-    xEvent event;
 
     pProp = wUserProps (pWin);
     while (pProp)
     {
-	event.u.u.type = PropertyNotify;
-	event.u.property.window = pWin->drawable.id;
-	event.u.property.state = PropertyDelete;
-	event.u.property.atom = pProp->propertyName;
-	event.u.property.time = currentTime.milliseconds;
-	DeliverEvents(pWin, &event, 1, (WindowPtr)NULL);
+	deliverPropertyNotifyEvent(pWin, PropertyDelete, pProp->propertyName);
 	pNextProp = pProp->next;
 	dixFreePrivates(pProp->devPrivates);
         xfree(pProp->data);
@@ -553,16 +540,7 @@ ProcGetProperty(ClientPtr client)
     reply.propertyType = pProp->type;
 
     if (stuff->delete && (reply.bytesAfter == 0))
-    { /* send the event */
-	xEvent event;
-
-	event.u.u.type = PropertyNotify;
-	event.u.property.window = pWin->drawable.id;
-	event.u.property.state = PropertyDelete;
-	event.u.property.atom = pProp->propertyName;
-	event.u.property.time = currentTime.milliseconds;
-	DeliverEvents(pWin, &event, 1, (WindowPtr)NULL);
-    }
+	deliverPropertyNotifyEvent(pWin, PropertyDelete, pProp->propertyName);
 
     WriteReplyToClient(client, sizeof(xGenericReply), &reply);
     if (len)

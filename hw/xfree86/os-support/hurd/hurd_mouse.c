@@ -20,7 +20,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XFree86: xc/programs/Xserver/hw/xfree86/os-support/hurd/hurd_mouse.c,v 1.7 2000/02/10 22:33:44 dawes Exp $ */
 
 #define NEED_EVENTS
 #ifdef HAVE_XORG_CONFIG_H

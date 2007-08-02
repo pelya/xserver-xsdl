@@ -1,6 +1,4 @@
 /*
- * Id: sis.h,v 1.1 1999/11/02 08:17:24 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/sis530/sis.h,v 1.4 2000/05/06 22:17:49 keithp Exp $ */
 
 #ifndef _SIS_H_
 #define _SIS_H_

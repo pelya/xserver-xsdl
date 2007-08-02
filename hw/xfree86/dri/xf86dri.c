@@ -404,10 +404,8 @@ ProcXF86DRICreateDrawable(
     if (rc != Success)
 	return rc;
 
-    if (!DRICreateDrawable( screenInfo.screens[stuff->screen],
-			    (Drawable)stuff->drawable,
-			    pDrawable,
-			    (drm_drawable_t *)&rep.hHWDrawable)) {
+    if (!DRICreateDrawable(screenInfo.screens[stuff->screen], client,
+			   pDrawable, (drm_drawable_t *)&rep.hHWDrawable)) {
 	return BadValue;
     }
 
@@ -435,9 +433,8 @@ ProcXF86DRIDestroyDrawable(
     if (rc != Success)
 	return rc;
 
-    if (!DRIDestroyDrawable( screenInfo.screens[stuff->screen], 
-			     (Drawable)stuff->drawable,
-			     pDrawable)) {
+    if (!DRIDestroyDrawable(screenInfo.screens[stuff->screen], client,
+			    pDrawable)) {
 	return BadValue;
     }
 

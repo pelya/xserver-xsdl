@@ -59,7 +59,6 @@ used in advertising or publicity pertaining to distribution of the
 software without specific, written prior permission.
 
 */
-/* $XConsortium: ppcBStore.c /main/5 1996/02/21 17:57:06 kaleb $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

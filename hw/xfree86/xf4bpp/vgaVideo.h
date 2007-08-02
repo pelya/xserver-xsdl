@@ -21,8 +21,6 @@
  *
 */
 
-/* $XConsortium: vgaVideo.h /main/4 1996/02/21 17:59:14 kaleb $ */
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif

@@ -28,7 +28,6 @@
  * Authors:	Early Ehlinger
  *		Harold L Hunt II
  */
-/* $XFree86: $ */
 
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>

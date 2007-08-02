@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright © 2006 Sun Microsystems
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -206,7 +204,7 @@ compFreeClientWindow (WindowPtr pWin, XID id)
 	    EnableMapUnmapEvents (pWin);
 	}
     
-	if (pWin->redirectDraw)
+	if (pWin->redirectDraw != RedirectDrawNone)
 	    compFreePixmap (pWin);
 
 	if (cw->damage)
@@ -218,10 +216,11 @@ compFreeClientWindow (WindowPtr pWin, XID id)
 	xfree (cw);
     }
     else if (cw->update == CompositeRedirectAutomatic &&
-	     !cw->damageRegistered && pWin->redirectDraw)
+	     !cw->damageRegistered && pWin->redirectDraw != RedirectDrawNone)
     {
 	DamageRegister (&pWin->drawable, cw->damage);
 	cw->damageRegistered = TRUE;
+	pWin->redirectDraw = RedirectDrawAutomatic;
 	DamageDamageRegion (&pWin->drawable, &pWin->borderSize);
     }
     if (wasMapped && !pWin->mapped)
@@ -508,7 +507,11 @@ compAllocPixmap (WindowPtr pWin)
 
     if (!pPixmap)
 	return FALSE;
-    pWin->redirectDraw = TRUE;
+    if (cw->update == CompositeRedirectAutomatic)
+	pWin->redirectDraw = RedirectDrawAutomatic;
+    else
+	pWin->redirectDraw = RedirectDrawManual;
+
     compSetPixmap (pWin, pPixmap);
     cw->oldx = COMP_ORIGIN_INVALID;
     cw->oldy = COMP_ORIGIN_INVALID;
@@ -543,7 +546,7 @@ compFreePixmap (WindowPtr pWin)
     REGION_COPY (pScreen, &pWin->borderClip, &cw->borderClip);
     pRedirectPixmap = (*pScreen->GetWindowPixmap) (pWin);
     pParentPixmap = (*pScreen->GetWindowPixmap) (pWin->parent);
-    pWin->redirectDraw = FALSE;
+    pWin->redirectDraw = RedirectDrawNone;
     compSetPixmap (pWin, pParentPixmap);
     (*pScreen->DestroyPixmap) (pRedirectPixmap);
 }
@@ -564,7 +567,7 @@ compReallocPixmap (WindowPtr pWin, int draw_x, int draw_y,
     int		    pix_x, pix_y;
     int		    pix_w, pix_h;
 
-    assert (cw && pWin->redirectDraw);
+    assert (cw && pWin->redirectDraw != RedirectDrawNone);
     cw->oldx = pOld->screen_x;
     cw->oldy = pOld->screen_y;
     pix_x = draw_x - bw;

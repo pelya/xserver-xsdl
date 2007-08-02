@@ -1,6 +1,4 @@
 /*
- * Id: kinput.c,v 1.1 1999/11/02 03:54:46 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  * Copyright © 2006 Nokia Corporation
  *
@@ -22,7 +20,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/kinput.c,v 1.30 2002/11/13 16:37:39 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>
@@ -740,6 +737,9 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
     DevicePtr   pDev = (DevicePtr)pDevice;
     KdKeyboardInfo *ki;
     Atom xiclass;
+#ifdef XKB
+    XkbComponentNamesRec names;
+#endif
 
     if (!pDev)
 	return BadImplementation;
@@ -788,11 +788,9 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
         KdInitModMap(ki);
         KdInitAutoRepeats(ki);
 
-#ifndef XKB
+#ifdef XKB
         if (!noXkbExtension) {
             memset(&names, 0, sizeof(XkbComponentNamesRec));
-            if (XkbInitialMap) 
-                names.keymap = XkbInitialMap;
 
             XkbSetRulesDflts ("base", "pc105", "us", NULL, NULL);
             ret = XkbInitKeyboardDeviceStruct (pDevice,
@@ -2296,6 +2294,7 @@ ChangeDeviceControl(register ClientPtr client, DeviceIntPtr pDev,
         return Success;
 
     case DEVICE_CORE:
+    case DEVICE_ENABLE:
         return Success;
 
     default:
@@ -2319,13 +2318,11 @@ NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
                 pi = KdNewPointer();
                 if (!pi)
                     return BadAlloc;
-                pi->options = options;
             }
             else if (strcmp(option->value, "keyboard") == 0) {
                 ki = KdNewKeyboard();
                 if (!ki)
                     return BadAlloc;
-                ki->options = options;
             }
             else {
                 ErrorF("unrecognised device type!\n");
@@ -2334,8 +2331,19 @@ NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
         }
     }
 
+    if (!ki && !pi) {
+        ErrorF("unrecognised device identifier!\n");
+        return BadValue;
+    }
+
     for (option = options; option; option = option->next) {
-        if (strcmp(option->key, "driver") == 0) {
+        if (strcmp(option->key, "device") == 0) {
+            if (pi && option->value)
+                pi->path = KdSaveString(option->value);
+            else if (ki && option->value)
+                ki->path = KdSaveString(option->value);
+        }
+        else if (strcmp(option->key, "driver") == 0) {
             if (pi) {
                 pi->driver = KdFindPointerDriver(option->value);
                 if (!pi->driver) {
@@ -2343,6 +2351,7 @@ NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
                     KdFreePointer(pi);
                     return BadValue;
                 }
+                pi->options = options;
             }
             else if (ki) {
                 ki->driver = KdFindKeyboardDriver(option->value);
@@ -2351,6 +2360,7 @@ NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
                     KdFreeKeyboard(ki);
                     return BadValue;
                 }
+                ki->options = options;
             }
         }
     }
@@ -2384,4 +2394,5 @@ NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
 void
 DeleteInputDeviceRequest(DeviceIntPtr pDev)
 {
+    RemoveDevice(pDev);
 }

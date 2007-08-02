@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright © 2003 Anders Carlsson
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $Header$ */
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>
 #endif

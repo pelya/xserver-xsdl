@@ -1,6 +1,4 @@
 /*
- * Id: chips.h,v 1.2 1999/11/02 08:17:24 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/chips/chips.h,v 1.9 2000/11/29 08:42:25 keithp Exp $ */
 
 #ifndef _CHIPS_H_
 #define _CHIPS_H_

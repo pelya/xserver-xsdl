@@ -627,9 +627,6 @@ typedef struct {
 extern int xstrcasecmp(char *s1, char *s2);
 #endif
 
-/* ffs.c */
-extern int ffs(int i);
-
 /*
  * These are deprecated compatibility functions and will be removed soon!
  * Please use the noted replacements instead.

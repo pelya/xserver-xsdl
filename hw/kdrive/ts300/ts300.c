@@ -1,6 +1,4 @@
 /*
- * Id: ts300.c,v 1.1 1999/11/02 08:17:24 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/ts300/ts300.c,v 1.3 2000/02/23 20:30:14 dawes Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>

@@ -62,6 +62,11 @@ xGLXSingleReply __glXReply;
 static __GLXclientState *__glXClients[MAXCLIENTS + 1];
 
 /*
+** Client that called into GLX dispatch.
+*/
+ClientPtr __pGlxClient;
+
+/*
 ** Forward declarations.
 */
 static int __glXDispatch(ClientPtr);
@@ -167,10 +172,12 @@ static int PixmapGone(__GLXpixmap *pGlxPixmap, XID id)
 
     pGlxPixmap->idExists = False;
     if (!pGlxPixmap->refcnt) {
+#ifdef XF86DRI
 	if (pGlxPixmap->pDamage) {
 	    DamageUnregister (pGlxPixmap->pDraw, pGlxPixmap->pDamage);
 	    DamageDestroy(pGlxPixmap->pDamage);
 	}
+#endif
 	/*
 	** The DestroyPixmap routine should decrement the refcount and free
 	** only if it's zero.
@@ -548,6 +555,8 @@ static int __glXDispatch(ClientPtr client)
     if (proc != NULL) {
 	GLboolean rendering = opcode <= X_GLXRenderLarge;
 	__glXleaveServer(rendering);
+
+	__pGlxClient = client;
 
 	retval = (*proc)(cl, (GLbyte *) stuff);
 

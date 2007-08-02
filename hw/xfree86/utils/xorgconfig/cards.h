@@ -1,10 +1,3 @@
-
-
-
-
-
-/* $XConsortium: cards.h /main/3 1996/02/21 18:12:53 kaleb $ */
-
 #ifndef CARD_DATABASE_FILE
 #define CARD_DATABASE_FILE "Cards"
 #endif

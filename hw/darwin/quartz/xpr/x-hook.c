@@ -1,5 +1,4 @@
 /* x-hook.c
-   $Id$
 
    Copyright (c) 2003 Apple Computer, Inc. All rights reserved.
 
@@ -27,7 +26,6 @@
    copyright holders shall not be used in advertising or otherwise to
    promote the sale, use or other dealings in this Software without
    prior written authorization. */
-/* $XFree86: $ */
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif

@@ -1093,7 +1093,7 @@ xf86GetPciConfigFromTag(PCITAG Tag)
     pciConfigPtr pDev;
     int i = 0;
 
-    for (i = 0 ; (pDev = pci_devp[i]) && i <= MAX_PCI_DEVICES; i++) {
+    for (i = 0 ; (pDev = pci_devp[i]) && i <= xf86MaxPciDevs; i++) {
 	if (Tag == pDev->tag)
 	    return pDev;
     }

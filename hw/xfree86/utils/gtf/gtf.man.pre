@@ -40,6 +40,6 @@ __xconfigfile__(__filemansuffix__)
 Andy Ritger.
 .PP
 This program is based on the Generalized Timing Formula (GTF(TM)) Standard
-Version: 1.0, Revsion: 1.0.  The GTF Excel(TM) spreadsheet, a sample
+Version: 1.0, Revision: 1.0.  The GTF Excel(TM) spreadsheet, a sample
 (and the definitive) implementation of the GTF Timing Standard is
 available at <ftp://ftp.vesa.org/pub/GTF/VTF_V1R1.xls>.

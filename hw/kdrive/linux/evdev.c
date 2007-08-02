@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright © 2004 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -155,8 +153,6 @@ EvdevInit (KdPointerInfo *pi)
 {
     int                i;
     int                fd;
-    int                n = 0;
-    char        *prot;
 
     if (!pi->path) {
         for (i = 0; i < NUM_DEFAULT_EVDEV; i++) {
@@ -276,6 +272,8 @@ static void
 EvdevDisable (KdPointerInfo *pi)
 {
     Kevdev              *ke;
+
+    ke = pi->driverPrivate;
 
     if (!pi || !pi->driverPrivate)
         return;

@@ -1,6 +1,4 @@
 /*
- * $RCSId: xc/programs/Xserver/hw/kdrive/igs/igs.c,v 1.2 2000/05/24 23:52:47 keithp Exp $
- *
  * Copyright © 1999 SuSE, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its

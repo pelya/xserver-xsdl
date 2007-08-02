@@ -458,7 +458,6 @@ xf86LookupMode(ScrnInfoPtr scrp, DisplayModePtr modep,
     int ModePrivFlags = 0;
     ModeStatus status = MODE_NOMODE;
     Bool allowDiv2 = (strategy & LOOKUP_CLKDIV2) != 0;
-    Bool haveBuiltin;
     int n;
     const int types[] = {
 	M_T_BUILTIN | M_T_PREFERRED,
@@ -1473,6 +1472,12 @@ xf86ValidateModes(ScrnInfoPtr scrp, DisplayModePtr availModes,
 			 scrp->monitor->vrefresh[i].lo,
 			 scrp->monitor->vrefresh[i].hi);
 	}
+	if (scrp->monitor->maxPixClock) {
+	    xf86DrvMsg(scrp->scrnIndex, X_INFO,
+		       "%s: Using maximum pixel clock of %.2f MHz\n",
+		       scrp->monitor->id,
+		       (float)scrp->monitor->maxPixClock / 1000.0);
+	}
     }
 
     /*
@@ -2038,6 +2043,7 @@ xf86SetCrtcForModes(ScrnInfoPtr scrp, int adjustFlags)
 }
 
 
+#if 0
 static void
 add(char **p, char *new)
 {
@@ -2046,7 +2052,6 @@ add(char **p, char *new)
     strcat(*p, new);
 }
 
-#if 0
 _X_EXPORT void
 xf86PrintModeline(int scrnIndex,DisplayModePtr mode)
 {

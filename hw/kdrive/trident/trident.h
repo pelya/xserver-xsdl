@@ -1,6 +1,4 @@
 /*
- * Id: trident.h,v 1.2 1999/11/02 08:17:24 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/trident/trident.h,v 1.8 2000/10/20 00:19:51 keithp Exp $ */
 
 #ifndef _TRIDENT_H_
 #define _TRIDENT_H_

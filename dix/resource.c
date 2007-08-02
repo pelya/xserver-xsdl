@@ -101,8 +101,6 @@ Equipment Corporation.
  * of the copyright holder.
  */
 
-/* $TOG: resource.c /main/41 1998/02/09 14:20:31 kaleb $ */
-
 /*	Routines to manage various kinds of resources:
  *
  *	CreateNewResourceType, CreateNewResourceClass, InitClientResources,

@@ -1,5 +1,3 @@
-/*	$NetBSD: usb.h,v 1.5 1999/07/02 15:46:53 simonb Exp $	*/
-
 /*
  * Copyright (c) 1999 Lennart Augustsson <augustss@netbsd.org>
  * All rights reserved.

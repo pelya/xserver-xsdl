@@ -1,4 +1,3 @@
-
 #ifndef __ASSYNTAX_H__
 #define	__ASSYNTAX_H__
 
@@ -49,8 +48,6 @@
  * the sale, use or other dealings in this Software without prior written
  * authorization from the copyright holder(s) and author(s).
  */
-
-/* $XConsortium: assyntax.h /main/5 1996/02/21 17:50:49 kaleb $ */
 
  /*
  * assyntax.h

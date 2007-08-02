@@ -19,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $Header$ */
 
 #include <sys/time.h>
 
@@ -43,6 +42,7 @@ extern CARD32 radeon_cp_microcode[][2];
 extern CARD32 r200_cp_microcode[][2];
 extern CARD32 r300_cp_microcode[][2];
 
+#if DEBUG_FIFO
 static void
 ATIDebugFifo(ATIScreenInfo *atis)
 {
@@ -69,6 +69,7 @@ ATIDebugFifo(ATIScreenInfo *atis)
 		    MMIO_IN32(mmio, R128_REG_PC_NGUI_CTLSTAT));
 	}
 }
+#endif
 
 static void
 ATIUploadMicrocode(ATIScreenInfo *atis)

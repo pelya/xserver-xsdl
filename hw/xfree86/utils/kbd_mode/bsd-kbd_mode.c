@@ -1,9 +1,4 @@
-
-
 /* Keyboard mode control program for 386BSD */
-
-
-/* $XConsortium: kbd_mode.c /main/7 1996/03/11 10:46:12 kaleb $ */
 
 #include <sys/types.h>
 #include <fcntl.h>

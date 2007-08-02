@@ -11,75 +11,6 @@
 #include "xf86.h"
 #include "Pci.h"
 
-/*
- * get_dev_on_bus - Return the first device we find on segnum, busnum
- *
- * Walk all the PCI devices and return the first one found on segnum, busnum.
- * There may be a better way to do this in some xf86* function I don't know
- * about.
- */
-static pciDevice *get_dev_on_bus(unsigned int segnum, unsigned int busnum)
-{
-	pciDevice **pdev = xf86scanpci(0);
-	int i;
-
-	for (i = 0; pdev[i] != NULL; i++)
-		if (PCI_DOM_FROM_TAG(pdev[i]->tag) == segnum &&
-		    pdev[i]->busnum == busnum)
-			return pdev[i];
-	/* Should never get here... */
-	ErrorF("No PCI device found on %04x:%02x??", segnum, busnum);
-	return NULL;
-}
-
-/*
- * get_bridge_info - fill in the bridge info for bus_info based on pdev
- *
- * Find the parent bus for pdev if it exists, otherwise assume pdev *is*
- * the parent bus.  We need this on Altix because our bridges are transparent.
- */
-static void get_bridge_info(pciBusInfo_t *bus_info, pciDevice *pdev)
-{
-	unsigned int parent_segnum, segnum = PCI_DOM_FROM_TAG(pdev->tag);
-	unsigned int parent_busnum, parent_nodombus, busnum = pdev->busnum;
-	unsigned int nodombus = PCI_BUS_NO_DOMAIN(PCI_BUS_FROM_TAG(pdev->tag));
-	char bridge_path[] = "/sys/class/pci_bus/0000:00/bridge";
-	char bridge_target[] = "../../../devices/pci0000:00";
-
-	/* Path to this device's bridge */
-	sprintf(bridge_path, "/sys/class/pci_bus/%04x:%02x/bridge", segnum,
-		nodombus);
-
-	if (readlink(bridge_path, bridge_target, strlen(bridge_target)) < 0) {
-		perror("failed to dereference bridge link");
- 		ErrorF("failed to dereference bridge link, aborting\n");
-		exit(-1);
-	}
-
-	sscanf(bridge_target, "../../../devices/pci%04x:%02x", &parent_segnum,
-	       &parent_nodombus);
-
-	parent_busnum = PCI_MAKE_BUS(parent_segnum, parent_nodombus);
-
-	/*
-	 * If there's no bridge or the bridge points to the device, use
-	 * pdev as the bridge
-	 */
-	if (segnum == parent_segnum && busnum == parent_busnum) {
-		bus_info->bridge = pdev;
-		bus_info->secondary = FALSE;
-		bus_info->primary_bus = busnum;
-	} else {
-		bus_info->bridge = get_dev_on_bus(parent_segnum,
-						  parent_busnum);
-		bus_info->secondary = TRUE;
-		bus_info->primary_bus = parent_busnum;
-	}
-	pdev->businfo = bus_info;
-	pdev->pci_base_class = PCI_CLASS_DISPLAY;
-	pdev->pci_sub_class = PCI_SUBCLASS_PREHISTORIC_VGA;
-}
-
 void xf86PreScanAltix(void)
 {
 	/* Nothing to see here... */
@@ -88,36 +19,65 @@ void xf86PreScanAltix(void)
 void xf86PostScanAltix(void)
 {
 	pciConfigPtr *pdev;
-	pciBusInfo_t *bus_info;
-	int prevBusNum, curBusNum, idx;
+	int idx, free_idx;
 
 	/*
-	 * Altix PCI bridges are invisible to userspace, so we make each device
-	 * look like it's its own bridge unless it actually has a parent (as in
-	 * the case of PCI to PCI bridges).
+	 * Some altix pci chipsets do not expose themselves as host
+	 * bridges.
+	 *
+	 * Walk the devices looking for buses for which there is not a
+	 * corresponding pciDevice entry (ie. pciBusInfo[]->bridge is NULL).
+	 *
+	 * It is assumed that this indicates a root bridge for which we will
+	 * construct a fake pci host bridge device.
 	 */
-	bus_info = pciBusInfo[0];
+
 	pdev = xf86scanpci(0);
-	prevBusNum = curBusNum = pdev[0]->busnum;
-	bus_info = pciBusInfo[curBusNum];
-	bus_info->bridge = pdev[0];
-	bus_info->secondary = FALSE;
-	bus_info->primary_bus = curBusNum;
+	for (idx = 0; pdev[idx] != NULL; idx++)
+		;
 
-	/* Walk all the PCI devices, assigning their bridge info */
-	for (idx = 0; pdev[idx] != NULL; idx++) {
-		if (pdev[idx]->busnum == prevBusNum)
-			continue; /* Already fixed up this bus */
+	free_idx = idx;
 
-		curBusNum = pdev[idx]->busnum;
-		bus_info = pciBusInfo[curBusNum];
+	for (idx = 0; idx < free_idx; idx++) {
+		pciConfigPtr dev, fakedev;
+		pciBusInfo_t *businfo;
+
+		dev = pdev[idx];
+		businfo = pciBusInfo[dev->busnum];
+
+		if (! businfo) {
+			/* device has no bus ... should this be an error? */
+			continue;
+		}
+
+		if (businfo->bridge) {
+			/* bus has a device ... no need for fixup */
+			continue;
+		}
+
+		if (free_idx >= MAX_PCI_DEVICES)
+			FatalError("SN: No room for fake root bridge device\n");
 
 		/*
-		 * Fill in bus_info for pdev.  The bridge field will either
-		 * be pdev[idx] or a device on the parent bus.
+		 * Construct a fake device and stick it at the end of the
+		 * pdev array.  Make it look like a host bridge.
 		 */
-		get_bridge_info(bus_info, pdev[idx]);
-		prevBusNum = curBusNum;
+		fakedev = xnfcalloc(1, sizeof(pciDevice));
+		fakedev->tag = PCI_MAKE_TAG(dev->busnum, 0, 0);;
+		fakedev->busnum = dev->busnum;
+		fakedev->devnum = 0;
+		fakedev->funcnum = 0;
+		fakedev->fakeDevice = 1;
+		/* should figure out a better DEVID */
+		fakedev->pci_device_vendor = DEVID(VENDOR_GENERIC, CHIP_VGA);
+		fakedev->pci_base_class = PCI_CLASS_BRIDGE;
+
+		businfo->secondary = 0;
+		businfo->primary_bus = dev->busnum;
+		businfo->bridge = fakedev;
+
+		fakedev->businfo = businfo;
+
+		pdev[free_idx++] = fakedev;
 	}
-	return;
 }

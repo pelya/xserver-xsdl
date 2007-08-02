@@ -1074,3 +1074,73 @@ VBEDPMSSet(vbeInfoPtr pVbe, int mode)
     return (R16(pVbe->pInt10->ax) == 0x4f);
 }
 
+void
+VBEInterpretPanelID(int scrnIndex, struct vbePanelID *data)
+{
+    ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
+    DisplayModePtr mode;
+    const float PANEL_HZ = 60.0;
+
+    if (!data)
+	return;
+
+    xf86DrvMsg(scrnIndex, X_INFO, "PanelID returned panel resolution %dx%d\n",
+	    data->hsize, data->vsize);
+
+    if (pScrn->monitor->nHsync || pScrn->monitor->nVrefresh)
+	return;
+
+    mode = xf86CVTMode(data->hsize, data->vsize, PANEL_HZ, 1, 0);
+
+    pScrn->monitor->nHsync = 1;
+    pScrn->monitor->hsync[0].lo = 31.5;
+    pScrn->monitor->hsync[0].hi = (float)mode->Clock / (float)mode->HTotal;
+    pScrn->monitor->nVrefresh = 1;
+    pScrn->monitor->vrefresh[0].lo = 56.0;
+    pScrn->monitor->vrefresh[0].hi =
+	(float)mode->Clock*1000.0 / (float)mode->HTotal / (float)mode->VTotal;
+
+    xfree(mode);
+}
+
+struct vbePanelID *
+VBEReadPanelID(vbeInfoPtr pVbe)
+{
+    int RealOff = pVbe->real_mode_base;
+    pointer page = pVbe->memory;
+    unsigned char *tmp = NULL;
+    int screen = pVbe->pInt10->scrnIndex;
+
+    pVbe->pInt10->ax = 0x4F11;
+    pVbe->pInt10->bx = 0x01;
+    pVbe->pInt10->cx = 0;
+    pVbe->pInt10->dx = 0;
+    pVbe->pInt10->es = SEG_ADDR(RealOff);
+    pVbe->pInt10->di = SEG_OFF(RealOff);
+    pVbe->pInt10->num = 0x10;
+
+    xf86ExecX86int10(pVbe->pInt10);
+
+    if ((pVbe->pInt10->ax & 0xff) != 0x4f) {
+	xf86DrvMsgVerb(screen,X_INFO,3,"VESA VBE PanelID invalid\n");
+	goto error;
+    }
+
+    switch (pVbe->pInt10->ax & 0xff00) {
+    case 0x0:
+	xf86DrvMsgVerb(screen,X_INFO,3,"VESA VBE PanelID read successfully\n");
+	tmp = (unsigned char *)xnfalloc(32); 
+	memcpy(tmp,page,32); 
+	break;
+    case 0x100:
+	xf86DrvMsgVerb(screen,X_INFO,3,"VESA VBE PanelID read failed\n");       
+	break;
+    default:
+	xf86DrvMsgVerb(screen,X_INFO,3,"VESA VBE PanelID unknown failure %i\n",
+		       pVbe->pInt10->ax & 0xff00);
+	break;
+    }
+
+error:
+    return tmp;
+}

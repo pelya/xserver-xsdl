@@ -30,7 +30,6 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XFree86: $ */
 
 #import <Cocoa/Cocoa.h>
 

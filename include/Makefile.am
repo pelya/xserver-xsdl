@@ -49,6 +49,7 @@ sdk_HEADERS =		\
 	validate.h	\
 	window.h	\
 	windowstr.h	\
+	xkbsrv.h	\
 	xorg-server.h
 endif
 

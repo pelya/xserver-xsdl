@@ -19,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $Header$ */
 
 /* Many of the Radeon and Rage 128 registers are the same.
  * ATI_ should denote registers and values that are common for R128 and Radeon.

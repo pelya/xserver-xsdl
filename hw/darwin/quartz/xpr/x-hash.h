@@ -1,5 +1,4 @@
 /* x-hash.h -- basic hash table class
-   $Id$
 
    Copyright (c) 2002 Apple Computer, Inc. All rights reserved.
 

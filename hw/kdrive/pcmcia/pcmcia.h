@@ -21,7 +21,6 @@
  *
  * Authors:  Alan Hourihane, <alanh@fairlite.demon.co.uk>
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/pcmcia/pcmcia.h,v 1.1 2001/05/23 08:56:09 alanh Exp $ */
 
 #ifndef _PCMCIA_H_
 #define _PCMCIA_H_

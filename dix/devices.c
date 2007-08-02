@@ -81,9 +81,20 @@ SOFTWARE.
 #include "exglobals.h"
 #include "exevents.h"
 
+/** @file
+ * This file handles input device-related stuff.
+ */
+
 int CoreDevicePrivatesIndex = 0;
 static int CoreDevicePrivatesGeneration = -1;
 
+/**
+ * Create a new input device and init it to sane values. The device is added
+ * to the server's off_devices list.
+ *
+ * @param deviceProc Callback for device control function (switch dev on/off).
+ * @return The newly created device.
+ */
 DeviceIntPtr
 AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 {
@@ -139,6 +150,7 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 #ifdef XKB
     dev->xkb_interest = NULL;
 #endif
+    dev->config_info = NULL;
     /* must pre-allocate one private for the new devPrivates support */
     dev->nPrivates = 1;
     dev->devPrivates = (DevUnion *)xcalloc(1, sizeof(DevUnion));
@@ -160,6 +172,15 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     return dev;
 }
 
+/**
+ * Switch device ON through the driver and push it onto the global device
+ * list. All clients are notified about the device being enabled.
+ *
+ * A device will send events once enabled.
+ *
+ * @param The device to be enabled.
+ * @return TRUE on success or FALSE otherwise.
+ */
 Bool
 EnableDevice(DeviceIntPtr dev)
 {
@@ -196,6 +217,13 @@ EnableDevice(DeviceIntPtr dev)
     return TRUE;
 }
 
+/**
+ * Switch a device off through the driver and push it onto the off_devices
+ * list. A device will not send events while disabled. All clients are
+ * notified about the device being disabled.
+ *
+ * @return TRUE on success or FALSE otherwise.
+ */
 Bool
 DisableDevice(DeviceIntPtr dev)
 {
@@ -226,6 +254,14 @@ DisableDevice(DeviceIntPtr dev)
     return TRUE;
 }
 
+/**
+ * Initialise a new device through the driver and tell all clients about the
+ * new device.
+ * 
+ * The device will NOT send events until it is enabled!
+ *
+ * @return Success or an error code on failure.
+ */
 int
 ActivateDevice(DeviceIntPtr dev)
 {
@@ -250,6 +286,10 @@ ActivateDevice(DeviceIntPtr dev)
     return ret;
 }
 
+/**
+ * Ring the bell.
+ * The actual task of ringing the bell is the job of the DDX.
+ */
 static void
 CoreKeyboardBell(int volume, DeviceIntPtr pDev, pointer arg, int something)
 {
@@ -264,6 +304,9 @@ CoreKeyboardCtl(DeviceIntPtr pDev, KeybdCtrl *ctrl)
     return;
 }
 
+/**
+ * Device control function for the Virtual Core Keyboard. 
+ */
 static int
 CoreKeyboardProc(DeviceIntPtr pDev, int what)
 {
@@ -324,6 +367,9 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
     return Success;
 }
 
+/**
+ * Device control function for the Virtual Core Pointer.
+ */
 static int
 CorePointerProc(DeviceIntPtr pDev, int what)
 {
@@ -354,6 +400,12 @@ CorePointerProc(DeviceIntPtr pDev, int what)
     return Success;
 }
 
+/**
+ * Initialise the two core devices, VCP and VCK (see events.c).
+ * The devices are activated but not enabled.
+ * Note that the server MUST have two core devices at all times, even if there
+ * is no physical device connected.
+ */
 void
 InitCoreDevices(void)
 {
@@ -413,6 +465,14 @@ InitCoreDevices(void)
     }
 }
 
+/**
+ * Activate all switched-off devices and then enable all those devices.
+ * 
+ * Will return an error if no core keyboard or core pointer is present.
+ * In theory this should never happen if you call InitCoreDevices() first.
+ * 
+ * @return Success or error code on failure.
+ */
 int
 InitAndStartDevices(void)
 {
@@ -448,6 +508,13 @@ InitAndStartDevices(void)
     return Success;
 }
 
+/**
+ * Close down a device and free all resources. 
+ * Once closed down, the driver will probably not expect you that you'll ever
+ * enable it again and free associated structs. If you want the device to just
+ * be disabled, DisableDevice().
+ * Don't call this function directly, use RemoveDevice() instead.
+ */
 static void
 CloseDevice(DeviceIntPtr dev)
 {
@@ -550,6 +617,10 @@ CloseDevice(DeviceIntPtr dev)
     xfree(dev);
 }
 
+/**
+ * Shut down all devices, free all resources, etc. 
+ * Only useful if you're shutting down the server!
+ */
 void
 CloseDownDevices(void)
 {
@@ -571,6 +642,12 @@ CloseDownDevices(void)
     inputInfo.pointer = NULL;
 }
 
+/**
+ * Remove a device from the device list, closes it and thus frees all
+ * resources. 
+ * Removes both enabled and disabled devices and notifies all devices about
+ * the removal of the device.
+ */
 int
 RemoveDevice(DeviceIntPtr dev)
 {

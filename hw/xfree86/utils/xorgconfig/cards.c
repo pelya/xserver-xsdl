@@ -1,10 +1,3 @@
-/* $XConsortium: cards.c /main/9 1996/10/19 18:15:32 kaleb $ */
-
-
-
-
-
-
 /*
  *  Functions to manipulate card database.
  */
@@ -66,15 +59,6 @@ getnextline(FILE *f, char *l)
 {
 	if (fgets(l, 128, f) == NULL)
 		return -1;
-#ifdef __UNIXOS2__
-	{
-		char *p = strchr(l,'\r');
-		if (p) {
-			*p = '\n';
-			*(p+1) = '\0';
-		}
-	}
-#endif
 	return 0;
 }
 
@@ -119,11 +103,7 @@ int parse_database() {
 	int i, lineno;
 	char filename[128];
 
-#ifndef __UNIXOS2__
 	strcpy(filename, CARD_DATABASE_FILE);
-#else
-	strcpy(filename, (char*)__XOS2RedirRoot(CARD_DATABASE_FILE));
-#endif
 	f = fopen(filename, "r");
 	if (f == NULL)
 		return -1;

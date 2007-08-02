@@ -21,8 +21,6 @@
  *
 */
 
-/* $XConsortium: ppcCpArea.c /main/6 1996/02/21 17:57:24 kaleb $ */
-
 /***********************************************************
 Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
 

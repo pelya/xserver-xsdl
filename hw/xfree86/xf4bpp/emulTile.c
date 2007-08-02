@@ -20,7 +20,6 @@
  * SOFTWARE.
  *
 */
-/* $XConsortium: emulTile.c /main/4 1996/02/21 17:56:23 kaleb $ */
 
 /* ppc Tile
  * P. Shupak 11/87

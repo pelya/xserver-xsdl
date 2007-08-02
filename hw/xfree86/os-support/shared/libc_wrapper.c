@@ -30,9 +30,6 @@
 #undef __STRICT_ANSI__
 #endif
 #include <X11/X.h>
-#ifdef __UNIXOS2__
-#define I_NEED_OS2_H
-#endif
 #include <X11/Xmd.h>
 #include <X11/Xos.h>
 #include <sys/types.h>
@@ -56,10 +53,6 @@
 #include <errno.h>
 #include <stdio.h>
 #include <sys/ioctl.h>
-#ifdef __UNIXOS2__
-#define NO_MMAP
-#include <sys/param.h>
-#endif
 #ifdef HAS_SVR3_MMAPDRV
 #define NO_MMAP
 #ifdef SELF_CONTAINED_WRAPPER
@@ -123,9 +116,6 @@ void xf86WrapperInit(void);
 #endif
 typedef struct dirent DIRENTRY;
 
-#ifdef __UNIXOS2__
-#define _POSIX_SOURCE
-#endif
 #ifdef ISC202
 #include <sys/types.h>
 #define WIFEXITED(a)  ((a & 0x00ff) == 0)  /* LSB will be 0 */
@@ -917,9 +907,7 @@ xf86strerror(int n)
 		mapnum (ENOTDIR);
 		mapnum (EPIPE);
 		mapnum (EROFS);
-#ifndef __UNIXOS2__
 		mapnum (ETXTBSY);	/* not POSIX 1 */
-#endif
 		mapnum (ENOTTY);
 #ifdef ENOSYS
 		mapnum (ENOSYS);
@@ -1243,7 +1231,6 @@ xf86bsearch(const void *key, const void *base, xf86size_t nmemb,
 _X_EXPORT int
 xf86execl(const char *pathname, const char *arg, ...)
 {
-#ifndef __UNIXOS2__
     int i;
     pid_t pid;
     int exit_status;
@@ -1327,9 +1314,6 @@ xf86execl(const char *pathname, const char *arg, ...)
 	       pathname);
 	return(1);
     }
-#else
-    return(1);
-#endif /* __UNIXOS2__ Disable this crazy business for now */
 }
 
 _X_EXPORT void
@@ -1435,9 +1419,7 @@ xfToOsChmodMode(xf86mode_t xfmode)
 
     if (xfmode & XF86_S_ISUID) mode |= S_ISUID;
     if (xfmode & XF86_S_ISGID) mode |= S_ISGID;
-#ifndef __UNIXOS2__
     if (xfmode & XF86_S_ISVTX) mode |= S_ISVTX;
-#endif
     if (xfmode & XF86_S_IRUSR) mode |= S_IRUSR;
     if (xfmode & XF86_S_IWUSR) mode |= S_IWUSR;
     if (xfmode & XF86_S_IXUSR) mode |= S_IXUSR;
@@ -1464,11 +1446,7 @@ xf86chmod(const char *path, xf86mode_t xfmode)
 _X_EXPORT int
 xf86chown(const char *path, xf86uid_t owner, xf86gid_t group)
 {
-#ifndef __UNIXOS2__
     int rc = chown(path, owner, group);
-#else
-    int rc = 0;
-#endif
     xf86errno = xf86GetErrno();
     return rc;
 }
@@ -1498,9 +1476,7 @@ xfToOsMknodMode(xf86mode_t xfmode)
 
     if (xfmode & XF86_S_IFREG) mode |= S_IFREG;
     if (xfmode & XF86_S_IFCHR) mode |= S_IFCHR;
-#ifndef __UNIXOS2__
     if (xfmode & XF86_S_IFBLK) mode |= S_IFBLK;
-#endif
     if (xfmode & XF86_S_IFIFO) mode |= S_IFIFO;
 
     return mode;
@@ -1509,11 +1485,7 @@ xfToOsMknodMode(xf86mode_t xfmode)
 _X_EXPORT int xf86mknod(const char *pathname, xf86mode_t xfmode, xf86dev_t dev)
 {
     mode_t mode = xfToOsMknodMode(xfmode);
-#ifndef __UNIXOS2__
     int rc      = mknod(pathname, mode, dev);
-#else
-    int rc = 0;
-#endif    
     xf86errno   = xf86GetErrno();
     return rc;
 }
@@ -1611,11 +1583,7 @@ _X_EXPORT int
 xf86finite(double x)
 {
 #ifndef QNX4
-#ifndef __UNIXOS2__
 	return(finite(x));
-#else
-	return(isfinite(x));
-#endif	/* __UNIXOS2__ */
 #else
 	/* XXX Replace this with something that really works. */
 	return 1;
@@ -1907,9 +1875,7 @@ xf86GetErrno ()
 		mapnum (ENOTDIR);
 		mapnum (EPIPE);
 		mapnum (EROFS);
-#ifndef __UNIXOS2__
 		mapnum (ETXTBSY);	/* not POSIX 1 */
-#endif
 		mapnum (ENOTTY);
 #ifdef ENOSYS
 		mapnum (ENOSYS);

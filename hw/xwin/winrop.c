@@ -27,7 +27,6 @@
  *
  * 	Authors:	Alan Hourihane <alanh@fairlite.demon.co.uk>
  */
-/* $XFree86$ */
 
 /*
  * Raster operations used by Windows translated to X's 16 rop codes...

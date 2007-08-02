@@ -311,12 +311,8 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
     Bool                xineramaInCore = FALSE;
     DRIEntPrivPtr       pDRIEntPriv;
     ScrnInfoPtr         pScrn = xf86Screens[pScreen->myNum];
-
-    if (DRIGeneration != serverGeneration) {
-	if ((DRIScreenPrivIndex = AllocateScreenPrivateIndex()) < 0)
-	    return FALSE;
-	DRIGeneration = serverGeneration;
-    }
+    DRIContextFlags	flags    = 0;
+    DRIContextPrivPtr	pDRIContextPriv;
 
     /* If the DRI extension is disabled, do not initialize the DRI */
     if (noXFree86DRIExtension) {
@@ -347,9 +343,16 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 
     pDRIEntPriv = DRI_ENT_PRIV(pScrn);
 
+    if (DRIGeneration != serverGeneration) {
+	if ((DRIScreenPrivIndex = AllocateScreenPrivateIndex()) < 0)
+	    return FALSE;
+	DRIGeneration = serverGeneration;
+    }
+
     pDRIPriv = (DRIScreenPrivPtr) xcalloc(1, sizeof(DRIScreenPrivRec));
     if (!pDRIPriv) {
         pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
+        DRIScreenPrivIndex = -1;
         return FALSE;
     }
 
@@ -415,23 +418,29 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
     pDRIPriv->hLSAREA = pDRIEntPriv->hLSAREA;
     pDRIPriv->pLSAREA = pDRIEntPriv->pLSAREA;
 
-    if (drmAddMap( pDRIPriv->drmFD,
-		   (drm_handle_t)pDRIPriv->pDriverInfo->frameBufferPhysicalAddress,
-		   pDRIPriv->pDriverInfo->frameBufferSize,
-		   DRM_FRAME_BUFFER,
-		   0,
-		   &pDRIPriv->hFrameBuffer) < 0)
+    if (!pDRIPriv->pDriverInfo->dontMapFrameBuffer)
     {
-	pDRIPriv->directRenderingSupport = FALSE;
-	pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
-	drmUnmap(pDRIPriv->pSAREA, pDRIPriv->pDriverInfo->SAREASize);
-	drmClose(pDRIPriv->drmFD);
-        DRIDrvMsg(pScreen->myNum, X_INFO,
-                  "[drm] drmAddMap failed\n");
-	return FALSE;
+	if (drmAddMap( pDRIPriv->drmFD,
+		       (drm_handle_t)pDRIPriv->pDriverInfo->frameBufferPhysicalAddress,
+		       pDRIPriv->pDriverInfo->frameBufferSize,
+		       DRM_FRAME_BUFFER,
+		       0,
+		       &pDRIPriv->pDriverInfo->hFrameBuffer) < 0)
+	    {
+		pDRIPriv->directRenderingSupport = FALSE;
+		pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
+		drmUnmap(pDRIPriv->pSAREA, pDRIPriv->pDriverInfo->SAREASize);
+		drmClose(pDRIPriv->drmFD);
+		DRIDrvMsg(pScreen->myNum, X_INFO,
+			  "[drm] drmAddMap failed\n");
+		return FALSE;
+	    }
+	DRIDrvMsg(pScreen->myNum, X_INFO, "[drm] framebuffer handle = %p\n",
+		  pDRIPriv->pDriverInfo->hFrameBuffer);
+    } else {
+	DRIDrvMsg(pScreen->myNum, X_INFO,
+		  "[drm] framebuffer mapped by ddx driver\n");
     }
-    DRIDrvMsg(pScreen->myNum, X_INFO, "[drm] framebuffer handle = %p\n",
-	      pDRIPriv->hFrameBuffer);
 
     if (pDRIEntPriv->resOwner == NULL) {
 	pDRIEntPriv->resOwner = pScreen;
@@ -478,21 +487,14 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 
     pDRIEntPriv->refCount++;
 
-    return TRUE;
-}
-
-Bool
-DRIFinishScreenInit(ScreenPtr pScreen)
-{
-    DRIScreenPrivPtr  pDRIPriv = DRI_SCREEN_PRIV(pScreen);
-    DRIInfoPtr        pDRIInfo = pDRIPriv->pDriverInfo;
-    DRIContextFlags   flags    = 0;
-    DRIContextPrivPtr pDRIContextPriv;
-
-				/* Set up flags for DRICreateContextPriv */
+    /* Set up flags for DRICreateContextPriv */
     switch (pDRIInfo->driverSwapMethod) {
-    case DRI_KERNEL_SWAP:    flags = DRI_CONTEXT_2DONLY;    break;
-    case DRI_HIDE_X_CONTEXT: flags = DRI_CONTEXT_PRESERVED; break;
+    case DRI_KERNEL_SWAP:
+	flags = DRI_CONTEXT_2DONLY;
+	break;
+    case DRI_HIDE_X_CONTEXT:
+	flags = DRI_CONTEXT_PRESERVED;
+	break;
     }
 
     if (!(pDRIContextPriv = DRICreateContextPriv(pScreen,
@@ -579,6 +581,15 @@ DRIFinishScreenInit(ScreenPtr pScreen)
 	break;
     }
 
+    return TRUE;
+}
+
+Bool
+DRIFinishScreenInit(ScreenPtr pScreen)
+{
+    DRIScreenPrivPtr  pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+    DRIInfoPtr        pDRIInfo = pDRIPriv->pDriverInfo;
+
     /* Wrap DRI support */
     if (pDRIInfo->wrap.ValidateTree) {
 	pDRIPriv->wrap.ValidateTree     = pScreen->ValidateTree;
@@ -592,6 +603,10 @@ DRIFinishScreenInit(ScreenPtr pScreen)
 	pDRIPriv->wrap.WindowExposures  = pScreen->WindowExposures;
 	pScreen->WindowExposures        = pDRIInfo->wrap.WindowExposures;
     }
+
+    pDRIPriv->DestroyWindow             = pScreen->DestroyWindow;
+    pScreen->DestroyWindow              = DRIDestroyWindow;
+
     if (pDRIInfo->wrap.CopyWindow) {
 	pDRIPriv->wrap.CopyWindow       = pScreen->CopyWindow;
 	pScreen->CopyWindow             = pDRIInfo->wrap.CopyWindow;
@@ -623,7 +638,7 @@ DRICloseScreen(ScreenPtr pScreen)
     DRIEntPrivPtr    pDRIEntPriv = DRI_ENT_PRIV(pScrn);
     Bool closeMaster;
 
-    if (pDRIPriv && pDRIPriv->directRenderingSupport) {
+    if (pDRIPriv) {
 
         pDRIInfo = pDRIPriv->pDriverInfo;
 
@@ -640,6 +655,10 @@ DRICloseScreen(ScreenPtr pScreen)
 	    if (pDRIInfo->wrap.WindowExposures) {
 		pScreen->WindowExposures        = pDRIPriv->wrap.WindowExposures;
 		pDRIPriv->wrap.WindowExposures  = NULL;
+	    }
+	    if (pDRIPriv->DestroyWindow) {
+		pScreen->DestroyWindow          = pDRIPriv->DestroyWindow;
+		pDRIPriv->DestroyWindow         = NULL;
 	    }
 	    if (pDRIInfo->wrap.CopyWindow) {
 		pScreen->CopyWindow             = pDRIPriv->wrap.CopyWindow;
@@ -726,6 +745,7 @@ DRICloseScreen(ScreenPtr pScreen)
 
 	xfree(pDRIPriv);
 	pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
+	DRIScreenPrivIndex = -1;
     }
 }
 
@@ -1246,8 +1266,8 @@ DRIDecreaseNumberVisible(ScreenPtr pScreen)
 }
 
 Bool
-DRICreateDrawable(ScreenPtr pScreen, Drawable id,
-                  DrawablePtr pDrawable, drm_drawable_t * hHWDrawable)
+DRICreateDrawable(ScreenPtr pScreen, ClientPtr client, DrawablePtr pDrawable,
+		  drm_drawable_t * hHWDrawable)
 {
     DRIScreenPrivPtr	pDRIPriv = DRI_SCREEN_PRIV(pScreen);
     DRIDrawablePrivPtr	pDRIDrawablePriv;
@@ -1289,10 +1309,11 @@ DRICreateDrawable(ScreenPtr pScreen, Drawable id,
 
 	    if (pDRIDrawablePriv->nrects)
 		DRIIncreaseNumberVisible(pScreen);
-
-	    /* track this in case this window is destroyed */
-	    AddResource(id, DRIDrawablePrivResType, (pointer)pWin);
 	}
+
+	/* track this in case the client dies */
+	AddResource(FakeClientID(client->index), DRIDrawablePrivResType,
+		    (pointer)pDrawable->id);
 
 	if (pDRIDrawablePriv->hwDrawable) {
 	    drmUpdateDrawableInfo(pDRIPriv->drmFD,
@@ -1311,21 +1332,59 @@ DRICreateDrawable(ScreenPtr pScreen, Drawable id,
     return TRUE;
 }
 
-Bool
-DRIDestroyDrawable(ScreenPtr pScreen, Drawable id, DrawablePtr pDrawable)
+static void
+DRIDrawablePrivDestroy(WindowPtr pWin)
 {
-    DRIDrawablePrivPtr	pDRIDrawablePriv;
-    WindowPtr		pWin;
+    DRIDrawablePrivPtr pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
+    ScreenPtr pScreen;
+    DRIScreenPrivPtr pDRIPriv;
 
+    if (!pDRIDrawablePriv)
+	return;
 
+    pScreen = pWin->drawable.pScreen;
+    pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+
+    if (pDRIDrawablePriv->drawableIndex != -1) {
+	/* bump stamp to force outstanding 3D requests to resync */
+	pDRIPriv->pSAREA->drawableTable[pDRIDrawablePriv->drawableIndex].stamp
+	    = DRIDrawableValidationStamp++;
+
+	/* release drawable table entry */
+	pDRIPriv->DRIDrawables[pDRIDrawablePriv->drawableIndex] = NULL;
+    }
+
+    pDRIPriv->nrWindows--;
+
+    if (pDRIDrawablePriv->nrects)
+	DRIDecreaseNumberVisible(pScreen);
+
+    drmDestroyDrawable(pDRIPriv->drmFD, pDRIDrawablePriv->hwDrawable);
+
+    xfree(pDRIDrawablePriv);
+    pWin->devPrivates[DRIWindowPrivIndex].ptr = NULL;
+}
+
+static Bool
+DRIDestroyDrawableCB(pointer value, XID id, pointer data)
+{
+    if (value == data) {
+	/* This calls back DRIDrawablePrivDelete which frees private area */
+	FreeResourceByType(id, DRIDrawablePrivResType, FALSE);
+
+	return TRUE;
+    }
+
+    return FALSE;
+}
+
+Bool
+DRIDestroyDrawable(ScreenPtr pScreen, ClientPtr client, DrawablePtr pDrawable)
+{
     if (pDrawable->type == DRAWABLE_WINDOW) {
-	pWin = (WindowPtr)pDrawable;
-	pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
-	pDRIDrawablePriv->refCount--;
-	if (pDRIDrawablePriv->refCount <= 0) {
-	    /* This calls back DRIDrawablePrivDelete which frees private area */
-	    FreeResourceByType(id, DRIDrawablePrivResType, FALSE);
-	}
+	LookupClientResourceComplex(client, DRIDrawablePrivResType,
+				    DRIDestroyDrawableCB,
+				    (pointer)pDrawable->id);
     }
     else { /* pixmap (or for GLX 1.3, a PBuffer) */
 	/* NOT_DONE */
@@ -1338,43 +1397,26 @@ DRIDestroyDrawable(ScreenPtr pScreen, Drawable id, DrawablePtr pDrawable)
 Bool
 DRIDrawablePrivDelete(pointer pResource, XID id)
 {
-    DrawablePtr		pDrawable = (DrawablePtr)pResource;
-    DRIScreenPrivPtr	pDRIPriv = DRI_SCREEN_PRIV(pDrawable->pScreen);
-    DRIDrawablePrivPtr	pDRIDrawablePriv;
-    WindowPtr		pWin;
+    WindowPtr pWin;
 
-    if (pDrawable->type == DRAWABLE_WINDOW) {
-	pWin = (WindowPtr)pDrawable;
-	pDRIDrawablePriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
+    id = (XID)pResource;
+    pWin = LookupIDByType(id, RT_WINDOW);
 
-	if (pDRIDrawablePriv->drawableIndex != -1) {
-	    /* bump stamp to force outstanding 3D requests to resync */
-	    pDRIPriv->pSAREA->drawableTable[pDRIDrawablePriv->drawableIndex].stamp
-		= DRIDrawableValidationStamp++;
+    if (pWin) {
+	DRIDrawablePrivPtr pDRIDrwPriv = DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin);
 
-	    /* release drawable table entry */
-	    pDRIPriv->DRIDrawables[pDRIDrawablePriv->drawableIndex] = NULL;
-	}
-
-	if (drmDestroyDrawable(pDRIPriv->drmFD,
-			       pDRIDrawablePriv->hwDrawable)) {
+	if (!pDRIDrwPriv)
 	    return FALSE;
-	}
 
-	xfree(pDRIDrawablePriv);
-	pWin->devPrivates[DRIWindowPrivIndex].ptr = NULL;
+	if (--pDRIDrwPriv->refCount == 0)
+	    DRIDrawablePrivDestroy(pWin);
 
-	pDRIPriv->nrWindows--;
-
-	if (REGION_NUM_RECTS(&pWin->clipList))
-	    DRIDecreaseNumberVisible(pDrawable->pScreen);
+	return TRUE;
     }
     else { /* pixmap (or for GLX 1.3, a PBuffer) */
 	/* NOT_DONE */
 	return FALSE;
     }
-
-    return TRUE;
 }
 
 Bool
@@ -1560,7 +1602,7 @@ DRIGetDeviceInfo(ScreenPtr pScreen,
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
 
-    *hFrameBuffer = pDRIPriv->hFrameBuffer;
+    *hFrameBuffer = pDRIPriv->pDriverInfo->hFrameBuffer;
     *fbOrigin = 0;
     *fbSize = pDRIPriv->pDriverInfo->frameBufferSize;
     *fbStride = pDRIPriv->pDriverInfo->frameBufferStride;
@@ -1880,6 +1922,31 @@ DRITreeTraversal(WindowPtr pWin, pointer data)
 	   return WT_STOPWALKING;
     }
     return WT_WALKCHILDREN;
+}
+
+Bool
+DRIDestroyWindow(WindowPtr pWin)
+{
+    ScreenPtr pScreen = pWin->drawable.pScreen;
+    DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
+    Bool retval = TRUE;
+
+    DRIDrawablePrivDestroy(pWin);
+
+    /* call lower wrapped functions */
+    if(pDRIPriv->DestroyWindow) {
+	/* unwrap */
+	pScreen->DestroyWindow = pDRIPriv->DestroyWindow;
+
+	/* call lower layers */
+	retval = (*pScreen->DestroyWindow)(pWin);
+
+	/* rewrap */
+	pDRIPriv->DestroyWindow = pScreen->DestroyWindow;
+	pScreen->DestroyWindow = DRIDestroyWindow;
+    }
+
+    return retval;
 }
 
 void

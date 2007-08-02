@@ -25,13 +25,11 @@
 typedef enum {
     OPT_NOINT10,
     OPT_INIT_PRIMARY,
-    OPT_BIOS_LOCATION
 } INT10Opts;
 
 static const OptionInfoRec INT10Options[] = {
     {OPT_NOINT10,       "NoINT10",      OPTV_BOOLEAN,   {0},    FALSE },
     {OPT_INIT_PRIMARY,  "InitPrimary",  OPTV_BOOLEAN,   {0},    FALSE },   
-    {OPT_BIOS_LOCATION, "BiosLocation",	OPTV_STRING,	{0},	FALSE },
     { -1,		NULL,		OPTV_NONE,	{0},	FALSE },
 };
 
@@ -271,92 +269,14 @@ initPrimary(const void* options)
     return initPrimary;
 }
 
-/*
- * xf86int10ParseBiosLocation(): allows to set the location of the
- * BIOS. One may select a BIOS of another card for posting or the
- * legacy V_BIOS range located at 0xc0000 or an alternative address
- * (BUS_ISA).
- * This is only useful under very special circumstances and should
- * be used with extreme care.
- */
-void
-xf86int10ParseBiosLocation(const void* options,
-			   xf86int10BiosLocationPtr bios)
-{
-    const char *p;
-    const char *str;
-
-    bios->bus = BUS_NONE;
-
-    if ((options == NULL) 
-	|| ((str = xf86GetOptValString(options, OPT_BIOS_LOCATION)) == NULL)) {
-	return;
-    }
-
-    if (strncasecmp(str, "pci", 3) == 0) {
-	bios->bus = BUS_PCI;
-    } else if (strncasecmp(str, "primary", 7) == 0) {
-	bios->bus = BUS_ISA;
-    }
-    else {
-	return;
-    }
-    
-    p = strchr(str, ':');
-		     
-    switch (bios->bus) {
-    case BUS_ISA:
-	bios->location.legacy = (p != NULL) ? atoi(++p) : 0;
-	break;
-    case BUS_PCI:
-	if (p) {
-	    bios->location.pci.bus = atoi(++p);
-	    if ((p = strchr(p, ':'))) {
-		bios->location.pci.dev = atoi(++p);
-		if ((p = strchr(p, ':'))) {
-		    bios->location.pci.func = atoi(++p);
-		    break;
-		}
-	    }
-	}
-	/* fall through */
-	bios->bus = BUS_NONE;
-	break;
-    default:
-	break;
-    }
-}
-
-
 BusType
-xf86int10GetBiosLocationType(const xf86Int10InfoPtr pInt,
-			     const xf86int10BiosLocationPtr bios)
+xf86int10GetBiosLocationType(const xf86Int10InfoPtr pInt)
 {
-    BusType location_type = bios->bus;
+    BusType location_type;
 
-    switch (location_type) {
-    case BUS_PCI:
-	xf86DrvMsg(pInt->scrnIndex,X_CONFIG,"Overriding bios location: "
-		   "PCI:%i:%i%i\n",bios->location.pci.bus,
-		   bios->location.pci.dev,bios->location.pci.func);
-	break;
-    case BUS_ISA:
-	if (bios->location.legacy)
-	    xf86DrvMsg(pInt->scrnIndex,X_CONFIG,"Overriding bios location: "
-		       "Legacy:0x%x\n",bios->location.legacy);
-	else
-	    xf86DrvMsg(pInt->scrnIndex,X_CONFIG,"Overriding bios location: "
-		       "Legacy\n");
-	break;
-    case BUS_NONE: {
-	EntityInfoPtr pEnt = xf86GetEntityInfo(pInt->entityIndex);
-	location_type = pEnt->location.type;
-	xfree(pEnt);
-	break;
-    }
-    default:
-	break;
-    }
+    EntityInfoPtr pEnt = xf86GetEntityInfo(pInt->entityIndex);
+    location_type = pEnt->location.type;
+    xfree(pEnt);
 
     return location_type;
 }
@@ -371,40 +291,19 @@ xf86int10GetBiosLocationType(const xf86Int10InfoPtr pInt,
     }
 
 Bool
-xf86int10GetBiosSegment(xf86Int10InfoPtr pInt,
-			const xf86int10BiosLocationPtr bios, void * base)
+xf86int10GetBiosSegment(xf86Int10InfoPtr pInt, void *base)
 {
     unsigned i;
     int cs = ~0;
     int segments[4];
     const char * format;
 
+    segments[0] = MEM_RW(pInt, (0x10 << 2) + 2);
+    segments[1] = MEM_RW(pInt, (0x42 << 2) + 2);
+    segments[2] = V_BIOS >> 4;
+    segments[3] = ~0;
 
-    if (bios->bus == BUS_ISA && bios->location.legacy) {
-	xf86DrvMsg(pInt->scrnIndex, X_CONFIG, 
-		   "Overriding BIOS location: 0x%x\n",
-		   bios->location.legacy);
-
-	segments[0] = bios->location.legacy >> 4;
-	segments[1] = ~0;
-
-	format = "No V_BIOS at specified address 0x%lx\n";
-    } else {
-	if (bios->bus == BUS_PCI) {
-	    xf86DrvMsg(pInt->scrnIndex, X_WARNING,
-		       "Option BiosLocation for primary device ignored: "
-		       "It points to PCI.\n");
-	    xf86DrvMsg(pInt->scrnIndex, X_WARNING,
-		       "You must set Option InitPrimary also\n");
-	}
-
-	segments[0] = MEM_RW(pInt, (0x10 << 2) + 2);
-	segments[1] = MEM_RW(pInt, (0x42 << 2) + 2);
-	segments[2] = V_BIOS >> 4;
-	segments[3] = ~0;
-
-	format = "No V_BIOS found\n";
-    }
+    format = "No V_BIOS found\n";
 
     for (i = 0; segments[i] != ~0; i++) {
 	unsigned char * vbiosMem;
@@ -424,7 +323,7 @@ xf86int10GetBiosSegment(xf86Int10InfoPtr pInt,
     }
 
     xf86DrvMsg(pInt->scrnIndex, X_INFO, "Primary V_BIOS segment is: 0x%lx\n",
-	       (unsigned long)cs);
+	    (unsigned long)cs);
 
     pInt->BIOSseg = cs;
     return TRUE;

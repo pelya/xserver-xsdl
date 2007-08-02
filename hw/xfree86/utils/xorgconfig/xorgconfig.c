@@ -1,4 +1,3 @@
-
 /*
  * This is a configuration program that will create a base XF86Config
  * file based on menu choices. Its main feature is that clueless users
@@ -91,7 +90,6 @@
  *  - Add font path "/TrueType/" and "/freefont/".
  *  Chisato Yamauchi(cyamauch@phyas.aichi-edu.ac.jp)
  */
-/* $XConsortium: xf86config.c /main/21 1996/10/28 05:43:57 kaleb $ */
 
 #ifdef HAVE_CONFIG_H
 # include "xorg-server.h"
@@ -106,13 +104,6 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
-/* hv: fix a few EMX problems, will disappear with real UnixOS/2 */
-#ifdef __UNIXOS2__
-#define sync() /*nothing*/
-static int getuid() { return 0; }
-#endif
-
 
 #include <X11/Xlib.h>
 #include <X11/extensions/XKBstr.h>
@@ -172,11 +163,7 @@ static int getuid() { return 0; }
 #endif
 #define MODULEPATH		TREEROOT "/lib/modules"
 
-#ifndef __UNIXOS2__
 #define XSERVERNAME_FOR_PROBE "X"
-#else
-#define XSERVERNAME_FOR_PROBE PROJECTROOT"/bin/"__XSERVERNAME__
-#endif
 
 #ifndef XCONFIGFILE
 #define XCONFIGFILE		"xorg.conf"
@@ -378,10 +365,6 @@ getstring(char *s)
 
 /*
  * Mouse configuration.
- *
- * (hv) OS/2 (__UNIXOS2__) only has an OS supported mouse, so user has no options
- * the server will enable a third button automatically if there is one
- * We also do the same for QNX4, since we use the OS mouse drivers.
  */
 
 int	M_OSMOUSE,	M_WSMOUSE,		M_AUTO,
@@ -398,7 +381,7 @@ struct {
 	int *ident;
 	char *desc;
 } mouse_info[] = {
-#if defined(__UNIXOS2__) || defined(QNX4)
+#if defined(QNX4)
 #define DEF_PROTO_STRING	"OSMOUSE"
 	{"OSMOUSE",		&M_OSMOUSE,
 	 "OSMOUSE"
@@ -498,7 +481,6 @@ struct {
 # define DEF_MOUSEDEV "/dev/mouse";
 #endif
 
-#ifndef __UNIXOS2__
 static char *mouseintro_text =
 "First specify a mouse protocol type. Choose one from the following list:\n"
 "\n";
@@ -549,12 +531,10 @@ static char *mousemancomment_text =
 "You have selected a Logitech MouseMan type mouse. You might want to enable\n"
 "ChordMiddle which could cause the third button to work.\n";
 
-#endif /* !__UNIXOS2__ */
-
 static void 
 mouse_configuration(void) {
 
-#if !defined(__UNIXOS2__) && !defined(QNX4)
+#if !defined(QNX4)
 	int i, j;
 	char s[80];
 	char *def_mousedev = DEF_MOUSEDEV;
@@ -670,18 +650,14 @@ mouse_configuration(void) {
 	}
 	printf("\n");
 
-#else /* __UNIXOS2__ */
+#else
        	/* set some reasonable defaults for OS/2 */
        	config_mousetype = M_OSMOUSE;
 	config_chordmiddle = 0;       
 	config_cleardtrrts = 0;
 	config_emulate3buttons = 0;
-#if !defined(QNX4)
-	config_pointerdevice = "OS2MOUSE";
-#else
 	config_pointerdevice = "QNXMOUSE";
 #endif
-#endif /* __UNIXOS2__ */
 }
 
 
@@ -1351,36 +1327,9 @@ static char *modestring[NU_MODESTRINGS] = {
 #endif
 };
 
-#ifdef __EMX__
-/* yet another instance of this code, sigh! */
-char *
-__XOS2RedirRoot(char *path, char sep)
-{
-	static char pn[300];
-	char *root;
-	int i,l;
-	if ((isalpha(path[0]) && path[1]==':') || path[0] != '/')
-		return path;
-
-	root = getenv("X11ROOT");
-	if (!root) root = "";
-	sprintf(pn,"%s%s",root,path);
-	if (sep=='\\') {
-		l = strlen(pn);
-		for (i=0; i<l; i++) 
-			if (pn[i]=='/') pn[i]='\\';
-	}
-	return pn;
-}
-#endif
-
-/* (hv) to avoid the UNIXISM to try to open a dir to check for existance */
 static int exists_dir(char *name) {
 	struct stat sbuf;
 
-#ifdef __EMX__
-	name = __XOS2RedirRoot(name,'/');
-#endif
 	/* is it there ? */
 	if (stat(name,&sbuf) == -1)
 		return 0;
@@ -1691,22 +1640,10 @@ skipramdacselection:
 		sprintf(d3name, "%s%s", temp_dir, DUMBCONFIG3);
 		printf("Running X -probeonly -pn -xf86config %s.\n", fname);
 		write_XF86Config(fname);
-#ifndef __EMX__
 		sync();
-#endif
 		/* compose a line with the real path */
-#ifndef __EMX__
                 sprintf(syscmdline, "X -probeonly -pn -xf86config %s 2> %s",
                         fname, d2name);
-#else
-		/* OS/2 does not have symlinks, so "X" does not exist,
-		 * call the real X server
-		 */
-		sprintf(syscmdline,"%s/"__XSERVERNAME__" -probeonly -pn -xf86config "
-		       TEMPORARY_XF86CONFIG_FILENAME " 2>" DUMBCONFIG2,
-		       __XOS2RedirRoot("/"__XSERVERNAME__"/bin",'\\'),
-		       card[card_selected].server);
-#endif
 
 		if (system(syscmdline)) {
 			printf("X -probeonly call failed.\n");
@@ -2548,10 +2485,8 @@ write_XF86Config(char *filename)
 	f = fopen(filename, "w");
 	if (f == NULL) {
 		printf("Failed to open filename for writing.\n");
-#ifndef __EMX__
 		if (getuid() != 0)
 			printf("Maybe you need to be root to write to the specified directory?\n");
-#endif
 		return(1);
 	}
 
@@ -2606,7 +2541,7 @@ write_XF86Config(char *filename)
 	fprintf(f, "    Option \"Protocol\"    \"%s\"\t# %s\n",
 		mouse_info[config_mousetype].name,
 		mouse_info[config_mousetype].desc);
-#if !defined(__UNIXOS2__) && !defined(QNX4)
+#if !defined(QNX4)
 	fprintf(f, "    Option \"Device\"      \"%s\"\n", config_pointerdevice);
 #endif
 	fprintf(f, "%s", pointersection_text2);
@@ -2780,7 +2715,6 @@ ask_XF86Config_location(void) {
 "I am going to write the " CONFIGNAME " file now. Make sure you don't accidently\n"
 "overwrite a previously configured one.\n\n");
 
-#ifndef __EMX__
 	if (getuid() == 0) {
 #ifdef PREFER_XF86CONFIG_IN_ETC
 		filename = Strdup("/etc/X11/" XCONFIGFILE);
@@ -2814,16 +2748,6 @@ ask_XF86Config_location(void) {
 		if (answerisyes(s))
 			return filename;
 #endif
-#else /* __EMX__ */
-	{
-		printf("Please answer the following question with either 'y' or 'n'.\n");
-		printf("Shall I write it to the default location, drive:/"__XSERVERNAME__"/lib/X11/XConfig? ");
-		getstring(s);
-		printf("\n");
-		if (answerisyes(s)) {
-			return __XOS2RedirRoot("/"__XSERVERNAME__"/lib/X11/XConfig",'/');
-		}
-#endif /* __EMX__ */
 	}
 
 	if (filename)
@@ -2862,7 +2786,6 @@ __XSERVERNAME__" distribution for your OS.\n"
 "libraries, configuration files and a server that you want to use.\n"
 "\n";
 
-#ifndef __UNIXOS2__
 static char *oldxfree86_text =
 "The directory '/usr/X386/bin' exists. You probably have a very old version of\n"
 "XFree86 installed, but this program was built to configure "__XSERVERNAME__" "XVERSIONSTRING"\n"
@@ -2882,7 +2805,6 @@ static char *pathnote_text =
 "link is '/usr/bin/X11'.\n"
 "\n"
 "Make sure the path is OK before continuing.\n";
-#endif
 
 static void 
 path_check(void) {
@@ -2899,7 +2821,6 @@ path_check(void) {
 		printf("\n");
 	}
 
-#ifndef __UNIXOS2__
 	ok = exists_dir("/usr/X386/bin");
 	if (!ok)
 		return;
@@ -2909,7 +2830,6 @@ path_check(void) {
 		getenv("PATH"));
 	printf("%s", pathnote_text);
 	keypress();
-#endif
 }
 
 

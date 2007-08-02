@@ -1,6 +1,4 @@
 /*
- * Id: kasync.c,v 1.3 1999/11/24 04:29:28 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/kasync.c,v 1.8 2001/03/30 02:15:19 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>
@@ -296,13 +293,8 @@ KdScreenInitAsync (ScreenPtr pScreen)
     pScreen->PaintWindowBorder = KdCheckPaintWindow;
     pScreen->CopyWindow = KdCheckCopyWindow;
     
-#ifndef FB_OLD_SCREEN
     pScreen->BackingStoreFuncs.SaveAreas = KdCheckSaveAreas;
     pScreen->BackingStoreFuncs.RestoreAreas = KdCheckRestoreAreas;
-#else
-    pScreenPriv->BackingStoreFuncs.SaveAreas = KdCheckSaveAreas;
-    pScreenPriv->BackingStoreFuncs.RestoreAreas = KdCheckRestoreAreas;
-#endif
 #ifdef RENDER
     KdPictureInitAsync (pScreen);
 #endif

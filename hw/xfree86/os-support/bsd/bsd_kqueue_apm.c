@@ -25,7 +25,6 @@
  * or other dealings in this Software without prior written authorization
  * from the XFree86 Project.
  */
-/* $OpenBSD: bsd_kqueue_apm.c,v 1.5 2002/07/30 23:07:42 matthieu Exp $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

@@ -85,14 +85,6 @@ extern Bool xf86inSuspend;
 #define PIX24TOBPP(p) (((p) == Pix24Use24) ? 24 : \
 			(((p) == Pix24Use32) ? 32 : 0))
 
-/* variables for debugging */
-#ifdef BUILDDEBUG
-extern char* xf86p8bit[];
-extern CARD32 xf86DummyVar1;
-extern CARD32 xf86DummyVar2;
-extern CARD32 xf86DummyVar3;
-#endif
-
 /* Function Prototypes */
 #ifndef _NO_XF86_PROTOTYPES
 
@@ -165,9 +157,6 @@ pciVideoPtr xf86FindPciDeviceVendor(CARD16 vendorID, CARD16 deviceID,
 				    char n, pciVideoPtr pvp_exclude);
 pciVideoPtr xf86FindPciClass(CARD8 intf, CARD8 subClass, CARD16 class,
 			     char n, pciVideoPtr pvp_exclude);
-#ifdef INCLUDE_DEPRECATED
-void xf86EnablePciBusMaster(pciVideoPtr pPci, Bool enable);
-#endif
 void xf86RegisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func, pointer arg);
 Bool xf86DeregisterStateChangeNotificationCallback(xf86StateChangeNotificationCallbackFunc func);
 
@@ -368,9 +357,6 @@ void xf86DeleteModuleInfo(int idx);
 
 /* xf86Debug.c */
 #ifdef BUILDDEBUG
- void xf86Break1(void);
-void xf86Break2(void);
-void xf86Break3(void);
 CARD8  xf86PeekFb8(CARD8  *p);
 CARD16 xf86PeekFb16(CARD16 *p);
 CARD32 xf86PeekFb32(CARD32 *p);
@@ -383,8 +369,6 @@ CARD32 xf86PeekMmio32(pointer Base, unsigned long Offset);
 void xf86PokeMmio8(pointer Base, unsigned long Offset, CARD8  v);
 void xf86PokeMmio16(pointer Base, unsigned long Offset, CARD16 v);
 void xf86PokeMmio32(pointer Base, unsigned long Offset, CARD32 v);
-extern void xf86SPTimestamp(xf86TsPtr* timestamp, char* string);
-extern void xf86STimestamp(xf86TsPtr* timestamp);
 #endif
 
 /* xf86Init.c */
