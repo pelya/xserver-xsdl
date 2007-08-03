@@ -1526,64 +1526,6 @@ SecurityParseExtensionRule(
 
 } /* SecurityParseExtensionRule */
 
-static char **SecurityPolicyStrings = NULL;
-static int nSecurityPolicyStrings = 0;
-
-static Bool
-SecurityParseSitePolicy(
-    char *p)
-{
-    char *policyStr = SecurityParseString(&p);
-    char *copyPolicyStr;
-    char **newStrings;
-
-    if (!policyStr)
-	return FALSE;
-
-    copyPolicyStr = (char *)Xalloc(strlen(policyStr) + 1);
-    if (!copyPolicyStr)
-	return TRUE;
-    strcpy(copyPolicyStr, policyStr);
-    newStrings = (char **)Xrealloc(SecurityPolicyStrings,
-			  sizeof (char *) * (nSecurityPolicyStrings + 1));
-    if (!newStrings)
-    {
-	Xfree(copyPolicyStr);
-	return TRUE;
-    }
-
-    SecurityPolicyStrings = newStrings;
-    SecurityPolicyStrings[nSecurityPolicyStrings++] = copyPolicyStr;
-
-    return TRUE;
-
-} /* SecurityParseSitePolicy */
-
-
-char **
-SecurityGetSitePolicyStrings(n)
-    int *n;
-{
-    *n = nSecurityPolicyStrings;
-    return SecurityPolicyStrings;
-} /* SecurityGetSitePolicyStrings */
-
-static void
-SecurityFreeSitePolicyStrings(void)
-{
-    if (SecurityPolicyStrings)
-    {
-	assert(nSecurityPolicyStrings);
-	while (nSecurityPolicyStrings--)
-	{
-	    Xfree(SecurityPolicyStrings[nSecurityPolicyStrings]);
-	}
-	Xfree(SecurityPolicyStrings);
-	SecurityPolicyStrings = NULL;
-	nSecurityPolicyStrings = 0;
-    }
-} /* SecurityFreeSitePolicyStrings */
-
 static void
 SecurityFreeTrustedExtensionStrings(void)
 {
@@ -1646,15 +1588,12 @@ SecurityLoadPropertyAccessList(void)
 	    switch (SecurityParseKeyword(&p))
 	    {
 		case SecurityKeywordComment:
+		case SecurityKeywordSitePolicy:
 		    validLine = TRUE;
 		break;
 
 		case SecurityKeywordProperty:
 		    validLine = SecurityParsePropertyAccessRule(p);
-		break;
-
-		case SecurityKeywordSitePolicy:
-		    validLine = SecurityParseSitePolicy(p);
 		break;
 
 		case SecurityKeywordExtension:
@@ -1837,7 +1776,6 @@ SecurityResetProc(
 {
     SecurityFreePropertyAccessList();
     SecurityFreeTrustedExtensionStrings();
-    SecurityFreeSitePolicyStrings();
 } /* SecurityResetProc */
 
 

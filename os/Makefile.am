@@ -6,7 +6,6 @@ AM_CFLAGS = $(DIX_CFLAGS)
 SECURERPC_SRCS = rpcauth.c
 INTERNALMALLOC_SRCS = xalloc.c
 
-XCSECURITY_SRCS = secauth.c
 XDMCP_SRCS = xdmcp.c
 STRLCAT_SRCS = strlcat.c strlcpy.c
 XORG_SRCS = log.c
@@ -28,10 +27,6 @@ libos_la_SOURCES = 	\
 	xprintf.c	\
 	$(XORG_SRCS)
 
-if XCSECURITY
-libos_la_SOURCES += $(XCSECURITY_SRCS)
-endif
-
 if XDMCP
 libos_la_SOURCES += $(XDMCP_SRCS)
 endif
@@ -48,7 +43,7 @@ libcwrapper_la_CFLAGS = \
 	$(AM_CFLAGS)
 
 EXTRA_DIST = $(SECURERPC_SRCS) $(INTERNALMALLOC_SRCS) \
-     $(XCSECURITY_SRCS) $(XDMCP_SRCS) $(STRLCAT_SRCS)
+     $(XDMCP_SRCS) $(STRLCAT_SRCS)
 
 if XSERVER_DTRACE
 # Generate dtrace object code for probes in libos & libdix

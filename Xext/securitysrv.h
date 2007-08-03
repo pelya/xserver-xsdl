@@ -84,6 +84,4 @@ extern int XSecurityOptions(int argc, char **argv, int i);
 
 #define SECURITY_POLICY_FILE_VERSION "version-1"
 
-extern char **SecurityGetSitePolicyStrings(int *n);
-
 #endif /* _SECURITY_SRV_H */

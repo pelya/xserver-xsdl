@@ -140,9 +140,6 @@ SOFTWARE.
 #include "appgroup.h"
 #endif
 #include "xace.h"
-#ifdef XCSECURITY
-#include "securitysrv.h"
-#endif
 
 #ifdef X_NOT_POSIX
 #define Pid_t int
@@ -669,13 +666,7 @@ ClientAuthorized(ClientPtr client,
 
     if (auth_id == (XID) ~0L)
     {
-	if (
-#ifdef XCSECURITY	    
-	    (proto_n == 0 ||
-	    strncmp (auth_proto, XSecurityAuthorizationName, proto_n) != 0) &&
-#endif
-	    _XSERVTransGetPeerAddr (trans_conn,
-	        &family, &fromlen, &from) != -1)
+	if (_XSERVTransGetPeerAddr(trans_conn, &family, &fromlen, &from) != -1)
 	{
 	    if (InvalidHost ((struct sockaddr *) from, fromlen, client))
 		AuthAudit(client, FALSE, (struct sockaddr *) from,

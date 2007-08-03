@@ -42,9 +42,6 @@ from The Open Group.
 # include   "dixstruct.h"
 # include   <sys/types.h>
 # include   <sys/stat.h>
-#ifdef XCSECURITY
-# include   "securitysrv.h"
-#endif
 #ifdef WIN32
 #include    <X11/Xw32defs.h>
 #endif
@@ -87,14 +84,6 @@ static struct protocol   protocols[] = {
 #ifdef XCSECURITY
 		NULL
 #endif
-},
-#endif
-#ifdef XCSECURITY
-{   (unsigned short) XSecurityAuthorizationNameLen,
-	XSecurityAuthorizationName,
-		NULL, AuthSecurityCheck, NULL,
-		NULL, NULL, NULL,
-		NULL
 },
 #endif
 };
