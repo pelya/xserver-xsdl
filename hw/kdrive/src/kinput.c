@@ -1233,14 +1233,17 @@ KdParsePointer (char *arg)
             bzero(newopt, sizeof (InputOption));
 
             for (tmpo = &options; *tmpo; tmpo = &(*tmpo)->next)
+                ; /* Hello, I'm here */
+
             *tmpo = newopt;
 
-            if (strchr(arg, '='))
+            if (strchr(save, '='))
             {
-                i = (strchr(arg, '=') - arg);
-                newopt->key = (char *)xalloc(i+1);
-                strncpy(newopt->key, arg, i+1);
-                newopt->value = xstrdup(strchr(arg, '=') + 1);
+                i = (strchr(save, '=') - save);
+                newopt->key = (char *)xalloc(i);
+                strncpy(newopt->key, save, i);
+		newopt->key[i] = '\0';
+                newopt->value = xstrdup(strchr(save, '=') + 1);
             }
             else
             {
