@@ -108,8 +108,141 @@ struct _EphyrHostXVAdaptorArray {
     unsigned int nb_adaptors ;
 };
 
+/*heavily copied from libx11*/
+#define BUFSIZE 2048
+static void
+ephyrHostXVLogXErrorEvent (Display *a_display,
+                           XErrorEvent *a_err_event,
+                           FILE *a_fp)
+{
+    char buffer[BUFSIZ];
+    char mesg[BUFSIZ];
+    char number[32];
+    const char *mtype = "XlibMessage";
+    register _XExtension *ext = (_XExtension *)NULL;
+    _XExtension *bext = (_XExtension *)NULL;
+    Display *dpy = a_display ;
+
+    XGetErrorText(dpy, a_err_event->error_code, buffer, BUFSIZ);
+    XGetErrorDatabaseText(dpy, mtype, "XError", "X Error", mesg, BUFSIZ);
+    (void) fprintf(a_fp, "%s:  %s\n  ", mesg, buffer);
+    XGetErrorDatabaseText(dpy, mtype, "MajorCode", "Request Major code %d",
+            mesg, BUFSIZ);
+    (void) fprintf(a_fp, mesg, a_err_event->request_code);
+    if (a_err_event->request_code < 128) {
+        sprintf(number, "%d", a_err_event->request_code);
+        XGetErrorDatabaseText(dpy, "XRequest", number, "", buffer, BUFSIZ);
+    } else {
+        for (ext = dpy->ext_procs;
+                ext && (ext->codes.major_opcode != a_err_event->request_code);
+                ext = ext->next)
+            ; 
+        if (ext)
+            strcpy(buffer, ext->name);
+        else
+            buffer[0] = '\0';
+    }
+    (void) fprintf(a_fp, " (%s)\n", buffer);
+    if (a_err_event->request_code >= 128) {
+        XGetErrorDatabaseText(dpy, mtype, "MinorCode", "Request Minor code %d",
+                mesg, BUFSIZ);
+        fputs("  ", a_fp);
+        (void) fprintf(a_fp, mesg, a_err_event->minor_code);
+        if (ext) {
+            sprintf(mesg, "%s.%d", ext->name, a_err_event->minor_code);
+            XGetErrorDatabaseText(dpy, "XRequest", mesg, "", buffer, BUFSIZ);
+            (void) fprintf(a_fp, " (%s)", buffer);
+        }
+        fputs("\n", a_fp);
+    }
+    if (a_err_event->error_code >= 128) { 
+        /* kludge, try to find the extension that caused it */
+        buffer[0] = '\0';
+        for (ext = dpy->ext_procs; ext; ext = ext->next) {
+            if (ext->error_string)
+                (*ext->error_string)(dpy, a_err_event->error_code, &ext->codes,
+                        buffer, BUFSIZ);
+            if (buffer[0]) {
+                bext = ext;
+                break;
+            }
+            if (ext->codes.first_error &&
+                    ext->codes.first_error < (int)a_err_event->error_code &&
+                    (!bext || ext->codes.first_error > bext->codes.first_error))
+                bext = ext;
+        }
+        if (bext)
+            sprintf(buffer, "%s.%d", bext->name,
+                    a_err_event->error_code - bext->codes.first_error);
+        else
+            strcpy(buffer, "Value");
+        XGetErrorDatabaseText(dpy, mtype, buffer, "", mesg, BUFSIZ);
+        if (mesg[0]) {
+            fputs("  ", a_fp);
+            (void) fprintf(a_fp, mesg, a_err_event->resourceid);
+            fputs("\n", a_fp);
+        }
+        /* let extensions try to print the values */
+        for (ext = dpy->ext_procs; ext; ext = ext->next) {
+            if (ext->error_values)
+                (*ext->error_values)(dpy, a_err_event, a_fp);
+        }
+    } else if ((a_err_event->error_code == BadWindow) ||
+            (a_err_event->error_code == BadPixmap) ||
+            (a_err_event->error_code == BadCursor) ||
+            (a_err_event->error_code == BadFont) ||
+            (a_err_event->error_code == BadDrawable) ||
+            (a_err_event->error_code == BadColor) ||
+            (a_err_event->error_code == BadGC) ||
+            (a_err_event->error_code == BadIDChoice) ||
+            (a_err_event->error_code == BadValue) ||
+            (a_err_event->error_code == BadAtom)) {
+        if (a_err_event->error_code == BadValue)
+            XGetErrorDatabaseText(dpy, mtype, "Value", "Value 0x%x",
+                    mesg, BUFSIZ);
+        else if (a_err_event->error_code == BadAtom)
+            XGetErrorDatabaseText(dpy, mtype, "AtomID", "AtomID 0x%x",
+                    mesg, BUFSIZ);
+        else
+            XGetErrorDatabaseText(dpy, mtype, "ResourceID", "ResourceID 0x%x",
+                    mesg, BUFSIZ);
+        fputs("  ", a_fp);
+        (void) fprintf(a_fp, mesg, a_err_event->resourceid);
+        fputs("\n", a_fp);
+    }
+    XGetErrorDatabaseText(dpy, mtype, "ErrorSerial", "Error Serial #%d",
+            mesg, BUFSIZ);
+    fputs("  ", a_fp);
+    (void) fprintf(a_fp, mesg, a_err_event->serial);
+    XGetErrorDatabaseText(dpy, mtype, "CurrentSerial", "Current Serial #%d",
+            mesg, BUFSIZ);
+    fputs("\n  ", a_fp);
+    (void) fprintf(a_fp, mesg, dpy->request);
+    fputs("\n", a_fp);
+}
+
+static int
+ephyrHostXVErrorHandler (Display *a_display,
+                         XErrorEvent *a_error_event)
+{
+    EPHYR_LOG_ERROR ("got an error from the host xserver:\n") ;
+    ephyrHostXVLogXErrorEvent (a_display, a_error_event, stderr) ;
+    return Success ;
+}
+
+void
+ephyrHostXVInit (void)
+{
+    static Bool s_initialized ;
+
+    if (s_initialized)
+        return ;
+    XSetErrorHandler (ephyrHostXVErrorHandler) ;
+    s_initialized = TRUE ;
+}
+
 Bool
-EphyrHostXVQueryAdaptors (EphyrHostXVAdaptorArray **a_adaptors)
+ephyrHostXVQueryAdaptors (EphyrHostXVAdaptorArray **a_adaptors)
 {
     EphyrHostXVAdaptorArray *result=NULL ;
     int ret=0 ;
@@ -140,7 +273,7 @@ out:
 }
 
 void
-EphyrHostXVAdaptorArrayDelete (EphyrHostXVAdaptorArray *a_adaptors)
+ephyrHostXVAdaptorArrayDelete (EphyrHostXVAdaptorArray *a_adaptors)
 {
     if (!a_adaptors)
         return ;
@@ -153,14 +286,14 @@ EphyrHostXVAdaptorArrayDelete (EphyrHostXVAdaptorArray *a_adaptors)
 }
 
 int
-EphyrHostXVAdaptorArrayGetSize (const EphyrHostXVAdaptorArray *a_this)
+ephyrHostXVAdaptorArrayGetSize (const EphyrHostXVAdaptorArray *a_this)
 {
     EPHYR_RETURN_VAL_IF_FAIL (a_this, -1) ;
     return a_this->nb_adaptors ;
 }
 
 EphyrHostXVAdaptor*
-EphyrHostXVAdaptorArrayAt (const EphyrHostXVAdaptorArray *a_this,
+ephyrHostXVAdaptorArrayAt (const EphyrHostXVAdaptorArray *a_this,
                            int a_index)
 {
     EPHYR_RETURN_VAL_IF_FAIL (a_this, NULL) ;
@@ -171,14 +304,14 @@ EphyrHostXVAdaptorArrayAt (const EphyrHostXVAdaptorArray *a_this,
 }
 
 char
-EphyrHostXVAdaptorGetType (const EphyrHostXVAdaptor *a_this)
+ephyrHostXVAdaptorGetType (const EphyrHostXVAdaptor *a_this)
 {
     EPHYR_RETURN_VAL_IF_FAIL (a_this, -1) ;
     return ((XvAdaptorInfo*)a_this)->type ;
 }
 
 const char*
-EphyrHostXVAdaptorGetName (const EphyrHostXVAdaptor *a_this)
+ephyrHostXVAdaptorGetName (const EphyrHostXVAdaptor *a_this)
 {
     EPHYR_RETURN_VAL_IF_FAIL (a_this, NULL) ;
 
@@ -186,7 +319,7 @@ EphyrHostXVAdaptorGetName (const EphyrHostXVAdaptor *a_this)
 }
 
 EphyrHostVideoFormat*
-EphyrHostXVAdaptorGetVideoFormats (const EphyrHostXVAdaptor *a_this,
+ephyrHostXVAdaptorGetVideoFormats (const EphyrHostXVAdaptor *a_this,
                                    int *a_nb_formats)
 {
     EphyrHostVideoFormat *formats=NULL ;
@@ -216,7 +349,7 @@ EphyrHostXVAdaptorGetVideoFormats (const EphyrHostXVAdaptor *a_this,
 }
 
 int
-EphyrHostXVAdaptorGetNbPorts (const EphyrHostXVAdaptor *a_this)
+ephyrHostXVAdaptorGetNbPorts (const EphyrHostXVAdaptor *a_this)
 {
     EPHYR_RETURN_VAL_IF_FAIL (a_this, -1) ;
 
@@ -224,7 +357,7 @@ EphyrHostXVAdaptorGetNbPorts (const EphyrHostXVAdaptor *a_this)
 }
 
 int
-EphyrHostXVAdaptorGetFirstPortID (const EphyrHostXVAdaptor *a_this)
+ephyrHostXVAdaptorGetFirstPortID (const EphyrHostXVAdaptor *a_this)
 {
     EPHYR_RETURN_VAL_IF_FAIL (a_this, -1) ;
 
@@ -232,7 +365,7 @@ EphyrHostXVAdaptorGetFirstPortID (const EphyrHostXVAdaptor *a_this)
 }
 
 Bool
-EphyrHostXVQueryEncodings (int a_port_id,
+ephyrHostXVQueryEncodings (int a_port_id,
                            EphyrHostEncoding **a_encodings,
                            unsigned int *a_num_encodings)
 {
@@ -271,7 +404,7 @@ EphyrHostXVQueryEncodings (int a_port_id,
 }
 
 void
-EphyrHostEncodingsDelete (EphyrHostEncoding *a_encodings,
+ephyrHostEncodingsDelete (EphyrHostEncoding *a_encodings,
                           int a_num_encodings)
 {
     int i=0 ;
@@ -288,7 +421,7 @@ EphyrHostEncodingsDelete (EphyrHostEncoding *a_encodings,
 }
 
 void
-EphyrHostAttributesDelete (EphyrHostAttribute *a_attributes)
+ephyrHostAttributesDelete (EphyrHostAttribute *a_attributes)
 {
     if (!a_attributes)
         return ;
@@ -296,7 +429,7 @@ EphyrHostAttributesDelete (EphyrHostAttribute *a_attributes)
 }
 
 Bool
-EphyrHostXVQueryPortAttributes (int a_port_id,
+ephyrHostXVQueryPortAttributes (int a_port_id,
                                 EphyrHostAttribute **a_attributes,
                                 int *a_num_attributes)
 {
@@ -311,7 +444,7 @@ EphyrHostXVQueryPortAttributes (int a_port_id,
 }
 
 Bool
-EphyrHostXVQueryImageFormats (int a_port_id,
+ephyrHostXVQueryImageFormats (int a_port_id,
                               EphyrHostImageFormat **a_formats,
                               int *a_num_format)
 {
@@ -328,13 +461,16 @@ EphyrHostXVQueryImageFormats (int a_port_id,
 }
 
 Bool
-EphyrHostXVSetPortAttribute (int a_port_id,
+ephyrHostXVSetPortAttribute (int a_port_id,
                              int a_atom,
                              int a_attr_value)
 {
     int res=Success ;
 
-    EPHYR_LOG ("atom,value: (%d, %d)\n", a_atom, a_attr_value) ;
+    EPHYR_LOG ("atom,name,value: (%d,%s,%d)\n",
+               a_atom,
+               XGetAtomName (hostx_get_display (), a_atom),
+               a_attr_value) ;
 
     res = XvSetPortAttribute (hostx_get_display (),
                               a_port_id,
@@ -344,13 +480,14 @@ EphyrHostXVSetPortAttribute (int a_port_id,
         EPHYR_LOG_ERROR ("XvSetPortAttribute() failed: %d\n", res) ;
         return FALSE ;
     }
+    XFlush (hostx_get_display ()) ;
     EPHYR_LOG ("leave\n") ;
 
     return TRUE ;
 }
 
 Bool
-EphyrHostXVGetPortAttribute (int a_port_id,
+ephyrHostXVGetPortAttribute (int a_port_id,
                              int a_atom,
                              int *a_attr_value)
 {
@@ -380,7 +517,7 @@ out:
 }
 
 Bool
-EphyrHostXVQueryBestSize (int a_port_id,
+ephyrHostXVQueryBestSize (int a_port_id,
                           Bool a_motion,
                           unsigned int a_frame_w,
                           unsigned int a_frame_h,
@@ -458,7 +595,7 @@ xv_wire_to_event(Display *dpy, XEvent *host, xEvent *wire)
 }
 
 Bool
-EphyrHostXVQueryImageAttributes (int a_port_id,
+ephyrHostXVQueryImageAttributes (int a_port_id,
                                  int a_image_id /*image fourcc code*/,
                                  unsigned short *a_width,
                                  unsigned short *a_height,
@@ -515,7 +652,7 @@ out:
 }
 
 Bool
-EphyrHostGetAtom (const char* a_name,
+ephyrHostGetAtom (const char* a_name,
                   Bool a_create_if_not_exists,
                   int *a_atom)
 {
@@ -532,20 +669,20 @@ EphyrHostGetAtom (const char* a_name,
 }
 
 char*
-EphyrHostGetAtomName (int a_atom)
+ephyrHostGetAtomName (int a_atom)
 {
     return XGetAtomName (hostx_get_display (), a_atom) ;
 }
 
 void
-EphyrHostFree (void *a_pointer)
+ephyrHostFree (void *a_pointer)
 {
     if (a_pointer)
         XFree (a_pointer) ;
 }
 
 Bool
-EphyrHostXVPutImage (int a_port_id,
+ephyrHostXVPutImage (int a_port_id,
                      int a_image_id,
                      int a_drw_x,
                      int a_drw_y,

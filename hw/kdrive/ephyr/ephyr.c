@@ -610,7 +610,7 @@ ephyrInitScreen (ScreenPtr pScreen)
   if (!ephyrInitVideo (pScreen)) {
       EPHYR_LOG_ERROR ("failed to initialize xvideo\n") ;
   } else {
-      EPHYR_LOG_ERROR ("initialized xvideo okay\n") ;
+      EPHYR_LOG ("initialized xvideo okay\n") ;
   }
 #endif /*XV*/
   return TRUE;

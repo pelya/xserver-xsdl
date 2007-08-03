@@ -84,67 +84,69 @@ typedef struct _EphyrHostImageFormat {
     int scanline_order;          /* XvTopToBottom, XvBottomToTop */
 } EphyrHostImageFormat ;
 
-void EphyrHostFree (void *a_pointer) ;
+void ephyrHostXVInit (void) ;
+
+void ephyrHostFree (void *a_pointer) ;
 
 /*
  * host adaptor array
  */
-Bool EphyrHostXVQueryAdaptors (EphyrHostXVAdaptorArray **a_adaptors) ;
-void EphyrHostXVAdaptorArrayDelete (EphyrHostXVAdaptorArray *a_adaptors) ;
-int EphyrHostXVAdaptorArrayGetSize (const EphyrHostXVAdaptorArray *a_this) ;
-EphyrHostXVAdaptor* EphyrHostXVAdaptorArrayAt (const EphyrHostXVAdaptorArray *a_this,
+Bool ephyrHostXVQueryAdaptors (EphyrHostXVAdaptorArray **a_adaptors) ;
+void ephyrHostXVAdaptorArrayDelete (EphyrHostXVAdaptorArray *a_adaptors) ;
+int ephyrHostXVAdaptorArrayGetSize (const EphyrHostXVAdaptorArray *a_this) ;
+EphyrHostXVAdaptor* ephyrHostXVAdaptorArrayAt (const EphyrHostXVAdaptorArray *a_this,
                                                int a_index) ;
 
 /*
  * host adaptor
  */
 
-char EphyrHostXVAdaptorGetType (const EphyrHostXVAdaptor *a_this) ;
-const char* EphyrHostXVAdaptorGetName (const EphyrHostXVAdaptor *a_this) ;
-EphyrHostVideoFormat* EphyrHostXVAdaptorGetVideoFormats
+char ephyrHostXVAdaptorGetType (const EphyrHostXVAdaptor *a_this) ;
+const char* ephyrHostXVAdaptorGetName (const EphyrHostXVAdaptor *a_this) ;
+EphyrHostVideoFormat* ephyrHostXVAdaptorGetVideoFormats
                                                 (const EphyrHostXVAdaptor *a_this,
                                                  int *a_nb_formats) ;
-int EphyrHostXVAdaptorGetNbPorts (const EphyrHostXVAdaptor *a_this) ;
-int EphyrHostXVAdaptorGetFirstPortID (const EphyrHostXVAdaptor *a_this) ;
+int ephyrHostXVAdaptorGetNbPorts (const EphyrHostXVAdaptor *a_this) ;
+int ephyrHostXVAdaptorGetFirstPortID (const EphyrHostXVAdaptor *a_this) ;
 
 /*
  * encoding
  */
-Bool EphyrHostXVQueryEncodings (int a_port_id,
+Bool ephyrHostXVQueryEncodings (int a_port_id,
                                 EphyrHostEncoding **a_encodings,
                                 unsigned int *a_num_encodings) ;
 
-void EphyrHostEncodingsDelete (EphyrHostEncoding *a_encodings,
+void ephyrHostEncodingsDelete (EphyrHostEncoding *a_encodings,
                                int a_num_encodings) ;
 
 /*
  * attribute
  */
-Bool EphyrHostXVQueryPortAttributes (int a_port_id,
+Bool ephyrHostXVQueryPortAttributes (int a_port_id,
                                      EphyrHostAttribute **a_attributes,
                                      int *a_num_attributes) ;
 
-void EphyrHostAttributesDelete (EphyrHostAttribute *a_attributes) ;
+void ephyrHostAttributesDelete (EphyrHostAttribute *a_attributes) ;
 /*
  * image format
  */
 
-Bool EphyrHostXVQueryImageFormats (int a_port_id,
+Bool ephyrHostXVQueryImageFormats (int a_port_id,
                                    EphyrHostImageFormat **a_formats,
                                    int *a_num_format) ;
 /*
  * Port Attribute Get/Set
  */
-Bool EphyrHostXVSetPortAttribute (int a_port_id,
+Bool ephyrHostXVSetPortAttribute (int a_port_id,
                                   int a_atom,
                                   int a_attr_value) ;
-Bool EphyrHostXVGetPortAttribute (int a_port_id,
+Bool ephyrHostXVGetPortAttribute (int a_port_id,
                                   int a_atom,
                                   int *a_attr_value) ;
 /*
  *size query
  */
-Bool EphyrHostXVQueryBestSize (int a_port_id,
+Bool ephyrHostXVQueryBestSize (int a_port_id,
                                Bool a_motion,
                                unsigned int a_frame_w,
                                unsigned int a_frame_h,
@@ -153,7 +155,7 @@ Bool EphyrHostXVQueryBestSize (int a_port_id,
                                unsigned int *a_actual_w,
                                unsigned int *a_actual_h) ;
 
-Bool EphyrHostXVQueryImageAttributes (int a_port_id,
+Bool ephyrHostXVQueryImageAttributes (int a_port_id,
                                       int a_image_id /*image fourcc code*/,
                                       unsigned short *a_width,
                                       unsigned short *a_height,
@@ -163,16 +165,16 @@ Bool EphyrHostXVQueryImageAttributes (int a_port_id,
 /*
  * atom
  */
-Bool EphyrHostGetAtom (const char* a_name,
+Bool ephyrHostGetAtom (const char* a_name,
                        Bool a_create_if_not_exists,
                        int *a_atom) ;
-char* EphyrHostGetAtomName (int a_atom) ;
+char* ephyrHostGetAtomName (int a_atom) ;
 
 /*
  *PutImage
  * (ignore clipping for now)
  */
-Bool EphyrHostXVPutImage (int a_port_id,
+Bool ephyrHostXVPutImage (int a_port_id,
                           int a_image_id,
                           int a_drw_x,
                           int a_drw_y,
