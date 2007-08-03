@@ -755,22 +755,24 @@ exaDriverInit (ScreenPtr		pScreen,
 	return FALSE;
     }
 
-    if (!pScreenInfo->memoryBase) {
-	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::memoryBase must be "
-		   "non-zero\n", pScreen->myNum);
-	return FALSE;
-    }
+    if (!pScreenInfo->CreatePixmap) {
+	if (!pScreenInfo->memoryBase) {
+	    LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::memoryBase "
+		       "must be non-zero\n", pScreen->myNum);
+	    return FALSE;
+	}
 
-    if (!pScreenInfo->memorySize) {
-	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::memorySize must be "
-		   "non-zero\n", pScreen->myNum);
-	return FALSE;
-    }
+	if (!pScreenInfo->memorySize) {
+	    LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::memorySize must be "
+		       "non-zero\n", pScreen->myNum);
+	    return FALSE;
+	}
 
-    if (pScreenInfo->offScreenBase > pScreenInfo->memorySize) {
-	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::offScreenBase must be <= "
-		   "ExaDriverRec::memorySize\n", pScreen->myNum);
-	return FALSE;
+	if (pScreenInfo->offScreenBase > pScreenInfo->memorySize) {
+	    LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::offScreenBase must "
+		       "be <= ExaDriverRec::memorySize\n", pScreen->myNum);
+	    return FALSE;
+	}
     }
 
     if (!pScreenInfo->PrepareSolid) {
@@ -881,8 +883,7 @@ exaDriverInit (ScreenPtr		pScreen,
     /*
      * Hookup offscreen pixmaps
      */
-    if ((pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS) &&
-	pExaScr->info->offScreenBase < pExaScr->info->memorySize)
+    if (pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS)
     {
 	if (!AllocatePixmapPrivate(pScreen, exaPixmapPrivateIndex,
 				   sizeof (ExaPixmapPrivRec))) {
@@ -899,10 +900,15 @@ exaDriverInit (ScreenPtr		pScreen,
 
 	pExaScr->SavedModifyPixmapHeader = pScreen->ModifyPixmapHeader;
 	pScreen->ModifyPixmapHeader = exaModifyPixmapHeader;
+	if (!pExaScr->info->CreatePixmap) {
+	    LogMessage(X_INFO, "EXA(%d): Offscreen pixmap area of %lu bytes\n",
+		       pScreen->myNum,
+		       pExaScr->info->memorySize - pExaScr->info->offScreenBase);
+	} else {
+	    LogMessage(X_INFO, "EXA(%d): Driver allocated offscreen pixmaps\n",
+		       pScreen->myNum);
 
-	LogMessage(X_INFO, "EXA(%d): Offscreen pixmap area of %d bytes\n",
-		   pScreen->myNum,
-		   pExaScr->info->memorySize - pExaScr->info->offScreenBase);
+	}
     }
     else
     {
@@ -911,14 +917,16 @@ exaDriverInit (ScreenPtr		pScreen,
 	    return FALSE;
     }
 
-    DBG_PIXMAP(("============== %ld < %ld\n", pExaScr->info->offScreenBase,
-                pExaScr->info->memorySize));
-    if (pExaScr->info->offScreenBase < pExaScr->info->memorySize) {
-	if (!exaOffscreenInit (pScreen)) {
-            LogMessage(X_WARNING, "EXA(%d): Offscreen pixmap setup failed\n",
-                       pScreen->myNum);
-            return FALSE;
-        }
+    if (!pExaScr->info->CreatePixmap) {
+	DBG_PIXMAP(("============== %ld < %ld\n", pExaScr->info->offScreenBase,
+		    pExaScr->info->memorySize));
+	if (pExaScr->info->offScreenBase < pExaScr->info->memorySize) {
+	    if (!exaOffscreenInit (pScreen)) {
+		LogMessage(X_WARNING, "EXA(%d): Offscreen pixmap setup failed\n",
+			   pScreen->myNum);
+		return FALSE;
+	    }
+	}
     }
 
     LogMessage(X_INFO, "EXA(%d): Driver registered support for the following"
