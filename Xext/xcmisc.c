@@ -80,8 +80,6 @@ XCMiscExtensionInit(INITARGS)
 			ProcXCMiscDispatch, SProcXCMiscDispatch,
 			XCMiscResetProc, StandardMinorOpcode);
 #endif
-
-    DeclareExtensionSecurity(XCMiscExtensionName, TRUE);
 }
 
 /*ARGSUSED*/

@@ -107,9 +107,5 @@ extern Bool AddExtensionAlias(
 extern ExtensionEntry *CheckExtension(const char *extname);
 extern ExtensionEntry *GetExtensionEntry(int major);
 
-extern void DeclareExtensionSecurity(
-    char * /*extname*/,
-    Bool /*secure*/);
-
 #endif /* EXTENSIONSTRUCT_H */
 

@@ -66,8 +66,6 @@ BigReqExtensionInit(INITARGS)
 			ProcBigReqDispatch, ProcBigReqDispatch,
 			BigReqResetProc, StandardMinorOpcode);
 #endif
-
-    DeclareExtensionSecurity(XBigReqExtensionName, TRUE);
 }
 
 /*ARGSUSED*/

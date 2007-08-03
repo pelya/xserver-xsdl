@@ -135,7 +135,6 @@ extern void XSELinuxExtensionInit(INITARGS);
 #endif
 
 #if 1
-extern void SecurityExtensionSetup(INITARGS);
 extern void SecurityExtensionInit(INITARGS);
 #endif
 

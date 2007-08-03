@@ -63,8 +63,6 @@ typedef struct {
     XID authId;
 } SecurityClientStateRec;
 
-#define EXTLEVEL(extnsn) ((Bool) \
-    dixLookupPrivate(DEVPRIV_PTR(extnsn), &stateKey))
 #define HAVESTATE(client) (((SecurityClientStateRec *) \
     dixLookupPrivate(DEVPRIV_PTR(client), &stateKey))->haveState)
 #define TRUSTLEVEL(client) (((SecurityClientStateRec *) \
@@ -73,6 +71,9 @@ typedef struct {
     dixLookupPrivate(DEVPRIV_PTR(client), &stateKey))->authId)
 
 static CallbackListPtr SecurityValidateGroupCallback = NULL;
+
+static char **SecurityTrustedExtensions = NULL;
+static int nSecurityTrustedExtensions = 0;
 
 RESTYPE SecurityAuthorizationResType; /* resource type for authorizations */
 
@@ -1210,10 +1211,13 @@ SecurityCheckExtAccess(CallbackListPtr *pcbl, pointer unused,
 		       pointer calldata)
 {
     XaceExtAccessRec *rec = (XaceExtAccessRec*)calldata;
+    int i, trusted = 0;
 
-    if ((TRUSTLEVEL(rec->client) != XSecurityClientTrusted) &&
-	!EXTLEVEL(rec->ext))
+    for (i = 0; i < nSecurityTrustedExtensions; i++)
+	if (!strcmp(SecurityTrustedExtensions[i], rec->ext->name))
+	    trusted = 1;
 
+    if ((TRUSTLEVEL(rec->client) != XSecurityClientTrusted) && !trusted)
 	rec->status = BadAccess;
 }
 
@@ -1233,16 +1237,6 @@ SecurityCheckHostlistAccess(CallbackListPtr *pcbl, pointer unused,
 	    SecurityAudit("client %d attempted to list hosts\n",
 			  rec->client->index);
     }
-}
-
-static void
-SecurityDeclareExtSecure(CallbackListPtr *pcbl, pointer unused,
-			 pointer calldata)
-{
-    XaceDeclareExtSecureRec *rec = (XaceDeclareExtSecureRec*)calldata;
-
-    /* security state for extensions is simply a boolean trust value */
-    dixSetPrivate(DEVPRIV_PTR(rec->ext), &stateKey, (pointer)rec->secure);
 }
 
 /**********************************************************************/
@@ -1276,7 +1270,9 @@ static char *SecurityKeywords[] = {
 #define SecurityKeywordRoot 3
     "root",
 #define SecurityKeywordAny 4
-    "any"
+    "any",
+#define SecurityKeywordExtension 5
+    "trust extension",
 };
 
 #define NUMKEYWORDS (sizeof(SecurityKeywords) / sizeof(char *))
@@ -1500,6 +1496,36 @@ SecurityParsePropertyAccessRule(
     return TRUE;
 } /* SecurityParsePropertyAccessRule */
 
+static Bool
+SecurityParseExtensionRule(
+    char *p)
+{
+    char *extName = SecurityParseString(&p);
+    char *copyExtName;
+    char **newStrings;
+
+    if (!extName)
+	return FALSE;
+
+    copyExtName = (char *)Xalloc(strlen(extName) + 1);
+    if (!copyExtName)
+	return TRUE;
+    strcpy(copyExtName, extName);
+    newStrings = (char **)Xrealloc(SecurityTrustedExtensions,
+			  sizeof (char *) * (nSecurityTrustedExtensions + 1));
+    if (!newStrings)
+    {
+	Xfree(copyExtName);
+	return TRUE;
+    }
+
+    SecurityTrustedExtensions = newStrings;
+    SecurityTrustedExtensions[nSecurityTrustedExtensions++] = copyExtName;
+
+    return TRUE;
+
+} /* SecurityParseExtensionRule */
+
 static char **SecurityPolicyStrings = NULL;
 static int nSecurityPolicyStrings = 0;
 
@@ -1558,6 +1584,21 @@ SecurityFreeSitePolicyStrings(void)
     }
 } /* SecurityFreeSitePolicyStrings */
 
+static void
+SecurityFreeTrustedExtensionStrings(void)
+{
+    if (SecurityTrustedExtensions)
+    {
+	assert(nSecurityTrustedExtensions);
+	while (nSecurityTrustedExtensions--)
+	{
+	    Xfree(SecurityTrustedExtensions[nSecurityTrustedExtensions]);
+	}
+	Xfree(SecurityTrustedExtensions);
+	SecurityTrustedExtensions = NULL;
+	nSecurityTrustedExtensions = 0;
+    }
+} /* SecurityFreeSiteTrustedExtensions */
 
 static void
 SecurityLoadPropertyAccessList(void)
@@ -1614,6 +1655,10 @@ SecurityLoadPropertyAccessList(void)
 
 		case SecurityKeywordSitePolicy:
 		    validLine = SecurityParseSitePolicy(p);
+		break;
+
+		case SecurityKeywordExtension:
+		    validLine = SecurityParseExtensionRule(p);
 		break;
 
 		default:
@@ -1791,6 +1836,7 @@ SecurityResetProc(
     ExtensionEntry *extEntry)
 {
     SecurityFreePropertyAccessList();
+    SecurityFreeTrustedExtensionStrings();
     SecurityFreeSitePolicyStrings();
 } /* SecurityResetProc */
 
@@ -1809,32 +1855,6 @@ XSecurityOptions(argc, argv, i)
     }
     return (i);
 } /* XSecurityOptions */
-
-
-/* SecurityExtensionSetup
- *
- * Arguments: none.
- *
- * Returns: nothing.
- *
- * Side Effects:
- *	Sets up the Security extension if possible.
- *      This function contains things that need to be done
- *      before any other extension init functions get called.
- */
-
-void
-SecurityExtensionSetup(INITARGS)
-{
-    /* FIXME: this is here so it is registered before other extensions
-     * init themselves.  This also required commit 5e946dd853a4ebc... to
-     * call the setup functions on each server reset.
-     *
-     * The extension security bit should be delivered in some other way,
-     * either in a symbol or in the module data.
-     */
-    XaceRegisterCallback(XACE_DECLARE_EXT_SECURE, SecurityDeclareExtSecure, 0);
-} /* SecurityExtensionSetup */
 
 
 /* SecurityExtensionInit

@@ -250,14 +250,6 @@ GetExtensionEntry(int major)
     return extensions[major];
 }
 
-_X_EXPORT void
-DeclareExtensionSecurity(char *extname, Bool secure)
-{
-    int i = FindExtension(extname, strlen(extname));
-    if (i >= 0)
-	XaceHook(XACE_DECLARE_EXT_SECURE, extensions[i], secure);
-}
-
 _X_EXPORT unsigned short
 StandardMinorOpcode(ClientPtr client)
 {

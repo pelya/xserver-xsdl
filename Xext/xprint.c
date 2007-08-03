@@ -335,7 +335,6 @@ XpExtensionInit(INITARGS)
 	    screenInfo.screens[i]->CloseScreen = XpCloseScreen;
 	}
     }
-    DeclareExtensionSecurity(XP_PRINTNAME, TRUE);
 }
 
 static void

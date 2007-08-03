@@ -321,7 +321,6 @@ extern void XagExtensionInit(INITARGS);
 extern void XaceExtensionInit(INITARGS);
 #endif
 #ifdef XCSECURITY
-extern void SecurityExtensionSetup(INITARGS);
 extern void SecurityExtensionInit(INITARGS);
 #endif
 #ifdef XSELINUX
@@ -538,9 +537,6 @@ InitExtensions(argc, argv)
     int		argc;
     char	*argv[];
 {
-#ifdef XCSECURITY
-    SecurityExtensionSetup();
-#endif
 #ifdef XSELINUX
     XSELinuxExtensionSetup();
 #endif
@@ -719,7 +715,7 @@ static ExtensionModule staticExtensions[] = {
     { XaceExtensionInit, XACE_EXTENSION_NAME, NULL, NULL, NULL },
 #endif
 #ifdef XCSECURITY
-    { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, SecurityExtensionSetup, NULL },
+    { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL, NULL },
 #endif
 #ifdef XSELINUX
     { XSELinuxExtensionInit, XSELINUX_EXTENSION_NAME, NULL, XSELinuxExtensionSetup, NULL },

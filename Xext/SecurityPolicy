@@ -86,3 +86,8 @@ property XDCCC_GRAY_CORRECTION	root	ar
 # To let untrusted clients use the overlay visuals that many vendors
 # support, include this line.
 property SERVER_OVERLAY_VISUALS	root	ar
+
+# Only trusted extensions can be used by untrusted clients
+trust extension XC-MISC
+trust extension BIG-REQUESTS
+trust extension XpExtension

@@ -200,7 +200,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(AddExtension)
     SYMFUNC(AddExtensionAlias)
     SYMFUNC(CheckExtension)
-    SYMFUNC(DeclareExtensionSecurity)
     SYMFUNC(MinorOpcodeOfRequest)
     SYMFUNC(StandardMinorOpcode)
 #ifdef XEVIE
