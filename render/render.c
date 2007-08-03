@@ -1086,6 +1086,8 @@ typedef struct _GlyphNew {
     unsigned char   sha1[20];
 } GlyphNewRec, *GlyphNewPtr;
 
+#define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
+
 static int
 ProcRenderAddGlyphs (ClientPtr client)
 {
@@ -1102,6 +1104,7 @@ ProcRenderAddGlyphs (ClientPtr client)
     int		    i, screen;
     PicturePtr	    pSrc = NULL, pDst = NULL;
     PixmapPtr	    pSrcPix = NULL, pDstPix = NULL;
+    CARD32	    component_alpha;
 
     REQUEST_AT_LEAST_SIZE(xRenderAddGlyphsReq);
     glyphSet = (GlyphSetPtr) SecurityLookupIDByType (client,
@@ -1117,6 +1120,8 @@ ProcRenderAddGlyphs (ClientPtr client)
     nglyphs = stuff->nglyphs;
     if (nglyphs > UINT32_MAX / sizeof(GlyphNewRec))
 	    return BadAlloc;
+
+    component_alpha = NeedsComponent (glyphSet->format->format);
 
     if (nglyphs <= NLOCALGLYPH) {
 	memset (glyphsLocal, 0, sizeof (glyphsLocal));
@@ -1158,9 +1163,11 @@ ProcRenderAddGlyphs (ClientPtr client)
 	}
 	else
 	{
+	    GlyphPtr glyph;
+
 	    glyph_new->found = FALSE;
-	    glyph_new->glyph = AllocateGlyph (&gi[i], glyphSet->fdepth);
-	    if (! glyph_new->glyph)
+	    glyph_new->glyph = glyph = AllocateGlyph (&gi[i], glyphSet->fdepth);
+	    if (! glyph)
 	    {
 		err = BadAlloc;
 		goto bail;
@@ -1194,11 +1201,14 @@ ProcRenderAddGlyphs (ClientPtr client)
 		    goto bail;
 		}
 
-		pDstPix = GlyphPixmap (glyph_new->glyph)[screen];
+		pDstPix = (pScreen->CreatePixmap) (pScreen,
+						   width, height, depth);
 
-		pDst = CreatePicture (0, &pDstPix->drawable,
-				      glyphSet->format, 0, NULL,
-				      serverClient, &error);
+		GlyphPicture (glyph)[screen] = pDst =
+			CreatePicture (0, &pDstPix->drawable,
+				       glyphSet->format,
+				       CPComponentAlpha, &component_alpha,
+				       serverClient, &error);
 		if (! pDst)
 		{
 		    err = BadAlloc;
@@ -1216,8 +1226,6 @@ ProcRenderAddGlyphs (ClientPtr client)
 
 		FreePicture ((pointer) pSrc, 0);
 		pSrc = NULL;
-		FreePicture ((pointer) pDst, 0);
-		pDst = NULL;
 		FreeScratchPixmapHeader (pSrcPix);
 		pSrcPix = NULL;
 	    }
@@ -1251,8 +1259,6 @@ ProcRenderAddGlyphs (ClientPtr client)
 bail:
     if (pSrc)
 	FreePicture ((pointer) pSrc, 0);
-    if (pDst)
-	FreePicture ((pointer) pDst, 0);
     if (pSrcPix)
 	FreeScratchPixmapHeader (pSrcPix);
     for (i = 0; i < nglyphs; i++)

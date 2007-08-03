@@ -174,13 +174,7 @@ miGlyphs (CARD8		op,
 	while (n--)
 	{
 	    glyph = *glyphs++;
-	    pPixmap = GlyphPixmap (glyph)[pScreen->myNum];
-	    component_alpha = NeedsComponent(list->format->format);
-	    pPicture = CreatePicture (0, &pPixmap->drawable, list->format,
-				      CPComponentAlpha, &component_alpha, 
-				      serverClient, &error);
-	    if (!pPicture)
-	      return;
+	    pPicture = GlyphPicture (glyph)[pScreen->myNum];
 
 	    if (maskFormat)
 	    {
@@ -209,7 +203,6 @@ miGlyphs (CARD8		op,
 				  glyph->info.width,
 				  glyph->info.height);
 	    }
-	    FreePicture ((pointer) pPicture, 0);
 
 	    x += glyph->info.xOff;
 	    y += glyph->info.yOff;

@@ -896,7 +896,6 @@ exaGlyphs (CARD8	op,
 	  GlyphPtr	*glyphs)
 {
     ExaScreenPriv (pDst->pDrawable->pScreen);
-    PixmapPtr	pPixmap = NULL;
     PicturePtr	pPicture;
     PixmapPtr   pMaskPixmap = NULL;
     PixmapPtr   pDstPixmap = exaGetDrawablePixmap(pDst->pDrawable);
@@ -1031,18 +1030,8 @@ exaGlyphs (CARD8	op,
 		(x1 + glyph->info.width) <= 0 || (y1 + glyph->info.height) <= 0)
 		goto nextglyph;
 
-	    /* The glyph already has a pixmap waiting for us to use. */
-	    pPixmap = GlyphPixmap (glyph)[pScreen->myNum];
-
-	    /* Create a temporary picture to wrap the pixmap, so it can be
-	     * used as a source for Composite.
-	     */
-	    component_alpha = NeedsComponent(list->format->format);
-	    pPicture = CreatePicture (0, &pPixmap->drawable, list->format,
-				      CPComponentAlpha, &component_alpha, 
-				      serverClient, &error);
-	    if (!pPicture)
-	      return;
+	    /* The glyph already has a Picture ready for us to use. */
+	    pPicture = GlyphPicture (glyph)[pScreen->myNum];
 	    ValidatePicture(pPicture);
 
 	    if (maskFormat)
@@ -1063,7 +1052,6 @@ exaGlyphs (CARD8	op,
 		exaPixmapDirty(pDstPixmap, x1, y1, x1 + glyph->info.width,
 			       y1 + glyph->info.height);
 	    }
-	    FreePicture ((pointer) pPicture, 0);
 
 nextglyph:
 	    x += glyph->info.xOff;

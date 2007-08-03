@@ -47,7 +47,7 @@ typedef struct _Glyph {
     /* per-screen pixmaps follow */
 } GlyphRec, *GlyphPtr;
 
-#define GlyphPixmap(glyph) ((PixmapPtr *) ((glyph) + 1))
+#define GlyphPicture(glyph) ((PicturePtr *) ((glyph) + 1))
 
 typedef struct _GlyphRef {
     CARD32	signature;
