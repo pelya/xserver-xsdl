@@ -2495,7 +2495,7 @@ ProcCreateColormap(ClientPtr client)
     }
     mid = stuff->mid;
     LEGAL_NEW_RESOURCE(mid, client);
-    result = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    result = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (result != Success)
         return result;
 
@@ -2521,12 +2521,13 @@ int
 ProcFreeColormap(ClientPtr client)
 {
     ColormapPtr pmap;
+    int rc;
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pmap = (ColormapPtr )SecurityLookupIDByType(client, stuff->id, RT_COLORMAP,
-						DixDestroyAccess);
-    if (pmap) 
+    rc = dixLookupResource((pointer *)&pmap, stuff->id, RT_COLORMAP, client,
+			   DixDestroyAccess);
+    if (rc == Success)
     {
 	/* Freeing a default colormap is a no-op */
 	if (!(pmap->flags & IsDefault))
@@ -2536,7 +2537,7 @@ ProcFreeColormap(ClientPtr client)
     else 
     {
 	client->errorValue = stuff->id;
-	return (BadColor);
+	return rc;
     }
 }
 
@@ -2547,24 +2548,25 @@ ProcCopyColormapAndFree(ClientPtr client)
     Colormap	mid;
     ColormapPtr	pSrcMap;
     REQUEST(xCopyColormapAndFreeReq);
-    int result;
+    int rc;
 
     REQUEST_SIZE_MATCH(xCopyColormapAndFreeReq);
     mid = stuff->mid;
     LEGAL_NEW_RESOURCE(mid, client);
-    if( (pSrcMap = (ColormapPtr )SecurityLookupIDByType(client,	stuff->srcCmap,
-		RT_COLORMAP, DixReadAccess|DixWriteAccess)) )
+    rc = dixLookupResource((pointer *)&pSrcMap, stuff->srcCmap, RT_COLORMAP,
+			   client, DixReadAccess|DixRemoveAccess);
+    if (rc == Success)
     {
-	result = CopyColormapAndFree(mid, pSrcMap, client->index);
+	rc = CopyColormapAndFree(mid, pSrcMap, client->index);
 	if (client->noClientException != Success)
             return(client->noClientException);
 	else
-            return(result);
+            return rc;
     }
     else
     {
 	client->errorValue = stuff->srcCmap;
-	return(BadColor);
+	return rc;
     }
 }
 
@@ -2572,43 +2574,51 @@ int
 ProcInstallColormap(ClientPtr client)
 {
     ColormapPtr pcmp;
+    int rc;
     REQUEST(xResourceReq);
-
     REQUEST_SIZE_MATCH(xResourceReq);
-    pcmp = (ColormapPtr)SecurityLookupIDByType(client, stuff->id,
-					    RT_COLORMAP, DixReadAccess);
-    if (pcmp)
-    {
-        (*(pcmp->pScreen->InstallColormap)) (pcmp);
-        return (client->noClientException);        
-    }
-    else
-    {
-        client->errorValue = stuff->id;
-        return (BadColor);
-    }
+
+    rc = dixLookupResource((pointer *)&pcmp, stuff->id, RT_COLORMAP, client,
+			   DixInstallAccess);
+    if (rc != Success)
+	goto out;
+
+    rc = XaceHook(XACE_SCREEN_ACCESS, client, pcmp->pScreen, DixSetAttrAccess);
+    if (rc != Success)
+	goto out;
+
+    (*(pcmp->pScreen->InstallColormap)) (pcmp);
+
+    rc = client->noClientException;
+out:
+    client->errorValue = stuff->id;
+    return (rc == BadValue) ? BadColor : rc;
 }
 
 int
 ProcUninstallColormap(ClientPtr client)
 {
     ColormapPtr pcmp;
+    int rc;
     REQUEST(xResourceReq);
-
     REQUEST_SIZE_MATCH(xResourceReq);
-    pcmp = (ColormapPtr)SecurityLookupIDByType(client, stuff->id,
-					RT_COLORMAP, DixReadAccess);
-    if (pcmp)
-    {
-	if(pcmp->mid != pcmp->pScreen->defColormap)
-            (*(pcmp->pScreen->UninstallColormap)) (pcmp);
-        return (client->noClientException);        
-    }
-    else
-    {
-        client->errorValue = stuff->id;
-        return (BadColor);
-    }
+
+    rc = dixLookupResource((pointer *)&pcmp, stuff->id, RT_COLORMAP, client,
+			   DixUninstallAccess);
+    if (rc != Success)
+	goto out;
+
+    rc = XaceHook(XACE_SCREEN_ACCESS, client, pcmp->pScreen, DixSetAttrAccess);
+    if (rc != Success)
+	goto out;
+
+    if(pcmp->mid != pcmp->pScreen->defColormap)
+	(*(pcmp->pScreen->UninstallColormap)) (pcmp);
+
+    rc = client->noClientException;
+out:
+    client->errorValue = stuff->id;
+    return (rc == BadValue) ? BadColor : rc;
 }
 
 int
@@ -2618,11 +2628,16 @@ ProcListInstalledColormaps(ClientPtr client)
     int nummaps, rc;
     WindowPtr pWin;
     REQUEST(xResourceReq);
-
     REQUEST_SIZE_MATCH(xResourceReq);
-    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixGetAttrAccess);
     if (rc != Success)
-        return rc;
+	goto out;
+
+    rc = XaceHook(XACE_SCREEN_ACCESS, client, pWin->drawable.pScreen,
+		  DixGetAttrAccess);
+    if (rc != Success)
+	goto out;
 
     preply = (xListInstalledColormapsReply *) 
 		ALLOCATE_LOCAL(sizeof(xListInstalledColormapsReply) +
@@ -2641,21 +2656,23 @@ ProcListInstalledColormaps(ClientPtr client)
     client->pSwapReplyFunc = (ReplySwapPtr) Swap32Write;
     WriteSwappedDataToClient(client, nummaps * sizeof(Colormap), &preply[1]);
     DEALLOCATE_LOCAL(preply);
-    return(client->noClientException);
+    rc = client->noClientException;
+out:
+    return (rc == BadValue) ? BadColor : rc;
 }
 
 int
 ProcAllocColor (ClientPtr client)
 {
     ColormapPtr pmap;
-    int	retval;
+    int rc;
     xAllocColorReply acr;
     REQUEST(xAllocColorReq);
 
     REQUEST_SIZE_MATCH(xAllocColorReq);
-    pmap = (ColormapPtr)SecurityLookupIDByType(client, stuff->cmap,
-					RT_COLORMAP, DixWriteAccess);
-    if (pmap)
+    rc = dixLookupResource((pointer *)&pmap, stuff->cmap, RT_COLORMAP, client,
+			   DixAddAccess);
+    if (rc == Success)
     {
 	acr.type = X_Reply;
 	acr.length = 0;
@@ -2664,13 +2681,13 @@ ProcAllocColor (ClientPtr client)
 	acr.green = stuff->green;
 	acr.blue = stuff->blue;
 	acr.pixel = 0;
-	if( (retval = AllocColor(pmap, &acr.red, &acr.green, &acr.blue,
+	if( (rc = AllocColor(pmap, &acr.red, &acr.green, &acr.blue,
 	                       &acr.pixel, client->index)) )
 	{
             if (client->noClientException != Success)
                 return(client->noClientException);
 	    else
-	        return (retval);
+	        return rc;
 	}
 #ifdef PANORAMIX
 	if (noPanoramiXExtension || !pmap->pScreen->myNum)
@@ -2682,7 +2699,7 @@ ProcAllocColor (ClientPtr client)
     else
     {
         client->errorValue = stuff->cmap;
-        return (BadColor);
+        return (rc == BadValue) ? BadColor : rc;
     }
 }
 
@@ -2690,15 +2707,14 @@ int
 ProcAllocNamedColor (ClientPtr client)
 {
     ColormapPtr pcmp;
+    int rc;
     REQUEST(xAllocNamedColorReq);
 
     REQUEST_FIXED_SIZE(xAllocNamedColorReq, stuff->nbytes);
-    pcmp = (ColormapPtr)SecurityLookupIDByType(client, stuff->cmap,
-					    RT_COLORMAP, DixWriteAccess);
-    if (pcmp)
+    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+			   DixAddAccess);
+    if (rc == Success)
     {
-	int		retval;
-
 	xAllocNamedColorReply ancr;
 
 	ancr.type = X_Reply;
@@ -2712,14 +2728,14 @@ ProcAllocNamedColor (ClientPtr client)
 	    ancr.screenGreen = ancr.exactGreen;
 	    ancr.screenBlue = ancr.exactBlue;
 	    ancr.pixel = 0;
-	    if( (retval = AllocColor(pcmp,
+	    if( (rc = AllocColor(pcmp,
 	                 &ancr.screenRed, &ancr.screenGreen, &ancr.screenBlue,
 			 &ancr.pixel, client->index)) )
 	    {
                 if (client->noClientException != Success)
                     return(client->noClientException);
                 else
-    	            return(retval);
+		    return rc;
 	    }
 #ifdef PANORAMIX
 	    if (noPanoramiXExtension || !pcmp->pScreen->myNum)
@@ -2734,7 +2750,7 @@ ProcAllocNamedColor (ClientPtr client)
     else
     {
         client->errorValue = stuff->cmap;
-        return (BadColor);
+        return (rc == BadValue) ? BadColor : rc;
     }
 }
 
@@ -2742,15 +2758,16 @@ int
 ProcAllocColorCells (ClientPtr client)
 {
     ColormapPtr pcmp;
+    int rc;
     REQUEST(xAllocColorCellsReq);
 
     REQUEST_SIZE_MATCH(xAllocColorCellsReq);
-    pcmp = (ColormapPtr)SecurityLookupIDByType(client, stuff->cmap,
-					RT_COLORMAP, DixWriteAccess);
-    if (pcmp)
+    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+			   DixAddAccess);
+    if (rc == Success)
     {
 	xAllocColorCellsReply	accr;
-	int			npixels, nmasks, retval;
+	int			npixels, nmasks;
 	long			length;
 	Pixel			*ppixels, *pmasks;
 
@@ -2772,14 +2789,14 @@ ProcAllocColorCells (ClientPtr client)
             return(BadAlloc);
 	pmasks = ppixels + npixels;
 
-	if( (retval = AllocColorCells(client->index, pcmp, npixels, nmasks, 
+	if( (rc = AllocColorCells(client->index, pcmp, npixels, nmasks, 
 				    (Bool)stuff->contiguous, ppixels, pmasks)) )
 	{
 	    DEALLOCATE_LOCAL(ppixels);
             if (client->noClientException != Success)
                 return(client->noClientException);
 	    else
-	        return(retval);
+	        return rc;
 	}
 #ifdef PANORAMIX
 	if (noPanoramiXExtension || !pcmp->pScreen->myNum)
@@ -2800,7 +2817,7 @@ ProcAllocColorCells (ClientPtr client)
     else
     {
         client->errorValue = stuff->cmap;
-        return (BadColor);
+        return (rc == BadValue) ? BadColor : rc;
     }
 }
 
@@ -2808,15 +2825,16 @@ int
 ProcAllocColorPlanes(ClientPtr client)
 {
     ColormapPtr pcmp;
+    int rc;
     REQUEST(xAllocColorPlanesReq);
 
     REQUEST_SIZE_MATCH(xAllocColorPlanesReq);
-    pcmp = (ColormapPtr)SecurityLookupIDByType(client, stuff->cmap,
-					RT_COLORMAP, DixWriteAccess);
-    if (pcmp)
+    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+			   DixAddAccess);
+    if (rc == Success)
     {
 	xAllocColorPlanesReply	acpr;
-	int			npixels, retval;
+	int			npixels;
 	long			length;
 	Pixel			*ppixels;
 
@@ -2838,7 +2856,7 @@ ProcAllocColorPlanes(ClientPtr client)
 	ppixels = (Pixel *)ALLOCATE_LOCAL(length);
 	if(!ppixels)
             return(BadAlloc);
-	if( (retval = AllocColorPlanes(client->index, pcmp, npixels,
+	if( (rc = AllocColorPlanes(client->index, pcmp, npixels,
 	    (int)stuff->red, (int)stuff->green, (int)stuff->blue,
 	    (Bool)stuff->contiguous, ppixels,
 	    &acpr.redMask, &acpr.greenMask, &acpr.blueMask)) )
@@ -2847,7 +2865,7 @@ ProcAllocColorPlanes(ClientPtr client)
             if (client->noClientException != Success)
                 return(client->noClientException);
 	    else
-	        return(retval);
+	        return rc;
 	}
 	acpr.length = length >> 2;
 #ifdef PANORAMIX
@@ -2864,7 +2882,7 @@ ProcAllocColorPlanes(ClientPtr client)
     else
     {
         client->errorValue = stuff->cmap;
-        return (BadColor);
+        return (rc == BadValue) ? BadColor : rc;
     }
 }
 
@@ -2872,34 +2890,34 @@ int
 ProcFreeColors(ClientPtr client)
 {
     ColormapPtr pcmp;
+    int rc;
     REQUEST(xFreeColorsReq);
 
     REQUEST_AT_LEAST_SIZE(xFreeColorsReq);
-    pcmp = (ColormapPtr)SecurityLookupIDByType(client, stuff->cmap,
-					RT_COLORMAP, DixWriteAccess);
-    if (pcmp)
+    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+			   DixRemoveAccess);
+    if (rc == Success)
     {
 	int	count;
-        int     retval;
 
 	if(pcmp->flags & AllAllocated)
 	    return(BadAccess);
 	count = ((client->req_len << 2)- sizeof(xFreeColorsReq)) >> 2;
-	retval =  FreeColors(pcmp, client->index, count,
+	rc = FreeColors(pcmp, client->index, count,
 	    (Pixel *)&stuff[1], (Pixel)stuff->planeMask);
         if (client->noClientException != Success)
             return(client->noClientException);
         else
 	{
 	    client->errorValue = clientErrorValue;
-            return(retval);
+            return rc;
 	}
 
     }
     else
     {
         client->errorValue = stuff->cmap;
-        return (BadColor);
+        return (rc == BadValue) ? BadColor : rc;
     }
 }
 
@@ -2907,33 +2925,33 @@ int
 ProcStoreColors (ClientPtr client)
 {
     ColormapPtr pcmp;
+    int rc;
     REQUEST(xStoreColorsReq);
 
     REQUEST_AT_LEAST_SIZE(xStoreColorsReq);
-    pcmp = (ColormapPtr)SecurityLookupIDByType(client, stuff->cmap,
-					RT_COLORMAP, DixWriteAccess);
-    if (pcmp)
+    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+			   DixWriteAccess);
+    if (rc == Success)
     {
 	int	count;
-        int     retval;
 
         count = (client->req_len << 2) - sizeof(xStoreColorsReq);
 	if (count % sizeof(xColorItem))
 	    return(BadLength);
 	count /= sizeof(xColorItem);
-	retval = StoreColors(pcmp, count, (xColorItem *)&stuff[1]);
+	rc = StoreColors(pcmp, count, (xColorItem *)&stuff[1]);
         if (client->noClientException != Success)
             return(client->noClientException);
         else
 	{
 	    client->errorValue = clientErrorValue;
-            return(retval);
+            return rc;
 	}
     }
     else
     {
         client->errorValue = stuff->cmap;
-        return (BadColor);
+        return (rc == BadValue) ? BadColor : rc;
     }
 }
 
@@ -2941,33 +2959,33 @@ int
 ProcStoreNamedColor (ClientPtr client)
 {
     ColormapPtr pcmp;
+    int rc;
     REQUEST(xStoreNamedColorReq);
 
     REQUEST_FIXED_SIZE(xStoreNamedColorReq, stuff->nbytes);
-    pcmp = (ColormapPtr)SecurityLookupIDByType(client, stuff->cmap,
-					RT_COLORMAP, DixWriteAccess);
-    if (pcmp)
+    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+			   DixWriteAccess);
+    if (rc == Success)
     {
 	xColorItem	def;
-        int             retval;
 
 	if(OsLookupColor(pcmp->pScreen->myNum, (char *)&stuff[1],
 	                 stuff->nbytes, &def.red, &def.green, &def.blue))
 	{
 	    def.flags = stuff->flags;
 	    def.pixel = stuff->pixel;
-	    retval = StoreColors(pcmp, 1, &def);
+	    rc = StoreColors(pcmp, 1, &def);
             if (client->noClientException != Success)
                 return(client->noClientException);
 	    else
-		return(retval);
+		return rc;
 	}
         return (BadName);        
     }
     else
     {
         client->errorValue = stuff->cmap;
-        return (BadColor);
+        return (rc == BadValue) ? BadColor : rc;
     }
 }
 
@@ -2975,14 +2993,15 @@ int
 ProcQueryColors(ClientPtr client)
 {
     ColormapPtr pcmp;
+    int rc;
     REQUEST(xQueryColorsReq);
 
     REQUEST_AT_LEAST_SIZE(xQueryColorsReq);
-    pcmp = (ColormapPtr)SecurityLookupIDByType(client, stuff->cmap,
-					RT_COLORMAP, DixReadAccess);
-    if (pcmp)
+    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+			   DixReadAccess);
+    if (rc == Success)
     {
-	int			count, retval;
+	int			count;
 	xrgb 			*prgbs;
 	xQueryColorsReply	qcr;
 
@@ -2990,7 +3009,7 @@ ProcQueryColors(ClientPtr client)
 	prgbs = (xrgb *)ALLOCATE_LOCAL(count * sizeof(xrgb));
 	if(!prgbs && count)
             return(BadAlloc);
-	if( (retval = QueryColors(pcmp, count, (Pixel *)&stuff[1], prgbs)) )
+	if( (rc = QueryColors(pcmp, count, (Pixel *)&stuff[1], prgbs)) )
 	{
    	    if (prgbs) DEALLOCATE_LOCAL(prgbs);
 	    if (client->noClientException != Success)
@@ -2998,7 +3017,7 @@ ProcQueryColors(ClientPtr client)
 	    else
 	    {
 		client->errorValue = clientErrorValue;
-	        return (retval);
+	        return rc;
 	    }
 	}
 	qcr.type = X_Reply;
@@ -3018,7 +3037,7 @@ ProcQueryColors(ClientPtr client)
     else
     {
         client->errorValue = stuff->cmap;
-        return (BadColor);
+        return (rc == BadValue) ? BadColor : rc;
     }
 } 
 
@@ -3026,12 +3045,13 @@ int
 ProcLookupColor(ClientPtr client)
 {
     ColormapPtr pcmp;
+    int rc;
     REQUEST(xLookupColorReq);
 
     REQUEST_FIXED_SIZE(xLookupColorReq, stuff->nbytes);
-    pcmp = (ColormapPtr)SecurityLookupIDByType(client, stuff->cmap,
-					RT_COLORMAP, DixReadAccess);
-    if (pcmp)
+    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP, client,
+			   DixReadAccess);
+    if (rc == Success)
     {
 	xLookupColorReply lcr;
 
@@ -3056,7 +3076,7 @@ ProcLookupColor(ClientPtr client)
     else
     {
         client->errorValue = stuff->cmap;
-        return (BadColor);
+        return (rc == BadValue) ? BadColor : rc;
     }
 }
 

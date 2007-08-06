@@ -64,6 +64,7 @@ SOFTWARE.
 #include "resource.h"
 #include "windowstr.h"
 #include "privates.h"
+#include "xace.h"
 
 extern XID clientErrorValue;
 extern int colormapPrivateCount;
@@ -410,6 +411,16 @@ CreateColormap (Colormap mid, ScreenPtr pScreen, VisualPtr pVisual,
 	    FreeResource (mid, RT_NONE);
 	    return BadAlloc;
 	}
+    }
+
+    /*  
+     * Security creation/labeling check
+     */
+    i = XaceHook(XACE_RESOURCE_ACCESS, clients[client], mid, RT_COLORMAP,
+		 DixCreateAccess, pmap);
+    if (i != Success) {
+	FreeResource(mid, RT_NONE);
+	return i;
     }
 
     if (!(*pScreen->CreateColormap)(pmap))
