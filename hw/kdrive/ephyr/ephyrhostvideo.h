@@ -109,6 +109,13 @@ EphyrHostVideoFormat* ephyrHostXVAdaptorGetVideoFormats
 int ephyrHostXVAdaptorGetNbPorts (const EphyrHostXVAdaptor *a_this) ;
 int ephyrHostXVAdaptorGetFirstPortID (const EphyrHostXVAdaptor *a_this) ;
 
+Bool ephyrHostXVAdaptorHasPutVideo (const EphyrHostXVAdaptor *a_this,
+                                    Bool *a_result) ;
+Bool ephyrHostXVAdaptorHasPutStill (const EphyrHostXVAdaptor *a_this,
+                                    Bool *a_result) ;
+Bool ephyrHostXVAdaptorHasPutImage (const EphyrHostXVAdaptor *a_this,
+                                    Bool *a_result) ;
+
 /*
  * encoding
  */

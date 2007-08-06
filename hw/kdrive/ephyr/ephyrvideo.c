@@ -97,6 +97,24 @@ static void ephyrQueryBestSize (KdScreenInfo *a_info,
                                 unsigned int *a_prefered_h,
                                 pointer a_port_priv);
 
+static int ephyrPutVideo (KdScreenInfo *a_screen,
+                          DrawablePtr a_drw,
+                          short a_vid_x, short a_vid_y,
+                          short a_drw_x, short a_drw_y,
+                          short a_vid_w, short a_vid_h,
+                          short a_drw_w, short a_drw_h,
+                          RegionPtr a_clip_region,
+                          pointer a_port_priv) ;
+
+static int ephyrPutStill (KdScreenInfo *a_screen,
+                          DrawablePtr a_drw,
+                          short a_vid_x, short a_vid_y,
+                          short a_drw_x, short a_drw_y,
+                          short a_vid_w, short a_vid_h,
+                          short a_drw_w, short a_drw_h,
+                          RegionPtr a_clip_region,
+                          pointer a_port_priv) ;
+
 static int ephyrPutImage (KdScreenInfo *a_info,
                           DrawablePtr a_drawable,
                           short a_src_x,
@@ -458,6 +476,13 @@ ephyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
         a_this->adaptors[i].pAttributes =
                     portAttributesDup (attributes, num_attributes);
         a_this->adaptors[i].nAttributes = num_attributes ;
+        /*make sure atoms of attrs names are created in xephyr*/
+        for (j=0; j < a_this->adaptors[i].nAttributes; j++) {
+            if (a_this->adaptors[i].pAttributes[j].name)
+                MakeAtom (a_this->adaptors[i].pAttributes[j].name,
+                          strlen (a_this->adaptors[i].pAttributes[j].name),
+                          TRUE) ;
+        }
         if (!ephyrHostXVQueryImageFormats (base_port_id,
                                            &image_formats,
                                            &num_formats)) {
@@ -487,6 +512,8 @@ static Bool
 ephyrXVPrivSetAdaptorsHooks (EphyrXVPriv *a_this)
 {
     int i=0 ;
+    Bool has_it=FALSE ;
+    EphyrHostXVAdaptor *cur_host_adaptor=NULL ;
 
     EPHYR_RETURN_VAL_IF_FAIL (a_this, FALSE) ;
 
@@ -497,8 +524,34 @@ ephyrXVPrivSetAdaptorsHooks (EphyrXVPriv *a_this)
         a_this->adaptors[i].SetPortAttribute = ephyrSetPortAttribute ;
         a_this->adaptors[i].GetPortAttribute = ephyrGetPortAttribute ;
         a_this->adaptors[i].QueryBestSize = ephyrQueryBestSize ;
-        a_this->adaptors[i].PutImage = ephyrPutImage;
         a_this->adaptors[i].QueryImageAttributes = ephyrQueryImageAttributes ;
+
+        cur_host_adaptor =
+                   ephyrHostXVAdaptorArrayAt (a_this->host_adaptors, i) ;
+        if (!cur_host_adaptor) {
+            EPHYR_LOG_ERROR ("failed to get host adaptor at index %d\n", i) ;
+            continue ;
+        }
+        has_it = FALSE ;
+        if (!ephyrHostXVAdaptorHasPutImage (cur_host_adaptor, &has_it)) {
+            EPHYR_LOG_ERROR ("error\n") ;
+        }
+        if (has_it)
+            a_this->adaptors[i].PutImage = ephyrPutImage;
+
+        has_it = FALSE ;
+        if (!ephyrHostXVAdaptorHasPutVideo (cur_host_adaptor, &has_it)) {
+            EPHYR_LOG_ERROR ("error\n") ;
+        }
+        if (has_it)
+            a_this->adaptors[i].PutVideo = ephyrPutVideo;
+
+        has_it = FALSE ;
+        if (!ephyrHostXVAdaptorHasPutStill (cur_host_adaptor, &has_it)) {
+            EPHYR_LOG_ERROR ("error\n") ;
+        }
+        if (has_it)
+            a_this->adaptors[i].PutStill = ephyrPutStill;
     }
     EPHYR_LOG ("leave\n") ;
     return TRUE ;
@@ -711,6 +764,35 @@ ephyrQueryBestSize (KdScreenInfo *a_info,
     EPHYR_LOG ("leave\n") ;
 }
 
+static int
+ephyrPutVideo (KdScreenInfo *a_screen,
+               DrawablePtr a_drw,
+               short a_vid_x, short a_vid_y,
+               short a_drw_x, short a_drw_y,
+               short a_vid_w, short a_vid_h,
+               short a_drw_w, short a_drw_h,
+               RegionPtr a_clip_region,
+               pointer a_port_priv)
+{
+    EPHYR_LOG ("enter\n") ;
+    return Success ;
+    EPHYR_LOG ("leave\n") ;
+}
+
+static int
+ephyrPutStill (KdScreenInfo *a_screen,
+               DrawablePtr a_drw,
+               short a_vid_x, short a_vid_y,
+               short a_drw_x, short a_drw_y,
+               short a_vid_w, short a_vid_h,
+               short a_drw_w, short a_drw_h,
+               RegionPtr a_clip_region,
+               pointer a_port_priv)
+{
+    EPHYR_LOG ("enter\n") ;
+    return Success ;
+    EPHYR_LOG ("leave\n") ;
+}
 
 static int
 ephyrPutImage (KdScreenInfo *a_info,

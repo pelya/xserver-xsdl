@@ -365,6 +365,45 @@ ephyrHostXVAdaptorGetFirstPortID (const EphyrHostXVAdaptor *a_this)
 }
 
 Bool
+ephyrHostXVAdaptorHasPutVideo (const EphyrHostXVAdaptor *a_this,
+                               Bool *a_result)
+{
+    EPHYR_RETURN_VAL_IF_FAIL (a_this && a_result, FALSE) ;
+
+    if (((XvAdaptorInfo*)a_this)->type & XvVideoMask)
+        *a_result = TRUE ;
+    else
+        *a_result = FALSE ;
+    return TRUE ;
+}
+
+Bool
+ephyrHostXVAdaptorHasPutStill (const EphyrHostXVAdaptor *a_this,
+                               Bool *a_result)
+{
+    EPHYR_RETURN_VAL_IF_FAIL (a_this && a_result, FALSE) ;
+
+    if (((XvAdaptorInfo*)a_this)->type & XvStillMask)
+        *a_result = TRUE ;
+    else
+        *a_result = FALSE ;
+    return TRUE ;
+}
+
+Bool
+ephyrHostXVAdaptorHasPutImage (const EphyrHostXVAdaptor *a_this,
+                               Bool *a_result)
+{
+    EPHYR_RETURN_VAL_IF_FAIL (a_this && a_result, FALSE) ;
+
+    if (((XvAdaptorInfo*)a_this)->type & XvImageMask)
+        *a_result = TRUE ;
+    else
+        *a_result = FALSE ;
+    return TRUE ;
+}
+
+Bool
 ephyrHostXVQueryEncodings (int a_port_id,
                            EphyrHostEncoding **a_encodings,
                            unsigned int *a_num_encodings)
@@ -545,9 +584,9 @@ ephyrHostXVQueryBestSize (int a_port_id,
         EPHYR_LOG_ERROR ("XvQueryBestSize() failed: %d\n", res) ;
         goto out ;
     }
+    XSync (hostx_get_display (), FALSE) ;
 
     EPHYR_LOG ("actual (%dx%d)\n", *a_actual_w, *a_actual_h) ;
-
     is_ok = TRUE ;
 
 out:
