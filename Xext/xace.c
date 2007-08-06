@@ -156,22 +156,16 @@ int XaceHook(int hook, ...)
 	    prv = &rec.status;
 	    break;
 	}
-	case XACE_SITE_POLICY: {
-	    XaceSitePolicyRec rec = {
-		va_arg(ap, char*),
-		va_arg(ap, int),
-		BadValue /* default unrecognized */
+	case XACE_SCREEN_ACCESS:
+	case XACE_SCREENSAVER_ACCESS: {
+	    XaceScreenAccessRec rec = {
+		va_arg(ap, ClientPtr),
+		va_arg(ap, ScreenPtr),
+		va_arg(ap, Mask),
+		Success /* default allow */
 	    };
 	    calldata = &rec;
 	    prv = &rec.status;
-	    break;
-	}
-	case XACE_DECLARE_EXT_SECURE: {
-	    XaceDeclareExtSecureRec rec = {
-		va_arg(ap, ExtensionEntry*),
-		va_arg(ap, Bool)
-	    };
-	    calldata = &rec;
 	    break;
 	}
 	case XACE_AUTH_AVAIL: {

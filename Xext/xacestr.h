@@ -101,18 +101,12 @@ typedef struct {
     int status;
 } XaceSelectionAccessRec;
 
-/* XACE_SITE_POLICY */
 typedef struct {
-    char *policyString;
-    int len;
+    ClientPtr client;
+    ScreenPtr screen;
+    Mask access_mode;
     int status;
-} XaceSitePolicyRec;
-
-/* XACE_DECLARE_EXT_SECURE */
-typedef struct {
-    ExtensionEntry *ext;
-    Bool secure;
-} XaceDeclareExtSecureRec;
+} XaceScreenAccessRec;
 
 /* XACE_AUTH_AVAIL */
 typedef struct {
