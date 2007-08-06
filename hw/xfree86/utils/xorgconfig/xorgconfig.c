@@ -2442,7 +2442,7 @@ write_fontpath_section(FILE *f)
 		len = nextdir - thisdir;
 		nextdir++;
 	    }
-	    if (len > sizeof(cur))
+	    if (len >= sizeof(cur))
 		continue;
 	    strncpy(cur, thisdir, len);
 	    cur[len] = '\0';
