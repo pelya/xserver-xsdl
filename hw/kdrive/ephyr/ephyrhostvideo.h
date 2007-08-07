@@ -111,7 +111,11 @@ int ephyrHostXVAdaptorGetFirstPortID (const EphyrHostXVAdaptor *a_this) ;
 
 Bool ephyrHostXVAdaptorHasPutVideo (const EphyrHostXVAdaptor *a_this,
                                     Bool *a_result) ;
+Bool ephyrHostXVAdaptorHasGetVideo (const EphyrHostXVAdaptor *a_this,
+                                    Bool *a_result) ;
 Bool ephyrHostXVAdaptorHasPutStill (const EphyrHostXVAdaptor *a_this,
+                                    Bool *a_result) ;
+Bool ephyrHostXVAdaptorHasGetStill (const EphyrHostXVAdaptor *a_this,
                                     Bool *a_result) ;
 Bool ephyrHostXVAdaptorHasPutImage (const EphyrHostXVAdaptor *a_this,
                                     Bool *a_result) ;
@@ -195,5 +199,23 @@ Bool ephyrHostXVPutImage (int a_port_id,
                           int a_image_height,
                           unsigned char *a_buf) ;
 
+/*
+ * Putvideo/PutStill/GetVideo
+ */
+Bool ephyrHostXVPutVideo (int a_port_id,
+                          int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
+                          int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h) ;
+
+Bool ephyrHostXVGetVideo (int a_port_id,
+                          int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
+                          int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h) ;
+
+Bool ephyrHostXVPutStill (int a_port_id,
+                          int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
+                          int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h) ;
+
+Bool ephyrHostXVGetStill (int a_port_id,
+                          int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
+                          int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h) ;
 #endif /*__EPHYRHOSTVIDEO_H__*/
 

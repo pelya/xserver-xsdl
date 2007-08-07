@@ -97,24 +97,6 @@ static void ephyrQueryBestSize (KdScreenInfo *a_info,
                                 unsigned int *a_prefered_h,
                                 pointer a_port_priv);
 
-static int ephyrPutVideo (KdScreenInfo *a_screen,
-                          DrawablePtr a_drw,
-                          short a_vid_x, short a_vid_y,
-                          short a_drw_x, short a_drw_y,
-                          short a_vid_w, short a_vid_h,
-                          short a_drw_w, short a_drw_h,
-                          RegionPtr a_clip_region,
-                          pointer a_port_priv) ;
-
-static int ephyrPutStill (KdScreenInfo *a_screen,
-                          DrawablePtr a_drw,
-                          short a_vid_x, short a_vid_y,
-                          short a_drw_x, short a_drw_y,
-                          short a_vid_w, short a_vid_h,
-                          short a_drw_w, short a_drw_h,
-                          RegionPtr a_clip_region,
-                          pointer a_port_priv) ;
-
 static int ephyrPutImage (KdScreenInfo *a_info,
                           DrawablePtr a_drawable,
                           short a_src_x,
@@ -132,6 +114,42 @@ static int ephyrPutImage (KdScreenInfo *a_info,
                           Bool a_sync,
                           RegionPtr a_clipping_region,
                           pointer a_port_priv);
+
+static int ephyrPutVideo (KdScreenInfo *a_info,
+                          DrawablePtr a_drawable,
+                          short a_vid_x, short a_vid_y,
+                          short a_drw_x, short a_drw_y,
+                          short a_vid_w, short a_vid_h,
+                          short a_drw_w, short a_drw_h,
+                          RegionPtr a_clip_region,
+                          pointer a_port_priv) ;
+
+static int ephyrGetVideo (KdScreenInfo *a_info,
+                          DrawablePtr a_drawable,
+                          short a_vid_x, short a_vid_y,
+                          short a_drw_x, short a_drw_y,
+                          short a_vid_w, short a_vid_h,
+                          short a_drw_w, short a_drw_h,
+                          RegionPtr a_clip_region,
+                          pointer a_port_priv) ;
+
+static int ephyrPutStill (KdScreenInfo *a_info,
+                          DrawablePtr a_drawable,
+                          short a_vid_x, short a_vid_y,
+                          short a_drw_x, short a_drw_y,
+                          short a_vid_w, short a_vid_h,
+                          short a_drw_w, short a_drw_h,
+                          RegionPtr a_clip_region,
+                          pointer a_port_priv) ;
+
+static int ephyrGetStill (KdScreenInfo *a_info,
+                          DrawablePtr a_drawable,
+                          short a_vid_x, short a_vid_y,
+                          short a_drw_x, short a_drw_y,
+                          short a_vid_w, short a_vid_h,
+                          short a_drw_w, short a_drw_h,
+                          RegionPtr a_clip_region,
+                          pointer a_port_priv) ;
 
 static int ephyrQueryImageAttributes (KdScreenInfo *a_info,
                                       int a_id,
@@ -547,11 +565,25 @@ ephyrXVPrivSetAdaptorsHooks (EphyrXVPriv *a_this)
             a_this->adaptors[i].PutVideo = ephyrPutVideo;
 
         has_it = FALSE ;
+        if (!ephyrHostXVAdaptorHasGetVideo (cur_host_adaptor, &has_it)) {
+            EPHYR_LOG_ERROR ("error\n") ;
+        }
+        if (has_it)
+            a_this->adaptors[i].GetVideo = ephyrGetVideo;
+
+        has_it = FALSE ;
         if (!ephyrHostXVAdaptorHasPutStill (cur_host_adaptor, &has_it)) {
             EPHYR_LOG_ERROR ("error\n") ;
         }
         if (has_it)
             a_this->adaptors[i].PutStill = ephyrPutStill;
+
+        has_it = FALSE ;
+        if (!ephyrHostXVAdaptorHasGetStill (cur_host_adaptor, &has_it)) {
+            EPHYR_LOG_ERROR ("error\n") ;
+        }
+        if (has_it)
+            a_this->adaptors[i].GetStill = ephyrGetStill;
     }
     EPHYR_LOG ("leave\n") ;
     return TRUE ;
@@ -765,36 +797,6 @@ ephyrQueryBestSize (KdScreenInfo *a_info,
 }
 
 static int
-ephyrPutVideo (KdScreenInfo *a_screen,
-               DrawablePtr a_drw,
-               short a_vid_x, short a_vid_y,
-               short a_drw_x, short a_drw_y,
-               short a_vid_w, short a_vid_h,
-               short a_drw_w, short a_drw_h,
-               RegionPtr a_clip_region,
-               pointer a_port_priv)
-{
-    EPHYR_LOG ("enter\n") ;
-    return Success ;
-    EPHYR_LOG ("leave\n") ;
-}
-
-static int
-ephyrPutStill (KdScreenInfo *a_screen,
-               DrawablePtr a_drw,
-               short a_vid_x, short a_vid_y,
-               short a_drw_x, short a_drw_y,
-               short a_vid_w, short a_vid_h,
-               short a_drw_w, short a_drw_h,
-               RegionPtr a_clip_region,
-               pointer a_port_priv)
-{
-    EPHYR_LOG ("enter\n") ;
-    return Success ;
-    EPHYR_LOG ("leave\n") ;
-}
-
-static int
 ephyrPutImage (KdScreenInfo *a_info,
                DrawablePtr a_drawable,
                short a_src_x,
@@ -848,6 +850,202 @@ ephyrPutImage (KdScreenInfo *a_info,
         goto out ;
     }
 
+    result = Success ;
+
+out:
+    EPHYR_LOG ("leave\n") ;
+    return result ;
+}
+
+static int
+ephyrPutVideo (KdScreenInfo *a_info,
+               DrawablePtr a_drawable,
+               short a_vid_x, short a_vid_y,
+               short a_drw_x, short a_drw_y,
+               short a_vid_w, short a_vid_h,
+               short a_drw_w, short a_drw_h,
+               RegionPtr a_clipping_region,
+               pointer a_port_priv)
+{
+    EphyrPortPriv *port_priv = a_port_priv ;
+    BoxRec clipped_area, dst_box ;
+    int result=BadImplementation ;
+    int drw_x=0, drw_y=0, drw_w=0, drw_h=0 ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_drawable && port_priv, BadValue) ;
+
+    EPHYR_LOG ("enter\n") ;
+
+    dst_box.x1 = a_drw_x ;
+    dst_box.x2 = a_drw_x + a_drw_w;
+    dst_box.y1 = a_drw_y ;
+    dst_box.y2 = a_drw_y + a_drw_h;
+
+    if (!DoSimpleClip (&dst_box,
+                       REGION_EXTENTS (pScreen->pScreen, a_clipping_region),
+                       &clipped_area)) {
+        EPHYR_LOG_ERROR ("failed to simple clip\n") ;
+        goto out ;
+    }
+
+    drw_x = clipped_area.x1 ;
+    drw_y = clipped_area.y1 ;
+    drw_w = clipped_area.x2 - clipped_area.x1 ;
+    drw_h = clipped_area.y2 - clipped_area.y1 ;
+
+    if (!ephyrHostXVPutVideo (port_priv->port_number,
+                              a_vid_x, a_vid_y, a_vid_w, a_vid_h,
+                              a_drw_x, a_drw_y, a_drw_w, a_drw_h)) {
+        EPHYR_LOG_ERROR ("ephyrHostXVPutVideo() failed\n") ;
+        goto out ;
+    }
+    result = Success ;
+
+out:
+    EPHYR_LOG ("leave\n") ;
+    return result ;
+}
+
+static int
+ephyrGetVideo (KdScreenInfo *a_info,
+               DrawablePtr a_drawable,
+               short a_vid_x, short a_vid_y,
+               short a_drw_x, short a_drw_y,
+               short a_vid_w, short a_vid_h,
+               short a_drw_w, short a_drw_h,
+               RegionPtr a_clipping_region,
+               pointer a_port_priv)
+{
+    EphyrPortPriv *port_priv = a_port_priv ;
+    BoxRec clipped_area, dst_box ;
+    int result=BadImplementation ;
+    int drw_x=0, drw_y=0, drw_w=0, drw_h=0 ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_drawable && port_priv, BadValue) ;
+
+    EPHYR_LOG ("enter\n") ;
+
+    dst_box.x1 = a_drw_x ;
+    dst_box.x2 = a_drw_x + a_drw_w;
+    dst_box.y1 = a_drw_y ;
+    dst_box.y2 = a_drw_y + a_drw_h;
+
+    if (!DoSimpleClip (&dst_box,
+                       REGION_EXTENTS (pScreen->pScreen, a_clipping_region),
+                       &clipped_area)) {
+        EPHYR_LOG_ERROR ("failed to simple clip\n") ;
+        goto out ;
+    }
+
+    drw_x = clipped_area.x1 ;
+    drw_y = clipped_area.y1 ;
+    drw_w = clipped_area.x2 - clipped_area.x1 ;
+    drw_h = clipped_area.y2 - clipped_area.y1 ;
+
+    if (!ephyrHostXVGetVideo (port_priv->port_number,
+                              a_vid_x, a_vid_y, a_vid_w, a_vid_h,
+                              a_drw_x, a_drw_y, a_drw_w, a_drw_h)) {
+        EPHYR_LOG_ERROR ("ephyrHostXVGetVideo() failed\n") ;
+        goto out ;
+    }
+    result = Success ;
+
+out:
+    EPHYR_LOG ("leave\n") ;
+    return result ;
+}
+
+static int
+ephyrPutStill (KdScreenInfo *a_info,
+               DrawablePtr a_drawable,
+               short a_vid_x, short a_vid_y,
+               short a_drw_x, short a_drw_y,
+               short a_vid_w, short a_vid_h,
+               short a_drw_w, short a_drw_h,
+               RegionPtr a_clipping_region,
+               pointer a_port_priv)
+{
+    EphyrPortPriv *port_priv = a_port_priv ;
+    BoxRec clipped_area, dst_box ;
+    int result=BadImplementation ;
+    int drw_x=0, drw_y=0, drw_w=0, drw_h=0 ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_drawable && port_priv, BadValue) ;
+
+    EPHYR_LOG ("enter\n") ;
+
+    dst_box.x1 = a_drw_x ;
+    dst_box.x2 = a_drw_x + a_drw_w;
+    dst_box.y1 = a_drw_y ;
+    dst_box.y2 = a_drw_y + a_drw_h;
+
+    if (!DoSimpleClip (&dst_box,
+                       REGION_EXTENTS (pScreen->pScreen, a_clipping_region),
+                       &clipped_area)) {
+        EPHYR_LOG_ERROR ("failed to simple clip\n") ;
+        goto out ;
+    }
+
+    drw_x = clipped_area.x1 ;
+    drw_y = clipped_area.y1 ;
+    drw_w = clipped_area.x2 - clipped_area.x1 ;
+    drw_h = clipped_area.y2 - clipped_area.y1 ;
+
+    if (!ephyrHostXVPutStill (port_priv->port_number,
+                              a_vid_x, a_vid_y, a_vid_w, a_vid_h,
+                              a_drw_x, a_drw_y, a_drw_w, a_drw_h)) {
+        EPHYR_LOG_ERROR ("ephyrHostXVPutStill() failed\n") ;
+        goto out ;
+    }
+    result = Success ;
+
+out:
+    EPHYR_LOG ("leave\n") ;
+    return result ;
+}
+
+static int
+ephyrGetStill (KdScreenInfo *a_info,
+               DrawablePtr a_drawable,
+               short a_vid_x, short a_vid_y,
+               short a_drw_x, short a_drw_y,
+               short a_vid_w, short a_vid_h,
+               short a_drw_w, short a_drw_h,
+               RegionPtr a_clipping_region,
+               pointer a_port_priv)
+{
+    EphyrPortPriv *port_priv = a_port_priv ;
+    BoxRec clipped_area, dst_box ;
+    int result=BadImplementation ;
+    int drw_x=0, drw_y=0, drw_w=0, drw_h=0 ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_drawable && port_priv, BadValue) ;
+
+    EPHYR_LOG ("enter\n") ;
+
+    dst_box.x1 = a_drw_x ;
+    dst_box.x2 = a_drw_x + a_drw_w;
+    dst_box.y1 = a_drw_y ;
+    dst_box.y2 = a_drw_y + a_drw_h;
+
+    if (!DoSimpleClip (&dst_box,
+                       REGION_EXTENTS (pScreen->pScreen, a_clipping_region),
+                       &clipped_area)) {
+        EPHYR_LOG_ERROR ("failed to simple clip\n") ;
+        goto out ;
+    }
+
+    drw_x = clipped_area.x1 ;
+    drw_y = clipped_area.y1 ;
+    drw_w = clipped_area.x2 - clipped_area.x1 ;
+    drw_h = clipped_area.y2 - clipped_area.y1 ;
+
+    if (!ephyrHostXVGetStill (port_priv->port_number,
+                              a_vid_x, a_vid_y, a_vid_w, a_vid_h,
+                              a_drw_x, a_drw_y, a_drw_w, a_drw_h)) {
+        EPHYR_LOG_ERROR ("ephyrHostXVGetStill() failed\n") ;
+        goto out ;
+    }
     result = Success ;
 
 out:
