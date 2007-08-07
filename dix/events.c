@@ -5326,6 +5326,7 @@ ProcGrabButton(ClientPtr client)
     REQUEST(xGrabButtonReq);
     CursorPtr cursor;
     GrabPtr grab;
+    DeviceIntPtr pointer, modifierDevice;
     int rc;
 
     REQUEST_SIZE_MATCH(xGrabButtonReq);
@@ -5381,11 +5382,15 @@ ProcGrabButton(ClientPtr client)
 	}
     }
 
+    pointer = PickPointer(client);
+    modifierDevice = GetPairedKeyboard(pointer);
+    if (!modifierDevice)
+        modifierDevice = inputInfo.keyboard;
 
-    grab = CreateGrab(client->index, PickPointer(client), pWin, 
+    grab = CreateGrab(client->index, pointer, pWin, 
         (Mask)stuff->eventMask, (Bool)stuff->ownerEvents,
         (Bool) stuff->keyboardMode, (Bool)stuff->pointerMode,
-        inputInfo.keyboard, stuff->modifiers, ButtonPress,
+        modifierDevice, stuff->modifiers, ButtonPress,
         stuff->button, confineTo, cursor);
     if (!grab)
 	return BadAlloc;
