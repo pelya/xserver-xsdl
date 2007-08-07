@@ -1146,6 +1146,7 @@ KdParseKbdOptions (KdKeyboardInfo *ki)
 
     for (option = ki->options; option; option = option->next)
     {
+#ifdef XKB
         if (strcasecmp(option->key, "XkbRules") == 0)
             ki->xkbRules = option->value;
         else if (strcasecmp(option->key, "XkbModel") == 0)
@@ -1156,7 +1157,8 @@ KdParseKbdOptions (KdKeyboardInfo *ki)
             ki->xkbVariant = option->value;
         else if (strcasecmp(option->key, "XkbOptions") == 0)
             ki->xkbOptions = option->value;
-       else
+        else
+#endif
            ErrorF("Kbd option key (%s) of value (%s) not assigned!\n", 
                     option->key, option->value);
     }
