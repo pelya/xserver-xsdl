@@ -1105,6 +1105,40 @@ KdRemovePointer (KdPointerInfo *pi)
     KdFreePointer(pi);
 }
 
+static Bool 
+KdGetOptions (InputOption **options, char *string)
+{
+    InputOption     *newopt = NULL, **tmpo = NULL;
+    int             tam_key = 0;
+
+    newopt = (InputOption *) xalloc(sizeof (InputOption));
+    if (!newopt)
+        return FALSE;
+
+    bzero(newopt, sizeof (InputOption));
+
+    for (tmpo = options; *tmpo; tmpo = &(*tmpo)->next)
+        ; /* Hello, I'm here */ 
+    *tmpo = newopt;
+
+    if (strchr(string, '='))
+    {
+        tam_key = (strchr(string, '=') - string);
+        newopt->key = (char *)xalloc(tam_key);
+        strncpy(newopt->key, string, tam_key);
+        newopt->key[tam_key] = '\0';
+        newopt->value = xstrdup(strchr(string, '=') + 1);
+    }
+    else
+    {
+        newopt->key = xstrdup(string);
+        newopt->value = NULL;
+    }
+    newopt->next = NULL;
+
+    return TRUE;
+}
+
 static void
 KdParseKbdOptions (KdKeyboardInfo *ki)
 {
@@ -1133,8 +1167,7 @@ KdParseKeyboard (char *arg)
 {
     char            save[1024];
     char            delim;
-    InputOption     *options = NULL, *newopt = NULL, **tmpo = NULL;
-    int             i = 0;
+    InputOption     *options = NULL;
     KdKeyboardInfo     *ki = NULL;
 
     ki = KdNewKeyboard();
@@ -1188,32 +1221,11 @@ KdParseKeyboard (char *arg)
     {
         arg = KdParseFindNext (arg, ",", save, &delim);
 
-        newopt = (InputOption *) xalloc(sizeof (InputOption));
-        if (!newopt)
-        {
-            KdFreeKeyboard(ki);
-            return NULL;
-        }
-        bzero(newopt, sizeof (InputOption));
-
-        for (tmpo = &options; *tmpo; tmpo = &(*tmpo)->next)
-            ; /* Hello, I'm here */ 
-        *tmpo = newopt;
-
-        if (strchr(save, '='))
-        {
-            i = (strchr(save, '=') - save);
-            newopt->key = (char *)xalloc(i);
-            strncpy(newopt->key, save, i);
-            newopt->key[i] = '\0';
-            newopt->value = xstrdup(strchr(save, '=') + 1);
-        }
-        else
-        {
-            newopt->key = xstrdup(save);
-            newopt->value = NULL;
-        }
-        newopt->next = NULL;
+	if (!KdGetOptions(&options, save)) 
+	{
+	    KdFreeKeyboard(ki);
+	    return NULL;
+        }    
     }
 
     if (options)
@@ -1252,7 +1264,7 @@ KdParsePointer (char *arg)
     char            save[1024];
     char            delim;
     KdPointerInfo   *pi = NULL;
-    InputOption     *options = NULL, *newopt = NULL, **tmpo = NULL;
+    InputOption     *options = NULL;
     int             i = 0;
 
     pi = KdNewPointer();
@@ -1314,33 +1326,11 @@ KdParsePointer (char *arg)
         }
         else
         {
-            newopt = (InputOption *) xalloc(sizeof (InputOption));
-            if (!newopt)
+            if (!KdGetOptions(&options, save))
             {
                 KdFreePointer(pi);
                 return NULL;
             }
-            bzero(newopt, sizeof (InputOption));
-
-            for (tmpo = &options; *tmpo; tmpo = &(*tmpo)->next)
-                ; /* Hello, I'm here */
-
-            *tmpo = newopt;
-
-            if (strchr(save, '='))
-            {
-                i = (strchr(save, '=') - save);
-                newopt->key = (char *)xalloc(i);
-                strncpy(newopt->key, save, i);
-		newopt->key[i] = '\0';
-                newopt->value = xstrdup(strchr(save, '=') + 1);
-            }
-            else
-            {
-                newopt->key = xstrdup(save);
-                newopt->value = NULL;
-            }
-            newopt->next = NULL;
         }
     }
 
