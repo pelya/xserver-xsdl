@@ -792,7 +792,9 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
         if (!noXkbExtension) {
             memset(&names, 0, sizeof(XkbComponentNamesRec));
 
-            XkbSetRulesDflts ("base", "pc105", "us", NULL, NULL);
+            XkbSetRulesDflts (ki->xkbRules, ki->xkbModel, ki->xkbLayout,
+                              ki->xkbVariant, ki->xkbOptions);
+
             ret = XkbInitKeyboardDeviceStruct (pDevice,
                                                &names,
                                                &ki->keySyms,
@@ -961,6 +963,13 @@ KdNewKeyboard (void)
     ki->bellDuration = 200;
     ki->next = NULL;
     ki->options = NULL;
+#ifdef XKB
+    ki->xkbRules = KdSaveString("base");
+    ki->xkbModel = KdSaveString("pc105");
+    ki->xkbLayout = KdSaveString("us");
+    ki->xkbVariant = NULL;
+    ki->xkbOptions = NULL;
+#endif
 
     return ki;
 }
@@ -1096,11 +1105,36 @@ KdRemovePointer (KdPointerInfo *pi)
     KdFreePointer(pi);
 }
 
+static void
+KdParseKbdOptions (KdKeyboardInfo *ki)
+{
+    InputOption *option = NULL;
+
+    for (option = ki->options; option; option = option->next)
+    {
+        if (strcasecmp(option->key, "XkbRules") == 0)
+            ki->xkbRules = option->value;
+        else if (strcasecmp(option->key, "XkbModel") == 0)
+            ki->xkbModel = option->value;
+        else if (strcasecmp(option->key, "XkbLayout") == 0)
+            ki->xkbLayout = option->value;
+        else if (strcasecmp(option->key, "XkbVariant") == 0)
+            ki->xkbVariant = option->value;
+        else if (strcasecmp(option->key, "XkbOptions") == 0)
+            ki->xkbOptions = option->value;
+       else
+           ErrorF("Kbd option key (%s) of value (%s) not assigned!\n", 
+                    option->key, option->value);
+    }
+}
+
 KdKeyboardInfo *
 KdParseKeyboard (char *arg)
 {
     char            save[1024];
     char            delim;
+    InputOption     *options = NULL, *newopt = NULL, **tmpo = NULL;
+    int             i = 0;
     KdKeyboardInfo     *ki = NULL;
 
     ki = KdNewKeyboard();
@@ -1143,9 +1177,73 @@ KdParseKeyboard (char *arg)
     else
         ki->driverPrivate = xstrdup(save);
 
-    /* FIXME actually implement options */
+    if (delim != ',')
+    {
+        return ki;
+    }
+
+    arg = KdParseFindNext (arg, ",", save, &delim);
+
+    while (delim == ',')
+    {
+        arg = KdParseFindNext (arg, ",", save, &delim);
+
+        newopt = (InputOption *) xalloc(sizeof (InputOption));
+        if (!newopt)
+        {
+            KdFreeKeyboard(ki);
+            return NULL;
+        }
+        bzero(newopt, sizeof (InputOption));
+
+        for (tmpo = &options; *tmpo; tmpo = &(*tmpo)->next)
+            ; /* Hello, I'm here */ 
+        *tmpo = newopt;
+
+        if (strchr(save, '='))
+        {
+            i = (strchr(save, '=') - save);
+            newopt->key = (char *)xalloc(i);
+            strncpy(newopt->key, save, i);
+            newopt->key[i] = '\0';
+            newopt->value = xstrdup(strchr(save, '=') + 1);
+        }
+        else
+        {
+            newopt->key = xstrdup(save);
+            newopt->value = NULL;
+        }
+        newopt->next = NULL;
+    }
+
+    if (options)
+    {
+        ki->options = options;
+        KdParseKbdOptions(ki);
+    }
 
     return ki;
+}
+
+static void
+KdParsePointerOptions (KdPointerInfo *pi)
+{
+    InputOption *option = NULL;
+
+    for (option = pi->options; option; option = option->next)
+    {
+        if (!strcmp (option->key, "emulatemiddle"))
+            pi->emulateMiddleButton = TRUE;
+        else if (!strcmp (option->key, "noemulatemiddle"))
+            pi->emulateMiddleButton = FALSE;
+        else if (!strcmp (option->key, "transformcoord"))
+            pi->transformCoordinates = TRUE;
+        else if (!strcmp (option->key, "rawcoord"))
+            pi->transformCoordinates = FALSE;
+        else
+            ErrorF("Pointer option key (%s) of value (%s) not assigned!\n", 
+                    option->key, option->value);
+    }
 }
 
 KdPointerInfo *
@@ -1214,14 +1312,6 @@ KdParsePointer (char *arg)
                 s++;
              }
         }
-        else if (!strcmp (save, "emulatemiddle"))
-            pi->emulateMiddleButton = TRUE;
-        else if (!strcmp (save, "noemulatemiddle"))
-            pi->emulateMiddleButton = FALSE;
-        else if (!strcmp (save, "transformcoord"))
-            pi->transformCoordinates = TRUE;
-        else if (!strcmp (save, "rawcoord"))
-            pi->transformCoordinates = FALSE;
         else
         {
             newopt = (InputOption *) xalloc(sizeof (InputOption));
@@ -1255,7 +1345,10 @@ KdParsePointer (char *arg)
     }
 
     if (options)
+    {
         pi->options = options;
+        KdParsePointerOptions(pi);
+    }
 
     return pi;
 }

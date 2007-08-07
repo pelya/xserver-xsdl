@@ -330,6 +330,11 @@ struct _KdKeyboardInfo {
     int                 inputClass;
 #ifdef XKB
     XkbDescPtr          xkb;
+    char                *xkbRules;
+    char                *xkbModel;
+    char                *xkbLayout;
+    char                *xkbVariant;
+    char                *xkbOptions;
 #endif
     int                 LockLed;
 
