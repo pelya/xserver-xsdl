@@ -87,8 +87,7 @@ CreateGrab(
 	return (GrabPtr)NULL;
     grab->resource = FakeClientID(client);
     grab->device = device;
-    grab->coreGrab = ((device == inputInfo.keyboard) ||
-		      (device == inputInfo.pointer));
+    grab->coreGrab = (type < LASTEvent);
     grab->window = window;
     grab->eventMask = eventMask;
     grab->deviceMask = 0;
