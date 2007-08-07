@@ -81,6 +81,8 @@ int		    kdVirtualTerminal = -1;
 Bool		    kdSwitchPending;
 char		    *kdSwitchCmd;
 DDXPointRec	    kdOrigin;
+Bool		    kdHasPointer = FALSE;
+Bool		    kdHasKbd = FALSE;
 
 static Bool         kdCaughtSignal = FALSE;
 
@@ -737,12 +739,14 @@ KdProcessArgument (int argc, char **argv, int i)
         if (i + 1 >= argc)
             UseMsg();
         KdAddConfigPointer(argv[i + 1]);
+	kdHasPointer = TRUE;
         return 2;
     }
     if (!strcmp (argv[i], "-keybd")) {
         if (i + 1 >= argc)
             UseMsg();
         KdAddConfigKeyboard(argv[i + 1]);
+	kdHasKbd = TRUE;
         return 2;
     }
 
