@@ -198,12 +198,12 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         name = xstrdup("(unnamed)");
 
     if (type & TYPE_KEYS) {
-        xkb_rules = get_prop_string(hal_ctx, udi, "input.xkb_rules", &error);
-        xkb_model = get_prop_string(hal_ctx, udi, "input.xkb_model", &error);
-        xkb_layout = get_prop_string(hal_ctx, udi, "input.xkb_layout", &error);
-        xkb_variant = get_prop_string(hal_ctx, udi, "input.xkb_variant",
+        xkb_rules = get_prop_string(hal_ctx, udi, "input.xkb.rules", &error);
+        xkb_model = get_prop_string(hal_ctx, udi, "input.xkb.model", &error);
+        xkb_layout = get_prop_string(hal_ctx, udi, "input.xkb.layout", &error);
+        xkb_variant = get_prop_string(hal_ctx, udi, "input.xkb.variant",
                                       &error);
-        xkb_options = get_prop_string_array(hal_ctx, udi, "input.xkb_options",
+        xkb_options = get_prop_string_array(hal_ctx, udi, "input.xkb.options",
                                             &error);
     }
 
