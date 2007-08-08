@@ -57,7 +57,9 @@ InitInput (int argc, char **argv)
   KdPointerInfo *pi;
         
   KdAddKeyboardDriver(&EphyrKeyboardDriver);
+  KdAddKeyboardDriver(&LinuxEvdevKeyboardDriver);
   KdAddPointerDriver(&EphyrMouseDriver);
+  KdAddPointerDriver(&LinuxEvdevMouseDriver);
 
   if (!kdHasKbd) {
     ki = KdNewKeyboard();

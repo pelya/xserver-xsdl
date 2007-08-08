@@ -878,12 +878,13 @@ KdRingBell (KdKeyboardInfo      *ki,
             int                 duration);
 
 extern KdPointerDriver	LinuxMouseDriver;
-extern KdPointerDriver	LinuxEvdevDriver;
+extern KdPointerDriver	LinuxEvdevMouseDriver;
 extern KdPointerDriver	Ps2MouseDriver;
 extern KdPointerDriver	BusMouseDriver;
 extern KdPointerDriver	MsMouseDriver;
 extern KdPointerDriver	TsDriver;
 extern KdKeyboardDriver	LinuxKeyboardDriver;
+extern KdKeyboardDriver LinuxEvdevKeyboardDriver;
 extern KdOsFuncs	LinuxFuncs;
 
 extern KdPointerDriver	VxWorksMouseDriver;
