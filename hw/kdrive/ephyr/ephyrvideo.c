@@ -1,4 +1,4 @@
-/*  
+/*
  * Xephyr - A kdrive X server thats runs in a host X window.
  *          Authored by Matthew Allum <mallum@openedhand.com>
  * 
@@ -267,9 +267,10 @@ out:
 Bool
 ephyrInitVideo (ScreenPtr pScreen)
 {
+    Bool is_ok = FALSE ;
     KdScreenPriv(pScreen);
     KdScreenInfo *screen = pScreenPriv->screen;
-    EphyrXVPriv *xv_priv = NULL ;
+    static EphyrXVPriv *xv_priv;
 
     EPHYR_LOG ("enter\n") ;
 
@@ -278,17 +279,22 @@ ephyrInitVideo (ScreenPtr pScreen)
         return FALSE ;
     }
 
-    xv_priv = ephyrXVPrivNew () ;
+    if (!xv_priv) {
+        xv_priv = ephyrXVPrivNew () ;
+    }
     if (!xv_priv) {
         EPHYR_LOG_ERROR ("failed to create xv_priv\n") ;
-        return FALSE ;
+        goto out ;
     }
 
     if (!ephyrXVPrivRegisterAdaptors (xv_priv, pScreen)) {
         EPHYR_LOG_ERROR ("failed to register adaptors\n") ;
-        return FALSE ;
+        goto out ;
     }
-    return TRUE ;
+    is_ok = TRUE ;
+
+out:
+    return is_ok ;
 }
 
 static EphyrXVPriv*
@@ -607,6 +613,8 @@ ephyrXVPrivRegisterAdaptors (EphyrXVPriv *a_this,
         goto out ;
     num_registered_adaptors =
                 KdXVListGenericAdaptors (screen, &registered_adaptors);
+    EPHYR_LOG ("") ;
+
     num_adaptors = num_registered_adaptors + a_this->num_adaptors ;
     adaptors = xcalloc (num_adaptors, sizeof (KdVideoAdaptorPtr)) ;
     if (!adaptors) {
@@ -621,7 +629,7 @@ ephyrXVPrivRegisterAdaptors (EphyrXVPriv *a_this,
         EPHYR_LOG_ERROR ("failed to register adaptors\n");
         goto out ;
     }
-    EPHYR_LOG ("registered %d adaptors\n", num_adaptors) ;
+    EPHYR_LOG ("there are  %d registered adaptors\n", num_adaptors) ;
     is_ok = TRUE ;
 
 out:
