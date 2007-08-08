@@ -1162,6 +1162,8 @@ KdParseKbdOptions (KdKeyboardInfo *ki)
             ki->xkbVariant = option->value;
         else if (strcasecmp(option->key, "XkbOptions") == 0)
             ki->xkbOptions = option->value;
+        else if (!strcasecmp (option->key, "device"))
+            ki->path = KdSaveString(option->value);
         else
 #endif
            ErrorF("Kbd option key (%s) of value (%s) not assigned!\n", 
@@ -1259,6 +1261,8 @@ KdParsePointerOptions (KdPointerInfo *pi)
             pi->transformCoordinates = TRUE;
         else if (!strcmp (option->key, "rawcoord"))
             pi->transformCoordinates = FALSE;
+        else if (!strcasecmp (option->key, "device"))
+            pi->path = KdSaveString(option->value);
         else
             ErrorF("Pointer option key (%s) of value (%s) not assigned!\n", 
                     option->key, option->value);
@@ -2429,6 +2433,8 @@ NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
         return BadValue;
     }
 
+    /* FIXME: change this code below to use KdParseKbdOptions and
+     * KdParsePointerOptions */
     for (option = options; option; option = option->next) {
         if (strcmp(option->key, "device") == 0) {
             if (pi && option->value)
