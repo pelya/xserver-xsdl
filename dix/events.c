@@ -3157,7 +3157,7 @@ CheckPassiveGrabsOnWindow(
                This essentially requires a client to re-create all
                passiveGrabs when the pairing changes... oh well.
              */ 
-            if (xE->u.u.type < LASTEVENT)
+            if (xE->u.u.type < LASTEvent)
             {
                 grab->device = device; 
                 grab->modifierDevice = GetPairedKeyboard(device);
