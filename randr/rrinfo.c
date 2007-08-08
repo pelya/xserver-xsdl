@@ -104,7 +104,7 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
 #endif
     }
 
-    output = RRFirstOutput (pScreen);
+    output = pScrPriv->outputs[0];
     if (!output)
 	return;
     crtc = pScrPriv->crtcs[0];
