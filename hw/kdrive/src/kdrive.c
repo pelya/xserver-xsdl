@@ -598,6 +598,8 @@ KdUseMsg (void)
     ErrorF("-card pcmcia     Use PCMCIA card as additional screen\n");
     ErrorF("-screen WIDTH[/WIDTHMM]xHEIGHT[/HEIGHTMM][@ROTATION][X][Y][xDEPTH/BPP{,DEPTH/BPP}[xFREQ]]  Specify screen characteristics\n");
     ErrorF("-rgba rgb/bgr/vrgb/vbgr/none   Specify subpixel ordering for LCD panels\n");
+    ErrorF("-mouse driver [,n,,options]    Specify the pointer driver and its options (n is the number of buttons)\n");
+    ErrorF("-keybd driver [,,options]      Specify the keyboard driver and its options\n");
     ErrorF("-zaphod          Disable cursor screen switching\n");
     ErrorF("-2button         Emulate 3 button mouse\n");
     ErrorF("-3button         Disable 3 button mouse emulation\n");
@@ -606,7 +608,6 @@ KdUseMsg (void)
     ErrorF("-softCursor      Force software cursor\n");
     ErrorF("-videoTest       Start the server, pause momentarily and exit\n");
     ErrorF("-origin X,Y      Locates the next screen in the the virtual screen (Xinerama)\n");
-    ErrorF("-mouse path[,n]  Filename of mouse device, n is number of buttons\n");
     ErrorF("-switchCmd       Command to execute on vt switch\n");
     ErrorF("-nozap           Don't terminate server on Ctrl+Alt+Backspace\n");
     ErrorF("vtxx             Use virtual terminal xx instead of the next available\n");
