@@ -613,7 +613,6 @@ ephyrXVPrivRegisterAdaptors (EphyrXVPriv *a_this,
         goto out ;
     num_registered_adaptors =
                 KdXVListGenericAdaptors (screen, &registered_adaptors);
-    EPHYR_LOG ("") ;
 
     num_adaptors = num_registered_adaptors + a_this->num_adaptors ;
     adaptors = xcalloc (num_adaptors, sizeof (KdVideoAdaptorPtr)) ;
@@ -824,36 +823,19 @@ ephyrPutImage (KdScreenInfo *a_info,
                pointer a_port_priv)
 {
     EphyrPortPriv *port_priv = a_port_priv ;
-    BoxRec clipped_area, dst_box ;
     int result=BadImplementation ;
-    int drw_x=0, drw_y=0, drw_w=0, drw_h=0 ;
 
     EPHYR_RETURN_VAL_IF_FAIL (a_drawable, BadValue) ;
 
     EPHYR_LOG ("enter\n") ;
 
-    dst_box.x1 = a_drw_x ;
-    dst_box.x2 = a_drw_x + a_drw_w;
-    dst_box.y1 = a_drw_y ;
-    dst_box.y2 = a_drw_y + a_drw_h;
-
-    if (!DoSimpleClip (&dst_box,
-                       REGION_EXTENTS (pScreen->pScreen, a_clipping_region),
-                       &clipped_area)) {
-        EPHYR_LOG_ERROR ("failed to simple clip\n") ;
-        goto out ;
-    }
-
-    drw_x = clipped_area.x1 ;
-    drw_y = clipped_area.y1 ;
-    drw_w = clipped_area.x2 - clipped_area.x1 ;
-    drw_h = clipped_area.y2 - clipped_area.y1 ;
-
     if (!ephyrHostXVPutImage (port_priv->port_number,
                               a_id,
-                              drw_x, drw_y, drw_w, drw_h,
+                              a_drw_x, a_drw_y, a_drw_w, a_drw_h,
                               a_src_x, a_src_y, a_src_w, a_src_h,
-                              a_width, a_height, a_buf)) {
+                              a_width, a_height, a_buf,
+                              (EphyrHostBox*)REGION_RECTS (a_clipping_region),
+                              REGION_NUM_RECTS (a_clipping_region))) {
         EPHYR_LOG_ERROR ("EphyrHostXVPutImage() failed\n") ;
         goto out ;
     }

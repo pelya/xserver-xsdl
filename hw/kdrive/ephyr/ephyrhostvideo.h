@@ -84,6 +84,10 @@ typedef struct _EphyrHostImageFormat {
     int scanline_order;          /* XvTopToBottom, XvBottomToTop */
 } EphyrHostImageFormat ;
 
+typedef struct {
+    unsigned short x1, y1, x2, y2 ;
+} EphyrHostBox ;
+
 void ephyrHostXVInit (void) ;
 
 void ephyrHostFree (void *a_pointer) ;
@@ -197,7 +201,9 @@ Bool ephyrHostXVPutImage (int a_port_id,
                           int a_src_h,
                           int a_image_width,
                           int a_image_height,
-                          unsigned char *a_buf) ;
+                          unsigned char *a_buf,
+                          EphyrHostBox *a_clip_rects,
+                          int a_clip_rect_nums) ;
 
 /*
  * Putvideo/PutStill/GetVideo

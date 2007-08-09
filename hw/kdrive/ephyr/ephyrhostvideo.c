@@ -757,17 +757,21 @@ ephyrHostXVPutImage (int a_port_id,
                      int a_src_h,
                      int a_image_width,
                      int a_image_height,
-                     unsigned char *a_buf)
+                     unsigned char *a_buf,
+                     EphyrHostBox *a_clip_rects,
+                     int a_clip_rect_nums )
 {
     Bool is_ok=TRUE ;
     XvImage *xv_image=NULL ;
     GC gc=0 ;
     XGCValues gc_values;
     Display *dpy = hostx_get_display () ;
+    XRectangle *rects=NULL ;
+    int res = 0 ;
 
     EPHYR_RETURN_VAL_IF_FAIL (a_buf, FALSE) ;
 
-    EPHYR_LOG ("enter\n") ;
+    EPHYR_LOG ("enter, num_clip_rects: %d\n", a_clip_rect_nums) ;
 
     gc = XCreateGC (dpy, hostx_get_window (), 0L, &gc_values);
     if (!gc) {
@@ -782,16 +786,32 @@ ephyrHostXVPutImage (int a_port_id,
         goto out ;
     }
     xv_image->data = (char*)a_buf ;
-    XvPutImage (dpy, a_port_id, hostx_get_window (),
-                gc, xv_image,
-                a_src_x, a_src_y, a_src_w, a_src_h,
-                a_drw_x, a_drw_y, a_drw_w, a_drw_h) ;
-    XFlush (dpy) ;
+    if (a_clip_rect_nums) {
+        int i=0 ;
+        rects = calloc (a_clip_rect_nums, sizeof (XRectangle)) ;
+        for (i=0; i < a_clip_rect_nums; i++) {
+            rects[i].x = a_clip_rects[i].x1 ;
+            rects[i].y = a_clip_rects[i].y1 ;
+            rects[i].width = a_clip_rects[i].x2 - a_clip_rects[i].x1;
+            rects[i].height = a_clip_rects[i].y2 - a_clip_rects[i].y1;
+            EPHYR_LOG ("(x,y,w,h): (%d,%d,%d,%d)\n",
+                       rects[i].x, rects[i].y,
+                       rects[i].width, rects[i].height) ;
+        }
+        XSetClipRectangles (dpy, gc, 0, 0, rects, a_clip_rect_nums, YXBanded) ;
+        /*this always returns 1*/
+    }
+    res = XvPutImage (dpy, a_port_id, hostx_get_window (),
+                      gc, xv_image,
+                      a_src_x, a_src_y, a_src_w, a_src_h,
+                      a_drw_x, a_drw_y, a_drw_w, a_drw_h) ;
+    if (res != Success) {
+        EPHYR_LOG_ERROR ("XvPutImage() failed: %d\n", res) ;
+        goto out ;
+    }
     is_ok = TRUE ;
 
 out:
-
-    EPHYR_LOG ("leave\n") ;
     if (xv_image) {
         XFree (xv_image) ;
         xv_image = NULL ;
@@ -800,6 +820,11 @@ out:
         XFreeGC (dpy, gc) ;
         gc = NULL ;
     }
+    if (rects) {
+        free (rects) ;
+        rects = NULL ;
+    }
+    EPHYR_LOG ("leave\n") ;
     return is_ok ;
 }
 
