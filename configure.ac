@@ -1933,6 +1933,7 @@ AC_ARG_ENABLE(xorgcfg, AS_HELP_STRING([--enable-xorgcfg],
 if test x$XORGCFG = xyes ; then
 	PKG_CHECK_MODULES([XORGCFG_DEP], 
 	    [xkbui >= 1.0.2 xkbfile xxf86misc xxf86vm xaw7 xmu xt xpm xext x11])
+	XORGCFG_DEP_CFLAGS="$XORGCFG_DEP_CFLAGS $PIXMAN_CFLAGS"
 	AC_CHECK_LIB([curses],[waddstr],
 	    [XORGCFG_DEP_LIBS="$XORGCFG_DEP_LIBS -lcurses"; CURSES=yes],
 	    AC_CHECK_LIB([ncurses],[waddstr],
