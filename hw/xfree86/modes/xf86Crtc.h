@@ -30,6 +30,7 @@
 #include "xf86Modes.h"
 #include "xf86Cursor.h"
 #include "damage.h"
+#include "picturestr.h"
 
 /* Compat definitions for older X Servers. */
 #ifndef M_T_PREFERRED
@@ -279,6 +280,17 @@ struct _xf86Crtc {
      * Track state of cursor associated with this CRTC
      */
     Bool	    cursor_shown;
+
+    /**
+     * Current transformation matrix
+     */
+    PictTransform   crtc_to_framebuffer;
+    PictTransform   framebuffer_to_crtc;
+    Bool	    transform_in_use;
+    /**
+     * Bounding box in screen space
+     */
+    BoxRec	    bounds;
 };
 
 typedef struct _xf86OutputFuncs {

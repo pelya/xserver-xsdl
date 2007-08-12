@@ -182,9 +182,6 @@ LogInit(const char *fname, const char *backup)
 		sprintf(suffix, backup, display);
 		sprintf(oldLog, "%s%s", logFileName, suffix);
 		free(suffix);
-#ifdef __UNIXOS2__
-		remove(oldLog);
-#endif
 		if (rename(logFileName, oldLog) == -1) {
 		    FatalError("Cannot move old log file (\"%s\" to \"%s\"\n",
 			       logFileName, oldLog);

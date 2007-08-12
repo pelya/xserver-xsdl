@@ -35,8 +35,6 @@ of the copyright holder.
 
 */
 
-/* $RCSId: xc/programs/Xserver/hw/kdrive/kxv.h,v 1.1 2001/03/30 02:18:41 keithp Exp $ */
-
 #ifndef _XVDIX_H_
 #define _XVDIX_H_
 

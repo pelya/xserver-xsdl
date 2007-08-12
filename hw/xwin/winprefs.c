@@ -27,7 +27,6 @@
  *
  * Authors:     Earle F. Philhower, III
  */
-/* $XFree86: $ */
 
 #ifdef HAVE_XWIN_CONFIG_H
 #include <xwin-config.h>

@@ -569,6 +569,45 @@ exaDriverInit (ScreenPtr		pScreen,
     PictureScreenPtr ps;
 #endif
 
+    if (!pScreenInfo)
+	return FALSE;
+
+    if (!pScreenInfo->memoryBase) {
+	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::memoryBase must be "
+		   "non-zero\n", pScreen->myNum);
+	return FALSE;
+    }
+
+    if (!pScreenInfo->memorySize) {
+	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::memorySize must be "
+		   "non-zero\n", pScreen->myNum);
+	return FALSE;
+    }
+
+    if (pScreenInfo->offScreenBase > pScreenInfo->memorySize) {
+	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::offScreenBase must be <= "
+		   "ExaDriverRec::memorySize\n", pScreen->myNum);
+	return FALSE;
+    }
+
+    if (!pScreenInfo->PrepareSolid) {
+	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::PrepareSolid must be "
+		   "non-NULL\n", pScreen->myNum);
+	return FALSE;
+    }
+
+    if (!pScreenInfo->PrepareCopy) {
+	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::PrepareCopy must be "
+		   "non-NULL\n", pScreen->myNum);
+	return FALSE;
+    }
+
+    if (!pScreenInfo->WaitMarker) {
+	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::WaitMarker must be "
+		   "non-NULL\n", pScreen->myNum);
+	return FALSE;
+    }
+
     if (pScreenInfo->exa_major != EXA_VERSION_MAJOR ||
 	pScreenInfo->exa_minor > EXA_VERSION_MINOR)
     {

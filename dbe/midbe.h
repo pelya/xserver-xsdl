@@ -1,5 +1,4 @@
 /******************************************************************************
- * 
  * Copyright (c) 1994, 1995  Hewlett-Packard Company
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -29,8 +28,6 @@
  *     Header file for users of machine-independent DBE code
  *
  *****************************************************************************/
-/* $XFree86$ */
-
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>

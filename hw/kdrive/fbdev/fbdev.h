@@ -1,6 +1,4 @@
 /*
- * Id: fbdev.h,v 1.1 1999/11/02 03:54:46 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/fbdev/fbdev.h,v 1.11 2001/06/03 21:52:45 keithp Exp $ */
 
 #ifndef _FBDEV_H_
 #define _FBDEV_H_

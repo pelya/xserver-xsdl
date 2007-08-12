@@ -20,7 +20,6 @@
  * SOFTWARE.
  *
 */
-/* $XConsortium: emulOpStip.c /main/4 1996/02/21 17:56:12 kaleb $ */
 
 /* ppc OpaqueStipple
  *

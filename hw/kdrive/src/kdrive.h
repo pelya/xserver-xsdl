@@ -1,6 +1,4 @@
 /*
- * Id: kdrive.h,v 1.1 1999/11/02 03:54:46 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/kdrive.h,v 1.29 2002/11/13 16:37:39 keithp Exp $ */
 
 #ifndef _KDRIVE_H_
 #define _KDRIVE_H_
@@ -216,9 +213,6 @@ typedef struct {
 
     CreateScreenResourcesProcPtr    CreateScreenResources;
     CloseScreenProcPtr  CloseScreen;
-#ifdef FB_OLD_SCREEN
-    miBSFuncRec	    BackingStoreFuncs;
-#endif
 } KdPrivScreenRec, *KdPrivScreenPtr;
 
 typedef enum _kdPointerState {
@@ -336,6 +330,11 @@ struct _KdKeyboardInfo {
     int                 inputClass;
 #ifdef XKB
     XkbDescPtr          xkb;
+    char                *xkbRules;
+    char                *xkbModel;
+    char                *xkbLayout;
+    char                *xkbVariant;
+    char                *xkbOptions;
 #endif
     int                 LockLed;
 
@@ -879,12 +878,13 @@ KdRingBell (KdKeyboardInfo      *ki,
             int                 duration);
 
 extern KdPointerDriver	LinuxMouseDriver;
-extern KdPointerDriver	LinuxEvdevDriver;
+extern KdPointerDriver	LinuxEvdevMouseDriver;
 extern KdPointerDriver	Ps2MouseDriver;
 extern KdPointerDriver	BusMouseDriver;
 extern KdPointerDriver	MsMouseDriver;
 extern KdPointerDriver	TsDriver;
 extern KdKeyboardDriver	LinuxKeyboardDriver;
+extern KdKeyboardDriver LinuxEvdevKeyboardDriver;
 extern KdOsFuncs	LinuxFuncs;
 
 extern KdPointerDriver	VxWorksMouseDriver;

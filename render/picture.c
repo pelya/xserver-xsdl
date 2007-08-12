@@ -1641,7 +1641,7 @@ FreePictFormat (pointer	pPictFormat,
  * unnecessary.  It may also avoid destination reads sometimes if apps aren't
  * being careful to avoid these cases.
  */
-static Bool
+static CARD8
 ReduceCompositeOp (CARD8 op, PicturePtr pSrc, PicturePtr pMask, PicturePtr pDst)
 {
     Bool no_src_alpha, no_dst_alpha;

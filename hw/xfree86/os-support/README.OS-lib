@@ -38,7 +38,6 @@ have been made in implementation.
 			systems.
 		bsdi/	OS support for the BSD/386 operating system.
 		linux/	OS support for the Linux operating system.
-		os2/	OS support for OS/2 2.11 and OS/2 Warp
 		sco/	OS support for the SCO SVR3.x operating system.
 		solx86/	OS support for the Solaris x86 operating system.
 		sysv/	OS support for all SVR4.0 and SVR4.2, and for

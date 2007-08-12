@@ -1,4 +1,3 @@
-/* $XFree86$ */
 /*
  * Copyright (c) 2003 by the XFree86 Project, Inc.
  *

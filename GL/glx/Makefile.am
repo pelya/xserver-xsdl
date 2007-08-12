@@ -40,6 +40,7 @@ libglxdri_la_SOURCES = \
 
 libglx_la_SOURCES = \
         g_disptab.h \
+        glxbyteorder.h \
         glxcmds.c \
         glxcmdsswap.c \
         glxcontext.h \

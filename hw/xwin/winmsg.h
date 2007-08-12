@@ -29,8 +29,6 @@
  *
  * Authors: Alexander Gottwald	
  */
-/* $XFree86$ */
-
 
 /*
  * Function prototypes

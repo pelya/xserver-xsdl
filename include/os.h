@@ -272,7 +272,7 @@ void OsBlockSignals (void);
 
 void OsReleaseSignals (void);
 
-#if !defined(WIN32) && !defined(__UNIXOS2__)
+#if !defined(WIN32)
 extern int System(char *);
 extern pointer Popen(char *, char *);
 extern int Pclose(pointer);

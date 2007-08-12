@@ -57,7 +57,6 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 **************************************************************************/
-/* $RCSId: xc/programs/Xserver/hw/kdrive/i810/i810_reg.h,v 1.1 2001/03/30 02:18:41 keithp Exp $ */
 
 /*
  * Authors:

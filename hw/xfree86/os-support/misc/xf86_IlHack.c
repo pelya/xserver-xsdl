@@ -4,8 +4,6 @@
  *
  * Note: this doesn't work when using a compiler other than GCC.
  */
-/* $XConsortium: xf86_IlHack.c /main/4 1996/02/21 17:52:26 kaleb $ */
-
 
 #define static /**/
 #define __inline__ /**/

@@ -185,15 +185,11 @@ fbComposite (CARD8      op,
 	pixman_image_composite (op, src, mask, dest,
 				xSrc, ySrc, xMask, yMask, xDst, yDst,
 				width, height);
-	    
     }
-    
-    if (src)
-	pixman_image_unref (src);
-    if (mask)
-	pixman_image_unref (mask);
-    if (dest)
-	pixman_image_unref (dest);
+
+    free_pixman_pict (pSrc, src);
+    free_pixman_pict (pMask, mask);
+    free_pixman_pict (pDst, dest);
 }
 
 void
@@ -210,7 +206,7 @@ fbCompositeGeneral (CARD8	op,
 		    CARD16	width,
 		    CARD16	height)
 {
-    return fbComposite (op, pSrc, pMask, pDst,
+    fbComposite (op, pSrc, pMask, pDst,
 			xSrc, ySrc, xMask, yMask, xDst, yDst,
 			width, height);
 }
@@ -332,8 +328,6 @@ create_bits_picture (PicturePtr pict,
     /* Indexed table */
     if (pict->pFormat->index.devPrivate)
 	pixman_image_set_indexed (image, pict->pFormat->index.devPrivate);
-    
-    fbFinishAccess (pict->pDrawable);
 
     return image;
 }
@@ -379,7 +373,7 @@ set_image_properties (pixman_image_t *image, PicturePtr pict)
 	pixman_image_set_alpha_map (
 	    image, alpha_map, pict->alphaOrigin.x, pict->alphaOrigin.y);
 	
-	pixman_image_unref (alpha_map);
+	free_pixman_pict (pict->alphaMap, alpha_map);
     }
     
     pixman_image_set_component_alpha (image, pict->componentAlpha);
@@ -443,6 +437,13 @@ image_from_pict (PicturePtr pict,
 	set_image_properties (image, pict);
     
     return image;
+}
+
+void
+free_pixman_pict (PicturePtr pict, pixman_image_t *image)
+{
+    if (image && pixman_image_unref (image) && pict->pDrawable)
+	fbFinishAccess (pict->pDrawable);
 }
 
 Bool

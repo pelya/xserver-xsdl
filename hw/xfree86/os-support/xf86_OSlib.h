@@ -65,8 +65,6 @@
  *
  */
 
-/* $XConsortium: xf86_OSlib.h /main/22 1996/10/27 11:06:31 kaleb $ */
-
 /*
  * This is private, and should not be included by any drivers.  Drivers
  * may include xf86_OSproc.h to get prototypes for public interfaces.
@@ -546,44 +544,6 @@ extern int errno;
 
 #endif
 /* __FreeBSD_kernel__ || __NetBSD__ || __OpenBSD__ || __bsdi__ */
-
-/**************************************************************************/
-/* OS/2                                                                   */
-/**************************************************************************/
-/* currently OS/2 with a modified EMX/GCC compiler only */
-#if defined(__UNIXOS2__) 
-# include <signal.h>
-# include <errno.h>
-# include <sys/stat.h>
-
-/* I would have liked to have this included here always, but
- * it causes clashes for BYTE and BOOL with Xmd.h, which is too dangerous. 
- * So I'll include it in place where I know it does no harm.
- */
-#if defined(I_NEED_OS2_H)
-# undef BOOL
-# undef BYTE
-# include <os2.h>
-#endif
-
-  /* keyboard types */
-# define KB_84                   1
-# define KB_101                  2
-/* could detect more keyboards */
-# define KB_OTHER                3
-
-  /* LEDs */
-#  define LED_CAP 0x40
-#  define LED_NUM 0x20
-#  define LED_SCR 0x10
-
-  /* mouse driver */
-# define OSMOUSE_ONLY
-# define MOUSE_PROTOCOL_IN_KERNEL
-
-extern char* __XOS2RedirRoot(char*);
-
-#endif
 
 /**************************************************************************/
 /* QNX4                                                                   */

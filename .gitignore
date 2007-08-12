@@ -21,6 +21,7 @@ install-sh
 libtool
 ltmain.sh
 missing
+ylwrap
 xorg-server.pc
 stamp-h?
 do-not-use-config.h

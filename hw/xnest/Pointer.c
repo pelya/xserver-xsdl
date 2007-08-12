@@ -11,7 +11,6 @@ the suitability of this software for any purpose.  It is provided "as
 is" without express or implied warranty.
 
 */
-/* $XFree86$ */
 
 #ifdef HAVE_XNEST_CONFIG_H
 #include <xnest-config.h>

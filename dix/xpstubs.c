@@ -1,4 +1,3 @@
-/* $XFree86$ */
 /*
 Copyright 1996, 1998  The Open Group
 

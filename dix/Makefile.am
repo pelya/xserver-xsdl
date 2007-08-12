@@ -58,3 +58,8 @@ noinst_PROGRAMS = dix.O
 dix.O: dtrace-dix.o $(am_libdix_la_OBJECTS)
 	ld -r -o $@ .libs/*.o
 endif
+
+dix.c:
+	touch $@
+
+CLEANFILES = dix.c

@@ -35,8 +35,6 @@ of the copyright holder.
 
 */
 
-/* $RCSId: xc/programs/Xserver/hw/kdrive/kxv.c,v 1.3 2001/08/09 09:08:54 keithp Exp $ */
-
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>
 #endif

@@ -1,6 +1,4 @@
 /*
- * Id: chipsstub.c,v 1.1 1999/11/02 08:19:15 keithp Exp $
- *
  * Copyright 1999 SuSE, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -22,7 +20,6 @@
  *
  * Author:  Keith Packard, SuSE, Inc.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/chips/chipsstub.c,v 1.1 2001/09/05 07:12:42 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>

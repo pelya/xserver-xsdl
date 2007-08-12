@@ -1,6 +1,4 @@
 /*
- * Id: smistub.c,v 1.1 1999/11/02 08:19:15 keithp Exp $
- *
  * Copyright 1999 SuSE, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its

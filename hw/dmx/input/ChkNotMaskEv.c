@@ -1,4 +1,3 @@
-/* Derived from Xorg: ChkMaskEv.c,v 1.4 2001/02/09 02:03:31 xorgcvs Exp */
 /*
  * Copyright 1985, 1987, 1998  The Open Group
  *

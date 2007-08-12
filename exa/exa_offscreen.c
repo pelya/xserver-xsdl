@@ -429,7 +429,7 @@ ExaOffscreenMarkUsed (PixmapPtr pPixmap)
     ExaScreenPriv (pPixmap->drawable.pScreen);
     static int iter = 0;
 
-    if (!pExaPixmap->area)
+    if (!pExaPixmap || !pExaPixmap->area)
 	return;
 
     /* The numbers here are arbitrary.  We may want to tune these. */

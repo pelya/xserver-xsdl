@@ -465,8 +465,14 @@
 /* Define to 1 if modules should avoid the libcwrapper */
 #undef NO_LIBCWRAPPER
 
-/* Support D-BUS */
+/* Support D-Bus */
 #undef HAVE_DBUS
+
+/* Support the D-Bus hotplug API */
+#undef CONFIG_DBUS_API
+
+/* Support HAL for hotplug */
+#undef CONFIG_HAL
 
 /* Use only built-in fonts */
 #undef BUILTIN_FONTS

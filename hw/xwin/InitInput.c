@@ -1,4 +1,3 @@
-/* $TOG: InitInput.c /main/12 1998/02/10 13:23:52 kaleb $ */
 /*
 
   Copyright 1993, 1998  The Open Group

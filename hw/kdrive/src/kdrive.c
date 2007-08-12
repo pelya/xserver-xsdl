@@ -1,6 +1,4 @@
 /*
- * $RCSId: xc/programs/Xserver/hw/kdrive/kdrive.c,v 1.29 2002/10/31 18:29:50 keithp Exp $ 
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -83,6 +81,8 @@ int		    kdVirtualTerminal = -1;
 Bool		    kdSwitchPending;
 char		    *kdSwitchCmd;
 DDXPointRec	    kdOrigin;
+Bool		    kdHasPointer = FALSE;
+Bool		    kdHasKbd = FALSE;
 
 static Bool         kdCaughtSignal = FALSE;
 
@@ -97,7 +97,6 @@ extern WindowPtr *WindowTable;
 void
 KdSetRootClip (ScreenPtr pScreen, BOOL enable)
 {
-#ifndef FB_OLD_SCREEN
     WindowPtr	pWin = WindowTable[pScreen->myNum];
     WindowPtr	pChild;
     Bool	WasViewable;
@@ -224,7 +223,6 @@ KdSetRootClip (ScreenPtr pScreen, BOOL enable)
     }
     if (pWin->realized)
 	WindowsRestructured ();
-#endif	/* !FB_OLD_SCREEN */
 }
 
 void
@@ -600,6 +598,8 @@ KdUseMsg (void)
     ErrorF("-card pcmcia     Use PCMCIA card as additional screen\n");
     ErrorF("-screen WIDTH[/WIDTHMM]xHEIGHT[/HEIGHTMM][@ROTATION][X][Y][xDEPTH/BPP{,DEPTH/BPP}[xFREQ]]  Specify screen characteristics\n");
     ErrorF("-rgba rgb/bgr/vrgb/vbgr/none   Specify subpixel ordering for LCD panels\n");
+    ErrorF("-mouse driver [,n,,options]    Specify the pointer driver and its options (n is the number of buttons)\n");
+    ErrorF("-keybd driver [,,options]      Specify the keyboard driver and its options\n");
     ErrorF("-zaphod          Disable cursor screen switching\n");
     ErrorF("-2button         Emulate 3 button mouse\n");
     ErrorF("-3button         Disable 3 button mouse emulation\n");
@@ -608,7 +608,6 @@ KdUseMsg (void)
     ErrorF("-softCursor      Force software cursor\n");
     ErrorF("-videoTest       Start the server, pause momentarily and exit\n");
     ErrorF("-origin X,Y      Locates the next screen in the the virtual screen (Xinerama)\n");
-    ErrorF("-mouse path[,n]  Filename of mouse device, n is number of buttons\n");
     ErrorF("-switchCmd       Command to execute on vt switch\n");
     ErrorF("-nozap           Don't terminate server on Ctrl+Alt+Backspace\n");
     ErrorF("vtxx             Use virtual terminal xx instead of the next available\n");
@@ -741,12 +740,14 @@ KdProcessArgument (int argc, char **argv, int i)
         if (i + 1 >= argc)
             UseMsg();
         KdAddConfigPointer(argv[i + 1]);
+	kdHasPointer = TRUE;
         return 2;
     }
     if (!strcmp (argv[i], "-keybd")) {
         if (i + 1 >= argc)
             UseMsg();
         KdAddConfigKeyboard(argv[i + 1]);
+	kdHasKbd = TRUE;
         return 2;
     }
 
@@ -1067,14 +1068,6 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     pScreen->SaveScreen		= KdSaveScreen;
     pScreen->CreateWindow	= KdCreateWindow;
 
-#ifdef FB_OLD_SCREEN
-    pScreenPriv->BackingStoreFuncs.SaveAreas = fbSaveAreas;
-    pScreenPriv->BackingStoreFuncs.RestoreAreas = fbSaveAreas;
-    pScreenPriv->BackingStoreFuncs.SetClipmaskRgn = 0;
-    pScreenPriv->BackingStoreFuncs.GetImagePixmap = 0;
-    pScreenPriv->BackingStoreFuncs.GetSpansPixmap = 0;
-#endif
-
 #if KD_MAX_FB > 1
     if (screen->fb[1].depth)
     {
@@ -1156,11 +1149,7 @@ KdScreenInit(int index, ScreenPtr pScreen, int argc, char **argv)
     
 #if 0
     pScreen->backingStoreSupport = Always;
-#ifdef FB_OLD_SCREEN
-    miInitializeBackingStore (pScreen, &pScreenPriv->BackingStoreFuncs);
-#else
     miInitializeBackingStore (pScreen);
-#endif
 #endif
 
 

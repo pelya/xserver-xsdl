@@ -1,4 +1,3 @@
-/* $XFree86$ */
 /*
  * Copyright 2002 Red Hat Inc., Durham, North Carolina.
  *
@@ -60,7 +59,7 @@
 extern int                 yyparse(void);
 extern FILE                *yyin;
 
-#define DMX_INFO "xdmxconfig v0.9\nCopyright 2002 Red Hat Inc.\n$Id$"
+#define DMX_INFO "xdmxconfig v0.9\nCopyright 2002 Red Hat Inc.\n"
 
 #define DMX_MAIN_WIDTH    800
 #define DMX_MAIN_HEIGHT   600

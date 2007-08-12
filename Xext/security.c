@@ -1285,11 +1285,7 @@ SecurityFreePropertyAccessList(void)
     }
 } /* SecurityFreePropertyAccessList */
 
-#ifndef __UNIXOS2__
 #define SecurityIsWhitespace(c) ( (c == ' ') || (c == '\t') || (c == '\n') )
-#else
-#define SecurityIsWhitespace(c) ( (c == ' ') || (c == '\t') || (c == '\n') || (c == '\r') )
-#endif
 
 static char *
 SecuritySkipWhitespace(
@@ -1567,11 +1563,7 @@ SecurityLoadPropertyAccessList(void)
     if (!SecurityPolicyFile)
 	return;
 
-#ifndef __UNIXOS2__
     f = fopen(SecurityPolicyFile, "r");
-#else
-    f = fopen((char*)__XOS2RedirRoot(SecurityPolicyFile), "r");
-#endif    
     if (!f)
     {
 	ErrorF("error opening security policy file %s\n",

@@ -38,6 +38,8 @@
 ****************************************************************************/
 
 #include "x86emu/x86emui.h"
+#include <stdio.h>
+#include <string.h>
 #ifndef NO_SYS_HEADERS
 #include <stdarg.h>
 #include <stdlib.h>

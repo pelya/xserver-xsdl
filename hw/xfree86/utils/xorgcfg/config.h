@@ -49,12 +49,6 @@
 
 #include <stdarg.h>
 
-#ifdef __UNIXOS2__
-#define strcasecmp stricmp
-#define setenv putenv
-#define PATH_MAX 260
-#endif
-
 /* Get PATH_MAX */
 #ifndef PATH_MAX
 # if defined(_POSIX_SOURCE)
@@ -103,7 +97,6 @@
 #define CONFIG_ACCESSX	3
 extern int config_mode;
 
-#ifndef __UNIXOS2__
 #define CONFPATH	"%A," "%R," \
 			"/etc/X11/%R," "%P/etc/X11/%R," \
 			"%E," "%F," \
@@ -120,26 +113,6 @@ extern int config_mode;
 			"%P/etc/X11/%X," \
 			"%P/lib/X11/%X.%H," "%P/lib/X11/%X-%M," \
 			"%P/lib/X11/%X"
-#else
-#define CONFPATH	"%&"XF86CONFIGDIR"/%R," "%&"XF86CONFIGDIR"/%X," \
-			"%A," "%R," \
-			"/etc/X11/%R," "%P/etc/X11/%R," \
-			"%E," "%F," \
-			"/etc/X11/%F," "%P/etc/X11/%F," \
-			"%D/%X," \
-			"/etc/X11/%X-%M," "/etc/X11/%X," "/etc/%X," \
-			"%P/etc/X11/%X.%H," "%P/etc/X11/%X-%M," \
-			"%P/etc/X11/%X," \
-			"%P/lib/X11/%X.%H," "%P/lib/X11/%X-%M," \
-			"%P/lib/X11/%X"
-#define USER_CONFPATH	"%&"XF86CONFIGDIR"/%X," "%&"XF86CONFIGDIR"/%X," \
-			"/etc/X11/%S," "%P/etc/X11/%S," \
-                        "/etc/X11/%G," "%P/etc/X11/%G," \
-			"%P/etc/X11/%X.%H," "%P/etc/X11/%X-%M," \
-			"%P/etc/X11/%X," \
-			"%P/lib/X11/%X.%H," "%P/lib/X11/%X-%M," \
-			"%P/lib/X11/%X"
-#endif
 
 /*
  * Types

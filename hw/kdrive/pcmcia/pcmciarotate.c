@@ -1,6 +1,4 @@
 /*
- * $RCSId: xc/programs/Xserver/miext/shadow/shrotate.c,v 1.3 2001/07/21 04:13:26 keithp Exp $
- *
  * Copyright © 2001 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its

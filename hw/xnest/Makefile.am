@@ -55,8 +55,7 @@ Xnest_LDADD = $(XORG_CORE_LIBS) \
               $(XNESTMODULES_LIBS) \
 	      libfbcmap.a
 
-EXTRA_DIST = os2Stub.c \
-             icon \
+EXTRA_DIST = icon \
              screensaver \
 	     Xnest.man.pre
 

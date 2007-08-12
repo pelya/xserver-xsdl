@@ -1,6 +1,4 @@
 /*
- * Id: smi.h,v 1.2 1999/11/02 08:17:24 keithp Exp $
- *
  * Copyright © 2001 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its

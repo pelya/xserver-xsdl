@@ -1131,13 +1131,21 @@ monitor, monitor-specific
 .BR Options ,
 and information about the video modes to use with the monitor.
 .PP
-With RandR 1.2-enabled drivers, monitor sections are tied to specific outputs 
-of the video card.
-Each output has a name, and the server will look for a Monitor named
-.B \*qMonitor-outputname\*q
-for configuration of that output (for example, 
-.B \*qMonitor-VGA\*q
+With RandR 1.2-enabled drivers, monitor sections may be tied to specific
+outputs of the video card.  Using the name of the output defined by the video
+driver plus the identifier of a monitor section, one associates a monitor
+section with an output by adding an option to the Device section in the
+following format:
+
+.B Option \*qMonitor-outputname\*q \*qmonitorsection\*q
+
+(for example, 
+.B Option \*qMonitor-VGA\*q \*qVGA monitor\*q
 for a VGA output)
+.PP
+In the absence of specific association of monitor sections to outputs, if a
+monitor section is present the server will associate it with an output to
+preserve compatibility for previous single-head configurations.
 .PP
 Specifying video modes is optional because the server will use the DDC or other
 information provided by the monitor to automatically configure the list of
@@ -1592,13 +1600,6 @@ below.
 Note that disabling an operation will have no effect if the operation is
 not accelerated (whether due to lack of support in the hardware or in the
 driver).
-.TP 7
-.BI "Option \*qBiosLocation\*q \*q" address \*q
-Set the location of the BIOS for the Int10 module. One may select a BIOS
-of another card for posting or the legacy V_BIOS range located at 0xc0000
-or an alternative address (BUS_ISA).
-This is only useful under very special circumstances and should be used with
-extreme care.
 .TP 7
 .BI "Option \*qInitPrimary\*q \*q" boolean \*q
 Use the Int10 module to initialize the primary graphics card.

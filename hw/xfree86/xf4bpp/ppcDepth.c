@@ -21,8 +21,6 @@
  *
 */
 
-/* $XConsortium: ppcDepth.c /main/3 1996/02/21 17:57:31 kaleb $ */
-
 /* Check to see if the alleged depth is acceptable for the Screen  
  *
  * T. Paquin 9/87

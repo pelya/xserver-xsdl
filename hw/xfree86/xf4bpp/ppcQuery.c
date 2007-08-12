@@ -20,7 +20,6 @@
  * SOFTWARE.
  *
 */
-/* $XConsortium: ppcQuery.c /main/3 1996/02/21 17:58:18 kaleb $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>

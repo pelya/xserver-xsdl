@@ -71,8 +71,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     pciVideoPtr pvp;
     int screen;
     legacyVGARec vga;
-    xf86int10BiosLocation bios;
-    
+ 
 #ifdef _PC
     int size;
     CARD32 cs;
@@ -131,14 +130,9 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 #endif
     INTPriv(pInt)->highMemory = V_BIOS;
     
-    xf86int10ParseBiosLocation(options,&bios);
-    
-    if (xf86IsEntityPrimary(entityIndex) 
-	&& !(initPrimary(options))) {
-	if (! xf86int10GetBiosSegment(pInt, &bios, 
-				      (unsigned char *)sysMem - V_BIOS)) {
+    if (xf86IsEntityPrimary(entityIndex) && !(initPrimary(options))) {
+	if (!xf86int10GetBiosSegment(pInt, (unsigned char *)sysMem - V_BIOS))
 	    goto error1;
-	}
 
 	set_return_trap(pInt);
 
@@ -148,8 +142,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	xf86Int10SaveRestoreBIOSVars(pInt, TRUE);
 	
     } else {
-	const BusType location_type = xf86int10GetBiosLocationType(pInt,
-								   &bios);
+	const BusType location_type = xf86int10GetBiosLocationType(pInt);
 	int bios_location = V_BIOS;
 
         reset_int_vect(pInt);
@@ -157,11 +150,7 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 
 	switch (location_type) {
 	case BUS_PCI: {
-	    const int pci_entity = (bios.bus == BUS_PCI)
-	      ? xf86GetPciEntity(bios.location.pci.bus,
-				 bios.location.pci.dev,
-				 bios.location.pci.func)
-	      : pInt->entityIndex;
+	    const int pci_entity = pInt->entityIndex;
 
 	    vbiosMem = (unsigned char *)base + bios_location;
 	    if (!(size = mapPciRom(pci_entity,(unsigned char *)(vbiosMem)))) {
@@ -172,9 +161,6 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	    break;
 	}
 	case BUS_ISA:
-	    if (bios.bus == BUS_ISA) {
-		bios_location = bios.location.legacy;
-	    }
 	    vbiosMem = (unsigned char *)sysMem + bios_location;
 #if 0
 	    (void)memset(vbiosMem, 0, V_BIOS_SIZE);
@@ -228,48 +214,24 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
      * If this adapter is the primary, use its post-init BIOS (if we can find
      * it).
      */
-    xf86int10ParseBiosLocation(options,&bios);
-    
     {
 	int bios_location = V_BIOS;
 	Bool done = FALSE;
 	vbiosMem = (unsigned char *)base + bios_location;
 	
-	if ((bios.bus == BUS_ISA)
-	    || (bios.bus != BUS_PCI && xf86IsEntityPrimary(entityIndex))) {
-		if (bios.bus == BUS_ISA && bios.location.legacy) {
-		    xf86DrvMsg(screen, X_CONFIG,"Looking for legacy V_BIOS "
-			       "at 0x%x for %sprimary device\n",
-			       bios.location.legacy,
-			       xf86IsEntityPrimary(entityIndex) ? "" : "non-");
-		    bios_location = bios.location.legacy;
-		    vbiosMem = (unsigned char *)base + bios_location;
-		}
-		if (int10_check_bios(screen, bios_location >> 4, vbiosMem)) 
-		    done = TRUE;
-		else 
-		    xf86DrvMsg(screen,X_INFO,
-			       "No legacy BIOS found -- trying PCI\n");
+	if (xf86IsEntityPrimary(entityIndex)) {
+	    if (int10_check_bios(screen, bios_location >> 4, vbiosMem)) 
+		done = TRUE;
+	    else 
+		xf86DrvMsg(screen,X_INFO,
+			"No legacy BIOS found -- trying PCI\n");
 	} 
 	if (!done) {
-	    int pci_entity;
-	    
-	    if (bios.bus == BUS_PCI) {
-		xf86DrvMsg(screen,X_CONFIG,"Looking for BIOS at PCI:%i%i%i\n",
-			   bios.location.pci.bus,bios.location.pci.dev,
-			   bios.location.pci.func);		
-		pci_entity = xf86GetPciEntity(bios.location.pci.bus,
-					      bios.location.pci.dev,
-					      bios.location.pci.func);
-	    } else 
-		pci_entity = pInt->entityIndex;
-
-	    if (!mapPciRom(pci_entity, vbiosMem)) {
+	    if (!mapPciRom(pInt->entityIndex, vbiosMem)) {
 		    xf86DrvMsg(screen, X_ERROR, "Cannot read V_BIOS (5)\n");
 		    goto error1;
 	    }
 	} 
-
     }
 
     pInt->BIOSseg = V_BIOS >> 4;

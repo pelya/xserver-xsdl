@@ -526,7 +526,7 @@ typedef struct _serverlayoutrec {
     char *		id;
     screenLayoutPtr	screens;
     GDevPtr		inactives;
-    IDevPtr		inputs;
+    IDevPtr*            inputs; /* NULL terminated */
     pointer		options;
 } serverLayoutRec, *serverLayoutPtr;
 

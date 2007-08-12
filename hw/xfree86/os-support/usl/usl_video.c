@@ -1,4 +1,3 @@
-/* $XdotOrg$ */
 /*
  * Copyrught 2005 Kean Johnston <jkj@sco.com>
  * Copyright 1990,91 by Thomas Roell, Dinkelscherben, Germany
@@ -25,7 +24,6 @@
  * THIS SOFTWARE.
  *
  */
-/* $XConsortium$ */
 
 #include "X.h"
 

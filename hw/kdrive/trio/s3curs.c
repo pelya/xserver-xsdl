@@ -1,6 +1,4 @@
 /*
- * Id: s3curs.c,v 1.1 1999/11/02 08:17:24 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/trio/s3curs.c,v 1.2 1999/12/30 03:03:19 robin Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>
@@ -280,11 +277,7 @@ s3RealizeCursor (ScreenPtr pScreen, CursorPtr pCursor)
     {
 	if (pCursor)
 	{
-#ifdef FB_OLD_SCREEN
-	    short	x, y;
-#else
 	    int		x, y;
-#endif
 	    
 	    miPointerPosition (&x, &y);
 	    s3LoadCursor (pScreen, x, y);
@@ -379,11 +372,7 @@ s3CursorEnable (ScreenPtr pScreen)
     {
 	if (pCurPriv->pCursor)
 	{
-#ifdef FB_OLD_SCREEN
-	    short	x, y;
-#else
 	    int		x, y;
-#endif
 	    
 	    miPointerPosition (&x, &y);
 	    s3LoadCursor (pScreen, x, y);

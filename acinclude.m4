@@ -1,3 +1,36 @@
+##### http://autoconf-archive.cryp.to/ac_define_dir.html
+#
+# SYNOPSIS
+#
+#   AC_DEFINE_DIR(VARNAME, DIR [, DESCRIPTION])
+#
+# DESCRIPTION
+#
+#   This macro sets VARNAME to the expansion of the DIR variable,
+#   taking care of fixing up ${prefix} and such.
+#
+#   VARNAME is then offered as both an output variable and a C
+#   preprocessor symbol.
+#
+#   Example:
+#
+#      AC_DEFINE_DIR([DATADIR], [datadir], [Where data are placed to.])
+#
+# LAST MODIFICATION
+#
+#   2006-10-13
+#
+# COPYLEFT
+#
+#   Copyright (c) 2006 Stepan Kasal <kasal@ucw.cz>
+#   Copyright (c) 2006 Andreas Schwab <schwab@suse.de>
+#   Copyright (c) 2006 Guido U. Draheim <guidod@gmx.de>
+#   Copyright (c) 2006 Alexandre Oliva
+#
+#   Copying and distribution of this file, with or without
+#   modification, are permitted in any medium without royalty provided
+#   the copyright notice and this notice are preserved.
+
 AC_DEFUN([AC_DEFINE_DIR], [
   prefix_NONE=
   exec_prefix_NONE=
