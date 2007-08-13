@@ -943,22 +943,6 @@ getUST(int64_t *ust)
     }
 }
 
-static void __glXReportDamage(__DRIdrawable *driDraw,
-			      int x, int y,
-			      drm_clip_rect_t *rects, int num_rects,
-			      GLboolean front_buffer)
-{
-    __GLXDRIdrawable *drawable =
-	    containerOf(driDraw, __GLXDRIdrawable, driDrawable);
-    DrawablePtr pDraw = drawable->base.pDraw;
-    RegionRec region;
-
-    REGION_INIT(pDraw->pScreen, &region, (BoxPtr) rects, num_rects);
-    REGION_TRANSLATE(pScreen, &region, pDraw->x, pDraw->y);
-    DamageDamageRegion(pDraw, &region);
-    REGION_UNINIT(pDraw->pScreen, &region);
-}
-
 /* Table of functions that we export to the driver. */
 static const __DRIinterfaceMethods interface_methods = {
     getProcAddress,
@@ -978,8 +962,6 @@ static const __DRIinterfaceMethods interface_methods = {
 
     getUST,
     NULL, /* glXGetMscRateOML, */
-
-    __glXReportDamage,
 };
 
 static const char dri_driver_path[] = DRI_DRIVER_PATH;
