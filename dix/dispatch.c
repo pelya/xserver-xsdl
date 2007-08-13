@@ -556,12 +556,12 @@ ProcCreateWindow(ClientPtr client)
 {
     WindowPtr pParent, pWin;
     REQUEST(xCreateWindowReq);
-    int result, len, rc;
+    int len, rc;
 
     REQUEST_AT_LEAST_SIZE(xCreateWindowReq);
     
     LEGAL_NEW_RESOURCE(stuff->wid, client);
-    rc = dixLookupWindow(&pParent, stuff->parent, client, DixWriteAccess);
+    rc = dixLookupWindow(&pParent, stuff->parent, client, DixAddAccess);
     if (rc != Success)
         return rc;
     len = client->req_len - (sizeof(xCreateWindowReq) >> 2);
@@ -577,7 +577,7 @@ ProcCreateWindow(ClientPtr client)
 			      stuff->borderWidth, stuff->class,
 			      stuff->mask, (XID *) &stuff[1], 
 			      (int)stuff->depth, 
-			      client, stuff->visual, &result);
+			      client, stuff->visual, &rc);
     if (pWin)
     {
 	Mask mask = pWin->eventMask;
@@ -590,7 +590,7 @@ ProcCreateWindow(ClientPtr client)
     if (client->noClientException != Success)
         return(client->noClientException);
     else
-        return(result);
+        return rc;
 }
 
 int
@@ -602,7 +602,7 @@ ProcChangeWindowAttributes(ClientPtr client)
     int len, rc;
 
     REQUEST_AT_LEAST_SIZE(xChangeWindowAttributesReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixSetAttrAccess);
     if (rc != Success)
         return rc;
     len = client->req_len - (sizeof(xChangeWindowAttributesReq) >> 2);
@@ -627,7 +627,7 @@ ProcGetWindowAttributes(ClientPtr client)
     int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
     GetWindowAttributes(pWin, client, &wa);
@@ -646,8 +646,13 @@ ProcDestroyWindow(ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->id, client, DixDestroyAccess);
     if (rc != Success)
 	return rc;
-    if (pWin->parent)
+    if (pWin->parent) {
+	rc = dixLookupWindow(&pWin, pWin->parent->drawable.id, client,
+			     DixRemoveAccess);
+	if (rc != Success)
+	    return rc;
 	FreeResource(stuff->id, RT_NONE);
+    }
     return(client->noClientException);
 }
 
@@ -659,7 +664,7 @@ ProcDestroySubwindows(ClientPtr client)
     int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    rc = dixLookupWindow(&pWin, stuff->id, client, DixDestroyAccess);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixRemoveAccess);
     if (rc != Success)
 	return rc;
     DestroySubwindows(pWin, client);
@@ -674,7 +679,7 @@ ProcChangeSaveSet(ClientPtr client)
     int result, rc;
 		  
     REQUEST_SIZE_MATCH(xChangeSaveSetReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixManageAccess);
     if (rc != Success)
         return rc;
     if (client->clientAsMask == (CLIENT_BITS(pWin->drawable.id)))
@@ -702,10 +707,10 @@ ProcReparentWindow(ClientPtr client)
     int result, rc;
 
     REQUEST_SIZE_MATCH(xReparentWindowReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixManageAccess);
     if (rc != Success)
         return rc;
-    rc = dixLookupWindow(&pParent, stuff->parent, client, DixWriteAccess);
+    rc = dixLookupWindow(&pParent, stuff->parent, client, DixAddAccess);
     if (rc != Success)
         return rc;
     if (SAME_SCREENS(pWin->drawable, pParent->drawable))
@@ -735,7 +740,7 @@ ProcMapWindow(ClientPtr client)
     int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixShowAccess);
     if (rc != Success)
         return rc;
     MapWindow(pWin, client);
@@ -751,7 +756,7 @@ ProcMapSubwindows(ClientPtr client)
     int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixListAccess);
     if (rc != Success)
         return rc;
     MapSubwindows(pWin, client);
@@ -767,7 +772,7 @@ ProcUnmapWindow(ClientPtr client)
     int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixHideAccess);
     if (rc != Success)
         return rc;
     UnmapWindow(pWin, FALSE);
@@ -783,7 +788,7 @@ ProcUnmapSubwindows(ClientPtr client)
     int rc;
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixListAccess);
     if (rc != Success)
         return rc;
     UnmapSubwindows(pWin);
@@ -799,7 +804,8 @@ ProcConfigureWindow(ClientPtr client)
     int len, rc;
 
     REQUEST_AT_LEAST_SIZE(xConfigureWindowReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client,
+			 DixManageAccess|DixSetAttrAccess);
     if (rc != Success)
         return rc;
     len = client->req_len - (sizeof(xConfigureWindowReq) >> 2);
@@ -827,7 +833,7 @@ ProcCirculateWindow(ClientPtr client)
 	client->errorValue = stuff->direction;
         return BadValue;
     }
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixManageAccess);
     if (rc != Success)
         return rc;
     CirculateWindow(pWin, (int)stuff->direction, client);
@@ -842,7 +848,7 @@ GetGeometry(ClientPtr client, xGetGeometryReply *rep)
     REQUEST(xResourceReq);
     REQUEST_SIZE_MATCH(xResourceReq);
 
-    rc = dixLookupDrawable(&pDraw, stuff->id, client, M_ANY, DixReadAccess);
+    rc = dixLookupDrawable(&pDraw, stuff->id, client, M_ANY, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
@@ -903,7 +909,7 @@ ProcQueryTree(ClientPtr client)
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixListAccess);
     if (rc != Success)
         return rc;
     reply.type = X_Reply;
@@ -1260,10 +1266,10 @@ ProcTranslateCoords(ClientPtr client)
     int rc;
 
     REQUEST_SIZE_MATCH(xTranslateCoordsReq);
-    rc = dixLookupWindow(&pWin, stuff->srcWid, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->srcWid, client, DixGetAttrAccess);
     if (rc != Success)
         return rc;
-    rc = dixLookupWindow(&pDst, stuff->dstWid, client, DixReadAccess);
+    rc = dixLookupWindow(&pDst, stuff->dstWid, client, DixGetAttrAccess);
     if (rc != Success)
         return rc;
     rep.type = X_Reply;
@@ -3233,12 +3239,15 @@ ProcQueryBestSize (ClientPtr client)
     }
 
     rc = dixLookupDrawable(&pDraw, stuff->drawable, client, M_ANY,
-			   DixReadAccess);
+			   DixGetAttrAccess);
     if (rc != Success)
 	return rc;
     if (stuff->class != CursorShape && pDraw->type == UNDRAWABLE_WINDOW)
 	return (BadMatch);
     pScreen = pDraw->pScreen;
+    rc = XaceHook(XACE_SCREEN_ACCESS, client, pScreen, DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
     (* pScreen->QueryBestSize)(stuff->class, &stuff->width,
 			       &stuff->height, pScreen);
     reply.type = X_Reply;

@@ -119,7 +119,7 @@ extern int DeleteWindow(
     pointer /*pWin*/,
     XID /*wid*/);
 
-extern void DestroySubwindows(
+extern int DestroySubwindows(
     WindowPtr /*pWin*/,
     ClientPtr /*client*/);
 
