@@ -129,7 +129,7 @@ ProcRotateProperties(ClientPtr client)
 
     REQUEST_FIXED_SIZE(xRotatePropertiesReq, stuff->nAtoms << 2);
     UpdateCurrentTime();
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixSetPropAccess);
     if (rc != Success)
         return rc;
     if (!stuff->nAtoms)
@@ -217,7 +217,7 @@ ProcChangeProperty(ClientPtr client)
     totalSize = len * sizeInBytes;
     REQUEST_FIXED_SIZE(xChangePropertyReq, totalSize);
 
-    err = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    err = dixLookupWindow(&pWin, stuff->window, client, DixSetPropAccess);
     if (err != Success)
 	return err;
     if (!ValidAtom(stuff->property))
@@ -277,7 +277,7 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 	pProp->size = len;
 	pProp->devPrivates = NULL;
 	rc = XaceHook(XACE_PROPERTY_ACCESS, pClient, pWin, pProp,
-		      DixCreateAccess);
+		      DixCreateAccess|DixWriteAccess);
 	if (rc != Success) {
 	    xfree(data);
 	    xfree(pProp);
@@ -449,13 +449,15 @@ ProcGetProperty(ClientPtr client)
     int rc;
     WindowPtr pWin;
     xGetPropertyReply reply;
-    Mask access_mode = DixReadAccess;
+    Mask access_mode = DixGetPropAccess;
     REQUEST(xGetPropertyReq);
 
     REQUEST_SIZE_MATCH(xGetPropertyReq);
-    if (stuff->delete)
+    if (stuff->delete) {
 	UpdateCurrentTime();
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+	access_mode |= DixSetPropAccess;
+    }
+    rc = dixLookupWindow(&pWin, stuff->window, client, access_mode);
     if (rc != Success)
 	return rc;
 
@@ -490,6 +492,7 @@ ProcGetProperty(ClientPtr client)
     if (!pProp) 
 	return NullPropertyReply(client, None, 0, &reply);
 
+    access_mode = DixReadAccess;
     if (stuff->delete)
 	access_mode |= DixDestroyAccess;
 
@@ -581,7 +584,7 @@ ProcListProperties(ClientPtr client)
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    rc = dixLookupWindow(&pWin, stuff->id, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixListPropAccess);
     if (rc != Success)
         return rc;
 
@@ -625,7 +628,7 @@ ProcDeleteProperty(ClientPtr client)
               
     REQUEST_SIZE_MATCH(xDeletePropertyReq);
     UpdateCurrentTime();
-    result = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    result = dixLookupWindow(&pWin, stuff->window, client, DixSetPropAccess);
     if (result != Success)
         return result;
     if (!ValidAtom(stuff->property))
