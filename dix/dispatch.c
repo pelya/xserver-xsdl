@@ -1583,15 +1583,16 @@ ProcCreateGC(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xCreateGCReq);
     client->errorValue = stuff->gc;
     LEGAL_NEW_RESOURCE(stuff->gc, client);
-    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0, DixReadAccess);
+    rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
+			   DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
     len = client->req_len -  (sizeof(xCreateGCReq) >> 2);
     if (len != Ones(stuff->mask))
         return BadLength;
-    pGC = (GC *)CreateGC(pDraw, stuff->mask, 
-			 (XID *) &stuff[1], &error);
+    pGC = (GC *)CreateGC(pDraw, stuff->mask, (XID *) &stuff[1], &error,
+			 stuff->gc, client);
     if (error != Success)
         return error;
     if (!AddResource(stuff->gc, RT_GC, (pointer)pGC))
@@ -1608,7 +1609,7 @@ ProcChangeGC(ClientPtr client)
     REQUEST(xChangeGCReq);
     REQUEST_AT_LEAST_SIZE(xChangeGCReq);
 
-    result = dixLookupGC(&pGC, stuff->gc, client, DixWriteAccess);
+    result = dixLookupGC(&pGC, stuff->gc, client, DixSetAttrAccess);
     if (result != Success)
 	return result;
 
@@ -1635,10 +1636,10 @@ ProcCopyGC(ClientPtr client)
     REQUEST(xCopyGCReq);
     REQUEST_SIZE_MATCH(xCopyGCReq);
 
-    result = dixLookupGC(&pGC, stuff->srcGC, client, DixReadAccess);
+    result = dixLookupGC(&pGC, stuff->srcGC, client, DixGetAttrAccess);
     if (result != Success)
 	return result;
-    result = dixLookupGC(&dstGC, stuff->dstGC, client, DixWriteAccess);
+    result = dixLookupGC(&dstGC, stuff->dstGC, client, DixSetAttrAccess);
     if (result != Success)
 	return result;
     if ((dstGC->pScreen != pGC->pScreen) || (dstGC->depth != pGC->depth))
@@ -1667,7 +1668,7 @@ ProcSetDashes(ClientPtr client)
          return BadValue;
     }
 
-    result = dixLookupGC(&pGC,stuff->gc, client, DixWriteAccess);
+    result = dixLookupGC(&pGC,stuff->gc, client, DixSetAttrAccess);
     if (result != Success)
 	return result;
 
@@ -1696,7 +1697,7 @@ ProcSetClipRectangles(ClientPtr client)
 	client->errorValue = stuff->ordering;
         return BadValue;
     }
-    result = dixLookupGC(&pGC,stuff->gc, client, DixWriteAccess);
+    result = dixLookupGC(&pGC,stuff->gc, client, DixSetAttrAccess);
     if (result != Success)
 	return result;
 		 

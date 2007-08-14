@@ -3468,7 +3468,8 @@ miBSValidateGC (pGC, stateChanges, pDrawable)
 
 	/* We never want ops with the backingGC to generate GraphicsExpose */
 	pBackingGC = CreateGC ((DrawablePtr)pWindowPriv->pBackingPixmap,
-			       GCGraphicsExposures, &noexpose, &status);
+			       GCGraphicsExposures, &noexpose, &status,
+			       (XID)0, serverClient);
 	if (status != Success)
 	    lift_functions = TRUE;
 	else

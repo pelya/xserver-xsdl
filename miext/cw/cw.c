@@ -123,7 +123,7 @@ cwCreateBackingGC(GCPtr pGC, DrawablePtr pDrawable)
 
     pBackingDrawable = cwGetBackingDrawable(pDrawable, &x_off, &y_off);
     pPriv->pBackingGC = CreateGC(pBackingDrawable, GCGraphicsExposures,
-				 &noexpose, &status);
+				 &noexpose, &status, (XID)0, serverClient);
     if (status != Success)
 	return FALSE;
 

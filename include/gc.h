@@ -115,7 +115,9 @@ extern GCPtr CreateGC(
     DrawablePtr /*pDrawable*/,
     BITS32 /*mask*/,
     XID* /*pval*/,
-    int* /*pStatus*/);
+    int* /*pStatus*/,
+    XID /*gcid*/,
+    ClientPtr /*client*/);
 
 extern int CopyGC(
     GCPtr/*pgcSrc*/,

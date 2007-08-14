@@ -1844,7 +1844,8 @@ xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes)
        int status;
        pval[0] = key;
        pval[1] = IncludeInferiors;
-       pGC = CreateGC(pDraw, GCForeground | GCSubwindowMode, pval, &status);
+       pGC = CreateGC(pDraw, GCForeground | GCSubwindowMode, pval, &status,
+		      (XID)0, serverClient);
        if(!pGC) return;
        ValidateGC(pDraw, pGC);
        if (pPriv) pPriv->pGC = pGC;

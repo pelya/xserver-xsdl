@@ -763,7 +763,7 @@ int what;
 	    if (!ResType && !(ResType = CreateNewResourceType(tossGC)))
 		return;
 	    screenContext[i] = CreateGC((DrawablePtr)pWin, (BITS32) 0,
-					(XID *)NULL, &status);
+					(XID *)NULL, &status, 0, serverClient);
 	    if (!screenContext[i])
 		return;
 	    numGCs++;

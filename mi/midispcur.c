@@ -450,7 +450,8 @@ miDCMakeGC(
     gcvals[0] = IncludeInferiors;
     gcvals[1] = FALSE;
     pGC = CreateGC((DrawablePtr)pWin,
-		   GCSubwindowMode|GCGraphicsExposures, gcvals, &status);
+		   GCSubwindowMode|GCGraphicsExposures, gcvals, &status,
+		   (XID)0, serverClient);
     if (pGC && pWin->drawable.pScreen->DrawGuarantee)
 	(*pWin->drawable.pScreen->DrawGuarantee) (pWin, pGC, GuaranteeVisBack);
     *ppGC = pGC;
@@ -746,7 +747,7 @@ miDCMoveCursor (pScreen, pCursor, x, y, w, h, dx, dy, source, mask)
     if (!pScreenPriv->pMoveGC)
     {
 	pScreenPriv->pMoveGC = CreateGC ((DrawablePtr)pTemp,
-	    GCGraphicsExposures, &gcval, &status);
+	    GCGraphicsExposures, &gcval, &status, (XID)0, serverClient);
 	if (!pScreenPriv->pMoveGC)
 	    return FALSE;
     }
@@ -782,14 +783,14 @@ miDCMoveCursor (pScreen, pCursor, x, y, w, h, dx, dy, source, mask)
 	if (!pScreenPriv->pPixSourceGC)
 	{
 	    pScreenPriv->pPixSourceGC = CreateGC ((DrawablePtr)pTemp,
-		GCGraphicsExposures, &gcval, &status);
+		GCGraphicsExposures, &gcval, &status, (XID)0, serverClient);
 	    if (!pScreenPriv->pPixSourceGC)
 		return FALSE;
 	}
 	if (!pScreenPriv->pPixMaskGC)
 	{
 	    pScreenPriv->pPixMaskGC = CreateGC ((DrawablePtr)pTemp,
-		GCGraphicsExposures, &gcval, &status);
+		GCGraphicsExposures, &gcval, &status, (XID)0, serverClient);
 	    if (!pScreenPriv->pPixMaskGC)
 		return FALSE;
 	}
