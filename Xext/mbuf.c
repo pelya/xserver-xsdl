@@ -235,7 +235,7 @@ MultibufferExtensionInit()
      * create the resource types
      */
     MultibufferDrawableResType =
-	CreateNewResourceType(MultibufferDrawableDelete)|RC_CACHED|RC_DRAWABLE;
+	CreateNewResourceType(MultibufferDrawableDelete)|RC_DRAWABLE;
     MultibufferResType = CreateNewResourceType(MultibufferDelete);
     MultibuffersResType = CreateNewResourceType(MultibuffersDelete);
     OtherClientResType = CreateNewResourceType(OtherClientDelete);

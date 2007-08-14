@@ -82,8 +82,6 @@ SOFTWARE.
     }
 
 #define VALIDATE_DRAWABLE_AND_GC(drawID, pDraw, pGC, client)\
-    if ((stuff->gc == INVALID) || (client->lastGCID != stuff->gc) ||\
-	(client->lastDrawableID != drawID))\
     {\
 	int rc;\
 	rc = dixLookupDrawable(&(pDraw), drawID, client, M_ANY,\
@@ -95,15 +93,6 @@ SOFTWARE.
 	    return rc;\
 	if ((pGC->depth != pDraw->depth) || (pGC->pScreen != pDraw->pScreen))\
 	    return (BadMatch);\
-	client->lastDrawable = pDraw;\
-	client->lastDrawableID = drawID;\
-	client->lastGC = pGC;\
-	client->lastGCID = stuff->gc;\
-    }\
-    else\
-    {\
-        pGC = client->lastGC;\
-        pDraw = client->lastDrawable;\
     }\
     if (pGC->serialNumber != pDraw->serialNumber)\
 	ValidateGC(pDraw, pGC);
@@ -159,8 +148,6 @@ extern void UpdateCurrentTime(void);
 extern void UpdateCurrentTimeIf(void);
 
 extern void InitSelections(void);
-
-extern void FlushClientCaches(XID /*id*/);
 
 extern int dixDestroyPixmap(
     pointer /*value*/,

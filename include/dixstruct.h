@@ -101,10 +101,6 @@ typedef struct _Client {
     int         clientGone;
     int         noClientException;	/* this client died or needs to be
 					 * killed */
-    DrawablePtr lastDrawable;
-    Drawable    lastDrawableID;
-    GCPtr       lastGC;
-    GContext    lastGCID;
     SaveSetElt	*saveSet;
     int         numSaved;
     pointer     screenPrivate[MAXSCREENS];

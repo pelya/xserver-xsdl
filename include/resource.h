@@ -72,9 +72,9 @@ typedef unsigned long RESTYPE;
 
 /* types for Resource routines */
 
-#define RT_WINDOW	((RESTYPE)1|RC_CACHED|RC_DRAWABLE)
-#define RT_PIXMAP	((RESTYPE)2|RC_CACHED|RC_DRAWABLE)
-#define RT_GC		((RESTYPE)3|RC_CACHED)
+#define RT_WINDOW	((RESTYPE)1|RC_DRAWABLE)
+#define RT_PIXMAP	((RESTYPE)2|RC_DRAWABLE)
+#define RT_GC		((RESTYPE)3)
 #undef RT_FONT
 #undef RT_CURSOR
 #define RT_FONT		((RESTYPE)4)

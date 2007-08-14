@@ -208,7 +208,6 @@ dixLookupDrawable(DrawablePtr *pDraw, XID id, ClientPtr client,
 		  Mask type, Mask access)
 {
     DrawablePtr pTmp;
-    RESTYPE rtype;
     int rc;
 
     *pDraw = NULL;
@@ -217,28 +216,15 @@ dixLookupDrawable(DrawablePtr *pDraw, XID id, ClientPtr client,
     if (id == INVALID)
 	return BadDrawable;
 
-    if (id == client->lastDrawableID) {
-	pTmp = client->lastDrawable;
+    rc = dixLookupResource((pointer *)&pTmp, id, RC_DRAWABLE, client, access);
 
-	/* an access check is required for cached drawables */
-	rtype = (type & M_WINDOW) ? RT_WINDOW : RT_PIXMAP;
-	rc = XaceHook(XACE_RESOURCE_ACCESS, client, id, rtype, access, pTmp);
-        if (rc != Success)
-	    return rc;
-    } else
-	dixLookupResource((void **)&pTmp, id, RC_DRAWABLE, client, access);
-
-    if (!pTmp)
+    if (rc == BadValue)
 	return BadDrawable;
+    if (rc != Success)
+	return rc;
     if (!((1 << pTmp->type) & (type ? type : M_DRAWABLE)))
 	return BadMatch;
 
-    if (type & M_DRAWABLE) {
-	client->lastDrawable = pTmp;
-	client->lastDrawableID = id;
-	client->lastGCID = INVALID;
-	client->lastGC = (GCPtr)NULL;
-    }
     *pDraw = pTmp;
     return Success;
 }

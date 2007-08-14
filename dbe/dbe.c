@@ -1783,7 +1783,7 @@ DbeExtensionInit(void)
 
     /* Create the resource types. */
     dbeDrawableResType =
-        CreateNewResourceType(DbeDrawableDelete) | RC_CACHED | RC_DRAWABLE;
+        CreateNewResourceType(DbeDrawableDelete) | RC_DRAWABLE;
     dbeWindowPrivResType =
         CreateNewResourceType(DbeWindowPrivDelete);
 

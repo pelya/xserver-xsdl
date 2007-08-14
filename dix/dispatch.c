@@ -258,34 +258,6 @@ InitSelections(void)
     CurrentSelections = (Selection *)NULL;
     NumCurrentSelections = 0;
 }
-
-void 
-FlushClientCaches(XID id)
-{
-    int i;
-    ClientPtr client;
-
-    client = clients[CLIENT_ID(id)];
-    if (client == NullClient)
-        return ;
-    for (i=0; i<currentMaxClients; i++)
-    {
-	client = clients[i];
-        if (client != NullClient)
-	{
-            if (client->lastDrawableID == id)
-	    {
-		client->lastDrawableID = WindowTable[0]->drawable.id;
-		client->lastDrawable = (DrawablePtr)WindowTable[0];
-	    }
-            else if (client->lastGCID == id)
-	    {
-                client->lastGCID = INVALID;
-		client->lastGC = (GCPtr)NULL;
-	    }
-	}
-    }
-}
 #ifdef SMART_SCHEDULE
 
 #undef SMART_DEBUG
@@ -3702,20 +3674,7 @@ void InitClient(ClientPtr client, int i, pointer ospriv)
     client->sequence = 0; 
     client->clientAsMask = ((Mask)i) << CLIENTOFFSET;
     client->clientGone = FALSE;
-    if (i)
-    {
-	client->closeDownMode = DestroyAll;
-	client->lastDrawable = (DrawablePtr)WindowTable[0];
-	client->lastDrawableID = WindowTable[0]->drawable.id;
-    }
-    else
-    {
-	client->closeDownMode = RetainPermanent;
-	client->lastDrawable = (DrawablePtr)NULL;
-	client->lastDrawableID = INVALID;
-    }
-    client->lastGC = (GCPtr) NULL;
-    client->lastGCID = INVALID;
+    client->closeDownMode = i ? DestroyAll : RetainPermanent;
     client->numSaved = 0;
     client->saveSet = (SaveSetElt *)NULL;
     client->noClientException = Success;

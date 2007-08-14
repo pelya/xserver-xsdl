@@ -585,8 +585,6 @@ FreeResource(XID id, RESTYPE skipDeleteFuncType)
 
 		CallResourceStateCallback(ResourceStateFreeing, res);
 
-		if (rtype & RC_CACHED)
-		    FlushClientCaches(res->id);
 		if (rtype != skipDeleteFuncType)
 		    (*DeleteFuncs[rtype & TypeMask])(res->value, res->id);
 		xfree(res);
@@ -597,11 +595,6 @@ FreeResource(XID id, RESTYPE skipDeleteFuncType)
 	    else
 		prev = &res->next;
         }
-	if(clients[cid] && (id == clients[cid]->lastDrawableID))
-	{
-	    clients[cid]->lastDrawable = (DrawablePtr)WindowTable[0];
-	    clients[cid]->lastDrawableID = WindowTable[0]->drawable.id;
-	}
     }
     if (!gotOne)
 	ErrorF("Freeing resource id=%lX which isn't there.\n",
@@ -632,8 +625,6 @@ FreeResourceByType(XID id, RESTYPE type, Bool skipFree)
 
 		CallResourceStateCallback(ResourceStateFreeing, res);
 
-		if (type & RC_CACHED)
-		    FlushClientCaches(res->id);
 		if (!skipFree)
 		    (*DeleteFuncs[type & TypeMask])(res->value, res->id);
 		xfree(res);
@@ -642,11 +633,6 @@ FreeResourceByType(XID id, RESTYPE type, Bool skipFree)
 	    else
 		prev = &res->next;
         }
-	if(clients[cid] && (id == clients[cid]->lastDrawableID))
-	{
-	    clients[cid]->lastDrawable = (DrawablePtr)WindowTable[0];
-	    clients[cid]->lastDrawableID = WindowTable[0]->drawable.id;
-	}
     }
 }
 
@@ -669,8 +655,6 @@ ChangeResourceValue (XID id, RESTYPE rtype, pointer value)
 	for (; res; res = res->next)
 	    if ((res->id == id) && (res->type == rtype))
 	    {
-		if (rtype & RC_CACHED)
-		    FlushClientCaches(res->id);
 		res->value = value;
 		return TRUE;
 	    }
@@ -801,8 +785,6 @@ FreeClientNeverRetainResources(ClientPtr client)
 
 		CallResourceStateCallback(ResourceStateFreeing, this);
 
-		if (rtype & RC_CACHED)
-		    FlushClientCaches(this->id);
 		(*DeleteFuncs[rtype & TypeMask])(this->value, this->id);
 		xfree(this);
 	    }
@@ -854,8 +836,6 @@ FreeClientResources(ClientPtr client)
 
 	    CallResourceStateCallback(ResourceStateFreeing, this);
 
-	    if (rtype & RC_CACHED)
-		FlushClientCaches(this->id);
 	    (*DeleteFuncs[rtype & TypeMask])(this->value, this->id);
 	    xfree(this);
 	}
