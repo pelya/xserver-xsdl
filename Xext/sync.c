@@ -2592,8 +2592,9 @@ IdleTimeWakeupHandler (pointer env,
     IdleTimeQueryValue (NULL, &idle);
 
     if ((pIdleTimeValueGreater &&
-         XSyncValueGreaterThan (idle, *pIdleTimeValueGreater)) ||
-        (pIdleTimeValueLess && XSyncValueLessThan (idle, *pIdleTimeValueLess)))
+         XSyncValueGreaterOrEqual (idle, *pIdleTimeValueGreater)) ||
+        (pIdleTimeValueLess &&
+	 XSyncValueLessOrEqual (idle, *pIdleTimeValueLess)))
     {
 	SyncChangeCounter (IdleTimeCounter, idle);
     }
