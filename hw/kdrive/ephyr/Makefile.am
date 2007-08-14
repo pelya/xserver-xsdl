@@ -3,7 +3,7 @@ INCLUDES = 					\
 	@KDRIVE_CFLAGS@				\
 	-I$(srcdir)/../../../exa
 
-noinst_LIBRARIES = libxephyr-hostx.a libxephyr-hostxv.a libxephyr.a 
+noinst_LIBRARIES = libxephyr-hostx.a libxephyr-hostxv.a libxephyr.a
 
 bin_PROGRAMS = Xephyr
 
@@ -22,10 +22,15 @@ libxephyr_a_SOURCES =	\
 	ephyr.c		\
 	ephyr_draw.c	\
 	ephyrvideo.c	\
+	ephyrdriext.c \
+	ephyrdri.c	\
+	ephyrdri.h	\
 	os.c		\
 	hostx.h         \
 	ephyr.h		\
 	ephyrlog.h
+
+libxephyr_a_CFLAGS = @LIBDRM_CFLAGS@ @DRIPROTO_CFLAGS@
 
 Xephyr_SOURCES = \
 	ephyrinit.c
@@ -36,7 +41,8 @@ Xephyr_LDADD = 						\
 	libxephyr-hostxv.a			        \
 	../../../exa/libexa.la				\
 	@KDRIVE_LIBS@					\
-        @XEPHYR_LIBS@
+        @XEPHYR_LIBS@ \
+	@LIBDRM_LIBS@
 
 Xephyr_DEPENDENCIES =	\
 	libxephyr.a					\
