@@ -22,7 +22,8 @@ libxephyr_a_SOURCES =	\
 	ephyr.c		\
 	ephyr_draw.c	\
 	ephyrvideo.c	\
-	ephyrdriext.c \
+	XF86dri.c	\
+	ephyrdriext.c	\
 	ephyrdri.c	\
 	ephyrdri.h	\
 	os.c		\
@@ -41,8 +42,9 @@ Xephyr_LDADD = 						\
 	libxephyr-hostxv.a			        \
 	../../../exa/libexa.la				\
 	@KDRIVE_LIBS@					\
-        @XEPHYR_LIBS@ \
-	@LIBDRM_LIBS@
+        @XEPHYR_LIBS@ 					\
+	@LIBDRM_LIBS@					\
+	-lGL
 
 Xephyr_DEPENDENCIES =	\
 	libxephyr.a					\

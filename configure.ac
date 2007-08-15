@@ -1842,6 +1842,13 @@ if test "$KDRIVE" = yes; then
     if test "x$XEPHYR" = xauto; then
         XEPHYR=$xephyr
     fi
+    XEPHYR_DRI=no
+    if test x$XEPHYR = xyes -a x$DRI = xyes; then
+        XEPHYR_DRI=yes
+    fi
+    if test x$XEPHYR_DRI = xyes ; then
+        AC_DEFINE(XEPHYR_DRI,1,[enable DRI extension in xephyr])
+    fi
 
     # Xephyr needs nanosleep() which is in librt on Solaris
     AC_CHECK_FUNC([nanosleep], [],

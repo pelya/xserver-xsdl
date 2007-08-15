@@ -25,9 +25,11 @@
  * Authors:
  *    Dodji Seketeli <dodji@openedhand.com>
  */
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
+#ifdef HAVE_CONFIG_H
+#include <kdrive-config.h>
 #endif
+
+#ifdef XEPHYR_DRI
 
 #include <X11/Xutil.h>
 #include <X11/Xlibint.h>
@@ -203,4 +205,5 @@ ephyrDRIGetDeviceInfo (int a_screen,
     return FALSE ;
     EPHYR_LOG ("leave\n") ;
 }
+#endif /*EPHYR_DRI*/
 

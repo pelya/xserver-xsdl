@@ -425,6 +425,8 @@
 /* Support DRI extension */
 #undef XF86DRI
 
+#undef XEPHYR_DRI
+
 /* Build DBE support */
 #undef DBE
 

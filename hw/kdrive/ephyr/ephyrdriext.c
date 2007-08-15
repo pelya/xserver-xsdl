@@ -27,9 +27,12 @@
  * Authors:
  *    Dodji Seketeli <dodji@openedhand.com>
  */
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
+
+#ifdef HAVE_CONFIG_H
+#include <kdrive-config.h>
 #endif
+
+#ifdef XEPHYR_DRI
 
 #include <string.h>
 
@@ -79,7 +82,7 @@ static unsigned char DRIReqCode = 0;
 extern void XFree86DRIExtensionInit(void);
 
 void
-XFree86DRIExtensionInit(void)
+ephyrDRIExtensionInit(void)
 {
     ExtensionEntry* extEntry;
     EPHYR_LOG ("enter\n") ;
@@ -689,3 +692,4 @@ SProcXF86DRIDispatch (
     }
 }
 
+#endif /*XEPHYR_DRI*/

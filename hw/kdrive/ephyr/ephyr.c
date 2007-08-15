@@ -606,6 +606,7 @@ ephyrInitScreen (ScreenPtr pScreen)
   hostx_set_screen_number (screen, pScreen->myNum);
   hostx_set_win_title (screen, "(ctrl+shift grabs mouse and keyboard)") ;
   pScreen->CreateColormap = ephyrCreateColormap;
+
 #ifdef XV
   if (!ephyrInitVideo (pScreen)) {
       EPHYR_LOG_ERROR ("failed to initialize xvideo\n") ;
@@ -613,6 +614,10 @@ ephyrInitScreen (ScreenPtr pScreen)
       EPHYR_LOG ("initialized xvideo okay\n") ;
   }
 #endif /*XV*/
+
+#ifdef XEPHYR_DRI
+    ephyrDRIExtensionInit () ;
+#endif
   return TRUE;
 }
 
