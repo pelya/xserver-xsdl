@@ -65,6 +65,7 @@ Equipment Corporation.
 #include "dixfontstr.h"
 #include "closestr.h"
 #include "dixfont.h"
+#include "xace.h"
 
 #ifdef DEBUG
 #include	<stdio.h>
@@ -833,6 +834,10 @@ ListFonts(ClientPtr client, unsigned char *pattern, unsigned length,
     if (length > XLFDMAXFONTNAMELEN)
 	return BadAlloc;
 
+    i = XaceHook(XACE_SERVER_ACCESS, client, DixGetAttrAccess);
+    if (i != Success)
+	return i;
+
     if (!(c = (LFclosurePtr) xalloc(sizeof *c)))
 	return BadAlloc;
     c->fpe_list = (FontPathElementPtr *)
@@ -1104,6 +1109,10 @@ StartListFontsWithInfo(ClientPtr client, int length, unsigned char *pattern,
      */
     if (length > XLFDMAXFONTNAMELEN)
 	return BadAlloc;
+
+    i = XaceHook(XACE_SERVER_ACCESS, client, DixGetAttrAccess);
+    if (i != Success)
+	return i;
 
     if (!(c = (LFWIclosurePtr) xalloc(sizeof *c)))
 	goto badAlloc;
@@ -1771,7 +1780,9 @@ bail:
 int
 SetFontPath(ClientPtr client, int npaths, unsigned char *paths, int *error)
 {
-    int   err = Success;
+    int err = XaceHook(XACE_SERVER_ACCESS, client, DixManageAccess);
+    if (err != Success)
+	return err;
 
     if (npaths == 0) {
 	if (SetDefaultFontPath(defaultFontPath) != Success)
@@ -1823,13 +1834,17 @@ SetDefaultFontPath(char *path)
     return err;
 }
 
-unsigned char *
-GetFontPath(int *count, int *length)
+int
+GetFontPath(ClientPtr client, int *count, int *length, unsigned char **result)
 {
     int			i;
     unsigned char       *c;
     int			len;
     FontPathElementPtr	fpe;
+
+    i = XaceHook(XACE_SERVER_ACCESS, client, DixGetAttrAccess);
+    if (i != Success)
+	return i;
 
     len = 0;
     for (i = 0; i < num_fpes; i++) {
@@ -1838,7 +1853,7 @@ GetFontPath(int *count, int *length)
     }
     font_path_string = (unsigned char *) xrealloc(font_path_string, len);
     if (!font_path_string)
-	return NULL;
+	return BadAlloc;
 
     c = font_path_string;
     *length = 0;
@@ -1850,7 +1865,8 @@ GetFontPath(int *count, int *length)
 	c += fpe->name_length;
     }
     *count = num_fpes;
-    return font_path_string;
+    *result = font_path_string;
+    return Success;
 }
 
 _X_EXPORT int

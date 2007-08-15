@@ -66,7 +66,7 @@ static char **dmxGetFontPath(int *npaths)
     char           *newfp;
     int             len, l, i;
 
-    paths = GetFontPath(npaths, &len);
+    GetFontPath(serverClient, npaths, &len, &paths);
 
     newfp = xalloc(*npaths + len);
     c = (unsigned char *)newfp;
@@ -194,7 +194,7 @@ static int dmxProcSetFontPath(ClientPtr client)
     if (total >= 4)
         return BadLength;
 
-    tmpFontPath = GetFontPath(&nOldPaths, &lenOldPaths);
+    GetFontPath(serverClient, &nOldPaths, &lenOldPaths, &tmpFontPath);
     oldFontPath = xalloc(nOldPaths + lenOldPaths);
     memmove(oldFontPath, tmpFontPath, nOldPaths + lenOldPaths);
 

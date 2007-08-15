@@ -105,8 +105,10 @@ extern int SetFontPath(ClientPtr /*client*/,
 
 extern int SetDefaultFontPath(char * /*path*/);
 
-extern unsigned char *GetFontPath(int * /*count*/,
-				  int * /*length*/);
+extern int GetFontPath(ClientPtr client,
+		       int *count,
+		       int *length,
+		       unsigned char **result);
 
 extern int LoadGlyphs(ClientPtr /*client*/,
 		      FontPtr /*pfont*/,

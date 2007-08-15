@@ -1081,11 +1081,15 @@ RemoveEnabledDevice(int fd)
  *    This routine is "undone" by ListenToAllClients()
  *****************/
 
-void
+int
 OnlyListenToOneClient(ClientPtr client)
 {
     OsCommPtr oc = (OsCommPtr)client->osPrivate;
-    int connection = oc->fd;
+    int rc, connection = oc->fd;
+
+    rc = XaceHook(XACE_SERVER_ACCESS, client, DixGrabAccess);
+    if (rc != Success)
+	return rc;
 
     if (! GrabInProgress)
     {
@@ -1106,6 +1110,7 @@ OnlyListenToOneClient(ClientPtr client)
 	XFD_ORSET(&AllSockets, &AllSockets, &AllClients);
 	GrabInProgress = client->index;
     }
+    return rc;
 }
 
 /****************

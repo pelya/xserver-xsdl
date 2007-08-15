@@ -1169,6 +1169,7 @@ ProcConvertSelection(ClientPtr client)
 int
 ProcGrabServer(ClientPtr client)
 {
+    int rc;
     REQUEST_SIZE_MATCH(xReq);
     if (grabState != GrabNone && client != grabClient)
     {
@@ -1178,7 +1179,9 @@ ProcGrabServer(ClientPtr client)
 	IgnoreClient(client);
 	return(client->noClientException);
     }
-    OnlyListenToOneClient(client);
+    rc = OnlyListenToOneClient(client);
+    if (rc != Success)
+	return rc;
     grabState = GrabKickout;
     grabClient = client;
 
@@ -3478,12 +3481,14 @@ int
 ProcGetFontPath(ClientPtr client)
 {
     xGetFontPathReply reply;
-    int stringLens, numpaths;
+    int rc, stringLens, numpaths;
     unsigned char *bufferStart;
     /* REQUEST (xReq); */
 
     REQUEST_SIZE_MATCH(xReq);
-    bufferStart = GetFontPath(&numpaths, &stringLens);
+    rc = GetFontPath(client, &numpaths, &stringLens, &bufferStart);
+    if (rc != Success)
+	return rc;
 
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
