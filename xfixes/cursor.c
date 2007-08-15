@@ -980,6 +980,7 @@ createInvisibleCursor (void)
     CursorPtr pCursor;
     static unsigned int *psrcbits, *pmaskbits;
     CursorMetricRec cm;
+    int rc;
 
     psrcbits = (unsigned int *) xalloc(4);
     pmaskbits = (unsigned int *) xalloc(4);
@@ -994,12 +995,13 @@ createInvisibleCursor (void)
     cm.xhot = 0;
     cm.yhot = 0;
 
-    pCursor = AllocCursor(
+    rc = AllocARGBCursor(
 	        (unsigned char *)psrcbits,
 		(unsigned char *)pmaskbits,
-		&cm,
+		NULL, &cm,
 		0, 0, 0,
-		0, 0, 0);
+		0, 0, 0,
+		&pCursor, serverClient, (XID)0);
 
     return pCursor;
 }

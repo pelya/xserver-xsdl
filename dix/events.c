@@ -4115,12 +4115,12 @@ ProcChangeActivePointerGrab(ClientPtr client)
 	newCursor = NullCursor;
     else
     {
-	newCursor = (CursorPtr)SecurityLookupIDByType(client, stuff->cursor,
-						RT_CURSOR, DixReadAccess);
-	if (!newCursor)
+	int rc = dixLookupResource((pointer *)&newCursor, stuff->cursor,
+				   RT_CURSOR, client, DixUseAccess);
+	if (rc != Success)
 	{
 	    client->errorValue = stuff->cursor;
-	    return BadCursor;
+	    return (rc == BadValue) ? BadCursor : rc;
 	}
     }
     if (!grab)
@@ -4889,18 +4889,18 @@ int
 ProcRecolorCursor(ClientPtr client)
 {
     CursorPtr pCursor;
-    int		nscr;
+    int		rc, nscr;
     ScreenPtr	pscr;
     Bool 	displayed;
     REQUEST(xRecolorCursorReq);
 
     REQUEST_SIZE_MATCH(xRecolorCursorReq);
-    pCursor = (CursorPtr)SecurityLookupIDByType(client, stuff->cursor,
-					RT_CURSOR, DixWriteAccess);
-    if ( !pCursor) 
+    rc = dixLookupResource((pointer *)&pCursor, stuff->cursor, RT_CURSOR,
+			   client, DixWriteAccess);
+    if (rc != Success)
     {
 	client->errorValue = stuff->cursor;
-	return (BadCursor);
+	return (rc == BadValue) ? BadCursor : rc;
     }
 
     pCursor->foreRed = stuff->foreRed;

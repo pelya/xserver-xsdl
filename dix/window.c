@@ -3541,7 +3541,8 @@ TileScreenSaver(int i, int kind)
     {
 	for (j=0; j<BitmapBytePad(32)*16; j++)
 	    srcbits[j] = mskbits[j] = 0x0;
-	cursor = AllocCursor(srcbits, mskbits, &cm, 0, 0, 0, 0, 0, 0);
+	result = AllocARGBCursor(srcbits, mskbits, NULL, &cm, 0, 0, 0, 0, 0, 0,
+				 &cursor, serverClient, (XID)0);
 	if (cursor)
 	{
 	    cursorID = FakeClientID(0);

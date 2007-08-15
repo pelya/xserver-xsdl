@@ -68,23 +68,7 @@ extern int FreeCursor(
     pointer /*pCurs*/,
     XID /*cid*/);
 
-/* Quartz support on Mac OS X pulls in the QuickDraw
-   framework whose AllocCursor function conflicts here. */ 
-#ifdef __DARWIN__
-#define AllocCursor Darwin_X_AllocCursor
-#endif
-extern CursorPtr AllocCursor(
-    unsigned char* /*psrcbits*/,
-    unsigned char* /*pmaskbits*/,
-    CursorMetricPtr /*cm*/,
-    unsigned /*foreRed*/,
-    unsigned /*foreGreen*/,
-    unsigned /*foreBlue*/,
-    unsigned /*backRed*/,
-    unsigned /*backGreen*/,
-    unsigned /*backBlue*/);
-
-extern CursorPtr AllocCursorARGB(
+extern int AllocARGBCursor(
     unsigned char* /*psrcbits*/,
     unsigned char* /*pmaskbits*/,
     CARD32* /*argb*/,
@@ -94,7 +78,10 @@ extern CursorPtr AllocCursorARGB(
     unsigned /*foreBlue*/,
     unsigned /*backRed*/,
     unsigned /*backGreen*/,
-    unsigned /*backBlue*/);
+    unsigned /*backBlue*/,
+    CursorPtr* /*ppCurs*/,
+    ClientPtr /*client*/,
+    XID /*cid*/);
 
 extern int AllocGlyphCursor(
     Font /*source*/,
@@ -108,7 +95,8 @@ extern int AllocGlyphCursor(
     unsigned /*backGreen*/,
     unsigned /*backBlue*/,
     CursorPtr* /*ppCurs*/,
-    ClientPtr /*client*/);
+    ClientPtr /*client*/,
+    XID /*cid*/);
 
 extern CursorPtr CreateRootCursor(
     char* /*pfilename*/,

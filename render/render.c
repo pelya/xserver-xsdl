@@ -1492,7 +1492,7 @@ ProcRenderCreateCursor (ClientPtr client)
     CursorMetricRec cm;
     CursorPtr	    pCursor;
     CARD32	    twocolor[3];
-    int		    ncolor;
+    int		    rc, ncolor;
 
     REQUEST_SIZE_MATCH (xRenderCreateCursorReq);
     LEGAL_NEW_RESOURCE(stuff->cid, client);
@@ -1659,16 +1659,20 @@ ProcRenderCreateCursor (ClientPtr client)
     cm.height = height;
     cm.xhot = stuff->x;
     cm.yhot = stuff->y;
-    pCursor = AllocCursorARGB (srcbits, mskbits, argbbits, &cm,
-			       GetColor(twocolor[0], 16),
-			       GetColor(twocolor[0], 8),
-			       GetColor(twocolor[0], 0),
-			       GetColor(twocolor[1], 16),
-			       GetColor(twocolor[1], 8),
-			       GetColor(twocolor[1], 0));
-    if (pCursor && AddResource(stuff->cid, RT_CURSOR, (pointer)pCursor))
-	return (client->noClientException);
-    return BadAlloc;
+    rc = AllocARGBCursor(srcbits, mskbits, argbbits, &cm,
+			 GetColor(twocolor[0], 16),
+			 GetColor(twocolor[0], 8),
+			 GetColor(twocolor[0], 0),
+			 GetColor(twocolor[1], 16),
+			 GetColor(twocolor[1], 8),
+			 GetColor(twocolor[1], 0),
+			 &pCursor, client, stuff->cid);
+    if (rc != Success)
+	return rc;
+    if (!AddResource(stuff->cid, RT_CURSOR, (pointer)pCursor))
+	return BadAlloc;
+
+    return client->noClientException;
 }
 
 static int

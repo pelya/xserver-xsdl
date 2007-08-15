@@ -3070,28 +3070,28 @@ ProcCreateCursor (ClientPtr client)
     unsigned short	width, height;
     long		n;
     CursorMetricRec 	cm;
-
+    int rc;
 
     REQUEST(xCreateCursorReq);
 
     REQUEST_SIZE_MATCH(xCreateCursorReq);
     LEGAL_NEW_RESOURCE(stuff->cid, client);
 
-    src = (PixmapPtr)SecurityLookupIDByType(client, stuff->source,
-					      RT_PIXMAP, DixReadAccess);
-    msk = (PixmapPtr)SecurityLookupIDByType(client, stuff->mask,
-					      RT_PIXMAP, DixReadAccess);
-    if (   src == (PixmapPtr)NULL)
-    {
+    rc = dixLookupResource((pointer *)&src, stuff->source, RT_PIXMAP, client,
+			   DixReadAccess);
+    if (rc != Success) {
 	client->errorValue = stuff->source;
-	return (BadPixmap);
+	return (rc == BadValue) ? BadPixmap : rc;
     }
-    if ( msk == (PixmapPtr)NULL)
+
+    rc = dixLookupResource((pointer *)&msk, stuff->mask, RT_PIXMAP, client,
+			   DixReadAccess);
+    if (rc != Success)
     {
 	if (stuff->mask != None)
 	{
 	    client->errorValue = stuff->mask;
-	    return (BadPixmap);
+	    return (rc == BadValue) ? BadPixmap : rc;
 	}
     }
     else if (  src->drawable.width != msk->drawable.width
@@ -3139,13 +3139,17 @@ ProcCreateCursor (ClientPtr client)
     cm.height = height;
     cm.xhot = stuff->x;
     cm.yhot = stuff->y;
-    pCursor = AllocCursor( srcbits, mskbits, &cm,
-	    stuff->foreRed, stuff->foreGreen, stuff->foreBlue,
-	    stuff->backRed, stuff->backGreen, stuff->backBlue);
+    rc = AllocARGBCursor(srcbits, mskbits, NULL, &cm,
+			 stuff->foreRed, stuff->foreGreen, stuff->foreBlue,
+			 stuff->backRed, stuff->backGreen, stuff->backBlue,
+			 &pCursor, client, stuff->cid);
 
-    if (pCursor && AddResource(stuff->cid, RT_CURSOR, (pointer)pCursor))
-	    return (client->noClientException);
-    return BadAlloc;
+    if (rc != Success)
+	return rc;
+    if (!AddResource(stuff->cid, RT_CURSOR, (pointer)pCursor))
+	return BadAlloc;
+
+    return client->noClientException;
 }
 
 int
@@ -3163,7 +3167,7 @@ ProcCreateGlyphCursor (ClientPtr client)
 			   stuff->mask, stuff->maskChar,
 			   stuff->foreRed, stuff->foreGreen, stuff->foreBlue,
 			   stuff->backRed, stuff->backGreen, stuff->backBlue,
-			   &pCursor, client);
+			   &pCursor, client, stuff->cid);
     if (res != Success)
 	return res;
     if (AddResource(stuff->cid, RT_CURSOR, (pointer)pCursor))
@@ -3176,12 +3180,13 @@ int
 ProcFreeCursor (ClientPtr client)
 {
     CursorPtr pCursor;
+    int rc;
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    pCursor = (CursorPtr)SecurityLookupIDByType(client, stuff->id,
-					RT_CURSOR, DixDestroyAccess);
-    if (pCursor) 
+    rc = dixLookupResource((pointer *)&pCursor, stuff->id, RT_CURSOR, client,
+			   DixDestroyAccess);
+    if (rc == Success) 
     {
 	FreeResource(stuff->id, RT_NONE);
 	return (client->noClientException);
@@ -3189,7 +3194,7 @@ ProcFreeCursor (ClientPtr client)
     else 
     {
 	client->errorValue = stuff->id;
-	return (BadCursor);
+	return (rc == BadValue) ? BadCursor : rc;
     }
 }
 
