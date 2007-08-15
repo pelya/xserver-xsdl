@@ -5139,6 +5139,8 @@ ProcUngrabKeyboard(ClientPtr client)
     REQUEST_SIZE_MATCH(xResourceReq);
     UpdateCurrentTime();
 
+    grab = device->deviceGrab.grab;
+
     if (!grab || !grab->coreGrab || !SameClient(grab, client))
     {
 	for (grabbed = inputInfo.devices; grabbed; grabbed = grabbed->next)
