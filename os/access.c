@@ -1500,7 +1500,7 @@ AuthorizedClient(ClientPtr client)
 	return TRUE;
 
     /* untrusted clients can't change host access */
-    if (XaceHook(XACE_HOSTLIST_ACCESS, client, DixWriteAccess) != Success)
+    if (XaceHook(XACE_SERVER_ACCESS, client, DixWriteAccess) != Success)
 	return FALSE;
 
     return LocalClient(client);

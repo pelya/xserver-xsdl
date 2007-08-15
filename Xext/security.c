@@ -1222,10 +1222,10 @@ SecurityCheckExtAccess(CallbackListPtr *pcbl, pointer unused,
 }
 
 static void
-SecurityCheckHostlistAccess(CallbackListPtr *pcbl, pointer unused,
-			    pointer calldata)
+SecurityCheckServerAccess(CallbackListPtr *pcbl, pointer unused,
+			  pointer calldata)
 {
-    XaceHostlistAccessRec *rec = (XaceHostlistAccessRec*)calldata;
+    XaceServerAccessRec *rec = (XaceServerAccessRec*)calldata;
  
     if (TRUSTLEVEL(rec->client) != XSecurityClientTrusted)
     {
@@ -1851,5 +1851,5 @@ SecurityExtensionInit(INITARGS)
     XaceRC(XACE_BACKGRND_ACCESS, SecurityCheckBackgrndAccess, NULL);
     XaceRC(XACE_EXT_DISPATCH, SecurityCheckExtAccess, NULL);
     XaceRC(XACE_EXT_ACCESS, SecurityCheckExtAccess, NULL);
-    XaceRC(XACE_HOSTLIST_ACCESS, SecurityCheckHostlistAccess, NULL);
+    XaceRC(XACE_SERVER_ACCESS, SecurityCheckServerAccess, NULL);
 } /* SecurityExtensionInit */

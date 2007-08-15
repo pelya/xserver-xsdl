@@ -1175,15 +1175,15 @@ XSELinuxDrawable(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 } /* XSELinuxDrawable */
 
 static void
-XSELinuxHostlist(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+XSELinuxServer(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
-    XaceHostlistAccessRec *rec = (XaceHostlistAccessRec*)calldata;
+    XaceServerAccessRec *rec = (XaceServerAccessRec*)calldata;
     access_vector_t perm = (rec->access_mode == DixReadAccess) ?
 	XSERVER__GETHOSTLIST : XSERVER__SETHOSTLIST;
 
     if (ServerPerm(rec->client, SECCLASS_XSERVER, perm) != Success)
 	rec->status = BadAccess;
-} /* XSELinuxHostlist */
+} /* XSELinuxServer */
 
 /* Extension callbacks */
 static void
@@ -1397,7 +1397,7 @@ XSELinuxExtensionInit(INITARGS)
     XaceRegisterCallback(XACE_EXT_DISPATCH, XSELinuxExtDispatch, NULL);
     XaceRegisterCallback(XACE_RESOURCE_ACCESS, XSELinuxResLookup, NULL);
     XaceRegisterCallback(XACE_MAP_ACCESS, XSELinuxMap, NULL);
-    XaceRegisterCallback(XACE_HOSTLIST_ACCESS, XSELinuxHostlist, NULL);
+    XaceRegisterCallback(XACE_SERVER_ACCESS, XSELinuxServer, NULL);
     XaceRegisterCallback(XACE_BACKGRND_ACCESS, XSELinuxBackgrnd, NULL);
     XaceRegisterCallback(XACE_DRAWABLE_ACCESS, XSELinuxDrawable, NULL);
     XaceRegisterCallback(XACE_PROPERTY_ACCESS, XSELinuxProperty, NULL);

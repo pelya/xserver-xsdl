@@ -86,12 +86,12 @@ typedef struct {
     int status;
 } XaceExtAccessRec;
 
-/* XACE_HOSTLIST_ACCESS */
+/* XACE_SERVER_ACCESS */
 typedef struct {
     ClientPtr client;
     Mask access_mode;
     int status;
-} XaceHostlistAccessRec;
+} XaceServerAccessRec;
 
 /* XACE_SELECTION_ACCESS */
 typedef struct {
@@ -101,6 +101,8 @@ typedef struct {
     int status;
 } XaceSelectionAccessRec;
 
+/* XACE_SCREEN_ACCESS */
+/* XACE_SCREENSAVER_ACCESS */
 typedef struct {
     ClientPtr client;
     ScreenPtr screen;

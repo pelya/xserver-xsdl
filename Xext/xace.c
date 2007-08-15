@@ -135,8 +135,8 @@ int XaceHook(int hook, ...)
 	    prv = &rec.status;
 	    break;
 	}
-	case XACE_HOSTLIST_ACCESS: {
-	    XaceHostlistAccessRec rec = {
+	case XACE_SERVER_ACCESS: {
+	    XaceServerAccessRec rec = {
 		va_arg(ap, ClientPtr),
 		va_arg(ap, Mask),
 		Success /* default allow */
