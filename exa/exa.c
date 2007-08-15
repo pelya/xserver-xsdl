@@ -526,6 +526,7 @@ exaCloseScreen(int i, ScreenPtr pScreen)
     if (ps) {
 	ps->Composite = pExaScr->SavedComposite;
 	ps->Glyphs = pExaScr->SavedGlyphs;
+	ps->Trapezoids = pExaScr->SavedTrapezoids;
     }
 #endif
 
@@ -684,6 +685,9 @@ exaDriverInit (ScreenPtr		pScreen,
 
 	pExaScr->SavedGlyphs = ps->Glyphs;
 	ps->Glyphs = exaGlyphs;
+
+	pExaScr->SavedTrapezoids = ps->Trapezoids;
+	ps->Trapezoids = exaTrapezoids;
     }
 #endif
 
