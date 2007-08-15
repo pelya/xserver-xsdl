@@ -85,7 +85,13 @@ if test "x$WDTRACE" != "xno" ; then
       [Define to 1 if the DTrace Xserver provider probes should be built in.])
 fi
 AM_CONDITIONAL(XSERVER_DTRACE, [test "x$WDTRACE" != "xno"])
-AC_DEFINE_DIR(XERRORDB_PATH, libdir/XErrorDB, [Path to XErrorDB file])
+
+# DTrace support uses XErrorDB to get request names
+AC_ARG_WITH(xerrordb,
+            AS_HELP_STRING([--with-xerrordb=PATH], [Path to XErrorDB file (default: ${datadir}/X11/XErrorDB)]),
+	    [ XERRORDB_PATH="$withval" ],
+	    [ XERRORDB_PATH="${datadir}/X11/XErrorDB" ])
+AC_DEFINE_DIR(XERRORDB_PATH, XERRORDB_PATH, [Path to XErrorDB file])
 
 AC_HEADER_DIRENT
 AC_HEADER_STDC
