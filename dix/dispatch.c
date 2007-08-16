@@ -980,9 +980,10 @@ ProcSetSelectionOwner(ClientPtr client)
 {
     WindowPtr pWin;
     TimeStamp time;
+    int rc;
     REQUEST(xSetSelectionOwnerReq);
-
     REQUEST_SIZE_MATCH(xSetSelectionOwnerReq);
+
     UpdateCurrentTime();
     time = ClientTimeToServerTime(stuff->time);
 
@@ -992,7 +993,7 @@ ProcSetSelectionOwner(ClientPtr client)
     	return Success;
     if (stuff->window != None)
     {
-	int rc = dixLookupWindow(&pWin, stuff->window, client, DixReadAccess);
+	rc = dixLookupWindow(&pWin, stuff->window, client, DixSetAttrAccess);
         if (rc != Success)
             return rc;
     }
@@ -1012,6 +1013,10 @@ ProcSetSelectionOwner(ClientPtr client)
         {        
 	    xEvent event;
 
+	    rc = XaceHook(XACE_SELECTION_ACCESS, client, CurrentSelections[i],
+			  DixSetAttrAccess);
+	    if (rc != Success)
+		return rc;
 	    /* If the timestamp in client's request is in the past relative
 		to the time stamp indicating the last time the owner of the
 		selection was set, do not set the selection, just return 
@@ -1049,6 +1054,10 @@ ProcSetSelectionOwner(ClientPtr client)
 	    CurrentSelections = newsels;
 	    CurrentSelections[i].selection = stuff->selection;
 	    CurrentSelections[i].devPrivates = NULL;
+	    rc = XaceHook(XACE_SELECTION_ACCESS, CurrentSelections[i],
+			  DixSetAttrAccess);
+	    if (rc != Success)
+		return rc;
 	}
 	dixFreePrivates(CurrentSelections[i].devPrivates);
         CurrentSelections[i].lastTimeChanged = time;
@@ -1094,7 +1103,7 @@ ProcGetSelectionOwner(ClientPtr client)
 	reply.sequenceNumber = client->sequence;
         if (i < NumCurrentSelections &&
 	    XaceHook(XACE_SELECTION_ACCESS, client, &CurrentSelections[i],
-		     DixReadAccess) == Success)
+		     DixGetAttrAccess) == Success)
             reply.owner = CurrentSelections[i].destwindow;
         else
             reply.owner = None;
@@ -1118,7 +1127,7 @@ ProcConvertSelection(ClientPtr client)
     int rc;
 
     REQUEST_SIZE_MATCH(xConvertSelectionReq);
-    rc = dixLookupWindow(&pWin, stuff->requestor, client, DixReadAccess);
+    rc = dixLookupWindow(&pWin, stuff->requestor, client, DixSetAttrAccess);
     if (rc != Success)
         return rc;
 
