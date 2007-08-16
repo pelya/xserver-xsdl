@@ -71,12 +71,19 @@ typedef struct {
 } XaceDrawableAccessRec;
 
 /* XACE_MAP_ACCESS */
-/* XACE_BACKGRND_ACCESS */
 typedef struct {
     ClientPtr client;
     WindowPtr pWin;
     int status;
 } XaceMapAccessRec;
+
+/* XACE_CLIENT_ACCESS */
+typedef struct {
+    ClientPtr client;
+    ClientPtr target;
+    Mask access_mode;
+    int status;
+} XaceClientAccessRec;
 
 /* XACE_EXT_DISPATCH */
 /* XACE_EXT_ACCESS */

@@ -1197,16 +1197,6 @@ SecurityCheckMapAccess(CallbackListPtr *pcbl, pointer unused,
 }
 
 static void
-SecurityCheckBackgrndAccess(CallbackListPtr *pcbl, pointer unused,
-			    pointer calldata)
-{
-    XaceMapAccessRec *rec = (XaceMapAccessRec*)calldata;
-
-    if (TRUSTLEVEL(rec->client) != XSecurityClientTrusted)
-	rec->status = BadAccess;
-}
-
-static void
 SecurityCheckExtAccess(CallbackListPtr *pcbl, pointer unused,
 		       pointer calldata)
 {
@@ -1848,7 +1838,6 @@ SecurityExtensionInit(INITARGS)
     XaceRC(XACE_PROPERTY_ACCESS, SecurityCheckPropertyAccess, NULL);
     XaceRC(XACE_DRAWABLE_ACCESS, SecurityCheckDrawableAccess, NULL);
     XaceRC(XACE_MAP_ACCESS, SecurityCheckMapAccess, NULL);
-    XaceRC(XACE_BACKGRND_ACCESS, SecurityCheckBackgrndAccess, NULL);
     XaceRC(XACE_EXT_DISPATCH, SecurityCheckExtAccess, NULL);
     XaceRC(XACE_EXT_ACCESS, SecurityCheckExtAccess, NULL);
     XaceRC(XACE_SERVER_ACCESS, SecurityCheckServerAccess, NULL);

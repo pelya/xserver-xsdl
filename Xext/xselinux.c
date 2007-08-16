@@ -1157,15 +1157,6 @@ XSELinuxMap(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 } /* XSELinuxMap */
 
 static void
-XSELinuxBackgrnd(CallbackListPtr *pcbl, pointer unused, pointer calldata)
-{
-    XaceMapAccessRec *rec = (XaceMapAccessRec*)calldata;
-    if (IDPerm(rec->client, rec->pWin->drawable.id,
-               SECCLASS_WINDOW, WINDOW__TRANSPARENT) != Success)
-	rec->status = BadAccess;
-} /* XSELinuxBackgrnd */
-
-static void
 XSELinuxDrawable(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceDrawableAccessRec *rec = (XaceDrawableAccessRec*)calldata;
@@ -1398,7 +1389,6 @@ XSELinuxExtensionInit(INITARGS)
     XaceRegisterCallback(XACE_RESOURCE_ACCESS, XSELinuxResLookup, NULL);
     XaceRegisterCallback(XACE_MAP_ACCESS, XSELinuxMap, NULL);
     XaceRegisterCallback(XACE_SERVER_ACCESS, XSELinuxServer, NULL);
-    XaceRegisterCallback(XACE_BACKGRND_ACCESS, XSELinuxBackgrnd, NULL);
     XaceRegisterCallback(XACE_DRAWABLE_ACCESS, XSELinuxDrawable, NULL);
     XaceRegisterCallback(XACE_PROPERTY_ACCESS, XSELinuxProperty, NULL);
     /* XaceRegisterCallback(XACE_DECLARE_EXT_SECURE, XSELinuxDeclare, NULL);
