@@ -19,10 +19,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * STUFF FOR PRIVATES
  *****************************************************************/
 
-typedef void *const DevPrivateKey;
+typedef void *DevPrivateKey;
 
 typedef struct _Private {
-    pointer		key;
+    DevPrivateKey	key;
     pointer		value;
     struct _Private	*next;
 } PrivateRec;
@@ -111,7 +111,7 @@ dixSetPrivate(PrivateRec **privates, const DevPrivateKey key, pointer val)
  * The calldata argument to the callbacks is a PrivateCallbackPtr.
  */
 typedef struct _PrivateCallback {
-    pointer key;	/* key used to set the private */
+    DevPrivateKey key;	/* private registration key */
     pointer *value;	/* address of private pointer */
 } PrivateCallbackRec;
 
