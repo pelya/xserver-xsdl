@@ -1075,7 +1075,7 @@ ephyrQueryImageAttributes (KdScreenInfo *a_info,
        EPHYR_LOG_ERROR ("EphyrHostXVQueryImageAttributes() failed\n") ;
        goto out ;
    }
-   EPHYR_LOG ("image size: %d, dim (%dx%d)", image_size, *a_w, *a_h) ;
+   EPHYR_LOG ("image size: %d, dim (%dx%d)\n", image_size, *a_w, *a_h) ;
 
 out:
     EPHYR_LOG ("leave\n") ;
