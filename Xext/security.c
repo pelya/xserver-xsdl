@@ -54,7 +54,7 @@ in this Software without prior written authorization from The Open Group.
 
 static int SecurityErrorBase;  /* first Security error number */
 static int SecurityEventBase;  /* first Security event number */
-static devprivate_key_t stateKey;
+static const DevPrivateKey stateKey = &stateKey;
 
 /* this is what we store as client security state */
 typedef struct {
@@ -64,11 +64,11 @@ typedef struct {
 } SecurityClientStateRec;
 
 #define HAVESTATE(client) (((SecurityClientStateRec *) \
-    dixLookupPrivate(DEVPRIV_PTR(client), &stateKey))->haveState)
+    dixLookupPrivate(DEVPRIV_PTR(client), stateKey))->haveState)
 #define TRUSTLEVEL(client) (((SecurityClientStateRec *) \
-    dixLookupPrivate(DEVPRIV_PTR(client), &stateKey))->trustLevel)
+    dixLookupPrivate(DEVPRIV_PTR(client), stateKey))->trustLevel)
 #define AUTHID(client)(((SecurityClientStateRec *) \
-    dixLookupPrivate(DEVPRIV_PTR(client), &stateKey))->authId)
+    dixLookupPrivate(DEVPRIV_PTR(client), stateKey))->authId)
 
 static CallbackListPtr SecurityValidateGroupCallback = NULL;
 
@@ -1812,7 +1812,7 @@ SecurityExtensionInit(INITARGS)
     RTEventClient |= RC_NEVERRETAIN;
 
     /* Allocate the private storage */
-    if (!dixRequestPrivate(&stateKey, sizeof(SecurityClientStateRec)))
+    if (!dixRequestPrivate(stateKey, sizeof(SecurityClientStateRec)))
 	FatalError("SecurityExtensionSetup: Can't allocate client private.\n");
 
     if (!AddCallback(&ClientStateCallback, SecurityClientStateCallback, NULL))

@@ -47,7 +47,7 @@ from The Open Group.
 #include "extnsionst.h"
 
 typedef struct _PrivateDesc {
-    devprivate_key_t *key;
+    DevPrivateKey key;
     unsigned size;
     CallbackListPtr initfuncs;
     CallbackListPtr deletefuncs;
@@ -58,7 +58,7 @@ typedef struct _PrivateDesc {
 static PrivateDescRec *items = NULL;
 
 static _X_INLINE PrivateDescRec *
-findItem(devprivate_key_t *const key)
+findItem(const DevPrivateKey key)
 {
     PrivateDescRec *item = items;
     while (item) {
@@ -73,7 +73,7 @@ findItem(devprivate_key_t *const key)
  * Request pre-allocated space.
  */
 _X_EXPORT int
-dixRequestPrivate(devprivate_key_t *const key, unsigned size)
+dixRequestPrivate(const DevPrivateKey key, unsigned size)
 {
     PrivateDescRec *item = findItem(key);
     if (item) {
@@ -98,7 +98,7 @@ dixRequestPrivate(devprivate_key_t *const key, unsigned size)
  * Allocate a private and attach it to an existing object.
  */
 _X_EXPORT pointer *
-dixAllocatePrivate(PrivateRec **privates, devprivate_key_t *const key)
+dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key)
 {
     PrivateDescRec *item = findItem(key);
     PrivateRec *ptr;
@@ -156,7 +156,7 @@ dixFreePrivates(PrivateRec *privates)
  * Callback registration
  */
 _X_EXPORT int
-dixRegisterPrivateInitFunc(devprivate_key_t *const key,
+dixRegisterPrivateInitFunc(const DevPrivateKey key,
 			   CallbackProcPtr callback, pointer data)
 {
     PrivateDescRec *item = findItem(key);
@@ -169,7 +169,7 @@ dixRegisterPrivateInitFunc(devprivate_key_t *const key,
 }
 
 _X_EXPORT int
-dixRegisterPrivateDeleteFunc(devprivate_key_t *const key,
+dixRegisterPrivateDeleteFunc(const DevPrivateKey key,
 			     CallbackProcPtr callback, pointer data)
 {
     PrivateDescRec *item = findItem(key);

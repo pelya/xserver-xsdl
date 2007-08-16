@@ -19,10 +19,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * STUFF FOR PRIVATES
  *****************************************************************/
 
-typedef char devprivate_key_t;
+typedef void *DevPrivateKey;
 
 typedef struct _Private {
-    devprivate_key_t	*key;
+    DevPrivateKey	key;
     pointer		value;
     struct _Private	*next;
 } PrivateRec;
@@ -39,19 +39,19 @@ typedef struct _Private {
  * Calling this is not necessary if only a pointer by itself is needed.
  */
 extern int
-dixRequestPrivate(devprivate_key_t *const key, unsigned size);
+dixRequestPrivate(const DevPrivateKey key, unsigned size);
 
 /*
  * Allocates a new private and attaches it to an existing object.
  */
 extern pointer *
-dixAllocatePrivate(PrivateRec **privates, devprivate_key_t *const key);
+dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key);
 
 /*
  * Look up a private pointer.
  */
 static _X_INLINE pointer
-dixLookupPrivate(PrivateRec **privates, devprivate_key_t *const key)
+dixLookupPrivate(PrivateRec **privates, const DevPrivateKey key)
 {
     PrivateRec *rec = *privates;
     pointer *ptr;
@@ -70,7 +70,7 @@ dixLookupPrivate(PrivateRec **privates, devprivate_key_t *const key)
  * Look up the address of a private pointer.
  */
 static _X_INLINE pointer *
-dixLookupPrivateAddr(PrivateRec **privates, devprivate_key_t *const key)
+dixLookupPrivateAddr(PrivateRec **privates, const DevPrivateKey key)
 {
     PrivateRec *rec = *privates;
 
@@ -87,7 +87,7 @@ dixLookupPrivateAddr(PrivateRec **privates, devprivate_key_t *const key)
  * Set a private pointer.
  */
 static _X_INLINE int
-dixSetPrivate(PrivateRec **privates, devprivate_key_t *const key, pointer val)
+dixSetPrivate(PrivateRec **privates, const DevPrivateKey key, pointer val)
 {
     PrivateRec *rec;
 
@@ -111,16 +111,16 @@ dixSetPrivate(PrivateRec **privates, devprivate_key_t *const key, pointer val)
  * The calldata argument to the callbacks is a PrivateCallbackPtr.
  */
 typedef struct _PrivateCallback {
-    devprivate_key_t *key;	/* private registration key */
-    pointer *value;		/* address of private pointer */
+    DevPrivateKey key;	/* private registration key */
+    pointer *value;	/* address of private pointer */
 } PrivateCallbackRec;
 
 extern int
-dixRegisterPrivateInitFunc(devprivate_key_t *const key,
+dixRegisterPrivateInitFunc(const DevPrivateKey key, 
 			   CallbackProcPtr callback, pointer userdata);
 
 extern int
-dixRegisterPrivateDeleteFunc(devprivate_key_t *const key,
+dixRegisterPrivateDeleteFunc(const DevPrivateKey key,
 			     CallbackProcPtr callback, pointer userdata);
 
 /*
