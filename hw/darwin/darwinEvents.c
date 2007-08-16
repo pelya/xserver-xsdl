@@ -276,7 +276,7 @@ void ProcessInputEvents(void) {
     while (darwinEventQueue.head != darwinEventQueue.tail)
     {
         if (screenIsSaved == SCREEN_SAVER_ON)
-            SaveScreens (SCREEN_SAVER_OFF, ScreenSaverReset);
+            SaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
 
         e = &darwinEventQueue.events[darwinEventQueue.head];
         xe = e->event;

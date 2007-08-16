@@ -218,7 +218,7 @@ ProcDPMSDisable(client)
 
     REQUEST_SIZE_MATCH(xDPMSDisableReq);
 
-    DPMSSet(DPMSModeOn);
+    DPMSSet(client, DPMSModeOn);
 
     DPMSEnabled = FALSE;
 
@@ -253,7 +253,7 @@ ProcDPMSForceLevel(client)
 	return BadValue;
     }
 
-    DPMSSet(stuff->level);
+    DPMSSet(client, stuff->level);
 
     return(client->noClientException);
 }

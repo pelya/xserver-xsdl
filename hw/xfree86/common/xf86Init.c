@@ -1086,7 +1086,7 @@ AbortDDX()
 #endif
 #ifdef DPMSExtension /* Turn screens back on */
   if (DPMSPowerLevel != DPMSModeOn)
-      DPMSSet(DPMSModeOn);
+      DPMSSet(serverClient, DPMSModeOn);
 #endif
   if (xf86Screens) {
       if (xf86Screens[0]->vtSema)

@@ -144,20 +144,23 @@ DPMSClose(int i, ScreenPtr pScreen)
  *	Device dependent DPMS mode setting hook.  This is called whenever
  *	the DPMS mode is to be changed.
  */
-_X_EXPORT void
-DPMSSet(int level)
+_X_EXPORT int
+DPMSSet(ClientPtr client, int level)
 {
-    int i;
+    int rc, i;
     DPMSPtr pDPMS;
     ScrnInfoPtr pScrn;
 
     DPMSPowerLevel = level;
 
     if (DPMSIndex < 0)
-	return;
+	return Success;
 
-    if (level != DPMSModeOn)
-	SaveScreens(SCREEN_SAVER_FORCER, ScreenSaverActive);
+    if (level != DPMSModeOn) {
+	rc = SaveScreens(client, SCREEN_SAVER_FORCER, ScreenSaverActive);
+	if (rc != Success)
+	    return rc;
+    }
 
     /* For each screen, set the DPMS level */
     for (i = 0; i < xf86NumScreens; i++) {
@@ -168,6 +171,7 @@ DPMSSet(int level)
 	    pScrn->DPMSSet(pScrn, level, 0);
 	}
     }
+    return Success;
 }
 
 

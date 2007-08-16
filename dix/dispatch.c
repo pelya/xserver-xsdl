@@ -3244,10 +3244,17 @@ ProcQueryBestSize (ClientPtr client)
 int
 ProcSetScreenSaver (ClientPtr client)
 {
-    int blankingOption, exposureOption;
+    int rc, i, blankingOption, exposureOption;
     REQUEST(xSetScreenSaverReq);
-
     REQUEST_SIZE_MATCH(xSetScreenSaverReq);
+
+    for (i = 0; i < screenInfo.numScreens; i++) {
+	rc = XaceHook(XACE_SCREENSAVER_ACCESS, client, screenInfo.screens[i],
+		      DixSetAttrAccess);
+	if (rc != Success)
+	    return rc;
+    }
+
     blankingOption = stuff->preferBlank;
     if ((blankingOption != DontPreferBlanking) &&
         (blankingOption != PreferBlanking) &&
@@ -3301,8 +3308,16 @@ int
 ProcGetScreenSaver(ClientPtr client)
 {
     xGetScreenSaverReply rep;
-
+    int rc, i;
     REQUEST_SIZE_MATCH(xReq);
+
+    for (i = 0; i < screenInfo.numScreens; i++) {
+	rc = XaceHook(XACE_SCREENSAVER_ACCESS, client, screenInfo.screens[i],
+		      DixGetAttrAccess);
+	if (rc != Success)
+	    return rc;
+    }
+
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -3523,6 +3538,7 @@ ProcChangeCloseDownMode(ClientPtr client)
 
 int ProcForceScreenSaver(ClientPtr client)
 {    
+    int rc;
     REQUEST(xForceScreenSaverReq);
 
     REQUEST_SIZE_MATCH(xForceScreenSaverReq);
@@ -3533,7 +3549,9 @@ int ProcForceScreenSaver(ClientPtr client)
 	client->errorValue = stuff->mode;
         return BadValue;
     }
-    SaveScreens(SCREEN_SAVER_FORCER, (int)stuff->mode);
+    rc = SaveScreens(client, SCREEN_SAVER_FORCER, (int)stuff->mode);
+    if (rc != Success)
+	return rc;
     return client->noClientException;
 }
 

@@ -583,7 +583,7 @@ TimerInit(void)
 
 #define DPMS_CHECK_MODE(mode,time)\
     if (time > 0 && DPMSPowerLevel < mode && timeout >= time)\
-	DPMSSet(mode);
+	DPMSSet(serverClient, mode);
 
 #define DPMS_CHECK_TIMEOUT(time)\
     if (time > 0 && (time - timeout) > 0)\
@@ -652,7 +652,7 @@ ScreenSaverTimeoutExpire(OsTimerPtr timer,CARD32 now,pointer arg)
     }
 
     ResetOsBuffers(); /* not ideal, but better than nothing */
-    SaveScreens(SCREEN_SAVER_ON, ScreenSaverActive);
+    SaveScreens(serverClient, SCREEN_SAVER_ON, ScreenSaverActive);
 
     if (ScreenSaverInterval > 0)
     {

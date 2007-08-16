@@ -8,7 +8,9 @@
 #ifndef _DPMSPROC_H_
 #define _DPMSPROC_H_
 
-void DPMSSet(int level);
+#include "dixstruct.h"
+
+int  DPMSSet(ClientPtr client, int level);
 int  DPMSGet(int *plevel);
 Bool DPMSSupported(void);
 

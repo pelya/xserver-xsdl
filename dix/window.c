@@ -3369,12 +3369,10 @@ static void DrawLogo(
 );
 #endif
 
-_X_EXPORT void
-SaveScreens(int on, int mode)
+_X_EXPORT int
+SaveScreens(ClientPtr client, int on, int mode)
 {
-    int i;
-    int what;
-    int type;
+    int rc, i, what, type;
 
     if (on == SCREEN_SAVER_FORCER)
     {
@@ -3392,6 +3390,13 @@ SaveScreens(int on, int mode)
 	type = what;
 	if (what == screenIsSaved)
 	    type = SCREEN_SAVER_CYCLE;
+    }
+
+    for (i = 0; i < screenInfo.numScreens; i++) {
+	rc = XaceHook(XACE_SCREENSAVER_ACCESS, client, screenInfo.screens[i],
+		      DixShowAccess | DixHideAccess);
+	if (rc != Success)
+	    return rc;
     }
     for (i = 0; i < screenInfo.numScreens; i++)
     {
@@ -3480,6 +3485,7 @@ SaveScreens(int on, int mode)
     screenIsSaved = what;
     if (mode == ScreenSaverReset)
        SetScreenSaverTimer();
+    return Success;
 }
 
 static Bool

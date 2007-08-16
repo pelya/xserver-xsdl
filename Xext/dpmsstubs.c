@@ -46,7 +46,7 @@ int DPMSGet(int *plevel)
     return -1;
 }
 
-void DPMSSet(int level)
+int DPMSSet(ClientPtr client, int level)
 {
 
 }
