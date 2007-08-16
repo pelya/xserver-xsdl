@@ -1354,23 +1354,21 @@ ProcQueryFont(ClientPtr client)
     xQueryFontReply	*reply;
     FontPtr pFont;
     GC *pGC;
+    int rc;
     REQUEST(xResourceReq);
-
     REQUEST_SIZE_MATCH(xResourceReq);
+
     client->errorValue = stuff->id;		/* EITHER font or gc */
-    pFont = (FontPtr)SecurityLookupIDByType(client, stuff->id, RT_FONT,
-					    DixReadAccess);
-    if (!pFont)
-    {
-	pGC = (GC *) SecurityLookupIDByType(client, stuff->id, RT_GC,
-					    DixReadAccess);
-        if (!pGC)
-	{
-	    client->errorValue = stuff->id;
-            return(BadFont);     /* procotol spec says only error is BadFont */
-	}
-	pFont = pGC->font;
+    rc = dixLookupResource((pointer *)&pFont, stuff->id, RT_FONT, client,
+			   DixGetAttrAccess);
+    if (rc == BadValue) {
+	rc = dixLookupResource((pointer *)&pGC, stuff->id, RT_GC, client,
+			       DixGetAttrAccess);
+	if (rc == Success)
+	    pFont = pGC->font;
     }
+    if (rc != Success)
+	return (rc == BadValue) ? BadFont: rc;
 
     {
 	xCharInfo	*pmax = FONTINKMAX(pFont);
@@ -1409,28 +1407,27 @@ ProcQueryFont(ClientPtr client)
 int
 ProcQueryTextExtents(ClientPtr client)
 {
-    REQUEST(xQueryTextExtentsReq);
     xQueryTextExtentsReply reply;
     FontPtr pFont;
     GC *pGC;
     ExtentInfoRec info;
     unsigned long length;
-
+    int rc;
+    REQUEST(xQueryTextExtentsReq);
     REQUEST_AT_LEAST_SIZE(xQueryTextExtentsReq);
         
-    pFont = (FontPtr)SecurityLookupIDByType(client, stuff->fid, RT_FONT,
-					    DixReadAccess);
-    if (!pFont)
-    {
-        pGC = (GC *)SecurityLookupIDByType(client, stuff->fid, RT_GC,
-					   DixReadAccess);
-        if (!pGC)
-	{
-	    client->errorValue = stuff->fid;
-            return(BadFont);
-	}
-	pFont = pGC->font;
+    client->errorValue = stuff->fid;		/* EITHER font or gc */
+    rc = dixLookupResource((pointer *)&pFont, stuff->fid, RT_FONT, client,
+			   DixGetAttrAccess);
+    if (rc == BadValue) {
+	rc = dixLookupResource((pointer *)&pGC, stuff->fid, RT_GC, client,
+			       DixGetAttrAccess);
+	if (rc == Success)
+	    pFont = pGC->font;
     }
+    if (rc != Success)
+	return (rc == BadValue) ? BadFont: rc;
+
     length = client->req_len - (sizeof(xQueryTextExtentsReq) >> 2);
     length = length << 1;
     if (stuff->oddLength)
