@@ -1500,7 +1500,7 @@ ProcCreatePixmap(ClientPtr client)
     LEGAL_NEW_RESOURCE(stuff->pid, client);
     
     rc = dixLookupDrawable(&pDraw, stuff->drawable, client, M_ANY,
-			   DixReadAccess);
+			   DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
@@ -1543,9 +1543,17 @@ CreatePmap:
     {
 	pMap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 	pMap->drawable.id = stuff->pid;
+	/* security creation/labeling check */
+	rc = XaceHook(XACE_RESOURCE_ACCESS, client, stuff->pid, RT_PIXMAP,
+		      DixCreateAccess, pMap);
+	if (rc != Success) {
+	    (*pDraw->pScreen->DestroyPixmap)(pMap);
+	    return rc;
+	}
 	if (AddResource(stuff->pid, RT_PIXMAP, (pointer)pMap))
 	    return(client->noClientException);
     }
+    (*pDraw->pScreen->DestroyPixmap)(pMap);
     return (BadAlloc);
 }
 
@@ -1553,13 +1561,13 @@ int
 ProcFreePixmap(ClientPtr client)
 {
     PixmapPtr pMap;
-
+    int rc;
     REQUEST(xResourceReq);
-
     REQUEST_SIZE_MATCH(xResourceReq);
-    pMap = (PixmapPtr)SecurityLookupIDByType(client, stuff->id, RT_PIXMAP,
-					     DixDestroyAccess);
-    if (pMap) 
+
+    rc = dixLookupResource((pointer *)&pMap, stuff->id, RT_PIXMAP, client,
+			   DixDestroyAccess);
+    if (rc == Success)
     {
 	FreeResource(stuff->id, RT_NONE);
 	return(client->noClientException);
@@ -1567,7 +1575,7 @@ ProcFreePixmap(ClientPtr client)
     else 
     {
 	client->errorValue = stuff->id;
-	return (BadPixmap);
+	return (rc == BadValue) ? BadPixmap : rc;
     }
 }
 
