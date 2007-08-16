@@ -404,7 +404,8 @@ ephyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
     EphyrHostAttribute *attributes=NULL ;
     EphyrHostImageFormat *image_formats=NULL ;
     int num_video_formats=0, base_port_id=0,
-        num_attributes=0, num_formats=0, i=0;
+        num_attributes=0, num_formats=0, i=0,
+        port_priv_offset=0;
     unsigned num_encodings=0 ;
     Bool is_ok = FALSE ;
 
@@ -441,6 +442,12 @@ ephyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
                    ephyrHostXVAdaptorArrayAt (a_this->host_adaptors, i) ;
         if (!cur_host_adaptor)
             continue ;
+        a_this->adaptors[i].nPorts =
+                            ephyrHostXVAdaptorGetNbPorts (cur_host_adaptor) ;
+        if (a_this->adaptors[i].nPorts <=0) {
+            EPHYR_LOG_ERROR ("Could not find any port of adaptor %d\n", i) ;
+            continue ;
+        }
         a_this->adaptors[i].type =
                         ephyrHostXVAdaptorGetType (cur_host_adaptor) ;
         a_this->adaptors[i].type |= XvWindowMask ;
@@ -475,16 +482,18 @@ ephyrXVPrivQueryHostAdaptors (EphyrXVPriv *a_this)
                                                &num_video_formats);
         a_this->adaptors[i].pFormats = (KdVideoFormatPtr) video_formats ;
         a_this->adaptors[i].nFormats = num_video_formats ;
+        /* got a_this->adaptors[i].nPorts already
         a_this->adaptors[i].nPorts =
                             ephyrHostXVAdaptorGetNbPorts (cur_host_adaptor) ;
+        */
         a_this->adaptors[i].pPortPrivates =
                 xcalloc (a_this->adaptors[i].nPorts,
                          sizeof (DevUnion) + sizeof (EphyrPortPriv)) ;
+        port_priv_offset = a_this->adaptors[i].nPorts;
         for (j=0; j < a_this->adaptors[i].nPorts; j++) {
-            int port_priv_offset = a_this->adaptors[i].nPorts ;
-            EphyrPortPriv *port_priv =
-                (EphyrPortPriv*)
-                    &a_this->adaptors[i].pPortPrivates[port_priv_offset + j];
+            EphyrPortPriv *port_privs_base =
+                    (EphyrPortPriv*)&a_this->adaptors[i].pPortPrivates[port_priv_offset];
+            EphyrPortPriv *port_priv = &port_privs_base[j] ;
             port_priv->port_number = base_port_id + j;
             port_priv->current_adaptor = &a_this->adaptors[i] ;
             port_priv->xv_priv = a_this ;
