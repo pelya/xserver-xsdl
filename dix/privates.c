@@ -47,7 +47,7 @@ from The Open Group.
 #include "extnsionst.h"
 
 typedef struct _PrivateDesc {
-    DevPrivateKey key;
+    pointer key;
     unsigned size;
     CallbackListPtr initfuncs;
     CallbackListPtr deletefuncs;
