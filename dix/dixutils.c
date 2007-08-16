@@ -254,17 +254,25 @@ _X_EXPORT int
 dixLookupClient(ClientPtr *pClient, XID rid, ClientPtr client, Mask access)
 {
     pointer pRes;
-    int clientIndex = CLIENT_ID(rid);
+    int rc = BadValue, clientIndex = CLIENT_ID(rid);
+
+    if (!clientIndex || !clients[clientIndex] || (rid & SERVER_BIT))
+	goto bad;
+
+    rc = dixLookupResource(&pRes, rid, RC_ANY, client, DixGetAttrAccess);
+    if (rc != Success)
+	goto bad;
+
+    rc = XaceHook(XACE_CLIENT_ACCESS, client, clients[clientIndex], access);
+    if (rc != Success)
+	goto bad;
+
+    *pClient = clients[clientIndex];
+    return Success;
+bad:
     client->errorValue = rid;
-
-    dixLookupResource(&pRes, rid, RC_ANY, client, access);
-
-    if (clientIndex && pRes && clients[clientIndex] && !(rid & SERVER_BIT)) {
-	*pClient = clients[clientIndex];
-	return Success;
-    }
     *pClient = NULL;
-    return BadValue;
+    return rc;
 }
 
 int
