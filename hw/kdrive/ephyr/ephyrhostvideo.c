@@ -976,3 +976,26 @@ out:
     return is_ok ;
 }
 
+Bool
+ephyrHostXVStopVideo (int a_port_id)
+{
+    int ret=0 ;
+    Bool is_ok=FALSE ;
+    Display *dpy = hostx_get_display () ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (dpy, FALSE) ;
+
+    EPHYR_LOG ("enter\n") ;
+
+    ret = XvStopVideo (dpy, a_port_id, hostx_get_window ()) ;
+    if (ret != Success) {
+        EPHYR_LOG_ERROR ("XvStopVideo() failed: %d \n", ret) ;
+        goto out ;
+    }
+    is_ok = TRUE ;
+
+out:
+    EPHYR_LOG ("leave\n") ;
+    return is_ok ;
+}
+

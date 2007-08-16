@@ -49,6 +49,12 @@ struct _EphyrPortPriv {
     int port_number ;
     KdVideoAdaptorPtr current_adaptor ;
     EphyrXVPriv *xv_priv;
+    unsigned char *image_buf ;
+    int image_buf_size ;
+    int image_id ;
+    int drw_x, drw_y, drw_w, drw_h ;
+    int src_x, src_y, src_w, src_h ;
+    int image_width, image_height ;
 };
 typedef struct _EphyrPortPriv EphyrPortPriv ;
 
@@ -72,6 +78,16 @@ static Bool ephyrXVPrivIsAttrValueValid (KdAttributePtr a_attrs,
                                          const char *a_attr_name,
                                          int a_attr_value,
                                          Bool *a_is_valid) ;
+
+static Bool ephyrXVPrivGetImageBufSize (int a_port_id,
+                                        int a_image_id,
+                                        unsigned short a_width,
+                                        unsigned short a_height,
+                                        int *a_size) ;
+
+static Bool ephyrXVPrivSaveImageToPortPriv (EphyrPortPriv *a_port_priv,
+                                            const unsigned char *a_image,
+                                            int a_image_len) ;
 
 static void ephyrStopVideo (KdScreenInfo *a_info,
                             pointer a_xv_priv,
@@ -114,6 +130,13 @@ static int ephyrPutImage (KdScreenInfo *a_info,
                           Bool a_sync,
                           RegionPtr a_clipping_region,
                           pointer a_port_priv);
+
+static int ephyrReputImage (KdScreenInfo *a_info,
+                            DrawablePtr a_drawable,
+                            short a_drw_x,
+                            short a_drw_y,
+                            RegionPtr a_clipping_region,
+                            pointer a_port_priv) ;
 
 static int ephyrPutVideo (KdScreenInfo *a_info,
                           DrawablePtr a_drawable,
@@ -233,6 +256,8 @@ ephyrLocalAtomToHost (int a_local_atom, int *a_host_atom)
     return TRUE ;
 }
 
+/*
+ Not used yed.
 static Bool
 ephyrHostAtomToLocal (int a_host_atom, int *a_local_atom)
 {
@@ -259,6 +284,7 @@ out:
     }
     return is_ok ;
 }
+*/
 
 /**************
  *</helpers>
@@ -553,6 +579,7 @@ ephyrXVPrivSetAdaptorsHooks (EphyrXVPriv *a_this)
     EPHYR_LOG ("enter\n") ;
 
     for (i=0; i < a_this->num_adaptors; i++) {
+        a_this->adaptors[i].ReputImage = ephyrReputImage ;
         a_this->adaptors[i].StopVideo = ephyrStopVideo ;
         a_this->adaptors[i].SetPortAttribute = ephyrSetPortAttribute ;
         a_this->adaptors[i].GetPortAttribute = ephyrGetPortAttribute ;
@@ -569,36 +596,41 @@ ephyrXVPrivSetAdaptorsHooks (EphyrXVPriv *a_this)
         if (!ephyrHostXVAdaptorHasPutImage (cur_host_adaptor, &has_it)) {
             EPHYR_LOG_ERROR ("error\n") ;
         }
-        if (has_it)
+        if (has_it) {
             a_this->adaptors[i].PutImage = ephyrPutImage;
+        }
 
         has_it = FALSE ;
         if (!ephyrHostXVAdaptorHasPutVideo (cur_host_adaptor, &has_it)) {
             EPHYR_LOG_ERROR ("error\n") ;
         }
-        if (has_it)
+        if (has_it) {
             a_this->adaptors[i].PutVideo = ephyrPutVideo;
+        }
 
         has_it = FALSE ;
         if (!ephyrHostXVAdaptorHasGetVideo (cur_host_adaptor, &has_it)) {
             EPHYR_LOG_ERROR ("error\n") ;
         }
-        if (has_it)
+        if (has_it) {
             a_this->adaptors[i].GetVideo = ephyrGetVideo;
+        }
 
         has_it = FALSE ;
         if (!ephyrHostXVAdaptorHasPutStill (cur_host_adaptor, &has_it)) {
             EPHYR_LOG_ERROR ("error\n") ;
         }
-        if (has_it)
+        if (has_it) {
             a_this->adaptors[i].PutStill = ephyrPutStill;
+        }
 
         has_it = FALSE ;
         if (!ephyrHostXVAdaptorHasGetStill (cur_host_adaptor, &has_it)) {
             EPHYR_LOG_ERROR ("error\n") ;
         }
-        if (has_it)
+        if (has_it) {
             a_this->adaptors[i].GetStill = ephyrGetStill;
+        }
     }
     EPHYR_LOG ("leave\n") ;
     return TRUE ;
@@ -679,10 +711,70 @@ ephyrXVPrivIsAttrValueValid (KdAttributePtr a_attrs,
     return FALSE ;
 }
 
+static Bool
+ephyrXVPrivGetImageBufSize (int a_port_id,
+                            int a_image_id,
+                            unsigned short a_width,
+                            unsigned short a_height,
+                            int *a_size)
+{
+    Bool is_ok=FALSE ;
+    unsigned short width=a_width, height=a_height ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_size, FALSE) ;
+
+    EPHYR_LOG ("enter\n") ;
+
+    if (!ephyrHostXVQueryImageAttributes (a_port_id, a_image_id,
+                                          &width, &height, a_size, NULL, NULL)) {
+        EPHYR_LOG_ERROR ("failed to get image attributes\n") ;
+        goto out ;
+    }
+    is_ok = TRUE ;
+
+out:
+    EPHYR_LOG ("leave\n") ;
+    return is_ok ;
+}
+
+static Bool
+ephyrXVPrivSaveImageToPortPriv (EphyrPortPriv *a_port_priv,
+                                const unsigned char *a_image_buf,
+                                int a_image_len)
+{
+    Bool is_ok=FALSE ;
+
+    EPHYR_LOG ("enter\n") ;
+
+    if (a_port_priv->image_buf_size < a_image_len) {
+        unsigned char *buf=NULL ;
+        buf = realloc (a_port_priv->image_buf, a_image_len) ;
+        if (!buf) {
+            EPHYR_LOG_ERROR ("failed to realloc image buffer\n") ;
+            goto out ;
+        }
+        a_port_priv->image_buf = buf ;
+        a_port_priv->image_buf_size = a_image_len;
+    }
+    memmove (a_port_priv->image_buf, a_image_buf, a_image_len) ;
+    is_ok = TRUE ;
+
+out:
+    return is_ok ;
+    EPHYR_LOG ("leave\n") ;
+}
+
 static void
 ephyrStopVideo (KdScreenInfo *a_info, pointer a_port_priv, Bool a_exit)
 {
+    EphyrPortPriv *port_priv = a_port_priv ;
+
+    EPHYR_RETURN_IF_FAIL (port_priv) ;
+
     EPHYR_LOG ("enter\n") ;
+    if (!ephyrHostXVStopVideo (port_priv->port_number)) {
+        EPHYR_LOG_ERROR ("XvStopVideo() failed\n") ;
+    }
     EPHYR_LOG ("leave\n") ;
 }
 
@@ -832,7 +924,8 @@ ephyrPutImage (KdScreenInfo *a_info,
                pointer a_port_priv)
 {
     EphyrPortPriv *port_priv = a_port_priv ;
-    int result=BadImplementation ;
+    Bool is_ok=FALSE ;
+    int result=BadImplementation, image_size=0 ;
 
     EPHYR_RETURN_VAL_IF_FAIL (a_drawable, BadValue) ;
 
@@ -846,6 +939,82 @@ ephyrPutImage (KdScreenInfo *a_info,
                               (EphyrHostBox*)REGION_RECTS (a_clipping_region),
                               REGION_NUM_RECTS (a_clipping_region))) {
         EPHYR_LOG_ERROR ("EphyrHostXVPutImage() failed\n") ;
+        goto out ;
+    }
+
+    /*
+     * Now save the image so that we can resend it to host it
+     * later, in ReputImage.
+     */
+    if (!ephyrXVPrivGetImageBufSize (port_priv->port_number,
+                                     a_id, a_width, a_height, &image_size)) {
+        EPHYR_LOG_ERROR ("failed to get image size\n") ;
+        /*this is a minor error so we won't get bail out abruptly*/
+        is_ok = FALSE ;
+    } else {
+        is_ok = TRUE ;
+    }
+    if (is_ok) {
+        if (!ephyrXVPrivSaveImageToPortPriv (port_priv, a_buf, image_size)) {
+            is_ok=FALSE ;
+        } else {
+            port_priv->image_id = a_id;
+            port_priv->drw_x = a_drw_x;
+            port_priv->drw_y = a_drw_y;
+            port_priv->drw_w = a_drw_w ;
+            port_priv->drw_h = a_drw_h ;
+            port_priv->src_x = a_src_x;
+            port_priv->src_y = a_src_y ;
+            port_priv->src_w = a_src_w ;
+            port_priv->src_h = a_src_h ;
+            port_priv->image_width = a_width ;
+            port_priv->image_height = a_height ;
+        }
+    }
+    if (!is_ok) {
+        if (port_priv->image_buf) {
+            free (port_priv->image_buf) ;
+            port_priv->image_buf = NULL ;
+            port_priv->image_buf_size = 0 ;
+        }
+    }
+
+    result = Success ;
+
+out:
+    EPHYR_LOG ("leave\n") ;
+    return result ;
+}
+
+static int
+ephyrReputImage (KdScreenInfo *a_info,
+                 DrawablePtr a_drawable,
+                 short a_drw_x,
+                 short a_drw_y,
+                 RegionPtr a_clipping_region,
+                 pointer a_port_priv)
+{
+    EphyrPortPriv *port_priv = a_port_priv ;
+    int result=BadImplementation ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_drawable && port_priv, BadValue) ;
+
+    EPHYR_LOG ("enter\n") ;
+
+    if (!port_priv->image_buf_size || !port_priv->image_buf) {
+        EPHYR_LOG_ERROR ("has null image buf in cache\n") ;
+        goto out ;
+    }
+    if (!ephyrHostXVPutImage (port_priv->port_number, port_priv->image_id,
+                              a_drw_x, a_drw_y,
+                              port_priv->drw_w, port_priv->drw_h,
+                              port_priv->src_x, port_priv->src_y,
+                              port_priv->src_w, port_priv->src_h,
+                              port_priv->image_width, port_priv->image_height,
+                              port_priv->image_buf,
+                              (EphyrHostBox*)REGION_RECTS (a_clipping_region),
+                              REGION_NUM_RECTS (a_clipping_region))) {
+        EPHYR_LOG_ERROR ("ephyrHostXVPutImage() failed\n") ;
         goto out ;
     }
 

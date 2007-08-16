@@ -223,5 +223,11 @@ Bool ephyrHostXVPutStill (int a_port_id,
 Bool ephyrHostXVGetStill (int a_port_id,
                           int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
                           int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h) ;
+
+/*
+ * StopVideo
+ */
+Bool ephyrHostXVStopVideo (int a_port_id) ;
+
 #endif /*__EPHYRHOSTVIDEO_H__*/
 
