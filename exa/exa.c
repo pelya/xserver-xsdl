@@ -253,7 +253,7 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 				     pExaScr->info->pixmapPitchAlign);
     pExaPixmap->fb_size = pExaPixmap->fb_pitch * h;
 
-    if (pExaPixmap->fb_pitch > 32767) {
+    if (pExaPixmap->fb_pitch > 131071) {
 	fbDestroyPixmap(pPixmap);
 	return NULL;
     }
