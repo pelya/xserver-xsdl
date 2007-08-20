@@ -4808,7 +4808,7 @@ int
 ProcChangeActivePointerGrab(ClientPtr client)
 {
     DeviceIntPtr device, grabbed;
-    GrabPtr      grab = device->deviceGrab.grab;
+    GrabPtr      grab;
     CursorPtr newCursor, oldCursor;
     REQUEST(xChangeActivePointerGrabReq);
     TimeStamp time;
@@ -4831,7 +4831,11 @@ ProcChangeActivePointerGrab(ClientPtr client)
 	    return BadCursor;
 	}
     }
-    if (!grab && !SameClient(grab, client))
+
+    device = PickPointer(client);
+    grab = device->deviceGrab.grab;
+
+    if (!grab || !SameClient(grab, client))
     {
         /* no grab on ClientPointer, or some other client has a grab on our
          * ClientPointer, let's check if we have a pointer grab on some other
