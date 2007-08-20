@@ -345,7 +345,7 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
 	randrp->virtualX = pScrn->virtualX;
 	randrp->virtualY = pScrn->virtualY;
     }
-    if (pRoot)
+    if (pRoot && pScrn->vtSema)
 	(*pScrn->EnableDisableFBAccess) (pScreen->myNum, FALSE);
 
     /* Let the driver update virtualX and virtualY */
@@ -363,7 +363,7 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
     xf86SetViewport (pScreen, 0, 0);
 
 finish:
-    if (pRoot)
+    if (pRoot && pScrn->vtSema)
 	(*pScrn->EnableDisableFBAccess) (pScreen->myNum, TRUE);
 #if RANDR_12_INTERFACE
     if (WindowTable[pScreen->myNum] && ret)
