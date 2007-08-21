@@ -16,7 +16,7 @@
       <!-- If we're using Linux, we use evdev by default (falling back to
            keyboard otherwise). -->
       <merge key="input.x11_driver" type="string">keyboard</merge>
-      <merge key="input.xkb.model" type="string">keyboard</merge>
+      <merge key="input.xkb.model" type="string">pc105</merge>
       <match key="/org/freedesktop/Hal/devices/computer:system.kernel.name"
              string="Linux">
         <merge key="input.x11_driver" type="string">evdev</merge>
