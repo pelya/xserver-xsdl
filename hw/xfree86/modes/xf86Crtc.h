@@ -765,5 +765,24 @@ xf86_hide_cursors (ScrnInfoPtr scrn);
  */
 void
 xf86_cursors_fini (ScreenPtr screen);
+
+/*
+ * For overlay video, compute the relevant CRTC and
+ * clip video to that.
+ * wraps xf86XVClipVideoHelper()
+ */
+
+Bool
+xf86_crtc_clip_video_helper(ScrnInfoPtr pScrn,
+			    xf86CrtcPtr *crtc_ret,
+			    xf86CrtcPtr desired_crtc,
+			    BoxPtr      dst,
+			    INT32	*xa,
+			    INT32	*xb,
+			    INT32	*ya,
+			    INT32	*yb,
+			    RegionPtr   reg,
+			    INT32	width,
+			    INT32	height);
     
 #endif /* _XF86CRTC_H_ */

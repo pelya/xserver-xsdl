@@ -382,19 +382,19 @@ exaGetPixmapFirstPixel (PixmapPtr pPixmap)
     ExaMigrationRec pixmaps[1];
     ExaPixmapPriv (pPixmap);
 
+    fb = pExaPixmap->sys_ptr;
+
     /* Try to avoid framebuffer readbacks */
-    if (exaPixmapIsOffscreen(pPixmap)) {
-	if (!miPointInRegion(DamageRegion(pExaPixmap->pDamage), 0, 0,  &box)) {
-	    fb = pExaPixmap->sys_ptr;
-	} else {
-	    need_finish = TRUE;
-	    fb = pPixmap->devPrivate.ptr;
-	    pixmaps[0].as_dst = FALSE;
-	    pixmaps[0].as_src = TRUE;
-	    pixmaps[0].pPix = pPixmap;
-	    exaDoMigration (pixmaps, 1, FALSE);
-	    exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
-	}
+    if (exaPixmapIsOffscreen(pPixmap) &&
+        miPointInRegion(DamageRegion(pExaPixmap->pDamage), 0, 0,  &box))
+    {
+	need_finish = TRUE;
+	pixmaps[0].as_dst = FALSE;
+	pixmaps[0].as_src = TRUE;
+	pixmaps[0].pPix = pPixmap;
+	exaDoMigration (pixmaps, 1, FALSE);
+	exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+	fb = pPixmap->devPrivate.ptr;
     }
 
     switch (pPixmap->drawable.bitsPerPixel) {

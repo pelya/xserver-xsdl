@@ -83,7 +83,7 @@ static const char *mouseDevs[] = {
 	DEFAULT_PS2_DEV,
 	NULL
 };
-#elif defined(__OpenBSD__) && defined(WSCONS_SUPPORT)
+#elif (defined(__OpenBSD__) || defined(__NetBSD__)) && defined(WSCONS_SUPPORT)
 /* Only wsmouse mices are autoconfigured for now on OpenBSD */
 #define DEFAULT_WSMOUSE_DEV		"/dev/wsmouse"
 #define DEFAULT_WSMOUSE0_DEV		"/dev/wsmouse0"
@@ -154,7 +154,7 @@ DefaultProtocol(void)
 {
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
     return "Auto";
-#elif defined(__OpenBSD__) && defined(WSCONS_SUPPORT)
+#elif (defined(__OpenBSD__) || defined(__NetBSD__)) && defined(WSCONS_SUPPORT)
     return "WSMouse";
 #else
     return NULL;
@@ -340,7 +340,7 @@ FindDevice(InputInfoPtr pInfo, const char *protocol, int flags)
 }
 #endif
 
-#if defined(__OpenBSD__) && defined(WSCONS_SUPPORT)
+#if (defined(__OpenBSD__) || defined(__NetBSD__)) && defined(WSCONS_SUPPORT)
 
 /* Only support wsmouse configuration for now */
 static const char *
@@ -381,7 +381,7 @@ FindDevice(InputInfoPtr pInfo, const char *protocol, int flags)
     }
     return *pdev;
 }
-#endif /* __OpenBSD__ && WSCONS_SUPPORT */
+#endif /* __OpenBSD__ || __NetBSD__ && WSCONS_SUPPORT */
 
 #ifdef WSCONS_SUPPORT
 #define NUMEVENTS 64
@@ -779,11 +779,11 @@ xf86OSMouseInit(int flags)
     p->SetBMRes = SetSysMouseRes;
     p->SetMiscRes = SetSysMouseRes;
 #endif
-#if defined(__OpenBSD__) && defined(WSCONS_SUPPORT)
+#if (defined(__OpenBSD__) || defined(__NetBSD__)) && defined(WSCONS_SUPPORT)
     p->SetupAuto = SetupAuto;
     p->SetMiscRes = SetMouseRes;
 #endif
-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__) || defined(__DragonFly__)
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
     p->FindDevice = FindDevice;
 #endif
     p->PreInit = bsdMousePreInit;
