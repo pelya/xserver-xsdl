@@ -114,6 +114,18 @@ extern DeviceAssocRec mouse_assoc;
 
 static char *fontPath = NULL;
 
+static ModuleDefault ModuleDefaults[] = {
+    {.name = "extmod",   .toLoad = TRUE,    .load_opt=NULL},
+    {.name = "dbe",      .toLoad = TRUE,    .load_opt=NULL},
+    {.name = "glx",      .toLoad = TRUE,    .load_opt=NULL},
+    {.name = "freetype", .toLoad = TRUE,    .load_opt=NULL},
+    {.name = "type1",    .toLoad = TRUE,    .load_opt=NULL},
+    {.name = "record",   .toLoad = TRUE,    .load_opt=NULL},
+    {.name = "dri",      .toLoad = TRUE,    .load_opt=NULL},
+    {.name = NULL,       .toLoad = FALSE,   .load_opt=NULL}
+};
+
+
 /* Forward declarations */
 static Bool configScreen(confScreenPtr screenp, XF86ConfScreenPtr conf_screen,
 			 int scrnum, MessageType from);
