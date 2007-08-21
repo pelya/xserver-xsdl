@@ -623,7 +623,7 @@ XEXT_INC='-I$(top_srcdir)/Xext'
 XEXT_LIB='$(top_builddir)/Xext/libXext.la'
 XEXTXORG_LIB='$(top_builddir)/Xext/libXextbuiltin.la'
 
-PIXMAN="[pixman-1 >= 0.9.4]"
+PIXMAN="[pixman-1 >= 0.9.5]"
 PKG_CHECK_MODULES(PIXMAN, $PIXMAN)
 AC_SUBST(PIXMAN_CFLAGS)
 

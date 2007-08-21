@@ -397,6 +397,7 @@ set_image_properties (pixman_image_t *image, PicturePtr pict)
     }
     
     pixman_image_set_filter (image, filter, (pixman_fixed_t *)pict->filter_params, pict->filter_nparams);
+    pixman_image_set_source_clipping (image, TRUE);
 }
 
 pixman_image_t *
