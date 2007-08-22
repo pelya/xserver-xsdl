@@ -53,7 +53,7 @@
 
 int xf86CrtcConfigPrivateIndex = -1;
 
-void
+_X_EXPORT void
 xf86CrtcConfigInit (ScrnInfoPtr scrn,
 		    const xf86CrtcConfigFuncsRec *funcs)
 {
@@ -68,7 +68,7 @@ xf86CrtcConfigInit (ScrnInfoPtr scrn,
     scrn->privates[xf86CrtcConfigPrivateIndex].ptr = config;
 }
  
-void
+_X_EXPORT void
 xf86CrtcSetSizeRange (ScrnInfoPtr scrn,
 		      int minWidth, int minHeight,
 		      int maxWidth, int maxHeight)
@@ -84,7 +84,7 @@ xf86CrtcSetSizeRange (ScrnInfoPtr scrn,
 /*
  * Crtc functions
  */
-xf86CrtcPtr
+_X_EXPORT xf86CrtcPtr
 xf86CrtcCreate (ScrnInfoPtr		scrn,
 		const xf86CrtcFuncsRec	*funcs)
 {
@@ -116,7 +116,7 @@ xf86CrtcCreate (ScrnInfoPtr		scrn,
     return crtc;
 }
 
-void
+_X_EXPORT void
 xf86CrtcDestroy (xf86CrtcPtr crtc)
 {
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(crtc->scrn);
@@ -140,7 +140,7 @@ xf86CrtcDestroy (xf86CrtcPtr crtc)
  * Return whether any outputs are connected to the specified pipe
  */
 
-Bool
+_X_EXPORT Bool
 xf86CrtcInUse (xf86CrtcPtr crtc)
 {
     ScrnInfoPtr		pScrn = crtc->scrn;
@@ -153,7 +153,7 @@ xf86CrtcInUse (xf86CrtcPtr crtc)
     return FALSE;
 }
 
-void
+_X_EXPORT void
 xf86CrtcSetScreenSubpixelOrder (ScreenPtr pScreen)
 {
 #ifdef RENDER
@@ -221,7 +221,7 @@ xf86CrtcSetScreenSubpixelOrder (ScreenPtr pScreen)
 /**
  * Sets the given video mode on the given crtc
  */
-Bool
+_X_EXPORT Bool
 xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 		 int x, int y)
 {
@@ -492,7 +492,7 @@ xf86OutputInitialRotation (xf86OutputPtr output)
     return RR_Rotate_0;
 }
 
-xf86OutputPtr
+_X_EXPORT xf86OutputPtr
 xf86OutputCreate (ScrnInfoPtr		    scrn,
 		  const xf86OutputFuncsRec  *funcs,
 		  const char		    *name)
@@ -552,7 +552,7 @@ xf86OutputCreate (ScrnInfoPtr		    scrn,
     return output;
 }
 
-Bool
+_X_EXPORT Bool
 xf86OutputRename (xf86OutputPtr output, const char *name)
 {
     int	    len = strlen(name) + 1;
@@ -571,7 +571,7 @@ xf86OutputRename (xf86OutputPtr output, const char *name)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 xf86OutputUseScreenMonitor (xf86OutputPtr output, Bool use_screen_monitor)
 {
     if (use_screen_monitor != output->use_screen_monitor)
@@ -581,7 +581,7 @@ xf86OutputUseScreenMonitor (xf86OutputPtr output, Bool use_screen_monitor)
     }
 }
 
-void
+_X_EXPORT void
 xf86OutputDestroy (xf86OutputPtr output)
 {
     ScrnInfoPtr		scrn = output->scrn;
@@ -657,7 +657,7 @@ xf86CrtcCloseScreen (int index, ScreenPtr screen)
 /*
  * Called at ScreenInit time to set up
  */
-Bool
+_X_EXPORT Bool
 xf86CrtcScreenInit (ScreenPtr screen)
 {
     ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
@@ -1214,7 +1214,7 @@ xf86SortModes (DisplayModePtr input)
     return output;
 }
 
-void
+_X_EXPORT void
 xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -1455,10 +1455,10 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
  */
 
 /* XXX where does this function belong? Here? */
-void
+_X_EXPORT void
 xf86RandR12GetOriginalVirtualSize(ScrnInfoPtr scrn, int *x, int *y);
 
-void
+_X_EXPORT void
 xf86SetScrnInfoModes (ScrnInfoPtr scrn)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -1526,7 +1526,7 @@ xf86SetScrnInfoModes (ScrnInfoPtr scrn)
  * accordingly.
  */
 
-Bool
+_X_EXPORT Bool
 xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -1730,7 +1730,7 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
  * modes (used in EnterVT functions, or at server startup)
  */
 
-Bool
+_X_EXPORT Bool
 xf86SetDesiredModes (ScrnInfoPtr scrn)
 {
     xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -1810,7 +1810,7 @@ xf86SetDesiredModes (ScrnInfoPtr scrn)
  * - Closer in refresh rate to the requested mode.
  */
 
-DisplayModePtr
+_X_EXPORT DisplayModePtr
 xf86OutputFindClosestMode (xf86OutputPtr output, DisplayModePtr desired)
 {
     DisplayModePtr	best = NULL, scan = NULL;
@@ -1873,7 +1873,7 @@ xf86OutputFindClosestMode (xf86OutputPtr output, DisplayModePtr desired)
  * mode across all outputs that are currently active.
  */
 
-Bool
+_X_EXPORT Bool
 xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(pScrn);
@@ -1945,7 +1945,7 @@ xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
  * If the new mode is off, it will turn off outputs and then CRTCs.
  * Otherwise, it will affect CRTCs before outputs.
  */
-void
+_X_EXPORT void
 xf86DPMSSet(ScrnInfoPtr scrn, int mode, int flags)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -1983,7 +1983,7 @@ xf86DPMSSet(ScrnInfoPtr scrn, int mode, int flags)
  * Even for monitors with no DPMS support, by the definition of our DPMS hooks,
  * the outputs will still get disabled (blanked).
  */
-Bool
+_X_EXPORT Bool
 xf86SaveScreen(ScreenPtr pScreen, int mode)
 {
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
@@ -1999,7 +1999,7 @@ xf86SaveScreen(ScreenPtr pScreen, int mode)
 /**
  * Disable all inactive crtcs and outputs
  */
-void
+_X_EXPORT void
 xf86DisableUnusedFunctions(ScrnInfoPtr pScrn)
 {
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
@@ -2053,7 +2053,7 @@ xf86OutputSetEDIDProperty (xf86OutputPtr output, void *data, int data_len)
 /**
  * Set the EDID information for the specified output
  */
-void
+_X_EXPORT void
 xf86OutputSetEDID (xf86OutputPtr output, xf86MonPtr edid_mon)
 {
     ScrnInfoPtr		scrn = output->scrn;
@@ -2119,7 +2119,7 @@ xf86OutputSetEDID (xf86OutputPtr output, xf86MonPtr edid_mon)
  * Return the list of modes supported by the EDID information
  * stored in 'output'
  */
-DisplayModePtr
+_X_EXPORT DisplayModePtr
 xf86OutputGetEDIDModes (xf86OutputPtr output)
 {
     ScrnInfoPtr	scrn = output->scrn;
@@ -2130,7 +2130,7 @@ xf86OutputGetEDIDModes (xf86OutputPtr output)
     return xf86DDCGetModes(scrn->scrnIndex, edid_mon);
 }
 
-xf86MonPtr
+_X_EXPORT xf86MonPtr
 xf86OutputGetEDID (xf86OutputPtr output, I2CBusPtr pDDCBus)
 {
     ScrnInfoPtr	scrn = output->scrn;
@@ -2141,7 +2141,7 @@ xf86OutputGetEDID (xf86OutputPtr output, I2CBusPtr pDDCBus)
 static char *_xf86ConnectorNames[] = { "None", "VGA", "DVI-I", "DVI-D",
 				      "DVI-A", "Composite", "S-Video",
 				      "Component", "LFP", "Proprietary" };
-char *
+_X_EXPORT char *
 xf86ConnectorGetName(xf86ConnectorType connector)
 {
     return _xf86ConnectorNames[connector];
@@ -2223,7 +2223,7 @@ xf86_covering_crtc(ScrnInfoPtr pScrn,
  * clip video to that
  */
 
-Bool
+_X_EXPORT Bool
 xf86_crtc_clip_video_helper(ScrnInfoPtr pScrn,
 			    xf86CrtcPtr *crtc_ret,
 			    xf86CrtcPtr desired_crtc,

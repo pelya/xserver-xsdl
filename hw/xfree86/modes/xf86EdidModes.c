@@ -303,7 +303,7 @@ DDCGuessRangesFromModes(int scrnIndex, MonPtr Monitor, DisplayModePtr Modes)
     }
 }
 
-DisplayModePtr
+_X_EXPORT DisplayModePtr
 xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
 {
     int preferred, i;
@@ -389,7 +389,7 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
 /*
  * Fill out MonPtr with xf86MonPtr information.
  */
-void
+_X_EXPORT void
 xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 {
     DisplayModePtr Modes = NULL, Mode;
