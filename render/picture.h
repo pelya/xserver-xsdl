@@ -25,7 +25,7 @@
 #ifndef _PICTURE_H_
 #define _PICTURE_H_
 
-#include <pixman.h>
+#include <pixman/pixman.h>
 
 typedef struct _DirectFormat	*DirectFormatPtr;
 typedef struct _PictFormat	*PictFormatPtr;

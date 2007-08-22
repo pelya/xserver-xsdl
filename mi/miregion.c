@@ -85,7 +85,7 @@ Equipment Corporation.
 #include "gc.h"
 #include "mi.h"
 #include "mispans.h"
-#include <pixman.h>
+#include <pixman/pixman.h>
 
 #undef assert
 #ifdef DEBUG
