@@ -128,7 +128,7 @@ xf86CrtcDestroy (xf86CrtcPtr crtc)
 	{
 	    memmove (&xf86_config->crtc[c],
 		     &xf86_config->crtc[c+1],
-		     xf86_config->num_crtc - (c + 1));
+		     ((xf86_config->num_crtc - (c + 1)) * sizeof(void*)));
 	    xf86_config->num_crtc--;
 	    break;
 	}
@@ -596,7 +596,7 @@ xf86OutputDestroy (xf86OutputPtr output)
 	{
 	    memmove (&xf86_config->output[o],
 		     &xf86_config->output[o+1],
-		     xf86_config->num_output - (o + 1));
+		     ((xf86_config->num_output - (o + 1)) * sizeof(void*)));
 	    xf86_config->num_output--;
 	    break;
 	}
