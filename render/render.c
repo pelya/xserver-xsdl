@@ -1209,6 +1209,11 @@ ProcRenderAddGlyphs (ClientPtr client)
 				       glyphSet->format,
 				       CPComponentAlpha, &component_alpha,
 				       serverClient, &error);
+
+		/* The picture takes a reference to the pixmap, so we
+		   drop ours. */
+		(pScreen->DestroyPixmap) (pDstPix);
+
 		if (! pDst)
 		{
 		    err = BadAlloc;
