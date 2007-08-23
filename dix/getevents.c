@@ -250,7 +250,7 @@ acceleratePointer(DeviceIntPtr pDev, int first_valuator, int num_valuators,
             }
         }
         else {
-		mult = pow((float)((float)dx * (float)dx + (float)dy * (float)dy),
+		mult = pow((float)dx * (float)dx + (float)dy * (float)dy,
                        ((float)(pDev->ptrfeed->ctrl.num) /
                         (float)(pDev->ptrfeed->ctrl.den) - 1.0) /
                        2.0) / 2.0;
