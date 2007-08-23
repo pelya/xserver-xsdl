@@ -495,7 +495,8 @@ extern void ACQueryWindowAccess(WindowPtr win,
                                 int* ndeny);
 
 extern Bool ACDeviceAllowed(WindowPtr win, 
-                            DeviceIntPtr dev);
+                            DeviceIntPtr dev,
+                            xEvent* xE);
 
 /* Implemented by the DDX. */
 extern int NewInputDeviceRequest(

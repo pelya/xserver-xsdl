@@ -36,6 +36,7 @@ from the author.
 
 #include <X11/Xlib.h>
 #include <X11/extensions/XI.h>
+#include "exglobals.h"
 
 #include "input.h"
 #include "inputstr.h"
@@ -257,15 +258,41 @@ ACQueryWindowAccess(WindowPtr win,
  * If no rule could be found, allow.
  */
 Bool
-ACDeviceAllowed(WindowPtr win, DeviceIntPtr dev)
+ACDeviceAllowed(WindowPtr win, DeviceIntPtr dev, xEvent* xE)
 {
     int i;
 
     if (!win) /* happens for parent of RootWindow */
         return True;
 
+    /* there's a number of events we don't care about */
+    switch (xE->u.u.type)
+    {
+        case ButtonPress:
+        case ButtonRelease:
+        case MotionNotify:
+        case EnterNotify:
+        case LeaveNotify:
+        case KeyPress:
+        case KeyRelease:
+            break;
+        default:
+            if (xE->u.u.type == DeviceMotionNotify ||
+                    xE->u.u.type == DeviceButtonPress ||
+                    xE->u.u.type == DeviceButtonRelease ||
+                    xE->u.u.type == DeviceKeyPress ||
+                    xE->u.u.type == DeviceKeyRelease ||
+                    xE->u.u.type == DeviceEnterNotify ||
+                    xE->u.u.type == DeviceLeaveNotify)
+            {
+                break;
+            }
+            return True;
+    }
+
+
     if (!win->optional) /* no list, check parent */
-        return ACDeviceAllowed(win->parent, dev);
+        return ACDeviceAllowed(win->parent, dev, xE);
 
     for (i = 0; i < win->optional->access.nperm; i++)
     {
@@ -282,6 +309,6 @@ ACDeviceAllowed(WindowPtr win, DeviceIntPtr dev)
             return False;
     }
 
-    return ACDeviceAllowed(win->parent, dev);
+    return ACDeviceAllowed(win->parent, dev, xE);
 }
 

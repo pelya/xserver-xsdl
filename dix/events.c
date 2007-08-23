@@ -1928,8 +1928,10 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
     
     /* if a  is denied, we return 0. This could cause the caller to
      * traverse the parent. May be bad! (whot) */
-    if (!ACDeviceAllowed(pWin, pDev))
+    if (!ACDeviceAllowed(pWin, pDev, pEvents))
+    {
         return 0;
+    }
 
     /* CantBeFiltered means only window owner gets the event */
     if ((filter == CantBeFiltered) || 
@@ -3348,7 +3350,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
     }
     if (!deliveries)
     {
-        if (ACDeviceAllowed(grab->window, thisDev))
+        if (ACDeviceAllowed(grab->window, thisDev, xE))
         {
             if (xE->u.u.type == GenericEvent)
             {
