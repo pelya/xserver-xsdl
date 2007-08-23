@@ -48,7 +48,6 @@
 	"\tLoad\t\"dbe\"\n" \
 	"\tLoad\t\"glx\"\n" \
 	"\tLoad\t\"freetype\"\n" \
-	"\tLoad\t\"type1\"\n" \
 	"\tLoad\t\"record\"\n" \
 	"\tLoad\t\"dri\"\n" \
 	"EndSection\n\n"

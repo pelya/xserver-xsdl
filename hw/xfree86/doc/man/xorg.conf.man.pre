@@ -700,10 +700,10 @@ The standard name is case\-sensitive, and does not include the \(lqlib\(rq
 prefix, or the \(lq.a\(rq, \(lq.o\(rq, or \(lq.so\(rq suffixes.
 .PP
 .RS 7
-Example: the Type 1 font rasteriser can be loaded with the following entry:
+Example: the FreeType font rasteriser can be loaded with the following entry:
 .PP
 .RS 4
-.B "Load \*qtype1\*q"
+.B "Load \*qfreetype\*q"
 .RE
 .RE
 .TP 7
