@@ -59,6 +59,9 @@
 #include "dispatch.h"
 #include "extension_string.h"
 
+#define containerOf(ptr, type, member)			\
+    (type *)( (char *)ptr - offsetof(type,member) )
+
 typedef struct __GLXDRIscreen   __GLXDRIscreen;
 typedef struct __GLXDRIcontext  __GLXDRIcontext;
 typedef struct __GLXDRIdrawable __GLXDRIdrawable;
@@ -73,12 +76,14 @@ struct __GLXDRIscreen {
 
     __DRIcopySubBufferExtension *copySubBuffer;
     __DRIswapControlExtension *swapControl;
-    __DRItexOffsetExtension *texOffset;
 
+#ifdef __DRI_TEX_OFFSET
+    __DRItexOffsetExtension *texOffset;
     DRITexOffsetStartProcPtr texOffsetStart;
     DRITexOffsetFinishProcPtr texOffsetFinish;
-    __GLXpixmap* texOffsetOverride[16];
+    __GLXDRIdrawable *texOffsetOverride[16];
     GLuint lastTexOffsetOverride;
+#endif
 
     unsigned char glx_enable_bits[__GLX_EXT_BYTES];
 };
@@ -92,6 +97,14 @@ struct __GLXDRIcontext {
 struct __GLXDRIdrawable {
     __GLXdrawable base;
     __DRIdrawable driDrawable;
+
+    /* Pulled in from old __GLXpixmap */
+#ifdef __DRI_TEX_OFFSET
+    GLint texname;
+    __GLXDRIcontext *ctx;
+    unsigned long offset;
+    DamagePtr pDamage;
+#endif
 };
 
 static const char CREATE_NEW_SCREEN_FUNC[] = __DRI_CREATE_NEW_SCREEN_STRING;
@@ -107,15 +120,15 @@ __glXDRIleaveServer(GLboolean rendering)
 	GLuint lastOverride = screen->lastTexOffsetOverride;
 
 	if (lastOverride) {
-	    __GLXpixmap **texOffsetOverride = screen->texOffsetOverride;
+	    __GLXDRIdrawable **texOffsetOverride = screen->texOffsetOverride;
 	    int j;
 
 	    for (j = 0; j < lastOverride; j++) {
-		__GLXpixmap *pGlxPix = texOffsetOverride[j];
+		__GLXDRIdrawable *pGlxPix = texOffsetOverride[j];
 
 		if (pGlxPix && pGlxPix->texname) {
 		    pGlxPix->offset =
-			screen->texOffsetStart((PixmapPtr)pGlxPix->pDraw);
+			screen->texOffsetStart((PixmapPtr)pGlxPix->base.pDraw);
 		}
 	    }
 	}
@@ -129,18 +142,18 @@ __glXDRIleaveServer(GLboolean rendering)
 	GLuint lastOverride = screen->lastTexOffsetOverride;
 
 	if (lastOverride) {
-	    __GLXpixmap **texOffsetOverride = screen->texOffsetOverride;
+	    __GLXDRIdrawable **texOffsetOverride = screen->texOffsetOverride;
 	    int j;
 
 	    for (j = 0; j < lastOverride; j++) {
-		__GLXpixmap *pGlxPix = texOffsetOverride[j];
+		__GLXDRIdrawable *pGlxPix = texOffsetOverride[j];
 
 		if (pGlxPix && pGlxPix->texname) {
-		    screen->texOffset->setTexOffset(pGlxPix->pDRICtx,
+		    screen->texOffset->setTexOffset(&pGlxPix->ctx->driContext,
 						    pGlxPix->texname,
 						    pGlxPix->offset,
-						    pGlxPix->pDraw->depth,
-						    ((PixmapPtr)pGlxPix->pDraw)->devKind);
+						    pGlxPix->base.pDraw->depth,
+						    ((PixmapPtr)pGlxPix->base.pDraw)->devKind);
 		}
 	    }
 	}
@@ -321,14 +334,17 @@ glxFillAlphaChannel (PixmapPtr pixmap, int x, int y, int width, int height)
 static int
 __glXDRIbindTexImage(__GLXcontext *baseContext,
 		     int buffer,
-		     __GLXpixmap *glxPixmap)
+		     __GLXdrawable *glxPixmap)
 {
     RegionPtr	pRegion = NULL;
     PixmapPtr	pixmap;
     int		bpp, override = 0, texname;
     GLenum	format, type;
-    ScreenPtr pScreen = glxPixmap->pScreen;
-    __GLXDRIscreen * const screen = (__GLXDRIscreen *) glxGetScreen(pScreen);
+    ScreenPtr pScreen = glxPixmap->pDraw->pScreen;
+    __GLXDRIdrawable *driDraw =
+	    containerOf(glxPixmap, __GLXDRIdrawable, base);
+    __GLXDRIscreen * const screen =
+	    (__GLXDRIscreen *) glxGetScreen(pScreen);
 
     CALL_GetIntegerv(GET_DISPATCH(), (glxPixmap->target == GL_TEXTURE_2D ?
 				      GL_TEXTURE_BINDING_2D :
@@ -341,11 +357,11 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
     pixmap = (PixmapPtr) glxPixmap->pDraw;
 
     if (screen->texOffsetStart && screen->texOffset) {
-	__GLXpixmap **texOffsetOverride = screen->texOffsetOverride;
+	__GLXDRIdrawable **texOffsetOverride = screen->texOffsetOverride;
 	int i, firstEmpty = 16;
 
 	for (i = 0; i < 16; i++) {
-	    if (texOffsetOverride[i] == glxPixmap)
+	    if (texOffsetOverride[i] == driDraw)
 		goto alreadyin; 
 
 	    if (firstEmpty == 16 && !texOffsetOverride[i])
@@ -360,37 +376,37 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
 	if (firstEmpty >= screen->lastTexOffsetOverride)
 	    screen->lastTexOffsetOverride = firstEmpty + 1;
 
-	texOffsetOverride[firstEmpty] = glxPixmap;
+	texOffsetOverride[firstEmpty] = driDraw;
 
 alreadyin:
 	override = 1;
 
-	glxPixmap->pDRICtx = &((__GLXDRIcontext*)baseContext)->driContext;
+	driDraw->ctx = (__GLXDRIcontext*)baseContext;
 
-	if (texname == glxPixmap->texname)
+	if (texname == driDraw->texname)
 	    return Success;
 
-	glxPixmap->texname = texname;
+	driDraw->texname = texname;
 
-	screen->texOffset->setTexOffset(glxPixmap->pDRICtx, texname, 0,
+	screen->texOffset->setTexOffset(&driDraw->ctx->driContext, texname, 0,
 					pixmap->drawable.depth,
 					pixmap->devKind);
     }
 nooverride:
 
-    if (!glxPixmap->pDamage) {
+    if (!driDraw->pDamage) {
 	if (!override) {
-	    glxPixmap->pDamage = DamageCreate(NULL, NULL, DamageReportNone,
-					      TRUE, pScreen, NULL);
-	    if (!glxPixmap->pDamage)
+	    driDraw->pDamage = DamageCreate(NULL, NULL, DamageReportNone,
+					    TRUE, pScreen, NULL);
+	    if (!driDraw->pDamage)
 		return BadAlloc;
 
-	    DamageRegister ((DrawablePtr) pixmap, glxPixmap->pDamage);
+	    DamageRegister ((DrawablePtr) pixmap, driDraw->pDamage);
 	}
 
 	pRegion = NULL;
     } else {
-	pRegion = DamageRegion(glxPixmap->pDamage);
+	pRegion = DamageRegion(driDraw->pDamage);
 	if (REGION_NIL(pRegion))
 	    return Success;
     }
@@ -469,7 +485,7 @@ nooverride:
     }
 
     if (!override)
-	DamageEmpty(glxPixmap->pDamage);
+	DamageEmpty(driDraw->pDamage);
 
     return Success;
 }
@@ -477,19 +493,21 @@ nooverride:
 static int
 __glXDRIreleaseTexImage(__GLXcontext *baseContext,
 			int buffer,
-			__GLXpixmap *pixmap)
+			__GLXdrawable *pixmap)
 {
-    ScreenPtr pScreen = pixmap->pScreen;
+    ScreenPtr pScreen = pixmap->pDraw->pScreen;
+    __GLXDRIdrawable *driDraw =
+	    containerOf(pixmap, __GLXDRIdrawable, base);
     __GLXDRIscreen * const screen =
 	(__GLXDRIscreen *) glxGetScreen(pScreen);
     GLuint lastOverride = screen->lastTexOffsetOverride;
 
     if (lastOverride) {
-	__GLXpixmap **texOffsetOverride = screen->texOffsetOverride;
+	__GLXDRIdrawable **texOffsetOverride = screen->texOffsetOverride;
 	int i;
 
 	for (i = 0; i < lastOverride; i++) {
-	    if (texOffsetOverride[i] == pixmap) {
+	    if (texOffsetOverride[i] == driDraw) {
 		if (screen->texOffsetFinish)
 		    screen->texOffsetFinish((PixmapPtr)pixmap->pDraw);
 
@@ -695,9 +713,6 @@ filter_modes(__GLcontextModes **server_modes,
     return modes_count;
 }
 
-
-#define containerOf(ptr, type, member)			\
-    (type *)( (char *)ptr - offsetof(type,member) )
 
 static GLboolean
 getDrawableInfo(__DRIdrawable *driDrawable,

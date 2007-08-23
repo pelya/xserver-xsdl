@@ -45,7 +45,6 @@ __GLXcontext *__glXLastContext;
 ** X resources.
 */
 RESTYPE __glXContextRes;
-RESTYPE __glXPixmapRes;
 RESTYPE __glXDrawableRes;
 RESTYPE __glXSwapBarrierRes;
 
@@ -102,32 +101,6 @@ static int ContextGone(__GLXcontext* cx, XID id)
 }
 
 /*
-** Free a GLX Pixmap.
-*/
-static int PixmapGone(__GLXpixmap *pGlxPixmap, XID id)
-{
-    PixmapPtr pPixmap = (PixmapPtr) pGlxPixmap->pDraw;
-
-    pGlxPixmap->idExists = False;
-    if (!pGlxPixmap->refcnt) {
-#ifdef XF86DRI
-	if (pGlxPixmap->pDamage) {
-	    DamageUnregister (pGlxPixmap->pDraw, pGlxPixmap->pDamage);
-	    DamageDestroy(pGlxPixmap->pDamage);
-	}
-#endif
-	/*
-	** The DestroyPixmap routine should decrement the refcount and free
-	** only if it's zero.
-	*/
-	(*pGlxPixmap->pScreen->DestroyPixmap)(pPixmap);
-	xfree(pGlxPixmap);
-    }
-
-    return True;
-}
-
-/*
 ** Destroy routine that gets called when a drawable is freed.  A drawable
 ** contains the ancillary buffers needed for rendering.
 */
@@ -136,24 +109,17 @@ static Bool DrawableGone(__GLXdrawable *glxPriv, XID xid)
     __GLXcontext *cx, *cx1;
 
     /*
-    ** Use glxPriv->type to figure out what kind of drawable this is. Don't
-    ** use glxPriv->pDraw->type because by the time this routine is called,
-    ** the pDraw might already have been freed.
+    ** When a drawable is destroyed, notify all context bound to 
+    ** it, that there are no longer bound to anything.
     */
-    if (glxPriv->type == DRAWABLE_WINDOW) {
-	/*
-	** When a window is destroyed, notify all context bound to 
-	** it, that there are no longer bound to anything.
-	*/
-	for (cx = glxPriv->drawGlxc; cx; cx = cx1) {
-	    cx1 = cx->nextDrawPriv;
-	    cx->pendingState |= __GLX_PENDING_DESTROY;
-	}
+    for (cx = glxPriv->drawGlxc; cx; cx = cx1) {
+	cx1 = cx->nextDrawPriv;
+	cx->pendingState |= __GLX_PENDING_DESTROY;
+    }
 
-	for (cx = glxPriv->readGlxc; cx; cx = cx1) {
-	    cx1 = cx->nextReadPriv;
-	    cx->pendingState |= __GLX_PENDING_DESTROY;
-	}
+    for (cx = glxPriv->readGlxc; cx; cx = cx1) {
+	cx1 = cx->nextReadPriv;
+	cx->pendingState |= __GLX_PENDING_DESTROY;
     }
 
     __glXUnrefDrawable(glxPriv);
@@ -319,7 +285,6 @@ void GlxExtensionInit(void)
     __GLXprovider *p;
 
     __glXContextRes = CreateNewResourceType((DeleteType)ContextGone);
-    __glXPixmapRes = CreateNewResourceType((DeleteType)PixmapGone);
     __glXDrawableRes = CreateNewResourceType((DeleteType)DrawableGone);
     __glXSwapBarrierRes = CreateNewResourceType((DeleteType)SwapBarrierGone);
 

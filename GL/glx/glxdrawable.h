@@ -46,23 +46,6 @@
 #include <GL/internal/dri_interface.h>
 #endif
 
-typedef struct {
-
-    DrawablePtr pDraw;
-    __GLcontextModes *modes;
-    __GLXscreen *pGlxScreen;
-    ScreenPtr pScreen;
-    Bool idExists;
-    int refcnt;
-    GLenum target;
-#ifdef XF86DRI
-    DamagePtr pDamage;
-    __DRIcontext *pDRICtx;
-    GLint texname;
-    unsigned long offset;
-#endif
-} __GLXpixmap;
-
 struct __GLXdrawable {
     void (*destroy)(__GLXdrawable *private);
     GLboolean (*resize)(__GLXdrawable *private);
@@ -78,7 +61,6 @@ struct __GLXdrawable {
 
     DrawablePtr pDraw;
     XID drawId;
-    __GLXpixmap *pGlxPixmap;
 
     /*
     ** Either DRAWABLE_PIXMAP or DRAWABLE_WINDOW, copied from pDraw above.
@@ -105,6 +87,8 @@ struct __GLXdrawable {
     ** reference count
     */
     int refCount;
+
+    GLenum target;
 };
 
 #endif /* !__GLX_drawable_h__ */

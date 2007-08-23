@@ -148,9 +148,5 @@ __glXDrawableInit(__GLXdrawable *drawable,
     drawable->refCount = 1;
     drawable->modes = modes;
 
-    /* if not a pixmap, lookup will fail, so pGlxPixmap will be NULL */
-    drawable->pGlxPixmap = (__GLXpixmap *) 
-	LookupIDByType(drawId, __glXPixmapRes);
-
     return GL_TRUE;
 }

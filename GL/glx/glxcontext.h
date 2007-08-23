@@ -44,12 +44,12 @@
 
 typedef struct __GLXtextureFromPixmap __GLXtextureFromPixmap;
 struct __GLXtextureFromPixmap {
-    int (*bindTexImage)		(__GLXcontext *baseContext,
-				 int           buffer,
-				 __GLXpixmap  *pixmap);
-    int (*releaseTexImage)	(__GLXcontext *baseContext,
-				 int           buffer,
-				 __GLXpixmap  *pixmap);
+    int (*bindTexImage)		(__GLXcontext  *baseContext,
+				 int            buffer,
+				 __GLXdrawable *pixmap);
+    int (*releaseTexImage)	(__GLXcontext  *baseContext,
+				 int            buffer,
+				 __GLXdrawable *pixmap);
 };
 
 
@@ -150,12 +150,6 @@ struct __GLXcontext {
     GLint feedbackBufSize;	/* number of elements allocated */
     GLuint *selectBuf;
     GLint selectBufSize;	/* number of elements allocated */
-
-    /*
-    ** Set only if current drawable is a glx pixmap.
-    */
-    __GLXpixmap *drawPixmap;
-    __GLXpixmap *readPixmap;
 
     /*
     ** The drawable private this context is bound to
