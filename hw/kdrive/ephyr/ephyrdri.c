@@ -159,16 +159,18 @@ ephyrDRICreateDrawable (int a_screen,
                         drm_drawable_t *a_hw_drawable)
 {
     EPHYR_LOG ("enter\n") ;
-    return FALSE ;
+    EPHYR_LOG_ERROR ("not implemented yet\n") ;
     EPHYR_LOG ("leave\n") ;
+    return FALSE ;
 }
 
 Bool
 ephyrDRIDestroyDrawable (int a_screen, int a_drawable)
 {
     EPHYR_LOG ("enter\n") ;
-    return FALSE ;
+    EPHYR_LOG_ERROR ("not implemented yet\n") ;
     EPHYR_LOG ("leave\n") ;
+    return FALSE ;
 }
 
 Bool
@@ -188,8 +190,9 @@ ephyrDRIGetDrawableInfo (int a_screen,
                          drm_clip_rect_t **a_back_clip_rects)
 {
     EPHYR_LOG ("enter\n") ;
-    return FALSE ;
+    EPHYR_LOG_ERROR ("not implemented yet\n") ;
     EPHYR_LOG ("leave\n") ;
+    return FALSE ;
 }
 
 Bool
@@ -201,9 +204,16 @@ ephyrDRIGetDeviceInfo (int a_screen,
                        int *a_dev_private_size,
                        void **a_dev_private)
 {
+    Bool is_ok = FALSE ;
+    Display *dpy = hostx_get_display () ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (dpy, FALSE) ;
     EPHYR_LOG ("enter\n") ;
-    return FALSE ;
+    is_ok = XF86DRIGetDeviceInfo (dpy, a_screen, a_frame_buffer,
+                                  a_fb_origin, a_fb_size, a_fb_stride,
+                                  a_dev_private_size, a_dev_private) ;
     EPHYR_LOG ("leave\n") ;
+    return is_ok ;
 }
 #endif /*EPHYR_DRI*/
 

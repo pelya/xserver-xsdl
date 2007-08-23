@@ -26,12 +26,19 @@ libxephyr_a_SOURCES =	\
 	ephyrdriext.c	\
 	ephyrdri.c	\
 	ephyrdri.h	\
+	ephyrglxext.c	\
+	ephyrglxext.h	\
+	ephyrhostglx.c	\
+	ephyrhostglx.h	\
 	os.c		\
 	hostx.h         \
 	ephyr.h		\
 	ephyrlog.h
 
-libxephyr_a_CFLAGS = @LIBDRM_CFLAGS@ @DRIPROTO_CFLAGS@
+libxephyr_a_CFLAGS = \
+@LIBDRM_CFLAGS@ \
+-I$(top_srcdir) \
+@DRIPROTO_CFLAGS@
 
 Xephyr_SOURCES = \
 	ephyrinit.c

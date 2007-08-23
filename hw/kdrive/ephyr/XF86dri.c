@@ -158,10 +158,8 @@ Bool XF86DRIQueryVersion(dpy, majorVersion, minorVersion, patchVersion)
     return True;
 }
 
-Bool XF86DRIQueryDirectRenderingCapable(dpy, screen, isCapable)
-    Display* dpy;
-    int screen;
-    Bool* isCapable;
+Bool
+XF86DRIQueryDirectRenderingCapable (Display *dpy, int screen, Bool *isCapable)
 {
     XExtDisplayInfo *info = find_display (dpy);
     xXF86DRIQueryDirectRenderingCapableReply rep;
@@ -176,10 +174,10 @@ Bool XF86DRIQueryDirectRenderingCapable(dpy, screen, isCapable)
     req->driReqType = X_XF86DRIQueryDirectRenderingCapable;
     req->screen = screen;
     if (!_XReply(dpy, (xReply *)&rep, 0, xFalse)) {
-	UnlockDisplay(dpy);
-	SyncHandle();
+        UnlockDisplay(dpy);
+        SyncHandle();
         TRACE("QueryDirectRenderingCapable... return False");
-	return False;
+        return False;
     }
     *isCapable = rep.isCapable;
     UnlockDisplay(dpy);
@@ -188,11 +186,10 @@ Bool XF86DRIQueryDirectRenderingCapable(dpy, screen, isCapable)
     return True;
 }
 
-Bool XF86DRIOpenConnection(dpy, screen, hSAREA, busIdString)
-    Display* dpy;
-    int screen;
-    drm_handle_t * hSAREA;
-    char **busIdString;
+Bool
+XF86DRIOpenConnection (Display *dpy, int screen,
+                       drm_handle_t *hSAREA,
+                       char **busIdString)
 {
     XExtDisplayInfo *info = find_display (dpy);
     xXF86DRIOpenConnectionReply rep;
@@ -207,16 +204,16 @@ Bool XF86DRIOpenConnection(dpy, screen, hSAREA, busIdString)
     req->driReqType = X_XF86DRIOpenConnection;
     req->screen = screen;
     if (!_XReply(dpy, (xReply *)&rep, 0, xFalse)) {
-	UnlockDisplay(dpy);
-	SyncHandle();
+        UnlockDisplay(dpy);
+        SyncHandle();
         TRACE("OpenConnection... return False");
-	return False;
+        return False;
     }
 
     *hSAREA = rep.hSAREALow;
     if (sizeof(drm_handle_t) == 8) {
-       int shift = 32; /* var to prevent warning on next line */
-       *hSAREA |= ((drm_handle_t) rep.hSAREAHigh) << shift;
+        int shift = 32; /* var to prevent warning on next line */
+        *hSAREA |= ((drm_handle_t) rep.hSAREAHigh) << shift;
     }
 
     if (rep.length) {
@@ -227,7 +224,7 @@ Bool XF86DRIOpenConnection(dpy, screen, hSAREA, busIdString)
             TRACE("OpenConnection... return False");
             return False;
         }
-	_XReadPad(dpy, *busIdString, rep.busIdStringLength);
+        _XReadPad(dpy, *busIdString, rep.busIdStringLength);
     } else {
         *busIdString = NULL;
     }
@@ -546,16 +543,10 @@ Bool XF86DRIGetDrawableInfo(Display* dpy, int screen, Drawable drawable,
     return True;
 }
 
-Bool XF86DRIGetDeviceInfo(dpy, screen, hFrameBuffer, 
-	fbOrigin, fbSize, fbStride, devPrivateSize, pDevPrivate)
-    Display* dpy;
-    int screen;
-    drm_handle_t * hFrameBuffer;
-    int* fbOrigin;
-    int* fbSize;
-    int* fbStride;
-    int* devPrivateSize;
-    void** pDevPrivate;
+Bool
+XF86DRIGetDeviceInfo (Display *dpy, int screen, drm_handle_t *hFrameBuffer,
+                      int *fbOrigin, int *fbSize, int *fbStride,
+                      int *devPrivateSize, void **pDevPrivate)
 {
     XExtDisplayInfo *info = find_display (dpy);
     xXF86DRIGetDeviceInfoReply rep;
@@ -606,10 +597,8 @@ Bool XF86DRIGetDeviceInfo(dpy, screen, hFrameBuffer,
     return True;
 }
 
-Bool XF86DRIOpenFullScreen(dpy, screen, drawable)
-    Display* dpy;
-    int screen;
-    Drawable drawable;
+Bool
+XF86DRIOpenFullScreen(Display *dpy, int screen, Drawable drawable)
 {
     /* This function and the underlying X protocol are deprecated.
      */
@@ -619,10 +608,8 @@ Bool XF86DRIOpenFullScreen(dpy, screen, drawable)
     return False;
 }
 
-Bool XF86DRICloseFullScreen(dpy, screen, drawable)
-    Display* dpy;
-    int screen;
-    Drawable drawable;
+Bool
+XF86DRICloseFullScreen(Display *dpy, int screen, Drawable drawable)
 {
     /* This function and the underlying X protocol are deprecated.
      */

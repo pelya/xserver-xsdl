@@ -31,6 +31,8 @@
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include "ephyrlog.h"
+#include "ephyrdri.h"
+#include "ephyrglxext.h"
 
 extern int KdTsPhyScreen;
 KdKeyboardInfo *ephyrKbd;
@@ -44,6 +46,11 @@ typedef struct _EphyrInputPrivate {
 } EphyrKbdPrivate, EphyrPointerPrivate;
 
 Bool   EphyrWantGrayScale = 0;
+
+
+#ifdef XEPHYR_DRI
+extern void ephyrDRIExtensionInit(void) ;
+#endif
 
 Bool
 ephyrInitialize (KdCardInfo *card, EphyrPriv *priv)
@@ -617,6 +624,7 @@ ephyrInitScreen (ScreenPtr pScreen)
 
 #ifdef XEPHYR_DRI
     ephyrDRIExtensionInit () ;
+    ephyrHijackGLXExtension () ;
 #endif
   return TRUE;
 }
