@@ -175,10 +175,10 @@ typedef struct {
      */
     DamagePtr	    pDamage;
     /**
-     * The valid region marks the valid bits of a drawable (at least, as it's
-     * derived from damage, which may be overreported).
+     * The valid regions mark the valid bits (at least, as they're derived from
+     * damage, which may be overreported) of a pixmap's system and FB copies.
      */
-    RegionRec	    validReg;
+    RegionRec	    validSys, validFB;
 } ExaPixmapPrivRec, *ExaPixmapPrivPtr;
  
 typedef struct _ExaMigrationRec {

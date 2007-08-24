@@ -186,7 +186,8 @@ exaDestroyPixmap (PixmapPtr pPixmap)
 	    pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
 	    pPixmap->devKind = pExaPixmap->sys_pitch;
 	}
-	REGION_UNINIT(pPixmap->drawable.pScreen, &pExaPixmap->validReg);
+	REGION_UNINIT(pPixmap->drawable.pScreen, &pExaPixmap->validSys);
+	REGION_UNINIT(pPixmap->drawable.pScreen, &pExaPixmap->validFB);
     }
     return fbDestroyPixmap (pPixmap);
 }
@@ -267,7 +268,8 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     DamageSetReportAfterOp (pExaPixmap->pDamage, TRUE);
 
     /* None of the pixmap bits are valid initially */
-    REGION_NULL(pScreen, &pExaPixmap->validReg);
+    REGION_NULL(pScreen, &pExaPixmap->validSys);
+    REGION_NULL(pScreen, &pExaPixmap->validFB);
 
     return pPixmap;
 }
