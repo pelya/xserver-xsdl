@@ -967,3 +967,23 @@ hostx_get_window(void)
 {
     return HostX.win ;
 }
+
+int
+hostx_get_extension_info (const char *a_ext_name,
+                          int *a_major_opcode,
+                          int *a_first_event,
+                          int *a_first_error)
+{
+    if (!a_ext_name || !a_major_opcode || !a_first_event || !a_first_error)
+      return 0 ;
+   if (!XQueryExtension (HostX.dpy,
+                         a_ext_name,
+                         a_major_opcode,
+                         a_first_event,
+                         a_first_error))
+     {
+       return 0 ;
+     }
+   return 1 ;
+}
+

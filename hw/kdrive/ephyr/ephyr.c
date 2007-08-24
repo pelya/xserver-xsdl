@@ -31,8 +31,12 @@
 #include "inputstr.h"
 #include "scrnintstr.h"
 #include "ephyrlog.h"
+
+#ifdef XEPHYR_DRI
 #include "ephyrdri.h"
 #include "ephyrglxext.h"
+#include "ephyrproxyext.h"
+#endif /*XEPHYR_DRI*/
 
 extern int KdTsPhyScreen;
 KdKeyboardInfo *ephyrKbd;
@@ -625,6 +629,7 @@ ephyrInitScreen (ScreenPtr pScreen)
 #ifdef XEPHYR_DRI
     ephyrDRIExtensionInit () ;
     ephyrHijackGLXExtension () ;
+    ephyrProxyExtensionInit ("ATIFGLRXDRI") ;
 #endif
   return TRUE;
 }

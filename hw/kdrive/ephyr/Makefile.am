@@ -30,6 +30,11 @@ libxephyr_a_SOURCES =	\
 	ephyrglxext.h	\
 	ephyrhostglx.c	\
 	ephyrhostglx.h	\
+	ephyrhostproxy.c \
+	ephyrhostproxy.h \
+	ephyrhostproxy.c \
+	ephyrproxyext.c	\
+	ephyrproxyext.h	\
 	os.c		\
 	hostx.h         \
 	ephyr.h		\

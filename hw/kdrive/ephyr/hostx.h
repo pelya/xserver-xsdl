@@ -178,4 +178,10 @@ hostx_get_display(void) ;
 int
 hostx_get_window(void) ;
 
+int
+hostx_get_extension_info (const char *a_ext_name,
+                          int *a_major_opcode,
+                          int *a_first_even,
+                          int *a_first_error) ;
+
 #endif
