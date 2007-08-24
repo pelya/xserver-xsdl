@@ -374,17 +374,25 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
 {
     RegionPtr	pRegion = NULL;
     PixmapPtr	pixmap;
-    int		bpp, override = 0;
+    int		bpp, override = 0, texname;
     GLenum	format, type;
     ScreenPtr pScreen = glxPixmap->pScreen;
     __GLXDRIscreen * const screen =
 	(__GLXDRIscreen *) __glXgetActiveScreen(pScreen->myNum);
 
+    CALL_GetIntegerv(GET_DISPATCH(), (glxPixmap->target == GL_TEXTURE_2D ?
+				      GL_TEXTURE_BINDING_2D :
+				      GL_TEXTURE_BINDING_RECTANGLE_NV,
+				      &texname));
+
+    if (!texname)
+	return __glXError(GLXBadContextState);
+
     pixmap = (PixmapPtr) glxPixmap->pDraw;
 
     if (screen->texOffsetStart && screen->driScreen.setTexOffset) {
 	__GLXpixmap **texOffsetOverride = screen->texOffsetOverride;
-	int i, firstEmpty = 16, texname;
+	int i, firstEmpty = 16;
 
 	for (i = 0; i < 16; i++) {
 	    if (texOffsetOverride[i] == glxPixmap)
@@ -408,11 +416,6 @@ alreadyin:
 	override = 1;
 
 	glxPixmap->pDRICtx = &((__GLXDRIcontext*)baseContext)->driContext;
-
-	CALL_GetIntegerv(GET_DISPATCH(), (glxPixmap->target == GL_TEXTURE_2D ?
-					  GL_TEXTURE_BINDING_2D :
-					  GL_TEXTURE_BINDING_RECTANGLE_NV,
-					  &texname));
 
 	if (texname == glxPixmap->texname)
 	    return Success;
