@@ -1306,6 +1306,10 @@ dnl has it in libc), or if libdl is needed to get it.
 	AC_CHECK_FUNC([dlopen], [], 
 		AC_CHECK_LIB([dl], [dlopen], XORG_LIBS="$XORG_LIBS -ldl"))
 
+	PKG_CHECK_MODULES([PCIACCESS], [pciaccess >= 0.8.0])
+	XSERVER_LIBS="$XSERVER_LIBS $PCIACCESS_LIBS"
+	XORG_CFLAGS="$XORG_CFLAGS $PCIACCESS_CFLAGS"
+
 	case $host_os in
          darwin*)
                XORG_OS="Darwin"
@@ -1561,7 +1565,6 @@ return 0;}
 	AC_SUBST([XORG_OS])
 	AC_SUBST([XORG_OS_SUBDIR])
 
-	dnl only used in hw/xfree86/scanpci, TTBOMK
 	AC_PATH_PROG(PERL, perl, no)
 	dnl unlikely as this may be ...
 	if test "x$PERL" = xno; then
@@ -2075,7 +2078,6 @@ hw/xfree86/os-support/usl/Makefile
 hw/xfree86/parser/Makefile
 hw/xfree86/rac/Makefile
 hw/xfree86/ramdac/Makefile
-hw/xfree86/scanpci/Makefile
 hw/xfree86/shadowfb/Makefile
 hw/xfree86/vbe/Makefile
 hw/xfree86/vgahw/Makefile
@@ -2090,8 +2092,6 @@ hw/xfree86/utils/cvt/Makefile
 hw/xfree86/utils/gtf/Makefile
 hw/xfree86/utils/ioport/Makefile
 hw/xfree86/utils/kbd_mode/Makefile
-hw/xfree86/utils/pcitweak/Makefile
-hw/xfree86/utils/scanpci/Makefile
 hw/xfree86/utils/xorgcfg/Makefile
 hw/xfree86/utils/xorgconfig/Makefile
 hw/dmx/config/Makefile

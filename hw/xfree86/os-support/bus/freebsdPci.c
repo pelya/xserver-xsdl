@@ -124,8 +124,6 @@ freebsdPciInit()
 
 	pciNumBuses    = 1;
 	pciBusInfo[0]  = &freebsdPci0;
-	pciFindFirstFP = pciGenFindFirst;
-	pciFindNextFP  = pciGenFindNext;
 }
 
 static CARD32

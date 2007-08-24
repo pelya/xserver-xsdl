@@ -156,7 +156,7 @@ typedef struct _vgaHWRec {
 						   = pioreg */
     vgaHWReadProcPtr		readEnable;
     vgaHWWriteProcPtr		writeEnable;
-    PCITAG			Tag;
+    struct pci_device          *dev;
 } vgaHWRec;
 
 /* Some macros that VGA drivers can use in their ChipProbe() function */

@@ -296,53 +296,99 @@ fbdev2xfree_timing(struct fb_var_screeninfo *var, DisplayModePtr mode)
 /* -------------------------------------------------------------------- */
 /* open correct framebuffer device                                      */
 
-/* try to find the framebuffer device for a given PCI device */
+/**
+ * Try to find the framebuffer device for a given PCI device 
+ */
 static int
-fbdev_open_pci(pciVideoPtr pPci, char **namep)
+fbdev_open_pci(struct pci_device * pPci, char **namep)
 {
-	struct	fb_fix_screeninfo fix;
-	char	filename[16];
-	int	fd,i,j;
-	memType res_start, res_end;
+    struct	fb_fix_screeninfo fix;
+    char	filename[256];
+    int	fd,i,j;
 
-	for (i = 0; i < 8; i++) {
-		sprintf(filename,"/dev/fb%d",i);
-		if (-1 == (fd = open(filename,O_RDWR,0))) {
-			xf86DrvMsg(-1, X_WARNING,
-				   "open %s: %s\n", filename, strerror(errno));
-			continue;
+
+    /* There are two ways to that we can determine which fb device is
+     * associated with this PCI device.  The more modern way is to look in
+     * the sysfs directory for the PCI device for a file named
+     * "graphics:fb*"
+     */
+
+    for (i = 0; i < 8; i++) {
+	sprintf(filename, 
+		"/sys/bus/pci/devices/%04x:%02x:%02x.%d/graphics:fb%d",
+		pPci->domain, pPci->bus, pPci->dev, pPci->func, i);
+
+	fd = open(filename, O_RDONLY, 0);
+	if (fd != -1) {
+	    close(fd);
+	    sprintf(filename, "/dev/fb%d", i);
+
+	    fd = open(filename, O_RDWR, 0);
+	    if (fd != -1) {
+		if (ioctl(fd, FBIOGET_FSCREENINFO, (void*) & fix) != -1) {
+		    if (namep) {
+			*namep = xnfalloc(16);
+			strncpy(*namep,fix.id,16);
+		    }
+
+		    return fd;
 		}
-		if (-1 == ioctl(fd,FBIOGET_FSCREENINFO,(void*)&fix)) {
-			close(fd);
-			continue;
-		}
-		for (j = 0; j < 6; j++) {
-			res_start = pPci->memBase[j];
-			res_end = res_start+pPci->size[j];
-			if ((0 != fix.smem_len &&
-			     (memType) fix.smem_start >= res_start &&
-			     (memType) fix.smem_start < res_end) ||
-			    (0 != fix.mmio_len &&
-			     (memType) fix.mmio_start >= res_start &&
-			     (memType) fix.mmio_start < res_end))
-				break;
-		}
-		if (j == 6) {
-			close(fd);
-			continue;
-		}
-		if (namep) {
-		    *namep = xnfalloc(16);
-		    strncpy(*namep,fix.id,16);
-		}
-		return fd;
+	    }
 	}
-	if (namep)
-	    *namep = NULL;
-	xf86DrvMsg(-1, X_ERROR,
-		   "Unable to find a valid framebuffer device\n");
-	return -1;
 
+	close(fd);
+    }
+
+
+    /* The other way is to examine the resources associated with each fb
+     * device and see if there is a match with the PCI device.  This technique
+     * has some problems on certain mixed 64-bit / 32-bit architectures.
+     * There is a flaw in the fb_fix_screeninfo structure in that it only
+     * returns the low 32-bits of the address of the resources associated with
+     * a device.  However, on a mixed architecture the base addresses of PCI
+     * devices, even for 32-bit applications, may be higher than 0x0f0000000.
+     */
+
+    for (i = 0; i < 8; i++) {
+	sprintf(filename,"/dev/fb%d",i);
+	if (-1 == (fd = open(filename,O_RDWR,0))) {
+	    xf86DrvMsg(-1, X_WARNING,
+		       "open %s: %s\n", filename, strerror(errno));
+	    continue;
+	}
+	if (-1 == ioctl(fd,FBIOGET_FSCREENINFO,(void*)&fix)) {
+	    close(fd);
+	    continue;
+	}
+	for (j = 0; j < 6; j++) {
+	    const pciaddr_t res_start = pPci->regions[j].base_addr;
+	    const pciaddr_t res_end = res_start + pPci->regions[j].size;
+
+	    if ((0 != fix.smem_len &&
+		 (pciaddr_t) fix.smem_start >= res_start &&
+		 (pciaddr_t) fix.smem_start < res_end) ||
+		(0 != fix.mmio_len &&
+		 (pciaddr_t) fix.mmio_start >= res_start &&
+		 (pciaddr_t) fix.mmio_start < res_end))
+	      break;
+	}
+	if (j == 6) {
+	    close(fd);
+	    continue;
+	}
+	if (namep) {
+	    *namep = xnfalloc(16);
+	    strncpy(*namep,fix.id,16);
+	}
+	return fd;
+    }
+
+    if (namep)
+      *namep = NULL;
+
+    xf86DrvMsg(-1, X_ERROR,
+	       "Unable to find a valid framebuffer device\n");
+    return -1;
 }
 
 static int
@@ -387,7 +433,7 @@ fbdev_open(int scrnIndex, char *dev, char** namep)
 /* -------------------------------------------------------------------- */
 
 Bool
-fbdevHWProbe(pciVideoPtr pPci, char *device,char **namep)
+fbdevHWProbe(struct pci_device * pPci, char *device,char **namep)
 {
 	int fd;
 
@@ -403,7 +449,7 @@ fbdevHWProbe(pciVideoPtr pPci, char *device,char **namep)
 }
 
 Bool
-fbdevHWInit(ScrnInfoPtr pScrn, pciVideoPtr pPci, char *device)
+fbdevHWInit(ScrnInfoPtr pScrn, struct pci_device * pPci, char *device)
 {
 	fbdevHWPtr fPtr;
 
