@@ -1357,7 +1357,7 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 	goto fallback;
 
     if (pExaScr->info->DownloadFromScreen == NULL)
-	goto migrate_and_fallback;
+	goto fallback;
 
     /* Only cover the ZPixmap, solid copy case. */
     if (format != ZPixmap || !EXA_PM_IS_SOLID(pDrawable, planeMask))
