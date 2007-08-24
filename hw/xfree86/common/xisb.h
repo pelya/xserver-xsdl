@@ -24,7 +24,6 @@
  * in this Software without prior written authorization from Metro Link.
  *
  */
-/* $XFree86$ */
 
 #ifndef	_xisb_H_
 #define _xisb_H_

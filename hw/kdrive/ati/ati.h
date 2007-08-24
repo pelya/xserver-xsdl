@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright © 2003 Eric Anholt
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $Header$ */
 
 #ifndef _ATI_H_
 #define _ATI_H_

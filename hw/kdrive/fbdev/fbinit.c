@@ -1,6 +1,4 @@
 /*
- * Id: fbinit.c,v 1.1 1999/11/02 03:54:46 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/fbdev/fbinit.c,v 1.8 2001/05/29 17:47:55 keithp Exp $ */
 
 #ifdef HAVE_CONFIG_H
 #include <kdrive-config.h>

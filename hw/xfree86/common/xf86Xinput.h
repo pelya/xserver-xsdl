@@ -1,4 +1,3 @@
-/* $XConsortium: xf86Xinput.h /main/11 1996/10/27 11:05:29 kaleb $ */
 /*
  * Copyright 1995-1999 by Frederic Lepied, France. <Lepied@XFree86.org>
  *                                                                            

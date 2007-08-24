@@ -20,7 +20,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XConsortium: xf86_Util.c /main/5 1996/10/23 13:13:10 kaleb $ */
 
 /*
  * This file is for utility functions that will be shared by other pieces

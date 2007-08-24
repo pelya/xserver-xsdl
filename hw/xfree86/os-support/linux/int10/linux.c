@@ -88,7 +88,6 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     int pagesize; 
     memType cs;
     legacyVGARec vga;
-    xf86int10BiosLocation bios;
     Bool videoBiosMapped = FALSE;
     
     if (int10Generation != serverGeneration) {
@@ -259,13 +258,9 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 #endif
     }
 
-    xf86int10ParseBiosLocation(options,&bios);
-
-    if (xf86IsEntityPrimary(entityIndex) 
-	&& !(initPrimary(options))) {
-	if (! xf86int10GetBiosSegment(pInt, &bios, NULL)) {
+    if (xf86IsEntityPrimary(entityIndex) && !(initPrimary(options))) {
+	if (!xf86int10GetBiosSegment(pInt, NULL))
 	    goto error3;
-	}
 
 	set_return_trap(pInt);
 #ifdef _PC	
@@ -275,18 +270,13 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
   	xf86Int10SaveRestoreBIOSVars(pInt, TRUE);
 #endif
     } else {
-	const BusType location_type = xf86int10GetBiosLocationType(pInt,
-								   &bios);
+	const BusType location_type = xf86int10GetBiosLocationType(pInt);
 
 	switch (location_type) {
 	case BUS_PCI: {
 	    int err;
-	    struct pci_device *rom_device = (bios.bus == BUS_PCI)
-	      ? pci_device_find_by_slot(PCI_DOM_FROM_BUS(bios.location.pci.bus),
-					PCI_BUS_NO_DOMAIN(bios.location.pci.bus),
-					bios.location.pci.dev,
-					bios.location.pci.func)
-	      : xf86GetPciInfoForEntity(pInt->entityIndex);
+	    struct pci_device *rom_device =
+		xf86GetPciInfoForEntity(pInt->entityIndex);
 
 	    err = pci_device_read_rom(rom_device, (unsigned char *)(V_BIOS));
 	    if (err) {
@@ -299,9 +289,8 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 	    break;
 	}
 	case BUS_ISA:
-	    if (! xf86int10GetBiosSegment(pInt, &bios, NULL)) {
+	    if (!xf86int10GetBiosSegment(pInt, NULL))
 		goto error3;
-	    }
 	    break;
 	default:
 	    goto error3;

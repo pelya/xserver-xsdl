@@ -21,8 +21,6 @@
  *
 */
 
-/* $XConsortium: vgaReg.h /main/4 1996/02/21 17:59:02 kaleb $ */
-
 #define SET_BYTE_REGISTER( ioport, value )	outb( ioport, value )
 #define SET_INDEX_REGISTER( ioport, value ) SET_BYTE_REGISTER( ioport, value )
 #define SET_DATA_REGISTER( ioport, value ) SET_BYTE_REGISTER( ioport, value )

@@ -159,6 +159,7 @@ extern void xf86BusToMem(unsigned char *, unsigned char *, int);
 extern void xf86MemToBus(unsigned char *, unsigned char *, int);
 extern void xf86IODelay(void);
 extern void xf86UDelay(long usec);
+extern void xf86SetReallySlowBcopy(void);
 extern void xf86SlowBcopy(unsigned char *, unsigned char *, int);
 extern int xf86OpenSerial(pointer options);
 extern int xf86SetSerial(int fd, pointer options);

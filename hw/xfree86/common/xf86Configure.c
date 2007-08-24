@@ -71,10 +71,7 @@ _X_EXPORT xf86MonPtr ConfiguredMonitor;
 Bool xf86DoConfigurePass1 = TRUE;
 static Bool foundMouse = FALSE;
 
-#if defined(__UNIXOS2__)
-#define DFLT_MOUSE_DEV "mouse$"
-#define DFLT_MOUSE_PROTO "OS2Mouse"
-#elif defined(__SCO__)
+#if defined(__SCO__)
 static char *DFLT_MOUSE_PROTO = "OSMouse";
 #elif defined(__UNIXWARE__)
 static char *DFLT_MOUSE_PROTO = "OSMouse";
@@ -274,17 +271,6 @@ configureInputSection (void)
     /* Crude mechanism to auto-detect mouse (os dependent) */
     { 
 	int fd;
-#if 0 && defined linux
-	/* Our autodetection code can do a better job */
-	int len;
-	char path[32];
-
-	if ((len = readlink(DFLT_MOUSE_DEV, path, sizeof(path) - 1)) > 0) {
-	    path[len] = '\0';
-	    if (strstr(path, "psaux") != NULL)
-		DFLT_MOUSE_PROTO = "PS/2";
-	}
-#endif
 #ifdef WSCONS_SUPPORT
 	fd = open("/dev/wsmouse", 0);
 	if (fd > 0) {
@@ -324,29 +310,6 @@ configureInputSection (void)
 				xstrdup("4 5 6 7"));
     ptr = (XF86ConfInputPtr)xf86addListItem((glp)ptr, (glp)mouse);
     return ptr;
-}
-
-static XF86ConfDRIPtr
-configureDRISection (void)
-{
-#ifdef NOTYET
-    parsePrologue (XF86ConfDRIPtr, XF86ConfDRIRec)
-
-    return ptr;
-#else
-    return NULL;
-#endif
-}
-
-static XF86ConfVendorPtr
-configureVendorSection (void)
-{
-    parsePrologue (XF86ConfVendorPtr, XF86ConfVendorRec)
-
-    return NULL;
-#if 0
-    return ptr;
-#endif
 }
 
 static XF86ConfScreenPtr
@@ -568,29 +531,6 @@ configureLayoutSection (void)
     }
 
     return ptr;
-}
-
-static XF86ConfModesPtr
-configureModesSection (void)
-{
-#ifdef NOTYET
-    parsePrologue (XF86ConfModesPtr, XF86ConfModesRec)
-
-    return ptr;
-#else
-    return NULL;
-#endif
-}
-
-static XF86ConfVideoAdaptorPtr
-configureVideoAdaptorSection (void)
-{
-    parsePrologue (XF86ConfVideoAdaptorPtr, XF86ConfVideoAdaptorRec)
-
-    return NULL;
-#if 0
-    return ptr;
-#endif
 }
 
 static XF86ConfFlagsPtr
@@ -863,19 +803,16 @@ DoConfigure()
     xf86config->conf_files = configureFilesSection();
     xf86config->conf_modules = configureModuleSection();
     xf86config->conf_flags = configureFlagsSection();
-    xf86config->conf_videoadaptor_lst = configureVideoAdaptorSection();
-    xf86config->conf_modes_lst = configureModesSection();
-    xf86config->conf_vendor_lst = configureVendorSection();
-    xf86config->conf_dri = configureDRISection();
+    xf86config->conf_videoadaptor_lst = NULL;
+    xf86config->conf_modes_lst = NULL;
+    xf86config->conf_vendor_lst = NULL;
+    xf86config->conf_dri = NULL;
     xf86config->conf_input_lst = configureInputSection();
     xf86config->conf_layout_lst = configureLayoutSection();
 
     if (!(home = getenv("HOME")))
     	home = "/";
     {
-#ifdef __UNIXOS2__
-#define PATH_MAX 2048
-#endif
 #if !defined(PATH_MAX)
 #define PATH_MAX 1024
 #endif
@@ -1010,13 +947,11 @@ DoConfigure()
 	ErrorF("\n"__XSERVERNAME__" is not able to detect your mouse.\n"
 		"Edit the file and correct the Device.\n");
     } else {
-#ifndef __UNIXOS2__  /* OS/2 definitely has a mouse */
 	ErrorF("\n"__XSERVERNAME__" detected your mouse at device %s.\n"
 		"Please check your config if the mouse is still not\n"
 		"operational, as by default "__XSERVERNAME__
 	       " tries to autodetect\n"
 		"the protocol.\n",DFLT_MOUSE_DEV);
-#endif
     }
 #endif /* !__SCO__ */
 

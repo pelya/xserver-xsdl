@@ -749,6 +749,132 @@ done:
 }
 #endif
 
+/**
+ * Same as miCreateAlphaPicture, except it uses ExaCheckPolyFillRect instead
+ * of PolyFillRect to initialize the pixmap after creating it, to prevent
+ * the pixmap from being migrated.
+ *
+ * See the comments about exaTrapezoids.
+ */
+static PicturePtr
+exaCreateAlphaPicture (ScreenPtr     pScreen,
+                       PicturePtr    pDst,
+                       PictFormatPtr pPictFormat,
+                       CARD16        width,
+                       CARD16        height)
+{
+    PixmapPtr	    pPixmap;
+    PicturePtr	    pPicture;
+    GCPtr	    pGC;
+    int		    error;
+    xRectangle	    rect;
+
+    if (width > 32767 || height > 32767)
+	return 0;
+
+    if (!pPictFormat)
+    {
+	if (pDst->polyEdge == PolyEdgeSharp)
+	    pPictFormat = PictureMatchFormat (pScreen, 1, PICT_a1);
+	else
+	    pPictFormat = PictureMatchFormat (pScreen, 8, PICT_a8);
+	if (!pPictFormat)
+	    return 0;
+    }
+
+    pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height,
+					pPictFormat->depth);
+    if (!pPixmap)
+	return 0;
+    pGC = GetScratchGC (pPixmap->drawable.depth, pScreen);
+    if (!pGC)
+    {
+	(*pScreen->DestroyPixmap) (pPixmap);
+	return 0;
+    }
+    ValidateGC (&pPixmap->drawable, pGC);
+    rect.x = 0;
+    rect.y = 0;
+    rect.width = width;
+    rect.height = height;
+    ExaCheckPolyFillRect (&pPixmap->drawable, pGC, 1, &rect);
+    exaPixmapDirty (pPixmap, 0, 0, width, height);
+    FreeScratchGC (pGC);
+    pPicture = CreatePicture (0, &pPixmap->drawable, pPictFormat,
+			      0, 0, serverClient, &error);
+    (*pScreen->DestroyPixmap) (pPixmap);
+    return pPicture;
+}
+
+/**
+ * exaTrapezoids is essentially a copy of miTrapezoids that uses
+ * exaCreateAlphaPicture instead of miCreateAlphaPicture.
+ *
+ * The problem with miCreateAlphaPicture is that it calls PolyFillRect
+ * to initialize the contents after creating the pixmap, which
+ * causes the pixmap to be moved in for acceleration. The subsequent
+ * call to RasterizeTrapezoid won't be accelerated however, which
+ * forces the pixmap to be moved out again.
+ *
+ * exaCreateAlphaPicture avoids this roundtrip by using ExaCheckPolyFillRect
+ * to initialize the contents.
+ */
+void
+exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
+               PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc,
+               int ntrap, xTrapezoid *traps)
+{
+    ScreenPtr		pScreen = pDst->pDrawable->pScreen;
+    PictureScreenPtr    ps = GetPictureScreen(pScreen);
+
+    /*
+     * Check for solid alpha add
+     */
+    if (op == PictOpAdd && miIsSolidAlpha (pSrc))
+    {
+	for (; ntrap; ntrap--, traps++)
+	    (*ps->RasterizeTrapezoid) (pDst, traps, 0, 0);
+    }
+    else if (maskFormat)
+    {
+	PicturePtr	pPicture;
+	BoxRec		bounds;
+	INT16		xDst, yDst;
+	INT16		xRel, yRel;
+
+	xDst = traps[0].left.p1.x >> 16;
+	yDst = traps[0].left.p1.y >> 16;
+
+	miTrapezoidBounds (ntrap, traps, &bounds);
+	if (bounds.y1 >= bounds.y2 || bounds.x1 >= bounds.x2)
+	    return;
+	pPicture = exaCreateAlphaPicture (pScreen, pDst, maskFormat,
+	                                  bounds.x2 - bounds.x1,
+	                                  bounds.y2 - bounds.y1);
+	if (!pPicture)
+	    return;
+	for (; ntrap; ntrap--, traps++)
+	    (*ps->RasterizeTrapezoid) (pPicture, traps,
+				       -bounds.x1, -bounds.y1);
+	xRel = bounds.x1 + xSrc - xDst;
+	yRel = bounds.y1 + ySrc - yDst;
+	CompositePicture (op, pSrc, pPicture, pDst,
+			  xRel, yRel, 0, 0, bounds.x1, bounds.y1,
+			  bounds.x2 - bounds.x1,
+			  bounds.y2 - bounds.y1);
+	FreePicture (pPicture, 0);
+    }
+    else
+    {
+	if (pDst->polyEdge == PolyEdgeSharp)
+	    maskFormat = PictureMatchFormat (pScreen, 1, PICT_a1);
+	else
+	    maskFormat = PictureMatchFormat (pScreen, 8, PICT_a8);
+	for (; ntrap; ntrap--, traps++)
+	    exaTrapezoids (op, pSrc, pDst, maskFormat, xSrc, ySrc, 1, traps);
+    }
+}
+
 #define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
 
 /**

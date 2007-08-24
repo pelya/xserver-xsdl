@@ -1,6 +1,4 @@
 /*
- * $RCSId: xc/programs/Xserver/hw/kdrive/linux/linux.c,v 1.6 2001/07/24 21:26:17 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -458,7 +456,9 @@ KdOsAddInputDrivers ()
 #ifdef TSLIB
     KdAddPointerDriver(&TsDriver);
 #endif
+    KdAddPointerDriver(&LinuxEvdevMouseDriver);
     KdAddKeyboardDriver(&LinuxKeyboardDriver);
+    KdAddKeyboardDriver(&LinuxEvdevKeyboardDriver);
 }
 
 static void

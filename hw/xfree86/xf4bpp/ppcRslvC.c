@@ -50,8 +50,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
 */
 
-/* $XConsortium: ppcRslvC.c /main/7 1996/02/21 17:58:25 kaleb $ */
-
 /* Generic Color Resolution Scheme
  * P. Shupak 12/31/87
  */

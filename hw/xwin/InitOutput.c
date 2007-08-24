@@ -1,4 +1,3 @@
-/* $TOG: InitOutput.c /main/20 1998/02/10 13:23:56 kaleb $ */
 /*
 
 Copyright 1993, 1998  The Open Group

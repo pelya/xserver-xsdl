@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright © 2004 Philip Blundell
  *
  * Permission to use, copy, modify, distribute, and sell this software and its

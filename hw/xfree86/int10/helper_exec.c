@@ -8,7 +8,7 @@
  */
 
 /*
- * To debug port accesses define PRINT_PORT.
+ * To debug port accesses define PRINT_PORT to 1.
  * Note! You also have to comment out ioperm()
  * in xf86EnableIO(). Otherwise we won't trap
  * on PIO.
@@ -17,6 +17,8 @@
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
+
+#define PRINT_PORT 0
 
 #include <unistd.h>
 
@@ -28,6 +30,9 @@
 #include "int10Defines.h"
 #include "xf86int10.h"
 #include "Pci.h"
+#ifdef _X86EMU
+#include "x86emu/x86emui.h"
+#endif
 
 static int pciCfg1in(CARD16 addr, CARD32 *val);
 static int pciCfg1out(CARD16 addr, CARD32 val);
@@ -40,6 +45,8 @@ static void SetResetBIOSVars(xf86Int10InfoPtr pInt, Bool set);
 #endif
 
 #define REG pInt
+
+static int pci_config_cycle = 0;
 
 int
 setup_int(xf86Int10InfoPtr pInt)
@@ -210,10 +217,9 @@ port_rep_inb(xf86Int10InfoPtr pInt,
 {
     register int inc = d_f ? -1 : 1;
     CARD32 dst = base;
-#ifdef PRINT_PORT
-    ErrorF(" rep_insb(%#x) %d bytes at %p %s\n",
-	     port, count, base, d_f ? "up" : "down");
-#endif
+    if (PRINT_PORT && DEBUG_IO_TRACE())
+	ErrorF(" rep_insb(%#x) %d bytes at %8.8x %s\n",
+		port, count, base, d_f ? "up" : "down");
     while (count--) {
 	MEM_WB(pInt, dst, x_inb(port));
 	dst += inc;
@@ -227,10 +233,9 @@ port_rep_inw(xf86Int10InfoPtr pInt,
 {
     register int inc = d_f ? -2 : 2;
     CARD32 dst = base;
-#ifdef PRINT_PORT
-    ErrorF(" rep_insw(%#x) %d bytes at %p %s\n",
+    if (PRINT_PORT && DEBUG_IO_TRACE())
+	ErrorF(" rep_insw(%#x) %d bytes at %8.8x %s\n",
 	     port, count, base, d_f ? "up" : "down");
-#endif
     while (count--) {
 	MEM_WW(pInt, dst, x_inw(port));
 	dst += inc;
@@ -244,10 +249,9 @@ port_rep_inl(xf86Int10InfoPtr pInt,
 {
     register int inc = d_f ? -4 : 4;
     CARD32 dst = base;
-#ifdef PRINT_PORT
-    ErrorF(" rep_insl(%#x) %d bytes at %p %s\n",
+    if (PRINT_PORT && DEBUG_IO_TRACE())
+	ErrorF(" rep_insl(%#x) %d bytes at %8.8x %s\n",
 	     port, count, base, d_f ? "up" : "down");
-#endif
     while (count--) {
 	MEM_WL(pInt, dst, x_inl(port));
 	dst += inc;
@@ -261,10 +265,9 @@ port_rep_outb(xf86Int10InfoPtr pInt,
 {
     register int inc = d_f ? -1 : 1;
     CARD32 dst = base;
-#ifdef PRINT_PORT
-    ErrorF(" rep_outb(%#x) %d bytes at %p %s\n",
+    if (PRINT_PORT && DEBUG_IO_TRACE())
+	ErrorF(" rep_outb(%#x) %d bytes at %8.8x %s\n",
 	     port, count, base, d_f ? "up" : "down");
-#endif
     while (count--) {
 	x_outb(port, MEM_RB(pInt, dst));
 	dst += inc;
@@ -278,10 +281,9 @@ port_rep_outw(xf86Int10InfoPtr pInt,
 {
     register int inc = d_f ? -2 : 2;
     CARD32 dst = base;
-#ifdef PRINT_PORT
-    ErrorF(" rep_outw(%#x) %d bytes at %p %s\n",
+    if (PRINT_PORT && DEBUG_IO_TRACE())
+	ErrorF(" rep_outw(%#x) %d bytes at %8.8x %s\n",
 	     port, count, base, d_f ? "up" : "down");
-#endif
     while (count--) {
 	x_outw(port, MEM_RW(pInt, dst));
 	dst += inc;
@@ -295,10 +297,9 @@ port_rep_outl(xf86Int10InfoPtr pInt,
 {
     register int inc = d_f ? -4 : 4;
     CARD32 dst = base;
-#ifdef PRINT_PORT
-    ErrorF(" rep_outl(%#x) %d bytes at %p %s\n",
+    if (PRINT_PORT && DEBUG_IO_TRACE())
+	ErrorF(" rep_outl(%#x) %d bytes at %8.8x %s\n",
 	     port, count, base, d_f ? "up" : "down");
-#endif
     while (count--) {
 	x_outl(port, MEM_RL(pInt, dst));
 	dst += inc;
@@ -315,9 +316,8 @@ x_inb(CARD16 port)
 	Int10Current->inb40time++;
 	val = (CARD8)(Int10Current->inb40time >>
 		      ((Int10Current->inb40time & 1) << 3));
-#ifdef PRINT_PORT
-	ErrorF(" inb(%#x) = %2.2x\n", port, val);
-#endif
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" inb(%#x) = %2.2x\n", port, val);
 #ifdef __NOT_YET__
     } else if (port < 0x0100) {		/* Don't interfere with mainboard */
 	val = 0;
@@ -328,12 +328,10 @@ x_inb(CARD16 port)
 	    stack_trace(Int10Current);
 	}
 #endif /* __NOT_YET__ */
-    } else {
-	if (!pciCfg1inb(port, &val))
-	    val = inb(Int10Current->ioBase + port);
-#ifdef PRINT_PORT
-	ErrorF(" inb(%#x) = %2.2x\n", port, val);
-#endif
+    } else if (!pciCfg1inb(port, &val)) {
+	val = inb(Int10Current->ioBase + port);
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" inb(%#x) = %2.2x\n", port, val);
     }
     return val;
 }
@@ -352,13 +350,11 @@ x_inw(CARD16 port)
 	 */
 	X_GETTIMEOFDAY(&tv);
 	val = (CARD16)(tv.tv_usec / 3);
-    } else {
-	if (!pciCfg1inw(port, &val))
-	    val = inw(Int10Current->ioBase + port);
+    } else if (!pciCfg1inw(port, &val)) {
+	val = inw(Int10Current->ioBase + port);
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" inw(%#x) = %4.4x\n", port, val);
     }
-#ifdef PRINT_PORT
-    ErrorF(" inw(%#x) = %4.4x\n", port, val);
-#endif
     return val;
 }
 
@@ -375,9 +371,8 @@ x_outb(CARD16 port, CARD8 val)
 	 */
 	X_GETTIMEOFDAY(&tv);
 	Int10Current->inb40time = (CARD16)(tv.tv_usec | 1);
-#ifdef PRINT_PORT
-	ErrorF(" outb(%#x, %2.2x)\n", port, val);
-#endif
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" outb(%#x, %2.2x)\n", port, val);
 #ifdef __NOT_YET__
     } else if (port < 0x0100) {		/* Don't interfere with mainboard */
 	xf86DrvMsgVerb(Int10Current->scrnIndex, X_NOT_IMPLEMENTED, 2,
@@ -387,24 +382,22 @@ x_outb(CARD16 port, CARD8 val)
 	    stack_trace(Int10Current);
 	}
 #endif /* __NOT_YET__ */
-    } else {
-#ifdef PRINT_PORT
-	ErrorF(" outb(%#x, %2.2x)\n", port, val);
-#endif
-	if (!pciCfg1outb(port, val))
-	    outb(Int10Current->ioBase + port, val);
+    } else if (!pciCfg1outb(port, val)) {
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" outb(%#x, %2.2x)\n", port, val);
+	outb(Int10Current->ioBase + port, val);
     }
 }
 
 void
 x_outw(CARD16 port, CARD16 val)
 {
-#ifdef PRINT_PORT
-    ErrorF(" outw(%#x, %4.4x)\n", port, val);
-#endif
 
-    if (!pciCfg1outw(port, val))
+    if (!pciCfg1outw(port, val)) {
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" outw(%#x, %4.4x)\n", port, val);
 	outw(Int10Current->ioBase + port, val);
+    }
 }
 
 CARD32
@@ -412,24 +405,22 @@ x_inl(CARD16 port)
 {
     CARD32 val;
 
-    if (!pciCfg1in(port, &val))
+    if (!pciCfg1in(port, &val)) {
 	val = inl(Int10Current->ioBase + port);
-
-#ifdef PRINT_PORT
-    ErrorF(" inl(%#x) = %8.8x\n", port, val);
-#endif
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" inl(%#x) = %8.8x\n", port, val);
+    }
     return val;
 }
 
 void
 x_outl(CARD16 port, CARD32 val)
 {
-#ifdef PRINT_PORT
-    ErrorF(" outl(%#x, %8.8x)\n", port, val);
-#endif
-
-    if (!pciCfg1out(port, val))
+    if (!pciCfg1out(port, val)) {
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" outl(%#x, %8.8x)\n", port, val);
 	outl(Int10Current->ioBase + port, val);
+    }
 }
 
 CARD8
@@ -481,6 +472,8 @@ pciCfg1in(CARD16 addr, CARD32 *val)
     }
     if (addr == 0xCFC) {
 	pci_device_cfg_read_u32(Int10Current->dev, val, OFFSET(PciCfg1Addr));
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" cfg_inl(%#x) = %8.8x\n", PciCfg1Addr, *val);
 	return 1;
     }
     return 0;
@@ -494,6 +487,8 @@ pciCfg1out(CARD16 addr, CARD32 val)
 	return 1;
     }
     if (addr == 0xCFC) {
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" cfg_outl(%#x, %8.8x)\n", PciCfg1Addr, val);
 	pci_device_cfg_write_u32(Int10Current->dev, val, OFFSET(PciCfg1Addr));
 	return 1;
     }
@@ -514,6 +509,8 @@ pciCfg1inw(CARD16 addr, CARD16 *val)
 	const unsigned offset = addr - 0xCFC;
 
 	pci_device_cfg_read_u16(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" cfg_inw(%#x) = %4.4x\n", PciCfg1Addr + offset, *val);
 	return 1;
     }
     return 0;
@@ -533,6 +530,8 @@ pciCfg1outw(CARD16 addr, CARD16 val)
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	const unsigned offset = addr - 0xCFC;
 
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" cfg_outw(%#x, %4.4x)\n", PciCfg1Addr + offset, val);
 	pci_device_cfg_write_u16(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }
@@ -553,6 +552,8 @@ pciCfg1inb(CARD16 addr, CARD8 *val)
 	const unsigned offset = addr - 0xCFC;
 
 	pci_device_cfg_read_u8(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" cfg_inb(%#x) = %2.2x\n", PciCfg1Addr + offset, *val);
 	return 1;
     }
     return 0;
@@ -572,6 +573,8 @@ pciCfg1outb(CARD16 addr, CARD8 val)
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
 	const unsigned offset = addr - 0xCFC;
 
+	if (PRINT_PORT && DEBUG_IO_TRACE())
+	    ErrorF(" cfg_outb(%#x, %2.2x)\n", PciCfg1Addr + offset, val);
 	pci_device_cfg_write_u8(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }

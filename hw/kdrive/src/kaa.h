@@ -1,6 +1,4 @@
 /*
- * $RCSId: $
- *
  * Copyright © 2001 Keith Packard
  *
  * Partly based on code that is Copyright © The XFree86 Project Inc.

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright © 2004 PillowElephantBadgerBankPond 
  
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -25,7 +23,6 @@
  * 	- jaymz
  *
  */
-/* $Header$ */
 #ifdef HAVE_CONFIG_H
 #include "kdrive-config.h"
 #endif

@@ -1,5 +1,3 @@
-/* $XFree86$ */
-
 /*
 
    int XAAHelpSolidROP(ScrnInfoPtr pScrn, int *fg, int pm, int *rop)

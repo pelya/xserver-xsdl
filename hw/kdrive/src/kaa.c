@@ -1,6 +1,4 @@
 /*
- * $RCSId: xc/programs/Xserver/hw/kdrive/kaa.c,v 1.4 2001/06/04 09:45:41 keithp Exp $
- *
  * Copyright © 2001 Keith Packard
  *
  * Partly based on code that is Copyright © The XFree86 Project Inc.

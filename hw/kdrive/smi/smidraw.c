@@ -1,6 +1,4 @@
 /*
- * Id: smidraw.c,v 1.1 1999/11/02 03:54:47 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its

@@ -1,6 +1,4 @@
 /*
- * Id: kmap.c,v 1.1 1999/11/02 03:54:46 keithp Exp $
- *
  * Copyright © 1999 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -21,7 +19,6 @@
  * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $RCSId: xc/programs/Xserver/hw/kdrive/kmap.c,v 1.10 2001/07/24 21:26:17 keithp Exp $ */
 
 #include <kdrive-config.h>
 #include "kdrive.h"

@@ -68,8 +68,6 @@ SOFTWARE.
 
 */
 
-/* $XConsortium: vgaGC.c /main/6 1996/02/21 17:58:54 kaleb $ */
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif

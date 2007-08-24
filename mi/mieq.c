@@ -105,7 +105,7 @@ mieqInit(void)
 void
 mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
 {
-    HWEventQueueType       oldtail = miEventQueue.tail, newtail;
+    unsigned int           oldtail = miEventQueue.tail, newtail;
     int                    isMotion = 0;
     deviceValuator         *v = (deviceValuator *) e;
     EventPtr               laste = &miEventQueue.events[(oldtail - 1) %

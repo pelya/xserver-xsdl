@@ -1,5 +1,4 @@
 /* 
- * 
  * Copyright (c) 1997  Metro Link Incorporated
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -77,17 +76,6 @@ static xf86ConfigSymTabRec FilesTab[] =
 	{-1, ""},
 };
 
-static char *
-prependRoot (char *pathname)
-{
-#ifndef __EMX__
-	return pathname;
-#else
-	/* XXXX caveat: multiple path components in line */
-	return (char *) __XOS2RedirRoot (pathname);
-#endif
-}
-
 #define CLEANUP xf86freeFiles
 
 XF86ConfFilesPtr
@@ -110,7 +98,7 @@ xf86parseFilesSection (void)
 			if (xf86getSubToken (&(ptr->file_comment)) != STRING)
 				Error (QUOTE_MSG, "FontPath");
 			j = FALSE;
-			str = prependRoot (val.str);
+			str = val.str;
 			if (ptr->file_fontpath == NULL)
 			{
 				ptr->file_fontpath = xf86confmalloc (1);
@@ -143,7 +131,7 @@ xf86parseFilesSection (void)
 			if (xf86getSubToken (&(ptr->file_comment)) != STRING)
 				Error (QUOTE_MSG, "ModulePath");
 			l = FALSE;
-			str = prependRoot (val.str);
+			str = val.str;
 			if (ptr->file_modulepath == NULL)
 			{
 				ptr->file_modulepath = xf86confmalloc (1);
@@ -170,7 +158,7 @@ xf86parseFilesSection (void)
 			if (xf86getSubToken (&(ptr->file_comment)) != STRING)
 				Error (QUOTE_MSG, "InputDevices");
 			l = FALSE;
-			str = prependRoot (val.str);
+			str = val.str;
 			if (ptr->file_inputdevs == NULL)
 			{
 				ptr->file_inputdevs = xf86confmalloc (1);
@@ -258,7 +246,7 @@ xf86printFileSection (FILE * cf, XF86ConfFilesPtr ptr)
 			s++;
 			p = index (s, ',');
 		}
-		fprintf (cf, "\tInputdevs   \"%s\"\n", s);
+		fprintf (cf, "\tInputDevices   \"%s\"\n", s);
 	}
 	if (ptr->file_fontpath)
 	{

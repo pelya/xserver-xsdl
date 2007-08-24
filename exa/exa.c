@@ -253,7 +253,7 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 				     pExaScr->info->pixmapPitchAlign);
     pExaPixmap->fb_size = pExaPixmap->fb_pitch * h;
 
-    if (pExaPixmap->fb_pitch > 32767) {
+    if (pExaPixmap->fb_pitch > 131071) {
 	fbDestroyPixmap(pPixmap);
 	return NULL;
     }
@@ -526,6 +526,7 @@ exaCloseScreen(int i, ScreenPtr pScreen)
     if (ps) {
 	ps->Composite = pExaScr->SavedComposite;
 	ps->Glyphs = pExaScr->SavedGlyphs;
+	ps->Trapezoids = pExaScr->SavedTrapezoids;
     }
 #endif
 
@@ -568,6 +569,45 @@ exaDriverInit (ScreenPtr		pScreen,
 #ifdef RENDER
     PictureScreenPtr ps;
 #endif
+
+    if (!pScreenInfo)
+	return FALSE;
+
+    if (!pScreenInfo->memoryBase) {
+	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::memoryBase must be "
+		   "non-zero\n", pScreen->myNum);
+	return FALSE;
+    }
+
+    if (!pScreenInfo->memorySize) {
+	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::memorySize must be "
+		   "non-zero\n", pScreen->myNum);
+	return FALSE;
+    }
+
+    if (pScreenInfo->offScreenBase > pScreenInfo->memorySize) {
+	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::offScreenBase must be <= "
+		   "ExaDriverRec::memorySize\n", pScreen->myNum);
+	return FALSE;
+    }
+
+    if (!pScreenInfo->PrepareSolid) {
+	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::PrepareSolid must be "
+		   "non-NULL\n", pScreen->myNum);
+	return FALSE;
+    }
+
+    if (!pScreenInfo->PrepareCopy) {
+	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::PrepareCopy must be "
+		   "non-NULL\n", pScreen->myNum);
+	return FALSE;
+    }
+
+    if (!pScreenInfo->WaitMarker) {
+	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::WaitMarker must be "
+		   "non-NULL\n", pScreen->myNum);
+	return FALSE;
+    }
 
     if (pScreenInfo->exa_major != EXA_VERSION_MAJOR ||
 	pScreenInfo->exa_minor > EXA_VERSION_MINOR)
@@ -645,6 +685,9 @@ exaDriverInit (ScreenPtr		pScreen,
 
 	pExaScr->SavedGlyphs = ps->Glyphs;
 	ps->Glyphs = exaGlyphs;
+
+	pExaScr->SavedTrapezoids = ps->Trapezoids;
+	ps->Trapezoids = exaTrapezoids;
     }
 #endif
 

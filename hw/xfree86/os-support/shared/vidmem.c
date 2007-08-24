@@ -30,9 +30,6 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef __UNIXOS2__
-# define I_NEED_OS2_H
-#endif
 #include <X11/X.h>
 #include "input.h"
 #include "scrnintstr.h"

@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright © 2006 Sun Microsystems
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -59,10 +57,10 @@ compCheckWindow (WindowPtr pWin, pointer data)
     
     if (!pWin->parent)
     {
-	assert (!pWin->redirectDraw);
+	assert (pWin->redirectDraw == RedirectDrawNone);
 	assert (pWinPixmap == pScreenPixmap);
     }
-    else if (pWin->redirectDraw)
+    else if (pWin->redirectDraw != RedirectDrawNone)
     {
 	assert (pWinPixmap != pParentPixmap);
 	assert (pWinPixmap != pScreenPixmap);
@@ -113,7 +111,7 @@ compSetPixmapVisitWindow (WindowPtr pWindow, pointer data)
     CompPixmapVisitPtr	pVisit = (CompPixmapVisitPtr) data;
     ScreenPtr		pScreen = pWindow->drawable.pScreen;
 
-    if (pWindow != pVisit->pWindow && pWindow->redirectDraw)
+    if (pWindow != pVisit->pWindow && pWindow->redirectDraw != RedirectDrawNone)
 	return WT_DONTWALKCHILDREN;
     (*pScreen->SetWindowPixmap) (pWindow, pVisit->pPixmap);
     /*
@@ -157,7 +155,7 @@ compCheckRedirect (WindowPtr pWin)
 	}
     }	
     
-    if (should != pWin->redirectDraw)
+    if (should != (pWin->redirectDraw != RedirectDrawNone))
     {
 	if (should)
 	    return compAllocPixmap (pWin);
@@ -181,10 +179,11 @@ compPositionWindow (WindowPtr pWin, int x, int y)
     compCheckRedirect (pWin);
      */
 #ifdef COMPOSITE_DEBUG
-    if (pWin->redirectDraw != (pWin->viewable && (GetCompWindow(pWin) != NULL)))
+    if ((pWin->redirectDraw != RedirectDrawNone) !=
+	(pWin->viewable && (GetCompWindow(pWin) != NULL)))
 	abort ();
 #endif
-    if (pWin->redirectDraw)
+    if (pWin->redirectDraw != RedirectDrawNone)
     {
 	PixmapPtr   pPixmap = (*pScreen->GetWindowPixmap) (pWin);
 	int	    bw = wBorderWidth (pWin);
@@ -331,7 +330,7 @@ compMoveWindow (WindowPtr pWin, int x, int y, WindowPtr pSib, VTKind kind)
     CompScreenPtr	cs = GetCompScreen (pScreen);
 
     compCheckTree (pScreen);
-    if (pWin->redirectDraw)
+    if (pWin->redirectDraw != RedirectDrawNone)
     {
 	WindowPtr		pParent;
 	int			draw_x, draw_y;
@@ -355,7 +354,7 @@ compMoveWindow (WindowPtr pWin, int x, int y, WindowPtr pSib, VTKind kind)
     cs->MoveWindow = pScreen->MoveWindow;
     pScreen->MoveWindow = compMoveWindow;
 
-    if (pWin->redirectDraw)
+    if (pWin->redirectDraw != RedirectDrawNone)
     {
 	CompWindowPtr	cw = GetCompWindow (pWin);
 	if (cw->pOldPixmap)
@@ -376,7 +375,7 @@ compResizeWindow (WindowPtr pWin, int x, int y,
     CompScreenPtr	cs = GetCompScreen (pScreen);
 
     compCheckTree (pScreen);
-    if (pWin->redirectDraw)
+    if (pWin->redirectDraw != RedirectDrawNone)
     {
 	WindowPtr		pParent;
 	int			draw_x, draw_y;
@@ -397,7 +396,7 @@ compResizeWindow (WindowPtr pWin, int x, int y,
     (*pScreen->ResizeWindow) (pWin, x, y, w, h, pSib);
     cs->ResizeWindow = pScreen->ResizeWindow;
     pScreen->ResizeWindow = compResizeWindow;
-    if (pWin->redirectDraw)
+    if (pWin->redirectDraw != RedirectDrawNone)
     {
 	CompWindowPtr	cw = GetCompWindow (pWin);
 	if (cw->pOldPixmap)
@@ -416,7 +415,7 @@ compChangeBorderWidth (WindowPtr pWin, unsigned int bw)
     CompScreenPtr	cs = GetCompScreen (pScreen);
 
     compCheckTree (pScreen);
-    if (pWin->redirectDraw)
+    if (pWin->redirectDraw != RedirectDrawNone)
     {
 	WindowPtr		pParent;
 	int			draw_x, draw_y;
@@ -438,7 +437,7 @@ compChangeBorderWidth (WindowPtr pWin, unsigned int bw)
     (*pScreen->ChangeBorderWidth) (pWin, bw);
     cs->ChangeBorderWidth = pScreen->ChangeBorderWidth;
     pScreen->ChangeBorderWidth = compChangeBorderWidth;
-    if (pWin->redirectDraw)
+    if (pWin->redirectDraw != RedirectDrawNone)
     {
 	CompWindowPtr	cw = GetCompWindow (pWin);
 	if (cw->pOldPixmap)
@@ -482,7 +481,7 @@ compReparentWindow (WindowPtr pWin, WindowPtr pPriorParent)
     /*
      * Reset pixmap pointers as appropriate
      */
-    if (pWin->parent && !pWin->redirectDraw)
+    if (pWin->parent && pWin->redirectDraw == RedirectDrawNone)
 	compSetPixmap (pWin, (*pScreen->GetWindowPixmap) (pWin->parent));
     /*
      * Call down to next function
@@ -501,7 +500,7 @@ compCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     CompScreenPtr   cs = GetCompScreen (pScreen);
     int		    dx = 0, dy = 0;
 
-    if (pWin->redirectDraw)
+    if (pWin->redirectDraw != RedirectDrawNone)
     {
 	PixmapPtr	pPixmap = (*pScreen->GetWindowPixmap) (pWin);
 	CompWindowPtr	cw = GetCompWindow (pWin);
@@ -626,7 +625,7 @@ compDestroyWindow (WindowPtr pWin)
     while ((csw = GetCompSubwindows (pWin)))
 	FreeResource (csw->clients->id, RT_NONE);
     
-    if (pWin->redirectDraw)
+    if (pWin->redirectDraw != RedirectDrawNone)
 	compFreePixmap (pWin);
     ret = (*pScreen->DestroyWindow) (pWin);
     cs->DestroyWindow = pScreen->DestroyWindow;
@@ -770,7 +769,7 @@ compWindowUpdate (WindowPtr pWin)
 
     for (pChild = pWin->lastChild; pChild; pChild = pChild->prevSib)
 	compWindowUpdate (pChild);
-    if (pWin->redirectDraw)
+    if (pWin->redirectDraw != RedirectDrawNone)
     {
 	CompWindowPtr	cw = GetCompWindow(pWin);
 

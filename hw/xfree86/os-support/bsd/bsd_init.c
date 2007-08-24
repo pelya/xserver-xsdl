@@ -22,7 +22,6 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XConsortium: bsd_init.c /main/8 1996/10/23 13:13:05 kaleb $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -160,7 +159,9 @@ xf86OpenConsole()
     xf86ConsOpen_t *driver;
 #if defined (SYSCONS_SUPPORT) || defined (PCVT_SUPPORT)
     int result;
+#ifdef __FreeBSD__
     struct utsname uts;
+#endif
     vtmode_t vtmode;
 #endif
     
@@ -251,6 +252,7 @@ xf86OpenConsole()
 #endif
 	    /* otherwise fall through */
 	case PCVT:
+#if !(defined(__NetBSD__) && (__NetBSD_Version__ >= 200000000))
 	    /*
 	     * First activate the #1 VT.  This is a hack to allow a server
 	     * to be started while another one is active.  There should be
@@ -265,7 +267,7 @@ xf86OpenConsole()
 		}
 		sleep(1);
 	    }
-
+#endif
 acquire_vt:
 	    /*
 	     * now get the VT

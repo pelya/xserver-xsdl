@@ -148,9 +148,7 @@ extern void _Qp_uitoq(unsigned int *, unsigned int);
 #endif
 
 #if defined(__GNUC__)
-#ifndef __UNIXOS2__
 extern long __div64(long, long);
-#endif
 extern long __divdf3(long, long);
 extern long __divdi3(long, long);
 extern long __divsf3(long, long);
@@ -158,9 +156,7 @@ extern long __divsi3(long, long);
 extern long __moddi3(long, long);
 extern long __modsi3(long, long);
 
-#ifndef __UNIXOS2__
 extern long __mul64(long, long);
-#endif
 extern long __muldf3(long, long);
 extern long __muldi3(long, long);
 extern long __mulsf3(long, long);
@@ -170,18 +166,14 @@ extern long __udivsi3(long, long);
 extern long __umoddi3(long, long);
 extern long __umodsi3(long, long);
 
-#ifndef __UNIXOS2__
 #pragma weak __div64
-#endif
 #pragma weak __divdf3
 #pragma weak __divdi3
 #pragma weak __divsf3
 #pragma weak __divsi3
 #pragma weak __moddi3
 #pragma weak __modsi3
-#ifndef __UNIXOS2__
 #pragma weak __mul64
-#endif
 #pragma weak __muldf3
 #pragma weak __muldi3
 #pragma weak __mulsf3
@@ -264,6 +256,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86UDelay)
     SYMFUNC(xf86IODelay)
     SYMFUNC(xf86SlowBcopy)
+    SYMFUNC(xf86SetReallySlowBcopy)
 #ifdef __alpha__
     SYMFUNC(xf86SlowBCopyToBus)
     SYMFUNC(xf86SlowBCopyFromBus)
@@ -1037,7 +1030,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
 # endif
 #endif
 #if defined(__GNUC__)
-#if !defined(__UNIXOS2__) && !defined(Lynx)
+#if !defined(Lynx)
     SYMFUNC(__div64)
 #endif
 #if !defined(Lynx)	/* FIXME: test on others than x86 and !3.1.0a/x86 */
@@ -1052,7 +1045,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
 #if !defined(Lynx)
     SYMFUNC(__modsi3)
 #endif
-#if !defined(__UNIXOS2__) && !defined(Lynx)
+#if !defined(Lynx)
     SYMFUNC(__mul64)
 #endif
 #if !defined(Lynx)
@@ -1111,13 +1104,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMVAR(xf86Screens)
     SYMVAR(byte_reversed)
     SYMVAR(xf86inSuspend)
-    /* debugging variables */
-#ifdef BUILDDEBUG
-    SYMVAR(xf86p8bit)
-    SYMVAR(xf86DummyVar1)
-    SYMVAR(xf86DummyVar2)
-    SYMVAR(xf86DummyVar3)
-#endif
 
     /* predefined resource lists from xf86Bus.h */
     SYMVAR(resVgaExclusive)
@@ -1152,9 +1138,12 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86CrtcCreate)
     SYMFUNC(xf86CrtcDestroy)
     SYMFUNC(xf86CrtcInUse)
+    SYMFUNC(xf86CrtcSetScreenSubpixelOrder)
+    SYMFUNC(xf86RotateCloseScreen)
     SYMFUNC(xf86CrtcRotate)
     SYMFUNC(xf86CrtcSetMode)
     SYMFUNC(xf86CrtcSetSizeRange)
+    SYMFUNC(xf86CrtcScreenInit)
     SYMFUNC(xf86CVTMode)
     SYMFUNC(xf86DisableUnusedFunctions)
     SYMFUNC(xf86DPMSSet)
@@ -1167,18 +1156,25 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86ModesAdd)
     SYMFUNC(xf86ModesEqual)
     SYMFUNC(xf86ModeVRefresh)
+    SYMFUNC(xf86ModeWidth)
+    SYMFUNC(xf86ModeHeight)
     SYMFUNC(xf86OutputCreate)
     SYMFUNC(xf86OutputDestroy)
     SYMFUNC(xf86OutputGetEDID)
+    SYMFUNC(xf86ConnectorGetName)
     SYMFUNC(xf86OutputGetEDIDModes)
     SYMFUNC(xf86OutputRename)
+    SYMFUNC(xf86OutputUseScreenMonitor)
     SYMFUNC(xf86OutputSetEDID)
+    SYMFUNC(xf86OutputFindClosestMode)
     SYMFUNC(xf86PrintModeline)
     SYMFUNC(xf86ProbeOutputModes)
     SYMFUNC(xf86PruneInvalidModes)
     SYMFUNC(xf86SetModeCrtc)
     SYMFUNC(xf86SetModeDefaultName)
     SYMFUNC(xf86SetScrnInfoModes)
+    SYMFUNC(xf86SetDesiredModes)
+    SYMFUNC(xf86SetSingleMode)
     SYMFUNC(xf86ValidateModesClocks)
     SYMFUNC(xf86ValidateModesFlags)
     SYMFUNC(xf86ValidateModesSize)
@@ -1196,12 +1192,14 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86RandR12PreInit)
     SYMFUNC(xf86RandR12SetConfig)
     SYMFUNC(xf86RandR12SetRotations)
+    SYMFUNC(xf86RandR12TellChanged)
 #endif
     SYMFUNC(xf86_cursors_init)
     SYMFUNC(xf86_reload_cursors)
     SYMFUNC(xf86_show_cursors)
     SYMFUNC(xf86_hide_cursors)
     SYMFUNC(xf86_cursors_fini)
+    SYMFUNC(xf86_crtc_clip_video_helper)
 
     SYMFUNC(xf86DoEDID_DDC1)
     SYMFUNC(xf86DoEDID_DDC2)

@@ -22,8 +22,9 @@
  */
 
 /**
- * @file This is a copy of edid_modes.c from the X Server, for compatibility
- * with old X Servers.
+ * @file This file covers code to convert a xf86MonPtr containing EDID-probed
+ * information into a list of modes, including applying monitor-specific
+ * quirks to fix broken EDID data.
  */
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -49,35 +50,11 @@
 
 typedef enum {
     DDC_QUIRK_NONE = 0,
-    /* Force detailed sync polarity to -h +v */
-    DDC_QUIRK_DT_SYNC_HM_VP = 1 << 0,
     /* First detailed mode is bogus, prefer largest mode at 60hz */
-    DDC_QUIRK_PREFER_LARGE_60 = 1 << 1,
+    DDC_QUIRK_PREFER_LARGE_60 = 1 << 0,
     /* 135MHz clock is too high, drop a bit */
-    DDC_QUIRK_135_CLOCK_TOO_HIGH = 1 << 2
+    DDC_QUIRK_135_CLOCK_TOO_HIGH = 1 << 1,
 } ddc_quirk_t;
-
-static Bool quirk_dt_sync_hm_vp (int scrnIndex, xf86MonPtr DDC)
-{
-    /* Belinea 1924S1W */
-    if (memcmp (DDC->vendor.name, "MAX", 4) == 0 &&
-	DDC->vendor.prod_id == 1932)
-	return TRUE;
-    /* Belinea 10 20 30W */
-    if (memcmp (DDC->vendor.name, "MAX", 4) == 0 &&
-	DDC->vendor.prod_id == 2007)
-	return TRUE;
-    /* ViewSonic VX2025wm (bug #9941) */
-    if (memcmp (DDC->vendor.name, "VSC", 4) == 0 &&
-	DDC->vendor.prod_id == 58653)
-	return TRUE;
-    /* Samsung SyncMaster 205BW */
-    if (memcmp (DDC->vendor.name, "SAM", 4) == 0 &&
-	DDC->vendor.prod_id == 541)
-	return TRUE;
-     
-    return FALSE;
-}
 
 static Bool quirk_prefer_large_60 (int scrnIndex, xf86MonPtr DDC)
 {
@@ -91,11 +68,16 @@ static Bool quirk_prefer_large_60 (int scrnIndex, xf86MonPtr DDC)
 	DDC->vendor.prod_id == 44358)
 	return TRUE;
 
-    /* Samsung SyncMaster 226BW */
+    /* Bug #10814: Samsung SyncMaster 225BW */
+    if (memcmp (DDC->vendor.name, "SAM", 4) == 0 &&
+	DDC->vendor.prod_id == 596)
+	return TRUE;
+
+    /* Bug #10545: Samsung SyncMaster 226BW */
     if (memcmp (DDC->vendor.name, "SAM", 4) == 0 &&
 	DDC->vendor.prod_id == 638)
 	return TRUE;
-    
+
     return FALSE;
 }
 
@@ -116,10 +98,6 @@ typedef struct {
 } ddc_quirk_map_t;
 
 static const ddc_quirk_map_t ddc_quirks[] = {
-    { 
-	quirk_dt_sync_hm_vp,	DDC_QUIRK_DT_SYNC_HM_VP,
-	"Set detailed timing sync polarity to -h +v"
-    },
     {
 	quirk_prefer_large_60,   DDC_QUIRK_PREFER_LARGE_60,
 	"Detailed timing is not preferred, use largest mode at 60Hz"
@@ -268,20 +246,15 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
     if (timing->interlaced)
         Mode->Flags |= V_INTERLACE;
 
-    if (quirks & DDC_QUIRK_DT_SYNC_HM_VP)
-	Mode->Flags |= V_NHSYNC | V_PVSYNC;
+    if (timing->misc & 0x02)
+	Mode->Flags |= V_PVSYNC;
     else
-    {
-	if (timing->misc & 0x02)
-	    Mode->Flags |= V_PHSYNC;
-	else
-	    Mode->Flags |= V_NHSYNC;
-    
-	if (timing->misc & 0x01)
-	    Mode->Flags |= V_PVSYNC;
-	else
-	    Mode->Flags |= V_NVSYNC;
-    }
+	Mode->Flags |= V_NVSYNC;
+
+    if (timing->misc & 0x01)
+	Mode->Flags |= V_PHSYNC;
+    else
+	Mode->Flags |= V_NHSYNC;
 
     return Mode;
 }
@@ -330,7 +303,7 @@ DDCGuessRangesFromModes(int scrnIndex, MonPtr Monitor, DisplayModePtr Modes)
     }
 }
 
-DisplayModePtr
+_X_EXPORT DisplayModePtr
 xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
 {
     int preferred, i;
@@ -416,12 +389,12 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
 /*
  * Fill out MonPtr with xf86MonPtr information.
  */
-void
+_X_EXPORT void
 xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 {
     DisplayModePtr Modes = NULL, Mode;
     int i, clock;
-    Bool have_hsync = FALSE, have_vrefresh = FALSE;
+    Bool have_hsync = FALSE, have_vrefresh = FALSE, have_maxpixclock = FALSE;
 
     if (!Monitor || !DDC)
         return;
@@ -441,6 +414,7 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
     /* Skip EDID ranges if they were specified in the config file */
     have_hsync = (Monitor->nHsync != 0);
     have_vrefresh = (Monitor->nVrefresh != 0);
+    have_maxpixclock = (Monitor->maxPixClock != 0);
 
     /* Go through the detailed monitor sections */
     for (i = 0; i < DET_TIMINGS; i++) {
@@ -475,7 +449,7 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 	    }
 
 	    clock = DDC->det_mon[i].section.ranges.max_clock * 1000;
-	    if (clock > Monitor->maxPixClock)
+	    if (!have_maxpixclock && clock > Monitor->maxPixClock)
 		Monitor->maxPixClock = clock;
 
             break;

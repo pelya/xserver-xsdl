@@ -30,6 +30,7 @@
 #include "xf86Modes.h"
 #include "xf86Cursor.h"
 #include "damage.h"
+#include "picturestr.h"
 
 /* Compat definitions for older X Servers. */
 #ifndef M_T_PREFERRED
@@ -279,6 +280,17 @@ struct _xf86Crtc {
      * Track state of cursor associated with this CRTC
      */
     Bool	    cursor_shown;
+
+    /**
+     * Current transformation matrix
+     */
+    PictTransform   crtc_to_framebuffer;
+    PictTransform   framebuffer_to_crtc;
+    Bool	    transform_in_use;
+    /**
+     * Bounding box in screen space
+     */
+    BoxRec	    bounds;
 };
 
 typedef struct _xf86OutputFuncs {
@@ -753,5 +765,24 @@ xf86_hide_cursors (ScrnInfoPtr scrn);
  */
 void
 xf86_cursors_fini (ScreenPtr screen);
+
+/*
+ * For overlay video, compute the relevant CRTC and
+ * clip video to that.
+ * wraps xf86XVClipVideoHelper()
+ */
+
+Bool
+xf86_crtc_clip_video_helper(ScrnInfoPtr pScrn,
+			    xf86CrtcPtr *crtc_ret,
+			    xf86CrtcPtr desired_crtc,
+			    BoxPtr      dst,
+			    INT32	*xa,
+			    INT32	*xb,
+			    INT32	*ya,
+			    INT32	*yb,
+			    RegionPtr   reg,
+			    INT32	width,
+			    INT32	height);
     
 #endif /* _XF86CRTC_H_ */

@@ -37,7 +37,8 @@
 
 # Some NVIDIA cards that are not in the master pci.ids file yet.
 10de	"
-	0147	GeForce 6700 XL
-	0160	GeForce 6500
-	0169	GeForce 6250
+	0399	GeForce Go 7600 GT
+	039a	Quadro NVS 300M
+
+
 

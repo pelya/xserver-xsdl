@@ -53,10 +53,6 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef __UNIXOS2__
-#define I_NEED_OS2_H
-#endif
-
 #include <X11/X.h>
 #include <X11/Xpoll.h>
 #include <X11/Xproto.h>
@@ -125,9 +121,6 @@ extern Bool noXkbExtension;
  * This has been generalised to work with Linux and *BSD+syscons (DHD)
  */
 
-#ifdef USE_VT_SYSREQ
-static Bool VTSysreqToggle = FALSE;
-#endif /* !USE_VT_SYSREQ */
 _X_EXPORT Bool VTSwitchEnabled = TRUE;	/* Allows run-time disabling for
                                          *BSD and for avoiding VT
                                          switches when using the DRI
@@ -323,7 +316,7 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 	    CloseDownClient(server);
 	}
 	break;
-#if !defined(__SOL8__) && !defined(__UNIXOS2__) && !defined(sgi) && \
+#if !defined(__SOL8__) && !defined(sgi) && \
     (!defined(sun) || defined(i386)) && defined(VT_ACTIVATE)
     case ACTION_SWITCHSCREEN:
 	if (VTSwitchEnabled && !xf86Info.dontVTSwitch && arg) {
@@ -443,7 +436,7 @@ xf86CommonSpecialKey(int key, Bool down, int modifiers)
 void
 xf86Wakeup(pointer blockData, int err, pointer pReadmask)
 {
-#if !defined(__UNIXOS2__) && !defined(__QNX__)
+#if !defined(__QNX__)
     fd_set* LastSelectMask = (fd_set*)pReadmask;
     fd_set devicesWithInput;
     InputInfoPtr pInfo;
@@ -470,7 +463,7 @@ xf86Wakeup(pointer blockData, int err, pointer pReadmask)
 	    }
 	}
     }
-#else   /* __UNIXOS2__ and __QNX__ */
+#else   /* __QNX__ */
 
     InputInfoPtr pInfo;
 
@@ -490,7 +483,7 @@ xf86Wakeup(pointer blockData, int err, pointer pReadmask)
 		pInfo = pInfo->next;
     }
 
-#endif  /* __UNIXOS2__ and __QNX__ */
+#endif  /* __QNX__ */
 
     if (err >= 0) { /* we don't want the handlers called if select() */
 	IHPtr ih;   /* returned with an error condition, do we?      */
@@ -771,16 +764,6 @@ xf86SigHandler(int signo)
   FatalError("Caught signal %d.  Server aborting\n", signo);
 }
 
-#ifdef MEMDEBUG
-void
-xf86SigMemDebug(int signo)
-{
-    CheckMemory();
-    (void) signal(signo, xf86SigMemDebug);
-    return;
-}
-#endif
-
 static void
 xf86ReleaseKeys(DeviceIntPtr pDev)
 {
@@ -877,7 +860,6 @@ xf86VTSwitch()
 	if (xf86Screens[i]->EnableDisableFBAccess)
 	  (*xf86Screens[i]->EnableDisableFBAccess) (i, FALSE);
     }
-#if !defined(__UNIXOS2__)
 
     /*
      * Keep the order: Disable Device > LeaveVT
@@ -889,7 +871,6 @@ xf86VTSwitch()
           DisableDevice(pInfo->dev);
       pInfo = pInfo->next;
     }
-#endif /* !__UNIXOS2__ */
     xf86EnterServerState(SETUP);
     for (i = 0; i < xf86NumScreens; i++)
 	xf86Screens[i]->LeaveVT(i, 0);
@@ -923,7 +904,6 @@ xf86VTSwitch()
       }
       SaveScreens(SCREEN_SAVER_FORCER, ScreenSaverReset);
 
-#if !defined(__UNIXOS2__)
       pInfo = xf86InputDevs;
       while (pInfo) {
         if (pInfo->dev) {
@@ -934,7 +914,6 @@ xf86VTSwitch()
       }
       /* XXX HACK */
       xf86ReleaseKeys(inputInfo.keyboard);
-#endif /* !__UNIXOS2__ */
       for (ih = InputHandlers; ih; ih = ih->next)
         xf86EnableInputHandler(ih);
 
@@ -989,7 +968,6 @@ xf86VTSwitch()
     /* Turn screen saver off when switching back */
     SaveScreens(SCREEN_SAVER_FORCER,ScreenSaverReset);
 
-#if !defined(__UNIXOS2__)
     pInfo = xf86InputDevs;
     while (pInfo) {
       if (pInfo->dev) {
@@ -1000,7 +978,6 @@ xf86VTSwitch()
     }
     /* XXX HACK */
     xf86ReleaseKeys(inputInfo.keyboard);
-#endif /* !__UNIXOS2__ */
 
     for (ih = InputHandlers; ih; ih = ih->next)
       xf86EnableInputHandler(ih);

@@ -22,7 +22,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XConsortium: atKeynames.h /main/11 1996/03/09 11:17:41 kaleb $ */
 
 #define XK_TECHNICAL
 #define	XK_KATAKANA

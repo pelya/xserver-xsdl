@@ -1,4 +1,3 @@
-/* $XFree86$ */
 /* Portions of this file were derived from the following files:
  *
  **********************************************************************

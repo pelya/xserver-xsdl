@@ -87,7 +87,7 @@ addRootWindowProperties(ScrnInfoPtr pScrn, xf86MonPtr DDC)
 	if ((EDID1rawdata = xalloc(128*sizeof(CARD8)))==NULL)
 	    return;
 
-	EDID1Atom = MakeAtom(EDID1_ATOM_NAME, sizeof(EDID1_ATOM_NAME), TRUE);
+	EDID1Atom = MakeAtom(EDID1_ATOM_NAME, sizeof(EDID1_ATOM_NAME) - 1, TRUE);
 	memcpy(EDID1rawdata, DDC->rawData, 128);
 	xf86RegisterRootWindowProperty(scrnIndex, EDID1Atom, XA_INTEGER, 8,
 		128, (unsigned char *)EDID1rawdata);
@@ -98,7 +98,7 @@ addRootWindowProperties(ScrnInfoPtr pScrn, xf86MonPtr DDC)
 	    return;
 
 	memcpy(EDID2rawdata, DDC->rawData, 256);
-	EDID2Atom = MakeAtom(EDID2_ATOM_NAME, sizeof(EDID2_ATOM_NAME), TRUE);
+	EDID2Atom = MakeAtom(EDID2_ATOM_NAME, sizeof(EDID2_ATOM_NAME) - 1, TRUE);
 	xf86RegisterRootWindowProperty(scrnIndex, EDID2Atom, XA_INTEGER, 8,
 		256, (unsigned char *)EDID2rawdata);
     }

@@ -22,7 +22,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XConsortium: lnx_video.c /main/9 1996/10/19 18:06:34 kaleb $ */
 
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -412,7 +411,7 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 # ifndef JENSEN_SUPPORT
 	  FatalError("Jensen is not supported any more\n"
 		     "If you are intereseted in fixing Jensen support\n"
-		     "please contact xfree86@xfree86.org\n");
+		     "please contact xorg@lists.freedesktop.org\n");
 # else
 	  xf86Msg(X_INFO,"Machine type is Jensen\n");
 	  pVidMem->mapMem = mapVidMemJensen;

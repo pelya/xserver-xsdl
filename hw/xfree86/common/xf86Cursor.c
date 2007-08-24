@@ -25,8 +25,6 @@
  * authorization from the copyright holder(s) and author(s).
  */
 
-/* $XConsortium: xf86Cursor.c /main/10 1996/10/19 17:58:23 kaleb $ */
-
 #define NEED_EVENTS
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
@@ -408,18 +406,14 @@ xf86CursorOffScreen(ScreenPtr *pScreen, int *x, int *y)
 /*
  * xf86CrossScreen --
  *      Switch to another screen
+ *
+ *	Currently nothing special happens, but mi assumes the CrossScreen
+ *	method exists.
  */
 
-/* NEED TO CHECK THIS */
-/* ARGSUSED */
 static void
 xf86CrossScreen (ScreenPtr pScreen, Bool entering)
 {
-#if 0
-  if (xf86Info.sharedMonitor)
-    (XF86SCRNINFO(pScreen)->EnterLeaveMonitor)(entering);
-  (XF86SCRNINFO(pScreen)->EnterLeaveCursor)(entering);
-#endif
 }
 
 

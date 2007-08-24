@@ -1,5 +1,4 @@
 /* Xplugin.h -- windowing API for rootless X11 server
-   $Id$
 
    Copyright (c) 2002 Apple Computer, Inc. All rights reserved.
 

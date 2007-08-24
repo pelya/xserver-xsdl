@@ -1,6 +1,4 @@
 /*
- * Id: fbtile.c,v 1.1 1999/11/02 03:54:45 keithp Exp $
- *
  * Copyright © 1998 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -42,6 +40,7 @@ fbEvenTile (FbBits	*dst,
 	    int		height,
 
 	    FbBits	*tile,
+	    FbStride	tileStride,
 	    int		tileHeight,
 
 	    int		alu,
@@ -68,9 +67,9 @@ fbEvenTile (FbBits	*dst,
     /*
      * Compute tile start scanline and rotation parameters
      */
-    tileEnd = tile + tileHeight;
+    tileEnd = tile + tileHeight * tileStride;
     modulus (- yRot, tileHeight, tileY);
-    t = tile + tileY;
+    t = tile + tileY * tileStride;
     modulus (- xRot, FB_UNIT, tileX);
     rot = tileX;
     
@@ -80,8 +79,9 @@ fbEvenTile (FbBits	*dst,
 	/*
 	 * Pick up bits for this scanline
 	 */
-	bits = READ(t++);
-	if (t == tileEnd) t = tile;
+	bits = READ(t);
+	t += tileStride;
+	if (t >= tileEnd) t = tile;
 	bits = FbRotLeft(bits,rot);
 	and = fbAnd(alu,bits,pm);
 	xor = fbXor(alu,bits,pm);
@@ -194,7 +194,7 @@ fbTile (FbBits	    *dst,
 {
     if (FbEvenTile (tileWidth))
 	fbEvenTile (dst, dstStride, dstX, width, height, 
-		    tile, tileHeight,
+		    tile, tileStride, tileHeight,
 		    alu, pm, xRot, yRot);
     else
 	fbOddTile (dst, dstStride, dstX, width, height, 

@@ -1,6 +1,4 @@
 /*
- * Id: fbcopy.c,v 1.1 1999/11/02 03:54:45 keithp Exp $
- *
  * Copyright © 1998 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -66,8 +64,8 @@ fbCopyNtoN (DrawablePtr	pSrcDrawable,
 	    if (!pixman_blt ((uint32_t *)src, (uint32_t *)dst, srcStride, dstStride, srcBpp, dstBpp,
 			     (pbox->x1 + dx + srcXoff),
 			     (pbox->y1 + dy + srcYoff),
-			     (pbox->x1 + srcXoff),
-			     (pbox->y1 + srcYoff),
+			     (pbox->x1 + dstXoff),
+			     (pbox->y1 + dstYoff),
 			     (pbox->x2 - pbox->x1),
 			     (pbox->y2 - pbox->y1)))
 		goto fallback;

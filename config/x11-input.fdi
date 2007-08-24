@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deviceinfo version="0.2">
+  <device>
+    <!-- FIXME: Support tablets too. -->
+    <match key="info.capabilities" contains="input.mouse">
+      <merge key="input.x11_driver" type="string">mouse</merge>
+      <match key="/org/freedesktop/Hal/devices/computer:system.kernel.name"
+             string="Linux">
+        <merge key="input.x11_driver" type="string">evdev</merge>
+      </match>
+    </match>
+
+    <match key="info.capabilities" contains="input.keys">
+      <merge key="input.xkb.rules" type="string">base</merge>
+
+      <!-- If we're using Linux, we use evdev by default (falling back to
+           keyboard otherwise). -->
+      <merge key="input.x11_driver" type="string">keyboard</merge>
+      <merge key="input.xkb.model" type="string">pc105</merge>
+      <match key="/org/freedesktop/Hal/devices/computer:system.kernel.name"
+             string="Linux">
+        <merge key="input.x11_driver" type="string">evdev</merge>
+        <merge key="input.xkb.model" type="string">evdev</merge>
+      </match>
+
+      <merge key="input.xkb.layout" type="string">us</merge>
+
+      <merge key="input.xkb.variant" type="string" />
+    </match>
+  </device>
+</deviceinfo>

@@ -296,7 +296,7 @@ static void init_screen_visuals(__GLXMESAscreen *screen)
     __GLcontextModes *modes;
     XMesaVisual *pXMesaVisual;
     int *used;
-    int i, j, size;
+    int num_vis, j, size;
 
     /* Alloc space for the list of XMesa visuals */
     size = screen->base.numVisuals * sizeof(XMesaVisual);
@@ -312,7 +312,7 @@ static void init_screen_visuals(__GLXMESAscreen *screen)
     used = (int *) xalloc(pScreen->numVisuals * sizeof(int));
     memset(used, 0, pScreen->numVisuals * sizeof(int));
 
-    i = 0;
+    num_vis = 0;
     for ( modes = screen->base.modes; modes != NULL; modes = modes->next ) {
 	const int vis_class = _gl_convert_to_x_visual_type( modes->visualType );
 	const int nplanes = (modes->rgbBits - modes->alphaBits);
@@ -327,7 +327,8 @@ static void init_screen_visuals(__GLXMESAscreen *screen)
 		!used[j]) {
 
 		/* Create the XMesa visual */
-		pXMesaVisual[i] =
+                assert(num_vis < screen->base.numVisuals);
+		pXMesaVisual[num_vis] =
 		    XMesaCreateVisual(pScreen,
 				      &pVis[j],
 				      modes->rgbMode,
@@ -364,13 +365,15 @@ static void init_screen_visuals(__GLXMESAscreen *screen)
 	    FatalError( "Matching visual found, but visualID still -1!\n" );
 	}
 
-	i++;
+	num_vis++;
     }
 
     xfree(used);
 
-    screen->num_vis = pScreen->numVisuals;
+    screen->num_vis = num_vis;
     screen->xm_vis = pXMesaVisual;
+
+    assert(screen->num_vis <= screen->base.numVisuals);
 }
 
 static __GLXscreen *

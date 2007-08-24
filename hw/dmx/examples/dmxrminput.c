@@ -1,4 +1,3 @@
-/* $XFree86$ */
 /*
  * Copyright 2003,2004 Red Hat Inc., Durham, North Carolina.
  *

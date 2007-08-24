@@ -1,6 +1,4 @@
 /*
- * $Id$
- *
  * Copyright © 2004 Keith Packard
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
@@ -44,11 +42,8 @@
 #define OFF(x)   ((x)%BITS_PER_LONG)
 #define LONG(x)  ((x)/BITS_PER_LONG)
 #define BIT(x)         (1 << OFF(x))
-#define SETBIT(x,y) ((x)[LONG(y)] |= BIT(y))
-#define CLRBIT(x,y) ((x)[LONG(y)] &= ~BIT(y))
-#define ASSIGNBIT(x,y,z)    ((x)[LONG(y)] = ((x)[LONG(y)] & ~BIT(y)) | (z << OFF(y)))
 
-typedef struct _kevdevMouse {
+typedef struct _kevdev {
     /* current device state */
     int                            rel[REL_MAX + 1];
     int                            abs[ABS_MAX + 1];
@@ -67,23 +62,60 @@ typedef struct _kevdevMouse {
 } Kevdev;
 
 static void
-EvdevMotion (KdPointerInfo    *pi)
+EvdevPtrBtn (KdPointerInfo    *pi, struct input_event *ev)
+{
+    int flags = KD_MOUSE_DELTA | pi->buttonState;
+
+    if (ev->code >= BTN_MOUSE && ev->code < BTN_JOYSTICK) {
+        switch (ev->code) {
+        case BTN_LEFT:
+            if (ev->value == 1)
+                flags |= KD_BUTTON_1;
+	    else
+                flags &= ~KD_BUTTON_1;
+             break;
+        case BTN_MIDDLE:
+            if (ev->value == 1)
+                flags |= KD_BUTTON_2;
+	    else
+		flags &= ~KD_BUTTON_2;
+            break;
+        case BTN_RIGHT:
+            if (ev->value == 1)
+                flags |= KD_BUTTON_3;
+	    else
+		flags &= ~KD_BUTTON_3;
+            break;
+        default:
+            /* Unknow button */
+            break;
+        }
+
+        KdEnqueuePointerEvent (pi, flags, 0, 0, 0);
+    }
+}
+static void
+EvdevPtrMotion (KdPointerInfo    *pi, struct input_event *ev)
 {
     Kevdev                *ke = pi->driverPrivate;
-    int                        i;
+    int i;
+    int flags = KD_MOUSE_DELTA | pi->buttonState;
 
     for (i = 0; i <= ke->max_rel; i++)
         if (ke->rel[i])
         {
             int a;
-            ErrorF ("rel");
             for (a = 0; a <= ke->max_rel; a++)
             {
-                if (ISBITSET (ke->relbits, a))
-                    ErrorF (" %d=%d", a, ke->rel[a]);
-                ke->rel[a] = 0;
+                if (ISBITSET (ke->relbits, a)) 
+		{
+                    if (a == 0)
+                        KdEnqueuePointerEvent(pi, flags, ke->rel[a], 0, 0);
+                    else if (a == 1)
+                        KdEnqueuePointerEvent(pi, flags, 0, ke->rel[a], 0); 
+                }
+		ke->rel[a] = 0;
             }
-            ErrorF ("\n");
             break;
         }
     for (i = 0; i < ke->max_abs; i++)
@@ -100,10 +132,30 @@ EvdevMotion (KdPointerInfo    *pi)
             ErrorF ("\n");
             break;
         }
+    
+    if (ev->code == REL_WHEEL) {           
+      for (i = 0; i < abs (ev->value); i++) 
+      {
+        if (ev->value > 0)
+          flags |= KD_BUTTON_4;
+        else
+          flags |= KD_BUTTON_5;
+
+        KdEnqueuePointerEvent (pi, flags, 0, 0, 0);
+
+        if (ev->value > 0)
+          flags &= ~KD_BUTTON_4;
+        else
+          flags &= ~KD_BUTTON_5;
+
+        KdEnqueuePointerEvent (pi, flags, 0, 0, 0);
+      }
+    }
+    
 }
 
 static void
-EvdevRead (int evdevPort, void *closure)
+EvdevPtrRead (int evdevPort, void *closure)
 {
     KdPointerInfo                *pi = closure;
     Kevdev                       *ke = pi->driverPrivate;
@@ -112,8 +164,12 @@ EvdevRead (int evdevPort, void *closure)
     int                        n;
 
     n = read (evdevPort, &events, NUM_EVENTS * sizeof (struct input_event));
-    if (n <= 0)
+    if (n <= 0) {
+        if (errno == ENODEV) 
+            DeleteInputDeviceRequest(pi->dixdev);
         return;
+    }
+
     n /= sizeof (struct input_event);
     for (i = 0; i < n; i++)
     {
@@ -121,25 +177,19 @@ EvdevRead (int evdevPort, void *closure)
         case EV_SYN:
             break;
         case EV_KEY:
-            EvdevMotion (pi);
-            ASSIGNBIT(ke->key,events[i].code, events[i].value);
-            if (events[i].code < 0x100)
-                ErrorF ("key %d %d\n", events[i].code, events[i].value);
-            else
-                ErrorF ("key 0x%x %d\n", events[i].code, events[i].value);
+            EvdevPtrBtn (pi, &events[i]);
             break;
         case EV_REL:
             ke->rel[events[i].code] += events[i].value;
+            EvdevPtrMotion (pi, &events[i]);
             break;
         case EV_ABS:
             ke->abs[events[i].code] = events[i].value;
+            EvdevPtrMotion (pi, &events[i]);
             break;
         }
     }
-    EvdevMotion (pi);
 }
-
-int EvdevInputType;
 
 char *kdefaultEvdev[] =  {
     "/dev/input/event0",
@@ -151,35 +201,37 @@ char *kdefaultEvdev[] =  {
 #define NUM_DEFAULT_EVDEV    (sizeof (kdefaultEvdev) / sizeof (kdefaultEvdev[0]))
 
 static Status
-EvdevInit (KdPointerInfo *pi)
+EvdevPtrInit (KdPointerInfo *pi)
 {
     int                i;
     int                fd;
-    int                n = 0;
-    char        *prot;
 
     if (!pi->path) {
         for (i = 0; i < NUM_DEFAULT_EVDEV; i++) {
             fd = open (kdefaultEvdev[i], 2);
-                if (fd >= 0) {
-                    pi->path = KdSaveString (kdefaultEvdev[i]);
-                    break;
-                }
+            if (fd >= 0) {
+                pi->path = KdSaveString (kdefaultEvdev[i]);
+                break;
             }
+        }
     }
     else {
-        fd = open (pi->path, 2);
+        fd = open (pi->path, O_RDWR);
         if (fd < 0) {
             ErrorF("Failed to open evdev device %s\n", pi->path);
             return BadMatch;
         }
     }
 
+    close(fd);
+
+    pi->name = KdSaveString("Evdev mouse");
+
     return Success;
 }
 
 static Status
-EvdevEnable (KdPointerInfo *pi)
+EvdevPtrEnable (KdPointerInfo *pi)
 {        
     int fd;
 
@@ -263,19 +315,23 @@ EvdevEnable (KdPointerInfo *pi)
             return BadValue;
         }
     }
-    if (!KdRegisterFd (fd, EvdevRead, pi)) {
+    if (!KdRegisterFd (fd, EvdevPtrRead, pi)) {
         xfree (ke);
         close (fd);
         return BadAlloc;
     }
     pi->driverPrivate = ke;
+    ke->fd = fd;
+
     return Success;
 }
 
 static void
-EvdevDisable (KdPointerInfo *pi)
+EvdevPtrDisable (KdPointerInfo *pi)
 {
     Kevdev              *ke;
+
+    ke = pi->driverPrivate;
 
     if (!pi || !pi->driverPrivate)
         return;
@@ -286,26 +342,195 @@ EvdevDisable (KdPointerInfo *pi)
 }
 
 static void
-EvdevFini (KdPointerInfo *pi)
+EvdevPtrFini (KdPointerInfo *pi)
+{
+}
+
+
+/*
+ * Evdev keyboard functions 
+ */
+
+static void
+readMapping (KdKeyboardInfo *ki)
+{
+    int             minScanCode, maxScanCode;
+
+    if (!ki)
+        return;
+
+    minScanCode = 0;
+    maxScanCode = 193;
+
+    ki->keySyms.mapWidth = 2;
+
+    ki->minScanCode = minScanCode;
+    ki->maxScanCode = maxScanCode;		
+}
+
+static void
+EvdevKbdRead (int evdevPort, void *closure)
+{
+    KdKeyboardInfo	 *ki = closure;
+    struct input_event	 events[NUM_EVENTS];
+    int			 i, n;
+
+    n = read (evdevPort, &events, NUM_EVENTS * sizeof (struct input_event));
+    if (n <= 0) {
+        if (errno == ENODEV) 
+            DeleteInputDeviceRequest(ki->dixdev);
+        return;
+    }
+
+    n /= sizeof (struct input_event);
+    for (i = 0; i < n; i++)
+    {
+        if (events[i].type == EV_KEY)
+	    KdEnqueueKeyboardEvent (ki, events[i].code, !events[i].value);
+/* FIXME: must implement other types of events
+        else
+            ErrorF("Event type (%d) not delivered\n", events[i].type);
+*/
+    }
+}
+
+static Status
+EvdevKbdInit (KdKeyboardInfo *ki)
+{
+    int fd;
+    
+    if (!ki->path) {
+        ErrorF("Couldn't find evdev device path\n");
+        return BadValue;
+    }
+    else {
+        fd = open (ki->path, O_RDWR);
+        if (fd < 0) {
+            ErrorF("Failed to open evdev device %s\n", ki->path);
+            return BadMatch;
+        }
+    }
+
+    close (fd);
+
+    ki->name = KdSaveString("Evdev keyboard");
+
+    readMapping(ki);
+
+    return Success;
+}
+
+static Status
+EvdevKbdEnable (KdKeyboardInfo *ki)
+{
+    unsigned long       ev[NBITS(EV_MAX)];
+    Kevdev              *ke;
+    int                 fd;
+
+    if (!ki || !ki->path)
+        return BadImplementation;
+
+    fd = open(ki->path, O_RDWR);
+    if (fd < 0)
+        return BadMatch;
+
+    if (ioctl (fd, EVIOCGBIT(0 /*EV*/, sizeof (ev)), ev) < 0) {
+        perror ("EVIOCGBIT 0");
+        close (fd);
+        return BadMatch;
+    }
+
+    ke = xalloc (sizeof (Kevdev));
+    if (!ke) {
+        close (fd);
+        return BadAlloc;
+    }
+    memset (ke, '\0', sizeof (Kevdev));
+
+    if (!KdRegisterFd (fd, EvdevKbdRead, ki)) {
+        xfree (ke);
+        close (fd);
+        return BadAlloc;
+    }
+    ki->driverPrivate = ke;
+    ke->fd = fd;
+
+    return Success;
+}
+
+static void
+EvdevKbdLeds (KdKeyboardInfo *ki, int leds)
+{
+/*    struct input_event event;
+    Kevdev             *ke;
+
+    ki->driverPrivate = ke;
+
+    memset(&event, 0, sizeof(event));
+
+    event.type = EV_LED;
+    event.code = LED_CAPSL;
+    event.value = leds & (1 << 0) ? 1 : 0;
+    write(ke->fd, (char *) &event, sizeof(event));
+
+    event.type = EV_LED;
+    event.code = LED_NUML;
+    event.value = leds & (1 << 1) ? 1 : 0;
+    write(ke->fd, (char *) &event, sizeof(event));
+
+    event.type = EV_LED;
+    event.code = LED_SCROLLL;
+    event.value = leds & (1 << 2) ? 1 : 0;
+    write(ke->fd, (char *) &event, sizeof(event));
+
+    event.type = EV_LED;
+    event.code = LED_COMPOSE;
+    event.value = leds & (1 << 3) ? 1 : 0;
+    write(ke->fd, (char *) &event, sizeof(event));
+*/
+}
+
+static void
+EvdevKbdBell (KdKeyboardInfo *ki, int volume, int frequency, int duration)
+{
+}
+
+static void
+EvdevKbdDisable (KdKeyboardInfo *ki)
+{
+    Kevdev              *ke;
+
+    ke = ki->driverPrivate;
+
+    if (!ki || !ki->driverPrivate)
+        return;
+
+    KdUnregisterFd (ki, ke->fd, TRUE);
+    xfree (ke);
+    ki->driverPrivate = 0;
+}
+
+static void
+EvdevKbdFini (KdKeyboardInfo *ki)
 {
 }
 
 KdPointerDriver LinuxEvdevMouseDriver = {
     "evdev",
-    EvdevInit,
-    EvdevEnable,
-    EvdevDisable,
-    EvdevFini,
+    EvdevPtrInit,
+    EvdevPtrEnable,
+    EvdevPtrDisable,
+    EvdevPtrFini,
     NULL,
 };
 
-#if 0
-KdKeyboardFuncs LinuxEvdevKeyboardFuncs = {
-    EvdevKbdLoad,
+KdKeyboardDriver LinuxEvdevKeyboardDriver = {
+    "evdev",
     EvdevKbdInit,
+    EvdevKbdEnable,
     EvdevKbdLeds,
     EvdevKbdBell,
+    EvdevKbdDisable,
     EvdevKbdFini,
-    0,
+    NULL,
 };
-#endif

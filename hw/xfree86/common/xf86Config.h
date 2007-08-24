@@ -54,17 +54,6 @@ typedef struct _ModuleDefault {
     XF86OptionPtr load_opt;
 } ModuleDefault;
 
-static ModuleDefault ModuleDefaults[] = {
-    {.name = "extmod",   .toLoad = TRUE,    .load_opt=NULL},
-    {.name = "dbe",      .toLoad = TRUE,    .load_opt=NULL},
-    {.name = "glx",      .toLoad = TRUE,    .load_opt=NULL},
-    {.name = "freetype", .toLoad = TRUE,    .load_opt=NULL},
-    {.name = "type1",    .toLoad = TRUE,    .load_opt=NULL},
-    {.name = "record",   .toLoad = TRUE,    .load_opt=NULL},
-    {.name = "dri",      .toLoad = TRUE,    .load_opt=NULL},
-    {.name = NULL,       .toLoad = FALSE,   .load_opt=NULL}
-};
-
 /*
  * prototypes
  */

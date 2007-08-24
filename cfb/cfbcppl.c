@@ -1,6 +1,4 @@
 /*
- * $TOG: cfb8cppl.c /main/16 1998/02/09 14:04:13 kaleb $
- *
 Copyright 1990, 1998  The Open Group
 
 Permission to use, copy, modify, distribute, and sell this software and its

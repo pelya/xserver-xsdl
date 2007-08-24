@@ -1,5 +1,4 @@
 /* 
- * 
  * Copyright (c) 1997  Metro Link Incorporated
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -81,7 +80,7 @@ extern int sys_nerr;
 #if defined(SVR4) || defined(__linux__) || defined(CSRG_BASED)
 #define HAS_SAVED_IDS_AND_SETEUID
 #endif
-#if defined(__UNIXOS2__) || defined(WIN32)
+#if defined(WIN32)
 #define HAS_NO_UIDS
 #endif
 

@@ -30,6 +30,8 @@
 
 extern Window EphyrPreExistingHostWin;
 extern Bool   EphyrWantGrayScale;
+extern Bool   kdHasPointer;
+extern Bool   kdHasKbd;
 
 void
 InitCard (char *name)
@@ -54,19 +56,30 @@ InitInput (int argc, char **argv)
   KdKeyboardInfo *ki;
   KdPointerInfo *pi;
         
-  ki = KdNewKeyboard();
-  if (!ki)
-    FatalError("Couldn't create Xephyr keyboard\n");
-  ki->driver = &EphyrKeyboardDriver;
   KdAddKeyboardDriver(&EphyrKeyboardDriver);
-  KdAddKeyboard(ki);
-
-  pi = KdNewPointer();
-  if (!pi)
-    FatalError("Couldn't create Xephyr pointer\n");
-  pi->driver = &EphyrMouseDriver;
+#ifdef linux
+  KdAddKeyboardDriver(&LinuxEvdevKeyboardDriver);
+#endif
   KdAddPointerDriver(&EphyrMouseDriver);
-  KdAddPointer(pi);
+#ifdef linux
+  KdAddPointerDriver(&LinuxEvdevMouseDriver);
+#endif
+
+  if (!kdHasKbd) {
+    ki = KdNewKeyboard();
+    if (!ki)
+      FatalError("Couldn't create Xephyr keyboard\n");
+    ki->driver = &EphyrKeyboardDriver;
+    KdAddKeyboard(ki);
+  }
+
+  if (!kdHasPointer) {
+    pi = KdNewPointer();
+    if (!pi)
+      FatalError("Couldn't create Xephyr pointer\n");
+    pi->driver = &EphyrMouseDriver;
+    KdAddPointer(pi);
+  }
 
   KdInitInput();
 }

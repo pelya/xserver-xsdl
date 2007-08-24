@@ -1,4 +1,3 @@
-/* $XdotOrg$ */
 /*
  * Copyright 2005 by Kean Johnston <jkj@sco.com>
  * Copyright 1993 by David Wexelblat <dwex@goblin.org>
@@ -23,7 +22,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XConsortium$ */
 
 #include "X.h"
 

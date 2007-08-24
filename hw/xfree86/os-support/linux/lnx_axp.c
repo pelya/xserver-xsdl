@@ -112,8 +112,8 @@ lnxGetAXP(void)
 /*
  * pciconfig_iobase wrappers and dynamic i/o selection
  */
-#include <linux/unistd.h>
-#include <asm/pci.h>
+#include "lnx.h"
+#include <unistd.h>
 #include <errno.h>
 
 /* glibc versions (single hose only) */

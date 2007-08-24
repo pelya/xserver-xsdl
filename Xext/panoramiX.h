@@ -1,4 +1,3 @@
-/* $TOG: panoramiX.h /main/4 1998/03/17 06:51:02 kaleb $ */
 /*****************************************************************
 
 Copyright (c) 1991, 1997 Digital Equipment Corporation, Maynard, Massachusetts.

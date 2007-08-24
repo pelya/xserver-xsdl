@@ -190,7 +190,7 @@
 #if defined(__alpha__)
 # if defined(linux)
 #  define ARCH_PCI_INIT axpPciInit
-# elif defined(__FreeBSD__) || defined(__OpenBSD__)
+# elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
 #  define ARCH_PCI_INIT freebsdPciInit
 #  define INCLUDE_XF86_NO_DOMAIN
 # elif defined(__NetBSD__)

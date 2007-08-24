@@ -1,4 +1,3 @@
-/* $XFree86$ */
 /*
  * Copyright 2001 by J. Kean Johnston <jkj@caldera.com>
  *
@@ -20,7 +19,6 @@
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-/* $XConsortium$ */
 
 
 #ifdef HAVE_XORG_CONFIG_H

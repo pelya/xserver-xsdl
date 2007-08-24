@@ -1,4 +1,3 @@
-
 /*
 
 Copyright 1995, 1998  The Open Group
@@ -26,7 +25,6 @@ other dealings in this Software without prior written authorization
 from The Open Group.
 
 */
-/* $XFree86$ */
 
 /*
 	  A Set Abstract Data Type (ADT) for the RECORD Extension

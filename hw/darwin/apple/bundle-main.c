@@ -1,5 +1,4 @@
 /* bundle-main.c -- X server launcher
- $Id: bundle-main.c,v 1.17 2003/09/11 00:17:10 jharper Exp $
  
  Copyright (c) 2002-2007 Apple Inc. All rights reserved.
  

@@ -1,5 +1,3 @@
-/*	$NetBSD: descr.c,v 1.7 1999/10/13 17:48:04 drochner Exp $	*/
-
 /*
  * Copyright (c) 1999 Lennart Augustsson <augustss@netbsd.org>
  * All rights reserved.

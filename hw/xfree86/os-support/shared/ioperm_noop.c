@@ -20,7 +20,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  *
  */
-/* $XConsortium: ioperm_noop.c /main/3 1996/02/21 17:53:39 kaleb $ */
 
 /*
  * Some platforms don't bother with I/O permissions, 

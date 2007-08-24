@@ -71,9 +71,6 @@ printf("/* \$$proj\$ */
 #include <xorg-config.h>
 #endif
 
-#ifdef __UNIXOS2__
-#define I_NEED_OS2_H
-#endif
 #include \"xf86.h\"
 #include \"xf86Config.h\"
 #include \"xf86Priv.h\"

@@ -179,6 +179,17 @@ miRegisterRedirectBorderClipProc (SetRedirectBorderClipProcPtr setBorderClip,
     miGetRedirectBorderClipProc = getBorderClip;
 }
 
+/*
+ * Manual redirected windows are treated as transparent; they do not obscure
+ * siblings or parent windows
+ */
+
+#ifdef COMPOSITE
+#define TreatAsTransparent(w)	((w)->redirectDraw == RedirectDrawManual)
+#else
+#define TreatAsTransparent(w)	FALSE
+#endif
+
 #define HasParentRelativeBorder(w) (!(w)->borderIsPixel && \
 				    HasBorder(w) && \
 				    (w)->backgroundState == ParentRelative)
@@ -241,7 +252,7 @@ miComputeClips (
     /*
      * In redirected drawing case, reset universe to borderSize
      */
-    if (pParent->redirectDraw)
+    if (pParent->redirectDraw != RedirectDrawNone)
     {
 	if (miSetRedirectBorderClipProc)
 	    (*miSetRedirectBorderClipProc) (pParent, universe);
@@ -432,7 +443,7 @@ miComputeClips (
 	{
 	    for (; pChild; pChild = pChild->nextSib)
 	    {
-		if (pChild->viewable)
+		if (pChild->viewable && !TreatAsTransparent(pChild))
 		    REGION_APPEND( pScreen, &childUnion, &pChild->borderSize);
 	    }
 	}
@@ -440,7 +451,7 @@ miComputeClips (
 	{
 	    for (pChild = pParent->lastChild; pChild; pChild = pChild->prevSib)
 	    {
-		if (pChild->viewable)
+		if (pChild->viewable && !TreatAsTransparent(pChild))
 		    REGION_APPEND( pScreen, &childUnion, &pChild->borderSize);
 	    }
 	}
@@ -472,7 +483,7 @@ miComputeClips (
 		 * from the current universe, thus denying its space to any
 		 * other sibling.
 		 */
-		if (overlap)
+		if (overlap && !TreatAsTransparent (pChild))
 		    REGION_SUBTRACT( pScreen, universe, universe,
 					  &pChild->borderSize);
 	    }
@@ -644,7 +655,7 @@ miValidateTree (pParent, pChild, kind)
 	
 	for (pWin = pParent->firstChild; pWin != pChild; pWin = pWin->nextSib)
 	{
-	    if (pWin->viewable)
+	    if (pWin->viewable && !TreatAsTransparent (pWin))
 		REGION_SUBTRACT (pScreen, &totalClip, &totalClip, &pWin->borderSize);
 	}
 	for (pWin = pChild; pWin; pWin = pWin->nextSib)
@@ -666,7 +677,7 @@ miValidateTree (pParent, pChild, kind)
 		{
 		    RegionPtr	pBorderClip = &pWin->borderClip;
 #ifdef COMPOSITE
-		    if (pWin->redirectDraw && miGetRedirectBorderClipProc)
+		    if (pWin->redirectDraw != RedirectDrawNone && miGetRedirectBorderClipProc)
 			pBorderClip = (*miGetRedirectBorderClipProc)(pWin);
 #endif
 		    REGION_APPEND( pScreen, &totalClip, pBorderClip );
@@ -685,7 +696,7 @@ miValidateTree (pParent, pChild, kind)
 		{
 		    RegionPtr	pBorderClip = &pWin->borderClip;
 #ifdef COMPOSITE
-		    if (pWin->redirectDraw && miGetRedirectBorderClipProc)
+		    if (pWin->redirectDraw != RedirectDrawNone && miGetRedirectBorderClipProc)
 			pBorderClip = (*miGetRedirectBorderClipProc)(pWin);
 #endif
 		    REGION_APPEND( pScreen, &totalClip, pBorderClip );
@@ -724,7 +735,7 @@ miValidateTree (pParent, pChild, kind)
 	    if (forward)
 	    {
 		for (pWin = pChild; pWin; pWin = pWin->nextSib)
-		    if (pWin->valdata && pWin->viewable)
+		    if (pWin->valdata && pWin->viewable && !TreatAsTransparent (pWin))
 			REGION_APPEND( pScreen, &childUnion,
 						   &pWin->borderSize);
 	    }
@@ -733,7 +744,7 @@ miValidateTree (pParent, pChild, kind)
 		pWin = pParent->lastChild;
 		while (1)
 		{
-		    if (pWin->valdata && pWin->viewable)
+		    if (pWin->valdata && pWin->viewable && !TreatAsTransparent (pWin))
 			REGION_APPEND( pScreen, &childUnion,
 						   &pWin->borderSize);
 		    if (pWin == pChild)
@@ -757,7 +768,7 @@ miValidateTree (pParent, pChild, kind)
 					&totalClip,
  					&pWin->borderSize);
 		miComputeClips (pWin, pScreen, &childClip, kind, &exposed);
-		if (overlap)
+		if (overlap && !TreatAsTransparent (pWin))
 		{
 		    REGION_SUBTRACT( pScreen, &totalClip,
 				       	   &totalClip,

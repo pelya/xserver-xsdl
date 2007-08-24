@@ -59,18 +59,6 @@ typedef struct {
     CARD8 save_vse;
     CARD8 save_46e8;
 } legacyVGARec, *legacyVGAPtr;
-
-typedef struct {
-    BusType bus;
-    union {
-	struct {
-	    int bus;
-	    int dev;
-	    int func;
-	} pci;
-	int legacy;
-    } location;
-} xf86int10BiosLocation, *xf86int10BiosLocationPtr;
     
 /* OS dependent functions */
 xf86Int10InfoPtr xf86InitInt10(int entityIndex);
@@ -185,12 +173,8 @@ Bool int10skip(const void* options);
 Bool int10_check_bios(int scrnIndex, int codeSeg,
     const unsigned char* vbiosMem);
 Bool initPrimary(const void* options);
-void xf86int10ParseBiosLocation(const void* options, 
-				xf86int10BiosLocationPtr bios);
-BusType xf86int10GetBiosLocationType(const xf86Int10InfoPtr pInt,
-    const xf86int10BiosLocationPtr bios);
-Bool xf86int10GetBiosSegment(xf86Int10InfoPtr pInt,
-    const xf86int10BiosLocationPtr bios, void * base);
+BusType xf86int10GetBiosLocationType(const xf86Int10InfoPtr pInt);
+Bool xf86int10GetBiosSegment(xf86Int10InfoPtr pInt, void *base);
 #ifdef DEBUG
 void dprint(unsigned long start, unsigned long size);
 #endif

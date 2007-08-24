@@ -369,31 +369,48 @@ ExaCheckComposite (CARD8      op,
 /**
  * Gets the 0,0 pixel of a pixmap.  Used for doing solid fills of tiled pixmaps
  * that happen to be 1x1.  Pixmap must be at least 8bpp.
+ *
+ * XXX This really belongs in fb, so it can be aware of tiling and etc.
  */
 CARD32
 exaGetPixmapFirstPixel (PixmapPtr pPixmap)
 {
     CARD32 pixel;
+    void *fb;
+    Bool need_finish = FALSE;
+    BoxRec box;
     ExaMigrationRec pixmaps[1];
+    ExaPixmapPriv (pPixmap);
 
-    pixmaps[0].as_dst = FALSE;
-    pixmaps[0].as_src = TRUE;
-    pixmaps[0].pPix = pPixmap;
-    exaDoMigration (pixmaps, 1, FALSE);
+    fb = pExaPixmap->sys_ptr;
 
-    exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+    /* Try to avoid framebuffer readbacks */
+    if (exaPixmapIsOffscreen(pPixmap) &&
+        miPointInRegion(DamageRegion(pExaPixmap->pDamage), 0, 0,  &box))
+    {
+	need_finish = TRUE;
+	pixmaps[0].as_dst = FALSE;
+	pixmaps[0].as_src = TRUE;
+	pixmaps[0].pPix = pPixmap;
+	exaDoMigration (pixmaps, 1, FALSE);
+	exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+	fb = pPixmap->devPrivate.ptr;
+    }
+
     switch (pPixmap->drawable.bitsPerPixel) {
     case 32:
-	pixel = *(CARD32 *)(pPixmap->devPrivate.ptr);
+	pixel = *(CARD32 *)fb;
 	break;
     case 16:
-	pixel = *(CARD16 *)(pPixmap->devPrivate.ptr);
+	pixel = *(CARD16 *)fb;
 	break;
     default:
-	pixel = *(CARD8 *)(pPixmap->devPrivate.ptr);
+	pixel = *(CARD8 *)fb;
 	break;
     }
-    exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+
+    if (need_finish)
+	exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
 
     return pixel;
 }

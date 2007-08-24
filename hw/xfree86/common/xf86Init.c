@@ -1,4 +1,3 @@
-
 /*
  * Loosely based on code bearing the following copyright:
  *
@@ -39,15 +38,12 @@
 #include <errno.h>
 
 #undef HAS_UTSNAME
-#if !defined(WIN32) && !defined(__UNIXOS2__)
+#if !defined(WIN32)
 #define HAS_UTSNAME 1
 #include <sys/utsname.h>
 #endif
 
 #define NEED_EVENTS
-#ifdef __UNIXOS2__
-#define I_NEED_OS2_H
-#endif
 #include <X11/X.h>
 #include <X11/Xmd.h>
 #include <X11/Xproto.h>
@@ -111,10 +107,6 @@ static void xf86RunVtInit(void);
 static Bool probe_devices_from_device_sections(DriverPtr drvp);
 static Bool add_matching_devices_to_configure_list(DriverPtr drvp);
 static Bool check_for_matching_devices(DriverPtr drvp);
-
-#ifdef __UNIXOS2__
-extern void os2ServerVideoAccess();
-#endif
 
 #ifdef XF86PM
 void (*xf86OSPMClose)(void) = NULL;
@@ -239,9 +231,6 @@ PostConfigInit(void)
 #endif
 #ifdef SIGXFSZ
        signal(SIGXFSZ,xf86SigHandler);
-#endif
-#ifdef MEMDEBUG
-       signal(SIGUSR2,xf86SigMemDebug);
 #endif
     }
 
@@ -496,10 +485,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
   Bool			 pix24Fail = FALSE;
   Bool			 autoconfig = FALSE;
   
-#ifdef __UNIXOS2__
-  os2ServerVideoAccess();  /* See if we have access to the screen before doing anything */
-#endif
-
   xf86Initialising = TRUE;
 
   /* Do this early? */
@@ -556,39 +541,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     if (xf86Info.ignoreABI) {
         LoaderSetOptions(LDR_OPT_ABI_MISMATCH_NONFATAL);
     }
-
-#ifdef TESTING
-    {
-	char **list, **l;
-	const char *subdirs[] = {
-		"drivers",
-		NULL
-	};
-	const char *patlist[] = {
-		"(.*)_drv\\.so",
-		"(.*)_drv\\.o",
-		NULL
-	};
-	ErrorF("Getting module listing...\n");
-	list = LoaderListDirs(NULL, NULL);
-	if (list)
-	    for (l = list; *l; l++)
-		ErrorF("module: %s\n", *l);
-	LoaderFreeDirList(list);
-	ErrorF("Getting video driver listing...\n");
-	list = LoaderListDirs(subdirs, NULL);
-	if (list)
-	    for (l = list; *l; l++)
-		ErrorF("video driver: %s\n", *l);
-	LoaderFreeDirList(list);
-	ErrorF("Getting driver listing...\n");
-	list = LoaderListDirs(NULL, patlist);
-	if (list)
-	    for (l = list; *l; l++)
-		ErrorF("video driver: %s\n", *l);
-	LoaderFreeDirList(list);
-    }
-#endif
 
     xf86OpenConsole();
 
@@ -969,7 +921,7 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
       }
       *VT = xf86Info.vtno;
     
-      VTAtom = MakeAtom(VT_ATOM_NAME, sizeof(VT_ATOM_NAME), TRUE);
+      VTAtom = MakeAtom(VT_ATOM_NAME, sizeof(VT_ATOM_NAME) - 1, TRUE);
 
       for (i = 0, ret = Success; i < xf86NumScreens && ret == Success; i++) {
 	ret = xf86RegisterRootWindowProperty(xf86Screens[i]->scrnIndex,
@@ -989,27 +941,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	    break;
 	}
     }
-
-#if BITMAP_SCANLINE_UNIT == 64
-    /*
-     * cfb24 doesn't currently work on architectures with a 64 bit
-     * BITMAP_SCANLINE_UNIT, so check for 24 bit pixel size for pixmaps
-     * or framebuffers.
-     */
-    {
-	Bool usesCfb24 = FALSE;
-
-	if (PIX24TOBPP(pix24) == 24)
-	    usesCfb24 = TRUE;
-	for (i = 0; i < xf86NumScreens; i++)
-	    if (xf86Screens[i]->bitsPerPixel == 24)
-		usesCfb24 = TRUE;
-	if (usesCfb24) {
-	    FatalError("24-bit pixel size is not supported on systems with"
-			" 64-bit scanlines.\n");
-	}
-    }
-#endif
 
 #ifdef XKB
     xf86InitXkb();
@@ -1167,14 +1098,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
     xf86Msg(xf86Info.randRFrom, "RandR %s\n",
 	    xf86Info.disableRandR ? "disabled" : "enabled");
 #endif
-#ifdef NOT_USED
-      /*
-       * Here we have to let the driver getting access of the VT. Note that
-       * this doesn't mean that the graphics board may access automatically
-       * the monitor. If the monitor is shared this is done in xf86CrossScreen!
-       */
-      if (!xf86Info.sharedMonitor) (xf86Screens[i]->EnterLeaveMonitor)(ENTER);
-#endif
   }
 
   xf86PostScreenInit();
@@ -1198,7 +1121,7 @@ InitInput(argc, argv)
      int     	  argc;
      char    	  **argv;
 {
-    IDevPtr pDev;
+    IDevPtr* pDev;
     InputDriverPtr pDrv;
     InputInfoPtr pInfo;
 
@@ -1207,9 +1130,20 @@ InitInput(argc, argv)
 
     if (serverGeneration == 1) {
 	/* Call the PreInit function for each input device instance. */
-	for (pDev = xf86ConfigLayout.inputs; pDev && pDev->identifier; pDev++) {
-	    if ((pDrv = xf86LookupInputDriver(pDev->driver)) == NULL) {
-		xf86Msg(X_ERROR, "No Input driver matching `%s'\n", pDev->driver);
+	for (pDev = xf86ConfigLayout.inputs; pDev && *pDev; pDev++) {
+	    /* Replace obsolete keyboard driver with kbd */
+	    if (!xf86NameCmp((*pDev)->driver, "keyboard")) {
+		xf86MsgVerb(X_WARNING, 0,
+			    "*** WARNING the legacy keyboard driver \"%s\" has been removed\n",
+			    (*pDev)->driver);
+		xf86MsgVerb(X_WARNING, 0,
+			    "*** Using the new \"kbd\" driver for \"%s\".\n",
+			    (*pDev)->identifier);
+		strcpy((*pDev)->driver, "kbd");
+            }
+
+	    if ((pDrv = xf86LookupInputDriver((*pDev)->driver)) == NULL) {
+		xf86Msg(X_ERROR, "No Input driver matching `%s'\n", (*pDev)->driver);
 		/* XXX For now, just continue. */
 		continue;
 	    }
@@ -1219,14 +1153,14 @@ InitInput(argc, argv)
 		    pDrv->driverName);
 		continue;
 	    }
-	    pInfo = pDrv->PreInit(pDrv, pDev, 0);
+	    pInfo = pDrv->PreInit(pDrv, *pDev, 0);
 	    if (!pInfo) {
 		xf86Msg(X_ERROR, "PreInit returned NULL for \"%s\"\n",
-			pDev->identifier);
+			(*pDev)->identifier);
 		continue;
 	    } else if (!(pInfo->flags & XI86_CONFIGURED)) {
 		xf86Msg(X_ERROR, "PreInit failed for input device \"%s\"\n",
-			pDev->identifier);
+			(*pDev)->identifier);
 		xf86DeleteInput(pInfo, 0);
 		continue;
 	    }
@@ -1265,7 +1199,9 @@ OsVendorInit()
   signal(SIGCHLD, SIG_DFL);	/* Need to wait for child processes */
 #endif
   OsDelayInitColors = TRUE;
+#ifndef BUILTIN_FONTS
   loadableFonts = TRUE;
+#endif
 
   if (!beenHere)
     xf86LogInit();
@@ -1282,9 +1218,7 @@ OsVendorInit()
 
 #ifdef O_NONBLOCK
   if (!beenHere) {
-#if !defined(__EMX__)
     if (geteuid() == 0 && getuid() != geteuid())
-#endif
     {
       int status;
 
@@ -1952,7 +1886,7 @@ xf86PrintBanner()
     t.tm_sec = BUILD_TIME % 100;
     t.tm_min = (BUILD_TIME / 100) % 100;
     t.tm_hour = (BUILD_TIME / 10000) % 100;
-    if (strftime(buf, sizeof(buf), "%d %B %Y  %I:%M:%s%p", &t))
+    if (strftime(buf, sizeof(buf), "%d %B %Y  %I:%M:%S%p", &t))
        ErrorF("Build Date: %s\n", buf);
 #else
     if (strftime(buf, sizeof(buf), "%d %B %Y", &t))
@@ -2055,16 +1989,17 @@ xf86LoadModules(char **list, pointer *optlist)
 
     for (i = 0; list[i] != NULL; i++) {
 
-#ifndef NORMALISE_MODULE_NAME
-	name = xstrdup(list[i]);
-#else
 	/* Normalise the module name */
 	name = xf86NormalizeName(list[i]);
-#endif
 
 	/* Skip empty names */
 	if (name == NULL || *name == '\0')
 	    continue;
+
+	/* Replace obsolete keyboard driver with kbd */
+	if (!xf86NameCmp(name, "keyboard")) {
+	    strcpy(name, "kbd");
+	}
 
 	if (optlist)
 	    opt = optlist[i];

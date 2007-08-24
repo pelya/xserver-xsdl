@@ -1,5 +1,3 @@
-/* $XConsortium: lnx_jstk.c /main/7 1996/02/21 17:51:36 kaleb $ */
-/* Id: lnx_jstk.c,v 1.1 1995/12/20 14:06:09 lepied Exp */
 /*
  * Copyright 1995 by Frederic Lepied, France. <fred@sugix.frmug.fr.net>       
  *                                                                            

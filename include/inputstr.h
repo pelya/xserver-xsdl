@@ -326,6 +326,7 @@ typedef struct _DeviceIntRec {
 #else
     void                *pad0;
 #endif
+    char                *config_info; /* used by the hotplug layer */
     DevUnion		*devPrivates;
     int			nPrivates;
     DeviceUnwrapProc    unwrapProc;
