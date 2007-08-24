@@ -1296,9 +1296,27 @@ int __glXDisp_CreatePbuffer(__GLXclientState *cl, GLbyte *pc)
     return BadRequest;
 }
 
+int __glXDisp_CreateGLXPbufferSGIX(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreateGLXPbufferSGIXReq *req = (xGLXCreateGLXPbufferSGIXReq *) pc;
+
+    (void) req;
+
+    return BadRequest;
+}
+
 int __glXDisp_DestroyPbuffer(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXDestroyPbufferReq *req = (xGLXDestroyPbufferReq *) pc;
+
+    (void) req;
+
+    return BadRequest;
+}
+
+__glXDisp_DestroyGLXPbufferSGIX(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXDestroyGLXPbufferSGIXReq *req = (xGLXDestroyGLXPbufferSGIXReq *) pc;
 
     (void) req;
 
@@ -1309,6 +1327,16 @@ int __glXDisp_ChangeDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXChangeDrawableAttributesReq *req =
 	(xGLXChangeDrawableAttributesReq *) pc;
+
+    (void) req;
+
+    return BadRequest;
+}
+
+int __glXDisp_ChangeDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXChangeDrawableAttributesSGIXReq *req =
+	(xGLXChangeDrawableAttributesSGIXReq *)pc;
 
     (void) req;
 
@@ -1611,22 +1639,18 @@ DoGetDrawableAttributes(__GLXclientState *cl, XID drawId)
     return Success;
 }
 
-int __glXDisp_GetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc)
-{
-    xGLXVendorPrivateWithReplyReq *req = (xGLXVendorPrivateWithReplyReq *)pc;
-    CARD32 *data;
-    XID drawable;
-    
-    data = (CARD32 *) (req + 1);
-    drawable = data[0];
-
-    return DoGetDrawableAttributes(cl, drawable);
-}
-
 int __glXDisp_GetDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXGetDrawableAttributesReq *req = (xGLXGetDrawableAttributesReq *)pc;
 
+    return DoGetDrawableAttributes(cl, req->drawable);
+}
+
+int __glXDisp_GetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXGetDrawableAttributesSGIXReq *req =
+	(xGLXGetDrawableAttributesSGIXReq *)pc;
+    
     return DoGetDrawableAttributes(cl, req->drawable);
 }
 

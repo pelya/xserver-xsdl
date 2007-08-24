@@ -343,9 +343,25 @@ int __glXDispSwap_CreatePbuffer(__GLXclientState *cl, GLbyte *pc)
     return BadRequest;    
 }
 
+int __glXDispSwap_CreateGLXPbufferSGIX(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreateGLXPbufferSGIXReq *req = (xGLXCreateGLXPbufferSGIXReq *) pc;    
+
+    (void) req;
+
+    return BadRequest;    
+}
+
 int __glXDispSwap_DestroyPbuffer(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXDestroyPbufferReq *req = (xGLXDestroyPbufferReq *) req;
+
+    return BadRequest;
+}
+
+int __glXDispSwap_DestroyGLXPbufferSGIX(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXDestroyGLXPbufferSGIXReq *req = (xGLXDestroyGLXPbufferSGIXReq *) req;
 
     return BadRequest;
 }
@@ -354,6 +370,15 @@ int __glXDispSwap_ChangeDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXChangeDrawableAttributesReq *req =
 	(xGLXChangeDrawableAttributesReq *) req;
+
+    return BadRequest;
+}
+
+int __glXDispSwap_ChangeDrawableAttributesSGIX(__GLXclientState *cl,
+					       GLbyte *pc)
+{
+    xGLXChangeDrawableAttributesSGIXReq *req =
+	(xGLXChangeDrawableAttributesSGIXReq *) req;
 
     return BadRequest;
 }
