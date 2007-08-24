@@ -57,6 +57,7 @@ in this Software without prior written authorization from The Open Group.
 #include "gcstruct.h"
 #include "extnsionst.h"
 #include "servermd.h"
+#include "shmint.h"
 #define _XSHM_SERVER_
 #include <X11/extensions/shmstr.h>
 #include <X11/Xfuncproto.h>
@@ -78,7 +79,6 @@ typedef struct _ShmDesc {
 } ShmDescRec, *ShmDescPtr;
 
 static void miShmPutImage(XSHM_PUT_IMAGE_ARGS);
-static void fbShmPutImage(XSHM_PUT_IMAGE_ARGS);
 static PixmapPtr fbShmCreatePixmap(XSHM_CREATE_PIXMAP_ARGS);
 static int ShmDetachSegment(
     pointer		/* value */,
@@ -510,7 +510,7 @@ miShmPutImage(dst, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy, data)
     (*pmap->drawable.pScreen->DestroyPixmap)(pmap);
 }
 
-static void
+_X_EXPORT void
 fbShmPutImage(dst, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy, data)
     DrawablePtr dst;
     GCPtr	pGC;
