@@ -702,8 +702,9 @@ exaPolyFillRect(DrawablePtr pDrawable,
      * call exaFillRegion{Solid,Tiled}.
      */
     if ((pGC->fillStyle == FillSolid || pGC->fillStyle == FillTiled) &&
-	(pGC->alu == GXcopy || pGC->alu == GXclear || pGC->alu == GXnoop ||
-	 pGC->alu == GXcopyInverted || pGC->alu == GXset)) {
+	(nrect == 1 || pGC->alu == GXcopy || pGC->alu == GXclear ||
+	 pGC->alu == GXnoop || pGC->alu == GXcopyInverted ||
+	 pGC->alu == GXset)) {
 	if (((pGC->fillStyle == FillSolid || pGC->tileIsPixel) &&
 	     exaFillRegionSolid(pDrawable, pReg, pGC->fillStyle == FillSolid ?
 				pGC->fgPixel : pGC->tile.pixel,	pGC->planemask,
