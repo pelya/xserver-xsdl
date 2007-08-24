@@ -35,6 +35,9 @@
 #include <X11/X.h>
 #define NEED_EVENTS
 #include <X11/Xproto.h>
+#ifdef MITSHM
+#include "shmint.h"
+#endif
 #include "scrnintstr.h"
 #include "pixmapstr.h"
 #include "windowstr.h"
@@ -305,6 +308,10 @@ exaGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt, int *pwidth,
 	     int nspans, char *pdstStart);
 
 extern const GCOps exaOps;
+
+#ifdef MITSHM
+extern ShmFuncs exaShmFuncs;
+#endif
 
 #ifdef RENDER
 void
