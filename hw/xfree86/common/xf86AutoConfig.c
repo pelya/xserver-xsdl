@@ -174,7 +174,7 @@ videoPtrToDriverName(struct pci_device *dev)
 	case 0x8086:
 	    if ((dev->device_id == 0x00d1) || (dev->device_id == 0x7800))
 		return "i740";
-	    else return "i810";
+	    else return "intel";
 	case 0x102b:		    return "mga";
 	case 0x10c8:		    return "neomagic";
 	case 0x105d:		    return "i128";
