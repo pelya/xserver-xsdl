@@ -315,7 +315,7 @@ probe_devices_from_device_sections(DriverPtr drvp)
 
 #ifdef DEBUG
 		ErrorF("%s: card at %d:%d:%d is claimed by a Device section\n",
-		       drvp->driverName, pPci->bus, pPci->device, pPci->func);
+		       drvp->driverName, pPci->bus, pPci->dev, pPci->func);
 #endif
 	
 		/* Allocate an entry in the lists to be returned */
