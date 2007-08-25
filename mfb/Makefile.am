@@ -17,7 +17,7 @@ libmfb_la_SOURCES = mfbgc.c mfbwindow.c mfbfont.c \
 	 mfbpushpxl.c mfbzerarc.c mfbfillarc.c \
          mfbfillsp.c mfbsetsp.c mfbscrinit.c mfbscrclse.c mfbclip.c \
          mfbbitblt.c mfbgetsp.c mfbpolypnt.c \
-	 mfbcmap.c mfbmisc.c mfbbstore.c $(libmfb_gen_sources)
+	 mfbcmap.c mfbmisc.c $(libmfb_gen_sources)
 
 EXTRA_DIST = maskbits.h mergerop.h fastblt.h mfbline.c mfbblt.c mfbtile.c \
              mfbplygblt.c mfbimggblt.c mfbpntarea.c mfbtegblt.c mfbply1rct.c

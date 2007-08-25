@@ -269,20 +269,6 @@ ExaCheckGetSpans (DrawablePtr pDrawable,
 		 char *pdstStart);
 
 void
-ExaCheckSaveAreas (PixmapPtr	pPixmap,
-		  RegionPtr	prgnSave,
-		  int		xorg,
-		  int		yorg,
-		  WindowPtr	pWin);
-
-void
-ExaCheckRestoreAreas (PixmapPtr	pPixmap,
-		     RegionPtr	prgnSave,
-		     int	xorg,
-		     int    	yorg,
-		     WindowPtr	pWin);
-
-void
 ExaCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
 
 CARD32

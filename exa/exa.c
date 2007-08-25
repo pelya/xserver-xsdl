@@ -666,8 +666,6 @@ exaDriverInit (ScreenPtr		pScreen,
     pExaScr->SavedPaintWindowBorder = pScreen->PaintWindowBorder;
     pScreen->PaintWindowBorder = exaPaintWindow;
 
-    pScreen->BackingStoreFuncs.SaveAreas = ExaCheckSaveAreas;
-    pScreen->BackingStoreFuncs.RestoreAreas = ExaCheckRestoreAreas;
 #ifdef RENDER
     if (ps) {
         pExaScr->SavedComposite = ps->Composite;

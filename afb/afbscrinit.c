@@ -77,14 +77,6 @@ int afbScreenPrivateIndex;
 
 static unsigned long afbGeneration = 0;
 
-static BSFuncRec afbBSFuncRec = {
-	afbSaveAreas,
-	afbRestoreAreas,
-	(BackingStoreSetClipmaskRgnProcPtr) 0,
-	(BackingStoreGetImagePixmapProcPtr) 0,
-	(BackingStoreGetSpansPixmapProcPtr) 0,
-};
-
 static Bool
 afbCloseScreen(int index, ScreenPtr pScreen)
 {
@@ -231,7 +223,6 @@ afbScreenInit(register ScreenPtr pScreen, pointer pbits, int xsize, int ysize, i
 
 	pScreen->CloseScreen = afbCloseScreen;
 	pScreen->CreateScreenResources = afbCreateScreenResources;
-	pScreen->BackingStoreFuncs = afbBSFuncRec;
 
 	pScreen->devPrivates[afbScreenPrivateIndex].ptr = pScreen->devPrivate;
 	pScreen->devPrivate = oldDevPrivate;

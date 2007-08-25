@@ -1114,7 +1114,7 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
     WindowPtr	pChild;
     Bool	WasViewable = (Bool)(pWin->viewable);
     Bool	anyMarked = FALSE;
-    RegionPtr	pOldClip = NULL, bsExposed;
+    RegionPtr	pOldClip = NULL;
 #ifdef DO_SAVE_UNDERS
     Bool	dosave = FALSE;
 #endif
@@ -1175,12 +1175,6 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 
     if (WasViewable)
     {
-	if (pWin->backStorage)
-	{
-	    pOldClip = REGION_CREATE(pScreen, NullBox, 1);
-	    REGION_COPY(pScreen, pOldClip, &pWin->clipList);
-	}
-
 	if (pWin->firstChild)
 	{
 	    anyMarked |= (*pScreen->MarkOverlappedWindows)(pWin->firstChild,
@@ -1204,28 +1198,6 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 	    (*pScreen->ValidateTree)(pWin, NullWindow, VTOther);
     }
 
-    if (pWin->backStorage &&
-	((pWin->backingStore == Always) || WasViewable))
-    {
-	if (!WasViewable)
-	    pOldClip = &pWin->clipList; /* a convenient empty region */
-	bsExposed = (*pScreen->TranslateBackingStore)
-			     (pWin, 0, 0, pOldClip,
-			      pWin->drawable.x, pWin->drawable.y);
-	if (WasViewable)
-	    REGION_DESTROY(pScreen, pOldClip);
-	if (bsExposed)
-	{
-	    RegionPtr	valExposed = NullRegion;
-
-	    if (pWin->valdata)
-		valExposed = &pWin->valdata->after.exposed;
-	    (*pScreen->WindowExposures) (pWin, valExposed, bsExposed);
-	    if (valExposed)
-		REGION_EMPTY(pScreen, valExposed);
-	    REGION_DESTROY(pScreen, bsExposed);
-	}
-    }
     if (WasViewable)
     {
 	if (anyMarked)

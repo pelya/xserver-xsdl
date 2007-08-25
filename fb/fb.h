@@ -1262,23 +1262,6 @@ fbBltPlane (FbBits	    *src,
 	    Pixel	    planeMask);
 
 /*
- * fbbstore.c
- */
-void
-fbSaveAreas(PixmapPtr	pPixmap,
-	    RegionPtr	prgnSave,
-	    int		xorg,
-	    int		yorg,
-	    WindowPtr	pWin);
-
-void
-fbRestoreAreas(PixmapPtr    pPixmap,
-	       RegionPtr    prgnRestore,
-	       int	    xorg,
-	       int	    yorg,
-	       WindowPtr    pWin);
-
-/*
  * fbcmap.c
  */
 int

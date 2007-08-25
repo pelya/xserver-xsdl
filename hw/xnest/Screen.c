@@ -304,15 +304,6 @@ xnestOpenScreen(int index, ScreenPtr pScreen, int argc, char *argv[])
   pScreen->CreatePixmap = xnestCreatePixmap;
   pScreen->DestroyPixmap = xnestDestroyPixmap;
 
-  /* Backing store procedures */
-  
-  pScreen->SaveDoomedAreas = NULL;
-  pScreen->RestoreAreas = NULL;
-  pScreen->ExposeCopy = NULL;
-  pScreen->TranslateBackingStore = NULL;
-  pScreen->ClearBackingStore = NULL;
-  pScreen->DrawGuarantee = NULL;
-
   /* Font procedures */
 
   pScreen->RealizeFont = xnestRealizeFont;

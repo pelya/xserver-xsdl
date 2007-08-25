@@ -113,18 +113,6 @@ miClearToBackground(pWin, x, y, w, h, generateExposures)
 
     pScreen = pWin->drawable.pScreen;
     REGION_INIT(pScreen, &reg, &box, 1);
-    if (pWin->backStorage)
-    {
-	/*
-	 * If the window has backing-store on, call through the
-	 * ClearToBackground vector to handle the special semantics
-	 * (i.e. things backing store is to be cleared out and
-	 * an Expose event is to be generated for those areas in backing
-	 * store if generateExposures is TRUE).
-	 */
-	pBSReg = (* pScreen->ClearBackingStore)(pWin, x, y, w, h,
-						 generateExposures);
-    }
 
     REGION_INTERSECT(pScreen, &reg, &reg, &pWin->clipList);
     if (generateExposures)
@@ -631,7 +619,6 @@ miSlideAndSizeWindow(pWin, x, y, w, h, pSib)
     RegionPtr	destClip;	/* portions of destination already written */
     RegionPtr	oldWinClip = NULL;	/* old clip list for window */
     RegionPtr	borderVisible = NullRegion; /* visible area of the border */
-    RegionPtr	bsExposed = NullRegion;	    /* backing store exposures */
     Bool	shrunk = FALSE; /* shrunk in an inner dimension */
     Bool	moved = FALSE;	/* window position changed */
 #ifdef DO_SAVE_UNDERS
@@ -735,8 +722,6 @@ miSlideAndSizeWindow(pWin, x, y, w, h, pSib)
     if (WasViewable)
     {
 	pRegion = REGION_CREATE(pScreen, NullBox, 1);
-	if (pWin->backStorage)
-	    REGION_COPY(pScreen, pRegion, &pWin->clipList);
 
 	if (pLayerWin == pWin)
 	    anyMarked |= (*pScreen->MarkOverlappedWindows)(pWin, pFirstChange,
@@ -768,21 +753,6 @@ miSlideAndSizeWindow(pWin, x, y, w, h, pSib)
     }
 
     GravityTranslate (x, y, oldx, oldy, dw, dh, pWin->bitGravity, &nx, &ny);
-
-    if (pWin->backStorage &&
-	((pWin->backingStore == Always) || WasViewable))
-    {
-	if (!WasViewable)
-	    pRegion = &pWin->clipList; /* a convenient empty region */
-	if (pWin->bitGravity == ForgetGravity)
-	    bsExposed = (*pScreen->TranslateBackingStore)
-				(pWin, 0, 0, NullRegion, oldx, oldy);
-	else
-	{
-	    bsExposed = (*pScreen->TranslateBackingStore)
-			     (pWin, nx - x, ny - y, pRegion, oldx, oldy);
-	}
-    }
 
     if (WasViewable)
     {
@@ -932,17 +902,6 @@ miSlideAndSizeWindow(pWin, x, y, w, h, pSib)
 	REGION_DESTROY(pScreen, pRegion);
 	if (destClip)
 	    REGION_DESTROY(pScreen, destClip);
-	if (bsExposed)
-	{
-	    RegionPtr	valExposed = NullRegion;
-
-	    if (pWin->valdata)
-		valExposed = &pWin->valdata->after.exposed;
-	    (*pScreen->WindowExposures) (pWin, valExposed, bsExposed);
-	    if (valExposed)
-		REGION_EMPTY(pScreen, valExposed);
-	    REGION_DESTROY(pScreen, bsExposed);
-	}
 	if (anyMarked)
 	    (*pScreen->HandleExposures)(pLayerWin->parent);
 #ifdef DO_SAVE_UNDERS
@@ -954,11 +913,6 @@ miSlideAndSizeWindow(pWin, x, y, w, h, pSib)
 	if (anyMarked && pScreen->PostValidateTree)
 	    (*pScreen->PostValidateTree)(pLayerWin->parent, pFirstChange,
 					  VTOther);
-    }
-    else if (bsExposed)
-    {
-	(*pScreen->WindowExposures) (pWin, NullRegion, bsExposed);
-	REGION_DESTROY(pScreen, bsExposed);
     }
     if (pWin->realized)
 	WindowsRestructured ();
@@ -986,7 +940,7 @@ miSetShape(pWin)
     Bool	WasViewable = (Bool)(pWin->viewable);
     ScreenPtr 	pScreen = pWin->drawable.pScreen;
     Bool	anyMarked = FALSE;
-    RegionPtr	pOldClip = NULL, bsExposed;
+    RegionPtr	pOldClip = NULL;
 #ifdef DO_SAVE_UNDERS
     Bool	dosave = FALSE;
 #endif
@@ -1018,12 +972,6 @@ miSetShape(pWin)
 
     if (WasViewable)
     {
-	if (pWin->backStorage)
-	{
-	    pOldClip = REGION_CREATE(pScreen, NullBox, 1);
-	    REGION_COPY(pScreen, pOldClip, &pWin->clipList);
-	}
-
 	anyMarked |= (*pScreen->MarkOverlappedWindows)(pWin, pWin,
 						(WindowPtr *)NULL);
 
@@ -1038,28 +986,6 @@ miSetShape(pWin)
 	    (*pScreen->ValidateTree)(pLayerWin->parent, NullWindow, VTOther);
     }
 
-    if (pWin->backStorage &&
-	((pWin->backingStore == Always) || WasViewable))
-    {
-	if (!WasViewable)
-	    pOldClip = &pWin->clipList; /* a convenient empty region */
-	bsExposed = (*pScreen->TranslateBackingStore)
-			     (pWin, 0, 0, pOldClip,
-			      pWin->drawable.x, pWin->drawable.y);
-	if (WasViewable)
-	    REGION_DESTROY(pScreen, pOldClip);
-	if (bsExposed)
-	{
-	    RegionPtr	valExposed = NullRegion;
-    
-	    if (pWin->valdata)
-		valExposed = &pWin->valdata->after.exposed;
-	    (*pScreen->WindowExposures) (pWin, valExposed, bsExposed);
-	    if (valExposed)
-		REGION_EMPTY(pScreen, valExposed);
-	    REGION_DESTROY(pScreen, bsExposed);
-	}
-    }
     if (WasViewable)
     {
 	if (anyMarked)

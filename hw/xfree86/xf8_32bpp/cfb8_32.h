@@ -27,24 +27,6 @@ extern int cfb8_32GetGCPrivateIndex(void);
 extern int cfb8_32ScreenPrivateIndex;	/* XXX */
 extern int cfb8_32GetScreenPrivateIndex(void);
 
-void
-cfb8_32SaveAreas(
-    PixmapPtr	  	pPixmap,
-    RegionPtr	  	prgnSave, 
-    int	    	  	xorg,
-    int	    	  	yorg,
-    WindowPtr		pWin
-);
-
-void
-cfb8_32RestoreAreas(
-    PixmapPtr	  	pPixmap, 
-    RegionPtr	  	prgnRestore,
-    int	    	  	xorg,
-    int	    	  	yorg,
-    WindowPtr		pWin
-);
-
 RegionPtr
 cfb8_32CopyArea(
     DrawablePtr pSrcDraw,

@@ -32,10 +32,6 @@ static void XAAGetSpans(DrawablePtr pDrawable, int wMax, DDXPointPtr ppt,
 			int *pwidth, int nspans, char *pdstStart);
 static PixmapPtr XAACreatePixmap(ScreenPtr pScreen, int w, int h, int depth);
 static Bool XAADestroyPixmap(PixmapPtr pPixmap);
-static void XAARestoreAreas (PixmapPtr pPixmap, RegionPtr prgnRestore, 
-			int xorg, int yorg, WindowPtr pWin);
-static void XAASaveAreas (PixmapPtr pPixmap, RegionPtr prgnSave, 
-			int xorg, int yorg, WindowPtr pWin);
 static Bool XAAEnterVT (int index, int flags);
 static void XAALeaveVT (int index, int flags);
 static int  XAASetDGAMode(int index, int num, DGADevicePtr devRet);
@@ -157,10 +153,6 @@ XAAInit(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
 	infoRec->PaintWindowBorder = XAAPaintWindow;
     if(!infoRec->CopyWindow)
 	infoRec->CopyWindow = XAACopyWindow;
-    if(!infoRec->SaveAreas)
-	infoRec->SaveAreas = XAASaveAreas;
-    if(!infoRec->RestoreAreas)
-	infoRec->RestoreAreas = XAARestoreAreas;
 
     pScreenPriv->CreateGC = pScreen->CreateGC;
     pScreen->CreateGC = XAACreateGC;
@@ -180,12 +172,6 @@ XAAInit(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
     pScreen->CreatePixmap = XAACreatePixmap;
     pScreenPriv->DestroyPixmap = pScreen->DestroyPixmap;
     pScreen->DestroyPixmap = XAADestroyPixmap;
-    pScreenPriv->BackingStoreFuncs.RestoreAreas = 
-			pScreen->BackingStoreFuncs.RestoreAreas;
-    pScreen->BackingStoreFuncs.RestoreAreas = infoRec->RestoreAreas;
-    pScreenPriv->BackingStoreFuncs.SaveAreas = 
-			pScreen->BackingStoreFuncs.SaveAreas;
-    pScreen->BackingStoreFuncs.SaveAreas = infoRec->SaveAreas;
     pScreenPriv->ChangeWindowAttributes = pScreen->ChangeWindowAttributes;
     pScreen->ChangeWindowAttributes = XAAChangeWindowAttributes;
 
@@ -256,10 +242,6 @@ XAACloseScreen (int i, ScreenPtr pScreen)
     pScreen->WindowExposures = pScreenPriv->WindowExposures;
     pScreen->CreatePixmap = pScreenPriv->CreatePixmap;
     pScreen->DestroyPixmap = pScreenPriv->DestroyPixmap;
-    pScreen->BackingStoreFuncs.RestoreAreas = 
-			pScreenPriv->BackingStoreFuncs.RestoreAreas;
-    pScreen->BackingStoreFuncs.SaveAreas = 
-			pScreenPriv->BackingStoreFuncs.SaveAreas;
     pScreen->ChangeWindowAttributes = pScreenPriv->ChangeWindowAttributes;
 
     /* We leave it up to the client to free the XAAInfoRec */
@@ -325,137 +307,6 @@ XAAGetSpans (
     XAA_SCREEN_EPILOGUE (pScreen, GetSpans, XAAGetSpans);
 }
 
-
-static void
-XAASaveAreas (
-    PixmapPtr pPixmap,
-    RegionPtr prgnSave,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin
-){
-    ScreenPtr pScreen = pPixmap->drawable.pScreen;
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
-    XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
-
-    if(IS_OFFSCREEN_PIXMAP(pPixmap)) {
-	BoxPtr pbox = REGION_RECTS(prgnSave);
-	int nboxes = REGION_NUM_RECTS(prgnSave);
-
-	(*infoRec->SetupForScreenToScreenCopy)(pScrn, 1, 1, GXcopy, ~0, -1);
-	while(nboxes--) {
-	    (*infoRec->SubsequentScreenToScreenCopy)(pScrn, 
-		pbox->x1 + xorg, pbox->y1 + yorg, 
-		pPixmap->drawable.x + pbox->x1, 
-		pPixmap->drawable.y + pbox->y1,
-		pbox->x2 - pbox->x1, pbox->y2 - pbox->y1);
-	    pbox++;
-	}
-	SET_SYNC_FLAG(infoRec);
-	return;
-    }
-
-    if(xf86Screens[pScreen->myNum]->vtSema && infoRec->ReadPixmap &&
-	(pWin->drawable.bitsPerPixel == pPixmap->drawable.bitsPerPixel)) {
-	BoxPtr pbox = REGION_RECTS(prgnSave);
-	int nboxes = REGION_NUM_RECTS(prgnSave);
-	int Bpp =  pPixmap->drawable.bitsPerPixel >> 3;
-	unsigned char *dstp = (unsigned char*)pPixmap->devPrivate.ptr;
-
-	while(nboxes--) {
-	    (*infoRec->ReadPixmap)(infoRec->pScrn,
-		pbox->x1 + xorg, pbox->y1 + yorg, 
-		pbox->x2 - pbox->x1, pbox->y2 - pbox->y1, 
-		dstp + (pPixmap->devKind * pbox->y1) + (pbox->x1 * Bpp),
-		pPixmap->devKind,
-		pPixmap->drawable.bitsPerPixel, pPixmap->drawable.depth);
-	    pbox++;
-	}
-	return;
-    }
-
-    XAA_SCREEN_PROLOGUE (pScreen, BackingStoreFuncs.SaveAreas);
-    if(pScrn->vtSema) {
-	SYNC_CHECK(&pWin->drawable);
-    }
-    (*pScreen->BackingStoreFuncs.SaveAreas) (
-		pPixmap, prgnSave, xorg, yorg, pWin);
-
-    XAA_SCREEN_EPILOGUE (pScreen, BackingStoreFuncs.SaveAreas,
-			 XAASaveAreas);
-}
-
-static void
-XAARestoreAreas (    
-    PixmapPtr pPixmap,
-    RegionPtr prgnRestore,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin 
-){
-    ScreenPtr pScreen = pPixmap->drawable.pScreen;
-    ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
-    XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
-
-    if(IS_OFFSCREEN_PIXMAP(pPixmap)) {
-	BoxPtr pbox = REGION_RECTS(prgnRestore);
-	int nboxes = REGION_NUM_RECTS(prgnRestore);
-	int pm = ~0;
-
-	if((pScrn->overlayFlags & OVERLAY_8_32_PLANAR) && 
-					(pWin->drawable.depth == 24))
-	   pm = 0x00ffffff;
-
-	(*infoRec->SetupForScreenToScreenCopy)(pScrn, 1, 1, GXcopy, pm, -1);
-	while(nboxes--) {
-	    (*infoRec->SubsequentScreenToScreenCopy)(pScrn, 
-		pPixmap->drawable.x + pbox->x1 - xorg, 
-		pPixmap->drawable.y + pbox->y1 - yorg,
-		pbox->x1, pbox->y1, pbox->x2 - pbox->x1, pbox->y2 - pbox->y1);
-	    pbox++;
-	}
-	SET_SYNC_FLAG(infoRec);
-	return;
-    }
-
-    if(pScrn->vtSema && infoRec->WritePixmap &&
-	!(infoRec->WritePixmapFlags & NO_GXCOPY) &&
-	((pWin->drawable.bitsPerPixel == pPixmap->drawable.bitsPerPixel) ||
-		((pWin->drawable.bitsPerPixel == 24) &&  
-		 (pPixmap->drawable.bitsPerPixel == 32) &&
-		 (infoRec->WritePixmapFlags & CONVERT_32BPP_TO_24BPP)))) {
-	BoxPtr pbox = REGION_RECTS(prgnRestore);
-	int nboxes = REGION_NUM_RECTS(prgnRestore);
-	int Bpp =  pPixmap->drawable.bitsPerPixel >> 3;
-	unsigned char *srcp = (unsigned char*)pPixmap->devPrivate.ptr;
-	int pm = ~0;
-
-	if((pScrn->overlayFlags & OVERLAY_8_32_PLANAR) && 
-					(pWin->drawable.depth == 24))
-	   pm = 0x00ffffff;
- 
-	while(nboxes--) {
-	    (*infoRec->WritePixmap)(pScrn, pbox->x1, pbox->y1, 
-		pbox->x2 - pbox->x1, pbox->y2 - pbox->y1, 
-		srcp + (pPixmap->devKind * (pbox->y1 - yorg)) + 
-				((pbox->x1 - xorg) * Bpp), 
-		pPixmap->devKind, GXcopy, pm, -1, 
-		pPixmap->drawable.bitsPerPixel, pPixmap->drawable.depth);
-	    pbox++;
-	}
-	return;
-    }
-
-    XAA_SCREEN_PROLOGUE (pScreen, BackingStoreFuncs.RestoreAreas);
-    if(pScrn->vtSema) {
-	SYNC_CHECK(&pWin->drawable);
-    }
-    (*pScreen->BackingStoreFuncs.RestoreAreas) (
-		pPixmap, prgnRestore, xorg, yorg, pWin);
-
-    XAA_SCREEN_EPILOGUE (pScreen, BackingStoreFuncs.RestoreAreas,
-				 XAARestoreAreas);
-}
 
 static int
 XAAPixmapBPP (ScreenPtr pScreen, int depth)

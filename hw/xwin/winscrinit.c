@@ -336,13 +336,6 @@ winFinishScreenInitFB (int index,
   /* Place our save screen function */
   pScreen->SaveScreen = winSaveScreen;
 
-  /* Backing store functions */
-  /*
-   * FIXME: Backing store support still doesn't seem to be working.
-   */
-  pScreen->BackingStoreFuncs.SaveAreas = fbSaveAreas;
-  pScreen->BackingStoreFuncs.RestoreAreas = fbRestoreAreas;
-
   /* Finish fb initialization */
   if (!fbFinishScreenInit (pScreen,
 			   pScreenInfo->pfb,

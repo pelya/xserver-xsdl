@@ -72,7 +72,6 @@ typedef struct _damageScrPriv {
     CompositeProcPtr		Composite;
     GlyphsProcPtr		Glyphs;
 #endif
-    BSFuncRec			BackingStoreFuncs;
 } DamageScrPrivRec, *DamageScrPrivPtr;
 
 typedef struct _damageGCPriv {

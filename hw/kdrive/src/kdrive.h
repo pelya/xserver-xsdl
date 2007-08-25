@@ -612,20 +612,6 @@ KdCheckGetSpans (DrawablePtr pDrawable,
 		 char *pdstStart);
 
 void
-KdCheckSaveAreas (PixmapPtr	pPixmap,
-		  RegionPtr	prgnSave,
-		  int		xorg,
-		  int		yorg,
-		  WindowPtr	pWin);
-
-void
-KdCheckRestoreAreas (PixmapPtr	pPixmap,
-		     RegionPtr	prgnSave,
-		     int	xorg,
-		     int    	yorg,
-		     WindowPtr	pWin);
-
-void
 KdCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
 
 void

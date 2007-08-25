@@ -15,7 +15,7 @@ libcfb_common_sources =  $(top_srcdir)/cfb/cfbgc.c $(top_srcdir)/cfb/cfbrrop.c \
 	$(top_srcdir)/cfb/cfballpriv.c $(top_srcdir)/cfb/cfbgetsp.c \
 	$(top_srcdir)/cfb/cfbfillrct.c $(top_srcdir)/cfb/cfbigblt8.c \
 	$(top_srcdir)/cfb/cfbglblt8.c $(top_srcdir)/cfb/cfbtegblt.c \
-	$(top_srcdir)/cfb/cfbbstore.c $(top_srcdir)/cfb/cfbpolypnt.c \
+	$(top_srcdir)/cfb/cfbpolypnt.c \
 	$(top_srcdir)/cfb/cfbbres.c $(top_srcdir)/cfb/cfbline.c \
 	$(top_srcdir)/cfb/cfbhrzvert.c $(top_srcdir)/cfb/cfbbresd.c \
 	$(top_srcdir)/cfb/cfbimage.c $(top_srcdir)/cfb/cfbcppl.c \

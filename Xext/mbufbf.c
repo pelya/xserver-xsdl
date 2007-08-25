@@ -329,10 +329,6 @@ bufCreateBuffer(pScreen, pWin, bufferNum)
     pBuffer->firstChild = NULL;
     pBuffer->lastChild  = NULL;
 
-    /* XXX - Worry about backingstore later */
-    pBuffer->backStorage   = NULL;
-    pBuffer->backingStore  = NotUseful;
-
     /* XXX - Need to call pScreen->CreateWindow for tile/stipples
      *       or should I just copy the devPrivates?
      */
@@ -505,18 +501,6 @@ bufClearImageBufferArea(pMBBuffer, x,y, w,h, generateExposures)
 
     pScreen = pBuffer->drawable.pScreen;
     REGION_INIT(pScreen, &reg, &box, 1);
-    if (pBuffer->backStorage)
-    {
-	/*
-	 * If the window has backing-store on, call through the
-	 * ClearToBackground vector to handle the special semantics
-	 * (i.e. things backing store is to be cleared out and
-	 * an Expose event is to be generated for those areas in backing
-	 * store if generateExposures is TRUE).
-	 */
-	pBSReg = (* pScreen->ClearBackingStore)(pBuffer, x, y, w, h,
-						 generateExposures);
-    }
 
     REGION_INTERSECT(pScreen, &reg, &reg, &pBuffer->clipList);
     if (pBuffer->backgroundState != None)

@@ -143,6 +143,11 @@ typedef struct _CompScreen {
      */
     InstallColormapProcPtr	InstallColormap;
 
+    /*
+     * Fake backing store via automatic redirection
+     */
+    ChangeWindowAttributesProcPtr ChangeWindowAttributes;
+
     ScreenBlockHandlerProcPtr	BlockHandler;
     CloseScreenProcPtr		CloseScreen;
     Bool			damaged;

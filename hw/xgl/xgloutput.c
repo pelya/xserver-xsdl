@@ -76,7 +76,7 @@ xglSetRootClip (ScreenPtr pScreen,
     WindowPtr	pChild;
     Bool	wasViewable;
     Bool	anyMarked = FALSE;
-    RegionPtr	pOldClip = 0, bsExposed;
+    RegionPtr	pOldClip = 0;
 
 #ifdef DO_SAVE_UNDERS
     Bool	dosave = FALSE;
@@ -141,12 +141,6 @@ xglSetRootClip (ScreenPtr pScreen,
 
     if (wasViewable)
     {
-	if (pWin->backStorage)
-	{
-	    pOldClip = REGION_CREATE (pScreen, NullBox, 1);
-	    REGION_COPY (pScreen, pOldClip, &pWin->clipList);
-	}
-
 	if (pWin->firstChild)
 	{
 	    anyMarked |= (*pScreen->MarkOverlappedWindows) (pWin->firstChild,
@@ -166,34 +160,6 @@ xglSetRootClip (ScreenPtr pScreen,
 
 	if (anyMarked)
 	    (*pScreen->ValidateTree)(pWin, NullWindow, VTOther);
-    }
-
-    if (pWin->backStorage && ((pWin->backingStore == Always) || wasViewable))
-    {
-	if (!wasViewable)
-	    pOldClip = &pWin->clipList; /* a convenient empty region */
-
-	bsExposed = (*pScreen->TranslateBackingStore) (pWin, 0, 0, pOldClip,
-						       pWin->drawable.x,
-						       pWin->drawable.y);
-
-	if (wasViewable)
-	    REGION_DESTROY(pScreen, pOldClip);
-
-	if (bsExposed)
-	{
-	    RegionPtr valExposed = NullRegion;
-
-	    if (pWin->valdata)
-		valExposed = &pWin->valdata->after.exposed;
-
-	    (*pScreen->WindowExposures) (pWin, valExposed, bsExposed);
-
-	    if (valExposed)
-		REGION_EMPTY (pScreen, valExposed);
-
-	    REGION_DESTROY (pScreen, bsExposed);
-	}
     }
 
     if (wasViewable)

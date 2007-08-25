@@ -182,23 +182,7 @@ extern void afbBresD(
 	unsigned char * /*rrops*/,
 	unsigned char * /*bgrrops*/
 );
-/* afbbstore.c */
 
-extern void afbSaveAreas(
-	PixmapPtr /*pPixmap*/,
-	RegionPtr /*prgnSave*/,
-	int /*xorg*/,
-	int /*yorg*/,
-	WindowPtr /*pWin*/
-);
-
-extern void afbRestoreAreas(
-	PixmapPtr /*pPixmap*/,
-	RegionPtr /*prgnRestore*/,
-	int /*xorg*/,
-	int /*yorg*/,
-	WindowPtr /*pWin*/
-);
 /* afbclip.c */
 
 extern RegionPtr afbPixmapToRegion(

@@ -31,15 +31,6 @@
 /* CAUTION:  We require that cfb8 and cfb32 were NOT 
 	compiled with CFB_NEED_SCREEN_PRIVATE */
 
-static BSFuncRec cfb8_32BSFuncRec = {
-    cfb8_32SaveAreas,
-    cfb8_32RestoreAreas,
-    (BackingStoreSetClipmaskRgnProcPtr) 0,
-    (BackingStoreGetImagePixmapProcPtr) 0,
-    (BackingStoreGetSpansPixmapProcPtr) 0,
-};
-
-
 int cfb8_32GCPrivateIndex;
 int cfb8_32GetGCPrivateIndex(void) { return cfb8_32GCPrivateIndex; }
 int cfb8_32ScreenPrivateIndex;
@@ -220,7 +211,6 @@ cfb8_32FinishScreenInit(
 			defaultVisual, nvisuals, visuals))
 	return FALSE;
 
-    pScreen->BackingStoreFuncs = cfb8_32BSFuncRec;
     pScreen->CreateScreenResources = cfb8_32CreateScreenResources;
     pScreen->CloseScreen = cfb8_32CloseScreen;
     pScreen->GetScreenPixmap = cfb32GetScreenPixmap; 	/* OK */

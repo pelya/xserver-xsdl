@@ -451,8 +451,6 @@ miDCMakeGC(
     gcvals[1] = FALSE;
     pGC = CreateGC((DrawablePtr)pWin,
 		   GCSubwindowMode|GCGraphicsExposures, gcvals, &status);
-    if (pGC && pWin->drawable.pScreen->DrawGuarantee)
-	(*pWin->drawable.pScreen->DrawGuarantee) (pWin, pGC, GuaranteeVisBack);
     *ppGC = pGC;
     return pGC;
 }

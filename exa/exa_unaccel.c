@@ -283,34 +283,6 @@ ExaCheckGetSpans (DrawablePtr pDrawable,
     exaFinishAccess (pDrawable, EXA_PREPARE_SRC);
 }
 
-void
-ExaCheckSaveAreas (PixmapPtr	pPixmap,
-		  RegionPtr	prgnSave,
-		  int		xorg,
-		  int		yorg,
-		  WindowPtr	pWin)
-{
-    EXA_FALLBACK(("from %p (%c)\n", &pPixmap->drawable,
-		  exaDrawableLocation(&pPixmap->drawable)));
-    exaPrepareAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
-    fbSaveAreas (pPixmap, prgnSave, xorg, yorg, pWin);
-    exaFinishAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
-}
-
-void
-ExaCheckRestoreAreas (PixmapPtr	pPixmap,
-		     RegionPtr	prgnSave,
-		     int	xorg,
-		     int    	yorg,
-		     WindowPtr	pWin)
-{
-    EXA_FALLBACK(("to %p (%c)\n", &pPixmap->drawable,
-		  exaDrawableLocation(&pPixmap->drawable)));
-    exaPrepareAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
-    fbRestoreAreas (pPixmap, prgnSave, xorg, yorg, pWin);
-    exaFinishAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
-}
-
 /* XXX: Note the lack of a prepare on the tile, if the window has a tiled
  * background.  This function happens to only be called if pExaScr->swappedOut,
  * so we actually end up not having to do it since the tile won't be in fb.

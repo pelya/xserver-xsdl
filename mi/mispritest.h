@@ -57,9 +57,6 @@ typedef struct {
     /* window procedures */
     CopyWindowProcPtr			CopyWindow;
     
-    /* backing store procedures */
-    SaveDoomedAreasProcPtr		SaveDoomedAreas;
-    
     /* colormap procedures */
     InstallColormapProcPtr		InstallColormap;
     StoreColorsProcPtr			StoreColors;

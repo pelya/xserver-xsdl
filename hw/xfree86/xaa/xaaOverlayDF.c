@@ -30,9 +30,6 @@
 static void XAAOverCopyWindow(WindowPtr, DDXPointRec, RegionPtr);
 static void XAAOverPaintWindow(WindowPtr, RegionPtr, int);
 static void XAAOverWindowExposures(WindowPtr, RegionPtr, RegionPtr);
-static void XAAOverSaveAreas(PixmapPtr, RegionPtr, int, int, WindowPtr);
-static void XAAOverRestoreAreas(PixmapPtr, RegionPtr, int, int, WindowPtr);
-
 
 static int XAAOverStippledFillChooser(GCPtr);
 static int XAAOverOpaqueStippledFillChooser(GCPtr);
@@ -200,8 +197,6 @@ XAAInitDualFramebufferOverlay(
     pScreen->PaintWindowBackground = XAAOverPaintWindow;
     pScreen->PaintWindowBorder = XAAOverPaintWindow;
     pScreen->WindowExposures = XAAOverWindowExposures;
-    pScreen->BackingStoreFuncs.SaveAreas = XAAOverSaveAreas;
-    pScreen->BackingStoreFuncs.RestoreAreas = XAAOverRestoreAreas;
 
     pOverPriv->StippledFillChooser = infoRec->StippledFillChooser;
     pOverPriv->OpaqueStippledFillChooser = infoRec->OpaqueStippledFillChooser;
@@ -493,46 +488,6 @@ XAAOverWindowExposures(
     XAA_SCREEN_PROLOGUE (pScreen, WindowExposures);
     (*pScreen->WindowExposures) (pWin, pReg, pOtherReg);
     XAA_SCREEN_EPILOGUE(pScreen, WindowExposures, XAAOverWindowExposures);
-}
-
-
-static void
-XAAOverSaveAreas (
-    PixmapPtr pPixmap,
-    RegionPtr prgnSave,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin
-){
-    XAAOverlayPtr pOverPriv = GET_OVERLAY_PRIV(pWin->drawable.pScreen);
-    XAAInfoRecPtr infoRec = 
-		GET_XAAINFORECPTR_FROM_DRAWABLE((DrawablePtr)pWin);
-
-    if(pOverPriv->pScrn->vtSema) {
-	SWITCH_DEPTH(pWin->drawable.depth);
-    }
-    
-    (*infoRec->SaveAreas)(pPixmap, prgnSave, xorg, yorg, pWin);
-}
-
-
-static void
-XAAOverRestoreAreas (    
-    PixmapPtr pPixmap,
-    RegionPtr prgnRestore,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin 
-){
-    XAAOverlayPtr pOverPriv = GET_OVERLAY_PRIV(pWin->drawable.pScreen);
-    XAAInfoRecPtr infoRec = 
-		GET_XAAINFORECPTR_FROM_DRAWABLE((DrawablePtr)pWin);
-
-    if(pOverPriv->pScrn->vtSema) {
-	SWITCH_DEPTH(pWin->drawable.depth);
-    }
-    
-    (*infoRec->RestoreAreas)(pPixmap, prgnRestore, xorg, yorg, pWin);
 }
 
 /*********************  Choosers *************************/

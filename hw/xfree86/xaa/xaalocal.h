@@ -49,7 +49,6 @@ typedef struct _XAAScreen {
    PaintWindowBorderProcPtr 	PaintWindowBorder;
    CopyWindowProcPtr 		CopyWindow;
    WindowExposuresProcPtr	WindowExposures;
-   BSFuncRec 			BackingStoreFuncs;
    CreatePixmapProcPtr 		CreatePixmap;
    DestroyPixmapProcPtr 	DestroyPixmap;
    ChangeWindowAttributesProcPtr ChangeWindowAttributes;
