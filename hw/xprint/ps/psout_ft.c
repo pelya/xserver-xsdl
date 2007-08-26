@@ -280,6 +280,8 @@ PsOut_FreeType_Text16(FontPtr pFont, PsOutPtr self, int x, int y, unsigned short
       else
       {
         sprintf(buf, "%s", baseFontName);
+        xfree(self->FontName);
+        self->FontName = NULL;
       }
 
       if( self->FontSize == -1 )
