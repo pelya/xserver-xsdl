@@ -95,6 +95,11 @@ struct __GLXdrawable {
     int refCount;
 
     GLenum target;
+
+    /*
+    ** Event mask
+    */
+    unsigned long eventMask;
 };
 
 #endif /* !__GLX_drawable_h__ */

@@ -147,6 +147,7 @@ __glXDrawableInit(__GLXdrawable *drawable,
     drawable->drawId = drawId;
     drawable->refCount = 1;
     drawable->modes = modes;
+    drawable->eventMask = 0;
 
     return GL_TRUE;
 }

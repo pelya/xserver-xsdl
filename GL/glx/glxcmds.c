@@ -1385,14 +1385,35 @@ int __glXDisp_DestroyGLXPbufferSGIX(__GLXclientState *cl, GLbyte *pc)
     return DoDestroyDrawable(cl, req->pbuffer, GLX_DRAWABLE_PBUFFER);
 }
 
+static int
+DoChangeDrawableAttributes(ClientPtr client, XID glxdrawable,
+			   int numAttribs, CARD32 *attribs)
+{
+    __GLXdrawable *pGlxDraw;
+    int i;
+
+    pGlxDraw = LookupIDByType(glxdrawable, __glXDrawableRes);
+    for (i = 0; i < numAttribs; i++) {
+	switch(attribs[i * 2]) {
+	case GLX_EVENT_MASK:
+	    /* All we do is to record the event mask so we can send it
+	     * back when queried.  We never actually clobber the
+	     * pbuffers, so we never need to send out the event. */
+	    pGlxDraw->eventMask = attribs[i * 2 + 1];
+	    break;
+	}
+    }
+
+    return Success;
+}
+
 int __glXDisp_ChangeDrawableAttributes(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXChangeDrawableAttributesReq *req =
 	(xGLXChangeDrawableAttributesReq *) pc;
 
-    (void) req;
-
-    return BadRequest;
+    return DoChangeDrawableAttributes(cl->client, req->drawable,
+				      req->numAttribs, (CARD32 *) (req + 1));
 }
 
 int __glXDisp_ChangeDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc)
@@ -1400,9 +1421,8 @@ int __glXDisp_ChangeDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc)
     xGLXChangeDrawableAttributesSGIXReq *req =
 	(xGLXChangeDrawableAttributesSGIXReq *)pc;
 
-    (void) req;
-
-    return BadRequest;
+    return DoChangeDrawableAttributes(cl->client, req->drawable,
+				      req->numAttribs, (CARD32 *) (req + 1));
 }
 
 int __glXDisp_CreateWindow(__GLXclientState *cl, GLbyte *pc)
@@ -1676,7 +1696,7 @@ DoGetDrawableAttributes(__GLXclientState *cl, XID drawId)
     ClientPtr client = cl->client;
     xGLXGetDrawableAttributesReply reply;
     __GLXdrawable *pGlxDraw;
-    CARD32 attributes[4];
+    CARD32 attributes[6];
     int numAttribs, error;
 
     pGlxDraw = __glXGetDrawable(NULL, drawId, client, &error);
@@ -1685,7 +1705,7 @@ DoGetDrawableAttributes(__GLXclientState *cl, XID drawId)
 	return error;
     }
 
-    numAttribs = 2;
+    numAttribs = 3;
     reply.length = numAttribs << 1;
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
@@ -1696,6 +1716,8 @@ DoGetDrawableAttributes(__GLXclientState *cl, XID drawId)
 	GLX_TEXTURE_RECTANGLE_EXT;
     attributes[2] = GLX_Y_INVERTED_EXT;
     attributes[3] = GL_FALSE;
+    attributes[4] = GLX_EVENT_MASK;
+    attributes[5] = pGlxDraw->eventMask;
 
     if (client->swapped) {
 	__glXSwapGetDrawableAttributesReply(client, &reply, attributes);
