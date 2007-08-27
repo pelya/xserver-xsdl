@@ -615,6 +615,7 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
 static __GLXdrawable *
 __glXDRIscreenCreateDrawable(__GLXscreen *screen,
 			     DrawablePtr pDraw,
+			     int type,
 			     XID drawId,
 			     __GLcontextModes *modes)
 {
@@ -629,7 +630,8 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
 
     memset(private, 0, sizeof *private);
 
-    if (!__glXDrawableInit(&private->base, screen, pDraw, drawId, modes)) {
+    if (!__glXDrawableInit(&private->base, screen,
+			   pDraw, type, drawId, modes)) {
         xfree(private);
 	return NULL;
     }

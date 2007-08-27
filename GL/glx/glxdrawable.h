@@ -46,6 +46,13 @@
 #include <GL/internal/dri_interface.h>
 #endif
 
+/* We just need to avoid clashing with DRAWABLE_{WINDOW,PIXMAP} */
+enum {
+    GLX_DRAWABLE_WINDOW,
+    GLX_DRAWABLE_PIXMAP,
+    GLX_DRAWABLE_PBUFFER
+};
+
 struct __GLXdrawable {
     void (*destroy)(__GLXdrawable *private);
     GLboolean (*resize)(__GLXdrawable *private);
@@ -63,9 +70,8 @@ struct __GLXdrawable {
     XID drawId;
 
     /*
-    ** Either DRAWABLE_PIXMAP or DRAWABLE_WINDOW, copied from pDraw above.
-    ** Needed by the resource freer because pDraw might already have been
-    ** freed.
+    ** Either GLX_DRAWABLE_PIXMAP, GLX_DRAWABLE_WINDOW or
+    ** GLX_DRAWABLE_PBUFFER.
     */
     int type;
 

@@ -50,7 +50,7 @@ extern void __glXUnrefDrawable(__GLXdrawable *glxPriv);
 
 extern GLboolean __glXDrawableInit(__GLXdrawable *drawable,
 				   __GLXscreen *screen,
-				   DrawablePtr pDraw, XID drawID,
+				   DrawablePtr pDraw, int type, XID drawID,
 				   __GLcontextModes *modes);
 
 /* context helper routines */

@@ -139,11 +139,11 @@ __glXUnrefDrawable(__GLXdrawable *glxPriv)
 
 GLboolean
 __glXDrawableInit(__GLXdrawable *drawable,
-		  __GLXscreen *screen, DrawablePtr pDraw, XID drawId,
-		  __GLcontextModes *modes)
+		  __GLXscreen *screen, DrawablePtr pDraw, int type,
+		  XID drawId, __GLcontextModes *modes)
 {
-    drawable->type = pDraw->type;
     drawable->pDraw = pDraw;
+    drawable->type = type;
     drawable->drawId = drawId;
     drawable->refCount = 1;
     drawable->modes = modes;
