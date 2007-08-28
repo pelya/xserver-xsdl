@@ -333,8 +333,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86IsEntityPrimary)
     SYMFUNC(xf86SetOperatingState)
     SYMFUNC(xf86EnterServerState)
-    SYMFUNC(xf86GetBlock)
-    SYMFUNC(xf86GetSparse)
     SYMFUNC(xf86ChkConflict)
     SYMFUNC(xf86FindScreenForEntity)
     SYMFUNC(xf86RegisterStateChangeNotificationCallback)

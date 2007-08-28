@@ -138,12 +138,6 @@ Bool xf86IsEntityPrimary(int entityIndex);
 resPtr xf86ReallocatePciResources(int entityIndex, resPtr pRes);
 resPtr xf86SetOperatingState(resList list, int entityIndex, int mask);
 void xf86EnterServerState(xf86State state);
-resRange xf86GetBlock(unsigned long type, memType size,
-		      memType window_start, memType window_end,
-		      memType align_mask, resPtr avoid);
-resRange xf86GetSparse(unsigned long type, memType fixed_bits,
-		       memType decode_mask, memType address_mask,
-		       resPtr avoid);
 memType xf86ChkConflict(resRange *rgp, int entityIndex);
 ScrnInfoPtr xf86FindScreenForEntity(int entityIndex);
 Bool xf86NoSharedResources(int screenIndex, resType res);
