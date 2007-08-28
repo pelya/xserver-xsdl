@@ -40,6 +40,7 @@
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
 #include <X11/extensions/XShm.h>
+#include "ephyrlog.h"
 
 /*  
  * All xlib calls go here, which gets built as its own .a .
@@ -985,5 +986,56 @@ hostx_get_extension_info (const char *a_ext_name,
        return 0 ;
      }
    return 1 ;
+}
+
+int
+hostx_get_visuals_info (EphyrHostVisualInfo **a_visuals,
+                        int *a_num_entries)
+{
+    Display *dpy=hostx_get_display () ;
+    Bool is_ok=False ;
+    XVisualInfo templ, *visuals=NULL;
+    EphyrHostVisualInfo *host_visuals=NULL ;
+    int nb_items=0, i=0;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_visuals && a_num_entries && dpy,
+                              False) ;
+    EPHYR_LOG ("enter\n") ;
+    memset (&templ, 0, sizeof (templ)) ;
+    visuals = XGetVisualInfo (dpy, VisualNoMask, &templ, &nb_items) ;
+    if (!visuals) {
+        EPHYR_LOG_ERROR ("host does not advertise any visual\n") ;
+        goto out ;
+    }
+    EPHYR_LOG ("host advertises %d visuals\n", nb_items) ;
+    host_visuals = calloc (nb_items, sizeof (EphyrHostVisualInfo)) ;
+    for (i=0; i<nb_items; i++) {
+        host_visuals[i].visualid = visuals[i].visualid ;
+        host_visuals[i].screen = visuals[i].screen ;
+        host_visuals[i].depth = visuals[i].depth ;
+        host_visuals[i].class = visuals[i].class ;
+        host_visuals[i].red_mask = visuals[i].red_mask ;
+        host_visuals[i].green_mask = visuals[i].green_mask ;
+        host_visuals[i].blue_mask = visuals[i].blue_mask ;
+        host_visuals[i].colormap_size = visuals[i].colormap_size ;
+        host_visuals[i].bits_per_rgb = visuals[i].bits_per_rgb ;
+    }
+    *a_visuals = host_visuals ;
+    *a_num_entries = nb_items;
+    host_visuals=NULL;
+
+    is_ok = TRUE;
+out:
+    if (visuals) {
+        XFree (visuals) ;
+        visuals = NULL;
+    }
+    if (host_visuals) {
+        free (host_visuals) ;
+        host_visuals = NULL;
+    }
+    EPHYR_LOG ("leave\n") ;
+    return is_ok ;
+
 }
 

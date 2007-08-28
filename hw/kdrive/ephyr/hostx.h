@@ -92,6 +92,18 @@ struct EphyrHostXEvent
   int key_state;
 };
 
+typedef struct {
+  VisualID visualid;
+  int screen;
+  int depth;
+  int class;
+  unsigned long red_mask;
+  unsigned long green_mask;
+  unsigned long blue_mask;
+  int colormap_size;
+  int bits_per_rgb;
+} EphyrHostVisualInfo;
+
 int
 hostx_want_screen_size(EphyrScreenInfo screen, int *width, int *height);
 
@@ -183,5 +195,7 @@ hostx_get_extension_info (const char *a_ext_name,
                           int *a_major_opcode,
                           int *a_first_even,
                           int *a_first_error) ;
-
+int
+hostx_get_visuals_info (EphyrHostVisualInfo **a_visuals,
+                        int *a_num_entries) ;
 #endif
