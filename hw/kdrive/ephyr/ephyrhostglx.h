@@ -37,9 +37,13 @@ Bool ephyrHostGLXGetVisualConfigs (int a_screen,
                                    int32_t *a_num_props,
                                    int32_t *a_props_buf_size,
                                    int32_t **a_props_buf) ;
-
+Bool
+ephyrHostGLXVendorPrivGetFBConfigsSGIX (int a_screen,
+                                        int32_t *a_num_visuals,
+                                        int32_t *a_num_props,
+                                        int32_t *a_props_buf_size,
+                                        int32_t **a_props_buf);
 Bool ephyrHostGLXGetMajorOpcode (int32_t *a_opcode) ;
-
 Bool ephyrHostGLXSendClientInfo (int32_t a_major, int32_t a_minor,
                                  const char* a_extension_list) ;
 

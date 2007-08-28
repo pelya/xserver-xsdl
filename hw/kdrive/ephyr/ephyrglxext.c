@@ -59,17 +59,22 @@ int ephyrGLXClientInfo(__GLXclientState *cl, GLbyte *pc) ;
 int ephyrGLXClientInfoSwap(__GLXclientState *cl, GLbyte *pc) ;
 int ephyrGLXQueryServerString(__GLXclientState *a_cl, GLbyte *a_pc) ;
 int ephyrGLXQueryServerStringSwap(__GLXclientState *a_cl, GLbyte *a_pc) ;
+int ephyrGLXGetFBConfigsSGIX (__GLXclientState *a_cl, GLbyte *a_pc);
+int ephyrGLXGetFBConfigsSGIXSwap (__GLXclientState *a_cl, GLbyte *a_pc);
 
 Bool
 ephyrHijackGLXExtension (void)
 {
     const void *(*dispatch_functions)[2];
 
-    EPHYR_LOG ("Got GLX extension\n") ;
+    EPHYR_LOG ("going to hijack some glx entry points ...\n") ;
     if (!Single_dispatch_info.dispatch_functions) {
         EPHYR_LOG_ERROR ("could not get dispatch functions table\n") ;
         return FALSE ;
     }
+    /*
+     * hijack some single entry point dispatch functions
+     */
     dispatch_functions = Single_dispatch_info.dispatch_functions ;
     EPHYR_RETURN_VAL_IF_FAIL (dispatch_functions, FALSE) ;
 
@@ -83,9 +88,16 @@ ephyrHijackGLXExtension (void)
     dispatch_functions[X_GLXClientInfo][1] = ephyrGLXClientInfoSwap ;
 
     dispatch_functions[X_GLXQueryServerString][0] = ephyrGLXQueryServerString ;
-    dispatch_functions[X_GLXQueryServerString][1] = ephyrGLXQueryServerStringSwap ;
+    dispatch_functions[X_GLXQueryServerString][1] =
+                                                ephyrGLXQueryServerStringSwap ;
 
-    EPHYR_LOG ("hijacked mesa GL to forward requests to host X\n") ;
+    /*
+     * hijack some vendor priv entry point dispatch functions
+     */
+    dispatch_functions = VendorPriv_dispatch_info.dispatch_functions ;
+    dispatch_functions[92][0] = ephyrGLXGetFBConfigsSGIX;
+    dispatch_functions[92][1] = ephyrGLXGetFBConfigsSGIXSwap;
+    EPHYR_LOG ("hijacked glx entry points to forward requests to host X\n") ;
 
     return TRUE ;
 }
@@ -114,6 +126,8 @@ ephyrGLXQueryVersion(__GLXclientState *a_cl, GLbyte *a_pc)
         EPHYR_LOG_ERROR ("ephyrHostGLXQueryVersion() failed\n") ;
         goto out ;
     }
+    EPHYR_LOG ("major:%d, minor:%d\n",
+                major, minor);
     reply.majorVersion = major ;
     reply.minorVersion = minor ;
     reply.length = 0 ;
@@ -145,7 +159,9 @@ ephyrGLXQueryVersionSwap (__GLXclientState *a_cl, GLbyte *a_pc)
 }
 
 static int
-ephyrGLXGetVisualConfigsReal (__GLXclientState *a_cl, GLbyte *a_pc, Bool a_do_swap)
+ephyrGLXGetVisualConfigsReal (__GLXclientState *a_cl,
+                              GLbyte *a_pc,
+                              Bool a_do_swap)
 {
     xGLXGetVisualConfigsReq *req = (xGLXGetVisualConfigsReq *) a_pc;
     ClientPtr client = a_cl->client;
@@ -188,6 +204,64 @@ ephyrGLXGetVisualConfigsReal (__GLXclientState *a_cl, GLbyte *a_pc, Bool a_do_sw
         WriteToClient (client,
                        props_per_visual_size,
                        (char*)props_buf +i*props_per_visual_size);
+    }
+    res = Success ;
+
+out:
+    EPHYR_LOG ("leave\n") ;
+    if (props_buf) {
+        xfree (props_buf) ;
+        props_buf = NULL ;
+    }
+    return res ;
+}
+
+static int
+ephyrGLXGetFBConfigsSGIXReal (__GLXclientState *a_cl,
+                              GLbyte *a_pc,
+                              Bool a_do_swap)
+{
+    xGLXGetFBConfigsSGIXReq *req = (xGLXGetFBConfigsSGIXReq *)a_pc;
+    ClientPtr client = a_cl->client;
+    xGLXGetVisualConfigsReply reply;
+    int32_t *props_buf=NULL, num_visuals=0,
+            num_props=0, res=BadImplementation, i=0,
+            props_per_visual_size=0,
+            props_buf_size=0;
+    __GLX_DECLARE_SWAP_VARIABLES;
+    __GLX_DECLARE_SWAP_ARRAY_VARIABLES;
+
+    EPHYR_LOG ("enter\n") ;
+
+    if (!ephyrHostGLXVendorPrivGetFBConfigsSGIX (req->screen,
+                                                 &num_visuals,
+                                                 &num_props,
+                                                 &props_buf_size,
+                                                 &props_buf)) {
+        EPHYR_LOG_ERROR ("ephyrHostGLXGetVisualConfigs() failed\n") ;
+        goto out ;
+    }
+    EPHYR_LOG ("num_visuals:%d, num_props:%d\n", num_visuals, num_props) ;
+
+    reply.numVisuals = num_visuals;
+    reply.numProps = num_props;
+    reply.length = props_buf_size >> 2;
+    reply.type = X_Reply;
+    reply.sequenceNumber = client->sequence;
+
+    if (a_do_swap) {
+        __GLX_SWAP_SHORT(&reply.sequenceNumber);
+        __GLX_SWAP_INT(&reply.length);
+        __GLX_SWAP_INT(&reply.numVisuals);
+        __GLX_SWAP_INT(&reply.numProps);
+        __GLX_SWAP_INT_ARRAY (props_buf, num_props) ;
+    }
+    WriteToClient(client, sz_xGLXGetVisualConfigsReply, (char*)&reply);
+    props_per_visual_size = props_buf_size/num_visuals ;
+    for (i=0; i < num_visuals; i++) {
+        WriteToClient (client,
+                       props_per_visual_size,
+                       &((char*)props_buf)[i*props_per_visual_size]);
     }
     res = Success ;
 
@@ -256,10 +330,13 @@ ephyrGLXQueryServerString(__GLXclientState *a_cl, GLbyte *a_pc)
     int length=0 ;
 
     EPHYR_LOG ("enter\n") ;
-    if (!ephyrHostGLXGetStringFromServer (req->screen, req->name, &server_string)) {
+    if (!ephyrHostGLXGetStringFromServer (req->screen,
+                                          req->name,
+                                          &server_string)) {
         EPHYR_LOG_ERROR ("failed to query string from host\n") ;
         goto out ;
     }
+    EPHYR_LOG ("string: %s", server_string) ;
     length= strlen (server_string) + 1;
     reply.type = X_Reply ;
     reply.sequenceNumber = client->sequence ;
@@ -285,6 +362,19 @@ ephyrGLXQueryServerStringSwap(__GLXclientState *a_cl, GLbyte *a_pc)
 {
     EPHYR_LOG_ERROR ("not yet implemented\n") ;
     return BadImplementation ;
+}
+
+
+int
+ephyrGLXGetFBConfigsSGIX (__GLXclientState *a_cl, GLbyte *a_pc)
+{
+    return ephyrGLXGetFBConfigsSGIXReal (a_cl, a_pc, FALSE) ;
+}
+
+int
+ephyrGLXGetFBConfigsSGIXSwap (__GLXclientState *a_cl, GLbyte *a_pc)
+{
+    return ephyrGLXGetFBConfigsSGIXReal (a_cl, a_pc, TRUE) ;
 }
 
 #endif /*XEPHYR_DRI*/

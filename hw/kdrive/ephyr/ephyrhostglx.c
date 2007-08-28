@@ -42,7 +42,20 @@
 #include "ephyrlog.h"
 
 #ifdef XEPHYR_DRI
+enum VisualConfRequestType {
+    EPHYR_GET_FB_CONFIG,
+    EPHYR_VENDOR_PRIV_GET_FB_CONFIG_SGIX,
+    EPHYR_GET_VISUAL_CONFIGS
 
+};
+
+static Bool ephyrHostGLXGetVisualConfigsInternal
+                                        (enum VisualConfRequestType a_type,
+                                         int32_t a_screen,
+                                         int32_t *a_num_visuals,
+                                         int32_t *a_num_props,
+                                         int32_t *a_props_buf_size,
+                                         int32_t **a_props_buf);
 Bool
 ephyrHostGLXGetMajorOpcode (int *a_opcode)
 {
@@ -163,12 +176,13 @@ ephyrHostGLXGetStringFromServer (int a_screen_number,
     return TRUE ;
 }
 
-Bool
-ephyrHostGLXGetVisualConfigs (int32_t a_screen,
-                              int32_t *a_num_visuals,
-                              int32_t *a_num_props,
-                              int32_t *a_props_buf_size,
-                              int32_t **a_props_buf)
+static Bool
+ephyrHostGLXGetVisualConfigsInternal (enum VisualConfRequestType a_type,
+                                      int32_t a_screen,
+                                      int32_t *a_num_visuals,
+                                      int32_t *a_num_props,
+                                      int32_t *a_props_buf_size,
+                                      int32_t **a_props_buf)
 {
     Bool is_ok = FALSE ;
     Display *dpy = hostx_get_display () ;
@@ -177,7 +191,6 @@ ephyrHostGLXGetVisualConfigs (int32_t a_screen,
     xGLXVendorPrivateWithReplyReq *vpreq;
     xGLXGetFBConfigsSGIXReq *sgi_req;
     xGLXGetVisualConfigsReply reply;
-    unsigned supported_request=0;
     char *server_glx_version=NULL,
          *server_glx_extensions=NULL ;
     int j=0,
@@ -196,44 +209,22 @@ ephyrHostGLXGetVisualConfigs (int32_t a_screen,
         EPHYR_LOG_ERROR ("failed to get opcode\n") ;
         goto out ;
     }
-    if (!ephyrHostGLXGetStringFromServer (0, GLX_VERSION,
-                                          &server_glx_version)
-        || !server_glx_version) {
-        EPHYR_LOG_ERROR ("failed to get glx version from server\n") ;
-        goto out ;
-    }
-
-    if (atof (server_glx_version) >= 1.3 ) {
-        supported_request = 1;
-    }
-
-    if (!ephyrHostGLXGetStringFromServer (a_screen, GLX_EXTENSIONS,
-                                          &server_glx_extensions)) {
-        EPHYR_LOG_ERROR ("failed to get glx extensions from server for screen: %d\n",
-                         a_screen) ;
-        goto out ;
-    }
-    if (supported_request != 1) {
-        if (server_glx_extensions
-            && strstr (server_glx_extensions, "GLX_SGIX_fbconfig" ) != NULL ) {
-            supported_request = 2;
-        } else {
-            supported_request = 3;
-        }
-    }
 
     LockDisplay(dpy);
-    switch (supported_request) {
-        case 1:
+    switch (a_type) {
+        case EPHYR_GET_FB_CONFIG:
         GetReq(GLXGetFBConfigs,fb_req);
         fb_req->reqType = major_opcode;
         fb_req->glxCode = X_GLXGetFBConfigs;
         fb_req->screen = a_screen;
         break;
 
-        case 2:
+        case EPHYR_VENDOR_PRIV_GET_FB_CONFIG_SGIX:
         GetReqExtra(GLXVendorPrivateWithReply,
-                sz_xGLXGetFBConfigsSGIXReq-sz_xGLXVendorPrivateWithReplyReq,vpreq);
+                    sz_xGLXGetFBConfigsSGIXReq
+                         -
+                    sz_xGLXVendorPrivateWithReplyReq,
+                    vpreq);
         sgi_req = (xGLXGetFBConfigsSGIXReq *) vpreq;
         sgi_req->reqType = major_opcode;
         sgi_req->glxCode = X_GLXVendorPrivateWithReply;
@@ -241,7 +232,7 @@ ephyrHostGLXGetVisualConfigs (int32_t a_screen,
         sgi_req->screen = a_screen;
         break;
 
-        case 3:
+        case EPHYR_GET_VISUAL_CONFIGS:
         GetReq(GLXGetVisualConfigs,req);
         req->reqType = major_opcode;
         req->glxCode = X_GLXGetVisualConfigs;
@@ -274,7 +265,7 @@ ephyrHostGLXGetVisualConfigs (int32_t a_screen,
         goto out ;
     }
 
-    if (supported_request != 3) {
+    if (a_type != EPHYR_GET_VISUAL_CONFIGS) {
         num_props *= 2;
     }
     props_per_visual_size = num_props * __GLX_SIZE_INT32;
@@ -282,7 +273,7 @@ ephyrHostGLXGetVisualConfigs (int32_t a_screen,
     props_buf = malloc (props_buf_size) ;
     for (j = 0; j < reply.numVisuals; j++) {
         if (_XRead (dpy,
-                    (char*)props_buf + j*props_per_visual_size,
+                    &((char*)props_buf)[j*props_per_visual_size],
                     props_per_visual_size) != Success) {
             EPHYR_LOG_ERROR ("read failed\n") ;
         }
@@ -290,7 +281,7 @@ ephyrHostGLXGetVisualConfigs (int32_t a_screen,
     UnlockDisplay(dpy);
 
     *a_num_visuals = num_visuals ;
-    *a_num_props = num_props ;
+    *a_num_props = reply.numProps ;
     *a_props_buf_size = props_buf_size ;
     *a_props_buf = props_buf ;
     is_ok = TRUE ;
@@ -306,6 +297,47 @@ out:
     }
     SyncHandle () ;
     return is_ok;
+}
+
+Bool
+ephyrHostGLXGetVisualConfigs (int32_t a_screen,
+                              int32_t *a_num_visuals,
+                              int32_t *a_num_props,
+                              int32_t *a_props_buf_size,
+                              int32_t **a_props_buf)
+{
+    Bool is_ok = FALSE;
+
+    EPHYR_LOG ("enter\n") ;
+    is_ok = ephyrHostGLXGetVisualConfigsInternal (EPHYR_GET_VISUAL_CONFIGS,
+                                                  a_screen,
+                                                  a_num_visuals,
+                                                  a_num_props,
+                                                  a_props_buf_size,
+                                                  a_props_buf) ;
+
+    EPHYR_LOG ("leave:%d\n", is_ok) ;
+    return is_ok;
+}
+
+Bool
+ephyrHostGLXVendorPrivGetFBConfigsSGIX (int a_screen,
+                                        int32_t *a_num_visuals,
+                                        int32_t *a_num_props,
+                                        int32_t *a_props_buf_size,
+                                        int32_t **a_props_buf)
+{
+    Bool is_ok=FALSE ;
+    EPHYR_LOG ("enter\n") ;
+    is_ok = ephyrHostGLXGetVisualConfigsInternal
+                                        (EPHYR_VENDOR_PRIV_GET_FB_CONFIG_SGIX,
+                                         a_screen,
+                                         a_num_visuals,
+                                         a_num_props,
+                                         a_props_buf_size,
+                                         a_props_buf) ;
+    EPHYR_LOG ("leave\n") ;
+    return is_ok ;
 }
 
 Bool
