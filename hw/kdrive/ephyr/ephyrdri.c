@@ -63,7 +63,9 @@ ephyrDRIQueryDirectRenderingCapable (int a_screen, Bool *a_is_capable)
 }
 
 Bool
-ephyrDRIOpenConnection (int a_screen, drm_handle_t *a_sarea, char **a_bus_id_string)
+ephyrDRIOpenConnection (int a_screen,
+                        drm_handle_t *a_sarea,
+                        char **a_bus_id_string)
 {
     Display *dpy = hostx_get_display () ;
     Bool is_ok=FALSE ;
@@ -108,13 +110,23 @@ ephyrDRIGetClientDriverName (int a_screen,
     Display *dpy = hostx_get_display () ;
     Bool is_ok=FALSE ;
 
+    EPHYR_RETURN_VAL_IF_FAIL (a_ddx_driver_major_version
+                              && a_ddx_driver_minor_version
+                              && a_ddx_driver_patch_version
+                              && a_client_driver_name,
+                              FALSE);
     EPHYR_LOG ("enter\n") ;
     is_ok = XF86DRIGetClientDriverName (dpy, a_screen,
                                         a_ddx_driver_major_version,
                                         a_ddx_driver_minor_version,
                                         a_ddx_driver_patch_version,
                                         a_client_driver_name) ;
-    EPHYR_LOG ("leave\n") ;
+    EPHYR_LOG ("major:%d, minor:%d, patch:%d, name:%s\n",
+                *a_ddx_driver_major_version,
+                *a_ddx_driver_minor_version,
+                *a_ddx_driver_patch_version,
+                *a_client_driver_name) ;
+    EPHYR_LOG ("leave:%d\n", is_ok) ;
     return is_ok ;
 }
 
@@ -136,7 +148,7 @@ ephyrDRICreateContext (int a_screen,
                                   &v,
                                   a_returned_ctxt_id,
                                   a_hw_ctxt) ;
-    EPHYR_LOG ("leave\n") ;
+    EPHYR_LOG ("leave:%d\n", is_ok) ;
     return is_ok ;
 }
 
@@ -149,7 +161,7 @@ ephyrDRIDestroyContext (int a_screen,
 
     EPHYR_LOG ("enter\n") ;
     is_ok = XF86DRIDestroyContext (dpy, a_screen, a_context_id) ;
-    EPHYR_LOG ("leave\n") ;
+    EPHYR_LOG ("leave:%d\n", is_ok) ;
     return is_ok ;
 }
 
@@ -212,7 +224,7 @@ ephyrDRIGetDeviceInfo (int a_screen,
     is_ok = XF86DRIGetDeviceInfo (dpy, a_screen, a_frame_buffer,
                                   a_fb_origin, a_fb_size, a_fb_stride,
                                   a_dev_private_size, a_dev_private) ;
-    EPHYR_LOG ("leave\n") ;
+    EPHYR_LOG ("leave:%d\n", is_ok) ;
     return is_ok ;
 }
 #endif /*EPHYR_DRI*/
