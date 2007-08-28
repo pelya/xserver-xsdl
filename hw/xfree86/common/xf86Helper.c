@@ -39,6 +39,9 @@
 #include <xorg-config.h>
 #endif
 
+#include <pciaccess.h>
+#include "Pci.h"
+
 #include <X11/X.h>
 #include "os.h"
 #include "servermd.h"
@@ -1111,7 +1114,7 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
     WindowPtr	pChild;
     Bool	WasViewable = (Bool)(pWin->viewable);
     Bool	anyMarked = FALSE;
-    RegionPtr	pOldClip = NULL, bsExposed;
+    RegionPtr	pOldClip = NULL;
 #ifdef DO_SAVE_UNDERS
     Bool	dosave = FALSE;
 #endif
@@ -1172,12 +1175,6 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 
     if (WasViewable)
     {
-	if (pWin->backStorage)
-	{
-	    pOldClip = REGION_CREATE(pScreen, NullBox, 1);
-	    REGION_COPY(pScreen, pOldClip, &pWin->clipList);
-	}
-
 	if (pWin->firstChild)
 	{
 	    anyMarked |= (*pScreen->MarkOverlappedWindows)(pWin->firstChild,
@@ -1201,28 +1198,6 @@ xf86SetRootClip (ScreenPtr pScreen, Bool enable)
 	    (*pScreen->ValidateTree)(pWin, NullWindow, VTOther);
     }
 
-    if (pWin->backStorage &&
-	((pWin->backingStore == Always) || WasViewable))
-    {
-	if (!WasViewable)
-	    pOldClip = &pWin->clipList; /* a convenient empty region */
-	bsExposed = (*pScreen->TranslateBackingStore)
-			     (pWin, 0, 0, pOldClip,
-			      pWin->drawable.x, pWin->drawable.y);
-	if (WasViewable)
-	    REGION_DESTROY(pScreen, pOldClip);
-	if (bsExposed)
-	{
-	    RegionPtr	valExposed = NullRegion;
-
-	    if (pWin->valdata)
-		valExposed = &pWin->valdata->after.exposed;
-	    (*pScreen->WindowExposures) (pWin, valExposed, bsExposed);
-	    if (valExposed)
-		REGION_EMPTY(pScreen, valExposed);
-	    REGION_DESTROY(pScreen, bsExposed);
-	}
-    }
     if (WasViewable)
     {
 	if (anyMarked)
@@ -1595,7 +1570,7 @@ xf86MatchDevice(const char *drivername, GDevPtr **sectlist)
 }
 
 struct Inst {
-    pciVideoPtr	pci;
+    struct pci_device *	pci;
     GDevPtr		dev;
     Bool		foundHW;  /* PCIid in list of supported chipsets */
     Bool		claimed;  /* BusID matches with a device section */
@@ -1643,7 +1618,8 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 		      int **foundEntities)
 {
     int i,j;
-    pciVideoPtr pPci, *ppPci;
+    struct pci_device * pPci;
+    struct pci_device_iterator *iter;
     struct Inst *instances = NULL;
     int numClaimedInstances = 0;
     int allocatedInstances = 0;
@@ -1654,8 +1630,6 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 
     *foundEntities = NULL;
 
-    if (!xf86PciVideoInfo)
-	return 0;
 
     /* Each PCI device will contribute at least one entry.  Each device
      * section can contribute at most one entry.  The sum of the two is
@@ -1665,20 +1639,21 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
      */
     if ( !xf86DoProbe && !(xf86DoConfigure && xf86DoConfigurePass1) ) {
 	unsigned max_entries = numDevs;
-	for (ppPci = xf86PciVideoInfo ; *ppPci != NULL ; ppPci++) {
+
+	iter = pci_slot_match_iterator_create(NULL);
+	while ((pPci = pci_device_next(iter)) != NULL) {
 	    max_entries++;
 	}
 
-	instances = xnfalloc( max_entries * sizeof(struct Inst) );
+	pci_iterator_destroy(iter);
+	instances = xnfalloc(max_entries * sizeof(struct Inst));
     }
 
-    for (ppPci = xf86PciVideoInfo; *ppPci != NULL; ppPci++) {
-	unsigned device_class = ((*ppPci)->class << 16)
-	    | ((*ppPci)->subclass << 8) | ((*ppPci)->interface);
+    iter = pci_slot_match_iterator_create(NULL);
+    while ((pPci = pci_device_next(iter)) != NULL) {
+	unsigned device_class = pPci->device_class;
 	Bool foundVendor = FALSE;
 
-
-	pPci = *ppPci;
 
 	/* Convert the pre-PCI 2.0 device class for a VGA adapter to the
 	 * 2.0 version of the same class.
@@ -1704,19 +1679,21 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	    const unsigned device_id = (id->PCIid & 0x0000FFFF);
 	    const unsigned match_class = 0x00030000 | id->PCIid;
 
-	    if ( (vendor_id == pPci->vendor)
-		 || ((vendorID == PCI_VENDOR_GENERIC) && (match_class == device_class)) ) {
-		if ( !foundVendor && (instances != NULL) ) {
+	    if ((vendor_id == pPci->vendor_id)
+		|| ((vendorID == PCI_VENDOR_GENERIC) && (match_class == device_class))) {
+		if (!foundVendor && (instances != NULL)) {
 		    ++allocatedInstances;
-		    instances[allocatedInstances - 1].pci = *ppPci;
+		    instances[allocatedInstances - 1].pci = pPci;
 		    instances[allocatedInstances - 1].dev = NULL;
 		    instances[allocatedInstances - 1].claimed = FALSE;
 		    instances[allocatedInstances - 1].foundHW = FALSE;
 		    instances[allocatedInstances - 1].screen = 0;
-		    foundVendor = TRUE;
 		}
-		if ( (device_id == pPci->chipType)
-		     || ((vendorID == PCI_VENDOR_GENERIC)
+
+		foundVendor = TRUE;
+
+		if ( (device_id == pPci->device_id)
+		     || ((vendorID == PCI_VENDOR_GENERIC) 
 			 && (match_class == device_class)) ) {
 		    if ( instances != NULL ) {
 			instances[allocatedInstances - 1].foundHW = TRUE;
@@ -1725,11 +1702,10 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 
 
 		    if ( xf86DoConfigure && xf86DoConfigurePass1 ) {
-			if ( xf86CheckPciSlot(pPci->bus, pPci->device,
-					      pPci->func) ) {
-			    GDevPtr pGDev =
-			      xf86AddDeviceToConfigure( drvp->driverName,
-							pPci, -1 );
+			if (xf86CheckPciSlot(pPci)) {
+			    GDevPtr pGDev = 
+			      xf86AddDeviceToConfigure(drvp->driverName,
+						       pPci, -1);
 			    if (pGDev) {
 				/* After configure pass 1, chipID and chipRev
 				 * are treated as over-rides, so clobber them
@@ -1751,6 +1727,8 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	    }
 	}
     }
+
+    pci_iterator_destroy(iter);
 
 
     /* In "probe only" or "configure" mode (signaled by instances being NULL),
@@ -1789,8 +1767,9 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	    && *devList[j]->busID) {
 	    for (i = 0; i < allocatedInstances; i++) {
 	        pPci = instances[i].pci;
-	        if (xf86ComparePciBusString(devList[j]->busID, pPci->bus,
-					    pPci->device,
+	        if (xf86ComparePciBusString(devList[j]->busID, 
+					    PCI_MAKE_BUS( pPci->domain, pPci->bus ),
+					    pPci->dev,
 					    pPci->func)) {
 		    allocatedInstances++;
 		    instances[allocatedInstances - 1] = instances[i];
@@ -1810,9 +1789,10 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	pPci = instances[i].pci;
 	for (j = 0; j < numDevs; j++) {
 	    if (devList[j]->busID && *devList[j]->busID) {
-		if (xf86ComparePciBusString(devList[j]->busID, pPci->bus,
-					   pPci->device,
-					   pPci->func) &&
+		if (xf86ComparePciBusString(devList[j]->busID, 
+					    PCI_MAKE_BUS( pPci->domain, pPci->bus ),
+					    pPci->dev,
+					    pPci->func) &&
 		    devList[j]->screen == instances[i].screen) {
 
 		    if (devBus)
@@ -1843,10 +1823,11 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	}
 	if (devBus) dev = devBus;  /* busID preferred */
 	if (!dev) {
-	    if (xf86CheckPciSlot(pPci->bus, pPci->device, pPci->func)) {
+	    if ( xf86CheckPciSlot( pPci ) ) {
 		xf86MsgVerb(X_WARNING, 0, "%s: No matching Device section "
-			    "for instance (BusID PCI:%i:%i:%i) found\n",
-			    driverName, pPci->bus, pPci->device, pPci->func);
+			    "for instance (BusID PCI:%u@%u:%u:%u) found\n",
+			    driverName, pPci->domain, pPci->bus, pPci->dev,
+			    pPci->func);
 	    }
 	} else {
 	    numClaimedInstances++;
@@ -1957,31 +1938,27 @@ xf86MatchPciInstances(const char *driverName, int vendorID,
 	 * XXX Need to make sure that two different drivers don't claim
 	 * the same screen > 0 instance.
 	 */
-        if (instances[i].screen == 0 &&
-	    !xf86CheckPciSlot(pPci->bus, pPci->device, pPci->func))
+        if (instances[i].screen == 0 && !xf86CheckPciSlot( pPci ))
 	    continue;
 
 #ifdef DEBUG
 	ErrorF("%s: card at %d:%d:%d is claimed by a Device section\n",
-	       driverName, pPci->bus, pPci->device, pPci->func);
+	       driverName, pPci->bus, pPci->dev, pPci->func);
 #endif
 	
 	/* Allocate an entry in the lists to be returned */
 	numFound++;
 	retEntities = xnfrealloc(retEntities, numFound * sizeof(int));
-	retEntities[numFound - 1]
-	    = xf86ClaimPciSlot(pPci->bus, pPci->device,
-			       pPci->func,drvp,	instances[i].chip,
-			       instances[i].dev,instances[i].dev->active ?
-			       TRUE : FALSE);
+	retEntities[numFound - 1] = xf86ClaimPciSlot( pPci, drvp,
+						      instances[i].chip,
+						      instances[i].dev,
+						      instances[i].dev->active);
         if (retEntities[numFound - 1] == -1 && instances[i].screen > 0) {
 	    for (j = 0; j < xf86NumEntities; j++) {
 	        EntityPtr pEnt = xf86Entities[j];
-	        if (pEnt->busType != BUS_PCI)
+	        if (pEnt->bus.type != BUS_PCI)
 		    continue;
-	        if (pEnt->pciBusId.bus == pPci->bus &&
-		    pEnt->pciBusId.device == pPci->device &&
-		    pEnt->pciBusId.func == pPci->func) {
+	        if (pEnt->bus.id.pci == pPci) {
 		    retEntities[numFound - 1] = j;
 		    xf86AddDevToEntity(j, instances[i].dev);
 		    break;

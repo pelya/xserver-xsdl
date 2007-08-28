@@ -478,7 +478,7 @@ xf86RotateDestroy (xf86CrtcPtr crtc)
     }
 }
 
-void
+_X_EXPORT void
 xf86RotateCloseScreen (ScreenPtr screen)
 {
     ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
@@ -489,7 +489,7 @@ xf86RotateCloseScreen (ScreenPtr screen)
 	xf86RotateDestroy (xf86_config->crtc[c]);
 }
 
-Bool
+_X_EXPORT Bool
 xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
 {
     ScrnInfoPtr		pScrn = crtc->scrn;

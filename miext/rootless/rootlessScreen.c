@@ -633,7 +633,6 @@ RootlessWrap(ScreenPtr pScreen)
 #endif
 
     // WRAP(ClearToBackground); fixme put this back? useful for shaped wins?
-    // WRAP(RestoreAreas); fixme put this back?
 
 #undef WRAP
 }

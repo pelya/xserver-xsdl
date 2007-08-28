@@ -118,7 +118,7 @@ TslibEnable (KdPointerInfo *pi)
     private->fd = ts_fd(private->tsDev);
     if (!private->tsDev || ts_config(private->tsDev) || private->fd < 0) {
         ErrorF("[tslib/TslibEnable] failed to open %s\n", pi->path);
-        if (private->fd > 0);
+        if (private->fd >= 0)
             close(private->fd);
         return BadAlloc;
     }

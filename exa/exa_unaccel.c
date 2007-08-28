@@ -283,34 +283,6 @@ ExaCheckGetSpans (DrawablePtr pDrawable,
     exaFinishAccess (pDrawable, EXA_PREPARE_SRC);
 }
 
-void
-ExaCheckSaveAreas (PixmapPtr	pPixmap,
-		  RegionPtr	prgnSave,
-		  int		xorg,
-		  int		yorg,
-		  WindowPtr	pWin)
-{
-    EXA_FALLBACK(("from %p (%c)\n", &pPixmap->drawable,
-		  exaDrawableLocation(&pPixmap->drawable)));
-    exaPrepareAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
-    fbSaveAreas (pPixmap, prgnSave, xorg, yorg, pWin);
-    exaFinishAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
-}
-
-void
-ExaCheckRestoreAreas (PixmapPtr	pPixmap,
-		     RegionPtr	prgnSave,
-		     int	xorg,
-		     int    	yorg,
-		     WindowPtr	pWin)
-{
-    EXA_FALLBACK(("to %p (%c)\n", &pPixmap->drawable,
-		  exaDrawableLocation(&pPixmap->drawable)));
-    exaPrepareAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
-    fbRestoreAreas (pPixmap, prgnSave, xorg, yorg, pWin);
-    exaFinishAccess ((DrawablePtr)pPixmap, EXA_PREPARE_DEST);
-}
-
 /* XXX: Note the lack of a prepare on the tile, if the window has a tiled
  * background.  This function happens to only be called if pExaScr->swappedOut,
  * so we actually end up not having to do it since the tile won't be in fb.
@@ -382,19 +354,19 @@ exaGetPixmapFirstPixel (PixmapPtr pPixmap)
     ExaMigrationRec pixmaps[1];
     ExaPixmapPriv (pPixmap);
 
+    fb = pExaPixmap->sys_ptr;
+
     /* Try to avoid framebuffer readbacks */
-    if (exaPixmapIsOffscreen(pPixmap)) {
-	if (!miPointInRegion(DamageRegion(pExaPixmap->pDamage), 0, 0,  &box)) {
-	    fb = pExaPixmap->sys_ptr;
-	} else {
-	    need_finish = TRUE;
-	    fb = pPixmap->devPrivate.ptr;
-	    pixmaps[0].as_dst = FALSE;
-	    pixmaps[0].as_src = TRUE;
-	    pixmaps[0].pPix = pPixmap;
-	    exaDoMigration (pixmaps, 1, FALSE);
-	    exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
-	}
+    if (exaPixmapIsOffscreen(pPixmap) &&
+        miPointInRegion(DamageRegion(pExaPixmap->pDamage), 0, 0,  &box))
+    {
+	need_finish = TRUE;
+	pixmaps[0].as_dst = FALSE;
+	pixmaps[0].as_src = TRUE;
+	pixmaps[0].pPix = pPixmap;
+	exaDoMigration (pixmaps, 1, FALSE);
+	exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+	fb = pPixmap->devPrivate.ptr;
     }
 
     switch (pPixmap->drawable.bitsPerPixel) {

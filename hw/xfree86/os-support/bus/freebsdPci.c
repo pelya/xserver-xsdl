@@ -83,7 +83,7 @@ static pciBusInfo_t freebsdPci0 = {
 /* bridge      */	NULL
 };
 
-#if !defined(__OpenBSD__) && !defined(__FreeBSD__)
+#if !defined(__OpenBSD__) && !defined(__FreeBSD__) && !defined(__DragonFly__)
 #if X_BYTE_ORDER == X_BIG_ENDIAN
 #ifdef __sparc__
 #ifndef ASI_PL
@@ -124,8 +124,6 @@ freebsdPciInit()
 
 	pciNumBuses    = 1;
 	pciBusInfo[0]  = &freebsdPci0;
-	pciFindFirstFP = pciGenFindFirst;
-	pciFindNextFP  = pciGenFindNext;
 }
 
 static CARD32

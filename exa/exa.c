@@ -32,10 +32,6 @@
 #include <dix-config.h>
 #endif
 
-#ifdef MITSHM
-#include "shmint.h"
-#endif
-
 #include <stdlib.h>
 
 #include "exa_priv.h"
@@ -253,7 +249,7 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 				     pExaScr->info->pixmapPitchAlign);
     pExaPixmap->fb_size = pExaPixmap->fb_pitch * h;
 
-    if (pExaPixmap->fb_pitch > 32767) {
+    if (pExaPixmap->fb_pitch > 131071) {
 	fbDestroyPixmap(pPixmap);
 	return NULL;
     }
@@ -526,6 +522,7 @@ exaCloseScreen(int i, ScreenPtr pScreen)
     if (ps) {
 	ps->Composite = pExaScr->SavedComposite;
 	ps->Glyphs = pExaScr->SavedGlyphs;
+	ps->Trapezoids = pExaScr->SavedTrapezoids;
     }
 #endif
 
@@ -669,8 +666,6 @@ exaDriverInit (ScreenPtr		pScreen,
     pExaScr->SavedPaintWindowBorder = pScreen->PaintWindowBorder;
     pScreen->PaintWindowBorder = exaPaintWindow;
 
-    pScreen->BackingStoreFuncs.SaveAreas = ExaCheckSaveAreas;
-    pScreen->BackingStoreFuncs.RestoreAreas = ExaCheckRestoreAreas;
 #ifdef RENDER
     if (ps) {
         pExaScr->SavedComposite = ps->Composite;
@@ -684,6 +679,9 @@ exaDriverInit (ScreenPtr		pScreen,
 
 	pExaScr->SavedGlyphs = ps->Glyphs;
 	ps->Glyphs = exaGlyphs;
+
+	pExaScr->SavedTrapezoids = ps->Trapezoids;
+	ps->Trapezoids = exaTrapezoids;
     }
 #endif
 
@@ -692,7 +690,7 @@ exaDriverInit (ScreenPtr		pScreen,
      * Shared pixmaps are almost always a performance loss for us, but this
      * still allows for SHM PutImage.
      */
-    ShmRegisterFuncs(pScreen, NULL);
+    ShmRegisterFuncs(pScreen, &exaShmFuncs);
 #endif
     /*
      * Hookup offscreen pixmaps

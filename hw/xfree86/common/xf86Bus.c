@@ -52,6 +52,7 @@
 #include "xf86_OSproc.h"
 
 #include "xf86RAC.h"
+#include "Pci.h"
 
 /* Entity data */
 EntityPtr *xf86Entities = NULL;	/* Bus slots claimed by drivers */
@@ -253,9 +254,7 @@ xf86IsEntityPrimary(int entityIndex)
 
     switch (pEnt->busType) {
     case BUS_PCI:
-	return (pEnt->pciBusId.bus == primaryBus.id.pci.bus &&
-		pEnt->pciBusId.device == primaryBus.id.pci.device &&
-		pEnt->pciBusId.func == primaryBus.id.pci.func);
+	return (pEnt->bus.id.pci == primaryBus.id.pci);
     case BUS_ISA:
 	return TRUE;
     case BUS_SBUS:
@@ -1361,7 +1360,9 @@ xf86AddRangesToList(resPtr list, resRange *pRange, int entityIndex)
 void
 xf86ResourceBrokerInit(void)
 {
+#if 0
     resPtr resPci;
+#endif
 
     osRes = NULL;
 
@@ -1376,8 +1377,12 @@ xf86ResourceBrokerInit(void)
     xf86PrintResList(3, osRes);
 
     /* Bus dep initialization */
+#if 0
     resPci = ResourceBrokerInitPci(&osRes);
     Acc = xf86JoinResLists(xf86DupResList(osRes), resPci);
+#else
+    Acc = xf86DupResList( osRes );
+#endif
     
     xf86MsgVerb(X_INFO, 3, "All system resource ranges:\n");
     xf86PrintResList(3, Acc);
@@ -1765,7 +1770,7 @@ xf86GetResourcesImplicitly(int entityIndex)
     case BUS_SBUS:
 	return NULL;
     case BUS_PCI:
-	return GetImplicitPciResources(entityIndex);
+	return NULL;
     case BUS_last:
 	return NULL;
     }
@@ -1856,31 +1861,34 @@ xf86RegisterResources(int entityIndex, resList list, unsigned long access)
 }
 
 static void
-busTypeSpecific(EntityPtr pEnt, xf86State state, xf86AccessPtr *acc_mem,
+busTypeSpecific(EntityPtr pEnt, xf86AccessPtr *acc_mem,
 		xf86AccessPtr *acc_io, xf86AccessPtr *acc_mem_io)
 {
-    pciAccPtr *ppaccp;
-    
     switch (pEnt->bus.type) {
     case BUS_ISA:
     case BUS_SBUS:
-	    *acc_mem = *acc_io = *acc_mem_io = &AccessNULL;
-	    break;
+	*acc_mem = *acc_io = *acc_mem_io = &AccessNULL;
 	break;
-    case BUS_PCI:
-	ppaccp = xf86PciAccInfo;
-	while (*ppaccp) {
-	    if ((*ppaccp)->busnum == pEnt->pciBusId.bus
-		&& (*ppaccp)->devnum == pEnt->pciBusId.device
-		&& (*ppaccp)->funcnum == pEnt->pciBusId.func) {
-		*acc_io = &(*ppaccp)->ioAccess;
-		*acc_mem = &(*ppaccp)->memAccess;
-		*acc_mem_io = &(*ppaccp)->io_memAccess;
-		break;
-	    }
-	    ppaccp++;
+    case BUS_PCI: {
+	struct pci_device *const dev = pEnt->bus.id.pci;
+
+	if ((dev != NULL) && ((void *)dev->user_data != NULL)) {
+	    pciAccPtr const paccp = (pciAccPtr) dev->user_data;
+	    
+	    *acc_io = & paccp->ioAccess;
+	    *acc_mem = & paccp->memAccess;
+	    *acc_mem_io = & paccp->io_memAccess;
+	}
+	else {
+	    /* FIXME: This is an error path.  We should probably have an
+	     * FIXME: assertion here or something.
+	     */
+	    *acc_io = NULL;
+	    *acc_mem = NULL;
+	    *acc_mem_io = NULL;
 	}
 	break;
+    }
     default:
 	*acc_mem = *acc_io = *acc_mem_io = NULL;
 	break;
@@ -1896,7 +1904,7 @@ setAccess(EntityPtr pEnt, xf86State state)
     xf86AccessPtr org_mem = NULL, org_io = NULL, org_mem_io = NULL;
     int prop;
     
-    busTypeSpecific(pEnt,state,&acc_mem,&acc_io,&acc_mem_io);
+    busTypeSpecific(pEnt, &acc_mem, &acc_io, &acc_mem_io);
 
     /* The replacement function needs to handle _all_ shared resources */
     /* unless they are handeled locally and disabled otherwise         */
@@ -2449,15 +2457,6 @@ xf86PostProbe(void)
 #endif
     }
     xf86FreeResList(acc);
-#if !(defined(__alpha__) && defined(linux)) && \
-    !(defined(__ia64__) && defined(linux)) && \
-    !(defined(__sparc64__) && defined(__OpenBSD__))
-    /* 
-     * No need to validate on Alpha Linux or OpenBSD/sparc64, 
-     * trust the kernel.
-     */
-    ValidatePci();
-#endif
     
     xf86MsgVerb(X_INFO, 3, "resource ranges after probing:\n");
     xf86PrintResList(3, Acc);
@@ -2976,14 +2975,16 @@ xf86FindPrimaryDevice()
         CheckGenericGA();
     if (primaryBus.type != BUS_NONE) {
 	char *bus;
-	char *loc = xnfcalloc(1,9);
-	if (loc == NULL) return;
+	char loc[16];
 
 	switch (primaryBus.type) {
 	case BUS_PCI:
 	    bus = "PCI";
-	    sprintf(loc," %2.2x:%2.2x:%1.1x",primaryBus.id.pci.bus,
-	    primaryBus.id.pci.device,primaryBus.id.pci.func);
+	    snprintf(loc, sizeof(loc), " %2.2x@%2.2x:%2.2x:%1.1x",
+		     primaryBus.id.pci->bus,
+		     primaryBus.id.pci->domain,
+		     primaryBus.id.pci->dev,
+		     primaryBus.id.pci->func);
 	    break;
 	case BUS_ISA:
 	    bus = "ISA";
@@ -2991,17 +2992,15 @@ xf86FindPrimaryDevice()
 	    break;
 	case BUS_SBUS:
 	    bus = "SBUS";
-	    sprintf(loc," %2.2x",primaryBus.id.sbus.fbNum);
+	    snprintf(loc, sizeof(loc), " %2.2x", primaryBus.id.sbus.fbNum);
 	    break;
 	default:
 	    bus = "";
 	    loc[0] = '\0';
 	}
-	
+
 	xf86MsgVerb(X_INFO, 2, "Primary Device is: %s%s\n",bus,loc);
-	xfree(loc);
     }
-    
 }
 
 #if !defined(__sparc) && !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__) && !defined(__arm__)

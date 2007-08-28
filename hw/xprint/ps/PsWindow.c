@@ -340,13 +340,6 @@ PsPaintWindow(
     newValues[ABSY] = (pointer)0;
   }
 
-/*
- * XXX Backing store is turned off for the PS driver
-
-  if( pWin->backStorage )
-    (*pWin->drawable.pScreen->DrawGuarantee) (pWin, pGC, GuaranteeVisBack);
- */
-
   mask = gcmask;
   gcmask = 0;
   i = 0;
@@ -432,13 +425,6 @@ PsPaintWindow(
   prect -= numRects;
   (*pGC->ops->PolyFillRect)((DrawablePtr)pWin, pGC, numRects, prect);
   DEALLOCATE_LOCAL(prect);
-
-/*
- * XXX Backing store is turned off for the PS driver
-
-  if( pWin->backStorage )
-    (*pWin->drawable.pScreen->DrawGuarantee) (pWin, pGC, GuaranteeNothing);
- */
 
   if( what==PW_BORDER )
   {

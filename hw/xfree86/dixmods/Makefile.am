@@ -40,8 +40,7 @@ extsmodule_LTLIBRARIES = librecord.la \
                          $(XTRAPMOD)
 
 fontsmoduledir = $(moduledir)/fonts
-fontsmodule_LTLIBRARIES = libfreetype.la \
-                          libtype1.la
+fontsmodule_LTLIBRARIES = libfreetype.la
 
 AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@
 INCLUDES = @XORG_INCS@ \
@@ -103,9 +102,6 @@ libshadow_la_SOURCES = shmodule.c
 
 libfreetype_la_LDFLAGS = -avoid-version
 libfreetype_la_SOURCES = ftmodule.c
-
-libtype1_la_LDFLAGS = -avoid-version
-libtype1_la_SOURCES = type1mod.c
 
 libdixmods_la_SOURCES = $(top_srcdir)/mi/miinitext.c
 libdixmods_la_CFLAGS = -DXFree86LOADER $(AM_CFLAGS)

@@ -14,10 +14,7 @@ endif
 
 libdummy_nonserver_a_SOURCES = \
 	fatalerror.c \
-	getvalidbios.c \
-	getemptypci.c \
 	logvwrite.c \
-	pcitestmulti.c \
 	$(STRL_SRCS) \
 	verrorf.c \
 	xalloc.c \

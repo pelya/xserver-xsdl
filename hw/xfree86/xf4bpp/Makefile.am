@@ -6,7 +6,6 @@ libxf4bpp_la_LDFLAGS = -avoid-version
 
 libxf4bpp_la_SOURCES = \
         ppcArea.c \
-        ppcBStore.c \
         ppcClip.c \
         ppcCpArea.c \
         ppcCReduce.c \

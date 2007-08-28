@@ -792,7 +792,9 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
         if (!noXkbExtension) {
             memset(&names, 0, sizeof(XkbComponentNamesRec));
 
-            XkbSetRulesDflts ("base", "pc105", "us", NULL, NULL);
+            XkbSetRulesDflts (ki->xkbRules, ki->xkbModel, ki->xkbLayout,
+                              ki->xkbVariant, ki->xkbOptions);
+
             ret = XkbInitKeyboardDeviceStruct (pDevice,
                                                &names,
                                                &ki->keySyms,
@@ -961,6 +963,13 @@ KdNewKeyboard (void)
     ki->bellDuration = 200;
     ki->next = NULL;
     ki->options = NULL;
+#ifdef XKB
+    ki->xkbRules = KdSaveString("base");
+    ki->xkbModel = KdSaveString("pc105");
+    ki->xkbLayout = KdSaveString("us");
+    ki->xkbVariant = NULL;
+    ki->xkbOptions = NULL;
+#endif
 
     return ki;
 }
@@ -1096,11 +1105,78 @@ KdRemovePointer (KdPointerInfo *pi)
     KdFreePointer(pi);
 }
 
+/* 
+ * You can call your kdriver server with something like:
+ * $ ./hw/kdrive/yourserver/X :1 -mouse evdev,,device=/dev/input/event4 -keybd
+ * evdev,,device=/dev/input/event1,xkbmodel=abnt2,xkblayout=br 
+ */
+static Bool 
+KdGetOptions (InputOption **options, char *string)
+{
+    InputOption     *newopt = NULL, **tmpo = NULL;
+    int             tam_key = 0;
+
+    newopt = (InputOption *) xalloc(sizeof (InputOption));
+    if (!newopt)
+        return FALSE;
+
+    bzero(newopt, sizeof (InputOption));
+
+    for (tmpo = options; *tmpo; tmpo = &(*tmpo)->next)
+        ; /* Hello, I'm here */ 
+    *tmpo = newopt;
+
+    if (strchr(string, '='))
+    {
+        tam_key = (strchr(string, '=') - string);
+        newopt->key = (char *)xalloc(tam_key);
+        strncpy(newopt->key, string, tam_key);
+        newopt->key[tam_key] = '\0';
+        newopt->value = xstrdup(strchr(string, '=') + 1);
+    }
+    else
+    {
+        newopt->key = xstrdup(string);
+        newopt->value = NULL;
+    }
+    newopt->next = NULL;
+
+    return TRUE;
+}
+
+static void
+KdParseKbdOptions (KdKeyboardInfo *ki)
+{
+    InputOption *option = NULL;
+
+    for (option = ki->options; option; option = option->next)
+    {
+#ifdef XKB
+        if (strcasecmp(option->key, "XkbRules") == 0)
+            ki->xkbRules = option->value;
+        else if (strcasecmp(option->key, "XkbModel") == 0)
+            ki->xkbModel = option->value;
+        else if (strcasecmp(option->key, "XkbLayout") == 0)
+            ki->xkbLayout = option->value;
+        else if (strcasecmp(option->key, "XkbVariant") == 0)
+            ki->xkbVariant = option->value;
+        else if (strcasecmp(option->key, "XkbOptions") == 0)
+            ki->xkbOptions = option->value;
+        else if (!strcasecmp (option->key, "device"))
+            ki->path = KdSaveString(option->value);
+        else
+#endif
+           ErrorF("Kbd option key (%s) of value (%s) not assigned!\n", 
+                    option->key, option->value);
+    }
+}
+
 KdKeyboardInfo *
 KdParseKeyboard (char *arg)
 {
     char            save[1024];
     char            delim;
+    InputOption     *options = NULL;
     KdKeyboardInfo     *ki = NULL;
 
     ki = KdNewKeyboard();
@@ -1143,9 +1219,54 @@ KdParseKeyboard (char *arg)
     else
         ki->driverPrivate = xstrdup(save);
 
-    /* FIXME actually implement options */
+    if (delim != ',')
+    {
+        return ki;
+    }
+
+    arg = KdParseFindNext (arg, ",", save, &delim);
+
+    while (delim == ',')
+    {
+        arg = KdParseFindNext (arg, ",", save, &delim);
+
+	if (!KdGetOptions(&options, save)) 
+	{
+	    KdFreeKeyboard(ki);
+	    return NULL;
+        }    
+    }
+
+    if (options)
+    {
+        ki->options = options;
+        KdParseKbdOptions(ki);
+    }
 
     return ki;
+}
+
+static void
+KdParsePointerOptions (KdPointerInfo *pi)
+{
+    InputOption *option = NULL;
+
+    for (option = pi->options; option; option = option->next)
+    {
+        if (!strcmp (option->key, "emulatemiddle"))
+            pi->emulateMiddleButton = TRUE;
+        else if (!strcmp (option->key, "noemulatemiddle"))
+            pi->emulateMiddleButton = FALSE;
+        else if (!strcmp (option->key, "transformcoord"))
+            pi->transformCoordinates = TRUE;
+        else if (!strcmp (option->key, "rawcoord"))
+            pi->transformCoordinates = FALSE;
+        else if (!strcasecmp (option->key, "device"))
+            pi->path = KdSaveString(option->value);
+        else
+            ErrorF("Pointer option key (%s) of value (%s) not assigned!\n", 
+                    option->key, option->value);
+    }
 }
 
 KdPointerInfo *
@@ -1154,7 +1275,7 @@ KdParsePointer (char *arg)
     char            save[1024];
     char            delim;
     KdPointerInfo   *pi = NULL;
-    InputOption     *options = NULL, *newopt = NULL, **tmpo = NULL;
+    InputOption     *options = NULL;
     int             i = 0;
 
     pi = KdNewPointer();
@@ -1214,45 +1335,21 @@ KdParsePointer (char *arg)
                 s++;
              }
         }
-        else if (!strcmp (save, "emulatemiddle"))
-            pi->emulateMiddleButton = TRUE;
-        else if (!strcmp (save, "noemulatemiddle"))
-            pi->emulateMiddleButton = FALSE;
-        else if (!strcmp (save, "transformcoord"))
-            pi->transformCoordinates = TRUE;
-        else if (!strcmp (save, "rawcoord"))
-            pi->transformCoordinates = FALSE;
         else
         {
-            newopt = (InputOption *) xalloc(sizeof (InputOption));
-            if (!newopt)
+            if (!KdGetOptions(&options, save))
             {
                 KdFreePointer(pi);
                 return NULL;
             }
-            bzero(newopt, sizeof (InputOption));
-
-            for (tmpo = &options; *tmpo; tmpo = &(*tmpo)->next)
-            *tmpo = newopt;
-
-            if (strchr(arg, '='))
-            {
-                i = (strchr(arg, '=') - arg);
-                newopt->key = (char *)xalloc(i+1);
-                strncpy(newopt->key, arg, i+1);
-                newopt->value = xstrdup(strchr(arg, '=') + 1);
-            }
-            else
-            {
-                newopt->key = xstrdup(save);
-                newopt->value = NULL;
-            }
-            newopt->next = NULL;
         }
     }
 
     if (options)
+    {
         pi->options = options;
+        KdParsePointerOptions(pi);
+    }
 
     return pi;
 }
@@ -2336,6 +2433,8 @@ NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
         return BadValue;
     }
 
+    /* FIXME: change this code below to use KdParseKbdOptions and
+     * KdParsePointerOptions */
     for (option = options; option; option = option->next) {
         if (strcmp(option->key, "device") == 0) {
             if (pi && option->value)

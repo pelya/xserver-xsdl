@@ -13,6 +13,7 @@
 #define _INT10_PRIVATE
 #include "xf86int10.h"
 #include "int10Defines.h"
+#include "Pci.h"
 
 #define REG pInt
 
@@ -23,8 +24,8 @@ static int int1A_handler(xf86Int10InfoPtr pInt);
 static int int42_handler(xf86Int10InfoPtr pInt);
 #endif
 static int intE6_handler(xf86Int10InfoPtr pInt);
-static PCITAG findPci(xf86Int10InfoPtr pInt, unsigned short bx);
-static CARD32 pciSlotBX(pciVideoPtr pvp);
+static struct pci_device *findPci(xf86Int10InfoPtr pInt, unsigned short bx);
+static CARD32 pciSlotBX( const struct pci_device * pvp );
 
 int
 int_handler(xf86Int10InfoPtr pInt)
@@ -592,13 +593,75 @@ int42_handler(xf86Int10InfoPtr pInt)
 #define DEVICE_NOT_FOUND        0x86
 #define BAD_REGISTER_NUMBER     0x87
 
+#ifdef SHOW_ALL_DEVICES
+/**
+ * These functions are meant to be used by the PCI BIOS emulation. Some
+ * BIOSes need to see if there are \b other chips of the same type around so
+ * by setting \c exclude one PCI device can be explicitely excluded, if
+ * required.
+ */
+static struct pci_device *
+do_find(const struct pci_id_match *m, char n, const struct pci_device * exclude)
+{
+    struct pci_device *dev;
+    struct pci_device_iterator *iter;
+
+    n++;
+
+    iter = pci_id_match_iterator_create(m);
+    while ((dev = pci_device_next(iter)) != NULL) {
+	if ((dev != exclude) && !(--n)) {
+	    break;
+	}
+    }
+
+    pci_iterator_destroy(iter);
+
+    return dev;
+}
+
+
+static struct pci_device *
+find_pci_device_vendor(CARD16 vendorID, CARD16 deviceID,
+			char n, const struct pci_device * exclude)
+{
+    struct pci_id_match m;
+
+    m.vendor_id = vendorID;
+    m.device_id = deviceID;
+    m.subvendor_id = PCI_MATCH_ANY;
+    m.subdevice_id = PCI_MATCH_ANY;
+    m.device_class = 0;
+    m.device_class_mask = 0;
+
+    return do_find(& m, n, exclude);
+}
+
+static struct pci_device *
+find_pci_class(CARD8 intf, CARD8 subClass, CARD16 _class,
+	       char n, const struct pci_device * exclude)
+{
+    struct pci_id_match m;
+
+    m.vendor_id = PCI_MATCH_ANY;
+    m.device_id = PCI_MATCH_ANY;
+    m.subvendor_id = PCI_MATCH_ANY;
+    m.subdevice_id = PCI_MATCH_ANY;
+    m.device_class = (((uint32_t)_class) << 16) 
+      | (((uint32_t)subClass) << 8) | intf;
+    m.device_class_mask = 0x00ffffff;
+
+    return do_find(& m, n, exclude);
+}
+#endif
+
 static int
 int1A_handler(xf86Int10InfoPtr pInt)
 {
-    PCITAG tag;
-    pciVideoPtr pvp;
+    struct pci_device * const pvp = xf86GetPciInfoForEntity(pInt->entityIndex);
+    struct pci_device * dev;
 
-    if (!(pvp = xf86GetPciInfoForEntity(pInt->entityIndex)))
+    if (pvp == NULL)
 	return 0; /* oops */
 
 #ifdef PRINT_INT
@@ -619,17 +682,19 @@ int1A_handler(xf86Int10InfoPtr pInt)
 #endif
 	return 1;
     case 0xb102:
-	if (X86_DX == pvp->vendor && X86_CX == pvp->chipType && X86_ESI == 0) {
+	if ( (X86_DX == pvp->vendor_id) 
+	     && (X86_CX == pvp->device_id)
+	     && (X86_ESI == 0) ) {
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	    X86_EBX = pciSlotBX(pvp);
 	}
 #ifdef SHOW_ALL_DEVICES
 	else
-	if ((pvp = xf86FindPciDeviceVendor(X86_EDX, X86_ECX, X86_ESI, pvp))) {
+	if ((dev = find_pci_device_vendor(X86_EDX, X86_ECX, X86_ESI, pvp))) {
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
-	    X86_EBX = pciSlotBX(pvp);
+	    X86_EBX = pciSlotBX(dev);
 	}
 #endif
 	else {
@@ -641,20 +706,18 @@ int1A_handler(xf86Int10InfoPtr pInt)
 #endif
 	return 1;
     case 0xb103:
-	if (X86_CL == pvp->interface &&
-	    X86_CH == pvp->subclass &&
-	    ((X86_ECX & 0xFFFF0000) >> 16) == pvp->class) {
+	if ( (X86_ECX & 0x00FFFFFF) == pvp->device_class ) {
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EBX = pciSlotBX(pvp);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	}
 #ifdef SHOW_ALL_DEVICES
-	else if ((pvp = xf86FindPciClass(X86_CL, X86_CH,
-					 (X86_ECX & 0xffff0000) >> 16,
-					 X86_ESI, pvp))) {
+	else if ((dev = find_pci_class(X86_CL, X86_CH,
+				       (X86_ECX & 0xffff0000) >> 16,
+				       X86_ESI, pvp))) {
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
-	    X86_EBX = pciSlotBX(pvp);
+	    X86_EBX = pciSlotBX(dev);
 	}
 #endif
 	else {
@@ -666,8 +729,8 @@ int1A_handler(xf86Int10InfoPtr pInt)
 #endif
 	return 1;
     case 0xb108:
-	if ((tag = findPci(pInt, X86_EBX)) != PCI_NOT_FOUND) {
-	    X86_CL = pciReadByte(tag, X86_EDI);
+	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
+	    pci_device_cfg_read_u8(dev, & X86_CL, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
@@ -679,8 +742,8 @@ int1A_handler(xf86Int10InfoPtr pInt)
 #endif
 	return 1;
     case 0xb109:
-	if ((tag = findPci(pInt, X86_EBX)) != PCI_NOT_FOUND) {
-	    X86_CX = pciReadWord(tag, X86_EDI);
+	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
+	    pci_device_cfg_read_u16(dev, & X86_CX, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
@@ -692,8 +755,8 @@ int1A_handler(xf86Int10InfoPtr pInt)
 #endif
 	return 1;
     case 0xb10a:
-	if ((tag = findPci(pInt, X86_EBX)) != PCI_NOT_FOUND) {
-	    X86_ECX = pciReadLong(tag, X86_EDI);
+	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
+	    pci_device_cfg_read_u32(dev, & X86_ECX, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
@@ -705,8 +768,8 @@ int1A_handler(xf86Int10InfoPtr pInt)
 #endif
 	return 1;
     case 0xb10b:
-	if ((tag = findPci(pInt, X86_EBX)) != PCI_NOT_FOUND) {
-	    pciWriteByte(tag, X86_EDI, X86_CL);
+	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
+	    pci_device_cfg_write_u8(dev, X86_CL, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
@@ -718,8 +781,8 @@ int1A_handler(xf86Int10InfoPtr pInt)
 #endif
 	return 1;
     case 0xb10c:
-	if ((tag = findPci(pInt, X86_EBX)) != PCI_NOT_FOUND) {
-	    pciWriteWord(tag, X86_EDI, X86_CX);
+	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
+	    pci_device_cfg_write_u16(dev, X86_CX, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
@@ -731,8 +794,8 @@ int1A_handler(xf86Int10InfoPtr pInt)
 #endif
 	return 1;
     case 0xb10d:
-	if ((tag = findPci(pInt, X86_EBX)) != PCI_NOT_FOUND) {
-	    pciWriteLong(tag, X86_EDI, X86_ECX);
+	if ((dev = findPci(pInt, X86_EBX)) != NULL) {
+	    pci_device_cfg_write_u32(dev, X86_ECX, X86_EDI);
 	    X86_EAX = X86_AL | (SUCCESSFUL << 8);
 	    X86_EFLAGS &= ~((unsigned long)0x01); /* clear carry flag */
 	} else {
@@ -753,21 +816,20 @@ int1A_handler(xf86Int10InfoPtr pInt)
     }
 }
 
-static PCITAG
+static struct pci_device *
 findPci(xf86Int10InfoPtr pInt, unsigned short bx)
 {
-    int bus = ((pInt->Tag >> 16) & ~0x00FF) | ((bx >> 8) & 0x00FF);
-    int dev = (bx >> 3) & 0x1F;
-    int func = bx & 0x7;
-    if (xf86IsPciDevPresent(bus, dev, func))
-	return pciTag(bus, dev, func);
-    return PCI_NOT_FOUND;
+    const unsigned bus =  (bx >> 8) & 0x00FF;
+    const unsigned dev =  (bx >> 3) & 0x001F;
+    const unsigned func = (bx     ) & 0x0007;
+
+    return pci_device_find_by_slot(pInt->dev->domain, bus, dev, func);
 }
 
 static CARD32
-pciSlotBX(pciVideoPtr pvp)
+pciSlotBX(const struct pci_device * pvp)
 {
-    return ((pvp->bus << 8) & 0x00FF00) | (pvp->device << 3) | (pvp->func);
+    return ((pvp->bus << 8) & 0x00FF00) | (pvp->dev << 3) | (pvp->func);
 }
 
 /*
@@ -776,10 +838,10 @@ pciSlotBX(pciVideoPtr pvp)
 static int
 intE6_handler(xf86Int10InfoPtr pInt)
 {
-    pciVideoPtr pvp;
+    struct pci_device * pvp;
 
     if ((pvp = xf86GetPciInfoForEntity(pInt->entityIndex)))
-	X86_AX = (pvp->bus << 8) | (pvp->device << 3) | (pvp->func & 0x7);
+	X86_AX = (pvp->bus << 8) | (pvp->dev << 3) | (pvp->func & 0x7);
     pushw(pInt, X86_CS);
     pushw(pInt, X86_IP);
     X86_CS = pInt->BIOSseg;

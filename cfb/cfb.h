@@ -487,23 +487,7 @@ extern void cfbBresD(
     int /*e2*/,
     int /*len*/
 );
-/* cfbbstore.c */
 
-extern void cfbSaveAreas(
-    PixmapPtr /*pPixmap*/,
-    RegionPtr /*prgnSave*/,
-    int /*xorg*/,
-    int /*yorg*/,
-    WindowPtr /*pWin*/
-);
-
-extern void cfbRestoreAreas(
-    PixmapPtr /*pPixmap*/,
-    RegionPtr /*prgnRestore*/,
-    int /*xorg*/,
-    int /*yorg*/,
-    WindowPtr /*pWin*/
-);
 /* cfbcmap.c */
 
 #ifndef CFB_PROTOTYPES_ONLY

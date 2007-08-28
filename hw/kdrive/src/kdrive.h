@@ -330,6 +330,11 @@ struct _KdKeyboardInfo {
     int                 inputClass;
 #ifdef XKB
     XkbDescPtr          xkb;
+    char                *xkbRules;
+    char                *xkbModel;
+    char                *xkbLayout;
+    char                *xkbVariant;
+    char                *xkbOptions;
 #endif
     int                 LockLed;
 
@@ -607,20 +612,6 @@ KdCheckGetSpans (DrawablePtr pDrawable,
 		 char *pdstStart);
 
 void
-KdCheckSaveAreas (PixmapPtr	pPixmap,
-		  RegionPtr	prgnSave,
-		  int		xorg,
-		  int		yorg,
-		  WindowPtr	pWin);
-
-void
-KdCheckRestoreAreas (PixmapPtr	pPixmap,
-		     RegionPtr	prgnSave,
-		     int	xorg,
-		     int    	yorg,
-		     WindowPtr	pWin);
-
-void
 KdCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
 
 void
@@ -873,12 +864,13 @@ KdRingBell (KdKeyboardInfo      *ki,
             int                 duration);
 
 extern KdPointerDriver	LinuxMouseDriver;
-extern KdPointerDriver	LinuxEvdevDriver;
+extern KdPointerDriver	LinuxEvdevMouseDriver;
 extern KdPointerDriver	Ps2MouseDriver;
 extern KdPointerDriver	BusMouseDriver;
 extern KdPointerDriver	MsMouseDriver;
 extern KdPointerDriver	TsDriver;
 extern KdKeyboardDriver	LinuxKeyboardDriver;
+extern KdKeyboardDriver LinuxEvdevKeyboardDriver;
 extern KdOsFuncs	LinuxFuncs;
 
 extern KdPointerDriver	VxWorksMouseDriver;

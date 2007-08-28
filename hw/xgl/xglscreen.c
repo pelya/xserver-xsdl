@@ -253,9 +253,6 @@ xglScreenInit (ScreenPtr pScreen)
     }
 #endif
 
-    XGL_SCREEN_WRAP (BackingStoreFuncs.SaveAreas, xglSaveAreas);
-    XGL_SCREEN_WRAP (BackingStoreFuncs.RestoreAreas, xglRestoreAreas);
-
     if (!fbCreateDefColormap (pScreen))
 	return FALSE;
 

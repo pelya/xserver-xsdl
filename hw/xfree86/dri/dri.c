@@ -2449,20 +2449,17 @@ DRIMoveBuffersHelper(
 }
 
 char *
-DRICreatePCIBusID(pciVideoPtr PciInfo)
+DRICreatePCIBusID(const struct pci_device * dev)
 {
     char *busID;
-    int domain;
-    PCITAG tag;
 
     busID = xalloc(20);
     if (busID == NULL)
 	return NULL;
 
-    tag = pciTag(PciInfo->bus, PciInfo->device, PciInfo->func);
-    domain = xf86GetPciDomain(tag);
-    snprintf(busID, 20, "pci:%04x:%02x:%02x.%d", domain,
-	PCI_BUS_NO_DOMAIN(PciInfo->bus), PciInfo->device, PciInfo->func);
+    snprintf(busID, 20, "pci:%04x:%02x:%02x.%d", dev->domain, dev->bus,
+	dev->dev, dev->func);
+
     return busID;
 }
 

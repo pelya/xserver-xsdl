@@ -10,7 +10,7 @@ libafb_la_SOURCES = afbgc.c afbwindow.c afbfont.c afbfillrct.c afbpntwin.c afbpi
 	 afbimage.c afbline.c afbbres.c afbhrzvert.c afbbresd.c afbpushpxl.c afbply1rct.c \
 	 afbzerarc.c afbfillarc.c afbfillsp.c afbsetsp.c afbscrinit.c afbplygblt.c \
 	 afbclip.c afbgetsp.c afbpolypnt.c afbbitblt.c afbcmap.c afbimggblt.c afbpntarea.c \
-	 afbmisc.c afbbstore.c afbtegblt.c $(libafb_gen_sources)
+	 afbmisc.c afbtegblt.c $(libafb_gen_sources)
 
 INCLUDES = -I$(top_srcdir)/mfb -I$(top_srcdir)/hw/xfree86/os-support
 

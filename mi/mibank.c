@@ -124,7 +124,6 @@ typedef struct _miBankScreen
     PaintWindowBackgroundProcPtr  PaintWindowBackground;
     PaintWindowBorderProcPtr      PaintWindowBorder;
     CopyWindowProcPtr             CopyWindow;
-    BSFuncRec                     BackingStoreFuncs;
 } miBankScreenRec, *miBankScreenPtr;
 
 typedef struct _miBankGC
@@ -1716,7 +1715,6 @@ miBankCloseScreen(
     SCREEN_UNWRAP(PaintWindowBackground);
     SCREEN_UNWRAP(PaintWindowBorder);
     SCREEN_UNWRAP(CopyWindow);
-    SCREEN_UNWRAP(BackingStoreFuncs);
 
     Xfree(pScreenPriv);
     return (*pScreen->CloseScreen)(nIndex, pScreen);
@@ -2054,114 +2052,6 @@ miBankCopyWindow(
     DEALLOCATE_LOCAL(pBoxNew1);
 }
 
-/**************************
- * Backing store wrappers *
- **************************/
-
-static void
-miBankSaveAreas(
-    PixmapPtr pPixmap,
-    RegionPtr prgnSave,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin
-)
-{
-    ScreenPtr   pScreen   = pPixmap->drawable.pScreen;
-    RegionRec   rgnClipped;
-    int         i;
-
-    SCREEN_INIT;
-    SCREEN_SAVE;
-    SCREEN_UNWRAP(BackingStoreFuncs.SaveAreas);
-
-    if (!IS_BANKED(pWin))
-    {
-        (*pScreen->BackingStoreFuncs.SaveAreas)(pPixmap, prgnSave, xorg, yorg,
-            pWin);
-    }
-    else
-    {
-        REGION_NULL(pScreen, &rgnClipped);
-        REGION_TRANSLATE(pScreen, prgnSave, xorg, yorg);
-
-        for (i = 0;  i < pScreenPriv->nBanks;  i++)
-        {
-            if (!pScreenPriv->pBanks[i])
-                continue;
-
-            REGION_INTERSECT(pScreen, &rgnClipped,
-                prgnSave, pScreenPriv->pBanks[i]);
-
-            if (REGION_NIL(&rgnClipped))
-                continue;
-
-            SET_SINGLE_BANK(pScreenPriv->pScreenPixmap, -1, -1, i);
-
-            REGION_TRANSLATE(pScreen, &rgnClipped, -xorg, -yorg);
-
-            (*pScreen->BackingStoreFuncs.SaveAreas)(pPixmap, &rgnClipped,
-                xorg, yorg, pWin);
-        }
-
-        REGION_TRANSLATE(pScreen, prgnSave, -xorg, -yorg);
-        REGION_UNINIT(pScreen, &rgnClipped);
-    }
-
-    SCREEN_WRAP(BackingStoreFuncs.SaveAreas, miBankSaveAreas);
-    SCREEN_RESTORE;
-}
-
-static void
-miBankRestoreAreas(
-    PixmapPtr pPixmap,
-    RegionPtr prgnRestore,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin
-)
-{
-    ScreenPtr   pScreen   = pPixmap->drawable.pScreen;
-    RegionRec   rgnClipped;
-    int         i;
-
-    SCREEN_INIT;
-    SCREEN_SAVE;
-    SCREEN_UNWRAP(BackingStoreFuncs.RestoreAreas);
-
-    if (!IS_BANKED(pWin))
-    {
-        (*pScreen->BackingStoreFuncs.RestoreAreas)(pPixmap, prgnRestore,
-            xorg, yorg, pWin);
-    }
-    else
-    {
-        REGION_NULL(pScreen, &rgnClipped);
-
-        for (i = 0;  i < pScreenPriv->nBanks;  i++)
-        {
-            if (!pScreenPriv->pBanks[i])
-                continue;
-
-            REGION_INTERSECT(pScreen, &rgnClipped,
-                prgnRestore, pScreenPriv->pBanks[i]);
-
-            if (REGION_NIL(&rgnClipped))
-                continue;
-
-            SET_SINGLE_BANK(pScreenPriv->pScreenPixmap, -1, -1, i);
-
-            (*pScreen->BackingStoreFuncs.RestoreAreas)(pPixmap, &rgnClipped,
-                xorg, yorg, pWin);
-        }
-
-        REGION_UNINIT(pScreen, &rgnClipped);
-    }
-
-    SCREEN_WRAP(BackingStoreFuncs.RestoreAreas, miBankRestoreAreas);
-    SCREEN_RESTORE;
-}
-
 _X_EXPORT Bool
 miInitializeBanking(
     ScreenPtr     pScreen,
@@ -2382,14 +2272,6 @@ miInitializeBanking(
     SCREEN_WRAP(PaintWindowBackground, miBankPaintWindow);
     SCREEN_WRAP(PaintWindowBorder,     miBankPaintWindow);
     SCREEN_WRAP(CopyWindow,            miBankCopyWindow);
-
-    pScreenPriv->BackingStoreFuncs     = pScreen->BackingStoreFuncs;
-
-    pScreen->BackingStoreFuncs.SaveAreas      = miBankSaveAreas;
-    pScreen->BackingStoreFuncs.RestoreAreas   = miBankRestoreAreas;
-    /* ??????????????????????????????????????????????????????????????
-    pScreen->BackingStoreFuncs.SetClipmaskRgn = miBankSetClipmaskRgn;
-    ?????????????????????????????????????????????????????????????? */
 
     BANK_SCRPRIVLVAL = (pointer)pScreenPriv;
 

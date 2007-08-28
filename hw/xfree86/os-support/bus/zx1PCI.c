@@ -1073,13 +1073,13 @@ xf86PostScanZX1(void)
     xf86MsgVerb(X_INFO, 2, "PCI: BusID 0x%.2x,0x%02x,0x%1x "
 		"ID 0x%04x,0x%04x Rev 0x%02x Class 0x%02x,0x%02x\n",
 		pPCI->busnum, pPCI->devnum, pPCI->funcnum,
-		pPCI->pci_vendor, pPCI->pci_device, pPCI->pci_rev_id,
+		pPCI->pci_vendor, pPCI->_pci_device, pPCI->pci_rev_id,
 		pPCI->pci_base_class, pPCI->pci_sub_class);
 #else
     xf86MsgVerb(X_INFO, 2, "PCI: %.2x:%02x:%1x: chip %04x,%04x"
 		" card %04x,%04x rev %02x class %02x,%02x,%02x hdr %02x\n",
 		pPCI->busnum, pPCI->devnum, pPCI->funcnum,
-		pPCI->pci_vendor, pPCI->pci_device,
+		pPCI->pci_vendor, pPCI->_pci_device,
 		pPCI->pci_subsys_vendor, pPCI->pci_subsys_card,
 		pPCI->pci_rev_id, pPCI->pci_base_class,
 		pPCI->pci_sub_class, pPCI->pci_prog_if,
@@ -1122,13 +1122,13 @@ xf86PostScanZX1(void)
 	xf86MsgVerb(X_INFO, 2, "PCI: BusID 0x%.2x,0x%02x,0x%1x "
 		    "ID 0x%04x,0x%04x Rev 0x%02x Class 0x%02x,0x%02x\n",
 		    pPCI->busnum, pPCI->devnum, pPCI->funcnum,
-		    pPCI->pci_vendor, pPCI->pci_device, pPCI->pci_rev_id,
+		    pPCI->pci_vendor, pPCI->_pci_device, pPCI->pci_rev_id,
 		    pPCI->pci_base_class, pPCI->pci_sub_class);
 #else
 	xf86MsgVerb(X_INFO, 2, "PCI: %.2x:%02x:%1x: chip %04x,%04x"
 		    " card %04x,%04x rev %02x class %02x,%02x,%02x hdr %02x\n",
 		    pPCI->busnum, pPCI->devnum, pPCI->funcnum,
-		    pPCI->pci_vendor, pPCI->pci_device,
+		    pPCI->pci_vendor, pPCI->_pci_device,
 		    pPCI->pci_subsys_vendor, pPCI->pci_subsys_card,
 		    pPCI->pci_rev_id, pPCI->pci_base_class,
 		    pPCI->pci_sub_class, pPCI->pci_prog_if,

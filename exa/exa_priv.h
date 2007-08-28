@@ -35,6 +35,9 @@
 #include <X11/X.h>
 #define NEED_EVENTS
 #include <X11/Xproto.h>
+#ifdef MITSHM
+#include "shmint.h"
+#endif
 #include "scrnintstr.h"
 #include "pixmapstr.h"
 #include "windowstr.h"
@@ -108,6 +111,7 @@ typedef struct {
     RasterizeTrapezoidProcPtr	 SavedRasterizeTrapezoid;
     AddTrianglesProcPtr		 SavedAddTriangles;
     GlyphsProcPtr                SavedGlyphs;
+    TrapezoidsProcPtr            SavedTrapezoids;
 #endif
     Bool			 swappedOut;
     enum ExaMigrationHeuristic	 migration;
@@ -265,20 +269,6 @@ ExaCheckGetSpans (DrawablePtr pDrawable,
 		 char *pdstStart);
 
 void
-ExaCheckSaveAreas (PixmapPtr	pPixmap,
-		  RegionPtr	prgnSave,
-		  int		xorg,
-		  int		yorg,
-		  WindowPtr	pWin);
-
-void
-ExaCheckRestoreAreas (PixmapPtr	pPixmap,
-		     RegionPtr	prgnSave,
-		     int	xorg,
-		     int    	yorg,
-		     WindowPtr	pWin);
-
-void
 ExaCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
 
 CARD32
@@ -304,6 +294,10 @@ exaGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt, int *pwidth,
 	     int nspans, char *pdstStart);
 
 extern const GCOps exaOps;
+
+#ifdef MITSHM
+extern ShmFuncs exaShmFuncs;
+#endif
 
 #ifdef RENDER
 void
@@ -391,6 +385,11 @@ exaComposite(CARD8	op,
 	     INT16	yDst,
 	     CARD16	width,
 	     CARD16	height);
+
+void
+exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
+               PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc,
+               int ntrap, xTrapezoid *traps);
 
 void
 exaRasterizeTrapezoid (PicturePtr pPicture, xTrapezoid  *trap,

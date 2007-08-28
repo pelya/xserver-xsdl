@@ -48,7 +48,6 @@ libxgl_a_SOURCES =     \
 	xglcopy.c      \
 	xglfill.c      \
 	xglwindow.c    \
-	xglbstore.c    \
 	xglget.c       \
 	xglgc.c	       \
 	xglshm.c       \

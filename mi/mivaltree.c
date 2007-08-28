@@ -513,18 +513,6 @@ miComputeClips (
 			       universe, &pParent->clipList);
     }
 
-    /*
-     * One last thing: backing storage. We have to try to save what parts of
-     * the window are about to be obscured. We can just subtract the universe
-     * from the old clipList and get the areas that were in the old but aren't
-     * in the new and, hence, are about to be obscured.
-     */
-    if (pParent->backStorage && !resized)
-    {
-	REGION_SUBTRACT( pScreen, exposed, &pParent->clipList, universe);
-	(* pScreen->SaveDoomedAreas)(pParent, exposed, dx, dy);
-    }
-    
     /* HACK ALERT - copying contents of regions, instead of regions */
     {
 	RegionRec   tmp;
@@ -816,11 +804,6 @@ miValidateTree (pParent, pChild, kind)
 			       &totalClip, &pParent->clipList);
 	/* fall through */
     case VTMap:
-	if (pParent->backStorage) {
-	    REGION_SUBTRACT( pScreen, &exposed, &pParent->clipList, &totalClip);
-	    (* pScreen->SaveDoomedAreas)(pParent, &exposed, 0, 0);
-	}
-	
 	REGION_COPY( pScreen, &pParent->clipList, &totalClip);
 	pParent->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 	break;

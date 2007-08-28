@@ -224,30 +224,6 @@ KdCheckGetSpans (DrawablePtr pDrawable,
 }
 
 void
-KdCheckSaveAreas (PixmapPtr	pPixmap,
-		  RegionPtr	prgnSave,
-		  int		xorg,
-		  int		yorg,
-		  WindowPtr	pWin)
-{
-    kaaWaitSync(pWin->drawable.pScreen);
-    kaaDrawableDirty (&pPixmap->drawable);
-    fbSaveAreas (pPixmap, prgnSave, xorg, yorg, pWin);
-}
-
-void
-KdCheckRestoreAreas (PixmapPtr	pPixmap,
-		     RegionPtr	prgnSave,
-		     int	xorg,
-		     int    	yorg,
-		     WindowPtr	pWin)
-{
-    kaaWaitSync(pWin->drawable.pScreen);
-    kaaDrawableDirty ((DrawablePtr)pWin);
-    fbRestoreAreas (pPixmap, prgnSave, xorg, yorg, pWin);
-}
-
-void
 KdCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what)
 {
     kaaWaitSync (pWin->drawable.pScreen);
@@ -292,9 +268,6 @@ KdScreenInitAsync (ScreenPtr pScreen)
     pScreen->PaintWindowBackground = KdCheckPaintWindow;
     pScreen->PaintWindowBorder = KdCheckPaintWindow;
     pScreen->CopyWindow = KdCheckCopyWindow;
-    
-    pScreen->BackingStoreFuncs.SaveAreas = KdCheckSaveAreas;
-    pScreen->BackingStoreFuncs.RestoreAreas = KdCheckRestoreAreas;
 #ifdef RENDER
     KdPictureInitAsync (pScreen);
 #endif

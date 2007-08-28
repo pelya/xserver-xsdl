@@ -456,7 +456,9 @@ KdOsAddInputDrivers ()
 #ifdef TSLIB
     KdAddPointerDriver(&TsDriver);
 #endif
+    KdAddPointerDriver(&LinuxEvdevMouseDriver);
     KdAddKeyboardDriver(&LinuxKeyboardDriver);
+    KdAddKeyboardDriver(&LinuxEvdevKeyboardDriver);
 }
 
 static void

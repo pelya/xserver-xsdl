@@ -35,13 +35,6 @@
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
 static Bool ShadowCloseScreen (int i, ScreenPtr pScreen);
-static void ShadowRestoreAreas (    
-    PixmapPtr pPixmap,
-    RegionPtr prgn,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin 
-);
 static void ShadowPaintWindow (
     WindowPtr pWin,
     RegionPtr prgn,
@@ -93,7 +86,6 @@ typedef struct {
   PaintWindowBorderProcPtr		PaintWindowBorder;
   CopyWindowProcPtr			CopyWindow;
   CreateGCProcPtr			CreateGC;
-  BackingStoreRestoreAreasProcPtr	RestoreAreas;  
   ModifyPixmapHeaderProcPtr		ModifyPixmapHeader;
 #ifdef RENDER
   CompositeProcPtr Composite;
@@ -212,7 +204,6 @@ ShadowFBInit2 (
     pPriv->PaintWindowBorder = pScreen->PaintWindowBorder;
     pPriv->CopyWindow = pScreen->CopyWindow;
     pPriv->CreateGC = pScreen->CreateGC;
-    pPriv->RestoreAreas = pScreen->BackingStoreFuncs.RestoreAreas;
     pPriv->ModifyPixmapHeader = pScreen->ModifyPixmapHeader;
 
     pPriv->EnterVT = pScrn->EnterVT;
@@ -223,7 +214,6 @@ ShadowFBInit2 (
     pScreen->PaintWindowBorder = ShadowPaintWindow;
     pScreen->CopyWindow = ShadowCopyWindow;
     pScreen->CreateGC = ShadowCreateGC;
-    pScreen->BackingStoreFuncs.RestoreAreas = ShadowRestoreAreas;
     pScreen->ModifyPixmapHeader = ShadowModifyPixmapHeader;
 
     pScrn->EnterVT = ShadowEnterVT;
@@ -290,7 +280,6 @@ ShadowCloseScreen (int i, ScreenPtr pScreen)
     pScreen->PaintWindowBorder = pPriv->PaintWindowBorder;
     pScreen->CopyWindow = pPriv->CopyWindow;
     pScreen->CreateGC = pPriv->CreateGC;
-    pScreen->BackingStoreFuncs.RestoreAreas = pPriv->RestoreAreas;
     pScreen->ModifyPixmapHeader = pPriv->ModifyPixmapHeader;
 
     pScrn->EnterVT = pPriv->EnterVT;
@@ -306,33 +295,6 @@ ShadowCloseScreen (int i, ScreenPtr pScreen)
 
     return (*pScreen->CloseScreen) (i, pScreen);
 }
-
-
-static void
-ShadowRestoreAreas (    
-    PixmapPtr pPixmap,
-    RegionPtr prgn,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin 
-){
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-    ShadowScreenPtr pPriv = GET_SCREEN_PRIVATE(pScreen);
-    int num = 0;
-
-    if(pPriv->vtSema && (num = REGION_NUM_RECTS(prgn)))
-        if(pPriv->preRefresh)
-            (*pPriv->preRefresh)(pPriv->pScrn, num, REGION_RECTS(prgn));
-
-    pScreen->BackingStoreFuncs.RestoreAreas = pPriv->RestoreAreas;
-    (*pScreen->BackingStoreFuncs.RestoreAreas) (
-                pPixmap, prgn, xorg, yorg, pWin);
-    pScreen->BackingStoreFuncs.RestoreAreas = ShadowRestoreAreas;
-
-    if(num && pPriv->postRefresh)
-	(*pPriv->postRefresh)(pPriv->pScrn, num, REGION_RECTS(prgn));
-}
-
 
 static void
 ShadowPaintWindow(

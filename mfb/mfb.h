@@ -206,23 +206,7 @@ extern void mfbBresD(
     int /*e2*/,
     int /*len*/
 );
-/* mfbbstore.c */
 
-extern void mfbSaveAreas(
-    PixmapPtr /*pPixmap*/,
-    RegionPtr /*prgnSave*/,
-    int /*xorg*/,
-    int /*yorg*/,
-    WindowPtr /*pWin*/
-);
-
-extern void mfbRestoreAreas(
-    PixmapPtr /*pPixmap*/,
-    RegionPtr /*prgnRestore*/,
-    int /*xorg*/,
-    int /*yorg*/,
-    WindowPtr /*pWin*/
-);
 /* mfbclip.c */
 
 extern RegionPtr mfbPixmapToRegion(

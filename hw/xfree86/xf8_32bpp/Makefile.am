@@ -9,7 +9,6 @@ AM_CFLAGS = $(DIX_CFLAGS) $(XORG_CFLAGS)
 libxf8_32bpp_la_LDFLAGS = -avoid-version
 
 libxf8_32bpp_la_SOURCES = \
-	cfbbstore.c \
 	cfbcpyarea.c \
 	cfbcpyplane.c \
 	cfbgcmisc.c \

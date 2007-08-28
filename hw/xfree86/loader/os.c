@@ -42,6 +42,8 @@
 #define OSNAME "linux"
 #elif defined(__FreeBSD__)
 #define OSNAME "freebsd"
+#elif defined(__DragonFly__)
+#define OSNAME "dragonfly"
 #elif defined(__NetBSD__)
 #define OSNAME "netbsd"
 #elif defined(__OpenBSD__)

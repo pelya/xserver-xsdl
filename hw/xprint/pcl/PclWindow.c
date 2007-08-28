@@ -333,14 +333,6 @@ PclPaintWindow(
 	  newValues[ABSY] = (pointer)0;
       }
 
-/*
- * XXX Backing store is turned off for the PCL driver    
-
-    if (pWin->backStorage)
-	(*pWin->drawable.pScreen->DrawGuarantee) (pWin, pGC,
-	GuaranteeVisBack);
- */
-
     mask = gcmask;
     gcmask = 0;
     i = 0;
@@ -419,14 +411,6 @@ PclPaintWindow(
     prect -= numRects;
     (*pGC->ops->PolyFillRect)((DrawablePtr)pWin, pGC, numRects, prect);
     DEALLOCATE_LOCAL(prect);
-
-/*
- * XXX Backing store is turned off for the PCL driver
-
-    if (pWin->backStorage)
-	(*pWin->drawable.pScreen->DrawGuarantee) (pWin, pGC,
-	GuaranteeNothing);
- */
 
     if (what == PW_BORDER)
       {

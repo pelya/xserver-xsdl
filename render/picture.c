@@ -452,6 +452,28 @@ PictureFindVisual (ScreenPtr pScreen, VisualID visual)
 }
 
 Bool
+PictureInitIndexedFormat(ScreenPtr pScreen, PictFormatPtr format)
+{
+    PictureScreenPtr ps = GetPictureScreenIfSet(pScreen);
+
+    if (format->type != PictTypeIndexed || format->index.pColormap)
+	return TRUE;
+
+    if (format->index.vid == pScreen->rootVisual) {
+	format->index.pColormap =
+	    (ColormapPtr) LookupIDByType(pScreen->defColormap, RT_COLORMAP);
+    } else {
+	VisualPtr pVisual = PictureFindVisual(pScreen, format->index.vid);
+	if (!CreateColormap(FakeClientID (0), pScreen, pVisual,
+		    &format->index.pColormap, AllocNone, 0))
+	    return FALSE;
+    }
+    if (!ps->InitIndexed(pScreen, format))
+	return FALSE;
+    return TRUE;
+}
+
+static Bool
 PictureInitIndexedFormats (ScreenPtr pScreen)
 {
     PictureScreenPtr    ps = GetPictureScreenIfSet(pScreen);
@@ -463,30 +485,8 @@ PictureInitIndexedFormats (ScreenPtr pScreen)
     format = ps->formats;
     nformat = ps->nformats;
     while (nformat--)
-    {
-	if (format->type == PictTypeIndexed && !format->index.pColormap)
-	{
-	    if (format->index.vid == pScreen->rootVisual)
-		format->index.pColormap = (ColormapPtr) LookupIDByType(pScreen->defColormap,
-								       RT_COLORMAP);
-	    else
-	    {
-                VisualPtr   pVisual;
-
-                pVisual = PictureFindVisual (pScreen, format->index.vid);
-		if (CreateColormap (FakeClientID (0), pScreen,
-				    pVisual,
-				    &format->index.pColormap, AllocNone,
-				    0) != Success)
-		{
-		    return FALSE;
-		}
-	    }
-	    if (!(*ps->InitIndexed) (pScreen, format))
-		return FALSE;
-	}
-	format++;
-    }
+	if (!PictureInitIndexedFormat(pScreen, format++))
+	    return FALSE;
     return TRUE;
 }
 

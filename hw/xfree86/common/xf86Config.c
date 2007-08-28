@@ -60,6 +60,7 @@
 #include "configProcs.h"
 #include "globals.h"
 #include "extension.h"
+#include "Pci.h"
 
 #ifdef XINPUT
 #include "xf86Xinput.h"
@@ -113,6 +114,17 @@ extern DeviceAssocRec mouse_assoc;
 #endif
 
 static char *fontPath = NULL;
+
+static ModuleDefault ModuleDefaults[] = {
+    {.name = "extmod",   .toLoad = TRUE,    .load_opt=NULL},
+    {.name = "dbe",      .toLoad = TRUE,    .load_opt=NULL},
+    {.name = "glx",      .toLoad = TRUE,    .load_opt=NULL},
+    {.name = "freetype", .toLoad = TRUE,    .load_opt=NULL},
+    {.name = "record",   .toLoad = TRUE,    .load_opt=NULL},
+    {.name = "dri",      .toLoad = TRUE,    .load_opt=NULL},
+    {.name = NULL,       .toLoad = FALSE,   .load_opt=NULL}
+};
+
 
 /* Forward declarations */
 static Bool configScreen(confScreenPtr screenp, XF86ConfScreenPtr conf_screen,
@@ -2530,8 +2542,9 @@ xf86HandleConfigFile(Bool autoconfig)
            xf86Msg(X_WARNING, "Bus types other than PCI not yet isolable.\n"
                               "\tIgnoring IsolateDevice option.\n");
        } else if (sscanf(scanptr, "PCI:%d:%d:%d", &bus, &device, &func) == 3) {
-           xf86IsolateDevice.bus = bus;
-           xf86IsolateDevice.device = device;
+           xf86IsolateDevice.domain = PCI_DOM_FROM_BUS(bus);
+           xf86IsolateDevice.bus = PCI_BUS_NO_DOMAIN(bus);
+           xf86IsolateDevice.dev = device;
            xf86IsolateDevice.func = func;
            xf86Msg(X_INFO,
                    "Isolating PCI bus \"%d:%d:%d\"\n", bus, device, func);

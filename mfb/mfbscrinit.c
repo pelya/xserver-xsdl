@@ -89,16 +89,6 @@ static DepthRec depth = {
     1,		1,		&VID
 };
 
-
-BSFuncRec mfbBSFuncRec = {
-    mfbSaveAreas,
-    mfbRestoreAreas,
-    (BackingStoreSetClipmaskRgnProcPtr) 0,
-    (BackingStoreGetImagePixmapProcPtr) 0,
-    (BackingStoreGetSpansPixmapProcPtr) 0,
-};
-
-
 Bool
 mfbAllocatePrivates(pScreen, pWinIndex, pGCIndex)
     ScreenPtr pScreen;
@@ -169,7 +159,6 @@ mfbScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     if (!miScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width,
 			1, 1, &depth, VID, 1, &visual))
 	return FALSE;
-    pScreen->BackingStoreFuncs = mfbBSFuncRec;
     return TRUE;
 }
 

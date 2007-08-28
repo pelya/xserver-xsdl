@@ -620,7 +620,6 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	/* Now, try to move them all into FB */
 	for (i = 0; i < npixmaps; i++) {
 	    exaMoveInPixmap(pixmaps[i].pPix);
-	    ExaOffscreenMarkUsed (pixmaps[i].pPix);
 	}
 
 	/* If we couldn't fit everything in, then kick back out */
@@ -631,8 +630,13 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 			      pixmaps[i].pPix->drawable.height));
 		for (j = 0; j < npixmaps; j++)
 		    exaMoveOutPixmap(pixmaps[j].pPix);
-		break;
+		return;
 	    }
+	}
+
+	/* Yay, everything's offscreen, mark memory as used */
+	for (i = 0; i < npixmaps; i++) {
+	    ExaOffscreenMarkUsed (pixmaps[i].pPix);
 	}
     }
 }

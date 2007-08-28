@@ -102,7 +102,6 @@ typedef struct _RACScreen {
     PaintWindowBorderProcPtr 	PaintWindowBorder;
     CopyWindowProcPtr 		CopyWindow;
     ClearToBackgroundProcPtr 	ClearToBackground;
-    BSFuncRec 			BackingStoreFuncs;
     CreatePixmapProcPtr         CreatePixmap;
     SaveScreenProcPtr           SaveScreen;
     /* Colormap */
@@ -146,10 +145,6 @@ static void RACCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
 			  RegionPtr prgnSrc );
 static void RACClearToBackground (WindowPtr pWin, int x, int y,
 				  int w, int h, Bool generateExposures );
-static void RACSaveAreas (PixmapPtr pPixmap, RegionPtr prgnSave,
-			  int xorg, int yorg, WindowPtr pWin);
-static void RACRestoreAreas (PixmapPtr pPixmap, RegionPtr prgnRestore,
-			     int xorg, int yorg, WindowPtr pWin);
 static PixmapPtr RACCreatePixmap(ScreenPtr pScreen, int w, int h, int depth);
 static Bool  RACCreateGC(GCPtr pGC);
 static Bool RACSaveScreen(ScreenPtr pScreen, Bool unblank);
@@ -306,8 +301,6 @@ xf86RACInit(ScreenPtr pScreen, unsigned int flag)
     WRAP_SCREEN_COND(CopyWindow, RACCopyWindow, RAC_FB);
     WRAP_SCREEN_COND(ClearToBackground, RACClearToBackground, RAC_FB);
     WRAP_SCREEN_COND(CreatePixmap, RACCreatePixmap, RAC_FB);
-    WRAP_SCREEN_COND(BackingStoreFuncs.RestoreAreas, RACRestoreAreas, RAC_FB);
-    WRAP_SCREEN_COND(BackingStoreFuncs.SaveAreas, RACSaveAreas, RAC_FB);
     WRAP_SCREEN_COND(StoreColors, RACStoreColors, RAC_COLORMAP);
     WRAP_SCREEN_COND(DisplayCursor, RACDisplayCursor, RAC_CURSOR);
     WRAP_SCREEN_COND(RealizeCursor, RACRealizeCursor, RAC_CURSOR);
@@ -352,8 +345,6 @@ RACCloseScreen (int i, ScreenPtr pScreen)
     UNWRAP_SCREEN(PaintWindowBorder);
     UNWRAP_SCREEN(CopyWindow);
     UNWRAP_SCREEN(ClearToBackground);
-    UNWRAP_SCREEN(BackingStoreFuncs.RestoreAreas);
-    UNWRAP_SCREEN(BackingStoreFuncs.SaveAreas);
     UNWRAP_SCREEN(SaveScreen);
     UNWRAP_SCREEN(StoreColors);
     UNWRAP_SCREEN(DisplayCursor);
@@ -496,45 +487,6 @@ RACClearToBackground (
     ENABLE;
     (*pScreen->ClearToBackground) (pWin, x, y, w, h, generateExposures);
     SCREEN_EPILOG (ClearToBackground, RACClearToBackground);
-}
-
-static void
-RACSaveAreas (
-    PixmapPtr pPixmap,
-    RegionPtr prgnSave,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin
-    )
-{
-    ScreenPtr pScreen = pPixmap->drawable.pScreen;
-    DPRINT_S("RACSaveAreas",pScreen->myNum);
-    SCREEN_PROLOG (BackingStoreFuncs.SaveAreas);
-    ENABLE;
-    (*pScreen->BackingStoreFuncs.SaveAreas) (
-	pPixmap, prgnSave, xorg, yorg, pWin);
-
-    SCREEN_EPILOG (BackingStoreFuncs.SaveAreas, RACSaveAreas);
-}
-
-static void
-RACRestoreAreas (    
-    PixmapPtr pPixmap,
-    RegionPtr prgnRestore,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin 
-    )
-{
-    ScreenPtr pScreen = pPixmap->drawable.pScreen;
-
-    DPRINT_S("RACRestoreAreas",pScreen->myNum);
-    SCREEN_PROLOG (BackingStoreFuncs.RestoreAreas);
-    ENABLE;
-    (*pScreen->BackingStoreFuncs.RestoreAreas) (
-	pPixmap, prgnRestore, xorg, yorg, pWin);
-
-    SCREEN_EPILOG ( BackingStoreFuncs.RestoreAreas, RACRestoreAreas);
 }
 
 static PixmapPtr 

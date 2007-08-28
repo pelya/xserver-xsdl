@@ -46,14 +46,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "cfbmskbits.h"
 #include "mibstore.h"
 
-BSFuncRec cfbBSFuncRec = {
-    cfbSaveAreas,
-    cfbRestoreAreas,
-    (BackingStoreSetClipmaskRgnProcPtr) 0,
-    (BackingStoreGetImagePixmapProcPtr) 0,
-    (BackingStoreGetSpansPixmapProcPtr) 0,
-};
-
 Bool
 cfbCloseScreen (index, pScreen)
     int		index;
@@ -184,7 +176,6 @@ cfbFinishScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     pScreen->devPrivates[cfbScreenPrivateIndex].ptr = pScreen->devPrivate;
     pScreen->devPrivate = oldDevPrivate;
 #endif
-    pScreen->BackingStoreFuncs = cfbBSFuncRec;
     pScreen->GetScreenPixmap = cfbGetScreenPixmap;
     pScreen->SetScreenPixmap = cfbSetScreenPixmap;
     return TRUE;

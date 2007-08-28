@@ -98,17 +98,18 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
 	if (!output)
 	    return;
 	RROutputSetCrtcs (output, &crtc, 1);
-	output->crtc = crtc;
 	RROutputSetConnection (output, RR_Connected);
 #ifdef RENDER
 	RROutputSetSubpixelOrder (output, PictureGetSubpixelOrder (pScreen));
 #endif
     }
 
-    output = RRFirstOutput (pScreen);
+    output = pScrPriv->outputs[0];
     if (!output)
 	return;
-    crtc = output->crtc;
+    crtc = pScrPriv->crtcs[0];
+    if (!crtc)
+	return;
 
     /* check rotations */
     if (rotations != crtc->rotations)
@@ -168,7 +169,7 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
 
     /* notice current mode */
     if (newMode)
-	RRCrtcNotify (output->crtc, newMode, 0, 0, pScrPriv->rotation,
+	RRCrtcNotify (crtc, newMode, 0, 0, pScrPriv->rotation,
 		      1, &output);
 }
 #endif

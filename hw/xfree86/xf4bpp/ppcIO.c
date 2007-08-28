@@ -87,14 +87,6 @@ xf4bppNeverCalled()
 	FatalError("xf4bppNeverCalled was nevertheless called\n");
 }
 
-static BSFuncRec ppcBSFuncRec = {
-    xf4bppSaveAreas,
-    xf4bppRestoreAreas,
-    (BackingStoreSetClipmaskRgnProcPtr) 0,
-    (BackingStoreGetImagePixmapProcPtr) 0,
-    (BackingStoreGetSpansPixmapProcPtr) 0,
-};
-
 /*ARGSUSED*/
 static Bool
 vgaScreenClose
@@ -217,12 +209,6 @@ xf4bppScreenInit( pScreen, pbits, virtx, virty, dpix, dpiy, width )
   pScreen-> PaintWindowBorder = xf4bppPaintWindow;
   pScreen-> CopyWindow = xf4bppCopyWindow;
   pScreen-> CreatePixmap = xf4bppCreatePixmap;
-  pScreen-> SaveDoomedAreas = (SaveDoomedAreasProcPtr)NoopDDA;
-  pScreen-> RestoreAreas = (RestoreAreasProcPtr)NoopDDA;
-  pScreen-> ExposeCopy = (ExposeCopyProcPtr)NoopDDA;
-  pScreen-> TranslateBackingStore = (TranslateBackingStoreProcPtr)NoopDDA;
-  pScreen-> ClearBackingStore = (ClearBackingStoreProcPtr)NoopDDA;
-  pScreen-> DrawGuarantee = (DrawGuaranteeProcPtr)NoopDDA;
   pScreen-> CreateGC = xf4bppCreateGC;
   pScreen-> CreateColormap = xf4bppInitializeColormap;
   pScreen-> DestroyColormap = (DestroyColormapProcPtr)NoopDDA;
@@ -240,7 +226,6 @@ xf4bppScreenInit( pScreen, pbits, virtx, virty, dpix, dpiy, width )
 	rootdepth, ndepths, depths, defaultVisual /* See above */,
 	nvisuals, visuals))
      return FALSE;
-  pScreen->BackingStoreFuncs = ppcBSFuncRec;
 
   /* GJA -- Now we override the supplied default: */
   pScreen -> CreateScreenResources = v16CreateScreenResources;

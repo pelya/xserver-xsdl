@@ -50,7 +50,7 @@ SOFTWARE.
 
 #include "misc.h"
 #include <X11/Xprotostr.h>
-#include <pixman/pixman.h>
+#include <pixman.h>
 
 typedef xPoint DDXPointRec;
 

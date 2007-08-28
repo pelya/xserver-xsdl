@@ -255,21 +255,6 @@ miHandleExposures(pSrcDrawable, pDstDrawable,
     /* now get the hidden parts of the source box*/
     REGION_SUBTRACT(pscr, &rgnExposed, &rgnExposed, prgnSrcClip);
 
-    if (pSrcWin && pSrcWin->backStorage)
-    {
-	/*
-	 * Copy any areas from the source backing store. Modifies
-	 * rgnExposed.
-	 */
-	(* pSrcWin->drawable.pScreen->ExposeCopy) ((WindowPtr)pSrcDrawable,
-					      pDstDrawable,
-					      pGC,
-					      &rgnExposed,
-					      srcx, srcy,
-					      dstx, dsty,
-					      plane);
-    }
-    
     /* move them over the destination */
     REGION_TRANSLATE(pscr, &rgnExposed, dstx-srcx, dsty-srcy);
 
@@ -307,15 +292,6 @@ miHandleExposures(pSrcDrawable, pDstDrawable,
 
 	expBox = *REGION_EXTENTS(pscr, &rgnExposed);
 	REGION_RESET(pscr, &rgnExposed, &expBox);
-	/* need to clear out new areas of backing store */
-	if (pWin->backStorage)
-	    (void) (* pWin->drawable.pScreen->ClearBackingStore)(
-					 pWin,
-					 expBox.x1,
-					 expBox.y1,
-					 expBox.x2 - expBox.x1,
-					 expBox.y2 - expBox.y1,
-					 FALSE);
     }
     if ((pDstDrawable->type != DRAWABLE_PIXMAP) &&
 	(((WindowPtr)pDstDrawable)->backgroundState != None))
@@ -496,18 +472,6 @@ miWindowExposures(pWin, prgn, other_exposed)
     RegionPtr prgn, other_exposed;
 {
     RegionPtr   exposures = prgn;
-    if (pWin->backStorage && prgn)
-	/*
-	 * in some cases, backing store will cause a different
-	 * region to be exposed than needs to be repainted
-	 * (like when a window is mapped).  RestoreAreas is
-	 * allowed to return a region other than prgn,
-	 * in which case this routine will free the resultant
-	 * region.  If exposures is null, then no events will
-	 * be sent to the client; if prgn is empty
-	 * no areas will be repainted.
-	 */
-	exposures = (*pWin->drawable.pScreen->RestoreAreas)(pWin, prgn);
     if ((prgn && !REGION_NIL(prgn)) || 
 	(exposures && !REGION_NIL(exposures)) || other_exposed)
     {
@@ -551,15 +515,6 @@ miWindowExposures(pWin, prgn, other_exposed)
 	    }
 	    /* PaintWindowBackground doesn't clip, so we have to */
 	    REGION_INTERSECT( pWin->drawable.pScreen, prgn, prgn, &pWin->clipList);
-	    /* need to clear out new areas of backing store, too */
-	    if (pWin->backStorage)
-		(void) (* pWin->drawable.pScreen->ClearBackingStore)(
-					     pWin,
-					     box.x1 - pWin->drawable.x,
-					     box.y1 - pWin->drawable.y,
-					     box.x2 - box.x1,
-					     box.y2 - box.y1,
-					     FALSE);
 	}
 	if (prgn && !REGION_NIL(prgn))
 	    (*pWin->drawable.pScreen->PaintWindowBackground)(pWin, prgn, PW_BACKGROUND);
@@ -779,9 +734,6 @@ int what;
 	pWin = pRoot;
     }
     
-    if (pWin->backStorage)
-	(*pWin->drawable.pScreen->DrawGuarantee) (pWin, pGC, GuaranteeVisBack);
-
     mask = gcmask;
     gcmask = 0;
     i = 0;
@@ -859,9 +811,6 @@ int what;
     prect -= numRects;
     (*pGC->ops->PolyFillRect)((DrawablePtr)pWin, pGC, numRects, prect);
     DEALLOCATE_LOCAL(prect);
-
-    if (pWin->backStorage)
-	(*pWin->drawable.pScreen->DrawGuarantee) (pWin, pGC, GuaranteeNothing);
 
     if (usingScratchGC)
     {

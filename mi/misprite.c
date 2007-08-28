@@ -89,9 +89,6 @@ static void	    miSpriteInstallColormap(ColormapPtr pMap);
 static void	    miSpriteStoreColors(ColormapPtr pMap, int ndef,
 					xColorItem *pdef);
 
-static void	    miSpriteSaveDoomedAreas(WindowPtr pWin,
-					    RegionPtr pObscured, int dx,
-					    int dy);
 static void	    miSpriteComputeSaved(ScreenPtr pScreen);
 
 #define SCREEN_PROLOGUE(pScreen, field)\
@@ -195,8 +192,6 @@ miSpriteInitialize (pScreen, cursorFuncs, screenFuncs)
 
     pScreenPriv->CopyWindow = pScreen->CopyWindow;
     
-    pScreenPriv->SaveDoomedAreas = pScreen->SaveDoomedAreas;
-    
     pScreenPriv->InstallColormap = pScreen->InstallColormap;
     pScreenPriv->StoreColors = pScreen->StoreColors;
     
@@ -227,8 +222,6 @@ miSpriteInitialize (pScreen, cursorFuncs, screenFuncs)
     pScreen->SourceValidate = miSpriteSourceValidate;
     
     pScreen->CopyWindow = miSpriteCopyWindow;
-    
-    pScreen->SaveDoomedAreas = miSpriteSaveDoomedAreas;
     
     pScreen->InstallColormap = miSpriteInstallColormap;
     pScreen->StoreColors = miSpriteStoreColors;
@@ -264,7 +257,6 @@ miSpriteCloseScreen (i, pScreen)
     pScreen->InstallColormap = pScreenPriv->InstallColormap;
     pScreen->StoreColors = pScreenPriv->StoreColors;
 
-    pScreen->SaveDoomedAreas = pScreenPriv->SaveDoomedAreas;
     miSpriteIsUpFALSE (pScreen, pScreenPriv);
     DamageDestroy (pScreenPriv->pDamage);
     
@@ -555,45 +547,6 @@ miSpriteFindColors (ScreenPtr pScreen)
 	FakeFreeColor(pScreenPriv->pColormap, maskColor->pixel);
     }
     pScreenPriv->checkPixels = FALSE;
-}
-
-/*
- * BackingStore wrappers
- */
-
-static void
-miSpriteSaveDoomedAreas (pWin, pObscured, dx, dy)
-    WindowPtr	pWin;
-    RegionPtr	pObscured;
-    int		dx, dy;
-{
-    ScreenPtr		pScreen;
-    miSpriteScreenPtr   pScreenPriv;
-    BoxRec		cursorBox;
-
-    pScreen = pWin->drawable.pScreen;
-    
-    SCREEN_PROLOGUE (pScreen, SaveDoomedAreas);
-
-    pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
-    if (pScreenPriv->isUp)
-    {
-	cursorBox = pScreenPriv->saved;
-
-	if (dx || dy)
- 	{
-	    cursorBox.x1 += dx;
-	    cursorBox.y1 += dy;
-	    cursorBox.x2 += dx;
-	    cursorBox.y2 += dy;
-	}
-	if (RECT_IN_REGION( pScreen, pObscured, &cursorBox) != rgnOUT)
-	    miSpriteRemoveCursor (pScreen);
-    }
-
-    (*pScreen->SaveDoomedAreas) (pWin, pObscured, dx, dy);
-
-    SCREEN_EPILOGUE (pScreen, SaveDoomedAreas);
 }
 
 /*

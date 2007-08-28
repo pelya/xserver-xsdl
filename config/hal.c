@@ -98,12 +98,11 @@ add_option(InputOption **options, const char *key, const char *value)
 }
 
 static char *
-get_prop_string(LibHalContext *hal_ctx, const char *udi, const char *name,
-                DBusError *error)
+get_prop_string(LibHalContext *hal_ctx, const char *udi, const char *name)
 {
     char *prop, *ret;
 
-    prop = libhal_device_get_property_string(hal_ctx, udi, name, error);
+    prop = libhal_device_get_property_string(hal_ctx, udi, name, NULL);
     DebugF(" [config/hal] getting %s on %s returned %s\n", name, udi, prop);
     if (prop) {
         ret = xstrdup(prop);
@@ -117,13 +116,12 @@ get_prop_string(LibHalContext *hal_ctx, const char *udi, const char *name,
 }
 
 static char *
-get_prop_string_array(LibHalContext *hal_ctx, const char *udi, const char *prop,
-                      DBusError *error)
+get_prop_string_array(LibHalContext *hal_ctx, const char *udi, const char *prop)
 {
     char **props, *ret, *str;
     int i, len = 0;
 
-    props = libhal_device_get_property_strlist(hal_ctx, udi, prop, error);
+    props = libhal_device_get_property_strlist(hal_ctx, udi, prop, NULL);
     if (props) {
         for (i = 0; props[i]; i++)
             len += strlen(props[i]);
@@ -187,24 +185,22 @@ device_added(LibHalContext *hal_ctx, const char *udi)
     if (type == TYPE_NONE)
         goto out_error;
 
-    driver = get_prop_string(hal_ctx, udi, "input.x11_driver", &error);
-    path = get_prop_string(hal_ctx, udi, "input.device", &error);
+    driver = get_prop_string(hal_ctx, udi, "input.x11_driver");
+    path = get_prop_string(hal_ctx, udi, "input.device");
     if (!driver || !path) {
         DebugF("[config/hal] no driver or path specified for %s\n", udi);
         goto unwind;
     }
-    name = get_prop_string(hal_ctx, udi, "info.product", &error);
+    name = get_prop_string(hal_ctx, udi, "info.product");
     if (!name)
         name = xstrdup("(unnamed)");
 
     if (type & TYPE_KEYS) {
-        xkb_rules = get_prop_string(hal_ctx, udi, "input.xkb_rules", &error);
-        xkb_model = get_prop_string(hal_ctx, udi, "input.xkb_model", &error);
-        xkb_layout = get_prop_string(hal_ctx, udi, "input.xkb_layout", &error);
-        xkb_variant = get_prop_string(hal_ctx, udi, "input.xkb_variant",
-                                      &error);
-        xkb_options = get_prop_string_array(hal_ctx, udi, "input.xkb_options",
-                                            &error);
+        xkb_rules = get_prop_string(hal_ctx, udi, "input.xkb.rules");
+        xkb_model = get_prop_string(hal_ctx, udi, "input.xkb.model");
+        xkb_layout = get_prop_string(hal_ctx, udi, "input.xkb.layout");
+        xkb_variant = get_prop_string(hal_ctx, udi, "input.xkb.variant");
+        xkb_options = get_prop_string_array(hal_ctx, udi, "input.xkb.options");
     }
 
     options = xcalloc(sizeof(*options), 1);
@@ -273,7 +269,8 @@ disconnect_hook(void *data)
     if (info->hal_ctx) {
         dbus_error_init(&error);
         if (!libhal_ctx_shutdown(info->hal_ctx, &error))
-            DebugF("[config/hal] couldn't shut down context?\n");
+            DebugF("[config/hal] couldn't shut down context: %s (%s)\n",
+                   error.name, error.message);
         libhal_ctx_free(info->hal_ctx);
         dbus_error_free(&error);
     }
@@ -320,6 +317,7 @@ connect_hook(DBusConnection *connection, void *data)
 
     devices = libhal_find_device_by_capability(info->hal_ctx, "input",
                                                &num_devices, &error);
+    /* FIXME: Get default devices if error is set. */
     for (i = 0; i < num_devices; i++)
         device_added(info->hal_ctx, devices[i]);
     libhal_free_string_array(devices);
@@ -330,7 +328,8 @@ connect_hook(DBusConnection *connection, void *data)
 
 out_ctx2:
     if (!libhal_ctx_shutdown(info->hal_ctx, &error))
-        DebugF("[config/hal] couldn't shut down context?\n");
+        DebugF("[config/hal] couldn't shut down context: %s (%s)\n",
+               error.name, error.message);
 out_ctx:
     libhal_ctx_free(info->hal_ctx);
 out_err:
