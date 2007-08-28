@@ -1271,10 +1271,10 @@ AllModifierKeysAreUp(dev, map1, per1, map2, per2)
 
 static int
 DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
-                     int numKeyPerModifier)
+                     int numKeyPerModifier, xSetModifierMappingReply *rep)
 {
     DeviceIntPtr pDev = NULL;
-    int i = 0, inputMapLen = numKeyPerModifier * 8;
+    int rc, i = 0, inputMapLen = numKeyPerModifier * 8;
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key) {
@@ -1289,8 +1289,9 @@ DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
                 }
             }
 
-            if (XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE) != Success)
-                return BadAccess;
+	    rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixSetAttrAccess);
+	    if (rc != Success)
+		return rc;
 
             /* None of the modifiers (old or new) may be down while we change
              * the map. */
@@ -1300,7 +1301,8 @@ DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
                 !AllModifierKeysAreUp(pDev, inputMap, numKeyPerModifier,
                                       pDev->key->modifierKeyMap,
                                       pDev->key->maxKeysPerModifier)) {
-                return MappingBusy;
+		rep->success = MappingBusy;
+                return Success;
             }
         }
     }
@@ -1337,6 +1339,7 @@ DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
         }
     }
 
+    rep->success = Success;
     return Success;
 }
 
@@ -1344,8 +1347,8 @@ int
 ProcSetModifierMapping(ClientPtr client)
 {
     xSetModifierMappingReply rep;
+    int rc;
     REQUEST(xSetModifierMappingReq);
-    
     REQUEST_AT_LEAST_SIZE(xSetModifierMappingReq);
 
     if (client->req_len != ((stuff->numKeyPerModifier << 1) +
@@ -1356,8 +1359,10 @@ ProcSetModifierMapping(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    rep.success = DoSetModifierMapping(client, (KeyCode *)&stuff[1],
-                                       stuff->numKeyPerModifier);
+    rc = DoSetModifierMapping(client, (KeyCode *)&stuff[1],
+			      stuff->numKeyPerModifier, &rep);
+    if (rc != Success)
+	return rc;
 
     /* FIXME: Send mapping notifies for all the extended devices as well. */
     SendMappingNotify(MappingModifier, 0, 0, client);
@@ -1370,8 +1375,14 @@ ProcGetModifierMapping(ClientPtr client)
 {
     xGetModifierMappingReply rep;
     KeyClassPtr keyc = inputInfo.keyboard->key;
-
+    int rc;
     REQUEST_SIZE_MATCH(xReq);
+
+    rc = XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard,
+		  DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
+
     rep.type = X_Reply;
     rep.numKeyPerModifier = keyc->maxKeysPerModifier;
     rep.sequenceNumber = client->sequence;
@@ -1394,6 +1405,7 @@ ProcChangeKeyboardMapping(ClientPtr client)
     KeySymsRec keysyms;
     KeySymsPtr curKeySyms = &inputInfo.keyboard->key->curKeySyms;
     DeviceIntPtr pDev = NULL;
+    int rc;
     REQUEST_AT_LEAST_SIZE(xChangeKeyboardMappingReq);
 
     len = client->req_len - (sizeof(xChangeKeyboardMappingReq) >> 2);  
@@ -1414,8 +1426,9 @@ ProcChangeKeyboardMapping(ClientPtr client)
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key) {
-            if (XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE) != Success)
-                return BadAccess;
+            rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixSetAttrAccess);
+	    if (rc != Success)
+                return rc;
         }
     }
 
@@ -1437,13 +1450,21 @@ ProcChangeKeyboardMapping(ClientPtr client)
 }
 
 static int
-DoSetPointerMapping(DeviceIntPtr device, BYTE *map, int n)
+DoSetPointerMapping(ClientPtr client, DeviceIntPtr device, BYTE *map, int n)
 {
-    int i = 0;
+    int rc, i = 0;
     DeviceIntPtr dev = NULL;
 
     if (!device || !device->button)
         return BadDevice;
+
+    for (dev = inputInfo.devices; dev; dev = dev->next) {
+        if ((dev->coreEvents || dev == inputInfo.pointer) && dev->button) {
+	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixSetAttrAccess);
+	    if (rc != Success)
+		return rc;
+	}
+    }
 
     for (dev = inputInfo.devices; dev; dev = dev->next) {
         if ((dev->coreEvents || dev == inputInfo.pointer) && dev->button) {
@@ -1469,12 +1490,12 @@ DoSetPointerMapping(DeviceIntPtr device, BYTE *map, int n)
 int
 ProcSetPointerMapping(ClientPtr client)
 {
-    REQUEST(xSetPointerMappingReq);
     BYTE *map;
     int ret;
     xSetPointerMappingReply rep;
-
+    REQUEST(xSetPointerMappingReq);
     REQUEST_AT_LEAST_SIZE(xSetPointerMappingReq);
+
     if (client->req_len != (sizeof(xSetPointerMappingReq)+stuff->nElts+3) >> 2)
 	return BadLength;
     rep.type = X_Reply;
@@ -1492,7 +1513,7 @@ ProcSetPointerMapping(ClientPtr client)
     if (BadDeviceMap(&map[0], (int)stuff->nElts, 1, 255, &client->errorValue))
 	return BadValue;
 
-    ret = DoSetPointerMapping(inputInfo.pointer, map, stuff->nElts);
+    ret = DoSetPointerMapping(client, inputInfo.pointer, map, stuff->nElts);
     if (ret != Success) {
         rep.success = ret;
         WriteReplyToClient(client, sizeof(xSetPointerMappingReply), &rep);
@@ -1509,10 +1530,15 @@ int
 ProcGetKeyboardMapping(ClientPtr client)
 {
     xGetKeyboardMappingReply rep;
-    REQUEST(xGetKeyboardMappingReq);
     KeySymsPtr curKeySyms = &inputInfo.keyboard->key->curKeySyms;
-
+    int rc;
+    REQUEST(xGetKeyboardMappingReq);
     REQUEST_SIZE_MATCH(xGetKeyboardMappingReq);
+
+    rc = XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard,
+		  DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
 
     if ((stuff->firstKeyCode < curKeySyms->minKeyCode) ||
         (stuff->firstKeyCode > curKeySyms->maxKeyCode)) {
@@ -1546,8 +1572,14 @@ ProcGetPointerMapping(ClientPtr client)
 {
     xGetPointerMappingReply rep;
     ButtonClassPtr butc = inputInfo.pointer->button;
-
+    int rc;
     REQUEST_SIZE_MATCH(xReq);
+
+    rc = XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.pointer,
+		  DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
+
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
     rep.nElts = butc->numButtons;
@@ -1766,8 +1798,9 @@ ProcChangeKeyboardControl (ClientPtr client)
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) &&
             pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
-            if (XaceHook(XACE_DEVICE_ACCESS, client, pDev, TRUE) != Success)
-                return BadAccess;
+            ret = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixSetAttrAccess);
+	    if (ret != Success)
+                return ret;
         }
     }
 
@@ -1786,11 +1819,16 @@ ProcChangeKeyboardControl (ClientPtr client)
 int
 ProcGetKeyboardControl (ClientPtr client)
 {
-    int i;
+    int rc, i;
     KeybdCtrl *ctrl = &inputInfo.keyboard->kbdfeed->ctrl;
     xGetKeyboardControlReply rep;
-
     REQUEST_SIZE_MATCH(xReq);
+
+    rc = XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard,
+		  DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
+
     rep.type = X_Reply;
     rep.length = 5;
     rep.sequenceNumber = client->sequence;
@@ -1812,6 +1850,7 @@ ProcBell(ClientPtr client)
     DeviceIntPtr keybd = inputInfo.keyboard;
     int base = keybd->kbdfeed->ctrl.bell;
     int newpercent;
+    int rc;
     REQUEST(xBellReq);
     REQUEST_SIZE_MATCH(xBellReq);
 
@@ -1832,6 +1871,10 @@ ProcBell(ClientPtr client)
     for (keybd = inputInfo.devices; keybd; keybd = keybd->next) {
         if ((keybd->coreEvents || keybd == inputInfo.keyboard) &&
             keybd->kbdfeed && keybd->kbdfeed->BellProc) {
+
+	    rc = XaceHook(XACE_DEVICE_ACCESS, client, keybd, DixBellAccess);
+	    if (rc != Success)
+		return rc;
 #ifdef XKB
             if (!noXkbExtension)
                 XkbHandleBell(FALSE, FALSE, keybd, newpercent,
@@ -1851,8 +1894,8 @@ ProcChangePointerControl(ClientPtr client)
 {
     DeviceIntPtr mouse = inputInfo.pointer;
     PtrCtrl ctrl;		/* might get BadValue part way through */
+    int rc;
     REQUEST(xChangePointerControlReq);
-
     REQUEST_SIZE_MATCH(xChangePointerControlReq);
     
     if (!mouse->ptrfeed->CtrlProc)
@@ -1903,6 +1946,14 @@ ProcChangePointerControl(ClientPtr client)
         }
     }
 
+    for (mouse = inputInfo.devices; mouse; mouse = mouse->next) {
+        if ((mouse->coreEvents || mouse == inputInfo.pointer) &&
+            mouse->ptrfeed && mouse->ptrfeed->CtrlProc) {
+	    rc = XaceHook(XACE_DEVICE_ACCESS, client, mouse, DixSetAttrAccess);
+	    if (rc != Success)
+		return rc;
+	}
+    }
 
     for (mouse = inputInfo.devices; mouse; mouse = mouse->next) {
         if ((mouse->coreEvents || mouse == inputInfo.pointer) &&
@@ -1920,8 +1971,14 @@ ProcGetPointerControl(ClientPtr client)
 {
     PtrCtrl *ctrl = &inputInfo.pointer->ptrfeed->ctrl;
     xGetPointerControlReply rep;
-
+    int rc;
     REQUEST_SIZE_MATCH(xReq);
+
+    rc = XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.pointer,
+		  DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
+
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
@@ -1959,11 +2016,15 @@ ProcGetMotionEvents(ClientPtr client)
     DeviceIntPtr mouse = inputInfo.pointer;
     TimeStamp start, stop;
     REQUEST(xGetMotionEventsReq);
-
     REQUEST_SIZE_MATCH(xGetMotionEventsReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
+    rc = XaceHook(XACE_DEVICE_ACCESS, client, mouse, DixReadAccess);
+    if (rc != Success)
+	return rc;
+
     if (mouse->valuator->motionHintWindow)
 	MaybeStopHint(mouse, client);
     rep.type = X_Reply;
@@ -2019,7 +2080,7 @@ int
 ProcQueryKeymap(ClientPtr client)
 {
     xQueryKeymapReply rep;
-    int i;
+    int rc, i;
     CARD8 *down = inputInfo.keyboard->key->down;
 
     REQUEST_SIZE_MATCH(xReq);
@@ -2027,11 +2088,13 @@ ProcQueryKeymap(ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.length = 2;
 
-    if (XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard, TRUE))
-	bzero((char *)&rep.map[0], 32);
-    else
-	for (i = 0; i<32; i++)
-	    rep.map[i] = down[i];
+    rc = XaceHook(XACE_DEVICE_ACCESS, client, inputInfo.keyboard,
+		  DixReadAccess);
+    if (rc != Success)
+	return rc;
+
+    for (i = 0; i<32; i++)
+	rep.map[i] = down[i];
 
     WriteReplyToClient(client, sizeof(xQueryKeymapReply), &rep);
     return Success;

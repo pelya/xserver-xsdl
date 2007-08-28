@@ -58,6 +58,7 @@ SOFTWARE.
 #include "inputstr.h"
 #include "cursorstr.h"
 #include "dixgrabs.h"
+#include "xace.h"
 
 #define BITMASK(i) (((Mask)1) << ((i) & 31))
 #define MASKIDX(i) ((i) >> 5)
@@ -309,6 +310,8 @@ int
 AddPassiveGrabToList(GrabPtr pGrab)
 {
     GrabPtr grab;
+    Mask access_mode = DixGrabAccess;
+    int rc;
 
     for (grab = wPassiveGrabs(pGrab->window); grab; grab = grab->next)
     {
@@ -321,6 +324,13 @@ AddPassiveGrabToList(GrabPtr pGrab)
 	    }
 	}
     }
+
+    if (grab->keyboardMode == GrabModeSync || grab->pointerMode == GrabModeSync)
+	access_mode |= DixFreezeAccess;
+    rc = XaceHook(XACE_DEVICE_ACCESS, clients[CLIENT_ID(grab->resource)],
+		  grab->device, access_mode);
+    if (rc != Success)
+	return rc;
 
     /* Remove all grabs that match the new one exactly */
     for (grab = wPassiveGrabs(pGrab->window); grab; grab = grab->next)

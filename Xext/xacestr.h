@@ -50,7 +50,7 @@ typedef struct {
 typedef struct {
     ClientPtr client;
     DeviceIntPtr dev;
-    Bool fromRequest;
+    Mask access_mode;
     int status;
 } XaceDeviceAccessRec;
 

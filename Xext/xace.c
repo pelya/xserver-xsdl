@@ -84,7 +84,7 @@ int XaceHook(int hook, ...)
 	    XaceDeviceAccessRec rec = {
 		va_arg(ap, ClientPtr),
 		va_arg(ap, DeviceIntPtr),
-		va_arg(ap, Bool),
+		va_arg(ap, Mask),
 		Success /* default allow */
 	    };
 	    calldata = &rec;
