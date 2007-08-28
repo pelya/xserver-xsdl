@@ -1287,8 +1287,7 @@ XORG_CORE_LIBS="$DIX_LIB $CONFIG_LIB"
 AC_SUBST([XORG_CORE_LIBS])
 
 xorg_bus_linuxpci=no
-xorg_bus_freebsdpci=no
-xorg_bus_netbsdpci=no
+xorg_bus_bsdpci=no
 xorg_bus_ix86pci=no
 xorg_bus_ppcpci=no
 xorg_bus_sparcpci=no
@@ -1397,35 +1396,17 @@ return 0;}
 	  freebsd* | kfreebsd*-gnu)
 	  	XORG_OS="freebsd"
 		XORG_OS_SUBDIR="bsd"
-		case $host_cpu in
-		  i*86)
-			;;
-		  *)
-			xorg_bus_freebsdpci="yes"
-			;;
-		esac
+		xorg_bus_bsdpci="yes"
 		;;
 	  netbsd*)
 	  	XORG_OS="netbsd"
 		XORG_OS_SUBDIR="bsd"
-		case $host_cpu in
-		  i*86|amd64*|x86_64*|ia64*)
-			;;
-		  *)
-			xorg_bus_netbsdpci="yes"
-			;;
-		esac
+		xorg_bus_bsdpci="yes"
 		;;
 	  openbsd*)
 	  	XORG_OS="openbsd"
 		XORG_OS_SUBDIR="bsd"
-		case $host_cpu in
-		  i*86|amd64*|x86_64*|ia64*)
-			;;
-		  *)
-			xorg_bus_freebsdpci="yes"
-			;;
-		esac
+		xorg_bus_bsdpci="yes"
 		;;
 	  solaris*)
 	  	XORG_OS="solaris"
@@ -1495,6 +1476,7 @@ return 0;}
 	  i*86)
                case $host_os in
                  darwin*) ;;
+		 *bsd*) ;;
                  *) xorg_bus_ix86pci=yes ;;
                esac
 		;;
@@ -1513,8 +1495,7 @@ return 0;}
 		;;
 	  x86_64*|amd64*)
 		case $host_os in
-		  darwin*|freebsd*|kfreebsd*-gnu)
-			# FreeBSD uses the system pci interface
+		  darwin*|*bsd*)
 			;;
 		  *)
 			xorg_bus_ix86pci="yes"
@@ -1608,8 +1589,7 @@ return 0;}
 fi
 AM_CONDITIONAL([XORG], [test "x$XORG" = xyes])
 AM_CONDITIONAL([XORG_BUS_LINUXPCI], [test "x$xorg_bus_linuxpci" = xyes])
-AM_CONDITIONAL([XORG_BUS_FREEBSDPCI], [test "x$xorg_bus_freebsdpci" = xyes])
-AM_CONDITIONAL([XORG_BUS_NETBSDPCI], [test "x$xorg_bus_netbsdpci" = xyes])
+AM_CONDITIONAL([XORG_BUS_BSDPCI], [test "x$xorg_bus_bsdpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_IX86PCI], [test "x$xorg_bus_ix86pci" = xyes])
 AM_CONDITIONAL([XORG_BUS_PPCPCI], [test "x$xorg_bus_ppcpci" = xyes])
 AM_CONDITIONAL([XORG_BUS_SPARCPCI], [test "x$xorg_bus_sparcpci" = xyes])

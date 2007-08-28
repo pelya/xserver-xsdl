@@ -184,35 +184,30 @@
 
 #define PCI_CFGMECH1_MAXDEV	32
 
+#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || \
+	defined(__DragonFly__)
+#define ARCH_PCI_INIT bsdPciInit
+#endif
+
+#if !defined(ARCH_PCI_INIT)
 /*
  * Select architecture specific PCI init function
  */
 #if defined(__alpha__)
 # if defined(linux)
 #  define ARCH_PCI_INIT axpPciInit
-# elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
-#  define ARCH_PCI_INIT freebsdPciInit
-#  define INCLUDE_XF86_NO_DOMAIN
-# elif defined(__NetBSD__)
-#  define ARCH_PCI_INIT netbsdPciInit
-#  define INCLUDE_XF86_NO_DOMAIN
 # endif
 #elif defined(__arm__)
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
-#  define INCLUDE_XF86_NO_DOMAIN
 # endif
 #elif defined(__hppa__)
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
-#  define INCLUDE_XF86_NO_DOMAIN
 # endif
 #elif defined(__ia64__)
 # if defined(linux)
 #  define ARCH_PCI_INIT ia64linuxPciInit
-# elif defined(FreeBSD)
-#  define ARCH_PCI_INIT freebsdPciInit
-#  define INCLUDE_XF86_NO_DOMAIN
 # endif
 # define XF86SCANPCI_WRAPPER ia64ScanPCIWrapper
 #elif defined(__i386__) || defined(i386)
@@ -221,69 +216,49 @@
 # else
 #  define ARCH_PCI_INIT ix86PciInit
 # endif
-# define INCLUDE_XF86_NO_DOMAIN
 #elif defined(__mc68000__)
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
-#  define INCLUDE_XF86_NO_DOMAIN
 # endif
 #elif defined(__mips__)
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
-#  define INCLUDE_XF86_NO_DOMAIN
 # endif
 #elif defined(__powerpc__) || defined(__powerpc64__)
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
-#  define INCLUDE_XF86_NO_DOMAIN	/* Needs kernel work to remove */
-# elif defined(__FreeBSD__) || defined(__OpenBSD__)
-#  define  ARCH_PCI_INIT freebsdPciInit
-#  define INCLUDE_XF86_NO_DOMAIN
-# elif defined(__NetBSD__)
-#  define ARCH_PCI_INIT netbsdPciInit
-#  define INCLUDE_XF86_NO_DOMAIN
 # else
 #  define ARCH_PCI_INIT ppcPciInit
-#  define INCLUDE_XF86_NO_DOMAIN
 # endif
 #elif defined(__s390__)
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
-#  define INCLUDE_XF86_NO_DOMAIN
 # endif
 #elif defined(__sh__)
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
-#  define INCLUDE_XF86_NO_DOMAIN
 # endif
 #elif defined(__sparc__) || defined(sparc)
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
 # elif defined(sun)
 #  define ARCH_PCI_INIT sparcPciInit
-# elif (defined(__OpenBSD__) || defined(__FreeBSD__)) && defined(__sparc64__)
-#  define  ARCH_PCI_INIT freebsdPciInit
-#  define INCLUDE_XF86_NO_DOMAIN
 # endif
 # if !defined(__FreeBSD__) && !defined(linux)
 #  define ARCH_PCI_PCI_BRIDGE sparcPciPciBridge
 # endif
 #elif defined(__amd64__) || defined(__amd64)
-# if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-#  define ARCH_PCI_INIT freebsdPciInit
-# elif defined(linux)
+# if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
 # else
 #  define ARCH_PCI_INIT ix86PciInit
 # endif
-# define INCLUDE_XF86_NO_DOMAIN
 #endif
+#endif /* !defined(ARCH_PCI_INIT) */
 
 #ifndef ARCH_PCI_INIT
 #error No PCI support available for this architecture/OS combination
 #endif
-
-#undef INCLUDE_XF86_NO_DOMAIN
 
 extern void ARCH_PCI_INIT(void);
 
