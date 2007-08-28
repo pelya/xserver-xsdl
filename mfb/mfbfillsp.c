@@ -624,7 +624,8 @@ mfbTileFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     if (pGC->fillStyle == FillTiled)
 	rop = pGC->alu;
     else
-	rop = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->ropOpStip;
+	rop = ((mfbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					     mfbGetGCPrivateKey()))->ropOpStip;
 
     flip = 0;
     switch(rop)
@@ -769,7 +770,8 @@ mfbUnnaturalTileFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     {
 	pTile = pGC->stipple;
 	tlwidth = pTile->devKind / PGSZB;
-	rop = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->ropOpStip;
+	rop = ((mfbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					     mfbGetGCPrivateKey()))->ropOpStip;
     }
 
     xSrc = pDrawable->x;
@@ -926,7 +928,8 @@ mfbUnnaturalStippleFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
 		    ppt, pwidth, fSorted);
 
     pTile = pGC->stipple;
-    rop = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->rop;
+    rop = ((mfbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					 mfbGetGCPrivateKey()))->rop;
     tlwidth = pTile->devKind / PGSZB;
     xSrc = pDrawable->x;
     ySrc = pDrawable->y;

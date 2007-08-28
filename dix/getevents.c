@@ -725,7 +725,8 @@ SwitchCoreKeyboard(DeviceIntPtr pDev)
     KeyClassPtr ckeyc = inputInfo.keyboard->key;
     int i = 0;
 
-    if (inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr != pDev) {
+    if (pDev != dixLookupPrivate(&inputInfo.keyboard->devPrivates,
+				 CoreDevicePrivateKey)) {
         memcpy(ckeyc->modifierMap, pDev->key->modifierMap, MAP_LENGTH);
         if (ckeyc->modifierKeyMap)
             xfree(ckeyc->modifierKeyMap);
@@ -769,7 +770,8 @@ SwitchCoreKeyboard(DeviceIntPtr pDev)
                           (ckeyc->curKeySyms.maxKeyCode -
                            ckeyc->curKeySyms.minKeyCode),
                           serverClient);
-        inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
+	dixSetPrivate(&inputInfo.keyboard->devPrivates, CoreDevicePrivateKey,
+		      pDev);
     }
 }
 
@@ -783,8 +785,10 @@ SwitchCoreKeyboard(DeviceIntPtr pDev)
 _X_EXPORT void
 SwitchCorePointer(DeviceIntPtr pDev)
 {
-    if (inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr != pDev)
-        inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
+    if (pDev != dixLookupPrivate(&inputInfo.pointer->devPrivates,
+				 CoreDevicePrivateKey))
+	dixSetPrivate(&inputInfo.pointer->devPrivates,
+		      CoreDevicePrivateKey, pDev);
 }
 
 

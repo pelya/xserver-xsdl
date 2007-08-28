@@ -573,45 +573,13 @@ BUG:
    should check for failure to create default tile
 
 */
-
-static GCPtr
-AllocateGC(ScreenPtr pScreen)
-{
-    GCPtr pGC;
-    char *ptr;
-    DevUnion *ppriv;
-    unsigned *sizes;
-    unsigned size;
-    int i;
-
-    pGC = (GCPtr)xalloc(pScreen->totalGCSize);
-    if (pGC)
-    {
-	ppriv = (DevUnion *)(pGC + 1);
-	pGC->devPrivates = ppriv;
-	sizes = pScreen->GCPrivateSizes;
-	ptr = (char *)(ppriv + pScreen->GCPrivateLen);
-	for (i = pScreen->GCPrivateLen; --i >= 0; ppriv++, sizes++)
-	{
-	    if ( (size = *sizes) )
-	    {
-		ppriv->ptr = (pointer)ptr;
-		ptr += size;
-	    }
-	    else
-		ppriv->ptr = (pointer)NULL;
-	}
-    }
-    return pGC;
-}
-
 _X_EXPORT GCPtr
 CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus,
 	 XID gcid, ClientPtr client)
 {
     GCPtr pGC;
 
-    pGC = AllocateGC(pDrawable->pScreen);
+    pGC = (GCPtr)xalloc(sizeof(GC));
     if (!pGC)
     {
 	*pStatus = BadAlloc;
@@ -624,7 +592,7 @@ CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus,
     pGC->planemask = ~0;
     pGC->serialNumber = GC_CHANGE_SERIAL_BIT;
     pGC->funcs = 0;
-
+    pGC->devPrivates = NULL;
     pGC->fgPixel = 0;
     pGC->bgPixel = 1;
     pGC->lineWidth = 0;
@@ -918,7 +886,7 @@ FreeGC(pointer value, XID gid)
     (*pGC->funcs->DestroyGC) (pGC);
     if (pGC->dash != DefaultDash)
 	xfree(pGC->dash);
-    dixFreePrivates(*DEVPRIV_PTR(pGC));
+    dixFreePrivates(pGC->devPrivates);
     xfree(pGC);
     return(Success);
 }
@@ -941,7 +909,7 @@ CreateScratchGC(ScreenPtr pScreen, unsigned depth)
 {
     GCPtr pGC;
 
-    pGC = AllocateGC(pScreen);
+    pGC = (GCPtr)xalloc(sizeof(GC));
     if (!pGC)
 	return (GCPtr)NULL;
 
@@ -950,7 +918,7 @@ CreateScratchGC(ScreenPtr pScreen, unsigned depth)
     pGC->alu = GXcopy; /* dst <- src */
     pGC->planemask = ~0;
     pGC->serialNumber = 0;
-
+    pGC->devPrivates = NULL;
     pGC->fgPixel = 0;
     pGC->bgPixel = 1;
     pGC->lineWidth = 0;

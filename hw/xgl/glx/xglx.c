@@ -105,14 +105,13 @@ typedef struct _xglxScreen {
     CloseScreenProcPtr CloseScreen;
 } xglxScreenRec, *xglxScreenPtr;
 
-int xglxScreenGeneration = -1;
-int xglxScreenPrivateIndex;
+DevPrivateKey xglxScreenPrivateKey = &xglxScreenPrivateKey;
 
-#define XGLX_GET_SCREEN_PRIV(pScreen)				         \
-    ((xglxScreenPtr) (pScreen)->devPrivates[xglxScreenPrivateIndex].ptr)
+#define XGLX_GET_SCREEN_PRIV(pScreen) ((xglxScreenPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, xglxScreenPrivateKey))
 
-#define XGLX_SET_SCREEN_PRIV(pScreen, v)			       \
-    ((pScreen)->devPrivates[xglxScreenPrivateIndex].ptr = (pointer) v)
+#define XGLX_SET_SCREEN_PRIV(pScreen, v) \
+    dixSetPrivate(&(pScreen)->devPrivates, xglxScreenPrivateKey, v)
 
 #define XGLX_SCREEN_PRIV(pScreen)			       \
     xglxScreenPtr pScreenPriv = XGLX_GET_SCREEN_PRIV (pScreen)
@@ -147,15 +146,6 @@ static Bool
 xglxAllocatePrivates (ScreenPtr pScreen)
 {
     xglxScreenPtr pScreenPriv;
-
-    if (xglxScreenGeneration != serverGeneration)
-    {
-	xglxScreenPrivateIndex = AllocateScreenPrivateIndex ();
-	if (xglxScreenPrivateIndex < 0)
-	    return FALSE;
-
-	xglxScreenGeneration = serverGeneration;
-    }
 
     pScreenPriv = xalloc (sizeof (xglxScreenRec));
     if (!pScreenPriv)

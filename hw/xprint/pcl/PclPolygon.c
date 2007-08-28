@@ -76,7 +76,7 @@ PclPolyRectangle(
 
     pCon = PclGetContextFromWindow( (WindowPtr) pDrawable );
     pConPriv = (PclContextPrivPtr)
-			pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
 
     /*
      * Allocate the storage required to deal with the clipping
@@ -170,7 +170,7 @@ PclFillPolygon(
 
     pCon = PclGetContextFromWindow( (WindowPtr) pDrawable );
     pConPriv = (PclContextPrivPtr)
-			pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
 
     /*
      * Generate the PCL code to draw the filled polygon, by defining
@@ -283,7 +283,7 @@ PclPolyFillRect(
 
     pCon = PclGetContextFromWindow( (WindowPtr) pDrawable );
     pConPriv = (PclContextPrivPtr)
-			pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
 
     /*
      * Allocate the storage required to deal with the clipping

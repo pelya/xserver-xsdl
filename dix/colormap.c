@@ -67,7 +67,6 @@ SOFTWARE.
 #include "xace.h"
 
 extern XID clientErrorValue;
-extern int colormapPrivateCount;
 
 static Pixel FindBestPixel(
     EntryPtr /*pentFirst*/,
@@ -388,30 +387,11 @@ CreateColormap (Colormap mid, ScreenPtr pScreen, VisualPtr pVisual,
 	    pmap->numPixelsBlue[client] = size;
 	}
     }
-    if (!AddResource(mid, RT_COLORMAP, (pointer)pmap))
-	return (BadAlloc);
-    /* If the device wants a chance to initialize the colormap in any way,
-     * this is it.  In specific, if this is a Static colormap, this is the
-     * time to fill in the colormap's values */
+    pmap->devPrivates = NULL;
     pmap->flags |= BeingCreated;
 
-
-    /*
-     * Allocate the array of devPrivate's for this colormap.
-     */
-
-    if (colormapPrivateCount == 0)
-	pmap->devPrivates = NULL;
-    else
-    {
-	pmap->devPrivates = (DevUnion *) xcalloc (
-	    sizeof(DevUnion), colormapPrivateCount);
-	if (!pmap->devPrivates)
-	{
-	    FreeResource (mid, RT_NONE);
-	    return BadAlloc;
-	}
-    }
+    if (!AddResource(mid, RT_COLORMAP, (pointer)pmap))
+	return (BadAlloc);
 
     /*  
      * Security creation/labeling check
@@ -423,6 +403,9 @@ CreateColormap (Colormap mid, ScreenPtr pScreen, VisualPtr pVisual,
 	return i;
     }
 
+    /* If the device wants a chance to initialize the colormap in any way,
+     * this is it.  In specific, if this is a Static colormap, this is the
+     * time to fill in the colormap's values */
     if (!(*pScreen->CreateColormap)(pmap))
     {
 	FreeResource (mid, RT_NONE);
@@ -486,10 +469,7 @@ FreeColormap (pointer value, XID mid)
         }
     }
 
-    dixFreePrivates(*DEVPRIV_PTR(pmap));
-    if (pmap->devPrivates)
-	xfree(pmap->devPrivates);
-
+    dixFreePrivates(pmap->devPrivates);
     xfree(pmap);
     return(Success);
 }

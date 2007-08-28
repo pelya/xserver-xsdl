@@ -87,14 +87,14 @@ static CursorBits   animCursorBits = {
     empty, empty, 2, 1, 1, 0, 0, 1
 };
 
-static int AnimCurScreenPrivateIndex = -1;
 static int AnimCurGeneration;
+static DevPrivateKey AnimCurScreenPrivateKey = &AnimCurScreenPrivateKey;
 
 #define IsAnimCur(c)	    ((c)->bits == &animCursorBits)
 #define GetAnimCur(c)	    ((AnimCurPtr) ((c) + 1))
-#define GetAnimCurScreen(s) ((AnimCurScreenPtr) ((s)->devPrivates[AnimCurScreenPrivateIndex].ptr))
-#define GetAnimCurScreenIfSet(s) ((AnimCurScreenPrivateIndex != -1) ? GetAnimCurScreen(s) : NULL)
-#define SetAnimCurScreen(s,p) ((s)->devPrivates[AnimCurScreenPrivateIndex].ptr = (pointer) (p))
+#define GetAnimCurScreen(s) ((AnimCurScreenPtr)dixLookupPrivate(&(s)->devPrivates, AnimCurScreenPrivateKey))
+#define GetAnimCurScreenIfSet(s) GetAnimCurScreen(s)
+#define SetAnimCurScreen(s,p) dixSetPrivate(&(s)->devPrivates, AnimCurScreenPrivateKey, p)
 
 #define Wrap(as,s,elt,func) (((as)->elt = (s)->elt), (s)->elt = func)
 #define Unwrap(as,s,elt)    ((s)->elt = (as)->elt)
@@ -128,8 +128,6 @@ AnimCurCloseScreen (int index, ScreenPtr pScreen)
     SetAnimCurScreen(pScreen,0);
     ret = (*pScreen->CloseScreen) (index, pScreen);
     xfree (as);
-    if (index == 0)
-	AnimCurScreenPrivateIndex = -1;
     return ret;
 }
 
@@ -324,9 +322,6 @@ AnimCurInit (ScreenPtr pScreen)
 
     if (AnimCurGeneration != serverGeneration)
     {
-	AnimCurScreenPrivateIndex = AllocateScreenPrivateIndex ();
-	if (AnimCurScreenPrivateIndex < 0)
-	    return FALSE;
 	AnimCurGeneration = serverGeneration;
 	animCurState.pCursor = 0;
 	animCurState.pScreen = 0;

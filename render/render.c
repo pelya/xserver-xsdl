@@ -216,14 +216,14 @@ RenderResetProc (ExtensionEntry *extEntry);
 static CARD8	RenderReqCode;
 #endif
 int	RenderErrBase;
-int	RenderClientPrivateIndex;
+DevPrivateKey RenderClientPrivateKey;
 
 typedef struct _RenderClient {
     int	    major_version;
     int	    minor_version;
 } RenderClientRec, *RenderClientPtr;
 
-#define GetRenderClient(pClient)    ((RenderClientPtr) (pClient)->devPrivates[RenderClientPrivateIndex].ptr)
+#define GetRenderClient(pClient) ((RenderClientPtr)dixLookupPrivate(&(pClient)->devPrivates, RenderClientPrivateKey))
 
 static void
 RenderClientCallback (CallbackListPtr	*list,
@@ -247,9 +247,7 @@ RenderExtensionInit (void)
 	return;
     if (!PictureFinishInit ())
 	return;
-    RenderClientPrivateIndex = AllocateClientPrivateIndex ();
-    if (!AllocateClientPrivate (RenderClientPrivateIndex, 
-				sizeof (RenderClientRec)))
+    if (!dixRequestPrivate(RenderClientPrivateKey, sizeof(RenderClientRec)))
 	return;
     if (!AddCallback (&ClientStateCallback, RenderClientCallback, 0))
 	return;
@@ -268,8 +266,6 @@ RenderExtensionInit (void)
 static void
 RenderResetProc (ExtensionEntry *extEntry)
 {
-    ResetPicturePrivateIndex();
-    ResetGlyphSetPrivateIndex();
 }
 
 static int

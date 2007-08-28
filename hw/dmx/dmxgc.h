@@ -64,11 +64,11 @@ extern void dmxBECreateGC(ScreenPtr pScreen, GCPtr pGC);
 extern Bool dmxBEFreeGC(GCPtr pGC);
 
 /** Private index.  \see dmxgc.c \see dmxscrinit.c */
-extern int dmxGCPrivateIndex;
+extern DevPrivateKey dmxGCPrivateKey;
 
 /** Get private. */
 #define DMX_GET_GC_PRIV(_pGC)						\
-    (dmxGCPrivPtr)(_pGC)->devPrivates[dmxGCPrivateIndex].ptr
+    (dmxGCPrivPtr)dixLookupPrivate(&(_pGC)->devPrivates, dmxGCPrivateKey)
 
 #define DMX_GC_FUNC_PROLOGUE(_pGC)					\
 do {									\

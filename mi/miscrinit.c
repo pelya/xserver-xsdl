@@ -293,35 +293,22 @@ miScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width,
     return miScreenDevPrivateInit(pScreen, width, pbits);
 }
 
-_X_EXPORT int
+static DevPrivateKey privateKey = &privateKey;
+
+_X_EXPORT DevPrivateKey
 miAllocateGCPrivateIndex()
 {
-    static int privateIndex = -1;
-    static unsigned long miGeneration = 0;
-
-    if (miGeneration != serverGeneration)
-    {
-	privateIndex = AllocateGCPrivateIndex();
-	miGeneration = serverGeneration;
-    }
-    return privateIndex;
+    return privateKey;
 }
 
-_X_EXPORT int miZeroLineScreenIndex;
-static unsigned int miZeroLineGeneration = 0;
+_X_EXPORT DevPrivateKey miZeroLineScreenKey;
 
 _X_EXPORT void
 miSetZeroLineBias(pScreen, bias)
     ScreenPtr pScreen;
     unsigned int bias;
 {
-    if (miZeroLineGeneration != serverGeneration)
-    {
-	miZeroLineScreenIndex = AllocateScreenPrivateIndex();
-	miZeroLineGeneration = serverGeneration;
-    }
-    if (miZeroLineScreenIndex >= 0)
-	pScreen->devPrivates[miZeroLineScreenIndex].uval = bias;
+    dixSetPrivate(&pScreen->devPrivates, miZeroLineScreenKey, (pointer)bias);
 }
 
 _X_EXPORT PixmapPtr

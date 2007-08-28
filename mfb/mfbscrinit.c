@@ -68,13 +68,13 @@ SOFTWARE.
 #include "servermd.h"
 
 #ifdef PIXMAP_PER_WINDOW
-int frameWindowPrivateIndex;
-int frameGetWindowPrivateIndex(void) { return frameWindowPrivateIndex; }
+static DevPrivateKey frameWindowPrivateKey = &frameWindowPrivateKey;
+DevPrivateKey frameGetWindowPrivateKey(void) { return frameWindowPrivateKey; }
 #endif
-int mfbWindowPrivateIndex;
-int mfbGetWindowPrivateIndex(void) { return mfbWindowPrivateIndex; }
-int mfbGCPrivateIndex;
-int mfbGetGCPrivateIndex(void) { return mfbGCPrivateIndex; }
+static DevPrivateKey mfbWindowPrivateKey = &mfbWindowPrivateKey;
+DevPrivateKey mfbGetWindowPrivateKey(void) { return mfbWindowPrivateKey; }
+static DevPrivateKey mfbGCPrivateKey = &mfbGCPrivateKey;
+DevPrivateKey mfbGetGCPrivateKey(void) { return mfbGCPrivateKey; }
 static unsigned long mfbGeneration = 0;
 
 static VisualRec visual = {
@@ -90,30 +90,23 @@ static DepthRec depth = {
 };
 
 Bool
-mfbAllocatePrivates(pScreen, pWinIndex, pGCIndex)
-    ScreenPtr pScreen;
-    int *pWinIndex, *pGCIndex;
+mfbAllocatePrivates(ScreenPtr pScreen,
+		    DevPrivateKey *pWinIndex, DevPrivateKey *pGCIndex)
 {
     if (mfbGeneration != serverGeneration)
     {
-#ifdef PIXMAP_PER_WINDOW
-	frameWindowPrivateIndex = AllocateWindowPrivateIndex();
-#endif
-	mfbWindowPrivateIndex = AllocateWindowPrivateIndex();
-	mfbGCPrivateIndex = miAllocateGCPrivateIndex();
 	visual.vid = FakeClientID(0);
 	VID = visual.vid;
 	mfbGeneration = serverGeneration;
     }
     if (pWinIndex)
-	*pWinIndex = mfbWindowPrivateIndex;
+	*pWinIndex = mfbWindowPrivateKey;
     if (pGCIndex)
-	*pGCIndex = mfbGCPrivateIndex;
+	*pGCIndex = mfbGCPrivateKey;
     pScreen->GetWindowPixmap = mfbGetWindowPixmap;
     pScreen->SetWindowPixmap = mfbSetWindowPixmap;
-    return (AllocateWindowPrivate(pScreen, mfbWindowPrivateIndex,
-				  sizeof(mfbPrivWin)) &&
-	    AllocateGCPrivate(pScreen, mfbGCPrivateIndex, sizeof(mfbPrivGC)));
+    return (dixRequestPrivate(mfbWindowPrivateKey, sizeof(mfbPrivWin)) &&
+	    dixRequestPrivate(mfbGCPrivateKey, sizeof(mfbPrivGC)));
 }
 
 
@@ -126,7 +119,7 @@ mfbScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     int dpix, dpiy;		/* dots per inch */
     int width;			/* pixel width of frame buffer */
 {
-    if 	(!mfbAllocatePrivates(pScreen, (int *)NULL, (int *)NULL))
+    if 	(!mfbAllocatePrivates(pScreen, NULL, NULL))
 	return FALSE;
     pScreen->defColormap = (Colormap) FakeClientID(0);
     /* whitePixel, blackPixel */
@@ -167,7 +160,8 @@ mfbGetWindowPixmap(pWin)
     WindowPtr pWin;
 {
 #ifdef PIXMAP_PER_WINDOW
-    return (PixmapPtr)(pWin->devPrivates[frameWindowPrivateIndex].ptr);
+    return (PixmapPtr)dixLookupPrivate(&pWin->devPrivates,
+				       frameWindowPrivateKey);
 #else
     ScreenPtr pScreen = pWin->drawable.pScreen;
 
@@ -181,7 +175,7 @@ mfbSetWindowPixmap(pWin, pPix)
     PixmapPtr pPix;
 {
 #ifdef PIXMAP_PER_WINDOW
-    pWin->devPrivates[frameWindowPrivateIndex].ptr = (pointer)pPix;
+    dixSetPrivate(&pWin->devPrivates, frameWindowPrivateKey, pPix);
 #else
     (* pWin->drawable.pScreen->SetScreenPixmap)(pPix);
 #endif

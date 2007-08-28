@@ -102,7 +102,7 @@ if ( pDrawable->type == DRAWABLE_PIXMAP ) {
 	return ;
 }
 
-devPriv = (ppcPrivGC *) ( pGC->devPrivates[mfbGetGCPrivateIndex()].ptr ) ;
+devPriv = (ppcPrivGC *)dixLookupPrivate(&pGC->devPrivates, mfbGetGCPrivateKey());
 if ( ( alu = devPriv->colorRrop.alu ) == GXnoop )
 	return ;
 

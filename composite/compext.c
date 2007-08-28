@@ -50,7 +50,7 @@
 #define SERVER_COMPOSITE_MINOR	4
 
 static CARD8	CompositeReqCode;
-static int	CompositeClientPrivateIndex;
+static DevPrivateKey CompositeClientPrivateKey = &CompositeClientPrivateKey;
 RESTYPE		CompositeClientWindowType;
 RESTYPE		CompositeClientSubwindowsType;
 static RESTYPE	CompositeClientOverlayType;
@@ -63,7 +63,8 @@ typedef struct _CompositeClient {
     int	    minor_version;
 } CompositeClientRec, *CompositeClientPtr;
 
-#define GetCompositeClient(pClient)    ((CompositeClientPtr) (pClient)->devPrivates[CompositeClientPrivateIndex].ptr)
+#define GetCompositeClient(pClient) ((CompositeClientPtr) \
+    dixLookupPrivate(&(pClient)->devPrivates, CompositeClientPrivateKey))
 
 static void
 CompositeClientCallback (CallbackListPtr	*list,
@@ -712,9 +713,8 @@ CompositeExtensionInit (void)
     if (!CompositeClientOverlayType)
 	return;
 
-    CompositeClientPrivateIndex = AllocateClientPrivateIndex ();
-    if (!AllocateClientPrivate (CompositeClientPrivateIndex, 
-				sizeof (CompositeClientRec)))
+    if (!dixRequestPrivate(CompositeClientPrivateKey,
+			   sizeof(CompositeClientRec)))
 	return;
     if (!AddCallback (&ClientStateCallback, CompositeClientCallback, 0))
 	return;

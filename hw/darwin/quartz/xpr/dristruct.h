@@ -40,15 +40,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define DRI_MAX_DRAWABLES 256
 
-#define DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin) \
-    ((DRIWindowPrivIndex < 0) ? \
-     NULL : \
-     ((DRIDrawablePrivPtr)((pWin)->devPrivates[DRIWindowPrivIndex].ptr)))
+#define DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin) ((DRIDrawablePrivPtr) \
+    dixLookupPrivate(&(pWin)->devPrivates, DRIWindowPrivKey))
 
-#define DRI_DRAWABLE_PRIV_FROM_PIXMAP(pPix) \
-    ((DRIPixmapPrivIndex < 0) ? \
-     NULL : \
-     ((DRIDrawablePrivPtr)((pPix)->devPrivates[DRIPixmapPrivIndex].ptr)))
+#define DRI_DRAWABLE_PRIV_FROM_PIXMAP(pPix) ((DRIDrawablePrivPtr) \
+    dixLookupPrivate(&(pPix)->devPrivates, DRIPixmapPrivKey))
 
 typedef struct _DRIDrawablePrivRec
 {
@@ -61,13 +57,12 @@ typedef struct _DRIDrawablePrivRec
     x_list          *notifiers;     /* list of (FUN . DATA) */
 } DRIDrawablePrivRec, *DRIDrawablePrivPtr;
 
-#define DRI_SCREEN_PRIV(pScreen) \
-    ((DRIScreenPrivIndex < 0) ? \
-     NULL : \
-     ((DRIScreenPrivPtr)((pScreen)->devPrivates[DRIScreenPrivIndex].ptr)))
+#define DRI_SCREEN_PRIV(pScreen) ((DRIScreenPrivPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, DRIScreenPrivKey))
 
 #define DRI_SCREEN_PRIV_FROM_INDEX(screenIndex) ((DRIScreenPrivPtr) \
-    (screenInfo.screens[screenIndex]->devPrivates[DRIScreenPrivIndex].ptr))
+    dixLookupPrivate(&screenInfo.screens[screenIndex]->devPrivates, \
+		     DRIScreenPrivKey))
 
 
 typedef struct _DRIScreenPrivRec

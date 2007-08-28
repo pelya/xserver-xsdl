@@ -56,6 +56,7 @@ SOFTWARE.
 #include "validate.h"
 #include <X11/Xproto.h>
 #include "dix.h"
+#include "privates.h"
 
 typedef struct _PixmapFormat {
     unsigned char	depth;
@@ -449,12 +450,6 @@ typedef struct _Screen {
     pointer		devPrivate;
     short       	numVisuals;
     VisualPtr		visuals;
-    int			WindowPrivateLen;
-    unsigned		*WindowPrivateSizes;
-    unsigned		totalWindowSize;
-    int			GCPrivateLen;
-    unsigned		*GCPrivateSizes;
-    unsigned		totalGCSize;
 
     /* Random screen procedures */
 
@@ -546,7 +541,7 @@ typedef struct _Screen {
     pointer wakeupData;
 
     /* anybody can get a piece of this array */
-    DevUnion	*devPrivates;
+    PrivateRec	*devPrivates;
 
     CreateScreenResourcesProcPtr CreateScreenResources;
     ModifyPixmapHeaderProcPtr	ModifyPixmapHeader;
@@ -558,8 +553,6 @@ typedef struct _Screen {
 
     PixmapPtr pScratchPixmap;		/* scratch pixmap "pool" */
 
-    int			PixmapPrivateLen;
-    unsigned int		*PixmapPrivateSizes;
     unsigned int		totalPixmapSize;
 
     MarkWindowProcPtr		MarkWindow;

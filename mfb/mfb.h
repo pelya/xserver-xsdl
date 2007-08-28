@@ -705,8 +705,8 @@ extern Bool mfbCloseScreen(
 
 extern Bool mfbAllocatePrivates(
     ScreenPtr /*pScreen*/,
-    int * /*pWinIndex*/,
-    int * /*pGCIndex*/
+    DevPrivateKey *pWinKey,
+    DevPrivateKey *pGCIndex
 );
 
 extern Bool mfbScreenInit(
@@ -891,14 +891,10 @@ typedef struct {
 typedef mfbPrivGC	*mfbPrivGCPtr;
 #endif
 
-/* XXX these should be static, but it breaks the ABI */
-extern int  mfbGCPrivateIndex;		/* index into GC private array */
-extern int  mfbGetGCPrivateIndex(void);
-extern int  mfbWindowPrivateIndex;	/* index into Window private array */
-extern int  mfbGetWindowPrivateIndex(void);
+extern DevPrivateKey mfbGetGCPrivateKey(void);
+extern DevPrivateKey mfbGetWindowPrivateKey(void);
 #ifdef PIXMAP_PER_WINDOW
-extern int  frameWindowPrivateIndex;	/* index into Window private array */
-extern int  frameGetWindowPrivateIndex(void);
+extern DevPrivateKey frameGetWindowPrivateKey(void);
 #endif
 
 #ifndef MFB_PROTOTYPES_ONLY

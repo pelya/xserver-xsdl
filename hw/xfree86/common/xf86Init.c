@@ -139,8 +139,8 @@ xf86CreateRootWindow(WindowPtr pWin)
   int err = Success;
   ScreenPtr pScreen = pWin->drawable.pScreen;
   RootWinPropPtr pProp;
-  CreateWindowProcPtr CreateWindow =
-    (CreateWindowProcPtr)(pScreen->devPrivates[xf86CreateRootWindowIndex].ptr);
+  CreateWindowProcPtr CreateWindow = (CreateWindowProcPtr)
+      dixLookupPrivate(&pScreen->devPrivates, xf86CreateRootWindowKey);
 
 #ifdef DEBUG
   ErrorF("xf86CreateRootWindow(%p)\n", pWin);
@@ -156,7 +156,7 @@ xf86CreateRootWindow(WindowPtr pWin)
 
   /* Unhook this function ... */
   pScreen->CreateWindow = CreateWindow;
-  pScreen->devPrivates[xf86CreateRootWindowIndex].ptr = NULL;
+  dixSetPrivate(&pScreen->devPrivates, xf86CreateRootWindowKey, NULL);
 
   /* ... and call the previous CreateWindow fuction, if any */
   if (NULL!=pScreen->CreateWindow) {
@@ -476,7 +476,6 @@ void
 InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 {
   int                    i, j, k, scr_index;
-  static unsigned long   generation = 0;
   char                   **modulelist;
   pointer                *optionlist;
   screenLayoutPtr	 layout;
@@ -486,14 +485,6 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
   Bool			 autoconfig = FALSE;
   
   xf86Initialising = TRUE;
-
-  /* Do this early? */
-  if (generation != serverGeneration) {
-      xf86ScreenIndex = AllocateScreenPrivateIndex();
-      xf86CreateRootWindowIndex = AllocateScreenPrivateIndex();
-      xf86PixmapIndex = AllocatePixmapPrivateIndex();
-      generation = serverGeneration;
-  }
 
   if (serverGeneration == 1) {
 
@@ -1060,8 +1051,8 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	 * Hook in our ScrnInfoRec, and initialise some other pScreen
 	 * fields.
 	 */
-	screenInfo.screens[scr_index]->devPrivates[xf86ScreenIndex].ptr
-	  = (pointer)xf86Screens[i];
+	dixSetPrivate(&screenInfo.screens[scr_index]->devPrivates,
+		      xf86ScreenKey, xf86Screens[i]);
 	xf86Screens[i]->pScreen = screenInfo.screens[scr_index];
 	/* The driver should set this, but make sure it is set anyway */
 	xf86Screens[i]->vtSema = TRUE;
@@ -1077,8 +1068,9 @@ InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 	     i, xf86Screens[i]->pScreen->CreateWindow );
 #endif
 
-      screenInfo.screens[scr_index]->devPrivates[xf86CreateRootWindowIndex].ptr
-	= (void*)(xf86Screens[i]->pScreen->CreateWindow);
+      dixSetPrivate(&screenInfo.screens[scr_index]->devPrivates,
+		    xf86CreateRootWindowKey,
+		    xf86Screens[i]->pScreen->CreateWindow);
       xf86Screens[i]->pScreen->CreateWindow = xf86CreateRootWindow;
 
 #ifdef RENDER

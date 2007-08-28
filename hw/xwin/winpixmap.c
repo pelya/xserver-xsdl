@@ -36,13 +36,6 @@
 
 
 /*
- * References to external symbols
- */
-
-extern int			g_iPixmapPrivateIndex;
-
-
-/*
  * Local prototypes
  */
 

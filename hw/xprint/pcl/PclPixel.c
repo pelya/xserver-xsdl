@@ -125,13 +125,15 @@ PclPolyPoint( pDrawable, pGC, mode, nPoints, pPoints )
     if( pDrawable->type == DRAWABLE_WINDOW )
       {
 	  pCon = PclGetContextFromWindow( (WindowPtr)pDrawable );
-	  cPriv = pCon->devPrivates[PclContextPrivateIndex].ptr;
+	  cPriv = (PclContextPrivPtr)
+	      dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
 	  cPriv->changeMask = GCLineWidth | GCLineStyle;
       }
     else
       {
-	  pPriv =
-	    ((PixmapPtr)pDrawable)->devPrivates[PclPixmapPrivateIndex].ptr;
+	  pPriv = (PclPixmapPrivPtr)
+	      dixLookupPrivate(&((PixmapPtr)pDrawable)->devPrivates,
+			       PclPixmapPrivateKey);
 	  pPriv->changeMask = GCLineWidth | GCLineStyle;
       }
 #endif

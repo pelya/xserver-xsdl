@@ -31,42 +31,41 @@
 /* CAUTION:  We require that cfb8 and cfb32 were NOT 
 	compiled with CFB_NEED_SCREEN_PRIVATE */
 
-int cfb8_32GCPrivateIndex;
-int cfb8_32GetGCPrivateIndex(void) { return cfb8_32GCPrivateIndex; }
-int cfb8_32ScreenPrivateIndex;
-int cfb8_32GetScreenPrivateIndex(void) { return cfb8_32ScreenPrivateIndex; }
-static unsigned long cfb8_32Generation = 0;
+static DevPrivateKey cfb8_32GCPrivateKey = &cfb8_32GCPrivateKey;
+DevPrivateKey cfb8_32GetGCPrivateKey(void)
+{
+    return cfb8_32GCPrivateKey;
+}
+
+static DevPrivateKey cfb8_32ScreenPrivateKey = &cfb8_32ScreenPrivateKey;
+DevPrivateKey cfb8_32GetScreenPrivateKey(void)
+{
+    return cfb8_32ScreenPrivateKey;
+}
 
 static Bool
 cfb8_32AllocatePrivates(ScreenPtr pScreen)
 {
    cfb8_32ScreenPtr pScreenPriv;
 
-   if(cfb8_32Generation != serverGeneration) {
-	if(((cfb8_32GCPrivateIndex = AllocateGCPrivateIndex()) < 0) ||
-	    ((cfb8_32ScreenPrivateIndex = AllocateScreenPrivateIndex()) < 0))
-	    return FALSE;
-	cfb8_32Generation = serverGeneration;
-   }
-
    if (!(pScreenPriv = xalloc(sizeof(cfb8_32ScreenRec))))
         return FALSE;
 
-   pScreen->devPrivates[cfb8_32ScreenPrivateIndex].ptr = (pointer)pScreenPriv;
+   dixSetPrivate(&pScreen->devPrivates, cfb8_32ScreenPrivateKey, pScreenPriv);
    
    
    /* All cfb will have the same GC and Window private indicies */
-   if(!mfbAllocatePrivates(pScreen,&cfbWindowPrivateIndex, &cfbGCPrivateIndex))
+   if(!mfbAllocatePrivates(pScreen, &cfbWindowPrivateKey, &cfbGCPrivateKey))
 	return FALSE;
 
    /* The cfb indicies are the mfb indicies. Reallocating them resizes them */ 
-   if(!AllocateWindowPrivate(pScreen,cfbWindowPrivateIndex,sizeof(cfbPrivWin)))
+   if(!dixRequestPrivate(cfbWindowPrivateKey, sizeof(cfbPrivWin)))
 	return FALSE;
 
-   if(!AllocateGCPrivate(pScreen, cfbGCPrivateIndex, sizeof(cfbPrivGC)))
+   if(!dixRequestPrivate(cfbGCPrivateKey, sizeof(cfbPrivGC)))
         return FALSE;
 
-   if(!AllocateGCPrivate(pScreen, cfb8_32GCPrivateIndex, sizeof(cfb8_32GCRec)))
+   if(!dixRequestPrivate(cfb8_32GCPrivateKey, sizeof(cfb8_32GCRec)))
         return FALSE;
 
    return TRUE;
@@ -166,7 +165,7 @@ cfb8_32CloseScreen (int i, ScreenPtr pScreen)
 	xfree(pScreenPriv->visualData);
 
     xfree((pointer) pScreenPriv);
-    pScreen->devPrivates[cfb8_32ScreenPrivateIndex].ptr = NULL;
+    dixSetPrivate(&pScreen->devPrivates, cfb8_32ScreenPrivateKey, NULL);
 
     return(cfb32CloseScreen(i, pScreen));
 }

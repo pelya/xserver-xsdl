@@ -397,8 +397,7 @@ int dstx, dsty;
  * must register a function for n-to-1 copy operations
  */
 
-static unsigned long	copyPlaneGeneration;
-static int		copyPlaneScreenIndex = -1;
+static DevPrivateKey copyPlaneScreenKey = &copyPlaneScreenKey;
 
 typedef RegionPtr (*CopyPlaneFuncPtr)(
     DrawablePtr         /* pSrcDrawable */,
@@ -417,14 +416,7 @@ mfbRegisterCopyPlaneProc (pScreen, proc)
     ScreenPtr	pScreen;
     CopyPlaneFuncPtr proc;
 {
-    if (copyPlaneGeneration != serverGeneration)
-    {
-	copyPlaneScreenIndex = AllocateScreenPrivateIndex();
-	if (copyPlaneScreenIndex < 0)
-	    return FALSE;
-	copyPlaneGeneration = serverGeneration;
-    }
-    pScreen->devPrivates[copyPlaneScreenIndex].fptr = (CopyPlaneFuncPtr)proc;
+    dixSetPrivate(&pScreen->devPrivates, copyPlaneScreenKey, proc);
     return TRUE;
 }
 
@@ -469,9 +461,9 @@ unsigned long plane;
 
     if (pSrcDrawable->depth != 1)
     {
-	if (copyPlaneScreenIndex >= 0 &&
-	    (copyPlane = (CopyPlaneFuncPtr)
-		pSrcDrawable->pScreen->devPrivates[copyPlaneScreenIndex].fptr)
+	if ((copyPlane = (CopyPlaneFuncPtr)
+	     dixLookupPrivate(&pSrcDrawable->pScreen->devPrivates,
+			      copyPlaneScreenKey))
 	    )
 	{
 	    return (*copyPlane) (pSrcDrawable, pDstDrawable,

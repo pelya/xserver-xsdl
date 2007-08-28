@@ -56,8 +56,7 @@ typedef struct {
     miPointerSpriteFuncPtr  spriteFuncs;
 } QuartzCursorScreenRec, *QuartzCursorScreenPtr;
 
-static int darwinCursorScreenIndex = -1;
-static unsigned long darwinCursorGeneration = 0;
+static DevPrivateKey darwinCursorScreenKey = &darwinCursorScreenKey;
 static CursorPtr quartzLatentCursor = NULL;
 static QD_Cursor gQDArrow; // QuickDraw arrow cursor
 
@@ -66,8 +65,8 @@ static CCrsrHandle currentCursor = NULL;
 static pthread_mutex_t cursorMutex;
 static pthread_cond_t cursorCondition;
 
-#define CURSOR_PRIV(pScreen) \
-    ((QuartzCursorScreenPtr)pScreen->devPrivates[darwinCursorScreenIndex].ptr)
+#define CURSOR_PRIV(pScreen) ((QuartzCursorScreenPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, darwinCursorScreenKey))
 
 #define HIDE_QD_CURSOR(pScreen, visible)                                \
     if (visible) {                                                      \
@@ -592,13 +591,6 @@ QuartzInitCursor(
         return FALSE;
     }
 
-    // allocate private storage for this screen's QuickDraw cursor info
-    if (darwinCursorGeneration != serverGeneration) {
-        if ((darwinCursorScreenIndex = AllocateScreenPrivateIndex()) < 0)
-            return FALSE;
-        darwinCursorGeneration = serverGeneration;
-    }
-
     ScreenPriv = xcalloc( 1, sizeof(QuartzCursorScreenRec) );
     if (!ScreenPriv) return FALSE;
 
@@ -611,7 +603,7 @@ QuartzInitCursor(
     // initialize QuickDraw cursor handling
     GetQDGlobalsArrow(&gQDArrow);
     PointPriv = (miPointerScreenPtr)
-                    pScreen->devPrivates[miPointerScreenIndex].ptr;
+	dixLookupPrivate(&pScreen->devPrivates, miPointerScreenKey);
 
     ScreenPriv->spriteFuncs = PointPriv->spriteFuncs;
     PointPriv->spriteFuncs = &quartzSpriteFuncsRec;

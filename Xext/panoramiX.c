@@ -110,8 +110,8 @@ static void PanoramiXResetProc(ExtensionEntry*);
 
 int (* SavedProcVector[256]) (ClientPtr client) = { NULL, };
 
-static int PanoramiXGCIndex = -1;
-static int PanoramiXScreenIndex = -1;
+static DevPrivateKey PanoramiXGCKey = &PanoramiXGCKey;
+static DevPrivateKey PanoramiXScreenKey = &PanoramiXScreenKey;
 
 typedef struct {
   DDXPointRec clipOrg;
@@ -140,8 +140,8 @@ static GCFuncs XineramaGCFuncs = {
 };
 
 #define Xinerama_GC_FUNC_PROLOGUE(pGC)\
-    PanoramiXGCPtr  pGCPriv = \
-		(PanoramiXGCPtr) (pGC)->devPrivates[PanoramiXGCIndex].ptr;\
+    PanoramiXGCPtr  pGCPriv = (PanoramiXGCPtr) \
+	dixLookupPrivate(&(pGC)->devPrivates, PanoramiXGCKey); \
     (pGC)->funcs = pGCPriv->wrapFuncs;
 
 #define Xinerama_GC_FUNC_EPILOGUE(pGC)\
@@ -152,8 +152,8 @@ static GCFuncs XineramaGCFuncs = {
 static Bool
 XineramaCloseScreen (int i, ScreenPtr pScreen)
 {
-    PanoramiXScreenPtr pScreenPriv = 
-        (PanoramiXScreenPtr) pScreen->devPrivates[PanoramiXScreenIndex].ptr;
+    PanoramiXScreenPtr pScreenPriv = (PanoramiXScreenPtr)
+	dixLookupPrivate(&pScreen->devPrivates, PanoramiXScreenKey);
 
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
     pScreen->CreateGC = pScreenPriv->CreateGC;
@@ -171,14 +171,14 @@ static Bool
 XineramaCreateGC(GCPtr pGC)
 {
     ScreenPtr pScreen = pGC->pScreen;
-    PanoramiXScreenPtr pScreenPriv = 
-        (PanoramiXScreenPtr) pScreen->devPrivates[PanoramiXScreenIndex].ptr;
+    PanoramiXScreenPtr pScreenPriv = (PanoramiXScreenPtr)
+	dixLookupPrivate(&pScreen->devPrivates, PanoramiXScreenKey);
     Bool ret;
 
     pScreen->CreateGC = pScreenPriv->CreateGC;
     if((ret = (*pScreen->CreateGC)(pGC))) {
-	PanoramiXGCPtr pGCPriv = 
-		(PanoramiXGCPtr) pGC->devPrivates[PanoramiXGCIndex].ptr;
+	PanoramiXGCPtr pGCPriv = (PanoramiXGCPtr)
+	    dixLookupPrivate(&pGC->devPrivates, PanoramiXGCKey);
 
 	pGCPriv->wrapFuncs = pGC->funcs;
         pGC->funcs = &XineramaGCFuncs;
@@ -284,8 +284,8 @@ XineramaCopyGC (
     unsigned long   mask,
     GCPtr	    pGCDst
 ){
-    PanoramiXGCPtr pSrcPriv =
-                (PanoramiXGCPtr) pGCSrc->devPrivates[PanoramiXGCIndex].ptr;
+    PanoramiXGCPtr pSrcPriv = (PanoramiXGCPtr)
+	dixLookupPrivate(&pGCSrc->devPrivates, PanoramiXGCKey);
     Xinerama_GC_FUNC_PROLOGUE (pGCDst);
 
     if(mask & GCTileStipXOrigin)
@@ -484,20 +484,17 @@ void PanoramiXExtensionInit(int argc, char *argv[])
 		xcalloc(PanoramiXNumScreens, sizeof(PanoramiXData));
 
         BREAK_IF(!panoramiXdataPtr);
-	BREAK_IF((PanoramiXGCIndex = AllocateGCPrivateIndex()) < 0);
-	BREAK_IF((PanoramiXScreenIndex = AllocateScreenPrivateIndex()) < 0);
+
+	if (!dixRequestPrivate(PanoramiXGCKey, sizeof(PanoramiXGCRec))) {
+		noPanoramiXExtension = TRUE;
+		return;
+	}
 	
 	for (i = 0; i < PanoramiXNumScreens; i++) {
 	   pScreen = screenInfo.screens[i];
-	   if(!AllocateGCPrivate(pScreen, PanoramiXGCIndex, 
-						sizeof(PanoramiXGCRec))) {
-		noPanoramiXExtension = TRUE;
-		return;
-	   }
-
 	   pScreenPriv = xalloc(sizeof(PanoramiXScreenRec));
-	   pScreen->devPrivates[PanoramiXScreenIndex].ptr = 
-						(pointer)pScreenPriv;
+	   dixSetPrivate(&pScreen->devPrivates, PanoramiXScreenKey,
+			 pScreenPriv);
 	   if(!pScreenPriv) {
 		noPanoramiXExtension = TRUE;
 		return;

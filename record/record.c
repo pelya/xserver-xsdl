@@ -164,13 +164,13 @@ typedef struct {
     ProcFunctionPtr recordVector[256]; 
 } RecordClientPrivateRec, *RecordClientPrivatePtr;
 
-static int RecordClientPrivateIndex;
+static DevPrivateKey RecordClientPrivateKey = &RecordClientPrivateKey;
 
 /*  RecordClientPrivatePtr RecordClientPrivate(ClientPtr)
  *  gets the client private of the given client.  Syntactic sugar.
  */
 #define RecordClientPrivate(_pClient) (RecordClientPrivatePtr) \
-    ((_pClient)->devPrivates[RecordClientPrivateIndex].ptr)
+    dixLookupPrivate(&(_pClient)->devPrivates, RecordClientPrivateKey)
 
 
 /***************************************************************************/
@@ -982,8 +982,8 @@ RecordInstallHooks(RecordClientsAndProtocolPtr pRCAP, XID oneclient)
 		    memcpy(pClientPriv->recordVector, pClient->requestVector, 
 			   sizeof (pClientPriv->recordVector));
 		    pClientPriv->originalVector = pClient->requestVector;
-		    pClient->devPrivates[RecordClientPrivateIndex].ptr =
-			(pointer)pClientPriv;
+		    dixSetPrivate(&pClient->devPrivates,
+				  RecordClientPrivateKey, pClientPriv);
 		    pClient->requestVector = pClientPriv->recordVector;
 		}
 		while ((pIter = RecordIterateSet(pRCAP->pRequestMajorOpSet,
@@ -1096,7 +1096,8 @@ RecordUninstallHooks(RecordClientsAndProtocolPtr pRCAP, XID oneclient)
 		if (!otherRCAPwantsProcVector)
 		{ /* nobody needs it, so free it */
 		    pClient->requestVector = pClientPriv->originalVector;
-		    pClient->devPrivates[RecordClientPrivateIndex].ptr = NULL;
+		    dixSetPrivate(&pClient->devPrivates,
+				  RecordClientPrivateKey, NULL);
 		    xfree(pClientPriv);
 		}
 	    } /* end if this RCAP specifies any requests */
@@ -2946,10 +2947,6 @@ RecordExtensionInit(void)
 
     RTContext = CreateNewResourceType(RecordDeleteContext);
     if (!RTContext)
-	return;
-
-    RecordClientPrivateIndex = AllocateClientPrivateIndex();
-    if (!AllocateClientPrivate(RecordClientPrivateIndex, 0))
 	return;
 
     ppAllContexts = NULL;

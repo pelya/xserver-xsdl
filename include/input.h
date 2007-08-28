@@ -158,9 +158,6 @@ typedef struct {
     unsigned char id;
 } LedCtrl;
 
-extern int AllocateDevicePrivateIndex(void);
-extern Bool AllocateDevicePrivate(DeviceIntPtr device, int index);
-
 extern KeybdCtrl	defaultKeyboardControl;
 extern PtrCtrl		defaultPointerControl;
 

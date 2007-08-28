@@ -109,11 +109,6 @@ _X_EXPORT PixmapPtr
 AllocatePixmap(ScreenPtr pScreen, int pixDataSize)
 {
     PixmapPtr pPixmap;
-    char *ptr;
-    DevUnion *ppriv;
-    unsigned *sizes;
-    unsigned size;
-    int i;
 
     if (pScreen->totalPixmapSize > ((size_t)-1) - pixDataSize)
 	return NullPixmap;
@@ -121,27 +116,7 @@ AllocatePixmap(ScreenPtr pScreen, int pixDataSize)
     pPixmap = (PixmapPtr)xalloc(pScreen->totalPixmapSize + pixDataSize);
     if (!pPixmap)
 	return NullPixmap;
-    ppriv = (DevUnion *)(pPixmap + 1);
-    pPixmap->devPrivates = ppriv;
-    sizes = pScreen->PixmapPrivateSizes;
-    ptr = (char *)(ppriv + pScreen->PixmapPrivateLen);
-    for (i = pScreen->PixmapPrivateLen; --i >= 0; ppriv++, sizes++)
-    {
-        if ((size = *sizes) != 0)
-        {
-	    ppriv->ptr = (pointer)ptr;
-	    ptr += size;
-        }
-        else
-	    ppriv->ptr = (pointer)NULL;
-    }
 
-#ifdef _XSERVER64
-    if (pPixmap) {
-	pPixmap->drawable.pad0 = 0;
-	pPixmap->drawable.pad1 = 0;
-    }
-#endif
-
+    pPixmap->devPrivates = NULL;
     return pPixmap;
 }

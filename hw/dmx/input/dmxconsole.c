@@ -612,7 +612,8 @@ static Bool dmxCloseConsoleScreen(int idx, ScreenPtr pScreen)
 {
     myPrivate *priv, *last;
 
-    for (last = priv = pScreen->devPrivates[dmxScreenPrivateIndex].ptr;
+    for (last = priv = (myPrivate *)dixLookupPrivate(&pScreen->devPrivates,
+						     dmxScreenPrivateKey);
          priv;
          priv = priv->next) dmxCloseConsole(last = priv);
     
@@ -846,13 +847,15 @@ void dmxConsoleInit(DevicePtr pDev)
 
     dmxConsoleDraw(priv, 1, 1);
 
-    if (screenInfo.screens[0]->devPrivates[dmxScreenPrivateIndex].ptr)
-        priv->next = (screenInfo.screens[0]
-                      ->devPrivates[dmxScreenPrivateIndex].ptr);
+    if (dixLookupPrivate(&screenInfo.screens[0]->devPrivates,
+			 dmxScreenPrivateKey))
+        priv->next = dixLookupPrivate(&screenInfo.screens[0]->devPrivates,
+				      dmxScreenPrivateKey);
     else 
         DMX_WRAP(CloseScreen, dmxCloseConsoleScreen,
                  priv, screenInfo.screens[0]);
-    screenInfo.screens[0]->devPrivates[dmxScreenPrivateIndex].ptr = priv;
+    dixSetPrivate(&screenInfo.screens[0]->devPrivates, dmxScreenPrivateKey,
+		  priv);
 }
 
 /** Fill in the \a info structure for the specified \a pDev.  Only used

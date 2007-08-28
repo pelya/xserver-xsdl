@@ -165,8 +165,8 @@ PsStartJob(
   Bool         sendClientData,
   ClientPtr    client)
 {
-  PsContextPrivPtr  pConPriv = 
-      (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
+  PsContextPrivPtr  pConPriv = (PsContextPrivPtr)
+      dixLookupPrivate(&pCon->devPrivates, PsContextPrivateKey);
 
   /* 
    * Create a temporary file to store the printer output.
@@ -191,8 +191,8 @@ PsEndJob(
   struct stat buffer;
   int error;
 
-  PsContextPrivPtr priv =
-    (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
+  PsContextPrivPtr priv = (PsContextPrivPtr)
+      dixLookupPrivate(&pCon->devPrivates, PsContextPrivateKey);
 
   if (cancel == True) {
     if (priv->getDocClient != (ClientPtr) NULL) {
@@ -291,10 +291,10 @@ PsStartPage(
 {
   int                iorient, iplex, icount, ires;
   unsigned short     iwd, iht;
-  PsContextPrivPtr   pConPriv =
-     (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
-  PsWindowPrivPtr    pWinPriv =
-     (PsWindowPrivPtr)pWin->devPrivates[PsWindowPrivateIndex].ptr;
+  PsContextPrivPtr   pConPriv = (PsContextPrivPtr)
+      dixLookupPrivate(&pCon->devPrivates, PsContextPrivateKey);
+  PsWindowPrivPtr    pWinPriv = (PsWindowPrivPtr)
+      dixLookupPrivate(&pWin->devPrivates, PsWindowPrivateKey);
 
 /*
  * Put a pointer to the context in the window private structure
@@ -337,10 +337,10 @@ PsEndPage(
   XpContextPtr pCon,
   WindowPtr    pWin)
 {
-  PsWindowPrivPtr    pWinPriv =
-     (PsWindowPrivPtr)pWin->devPrivates[PsWindowPrivateIndex].ptr;
-  PsContextPrivPtr pConPriv =
-    (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
+  PsWindowPrivPtr    pWinPriv = (PsWindowPrivPtr)
+      dixLookupPrivate(&pWin->devPrivates, PsWindowPrivateKey);
+  PsContextPrivPtr pConPriv = (PsContextPrivPtr)
+      dixLookupPrivate(&pCon->devPrivates, PsContextPrivateKey);
 
   PsOut_EndPage(pConPriv->pPsOut);
 
@@ -366,8 +366,8 @@ PsStartDoc(XpContextPtr pCon, XPDocumentType type)
   int                iorient, iplex, icount, ires;
   unsigned short     iwd, iht;
   char              *title;
-  PsContextPrivPtr   pConPriv = 
-      (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
+  PsContextPrivPtr   pConPriv = (PsContextPrivPtr)
+      dixLookupPrivate(&pCon->devPrivates, PsContextPrivateKey);
 
   /* get job level attributes */ 
   title = XpGetOneAttribute(pCon, XPJobAttr, "job-name");
@@ -420,7 +420,8 @@ PsDocumentData(
         len_opt)
 	return BadValue;
 
-    cPriv = pCon->devPrivates[PsContextPrivateIndex].ptr;
+    cPriv = (PsContextPrivPtr)
+	dixLookupPrivate(&pCon->devPrivates, PsContextPrivateKey);
     psOut = cPriv->pPsOut;
 
     if (pDraw)
@@ -448,7 +449,7 @@ PsGetDocumentData(
   int          maxBufferSize)
 {
   PsContextPrivPtr pPriv = (PsContextPrivPtr)
-    pCon->devPrivates[PsContextPrivateIndex].ptr;
+    dixLookupPrivate(&pCon->devPrivates, PsContextPrivateKey);
 
   pPriv->getDocClient = client;
   pPriv->getDocBufSize = maxBufferSize;

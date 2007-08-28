@@ -52,9 +52,9 @@
 
 
 // Global variables
-extern int rootlessGCPrivateIndex;
-extern int rootlessScreenPrivateIndex;
-extern int rootlessWindowPrivateIndex;
+extern DevPrivateKey rootlessGCPrivateKey;
+extern DevPrivateKey rootlessScreenPrivateKey;
+extern DevPrivateKey rootlessWindowPrivateKey;
 
 
 // RootlessGCRec: private per-gc data
@@ -133,12 +133,17 @@ typedef struct _RootlessScreenRec {
 
 // Accessors for screen and window privates
 
-#define SCREENREC(pScreen) \
-   ((RootlessScreenRec *)(pScreen)->devPrivates[rootlessScreenPrivateIndex].ptr)
+#define SCREENREC(pScreen) ((RootlessScreenRec *) \
+    dixLookupPrivate(&(pScreen)->devPrivates, rootlessScreenPrivateKey))
 
-#define WINREC(pWin) \
-    ((RootlessWindowRec *)(pWin)->devPrivates[rootlessWindowPrivateIndex].ptr)
+#define SETSCREENREC(pScreen, v) \
+    dixSetPrivate(&(pScreen)->devPrivates, rootlessScreenPrivateKey, v)
 
+#define WINREC(pWin) ((RootlessWindowRec *) \
+    dixLookupPrivate(&(pWin)->devPrivates, rootlessWindowPrivateKey))
+
+#define SETWINREC(pWin, v) \
+    dixSetPrivate(&(pWin)->devPrivates, rootlessWindowPrivateKey, v)
 
 // Call a rootless implementation function.
 // Many rootless implementation functions are allowed to be NULL.

@@ -58,7 +58,7 @@ typedef struct {
 } QuartzScreenRec, *QuartzScreenPtr;
 
 #define QUARTZ_PRIV(pScreen) \
-    ((QuartzScreenPtr)pScreen->devPrivates[quartzScreenIndex].ptr)
+    ((QuartzScreenPtr)dixLookupPrivate(&pScreen->devPrivates, quartzScreenKey))
 
 // Data stored at startup for Cocoa front end
 extern int              quartzEventWriteFD;
@@ -73,7 +73,7 @@ extern int              quartzEnableKeyEquivalents;
 // Other shared data
 extern int              quartzServerVisible;
 extern int              quartzServerQuitting;
-extern int              quartzScreenIndex;
+extern DevPrivateKey    quartzScreenKey;
 extern int              aquaMenuBarHeight;
 
 // Name of GLX bundle for native OpenGL

@@ -85,8 +85,7 @@ SOFTWARE.
  * This file handles input device-related stuff.
  */
 
-int CoreDevicePrivatesIndex = 0;
-static int CoreDevicePrivatesGeneration = -1;
+DevPrivateKey CoreDevicePrivateKey = &CoreDevicePrivateKey;
 
 /**
  * Create a new input device and init it to sane values. The device is added
@@ -151,14 +150,7 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     dev->xkb_interest = NULL;
 #endif
     dev->config_info = NULL;
-    /* must pre-allocate one private for the new devPrivates support */
-    dev->nPrivates = 1;
-    dev->devPrivates = (DevUnion *)xcalloc(1, sizeof(DevUnion));
-    if (!dev->devPrivates) {
-	xfree(dev);
-	return NULL;
-    }
-
+    dev->devPrivates = NULL;
     dev->unwrapProc = NULL;
     dev->coreEvents = TRUE;
     dev->inited = FALSE;
@@ -358,7 +350,7 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
         break;
 
     case DEVICE_CLOSE:
-        pDev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
+	dixSetPrivate(&pDev->devPrivates, CoreDevicePrivateKey, NULL);
         break;
 
     default:
@@ -390,7 +382,7 @@ CorePointerProc(DeviceIntPtr pDev, int what)
         break;
 
     case DEVICE_CLOSE:
-        pDev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
+	dixSetPrivate(&pDev->devPrivates, CoreDevicePrivateKey, NULL);
         break;
 
     default:
@@ -411,11 +403,6 @@ InitCoreDevices(void)
 {
     DeviceIntPtr dev;
 
-    if (CoreDevicePrivatesGeneration != serverGeneration) {
-        CoreDevicePrivatesIndex = AllocateDevicePrivateIndex();
-        CoreDevicePrivatesGeneration = serverGeneration;
-    }
-
     if (!inputInfo.keyboard) {
         dev = AddInputDevice(CoreKeyboardProc, TRUE);
         if (!dev)
@@ -433,9 +420,6 @@ InitCoreDevices(void)
         dev->ActivateGrab = ActivateKeyboardGrab;
         dev->DeactivateGrab = DeactivateKeyboardGrab;
         dev->coreEvents = FALSE;
-        if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
-            FatalError("Couldn't allocate keyboard devPrivates\n");
-        dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
         (void)ActivateDevice(dev);
         inputInfo.keyboard = dev;
     }
@@ -457,9 +441,6 @@ InitCoreDevices(void)
         dev->ActivateGrab = ActivatePointerGrab;
         dev->DeactivateGrab = DeactivatePointerGrab;
         dev->coreEvents = FALSE;
-        if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
-            FatalError("Couldn't allocate pointer devPrivates\n");
-        dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
         (void)ActivateDevice(dev);
         inputInfo.pointer = dev;
     }
@@ -609,11 +590,8 @@ CloseDevice(DeviceIntPtr dev)
 	XkbRemoveResourceClient((DevicePtr)dev,dev->xkb_interest->resource);
 #endif
 
-    dixFreePrivates(*DEVPRIV_PTR(dev));
-    if (dev->devPrivates)
-	xfree(dev->devPrivates);
-
     xfree(dev->sync.event);
+    dixFreePrivates(dev->devPrivates);
     xfree(dev);
 }
 

@@ -35,15 +35,6 @@
 #include "win.h"
 
 
-/*
- * References to external symbols
- */
-
-extern int			g_iPixmapPrivateIndex;
-extern int			g_iGCPrivateIndex;
-extern int                      g_copyROP[];
-
-
 extern void ROP16(HDC hdc, int rop);
 
 #define TRANSLATE_COLOR(color)						\

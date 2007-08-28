@@ -29,6 +29,7 @@ SOFTWARE.
 #include "cursor.h"
 #include "gc.h"
 #include "pixmap.h"
+#include "privates.h"
 #include <X11/Xmd.h>
 
 /*
@@ -110,7 +111,7 @@ typedef struct _Client {
     Bool	big_requests;		/* supports large requests */
     int		priority;
     ClientState clientState;
-    DevUnion	*devPrivates;
+    PrivateRec	*devPrivates;
 #ifdef XKB
     unsigned short	xkbClientFlags;
     unsigned short	mapNotifyMask;

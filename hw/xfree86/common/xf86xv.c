@@ -110,23 +110,22 @@ static void xf86XVAdjustFrame(int index, int x, int y, int flags);
 static Bool xf86XVInitAdaptors(ScreenPtr, XF86VideoAdaptorPtr*, int);
 
 
-static int XF86XVWindowIndex = -1;
-int XF86XvScreenIndex = -1;
-static unsigned long XF86XVGeneration = 0;
+static DevPrivateKey XF86XVWindowKey = &XF86XVWindowKey;
+DevPrivateKey XF86XvScreenKey;
 static unsigned long PortResource = 0;
 
-int (*XvGetScreenIndexProc)(void) = NULL;
+DevPrivateKey (*XvGetScreenKeyProc)(void) = NULL;
 unsigned long (*XvGetRTPortProc)(void) = NULL;
 int (*XvScreenInitProc)(ScreenPtr) = NULL;
 
 #define GET_XV_SCREEN(pScreen) \
-	((XvScreenPtr)((pScreen)->devPrivates[XF86XvScreenIndex].ptr))
+    ((XvScreenPtr)dixLookupPrivate(&(pScreen)->devPrivates, XF86XvScreenKey))
 
 #define GET_XF86XV_SCREEN(pScreen) \
-	((XF86XVScreenPtr)(GET_XV_SCREEN(pScreen)->devPriv.ptr))
+    ((XF86XVScreenPtr)(GET_XV_SCREEN(pScreen)->devPriv.ptr))
 
 #define GET_XF86XV_WINDOW(pWin) \
-	((XF86XVWindowPtr)((pWin)->devPrivates[XF86XVWindowIndex].ptr))
+    ((XF86XVWindowPtr)dixLookupPrivate(&(pWin)->devPrivates, XF86XVWindowKey))
 
 static xf86XVInitGenericAdaptorPtr *GenDrivers = NULL;
 static int NumGenDrivers = 0;
@@ -233,21 +232,12 @@ xf86XVScreenInit(
   XvScreenPtr pxvs;
 
   if(num <= 0 ||
-     !XvGetScreenIndexProc || !XvGetRTPortProc || !XvScreenInitProc)
-	return FALSE;
-
-  if(XF86XVGeneration != serverGeneration) {
-	if((XF86XVWindowIndex = AllocateWindowPrivateIndex()) < 0)
-	    return FALSE;
-	XF86XVGeneration = serverGeneration;
-  }
-
-  if(!AllocateWindowPrivate(pScreen,XF86XVWindowIndex,0))
+     !XvGetScreenKeyProc || !XvGetRTPortProc || !XvScreenInitProc)
 	return FALSE;
 
   if(Success != (*XvScreenInitProc)(pScreen)) return FALSE;
 
-  XF86XvScreenIndex = (*XvGetScreenIndexProc)();
+  XF86XvScreenKey = (*XvGetScreenKeyProc)();
   PortResource = (*XvGetRTPortProc)();
 
   pxvs = GET_XV_SCREEN(pScreen);
@@ -977,7 +967,7 @@ xf86XVEnlistPortInWindow(WindowPtr pWin, XvPortRecPrivatePtr portPriv)
 	memset(winPriv, 0, sizeof(XF86XVWindowRec));
 	winPriv->PortRec = portPriv;
 	winPriv->next = PrivRoot;
-	pWin->devPrivates[XF86XVWindowIndex].ptr = (pointer)winPriv;
+	dixSetPrivate(&pWin->devPrivates, XF86XVWindowKey, winPriv);
    }
 
    portPriv->pDraw = (DrawablePtr)pWin;
@@ -998,8 +988,8 @@ xf86XVRemovePortFromWindow(WindowPtr pWin, XvPortRecPrivatePtr portPriv)
 	    if(prevPriv)
 		prevPriv->next = winPriv->next;
 	    else
-		pWin->devPrivates[XF86XVWindowIndex].ptr =
-					(pointer)winPriv->next;
+		dixSetPrivate(&pWin->devPrivates, XF86XVWindowKey,
+			      winPriv->next);
 	    xfree(winPriv);
 	    break;
 	}
@@ -1037,7 +1027,7 @@ xf86XVDestroyWindow(WindowPtr pWin)
      xfree(tmp);
   }
 
-  pWin->devPrivates[XF86XVWindowIndex].ptr = NULL;
+  dixSetPrivate(&pWin->devPrivates, XF86XVWindowKey, NULL);
 
   pScreen->DestroyWindow = ScreenPriv->DestroyWindow;
   ret = (*pScreen->DestroyWindow)(pWin);
@@ -1094,8 +1084,8 @@ xf86XVWindowExposures(WindowPtr pWin, RegionPtr reg1, RegionPtr reg2)
 	    pPriv->pDraw = NULL;
 
 	    if(!pPrev)
-	       pWin->devPrivates[XF86XVWindowIndex].ptr =
-						(pointer)(WinPriv->next);
+		dixSetPrivate(&pWin->devPrivates, XF86XVWindowKey,
+			      WinPriv->next);
 	    else
 	       pPrev->next = WinPriv->next;
 	    tmp = WinPriv;
@@ -1146,8 +1136,8 @@ xf86XVClipNotify(WindowPtr pWin, int dx, int dy)
 	    pPriv->pDraw = NULL;
 
 	    if(!pPrev)
-	       pWin->devPrivates[XF86XVWindowIndex].ptr =
-						(pointer)(WinPriv->next);
+		dixSetPrivate(&pWin->devPrivates, XF86XVWindowKey,
+			      WinPriv->next);
 	    else
 	       pPrev->next = WinPriv->next;
 	    tmp = WinPriv;

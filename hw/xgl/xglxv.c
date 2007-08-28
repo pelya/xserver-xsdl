@@ -35,11 +35,11 @@
 #include <X11/extensions/Xv.h>
 #include <X11/extensions/Xvproto.h>
 
-static unsigned int  xglXvScreenIndex = 0;
+static DevPrivateKey xglXvScreenKey;
 static unsigned long portResource = 0;
 
-#define XGL_GET_XV_SCREEN(pScreen)				   \
-    ((XvScreenPtr) ((pScreen)->devPrivates[xglXvScreenIndex].ptr))
+#define XGL_GET_XV_SCREEN(pScreen) ((XvScreenPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, xglXvScreenKey))
 
 #define XGL_XV_SCREEN(pScreen)				\
     XvScreenPtr pXvScreen = XGL_GET_XV_SCREEN (pScreen)
@@ -591,7 +591,7 @@ xglXvScreenInit (ScreenPtr pScreen)
     if (status != Success)
 	return FALSE;
 
-    xglXvScreenIndex = XvGetScreenIndex ();
+    xglXvScreenKey = XvGetScreenKey ();
     portResource = XvGetRTPort ();
 
     pXvScreen = XGL_GET_XV_SCREEN (pScreen);

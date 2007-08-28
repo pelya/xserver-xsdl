@@ -125,13 +125,11 @@ typedef struct {
 } xxScrPrivRec, *xxScrPrivPtr;
 
 #define xxGetScrPriv(s)	((xxScrPrivPtr) \
-				 (xxScrPrivateIndex != -1) \
-                          ? (s)->devPrivates[xxScrPrivateIndex].ptr\
-				: NULL)
+    dixLookupPrivate(&(s)->devPrivates, xxScrPrivateKey))
 #define xxScrPriv(s)     xxScrPrivPtr pScrPriv = xxGetScrPriv(s)
 
 #define xxGetCmapPriv(s) ((xxCmapPrivPtr) \
-                          (s)->devPrivates[xxColormapPrivateIndex].ptr)
+    dixLookupPrivate(&(s)->devPrivates, xxColormapPrivateKey))
 #define xxCmapPriv(s)    xxCmapPrivPtr pCmapPriv = xxGetCmapPriv(s);
 
 typedef struct _xxGCPriv {
@@ -140,13 +138,12 @@ typedef struct _xxGCPriv {
 } xxGCPrivRec, *xxGCPrivPtr;
 
 #define xxGetGCPriv(pGC) ((xxGCPrivPtr) \
-				      (pGC)->devPrivates[xxGCPrivateIndex].ptr)
+    dixLookupPrivate(&(pGC)->devPrivates, xxGCPrivateKey))
 #define xxGCPriv(pGC)   xxGCPrivPtr  pGCPriv = xxGetGCPriv(pGC)
 
-int xxScrPrivateIndex = -1;
-int xxGCPrivateIndex;
-int xxColormapPrivateIndex = -1;
-int xxGeneration;
+static DevPrivateKey xxScrPrivateKey = &xxScrPrivateKey;
+static DevPrivateKey xxGCPrivateKey = &xxGCPrivateKey;
+static DevPrivateKey xxColormapPrivateKey = &xxColormapPrivateKey;
 
 
 #define wrap(priv,real,mem,func) {\
@@ -356,26 +353,20 @@ xxMyVisual(ScreenPtr pScreen, VisualID vid)
 }
 
 static Bool
-xxInitColormapDummy(ColormapPtr pmap, int index)
-{
-    return TRUE;
-}
-
-static Bool
 xxInitColormapPrivate(ColormapPtr pmap)
 {
     xxScrPriv(pmap->pScreen);
     xxCmapPrivPtr	pCmapPriv;
     pointer		cmap;
 
-    pmap->devPrivates[xxColormapPrivateIndex].ptr = (pointer) -1;
+    dixSetPrivate(&pmap->devPrivates, xxColormapPrivateKey, (pointer) -1);
     
     if (xxMyVisual(pmap->pScreen,pmap->pVisual->vid)) {
 	DBG("CreateColormap\n");
 	pCmapPriv = (xxCmapPrivPtr) xalloc (sizeof (xxCmapPrivRec));
 	if (!pCmapPriv)
 	    return FALSE;
-	pmap->devPrivates[xxColormapPrivateIndex].ptr = (pointer) pCmapPriv;
+	dixSetPrivate(&pmap->devPrivates, xxColormapPrivateKey, pCmapPriv);
 	cmap = xalloc(sizeof (CARD32) * (1 << pScrPriv->myDepth));
 	if (!cmap)
 	return FALSE;
@@ -677,7 +668,7 @@ xxCreateWindow(WindowPtr pWin)
     
     DBG("CreateWindow\n");
 
-    pWin->devPrivates[fbWinPrivateIndex].ptr = (pointer) pScrPriv->pPixmap;
+    dixSetPrivate(&pWin->devPrivates, fbGetWinPrivateKey(), pScrPriv->pPixmap);
     PRINT_RECTS(pScrPriv->region);
 	if (!pWin->parent) {
 	REGION_EMPTY (pWin->drawable.pScreen, &pScrPriv->region);
@@ -746,9 +737,10 @@ xxCopyWindow(WindowPtr	pWin,
     xxPickMyWindows(pWin,&rgn);
 
     unwrap (pScrPriv, pScreen, CopyWindow);
-    pWin->devPrivates[fbWinPrivateIndex].ptr = fbGetScreenPixmap(pScreen);
+    dixSetPrivate(&pWin->devPrivates, fbGetWinPrivateKey(),
+		  fbGetScreenPixmap(pScreen));
     pScreen->CopyWindow(pWin, ptOldOrg, prgnSrc);
-    pWin->devPrivates[fbWinPrivateIndex].ptr = pPixmap;
+    dixSetPrivate(&pWin->devPrivates, fbGetWinPrivateKey(), pPixmap);
     wrap(pScrPriv, pScreen, CopyWindow, xxCopyWindow);
 
     REGION_INTERSECT(pScreen,&rgn,&rgn,&rgn_new);
@@ -1098,21 +1090,7 @@ xxSetup(ScreenPtr pScreen, int myDepth, int baseDepth, char* addr, xxSyncFunc sy
     PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
 #endif
 
-    if (xxGeneration != serverGeneration) {
-	xxScrPrivateIndex = AllocateScreenPrivateIndex ();
-	if (xxScrPrivateIndex == -1)
-	    return FALSE;
-	xxColormapPrivateIndex
-	    = AllocateColormapPrivateIndex (xxInitColormapDummy);
-	if (xxColormapPrivateIndex == -1)
-	    return FALSE;
-	xxGCPrivateIndex = AllocateGCPrivateIndex ();
-	if (xxGCPrivateIndex == -1)
-	    return FALSE;
-	xxGeneration = serverGeneration;
-    }
-
-    if (!AllocateGCPrivate (pScreen, xxGCPrivateIndex, sizeof (xxGCPrivRec)))
+    if (!dixRequestPrivate(xxGCPrivateKey, sizeof (xxGCPrivRec)))
 	return FALSE;
 
     pScrPriv = (xxScrPrivPtr) xalloc (sizeof (xxScrPrivRec));
@@ -1190,7 +1168,7 @@ xxSetup(ScreenPtr pScreen, int myDepth, int baseDepth, char* addr, xxSyncFunc sy
     }
 #endif
     pScrPriv->addr = addr;
-    pScreen->devPrivates[xxScrPrivateIndex].ptr = (pointer) pScrPriv;
+    dixSetPrivate(&pScreen->devPrivates, xxScrPrivateKey, pScrPriv);
 
     pDefMap = (ColormapPtr) LookupIDByType(pScreen->defColormap, RT_COLORMAP);
     if (!xxInitColormapPrivate(pDefMap))

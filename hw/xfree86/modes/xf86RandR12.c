@@ -59,11 +59,11 @@ static Bool xf86RandR12Init12 (ScreenPtr pScreen);
 static Bool xf86RandR12CreateScreenResources12 (ScreenPtr pScreen);
 #endif
 
-static int	    xf86RandR12Index;
-static int	    xf86RandR12Generation;
+static int xf86RandR12Generation;
+static DevPrivateKey xf86RandR12Key = &xf86RandR12Key;
 
-#define XF86RANDRINFO(p) \
-	((XF86RandRInfoPtr)(p)->devPrivates[xf86RandR12Index].ptr)
+#define XF86RANDRINFO(p) ((XF86RandRInfoPtr) \
+    dixLookupPrivate(&(p)->devPrivates, xf86RandR12Key))
 
 static int
 xf86RandR12ModeRefresh (DisplayModePtr mode)
@@ -482,10 +482,7 @@ xf86RandR12Init (ScreenPtr pScreen)
 	return TRUE;
 #endif
     if (xf86RandR12Generation != serverGeneration)
-    {
-	xf86RandR12Index = AllocateScreenPrivateIndex();
 	xf86RandR12Generation = serverGeneration;
-    }
 
     randrp = xalloc (sizeof (XF86RandRInfoRec));
     if (!randrp)
@@ -511,7 +508,7 @@ xf86RandR12Init (ScreenPtr pScreen)
 
     randrp->maxX = randrp->maxY = 0;
 
-    pScreen->devPrivates[xf86RandR12Index].ptr = randrp;
+    dixSetPrivate(&pScreen->devPrivates, xf86RandR12Key, randrp);
 
 #if RANDR_12_INTERFACE
     if (!xf86RandR12Init12 (pScreen))

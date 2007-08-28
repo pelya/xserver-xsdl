@@ -177,7 +177,7 @@ void dmxDPMSWakeup(void)
     if (screenIsSaved == SCREEN_SAVER_ON)
         SaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
 #ifdef DPMSExtension
-    if (DPMSPowerLevel) DPMSSet(0);
+    if (DPMSPowerLevel) DPMSSet(serverClient, 0);
 #endif
 }
 
@@ -190,11 +190,11 @@ Bool DPMSSupported(void)
 }
 
 /** This is used by clients (e.g., xset) to set the DPMS level. */
-void DPMSSet(int level)
+int DPMSSet(ClientPtr client, int level)
 {
     int i;
 
-    if (!dpmsSupported) return;
+    if (!dpmsSupported) return Success;
 
     if (level < 0) level = DPMSModeOn;
     if (level > 3) level = DPMSModeOff;
@@ -208,5 +208,6 @@ void DPMSSet(int level)
 	    dmxSync(dmxScreen, FALSE);
 	}
     }
+    return Success;
 }
 #endif

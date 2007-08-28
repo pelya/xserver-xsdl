@@ -60,7 +60,6 @@ SOFTWARE.
 #include "mfb.h"
 
 extern int afbInverseAlu[];
-extern int afbScreenPrivateIndex;
 /* warning: PixelType definition duplicated in maskbits.h */
 #ifndef PixelType
 #define PixelType CARD32
@@ -736,14 +735,15 @@ typedef struct {
 } afbPrivGC;
 typedef afbPrivGC *afbPrivGCPtr;
 
-extern int afbGCPrivateIndex;			/* index into GC private array */
-extern int afbWindowPrivateIndex;		/* index into Window private array */
+extern DevPrivateKey afbScreenPrivateKey;
+extern DevPrivateKey afbGCPrivateKey;
+extern DevPrivateKey afbWindowPrivateKey;
 #ifdef PIXMAP_PER_WINDOW
-extern int frameWindowPrivateIndex;		/* index into Window private array */
+extern DevPrivateKey frameWindowPrivateKey;
 #endif
 
 #define afbGetGCPrivate(pGC) \
-	((afbPrivGC *)((pGC)->devPrivates[afbGCPrivateIndex].ptr))
+    ((afbPrivGC *)dixLookupPrivate(&(pGC)->devPrivates, afbGCPrivateKey))
 
 /* private field of window */
 typedef struct {
@@ -759,7 +759,7 @@ typedef struct {
 
 #define afbGetTypedWidth(pDrawable,wtype)( \
 	(((pDrawable)->type == DRAWABLE_WINDOW) ? \
-	 (int)(((PixmapPtr)((pDrawable)->pScreen->devPrivates[afbScreenPrivateIndex].ptr))->devKind) : \
+	 (int)(((PixmapPtr)dixLookupPrivate(&(pDrawable)->pScreen->devPrivates, afbScreenPrivateKey)->devKind) : \
 	 (int)(((PixmapPtr)pDrawable)->devKind)) / sizeof (wtype))
 
 #define afbGetByteWidth(pDrawable) afbGetTypedWidth(pDrawable, unsigned char)
@@ -769,7 +769,7 @@ typedef struct {
 #define afbGetTypedWidthAndPointer(pDrawable, width, pointer, wtype, ptype) {\
 	PixmapPtr   _pPix; \
 	if ((pDrawable)->type == DRAWABLE_WINDOW) \
-		_pPix = (PixmapPtr)(pDrawable)->pScreen->devPrivates[afbScreenPrivateIndex].ptr; \
+		_pPix = (PixmapPtr)dixLookupPrivate(&(pDrawable)->pScreen->devPrivates, afbScreenPrivateKey); \
 	else \
 		_pPix = (PixmapPtr)(pDrawable); \
 	(pointer) = (ptype *) _pPix->devPrivate.ptr; \
@@ -779,7 +779,7 @@ typedef struct {
 #define afbGetPixelWidthSizeDepthAndPointer(pDrawable, width, size, dep, pointer) {\
 	PixmapPtr _pPix; \
 	if ((pDrawable)->type == DRAWABLE_WINDOW) \
-		_pPix = (PixmapPtr)(pDrawable)->pScreen->devPrivates[afbScreenPrivateIndex].ptr; \
+		_pPix = (PixmapPtr)dixLookupPrivate(&(pDrawable)->pScreen->devPrivates, afbScreenPrivateKey); \
 	else \
 		_pPix = (PixmapPtr)(pDrawable); \
 	(pointer) = (PixelType *)_pPix->devPrivate.ptr; \
@@ -795,7 +795,7 @@ typedef struct {
 	afbGetTypedWidthAndPointer(pDrawable, width, pointer, PixelType, PixelType)
 
 #define afbGetWindowTypedWidthAndPointer(pWin, width, pointer, wtype, ptype) {\
-	PixmapPtr	_pPix = (PixmapPtr)(pWin)->drawable.pScreen->devPrivates[afbScreenPrivateIndex].ptr; \
+	PixmapPtr _pPix = (PixmapPtr)dixLookupPrivate(&(pWin)->drawable.pScreen->devPrivates, afbScreenPrivateKey); \
 	(pointer) = (ptype *) _pPix->devPrivate.ptr; \
 	(width) = ((int) _pPix->devKind) / sizeof (wtype); \
 }

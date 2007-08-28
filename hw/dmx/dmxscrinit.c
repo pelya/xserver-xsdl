@@ -67,15 +67,15 @@ static Bool dmxSaveScreen(ScreenPtr pScreen, int what);
 static unsigned long dmxGeneration;
 static unsigned long *dmxCursorGeneration;
 
-int dmxGCPrivateIndex;          /**< Private index for GCs       */
-int dmxWinPrivateIndex;         /**< Private index for Windows   */
-int dmxPixPrivateIndex;         /**< Private index for Pixmaps   */
+DevPrivateKey dmxGCPrivateKey = &dmxGCPrivateKey; /**< Private index for GCs       */
+DevPrivateKey dmxWinPrivateKey = &dmxWinPrivateKey; /**< Private index for Windows   */
+DevPrivateKey dmxPixPrivateKey = &dmxPixPrivateKey; /**< Private index for Pixmaps   */
 int dmxFontPrivateIndex;        /**< Private index for Fonts     */
-int dmxScreenPrivateIndex;      /**< Private index for Screens   */
-int dmxColormapPrivateIndex;    /**< Private index for Colormaps */
+DevPrivateKey dmxScreenPrivateKey = &dmxScreenPrivateKey; /**< Private index for Screens   */
+DevPrivateKey dmxColormapPrivateKey = &dmxColormapPrivateKey; /**< Private index for Colormaps */
 #ifdef RENDER
-int dmxPictPrivateIndex;        /**< Private index for Picts     */
-int dmxGlyphSetPrivateIndex;    /**< Private index for GlyphSets */
+DevPrivateKey dmxPictPrivateKey = &dmxPictPrivateKey; /**< Private index for Picts     */
+DevPrivateKey dmxGlyphSetPrivateKey = &dmxGlyphSetPrivateKey; /**< Private index for GlyphSets */
 #endif
 
 /** Initialize the parts of screen \a idx that require access to the
@@ -208,42 +208,10 @@ Bool dmxScreenInit(int idx, ScreenPtr pScreen, int argc, char *argv[])
     int                   i, j;
 
     if (dmxGeneration != serverGeneration) {
-#ifdef RENDER
-	/* Allocate picture private index */
-	dmxPictPrivateIndex = AllocatePicturePrivateIndex();
-	if (dmxPictPrivateIndex == -1)
-	    return FALSE;
-
-	/* Allocate glyph set private index */
-	dmxGlyphSetPrivateIndex = AllocateGlyphSetPrivateIndex();
-	if (dmxGlyphSetPrivateIndex == -1)
-	    return FALSE;
-#endif
-
-	/* Allocate GC private index */
-	dmxGCPrivateIndex = AllocateGCPrivateIndex();
-	if (dmxGCPrivateIndex == -1)
-	    return FALSE;
-
-	/* Allocate window private index */
-	dmxWinPrivateIndex = AllocateWindowPrivateIndex();
-	if (dmxWinPrivateIndex == -1)
-	    return FALSE;
-
-	/* Allocate pixmap private index */
-	dmxPixPrivateIndex = AllocatePixmapPrivateIndex();
-	if (dmxPixPrivateIndex == -1)
-	    return FALSE;
-
 	/* Allocate font private index */
 	dmxFontPrivateIndex = AllocateFontPrivateIndex();
 	if (dmxFontPrivateIndex == -1)
 	    return FALSE;
-
-        /* Allocate screen private index */
-        dmxScreenPrivateIndex = AllocateScreenPrivateIndex();
-        if (dmxScreenPrivateIndex == -1)
-            return FALSE;
 
 	dmxGeneration = serverGeneration;
     }

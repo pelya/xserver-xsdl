@@ -57,10 +57,10 @@ extern void      dmxBECreatePixmap(PixmapPtr pPixmap);
 extern Bool      dmxBEFreePixmap(PixmapPtr pPixmap);
 
 /** Private index.  \see dmxpicmap.h \see dmxscrinit.c */
-extern int dmxPixPrivateIndex;
+extern DevPrivateKey dmxPixPrivateKey;
 
 /** Get pixmap private pointer. */
 #define DMX_GET_PIXMAP_PRIV(_pPix)					\
-    (dmxPixPrivPtr)(_pPix)->devPrivates[dmxPixPrivateIndex].ptr
+    (dmxPixPrivPtr)dixLookupPrivate(&(_pPix)->devPrivates, dmxPixPrivateKey)
 
 #endif /* DMXPIXMAP_H */

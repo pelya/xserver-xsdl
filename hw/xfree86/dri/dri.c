@@ -79,8 +79,8 @@ extern Bool noPanoramiXExtension;
 #endif
 
 static int DRIEntPrivIndex = -1;
-static int DRIScreenPrivIndex = -1;
-static int DRIWindowPrivIndex = -1;
+static DevPrivateKey DRIScreenPrivKey = &DRIScreenPrivKey;
+static DevPrivateKey DRIWindowPrivKey = &DRIWindowPrivKey;
 static unsigned long DRIGeneration = 0;
 static unsigned int DRIDrawableValidationStamp = 0;
 
@@ -343,20 +343,18 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 
     pDRIEntPriv = DRI_ENT_PRIV(pScrn);
 
-    if (DRIGeneration != serverGeneration) {
-	if ((DRIScreenPrivIndex = AllocateScreenPrivateIndex()) < 0)
-	    return FALSE;
+    DRIScreenPrivKey = &DRIScreenPrivKey;
+    if (DRIGeneration != serverGeneration)
 	DRIGeneration = serverGeneration;
-    }
 
     pDRIPriv = (DRIScreenPrivPtr) xcalloc(1, sizeof(DRIScreenPrivRec));
     if (!pDRIPriv) {
-        pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
-        DRIScreenPrivIndex = -1;
+	dixSetPrivate(&pScreen->devPrivates, DRIScreenPrivKey, NULL);
+        DRIScreenPrivKey = NULL;
         return FALSE;
     }
 
-    pScreen->devPrivates[DRIScreenPrivIndex].ptr = (pointer) pDRIPriv;
+    dixSetPrivate(&pScreen->devPrivates, DRIScreenPrivKey, pDRIPriv);
     pDRIPriv->drmFD = pDRIEntPriv->drmFD;
     pDRIPriv->directRenderingSupport = TRUE;
     pDRIPriv->pDriverInfo = pDRIInfo;
@@ -381,7 +379,7 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 		       &pDRIPriv->hSAREA) < 0)
 	{
 	    pDRIPriv->directRenderingSupport = FALSE;
-	    pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
+	    dixSetPrivate(&pScreen->devPrivates, DRIScreenPrivKey, NULL);
 	    drmClose(pDRIPriv->drmFD);
 	    DRIDrvMsg(pScreen->myNum, X_INFO,
 		      "[drm] drmAddMap failed\n");
@@ -398,7 +396,7 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 		    (drmAddressPtr)(&pDRIPriv->pSAREA)) < 0)
 	{
 	    pDRIPriv->directRenderingSupport = FALSE;
-	    pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
+	    dixSetPrivate(&pScreen->devPrivates, DRIScreenPrivKey, NULL);
 	    drmClose(pDRIPriv->drmFD);
 	    DRIDrvMsg(pScreen->myNum, X_INFO,
 		      "[drm] drmMap failed\n");
@@ -428,7 +426,7 @@ DRIScreenInit(ScreenPtr pScreen, DRIInfoPtr pDRIInfo, int *pDRMFD)
 		       &pDRIPriv->pDriverInfo->hFrameBuffer) < 0)
 	    {
 		pDRIPriv->directRenderingSupport = FALSE;
-		pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
+		dixSetPrivate(&pScreen->devPrivates, DRIScreenPrivKey, NULL);
 		drmUnmap(pDRIPriv->pSAREA, pDRIPriv->pDriverInfo->SAREASize);
 		drmClose(pDRIPriv->drmFD);
 		DRIDrvMsg(pScreen->myNum, X_INFO,
@@ -744,8 +742,8 @@ DRICloseScreen(ScreenPtr pScreen)
 	}
 
 	xfree(pDRIPriv);
-	pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
-	DRIScreenPrivIndex = -1;
+	dixSetPrivate(&pScreen->devPrivates, DRIScreenPrivKey, NULL);
+	DRIScreenPrivKey = NULL;
     }
 }
 
@@ -772,29 +770,12 @@ drmServerInfo DRIDRMServerInfo =  {
 Bool
 DRIExtensionInit(void)
 {
-    int		    	i;
-    ScreenPtr		pScreen;
-
-    if (DRIScreenPrivIndex < 0 || DRIGeneration != serverGeneration) {
+    if (!DRIScreenPrivKey || DRIGeneration != serverGeneration) {
 	return FALSE;
     }
-
-    /* Allocate a window private index with a zero sized private area for
-     * each window, then should a window become a DRI window, we'll hang
-     * a DRIWindowPrivateRec off of this private index.
-     */
-    if ((DRIWindowPrivIndex = AllocateWindowPrivateIndex()) < 0)
-	return FALSE;
 
     DRIDrawablePrivResType = CreateNewResourceType(DRIDrawablePrivDelete);
     DRIContextPrivResType = CreateNewResourceType(DRIContextPrivDelete);
-
-    for (i = 0; i < screenInfo.numScreens; i++)
-    {
-	pScreen = screenInfo.screens[i];
-	if (!AllocateWindowPrivate(pScreen, DRIWindowPrivIndex, 0))
-	    return FALSE;
-    }
 
     RegisterBlockAndWakeupHandlers(DRIBlockHandler, DRIWakeupHandler, NULL);
 
@@ -1302,9 +1283,8 @@ DRICreateDrawable(ScreenPtr pScreen, ClientPtr client, DrawablePtr pDrawable,
 	    pDRIDrawablePriv->nrects = REGION_NUM_RECTS(&pWin->clipList);
 
 	    /* save private off of preallocated index */
-	    pWin->devPrivates[DRIWindowPrivIndex].ptr =
-						(pointer)pDRIDrawablePriv;
-
+	    dixSetPrivate(&pWin->devPrivates, DRIWindowPrivKey,
+			  pDRIDrawablePriv);
 	    pDRIPriv->nrWindows++;
 
 	    if (pDRIDrawablePriv->nrects)
@@ -1362,7 +1342,7 @@ DRIDrawablePrivDestroy(WindowPtr pWin)
     drmDestroyDrawable(pDRIPriv->drmFD, pDRIDrawablePriv->hwDrawable);
 
     xfree(pDRIDrawablePriv);
-    pWin->devPrivates[DRIWindowPrivIndex].ptr = NULL;
+    dixSetPrivate(&pWin->devPrivates, DRIWindowPrivKey, NULL);
 }
 
 static Bool

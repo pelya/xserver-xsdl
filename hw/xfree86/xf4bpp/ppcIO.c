@@ -219,7 +219,7 @@ xf4bppScreenInit( pScreen, pbits, virtx, virty, dpix, dpiy, width )
   pScreen-> ResolveColor = xf4bppResolveColor;
   mfbFillInScreen(pScreen);
 
-  if (!mfbAllocatePrivates(pScreen, (int*)NULL, (int*)NULL))
+  if (!mfbAllocatePrivates(pScreen, NULL, NULL))
 	return FALSE;
 
   if (!miScreenInit(pScreen, pbits, virtx, virty, dpix, dpiy, width,

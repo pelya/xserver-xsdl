@@ -238,7 +238,7 @@ _X_HIDDEN void *dixLookupTab[] = {
 #ifdef XV
     /* XXX These are exported from the DDX, not DIX. */
     SYMVAR(XvScreenInitProc)
-    SYMVAR(XvGetScreenIndexProc)
+    SYMVAR(XvGetScreenKeyProc)
     SYMVAR(XvGetRTPortProc)
     SYMVAR(XvMCScreenInitProc)
 #endif
@@ -270,20 +270,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(dixFreePrivates)
     SYMFUNC(dixRegisterPrivateOffset)
     SYMFUNC(dixLookupPrivateOffset)
-    SYMFUNC(AllocateExtensionPrivate)
-    SYMFUNC(AllocateExtensionPrivateIndex)
-    SYMFUNC(AllocateClientPrivate)
-    SYMFUNC(AllocateClientPrivateIndex)
-    SYMFUNC(AllocateGCPrivate)
-    SYMFUNC(AllocateGCPrivateIndex)
-    SYMFUNC(AllocateWindowPrivate)
-    SYMFUNC(AllocateWindowPrivateIndex)
-    SYMFUNC(AllocateScreenPrivateIndex)
-    SYMFUNC(AllocateColormapPrivateIndex)
-    SYMFUNC(AllocateDevicePrivateIndex)
-    SYMFUNC(AllocateDevicePrivate)
-    SYMFUNC(AllocatePixmapPrivateIndex)
-    SYMFUNC(AllocatePixmapPrivate)
     /* resource.c */
     SYMFUNC(AddResource)
     SYMFUNC(ChangeResourceValue)
@@ -521,7 +507,7 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(PictureTransformPoint3d)
     SYMFUNC(PictureGetSubpixelOrder)
     SYMFUNC(PictureSetSubpixelOrder)
-    SYMVAR(PictureScreenPrivateIndex)
+    SYMVAR(PictureScreenPrivateKey)
     /* mipict.c */
     SYMFUNC(miPictureInit)
     SYMFUNC(miComputeCompositeRegion)

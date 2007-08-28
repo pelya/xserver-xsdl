@@ -41,7 +41,7 @@
 #include "scrnintstr.h"
 
 /** Private index.  \see dmxscrrinit.c \see input/dmxconcole.c */
-extern int dmxScreenPrivateIndex;
+extern DevPrivateKey dmxScreenPrivateKey;
 
 extern Bool dmxScreenInit(int idx, ScreenPtr pScreen, int argc, char *argv[]);
 

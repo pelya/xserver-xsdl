@@ -74,9 +74,10 @@ typedef struct _shadowBuf {
 #define SHADOW_REFLECT_Y    32
 #define SHADOW_REFLECT_ALL  (SHADOW_REFLECT_X|SHADOW_REFLECT_Y)
 
-extern int shadowScrPrivateIndex;
+extern DevPrivateKey shadowScrPrivateKey;
 
-#define shadowGetBuf(pScr)  ((shadowBufPtr) (pScr)->devPrivates[shadowScrPrivateIndex].ptr)
+#define shadowGetBuf(pScr) ((shadowBufPtr) \
+    dixLookupPrivate(&(pScr)->devPrivates, shadowScrPrivateKey))
 #define shadowBuf(pScr)            shadowBufPtr pBuf = shadowGetBuf(pScr)
 #define shadowDamage(pBuf)  DamageRegion(pBuf->pDamage)    
 

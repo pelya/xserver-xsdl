@@ -73,39 +73,6 @@ int lastEvent = EXTENSION_EVENT_BASE;
 static int lastError = FirstExtensionError;
 static unsigned int NumExtensions = 0;
 
-extern int extensionPrivateLen;
-extern unsigned *extensionPrivateSizes;
-extern unsigned totalExtensionSize;
-
-static void
-InitExtensionPrivates(ExtensionEntry *ext)
-{
-    char *ptr;
-    DevUnion *ppriv;
-    unsigned *sizes;
-    unsigned size;
-    int i;
-
-    if (totalExtensionSize == sizeof(ExtensionEntry))
-	ppriv = (DevUnion *)NULL;
-    else
-	ppriv = (DevUnion *)(ext + 1);
-
-    ext->devPrivates = ppriv;
-    sizes = extensionPrivateSizes;
-    ptr = (char *)(ppriv + extensionPrivateLen);
-    for (i = extensionPrivateLen; --i >= 0; ppriv++, sizes++)
-    {
-	if ( (size = *sizes) )
-	{
-	    ppriv->ptr = (pointer)ptr;
-	    ptr += size;
-	}
-	else
-	    ppriv->ptr = (pointer)NULL;
-    }
-}
-
 _X_EXPORT ExtensionEntry *
 AddExtension(char *name, int NumEvents, int NumErrors, 
 	     int (*MainProc)(ClientPtr c1), 
@@ -122,14 +89,13 @@ AddExtension(char *name, int NumEvents, int NumErrors,
 	        (unsigned)(lastError + NumErrors > LAST_ERROR))
         return((ExtensionEntry *) NULL);
 
-    ext = (ExtensionEntry *) xalloc(totalExtensionSize);
+    ext = (ExtensionEntry *) xalloc(sizeof(ExtensionEntry));
     if (!ext)
 	return((ExtensionEntry *) NULL);
-    bzero(ext, totalExtensionSize);
-    InitExtensionPrivates(ext);
     ext->name = (char *)xalloc(strlen(name) + 1);
     ext->num_aliases = 0;
     ext->aliases = (char **)NULL;
+    ext->devPrivates = NULL;
     if (!ext->name)
     {
 	xfree(ext);
@@ -283,7 +249,7 @@ CloseDownExtensions(void)
 	for (j = extensions[i]->num_aliases; --j >= 0;)
 	    xfree(extensions[i]->aliases[j]);
 	xfree(extensions[i]->aliases);
-	dixFreePrivates(*DEVPRIV_PTR(extensions[i]));
+	dixFreePrivates(extensions[i]->devPrivates);
 	xfree(extensions[i]);
     }
     xfree(extensions);

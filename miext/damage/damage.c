@@ -65,16 +65,15 @@
 #define DAMAGE_DEBUG(x)
 #endif
 
-#define getPixmapDamageRef(pPixmap) \
-    ((DamagePtr *) &(pPixmap->devPrivates[damagePixPrivateIndex].ptr))
+#define getPixmapDamageRef(pPixmap) ((DamagePtr *) \
+    dixLookupPrivateAddr(&(pPixmap)->devPrivates, damagePixPrivateKey))
 
 #define pixmapDamage(pPixmap)		damagePixPriv(pPixmap)
 
-static int damageScrPrivateIndex;
-static int damagePixPrivateIndex;
-static int damageGCPrivateIndex;
-static int damageWinPrivateIndex;
-static int damageGeneration;
+static DevPrivateKey damageScrPrivateKey = &damageScrPrivateKey;
+static DevPrivateKey damagePixPrivateKey = &damagePixPrivateKey;
+static DevPrivateKey damageGCPrivateKey = &damageGCPrivateKey;
+static DevPrivateKey damageWinPrivateKey = &damageWinPrivateKey;
 
 static DamagePtr *
 getDrawableDamageRef (DrawablePtr pDrawable)
@@ -115,7 +114,7 @@ getDrawableDamageRef (DrawablePtr pDrawable)
 
 #define winDamageRef(pWindow) \
     DamagePtr	*pPrev = (DamagePtr *) \
-	    &(pWindow->devPrivates[damageWinPrivateIndex].ptr)
+	dixLookupPrivateAddr(&(pWindow)->devPrivates, damageWinPrivateKey)
 
 static void
 DamageReportDamage (DamagePtr pDamage, RegionPtr pDamageRegion)
@@ -1779,30 +1778,10 @@ DamageSetup (ScreenPtr pScreen)
     PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
 #endif
 
-    if (damageGeneration != serverGeneration)
-    {
-	damageScrPrivateIndex = AllocateScreenPrivateIndex ();
-	if (damageScrPrivateIndex == -1)
-	    return FALSE;
-	damageGCPrivateIndex = AllocateGCPrivateIndex ();
-	if (damageGCPrivateIndex == -1)
-	    return FALSE;
-	damagePixPrivateIndex = AllocatePixmapPrivateIndex ();
-	if (damagePixPrivateIndex == -1)
-	    return FALSE;
-	damageWinPrivateIndex = AllocateWindowPrivateIndex ();
-	if (damageWinPrivateIndex == -1)
-	    return FALSE;
-	damageGeneration = serverGeneration;
-    }
-    if (pScreen->devPrivates[damageScrPrivateIndex].ptr)
+    if (dixLookupPrivate(&pScreen->devPrivates, damageScrPrivateKey))
 	return TRUE;
 
-    if (!AllocateGCPrivate (pScreen, damageGCPrivateIndex, sizeof (DamageGCPrivRec)))
-	return FALSE;
-    if (!AllocatePixmapPrivate (pScreen, damagePixPrivateIndex, 0))
-	return FALSE;
-    if (!AllocateWindowPrivate (pScreen, damageWinPrivateIndex, 0))
+    if (!dixRequestPrivate(damageGCPrivateKey, sizeof(DamageGCPrivRec)))
 	return FALSE;
 
     pScrPriv = (DamageScrPrivPtr) xalloc (sizeof (DamageScrPrivRec));
@@ -1827,7 +1806,7 @@ DamageSetup (ScreenPtr pScreen)
     }
 #endif
 
-    pScreen->devPrivates[damageScrPrivateIndex].ptr = (pointer) pScrPriv;
+    dixSetPrivate(&pScreen->devPrivates, damageScrPrivateKey, pScrPriv);
     return TRUE;
 }
 

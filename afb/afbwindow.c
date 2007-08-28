@@ -56,6 +56,7 @@ SOFTWARE.
 #include <X11/X.h>
 #include "scrnintstr.h"
 #include "windowstr.h"
+#include "privates.h"
 #include "afb.h"
 #include "mistruct.h"
 #include "regionstr.h"
@@ -67,14 +68,16 @@ afbCreateWindow(pWin)
 {
 	register afbPrivWin *pPrivWin;
 
-	pPrivWin = (afbPrivWin *)(pWin->devPrivates[afbWindowPrivateIndex].ptr);
+	pPrivWin = (afbPrivWin *)dixLookupPrivate(&pWin->devPrivates,
+						  afbWindowPrivateKey);
 	pPrivWin->pRotatedBorder = NullPixmap;
 	pPrivWin->pRotatedBackground = NullPixmap;
 	pPrivWin->fastBackground = FALSE;
 	pPrivWin->fastBorder = FALSE;
 #ifdef PIXMAP_PER_WINDOW
-	pWin->devPrivates[frameWindowPrivateIndex].ptr =
-			pWin->pDrawable.pScreen->devPrivates[afbScreenPrivateIndex].ptr;
+	dixSetPrivate(&pWin->devPrivates, frameWindowPrivateKey,
+		      dixLookupPrivate(&pWin->pDrawable.pScreen->devPrivates,
+				       afbScreenPrivateKey));
 #endif
 
 	return (TRUE);
@@ -88,8 +91,8 @@ afbDestroyWindow(pWin)
 {
 	register afbPrivWin *pPrivWin;
 
-	pPrivWin = (afbPrivWin *)(pWin->devPrivates[afbWindowPrivateIndex].ptr);
-
+    pPrivWin = (afbPrivWin *)dixLookupPrivate(&pWin->devPrivates,
+					      afbWindowPrivateKey);
 	if (pPrivWin->pRotatedBorder)
 		(*pWin->drawable.pScreen->DestroyPixmap)(pPrivWin->pRotatedBorder);
 	if (pPrivWin->pRotatedBackground)
@@ -123,7 +126,8 @@ afbPositionWindow(pWin, x, y)
 	register afbPrivWin *pPrivWin;
 	int		reset = 0;
 
-	pPrivWin = (afbPrivWin *)(pWin->devPrivates[afbWindowPrivateIndex].ptr);
+    pPrivWin = (afbPrivWin *)dixLookupPrivate(&pWin->devPrivates,
+					      afbWindowPrivateKey);
 	if (pWin->backgroundState == BackgroundPixmap && pPrivWin->fastBackground) {
 		afbXRotatePixmap(pPrivWin->pRotatedBackground,
 								pWin->drawable.x - pPrivWin->oldRotate.x);
@@ -230,7 +234,8 @@ afbChangeWindowAttributes(pWin, mask)
 	register afbPrivWin *pPrivWin;
 	WindowPtr		pBgWin;
 
-	pPrivWin = (afbPrivWin *)(pWin->devPrivates[afbWindowPrivateIndex].ptr);
+    pPrivWin = (afbPrivWin *)dixLookupPrivate(&pWin->devPrivates,
+					      afbWindowPrivateKey);
 	/*
 	 * When background state changes from ParentRelative and
 	 * we had previously rotated the fast border pixmap to match

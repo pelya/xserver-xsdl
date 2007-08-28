@@ -88,8 +88,8 @@ void DarwinModeBell(int volume, DeviceIntPtr pDevice, pointer ctrl, int class);
 #define kern_assert(x) { if ((x) != KERN_SUCCESS) \
     FatalError("assert failed on line %d of %s with kernel return 0x%x!\n", \
                 __LINE__, __FILE__, x); }
-#define SCREEN_PRIV(pScreen) \
-    ((DarwinFramebufferPtr)pScreen->devPrivates[darwinScreenIndex].ptr)
+#define SCREEN_PRIV(pScreen) ((DarwinFramebufferPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, darwinScreenKey))
 
 
 #define MIN_KEYCODE XkbMinLegalKeyCode     // unfortunately, this isn't 0...
@@ -98,7 +98,7 @@ void DarwinModeBell(int volume, DeviceIntPtr pDevice, pointer ctrl, int class);
 /*
  * Global variables from darwin.c
  */
-extern int              darwinScreenIndex; // index into pScreen.devPrivates
+extern DevPrivateKey    darwinScreenKey; // index into pScreen.devPrivates
 extern int              darwinScreensFound;
 extern io_connect_t     darwinParamConnect;
 extern int              darwinEventReadFD;

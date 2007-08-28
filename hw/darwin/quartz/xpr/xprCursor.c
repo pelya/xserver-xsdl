@@ -53,11 +53,10 @@ typedef struct {
     miPointerSpriteFuncPtr  spriteFuncs;
 } QuartzCursorScreenRec, *QuartzCursorScreenPtr;
 
-static int darwinCursorScreenIndex = -1;
-static unsigned long darwinCursorGeneration = 0;
+static DevPrivateKey darwinCursorScreenKey = &darwinCursorScreenKey;
 
-#define CURSOR_PRIV(pScreen) \
-    ((QuartzCursorScreenPtr)pScreen->devPrivates[darwinCursorScreenIndex].ptr)
+#define CURSOR_PRIV(pScreen) ((QuartzCursorScreenPtr) \
+    dixLookupPrivate(&pScreen->devPrivates, darwinCursorScreenKey))
 
 
 static Bool
@@ -360,15 +359,6 @@ QuartzInitCursor(ScreenPtr pScreen)
     if (!miDCInitialize(pScreen, &quartzScreenFuncsRec))
         return FALSE;
 
-    /* allocate private storage for this screen's QuickDraw cursor info */
-    if (darwinCursorGeneration != serverGeneration)
-    {
-        if ((darwinCursorScreenIndex = AllocateScreenPrivateIndex()) < 0)
-            return FALSE;
-
-        darwinCursorGeneration = serverGeneration;
-    }
-
     ScreenPriv = xcalloc(1, sizeof(QuartzCursorScreenRec));
     if (ScreenPriv == NULL)
         return FALSE;
@@ -379,7 +369,8 @@ QuartzInitCursor(ScreenPtr pScreen)
     ScreenPriv->QueryBestSize = pScreen->QueryBestSize;
     pScreen->QueryBestSize = QuartzCursorQueryBestSize;
 
-    PointPriv = (miPointerScreenPtr) pScreen->devPrivates[miPointerScreenIndex].ptr;
+    PointPriv = (miPointerScreenPtr)
+	dixLookupPrivate(&pScreen->devPrivates, miPointerScreenKey);
 
     ScreenPriv->spriteFuncs = PointPriv->spriteFuncs;
     PointPriv->spriteFuncs = &quartzSpriteFuncsRec;

@@ -46,23 +46,9 @@
 
 #include "micmap.h"
 
-static int dmxInitColormapPrivateFunc(ColormapPtr pColormap, int index)
-{
-    return TRUE;
-}
-
 static Bool dmxAllocateColormapPrivates(ColormapPtr pColormap)
 {
-    static unsigned long dmxColormapGeneration;
     dmxColormapPrivPtr   pCmapPriv;
-
-    if (dmxColormapGeneration != serverGeneration) {
-	if ((dmxColormapPrivateIndex
-	     = AllocateColormapPrivateIndex(dmxInitColormapPrivateFunc)) < 0)
-	    return FALSE;
-
-	dmxColormapGeneration = serverGeneration;
-    }
 
     pCmapPriv = (dmxColormapPrivPtr)xalloc(sizeof(*pCmapPriv));
     if (!pCmapPriv)

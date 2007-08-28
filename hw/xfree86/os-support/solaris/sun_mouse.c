@@ -121,8 +121,11 @@ static void vuidMouseSendScreenSize(ScreenPtr pScreen, VuidMsePtr pVuidMse);
 static void vuidMouseAdjustFrame(int index, int x, int y, int flags);
 
 static int vuidMouseGeneration = 0;
-static int vuidMouseScreenIndex;
-#define vuidMouseScreenPrivate(s) ((s)->devPrivates[vuidMouseScreenIndex].ptr)
+static DevPrivateKey vuidMouseScreenKey = &vuidMouseScreenKey;
+#define vuidGetMouseScreenPrivate(s) ((VuidMsePtr) \
+    dixLookupPrivate(&(s)->devPrivates, vuidMouseScreenKey))
+#define vuidSetMouseScreenPrivate(s,p) \
+    dixSetPrivate(&(s)->devPrivates, vuidMouseScreenKey, p)
 #endif /* HAVE_ABSOLUTE_MOUSE_SCALING */
 
 static inline
@@ -455,7 +458,7 @@ static void vuidMouseAdjustFrame(int index, int x, int y, int flags)
       ScrnInfoPtr	pScrn = xf86Screens[index];
       ScreenPtr		pScreen = pScrn->pScreen;
       xf86AdjustFrameProc *wrappedAdjustFrame 
-	  = (xf86AdjustFrameProc *) vuidMouseScreenPrivate(pScreen);
+	  = (xf86AdjustFrameProc *) vuidMouseGetScreenPrivate(pScreen);
       VuidMsePtr	m;
 
       if(wrappedAdjustFrame) {
@@ -496,15 +499,12 @@ vuidMouseProc(DeviceIntPtr pPointer, int what)
     case DEVICE_INIT:
 #ifdef HAVE_ABSOLUTE_MOUSE_SCALING
 	if (vuidMouseGeneration != serverGeneration) {
-	    if ((vuidMouseScreenIndex = AllocateScreenPrivateIndex()) >= 0) {
 		for (i = 0; i < screenInfo.numScreens; i++) {
 		    ScreenPtr pScreen = screenInfo.screens[i];
 		    ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
-		    vuidMouseScreenPrivate(pScreen)
-			= (pointer) pScrn->AdjustFrame;
+		    vuidMouseSetScreenPrivate(pScreen, pScrn->AdjustFrame);
 		    pScrn->AdjustFrame = vuidMouseAdjustFrame;
 		}
-	    }
 	    vuidMouseGeneration = serverGeneration;
 	}
 #endif    	

@@ -75,8 +75,8 @@ cfbCreateWindow(pWin)
 
 #ifdef PIXMAP_PER_WINDOW
     /* Setup pointer to Screen pixmap */
-    pWin->devPrivates[frameWindowPrivateIndex].ptr =
-	(pointer) cfbGetScreenPixmap(pWin->drawable.pScreen);
+    dixSetPrivate(&pWin->devPrivates, frameWindowPrivateKey,
+		  cfbGetScreenPixmap(pWin->drawable.pScreen));
 #endif
 
     return TRUE;
@@ -213,7 +213,7 @@ cfbCopyWindow(pWin, ptOldOrg, prgnSrc)
 
 /* swap in correct PaintWindow* routine.  If we can use a fast output
 routine (i.e. the pixmap is paddable to 32 bits), also pre-rotate a copy
-of it in devPrivates[cfbWindowPrivateIndex].ptr.
+of it in devPrivates under cfbWindowPrivateKey.
 */
 Bool
 cfbChangeWindowAttributes(pWin, mask)

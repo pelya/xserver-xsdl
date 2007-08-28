@@ -388,8 +388,8 @@ ProcXvQueryAdaptors(ClientPtr client)
       return rc;
 
   pScreen = pWin->drawable.pScreen;
-  pxvs = (XvScreenPtr)pScreen->devPrivates[XvScreenIndex].ptr;
-
+  pxvs = (XvScreenPtr)dixLookupPrivate(&pScreen->devPrivates,
+				       XvGetScreenKey());
   if (!pxvs)
     {
       rep.type = X_Reply;
@@ -2099,7 +2099,8 @@ XineramaXvPutStill(ClientPtr client)
 void XineramifyXv(void)
 {
    ScreenPtr pScreen, screen0 = screenInfo.screens[0];
-   XvScreenPtr xvsp0 = (XvScreenPtr)screen0->devPrivates[XvScreenIndex].ptr;
+   XvScreenPtr xvsp0 = (XvScreenPtr)dixLookupPrivate(&screen0->devPrivates,
+						     XvGetScreenKey());
    XvAdaptorPtr refAdapt, pAdapt;
    XvAttributePtr pAttr;
    XvScreenPtr xvsp;
@@ -2132,8 +2133,8 @@ void XineramifyXv(void)
    
       for(j = 1; j < PanoramiXNumScreens; j++) {
          pScreen = screenInfo.screens[j];
-	 xvsp = (XvScreenPtr)pScreen->devPrivates[XvScreenIndex].ptr;
-
+	 xvsp = (XvScreenPtr)dixLookupPrivate(&pScreen->devPrivates,
+					      XvGetScreenKey());
          /* Do not try to go on if xv is not supported on this screen */
          if (xvsp==NULL) continue ;
 	 

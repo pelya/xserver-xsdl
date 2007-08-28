@@ -55,6 +55,7 @@ SOFTWARE.
 #include <X11/fonts/font.h>
 #include "input.h"
 #include "cursor.h"
+#include "privates.h"
 
 #define MiBits	CARD32
 
@@ -412,7 +413,7 @@ extern Bool miScreenInit(
     VisualPtr /*visuals*/
 );
 
-extern int miAllocateGCPrivateIndex(
+extern DevPrivateKey miAllocateGCPrivateIndex(
     void
 );
 

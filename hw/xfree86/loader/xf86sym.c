@@ -1099,8 +1099,8 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMVAR(xf86HUGE_VAL)
 
     /* General variables (from xf86.h) */
-    SYMVAR(xf86ScreenIndex)
-    SYMVAR(xf86PixmapIndex)
+    SYMVAR(xf86ScreenKey)
+    SYMVAR(xf86PixmapKey)
     SYMVAR(xf86Screens)
     SYMVAR(byte_reversed)
     SYMVAR(xf86inSuspend)

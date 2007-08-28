@@ -234,10 +234,12 @@ MakeScreenPrivate (
 	ScreenPtr /* pScreen */
 	);
 
-static int ScreenPrivateIndex;
+static DevPrivateKey ScreenPrivateKey = &ScreenPrivateKey;
 
-#define GetScreenPrivate(s) ((ScreenSaverScreenPrivatePtr)(s)->devPrivates[ScreenPrivateIndex].ptr)
-#define SetScreenPrivate(s,v) ((s)->devPrivates[ScreenPrivateIndex].ptr = (pointer) v);
+#define GetScreenPrivate(s) ((ScreenSaverScreenPrivatePtr) \
+    dixLookupPrivate(&(s)->devPrivates, ScreenPrivateKey))
+#define SetScreenPrivate(s,v) \
+    dixSetPrivate(&(s)->devPrivates, ScreenPrivateKey, v);
 #define SetupScreen(s)	ScreenSaverScreenPrivatePtr pPriv = (s ? GetScreenPrivate(s) : NULL)
 
 #define New(t)	((t *) xalloc (sizeof (t)))
@@ -260,14 +262,13 @@ ScreenSaverExtensionInit(INITARGS)
     AttrType = CreateNewResourceType(ScreenSaverFreeAttr);
     EventType = CreateNewResourceType(ScreenSaverFreeEvents);
     SuspendType = CreateNewResourceType(ScreenSaverFreeSuspend);
-    ScreenPrivateIndex = AllocateScreenPrivateIndex ();
 
     for (i = 0; i < screenInfo.numScreens; i++)
     {
 	pScreen = screenInfo.screens[i];
 	SetScreenPrivate (pScreen, NULL);
     }
-    if (AttrType && EventType && SuspendType && ScreenPrivateIndex != -1 &&
+    if (AttrType && EventType && SuspendType &&
 	(extEntry = AddExtension(ScreenSaverName, ScreenSaverNumberEvents, 0,
 				 ProcScreenSaverDispatch, SProcScreenSaverDispatch,
 				 ScreenSaverResetProc, StandardMinorOpcode)))

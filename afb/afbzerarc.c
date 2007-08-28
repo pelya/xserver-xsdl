@@ -96,8 +96,8 @@ afbZeroArcSS(DrawablePtr pDraw, GCPtr pGC, xArc *arc)
 	register PixelType *paddr;
 	register unsigned char *rrops;
 
-	rrops = ((afbPrivGC *)(pGC->devPrivates[afbGCPrivateIndex].ptr))->rrops;
-
+	rrops = ((afbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					       afbGCPrivateKey))->rrops;
 	afbGetPixelWidthSizeDepthAndPointer(pDraw, nlwidth, sizeDst, depthDst,
 													 addrl);
 	do360 = miZeroArcSetup(arc, &info, TRUE);

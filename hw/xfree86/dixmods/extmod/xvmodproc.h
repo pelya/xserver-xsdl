@@ -5,7 +5,7 @@
 
 #include "xvmcext.h"
 
-extern int (*XvGetScreenIndexProc)(void);
+extern DevPrivateKey (*XvGetScreenKeyProc)(void);
 extern unsigned long (*XvGetRTPortProc)(void);
 extern int (*XvScreenInitProc)(ScreenPtr);
 extern int (*XvMCScreenInitProc)(ScreenPtr, int, XvMCAdaptorPtr);

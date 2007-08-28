@@ -246,7 +246,7 @@ typedef struct
 	device->public.realInputProc = oldprocs->realInputProc; \
 	device->unwrapProc = oldprocs->unwrapProc;
 
-#define XKBDEVICEINFO(dev) ((xkbDeviceInfoPtr) (dev)->devPrivates[xkbDevicePrivateIndex].ptr)
+#define XKBDEVICEINFO(dev) ((xkbDeviceInfoPtr)dixLookupPrivate(&(dev)->devPrivates, xkbDevicePrivateKey))
 
 /***====================================================================***/
 

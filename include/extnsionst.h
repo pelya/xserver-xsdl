@@ -53,6 +53,7 @@ SOFTWARE.
 #include "screenint.h"
 #include "extension.h"
 #include "gc.h"
+#include "privates.h"
 
 typedef struct _ExtensionEntry {
     int index;
@@ -69,7 +70,7 @@ typedef struct _ExtensionEntry {
     pointer extPrivate;
     unsigned short (* MinorOpcode)(	/* called for errors */
 	ClientPtr /* client */);
-    DevUnion *devPrivates;
+    PrivateRec *devPrivates;
 } ExtensionEntry;
 
 /* 

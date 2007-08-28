@@ -52,6 +52,7 @@ SOFTWARE.
 #include "input.h"
 #include "window.h"
 #include "dixstruct.h"
+#include "privates.h"
 
 #define BitIsOn(ptr, bit) (((BYTE *) (ptr))[(bit)>>3] & (1 << ((bit) & 7)))
 
@@ -62,7 +63,7 @@ SOFTWARE.
 
 #define EMASKSIZE	MAX_DEVICES
 
-extern int CoreDevicePrivatesIndex;
+extern DevPrivateKey CoreDevicePrivateKey;
 
 /* Kludge: OtherClients and InputClients must be compatible, see code */
 
@@ -327,7 +328,7 @@ typedef struct _DeviceIntRec {
     void                *pad0;
 #endif
     char                *config_info; /* used by the hotplug layer */
-    DevUnion		*devPrivates;
+    PrivateRec		*devPrivates;
     int			nPrivates;
     DeviceUnwrapProc    unwrapProc;
 } DeviceIntRec;

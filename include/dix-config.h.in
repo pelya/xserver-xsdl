@@ -261,9 +261,6 @@
 /* Internal define for Xinerama */
 #undef PANORAMIX
 
-/* Support pixmap privates */
-#undef PIXPRIV
-
 /* Overall prefix */
 #undef PROJECTROOT
 

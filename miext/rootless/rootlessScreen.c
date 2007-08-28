@@ -61,9 +61,9 @@ extern int RootlessMiValidateTree(WindowPtr pRoot, WindowPtr pChild,
 extern Bool RootlessCreateGC(GCPtr pGC);
 
 // Initialize globals
-int rootlessGCPrivateIndex = -1;
-int rootlessScreenPrivateIndex = -1;
-int rootlessWindowPrivateIndex = -1;
+DevPrivateKey rootlessGCPrivateKey = &rootlessGCPrivateKey;
+DevPrivateKey rootlessScreenPrivateKey = &rootlessScreenPrivateKey;
+DevPrivateKey rootlessWindowPrivateKey = &rootlessWindowPrivateKey;
 
 
 /*
@@ -547,28 +547,14 @@ static Bool
 RootlessAllocatePrivates(ScreenPtr pScreen)
 {
     RootlessScreenRec *s;
-    static unsigned long rootlessGeneration = 0;
-
-    if (rootlessGeneration != serverGeneration) {
-        rootlessScreenPrivateIndex = AllocateScreenPrivateIndex();
-        if (rootlessScreenPrivateIndex == -1) return FALSE;
-        rootlessGCPrivateIndex = AllocateGCPrivateIndex();
-        if (rootlessGCPrivateIndex == -1) return FALSE;
-        rootlessWindowPrivateIndex = AllocateWindowPrivateIndex();
-        if (rootlessWindowPrivateIndex == -1) return FALSE;
-        rootlessGeneration = serverGeneration;
-    }
 
     // no allocation needed for screen privates
-    if (!AllocateGCPrivate(pScreen, rootlessGCPrivateIndex,
-                           sizeof(RootlessGCRec)))
-        return FALSE;
-    if (!AllocateWindowPrivate(pScreen, rootlessWindowPrivateIndex, 0))
+    if (!dixRequestPrivate(rootlessGCPrivateKey, sizeof(RootlessGCRec)))
         return FALSE;
 
     s = xalloc(sizeof(RootlessScreenRec));
     if (! s) return FALSE;
-    SCREENREC(pScreen) = s;
+    SETSCREENREC(pScreen, s);
 
     s->pixmap_data = NULL;
     s->pixmap_data_size = 0;
@@ -583,8 +569,7 @@ RootlessAllocatePrivates(ScreenPtr pScreen)
 static void
 RootlessWrap(ScreenPtr pScreen)
 {
-    RootlessScreenRec *s = (RootlessScreenRec*)
-            pScreen->devPrivates[rootlessScreenPrivateIndex].ptr;
+    RootlessScreenRec *s = SCREENREC(pScreen);
 
 #define WRAP(a) \
     if (pScreen->a) { \
@@ -650,8 +635,7 @@ Bool RootlessInit(ScreenPtr pScreen, RootlessFrameProcsPtr procs)
     if (!RootlessAllocatePrivates(pScreen))
         return FALSE;
 
-    s = (RootlessScreenRec*)
-        pScreen->devPrivates[rootlessScreenPrivateIndex].ptr;
+    s = SCREENREC(pScreen);
 
     s->imp = procs;
 

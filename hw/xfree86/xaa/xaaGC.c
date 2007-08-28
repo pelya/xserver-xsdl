@@ -38,7 +38,8 @@ Bool
 XAACreateGC(GCPtr pGC)
 {
     ScreenPtr    pScreen = pGC->pScreen;
-    XAAGCPtr     pGCPriv = (XAAGCPtr)(pGC->devPrivates[XAAGetGCIndex()].ptr);
+    XAAGCPtr     pGCPriv = (XAAGCPtr)dixLookupPrivate(&pGC->devPrivates,
+						      XAAGetGCKey());
     Bool         ret;
 
     XAA_SCREEN_PROLOGUE(pScreen,CreateGC);

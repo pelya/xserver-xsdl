@@ -49,8 +49,7 @@
 
 #include "mi.h"
 
-static unsigned long DGAGeneration = 0;
-static int DGAScreenIndex = -1;
+static DevPrivateKey DGAScreenKey = NULL;
 static int mieq_installed = 0;
 
 static Bool DGACloseScreen(int i, ScreenPtr pScreen);
@@ -68,8 +67,8 @@ DGACopyModeInfo(
 
 _X_EXPORT int *XDGAEventBase = NULL;
 
-#define DGA_GET_SCREEN_PRIV(pScreen) \
-	((DGAScreenPtr)((pScreen)->devPrivates[DGAScreenIndex].ptr))
+#define DGA_GET_SCREEN_PRIV(pScreen) ((DGAScreenPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, DGAScreenKey))
 
 
 typedef struct _FakedVisualList{
@@ -116,11 +115,7 @@ DGAInit(
     if(!modes || num <= 0)
 	return FALSE;
 
-    if(DGAGeneration != serverGeneration) {
-	if((DGAScreenIndex = AllocateScreenPrivateIndex()) < 0)
-	    return FALSE;
-	DGAGeneration = serverGeneration;
-    }
+    DGAScreenKey = &DGAScreenKey;
 
     if(!(pScreenPriv = (DGAScreenPtr)xalloc(sizeof(DGAScreenRec))))
 	return FALSE;
@@ -148,7 +143,7 @@ DGAInit(
 	    modes[i].flags &= ~DGA_PIXMAP_AVAILABLE;
 #endif
 
-    pScreen->devPrivates[DGAScreenIndex].ptr = (pointer)pScreenPriv;
+    dixSetPrivate(&pScreen->devPrivates, DGAScreenKey, pScreenPriv);
     pScreenPriv->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = DGACloseScreen;
     pScreenPriv->DestroyColormap = pScreen->DestroyColormap;
@@ -176,7 +171,7 @@ DGAReInitModes(
     int i;
 
     /* No DGA? Ignore call (but don't make it look like it failed) */
-    if(DGAScreenIndex < 0)
+    if(DGAScreenKey == NULL)
 	return TRUE;
 	
     pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
@@ -350,7 +345,7 @@ xf86SetDGAMode(
    DGAModePtr pMode = NULL;
 
    /* First check if DGAInit was successful on this screen */
-   if (DGAScreenIndex < 0)
+   if (DGAScreenKey == NULL)
 	return BadValue;
    pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
    if (!pScreenPriv)
@@ -485,7 +480,7 @@ DGAChangePixmapMode(int index, int *x, int *y, int mode)
    DGAModePtr   pMode;
    PixmapPtr    pPix;
 
-   if(DGAScreenIndex < 0)
+   if(DGAScreenKey == NULL)
 	return FALSE;
 
    pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
@@ -535,11 +530,12 @@ DGAChangePixmapMode(int index, int *x, int *y, int mode)
 _X_EXPORT Bool
 DGAAvailable(int index) 
 {
-   if(DGAScreenIndex < 0)
+   if(DGAScreenKey == NULL)
 	return FALSE;
    
-   if (!xf86NoSharedResources(((ScrnInfoPtr)screenInfo.screens[index]->
-			 devPrivates[xf86ScreenIndex].ptr)->scrnIndex,MEM))
+   if (!xf86NoSharedResources(((ScrnInfoPtr)dixLookupPrivate(
+				   &screenInfo.screens[index]->devPrivates,
+				   xf86ScreenKey))->scrnIndex, MEM))
        return FALSE;
    
    if(DGA_GET_SCREEN_PRIV(screenInfo.screens[index]))
@@ -553,7 +549,7 @@ DGAActive(int index)
 {
    DGAScreenPtr pScreenPriv;
 
-   if(DGAScreenIndex < 0)
+   if(DGAScreenKey == NULL)
 	return FALSE;
 
    pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
@@ -574,7 +570,7 @@ DGAShutdown()
     ScrnInfoPtr pScrn;
     int i;
 
-    if(DGAScreenIndex < 0)
+    if(DGAScreenKey == NULL)
 	return;
 
     for(i = 0; i < screenInfo.numScreens; i++) {
@@ -904,7 +900,7 @@ DGAVTSwitch(void)
 
        /* Alternatively, this could send events to DGA clients */
 
-       if(DGAScreenIndex >= 0) {
+       if(DGAScreenKey) {
 	   DGAScreenPtr pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
 
 	   if(pScreenPriv && pScreenPriv->current)
@@ -921,7 +917,7 @@ DGAStealKeyEvent(int index, int key_code, int is_down)
    DGAScreenPtr pScreenPriv;
    dgaEvent    de;
     
-   if(DGAScreenIndex < 0) /* no DGA */
+   if(DGAScreenKey == NULL) /* no DGA */
         return FALSE;
 
    pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
@@ -945,7 +941,7 @@ DGAStealMotionEvent(int index, int dx, int dy)
    DGAScreenPtr pScreenPriv;
     dgaEvent    de;
 
-   if(DGAScreenIndex < 0) /* no DGA */
+   if(DGAScreenKey == NULL) /* no DGA */
         return FALSE;
     
    pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
@@ -980,7 +976,7 @@ DGAStealButtonEvent(int index, int button, int is_down)
     DGAScreenPtr pScreenPriv;
     dgaEvent de;
 
-    if (DGAScreenIndex < 0)
+    if (DGAScreenKey == NULL)
         return FALSE;
     
     pScreenPriv = DGA_GET_SCREEN_PRIV(screenInfo.screens[index]);
@@ -1006,7 +1002,7 @@ Bool
 DGAIsDgaEvent (xEvent *e)
 {
     int	    coreEquiv;
-    if (DGAScreenIndex < 0 || XDGAEventBase == 0)
+    if (DGAScreenKey == NULL || XDGAEventBase == 0)
 	return FALSE;
     coreEquiv = e->u.u.type - *XDGAEventBase;
     if (KeyPress <= coreEquiv && coreEquiv <= MotionNotify)
@@ -1275,7 +1271,7 @@ DGAHandleEvent(int screen_num, xEvent *event, DeviceIntPtr device, int nevents)
     int		    coreEquiv;
 
     /* no DGA */
-    if (DGAScreenIndex < 0 || XDGAEventBase == 0)
+    if (DGAScreenKey == NULL || XDGAEventBase == 0)
 	return;
     pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
     

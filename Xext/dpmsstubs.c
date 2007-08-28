@@ -48,5 +48,5 @@ int DPMSGet(int *plevel)
 
 int DPMSSet(ClientPtr client, int level)
 {
-
+    return Success;
 }

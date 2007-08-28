@@ -111,14 +111,11 @@ PsCreatePixmap(
   pPixmap->drawable.height       = height;
   pPixmap->devKind               = 0;
   pPixmap->refcnt                = 1;
-
-  pPixmap->devPrivates = (DevUnion *)xcalloc(1, sizeof(DevUnion));
-  if( !pPixmap->devPrivates )
-    { xfree(pPixmap); return NullPixmap; }
+  pPixmap->devPrivates		 = NULL;
 
   pPixmap->devPrivate.ptr = (PsPixmapPrivPtr)xcalloc(1, sizeof(PsPixmapPrivRec));
   if( !pPixmap->devPrivate.ptr )
-    { xfree(pPixmap->devPrivates); xfree(pPixmap); return NullPixmap; }
+    { xfree(pPixmap); return NullPixmap; }
   return pPixmap;
 }
 
@@ -201,7 +198,7 @@ PsDestroyPixmap(PixmapPtr pPixmap)
   PsScrubPixmap(pPixmap);
 
   xfree(priv);
-  dixFreePrivates(*DEVPRIV_PTR(pPixmap));
+  dixFreePrivates(pPixmap->devPrivates);
   xfree(pPixmap);
   return TRUE;
 }

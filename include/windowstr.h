@@ -55,6 +55,7 @@ SOFTWARE.
 #include "property.h"
 #include "resource.h"	/* for ROOT_WINDOW_ID_BASE */
 #include "dix.h"
+#include "privates.h"
 #include "miscstruct.h"
 #include <X11/Xprotostr.h>
 #include "opaque.h"
@@ -159,7 +160,7 @@ typedef struct _Window {
 #ifdef COMPOSITE
     unsigned		redirectDraw:2;	/* rendering is redirected from here */
 #endif
-    DevUnion		*devPrivates;
+    PrivateRec		*devPrivates;
 } WindowRec;
 
 /*

@@ -58,12 +58,6 @@ extern Bool EnableDisableExtension(char *name, Bool enable);
 
 extern void EnableDisableExtensionError(char *name, Bool enable);
 
-extern int AllocateExtensionPrivateIndex(void);
-
-extern Bool AllocateExtensionPrivate(
-    int /*index*/,
-    unsigned /*amount*/);
-
 extern void InitExtensions(int argc, char **argv);
 
 extern void InitVisualWrap(void);

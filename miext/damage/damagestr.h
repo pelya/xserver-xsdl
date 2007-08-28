@@ -29,6 +29,7 @@
 
 #include "damage.h"
 #include "gcstruct.h"
+#include "privates.h"
 #ifdef RENDER
 # include "picturestr.h"
 #endif
@@ -80,31 +81,31 @@ typedef struct _damageGCPriv {
 } DamageGCPrivRec, *DamageGCPrivPtr;
 
 /* XXX should move these into damage.c, damageScrPrivateIndex is static */
-#define damageGetScrPriv(pScr) \
-    ((DamageScrPrivPtr) (pScr)->devPrivates[damageScrPrivateIndex].ptr)
+#define damageGetScrPriv(pScr) ((DamageScrPrivPtr) \
+    dixLookupPrivate(&(pScr)->devPrivates, damageScrPrivateKey))
 
 #define damageScrPriv(pScr) \
     DamageScrPrivPtr    pScrPriv = damageGetScrPriv(pScr)
 
 #define damageGetPixPriv(pPix) \
-    ((DamagePtr) (pPix)->devPrivates[damagePixPrivateIndex].ptr)
+    dixLookupPrivate(&(pPix)->devPrivates, damagePixPrivateKey)
 
 #define damgeSetPixPriv(pPix,v) \
-    ((pPix)->devPrivates[damagePixPrivateIndex].ptr = (pointer ) (v))
+    dixSetPrivate(&(pPix)->devPrivates, damagePixPrivateKey, v)
 
 #define damagePixPriv(pPix) \
     DamagePtr	    pDamage = damageGetPixPriv(pPix)
 
 #define damageGetGCPriv(pGC) \
-    ((DamageGCPrivPtr) (pGC)->devPrivates[damageGCPrivateIndex].ptr)
+    dixLookupPrivate(&(pGC)->devPrivates, damageGCPrivateKey)
 
 #define damageGCPriv(pGC) \
     DamageGCPrivPtr  pGCPriv = damageGetGCPriv(pGC)
 
 #define damageGetWinPriv(pWin) \
-    ((DamagePtr) (pWin)->devPrivates[damageWinPrivateIndex].ptr)
+    ((DamagePtr)dixLookupPrivate(&(pWin)->devPrivates, damageWinPrivateKey))
 
 #define damageSetWinPriv(pWin,d) \
-    ((pWin)->devPrivates[damageWinPrivateIndex].ptr = (d))
+    dixSetPrivate(&(pWin)->devPrivates, damageWinPrivateKey, d)
 
 #endif /* _DAMAGESTR_H_ */

@@ -123,7 +123,8 @@ afbSolidFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
 
 	afbGetPixelWidthSizeDepthAndPointer(pDrawable, nlwidth, sizeDst, depthDst,
 													 pBase);
-	rrops = ((afbPrivGC *)(pGC->devPrivates[afbGCPrivateIndex].ptr))->rrops;
+	rrops = ((afbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					       afbGCPrivateKey))->rrops;
 	while (n--) {
 		addrlBase = afbScanline(pBase, ppt->x, ppt->y, nlwidth);
 
@@ -238,8 +239,8 @@ afbStippleFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
 	tileHeight = pStipple->drawable.height;
 	psrc = (PixelType *)(pStipple->devPrivate.ptr);
 
-	rrops = ((afbPrivGC *)(pGC->devPrivates[afbGCPrivateIndex].ptr))->rrops;
-
+	rrops = ((afbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					       afbGCPrivateKey))->rrops;
 	while (n--) {
 		src = psrc[ppt->y % tileHeight];
 		addrlBase = afbScanline(pBase, ppt->x, ppt->y, nlwidth);
@@ -484,8 +485,8 @@ afbOpaqueStippleFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
 	tileHeight = pTile->drawable.height;
 	psrc = (PixelType *)(pTile->devPrivate.ptr);
 	rop = pGC->alu;
-	rropsOS = ((afbPrivGC *)(pGC->devPrivates[afbGCPrivateIndex].ptr))->rropOS;
-
+	rropsOS = ((afbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+						 afbGCPrivateKey))->rropOS;
 	switch(rop) {
 		case GXcopy:
 			while (n--) {
@@ -793,8 +794,8 @@ afbUnnaturalStippleFS(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
 
 	tileWidth = pTile->drawable.width;
 	tileHeight = pTile->drawable.height;
-	rrops = ((afbPrivGC *)(pGC->devPrivates[afbGCPrivateIndex].ptr))->rrops;
-
+	rrops = ((afbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					       afbGCPrivateKey))->rrops;
 	/* this replaces rotating the stipple.  Instead, we just adjust the offset
 	 * at which we start grabbing bits from the stipple.
 	 * Ensure that ppt->x - xSrc >= 0 and ppt->y - ySrc >= 0,

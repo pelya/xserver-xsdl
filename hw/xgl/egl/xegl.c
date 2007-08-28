@@ -42,14 +42,13 @@
 #define XEGL_DEFAULT_SCREEN_WIDTH  800
 #define XEGL_DEFAULT_SCREEN_HEIGHT 600
 
-int xeglScreenGeneration = -1;
-int xeglScreenPrivateIndex;
+DevPrivateKey xeglScreenPrivateKey = &xeglScreenPrivateKey;
 
-#define XEGL_GET_SCREEN_PRIV(pScreen)				         \
-    ((xeglScreenPtr) (pScreen)->devPrivates[xeglScreenPrivateIndex].ptr)
+#define XEGL_GET_SCREEN_PRIV(pScreen) ((xeglScreenPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, xeglScreenPrivateKey))
 
-#define XEGL_SET_SCREEN_PRIV(pScreen, v)			       \
-    ((pScreen)->devPrivates[xeglScreenPrivateIndex].ptr = (pointer) v)
+#define XEGL_SET_SCREEN_PRIV(pScreen, v) \
+    dixSetPrivate(&(pScreen)->devPrivates, xeglScreenPrivateKey, v)
 
 #define XEGL_SCREEN_PRIV(pScreen)			       \
     xeglScreenPtr pScreenPriv = XEGL_GET_SCREEN_PRIV (pScreen)
@@ -65,15 +64,6 @@ static Bool
 xeglAllocatePrivates (ScreenPtr pScreen)
 {
     xeglScreenPtr pScreenPriv;
-
-    if (xeglScreenGeneration != serverGeneration)
-    {
-	xeglScreenPrivateIndex = AllocateScreenPrivateIndex ();
-	if (xeglScreenPrivateIndex < 0)
-	    return FALSE;
-
-	xeglScreenGeneration = serverGeneration;
-    }
 
     pScreenPriv = xalloc (sizeof (xeglScreenRec));
     if (!pScreenPriv)

@@ -22,10 +22,10 @@ typedef struct {
   int nClipRects;
 } xnestPrivGC;
 
-extern int xnestGCPrivateIndex;
+extern DevPrivateKey xnestGCPrivateKey;
 
-#define xnestGCPriv(pGC) \
-  ((xnestPrivGC *)((pGC)->devPrivates[xnestGCPrivateIndex].ptr))
+#define xnestGCPriv(pGC) ((xnestPrivGC *) \
+    dixLookupPrivate(&(pGC)->devPrivates, xnestGCPrivateKey))
 
 #define xnestGC(pGC) (xnestGCPriv(pGC)->gc)
 

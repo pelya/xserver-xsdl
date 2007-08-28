@@ -345,41 +345,6 @@ MakeRootTile(WindowPtr pWin)
 
 }
 
-WindowPtr
-AllocateWindow(ScreenPtr pScreen)
-{
-    WindowPtr pWin;
-    char *ptr;
-    DevUnion *ppriv;
-    unsigned *sizes;
-    unsigned size;
-    int i;
-
-    pWin = (WindowPtr)xalloc(pScreen->totalWindowSize);
-    if (pWin)
-    {
-	ppriv = (DevUnion *)(pWin + 1);
-	pWin->devPrivates = ppriv;
-	sizes = pScreen->WindowPrivateSizes;
-	ptr = (char *)(ppriv + pScreen->WindowPrivateLen);
-	for (i = pScreen->WindowPrivateLen; --i >= 0; ppriv++, sizes++)
-	{
-	    if ( (size = *sizes) )
-	    {
-		ppriv->ptr = (pointer)ptr;
-		ptr += size;
-	    }
-	    else
-		ppriv->ptr = (pointer)NULL;
-	}
-#if _XSERVER64
-	pWin->drawable.pad0 = 0;
-        pWin->drawable.pad1 = 0;
-#endif
-    }
-    return pWin;
-}
-
 /*****
  * CreateRootWindow
  *    Makes a window at initialization time for specified screen
@@ -392,7 +357,7 @@ CreateRootWindow(ScreenPtr pScreen)
     BoxRec	box;
     PixmapFormatRec *format;
 
-    pWin = AllocateWindow(pScreen);
+    pWin = (WindowPtr)xalloc(sizeof(WindowRec));
     if (!pWin)
 	return FALSE;
 
@@ -405,6 +370,7 @@ CreateRootWindow(ScreenPtr pScreen)
 
     pWin->drawable.pScreen = pScreen;
     pWin->drawable.type = DRAWABLE_WINDOW;
+    pWin->devPrivates = NULL;
 
     pWin->drawable.depth = pScreen->rootDepth;
     for (format = screenInfo.formats;
@@ -689,13 +655,14 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
 	return NullWindow;
     }
 
-    pWin = AllocateWindow(pScreen);
+    pWin = (WindowPtr)xalloc(sizeof(WindowRec));
     if (!pWin)
     {
 	*error = BadAlloc;
 	return NullWindow;
     }
     pWin->drawable = pParent->drawable;
+    pWin->devPrivates = NULL;
     pWin->drawable.depth = depth;
     if (depth == pParent->drawable.depth)
 	pWin->drawable.bitsPerPixel = pParent->drawable.bitsPerPixel;
@@ -968,7 +935,7 @@ DeleteWindow(pointer value, XID wid)
 	if (pWin->prevSib)
 	    pWin->prevSib->nextSib = pWin->nextSib;
     }
-    dixFreePrivates(*DEVPRIV_PTR(pWin));
+    dixFreePrivates(pWin->devPrivates);
     xfree(pWin);
     return Success;
 }

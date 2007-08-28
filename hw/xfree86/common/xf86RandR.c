@@ -45,10 +45,9 @@ typedef struct _xf86RandRInfo {
     Rotation			    rotation;
 } XF86RandRInfoRec, *XF86RandRInfoPtr;
 
-static int	    xf86RandRIndex = -1;
-static int	    xf86RandRGeneration;
+static DevPrivateKey xf86RandRKey = NULL;
 
-#define XF86RANDRINFO(p)    ((XF86RandRInfoPtr) (p)->devPrivates[xf86RandRIndex].ptr)
+#define XF86RANDRINFO(p) ((XF86RandRInfoPtr)dixLookupPrivate(&(p)->devPrivates, xf86RandRKey))
 
 static int
 xf86RandRModeRefresh (DisplayModePtr mode)
@@ -338,14 +337,14 @@ xf86RandRCloseScreen (int index, ScreenPtr pScreen)
     scrp->currentMode = scrp->modes;
     pScreen->CloseScreen = randrp->CloseScreen;
     xfree (randrp);
-    pScreen->devPrivates[xf86RandRIndex].ptr = 0;
+    dixSetPrivate(&pScreen->devPrivates, xf86RandRKey, NULL);
     return (*pScreen->CloseScreen) (index, pScreen);
 }
 
 _X_EXPORT Rotation
 xf86GetRotation(ScreenPtr pScreen)
 {
-    if (xf86RandRIndex == -1)
+    if (xf86RandRKey == NULL)
        return RR_Rotate_0;
 
     return XF86RANDRINFO(pScreen)->rotation;
@@ -359,7 +358,7 @@ xf86RandRSetNewVirtualAndDimensions(ScreenPtr pScreen,
 {
     XF86RandRInfoPtr randrp;
 
-    if (xf86RandRIndex == -1)
+    if (xf86RandRKey == NULL)
 	return FALSE;
 
     randrp = XF86RANDRINFO(pScreen);
@@ -401,11 +400,8 @@ xf86RandRInit (ScreenPtr    pScreen)
     if (!noPanoramiXExtension)
 	return TRUE;
 #endif
-    if (xf86RandRGeneration != serverGeneration)
-    {
-	xf86RandRIndex = AllocateScreenPrivateIndex();
-	xf86RandRGeneration = serverGeneration;
-    }
+
+    xf86RandRKey = &xf86RandRKey;
 
     randrp = xalloc (sizeof (XF86RandRInfoRec));
     if (!randrp)
@@ -433,7 +429,7 @@ xf86RandRInit (ScreenPtr    pScreen)
 
     randrp->rotation = RR_Rotate_0;
 
-    pScreen->devPrivates[xf86RandRIndex].ptr = randrp;
+    dixSetPrivate(&pScreen->devPrivates, xf86RandRKey, randrp);
     return TRUE;
 }
 

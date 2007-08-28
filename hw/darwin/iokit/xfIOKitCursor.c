@@ -73,8 +73,8 @@
 #include <assert.h>
 #define DUMP_DARWIN_CURSOR FALSE
 
-#define CURSOR_PRIV(pScreen) \
-    ((XFIOKitCursorScreenPtr)pScreen->devPrivates[darwinCursorScreenIndex].ptr)
+#define CURSOR_PRIV(pScreen) ((XFIOKitCursorScreenPtr) \
+    dixLookupPrivate(&pScreen->devPrivates, darwinCursorScreenKey))
 
 // The cursors format are documented in IOFramebufferShared.h.
 #define RGBto34WithGamma(red, green, blue)  \
@@ -99,8 +99,7 @@ typedef struct {
     ColormapPtr             pInstalledMap;
 } XFIOKitCursorScreenRec, *XFIOKitCursorScreenPtr;
 
-static int darwinCursorScreenIndex = -1;
-static unsigned long darwinCursorGeneration = 0;
+static DevPrivateKey darwinCursorScreenKey = &darwinCursorScreenKey;
 
 /*
 ===========================================================================
@@ -679,17 +678,10 @@ XFIOKitInitCursor(
         return FALSE;
     }
 
-    // allocate private storage for this screen's hardware cursor info
-    if (darwinCursorGeneration != serverGeneration) {
-        if ((darwinCursorScreenIndex = AllocateScreenPrivateIndex()) < 0)
-            return FALSE;
-        darwinCursorGeneration = serverGeneration; 	
-    }
-
     ScreenPriv = xcalloc( 1, sizeof(XFIOKitCursorScreenRec) );
     if (!ScreenPriv) return FALSE;
 
-    pScreen->devPrivates[darwinCursorScreenIndex].ptr = (pointer) ScreenPriv;
+    dixSetPrivate(&pScreen->devPrivates, darwinCursorScreenKey, ScreenPriv);
 
     // check if a hardware cursor is supported
     if (!iokitScreen->cursorShmem->hardwareCursorCapable) {
@@ -722,7 +714,7 @@ XFIOKitInitCursor(
 
     // initialize hardware cursor handling
     PointPriv = (miPointerScreenPtr)
-                    pScreen->devPrivates[miPointerScreenIndex].ptr;
+	dixLookupPrivate(&pScreen->devPrivates, miPointerScreenKey);
 
     ScreenPriv->spriteFuncs = PointPriv->spriteFuncs;
     PointPriv->spriteFuncs = &darwinSpriteFuncsRec; 

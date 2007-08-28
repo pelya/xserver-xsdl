@@ -153,8 +153,6 @@ static int XpFreePage(pointer, XID);
 static Bool XpCloseScreen(int, ScreenPtr);
 static CARD32 GetAllEventMasks(XpContextPtr);
 static struct _XpClient *CreateXpClient(ClientPtr);
-static void InitContextPrivates(XpContextPtr);
-static void ResetContextPrivates(void);
 static struct _XpClient *FindClient(XpContextPtr, ClientPtr);
 static struct _XpClient *AcquireClient(XpContextPtr, ClientPtr);
 
@@ -233,21 +231,12 @@ static XpScreenPtr XpScreens[MAXSCREENS];
 static unsigned char XpReqCode;
 static int XpEventBase;
 static int XpErrorBase;
-static unsigned long XpGeneration = 0;
-static int XpClientPrivateIndex;
+static DevPrivateKey XpClientPrivateKey = &XpClientPrivateKey;
 
-/* Variables for the context private machinery. 
- * These must be initialized at compile time because
- * main() calls InitOutput before InitExtensions, and the
- * output drivers are likely to call AllocateContextPrivate.
- * These variables are reset at CloseScreen time.  CloseScreen
- * is used because it occurs after FreeAllResources, and before
- * the next InitOutput cycle.
- */
-static int  contextPrivateCount = 0;
-static int contextPrivateLen = 0;
-static unsigned *contextPrivateSizes = (unsigned *)NULL;
-static unsigned totalContextSize = sizeof(XpContextRec);
+#define XP_GETPRIV(pClient) ((XpContextPtr) \
+    dixLookupPrivate(&(pClient)->devPrivates, XpClientPrivateKey))
+#define XP_SETPRIV(pClient, p) \
+    dixSetPrivate(&(pClient)->devPrivates, XpClientPrivateKey, p)
 
 /*
  * There are three types of resources involved.  One is the resource associated
@@ -303,20 +292,6 @@ XpExtensionInit(INITARGS)
         XpErrorBase = extEntry->errorBase;
         EventSwapVector[XpEventBase] = (EventSwapPtr) SwapXpNotifyEvent;
         EventSwapVector[XpEventBase+1] = (EventSwapPtr) SwapXpAttributeEvent;
-    }
-
-    if(XpGeneration != serverGeneration)
-    {
-	XpClientPrivateIndex = AllocateClientPrivateIndex();
-	/*
-	 * We allocate 0 length & simply stuff a pointer to the
-	 * ContextRec in the DevUnion.
-	 */
-	if(AllocateClientPrivate(XpClientPrivateIndex, 0) != TRUE)
-	{
-		/* we can't alloc a client private, should we bail??? XXX */
-	}
-	XpGeneration = serverGeneration;
     }
 
     for(i = 0; i < MAXSCREENS; i++)
@@ -377,14 +352,6 @@ XpCloseScreen(int index, ScreenPtr pScreen)
     }
     XpScreens[index] = (XpScreenPtr)NULL;
 
-    /*
-     * It's wasteful to call ResetContextPrivates() at every CloseScreen, 
-     * but it's the best we know how to do for now.  We do this because we
-     * have to wait until after all resources have been freed (so we know
-     * how to free the ContextRecs), and before the next InitOutput cycle.
-     * See dix/main.c for the order of initialization and reset.
-     */
-    ResetContextPrivates();
     return (*CloseScreen)(index, pScreen);
 }
 
@@ -956,11 +923,9 @@ ProcXpCreateContext(ClientPtr client)
     /*
      * Allocate and add the context resource.
      */
-    if((pContext = (XpContextPtr) xalloc(totalContextSize)) == 
+    if((pContext = (XpContextPtr) xalloc(sizeof(XpContextRec))) == 
        (XpContextPtr) NULL)
 	return BadAlloc;
-
-    InitContextPrivates(pContext);
 
     if(AddResource(stuff->contextID, RTcontext, (pointer) pContext)
        != TRUE)
@@ -975,6 +940,7 @@ ProcXpCreateContext(ClientPtr client)
     pContext->state = 0;
     pContext->clientSlept = (ClientPtr)NULL;
     pContext->imageRes = 0;
+    pContext->devPrivates = NULL;
 
     pContext->funcs.DestroyContext = 0;
     pContext->funcs.StartJob = 0;
@@ -1041,8 +1007,7 @@ ProcXpSetContext(ClientPtr client)
 
     REQUEST_AT_LEAST_SIZE(xPrintSetContextReq);
 
-    if((pContext = client->devPrivates[XpClientPrivateIndex].ptr) != 
-       (pointer)NULL)
+    if((pContext = XP_GETPRIV(client)) != (pointer)NULL)
     {
 	/*
 	 * Erase this client's knowledge of its old context, if any.
@@ -1055,7 +1020,7 @@ ProcXpSetContext(ClientPtr client)
 		FreeXpClient(pPrintClient, TRUE);
         }
 
-        client->devPrivates[XpClientPrivateIndex].ptr = (pointer)NULL;
+	XP_SETPRIV(client, NULL);
     }
     if(stuff->printContext == None)
         return Success;
@@ -1077,7 +1042,7 @@ ProcXpSetContext(ClientPtr client)
     if((pPrintClient = AcquireClient(pContext, client)) == (XpClientPtr)NULL)
         return BadAlloc;
 
-    client->devPrivates[XpClientPrivateIndex].ptr = pContext;
+    XP_SETPRIV(client, pContext);
 
     XpSetFontResFunc(client);
 
@@ -1090,7 +1055,7 @@ ProcXpSetContext(ClientPtr client)
 XpContextPtr
 XpGetPrintContext(ClientPtr client)
 {
-    return (client->devPrivates[XpClientPrivateIndex].ptr);
+    return XP_GETPRIV(client);
 }
 
 static int
@@ -1105,8 +1070,7 @@ ProcXpGetContext(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xPrintGetContextReq);
 
-    if((pContext = client->devPrivates[XpClientPrivateIndex].ptr) == 
-       (pointer)NULL)
+    if((pContext = XP_GETPRIV(client)) == (pointer)NULL)
 	rep.printContext = None;
     else
         rep.printContext = pContext->contextID;
@@ -1249,6 +1213,7 @@ XpFreeContext(pointer data, XID id)
     }
 
     xfree(pContext->printerName);
+    dixFreePrivates(pContext->devPrivates);
     xfree(pContext);
     return Success; /* ??? */
 }
@@ -1284,11 +1249,9 @@ FreeXpClient(XpClientPtr pXpClient, Bool freeResource)
      * If we're freeing the clientRec associated with the context tied
      * to the client's devPrivates, then we need to clear the devPrivates.
      */
-    if(pXpClient->client->devPrivates[XpClientPrivateIndex].ptr == 
-       pXpClient->context)
+    if(XP_GETPRIV(pXpClient->client) == pXpClient->context)
     {
-        pXpClient->client->devPrivates[XpClientPrivateIndex].ptr = 
-					(pointer)NULL;
+	XP_SETPRIV(pXpClient->client, NULL);
     }
 
     for(pPrev = (XpClientPtr)NULL, pCurrent = pContext->clientHead; 
@@ -1372,87 +1335,6 @@ XpFreePage(pointer data, XID id)
     return result;
 }
 
-/*
- * ContextPrivate machinery.
- * Context privates are intended for use by the drivers, allowing the
- * drivers to maintain context-specific data.  The driver should free
- * the associated data at DestroyContext time.
- */
-
-static void
-InitContextPrivates(XpContextPtr context)
-{
-    register char *ptr;
-    DevUnion *ppriv;
-    register unsigned *sizes;
-    register unsigned size;
-    register int i;
-
-    if (totalContextSize == sizeof(XpContextRec))
-        ppriv = (DevUnion *)NULL;
-    else 
-        ppriv = (DevUnion *)(context + 1);
-
-    context->devPrivates = ppriv;
-    sizes = contextPrivateSizes;
-    ptr = (char *)(ppriv + contextPrivateLen);
-    for (i = contextPrivateLen; --i >= 0; ppriv++, sizes++)
-    {
-        if ( (size = *sizes) )
-        {
-            ppriv->ptr = (pointer)ptr;
-            ptr += size;
-        }
-        else
-            ppriv->ptr = (pointer)NULL;
-    }
-}
-
-static void
-ResetContextPrivates(void)
-{
-    contextPrivateCount = 0;
-    contextPrivateLen = 0;
-    xfree(contextPrivateSizes);
-    contextPrivateSizes = (unsigned *)NULL;
-    totalContextSize = sizeof(XpContextRec);
-
-}
-
-int
-XpAllocateContextPrivateIndex(void)
-{
-    return contextPrivateCount++;
-}
-
-Bool
-XpAllocateContextPrivate(int index, unsigned amount)
-{
-    unsigned oldamount;
-
-    if (index >= contextPrivateLen)
-    {
-        unsigned *nsizes;
-        nsizes = (unsigned *)xrealloc(contextPrivateSizes,
-                                      (index + 1) * sizeof(unsigned));
-        if (!nsizes)
-            return FALSE;
-        while (contextPrivateLen <= index)
-        {
-            nsizes[contextPrivateLen++] = 0;
-            totalContextSize += sizeof(DevUnion);
-        }
-        contextPrivateSizes = nsizes;
-    }
-    oldamount = contextPrivateSizes[index];
-    if (amount > oldamount)
-    {
-        contextPrivateSizes[index] = amount;
-        totalContextSize += (amount - oldamount);
-    }
-    return TRUE;
-}
-
 static XpClientPtr
 AcquireClient(XpContextPtr pContext, ClientPtr client)
 {
@@ -1501,8 +1383,7 @@ ProcXpStartJob(ClientPtr client)
     REQUEST_SIZE_MATCH(xPrintStartJobReq);
 
     /* Check to see that a context has been established by this client. */
-    if((pContext = (XpContextPtr)client->devPrivates[XpClientPrivateIndex].ptr)
-       == (XpContextPtr)NULL)
+    if((pContext = XP_GETPRIV(client)) == (XpContextPtr)NULL)
         return XpErrorBase+XPBadContext;
 
     if(pContext->state != 0)
@@ -1542,8 +1423,7 @@ ProcXpEndJob(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xPrintEndJobReq);
 
-    if((pContext = (XpContextPtr)client->devPrivates[XpClientPrivateIndex].ptr)
-       == (XpContextPtr)NULL)
+    if((pContext = XP_GETPRIV(client)) == (XpContextPtr)NULL)
         return XpErrorBase+XPBadSequence;
 
     if(!(pContext->state & JOB_STARTED))
@@ -1648,8 +1528,7 @@ ProcXpStartDoc(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xPrintStartDocReq);
 
-    if((pContext = (XpContextPtr)client->devPrivates[XpClientPrivateIndex].ptr)
-       == (XpContextPtr)NULL)
+    if((pContext = XP_GETPRIV(client)) == (XpContextPtr)NULL)
         return XpErrorBase+XPBadSequence;
 
     if(!(pContext->state & JOB_STARTED) || 
@@ -1684,8 +1563,7 @@ ProcXpEndDoc(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xPrintEndDocReq);
 
-    if((pContext = (XpContextPtr)client->devPrivates[XpClientPrivateIndex].ptr)
-       == (XpContextPtr)NULL)
+    if((pContext = XP_GETPRIV(client)) == (XpContextPtr)NULL)
         return XpErrorBase+XPBadSequence;
 
     if(!(pContext->state & DOC_RAW_STARTED) &&
@@ -1837,8 +1715,7 @@ ProcXpStartPage(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xPrintStartPageReq);
 
-    if((pContext = (XpContextPtr)client->devPrivates[XpClientPrivateIndex].ptr)
-       == (XpContextPtr)NULL)
+    if((pContext = XP_GETPRIV(client)) == (XpContextPtr)NULL)
         return XpErrorBase+XPBadSequence;
 
     if(!(pContext->state & JOB_STARTED))
@@ -1882,8 +1759,7 @@ ProcXpEndPage(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xPrintEndPageReq);
 
-    if((pContext = (XpContextPtr)client->devPrivates[XpClientPrivateIndex].ptr)
-       == (XpContextPtr)NULL)
+    if((pContext = XP_GETPRIV(client)) == (XpContextPtr)NULL)
         return XpErrorBase+XPBadSequence;
 
     if(!(pContext->state & PAGE_STARTED))
@@ -1932,8 +1808,7 @@ ProcXpPutDocumentData(ClientPtr client)
 
     REQUEST_AT_LEAST_SIZE(xPrintPutDocumentDataReq);
 
-    if((pContext = (XpContextPtr)client->devPrivates[XpClientPrivateIndex].ptr)
-       == (XpContextPtr)NULL)
+    if((pContext = XP_GETPRIV(client)) == (XpContextPtr)NULL)
         return XpErrorBase+XPBadSequence;
 
     if(!(pContext->state & DOC_RAW_STARTED) &&
@@ -2443,7 +2318,7 @@ GetAllEventMasks(XpContextPtr pContext)
 XpContextPtr
 XpContextOfClient(ClientPtr client)
 {
-    return (XpContextPtr)client->devPrivates[XpClientPrivateIndex].ptr;
+    return XP_GETPRIV(client);
 }
 
 

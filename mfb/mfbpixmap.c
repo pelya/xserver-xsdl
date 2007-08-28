@@ -113,7 +113,7 @@ mfbDestroyPixmap(pPixmap)
 {
     if(--pPixmap->refcnt)
 	return TRUE;
-    dixFreePrivates(*DEVPRIV_PTR(pPixmap));
+    dixFreePrivates(pPixmap->devPrivates);
     xfree(pPixmap);
     return TRUE;
 }

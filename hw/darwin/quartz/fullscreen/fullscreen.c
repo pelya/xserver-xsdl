@@ -49,18 +49,17 @@ typedef struct {
 } FSScreenRec, *FSScreenPtr;
 
 #define FULLSCREEN_PRIV(pScreen) \
-    ((FSScreenPtr)pScreen->devPrivates[fsScreenIndex].ptr)
+    ((FSScreenPtr)dixLookupPrivate(&(pScreen)->devPrivates, fsScreenKey))
 
-static int                  fsScreenIndex;
+static DevPrivateKey        fsScreenKey = &fsScreenKey;
 static CGDirectDisplayID   *quartzDisplayList = NULL;
 static int                  quartzNumScreens = 0;
 static FSScreenPtr          quartzScreens[MAXSCREENS];
 
-static int                  darwinCmapPrivateIndex = -1;
-static unsigned long        darwinCmapGeneration = 0;
+static DevPrivateKey        darwinCmapPrivateKey = &darwinCmapPrivateKey;
 
-#define CMAP_PRIV(pCmap) \
-    ((CGDirectPaletteRef) (pCmap)->devPrivates[darwinCmapPrivateIndex].ptr)
+#define CMAP_PRIV(pCmap) ((CGDirectPaletteRef) \
+    dixLookupPrivate(&(pCmap)->devPrivates, darwinCmapPrivateKey))
 
 /*
  =============================================================================
@@ -94,16 +93,6 @@ FSCreateColormap(
     ColormapPtr         pCmap)
 {
     CGDirectPaletteRef  pallete;
-
-    // Allocate private storage for the hardware dependent colormap info.
-    if (darwinCmapGeneration != serverGeneration) {
-        if ((darwinCmapPrivateIndex =
-                AllocateColormapPrivateIndex(FSInitCmapPrivates)) < 0)
-        {
-            return FALSE;
-        }
-        darwinCmapGeneration = serverGeneration;
-    }
 
     pallete = CGPaletteCreateDefaultColorPalette();
     if (!pallete) return FALSE;
@@ -283,16 +272,9 @@ static void FSResumeScreen(
  */
 static void FSDisplayInit(void)
 {
-    static unsigned long generation = 0;
     CGDisplayCount quartzDisplayCount = 0;
 
     ErrorF("Display mode: Full screen Quartz -- Direct Display\n");
-
-    // Allocate private storage for each screen's mode specific info
-    if (generation != serverGeneration) {
-        fsScreenIndex = AllocateScreenPrivateIndex();
-        generation = serverGeneration;
-    }
 
     // Find all the CoreGraphics displays
     CGGetActiveDisplayList(0, NULL, &quartzDisplayCount);

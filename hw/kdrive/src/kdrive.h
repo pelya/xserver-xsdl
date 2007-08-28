@@ -498,7 +498,7 @@ typedef struct _KaaScreenInfo {
     (PixmapWidthPaddingInfo[d].padRoundUp+1)))
 #endif
 
-extern int		kdScreenPrivateIndex;
+extern DevPrivateKey	kdScreenPrivateKey;
 extern unsigned long	kdGeneration;
 extern Bool		kdEnabled;
 extern Bool		kdSwitchPending;
@@ -510,9 +510,9 @@ extern char		*kdSwitchCmd;
 extern KdOsFuncs	*kdOsFuncs;
 
 #define KdGetScreenPriv(pScreen) ((KdPrivScreenPtr) \
-				  (pScreen)->devPrivates[kdScreenPrivateIndex].ptr)
-#define KdSetScreenPriv(pScreen,v) ((pScreen)->devPrivates[kdScreenPrivateIndex].ptr = \
-				    (pointer) v)
+    dixLookupPrivate(&(pScreen)->devPrivates, kdScreenPrivateKey))
+#define KdSetScreenPriv(pScreen,v) \
+    dixSetPrivate(&(pScreen)->devPrivates, kdScreenPrivateKey, v)
 #define KdScreenPriv(pScreen) KdPrivScreenPtr pScreenPriv = KdGetScreenPriv(pScreen)
 
 /* kaa.c */

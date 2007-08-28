@@ -93,7 +93,8 @@ afbPolyFillRect(DrawablePtr pDrawable, GCPtr pGC, int nrectFill, xRectangle *pre
 	unsigned char *rrops;
 	unsigned char *rropsOS;
 
-	priv = (afbPrivGC *)pGC->devPrivates[afbGCPrivateIndex].ptr;
+	priv = (afbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					     afbGCPrivateKey);
 	prgnClip = pGC->pCompositeClip;
 	rrops = priv->rrops;
 	rropsOS = priv->rropOS;

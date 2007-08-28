@@ -65,9 +65,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <AvailabilityMacros.h>
 
-static int DRIScreenPrivIndex = -1;
-static int DRIWindowPrivIndex = -1;
-static int DRIPixmapPrivIndex = -1;
+static DevPrivateKey DRIScreenPrivKey = &DRIScreenPrivKey;
+static DevPrivateKey DRIWindowPrivKey = &DRIWindowPrivKey;
+static DevPrivateKey DRIPixmapPrivKey = &DRIPixmapPrivKey;
 
 static RESTYPE DRIDrawablePrivResType;
 
@@ -179,11 +179,11 @@ DRIScreenInit(ScreenPtr pScreen)
 
     pDRIPriv = (DRIScreenPrivPtr) xcalloc(1, sizeof(DRIScreenPrivRec));
     if (!pDRIPriv) {
-        pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
+	dixSetPrivate(&pScreen->devPrivates, DRIScreenPrivKey, NULL);
         return FALSE;
     }
 
-    pScreen->devPrivates[DRIScreenPrivIndex].ptr = (pointer) pDRIPriv;
+    dixSetPrivate(&pScreen->devPrivates, DRIScreenPrivKey, pDRIPriv);
     pDRIPriv->directRenderingSupport = TRUE;
     pDRIPriv->nrWindows = 0;
 
@@ -214,13 +214,6 @@ DRIFinishScreenInit(ScreenPtr pScreen)
 {
     DRIScreenPrivPtr  pDRIPriv = DRI_SCREEN_PRIV(pScreen);
 
-    /* Allocate zero sized private area for each window. Should a window
-     * become a DRI window, we'll hang a DRIWindowPrivateRec off of this
-     * private index.
-     */
-    if (!AllocateWindowPrivate(pScreen, DRIWindowPrivIndex, 0))
-        return FALSE;
-
     /* Wrap DRI support */
     pDRIPriv->wrap.ValidateTree = pScreen->ValidateTree;
     pScreen->ValidateTree = DRIValidateTree;
@@ -249,31 +242,13 @@ DRICloseScreen(ScreenPtr pScreen)
 
     if (pDRIPriv && pDRIPriv->directRenderingSupport) {
         xfree(pDRIPriv);
-        pScreen->devPrivates[DRIScreenPrivIndex].ptr = NULL;
+	dixSetPrivate(&pScreen->devPrivates, DRIScreenPrivKey, NULL);
     }
 }
 
 Bool
 DRIExtensionInit(void)
 {
-    static unsigned long DRIGeneration = 0;
-
-    if (DRIGeneration != serverGeneration) {
-        if ((DRIScreenPrivIndex = AllocateScreenPrivateIndex()) < 0)
-            return FALSE;
-        DRIGeneration = serverGeneration;
-    }
-
-    /*
-     * Allocate a window private index with a zero sized private area for
-     * each window, then should a window become a DRI window, we'll hang
-     * a DRIWindowPrivateRec off of this private index. Do same for pixmaps.
-     */
-    if ((DRIWindowPrivIndex = AllocateWindowPrivateIndex()) < 0)
-        return FALSE;
-    if ((DRIPixmapPrivIndex = AllocatePixmapPrivateIndex()) < 0)
-        return FALSE;
-
     DRIDrawablePrivResType = CreateNewResourceType(DRIDrawablePrivDelete);
 
     return TRUE;
@@ -417,7 +392,8 @@ DRICreateSurface(ScreenPtr pScreen, Drawable id,
             }
 
             /* save private off of preallocated index */
-            pWin->devPrivates[DRIWindowPrivIndex].ptr = (pointer)pDRIDrawablePriv;
+	    dixSetPrivate(&pWin->devPrivates, DRIWindowPrivKey,
+			  pDRIDrawablePriv);
         }
     }
 
@@ -450,7 +426,8 @@ DRICreateSurface(ScreenPtr pScreen, Drawable id,
             }
 
             /* save private off of preallocated index */
-            pPix->devPrivates[DRIPixmapPrivIndex].ptr = (pointer)pDRIDrawablePriv;
+	    dixSetPrivate(&pPix->devPrivates, DRIPixmapPrivKey,
+			  pDRIDrawablePriv);
         }
     }
 #endif
@@ -577,9 +554,9 @@ DRIDrawablePrivDelete(pointer pResource, XID id)
     xfree(pDRIDrawablePriv);
 
     if (pDrawable->type == DRAWABLE_WINDOW) {
-        pWin->devPrivates[DRIWindowPrivIndex].ptr = NULL;
+	dixSetPrivate(&pWin->devPrivates, DRIWindowPrivKey, NULL);
     } else if (pDrawable->type == DRAWABLE_PIXMAP) {
-        pPix->devPrivates[DRIPixmapPrivIndex].ptr = NULL;
+	dixSetPrivate(&pPix->devPrivates, DRIPixmapPrivKey, NULL);
     }
 
     --pDRIPriv->nrWindows;

@@ -3692,7 +3692,7 @@ CloseDownClient(ClientPtr client)
 #ifdef SMART_SCHEDULE
 	SmartLastClient = NullClient;
 #endif
-	dixFreePrivates(*DEVPRIV_PTR(client));
+	dixFreePrivates(client->devPrivates);
 	xfree(client);
 
 	while (!clients[currentMaxClients-1])
@@ -3711,10 +3711,6 @@ KillAllClients(void)
             CloseDownClient(clients[i]);     
         }
 }
-
-extern int clientPrivateLen;
-extern unsigned *clientPrivateSizes;
-extern unsigned totalClientSize;
 
 void InitClient(ClientPtr client, int i, pointer ospriv)
 {
@@ -3735,6 +3731,7 @@ void InitClient(ClientPtr client, int i, pointer ospriv)
     client->big_requests = FALSE;
     client->priority = 0;
     client->clientState = ClientStateInitial;
+    client->devPrivates = NULL;
 #ifdef XKB
     if (!noXkbExtension) {
 	client->xkbClientFlags = 0;
@@ -3755,54 +3752,6 @@ void InitClient(ClientPtr client, int i, pointer ospriv)
 #endif
 }
 
-int
-InitClientPrivates(ClientPtr client)
-{
-    char *ptr;
-    DevUnion *ppriv;
-    unsigned *sizes;
-    unsigned size;
-    int i;
-
-    if (totalClientSize == sizeof(ClientRec))
-	ppriv = (DevUnion *)NULL;
-    else if (client->index)
-	ppriv = (DevUnion *)(client + 1);
-    else
-    {
-	ppriv = (DevUnion *)xalloc(totalClientSize - sizeof(ClientRec));
-	if (!ppriv)
-	    return 0;
-    }
-    client->devPrivates = ppriv;
-    sizes = clientPrivateSizes;
-    ptr = (char *)(ppriv + clientPrivateLen);
-    if (ppriv)
-	bzero(ppriv, totalClientSize - sizeof(ClientRec));
-    for (i = clientPrivateLen; --i >= 0; ppriv++, sizes++)
-    {
-	if ( (size = *sizes) )
-	{
-	    ppriv->ptr = (pointer)ptr;
-	    ptr += size;
-	}
-	else
-	    ppriv->ptr = (pointer)NULL;
-    }
-
-    /* Allow registrants to initialize the serverClient devPrivates */
-    if (!client->index && ClientStateCallback)
-    {
-	NewClientInfoRec clientinfo;
-
-	clientinfo.client = client; 
-	clientinfo.prefix = (xConnSetupPrefix *)NULL;  
-	clientinfo.setup = (xConnSetup *) NULL;
-	CallCallbacks((&ClientStateCallback), (pointer)&clientinfo);
-    } 
-    return 1;
-}
-
 /************************
  * int NextAvailableClient(ospriv)
  *
@@ -3819,11 +3768,10 @@ ClientPtr NextAvailableClient(pointer ospriv)
     i = nextFreeClientID;
     if (i == MAXCLIENTS)
 	return (ClientPtr)NULL;
-    clients[i] = client = (ClientPtr)xalloc(totalClientSize);
+    clients[i] = client = (ClientPtr)xalloc(sizeof(ClientRec));
     if (!client)
 	return (ClientPtr)NULL;
     InitClient(client, i, ospriv);
-    InitClientPrivates(client);
     if (!InitClientResources(client))
     {
 	xfree(client);

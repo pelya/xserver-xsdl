@@ -137,7 +137,7 @@ compRedirectWindow (ClientPtr pClient, WindowPtr pWin, int update)
 	cw->oldy = COMP_ORIGIN_INVALID;
 	cw->damageRegistered = FALSE;
 	cw->damaged = FALSE;
-	pWin->devPrivates[CompWindowPrivateIndex].ptr = cw;
+	dixSetPrivate(&pWin->devPrivates, CompWindowPrivateKey, cw);
     }
     ccw->next = cw->clients;
     cw->clients = ccw;
@@ -212,7 +212,7 @@ compFreeClientWindow (WindowPtr pWin, XID id)
 	
 	REGION_UNINIT (pScreen, &cw->borderClip);
     
-	pWin->devPrivates[CompWindowPrivateIndex].ptr = 0;
+	dixSetPrivate(&pWin->devPrivates, CompWindowPrivateKey, NULL);
 	xfree (cw);
     }
     else if (cw->update == CompositeRedirectAutomatic &&
@@ -297,7 +297,7 @@ compRedirectSubwindows (ClientPtr pClient, WindowPtr pWin, int update)
 	}
 	csw->update = CompositeRedirectAutomatic;
 	csw->clients = 0;
-	pWin->devPrivates[CompSubwindowsPrivateIndex].ptr = csw;
+	dixSetPrivate(&pWin->devPrivates, CompSubwindowsPrivateKey, csw);
     }
     /*
      * Redirect all existing windows
@@ -312,7 +312,7 @@ compRedirectSubwindows (ClientPtr pClient, WindowPtr pWin, int update)
 	    if (!csw->clients)
 	    {
 		xfree (csw);
-		pWin->devPrivates[CompSubwindowsPrivateIndex].ptr = 0;
+		dixSetPrivate(&pWin->devPrivates, CompSubwindowsPrivateKey, 0);
 	    }
 	    xfree (ccw);
 	    return ret;
@@ -385,7 +385,7 @@ compFreeClientSubwindows (WindowPtr pWin, XID id)
      */
     if (!csw->clients)
     {
-	pWin->devPrivates[CompSubwindowsPrivateIndex].ptr = 0;
+	dixSetPrivate(&pWin->devPrivates, CompSubwindowsPrivateKey, NULL);
 	xfree (csw);
     }
 }

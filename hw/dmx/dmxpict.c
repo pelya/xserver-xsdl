@@ -144,8 +144,7 @@ Bool dmxPictureInit(ScreenPtr pScreen, PictFormatPtr formats, int nformats)
     if (!miPictureInit(pScreen, formats, nformats))
 	return FALSE;
 
-    if (!AllocatePicturePrivate(pScreen, dmxPictPrivateIndex,
-				sizeof(dmxPictPrivRec)))
+    if (!dixRequestPrivate(dmxPictPrivateKey, sizeof(dmxPictPrivRec)))
 	return FALSE;
 
     ps = GetPictureScreen(pScreen);

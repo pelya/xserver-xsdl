@@ -124,7 +124,7 @@ SysAttrs systemAttributes;
  * attrCtxtPrivIndex hold the attribute store's context private index.
  * This index is allocated at the time the attribute store is initialized.
  */
-static int attrCtxtPrivIndex;
+static DevPrivateKey attrCtxtPrivKey = &attrCtxtPrivKey;
 
 /*
  * The ContextAttrs structure descibes the context private space reserved
@@ -521,8 +521,7 @@ XpBuildAttributeStore(
     {
 	if(attrList != (PrAttrPtr)NULL)
 	    FreeAttrList();
-        attrCtxtPrivIndex = XpAllocateContextPrivateIndex();
-        XpAllocateContextPrivate(attrCtxtPrivIndex, sizeof(ContextAttrs));
+	dixRequestPrivate(attrCtxtPrivKey, sizeof(ContextAttrs));
 	BuildSystemAttributes();
 
 	attrGeneration = serverGeneration;
@@ -592,7 +591,8 @@ XpInitAttributes(XpContextPtr pContext)
     PrAttrPtr pPrAttr = attrList;
 
     /* Initialize all the pointers to NULL */
-    pCtxtAttrs = (ContextAttrPtr)pContext->devPrivates[attrCtxtPrivIndex].ptr;
+    pCtxtAttrs = (ContextAttrPtr)dixLookupPrivate(&pContext->devPrivates,
+						  attrCtxtPrivKey);
     (void)memset((void *)pCtxtAttrs, 0, (size_t) sizeof(ContextAttrs));
 
     for(pPrAttr = attrList; pPrAttr != (PrAttrPtr)NULL; pPrAttr = pPrAttr->next)
@@ -612,8 +612,8 @@ XpDestroyAttributes(
 {
     ContextAttrPtr pCtxtAttrs;
 
-    pCtxtAttrs = (ContextAttrPtr)pContext->devPrivates[attrCtxtPrivIndex].ptr;
-
+    pCtxtAttrs = (ContextAttrPtr)dixLookupPrivate(&pContext->devPrivates,
+						  attrCtxtPrivKey);
     if(pCtxtAttrs->printerAttrs != (XrmDatabase)NULL)
 	XrmDestroyDatabase(pCtxtAttrs->printerAttrs);
     if(pCtxtAttrs->docAttrs != (XrmDatabase)NULL)
@@ -661,7 +661,8 @@ XpGetOneAttribute(
     }
     else
     {
-        pCtxtAttrs=(ContextAttrPtr)pContext->devPrivates[attrCtxtPrivIndex].ptr;
+        pCtxtAttrs=(ContextAttrPtr)dixLookupPrivate(&pContext->devPrivates,
+						    attrCtxtPrivKey);
         switch(class)
         {
 	    case XPPrinterAttr:
@@ -714,7 +715,8 @@ XpPutOneAttribute(
     XrmBinding bindings[1];
     XrmQuark quarks[2];
     
-    pCtxtAttrs = (ContextAttrPtr)pContext->devPrivates[attrCtxtPrivIndex].ptr;
+    pCtxtAttrs = (ContextAttrPtr)dixLookupPrivate(&pContext->devPrivates,
+						  attrCtxtPrivKey);
     switch(class)
     {
     case XPPrinterAttr:
@@ -900,7 +902,8 @@ XpGetAttributes(
 	db = systemAttributes.server;
     else
     {
-        pCtxtAttrs=(ContextAttrPtr)pContext->devPrivates[attrCtxtPrivIndex].ptr;
+        pCtxtAttrs=(ContextAttrPtr)dixLookupPrivate(&pContext->devPrivates,
+						    attrCtxtPrivKey);
         switch(class)
         {
 	    case XPServerAttr:
@@ -952,7 +955,8 @@ XpAugmentAttributes(
     db = XrmGetStringDatabase(attributes);
     if(db == (XrmDatabase)NULL) return BadAlloc;
 
-    pCtxtAttrs = (ContextAttrPtr)pContext->devPrivates[attrCtxtPrivIndex].ptr;
+    pCtxtAttrs = (ContextAttrPtr)dixLookupPrivate(&pContext->devPrivates,
+						  attrCtxtPrivKey);
     switch(class)
     {
 	case XPPrinterAttr:
@@ -988,7 +992,8 @@ XpSetAttributes(
     db = XrmGetStringDatabase(attributes);
     if(db == (XrmDatabase)NULL) return BadAlloc;
 
-    pCtxtAttrs=(ContextAttrPtr)pContext->devPrivates[attrCtxtPrivIndex].ptr;
+    pCtxtAttrs=(ContextAttrPtr)dixLookupPrivate(&pContext->devPrivates,
+						attrCtxtPrivKey);
     switch(class)
     {
 	case XPPrinterAttr:

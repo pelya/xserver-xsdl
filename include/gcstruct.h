@@ -56,6 +56,7 @@ SOFTWARE.
 #include "region.h"
 #include "pixmap.h"
 #include "screenint.h"
+#include "privates.h"
 #include <X11/Xprotostr.h>
 
 /*
@@ -308,7 +309,7 @@ typedef struct _GC {
     unsigned long       serialNumber;
     GCFuncs		*funcs;
     GCOps		*ops;
-    DevUnion		*devPrivates;
+    PrivateRec		*devPrivates;
     /*
      * The following were moved here from private storage to allow device-
      * independent access to them from screen wrappers.

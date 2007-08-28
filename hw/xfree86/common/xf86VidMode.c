@@ -47,12 +47,11 @@
 #include "vidmodeproc.h"
 #include "xf86cmap.h"
 
-static int VidModeGeneration = 0;
-static int VidModeIndex = -1;
+static DevPrivateKey VidModeKey = NULL;
 static int VidModeCount = 0;
 static Bool VidModeClose(int i, ScreenPtr pScreen);
 
-#define VMPTR(p) ((VidModePtr)(p)->devPrivates[VidModeIndex].ptr)
+#define VMPTR(p) ((VidModePtr)dixLookupPrivate(&(p)->devPrivates, VidModeKey))
 
 #endif
 
@@ -75,15 +74,10 @@ VidModeExtensionInit(ScreenPtr pScreen)
 	return FALSE;
     }
 
-    if (serverGeneration != VidModeGeneration) {
-	if ((VidModeIndex = AllocateScreenPrivateIndex()) < 0) {
-	    DEBUG_P("AllocateScreenPrivateIndex() failed");
-	    return FALSE;
-	}
-	VidModeGeneration = serverGeneration;
-    }
+    VidModeKey = &VidModeKey;
 
-    if (!(pScreen->devPrivates[VidModeIndex].ptr = xcalloc(sizeof(VidModeRec), 1))) {
+    if (!dixSetPrivate(&pScreen->devPrivates, VidModeKey,
+		       xcalloc(sizeof(VidModeRec), 1))) {
 	DEBUG_P("xcalloc failed");
 	return FALSE;
     }
@@ -118,10 +112,9 @@ VidModeClose(int i, ScreenPtr pScreen)
     pScreen->CloseScreen = pVidMode->CloseScreen;
 
     if (--VidModeCount == 0) {
-	if (pScreen->devPrivates[VidModeIndex].ptr)
-	  xfree(pScreen->devPrivates[VidModeIndex].ptr);
-	pScreen->devPrivates[VidModeIndex].ptr = NULL;
-	VidModeIndex = -1;
+	xfree(dixLookupPrivate(&pScreen->devPrivates, VidModeKey));
+	dixSetPrivate(&pScreen->devPrivates, VidModeKey, NULL);
+	VidModeKey = NULL;
     }
     return pScreen->CloseScreen(i, pScreen);
 }
@@ -134,8 +127,8 @@ VidModeAvailable(int scrnIndex)
 
     DEBUG_P("VidModeAvailable");
 
-    if (VidModeIndex < 0) {
-	DEBUG_P("VidModeIndex < 0");
+    if (VidModeKey == NULL) {
+	DEBUG_P("VidModeKey == NULL");
 	return FALSE;
     }
  

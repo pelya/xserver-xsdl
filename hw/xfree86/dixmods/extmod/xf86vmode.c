@@ -52,8 +52,7 @@ from Kaleb S. KEITHLEY
 #define DEFAULT_XF86VIDMODE_VERBOSITY	3
 
 static int VidModeErrorBase;
-static int VidModeGeneration = 0;
-static int VidModeClientPrivateIndex;
+static DevPrivateKey VidModeClientPrivateKey = &VidModeClientPrivateKey;
 
 /* This holds the client's version information */
 typedef struct {
@@ -61,7 +60,10 @@ typedef struct {
     int		minor;
 } VidModePrivRec, *VidModePrivPtr;
 
-#define VMPRIV(c) ((c)->devPrivates[VidModeClientPrivateIndex].ptr)
+#define VM_GETPRIV(c) ((VidModePrivPtr) \
+    dixLookupPrivate(&(c)->devPrivates, VidModeClientPrivateKey))
+#define VM_SETPRIV(c,p) \
+    dixSetPrivate(&(c)->devPrivates, VidModeClientPrivateKey, p)
 
 static void XF86VidModeResetProc(
     ExtensionEntry* /* extEntry */
@@ -145,10 +147,12 @@ typedef struct _XF86VidModeScreenPrivate {
     Bool		hasWindow;
 } XF86VidModeScreenPrivateRec, *XF86VidModeScreenPrivatePtr;
    
-static int ScreenPrivateIndex;
+static DevPrivateKey ScreenPrivateKey = &ScreenPrivateKey;
 
-#define GetScreenPrivate(s) ((ScreenSaverScreenPrivatePtr)(s)->devPrivates[ScreenPrivateIndex].ptr)
-#define SetScreenPrivate(s,v) ((s)->devPrivates[ScreenPrivateIndex].ptr = (pointer) v);
+#define GetScreenPrivate(s) ((ScreenSaverScreenPrivatePtr) \
+    dixLookupPrivate(&(s)->devPrivates, ScreenPrivateKey))
+#define SetScreenPrivate(s,v) \
+    dixSetPrivate(&(s)->devPrivates, ScreenPrivateKey, v)
 #define SetupScreen(s)  ScreenSaverScreenPrivatePtr pPriv = GetScreenPrivate(s)
 
 #define New(t)  (xalloc (sizeof (t)))
@@ -172,7 +176,6 @@ XFree86VidModeExtensionInit(void)
 
 #ifdef XF86VIDMODE_EVENTS
     EventType = CreateNewResourceType(XF86VidModeFreeEvents);
-    ScreenPrivateIndex = AllocateScreenPrivateIndex ();
 #endif
 
     for(i = 0; i < screenInfo.numScreens; i++) {
@@ -187,27 +190,9 @@ XFree86VidModeExtensionInit(void)
     if (!enabled)
 	return;
 
-    /*
-     * Allocate a client private index to hold the client's version
-     * information.
-     */
-    if (VidModeGeneration != serverGeneration) {
-	VidModeClientPrivateIndex = AllocateClientPrivateIndex();
-	/*
-	 * Allocate 0 length, and use the private to hold a pointer to our
-	 * VidModePrivRec.
-	 */
-	if (!AllocateClientPrivate(VidModeClientPrivateIndex, 0)) {
-	    ErrorF("XFree86VidModeExtensionInit: "
-		   "AllocateClientPrivate failed\n");
-	    return;
-	}
-	VidModeGeneration = serverGeneration;
-    }
-
     if (
 #ifdef XF86VIDMODE_EVENTS
-        EventType && ScreenPrivateIndex != -1 &&
+        EventType &&
 #endif
 	(extEntry = AddExtension(XF86VIDMODENAME,
 				XF86VidModeNumberEvents,
@@ -239,7 +224,7 @@ ClientMajorVersion(ClientPtr client)
 {
     VidModePrivPtr pPriv;
 
-    pPriv = VMPRIV(client);
+    pPriv = VM_GETPRIV(client);
     if (!pPriv)
 	return 0;
     else
@@ -1682,11 +1667,11 @@ ProcXF86VidModeSetClientVersion(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xXF86VidModeSetClientVersionReq);
 
-    if ((pPriv = VMPRIV(client)) == NULL) {
+    if ((pPriv = VM_GETPRIV(client)) == NULL) {
 	pPriv = xalloc(sizeof(VidModePrivRec));
 	if (!pPriv)
 	    return BadAlloc;
-	VMPRIV(client) = pPriv;
+	VM_SETPRIV(client, pPriv);
     }
     pPriv->major = stuff->major;
     pPriv->minor = stuff->minor;

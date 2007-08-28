@@ -55,6 +55,7 @@ SOFTWARE.
 #include <X11/X.h>
 #include "scrnintstr.h"
 #include "windowstr.h"
+#include "privates.h"
 #include "mfb.h"
 #include "mistruct.h"
 #include "regionstr.h"
@@ -66,7 +67,8 @@ mfbCreateWindow(pWin)
 {
     register mfbPrivWin *pPrivWin;
 
-    pPrivWin = (mfbPrivWin *)(pWin->devPrivates[mfbWindowPrivateIndex].ptr);
+    pPrivWin = (mfbPrivWin *)dixLookupPrivate(&pWin->devPrivates,
+					      mfbGetWindowPrivateKey());
     pPrivWin->pRotatedBorder = NullPixmap;
     pPrivWin->pRotatedBackground = NullPixmap;
     pPrivWin->fastBackground = FALSE;
@@ -83,8 +85,8 @@ mfbDestroyWindow(pWin)
 {
     register mfbPrivWin *pPrivWin;
 
-    pPrivWin = (mfbPrivWin *)(pWin->devPrivates[mfbWindowPrivateIndex].ptr);
-
+    pPrivWin = (mfbPrivWin *)dixLookupPrivate(&pWin->devPrivates,
+					      mfbGetWindowPrivateKey());
     if (pPrivWin->pRotatedBorder)
 	(*pWin->drawable.pScreen->DestroyPixmap)(pPrivWin->pRotatedBorder);
     if (pPrivWin->pRotatedBackground)
@@ -116,7 +118,8 @@ mfbPositionWindow(pWin, x, y)
     register mfbPrivWin *pPrivWin;
     int	reset = 0;
 
-    pPrivWin = (mfbPrivWin *)(pWin->devPrivates[mfbWindowPrivateIndex].ptr);
+    pPrivWin = (mfbPrivWin *)dixLookupPrivate(&pWin->devPrivates,
+					      mfbGetWindowPrivateKey());
     if (pWin->backgroundState == BackgroundPixmap && pPrivWin->fastBackground)
     {
 	mfbXRotatePixmap(pPrivWin->pRotatedBackground,
@@ -227,7 +230,8 @@ mfbChangeWindowAttributes(pWin, mask)
     register mfbPrivWin *pPrivWin;
     WindowPtr	pBgWin;
 
-    pPrivWin = (mfbPrivWin *)(pWin->devPrivates[mfbWindowPrivateIndex].ptr);
+    pPrivWin = (mfbPrivWin *)dixLookupPrivate(&pWin->devPrivates,
+					      mfbGetWindowPrivateKey());
     /*
      * When background state changes from ParentRelative and
      * we had previously rotated the fast border pixmap to match

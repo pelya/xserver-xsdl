@@ -100,7 +100,7 @@ xf4bppPaintWindow(pWin, pRegion, what)
 {
 
     register mfbPrivWin	*pPrivWin;
-    pPrivWin = (mfbPrivWin *)(pWin->devPrivates[mfbGetWindowPrivateIndex()].ptr);
+    pPrivWin = (mfbPrivWin *)dixLookupPrivate(&pWin->devPrivates, mfbGetWindowPrivateKey());
 
     TRACE(("xf4bppPaintWindow( pWin= 0x%x, pRegion= 0x%x, what= %d )\n",
 							pWin,pRegion,what));

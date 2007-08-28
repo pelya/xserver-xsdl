@@ -45,10 +45,10 @@ typedef struct {
     unsigned char      *shadowPtr;
 } XFIOKitScreenRec, *XFIOKitScreenPtr;
 
-#define XFIOKIT_SCREEN_PRIV(pScreen) \
-    ((XFIOKitScreenPtr)pScreen->devPrivates[xfIOKitScreenIndex].ptr)
+#define XFIOKIT_SCREEN_PRIV(pScreen) ((XFIOKitScreenPtr) \
+    dixLookupPrivate(&pScreen->devPrivates, xfIOKitScreenKey))
 
-extern int xfIOKitScreenIndex; // index into pScreen.devPrivates
+extern DevPrivateKey xfIOKitScreenKey; // index into pScreen.devPrivates
 extern io_connect_t xfIOKitInputConnect;
 
 Bool XFIOKitInitCursor(ScreenPtr pScreen);

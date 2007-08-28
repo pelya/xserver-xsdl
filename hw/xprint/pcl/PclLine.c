@@ -107,7 +107,7 @@ PclPolyLine(
 
     pCon = PclGetContextFromWindow( (WindowPtr) pDrawable );
     pConPriv = (PclContextPrivPtr)
-			pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
 
     /*
      * Allocate the storage required to deal with the clipping
@@ -223,7 +223,7 @@ PclPolySegment(
 
     pCon = PclGetContextFromWindow( (WindowPtr) pDrawable );
     pConPriv = (PclContextPrivPtr)
-			pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
 
     /*
      * Allocate the storage for the temporary regions.

@@ -180,23 +180,22 @@ typedef struct {
 } OverlayPixmapRec, *OverlayPixmapPtr;
 
 
-static int OverlayScreenIndex = -1;
-static int OverlayGCIndex = -1;
-static int OverlayPixmapIndex = -1;
-static unsigned long OverlayGeneration = 0;
+static DevPrivateKey OverlayScreenKey = &OverlayScreenKey;
+static DevPrivateKey OverlayGCKey = &OverlayGCKey;
+static DevPrivateKey OverlayPixmapKey = &OverlayPixmapKey;
 
 /** Macros **/
 
 #define TILE_EXISTS(pGC) (!(pGC)->tileIsPixel && (pGC)->tile.pixmap)
 
-#define OVERLAY_GET_PIXMAP_PRIVATE(pPix) \
-    (OverlayPixmapPtr)((pPix)->devPrivates[OverlayPixmapIndex].ptr)
+#define OVERLAY_GET_PIXMAP_PRIVATE(pPix) ((OverlayPixmapPtr) \
+    dixLookupPrivate(&(pPix)->devPrivates, OverlayPixmapKey))
 
-#define OVERLAY_GET_SCREEN_PRIVATE(pScreen) \
-    (OverlayScreenPtr)((pScreen)->devPrivates[OverlayScreenIndex].ptr)
+#define OVERLAY_GET_SCREEN_PRIVATE(pScreen) ((OverlayScreenPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, OverlayScreenKey))
 
-#define OVERLAY_GET_GC_PRIVATE(pGC) \
-    (OverlayGCPtr)((pGC)->devPrivates[OverlayGCIndex].ptr)
+#define OVERLAY_GET_GC_PRIVATE(pGC) ((OverlayGCPtr) \
+    dixLookupPrivate(&(pGC)->devPrivates, OverlayGCKey))
 
 #define OVERLAY_GC_FUNC_PROLOGUE(pGC)\
     OverlayGCPtr pGCPriv = OVERLAY_GET_GC_PRIVATE(pGC);\
@@ -258,26 +257,16 @@ xf86Overlay8Plus32Init (ScreenPtr pScreen)
 {
     OverlayScreenPtr pScreenPriv;
 
-    if(OverlayGeneration != serverGeneration) {
-	if(((OverlayScreenIndex = AllocateScreenPrivateIndex()) < 0) ||
-	   ((OverlayGCIndex = AllocateGCPrivateIndex()) < 0) ||
-	   ((OverlayPixmapIndex = AllocatePixmapPrivateIndex()) < 0))
-		return FALSE;
-
-	OverlayGeneration = serverGeneration;
-    }
-
-    if (!AllocateGCPrivate(pScreen, OverlayGCIndex, sizeof(OverlayGCRec)))
+    if (!dixRequestPrivate(OverlayGCKey, sizeof(OverlayGCRec)))
 	return FALSE;
 
-    if (!AllocatePixmapPrivate(pScreen, OverlayPixmapIndex, 
-						sizeof(OverlayPixmapRec)))
+    if (!dixRequestPrivate(OverlayPixmapKey, sizeof(OverlayPixmapRec)))
 	return FALSE;
 
     if (!(pScreenPriv = xalloc(sizeof(OverlayScreenRec))))
 	return FALSE;
 
-    pScreen->devPrivates[OverlayScreenIndex].ptr = (pointer)pScreenPriv;
+    dixSetPrivate(&pScreen->devPrivates, OverlayScreenKey, pScreenPriv);
 
     pScreenPriv->CreateGC = pScreen->CreateGC;
     pScreenPriv->CloseScreen = pScreen->CloseScreen;

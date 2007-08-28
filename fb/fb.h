@@ -37,6 +37,7 @@
 #include "miscstruct.h"
 #include "servermd.h"
 #include "windowstr.h"
+#include "privates.h"
 #include "mi.h"
 #include "migc.h"
 #include "mibstore.h"
@@ -599,13 +600,9 @@ extern void fbSetBits (FbStip *bits, int stride, FbStip data);
     }							    \
 }
 
-/* XXX fb*PrivateIndex should be static, but it breaks the ABI */
-
-extern int	fbGCPrivateIndex;
-extern int	fbGetGCPrivateIndex(void);
+extern DevPrivateKey fbGetGCPrivateKey(void);
 #ifndef FB_NO_WINDOW_PIXMAPS
-extern int	fbWinPrivateIndex;
-extern int	fbGetWinPrivateIndex(void);
+extern DevPrivateKey fbGetWinPrivateKey(void);
 #endif
 extern const GCOps	fbGCOps;
 extern const GCFuncs	fbGCFuncs;
@@ -641,8 +638,7 @@ typedef void (*FinishWrapProcPtr)(DrawablePtr pDraw);
 
 
 #ifdef FB_SCREEN_PRIVATE
-extern int	fbScreenPrivateIndex;
-extern int	fbGetScreenPrivateIndex(void);
+extern DevPrivateKey fbGetScreenPrivateKey(void);
 
 /* private field of a screen */
 typedef struct {
@@ -655,7 +651,7 @@ typedef struct {
 } FbScreenPrivRec, *FbScreenPrivPtr;
 
 #define fbGetScreenPrivate(pScreen) ((FbScreenPrivPtr) \
-				     (pScreen)->devPrivates[fbGetScreenPrivateIndex()].ptr)
+	dixLookupPrivate(&(pScreen)->devPrivates, fbGetScreenPrivateKey()))
 #endif
 
 /* private field of GC */
@@ -670,7 +666,7 @@ typedef struct {
 } FbGCPrivRec, *FbGCPrivPtr;
 
 #define fbGetGCPrivate(pGC)	((FbGCPrivPtr)\
-	(pGC)->devPrivates[fbGetGCPrivateIndex()].ptr)
+	dixLookupPrivate(&(pGC)->devPrivates, fbGetGCPrivateKey()))
 
 #define fbGetCompositeClip(pGC) ((pGC)->pCompositeClip)
 #define fbGetExpose(pGC)	((pGC)->fExpose)
@@ -682,7 +678,7 @@ typedef struct {
 #define fbGetWindowPixmap(d)	fbGetScreenPixmap(((DrawablePtr) (d))->pScreen)
 #else
 #define fbGetWindowPixmap(pWin)	((PixmapPtr)\
-	((WindowPtr) (pWin))->devPrivates[fbGetWinPrivateIndex()].ptr)
+    dixLookupPrivate(&((WindowPtr)(pWin))->devPrivates, fbGetWinPrivateKey()))
 #endif
 
 #ifdef ROOTLESS
@@ -835,7 +831,7 @@ fb24_32ModifyPixmapHeader (PixmapPtr   pPixmap,
  * fballpriv.c
  */
 Bool
-fbAllocatePrivates(ScreenPtr pScreen, int *pGCIndex);
+fbAllocatePrivates(ScreenPtr pScreen, DevPrivateKey *pGCIndex);
     
 /*
  * fbarc.c

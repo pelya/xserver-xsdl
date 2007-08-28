@@ -305,7 +305,8 @@ XAAValidatePolylines(
    DrawablePtr   pDraw )
 {
    XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_GC(pGC);
-   XAAGCPtr   pGCPriv = (XAAGCPtr) (pGC)->devPrivates[XAAGetGCIndex()].ptr;
+   XAAGCPtr pGCPriv = (XAAGCPtr)dixLookupPrivate(&pGC->devPrivates,
+						 XAAGetGCKey());
 
    if(pGC->lineStyle == LineSolid) changes &= ~GCDashList;
    if(!changes) return;

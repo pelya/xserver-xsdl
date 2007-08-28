@@ -321,7 +321,8 @@ afbPolyFillArcSolid(register DrawablePtr pDraw, GCPtr pGC, int narcs, xArc *parc
 	RegionPtr cclip;
 	unsigned char *rrops;
 
-	priv = (afbPrivGC *) pGC->devPrivates[afbGCPrivateIndex].ptr;
+	priv = (afbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					     afbGCPrivateKey);
 	rrops = priv->rrops;
 	cclip = pGC->pCompositeClip;
 	for (arc = parcs, i = narcs; --i >= 0; arc++) {

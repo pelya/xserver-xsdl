@@ -72,8 +72,8 @@ PclStartJob(
      Bool sendClientData,
      ClientPtr client)
 {
-    PclContextPrivPtr pConPriv = 
-      (PclContextPrivPtr)pCon->devPrivates[PclContextPrivateIndex].ptr;
+    PclContextPrivPtr pConPriv = (PclContextPrivPtr)
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
     PclPaletteMap *pal;
     
     /*
@@ -130,7 +130,7 @@ PclEndJob(
      Bool cancel)
 {
     PclContextPrivPtr priv = (PclContextPrivPtr)
-      pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
 
 #ifdef CCP_DEBUG
     FILE *xpoutput;
@@ -250,9 +250,9 @@ PclStartPage(
      WindowPtr pWin)
 {
     PclContextPrivPtr pConPriv = (PclContextPrivPtr)
-      pCon->devPrivates[PclContextPrivateIndex].ptr;
-    PclWindowPrivPtr pWinPriv =
-      (PclWindowPrivPtr)pWin->devPrivates[PclWindowPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
+    PclWindowPrivPtr pWinPriv = (PclWindowPrivPtr)
+	dixLookupPrivate(&pWin->devPrivates, PclWindowPrivateKey);
     xRectangle repro;
     char t[80];
     XpOid orient, plex, tray, medium;
@@ -488,7 +488,7 @@ PclEndPage(
      WindowPtr pWin)
 {
     PclContextPrivPtr pConPriv = (PclContextPrivPtr)
-      pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
 
     struct stat statBuf;
 
@@ -532,7 +532,7 @@ PclStartDoc(XpContextPtr pCon,
 	    XPDocumentType type)
 {
     PclContextPrivPtr pConPriv = (PclContextPrivPtr)
-      pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
     
 #ifndef XP_PCL_LJ3
     /*
@@ -592,7 +592,7 @@ PclDocumentData(
 {
     int type = 0;
     PclContextPrivPtr pPriv = (PclContextPrivPtr)
-      pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
     XpOidDocFmtList *formats;
     XpOidDocFmt *f;
     char t[80];
@@ -700,7 +700,7 @@ PclGetDocumentData(
      int maxBufferSize)
 {
     PclContextPrivPtr pPriv = (PclContextPrivPtr)
-      pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
     
     pPriv->getDocClient = client;
     pPriv->getDocBufSize = maxBufferSize;

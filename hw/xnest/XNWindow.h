@@ -35,10 +35,10 @@ typedef struct {
   Window window;
 } xnestWindowMatch;
 
-extern int xnestWindowPrivateIndex;
+extern DevPrivateKey xnestWindowPrivateKey;
 
-#define xnestWindowPriv(pWin) \
-  ((xnestPrivWin *)((pWin)->devPrivates[xnestWindowPrivateIndex].ptr))
+#define xnestWindowPriv(pWin) ((xnestPrivWin *) \
+    dixLookupPrivate(&(pWin)->devPrivates, xnestWindowPrivateKey))
 
 #define xnestWindow(pWin) (xnestWindowPriv(pWin)->window)
 

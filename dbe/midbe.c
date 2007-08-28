@@ -59,12 +59,11 @@
 
 #include <stdio.h>
 
-static int	miDbePrivPrivGeneration  =  0;
-static int	miDbeWindowPrivPrivIndex = -1;
+static DevPrivateKey miDbeWindowPrivPrivKey = &miDbeWindowPrivPrivKey;
 static RESTYPE	dbeDrawableResType;
 static RESTYPE	dbeWindowPrivResType;
-static int	dbeScreenPrivIndex = -1;
-static int	dbeWindowPrivIndex = -1;
+static DevPrivateKey dbeScreenPrivKey = &dbeScreenPrivKey;
+static DevPrivateKey dbeWindowPrivKey = &dbeWindowPrivKey;
 
 
 /******************************************************************************
@@ -204,8 +203,8 @@ miDbeAllocBackBufferName(WindowPtr pWin, XID bufId, int swapAction)
 
 
         /* Attach the priv priv to the priv. */
-	pDbeWindowPriv->devPrivates[miDbeWindowPrivPrivIndex].ptr =
-            (pointer)pDbeWindowPrivPriv;
+	dixSetPrivate(&pDbeWindowPriv->devPrivates, miDbeWindowPrivPrivKey,
+		      pDbeWindowPrivPriv);
 
 
         /* Clear the back buffer. */
@@ -778,30 +777,12 @@ miDbeInit(ScreenPtr pScreen, DbeScreenPrivPtr pDbeScreenPriv)
     dbeWindowPrivResType = pDbeScreenPriv->dbeWindowPrivResType;
 
     /* Copy private indices created by DIX */
-    dbeScreenPrivIndex = pDbeScreenPriv->dbeScreenPrivIndex;
-    dbeWindowPrivIndex = pDbeScreenPriv->dbeWindowPrivIndex;
+    dbeScreenPrivKey = pDbeScreenPriv->dbeScreenPrivKey;
+    dbeWindowPrivKey = pDbeScreenPriv->dbeWindowPrivKey;
 
-    /* Reset the window priv privs if generations do not match. */
-    if (miDbePrivPrivGeneration != serverGeneration)
-    {
-        /*
-         **********************************************************************
-         ** Allocate the window priv priv.
-         **********************************************************************
-         */
-
-        miDbeWindowPrivPrivIndex = (*pDbeScreenPriv->AllocWinPrivPrivIndex)();
-
-        /* Make sure we only do this code once. */
-	miDbePrivPrivGeneration = serverGeneration;
-
-    } /* if -- Reset priv privs. */
-
-    if (!(*pDbeScreenPriv->AllocWinPrivPriv)(pScreen,
-        miDbeWindowPrivPrivIndex, sizeof(MiDbeWindowPrivPrivRec)))
-    {
+    if (!dixRequestPrivate(miDbeWindowPrivPrivKey,
+			   sizeof(MiDbeWindowPrivPrivRec)))
         return(FALSE);
-    }
 
     /* Wrap functions. */
     pDbeScreenPriv->PositionWindow = pScreen->PositionWindow;

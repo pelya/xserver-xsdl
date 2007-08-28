@@ -78,9 +78,8 @@ short s3alu[16] = {
 #define PixTransStore(t)	*pix_trans = (t)
 #endif
 
-int	s3GCPrivateIndex;
-int	s3WindowPrivateIndex;
-int	s3Generation;
+DevPrivateKey s3GCPrivateKey = &s3GCPrivateKey;
+DevPrivateKey s3WindowPrivateKey = &s3WindowPrivateKey;
 
 /*
   s3DoBitBlt
@@ -2182,7 +2181,7 @@ s3CreateWindow (WindowPtr pWin)
     KdScreenPriv(pWin->drawable.pScreen);
     s3ScreenInfo(pScreenPriv);
     
-    pWin->devPrivates[s3WindowPrivateIndex].ptr = 0;
+    dixSetPrivate(&pWin->devPrivates, s3WindowPrivateKey, NULL);
     return KdCreateWindow (pWin);
 }
 
@@ -3095,15 +3094,7 @@ s3DrawInit (ScreenPtr pScreen)
     }
     else
     {
-	if (serverGeneration != s3Generation)
-	{
-	    s3GCPrivateIndex = AllocateGCPrivateIndex ();
-	    s3WindowPrivateIndex = AllocateWindowPrivateIndex ();
-	    s3Generation = serverGeneration;
-	}
-	if (!AllocateWindowPrivate(pScreen, s3WindowPrivateIndex, 0))
-	    return FALSE;
-	if (!AllocateGCPrivate(pScreen, s3GCPrivateIndex, sizeof (s3PrivGCRec)))
+	if (!dixRequestPrivate(s3GCPrivateKey, sizeof (s3PrivGCRec)))
 	    return FALSE;
 	pScreen->CreateGC = s3CreateGC;
 	pScreen->CreateWindow = s3CreateWindow;

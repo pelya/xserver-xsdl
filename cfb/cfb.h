@@ -56,8 +56,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
    pixmap.devKind = width_of_pixmap_in_bytes
 */
 
-extern int  cfbGCPrivateIndex;
-extern int  cfbWindowPrivateIndex;
+extern DevPrivateKey cfbGCPrivateKey;
+extern DevPrivateKey cfbWindowPrivateKey;
 
 /* private field of GC */
 typedef struct {
@@ -72,7 +72,7 @@ typedef struct {
 typedef cfbPrivGC	*cfbPrivGCPtr;
 
 #define cfbGetGCPrivate(pGC)	((cfbPrivGCPtr)\
-	(pGC)->devPrivates[cfbGCPrivateIndex].ptr)
+    dixLookupPrivate(&(pGC)->devPrivates, cfbGCPrivateKey))
 
 #define cfbGetCompositeClip(pGC) ((pGC)->pCompositeClip)
 
@@ -93,7 +93,7 @@ typedef struct {
     } cfbPrivWin;
 
 #define cfbGetWindowPrivate(_pWin) ((cfbPrivWin *)\
-	(_pWin)->devPrivates[cfbWindowPrivateIndex].ptr)
+    dixLookupPrivate(&(_pWin)->devPrivates, cfbWindowPrivateKey))
 
 
 /* cfb8bit.c */
@@ -314,8 +314,8 @@ extern int cfb8SegmentSS1RectXor(
 
 extern Bool cfbAllocatePrivates(
     ScreenPtr /*pScreen*/,
-    int * /*window_index*/,
-    int * /*gc_index*/
+    DevPrivateKey * /*window_key*/,
+    DevPrivateKey * /*gc_key*/
 );
 /* cfbbitblt.c */
 
@@ -1230,7 +1230,7 @@ extern void cfbZeroPolyArcSS8Xor(
 
 #define CFB_NEED_SCREEN_PRIVATE
 
-extern int cfbScreenPrivateIndex;
+extern DevPrivateKey cfbScreenPrivateKey;
 #endif
 
 #ifndef CFB_PROTOTYPES_ONLY

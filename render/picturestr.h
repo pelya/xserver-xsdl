@@ -27,6 +27,7 @@
 #include "glyphstr.h"
 #include "scrnintstr.h"
 #include "resource.h"
+#include "privates.h"
 
 typedef struct _DirectFormat {
     CARD16	    red, redMask;
@@ -173,7 +174,7 @@ typedef struct _Picture {
 
     RegionPtr	    pCompositeClip;
 
-    DevUnion	    *devPrivates;
+    PrivateRec	    *devPrivates;
 
     PictTransform   *transform;
 
@@ -328,10 +329,6 @@ typedef void	(*UnrealizeGlyphProcPtr)    (ScreenPtr	    pScreen,
 					     GlyphPtr	    glyph);
 
 typedef struct _PictureScreen {
-    int				totalPictureSize;
-    unsigned int		*PicturePrivateSizes;
-    int				PicturePrivateLen;
-
     PictFormatPtr		formats;
     PictFormatPtr		fallback;
     int				nformats;
@@ -389,30 +386,25 @@ typedef struct _PictureScreen {
 
     AddTrapsProcPtr		AddTraps;
 
-    int			  	totalGlyphPrivateSize;
-    unsigned int	  	*glyphPrivateSizes;
-    int			  	glyphPrivateLen;
-    int			  	glyphPrivateOffset;
-
     RealizeGlyphProcPtr   	RealizeGlyph;
     UnrealizeGlyphProcPtr 	UnrealizeGlyph;
 
 } PictureScreenRec, *PictureScreenPtr;
 
-extern int		PictureScreenPrivateIndex;
-extern int		PictureWindowPrivateIndex;
+extern DevPrivateKey	PictureScreenPrivateKey;
+extern DevPrivateKey	PictureWindowPrivateKey;
 extern RESTYPE		PictureType;
 extern RESTYPE		PictFormatType;
 extern RESTYPE		GlyphSetType;
 
-#define GetPictureScreen(s) ((PictureScreenPtr) ((s)->devPrivates[PictureScreenPrivateIndex].ptr))
-#define GetPictureScreenIfSet(s) ((PictureScreenPrivateIndex != -1) ? GetPictureScreen(s) : NULL)
-#define SetPictureScreen(s,p) ((s)->devPrivates[PictureScreenPrivateIndex].ptr = (pointer) (p))
-#define GetPictureWindow(w) ((PicturePtr) ((w)->devPrivates[PictureWindowPrivateIndex].ptr))
-#define SetPictureWindow(w,p) ((w)->devPrivates[PictureWindowPrivateIndex].ptr = (pointer) (p))
+#define GetPictureScreen(s) ((PictureScreenPtr)dixLookupPrivate(&(s)->devPrivates, PictureScreenPrivateKey))
+#define GetPictureScreenIfSet(s) GetPictureScreen(s)
+#define SetPictureScreen(s,p) dixSetPrivate(&(s)->devPrivates, PictureScreenPrivateKey, p)
+#define GetPictureWindow(w) ((PicturePtr)dixLookupPrivate(&(w)->devPrivates, PictureWindowPrivateKey))
+#define SetPictureWindow(w,p) dixSetPrivate(&(w)->devPrivates, PictureWindowPrivateKey, p)
 
-#define GetGlyphPrivatesForScreen(glyph, s)				\
-    ((glyph)->devPrivates + (GetPictureScreen (s))->glyphPrivateOffset)
+#define GetGlyphPrivatesForScreen(glyph, s) \
+    ((PrivateRec **)dixLookupPrivateAddr(&(glyph)->devPrivates, s))
 
 #define VERIFY_PICTURE(pPicture, pid, client, mode, err) {\
     pPicture = SecurityLookupIDByType(client, pid, PictureType, mode);\
@@ -429,15 +421,6 @@ extern RESTYPE		GlyphSetType;
 	VERIFY_PICTURE(pPicture, pid, client, mode, err); \
     } \
 } \
-
-void
-ResetPicturePrivateIndex (void);
-
-int
-AllocatePicturePrivateIndex (void);
-
-Bool
-AllocatePicturePrivate (ScreenPtr pScreen, int index2, unsigned int amount);
 
 Bool
 PictureDestroyWindow (WindowPtr pWindow);
@@ -500,9 +483,6 @@ PictureFinishInit (void);
 
 void
 SetPictureToDefaults (PicturePtr pPicture);
-
-PicturePtr
-AllocatePicture (ScreenPtr  pScreen);
 
 #if 0
 Bool

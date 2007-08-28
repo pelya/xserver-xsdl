@@ -107,7 +107,7 @@ ScreenPtr	   pScreen, oldScreen;
 	     oldY=  y;
 	else oldY+= y;
 
-#define GetScreenPrivate(s) ((miPointerScreenPtr) ((s)->devPrivates[miPointerScreenIndex].ptr))	
+#define GetScreenPrivate(s) ((miPointerScreenPtr)dixLookupPrivate(&(s)->devPrivates, miPointerScreenKey))
 	(*(GetScreenPrivate(oldScreen))->screenFuncs->CursorOffScreen)
 	    (&pScreen, &oldX, &oldY);
     }

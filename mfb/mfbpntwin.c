@@ -56,6 +56,7 @@ SOFTWARE.
 #include "regionstr.h"
 #include "pixmapstr.h"
 #include "scrnintstr.h"
+#include "privates.h"
 
 #include "mfb.h"
 #include "maskbits.h"
@@ -69,8 +70,8 @@ mfbPaintWindow(pWin, pRegion, what)
 {
     register mfbPrivWin	*pPrivWin;
 
-    pPrivWin = (mfbPrivWin *)(pWin->devPrivates[mfbWindowPrivateIndex].ptr);
-    
+    pPrivWin = (mfbPrivWin *)dixLookupPrivate(&pWin->devPrivates,
+					      mfbGetWindowPrivateKey());
     switch (what) {
     case PW_BACKGROUND:
 	switch (pWin->backgroundState) {

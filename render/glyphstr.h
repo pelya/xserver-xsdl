@@ -30,6 +30,7 @@
 #include "screenint.h"
 #include "regionstr.h"
 #include "miscstruct.h"
+#include "privates.h"
 
 #define GlyphFormat1	0
 #define GlyphFormat4	1
@@ -40,7 +41,7 @@
 
 typedef struct _Glyph {
     CARD32	refcnt;
-    DevUnion	*devPrivates;
+    PrivateRec	*devPrivates;
     CARD32	size;	/* info + bitmap */
     xGlyphInfo	info;
     /* bits follow */
@@ -71,18 +72,14 @@ typedef struct _GlyphSet {
     int		    fdepth;
     GlyphHashRec    hash;
     int             maxPrivate;
-    pointer         *devPrivates;
+    PrivateRec      *devPrivates;
 } GlyphSetRec, *GlyphSetPtr;
 
-#define GlyphSetGetPrivate(pGlyphSet,n)					\
-	((n) > (pGlyphSet)->maxPrivate ?				\
-	 (pointer) 0 :							\
-	 (pGlyphSet)->devPrivates[n])
+#define GlyphSetGetPrivate(pGlyphSet,k)					\
+    dixLookupPrivate(&(pGlyphSet)->devPrivates, k)
 
-#define GlyphSetSetPrivate(pGlyphSet,n,ptr)				\
-	((n) > (pGlyphSet)->maxPrivate ?				\
-	 _GlyphSetSetNewPrivate(pGlyphSet, n, ptr) :			\
-	 ((((pGlyphSet)->devPrivates[n] = (ptr)) != 0) || TRUE))
+#define GlyphSetSetPrivate(pGlyphSet,k,ptr)				\
+    dixSetPrivate(&(pGlyphSet)->devPrivates, k, ptr)
 
 typedef struct _GlyphList {
     INT16	    xOff;
@@ -93,32 +90,6 @@ typedef struct _GlyphList {
 
 GlyphHashSetPtr
 FindGlyphHashSet (CARD32 filled);
-
-int
-AllocateGlyphSetPrivateIndex (void);
-
-void
-ResetGlyphSetPrivateIndex (void);
-
-Bool
-_GlyphSetSetNewPrivate (GlyphSetPtr glyphSet, int n, pointer ptr);
-
-void
-ResetGlyphPrivates (void);
-
-int
-AllocateGlyphPrivateIndex (void);
-
-Bool
-AllocateGlyphPrivate (ScreenPtr pScreen,
-		      int	index2,
-		      unsigned	amount);
-
-Bool
-GlyphInit (ScreenPtr pScreen);
-
-Bool
-GlyphFinishInit (ScreenPtr pScreen);
 
 void
 GlyphUninit (ScreenPtr pScreen);

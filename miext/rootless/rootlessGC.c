@@ -276,11 +276,11 @@ RootlessCreateGC(GCPtr pGC)
     Bool result;
 
     SCREEN_UNWRAP(pGC->pScreen, CreateGC);
-    s = (RootlessScreenRec *) pGC->pScreen->
-            devPrivates[rootlessScreenPrivateIndex].ptr;
+    s = SCREENREC(pGC->pScreen);
     result = s->CreateGC(pGC);
 
-    gcrec = (RootlessGCRec *) pGC->devPrivates[rootlessGCPrivateIndex].ptr;
+    gcrec = (RootlessGCRec *)
+	dixLookupPrivate(&pGC->devPrivates, rootlessGCPrivateKey);
     gcrec->originalOps = NULL; // don't wrap ops yet
     gcrec->originalFuncs = pGC->funcs;
     pGC->funcs = &rootlessGCFuncs;
@@ -302,7 +302,7 @@ RootlessCreateGC(GCPtr pGC)
 // does not assume ops have been wrapped
 #define GCFUNC_UNWRAP(pGC) \
     RootlessGCRec *gcrec = (RootlessGCRec *) \
-        (pGC)->devPrivates[rootlessGCPrivateIndex].ptr; \
+	dixLookupPrivate(&(pGC)->devPrivates, rootlessGCPrivateKey); \
     (pGC)->funcs = gcrec->originalFuncs; \
     if (gcrec->originalOps) { \
         (pGC)->ops = gcrec->originalOps; \
@@ -399,7 +399,7 @@ static void RootlessCopyClip(GCPtr pgcDst, GCPtr pgcSrc)
 // assumes both funcs and ops are wrapped
 #define GCOP_UNWRAP(pGC) \
     RootlessGCRec *gcrec = (RootlessGCRec *) \
-        (pGC)->devPrivates[rootlessGCPrivateIndex].ptr; \
+        dixLookupPrivate(&(pGC)->devPrivates, rootlessGCPrivateKey); \
     GCFuncs *saveFuncs = pGC->funcs; \
     (pGC)->funcs = gcrec->originalFuncs; \
     (pGC)->ops = gcrec->originalOps;

@@ -16,7 +16,7 @@ void
 XvRegister()
 {
     XvScreenInitProc = XvScreenInit;
-    XvGetScreenIndexProc = XvGetScreenIndex;
+    XvGetScreenKeyProc = XvGetScreenKey;
     XvGetRTPortProc = XvGetRTPort;
     XvMCScreenInitProc = XvMCScreenInit;
 }

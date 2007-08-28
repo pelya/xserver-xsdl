@@ -66,7 +66,7 @@ typedef struct _XFixesClient {
     CARD32	minor_version;
 } XFixesClientRec, *XFixesClientPtr;
 
-#define GetXFixesClient(pClient)    ((XFixesClientPtr) (pClient)->devPrivates[XFixesClientPrivateIndex].ptr)
+#define GetXFixesClient(pClient) ((XFixesClientPtr)dixLookupPrivate(&(pClient)->devPrivates, XFixesClientPrivateKey))
 
 extern int	(*ProcXFixesVector[XFixesNumberRequests])(ClientPtr);
 

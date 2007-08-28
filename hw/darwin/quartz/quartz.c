@@ -62,7 +62,7 @@ int                     quartzUseAGL = 1;
 int                     quartzEnableKeyEquivalents = 1;
 int                     quartzServerVisible = TRUE;
 int                     quartzServerQuitting = FALSE;
-int                     quartzScreenIndex = 0;
+DevPrivateKey           quartzScreenKey = &quartzScreenKey;
 int                     aquaMenuBarHeight = 0;
 int                     noPseudoramiXExtension = TRUE;
 QuartzModeProcsPtr      quartzProcs = NULL;
@@ -121,14 +121,6 @@ void DarwinModeInitOutput(
     int argc,
     char **argv )
 {
-    static unsigned long generation = 0;
-
-    // Allocate private storage for each screen's Quartz specific info
-    if (generation != serverGeneration) {
-        quartzScreenIndex = AllocateScreenPrivateIndex();
-        generation = serverGeneration;
-    }
-
     if (serverGeneration == 0) {
         QuartzAudioInit();
     }

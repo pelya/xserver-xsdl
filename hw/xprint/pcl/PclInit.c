@@ -67,11 +67,11 @@ static void AllocatePclPrivates(ScreenPtr pScreen);
 static int PclInitContext(XpContextPtr pCon);
 static Bool PclDestroyContext(XpContextPtr pCon);
 
-int PclScreenPrivateIndex;
-int PclContextPrivateIndex;
-int PclPixmapPrivateIndex;
-int PclWindowPrivateIndex;
-int PclGCPrivateIndex;
+DevPrivateKey PclScreenPrivateKey = &PclScreenPrivateKey;
+DevPrivateKey PclContextPrivateKey = &PclContextPrivateKey;
+DevPrivateKey PclPixmapPrivateKey = &PclPixmapPrivateKey;
+DevPrivateKey PclWindowPrivateKey = &PclWindowPrivateKey;
+DevPrivateKey PclGCPrivateKey = &PclGCPrivateKey;
 
 #ifdef XP_PCL_COLOR
 /*
@@ -119,7 +119,8 @@ Bool
 PclCloseScreen(int index,
 	       ScreenPtr pScreen)
 {
-    PclScreenPrivPtr pPriv = pScreen->devPrivates[PclScreenPrivateIndex].ptr;
+    PclScreenPrivPtr pPriv = (PclScreenPrivPtr)
+	dixLookupPrivate(&pScreen->devPrivates, PclScreenPrivateKey);
 
     pScreen->CloseScreen = pPriv->CloseScreen;
     xfree( pPriv );
@@ -157,8 +158,8 @@ InitializePclDriver(
      */
     AllocatePclPrivates(pScreen);
    
-    pPriv =
-      (PclScreenPrivPtr)pScreen->devPrivates[PclScreenPrivateIndex].ptr;
+    pPriv = (PclScreenPrivPtr)
+	dixLookupPrivate(&pScreen->devPrivates, PclScreenPrivateKey);
 
     maxDim = MAX( pScreen->height, pScreen->width );
     xRes = pScreen->width / ( pScreen->mmWidth / 25.4 );
@@ -260,33 +261,13 @@ InitializePclDriver(
 static void
 AllocatePclPrivates(ScreenPtr pScreen)
 {
-    static unsigned long PclGeneration = 0;
+    dixRequestPrivate(PclWindowPrivateKey, sizeof( PclWindowPrivRec ) );
+    dixRequestPrivate(PclContextPrivateKey, sizeof( PclContextPrivRec ) );
+    dixRequestPrivate(PclGCPrivateKey, sizeof( PclGCPrivRec ) );
+    dixRequestPrivate(PclPixmapPrivateKey, sizeof( PclPixmapPrivRec ) );
 
-    if((unsigned long) PclGeneration != serverGeneration)
-    {
-        PclScreenPrivateIndex = AllocateScreenPrivateIndex();
-
-	PclWindowPrivateIndex = AllocateWindowPrivateIndex();
-	AllocateWindowPrivate( pScreen, PclWindowPrivateIndex,
-			       sizeof( PclWindowPrivRec ) );
-
-	PclContextPrivateIndex = XpAllocateContextPrivateIndex();
-	XpAllocateContextPrivate( PclContextPrivateIndex, 
-				  sizeof( PclContextPrivRec ) );
-
-	PclGCPrivateIndex = AllocateGCPrivateIndex();
-	AllocateGCPrivate( pScreen, PclGCPrivateIndex, 
-			   sizeof( PclGCPrivRec ) );
-
-	PclPixmapPrivateIndex = AllocatePixmapPrivateIndex();
-	AllocatePixmapPrivate( pScreen, PclPixmapPrivateIndex, 
-			       sizeof( PclPixmapPrivRec ) );
-	
-        PclGeneration = serverGeneration;
-    }
-
-    pScreen->devPrivates[PclScreenPrivateIndex].ptr = (pointer)xalloc(
-                sizeof(PclScreenPrivRec));
+    dixSetPrivate(&pScreen->devPrivates, PclScreenPrivateKey,
+		  xalloc(sizeof(PclScreenPrivRec)));
 }
 
 /*
@@ -349,8 +330,8 @@ PclInitContext(XpContextPtr pCon)
     /*
      * Set up the context privates
      */
-    pConPriv =
-      (PclContextPrivPtr)pCon->devPrivates[PclContextPrivateIndex].ptr;
+    pConPriv = (PclContextPrivPtr)
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
     
     pConPriv->jobFileName = (char *)NULL;
     pConPriv->pageFileName = (char *)NULL;
@@ -483,7 +464,7 @@ static Bool
 PclDestroyContext(XpContextPtr pCon)
 {
     PclContextPrivPtr pConPriv = (PclContextPrivPtr)
-      pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
     PclPaletteMapPtr p, t;
     PclCmapToContexts *pCmap;
     ScreenPtr screen;
@@ -541,7 +522,8 @@ PclDestroyContext(XpContextPtr pCon)
      * Remove the context from the screen-level colormap<->contexts mappings
      */
     screen = screenInfo.screens[pCon->screenNum];
-    sPriv = (PclScreenPrivPtr)screen->devPrivates[PclScreenPrivateIndex].ptr;
+    sPriv = (PclScreenPrivPtr)
+	dixLookupPrivate(&screen->devPrivates, PclScreenPrivateKey);
     pCmap = sPriv->colormaps;
     while( pCmap )
       {
@@ -583,8 +565,8 @@ PclGetContextFromWindow(WindowPtr win)
     
     while( win )
       {
-	  pPriv =
-	    (PclWindowPrivPtr)win->devPrivates[PclWindowPrivateIndex].ptr;
+	  pPriv = (PclWindowPrivPtr)
+	      dixLookupPrivate(&win->devPrivates, PclWindowPrivateKey);
 	  if( pPriv->validContext )
 	    return pPriv->context;
       

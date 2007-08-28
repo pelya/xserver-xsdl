@@ -29,7 +29,7 @@
 static unsigned char	DamageReqCode;
 static int		DamageEventBase;
 static int		DamageErrorBase;
-static int		DamageClientPrivateIndex;
+static DevPrivateKey	DamageClientPrivateKey = &DamageClientPrivateKey;
 static RESTYPE		DamageExtType;
 static RESTYPE		DamageExtWinType;
 
@@ -511,9 +511,7 @@ DamageExtensionInit(void)
     if (!DamageExtWinType)
 	return;
 
-    DamageClientPrivateIndex = AllocateClientPrivateIndex ();
-    if (!AllocateClientPrivate (DamageClientPrivateIndex, 
-				sizeof (DamageClientRec)))
+    if (!dixRequestPrivate(DamageClientPrivateKey, sizeof (DamageClientRec)))
 	return;
     if (!AddCallback (&ClientStateCallback, DamageClientCallback, 0))
 	return;

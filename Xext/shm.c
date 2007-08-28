@@ -119,7 +119,7 @@ static int pixmapFormat;
 static int shmPixFormat[MAXSCREENS];
 static ShmFuncsPtr shmFuncs[MAXSCREENS];
 static DestroyPixmapProcPtr destroyPixmap[MAXSCREENS];
-static int  shmPixmapPrivate;
+static DevPrivateKey shmPixmapPrivate = &shmPixmapPrivate;
 static ShmFuncs miFuncs = {NULL, miShmPutImage};
 static ShmFuncs fbFuncs = {fbShmCreatePixmap, fbShmPutImage};
 
@@ -229,20 +229,11 @@ ShmExtensionInit(INITARGS)
       if (!pixmapFormat)
 	pixmapFormat = ZPixmap;
       if (sharedPixmaps)
-      {
 	for (i = 0; i < screenInfo.numScreens; i++)
 	{
 	    destroyPixmap[i] = screenInfo.screens[i]->DestroyPixmap;
 	    screenInfo.screens[i]->DestroyPixmap = ShmDestroyPixmap;
 	}
-	shmPixmapPrivate = AllocatePixmapPrivateIndex();
-	for (i = 0; i < screenInfo.numScreens; i++)
-	{
-	    if (!AllocatePixmapPrivate(screenInfo.screens[i],
-				       shmPixmapPrivate, 0))
-		return;
-	}
-      }
     }
     ShmSegType = CreateNewResourceType(ShmDetachSegment);
     if (ShmSegType &&
@@ -295,7 +286,8 @@ ShmDestroyPixmap (PixmapPtr pPixmap)
     if (pPixmap->refcnt == 1)
     {
 	ShmDescPtr  shmdesc;
-	shmdesc = (ShmDescPtr) pPixmap->devPrivates[shmPixmapPrivate].ptr;
+	shmdesc = (ShmDescPtr)dixLookupPrivate(&pPixmap->devPrivates,
+					       shmPixmapPrivate);
 	if (shmdesc)
 	    ShmDetachSegment ((pointer) shmdesc, pPixmap->drawable.id);
     }
@@ -762,7 +754,7 @@ CreatePmap:
 				shmdesc->addr + stuff->offset);
 
 	if (pMap) {
-            pMap->devPrivates[shmPixmapPrivate].ptr = (pointer) shmdesc;
+	    dixSetPrivate(&pMap->devPrivates, shmPixmapPrivate, shmdesc);
             shmdesc->refcnt++;
 	    pMap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 	    pMap->drawable.id = newPix->info[j].id;
@@ -1076,7 +1068,7 @@ CreatePmap:
 			    shmdesc->addr + stuff->offset);
     if (pMap)
     {
-	pMap->devPrivates[shmPixmapPrivate].ptr = (pointer) shmdesc;
+	dixSetPrivate(&pMap->devPrivates, shmPixmapPrivate, shmdesc);
 	shmdesc->refcnt++;
 	pMap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 	pMap->drawable.id = stuff->pid;

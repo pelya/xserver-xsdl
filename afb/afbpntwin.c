@@ -57,6 +57,7 @@ SOFTWARE.
 #include "regionstr.h"
 #include "pixmapstr.h"
 #include "scrnintstr.h"
+#include "privates.h"
 
 #include "afb.h"
 #include "maskbits.h"
@@ -71,7 +72,8 @@ afbPaintWindow(pWin, pRegion, what)
 	register afbPrivWin		*pPrivWin;
 	unsigned char rrops[AFB_MAX_DEPTH];
 
-	pPrivWin = (afbPrivWin *)(pWin->devPrivates[afbWindowPrivateIndex].ptr);
+    pPrivWin = (afbPrivWin *)dixLookupPrivate(&pWin->devPrivates,
+					      afbWindowPrivateKey);
 
 	switch (what) {
 		case PW_BACKGROUND:

@@ -70,9 +70,6 @@
 /* Internal define for Xinerama */
 #undef PANORAMIX
 
-/* Support pixmap privates */
-#undef PIXPRIV
-
 /* Support RANDR extension */
 #undef RANDR
 

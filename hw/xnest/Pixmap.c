@@ -33,7 +33,7 @@ is" without express or implied warranty.
 #include "Screen.h"
 #include "XNPixmap.h"
 
-int xnestPixmapPrivateIndex;	    
+DevPrivateKey xnestPixmapPrivateKey = &xnestPixmapPrivateKey;
 
 PixmapPtr
 xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth)
@@ -56,8 +56,8 @@ xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth)
   pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
   pPixmap->refcnt = 1;
   pPixmap->devKind = PixmapBytePad(width, depth);
-  pPixmap->devPrivates[xnestPixmapPrivateIndex].ptr =
-      (pointer)((char *)pPixmap + pScreen->totalPixmapSize);
+  dixSetPrivate(&pPixmap->devPrivates, xnestPixmapPrivateKey,
+		(char *)pPixmap + pScreen->totalPixmapSize);
   if (width && height)
       xnestPixmapPriv(pPixmap)->pixmap = 
 	  XCreatePixmap(xnestDisplay, 
@@ -75,7 +75,7 @@ xnestDestroyPixmap(PixmapPtr pPixmap)
   if(--pPixmap->refcnt)
     return TRUE;
   XFreePixmap(xnestDisplay, xnestPixmap(pPixmap));
-  dixFreePrivates(*DEVPRIV_PTR(pPixmap));
+  dixFreePrivates(pPixmap->devPrivates);
   xfree(pPixmap);
   return TRUE;
 }

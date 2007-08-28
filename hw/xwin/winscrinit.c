@@ -73,9 +73,6 @@ winMWExtWMProcs = {
  * References to external symbols
  */
 
-extern winScreenInfo		g_ScreenInfo[];
-extern miPointerScreenFuncRec	g_winPointerCursorFuncs;
-extern int			g_iScreenPrivateIndex;
 extern Bool                     g_fSoftwareCursor;
 
 

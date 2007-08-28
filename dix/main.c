@@ -118,15 +118,12 @@ Equipment Corporation.
 #include "dpmsproc.h"
 #endif
 
-extern int InitClientPrivates(ClientPtr client);
-
 extern void Dispatch(void);
 
 char *ConnectionInfo;
 xConnSetupPrefix connSetupPrefix;
 
 extern FontPtr defaultFont;
-extern int screenPrivateCount;
 
 extern void InitProcVectors(void);
 extern Bool CreateGCperDepthArray(void);
@@ -135,8 +132,6 @@ extern Bool CreateGCperDepthArray(void);
 static
 #endif
 Bool CreateConnectionBlock(void);
-
-static void FreeScreen(ScreenPtr);
 
 _X_EXPORT PaddingInfo PixmapWidthPaddingInfo[33];
 
@@ -372,8 +367,6 @@ main(int argc, char *argv[], char *envp[])
 	if (screenInfo.numVideoScreens < 0)
 	    screenInfo.numVideoScreens = screenInfo.numScreens;
 	InitExtensions(argc, argv);
-	if (!InitClientPrivates(serverClient))
-	    FatalError("failed to allocate serverClient devprivates");
 	for (i = 0; i < screenInfo.numScreens; i++)
 	{
 	    ScreenPtr pScreen = screenInfo.screens[i];
@@ -472,7 +465,8 @@ main(int argc, char *argv[], char *envp[])
 	    FreeGCperDepth(i);
 	    FreeDefaultStipple(i);
 	    (* screenInfo.screens[i]->CloseScreen)(i, screenInfo.screens[i]);
-	    FreeScreen(screenInfo.screens[i]);
+	    dixFreePrivates(screenInfo.screens[i]->devPrivates);
+	    xfree(screenInfo.screens[i]);
 	    screenInfo.numScreens = i;
 	}
   	CloseDownEvents();
@@ -482,8 +476,7 @@ main(int argc, char *argv[], char *envp[])
 
 	FreeAuditTimer();
 
-	dixFreePrivates(*DEVPRIV_PTR(serverClient));
-	xfree(serverClient->devPrivates);
+	dixFreePrivates(serverClient->devPrivates);
 	serverClient->devPrivates = NULL;
 
 	if (dispatchException & DE_TERMINATE)
@@ -695,32 +688,9 @@ AddScreen(
     if (!pScreen)
 	return -1;
 
-    pScreen->devPrivates = (DevUnion *)xcalloc(sizeof(DevUnion),
-						screenPrivateCount);
-    if (!pScreen->devPrivates && screenPrivateCount)
-    {
-	xfree(pScreen);
-	return -1;
-    }
-
-    /* must pre-allocate one private for the new devPrivates support */
-    pScreen->WindowPrivateLen = 1;
-    pScreen->WindowPrivateSizes = (unsigned *)xcalloc(1, sizeof(unsigned));
-    pScreen->totalWindowSize = PadToLong(sizeof(WindowRec)) + sizeof(DevUnion);
-    pScreen->GCPrivateLen = 1;
-    pScreen->GCPrivateSizes = (unsigned *)xcalloc(1, sizeof(unsigned));
-    pScreen->totalGCSize = PadToLong(sizeof(GC)) + sizeof(DevUnion);
-    pScreen->PixmapPrivateLen = 1;
-    pScreen->PixmapPrivateSizes = (unsigned *)xcalloc(1, sizeof(unsigned));
-    pScreen->totalPixmapSize = BitmapBytePad(8 * (sizeof(PixmapRec) +
-						  sizeof(DevUnion)));
-    if (!pScreen->WindowPrivateSizes || !pScreen->GCPrivateSizes ||
-	!pScreen->PixmapPrivateSizes) {
-	xfree(pScreen);
-	return -1;
-    }
-
+    pScreen->devPrivates = NULL;
     pScreen->myNum = i;
+    pScreen->totalPixmapSize = BitmapBytePad(sizeof(PixmapRec)*8);
     pScreen->ClipNotify = 0;	/* for R4 ddx compatibility */
     pScreen->CreateScreenResources = 0;
     
@@ -772,20 +742,10 @@ AddScreen(
     screenInfo.numScreens++;
     if (!(*pfnInit)(i, pScreen, argc, argv))
     {
-	FreeScreen(pScreen);
+	dixFreePrivates(pScreen->devPrivates);
+	xfree(pScreen);
 	screenInfo.numScreens--;
 	return -1;
     }
     return i;
-}
-
-static void
-FreeScreen(ScreenPtr pScreen)
-{
-    xfree(pScreen->WindowPrivateSizes);
-    xfree(pScreen->GCPrivateSizes);
-    xfree(pScreen->PixmapPrivateSizes);
-    dixFreePrivates(*DEVPRIV_PTR(pScreen));
-    xfree(pScreen->devPrivates);
-    xfree(pScreen);
 }

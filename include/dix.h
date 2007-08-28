@@ -496,12 +496,6 @@ void
 ScreenRestructured (ScreenPtr pScreen);
 #endif
 
-extern int AllocateClientPrivateIndex(void);
-
-extern Bool AllocateClientPrivate(
-    int /*index*/,
-    unsigned /*amount*/);
-
 extern int ffs(int i);
 
 /*

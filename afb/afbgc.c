@@ -154,7 +154,8 @@ afbCreateGC(pGC)
 	/* afb wants to translate before scan convesion */
 	pGC->miTranslate = 1;
 
-	pPriv = (afbPrivGC *)(pGC->devPrivates[afbGCPrivateIndex].ptr);
+	pPriv = (afbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					      afbGCPrivateKey);
 	afbReduceRop(pGC->alu, pGC->fgPixel, pGC->planemask, pGC->depth,
 		pPriv->rrops);
 	afbReduceOpaqueStipple(pGC->fgPixel, pGC->bgPixel, pGC->planemask,
@@ -295,8 +296,8 @@ afbValidateGC(pGC, changes, pDrawable)
 					 (oldOrg.y != pGC->lastWinOrg.y);
 
 
-	devPriv = ((afbPrivGCPtr)(pGC->devPrivates[afbGCPrivateIndex].ptr));
-
+	devPriv = (afbPrivGCPtr)dixLookupPrivate(&pGC->devPrivates,
+						 afbGCPrivateKey);
 
 	/*
 		if the client clip is different or moved OR

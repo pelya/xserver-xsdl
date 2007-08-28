@@ -1027,7 +1027,6 @@ AC_DEFINE(XTEST, 1, [Support XTest extension])
 AC_DEFINE(XSYNC, 1, [Support XSync extension])
 AC_DEFINE(XCMISC, 1, [Support XCMisc extension])
 AC_DEFINE(BIGREQS, 1, [Support BigRequests extension])
-AC_DEFINE(PIXPRIV, 1, [Support pixmap privates])
 
 if test "x$WDTRACE" != "xno" ; then
   DIX_LIB='$(top_builddir)/dix/dix.O'

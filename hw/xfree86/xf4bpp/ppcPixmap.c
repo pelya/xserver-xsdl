@@ -137,6 +137,7 @@ xf4bppCopyPixmap(pSrc)
     pDst = xalloc(sizeof(PixmapRec) + size);
     if (!pDst)
 	return NullPixmap;
+    pDst->devPrivates = NULL;
     pDst->drawable = pSrc->drawable;
     pDst->drawable.id = 0;
     pDst->drawable.serialNumber = NEXT_SERIAL_NUMBER;

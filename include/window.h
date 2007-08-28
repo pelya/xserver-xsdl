@@ -83,9 +83,6 @@ extern int WalkTree(
     VisitWindowProcPtr /*func*/,
     pointer /*data*/);
 
-extern WindowPtr AllocateWindow(
-    ScreenPtr /*pScreen*/);
-
 extern Bool CreateRootWindow(
     ScreenPtr /*pScreen*/);
 

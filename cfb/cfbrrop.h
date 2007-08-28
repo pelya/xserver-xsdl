@@ -35,7 +35,8 @@ in this Software without prior written authorization from The Open Group.
 #endif
 
 #define RROP_FETCH_GC(gc) \
-    RROP_FETCH_GCPRIV(((cfbPrivGCPtr)(gc)->devPrivates[cfbGCPrivateIndex].ptr))
+    RROP_FETCH_GCPRIV((cfbPrivGCPtr)dixLookupPrivate(&(gc)->devPrivates, \
+						     cfbGCPrivateKey))
 
 #ifndef RROP
 #define RROP GXset
