@@ -549,49 +549,6 @@ xf86MapLegacyIO(struct pci_device *dev)
 }
 
 resPtr
-xf86BusAccWindowsFromOS(void)
-{
-    struct pci_device *dev;
-    struct pci_device_iterator *iter;
-    resPtr        pRes = NULL;
-    resRange      range;
-
-    iter = pci_id_match_iterator_create(& match_host_bridge);
-    while ((dev = pci_device_next(iter)) != NULL) {
-	const int domain = dev->domain;
-	const struct pciSizes * const sizes = linuxGetSizesStruct(dev);
-
-	RANGE(range, 0, (ADDRESS)(sizes->mem_size - 1),
-	      RANGE_TYPE(ResExcMemBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);
-
-	RANGE(range, 0, (IOADDRESS)(sizes->io_size - 1),
-	      RANGE_TYPE(ResExcIoBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);
-
-	/* FIXME: The old code reserved domain 0 for a special purpose.  The
-	 * FIXME: new code just uses whatever domains the kernel tells it,
-	 * FIXME: but there is no way to get a domain < 0.  What should
-	 * FIXME: happen here?
-	 *
-	if (domain <= 0)
-	  break;
-	 */
-    }
-
-    pci_iterator_destroy(iter);
-
-    return pRes;
-}
-
-resPtr
-xf86PciBusAccWindowsFromOS(void)
-{
-    return xf86BusAccWindowsFromOS();
-}
-
-
-resPtr
 xf86AccResFromOS(resPtr pRes)
 {
     struct pci_device *dev;

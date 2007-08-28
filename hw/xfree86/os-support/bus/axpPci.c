@@ -363,34 +363,6 @@ xf86MapLegacyIO(struct pci_device *dev)
 }
 
 resPtr
-xf86PciBusAccWindowsFromOS(void)
-{
-    resPtr pRes = NULL;
-    resRange range;
-    int domain;
-
-    for(domain = 0; domain < pciNumDomains; domain++) {
-	if (!xf86DomainInfo[domain]) continue;
-
-	RANGE(range, 0, 0xffffffffUL,
-	      RANGE_TYPE(ResExcMemBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);
-
-	RANGE(range, 0, 0x0000ffffUL,
-	      RANGE_TYPE(ResExcIoBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);		      
-    }
-
-    return pRes;
-}
-
-resPtr
-xf86BusAccWindowsFromOS(void)
-{
-    return xf86PciBusAccWindowsFromOS();
-}
-
-resPtr
 xf86AccResFromOS(resPtr pRes)
 {
     resRange range;

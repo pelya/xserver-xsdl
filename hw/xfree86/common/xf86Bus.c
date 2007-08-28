@@ -77,9 +77,6 @@ static resPtr AccReducers = NULL;
 resPtr Acc = NULL;
 resPtr osRes = NULL;
 
-/* allocatable ranges */
-resPtr ResRange = NULL;
-
 /* predefined special resources */
 _X_EXPORT resRange resVgaExclusive[] = {_VGA_EXCLUSIVE, _END};
 _X_EXPORT resRange resVgaShared[] = {_VGA_SHARED, _END};
@@ -1365,11 +1362,6 @@ xf86ResourceBrokerInit(void)
 #endif
 
     osRes = NULL;
-
-    /* Get the addressable ranges */
-    ResRange = xf86BusAccWindowsFromOS();
-    xf86MsgVerb(X_INFO, 3, "Addressable bus resource ranges are\n");
-    xf86PrintResList(3, ResRange);
 
     /* Get the ranges used exclusively by the system */
     osRes = xf86AccResFromOS(osRes);
