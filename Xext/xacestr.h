@@ -70,12 +70,24 @@ typedef struct {
     int status;
 } XaceDrawableAccessRec;
 
-/* XACE_MAP_ACCESS */
+/* XACE_SEND_ACCESS */
+typedef struct {
+    ClientPtr client;
+    DeviceIntPtr dev;
+    WindowPtr pWin;
+    xEventPtr events;
+    int count;
+    int status;
+} XaceSendAccessRec;
+
+/* XACE_RECEIVE_ACCESS */
 typedef struct {
     ClientPtr client;
     WindowPtr pWin;
+    xEventPtr events;
+    int count;
     int status;
-} XaceMapAccessRec;
+} XaceReceiveAccessRec;
 
 /* XACE_CLIENT_ACCESS */
 typedef struct {

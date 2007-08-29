@@ -113,10 +113,25 @@ int XaceHook(int hook, ...)
 	    prv = &rec.status;
 	    break;
 	}
-	case XACE_MAP_ACCESS: {
-	    XaceMapAccessRec rec = {
+	case XACE_SEND_ACCESS: {
+	    XaceSendAccessRec rec = {
+		va_arg(ap, ClientPtr),
+		va_arg(ap, DeviceIntPtr),
+		va_arg(ap, WindowPtr),
+		va_arg(ap, xEventPtr),
+		va_arg(ap, int),
+		Success /* default allow */
+	    };
+	    calldata = &rec;
+	    prv = &rec.status;
+	    break;
+	}
+	case XACE_RECEIVE_ACCESS: {
+	    XaceReceiveAccessRec rec = {
 		va_arg(ap, ClientPtr),
 		va_arg(ap, WindowPtr),
+		va_arg(ap, xEventPtr),
+		va_arg(ap, int),
 		Success /* default allow */
 	    };
 	    calldata = &rec;

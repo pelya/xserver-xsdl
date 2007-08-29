@@ -2744,8 +2744,9 @@ MapWindow(WindowPtr pWin, ClientPtr client)
 	return(Success);
 
     /*  general check for permission to map window */
-    if (XaceHook(XACE_MAP_ACCESS, client, pWin) != Success)
-	 return Success;
+    if (XaceHook(XACE_RESOURCE_ACCESS, client, pWin->drawable.id, RT_WINDOW,
+		 DixShowAccess, pWin) != Success)
+	return Success;
 
     pScreen = pWin->drawable.pScreen;
     if ( (pParent = pWin->parent) )

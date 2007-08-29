@@ -1753,8 +1753,10 @@ DeliverEventsToWindow(WindowPtr pWin, xEvent *pEvents, int count,
 	if (filter != CantBeFiltered &&
 	    !((wOtherEventMasks(pWin)|pWin->eventMask) & filter))
 	    return 0;
-	if ( (attempt = TryClientEvents(wClient(pWin), pEvents, count,
-				      pWin->eventMask, filter, grab)) )
+	if (XaceHook(XACE_RECEIVE_ACCESS, wClient(pWin), pWin, pEvents, count))
+	    nondeliveries--;
+	else if ( (attempt = TryClientEvents(wClient(pWin), pEvents, count,
+					     pWin->eventMask, filter, grab)) )
 	{
 	    if (attempt > 0)
 	    {
@@ -1781,7 +1783,10 @@ DeliverEventsToWindow(WindowPtr pWin, xEvent *pEvents, int count,
 	    other = (InputClients *)wOtherClients(pWin);
 	for (; other; other = other->next)
 	{
-	    if ( (attempt = TryClientEvents(rClient(other), pEvents, count,
+	    if (XaceHook(XACE_RECEIVE_ACCESS, rClient(other), pWin, pEvents,
+			 count))
+		nondeliveries--;
+	    else if ( (attempt = TryClientEvents(rClient(other), pEvents, count,
 					  other->mask[mskidx], filter, grab)) )
 	    {
 		if (attempt > 0)
@@ -1878,6 +1883,8 @@ MaybeDeliverEventsToClient(WindowPtr pWin, xEvent *pEvents,
 	    return XineramaTryClientEventsResult(
 			wClient(pWin), NullGrab, pWin->eventMask, filter);
 #endif
+	if (XaceHook(XACE_RECEIVE_ACCESS, wClient(pWin), pWin, pEvents, count))
+	    return 0;
 	return TryClientEvents(wClient(pWin), pEvents, count,
 			       pWin->eventMask, filter, NullGrab);
     }
@@ -1892,6 +1899,9 @@ MaybeDeliverEventsToClient(WindowPtr pWin, xEvent *pEvents,
 	      return XineramaTryClientEventsResult(
 			rClient(other), NullGrab, other->mask, filter);
 #endif
+	    if (XaceHook(XACE_RECEIVE_ACCESS, rClient(other), pWin, pEvents,
+			 count))
+		return 0;
 	    return TryClientEvents(rClient(other), pEvents, count,
 				   other->mask, filter, NullGrab);
 	}
@@ -1985,6 +1995,9 @@ DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
     int type = xE->u.u.type;
     Mask filter = filters[type];
     int deliveries = 0;
+
+    if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, xE, count))
+	return 0;
 
     if (type & EXTENSION_EVENT_BASE)
     {
@@ -2829,6 +2842,8 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
 	    return;
     }
     /* just deliver it to the focus window */
+    if (XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, xE, count))
+	return;
     FixUpEventFromWindow(xE, focus, None, FALSE);
     if (xE->u.u.type & EXTENSION_EVENT_BASE)
 	mskidx = keybd->id;
@@ -2877,9 +2892,12 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
     if (!deliveries)
     {
 	FixUpEventFromWindow(xE, grab->window, None, TRUE);
-	deliveries = TryClientEvents(rClient(grab), xE, count,
-				     (Mask)grab->eventMask,
-				     filters[xE->u.u.type], grab);
+	if (!XaceHook(XACE_SEND_ACCESS, thisDev, grab->window, xE, count) &&
+	    !XaceHook(XACE_RECEIVE_ACCESS, rClient(grab), grab->window, xE,
+		      count))
+	    deliveries = TryClientEvents(rClient(grab), xE, count,
+					 (Mask)grab->eventMask,
+					 filters[xE->u.u.type], grab);
 	if (deliveries && (xE->u.u.type == MotionNotify
 #ifdef XINPUT
 			   || xE->u.u.type == DeviceMotionNotify
@@ -4530,6 +4548,9 @@ ProcSendEvent(ClientPtr client)
     {
 	for (;pWin; pWin = pWin->parent)
 	{
+	    if (XaceHook(XACE_SEND_ACCESS, client, NULL, pWin,
+			 &stuff->event, 1))
+		return Success;
 	    if (DeliverEventsToWindow(pWin, &stuff->event, 1, stuff->eventMask,
 				      NullGrab, 0))
 		return Success;
@@ -4540,7 +4561,7 @@ ProcSendEvent(ClientPtr client)
 		break;
 	}
     }
-    else
+    else if (!XaceHook(XACE_SEND_ACCESS, client, NULL, pWin, &stuff->event, 1))
 	(void)DeliverEventsToWindow(pWin, &stuff->event, 1, stuff->eventMask,
 				    NullGrab, 0);
     return Success;
