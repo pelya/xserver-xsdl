@@ -185,6 +185,7 @@ typedef struct _ExaMigrationRec {
     Bool as_dst;
     Bool as_src;
     PixmapPtr pPix;
+    RegionPtr pReg;
 } ExaMigrationRec, *ExaMigrationPtr;
 
 /**
@@ -336,6 +337,9 @@ ExaOffscreenFini (ScreenPtr pScreen);
 /* exa.c */
 void
 ExaDoPrepareAccess(DrawablePtr pDrawable, int index);
+
+void
+exaPrepareAccessReg(DrawablePtr pDrawable, int index, RegionPtr pReg);
 
 void
 exaPrepareAccess(DrawablePtr pDrawable, int index);

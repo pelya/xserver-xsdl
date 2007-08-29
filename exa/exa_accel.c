@@ -55,6 +55,7 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
     pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pReg = NULL;
 
     if (pExaScr->swappedOut ||
 	pGC->fillStyle != FillSolid ||
@@ -153,6 +154,7 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
     pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pReg = NULL;
 
     /* Don't bother with under 8bpp, XYPixmaps. */
     if (format != ZPixmap || bpp < 8)
@@ -211,7 +213,8 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 	    int	dstXoff, dstYoff;
 
 	    if (!access_prepared) {
-		exaPrepareAccess(pDrawable, EXA_PREPARE_DEST);
+		exaPrepareAccessReg(pDrawable, EXA_PREPARE_DEST,
+				    pixmaps[0].pReg);
 
 		access_prepared = TRUE;
 	    }
@@ -232,6 +235,8 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 
 	if (access_prepared)
 	    exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
+	else
+	    exaMarkSync(pDrawable->pScreen);
 
 	exaPixmapDirty(pixmaps[0].pPix, x1 + xoff, y1 + yoff, x2 + xoff, y2 + yoff);
     }
@@ -420,9 +425,11 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
     pixmaps[0].pPix = pDstPixmap = exaGetDrawablePixmap (pDstDrawable);
+    pixmaps[0].pReg = NULL;
     pixmaps[1].as_dst = FALSE;
     pixmaps[1].as_src = TRUE;
     pixmaps[1].pPix = pSrcPixmap = exaGetDrawablePixmap (pSrcDrawable);
+    pixmaps[1].pReg = NULL;
 
     /* Respect maxX/maxY in a trivial way: don't set up drawing when we might
      * violate the limits.  The proper solution would be a temporary pixmap
@@ -463,7 +470,7 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrcDrawable, pDstDrawable,
 		      exaDrawableLocation(pSrcDrawable),
 		      exaDrawableLocation(pDstDrawable)));
-	exaPrepareAccess (pDstDrawable, EXA_PREPARE_DEST);
+	exaPrepareAccessReg (pDstDrawable, EXA_PREPARE_DEST, pixmaps[0].pReg);
 	exaPrepareAccess (pSrcDrawable, EXA_PREPARE_SRC);
 	fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC,
 		    pbox, nbox, dx, dy, reverse, upsidedown,
@@ -682,7 +689,8 @@ exaPolyFillRect(DrawablePtr pDrawable,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
     pixmaps[0].pPix = pPixmap;
- 
+    pixmaps[0].pReg = NULL;
+
     exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
 
     if (pExaScr->swappedOut ||
@@ -828,6 +836,7 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
     pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pReg = NULL;
 
     if (pExaScr->swappedOut ||
 	pPixmap->drawable.width > pExaScr->info->maxX ||
@@ -846,7 +855,7 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
 	EXA_FALLBACK(("to %p (%c)\n", pDrawable,
 		      exaDrawableLocation(pDrawable)));
 	fallback = TRUE;
-	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+	exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST, pixmaps[0].pReg);
 	fg = fbReplicatePixel (fg, pDrawable->bitsPerPixel);
 	fbSolidBoxClipped (pDrawable, pClip, x1, y1, x2, y2,
 			   fbAnd (GXcopy, fg, pm),
@@ -949,6 +958,7 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = TRUE;
     pixmaps[0].pPix = pPixmap;
+    pixmaps[0].pReg = NULL;
 
     depthMask = FbFullMask(pDrawable->depth);
     if ((pGC->planemask & depthMask) != depthMask)
@@ -987,7 +997,7 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
     }
 
     EXA_FALLBACK(("to %p (%c)\n", pDrawable, exaDrawableLocation(pDrawable)));
-    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+    exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST, pixmaps[0].pReg);
     exaPrepareAccessGC (pGC);
 
     fbGetDrawable (pDrawable, dst, dstStride, dstBpp, dstXoff, dstYoff);
@@ -1099,7 +1109,8 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
     pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
- 
+    pixmaps[0].pReg = NULL;
+
     if (pPixmap->drawable.width > pExaScr->info->maxX ||
 	pPixmap->drawable.height > pExaScr->info->maxY)
     {
@@ -1128,7 +1139,7 @@ fallback:
 	    return FALSE;
 	EXA_FALLBACK(("to %p (%c)\n", pDrawable,
 		      exaDrawableLocation(pDrawable)));
-	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+	exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST, pixmaps[0].pReg);
 	fbFillRegionSolid (pDrawable, pRegion, 0,
 			   fbReplicatePixel (pixel, pDrawable->bitsPerPixel));
 	exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
@@ -1170,9 +1181,11 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
     pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pReg = NULL;
     pixmaps[1].as_dst = FALSE;
     pixmaps[1].as_src = TRUE;
     pixmaps[1].pPix = pTile;
+    pixmaps[1].pReg = NULL;
 
     if (pPixmap->drawable.width > pExaScr->info->maxX ||
 	pPixmap->drawable.height > pExaScr->info->maxY ||
@@ -1243,7 +1256,7 @@ fallback:
     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pTile, pDrawable,
 		  exaDrawableLocation(&pTile->drawable),
 		  exaDrawableLocation(pDrawable)));
-    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+    exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST, pixmaps[0].pReg);
     exaPrepareAccess ((DrawablePtr)pTile, EXA_PREPARE_SRC);
     fbFillRegionTiled (pDrawable, pRegion, pTile);
     exaFinishAccess ((DrawablePtr)pTile, EXA_PREPARE_SRC);

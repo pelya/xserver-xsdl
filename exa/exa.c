@@ -363,6 +363,21 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
     }
 }
 
+void
+exaPrepareAccessReg(DrawablePtr pDrawable, int index, RegionPtr pReg)
+{
+    ExaMigrationRec pixmaps[1];
+
+    pixmaps[0].as_dst = index == EXA_PREPARE_DEST;
+    pixmaps[0].as_src = index != EXA_PREPARE_DEST;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pReg = pReg;
+
+    exaDoMigration(pixmaps, 1, FALSE);
+
+    ExaDoPrepareAccess(pDrawable, index);
+}
+
 /**
  * exaPrepareAccess() is EXA's wrapper for the driver's PrepareAccess() handler.
  *
@@ -372,15 +387,7 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
 void
 exaPrepareAccess(DrawablePtr pDrawable, int index)
 {
-    ExaMigrationRec pixmaps[1];
-
-    pixmaps[0].as_dst = index == EXA_PREPARE_DEST;
-    pixmaps[0].as_src = index != EXA_PREPARE_DEST;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
-
-    exaDoMigration(pixmaps, 1, FALSE);
-
-    ExaDoPrepareAccess(pDrawable, index);
+    exaPrepareAccessReg(pDrawable, index, NULL);
 }
 
 /**

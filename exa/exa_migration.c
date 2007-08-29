@@ -117,28 +117,62 @@ exaPixmapShouldBeInFB (PixmapPtr pPix)
  * FB to system or vice versa.  Both areas must be allocated.
  */
 static _X_INLINE void
-exaCopyDirty(PixmapPtr pPixmap, RegionPtr pValidDst, RegionPtr pValidSrc,
+exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
 	     Bool (*transfer) (PixmapPtr pPix, int x, int y, int w, int h,
 			       char *sys, int sys_pitch), CARD8 *fallback_src,
 	     CARD8 *fallback_dst, int fallback_srcpitch, int fallback_dstpitch,
 	     int fallback_index, void (*sync) (ScreenPtr pScreen))
 {
+    PixmapPtr pPixmap = migrate->pPix;
     ExaPixmapPriv (pPixmap);
-    RegionPtr pDamageReg = DamageRegion (pExaPixmap->pDamage);
+    RegionPtr damage = DamageRegion (pExaPixmap->pDamage);
     RegionRec CopyReg;
     CARD8 *save_ptr;
     int save_pitch;
     BoxPtr pBox;
     int nbox;
-    Bool do_sync = FALSE;
+    Bool access_prepared = FALSE;
 
-    /* Damaged bits are valid in source but invalid in destination */
-    REGION_UNION(pScreen, pValidSrc, pValidSrc, pDamageReg);
-    REGION_SUBTRACT(pScreen, pValidDst, pValidDst, pDamageReg);
+    /* Damaged bits are valid in current copy but invalid in other one */
+    if (exaPixmapIsOffscreen(pPixmap)) {
+	REGION_UNION(pScreen, &pExaPixmap->validFB, &pExaPixmap->validFB,
+		     damage);
+	REGION_SUBTRACT(pScreen, &pExaPixmap->validSys, &pExaPixmap->validSys,
+			damage);
+    } else {
+	REGION_UNION(pScreen, &pExaPixmap->validSys, &pExaPixmap->validSys,
+		     damage);
+	REGION_SUBTRACT(pScreen, &pExaPixmap->validFB, &pExaPixmap->validFB,
+			damage);
+    }
 
-    /* Copy bits valid in ssource but not in destination */
+    REGION_EMPTY(pScreen, damage);
+
+    /* Copy bits valid in source but not in destination */
     REGION_NULL(pScreen, &CopyReg);
     REGION_SUBTRACT(pScreen, &CopyReg, pValidSrc, pValidDst);
+
+    if (migrate->as_dst) {
+	RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
+
+	if (REGION_NIL(pending_damage)) {
+	    static Bool firsttime = TRUE;
+
+	    if (firsttime) {
+		ErrorF("%s: Pending damage region empty!\n", __func__);
+		firsttime = FALSE;
+	    }
+	}
+
+	REGION_INTERSECT(pScreen, &CopyReg, &CopyReg, pending_damage);
+
+	if (migrate->pReg)
+	    REGION_SUBTRACT(pScreen, &CopyReg, &CopyReg, migrate->pReg);
+    } else {
+	if (migrate->pReg)
+	    REGION_INTERSECT(pScreen, &CopyReg, &CopyReg, migrate->pReg);
+    }
+
     pBox = REGION_RECTS(&CopyReg);
     nbox = REGION_NUM_RECTS(&CopyReg);
 
@@ -165,29 +199,30 @@ exaCopyDirty(PixmapPtr pPixmap, RegionPtr pValidDst, RegionPtr pValidSrc,
 				    + pBox->x1 * pPixmap->drawable.bitsPerPixel / 8,
 				    pExaPixmap->sys_pitch))
 	{
-	    ExaDoPrepareAccess(&pPixmap->drawable, fallback_index);
+	    if (!access_prepared) {
+		ExaDoPrepareAccess(&pPixmap->drawable, fallback_index);
+		access_prepared = TRUE;
+	    }
 	    exaMemcpyBox (pPixmap, pBox,
 			  fallback_src, fallback_srcpitch,
 			  fallback_dst, fallback_dstpitch);
-	    exaFinishAccess(&pPixmap->drawable, fallback_index);
 	}
-	else
-	    do_sync = TRUE;
 
 	pBox++;
     }
 
-    if (do_sync)
+    if (access_prepared)
+	exaFinishAccess(&pPixmap->drawable, fallback_index);
+    else
 	sync (pPixmap->drawable.pScreen);
 
     pPixmap->devPrivate.ptr = save_ptr;
     pPixmap->devKind = save_pitch;
 
-    /* The copied bits are now no longer damaged but valid in destination */
+    /* The copied bits are now valid in destination */
     REGION_UNION(pScreen, pValidDst, pValidDst, &CopyReg);
-    REGION_SUBTRACT(pScreen, pDamageReg, pDamageReg, &CopyReg);
 
-    REGION_NULL(pScreen, &CopyReg);
+    REGION_UNINIT(pScreen, &CopyReg);
 }
 
 /**
@@ -196,12 +231,13 @@ exaCopyDirty(PixmapPtr pPixmap, RegionPtr pValidDst, RegionPtr pValidSrc,
  * allocated.
  */
 static void
-exaCopyDirtyToSys (PixmapPtr pPixmap)
+exaCopyDirtyToSys (ExaMigrationPtr migrate)
 {
+    PixmapPtr pPixmap = migrate->pPix;
     ExaScreenPriv (pPixmap->drawable.pScreen);
     ExaPixmapPriv (pPixmap);
 
-    exaCopyDirty(pPixmap, &pExaPixmap->validSys, &pExaPixmap->validFB,
+    exaCopyDirty(migrate, &pExaPixmap->validSys, &pExaPixmap->validFB,
 		 pExaScr->info->DownloadFromScreen, pExaPixmap->fb_ptr,
 		 pExaPixmap->sys_ptr, pExaPixmap->fb_pitch,
 		 pExaPixmap->sys_pitch, EXA_PREPARE_SRC, exaWaitSync);
@@ -213,48 +249,16 @@ exaCopyDirtyToSys (PixmapPtr pPixmap)
  * allocated.
  */
 static void
-exaCopyDirtyToFb (PixmapPtr pPixmap)
+exaCopyDirtyToFb (ExaMigrationPtr migrate)
 {
+    PixmapPtr pPixmap = migrate->pPix;
     ExaScreenPriv (pPixmap->drawable.pScreen);
     ExaPixmapPriv (pPixmap);
 
-    exaCopyDirty(pPixmap, &pExaPixmap->validFB, &pExaPixmap->validSys,
+    exaCopyDirty(migrate, &pExaPixmap->validFB, &pExaPixmap->validSys,
 		 pExaScr->info->UploadToScreen, pExaPixmap->sys_ptr,
 		 pExaPixmap->fb_ptr, pExaPixmap->sys_pitch,
 		 pExaPixmap->fb_pitch, EXA_PREPARE_DEST, exaMarkSync);
-}
-
-/**
- * Copies out important pixmap data and removes references to framebuffer area.
- * Called when the memory manager decides it's time to kick the pixmap out of
- * framebuffer entirely.
- */
-void
-exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
-{
-    PixmapPtr pPixmap = area->privData;
-    ExaPixmapPriv(pPixmap);
-
-    DBG_MIGRATE (("Save %p (%p) (%dx%d) (%c)\n", pPixmap,
-		  (void*)(ExaGetPixmapPriv(pPixmap)->area ?
-                          ExaGetPixmapPriv(pPixmap)->area->offset : 0),
-		  pPixmap->drawable.width,
-		  pPixmap->drawable.height,
-		  exaPixmapIsDirty(pPixmap) ? 'd' : 'c'));
-
-    if (exaPixmapIsOffscreen(pPixmap)) {
-	exaCopyDirtyToSys (pPixmap);
-	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
-	pPixmap->devKind = pExaPixmap->sys_pitch;
-	pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
-    }
-
-    pExaPixmap->fb_ptr = NULL;
-    pExaPixmap->area = NULL;
-
-    /* Mark all FB bits as invalid, so all valid system bits get copied to FB
-     * next time */
-    REGION_NULL(pPixmap->drawable.pScreen, &pExaPixmap->validFB);
 }
 
 /**
@@ -272,19 +276,16 @@ exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
  * we mark the pixmap dirty, so that the next exaMoveInPixmap will actually move
  * all the data, since it's almost surely all valid now.
  */
-void
-exaMoveInPixmap (PixmapPtr pPixmap)
+static void
+exaDoMoveInPixmap (ExaMigrationPtr migrate)
 {
-    ScreenPtr	pScreen = pPixmap->drawable.pScreen;
+    PixmapPtr pPixmap = migrate->pPix;
+    ScreenPtr pScreen = pPixmap->drawable.pScreen;
     ExaScreenPriv (pScreen);
     ExaPixmapPriv (pPixmap);
 
     /* If we're VT-switched away, no touching card memory allowed. */
     if (pExaScr->swappedOut)
-	return;
-
-    /* If we're already in FB, our work is done. */
-    if (exaPixmapIsOffscreen(pPixmap))
 	return;
 
     /* If we're not allowed to move, then fail. */
@@ -310,14 +311,17 @@ exaMoveInPixmap (PixmapPtr pPixmap)
 				       pExaPixmap->area->offset;
     }
 
+    exaCopyDirtyToFb (migrate);
+
+    if (exaPixmapIsOffscreen(pPixmap))
+	return;
+
     DBG_MIGRATE (("-> %p (0x%x) (%dx%d) (%c)\n", pPixmap,
 		  (ExaGetPixmapPriv(pPixmap)->area ?
                    ExaGetPixmapPriv(pPixmap)->area->offset : 0),
 		  pPixmap->drawable.width,
 		  pPixmap->drawable.height,
 		  exaPixmapIsDirty(pPixmap) ? 'd' : 'c'));
-
-    exaCopyDirtyToFb (pPixmap);
 
     if (pExaScr->hideOffscreenPixmapData)
 	pPixmap->devPrivate.ptr = NULL;
@@ -327,17 +331,30 @@ exaMoveInPixmap (PixmapPtr pPixmap)
     pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 }
 
+void
+exaMoveInPixmap (PixmapPtr pPixmap)
+{
+    static ExaMigrationRec migrate = { .as_dst = FALSE, .as_src = TRUE,
+				       .pReg = NULL };
+
+    migrate.pPix = pPixmap;
+    exaDoMoveInPixmap (&migrate);
+}
+
 /**
  * Switches the current active location of the pixmap to system memory, copying
  * updated data out if necessary.
  */
-void
-exaMoveOutPixmap (PixmapPtr pPixmap)
+static void
+exaDoMoveOutPixmap (ExaMigrationPtr migrate)
 {
+    PixmapPtr pPixmap = migrate->pPix;
     ExaPixmapPriv (pPixmap);
 
-    if (exaPixmapIsPinned(pPixmap))
+    if (!pExaPixmap->area || exaPixmapIsPinned(pPixmap))
 	return;
+
+    exaCopyDirtyToSys (migrate);
 
     if (exaPixmapIsOffscreen(pPixmap)) {
 
@@ -348,12 +365,42 @@ exaMoveOutPixmap (PixmapPtr pPixmap)
 		      pPixmap->drawable.height,
 		      exaPixmapIsDirty(pPixmap) ? 'd' : 'c'));
 
-	exaCopyDirtyToSys (pPixmap);
-
 	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
 	pPixmap->devKind = pExaPixmap->sys_pitch;
 	pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
     }
+}
+
+void
+exaMoveOutPixmap (PixmapPtr pPixmap)
+{
+    static ExaMigrationRec migrate = { .as_dst = FALSE, .as_src = TRUE,
+				       .pReg = NULL };
+
+    migrate.pPix = pPixmap;
+    exaDoMoveOutPixmap (&migrate);
+}
+
+
+/**
+ * Copies out important pixmap data and removes references to framebuffer area.
+ * Called when the memory manager decides it's time to kick the pixmap out of
+ * framebuffer entirely.
+ */
+void
+exaPixmapSave (ScreenPtr pScreen, ExaOffscreenArea *area)
+{
+    PixmapPtr pPixmap = area->privData;
+    ExaPixmapPriv(pPixmap);
+
+    exaMoveOutPixmap(pPixmap);
+
+    pExaPixmap->fb_ptr = NULL;
+    pExaPixmap->area = NULL;
+
+    /* Mark all FB bits as invalid, so all valid system bits get copied to FB
+     * next time */
+    REGION_EMPTY(pPixmap->drawable.pScreen, &pExaPixmap->validFB);
 }
 
 /**
@@ -361,8 +408,9 @@ exaMoveOutPixmap (PixmapPtr pPixmap)
  * framebuffer memory.
  */
 static void
-exaMigrateTowardFb (PixmapPtr pPixmap)
+exaMigrateTowardFb (ExaMigrationPtr migrate)
 {
+    PixmapPtr pPixmap = migrate->pPix;
     ExaPixmapPriv (pPixmap);
 
     if (pExaPixmap == NULL) {
@@ -382,7 +430,7 @@ exaMigrateTowardFb (PixmapPtr pPixmap)
 		 (pointer)pPixmap, pExaPixmap->score));
 
     if (pExaPixmap->score == EXA_PIXMAP_SCORE_INIT) {
-	exaMoveInPixmap(pPixmap);
+	exaDoMoveInPixmap(migrate);
 	pExaPixmap->score = 0;
     }
 
@@ -392,7 +440,7 @@ exaMigrateTowardFb (PixmapPtr pPixmap)
     if (pExaPixmap->score >= EXA_PIXMAP_SCORE_MOVE_IN &&
 	!exaPixmapIsOffscreen(pPixmap))
     {
-	exaMoveInPixmap (pPixmap);
+	exaDoMoveInPixmap(migrate);
     }
 
     ExaOffscreenMarkUsed (pPixmap);
@@ -403,8 +451,9 @@ exaMigrateTowardFb (PixmapPtr pPixmap)
  * system memory.
  */
 static void
-exaMigrateTowardSys (PixmapPtr pPixmap)
+exaMigrateTowardSys (ExaMigrationPtr migrate)
 {
+    PixmapPtr pPixmap = migrate->pPix;
     ExaPixmapPriv (pPixmap);
 
     if (pExaPixmap == NULL) {
@@ -426,7 +475,7 @@ exaMigrateTowardSys (PixmapPtr pPixmap)
 	pExaPixmap->score--;
 
     if (pExaPixmap->score <= EXA_PIXMAP_SCORE_MOVE_OUT && pExaPixmap->area)
-	exaMoveOutPixmap (pPixmap);
+	exaDoMoveOutPixmap(migrate);
 }
 
 /**
@@ -438,14 +487,23 @@ exaAssertNotDirty (PixmapPtr pPixmap)
 {
     ExaPixmapPriv (pPixmap);
     CARD8 *dst, *src;
-    RegionPtr pValidReg = exaPixmapIsOffscreen(pPixmap) ? &pExaPixmap->validFB :
-			  &pExaPixmap->validSys;
-    int dst_pitch, src_pitch, cpp, y, nbox = REGION_NUM_RECTS(pValidReg);
-    BoxPtr pBox = REGION_RECTS(pValidReg);
+    RegionRec ValidReg;
+    int dst_pitch, src_pitch, cpp, y, nbox;
+    BoxPtr pBox;
     Bool ret = TRUE;
 
-    if (!nbox || exaPixmapIsPinned(pPixmap) || pExaPixmap->fb_ptr == NULL)
+    if (exaPixmapIsPinned(pPixmap) || pExaPixmap->area == NULL)
 	return ret;
+
+    REGION_NULL(pScreen, &ValidReg);
+    REGION_INTERSECT(pScreen, &ValidReg, &pExaPixmap->validFB,
+		     &pExaPixmap->validSys);
+    nbox = REGION_NUM_RECTS(&ValidReg);
+
+    if (!nbox)
+	goto out;
+
+    pBox = REGION_RECTS(&ValidReg);
 
     dst_pitch = pExaPixmap->sys_pitch;
     src_pitch = pExaPixmap->fb_pitch;
@@ -479,6 +537,8 @@ exaAssertNotDirty (PixmapPtr pPixmap)
     }
     exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
 
+out:
+    REGION_UNINIT(pScreen, &ValidReg);
     return ret;
 }
 
@@ -533,7 +593,7 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	    {
 		for (i = 0; i < npixmaps; i++) {
 		    if (!exaPixmapIsDirty (pixmaps[i].pPix))
-			exaMoveOutPixmap (pixmaps[i].pPix);
+			exaDoMoveOutPixmap (pixmaps + i);
 		}
 		return;
 	    }
@@ -544,17 +604,17 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	 */
 	if (!can_accel) {
 	    for (i = 0; i < npixmaps; i++) {
-		exaMigrateTowardSys (pixmaps[i].pPix);
+		exaMigrateTowardSys (pixmaps + i);
 		if (!exaPixmapIsDirty (pixmaps[i].pPix))
-		    exaMoveOutPixmap (pixmaps[i].pPix);
+		    exaDoMoveOutPixmap (pixmaps + i);
 	    }
 	    return;
 	}
 
 	/* Finally, the acceleration path.  Move them all in. */
 	for (i = 0; i < npixmaps; i++) {
-	    exaMigrateTowardFb(pixmaps[i].pPix);
-	    exaMoveInPixmap(pixmaps[i].pPix);
+	    exaMigrateTowardFb(pixmaps + i);
+	    exaDoMoveInPixmap(pixmaps + i);
 	}
     } else if (pExaScr->migration == ExaMigrationGreedy) {
 	/* If we can't accelerate, either because the driver can't or because one of
@@ -570,7 +630,7 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	 */
 	if (!can_accel) {
 	    for (i = 0; i < npixmaps; i++)
-		exaMigrateTowardSys (pixmaps[i].pPix);
+		exaMigrateTowardSys (pixmaps + i);
 	    return;
 	}
 
@@ -578,14 +638,14 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	    if (exaPixmapIsOffscreen(pixmaps[i].pPix)) {
 		/* Found one in FB, so move all to FB. */
 		for (j = 0; j < npixmaps; j++)
-		    exaMigrateTowardFb(pixmaps[j].pPix);
+		    exaMigrateTowardFb(pixmaps + i);
 		return;
 	    }
 	}
 
 	/* Nobody's in FB, so move all away from FB. */
 	for (i = 0; i < npixmaps; i++)
-	    exaMigrateTowardSys(pixmaps[i].pPix);
+	    exaMigrateTowardSys(pixmaps + i);
     } else if (pExaScr->migration == ExaMigrationAlways) {
 	/* Always move the pixmaps out if we can't accelerate.  If we can
 	 * accelerate, try to move them all in.  If that fails, then move them
@@ -593,13 +653,13 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	 */
 	if (!can_accel) {
 	    for (i = 0; i < npixmaps; i++)
-		exaMoveOutPixmap(pixmaps[i].pPix);
+		exaDoMoveOutPixmap(pixmaps + i);
 	    return;
 	}
 
 	/* Now, try to move them all into FB */
 	for (i = 0; i < npixmaps; i++) {
-	    exaMoveInPixmap(pixmaps[i].pPix);
+	    exaDoMoveInPixmap(pixmaps + i);
 	}
 
 	/* If we couldn't fit everything in, abort */

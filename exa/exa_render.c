@@ -267,6 +267,7 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
     pixmaps[0].pPix = exaGetDrawablePixmap (pDst->pDrawable);
+    pixmaps[0].pReg = NULL;
     exaDoMigration(pixmaps, 1, TRUE);
 
     pDstPix = exaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x, &dst_off_y);
@@ -381,13 +382,16 @@ exaTryDriverComposite(CARD8		op,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = exaOpReadsDestination(op);
     pixmaps[0].pPix = exaGetDrawablePixmap (pDst->pDrawable);
+    pixmaps[0].pReg = NULL;
     pixmaps[1].as_dst = FALSE;
     pixmaps[1].as_src = TRUE;
     pixmaps[1].pPix = exaGetDrawablePixmap (pSrc->pDrawable);
+    pixmaps[1].pReg = NULL;
     if (pMask) {
 	pixmaps[2].as_dst = FALSE;
 	pixmaps[2].as_src = TRUE;
 	pixmaps[2].pPix = exaGetDrawablePixmap (pMask->pDrawable);
+	pixmaps[2].pReg = NULL;
 	exaDoMigration(pixmaps, 3, TRUE);
     } else {
 	exaDoMigration(pixmaps, 2, TRUE);
@@ -579,12 +583,14 @@ exaComposite(CARD8	op,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = exaOpReadsDestination(op);
     pixmaps[0].pPix = exaGetDrawablePixmap (pDst->pDrawable);
+    pixmaps[0].pReg = NULL;
 
     if (pSrc->pDrawable) {
 	pSrcPixmap = exaGetDrawablePixmap (pSrc->pDrawable);
 	pixmaps[npixmaps].as_dst = FALSE;
 	pixmaps[npixmaps].as_src = TRUE;
 	pixmaps[npixmaps].pPix = pSrcPixmap;
+	pixmaps[npixmaps].pReg = NULL;
 	npixmaps++;
     }
 
@@ -592,6 +598,7 @@ exaComposite(CARD8	op,
 	pixmaps[npixmaps].as_dst = FALSE;
 	pixmaps[npixmaps].as_src = TRUE;
 	pixmaps[npixmaps].pPix = exaGetDrawablePixmap (pMask->pDrawable);
+	pixmaps[npixmaps].pReg = NULL;
 	npixmaps++;
     }
 
@@ -1159,8 +1166,9 @@ exaGlyphs (CARD8	op,
 	 * it'll stick there.
 	 */
 	pixmaps[0].as_dst = TRUE;
-	pixmaps[0].as_src = TRUE;
+	pixmaps[0].as_src = FALSE;
 	pixmaps[0].pPix = pPixmap;
+	pixmaps[0].pReg = NULL;
 	exaDoMigration (pixmaps, 1, pExaScr->info->PrepareComposite != NULL);
 
 	while (n--)
