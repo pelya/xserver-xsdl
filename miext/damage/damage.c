@@ -1987,6 +1987,12 @@ DamageRegion (DamagePtr		    pDamage)
     return &pDamage->damage;
 }
 
+_X_EXPORT RegionPtr
+DamagePendingRegion (DamagePtr	    pDamage)
+{
+    return &pDamage->pendingDamage;
+}
+
 _X_EXPORT void
 DamageDamageRegion (DrawablePtr	pDrawable,
 		    RegionPtr	pRegion)
