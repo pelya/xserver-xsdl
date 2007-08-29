@@ -224,12 +224,13 @@ int ProcStoreColors(
 {
     REQUEST (xXcupStoreColorsReq);
     ColormapPtr pcmp;
+    int rc;
 
     REQUEST_AT_LEAST_SIZE (xXcupStoreColorsReq);
-    pcmp = (ColormapPtr) SecurityLookupIDByType (client, stuff->cmap,
-						 RT_COLORMAP, DixWriteAccess);
+    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP,
+			   client, DixAddAccess);
 
-    if (pcmp) {
+    if (rc == Success) {
 	int ncolors, n;
 	xXcupStoreColorsReply rep;
 	xColorItem* cptr;
@@ -273,7 +274,7 @@ int ProcStoreColors(
 	return client->noClientException;
     } else {
 	client->errorValue = stuff->cmap;
-	return BadColor;
+	return (rc == BadValue) ? BadColor : rc;
     }
 }
 
