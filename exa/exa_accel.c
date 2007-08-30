@@ -1012,8 +1012,6 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     PixmapPtr pPixmap;
     int xoff, yoff;
     ExaMigrationRec pixmaps[1];
-    int nbox = REGION_NUM_RECTS (pRegion);
-    BoxPtr pBox = REGION_RECTS (pRegion);
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
@@ -1031,15 +1029,43 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     if ((pPixmap = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff)) &&
 	(*pExaScr->info->PrepareSolid) (pPixmap, alu, planemask, pixel))
     {
+	int nbox;
+	BoxPtr pBox;
+
+	REGION_TRANSLATE(pScreen, pRegion, xoff, yoff);
+
+	nbox = REGION_NUM_RECTS (pRegion);
+	pBox = REGION_RECTS (pRegion);
+
 	while (nbox--)
 	{
-	    (*pExaScr->info->Solid) (pPixmap,
-				     pBox->x1 + xoff, pBox->y1 + yoff,
-				     pBox->x2 + xoff, pBox->y2 + yoff);
+	    (*pExaScr->info->Solid) (pPixmap, pBox->x1, pBox->y1, pBox->x2,
+				     pBox->y2);
 	    pBox++;
 	}
 	(*pExaScr->info->DoneSolid) (pPixmap);
 	exaMarkSync(pDrawable->pScreen);
+
+	if (pDrawable->width == 1 && pDrawable->height == 1 &&
+	    pDrawable->bitsPerPixel != 24) {
+	    ExaPixmapPriv(pPixmap);
+
+	    switch (pDrawable->bitsPerPixel) {
+	    case 32:
+		*(CARD32*)pExaPixmap->sys_ptr = pixel;
+		break;
+	    case 16:
+		*(CARD16*)pExaPixmap->sys_ptr = pixel;
+		break;
+	    case 8:
+		*(CARD8*)pExaPixmap->sys_ptr = pixel;
+	    }
+
+	    REGION_UNION(pScreen, &pExaPixmap->validSys, &pExaPixmap->validSys,
+			 pRegion);
+	}
+
+	REGION_TRANSLATE(pScreen, pRegion, -xoff, -yoff);
     }
     else
     {

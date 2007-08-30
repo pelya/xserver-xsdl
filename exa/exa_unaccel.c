@@ -358,16 +358,28 @@ exaGetPixmapFirstPixel (PixmapPtr pPixmap)
     void *fb;
     Bool need_finish = FALSE;
     BoxRec box;
+    RegionRec migration;
     ExaPixmapPriv (pPixmap);
+    Bool sys_valid = !miPointInRegion(&pExaPixmap->validSys, 0, 0,  &box);
+    Bool damaged = miPointInRegion(DamageRegion(pExaPixmap->pDamage), 0, 0,
+				   &box);
+    Bool offscreen = exaPixmapIsOffscreen(pPixmap);
 
     fb = pExaPixmap->sys_ptr;
 
     /* Try to avoid framebuffer readbacks */
-    if (exaPixmapIsOffscreen(pPixmap) &&
-        miPointInRegion(DamageRegion(pExaPixmap->pDamage), 0, 0,  &box))
+    if ((!offscreen && !sys_valid && !damaged) ||
+	(offscreen && (!sys_valid || damaged)))
     {
+	box.x1 = 0;
+	box.y1 = 0;
+	box.x2 = 1;
+	box.y2 = 1;
+	REGION_INIT(pScreen, &migration, &box, 1);
+
 	need_finish = TRUE;
-	exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+
+	exaPrepareAccessReg(&pPixmap->drawable, EXA_PREPARE_SRC, &migration);
 	fb = pPixmap->devPrivate.ptr;
     }
 
@@ -383,8 +395,10 @@ exaGetPixmapFirstPixel (PixmapPtr pPixmap)
 	break;
     }
 
-    if (need_finish)
+    if (need_finish) {
 	exaFinishAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+	REGION_UNINIT(pScreen, &migration);
+    }
 
     return pixel;
 }
