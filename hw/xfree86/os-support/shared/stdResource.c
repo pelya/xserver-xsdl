@@ -46,8 +46,6 @@
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || \
 	defined(__DragonFly__)
 #define xf86StdAccResFromOS xf86AccResFromOS
-
-_X_EXPORT resRange PciAvoid[] = {_PCI_AVOID_PC_STYLE, _END};
 #endif
 
 resPtr

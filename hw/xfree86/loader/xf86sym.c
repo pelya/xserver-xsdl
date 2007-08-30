@@ -1114,7 +1114,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMVAR(resVgaSparseShared)
     SYMVAR(res8514Exclusive)
     SYMVAR(res8514Shared)
-    SYMVAR(PciAvoid)
 
 #if defined(__powerpc__) && (!defined(NO_INLINE) || defined(Lynx))
     SYMVAR(ioBase)
