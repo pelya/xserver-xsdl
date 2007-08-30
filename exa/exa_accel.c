@@ -1247,22 +1247,43 @@ exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
  * Accelerates GetImage for solid ZPixmap downloads from framebuffer memory.
  *
  * This is probably the only case we actually care about.  The rest fall through
- * to migration and ExaCheckGetImage, which hopefully will result in migration
- * pushing the pixmap out of framebuffer.
+ * to migration and fbGetImage, which hopefully will result in migration pushing
+ * the pixmap out of framebuffer.
  */
 void
 exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 	     unsigned int format, unsigned long planeMask, char *d)
 {
     ExaScreenPriv (pDrawable->pScreen);
+    ExaMigrationRec pixmaps[1];
+    BoxRec Box;
+    RegionRec Reg;
     PixmapPtr pPix;
     int xoff, yoff;
     Bool ok;
 
-    if (pExaScr->swappedOut || (w == 1 && h == 1))
+    if (pExaScr->swappedOut)
 	goto fallback;
 
-    if (pExaScr->info->DownloadFromScreen == NULL)
+    pixmaps[0].as_dst = FALSE;
+    pixmaps[0].as_src = TRUE;
+    pixmaps[0].pPix = pPix = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pReg = &Reg;
+
+    exaGetDrawableDeltas (pDrawable, pPix, &xoff, &yoff);
+
+    Box.x1 = pDrawable->y + x + xoff;
+    Box.y1 = pDrawable->y + y + yoff;
+    Box.x2 = Box.x1 + w;
+    Box.y2 = Box.y1 + h;
+
+    REGION_INIT(pScreen, &Reg, &Box, 1);
+
+    exaDoMigration(pixmaps, 1, FALSE);
+
+    pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
+
+    if (pPix == NULL || pExaScr->info->DownloadFromScreen == NULL)
 	goto fallback;
 
     /* Only cover the ZPixmap, solid copy case. */
@@ -1275,20 +1296,22 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
     if (pDrawable->bitsPerPixel < 8)
 	goto fallback;
 
-    pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
-    if (pPix == NULL)
-	goto fallback;
-
-    xoff += pDrawable->x;
-    yoff += pDrawable->y;
-
-    ok = pExaScr->info->DownloadFromScreen(pPix, x + xoff, y + yoff, w, h, d,
+    ok = pExaScr->info->DownloadFromScreen(pPix, pDrawable->x + x + xoff,
+					   pDrawable->y + y + yoff, w, h, d,
 					   PixmapBytePad(w, pDrawable->depth));
     if (ok) {
 	exaWaitSync(pDrawable->pScreen);
-	return;
+	goto out;
     }
 
 fallback:
-    ExaCheckGetImage (pDrawable, x, y, w, h, format, planeMask, d);
+    EXA_FALLBACK(("from %p (%c)\n", pDrawable,
+		  exaDrawableLocation(pDrawable)));
+
+    exaPrepareAccessReg (pDrawable, EXA_PREPARE_SRC, &Reg);
+    fbGetImage (pDrawable, x, y, w, h, format, planeMask, d);
+    exaFinishAccess (pDrawable, EXA_PREPARE_SRC);
+
+out:
+    REGION_UNINIT(pScreen, &Reg);
 }

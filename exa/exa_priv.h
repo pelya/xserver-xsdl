@@ -265,12 +265,6 @@ ExaCheckPushPixels (GCPtr pGC, PixmapPtr pBitmap,
 		   int w, int h, int x, int y);
 
 void
-ExaCheckGetImage (DrawablePtr pDrawable,
-		 int x, int y, int w, int h,
-		 unsigned int format, unsigned long planeMask,
-		 char *d);
-
-void
 ExaCheckGetSpans (DrawablePtr pDrawable,
 		 int wMax,
 		 DDXPointPtr ppt,

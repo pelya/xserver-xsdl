@@ -265,19 +265,6 @@ ExaCheckPushPixels (GCPtr pGC, PixmapPtr pBitmap,
 }
 
 void
-ExaCheckGetImage (DrawablePtr pDrawable,
-		 int x, int y, int w, int h,
-		 unsigned int format, unsigned long planeMask,
-		 char *d)
-{
-    EXA_FALLBACK(("from %p (%c)\n", pDrawable,
-		  exaDrawableLocation(pDrawable)));
-    exaPrepareAccess (pDrawable, EXA_PREPARE_SRC);
-    fbGetImage (pDrawable, x, y, w, h, format, planeMask, d);
-    exaFinishAccess (pDrawable, EXA_PREPARE_SRC);
-}
-
-void
 ExaCheckGetSpans (DrawablePtr pDrawable,
 		 int wMax,
 		 DDXPointPtr ppt,
