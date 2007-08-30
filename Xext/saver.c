@@ -48,6 +48,7 @@ in this Software without prior written authorization from the X Consortium.
 #include "gcstruct.h"
 #include "cursorstr.h"
 #include "colormapst.h"
+#include "xace.h"
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
@@ -789,7 +790,11 @@ ProcScreenSaverQueryInfo (client)
 
     REQUEST_SIZE_MATCH (xScreenSaverQueryInfoReq);
     rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
-			   DixUnknownAccess);
+			   DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
+    rc = XaceHook(XACE_SCREENSAVER_ACCESS, client, pDraw->pScreen,
+		  DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
@@ -858,9 +863,15 @@ ProcScreenSaverSelectInput (client)
 
     REQUEST_SIZE_MATCH (xScreenSaverSelectInputReq);
     rc = dixLookupDrawable (&pDraw, stuff->drawable, client, 0,
-			    DixUnknownAccess);
+			    DixGetAttrAccess);
     if (rc != Success)
 	return rc;
+
+    rc = XaceHook(XACE_SCREENSAVER_ACCESS, client, pDraw->pScreen,
+		  DixSetAttrAccess);
+    if (rc != Success)
+	return rc;
+
     if (!setEventMask (pDraw->pScreen, client, stuff->eventMask))
 	return BadAlloc;
     return Success;
@@ -894,11 +905,15 @@ ScreenSaverSetAttributes (ClientPtr client)
 
     REQUEST_AT_LEAST_SIZE (xScreenSaverSetAttributesReq);
     ret = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
-			    DixUnknownAccess);
+			    DixGetAttrAccess);
     if (ret != Success)
 	return ret;
     pScreen = pDraw->pScreen;
     pParent = WindowTable[pScreen->myNum];
+
+    ret = XaceHook(XACE_SCREENSAVER_ACCESS, client, pScreen, DixSetAttrAccess);
+    if (ret != Success)
+	return ret;
 
     len = stuff->length -  (sizeof(xScreenSaverSetAttributesReq) >> 2);
     if (Ones(stuff->mask) != len)
@@ -1055,8 +1070,9 @@ ScreenSaverSetAttributes (ClientPtr client)
 	    }
             else
 	    {	
-                pPixmap = (PixmapPtr)LookupIDByType(pixID, RT_PIXMAP);
-                if (pPixmap != (PixmapPtr) NULL)
+		ret = dixLookupResource((pointer *)&pPixmap, pixID, RT_PIXMAP,
+					client, DixReadAccess);
+		if (ret == Success)
 		{
                     if  ((pPixmap->drawable.depth != depth) ||
 			 (pPixmap->drawable.pScreen != pScreen))
@@ -1070,7 +1086,7 @@ ScreenSaverSetAttributes (ClientPtr client)
 		}
 	        else
 		{
-		    ret = BadPixmap;
+		    ret = (ret == BadValue) ? BadPixmap : ret;
 		    client->errorValue = pixID;
 		    goto PatchUp;
 		}
@@ -1092,8 +1108,9 @@ ScreenSaverSetAttributes (ClientPtr client)
 	    }
 	    else
 	    {	
-		pPixmap = (PixmapPtr)LookupIDByType(pixID, RT_PIXMAP);
-		if (pPixmap)
+		ret = dixLookupResource((pointer *)&pPixmap, pixID, RT_PIXMAP,
+					client, DixReadAccess);
+		if (ret == Success)
 		{
                     if  ((pPixmap->drawable.depth != depth) ||
 			 (pPixmap->drawable.pScreen != pScreen))
@@ -1107,7 +1124,7 @@ ScreenSaverSetAttributes (ClientPtr client)
 		}
     	        else
 		{
-		    ret = BadPixmap;
+		    ret = (ret == BadValue) ? BadPixmap : ret;
 		    client->errorValue = pixID;
 		    goto PatchUp;
 		}
@@ -1185,10 +1202,11 @@ ScreenSaverSetAttributes (ClientPtr client)
 	    break;
 	case CWColormap:
 	    cmap = (Colormap) *pVlist;
-	    pCmap = (ColormapPtr)LookupIDByType(cmap, RT_COLORMAP);
-	    if (!pCmap)
+	    ret = dixLookupResource((pointer *)&pCmap, cmap, RT_COLORMAP,
+				    client, DixUseAccess);
+	    if (ret != Success)
 	    {
-		ret = BadColor;
+		ret = (ret == BadValue) ? BadColor : ret;
 		client->errorValue = cmap;
 		goto PatchUp;
 	    }
@@ -1208,10 +1226,11 @@ ScreenSaverSetAttributes (ClientPtr client)
 	    }
 	    else
 	    {
-	    	pCursor = (CursorPtr)LookupIDByType(cursorID, RT_CURSOR);
-	    	if (!pCursor)
+		ret = dixLookupResource((pointer *)&pCursor, cursorID,
+					RT_CURSOR, client, DixUseAccess);
+	    	if (ret != Success)
 	    	{
-		    ret = BadCursor;
+		    ret = (ret == BadValue) ? BadCursor : ret;
 		    client->errorValue = cursorID;
 		    goto PatchUp;
 	    	}
@@ -1253,7 +1272,7 @@ ScreenSaverUnsetAttributes (ClientPtr client)
 
     REQUEST_SIZE_MATCH (xScreenSaverUnsetAttributesReq);
     rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
-			   DixUnknownAccess);
+			   DixGetAttrAccess);
     if (rc != Success)
 	return rc;
     pPriv = GetScreenPrivate (pDraw->pScreen);
