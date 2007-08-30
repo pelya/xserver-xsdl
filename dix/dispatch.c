@@ -1013,10 +1013,6 @@ ProcSetSelectionOwner(ClientPtr client)
         {        
 	    xEvent event;
 
-	    rc = XaceHook(XACE_SELECTION_ACCESS, client, CurrentSelections[i],
-			  DixSetAttrAccess);
-	    if (rc != Success)
-		return rc;
 	    /* If the timestamp in client's request is in the past relative
 		to the time stamp indicating the last time the owner of the
 		selection was set, do not set the selection, just return 
@@ -1024,6 +1020,12 @@ ProcSetSelectionOwner(ClientPtr client)
             if (CompareTimeStamps(time, CurrentSelections[i].lastTimeChanged)
 		== EARLIER)
 		return Success;
+
+	    rc = XaceHook(XACE_SELECTION_ACCESS, client, stuff->selection,
+			  CurrentSelections[i], DixSetAttrAccess);
+	    if (rc != Success)
+		return rc;
+
 	    if (CurrentSelections[i].client &&
 		(!pWin || (CurrentSelections[i].client != client)))
 	    {
@@ -1054,19 +1056,17 @@ ProcSetSelectionOwner(ClientPtr client)
 	    CurrentSelections = newsels;
 	    CurrentSelections[i].selection = stuff->selection;
 	    CurrentSelections[i].devPrivates = NULL;
-	    rc = XaceHook(XACE_SELECTION_ACCESS, CurrentSelections[i],
-			  DixSetAttrAccess);
+	    rc = XaceHook(XACE_SELECTION_ACCESS, stuff->selection,
+			  CurrentSelections[i], DixSetAttrAccess);
 	    if (rc != Success)
 		return rc;
 	}
-	dixFreePrivates(CurrentSelections[i].devPrivates);
         CurrentSelections[i].lastTimeChanged = time;
 	CurrentSelections[i].window = stuff->window;
 	CurrentSelections[i].destwindow = stuff->window;
 	CurrentSelections[i].pWin = pWin;
 	CurrentSelections[i].client = (pWin ? client : NullClient);
 	CurrentSelections[i].destclient = (pWin ? client : NullClient);
-	CurrentSelections[i].devPrivates = NULL;
 	if (SelectionCallback)
 	{
 	    SelectionInfoRec	info;
@@ -1092,7 +1092,7 @@ ProcGetSelectionOwner(ClientPtr client)
     REQUEST_SIZE_MATCH(xResourceReq);
     if (ValidAtom(stuff->id))
     {
-	int i;
+	int rc, i;
         xGetSelectionOwnerReply reply;
 
 	i = 0;
@@ -1101,12 +1101,16 @@ ProcGetSelectionOwner(ClientPtr client)
         reply.type = X_Reply;
 	reply.length = 0;
 	reply.sequenceNumber = client->sequence;
-        if (i < NumCurrentSelections &&
-	    XaceHook(XACE_SELECTION_ACCESS, client, &CurrentSelections[i],
-		     DixGetAttrAccess) == Success)
+        if (i < NumCurrentSelections)
             reply.owner = CurrentSelections[i].destwindow;
         else
             reply.owner = None;
+
+	rc = XaceHook(XACE_SELECTION_ACCESS, client, stuff->id, NULL,
+		      DixGetAttrAccess);
+	if (rc != Success)
+	    return rc;
+
         WriteReplyToClient(client, sizeof(xGetSelectionOwnerReply), &reply);
         return(client->noClientException);
     }
@@ -1143,8 +1147,8 @@ ProcConvertSelection(ClientPtr client)
 	       CurrentSelections[i].selection != stuff->selection) i++;
 	if ((i < NumCurrentSelections) &&
 	    (CurrentSelections[i].window != None) &&
-	    XaceHook(XACE_SELECTION_ACCESS, client, &CurrentSelections[i],
-		     DixReadAccess) == Success)
+	    XaceHook(XACE_SELECTION_ACCESS, client, stuff->selection,
+		     &CurrentSelections[i], DixReadAccess) == Success)
 	{        
 	    event.u.u.type = SelectionRequest;
 	    event.u.selectionRequest.time = stuff->time;

@@ -173,6 +173,7 @@ int XaceHook(int hook, ...)
 	case XACE_SELECTION_ACCESS: {
 	    XaceSelectionAccessRec rec = {
 		va_arg(ap, ClientPtr),
+		va_arg(ap, Atom),
 		va_arg(ap, Selection*),
 		va_arg(ap, Mask),
 		Success /* default allow */
