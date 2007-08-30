@@ -394,8 +394,6 @@ exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,
 				       dst_off_y + pbox->y1 + i,
 				       pbox->x2 - pbox->x1, 1);
 	}
-	exaPixmapDirty(pDstPixmap, dst_off_x + pbox->x1, dst_off_y + pbox->y1,
-		       dst_off_x + pbox->x2, dst_off_y + pbox->y2);
     }
     if (dirsetup != 0)
 	pExaScr->info->DoneCopy(pDstPixmap);
@@ -421,7 +419,6 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     int	    src_off_x, src_off_y;
     int	    dst_off_x, dst_off_y;
     ExaMigrationRec pixmaps[2];
-    Bool fallback = FALSE;
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
@@ -441,18 +438,18 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	pDstPixmap->drawable.width > pExaScr->info->maxX ||
 	pDstPixmap->drawable.height > pExaScr->info->maxY)
     {
-	fallback = TRUE;
+	goto fallback;
     } else {
 	exaDoMigration (pixmaps, 2, TRUE);
     }
 
     /* Mixed directions must be handled specially if the card is lame */
-    if (!fallback && (pExaScr->info->flags & EXA_TWO_BITBLT_DIRECTIONS) &&
+    if ((pExaScr->info->flags & EXA_TWO_BITBLT_DIRECTIONS) &&
 	reverse != upsidedown) {
 	if (exaCopyNtoNTwoDir(pSrcDrawable, pDstDrawable, pGC, pbox, nbox,
 			       dx, dy))
 	    return;
-	fallback = TRUE;
+	goto fallback;
     }
 
     pSrcPixmap = exaGetDrawablePixmap (pSrcDrawable);
@@ -461,43 +458,40 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     exaGetDrawableDeltas (pSrcDrawable, pSrcPixmap, &src_off_x, &src_off_y);
     exaGetDrawableDeltas (pDstDrawable, pDstPixmap, &dst_off_x, &dst_off_y);
 
-    if (fallback || !exaPixmapIsOffscreen(pSrcPixmap) ||
+    if (!exaPixmapIsOffscreen(pSrcPixmap) ||
 	!exaPixmapIsOffscreen(pDstPixmap) ||
 	!(*pExaScr->info->PrepareCopy) (pSrcPixmap, pDstPixmap, reverse ? -1 : 1,
 					upsidedown ? -1 : 1,
 					pGC ? pGC->alu : GXcopy,
 					pGC ? pGC->planemask : FB_ALLONES)) {
-	fallback = TRUE;
-	EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrcDrawable, pDstDrawable,
-		      exaDrawableLocation(pSrcDrawable),
-		      exaDrawableLocation(pDstDrawable)));
-	exaPrepareAccessReg (pDstDrawable, EXA_PREPARE_DEST, pixmaps[0].pReg);
-	exaPrepareAccess (pSrcDrawable, EXA_PREPARE_SRC);
-	fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC,
-		    pbox, nbox, dx, dy, reverse, upsidedown,
-		    bitplane, closure);
-	exaFinishAccess (pSrcDrawable, EXA_PREPARE_SRC);
-	exaFinishAccess (pDstDrawable, EXA_PREPARE_DEST);
+	goto fallback;
     }
 
     while (nbox--)
     {
-	if (!fallback)
-	    (*pExaScr->info->Copy) (pDstPixmap,
-				    pbox->x1 + dx + src_off_x,
-				    pbox->y1 + dy + src_off_y,
-				    pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
-				    pbox->x2 - pbox->x1, pbox->y2 - pbox->y1);
-	exaPixmapDirty (pDstPixmap, pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
-			pbox->x2  + dst_off_x, pbox->y2 + dst_off_y);
+	(*pExaScr->info->Copy) (pDstPixmap,
+				pbox->x1 + dx + src_off_x,
+				pbox->y1 + dy + src_off_y,
+				pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
+				pbox->x2 - pbox->x1, pbox->y2 - pbox->y1);
 	pbox++;
     }
 
-    if (fallback)
-	return;
-
     (*pExaScr->info->DoneCopy) (pDstPixmap);
     exaMarkSync (pDstDrawable->pScreen);
+
+    return;
+
+fallback:
+    EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrcDrawable, pDstDrawable,
+		  exaDrawableLocation(pSrcDrawable),
+		  exaDrawableLocation(pDstDrawable)));
+    exaPrepareAccessReg (pDstDrawable, EXA_PREPARE_DEST, pixmaps[0].pReg);
+    exaPrepareAccess (pSrcDrawable, EXA_PREPARE_SRC);
+    fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC, pbox, nbox, dx, dy, reverse,
+		upsidedown, bitplane, closure);
+    exaFinishAccess (pSrcDrawable, EXA_PREPARE_SRC);
+    exaFinishAccess (pDstDrawable, EXA_PREPARE_DEST);
 }
 
 RegionPtr
@@ -1204,12 +1198,8 @@ void
 exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
 {
     ExaScreenPriv (pWin->drawable.pScreen);
-    PixmapPtr pPixmap = exaGetDrawablePixmap((DrawablePtr)pWin);
-    int xoff, yoff;
-    BoxPtr pBox;
-    int nbox = REGION_NUM_RECTS(pRegion);
 
-    if (!nbox)
+    if (REGION_NIL(pRegion))
 	return;
 
     if (!pExaScr->swappedOut) {
@@ -1230,39 +1220,27 @@ exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
             case BackgroundPixel:
 		exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->background.pixel,
 				   FB_ALLONES, GXcopy);
-                goto damage;
+                return;
             case BackgroundPixmap:
                 exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->background.pixmap,
 				   &zeros, FB_ALLONES, GXcopy);
-                goto damage;
+                return;
             }
             break;
         case PW_BORDER:
             if (pWin->borderIsPixel) {
                 exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->border.pixel,
 				   FB_ALLONES, GXcopy);
-                goto damage;
+                return;
             } else {
                 exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->border.pixmap,
 				   &zeros, FB_ALLONES, GXcopy);
-                goto damage;
+                return;
             }
             break;
         }
     }
     ExaCheckPaintWindow (pWin, pRegion, what);
-
-damage:
-    exaGetDrawableDeltas((DrawablePtr)pWin, pPixmap, &xoff, &yoff);
-
-    pBox = REGION_RECTS(pRegion);
-
-    while (nbox--)
-    {
-	exaPixmapDirty (pPixmap, pBox->x1 + xoff, pBox->y1 + yoff,
-			pBox->x2 + xoff, pBox->y2 + yoff);
-	pBox++;
-    }
 }
 
 /**

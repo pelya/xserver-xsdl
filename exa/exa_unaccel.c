@@ -105,7 +105,6 @@ ExaCheckPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth,
     fbPutImage (pDrawable, pGC, depth, x, y, w, h, leftPad, format, bits);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
     exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
-    exaPixmapDirty(pPixmap, x + xoff, y + yoff, x + xoff + w, y + yoff + h);
 }
 
 RegionPtr
