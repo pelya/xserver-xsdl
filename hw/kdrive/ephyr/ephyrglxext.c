@@ -37,7 +37,9 @@
 #include <GL/glxproto.h>
 #include "GL/glx/glxserver.h"
 #include "GL/glx/indirect_table.h"
+#include "GL/glx/indirect_util.h"
 #include "GL/glx/unpack.h"
+#include "hostx.h"
 
 
 #ifdef XEPHYR_DRI
@@ -61,6 +63,18 @@ int ephyrGLXQueryServerString(__GLXclientState *a_cl, GLbyte *a_pc) ;
 int ephyrGLXQueryServerStringSwap(__GLXclientState *a_cl, GLbyte *a_pc) ;
 int ephyrGLXGetFBConfigsSGIX (__GLXclientState *a_cl, GLbyte *a_pc);
 int ephyrGLXGetFBConfigsSGIXSwap (__GLXclientState *a_cl, GLbyte *a_pc);
+int ephyrGLXCreateContext (__GLXclientState *a_cl, GLbyte *a_pc);
+int ephyrGLXCreateContextSwap (__GLXclientState *a_cl, GLbyte *a_pc);
+int ephyrGLXDestroyContext (__GLXclientState *a_cl, GLbyte *a_pc) ;
+int ephyrGLXDestroyContextSwap (__GLXclientState *a_cl, GLbyte *a_pc) ;
+int ephyrGLXMakeCurrent (__GLXclientState *a_cl, GLbyte *a_pc) ;
+int ephyrGLXMakeCurrentSwap (__GLXclientState *a_cl, GLbyte *a_pc) ;
+int ephyrGLXGetString (__GLXclientState *a_cl, GLbyte *a_pc) ;
+int ephyrGLXGetStringSwap (__GLXclientState *a_cl, GLbyte *a_pc) ;
+int ephyrGLXGetIntegerv (__GLXclientState *a_cl, GLbyte *a_pc) ;
+int ephyrGLXGetIntegervSwap (__GLXclientState *a_cl, GLbyte *a_pc) ;
+int ephyrGLXIsDirect (__GLXclientState *a_cl, GLbyte *a_pc) ;
+int ephyrGLXIsDirectSwap (__GLXclientState *a_cl, GLbyte *a_pc) ;
 
 Bool
 ephyrHijackGLXExtension (void)
@@ -83,13 +97,30 @@ ephyrHijackGLXExtension (void)
 
     dispatch_functions[X_GLXGetVisualConfigs][0] = ephyrGLXGetVisualConfigs ;
     dispatch_functions[X_GLXGetVisualConfigs][1] = ephyrGLXGetVisualConfigsSwap ;
-
     dispatch_functions[X_GLXClientInfo][0] = ephyrGLXClientInfo ;
     dispatch_functions[X_GLXClientInfo][1] = ephyrGLXClientInfoSwap ;
 
     dispatch_functions[X_GLXQueryServerString][0] = ephyrGLXQueryServerString ;
     dispatch_functions[X_GLXQueryServerString][1] =
                                                 ephyrGLXQueryServerStringSwap ;
+
+    dispatch_functions[X_GLXCreateContext][0] = ephyrGLXCreateContext ;
+    dispatch_functions[X_GLXCreateContext][1] = ephyrGLXCreateContextSwap ;
+
+    dispatch_functions[X_GLXDestroyContext][0] = ephyrGLXDestroyContext ;
+    dispatch_functions[X_GLXDestroyContext][1] = ephyrGLXDestroyContextSwap ;
+
+    dispatch_functions[X_GLXMakeCurrent][0] = ephyrGLXMakeCurrent ;
+    dispatch_functions[X_GLXMakeCurrent][1] = ephyrGLXMakeCurrentSwap ;
+
+    dispatch_functions[X_GLXIsDirect][0] = ephyrGLXIsDirect ;
+    dispatch_functions[X_GLXIsDirect][1] = ephyrGLXIsDirectSwap ;
+
+    dispatch_functions[73][0] = ephyrGLXGetString ;
+    dispatch_functions[73][1] = ephyrGLXGetStringSwap ;
+
+    dispatch_functions[61][0] = ephyrGLXGetIntegerv ;
+    dispatch_functions[61][1] = ephyrGLXGetIntegervSwap ;
 
     /*
      * hijack some vendor priv entry point dispatch functions
@@ -332,6 +363,7 @@ ephyrGLXQueryServerString(__GLXclientState *a_cl, GLbyte *a_pc)
     EPHYR_LOG ("enter\n") ;
     if (!ephyrHostGLXGetStringFromServer (req->screen,
                                           req->name,
+                                          EPHYR_HOST_GLX_QueryServerString,
                                           &server_string)) {
         EPHYR_LOG_ERROR ("failed to query string from host\n") ;
         goto out ;
@@ -375,6 +407,289 @@ int
 ephyrGLXGetFBConfigsSGIXSwap (__GLXclientState *a_cl, GLbyte *a_pc)
 {
     return ephyrGLXGetFBConfigsSGIXReal (a_cl, a_pc, TRUE) ;
+}
+
+static int
+ephyrGLXCreateContextReal (xGLXCreateContextReq *a_req, Bool a_do_swap)
+{
+    int res=BadImplementation;
+    EphyrHostWindowAttributes host_w_attrs ;
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_req, BadValue) ;
+    EPHYR_LOG ("enter\n") ;
+
+    if (a_do_swap) {
+        __GLX_SWAP_SHORT(&a_req->length);
+        __GLX_SWAP_INT(&a_req->context);
+        __GLX_SWAP_INT(&a_req->visual);
+        __GLX_SWAP_INT(&a_req->screen);
+        __GLX_SWAP_INT(&a_req->shareList);
+    }
+
+    EPHYR_LOG ("context creation requested. localid:%d, "
+               "screen:%d, visual:%d, direct:%d\n",
+               (int)a_req->context, (int)a_req->screen,
+               (int)a_req->visual, (int)a_req->isDirect) ;
+
+    memset (&host_w_attrs, 0, sizeof (host_w_attrs)) ;
+    if (!hostx_get_window_attributes (hostx_get_window (), &host_w_attrs)) {
+        EPHYR_LOG_ERROR ("failed to get host window attrs\n") ;
+        goto out ;
+    }
+
+    EPHYR_LOG ("host window visual id: %d\n", host_w_attrs.visualid) ;
+
+    if (!ephyrHostGLXCreateContext (a_req->screen,
+                                    host_w_attrs.visualid,
+                                    a_req->context,
+                                    a_req->shareList,
+                                    a_req->isDirect)) {
+        EPHYR_LOG_ERROR ("ephyrHostGLXCreateContext() failed\n") ;
+        goto out ;
+    }
+    res = Success;
+out:
+    EPHYR_LOG ("leave\n") ;
+    return res ;
+}
+
+int
+ephyrGLXCreateContext (__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreateContextReq *req = (xGLXCreateContextReq *) pc;
+
+    return ephyrGLXCreateContextReal (req, FALSE) ;
+}
+
+int ephyrGLXCreateContextSwap (__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXCreateContextReq *req = (xGLXCreateContextReq *) pc;
+    return ephyrGLXCreateContextReal (req, TRUE) ;
+}
+
+static int
+ephyrGLXDestroyContextReal (__GLXclientState *a_cl,
+                            GLbyte *a_pc,
+                            Bool a_do_swap)
+{
+    int res=BadImplementation;
+    ClientPtr client = a_cl->client;
+    xGLXDestroyContextReq *req = (xGLXDestroyContextReq *) a_pc;
+
+    EPHYR_LOG ("enter. id:%d\n", (int)req->context) ;
+    if (!ephyrHostDestroyContext (req->context)) {
+        EPHYR_LOG_ERROR ("ephyrHostDestroyContext() failed\n") ;
+        client->errorValue = req->context ;
+        goto out ;
+    }
+    res = Success ;
+
+out:
+    EPHYR_LOG ("leave\n") ;
+    return res ;
+}
+
+int
+ephyrGLXDestroyContext (__GLXclientState *a_cl, GLbyte *a_pc)
+{
+    return ephyrGLXDestroyContextReal (a_cl, a_pc, FALSE) ;
+}
+
+int
+ephyrGLXDestroyContextSwap (__GLXclientState *a_cl, GLbyte *a_pc)
+{
+    return ephyrGLXDestroyContextReal (a_cl, a_pc, TRUE) ;
+}
+
+static int
+ephyrGLXMakeCurrentReal (__GLXclientState *a_cl, GLbyte *a_pc, Bool a_do_swap)
+{
+    int res=BadImplementation;
+    xGLXMakeCurrentReq *req = (xGLXMakeCurrentReq *) a_pc;
+    xGLXMakeCurrentReply reply ;
+
+    EPHYR_LOG ("enter\n") ;
+    memset (&reply, 0, sizeof (reply)) ;
+    if (!ephyrHostGLXMakeCurrent (hostx_get_window (),
+                                  req->context,
+                                  req->oldContextTag,
+                                  (int*)&reply.contextTag)) {
+        EPHYR_LOG_ERROR ("ephyrHostGLXMakeCurrent() failed\n") ;
+        goto out;
+    }
+    reply.length = 0;
+    reply.type = X_Reply;
+    reply.sequenceNumber = a_cl->client->sequence;
+    if (a_do_swap) {
+        __GLX_DECLARE_SWAP_VARIABLES;
+        __GLX_SWAP_SHORT(&reply.sequenceNumber);
+        __GLX_SWAP_INT(&reply.length);
+        __GLX_SWAP_INT(&reply.contextTag);
+    }
+    WriteToClient(a_cl->client, sz_xGLXMakeCurrentReply, (char *)&reply);
+
+    res = Success ;
+out:
+    EPHYR_LOG ("leave\n") ;
+    return res ;
+}
+
+int
+ephyrGLXMakeCurrent (__GLXclientState *a_cl, GLbyte *a_pc)
+{
+    return ephyrGLXMakeCurrentReal (a_cl, a_pc, FALSE) ;
+}
+
+int
+ephyrGLXMakeCurrentSwap (__GLXclientState *a_cl, GLbyte *a_pc)
+{
+    return ephyrGLXMakeCurrentReal (a_cl, a_pc, TRUE) ;
+}
+
+static int
+ephyrGLXGetStringReal (__GLXclientState *a_cl, GLbyte *a_pc, Bool a_do_swap)
+{
+    ClientPtr client=NULL ;
+    int context_tag=0, name=0, res=BadImplementation, length=0 ;
+    char *string=NULL;
+    __GLX_DECLARE_SWAP_VARIABLES;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_cl && a_pc, BadValue) ;
+
+    EPHYR_LOG ("enter\n") ;
+
+    client = a_cl->client ;
+
+    if (a_do_swap) {
+        __GLX_SWAP_INT (a_pc + 4);
+        __GLX_SWAP_INT (a_pc + __GLX_SINGLE_HDR_SIZE);
+    }
+    context_tag = __GLX_GET_SINGLE_CONTEXT_TAG (a_pc) ;
+    a_pc += __GLX_SINGLE_HDR_SIZE;
+    name = *(GLenum*)(a_pc + 0);
+    EPHYR_LOG ("context_tag:%d, name:%d\n", context_tag, name) ;
+    if (!ephyrHostGLXGetStringFromServer (context_tag,
+                                          name,
+                                          EPHYR_HOST_GLX_GetString,
+                                          &string)) {
+        EPHYR_LOG_ERROR ("failed to get string from server\n") ;
+        goto out ;
+    }
+    if (string) {
+        length = strlen (string) ;
+        EPHYR_LOG ("got string: string:%s\n", string) ;
+    } else {
+        EPHYR_LOG ("got string: string (null)\n") ;
+    }
+    __GLX_BEGIN_REPLY (length);
+    __GLX_PUT_SIZE (length);
+    __GLX_SEND_HEADER ();
+    if (a_do_swap) {
+        __GLX_SWAP_REPLY_SIZE ();
+        __GLX_SWAP_REPLY_HEADER ();
+    }
+    WriteToClient (client, length, (char *)string);
+
+    res = Success ;
+out:
+    EPHYR_LOG ("enter\n") ;
+    return res ;
+}
+
+int
+ephyrGLXGetString (__GLXclientState *a_cl, GLbyte *a_pc)
+{
+    return ephyrGLXGetStringReal (a_cl, a_pc, FALSE) ;
+}
+
+int
+ephyrGLXGetStringSwap (__GLXclientState *a_cl, GLbyte *a_pc)
+{
+    return ephyrGLXGetStringReal (a_cl, a_pc, TRUE) ;
+}
+
+static int
+ephyrGLXGetIntegervReal (__GLXclientState *a_cl, GLbyte *a_pc, Bool a_do_swap)
+{
+    int res=BadImplementation;
+    xGLXSingleReq * const req = (xGLXSingleReq *) a_pc;
+    GLenum int_name ;
+    int value=0 ;
+    GLint answer_buf_room[200];
+    GLint *buf=NULL ;
+
+    a_pc += __GLX_SINGLE_HDR_SIZE;
+
+    int_name = *(GLenum*) (a_pc+0) ;
+    if (!ephyrHostGetIntegerValue (req->contextTag, int_name, &value)) {
+        EPHYR_LOG_ERROR ("ephyrHostGetIntegerValue() failed\n") ;
+        goto out ;
+    }
+    buf = __glXGetAnswerBuffer (a_cl, sizeof (value),
+                                answer_buf_room,
+                                sizeof (answer_buf_room),
+                                4) ;
+
+    if (!buf) {
+        EPHYR_LOG_ERROR ("failed to allocate reply buffer\n") ;
+        res = BadAlloc ;
+        goto out ;
+    }
+    __glXSendReply (a_cl->client, buf, 1, sizeof (value), GL_FALSE, 0) ;
+    res = Success ;
+out:
+    return res ;
+}
+
+int
+ephyrGLXGetIntegerv (__GLXclientState *a_cl, GLbyte *a_pc)
+{
+    return ephyrGLXGetIntegervReal (a_cl, a_pc, FALSE) ;
+}
+
+int
+ephyrGLXGetIntegervSwap (__GLXclientState *a_cl, GLbyte *a_pc)
+{
+    return ephyrGLXGetIntegervReal (a_cl, a_pc, TRUE) ;
+}
+
+static int
+ephyrGLXIsDirectReal (__GLXclientState *a_cl, GLbyte *a_pc, Bool a_do_swap)
+{
+    int res=BadImplementation;
+    ClientPtr client = a_cl->client;
+    xGLXIsDirectReq *req = (xGLXIsDirectReq *) a_pc;
+    xGLXIsDirectReply reply;
+    int is_direct=0 ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_cl && a_pc, FALSE) ;
+
+    memset (&reply, 0, sizeof (reply)) ;
+    if (!ephyrHostIsContextDirect (req->context, (int*)&is_direct)) {
+        EPHYR_LOG_ERROR ("ephyrHostIsContextDirect() failed\n") ;
+        goto out ;
+    }
+    reply.isDirect = is_direct ;
+    reply.length = 0;
+    reply.type = X_Reply;
+    reply.sequenceNumber = client->sequence;
+    WriteToClient(client, sz_xGLXIsDirectReply, (char *)&reply);
+    res = Success ;
+out:
+    return res ;
+}
+
+int
+ephyrGLXIsDirect (__GLXclientState *a_cl, GLbyte *a_pc)
+{
+    return ephyrGLXIsDirectReal (a_cl, a_pc, FALSE) ;
+}
+
+int
+ephyrGLXIsDirectSwap (__GLXclientState *a_cl, GLbyte *a_pc)
+{
+    return ephyrGLXIsDirectReal (a_cl, a_pc, TRUE) ;
 }
 
 #endif /*XEPHYR_DRI*/

@@ -40,6 +40,8 @@
 #include "ephyrdri.h"
 #define _HAVE_XALLOC_DECLS
 #include "ephyrlog.h"
+#include "dixstruct.h"
+#include "pixmapstr.h"
 
 #ifndef TRUE
 #define TRUE 1
@@ -55,9 +57,10 @@ ephyrDRIQueryDirectRenderingCapable (int a_screen, Bool *a_is_capable)
     Display *dpy=hostx_get_display () ;
     Bool is_ok=FALSE ;
 
+    EPHYR_RETURN_VAL_IF_FAIL (a_is_capable, FALSE) ;
     EPHYR_LOG ("enter\n") ;
     is_ok = XF86DRIQueryDirectRenderingCapable (dpy, a_screen, a_is_capable) ;
-    EPHYR_LOG ("leave\n") ;
+    EPHYR_LOG ("leave. is_capable:%d, is_ok=%d\n", *a_is_capable, is_ok) ;
 
     return is_ok ;
 }
@@ -70,9 +73,16 @@ ephyrDRIOpenConnection (int a_screen,
     Display *dpy = hostx_get_display () ;
     Bool is_ok=FALSE ;
 
-    EPHYR_LOG ("enter\n") ;
+    EPHYR_RETURN_VAL_IF_FAIL (a_bus_id_string, FALSE) ;
+    EPHYR_LOG ("enter. screen:%d\n", a_screen) ;
     is_ok = XF86DRIOpenConnection (dpy, a_screen, a_sarea, a_bus_id_string) ;
-    EPHYR_LOG ("leave\n") ;
+    if (*a_bus_id_string) {
+        EPHYR_LOG ("leave. bus_id_string:%s, is_ok:%d\n",
+                   *a_bus_id_string, is_ok) ;
+    } else {
+        EPHYR_LOG ("leave. bus_id_string:null, is_ok:%d\n",
+                   is_ok) ;
+    }
     return is_ok ;
 }
 
@@ -84,7 +94,7 @@ ephyrDRIAuthConnection (int a_screen, drm_magic_t a_magic)
 
     EPHYR_LOG ("enter\n") ;
     is_ok = XF86DRIAuthConnection (dpy, a_screen, a_magic) ;
-    EPHYR_LOG ("leave\n") ;
+    EPHYR_LOG ("leave. is_ok:%d\n", is_ok) ;
     return is_ok ;
 }
 
@@ -140,7 +150,7 @@ ephyrDRICreateContext (int a_screen,
     Bool is_ok=FALSE ;
     Visual v;
 
-    EPHYR_LOG ("enter\n") ;
+    EPHYR_LOG ("enter. screen:%d, visual:%d\n", a_screen, a_visual_id) ;
     memset (&v, 0, sizeof (v)) ;
     v.visualid = a_visual_id ;
     is_ok = XF86DRICreateContext (dpy,
@@ -170,10 +180,14 @@ ephyrDRICreateDrawable (int a_screen,
                         int a_drawable,
                         drm_drawable_t *a_hw_drawable)
 {
+    Bool is_ok=FALSE;
+    Display *dpy=hostx_get_display () ;
+    int host_win=hostx_get_window () ;
+
     EPHYR_LOG ("enter\n") ;
-    EPHYR_LOG_ERROR ("not implemented yet\n") ;
-    EPHYR_LOG ("leave\n") ;
-    return FALSE ;
+    is_ok = XF86DRICreateDrawable (dpy, a_screen, host_win, a_hw_drawable) ;
+    EPHYR_LOG ("leave. is_ok:%d\n", is_ok) ;
+    return is_ok ;
 }
 
 Bool
@@ -187,7 +201,7 @@ ephyrDRIDestroyDrawable (int a_screen, int a_drawable)
 
 Bool
 ephyrDRIGetDrawableInfo (int a_screen,
-                         int a_drawable,
+                         void *a_drawable,
                          unsigned int *a_index,
                          unsigned int *a_stamp,
                          int *a_x,
@@ -198,13 +212,38 @@ ephyrDRIGetDrawableInfo (int a_screen,
                          drm_clip_rect_t **a_clip_rects,
                          int *a_back_x,
                          int *a_back_y,
-                         int *num_back_clip_rects,
+                         int *a_num_back_clip_rects,
                          drm_clip_rect_t **a_back_clip_rects)
 {
+    Bool is_ok=FALSE;
+    DrawablePtr drawable = a_drawable ;
+    EphyrHostWindowAttributes attrs ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (drawable && a_x && a_y && a_w && a_h
+                              && a_num_clip_rects,
+                              FALSE) ;
+
     EPHYR_LOG ("enter\n") ;
-    EPHYR_LOG_ERROR ("not implemented yet\n") ;
+    memset (&attrs, 0, sizeof (attrs)) ;
+    if (!hostx_get_window_attributes (hostx_get_window (), &attrs)) {
+        EPHYR_LOG_ERROR ("failed to query host window attributes\n") ;
+        goto out;
+    }
+    *a_x = drawable->x + attrs.x;
+    *a_y = drawable->y + attrs.y;
+    *a_w = drawable->width + attrs.width ;
+    *a_h = drawable->height + attrs.height ;
+    *a_num_clip_rects = 0 ;
+    *a_clip_rects = NULL ;
+    *a_back_x = 0;
+    *a_back_y = 0 ;
+    *a_num_back_clip_rects = 0 ;
+    *a_back_clip_rects = NULL ;
+
+    is_ok = TRUE ;
+out:
     EPHYR_LOG ("leave\n") ;
-    return FALSE ;
+    return is_ok ;
 }
 
 Bool

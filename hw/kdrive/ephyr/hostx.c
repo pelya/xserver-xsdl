@@ -970,6 +970,27 @@ hostx_get_window(void)
 }
 
 int
+hostx_get_window_attributes (int a_window, EphyrHostWindowAttributes *a_attrs)
+{
+    XWindowAttributes attrs ;
+
+    memset (&attrs, 0, sizeof (attrs)) ;
+
+    if (!XGetWindowAttributes (hostx_get_display (),
+                               a_window,
+                               &attrs)) {
+        return FALSE ;
+    }
+    a_attrs->x = attrs.x ;
+    a_attrs->y = attrs.y ;
+    a_attrs->width = attrs.width ;
+    a_attrs->height = attrs.height ;
+    if (attrs.visual)
+        a_attrs->visualid = attrs.visual->visualid ;
+    return TRUE ;
+}
+
+int
 hostx_get_extension_info (const char *a_ext_name,
                           int *a_major_opcode,
                           int *a_first_event,
@@ -1037,5 +1058,77 @@ out:
     EPHYR_LOG ("leave\n") ;
     return is_ok ;
 
+}
+
+typedef struct {
+    int is_valid ;
+    int local_id ;
+    int remote_id ;
+} ResourcePair ;
+
+#define RESOURCE_PEERS_SIZE 1024*10
+static ResourcePair resource_peers[RESOURCE_PEERS_SIZE] ;
+
+int
+hostx_allocate_resource_id_peer (int a_local_resource_id,
+                                 int *a_remote_resource_id)
+{
+    int i=0 ;
+    ResourcePair *peer=NULL ;
+    Display *dpy=hostx_get_display ();
+
+    /*
+     * first make sure a resource peer
+     * does not exist already for
+     * a_local_resource_id
+     */
+    for (i=0; i<RESOURCE_PEERS_SIZE; i++) {
+        if (resource_peers[i].is_valid
+            && resource_peers[i].local_id == a_local_resource_id) {
+            peer = &resource_peers[i] ;
+            break ;
+        }
+    }
+    /*
+     * find one free peer entry, an feed it with
+     */
+    if (!peer) {
+        for (i=0; i<RESOURCE_PEERS_SIZE; i++) {
+            if (!resource_peers[i].is_valid) {
+                peer = &resource_peers[i] ;
+                break ;
+            }
+        }
+        if (peer) {
+            peer->remote_id = XAllocID (dpy);
+            peer->local_id = a_local_resource_id ;
+            peer->is_valid = TRUE ;
+        }
+    }
+    if (peer) {
+        *a_remote_resource_id = peer->remote_id ;
+        return TRUE ;
+    }
+    return FALSE ;
+}
+
+int
+hostx_get_resource_id_peer (int a_local_resource_id,
+                            int *a_remote_resource_id)
+{
+    int i=0 ;
+    ResourcePair *peer=NULL ;
+    for (i=0; i<RESOURCE_PEERS_SIZE; i++) {
+        if (resource_peers[i].is_valid
+            && resource_peers[i].local_id == a_local_resource_id) {
+            peer = &resource_peers[i] ;
+            break ;
+        }
+    }
+    if (peer) {
+        *a_remote_resource_id = peer->remote_id ;
+        return TRUE ;
+    }
+    return FALSE ;
 }
 

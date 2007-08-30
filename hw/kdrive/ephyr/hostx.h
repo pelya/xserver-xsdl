@@ -104,6 +104,12 @@ typedef struct {
   int bits_per_rgb;
 } EphyrHostVisualInfo;
 
+typedef struct {
+    int x, y;
+    int width, height ;
+    int visualid ;
+} EphyrHostWindowAttributes;
+
 int
 hostx_want_screen_size(EphyrScreenInfo screen, int *width, int *height);
 
@@ -191,6 +197,9 @@ int
 hostx_get_window(void) ;
 
 int
+hostx_get_window_attributes (int a_window, EphyrHostWindowAttributes *a_attr)  ;
+
+int
 hostx_get_extension_info (const char *a_ext_name,
                           int *a_major_opcode,
                           int *a_first_even,
@@ -198,4 +207,11 @@ hostx_get_extension_info (const char *a_ext_name,
 int
 hostx_get_visuals_info (EphyrHostVisualInfo **a_visuals,
                         int *a_num_entries) ;
+int
+hostx_allocate_resource_id_peer (int a_local_resource_id,
+                                 int *a_remote_resource_id) ;
+int
+hostx_get_resource_id_peer (int a_local_resource_id,
+                            int *a_remote_resource_id) ;
+
 #endif

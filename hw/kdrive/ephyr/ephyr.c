@@ -1095,6 +1095,10 @@ EphyrDuplicateVisual (unsigned int a_screen,
             /*copy the visual found*/
             memcpy (&new_visual, &screen->visuals[i], sizeof (new_visual)) ;
             new_visual.vid = a_new_id ;
+            new_visual.class = a_class ;
+            new_visual.redMask = a_red_mask ;
+            new_visual.greenMask = a_green_mask ;
+            new_visual.blueMask = a_blue_mask ;
             found_visual = TRUE ;
             EPHYR_LOG ("found a visual that matches visual id: %d\n",
                        a_new_id) ;
@@ -1195,8 +1199,8 @@ EphyrMirrorHostVisuals (void)
                                    visuals[i].bits_per_rgb,
                                    visuals[i].colormap_size,
                                    visuals[i].red_mask,
-                                   visuals[i].blue_mask,
                                    visuals[i].green_mask,
+                                   visuals[i].blue_mask,
                                    visuals[i].visualid)) {
             EPHYR_LOG_ERROR ("failed to duplicate host visual %d\n",
                              (int)visuals[i].visualid) ;

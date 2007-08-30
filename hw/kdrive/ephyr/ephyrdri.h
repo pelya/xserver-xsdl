@@ -51,7 +51,7 @@ Bool ephyrDRICreateDrawable (int a_screen,
                              drm_drawable_t *a_hw_drawable) ;
 Bool ephyrDRIDestroyDrawable (int a_screen, int a_drawable) ;
 Bool ephyrDRIGetDrawableInfo (int a_screen,
-                              int a_drawable,
+                              void* /*DrawablePtr*/ a_drawable,
                               unsigned int *a_index,
                               unsigned int *a_stamp,
                               int *a_x,

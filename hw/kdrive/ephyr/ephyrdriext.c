@@ -447,11 +447,10 @@ static int
 ProcXF86DRIGetDrawableInfo (register ClientPtr client)
 {
     xXF86DRIGetDrawableInfoReply	rep;
-    DrawablePtr pDrawable;
-    int X, Y, W, H;
+    DrawablePtr drawable;
+    int X, Y, W, H, backX, backY, rc;
     drm_clip_rect_t * pClipRects, *pClippedRects;
     drm_clip_rect_t * pBackClipRects;
-    int backX, backY, rc;
 
     EPHYR_LOG ("enter\n") ;
     REQUEST(xXF86DRIGetDrawableInfoReq);
@@ -469,25 +468,25 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
      * We must properly do the mapping
      * between xephyr drawable and the host drawable
      */
-    rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
-            DixReadAccess);
+    rc = dixLookupDrawable(&drawable, stuff->drawable, client, 0,
+                           DixReadAccess);
     if (rc != Success)
         return rc;
 
     if (!ephyrDRIGetDrawableInfo (stuff->screen,
-                0 /*should be the drawable in hostx*/,
-                (unsigned int*)&rep.drawableTableIndex,
-                (unsigned int*)&rep.drawableTableStamp,
-                (int*)&X,
-                (int*)&Y,
-                (int*)&W,
-                (int*)&H,
-                (int*)&rep.numClipRects,
-                &pClipRects,
-                &backX,
-                &backY,
-                (int*)&rep.numBackClipRects,
-                &pBackClipRects)) {
+                                  drawable/*should be the drawable in hostx*/,
+                                  (unsigned int*)&rep.drawableTableIndex,
+                                  (unsigned int*)&rep.drawableTableStamp,
+                                  (int*)&X,
+                                  (int*)&Y,
+                                  (int*)&W,
+                                  (int*)&H,
+                                  (int*)&rep.numClipRects,
+                                  &pClipRects,
+                                  &backX,
+                                  &backY,
+                                  (int*)&rep.numBackClipRects,
+                                  &pBackClipRects)) {
         return BadValue;
     }
 
