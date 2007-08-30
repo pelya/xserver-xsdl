@@ -147,69 +147,6 @@ int lnxPciInit(void) {
     return xf86OSLinuxNumPciDevs;
 }
 
-Bool
-xf86GetPciSizeFromOS(PCITAG tag, int index, int* bits)
-{
-    signed PCIADDR_TYPE Size;
-    struct pci_dev *device;
-
-    if (index >= 7)
-        return FALSE;
-    
-    if (!xf86OSLinuxPCIDevs) {
-        xf86OSLinuxPCIDevs = xf86OSLinuxGetPciDevs();
-    }
-    if (!xf86OSLinuxPCIDevs)
-        return FALSE;
-    
-    for (device = xf86OSLinuxPCIDevs; device; device = device->next) {
-        if (tag == PCI_MAKE_TAG(PCI_MAKE_BUS(device->domain, device->bus),
-				device->dev, device->fn)) {
-            if (device->size[index] != 0) {
-                Size = device->size[index] - ((PCIADDR_TYPE) 1);
-                while (Size & ((PCIADDR_TYPE) 0x01)) {
-                    Size = Size >> ((PCIADDR_TYPE) 1);
-                    (*bits)++;
-                }
-            }
-            return TRUE;
-        }
-    }
-
-    return FALSE;
-}
-
-
-
-#if 0
-/* Query the kvirt address (64bit) of a BAR range from TAG */
-Bool
-xf86GetPciOffsetFromOS(PCITAG tag, int index, unsigned long* bases)
-{
-    struct pci_dev *device;
-
-    if (index >= 7)
-        return FALSE;
-
-    if (!xf86OSLinuxPCIDevs) {
-        xf86OSLinuxPCIDevs = xf86OSLinuxGetPciDevs();
-    }
-    if (!xf86OSLinuxPCIDevs)
-        return FALSE;
-
-    for (device = xf86OSLinuxPCIDevs; device; device = device->next) {
-        if (tag == PCI_MAKE_TAG(PCI_MAKE_BUS(device->domain, device->bus),
-				device->dev, device->fn)) {
-            /* return the offset for the index requested */
-            *bases = device->offset[index];
-            return TRUE;
-        }
-    }
-
-    return FALSE;
-}
-#endif
-
 /* Query the kvirt address (64bit) of a BAR range from size for a given TAG */
 unsigned long
 xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base)
