@@ -139,10 +139,11 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 
 static Bool
 exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
-	       int w, int h, int leftPad, int format, char *bits, int src_stride)
+	       int w, int h, int format, char *bits, int src_stride)
 {
     ExaScreenPriv (pDrawable->pScreen);
-    PixmapPtr pPix;
+    PixmapPtr pPix = exaGetDrawablePixmap (pDrawable);
+    ExaPixmapPriv(pPix);
     ExaMigrationRec pixmaps[1];
     RegionPtr pClip;
     BoxPtr pbox;
@@ -151,25 +152,27 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     int bpp = pDrawable->bitsPerPixel;
     Bool access_prepared = FALSE;
 
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
-    pixmaps[0].pReg = NULL;
-
     /* Don't bother with under 8bpp, XYPixmaps. */
     if (format != ZPixmap || bpp < 8)
-	goto fallback;
+	return FALSE;
 
     /* Only accelerate copies: no rop or planemask. */
     if (!EXA_PM_IS_SOLID(pDrawable, pGC->planemask) || pGC->alu != GXcopy)
-	goto fallback;
+	return FALSE;
 
     if (pExaScr->swappedOut)
-	goto fallback;
+	return FALSE;
 
+    pixmaps[0].as_dst = TRUE;
+    pixmaps[0].as_src = FALSE;
+    pixmaps[0].pPix = pPix;
+    pixmaps[0].pReg = DamagePendingRegion(pExaPixmap->pDamage);
     exaDoMigration (pixmaps, 1, TRUE);
 
     pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
+
+    if (!pPix || !pExaScr->info->UploadToScreen)
+	return FALSE;
 
     x += pDrawable->x;
     y += pDrawable->y;
@@ -199,10 +202,8 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 	    continue;
 
 	src = bits + (y1 - y) * src_stride + (x1 - x) * (bpp / 8);
-	ok = (pPix && pExaScr->info->UploadToScreen) ?
-	     pExaScr->info->UploadToScreen(pPix, x1 + xoff, y1 + yoff,
-					   x2 - x1, y2 - y1, src, src_stride) :
-	     FALSE;
+	ok = pExaScr->info->UploadToScreen(pPix, x1 + xoff, y1 + yoff,
+					   x2 - x1, y2 - y1, src, src_stride);
 	/* If we fail to accelerate the upload, fall back to using unaccelerated
 	 * fb calls.
 	 */
@@ -231,8 +232,6 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 		      y2 - y1,
 		      GXcopy, FB_ALLONES, dstBpp);
 	}
-
-	exaPixmapDirty(pixmaps[0].pPix, x1 + xoff, y1 + yoff, x2 + xoff, y2 + yoff);
     }
 
     if (access_prepared)
@@ -241,44 +240,109 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 	exaMarkSync(pDrawable->pScreen);
 
     return TRUE;
-
-fallback:
-    return FALSE;
-}
-
-static void
-exaPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
-	     int w, int h, int leftPad, int format, char *bits)
-{
-    if (!exaDoPutImage(pDrawable, pGC, depth, x, y, w, h, leftPad, format, bits,
-		       PixmapBytePad(w, pDrawable->depth)))
-	ExaCheckPutImage(pDrawable, pGC, depth, x, y, w, h, leftPad, format,
-			 bits);
 }
 
 #ifdef MITSHM
 
+static Bool
+exaDoShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
+		 unsigned int format, int w, int h, int sx, int sy, int sw,
+		 int sh, int dx, int dy, char *data)
+{
+    int src_stride = PixmapBytePad(w, depth);
+
+    if (exaDoPutImage(pDrawable, pGC, depth, dx, dy, sw, sh, format, data +
+		      sy * src_stride + sx * BitsPerPixel(depth) / 8,
+		      src_stride))
+	return TRUE;
+
+    if (format == ZPixmap)
+    {
+	PixmapPtr pPixmap;
+
+	pPixmap = GetScratchPixmapHeader(pDrawable->pScreen, w, h, depth,
+		BitsPerPixel(depth), PixmapBytePad(w, depth), (pointer)data);
+	if (!pPixmap)
+	    return FALSE;
+
+	if (exaGCReadsDestination(pDrawable, pGC->planemask, pGC->fillStyle,
+				  pGC->alu))
+	    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+	else
+	    ExaDoPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+	fbCopyArea((DrawablePtr)pPixmap, pDrawable, pGC, sx, sy, sw, sh, dx, dy);
+	exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
+
+	FreeScratchPixmapHeader(pPixmap);
+
+	return TRUE;
+    }
+
+    return FALSE;
+}
+
+/* The actual ShmPutImage isn't wrapped by the damage layer, so we need to
+ * inform any interested parties of the damage incurred to the drawable.
+ *
+ * We also need to set the pending damage to ensure correct migration in all
+ * cases.
+ */
 static void
 exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,
 	       int w, int h, int sx, int sy, int sw, int sh, int dx, int dy,
 	       char *data)
 {
-    int src_stride = PixmapBytePad(w, depth);
+    PixmapPtr pPixmap = exaGetDrawablePixmap(pDrawable);
+    ExaPixmapPriv(pPixmap);
+    BoxRec box = { .x1 = pDrawable->x + dx, .y1 = pDrawable->y + dy,
+		   .x2 = pDrawable->x + dx + sw, .y2 = pDrawable->y + dy + sh };
+    RegionRec region;
+    int xoff, yoff;
+    RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
 
-    if (exaDoPutImage(pDrawable, pGC, depth, dx, dy, sw, sh, 0, format, data +
-		      sy * src_stride + sx * BitsPerPixel(depth) / 8,
-		      src_stride))
-	return;
+    REGION_INIT(pScreen, &region, &box, 1);
 
-    exaPrepareAccess(pDrawable, EXA_PREPARE_DEST);
-    fbShmPutImage(pDrawable, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy,
-		  data);
-    exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
+    exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
+
+    REGION_TRANSLATE(pScreen, &region, xoff, yoff);
+    REGION_UNION(pScreen, pending_damage, pending_damage, &region);
+
+    if (!exaDoShmPutImage(pDrawable, pGC, depth, format, w, h, sx, sy, sw, sh,
+			  dx, dy, data)) {
+	if (exaGCReadsDestination(pDrawable, pGC->planemask, pGC->fillStyle,
+				  pGC->alu))
+	    exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+	else
+	    ExaDoPrepareAccess (pDrawable, EXA_PREPARE_DEST);
+	fbShmPutImage(pDrawable, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy,
+		      data);
+	exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
+    }
+
+    REGION_TRANSLATE(pScreen, &region, -xoff, -yoff);
+    DamageDamageRegion(pDrawable, &region);
+
+    REGION_UNINIT(pScreen, &region);
 }
 
 ShmFuncs exaShmFuncs = { NULL, exaShmPutImage };
 
 #endif
+
+static void
+exaPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
+	     int w, int h, int leftPad, int format, char *bits)
+{
+#ifdef MITSHM
+    if (!exaDoShmPutImage(pDrawable, pGC, depth, format, w, h, 0, 0, w, h, x, y,
+			  bits))
+#else
+    if (!exaDoPutImage(pDrawable, pGC, depth, x, y, w, h, format, bits,
+		       PixmapBytePad(w, pDrawable->depth)))
+#endif
+	ExaCheckPutImage(pDrawable, pGC, depth, x, y, w, h, leftPad, format,
+			 bits);
+}
 
 static Bool inline
 exaCopyNtoNTwoDir (DrawablePtr pSrcDrawable, DrawablePtr pDstDrawable,

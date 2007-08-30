@@ -279,6 +279,16 @@ CARD32
 exaGetPixmapFirstPixel (PixmapPtr pPixmap); 
 
 /* exa_accel.c */
+
+static _X_INLINE Bool
+exaGCReadsDestination(DrawablePtr pDrawable, unsigned long planemask,
+		      unsigned int fillStyle, unsigned char alu)
+{
+    return ((alu != GXcopy && alu != GXclear &&alu != GXset &&
+	     alu != GXcopyInverted) || fillStyle == FillStippled ||
+	    !EXA_PM_IS_SOLID(pDrawable, planemask));
+}
+
 void
 exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
 
