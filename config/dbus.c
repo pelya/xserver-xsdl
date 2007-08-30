@@ -74,11 +74,12 @@ add_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
     int ret, err;
     DeviceIntPtr dev = NULL;
 
+    dbus_message_iter_init_append(reply, &reply_iter);
+
     if (!dbus_message_iter_init(message, &iter)) {
         ErrorF("[config/dbus] couldn't initialise iterator\n");
-        return BadAlloc;
+        MALFORMED_MESSAGE();
     }
-    dbus_message_iter_init_append(reply, &reply_iter);
 
     options = xcalloc(sizeof(*options), 1);
     if (!options) {
@@ -200,11 +201,12 @@ remove_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
     DeviceIntPtr dev;
     DBusMessageIter iter, reply_iter;
 
+    dbus_message_iter_init_append(reply, &reply_iter);
+
     if (!dbus_message_iter_init(message, &iter)) {
         ErrorF("[config] failed to init iterator\n");
-        return BadAlloc;
+        MALFORMED_MESSAGE();
     }
-    dbus_message_iter_init_append(reply, &reply_iter);
 
     if (!dbus_message_get_args(message, error, DBUS_TYPE_UINT32,
                                &deviceid, DBUS_TYPE_INVALID)) {
