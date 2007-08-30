@@ -99,6 +99,7 @@ FreeCursorBits(CursorBitsPtr bits)
 	    CloseFont(this->font, (Font)0);
 	    xfree(this);
 	}
+	dixFreePrivates(bits->devPrivates);
 	xfree(bits);
     }
 }
@@ -124,6 +125,7 @@ FreeCursor(pointer value, XID cid)
 	pscr = screenInfo.screens[nscr];
 	(void)( *pscr->UnrealizeCursor)( pscr, pCurs);
     }
+    dixFreePrivates(pCurs->devPrivates);
     FreeCursorBits(pCurs->bits);
     xfree( pCurs);
     return(Success);
@@ -192,9 +194,9 @@ AllocARGBCursor(unsigned char *psrcbits, unsigned char *pmaskbits,
     bits->height = cm->height;
     bits->xhot = cm->xhot;
     bits->yhot = cm->yhot;
+    bits->devPrivates = NULL;
     bits->refcnt = -1;
     CheckForEmptyMask(bits);
-
     pCurs->bits = bits;
     pCurs->refcnt = 1;		
 #ifdef XFIXES
@@ -210,10 +212,14 @@ AllocARGBCursor(unsigned char *psrcbits, unsigned char *pmaskbits,
     pCurs->backGreen = backGreen;
     pCurs->backBlue = backBlue;
 
+    pCurs->devPrivates = NULL;
+    pCurs->id = cid;
+
     /* security creation/labeling check */
     rc = XaceHook(XACE_RESOURCE_ACCESS, client, cid, RT_CURSOR,
 		  DixCreateAccess, pCurs);
     if (rc != Success) {
+	dixFreePrivates(pCurs->devPrivates);
 	FreeCursorBits(bits);
 	xfree(pCurs);
 	return rc;
@@ -232,6 +238,7 @@ AllocARGBCursor(unsigned char *psrcbits, unsigned char *pmaskbits,
 		pscr = screenInfo.screens[nscr];
 		( *pscr->UnrealizeCursor)( pscr, pCurs);
 	    }
+	    dixFreePrivates(pCurs->devPrivates);
 	    FreeCursorBits(bits);
 	    xfree(pCurs);
 	    return BadAlloc;
@@ -394,10 +401,14 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
     pCurs->backGreen = backGreen;
     pCurs->backBlue = backBlue;
 
+    pCurs->id = cid;
+    pCurs->devPrivates = NULL;
+
     /* security creation/labeling check */
     rc = XaceHook(XACE_RESOURCE_ACCESS, client, cid, RT_CURSOR,
 		  DixCreateAccess, pCurs);
     if (rc != Success) {
+	dixFreePrivates(pCurs->devPrivates);
 	FreeCursorBits(bits);
 	xfree(pCurs);
 	return rc;
@@ -416,6 +427,7 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
 		pscr = screenInfo.screens[nscr];
 		( *pscr->UnrealizeCursor)( pscr, pCurs);
 	    }
+	    dixFreePrivates(pCurs->devPrivates);
 	    FreeCursorBits(pCurs->bits);
 	    xfree(pCurs);
 	    return BadAlloc;

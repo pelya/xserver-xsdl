@@ -121,10 +121,10 @@ typedef struct _xglxCursor {
 } xglxCursorRec, *xglxCursorPtr;
 
 #define XGLX_GET_CURSOR_PRIV(pCursor, pScreen)		   \
-    ((xglxCursorPtr) (pCursor)->devPriv[(pScreen)->myNum])
+    ((xglxCursorPtr)dixLookupPrivate(&(pCursor)->devPrivates, pScreen))
 
 #define XGLX_SET_CURSOR_PRIV(pCursor, pScreen, v)	 \
-    ((pCursor)->devPriv[(pScreen)->myNum] = (pointer) v)
+    dixSetPrivate(&(pCursor)->devPrivates, pScreen, v)
 
 #define XGLX_CURSOR_PRIV(pCursor, pScreen)			        \
     xglxCursorPtr pCursorPriv = XGLX_GET_CURSOR_PRIV (pCursor, pScreen)

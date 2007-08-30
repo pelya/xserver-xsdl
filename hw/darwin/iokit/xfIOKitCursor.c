@@ -202,7 +202,7 @@ XFIOKitRealizeCursor8(
     }
 
     // save the result
-    pCursor->devPriv[pScreen->myNum] = (pointer) newCursor;
+    dixSetPrivate(&pCursor->devPrivates, pScreen, newCursor);
     return TRUE;
 }
 
@@ -285,7 +285,7 @@ XFIOKitRealizeCursor15(
 #endif
 
     // save the result
-    pCursor->devPriv[pScreen->myNum] = (pointer) newCursor;
+    dixSetPrivate(&pCursor->devPrivates, pScreen, newCursor);
     return TRUE;
 }
 
@@ -369,7 +369,7 @@ XFIOKitRealizeCursor24(
 #endif
 
     // save the result
-    pCursor->devPriv[pScreen->myNum] = (pointer) newCursor;
+    dixSetPrivate(&pCursor->devPrivates, pScreen, newCursor);
     return TRUE;
 }
 
@@ -422,7 +422,7 @@ XFIOKitUnrealizeCursor(
         !ScreenPriv->canHWCursor) {
         result = (*ScreenPriv->spriteFuncs->UnrealizeCursor)(pScreen, pCursor);
     } else {
-        xfree( pCursor->devPriv[pScreen->myNum] );
+        xfree(dixLookupPrivate(&pCursor->devPrivates, pScreen));
         result = TRUE;
     }
 
@@ -476,20 +476,20 @@ XFIOKitSetCursor(
 
         // change the cursor image in shared memory
         if (dfb->bitsPerPixel == 8) {
-            cursorPrivPtr newCursor =
-                    (cursorPrivPtr) pCursor->devPriv[pScreen->myNum];
+            cursorPrivPtr newCursor = dixLookupPrivate(&pCursor->devPrivates,
+						       pScreen);
             memcpy(cshmem->cursor.bw8.image[0], newCursor->image,
                         CURSORWIDTH*CURSORHEIGHT);
             memcpy(cshmem->cursor.bw8.mask[0], newCursor->mask,
                         CURSORWIDTH*CURSORHEIGHT);
         } else if (dfb->bitsPerPixel == 16) {
-            unsigned short *newCursor =
-                    (unsigned short *) pCursor->devPriv[pScreen->myNum];
+            unsigned short *newCursor = dixLookupPrivate(&pCursor->devPrivates,
+							 pScreen);
             memcpy(cshmem->cursor.rgb.image[0], newCursor,
                         2*CURSORWIDTH*CURSORHEIGHT);
         } else {
-            unsigned int *newCursor =
-                    (unsigned int *) pCursor->devPriv[pScreen->myNum];
+            unsigned int *newCursor = dixLookupPrivate(&pCursor->devPrivates,
+						       pScreen);
             memcpy(cshmem->cursor.rgb24.image[0], newCursor,
                         4*CURSORWIDTH*CURSORHEIGHT);
         }

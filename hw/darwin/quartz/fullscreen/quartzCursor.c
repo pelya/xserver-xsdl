@@ -318,7 +318,7 @@ QuartzRealizeCursor(
     if (!qdCursor) return FALSE;
 
     // save the result
-    pCursor->devPriv[pScreen->myNum] = (pointer) qdCursor;
+    dixSetPrivate(&pCursor->devPrivates, pScreen, qdCursor);
 
     return TRUE;
 }
@@ -345,13 +345,13 @@ QuartzUnrealizeCursor(
                         (pScreen, pCursor);
         }
     } else {
-        CCrsrHandle oldCursor = (CCrsrHandle) pCursor->devPriv[pScreen->myNum];
-
+        CCrsrHandle oldCursor = dixLookupPrivate(&pCursor->devPrivates,
+						 pScreen);
         if (currentCursor != oldCursor) {
             // This should only fail when quitting, in which case we just leak.
             FreeQDCursor(oldCursor);
         }
-        pCursor->devPriv[pScreen->myNum] = NULL;
+	dixSetPrivate(&pCursor->devPrivates, pScreen, NULL);
         return TRUE;
     }
 }
@@ -391,7 +391,7 @@ QuartzSetCursor(
             (*ScreenPriv->spriteFuncs->SetCursor)(pScreen, 0, x, y);
         ScreenPriv->qdCursorMode = TRUE;
 
-        CHANGE_QD_CURSOR(pCursor->devPriv[pScreen->myNum]);
+        CHANGE_QD_CURSOR(dixLookupPrivate(&pCursor->devPrivates, pScreen));
         SHOW_QD_CURSOR(pScreen, ScreenPriv->qdCursorVisible);
     }
     else if (quartzRootless) {

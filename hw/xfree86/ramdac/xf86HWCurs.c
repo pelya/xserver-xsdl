@@ -123,7 +123,7 @@ xf86SetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
 	return;
     }
 
-    bits = pCurs->devPriv[pScreen->myNum];
+    bits = (unsigned char *)dixLookupPrivate(&pCurs->devPrivates, pScreen);
 
     x -= infoPtr->pScrn->frameX0 + ScreenPriv->HotX;
     y -= infoPtr->pScrn->frameY0 + ScreenPriv->HotY;
@@ -133,7 +133,7 @@ xf86SetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
 #endif
     if (!bits) {
 	bits = (*infoPtr->RealizeCursor)(infoPtr, pCurs);
-	pCurs->devPriv[pScreen->myNum] = bits;
+	dixSetPrivate(&pCurs->devPrivates, pScreen, bits);
     }
 
     if (!(infoPtr->Flags & HARDWARE_CURSOR_UPDATE_UNHIDDEN))
