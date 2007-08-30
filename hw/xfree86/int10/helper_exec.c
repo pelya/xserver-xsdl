@@ -3,8 +3,8 @@
  *   execute BIOS int 10h calls in x86 real mode environment
  *                 Copyright 1999 Egbert Eich
  *
- *   Part of this is based on code taken from DOSEMU
- *   (C) Copyright 1992, ..., 1999 the "DOSEMU-Development-Team"
+ *   Part of this code was inspired  by the VBIOS POSTing code in DOSEMU
+ *   developed by the "DOSEMU-Development-Team"
  */
 
 /*
