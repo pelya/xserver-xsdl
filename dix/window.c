@@ -1396,7 +1396,7 @@ ChangeWindowAttributes(WindowPtr pWin, Mask vmask, XID *vlist, ClientPtr client)
 	    else
 	    {
 		rc = dixLookupResource((pointer *)&pCursor, cursorID,
-				       RT_CURSOR, client, DixReadAccess);
+				       RT_CURSOR, client, DixUseAccess);
 		if (rc != Success)
 		{
 		    error = (rc == BadValue) ? BadCursor : rc;

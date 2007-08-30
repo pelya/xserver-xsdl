@@ -239,7 +239,7 @@ ProcXFixesSelectCursorInput (ClientPtr client)
     int		rc;
 
     REQUEST_SIZE_MATCH (xXFixesSelectCursorInputReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixSetAttrAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
         return rc;
     if (stuff->eventMask & ~CursorAllEvents)
