@@ -52,7 +52,7 @@ RRCrtcContainsPosition (RRCrtcPtr crtc, int x, int y)
  * Find the CRTC nearest the specified position, ignoring 'skip'
  */
 static void
-RRPointerToNearestCrtc (ScreenPtr pScreen, int x, int y, RRCrtcPtr skip)
+RRPointerToNearestCrtc (DeviceIntPtr pDev, ScreenPtr pScreen, int x, int y, RRCrtcPtr skip)
 {
     rrScrPriv (pScreen);
     int		c;
@@ -96,7 +96,7 @@ RRPointerToNearestCrtc (ScreenPtr pScreen, int x, int y, RRCrtcPtr skip)
 	}
     }
     if (best_dx || best_dy)
-	(*pScreen->SetCursorPosition) (inputInfo.pointer, pScreen, x + best_dx, y + best_dy, TRUE);
+	(*pScreen->SetCursorPosition) (pDev, pScreen, x + best_dx, y + best_dy, TRUE);
     pScrPriv->pointerCrtc = nearest;
 }
 
@@ -125,28 +125,37 @@ RRPointerMoved (ScreenPtr pScreen, int x, int y)
     }
 
     /* None contain pointer, find nearest */
-    RRPointerToNearestCrtc (pScreen, x, y, pointerCrtc);
+    ErrorF("RRPointerMoved: Untested, may cause \"bogus pointer event\"\n");
+    RRPointerToNearestCrtc (inputInfo.pointer, pScreen, x, y, pointerCrtc);
 }
 
 /*
- * When the screen is reconfigured, move the pointer to the nearest
+ * When the screen is reconfigured, move all pointers to the nearest
  * CRTC
  */
 void
 RRPointerScreenConfigured (ScreenPtr pScreen)
 {
-    WindowPtr	pRoot = GetCurrentRootWindow (inputInfo.pointer);
-    ScreenPtr	pCurrentScreen = pRoot ? pRoot->drawable.pScreen : NULL;
+    WindowPtr	pRoot; 
+    ScreenPtr	pCurrentScreen;
     int		x, y;
-
-    /* XXX: GetCurrentRootWindow revices an argument, It is inputInfo.pointer,
-     * but I really think this is wrong...  What do we do here? This was made so
-     * that it can compile, but I don't think randr should assume there is just
-     * one pointer. There might be more than one pointer on the screen! So, what
-     * to do? What happens? */
+    DeviceIntPtr pDev;
 
     if (pScreen != pCurrentScreen)
 	return;
-    GetSpritePosition(inputInfo.pointer, &x, &y);
-    RRPointerToNearestCrtc (pScreen, x, y, NULL);
+
+    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
+    {
+        if (IsPointerDevice(pDev))
+        {
+            pRoot = GetCurrentRootWindow(pDev);
+            pCurrentScreen = pRoot ? pRoot->drawable.pScreen : NULL;
+
+            if (pScreen == pCurrentScreen)
+            {
+                GetSpritePosition(pDev, &x, &y);
+                RRPointerToNearestCrtc (pDev, pScreen, x, y, NULL);
+            }
+        }
+    }
 }
