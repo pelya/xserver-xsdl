@@ -139,7 +139,7 @@ add_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
             MALFORMED_MESSAGE();
         options->value = xstrdup(tmp);
         if (!options->value) {
-            ErrorF("[config] couldn't duplicate option!\n");
+            ErrorF("[config/dbus] couldn't duplicate option!\n");
             ret = BadAlloc;
             goto unwind;
         }
@@ -204,7 +204,7 @@ remove_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
     dbus_message_iter_init_append(reply, &reply_iter);
 
     if (!dbus_message_iter_init(message, &iter)) {
-        ErrorF("[config] failed to init iterator\n");
+        ErrorF("[config/dbus] failed to init iterator\n");
         MALFORMED_MESSAGE();
     }
 
@@ -215,12 +215,12 @@ remove_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
 
     dev = LookupDeviceIntRec(deviceid);
     if (!dev) {
-        DebugF("[config] bogus device id %d given\n", deviceid);
+        DebugF("[config/dbus] bogus device id %d given\n", deviceid);
         ret = BadMatch;
         goto unwind;
     }
 
-    DebugF("[config] removing device %s (id %d)\n", dev->name, deviceid);
+    DebugF("[config/dbus] removing device %s (id %d)\n", dev->name, deviceid);
 
     /* Call PIE here so we don't try to dereference a device that's
      * already been removed. */
