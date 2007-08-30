@@ -766,11 +766,8 @@ exaDriverInit (ScreenPtr		pScreen,
         pExaScr->SavedComposite = ps->Composite;
 	ps->Composite = exaComposite;
 
-	pExaScr->SavedRasterizeTrapezoid = ps->RasterizeTrapezoid;
-	ps->RasterizeTrapezoid = exaRasterizeTrapezoid;
-
-	pExaScr->SavedAddTriangles = ps->AddTriangles;
-	ps->AddTriangles = exaAddTriangles;
+	pExaScr->SavedTriangles = ps->Triangles;
+	ps->Triangles = exaTriangles;
 
 	pExaScr->SavedGlyphs = ps->Glyphs;
 	ps->Glyphs = exaGlyphs;

@@ -760,7 +760,7 @@ done:
  * of PolyFillRect to initialize the pixmap after creating it, to prevent
  * the pixmap from being migrated.
  *
- * See the comments about exaTrapezoids.
+ * See the comments about exaTrapezoids and exaTriangles.
  */
 static PicturePtr
 exaCreateAlphaPicture (ScreenPtr     pScreen,
@@ -832,36 +832,70 @@ exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 {
     ScreenPtr		pScreen = pDst->pDrawable->pScreen;
     PictureScreenPtr    ps = GetPictureScreen(pScreen);
+    BoxRec		bounds;
+    Bool		direct = op == PictOpAdd && miIsSolidAlpha (pSrc);
+
+    if (maskFormat || direct) {
+	miTrapezoidBounds (ntrap, traps, &bounds);
+
+	if (bounds.y1 >= bounds.y2 || bounds.x1 >= bounds.x2)
+	    return;
+    }
 
     /*
      * Check for solid alpha add
      */
-    if (op == PictOpAdd && miIsSolidAlpha (pSrc))
+    if (direct)
     {
+	DrawablePtr pDraw = pDst->pDrawable;
+	PixmapPtr pixmap = exaGetDrawablePixmap (pDraw);
+	ExaPixmapPriv (pixmap);
+	RegionRec migration;
+	RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
+	int xoff, yoff;
+
+	exaGetDrawableDeltas(pDraw, pixmap, &xoff, &yoff);
+
+	xoff += pDraw->x;
+	yoff += pDraw->y;
+
+	bounds.x1 += xoff;
+	bounds.y1 += yoff;
+	bounds.x2 += xoff;
+	bounds.y2 += yoff;
+
+	REGION_INIT(pScreen, &migration, &bounds, 1);
+	REGION_UNION(pScreen, pending_damage, pending_damage, &migration);
+	REGION_UNINIT(pScreen, &migration);
+
+	exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
+
 	for (; ntrap; ntrap--, traps++)
 	    (*ps->RasterizeTrapezoid) (pDst, traps, 0, 0);
+
+	exaFinishAccess(pDraw, EXA_PREPARE_DEST);
     }
     else if (maskFormat)
     {
 	PicturePtr	pPicture;
-	BoxRec		bounds;
 	INT16		xDst, yDst;
 	INT16		xRel, yRel;
 
 	xDst = traps[0].left.p1.x >> 16;
 	yDst = traps[0].left.p1.y >> 16;
 
-	miTrapezoidBounds (ntrap, traps, &bounds);
-	if (bounds.y1 >= bounds.y2 || bounds.x1 >= bounds.x2)
-	    return;
 	pPicture = exaCreateAlphaPicture (pScreen, pDst, maskFormat,
 	                                  bounds.x2 - bounds.x1,
 	                                  bounds.y2 - bounds.y1);
 	if (!pPicture)
 	    return;
+
+	exaPrepareAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
 	for (; ntrap; ntrap--, traps++)
 	    (*ps->RasterizeTrapezoid) (pPicture, traps,
 				       -bounds.x1, -bounds.y1);
+	exaFinishAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+
 	xRel = bounds.x1 + xSrc - xDst;
 	yRel = bounds.y1 + ySrc - yDst;
 	CompositePicture (op, pSrc, pPicture, pDst,
@@ -881,51 +915,102 @@ exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
     }
 }
 
-#define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
-
 /**
- * exaRasterizeTrapezoid is just a wrapper around the software implementation.
+ * exaTriangles is essentially a copy of miTriangles that uses
+ * exaCreateAlphaPicture instead of miCreateAlphaPicture.
  *
- * The trapezoid specification is basically too hard to be done in hardware (at
- * the very least, without programmability), so we just do the appropriate
- * Prepare/FinishAccess for it before using fbtrap.c.
+ * The problem with miCreateAlphaPicture is that it calls PolyFillRect
+ * to initialize the contents after creating the pixmap, which
+ * causes the pixmap to be moved in for acceleration. The subsequent
+ * call to AddTriangles won't be accelerated however, which forces the pixmap
+ * to be moved out again.
+ *
+ * exaCreateAlphaPicture avoids this roundtrip by using ExaCheckPolyFillRect
+ * to initialize the contents.
  */
 void
-exaRasterizeTrapezoid (PicturePtr pPicture, xTrapezoid  *trap,
-		       int x_off, int y_off)
+exaTriangles (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
+	      PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc,
+	      int ntri, xTriangle *tris)
 {
-    DrawablePtr pDraw = pPicture->pDrawable;
-    PixmapPtr pPixmap = exaGetDrawablePixmap(pDraw);
-    int xoff, yoff;
+    ScreenPtr		pScreen = pDst->pDrawable->pScreen;
+    PictureScreenPtr    ps = GetPictureScreen(pScreen);
+    BoxRec		bounds;
+    Bool		direct = op == PictOpAdd && miIsSolidAlpha (pSrc);
 
-    exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
-    fbRasterizeTrapezoid(pPicture, trap, x_off, y_off);
-    exaGetDrawableDeltas(pDraw, pPixmap, &xoff, &yoff);
-    exaPixmapDirty(pPixmap, pDraw->x + xoff, pDraw->y + yoff,
-		   pDraw->x + xoff + pDraw->width,
-		   pDraw->y + yoff + pDraw->height);
-    exaFinishAccess(pDraw, EXA_PREPARE_DEST);
-}
+    if (maskFormat || direct) {
+	miTriangleBounds (ntri, tris, &bounds);
 
-/**
- * exaAddTriangles does migration and syncing before dumping down to the
- * software implementation.
- */
-void
-exaAddTriangles (PicturePtr pPicture, INT16 x_off, INT16 y_off, int ntri,
-		 xTriangle *tris)
-{
-    DrawablePtr pDraw = pPicture->pDrawable;
-    PixmapPtr pPixmap = exaGetDrawablePixmap(pDraw);
-    int xoff, yoff;
+	if (bounds.y1 >= bounds.y2 || bounds.x1 >= bounds.x2)
+	    return;
+    }
 
-    exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
-    fbAddTriangles(pPicture, x_off, y_off, ntri, tris);
-    exaGetDrawableDeltas(pDraw, pPixmap, &xoff, &yoff);
-    exaPixmapDirty(pPixmap, pDraw->x + xoff, pDraw->y + yoff,
-		   pDraw->x + xoff + pDraw->width,
-		   pDraw->y + yoff + pDraw->height);
-    exaFinishAccess(pDraw, EXA_PREPARE_DEST);
+    /*
+     * Check for solid alpha add
+     */
+    if (direct)
+    {
+	DrawablePtr pDraw = pDst->pDrawable;
+	PixmapPtr pixmap = exaGetDrawablePixmap (pDraw);
+	ExaPixmapPriv (pixmap);
+	RegionRec migration;
+	RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
+	int xoff, yoff;
+
+	exaGetDrawableDeltas(pDraw, pixmap, &xoff, &yoff);
+
+	xoff += pDraw->x;
+	yoff += pDraw->y;
+
+	bounds.x1 += xoff;
+	bounds.y1 += yoff;
+	bounds.x2 += xoff;
+	bounds.y2 += yoff;
+
+	REGION_INIT(pScreen, &migration, &bounds, 1);
+	REGION_UNION(pScreen, pending_damage, pending_damage, &migration);
+	REGION_UNINIT(pScreen, &migration);
+
+	exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
+	(*ps->AddTriangles) (pDst, 0, 0, ntri, tris);
+	exaFinishAccess(pDraw, EXA_PREPARE_DEST);
+    }
+    else if (maskFormat)
+    {
+	PicturePtr	pPicture;
+	INT16		xDst, yDst;
+	INT16		xRel, yRel;
+	
+	xDst = tris[0].p1.x >> 16;
+	yDst = tris[0].p1.y >> 16;
+
+	pPicture = exaCreateAlphaPicture (pScreen, pDst, maskFormat,
+					  bounds.x2 - bounds.x1,
+					  bounds.y2 - bounds.y1);
+	if (!pPicture)
+	    return;
+
+	exaPrepareAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+	(*ps->AddTriangles) (pPicture, -bounds.x1, -bounds.y1, ntri, tris);
+	exaFinishAccess(pPicture->pDrawable, EXA_PREPARE_DEST);
+	
+	xRel = bounds.x1 + xSrc - xDst;
+	yRel = bounds.y1 + ySrc - yDst;
+	CompositePicture (op, pSrc, pPicture, pDst,
+			  xRel, yRel, 0, 0, bounds.x1, bounds.y1,
+			  bounds.x2 - bounds.x1, bounds.y2 - bounds.y1);
+	FreePicture (pPicture, 0);
+    }
+    else
+    {
+	if (pDst->polyEdge == PolyEdgeSharp)
+	    maskFormat = PictureMatchFormat (pScreen, 1, PICT_a1);
+	else
+	    maskFormat = PictureMatchFormat (pScreen, 8, PICT_a8);
+	
+	for (; ntri; ntri--, tris++)
+	    exaTriangles (op, pSrc, pDst, maskFormat, xSrc, ySrc, 1, tris);
+    }
 }
 
 /**
@@ -1000,6 +1085,8 @@ exaGlyphsIntersect(int nlist, GlyphListPtr list, GlyphPtr *glyphs)
 
     return FALSE;
 }
+
+#define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
 
 /* exaGlyphs is a slight variation on miGlyphs, to support acceleration.  The
  * issue is that miGlyphs' use of ModifyPixmapHeader makes it impossible to

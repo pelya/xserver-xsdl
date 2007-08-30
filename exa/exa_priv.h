@@ -111,8 +111,7 @@ typedef struct {
     ModifyPixmapHeaderProcPtr    SavedModifyPixmapHeader;
 #ifdef RENDER
     CompositeProcPtr             SavedComposite;
-    RasterizeTrapezoidProcPtr	 SavedRasterizeTrapezoid;
-    AddTrianglesProcPtr		 SavedAddTriangles;
+    TrianglesProcPtr		 SavedTriangles;
     GlyphsProcPtr                SavedGlyphs;
     TrapezoidsProcPtr            SavedTrapezoids;
 #endif
@@ -405,12 +404,9 @@ exaTrapezoids (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
                int ntrap, xTrapezoid *traps);
 
 void
-exaRasterizeTrapezoid (PicturePtr pPicture, xTrapezoid  *trap,
-		       int x_off, int y_off);
-
-void
-exaAddTriangles (PicturePtr pPicture, INT16 x_off, INT16 y_off, int ntri,
-		 xTriangle *tris);
+exaTriangles (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
+	      PictFormatPtr maskFormat, INT16 xSrc, INT16 ySrc,
+	      int ntri, xTriangle *tris);
 
 void
 exaGlyphs (CARD8	op,
