@@ -239,7 +239,7 @@ static Bool
 fbdev_modes_equal(struct fb_var_screeninfo *set, struct fb_var_screeninfo *req)
 {
 	return (set->xres_virtual >= req->xres_virtual &&
-		set->yres_virtual == req->yres_virtual &&
+		set->yres_virtual >= req->yres_virtual &&
 		set->bits_per_pixel == req->bits_per_pixel &&
 		set->red.length == req->red.length &&
 		set->green.length == req->green.length &&
