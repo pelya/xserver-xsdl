@@ -384,6 +384,9 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	     void	    *closure);
 
 /* exa_render.c */
+Bool
+exaOpReadsDestination (CARD8 op);
+
 void
 exaComposite(CARD8	op,
 	     PicturePtr pSrc,

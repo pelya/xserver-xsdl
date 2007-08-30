@@ -285,14 +285,18 @@ static Bool
 exaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height, int depth,
 		      int bitsPerPixel, int devKind, pointer pPixData)
 {
-    ExaScreenPriv(pPixmap->drawable.pScreen);
-    ExaPixmapPriv(pPixmap);
+    ExaScreenPrivPtr pExaScr;
+    ExaPixmapPrivPtr pExaPixmap;
 
     if (!pPixmap)
         return FALSE;
 
+    pExaPixmap = ExaGetPixmapPriv(pPixmap);
+
     if (pExaPixmap)
 	pExaPixmap->sys_ptr = pPixData;
+
+    pExaScr = ExaGetScreenPriv(pPixmap->drawable.pScreen);
 
     return pExaScr->SavedModifyPixmapHeader(pPixmap, width, height, depth,
 					    bitsPerPixel, devKind, pPixData);

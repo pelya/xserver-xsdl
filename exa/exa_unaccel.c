@@ -23,6 +23,10 @@
 
 #include "exa_priv.h"
 
+#ifdef RENDER
+#include "mipict.h"
+#endif
+
 /*
  * These functions wrap the low-level fb rendering functions and
  * synchronize framebuffer/accelerated drawing by stalling until
@@ -319,9 +323,30 @@ ExaCheckComposite (CARD8      op,
                    CARD16     width,
                    CARD16     height)
 {
+    RegionRec region;
+    int xoff, yoff;
+
+    REGION_NULL(pScreen, &region);
+
+    if (!exaOpReadsDestination(op)) {
+	if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
+				       xSrc, ySrc, xMask, yMask, xDst, yDst,
+				       width, height))
+	    return;
+
+	exaGetDrawableDeltas (pDst->pDrawable,
+			      exaGetDrawablePixmap(pDst->pDrawable),
+			      &xoff, &yoff);
+
+	REGION_TRANSLATE(pScreen, &region, xoff, yoff);
+
+	exaPrepareAccessReg (pDst->pDrawable, EXA_PREPARE_DEST, &region);
+    } else
+	exaPrepareAccess (pDst->pDrawable, EXA_PREPARE_DEST);
+
     EXA_FALLBACK(("from picts %p/%p to pict %p\n",
 		 pSrc, pMask, pDst));
-    exaPrepareAccess (pDst->pDrawable, EXA_PREPARE_DEST);
+
     if (pSrc->pDrawable != NULL)
 	exaPrepareAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
     if (pMask && pMask->pDrawable != NULL)
@@ -343,6 +368,8 @@ ExaCheckComposite (CARD8      op,
     if (pSrc->pDrawable != NULL)
 	exaFinishAccess (pSrc->pDrawable, EXA_PREPARE_SRC);
     exaFinishAccess (pDst->pDrawable, EXA_PREPARE_DEST);
+
+    REGION_UNINIT(pScreen, &region);
 }
 
 /**

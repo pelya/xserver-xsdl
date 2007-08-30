@@ -111,7 +111,7 @@ exaPrintCompositeFallback(CARD8 op,
 }
 #endif /* DEBUG_TRACE_FALL */
 
-static Bool
+Bool
 exaOpReadsDestination (CARD8 op)
 {
     /* FALSE (does not read destination) is the list of ops in the protocol
@@ -261,17 +261,21 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 				   width, height))
 	return 1;
 
+    pDstPix = exaGetDrawablePixmap (pDst->pDrawable);
+    exaGetDrawableDeltas (pDst->pDrawable, pDstPix, &dst_off_x, &dst_off_y);
+
+    REGION_TRANSLATE(pScreen, &region, dst_off_x, dst_off_y);
+
     pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
     pixel = exaGetPixmapFirstPixel (pSrcPix);
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDst->pDrawable);
-    pixmaps[0].pReg = NULL;
+    pixmaps[0].pPix = pDstPix;
+    pixmaps[0].pReg = &region;
     exaDoMigration(pixmaps, 1, TRUE);
 
-    pDstPix = exaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x, &dst_off_y);
-    if (!pDstPix) {
+    if (!exaPixmapIsOffscreen(pDstPix)) {
 	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return 0;
     }
@@ -301,9 +305,7 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 
     while (nbox--)
     {
-	(*pExaScr->info->Solid) (pDstPix,
-				 pbox->x1 + dst_off_x, pbox->y1 + dst_off_y,
-				 pbox->x2 + dst_off_x, pbox->y2 + dst_off_y);
+	(*pExaScr->info->Solid) (pDstPix, pbox->x1, pbox->y1, pbox->x2, pbox->y2);
 	pbox++;
     }
 
@@ -367,22 +369,26 @@ exaTryDriverComposite(CARD8		op,
     xSrc += pSrc->pDrawable->x;
     ySrc += pSrc->pDrawable->y;
 
+    if (pExaScr->info->CheckComposite &&
+	!(*pExaScr->info->CheckComposite) (op, pSrc, pMask, pDst))
+    {
+	return -1;
+    }
+
     if (!miComputeCompositeRegion (&region, pSrc, pMask, pDst,
 				   xSrc, ySrc, xMask, yMask, xDst, yDst,
 				   width, height))
 	return 1;
 
-    if (pExaScr->info->CheckComposite &&
-	!(*pExaScr->info->CheckComposite) (op, pSrc, pMask, pDst))
-    {
-	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
-	return -1;
-    }
+    pDstPix = exaGetDrawablePixmap (pDst->pDrawable);
+    exaGetDrawableDeltas (pDst->pDrawable, pDstPix, &dst_off_x, &dst_off_y);
+
+    REGION_TRANSLATE(pScreen, &region, dst_off_x, dst_off_y);
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = exaOpReadsDestination(op);
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDst->pDrawable);
-    pixmaps[0].pReg = NULL;
+    pixmaps[0].pPix = pDstPix;
+    pixmaps[0].pReg = pixmaps[0].as_src ? NULL : &region;
     pixmaps[1].as_dst = FALSE;
     pixmaps[1].as_src = TRUE;
     pixmaps[1].pPix = exaGetDrawablePixmap (pSrc->pDrawable);
@@ -401,9 +407,8 @@ exaTryDriverComposite(CARD8		op,
     if (pMask)
 	pMaskPix = exaGetOffscreenPixmap (pMask->pDrawable, &mask_off_x,
 					  &mask_off_y);
-    pDstPix = exaGetOffscreenPixmap (pDst->pDrawable, &dst_off_x, &dst_off_y);
 
-    if (!pDstPix) {
+    if (!exaPixmapIsOffscreen(pDstPix)) {
 	REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 	return 0;
     }
@@ -433,21 +438,21 @@ exaTryDriverComposite(CARD8		op,
     nbox = REGION_NUM_RECTS(&region);
     pbox = REGION_RECTS(&region);
 
-    xMask -= xDst;
-    yMask -= yDst;
+    xMask = xMask + mask_off_x - xDst - dst_off_x;
+    yMask = yMask + mask_off_y - yDst - dst_off_y;
 
-    xSrc -= xDst;
-    ySrc -= yDst;
+    xSrc = xSrc + src_off_x - xDst - dst_off_x;
+    ySrc = ySrc + src_off_y - yDst - dst_off_y;
 
     while (nbox--)
     {
 	(*pExaScr->info->Composite) (pDstPix,
-				     pbox->x1 + xSrc + src_off_x,
-				     pbox->y1 + ySrc + src_off_y,
-				     pbox->x1 + xMask + mask_off_x,
-				     pbox->y1 + yMask + mask_off_y,
-				     pbox->x1 + dst_off_x,
-				     pbox->y1 + dst_off_y,
+				     pbox->x1 + xSrc,
+				     pbox->y1 + ySrc,
+				     pbox->x1 + xMask,
+				     pbox->y1 + yMask,
+				     pbox->x1,
+				     pbox->y1,
 				     pbox->x2 - pbox->x1,
 				     pbox->y2 - pbox->y1);
 	pbox++;
@@ -523,9 +528,6 @@ exaTryMagicTwoPassCompositeHelper(CARD8 op,
 				  CARD16 height)
 {
     ExaScreenPriv (pDst->pDrawable->pScreen);
-    DrawablePtr pDstDraw = pDst->pDrawable;
-    PixmapPtr pDstPixmap = exaGetDrawablePixmap(pDstDraw);
-    int xoff, yoff;
 
     assert(op == PictOpOver);
 
@@ -543,12 +545,6 @@ exaTryMagicTwoPassCompositeHelper(CARD8 op,
      */
     exaComposite(PictOpOutReverse, pSrc, pMask, pDst, xSrc, ySrc, xMask, yMask,
 		 xDst, yDst, width, height);
-
-    exaGetDrawableDeltas(pDstDraw, pDstPixmap, &xoff, &yoff);
-    xoff += pDstDraw->x;
-    yoff += pDstDraw->y;
-    exaPixmapDirty(pDstPixmap, xDst + xoff, yDst + yoff, xDst + xoff + width,
-		   yDst + yoff + height);
 
     /* Then, add in the source value times the destination alpha factors (1.0).
      */
@@ -576,31 +572,8 @@ exaComposite(CARD8	op,
     int ret = -1;
     Bool saveSrcRepeat = pSrc->repeat;
     Bool saveMaskRepeat = pMask ? pMask->repeat : 0;
-    ExaMigrationRec pixmaps[3];
-    int npixmaps = 1;
     PixmapPtr pSrcPixmap = NULL;
-
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = exaOpReadsDestination(op);
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDst->pDrawable);
-    pixmaps[0].pReg = NULL;
-
-    if (pSrc->pDrawable) {
-	pSrcPixmap = exaGetDrawablePixmap (pSrc->pDrawable);
-	pixmaps[npixmaps].as_dst = FALSE;
-	pixmaps[npixmaps].as_src = TRUE;
-	pixmaps[npixmaps].pPix = pSrcPixmap;
-	pixmaps[npixmaps].pReg = NULL;
-	npixmaps++;
-    }
-
-    if (pMask && pMask->pDrawable) {
-	pixmaps[npixmaps].as_dst = FALSE;
-	pixmaps[npixmaps].as_src = TRUE;
-	pixmaps[npixmaps].pPix = exaGetDrawablePixmap (pMask->pDrawable);
-	pixmaps[npixmaps].pReg = NULL;
-	npixmaps++;
-    }
+    RegionRec region;
 
     /* We currently don't support acceleration of gradients, or other pictures
      * with a NULL pDrawable.
@@ -638,8 +611,6 @@ exaComposite(CARD8	op,
 	    }
 	    else if (pSrcPixmap && !pSrc->repeat && !pSrc->transform)
 	    {
-		RegionRec	region;
-
 		xDst += pDst->pDrawable->x;
 		yDst += pDst->pDrawable->y;
 		xSrc += pSrc->pDrawable->x;
@@ -661,7 +632,6 @@ exaComposite(CARD8	op,
 	    else if (pSrcPixmap && !pSrc->transform &&
 		     pSrc->repeatType == RepeatNormal)
 	    {
-		RegionRec region;
 		DDXPointRec srcOrg;
 
 		/* Let's see if the driver can do the repeat in one go */
@@ -1092,6 +1062,9 @@ exaGlyphsIntersect(int nlist, GlyphListPtr list, GlyphPtr *glyphs)
  * issue is that miGlyphs' use of ModifyPixmapHeader makes it impossible to
  * migrate these pixmaps.  So, instead we create a pixmap at the beginning of
  * the loop and upload each glyph into the pixmap before compositing.
+ *
+ * This is now used even when Composite can't be accelerated for better
+ * migration control.
  */
 void
 exaGlyphs (CARD8	op,
@@ -1108,11 +1081,10 @@ exaGlyphs (CARD8	op,
     PixmapPtr	pPixmap = NULL;
     PicturePtr	pPicture;
     PixmapPtr   pMaskPixmap = NULL;
-    PixmapPtr   pDstPixmap = exaGetDrawablePixmap(pDst->pDrawable);
     PicturePtr  pMask;
     ScreenPtr   pScreen = pDst->pDrawable->pScreen;
     int		width = 0, height = 0;
-    int		x, y, x1, y1, xoff, yoff;
+    int		x, y, x1, y1;
     int		xDst = list->xOff, yDst = list->yOff;
     int		n;
     int		error;
@@ -1138,16 +1110,6 @@ exaGlyphs (CARD8	op,
 		maskFormat = NULL;
 	    }
 	}
-    }
-
-    /* If the driver doesn't support accelerated composite, there's no point in
-     * going to this extra work.  Assume that any driver that supports Composite
-     * will be able to support component alpha using the two-pass helper.
-     */
-    if (!pExaScr->info->PrepareComposite)
-    {
-	miGlyphs(op, pSrc, pDst, maskFormat, xSrc, ySrc, nlist, list, glyphs);
-	return;
     }
 
     if (maskFormat)
@@ -1186,8 +1148,11 @@ exaGlyphs (CARD8	op,
 	rect.y = 0;
 	rect.width = width;
 	rect.height = height;
-	(*pGC->ops->PolyFillRect) (&pMaskPixmap->drawable, pGC, 1, &rect);
-	exaPixmapDirty(pMaskPixmap, 0, 0, width, height);
+	ExaCheckPolyFillRect (&pMaskPixmap->drawable, pGC, 1, &rect);
+	if (pExaScr->info->PrepareComposite)
+	    (*pGC->ops->PolyFillRect) (&pMaskPixmap->drawable, pGC, 1, &rect);
+	else
+	    exaPixmapDirty(pMaskPixmap, 0, 0, width, height);
 	FreeScratchGC (pGC);
 	x = -extents.x1;
 	y = -extents.y1;
@@ -1198,8 +1163,6 @@ exaGlyphs (CARD8	op,
 	x = 0;
 	y = 0;
     }
-
-    exaGetDrawableDeltas(pDst->pDrawable, pDstPixmap, &xoff, &yoff);
 
     while (nlist--)
     {
@@ -1339,10 +1302,6 @@ exaGlyphs (CARD8	op,
 			      xSrc + x1 - xDst, ySrc + y1 - yDst,
 			      0, 0, x1, y1, glyph->info.width,
 			      glyph->info.height);
-		x1 += pDst->pDrawable->x + xoff;
-		y1 += pDst->pDrawable->y + yoff;
-		exaPixmapDirty(pDstPixmap, x1, y1, x1 + glyph->info.width,
-			       y1 + glyph->info.height);
 	    }
 nextglyph:
 	    x += glyph->info.xOff;
