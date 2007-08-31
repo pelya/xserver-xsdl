@@ -287,7 +287,7 @@ exaDoShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth,
  * We also need to set the pending damage to ensure correct migration in all
  * cases.
  */
-static void
+void
 exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,
 	       int w, int h, int sx, int sy, int sw, int sh, int dx, int dy,
 	       char *data)

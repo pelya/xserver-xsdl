@@ -1282,6 +1282,15 @@ exaGlyphs (CARD8	op,
 		    pScratchPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 		}
 
+#ifdef MITSHM
+		if (pExaScr->info->PrepareComposite)
+		    exaShmPutImage(&pPixmap->drawable, pGC,
+				   pPixmap->drawable.depth, ZPixmap,
+				   glyph->info.width, glyph->info.height, 0, 0,
+				   glyph->info.width, glyph->info.height, 0, 0,
+				   glyphdata);
+		else
+#endif
 		exaCopyArea (&pScratchPixmap->drawable, &pPixmap->drawable, pGC,
 			     0, 0, glyph->info.width, glyph->info.height, 0, 0);
 	    }

@@ -300,6 +300,11 @@ void
 exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what);
 
 void
+exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,
+	       int w, int h, int sx, int sy, int sw, int sh, int dx, int dy,
+	       char *data);
+
+void
 exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 	     unsigned int format, unsigned long planeMask, char *d);
 
