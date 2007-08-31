@@ -48,7 +48,7 @@ osandcommon.c xorg.c:
 DISTCLEANFILES = osandcommon.c xorg.c
 
 XORG_LIBS = \
-            @XORG_CORE_LIBS@ \
+            $(XSERVER_LIBS \
             common/libinit.a \
             loader/libloader.a \
             libosandcommon.la \
@@ -59,14 +59,11 @@ XORG_LIBS = \
 	    ramdac/libramdac.a \
 	    ddc/libddc.a \
 	    i2c/libi2c.a \
+	    dixmods/libxorgxkb.la \
             @XORG_LIBS@
 
-Xorg_DEPENDENCIES = \
-	$(XORG_LIBS)
-
-Xorg_LDADD = $(XORG_LIBS) \
-             @XSERVER_LIBS@ \
-	     dixmods/libxorgxkb.la
+Xorg_DEPENDENCIES = $(XORG_LIBS)
+Xorg_LDADD = $(XORG_LIBS) $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS)
 
 Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
