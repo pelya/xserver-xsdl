@@ -24,8 +24,8 @@
 #ifndef _PICTURESTR_H_
 #define _PICTURESTR_H_
 
-#include "glyphstr.h"
 #include "scrnintstr.h"
+#include "glyphstr.h"
 #include "resource.h"
 
 typedef struct _DirectFormat {
