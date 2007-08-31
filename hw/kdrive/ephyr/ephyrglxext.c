@@ -368,7 +368,7 @@ ephyrGLXQueryServerString(__GLXclientState *a_cl, GLbyte *a_pc)
         EPHYR_LOG_ERROR ("failed to query string from host\n") ;
         goto out ;
     }
-    EPHYR_LOG ("string: %s", server_string) ;
+    EPHYR_LOG ("string: %s\n", server_string) ;
     length= strlen (server_string) + 1;
     reply.type = X_Reply ;
     reply.sequenceNumber = client->sequence ;
@@ -577,8 +577,8 @@ ephyrGLXGetStringReal (__GLXclientState *a_cl, GLbyte *a_pc, Bool a_do_swap)
         goto out ;
     }
     if (string) {
-        length = strlen (string) ;
-        EPHYR_LOG ("got string: string:%s\n", string) ;
+        length = strlen (string) + 1;
+        EPHYR_LOG ("got string:'%s', size:%d\n", string, length) ;
     } else {
         EPHYR_LOG ("got string: string (null)\n") ;
     }
@@ -593,7 +593,7 @@ ephyrGLXGetStringReal (__GLXclientState *a_cl, GLbyte *a_pc, Bool a_do_swap)
 
     res = Success ;
 out:
-    EPHYR_LOG ("enter\n") ;
+    EPHYR_LOG ("leave\n") ;
     return res ;
 }
 
@@ -619,6 +619,8 @@ ephyrGLXGetIntegervReal (__GLXclientState *a_cl, GLbyte *a_pc, Bool a_do_swap)
     GLint answer_buf_room[200];
     GLint *buf=NULL ;
 
+    EPHYR_LOG ("enter\n") ;
+
     a_pc += __GLX_SINGLE_HDR_SIZE;
 
     int_name = *(GLenum*) (a_pc+0) ;
@@ -638,7 +640,9 @@ ephyrGLXGetIntegervReal (__GLXclientState *a_cl, GLbyte *a_pc, Bool a_do_swap)
     }
     __glXSendReply (a_cl->client, buf, 1, sizeof (value), GL_FALSE, 0) ;
     res = Success ;
+
 out:
+    EPHYR_LOG ("leave\n") ;
     return res ;
 }
 
@@ -665,6 +669,8 @@ ephyrGLXIsDirectReal (__GLXclientState *a_cl, GLbyte *a_pc, Bool a_do_swap)
 
     EPHYR_RETURN_VAL_IF_FAIL (a_cl && a_pc, FALSE) ;
 
+    EPHYR_LOG ("enter\n") ;
+
     memset (&reply, 0, sizeof (reply)) ;
     if (!ephyrHostIsContextDirect (req->context, (int*)&is_direct)) {
         EPHYR_LOG_ERROR ("ephyrHostIsContextDirect() failed\n") ;
@@ -676,7 +682,9 @@ ephyrGLXIsDirectReal (__GLXclientState *a_cl, GLbyte *a_pc, Bool a_do_swap)
     reply.sequenceNumber = client->sequence;
     WriteToClient(client, sz_xGLXIsDirectReply, (char *)&reply);
     res = Success ;
+
 out:
+    EPHYR_LOG ("leave\n") ;
     return res ;
 }
 

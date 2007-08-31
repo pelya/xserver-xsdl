@@ -172,20 +172,26 @@ ephyrHostGLXGetStringFromServer (int a_screen_number,
 
     length = reply.length * 4;
     numbytes = reply.size;
+    EPHYR_LOG ("got a string of size:%d\n", numbytes) ;
 
-    *a_string = (char *) Xmalloc( numbytes );
-    if (*a_string != NULL) {
-        if (_XRead (dpy, *a_string, numbytes)) {
-            UnlockDisplay (dpy);
-            SyncHandle ();
-            EPHYR_LOG_ERROR ("read failed\n") ;
-            goto out ;
-        }
-        length -= numbytes;
+    *a_string = (char *) Xmalloc (numbytes +1);
+    if (!a_string) {
+        EPHYR_LOG_ERROR ("allocation failed\n") ;
+        goto out;
     }
+
+    memset (*a_string, 0, numbytes+1) ;
+    if (_XRead (dpy, *a_string, numbytes)) {
+        UnlockDisplay (dpy);
+        SyncHandle ();
+        EPHYR_LOG_ERROR ("read failed\n") ;
+        goto out ;
+    }
+    length -= numbytes;
     _XEatData (dpy, length) ;
     UnlockDisplay (dpy);
     SyncHandle ();
+    EPHYR_LOG ("string:'%s'\n", *a_string) ;
 
     is_ok = TRUE ;
 out:
@@ -387,11 +393,12 @@ ephyrHostGLXSendClientInfo (int32_t a_major, int32_t a_minor,
     req->numbytes = size;
     Data (dpy, a_extension_list, size);
 
+    UnlockDisplay(dpy);
+    SyncHandle();
+
     is_ok=TRUE ;
 
 out:
-    UnlockDisplay(dpy);
-    SyncHandle();
     return is_ok ;
 }
 
@@ -433,11 +440,12 @@ ephyrHostGLXCreateContext (int a_screen,
     req->shareList = a_share_list_ctxt_id;
     req->isDirect = a_direct;
 
+    UnlockDisplay (dpy);
+    SyncHandle ();
+
     is_ok = TRUE ;
 
 out:
-    UnlockDisplay (dpy);
-    SyncHandle ();
     EPHYR_LOG ("leave\n") ;
     return is_ok ;
 }
@@ -516,14 +524,16 @@ ephyrHostGLXMakeCurrent (int a_drawable,
     memset (&reply, 0, sizeof (reply)) ;
     if (!_XReply (dpy, (xReply*)&reply, 0, False)) {
         EPHYR_LOG_ERROR ("failed to get reply from host\n") ;
+        UnlockDisplay (dpy);
+        SyncHandle ();
         goto out ;
     }
+    UnlockDisplay (dpy);
+    SyncHandle ();
     *a_ctxt_tag = reply.contextTag ;
     is_ok = TRUE ;
 
 out:
-    UnlockDisplay (dpy);
-    SyncHandle ();
     EPHYR_LOG ("leave\n") ;
     return is_ok ;
 }
