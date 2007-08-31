@@ -40,6 +40,7 @@
 #include "gcstruct.h"
 #include "servermd.h"
 #include "picturestr.h"
+#include "xace.h"
 
 _X_EXPORT DevPrivateKey PictureScreenPrivateKey = &PictureScreenPrivateKey;
 DevPrivateKey	PictureWindowPrivateKey = &PictureWindowPrivateKey;
@@ -724,6 +725,13 @@ CreatePicture (Picture		pid,
     pPicture->pFormat = pFormat;
     pPicture->format = pFormat->format | (pDrawable->bitsPerPixel << 24);
     pPicture->devPrivates = NULL;
+
+    /* security creation/labeling check */
+    *error = XaceHook(XACE_RESOURCE_ACCESS, client, pid, PictureType,
+		      DixCreateAccess|DixSetAttrAccess, pPicture);
+    if (*error != Success)
+	goto out;
+
     if (pDrawable->type == DRAWABLE_PIXMAP)
     {
 	++((PixmapPtr)pDrawable)->refcnt;
@@ -743,6 +751,7 @@ CreatePicture (Picture		pid,
 	*error = Success;
     if (*error == Success)
 	*error = (*ps->CreatePicture) (pPicture);
+out:
     if (*error != Success)
     {
 	FreePicture (pPicture, (XID) 0);
@@ -1060,14 +1069,13 @@ ChangePicture (PicturePtr	pPicture,
 			pAlpha = 0;
 		    else
 		    {
-			pAlpha = (PicturePtr) SecurityLookupIDByType(client,
-								     pid, 
-								     PictureType, 
-								     DixWriteAccess|DixReadAccess);
-			if (!pAlpha)
+			error = dixLookupResource((pointer *)&pAlpha, pid,
+						  PictureType, client,
+						  DixReadAccess);
+			if (error != Success)
 			{
 			    client->errorValue = pid;
-			    error = BadPixmap;
+			    error = (error == BadValue) ? BadPixmap : error;
 			    break;
 			}
 			if (pAlpha->pDrawable == NULL ||
@@ -1122,14 +1130,13 @@ ChangePicture (PicturePtr	pPicture,
 		    else
 		    {
 			clipType = CT_PIXMAP;
-			pPixmap = (PixmapPtr)SecurityLookupIDByType(client,
-								    pid, 
-								    RT_PIXMAP,
-								    DixReadAccess);
-			if (!pPixmap)
+			error = dixLookupResource((pointer *)&pPixmap, pid,
+						  RT_PIXMAP, client,
+						  DixReadAccess);
+			if (error != Success)
 			{
 			    client->errorValue = pid;
-			    error = BadPixmap;
+			    error = (error == BadValue) ? BadPixmap : error;
 			    break;
 			}
 		    }

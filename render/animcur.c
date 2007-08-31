@@ -44,6 +44,7 @@
 #include "dixfontstr.h"
 #include "opaque.h"
 #include "picturestr.h"
+#include "xace.h"
 
 typedef struct _AnimCurElt {
     CursorPtr	pCursor;    /* cursor to show */
@@ -346,10 +347,10 @@ AnimCurInit (ScreenPtr pScreen)
 }
 
 int
-AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *ppCursor)
+AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *ppCursor, ClientPtr client, XID cid)
 {
     CursorPtr	pCursor;
-    int		i;
+    int		rc, i;
     AnimCurPtr	ac;
 
     for (i = 0; i < screenInfo.numScreens; i++)
@@ -366,7 +367,6 @@ AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *pp
     if (!pCursor)
 	return BadAlloc;
     pCursor->bits = &animCursorBits;
-    animCursorBits.refcnt++;
     pCursor->refcnt = 1;
     
     pCursor->foreRed = cursors[0]->foreRed;
@@ -377,9 +377,22 @@ AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *pp
     pCursor->backGreen = cursors[0]->backGreen;
     pCursor->backBlue = cursors[0]->backBlue;
 
+    pCursor->devPrivates = NULL;
+    pCursor->id = cid;
+
+    /* security creation/labeling check */
+    rc = XaceHook(XACE_RESOURCE_ACCESS, client, cid, RT_CURSOR,
+		  DixCreateAccess, pCursor);
+    if (rc != Success) {
+	dixFreePrivates(pCursor->devPrivates);
+	xfree(pCursor);
+	return rc;
+    }
+	
     /*
      * Fill in the AnimCurRec
      */
+    animCursorBits.refcnt++;
     ac = GetAnimCur (pCursor);
     ac->nelt = ncursor;
     ac->elts = (AnimCurElt *) (ac + 1);

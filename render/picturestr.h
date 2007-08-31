@@ -630,7 +630,7 @@ Bool
 AnimCurInit (ScreenPtr pScreen);
 
 int
-AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *ppCursor);
+AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *ppCursor, ClientPtr client, XID cid);
 
 void
 AddTraps (PicturePtr	pPicture,
