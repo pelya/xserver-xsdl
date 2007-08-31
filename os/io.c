@@ -304,12 +304,14 @@ ReadRequestFromClient(ClientPtr client)
 	 */
 
 	oci->lenLastReq = 0;
-	if (needed > MAXBUFSIZE)
+#ifdef BIGREQS
+	if (needed > maxBigRequestSize << 2)
 	{
 	    /* request is too big for us to handle */
 	    YieldControlDeath();
 	    return -1;
 	}
+#endif
 	if ((gotnow == 0) ||
 	    ((oci->bufptr - oci->buffer + needed) > oci->size))
 	{
