@@ -143,6 +143,8 @@ ephyrHostGLXGetStringFromServer (int a_screen_number,
             break ;
         case EPHYR_HOST_GLX_GetString:
             get_string_op = X_GLsop_GetString;
+            EPHYR_LOG ("Going to glXGetString. strname:%#x, ctxttag:%d\n",
+                       a_string_name, a_screen_number) ;
             break ;
         default:
             EPHYR_LOG_ERROR ("unknown EphyrHostGLXGetStringOp:%d\n", a_op) ;
@@ -172,7 +174,7 @@ ephyrHostGLXGetStringFromServer (int a_screen_number,
 
     length = reply.length * 4;
     numbytes = reply.size;
-    EPHYR_LOG ("got a string of size:%d\n", numbytes) ;
+    EPHYR_LOG ("going to get a string of size:%d\n", numbytes) ;
 
     *a_string = (char *) Xmalloc (numbytes +1);
     if (!a_string) {
@@ -191,7 +193,8 @@ ephyrHostGLXGetStringFromServer (int a_screen_number,
     _XEatData (dpy, length) ;
     UnlockDisplay (dpy);
     SyncHandle ();
-    EPHYR_LOG ("string:'%s'\n", *a_string) ;
+    EPHYR_LOG ("strname:%#x, strvalue:'%s', strlen:%d\n",
+               a_string_name, *a_string, numbytes) ;
 
     is_ok = TRUE ;
 out:
@@ -531,6 +534,7 @@ ephyrHostGLXMakeCurrent (int a_drawable,
     UnlockDisplay (dpy);
     SyncHandle ();
     *a_ctxt_tag = reply.contextTag ;
+    EPHYR_LOG ("context tag:%d\n", *a_ctxt_tag) ;
     is_ok = TRUE ;
 
 out:
