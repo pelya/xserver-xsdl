@@ -35,23 +35,18 @@ INCLUDES = @XORG_INCS@
 
 Xorg_SOURCES = xorg.c
 
-# libxorgos and libcommon need symbols from each other
-noinst_LTLIBRARIES = libosandcommon.la
-libosandcommon_la_SOURCES = osandcommon.c
-libosandcommon_la_LIBADD = \
-            os-support/libxorgos.la \
-            common/libcommon.la
-
-osandcommon.c xorg.c:
+xorg.c:
 	touch $@
 
 DISTCLEANFILES = osandcommon.c xorg.c
 
 XORG_LIBS = \
-            $(XSERVER_LIBS \
+            $(XSERVER_LIBS) \
             common/libinit.a \
             loader/libloader.a \
-            libosandcommon.la \
+            os-support/libxorgos.la \
+            common/libcommon.la \
+            os-support/libxorgos.la \
 	    rac/librac.a \
             parser/libxf86config.a \
 	    dixmods/libdixmods.la \
@@ -60,7 +55,10 @@ XORG_LIBS = \
 	    ddc/libddc.a \
 	    i2c/libi2c.a \
 	    dixmods/libxorgxkb.la \
-            @XORG_LIBS@
+	    $(top_builddir)/mi/libmi.la \
+	    $(top_builddir)/os/libos.la \
+	    @XORG_LIBS@ \
+	    dixmods/libxorgxkb.la
 
 Xorg_DEPENDENCIES = $(XORG_LIBS)
 Xorg_LDADD = $(XORG_LIBS) $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS)
