@@ -685,7 +685,7 @@ compGetWindowVisual (WindowPtr pWin)
     return 0;
 }
 
-static PictFormatPtr
+PictFormatPtr
 compWindowFormat (WindowPtr pWin)
 {
     ScreenPtr	pScreen = pWin->drawable.pScreen;
