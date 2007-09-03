@@ -483,14 +483,48 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     int	    src_off_x, src_off_y;
     int	    dst_off_x, dst_off_y;
     ExaMigrationRec pixmaps[2];
+    RegionPtr region = NULL;
+
+    pSrcPixmap = exaGetDrawablePixmap (pSrcDrawable);
+    pDstPixmap = exaGetDrawablePixmap (pDstDrawable);
+
+    exaGetDrawableDeltas (pSrcDrawable, pSrcPixmap, &src_off_x, &src_off_y);
+    exaGetDrawableDeltas (pDstDrawable, pDstPixmap, &dst_off_x, &dst_off_y);
+
+    if (!pGC || !exaGCReadsDestination(pDstDrawable, pGC->planemask,
+				       pGC->fillStyle, pGC->alu)) {
+	xRectangle *rects = ALLOCATE_LOCAL(nbox * sizeof(xRectangle));
+
+	if (rects) {
+	    int i;
+
+	    for (i = 0; i < nbox; i++) {
+		rects[i].x = pbox[i].x1 + dst_off_x;
+		rects[i].y = pbox[i].y1 + dst_off_y;
+		rects[i].width = pbox[i].x2 - pbox[i].x1;
+		rects[i].height = pbox[i].y2 - pbox[i].y1;
+	    }
+
+	    region  = RECTS_TO_REGION(pScreen, nbox, rects, CT_YXBANDED);
+	    DEALLOCATE_LOCAL(rects);
+
+	    if (region) {
+		src_off_x -= dst_off_x;
+		src_off_y -= dst_off_y;
+		dst_off_x = dst_off_y = 0;
+		pbox = REGION_RECTS(region);
+		nbox = REGION_NUM_RECTS(region);
+	    }
+	}
+    }
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = pDstPixmap = exaGetDrawablePixmap (pDstDrawable);
-    pixmaps[0].pReg = NULL;
+    pixmaps[0].pPix = pDstPixmap;
+    pixmaps[0].pReg = region;
     pixmaps[1].as_dst = FALSE;
     pixmaps[1].as_src = TRUE;
-    pixmaps[1].pPix = pSrcPixmap = exaGetDrawablePixmap (pSrcDrawable);
+    pixmaps[1].pPix = pSrcPixmap;
     pixmaps[1].pReg = NULL;
 
     /* Respect maxX/maxY in a trivial way: don't set up drawing when we might
@@ -512,15 +546,9 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	reverse != upsidedown) {
 	if (exaCopyNtoNTwoDir(pSrcDrawable, pDstDrawable, pGC, pbox, nbox,
 			       dx, dy))
-	    return;
+	    goto out;
 	goto fallback;
     }
-
-    pSrcPixmap = exaGetDrawablePixmap (pSrcDrawable);
-    pDstPixmap = exaGetDrawablePixmap (pDstDrawable);
-
-    exaGetDrawableDeltas (pSrcDrawable, pSrcPixmap, &src_off_x, &src_off_y);
-    exaGetDrawableDeltas (pDstDrawable, pDstPixmap, &dst_off_x, &dst_off_y);
 
     if (!exaPixmapIsOffscreen(pSrcPixmap) ||
 	!exaPixmapIsOffscreen(pDstPixmap) ||
@@ -544,18 +572,24 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     (*pExaScr->info->DoneCopy) (pDstPixmap);
     exaMarkSync (pDstDrawable->pScreen);
 
-    return;
+    goto out;
 
 fallback:
     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrcDrawable, pDstDrawable,
 		  exaDrawableLocation(pSrcDrawable),
 		  exaDrawableLocation(pDstDrawable)));
-    exaPrepareAccessReg (pDstDrawable, EXA_PREPARE_DEST, pixmaps[0].pReg);
+    exaPrepareAccessReg (pDstDrawable, EXA_PREPARE_DEST, region);
     exaPrepareAccess (pSrcDrawable, EXA_PREPARE_SRC);
     fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC, pbox, nbox, dx, dy, reverse,
 		upsidedown, bitplane, closure);
     exaFinishAccess (pSrcDrawable, EXA_PREPARE_SRC);
     exaFinishAccess (pDstDrawable, EXA_PREPARE_DEST);
+
+out:
+    if (region) {
+	REGION_UNINIT(pScreen, region);
+	REGION_DESTROY(pScreen, region);
+    }
 }
 
 RegionPtr
@@ -870,6 +904,7 @@ fallback:
     exaMarkSync(pDrawable->pScreen);
 
 out:
+    REGION_UNINIT(pScreen, pReg);
     REGION_DESTROY(pScreen, pReg);
 }
 
