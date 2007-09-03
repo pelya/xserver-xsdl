@@ -1074,7 +1074,11 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
     pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
-    pixmaps[0].pReg = NULL;
+    pixmaps[0].pReg = exaGCReadsDestination(pDrawable, planemask, FillSolid,
+					    alu) ? NULL : pRegion;
+
+    exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
+    REGION_TRANSLATE(pScreen, pRegion, xoff, yoff);
 
     if (pPixmap->drawable.width > pExaScr->info->maxX ||
 	pPixmap->drawable.height > pExaScr->info->maxY)
@@ -1089,8 +1093,6 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
     {
 	int nbox;
 	BoxPtr pBox;
-
-	REGION_TRANSLATE(pScreen, pRegion, xoff, yoff);
 
 	nbox = REGION_NUM_RECTS (pRegion);
 	pBox = REGION_RECTS (pRegion);
@@ -1124,19 +1126,21 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
 	}
 
 	REGION_TRANSLATE(pScreen, pRegion, -xoff, -yoff);
+	return TRUE;
     }
-    else
-    {
+
 fallback:
-	if (alu != GXcopy || planemask != FB_ALLONES)
-	    return FALSE;
-	EXA_FALLBACK(("to %p (%c)\n", pDrawable,
-		      exaDrawableLocation(pDrawable)));
-	exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST, pixmaps[0].pReg);
-	fbFillRegionSolid (pDrawable, pRegion, 0,
-			   fbReplicatePixel (pixel, pDrawable->bitsPerPixel));
-	exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
+    if (alu != GXcopy || !EXA_PM_IS_SOLID(pDrawable, planemask)) {
+	REGION_TRANSLATE(pScreen, pRegion, -xoff, -yoff);
+	return FALSE;
     }
+    EXA_FALLBACK(("to %p (%c)\n", pDrawable,
+		  exaDrawableLocation(pDrawable)));
+    exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST, pixmaps[0].pReg);
+    REGION_TRANSLATE(pScreen, pRegion, -xoff, -yoff);
+    fbFillRegionSolid (pDrawable, pRegion, 0,
+		       fbReplicatePixel (pixel, pDrawable->bitsPerPixel));
+    exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 
     return TRUE;
 }
@@ -1174,11 +1178,15 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
     pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
-    pixmaps[0].pReg = NULL;
+    pixmaps[0].pReg = exaGCReadsDestination(pDrawable, planemask, FillTiled,
+					    alu) ? NULL : pRegion;
     pixmaps[1].as_dst = FALSE;
     pixmaps[1].as_src = TRUE;
     pixmaps[1].pPix = pTile;
     pixmaps[1].pReg = NULL;
+
+    exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
+    REGION_TRANSLATE(pScreen, pRegion, xoff, yoff);
 
     if (pPixmap->drawable.width > pExaScr->info->maxX ||
 	pPixmap->drawable.height > pExaScr->info->maxY ||
@@ -1208,7 +1216,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 	    int dstY = pBox->y1;
 	    int tileY;
 
-	    tileY = (dstY - pDrawable->y - pPatOrg->y) % tileHeight;
+	    tileY = (dstY - yoff - pDrawable->y - pPatOrg->y) % tileHeight;
 	    while (height > 0) {
 		int width = pBox->x2 - pBox->x1;
 		int dstX = pBox->x1;
@@ -1219,7 +1227,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 		    h = height;
 		height -= h;
 
-		tileX = (dstX - pDrawable->x - pPatOrg->x) % tileWidth;
+		tileX = (dstX - xoff - pDrawable->x - pPatOrg->x) % tileWidth;
 		while (width > 0) {
 		    int w = tileWidth - tileX;
 		    if (w > width)
@@ -1228,8 +1236,7 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 
 		    (*pExaScr->info->Copy) (pPixmap,
 					    tileX + tileXoff, tileY + tileYoff,
-					    dstX + xoff, dstY + yoff,
-					    w, h);
+					    dstX, dstY, w, h);
 		    dstX += w;
 		    tileX = 0;
 		}
@@ -1240,16 +1247,20 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 	}
 	(*pExaScr->info->DoneCopy) (pPixmap);
 	exaMarkSync(pDrawable->pScreen);
+	REGION_TRANSLATE(pScreen, pRegion, -xoff, -yoff);
 	return TRUE;
     }
 
 fallback:
-    if (alu != GXcopy || planemask != FB_ALLONES)
+    if (alu != GXcopy || !EXA_PM_IS_SOLID(pDrawable, planemask)) {
+	REGION_TRANSLATE(pScreen, pRegion, -xoff, -yoff);
 	return FALSE;
+    }
     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pTile, pDrawable,
 		  exaDrawableLocation(&pTile->drawable),
 		  exaDrawableLocation(pDrawable)));
     exaPrepareAccessReg (pDrawable, EXA_PREPARE_DEST, pixmaps[0].pReg);
+    REGION_TRANSLATE(pScreen, pRegion, -xoff, -yoff);
     exaPrepareAccess ((DrawablePtr)pTile, EXA_PREPARE_SRC);
     fbFillRegionTiled (pDrawable, pRegion, pTile);
     exaFinishAccess ((DrawablePtr)pTile, EXA_PREPARE_SRC);
