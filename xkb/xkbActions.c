@@ -72,7 +72,7 @@ XkbSetExtension(DeviceIntPtr device, ProcessInputProc proc)
     if (!AllocateDevicePrivate(device, xkbDevicePrivateIndex))
 	return;
 
-    xkbPrivPtr = (xkbDeviceInfoPtr) xalloc(sizeof(xkbDeviceInfoRec));
+    xkbPrivPtr = (xkbDeviceInfoPtr) xcalloc(1, sizeof(xkbDeviceInfoRec));
     if (!xkbPrivPtr)
 	return;
     xkbPrivPtr->unwrapProc = NULL;
@@ -235,22 +235,6 @@ XkbAction fake;
 
 #define	SYNTHETIC_KEYCODE	1
 #define	BTN_ACT_FLAG		0x100
-
-typedef struct _XkbFilter {
-	CARD16			  keycode;
-	CARD8			  what;
-	CARD8			  active;
-	CARD8			  filterOthers;
-	CARD32			  priv;
-	XkbAction		  upAction;
-	int			(*filter)(
-					XkbSrvInfoPtr 		/* xkbi */,
-					struct _XkbFilter *	/* filter */,
-					unsigned		/* keycode */,
-					XkbAction *		/* action */
-				  );
-	struct _XkbFilter	 *next;
-} XkbFilterRec,*XkbFilterPtr;
 
 static int
 _XkbFilterSetState(	XkbSrvInfoPtr	xkbi,
@@ -1097,32 +1081,32 @@ int		button;
 }
 #endif
 
-static	int		szFilters = 0;
-static	XkbFilterPtr	filters = NULL;
-
 static XkbFilterPtr
 _XkbNextFreeFilter(
-	void
+	XkbSrvInfoPtr xkbi
 )
 {
 register int	i;
 
-    if (szFilters==0) {
-	szFilters = 4;
-	filters = _XkbTypedCalloc(szFilters,XkbFilterRec);
+    if (xkbi->szFilters==0) {
+	xkbi->szFilters = 4;
+	xkbi->filters = _XkbTypedCalloc(xkbi->szFilters,XkbFilterRec);
 	/* 6/21/93 (ef) -- XXX! deal with allocation failure */
     }
-    for (i=0;i<szFilters;i++) {
-	if (!filters[i].active) {
-	    filters[i].keycode = 0;
-	    return &filters[i];
+    for (i=0;i<xkbi->szFilters;i++) {
+	if (!xkbi->filters[i].active) {
+	    xkbi->filters[i].keycode = 0;
+	    return &xkbi->filters[i];
 	}
     }
-    szFilters*=2;
-    filters= _XkbTypedRealloc(filters,szFilters,XkbFilterRec);
+    xkbi->szFilters*=2;
+    xkbi->filters= _XkbTypedRealloc(xkbi->filters,
+                                    xkbi->szFilters,
+                                    XkbFilterRec);
     /* 6/21/93 (ef) -- XXX! deal with allocation failure */
-    bzero(&filters[szFilters/2],(szFilters/2)*sizeof(XkbFilterRec));
-    return &filters[szFilters/2];
+    bzero(&xkbi->filters[xkbi->szFilters/2],
+            (xkbi->szFilters/2)*sizeof(XkbFilterRec));
+    return &xkbi->filters[xkbi->szFilters/2];
 }
 
 static int
@@ -1131,9 +1115,10 @@ _XkbApplyFilters(XkbSrvInfoPtr xkbi,unsigned kc,XkbAction *pAction)
 register int	i,send;
 
     send= 1;
-    for (i=0;i<szFilters;i++) {
-	if ((filters[i].active)&&(filters[i].filter))
-	    send= ((*filters[i].filter)(xkbi,&filters[i],kc,pAction)&&send);
+    for (i=0;i<xkbi->szFilters;i++) {
+	if ((xkbi->filters[i].active)&&(xkbi->filters[i].filter))
+	    send= ((*xkbi->filters[i].filter)(xkbi,&xkbi->filters[i],kc,pAction) 
+                    && send);
     }
     return send;
 }
@@ -1161,6 +1146,8 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
     keyc= kbd->key;
     xkbi= keyc->xkbInfo;
     key= xE->u.u.detail;
+    /* The state may change, so if we're not in the middle of sending a state
+     * notify, prepare for it */
     if ((xkbi->flags&_XkbStateNotifyInProgress)==0) {
 	oldState= xkbi->state;
 	xkbi->flags|= _XkbStateNotifyInProgress;
@@ -1197,62 +1184,62 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
 	    switch (act.type) {
 		case XkbSA_SetMods:
 		case XkbSA_SetGroup:
-		    filter = _XkbNextFreeFilter();
+		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent = _XkbFilterSetState(xkbi,filter,key,&act);
 		    break;
 		case XkbSA_LatchMods:
 		case XkbSA_LatchGroup:
-		    filter = _XkbNextFreeFilter();
+		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent=_XkbFilterLatchState(xkbi,filter,key,&act);
 		    break;
 		case XkbSA_LockMods:
 		case XkbSA_LockGroup:
-		    filter = _XkbNextFreeFilter();
+		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent=_XkbFilterLockState(xkbi,filter,key,&act);
 		    break;
 		case XkbSA_ISOLock:
-		    filter = _XkbNextFreeFilter();
+		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent=_XkbFilterISOLock(xkbi,filter,key,&act);
 		    break;
 		case XkbSA_MovePtr:
-		    filter = _XkbNextFreeFilter();
+		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent= _XkbFilterPointerMove(xkbi,filter,key,&act);
 		    break;
 		case XkbSA_PtrBtn:
 		case XkbSA_LockPtrBtn:
 		case XkbSA_SetPtrDflt:
-		    filter = _XkbNextFreeFilter();
+		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent= _XkbFilterPointerBtn(xkbi,filter,key,&act);
 		    break;
 		case XkbSA_Terminate:
 		    sendEvent= XkbDDXTerminateServer(dev,key,&act);
 		    break;
 		case XkbSA_SwitchScreen:
-		    filter = _XkbNextFreeFilter();
+		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent=_XkbFilterSwitchScreen(xkbi,filter,key,&act);
 		    break;
 		case XkbSA_SetControls:
 		case XkbSA_LockControls:
-		    filter = _XkbNextFreeFilter();
+		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent=_XkbFilterControls(xkbi,filter,key,&act);
 		    break;
 		case XkbSA_ActionMessage:
-		    filter = _XkbNextFreeFilter();
+		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent=_XkbFilterActionMessage(xkbi,filter,key,&act);
 		    break;
 		case XkbSA_RedirectKey:
-		    filter = _XkbNextFreeFilter();
+		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent= _XkbFilterRedirectKey(xkbi,filter,key,&act);
 		    break;
 #ifdef XINPUT
 		case XkbSA_DeviceBtn:
 		case XkbSA_LockDeviceBtn:
-		    filter = _XkbNextFreeFilter();
+		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent= _XkbFilterDeviceBtn(xkbi,filter,key,&act);
 		    break;
 #endif
 		case XkbSA_XFree86Private:
-		    filter = _XkbNextFreeFilter();
+		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent= _XkbFilterXF86Private(xkbi,filter,key,&act);
 		    break;
 	    }
@@ -1352,7 +1339,7 @@ unsigned	clear;
 	act.type = XkbSA_LatchMods;
 	act.mods.flags = 0;
 	act.mods.mask  = mask&latches;
-	filter = _XkbNextFreeFilter();
+	filter = _XkbNextFreeFilter(xkbi);
 	_XkbFilterLatchState(xkbi,filter,SYNTHETIC_KEYCODE,&act);
 	_XkbFilterLatchState(xkbi,filter,SYNTHETIC_KEYCODE,(XkbAction *)NULL);
 	return Success;
@@ -1372,7 +1359,7 @@ XkbAction	act;
 	act.type = XkbSA_LatchGroup;
 	act.group.flags = 0;
 	XkbSASetGroup(&act.group,group);
-	filter = _XkbNextFreeFilter();
+	filter = _XkbNextFreeFilter(xkbi);
 	_XkbFilterLatchState(xkbi,filter,SYNTHETIC_KEYCODE,&act);
 	_XkbFilterLatchState(xkbi,filter,SYNTHETIC_KEYCODE,(XkbAction *)NULL);
 	return Success;
