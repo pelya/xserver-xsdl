@@ -185,7 +185,7 @@ ProcDamageCreate (ClientPtr client)
     REQUEST_SIZE_MATCH(xDamageCreateReq);
     LEGAL_NEW_RESOURCE(stuff->damage, client);
     rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
-			   DixReadAccess);
+			   DixGetAttrAccess|DixReadAccess);
     if (rc != Success)
 	return rc;
 
@@ -295,7 +295,7 @@ ProcDamageAdd (ClientPtr client)
     REQUEST_SIZE_MATCH(xDamageAddReq);
     VERIFY_REGION(pRegion, stuff->region, client, DixWriteAccess);
     rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
-			   DixReadAccess);
+			   DixWriteAccess);
     if (rc != Success)
 	return rc;
 
