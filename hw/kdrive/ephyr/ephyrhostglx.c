@@ -89,10 +89,14 @@ ephyrHostGLXQueryVersion (int *a_major, int *a_minor)
     EPHYR_RETURN_VAL_IF_FAIL (a_major && a_minor, FALSE) ;
     EPHYR_LOG ("enter\n") ;
 
+    *a_major = 1 ;
+    *a_minor = 2 ;
+    /*
     if (!glXQueryVersion (dpy, a_major, a_minor)) {
         EPHYR_LOG_ERROR ("glxQueryVersion() failed\n") ;
         goto out ;
     }
+    */
 
     is_ok = TRUE ;
 out:

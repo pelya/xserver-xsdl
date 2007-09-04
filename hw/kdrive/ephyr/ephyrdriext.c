@@ -446,13 +446,14 @@ ProcXF86DRIDestroyDrawable (register ClientPtr client)
 static int
 ProcXF86DRIGetDrawableInfo (register ClientPtr client)
 {
-    xXF86DRIGetDrawableInfoReply	rep;
+    xXF86DRIGetDrawableInfoReply rep;
     DrawablePtr drawable;
-    int X, Y, W, H, backX, backY, rc;
-    drm_clip_rect_t * pClipRects, *pClippedRects;
-    drm_clip_rect_t * pBackClipRects;
+    int X=0, Y=0, W=0, H=0, backX=0, backY=0, rc=0;
+    drm_clip_rect_t *pClipRects=NULL, *pClippedRects=NULL;
+    drm_clip_rect_t *pBackClipRects=NULL;
 
     EPHYR_LOG ("enter\n") ;
+    memset (&rep, 0, sizeof (rep)) ;
     REQUEST(xXF86DRIGetDrawableInfoReq);
     REQUEST_SIZE_MATCH(xXF86DRIGetDrawableInfoReq);
     if (stuff->screen >= screenInfo.numScreens) {

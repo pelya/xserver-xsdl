@@ -216,6 +216,7 @@ ephyrDRIGetDrawableInfo (int a_screen,
                          drm_clip_rect_t **a_back_clip_rects)
 {
     Bool is_ok=FALSE;
+    Display *dpy=hostx_get_display ()  ;
     DrawablePtr drawable = a_drawable ;
     EphyrHostWindowAttributes attrs ;
 
@@ -229,20 +230,29 @@ ephyrDRIGetDrawableInfo (int a_screen,
         EPHYR_LOG_ERROR ("failed to query host window attributes\n") ;
         goto out;
     }
-    *a_x = drawable->x + attrs.x;
-    *a_y = drawable->y + attrs.y;
-    *a_w = drawable->width + attrs.width ;
-    *a_h = drawable->height + attrs.height ;
-    *a_num_clip_rects = 0 ;
-    *a_clip_rects = NULL ;
-    *a_back_x = 0;
-    *a_back_y = 0 ;
-    *a_num_back_clip_rects = 0 ;
-    *a_back_clip_rects = NULL ;
+    if (!XF86DRIGetDrawableInfo (dpy, a_screen, hostx_get_window (),
+                                 a_index, a_stamp,
+                                 a_x, a_y,
+                                 a_w, a_h,
+                                 a_num_clip_rects, a_clip_rects,
+                                 a_back_x, a_back_y,
+                                 a_num_back_clip_rects,
+                                 a_back_clip_rects)) {
+        EPHYR_LOG_ERROR ("XF86DRIGetDrawableInfo ()\n") ;
+        goto out ;
+    }
+    EPHYR_LOG ("host x,y,w,h: (%d,%d,%d,%d)\n", *a_x, *a_y, *a_w, *a_h) ;
+    *a_x += drawable->x ;
+    *a_y += drawable->y ;
+    *a_back_x = *a_x ;
+    *a_back_y = *a_y ;
+    *a_w = drawable->width;
+    *a_h = drawable->height;
 
     is_ok = TRUE ;
 out:
-    EPHYR_LOG ("leave\n") ;
+    EPHYR_LOG ("leave. index:%d, stamp:%d, x,y:(%d,%d), w,y:(%d,%d)\n",
+               *a_index, *a_stamp, *a_x, *a_y, *a_w, *a_h) ;
     return is_ok ;
 }
 
