@@ -298,10 +298,6 @@ void
 exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 	     unsigned int format, unsigned long planeMask, char *d);
 
-void
-exaGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt, int *pwidth,
-	     int nspans, char *pdstStart);
-
 extern const GCOps exaOps;
 
 #ifdef MITSHM
@@ -338,6 +334,9 @@ void
 ExaOffscreenFini (ScreenPtr pScreen);
 
 /* exa.c */
+void
+ExaDoPrepareAccess(DrawablePtr pDrawable, int index);
+
 void
 exaPrepareAccess(DrawablePtr pDrawable, int index);
 

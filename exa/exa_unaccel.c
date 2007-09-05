@@ -41,7 +41,7 @@ void
 exaPrepareAccessGC(GCPtr pGC)
 {
     if (pGC->stipple)
-        exaPrepareAccess(&pGC->stipple->drawable, EXA_PREPARE_SRC);
+        exaPrepareAccess(&pGC->stipple->drawable, EXA_PREPARE_MASK);
     if (pGC->fillStyle == FillTiled)
 	exaPrepareAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
 }
@@ -53,7 +53,7 @@ void
 exaFinishAccessGC(GCPtr pGC)
 {
     if (pGC->fillStyle == FillTiled)
-	exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_SRC);
+	exaFinishAccess(&pGC->tile.pixmap->drawable, EXA_PREPARE_MASK);
     if (pGC->stipple)
         exaFinishAccess(&pGC->stipple->drawable, EXA_PREPARE_SRC);
 }
@@ -358,7 +358,6 @@ exaGetPixmapFirstPixel (PixmapPtr pPixmap)
     void *fb;
     Bool need_finish = FALSE;
     BoxRec box;
-    ExaMigrationRec pixmaps[1];
     ExaPixmapPriv (pPixmap);
 
     fb = pExaPixmap->sys_ptr;
@@ -368,10 +367,6 @@ exaGetPixmapFirstPixel (PixmapPtr pPixmap)
         miPointInRegion(DamageRegion(pExaPixmap->pDamage), 0, 0,  &box))
     {
 	need_finish = TRUE;
-	pixmaps[0].as_dst = FALSE;
-	pixmaps[0].as_src = TRUE;
-	pixmaps[0].pPix = pPixmap;
-	exaDoMigration (pixmaps, 1, FALSE);
 	exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
 	fb = pPixmap->devPrivate.ptr;
     }

@@ -329,14 +329,8 @@ exaGetOffscreenPixmap (DrawablePtr pDrawable, int *xp, int *yp)
 	return NULL;
 }
 
-/**
- * exaPrepareAccess() is EXA's wrapper for the driver's PrepareAccess() handler.
- *
- * It deals with waiting for synchronization with the card, determining if
- * PrepareAccess() is necessary, and working around PrepareAccess() failure.
- */
 void
-exaPrepareAccess(DrawablePtr pDrawable, int index)
+ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
 {
     ScreenPtr	    pScreen = pDrawable->pScreen;
     ExaScreenPriv  (pScreen);
@@ -365,6 +359,26 @@ exaPrepareAccess(DrawablePtr pDrawable, int index)
 	    FatalError("Driver failed PrepareAccess on a pinned pixmap\n");
 	exaMoveOutPixmap (pPixmap);
     }
+}
+
+/**
+ * exaPrepareAccess() is EXA's wrapper for the driver's PrepareAccess() handler.
+ *
+ * It deals with waiting for synchronization with the card, determining if
+ * PrepareAccess() is necessary, and working around PrepareAccess() failure.
+ */
+void
+exaPrepareAccess(DrawablePtr pDrawable, int index)
+{
+    ExaMigrationRec pixmaps[1];
+
+    pixmaps[0].as_dst = index == EXA_PREPARE_DEST;
+    pixmaps[0].as_src = index != EXA_PREPARE_DEST;
+    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
+
+    exaDoMigration(pixmaps, 1, FALSE);
+
+    ExaDoPrepareAccess(pDrawable, index);
 }
 
 /**
@@ -698,7 +712,7 @@ exaDriverInit (ScreenPtr		pScreen,
     pScreen->GetImage = exaGetImage;
 
     pExaScr->SavedGetSpans = pScreen->GetSpans;
-    pScreen->GetSpans = exaGetSpans;
+    pScreen->GetSpans = ExaCheckGetSpans;
 
     pExaScr->SavedCopyWindow = pScreen->CopyWindow;
     pScreen->CopyWindow = exaCopyWindow;

@@ -152,7 +152,7 @@ exaCopyDirtyToSys (PixmapPtr pPixmap)
 						+ pBox->x1 * pPixmap->drawable.bitsPerPixel / 8,
 						pExaPixmap->sys_pitch))
 	{
-	    exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+	    ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
 	    exaMemcpyBox (pPixmap, pBox,
 			  pExaPixmap->fb_ptr, pExaPixmap->fb_pitch,
 			  pExaPixmap->sys_ptr, pExaPixmap->sys_pitch);
@@ -220,7 +220,7 @@ exaCopyDirtyToFb (PixmapPtr pPixmap)
 					    + pBox->x1 * pPixmap->drawable.bitsPerPixel / 8,
 					    pExaPixmap->sys_pitch))
 	{
-	    exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_DEST);
+	    ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_DEST);
 	    exaMemcpyBox (pPixmap, pBox,
 			  pExaPixmap->sys_ptr, pExaPixmap->sys_pitch,
 			  pExaPixmap->fb_ptr, pExaPixmap->fb_pitch);
@@ -471,7 +471,7 @@ exaAssertNotDirty (PixmapPtr pPixmap)
     src_pitch = pExaPixmap->fb_pitch;
     cpp = pPixmap->drawable.bitsPerPixel / 8;
 
-    exaPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
+    ExaDoPrepareAccess(&pPixmap->drawable, EXA_PREPARE_SRC);
     while (nbox--) {
 	    int rowbytes;
 
@@ -622,14 +622,9 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
 	    exaMoveInPixmap(pixmaps[i].pPix);
 	}
 
-	/* If we couldn't fit everything in, then kick back out */
+	/* If we couldn't fit everything in, abort */
 	for (i = 0; i < npixmaps; i++) {
 	    if (!exaPixmapIsOffscreen(pixmaps[i].pPix)) {
-		EXA_FALLBACK(("Pixmap %p (%dx%d) not in fb\n", pixmaps[i].pPix,
-			      pixmaps[i].pPix->drawable.width,
-			      pixmaps[i].pPix->drawable.height));
-		for (j = 0; j < npixmaps; j++)
-		    exaMoveOutPixmap(pixmaps[j].pPix);
 		return;
 	    }
 	}

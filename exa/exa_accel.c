@@ -61,7 +61,6 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 	pPixmap->drawable.width > pExaScr->info->maxX ||
 	pPixmap->drawable.height > pExaScr->info->maxY)
     {
-	exaDoMigration (pixmaps, 1, FALSE);
 	ExaCheckFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
 	return;
     } else {
@@ -74,7 +73,6 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 					 pGC->planemask,
 					 pGC->fgPixel))
     {
-	exaDoMigration (pixmaps, 1, FALSE);
 	ExaCheckFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
 	return;
     }
@@ -158,11 +156,11 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 
     /* Don't bother with under 8bpp, XYPixmaps. */
     if (format != ZPixmap || bpp < 8)
-	goto migrate_and_fallback;
+	goto fallback;
 
     /* Only accelerate copies: no rop or planemask. */
     if (!EXA_PM_IS_SOLID(pDrawable, pGC->planemask) || pGC->alu != GXcopy)
-	goto migrate_and_fallback;
+	goto fallback;
 
     if (pExaScr->swappedOut)
 	goto fallback;
@@ -239,9 +237,6 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     }
 
     return TRUE;
-
-migrate_and_fallback:
-    exaDoMigration (pixmaps, 1, FALSE);
 
 fallback:
     return FALSE;
@@ -468,7 +463,6 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	EXA_FALLBACK(("from %p to %p (%c,%c)\n", pSrcDrawable, pDstDrawable,
 		      exaDrawableLocation(pSrcDrawable),
 		      exaDrawableLocation(pDstDrawable)));
-	exaDoMigration (pixmaps, 2, FALSE);
 	exaPrepareAccess (pDstDrawable, EXA_PREPARE_DEST);
 	exaPrepareAccess (pSrcDrawable, EXA_PREPARE_SRC);
 	fbCopyNtoN (pSrcDrawable, pDstDrawable, pGC,
@@ -731,15 +725,6 @@ exaPolyFillRect(DrawablePtr pDrawable,
 					 pGC->fgPixel))
     {
 fallback:
-	if (pGC->fillStyle == FillTiled && !pGC->tileIsPixel) {
-	    pixmaps[1].as_dst = FALSE;
-	    pixmaps[1].as_src = TRUE;
-	    pixmaps[1].pPix = pGC->tile.pixmap;
-	    exaDoMigration (pixmaps, 2, FALSE);
-	} else {
-	    exaDoMigration (pixmaps, 1, FALSE);
-	}
-
 	ExaCheckPolyFillRect (pDrawable, pGC, nrect, prect);
 	goto out;
     }
@@ -860,7 +845,6 @@ exaSolidBoxClipped (DrawablePtr	pDrawable,
     {
 	EXA_FALLBACK(("to %p (%c)\n", pDrawable,
 		      exaDrawableLocation(pDrawable)));
-	exaDoMigration (pixmaps, 1, FALSE);
 	fallback = TRUE;
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fg = fbReplicatePixel (fg, pDrawable->bitsPerPixel);
@@ -969,7 +953,6 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
     depthMask = FbFullMask(pDrawable->depth);
     if ((pGC->planemask & depthMask) != depthMask)
     {
-	exaDoMigration(pixmaps, 1, FALSE);
 	ExaCheckImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppciInit, pglyphBase);
 	goto damage;
     }
@@ -1004,7 +987,6 @@ exaImageGlyphBlt (DrawablePtr	pDrawable,
     }
 
     EXA_FALLBACK(("to %p (%c)\n", pDrawable, exaDrawableLocation(pDrawable)));
-    exaDoMigration(pixmaps, 1, FALSE);
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     exaPrepareAccessGC (pGC);
 
@@ -1146,7 +1128,6 @@ fallback:
 	    return FALSE;
 	EXA_FALLBACK(("to %p (%c)\n", pDrawable,
 		      exaDrawableLocation(pDrawable)));
-	exaDoMigration (pixmaps, 1, FALSE);
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
 	fbFillRegionSolid (pDrawable, pRegion, 0,
 			   fbReplicatePixel (pixel, pDrawable->bitsPerPixel));
@@ -1262,7 +1243,6 @@ fallback:
     EXA_FALLBACK(("from %p to %p (%c,%c)\n", pTile, pDrawable,
 		  exaDrawableLocation(&pTile->drawable),
 		  exaDrawableLocation(pDrawable)));
-    exaDoMigration (pixmaps, 2, FALSE);
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
     exaPrepareAccess ((DrawablePtr)pTile, EXA_PREPARE_SRC);
     fbFillRegionTiled (pDrawable, pRegion, pTile);
@@ -1349,7 +1329,6 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 	     unsigned int format, unsigned long planeMask, char *d)
 {
     ExaScreenPriv (pDrawable->pScreen);
-    ExaMigrationRec pixmaps[1];
     PixmapPtr pPix;
     int xoff, yoff;
     Bool ok;
@@ -1362,13 +1341,13 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 
     /* Only cover the ZPixmap, solid copy case. */
     if (format != ZPixmap || !EXA_PM_IS_SOLID(pDrawable, planeMask))
-	goto migrate_and_fallback;
+	goto fallback;
 
     /* Only try to handle the 8bpp and up cases, since we don't want to think
      * about <8bpp.
      */
     if (pDrawable->bitsPerPixel < 8)
-	goto migrate_and_fallback;
+	goto fallback;
 
     pPix = exaGetOffscreenPixmap (pDrawable, &xoff, &yoff);
     if (pPix == NULL)
@@ -1384,29 +1363,6 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
 	return;
     }
 
-migrate_and_fallback:
-    pixmaps[0].as_dst = FALSE;
-    pixmaps[0].as_src = TRUE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
-    exaDoMigration (pixmaps, 1, FALSE);
 fallback:
     ExaCheckGetImage (pDrawable, x, y, w, h, format, planeMask, d);
-}
-
-/**
- * GetSpans isn't accelerated yet, but performs migration so that we'll
- * hopefully avoid the read-from-framebuffer cost.
- */
-void
-exaGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr ppt, int *pwidth,
-	     int nspans, char *pdstStart)
-{
-    ExaMigrationRec pixmaps[1];
-
-    pixmaps[0].as_dst = FALSE;
-    pixmaps[0].as_src = TRUE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDrawable);
-    exaDoMigration (pixmaps, 1, FALSE);
-
-    ExaCheckGetSpans (pDrawable, wMax, ppt, pwidth, nspans, pdstStart);
 }

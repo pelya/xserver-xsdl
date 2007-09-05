@@ -738,7 +738,6 @@ fallback:
     exaPrintCompositeFallback (op, pSrc, pMask, pDst);
 #endif
 
-    exaDoMigration(pixmaps, npixmaps, FALSE);
     ExaCheckComposite (op, pSrc, pMask, pDst, xSrc, ySrc,
 		      xMask, yMask, xDst, yDst, width, height);
 
@@ -889,18 +888,13 @@ exaRasterizeTrapezoid (PicturePtr pPicture, xTrapezoid  *trap,
 		       int x_off, int y_off)
 {
     DrawablePtr pDraw = pPicture->pDrawable;
-    ExaMigrationRec pixmaps[1];
+    PixmapPtr pPixmap = exaGetDrawablePixmap(pDraw);
     int xoff, yoff;
-
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = TRUE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDraw);
-    exaDoMigration(pixmaps, 1, FALSE);
 
     exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
     fbRasterizeTrapezoid(pPicture, trap, x_off, y_off);
-    exaGetDrawableDeltas(pDraw, pixmaps[0].pPix, &xoff, &yoff);
-    exaPixmapDirty(pixmaps[0].pPix, pDraw->x + xoff, pDraw->y + yoff,
+    exaGetDrawableDeltas(pDraw, pPixmap, &xoff, &yoff);
+    exaPixmapDirty(pPixmap, pDraw->x + xoff, pDraw->y + yoff,
 		   pDraw->x + xoff + pDraw->width,
 		   pDraw->y + yoff + pDraw->height);
     exaFinishAccess(pDraw, EXA_PREPARE_DEST);
@@ -915,18 +909,13 @@ exaAddTriangles (PicturePtr pPicture, INT16 x_off, INT16 y_off, int ntri,
 		 xTriangle *tris)
 {
     DrawablePtr pDraw = pPicture->pDrawable;
-    ExaMigrationRec pixmaps[1];
+    PixmapPtr pPixmap = exaGetDrawablePixmap(pDraw);
     int xoff, yoff;
-
-    pixmaps[0].as_dst = TRUE;
-    pixmaps[0].as_src = TRUE;
-    pixmaps[0].pPix = exaGetDrawablePixmap (pDraw);
-    exaDoMigration(pixmaps, 1, FALSE);
 
     exaPrepareAccess(pDraw, EXA_PREPARE_DEST);
     fbAddTriangles(pPicture, x_off, y_off, ntri, tris);
-    exaGetDrawableDeltas(pDraw, pixmaps[0].pPix, &xoff, &yoff);
-    exaPixmapDirty(pixmaps[0].pPix, pDraw->x + xoff, pDraw->y + yoff,
+    exaGetDrawableDeltas(pDraw, pPixmap, &xoff, &yoff);
+    exaPixmapDirty(pPixmap, pDraw->x + xoff, pDraw->y + yoff,
 		   pDraw->x + xoff + pDraw->width,
 		   pDraw->y + yoff + pDraw->height);
     exaFinishAccess(pDraw, EXA_PREPARE_DEST);
