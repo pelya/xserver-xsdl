@@ -1220,6 +1220,7 @@ if test "x$XORG" = xauto; then
 	XORG="yes"
 	case $host_os in
 		cygwin*) XORG="no" ;;
+		darwin*) XORG="no" ;;
 	esac
 fi
 AC_MSG_RESULT([$XORG])
