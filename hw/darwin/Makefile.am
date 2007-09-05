@@ -90,6 +90,7 @@ Xquartz_LDFLAGS =  \
                  -Wl,-u,_miDCInitialize \
                  -Wl,-framework,Carbon \
                  -Wl,-framework,OpenGL \
+		 -Wl,-dylib_file,/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib:/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib \
                  -Wl,-framework,Cocoa \
                  -Wl,-framework,CoreAudio \
                  -Wl,-framework,IOKit
@@ -115,7 +116,6 @@ XDarwinApp_SOURCES = \
 
 XDARWINAPP_LIBS = \
 	$(DARWIN_LIBS) \
-	$(top_builddir)/dix/dixfonts.lo \
 	./quartz/XApplication.o \
 	./libdarwinShared.a \
 	./quartz/libXQuartz.a \
@@ -152,6 +152,7 @@ cr_la_LIBADD = \
 		$(top_builddir)/miext/rootless/accel/librlAccel.la
 
 cr_la_LDFLAGS = -shrext '' -Wl,-framework,ApplicationServices \
+		-lpixman-1 \
 		-Wl,-framework,Cocoa \
 		-Wl,-framework,Carbon \
 		-XCClinker -ObjC \
@@ -211,6 +212,7 @@ xpr_la_LIBADD = \
 		$(top_builddir)/miext/rootless/accel/librlAccel.la
 
 xpr_la_LDFLAGS = -shrext '' -Wl,-framework,ApplicationServices \
+		-lpixman-1 \
 		-lXplugin \
 		-XCClinker -bundle_loader -XCClinker XDarwinApp \
 		-module -avoid-version -no-undefined
