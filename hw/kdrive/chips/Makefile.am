@@ -22,8 +22,7 @@ CHIPS_LIBS =					 \
 
 Xchips_LDADD = \
 	$(CHIPS_LIBS)				\
-	@KDRIVE_LIBS@                           \
-	@XSERVER_LIBS@				
+	@KDRIVE_LIBS@
 
 Xchips_DEPENDENCIES = 	\
 	libchips.a 				 \

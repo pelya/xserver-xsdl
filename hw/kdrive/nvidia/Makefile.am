@@ -25,8 +25,7 @@ NVIDIA_LIBS =					\
 
 Xnvidia_LDADD = \
 	$(NVIDIA_LIBS)				\
-	@KDRIVE_LIBS@				\
-	@XSERVER_LIBS@			
+	@KDRIVE_LIBS@
 
 Xnvidia_DEPENDENCIES =	\
 	libnvidia.a 				\

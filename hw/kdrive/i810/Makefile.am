@@ -25,8 +25,7 @@ I810_LIBS =						\
 
 Xi810_LDADD = \
 	$(I810_LIBS)					\
-	@KDRIVE_LIBS@                                  \
-	@XSERVER_LIBS@					
+	@KDRIVE_LIBS@
 
 Xi810_DEPENDENCIES =	\
 	libi810.a 					\
