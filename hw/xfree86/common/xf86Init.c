@@ -1821,7 +1821,7 @@ xf86PrintBanner()
     "latest version in the X.Org Foundation git repository.\n"
     "See http://wiki.x.org/wiki/GitPage for git access instructions.\n");
 #endif
-  ErrorF("\nX Window System Version %d.%d.%d",
+  ErrorF("\nX.Org X Server %d.%d.%d",
 	 XORG_VERSION_MAJOR,
 	 XORG_VERSION_MINOR,
 	 XORG_VERSION_PATCH);
@@ -1855,8 +1855,8 @@ xf86PrintBanner()
 #define XORG_DATE XF86_DATE
 #endif
   ErrorF("\nRelease Date: %s\n", XORG_DATE);
-  ErrorF("X Protocol Version %d, Revision %d, %s\n",
-         X_PROTOCOL, X_PROTOCOL_REVISION, XORG_RELEASE );
+  ErrorF("X Protocol Version %d, Revision %d\n",
+         X_PROTOCOL, X_PROTOCOL_REVISION);
   ErrorF("Build Operating System: %s %s\n", OSNAME, OSVENDOR);
 #ifdef HAS_UTSNAME
   {
