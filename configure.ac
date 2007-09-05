@@ -26,9 +26,7 @@ dnl
 dnl Process this file with autoconf to create configure.
 
 AC_PREREQ(2.57)
-dnl This is the not the Xorg version number, it's the server version number.
-dnl Yes, that's weird.
-AC_INIT([xorg-server], 1.3.99.1, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
+AC_INIT([xorg-server], 1.4.0.1, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 AM_MAINTAINER_MODE
@@ -374,14 +372,22 @@ case $host_os in
 esac
 AM_CONDITIONAL(KDRIVE_HW, test "x$KDRIVE_HW" = xyes)
 
-DEFAULT_VENDOR_NAME="The X.Org Foundation"
-DEFAULT_VENDOR_NAME_SHORT="X.Org"
-DEFAULT_VERSION_MAJOR=7
-DEFAULT_VERSION_MINOR=2
-DEFAULT_VERSION_PATCH=0
-DEFAULT_VERSION_SNAP=0
-DEFAULT_RELEASE_DATE="21 December 2005"
-DEFAULT_VENDOR_WEB="http://wiki.x.org"
+XORG_RELEASE_VERSION
+dnl augment XORG_RELEASE_VERSION for our snapshot number and to expose the
+dnl major number
+PVMAJOR=`echo $PACKAGE_VERSION | cut -d . -f 1`
+PVS=`echo $PACKAGE_VERSION | cut -d . -f 4`
+if test "x$PVS" = "x"; then
+	PVS="0"
+fi
+
+VENDOR_RELEASE="((($PVMAJOR) * 10000000) + (($PVM) * 100000) + (($PVP) * 1000) + $PVS)"
+VENDOR_MAN_VERSION="Version ${PACKAGE_VERSION}"
+
+VENDOR_NAME="The X.Org Foundation"
+VENDOR_NAME_SHORT="X.Org"
+RELEASE_DATE="5 September 2007"
+VENDOR_WEB="http://wiki.x.org"
 
 m4_ifdef([AS_HELP_STRING], , [m4_define([AS_HELP_STRING], m4_defn([AC_HELP_STRING]))])
 
@@ -397,36 +403,13 @@ AC_ARG_WITH(int10,           AS_HELP_STRING([--with-int10=BACKEND], [int10 backe
 				[INT10="$DEFAULT_INT10"])
 AC_ARG_WITH(vendor-name,     AS_HELP_STRING([--with-vendor-name=VENDOR],
 				  [Vendor string reported by the server]),
-			     	[ VENDOR_STRING="$withval" ],
-			     	[ VENDOR_STRING="$DEFAULT_VENDOR_NAME" ])
+				[ VENDOR_NAME="$withval" ], [])
 AC_ARG_WITH(vendor-name-short, AS_HELP_STRING([--with-vendor-name-short=VENDOR],
 				  [Short version of vendor string reported by the server]),
-			     	[ VENDOR_STRING_SHORT="$withval" ],
-			     	[ VENDOR_STRING_SHORT="$DEFAULT_VENDOR_NAME_SHORT" ])
-AC_ARG_WITH(release-major,   AS_HELP_STRING([--with-release-major=MAJOR],
-				  [Release major number reported by the server]),
-				[ VERSION_MAJOR="$withval" ],
-				[ VERSION_MAJOR="$DEFAULT_VERSION_MAJOR" ])
-AC_ARG_WITH(release-minor,   AS_HELP_STRING([--with-release-minor=MINOR],
-				  [Release minor number reported by the server]),
-				[ VERSION_MINOR="$withval" ],
-				[ VERSION_MINOR="$DEFAULT_VERSION_MINOR" ])
-AC_ARG_WITH(release-patch,   AS_HELP_STRING([--with-release-patch=PATCH],
-				  [Release patch number reported by the server]),
-				[ VERSION_PATCH="$withval" ],
-				[ VERSION_PATCH="$DEFAULT_VERSION_PATCH" ])
-AC_ARG_WITH(release-snap,    AS_HELP_STRING([--with-release-snap=SNAP],
-				  [Release snap number reported by the server]),
-				[ VERSION_SNAP="$withval" ],
-				[ VERSION_SNAP="$DEFAULT_VERSION_SNAP" ])
-AC_ARG_WITH(release-date,    AS_HELP_STRING([--with-release-date=DATE],
-				  [Release date reported by the server]),
-				[ RELEASE_DATE="$withval" ],
-				[ RELEASE_DATE="$DEFAULT_RELEASE_DATE" ])
+				[ VENDOR_NAME_SHORT="$withval" ], [])
 AC_ARG_WITH(vendor-web,      AS_HELP_STRING([--with-vendor-web=URL],
 				  [Vendor web address reported by the server]),
-				[ VENDOR_WEB="$withval" ],
-				[ VENDOR_WEB="$DEFAULT_VENDOR_WEB" ])
+				[ VENDOR_WEB="$withval" ], [])
 AC_ARG_WITH(module-dir,      AS_HELP_STRING([--with-module-dir=DIR],
 				  [Directory where modules are installed (default: $libdir/xorg/modules)]),
 				[ moduledir="$withval" ],
@@ -1004,29 +987,13 @@ if test "x$USE_RGB_BUILTIN" = xyes; then
 	AC_DEFINE(USE_RGB_BUILTIN, 1, [Use built-in RGB color database])
 fi
 
-VENDOR_RELEASE="((($VERSION_MAJOR) * 10000000) + (($VERSION_MINOR) * 100000) + (($VERSION_PATCH) * 1000) + $VERSION_SNAP)"
-
-if test $VERSION_SNAP = "0"; then
-	if test $VERSION_PATCH = "0"; then
-		VENDOR_VERSION_STRING="${VERSION_MAJOR}.${VERSION_MINOR}"
-	else
-		VENDOR_VERSION_STRING="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
-	fi
-else
-	VENDOR_VERSION_STRING="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${VERSION_SNAP}"
-fi
-
-VENDOR_RELEASE_STRING="Release ${VENDOR_VERSION_STRING}"
-VENDOR_MAN_VERSION="Version ${VENDOR_VERSION_STRING}"
-
 AC_DEFINE_DIR(COMPILEDDEFAULTFONTPATH, FONTPATH, [Default font path])
 AC_DEFINE_DIR(RGB_DB, RGBPATH, [Default RGB path])
 AC_DEFINE_DIR(SERVERCONFIGdir, SERVERCONFIG, [Server config path])
 AC_DEFINE_DIR(BASE_FONT_PATH, FONTDIR, [Default base font path])
 AC_DEFINE_DIR(DRI_DRIVER_PATH, DRI_DRIVER_PATH, [Default DRI driver path])
-AC_DEFINE_UNQUOTED(XVENDORNAME, ["$VENDOR_STRING"], [Vendor name])
-AC_DEFINE_UNQUOTED(XVENDORNAMESHORT, ["$VENDOR_STRING_SHORT"], [Short vendor name])
-AC_DEFINE_UNQUOTED(XORG_RELEASE, ["$VENDOR_RELEASE_STRING"], [Vendor release])
+AC_DEFINE_UNQUOTED(XVENDORNAME, ["$VENDOR_NAME"], [Vendor name])
+AC_DEFINE_UNQUOTED(XVENDORNAMESHORT, ["$VENDOR_NAME_SHORT"], [Short vendor name])
 AC_DEFINE_UNQUOTED(XORG_DATE, ["$RELEASE_DATE"], [Vendor release])
 AC_DEFINE_UNQUOTED(XORG_MAN_VERSION, ["$VENDOR_MAN_VERSION"], [Vendor man version])
 AC_DEFINE_UNQUOTED(BUILDERADDR, ["$BUILDERADDR"], [Builder address])
@@ -1039,8 +1006,8 @@ AC_DEFINE_UNQUOTED(OSNAME, ["$OSNAME"], [Operating System Name])
 AC_DEFINE_UNQUOTED(OSVENDOR, ["$OSVENDOR"], [Operating System Vendor])
 AC_DEFINE_UNQUOTED(BUILDERSTRING, ["$BUILDERSTRING"], [Builder string])
 
-AC_SUBST([VENDOR_STRING])
-AC_SUBST([VENDOR_STRING_SHORT])
+AC_SUBST([VENDOR_NAME])
+AC_SUBST([VENDOR_NAME_SHORT])
 AC_SUBST([VENDOR_RELEASE])
 AC_SUBST([VENDOR_MAN_VERSION])
 
@@ -1375,7 +1342,7 @@ return 0;}
                AC_CHECK_LIB([Xplugin],[xp_init],[:])
                AC_SUBST([APPLE_APPLICATIONS_DIR])
                CFLAGS="${CFLAGS} -D__DARWIN__"
-               PLIST_VERSION_STRING=$VENDOR_VERSION_STRING
+               PLIST_VERSION_STRING=$PACKAGE_VERSION
                AC_SUBST([PLIST_VERSION_STRING])
                PLIST_VENDOR_WEB=$VENDOR_WEB
                AC_SUBST([PLIST_VENDOR_WEB])
@@ -2006,9 +1973,6 @@ AC_SUBST([libdir exec_prefix prefix])
 
 # Man page sections - used in config utils & generating man pages
 XORG_MANPAGE_SECTIONS
-
-# XORG in this case refers to the roll-up releases, not the Xorg DDX.
-XORG_RELEASE_VERSION
 
 AC_OUTPUT([
 Makefile

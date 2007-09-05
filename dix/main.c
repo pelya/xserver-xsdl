@@ -509,7 +509,7 @@ main(int argc, char *argv[], char *envp[])
 }
 
 static int  VendorRelease = VENDOR_RELEASE;
-static char *VendorString = VENDOR_STRING;
+static char *VendorString = VENDOR_NAME;
 
 void
 SetVendorRelease(int release)
