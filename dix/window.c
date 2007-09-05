@@ -698,8 +698,8 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
 
     /*  security creation/labeling check
      */
-    *error = XaceHook(XACE_RESOURCE_ACCESS, client, wid, RT_WINDOW,
-		      DixCreateAccess|DixSetAttrAccess, pWin);
+    *error = XaceHook(XACE_RESOURCE_ACCESS, client, wid, RT_WINDOW, pWin,
+		RT_WINDOW, pWin->parent, DixCreateAccess|DixSetAttrAccess);
     if (*error != Success) {
 	xfree(pWin);
 	return NullWindow;
@@ -955,7 +955,7 @@ DestroySubwindows(WindowPtr pWin, ClientPtr client)
     while (pWin->lastChild) {
 	int rc = XaceHook(XACE_RESOURCE_ACCESS, client,
 			  pWin->lastChild->drawable.id, RT_WINDOW,
-			  DixDestroyAccess, pWin->lastChild);
+			  pWin->lastChild, RT_NONE, NULL, DixDestroyAccess);
 	if (rc != Success)
 	    return rc;
 	FreeResource(pWin->lastChild->drawable.id, RT_NONE);
@@ -1275,7 +1275,7 @@ ChangeWindowAttributes(WindowPtr pWin, Mask vmask, XID *vlist, ClientPtr client)
 	    }
 	    if (val == xTrue) {
 		rc = XaceHook(XACE_RESOURCE_ACCESS, client, pWin->drawable.id,
-			      RT_WINDOW, DixGrabAccess, pWin);
+			      RT_WINDOW, pWin, RT_NONE, NULL, DixGrabAccess);
 		if (rc != Success) {
 		    error = rc;
 		    client->errorValue = pWin->drawable.id;
@@ -2745,7 +2745,7 @@ MapWindow(WindowPtr pWin, ClientPtr client)
 
     /*  general check for permission to map window */
     if (XaceHook(XACE_RESOURCE_ACCESS, client, pWin->drawable.id, RT_WINDOW,
-		 DixShowAccess, pWin) != Success)
+		 pWin, RT_NONE, NULL, DixShowAccess) != Success)
 	return Success;
 
     pScreen = pWin->drawable.pScreen;

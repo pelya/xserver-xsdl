@@ -212,12 +212,12 @@ AllocARGBCursor(unsigned char *psrcbits, unsigned char *pmaskbits,
     pCurs->backGreen = backGreen;
     pCurs->backBlue = backBlue;
 
-    pCurs->devPrivates = NULL;
     pCurs->id = cid;
+    pCurs->devPrivates = NULL;
 
     /* security creation/labeling check */
     rc = XaceHook(XACE_RESOURCE_ACCESS, client, cid, RT_CURSOR,
-		  DixCreateAccess, pCurs);
+		  pCurs, RT_NONE, NULL, DixCreateAccess);
     if (rc != Success) {
 	dixFreePrivates(pCurs->devPrivates);
 	FreeCursorBits(bits);
@@ -365,6 +365,7 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
 	bits->height = cm.height;
 	bits->xhot = cm.xhot;
 	bits->yhot = cm.yhot;
+	bits->devPrivates = NULL;
 	if (sourcefont != maskfont)
 	    bits->refcnt = -1;
 	else
@@ -406,7 +407,7 @@ AllocGlyphCursor(Font source, unsigned sourceChar, Font mask, unsigned maskChar,
 
     /* security creation/labeling check */
     rc = XaceHook(XACE_RESOURCE_ACCESS, client, cid, RT_CURSOR,
-		  DixCreateAccess, pCurs);
+		  pCurs, RT_NONE, NULL, DixCreateAccess);
     if (rc != Success) {
 	dixFreePrivates(pCurs->devPrivates);
 	FreeCursorBits(bits);

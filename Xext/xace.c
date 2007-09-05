@@ -72,8 +72,10 @@ int XaceHook(int hook, ...)
 		va_arg(ap, ClientPtr),
 		va_arg(ap, XID),
 		va_arg(ap, RESTYPE),
-		va_arg(ap, Mask),
 		va_arg(ap, pointer),
+		va_arg(ap, RESTYPE),
+		va_arg(ap, pointer),
+		va_arg(ap, Mask),
 		Success /* default allow */
 	    };
 	    calldata = &rec;

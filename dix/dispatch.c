@@ -1558,7 +1558,7 @@ CreatePmap:
 	pMap->drawable.id = stuff->pid;
 	/* security creation/labeling check */
 	rc = XaceHook(XACE_RESOURCE_ACCESS, client, stuff->pid, RT_PIXMAP,
-		      DixCreateAccess, pMap);
+		      pMap, RT_NONE, NULL, DixCreateAccess);
 	if (rc != Success) {
 	    (*pDraw->pScreen->DestroyPixmap)(pMap);
 	    return rc;

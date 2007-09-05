@@ -901,7 +901,7 @@ dixLookupResource(pointer *result, XID id, RESTYPE rtype,
     if (client) {
 	client->errorValue = id;
 	cid = XaceHook(XACE_RESOURCE_ACCESS, client, id, res->type,
-		       mode, res->value);
+		       res->value, RT_NONE, NULL, mode);
 	if (cid != Success)
 	    return cid;
     }

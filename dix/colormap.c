@@ -397,7 +397,7 @@ CreateColormap (Colormap mid, ScreenPtr pScreen, VisualPtr pVisual,
      * Security creation/labeling check
      */
     i = XaceHook(XACE_RESOURCE_ACCESS, clients[client], mid, RT_COLORMAP,
-		 DixCreateAccess, pmap);
+		 pmap, RT_NONE, NULL, DixCreateAccess);
     if (i != Success) {
 	FreeResource(mid, RT_NONE);
 	return i;

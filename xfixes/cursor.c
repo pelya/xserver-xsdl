@@ -351,7 +351,7 @@ ProcXFixesGetCursorImage (ClientPtr client)
     if (!pCursor)
 	return BadCursor;
     rc = XaceHook(XACE_RESOURCE_ACCESS, client, pCursor->id, RT_CURSOR,
-		  DixReadAccess, pCursor);
+		  pCursor, RT_NONE, NULL, DixReadAccess);
     if (rc != Success)
 	return rc;
     GetSpritePosition (&x, &y);
@@ -503,7 +503,7 @@ ProcXFixesGetCursorImageAndName (ClientPtr client)
     if (!pCursor)
 	return BadCursor;
     rc = XaceHook(XACE_RESOURCE_ACCESS, client, pCursor->id, RT_CURSOR,
-		  DixReadAccess|DixGetAttrAccess, pCursor);
+		  pCursor, RT_NONE, NULL, DixReadAccess|DixGetAttrAccess);
     if (rc != Success)
 	return rc;
     GetSpritePosition (&x, &y);

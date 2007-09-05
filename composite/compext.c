@@ -459,7 +459,7 @@ ProcCompositeGetOverlayWindow (ClientPtr client)
     }
 
     rc = XaceHook(XACE_RESOURCE_ACCESS, client, cs->pOverlayWin->drawable.id,
-		  RT_WINDOW, DixGetAttrAccess, cs->pOverlayWin);
+		  RT_WINDOW, cs->pOverlayWin, RT_NONE, NULL, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 

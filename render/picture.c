@@ -727,8 +727,8 @@ CreatePicture (Picture		pid,
     pPicture->devPrivates = NULL;
 
     /* security creation/labeling check */
-    *error = XaceHook(XACE_RESOURCE_ACCESS, client, pid, PictureType,
-		      DixCreateAccess|DixSetAttrAccess, pPicture);
+    *error = XaceHook(XACE_RESOURCE_ACCESS, client, pid, PictureType, pPicture,
+		      RC_DRAWABLE, pDrawable, DixCreateAccess|DixSetAttrAccess);
     if (*error != Success)
 	goto out;
 

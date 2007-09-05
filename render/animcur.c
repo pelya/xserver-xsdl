@@ -377,12 +377,12 @@ AnimCursorCreate (CursorPtr *cursors, CARD32 *deltas, int ncursor, CursorPtr *pp
     pCursor->backGreen = cursors[0]->backGreen;
     pCursor->backBlue = cursors[0]->backBlue;
 
-    pCursor->devPrivates = NULL;
     pCursor->id = cid;
+    pCursor->devPrivates = NULL;
 
     /* security creation/labeling check */
-    rc = XaceHook(XACE_RESOURCE_ACCESS, client, cid, RT_CURSOR,
-		  DixCreateAccess, pCursor);
+    rc = XaceHook(XACE_RESOURCE_ACCESS, client, cid, RT_CURSOR, pCursor,
+		  RT_NONE, NULL, DixCreateAccess);
     if (rc != Success) {
 	dixFreePrivates(pCursor->devPrivates);
 	xfree(pCursor);

@@ -1025,7 +1025,7 @@ ProcRenderCreateGlyphSet (ClientPtr client)
 	return BadAlloc;
     /* security creation/labeling check */
     rc = XaceHook(XACE_RESOURCE_ACCESS, client, stuff->gsid, GlyphSetType,
-		  DixCreateAccess, glyphSet);
+		  glyphSet, RT_NONE, NULL, DixCreateAccess);
     if (rc != Success)
 	return rc;
     if (!AddResource (stuff->gsid, GlyphSetType, (pointer)glyphSet))
@@ -1903,7 +1903,7 @@ static int ProcRenderCreateSolidFill(ClientPtr client)
 	return error;
     /* security creation/labeling check */
     error = XaceHook(XACE_RESOURCE_ACCESS, client, stuff->pid, PictureType,
-		  DixCreateAccess, pPicture);
+		     pPicture, RT_NONE, NULL, DixCreateAccess);
     if (error != Success)
 	return error;
     if (!AddResource (stuff->pid, PictureType, (pointer)pPicture))
@@ -1937,7 +1937,7 @@ static int ProcRenderCreateLinearGradient (ClientPtr client)
 	return error;
     /* security creation/labeling check */
     error = XaceHook(XACE_RESOURCE_ACCESS, client, stuff->pid, PictureType,
-		  DixCreateAccess, pPicture);
+		     pPicture, RT_NONE, NULL, DixCreateAccess);
     if (error != Success)
 	return error;
     if (!AddResource (stuff->pid, PictureType, (pointer)pPicture))
@@ -1972,7 +1972,7 @@ static int ProcRenderCreateRadialGradient (ClientPtr client)
 	return error;
     /* security creation/labeling check */
     error = XaceHook(XACE_RESOURCE_ACCESS, client, stuff->pid, PictureType,
-		  DixCreateAccess, pPicture);
+		     pPicture, RT_NONE, NULL, DixCreateAccess);
     if (error != Success)
 	return error;
     if (!AddResource (stuff->pid, PictureType, (pointer)pPicture))
@@ -2006,7 +2006,7 @@ static int ProcRenderCreateConicalGradient (ClientPtr client)
 	return error;
     /* security creation/labeling check */
     error = XaceHook(XACE_RESOURCE_ACCESS, client, stuff->pid, PictureType,
-		  DixCreateAccess, pPicture);
+		     pPicture, RT_NONE, NULL, DixCreateAccess);
     if (error != Success)
 	return error;
     if (!AddResource (stuff->pid, PictureType, (pointer)pPicture))
