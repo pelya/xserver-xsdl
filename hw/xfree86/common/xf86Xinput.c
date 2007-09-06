@@ -165,6 +165,11 @@ xf86ActivateDevice(LocalDevicePtr local)
         dev->coreEvents = local->flags & XI86_ALWAYS_CORE;
         RegisterOtherDevice(dev);
 
+#ifdef XKB
+        if (!noXkbExtension)
+            XkbSetExtension(dev, ProcessKeyboardEvent);
+#endif
+
         if (serverGeneration == 1) 
             xf86Msg(X_INFO, "XINPUT: Adding extended input device \"%s\" (type: %s)\n",
                     local->name, local->type_name);
