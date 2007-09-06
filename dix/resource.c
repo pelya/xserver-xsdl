@@ -225,6 +225,8 @@ CreateNewResourceType(DeleteType deleteFunc)
 				   (next + 1) * sizeof(DeleteType));
     if (!funcs)
 	return 0;
+    if (!dixRegisterPrivateOffset(next, -1))
+	return 0;
 
 #ifdef XResExtension
     {

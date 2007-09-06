@@ -35,6 +35,7 @@ from The Open Group.
 #include "resource.h"
 #include "privates.h"
 #include "gcstruct.h"
+#include "cursorstr.h"
 #include "colormapst.h"
 #include "inputstr.h"
 
@@ -174,21 +175,34 @@ dixRegisterPrivateDeleteFunc(const DevPrivateKey key,
 }
 
 /* Table of devPrivates offsets */
-static unsigned *offsets = NULL;
-static unsigned offsetsSize = 0;
+static const int offsetDefaults[] = {
+    -1,					/* RT_NONE */
+    offsetof(WindowRec, devPrivates),	/* RT_WINDOW */
+    offsetof(PixmapRec, devPrivates),	/* RT_PIXMAP */
+    offsetof(GC, devPrivates),		/* RT_GC */
+    -1,		    			/* RT_FONT */
+    offsetof(CursorRec, devPrivates),	/* RT_CURSOR */
+    offsetof(ColormapRec, devPrivates),	/* RT_COLORMAP */
+    -1,			  		/* RT_CMAPENTRY */
+    -1,					/* RT_OTHERCLIENT */
+    -1					/* RT_PASSIVEGRAB */
+};
+    
+static int *offsets = NULL;
+static int offsetsSize = 0;
 
 /*
  * Specify where the devPrivates field is located in a structure type
  */
 _X_EXPORT int
-dixRegisterPrivateOffset(RESTYPE type, unsigned offset)
+dixRegisterPrivateOffset(RESTYPE type, int offset)
 {
     type = type & TypeMask;
 
     /* resize offsets table if necessary */
     while (type >= offsetsSize) {
 	unsigned i = offsetsSize * 2 * sizeof(int);
-	offsets = (unsigned *)xrealloc(offsets, i);
+	offsets = (int *)xrealloc(offsets, i);
 	if (!offsets) {
 	    offsetsSize = 0;
 	    return FALSE;
@@ -214,7 +228,6 @@ int
 dixResetPrivates(void)
 {
     PrivateDescRec *next;
-    unsigned i;
 
     /* reset internal structures */
     while (items) {
@@ -224,20 +237,11 @@ dixResetPrivates(void)
     }
     if (offsets)
 	xfree(offsets);
-    offsetsSize = 16;
-    offsets = (unsigned *)xalloc(offsetsSize * sizeof(unsigned));
+    offsetsSize = sizeof(offsetDefaults);
+    offsets = (int *)xalloc(offsetsSize);
+    offsetsSize /= sizeof(int);
     if (!offsets)
 	return FALSE;
-    for (i=0; i < offsetsSize; i++)
-	offsets[i] = -1;
-
-    /* register basic resource offsets */
-    return dixRegisterPrivateOffset(RT_WINDOW,
-				    offsetof(WindowRec, devPrivates)) &&
-	dixRegisterPrivateOffset(RT_PIXMAP,
-				 offsetof(PixmapRec, devPrivates)) &&
-	dixRegisterPrivateOffset(RT_GC,
-				 offsetof(GC, devPrivates)) &&
-	dixRegisterPrivateOffset(RT_COLORMAP,
-				 offsetof(ColormapRec, devPrivates));
+    memcpy(offsets, offsetDefaults, sizeof(offsetDefaults));
+    return TRUE;
 }

@@ -143,8 +143,15 @@ dixLookupPrivateOffset(RESTYPE type);
 
 /*
  * Specifies the offset where the devPrivates field is located.
+ * A negative value indicates no devPrivates field is available.
  */
 extern int
-dixRegisterPrivateOffset(RESTYPE type, unsigned offset);
+dixRegisterPrivateOffset(RESTYPE type, int offset);
+
+/*
+ * Convenience macro for adding an offset to an object pointer
+ * when making a call to one of the devPrivates functions
+ */
+#define DEVPRIV_AT(ptr, offset) ((PrivateRec **)((char *)ptr + offset))
 
 #endif /* PRIVATES_H */
