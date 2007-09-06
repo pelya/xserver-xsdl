@@ -712,9 +712,6 @@ CloseDownDevices(void)
 {
     DeviceIntPtr dev, next;
 
-    CloseDevice(inputInfo.keyboard);
-    CloseDevice(inputInfo.pointer);
-
     for (dev = inputInfo.devices; dev; dev = next)
     {
 	next = dev->next;
@@ -725,6 +722,10 @@ CloseDownDevices(void)
 	next = dev->next;
 	CloseDevice(dev);
     }
+
+    CloseDevice(inputInfo.keyboard);
+    CloseDevice(inputInfo.pointer);
+
     inputInfo.devices = NULL;
     inputInfo.off_devices = NULL;
     inputInfo.keyboard = NULL;
