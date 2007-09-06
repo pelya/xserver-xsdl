@@ -34,6 +34,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/Xproto.h>
 #include <X11/keysym.h>
 #include <X11/extensions/XI.h>
+#include <X11/extensions/XIproto.h>
 #include "inputstr.h"
 #include "windowstr.h"
 #include <xkbsrv.h>
@@ -813,7 +814,9 @@ XkbSrvInfoPtr	xkbi;
     if ( pClient->xkbClientFlags & _XkbClientInitialized ) {
 #ifdef DEBUG
 	if ((xkbDebugFlags&0x10)&&
-		((xE[0].u.u.type==KeyPress)||(xE[0].u.u.type==KeyRelease))) {
+		((xE[0].u.u.type==KeyPress)||(xE[0].u.u.type==KeyRelease)||
+                 (xE[0].u.u.type==DeviceKeyPress)||
+                 (xE[0].u.u.type == DeviceKeyRelease))) {
 	    ErrorF("XKbFilterWriteEvents:\n");
 	    ErrorF("   Event state= 0x%04x\n",xE[0].u.keyButtonPointer.state);
 	    ErrorF("   XkbLastRepeatEvent!=xE (0x%p!=0x%p) %s\n",
@@ -832,7 +835,9 @@ XkbSrvInfoPtr	xkbi;
 	    return False;
 	}
 	if ((pXDev->grab != NullGrab) && pXDev->fromPassiveGrab &&
-	    ((xE[0].u.u.type==KeyPress)||(xE[0].u.u.type==KeyRelease))) {
+	    ((xE[0].u.u.type==KeyPress)||(xE[0].u.u.type==KeyRelease)||
+             (xE[0].u.u.type==DeviceKeyPress)||
+             (xE[0].u.u.type == DeviceKeyRelease))) {
 	    register unsigned state,flags;
 
 	    flags= pClient->xkbClientFlags;
@@ -877,10 +882,12 @@ XkbSrvInfoPtr	xkbi;
 	    type= xE[i].u.u.type;
 #ifdef DEBUG
 	    if ((xkbDebugFlags&0x4)&&
-		((xE[0].u.u.type==KeyPress)||(xE[0].u.u.type==KeyRelease))) {
+		((xE[i].u.u.type==KeyPress)||(xE[i].u.u.type==KeyRelease)||
+                 (xE[i].u.u.type==DeviceKeyPress)||
+                 (xE[i].u.u.type == DeviceKeyRelease))) {
 		XkbStatePtr s= &xkbi->state;
 		ErrorF("XKbFilterWriteEvents (non-XKB):\n");
-		ErrorF("event= 0x%04x\n",xE[0].u.keyButtonPointer.state);
+		ErrorF("event= 0x%04x\n",xE[i].u.keyButtonPointer.state);
 		ErrorF("lookup= 0x%02x, grab= 0x%02x\n",s->lookup_mods,
 							s->grab_mods);
 		ErrorF("compat lookup= 0x%02x, grab= 0x%02x\n",
@@ -900,9 +907,18 @@ XkbSrvInfoPtr	xkbi;
 		xE[i].u.keyButtonPointer.state= new;
 	    }
 	    else if ((type==EnterNotify)||(type==LeaveNotify)) {
-		xE->u.enterLeave.state&= 0x1F00;
-		xE->u.enterLeave.state|= xkbi->state.compat_grab_mods;
-	    }
+		xE[i].u.enterLeave.state&= 0x1F00;
+		xE[i].u.enterLeave.state|= xkbi->state.compat_grab_mods;
+	    } else if ((type>=DeviceKeyPress)&&(type<=DeviceMotionNotify)) {
+                CARD16  old, new;
+                deviceKeyButtonPointer *kbp = (deviceKeyButtonPointer*)&xE[i];
+                old= kbp->state&(~0x1F00);
+                new= kbp->state&0x1F00;
+		if (old==XkbStateFieldFromRec(&xkbi->state))
+		     new|= xkbi->state.compat_lookup_mods;
+		else new|= xkbi->state.compat_grab_mods;
+                kbp->state= new;
+            }
 	    button_mask = 1 << xE[i].u.u.detail;
 	    if (type == ButtonPress &&
 		((xE[i].u.keyButtonPointer.state >> 7) & button_mask) == button_mask &&
@@ -911,7 +927,14 @@ XkbSrvInfoPtr	xkbi;
 		ErrorF("Faking release of button %d\n", xE[i].u.u.detail);
 #endif
 		XkbDDXFakePointerButton(ButtonRelease, xE[i].u.u.detail);
-	    }
+	    } else if (type == DeviceButtonPress &&
+                    ((((deviceKeyButtonPointer*)&xE[i])->state >> 7) & button_mask) == button_mask &&
+                    (xkbi->lockedPtrButtons & button_mask) == button_mask) {
+#ifdef DEBUG
+		ErrorF("Faking release of button %d\n", ((deviceKeyButtonPointer*)&xE[i])->state);
+#endif
+		XkbDDXFakePointerButton(DeviceButtonRelease, ((deviceKeyButtonPointer*)&xE[i])->state);
+            }
 	}
     }
     return True;

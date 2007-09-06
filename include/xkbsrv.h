@@ -314,8 +314,9 @@ extern CARD32	xkbDebugFlags;
 #define	_XkbErrCode3(a,b,c)	_XkbErrCode2(a,(((unsigned int)(b))<<16)|(c))
 #define	_XkbErrCode4(a,b,c,d) _XkbErrCode3(a,b,((((unsigned int)(c))<<8)|(d)))
 
-extern	int	DeviceKeyPress,DeviceKeyRelease;
+extern	int	DeviceKeyPress,DeviceKeyRelease,DeviceMotionNotify;
 extern	int	DeviceButtonPress,DeviceButtonRelease;
+extern	int	DeviceEnterNotify,DeviceLeaveNotify;
 
 #ifdef XINPUT
 #define	_XkbIsPressEvent(t)	(((t)==KeyPress)||((t)==DeviceKeyPress))
