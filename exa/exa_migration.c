@@ -323,10 +323,8 @@ exaDoMoveInPixmap (ExaMigrationPtr migrate)
 		  pPixmap->drawable.height,
 		  exaPixmapIsDirty(pPixmap) ? 'd' : 'c'));
 
-    if (pExaScr->hideOffscreenPixmapData)
-	pPixmap->devPrivate.ptr = NULL;
-    else
-	pPixmap->devPrivate.ptr = pExaPixmap->fb_ptr;
+    pExaPixmap->offscreen = TRUE;
+
     pPixmap->devKind = pExaPixmap->fb_pitch;
     pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 }
@@ -365,7 +363,8 @@ exaDoMoveOutPixmap (ExaMigrationPtr migrate)
 		      pPixmap->drawable.height,
 		      exaPixmapIsDirty(pPixmap) ? 'd' : 'c'));
 
-	pPixmap->devPrivate.ptr = pExaPixmap->sys_ptr;
+	pExaPixmap->offscreen = FALSE;
+
 	pPixmap->devKind = pExaPixmap->sys_pitch;
 	pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
     }

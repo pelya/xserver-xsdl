@@ -213,8 +213,7 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 	    int	dstXoff, dstYoff;
 
 	    if (!access_prepared) {
-		exaPrepareAccessReg(pDrawable, EXA_PREPARE_DEST,
-				    pixmaps[0].pReg);
+		ExaDoPrepareAccess(pDrawable, EXA_PREPARE_DEST);
 
 		access_prepared = TRUE;
 	    }
@@ -233,13 +232,13 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
 		      GXcopy, FB_ALLONES, dstBpp);
 	}
 
-	if (access_prepared)
-	    exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
-	else
-	    exaMarkSync(pDrawable->pScreen);
-
 	exaPixmapDirty(pixmaps[0].pPix, x1 + xoff, y1 + yoff, x2 + xoff, y2 + yoff);
     }
+
+    if (access_prepared)
+	exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
+    else
+	exaMarkSync(pDrawable->pScreen);
 
     return TRUE;
 
@@ -271,8 +270,10 @@ exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,
 		      src_stride))
 	return;
 
+    exaPrepareAccess(pDrawable, EXA_PREPARE_DEST);
     fbShmPutImage(pDrawable, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy,
 		  data);
+    exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
 }
 
 ShmFuncs exaShmFuncs = { NULL, exaShmPutImage };

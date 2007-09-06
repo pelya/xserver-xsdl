@@ -44,6 +44,17 @@ static int exaGeneration;
 int exaScreenPrivateIndex;
 int exaPixmapPrivateIndex;
 
+static _X_INLINE void*
+ExaGetPixmapAddress(PixmapPtr p)
+{
+    ExaPixmapPriv(p);
+
+    if (pExaPixmap->offscreen && pExaPixmap->fb_ptr)
+	return pExaPixmap->fb_ptr;
+    else
+	return pExaPixmap->sys_ptr;
+}
+
 /**
  * exaGetPixmapOffset() returns the offset (in bytes) within the framebuffer of
  * the beginning of the given pixmap.
@@ -58,16 +69,9 @@ unsigned long
 exaGetPixmapOffset(PixmapPtr pPix)
 {
     ExaScreenPriv (pPix->drawable.pScreen);
-    ExaPixmapPriv (pPix);
-    void *ptr;
 
-    /* Return the offscreen pointer if we've hidden the data. */
-    if (pPix->devPrivate.ptr == NULL)
-	ptr = pExaPixmap->fb_ptr;
-    else
-	ptr = pPix->devPrivate.ptr;
-
-    return ((unsigned long)ptr - (unsigned long)pExaScr->info->memoryBase);
+    return ((unsigned long)ExaGetPixmapAddress(pPix) -
+	    (unsigned long)pExaScr->info->memoryBase);
 }
 
 /**
@@ -241,6 +245,9 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     pExaPixmap->sys_ptr = pPixmap->devPrivate.ptr;
     pExaPixmap->sys_pitch = pPixmap->devKind;
 
+    pPixmap->devPrivate.ptr = NULL;
+    pExaPixmap->offscreen = FALSE;
+
     pExaPixmap->fb_ptr = NULL;
     if (pExaScr->info->flags & EXA_OFFSCREEN_ALIGN_POT && w != 1)
 	pExaPixmap->fb_pitch = (1 << (exaLog2(w - 1) + 1)) * bpp / 8;
@@ -274,6 +281,23 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     return pPixmap;
 }
 
+static Bool
+exaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height, int depth,
+		      int bitsPerPixel, int devKind, pointer pPixData)
+{
+    ExaScreenPriv(pPixmap->drawable.pScreen);
+    ExaPixmapPriv(pPixmap);
+
+    if (!pPixmap)
+        return FALSE;
+
+    if (pExaPixmap)
+	pExaPixmap->sys_ptr = pPixData;
+
+    return pExaScr->SavedModifyPixmapHeader(pPixmap, width, height, depth,
+					    bitsPerPixel, devKind, pPixData);
+}
+
 /**
  * exaPixmapIsOffscreen() is used to determine if a pixmap is in offscreen
  * memory, meaning that acceleration could probably be done to it, and that it
@@ -291,18 +315,25 @@ exaPixmapIsOffscreen(PixmapPtr p)
 {
     ScreenPtr	pScreen = p->drawable.pScreen;
     ExaScreenPriv(pScreen);
+    ExaPixmapPriv(p);
+    void *save_ptr;
+    Bool ret;
 
-    /* If the devPrivate.ptr is NULL, it's offscreen but we've hidden the data.
-     */
-    if (p->devPrivate.ptr == NULL)
-	return TRUE;
+    save_ptr = p->devPrivate.ptr;
+
+    if (!save_ptr && pExaPixmap)
+	p->devPrivate.ptr = ExaGetPixmapAddress(p);
 
     if (pExaScr->info->PixmapIsOffscreen)
-	return pExaScr->info->PixmapIsOffscreen(p);
+	ret = pExaScr->info->PixmapIsOffscreen(p);
+    else
+       ret = ((unsigned long) ((CARD8 *) p->devPrivate.ptr -
+			       (CARD8 *) pExaScr->info->memoryBase) <
+	      pExaScr->info->memorySize);
 
-    return ((unsigned long) ((CARD8 *) p->devPrivate.ptr -
-			     (CARD8 *) pExaScr->info->memoryBase) <
-	    pExaScr->info->memorySize);
+    p->devPrivate.ptr = save_ptr;
+
+    return ret;
 }
 
 /**
@@ -336,21 +367,18 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
 {
     ScreenPtr	    pScreen = pDrawable->pScreen;
     ExaScreenPriv  (pScreen);
-    PixmapPtr	    pPixmap;
-
-    pPixmap = exaGetDrawablePixmap (pDrawable);
-
-    if (exaPixmapIsOffscreen (pPixmap))
-	exaWaitSync (pDrawable->pScreen);
-    else
-	return;
+    PixmapPtr	    pPixmap = exaGetDrawablePixmap (pDrawable);
+    Bool	    offscreen = exaPixmapIsOffscreen(pPixmap);
 
     /* Unhide pixmap pointer */
     if (pPixmap->devPrivate.ptr == NULL) {
-	ExaPixmapPriv (pPixmap);
-
-	pPixmap->devPrivate.ptr = pExaPixmap->fb_ptr;
+	pPixmap->devPrivate.ptr = ExaGetPixmapAddress(pPixmap);
     }
+
+    if (!offscreen)
+	return;
+
+    exaWaitSync (pDrawable->pScreen);
 
     if (pExaScr->info->PrepareAccess == NULL)
 	return;
@@ -400,18 +428,13 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
 {
     ScreenPtr	    pScreen = pDrawable->pScreen;
     ExaScreenPriv  (pScreen);
-    PixmapPtr	    pPixmap;
-    ExaPixmapPrivPtr pExaPixmap;
-
-    pPixmap = exaGetDrawablePixmap (pDrawable);
-
-    pExaPixmap = ExaGetPixmapPriv(pPixmap);
+    PixmapPtr	    pPixmap = exaGetDrawablePixmap (pDrawable);
+    ExaPixmapPriv  (pPixmap);
 
     /* Rehide pixmap pointer if we're doing that. */
-    if (pExaPixmap != NULL && pExaScr->hideOffscreenPixmapData &&
-	pExaPixmap->fb_ptr == pPixmap->devPrivate.ptr)
+    if (pExaPixmap)
     {
-	pPixmap->devPrivate.ptr = pExaPixmap->fb_ptr;
+	pPixmap->devPrivate.ptr = NULL;
     }
 
     if (pExaScr->info->FinishAccess == NULL)
@@ -783,6 +806,8 @@ exaDriverInit (ScreenPtr		pScreen,
         pExaScr->SavedDestroyPixmap = pScreen->DestroyPixmap;
 	pScreen->DestroyPixmap = exaDestroyPixmap;
 
+	pExaScr->SavedModifyPixmapHeader = pScreen->ModifyPixmapHeader;
+	pScreen->ModifyPixmapHeader = exaModifyPixmapHeader;
 	LogMessage(X_INFO, "EXA(%d): Offscreen pixmap area of %d bytes\n",
 		   pScreen->myNum,
 		   pExaScr->info->memorySize - pExaScr->info->offScreenBase);

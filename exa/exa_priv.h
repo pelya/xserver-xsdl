@@ -108,6 +108,7 @@ typedef struct {
     CopyWindowProcPtr 		 SavedCopyWindow;
     ChangeWindowAttributesProcPtr SavedChangeWindowAttributes;
     BitmapToRegionProcPtr        SavedBitmapToRegion;
+    ModifyPixmapHeaderProcPtr    SavedModifyPixmapHeader;
 #ifdef RENDER
     CompositeProcPtr             SavedComposite;
     RasterizeTrapezoidProcPtr	 SavedRasterizeTrapezoid;
@@ -118,7 +119,6 @@ typedef struct {
   
     Bool			 swappedOut;
     enum ExaMigrationHeuristic	 migration;
-    Bool			 hideOffscreenPixmapData;
     Bool			 checkDirtyCorrectness;
     unsigned			 disableFbCount;
 } ExaScreenPrivRec, *ExaScreenPrivPtr;
@@ -160,6 +160,7 @@ extern int exaPixmapPrivateIndex;
 typedef struct {
     ExaOffscreenArea *area;
     int		    score;	/**< score for the move-in vs move-out heuristic */
+    Bool	    offscreen;
 
     CARD8	    *sys_ptr;	/**< pointer to pixmap data in system memory */
     int		    sys_pitch;	/**< pitch of pixmap in system memory */
