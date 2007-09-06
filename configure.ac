@@ -1075,6 +1075,10 @@ XSERVER_SYS_LIBS="${XSERVERLIBS_LIBS} ${SYS_LIBS} ${LIBS}"
 AC_SUBST([XSERVER_LIBS])
 AC_SUBST([XSERVER_SYS_LIBS])
 
+if test "x$HAVE_LAUNCHD" = xyes; then
+   XSERVER_CFLAGS="$XSERVER_CFLAGS -DHAVE_LAUNCHD"
+fi
+
 # The Xorg binary needs to export symbols so that they can be used from modules
 # Some platforms require extra flags to do this.   gcc should set these flags
 # when -rdynamic is passed to it, other compilers/linkers may need to be added
