@@ -179,20 +179,15 @@ xf86ActivateDevice(LocalDevicePtr local)
         dev->coreEvents = local->flags & XI86_ALWAYS_CORE; 
         dev->spriteInfo->spriteOwner = !(local->flags & XI86_SHARED_POINTER);
 
+        RegisterOtherDevice(dev);
+
 #ifdef XKB
-        if (!DeviceIsPointerType(dev))
+        if (!DeviceIsPointerType(dev) && !noXkbExtension)
         {
-        /* FIXME: that's not the nice way to do it. XKB wraps the previously
-         * set procs, so if we don't have them here, our event will disappear
-         * in a black hole.*/
-            dev->public.processInputProc = CoreProcessKeyboardEvent;
-            dev->public.realInputProc = CoreProcessKeyboardEvent;
-            if (!noXkbExtension)
-                XkbSetExtension(dev, ProcessKeyboardEvent);
+            XkbSetExtension(dev, ProcessKeyboardEvent);
         }
 #endif
 
-        RegisterOtherDevice(dev);
 
         if (serverGeneration == 1) 
             xf86Msg(X_INFO, "XINPUT: Adding extended input device \"%s\" (type: %s)\n",
