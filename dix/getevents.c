@@ -80,6 +80,23 @@ GetMotionHistorySize(void)
     return MOTION_HISTORY_SIZE;
 }
 
+static void
+set_key_down(DeviceIntPtr pDev, int key_code)
+{
+    pDev->key->postdown[key_code >> 3] |= (1 << (key_code & 7));
+}
+
+static void
+set_key_up(DeviceIntPtr pDev, int key_code)
+{
+    pDev->key->postdown[key_code >> 3] &= ~(1 << (key_code & 7));
+}
+
+static Bool
+key_is_down(DeviceIntPtr pDev, int key_code)
+{
+    return pDev->key->postdown[key_code >> 3] >> (key_code & 7);
+}
 
 /**
  * Allocate the motion history buffer.
@@ -414,17 +431,15 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
             case XK_Shift_Lock:
                 if (type == KeyRelease)
                     return 0;
-                else if (type == KeyPress &&
-                         (pDev->key->down[key_code >> 3] & (key_code & 7)) & 1)
-                        type = KeyRelease;
+                else if (type == KeyPress && key_is_down(pDev, key_code))
+                    type = KeyRelease;
         }
     }
 
     /* Handle core repeating, via press/release/press/release.
      * FIXME: In theory, if you're repeating with two keyboards in non-XKB,
      *        you could get unbalanced events here. */
-    if (type == KeyPress &&
-        (((pDev->key->down[key_code >> 3] & (key_code & 7))) & 1)) {
+    if (type == KeyPress && key_is_down(pDev, key_code)) {
         if (!pDev->kbdfeed->ctrl.autoRepeat ||
             pDev->key->modifierMap[key_code] ||
             !(pDev->kbdfeed->ctrl.autoRepeats[key_code >> 3]
@@ -449,6 +464,10 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
         events->u.keyButtonPointer.time = ms;
         events->u.u.type = type;
         events->u.u.detail = key_code;
+        if (type == KeyPress)
+	    set_key_down(inputInfo.keyboard, key_code);
+        else if (type == KeyRelease)
+	    set_key_up(inputInfo.keyboard, key_code);
         events++;
     }
 
@@ -456,10 +475,14 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
     kbp->time = ms;
     kbp->deviceid = pDev->id;
     kbp->detail = key_code;
-    if (type == KeyPress)
+    if (type == KeyPress) {
         kbp->type = DeviceKeyPress;
-    else if (type == KeyRelease)
+	set_key_down(pDev, key_code);
+    }
+    else if (type == KeyRelease) {
         kbp->type = DeviceKeyRelease;
+	set_key_up(pDev, key_code);
+    }
 
     events++;
     if (num_valuators) {
