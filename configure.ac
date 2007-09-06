@@ -1304,6 +1304,8 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 dnl Check to see if dlopen is in default libraries (like Solaris, which
 dnl has it in libc), or if libdl is needed to get it.
 
+	PKG_CHECK_MODULES([PCIACCESS], [pciaccess >= 0.8.0])
+	XORG_SYS_LIBS="$XORG_SYS_LIBS $PCIACCESS_LIBS $DLOPEN_LIBS $GLX_SYS_LIBS"
 	XORG_CFLAGS="$XORG_CFLAGS $PCIACCESS_CFLAGS"
 
 	case $host_os in
@@ -1500,12 +1502,6 @@ return 0;}
 		esac
 		;;
 	esac
-
-        if ! test "$XORG_OS" = "Darwin" ; then
-               PKG_CHECK_MODULES([PCIACCESS], [pciaccess >= 0.8.0])
-               XORG_SYS_LIBS="$XORG_SYS_LIBS $PCIACCESS_LIBS"
-               XORG_CFLAGS="$XORG_CFLAGS $PCIACCESS_CFLAGS"
-        fi
 
 	if test "x$XORG_OS_PCI" = x ; then
 		XORG_OS_PCI=$XORG_OS
