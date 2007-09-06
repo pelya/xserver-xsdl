@@ -38,6 +38,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "inputstr.h"
 #include <xkbsrv.h>
 #include <ctype.h>
+#define EXTENSION_EVENT_BASE 64
 
 
 /***====================================================================***/
@@ -50,9 +51,11 @@ XkbSrvInfoPtr	xkbi;
 int		key;
 XkbBehavior	behavior;
 unsigned        ndx;
+int             xiEvent;
 
     xkbi= keyc->xkbInfo;
     key= xE->u.u.detail;
+    xiEvent= (xE->u.u.type & EXTENSION_EVENT_BASE);
 #ifdef DEBUG
     if (xkbDebugFlags&0x8) {
 	ErrorF("XkbPKE: Key %d %s\n",key,(xE->u.u.type==KeyPress?"down":"up"));
@@ -70,51 +73,68 @@ unsigned        ndx;
     /* do anything to implement the behavior, but it *does* report that */
     /* key is hardwired */
 
-    /* FIXME: this is bad. The down mask is set during ProcessOtherEvent. When
-     * we start processing the core event (and eventually arrive here), the
-     * down mask is already set and Xkb thinks it's a repeat event. We just
-     * silently ignore it for now.
-     */
-#if 0
     if ((behavior.type&XkbKB_Permanent)==0) {
 	switch (behavior.type) {
 	    case XkbKB_Default:
-		if (( xE->u.u.type == KeyPress ) && 
+		if (( xE->u.u.type == KeyPress || 
+                            xE->u.u.type == DeviceKeyPress) && 
 		    (keyc->down[key>>3] & (1<<(key&7)))) {
 		    XkbLastRepeatEvent=	(pointer)xE;
-		    xE->u.u.type = KeyRelease;
+
+                    if (xiEvent)
+                        xE->u.u.type = DeviceKeyRelease;
+                    else
+                        xE->u.u.type = KeyRelease;
 		    XkbHandleActions(keybd,keybd,xE,count);
-		    xE->u.u.type = KeyPress;
+
+                    if (xiEvent)
+                        xE->u.u.type = DeviceKeyPress;
+                    else
+                        xE->u.u.type = KeyPress;
 		    XkbHandleActions(keybd,keybd,xE,count);
 		    XkbLastRepeatEvent= NULL;
 		    return;
 		}
-		else if ((xE->u.u.type==KeyRelease) &&
+		else if ((xE->u.u.type==KeyRelease || 
+                            xE->u.u.type == DeviceKeyRelease) &&
 			(!(keyc->down[key>>3]&(1<<(key&7))))) {
 		    XkbLastRepeatEvent=	(pointer)&xE;
-		    xE->u.u.type = KeyPress;
+                    if (xiEvent)
+                        xE->u.u.type = DeviceKeyPress;
+                    else
+                        xE->u.u.type = KeyPress;
 		    XkbHandleActions(keybd,keybd,xE,count);
-		    xE->u.u.type = KeyRelease;
+                    if (xiEvent)
+                        xE->u.u.type = DeviceKeyRelease;
+                    else
+                        xE->u.u.type = KeyRelease;
 		    XkbHandleActions(keybd,keybd,xE,count);
 		    XkbLastRepeatEvent= NULL;
 		    return;
 		}
 		break;
 	    case XkbKB_Lock:
-		if ( xE->u.u.type == KeyRelease )
+		if ( xE->u.u.type == KeyRelease || 
+                        xE->u.u.type == DeviceKeyRelease)
 		    return;
 		else {
 		    int	bit= 1<<(key&7);
 		    if ( keyc->down[key>>3]&bit )
-			xE->u.u.type= KeyRelease;
-		}
+                    {
+                        if (xiEvent)
+                            xE->u.u.type = DeviceKeyRelease;
+                        else
+                            xE->u.u.type= KeyRelease;
+                    }
+                }
 		break;
 	    case XkbKB_RadioGroup:
 		ndx= (behavior.data&(~XkbKB_RGAllowNone));
 		if ( ndx<xkbi->nRadioGroups ) {
 		    XkbRadioGroupPtr	rg;
 
-		    if ( xE->u.u.type == KeyRelease )
+		    if ( xE->u.u.type == KeyRelease ||
+                            xE->u.u.type == DeviceKeyRelease)
 		        return;
 
 		    rg = &xkbi->radioGroups[ndx];
@@ -128,10 +148,16 @@ unsigned        ndx;
 		    }
 		    if ( rg->currentDown!=0 ) {
 			int key = xE->u.u.detail;
-			xE->u.u.type= KeyRelease;
+                        if (xiEvent)
+                            xE->u.u.type = DeviceKeyRelease;
+                        else
+                            xE->u.u.type= KeyRelease;
 			xE->u.u.detail= rg->currentDown;
 		        XkbHandleActions(keybd,keybd,xE,count);
-		        xE->u.u.type= KeyPress;
+                        if (xiEvent)
+                            xE->u.u.type = DeviceKeyPress;
+                        else
+                            xE->u.u.type= KeyPress;
 		        xE->u.u.detail= key;
 		    }
 		    rg->currentDown= key;
@@ -160,7 +186,6 @@ unsigned        ndx;
 		break;
 	}
     }
-#endif
     XkbHandleActions(keybd,keybd,xE,count);
     return;
 }
@@ -181,9 +206,9 @@ XkbSrvInfoPtr	xkbi;
 #endif
     if ((xkbi->desc->ctrls->enabled_ctrls&XkbAllFilteredEventsMask)==0)
 	XkbProcessKeyboardEvent(xE,keybd,count);
-    else if (xE->u.u.type==KeyPress)
+    else if (xE->u.u.type==KeyPress || xE->u.u.type==DeviceKeyPress)
 	AccessXFilterPressEvent(xE,keybd,count);
-    else if (xE->u.u.type==KeyRelease)
+    else if (xE->u.u.type==KeyRelease || xE->u.u.type==DeviceKeyRelease)
 	AccessXFilterReleaseEvent(xE,keybd,count);
     return;
 }

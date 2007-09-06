@@ -39,6 +39,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <xkbsrv.h>
 #include "xkb.h"
 #include <ctype.h>
+#define EXTENSION_EVENT_BASE 64
 
 static unsigned int _xkbServerGeneration;
 static int xkbDevicePrivateIndex = -1;
@@ -83,13 +84,11 @@ XkbSetExtension(DeviceIntPtr device, ProcessInputProc proc)
 			    proc,xkbUnwrapProc);
 }
 
-#ifdef XINPUT
 extern	void	ProcessOtherEvent(
     xEvent *		/* xE */,
     DeviceIntPtr 	/* dev */,
     int 		/* count */
 );
-#endif
 
 /***====================================================================***/
 
@@ -673,6 +672,7 @@ _XkbFilterPointerBtn(	XkbSrvInfoPtr	xkbi,
 						&old,xkbi->desc->ctrls,
 						&cn,False)) {
 			cn.keycode = keycode;
+                        /* XXX: what about DeviceKeyPress? */
 			cn.eventType = KeyPress;
 			cn.requestMajor = 0;
 			cn.requestMinor = 0;
@@ -737,6 +737,7 @@ XkbEventCauseRec	cause;
 	    ctrls->enabled_ctrls|= change;
 	    if (XkbComputeControlsNotify(kbd,&old,ctrls,&cn,False)) {
 		cn.keycode = keycode;
+                /* XXX: what about DeviceKeyPress? */
 		cn.eventType = KeyPress;
 		cn.requestMajor = 0;
 		cn.requestMinor = 0;
@@ -878,6 +879,7 @@ ProcessInputProc backupproc;
 	filter->filter = _XkbFilterRedirectKey;
 	filter->upAction = *pAction;
 
+        /* XXX: what about DeviceKeyPress */
 	ev.u.u.type = KeyPress;
 	ev.u.u.detail = pAction->redirect.new_key;
 
@@ -905,6 +907,10 @@ ProcessInputProc backupproc;
 
 	realMods = xkbi->device->key->modifierMap[ev.u.u.detail];
 	xkbi->device->key->modifierMap[ev.u.u.detail] = 0;
+        /* XXX: Bad! Since the switch to XI devices xkbi->device will be the
+         * XI device. Sending a core event through ProcessOtherEvent will
+         * cause trouble. Somebody should fix this. 
+         */
 	UNWRAP_PROCESS_INPUT_PROC(xkbi->device,xkbPrivPtr, backupproc);
 	xkbi->device->public.processInputProc(&ev,xkbi->device,1);
 	COND_WRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr,
@@ -919,6 +925,7 @@ ProcessInputProc backupproc;
     }
     else if (filter->keycode==keycode) {
 
+        /* XXX: what about DeviceKeyRelease */
 	ev.u.u.type = KeyRelease;
 	ev.u.u.detail = filter->upAction.redirect.new_key;
 
@@ -946,6 +953,10 @@ ProcessInputProc backupproc;
 
 	realMods = xkbi->device->key->modifierMap[ev.u.u.detail];
 	xkbi->device->key->modifierMap[ev.u.u.detail] = 0;
+        /* XXX: Bad! Since the switch to XI devices xkbi->device will be the
+         * XI device. Sending a core event through ProcessOtherEvent will
+         * cause trouble. Somebody should fix this. 
+         */
 	UNWRAP_PROCESS_INPUT_PROC(xkbi->device,xkbPrivPtr, backupproc);
 	xkbi->device->public.processInputProc(&ev,xkbi->device,1);
 	COND_WRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr,
@@ -1009,7 +1020,6 @@ _XkbFilterXF86Private(	XkbSrvInfoPtr	xkbi,
     return 1;
 }
 
-#ifdef XINPUT
 
 static int
 _XkbFilterDeviceBtn(	XkbSrvInfoPtr	xkbi,
@@ -1081,7 +1091,6 @@ int		button;
     }
     return 0;
 }
-#endif
 
 static XkbFilterPtr
 _XkbNextFreeFilter(
@@ -1139,9 +1148,7 @@ XkbAction	act;
 XkbFilterPtr	filter;
 Bool		keyEvent;
 Bool		pressEvent;
-#ifdef XINPUT
 Bool		xiEvent;
-#endif
 ProcessInputProc backupproc;
     
 xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
@@ -1162,7 +1169,6 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
     xkbi->groupChange = 0;
 
     sendEvent = 1;
-#ifdef XINPUT
     keyEvent= ((xE->u.u.type==KeyPress)||(xE->u.u.type==DeviceKeyPress)||
 		(xE->u.u.type==KeyRelease)||(xE->u.u.type==DeviceKeyRelease));
     pressEvent= (xE->u.u.type==KeyPress)||(xE->u.u.type==DeviceKeyPress)||
@@ -1170,10 +1176,6 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
     xiEvent= (xE->u.u.type==DeviceKeyPress)||(xE->u.u.type==DeviceKeyRelease)||
 	     (xE->u.u.type==DeviceButtonPress)||
 	     (xE->u.u.type==DeviceButtonRelease);
-#else
-    keyEvent= (xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease);
-    pressEvent= (xE->u.u.type==KeyPress)||(xE->u.u.type==ButtonPress);
-#endif
 
     if (pressEvent) {
 	if (keyEvent)	
@@ -1234,13 +1236,11 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
 		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent= _XkbFilterRedirectKey(xkbi,filter,key,&act);
 		    break;
-#ifdef XINPUT
 		case XkbSA_DeviceBtn:
 		case XkbSA_LockDeviceBtn:
 		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent= _XkbFilterDeviceBtn(xkbi,filter,key,&act);
 		    break;
-#endif
 		case XkbSA_XFree86Private:
 		    filter = _XkbNextFreeFilter(xkbi);
 		    sendEvent= _XkbFilterXF86Private(xkbi,filter,key,&act);
@@ -1279,11 +1279,6 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
     }
 
     if (sendEvent) {
-#ifdef XINPUT
-	if (xiEvent)
-	    ProcessOtherEvent(xE,dev,count);
-	else 
-#endif
 	if (keyEvent) {
 	    realMods = keyc->modifierMap[key];
 	    keyc->modifierMap[key] = 0;
@@ -1293,7 +1288,14 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
 					 backupproc,xkbUnwrapProc);
 	    keyc->modifierMap[key] = realMods;
 	}
-	else CoreProcessPointerEvent(xE,dev,count);
+	else 
+        {
+            if (xE->u.u.type & EXTENSION_EVENT_BASE)
+                ProcessOtherEvent(xE, dev, count);
+            else
+                CoreProcessPointerEvent(xE,dev,count);
+            
+        }
     }
     else if (keyEvent)
 	FixKeyState(xE,dev);
