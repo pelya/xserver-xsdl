@@ -879,8 +879,20 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     SetEventInfo(GetNextExtEventMask(), _deviceButton3Motion);
     SetEventInfo(GetNextExtEventMask(), _deviceButton4Motion);
     SetEventInfo(GetNextExtEventMask(), _deviceButton5Motion);
+
+    /* If DeviceButtonMotionMask is != ButtonMotionMask, event delivery
+     * breaks down. The device needs the dev->button->motionMask. If DBMM is
+     * the same as BMM, we can ensure that both core and device events can be
+     * delivered, without the need for extra structures in the DeviceIntRec.
+     */
     DeviceButtonMotionMask = GetNextExtEventMask();
     SetEventInfo(DeviceButtonMotionMask, _deviceButtonMotion);
+    if (DeviceButtonMotionMask != ButtonMotionMask)
+    {
+        /* This should never happen, but if it does, hide under the
+         * bed and cry for help. */
+        ErrorF("DeviceButtonMotionMask != ButtonMotionMask. Trouble!\n");
+    }
 
     DeviceFocusChangeMask = GetNextExtEventMask();
     SetMaskForExtEvent(DeviceFocusChangeMask, DeviceFocusIn);

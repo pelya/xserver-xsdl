@@ -458,8 +458,8 @@ InitCoreDevices(void)
 #ifdef XKB
         dev->public.processInputProc = CoreProcessKeyboardEvent;
         dev->public.realInputProc = CoreProcessKeyboardEvent;
-        if (!noXkbExtension)
-           XkbSetExtension(dev, ProcessKeyboardEvent);
+        /*if (!noXkbExtension)*/
+        /*XkbSetExtension(dev, ProcessKeyboardEvent);*/
 #else
         dev->public.processInputProc = ProcessKeyboardEvent;
         dev->public.realInputProc = ProcessKeyboardEvent;

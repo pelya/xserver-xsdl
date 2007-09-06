@@ -3524,7 +3524,9 @@ drawable.id:0;
 #endif
     )))
 #endif
-    XE_KBPTR.state = (keyc->state | GetPairedPointer(keybd)->button->state);
+    /* ProcessOtherEvent already updated the keyboard's state, so we need to
+     * access prev_state here! */
+    XE_KBPTR.state = (keyc->prev_state | GetPairedPointer(keybd)->button->state);
     XE_KBPTR.rootX = keybd->spriteInfo->sprite->hot.x;
     XE_KBPTR.rootY = keybd->spriteInfo->sprite->hot.y;
     key = xE->u.u.detail;
@@ -3545,31 +3547,14 @@ drawable.id:0;
     switch (xE->u.u.type)
     {
 	case KeyPress: 
-	    if (*kptr & bit) /* allow ddx to generate multiple downs */
-	    {   
-		if (!modifiers)
-		{
-		    xE->u.u.type = KeyRelease;
-		    (*keybd->public.processInputProc)(xE, keybd, count);
-		    xE->u.u.type = KeyPress;
-		    /* release can have side effects, don't fall through */
-		    (*keybd->public.processInputProc)(xE, keybd, count);
-		}
-		return;
-	    }
-	    GetPairedPointer(keybd)->valuator->motionHintWindow = NullWindow;
-	    *kptr |= bit;
-	    keyc->prev_state = keyc->state;
-	    for (i = 0, mask = 1; modifiers; i++, mask <<= 1)
-	    {
-		if (mask & modifiers)
-		{
-		    /* This key affects modifier "i" */
-		    keyc->modifierKeyCount[i]++;
-		    keyc->state |= mask;
-		    modifiers &= ~mask;
-		}
-	    }
+            /* We MUST NOT change the device itself here.  All device state
+             * changes must be performed in ProcessOtherEvents. We're dealing
+             * with the same device struct, so if we change it in POE and
+             * here, we've just screwed up the state by setting it twice. 
+             *
+             * Devices may not send core events but always send XI events, so
+             * the state must be changed in POE, not here.
+             */
 	    if (!grab && CheckDeviceGrabs(keybd, xE, 0, count))
 	    {
 		grabinfo->activatingKey = key;
@@ -3579,20 +3564,7 @@ drawable.id:0;
 	case KeyRelease: 
 	    if (!(*kptr & bit)) /* guard against duplicates */
 		return;
-	    GetPairedPointer(keybd)->valuator->motionHintWindow = NullWindow;
-	    *kptr &= ~bit;
-	    keyc->prev_state = keyc->state;
-	    for (i = 0, mask = 1; modifiers; i++, mask <<= 1)
-	    {
-		if (mask & modifiers) {
-		    /* This key affects modifier "i" */
-		    if (--keyc->modifierKeyCount[i] <= 0) {
-			keyc->state &= ~mask;
-			keyc->modifierKeyCount[i] = 0;
-		    }
-		    modifiers &= ~mask;
-		}
-	    }
+            /* No device state changes, see comment for KeyPress */
 	    if (grabinfo->fromPassiveGrab && (key == grabinfo->activatingKey))
 		deactivateGrab = TRUE;
 	    break;
@@ -3729,31 +3701,21 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
 	switch (xE->u.u.type)
 	{
 	case ButtonPress: 
-	    mouse->valuator->motionHintWindow = NullWindow;
-	    if (!(*kptr & bit))
-		butc->buttonsDown++;
-	    butc->motionMask = ButtonMotionMask;
-	    *kptr |= bit;
+            /*
+             * We rely on the fact that ButtonMotionMask is the same as
+             * DeviceButtonMotionMask, so setting the motionMask
+             * to this value ensures correctness for both XI and core events.
+             */
 	    if (xE->u.u.detail == 0)
 		return;
-	    if (xE->u.u.detail <= 5)
-		butc->state |= (Button1Mask >> 1) << xE->u.u.detail;
 	    filters[MotionNotify] = Motion_Filter(butc);
 	    if (!grab)
 		if (CheckDeviceGrabs(mouse, xE, 0, count))
 		    return;
 	    break;
 	case ButtonRelease: 
-	    mouse->valuator->motionHintWindow = NullWindow;
-	    if (*kptr & bit)
-		--butc->buttonsDown;
-	    if (!butc->buttonsDown)
-		butc->motionMask = 0;
-	    *kptr &= ~bit;
 	    if (xE->u.u.detail == 0)
 		return;
-	    if (xE->u.u.detail <= 5)
-		butc->state &= ~((Button1Mask >> 1) << xE->u.u.detail);
 	    filters[MotionNotify] = Motion_Filter(butc);
 	    if (!butc->state && mouse->deviceGrab.fromPassiveGrab)
 		deactivateGrab = TRUE;
