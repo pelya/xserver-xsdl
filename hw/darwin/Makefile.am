@@ -191,7 +191,7 @@ glxMesa_la_DEPENDENCIES = XDarwinApp
 endif
 
 endif
-if HAVE_X_PLUGIN
+if HAVE_XPLUGIN
 
 xprplugindir = $(darwinappdir)/Contents/Resources/xpr.bundle/Contents/MacOS
 xprplugin_LTLIBRARIES = xpr.la
