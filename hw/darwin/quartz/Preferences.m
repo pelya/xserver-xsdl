@@ -356,7 +356,7 @@ static NSString *X11EnableKeyEquivalentsKey = @"EnableKeyEquivalents";
     [[NSUserDefaults standardUserDefaults] setBool:newMouseAccelChange
             forKey:@"AllowMouseAccelChange"];
     // Update the setting used by the X server thread
-    darwinMouseAccelChange = newMouseAccelChange;
+    //    darwinMouseAccelChange = newMouseAccelChange;
 }
 
 + (void)setUseQDCursor:(int)newUseQDCursor
