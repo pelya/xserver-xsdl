@@ -210,10 +210,13 @@ EnableDevice(DeviceIntPtr dev)
     /* Sprites pop up on the first root window, so we can supply it directly
      * here. 
      */
-    if (IsPointerDevice(dev) && dev->spriteInfo->spriteOwner)
-        InitializeSprite(dev, WindowTable[0]);
-    else
-        PairDevices(NULL, inputInfo.pointer, dev);
+    if (!dev->spriteInfo->sprite)
+    {
+        if (IsPointerDevice(dev) && dev->spriteInfo->spriteOwner)
+            InitializeSprite(dev, WindowTable[0]);
+        else
+            PairDevices(NULL, inputInfo.pointer, dev);
+    }
 
     if ((*prev != dev) || !dev->inited ||
 	((ret = (*dev->deviceProc)(dev, DEVICE_ON)) != Success)) {
