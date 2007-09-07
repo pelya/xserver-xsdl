@@ -49,11 +49,32 @@
 #include "colormapst.h"
 #include "cursorstr.h"
 #include "scrnintstr.h"
+#include "windowstr.h"
 #include "servermd.h"
 #include "swaprep.h"
 #include "ephyrdri.h"
+#include "ephyrdriext.h"
+#include "hostx.h"
 #define _HAVE_XALLOC_DECLS
 #include "ephyrlog.h"
+
+typedef struct {
+    WindowPtr local ;
+    int remote ;
+} EphyrWindowPair;
+
+typedef struct {
+    int foo;
+} EphyrDRIWindowPrivRec;
+typedef EphyrDRIWindowPrivRec* EphyrDRIWindowPrivPtr;
+
+typedef struct {
+    CreateWindowProcPtr CreateWindow ;
+    DestroyWindowProcPtr DestroyWindow ;
+    MoveWindowProcPtr MoveWindow ;
+    PositionWindowProcPtr PositionWindow ;
+} EphyrDRIScreenPrivRec;
+typedef EphyrDRIScreenPrivRec* EphyrDRIScreenPrivPtr;
 
 static int DRIErrorBase;
 
@@ -77,18 +98,43 @@ static DISPATCH_PROC(SProcXF86DRIDispatch);
 
 static void XF86DRIResetProc(ExtensionEntry* extEntry);
 
+static Bool ephyrDRIScreenInit (ScreenPtr a_screen) ;
+static Bool ephyrDRICreateWindow (WindowPtr a_win) ;
+static Bool ephyrDRIDestroyWindow (WindowPtr a_win) ;
+static void ephyrDRIMoveWindow (WindowPtr a_win,
+                                int a_x, int a_y,
+                                WindowPtr a_siblings,
+                                VTKind a_kind);
+static Bool ephyrDRIPositionWindow (WindowPtr a_win,
+                                    int x, int y) ;
+static Bool EphyrMirrorHostVisuals (void) ;
+static Bool destroyHostPeerWindow (const WindowPtr a_win) ;
+static Bool findWindowPairFromLocal (WindowPtr a_local,
+                                     EphyrWindowPair **a_pair);
+
 static unsigned char DRIReqCode = 0;
 
-extern void ephyrDRIExtensionInit(void);
+static int ephyrDRIGeneration=-1 ;
+static int ephyrDRIWindowIndex=-1 ;
+static int ephyrDRIScreenIndex=-1 ;
 
-void
-ephyrDRIExtensionInit(void)
+#define GET_EPHYR_DRI_WINDOW_PRIV(win) \
+    ((EphyrDRIWindowPrivPtr)((win)->devPrivates[ephyrDRIWindowIndex].ptr))
+#define GET_EPHYR_DRI_SCREEN_PRIV(screen) \
+    ((EphyrDRIScreenPrivPtr)((screen)->devPrivates[ephyrDRIScreenIndex].ptr))
+
+
+Bool
+ephyrDRIExtensionInit (ScreenPtr a_screen)
 {
-    ExtensionEntry* extEntry;
+    Bool is_ok=FALSE ;
+    ExtensionEntry* extEntry=NULL;
+    EphyrDRIScreenPrivPtr screen_priv=NULL ;
+
     EPHYR_LOG ("enter\n") ;
 
 #ifdef XF86DRI_EVENTS
-    EventType = CreateNewResourceType(XF86DRIFreeEvents);
+    EventType = CreateNewResourceType (XF86DRIFreeEvents);
 #endif
 
     if ((extEntry = AddExtension(XF86DRINAME,
@@ -100,9 +146,410 @@ ephyrDRIExtensionInit(void)
 				 StandardMinorOpcode))) {
 	DRIReqCode = (unsigned char)extEntry->base;
 	DRIErrorBase = extEntry->errorBase;
+    } else {
+        EPHYR_LOG_ERROR ("failed to register DRI extension\n") ;
+        goto out ;
     }
+    if (ephyrDRIGeneration != serverGeneration) {
+        ephyrDRIScreenIndex = AllocateScreenPrivateIndex () ;
+        if (ephyrDRIScreenIndex < 0) {
+            EPHYR_LOG_ERROR ("failed to allocate screen priv index\n") ;
+            goto out ;
+        }
+    }
+    screen_priv = xcalloc (1, sizeof (EphyrDRIScreenPrivRec)) ;
+    if (!screen_priv) {
+        EPHYR_LOG_ERROR ("failed to allocate screen_priv\n") ;
+        goto out ;
+    }
+    a_screen->devPrivates[ephyrDRIScreenIndex].ptr = screen_priv;
+
+    if (!ephyrDRIScreenInit (a_screen)) {
+        EPHYR_LOG_ERROR ("ephyrDRIScreenInit() failed\n") ;
+        goto out ;
+    }
+    EphyrMirrorHostVisuals () ;
+    if (ephyrDRIGeneration != serverGeneration) {
+        ephyrDRIGeneration = serverGeneration ;
+    }
+    is_ok=TRUE ;
+out:
     EPHYR_LOG ("leave\n") ;
+    return is_ok ;
 }
+
+static Bool
+ephyrDRIScreenInit (ScreenPtr a_screen)
+{
+    Bool is_ok=FALSE ;
+    EphyrDRIScreenPrivPtr screen_priv=NULL ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_screen, FALSE) ;
+
+    screen_priv=GET_EPHYR_DRI_SCREEN_PRIV (a_screen) ;
+    EPHYR_RETURN_VAL_IF_FAIL (screen_priv, FALSE) ;
+
+    if (ephyrDRIGeneration != serverGeneration) {
+        ephyrDRIWindowIndex = AllocateWindowPrivateIndex () ;
+        if (ephyrDRIWindowIndex < 0) {
+            EPHYR_LOG_ERROR ("failed to allocate window priv index\n") ;
+            goto out ;
+        }
+    }
+    if (!AllocateWindowPrivate (a_screen, ephyrDRIWindowIndex, 0)) {
+        EPHYR_LOG_ERROR ("failed to allocate window privates\n") ;
+        goto out ;
+    }
+    screen_priv->CreateWindow = a_screen->CreateWindow ;
+    screen_priv->DestroyWindow = a_screen->DestroyWindow ;
+    screen_priv->MoveWindow = a_screen->MoveWindow ;
+    screen_priv->PositionWindow = a_screen->PositionWindow ;
+
+    a_screen->CreateWindow = ephyrDRICreateWindow ;
+    a_screen->DestroyWindow = ephyrDRIDestroyWindow ;
+    a_screen->MoveWindow = ephyrDRIMoveWindow ;
+    a_screen->PositionWindow = ephyrDRIPositionWindow ;
+
+    is_ok = TRUE ;
+out:
+    return is_ok ;
+}
+
+static Bool
+ephyrDRICreateWindow (WindowPtr a_win)
+{
+    Bool is_ok=FALSE ;
+    ScreenPtr screen=NULL ;
+    EphyrDRIScreenPrivPtr screen_priv =NULL;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_win, FALSE) ;
+    screen = a_win->drawable.pScreen ;
+    EPHYR_RETURN_VAL_IF_FAIL (screen, FALSE) ;
+    screen_priv = GET_EPHYR_DRI_SCREEN_PRIV (screen) ;
+    EPHYR_RETURN_VAL_IF_FAIL (screen_priv
+                              && screen_priv->CreateWindow,
+                              FALSE) ;
+
+    EPHYR_LOG ("enter. win:%#x\n",
+               (unsigned int)a_win) ;
+
+    screen->CreateWindow = screen_priv->CreateWindow ;
+    is_ok = (*screen->CreateWindow) (a_win) ;
+    screen->CreateWindow = ephyrDRICreateWindow ;
+
+    if (is_ok) {
+        a_win->devPrivates[ephyrDRIWindowIndex].ptr = NULL ;
+    }
+    return is_ok ;
+}
+
+static Bool
+ephyrDRIDestroyWindow (WindowPtr a_win)
+{
+    Bool is_ok=FALSE ;
+    ScreenPtr screen=NULL ;
+    EphyrDRIScreenPrivPtr screen_priv =NULL;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_win, FALSE) ;
+    screen = a_win->drawable.pScreen ;
+    EPHYR_RETURN_VAL_IF_FAIL (screen, FALSE) ;
+    screen_priv = GET_EPHYR_DRI_SCREEN_PRIV (screen) ;
+    EPHYR_RETURN_VAL_IF_FAIL (screen_priv
+                              && screen_priv->DestroyWindow,
+                              FALSE) ;
+
+    screen->DestroyWindow = screen_priv->DestroyWindow ;
+    is_ok = (*screen->DestroyWindow) (a_win) ;
+    screen->DestroyWindow = ephyrDRIDestroyWindow ;
+
+    if (is_ok) {
+        EphyrDRIWindowPrivPtr win_priv=GET_EPHYR_DRI_WINDOW_PRIV (a_win) ;
+        if (win_priv) {
+            destroyHostPeerWindow (a_win) ;
+            xfree (win_priv) ;
+            a_win->devPrivates[ephyrDRIWindowIndex].ptr = NULL ;
+            EPHYR_LOG ("destroyed the remote peer window\n") ;
+        }
+    }
+    return is_ok ;
+}
+
+static void
+ephyrDRIMoveWindow (WindowPtr a_win,
+                    int a_x, int a_y,
+                    WindowPtr a_siblings,
+                    VTKind a_kind)
+{
+    Bool is_ok=FALSE ;
+    ScreenPtr screen=NULL ;
+    EphyrDRIScreenPrivPtr screen_priv =NULL;
+    EphyrDRIWindowPrivPtr win_priv=NULL ;
+    EphyrWindowPair *pair=NULL ;
+    EphyrBox geo;
+    int x=0,y=0;/*coords relative to parent window*/
+
+    EPHYR_RETURN_IF_FAIL (a_win) ;
+
+    EPHYR_LOG ("enter\n") ;
+    screen = a_win->drawable.pScreen ;
+    EPHYR_RETURN_IF_FAIL (screen) ;
+    screen_priv = GET_EPHYR_DRI_SCREEN_PRIV (screen) ;
+    EPHYR_RETURN_IF_FAIL (screen_priv
+                          && screen_priv->MoveWindow) ;
+
+    screen->MoveWindow = screen_priv->MoveWindow ;
+    (*screen->MoveWindow) (a_win, a_x, a_y, a_siblings, a_kind) ;
+    screen->MoveWindow = ephyrDRIMoveWindow ;
+
+    EPHYR_LOG ("window: %#x\n", (unsigned int)a_win) ;
+    if (!a_win->parent) {
+        EPHYR_LOG ("cannot move root window\n") ;
+        is_ok = TRUE ;
+        goto out ;
+    }
+    win_priv = GET_EPHYR_DRI_WINDOW_PRIV (a_win) ;
+    if (!win_priv) {
+        EPHYR_LOG ("not a DRI peered window\n") ;
+        is_ok = TRUE ;
+        goto out ;
+    }
+    if (!findWindowPairFromLocal (a_win, &pair) || !pair) {
+        EPHYR_LOG_ERROR ("failed to get window pair\n") ;
+        goto out ;
+    }
+    /*compute position relative to parent window*/
+    x = a_win->drawable.x - a_win->parent->drawable.x ;
+    y = a_win->drawable.y - a_win->parent->drawable.y ;
+    /*set the geometry to pass to hostx_set_window_geometry*/
+    memset (&geo, 0, sizeof (geo)) ;
+    geo.x = x ;
+    geo.y = y ;
+    geo.width = a_win->drawable.width ;
+    geo.height = a_win->drawable.height ;
+    hostx_set_window_geometry (pair->remote, &geo) ;
+    is_ok = TRUE ;
+
+out:
+    EPHYR_LOG ("leave. is_ok:%d\n", is_ok) ;
+    /*do cleanup here*/
+}
+
+static Bool
+ephyrDRIPositionWindow (WindowPtr a_win,
+                        int a_x, int a_y)
+{
+    Bool is_ok=FALSE ;
+    ScreenPtr screen=NULL ;
+    EphyrDRIScreenPrivPtr screen_priv =NULL;
+    EphyrDRIWindowPrivPtr win_priv=NULL ;
+    EphyrWindowPair *pair=NULL ;
+    EphyrBox geo;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_win, FALSE) ;
+
+    EPHYR_LOG ("enter\n") ;
+    screen = a_win->drawable.pScreen ;
+    EPHYR_RETURN_VAL_IF_FAIL (screen, FALSE) ;
+    screen_priv = GET_EPHYR_DRI_SCREEN_PRIV (screen) ;
+    EPHYR_RETURN_VAL_IF_FAIL (screen_priv
+                              && screen_priv->PositionWindow,
+                              FALSE) ;
+
+    screen->PositionWindow = screen_priv->PositionWindow ;
+    (*screen->PositionWindow) (a_win, a_x, a_y) ;
+    screen->PositionWindow = ephyrDRIPositionWindow ;
+
+    EPHYR_LOG ("window: %#x\n", (unsigned int)a_win) ;
+    win_priv = GET_EPHYR_DRI_WINDOW_PRIV (a_win) ;
+    if (!win_priv) {
+        EPHYR_LOG ("not a DRI peered window\n") ;
+        is_ok = TRUE ;
+        goto out ;
+    }
+    if (!findWindowPairFromLocal (a_win, &pair) || !pair) {
+        EPHYR_LOG_ERROR ("failed to get window pair\n") ;
+        goto out ;
+    }
+    /*set the geometry to pass to hostx_set_window_geometry*/
+    memset (&geo, 0, sizeof (geo)) ;
+    geo.x = a_x ;
+    geo.y = a_y ;
+    geo.width = a_win->drawable.width ;
+    geo.height = a_win->drawable.height ;
+    hostx_set_window_geometry (pair->remote, &geo) ;
+    is_ok = TRUE ;
+
+out:
+    EPHYR_LOG ("leave. is_ok:%d\n", is_ok) ;
+    /*do cleanup here*/
+    return is_ok ;
+}
+
+/**
+ * Duplicates a visual of a_screen
+ * In screen a_screen, for depth a_depth, find a visual which
+ * bitsPerRGBValue and colormap size equal
+ * a_bits_per_rgb_values and a_colormap_entries.
+ * The ID of that duplicated visual is set to a_new_id.
+ * That duplicated visual is then added to the list of visuals
+ * of the screen.
+ */
+static Bool
+EphyrDuplicateVisual (unsigned int a_screen,
+                      short a_depth,
+                      short a_class,
+                      short a_bits_per_rgb_values,
+                      short a_colormap_entries,
+                      unsigned int a_red_mask,
+                      unsigned int a_green_mask,
+                      unsigned int a_blue_mask,
+                      unsigned int a_new_id)
+{
+    Bool is_ok = FALSE, found_visual=FALSE, found_depth=FALSE ;
+    ScreenPtr screen=NULL ;
+    VisualRec new_visual, *new_visuals=NULL ;
+    int i=0 ;
+
+    EPHYR_LOG ("enter\n") ; 
+    if (a_screen > screenInfo.numScreens) {
+        EPHYR_LOG_ERROR ("bad screen number\n") ;
+        goto out;
+    }
+    memset (&new_visual, 0, sizeof (VisualRec)) ;
+
+    /*get the screen pointed to by a_screen*/
+    screen = screenInfo.screens[a_screen] ;
+    EPHYR_RETURN_VAL_IF_FAIL (screen, FALSE) ;
+
+    /*
+     * In that screen, first look for an existing visual that has the
+     * same characteristics as those passed in parameter
+     * to this function and copy it.
+     */
+    for (i=0; i < screen->numVisuals; i++) {
+        if (screen->visuals[i].bitsPerRGBValue == a_bits_per_rgb_values &&
+            screen->visuals[i].ColormapEntries == a_colormap_entries ) {
+            /*copy the visual found*/
+            memcpy (&new_visual, &screen->visuals[i], sizeof (new_visual)) ;
+            new_visual.vid = a_new_id ;
+            new_visual.class = a_class ;
+            new_visual.redMask = a_red_mask ;
+            new_visual.greenMask = a_green_mask ;
+            new_visual.blueMask = a_blue_mask ;
+            found_visual = TRUE ;
+            EPHYR_LOG ("found a visual that matches visual id: %d\n",
+                       a_new_id) ;
+            break;
+        }
+    }
+    if (!found_visual) {
+        EPHYR_LOG ("did not find any visual matching %d\n", a_new_id) ;
+        goto out ;
+    }
+    /*
+     * be prepare to extend screen->visuals to add new_visual to it
+     */
+    new_visuals = xcalloc (screen->numVisuals+1, sizeof (VisualRec)) ;
+    memmove (new_visuals,
+             screen->visuals,
+             screen->numVisuals*sizeof (VisualRec)) ;
+    memmove (&new_visuals[screen->numVisuals],
+             &new_visual,
+             sizeof (VisualRec)) ;
+    /*
+     * Now, in that same screen, update the screen->allowedDepths member.
+     * In that array, each element represents the visuals applicable to
+     * a given depth. So we need to add an entry matching the new visual
+     * that we are going to add to screen->visuals
+     */
+    for (i=0; i<screen->numDepths; i++) {
+        VisualID *vids=NULL;
+        DepthPtr cur_depth=NULL ;
+        /*find the entry matching a_depth*/
+        if (screen->allowedDepths[i].depth != a_depth)
+            continue ;
+        cur_depth = &screen->allowedDepths[i];
+        /*
+         * extend the list of visual IDs in that entry,
+         * so to add a_new_id in there.
+         */
+        vids = xrealloc (cur_depth->vids,
+                         (cur_depth->numVids+1)*sizeof (VisualID));
+        if (!vids) {
+            EPHYR_LOG_ERROR ("failed to realloc numids\n") ;
+            goto out ;
+        }
+        vids[cur_depth->numVids] = a_new_id ;
+        /*
+         * Okay now commit our change.
+         * Do really update screen->allowedDepths[i]
+         */
+        cur_depth->numVids++ ;
+        cur_depth->vids = vids ;
+        found_depth=TRUE;
+    }
+    if (!found_depth) {
+        EPHYR_LOG_ERROR ("failed to update screen[%d]->allowedDepth\n",
+                         a_screen) ;
+        goto out ;
+    }
+    /*
+     * Commit our change to screen->visuals
+     */
+    xfree (screen->visuals) ;
+    screen->visuals = new_visuals ;
+    screen->numVisuals++ ;
+    new_visuals = NULL ;
+
+    is_ok = TRUE ;
+out:
+    if (new_visuals) {
+        xfree (new_visuals) ;
+        new_visuals = NULL ;
+    }
+    EPHYR_LOG ("leave\n") ; 
+    return is_ok ;
+}
+
+/**
+ * Duplicates the visuals of the host X server.
+ * This is necessary to have visuals that have the same
+ * ID as those of the host X. It is important to have that for
+ * GLX.
+ */
+static Bool
+EphyrMirrorHostVisuals (void)
+{
+    Bool is_ok=FALSE;
+    EphyrHostVisualInfo  *visuals=NULL;
+    int nb_visuals=0, i=0;
+
+    EPHYR_LOG ("enter\n") ;
+    if (!hostx_get_visuals_info (&visuals, &nb_visuals)) {
+        EPHYR_LOG_ERROR ("failed to get host visuals\n") ;
+        goto out ;
+    }
+    for (i=0; i<nb_visuals; i++) {
+        if (!EphyrDuplicateVisual (visuals[i].screen,
+                                   visuals[i].depth,
+                                   visuals[i].class,
+                                   visuals[i].bits_per_rgb,
+                                   visuals[i].colormap_size,
+                                   visuals[i].red_mask,
+                                   visuals[i].green_mask,
+                                   visuals[i].blue_mask,
+                                   visuals[i].visualid)) {
+            EPHYR_LOG_ERROR ("failed to duplicate host visual %d\n",
+                             (int)visuals[i].visualid) ;
+        }
+    }
+
+    is_ok = TRUE ;
+out:
+    EPHYR_LOG ("leave\n") ;
+    return is_ok;
+}
+
 
 /*ARGSUSED*/
 static void
@@ -311,7 +758,8 @@ ProcXF86DRICreateContext (register ClientPtr client)
     xXF86DRICreateContextReply	rep;
     ScreenPtr pScreen;
     VisualPtr visual;
-    int i;
+    int i=0;
+    unsigned long context_id=0;
 
     EPHYR_LOG ("enter\n") ;
     REQUEST(xXF86DRICreateContextReq);
@@ -337,14 +785,13 @@ ProcXF86DRICreateContext (register ClientPtr client)
 	return BadValue;
     }
 
-    /*
-    if (!DRICreateContext( pScreen,
-			   visual,
-			   stuff->context,
-			   (drm_context_t *)&rep.hHWContext)) {
-	return BadValue;
+    context_id = stuff->context ;
+    if (!ephyrDRICreateContext (stuff->screen,
+                                stuff->visual,
+                                &context_id,
+                                (drm_context_t *)&rep.hHWContext)) {
+        return BadValue;
     }
-    */
 
     WriteToClient(client, sizeof(xXF86DRICreateContextReply), (char *)&rep);
     EPHYR_LOG ("leave\n") ;
@@ -363,23 +810,146 @@ ProcXF86DRIDestroyContext (register ClientPtr client)
         return BadValue;
     }
 
-    /*
-       if (!DRIDestroyContext( screenInfo.screens[stuff->screen],
-       stuff->context)) {
+   if (!ephyrDRIDestroyContext (stuff->screen, stuff->context)) {
        return BadValue;
-       }
-   */
+   }
 
     EPHYR_LOG ("leave\n") ;
     return (client->noClientException);
+}
+
+static Bool
+getWindowVisual (const WindowPtr a_win,
+                 VisualPtr *a_visual)
+{
+    int i=0, visual_id=0 ;
+    EPHYR_RETURN_VAL_IF_FAIL (a_win
+                              && a_win->drawable.pScreen
+                              && a_win->drawable.pScreen->visuals,
+                              FALSE) ;
+
+    visual_id = wVisual (a_win) ;
+    for (i=0; i < a_win->drawable.pScreen->numVisuals; i++) {
+        if (a_win->drawable.pScreen->visuals[i].vid == visual_id) {
+            *a_visual = &a_win->drawable.pScreen->visuals[i] ;
+            return TRUE ;
+        }
+    }
+    return FALSE ;
+}
+
+
+#define NUM_WINDOW_PAIRS 256
+static EphyrWindowPair window_pairs[NUM_WINDOW_PAIRS] ;
+
+static Bool
+appendWindowPairToList (WindowPtr a_local,
+                        int a_remote)
+{
+    int i=0 ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_local, FALSE) ;
+
+    EPHYR_LOG ("(local,remote):(%#x, %d)\n", (unsigned int)a_local, a_remote) ;
+
+    for (i=0; i < NUM_WINDOW_PAIRS; i++) {
+        if (window_pairs[i].local == NULL) {
+            window_pairs[i].local = a_local ;
+            window_pairs[i].remote = a_remote ;
+            return TRUE ;
+        }
+    }
+    return FALSE ;
+}
+
+static Bool
+findWindowPairFromLocal (WindowPtr a_local,
+                         EphyrWindowPair **a_pair)
+{
+    int i=0 ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_pair && a_local, FALSE) ;
+
+    for (i=0; i < NUM_WINDOW_PAIRS; i++) {
+        if (window_pairs[i].local == a_local) {
+            *a_pair = &window_pairs[i] ;
+            EPHYR_LOG ("found (%#x, %d)\n",
+                       (unsigned int)(*a_pair)->local,
+                       (*a_pair)->remote) ;
+            return TRUE ;
+        }
+    }
+    return FALSE ;
+}
+
+static Bool
+createHostPeerWindow (const WindowPtr a_win,
+                      int *a_peer_win)
+{
+    Bool is_ok=FALSE ;
+    VisualPtr visual=NULL;
+    EphyrBox geo ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_win && a_peer_win, FALSE) ;
+
+    EPHYR_LOG ("enter. a_win '%#x'\n", (unsigned int)a_win) ;
+    if (!getWindowVisual (a_win, &visual)) {
+        EPHYR_LOG_ERROR ("failed to get window visual\n") ;
+        goto out ;
+    }
+    if (!visual) {
+        EPHYR_LOG_ERROR ("failed to create visual\n") ;
+        goto out ;
+    }
+    memset (&geo, 0, sizeof (geo)) ;
+    geo.x = a_win->drawable.x ;
+    geo.y = a_win->drawable.y ;
+    geo.width = a_win->drawable.width ;
+    geo.height = a_win->drawable.height ;
+    if (!hostx_create_window (&geo, visual->vid, a_peer_win)) {
+        EPHYR_LOG_ERROR ("failed to create host peer window\n") ;
+        goto out ;
+    }
+    if (!appendWindowPairToList (a_win, *a_peer_win)) {
+        EPHYR_LOG_ERROR ("failed to append window to pair list\n") ;
+        goto out ;
+    }
+    is_ok = TRUE ;
+out:
+    EPHYR_LOG ("leave:remote win%d\n", *a_peer_win) ;
+    return is_ok ;
+}
+
+static Bool
+destroyHostPeerWindow (const WindowPtr a_win)
+{
+    Bool is_ok = FALSE ;
+    EphyrWindowPair *pair=NULL ;
+    EPHYR_RETURN_VAL_IF_FAIL (a_win, FALSE) ;
+
+    EPHYR_LOG ("enter\n") ;
+
+    if (!findWindowPairFromLocal (a_win, &pair) || !pair) {
+        EPHYR_LOG_ERROR ("failed to find peer to local window\n") ;
+        goto out;
+    }
+    hostx_destroy_window (pair->remote) ;
+    is_ok = TRUE ;
+
+out:
+    EPHYR_LOG ("leave\n") ;
+    return is_ok;
 }
 
 static int
 ProcXF86DRICreateDrawable (ClientPtr client)
 {
     xXF86DRICreateDrawableReply	rep;
-    DrawablePtr pDrawable;
-    int rc;
+    DrawablePtr drawable=NULL;
+    WindowPtr window=NULL ;
+    EphyrWindowPair *pair=NULL ;
+    EphyrDRIWindowPrivPtr win_priv=NULL;
+    int rc=0, remote_win=0;
 
     EPHYR_LOG ("enter\n") ;
     REQUEST(xXF86DRICreateDrawableReq);
@@ -393,19 +963,42 @@ ProcXF86DRICreateDrawable (ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    rc = dixLookupDrawable (&pDrawable, stuff->drawable, client, 0,
+    rc = dixLookupDrawable (&drawable, stuff->drawable, client, 0,
                             DixReadAccess);
     if (rc != Success)
         return rc;
+    if (drawable->type != DRAWABLE_WINDOW) {
+        EPHYR_LOG_ERROR ("non drawable windows are not yet supported\n") ;
+        return BadImplementation ;
+    }
+    EPHYR_LOG ("lookedup drawable %#x\n", (unsigned int)drawable) ;
+    window = (WindowPtr)drawable;
+    if (findWindowPairFromLocal (window, &pair) && pair) {
+        remote_win = pair->remote ;
+        EPHYR_LOG ("found window '%#x' paire with remote '%d'\n",
+                   (unsigned int)window, remote_win) ;
+    } else if (!createHostPeerWindow (window, &remote_win)) {
+        EPHYR_LOG_ERROR ("failed to create host peer window\n") ;
+        return BadAlloc ;
+    }
 
-    /*TODO: this cannot work. We must properly
-     * do the mapping between the xephyr drawable and
-     * the host drawable
-     */
     if (!ephyrDRICreateDrawable (stuff->screen,
-                0/*should be host drawableID*/,
-                (drm_drawable_t *)&rep.hHWDrawable)) {
+                                 remote_win,
+                                 (drm_drawable_t *)&rep.hHWDrawable)) {
+        EPHYR_LOG_ERROR ("failed to create dri drawable\n") ;
         return BadValue;
+    }
+
+    win_priv = GET_EPHYR_DRI_WINDOW_PRIV (window) ;
+    if (!win_priv) {
+        win_priv = xcalloc (1, sizeof (EphyrDRIWindowPrivRec)) ;
+        if (!win_priv) {
+            EPHYR_LOG_ERROR ("failed to allocate window private\n") ;
+            return BadAlloc ;
+        }
+        window->devPrivates[ephyrDRIWindowIndex].ptr = win_priv ;
+        EPHYR_LOG ("paired window '%#x' with remote '%d'\n",
+                   (unsigned int)window, remote_win) ;
     }
 
     WriteToClient(client, sizeof(xXF86DRICreateDrawableReply), (char *)&rep);
@@ -417,9 +1010,11 @@ static int
 ProcXF86DRIDestroyDrawable (register ClientPtr client)
 {
     REQUEST(xXF86DRIDestroyDrawableReq);
-    DrawablePtr pDrawable;
+    DrawablePtr drawable=NULL;
+    WindowPtr window=NULL;
+    EphyrWindowPair *pair=NULL;
     REQUEST_SIZE_MATCH(xXF86DRIDestroyDrawableReq);
-    int rc;
+    int rc=0;
 
     EPHYR_LOG ("enter\n") ;
     if (stuff->screen >= screenInfo.numScreens) {
@@ -427,18 +1022,30 @@ ProcXF86DRIDestroyDrawable (register ClientPtr client)
         return BadValue;
     }
 
-    rc = dixLookupDrawable(&pDrawable,
+    rc = dixLookupDrawable(&drawable,
                            stuff->drawable,
                            client,
                            0,
                            DixReadAccess);
     if (rc != Success)
         return rc;
-
-    if (!ephyrDRIDestroyDrawable(stuff->screen,
-                                 0/*should be drawable in host x*/)) {
-        return BadValue;
+    if (drawable->type != DRAWABLE_WINDOW) {
+        EPHYR_LOG_ERROR ("non drawable windows are not yet supported\n") ;
+        return BadImplementation ;
     }
+    window = (WindowPtr)drawable;
+    if (!findWindowPairFromLocal (window, &pair) && pair) {
+        EPHYR_LOG_ERROR ("failed to find pair window\n") ;
+        return BadImplementation;
+    }
+    if (!ephyrDRIDestroyDrawable(stuff->screen,
+                                 pair->remote/*drawable in host x*/)) {
+        EPHYR_LOG_ERROR ("failed to destroy dri drawable\n") ;
+        return BadImplementation;
+    }
+    pair->local=NULL ;
+    pair->remote=0;
+
     EPHYR_LOG ("leave\n") ;
     return (client->noClientException);
 }
@@ -448,6 +1055,8 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
 {
     xXF86DRIGetDrawableInfoReply rep;
     DrawablePtr drawable;
+    WindowPtr window=NULL;
+    EphyrWindowPair *pair=NULL;
     int X=0, Y=0, W=0, H=0, backX=0, backY=0, rc=0;
     drm_clip_rect_t *pClipRects=NULL, *pClippedRects=NULL;
     drm_clip_rect_t *pBackClipRects=NULL;
@@ -465,17 +1074,25 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    /*TODO: this cannot work.
-     * We must properly do the mapping
-     * between xephyr drawable and the host drawable
-     */
     rc = dixLookupDrawable(&drawable, stuff->drawable, client, 0,
                            DixReadAccess);
-    if (rc != Success)
+    if (rc != Success || !drawable) {
+        EPHYR_LOG_ERROR ("could not get drawable\n") ;
         return rc;
+    }
 
+    if (drawable->type != DRAWABLE_WINDOW) {
+        EPHYR_LOG_ERROR ("non windows type drawables are not yes supported\n") ;
+        return BadImplementation ;
+    }
+    window = (WindowPtr)drawable ;
+    memset (&pair, 0, sizeof (pair)) ;
+    if (!findWindowPairFromLocal (window, &pair) || !pair) {
+        EPHYR_LOG_ERROR ("failed to find remote peer drawable\n") ;
+        return BadMatch ;
+    }
     if (!ephyrDRIGetDrawableInfo (stuff->screen,
-                                  drawable/*should be the drawable in hostx*/,
+                                  pair->remote/*the drawable in hostx*/,
                                   (unsigned int*)&rep.drawableTableIndex,
                                   (unsigned int*)&rep.drawableTableStamp,
                                   (int*)&X,

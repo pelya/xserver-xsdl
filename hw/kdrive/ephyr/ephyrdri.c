@@ -182,10 +182,9 @@ ephyrDRICreateDrawable (int a_screen,
 {
     Bool is_ok=FALSE;
     Display *dpy=hostx_get_display () ;
-    int host_win=hostx_get_window () ;
 
     EPHYR_LOG ("enter\n") ;
-    is_ok = XF86DRICreateDrawable (dpy, a_screen, host_win, a_hw_drawable) ;
+    is_ok = XF86DRICreateDrawable (dpy, a_screen, a_drawable, a_hw_drawable) ;
     EPHYR_LOG ("leave. is_ok:%d\n", is_ok) ;
     return is_ok ;
 }
@@ -201,7 +200,7 @@ ephyrDRIDestroyDrawable (int a_screen, int a_drawable)
 
 Bool
 ephyrDRIGetDrawableInfo (int a_screen,
-                         void *a_drawable,
+                         int a_drawable,
                          unsigned int *a_index,
                          unsigned int *a_stamp,
                          int *a_x,
@@ -217,20 +216,19 @@ ephyrDRIGetDrawableInfo (int a_screen,
 {
     Bool is_ok=FALSE;
     Display *dpy=hostx_get_display ()  ;
-    DrawablePtr drawable = a_drawable ;
     EphyrHostWindowAttributes attrs ;
 
-    EPHYR_RETURN_VAL_IF_FAIL (drawable && a_x && a_y && a_w && a_h
+    EPHYR_RETURN_VAL_IF_FAIL (a_x && a_y && a_w && a_h
                               && a_num_clip_rects,
                               FALSE) ;
 
     EPHYR_LOG ("enter\n") ;
     memset (&attrs, 0, sizeof (attrs)) ;
-    if (!hostx_get_window_attributes (hostx_get_window (), &attrs)) {
+    if (!hostx_get_window_attributes (a_drawable, &attrs)) {
         EPHYR_LOG_ERROR ("failed to query host window attributes\n") ;
         goto out;
     }
-    if (!XF86DRIGetDrawableInfo (dpy, a_screen, hostx_get_window (),
+    if (!XF86DRIGetDrawableInfo (dpy, a_screen, a_drawable,
                                  a_index, a_stamp,
                                  a_x, a_y,
                                  a_w, a_h,
@@ -242,12 +240,10 @@ ephyrDRIGetDrawableInfo (int a_screen,
         goto out ;
     }
     EPHYR_LOG ("host x,y,w,h: (%d,%d,%d,%d)\n", *a_x, *a_y, *a_w, *a_h) ;
-    *a_x += drawable->x ;
-    *a_y += drawable->y ;
     *a_back_x = *a_x ;
     *a_back_y = *a_y ;
-    *a_w = drawable->width;
-    *a_h = drawable->height;
+    *a_w = attrs.width;
+    *a_h = attrs.height;
 
     is_ok = TRUE ;
 out:

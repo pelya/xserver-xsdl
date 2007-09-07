@@ -34,6 +34,7 @@
 
 #ifdef XEPHYR_DRI
 #include "ephyrdri.h"
+#include "ephyrdriext.h"
 #include "ephyrglxext.h"
 #include "ephyrproxyext.h"
 #endif /*XEPHYR_DRI*/
@@ -51,11 +52,6 @@ typedef struct _EphyrInputPrivate {
 
 Bool   EphyrWantGrayScale = 0;
 
-
-#ifdef XEPHYR_DRI
-extern void ephyrDRIExtensionInit(void) ;
-static Bool EphyrMirrorHostVisuals (void) ;
-#endif
 
 Bool
 ephyrInitialize (KdCardInfo *card, EphyrPriv *priv)
@@ -628,10 +624,9 @@ ephyrInitScreen (ScreenPtr pScreen)
 #endif /*XV*/
 
 #ifdef XEPHYR_DRI
-    ephyrDRIExtensionInit () ;
+    ephyrDRIExtensionInit (pScreen) ;
     ephyrHijackGLXExtension () ;
     ephyrProxyExtensionInit ("ATIFGLRXDRI") ;
-    EphyrMirrorHostVisuals () ;
 #endif
   return TRUE;
 }
@@ -1046,171 +1041,6 @@ EphyrKeyboardLeds (KdKeyboardInfo *ki, int leds)
 static void
 EphyrKeyboardBell (KdKeyboardInfo *ki, int volume, int frequency, int duration)
 {
-}
-
-/**
- * Duplicates a visual of a_screen
- * In screen a_screen, for depth a_depth, find a visual which
- * bitsPerRGBValue and colormap size equal
- * a_bits_per_rgb_values and a_colormap_entries.
- * The ID of that duplicated visual is set to a_new_id.
- * That duplicated visual is then added to the list of visuals
- * of the screen.
- */
-static Bool
-EphyrDuplicateVisual (unsigned int a_screen,
-                      short a_depth,
-                      short a_class,
-                      short a_bits_per_rgb_values,
-                      short a_colormap_entries,
-                      unsigned int a_red_mask,
-                      unsigned int a_green_mask,
-                      unsigned int a_blue_mask,
-                      unsigned int a_new_id)
-{
-    Bool is_ok = FALSE, found_visual=FALSE, found_depth=FALSE ;
-    ScreenPtr screen=NULL ;
-    VisualRec new_visual, *new_visuals=NULL ;
-    int i=0 ;
-
-    EPHYR_LOG ("enter\n") ; 
-    if (a_screen > screenInfo.numScreens) {
-        EPHYR_LOG_ERROR ("bad screen number\n") ;
-        goto out;
-    }
-    memset (&new_visual, 0, sizeof (VisualRec)) ;
-
-    /*get the screen pointed to by a_screen*/
-    screen = screenInfo.screens[a_screen] ;
-    EPHYR_RETURN_VAL_IF_FAIL (screen, FALSE) ;
-
-    /*
-     * In that screen, first look for an existing visual that has the
-     * same characteristics as those passed in parameter
-     * to this function and copy it.
-     */
-    for (i=0; i < screen->numVisuals; i++) {
-        if (screen->visuals[i].bitsPerRGBValue == a_bits_per_rgb_values &&
-            screen->visuals[i].ColormapEntries == a_colormap_entries ) {
-            /*copy the visual found*/
-            memcpy (&new_visual, &screen->visuals[i], sizeof (new_visual)) ;
-            new_visual.vid = a_new_id ;
-            new_visual.class = a_class ;
-            new_visual.redMask = a_red_mask ;
-            new_visual.greenMask = a_green_mask ;
-            new_visual.blueMask = a_blue_mask ;
-            found_visual = TRUE ;
-            EPHYR_LOG ("found a visual that matches visual id: %d\n",
-                       a_new_id) ;
-            break;
-        }
-    }
-    if (!found_visual) {
-        EPHYR_LOG ("did not find any visual matching %d\n", a_new_id) ;
-        goto out ;
-    }
-    /*
-     * be prepare to extend screen->visuals to add new_visual to it
-     */
-    new_visuals = xcalloc (screen->numVisuals+1, sizeof (VisualRec)) ;
-    memmove (new_visuals,
-             screen->visuals,
-             screen->numVisuals*sizeof (VisualRec)) ;
-    memmove (&new_visuals[screen->numVisuals],
-             &new_visual,
-             sizeof (VisualRec)) ;
-    /*
-     * Now, in that same screen, update the screen->allowedDepths member.
-     * In that array, each element represents the visuals applicable to
-     * a given depth. So we need to add an entry matching the new visual
-     * that we are going to add to screen->visuals
-     */
-    for (i=0; i<screen->numDepths; i++) {
-        VisualID *vids=NULL;
-        DepthPtr cur_depth=NULL ;
-        /*find the entry matching a_depth*/
-        if (screen->allowedDepths[i].depth != a_depth)
-            continue ;
-        cur_depth = &screen->allowedDepths[i];
-        /*
-         * extend the list of visual IDs in that entry,
-         * so to add a_new_id in there.
-         */
-        vids = xrealloc (cur_depth->vids,
-                         (cur_depth->numVids+1)*sizeof (VisualID));
-        if (!vids) {
-            EPHYR_LOG_ERROR ("failed to realloc numids\n") ;
-            goto out ;
-        }
-        vids[cur_depth->numVids] = a_new_id ;
-        /*
-         * Okay now commit our change.
-         * Do really update screen->allowedDepths[i]
-         */
-        cur_depth->numVids++ ;
-        cur_depth->vids = vids ;
-        found_depth=TRUE;
-    }
-    if (!found_depth) {
-        EPHYR_LOG_ERROR ("failed to update screen[%d]->allowedDepth\n",
-                         a_screen) ;
-        goto out ;
-    }
-    /*
-     * Commit our change to screen->visuals
-     */
-    xfree (screen->visuals) ;
-    screen->visuals = new_visuals ;
-    screen->numVisuals++ ;
-    new_visuals = NULL ;
-
-    is_ok = TRUE ;
-out:
-    if (new_visuals) {
-        xfree (new_visuals) ;
-        new_visuals = NULL ;
-    }
-    EPHYR_LOG ("leave\n") ; 
-    return is_ok ;
-}
-
-/**
- * Duplicates the visuals of the host X server.
- * This is necessary to have visuals that have the same
- * ID as those of the host X. It is important to have that for
- * GLX.
- */
-static Bool
-EphyrMirrorHostVisuals (void)
-{
-    Bool is_ok=FALSE;
-    EphyrHostVisualInfo  *visuals=NULL;
-    int nb_visuals=0, i=0;
-
-    EPHYR_LOG ("enter\n") ;
-    if (!hostx_get_visuals_info (&visuals, &nb_visuals)) {
-        EPHYR_LOG_ERROR ("failed to get host visuals\n") ;
-        goto out ;
-    }
-    for (i=0; i<nb_visuals; i++) {
-        if (!EphyrDuplicateVisual (visuals[i].screen,
-                                   visuals[i].depth,
-                                   visuals[i].class,
-                                   visuals[i].bits_per_rgb,
-                                   visuals[i].colormap_size,
-                                   visuals[i].red_mask,
-                                   visuals[i].green_mask,
-                                   visuals[i].blue_mask,
-                                   visuals[i].visualid)) {
-            EPHYR_LOG_ERROR ("failed to duplicate host visual %d\n",
-                             (int)visuals[i].visualid) ;
-        }
-    }
-
-    is_ok = TRUE ;
-out:
-    EPHYR_LOG ("leave\n") ;
-    return is_ok;
 }
 
 

@@ -110,6 +110,10 @@ typedef struct {
     int visualid ;
 } EphyrHostWindowAttributes;
 
+typedef struct {
+    int x,y,width,height;
+} EphyrBox;
+
 int
 hostx_want_screen_size(EphyrScreenInfo screen, int *width, int *height);
 
@@ -213,5 +217,16 @@ hostx_allocate_resource_id_peer (int a_local_resource_id,
 int
 hostx_get_resource_id_peer (int a_local_resource_id,
                             int *a_remote_resource_id) ;
+
+int hostx_create_window (EphyrBox *a_geometry,
+                         int a_visual_id,
+                         int *a_host_win /*out parameter*/) ;
+
+int hostx_destroy_window (int a_win) ;
+
+int hostx_set_window_geometry (int a_win, EphyrBox *a_geo) ;
+
+int hostx_lookup_peer_window (void *a_local_window,
+                              int *a_host_peer /*out parameter*/) ;
 
 #endif

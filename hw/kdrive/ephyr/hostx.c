@@ -1132,3 +1132,86 @@ hostx_get_resource_id_peer (int a_local_resource_id,
     return FALSE ;
 }
 
+int
+hostx_create_window (EphyrBox *a_geometry,
+                     int a_visual_id,
+                     int *a_host_peer /*out parameter*/)
+{
+    Bool is_ok=FALSE ;
+    Display *dpy=hostx_get_display () ;
+    XVisualInfo *visual_info=NULL, visual_info_templ;
+    int visual_mask=VisualIDMask ;
+    Window win=None ;
+    int nb_visuals=0, winmask=0;
+    XSetWindowAttributes attrs;
+
+    EPHYR_RETURN_VAL_IF_FAIL (dpy && a_geometry, FALSE) ;
+
+    EPHYR_LOG ("enter\n") ;
+
+     /*get visual*/
+    memset (&visual_info, 0, sizeof (visual_info)) ;
+    visual_info_templ.visualid = a_visual_id ;
+    visual_info = XGetVisualInfo (dpy, visual_mask,
+                                  &visual_info_templ,
+                                  &nb_visuals) ;
+    if (!visual_info) {
+        EPHYR_LOG_ERROR ("argh, could not find a remote visual with id:%d\n",
+                         a_visual_id) ;
+        goto out ;
+    }
+    memset (&attrs, 0, sizeof (attrs)) ;
+    attrs.colormap = XCreateColormap (dpy,
+                                      RootWindow (dpy,
+                                                  visual_info->screen),
+                                      visual_info->visual,
+                                      AllocNone) ;
+    winmask = CWColormap;
+
+    win = XCreateWindow (dpy, hostx_get_window (),
+                         a_geometry->x, a_geometry->y,
+                         a_geometry->width, a_geometry->height, 0,
+                         visual_info->depth, InputOutput,
+                         visual_info->visual, winmask, &attrs) ;
+    if (win == None) {
+        EPHYR_LOG_ERROR ("failed to create peer window\n") ;
+        goto out ;
+    }
+    XFlush (dpy) ;
+    XMapWindow (dpy, win) ;
+    *a_host_peer = win ;
+    is_ok = TRUE ;
+out:
+    EPHYR_LOG ("leave\n") ;
+    return is_ok ;
+}
+
+int
+hostx_destroy_window (int a_win)
+{
+    Display *dpy=hostx_get_display () ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (dpy, FALSE) ;
+    XDestroyWindow (dpy, a_win) ;
+    XFlush (dpy) ;
+    return TRUE ;
+}
+
+int
+hostx_set_window_geometry (int a_win, EphyrBox *a_geo)
+{
+    Display *dpy=hostx_get_display ();
+
+    EPHYR_RETURN_VAL_IF_FAIL (dpy && a_geo, FALSE) ;
+
+    EPHYR_LOG ("enter. x,y,w,h:(%d,%d,%d,%d)\n",
+               a_geo->x, a_geo->y,
+               a_geo->width, a_geo->height) ;
+
+    XMoveWindow (dpy, a_win, a_geo->x, a_geo->y) ;
+    XResizeWindow (dpy, a_win, a_geo->width, a_geo->height) ;
+    XFlush (dpy) ;
+    EPHYR_LOG ("leave\n") ;
+    return TRUE;
+}
+

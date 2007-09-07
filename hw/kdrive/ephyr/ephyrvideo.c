@@ -64,7 +64,9 @@ static Bool DoSimpleClip (BoxPtr a_dst_drw,
 
 static Bool ephyrLocalAtomToHost (int a_local_atom, int *a_host_atom) ;
 
+/*
 static Bool ephyrHostAtomToLocal (int a_host_atom, int *a_local_atom) ;
+*/
 
 static EphyrXVPriv* ephyrXVPrivNew (void) ;
 static void ephyrXVPrivDelete (EphyrXVPriv *a_this) ;
