@@ -1688,10 +1688,8 @@ AC_MSG_CHECKING([whether to build XDarwin (Mac OS X) DDX])
 if test "x$XDARWIN" = xauto; then
 	case $host_os in
 		darwin*) XDARWIN="yes" ;;
-		*) XWIN="no" ;;
+		*) XDARWIN="no" ;;
 	esac
-	XWIN_LIBS="$FB_LIB $XEXT_LIB $CONFIG_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $DAMAGE_LIB $LAYER_LIB $XPSTUBS_LIB $SHADOW_LIB"
-	AC_SUBST([XWIN_LIBS])
 fi
 AC_MSG_RESULT([$XDARWIN])
 
