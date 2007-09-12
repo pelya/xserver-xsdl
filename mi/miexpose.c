@@ -592,22 +592,30 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
     BoxPtr	pbox;
     xRectangle	*prect;
     int		numRects;
-    int		tile_x_off = 0, tile_y_off = 0;
-    int		draw_x_off = 0, draw_y_off = 0;
+    /*
+     * Distance from screen to destination drawable, use this
+     * to adjust rendering coordinates which come in in screen space
+     */
+    int		draw_x_off, draw_y_off;
+    /*
+     * Tile offset for drawing; these need to align the tile
+     * to the appropriate window origin
+     */
+    int		tile_x_off, tile_y_off;
     PixUnion	fill;
     Bool	solid = TRUE;
     DrawablePtr	drawable = &pWin->drawable;
-
-    draw_x_off = pWin->drawable.x;
-    draw_y_off = pWin->drawable.y;
 
     while (pWin->backgroundState == ParentRelative)
         pWin = pWin->parent;
 
     if (what == PW_BACKGROUND)
     {
-	tile_x_off = -pWin->drawable.x;
-	tile_y_off = -pWin->drawable.y;
+	draw_x_off = drawable->x;
+	draw_y_off = drawable->y;
+
+	tile_x_off = 0;
+	tile_y_off = 0;
 	fill = pWin->background;
 	switch (pWin->backgroundState) {
 	case None:
@@ -619,16 +627,21 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
     }
     else
     {
-	PixmapPtr   pPixmap;
+	PixmapPtr   pixmap;
 
+	tile_x_off = drawable->x;
+	tile_y_off = drawable->y;
+	
 	/* servers without pixmaps draw their own borders */
 	if (!pScreen->GetWindowPixmap)
 	    return;
-	pPixmap = (*pScreen->GetWindowPixmap) (pWin);
-	drawable = &pPixmap->drawable;
+	pixmap = (*pScreen->GetWindowPixmap) ((WindowPtr) drawable);
+	drawable = &pixmap->drawable;
 #ifdef COMPOSITE
-	draw_x_off = -pPixmap->screen_x;
-	draw_y_off = -pPixmap->screen_y;
+	draw_x_off = pixmap->screen_x;
+	draw_y_off = pixmap->screen_y;
+	tile_x_off -= draw_x_off;
+	tile_y_off -= draw_y_off;
 #else
 	draw_x_off = 0;
 	draw_y_off = 0;
@@ -650,8 +663,8 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
     {
 	gcval[1].val = FillTiled;
 	gcval[2].ptr = (pointer)fill.pixmap;
-	gcval[3].val = tile_x_off + draw_x_off;
-	gcval[4].val = tile_y_off + draw_y_off;
+	gcval[3].val = tile_x_off;
+	gcval[4].val = tile_y_off;
 	gcmask |= GCFillStyle | GCTile | GCTileStipXOrigin | GCTileStipYOrigin;
     }
 
@@ -674,8 +687,8 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
     pbox = REGION_RECTS(prgn);
     for (i= numRects; --i >= 0; pbox++, prect++)
     {
-	prect->x = pbox->x1 + draw_x_off;
-	prect->y = pbox->y1 + draw_y_off;
+	prect->x = pbox->x1 - draw_x_off;
+	prect->y = pbox->y1 - draw_y_off;
 	prect->width = pbox->x2 - pbox->x1;
 	prect->height = pbox->y2 - pbox->y1;
     }
