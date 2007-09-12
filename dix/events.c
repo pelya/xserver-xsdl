@@ -2246,9 +2246,14 @@ FixUpEventFromWindow(
 }
 
 /**
- * Deliver events caused by input devices. Called for all core input events
- * and XI events. No filtering of events happens before DeliverDeviceEvents(),
- * it will be called for any event that comes out of the event queue.
+ * Deliver events caused by input devices. Called for both core input events
+ * and XI events. 
+ * For events from a non-grabbed, non-focus device, DeliverDeviceEvents is
+ * called directly from the processInputProc.
+ * For grabbed devices, DeliverGrabbedEvent is called first, and _may_ call
+ * DeliverDeviceEvents.
+ * For focused events, DeliverFocusedEvent is called first, and _may_ call
+ * DeliverDeviceEvents.
  *
  * @param pWin Window to deliver event to.
  * @param xE Events to deliver.
@@ -2257,6 +2262,8 @@ FixUpEventFromWindow(
  * @param dev The device that is responsible for the event.
  * @param count number of events in xE.
  *
+ * @see DeliverGrabbedEvent
+ * @see DeliverFocusedEvent
  */
 int
 DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab, 
