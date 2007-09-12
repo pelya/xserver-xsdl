@@ -1173,9 +1173,10 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
 #endif
 	pSprite->hotPhys.x = XE_KBPTR.rootX;
 	pSprite->hotPhys.y = XE_KBPTR.rootY;
-	/* do motion compression */
+	/* do motion compression, but not if from different devices */
 	if (tail &&
 	    (tail->event->u.u.type == MotionNotify) &&
+            (tail->device == device) &&
 	    (tail->pScreen == pSprite->hotPhys.pScreen))
 	{
 	    tail->event->u.keyButtonPointer.rootX = pSprite->hotPhys.x;
