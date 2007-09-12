@@ -115,7 +115,7 @@ FreeCursor(pointer value, XID cid)
     CursorPtr 	pCurs = (CursorPtr)value;
 
     ScreenPtr	pscr;
-    DeviceIntPtr pDev; 
+    DeviceIntPtr pDev = NULL; /* unused anyway */
 
     if ( --pCurs->refcnt != 0)
 	return(Success);
