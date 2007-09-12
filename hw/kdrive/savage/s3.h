@@ -470,7 +470,6 @@ void	s3CursorDisable (ScreenPtr pScreen);
 void	s3CursorFini (ScreenPtr pScreen);
 void	s3RecolorCursor (ScreenPtr pScreen, int ndef, xColorItem *pdefs);
 
-void	s3DumbPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
 void	s3DumbCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
     
 Bool	s3DrawInit (ScreenPtr pScreen);

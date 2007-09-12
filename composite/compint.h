@@ -123,7 +123,6 @@ typedef struct _CompScreen {
     DestroyWindowProcPtr	DestroyWindow;
     RealizeWindowProcPtr	RealizeWindow;
     UnrealizeWindowProcPtr	UnrealizeWindow;
-    PaintWindowProcPtr		PaintWindowBackground;
     ClipNotifyProcPtr		ClipNotify;
     /*
      * Called from ConfigureWindow, these
@@ -254,9 +253,6 @@ compRealizeWindow (WindowPtr pWin);
 
 Bool
 compUnrealizeWindow (WindowPtr pWin);
-
-void
-compPaintWindowBackground (WindowPtr pWin, RegionPtr pRegion, int what);
 
 void
 compClipNotify (WindowPtr pWin, int dx, int dy);

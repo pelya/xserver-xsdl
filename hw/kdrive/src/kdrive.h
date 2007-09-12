@@ -612,9 +612,6 @@ KdCheckGetSpans (DrawablePtr pDrawable,
 		 char *pdstStart);
 
 void
-KdCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
-
-void
 KdCheckCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
 
 void

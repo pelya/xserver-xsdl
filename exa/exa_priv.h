@@ -101,10 +101,8 @@ typedef struct {
     CloseScreenProcPtr 		 SavedCloseScreen;
     GetImageProcPtr 		 SavedGetImage;
     GetSpansProcPtr 		 SavedGetSpans;
-    PaintWindowBackgroundProcPtr SavedPaintWindowBackground;
     CreatePixmapProcPtr 	 SavedCreatePixmap;
     DestroyPixmapProcPtr 	 SavedDestroyPixmap;
-    PaintWindowBorderProcPtr 	 SavedPaintWindowBorder;
     CopyWindowProcPtr 		 SavedCopyWindow;
     ChangeWindowAttributesProcPtr SavedChangeWindowAttributes;
     BitmapToRegionProcPtr        SavedBitmapToRegion;
@@ -272,9 +270,6 @@ ExaCheckGetSpans (DrawablePtr pDrawable,
 		 int nspans,
 		 char *pdstStart);
 
-void
-ExaCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what);
-
 CARD32
 exaGetPixmapFirstPixel (PixmapPtr pPixmap); 
 
@@ -295,9 +290,6 @@ exaCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc);
 Bool
 exaFillRegionTiled (DrawablePtr	pDrawable, RegionPtr pRegion, PixmapPtr pTile,
 		    DDXPointPtr pPatOrg, CARD32 planemask, CARD32 alu);
-
-void
-exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what);
 
 void
 exaShmPutImage(DrawablePtr pDrawable, GCPtr pGC, int depth, unsigned int format,

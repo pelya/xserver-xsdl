@@ -214,15 +214,7 @@ Bool
 xf4bppCreateWindowForXYhardware(pWin)
 register WindowPtr pWin ;
 {
-    register mfbPrivWin *pPrivWin;
-
     TRACE(("xf4bppCreateWindowForXYhardware (pWin= 0x%x)\n", pWin));
-
-    pPrivWin = (mfbPrivWin *)(pWin->devPrivates[mfbGetWindowPrivateIndex()].ptr);
-    pPrivWin->pRotatedBorder = NullPixmap;
-    pPrivWin->pRotatedBackground = NullPixmap;
-    pPrivWin->fastBackground = 0;
-    pPrivWin->fastBorder = 0;
 
     return TRUE;
 }

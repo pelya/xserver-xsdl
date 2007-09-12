@@ -217,7 +217,7 @@ static void QuartzUpdateScreens(void)
     pRoot = WindowTable[pScreen->myNum];
     AppleWMSetScreenOrigin(pRoot);
     pScreen->ResizeWindow(pRoot, x - sx, y - sy, width, height, NULL);
-    pScreen->PaintWindowBackground(pRoot, &pRoot->borderClip,  PW_BACKGROUND);
+    miPaintWindow(pRoot, &pRoot->borderClip,  PW_BACKGROUND);
 //    QuartzIgnoreNextWarpCursor();
     DefineInitialRootWindow(pRoot);
 

@@ -604,8 +604,6 @@ exaCloseScreen(int i, ScreenPtr pScreen)
     pScreen->CloseScreen = pExaScr->SavedCloseScreen;
     pScreen->GetImage = pExaScr->SavedGetImage;
     pScreen->GetSpans = pExaScr->SavedGetSpans;
-    pScreen->PaintWindowBackground = pExaScr->SavedPaintWindowBackground;
-    pScreen->PaintWindowBorder = pExaScr->SavedPaintWindowBorder;
     pScreen->CreatePixmap = pExaScr->SavedCreatePixmap;
     pScreen->DestroyPixmap = pExaScr->SavedDestroyPixmap;
     pScreen->CopyWindow = pExaScr->SavedCopyWindow;
@@ -758,12 +756,6 @@ exaDriverInit (ScreenPtr		pScreen,
 
     pExaScr->SavedBitmapToRegion = pScreen->BitmapToRegion;
     pScreen->BitmapToRegion = exaBitmapToRegion;
-
-    pExaScr->SavedPaintWindowBackground = pScreen->PaintWindowBackground;
-    pScreen->PaintWindowBackground = exaPaintWindow;
-
-    pExaScr->SavedPaintWindowBorder = pScreen->PaintWindowBorder;
-    pScreen->PaintWindowBorder = exaPaintWindow;
 
 #ifdef RENDER
     if (ps) {

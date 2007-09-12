@@ -717,8 +717,6 @@ winFinishScreenInitNativeGDI (int index,
   pScreen->UnrealizeWindow = winUnmapWindowNativeGDI;
 
   /* Paint window */
-  pScreen->PaintWindowBackground = miPaintWindow;
-  pScreen->PaintWindowBorder = miPaintWindow;
   pScreen->CopyWindow = winCopyWindowNativeGDI;
 
   /* Fonts */

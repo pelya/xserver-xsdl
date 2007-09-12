@@ -477,8 +477,8 @@ typedef struct _Screen {
     ValidateTreeProcPtr		ValidateTree;
     PostValidateTreeProcPtr	PostValidateTree;
     WindowExposuresProcPtr	WindowExposures;
-    PaintWindowBackgroundProcPtr PaintWindowBackground;
-    PaintWindowBorderProcPtr	PaintWindowBorder;
+    PaintWindowBackgroundProcPtr PaintWindowBackground; /** unused */
+    PaintWindowBorderProcPtr	PaintWindowBorder; /** unused */
     CopyWindowProcPtr		CopyWindow;
     ClearToBackgroundProcPtr	ClearToBackground;
     ClipNotifyProcPtr		ClipNotify;

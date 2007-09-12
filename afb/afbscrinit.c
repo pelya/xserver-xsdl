@@ -71,7 +71,6 @@ SOFTWARE.
 #ifdef PIXMAP_PER_WINDOW
 int frameWindowPrivateIndex;
 #endif
-int afbWindowPrivateIndex;
 int afbGCPrivateIndex;
 int afbScreenPrivateIndex;
 
@@ -140,20 +139,16 @@ afbAllocatePrivates(ScreenPtr pScreen, int *pWinIndex, int *pGCIndex)
 #ifdef PIXMAP_PER_WINDOW
 		frameWindowPrivateIndex = AllocateWindowPrivateIndex();
 #endif
-		afbWindowPrivateIndex = AllocateWindowPrivateIndex();
 		afbGCPrivateIndex = AllocateGCPrivateIndex();
 		afbGeneration = serverGeneration;
 	}
-	if (pWinIndex)
-		*pWinIndex = afbWindowPrivateIndex;
 	if (pGCIndex)
 		*pGCIndex = afbGCPrivateIndex;
 
 	afbScreenPrivateIndex = AllocateScreenPrivateIndex();
 	pScreen->GetWindowPixmap = afbGetWindowPixmap;
 	pScreen->SetWindowPixmap = afbSetWindowPixmap;
-	return(AllocateWindowPrivate(pScreen, afbWindowPrivateIndex, sizeof(afbPrivWin)) &&
-	       AllocateGCPrivate(pScreen, afbGCPrivateIndex, sizeof(afbPrivGC)));
+	return(AllocateGCPrivate(pScreen, afbGCPrivateIndex, sizeof(afbPrivGC)));
 }
 
 /* dts * (inch/dot) * (25.4 mm / inch) = mm */
@@ -198,8 +193,6 @@ afbScreenInit(register ScreenPtr pScreen, pointer pbits, int xsize, int ysize, i
 	pScreen->ChangeWindowAttributes = afbChangeWindowAttributes;
 	pScreen->RealizeWindow = afbMapWindow;
 	pScreen->UnrealizeWindow = afbUnmapWindow;
-	pScreen->PaintWindowBackground = afbPaintWindow;
-	pScreen->PaintWindowBorder = afbPaintWindow;
 	pScreen->CopyWindow = afbCopyWindow;
 	pScreen->CreatePixmap = afbCreatePixmap;
 	pScreen->DestroyPixmap = afbDestroyPixmap;

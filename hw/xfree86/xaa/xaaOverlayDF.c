@@ -28,7 +28,6 @@
 /* Screen funcs */
 
 static void XAAOverCopyWindow(WindowPtr, DDXPointRec, RegionPtr);
-static void XAAOverPaintWindow(WindowPtr, RegionPtr, int);
 static void XAAOverWindowExposures(WindowPtr, RegionPtr, RegionPtr);
 
 static int XAAOverStippledFillChooser(GCPtr);
@@ -194,8 +193,6 @@ XAAInitDualFramebufferOverlay(
     /* Overwrite key screen functions.  The XAA core will clean up */
 
     pScreen->CopyWindow = XAAOverCopyWindow;
-    pScreen->PaintWindowBackground = XAAOverPaintWindow;
-    pScreen->PaintWindowBorder = XAAOverPaintWindow;
     pScreen->WindowExposures = XAAOverWindowExposures;
 
     pOverPriv->StippledFillChooser = infoRec->StippledFillChooser;
@@ -406,56 +403,6 @@ XAAOverCopyWindow(
 	}
       }
       REGION_UNINIT(pScreen, &rgnDst);
-    }
-}
-
-
-static void
-XAAOverPaintWindow(
-    WindowPtr   pWin,
-    RegionPtr   pRegion,
-    int         what
-){
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-    XAAOverlayPtr pOverPriv = GET_OVERLAY_PRIV(pScreen);
-    XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
-    ScrnInfoPtr pScrn = infoRec->pScrn;
-
-    if(pScrn->vtSema) {
-	if(what == PW_BACKGROUND) {
-	    SWITCH_DEPTH(pWin->drawable.depth);
-	    (*infoRec->PaintWindowBackground)(pWin, pRegion, what);
-	    return;
-	} else {
-	    if(pWin->drawable.bitsPerPixel == 8) {
-		SWITCH_DEPTH(8);
-		(*infoRec->PaintWindowBorder)(pWin, pRegion, what);
-		return;
-	    } else if (infoRec->FillSolidRects)  {
-		SWITCH_DEPTH(8);
-		(*infoRec->FillSolidRects)(pScrn, pScrn->colorKey, GXcopy, 
-			~0, REGION_NUM_RECTS(pRegion), REGION_RECTS(pRegion));
-
-		SWITCH_DEPTH(pWin->drawable.depth);
-		(*infoRec->PaintWindowBorder)(pWin, pRegion, what);
-		return;
-	    } 
-	}
-
-	if(infoRec->NeedToSync) {
-	    (*infoRec->Sync)(infoRec->pScrn);
-	    infoRec->NeedToSync = FALSE;
-	}
-    }
-
-    if(what == PW_BACKGROUND) {
-	XAA_SCREEN_PROLOGUE (pScreen, PaintWindowBackground);
-	(*pScreen->PaintWindowBackground) (pWin, pRegion, what);
-	XAA_SCREEN_EPILOGUE(pScreen, PaintWindowBackground, XAAOverPaintWindow);
-    } else {
-	XAA_SCREEN_PROLOGUE (pScreen, PaintWindowBorder);
-	(*pScreen->PaintWindowBorder) (pWin, pRegion, what);
-	XAA_SCREEN_EPILOGUE(pScreen, PaintWindowBorder, XAAOverPaintWindow);
     }
 }
 

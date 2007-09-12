@@ -27,11 +27,6 @@
 Bool
 cfb8_32CreateWindow(WindowPtr pWin)
 {
-    cfbPrivWin *pPrivWin = cfbGetWindowPrivate(pWin);
-
-    pPrivWin->fastBackground = FALSE;
-    pPrivWin->fastBorder = FALSE;
-
     pWin->drawable.bitsPerPixel = 32;
     return TRUE;
 }

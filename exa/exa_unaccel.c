@@ -278,23 +278,6 @@ ExaCheckGetSpans (DrawablePtr pDrawable,
     exaFinishAccess (pDrawable, EXA_PREPARE_SRC);
 }
 
-/* XXX: Note the lack of a prepare on the tile, if the window has a tiled
- * background.  This function happens to only be called if pExaScr->swappedOut,
- * so we actually end up not having to do it since the tile won't be in fb.
- * That doesn't make this not dirty, though.
- */
-void
-ExaCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    EXA_FALLBACK(("from %p (%c)\n", pWin,
-		  exaDrawableLocation(&pWin->drawable)));
-    exaPrepareAccess (&pWin->drawable, EXA_PREPARE_DEST);
-    exaPrepareAccessWindow(pWin);
-    fbPaintWindow (pWin, pRegion, what);
-    exaFinishAccessWindow(pWin);
-    exaFinishAccess (&pWin->drawable, EXA_PREPARE_DEST);
-}
-
 void
 ExaCheckComposite (CARD8      op,
                    PicturePtr pSrc,

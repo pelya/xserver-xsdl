@@ -84,8 +84,6 @@ typedef struct {
     GetSpansProcPtr		GetSpans;
     CreateGCProcPtr		CreateGC;
 
-    PaintWindowBackgroundProcPtr PaintWindowBackground;
-    PaintWindowBorderProcPtr	PaintWindowBorder;
     CopyWindowProcPtr		CopyWindow;
 
     GetWindowPixmapProcPtr	GetWindowPixmap;

@@ -307,8 +307,7 @@ miHandleExposures(pSrcDrawable, pDstDrawable,
 	    /* PaintWindowBackground doesn't clip, so we have to */
 	    REGION_INTERSECT(pscr, &rgnExposed, &rgnExposed, &pWin->clipList);
 	}
-	(*pWin->drawable.pScreen->PaintWindowBackground)(
-			(WindowPtr)pDstDrawable, &rgnExposed, PW_BACKGROUND);
+	miPaintWindow((WindowPtr)pDstDrawable, &rgnExposed, PW_BACKGROUND);
 
 	if (extents)
 	{
@@ -517,7 +516,7 @@ miWindowExposures(pWin, prgn, other_exposed)
 	    REGION_INTERSECT( pWin->drawable.pScreen, prgn, prgn, &pWin->clipList);
 	}
 	if (prgn && !REGION_NIL(prgn))
-	    (*pWin->drawable.pScreen->PaintWindowBackground)(pWin, prgn, PW_BACKGROUND);
+	    miPaintWindow(pWin, prgn, PW_BACKGROUND);
 	if (clientInterested && exposures && !REGION_NIL(exposures))
 	    miSendExposures(pWin, exposures,
 			    pWin->drawable.x, pWin->drawable.y);
@@ -534,60 +533,13 @@ miWindowExposures(pWin, prgn, other_exposed)
 	REGION_DESTROY( pWin->drawable.pScreen, exposures);
 }
 
-
-/*
-    this code is highly unlikely.  it is not haile selassie.
-
-    there is some hair here.  we can't just use the window's
-clip region as it is, because if we are painting the border,
-the border is not in the client area and so we will be excluded
-when we validate the GC, and if we are painting a parent-relative
-background, the area we want to paint is in some other window.
-since we trust the code calling us to tell us to paint only areas
-that are really ours, we will temporarily give the window a
-clipList the size of the whole screen and an origin at (0,0).
-this more or less assumes that ddX code will do translation
-based on the window's absolute position, and that ValidateGC will
-look at clipList, and that no other fields from the
-window will be used.  it's not possible to just draw
-in the root because it may be a different depth.
-
-to get the tile to align correctly we set the GC's tile origin to
-be the (x,y) of the window's upper left corner, after which we
-get the right bits when drawing into the root.
-
-because the clip_mask is being set to None, we may call DoChangeGC with
-fPointer set true, thus we no longer need to install the background or
-border tile in the resource table.
-*/
-
-static RESTYPE ResType = 0;
-static int numGCs = 0;
-static GCPtr	screenContext[MAXSCREENS];
-
-/*ARGSUSED*/
-static int
-tossGC (
-    pointer value,
-    XID id)
-{
-    GCPtr pGC = (GCPtr)value;
-    screenContext[pGC->pScreen->myNum] = (GCPtr)NULL;
-    FreeGC (pGC, id);
-    numGCs--;
-    if (!numGCs)
-	ResType = 0;
-
-    return 0;
-}
-
 _X_EXPORT void
 miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
 {
     ScreenPtr	pScreen = pWin->drawable.pScreen;
     ChangeGCVal gcval[5];
     BITS32	gcmask;
-    PixmapPtr	pPixmap = (*pScreen->GetWindowPixmap) (pWin);
+    PixmapPtr	pPixmap;
     GCPtr	pGC;
     int		i;
     BoxPtr	pbox;
@@ -595,8 +547,7 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
     int		numRects;
     int		xoff, yoff;
 
-    while (pWin->backgroundState == ParentRelative)
-        pWin = pWin->parent;
+    pPixmap = (*pScreen->GetWindowPixmap) (pWin);
 
 #ifdef COMPOSITE
     xoff = -pPixmap->screen_x;
@@ -610,6 +561,9 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
 
     if (what == PW_BACKGROUND)
     {
+	while (pWin->backgroundState == ParentRelative)
+	    pWin = pWin->parent;
+
 	switch (pWin->backgroundState) {
 	case None:
 	    return;

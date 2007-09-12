@@ -1304,54 +1304,6 @@ fallback:
     return TRUE;
 }
 
-void
-exaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    ExaScreenPriv (pWin->drawable.pScreen);
-
-    if (REGION_NIL(pRegion))
-	return;
-
-    if (!pExaScr->swappedOut) {
-	DDXPointRec zeros = { 0, 0 };
-
-        switch (what) {
-        case PW_BACKGROUND:
-            switch (pWin->backgroundState) {
-            case None:
-                return;
-            case ParentRelative:
-                do {
-                    pWin = pWin->parent;
-                } while (pWin->backgroundState == ParentRelative);
-                (*pWin->drawable.pScreen->PaintWindowBackground)(pWin, pRegion,
-                                                                 what);
-                return;
-            case BackgroundPixel:
-		exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->background.pixel,
-				   FB_ALLONES, GXcopy);
-                return;
-            case BackgroundPixmap:
-                exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->background.pixmap,
-				   &zeros, FB_ALLONES, GXcopy);
-                return;
-            }
-            break;
-        case PW_BORDER:
-            if (pWin->borderIsPixel) {
-                exaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->border.pixel,
-				   FB_ALLONES, GXcopy);
-                return;
-            } else {
-                exaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->border.pixmap,
-				   &zeros, FB_ALLONES, GXcopy);
-                return;
-            }
-            break;
-        }
-    }
-    ExaCheckPaintWindow (pWin, pRegion, what);
-}
 
 /**
  * Accelerates GetImage for solid ZPixmap downloads from framebuffer memory.

@@ -506,11 +506,6 @@ extern void afbCopyRotatePixmap(
 	int /*xrot*/,
 	int /*yrot*/
 );
-extern void afbPaintWindow(
-	WindowPtr /*pWin*/,
-	RegionPtr /*pRegion*/,
-	int /*what*/
-);
 /* afbpolypnt.c */
 
 extern void afbPolyPoint(
@@ -743,16 +738,6 @@ extern int frameWindowPrivateIndex;		/* index into Window private array */
 
 #define afbGetGCPrivate(pGC) \
 	((afbPrivGC *)((pGC)->devPrivates[afbGCPrivateIndex].ptr))
-
-/* private field of window */
-typedef struct {
-	unsigned char fastBorder;	/* non-zero if border tile is 32 bits wide */
-	unsigned char fastBackground;
-	unsigned short unused; /* pad for alignment with Sun compiler */
-	DDXPointRec oldRotate;
-	PixmapPtr pRotatedBackground;
-	PixmapPtr pRotatedBorder;
-} afbPrivWin;
 
 /* Common macros for extracting drawing information */
 

@@ -34,7 +34,6 @@ static Bool OverlayCreateGC(GCPtr pGC);
 static Bool OverlayDestroyPixmap(PixmapPtr);
 static PixmapPtr OverlayCreatePixmap(ScreenPtr, int, int, int);
 static Bool OverlayChangeWindowAttributes(WindowPtr, unsigned long);
-static void OverlayPaintWindow(WindowPtr, RegionPtr, int);
 
 /** Funcs **/
 static void OverlayValidateGC(GCPtr, unsigned long, DrawablePtr);
@@ -159,8 +158,6 @@ typedef struct {
    CreatePixmapProcPtr		CreatePixmap;
    DestroyPixmapProcPtr		DestroyPixmap;
    ChangeWindowAttributesProcPtr ChangeWindowAttributes;
-   PaintWindowBackgroundProcPtr	PaintWindowBackground;
-   PaintWindowBorderProcPtr	PaintWindowBorder;
    int				LockPrivate;
 } OverlayScreenRec, *OverlayScreenPtr;
 
@@ -284,16 +281,12 @@ xf86Overlay8Plus32Init (ScreenPtr pScreen)
     pScreenPriv->CreatePixmap = pScreen->CreatePixmap;
     pScreenPriv->DestroyPixmap = pScreen->DestroyPixmap;
     pScreenPriv->ChangeWindowAttributes = pScreen->ChangeWindowAttributes;
-    pScreenPriv->PaintWindowBackground = pScreen->PaintWindowBackground;
-    pScreenPriv->PaintWindowBorder = pScreen->PaintWindowBorder;
 
     pScreen->CreateGC = OverlayCreateGC;
     pScreen->CloseScreen = OverlayCloseScreen;
     pScreen->CreatePixmap = OverlayCreatePixmap; 
     pScreen->DestroyPixmap = OverlayDestroyPixmap; 
     pScreen->ChangeWindowAttributes = OverlayChangeWindowAttributes; 
-    pScreen->PaintWindowBackground = OverlayPaintWindow; 
-    pScreen->PaintWindowBorder = OverlayPaintWindow; 
 
     pScreenPriv->LockPrivate = 0; 
 
@@ -402,8 +395,6 @@ OverlayCloseScreen (int i, ScreenPtr pScreen)
     pScreen->CreatePixmap = pScreenPriv->CreatePixmap;
     pScreen->DestroyPixmap = pScreenPriv->DestroyPixmap;
     pScreen->ChangeWindowAttributes = pScreenPriv->ChangeWindowAttributes;
-    pScreen->PaintWindowBackground = pScreenPriv->PaintWindowBackground;
-    pScreen->PaintWindowBorder = pScreenPriv->PaintWindowBorder;
 
     xfree ((pointer) pScreenPriv);
 
@@ -434,62 +425,6 @@ OverlayChangeWindowAttributes (WindowPtr pWin, unsigned long mask)
 
     return result;
 }
-
-static void
-OverlayPaintWindow(
-  WindowPtr pWin,
-  RegionPtr pReg,
-  int what
-){
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-    OverlayScreenPtr pScreenPriv = OVERLAY_GET_SCREEN_PRIVATE(pScreen);
-    OverlayPixmapPtr pixPriv;
-    PixmapPtr oldPix = NULL;
-
-    if(what == PW_BACKGROUND) {
-	if(pWin->drawable.depth == 8) {
-	   if(pWin->backgroundState == ParentRelative) {
-		do {
-		   pWin = pWin->parent;
-		} while (pWin->backgroundState == ParentRelative);
-	   }
-
-	   if(pWin->backgroundState == BackgroundPixmap) {
-		oldPix = pWin->background.pixmap;
-		pixPriv = OVERLAY_GET_PIXMAP_PRIVATE(oldPix);
-		/* have to do this here because alot of applications
-		   incorrectly assume changes to a pixmap that is
-		   a window background go into effect immediatedly */
-		if(pixPriv->dirty & IS_DIRTY)
-		    OverlayRefreshPixmap(pWin->background.pixmap);
-		pWin->background.pixmap = pixPriv->pix32;
-	   }
-	}
-
-	pScreen->PaintWindowBackground = pScreenPriv->PaintWindowBackground;
-	(*pScreen->PaintWindowBackground) (pWin, pReg, what);
-	pScreen->PaintWindowBackground = OverlayPaintWindow;
-
-	if(oldPix)
-	   pWin->background.pixmap = oldPix;
-    } else {
-	if((pWin->drawable.depth == 8) && !pWin->borderIsPixel) {
-	   oldPix = pWin->border.pixmap;
-	   pixPriv = OVERLAY_GET_PIXMAP_PRIVATE(oldPix);
-	   if(pixPriv->dirty & IS_DIRTY)
-		OverlayRefreshPixmap(pWin->border.pixmap);
-	   pWin->border.pixmap = pixPriv->pix32;
-        }
-
-	pScreen->PaintWindowBorder = pScreenPriv->PaintWindowBorder;
-	(*pScreen->PaintWindowBorder) (pWin, pReg, what);
-	pScreen->PaintWindowBorder = OverlayPaintWindow;
-
-	if(oldPix)
-	   pWin->border.pixmap = oldPix;
-    }
-}
-
 
 /*********************** GC Funcs *****************************/
 

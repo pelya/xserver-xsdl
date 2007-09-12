@@ -32,8 +32,6 @@
 
 #include "picturestr.h"
 
-void SafeAlphaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what);
-
 #ifdef RENDER
 void
 SafeAlphaComposite(CARD8 op, PicturePtr pSrc, PicturePtr pMask, PicturePtr pDst,

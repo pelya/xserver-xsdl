@@ -517,7 +517,6 @@ extern Bool PsUnmapWindow(WindowPtr pWin);
 extern void PsCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
                          RegionPtr prgnSrc);
 extern Bool PsChangeWindowAttributes(WindowPtr pWin, unsigned long mask);
-extern void PsPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what);
 extern Bool PsDestroyWindow(WindowPtr pWin);
 
 /*

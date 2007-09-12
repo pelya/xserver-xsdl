@@ -70,7 +70,6 @@ compCloseScreen (int index, ScreenPtr pScreen)
     pScreen->ChangeBorderWidth = cs->ChangeBorderWidth;
     
     pScreen->ClipNotify = cs->ClipNotify;
-    pScreen->PaintWindowBackground = cs->PaintWindowBackground;
     pScreen->UnrealizeWindow = cs->UnrealizeWindow;
     pScreen->RealizeWindow = cs->RealizeWindow;
     pScreen->DestroyWindow = cs->DestroyWindow;
@@ -430,9 +429,6 @@ compScreenInit (ScreenPtr pScreen)
 
     cs->UnrealizeWindow = pScreen->UnrealizeWindow;
     pScreen->UnrealizeWindow = compUnrealizeWindow;
-
-    cs->PaintWindowBackground = pScreen->PaintWindowBackground;
-    pScreen->PaintWindowBackground = compPaintWindowBackground;
 
     cs->ClipNotify = pScreen->ClipNotify;
     pScreen->ClipNotify = compClipNotify;

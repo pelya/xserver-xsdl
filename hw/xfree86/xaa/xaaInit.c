@@ -147,10 +147,6 @@ XAAInit(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
 	infoRec->GetImage = XAAGetImage;
     if(!infoRec->GetSpans)
 	infoRec->GetSpans = XAAGetSpans;
-    if(!infoRec->PaintWindowBackground)
-	infoRec->PaintWindowBackground = XAAPaintWindow;
-    if(!infoRec->PaintWindowBorder)
-	infoRec->PaintWindowBorder = XAAPaintWindow;
     if(!infoRec->CopyWindow)
 	infoRec->CopyWindow = XAACopyWindow;
 
@@ -162,10 +158,6 @@ XAAInit(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
     pScreen->GetImage = infoRec->GetImage;
     pScreenPriv->GetSpans = pScreen->GetSpans;
     pScreen->GetSpans = infoRec->GetSpans;
-    pScreenPriv->PaintWindowBackground = pScreen->PaintWindowBackground;
-    pScreen->PaintWindowBackground = infoRec->PaintWindowBackground;
-    pScreenPriv->PaintWindowBorder = pScreen->PaintWindowBorder;
-    pScreen->PaintWindowBorder = infoRec->PaintWindowBorder;
     pScreenPriv->CopyWindow = pScreen->CopyWindow;
     pScreen->CopyWindow = infoRec->CopyWindow;
     pScreenPriv->CreatePixmap = pScreen->CreatePixmap;
@@ -236,8 +228,6 @@ XAACloseScreen (int i, ScreenPtr pScreen)
     pScreen->CloseScreen = pScreenPriv->CloseScreen;
     pScreen->GetImage = pScreenPriv->GetImage;
     pScreen->GetSpans = pScreenPriv->GetSpans;
-    pScreen->PaintWindowBackground = pScreenPriv->PaintWindowBackground;
-    pScreen->PaintWindowBorder = pScreenPriv->PaintWindowBorder;
     pScreen->CopyWindow = pScreenPriv->CopyWindow;
     pScreen->WindowExposures = pScreenPriv->WindowExposures;
     pScreen->CreatePixmap = pScreenPriv->CreatePixmap;

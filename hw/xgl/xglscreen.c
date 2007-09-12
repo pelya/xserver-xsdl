@@ -210,8 +210,6 @@ xglScreenInit (ScreenPtr pScreen)
     XGL_SCREEN_WRAP (CreateWindow, xglCreateWindow);
     XGL_SCREEN_WRAP (DestroyWindow, xglDestroyWindow);
     XGL_SCREEN_WRAP (ChangeWindowAttributes, xglChangeWindowAttributes);
-    XGL_SCREEN_WRAP (PaintWindowBackground, xglPaintWindowBackground);
-    XGL_SCREEN_WRAP (PaintWindowBorder, xglPaintWindowBorder);
 
     XGL_SCREEN_WRAP (CreateGC, xglCreateGC);
 

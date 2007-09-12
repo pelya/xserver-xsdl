@@ -93,10 +93,6 @@ fbOverlayWindowExposures (WindowPtr	pWin,
 			  RegionPtr	prgn,
 			  RegionPtr	other_exposed);
 
-void
-fbOverlayPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what);
-
-
 Bool
 fbOverlaySetupScreen(ScreenPtr	pScreen,
 		     pointer	pbits1,

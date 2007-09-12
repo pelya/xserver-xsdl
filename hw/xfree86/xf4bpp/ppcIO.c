@@ -205,8 +205,6 @@ xf4bppScreenInit( pScreen, pbits, virtx, virty, dpix, dpiy, width )
   pScreen-> CreateWindow = xf4bppCreateWindowForXYhardware;
   pScreen-> DestroyWindow = xf4bppDestroyWindow;
   pScreen-> PositionWindow = xf4bppPositionWindow;
-  pScreen-> PaintWindowBackground = xf4bppPaintWindow;
-  pScreen-> PaintWindowBorder = xf4bppPaintWindow;
   pScreen-> CopyWindow = xf4bppCopyWindow;
   pScreen-> CreatePixmap = xf4bppCreatePixmap;
   pScreen-> CreateGC = xf4bppCreateGC;
@@ -219,7 +217,7 @@ xf4bppScreenInit( pScreen, pbits, virtx, virty, dpix, dpiy, width )
   pScreen-> ResolveColor = xf4bppResolveColor;
   mfbFillInScreen(pScreen);
 
-  if (!mfbAllocatePrivates(pScreen, (int*)NULL, (int*)NULL))
+  if (!mfbAllocatePrivates(pScreen, NULL))
 	return FALSE;
 
   if (!miScreenInit(pScreen, pbits, virtx, virty, dpix, dpiy, width,

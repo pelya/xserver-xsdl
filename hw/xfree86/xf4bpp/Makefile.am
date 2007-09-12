@@ -17,7 +17,6 @@ libxf4bpp_la_SOURCES = \
         ppcGetSp.c \
         ppcImg.c \
         ppcPixmap.c \
-        ppcPntWin.c \
         ppcPolyPnt.c \
         ppcQuery.c \
         ppcRslvC.c \

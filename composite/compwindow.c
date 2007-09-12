@@ -99,7 +99,7 @@ compRepaintBorder (ClientPtr pClient, pointer closure)
 
 	REGION_NULL(pScreen, &exposed);
 	REGION_SUBTRACT(pScreen, &exposed, &pWindow->borderClip, &pWindow->winSize);
-	(*pWindow->drawable.pScreen->PaintWindowBorder)(pWindow, &exposed, PW_BORDER);
+	miPaintWindow(pWindow, &exposed, PW_BORDER);
 	REGION_UNINIT(pScreen, &exposed);
     }
     return TRUE;
@@ -238,21 +238,6 @@ compUnrealizeWindow (WindowPtr pWin)
     pScreen->UnrealizeWindow = compUnrealizeWindow;
     compCheckTree (pWin->drawable.pScreen);
     return ret;
-}
-
-void
-compPaintWindowBackground (WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    ScreenPtr		pScreen = pWin->drawable.pScreen;
-    CompSubwindowsPtr	csw = GetCompSubwindows (pWin);
-    CompScreenPtr	cs = GetCompScreen (pScreen);
-    
-    if (csw && csw->update == CompositeRedirectManual)
-	return;
-    pScreen->PaintWindowBackground = cs->PaintWindowBackground;
-    (*pScreen->PaintWindowBackground) (pWin, pRegion, what);
-    cs->PaintWindowBackground = pScreen->PaintWindowBackground;
-    pScreen->PaintWindowBackground = compPaintWindowBackground;
 }
 
 /*

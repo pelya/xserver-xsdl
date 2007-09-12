@@ -865,9 +865,10 @@ miOverlayHandleExposures(WindowPtr pWin)
 	while (1) {
 	    if((mival = pTree->valdata)) {
 		if(!((*pPriv->InOverlay)(pTree->pWin))) {
-		    if (REGION_NOTEMPTY(pScreen, &mival->borderExposed))
-			(*pWin->drawable.pScreen->PaintWindowBorder)(
-				pTree->pWin, &mival->borderExposed, PW_BORDER);
+		    if (REGION_NOTEMPTY(pScreen, &mival->borderExposed)) {
+			miPaintWindow(pTree->pWin, &mival->borderExposed,
+				      PW_BORDER);
+		    }
 		    REGION_UNINIT(pScreen, &mival->borderExposed);
 
 		    (*WindowExposures)(pTree->pWin,&mival->exposed,NullRegion);
@@ -903,10 +904,10 @@ miOverlayHandleExposures(WindowPtr pWin)
 				REGION_RECTS(&val->after.exposed));
 		}
 	    } else {
-		if (REGION_NOTEMPTY(pScreen, &val->after.borderExposed))
-		    (*pChild->drawable.pScreen->PaintWindowBorder)(pChild,
-						    &val->after.borderExposed,
-						    PW_BORDER);
+		if (REGION_NOTEMPTY(pScreen, &val->after.borderExposed)) {
+			miPaintWindow(pChild, &val->after.borderExposed,
+				      PW_BORDER);
+		}
 		(*WindowExposures)(pChild, &val->after.exposed, NullRegion);
 	    }
 	    REGION_UNINIT(pScreen, &val->after.borderExposed);
@@ -1066,8 +1067,7 @@ miOverlayWindowExposures(
 		REGION_INTERSECT(pScreen, prgn, prgn, &pWin->clipList);
 	}
 	if (prgn && !REGION_NIL(prgn))
-	    (*pScreen->PaintWindowBackground)(
-			pWin, prgn, PW_BACKGROUND);
+	    miPaintWindow(pWin, prgn, PW_BACKGROUND);
 	if (clientInterested && exposures && !REGION_NIL(exposures))
 	    miSendExposures(pWin, exposures,
 			    pWin->drawable.x, pWin->drawable.y);
@@ -1738,7 +1738,7 @@ miOverlayClearToBackground(
     if (generateExposures)
         (*pScreen->WindowExposures)(pWin, &reg, pBSReg);
     else if (pWin->backgroundState != None)
-        (*pScreen->PaintWindowBackground)(pWin, &reg, PW_BACKGROUND);
+	miPaintWindow(pWin, &reg, PW_BACKGROUND);
     REGION_UNINIT(pScreen, &reg);
     if (pBSReg)
         REGION_DESTROY(pScreen, pBSReg);
