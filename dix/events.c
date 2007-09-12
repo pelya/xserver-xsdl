@@ -1125,13 +1125,19 @@ NoticeEventTime(xEvent *xE)
  *            The following procedures deal with synchronous events       *
  **************************************************************************/
 
+/**
+ * EnqueueEvent is a device's processInputProc if a device is frozen. 
+ * Instead of delivering the events to the client, the event is tacked onto a
+ * linked list for later delivery.
+ */
 void
 EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
 {
-    QdEventPtr tail = *syncEvents.pendtail;
-    QdEventPtr qe;
-    xEvent		*qxE;
-    SpritePtr pSprite = device->spriteInfo->sprite;
+    QdEventPtr 	tail = *syncEvents.pendtail;
+    QdEventPtr 	qe;
+    SpritePtr 	pSprite = device->spriteInfo->sprite;
+    int		eventlen;
+
 
     NoticeTime(xE);
 
@@ -1186,7 +1192,12 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
 	    return;
 	}
     }
-    qe = (QdEventPtr)xalloc(sizeof(QdEventRec) + (count * sizeof(xEvent)));
+
+    eventlen = count * sizeof(xEvent);
+    if (xE->u.u.type == GenericEvent) /* count is 1 for GenericEvents */
+	eventlen += ((xGenericEvent*)xE)->length * 4;
+
+    qe = (QdEventPtr)xalloc(sizeof(QdEventRec) + eventlen);
     if (!qe)
 	return;
     qe->next = (QdEventPtr)NULL;
@@ -1195,8 +1206,17 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
     qe->months = currentTime.months;
     qe->event = (xEvent *)(qe + 1);
     qe->evcount = count;
-    for (qxE = qe->event; --count >= 0; qxE++, xE++)
-	*qxE = *xE;
+    if (xE->u.u.type == GenericEvent)
+    {
+	memcpy(qe->event, xE, eventlen);
+    } else
+    {
+	xEvent	*qxE;
+	for (qxE = qe->event; --count >= 0; qxE++, xE++)
+	{
+	    *qxE = *xE;
+	}
+    }
     if (tail)
 	syncEvents.pendtail = &tail->next;
     *syncEvents.pendtail = qe;
