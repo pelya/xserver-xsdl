@@ -1228,6 +1228,7 @@ PlayReleasedEvents(void)
     QdEventPtr *prev, qe;
     DeviceIntPtr dev;
     DeviceIntPtr pDev;
+    static CARD32 lastKnownMillis = 0; /* Hack, see comment below */
 
     prev = &syncEvents.pending;
     while ( (qe = *prev) )
@@ -1241,7 +1242,17 @@ PlayReleasedEvents(void)
 	    if (qe->event->u.u.type == MotionNotify)
 		CheckVirtualMotion(pDev, qe, NullWindow);
 	    syncEvents.time.months = qe->months;
-	    syncEvents.time.milliseconds = qe->event->u.keyButtonPointer.time;
+            /* XXX: Hack! We can't reliably get the time from GenericEvents,
+               since we don't know which struct it may be. So we store the time
+               when we know it, and re-use it when we can't get it. */
+            if (qe->event->u.u.type == GenericEvent)
+            {
+                syncEvents.time.milliseconds = lastKnownMillis;
+            } else
+            {
+                syncEvents.time.milliseconds = qe->event->u.keyButtonPointer.time;
+                lastKnownMillis = syncEvents.time.milliseconds;
+            }
 #ifdef PANORAMIX
 	   /* Translate back to the sprite screen since processInputProc
 	      will translate from sprite screen to screen 0 upon reentry
