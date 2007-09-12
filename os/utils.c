@@ -1720,7 +1720,7 @@ static struct pid {
     int pid;
 } *pidlist;
 
-static sighandler_t old_alarm = NULL; /* XXX horrible awful hack */
+void (*old_alarm)(int) = NULL; /* XXX horrible awful hack */
 
 pointer
 Popen(char *command, char *type)
