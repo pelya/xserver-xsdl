@@ -619,7 +619,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         *valptr = valuators[i];
 
     events++;
-    pointer = pDev;
 
     /* Set x and y based on whether this is absolute or relative, and
      * accelerate if we need to. */
@@ -628,14 +627,14 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
             x = valuators[0];
         }
         else {
-            x = pointer->valuator->lastx;
+            x = pDev->valuator->lastx;
         }
 
         if (first_valuator <= 1 && num_valuators >= (2 - first_valuator)) {
             y = valuators[1 - first_valuator];
         }
         else {
-            y = pointer->valuator->lasty;
+            y = pDev->valuator->lasty;
         }
     }
     else {
@@ -644,14 +643,14 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
                               valuators);
 
         if (first_valuator == 0 && num_valuators >= 1)
-            x = pointer->valuator->lastx + valuators[0];
+            x = pDev->valuator->lastx + valuators[0];
         else
-            x = pointer->valuator->lastx;
+            x = pDev->valuator->lastx;
 
         if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-            y = pointer->valuator->lasty + valuators[1 - first_valuator];
+            y = pDev->valuator->lasty + valuators[1 - first_valuator];
         else
-            y = pointer->valuator->lasty;
+            y = pDev->valuator->lasty;
     }
 
     /* Clip both x and y to the defined limits (usually co-ord space limit). */
