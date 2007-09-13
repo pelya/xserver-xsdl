@@ -119,7 +119,7 @@ extern CursorPtr CreateRootCursor(
 extern int ServerBitsFromGlyph(
     FontPtr /*pfont*/,
     unsigned int /*ch*/,
-    register CursorMetricPtr /*cm*/,
+    CursorMetricPtr /*cm*/,
     unsigned char ** /*ppbits*/);
 
 extern Bool CursorMetricsFromGlyph(

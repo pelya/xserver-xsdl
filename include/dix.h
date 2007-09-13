@@ -61,7 +61,7 @@ SOFTWARE.
 
 #define NullClient ((ClientPtr) 0)
 #define REQUEST(type) \
-	register type *stuff = (type *)client->requestBuffer
+	type *stuff = (type *)client->requestBuffer
 
 
 #define REQUEST_SIZE_MATCH(req)\
