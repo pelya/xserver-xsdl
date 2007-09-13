@@ -777,8 +777,9 @@ ConfineToShape(DeviceIntPtr pDev, RegionPtr shape, int *px, int *py)
     BoxRec box;
     int x = *px, y = *py;
     int incx = 1, incy = 1;
-    SpritePtr pSprite = pDev->spriteInfo->sprite;
+    SpritePtr pSprite; 
 
+    pSprite = pDev->spriteInfo->sprite;
     if (POINT_IN_REGION(pSprite->hot.pScreen, shape, x, y, &box))
 	return;
     box = *REGION_EXTENTS(pSprite->hot.pScreen, shape);
@@ -3488,16 +3489,14 @@ ProcessKeyboardEvent (xEvent *xE, DeviceIntPtr keybd, int count)
 #endif
 {
     int             key, bit;
-    BYTE   *kptr;
-    int    i;
-    CARD8  modifiers;
-    CARD16 mask;
+    BYTE            *kptr;
+    CARD8           modifiers;
     GrabPtr         grab;
     GrabInfoPtr     grabinfo;
     Bool            deactivateGrab = FALSE;
-    KeyClassPtr keyc = keybd->key;
+    KeyClassPtr     keyc = keybd->key;
 #ifdef XEVIE
-    static Window           rootWin = 0;
+    static Window   rootWin = 0;
 
     if(!xeviegrabState && xevieFlag && clients[xevieClientIndex] &&
           (xevieMask & xevieFilters[xE->u.u.type])) {
