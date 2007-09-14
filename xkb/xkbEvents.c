@@ -937,7 +937,7 @@ GrabInfoPtr grabinfo;
                     ((((deviceKeyButtonPointer*)&xE[i])->state >> 7) & button_mask) == button_mask &&
                     (xkbi->lockedPtrButtons & button_mask) == button_mask) {
 #ifdef DEBUG
-		ErrorF("Faking release of button %d\n", ((deviceKeyButtonPointer*)&xE[i])->state)
+		ErrorF("Faking release of button %d\n", ((deviceKeyButtonPointer*)&xE[i])->state);
 #endif
 		XkbDDXFakePointerButton(DeviceButtonRelease, ((deviceKeyButtonPointer*)&xE[i])->state);
             }
