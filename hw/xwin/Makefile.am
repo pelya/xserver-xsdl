@@ -45,7 +45,6 @@ SRCS_NATIVEGDI = \
 	wingetsp.c \
 	winnativegdi.c \
 	winpixmap.c \
-	winpntwin.c \
 	winpolyline.c \
 	winpushpxl.c \
 	winrop.c \
