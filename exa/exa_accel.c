@@ -1324,9 +1324,6 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
     int xoff, yoff;
     Bool ok;
 
-    if (pExaScr->swappedOut)
-	goto fallback;
-
     pixmaps[0].as_dst = FALSE;
     pixmaps[0].as_src = TRUE;
     pixmaps[0].pPix = pPix = exaGetDrawablePixmap (pDrawable);
@@ -1340,6 +1337,9 @@ exaGetImage (DrawablePtr pDrawable, int x, int y, int w, int h,
     Box.y2 = Box.y1 + h;
 
     REGION_INIT(pScreen, &Reg, &Box, 1);
+
+    if (pExaScr->swappedOut)
+	goto fallback;
 
     exaDoMigration(pixmaps, 1, FALSE);
 
