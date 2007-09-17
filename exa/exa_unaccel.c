@@ -258,11 +258,11 @@ ExaCheckPushPixels (GCPtr pGC, PixmapPtr pBitmap,
 		  exaDrawableLocation(&pBitmap->drawable),
 		  exaDrawableLocation(pDrawable)));
     exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
-    exaPrepareAccess (pBitmap, EXA_PREPARE_SRC);
+    exaPrepareAccess (&pBitmap->drawable, EXA_PREPARE_SRC);
     exaPrepareAccessGC (pGC);
     fbPushPixels (pGC, pBitmap, pDrawable, w, h, x, y);
     exaFinishAccessGC (pGC);
-    exaFinishAccess (pBitmap, EXA_PREPARE_SRC);
+    exaFinishAccess (&pBitmap->drawable, EXA_PREPARE_SRC);
     exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 }
 
