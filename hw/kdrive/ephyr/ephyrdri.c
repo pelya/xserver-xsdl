@@ -240,6 +240,17 @@ ephyrDRIGetDrawableInfo (int a_screen,
         goto out ;
     }
     EPHYR_LOG ("host x,y,w,h: (%d,%d,%d,%d)\n", *a_x, *a_y, *a_w, *a_h) ;
+    if (*a_num_back_clip_rects != *a_num_clip_rects) {
+        free (*a_back_clip_rects) ;
+        *a_back_clip_rects = calloc (*a_num_clip_rects,
+                                     sizeof (drm_clip_rect_t)) ;
+        memmove (*a_back_clip_rects,
+                 *a_clip_rects,
+                 *a_num_clip_rects * sizeof (drm_clip_rect_t)) ;
+        *a_num_back_clip_rects = *a_num_clip_rects;
+    }
+    EPHYR_LOG ("num back clip rects:%d, num clip rects:%d\n",
+               *a_num_clip_rects, *a_num_back_clip_rects) ;
     *a_back_x = *a_x ;
     *a_back_y = *a_y ;
     *a_w = attrs.width;

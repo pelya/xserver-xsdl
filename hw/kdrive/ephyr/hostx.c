@@ -40,6 +40,7 @@
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
 #include <X11/extensions/XShm.h>
+#include <X11/extensions/shape.h>
 #include "ephyrlog.h"
 
 /*  
@@ -1213,5 +1214,79 @@ hostx_set_window_geometry (int a_win, EphyrBox *a_geo)
     XFlush (dpy) ;
     EPHYR_LOG ("leave\n") ;
     return TRUE;
+}
+
+int
+hostx_set_window_bounding_rectangles (int a_window,
+                                      EphyrRect *a_rects,
+                                      int a_num_rects)
+{
+    Bool is_ok=FALSE;
+    Display *dpy=hostx_get_display () ;
+    int i=0 ;
+    XRectangle *rects=NULL ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (dpy && a_rects, FALSE) ;
+
+    EPHYR_LOG ("enter. num rects:%d\n", a_num_rects) ;
+
+    rects = calloc (a_num_rects, sizeof (XRectangle)) ;
+    for (i=0; i<a_num_rects; i++) {
+        rects[i].x = a_rects[i].x1 ;
+        rects[i].y = a_rects[i].y1 ;
+        rects[i].width = abs (a_rects[i].x2 - a_rects[i].x1);
+        rects[i].height = abs (a_rects[i].y2 - a_rects[i].y1) ;
+        EPHYR_LOG ("borders clipped to rect[x:%d,y:%d,w:%d,h:%d]\n",
+                   rects[i].x, rects[i].y,
+                   rects[i].width, rects[i].height) ;
+    }
+    /*this aways returns 1*/
+    XShapeCombineRectangles (dpy, a_window, ShapeBounding, 0, 0,
+                             rects, a_num_rects, ShapeSet, YXBanded) ;
+    is_ok = TRUE ;
+
+    if (rects) {
+        free (rects) ;
+        rects = NULL ;
+    }
+    EPHYR_LOG ("leave\n") ;
+    return is_ok;
+}
+
+int
+hostx_set_window_clipping_rectangles (int a_window,
+                                      EphyrRect *a_rects,
+                                      int a_num_rects)
+{
+    Bool is_ok=FALSE;
+    Display *dpy=hostx_get_display () ;
+    int i=0 ;
+    XRectangle *rects=NULL ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (dpy && a_rects, FALSE) ;
+
+    EPHYR_LOG ("enter. num rects:%d\n", a_num_rects) ;
+
+    rects = calloc (a_num_rects, sizeof (XRectangle)) ;
+    for (i=0; i<a_num_rects; i++) {
+        rects[i].x = a_rects[i].x1 ;
+        rects[i].y = a_rects[i].y1 ;
+        rects[i].width = abs (a_rects[i].x2 - a_rects[i].x1);
+        rects[i].height = abs (a_rects[i].y2 - a_rects[i].y1) ;
+        EPHYR_LOG ("clipped to rect[x:%d,y:%d,w:%d,h:%d]\n",
+                   rects[i].x, rects[i].y,
+                   rects[i].width, rects[i].height) ;
+    }
+    /*this aways returns 1*/
+    XShapeCombineRectangles (dpy, a_window, ShapeClip, 0, 0,
+                             rects, a_num_rects, ShapeSet, YXBanded) ;
+    is_ok = TRUE ;
+
+    if (rects) {
+        free (rects) ;
+        rects = NULL ;
+    }
+    EPHYR_LOG ("leave\n") ;
+    return is_ok;
 }
 

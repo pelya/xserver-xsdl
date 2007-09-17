@@ -73,6 +73,7 @@ typedef struct {
     DestroyWindowProcPtr DestroyWindow ;
     MoveWindowProcPtr MoveWindow ;
     PositionWindowProcPtr PositionWindow ;
+    ClipNotifyProcPtr ClipNotify ;
 } EphyrDRIScreenPrivRec;
 typedef EphyrDRIScreenPrivRec* EphyrDRIScreenPrivPtr;
 
@@ -107,6 +108,9 @@ static void ephyrDRIMoveWindow (WindowPtr a_win,
                                 VTKind a_kind);
 static Bool ephyrDRIPositionWindow (WindowPtr a_win,
                                     int x, int y) ;
+static void ephyrDRIClipNotify (WindowPtr a_win,
+                                int a_x, int a_y) ;
+
 static Bool EphyrMirrorHostVisuals (void) ;
 static Bool destroyHostPeerWindow (const WindowPtr a_win) ;
 static Bool findWindowPairFromLocal (WindowPtr a_local,
@@ -204,11 +208,13 @@ ephyrDRIScreenInit (ScreenPtr a_screen)
     screen_priv->DestroyWindow = a_screen->DestroyWindow ;
     screen_priv->MoveWindow = a_screen->MoveWindow ;
     screen_priv->PositionWindow = a_screen->PositionWindow ;
+    screen_priv->ClipNotify = a_screen->ClipNotify ;
 
     a_screen->CreateWindow = ephyrDRICreateWindow ;
     a_screen->DestroyWindow = ephyrDRIDestroyWindow ;
     a_screen->MoveWindow = ephyrDRIMoveWindow ;
     a_screen->PositionWindow = ephyrDRIPositionWindow ;
+    a_screen->ClipNotify = ephyrDRIClipNotify ;
 
     is_ok = TRUE ;
 out:
@@ -259,7 +265,9 @@ ephyrDRIDestroyWindow (WindowPtr a_win)
                               FALSE) ;
 
     screen->DestroyWindow = screen_priv->DestroyWindow ;
-    is_ok = (*screen->DestroyWindow) (a_win) ;
+    if (screen->DestroyWindow) {
+        is_ok = (*screen->DestroyWindow) (a_win) ;
+    }
     screen->DestroyWindow = ephyrDRIDestroyWindow ;
 
     if (is_ok) {
@@ -298,7 +306,9 @@ ephyrDRIMoveWindow (WindowPtr a_win,
                           && screen_priv->MoveWindow) ;
 
     screen->MoveWindow = screen_priv->MoveWindow ;
-    (*screen->MoveWindow) (a_win, a_x, a_y, a_siblings, a_kind) ;
+    if (screen->MoveWindow) {
+        (*screen->MoveWindow) (a_win, a_x, a_y, a_siblings, a_kind) ;
+    }
     screen->MoveWindow = ephyrDRIMoveWindow ;
 
     EPHYR_LOG ("window: %#x\n", (unsigned int)a_win) ;
@@ -356,7 +366,9 @@ ephyrDRIPositionWindow (WindowPtr a_win,
                               FALSE) ;
 
     screen->PositionWindow = screen_priv->PositionWindow ;
-    (*screen->PositionWindow) (a_win, a_x, a_y) ;
+    if (screen->PositionWindow) {
+        (*screen->PositionWindow) (a_win, a_x, a_y) ;
+    }
     screen->PositionWindow = ephyrDRIPositionWindow ;
 
     EPHYR_LOG ("window: %#x\n", (unsigned int)a_win) ;
@@ -383,6 +395,73 @@ out:
     EPHYR_LOG ("leave. is_ok:%d\n", is_ok) ;
     /*do cleanup here*/
     return is_ok ;
+}
+
+static void
+ephyrDRIClipNotify (WindowPtr a_win,
+                    int a_x, int a_y)
+{
+    Bool is_ok=FALSE ;
+    ScreenPtr screen=NULL ;
+    EphyrDRIScreenPrivPtr screen_priv =NULL;
+    EphyrDRIWindowPrivPtr win_priv=NULL ;
+    EphyrWindowPair *pair=NULL ;
+    EphyrRect *rects=NULL;
+    int i=0 ;
+
+    EPHYR_RETURN_IF_FAIL (a_win) ;
+
+    EPHYR_LOG ("enter\n") ;
+    screen = a_win->drawable.pScreen ;
+    EPHYR_RETURN_IF_FAIL (screen) ;
+    screen_priv = GET_EPHYR_DRI_SCREEN_PRIV (screen) ;
+    EPHYR_RETURN_IF_FAIL (screen_priv && screen_priv->ClipNotify) ;
+
+    screen->ClipNotify = screen_priv->ClipNotify ;
+    if (screen->ClipNotify) {
+        (*screen->ClipNotify) (a_win, a_x, a_y) ;
+    }
+    screen->ClipNotify = ephyrDRIClipNotify ;
+
+    EPHYR_LOG ("window: %#x\n", (unsigned int)a_win) ;
+    win_priv = GET_EPHYR_DRI_WINDOW_PRIV (a_win) ;
+    if (!win_priv) {
+        EPHYR_LOG ("not a DRI peered window\n") ;
+        is_ok = TRUE ;
+        goto out ;
+    }
+    if (!findWindowPairFromLocal (a_win, &pair) || !pair) {
+        EPHYR_LOG_ERROR ("failed to get window pair\n") ;
+        goto out ;
+    }
+    rects = xcalloc (REGION_NUM_RECTS (&a_win->clipList),
+                     sizeof (EphyrRect)) ;
+    for (i=0; i < REGION_NUM_RECTS (&a_win->clipList); i++) {
+        memmove (&rects[i],
+                 &REGION_RECTS (&a_win->clipList)[i],
+                 sizeof (EphyrRect)) ;
+        rects[i].x1 -= a_win->drawable.x;
+        rects[i].x2 -= a_win->drawable.x;
+        rects[i].y1 -= a_win->drawable.y;
+        rects[i].y2 -= a_win->drawable.y;
+    }
+    /*
+     * push the clipping region of this window
+     * to the peer window in the host
+     */
+    is_ok = hostx_set_window_bounding_rectangles
+                                (pair->remote,
+                                 rects,
+                                 REGION_NUM_RECTS (&a_win->clipList)) ;
+    is_ok = TRUE ;
+
+out:
+    if (rects) {
+        xfree (rects) ;
+        rects = NULL ;
+    }
+    EPHYR_LOG ("leave. is_ok:%d\n", is_ok) ;
+    /*do cleanup here*/
 }
 
 /**
@@ -1057,9 +1136,9 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
     DrawablePtr drawable;
     WindowPtr window=NULL;
     EphyrWindowPair *pair=NULL;
-    int X=0, Y=0, W=0, H=0, backX=0, backY=0, rc=0;
-    drm_clip_rect_t *pClipRects=NULL, *pClippedRects=NULL;
-    drm_clip_rect_t *pBackClipRects=NULL;
+    int X=0, Y=0, W=0, H=0, backX=0, backY=0, rc=0, i=0;
+    drm_clip_rect_t *clipRects=NULL, *clippedRects=NULL;
+    drm_clip_rect_t *backClipRects=NULL;
 
     EPHYR_LOG ("enter\n") ;
     memset (&rep, 0, sizeof (rep)) ;
@@ -1091,6 +1170,15 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
         EPHYR_LOG_ERROR ("failed to find remote peer drawable\n") ;
         return BadMatch ;
     }
+    EPHYR_LOG ("clip list of xephyr gl drawable:\n") ;
+    for (i=0; i < REGION_NUM_RECTS (&window->clipList); i++) {
+        EPHYR_LOG ("x1:%d, y1:%d, x2:%d, y2:%d\n",
+                   REGION_RECTS (&window->clipList)[i].x1,
+                   REGION_RECTS (&window->clipList)[i].y1,
+                   REGION_RECTS (&window->clipList)[i].x2,
+                   REGION_RECTS (&window->clipList)[i].y2) ;
+    }
+
     if (!ephyrDRIGetDrawableInfo (stuff->screen,
                                   pair->remote/*the drawable in hostx*/,
                                   (unsigned int*)&rep.drawableTableIndex,
@@ -1100,54 +1188,56 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
                                   (int*)&W,
                                   (int*)&H,
                                   (int*)&rep.numClipRects,
-                                  &pClipRects,
+                                  &clipRects,
                                   &backX,
                                   &backY,
                                   (int*)&rep.numBackClipRects,
-                                  &pBackClipRects)) {
+                                  &backClipRects)) {
         return BadValue;
     }
+    EPHYR_LOG ("num clip rects:%d, num back clip rects:%d\n",
+               (int)rep.numClipRects, (int)rep.numBackClipRects) ;
+    backClipRects = clipRects ;
 
     rep.drawableX = X;
     rep.drawableY = Y;
     rep.drawableWidth = W;
     rep.drawableHeight = H;
-    rep.length = (SIZEOF(xXF86DRIGetDrawableInfoReply) - 
+    rep.length = (SIZEOF(xXF86DRIGetDrawableInfoReply) -
                   SIZEOF(xGenericReply));
 
     rep.backX = backX;
     rep.backY = backY;
 
-    if (rep.numBackClipRects) 
-        rep.length += sizeof(drm_clip_rect_t) * rep.numBackClipRects;    
+    if (rep.numBackClipRects)
+        rep.length += sizeof(drm_clip_rect_t) * rep.numBackClipRects;
 
-    pClippedRects = pClipRects;
+    clippedRects = clipRects;
 
     if (rep.numClipRects) {
         /* Clip cliprects to screen dimensions (redirected windows) */
-        pClippedRects = xalloc(rep.numClipRects * sizeof(drm_clip_rect_t));
+        clippedRects = xalloc(rep.numClipRects * sizeof(drm_clip_rect_t));
 
-        if (pClippedRects) {
+        if (clippedRects) {
             ScreenPtr pScreen = screenInfo.screens[stuff->screen];
-            int i, j;
+            int i=0;
 
-            for (i = 0, j = 0; i < rep.numClipRects; i++) {
-                pClippedRects[j].x1 = max(pClipRects[i].x1, 0);
-                pClippedRects[j].y1 = max(pClipRects[i].y1, 0);
-                pClippedRects[j].x2 = min(pClipRects[i].x2, pScreen->width);
-                pClippedRects[j].y2 = min(pClipRects[i].y2, pScreen->height);
-
-                if (pClippedRects[j].x1 < pClippedRects[j].x2 &&
-                        pClippedRects[j].y1 < pClippedRects[j].y2) {
-                    j++;
-                }
+            EPHYR_LOG ("clip list of host gl drawable:\n") ;
+            for (i = 0; i < rep.numClipRects; i++) {
+                clippedRects[i].x1 = max(clipRects[i].x1, 0);
+                clippedRects[i].y1 = max(clipRects[i].y1, 0);
+                clippedRects[i].x2 = min(clipRects[i].x2, pScreen->width);
+                clippedRects[i].y2 = min(clipRects[i].y2, pScreen->height);
+                EPHYR_LOG ("x1:%d, y1:%d, x2:%d, y2:%d\n",
+                           clippedRects[i].x1, clippedRects[i].y1,
+                           clippedRects[i].x2, clippedRects[i].y2) ;
             }
 
-            rep.numClipRects = j;
+            /*rep.numClipRects = j*/;
+            EPHYR_LOG ("num host clip rects:%d\n", (int)rep.numClipRects) ;
         } else {
             rep.numClipRects = 0;
         }
-
         rep.length += sizeof(drm_clip_rect_t) * rep.numClipRects;
     }
 
@@ -1156,16 +1246,16 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
     WriteToClient(client, sizeof(xXF86DRIGetDrawableInfoReply), (char *)&rep);
 
     if (rep.numClipRects) {
-        WriteToClient(client,  
-                sizeof(drm_clip_rect_t) * rep.numClipRects,
-                (char *)pClippedRects);
-        xfree(pClippedRects);
+        WriteToClient(client,
+                      sizeof(drm_clip_rect_t) * rep.numClipRects,
+                      (char *)clippedRects);
+        xfree(clippedRects);
     }
 
     if (rep.numBackClipRects) {
-        WriteToClient(client, 
-                sizeof(drm_clip_rect_t) * rep.numBackClipRects,
-                (char *)pBackClipRects);
+        WriteToClient(client,
+                      sizeof(drm_clip_rect_t) * rep.numBackClipRects,
+                      (char *)backClipRects);
     }
     EPHYR_LOG ("leave\n") ;
 

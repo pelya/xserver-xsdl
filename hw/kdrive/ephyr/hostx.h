@@ -114,6 +114,10 @@ typedef struct {
     int x,y,width,height;
 } EphyrBox;
 
+typedef struct {
+    short x1,y1,x2,y2;
+} EphyrRect;
+
 int
 hostx_want_screen_size(EphyrScreenInfo screen, int *width, int *height);
 
@@ -229,4 +233,10 @@ int hostx_set_window_geometry (int a_win, EphyrBox *a_geo) ;
 int hostx_lookup_peer_window (void *a_local_window,
                               int *a_host_peer /*out parameter*/) ;
 
+int hostx_set_window_bounding_rectangles (int a_window,
+                                          EphyrRect *a_rects,
+                                          int a_num_rects) ;
+int hostx_set_window_clipping_rectangles (int a_window,
+                                          EphyrRect *a_rects,
+                                          int a_num_rects) ;
 #endif

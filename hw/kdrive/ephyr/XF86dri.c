@@ -467,7 +467,7 @@ Bool XF86DRIGetDrawableInfo(Display* dpy, int screen, Drawable drawable,
 {
     XExtDisplayInfo *info = find_display (dpy);
     xXF86DRIGetDrawableInfoReply rep;
-    xXF86DRIGetDrawableInfoReq *req;
+    xXF86DRIGetDrawableInfoReq *req=NULL;
     int total_rects;
 
     TRACE("GetDrawableInfo...");
@@ -521,7 +521,7 @@ Bool XF86DRIGetDrawableInfo(Display* dpy, int screen, Drawable drawable,
        int len = sizeof(drm_clip_rect_t) * (*numClipRects);
 
        *pClipRects = (drm_clip_rect_t *)Xcalloc(len, 1);
-       if (*pClipRects) 
+       if (*pClipRects)
 	  _XRead(dpy, (char*)*pClipRects, len);
     } else {
         *pClipRects = NULL;

@@ -773,6 +773,7 @@ ephyrHostXVPutImage (int a_port_id,
 
     EPHYR_LOG ("enter, num_clip_rects: %d\n", a_clip_rect_nums) ;
 
+    memset (&gc_values, 0, sizeof (gc_values)) ;
     gc = XCreateGC (dpy, hostx_get_window (), 0L, &gc_values);
     if (!gc) {
         EPHYR_LOG_ERROR ("failed to create gc \n") ;
