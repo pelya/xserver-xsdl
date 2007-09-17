@@ -1137,7 +1137,7 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
     WindowPtr window=NULL;
     EphyrWindowPair *pair=NULL;
     int X=0, Y=0, W=0, H=0, backX=0, backY=0, rc=0, i=0;
-    drm_clip_rect_t *clipRects=NULL, *clippedRects=NULL;
+    drm_clip_rect_t *clipRects=NULL;
     drm_clip_rect_t *backClipRects=NULL;
 
     EPHYR_LOG ("enter\n") ;
@@ -1197,7 +1197,6 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
     }
     EPHYR_LOG ("num clip rects:%d, num back clip rects:%d\n",
                (int)rep.numClipRects, (int)rep.numBackClipRects) ;
-    backClipRects = clipRects ;
 
     rep.drawableX = X;
     rep.drawableY = Y;
@@ -1209,37 +1208,37 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
     rep.backX = backX;
     rep.backY = backY;
 
-    if (rep.numBackClipRects)
-        rep.length += sizeof(drm_clip_rect_t) * rep.numBackClipRects;
-
-    clippedRects = clipRects;
 
     if (rep.numClipRects) {
-        /* Clip cliprects to screen dimensions (redirected windows) */
-        clippedRects = xalloc(rep.numClipRects * sizeof(drm_clip_rect_t));
-
-        if (clippedRects) {
+        if (clipRects) {
             ScreenPtr pScreen = screenInfo.screens[stuff->screen];
             int i=0;
-
             EPHYR_LOG ("clip list of host gl drawable:\n") ;
             for (i = 0; i < rep.numClipRects; i++) {
-                clippedRects[i].x1 = max(clipRects[i].x1, 0);
-                clippedRects[i].y1 = max(clipRects[i].y1, 0);
-                clippedRects[i].x2 = min(clipRects[i].x2, pScreen->width);
-                clippedRects[i].y2 = min(clipRects[i].y2, pScreen->height);
-                EPHYR_LOG ("x1:%d, y1:%d, x2:%d, y2:%d\n",
-                           clippedRects[i].x1, clippedRects[i].y1,
-                           clippedRects[i].x2, clippedRects[i].y2) ;
-            }
+                clipRects[i].x1 = max (clipRects[i].x1, 0);
+                clipRects[i].y1 = max (clipRects[i].y1, 0);
+                clipRects[i].x2 = min (clipRects[i].x2,
+                                       pScreen->width + clipRects[i].x1) ;
+                clipRects[i].y2 = min (clipRects[i].y2,
+                                       pScreen->width + clipRects[i].y1) ;
 
-            /*rep.numClipRects = j*/;
-            EPHYR_LOG ("num host clip rects:%d\n", (int)rep.numClipRects) ;
+                EPHYR_LOG ("x1:%d, y1:%d, x2:%d, y2:%d\n",
+                           clipRects[i].x1, clipRects[i].y1,
+                           clipRects[i].x2, clipRects[i].y2) ;
+            }
         } else {
             rep.numClipRects = 0;
         }
-        rep.length += sizeof(drm_clip_rect_t) * rep.numClipRects;
+    } else {
+        EPHYR_LOG ("got zero host gl drawable clipping rects\n") ;
     }
+    rep.length += sizeof(drm_clip_rect_t) * rep.numClipRects;
+    backClipRects = clipRects ;
+    rep.numBackClipRects = rep.numClipRects ;
+    if (rep.numBackClipRects)
+        rep.length += sizeof(drm_clip_rect_t) * rep.numBackClipRects;
+    EPHYR_LOG ("num host clip rects:%d\n", (int)rep.numClipRects) ;
+    EPHYR_LOG ("num host back clip rects:%d\n", (int)rep.numBackClipRects) ;
 
     rep.length = ((rep.length + 3) & ~3) >> 2;
 
@@ -1248,14 +1247,17 @@ ProcXF86DRIGetDrawableInfo (register ClientPtr client)
     if (rep.numClipRects) {
         WriteToClient(client,
                       sizeof(drm_clip_rect_t) * rep.numClipRects,
-                      (char *)clippedRects);
-        xfree(clippedRects);
+                      (char *)clipRects);
     }
 
     if (rep.numBackClipRects) {
         WriteToClient(client,
                       sizeof(drm_clip_rect_t) * rep.numBackClipRects,
                       (char *)backClipRects);
+    }
+    if (clipRects) {
+        xfree(clipRects);
+        clipRects = NULL ;
     }
     EPHYR_LOG ("leave\n") ;
 

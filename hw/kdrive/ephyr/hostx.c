@@ -1211,7 +1211,6 @@ hostx_set_window_geometry (int a_win, EphyrBox *a_geo)
 
     XMoveWindow (dpy, a_win, a_geo->x, a_geo->y) ;
     XResizeWindow (dpy, a_win, a_geo->width, a_geo->height) ;
-    XFlush (dpy) ;
     EPHYR_LOG ("leave\n") ;
     return TRUE;
 }
