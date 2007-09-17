@@ -127,7 +127,7 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
     ExaPixmapPriv (pPixmap);
     RegionPtr damage = DamageRegion (pExaPixmap->pDamage);
     RegionRec CopyReg;
-    CARD8 *save_ptr;
+    Bool save_offscreen;
     int save_pitch;
     BoxPtr pBox;
     int nbox;
@@ -176,9 +176,9 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
     pBox = REGION_RECTS(&CopyReg);
     nbox = REGION_NUM_RECTS(&CopyReg);
 
-    save_ptr = pPixmap->devPrivate.ptr;
+    save_offscreen = pExaPixmap->offscreen;
     save_pitch = pPixmap->devKind;
-    pPixmap->devPrivate.ptr = pExaPixmap->fb_ptr;
+    pExaPixmap->offscreen = TRUE;
     pPixmap->devKind = pExaPixmap->fb_pitch;
 
     while (nbox--) {
@@ -216,7 +216,7 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
     else
 	sync (pPixmap->drawable.pScreen);
 
-    pPixmap->devPrivate.ptr = save_ptr;
+    pExaPixmap->offscreen = save_offscreen;
     pPixmap->devKind = save_pitch;
 
     /* The copied bits are now valid in destination */
