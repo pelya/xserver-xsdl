@@ -196,6 +196,12 @@ ExaCheckPolyArc (DrawablePtr pDrawable, GCPtr pGC,
 		int narcs, xArc *pArcs)
 {
     EXA_FALLBACK(("to %p (%c)\n", pDrawable, exaDrawableLocation(pDrawable)));
+
+    /* Disable this as fbPolyArc can call miZeroPolyArc which in turn
+     * can call accelerated functions, that as yet, haven't been notified
+     * with exaFinishAccess().
+     */
+#if 0
     if (pGC->lineWidth == 0)
     {
 	exaPrepareAccess (pDrawable, EXA_PREPARE_DEST);
@@ -205,6 +211,7 @@ ExaCheckPolyArc (DrawablePtr pDrawable, GCPtr pGC,
 	exaFinishAccess (pDrawable, EXA_PREPARE_DEST);
 	return;
     }
+#endif
     miPolyArc (pDrawable, pGC, narcs, pArcs);
 }
 
