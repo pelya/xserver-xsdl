@@ -43,6 +43,8 @@ extern int KdTsPhyScreen;
 KdKeyboardInfo *ephyrKbd;
 KdPointerInfo *ephyrMouse;
 EphyrKeySyms ephyrKeySyms;
+Bool ephyrNoDRI=FALSE ;
+Bool ephyrNoXV=FALSE ;
 
 static int mouseState = 0;
 
@@ -616,18 +618,23 @@ ephyrInitScreen (ScreenPtr pScreen)
   pScreen->CreateColormap = ephyrCreateColormap;
 
 #ifdef XV
-  if (!ephyrInitVideo (pScreen)) {
-      EPHYR_LOG_ERROR ("failed to initialize xvideo\n") ;
-  } else {
-      EPHYR_LOG ("initialized xvideo okay\n") ;
+  if (!ephyrNoXV) {
+      if (!ephyrInitVideo (pScreen)) {
+          EPHYR_LOG_ERROR ("failed to initialize xvideo\n") ;
+      } else {
+          EPHYR_LOG ("initialized xvideo okay\n") ;
+      }
   }
 #endif /*XV*/
 
 #ifdef XEPHYR_DRI
+  if (!ephyrNoDRI) {
     ephyrDRIExtensionInit (pScreen) ;
     ephyrHijackGLXExtension () ;
     ephyrProxyExtensionInit ("ATIFGLRXDRI") ;
+  }
 #endif
+
   return TRUE;
 }
 
@@ -639,12 +646,12 @@ ephyrFinishInitScreen (ScreenPtr pScreen)
    */
   if (!shadowSetup (pScreen))
     return FALSE;
-  
+
 #ifdef RANDR
   if (!ephyrRandRInit (pScreen))
     return FALSE;
 #endif
-    
+
   return TRUE;
 }
 
