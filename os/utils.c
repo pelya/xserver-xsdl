@@ -160,6 +160,7 @@ _X_EXPORT Bool noFontCacheExtension = FALSE;
 #endif
 #ifdef GLXEXT
 _X_EXPORT Bool noGlxExtension = FALSE;
+_X_EXPORT Bool noGlxVisualInit = FALSE;
 #endif
 #ifdef SCREENSAVER
 _X_EXPORT Bool noScreenSaverExtension = FALSE;
