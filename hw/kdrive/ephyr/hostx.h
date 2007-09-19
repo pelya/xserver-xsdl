@@ -215,12 +215,6 @@ hostx_get_extension_info (const char *a_ext_name,
 int
 hostx_get_visuals_info (EphyrHostVisualInfo **a_visuals,
                         int *a_num_entries) ;
-int
-hostx_allocate_resource_id_peer (int a_local_resource_id,
-                                 int *a_remote_resource_id) ;
-int
-hostx_get_resource_id_peer (int a_local_resource_id,
-                            int *a_remote_resource_id) ;
 
 int hostx_create_window (EphyrBox *a_geometry,
                          int a_visual_id,
@@ -230,8 +224,6 @@ int hostx_destroy_window (int a_win) ;
 
 int hostx_set_window_geometry (int a_win, EphyrBox *a_geo) ;
 
-int hostx_lookup_peer_window (void *a_local_window,
-                              int *a_host_peer /*out parameter*/) ;
 
 int hostx_set_window_bounding_rectangles (int a_window,
                                           EphyrRect *a_rects,
@@ -239,4 +231,20 @@ int hostx_set_window_bounding_rectangles (int a_window,
 int hostx_set_window_clipping_rectangles (int a_window,
                                           EphyrRect *a_rects,
                                           int a_num_rects) ;
-#endif
+int hostx_has_xshape (void) ;
+
+#ifdef XEPHYR_DRI
+int hostx_lookup_peer_window (void *a_local_window,
+                              int *a_host_peer /*out parameter*/) ;
+int
+hostx_allocate_resource_id_peer (int a_local_resource_id,
+                                 int *a_remote_resource_id) ;
+int
+hostx_get_resource_id_peer (int a_local_resource_id,
+                            int *a_remote_resource_id) ;
+int hostx_has_dri (void) ;
+
+int hostx_has_glx (void) ;
+#endif /*XEPHYR_DRI*/
+
+#endif /*_XLIBS_STUFF_H_*/

@@ -136,6 +136,16 @@ ephyrDRIExtensionInit (ScreenPtr a_screen)
     EphyrDRIScreenPrivPtr screen_priv=NULL ;
 
     EPHYR_LOG ("enter\n") ;
+    if (!hostx_has_dri ()) {
+        EPHYR_LOG ("host does not have DRI extension\n") ;
+        goto out ;
+    }
+    EPHYR_LOG ("host X does have DRI extension\n") ;
+    if (!hostx_has_xshape ()) {
+        EPHYR_LOG ("host does not have XShape extension\n") ;
+        goto out ;
+    }
+    EPHYR_LOG ("host X does have XShape extension\n") ;
 
 #ifdef XF86DRI_EVENTS
     EventType = CreateNewResourceType (XF86DRIFreeEvents);

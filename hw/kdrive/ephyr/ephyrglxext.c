@@ -81,7 +81,12 @@ ephyrHijackGLXExtension (void)
 {
     const void *(*dispatch_functions)[2];
 
-    EPHYR_LOG ("going to hijack some glx entry points ...\n") ;
+    if (!hostx_has_glx ()) {
+        EPHYR_LOG ("host X does not have GLX\n") ;
+        return FALSE ;
+    }
+    EPHYR_LOG ("host X does have GLX\n") ;
+
     if (!Single_dispatch_info.dispatch_functions) {
         EPHYR_LOG_ERROR ("could not get dispatch functions table\n") ;
         return FALSE ;

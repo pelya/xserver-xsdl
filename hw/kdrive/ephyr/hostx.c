@@ -23,6 +23,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <kdrive-config.h>
+#endif
+
 #include "hostx.h"
 
 #include <stdlib.h>
@@ -41,7 +45,16 @@
 #include <X11/keysym.h>
 #include <X11/extensions/XShm.h>
 #include <X11/extensions/shape.h>
+#ifdef XEPHYR_DRI
+#include <GL/glx.h>
+#endif /*XEPHYR_DRI*/
 #include "ephyrlog.h"
+
+#ifdef XEPHYR_DRI
+extern Bool XF86DRIQueryExtension (Display *dpy,
+                                   int *event_basep,
+                                   int *error_basep);
+#endif
 
 /*  
  * All xlib calls go here, which gets built as its own .a .
@@ -1070,68 +1083,6 @@ typedef struct {
 #define RESOURCE_PEERS_SIZE 1024*10
 static ResourcePair resource_peers[RESOURCE_PEERS_SIZE] ;
 
-int
-hostx_allocate_resource_id_peer (int a_local_resource_id,
-                                 int *a_remote_resource_id)
-{
-    int i=0 ;
-    ResourcePair *peer=NULL ;
-    Display *dpy=hostx_get_display ();
-
-    /*
-     * first make sure a resource peer
-     * does not exist already for
-     * a_local_resource_id
-     */
-    for (i=0; i<RESOURCE_PEERS_SIZE; i++) {
-        if (resource_peers[i].is_valid
-            && resource_peers[i].local_id == a_local_resource_id) {
-            peer = &resource_peers[i] ;
-            break ;
-        }
-    }
-    /*
-     * find one free peer entry, an feed it with
-     */
-    if (!peer) {
-        for (i=0; i<RESOURCE_PEERS_SIZE; i++) {
-            if (!resource_peers[i].is_valid) {
-                peer = &resource_peers[i] ;
-                break ;
-            }
-        }
-        if (peer) {
-            peer->remote_id = XAllocID (dpy);
-            peer->local_id = a_local_resource_id ;
-            peer->is_valid = TRUE ;
-        }
-    }
-    if (peer) {
-        *a_remote_resource_id = peer->remote_id ;
-        return TRUE ;
-    }
-    return FALSE ;
-}
-
-int
-hostx_get_resource_id_peer (int a_local_resource_id,
-                            int *a_remote_resource_id)
-{
-    int i=0 ;
-    ResourcePair *peer=NULL ;
-    for (i=0; i<RESOURCE_PEERS_SIZE; i++) {
-        if (resource_peers[i].is_valid
-            && resource_peers[i].local_id == a_local_resource_id) {
-            peer = &resource_peers[i] ;
-            break ;
-        }
-    }
-    if (peer) {
-        *a_remote_resource_id = peer->remote_id ;
-        return TRUE ;
-    }
-    return FALSE ;
-}
 
 int
 hostx_create_window (EphyrBox *a_geometry,
@@ -1288,4 +1239,109 @@ hostx_set_window_clipping_rectangles (int a_window,
     EPHYR_LOG ("leave\n") ;
     return is_ok;
 }
+
+int
+hostx_has_xshape (void)
+{
+    int event_base=0, error_base=0 ;
+    Display *dpy=hostx_get_display () ;
+    if (!XShapeQueryExtension (dpy,
+                               &event_base,
+                               &error_base)) {
+        return FALSE ;
+    }
+    return TRUE;
+}
+
+#ifdef XEPHYR_DRI
+int
+hostx_allocate_resource_id_peer (int a_local_resource_id,
+                                 int *a_remote_resource_id)
+{
+    int i=0 ;
+    ResourcePair *peer=NULL ;
+    Display *dpy=hostx_get_display ();
+
+    /*
+     * first make sure a resource peer
+     * does not exist already for
+     * a_local_resource_id
+     */
+    for (i=0; i<RESOURCE_PEERS_SIZE; i++) {
+        if (resource_peers[i].is_valid
+            && resource_peers[i].local_id == a_local_resource_id) {
+            peer = &resource_peers[i] ;
+            break ;
+        }
+    }
+    /*
+     * find one free peer entry, an feed it with
+     */
+    if (!peer) {
+        for (i=0; i<RESOURCE_PEERS_SIZE; i++) {
+            if (!resource_peers[i].is_valid) {
+                peer = &resource_peers[i] ;
+                break ;
+            }
+        }
+        if (peer) {
+            peer->remote_id = XAllocID (dpy);
+            peer->local_id = a_local_resource_id ;
+            peer->is_valid = TRUE ;
+        }
+    }
+    if (peer) {
+        *a_remote_resource_id = peer->remote_id ;
+        return TRUE ;
+    }
+    return FALSE ;
+}
+
+int
+hostx_get_resource_id_peer (int a_local_resource_id,
+                            int *a_remote_resource_id)
+{
+    int i=0 ;
+    ResourcePair *peer=NULL ;
+    for (i=0; i<RESOURCE_PEERS_SIZE; i++) {
+        if (resource_peers[i].is_valid
+            && resource_peers[i].local_id == a_local_resource_id) {
+            peer = &resource_peers[i] ;
+            break ;
+        }
+    }
+    if (peer) {
+        *a_remote_resource_id = peer->remote_id ;
+        return TRUE ;
+    }
+    return FALSE ;
+}
+
+int
+hostx_has_dri (void)
+{
+    int event_base=0, error_base=0 ;
+    Display *dpy=hostx_get_display () ;
+
+    if (!XF86DRIQueryExtension (dpy,
+                                &event_base,
+                                &error_base)) {
+        return FALSE ;
+    }
+    return TRUE ;
+}
+
+int
+hostx_has_glx (void)
+{
+    Display *dpy=hostx_get_display () ;
+    int event_base=0, error_base=0 ;
+
+    if (!glXQueryExtension (dpy, &event_base, &error_base)) {
+        return FALSE ;
+    }
+    return TRUE ;
+}
+
+#endif /*XEPHYR_DRI*/
 
