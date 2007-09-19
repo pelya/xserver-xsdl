@@ -570,11 +570,13 @@ ProcChangeWindowAttributes(ClientPtr client)
 {
     WindowPtr pWin;
     REQUEST(xChangeWindowAttributesReq);
-    int result;
-    int len, rc;
+    int result, len, rc;
+    Mask access_mode = DixSetAttrAccess;
 
     REQUEST_AT_LEAST_SIZE(xChangeWindowAttributesReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixSetAttrAccess);
+    if (stuff->valueMask == CWEventMask)
+	access_mode = DixReceiveAccess;
+    rc = dixLookupWindow(&pWin, stuff->window, client, access_mode);
     if (rc != Success)
         return rc;
     len = client->req_len - (sizeof(xChangeWindowAttributesReq) >> 2);
