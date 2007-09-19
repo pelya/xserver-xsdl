@@ -69,6 +69,13 @@ dnl Check for dtrace program (needed to build Xserver dtrace probes)
 AC_ARG_WITH(dtrace, AS_HELP_STRING([--with-dtrace=PATH],
 	     [Enable dtrace probes (default: enabled if dtrace found)]),
 	     [WDTRACE=$withval], [WDTRACE=auto])
+dnl Darwin 9 has dtrace, but it doesn't support compilation into ELF...
+if test "x$WDTRACE" = xauto; then
+	case $host_os in
+		darwin*) WDTRACE="no" ;;
+		*) WDTRACE="yes" ;;
+	esac
+fi
 if test "x$WDTRACE" = "xyes" -o "x$WDTRACE" = "xauto" ; then
 	AC_PATH_PROG(DTRACE, [dtrace], [not_found], [$PATH:/usr/sbin])
 	if test "x$DTRACE" = "xnot_found" ; then
