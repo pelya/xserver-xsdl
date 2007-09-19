@@ -54,6 +54,7 @@
 #define NEED_DBE_PROTOCOL
 #include "dbestruct.h"
 #include "midbe.h"
+#include "xace.h"
 
 /* GLOBALS */
 
@@ -233,7 +234,7 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
     REQUEST_SIZE_MATCH(xDbeAllocateBackBufferNameReq);
 
     /* The window must be valid. */
-    status = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    status = dixLookupWindow(&pWin, stuff->window, client, DixManageAccess);
     if (status != Success)
 	return status;
 
@@ -720,7 +721,7 @@ ProcDbeGetVisualInfo(ClientPtr client)
         for (i = 0; i < stuff->n; i++)
         {
 	    rc = dixLookupDrawable(pDrawables+i, drawables[i], client, 0,
-				   DixReadAccess);
+				   DixGetAttrAccess);
 	    if (rc != Success) {
                 Xfree(pDrawables);
                 return rc;
@@ -748,7 +749,9 @@ ProcDbeGetVisualInfo(ClientPtr client)
                                     pDrawables[i]->pScreen;
         pDbeScreenPriv = DBE_SCREEN_PRIV(pScreen);
 
-        if (!(*pDbeScreenPriv->GetVisualInfo)(pScreen, &pScrVisInfo[i]))
+	rc = XaceHook(XACE_SCREEN_ACCESS, client, pScreen, DixGetAttrAccess);
+	if ((rc != Success) ||
+	    !(*pDbeScreenPriv->GetVisualInfo)(pScreen, &pScrVisInfo[i]))
         {
             /* We failed to alloc pScrVisInfo[i].visinfo. */
 
@@ -764,7 +767,7 @@ ProcDbeGetVisualInfo(ClientPtr client)
                 Xfree(pDrawables);
             }
 
-            return(BadAlloc);
+            return (rc == Success) ? BadAlloc : rc;
         }
 
         /* Account for n, number of xDbeVisInfo items in list. */
@@ -877,7 +880,7 @@ ProcDbeGetBackBufferAttributes(ClientPtr client)
     REQUEST_SIZE_MATCH(xDbeGetBackBufferAttributesReq);
 
     if (!(pDbeWindowPriv = (DbeWindowPrivPtr)SecurityLookupIDByType(client,
-		stuff->buffer, dbeWindowPrivResType, DixReadAccess)))
+		stuff->buffer, dbeWindowPrivResType, DixGetAttrAccess)))
     {
         rep.attributes = None;
     }
@@ -1615,6 +1618,9 @@ DbeExtensionInit(void)
         CreateNewResourceType(DbeDrawableDelete) | RC_DRAWABLE;
     dbeWindowPrivResType =
         CreateNewResourceType(DbeWindowPrivDelete);
+    if (!dixRegisterPrivateOffset(dbeDrawableResType,
+				  offsetof(PixmapRec, devPrivates)))
+	return;
 
     for (i = 0; i < screenInfo.numScreens; i++)
     {

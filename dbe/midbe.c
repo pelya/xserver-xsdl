@@ -56,6 +56,7 @@
 #include "gcstruct.h"
 #include "inputstr.h"
 #include "midbe.h"
+#include "xace.h"
 
 #include <stdio.h>
 
@@ -153,6 +154,7 @@ miDbeAllocBackBufferName(WindowPtr pWin, XID bufId, int swapAction)
     DbeScreenPrivPtr		pDbeScreenPriv;
     GCPtr			pGC;
     xRectangle			clearRect;
+    int				rc;
 
 
     pScreen = pWin->drawable.pScreen;
@@ -191,14 +193,18 @@ miDbeAllocBackBufferName(WindowPtr pWin, XID bufId, int swapAction)
             return(BadAlloc);
         }
 
+	/* Security creation/labeling check. */
+	rc = XaceHook(XACE_RESOURCE_ACCESS, serverClient, bufId,
+		      dbeDrawableResType, pDbeWindowPrivPriv->pBackBuffer,
+		      RT_WINDOW, pWin, DixCreateAccess);
 
         /* Make the back pixmap a DBE drawable resource. */
-        if (!AddResource(bufId, dbeDrawableResType,
-            (pointer)pDbeWindowPrivPriv->pBackBuffer))
+        if (rc != Success || !AddResource(bufId, dbeDrawableResType,
+					  pDbeWindowPrivPriv->pBackBuffer))
         {
             /* free the buffer and the drawable resource */
             FreeResource(bufId, RT_NONE);
-            return(BadAlloc);
+            return (rc == Success) ? BadAlloc : rc;
         }
 
 
