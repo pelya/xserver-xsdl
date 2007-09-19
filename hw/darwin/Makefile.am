@@ -8,14 +8,20 @@ INCLUDES = @XORG_INCS@ -I../../miext/rootless
 DEFS = @DEFS@ -DUSE_NEW_CLUT
 
 if XQUARTZ
-XQUARTZ_SUBDIRS = bundle quartz
+XQUARTZ_SUBDIRS = quartz
 XQUARTZ_PROGS = Xquartz
-HOOK_TARGETS = xquartz-install-hook
+XQUARTZ_HOOK = xquartz-install-hook
+endif
+
+if XDARWINAPP
+XDARWINAPP_SUBDIRS = bundle
+XDARWINAPP_HOOK = xdarwinapp-install-hook
 endif
 
 SUBDIRS = \
 	  iokit \
 	  $(XQUARTZ_SUBDIRS) \
+	  $(XDARWINAPP_SUBDIRS) \
 	  utils \
 	  .
 
@@ -260,16 +266,18 @@ glxAGL_la_DEPENDENCIES = XDarwinApp
 endif
 endif
 
-man1_MANS = XDarwin.man
+#man1_MANS = XDarwin.man
 
-uninstall-hook:
-	rm -rf $(DESTDIR)$(macosdir)/XDarwin
+#uninstall-hook:
+#	rm -rf $(DESTDIR)$(macosdir)/XDarwin
 
-install-data-hook: $(HOOK_TARGETS)
+install-data-hook: $(XQUARTZ_HOOK) $(XDARWINAPP_HOOK)
 
-xquartz-install-hook:
-	mv $(DESTDIR)$(macosdir)/XDarwinApp $(DESTDIR)$(macosdir)/XDarwin
+xquartz-install-hook::
 	cd apple && xcodebuild install
+
+xdarwinapp-install hook:
+	mv $(DESTDIR)$(macosdir)/XDarwinApp $(DESTDIR)$(macosdir)/XDarwin
 
 EXTRA_DIST = \
 	darwin.c \
