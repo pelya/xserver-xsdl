@@ -124,6 +124,7 @@ typedef struct _WindowOpt {
 
 typedef struct _Window {
     DrawableRec		drawable;
+    PrivateRec		*devPrivates;
     WindowPtr		parent;		/* ancestor chain */
     WindowPtr		nextSib;	/* next lower sibling */
     WindowPtr		prevSib;	/* next higher sibling */
@@ -160,7 +161,6 @@ typedef struct _Window {
 #ifdef COMPOSITE
     unsigned		redirectDraw:2;	/* rendering is redirected from here */
 #endif
-    PrivateRec		*devPrivates;
 } WindowRec;
 
 /*

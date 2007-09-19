@@ -72,10 +72,10 @@ typedef struct _Drawable {
 
 typedef struct _Pixmap {
     DrawableRec		drawable;
+    PrivateRec		*devPrivates;
     int			refcnt;
     int			devKind;
     DevUnion		devPrivate;
-    PrivateRec		*devPrivates;
 #ifdef COMPOSITE
     short		screen_x;
     short		screen_y;

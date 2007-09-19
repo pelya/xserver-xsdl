@@ -728,7 +728,7 @@ CreatePicture (Picture		pid,
 
     /* security creation/labeling check */
     *error = XaceHook(XACE_RESOURCE_ACCESS, client, pid, PictureType, pPicture,
-		      RC_DRAWABLE, pDrawable, DixCreateAccess|DixSetAttrAccess);
+		      RT_PIXMAP, pDrawable, DixCreateAccess|DixSetAttrAccess);
     if (*error != Success)
 	goto out;
 
