@@ -108,9 +108,7 @@ static XEXT_GENERATE_CLOSE_DISPLAY (close_display, xf86dri_info)
 #endif
 
 
-Bool XF86DRIQueryExtension (dpy, event_basep, error_basep)
-    Display *dpy;
-    int *event_basep, *error_basep;
+Bool XF86DRIQueryExtension (Display *dpy, int *event_basep, int *error_basep)
 {
     XExtDisplayInfo *info = find_display (dpy);
 
