@@ -73,7 +73,6 @@ dnl Darwin 9 has dtrace, but it doesn't support compilation into ELF...
 if test "x$WDTRACE" = xauto; then
 	case $host_os in
 		darwin*) WDTRACE="no" ;;
-		*) WDTRACE="yes" ;;
 	esac
 fi
 if test "x$WDTRACE" = "xyes" -o "x$WDTRACE" = "xauto" ; then
