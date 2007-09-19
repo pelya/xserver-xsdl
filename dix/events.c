@@ -2892,7 +2892,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
     if (!deliveries)
     {
 	FixUpEventFromWindow(xE, grab->window, None, TRUE);
-	if (!XaceHook(XACE_SEND_ACCESS, thisDev, grab->window, xE, count) &&
+	if (!XaceHook(XACE_SEND_ACCESS, 0, thisDev, grab->window, xE, count) &&
 	    !XaceHook(XACE_RECEIVE_ACCESS, rClient(grab), grab->window, xE,
 		      count))
 	    deliveries = TryClientEvents(rClient(grab), xE, count,
