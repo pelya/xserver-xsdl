@@ -88,7 +88,7 @@ cfbSetupScreen(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     int dpix, dpiy;		/* dots per inch */
     int width;			/* pixel width of frame buffer */
 {
-    if (!cfbAllocatePrivates(pScreen, NULL, NULL))
+    if (!cfbAllocatePrivates(pScreen, NULL))
 	return FALSE;
     pScreen->defColormap = FakeClientID(0);
     /* let CreateDefColormap do whatever it wants for pixels */ 
@@ -103,8 +103,6 @@ cfbSetupScreen(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     pScreen->ChangeWindowAttributes = cfbChangeWindowAttributes;
     pScreen->RealizeWindow = cfbMapWindow;
     pScreen->UnrealizeWindow = cfbUnmapWindow;
-    pScreen->PaintWindowBackground = cfbPaintWindow;
-    pScreen->PaintWindowBorder = cfbPaintWindow;
     pScreen->CopyWindow = cfbCopyWindow;
     pScreen->CreatePixmap = cfbCreatePixmap;
     pScreen->DestroyPixmap = cfbDestroyPixmap;

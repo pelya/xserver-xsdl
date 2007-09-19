@@ -122,8 +122,6 @@ fbSetupScreen(ScreenPtr	pScreen,
     pScreen->ChangeWindowAttributes = fbChangeWindowAttributes;
     pScreen->RealizeWindow = fbMapWindow;
     pScreen->UnrealizeWindow = fbUnmapWindow;
-    pScreen->PaintWindowBackground = fbPaintWindow;
-    pScreen->PaintWindowBorder = fbPaintWindow;
     pScreen->CopyWindow = fbCopyWindow;
     pScreen->CreatePixmap = fbCreatePixmap;
     pScreen->DestroyPixmap = fbDestroyPixmap;

@@ -96,8 +96,6 @@ typedef struct _RACScreen {
     GetImageProcPtr 		GetImage;
     GetSpansProcPtr 		GetSpans;
     SourceValidateProcPtr 	SourceValidate;
-    PaintWindowBackgroundProcPtr PaintWindowBackground;
-    PaintWindowBorderProcPtr 	PaintWindowBorder;
     CopyWindowProcPtr 		CopyWindow;
     ClearToBackgroundProcPtr 	ClearToBackground;
     CreatePixmapProcPtr         CreatePixmap;
@@ -137,8 +135,6 @@ static void RACGetSpans (DrawablePtr pDrawable, int wMax, DDXPointPtr	ppt,
 			 int *pwidth, int nspans, char	*pdstStart);
 static void RACSourceValidate (DrawablePtr	pDrawable,
 			       int x, int y, int width, int height );
-static void RACPaintWindowBackground(WindowPtr pWin, RegionPtr prgn, int what);
-static void RACPaintWindowBorder(WindowPtr pWin, RegionPtr prgn, int what);
 static void RACCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
 			  RegionPtr prgnSrc );
 static void RACClearToBackground (WindowPtr pWin, int x, int y,
@@ -286,8 +282,6 @@ xf86RACInit(ScreenPtr pScreen, unsigned int flag)
     WRAP_SCREEN_COND(GetImage, RACGetImage, RAC_FB);
     WRAP_SCREEN_COND(GetSpans, RACGetSpans, RAC_FB);
     WRAP_SCREEN_COND(SourceValidate, RACSourceValidate, RAC_FB);
-    WRAP_SCREEN_COND(PaintWindowBackground, RACPaintWindowBackground, RAC_FB);
-    WRAP_SCREEN_COND(PaintWindowBorder, RACPaintWindowBorder, RAC_FB);
     WRAP_SCREEN_COND(CopyWindow, RACCopyWindow, RAC_FB);
     WRAP_SCREEN_COND(ClearToBackground, RACClearToBackground, RAC_FB);
     WRAP_SCREEN_COND(CreatePixmap, RACCreatePixmap, RAC_FB);
@@ -331,8 +325,6 @@ RACCloseScreen (int i, ScreenPtr pScreen)
     UNWRAP_SCREEN(GetImage);
     UNWRAP_SCREEN(GetSpans);
     UNWRAP_SCREEN(SourceValidate);
-    UNWRAP_SCREEN(PaintWindowBackground);
-    UNWRAP_SCREEN(PaintWindowBorder);
     UNWRAP_SCREEN(CopyWindow);
     UNWRAP_SCREEN(ClearToBackground);
     UNWRAP_SCREEN(SaveScreen);
@@ -414,38 +406,6 @@ RACSourceValidate (
     if (pScreen->SourceValidate)
 	(*pScreen->SourceValidate) (pDrawable, x, y, width, height);
     SCREEN_EPILOG (SourceValidate, RACSourceValidate);
-}
-
-static void
-RACPaintWindowBackground(
-  WindowPtr pWin,
-  RegionPtr prgn,
-  int what 
-  )
-{
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-
-    DPRINT_S("RACPaintWindowBackground",pScreen->myNum);
-    SCREEN_PROLOG (PaintWindowBackground);
-    ENABLE;
-    (*pScreen->PaintWindowBackground) (pWin, prgn, what);
-    SCREEN_EPILOG (PaintWindowBackground, RACPaintWindowBackground);
-}
-
-static void
-RACPaintWindowBorder(
-  WindowPtr pWin,
-  RegionPtr prgn,
-  int what 
-)
-{
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-
-    DPRINT_S("RACPaintWindowBorder",pScreen->myNum);
-    SCREEN_PROLOG (PaintWindowBorder);
-    ENABLE;
-    (*pScreen->PaintWindowBorder) (pWin, prgn, what);
-    SCREEN_EPILOG (PaintWindowBorder, RACPaintWindowBorder);
 }
 
 static void

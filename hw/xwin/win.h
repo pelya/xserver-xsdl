@@ -579,8 +579,6 @@ typedef struct _winPrivScreenRec
   ValidateTreeProcPtr			ValidateTree;
   PostValidateTreeProcPtr		PostValidateTree;
   WindowExposuresProcPtr		WindowExposures;
-  PaintWindowBackgroundProcPtr		PaintWindowBackground;
-  PaintWindowBorderProcPtr		PaintWindowBorder;
   CopyWindowProcPtr			CopyWindow;
   ClearToBackgroundProcPtr		ClearToBackground;
   ClipNotifyProcPtr			ClipNotify;
@@ -1051,17 +1049,6 @@ winModifyPixmapHeaderNativeGDI (PixmapPtr pPixmap,
 				int devKind,
 				pointer pPixData);
 #endif
-
-
-#ifdef XWIN_NATIVEGDI
-/*
- * winpntwin.c
- */
-
-void
-winPaintWindowNativeGDI (WindowPtr pWin, RegionPtr pRegion, int what);
-#endif
-
 
 #ifdef XWIN_NATIVEGDI
 /*

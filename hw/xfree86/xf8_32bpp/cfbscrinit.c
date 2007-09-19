@@ -55,11 +55,7 @@ cfb8_32AllocatePrivates(ScreenPtr pScreen)
    
    
    /* All cfb will have the same GC and Window private indicies */
-   if(!mfbAllocatePrivates(pScreen, &cfbWindowPrivateKey, &cfbGCPrivateKey))
-	return FALSE;
-
-   /* The cfb indicies are the mfb indicies. Reallocating them resizes them */ 
-   if(!dixRequestPrivate(cfbWindowPrivateKey, sizeof(cfbPrivWin)))
+   if(!mfbAllocatePrivates(pScreen, &cfbGCPrivateKey))
 	return FALSE;
 
    if(!dixRequestPrivate(cfbGCPrivateKey, sizeof(cfbPrivGC)))
@@ -108,8 +104,6 @@ cfb8_32SetupScreen(
     pScreen->ChangeWindowAttributes = cfb8_32ChangeWindowAttributes;
     pScreen->RealizeWindow = cfb32MapWindow;			/* OK */
     pScreen->UnrealizeWindow = cfb32UnmapWindow;		/* OK */
-    pScreen->PaintWindowBackground = cfb8_32PaintWindow;
-    pScreen->PaintWindowBorder = cfb8_32PaintWindow;
     pScreen->CopyWindow = cfb8_32CopyWindow;
     pScreen->CreatePixmap = cfb32CreatePixmap;			/* OK */
     pScreen->DestroyPixmap = cfb32DestroyPixmap; 		/* OK */

@@ -917,7 +917,7 @@ xglxWindowExposures (WindowPtr pWin,
 	REGION_SUBTRACT (pScreen, &ClipList, &pWin->borderClip,
 			 &pWin->winSize);
 	REGION_INTERSECT (pScreen, &ClipList, &ClipList, (RegionPtr) pReg);
-	(*pScreen->PaintWindowBorder) (pWin, &ClipList, PW_BORDER);
+	miPaintWindow(pWin, &ClipList, PW_BORDER);
 	REGION_UNINIT (pScreen, &ClipList);
     }
 

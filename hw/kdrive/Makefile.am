@@ -1,5 +1,5 @@
 if KDRIVEVESA
-VESA_SUBDIRS = vesa ati chips epson i810 mach64 mga neomagic nvidia pm2 r128 \
+VESA_SUBDIRS = vesa ati chips epson i810 mach64 mga nvidia pm2 r128 \
                smi via
 endif
 

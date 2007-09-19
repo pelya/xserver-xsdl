@@ -66,7 +66,7 @@ void QuartzReadPreferences(void)
     darwinFakeButtons = [Preferences fakeButtons];
     darwinFakeMouse2Mask = [Preferences button2Mask];
     darwinFakeMouse3Mask = [Preferences button3Mask];
-    darwinMouseAccelChange = [Preferences mouseAccelChange];
+    //    darwinMouseAccelChange = [Preferences mouseAccelChange];
     quartzUseSysBeep = [Preferences systemBeep];
     quartzEnableKeyEquivalents = [Preferences enableKeyEquivalents];
 

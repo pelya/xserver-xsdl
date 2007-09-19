@@ -35,11 +35,6 @@
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
 static Bool ShadowCloseScreen (int i, ScreenPtr pScreen);
-static void ShadowPaintWindow (
-    WindowPtr pWin,
-    RegionPtr prgn,
-    int what 
-);
 static void ShadowCopyWindow(
     WindowPtr pWin,
     DDXPointRec ptOldOrg,
@@ -82,8 +77,6 @@ typedef struct {
   RefreshAreaFuncPtr			preRefresh;
   RefreshAreaFuncPtr                    postRefresh;
   CloseScreenProcPtr			CloseScreen;
-  PaintWindowBackgroundProcPtr		PaintWindowBackground;
-  PaintWindowBorderProcPtr		PaintWindowBorder;
   CopyWindowProcPtr			CopyWindow;
   CreateGCProcPtr			CreateGC;
   ModifyPixmapHeaderProcPtr		ModifyPixmapHeader;
@@ -192,8 +185,6 @@ ShadowFBInit2 (
     pPriv->vtSema = TRUE;
 
     pPriv->CloseScreen = pScreen->CloseScreen;
-    pPriv->PaintWindowBackground = pScreen->PaintWindowBackground;
-    pPriv->PaintWindowBorder = pScreen->PaintWindowBorder;
     pPriv->CopyWindow = pScreen->CopyWindow;
     pPriv->CreateGC = pScreen->CreateGC;
     pPriv->ModifyPixmapHeader = pScreen->ModifyPixmapHeader;
@@ -202,8 +193,6 @@ ShadowFBInit2 (
     pPriv->LeaveVT = pScrn->LeaveVT;
 
     pScreen->CloseScreen = ShadowCloseScreen;
-    pScreen->PaintWindowBackground = ShadowPaintWindow;
-    pScreen->PaintWindowBorder = ShadowPaintWindow;
     pScreen->CopyWindow = ShadowCopyWindow;
     pScreen->CreateGC = ShadowCreateGC;
     pScreen->ModifyPixmapHeader = ShadowModifyPixmapHeader;
@@ -268,8 +257,6 @@ ShadowCloseScreen (int i, ScreenPtr pScreen)
 #endif /* RENDER */
 
     pScreen->CloseScreen = pPriv->CloseScreen;
-    pScreen->PaintWindowBackground = pPriv->PaintWindowBackground;
-    pScreen->PaintWindowBorder = pPriv->PaintWindowBorder;
     pScreen->CopyWindow = pPriv->CopyWindow;
     pScreen->CreateGC = pPriv->CreateGC;
     pScreen->ModifyPixmapHeader = pPriv->ModifyPixmapHeader;
@@ -287,35 +274,6 @@ ShadowCloseScreen (int i, ScreenPtr pScreen)
 
     return (*pScreen->CloseScreen) (i, pScreen);
 }
-
-static void
-ShadowPaintWindow(
-  WindowPtr pWin,
-  RegionPtr prgn,
-  int what 
-){
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-    ShadowScreenPtr pPriv = GET_SCREEN_PRIVATE(pScreen);
-    int num = 0;
-
-    if(pPriv->vtSema && (num = REGION_NUM_RECTS(prgn)))
-        if(pPriv->preRefresh)
-            (*pPriv->preRefresh)(pPriv->pScrn, num, REGION_RECTS(prgn));
-
-    if(what == PW_BACKGROUND) {
-	pScreen->PaintWindowBackground = pPriv->PaintWindowBackground;
-	(*pScreen->PaintWindowBackground) (pWin, prgn, what);
-	pScreen->PaintWindowBackground = ShadowPaintWindow;
-    } else {
-	pScreen->PaintWindowBorder = pPriv->PaintWindowBorder;
-	(*pScreen->PaintWindowBorder) (pWin, prgn, what);
-	pScreen->PaintWindowBorder = ShadowPaintWindow;
-    }
-
-    if(num && pPriv->postRefresh)
-        (*pPriv->postRefresh)(pPriv->pScrn, num, REGION_RECTS(prgn));    
-}
-
 
 static void 
 ShadowCopyWindow(

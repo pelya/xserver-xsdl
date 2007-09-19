@@ -273,8 +273,6 @@ typedef struct _xglScreen {
     CreateWindowProcPtr		  CreateWindow;
     DestroyWindowProcPtr	  DestroyWindow;
     ChangeWindowAttributesProcPtr ChangeWindowAttributes;
-    PaintWindowBackgroundProcPtr  PaintWindowBackground;
-    PaintWindowBorderProcPtr	  PaintWindowBorder;
     CopyWindowProcPtr		  CopyWindow;
     CreateGCProcPtr		  CreateGC;
     CloseScreenProcPtr		  CloseScreen;
@@ -1090,16 +1088,6 @@ void
 xglCopyWindow (WindowPtr   pWin,
 	       DDXPointRec ptOldOrg,
 	       RegionPtr   prgnSrc);
-
-void
-xglPaintWindowBackground (WindowPtr pWin,
-			  RegionPtr pRegion,
-			  int	    what);
-
-void
-xglPaintWindowBorder (WindowPtr pWin,
-		      RegionPtr pRegion,
-		      int	what);
 
 PixmapPtr
 xglGetWindowPixmap (WindowPtr pWin);

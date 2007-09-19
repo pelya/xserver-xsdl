@@ -504,7 +504,7 @@ bufClearImageBufferArea(pMBBuffer, x,y, w,h, generateExposures)
 
     REGION_INTERSECT(pScreen, &reg, &reg, &pBuffer->clipList);
     if (pBuffer->backgroundState != None)
-	(*pScreen->PaintWindowBackground)(pBuffer, &reg, PW_BACKGROUND);
+	miPaintWindow(pBuffer, &reg, PW_BACKGROUND);
     if (generateExposures)
 	MultibufferExpose(pMBBuffer, &reg);
 #ifdef _notdef
@@ -517,7 +517,7 @@ bufClearImageBufferArea(pMBBuffer, x,y, w,h, generateExposures)
     if (generateExposures)
 	(*pScreen->WindowExposures)(pBuffer, &reg, pBSReg);
     else if (pBuffer->backgroundState != None)
-        (*pScreen->PaintWindowBackground)(pBuffer, &reg, PW_BACKGROUND);
+        miPaintWindow(pBuffer, &reg, PW_BACKGROUND);
 #endif
     REGION_UNINIT(pScreen, &reg);
     if (pBSReg)
@@ -836,8 +836,7 @@ bufClipNotify(pWin, dx,dy)
 
 /*
  * Updates buffer's background fields when the window's changes.
- * This is necessary because pScreen->PaintWindowBackground
- * is used to paint the buffer.
+ * This is necessary because miPaintWindow is used to paint the buffer.
  *
  * XXBS - Backingstore state will have be tracked too if it is supported.
  */
@@ -927,7 +926,7 @@ bufWindowExposures(pWin, prgn, other_exposed)
 	pBuffer = (BufferPtr) pMBBuffer->pDrawable;
 
 	if (i != pMBWindow->displayedMultibuffer)
-	    (* pScreen->PaintWindowBackground)(pBuffer,&tmp_rgn,PW_BACKGROUND);
+	    miPaintWindow(pBuffer, &tmp_rgn, PW_BACKGROUND);
 	if ((pMBBuffer->otherEventMask | pMBBuffer->eventMask) & ExposureMask)
 	    MultibufferExpose(pMBBuffer, &tmp_rgn);
     }

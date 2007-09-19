@@ -286,21 +286,3 @@ xf86scanpci(void)
 
     return success;
 }
-
-#ifdef INCLUDE_XF86_NO_DOMAIN
-
-_X_EXPORT pointer
-xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,
-		    ADDRESS Base, unsigned long Size)
-{
-    return xf86MapVidMem(ScreenNum, Flags, Base, Size);
-}
-
-IOADDRESS
-xf86MapLegacyIO(struct pci_device *dev)
-{
-    (void) dev;
-    return 0;
-}
-
-#endif /* INCLUDE_XF86_NO_DOMAIN */

@@ -1634,35 +1634,6 @@ damageDestroyPixmap (PixmapPtr pPixmap)
 }
 
 static void
-damagePaintWindow(WindowPtr pWindow,
-		  RegionPtr prgn,
-		  int	    what)
-{
-    ScreenPtr pScreen = pWindow->drawable.pScreen;
-    damageScrPriv(pScreen);
-
-    /*
-     * Painting background none doesn't actually *do* anything, so
-     * no damage is recorded
-     */
-    if ((what != PW_BACKGROUND || pWindow->backgroundState != None) &&
-	getWindowDamage (pWindow))
-	damageDamageRegion (&pWindow->drawable, prgn, FALSE, -1);
-    if(what == PW_BACKGROUND) {
-	unwrap (pScrPriv, pScreen, PaintWindowBackground);
-	(*pScreen->PaintWindowBackground) (pWindow, prgn, what);
-	damageReportPostOp (&pWindow->drawable);
-	wrap (pScrPriv, pScreen, PaintWindowBackground, damagePaintWindow);
-    } else {
-	unwrap (pScrPriv, pScreen, PaintWindowBorder);
-	(*pScreen->PaintWindowBorder) (pWindow, prgn, what);
-	damageReportPostOp (&pWindow->drawable);
-	wrap (pScrPriv, pScreen, PaintWindowBorder, damagePaintWindow);
-    }
-}
-
-
-static void
 damageCopyWindow(WindowPtr	pWindow,
 		 DDXPointRec	ptOldOrg,
 		 RegionPtr	prgnSrc)
@@ -1762,8 +1733,6 @@ damageCloseScreen (int i, ScreenPtr pScreen)
 
     unwrap (pScrPriv, pScreen, DestroyPixmap);
     unwrap (pScrPriv, pScreen, CreateGC);
-    unwrap (pScrPriv, pScreen, PaintWindowBackground);
-    unwrap (pScrPriv, pScreen, PaintWindowBorder);
     unwrap (pScrPriv, pScreen, CopyWindow);
     unwrap (pScrPriv, pScreen, CloseScreen);
     xfree (pScrPriv);
@@ -1793,8 +1762,6 @@ DamageSetup (ScreenPtr pScreen)
 
     wrap (pScrPriv, pScreen, DestroyPixmap, damageDestroyPixmap);
     wrap (pScrPriv, pScreen, CreateGC, damageCreateGC);
-    wrap (pScrPriv, pScreen, PaintWindowBackground, damagePaintWindow);
-    wrap (pScrPriv, pScreen, PaintWindowBorder, damagePaintWindow);
     wrap (pScrPriv, pScreen, DestroyWindow, damageDestroyWindow);
     wrap (pScrPriv, pScreen, SetWindowPixmap, damageSetWindowPixmap);
     wrap (pScrPriv, pScreen, CopyWindow, damageCopyWindow);
@@ -1964,6 +1931,12 @@ RegionPtr
 DamageRegion (DamagePtr		    pDamage)
 {
     return &pDamage->damage;
+}
+
+_X_EXPORT RegionPtr
+DamagePendingRegion (DamagePtr	    pDamage)
+{
+    return &pDamage->pendingDamage;
 }
 
 _X_EXPORT void

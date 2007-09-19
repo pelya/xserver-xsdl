@@ -224,14 +224,6 @@ KdCheckGetSpans (DrawablePtr pDrawable,
 }
 
 void
-KdCheckPaintWindow (WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    kaaWaitSync (pWin->drawable.pScreen);
-    kaaDrawableDirty ((DrawablePtr)pWin);
-    fbPaintWindow (pWin, pRegion, what);
-}
-
-void
 KdCheckCopyWindow (WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
 {
     kaaWaitSync (pWin->drawable.pScreen);
@@ -265,8 +257,6 @@ KdScreenInitAsync (ScreenPtr pScreen)
 {
     pScreen->GetImage = KdCheckGetImage;
     pScreen->GetSpans = KdCheckGetSpans;
-    pScreen->PaintWindowBackground = KdCheckPaintWindow;
-    pScreen->PaintWindowBorder = KdCheckPaintWindow;
     pScreen->CopyWindow = KdCheckCopyWindow;
 #ifdef RENDER
     KdPictureInitAsync (pScreen);

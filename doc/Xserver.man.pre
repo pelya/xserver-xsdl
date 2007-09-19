@@ -508,8 +508,7 @@ its parent process after it has set up the various connection schemes.
 \fIXdm\fP uses this feature to recognize when connecting to the server
 is possible.
 .SH FONTS
-The X server
-can obtain fonts from directories and/or from font servers.
+The X server can obtain fonts from directories and/or from font servers.
 The list of directories and font servers
 the X server uses when trying to open a font is controlled
 by the \fIfont path\fP.  
@@ -517,8 +516,45 @@ by the \fIfont path\fP.
 The default font path is
 __default_font_path__ .
 .LP
+A special kind of directory can be specified using the the \fBcatalogue\fP:
+prefix. Directories specified this way can contain symlinks pointing to the
+real font directories. See the FONTPATH.D section for details.
+.LP
 The font path can be set with the \fB\-fp\fP option or by \fIxset\fP(1)
 after the server has started.
+.SH "FONTPATH.D"
+You can specify a special kind of font path in the form \fBcatalogue:<dir>\fR.
+The directory specified after the catalogue: prefix will be scanned for symlinks
+and each symlink destination will be added as a local fontfile FPE.
+.PP
+The symlink can be suffixed by attributes such as '\fBunscaled\fR', which
+will be passed through to the underlying fontfile FPE. The only exception is
+the newly introduced '\fBpri\fR' attribute, which will be used for ordering
+the font paths specified by the symlinks.
+
+An example configuration:
+
+.nf
+    75dpi:unscaled:pri=20 \-> /usr/share/X11/fonts/75dpi
+    ghostscript:pri=60 \-> /usr/share/fonts/default/ghostscript
+    misc:unscaled:pri=10 \-> /usr/share/X11/fonts/misc
+    type1:pri=40 \-> /usr/share/X11/fonts/Type1
+    type1:pri=50 \-> /usr/share/fonts/default/Type1
+.fi
+
+This will add /usr/share/X11/fonts/misc as the first FPE with the attribute
+'unscaled', second FPE will be /usr/share/X11/fonts/75dpi, also with
+the attribute unscaled etc. This is functionally equivalent to setting
+the following font path:
+
+.nf
+    /usr/share/X11/fonts/misc:unscaled,
+    /usr/share/X11/fonts/75dpi:unscaled,
+    /usr/share/X11/fonts/Type1,
+    /usr/share/fonts/default/Type1,
+    /usr/share/fonts/default/ghostscript
+.fi
+
 .SH FILES
 .TP 30
 .I /etc/X\fBn\fP.hosts

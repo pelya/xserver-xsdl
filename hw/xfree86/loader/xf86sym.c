@@ -333,8 +333,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86IsEntityPrimary)
     SYMFUNC(xf86SetOperatingState)
     SYMFUNC(xf86EnterServerState)
-    SYMFUNC(xf86GetBlock)
-    SYMFUNC(xf86GetSparse)
     SYMFUNC(xf86ChkConflict)
     SYMFUNC(xf86FindScreenForEntity)
     SYMFUNC(xf86RegisterStateChangeNotificationCallback)
@@ -1116,7 +1114,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMVAR(resVgaSparseShared)
     SYMVAR(res8514Exclusive)
     SYMVAR(res8514Shared)
-    SYMVAR(PciAvoid)
 
 #if defined(__powerpc__) && (!defined(NO_INLINE) || defined(Lynx))
     SYMVAR(ioBase)

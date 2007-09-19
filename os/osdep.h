@@ -55,9 +55,6 @@ SOFTWARE.
 #define BOTIMEOUT 200 /* in milliseconds */
 #define BUFSIZE 4096
 #define BUFWATERMARK 8192
-#ifndef MAXBUFSIZE
-#define MAXBUFSIZE (1 << 22)
-#endif
 
 #include <X11/Xdmcp.h>
 

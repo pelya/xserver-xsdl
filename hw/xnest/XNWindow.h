@@ -64,8 +64,6 @@ void xnestConfigureWindow(WindowPtr pWin, unsigned int mask);
 Bool xnestChangeWindowAttributes(WindowPtr pWin, unsigned long mask);
 Bool xnestRealizeWindow(WindowPtr pWin);
 Bool xnestUnrealizeWindow(WindowPtr pWin);
-void xnestPaintWindowBackground(WindowPtr pWin, RegionPtr pRegion, int what);
-void xnestPaintWindowBorder(WindowPtr pWin, RegionPtr pRegion, int what);
 void xnestCopyWindow(WindowPtr pWin, xPoint oldOrigin, RegionPtr oldRegion);
 void xnestClipNotify(WindowPtr pWin, int dx, int dy);
 void xnestWindowExposures(WindowPtr pWin, RegionPtr pRgn,

@@ -1494,7 +1494,7 @@ PatchUp:
 
 	REGION_NULL(pScreen, &exposed);
 	REGION_SUBTRACT(pScreen, &exposed, &pWin->borderClip, &pWin->winSize);
-	(*pWin->drawable.pScreen->PaintWindowBorder)(pWin, &exposed, PW_BORDER);
+	miPaintWindow(pWin, &exposed, PW_BORDER);
 	REGION_UNINIT(pScreen, &exposed);
     }
     return error;

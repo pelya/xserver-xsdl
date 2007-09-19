@@ -649,54 +649,6 @@ xf86MapLegacyIO(int ScreenNum, int Flags, PCITAG Tag,
 }
 
 resPtr
-xf86BusAccWindowsFromOS(void)
-{
-    sparcDomainPtr pDomain;
-    resPtr         pRes = NULL;
-    resRange       range;
-    int            domain;
-
-    for (domain = 1;  domain < pciNumDomains;  domain++) {
-	if (!(pDomain = xf86DomainInfo[domain]))
-	    continue;
-
-	RANGE(range, 0, pDomain->mem_size - 1,
-	      RANGE_TYPE(ResExcMemBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);
-
-	RANGE(range, 0, pDomain->io_size - 1,
-	      RANGE_TYPE(ResExcIoBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);
-    }
-
-    return pRes;
-}
-
-resPtr
-xf86PciBusAccWindowsFromOS(void)
-{
-    sparcDomainPtr pDomain;
-    resPtr         pRes = NULL;
-    resRange       range;
-    int            domain;
-
-    for (domain = 1;  domain < pciNumDomains;  domain++) {
-	if (!(pDomain = xf86DomainInfo[domain]))
-	    continue;
-
-	RANGE(range, 0, pDomain->mem_size - 1,
-	      RANGE_TYPE(ResExcMemBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);
-
-	RANGE(range, 0, pDomain->io_size - 1,
-	      RANGE_TYPE(ResExcIoBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);
-    }
-
-    return pRes;
-}
-
-resPtr
 xf86AccResFromOS(resPtr pRes)
 {
     sparcDomainPtr pDomain;

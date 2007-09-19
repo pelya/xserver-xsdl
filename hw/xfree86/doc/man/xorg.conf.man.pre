@@ -293,15 +293,50 @@ server searches for font databases.
 Multiple
 .B FontPath
 entries may be specified, and they will be concatenated to build up the
-fontpath used by the server.  Font path elements may be either absolute
-directory paths, or a font server identifier.
-Font server identifiers have the form:
+fontpath used by the server.  Font path elements can be absolute
+directory paths, catalogue directories or a font server identifier. The
+formats of the later two are explained below:
 .PP
-.RS 11
+.RS 7
+Catalogue directories:
+.PP
+.RS 4
+Catalogue directories can be specified using the prefix \fBcatalogue:\fR
+before the directory name. The directory can then be populated with
+symlinks pointing to the real font directories, using the following
+syntax in the symlink name:
+.PP
+.RS 4
+.IR <identifier> : [attribute]: pri= <priority>
+.RE
+.PP
+where
+.I <identifier>
+is an alphanumeric identifier,
+.I [attribute]
+is an attribute wich will be passed to the underlying FPE and
+.I <priority>
+is a number used to order the fontfile FPEs. Examples:
+.PP
+.RS 4
+.nf
+.I 75dpi:unscaled:pri=20  -> /usr/share/X11/fonts/75dpi
+.I gscript:pri=60 -> /usr/share/fonts/default/ghostscript
+.I misc:unscaled:pri=10 \-> /usr/share/X11/fonts/misc
+.fi
+.PP
+.RE .RE .RE
+.PP
+.RS 7
+Font server identifiers:
+.PP
+.RS 4
+Font server identifiers have the form:
+.RS 4
+.PP
 .IR <trans> / <hostname> : <port\-number>
 .RE
 .PP
-.RS 7
 where
 .I <trans>
 is the transport type to use to connect to the font server (e.g.,
@@ -313,10 +348,11 @@ for a TCP/IP connection),
 is the hostname of the machine running the font server, and
 .I <port\-number>
 is the port number that the font server is listening on (usually 7100).
+.RE
 .PP
 When this entry is not specified in the config file, the server falls back
 to the compiled\-in default font path, which contains the following
-font path elements:
+font path elements (which can be set inside a catalogue directory):
 .PP
 .RS 4
 .nf

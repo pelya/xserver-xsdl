@@ -202,8 +202,6 @@ InitializePclDriver(
     pScreen->RealizeWindow = PclMapWindow;
     pScreen->UnrealizeWindow = PclUnmapWindow;
 */
-    pScreen->PaintWindowBackground = PclPaintWindow;
-    pScreen->PaintWindowBorder = PclPaintWindow;
     pScreen->CopyWindow = PclCopyWindow; /* XXX Hard routine to write! */
 
     pScreen->CreatePixmap = fbCreatePixmap;

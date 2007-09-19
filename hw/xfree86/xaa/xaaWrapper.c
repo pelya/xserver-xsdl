@@ -54,8 +54,6 @@ typedef struct {
     CreateScreenResourcesProcPtr CreateScreenResources;
     CreateWindowProcPtr		CreateWindow;
     CopyWindowProcPtr		CopyWindow;
-    PaintWindowProcPtr		PaintWindowBackground;
-    PaintWindowProcPtr		PaintWindowBorder;
     WindowExposuresProcPtr	WindowExposures;
     CreateGCProcPtr		CreateGC;
     CreateColormapProcPtr	CreateColormap;
@@ -73,8 +71,6 @@ typedef struct {
     CreateScreenResourcesProcPtr wrapCreateScreenResources;
     CreateWindowProcPtr		wrapCreateWindow;
     CopyWindowProcPtr		wrapCopyWindow;
-    PaintWindowProcPtr		wrapPaintWindowBackground;
-    PaintWindowProcPtr		wrapPaintWindowBorder;
     WindowExposuresProcPtr	wrapWindowExposures;
     CreateGCProcPtr		wrapCreateGC;
     CreateColormapProcPtr	wrapCreateColormap;
@@ -205,33 +201,6 @@ xaaWrapperWindowExposures (WindowPtr	pWin,
 	      WindowExposures, wrapWindowExposures, xaaWrapperWindowExposures);
 }
 
-static void
-xaaWrapperPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    xaaWrapperScrPriv(pWin->drawable.pScreen);
-
-    switch (what) {
-	case PW_BORDER:
-	    cond_unwrap(pScrPriv, &pWin->drawable, pWin->drawable.pScreen,
-			PaintWindowBorder, wrapPaintWindowBorder);
-
-	    pWin->drawable.pScreen->PaintWindowBorder (pWin, pRegion, what);
-	    cond_wrap(pScrPriv, &pWin->drawable, pWin->drawable.pScreen,
-		      PaintWindowBorder, wrapPaintWindowBorder,
-		      xaaWrapperPaintWindow);
-	    break;
-	case PW_BACKGROUND:
-	    cond_unwrap(pScrPriv, &pWin->drawable, pWin->drawable.pScreen,
-			PaintWindowBackground, wrapPaintWindowBackground);
-
-	    pWin->drawable.pScreen->PaintWindowBackground (pWin, pRegion, what);
-	    cond_wrap(pScrPriv, &pWin->drawable, pWin->drawable.pScreen,
-		      PaintWindowBackground, wrapPaintWindowBackground,
-		      xaaWrapperPaintWindow);
-	    break;
-    }
-}
-
 static Bool
 xaaWrapperCreateColormap(ColormapPtr pmap)
 {
@@ -314,8 +283,6 @@ xaaSetupWrapper(ScreenPtr pScreen, XAAInfoRecPtr infoPtr, int depth, SyncFunc *f
     get (pScrPriv, pScreen, CreateScreenResources, wrapCreateScreenResources);
     get (pScrPriv, pScreen, CreateWindow, wrapCreateWindow);
     get (pScrPriv, pScreen, CopyWindow, wrapCopyWindow);
-    get (pScrPriv, pScreen, PaintWindowBorder, wrapPaintWindowBorder);
-    get (pScrPriv, pScreen, PaintWindowBackground, wrapPaintWindowBackground);
     get (pScrPriv, pScreen, WindowExposures, wrapWindowExposures);
     get (pScrPriv, pScreen, CreateGC, wrapCreateGC);
     get (pScrPriv, pScreen, CreateColormap, wrapCreateColormap);
@@ -338,8 +305,6 @@ xaaSetupWrapper(ScreenPtr pScreen, XAAInfoRecPtr infoPtr, int depth, SyncFunc *f
 	  xaaWrapperCreateScreenResources);
     wrap (pScrPriv, pScreen, CreateWindow, xaaWrapperCreateWindow);
     wrap (pScrPriv, pScreen, CopyWindow, xaaWrapperCopyWindow);
-    wrap (pScrPriv, pScreen, PaintWindowBorder, xaaWrapperPaintWindow);
-    wrap (pScrPriv, pScreen, PaintWindowBackground, xaaWrapperPaintWindow);
     wrap (pScrPriv, pScreen, WindowExposures, xaaWrapperWindowExposures);
     wrap (pScrPriv, pScreen, CreateGC, xaaWrapperCreateGC);
     wrap (pScrPriv, pScreen, CreateColormap, xaaWrapperCreateColormap);

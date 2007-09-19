@@ -119,14 +119,12 @@
 #define fbOverlayGeneration wfbOverlayGeneration
 #define fbOverlayGetScreenPrivateKey wfbOverlayGetScreenPrivateKey
 #define fbOverlayPaintKey wfbOverlayPaintKey
-#define fbOverlayPaintWindow wfbOverlayPaintWindow
 #define fbOverlayScreenPrivateKey wfbOverlayScreenPrivateKey
 #define fbOverlaySetupScreen wfbOverlaySetupScreen
 #define fbOverlayUpdateLayerRegion wfbOverlayUpdateLayerRegion
 #define fbOverlayWindowExposures wfbOverlayWindowExposures
 #define fbOverlayWindowLayer wfbOverlayWindowLayer
 #define fbPadPixmap wfbPadPixmap
-#define fbPaintWindow wfbPaintWindow
 #define fbPictureInit wfbPictureInit
 #define fbPixmapToRegion wfbPixmapToRegion
 #define fbPolyArc wfbPolyArc

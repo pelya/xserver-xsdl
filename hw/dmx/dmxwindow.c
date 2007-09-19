@@ -795,57 +795,6 @@ void dmxWindowExposures(WindowPtr pWindow, RegionPtr prgn,
     DMX_WRAP(WindowExposures, dmxWindowExposures, dmxScreen, pScreen);
 }
 
-/** Paint background of \a pWindow in \a pRegion. */
-void dmxPaintWindowBackground(WindowPtr pWindow, RegionPtr pRegion, int what)
-{
-    ScreenPtr      pScreen = pWindow->drawable.pScreen;
-    DMXScreenInfo *dmxScreen = &dmxScreens[pScreen->myNum];
-    dmxWinPrivPtr  pWinPriv = DMX_GET_WINDOW_PRIV(pWindow);
-    BoxPtr         pBox;
-    int            nBox;
-
-    DMX_UNWRAP(PaintWindowBackground, dmxScreen, pScreen);
-#if 0
-    if (pScreen->PaintWindowBackground)
-	pScreen->PaintWindowBackground(pWindow, pRegion, what);
-#endif
-
-    if (pWinPriv->window) {
-	/* Paint window background on back-end server */
-	pBox = REGION_RECTS(pRegion);
-	nBox = REGION_NUM_RECTS(pRegion);
-	while (nBox--) {
-	    XClearArea(dmxScreen->beDisplay, pWinPriv->window,
-		       pBox->x1 - pWindow->drawable.x,
-		       pBox->y1 - pWindow->drawable.y,
-		       pBox->x2 - pBox->x1,
-		       pBox->y2 - pBox->y1,
-		       False);
-	    pBox++;
-	}
-	dmxSync(dmxScreen, False);
-    }
-
-    DMX_WRAP(PaintWindowBackground, dmxPaintWindowBackground, dmxScreen, pScreen);
-}
-
-/** Paint window border for \a pWindow in \a pRegion. */
-void dmxPaintWindowBorder(WindowPtr pWindow, RegionPtr pRegion, int what)
-{
-    ScreenPtr      pScreen = pWindow->drawable.pScreen;
-    DMXScreenInfo *dmxScreen = &dmxScreens[pScreen->myNum];
-
-    DMX_UNWRAP(PaintWindowBorder, dmxScreen, pScreen);
-#if 0
-    if (pScreen->PaintWindowBorder)
-	pScreen->PaintWindowBorder(pWindow, pRegion, what);
-#endif
-
-    /* Paint window border on back-end server */
-
-    DMX_WRAP(PaintWindowBorder, dmxPaintWindowBorder, dmxScreen, pScreen);
-}
-
 /** Move \a pWindow on the back-end server.  Determine whether or not it
  *  is on or offscreen, and realize it if it is newly on screen and the
  *  lazy window creation optimization is enabled. */

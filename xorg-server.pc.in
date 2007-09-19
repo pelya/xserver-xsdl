@@ -8,5 +8,6 @@ sdkdir=@sdkdir@
 Name: xorg-server
 Description: Modular X.Org X Server
 Version: @PACKAGE_VERSION@
-Cflags: -I${sdkdir} @PIXMAN_CFLAGS@
+Requires.private: pixman-1
+Cflags: -I${sdkdir}
 Libs: -L${libdir}

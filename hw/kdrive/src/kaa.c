@@ -1008,52 +1008,6 @@ kaaFillRegionTiled (DrawablePtr pDrawable,
 }
 #endif
 
-static void
-kaaPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-
-    if (!REGION_NUM_RECTS(pRegion)) 
-	return;
-    switch (what) {
-    case PW_BACKGROUND:
-	switch (pWin->backgroundState) {
-	case None:
-	    return;
-	case ParentRelative:
-	    do {
-		pWin = pWin->parent;
-	    } while (pWin->backgroundState == ParentRelative);
-	    (*pWin->drawable.pScreen->PaintWindowBackground)(pWin, pRegion,
-							     what);
-	    return;
-	case BackgroundPixel:
-	    kaaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->background.pixel);
-	    return;
-#if 0	    
-	case BackgroundPixmap:
-	    kaaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->background.pixmap);
-	    return;
-#endif
-    	}
-    	break;
-    case PW_BORDER:
-	if (pWin->borderIsPixel)
-	{
-	    kaaFillRegionSolid((DrawablePtr)pWin, pRegion, pWin->border.pixel);
-	    return;
-	}
-#if 0
-	else
-	{
-	    kaaFillRegionTiled((DrawablePtr)pWin, pRegion, pWin->border.pixmap);
-	    return;
-	}
-#endif
-	break;
-    }
-    KdCheckPaintWindow (pWin, pRegion, what);
-}
-
 Bool
 kaaDrawInit (ScreenPtr		pScreen,
 	     KaaScreenInfoPtr	pScreenInfo)
@@ -1083,8 +1037,6 @@ kaaDrawInit (ScreenPtr		pScreen,
      */
     pScreen->CreateGC = kaaCreateGC;
     pScreen->CopyWindow = kaaCopyWindow;
-    pScreen->PaintWindowBackground = kaaPaintWindow;
-    pScreen->PaintWindowBorder = kaaPaintWindow;
 #ifdef RENDER
     if (ps) {
 	ps->Composite = kaaComposite;

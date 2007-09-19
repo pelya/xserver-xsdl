@@ -650,13 +650,6 @@ extern void mfbFillPolyWhite(
     int /*count*/,
     DDXPointPtr /*ptsIn*/
 );
-/* mfbpntwin.c */
-
-extern void mfbPaintWindow(
-    WindowPtr /*pWin*/,
-    RegionPtr /*pRegion*/,
-    int /*what*/
-);
 /* mfbpolypnt.c */
 
 extern void mfbPolyPoint(
@@ -705,8 +698,7 @@ extern Bool mfbCloseScreen(
 
 extern Bool mfbAllocatePrivates(
     ScreenPtr /*pScreen*/,
-    DevPrivateKey *pWinKey,
-    DevPrivateKey *pGCIndex
+    DevPrivateKey * /*pGCKey*/
 );
 
 extern Bool mfbScreenInit(
@@ -892,22 +884,11 @@ typedef mfbPrivGC	*mfbPrivGCPtr;
 #endif
 
 extern DevPrivateKey mfbGetGCPrivateKey(void);
-extern DevPrivateKey mfbGetWindowPrivateKey(void);
 #ifdef PIXMAP_PER_WINDOW
 extern DevPrivateKey frameGetWindowPrivateKey(void);
 #endif
 
 #ifndef MFB_PROTOTYPES_ONLY
-/* private field of window */
-typedef struct {
-    unsigned char fastBorder;	/* non-zero if border tile is 32 bits wide */
-    unsigned char fastBackground;
-    unsigned short unused; /* pad for alignment with Sun compiler */
-    DDXPointRec	oldRotate;
-    PixmapPtr	pRotatedBackground;
-    PixmapPtr	pRotatedBorder;
-    } mfbPrivWin;
-
 /* Common macros for extracting drawing information */
 
 #define mfbGetTypedWidth(pDrawable,wtype) (\

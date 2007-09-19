@@ -379,30 +379,6 @@ xnestUnrealizeWindow(WindowPtr pWin)
 }
 
 void
-xnestPaintWindowBackground(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-  int i;
-  BoxPtr pBox;
-
-  xnestConfigureWindow(pWin, CWWidth | CWHeight);
-
-  pBox = REGION_RECTS(pRegion);
-  for (i = 0; i < REGION_NUM_RECTS(pRegion); i++)
-    XClearArea(xnestDisplay, xnestWindow(pWin),
-	       pBox[i].x1 - pWin->drawable.x,
-	       pBox[i].y1 - pWin->drawable.y,
-	       pBox[i].x2 - pBox[i].x1, 
-	       pBox[i].y2 - pBox[i].y1,
-	       False);
-}
-
-void
-xnestPaintWindowBorder(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-  xnestConfigureWindow(pWin, CWBorderWidth);
-}
-
-void
 xnestCopyWindow(WindowPtr pWin, xPoint oldOrigin, RegionPtr oldRegion)
 {
 }

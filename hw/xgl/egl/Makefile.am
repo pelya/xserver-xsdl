@@ -24,7 +24,12 @@ libxegl_la_SOURCES = \
 	kinput.c     \
 	evdev.c
 
-Xegl_DEPENDENCIES = @XEGL_LIBS@
+XEGL_LIBS = \
+	@XEGL_LIBS@ \
+	libxegl.la \
+	../libxgl.a \
+	$XSERVER_LIBS
+
 Xegl_LDFLAGS	  = -export-dynamic
 Xegl_SOURCES	  = \
 	xeglinit.c \
@@ -32,14 +37,8 @@ Xegl_SOURCES	  = \
 	$(top_srcdir)/Xext/dpmsstubs.c \
 	$(top_srcdir)/Xi/stubs.c \
 	$(top_srcdir)/fb/fbcmap.c
-Xegl_LDADD = \
-	libxegl.la \
-	../libxgl.a \
-	$(XORG_CORE_LIBS) \
-	$(XEGL_LIBS) \
-	$(XSERVER_LIBS) \
-	$(EXTENSION_LIBS) \
-	$(XGLXMODULES_LIBS)
-Xegl_programs	  = Xegl
 
-bin_PROGRAMS = $(Xegl_programs)
+Xegl_DEPENDENCIES = $(XEGL_LIBS)
+Xegl_LDADD = $(XEGL_LIBS) $(XSERVER_SYS_LIBS) $(XEGL_SYS_LIBS)
+
+bin_PROGRAMS = Xegl

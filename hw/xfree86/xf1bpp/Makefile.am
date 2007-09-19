@@ -45,7 +45,6 @@ libxf1bppmfb_a_SOURCES = \
         mfbline.c \
         mfbmisc.c \
         mfbpixmap.c \
-        mfbpntwin.c \
         mfbpolypnt.c \
         mfbpushpxl.c \
         mfbscrclse.c \

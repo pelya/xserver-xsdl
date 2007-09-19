@@ -19,12 +19,13 @@ libfbcmap_a_SOURCES = $(top_srcdir)/fb/fbcmap_mi.c
 
 Xvfb_SOURCES = $(SRCS)
 
-Xvfb_LDADD = $(XORG_CORE_LIBS) \
-             $(XVFB_LIBS) \
-             $(XSERVER_LIBS) \
-             $(EXTENSION_LIBS) \
-             $(XVFBMODULES_LIBS) \
-	     libfbcmap.a
+XVFB_LIBS = \
+        @XVFB_LIBS@ \
+	libfbcmap.a \
+	$(XSERVER_LIBS)
+
+Xvfb_LDADD = $(XVFB_LIBS) $(XVFB_SYS_LIBS) $(XSERVER_SYS_LIBS)
+Xvfb_DEPENDENCIES = $(XVFB_LIBS)
 
 # Man page
 include $(top_srcdir)/cpprules.in

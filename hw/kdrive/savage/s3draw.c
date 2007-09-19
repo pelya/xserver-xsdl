@@ -2261,71 +2261,6 @@ s3PaintKey (DrawablePtr	pDrawable,
 #endif
 
 void
-s3PaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    SetupS3(pWin->drawable.pScreen);
-    s3ScreenInfo(pScreenPriv);
-    s3PatternPtr    pPattern;
-
-    DRAW_DEBUG ((DEBUG_PAINT_WINDOW, "s3PaintWindow 0x%x extents %d %d %d %d n %d",
-		 pWin->drawable.id,
-		 pRegion->extents.x1, pRegion->extents.y1,
-		 pRegion->extents.x2, pRegion->extents.y2,
-		 REGION_NUM_RECTS(pRegion)));
-    if (!REGION_NUM_RECTS(pRegion)) 
-	return;
-    switch (what) {
-    case PW_BACKGROUND:
-	switch (pWin->backgroundState) {
-	case None:
-	    return;
-	case ParentRelative:
-	    do {
-		pWin = pWin->parent;
-	    } while (pWin->backgroundState == ParentRelative);
-	    (*pWin->drawable.pScreen->PaintWindowBackground)(pWin, pRegion,
-							     what);
-	    return;
-	case BackgroundPixmap:
-	    pPattern = s3GetWindowPrivate(pWin);
-	    if (pPattern)
-	    {
-		s3FillBoxPattern ((DrawablePtr)pWin,
-				  (int)REGION_NUM_RECTS(pRegion),
-				  REGION_RECTS(pRegion),
-				  GXcopy, ~0, pPattern);
-		return;
-	    }
-	    break;
-	case BackgroundPixel:
-	    s3FillBoxSolid((DrawablePtr)pWin,
-			     (int)REGION_NUM_RECTS(pRegion),
-			     REGION_RECTS(pRegion),
-			     pWin->background.pixel, GXcopy, ~0);
-	    return;
-    	}
-    	break;
-    case PW_BORDER:
-#ifndef S3_TRIO
-	if (s3s->fbmap[1] >= 0)
-	    fbOverlayUpdateLayerRegion (pWin->drawable.pScreen,
-					fbOverlayWindowLayer (pWin),
-					pRegion);
-#endif
-	if (pWin->borderIsPixel)
-	{
-	    s3FillBoxSolid((DrawablePtr)pWin,
-			     (int)REGION_NUM_RECTS(pRegion),
-			     REGION_RECTS(pRegion),
-			     pWin->border.pixel, GXcopy, ~0);
-	    return;
-	}
-	break;
-    }
-    KdCheckPaintWindow (pWin, pRegion, what);
-}
-
-void
 s3CopyWindowProc (DrawablePtr pSrcDrawable,
 		  DrawablePtr pDstDrawable,
 		  GCPtr       pGC,
@@ -3005,55 +2940,6 @@ s3_24CreateWindow(WindowPtr pWin)
     return fbCreateWindow (pWin);
 }
 
-void
-s3_24PaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    SetupS3(pWin->drawable.pScreen);
-    s3PatternPtr    pPattern;
-
-    DRAW_DEBUG ((DEBUG_PAINT_WINDOW, "s3PaintWindow 0x%x extents %d %d %d %d n %d",
-		 pWin->drawable.id,
-		 pRegion->extents.x1, pRegion->extents.y1,
-		 pRegion->extents.x2, pRegion->extents.y2,
-		 REGION_NUM_RECTS(pRegion)));
-    if (!REGION_NUM_RECTS(pRegion)) 
-	return;
-    switch (what) {
-    case PW_BACKGROUND:
-	switch (pWin->backgroundState) {
-	case None:
-	    return;
-	case ParentRelative:
-	    do {
-		pWin = pWin->parent;
-	    } while (pWin->backgroundState == ParentRelative);
-	    (*pWin->drawable.pScreen->PaintWindowBackground)(pWin, pRegion,
-							     what);
-	    return;
-	case BackgroundPixel:
-	    if (ok24(pWin->background.pixel))
-	    {
-		s3_24FillBoxSolid((DrawablePtr)pWin,
-				  (int)REGION_NUM_RECTS(pRegion),
-				  REGION_RECTS(pRegion),
-				  pWin->background.pixel, GXcopy, ~0);
-		return;
-	    }
-    	}
-    	break;
-    case PW_BORDER:
-	if (pWin->borderIsPixel && ok24(pWin->border.pixel))
-	{
-	    s3_24FillBoxSolid((DrawablePtr)pWin,
-			      (int)REGION_NUM_RECTS(pRegion),
-			      REGION_RECTS(pRegion),
-			      pWin->border.pixel, GXcopy, ~0);
-	    return;
-	}
-	break;
-    }
-    KdCheckPaintWindow (pWin, pRegion, what);
-}
 
 Bool
 s3DrawInit (ScreenPtr pScreen)
@@ -3088,8 +2974,6 @@ s3DrawInit (ScreenPtr pScreen)
     {
 	pScreen->CreateGC = s3_24CreateGC;
 	pScreen->CreateWindow = s3_24CreateWindow;
-	pScreen->PaintWindowBackground = s3_24PaintWindow;
-	pScreen->PaintWindowBorder = s3_24PaintWindow;
 	pScreen->CopyWindow = s3CopyWindow;
     }
     else
@@ -3100,8 +2984,6 @@ s3DrawInit (ScreenPtr pScreen)
 	pScreen->CreateWindow = s3CreateWindow;
 	pScreen->ChangeWindowAttributes = s3ChangeWindowAttributes;
 	pScreen->DestroyWindow = s3DestroyWindow;
-	pScreen->PaintWindowBackground = s3PaintWindow;
-	pScreen->PaintWindowBorder = s3PaintWindow;
 #ifndef S3_TRIO
 	if (pScreenPriv->screen->fb[1].depth)
 	{

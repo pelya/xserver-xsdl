@@ -148,12 +148,6 @@ ProcRRXineramaGetState(ClientPtr client)
 }
 
 static Bool
-RRXineramaScreenActive (ScreenPtr pScreen)
-{
-    return rrGetScrPriv(pScreen) != NULL;
-}
-
-static Bool
 RRXineramaCrtcActive (RRCrtcPtr crtc)
 {
     return crtc->mode != NULL && crtc->numOutputs > 0;
@@ -165,7 +159,7 @@ RRXineramaScreenCount (ScreenPtr pScreen)
     int	i, n;
     
     n = 0;
-    if (RRXineramaScreenActive (pScreen))
+    if (rrGetScrPriv (pScreen))
     {
 	rrScrPriv(pScreen);
 	for (i = 0; i < pScrPriv->numCrtcs; i++)
@@ -173,6 +167,12 @@ RRXineramaScreenCount (ScreenPtr pScreen)
 		n++;
     }
     return n;
+}
+
+static Bool
+RRXineramaScreenActive (ScreenPtr pScreen)
+{
+    return RRXineramaScreenCount (pScreen) > 0;
 }
 
 int

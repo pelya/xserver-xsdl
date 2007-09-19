@@ -109,13 +109,6 @@ cfb8_32GetImage (
     char *pdstLine
 );
 
-void
-cfb8_32PaintWindow (
-    WindowPtr   pWin,
-    RegionPtr   pRegion,
-    int         what
-);
-
 Bool
 cfb8_32ScreenInit (
     ScreenPtr pScreen,
@@ -127,15 +120,6 @@ cfb8_32ScreenInit (
 
 void
 cfb8_32FillBoxSolid8 (
-   DrawablePtr pDraw,
-   int nbox,
-   BoxPtr pBox,
-   unsigned long color
-);
-
-
-void
-cfb8_32FillBoxSolid32 (
    DrawablePtr pDraw,
    int nbox,
    BoxPtr pBox,

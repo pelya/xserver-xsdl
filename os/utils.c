@@ -1720,6 +1720,8 @@ static struct pid {
     int pid;
 } *pidlist;
 
+void (*old_alarm)(int) = NULL; /* XXX horrible awful hack */
+
 pointer
 Popen(char *command, char *type)
 {
@@ -1741,11 +1743,15 @@ Popen(char *command, char *type)
 	return NULL;
     }
 
+    /* Ignore the smart scheduler while this is going on */
+    old_alarm = signal(SIGALRM, SIG_IGN);
+
     switch (pid = fork()) {
     case -1: 	/* error */
 	close(pdes[0]);
 	close(pdes[1]);
 	xfree(cur);
+	signal(SIGALRM, old_alarm);
 	return NULL;
     case 0:	/* child */
 	if (setgid(getgid()) == -1)
@@ -1921,6 +1927,8 @@ Pclose(pointer iop)
     /* allow EINTR again */
     OsReleaseSignals ();
     
+    signal(SIGALRM, old_alarm);
+
     return pid == -1 ? -1 : pstat;
 }
 

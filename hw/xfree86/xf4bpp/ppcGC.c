@@ -176,8 +176,7 @@ register GCPtr pGC ;
 
 	pGC->fExpose = TRUE;
 	pGC->freeCompClip = FALSE;
-	pGC->pRotatedPixmap = NullPixmap;
-	
+
 	/* GJA: I don't like this code:
          * they allocated a mfbPrivGC, ignore the allocated data and place
          * a pointer to a ppcPrivGC in its slot.
@@ -199,12 +198,6 @@ xf4bppDestroyGC( pGC )
 
 {
     TRACE( ( "xf4bppDestroyGC(pGC=0x%x)\n", pGC ) ) ;
-
-    /* (ef) 11/9/87 -- ppc doesn't use rotated tile or stipple, but */
-    /*		*does* call mfbValidateGC under some conditions.    */
-    /*		mfbValidateGC *does* use rotated tile and stipple   */
-    if ( pGC->pRotatedPixmap )
-	mfbDestroyPixmap( pGC->pRotatedPixmap ) ;
 
     if ( pGC->freeCompClip && pGC->pCompositeClip )
 	REGION_DESTROY(pGC->pScreen, pGC->pCompositeClip);

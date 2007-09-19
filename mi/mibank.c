@@ -121,8 +121,6 @@ typedef struct _miBankScreen
     GetImageProcPtr               GetImage;
     GetSpansProcPtr               GetSpans;
     CreateGCProcPtr               CreateGC;
-    PaintWindowBackgroundProcPtr  PaintWindowBackground;
-    PaintWindowBorderProcPtr      PaintWindowBorder;
     CopyWindowProcPtr             CopyWindow;
 } miBankScreenRec, *miBankScreenPtr;
 
@@ -1712,8 +1710,6 @@ miBankCloseScreen(
     SCREEN_UNWRAP(GetImage);
     SCREEN_UNWRAP(GetSpans);
     SCREEN_UNWRAP(CreateGC);
-    SCREEN_UNWRAP(PaintWindowBackground);
-    SCREEN_UNWRAP(PaintWindowBorder);
     SCREEN_UNWRAP(CopyWindow);
 
     Xfree(pScreenPriv);
@@ -1875,71 +1871,6 @@ miBankCreateGC(
     SCREEN_WRAP(CreateGC, miBankCreateGC);
 
     return ret;
-}
-
-static void
-miBankPaintWindow(
-    WindowPtr pWin,
-    RegionPtr pRegion,
-    int       what
-)
-{
-    ScreenPtr          pScreen = pWin->drawable.pScreen;
-    RegionRec          tmpReg;
-    int                i;
-    PaintWindowProcPtr PaintWindow;
-
-    SCREEN_INIT;
-    SCREEN_SAVE;
-
-    if (what == PW_BORDER)
-    {
-        SCREEN_UNWRAP(PaintWindowBorder);
-        PaintWindow = pScreen->PaintWindowBorder;
-    }
-    else
-    {
-        SCREEN_UNWRAP(PaintWindowBackground);
-        PaintWindow = pScreen->PaintWindowBackground;
-    }
-
-    if (!IS_BANKED(pWin))
-    {
-        (*PaintWindow)(pWin, pRegion, what);
-    }
-    else
-    {
-        REGION_NULL(pScreen, &tmpReg);
-
-        for (i = 0;  i < pScreenPriv->nBanks;  i++)
-        {
-            if (!pScreenPriv->pBanks[i])
-                continue;
-
-            REGION_INTERSECT(pScreen, &tmpReg, pRegion,
-                pScreenPriv->pBanks[i]);
-
-            if (REGION_NIL(&tmpReg))
-                continue;
-
-            SET_SINGLE_BANK(pScreenPriv->pScreenPixmap, -1, -1, i);
-
-            (*PaintWindow)(pWin, &tmpReg, what);
-        }
-
-        REGION_UNINIT(pScreen, &tmpReg);
-    }
-
-    if (what == PW_BORDER)
-    {
-        SCREEN_WRAP(PaintWindowBorder, miBankPaintWindow);
-    }
-    else
-    {
-        SCREEN_WRAP(PaintWindowBackground, miBankPaintWindow);
-    }
-
-    SCREEN_RESTORE;
 }
 
 static void
@@ -2263,8 +2194,6 @@ miInitializeBanking(
     SCREEN_WRAP(GetImage,              miBankGetImage);
     SCREEN_WRAP(GetSpans,              miBankGetSpans);
     SCREEN_WRAP(CreateGC,              miBankCreateGC);
-    SCREEN_WRAP(PaintWindowBackground, miBankPaintWindow);
-    SCREEN_WRAP(PaintWindowBorder,     miBankPaintWindow);
     SCREEN_WRAP(CopyWindow,            miBankCopyWindow);
 
     dixSetPrivate(&pScreen->devPrivates, miBankScreenKey, pScreenPriv);

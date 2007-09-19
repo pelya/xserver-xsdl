@@ -48,7 +48,7 @@ typedef struct {
 
 
 // From darwin.c
-void DarwinPrintBanner();
+void DarwinPrintBanner(void);
 int DarwinParseModifierList(const char *constmodifiers);
 void DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo);
 void xf86SetRootClip (ScreenPtr pScreen, BOOL enable);

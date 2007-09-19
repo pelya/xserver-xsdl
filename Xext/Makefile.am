@@ -97,7 +97,7 @@ endif
 XCALIBRATE_SRCS = xcalibrate.c
 if XCALIBRATE
 BUILTIN_SRCS += $(XCALIBRATE_SRCS)
-# XCalibrare needs tslib
+# XCalibrate needs tslib
 endif
 
 # X EVent Interception Extension: allows accessibility helpers & composite

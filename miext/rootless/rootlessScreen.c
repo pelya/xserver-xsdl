@@ -583,8 +583,6 @@ RootlessWrap(ScreenPtr pScreen)
     WRAP(CreateScreenResources);
     WRAP(CloseScreen);
     WRAP(CreateGC);
-    WRAP(PaintWindowBackground);
-    WRAP(PaintWindowBorder);
     WRAP(CopyWindow);
     WRAP(GetImage);
     WRAP(SourceValidate);

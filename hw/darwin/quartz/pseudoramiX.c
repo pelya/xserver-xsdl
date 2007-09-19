@@ -43,6 +43,9 @@ Equipment Corporation.
 #include <X11/extensions/panoramiXproto.h>
 #include "globals.h"
 
+extern int noPseudoramiXExtension;
+extern int noPanoramiXExtension;
+
 extern int ProcPanoramiXQueryVersion (ClientPtr client);
 
 static void PseudoramiXResetProc(ExtensionEntry *extEntry);

@@ -189,13 +189,6 @@ PixmapPtr xf4bppCopyPixmap(
     PixmapPtr
 );
 
-/* ppcPntWin.c */
-void xf4bppPaintWindow(
-    WindowPtr,
-    RegionPtr,
-    int
-);
-
 /* ppcPolyPnt.c */
 void xf4bppPolyPoint(
     DrawablePtr,

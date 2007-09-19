@@ -1,5 +1,5 @@
 /*
- * Fill 32 bit tiled rectangles.  Used by both PolyFillRect and PaintWindow.
+ * Fill 32 bit tiled rectangles.  Used by PolyFillRect.
  * no depth dependencies.
  */
 

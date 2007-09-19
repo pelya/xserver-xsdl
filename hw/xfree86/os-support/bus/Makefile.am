@@ -7,12 +7,8 @@ if XORG_BUS_LINUXPCI
 PCI_SOURCES += linuxPci.c
 endif
 
-if XORG_BUS_FREEBSDPCI
-PCI_SOURCES += freebsdPci.c
-endif
-
-if XORG_BUS_NETBSDPCI
-PCI_SOURCES += netbsdPci.c
+if XORG_BUS_BSDPCI
+PCI_SOURCES += bsd_pci.c
 endif
 
 if XORG_BUS_IX86PCI

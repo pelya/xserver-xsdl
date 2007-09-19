@@ -277,16 +277,6 @@ fbOverlayWindowExposures (WindowPtr	pWin,
     miWindowExposures(pWin, prgn, other_exposed);
 }
 
-void
-fbOverlayPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    if (what == PW_BORDER)
-	fbOverlayUpdateLayerRegion (pWin->drawable.pScreen,
-				    fbOverlayWindowLayer (pWin),
-				    pRegion);
-    fbPaintWindow (pWin, pRegion, what);
-}
-
 Bool
 fbOverlaySetupScreen(ScreenPtr	pScreen,
 		     pointer	pbits1,
@@ -434,7 +424,6 @@ fbOverlayFinishScreenInit(ScreenPtr	pScreen,
     pScreen->CreateWindow = fbOverlayCreateWindow;
     pScreen->WindowExposures = fbOverlayWindowExposures;
     pScreen->CopyWindow = fbOverlayCopyWindow;
-    pScreen->PaintWindowBorder = fbOverlayPaintWindow;
 #ifdef FB_24_32BIT
     if (bpp == 24 && imagebpp == 32)
     {

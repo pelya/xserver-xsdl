@@ -86,8 +86,6 @@ typedef struct _RootlessScreenRec {
     ChangeWindowAttributesProcPtr ChangeWindowAttributes;
 
     CreateGCProcPtr CreateGC;
-    PaintWindowBackgroundProcPtr PaintWindowBackground;
-    PaintWindowBorderProcPtr PaintWindowBorder;
     CopyWindowProcPtr CopyWindow;
     GetImageProcPtr GetImage;
     SourceValidateProcPtr SourceValidate;

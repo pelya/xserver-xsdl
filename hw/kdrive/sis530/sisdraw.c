@@ -1537,75 +1537,6 @@ sisCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     REGION_UNINIT(pWin->drawable.pScreen, &rgnDst);
 }
 
-void
-sisPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    KdScreenPriv(pWin->drawable.pScreen);
-    PixmapPtr	pTile;
-
-    if (!REGION_NUM_RECTS(pRegion)) 
-	return;
-    switch (what) {
-    case PW_BACKGROUND:
-	switch (pWin->backgroundState) {
-	case None:
-	    return;
-	case ParentRelative:
-	    do {
-		pWin = pWin->parent;
-	    } while (pWin->backgroundState == ParentRelative);
-	    (*pWin->drawable.pScreen->PaintWindowBackground)(pWin, pRegion,
-							     what);
-	    return;
-	case BackgroundPixmap:
-	    pTile = pWin->background.pixmap;
-	    if (sisPatternDimOk (pTile->drawable.width) &&
-		sisPatternDimOk (pTile->drawable.height))
-	    {
-		sisFillBoxTiled ((DrawablePtr)pWin,
-				 (int)REGION_NUM_RECTS(pRegion),
-				 REGION_RECTS(pRegion),
-				 pTile, 
-				 pWin->drawable.x, pWin->drawable.y, GXcopy);
-		return;
-	    }
-	    break;
-	case BackgroundPixel:
-	    sisFillBoxSolid((DrawablePtr)pWin,
-			     (int)REGION_NUM_RECTS(pRegion),
-			     REGION_RECTS(pRegion),
-			     pWin->background.pixel, GXcopy);
-	    return;
-    	}
-    	break;
-    case PW_BORDER:
-	if (pWin->borderIsPixel)
-	{
-	    sisFillBoxSolid((DrawablePtr)pWin,
-			     (int)REGION_NUM_RECTS(pRegion),
-			     REGION_RECTS(pRegion),
-			     pWin->border.pixel, GXcopy);
-	    return;
-	}
-	else
-	{
-	    pTile = pWin->border.pixmap;
-	    if (sisPatternDimOk (pTile->drawable.width) &&
-		sisPatternDimOk (pTile->drawable.height))
-	    {
-		sisFillBoxTiled ((DrawablePtr)pWin,
-				 (int)REGION_NUM_RECTS(pRegion),
-				 REGION_RECTS(pRegion),
-				 pTile, 
-				 pWin->drawable.x, pWin->drawable.y, GXcopy);
-		return;
-	    }
-	}
-	break;
-    }
-    KdCheckPaintWindow (pWin, pRegion, what);
-}
-
 Bool
 sisDrawInit (ScreenPtr pScreen)
 {
@@ -1621,9 +1552,7 @@ sisDrawInit (ScreenPtr pScreen)
      */
     pScreen->CreateGC = sisCreateGC;
     pScreen->CopyWindow = sisCopyWindow;
-    pScreen->PaintWindowBackground = sisPaintWindow;
-    pScreen->PaintWindowBorder = sisPaintWindow;
-    
+
     return TRUE;
 }
 

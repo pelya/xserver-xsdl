@@ -105,7 +105,6 @@ copyright holders.
 #define PclUnmapWindow			PCLNAME(UnmapWindow)
 #define PclCopyWindow			PCLNAME(CopyWindow)
 #define PclChangeWindowAttributes	PCLNAME(ChangeWindowAttributes)
-#define PclPaintWindow			PCLNAME(PaintWindow)
 #define PclDestroyWindow		PCLNAME(DestroyWindow)
 
 /* PclGC.c */

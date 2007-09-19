@@ -45,7 +45,6 @@ in this Software without prior written authorization from The Open Group.
 #include "mibstore.h"
 
 #if 1 || PSZ==8
-DevPrivateKey cfbWindowPrivateKey = &cfbWindowPrivateKey;
 DevPrivateKey cfbGCPrivateKey = &cfbGCPrivateKey;
 #endif
 #ifdef CFB_NEED_SCREEN_PRIVATE
@@ -54,28 +53,18 @@ DevPrivateKey cfbScreenPrivateKey = &cfbScreenPrivateKey;
 
 
 Bool
-cfbAllocatePrivates(pScreen, window_key, gc_key)
-    ScreenPtr	pScreen;
-    DevPrivateKey *window_key, *gc_key;
+cfbAllocatePrivates(ScreenPtr pScreen, DevPrivateKey *gc_key)
 {
-    if (!window_key || !gc_key || (!*window_key && !*gc_key))
+    if (!gc_key || !*gc_key)
     {
-    	if (!mfbAllocatePrivates(pScreen,
-			     	 &cfbWindowPrivateKey, &cfbGCPrivateKey))
+    	if (!mfbAllocatePrivates(pScreen, &cfbGCPrivateKey))
 	    return FALSE;
-    	if (window_key)
-	    *window_key = cfbWindowPrivateKey;
     	if (gc_key)
 	    *gc_key = cfbGCPrivateKey;
     }
     else
     {
-	cfbWindowPrivateKey = *window_key;
 	cfbGCPrivateKey = *gc_key;
     }
-    if (!dixRequestPrivate(cfbWindowPrivateKey, sizeof(cfbPrivWin)))
-	return FALSE;
-    if (!dixRequestPrivate(cfbGCPrivateKey, sizeof(cfbPrivGC)))
-	return FALSE;
-    return TRUE;
+    return dixRequestPrivate(cfbGCPrivateKey, sizeof(cfbPrivGC));
 }

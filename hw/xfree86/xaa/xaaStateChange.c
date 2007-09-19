@@ -259,8 +259,6 @@ typedef struct _XAAStateWrapRec {
 				       XAACacheInfoPtr pCache);
    GetImageProcPtr GetImage;
    GetSpansProcPtr GetSpans;
-   PaintWindowBackgroundProcPtr PaintWindowBackground;
-   PaintWindowBorderProcPtr PaintWindowBorder;
    CopyWindowProcPtr CopyWindow;
 #ifdef RENDER
    Bool (*SetupForCPUToScreenAlphaTexture2)(ScrnInfoPtr pScrn, int op,
@@ -1448,26 +1446,6 @@ static void XAAStateWrapGetSpans(DrawablePtr pDrawable, int wMax, DDXPointPtr pp
 			   pwidth, nspans, pdstStart);
 }
 
-static void XAAStateWrapPaintWindowBackground(WindowPtr pWindow, RegionPtr pRegion,
-					      int what)
-{
-   GET_STATEPRIV_SCREEN(pWindow->drawable.pScreen);
-   STATE_CHECK_SP(pStatePriv);
-
-   (*pStatePriv->PaintWindowBackground)(pWindow, pRegion,
-					what);
-}
-
-static void XAAStateWrapPaintWindowBorder(WindowPtr pWindow, RegionPtr pRegion, 
-					  int what)
-{
-   GET_STATEPRIV_SCREEN(pWindow->drawable.pScreen);
-   STATE_CHECK_SP(pStatePriv);
-
-   (*pStatePriv->PaintWindowBorder)(pWindow, pRegion, 
-				    what);
-}
-
 static void XAAStateWrapCopyWindow(WindowPtr pWindow, DDXPointRec ptOldOrg, 
 				   RegionPtr prgnSrc)
 {
@@ -1644,8 +1622,6 @@ XAAInitStateWrap(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
    XAA_STATE_WRAP(WriteColor8x8PatternToCache);
    XAA_STATE_WRAP(GetImage);
    XAA_STATE_WRAP(GetSpans);
-   XAA_STATE_WRAP(PaintWindowBackground);
-   XAA_STATE_WRAP(PaintWindowBorder);
    XAA_STATE_WRAP(CopyWindow);
 #ifdef RENDER
    XAA_STATE_WRAP(SetupForCPUToScreenAlphaTexture2);

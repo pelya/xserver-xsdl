@@ -71,7 +71,6 @@ SOFTWARE.
 #ifdef PIXMAP_PER_WINDOW
 DevPrivateKey frameWindowPrivateKey = &frameWindowPrivateKey;
 #endif
-DevPrivateKey afbWindowPrivateKey = &afbWindowPrivateKey;
 DevPrivateKey afbGCPrivateKey = &afbGCPrivateKey;
 DevPrivateKey afbScreenPrivateKey = &afbScreenPrivateKey;
 
@@ -135,18 +134,14 @@ afbSetWindowPixmap(WindowPtr pWin, PixmapPtr pPix)
 }
 
 static Bool
-afbAllocatePrivates(ScreenPtr pScreen,
-		    DevPrivateKey *pWinKey, DevPrivateKey *pGCKey)
+afbAllocatePrivates(ScreenPtr pScreen, DevPrivateKey *pGCKey)
 {
-	if (pWinKey)
-		*pWinKey = afbWindowPrivateKey;
 	if (pGCKey)
 		*pGCKey = afbGCPrivateKey;
 
 	pScreen->GetWindowPixmap = afbGetWindowPixmap;
 	pScreen->SetWindowPixmap = afbSetWindowPixmap;
-	return(dixRequestPrivate(afbWindowPrivateKey, sizeof(afbPrivWin)) &&
-	       dixRequestPrivate(afbGCPrivateKey, sizeof(afbPrivGC)));
+	return dixRequestPrivate(afbGCPrivateKey, sizeof(afbPrivGC));
 }
 
 /* dts * (inch/dot) * (25.4 mm / inch) = mm */
@@ -172,7 +167,7 @@ afbScreenInit(register ScreenPtr pScreen, pointer pbits, int xsize, int ysize, i
 		ErrorF("afbInitVisuals: FALSE\n");
 		return FALSE;
 	}
-	if (!afbAllocatePrivates(pScreen, NULL, NULL)) {
+	if (!afbAllocatePrivates(pScreen, NULL)) {
 		ErrorF("afbAllocatePrivates: FALSE\n");
 		return FALSE;
 	}
@@ -191,8 +186,6 @@ afbScreenInit(register ScreenPtr pScreen, pointer pbits, int xsize, int ysize, i
 	pScreen->ChangeWindowAttributes = afbChangeWindowAttributes;
 	pScreen->RealizeWindow = afbMapWindow;
 	pScreen->UnrealizeWindow = afbUnmapWindow;
-	pScreen->PaintWindowBackground = afbPaintWindow;
-	pScreen->PaintWindowBorder = afbPaintWindow;
 	pScreen->CopyWindow = afbCopyWindow;
 	pScreen->CreatePixmap = afbCreatePixmap;
 	pScreen->DestroyPixmap = afbDestroyPixmap;

@@ -12,7 +12,7 @@ libmfb_gen_sources = mfbseg.c mfbpgbwht.c mfbpgbblak.c mfbpgbinv.c mfbigbwht.c \
 DISTCLEANFILES = $(libmfb_gen_sources)
 
 libmfb_la_SOURCES = mfbgc.c mfbwindow.c mfbfont.c \
-	 mfbfillrct.c mfbpntwin.c maskbits.c mfbpixmap.c \
+	 mfbfillrct.c maskbits.c mfbpixmap.c \
 	 mfbimage.c mfbline.c mfbbres.c mfbhrzvert.c mfbbresd.c \
 	 mfbpushpxl.c mfbzerarc.c mfbfillarc.c \
          mfbfillsp.c mfbsetsp.c mfbscrinit.c mfbscrclse.c mfbclip.c \

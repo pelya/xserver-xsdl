@@ -56,34 +56,29 @@ Xquartz_SOURCES = \
                   quartz/xpr/x-hook.c \
                   quartz/xpr/x-list.c
 
-XDarwin_LDADD = \
-		$(top_builddir)/dix/dixfonts.lo \
-		$(top_builddir)/dix/libdix.la \
-		$(top_builddir)/config/libconfig.a \
-		./libdarwinShared.a \
-		./iokit/libiokit.a \
-		$(top_builddir)/miext/shadow/libshadow.la \
-		$(top_builddir)/miext/cw/libcw.la \
-		$(DARWIN_LIBS) \
-		$(top_builddir)/miext/rootless/librootless.la \
-		$(top_builddir)/miext/rootless/safeAlpha/libsafeAlpha.la \
-		$(top_builddir)/miext/rootless/accel/librlAccel.la \
-		@XORG_LIBS@ \
-		$(XSERVER_LIBS)
+DARWIN_LIBS = \
+	$(top_builddir)/dix/dixfonts.lo \
+	$(top_builddir)/config/libconfig.a \
+	$(top_builddir)/miext/shadow/libshadow.la \
+	$(top_builddir)/miext/cw/libcw.la \
+	@DARWIN_LIBS@ \
+	$(top_builddir)/miext/rootless/librootless.la \
+	$(top_builddir)/miext/rootless/safeAlpha/libsafeAlpha.la \
+	$(top_builddir)/miext/rootless/accel/librlAccel.la \
+	./libdarwinShared.a \
+	$(XSERVER_LIBS)
 
-Xquartz_LDADD = \
-		$(top_builddir)/dix/dixfonts.lo \
-		$(top_builddir)/dix/libdix.la \
-		$(top_builddir)/config/libconfig.a \
-		./libdarwinShared.a \
-		$(top_builddir)/miext/shadow/libshadow.la \
-		$(top_builddir)/miext/cw/libcw.la \
-		$(DARWIN_LIBS) \
-		$(top_builddir)/miext/rootless/librootless.la \
-		$(top_builddir)/miext/rootless/safeAlpha/libsafeAlpha.la \
-		$(top_builddir)/miext/rootless/accel/librlAccel.la \
-		@XORG_LIBS@ \
-		$(XSERVER_LIBS) -lXplugin
+XDARWIN_LIBS = \
+	$(DARWIN_LIBS) \
+	./iokit/libiokit.a
+XQUARTZ_LIBS = \
+	$(DARWIN_LIBS)
+
+XDarwin_DEPENDENCIES = $(XDARWIN_LIBS)
+XDarwin_LDADD = $(XDARWIN_LIBS) $(XSERVER_SYS_LIBS)
+
+Xquartz_DEPENDENCIES = $(XQUARTZ_LIBS)
+Xquartz_LDADD = $(XQUARTZ_LIBS) $(XSERVER_SYS_LIBS) -lXplugin
 
 XDarwin_LDFLAGS =  \
                  -XCClinker -Objc \
@@ -95,6 +90,7 @@ Xquartz_LDFLAGS =  \
                  -Wl,-u,_miDCInitialize \
                  -Wl,-framework,Carbon \
                  -Wl,-framework,OpenGL \
+		 -Wl,-dylib_file,/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib:/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib \
                  -Wl,-framework,Cocoa \
                  -Wl,-framework,CoreAudio \
                  -Wl,-framework,IOKit
@@ -118,22 +114,15 @@ XDarwinApp_SOURCES = \
                 $(top_srcdir)/mi/miinitext.c \
 		$(top_srcdir)/Xi/stubs.c 
 
-XDarwinApp_LDADD = \
-		$(top_builddir)/dix/dixfonts.lo \
-		$(top_builddir)/dix/libdix.la \
-		$(top_builddir)/config/libconfig.a \
-		$(top_builddir)/os/libos.la \
-		./quartz/XApplication.o \
-		./libdarwinShared.a \
-		./quartz/libXQuartz.a \
-		 $(top_builddir)/miext/shadow/libshadow.la \
-		 $(top_builddir)/miext/cw/libcw.la \
-		 $(DARWIN_LIBS) \
-		 $(top_builddir)/miext/rootless/librootless.la \
-		 $(top_builddir)/miext/rootless/safeAlpha/libsafeAlpha.la \
-		 $(top_builddir)/miext/rootless/accel/librlAccel.la \
-		 @XORG_LIBS@ \
-		 $(XSERVER_LIBS)
+XDARWINAPP_LIBS = \
+	$(DARWIN_LIBS) \
+	./quartz/XApplication.o \
+	./libdarwinShared.a \
+	./quartz/libXQuartz.a \
+	$(XSERVER_LIBS)
+
+XDarwinApp_DEPENDENCIES = $(XDARWINAPP_LIBS)
+XDarwinApp_LDADD = $(XDARWINAPP_LIBS) $(XSERVER_SYS_LIBS)
 
 XDarwinApp_LDFLAGS =  \
 		 -XCClinker -Objc \
@@ -163,6 +152,7 @@ cr_la_LIBADD = \
 		$(top_builddir)/miext/rootless/accel/librlAccel.la
 
 cr_la_LDFLAGS = -shrext '' -Wl,-framework,ApplicationServices \
+		-lpixman-1 \
 		-Wl,-framework,Cocoa \
 		-Wl,-framework,Carbon \
 		-XCClinker -ObjC \
@@ -201,7 +191,7 @@ glxMesa_la_DEPENDENCIES = XDarwinApp
 endif
 
 endif
-if HAVE_X_PLUGIN
+if HAVE_XPLUGIN
 
 xprplugindir = $(darwinappdir)/Contents/Resources/xpr.bundle/Contents/MacOS
 xprplugin_LTLIBRARIES = xpr.la
@@ -222,6 +212,7 @@ xpr_la_LIBADD = \
 		$(top_builddir)/miext/rootless/accel/librlAccel.la
 
 xpr_la_LDFLAGS = -shrext '' -Wl,-framework,ApplicationServices \
+		-lpixman-1 \
 		-lXplugin \
 		-XCClinker -bundle_loader -XCClinker XDarwinApp \
 		-module -avoid-version -no-undefined

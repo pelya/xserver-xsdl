@@ -17,64 +17,9 @@
 /* Avoid Imakefile changes */
 #include "bus/Pci.h"
 
-_X_EXPORT resRange PciAvoid[] = {_PCI_AVOID_PC_STYLE, _END};
-
 #ifdef INCLUDE_XF86_NO_DOMAIN
 
 #if defined(__alpha__) || defined(__sparc64__) || defined(__amd64__)
-
-resPtr
-xf86BusAccWindowsFromOS(void)
-{
-    resPtr ret = NULL;
-    resRange range;
-
-    RANGE(range, 0x00000000, 0xffffffff, ResExcMemBlock);
-    ret = xf86AddResToList(ret, &range, -1);
-
-    RANGE(range, 0x00000000, 0xffffffff, ResExcIoBlock);
-    ret = xf86AddResToList(ret, &range, -1);
-    return ret;
-}
-
-resPtr
-xf86PciBusAccWindowsFromOS(void)
-{
-    resPtr ret = NULL;
-    resRange range;
-
-    /*
-     * Only allow the upper half of the pci memory range to be used
-     * for allocation. The lower half includes magic regions for DMA.
-     * XXX this is not right for XP1000's and similar where we use the 
-     * region 0x40000000-0xbfffffff for DMA but this only matters if
-     * the bios screws up the pci region mappings.
-     */
-    RANGE(range, 0x80000000, 0xffffffff, ResExcMemBlock);
-    ret = xf86AddResToList(ret, &range, -1);
-
-    RANGE(range, 0x00000000, 0xffffffff, ResExcIoBlock);
-    ret = xf86AddResToList(ret, &range, -1);
-    return ret;
-}
-
-#ifdef INCLUDE_UNUSED
-
-resPtr
-xf86IsaBusAccWindowsFromOS(void)
-{
-    resPtr ret = NULL;
-    resRange range;
-
-    RANGE(range, 0x00000000, 0xffffffff, ResExcMemBlock);
-    ret = xf86AddResToList(ret, &range, -1);
-
-    RANGE(range, 0x00000000, 0xffffffff, ResExcIoBlock);
-    ret = xf86AddResToList(ret, &range, -1);
-    return ret;
-}
-
-#endif /* INCLUDE_UNUSED */
 
 resPtr
 xf86AccResFromOS(resPtr ret)
@@ -116,52 +61,6 @@ xf86AccResFromOS(resPtr ret)
 }
 
 #elif defined(__powerpc__)
-
-resPtr
-xf86BusAccWindowsFromOS(void)
-{
-    resPtr ret = NULL;
-    resRange range;
-
-    RANGE(range, 0x00000000, 0xffffffff, ResExcMemBlock);
-    ret = xf86AddResToList(ret, &range, -1);
-
-    RANGE(range, 0x00000000, 0x0000ffff, ResExcIoBlock);
-    ret = xf86AddResToList(ret, &range, -1);
-    return ret;
-}
-
-resPtr
-xf86PciBusAccWindowsFromOS(void)
-{
-    resPtr ret = NULL;
-    resRange range;
-
-    RANGE(range, 0x00000000, 0xffffffff, ResExcMemBlock);
-    ret = xf86AddResToList(ret, &range, -1);
-
-    RANGE(range, 0x00000000, 0x0000ffff, ResExcIoBlock);
-    ret = xf86AddResToList(ret, &range, -1);
-    return ret;
-}
-
-#ifdef INCLUDE_UNUSED
-
-resPtr
-xf86IsaBusAccWindowsFromOS(void)
-{
-    resPtr ret = NULL;
-    resRange range;
-
-    RANGE(range, 0x00000000, 0xffffffff, ResExcMemBlock);
-    ret = xf86AddResToList(ret, &range, -1);
-
-    RANGE(range, 0x00000000, 0x0000ffff, ResExcIoBlock);
-    ret = xf86AddResToList(ret, &range, -1);
-    return ret;
-}
-
-#endif /* INCLUDE_UNUSED */
 
 resPtr
 xf86AccResFromOS(resPtr ret)

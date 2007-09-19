@@ -306,9 +306,6 @@ static Bool
 xprSetupScreen(int index, ScreenPtr pScreen)
 {
     // Add alpha protecting replacements for fb screen functions
-    pScreen->PaintWindowBackground = SafeAlphaPaintWindow;
-    pScreen->PaintWindowBorder = SafeAlphaPaintWindow;
-
 #ifdef RENDER
     {
         PictureScreenPtr ps = GetPictureScreen(pScreen);

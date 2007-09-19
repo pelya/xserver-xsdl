@@ -8,7 +8,7 @@ DISTCLEANFILES = $(libcfb_gen_sources)
 CFB_INCLUDES = -I$(top_srcdir)/mfb -I$(top_srcdir)/cfb
 
 libcfb_common_sources =  $(top_srcdir)/cfb/cfbgc.c $(top_srcdir)/cfb/cfbrrop.c \
-	$(top_srcdir)/cfb/cfbwindow.c $(top_srcdir)/cfb/cfbpntwin.c \
+	$(top_srcdir)/cfb/cfbwindow.c \
 	$(top_srcdir)/cfb/cfbmskbits.c $(top_srcdir)/cfb/cfbpixmap.c \
 	$(top_srcdir)/cfb/cfbbitblt.c $(top_srcdir)/cfb/cfbfillsp.c \
 	$(top_srcdir)/cfb/cfbsetsp.c $(top_srcdir)/cfb/cfbscrinit.c \

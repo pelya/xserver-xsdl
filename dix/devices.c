@@ -854,6 +854,7 @@ InitKeyClassDeviceStruct(DeviceIntPtr dev, KeySymsPtr pKeySyms, CARD8 pModifiers
     else
 	bzero((char *)keyc->modifierMap, MAP_LENGTH);
     bzero((char *)keyc->down, DOWN_LENGTH);
+    bzero((char *)keyc->postdown, DOWN_LENGTH);
     for (i = 0; i < 8; i++)
 	keyc->modifierKeyCount[i] = 0;
     if (!SetKeySymsMap(&keyc->curKeySyms, pKeySyms) || !InitModMap(keyc))

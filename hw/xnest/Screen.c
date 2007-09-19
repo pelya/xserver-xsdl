@@ -284,8 +284,6 @@ xnestOpenScreen(int index, ScreenPtr pScreen, int argc, char *argv[])
   pScreen->UnrealizeWindow = xnestUnrealizeWindow;
   pScreen->PostValidateTree = NULL;
   pScreen->WindowExposures = xnestWindowExposures;
-  pScreen->PaintWindowBackground = xnestPaintWindowBackground;
-  pScreen->PaintWindowBorder = xnestPaintWindowBorder;
   pScreen->CopyWindow = xnestCopyWindow;
   pScreen->ClipNotify = xnestClipNotify;
 

@@ -23,8 +23,7 @@ VIA_LIBS =	\
 
 Xvia_LDADD =						\
 	$(VIA_LIBS)					\
-	@KDRIVE_LIBS@					\
-	@XSERVER_LIBS@
+	@KDRIVE_LIBS@
 
 Xvia_DEPENDENCIES =	\
 	libvia.a	\
