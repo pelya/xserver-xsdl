@@ -85,18 +85,35 @@ ephyrHostGLXQueryVersion (int *a_major, int *a_minor)
 {
     Bool is_ok = FALSE ;
     Display *dpy = hostx_get_display () ;
+    int major_opcode=0;
+    xGLXQueryVersionReq *req=NULL;
+    xGLXQueryVersionReply reply;
 
     EPHYR_RETURN_VAL_IF_FAIL (a_major && a_minor, FALSE) ;
     EPHYR_LOG ("enter\n") ;
 
-    *a_major = 1 ;
-    *a_minor = 2 ;
-    /*
-    if (!glXQueryVersion (dpy, a_major, a_minor)) {
-        EPHYR_LOG_ERROR ("glxQueryVersion() failed\n") ;
+    if (!ephyrHostGLXGetMajorOpcode (&major_opcode)) {
+        EPHYR_LOG_ERROR ("failed to get major opcode\n") ;
         goto out ;
     }
-    */
+    EPHYR_LOG ("major opcode: %d\n", major_opcode) ;
+
+    /* Send the glXQueryVersion request */
+    memset (&reply, 0, sizeof (reply)) ;
+    LockDisplay (dpy);
+    GetReq (GLXQueryVersion, req);
+    req->reqType = major_opcode;
+    req->glxCode = X_GLXQueryVersion;
+    req->majorVersion = 2;
+    req->minorVersion = 1;
+    _XReply(dpy, (xReply*) &reply, 0, False);
+    UnlockDisplay (dpy);
+    SyncHandle ();
+
+    *a_major = reply.majorVersion ;
+    *a_minor = reply.minorVersion ;
+
+    EPHYR_LOG ("major:%d, minor:%d\n", *a_major, *a_minor) ;
 
     is_ok = TRUE ;
 out:
