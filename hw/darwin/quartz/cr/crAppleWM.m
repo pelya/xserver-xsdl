@@ -27,9 +27,9 @@
  * use or other dealings in this Software without prior written authorization.
  */
 /* $XFree86: xc/programs/Xserver/hw/darwin/quartz/xpr/xprFrame.c,v 1.2 2003/06/30 01:45:13 torrey Exp $ */
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
+
+#include <dix-config.h>
+
 #include "quartz/quartzCommon.h"
 #include "quartz/cr/cr.h"
 

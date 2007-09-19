@@ -32,11 +32,9 @@
    prior written authorization.
 */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-#include "quartzCommon.h"
+#include <dix-config.h>
 
+#include "quartzCommon.h"
 #include <CoreServices/CoreServices.h>
 #include <Carbon/Carbon.h>
 
