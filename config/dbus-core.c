@@ -87,7 +87,8 @@ teardown(void)
         dbus_connection_unref(bus_info.connection);
 
     RemoveBlockAndWakeupHandlers(block_handler, wakeup_handler, &bus_info);
-    RemoveGeneralSocket(bus_info.fd);
+    if (bus_info.fd != -1)
+        RemoveGeneralSocket(bus_info.fd);
     bus_info.fd = -1;
     bus_info.connection = NULL;
 
