@@ -58,6 +58,7 @@ in this Software without prior written authorization from The Open Group.
 #include "extnsionst.h"
 #include "servermd.h"
 #include "shmint.h"
+#include "xace.h"
 #define _XSHM_SERVER_
 #include <X11/extensions/shmstr.h>
 #include <X11/Xfuncproto.h>
@@ -907,7 +908,7 @@ ProcShmGetImage(client)
         return(BadValue);
     }
     rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
-			   DixUnknownAccess);
+			   DixReadAccess);
     if (rc != Success)
 	return rc;
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, TRUE, shmdesc, client);
@@ -1039,7 +1040,7 @@ ProcShmCreatePixmap(client)
 	return BadImplementation;
     LEGAL_NEW_RESOURCE(stuff->pid, client);
     rc = dixLookupDrawable(&pDraw, stuff->drawable, client, M_ANY,
-			   DixUnknownAccess);
+			   DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
@@ -1068,6 +1069,12 @@ CreatePmap:
 			    shmdesc->addr + stuff->offset);
     if (pMap)
     {
+	rc = XaceHook(XACE_RESOURCE_ACCESS, client, stuff->pid, RT_PIXMAP,
+		      pMap, RT_NONE, NULL, DixCreateAccess);
+	if (rc != Success) {
+	    pDraw->pScreen->DestroyPixmap(pMap);
+	    return rc;
+	}
 	dixSetPrivate(&pMap->devPrivates, shmPixmapPrivate, shmdesc);
 	shmdesc->refcnt++;
 	pMap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
@@ -1076,6 +1083,7 @@ CreatePmap:
 	{
 	    return(client->noClientException);
 	}
+	pDraw->pScreen->DestroyPixmap(pMap);
     }
     return (BadAlloc);
 }
