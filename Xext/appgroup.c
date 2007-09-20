@@ -345,7 +345,7 @@ int AttrValidate(
     ColormapPtr pColormap;
 
     rc = dixLookupWindow(&pWin, pAppGrp->default_root, client,
-			 DixUnknownAccess);
+			 DixGetAttrAccess);
     if (rc != Success)
 	return rc;
     pScreen = pWin->drawable.pScreen;
@@ -367,8 +367,10 @@ int AttrValidate(
     }
     if (pAppGrp->default_colormap) {
 
-	pColormap = (ColormapPtr)LookupIDByType (pAppGrp->default_colormap, RT_COLORMAP);
-	/* XXX check that pColormap is not NULL */
+	rc = dixLookupResource((pointer *)&pColormap, pAppGrp->default_colormap,
+			       RT_COLORMAP, client, DixUseAccess);
+	if (rc != Success)
+	    return rc;
 	if (pColormap->pScreen != pScreen)
 	    return BadColor;
 	if (pColormap->pVisual->vid != (pAppGrp->root_visual ? pAppGrp->root_visual : pScreen->rootVisual))
@@ -470,7 +472,7 @@ int ProcXagQuery(
     int n, rc;
 
     REQUEST_SIZE_MATCH (xXagQueryReq);
-    rc = dixLookupClient(&pClient, stuff->resource, client, DixUnknownAccess);
+    rc = dixLookupClient(&pClient, stuff->resource, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
