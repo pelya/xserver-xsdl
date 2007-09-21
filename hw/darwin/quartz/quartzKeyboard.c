@@ -4,7 +4,7 @@
    Code to build a keymap using the Carbon Keyboard Layout API,
    which is supported on Mac OS X 10.2 and newer.
 
-   Copyright (c) 2003 Apple Computer, Inc. All rights reserved.
+   Copyright (c) 2003, 2007 Apple Inc.
 
    Permission is hereby granted, free of charge, to any person
    obtaining a copy of this software and associated documentation files
@@ -214,35 +214,45 @@ Bool
 DarwinModeReadSystemKeymap (darwinKeyboardInfo *info)
 {
     KeyboardLayoutRef key_layout;
-    const void *chr_data;
+    const void *chr_data = NULL;
     int num_keycodes = NUM_KEYCODES;
     UInt32 keyboard_type = 0;
     int is_uchr, i, j;
     OSStatus err;
     KeySym *k;
 
-    KLGetCurrentKeyboardLayout (&key_layout);
-    KLGetKeyboardLayoutProperty (key_layout, kKLuchrData, &chr_data);
-
+    TISInputSourceRef currentKeyLayoutRef = TISCopyCurrentKeyboardLayoutInputSource();
+    if (currentKeyLayoutRef) 
+      {
+	CFDataRef currentKeyLayoutDataRef = (CFDataRef )TISGetInputSourceProperty(currentKeyLayoutRef, kTISPropertyUnicodeKeyLayoutData);
+	if (currentKeyLayoutDataRef)
+	  chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
+      }
+    
     if (chr_data != NULL)
     {
-        is_uchr = 1;
-        keyboard_type = LMGetKbdType ();
+      KLGetCurrentKeyboardLayout (&key_layout);
+      KLGetKeyboardLayoutProperty (key_layout, kKLuchrData, &chr_data);
+
+      if (chr_data != NULL)
+	{
+	  is_uchr = 1;
+	  keyboard_type = LMGetKbdType ();
+	}
+      else
+	{
+	  KLGetKeyboardLayoutProperty (key_layout, kKLKCHRData, &chr_data);
+	  
+	  if (chr_data == NULL)
+	    {
+	      ErrorF ( "Couldn't get uchr or kchr resource\n");
+	      return FALSE;
+	    }
+	  
+	  is_uchr = 0;
+	  num_keycodes = 128;
+	}    
     }
-    else
-    {
-        KLGetKeyboardLayoutProperty (key_layout, kKLKCHRData, &chr_data);
-
-        if (chr_data == NULL)
-        {
-            ErrorF ( "Couldn't get uchr or kchr resource\n");
-            return FALSE;
-        }
-
-        is_uchr = 0;
-        num_keycodes = 128;
-    }    
-
 
     /* Scan the keycode range for the Unicode character that each
        key produces in the four shift states. Then convert that to
@@ -366,6 +376,8 @@ DarwinModeReadSystemKeymap (darwinKeyboardInfo *info)
             }
         }
     }
+
+    if(currentKeyLayoutRef) CFRelease(currentKeyLayoutRef);
 
     return TRUE;
 }
