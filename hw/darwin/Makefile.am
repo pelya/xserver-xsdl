@@ -274,7 +274,7 @@ endif
 install-data-hook: $(XQUARTZ_HOOK) $(XDARWINAPP_HOOK)
 
 xquartz-install-hook::
-	cd apple && xcodebuild install
+	cd apple && xcodebuild install CFLAGS="$(XSERVERCFLAGS_CFLAGS)" LDFLAGS="$(XSERVERCFLAGS_LIBS)"
 
 xdarwinapp-install hook:
 	mv $(DESTDIR)$(macosdir)/XDarwinApp $(DESTDIR)$(macosdir)/XDarwin
