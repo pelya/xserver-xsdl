@@ -285,7 +285,8 @@ OsSignal(sig, handler)
 	sigaddset(&act.sa_mask, sig);
     act.sa_flags = 0;
     act.sa_handler = handler;
-    sigaction(sig, &act, &oact);
+    if (sigaction(sig, &act, &oact))
+      perror("sigaction");
     return oact.sa_handler;
 #endif
 }
@@ -1684,6 +1685,10 @@ System(char *command)
 
 #ifdef SIGCHLD
     csig = signal(SIGCHLD, SIG_DFL);
+    if (csig == SIG_ERR) {
+      perror("signal");
+      return -1;
+    }
 #endif
 
 #ifdef DEBUG
@@ -1708,7 +1713,10 @@ System(char *command)
     }
 
 #ifdef SIGCHLD
-    signal(SIGCHLD, csig);
+    if (signal(SIGCHLD, csig) == SIG_ERR) {
+      perror("signal");
+      return -1;
+    }
 #endif
 
     return p == -1 ? -1 : status;
@@ -1745,13 +1753,18 @@ Popen(char *command, char *type)
 
     /* Ignore the smart scheduler while this is going on */
     old_alarm = signal(SIGALRM, SIG_IGN);
+    if (old_alarm == SIG_ERR) {
+      perror("signal");
+      return NULL;
+    }
 
     switch (pid = fork()) {
     case -1: 	/* error */
 	close(pdes[0]);
 	close(pdes[1]);
 	xfree(cur);
-	signal(SIGALRM, old_alarm);
+	if (signal(SIGALRM, old_alarm) == SIG_ERR)
+	  perror("signal");
 	return NULL;
     case 0:	/* child */
 	if (setgid(getgid()) == -1)
@@ -1927,7 +1940,10 @@ Pclose(pointer iop)
     /* allow EINTR again */
     OsReleaseSignals ();
     
-    signal(SIGALRM, old_alarm);
+    if (old_alarm && signal(SIGALRM, old_alarm) == SIG_ERR) {
+      perror("signal");
+      return -1;
+    }
 
     return pid == -1 ? -1 : pstat;
 }
