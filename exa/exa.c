@@ -660,6 +660,17 @@ exaDriverInit (ScreenPtr		pScreen,
     if (!pScreenInfo)
 	return FALSE;
 
+    if (pScreenInfo->exa_major != EXA_VERSION_MAJOR ||
+	pScreenInfo->exa_minor > EXA_VERSION_MINOR)
+    {
+	LogMessage(X_ERROR, "EXA(%d): driver's EXA version requirements "
+		   "(%d.%d) are incompatible with EXA version (%d.%d)\n",
+		   pScreen->myNum,
+		   pScreenInfo->exa_major, pScreenInfo->exa_minor,
+		   EXA_VERSION_MAJOR, EXA_VERSION_MINOR);
+	return FALSE;
+    }
+
     if (!pScreenInfo->memoryBase) {
 	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::memoryBase must be "
 		   "non-zero\n", pScreen->myNum);
@@ -693,17 +704,6 @@ exaDriverInit (ScreenPtr		pScreen,
     if (!pScreenInfo->WaitMarker) {
 	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::WaitMarker must be "
 		   "non-NULL\n", pScreen->myNum);
-	return FALSE;
-    }
-
-    if (pScreenInfo->exa_major != EXA_VERSION_MAJOR ||
-	pScreenInfo->exa_minor > EXA_VERSION_MINOR)
-    {
-	LogMessage(X_ERROR, "EXA(%d): driver's EXA version requirements "
-		   "(%d.%d) are incompatible with EXA version (%d.%d)\n",
-		   pScreen->myNum,
-		   pScreenInfo->exa_major, pScreenInfo->exa_minor,
-		   EXA_VERSION_MAJOR, EXA_VERSION_MINOR);
 	return FALSE;
     }
 
