@@ -1208,10 +1208,9 @@ SendMappingNotify(unsigned request, unsigned firstKeyCode, unsigned count,
     }
 #ifdef XKB
     if (!noXkbExtension &&
-	((request == MappingKeyboard) || (request == MappingModifier))) {
-	XkbApplyMappingChange(inputInfo.keyboard,request,firstKeyCode,count,
-									client);
-    }
+	((request == MappingKeyboard) || (request == MappingModifier)))
+        XkbApplyMappingChange(inputInfo.keyboard, request, firstKeyCode, count,
+                              client);
 #endif
 
    /* 0 is the server client */
@@ -1359,6 +1358,7 @@ int
 ProcSetModifierMapping(ClientPtr client)
 {
     xSetModifierMappingReply rep;
+    DeviceIntPtr dev;
     REQUEST(xSetModifierMappingReq);
     
     REQUEST_AT_LEAST_SIZE(xSetModifierMappingReq);
@@ -1374,8 +1374,10 @@ ProcSetModifierMapping(ClientPtr client)
     rep.success = DoSetModifierMapping(client, (KeyCode *)&stuff[1],
                                        stuff->numKeyPerModifier);
 
-    /* FIXME: Send mapping notifies for all the extended devices as well. */
     SendMappingNotify(MappingModifier, 0, 0, client);
+    for (dev = inputInfo.devices; dev; dev = dev->next)
+        if (dev->key && dev->coreEvents)
+            SendDeviceMappingNotify(client, MappingModifier, 0, 0, dev);
     WriteReplyToClient(client, sizeof(xSetModifierMappingReply), &rep);
     return client->noClientException;
 }
@@ -1438,16 +1440,19 @@ ProcChangeKeyboardMapping(ClientPtr client)
     keysyms.maxKeyCode = stuff->firstKeyCode + stuff->keyCodes - 1;
     keysyms.mapWidth = stuff->keySymsPerKeyCode;
     keysyms.map = (KeySym *)&stuff[1];
-    for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
-        if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key) {
+    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
+        if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key)
             if (!SetKeySymsMap(&pDev->key->curKeySyms, &keysyms))
                 return BadAlloc;
-        }
-    }
 
-    /* FIXME: Send mapping notifies for all the extended devices as well. */
     SendMappingNotify(MappingKeyboard, stuff->firstKeyCode, stuff->keyCodes,
                       client);
+    for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
+        if (pDev->key && pDev->coreEvents)
+            SendDeviceMappingNotify(client, MappingKeyboard,
+                                    stuff->firstKeyCode, stuff->keyCodes,
+                                    pDev);
+
     return client->noClientException;
 }
 
