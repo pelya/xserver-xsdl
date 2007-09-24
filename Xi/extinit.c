@@ -58,8 +58,6 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>
-#include <X11/Xproto.h>
 #include "inputstr.h"
 #include "gcstruct.h"	/* pointer for extnsionst.h */
 #include "extnsionst.h"	/* extension entry   */
@@ -289,9 +287,7 @@ ProcIDispatch(ClientPtr client)
 	return (ProcXGetDeviceControl(client));
     else if (stuff->data == X_ChangeDeviceControl)
 	return (ProcXChangeDeviceControl(client));
-    else {
-	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
-    }
+
     return (BadRequest);
 }
 
@@ -378,9 +374,7 @@ SProcIDispatch(ClientPtr client)
 	return (SProcXGetDeviceControl(client));
     else if (stuff->data == X_ChangeDeviceControl)
 	return (SProcXChangeDeviceControl(client));
-    else {
-	SendErrorToClient(client, IReqCode, stuff->data, 0, BadRequest);
-    }
+
     return (BadRequest);
 }
 

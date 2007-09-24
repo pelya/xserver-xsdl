@@ -56,12 +56,9 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 #include "swaprep.h"
@@ -102,29 +99,21 @@ ProcXGetDeviceKeyMapping(ClientPtr client)
     REQUEST_SIZE_MATCH(xGetDeviceKeyMappingReq);
 
     dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
-	SendErrorToClient(client, IReqCode, X_GetDeviceKeyMapping, 0,
-			  BadDevice);
-	return Success;
-    }
-
-    if (dev->key == NULL) {
-	SendErrorToClient(client, IReqCode, X_GetDeviceKeyMapping, 0, BadMatch);
-	return Success;
-    }
+    if (dev == NULL)
+	return BadDevice;
+    if (dev->key == NULL)
+	return BadMatch;
     k = &dev->key->curKeySyms;
 
     if ((stuff->firstKeyCode < k->minKeyCode) ||
 	(stuff->firstKeyCode > k->maxKeyCode)) {
 	client->errorValue = stuff->firstKeyCode;
-	SendErrorToClient(client, IReqCode, X_GetDeviceKeyMapping, 0, BadValue);
-	return Success;
+	return BadValue;
     }
 
     if (stuff->firstKeyCode + stuff->count > k->maxKeyCode + 1) {
 	client->errorValue = stuff->count;
-	SendErrorToClient(client, IReqCode, X_GetDeviceKeyMapping, 0, BadValue);
-	return Success;
+	return BadValue;
     }
 
     rep.repType = X_Reply;

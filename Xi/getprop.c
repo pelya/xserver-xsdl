@@ -56,13 +56,10 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include "windowstr.h"	/* window structs    */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 #include "swaprep.h"
@@ -116,11 +113,8 @@ ProcXGetDeviceDontPropagateList(ClientPtr client)
     rep.count = 0;
 
     rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
-    if (rc != Success) {
-	SendErrorToClient(client, IReqCode, X_GetDeviceDontPropagateList, 0,
-			  rc);
-	return Success;
-    }
+    if (rc != Success)
+	return rc;
 
     if ((others = wOtherInputMasks(pWin)) != 0) {
 	for (i = 0; i < EMASKSIZE; i++)

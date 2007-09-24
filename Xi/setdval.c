@@ -56,13 +56,10 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
@@ -106,24 +103,17 @@ ProcXSetDeviceValuators(ClientPtr client)
     rep.sequenceNumber = client->sequence;
 
     if (stuff->length != (sizeof(xSetDeviceValuatorsReq) >> 2) +
-	stuff->num_valuators) {
-	SendErrorToClient(client, IReqCode, X_SetDeviceValuators, 0, BadLength);
-	return Success;
-    }
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
-	SendErrorToClient(client, IReqCode, X_SetDeviceValuators, 0, BadDevice);
-	return Success;
-    }
-    if (dev->valuator == NULL) {
-	SendErrorToClient(client, IReqCode, X_SetDeviceValuators, 0, BadMatch);
-	return Success;
-    }
+	stuff->num_valuators)
+	return BadLength;
 
-    if (stuff->first_valuator + stuff->num_valuators > dev->valuator->numAxes) {
-	SendErrorToClient(client, IReqCode, X_SetDeviceValuators, 0, BadValue);
-	return Success;
-    }
+    dev = LookupDeviceIntRec(stuff->deviceid);
+    if (dev == NULL)
+	return BadDevice;
+    if (dev->valuator == NULL)
+	return BadMatch;
+
+    if (stuff->first_valuator + stuff->num_valuators > dev->valuator->numAxes)
+	return BadValue;
 
     if ((dev->grab) && !SameClient(dev->grab, client))
 	rep.status = AlreadyGrabbed;
@@ -133,11 +123,9 @@ ProcXSetDeviceValuators(ClientPtr client)
 					stuff->num_valuators);
 
     if (rep.status != Success && rep.status != AlreadyGrabbed)
-	SendErrorToClient(client, IReqCode, X_SetDeviceValuators, 0,
-			  rep.status);
-    else
-	WriteReplyToClient(client, sizeof(xSetDeviceValuatorsReply), &rep);
+	return rep.status;
 
+    WriteReplyToClient(client, sizeof(xSetDeviceValuatorsReply), &rep);
     return Success;
 }
 

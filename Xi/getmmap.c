@@ -56,12 +56,9 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>	/* Request macro     */
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
@@ -102,18 +99,13 @@ ProcXGetDeviceModifierMapping(ClientPtr client)
     REQUEST_SIZE_MATCH(xGetDeviceModifierMappingReq);
 
     dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
-	SendErrorToClient(client, IReqCode, X_GetDeviceModifierMapping, 0,
-			  BadDevice);
-	return Success;
-    }
+    if (dev == NULL)
+	return BadDevice;
 
     kp = dev->key;
-    if (kp == NULL) {
-	SendErrorToClient(client, IReqCode, X_GetDeviceModifierMapping, 0,
-			  BadMatch);
-	return Success;
-    }
+    if (kp == NULL)
+	return BadMatch;
+
     maxkeys = kp->maxKeysPerModifier;
 
     rep.repType = X_Reply;
