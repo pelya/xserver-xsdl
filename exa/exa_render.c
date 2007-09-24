@@ -336,24 +336,28 @@ exaTryDriverComposite(CARD8		op,
     int nbox;
     int src_off_x, src_off_y, mask_off_x, mask_off_y, dst_off_x, dst_off_y;
     PixmapPtr pSrcPix, pMaskPix = NULL, pDstPix;
+    ExaPixmapPrivPtr pSrcExaPix, pMaskExaPix = NULL, pDstExaPix;
     struct _Pixmap scratch;
     ExaMigrationRec pixmaps[3];
 
     pSrcPix = exaGetDrawablePixmap(pSrc->pDrawable);
-    pDstPix = exaGetDrawablePixmap(pDst->pDrawable);
-    if (pMask)
-	pMaskPix = exaGetDrawablePixmap(pMask->pDrawable);
+    pSrcExaPix = ExaGetPixmapPriv(pSrcPix);
 
-    /* Bail if we might exceed coord limits by rendering from/to these.  We
-     * should really be making some scratch pixmaps with offsets and coords
-     * adjusted to deal with this, but it hasn't been done yet.
+    pDstPix = exaGetDrawablePixmap(pDst->pDrawable);
+    pDstExaPix = ExaGetPixmapPriv(pDstPix);
+
+    if (pMask) {
+	pMaskPix = exaGetDrawablePixmap(pMask->pDrawable);
+        pMaskExaPix = ExaGetPixmapPriv(pMaskPix);
+    }
+
+    /* Check whether the accelerator can use these pixmaps.
+     * FIXME: If it cannot, use temporary pixmaps so that the drawing
+     * happens within limits.
      */
-    if (pSrcPix->drawable.width > pExaScr->info->maxX ||
-	pSrcPix->drawable.height > pExaScr->info->maxY ||
-	pDstPix->drawable.width > pExaScr->info->maxX ||
-	pDstPix->drawable.height > pExaScr->info->maxY || 
-	(pMask && (pMaskPix->drawable.width > pExaScr->info->maxX ||
-		   pMaskPix->drawable.height > pExaScr->info->maxY)))
+    if (pSrcExaPix->accel_blocked ||
+	pDstExaPix->accel_blocked ||
+	(pMask && (pMaskExaPix->accel_blocked)))
     {
 	return -1;
     }

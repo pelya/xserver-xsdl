@@ -278,6 +278,26 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     REGION_NULL(pScreen, &pExaPixmap->validSys);
     REGION_NULL(pScreen, &pExaPixmap->validFB);
 
+    /* Check whether this pixmap can be used for acceleration. */
+    pExaPixmap->accel_blocked = 0;
+
+    if (pExaScr->info->maxPitchPixels) {
+        int max_pitch = pExaScr->info->maxPitchPixels * (bpp + 7) / 8;
+
+        if (pExaPixmap->fb_pitch > max_pitch)
+            pExaPixmap->accel_blocked |= EXA_RANGE_PITCH;
+    }
+
+    if (pExaScr->info->maxPitchBytes &&
+        pExaPixmap->fb_pitch > pExaScr->info->maxPitchBytes)
+        pExaPixmap->accel_blocked |= EXA_RANGE_PITCH;
+
+    if (w > pExaScr->info->maxX)
+        pExaPixmap->accel_blocked |= EXA_RANGE_WIDTH;
+
+    if (h > pExaScr->info->maxY)
+        pExaPixmap->accel_blocked |= EXA_RANGE_HEIGHT;
+
     return pPixmap;
 }
 
@@ -704,6 +724,39 @@ exaDriverInit (ScreenPtr		pScreen,
     if (!pScreenInfo->WaitMarker) {
 	LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::WaitMarker must be "
 		   "non-NULL\n", pScreen->myNum);
+	return FALSE;
+    }
+
+    /* If the driver doesn't set any max pitch values, we'll just assume
+     * that there's a limitation by pixels, and that it's the same as
+     * maxX.
+     */
+    if (!pScreenInfo->maxPitchPixels && !pScreenInfo->maxPitchBytes)
+    {
+        pScreenInfo->maxPitchPixels = pScreenInfo->maxX;
+    }
+
+    /* If set, maxPitchPixels must not be smaller than maxX. */
+    if (pScreenInfo->maxPitchPixels &&
+        pScreenInfo->maxPitchPixels < pScreenInfo->maxX)
+    {
+        LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::maxPitchPixels "
+                   "is smaller than ExaDriverRec::maxX\n",
+                   pScreen->myNum);
+	return FALSE;
+    }
+
+    /* If set, maxPitchBytes must not be smaller than maxX * 4.
+     * This is to ensure that a 32bpp pixmap with the maximum width
+     * can be handled wrt the pitch.
+     */
+    if (pScreenInfo->maxPitchBytes &&
+        pScreenInfo->maxPitchBytes < (pScreenInfo->maxX * 4))
+    {
+        LogMessage(X_ERROR, "EXA(%d): ExaDriverRec::maxPitchBytes "
+                   "doesn't allow a 32bpp pixmap with width equal to "
+                   "ExaDriverRec::maxX\n",
+                   pScreen->myNum);
 	return FALSE;
     }
 
