@@ -81,11 +81,9 @@ SOFTWARE.
         return(BadIDChoice);\
     }
 
-#define VALIDATE_DRAWABLE_AND_GC(drawID, pDraw, pGC, client)\
+#define VALIDATE_DRAWABLE_AND_GC(drawID, pDraw, mode)\
     {\
-	int rc;\
-	rc = dixLookupDrawable(&(pDraw), drawID, client, M_ANY,\
-			       DixWriteAccess);\
+	int rc = dixLookupDrawable(&(pDraw), drawID, client, M_ANY, mode);\
 	if (rc != Success)\
 	    return rc;\
 	rc = dixLookupGC(&(pGC), stuff->gc, client, DixUseAccess);\

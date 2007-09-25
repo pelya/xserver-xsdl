@@ -795,7 +795,7 @@ ProcShmPutImage(client)
     REQUEST(xShmPutImageReq);
 
     REQUEST_SIZE_MATCH(xShmPutImageReq);
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, FALSE, shmdesc, client);
     if ((stuff->sendEvent != xTrue) && (stuff->sendEvent != xFalse))
 	return BadValue;

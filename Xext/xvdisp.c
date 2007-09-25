@@ -535,7 +535,7 @@ ProcXvPutVideo(ClientPtr client)
   REQUEST(xvPutVideoReq);
   REQUEST_SIZE_MATCH(xvPutVideoReq);
 
-  VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+  VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
 
   if(!(pPort = LOOKUP_PORT(stuff->port, client) ))
     {
@@ -581,7 +581,7 @@ ProcXvPutStill(ClientPtr client)
   REQUEST(xvPutStillReq);
   REQUEST_SIZE_MATCH(xvPutStillReq);
 
-  VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+  VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
 
   if(!(pPort = LOOKUP_PORT(stuff->port, client) ))
     {
@@ -628,7 +628,7 @@ ProcXvGetVideo(ClientPtr client)
   REQUEST(xvGetVideoReq);
   REQUEST_SIZE_MATCH(xvGetVideoReq);
 
-  VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+  VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixReadAccess);
 
   if(!(pPort = LOOKUP_PORT(stuff->port, client) ))
     {
@@ -675,7 +675,7 @@ ProcXvGetStill(ClientPtr client)
   REQUEST(xvGetStillReq);
   REQUEST_SIZE_MATCH(xvGetStillReq);
 
-  VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+  VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixReadAccess);
 
   if(!(pPort = LOOKUP_PORT(stuff->port, client) ))
     {
@@ -1036,7 +1036,7 @@ ProcXvPutImage(ClientPtr client)
   REQUEST(xvPutImageReq);
   REQUEST_AT_LEAST_SIZE(xvPutImageReq);
 
-  VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+  VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
 
   if(!(pPort = LOOKUP_PORT(stuff->port, client) ))
     {
@@ -1124,7 +1124,7 @@ ProcXvShmPutImage(ClientPtr client)
   REQUEST(xvShmPutImageReq);
   REQUEST_SIZE_MATCH(xvShmPutImageReq);
 
-  VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+  VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
 
   if(!(pPort = LOOKUP_PORT(stuff->port, client) ))
     {

@@ -1791,7 +1791,7 @@ ProcCopyArea(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xCopyAreaReq);
 
-    VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pDst, pGC, client); 
+    VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pDst, DixWriteAccess); 
     if (stuff->dstDrawable != stuff->srcDrawable)
     {
 	rc = dixLookupDrawable(&pSrc, stuff->srcDrawable, client, 0,
@@ -1832,7 +1832,7 @@ ProcCopyPlane(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xCopyPlaneReq);
 
-    VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pdstDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pdstDraw, DixWriteAccess);
     if (stuff->dstDrawable != stuff->srcDrawable)
     {
 	rc = dixLookupDrawable(&psrcDraw, stuff->srcDrawable, client, 0,
@@ -1885,7 +1885,7 @@ ProcPolyPoint(ClientPtr client)
 	client->errorValue = stuff->coordMode;
         return BadValue;
     }
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client); 
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess); 
     npoint = ((client->req_len << 2) - sizeof(xPolyPointReq)) >> 2;
     if (npoint)
         (*pGC->ops->PolyPoint)(pDraw, pGC, stuff->coordMode, npoint,
@@ -1908,7 +1908,7 @@ ProcPolyLine(ClientPtr client)
 	client->errorValue = stuff->coordMode;
         return BadValue;
     }
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
     npoint = ((client->req_len << 2) - sizeof(xPolyLineReq)) >> 2;
     if (npoint > 1)
 	(*pGC->ops->Polylines)(pDraw, pGC, stuff->coordMode, npoint, 
@@ -1925,7 +1925,7 @@ ProcPolySegment(ClientPtr client)
     REQUEST(xPolySegmentReq);
 
     REQUEST_AT_LEAST_SIZE(xPolySegmentReq);
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
     nsegs = (client->req_len << 2) - sizeof(xPolySegmentReq);
     if (nsegs & 4)
 	return(BadLength);
@@ -1944,7 +1944,7 @@ ProcPolyRectangle (ClientPtr client)
     REQUEST(xPolyRectangleReq);
 
     REQUEST_AT_LEAST_SIZE(xPolyRectangleReq);
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
     nrects = (client->req_len << 2) - sizeof(xPolyRectangleReq);
     if (nrects & 4)
 	return(BadLength);
@@ -1964,7 +1964,7 @@ ProcPolyArc(ClientPtr client)
     REQUEST(xPolyArcReq);
 
     REQUEST_AT_LEAST_SIZE(xPolyArcReq);
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
     narcs = (client->req_len << 2) - sizeof(xPolyArcReq);
     if (narcs % sizeof(xArc))
 	return(BadLength);
@@ -1996,7 +1996,7 @@ ProcFillPoly(ClientPtr client)
         return BadValue;
     }
 
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
     things = ((client->req_len << 2) - sizeof(xFillPolyReq)) >> 2;
     if (things)
         (*pGC->ops->FillPolygon) (pDraw, pGC, stuff->shape,
@@ -2014,7 +2014,7 @@ ProcPolyFillRectangle(ClientPtr client)
     REQUEST(xPolyFillRectangleReq);
 
     REQUEST_AT_LEAST_SIZE(xPolyFillRectangleReq);
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
     things = (client->req_len << 2) - sizeof(xPolyFillRectangleReq);
     if (things & 4)
 	return(BadLength);
@@ -2035,7 +2035,7 @@ ProcPolyFillArc(ClientPtr client)
     REQUEST(xPolyFillArcReq);
 
     REQUEST_AT_LEAST_SIZE(xPolyFillArcReq);
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
     narcs = (client->req_len << 2) - sizeof(xPolyFillArcReq);
     if (narcs % sizeof(xArc))
 	return(BadLength);
@@ -2110,7 +2110,7 @@ ProcPutImage(ClientPtr client)
     REQUEST(xPutImageReq);
 
     REQUEST_AT_LEAST_SIZE(xPutImageReq);
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
     if (stuff->format == XYBitmap)
     {
         if ((stuff->depth != 1) ||
@@ -2396,7 +2396,7 @@ ProcPolyText(ClientPtr client)
     GC *pGC;
 
     REQUEST_AT_LEAST_SIZE(xPolyTextReq);
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
 
     err = PolyText(client,
 		   pDraw,
@@ -2426,7 +2426,7 @@ ProcImageText8(ClientPtr client)
     REQUEST(xImageTextReq);
 
     REQUEST_FIXED_SIZE(xImageTextReq, stuff->nChars);
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
 
     err = ImageText(client,
 		    pDraw,
@@ -2456,7 +2456,7 @@ ProcImageText16(ClientPtr client)
     REQUEST(xImageTextReq);
 
     REQUEST_FIXED_SIZE(xImageTextReq, stuff->nChars << 1);
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
 
     err = ImageText(client,
 		    pDraw,

@@ -1049,8 +1049,7 @@ int PanoramiXCopyArea(ClientPtr client)
 
 	FOR_NSCREENS_BACKWARD(j) {
 	    stuff->gc = gc->info[j].id;
-	    VALIDATE_DRAWABLE_AND_GC(dst->info[j].id, pDst, pGC, client);
-
+	    VALIDATE_DRAWABLE_AND_GC(dst->info[j].id, pDst, DixWriteAccess);
 	    if(drawables[0]->depth != pDst->depth) {
 		client->errorValue = stuff->dstDrawable;
 		xfree(data);
@@ -1086,7 +1085,8 @@ int PanoramiXCopyArea(ClientPtr client)
 		stuff->dstY = dsty - panoramiXdataPtr[j].y;
 	    }
 
-	    VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pDst, pGC, client); 
+	    VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pDst, DixWriteAccess);
+
 	    if (stuff->dstDrawable != stuff->srcDrawable) {
 		rc = dixLookupDrawable(&pSrc, stuff->srcDrawable, client, 0,
 				       DixReadAccess);
@@ -1195,7 +1195,7 @@ int PanoramiXCopyPlane(ClientPtr client)
 	    stuff->dstY = dsty - panoramiXdataPtr[j].y;
 	}
 
-	VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pdstDraw, pGC, client);
+	VALIDATE_DRAWABLE_AND_GC(stuff->dstDrawable, pdstDraw, DixWriteAccess);
 	if (stuff->dstDrawable != stuff->srcDrawable) {
 	    rc = dixLookupDrawable(&psrcDraw, stuff->srcDrawable, client, 0,
 				   DixReadAccess);
