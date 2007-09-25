@@ -929,6 +929,8 @@ SEventIDispatch(xEvent * from, xEvent * to)
 	DO_SWAP(SDeviceMappingNotifyEvent, deviceMappingNotify);
     else if (type == ChangeDeviceNotify)
 	DO_SWAP(SChangeDeviceNotifyEvent, changeDeviceNotify);
+    else if (type == DevicePresenceNotify)
+	DO_SWAP(SDevicePresenceNotifyEvent, devicePresenceNotify);
     else {
 	FatalError("XInputExtension: Impossible event!\n");
     }
@@ -974,6 +976,7 @@ XInputExtensionInit(void)
 	EventSwapVector[DeviceButtonStateNotify] = SEventIDispatch;
 	EventSwapVector[DeviceMappingNotify] = SEventIDispatch;
 	EventSwapVector[ChangeDeviceNotify] = SEventIDispatch;
+	EventSwapVector[DevicePresenceNotify] = SEventIDispatch;
     } else {
 	FatalError("IExtensionInit: AddExtensions failed\n");
     }
