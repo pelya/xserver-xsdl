@@ -263,6 +263,24 @@ static int DontPropagateRefCnts[DNPMCOUNT];
  */
 _X_EXPORT InputInfo inputInfo;
 
+/**
+ * syncEvents is the global structure for queued events.
+ * Devices can be frozen through GrabModeSync pointer grabs. If this is the
+ * case, events from these devices are added to "pending" instead of being
+ * processed normally. When the device is unfrozen, events in "pending" are
+ * replayed and processed as if they would come from the device directly.
+ *
+ * pending ... list of queued events
+ * pendtail ... last event in list
+ * replayDev ... The device to replay events for. Only set in AllowEvents, in
+ *               which case it is set to the device specified in the request.
+ * replayWin ... the window the events are supposed to be replayed on. This
+ *               window may be set to the grab's window (but only when
+ *               Replay{Pointer|Keyboard} is given in the XAllowEvents
+ *               request.
+ * playingEvents ... flag to indicate whether we're in the process of
+ *                   replaying events. Only set in ComputeFreezes().
+ */
 static struct {
     QdEventPtr		pending, *pendtail;
     DeviceIntPtr	replayDev;	/* kludgy rock to put flag for */
@@ -1430,6 +1448,9 @@ CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
 	     CLIENT_BITS(grab->resource)))
 	    thisDev->deviceGrab.sync.other = NullGrab;
     }
+    /* XXX: other should only work on the paired keyboard, not on all other
+       devices 
+     */
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
 	if (dev != thisDev)
