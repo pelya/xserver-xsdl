@@ -1241,6 +1241,15 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
     *syncEvents.pendtail = qe;
 }
 
+/**
+ * Run through the list of events queued up in syncEvents.
+ * For each event do: 
+ * If the device for this event is not frozen anymore, take it and process it
+ * as usually. 
+ * After that, check if there's any devices in the list that are not frozen.
+ * If there is none, we're done. If there is at least one device that is not
+ * frozen, then re-run from the beginning of the event queue.
+ */
 static void
 PlayReleasedEvents(void)
 {
@@ -1276,6 +1285,7 @@ PlayReleasedEvents(void)
 	   /* Translate back to the sprite screen since processInputProc
 	      will translate from sprite screen to screen 0 upon reentry
 	      to the DIX layer */
+            /* XXX: we can't do that for generic events */
 	    if(!noPanoramiXExtension) {
 		qe->event->u.keyButtonPointer.rootX += 
 			panoramiXdataPtr[0].x - 
