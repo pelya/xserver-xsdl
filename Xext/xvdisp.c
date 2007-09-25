@@ -383,7 +383,7 @@ ProcXvQueryAdaptors(ClientPtr client)
   REQUEST(xvQueryAdaptorsReq);
   REQUEST_SIZE_MATCH(xvQueryAdaptorsReq);
 
-  rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+  rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
   if (rc != Success)
       return rc;
 
@@ -718,7 +718,7 @@ ProcXvSelectVideoNotify(ClientPtr client)
   REQUEST(xvSelectVideoNotifyReq);
   REQUEST_SIZE_MATCH(xvSelectVideoNotifyReq);
 
-  rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0, DixUnknownAccess);
+  rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0, DixReceiveAccess);
   if (rc != Success)
     return rc;
 
@@ -835,7 +835,7 @@ ProcXvStopVideo(ClientPtr client)
       return (status);
     }
 
-  rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0, DixUnknownAccess);
+  rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0, DixWriteAccess);
   if (rc != Success)
     return rc;
 
