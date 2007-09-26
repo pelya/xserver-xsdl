@@ -89,26 +89,56 @@ Bool ShouldFreeInputMasks(WindowPtr /* pWin */ ,
 static Bool MakeInputMasks(WindowPtr	/* pWin */
     );
 
+static int xiDevPrivateIndex = 0;
+static int _xiServerGeneration = -1;
+
+typedef struct {
+    ProcessInputProc processInputProc;
+    ProcessInputProc realInputProc;
+} xiDevPrivateRec, *xiDevPrivatePtr;
+
 /**************************************************************************
  *
  * Procedures for extension device event routing.
  *
  */
 
+#define WRAP_PROCESS_INPUT_PROC(device, saveprocs, newproc) \
+    saveprocs->processInputProc = device->public.processInputProc; \
+    saveprocs->realInputProc = device->public.realInputProc; \
+    device->public.processInputProc = newproc; \
+    device->public.realInputProc = newproc;
+
+#define UNWRAP_PROCESS_INPUT_PROC(device, saveprocs) \
+    device->public.processInputProc = saveprocs->processInputProc; \
+    device->public.realInputProc = saveprocs->realInputProc; 
+
 void
 RegisterOtherDevice(DeviceIntPtr device)
 {
-    device->public.processInputProc = ProcessOtherEvent;
-    device->public.realInputProc = ProcessOtherEvent;
-    if (DeviceIsPointerType(device))
+    xiDevPrivatePtr xiPrivPtr;
+
+    if (serverGeneration != _xiServerGeneration)
     {
-        (device)->deviceGrab.ActivateGrab = ActivatePointerGrab;
-        (device)->deviceGrab.DeactivateGrab = DeactivatePointerGrab;
-    } else 
-    {
-        (device)->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
-        (device)->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
+        xiDevPrivateIndex = AllocateDevicePrivateIndex();
+        if (xiDevPrivateIndex == 1)
+        {
+            FatalError("[Xi] Could not allocate private index.\n"); 
+        }
+        _xiServerGeneration = serverGeneration;
     }
+
+    if (!AllocateDevicePrivate(device, xiDevPrivateIndex))
+        FatalError("[Xi] Dev private allocation failed.\n");
+
+
+    xiPrivPtr = (xiDevPrivatePtr)xcalloc(1, sizeof(xiDevPrivateRec));
+    if (!xiPrivPtr)
+        FatalError("[Xi] Cannot get memory for dev private.\n");
+
+    device->devPrivates[xiDevPrivateIndex].ptr = xiPrivPtr;
+
+    WRAP_PROCESS_INPUT_PROC(device, xiPrivPtr, ProcessOtherEvent);
 }
 
  /*ARGSUSED*/ void
@@ -125,6 +155,17 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     KeyClassPtr k = device->key;
     ValuatorClassPtr v = device->valuator;
     deviceValuator *xV = (deviceValuator *) xE;
+
+    /* Handle core events. */
+    if (xE->u.u.type < LASTEvent && xE->u.u.type != GenericEvent)
+    {
+        xiDevPrivatePtr xiPrivPtr = 
+            (xiDevPrivatePtr)device->devPrivates[xiDevPrivateIndex].ptr;
+        UNWRAP_PROCESS_INPUT_PROC(device, xiPrivPtr);
+        device->public.processInputProc(xE, device, count);
+        WRAP_PROCESS_INPUT_PROC(device, xiPrivPtr, ProcessOtherEvent);
+        return;
+    }
 
     CheckMotion(xE, device);
 

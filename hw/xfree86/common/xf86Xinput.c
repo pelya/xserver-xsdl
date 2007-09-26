@@ -179,15 +179,33 @@ xf86ActivateDevice(LocalDevicePtr local)
         dev->coreEvents = local->flags & XI86_ALWAYS_CORE; 
         dev->spriteInfo->spriteOwner = !(local->flags & XI86_SHARED_POINTER);
 
-        RegisterOtherDevice(dev);
-
-#ifdef XKB
-        if (!DeviceIsPointerType(dev) && !noXkbExtension)
+        if (DeviceIsPointerType(dev))
         {
-            XkbSetExtension(dev, ProcessKeyboardEvent);
-        }
+#ifdef XKB
+            dev->public.processInputProc = CoreProcessPointerEvent;
+            dev->public.realInputProc = CoreProcessPointerEvent;
+#else
+            dev->public.processInputProc = ProcessPointerEvent;
+            dev->public.realInputProc = ProcessPointerEvent;
 #endif
+            dev->deviceGrab.ActivateGrab = ActivatePointerGrab;
+            dev->deviceGrab.DeactivateGrab = DeactivatePointerGrab;
+        } else 
+        {
+#ifdef XKB
+            dev->public.processInputProc = CoreProcessKeyboardEvent;
+            dev->public.realInputProc = CoreProcessKeyboardEvent;
+#else
+            dev->public.processInputProc = ProcessKeyboardEvent;
+            dev->public.realInputProc = ProcessKeyboardEvent;
+#endif
+            dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
+            dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
+        }
 
+        RegisterOtherDevice(dev);
+        if (!noXkbExtension)
+            XkbSetExtension(dev, ProcessOtherEvent);
 
         if (serverGeneration == 1) 
             xf86Msg(X_INFO, "XINPUT: Adding extended input device \"%s\" (type: %s)\n",

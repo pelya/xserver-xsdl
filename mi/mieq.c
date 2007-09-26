@@ -232,7 +232,6 @@ mieqProcessInputEvents(void)
 {
     EventRec *e = NULL;
     int x = 0, y = 0;
-    DeviceIntPtr dev = NULL;
     xEvent* event;
 
     while (miEventQueue.head != miEventQueue.tail) {
@@ -262,7 +261,8 @@ mieqProcessInputEvents(void)
             if (miEventQueue.handlers[e->events->event->u.u.type]) {
                 miEventQueue.handlers[e->events->event->u.u.type](
                                               DequeueScreen(e->pDev)->myNum,
-                                                      e->events->event, dev,
+                                                      e->events->event,
+                                                      e->pDev,
                                                       e->nevents);
                 return;
             }
@@ -272,17 +272,7 @@ mieqProcessInputEvents(void)
             if (e->events->event[0].u.u.type == KeyPress ||
                 e->events->event[0].u.u.type == KeyRelease) {
                 SwitchCoreKeyboard(e->pDev);
-                dev = inputInfo.keyboard;
             }
-            else if (e->events->event[0].u.u.type == MotionNotify ||
-                     e->events->event[0].u.u.type == ButtonPress ||
-                     e->events->event[0].u.u.type == ButtonRelease) {
-                dev = inputInfo.pointer;
-            }
-            else {
-                dev = e->pDev;
-            }
-
 
             /* FIXME: Bad hack. The only event where we actually get multiple
              * events at once is a DeviceMotionNotify followed by
@@ -303,11 +293,7 @@ mieqProcessInputEvents(void)
                 event = e->events->event;
             }
 
-            /* MPX devices send both core and Xi events. 
-             * Use dev to get the correct processing function but supply
-             *  e->pDev to pass the correct device 
-             */
-            dev->public.processInputProc(event, e->pDev, e->nevents);
+            e->pDev->public.processInputProc(event, e->pDev, e->nevents);
 
             if (e->nevents > 1)
                 xfree(event);
