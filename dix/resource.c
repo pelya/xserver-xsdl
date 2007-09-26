@@ -468,7 +468,7 @@ AddResource(XID id, RESTYPE type, pointer value)
     rrec = &clientTable[client];
     if (!rrec->buckets)
     {
-	ErrorF("AddResource(%lx, %lx, %lx), client=%d \n",
+	ErrorF("[dix] AddResource(%lx, %lx, %lx), client=%d \n",
 		(unsigned long)id, type, (unsigned long)value, client);
         FatalError("client not in use\n");
     }
@@ -589,7 +589,7 @@ FreeResource(XID id, RESTYPE skipDeleteFuncType)
 	}
     }
     if (!gotOne)
-	ErrorF("Freeing resource id=%lX which isn't there.\n",
+	ErrorF("[dix] Freeing resource id=%lX which isn't there.\n",
 		   (unsigned long)id);
 }
 

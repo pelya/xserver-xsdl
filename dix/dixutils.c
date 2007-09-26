@@ -288,7 +288,7 @@ SecurityLookupWindow(XID id, ClientPtr client, Mask access_mode)
     int i = dixLookupWindow(&pWin, id, client, access_mode);
     static int warn = 1;
     if (warn-- > 0)
-	ErrorF("Warning: LookupWindow()/SecurityLookupWindow() "
+	ErrorF("[dix] Warning: LookupWindow()/SecurityLookupWindow() "
 	       "are deprecated.  Please convert your driver/module "
 	       "to use dixLookupWindow().\n");
     return (i == Success) ? pWin : NULL;
@@ -307,7 +307,7 @@ SecurityLookupDrawable(XID id, ClientPtr client, Mask access_mode)
     int i = dixLookupDrawable(&pDraw, id, client, M_DRAWABLE, access_mode);
     static int warn = 1;
     if (warn-- > 0)
-	ErrorF("Warning: LookupDrawable()/SecurityLookupDrawable() "
+	ErrorF("[dix] Warning: LookupDrawable()/SecurityLookupDrawable() "
 	       "are deprecated.  Please convert your driver/module "
 	       "to use dixLookupDrawable().\n");
     return (i == Success) ? pDraw : NULL;
@@ -326,7 +326,7 @@ LookupClient(XID id, ClientPtr client)
     int i = dixLookupClient(&pClient, id, client, DixUnknownAccess);
     static int warn = 1;
     if (warn-- > 0)
-	ErrorF("Warning: LookupClient() is deprecated.  Please convert your "
+	ErrorF("[dix] Warning: LookupClient() is deprecated.  Please convert your "
 	       "driver/module to use dixLookupClient().\n");
     return (i == Success) ? pClient : NULL;
 }

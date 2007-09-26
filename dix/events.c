@@ -1887,7 +1887,7 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
     int type;
 
 #ifdef DEBUG_EVENTS
-    ErrorF("Event([%d, %d], mask=0x%x), client=%d",
+    ErrorF("[dix] Event([%d, %d], mask=0x%x), client=%d",
 	pEvents->u.u.type, pEvents->u.u.detail, mask, client->index);
 #endif
     if ((client) && (client != serverClient) && (!client->clientGone) &&
@@ -1904,8 +1904,8 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
 		    pEvents->u.keyButtonPointer.event)
 		{
 #ifdef DEBUG_EVENTS
-		    ErrorF("\n");
-	    ErrorF("motionHintWindow == keyButtonPointer.event\n");
+		    ErrorF("[dix] \n");
+	    ErrorF("[dix] motionHintWindow == keyButtonPointer.event\n");
 #endif
 		    return 1; /* don't send, but pretend we did */
 		}
@@ -1944,14 +1944,14 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
 
 	WriteEventsToClient(client, count, pEvents);
 #ifdef DEBUG_EVENTS
-	ErrorF(  " delivered\n");
+	ErrorF("[dix]  delivered\n");
 #endif
 	return 1;
     }
     else
     {
 #ifdef DEBUG_EVENTS
-	ErrorF("\n");
+	ErrorF("[dix] \n");
 #endif
 	return 0;
     }
@@ -2031,7 +2031,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
             /* We don't do more than one GenericEvent at a time. */
             if (count > 1)
             {
-                ErrorF("Do not send more than one GenericEvent at a time!\n");
+                ErrorF("[dix] Do not send more than one GenericEvent at a time!\n");
                 return 0;
             }
 
@@ -2355,7 +2355,7 @@ DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
 
             if (count > 1)
             {
-                ErrorF("Do not send more than one GenericEvent at a time!\n");
+                ErrorF("[dix] Do not send more than one GenericEvent at a time!\n");
                 return 0;
             }
             filter = generic_filters[GEEXTIDX(xE)][ge->evtype];
@@ -5942,7 +5942,7 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
     {
         if (events[i].u.u.type == GenericEvent)
         {
-            ErrorF("TryClientEvents: Only one GenericEvent at a time.");
+            ErrorF("[dix] TryClientEvents: Only one GenericEvent at a time.\n");
             return; 
         }
     }
@@ -6028,7 +6028,7 @@ PickPointer(ClientPtr client)
 
         if (!it)
         {
-            ErrorF("Picking VCP\n");
+            ErrorF("[dix] Picking VCP\n");
             return inputInfo.pointer;
         }
     }

@@ -143,7 +143,7 @@ ACChangeWindowAccess(ClientPtr client,
 
     if (!win->optional && !MakeWindowOptional(win))
     {
-        ErrorF("ACChangeWindowAcccess: Failed to make window optional.\n");
+        ErrorF("[dix] ACChangeWindowAcccess: Failed to make window optional.\n");
         return BadImplementation;
     }
 
@@ -183,7 +183,7 @@ acReplaceList(DeviceIntPtr** list,
             xalloc(ndevices * sizeof(DeviceIntPtr*));
         if (!*list)
         {
-            ErrorF("ACChangeWindowAccess: out of memory\n");
+            ErrorF("[dix] ACChangeWindowAccess: out of memory\n");
             return;
         }
         memcpy(*list,
@@ -223,7 +223,7 @@ ACQueryWindowAccess(WindowPtr win,
         *perm = (DeviceIntPtr*)xalloc(*nperm * sizeof(DeviceIntPtr));
         if (!*perm)
         {
-            ErrorF("ACQuerywinAccess: xalloc failure\n");
+            ErrorF("[dix] ACQuerywinAccess: xalloc failure\n");
             return;
         }
         memcpy(*perm, 
@@ -237,7 +237,7 @@ ACQueryWindowAccess(WindowPtr win,
         *deny = (DeviceIntPtr*)xalloc(*ndeny * sizeof(DeviceIntPtr));
         if (!*deny)
         {
-            ErrorF("ACQuerywinAccess: xalloc failure\n");
+            ErrorF("[dix] ACQuerywinAccess: xalloc failure\n");
             return;
         }
         memcpy(*deny, 

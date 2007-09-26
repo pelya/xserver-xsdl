@@ -220,7 +220,7 @@ EnableDevice(DeviceIntPtr dev)
 
     if ((*prev != dev) || !dev->inited ||
 	((ret = (*dev->deviceProc)(dev, DEVICE_ON)) != Success)) {
-        ErrorF("couldn't enable device %d\n", dev->id);
+        ErrorF("[dix] couldn't enable device %d\n", dev->id);
 	return FALSE;
     }
     dev->enabled = TRUE;
@@ -357,13 +357,13 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
                                          keySyms.minKeyCode + 1) *
                                         keySyms.mapWidth);
         if (!keySyms.map) {
-            ErrorF("Couldn't allocate core keymap\n");
+            ErrorF("[dix] Couldn't allocate core keymap\n");
             return BadAlloc;
         }
 
         modMap = (CARD8 *)xalloc(MAP_LENGTH);
         if (!modMap) {
-            ErrorF("Couldn't allocate core modifier map\n");
+            ErrorF("[dix] Couldn't allocate core modifier map\n");
             return BadAlloc;
         }
         bzero((char *)modMap, MAP_LENGTH);
@@ -529,11 +529,11 @@ InitAndStartDevices(WindowPtr root)
     }
 
     if (!inputInfo.keyboard) {
-	ErrorF("No core keyboard\n");
+	ErrorF("[dix] No core keyboard\n");
 	return BadImplementation;
     }
     if (!inputInfo.pointer) {
-	ErrorF("No core pointer\n");
+	ErrorF("[dix] No core pointer\n");
 	return BadImplementation;
     }
 

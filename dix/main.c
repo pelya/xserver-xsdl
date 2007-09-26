@@ -402,7 +402,7 @@ main(int argc, char *argv[], char *envp[])
 	}
         else {
 	    if (SetDefaultFontPath(defaultFontPath) != Success)
-		ErrorF("failed to set default font path '%s'",
+		ErrorF("[dix] failed to set default font path '%s'",
 			defaultFontPath);
 	}
 	if (!SetDefaultFont(defaultTextFont)) {

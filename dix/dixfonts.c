@@ -378,7 +378,7 @@ OpenFont(ClientPtr client, XID fid, Mask flags, unsigned lenfname, char *pfontna
     f = (char *)xalloc(lenfname + 1);
     memmove(f, pfontname, lenfname);
     f[lenfname] = '\0';
-    ErrorF("OpenFont: fontname is \"%s\"\n", f);
+    ErrorF("[dix] OpenFont: fontname is \"%s\"\n", f);
     xfree(f);
 #endif
     if (!lenfname || lenfname > XLFDMAXFONTNAMELEN)
@@ -1628,7 +1628,7 @@ FreeFontPath(FontPathElementPtr *list, int n, Bool force)
 		    found++;
 	    }
 	    if (list[i]->refcount != found) {
-		ErrorF("FreeFontPath: FPE \"%.*s\" refcount is %d, should be %d; fixing.\n",
+		ErrorF("[dix] FreeFontPath: FPE \"%.*s\" refcount is %d, should be %d; fixing.\n",
 		       list[i]->name_length, list[i]->name,
 		       list[i]->refcount, found);
 		list[i]->refcount = found; /* ensure it will get freed */
@@ -1680,7 +1680,7 @@ SetFontPathElements(int npaths, unsigned char *paths, int *bad, Bool persist)
 	if (len == 0) 
 	{
 	    if (persist)
-		ErrorF ("Removing empty element from the valid list of fontpaths\n");
+		ErrorF("[dix] Removing empty element from the valid list of fontpaths\n");
 	    err = BadValue;
 	}
 	else
@@ -1732,7 +1732,7 @@ SetFontPathElements(int npaths, unsigned char *paths, int *bad, Bool persist)
 		{
 		    if (persist)
 		    {
-			ErrorF("Could not init font path element %s, removing from list!\n",
+			ErrorF("[dix] Could not init font path element %s, removing from list!\n",
 			       fpe->name);
 		    }
 		    xfree (fpe->name);

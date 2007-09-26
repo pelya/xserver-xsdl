@@ -206,8 +206,9 @@ PrintChildren(WindowPtr p1, int indent)
     while (p1)
     {
 	p2 = p1->firstChild;
-	for (i=0; i<indent; i++) ErrorF( " ");
-	ErrorF( "%lx\n", p1->drawable.id);
+        ErrorF("[dix] ");
+	for (i=0; i<indent; i++) ErrorF(" ");
+	ErrorF("%lx\n", p1->drawable.id);
 	miPrintRegion(&p1->clipList);
 	PrintChildren(p2, indent+4);
 	p1 = p1->nextSib;
@@ -222,7 +223,7 @@ PrintWindowTree(void)
 
     for (i=0; i<screenInfo.numScreens; i++)
     {
-	ErrorF( "WINDOW %d\n", i);
+	ErrorF("[dix] WINDOW %d\n", i);
 	pWin = WindowTable[i];
 	miPrintRegion(&pWin->clipList);
 	p1 = pWin->firstChild;
@@ -2232,7 +2233,7 @@ WhereDoIGoInTheStack(
 	    return pWin->nextSib;
       default:
       {
-	ErrorF("Internal error in ConfigureWindow, smode == %d\n",smode );
+	ErrorF("[dix] Internal error in ConfigureWindow, smode == %d\n",smode );
 	return pWin->nextSib;
       }
     }
