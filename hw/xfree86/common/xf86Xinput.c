@@ -205,7 +205,7 @@ xf86ActivateDevice(LocalDevicePtr local)
 
         RegisterOtherDevice(dev);
         if (!noXkbExtension)
-            XkbSetExtension(dev, ProcessOtherEvent);
+            XkbSetExtension(dev, (DeviceIsPointerType(dev)) ? ProcessPointerEvent : ProcessKeyboardEvent);
 
         if (serverGeneration == 1) 
             xf86Msg(X_INFO, "XINPUT: Adding extended input device \"%s\" (type: %s)\n",
