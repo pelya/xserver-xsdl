@@ -179,12 +179,12 @@ char *			pval;
 
     name= MakeAtom(_XKB_RF_NAMES_PROP_ATOM,strlen(_XKB_RF_NAMES_PROP_ATOM),1);
     if (name==None) {
-	ErrorF("Atom error: %s not created\n",_XKB_RF_NAMES_PROP_ATOM);
+	ErrorF("[xkb] Atom error: %s not created\n",_XKB_RF_NAMES_PROP_ATOM);
 	return True;
     }
     pval= (char*) ALLOCATE_LOCAL(len);
     if (!pval) {
-	ErrorF("Allocation error: %s proprerty not created\n",
+	ErrorF("[xkb] Allocation error: %s proprerty not created\n",
 						_XKB_RF_NAMES_PROP_ATOM);
 	return True;
     }
@@ -218,7 +218,7 @@ char *			pval;
     }
     pval[out++]= '\0';
     if (out!=len) {
-	ErrorF("Internal Error! bad size (%d!=%d) for _XKB_RULES_NAMES\n",
+	ErrorF("[xkb] Internal Error! bad size (%d!=%d) for _XKB_RULES_NAMES\n",
 								out,len);
     }
     ChangeWindowProperty(WindowTable[0],name,XA_STRING,8,PropModeReplace,
@@ -511,7 +511,7 @@ XkbEventCauseRec	cause;
 	    /*                 the other here, but for now just complain */
 	    /*                 can't just update the core range without */
 	    /*                 reallocating the KeySymsRec (pain)       */
-	    ErrorF("Internal Error!! XKB and core keymap have different range\n");
+	    ErrorF("[xkb] Internal Error!! XKB and core keymap have different range\n");
 	}
 	if (XkbAllocClientMap(xkb,XkbAllClientInfoMask,0)!=Success)
 	    FatalError("Couldn't allocate client map in XkbInitDevice\n");
@@ -772,7 +772,7 @@ XkbSrvLedInfoPtr	sli;
     if (sli && xkbi)
 	XkbCheckIndicatorMaps(xkbi->device,sli,XkbAllIndicatorsMask);
 #ifdef DEBUG
-    else ErrorF("No indicator feedback in XkbFinishInit (shouldn't happen)!\n");
+    else ErrorF("[xkb] No indicator feedback in XkbFinishInit (shouldn't happen)!\n");
 #endif
     return softRepeat;
 }

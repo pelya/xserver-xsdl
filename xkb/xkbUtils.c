@@ -2010,7 +2010,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
 
     if (sendNotifies) {
         if (!pDev) {
-            ErrorF("XkbCopyKeymap: asked for notifies, but can't find device!\n");
+            ErrorF("[xkb] XkbCopyKeymap: asked for notifies, but can't find device!\n");
         }
         else {
             /* send NewKeyboardNotify if the keycode range changed, else

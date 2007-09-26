@@ -58,7 +58,7 @@ int             xiEvent;
     xiEvent= (xE->u.u.type & EXTENSION_EVENT_BASE);
 #ifdef DEBUG
     if (xkbDebugFlags&0x8) {
-	ErrorF("XkbPKE: Key %d %s\n",key,(xE->u.u.type==KeyPress?"down":"up"));
+	ErrorF("[xkb] XkbPKE: Key %d %s\n",key,(xE->u.u.type==KeyPress?"down":"up"));
     }
 #endif
 
@@ -162,7 +162,7 @@ int             xiEvent;
 		    }
 		    rg->currentDown= key;
 		}
-		else ErrorF("InternalError! Illegal radio group %d\n",ndx);
+		else ErrorF("[xkb] InternalError! Illegal radio group %d\n",ndx);
 		break;
 	    case XkbKB_Overlay1: case XkbKB_Overlay2:
 		{
@@ -182,7 +182,7 @@ int             xiEvent;
 		}
 		break;
 	    default:
-		ErrorF("unknown key behavior 0x%04x\n",behavior.type);
+		ErrorF("[xkb] unknown key behavior 0x%04x\n",behavior.type);
 		break;
 	}
     }
@@ -201,7 +201,7 @@ XkbSrvInfoPtr	xkbi;
 #ifdef DEBUG
     if (xkbDebugFlags&0x8) {
 	int key= xE->u.u.detail;
-	ErrorF("PKE: Key %d %s\n",key,(xE->u.u.type==KeyPress?"down":"up"));
+	ErrorF("[xkb] PKE: Key %d %s\n",key,(xE->u.u.type==KeyPress?"down":"up"));
     }
 #endif
     if ((xkbi->desc->ctrls->enabled_ctrls&XkbAllFilteredEventsMask)==0)

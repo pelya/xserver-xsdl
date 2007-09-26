@@ -44,7 +44,7 @@ XkbDDXKeyClick(DeviceIntPtr pXDev,int keycode,int synthetic)
 {
 #ifdef DEBUG
     if (xkbDebugFlags)
-	ErrorF("Click.\n");
+	ErrorF("[xkb] Click.\n");
 #endif
     return;
 }

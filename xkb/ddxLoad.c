@@ -134,11 +134,11 @@ Win32System(const char *cmdline)
 		    0,
 		    NULL ))
 	{
-	    ErrorF("Starting '%s' failed!\n", cmdline); 
+	    ErrorF("[xkb] Starting '%s' failed!\n", cmdline); 
 	}
 	else
 	{
-	    ErrorF("Starting '%s' failed: %s", cmdline, (char *)buffer); 
+	    ErrorF("[xkb] Starting '%s' failed: %s", cmdline, (char *)buffer); 
 	    LocalFree(buffer);
 	}
 
@@ -258,12 +258,12 @@ char 	*cmd = NULL,file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
     }
 #ifdef DEBUG
     if (xkbDebugFlags) {
-	ErrorF("XkbDDXCompileNamedKeymap compiling keymap using:\n");
-	ErrorF("    \"cmd\"\n");
+	ErrorF("[xkb] XkbDDXCompileNamedKeymap compiling keymap using:\n");
+	ErrorF("[xkb]     \"cmd\"\n");
     }
 #endif
 #ifdef DEBUG_CMD
-    ErrorF("xkb executes: %s\n",cmd);
+    ErrorF("[xkb] xkb executes: %s\n",cmd);
 #endif
     if (System(cmd)==0) {
 	if (nameRtrn) {
@@ -277,7 +277,7 @@ char 	*cmd = NULL,file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
 	return True;
     } 
 #ifdef DEBUG
-    ErrorF("Error compiling keymap (%s)\n",names->keymap);
+    ErrorF("[xkb] Error compiling keymap (%s)\n",names->keymap);
 #endif
     if (outFile!=NULL)
 	_XkbFree(outFile);
@@ -305,7 +305,7 @@ char tmpname[PATH_MAX];
     }
     else {
 	if (strlen(names->keymap) > PATH_MAX - 1) {
-	    ErrorF("name of keymap (%s) exceeds max length\n", names->keymap);
+	    ErrorF("[xkb] name of keymap (%s) exceeds max length\n", names->keymap);
 	    return False;
 	}
 	strcpy(keymap,names->keymap);
@@ -360,7 +360,7 @@ char tmpname[PATH_MAX];
     if (out!=NULL) {
 #ifdef DEBUG
     if (xkbDebugFlags) {
-       ErrorF("XkbDDXCompileKeymapByNames compiling keymap:\n");
+       ErrorF("[xkb] XkbDDXCompileKeymapByNames compiling keymap:\n");
        XkbWriteXKBKeymapForNames(stderr,names,NULL,xkb,want,need);
     }
 #endif
@@ -372,10 +372,10 @@ char tmpname[PATH_MAX];
 #endif
 	{
 #ifdef DEBUG_CMD
-	    ErrorF("xkb executes: %s\n",buf);
-	    ErrorF("xkbcomp input:\n");
+	    ErrorF("[xkb] xkb executes: %s\n",buf);
+	    ErrorF("[xkb] xkbcomp input:\n");
 	    XkbWriteXKBKeymapForNames(stderr,names,NULL,xkb,want,need);
-	    ErrorF("end xkbcomp input\n");
+	    ErrorF("[xkb] end xkbcomp input\n");
 #endif
 	    if (nameRtrn) {
 		strncpy(nameRtrn,keymap,nameRtrnLen);
@@ -387,7 +387,7 @@ char tmpname[PATH_MAX];
 	}
 #ifdef DEBUG
 	else
-	    ErrorF("Error compiling keymap (%s)\n",keymap);
+	    ErrorF("[xkb] Error compiling keymap (%s)\n",keymap);
 #endif
 #ifdef WIN32
         /* remove the temporary file */
@@ -397,9 +397,9 @@ char tmpname[PATH_MAX];
 #ifdef DEBUG
     else {
 #ifndef WIN32
-	ErrorF("Could not invoke keymap compiler\n");
+	ErrorF("[xkb] Could not invoke keymap compiler\n");
 #else
-	ErrorF("Could not open file %s\n", tmpname);
+	ErrorF("[xkb] Could not open file %s\n", tmpname);
 #endif
     }
 #endif
@@ -478,7 +478,7 @@ unsigned	missing;
 	}
 	else if (!XkbDDXCompileNamedKeymap(xkb,names,nameRtrn,nameRtrnLen)) {
 #ifdef NOISY
-	    ErrorF("Couldn't compile keymap file\n");
+	    ErrorF("[xkb] Couldn't compile keymap file\n");
 #endif
 	    return 0;
 	}
@@ -486,7 +486,7 @@ unsigned	missing;
     else if (!XkbDDXCompileKeymapByNames(xkb,names,want,need,
 						nameRtrn,nameRtrnLen)){
 #ifdef NOISY
-	ErrorF("Couldn't compile keymap file\n");
+	ErrorF("[xkb] Couldn't compile keymap file\n");
 #endif
 	return 0;
     }
@@ -504,7 +504,7 @@ unsigned	missing;
     }
 #ifdef DEBUG
     else if (xkbDebugFlags) {
-	ErrorF("Loaded %s, defined=0x%x\n",fileName,finfoRtrn->defined);
+	ErrorF("[xkb] Loaded %s, defined=0x%x\n",fileName,finfoRtrn->defined);
     }
 #endif
     fclose(file);
