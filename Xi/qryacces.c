@@ -99,7 +99,7 @@ ProcXQueryWindowAccess(ClientPtr client)
         deviceids = (XID*)xalloc((nperm + ndeny) * sizeof(XID));
         if (!deviceids)
         {
-            ErrorF("ProcXQueryWindowAccess: xalloc failure.\n");
+            ErrorF("[Xi] ProcXQueryWindowAccess: xalloc failure.\n");
             SendErrorToClient(client, IReqCode, X_QueryWindowAccess, 
                     0, BadImplementation); 
             return Success;

@@ -891,7 +891,7 @@ FixExtensionEvents(ExtensionEntry * extEntry)
     {
         /* This should never happen, but if it does, hide under the
          * bed and cry for help. */
-        ErrorF("DeviceButtonMotionMask != ButtonMotionMask. Trouble!\n");
+        ErrorF("[Xi] DeviceButtonMotionMask != ButtonMotionMask. Trouble!\n");
     }
 
     DeviceFocusChangeMask = GetNextExtEventMask();

@@ -110,7 +110,7 @@ ProcXChangeWindowAccess(ClientPtr client)
             (DeviceIntPtr*)xalloc(stuff->npermit * sizeof(DeviceIntPtr));
         if (!perm_devices)
         {
-            ErrorF("ProcXChangeWindowAccess: alloc failure.\n");
+            ErrorF("[Xi] ProcXChangeWindowAccess: alloc failure.\n");
             SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 0, 
                     BadImplementation);
             return Success;
@@ -136,7 +136,7 @@ ProcXChangeWindowAccess(ClientPtr client)
             (DeviceIntPtr*)xalloc(stuff->ndeny * sizeof(DeviceIntPtr));
         if (!deny_devices)
         {
-            ErrorF("ProcXChangeWindowAccecss: alloc failure.\n");
+            ErrorF("[Xi] ProcXChangeWindowAccecss: alloc failure.\n");
             SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 0, 
                     BadImplementation);
 
