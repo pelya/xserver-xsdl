@@ -384,7 +384,6 @@ exaTryDriverComposite(CARD8		op,
 				   width, height))
 	return 1;
 
-    pDstPix = exaGetDrawablePixmap (pDst->pDrawable);
     exaGetDrawableDeltas (pDst->pDrawable, pDstPix, &dst_off_x, &dst_off_y);
 
     REGION_TRANSLATE(pScreen, &region, dst_off_x, dst_off_y);
@@ -395,12 +394,12 @@ exaTryDriverComposite(CARD8		op,
     pixmaps[0].pReg = pixmaps[0].as_src ? NULL : &region;
     pixmaps[1].as_dst = FALSE;
     pixmaps[1].as_src = TRUE;
-    pixmaps[1].pPix = exaGetDrawablePixmap (pSrc->pDrawable);
+    pixmaps[1].pPix = pSrcPix;
     pixmaps[1].pReg = NULL;
     if (pMask) {
 	pixmaps[2].as_dst = FALSE;
 	pixmaps[2].as_src = TRUE;
-	pixmaps[2].pPix = exaGetDrawablePixmap (pMask->pDrawable);
+	pixmaps[2].pPix = pMaskPix;
 	pixmaps[2].pReg = NULL;
 	exaDoMigration(pixmaps, 3, TRUE);
     } else {
