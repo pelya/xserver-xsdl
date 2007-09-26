@@ -550,7 +550,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     /* Thanks to a broken lib, we _always_ have to chase DeviceMotionNotifies
      * with DeviceValuators. */
     Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
-    DeviceIntPtr pointer = NULL;
     int x = 0, y = 0;
     /* The core pointer must not send Xi events. */
     Bool coreOnly = (pDev == inputInfo.pointer);
