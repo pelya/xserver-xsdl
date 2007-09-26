@@ -56,13 +56,10 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include "windowstr.h"	/* window structure  */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 #include "dixevents.h"	/* GrabDevice */
@@ -109,7 +106,7 @@ SProcXGrabDevice(ClientPtr client)
 int
 ProcXGrabDevice(ClientPtr client)
 {
-    int error;
+    int rc;
     xGrabDeviceReply rep;
     DeviceIntPtr dev;
     struct tmask tmp[EMASKSIZE];
@@ -117,10 +114,8 @@ ProcXGrabDevice(ClientPtr client)
     REQUEST(xGrabDeviceReq);
     REQUEST_AT_LEAST_SIZE(xGrabDeviceReq);
 
-    if (stuff->length != (sizeof(xGrabDeviceReq) >> 2) + stuff->event_count) {
-	SendErrorToClient(client, IReqCode, X_GrabDevice, 0, BadLength);
-	return Success;
-    }
+    if (stuff->length != (sizeof(xGrabDeviceReq) >> 2) + stuff->event_count)
+	return BadLength;
 
     rep.repType = X_Reply;
     rep.RepType = X_GrabDevice;
@@ -128,25 +123,22 @@ ProcXGrabDevice(ClientPtr client)
     rep.length = 0;
 
     dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
-	SendErrorToClient(client, IReqCode, X_GrabDevice, 0, BadDevice);
-	return Success;
-    }
+    if (dev == NULL)
+	return BadDevice;
 
-    if (CreateMaskFromList(client, (XEventClass *) & stuff[1],
-			   stuff->event_count, tmp, dev,
-			   X_GrabDevice) != Success)
-	return Success;
+    if ((rc = CreateMaskFromList(client, (XEventClass *) & stuff[1],
+				 stuff->event_count, tmp, dev,
+				 X_GrabDevice)) != Success)
+	return rc;
 
-    error = GrabDevice(client, dev, stuff->this_device_mode,
-		       stuff->other_devices_mode, stuff->grabWindow,
-		       stuff->ownerEvents, stuff->time,
-		       tmp[stuff->deviceid].mask, &rep.status);
+    rc = GrabDevice(client, dev, stuff->this_device_mode,
+		    stuff->other_devices_mode, stuff->grabWindow,
+		    stuff->ownerEvents, stuff->time,
+		    tmp[stuff->deviceid].mask, &rep.status);
 
-    if (error != Success) {
-	SendErrorToClient(client, IReqCode, X_GrabDevice, 0, error);
-	return Success;
-    }
+    if (rc != Success)
+	return rc;
+
     WriteReplyToClient(client, sizeof(xGrabDeviceReply), &rep);
     return Success;
 }
@@ -172,15 +164,12 @@ CreateMaskFromList(ClientPtr client, XEventClass * list, int count,
 
     for (i = 0; i < count; i++, list++) {
 	device = *list >> 8;
-	if (device > 255) {
-	    SendErrorToClient(client, IReqCode, req, 0, BadClass);
+	if (device > 255)
 	    return BadClass;
-	}
+
 	tdev = LookupDeviceIntRec(device);
-	if (tdev == NULL || (dev != NULL && tdev != dev)) {
-	    SendErrorToClient(client, IReqCode, req, 0, BadClass);
+	if (tdev == NULL || (dev != NULL && tdev != dev))
 	    return BadClass;
-	}
 
 	for (j = 0; j < ExtEventIndex; j++)
 	    if (EventInfo[j].type == (*list & 0xff)) {

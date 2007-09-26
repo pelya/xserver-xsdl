@@ -129,6 +129,7 @@ extern int SetModifierMapping(
 	KeyClassPtr *          /* k */);
 
 extern void SendDeviceMappingNotify(
+        ClientPtr              /* client, */,
 	CARD8                  /* request, */,
 	KeyCode                /* firstKeyCode */,
 	CARD8                  /* count */,

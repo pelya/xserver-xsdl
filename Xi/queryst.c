@@ -38,13 +38,10 @@ from The Open Group.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include "windowstr.h"	/* window structure  */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
@@ -100,10 +97,8 @@ ProcXQueryDeviceState(ClientPtr client)
     rep.sequenceNumber = client->sequence;
 
     dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
-	SendErrorToClient(client, IReqCode, X_QueryDeviceState, 0, BadDevice);
-	return Success;
-    }
+    if (dev == NULL)
+	return BadDevice;
 
     v = dev->valuator;
     if (v != NULL && v->motionHintWindow != NULL)
@@ -126,10 +121,8 @@ ProcXQueryDeviceState(ClientPtr client)
 	num_classes++;
     }
     buf = (char *)xalloc(total_length);
-    if (!buf) {
-	SendErrorToClient(client, IReqCode, X_QueryDeviceState, 0, BadAlloc);
-	return Success;
-    }
+    if (!buf)
+	return BadAlloc;
     savbuf = buf;
 
     if (k != NULL) {

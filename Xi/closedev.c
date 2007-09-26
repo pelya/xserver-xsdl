@@ -56,15 +56,12 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include "windowstr.h"	/* window structure  */
 #include "scrnintstr.h"	/* screen structure  */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
@@ -151,10 +148,8 @@ ProcXCloseDevice(ClientPtr client)
     REQUEST_SIZE_MATCH(xCloseDeviceReq);
 
     d = LookupDeviceIntRec(stuff->deviceid);
-    if (d == NULL) {
-	SendErrorToClient(client, IReqCode, X_CloseDevice, 0, BadDevice);
-	return Success;
-    }
+    if (d == NULL)
+	return BadDevice;
 
     if (d->grab && SameClient(d->grab, client))
 	(*d->DeactivateGrab) (d);	/* release active grab */

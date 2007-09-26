@@ -402,11 +402,15 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
     if (!events)
         return 0;
 
+    /* DO NOT WANT */
     if (type != KeyPress && type != KeyRelease)
         return 0;
 
     if (!pDev->key || !pDev->focus || !pDev->kbdfeed ||
         (pDev->coreEvents && !inputInfo.keyboard->key))
+        return 0;
+
+    if (key_code < 8 || key_code > 255)
         return 0;
 
     if (pDev->coreEvents)

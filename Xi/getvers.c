@@ -56,12 +56,9 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
@@ -102,11 +99,8 @@ ProcXGetExtensionVersion(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xGetExtensionVersionReq);
 
     if (stuff->length != (sizeof(xGetExtensionVersionReq) +
-			  stuff->nbytes + 3) >> 2) {
-	SendErrorToClient(client, IReqCode, X_GetExtensionVersion, 0,
-			  BadLength);
-	return Success;
-    }
+			  stuff->nbytes + 3) >> 2)
+	return BadLength;
 
     rep.repType = X_Reply;
     rep.RepType = X_GetExtensionVersion;

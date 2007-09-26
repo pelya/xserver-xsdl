@@ -2220,7 +2220,10 @@ xf86_covering_crtc(ScrnInfoPtr pScrn,
 
 /*
  * For overlay video, compute the relevant CRTC and
- * clip video to that
+ * clip video to that.
+ *
+ * returning FALSE means there was a memory failure of some kind,
+ * not that the video shouldn't be displayed
  */
 
 _X_EXPORT Bool

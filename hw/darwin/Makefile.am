@@ -8,27 +8,35 @@ INCLUDES = @XORG_INCS@ -I../../miext/rootless
 DEFS = @DEFS@ -DUSE_NEW_CLUT
 
 if XQUARTZ
-XQUARTZ_SUBDIRS = bundle quartz
+XQUARTZ_SUBDIRS = quartz
+XQUARTZ_PROGS = Xquartz
+XQUARTZ_HOOK = xquartz-install-hook
+endif
+
+if XDARWINAPP
+XDARWINAPP_SUBDIRS = bundle
+XDARWINAPP_HOOK = xdarwinapp-install-hook
 endif
 
 SUBDIRS = \
 	  iokit \
 	  $(XQUARTZ_SUBDIRS) \
+	  $(XDARWINAPP_SUBDIRS) \
 	  utils \
 	  .
-
-darwinappdir = @APPLE_APPLICATIONS_DIR@/XDarwin.app
 
 libdarwinShared_a_SOURCES = darwin.c \
 			  darwinEvents.c \
 			  darwinKeyboard.c \
 			  $(darwin_XINPUT_SRCS) 
 
-bin_PROGRAMS = XDarwin Xquartz
-XDarwin_SOURCES = \
-                  $(top_srcdir)/fb/fbcmap_mi.c \
-                  $(top_srcdir)/mi/miinitext.c \
-                  $(top_srcdir)/Xi/stubs.c
+# bin_PROGRAMS = XDarwin Xquartz
+bin_PROGRAMS = $(XQUARTZ_PROGS)
+
+#XDarwin_SOURCES = \
+#                  $(top_srcdir)/fb/fbcmap_mi.c \
+#                  $(top_srcdir)/mi/miinitext.c \
+#                  $(top_srcdir)/Xi/stubs.c
 
 Xquartz_SOURCES = \
                   $(top_srcdir)/fb/fbcmap_mi.c \
@@ -68,22 +76,22 @@ DARWIN_LIBS = \
 	./libdarwinShared.a \
 	$(XSERVER_LIBS)
 
-XDARWIN_LIBS = \
-	$(DARWIN_LIBS) \
-	./iokit/libiokit.a
+#XDARWIN_LIBS = \
+#	$(DARWIN_LIBS) \
+#	./iokit/libiokit.a
 XQUARTZ_LIBS = \
 	$(DARWIN_LIBS)
 
-XDarwin_DEPENDENCIES = $(XDARWIN_LIBS)
-XDarwin_LDADD = $(XDARWIN_LIBS) $(XSERVER_SYS_LIBS)
+#XDarwin_DEPENDENCIES = $(XDARWIN_LIBS)
+#XDarwin_LDADD = $(XDARWIN_LIBS) $(XSERVER_SYS_LIBS)
 
 Xquartz_DEPENDENCIES = $(XQUARTZ_LIBS)
 Xquartz_LDADD = $(XQUARTZ_LIBS) $(XSERVER_SYS_LIBS) -lXplugin
 
-XDarwin_LDFLAGS =  \
-                 -XCClinker -Objc \
-                 -Wl,-u,_miDCInitialize \
-                 -Wl,-framework,IOKit
+#XDarwin_LDFLAGS =  \
+#                 -XCClinker -Objc \
+#                 -Wl,-u,_miDCInitialize \
+#                 -Wl,-framework,IOKit
 
 Xquartz_LDFLAGS =  \
                  -XCClinker -Objc \
@@ -95,19 +103,23 @@ Xquartz_LDFLAGS =  \
                  -Wl,-framework,CoreAudio \
                  -Wl,-framework,IOKit
 
-XDarwin_CFLAGS = -DINXDARWIN
+#XDarwin_CFLAGS = -DINXDARWIN
 Xquartz_CFLAGS = -DINXQUARTZ -DHAS_CG_MACH_PORT -DHAS_KL_API  -DHAVE_XORG_CONFIG_H
 
 if XQUARTZ
-macosdir = $(darwinappdir)/Contents/MacOS
-
 DEFS += -DDARWIN_WITH_QUARTZ -DXFree86Server
 
-macos_PROGRAMS = XDarwinApp
-macos_SCRIPTS = x11app
+bin_SCRIPTS = x11app
 
 x11app:
 	cd apple && xcodebuild CFLAGS="$(XSERVERCFLAGS_CFLAGS)" LDFLAGS="$(XSERVERCFLAGS_LIBS)"
+endif
+
+if XDARWINAPP
+macosdir = $(darwinappdir)/Contents/MacOS
+
+macos_PROGRAMS = XDarwinApp
+darwinappdir = @APPLE_APPLICATIONS_DIR@/XDarwin.app
 
 XDarwinApp_SOURCES = \
                 $(top_srcdir)/fb/fbcmap_mi.c \
@@ -134,8 +146,6 @@ XDarwinApp_LDFLAGS =  \
 		 -Wl,-framework,IOKit
 
 XDarwinApp_CFLAGS = -DINXDARWINAPP
-HOOK_TARGETS = xquartz-install-hook
-
 
 crplugindir = $(darwinappdir)/Contents/Resources/cr.bundle/Contents/MacOS
 crplugin_LTLIBRARIES = cr.la
@@ -190,7 +200,6 @@ glxMesa_la_LDFLAGS = -shrext '' \
 glxMesa_la_DEPENDENCIES = XDarwinApp	
 endif
 
-endif
 if HAVE_XPLUGIN
 
 xprplugindir = $(darwinappdir)/Contents/Resources/xpr.bundle/Contents/MacOS
@@ -255,17 +264,20 @@ glxAGL_la_DEPENDENCIES = XDarwinApp
 
 
 endif
+endif
 
-man1_MANS = XDarwin.man
+#man1_MANS = XDarwin.man
 
-uninstall-hook:
-	rm -rf $(DESTDIR)$(macosdir)/XDarwin
+#uninstall-hook:
+#	rm -rf $(DESTDIR)$(macosdir)/XDarwin
 
-install-data-hook: $(HOOK_TARGETS)
+install-data-hook: $(XQUARTZ_HOOK) $(XDARWINAPP_HOOK)
 
-xquartz-install-hook:
+xquartz-install-hook::
+	cd apple && xcodebuild install CFLAGS="$(XSERVERCFLAGS_CFLAGS)" LDFLAGS="$(XSERVERCFLAGS_LIBS)"
+
+xdarwinapp-install hook:
 	mv $(DESTDIR)$(macosdir)/XDarwinApp $(DESTDIR)$(macosdir)/XDarwin
-	cd apple && xcodebuild install
 
 EXTRA_DIST = \
 	darwin.c \

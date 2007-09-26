@@ -38,14 +38,12 @@
 
 /* ouch! */
 #define BOOL X_BOOL
-//# include "Xproto.h"
 #include "opaque.h"
 # include "darwin.h"
 # include "../quartz/quartz.h"
 # define _APPLEWM_SERVER_
 # include "X11/extensions/applewm.h"
 # include "../quartz/applewmExt.h"
-//# include "X.h"
 #undef BOOL
 
 #include <stdio.h>
@@ -301,6 +299,7 @@
   int child1, child2 = 0;
   int status;
 	
+  /*  this old code doesn't work with csh ...
   shell = getenv("SHELL");
   if (shell == NULL) shell = "/bin/bash";
     
@@ -308,8 +307,14 @@
   argv[1] = "-l";
   argv[2] = "-c";
   argv[3] = command;
-  argv[4] = NULL;
-    
+  argv[4] = NULL; 
+  ... but the new code doesn't work with spaces in a command :(
+  */
+  
+  argv[0] = "/usr/bin/login";
+  argv[1] = "-fp";
+  argv[2] = getlogin();
+
   /* Do the fork-twice trick to avoid having to reap zombies */
     
   child1 = fork();
@@ -655,7 +660,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 - (IBAction) x11_help:sender
 {
-  AHLookupAnchor (CFSTR ("Mac Help"), CFSTR ("mchlp2276"));
+  AHLookupAnchor ((CFStringRef)NSLocalizedString(@"Mac Help", no comment), CFSTR ("mchlp2276"));
 }
 
 - (BOOL) validateMenuItem:(NSMenuItem *)item

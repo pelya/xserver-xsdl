@@ -28,10 +28,9 @@
  * use or other dealings in this Software without prior written authorization.
  */
 /* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/cr/crFrame.m,v 1.2 2004/04/23 19:15:51 eich Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/cr/crFrame.m,v 1.9 2004/03/19 02:05:29 torrey Exp $ */
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
+
+#include <dix-config.h>
+
 #include "quartz/quartzCommon.h"
 #include "quartz/cr/cr.h"
 

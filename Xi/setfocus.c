@@ -56,8 +56,6 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "windowstr.h"	/* focus struct      */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
@@ -65,7 +63,6 @@ SOFTWARE.
 
 #include "dixevents.h"
 
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
@@ -106,15 +103,11 @@ ProcXSetDeviceFocus(ClientPtr client)
     REQUEST_SIZE_MATCH(xSetDeviceFocusReq);
 
     dev = LookupDeviceIntRec(stuff->device);
-    if (dev == NULL || !dev->focus) {
-	SendErrorToClient(client, IReqCode, X_SetDeviceFocus, 0, BadDevice);
-	return Success;
-    }
+    if (dev == NULL || !dev->focus)
+	return BadDevice;
 
     ret = SetInputFocus(client, dev, stuff->focus, stuff->revertTo,
 			stuff->time, TRUE);
-    if (ret != Success)
-	SendErrorToClient(client, IReqCode, X_SetDeviceFocus, 0, ret);
 
-    return Success;
+    return ret;
 }

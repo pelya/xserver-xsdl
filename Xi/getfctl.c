@@ -56,12 +56,9 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
@@ -308,10 +305,8 @@ ProcXGetFeedbackControl(ClientPtr client)
     REQUEST_SIZE_MATCH(xGetFeedbackControlReq);
 
     dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
-	SendErrorToClient(client, IReqCode, X_GetFeedbackControl, 0, BadDevice);
-	return Success;
-    }
+    if (dev == NULL)
+	return BadDevice;
 
     rep.repType = X_Reply;
     rep.RepType = X_GetFeedbackControl;
@@ -345,16 +340,12 @@ ProcXGetFeedbackControl(ClientPtr client)
 	total_length += sizeof(xBellFeedbackState);
     }
 
-    if (total_length == 0) {
-	SendErrorToClient(client, IReqCode, X_GetFeedbackControl, 0, BadMatch);
-	return Success;
-    }
+    if (total_length == 0)
+	return BadMatch;
 
     buf = (char *)xalloc(total_length);
-    if (!buf) {
-	SendErrorToClient(client, IReqCode, X_GetFeedbackControl, 0, BadAlloc);
-	return Success;
-    }
+    if (!buf)
+	return BadAlloc;
     savbuf = buf;
 
     for (k = dev->kbdfeed; k; k = k->next)

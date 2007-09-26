@@ -43,7 +43,8 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
     ScreenPtr	    pScreen = pDrawable->pScreen;
     ExaScreenPriv (pScreen);
     RegionPtr	    pClip = fbGetCompositeClip(pGC);
-    PixmapPtr	    pPixmap;
+    PixmapPtr	    pPixmap = exaGetDrawablePixmap (pDrawable);
+    ExaPixmapPriv (pPixmap);
     BoxPtr	    pextent, pbox;
     int		    nbox;
     int		    extentX1, extentX2, extentY1, extentY2;
@@ -54,13 +55,12 @@ exaFillSpans(DrawablePtr pDrawable, GCPtr pGC, int n,
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pPix = pPixmap;
     pixmaps[0].pReg = NULL;
 
     if (pExaScr->swappedOut ||
 	pGC->fillStyle != FillSolid ||
-	pPixmap->drawable.width > pExaScr->info->maxX ||
-	pPixmap->drawable.height > pExaScr->info->maxY)
+	pExaPixmap->accel_blocked)
     {
 	ExaCheckFillSpans (pDrawable, pGC, n, ppt, pwidth, fSorted);
 	return;
@@ -480,6 +480,7 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 {
     ExaScreenPriv (pDstDrawable->pScreen);
     PixmapPtr pSrcPixmap, pDstPixmap;
+    ExaPixmapPrivPtr pSrcExaPixmap, pDstExaPixmap;
     int	    src_off_x, src_off_y;
     int	    dst_off_x, dst_off_y;
     ExaMigrationRec pixmaps[2];
@@ -527,14 +528,14 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
     pixmaps[1].pPix = pSrcPixmap;
     pixmaps[1].pReg = NULL;
 
-    /* Respect maxX/maxY in a trivial way: don't set up drawing when we might
-     * violate the limits.  The proper solution would be a temporary pixmap
-     * adjusted so that the drawing happened within limits.
+    pSrcExaPixmap = ExaGetPixmapPriv (pSrcPixmap);
+    pDstExaPixmap = ExaGetPixmapPriv (pDstPixmap);
+
+    /* Check whether the accelerator can use this pixmap.
+     * FIXME: If it cannot, use temporary pixmaps so that the drawing
+     * happens within limits.
      */
-    if (pSrcPixmap->drawable.width > pExaScr->info->maxX ||
-	pSrcPixmap->drawable.height > pExaScr->info->maxY ||
-	pDstPixmap->drawable.width > pExaScr->info->maxX ||
-	pDstPixmap->drawable.height > pExaScr->info->maxY)
+    if (pSrcExaPixmap->accel_blocked || pDstExaPixmap->accel_blocked)
     {
 	goto fallback;
     } else {
@@ -760,6 +761,7 @@ exaPolyFillRect(DrawablePtr pDrawable,
     ExaScreenPriv (pDrawable->pScreen);
     RegionPtr	    pClip = fbGetCompositeClip(pGC);
     PixmapPtr	    pPixmap = exaGetDrawablePixmap(pDrawable);
+    ExaPixmapPriv (pPixmap);
     register BoxPtr pbox;
     BoxPtr	    pextent;
     int		    extentX1, extentX2, extentY1, extentY2;
@@ -786,9 +788,7 @@ exaPolyFillRect(DrawablePtr pDrawable,
 
     exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
 
-    if (pExaScr->swappedOut ||
-	pPixmap->drawable.width > pExaScr->info->maxX ||
-	pPixmap->drawable.height > pExaScr->info->maxY)
+    if (pExaScr->swappedOut || pExaPixmap->accel_blocked)
     {
 	goto fallback;
     }
@@ -1102,21 +1102,21 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
 		    CARD32	alu)
 {
     ExaScreenPriv(pDrawable->pScreen);
-    PixmapPtr pPixmap;
+    PixmapPtr pPixmap = exaGetDrawablePixmap (pDrawable);
+    ExaPixmapPriv (pPixmap);
     int xoff, yoff;
     ExaMigrationRec pixmaps[1];
 
     pixmaps[0].as_dst = TRUE;
     pixmaps[0].as_src = FALSE;
-    pixmaps[0].pPix = pPixmap = exaGetDrawablePixmap (pDrawable);
+    pixmaps[0].pPix = pPixmap;
     pixmaps[0].pReg = exaGCReadsDestination(pDrawable, planemask, FillSolid,
 					    alu) ? NULL : pRegion;
 
     exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
     REGION_TRANSLATE(pScreen, pRegion, xoff, yoff);
 
-    if (pPixmap->drawable.width > pExaScr->info->maxX ||
-	pPixmap->drawable.height > pExaScr->info->maxY)
+    if (pExaPixmap->accel_blocked)
     {
 	goto fallback;
     } else {
@@ -1193,6 +1193,8 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
 {
     ExaScreenPriv(pDrawable->pScreen);
     PixmapPtr pPixmap;
+    ExaPixmapPrivPtr pExaPixmap;
+    ExaPixmapPrivPtr pTileExaPixmap = ExaGetPixmapPriv(pTile);
     int xoff, yoff, tileXoff, tileYoff;
     int tileWidth, tileHeight;
     ExaMigrationRec pixmaps[2];
@@ -1223,10 +1225,9 @@ exaFillRegionTiled (DrawablePtr	pDrawable,
     exaGetDrawableDeltas(pDrawable, pPixmap, &xoff, &yoff);
     REGION_TRANSLATE(pScreen, pRegion, xoff, yoff);
 
-    if (pPixmap->drawable.width > pExaScr->info->maxX ||
-	pPixmap->drawable.height > pExaScr->info->maxY ||
-	tileWidth > pExaScr->info->maxX ||
-	tileHeight > pExaScr->info->maxY)
+    pExaPixmap = ExaGetPixmapPriv (pPixmap);
+
+    if (pExaPixmap->accel_blocked || pTileExaPixmap->accel_blocked)
     {
 	goto fallback;
     } else {

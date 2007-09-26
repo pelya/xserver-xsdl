@@ -692,6 +692,9 @@ CompositeExtensionInit (void)
     ExtensionEntry  *extEntry;
     int		    s;
 
+    /* Assume initialization is going to fail */
+    noCompositeExtension = TRUE;
+
     for (s = 0; s < screenInfo.numScreens; s++) {
 	ScreenPtr pScreen = screenInfo.screens[s];
 	VisualPtr vis;
@@ -748,4 +751,7 @@ CompositeExtensionInit (void)
 	    return;
     miRegisterRedirectBorderClipProc (compSetRedirectBorderClip,
 				      compGetRedirectBorderClip);
+
+    /* Initialization succeeded */
+    noCompositeExtension = FALSE;
 }
