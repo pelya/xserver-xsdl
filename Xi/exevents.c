@@ -104,14 +104,22 @@ typedef struct {
  */
 
 #define WRAP_PROCESS_INPUT_PROC(device, saveprocs, newproc) \
-    saveprocs->processInputProc = device->public.processInputProc; \
+    saveprocs->processInputProc = \
     saveprocs->realInputProc = device->public.realInputProc; \
     device->public.processInputProc = newproc; \
-    device->public.realInputProc = newproc;
+    device->public.realInputProc = newproc 
 
-#define UNWRAP_PROCESS_INPUT_PROC(device, saveprocs) \
+#define UNWRAP_PROCESS_INPUT_PROC(device, saveprocs, backupproc) \
+    backupproc = device->public.processInputProc; \
     device->public.processInputProc = saveprocs->processInputProc; \
     device->public.realInputProc = saveprocs->realInputProc; 
+
+#define REWRAP_PROCESS_INPUT_PROC(device, saveprocs, newproc) \
+    if (device->public.processInputProc == device->public.realInputProc) \
+        device->public.processInputProc = newproc; \
+    saveprocs->processInputProc = \
+    saveprocs->realInputProc = device->public.realInputProc; \
+    device->public.realInputProc = newproc;
 
 void
 RegisterOtherDevice(DeviceIntPtr device)
@@ -159,11 +167,13 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     /* Handle core events. */
     if (xE->u.u.type < LASTEvent && xE->u.u.type != GenericEvent)
     {
+        ProcessInputProc backupproc;
         xiDevPrivatePtr xiPrivPtr = 
             (xiDevPrivatePtr)device->devPrivates[xiDevPrivateIndex].ptr;
-        UNWRAP_PROCESS_INPUT_PROC(device, xiPrivPtr);
+        UNWRAP_PROCESS_INPUT_PROC(device, xiPrivPtr, backupproc);
         device->public.processInputProc(xE, device, count);
-        WRAP_PROCESS_INPUT_PROC(device, xiPrivPtr, ProcessOtherEvent);
+        /* only rewraps is the processInputProc hasn't been modified */
+        REWRAP_PROCESS_INPUT_PROC(device, xiPrivPtr, backupproc);
         return;
     }
 
