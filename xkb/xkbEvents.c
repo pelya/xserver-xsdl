@@ -809,7 +809,6 @@ XkbFilterEvents(ClientPtr pClient,int nEvents,xEvent *xE)
 int	i, button_mask;
 DeviceIntPtr pXDev = (DeviceIntPtr)LookupKeyboardDevice();
 XkbSrvInfoPtr	xkbi;
-GrabInfoPtr grabinfo;
 
     xkbi= pXDev->key->xkbInfo;
     if ( pClient->xkbClientFlags & _XkbClientInitialized ) {
