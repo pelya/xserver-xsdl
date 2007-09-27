@@ -191,9 +191,10 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
  */
 _X_EXPORT int
 GetMaximumEventsNum(void) {
-    /* Two base events -- core and device, plus valuator events.  Multiply
-     * by two if we're doing key repeats. */
-    int ret = 2 + MAX_VALUATOR_EVENTS;
+    /* Three base events -- raw event, core and device, plus valuator events.
+     * Multiply by two if we're doing key repeats. 
+     */
+    int ret = 3 + MAX_VALUATOR_EVENTS;
 
 #ifdef XKB
     if (noXkbExtension)
