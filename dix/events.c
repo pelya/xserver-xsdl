@@ -3233,8 +3233,6 @@ CheckPassiveGrabsOnWindow(
             {
                 grab->device = device; 
                 grab->modifierDevice = GetPairedKeyboard(device);
-                if (!grab->modifierDevice)
-                    grab->modifierDevice = inputInfo.keyboard;
             }
 
 	    (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
@@ -4052,8 +4050,7 @@ EnterLeaveEvent(
     int                 mskidx;
     OtherInputMasks     *inputMasks;
 
-    if (!(keybd = GetPairedKeyboard(mouse)))
-        keybd = inputInfo.keyboard;
+    keybd = GetPairedKeyboard(mouse);
 
     if ((pWin == mouse->valuator->motionHintWindow) &&
 	(detail != NotifyInferior))
@@ -4572,11 +4569,7 @@ SetInputFocus(
     if (IsKeyboardDevice(dev))
         keybd = dev;
     else
-    {
         keybd = GetPairedKeyboard(dev);
-        if (!keybd) 
-            keybd = inputInfo.keyboard;
-    }
 
     if ((focusID == None) || (focusID == PointerRoot))
 	focusWin = (WindowPtr)(long)focusID;
@@ -5592,8 +5585,6 @@ ProcGrabButton(ClientPtr client)
 
     pointer = PickPointer(client);
     modifierDevice = GetPairedKeyboard(pointer);
-    if (!modifierDevice)
-        modifierDevice = inputInfo.keyboard;
 
     grab = CreateGrab(client->index, pointer, pWin, 
         (Mask)stuff->eventMask, (Bool)stuff->ownerEvents,

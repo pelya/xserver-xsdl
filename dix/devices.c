@@ -2229,14 +2229,15 @@ GetPairedPointer(DeviceIntPtr kbd)
 }
 
 /* Find the keyboard device that is paired with the given pointer. If none is
- * found, return NULL.
- * We also check if the paired device is a keyboard. If not (e.g. evdev brain)
- * we don't return it. This probably needs to be fixed.
+ * found, return the VCK.
  */
 _X_EXPORT DeviceIntPtr
 GetPairedKeyboard(DeviceIntPtr ptr)
 {
     DeviceIntPtr dev = inputInfo.devices;
+
+    if (IsKeyboardDevice(ptr))
+        return ptr;
 
     while(dev)
     {
@@ -2246,7 +2247,7 @@ GetPairedKeyboard(DeviceIntPtr ptr)
             return dev;
         dev = dev->next;
     }
-    return dev;
+    return (dev) ? dev : inputInfo.keyboard;
 }
 
 /*
