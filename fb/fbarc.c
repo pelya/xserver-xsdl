@@ -71,9 +71,11 @@ fbPolyArc (DrawablePtr	pDrawable,
 	    BoxRec	box;
 	    int		x2, y2;
 	    RegionPtr	cclip;
+	    int		wrapped = 0;
 	    
 	    cclip = fbGetCompositeClip (pGC);
 	    fbGetDrawable (pDrawable, dst, dstStride, dstBpp, dstXoff, dstYoff);
+	    wrapped = 1;
 	    while (narcs--)
 	    {
 		if (miCanZeroArc (parcs))
@@ -96,18 +98,35 @@ fbPolyArc (DrawablePtr	pDrawable,
 		    y2 = box.y1 + (int)parcs->height + 1;
 		    box.y2 = y2;
 		    if ( (x2 <= SHRT_MAX) && (y2 <= SHRT_MAX) &&
-			(RECT_IN_REGION(pDrawable->pScreen, cclip, &box) == rgnIN) )
+			(RECT_IN_REGION(pDrawable->pScreen, cclip, &box) == rgnIN) ) {
+			if (!wrapped) {
+			    fbPrepareAccess (pDrawable);
+			    wrapped = 1;
+			}
 			(*arc) (dst, dstStride, dstBpp, 
 				parcs, pDrawable->x + dstXoff, pDrawable->y + dstYoff, 
 				pPriv->and, pPriv->xor);
-		    else
+		    } else {
+		    	if (wrapped) {
+	    			fbFinishAccess (pDrawable);
+				wrapped = 0;
+			}
 			miZeroPolyArc(pDrawable, pGC, 1, parcs);
+		    }
 		}
-		else
+		else {
+		    if (wrapped) {
+	    		fbFinishAccess (pDrawable);
+			wrapped = 0;
+		    }
 		    miPolyArc(pDrawable, pGC, 1, parcs);
+		}
 		parcs++;
 	    }
-	    fbFinishAccess (pDrawable);
+	    if (wrapped) {
+		fbFinishAccess (pDrawable);
+		wrapped = 0;
+	    }
 	}
 	else
 #endif
