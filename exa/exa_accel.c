@@ -508,14 +508,6 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 
 	    region  = RECTS_TO_REGION(pScreen, nbox, rects, CT_YXBANDED);
 	    DEALLOCATE_LOCAL(rects);
-
-	    if (region) {
-		src_off_x -= dst_off_x;
-		src_off_y -= dst_off_y;
-		dst_off_x = dst_off_y = 0;
-		pbox = REGION_RECTS(region);
-		nbox = REGION_NUM_RECTS(region);
-	    }
 	}
     }
 
