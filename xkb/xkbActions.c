@@ -1148,7 +1148,6 @@ XkbAction	act;
 XkbFilterPtr	filter;
 Bool		keyEvent;
 Bool		pressEvent;
-Bool		xiEvent;
 ProcessInputProc backupproc;
     
 xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
@@ -1173,9 +1172,6 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
 		(xE->u.u.type==KeyRelease)||(xE->u.u.type==DeviceKeyRelease));
     pressEvent= (xE->u.u.type==KeyPress)||(xE->u.u.type==DeviceKeyPress)||
 		 (xE->u.u.type==ButtonPress)||(xE->u.u.type==DeviceButtonPress);
-    xiEvent= (xE->u.u.type==DeviceKeyPress)||(xE->u.u.type==DeviceKeyRelease)||
-	     (xE->u.u.type==DeviceButtonPress)||
-	     (xE->u.u.type==DeviceButtonRelease);
 
     if (pressEvent) {
 	if (keyEvent)	
@@ -1279,23 +1275,21 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
     }
 
     if (sendEvent) {
+        DeviceIntPtr tmpdev;
 	if (keyEvent) {
 	    realMods = keyc->modifierMap[key];
 	    keyc->modifierMap[key] = 0;
-	    UNWRAP_PROCESS_INPUT_PROC(dev,xkbPrivPtr, backupproc);
-	    dev->public.processInputProc(xE,dev,count);
-	    COND_WRAP_PROCESS_INPUT_PROC(dev, xkbPrivPtr,
-					 backupproc,xkbUnwrapProc);
+            tmpdev = dev;
+        } else
+            tmpdev = GetPairedPointer(dev);
+
+
+        UNWRAP_PROCESS_INPUT_PROC(tmpdev,xkbPrivPtr, backupproc);
+        dev->public.processInputProc(xE,tmpdev,count);
+        COND_WRAP_PROCESS_INPUT_PROC(tmpdev, xkbPrivPtr,
+                                     backupproc,xkbUnwrapProc);
+        if (keyEvent)
 	    keyc->modifierMap[key] = realMods;
-	}
-	else 
-        {
-            if (xE->u.u.type & EXTENSION_EVENT_BASE)
-                ProcessOtherEvent(xE, dev, count);
-            else
-                CoreProcessPointerEvent(xE,dev,count);
-            
-        }
     }
     else if (keyEvent)
 	FixKeyState(xE,dev);
