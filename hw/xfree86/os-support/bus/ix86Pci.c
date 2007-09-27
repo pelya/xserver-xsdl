@@ -223,6 +223,20 @@ static pciBusInfo_t ix86Pci0 = {
 /* bridge      */	NULL
 };
 
+_X_EXPORT pointer
+xf86MapDomainMemory(int ScreenNum, int Flags, struct pci_device *dev,
+                    ADDRESS Base, unsigned long Size)
+{
+    return xf86MapVidMem(ScreenNum, Flags, Base, Size);
+}
+
+IOADDRESS
+xf86MapLegacyIO(struct pci_device *dev)
+{
+    (void)dev;
+    return 0;
+}
+
 static Bool
 ix86PciBusCheck(void)
 {
