@@ -188,8 +188,8 @@ static pciBusFuncs_t ix86Funcs0 = {
 /* pciReadLong      */	ix86PciReadLongSetup,
 /* pciWriteLong     */	ix86PciWriteLongSetup,
 /* pciSetBitsLong   */	ix86PciSetBitsLongSetup,
-#endif
 /* pciAddrHostToBus */	pciAddrNOOP,
+#endif
 /* pciAddrBusToHost */	pciAddrNOOP
 };
 
@@ -198,8 +198,8 @@ static pciBusFuncs_t ix86Funcs1 = {
 /* pciReadLong      */	ix86PciReadLongCFG1,
 /* pciWriteLong     */	ix86PciWriteLongCFG1,
 /* pciSetBitsLong   */	ix86PciSetBitsLongCFG1,
-#endif
 /* pciAddrHostToBus */	pciAddrNOOP,
+#endif
 /* pciAddrBusToHost */	pciAddrNOOP
 };
 
@@ -208,8 +208,8 @@ static pciBusFuncs_t ix86Funcs2 = {
 /* pciReadLong      */	ix86PciReadLongCFG2,
 /* pciWriteLong     */	ix86PciWriteLongCFG2,
 /* pciSetBitsLong   */	ix86PciSetBitsLongCFG2,
-#endif
 /* pciAddrHostToBus */	pciAddrNOOP,
+#endif
 /* pciAddrBusToHost */	pciAddrNOOP
 };
 
