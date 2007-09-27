@@ -907,10 +907,6 @@ ProcessInputProc backupproc;
 
 	realMods = xkbi->device->key->modifierMap[ev.u.u.detail];
 	xkbi->device->key->modifierMap[ev.u.u.detail] = 0;
-        /* XXX: Bad! Since the switch to XI devices xkbi->device will be the
-         * XI device. Sending a core event through ProcessOtherEvent will
-         * cause trouble. Somebody should fix this. 
-         */
 	UNWRAP_PROCESS_INPUT_PROC(xkbi->device,xkbPrivPtr, backupproc);
 	xkbi->device->public.processInputProc(&ev,xkbi->device,1);
 	COND_WRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr,
@@ -953,10 +949,6 @@ ProcessInputProc backupproc;
 
 	realMods = xkbi->device->key->modifierMap[ev.u.u.detail];
 	xkbi->device->key->modifierMap[ev.u.u.detail] = 0;
-        /* XXX: Bad! Since the switch to XI devices xkbi->device will be the
-         * XI device. Sending a core event through ProcessOtherEvent will
-         * cause trouble. Somebody should fix this. 
-         */
 	UNWRAP_PROCESS_INPUT_PROC(xkbi->device,xkbPrivPtr, backupproc);
 	xkbi->device->public.processInputProc(&ev,xkbi->device,1);
 	COND_WRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr,
