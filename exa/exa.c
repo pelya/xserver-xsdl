@@ -726,6 +726,21 @@ exaDriverInit (ScreenPtr		pScreen,
 		   "non-NULL\n", pScreen->myNum);
 	return FALSE;
     }
+
+    /* If the driver doesn't set any max pitch values, we'll just assume
+     * that there's a limitation by pixels, and that it's the same as
+     * maxX.
+     *
+     * We want maxPitchPixels or maxPitchBytes to be set so we can check
+     * pixmaps against the max pitch in exaCreatePixmap() -- it matters
+     * whether a pixmap is rejected because of its pitch or
+     * because of its width.
+     */
+    if (!pScreenInfo->maxPitchPixels && !pScreenInfo->maxPitchBytes)
+    {
+        pScreenInfo->maxPitchPixels = pScreenInfo->maxX;
+    }
+
 #ifdef RENDER
     ps = GetPictureScreenIfSet(pScreen);
 #endif
