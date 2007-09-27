@@ -3707,7 +3707,7 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
     SpritePtr           pSprite = mouse->spriteInfo->sprite;
 
 #ifdef XKB
-    XkbSrvInfoPtr xkbi= inputInfo.keyboard->key->xkbInfo;
+    XkbSrvInfoPtr xkbi= GetPairedKeyboard(mouse)->key->xkbInfo;
 #endif
 #ifdef XEVIE
     if(xevieFlag && clients[xevieClientIndex] && !xeviegrabState &&
