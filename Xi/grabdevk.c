@@ -62,6 +62,7 @@ SOFTWARE.
 #include <X11/extensions/XIproto.h>
 #include "exevents.h"
 #include "exglobals.h"
+#include "xace.h"
 
 #include "grabdev.h"
 #include "grabdevk.h"
@@ -125,8 +126,12 @@ ProcXGrabDeviceKey(ClientPtr client)
 	    return ret;
 	if (mdev->key == NULL)
 	    return BadMatch;
-    } else
-	mdev = (DeviceIntPtr) LookupKeyboardDevice();
+    } else {
+	mdev = inputInfo.keyboard;
+	ret = XaceHook(XACE_DEVICE_ACCESS, client, mdev, DixReadAccess);
+	if (ret != Success)
+	    return ret;
+    }
 
     class = (XEventClass *) (&stuff[1]);	/* first word of values */
 

@@ -262,6 +262,7 @@ typedef struct
 extern int	XkbReqCode;
 extern int	XkbEventBase;
 extern int	XkbDisableLockActions;
+extern int	XkbKeyboardErrorCode;
 extern char *	XkbBaseDirectory;
 extern char *	XkbBinDirectory;
 extern char *	XkbInitialMap;
@@ -352,29 +353,44 @@ extern	void XkbFreeNames(
 	Bool			/* freeMap */
 );
 
-extern DeviceIntPtr _XkbLookupAnyDevice(
-    int			/* id */,
-    int *		/* why_rtrn */
+extern int _XkbLookupAnyDevice(
+    DeviceIntPtr *pDev,
+    int id,
+    ClientPtr client,
+    Mask access_mode,
+    int *xkb_err
 );
 
-extern DeviceIntPtr _XkbLookupKeyboard(
-    int			/* id */,
-    int *		/* why_rtrn */
+extern int _XkbLookupKeyboard(
+    DeviceIntPtr *pDev,
+    int id,
+    ClientPtr client,
+    Mask access_mode,
+    int *xkb_err
 );
 
-extern DeviceIntPtr _XkbLookupBellDevice(
-    int			/* id */,
-    int *		/* why_rtrn */
+extern int _XkbLookupBellDevice(
+    DeviceIntPtr *pDev,
+    int id,
+    ClientPtr client,
+    Mask access_mode,
+    int *xkb_err
 );
 
-extern DeviceIntPtr _XkbLookupLedDevice(
-    int			/* id */,
-    int *		/* why_rtrn */
+extern int _XkbLookupLedDevice(
+    DeviceIntPtr *pDev,
+    int id,
+    ClientPtr client,
+    Mask access_mode,
+    int *xkb_err
 );
 
-extern DeviceIntPtr _XkbLookupButtonDevice(
-    int			/* id */,
-    int *		/* why_rtrn */
+extern int _XkbLookupButtonDevice(
+    DeviceIntPtr *pDev,
+    int id,
+    ClientPtr client,
+    Mask access_mode,
+    int *xkb_err
 );
 
 extern	XkbDescPtr XkbAllocKeyboard(

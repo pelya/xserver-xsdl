@@ -691,7 +691,7 @@ ephyrUpdateModifierState(unsigned int state)
   int          i;
   CARD8        mask;
 
-  pkeydev = (DeviceIntPtr)LookupKeyboardDevice();
+  pkeydev = inputInfo.keyboard;
 
   if (!pkeydev)
     return;

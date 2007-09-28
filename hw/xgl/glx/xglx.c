@@ -1100,7 +1100,7 @@ xglxKeybdProc (DeviceIntPtr pDevice,
       int	      xkbOp, xkbEvent, xkbError, xkbMajor, xkbMinor;
 #endif
 
-      if (pDev != LookupKeyboardDevice ())
+      if (pDev != (DevicePtr)inputInfo.keyboard)
 	  return !Success;
 
       xmodMap = XGetModifierMapping (xdisplay);

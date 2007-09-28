@@ -197,10 +197,6 @@ extern void RegisterPointerDevice(
 extern void RegisterKeyboardDevice(
     DeviceIntPtr /*device*/);
 
-extern DevicePtr LookupKeyboardDevice(void);
-
-extern DevicePtr LookupPointerDevice(void);
-
 extern int dixLookupDevice(
     DeviceIntPtr *         /* dev */,
     int                    /* id */,

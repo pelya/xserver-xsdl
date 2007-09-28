@@ -49,92 +49,115 @@ int	XkbDisableLockActions = 0;
 
 /***====================================================================***/
 
-DeviceIntPtr
-_XkbLookupAnyDevice(int id,int *why_rtrn)
+int
+_XkbLookupAnyDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
+		    Mask access_mode, int *xkb_err)
 {
-DeviceIntPtr dev = NULL;
+    int rc = XkbKeyboardErrorCode;
 
-    dev= (DeviceIntPtr)LookupKeyboardDevice();
-    if ((id==XkbUseCoreKbd)||(dev->id==id))
-	return dev;
-
-    dev= (DeviceIntPtr)LookupPointerDevice();
-    if ((id==XkbUseCorePtr)||(dev->id==id))
-	return dev;
-
-    if (id&(~0xff))
-	 dev = NULL;
-
-    dixLookupDevice(&dev, id, serverClient, DixUnknownAccess);
-    if (dev!=NULL) 
-	return dev;
-    if ((!dev)&&(why_rtrn))
-	*why_rtrn= XkbErr_BadDevice;
-    return dev;
+    if (id == XkbUseCoreKbd) {
+	if (inputInfo.keyboard)
+	    id = inputInfo.keyboard->id;
+	else
+	    goto out;
+    }
+    if (id == XkbUseCorePtr) {
+	if (inputInfo.pointer)
+	    id = inputInfo.pointer->id;
+	else
+	    goto out;
+    }
+    rc = dixLookupDevice(pDev, id, client, access_mode);
+out:
+    if (rc != Success)
+	*xkb_err = XkbErr_BadDevice;
+    return rc;
 }
 
-DeviceIntPtr
-_XkbLookupKeyboard(int id,int *why_rtrn)
+int
+_XkbLookupKeyboard(DeviceIntPtr *pDev, int id, ClientPtr client,
+		   Mask access_mode, int *xkb_err)
 {
-DeviceIntPtr dev = NULL;
+    DeviceIntPtr dev;
+    int rc;
 
     if (id == XkbDfltXIId)
         id = XkbUseCoreKbd;
-    if ((dev= _XkbLookupAnyDevice(id,why_rtrn))==NULL)
-	return NULL;
-    else if ((!dev->key)||(!dev->key->xkbInfo)) {
-	if (why_rtrn)
-	   *why_rtrn= XkbErr_BadClass;
-	return NULL;
+
+    rc = _XkbLookupAnyDevice(pDev, id, client, access_mode, xkb_err);
+    if (rc != Success)
+	return rc;
+
+    dev = *pDev;
+    if (!dev->key || !dev->key->xkbInfo) {
+	*pDev = NULL;
+	*xkb_err= XkbErr_BadClass;
+	return XkbKeyboardErrorCode;
     }
-    return dev;
+    return Success;
 }
 
-DeviceIntPtr
-_XkbLookupBellDevice(int id,int *why_rtrn)
+int
+_XkbLookupBellDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
+		     Mask access_mode, int *xkb_err)
 {
-DeviceIntPtr dev = NULL;
+    DeviceIntPtr dev;
+    int rc;
 
-    if ((dev= _XkbLookupAnyDevice(id,why_rtrn))==NULL)
-	return NULL;
-    else if ((!dev->kbdfeed)&&(!dev->bell)) {
-	if (why_rtrn)
-	   *why_rtrn= XkbErr_BadClass;
-	return NULL;
+    rc = _XkbLookupAnyDevice(pDev, id, client, access_mode, xkb_err);
+    if (rc != Success)
+	return rc;
+
+    dev = *pDev;
+    if (!dev->kbdfeed && !dev->bell) {
+	*pDev = NULL;
+	*xkb_err= XkbErr_BadClass;
+	return XkbKeyboardErrorCode;
     }
-    return dev;
+    return Success;
 }
 
-DeviceIntPtr
-_XkbLookupLedDevice(int id,int *why_rtrn)
+int
+_XkbLookupLedDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
+		    Mask access_mode, int *xkb_err)
 {
-DeviceIntPtr dev = NULL;
+    DeviceIntPtr dev;
+    int rc;
 
     if (id == XkbDfltXIId)
         id = XkbUseCorePtr;
-    if ((dev= _XkbLookupAnyDevice(id,why_rtrn))==NULL)
-	return NULL;
-    else if ((!dev->kbdfeed)&&(!dev->leds)) {
-	if (why_rtrn)
-	   *why_rtrn= XkbErr_BadClass;
-	return NULL;
+
+    rc = _XkbLookupAnyDevice(pDev, id, client, access_mode, xkb_err);
+    if (rc != Success)
+	return rc;
+
+    dev = *pDev;
+    if (!dev->kbdfeed && !dev->leds) {
+	*pDev = NULL;
+	*xkb_err= XkbErr_BadClass;
+	return XkbKeyboardErrorCode;
     }
-    return dev;
+    return Success;
 }
 
-DeviceIntPtr
-_XkbLookupButtonDevice(int id,int *why_rtrn)
+int
+_XkbLookupButtonDevice(DeviceIntPtr *pDev, int id, ClientPtr client,
+		       Mask access_mode, int *xkb_err)
 {
-DeviceIntPtr dev = NULL;
+    DeviceIntPtr dev;
+    int rc;
 
-    if ((dev= _XkbLookupAnyDevice(id,why_rtrn))==NULL)
-	return NULL;
-    else if (!dev->button) {
-	if (why_rtrn)
-	   *why_rtrn= XkbErr_BadClass;
-	return NULL;
+    rc = _XkbLookupAnyDevice(pDev, id, client, access_mode, xkb_err);
+    if (rc != Success)
+	return rc;
+
+    dev = *pDev;
+    if (!dev->button) {
+	*pDev = NULL;
+	*xkb_err= XkbErr_BadClass;
+	return XkbKeyboardErrorCode;
     }
-    return dev;
+    return Success;
 }
 
 void

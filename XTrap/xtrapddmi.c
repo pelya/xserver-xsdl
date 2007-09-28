@@ -52,7 +52,7 @@ SOFTWARE.
 #define NEED_REPLIES
 #define NEED_EVENTS
 #include <X11/X.h>        /* From library include environment */
-#include "input.h"    /* From server include env. (must be before Xlib.h!) */
+#include "inputstr.h"    /* From server include env. (must be before Xlib.h!) */
 #ifdef PC
 # include "scrintst.h"          /* Screen struct */
 # include "extnsist.h"
@@ -96,8 +96,8 @@ int XETrapSimulateXEvent(register xXTrapInputReq *request,
     xEvent xev;
     register int x = request->input.x;
     register int y = request->input.y;
-    DevicePtr keydev = LookupKeyboardDevice();
-    DevicePtr ptrdev = LookupPointerDevice();
+    DevicePtr keydev = (DevicePtr)inputInfo.keyboard;
+    DevicePtr ptrdev = (DevicePtr)inputInfo.pointer;
 
     if (request->input.screen < screenInfo.numScreens)
     {

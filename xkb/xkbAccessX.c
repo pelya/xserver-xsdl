@@ -689,7 +689,7 @@ ProcessPointerEvent(	register xEvent  *	xE,
 			register DeviceIntPtr	mouse, 
 			int		        count)
 {
-DeviceIntPtr	dev = (DeviceIntPtr)LookupKeyboardDevice();
+DeviceIntPtr	dev = inputInfo.keyboard;
 XkbSrvInfoPtr	xkbi = dev->key->xkbInfo;
 unsigned 	changed = 0;
 

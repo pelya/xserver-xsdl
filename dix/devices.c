@@ -705,18 +705,6 @@ RegisterKeyboardDevice(DeviceIntPtr device)
     RegisterOtherDevice(device);
 }
 
-_X_EXPORT DevicePtr
-LookupKeyboardDevice(void)
-{
-    return inputInfo.keyboard ? &inputInfo.keyboard->public : NULL;
-}
-
-_X_EXPORT DevicePtr
-LookupPointerDevice(void)
-{
-    return inputInfo.pointer ? &inputInfo.pointer->public : NULL;
-}
-
 int
 dixLookupDevice(DeviceIntPtr *pDev, int id, ClientPtr client, Mask access_mode)
 {

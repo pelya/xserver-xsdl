@@ -139,8 +139,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(InitKeyboardDeviceStruct)
     SYMFUNC(SendMappingNotify)
     SYMFUNC(InitPointerDeviceStruct)
-    SYMFUNC(LookupKeyboardDevice)
-    SYMFUNC(LookupPointerDevice)
     /* dispatch.c */
     SYMFUNC(SetInputCheck)
     SYMFUNC(SendErrorToClient)

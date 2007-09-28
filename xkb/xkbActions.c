@@ -1026,8 +1026,9 @@ DeviceIntPtr	dev;
 int		button;
 
     if (filter->keycode==0) {		/* initial press */
-	dev= _XkbLookupButtonDevice(pAction->devbtn.device,NULL);
-	if ((!dev)||(!dev->public.on)||(&dev->public==LookupPointerDevice()))
+	_XkbLookupButtonDevice(&dev, pAction->devbtn.device, serverClient,
+			       DixUnknownAccess, &button);
+	if (!dev || !dev->public.on || dev == inputInfo.pointer)
 	    return 1;
 
 	button= pAction->devbtn.button;
@@ -1066,8 +1067,9 @@ int		button;
 	int	button;
 
 	filter->active= 0;
-	dev= _XkbLookupButtonDevice(filter->upAction.devbtn.device,NULL);
-	if ((!dev)||(!dev->public.on)||(&dev->public==LookupPointerDevice()))
+	_XkbLookupButtonDevice(&dev, filter->upAction.devbtn.device,
+			       serverClient, DixUnknownAccess, &button);
+	if (!dev || !dev->public.on || dev == inputInfo.pointer)
 	    return 1;
 
 	button= filter->upAction.btn.button;

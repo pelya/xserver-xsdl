@@ -316,7 +316,7 @@ ProcXTestFakeInput(client)
 #ifdef XINPUT
 	if (!extension)
 #endif /* XINPUT */
-	    dev = (DeviceIntPtr)LookupKeyboardDevice();
+	    dev = inputInfo.keyboard;
 	if (ev->u.u.detail < dev->key->curKeySyms.minKeyCode ||
 	    ev->u.u.detail > dev->key->curKeySyms.maxKeyCode)
 	{
@@ -360,7 +360,7 @@ ProcXTestFakeInput(client)
 	    break;
 	}
 #endif /* XINPUT */
-	dev = (DeviceIntPtr)LookupPointerDevice();
+	dev = inputInfo.pointer;
 	if (ev->u.keyButtonPointer.root == None)
 	    root = GetCurrentRootWindow();
 	else
@@ -449,7 +449,7 @@ ProcXTestFakeInput(client)
 #ifdef XINPUT
 	if (!extension)
 #endif /* XINPUT */
-	    dev = (DeviceIntPtr)LookupPointerDevice();
+	    dev = inputInfo.pointer;
 	if (!ev->u.u.detail || ev->u.u.detail > dev->button->numButtons)
 	{
 	    client->errorValue = ev->u.u.detail;

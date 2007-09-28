@@ -38,6 +38,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define	XKBSRV_NEED_FILE_FUNCS
 #include <xkbsrv.h>
 #include "extnsionst.h"
+#include "xace.h"
 #include "xkb.h"
 
 #include <X11/extensions/XI.h>
@@ -45,7 +46,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 	int	XkbEventBase;
 static	int	XkbErrorBase;
 	int	XkbReqCode;
-static  int	XkbKeyboardErrorCode;
+	int	XkbKeyboardErrorCode;
 CARD32	xkbDebugFlags = 0;
 static CARD32	xkbDebugCtrls = 0;
 
@@ -53,19 +54,23 @@ static RESTYPE	RT_XKBCLIENT;
 
 /***====================================================================***/
 
-#define	CHK_DEVICE(d,sp,lf) {\
+#define	CHK_DEVICE(dev, id, client, access_mode, lf) {\
     int why;\
-    d = (DeviceIntPtr)lf((sp),&why);\
-    if  (!dev) {\
-	client->errorValue = _XkbErrCode2(why,(sp));\
-	return XkbKeyboardErrorCode;\
+    int rc = lf(&(dev), id, client, access_mode, &why);\
+    if (rc != Success) {\
+	client->errorValue = _XkbErrCode2(why, id);\
+	return rc;\
     }\
 }
 
-#define	CHK_KBD_DEVICE(d,sp) 	CHK_DEVICE(d,sp,_XkbLookupKeyboard)
-#define	CHK_LED_DEVICE(d,sp) 	CHK_DEVICE(d,sp,_XkbLookupLedDevice)
-#define	CHK_BELL_DEVICE(d,sp) 	CHK_DEVICE(d,sp,_XkbLookupBellDevice)
-#define	CHK_ANY_DEVICE(d,sp) 	CHK_DEVICE(d,sp,_XkbLookupAnyDevice)
+#define	CHK_KBD_DEVICE(dev, id, client, mode) \
+    CHK_DEVICE(dev, id, client, mode, _XkbLookupKeyboard)
+#define	CHK_LED_DEVICE(dev, id, client, mode) \
+    CHK_DEVICE(dev, id, client, mode, _XkbLookupLedDevice)
+#define	CHK_BELL_DEVICE(dev, id, client, mode) \
+    CHK_DEVICE(dev, id, client, mode, _XkbLookupBellDevice)
+#define	CHK_ANY_DEVICE(dev, id, client, mode) \
+    CHK_DEVICE(dev, id, client, mode, _XkbLookupAnyDevice)
 
 #define	CHK_ATOM_ONLY2(a,ev,er) {\
 	if (((a)==None)||(!ValidAtom((a)))) {\
@@ -206,7 +211,7 @@ ProcXkbSelectEvents(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_ANY_DEVICE(dev,stuff->deviceSpec);
+    CHK_ANY_DEVICE(dev, stuff->deviceSpec, client, DixReadAccess);
 
     if (((stuff->affectWhich&XkbMapNotifyMask)!=0)&&(stuff->affectMap)) {
 	client->mapNotifyMask&= ~stuff->affectMap;
@@ -351,7 +356,7 @@ ProcXkbBell(ClientPtr client)
     REQUEST(xkbBellReq);
     DeviceIntPtr dev;
     WindowPtr	 pWin;
-    int base;
+    int rc, base;
     int newPercent,oldPitch,oldDuration;
     pointer ctrl;
 
@@ -360,7 +365,7 @@ ProcXkbBell(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_BELL_DEVICE(dev,stuff->deviceSpec);
+    CHK_BELL_DEVICE(dev, stuff->deviceSpec, client, DixBellAccess);
     CHK_ATOM_OR_NONE(stuff->name);
 
     if ((stuff->forceSound)&&(stuff->eventOnly)) {
@@ -448,10 +453,10 @@ ProcXkbBell(ClientPtr client)
 	return BadValue;
     }
     if (stuff->window!=None) {
-	pWin= (WindowPtr)LookupIDByType(stuff->window,RT_WINDOW);
-	if (pWin==NULL) {
+	rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
+	if (rc != Success) {
 	    client->errorValue= stuff->window;
-	    return BadValue;
+	    return rc;
 	}
     }
     else pWin= NULL;
@@ -499,7 +504,7 @@ ProcXkbGetState(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixReadAccess);
 
     xkb= &dev->key->xkbInfo->state;
     bzero(&rep,sizeof(xkbGetStateReply));
@@ -544,7 +549,7 @@ ProcXkbLatchLockState(ClientPtr client)
     if (!(client->xkbClientFlags & _XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev, stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
     CHK_MASK_MATCH(0x01, stuff->affectModLocks, stuff->modLocks);
     CHK_MASK_MATCH(0x01, stuff->affectModLatches, stuff->modLatches);
 
@@ -612,7 +617,7 @@ ProcXkbGetControls(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixGetAttrAccess);
     
     xkb = dev->key->xkbInfo->desc->ctrls;
     rep.type = X_Reply;
@@ -689,7 +694,7 @@ ProcXkbSetControls(ClientPtr client)
     if (!(client->xkbClientFlags & _XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev, stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
     CHK_MASK_LEGAL(0x01, stuff->changeCtrls, XkbAllControlsMask);
 
     for (tmpd = inputInfo.keyboard; tmpd; tmpd = tmpd->next) {
@@ -1370,7 +1375,7 @@ ProcXkbGetMap(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixGetAttrAccess);
     CHK_MASK_OVERLAP(0x01,stuff->full,stuff->partial);
     CHK_MASK_LEGAL(0x02,stuff->full,XkbAllMapComponentsMask);
     CHK_MASK_LEGAL(0x03,stuff->partial,XkbAllMapComponentsMask);
@@ -2299,7 +2304,7 @@ ProcXkbSetMap(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
     CHK_MASK_LEGAL(0x01,stuff->present,XkbAllMapComponentsMask);
 
     XkbSetCauseXkbReq(&cause,X_kbSetMap,client);
@@ -2569,7 +2574,7 @@ ProcXkbGetCompatMap(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixGetAttrAccess);
 
     xkb = dev->key->xkbInfo->desc;
     compat= xkb->compat;
@@ -2613,7 +2618,7 @@ ProcXkbSetCompatMap(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
 
     data = (char *)&stuff[1];
     xkbi = dev->key->xkbInfo;
@@ -2748,7 +2753,7 @@ ProcXkbGetIndicatorState(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixReadAccess);
 
     sli= XkbFindSrvLedInfo(dev,XkbDfltXIClass,XkbDfltXIId,
 						XkbXI_IndicatorStateMask);
@@ -2859,7 +2864,7 @@ XkbIndicatorPtr		leds;
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixGetAttrAccess);
 
     xkb= dev->key->xkbInfo->desc;
     leds= xkb->indicators;
@@ -2878,7 +2883,7 @@ int
 ProcXkbSetIndicatorMap(ClientPtr client)
 {
     register int 	i,bit;
-    int			nIndicators,why;
+    int			nIndicators;
     DeviceIntPtr 	dev;
     XkbSrvInfoPtr	xkbi;
     xkbIndicatorMapWireDesc *from;
@@ -2891,11 +2896,8 @@ ProcXkbSetIndicatorMap(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    dev = _XkbLookupKeyboard(stuff->deviceSpec,&why);
-    if (!dev) {
-	client->errorValue = _XkbErrCode2(why,stuff->deviceSpec);
-	return XkbKeyboardErrorCode;
-    }
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
+
     xkbi= dev->key->xkbInfo;
 
     if (stuff->which==0)
@@ -2971,7 +2973,7 @@ ProcXkbGetNamedIndicator(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_LED_DEVICE(dev,stuff->deviceSpec);
+    CHK_LED_DEVICE(dev, stuff->deviceSpec, client, DixReadAccess);
     CHK_ATOM_ONLY(stuff->indicator);
 
     sli= XkbFindSrvLedInfo(dev,stuff->ledClass,stuff->ledID,0);
@@ -3057,7 +3059,7 @@ ProcXkbSetNamedIndicator(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_LED_DEVICE(dev,stuff->deviceSpec);
+    CHK_LED_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
     CHK_ATOM_ONLY(stuff->indicator);
     CHK_MASK_LEGAL(0x10,stuff->whichGroups,XkbIM_UseAnyGroup);
     CHK_MASK_LEGAL(0x11,stuff->whichMods,XkbIM_UseAnyMods);
@@ -3125,7 +3127,7 @@ ProcXkbSetNamedIndicator(ClientPtr client)
 
     kbd= dev;
     if ((sli->flags&XkbSLI_HasOwnState)==0)
-	kbd= (DeviceIntPtr)LookupKeyboardDevice();
+	kbd = inputInfo.keyboard;
     XkbFlushLedEvents(dev,kbd,sli,&ed,&changes,&cause);
     return client->noClientException;
 }
@@ -3433,7 +3435,7 @@ ProcXkbGetNames(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixGetAttrAccess);
     CHK_MASK_LEGAL(0x01,stuff->which,XkbAllNamesMask);
 
     xkb = dev->key->xkbInfo->desc;
@@ -3543,7 +3545,7 @@ ProcXkbSetNames(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixUnknownAccess);
     CHK_MASK_LEGAL(0x01,stuff->which,XkbAllNamesMask);
 
     xkb = dev->key->xkbInfo->desc;
@@ -4379,7 +4381,7 @@ ProcXkbGetGeometry(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixGetAttrAccess);
     CHK_ATOM_OR_NONE(stuff->name);
 
     geom= XkbLookupNamedGeometry(dev,stuff->name,&shouldFree);
@@ -4842,7 +4844,7 @@ ProcXkbSetGeometry(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
     CHK_ATOM_OR_NONE(stuff->name);
 
     xkb= dev->key->xkbInfo->desc;
@@ -4897,6 +4899,7 @@ ProcXkbPerClientFlags(ClientPtr client)
     DeviceIntPtr 		dev;
     xkbPerClientFlagsReply 	rep;
     XkbInterestPtr		interest;
+    Mask access_mode = DixGetAttrAccess | DixSetAttrAccess;
 
     REQUEST(xkbPerClientFlagsReq);
     REQUEST_SIZE_MATCH(xkbPerClientFlagsReq);
@@ -4904,7 +4907,7 @@ ProcXkbPerClientFlags(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, access_mode);
     CHK_MASK_LEGAL(0x01,stuff->change,XkbPCF_AllFlagsMask);
     CHK_MASK_MATCH(0x02,stuff->change,stuff->value);
 
@@ -5040,7 +5043,7 @@ ProcXkbListComponents(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixGetAttrAccess);
 
     status= Success;
     str= (unsigned char *)&stuff[1];
@@ -5123,6 +5126,7 @@ ProcXkbGetKbdByName(ClientPtr client)
     Bool			geom_changed;
     XkbSrvLedInfoPtr            old_sli;
     XkbSrvLedInfoPtr            sli;
+    Mask access_mode = DixGetAttrAccess | DixSetAttrAccess;
 
     REQUEST(xkbGetKbdByNameReq);
     REQUEST_AT_LEAST_SIZE(xkbGetKbdByNameReq);
@@ -5130,7 +5134,7 @@ ProcXkbGetKbdByName(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev,stuff->deviceSpec);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, access_mode);
 
     xkb = dev->key->xkbInfo->desc;
     status= Success;
@@ -5664,7 +5668,7 @@ char *			str;
 
     wanted= stuff->wanted;
 
-    CHK_ANY_DEVICE(dev,stuff->deviceSpec);
+    CHK_ANY_DEVICE(dev, stuff->deviceSpec, client, DixGetAttrAccess);
     CHK_MASK_LEGAL(0x01,wanted,XkbXI_AllDeviceFeaturesMask);
 
     if ((!dev->button)||((stuff->nBtns<1)&&(!stuff->allBtns)))
@@ -5968,7 +5972,7 @@ DeviceIntPtr			kbd;
 
 	kbd= dev;
 	if ((sli->flags&XkbSLI_HasOwnState)==0)
-	    kbd= (DeviceIntPtr)LookupKeyboardDevice();
+	    kbd = inputInfo.keyboard;
 
 	XkbFlushLedEvents(dev,kbd,sli,&ed,&changes,&cause);
 	ledWire= (xkbDeviceLedsWireDesc *)mapWire;
@@ -5993,7 +5997,7 @@ xkbExtensionDeviceNotify ed;
 
     change= stuff->change;
 
-    CHK_ANY_DEVICE(dev,stuff->deviceSpec);
+    CHK_ANY_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
     CHK_MASK_LEGAL(0x01,change,XkbXI_AllFeaturesMask);
 
     wire= (char *)&stuff[1];
@@ -6043,7 +6047,7 @@ xkbExtensionDeviceNotify ed;
 	ed.nBtns=	stuff->nBtns;
 
 	if (dev->key)	kbd= dev;
-	else		kbd= (DeviceIntPtr)LookupKeyboardDevice();
+	else		kbd= inputInfo.keyboard;
 	acts= &dev->button->xkb_acts[stuff->firstBtn];
 	for (i=0;i<stuff->nBtns;i++,acts++) {
 	    if (acts->type!=XkbSA_NoAction)
@@ -6069,9 +6073,14 @@ ProcXkbSetDebuggingFlags(ClientPtr client)
 {
 CARD32 				newFlags,newCtrls,extraLength;
 xkbSetDebuggingFlagsReply 	rep;
+int rc;
 
     REQUEST(xkbSetDebuggingFlagsReq);
     REQUEST_AT_LEAST_SIZE(xkbSetDebuggingFlagsReq);
+
+    rc = XaceHook(XACE_SERVER_ACCESS, client, DixDebugAccess);
+    if (rc != Success)
+	return rc;
 
     newFlags=  xkbDebugFlags&(~stuff->affectFlags);
     newFlags|= (stuff->flags&stuff->affectFlags);
