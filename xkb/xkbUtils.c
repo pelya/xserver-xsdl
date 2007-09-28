@@ -65,7 +65,7 @@ DeviceIntPtr dev = NULL;
     if (id&(~0xff))
 	 dev = NULL;
 
-    dev= (DeviceIntPtr)LookupDevice(id);
+    dixLookupDevice(&dev, id, serverClient, DixUnknownAccess);
     if (dev!=NULL) 
 	return dev;
     if ((!dev)&&(why_rtrn))

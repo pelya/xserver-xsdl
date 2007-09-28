@@ -77,7 +77,6 @@
 
 #define EXTENSION_PROC_ARGS void *
 #include "extnsionst.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 
 #include "windowstr.h"	/* screenIsSaved */
 

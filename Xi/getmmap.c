@@ -59,7 +59,6 @@ SOFTWARE.
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>	/* Request macro     */
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "getmmap.h"
@@ -94,13 +93,14 @@ ProcXGetDeviceModifierMapping(ClientPtr client)
     DeviceIntPtr dev;
     xGetDeviceModifierMappingReply rep;
     KeyClassPtr kp;
+    int rc;
 
     REQUEST(xGetDeviceModifierMappingReq);
     REQUEST_SIZE_MATCH(xGetDeviceModifierMappingReq);
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
 
     kp = dev->key;
     if (kp == NULL)

@@ -60,7 +60,6 @@ SOFTWARE.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "allowev.h"
@@ -95,13 +94,14 @@ ProcXAllowDeviceEvents(ClientPtr client)
 {
     TimeStamp time;
     DeviceIntPtr thisdev;
+    int rc;
 
     REQUEST(xAllowDeviceEventsReq);
     REQUEST_SIZE_MATCH(xAllowDeviceEventsReq);
 
-    thisdev = LookupDeviceIntRec(stuff->deviceid);
-    if (thisdev == NULL)
-	return BadDevice;
+    rc = dixLookupDevice(&thisdev, stuff->deviceid, client, DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
     time = ClientTimeToServerTime(stuff->time);
 
     switch (stuff->mode) {

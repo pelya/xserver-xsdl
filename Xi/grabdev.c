@@ -60,7 +60,6 @@ SOFTWARE.
 #include "windowstr.h"	/* window structure  */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 #include "dixevents.h"	/* GrabDevice */
 
@@ -122,9 +121,9 @@ ProcXGrabDevice(ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.length = 0;
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixGrabAccess);
+    if (rc != Success)
+	return rc;
 
     if ((rc = CreateMaskFromList(client, (XEventClass *) & stuff[1],
 				 stuff->event_count, tmp, dev,
@@ -153,7 +152,7 @@ int
 CreateMaskFromList(ClientPtr client, XEventClass * list, int count,
 		   struct tmask *mask, DeviceIntPtr dev, int req)
 {
-    int i, j;
+    int rc, i, j;
     int device;
     DeviceIntPtr tdev;
 
@@ -167,8 +166,10 @@ CreateMaskFromList(ClientPtr client, XEventClass * list, int count,
 	if (device > 255)
 	    return BadClass;
 
-	tdev = LookupDeviceIntRec(device);
-	if (tdev == NULL || (dev != NULL && tdev != dev))
+	rc = dixLookupDevice(&tdev, device, client, DixReadAccess);
+	if (rc != BadDevice && rc != Success)
+	    return rc;
+	if (rc == BadDevice || (dev != NULL && tdev != dev))
 	    return BadClass;
 
 	for (j = 0; j < ExtEventIndex; j++)

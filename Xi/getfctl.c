@@ -59,7 +59,6 @@ SOFTWARE.
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "getfctl.h"
@@ -290,7 +289,7 @@ SRepXGetFeedbackControl(ClientPtr client, int size,
 int
 ProcXGetFeedbackControl(ClientPtr client)
 {
-    int total_length = 0;
+    int rc, total_length = 0;
     char *buf, *savbuf;
     DeviceIntPtr dev;
     KbdFeedbackPtr k;
@@ -304,9 +303,9 @@ ProcXGetFeedbackControl(ClientPtr client)
     REQUEST(xGetFeedbackControlReq);
     REQUEST_SIZE_MATCH(xGetFeedbackControlReq);
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
 
     rep.repType = X_Reply;
     rep.RepType = X_GetFeedbackControl;

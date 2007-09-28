@@ -59,7 +59,6 @@ SOFTWARE.
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
@@ -107,9 +106,9 @@ ProcXChangeDeviceKeyMapping(ClientPtr client)
     REQUEST(xChangeDeviceKeyMappingReq);
     REQUEST_AT_LEAST_SIZE(xChangeDeviceKeyMappingReq);
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetAttrAccess);
+    if (ret != Success)
+	return ret;
     len = stuff->length - (sizeof(xChangeDeviceKeyMappingReq) >> 2);
 
     ret = ChangeKeyMapping(client, dev, len, DeviceMappingNotify,

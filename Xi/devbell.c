@@ -59,7 +59,6 @@ SOFTWARE.
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "devbell.h"
@@ -93,7 +92,7 @@ ProcXDeviceBell(ClientPtr client)
     DeviceIntPtr dev;
     KbdFeedbackPtr k;
     BellFeedbackPtr b;
-    int base;
+    int rc, base;
     int newpercent;
     CARD8 class;
     pointer ctrl;
@@ -102,10 +101,10 @@ ProcXDeviceBell(ClientPtr client)
     REQUEST(xDeviceBellReq);
     REQUEST_SIZE_MATCH(xDeviceBellReq);
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixBellAccess);
+    if (rc != Success) {
 	client->errorValue = stuff->deviceid;
-	return BadDevice;
+	return rc;
     }
 
     if (stuff->percent < -100 || stuff->percent > 100) {

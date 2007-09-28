@@ -59,9 +59,9 @@ SOFTWARE.
 
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include "windowstr.h"	/* Window            */
+#include "extnsionst.h" /* EventSwapPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
@@ -131,9 +131,9 @@ ProcXSendExtensionEvent(ClientPtr client)
 	(stuff->num_events * (sizeof(xEvent) >> 2)))
 	return BadLength;
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixWriteAccess);
+    if (ret != Success)
+	return ret;
 
     /* The client's event type must be one defined by an extension. */
 

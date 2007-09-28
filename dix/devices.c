@@ -717,20 +717,28 @@ LookupPointerDevice(void)
     return inputInfo.pointer ? &inputInfo.pointer->public : NULL;
 }
 
-DevicePtr
-LookupDevice(int id)
+int
+dixLookupDevice(DeviceIntPtr *pDev, int id, ClientPtr client, Mask access_mode)
 {
     DeviceIntPtr dev;
+    int rc;
+    *pDev = NULL;
 
     for (dev=inputInfo.devices; dev; dev=dev->next) {
         if (dev->id == (CARD8)id)
-            return (DevicePtr)dev;
+            goto found;
     }
     for (dev=inputInfo.off_devices; dev; dev=dev->next) {
         if (dev->id == (CARD8)id)
-            return (DevicePtr)dev;
+	    goto found;
     }
-    return NULL;
+    return BadDevice;
+
+found:
+    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, access_mode);
+    if (rc == Success)
+	*pDev = dev;
+    return rc;
 }
 
 void

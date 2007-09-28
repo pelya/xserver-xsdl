@@ -60,7 +60,6 @@ SOFTWARE.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "setdval.h"
@@ -92,6 +91,7 @@ ProcXSetDeviceValuators(ClientPtr client)
 {
     DeviceIntPtr dev;
     xSetDeviceValuatorsReply rep;
+    int rc;
 
     REQUEST(xSetDeviceValuatorsReq);
     REQUEST_AT_LEAST_SIZE(xSetDeviceValuatorsReq);
@@ -106,9 +106,9 @@ ProcXSetDeviceValuators(ClientPtr client)
 	stuff->num_valuators)
 	return BadLength;
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixSetAttrAccess);
+    if (rc != Success)
+	return rc;
     if (dev->valuator == NULL)
 	return BadMatch;
 

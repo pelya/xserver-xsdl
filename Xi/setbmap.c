@@ -63,7 +63,6 @@ SOFTWARE.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "exevents.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "setbmap.h"
@@ -110,9 +109,9 @@ ProcXSetDeviceButtonMapping(ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.status = MappingSuccess;
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetAttrAccess);
+    if (ret != Success)
+	return ret;
 
     ret = SetButtonMapping(client, dev, stuff->map_length, (BYTE *) & stuff[1]);
 

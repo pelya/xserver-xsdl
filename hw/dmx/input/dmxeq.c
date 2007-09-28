@@ -82,7 +82,6 @@
 #ifdef XINPUT
 #include <X11/extensions/XIproto.h>
 #define EXTENSION_PROC_ARGS void *
-#include "extinit.h"            /* For LookupDeviceIntRec */
 #endif
 
 #if DMX_EQ_DEBUG
@@ -217,8 +216,9 @@ static void dmxeqProcessXInputEvent(xEvent *xe, EventRec *e)
 {
     deviceKeyButtonPointer *ev     = (deviceKeyButtonPointer *)xe;
     int                    id      = ev->deviceid & DEVICE_BITS;
-    DeviceIntPtr           pDevice = LookupDeviceIntRec(id);
+    DeviceIntPtr           pDevice;
     
+    dixLookupDevice(&pDevice, id, serverClient, DixUnknownAccess);
     if (!pDevice) {
         dmxLog(dmxError, "dmxeqProcessInputEvents: id %d not found\n", id);
         return;

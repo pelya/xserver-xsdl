@@ -63,7 +63,6 @@ SOFTWARE.
 
 #include "dixevents.h"
 
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "setfocus.h"
@@ -102,8 +101,10 @@ ProcXSetDeviceFocus(ClientPtr client)
     REQUEST(xSetDeviceFocusReq);
     REQUEST_SIZE_MATCH(xSetDeviceFocusReq);
 
-    dev = LookupDeviceIntRec(stuff->device);
-    if (dev == NULL || !dev->focus)
+    ret = dixLookupDevice(&dev, stuff->device, client, DixSetFocusAccess);
+    if (ret != Success)
+	return ret;
+    if (!dev->focus)
 	return BadDevice;
 
     ret = SetInputFocus(client, dev, stuff->focus, stuff->revertTo,

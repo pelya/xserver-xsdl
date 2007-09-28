@@ -61,7 +61,6 @@ SOFTWARE.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "exevents.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "grabdev.h"
@@ -117,14 +116,15 @@ ProcXGrabDeviceButton(ClientPtr client)
 	(sizeof(xGrabDeviceButtonReq) >> 2) + stuff->event_count)
 	return BadLength;
 
-    dev = LookupDeviceIntRec(stuff->grabbed_device);
-    if (dev == NULL)
-	return BadDevice;
+    ret = dixLookupDevice(&dev, stuff->grabbed_device, client, DixGrabAccess);
+    if (ret != Success)
+	return ret;
 
     if (stuff->modifier_device != UseXKeyboard) {
-	mdev = LookupDeviceIntRec(stuff->modifier_device);
-	if (mdev == NULL)
-	    return BadDevice;
+	ret = dixLookupDevice(&mdev, stuff->modifier_device, client,
+			      DixReadAccess);
+	if (ret != Success)
+	    return ret;
 	if (mdev->key == NULL)
 	    return BadMatch;
     } else

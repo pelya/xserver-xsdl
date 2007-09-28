@@ -49,7 +49,6 @@ from The Open Group.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #define EXTENSION_EVENT_BASE	64
-#include "extinit.h"		/* LookupDeviceIntRec */
 #endif /* XINPUT */
 
 #include "modinit.h"
@@ -286,11 +285,12 @@ ProcXTestFakeInput(client)
 #ifdef XINPUT
     if (extension)
     {
-	dev = LookupDeviceIntRec(stuff->deviceid & 0177);
-	if (!dev)
+	rc = dixLookupDevice(&dev, stuff->deviceid & 0177, client,
+			     DixWriteAccess);
+	if (rc != Success)
 	{
 	    client->errorValue = stuff->deviceid & 0177;
-	    return BadValue;
+	    return rc;
 	}
 	if (nev > 1)
 	{

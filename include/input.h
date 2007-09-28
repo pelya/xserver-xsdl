@@ -201,8 +201,11 @@ extern DevicePtr LookupKeyboardDevice(void);
 
 extern DevicePtr LookupPointerDevice(void);
 
-extern DevicePtr LookupDevice(
-    int /* id */);
+extern int dixLookupDevice(
+    DeviceIntPtr *         /* dev */,
+    int                    /* id */,
+    ClientPtr              /* client */,
+    Mask                   /* access_mode */);
 
 extern void QueryMinMaxKeyCodes(
     KeyCode* /*minCode*/,
@@ -435,9 +438,6 @@ extern int GetMotionHistory(
 
 extern void SwitchCoreKeyboard(DeviceIntPtr pDev);
 extern void SwitchCorePointer(DeviceIntPtr pDev);
-
-extern DeviceIntPtr LookupDeviceIntRec(
-    CARD8 deviceid);
 
 /* Implemented by the DDX. */
 extern int NewInputDeviceRequest(

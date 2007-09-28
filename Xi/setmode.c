@@ -60,7 +60,6 @@ SOFTWARE.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "setmode.h"
@@ -92,6 +91,7 @@ ProcXSetDeviceMode(ClientPtr client)
 {
     DeviceIntPtr dev;
     xSetDeviceModeReply rep;
+    int rc;
 
     REQUEST(xSetDeviceModeReq);
     REQUEST_SIZE_MATCH(xSetDeviceModeReq);
@@ -101,9 +101,9 @@ ProcXSetDeviceMode(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixSetAttrAccess);
+    if (rc != Success)
+	return rc;
     if (dev->valuator == NULL)
 	return BadMatch;
     if ((dev->grab) && !SameClient(dev->grab, client))

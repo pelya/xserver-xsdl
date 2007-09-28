@@ -59,7 +59,6 @@ SOFTWARE.
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
@@ -96,7 +95,7 @@ ProcXGetDeviceMotionEvents(ClientPtr client)
     INT32 *coords = NULL, *bufptr;
     xGetDeviceMotionEventsReply rep;
     unsigned long i;
-    int num_events, axes, size = 0, tsize;
+    int rc, num_events, axes, size = 0, tsize;
     unsigned long nEvents;
     DeviceIntPtr dev;
     TimeStamp start, stop;
@@ -106,9 +105,9 @@ ProcXGetDeviceMotionEvents(ClientPtr client)
     REQUEST(xGetDeviceMotionEventsReq);
 
     REQUEST_SIZE_MATCH(xGetDeviceMotionEventsReq);
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
     v = dev->valuator;
     if (v == NULL || v->numAxes == 0)
 	return BadMatch;
