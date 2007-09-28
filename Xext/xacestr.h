@@ -65,13 +65,6 @@ typedef struct {
     int status;
 } XacePropertyAccessRec;
 
-/* XACE_DRAWABLE_ACCESS */
-typedef struct {
-    ClientPtr client;
-    DrawablePtr pDraw;
-    int status;
-} XaceDrawableAccessRec;
-
 /* XACE_SEND_ACCESS */
 typedef struct {
     ClientPtr client;

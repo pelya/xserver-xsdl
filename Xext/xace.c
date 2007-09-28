@@ -105,16 +105,6 @@ int XaceHook(int hook, ...)
 	    prv = &rec.status;
 	    break;
 	}
-	case XACE_DRAWABLE_ACCESS: {
-	    XaceDrawableAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, DrawablePtr),
-		Success /* default allow */
-	    };
-	    calldata = &rec;
-	    prv = &rec.status;
-	    break;
-	}
 	case XACE_SEND_ACCESS: {
 	    XaceSendAccessRec rec = {
 		va_arg(ap, ClientPtr),

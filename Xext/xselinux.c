@@ -1389,7 +1389,6 @@ XSELinuxExtensionInit(INITARGS)
     XaceRegisterCallback(XACE_RESOURCE_ACCESS, XSELinuxResLookup, NULL);
     XaceRegisterCallback(XACE_MAP_ACCESS, XSELinuxMap, NULL);
     XaceRegisterCallback(XACE_SERVER_ACCESS, XSELinuxServer, NULL);
-    XaceRegisterCallback(XACE_DRAWABLE_ACCESS, XSELinuxDrawable, NULL);
     XaceRegisterCallback(XACE_PROPERTY_ACCESS, XSELinuxProperty, NULL);
     /* XaceRegisterCallback(XACE_DECLARE_EXT_SECURE, XSELinuxDeclare, NULL);
     XaceRegisterCallback(XACE_DEVICE_ACCESS, XSELinuxDevice, NULL); */

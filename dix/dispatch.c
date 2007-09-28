@@ -2273,8 +2273,7 @@ DoGetImage(ClientPtr client, int format, Drawable drawable,
 	WriteReplyToClient(client, sizeof (xGetImageReply), &xgi);
     }
 
-    if (pDraw->type == DRAWABLE_WINDOW &&
-	XaceHook(XACE_DRAWABLE_ACCESS, client, pDraw) != Success)
+    if (pDraw->type == DRAWABLE_WINDOW)
     {
 	pVisibleRegion = NotClippedByChildren((WindowPtr)pDraw);
 	if (pVisibleRegion)
