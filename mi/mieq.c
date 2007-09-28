@@ -300,7 +300,8 @@ mieqProcessInputEvents(void)
         }
 
         /* Update the sprite now. Next event may be from different device. */
-        if (e->events->event[0].u.u.type == MotionNotify && e->pDev->coreEvents)
+        if (e->events->event[0].u.u.type == DeviceMotionNotify 
+                && e->pDev->coreEvents)
         {
             miPointerUpdateSprite(e->pDev);
         }

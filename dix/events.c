@@ -294,6 +294,27 @@ static struct {
 static xEvent* swapEvent = NULL;
 static int swapEventLen = 0;
 
+/**
+ * Convert the given event type from an XI event to a core event.
+ * @return The matching core event type or 0 if there is none.
+ */
+_X_EXPORT int
+XItoCoreType(int xitype)
+{
+    int coretype = 0;
+    if (xitype == DeviceMotionNotify)
+        coretype = MotionNotify;
+    else if (xitype == DeviceButtonPress)
+        coretype = ButtonPress;
+    else if (xitype == DeviceButtonRelease)
+        coretype = ButtonRelease;
+    else if (xitype == DeviceKeyPress)
+        coretype = KeyPress;
+    else if (xitype == DeviceKeyRelease)
+        coretype = KeyRelease;
+    return coretype;
+}
+
 /** 
  * True if device owns a cursor, false if device shares a cursor sprite with
  * another device.
@@ -775,9 +796,15 @@ XineramaChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 void
 SetMaskForEvent(Mask mask, int event)
 {
+    int coretype;
     if ((event < LASTEvent) || (event >= 128))
 	FatalError("SetMaskForEvent: bogus event number");
     filters[event] = mask;
+
+    /* Need to change the mask for the core events too */
+    coretype = XItoCoreType(event);
+    if (coretype)
+        filters[coretype] = mask;
 }
 
 _X_EXPORT void
@@ -1343,10 +1370,11 @@ ComputeFreezes(void)
     DeviceIntPtr replayDev = syncEvents.replayDev;
     int i;
     WindowPtr w;
-    xEvent *xE;
+    xEvent *xE, core;
     int count;
     GrabPtr grab;
     DeviceIntPtr dev;
+    BOOL sendCore;
 
     for (dev = inputInfo.devices; dev; dev = dev->next)
 	FreezeThaw(dev, dev->deviceGrab.sync.other || 
@@ -1367,11 +1395,38 @@ ComputeFreezes(void)
 		replayDev->spriteInfo->sprite->spriteTrace[i])
 	    {
 		if (!CheckDeviceGrabs(replayDev, xE, i+1, count)) {
+                    /* There is no other client that gets a passive grab on
+                     * the event anymore. Emulate core event if necessary and
+                     * deliver it too.
+                     * However, we might get here with a core event, in which
+                     * case we mustn't emulate a core event.
+                     * XXX: I think this may break things. If a client has a
+                     * device grab, and another client a core grab on an
+                     * inferior window, we never get the core grab. (whot)
+                     */
+                    sendCore = (replayDev->coreEvents &&
+                        (xE->u.u.type & EXTENSION_EVENT_BASE &&
+                         XItoCoreType(xE->u.u.type)));
+
+                    if (sendCore)
+                    {
+                        core = *xE;
+                        core.u.u.type = XItoCoreType(xE->u.u.type);
+                    }
 		    if (replayDev->focus)
+                    {
+                        if (sendCore)
+                            DeliverFocusedEvent(replayDev, &core, w, 1);
 			DeliverFocusedEvent(replayDev, xE, w, count);
+                    }
 		    else
+                    {
+                        if (sendCore)
+                            DeliverDeviceEvents(w, &core, NullGrab,
+                                                NullWindow, replayDev, 1);
 			DeliverDeviceEvents(w, xE, NullGrab, NullWindow,
 					        replayDev, count);
+                    }
 		}
 		goto playmore;
 	    }
@@ -2089,7 +2144,13 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
             }
         }
     }
-    if ((type == ButtonPress) && deliveries && (!grab))
+    /*
+     * Note that since core events are delivered first, an implicit grab may
+     * be activated on a core grab, stopping the XI events.
+     */
+    if ((type == DeviceButtonPress || type == ButtonPress)
+            && deliveries
+            && (!grab))
     {
 	GrabRec tempGrab;
         OtherInputMasks *inputMasks;
@@ -2104,7 +2165,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 	tempGrab.pointerMode = GrabModeAsync;
 	tempGrab.confineTo = NullWindow;
 	tempGrab.cursor = NullCursor;
-        tempGrab.coreGrab = True;
+        tempGrab.coreGrab = (type == ButtonPress);
 
         /* get the XI device mask */
         inputMasks = wOtherInputMasks(pWin);
@@ -2127,9 +2188,8 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
                 tempGrab.genericMasks->next = NULL;
             }
         }
-	(*inputInfo.pointer->deviceGrab.ActivateGrab)(pDev, &tempGrab,
-					   currentTime, 
-                                           TRUE | ImplicitGrabMask);
+	(*pDev->deviceGrab.ActivateGrab)(pDev, &tempGrab,
+                                        currentTime, TRUE | ImplicitGrabMask);
     }
     else if ((type == MotionNotify) && deliveries)
 	pDev->valuator->motionHintWindow = pWin;
@@ -3182,6 +3242,8 @@ CheckPassiveGrabsOnWindow(
 	XkbSrvInfoPtr	xkbi;
 
 	gdev= grab->modifierDevice;
+        if (grab->coreGrab)
+            gdev = GetPairedKeyboard(device);
 	xkbi= gdev->key->xkbInfo;
 #endif
 	tempGrab.modifierDevice = grab->modifierDevice;

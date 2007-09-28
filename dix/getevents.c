@@ -191,10 +191,10 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
  */
 _X_EXPORT int
 GetMaximumEventsNum(void) {
-    /* Three base events -- raw event, core and device, plus valuator events.
+    /* Three base events -- raw event and device, plus valuator events.
      * Multiply by two if we're doing key repeats. 
      */
-    int ret = 3 + MAX_VALUATOR_EVENTS;
+    int ret = 2 + MAX_VALUATOR_EVENTS;
 
 #ifdef XKB
     if (noXkbExtension)
@@ -366,6 +366,9 @@ GetKeyboardEvents(EventList *events, DeviceIntPtr pDev, int type, int key_code) 
  * Returns a set of keyboard events for KeyPress/KeyRelease, optionally
  * also with valuator events.  Handles Xi and XKB.
  *
+ * DOES NOT GENERATE CORE EVENTS! Core events are created when processing the
+ * event (ProcessOtherEvent).
+ *
  * events is not NULL-terminated; the return value is the number of events.
  * The DDX is responsible for allocating the event structure in the first
  * place via GetMaximumEventsNum(), and for freeing it.
@@ -399,10 +402,7 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
         (pDev->coreEvents && !inputInfo.keyboard->key))
         return 0;
 
-    if (pDev->coreEvents)
-        numEvents = 2;
-    else
-        numEvents = 1;
+    numEvents = 1;
 
     if (num_valuators) {
         if ((num_valuators / 6) + 1 > MAX_VALUATOR_EVENTS)
@@ -469,12 +469,6 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
                                    num_valuators, valuators);
     }
 
-    if (pDev->coreEvents) {
-        events->event->u.keyButtonPointer.time = ms;
-        events->event->u.u.type = type;
-        events->event->u.u.detail = key_code;
-    }
-
     return numEvents;
 }
 
@@ -533,6 +527,9 @@ FreeEventList(EventListPtr list, int num_events)
  * Generate a series of xEvents (filled into the EventList) representing
  * pointer motion, or button presses.  Xi and XKB-aware.
  *
+ * DOES NOT GENERATE CORE EVENTS! Core events are created when processing the
+ * event (ProcessOtherEvent).
+ *
  * events is not NULL-terminated; the return value is the number of events.
  * The DDX is responsible for allocating the event structure in the first
  * place via InitEventList() and GetMaximumEventsNum(), and for freeing it.
@@ -567,10 +564,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     if (!pDev->valuator)
         return 0;
 
-    if (!coreOnly && pDev->coreEvents)
-        num_events = 3;
-    else
-        num_events = 2;
+    num_events = 2;
 
     if (type == MotionNotify && num_valuators <= 0)
         return 0;
@@ -700,24 +694,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
             clipValuators(pDev, first_valuator, num_valuators, valuators);
             events = getValuatorEvents(events, pDev, first_valuator,
                                        num_valuators, valuators);
-        }
-    }
-
-    /* for some reason inputInfo.pointer does not have coreEvents set */
-    if (coreOnly || pDev->coreEvents) {
-        events->event->u.u.type = type;
-        events->event->u.keyButtonPointer.time = ms;
-        events->event->u.keyButtonPointer.rootX = x;
-        events->event->u.keyButtonPointer.rootY = y;
-
-        if (type == ButtonPress || type == ButtonRelease) {
-            /* We hijack SetPointerMapping to work on all core-sending
-             * devices, so we use the device-specific map here instead of
-             * the core one. */
-            events->event->u.u.detail = pDev->button->map[buttons];
-        }
-        else {
-            events->event->u.u.detail = 0;
         }
     }
 

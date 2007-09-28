@@ -689,6 +689,7 @@ typedef struct {
 extern int xstrcasecmp(char *s1, char *s2);
 #endif
 
+extern int XItoCoreType(int xi_type);
 extern Bool DevHasCursor(DeviceIntPtr pDev);
 
 extern Bool IsPointerDevice( DeviceIntPtr dev);

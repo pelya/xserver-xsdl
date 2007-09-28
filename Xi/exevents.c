@@ -149,7 +149,15 @@ RegisterOtherDevice(DeviceIntPtr device)
     WRAP_PROCESS_INPUT_PROC(device, xiPrivPtr, ProcessOtherEvent);
 }
 
- /*ARGSUSED*/ void
+/**
+ * Main device event processing function. 
+ * Called from when processing the events from the event queue. 
+ * Generates core events for XI events as needed.
+ * 
+ * Note that these core events are then delivered first. For passive grabs, XI
+ * events have preference over core.
+ */
+void
 ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 {
     BYTE *kptr;
@@ -163,19 +171,13 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     KeyClassPtr k = device->key;
     ValuatorClassPtr v = device->valuator;
     deviceValuator *xV = (deviceValuator *) xE;
+    BOOL sendCore = FALSE;
+    xEvent core;
+    int coretype = 0;
 
-    /* Handle core events. */
-    if (xE->u.u.type < LASTEvent && xE->u.u.type != GenericEvent)
-    {
-        ProcessInputProc backupproc;
-        xiDevPrivatePtr xiPrivPtr = 
-            (xiDevPrivatePtr)device->devPrivates[xiDevPrivateIndex].ptr;
-        UNWRAP_PROCESS_INPUT_PROC(device, xiPrivPtr, backupproc);
-        device->public.processInputProc(xE, device, count);
-        /* only rewraps is the processInputProc hasn't been modified */
-        REWRAP_PROCESS_INPUT_PROC(device, xiPrivPtr, backupproc);
-        return;
-    }
+    coretype = XItoCoreType(xE->u.u.type);
+    if (device->coreEvents && coretype)
+        sendCore = TRUE;
 
     CheckMotion(xE, device);
 
@@ -280,7 +282,12 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 		modifiers &= ~mask;
 	    }
 	}
-	if (!grab && CheckDeviceGrabs(device, xE, 0, count)) {
+        /* XI grabs have priority */
+        core = *xE;
+        core.u.u.type = coretype;
+	if (!grab &&
+              (CheckDeviceGrabs(device, xE, 0, count) ||
+                 (sendCore && CheckDeviceGrabs(device, &core, 0, 1)))) {
 	    device->deviceGrab.activatingKey = key;
 	    return;
 	}
@@ -308,7 +315,6 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 	}
 
 	if (device->deviceGrab.fromPassiveGrab && 
-            !device->deviceGrab.grab->coreGrab &&
             (key == device->deviceGrab.activatingKey))
 	    deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == DeviceButtonPress) {
@@ -328,10 +334,17 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 	    b->state |= (Button1Mask >> 1) << xE->u.u.detail;
 	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
         if (!grab)
-            if (CheckDeviceGrabs(device, xE, 0, count))
+        {
+            core = *xE;
+            core.u.u.type = coretype;
+            if (CheckDeviceGrabs(device, xE, 0, count) ||
+                    (sendCore && CheckDeviceGrabs(device, &core, 0, 1)))
+            {
                 /* if a passive grab was activated, the event has been sent
                  * already */
                 return;
+            }
+        }
 
     } else if (xE->u.u.type == DeviceButtonRelease) {
         if (!b)
@@ -350,21 +363,39 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 	    b->state &= ~((Button1Mask >> 1) << xE->u.u.detail);
 	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
         if (!b->state 
-            && device->deviceGrab.fromPassiveGrab
-            && !device->deviceGrab.grab->coreGrab)
+            && device->deviceGrab.fromPassiveGrab)
             deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == ProximityIn)
 	device->valuator->mode &= ~OutOfProximity;
     else if (xE->u.u.type == ProximityOut)
 	device->valuator->mode |= OutOfProximity;
 
+    if (sendCore)
+    {
+        core = *xE;
+        core.u.u.type = coretype;
+    }
+
     if (grab)
-	DeliverGrabbedEvent(xE, device, deactivateDeviceGrab, count);
+    {
+        if (sendCore)                      /* never deactivate from core */
+            DeliverGrabbedEvent(&core, device, FALSE , 1);
+        DeliverGrabbedEvent(xE, device, deactivateDeviceGrab, count);
+    }
     else if (device->focus)
+    {
+        if (sendCore)
+            DeliverFocusedEvent(device, &core, GetSpriteWindow(device), 1);
 	DeliverFocusedEvent(device, xE, GetSpriteWindow(device), count);
+    }
     else
+    {
+        if (sendCore)
+            DeliverDeviceEvents(GetSpriteWindow(device), &core, NullGrab,
+                                NullWindow, device, 1);
 	DeliverDeviceEvents(GetSpriteWindow(device), xE, NullGrab, NullWindow,
 			    device, count);
+    }
 
     if (deactivateDeviceGrab == TRUE)
 	(*device->deviceGrab.DeactivateGrab) (device);
