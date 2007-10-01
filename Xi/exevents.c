@@ -89,64 +89,12 @@ Bool ShouldFreeInputMasks(WindowPtr /* pWin */ ,
 static Bool MakeInputMasks(WindowPtr	/* pWin */
     );
 
-static int xiDevPrivateIndex = 0;
-static int _xiServerGeneration = -1;
-
-typedef struct {
-    ProcessInputProc processInputProc;
-    ProcessInputProc realInputProc;
-} xiDevPrivateRec, *xiDevPrivatePtr;
-
-/**************************************************************************
- *
- * Procedures for extension device event routing.
- *
- */
-
-#define WRAP_PROCESS_INPUT_PROC(device, saveprocs, newproc) \
-    saveprocs->processInputProc = \
-    saveprocs->realInputProc = device->public.realInputProc; \
-    device->public.processInputProc = newproc; \
-    device->public.realInputProc = newproc 
-
-#define UNWRAP_PROCESS_INPUT_PROC(device, saveprocs, backupproc) \
-    backupproc = device->public.processInputProc; \
-    device->public.processInputProc = saveprocs->processInputProc; \
-    device->public.realInputProc = saveprocs->realInputProc; 
-
-#define REWRAP_PROCESS_INPUT_PROC(device, saveprocs, newproc) \
-    if (device->public.processInputProc == device->public.realInputProc) \
-        device->public.processInputProc = newproc; \
-    saveprocs->processInputProc = \
-    saveprocs->realInputProc = device->public.realInputProc; \
-    device->public.realInputProc = newproc;
 
 void
 RegisterOtherDevice(DeviceIntPtr device)
 {
-    xiDevPrivatePtr xiPrivPtr;
-
-    if (serverGeneration != _xiServerGeneration)
-    {
-        xiDevPrivateIndex = AllocateDevicePrivateIndex();
-        if (xiDevPrivateIndex == 1)
-        {
-            FatalError("[Xi] Could not allocate private index.\n"); 
-        }
-        _xiServerGeneration = serverGeneration;
-    }
-
-    if (!AllocateDevicePrivate(device, xiDevPrivateIndex))
-        FatalError("[Xi] Dev private allocation failed.\n");
-
-
-    xiPrivPtr = (xiDevPrivatePtr)xcalloc(1, sizeof(xiDevPrivateRec));
-    if (!xiPrivPtr)
-        FatalError("[Xi] Cannot get memory for dev private.\n");
-
-    device->devPrivates[xiDevPrivateIndex].ptr = xiPrivPtr;
-
-    WRAP_PROCESS_INPUT_PROC(device, xiPrivPtr, ProcessOtherEvent);
+    device->public.processInputProc = ProcessOtherEvent;
+    device->public.realInputProc = ProcessOtherEvent;
 }
 
 /**

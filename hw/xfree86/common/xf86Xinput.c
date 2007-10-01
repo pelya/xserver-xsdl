@@ -181,24 +181,10 @@ xf86ActivateDevice(LocalDevicePtr local)
 
         if (DeviceIsPointerType(dev))
         {
-#ifdef XKB
-            dev->public.processInputProc = CoreProcessPointerEvent;
-            dev->public.realInputProc = CoreProcessPointerEvent;
-#else
-            dev->public.processInputProc = ProcessPointerEvent;
-            dev->public.realInputProc = ProcessPointerEvent;
-#endif
             dev->deviceGrab.ActivateGrab = ActivatePointerGrab;
             dev->deviceGrab.DeactivateGrab = DeactivatePointerGrab;
         } else 
         {
-#ifdef XKB
-            dev->public.processInputProc = CoreProcessKeyboardEvent;
-            dev->public.realInputProc = CoreProcessKeyboardEvent;
-#else
-            dev->public.processInputProc = ProcessKeyboardEvent;
-            dev->public.realInputProc = ProcessKeyboardEvent;
-#endif
             dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
             dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
         }
