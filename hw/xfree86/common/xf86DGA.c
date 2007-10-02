@@ -916,7 +916,7 @@ DGAVTSwitch(void)
 }
 
 Bool
-DGAStealKeyEvent(int index, int key_code, int is_down)
+DGAStealKeyEvent(DeviceIntPtr dev, int index, int key_code, int is_down)
 {
    DGAScreenPtr pScreenPriv;
    dgaEvent    de;
@@ -932,7 +932,7 @@ DGAStealKeyEvent(int index, int key_code, int is_down)
     de.u.u.type = *XDGAEventBase + (is_down ? KeyPress : KeyRelease);
     de.u.u.detail = key_code;
     de.u.event.time = GetTimeInMillis();
-    mieqEnqueue (inputInfo.keyboard, (xEvent *) &de);
+    mieqEnqueue (dev, (xEvent *) &de);
 
    return TRUE;
 }  
@@ -940,7 +940,7 @@ DGAStealKeyEvent(int index, int key_code, int is_down)
 static int  DGAMouseX, DGAMouseY;
 
 Bool
-DGAStealMotionEvent(int index, int dx, int dy)
+DGAStealMotionEvent(DeviceIntPtr dev, int index, int dx, int dy)
 {
    DGAScreenPtr pScreenPriv;
     dgaEvent    de;
@@ -970,12 +970,12 @@ DGAStealMotionEvent(int index, int dx, int dy)
     de.u.event.dy = dy;
     de.u.event.pad1 = DGAMouseX;
     de.u.event.pad2 = DGAMouseY;
-    mieqEnqueue (inputInfo.pointer, (xEvent *) &de);
+    mieqEnqueue (dev, (xEvent *) &de);
     return TRUE;
 }
 
 Bool
-DGAStealButtonEvent(int index, int button, int is_down)
+DGAStealButtonEvent(DeviceIntPtr dev, int index, int button, int is_down)
 {
     DGAScreenPtr pScreenPriv;
     dgaEvent de;
@@ -995,7 +995,7 @@ DGAStealButtonEvent(int index, int button, int is_down)
     de.u.event.dy = 0;
     de.u.event.pad1 = DGAMouseX;
     de.u.event.pad2 = DGAMouseY;
-    mieqEnqueue (inputInfo.pointer, (xEvent *) &de);
+    mieqEnqueue (dev, (xEvent *) &de);
 
     return TRUE;
 }
@@ -1038,6 +1038,7 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
     xEvent	    core;
     KeyClassPtr	    keyc = keybd->key;
     DGAScreenPtr    pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
+    DeviceIntPtr    pointer = GetPairedPointer(keybd);
     
     coreEquiv = de->u.u.type - *XDGAEventBase;
 
@@ -1047,7 +1048,7 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
     de->u.event.dx = 0;
     de->u.event.dy = 0;
     de->u.event.screen = pScreen->myNum;
-    de->u.event.state = keyc->state | (inputInfo.pointer)->button->state;
+    de->u.event.state = keyc->state | pointer->button->state;
 
     /*
      * Keep the core state in sync by duplicating what
@@ -1060,7 +1061,7 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
     switch (coreEquiv)
     {
     case KeyPress:
-	inputInfo.pointer->valuator->motionHintWindow = NullWindow;
+        pointer->valuator->motionHintWindow = NullWindow;
 	*kptr |= bit;
 	keyc->prev_state = keyc->state;
 #ifdef XKB
@@ -1081,7 +1082,7 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
 	}
 	break;
     case KeyRelease:
-	inputInfo.pointer->valuator->motionHintWindow = NullWindow;
+	pointer->valuator->motionHintWindow = NullWindow;
 	*kptr &= ~bit;
 	keyc->prev_state = keyc->state;
 #ifdef XKB
@@ -1197,8 +1198,6 @@ DGAProcessPointerEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr mouse)
 	/* If the pointer is actively grabbed, deliver a grabbed core event */
 	if (mouse->deviceGrab.grab && !mouse->deviceGrab.fromPassiveGrab)
 	{
-            /* I've got no clue if that is correct but only working on core
-             * grabs seems the right thing here. (whot) */
 	    core.u.u.type		    = coreEquiv;
 	    core.u.u.detail		    = de->u.u.detail;
 	    core.u.keyButtonPointer.time    = de->u.event.time;

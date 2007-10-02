@@ -539,7 +539,7 @@ xf86PostMotionEventP(DeviceIntPtr	device,
                     int			*valuators)
 {
     int i = 0, nevents = 0;
-    int dx, dy;
+    int dx = 0, dy = 0;
     Bool drag = xf86SendDragEvents(device);
     xEvent *xE = NULL;
     int index;
@@ -551,18 +551,25 @@ xf86PostMotionEventP(DeviceIntPtr	device,
         flags = POINTER_RELATIVE | POINTER_ACCELERATE;
 
 #if XFreeXDGA
-    if (first_valuator == 0 && num_valuators >= 2) {
-        if (miPointerGetScreen(inputInfo.pointer)) {
-            index = miPointerGetScreen(inputInfo.pointer)->myNum;
-            if (is_absolute) {
-                dx = valuators[0] - device->valuator->lastx;
-                dy = valuators[1] - device->valuator->lasty;
-            }
-            else {
+    /* The evdev driver may not always send all axes across. */
+    if (num_valuators >= 1 && first_valuator <= 1) {
+        if (miPointerGetScreen(device)) {
+            index = miPointerGetScreen(device)->myNum;
+            if (first_valuator == 0)
+            {
                 dx = valuators[0];
-                dy = valuators[1];
+                if (is_absolute)
+                    dx -= device->valuator->lastx;
             }
-            if (DGAStealMotionEvent(index, dx, dy))
+
+            if (first_valuator == 1 || num_valuators >= 2)
+            {
+                dy = valuators[1 - first_valuator];
+                if (is_absolute)
+                    dy -= device->valuator->lasty;
+            }
+
+            if (DGAStealMotionEvent(device, index, dx, dy))
                 return;
         }
     }
@@ -633,9 +640,9 @@ xf86PostButtonEvent(DeviceIntPtr	device,
     int index;
 
 #if XFreeXDGA
-    if (miPointerGetScreen(inputInfo.pointer)) {
-        index = miPointerGetScreen(inputInfo.pointer)->myNum;
-        if (DGAStealButtonEvent(index, button, is_down))
+    if (miPointerGetScreen(device)) {
+        index = miPointerGetScreen(device)->myNum;
+        if (DGAStealButtonEvent(device, index, button, is_down))
             return;
     }
 #endif
@@ -716,9 +723,11 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
     int index;
 
 #if XFreeXDGA
-    if (miPointerGetScreen(inputInfo.pointer)) {
-        index = miPointerGetScreen(inputInfo.pointer)->myNum;
-        if (DGAStealKeyEvent(index, key_code, is_down))
+    DeviceIntPtr pointer = GetPairedPointer(device);
+
+    if (miPointerGetScreen(pointer)) {
+        index = miPointerGetScreen(pointer)->myNum;
+        if (DGAStealKeyEvent(device, index, key_code, is_down))
             return;
     }
 #endif
