@@ -119,7 +119,6 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     dev->name = (char *)NULL;
     dev->type = 0;
     dev->id = devid;
-    inputInfo.numDevices++;
     dev->public.on = FALSE;
     dev->public.processInputProc = (ProcessInputProc)NoopDDA;
     dev->public.realInputProc = (ProcessInputProc)NoopDDA;
@@ -155,6 +154,15 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     dev->coreEvents = TRUE;
     dev->inited = FALSE;
     dev->enabled = FALSE;
+
+    /*  security creation/labeling check
+     */
+    if (XaceHook(XACE_DEVICE_ACCESS, serverClient, dev, DixCreateAccess)) {
+	xfree(dev);
+	return NULL;
+    }
+
+    inputInfo.numDevices++;
 
     for (prev = &inputInfo.off_devices; *prev; prev = &(*prev)->next)
         ;
