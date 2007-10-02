@@ -262,6 +262,7 @@ miPointerWarpCursor (pScreen, x, y)
 	miPointer.y = y;
 	miPointer.pScreen = pScreen;
     }
+    UpdateSpriteForScreen (pScreen) ;
 }
 
 /*

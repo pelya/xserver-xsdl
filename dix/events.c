@@ -2352,6 +2352,61 @@ DefineInitialRootWindow(WindowPtr win)
 #endif
 }
 
+/**
+ * Update the mouse sprite info when the server switches from a pScreen to another.
+ * Otherwise, the pScreen of the mouse sprite is never updated when we switch
+ * from a pScreen to another. Never updating the pScreen of the mouse sprite
+ * implies that windows that are in pScreen whose pScreen->myNum >0 will never
+ * get pointer events. This is  because in CheckMotion(), sprite.hotPhys.pScreen
+ * always points to the first pScreen it has been set by
+ * DefineInitialRootWindow().
+ *
+ * Calling this function is useful for use cases where the server
+ * has more than one pScreen.
+ * This function is similar to DefineInitialRootWindow() but it does not
+ * reset the mouse pointer position.
+ * @param win must be the new pScreen we are switching to.
+ */
+void
+UpdateSpriteForScreen(ScreenPtr pScreen)
+{
+    WindowPtr win = NULL;
+    if (!pScreen)
+        return ;
+    win = WindowTable[pScreen->myNum];
+
+    sprite.hotPhys.pScreen = pScreen;
+    sprite.hot = sprite.hotPhys;
+    sprite.hotLimits.x2 = pScreen->width;
+    sprite.hotLimits.y2 = pScreen->height;
+#ifdef XEVIE
+    xeviewin =
+#endif
+    sprite.win = win;
+    sprite.current = wCursor (win);
+    sprite.current->refcnt++;
+    spriteTraceGood = 1;
+    ROOT = win;
+    (*pScreen->CursorLimits) (pScreen,
+                              sprite.current,
+                              &sprite.hotLimits,
+                              &sprite.physLimits);
+    sprite.confined = FALSE;
+    (*pScreen->ConstrainCursor) (pScreen, &sprite.physLimits);
+    (*pScreen->DisplayCursor) (pScreen, sprite.current);
+
+#ifdef PANORAMIX
+    if(!noPanoramiXExtension) {
+        sprite.hotLimits.x1 = -panoramiXdataPtr[0].x;
+        sprite.hotLimits.y1 = -panoramiXdataPtr[0].y;
+        sprite.hotLimits.x2 = PanoramiXPixWidth  - panoramiXdataPtr[0].x;
+        sprite.hotLimits.y2 = PanoramiXPixHeight - panoramiXdataPtr[0].y;
+        sprite.physLimits = sprite.hotLimits;
+        sprite.screen = pScreen;
+    }
+#endif
+}
+
 /*
  * This does not take any shortcuts, and even ignores its argument, since
  * it does not happen very often, and one has to walk up the tree since

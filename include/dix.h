@@ -415,6 +415,9 @@ extern int DeliverDeviceEvents(
 extern void DefineInitialRootWindow(
     WindowPtr /* win */);
 
+extern void UpdateSpriteForScreen(
+     ScreenPtr /* pScreen */);
+
 extern void WindowHasNewCursor(
     WindowPtr /* pWin */);
 
