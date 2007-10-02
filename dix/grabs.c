@@ -406,7 +406,7 @@ DeletePassiveGrabFromList(GrabPtr pMinuendGrab)
 	 grab = grab->next)
     {
 	if ((CLIENT_BITS(grab->resource) != CLIENT_BITS(pMinuendGrab->resource)) ||
-	    !GrabMatchesSecond(grab, pMinuendGrab, FALSE))
+	    !GrabMatchesSecond(grab, pMinuendGrab, (grab->coreGrab)))
 	    continue;
 	if (GrabSupersedesSecond(pMinuendGrab, grab))
 	{
