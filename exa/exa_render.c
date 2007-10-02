@@ -1081,7 +1081,6 @@ exaGlyphs (CARD8	op,
 	  GlyphPtr	*glyphs)
 {
     ExaScreenPriv (pDst->pDrawable->pScreen);
-    PixmapPtr	pPixmap = NULL;
     PicturePtr	pPicture;
     PixmapPtr   pMaskPixmap = NULL;
     PicturePtr  pMask;
@@ -1171,8 +1170,6 @@ exaGlyphs (CARD8	op,
     {
 	GCPtr pGC = NULL;
 	int maxwidth = 0, maxheight = 0, i;
-	ExaMigrationRec pixmaps[1];
-	PixmapPtr pScratchPixmap = NULL;
 
 	x += list->xOff;
 	y += list->yOff;
@@ -1196,38 +1193,9 @@ exaGlyphs (CARD8	op,
 	    continue;
 	}
 
-	/* Create the (real) temporary pixmap to store the current glyph in */
-	pPixmap = (*pScreen->CreatePixmap) (pScreen, maxwidth, maxheight,
-					    list->format->depth);
-	if (!pPixmap)
-	    return;
-
-	/* Create a temporary picture to wrap the temporary pixmap, so it can be
-	 * used as a source for Composite.
-	 */
-	component_alpha = NeedsComponent(list->format->format);
-	pPicture = CreatePicture (0, &pPixmap->drawable, list->format,
-				  CPComponentAlpha, &component_alpha, 
-				  serverClient, &error);
-	if (!pPicture) {
-	    (*pScreen->DestroyPixmap) (pPixmap);
-	    return;
-	}
-	ValidatePicture(pPicture);
-
-	/* Give the temporary pixmap an initial kick towards the screen, so
-	 * it'll stick there.
-	 */
-	pixmaps[0].as_dst = TRUE;
-	pixmaps[0].as_src = FALSE;
-	pixmaps[0].pPix = pPixmap;
-	pixmaps[0].pReg = NULL;
-	exaDoMigration (pixmaps, 1, pExaScr->info->PrepareComposite != NULL);
-
 	while (n--)
 	{
 	    GlyphPtr glyph = *glyphs++;
-	    pointer glyphdata = (pointer) (glyph + 1);
 	    DrawablePtr pCmpDrw = (maskFormat ? pMask : pDst)->pDrawable;
 
 	    x1 = x - glyph->info.x;
@@ -1237,69 +1205,9 @@ exaGlyphs (CARD8	op,
 		(x1 + glyph->info.width) <= 0 || (y1 + glyph->info.height) <= 0)
 		goto nextglyph;
 
-	    (*pScreen->ModifyPixmapHeader) (pScratchPixmap, 
-					    glyph->info.width,
-					    glyph->info.height,
-					    0, 0, -1, glyphdata);
-
-	    /* Copy the glyph data into the proper pixmap instead of a fake.
-	     * First we try to use UploadToScreen, if we can, then we fall back
-	     * to a plain exaCopyArea in case of failure.
-	     */
-	    if (pExaScr->info->UploadToScreen &&
-		exaPixmapIsOffscreen(pPixmap) &&
-		(*pExaScr->info->UploadToScreen) (pPixmap, 0, 0,
-					glyph->info.width,
-					glyph->info.height,
-					glyphdata,
-					PixmapBytePad(glyph->info.width,
-						      list->format->depth)))
-	    {
-		exaMarkSync (pScreen);
-	    } else {
-		/* Set up the scratch pixmap/GC for doing a CopyArea. */
-		if (pScratchPixmap == NULL) {
-		    /* Get a scratch pixmap to wrap the original glyph data */
-		    pScratchPixmap = GetScratchPixmapHeader (pScreen,
-							glyph->info.width,
-							glyph->info.height, 
-							list->format->depth,
-							list->format->depth, 
-							-1, glyphdata);
-		    if (!pScratchPixmap) {
-			FreePicture(pPicture, 0);
-			(*pScreen->DestroyPixmap) (pPixmap);
-			return;
-		    }
-	
-		    /* Get a scratch GC with which to copy the glyph data from
-		     * scratch to temporary
-		     */
-		    pGC = GetScratchGC (list->format->depth, pScreen);
-		    ValidateGC (&pPixmap->drawable, pGC);
-		} else {
-		    (*pScreen->ModifyPixmapHeader) (pScratchPixmap, 
-						    glyph->info.width,
-						    glyph->info.height,
-						    0, 0, -1, glyphdata);
-		    pScratchPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
-		}
-
-#ifdef MITSHM
-		if (pExaScr->info->PrepareComposite)
-		    exaShmPutImage(&pPixmap->drawable, pGC,
-				   pPixmap->drawable.depth, ZPixmap,
-				   glyph->info.width, glyph->info.height, 0, 0,
-				   glyph->info.width, glyph->info.height, 0, 0,
-				   glyphdata);
-		else
-#endif
-		exaCopyArea (&pScratchPixmap->drawable, &pPixmap->drawable, pGC,
-			     0, 0, glyph->info.width, glyph->info.height, 0, 0);
-	    }
-
-	    exaPixmapDirty (pPixmap, 0, 0,
-			    glyph->info.width, glyph->info.height);
+	    /* The glyph already has a Picture ready for us to use. */
+	    pPicture = GlyphPicture (glyph)[pScreen->myNum];
+	    ValidatePicture(pPicture);
 
 	    if (maskFormat)
 	    {
@@ -1315,6 +1223,7 @@ exaGlyphs (CARD8	op,
 			      0, 0, x1, y1, glyph->info.width,
 			      glyph->info.height);
 	    }
+
 nextglyph:
 	    x += glyph->info.xOff;
 	    y += glyph->info.yOff;
@@ -1322,10 +1231,6 @@ nextglyph:
 	list++;
 	if (pGC != NULL)
 	    FreeScratchGC (pGC);
-	FreePicture ((pointer) pPicture, 0);
-	(*pScreen->DestroyPixmap) (pPixmap);
-	if (pScratchPixmap != NULL)
-	    FreeScratchPixmapHeader (pScratchPixmap);
     }
     if (maskFormat)
     {

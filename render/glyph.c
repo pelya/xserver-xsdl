@@ -26,6 +26,8 @@
 #include <dix-config.h>
 #endif
 
+#include <openssl/sha.h>
+
 #include "misc.h"
 #include "scrnintstr.h"
 #include "os.h"
@@ -412,7 +414,10 @@ _GlyphSetSetNewPrivate (GlyphSetPtr glyphSet, int n, pointer ptr)
 }
 
 GlyphRefPtr
-FindGlyphRef (GlyphHashPtr hash, CARD32 signature, Bool match, GlyphPtr compare)
+FindGlyphRef (GlyphHashPtr	hash,
+	      CARD32		signature,
+	      Bool		match,
+	      unsigned char	sha1[20])
 {
     CARD32	elt, step, s;
     GlyphPtr	glyph;
@@ -443,7 +448,7 @@ FindGlyphRef (GlyphHashPtr hash, CARD32 signature, Bool match, GlyphPtr compare)
 	}
 	else if (s == signature &&
 		 (!match || 
-		  memcmp (&compare->info, &glyph->info, compare->size) == 0))
+		  memcmp (glyph->sha1, sha1, 20) == 0))
 	{
 	    break;
 	}
@@ -460,17 +465,47 @@ FindGlyphRef (GlyphHashPtr hash, CARD32 signature, Bool match, GlyphPtr compare)
     return gr;
 }
 
-CARD32
-HashGlyph (GlyphPtr glyph)
+int
+HashGlyph (xGlyphInfo    *gi,
+	   CARD8	 *bits,
+	   unsigned long size,
+	   unsigned char sha1[20])
 {
-    CARD32  *bits = (CARD32 *) &(glyph->info);
-    CARD32  hash;
-    int	    n = glyph->size / sizeof (CARD32);
+    SHA_CTX ctx;
+    int success;
 
-    hash = 0;
-    while (n--)
-	hash ^= *bits++;
-    return hash;
+    success = SHA1_Init (&ctx);
+    if (! success)
+	return BadAlloc;
+
+    success = SHA1_Update (&ctx, gi, sizeof (xGlyphInfo));
+    if (! success)
+	return BadAlloc;
+
+    success = SHA1_Update (&ctx, bits, size);
+    if (! success)
+	return BadAlloc;
+
+    success = SHA1_Final (sha1, &ctx);
+    if (! success)
+	return BadAlloc;
+
+    return Success;
+}
+
+GlyphPtr
+FindGlyphByHash (unsigned char sha1[20], int format)
+{
+    GlyphRefPtr gr;
+    CARD32 signature = *(CARD32 *) sha1;
+
+    gr = FindGlyphRef (&globalGlyphs[format],
+		       signature, TRUE, sha1);
+
+    if (gr->glyph && gr->glyph != DeletedGlyph)
+	return gr->glyph;
+    else
+	return NULL;
 }
 
 #ifdef CHECK_DUPLICATES
@@ -511,6 +546,7 @@ FreeGlyph (GlyphPtr glyph, int format)
 	GlyphRefPtr      gr;
 	int	         i;
 	int	         first;
+	CARD32		 signature;
 
 	first = -1;
 	for (i = 0; i < globalGlyphs[format].hashSet->size; i++)
@@ -521,8 +557,9 @@ FreeGlyph (GlyphPtr glyph, int format)
 		first = i;
 	    }
 
-	gr = FindGlyphRef (&globalGlyphs[format],
-			   HashGlyph (glyph), TRUE, glyph);
+	signature = *(CARD32 *) glyph->sha1;
+	gr = FindGlyphRef (&globalGlyphs[format], signature,
+			   TRUE, glyph->sha1);
 	if (gr - globalGlyphs[format].table != first)
 	    DuplicateRef (glyph, "Found wrong one");
 	if (gr->glyph && gr->glyph != DeletedGlyph)
@@ -534,9 +571,13 @@ FreeGlyph (GlyphPtr glyph, int format)
 
 	for (i = 0; i < screenInfo.numScreens; i++)
 	{
-	    ps = GetPictureScreenIfSet (screenInfo.screens[i]);
+	    ScreenPtr pScreen = screenInfo.screens[i];
+
+	    FreePicture ((pointer) GlyphPicture (glyph)[i], 0);
+
+	    ps = GetPictureScreenIfSet (pScreen);
 	    if (ps)
-		(*ps->UnrealizeGlyph) (screenInfo.screens[i], glyph);
+		(*ps->UnrealizeGlyph) (pScreen, glyph);
 	}
 	
 	if (glyph->devPrivates)
@@ -549,13 +590,14 @@ void
 AddGlyph (GlyphSetPtr glyphSet, GlyphPtr glyph, Glyph id)
 {
     GlyphRefPtr	    gr;
-    CARD32	    hash;
+    CARD32	    signature;
 
     CheckDuplicates (&globalGlyphs[glyphSet->fdepth], "AddGlyph top global");
     /* Locate existing matching glyph */
-    hash = HashGlyph (glyph);
-    gr = FindGlyphRef (&globalGlyphs[glyphSet->fdepth], hash, TRUE, glyph);
-    if (gr->glyph && gr->glyph != DeletedGlyph)
+    signature = *(CARD32 *) glyph->sha1;
+    gr = FindGlyphRef (&globalGlyphs[glyphSet->fdepth], signature,
+		       TRUE, glyph->sha1);
+    if (gr->glyph && gr->glyph != DeletedGlyph && gr->glyph != glyph)
     {
 	PictureScreenPtr ps;
 	int              i;
@@ -571,10 +613,10 @@ AddGlyph (GlyphSetPtr glyphSet, GlyphPtr glyph, Glyph id)
 	xfree (glyph);
 	glyph = gr->glyph;
     }
-    else
+    else if (gr->glyph != glyph)
     {
 	gr->glyph = glyph;
-	gr->signature = hash;
+	gr->signature = signature;
 	globalGlyphs[glyphSet->fdepth].tableEntries++;
     }
     
@@ -627,7 +669,7 @@ AllocateGlyph (xGlyphInfo *gi, int fdepth)
     GlyphPtr	     glyph;
     int		     i;
 
-    size = gi->height * PixmapBytePad (gi->width, glyphDepths[fdepth]);
+    size = screenInfo.numScreens * sizeof (PicturePtr);
     glyph = (GlyphPtr) xalloc (size + sizeof (GlyphRec));
     if (!glyph)
 	return 0;
@@ -648,26 +690,28 @@ AllocateGlyph (xGlyphInfo *gi, int fdepth)
     for (i = 0; i < screenInfo.numScreens; i++)
     {
 	ps = GetPictureScreenIfSet (screenInfo.screens[i]);
+
 	if (ps)
 	{
 	    if (!(*ps->RealizeGlyph) (screenInfo.screens[i], glyph))
-	    {
-		while (i--)
-		{
-		    ps = GetPictureScreenIfSet (screenInfo.screens[i]);
-		    if (ps)
-			(*ps->UnrealizeGlyph) (screenInfo.screens[i], glyph);
-		}
-		
-		if (glyph->devPrivates)
-		    xfree (glyph->devPrivates);
-		xfree (glyph);
-		return 0;
-	    }
+		goto bail;
 	}
     }
     
     return glyph;
+
+bail:
+    while (i--)
+    {
+	ps = GetPictureScreenIfSet (screenInfo.screens[i]);
+	if (ps)
+	    (*ps->UnrealizeGlyph) (screenInfo.screens[i], glyph);
+    }
+		
+    if (glyph->devPrivates)
+	xfree (glyph->devPrivates);
+    xfree (glyph);
+    return 0;
 }
     
 Bool
@@ -711,7 +755,7 @@ ResizeGlyphHash (GlyphHashPtr hash, CARD32 change, Bool global)
 	    if (glyph && glyph != DeletedGlyph)
 	    {
 		s = hash->table[i].signature;
-		gr = FindGlyphRef (&newHash, s, global, glyph);
+		gr = FindGlyphRef (&newHash, s, global, glyph->sha1);
 		gr->signature = s;
 		gr->glyph = glyph;
 		++newHash.tableEntries;
