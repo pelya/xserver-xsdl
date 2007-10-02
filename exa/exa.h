@@ -39,7 +39,7 @@
 #include "fb.h"
 
 #define EXA_VERSION_MAJOR   2
-#define EXA_VERSION_MINOR   3
+#define EXA_VERSION_MINOR   4
 #define EXA_VERSION_RELEASE 0
 
 typedef struct _ExaOffscreenArea ExaOffscreenArea;
