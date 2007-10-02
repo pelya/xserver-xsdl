@@ -71,6 +71,8 @@ extern KdCardFuncs ephyrFuncs;
 extern KdKeyboardInfo *ephyrKbd;
 extern KdPointerInfo *ephyrMouse;
 
+extern miPointerScreenFuncRec ephyrPointerScreenFuncs;
+
 Bool
 ephyrInitialize (KdCardInfo *card, EphyrPriv *priv);
 

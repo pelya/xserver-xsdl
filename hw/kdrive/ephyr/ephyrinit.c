@@ -33,6 +33,8 @@ extern Bool   EphyrWantGrayScale;
 extern Bool   kdHasPointer;
 extern Bool   kdHasKbd;
 
+void processScreenArg (char *screen_size, char *parent_id) ;
+
 void
 InitCard (char *name)
 {
@@ -100,19 +102,60 @@ ddxUseMsg (void)
   exit(1);
 }
 
+void
+processScreenArg (char *screen_size, char *parent_id)
+{
+  KdCardInfo   *card;
+  static int card_exists;
+
+  InitCard (0);  /*Put each screen on a separate card*/
+  card = KdCardInfoLast ();
+
+  if (card)
+    {
+      KdScreenInfo *screen;
+      unsigned long p_id = 0;
+
+      screen = KdScreenInfoAdd (card);
+      KdParseScreen (screen, screen_size);
+
+      if (parent_id)
+        {
+          p_id = strtol (parent_id, NULL, 0);
+        }
+      EPHYR_DBG ("screen number:%d\n", screen->mynum) ;
+      hostx_add_screen (screen, p_id, screen->mynum);
+    }
+  else
+    {
+      ErrorF("No matching card found!\n");
+    }
+}
+
 int
 ddxProcessArgument (int argc, char **argv, int i)
 {
-  EPHYR_DBG("mark");
+  EPHYR_DBG("mark argv[%d]='%s'", i, argv[i] );
 
   if (!strcmp (argv[i], "-parent"))
     {
-      if(i+1 < argc) 
+      if(i+1 < argc)
 	{
-	  hostx_use_preexisting_window(strtol(argv[i+1], NULL, 0));
+	  processScreenArg ("100x100", argv[i+1]);
 	  return 2;
-	} 
-      
+	}
+
+      UseMsg();
+      exit(1);
+    }
+  else if (!strcmp (argv[i], "-screen"))
+    {
+      if ((i+1) < argc)
+	{
+	  processScreenArg (argv[i+1], NULL);
+	  return 2;
+	}
+
       UseMsg();
       exit(1);
     }
@@ -198,8 +241,10 @@ miPointerSpriteFuncRec EphyrPointerSpriteFuncs = {
 Bool
 ephyrCursorInit(ScreenPtr pScreen)
 {
-  miPointerInitialize(pScreen, &EphyrPointerSpriteFuncs,
-		      &kdPointerScreenFuncs, FALSE);
+  miPointerInitialize(pScreen, 
+		      &EphyrPointerSpriteFuncs,
+		      &ephyrPointerScreenFuncs, 
+		      FALSE);
 
   return TRUE;
 }

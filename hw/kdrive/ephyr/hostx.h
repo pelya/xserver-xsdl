@@ -40,8 +40,8 @@
 
 typedef struct EphyrHostXVars  EphyrHostXVars;
 typedef struct EphyrHostXEvent EphyrHostXEvent;
-
-typedef enum EphyrHostXEventType 
+typedef void* EphyrScreenInfo ;
+typedef enum EphyrHostXEventType
 {
   EPHYR_EV_MOUSE_MOTION,
   EPHYR_EV_MOUSE_PRESS,
@@ -68,6 +68,7 @@ struct EphyrHostXEvent
     struct mouse_motion { 	
       int x;
       int y;
+      int screen;
     } mouse_motion;
 
     struct mouse_down { 	
@@ -92,7 +93,7 @@ struct EphyrHostXEvent
 };
 
 int
-hostx_want_screen_size(int *width, int *height);
+hostx_want_screen_size(EphyrScreenInfo screen, int *width, int *height);
 
 int
 hostx_want_host_cursor(void);
@@ -107,7 +108,7 @@ int
 hostx_want_fullscreen(void);
 
 int
-hostx_want_preexisting_window(void);
+hostx_want_preexisting_window(EphyrScreenInfo screen);
 
 void
 hostx_use_preexisting_window(unsigned long win_id);
@@ -119,25 +120,32 @@ int
 hostx_init(void);
 
 void
+hostx_add_screen(EphyrScreenInfo screen, unsigned long win_id, int screen_num);
+
+void
 hostx_set_display_name(char *name);
 
 void
-hostx_set_win_title(char *extra_text);
+hostx_set_screen_number(EphyrScreenInfo screen, int number);
+
+void
+hostx_set_win_title(EphyrScreenInfo screen, char *extra_text);
 
 int
 hostx_get_depth (void);
 
 int
-hostx_get_server_depth (void);
+hostx_get_server_depth (EphyrScreenInfo screen);
 
 void
-hostx_set_server_depth(int depth);
+hostx_set_server_depth(EphyrScreenInfo screen, int depth);
 
 int
-hostx_get_bpp(void);
+hostx_get_bpp(void *info);
 
 void
-hostx_get_visual_masks (CARD32 *rmsk, 
+hostx_get_visual_masks (void   *info,
+			CARD32 *rmsk, 
 			CARD32 *gmsk, 
 			CARD32 *bmsk);
 void
@@ -147,15 +155,16 @@ hostx_set_cmap_entry(unsigned char idx,
 		     unsigned char b);
 
 void*
-hostx_screen_init (int width, int height, int buffer_height);
+hostx_screen_init (EphyrScreenInfo screen,
+                   int width, int height,
+                   int buffer_height);
 
 void
-hostx_paint_rect(int sx,    int sy,
-		 int dx,    int dy, 
+hostx_paint_rect(EphyrScreenInfo screen,
+		 int sx,    int sy,
+		 int dx,    int dy,
 		 int width, int height);
-void
-hostx_paint_debug_rect(int x,     int y, 
-		       int width, int height);
+
 
 void
 hostx_load_keymap(void);

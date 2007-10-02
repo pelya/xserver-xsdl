@@ -31,6 +31,14 @@
 static int
 EphyrInit (void)
 {
+  /*
+   * make sure at least one screen
+   * has been added to the system.
+   */
+  if (!KdCardInfoLast ())
+    {
+        processScreenArg ("640x480", NULL) ;
+    }
   return hostx_init();
 }
 
