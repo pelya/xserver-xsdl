@@ -1428,6 +1428,7 @@ dnl has it in libc), or if libdl is needed to get it.
                case $host_os in
                  darwin*) ;;
 		 *bsd*) ;;
+		 linux*) ;;
                  *) xorg_bus_ix86pci=yes ;;
                esac
 		;;
@@ -1446,7 +1447,7 @@ dnl has it in libc), or if libdl is needed to get it.
 		;;
 	  x86_64*|amd64*)
 		case $host_os in
-		  darwin*|*bsd*)
+		  darwin*|*bsd*|linux*)
 			;;
 		  *)
 			xorg_bus_ix86pci="yes"
