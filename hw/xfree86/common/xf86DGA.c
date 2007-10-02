@@ -1144,15 +1144,15 @@ DGAProcessPointerEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr mouse)
      * Fill in remaining event state
      */
     de->u.event.screen = pScreen->myNum;
-    de->u.event.state = butc->state | inputInfo.keyboard->key->state;
+    de->u.event.state = butc->state | GetPairedKeyboard(mouse)->key->state;
     /*
      * Keep the core state in sync by duplicating what
      * CoreProcessPointerEvent does
      */
     if (coreEquiv != MotionNotify)
     {
-	register int  key;
-	register BYTE *kptr;
+	int           key;
+	BYTE          *kptr;
 	int           bit;
 	
 	key = de->u.u.detail;
@@ -1295,10 +1295,10 @@ DGAHandleEvent(int screen_num, xEvent *event, DeviceIntPtr device, int nevents)
     switch (coreEquiv) {
     case KeyPress:
     case KeyRelease:
-	DGAProcessKeyboardEvent (pScreen, de, inputInfo.keyboard);
+	DGAProcessKeyboardEvent (pScreen, de, device);
 	break;
     default:
-	DGAProcessPointerEvent (pScreen, de, inputInfo.pointer);
+	DGAProcessPointerEvent (pScreen, de, device);
 	break;
     }
 }
