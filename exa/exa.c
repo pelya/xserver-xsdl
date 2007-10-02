@@ -183,9 +183,18 @@ exaPixmapDirty (PixmapPtr pPix, int x1, int y1, int x2, int y2)
 static Bool
 exaDestroyPixmap (PixmapPtr pPixmap)
 {
+    ScreenPtr	pScreen = pPixmap->drawable.pScreen;
+    ExaScreenPriv(pScreen);
+
     if (pPixmap->refcnt == 1)
     {
 	ExaPixmapPriv (pPixmap);
+
+	if (pExaPixmap->driverPriv) {
+	    pExaScr->info->DestroyPixmap(pScreen, pExaPixmap->driverPriv);
+	    pExaPixmap->driverPriv = NULL;
+	}
+
 	if (pExaPixmap->area)
 	{
 	    DBG_PIXMAP(("-- 0x%p (0x%x) (%dx%d)\n",
@@ -229,46 +238,86 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 {
     PixmapPtr		pPixmap;
     ExaPixmapPrivPtr	pExaPixmap;
+    int                 driver_alloc = 0;
     int			bpp;
     ExaScreenPriv(pScreen);
 
     if (w > 32767 || h > 32767)
 	return NullPixmap;
 
-    pPixmap = fbCreatePixmap (pScreen, w, h, depth);
+    if (!pExaScr->info->CreatePixmap) {
+        pPixmap = fbCreatePixmap (pScreen, w, h, depth);
+    } else {
+        driver_alloc = 1;
+        pPixmap = fbCreatePixmap(pScreen, 0, 0, depth);
+    }
+
     if (!pPixmap)
-	return NULL;
+        return NULL;
+
     pExaPixmap = ExaGetPixmapPriv(pPixmap);
 
     bpp = pPixmap->drawable.bitsPerPixel;
 
-    /* Glyphs have w/h equal to zero, and may not be migrated. See exaGlyphs. */
-    if (!w || !h)
-	pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
-    else
-	pExaPixmap->score = EXA_PIXMAP_SCORE_INIT;
+    if (driver_alloc) {
+        size_t paddedWidth, datasize;
+        void *driver_priv;
 
-    pExaPixmap->area = NULL;
+	paddedWidth = ((w * bpp + FB_MASK) >> FB_SHIFT) * sizeof(FbBits);
+        if (paddedWidth / 4 > 32767 || h > 32767)
+            return NullPixmap;
 
-    pExaPixmap->sys_ptr = pPixmap->devPrivate.ptr;
-    pExaPixmap->sys_pitch = pPixmap->devKind;
+        if (pExaScr->info->flags & EXA_OFFSCREEN_ALIGN_POT && w != 1)
+            pExaPixmap->fb_pitch = (1 << (exaLog2(w - 1) + 1)) * bpp / 8;
+        else
+            pExaPixmap->fb_pitch = w * bpp / 8;
+        pExaPixmap->fb_pitch = EXA_ALIGN(pExaPixmap->fb_pitch,
+                                         pExaScr->info->pixmapPitchAlign);
+        if (paddedWidth < pExaPixmap->fb_pitch)
+            paddedWidth = pExaPixmap->fb_pitch;
 
-    pPixmap->devPrivate.ptr = NULL;
-    pExaPixmap->offscreen = FALSE;
+        datasize = h * paddedWidth;
 
-    pExaPixmap->fb_ptr = NULL;
-    if (pExaScr->info->flags & EXA_OFFSCREEN_ALIGN_POT && w != 1)
-	pExaPixmap->fb_pitch = (1 << (exaLog2(w - 1) + 1)) * bpp / 8;
-    else
-	pExaPixmap->fb_pitch = w * bpp / 8;
-    pExaPixmap->fb_pitch = EXA_ALIGN(pExaPixmap->fb_pitch,
-				     pExaScr->info->pixmapPitchAlign);
-    pExaPixmap->fb_size = pExaPixmap->fb_pitch * h;
+        driver_priv = pExaScr->info->CreatePixmap(pScreen, datasize, 0);
+        if (!driver_priv) {
+             fbDestroyPixmap(pPixmap);
+             return NULL;
+        }
 
-    if (pExaPixmap->fb_pitch > 131071) {
-	fbDestroyPixmap(pPixmap);
-	return NULL;
+        (*pScreen->ModifyPixmapHeader)(pPixmap, w, h, 0, 0,
+                                       paddedWidth, NULL);
+         pExaPixmap->driverPriv = driver_priv;
+         pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
+    } else {
+         pExaPixmap->driverPriv = NULL;
+         /* Glyphs have w/h equal to zero, and may not be migrated. See exaGlyphs. */
+        if (!w || !h)
+	    pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
+        else
+            pExaPixmap->score = EXA_PIXMAP_SCORE_INIT;
+
+        pExaPixmap->sys_ptr = pPixmap->devPrivate.ptr;
+        pExaPixmap->sys_pitch = pPixmap->devKind;
+
+        pPixmap->devPrivate.ptr = NULL;
+        pExaPixmap->offscreen = FALSE;
+
+        pExaPixmap->fb_ptr = NULL;
+        if (pExaScr->info->flags & EXA_OFFSCREEN_ALIGN_POT && w != 1)
+            pExaPixmap->fb_pitch = (1 << (exaLog2(w - 1) + 1)) * bpp / 8;
+        else
+            pExaPixmap->fb_pitch = w * bpp / 8;
+        pExaPixmap->fb_pitch = EXA_ALIGN(pExaPixmap->fb_pitch,
+				         pExaScr->info->pixmapPitchAlign);
+        pExaPixmap->fb_size = pExaPixmap->fb_pitch * h;
+
+        if (pExaPixmap->fb_pitch > 131071) {
+	     fbDestroyPixmap(pPixmap);
+	     return NULL;
+        }
     }
+ 
+    pExaPixmap->area = NULL;
 
     /* Set up damage tracking */
     pExaPixmap->pDamage = DamageCreate (NULL, NULL, DamageReportNone, TRUE,
@@ -315,6 +364,7 @@ exaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height, int depth,
 {
     ExaScreenPrivPtr pExaScr;
     ExaPixmapPrivPtr pExaPixmap;
+    Bool ret;
 
     if (!pPixmap)
         return FALSE;
@@ -326,6 +376,12 @@ exaModifyPixmapHeader(PixmapPtr pPixmap, int width, int height, int depth,
 
     pExaScr = ExaGetScreenPriv(pPixmap->drawable.pScreen);
 
+    if (pExaScr->info->ModifyPixmapHeader) {
+	ret = pExaScr->info->ModifyPixmapHeader(pPixmap, width, height, depth,
+						bitsPerPixel, devKind, pPixData);
+	if (ret == TRUE)
+	    return ret;
+    }
     return pExaScr->SavedModifyPixmapHeader(pPixmap, width, height, depth,
 					    bitsPerPixel, devKind, pPixData);
 }
@@ -843,6 +899,7 @@ exaDriverInit (ScreenPtr		pScreen,
 
 	pExaScr->SavedModifyPixmapHeader = pScreen->ModifyPixmapHeader;
 	pScreen->ModifyPixmapHeader = exaModifyPixmapHeader;
+
 	LogMessage(X_INFO, "EXA(%d): Offscreen pixmap area of %d bytes\n",
 		   pScreen->myNum,
 		   pExaScr->info->memorySize - pExaScr->info->offScreenBase);
