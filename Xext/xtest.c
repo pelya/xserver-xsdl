@@ -141,7 +141,7 @@ ProcXTestCompareCursor(client)
     register int n, rc;
 
     REQUEST_SIZE_MATCH(xXTestCompareCursorReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
         return rc;
     if (stuff->cursor == None)
@@ -149,11 +149,12 @@ ProcXTestCompareCursor(client)
     else if (stuff->cursor == XTestCurrentCursor)
 	pCursor = GetSpriteCursor();
     else {
-	pCursor = (CursorPtr)LookupIDByType(stuff->cursor, RT_CURSOR);
-	if (!pCursor) 
+	rc = dixLookupResource((pointer *)&pCursor, stuff->cursor, RT_CURSOR,
+			       client, DixReadAccess);
+	if (rc != Success) 
 	{
 	    client->errorValue = stuff->cursor;
-	    return (BadCursor);
+	    return (rc == BadValue) ? BadCursor : rc;
 	}
     }
     rep.type = X_Reply;
@@ -366,7 +367,7 @@ ProcXTestFakeInput(client)
 	else
 	{
 	    rc = dixLookupWindow(&root, ev->u.keyButtonPointer.root, client,
-				 DixUnknownAccess);
+				 DixGetAttrAccess);
 	    if (rc != Success)
 		return rc;
 	    if (root->parent)
