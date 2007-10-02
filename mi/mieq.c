@@ -267,10 +267,12 @@ mieqProcessInputEvents(void)
                 return;
             }
 
-            /* If this is a core event, make sure our keymap, et al, is
-             * changed to suit. */
-            if (e->events->event[0].u.u.type == KeyPress ||
-                e->events->event[0].u.u.type == KeyRelease) {
+            /* Make sure our keymap, et al, is changed to suit. */
+            if ((e->events->event[0].u.u.type == DeviceKeyPress ||
+                e->events->event[0].u.u.type == DeviceKeyRelease ||
+                e->events->event[0].u.u.type == KeyPress ||
+                e->events->event[0].u.u.type == KeyRelease) && 
+                    e->pDev->coreEvents) {
                 SwitchCoreKeyboard(e->pDev);
             }
 
