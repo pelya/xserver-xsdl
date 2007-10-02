@@ -773,6 +773,9 @@ exaMoveInPixmap (PixmapPtr pPixmap);
 void
 exaMoveOutPixmap (PixmapPtr pPixmap);
 
+void *
+exaGetPixmapDriverPrivate(PixmapPtr p);
+
 /**
  * Returns TRUE if the given planemask covers all the significant bits in the
  * pixel values for pDrawable.

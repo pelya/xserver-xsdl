@@ -74,6 +74,14 @@ exaGetPixmapOffset(PixmapPtr pPix)
 	    (unsigned long)pExaScr->info->memoryBase);
 }
 
+void *
+exaGetPixmapDriverPrivate(PixmapPtr pPix)
+{
+    ExaPixmapPriv(pPix);
+
+    return pExaPixmap->driverPriv;
+}
+
 /**
  * exaGetPixmapPitch() returns the pitch (in bytes) of the given pixmap.
  *

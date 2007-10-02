@@ -192,6 +192,10 @@ typedef struct {
      * damage, which may be overreported) of a pixmap's system and FB copies.
      */
     RegionRec	    validSys, validFB;
+    /**
+     * Driver private storage per EXA pixmap
+     */
+    void *driverPriv;
 } ExaPixmapPrivRec, *ExaPixmapPrivPtr;
  
 typedef struct _ExaMigrationRec {
