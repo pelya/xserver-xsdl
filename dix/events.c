@@ -4160,7 +4160,7 @@ EnterLeaveEvent(
      * Sending multiple core enter/leave events to the same window confuse the
      * client.  
      * We can send multiple events that have detail NotifyVirtual or
-     * NotifyNonlinearVirtual however.
+     * NotifyNonlinearVirtual however. For most clients anyway.
      *
      * For standard events (NotifyAncestor, NotifyInferior, NotifyNonlinear)
      * we only send an enter event for the first pointer to enter. A leave
@@ -4183,8 +4183,6 @@ EnterLeaveEvent(
     if (event.u.u.detail != NotifyVirtual && 
             event.u.u.detail != NotifyNonlinearVirtual)
     {
-        (type == EnterNotify) ? (*inWindow)++ : (*inWindow)--;
-
         if (((*inWindow) == (LeaveNotify - type)))
             sendevent = TRUE;
     } else
@@ -4289,6 +4287,22 @@ LeaveNotifies(DeviceIntPtr pDev,
     }
 }
 
+#define FOCUS_SEMAPHORE_MODIFY(win, field, mode, val) \
+    { \
+        if (mode != NotifyGrab && mode != NotifyUngrab) \
+        { \
+            FocusSemaphoresPtr sem;\
+            sem = (FocusSemaphoresPtr)win->devPrivates[FocusPrivatesIndex].ptr; \
+            sem->field += val; \
+        } \
+    }
+#define ENTER_LEAVE_SEMAPHORE_UP(win, mode)  \
+        FOCUS_SEMAPHORE_MODIFY(win, enterleave, mode, 1); 
+
+#define ENTER_LEAVE_SEMAPHORE_DOWN(win, mode) \
+        FOCUS_SEMAPHORE_MODIFY(win, enterleave, mode,  -1);
+
+
 /**
  * Figure out if enter/leave events are necessary and send them to the
  * appropriate windows.
@@ -4306,27 +4320,33 @@ DoEnterLeaveEvents(DeviceIntPtr pDev,
 	return;
     if (IsParent(fromWin, toWin))
     {
+        ENTER_LEAVE_SEMAPHORE_DOWN(fromWin, mode); 
         EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyInferior, fromWin,
                         None); 
         EnterNotifies(pDev, fromWin, toWin, mode,
                       NotifyVirtual);
+        ENTER_LEAVE_SEMAPHORE_UP(toWin, mode);
         EnterLeaveEvent(pDev, EnterNotify, mode, NotifyAncestor, toWin, None);
     }
     else if (IsParent(toWin, fromWin))
     {
+        ENTER_LEAVE_SEMAPHORE_DOWN(fromWin, mode); 
 	EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyAncestor, fromWin, 
                         None);
 	LeaveNotifies(pDev, fromWin, toWin, mode, NotifyVirtual);
+        ENTER_LEAVE_SEMAPHORE_UP(toWin, mode);
 	EnterLeaveEvent(pDev, EnterNotify, mode, NotifyInferior, toWin, None);
     }
     else
     { /* neither fromWin nor toWin is descendent of the other */
 	WindowPtr common = CommonAncestor(toWin, fromWin);
 	/* common == NullWindow ==> different screens */
+        ENTER_LEAVE_SEMAPHORE_DOWN(fromWin, mode); 
         EnterLeaveEvent(pDev, LeaveNotify, mode, NotifyNonlinear, fromWin,
                         None); 
         LeaveNotifies(pDev, fromWin, common, mode, NotifyNonlinearVirtual);
 	EnterNotifies(pDev, common, toWin, mode, NotifyNonlinearVirtual);
+        ENTER_LEAVE_SEMAPHORE_UP(toWin, mode);
         EnterLeaveEvent(pDev, EnterNotify, mode, NotifyNonlinear, toWin,
                         None); 
     }
