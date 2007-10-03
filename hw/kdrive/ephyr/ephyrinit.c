@@ -27,11 +27,15 @@
 #include <kdrive-config.h>
 #endif
 #include "ephyr.h"
+#include "ephyrlog.h"
 
 extern Window EphyrPreExistingHostWin;
 extern Bool   EphyrWantGrayScale;
 extern Bool   kdHasPointer;
 extern Bool   kdHasKbd;
+extern Bool   ephyrNoDRI;
+extern Bool   ephyrNoXV;
+extern Bool noGlxVisualInit;
 
 void processScreenArg (char *screen_size, char *parent_id) ;
 
@@ -92,11 +96,14 @@ ddxUseMsg (void)
   KdUseMsg();
 
   ErrorF("\nXephyr Option Usage:\n");
-  ErrorF("-parent XID   Use existing window as Xephyr root win\n");
-  ErrorF("-host-cursor  Re-use exisiting X host server cursor\n");
-  ErrorF("-fullscreen   Attempt to run Xephyr fullscreen\n");
-  ErrorF("-grayscale    Simulate 8bit grayscale\n");
-  ErrorF("-fakexa       Simulate acceleration using software rendering\n");
+  ErrorF("-parent <XID>        Use existing window as Xephyr root win\n");
+  ErrorF("-host-cursor         Re-use exisiting X host server cursor\n");
+  ErrorF("-fullscreen          Attempt to run Xephyr fullscreen\n");
+  ErrorF("-grayscale           Simulate 8bit grayscale\n");
+  ErrorF("-fakexa              Simulate acceleration using software rendering\n");
+  ErrorF("-verbosity <level>   Set log verbosity level\n");
+  ErrorF("-nodri               do not use DRI\n");
+  ErrorF("-noxv                do not use XV\n");
   ErrorF("\n");
 
   exit(1);
@@ -136,6 +143,8 @@ int
 ddxProcessArgument (int argc, char **argv, int i)
 {
   EPHYR_DBG("mark argv[%d]='%s'", i, argv[i] );
+
+  noGlxVisualInit = TRUE ;
 
   if (!strcmp (argv[i], "-parent"))
     {
@@ -182,6 +191,34 @@ ddxProcessArgument (int argc, char **argv, int i)
       ephyrFuncs.finiAccel = ephyrDrawFini;
       return 1;
     }
+  else if (!strcmp (argv[i], "-verbosity"))
+    {
+      if(i+1 < argc && argv[i+1][0] != '-')
+	{
+	  int verbosity=atoi (argv[i+1]) ;
+	  LogSetParameter (XLOG_VERBOSITY, verbosity) ;
+	  EPHYR_LOG ("set verbosiry to %d\n", verbosity) ;
+	  return 2 ;
+	}
+      else
+	{
+	  UseMsg() ;
+	  exit(1) ;
+	}
+    }
+  else if (!strcmp (argv[i], "-nodri"))
+   {
+       noGlxVisualInit = FALSE ;
+       ephyrNoDRI = TRUE ;
+       EPHYR_LOG ("no direct rendering enabled\n") ;
+       return 1 ;
+   }
+  else if (!strcmp (argv[i], "-noxv"))
+   {
+       ephyrNoXV = TRUE ;
+       EPHYR_LOG ("no XVideo enabled\n") ;
+       return 1 ;
+   }
   else if (argv[i][0] == ':')
     {
       hostx_set_display_name(argv[i]);

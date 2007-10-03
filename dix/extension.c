@@ -184,6 +184,8 @@ _X_EXPORT Bool AddExtensionAlias(char *alias, ExtensionEntry *ext)
     char *name;
     char **aliases;
 
+    if (!ext)
+        return FALSE ;
     aliases = (char **)xrealloc(ext->aliases,
 				(ext->num_aliases + 1) * sizeof(char *));
     if (!aliases)

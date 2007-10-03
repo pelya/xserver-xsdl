@@ -23,6 +23,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <kdrive-config.h>
+#endif
+
 #include "hostx.h"
 
 #include <stdlib.h>
@@ -40,6 +44,17 @@
 #include <X11/Xatom.h>
 #include <X11/keysym.h>
 #include <X11/extensions/XShm.h>
+#include <X11/extensions/shape.h>
+#ifdef XEPHYR_DRI
+#include <GL/glx.h>
+#endif /*XEPHYR_DRI*/
+#include "ephyrlog.h"
+
+#ifdef XEPHYR_DRI
+extern Bool XF86DRIQueryExtension (Display *dpy,
+                                   int *event_basep,
+                                   int *error_basep);
+#endif
 
 /*  
  * All xlib calls go here, which gets built as its own .a .
@@ -955,4 +970,383 @@ hostx_get_event(EphyrHostXEvent *ev)
     }
   return 0;
 }
+
+void*
+hostx_get_display(void)
+{
+    return HostX.dpy ;
+}
+
+int
+hostx_get_window (int a_screen_number)
+{
+    if (a_screen_number < 0 || a_screen_number >= HostX.n_screens) {
+        EPHYR_LOG_ERROR ("bad screen number:%d\n", a_screen_number) ;
+        return 0;
+    }
+    return HostX.screens[a_screen_number].win ;
+}
+
+int
+hostx_get_window_attributes (int a_window, EphyrHostWindowAttributes *a_attrs)
+{
+    XWindowAttributes attrs ;
+
+    memset (&attrs, 0, sizeof (attrs)) ;
+
+    if (!XGetWindowAttributes (hostx_get_display (),
+                               a_window,
+                               &attrs)) {
+        return FALSE ;
+    }
+    a_attrs->x = attrs.x ;
+    a_attrs->y = attrs.y ;
+    a_attrs->width = attrs.width ;
+    a_attrs->height = attrs.height ;
+    if (attrs.visual)
+        a_attrs->visualid = attrs.visual->visualid ;
+    return TRUE ;
+}
+
+int
+hostx_get_extension_info (const char *a_ext_name,
+                          int *a_major_opcode,
+                          int *a_first_event,
+                          int *a_first_error)
+{
+    if (!a_ext_name || !a_major_opcode || !a_first_event || !a_first_error)
+      return 0 ;
+   if (!XQueryExtension (HostX.dpy,
+                         a_ext_name,
+                         a_major_opcode,
+                         a_first_event,
+                         a_first_error))
+     {
+       return 0 ;
+     }
+   return 1 ;
+}
+
+int
+hostx_get_visuals_info (EphyrHostVisualInfo **a_visuals,
+                        int *a_num_entries)
+{
+    Display *dpy=hostx_get_display () ;
+    Bool is_ok=False ;
+    XVisualInfo templ, *visuals=NULL;
+    EphyrHostVisualInfo *host_visuals=NULL ;
+    int nb_items=0, i=0;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_visuals && a_num_entries && dpy,
+                              False) ;
+    EPHYR_LOG ("enter\n") ;
+    memset (&templ, 0, sizeof (templ)) ;
+    visuals = XGetVisualInfo (dpy, VisualNoMask, &templ, &nb_items) ;
+    if (!visuals) {
+        EPHYR_LOG_ERROR ("host does not advertise any visual\n") ;
+        goto out ;
+    }
+    EPHYR_LOG ("host advertises %d visuals\n", nb_items) ;
+    host_visuals = calloc (nb_items, sizeof (EphyrHostVisualInfo)) ;
+    for (i=0; i<nb_items; i++) {
+        host_visuals[i].visualid = visuals[i].visualid ;
+        host_visuals[i].screen = visuals[i].screen ;
+        host_visuals[i].depth = visuals[i].depth ;
+        host_visuals[i].class = visuals[i].class ;
+        host_visuals[i].red_mask = visuals[i].red_mask ;
+        host_visuals[i].green_mask = visuals[i].green_mask ;
+        host_visuals[i].blue_mask = visuals[i].blue_mask ;
+        host_visuals[i].colormap_size = visuals[i].colormap_size ;
+        host_visuals[i].bits_per_rgb = visuals[i].bits_per_rgb ;
+    }
+    *a_visuals = host_visuals ;
+    *a_num_entries = nb_items;
+    host_visuals=NULL;
+
+    is_ok = TRUE;
+out:
+    if (visuals) {
+        XFree (visuals) ;
+        visuals = NULL;
+    }
+    if (host_visuals) {
+        free (host_visuals) ;
+        host_visuals = NULL;
+    }
+    EPHYR_LOG ("leave\n") ;
+    return is_ok ;
+
+}
+
+typedef struct {
+    int is_valid ;
+    int local_id ;
+    int remote_id ;
+} ResourcePair ;
+
+#define RESOURCE_PEERS_SIZE 1024*10
+static ResourcePair resource_peers[RESOURCE_PEERS_SIZE] ;
+
+
+int
+hostx_create_window (int a_screen_number,
+                     EphyrBox *a_geometry,
+                     int a_visual_id,
+                     int *a_host_peer /*out parameter*/)
+{
+    Bool is_ok=FALSE ;
+    Display *dpy=hostx_get_display () ;
+    XVisualInfo *visual_info=NULL, visual_info_templ;
+    int visual_mask=VisualIDMask ;
+    Window win=None ;
+    int nb_visuals=0, winmask=0;
+    XSetWindowAttributes attrs;
+
+    EPHYR_RETURN_VAL_IF_FAIL (dpy && a_geometry, FALSE) ;
+
+    EPHYR_LOG ("enter\n") ;
+
+     /*get visual*/
+    memset (&visual_info, 0, sizeof (visual_info)) ;
+    visual_info_templ.visualid = a_visual_id ;
+    visual_info = XGetVisualInfo (dpy, visual_mask,
+                                  &visual_info_templ,
+                                  &nb_visuals) ;
+    if (!visual_info) {
+        EPHYR_LOG_ERROR ("argh, could not find a remote visual with id:%d\n",
+                         a_visual_id) ;
+        goto out ;
+    }
+    memset (&attrs, 0, sizeof (attrs)) ;
+    attrs.colormap = XCreateColormap (dpy,
+                                      RootWindow (dpy,
+                                                  visual_info->screen),
+                                      visual_info->visual,
+                                      AllocNone) ;
+    winmask = CWColormap;
+
+    win = XCreateWindow (dpy, hostx_get_window (a_screen_number),
+                         a_geometry->x, a_geometry->y,
+                         a_geometry->width, a_geometry->height, 0,
+                         visual_info->depth, InputOutput,
+                         visual_info->visual, winmask, &attrs) ;
+    if (win == None) {
+        EPHYR_LOG_ERROR ("failed to create peer window\n") ;
+        goto out ;
+    }
+    XFlush (dpy) ;
+    XMapWindow (dpy, win) ;
+    *a_host_peer = win ;
+    is_ok = TRUE ;
+out:
+    EPHYR_LOG ("leave\n") ;
+    return is_ok ;
+}
+
+int
+hostx_destroy_window (int a_win)
+{
+    Display *dpy=hostx_get_display () ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (dpy, FALSE) ;
+    XDestroyWindow (dpy, a_win) ;
+    XFlush (dpy) ;
+    return TRUE ;
+}
+
+int
+hostx_set_window_geometry (int a_win, EphyrBox *a_geo)
+{
+    Display *dpy=hostx_get_display ();
+
+    EPHYR_RETURN_VAL_IF_FAIL (dpy && a_geo, FALSE) ;
+
+    EPHYR_LOG ("enter. x,y,w,h:(%d,%d,%d,%d)\n",
+               a_geo->x, a_geo->y,
+               a_geo->width, a_geo->height) ;
+
+    XMoveWindow (dpy, a_win, a_geo->x, a_geo->y) ;
+    XResizeWindow (dpy, a_win, a_geo->width, a_geo->height) ;
+    EPHYR_LOG ("leave\n") ;
+    return TRUE;
+}
+
+int
+hostx_set_window_bounding_rectangles (int a_window,
+                                      EphyrRect *a_rects,
+                                      int a_num_rects)
+{
+    Bool is_ok=FALSE;
+    Display *dpy=hostx_get_display () ;
+    int i=0 ;
+    XRectangle *rects=NULL ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (dpy && a_rects, FALSE) ;
+
+    EPHYR_LOG ("enter. num rects:%d\n", a_num_rects) ;
+
+    rects = calloc (a_num_rects, sizeof (XRectangle)) ;
+    for (i=0; i<a_num_rects; i++) {
+        rects[i].x = a_rects[i].x1 ;
+        rects[i].y = a_rects[i].y1 ;
+        rects[i].width = abs (a_rects[i].x2 - a_rects[i].x1);
+        rects[i].height = abs (a_rects[i].y2 - a_rects[i].y1) ;
+        EPHYR_LOG ("borders clipped to rect[x:%d,y:%d,w:%d,h:%d]\n",
+                   rects[i].x, rects[i].y,
+                   rects[i].width, rects[i].height) ;
+    }
+    /*this aways returns 1*/
+    XShapeCombineRectangles (dpy, a_window, ShapeBounding, 0, 0,
+                             rects, a_num_rects, ShapeSet, YXBanded) ;
+    is_ok = TRUE ;
+
+    if (rects) {
+        free (rects) ;
+        rects = NULL ;
+    }
+    EPHYR_LOG ("leave\n") ;
+    return is_ok;
+}
+
+int
+hostx_set_window_clipping_rectangles (int a_window,
+                                      EphyrRect *a_rects,
+                                      int a_num_rects)
+{
+    Bool is_ok=FALSE;
+    Display *dpy=hostx_get_display () ;
+    int i=0 ;
+    XRectangle *rects=NULL ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (dpy && a_rects, FALSE) ;
+
+    EPHYR_LOG ("enter. num rects:%d\n", a_num_rects) ;
+
+    rects = calloc (a_num_rects, sizeof (XRectangle)) ;
+    for (i=0; i<a_num_rects; i++) {
+        rects[i].x = a_rects[i].x1 ;
+        rects[i].y = a_rects[i].y1 ;
+        rects[i].width = abs (a_rects[i].x2 - a_rects[i].x1);
+        rects[i].height = abs (a_rects[i].y2 - a_rects[i].y1) ;
+        EPHYR_LOG ("clipped to rect[x:%d,y:%d,w:%d,h:%d]\n",
+                   rects[i].x, rects[i].y,
+                   rects[i].width, rects[i].height) ;
+    }
+    /*this aways returns 1*/
+    XShapeCombineRectangles (dpy, a_window, ShapeClip, 0, 0,
+                             rects, a_num_rects, ShapeSet, YXBanded) ;
+    is_ok = TRUE ;
+
+    if (rects) {
+        free (rects) ;
+        rects = NULL ;
+    }
+    EPHYR_LOG ("leave\n") ;
+    return is_ok;
+}
+
+int
+hostx_has_xshape (void)
+{
+    int event_base=0, error_base=0 ;
+    Display *dpy=hostx_get_display () ;
+    if (!XShapeQueryExtension (dpy,
+                               &event_base,
+                               &error_base)) {
+        return FALSE ;
+    }
+    return TRUE;
+}
+
+#ifdef XEPHYR_DRI
+int
+hostx_allocate_resource_id_peer (int a_local_resource_id,
+                                 int *a_remote_resource_id)
+{
+    int i=0 ;
+    ResourcePair *peer=NULL ;
+    Display *dpy=hostx_get_display ();
+
+    /*
+     * first make sure a resource peer
+     * does not exist already for
+     * a_local_resource_id
+     */
+    for (i=0; i<RESOURCE_PEERS_SIZE; i++) {
+        if (resource_peers[i].is_valid
+            && resource_peers[i].local_id == a_local_resource_id) {
+            peer = &resource_peers[i] ;
+            break ;
+        }
+    }
+    /*
+     * find one free peer entry, an feed it with
+     */
+    if (!peer) {
+        for (i=0; i<RESOURCE_PEERS_SIZE; i++) {
+            if (!resource_peers[i].is_valid) {
+                peer = &resource_peers[i] ;
+                break ;
+            }
+        }
+        if (peer) {
+            peer->remote_id = XAllocID (dpy);
+            peer->local_id = a_local_resource_id ;
+            peer->is_valid = TRUE ;
+        }
+    }
+    if (peer) {
+        *a_remote_resource_id = peer->remote_id ;
+        return TRUE ;
+    }
+    return FALSE ;
+}
+
+int
+hostx_get_resource_id_peer (int a_local_resource_id,
+                            int *a_remote_resource_id)
+{
+    int i=0 ;
+    ResourcePair *peer=NULL ;
+    for (i=0; i<RESOURCE_PEERS_SIZE; i++) {
+        if (resource_peers[i].is_valid
+            && resource_peers[i].local_id == a_local_resource_id) {
+            peer = &resource_peers[i] ;
+            break ;
+        }
+    }
+    if (peer) {
+        *a_remote_resource_id = peer->remote_id ;
+        return TRUE ;
+    }
+    return FALSE ;
+}
+
+int
+hostx_has_dri (void)
+{
+    int event_base=0, error_base=0 ;
+    Display *dpy=hostx_get_display () ;
+
+    if (!XF86DRIQueryExtension (dpy,
+                                &event_base,
+                                &error_base)) {
+        return FALSE ;
+    }
+    return TRUE ;
+}
+
+int
+hostx_has_glx (void)
+{
+    Display *dpy=hostx_get_display () ;
+    int event_base=0, error_base=0 ;
+
+    if (!glXQueryExtension (dpy, &event_base, &error_base)) {
+        return FALSE ;
+    }
+    return TRUE ;
+}
+
+#endif /*XEPHYR_DRI*/
 

@@ -92,6 +92,32 @@ struct EphyrHostXEvent
   int key_state;
 };
 
+typedef struct {
+  VisualID visualid;
+  int screen;
+  int depth;
+  int class;
+  unsigned long red_mask;
+  unsigned long green_mask;
+  unsigned long blue_mask;
+  int colormap_size;
+  int bits_per_rgb;
+} EphyrHostVisualInfo;
+
+typedef struct {
+    int x, y;
+    int width, height ;
+    int visualid ;
+} EphyrHostWindowAttributes;
+
+typedef struct {
+    int x,y,width,height;
+} EphyrBox;
+
+typedef struct {
+    short x1,y1,x2,y2;
+} EphyrRect;
+
 int
 hostx_want_screen_size(EphyrScreenInfo screen, int *width, int *height);
 
@@ -167,9 +193,60 @@ hostx_paint_rect(EphyrScreenInfo screen,
 
 
 void
-hostx_load_keymap(void);
+hostx_load_keymap (void);
 
 int
-hostx_get_event(EphyrHostXEvent *ev);
+hostx_get_event (EphyrHostXEvent *ev);
 
-#endif
+void*
+hostx_get_display (void) ;
+
+int
+hostx_get_window (int a_screen_number) ;
+
+int
+hostx_get_window_attributes (int a_window, EphyrHostWindowAttributes *a_attr)  ;
+
+int
+hostx_get_extension_info (const char *a_ext_name,
+                          int *a_major_opcode,
+                          int *a_first_even,
+                          int *a_first_error) ;
+int
+hostx_get_visuals_info (EphyrHostVisualInfo **a_visuals,
+                        int *a_num_entries) ;
+
+int hostx_create_window (int a_screen_number,
+                         EphyrBox *a_geometry,
+                         int a_visual_id,
+                         int *a_host_win /*out parameter*/) ;
+
+int hostx_destroy_window (int a_win) ;
+
+int hostx_set_window_geometry (int a_win, EphyrBox *a_geo) ;
+
+
+int hostx_set_window_bounding_rectangles (int a_window,
+                                          EphyrRect *a_rects,
+                                          int a_num_rects) ;
+
+int hostx_set_window_clipping_rectangles (int a_window,
+                                          EphyrRect *a_rects,
+                                          int a_num_rects) ;
+int hostx_has_xshape (void) ;
+
+#ifdef XEPHYR_DRI
+int hostx_lookup_peer_window (void *a_local_window,
+                              int *a_host_peer /*out parameter*/) ;
+int
+hostx_allocate_resource_id_peer (int a_local_resource_id,
+                                 int *a_remote_resource_id) ;
+int
+hostx_get_resource_id_peer (int a_local_resource_id,
+                            int *a_remote_resource_id) ;
+int hostx_has_dri (void) ;
+
+int hostx_has_glx (void) ;
+#endif /*XEPHYR_DRI*/
+
+#endif /*_XLIBS_STUFF_H_*/

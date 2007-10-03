@@ -55,6 +55,7 @@
 
 void GlxWrapInitVisuals(miInitVisualsProcPtr *);
 
+extern Bool noGlxVisualInit;
 #include "glcontextmodes.h"
 
 struct ScreenVisualsRec {
@@ -452,13 +453,14 @@ Bool GlxInitVisuals(VisualPtr *visualp, DepthPtr *depthp,
     /*
      * Setup the visuals supported by this particular screen.
      */
-    init_visuals(nvisualp, visualp, defaultVisp,
-		 *ndepthp, *depthp, *rootDepthp);
+    if (!noGlxVisualInit) {
+        init_visuals(nvisualp, visualp, defaultVisp,
+                     *ndepthp, *depthp, *rootDepthp);
+    }
 
 
     return True;
 }
-
 
 /************************************************************************/
 
