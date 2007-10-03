@@ -188,7 +188,7 @@ ephyrHostGLXGetStringFromServer (int a_screen_number,
     GetReq (GLXGenericGetString, req);
     req->reqType = major_opcode;
     req->glxCode = get_string_op;
-    req->for_whom = a_screen_number;
+    req->for_whom = DefaultScreen (dpy);
     req->name = a_string_name;
 
     _XReply (dpy, (xReply *)&reply, 0, False);
@@ -263,7 +263,7 @@ ephyrHostGLXGetVisualConfigsInternal (enum VisualConfRequestType a_type,
         GetReq(GLXGetFBConfigs,fb_req);
         fb_req->reqType = major_opcode;
         fb_req->glxCode = X_GLXGetFBConfigs;
-        fb_req->screen = a_screen;
+        fb_req->screen = DefaultScreen (dpy);
         break;
 
         case EPHYR_VENDOR_PRIV_GET_FB_CONFIG_SGIX:
@@ -276,14 +276,14 @@ ephyrHostGLXGetVisualConfigsInternal (enum VisualConfRequestType a_type,
         sgi_req->reqType = major_opcode;
         sgi_req->glxCode = X_GLXVendorPrivateWithReply;
         sgi_req->vendorCode = X_GLXvop_GetFBConfigsSGIX;
-        sgi_req->screen = a_screen;
+        sgi_req->screen = DefaultScreen (dpy);
         break;
 
         case EPHYR_GET_VISUAL_CONFIGS:
         GetReq(GLXGetVisualConfigs,req);
         req->reqType = major_opcode;
         req->glxCode = X_GLXGetVisualConfigs;
-        req->screen = a_screen;
+        req->screen = DefaultScreen (dpy);
         break;
     }
 
@@ -460,7 +460,7 @@ ephyrHostGLXCreateContext (int a_screen,
     req->glxCode = X_GLXCreateContext;
     req->context = remote_context_id;
     req->visual = a_visual_id;
-    req->screen = a_screen;
+    req->screen = DefaultScreen (dpy);
     req->shareList = a_share_list_ctxt_id;
     req->isDirect = a_direct;
 

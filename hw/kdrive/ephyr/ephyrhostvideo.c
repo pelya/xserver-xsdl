@@ -745,7 +745,8 @@ ephyrHostFree (void *a_pointer)
 }
 
 Bool
-ephyrHostXVPutImage (int a_port_id,
+ephyrHostXVPutImage (int a_screen_num,
+                     int a_port_id,
                      int a_image_id,
                      int a_drw_x,
                      int a_drw_y,
@@ -774,7 +775,7 @@ ephyrHostXVPutImage (int a_port_id,
     EPHYR_LOG ("enter, num_clip_rects: %d\n", a_clip_rect_nums) ;
 
     memset (&gc_values, 0, sizeof (gc_values)) ;
-    gc = XCreateGC (dpy, hostx_get_window (), 0L, &gc_values);
+    gc = XCreateGC (dpy, hostx_get_window (a_screen_num), 0L, &gc_values);
     if (!gc) {
         EPHYR_LOG_ERROR ("failed to create gc \n") ;
         goto out ;
@@ -802,7 +803,8 @@ ephyrHostXVPutImage (int a_port_id,
         XSetClipRectangles (dpy, gc, 0, 0, rects, a_clip_rect_nums, YXBanded) ;
         /*this always returns 1*/
     }
-    res = XvPutImage (dpy, a_port_id, hostx_get_window (),
+    res = XvPutImage (dpy, a_port_id,
+                      hostx_get_window (a_screen_num),
                       gc, xv_image,
                       a_src_x, a_src_y, a_src_w, a_src_h,
                       a_drw_x, a_drw_y, a_drw_w, a_drw_h) ;
@@ -830,7 +832,7 @@ out:
 }
 
 Bool
-ephyrHostXVPutVideo (int a_port_id,
+ephyrHostXVPutVideo (int a_screen_num, int a_port_id,
                      int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
                      int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h)
 {
@@ -842,12 +844,12 @@ ephyrHostXVPutVideo (int a_port_id,
 
     EPHYR_RETURN_VAL_IF_FAIL (dpy, FALSE) ;
 
-    gc = XCreateGC (dpy, hostx_get_window (), 0L, &gc_values);
+    gc = XCreateGC (dpy, hostx_get_window (a_screen_num), 0L, &gc_values);
     if (!gc) {
         EPHYR_LOG_ERROR ("failed to create gc \n") ;
         goto out ;
     }
-    res = XvPutVideo (dpy, a_port_id, hostx_get_window (), gc,
+    res = XvPutVideo (dpy, a_port_id, hostx_get_window (a_screen_num), gc,
                       a_vid_x, a_vid_y, a_vid_w, a_vid_h,
                       a_drw_x, a_drw_y, a_drw_w, a_drw_h) ;
 
@@ -867,7 +869,7 @@ out:
 }
 
 Bool
-ephyrHostXVGetVideo (int a_port_id,
+ephyrHostXVGetVideo (int a_screen_num, int a_port_id,
                      int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
                      int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h)
 {
@@ -879,12 +881,12 @@ ephyrHostXVGetVideo (int a_port_id,
 
     EPHYR_RETURN_VAL_IF_FAIL (dpy, FALSE) ;
 
-    gc = XCreateGC (dpy, hostx_get_window (), 0L, &gc_values);
+    gc = XCreateGC (dpy, hostx_get_window (a_screen_num), 0L, &gc_values);
     if (!gc) {
         EPHYR_LOG_ERROR ("failed to create gc \n") ;
         goto out ;
     }
-    res = XvGetVideo (dpy, a_port_id, hostx_get_window (), gc,
+    res = XvGetVideo (dpy, a_port_id, hostx_get_window (a_screen_num), gc,
                       a_vid_x, a_vid_y, a_vid_w, a_vid_h,
                       a_drw_x, a_drw_y, a_drw_w, a_drw_h) ;
 
@@ -904,7 +906,7 @@ out:
 }
 
 Bool
-ephyrHostXVPutStill (int a_port_id,
+ephyrHostXVPutStill (int a_screen_num, int a_port_id,
                      int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
                      int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h)
 {
@@ -916,12 +918,12 @@ ephyrHostXVPutStill (int a_port_id,
 
     EPHYR_RETURN_VAL_IF_FAIL (dpy, FALSE) ;
 
-    gc = XCreateGC (dpy, hostx_get_window (), 0L, &gc_values);
+    gc = XCreateGC (dpy, hostx_get_window (a_screen_num), 0L, &gc_values);
     if (!gc) {
         EPHYR_LOG_ERROR ("failed to create gc \n") ;
         goto out ;
     }
-    res = XvPutStill (dpy, a_port_id, hostx_get_window (), gc,
+    res = XvPutStill (dpy, a_port_id, hostx_get_window (a_screen_num), gc,
                       a_vid_x, a_vid_y, a_vid_w, a_vid_h,
                       a_drw_x, a_drw_y, a_drw_w, a_drw_h) ;
 
@@ -941,7 +943,7 @@ out:
 }
 
 Bool
-ephyrHostXVGetStill (int a_port_id,
+ephyrHostXVGetStill (int a_screen_num, int a_port_id,
                      int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
                      int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h)
 {
@@ -953,12 +955,12 @@ ephyrHostXVGetStill (int a_port_id,
 
     EPHYR_RETURN_VAL_IF_FAIL (dpy, FALSE) ;
 
-    gc = XCreateGC (dpy, hostx_get_window (), 0L, &gc_values);
+    gc = XCreateGC (dpy, hostx_get_window (a_screen_num), 0L, &gc_values);
     if (!gc) {
         EPHYR_LOG_ERROR ("failed to create gc \n") ;
         goto out ;
     }
-    res = XvGetStill (dpy, a_port_id, hostx_get_window (), gc,
+    res = XvGetStill (dpy, a_port_id, hostx_get_window (a_screen_num), gc,
                       a_vid_x, a_vid_y, a_vid_w, a_vid_h,
                       a_drw_x, a_drw_y, a_drw_w, a_drw_h) ;
 
@@ -978,7 +980,7 @@ out:
 }
 
 Bool
-ephyrHostXVStopVideo (int a_port_id)
+ephyrHostXVStopVideo (int a_screen_num, int a_port_id)
 {
     int ret=0 ;
     Bool is_ok=FALSE ;
@@ -988,7 +990,7 @@ ephyrHostXVStopVideo (int a_port_id)
 
     EPHYR_LOG ("enter\n") ;
 
-    ret = XvStopVideo (dpy, a_port_id, hostx_get_window ()) ;
+    ret = XvStopVideo (dpy, a_port_id, hostx_get_window (a_screen_num)) ;
     if (ret != Success) {
         EPHYR_LOG_ERROR ("XvStopVideo() failed: %d \n", ret) ;
         goto out ;

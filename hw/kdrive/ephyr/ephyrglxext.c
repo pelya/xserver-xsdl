@@ -438,7 +438,8 @@ ephyrGLXCreateContextReal (xGLXCreateContextReq *a_req, Bool a_do_swap)
                (int)a_req->visual, (int)a_req->isDirect) ;
 
     memset (&host_w_attrs, 0, sizeof (host_w_attrs)) ;
-    if (!hostx_get_window_attributes (hostx_get_window (), &host_w_attrs)) {
+    if (!hostx_get_window_attributes (hostx_get_window (a_req->screen),
+                                      &host_w_attrs)) {
         EPHYR_LOG_ERROR ("failed to get host window attrs\n") ;
         goto out ;
     }
@@ -513,10 +514,22 @@ ephyrGLXMakeCurrentReal (__GLXclientState *a_cl, GLbyte *a_pc, Bool a_do_swap)
     int res=BadImplementation;
     xGLXMakeCurrentReq *req = (xGLXMakeCurrentReq *) a_pc;
     xGLXMakeCurrentReply reply ;
+    DrawablePtr drawable=NULL;
+    int rc=0;
 
     EPHYR_LOG ("enter\n") ;
+    rc = dixLookupDrawable (&drawable,
+                            req->drawable,
+                            a_cl->client,
+                            0,
+                            DixReadAccess);
+    EPHYR_RETURN_VAL_IF_FAIL (drawable, BadValue) ;
+    EPHYR_RETURN_VAL_IF_FAIL (drawable->pScreen, BadValue) ;
+    EPHYR_LOG ("screen nummber requested:%d\n",
+               drawable->pScreen->myNum) ;
+
     memset (&reply, 0, sizeof (reply)) ;
-    if (!ephyrHostGLXMakeCurrent (hostx_get_window (),
+    if (!ephyrHostGLXMakeCurrent (hostx_get_window (drawable->pScreen->myNum),
                                   req->context,
                                   req->oldContextTag,
                                   (int*)&reply.contextTag)) {

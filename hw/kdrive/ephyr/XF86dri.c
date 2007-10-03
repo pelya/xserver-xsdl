@@ -107,6 +107,8 @@ static XEXT_GENERATE_CLOSE_DISPLAY (close_display, xf86dri_info)
 #define TRACE(msg)
 #endif
 
+Bool XF86DRIOpenFullScreen(Display *dpy, int screen, Drawable drawable);
+Bool XF86DRICloseFullScreen(Display *dpy, int screen, Drawable drawable);
 
 Bool XF86DRIQueryExtension (Display *dpy, int *event_basep, int *error_basep)
 {

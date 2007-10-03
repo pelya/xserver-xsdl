@@ -111,7 +111,7 @@ static Bool ephyrDRIPositionWindow (WindowPtr a_win,
 static void ephyrDRIClipNotify (WindowPtr a_win,
                                 int a_x, int a_y) ;
 
-static Bool EphyrMirrorHostVisuals (void) ;
+static Bool EphyrMirrorHostVisuals (ScreenPtr a_screen) ;
 static Bool destroyHostPeerWindow (const WindowPtr a_win) ;
 static Bool findWindowPairFromLocal (WindowPtr a_local,
                                      EphyrWindowPair **a_pair);
@@ -182,7 +182,7 @@ ephyrDRIExtensionInit (ScreenPtr a_screen)
         EPHYR_LOG_ERROR ("ephyrDRIScreenInit() failed\n") ;
         goto out ;
     }
-    EphyrMirrorHostVisuals () ;
+    EphyrMirrorHostVisuals (a_screen) ;
     if (ephyrDRIGeneration != serverGeneration) {
         ephyrDRIGeneration = serverGeneration ;
     }
@@ -607,7 +607,7 @@ out:
  * GLX.
  */
 static Bool
-EphyrMirrorHostVisuals (void)
+EphyrMirrorHostVisuals (ScreenPtr a_screen)
 {
     Bool is_ok=FALSE;
     EphyrHostVisualInfo  *visuals=NULL;
@@ -619,7 +619,7 @@ EphyrMirrorHostVisuals (void)
         goto out ;
     }
     for (i=0; i<nb_visuals; i++) {
-        if (!EphyrDuplicateVisual (visuals[i].screen,
+        if (!EphyrDuplicateVisual (a_screen->myNum,
                                    visuals[i].depth,
                                    visuals[i].class,
                                    visuals[i].bits_per_rgb,
@@ -980,6 +980,8 @@ createHostPeerWindow (const WindowPtr a_win,
     EphyrBox geo ;
 
     EPHYR_RETURN_VAL_IF_FAIL (a_win && a_peer_win, FALSE) ;
+    EPHYR_RETURN_VAL_IF_FAIL (a_win->drawable.pScreen,
+                              FALSE) ;
 
     EPHYR_LOG ("enter. a_win '%#x'\n", (unsigned int)a_win) ;
     if (!getWindowVisual (a_win, &visual)) {
@@ -995,7 +997,8 @@ createHostPeerWindow (const WindowPtr a_win,
     geo.y = a_win->drawable.y ;
     geo.width = a_win->drawable.width ;
     geo.height = a_win->drawable.height ;
-    if (!hostx_create_window (&geo, visual->vid, a_peer_win)) {
+    if (!hostx_create_window (a_win->drawable.pScreen->myNum,
+                              &geo, visual->vid, a_peer_win)) {
         EPHYR_LOG_ERROR ("failed to create host peer window\n") ;
         goto out ;
     }

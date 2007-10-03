@@ -59,7 +59,8 @@ ephyrDRIQueryDirectRenderingCapable (int a_screen, Bool *a_is_capable)
 
     EPHYR_RETURN_VAL_IF_FAIL (a_is_capable, FALSE) ;
     EPHYR_LOG ("enter\n") ;
-    is_ok = XF86DRIQueryDirectRenderingCapable (dpy, a_screen, a_is_capable) ;
+    is_ok = XF86DRIQueryDirectRenderingCapable (dpy, DefaultScreen (dpy),
+                                                a_is_capable) ;
     EPHYR_LOG ("leave. is_capable:%d, is_ok=%d\n", *a_is_capable, is_ok) ;
 
     return is_ok ;
@@ -75,7 +76,9 @@ ephyrDRIOpenConnection (int a_screen,
 
     EPHYR_RETURN_VAL_IF_FAIL (a_bus_id_string, FALSE) ;
     EPHYR_LOG ("enter. screen:%d\n", a_screen) ;
-    is_ok = XF86DRIOpenConnection (dpy, a_screen, a_sarea, a_bus_id_string) ;
+    is_ok = XF86DRIOpenConnection (dpy, DefaultScreen (dpy),
+                                   a_sarea,
+                                   a_bus_id_string) ;
     if (*a_bus_id_string) {
         EPHYR_LOG ("leave. bus_id_string:%s, is_ok:%d\n",
                    *a_bus_id_string, is_ok) ;
@@ -93,7 +96,7 @@ ephyrDRIAuthConnection (int a_screen, drm_magic_t a_magic)
     Bool is_ok=FALSE ;
 
     EPHYR_LOG ("enter\n") ;
-    is_ok = XF86DRIAuthConnection (dpy, a_screen, a_magic) ;
+    is_ok = XF86DRIAuthConnection (dpy, DefaultScreen (dpy), a_magic) ;
     EPHYR_LOG ("leave. is_ok:%d\n", is_ok) ;
     return is_ok ;
 }
@@ -105,7 +108,7 @@ ephyrDRICloseConnection (int a_screen)
     Bool is_ok=FALSE ;
 
     EPHYR_LOG ("enter\n") ;
-    is_ok = XF86DRICloseConnection (dpy, a_screen) ;
+    is_ok = XF86DRICloseConnection (dpy, DefaultScreen (dpy)) ;
     EPHYR_LOG ("leave\n") ;
     return is_ok ;
 }
@@ -126,7 +129,7 @@ ephyrDRIGetClientDriverName (int a_screen,
                               && a_client_driver_name,
                               FALSE);
     EPHYR_LOG ("enter\n") ;
-    is_ok = XF86DRIGetClientDriverName (dpy, a_screen,
+    is_ok = XF86DRIGetClientDriverName (dpy, DefaultScreen (dpy),
                                         a_ddx_driver_major_version,
                                         a_ddx_driver_minor_version,
                                         a_ddx_driver_patch_version,
@@ -154,7 +157,7 @@ ephyrDRICreateContext (int a_screen,
     memset (&v, 0, sizeof (v)) ;
     v.visualid = a_visual_id ;
     is_ok = XF86DRICreateContext (dpy,
-                                  a_screen,
+                                  DefaultScreen (dpy),
                                   &v,
                                   a_returned_ctxt_id,
                                   a_hw_ctxt) ;
@@ -170,7 +173,7 @@ ephyrDRIDestroyContext (int a_screen,
     Bool is_ok=FALSE ;
 
     EPHYR_LOG ("enter\n") ;
-    is_ok = XF86DRIDestroyContext (dpy, a_screen, a_context_id) ;
+    is_ok = XF86DRIDestroyContext (dpy, DefaultScreen (dpy), a_context_id) ;
     EPHYR_LOG ("leave:%d\n", is_ok) ;
     return is_ok ;
 }
@@ -184,7 +187,8 @@ ephyrDRICreateDrawable (int a_screen,
     Display *dpy=hostx_get_display () ;
 
     EPHYR_LOG ("enter\n") ;
-    is_ok = XF86DRICreateDrawable (dpy, a_screen, a_drawable, a_hw_drawable) ;
+    is_ok = XF86DRICreateDrawable (dpy, DefaultScreen (dpy),
+                                   a_drawable, a_hw_drawable) ;
     EPHYR_LOG ("leave. is_ok:%d\n", is_ok) ;
     return is_ok ;
 }
@@ -228,7 +232,7 @@ ephyrDRIGetDrawableInfo (int a_screen,
         EPHYR_LOG_ERROR ("failed to query host window attributes\n") ;
         goto out;
     }
-    if (!XF86DRIGetDrawableInfo (dpy, a_screen, a_drawable,
+    if (!XF86DRIGetDrawableInfo (dpy, DefaultScreen (dpy), a_drawable,
                                  a_index, a_stamp,
                                  a_x, a_y,
                                  a_w, a_h,
@@ -277,7 +281,7 @@ ephyrDRIGetDeviceInfo (int a_screen,
 
     EPHYR_RETURN_VAL_IF_FAIL (dpy, FALSE) ;
     EPHYR_LOG ("enter\n") ;
-    is_ok = XF86DRIGetDeviceInfo (dpy, a_screen, a_frame_buffer,
+    is_ok = XF86DRIGetDeviceInfo (dpy, DefaultScreen (dpy), a_frame_buffer,
                                   a_fb_origin, a_fb_size, a_fb_stride,
                                   a_dev_private_size, a_dev_private) ;
     EPHYR_LOG ("leave:%d\n", is_ok) ;

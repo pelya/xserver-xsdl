@@ -978,9 +978,13 @@ hostx_get_display(void)
 }
 
 int
-hostx_get_window(void)
+hostx_get_window (int a_screen_number)
 {
-    return HostX.win ;
+    if (a_screen_number < 0 || a_screen_number >= HostX.n_screens) {
+        EPHYR_LOG_ERROR ("bad screen number:%d\n", a_screen_number) ;
+        return 0;
+    }
+    return HostX.screens[a_screen_number].win ;
 }
 
 int
@@ -1085,7 +1089,8 @@ static ResourcePair resource_peers[RESOURCE_PEERS_SIZE] ;
 
 
 int
-hostx_create_window (EphyrBox *a_geometry,
+hostx_create_window (int a_screen_number,
+                     EphyrBox *a_geometry,
                      int a_visual_id,
                      int *a_host_peer /*out parameter*/)
 {
@@ -1120,7 +1125,7 @@ hostx_create_window (EphyrBox *a_geometry,
                                       AllocNone) ;
     winmask = CWColormap;
 
-    win = XCreateWindow (dpy, hostx_get_window (),
+    win = XCreateWindow (dpy, hostx_get_window (a_screen_number),
                          a_geometry->x, a_geometry->y,
                          a_geometry->width, a_geometry->height, 0,
                          visual_info->depth, InputOutput,

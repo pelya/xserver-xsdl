@@ -189,7 +189,8 @@ char* ephyrHostGetAtomName (int a_atom) ;
  *PutImage
  * (ignore clipping for now)
  */
-Bool ephyrHostXVPutImage (int a_port_id,
+Bool ephyrHostXVPutImage (int a_screen_num,
+                          int a_port_id,
                           int a_image_id,
                           int a_drw_x,
                           int a_drw_y,
@@ -208,26 +209,30 @@ Bool ephyrHostXVPutImage (int a_port_id,
 /*
  * Putvideo/PutStill/GetVideo
  */
-Bool ephyrHostXVPutVideo (int a_port_id,
+Bool ephyrHostXVPutVideo (int a_screen_num,
+                          int a_port_id,
                           int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
                           int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h) ;
 
-Bool ephyrHostXVGetVideo (int a_port_id,
+Bool ephyrHostXVGetVideo (int a_screen_num,
+                          int a_port_id,
                           int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
                           int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h) ;
 
-Bool ephyrHostXVPutStill (int a_port_id,
+Bool ephyrHostXVPutStill (int a_screen_num,
+                          int a_port_id,
                           int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
                           int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h) ;
 
-Bool ephyrHostXVGetStill (int a_port_id,
+Bool ephyrHostXVGetStill (int a_screen_num,
+                          int a_port_id,
                           int a_vid_x, int a_vid_y, int a_vid_w, int a_vid_h,
                           int a_drw_x, int a_drw_y, int a_drw_w, int a_drw_h) ;
 
 /*
  * StopVideo
  */
-Bool ephyrHostXVStopVideo (int a_port_id) ;
+Bool ephyrHostXVStopVideo (int a_screen_num, int a_port_id) ;
 
 #endif /*__EPHYRHOSTVIDEO_H__*/
 

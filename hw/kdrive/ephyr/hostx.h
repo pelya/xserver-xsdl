@@ -193,16 +193,16 @@ hostx_paint_rect(EphyrScreenInfo screen,
 
 
 void
-hostx_load_keymap(void);
+hostx_load_keymap (void);
 
 int
-hostx_get_event(EphyrHostXEvent *ev);
+hostx_get_event (EphyrHostXEvent *ev);
 
 void*
-hostx_get_display(void) ;
+hostx_get_display (void) ;
 
 int
-hostx_get_window(void) ;
+hostx_get_window (int a_screen_number) ;
 
 int
 hostx_get_window_attributes (int a_window, EphyrHostWindowAttributes *a_attr)  ;
@@ -216,7 +216,8 @@ int
 hostx_get_visuals_info (EphyrHostVisualInfo **a_visuals,
                         int *a_num_entries) ;
 
-int hostx_create_window (EphyrBox *a_geometry,
+int hostx_create_window (int a_screen_number,
+                         EphyrBox *a_geometry,
                          int a_visual_id,
                          int *a_host_win /*out parameter*/) ;
 
@@ -228,6 +229,7 @@ int hostx_set_window_geometry (int a_win, EphyrBox *a_geo) ;
 int hostx_set_window_bounding_rectangles (int a_window,
                                           EphyrRect *a_rects,
                                           int a_num_rects) ;
+
 int hostx_set_window_clipping_rectangles (int a_window,
                                           EphyrRect *a_rects,
                                           int a_num_rects) ;

@@ -705,6 +705,11 @@ ephyrXVPrivIsAttrValueValid (KdAttributePtr a_attrs,
         if (a_attrs[i].min_value > a_attr_value ||
             a_attrs[i].max_value < a_attr_value) {
             *a_is_valid = FALSE ;
+            EPHYR_LOG_ERROR ("attribute was not valid\n"
+                             "value:%d. min:%d. max:%d\n",
+                             a_attr_value,
+                             a_attrs[i].min_value,
+                             a_attrs[i].max_value) ;
         } else {
             *a_is_valid = TRUE ;
         }
@@ -771,10 +776,12 @@ ephyrStopVideo (KdScreenInfo *a_info, pointer a_port_priv, Bool a_exit)
 {
     EphyrPortPriv *port_priv = a_port_priv ;
 
+    EPHYR_RETURN_IF_FAIL (a_info && a_info->pScreen) ;
     EPHYR_RETURN_IF_FAIL (port_priv) ;
 
     EPHYR_LOG ("enter\n") ;
-    if (!ephyrHostXVStopVideo (port_priv->port_number)) {
+    if (!ephyrHostXVStopVideo (a_info->pScreen->myNum,
+                               port_priv->port_number)) {
         EPHYR_LOG_ERROR ("XvStopVideo() failed\n") ;
     }
     EPHYR_LOG ("leave\n") ;
@@ -817,14 +824,18 @@ ephyrSetPortAttribute (KdScreenInfo *a_info,
                                       &is_attr_valid)) {
         EPHYR_LOG_ERROR ("failed to validate attribute %s\n",
                          NameForAtom (a_attr_name)) ;
-        res = BadMatch ;
-        goto out ;
+        /*
+         res = BadMatch ;
+         goto out ;
+         */
     }
     if (!is_attr_valid) {
         EPHYR_LOG_ERROR ("attribute %s is not valid\n",
                          NameForAtom (a_attr_name)) ;
+        /*
         res = BadMatch ;
         goto out ;
+        */
     }
 
     if (!ephyrHostXVSetPortAttribute (port_priv->port_number,
@@ -929,11 +940,13 @@ ephyrPutImage (KdScreenInfo *a_info,
     Bool is_ok=FALSE ;
     int result=BadImplementation, image_size=0 ;
 
+    EPHYR_RETURN_VAL_IF_FAIL (a_info && a_info->pScreen, BadValue) ;
     EPHYR_RETURN_VAL_IF_FAIL (a_drawable, BadValue) ;
 
     EPHYR_LOG ("enter\n") ;
 
-    if (!ephyrHostXVPutImage (port_priv->port_number,
+    if (!ephyrHostXVPutImage (a_info->pScreen->myNum,
+                              port_priv->port_number,
                               a_id,
                               a_drw_x, a_drw_y, a_drw_w, a_drw_h,
                               a_src_x, a_src_y, a_src_w, a_src_h,
@@ -999,6 +1012,7 @@ ephyrReputImage (KdScreenInfo *a_info,
     EphyrPortPriv *port_priv = a_port_priv ;
     int result=BadImplementation ;
 
+    EPHYR_RETURN_VAL_IF_FAIL (a_info->pScreen, FALSE) ;
     EPHYR_RETURN_VAL_IF_FAIL (a_drawable && port_priv, BadValue) ;
 
     EPHYR_LOG ("enter\n") ;
@@ -1007,7 +1021,9 @@ ephyrReputImage (KdScreenInfo *a_info,
         EPHYR_LOG_ERROR ("has null image buf in cache\n") ;
         goto out ;
     }
-    if (!ephyrHostXVPutImage (port_priv->port_number, port_priv->image_id,
+    if (!ephyrHostXVPutImage (a_info->pScreen->myNum,
+                              port_priv->port_number,
+                              port_priv->image_id,
                               a_drw_x, a_drw_y,
                               port_priv->drw_w, port_priv->drw_h,
                               port_priv->src_x, port_priv->src_y,
@@ -1042,6 +1058,7 @@ ephyrPutVideo (KdScreenInfo *a_info,
     int result=BadImplementation ;
     int drw_x=0, drw_y=0, drw_w=0, drw_h=0 ;
 
+    EPHYR_RETURN_VAL_IF_FAIL (a_info->pScreen, BadValue) ;
     EPHYR_RETURN_VAL_IF_FAIL (a_drawable && port_priv, BadValue) ;
 
     EPHYR_LOG ("enter\n") ;
@@ -1063,7 +1080,8 @@ ephyrPutVideo (KdScreenInfo *a_info,
     drw_w = clipped_area.x2 - clipped_area.x1 ;
     drw_h = clipped_area.y2 - clipped_area.y1 ;
 
-    if (!ephyrHostXVPutVideo (port_priv->port_number,
+    if (!ephyrHostXVPutVideo (a_info->pScreen->myNum,
+                              port_priv->port_number,
                               a_vid_x, a_vid_y, a_vid_w, a_vid_h,
                               a_drw_x, a_drw_y, a_drw_w, a_drw_h)) {
         EPHYR_LOG_ERROR ("ephyrHostXVPutVideo() failed\n") ;
@@ -1091,6 +1109,7 @@ ephyrGetVideo (KdScreenInfo *a_info,
     int result=BadImplementation ;
     int drw_x=0, drw_y=0, drw_w=0, drw_h=0 ;
 
+    EPHYR_RETURN_VAL_IF_FAIL (a_info && a_info->pScreen, BadValue) ;
     EPHYR_RETURN_VAL_IF_FAIL (a_drawable && port_priv, BadValue) ;
 
     EPHYR_LOG ("enter\n") ;
@@ -1112,7 +1131,8 @@ ephyrGetVideo (KdScreenInfo *a_info,
     drw_w = clipped_area.x2 - clipped_area.x1 ;
     drw_h = clipped_area.y2 - clipped_area.y1 ;
 
-    if (!ephyrHostXVGetVideo (port_priv->port_number,
+    if (!ephyrHostXVGetVideo (a_info->pScreen->myNum,
+                              port_priv->port_number,
                               a_vid_x, a_vid_y, a_vid_w, a_vid_h,
                               a_drw_x, a_drw_y, a_drw_w, a_drw_h)) {
         EPHYR_LOG_ERROR ("ephyrHostXVGetVideo() failed\n") ;
@@ -1140,6 +1160,7 @@ ephyrPutStill (KdScreenInfo *a_info,
     int result=BadImplementation ;
     int drw_x=0, drw_y=0, drw_w=0, drw_h=0 ;
 
+    EPHYR_RETURN_VAL_IF_FAIL (a_info && a_info->pScreen, BadValue) ;
     EPHYR_RETURN_VAL_IF_FAIL (a_drawable && port_priv, BadValue) ;
 
     EPHYR_LOG ("enter\n") ;
@@ -1161,7 +1182,8 @@ ephyrPutStill (KdScreenInfo *a_info,
     drw_w = clipped_area.x2 - clipped_area.x1 ;
     drw_h = clipped_area.y2 - clipped_area.y1 ;
 
-    if (!ephyrHostXVPutStill (port_priv->port_number,
+    if (!ephyrHostXVPutStill (a_info->pScreen->myNum,
+                              port_priv->port_number,
                               a_vid_x, a_vid_y, a_vid_w, a_vid_h,
                               a_drw_x, a_drw_y, a_drw_w, a_drw_h)) {
         EPHYR_LOG_ERROR ("ephyrHostXVPutStill() failed\n") ;
@@ -1189,6 +1211,7 @@ ephyrGetStill (KdScreenInfo *a_info,
     int result=BadImplementation ;
     int drw_x=0, drw_y=0, drw_w=0, drw_h=0 ;
 
+    EPHYR_RETURN_VAL_IF_FAIL (a_info && a_info->pScreen, BadValue) ;
     EPHYR_RETURN_VAL_IF_FAIL (a_drawable && port_priv, BadValue) ;
 
     EPHYR_LOG ("enter\n") ;
@@ -1210,7 +1233,8 @@ ephyrGetStill (KdScreenInfo *a_info,
     drw_w = clipped_area.x2 - clipped_area.x1 ;
     drw_h = clipped_area.y2 - clipped_area.y1 ;
 
-    if (!ephyrHostXVGetStill (port_priv->port_number,
+    if (!ephyrHostXVGetStill (a_info->pScreen->myNum,
+                              port_priv->port_number,
                               a_vid_x, a_vid_y, a_vid_w, a_vid_h,
                               a_drw_x, a_drw_y, a_drw_w, a_drw_h)) {
         EPHYR_LOG_ERROR ("ephyrHostXVGetStill() failed\n") ;
