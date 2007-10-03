@@ -3297,6 +3297,35 @@ CheckPassiveGrabsOnWindow(
                 grab->modifierDevice = GetPairedKeyboard(device);
             }
 
+            /* In some cases a passive core grab may exist, but the client
+             * already has a core grab on some other device. In this case we
+             * must not get the grab, otherwise we may never ungrab the
+             * device.
+             */
+
+            if (grab->coreGrab)
+            {
+                DeviceIntPtr other;
+                BOOL interfering = FALSE;
+                for (other = inputInfo.devices; other; other = other->next)
+                {
+                    GrabPtr othergrab = other->deviceGrab.grab;
+                    if (othergrab && othergrab->coreGrab &&
+                        SameClient(grab, rClient(othergrab)) &&
+                        ((IsPointerDevice(grab->device) &&
+                         IsPointerDevice(othergrab->device)) ||
+                         (IsKeyboardDevice(grab->device) &&
+                          IsKeyboardDevice(othergrab->device))))
+                    {
+                        interfering = TRUE;
+                        break;
+                    }
+                }
+                if (interfering)
+                    continue;
+            }
+
+
 	    (*grabinfo->ActivateGrab)(device, grab, currentTime, TRUE);
  
 	    FixUpEventFromWindow(device, xE, grab->window, None, TRUE);
