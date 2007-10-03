@@ -733,6 +733,13 @@ typedef struct _ExaDriver {
  * (right-to-left, bottom-to-top).
  */
 #define EXA_TWO_BITBLT_DIRECTIONS	(1 << 2)
+
+/**
+ * EXA_HANDLES_PIXMAPS indicates to EXA that the driver can handle
+ * all pixmap addressing and migration.
+ */
+#define EXA_HANDLES_PIXMAPS             (1 << 3)
+
 /** @} */
 
 ExaDriverPtr

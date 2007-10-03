@@ -553,6 +553,9 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
     ExaScreenPriv(pScreen);
     int i, j;
 
+    if (pExaScr->info->flags & EXA_HANDLES_PIXMAPS)
+        return;
+
     /* If this debugging flag is set, check each pixmap for whether it is marked
      * as clean, and if so, actually check if that's the case.  This should help
      * catch issues with failing to mark a drawable as dirty.  While it will
