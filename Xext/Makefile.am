@@ -15,7 +15,7 @@ INCLUDES = -I$(top_srcdir)/hw/xfree86/dixmods/extmod
 AM_CFLAGS = $(DIX_CFLAGS)
 
 if XORG
-sdk_HEADERS = xvdix.h xvmcext.h geext.h
+sdk_HEADERS = xvdix.h xvmcext.h geext.h geint.h
 endif
 
 # Sources always included in libXextbuiltin.la & libXext.la
