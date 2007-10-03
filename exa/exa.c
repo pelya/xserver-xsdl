@@ -286,8 +286,9 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 
         (*pScreen->ModifyPixmapHeader)(pPixmap, w, h, 0, 0,
                                        paddedWidth, NULL);
-         pExaPixmap->driverPriv = driver_priv;
-         pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
+        pExaPixmap->driverPriv = driver_priv;
+        pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
+        pExaPixmap->fb_ptr = NULL;
     } else {
          pExaPixmap->driverPriv = NULL;
          /* Glyphs have w/h equal to zero, and may not be migrated. See exaGlyphs. */
