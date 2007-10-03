@@ -4374,7 +4374,7 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
      * For standard events (NotifyAncestor, NotifyInferior, NotifyNonlinear)
      * we only send an FocusIn event for the first kbd to set the focus. A
      * FocusOut event is sent for the last kbd to set the focus away from the
-     * window.. 
+     * window.
      *
      * For events with Virtual detail, we send them only to a window that does
      * not have a focus from another keyboard.
@@ -4392,7 +4392,9 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
 
     numFoci =
         &((FocusSemaphoresPtr)pWin->devPrivates[FocusPrivatesIndex].ptr)->focusinout;
-    if (detail != NotifyVirtual && 
+    if (mode == NotifyGrab || mode == NotifyUngrab)
+        sendevent = TRUE;
+    else if (detail != NotifyVirtual && 
             detail != NotifyNonlinearVirtual && 
             detail != NotifyPointer &&
             detail != NotifyPointerRoot &&
