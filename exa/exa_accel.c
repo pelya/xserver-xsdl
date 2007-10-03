@@ -1138,17 +1138,19 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
 	    pDrawable->bitsPerPixel != 24) {
 	    ExaPixmapPriv(pPixmap);
 
+	    exaPrepareAccess(pDrawable, EXA_PREPARE_DEST);
 	    switch (pDrawable->bitsPerPixel) {
 	    case 32:
-		*(CARD32*)pExaPixmap->sys_ptr = pixel;
+		*(CARD32*)pPixmap->devPrivate.ptr = pixel;
 		break;
 	    case 16:
-		*(CARD16*)pExaPixmap->sys_ptr = pixel;
+		*(CARD16*)pPixmap->devPrivate.ptr = pixel;
 		break;
 	    case 8:
-		*(CARD8*)pExaPixmap->sys_ptr = pixel;
+		*(CARD8*)pPixmap->devPrivate.ptr = pixel;
 	    }
 
+	    exaFinishAccess(pDrawable, EXA_PREPARE_DEST);
 	    REGION_UNION(pScreen, &pExaPixmap->validSys, &pExaPixmap->validSys,
 			 pRegion);
 	}
