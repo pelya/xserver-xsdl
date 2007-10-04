@@ -148,8 +148,6 @@ ddxProcessArgument (int argc, char **argv, int i)
 {
   EPHYR_DBG("mark argv[%d]='%s'", i, argv[i] );
 
-  noGlxVisualInit = TRUE ;
-
   if (!strcmp (argv[i], "-parent"))
     {
       if(i+1 < argc)
