@@ -118,7 +118,6 @@ void
 processScreenArg (char *screen_size, char *parent_id)
 {
   KdCardInfo   *card;
-  static int card_exists;
 
   InitCard (0);  /*Put each screen on a separate card*/
   card = KdCardInfoLast ();
