@@ -33,9 +33,12 @@ extern Window EphyrPreExistingHostWin;
 extern Bool   EphyrWantGrayScale;
 extern Bool   kdHasPointer;
 extern Bool   kdHasKbd;
+
+#ifdef GLXEXT
 extern Bool   ephyrNoDRI;
-extern Bool   ephyrNoXV;
 extern Bool noGlxVisualInit;
+#endif
+extern Bool   ephyrNoXV;
 
 void processScreenArg (char *screen_size, char *parent_id) ;
 
@@ -102,7 +105,9 @@ ddxUseMsg (void)
   ErrorF("-grayscale           Simulate 8bit grayscale\n");
   ErrorF("-fakexa              Simulate acceleration using software rendering\n");
   ErrorF("-verbosity <level>   Set log verbosity level\n");
+#ifdef GLXEXT
   ErrorF("-nodri               do not use DRI\n");
+#endif
   ErrorF("-noxv                do not use XV\n");
   ErrorF("\n");
 
@@ -206,6 +211,7 @@ ddxProcessArgument (int argc, char **argv, int i)
 	  exit(1) ;
 	}
     }
+#ifdef GLXEXT
   else if (!strcmp (argv[i], "-nodri"))
    {
        noGlxVisualInit = FALSE ;
@@ -213,6 +219,7 @@ ddxProcessArgument (int argc, char **argv, int i)
        EPHYR_LOG ("no direct rendering enabled\n") ;
        return 1 ;
    }
+#endif
   else if (!strcmp (argv[i], "-noxv"))
    {
        ephyrNoXV = TRUE ;
