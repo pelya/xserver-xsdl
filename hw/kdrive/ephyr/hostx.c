@@ -1328,6 +1328,9 @@ hostx_has_dri (void)
     int event_base=0, error_base=0 ;
     Display *dpy=hostx_get_display () ;
 
+    if (!dpy)
+        return FALSE ;
+
     if (!XF86DRIQueryExtension (dpy,
                                 &event_base,
                                 &error_base)) {
