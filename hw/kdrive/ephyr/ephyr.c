@@ -40,6 +40,10 @@
 #endif /*XEPHYR_DRI*/
 
 extern int KdTsPhyScreen;
+#ifdef GLXEXT
+extern Bool noGlxVisualInit;
+#endif
+
 KdKeyboardInfo *ephyrKbd;
 KdPointerInfo *ephyrMouse;
 EphyrKeySyms ephyrKeySyms;
@@ -628,10 +632,21 @@ ephyrInitScreen (ScreenPtr pScreen)
 #endif /*XV*/
 
 #ifdef XEPHYR_DRI
+  if (!ephyrNoDRI && !hostx_has_dri ()) {
+      EPHYR_LOG ("host x does not support DRI. Disabling DRI forwarding\n") ;
+      ephyrNoDRI = TRUE ;
+      noGlxVisualInit = FALSE ;
+  }
   if (!ephyrNoDRI) {
     ephyrDRIExtensionInit (pScreen) ;
     ephyrHijackGLXExtension () ;
     ephyrProxyExtensionInit ("ATIFGLRXDRI") ;
+  }
+#endif
+
+#ifdef GLXEXT
+  if (ephyrNoDRI) {
+      noGlxVisualInit = FALSE ;
   }
 #endif
 
