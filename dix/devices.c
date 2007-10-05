@@ -2184,6 +2184,9 @@ ProcQueryKeymap(ClientPtr client)
 
 /* Pair the keyboard to the pointer device. Keyboard events will follow the
  * pointer sprite. 
+ * If the client is set, the request to pair comes from some client. In this
+ * case, we need to check for access. If the client is NULL, it's from an
+ * internal automatic pairing, we must always permit this.
  */
 int 
 PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
@@ -2193,7 +2196,7 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
 
     if (!pairingClient)
         RegisterPairingClient(client);
-    else if (pairingClient != client)
+    else if (client && pairingClient != client)
         return BadAccess;
 
     if (kbd->spriteInfo->spriteOwner)
