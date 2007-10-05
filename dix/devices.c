@@ -252,7 +252,7 @@ EnableDevice(DeviceIntPtr dev)
 Bool
 DisableDevice(DeviceIntPtr dev)
 {
-    DeviceIntPtr *prev;
+    DeviceIntPtr *prev, paired;
     DeviceIntRec dummyDev;
     devicePresenceNotify ev;
 
@@ -267,6 +267,16 @@ DisableDevice(DeviceIntPtr dev)
     *prev = dev->next;
     dev->next = inputInfo.off_devices;
     inputInfo.off_devices = dev;
+
+    /* Some other device may have been paired with this device. 
+       Re-pair with VCP. We don't repair with a real device, as this
+       may cause somebody suddenly typing where they shouldn't. 
+     */
+    for (paired = inputInfo.devices; paired; paired = paired->next)
+    {
+        if (paired->spriteInfo->paired == dev)
+            PairDevices(NULL, inputInfo.pointer, paired);
+    }
 
     ev.type = DevicePresenceNotify;
     ev.time = currentTime.milliseconds;
