@@ -722,48 +722,6 @@ exaDriverAlloc(void)
     return xcalloc(1, sizeof(ExaDriverRec));
 }
 
-static Bool
-exaDriverValidateEntryPoints (ExaDriverPtr  pExaDriver)
-{
-    Bool res=TRUE ;
-
-    if (!pExaDriver)
-        return FALSE ;
-
-    if (!pExaDriver->memoryBase) {
-        LogMessage(X_ERROR,
-                   "Exa: Exa::memoryBase member "
-                   "must be assigned to a value different from zero\n") ;
-        res = FALSE ;
-    }
-    if (!pExaDriver->memorySize) {
-        LogMessage(X_ERROR,
-                   "Exa: Exa::memorySize member must be different from zero\n") ;
-        res = FALSE ;
-    }
-    if (pExaDriver->offScreenBase > pExaDriver->memorySize) {
-        LogMessage(X_ERROR,
-                   "Exa: Exa::ffscreenBase must be <= pExaDriver->memorySize member\n") ;
-        res = FALSE ;
-    }
-    if (!pExaDriver->PrepareSolid) {
-        LogMessage(X_ERROR,
-                   "Exa: Exa::PrepareSolid member is required to be non NULL\n") ;
-        res = FALSE ;
-    }
-    if (!pExaDriver->PrepareCopy) {
-        LogMessage(X_ERROR,
-                   "Exa: Exa::PrepareCopy member is required to be non NULL\n") ;
-        res = FALSE ;
-    }
-    if (!pExaDriver->WaitMarker) {
-        LogMessage(X_ERROR,
-                   "Exa: Exa::WaitWarker member is required to be non NULL\n") ;
-        res = FALSE ;
-    }
-    return res ;
-}
-
 /**
  * @param pScreen screen being initialized
  * @param pScreenInfo EXA driver record
@@ -847,12 +805,6 @@ exaDriverInit (ScreenPtr		pScreen,
     if (!pScreenInfo->maxPitchPixels && !pScreenInfo->maxPitchBytes)
     {
         pScreenInfo->maxPitchPixels = pScreenInfo->maxX;
-    }
-    if (!exaDriverValidateEntryPoints(pScreenInfo))
-    {
-	LogMessage(X_ERROR, "Exa(%d): EXA driver entry points validation failed\n",
-		   pScreen->myNum) ;
-	return FALSE ;
     }
 
 #ifdef RENDER
