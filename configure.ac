@@ -290,6 +290,7 @@ case $host_cpu in
   alpha*)
 	ALPHA_VIDEO=yes
 	case $host_os in
+	        *freebsd*)	SYS_LIBS=-lio ;;
 		*netbsd*)	AC_DEFINE(USE_ALPHA_PIO, 1, [NetBSD PIO alpha IO]) ;;
 	esac
 	;;
