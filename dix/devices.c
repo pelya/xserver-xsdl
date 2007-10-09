@@ -1514,7 +1514,7 @@ int
 ProcGetModifierMapping(ClientPtr client)
 {
     xGetModifierMappingReply rep;
-    KeyClassPtr keyc = inputInfo.keyboard->key;
+    KeyClassPtr keyc = PickKeyboard(client)->key;
 
     REQUEST_SIZE_MATCH(xReq);
     rep.type = X_Reply;
@@ -1537,7 +1537,7 @@ ProcChangeKeyboardMapping(ClientPtr client)
     REQUEST(xChangeKeyboardMappingReq);
     unsigned len;
     KeySymsRec keysyms;
-    KeySymsPtr curKeySyms = &inputInfo.keyboard->key->curKeySyms;
+    KeySymsPtr curKeySyms = &PickKeyboard(client)->key->curKeySyms;
     DeviceIntPtr pDev = NULL;
     REQUEST_AT_LEAST_SIZE(xChangeKeyboardMappingReq);
 
@@ -1940,7 +1940,7 @@ int
 ProcGetKeyboardControl (ClientPtr client)
 {
     int i;
-    KeybdCtrl *ctrl = &inputInfo.keyboard->kbdfeed->ctrl;
+    KeybdCtrl *ctrl = &PickKeyboard(client)->kbdfeed->ctrl;
     xGetKeyboardControlReply rep;
 
     REQUEST_SIZE_MATCH(xReq);
@@ -1962,7 +1962,7 @@ ProcGetKeyboardControl (ClientPtr client)
 int
 ProcBell(ClientPtr client)
 {
-    DeviceIntPtr keybd = inputInfo.keyboard;
+    DeviceIntPtr keybd = PickKeyboard(client);
     int base = keybd->kbdfeed->ctrl.bell;
     int newpercent;
     REQUEST(xBellReq);
@@ -2174,7 +2174,7 @@ ProcQueryKeymap(ClientPtr client)
 {
     xQueryKeymapReply rep;
     int i;
-    CARD8 *down = inputInfo.keyboard->key->down;
+    CARD8 *down = PickKeyboard(client)->key->down;
 
     REQUEST_SIZE_MATCH(xReq);
     rep.type = X_Reply;
