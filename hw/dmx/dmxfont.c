@@ -361,7 +361,8 @@ Bool dmxBELoadFont(ScreenPtr pScreen, FontPtr pFont)
 		}
 	    }
 
-	    if (SetFontPath(NULL, newnpaths, (unsigned char *)newfp, &error)) {
+	    if (SetFontPath(serverClient, newnpaths, (unsigned char *)newfp,
+			    &error)) {
 		/* Note that this should never happen since all of the
 		 * FPEs were previously valid. */
 		dmxLog(dmxError, "Cannot reset the default font path.\n");
