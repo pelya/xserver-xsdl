@@ -20,11 +20,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _XACE_H
 #define _XACE_H
 
-/* Special value used for ignore operation.  This is a deprecated feature
- * only for Security extension support.  Do not use in new code.
- */
-#define XaceIgnoreError BadRequest
-
 #ifdef XACE
 
 #define XACE_EXTENSION_NAME		"XAccessControlExtension"

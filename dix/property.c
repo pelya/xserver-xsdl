@@ -161,7 +161,7 @@ ProcRotateProperties(ClientPtr client)
 	if (rc != Success) {
             DEALLOCATE_LOCAL(props);
 	    client->errorValue = atoms[i];
-            return (rc == XaceIgnoreError) ? Success : rc;
+            return rc;
 	}
         props[i] = pProp;
     }
@@ -282,7 +282,7 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 	    xfree(data);
 	    xfree(pProp);
 	    pClient->errorValue = property;
-	    return (rc == XaceIgnoreError) ? Success : rc;
+	    return rc;
 	}
         pProp->next = pWin->optional->userProps;
         pWin->optional->userProps = pProp;
@@ -293,7 +293,7 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 		      DixWriteAccess);
 	if (rc != Success) {
 	    pClient->errorValue = property;
-	    return (rc == XaceIgnoreError) ? Success : rc;
+	    return rc;
 	}
 	/* To append or prepend to a property the request format and type
 		must match those of the already defined property.  The
@@ -499,8 +499,7 @@ ProcGetProperty(ClientPtr client)
     rc = XaceHook(XACE_PROPERTY_ACCESS, client, pWin, pProp, access_mode);
     if (rc != Success) {
 	client->errorValue = stuff->property;
-	return (rc == XaceIgnoreError) ? 
-	    NullPropertyReply(client, pProp->type, pProp->format, &reply) : rc;
+	return rc;
     }
 
     /* If the request type and actual type don't match. Return the
@@ -641,7 +640,7 @@ ProcDeleteProperty(ClientPtr client)
 		      FindProperty(pWin, stuff->property), DixDestroyAccess);
     if (result != Success) {
 	client->errorValue = stuff->property;
-	return (result == XaceIgnoreError) ? Success : result;
+	return result;
     }
 
     result = DeleteProperty(pWin, stuff->property);
