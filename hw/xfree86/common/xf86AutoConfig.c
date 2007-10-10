@@ -350,7 +350,8 @@ autoConfigDevice(GDevPtr preconf_device)
 char*
 chooseVideoDriver(void)
 {
-    pciVideoPtr *pciptr, info = NULL;
+    struct pci_device * info = NULL;
+    struct pci_device_iterator *iter;
     DIR *idsdir;
     FILE *fp;
     struct dirent *direntry;
@@ -359,7 +360,7 @@ chooseVideoDriver(void)
     size_t len;
     ssize_t read;
     char path_name[256], vendor_str[5], chip_str[5];
-    int vendor, chip;
+    uint16_t vendor, chip;
     int i, j;
     char *matches[20]; /* If we have more than 20 drivers we're in trouble */
     
@@ -367,22 +368,17 @@ chooseVideoDriver(void)
         matches[i] = NULL;
 
     /* Find the primary device, and get some information about it. */
-    if (xf86PciVideoInfo) {
-	    for (pciptr = xf86PciVideoInfo; (info = *pciptr); pciptr++) {
-	        if (xf86IsPrimaryPci(info)) {
-	    	break;
-	        }
-	    }
-	    if (!info) {
-	        ErrorF("Primary device is not PCI\n");
-	    }
-    } else {
-        ErrorF("xf86PciVideoInfo is not set\n");
+    iter = pci_slot_match_iterator_create(NULL);
+    while ((info = pci_device_next(iter)) != NULL) {
+	if (xf86IsPrimaryPci(info)) {
+	    break;
+	}
     }
 
+    pci_iterator_destroy(iter);
+
     if (!info) {
-        ErrorF("Could not get primary PCI info\n");
-        goto end;
+	ErrorF("Primary device is not PCI\n");
     }
 
     idsdir = opendir("/usr/share/xserver-xorg/pci");
@@ -427,8 +423,8 @@ chooseVideoDriver(void)
                                     chip = (int)strtol(chip_str, NULL, 16);
                                 }
                         }
-                        if (vendor == info->vendor && 
-                               (chip == info->chipType || chip == -1)) {
+                        if (vendor == info->vendor_id && 
+                               (chip == info->device_id || chip == -1)) {
                             i = 0;
                             while (matches[i]) {
                                 i++;
