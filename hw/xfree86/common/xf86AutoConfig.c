@@ -39,6 +39,7 @@
 #include "xf86Config.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
+#include "dirent.h"
 
 /* Sections for the default built-in configuration. */
 
@@ -286,4 +287,208 @@ xf86AutoConfig(void)
 	xf86Msg(X_ERROR, "Error parsing the built-in default configuration.\n");
 
     return (ret == CONFIG_OK);
+}
+
+int 
+xchomp(char *line)
+{
+    size_t len = 0;
+
+    if (!line) {
+        return 1;
+    }
+
+    len = strlen(line);
+    if (line[len - 1] == '\n' && len > 0) {
+        line[len - 1] = '\0';
+        return 0;
+    }
+}
+
+GDevPtr
+autoConfigDevice(GDevPtr preconf_device)
+{
+    GDevPtr ptr = NULL;
+    confScreenPtr scrn = NULL;
+
+    if (!xf86configptr) {
+        return NULL;
+    }
+
+    /* If there's a configured section with no driver chosen, use it */
+    if (preconf_device) {
+        ptr = preconf_device;
+    } else {
+        ptr = (GDevPtr)xalloc(sizeof(GDevRec));
+        if (!ptr) {
+            return NULL;
+        }
+        memset((GDevPtr)ptr, 0, sizeof(GDevRec));
+        ptr->chipID = -1;
+        ptr->chipRev = -1;
+        ptr->irq = -1;
+
+        ptr->active = TRUE;
+        ptr->claimed = FALSE;
+        ptr->identifier = "Autoconfigured Video Device";
+        ptr->driver = NULL;
+    }
+    if (!ptr->driver) {
+        ptr->driver = chooseVideoDriver();
+    }
+
+    /* TODO Handle multiple screen sections */
+    if (xf86ConfigLayout.screens && !xf86ConfigLayout.screens->screen->device) {   
+        xf86ConfigLayout.screens->screen->device = ptr;
+        ptr->myScreenSection = xf86ConfigLayout.screens->screen;
+    }
+    xf86Msg(X_DEFAULT, "Assigned the driver to the xf86ConfigLayout\n");
+
+    return ptr;
+}
+
+char*
+chooseVideoDriver(void)
+{
+    pciVideoPtr *pciptr, info = NULL;
+    DIR *idsdir;
+    FILE *fp;
+    struct dirent *direntry;
+    char *line = NULL;
+    char *chosen_driver = NULL;
+    size_t len;
+    ssize_t read;
+    char path_name[256], vendor_str[5], chip_str[5];
+    int vendor, chip;
+    int i, j;
+    char *matches[20]; /* If we have more than 20 drivers we're in trouble */
+    
+    for (i=0 ; i<20 ; i++)
+        matches[i] = NULL;
+
+    /* Find the primary device, and get some information about it. */
+    if (xf86PciVideoInfo) {
+	    for (pciptr = xf86PciVideoInfo; (info = *pciptr); pciptr++) {
+	        if (xf86IsPrimaryPci(info)) {
+	    	break;
+	        }
+	    }
+	    if (!info) {
+	        ErrorF("Primary device is not PCI\n");
+	    }
+    } else {
+        ErrorF("xf86PciVideoInfo is not set\n");
+    }
+
+    if (!info) {
+        ErrorF("Could not get primary PCI info\n");
+        goto end;
+    }
+
+    idsdir = opendir("/usr/share/xserver-xorg/pci");
+    if (idsdir) {
+        direntry = readdir(idsdir);
+        /* Read the directory */
+        while (direntry) {
+            if (direntry->d_name[0] == '.') {
+                direntry = readdir(idsdir);
+                continue;
+            }
+            len = strlen(direntry->d_name);
+            /* A tiny bit of sanity checking. We should probably do better */
+            if (strncmp(&(direntry->d_name[len-4]), ".ids", 4) == 0) {
+                /* We need the full path name to open the file */
+                strncpy(path_name, "/usr/share/xserver-xorg/pci/", 256);
+                strncat(path_name, direntry->d_name, (256 - strlen(path_name)));
+                fp = fopen(path_name, "r");
+                if (fp == NULL) {
+                    xf86Msg(X_ERROR, "Could not open %s for reading. Exiting.\n", path_name);
+                    goto end;
+                }
+                /* Read the file */
+                while ((read = getline(&line, &len, fp)) != -1) {
+                    xchomp(line);
+                    if (isdigit(line[0])) {
+                        strncpy(vendor_str, line, 4);
+                        vendor_str[4] = '\0';
+                        vendor = (int)strtol(vendor_str, NULL, 16);
+                        if ((strlen(&line[4])) == 0) {
+                                chip_str[0] = '\0';
+                                chip = -1;
+                        } else {
+                                /* Handle trailing whitespace */
+                                if (isspace(line[4])) {
+                                    chip_str[0] = '\0';
+                                    chip = -1;
+                                } else {
+                                /* Ok, it's a real ID */
+                                    strncpy(chip_str, &line[4], 4);
+                                    chip_str[4] = '\0';
+                                    chip = (int)strtol(chip_str, NULL, 16);
+                                }
+                        }
+                        if (vendor == info->vendor && 
+                               (chip == info->chipType || chip == -1)) {
+                            i = 0;
+                            while (matches[i]) {
+                                i++;
+                            }
+                            matches[i] = (char*)xalloc(sizeof(char) * strlen(direntry->d_name) -  3);
+                            if (!matches[i]) {
+                                xf86Msg(X_ERROR, "Could not allocate space for the module name. Exiting.\n");
+                                goto end;
+                            }
+                            /* hack off the .ids suffix. This should guard
+                             * against other problems, but it will end up
+                             * taking off anything after the first '.' */
+                            for (j = 0; j < (strlen(direntry->d_name) - 3) ; j++) {
+                                if (direntry->d_name[j] == '.') {
+                                    matches[i][j] = '\0';
+                                    break;
+                                } else {
+                                    matches[i][j] = direntry->d_name[j];
+                                }
+                            }
+                            xf86Msg(X_INFO, "Matched %s from file name %s in autoconfig\n", matches[i], direntry->d_name);
+
+                        }
+                    } else {
+                        /* TODO Handle driver overrides here */
+                    }
+                }
+                fclose(fp);
+            }
+            direntry = readdir(idsdir);
+        }
+    }
+
+    /* TODO Handle multiple drivers claiming to support the same PCI ID */
+    if (matches[0]) {
+        chosen_driver = matches[0];
+    } else {
+        #if defined  __i386__ || defined __amd64__ || defined __hurd__
+        chosen_driver = "vesa";
+        #elif defined __alpha__
+        chosen_driver = "vga";
+        #elif defined __sparc__
+        chosen_driver = "sunffb";
+        #else 
+        chosen_driver = "fbdev";
+        #endif
+    }
+
+    xf86Msg(X_DEFAULT, "Matched %s for the autoconfigured driver\n", chosen_driver);
+
+    end:
+    i = 0;
+    while (matches[i]) {
+        if (matches[i] != chosen_driver) {
+            xfree(matches[i]);
+        }
+        i++;
+    }
+    xfree(line);
+    closedir(idsdir);
+
+    return chosen_driver;
 }

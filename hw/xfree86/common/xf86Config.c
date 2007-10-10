@@ -1940,8 +1940,10 @@ configScreen(confScreenPtr screenp, XF86ConfScreenPtr conf_screen, int scrnum,
 	    return FALSE;
     }
     screenp->device     = xnfcalloc(1, sizeof(GDevRec));
-    configDevice(screenp->device,conf_screen->scrn_device, TRUE);
-    screenp->device->myScreenSection = screenp;
+    if (configDevice(screenp->device,conf_screen->scrn_device, TRUE))
+        screenp->device->myScreenSection = screenp;
+    else
+        screenp->device = NULL;
     screenp->options = conf_screen->scrn_option_lst;
     
     /*
@@ -2230,13 +2232,17 @@ configDevice(GDevPtr devicep, XF86ConfDevicePtr conf_device, Bool active)
 {
     int i;
 
+    if (!conf_device) {
+        return FALSE;
+    }
+
     if (active)
 	xf86Msg(X_CONFIG, "|   |-->Device \"%s\"\n",
 		conf_device->dev_identifier);
     else
 	xf86Msg(X_CONFIG, "|-->Inactive Device \"%s\"\n",
 		conf_device->dev_identifier);
-	
+
     devicep->identifier = conf_device->dev_identifier;
     devicep->vendor = conf_device->dev_vendor;
     devicep->board = conf_device->dev_board;
