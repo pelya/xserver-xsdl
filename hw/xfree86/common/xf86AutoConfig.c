@@ -462,6 +462,8 @@ chooseVideoDriver(void)
     if (matches[0]) {
         chosen_driver = matches[0];
     } else {
+	chosen_driver = videoPtrToDriverName(info);
+    #if 0 /* Save for later */
         #if defined  __i386__ || defined __amd64__ || defined __hurd__
         chosen_driver = "vesa";
         #elif defined __alpha__
@@ -471,6 +473,7 @@ chooseVideoDriver(void)
         #else 
         chosen_driver = "fbdev";
         #endif
+    #endif
     }
 
     xf86Msg(X_DEFAULT, "Matched %s for the autoconfigured driver\n", chosen_driver);
