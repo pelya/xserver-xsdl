@@ -1939,11 +1939,20 @@ configScreen(confScreenPtr screenp, XF86ConfScreenPtr conf_screen, int scrnum,
 	if (!configMonitor(screenp->monitor,conf_screen->scrn_monitor))
 	    return FALSE;
     }
+    /* Configure the device. If there isn't one configured, attach to the
+     * first inactive one that we can configure. If there's none that work,
+     * set it to NULL so that the section can be autoconfigured later */
     screenp->device     = xnfcalloc(1, sizeof(GDevRec));
-    if (configDevice(screenp->device,conf_screen->scrn_device, TRUE))
+    if ((!conf_screen->scrn_device) && (xf86configptr->conf_device_lst)) {
+        conf_screen->scrn_device = xf86configptr->conf_device_lst;
+	xf86Msg(X_DEFAULT, "No device specified for screen \"%s\".\n"
+		"\tUsing the first device section listed.\n", screenp->id);
+    }
+    if (configDevice(screenp->device,conf_screen->scrn_device, TRUE)) {
         screenp->device->myScreenSection = screenp;
-    else
+    } else {
         screenp->device = NULL;
+    }
     screenp->options = conf_screen->scrn_option_lst;
     
     /*
