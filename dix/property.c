@@ -365,9 +365,10 @@ ChangeWindowProperty(WindowPtr pWin, Atom property, Atom type, int format,
 }
 
 int
-DeleteProperty(WindowPtr pWin, Atom propName)
+DeleteProperty(ClientPtr client, WindowPtr pWin, Atom propName)
 {
     PropertyPtr pProp, prevProp;
+    int rc;
 
     if (!(pProp = wUserProps (pWin)))
 	return(Success);
@@ -381,6 +382,11 @@ DeleteProperty(WindowPtr pWin, Atom propName)
     }
     if (pProp) 
     {		    
+	rc = XaceHook(XACE_PROPERTY_ACCESS, client, pWin, pProp,
+		      DixDestroyAccess);
+	if (rc != Success)
+	    return rc;
+
         if (prevProp == (PropertyPtr)NULL)      /* takes care of head */
         {
             if (!(pWin->optional->userProps = pProp->next))
@@ -636,14 +642,7 @@ ProcDeleteProperty(ClientPtr client)
 	return (BadAtom);
     }
 
-    result = XaceHook(XACE_PROPERTY_ACCESS, client, pWin,
-		      FindProperty(pWin, stuff->property), DixDestroyAccess);
-    if (result != Success) {
-	client->errorValue = stuff->property;
-	return result;
-    }
-
-    result = DeleteProperty(pWin, stuff->property);
+    result = DeleteProperty(client, pWin, stuff->property);
     if (client->noClientException != Success)
 	return(client->noClientException);
     else

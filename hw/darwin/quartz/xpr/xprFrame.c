@@ -337,7 +337,7 @@ xprDamageRects(RootlessFrameID wid, int nrects, const BoxRec *rects,
 void
 xprSwitchWindow(RootlessWindowPtr pFrame, WindowPtr oldWin)
 {
-    DeleteProperty(oldWin, xa_native_window_id());
+    DeleteProperty(serverClient, oldWin, xa_native_window_id());
 
     xprSetNativeProperty(pFrame);
 }
