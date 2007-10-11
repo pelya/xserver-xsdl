@@ -27,6 +27,7 @@ libdix_la_SOURCES = 	\
 	pixmap.c	\
 	privates.c	\
 	property.c	\
+	registry.c	\
 	resource.c	\
 	swaprep.c	\
 	swapreq.c	\

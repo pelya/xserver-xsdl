@@ -22,6 +22,7 @@
 #include "windowstr.h"
 #include "gcstruct.h"
 #include "modinit.h"
+#include "registry.h"
 
 static int
 ProcXResQueryVersion (ClientPtr client)
@@ -161,17 +162,20 @@ ProcXResQueryClientResources (ClientPtr client)
 
     if(num_types) {
         xXResType scratch;
+	char *name;
 
         for(i = 0; i < lastResourceType; i++) {
             if(!counts[i]) continue;
 
-            if(!ResourceNames[i + 1]) {
+	    name = (char *)LookupResourceName(i + 1);
+            if (strcmp(name, XREGISTRY_UNKNOWN))
+		scratch.resource_type = MakeAtom(name, strlen(name), TRUE);
+	    else {
                 char buf[40];
                 snprintf(buf, sizeof(buf), "Unregistered resource %i", i + 1);
-                RegisterResourceName(i + 1, buf);
+		scratch.resource_type = MakeAtom(buf, strlen(buf), TRUE);
             }
 
-            scratch.resource_type = ResourceNames[i + 1];
             scratch.count = counts[i];
 
             if(client->swapped) {
@@ -387,15 +391,4 @@ ResExtensionInit(INITARGS)
     (void) AddExtension(XRES_NAME, 0, 0,
                             ProcResDispatch, SProcResDispatch,
                             ResResetProc, StandardMinorOpcode);
-
-    RegisterResourceName(RT_NONE, "NONE");
-    RegisterResourceName(RT_WINDOW, "WINDOW");
-    RegisterResourceName(RT_PIXMAP, "PIXMAP");
-    RegisterResourceName(RT_GC, "GC");
-    RegisterResourceName(RT_FONT, "FONT");
-    RegisterResourceName(RT_CURSOR, "CURSOR");
-    RegisterResourceName(RT_COLORMAP, "COLORMAP");
-    RegisterResourceName(RT_CMAPENTRY, "COLORMAP ENTRY");
-    RegisterResourceName(RT_OTHERCLIENT, "OTHER CLIENT");
-    RegisterResourceName(RT_PASSIVEGRAB, "PASSIVE GRAB");
 }

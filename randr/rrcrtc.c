@@ -500,9 +500,7 @@ RRCrtcInit (void)
     RRCrtcType = CreateNewResourceType (RRCrtcDestroyResource);
     if (!RRCrtcType)
 	return FALSE;
-#ifdef XResExtension
-	RegisterResourceName (RRCrtcType, "CRTC");
-#endif
+    RegisterResourceName (RRCrtcType, "CRTC");
     return TRUE;
 }
 

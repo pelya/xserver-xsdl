@@ -584,11 +584,9 @@ PictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats)
 	if (!GlyphSetType)
 	    return FALSE;
 	PictureGeneration = serverGeneration;
-#ifdef XResExtension
 	RegisterResourceName (PictureType, "PICTURE");
 	RegisterResourceName (PictFormatType, "PICTFORMAT");
 	RegisterResourceName (GlyphSetType, "GLYPHSET");
-#endif
     }
     if (!formats)
     {

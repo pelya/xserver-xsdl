@@ -65,6 +65,7 @@
 #include "osdep.h"
 #include "privates.h"
 #include "resource.h"
+#include "registry.h"
 #include "servermd.h"
 #include "scrnintstr.h"
 #include "windowstr.h"
@@ -285,9 +286,12 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMVAR(lastResourceType)
     SYMVAR(TypeMask)
     SYMVAR(ResourceStateCallback)
-#ifdef RES
+    /* registry.c */
+#ifdef XREGISTRY
+    SYMFUNC(RegisterRequestName)
+    SYMFUNC(RegisterEventName)
+    SYMFUNC(RegisterErrorName)
     SYMFUNC(RegisterResourceName)
-    SYMVAR(ResourceNames)
 #endif
     /* swaprep.c */
     SYMFUNC(CopySwap32Write)

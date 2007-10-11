@@ -37,6 +37,7 @@ sdk_HEADERS =		\
 	propertyst.h	\
 	region.h	\
 	regionstr.h	\
+	registry.h	\
 	resource.h	\
 	rgb.h		\
 	screenint.h	\

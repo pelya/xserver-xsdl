@@ -151,10 +151,11 @@ Equipment Corporation.
 
 #ifdef XSERVER_DTRACE
 #include <sys/types.h>
+#include "registry.h"
 typedef const char *string;
 #include "Xserver-dtrace.h"
 
-#define TypeNameString(t) NameForAtom(ResourceNames[t & TypeMask])
+#define TypeNameString(t) LookupResourceName(t)
 #endif
 
 static void RebuildTable(
@@ -202,17 +203,6 @@ CallResourceStateCallback(ResourceState state, ResourceRec *res)
     }
 }
 
-#ifdef XResExtension
-
-_X_EXPORT Atom * ResourceNames = NULL;
-
-_X_EXPORT void RegisterResourceName (RESTYPE type, char *name)
-{
-    ResourceNames[type & TypeMask] =  MakeAtom(name, strlen(name), TRUE);
-}
-
-#endif
-
 _X_EXPORT RESTYPE
 CreateNewResourceType(DeleteType deleteFunc)
 {
@@ -227,17 +217,6 @@ CreateNewResourceType(DeleteType deleteFunc)
 	return 0;
     if (!dixRegisterPrivateOffset(next, -1))
 	return 0;
-
-#ifdef XResExtension
-    {
-       Atom *newnames;
-       newnames = xrealloc(ResourceNames, (next + 1) * sizeof(Atom));
-       if(!newnames)
-           return 0;
-       ResourceNames = newnames;
-       ResourceNames[next] = 0;
-    }
-#endif
 
     lastResourceType = next;
     DeleteFuncs = funcs;
@@ -291,14 +270,6 @@ InitClientResources(ClientPtr client)
 	DeleteFuncs[RT_CMAPENTRY & TypeMask] = FreeClientPixels;
 	DeleteFuncs[RT_OTHERCLIENT & TypeMask] = OtherClientGone;
 	DeleteFuncs[RT_PASSIVEGRAB & TypeMask] = DeletePassiveGrab;
-
-#ifdef XResExtension
-        if(ResourceNames)
-            xfree(ResourceNames);
-        ResourceNames = xalloc((lastResourceType + 1) * sizeof(Atom));
-        if(!ResourceNames)
-           return FALSE;
-#endif
     }
     clientTable[i = client->index].resources =
 	(ResourcePtr *)xalloc(INITBUCKETS*sizeof(ResourcePtr));

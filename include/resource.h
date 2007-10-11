@@ -239,11 +239,6 @@ extern unsigned int GetXIDList(
 extern RESTYPE lastResourceType;
 extern RESTYPE TypeMask;
 
-#ifdef XResExtension
-extern Atom *ResourceNames;
-void RegisterResourceName(RESTYPE type, char* name);
-#endif
-
 /*
  * These are deprecated compatibility functions and will be removed soon!
  * Please use the noted replacements instead.

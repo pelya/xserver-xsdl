@@ -102,6 +102,7 @@ Equipment Corporation.
 #include "dixfont.h"
 #include "extnsionst.h"
 #include "privates.h"
+#include "registry.h"
 #ifdef XPRINT
 #include "DiPrint.h"
 #endif
@@ -354,6 +355,7 @@ main(int argc, char *argv[], char *envp[])
 	InitGlyphCaching();
 	if (!dixResetPrivates())
 	    FatalError("couldn't init private data storage");
+	dixResetRegistry();
 	ResetFontPrivateIndex();
 	InitCallbackManager();
 	InitVisualWrap();

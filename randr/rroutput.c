@@ -420,9 +420,7 @@ RROutputInit (void)
     RROutputType = CreateNewResourceType (RROutputDestroyResource);
     if (!RROutputType)
 	return FALSE;
-#ifdef XResExtension
-	RegisterResourceName (RROutputType, "OUTPUT");
-#endif
+    RegisterResourceName (RROutputType, "OUTPUT");
     return TRUE;
 }
 

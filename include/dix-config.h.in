@@ -329,6 +329,9 @@
 /* unaligned word accesses behave as expected */
 #undef WORKING_UNALIGNED_INT
 
+/* Build X string registry */
+#undef XREGISTRY
+
 /* Build X-ACE extension */
 #undef XACE
 

@@ -493,6 +493,7 @@ AC_ARG_ENABLE(glx-tls,        AS_HELP_STRING([--enable-glx-tls], [Build GLX with
                                 [GLX_USE_TLS=no])
 
 dnl Extensions.
+AC_ARG_ENABLE(registry,       AS_HELP_STRING([--disable-registry], [Build string registry module (default: enabled)]), [XREGISTRY=$enableval], [XREGISTRY=yes])
 AC_ARG_ENABLE(composite,      AS_HELP_STRING([--disable-composite], [Build Composite extension (default: enabled)]), [COMPOSITE=$enableval], [COMPOSITE=yes])
 AC_ARG_ENABLE(mitshm,         AS_HELP_STRING([--disable-shm], [Build SHM extension (default: enabled)]), [MITSHM=$enableval], [MITSHM=yes])
 AC_ARG_ENABLE(xres,           AS_HELP_STRING([--disable-xres], [Build XRes extension (default: enabled)]), [RES=$enableval], [RES=yes])
@@ -733,6 +734,10 @@ if test "x$XVMC" = xyes; then
 	AC_DEFINE(XvMCExtension, 1, [Build XvMC extension])
 fi
 
+AM_CONDITIONAL(XREGISTRY, [test "x$XREGISTRY" = xyes])
+if test "x$XREGISTRY" = xyes; then
+	AC_DEFINE(XREGISTRY, 1, [Build registry module])
+fi
 
 AM_CONDITIONAL(COMPOSITE, [test "x$COMPOSITE" = xyes])
 if test "x$COMPOSITE" = xyes; then
