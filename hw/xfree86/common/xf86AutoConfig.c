@@ -284,8 +284,8 @@ xchomp(char *line)
     len = strlen(line);
     if (line[len - 1] == '\n' && len > 0) {
         line[len - 1] = '\0';
-        return 0;
     }
+    return 0;
 }
 
 GDevPtr
