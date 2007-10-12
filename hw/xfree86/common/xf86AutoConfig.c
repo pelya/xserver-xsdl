@@ -384,8 +384,7 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
                                     chip = (int)strtol(chip_str, NULL, 16);
                                 }
                         }
-                        if (vendor == match_vendor && 
-                               (chip == match_chip || chip == -1)) {
+                        if (vendor == match_vendor && chip == match_chip ) {
                             i = 0;
                             while (matches[i]) {
                                 i++;
