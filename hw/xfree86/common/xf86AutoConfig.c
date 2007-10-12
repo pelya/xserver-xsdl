@@ -215,8 +215,6 @@ xf86AutoConfig(void)
 {
     const char **p;
     char buf[1024];
-    struct pci_device_iterator *iter;
-    struct pci_device * info = NULL;
     const char *driver = NULL;
     ConfigStatus ret;
 
@@ -294,7 +292,6 @@ GDevPtr
 autoConfigDevice(GDevPtr preconf_device)
 {
     GDevPtr ptr = NULL;
-    confScreenPtr scrn = NULL;
 
     if (!xf86configptr) {
         return NULL;
