@@ -158,7 +158,7 @@ miCompositeRects (CARD8		op,
 	
 	tmpval[0] = xTrue;
 	pSrc = CreatePicture (0, &pPixmap->drawable, rgbaFormat,
-			      CPRepeat, tmpval, 0, &error);
+			      CPRepeat, tmpval, serverClient, &error);
 			      
 	if (!pSrc)
 	    goto bail4;
