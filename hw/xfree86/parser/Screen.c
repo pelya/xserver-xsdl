@@ -498,12 +498,6 @@ xf86validateScreen (XF86ConfigPtr p)
 	XF86ConfDevicePtr device;
 	XF86ConfAdaptorLinkPtr adaptor;
 
-	if (!screen)
-	{
-		xf86validationError ("At least one Screen section is required.");
-		return (FALSE);
-	}
-
 	while (screen)
 	{
 		if (screen->scrn_obso_driver && !screen->scrn_identifier)
@@ -512,13 +506,7 @@ xf86validateScreen (XF86ConfigPtr p)
 		monitor = xf86findMonitor (screen->scrn_monitor_str, p->conf_monitor_lst);
 		if (screen->scrn_monitor_str)
 		{
-			if (!monitor)
-			{
-				xf86validationError (UNDEFINED_MONITOR_MSG,
-						 	screen->scrn_monitor_str, screen->scrn_identifier);
-				return (FALSE);
-			}
-			else
+			if (monitor)
 			{
 				screen->scrn_monitor = monitor;
 				if (!xf86validateMonitor(p, screen))

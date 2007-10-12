@@ -215,27 +215,10 @@ xf86AutoConfig(void)
 {
     const char **p;
     char buf[1024];
-    struct pci_device_iterator *iter;
-    struct pci_device * info = NULL;
     const char *driver = NULL;
     ConfigStatus ret;
 
-    /* Find the primary device, and get some information about it. */
-    iter = pci_slot_match_iterator_create(NULL);
-    while ((info = pci_device_next(iter)) != NULL) {
-	if (xf86IsPrimaryPci(info)) {
-	    break;
-	}
-    }
-
-    pci_iterator_destroy(iter);
-
-    if (!info) {
-	ErrorF("Primary device is not PCI\n");
-    }
-
-    if (info)
-	driver = videoPtrToDriverName(info);
+    driver = chooseVideoDriver();
 
     AppendToConfig(BUILTIN_MODULE_SECTION);
     AppendToConfig(BUILTIN_MONITOR_SECTION);
@@ -301,15 +284,14 @@ xchomp(char *line)
     len = strlen(line);
     if (line[len - 1] == '\n' && len > 0) {
         line[len - 1] = '\0';
-        return 0;
     }
+    return 0;
 }
 
 GDevPtr
 autoConfigDevice(GDevPtr preconf_device)
 {
     GDevPtr ptr = NULL;
-    confScreenPtr scrn = NULL;
 
     if (!xf86configptr) {
         return NULL;
@@ -347,41 +329,20 @@ autoConfigDevice(GDevPtr preconf_device)
     return ptr;
 }
 
-char*
-chooseVideoDriver(void)
+static void
+matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip)
 {
-    struct pci_device * info = NULL;
-    struct pci_device_iterator *iter;
     DIR *idsdir;
     FILE *fp;
     struct dirent *direntry;
     char *line = NULL;
-    char *chosen_driver = NULL;
     size_t len;
     ssize_t read;
     char path_name[256], vendor_str[5], chip_str[5];
     uint16_t vendor, chip;
     int i, j;
-    char *matches[20]; /* If we have more than 20 drivers we're in trouble */
-    
-    for (i=0 ; i<20 ; i++)
-        matches[i] = NULL;
-
-    /* Find the primary device, and get some information about it. */
-    iter = pci_slot_match_iterator_create(NULL);
-    while ((info = pci_device_next(iter)) != NULL) {
-	if (xf86IsPrimaryPci(info)) {
-	    break;
-	}
-    }
-
-    pci_iterator_destroy(iter);
-
-    if (!info) {
-	ErrorF("Primary device is not PCI\n");
-    }
-
     idsdir = opendir("/usr/share/xserver-xorg/pci");
+
     if (idsdir) {
         direntry = readdir(idsdir);
         /* Read the directory */
@@ -423,8 +384,7 @@ chooseVideoDriver(void)
                                     chip = (int)strtol(chip_str, NULL, 16);
                                 }
                         }
-                        if (vendor == info->vendor_id && 
-                               (chip == info->device_id || chip == -1)) {
+                        if (vendor == match_vendor && chip == match_chip ) {
                             i = 0;
                             while (matches[i]) {
                                 i++;
@@ -457,6 +417,38 @@ chooseVideoDriver(void)
             direntry = readdir(idsdir);
         }
     }
+    end:
+    xfree(line);
+    closedir(idsdir);
+}
+
+char*
+chooseVideoDriver(void)
+{
+    struct pci_device * info = NULL;
+    struct pci_device_iterator *iter;
+    char *chosen_driver = NULL;
+    int i;
+    char *matches[20]; /* If we have more than 20 drivers we're in trouble */
+    
+    for (i=0 ; i<20 ; i++)
+        matches[i] = NULL;
+
+    /* Find the primary device, and get some information about it. */
+    iter = pci_slot_match_iterator_create(NULL);
+    while ((info = pci_device_next(iter)) != NULL) {
+	if (xf86IsPrimaryPci(info)) {
+	    break;
+	}
+    }
+
+    pci_iterator_destroy(iter);
+
+    if (!info) {
+	ErrorF("Primary device is not PCI\n");
+    }
+
+    matchDriverFromFiles(matches, info->vendor_id, info->device_id);
 
     /* TODO Handle multiple drivers claiming to support the same PCI ID */
     if (matches[0]) {
@@ -478,7 +470,6 @@ chooseVideoDriver(void)
 
     xf86Msg(X_DEFAULT, "Matched %s for the autoconfigured driver\n", chosen_driver);
 
-    end:
     i = 0;
     while (matches[i]) {
         if (matches[i] != chosen_driver) {
@@ -486,8 +477,6 @@ chooseVideoDriver(void)
         }
         i++;
     }
-    xfree(line);
-    closedir(idsdir);
 
     return chosen_driver;
 }
