@@ -186,8 +186,6 @@ else\
 "The Inactive keyword must be followed by a Device name in quotes."
 #define UNDEFINED_SCREEN_MSG \
 "Undefined Screen \"%s\" referenced by ServerLayout \"%s\"."
-#define UNDEFINED_MONITOR_MSG \
-"Undefined Monitor \"%s\" referenced by Screen \"%s\"."
 #define UNDEFINED_MODES_MSG \
 "Undefined Modes Section \"%s\" referenced by Monitor \"%s\"."
 #define UNDEFINED_DEVICE_MSG \
