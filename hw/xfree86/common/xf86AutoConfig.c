@@ -220,22 +220,7 @@ xf86AutoConfig(void)
     const char *driver = NULL;
     ConfigStatus ret;
 
-    /* Find the primary device, and get some information about it. */
-    iter = pci_slot_match_iterator_create(NULL);
-    while ((info = pci_device_next(iter)) != NULL) {
-	if (xf86IsPrimaryPci(info)) {
-	    break;
-	}
-    }
-
-    pci_iterator_destroy(iter);
-
-    if (!info) {
-	ErrorF("Primary device is not PCI\n");
-    }
-
-    if (info)
-	driver = videoPtrToDriverName(info);
+    driver = chooseVideoDriver();
 
     AppendToConfig(BUILTIN_MODULE_SECTION);
     AppendToConfig(BUILTIN_MONITOR_SECTION);
