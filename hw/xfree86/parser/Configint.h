@@ -204,8 +204,6 @@ else\
 "This section must have an Identifier line."
 #define ONLY_ONE_MSG \
 "This section must have only one of either %s line."
-#define UNDEFINED_DRIVER_MSG \
-"Device section \"%s\" must have a Driver line."
 #define UNDEFINED_INPUTDRIVER_MSG \
 "InputDevice section \"%s\" must have a Driver line."
 #define INVALID_GAMMA_MSG \
