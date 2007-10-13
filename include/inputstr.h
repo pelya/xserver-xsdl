@@ -357,8 +357,9 @@ typedef struct _SpriteInfoRec {
      * sprite, let sprite point to a paired spriteOwner's sprite. */
     SpritePtr           sprite;      /* sprite information */
     Bool                spriteOwner; /* True if device owns the sprite */
-    DeviceIntPtr        paired;      /* the real owner of the sprite or
-                                        NULL if spriteOwner is TRUE*/
+    DeviceIntPtr        paired;      /* The paired device. Keyboard if
+                                        spriteOwner is TRUE, otherwise the
+                                        pointer that owns the sprite. */ 
 } SpriteInfoRec, *SpriteInfoPtr;
 
 typedef struct _DeviceIntRec {
@@ -373,6 +374,7 @@ typedef struct _DeviceIntRec {
     Bool        enabled;                /* TRUE if ON returns Success */
     Bool        coreEvents;             /* TRUE if device also sends core */
     GrabInfoRec deviceGrab;             /* grab on the device */
+    Bool        isMaster;               /* TRUE if device is master */
     Atom		type;
     char		*name;
     CARD8		id;
