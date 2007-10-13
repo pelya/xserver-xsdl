@@ -6103,6 +6103,16 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
 _X_EXPORT Bool
 SetClientPointer(ClientPtr client, ClientPtr setter, DeviceIntPtr device)
 {
+    if (!device->isMaster)
+    {
+        ErrorF("[dix] Need master device for ClientPointer. This is a bug.\n");
+        return FALSE;
+    } else if (!device->spriteInfo->spriteOwner)
+    {
+        ErrorF("[dix] Device %d does not have a sprite. " 
+                "Cannot be ClientPointer\n", device->id);
+        return FALSE;
+    }
     client->clientPtr = device;
     return TRUE;
 }
