@@ -2238,7 +2238,10 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
         return BadDevice;
 
     /* Don't allow pairing for slave devices */
-    if (ptr->master || kbd->master)
+    if (!ptr->isMaster || !kbd->isMaster)
+        return BadDevice;
+
+    if (ptr->spriteInfo->paired)
         return BadDevice;
 
     if (!pairingClient)
@@ -2255,6 +2258,7 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
 
     kbd->spriteInfo->sprite = ptr->spriteInfo->sprite;
     kbd->spriteInfo->paired = ptr;
+    ptr->spriteInfo->paired = kbd;
     return Success;
 }
 
