@@ -6117,33 +6117,21 @@ SetClientPointer(ClientPtr client, ClientPtr setter, DeviceIntPtr device)
     return TRUE;
 }
 
-/* PickPointer will pick an appropriate pointer for the given client.
- *
- * If a client pointer is set, it will pick the client pointer, otherwise the
- * first available pointer in the list. If no physical device is attached, it
- * will pick the core pointer, but will not store it on the client.
- */
+/* PickPointer will pick an appropriate pointer for the given client.  */
 _X_EXPORT DeviceIntPtr
 PickPointer(ClientPtr client)
 {
     if (!client->clientPtr)
     {
-        /* look if there is a real device attached */
         DeviceIntPtr it = inputInfo.devices;
         while (it)
         {
-            if (it != inputInfo.pointer && it->spriteInfo->spriteOwner)
+            if (it->isMaster && it->spriteInfo->spriteOwner)
             {
                 client->clientPtr = it;
                 break;
             }
             it = it->next;
-        }
-
-        if (!it)
-        {
-            ErrorF("[dix] Picking VCP\n");
-            return inputInfo.pointer;
         }
     }
     return client->clientPtr;
@@ -6159,18 +6147,15 @@ _X_EXPORT DeviceIntPtr
 PickKeyboard(ClientPtr client)
 {
     DeviceIntPtr ptr = PickPointer(client);
-    DeviceIntPtr kbd = inputInfo.devices;
+    DeviceIntPtr kbd = ptr->spriteInfo->paired;
 
-    while(kbd)
+    if (!kbd)
     {
-        if (ptr != kbd && 
-            IsKeyboardDevice(kbd) && 
-            ptr->spriteInfo->sprite == kbd->spriteInfo->sprite)
-            return kbd;
-        kbd = kbd->next;
+        ErrorF("[dix] ClientPointer not paired with a keyboard. This " 
+                "is a bug.\n");
     }
 
-    return (kbd) ? kbd : inputInfo.keyboard;
+    return kbd;
 }
 
 /* A client that has one or more core grabs does not get core events from
