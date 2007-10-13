@@ -469,21 +469,22 @@ InitCoreDevices(void)
             FatalError("Failed to allocate core keyboard");
         dev->name = strdup("Virtual core keyboard");
 #ifdef XKB
-        dev->public.processInputProc = CoreProcessKeyboardEvent;
-        dev->public.realInputProc = CoreProcessKeyboardEvent;
-        /*if (!noXkbExtension)*/
-        /*XkbSetExtension(dev, ProcessKeyboardEvent);*/
+        dev->public.processInputProc = ProcessOtherEvent;
+        dev->public.realInputProc = ProcessOtherEvent;
+        if (!noXkbExtension)
+            XkbSetExtension(dev, ProcessKeyboardEvent);
 #else
         dev->public.processInputProc = ProcessKeyboardEvent;
         dev->public.realInputProc = ProcessKeyboardEvent;
 #endif
         dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
         dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
-        dev->coreEvents = FALSE;
+        dev->coreEvents = TRUE;
         dev->spriteInfo->spriteOwner = FALSE;
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
             FatalError("Couldn't allocate keyboard devPrivates\n");
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
+        dev->master = NULL;
         (void)ActivateDevice(dev);
 
         inputInfo.keyboard = dev;
@@ -495,8 +496,8 @@ InitCoreDevices(void)
             FatalError("Failed to allocate core pointer");
         dev->name = strdup("Virtual core pointer");
 #ifdef XKB
-        dev->public.processInputProc = CoreProcessPointerEvent;
-        dev->public.realInputProc = CoreProcessPointerEvent;
+        dev->public.processInputProc = ProcessOtherEvent;
+        dev->public.realInputProc = ProcessOtherEvent;
         if (!noXkbExtension)
            XkbSetExtension(dev, ProcessPointerEvent);
 #else
@@ -505,11 +506,12 @@ InitCoreDevices(void)
 #endif
         dev->deviceGrab.ActivateGrab = ActivatePointerGrab;
         dev->deviceGrab.DeactivateGrab = DeactivatePointerGrab;
-        dev->coreEvents = FALSE;
+        dev->coreEvents = TRUE;
         dev->spriteInfo->spriteOwner = TRUE;
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
             FatalError("Couldn't allocate pointer devPrivates\n");
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
+        dev->master = NULL;
         (void)ActivateDevice(dev);
 
         inputInfo.pointer = dev;
