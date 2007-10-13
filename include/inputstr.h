@@ -398,6 +398,7 @@ typedef struct _DeviceIntRec {
     int			nPrivates;
     DeviceUnwrapProc    unwrapProc;
     SpriteInfoPtr       spriteInfo;
+    DeviceIntPtr        master;       /* master device */
 } DeviceIntRec;
 
 typedef struct {
