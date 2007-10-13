@@ -624,7 +624,7 @@ CloseDevice(DeviceIntPtr dev)
 	(void)(*dev->deviceProc)(dev, DEVICE_CLOSE);
 
     /* free sprite memory */
-    if (IsPointerDevice(dev))
+    if (dev->isMaster && dev->spriteInfo->sprite)
         screen->DeviceCursorCleanup(dev, screen);
 
     xfree(dev->name);
