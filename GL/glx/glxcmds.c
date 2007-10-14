@@ -109,9 +109,10 @@ static __GLXcontext *__glXdirectContextCreate(__GLXscreen *screen,
  * same as the VisualID.
  */
 
-int DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
-		    GLXContextID shareList, VisualID visual,
-		    GLuint screen, GLboolean isDirect)
+static int
+DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
+		GLXContextID shareList, VisualID visual,
+		GLuint screen, GLboolean isDirect)
 {
     ClientPtr client = cl->client;
     VisualPtr pVisual;
@@ -385,36 +386,6 @@ static void StartUsingContext(__GLXclientState *cl, __GLXcontext *glxc)
     glxc->isCurrent = GL_TRUE;
 }
 
-/*****************************************************************************/
-/*
-** Make an OpenGL context and drawable current.
-*/
-
-int __glXDisp_MakeCurrent(__GLXclientState *cl, GLbyte *pc)
-{
-    xGLXMakeCurrentReq *req = (xGLXMakeCurrentReq *) pc;
-
-    return DoMakeCurrent( cl, req->drawable, req->drawable,
-			  req->context, req->oldContextTag );
-}
-
-int __glXDisp_MakeContextCurrent(__GLXclientState *cl, GLbyte *pc)
-{
-    xGLXMakeContextCurrentReq *req = (xGLXMakeContextCurrentReq *) pc;
-
-    return DoMakeCurrent( cl, req->drawable, req->readdrawable,
-			  req->context, req->oldContextTag );
-}
-
-int __glXDisp_MakeCurrentReadSGI(__GLXclientState *cl, GLbyte *pc)
-{
-    xGLXMakeCurrentReadSGIReq *req = (xGLXMakeCurrentReadSGIReq *) pc;
-
-    return DoMakeCurrent( cl, req->drawable, req->readable,
-			  req->context, req->oldContextTag );
-}
-
-
 /**
  * Given a drawable ID, get the associated drawable and / or pixmap.
  * 
@@ -501,10 +472,15 @@ __glXGetDrawable(__GLXcontext *glxc, GLXDrawable drawId, ClientPtr client,
     return pGlxDraw;
 }
 
+/*****************************************************************************/
+/*
+** Make an OpenGL context and drawable current.
+*/
 
-int DoMakeCurrent( __GLXclientState *cl,
-		   GLXDrawable drawId, GLXDrawable readId,
-		   GLXContextID contextId, GLXContextTag tag )
+static int
+DoMakeCurrent(__GLXclientState *cl,
+	      GLXDrawable drawId, GLXDrawable readId,
+	      GLXContextID contextId, GLXContextTag tag)
 {
     ClientPtr client = cl->client;
     xGLXMakeCurrentReply reply;
@@ -656,6 +632,30 @@ int DoMakeCurrent( __GLXclientState *cl,
 	WriteToClient(client, sz_xGLXMakeCurrentReply, (char *)&reply);
     }
     return Success;
+}
+
+int __glXDisp_MakeCurrent(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXMakeCurrentReq *req = (xGLXMakeCurrentReq *) pc;
+
+    return DoMakeCurrent( cl, req->drawable, req->drawable,
+			  req->context, req->oldContextTag );
+}
+
+int __glXDisp_MakeContextCurrent(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXMakeContextCurrentReq *req = (xGLXMakeContextCurrentReq *) pc;
+
+    return DoMakeCurrent( cl, req->drawable, req->readdrawable,
+			  req->context, req->oldContextTag );
+}
+
+int __glXDisp_MakeCurrentReadSGI(__GLXclientState *cl, GLbyte *pc)
+{
+    xGLXMakeCurrentReadSGIReq *req = (xGLXMakeCurrentReadSGIReq *) pc;
+
+    return DoMakeCurrent( cl, req->drawable, req->readable,
+			  req->context, req->oldContextTag );
 }
 
 int __glXDisp_IsDirect(__GLXclientState *cl, GLbyte *pc)
@@ -830,8 +830,8 @@ int __glXDisp_CopyContext(__GLXclientState *cl, GLbyte *pc)
 }
 
 
-int DoGetVisualConfigs(__GLXclientState *cl, unsigned screen,
-		       GLboolean do_swap)
+static int
+DoGetVisualConfigs(__GLXclientState *cl, unsigned screen)
 {
     ClientPtr client = cl->client;
     xGLXGetVisualConfigsReply reply;
@@ -856,7 +856,7 @@ int DoGetVisualConfigs(__GLXclientState *cl, unsigned screen,
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
 
-    if ( do_swap ) {
+    if (client->swapped) {
 	__GLX_SWAP_SHORT(&reply.sequenceNumber);
 	__GLX_SWAP_INT(&reply.length);
 	__GLX_SWAP_INT(&reply.numVisuals);
@@ -910,7 +910,7 @@ int DoGetVisualConfigs(__GLXclientState *cl, unsigned screen,
 	buf[p++] = GLX_TRANSPARENT_INDEX_VALUE;
 	buf[p++] = modes->transparentIndex;
 
-	if ( do_swap ) {
+	if (client->swapped) {
 	    __GLX_SWAP_INT_ARRAY(buf, __GLX_TOTAL_CONFIG);
 	}
 	WriteToClient(client, __GLX_SIZE_CARD32 * __GLX_TOTAL_CONFIG, 
@@ -922,7 +922,7 @@ int DoGetVisualConfigs(__GLXclientState *cl, unsigned screen,
 int __glXDisp_GetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXGetVisualConfigsReq *req = (xGLXGetVisualConfigsReq *) pc;
-    return DoGetVisualConfigs( cl, req->screen, GL_FALSE );
+    return DoGetVisualConfigs(cl, req->screen);
 }
 
 
@@ -1018,7 +1018,8 @@ __glXCreateARGBConfig(__GLXscreen *screen)
  * is the same, so this routine pulls double duty.
  */
 
-int DoGetFBConfigs(__GLXclientState *cl, unsigned screen, GLboolean do_swap)
+static int
+DoGetFBConfigs(__GLXclientState *cl, unsigned screen, GLboolean do_swap)
 {
     ClientPtr client = cl->client;
     xGLXGetFBConfigsReply reply;
@@ -1118,7 +1119,6 @@ int __glXDisp_GetFBConfigs(__GLXclientState *cl, GLbyte *pc)
     xGLXGetFBConfigsReq *req = (xGLXGetFBConfigsReq *) pc;
     return DoGetFBConfigs( cl, req->screen, GL_FALSE );
 }
-
 
 int __glXDisp_GetFBConfigsSGIX(__GLXclientState *cl, GLbyte *pc)
 {
@@ -1501,7 +1501,8 @@ int __glXDisp_SwapBuffers(__GLXclientState *cl, GLbyte *pc)
 }
 
 
-int DoQueryContext(__GLXclientState *cl, GLXContextID gcId)
+static int
+DoQueryContext(__GLXclientState *cl, GLXContextID gcId)
 {
     ClientPtr client = cl->client;
     __GLXcontext *ctx;
@@ -1753,7 +1754,10 @@ int __glXDisp_GetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc)
 ** client library to send batches of GL rendering commands.
 */
 
-int DoRender(__GLXclientState *cl, GLbyte *pc, int do_swap)
+/*
+** Execute all the drawing commands in a request.
+*/
+int __glXDisp_Render(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXRenderReq *req;
     ClientPtr client= cl->client;
@@ -1764,9 +1768,8 @@ int DoRender(__GLXclientState *cl, GLbyte *pc, int do_swap)
     __GLXcontext *glxc;
     __GLX_DECLARE_SWAP_VARIABLES;
 
-    
     req = (xGLXRenderReq *) pc;
-    if (do_swap) {
+    if (client->swapped) {
 	__GLX_SWAP_SHORT(&req->length);
 	__GLX_SWAP_INT(&req->contextTag);
     }
@@ -1790,7 +1793,7 @@ int DoRender(__GLXclientState *cl, GLbyte *pc, int do_swap)
 	** Also, each command must be word aligned.
 	*/
 	hdr = (__GLXrenderHeader *) pc;
-	if (do_swap) {
+	if (client->swapped) {
 	    __GLX_SWAP_SHORT(&hdr->length);
 	    __GLX_SWAP_SHORT(&hdr->opcode);
 	}
@@ -1802,7 +1805,8 @@ int DoRender(__GLXclientState *cl, GLbyte *pc, int do_swap)
 	*/
 	err = __glXGetProtocolSizeData(& Render_dispatch_info, opcode, & entry);
 	proc = (__GLXdispatchRenderProcPtr)
-	  __glXGetProtocolDecodeFunction(& Render_dispatch_info, opcode, do_swap);
+	    __glXGetProtocolDecodeFunction(& Render_dispatch_info,
+					   opcode, client->swapped);
 
 	if ((err < 0) || (proc == NULL)) {
 	    client->errorValue = commandsDone;
@@ -1811,7 +1815,8 @@ int DoRender(__GLXclientState *cl, GLbyte *pc, int do_swap)
 
         if (entry.varsize) {
             /* variable size command */
-            extra = (*entry.varsize)(pc + __GLX_RENDER_HDR_SIZE, do_swap);
+            extra = (*entry.varsize)(pc + __GLX_RENDER_HDR_SIZE,
+				     client->swapped);
             if (extra < 0) {
                 extra = 0;
             }
@@ -1844,15 +1849,11 @@ int DoRender(__GLXclientState *cl, GLbyte *pc, int do_swap)
     return Success;
 }
 
-/*
-** Execute all the drawing commands in a request.
-*/
-int __glXDisp_Render(__GLXclientState *cl, GLbyte *pc)
-{
-    return DoRender(cl, pc, False);
-}
 
-int DoRenderLarge(__GLXclientState *cl, GLbyte *pc, int do_swap)
+/*
+** Execute a large rendering request (one that spans multiple X requests).
+*/
+int __glXDisp_RenderLarge(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXRenderLargeReq *req;
     ClientPtr client= cl->client;
@@ -1862,10 +1863,9 @@ int DoRenderLarge(__GLXclientState *cl, GLbyte *pc, int do_swap)
     int error;
     CARD16 opcode;
     __GLX_DECLARE_SWAP_VARIABLES;
-
     
     req = (xGLXRenderLargeReq *) pc;
-    if (do_swap) {
+    if (client->swapped) {
 	__GLX_SWAP_SHORT(&req->length);
 	__GLX_SWAP_INT(&req->contextTag);
 	__GLX_SWAP_INT(&req->dataBytes);
@@ -1908,7 +1908,7 @@ int DoRenderLarge(__GLXclientState *cl, GLbyte *pc, int do_swap)
 	}
 
 	hdr = (__GLXrenderLargeHeader *) pc;
-	if (do_swap) {
+	if (client->swapped) {
 	    __GLX_SWAP_INT(&hdr->length);
 	    __GLX_SWAP_INT(&hdr->opcode);
 	}
@@ -1930,7 +1930,8 @@ int DoRenderLarge(__GLXclientState *cl, GLbyte *pc, int do_swap)
 	    ** be computed from its parameters), all the parameters needed
 	    ** will be in the 1st request, so it's okay to do this.
 	    */
-	    extra = (*entry.varsize)(pc + __GLX_RENDER_LARGE_HDR_SIZE, do_swap);
+	    extra = (*entry.varsize)(pc + __GLX_RENDER_LARGE_HDR_SIZE,
+				     client->swapped);
 	    if (extra < 0) {
 		extra = 0;
 	    }
@@ -2030,7 +2031,8 @@ int DoRenderLarge(__GLXclientState *cl, GLbyte *pc, int do_swap)
 	    opcode = hdr->opcode;
 
 	    proc = (__GLXdispatchRenderProcPtr)
-	      __glXGetProtocolDecodeFunction(& Render_dispatch_info, opcode, do_swap);
+	      __glXGetProtocolDecodeFunction(& Render_dispatch_info, opcode,
+					     client->swapped);
 	    if (proc == NULL) {
 		client->errorValue = opcode;
 		return __glXError(GLXBadLargeRequest);
@@ -2053,14 +2055,6 @@ int DoRenderLarge(__GLXclientState *cl, GLbyte *pc, int do_swap)
 	}
 	return Success;
     }
-}
-
-/*
-** Execute a large rendering request (one that spans multiple X requests).
-*/
-int __glXDisp_RenderLarge(__GLXclientState *cl, GLbyte *pc)
-{
-    return DoRenderLarge(cl, pc, False);
 }
 
 extern RESTYPE __glXSwapBarrierRes;

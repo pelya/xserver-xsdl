@@ -71,19 +71,6 @@ extern void __glXClearErrorOccured(void);
 extern GLboolean __glXErrorOccured(void);
 extern void __glXResetLargeCommandStatus(__GLXclientState*);
 
-extern int DoMakeCurrent( __GLXclientState *cl, GLXDrawable drawId,
-    GLXDrawable readId, GLXContextID contextId, GLXContextTag tag );
-extern int DoGetVisualConfigs(__GLXclientState *cl, unsigned screen,
-    GLboolean do_swap);
-extern int DoGetFBConfigs(__GLXclientState *cl, unsigned screen,
-    GLboolean do_swap);
-extern int DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
-    GLXContextID shareList, VisualID visual, GLuint screen, GLboolean isDirect);
-extern int DoQueryContext(__GLXclientState *cl, GLXContextID gcId);
-
-extern int DoRender(__GLXclientState *cl, GLbyte *pc, int do_swap);
-extern int DoRenderLarge(__GLXclientState *cl, GLbyte *pc, int do_swap);
-
 extern void GlxExtensionInit(void);
 
 extern const char GLServerVersion[];
