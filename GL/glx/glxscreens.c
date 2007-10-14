@@ -281,6 +281,13 @@ glxGetScreen(ScreenPtr pScreen)
     return (__GLXscreen *) pScreen->devPrivates[glxScreenPrivateIndex].ptr;
 }
 
+void GlxSetVisualConfigs(int nconfigs, 
+                         __GLXvisualConfig *configs, void **privates)
+{
+	/* We keep this stub around for the DDX drivers that still
+	 * call it. */
+}
+
 void __glXScreenInit(__GLXscreen *glxScreen, ScreenPtr pScreen)
 {
     static int glxGeneration;
@@ -305,8 +312,6 @@ void __glXScreenInit(__GLXscreen *glxScreen, ScreenPtr pScreen)
  
     glxScreen->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = glxCloseScreen;
-
-    __glXScreenInitVisuals(glxScreen);
 
     pScreen->devPrivates[glxScreenPrivateIndex].ptr = (pointer) glxScreen;
 }

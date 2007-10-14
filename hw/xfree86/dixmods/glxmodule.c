@@ -52,7 +52,6 @@ struct __GLXprovider {
 
 extern void GlxPushProvider(__GLXprovider *provider);
 extern void GlxExtensionInit(void);
-extern void GlxWrapInitVisuals(miInitVisualsProcPtr *);
 
 static MODULESETUPPROTO(glxSetup);
 
@@ -140,10 +139,6 @@ glxSetup(pointer module, pointer opts, int *errmaj, int *errmin)
     }
 
     LoadExtension(&GLXExt, FALSE);
-    /* Wrap the init visuals routine in micmap.c */
-    GlxWrapInitVisuals(&miInitVisualsProc);
-    /* Make sure this gets wrapped each time InitVisualWrap is called */
-    miHookInitVisuals(NULL, GlxWrapInitVisuals);
 
  bail:
     return module;
