@@ -32,6 +32,7 @@
 #endif
 
 #include "randrstr.h"
+#include "registry.h"
 
 /* From render.h */
 #ifndef SubPixelUnknown
@@ -351,6 +352,73 @@ RRExtensionInit (void)
 #ifdef PANORAMIX
     RRXineramaExtensionInit();
 #endif
+
+    RegisterRequestName(extEntry->base, X_RRQueryVersion,
+			RANDR_NAME ":QueryVersion");
+    RegisterRequestName(extEntry->base, X_RROldGetScreenInfo,
+			RANDR_NAME ":OldGetScreenInfo");
+    RegisterRequestName(extEntry->base, X_RR1_0SetScreenConfig,
+			RANDR_NAME ":1_0SetScreenConfig");
+    RegisterRequestName(extEntry->base, X_RRSetScreenConfig,
+			RANDR_NAME ":SetScreenConfig");
+    RegisterRequestName(extEntry->base, X_RROldScreenChangeSelectInput,
+			RANDR_NAME ":OldScreenChangeSelectInput");
+    RegisterRequestName(extEntry->base, X_RRSelectInput,
+			RANDR_NAME ":SelectInput");
+    RegisterRequestName(extEntry->base, X_RRGetScreenInfo,
+			RANDR_NAME ":GetScreenInfo");
+    /* V1.2 additions */
+    RegisterRequestName(extEntry->base, X_RRGetScreenSizeRange,
+			RANDR_NAME ":GetScreenSizeRange");
+    RegisterRequestName(extEntry->base, X_RRSetScreenSize,
+			RANDR_NAME ":SetScreenSize");
+    RegisterRequestName(extEntry->base, X_RRGetScreenResources,
+			RANDR_NAME ":GetScreenResources");
+    RegisterRequestName(extEntry->base, X_RRGetOutputInfo,
+			RANDR_NAME ":GetOutputInfo");
+    RegisterRequestName(extEntry->base, X_RRListOutputProperties,
+			RANDR_NAME ":ListOutputProperties");
+    RegisterRequestName(extEntry->base, X_RRQueryOutputProperty,
+			RANDR_NAME ":QueryOutputProperty");
+    RegisterRequestName(extEntry->base, X_RRConfigureOutputProperty,
+			RANDR_NAME ":ConfigureOutputProperty");
+    RegisterRequestName(extEntry->base, X_RRChangeOutputProperty,
+			RANDR_NAME ":ChangeOutputProperty");
+    RegisterRequestName(extEntry->base, X_RRDeleteOutputProperty,
+			RANDR_NAME ":DeleteOutputProperty");
+    RegisterRequestName(extEntry->base, X_RRGetOutputProperty,
+			RANDR_NAME ":GetOutputProperty");
+    RegisterRequestName(extEntry->base, X_RRCreateMode,
+			RANDR_NAME ":CreateMode");
+    RegisterRequestName(extEntry->base, X_RRDestroyMode,
+			RANDR_NAME ":DestroyMode");
+    RegisterRequestName(extEntry->base, X_RRAddOutputMode,
+			RANDR_NAME ":AddOutputMode");
+    RegisterRequestName(extEntry->base, X_RRDeleteOutputMode,
+			RANDR_NAME ":DeleteOutputMode");
+    RegisterRequestName(extEntry->base, X_RRGetCrtcInfo,
+			RANDR_NAME ":GetCrtcInfo");
+    RegisterRequestName(extEntry->base, X_RRSetCrtcConfig,
+			RANDR_NAME ":SetCrtcConfig");
+    RegisterRequestName(extEntry->base, X_RRGetCrtcGammaSize,
+			RANDR_NAME ":GetCrtcGammaSize");
+    RegisterRequestName(extEntry->base, X_RRGetCrtcGamma,
+			RANDR_NAME ":GetCrtcGamma");
+    RegisterRequestName(extEntry->base, X_RRSetCrtcGamma,
+			RANDR_NAME ":SetCrtcGamma");
+
+    RegisterEventName(RREventBase + RRScreenChangeNotify,
+		      RANDR_NAME ":ScreenChangeNotify");
+    /* V1.2 additions */
+    RegisterEventName(RREventBase + RRNotify,
+		      RANDR_NAME ":Notify");
+
+    RegisterErrorName(RRErrorBase + BadRROutput,
+		      RANDR_NAME ":BadRROutput");
+    RegisterErrorName(RRErrorBase + BadRRCrtc,
+		      RANDR_NAME ":BadRRCrtc");
+    RegisterErrorName(RRErrorBase + BadRRMode,
+		      RANDR_NAME ":BadRRMode");
 }
 
 static int
