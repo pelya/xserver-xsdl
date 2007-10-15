@@ -1019,7 +1019,7 @@ __glXCreateARGBConfig(__GLXscreen *screen)
  */
 
 static int
-DoGetFBConfigs(__GLXclientState *cl, unsigned screen, GLboolean do_swap)
+DoGetFBConfigs(__GLXclientState *cl, unsigned screen)
 {
     ClientPtr client = cl->client;
     xGLXGetFBConfigsReply reply;
@@ -1049,7 +1049,7 @@ DoGetFBConfigs(__GLXclientState *cl, unsigned screen, GLboolean do_swap)
     reply.type = X_Reply;
     reply.sequenceNumber = client->sequence;
 
-    if ( do_swap ) {
+    if (client->swapped) {
 	__GLX_SWAP_SHORT(&reply.sequenceNumber);
 	__GLX_SWAP_INT(&reply.length);
 	__GLX_SWAP_INT(&reply.numFBConfigs);
@@ -1104,7 +1104,7 @@ DoGetFBConfigs(__GLXclientState *cl, unsigned screen, GLboolean do_swap)
 	WRITE_PAIR( GLX_TRANSPARENT_INDEX_VALUE, modes->transparentIndex );
 	WRITE_PAIR( GLX_SWAP_METHOD_OML, modes->swapMethod );
 
-	if ( do_swap ) {
+	if (client->swapped) {
 	    __GLX_SWAP_INT_ARRAY(buf, __GLX_FBCONFIG_ATTRIBS_LENGTH);
 	}
 	WriteToClient(client, __GLX_SIZE_CARD32 * __GLX_FBCONFIG_ATTRIBS_LENGTH,
@@ -1117,13 +1117,13 @@ DoGetFBConfigs(__GLXclientState *cl, unsigned screen, GLboolean do_swap)
 int __glXDisp_GetFBConfigs(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXGetFBConfigsReq *req = (xGLXGetFBConfigsReq *) pc;
-    return DoGetFBConfigs( cl, req->screen, GL_FALSE );
+    return DoGetFBConfigs(cl, req->screen);
 }
 
 int __glXDisp_GetFBConfigsSGIX(__GLXclientState *cl, GLbyte *pc)
 {
     xGLXGetFBConfigsSGIXReq *req = (xGLXGetFBConfigsSGIXReq *) pc;
-    return DoGetFBConfigs( cl, req->screen, GL_FALSE );
+    return DoGetFBConfigs(cl, req->screen);
 }
 
 static int 
