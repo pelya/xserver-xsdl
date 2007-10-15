@@ -54,6 +54,7 @@
 #define EXTENSION_PROC_ARGS void *
 #include "extnsionst.h"
 #include "opaque.h"
+#include "registry.h"
 
 #include "dmxextension.h"
 #include <X11/extensions/dmxproto.h>
@@ -126,6 +127,45 @@ void DMXExtensionInit(void)
                                  ProcDMXDispatch, SProcDMXDispatch,
                                  DMXResetProc, StandardMinorOpcode)))
 	DMXCode = extEntry->base;
+    else
+	return;
+
+    RegisterRequestName(DMXCode, X_DMXQueryVersion,
+			DMX_EXTENSION_NAME ":DMXQueryVersion");
+    RegisterRequestName(DMXCode, X_DMXGetScreenCount,
+			DMX_EXTENSION_NAME ":DMXGetScreenCount");
+    RegisterRequestName(DMXCode, X_DMXGetScreenInformationDEPRECATED,
+			DMX_EXTENSION_NAME ":DMXGetScreenInfoDEPRECATED");
+    RegisterRequestName(DMXCode, X_DMXGetWindowAttributes,
+			DMX_EXTENSION_NAME ":DMXGetWindowAttributes");
+    RegisterRequestName(DMXCode, X_DMXGetInputCount,
+			DMX_EXTENSION_NAME ":DMXGetInputCount");
+    RegisterRequestName(DMXCode, X_DMXGetInputAttributes,
+			DMX_EXTENSION_NAME ":DMXGetInputAttributes");
+    RegisterRequestName(DMXCode, X_DMXForceWindowCreationDEPRECATED,
+			DMX_EXTENSION_NAME ":DMXForceWindowCreationDEPRECATED");
+    RegisterRequestName(DMXCode, X_DMXReconfigureScreenDEPRECATED,
+			DMX_EXTENSION_NAME ":DMXReconfigureScreenDEPRECATED");
+    RegisterRequestName(DMXCode, X_DMXSync,
+			DMX_EXTENSION_NAME ":DMXSync");
+    RegisterRequestName(DMXCode, X_DMXForceWindowCreation,
+			DMX_EXTENSION_NAME ":DMXForceWindowCreation");
+    RegisterRequestName(DMXCode, X_DMXGetScreenAttributes,
+			DMX_EXTENSION_NAME ":DMXGetScreenAttributes");
+    RegisterRequestName(DMXCode, X_DMXChangeScreensAttributes,
+			DMX_EXTENSION_NAME ":DMXChangeScreensAttributes");
+    RegisterRequestName(DMXCode, X_DMXAddScreen,
+			DMX_EXTENSION_NAME ":DMXAddScreen");
+    RegisterRequestName(DMXCode, X_DMXRemoveScreen,
+			DMX_EXTENSION_NAME ":DMXRemoveScreen");
+    RegisterRequestName(DMXCode, X_DMXGetDesktopAttributes,
+			DMX_EXTENSION_NAME ":DMXGetDesktopAttributes");
+    RegisterRequestName(DMXCode, X_DMXChangeDesktopAttributes,
+			DMX_EXTENSION_NAME ":DMXChangeDesktopAttributes");
+    RegisterRequestName(DMXCode, X_DMXAddInput,
+			DMX_EXTENSION_NAME ":DMXAddInput");
+    RegisterRequestName(DMXCode, X_DMXRemoveInput,
+			DMX_EXTENSION_NAME ":DMXRemoveInput");
 }
 
 static void dmxSetScreenAttribute(int bit, DMXScreenAttributesPtr attr,
