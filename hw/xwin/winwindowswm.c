@@ -41,6 +41,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "scrnintstr.h"
 #include "servermd.h"
 #include "swaprep.h"
+#include "registry.h"
 #define _WINDOWSWM_SERVER_
 #include "windowswmstr.h"
 
@@ -105,7 +106,35 @@ winWindowsWMExtensionInit ()
       WMErrorBase = extEntry->errorBase;
       WMEventBase = extEntry->eventBase;
       EventSwapVector[WMEventBase] = (EventSwapPtr) SNotifyEvent;
-    }
+    } else
+      return;
+
+  RegisterRequestName(WMReqCode, X_WindowsWMQueryVersion,
+		      WINDOWSWMNAME ":QueryVersion");
+  RegisterRequestName(WMReqCode, X_WindowsWMFrameGetRect,
+		      WINDOWSWMNAME ":FrameGetRect");
+  RegisterRequestName(WMReqCode, X_WindowsWMFrameDraw,
+		      WINDOWSWMNAME ":FrameDraw");
+  RegisterRequestName(WMReqCode, X_WindowsWMFrameSetTitle,
+		      WINDOWSWMNAME ":FrameSetTitle");
+  RegisterRequestName(WMReqCode, X_WindowsWMDisableUpdate,
+		      WINDOWSWMNAME ":DisableUpdate");
+  RegisterRequestName(WMReqCode, X_WindowsWMReenableUpdate,
+		      WINDOWSWMNAME ":ReenableUpdate");
+  RegisterRequestName(WMReqCode, X_WindowsWMSelectInput,
+		      WINDOWSWMNAME ":SelectInput");
+  RegisterRequestName(WMReqCode, X_WindowsWMSetFrontProcess,
+		      WINDOWSWMNAME ":SetFrontProcess");
+
+  RegisterEventName(WMEventBase + WindowsWMControllerNotify,
+		    WINDOWSWMNAME ":ControllerNotify");
+  RegisterEventName(WMEventBase + WindowsWMActivationNotify,
+		    WINDOWSWMNAME ":ActivationNotify");
+
+  RegisterErrorName(WMErrorBase + WindowsWMClientNotLocal,
+		    WINDOWSWMNAME ":ClientNotLocal");
+  RegisterErrorName(WMErrorBase + WindowsWMOperationNotSupported,
+		    WINDOWSWMNAME ":OperationNotSupported");
 }
 
 /*ARGSUSED*/
