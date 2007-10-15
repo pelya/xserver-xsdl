@@ -62,6 +62,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "misc.h"               /* Server swapping macros */
 #include "dixstruct.h"          /* Server ClientRec definitions */
 #include "resource.h"           /* Used with the MakeAtom call */
+#include "registry.h"
 #ifdef PC
 # include "scrintst.h"          /* Screen struct */
 # include "extnsist.h"
@@ -463,6 +464,41 @@ void DEC_XTRAPInit()
         XETrap_avail.data.xtrap_revision);
 #endif
 
+    RegisterRequestName(extEntry->base, XETrap_Reset,
+			XTrapExtName ":Reset");
+    RegisterRequestName(extEntry->base, XETrap_GetAvailable,
+			XTrapExtName ":GetAvailable");
+    RegisterRequestName(extEntry->base, XETrap_Config,
+			XTrapExtName ":Config");
+    RegisterRequestName(extEntry->base, XETrap_StartTrap,
+			XTrapExtName ":StartTrap");
+    RegisterRequestName(extEntry->base, XETrap_StopTrap,
+			XTrapExtName ":StopTrap");
+    RegisterRequestName(extEntry->base, XETrap_GetCurrent,
+			XTrapExtName ":GetCurrent");
+    RegisterRequestName(extEntry->base, XETrap_GetStatistics,
+			XTrapExtName ":GetStatistics");
+#ifndef _XINPUT
+    RegisterRequestName(extEntry->base, XETrap_SimulateXEvent,
+			XTrapExtName ":SimulateXEvent");
+#endif
+    RegisterRequestName(extEntry->base, XETrap_GetVersion,
+			XTrapExtName ":GetVersion");
+    RegisterRequestName(extEntry->base, XETrap_GetLastInpTime,
+			XTrapExtName ":GetLastInpTime");
+
+    RegisterEventName(extEntry->eventBase, XTrapExtName ":Event");
+
+    RegisterErrorName(extEntry->errorBase + BadIO,
+			XTrapExtName ":BadIO");
+    RegisterErrorName(extEntry->errorBase + BadStatistics,
+			XTrapExtName ":BadStatistics");
+    RegisterErrorName(extEntry->errorBase + BadDevices,
+			XTrapExtName ":BadDevices");
+    RegisterErrorName(extEntry->errorBase + BadScreen,
+			XTrapExtName ":BadScreen");
+    RegisterErrorName(extEntry->errorBase + BadSwapReq,
+			XTrapExtName ":BadSwapReq");
     return;
 }
 
