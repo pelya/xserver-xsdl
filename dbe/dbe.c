@@ -51,6 +51,7 @@
 #include "extnsionst.h"
 #include "gcstruct.h"
 #include "dixstruct.h"
+#include "registry.h"
 #define NEED_DBE_PROTOCOL
 #include "dbestruct.h"
 #include "midbe.h"
@@ -1746,6 +1747,26 @@ DbeExtensionInit(void)
                             DbeResetProc, StandardMinorOpcode);
 
     dbeErrorBase = extEntry->errorBase;
+
+    RegisterRequestName(extEntry->base, X_DbeGetVersion,
+			DBE_PROTOCOL_NAME ":GetVersion");
+    RegisterRequestName(extEntry->base, X_DbeAllocateBackBufferName,
+			DBE_PROTOCOL_NAME ":AllocateBackBufferName");
+    RegisterRequestName(extEntry->base, X_DbeDeallocateBackBufferName,
+			DBE_PROTOCOL_NAME ":DeallocateBackBufferName");
+    RegisterRequestName(extEntry->base, X_DbeSwapBuffers,
+			DBE_PROTOCOL_NAME ":SwapBuffers");
+    RegisterRequestName(extEntry->base, X_DbeBeginIdiom,
+			DBE_PROTOCOL_NAME ":BeginIdiom");
+    RegisterRequestName(extEntry->base, X_DbeEndIdiom,
+			DBE_PROTOCOL_NAME ":EndIdiom");
+    RegisterRequestName(extEntry->base, X_DbeGetVisualInfo,
+			DBE_PROTOCOL_NAME ":GetVisualInfo");
+    RegisterRequestName(extEntry->base, X_DbeGetBackBufferAttributes,
+			DBE_PROTOCOL_NAME ":GetBackBufferAttributes");
+
+    RegisterErrorName(dbeErrorBase + DbeBadBuffer,
+		      DBE_PROTOCOL_NAME ":BadBuffer");
 
 } /* DbeExtensionInit() */
 
