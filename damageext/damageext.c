@@ -25,6 +25,7 @@
 #endif
 
 #include "damageextint.h"
+#include "registry.h"
 
 static unsigned char	DamageReqCode;
 static int		DamageEventBase;
@@ -526,5 +527,23 @@ DamageExtensionInit(void)
 	DamageErrorBase = extEntry->errorBase;
 	EventSwapVector[DamageEventBase + XDamageNotify] =
 			(EventSwapPtr) SDamageNotifyEvent;
-    }
+    } else
+	return;
+
+    RegisterRequestName(DamageReqCode, X_DamageQueryVersion,
+			DAMAGE_NAME ":QueryVersion");
+    RegisterRequestName(DamageReqCode, X_DamageCreate,
+			DAMAGE_NAME ":Create");
+    RegisterRequestName(DamageReqCode, X_DamageDestroy,
+			DAMAGE_NAME ":Destroy");
+    RegisterRequestName(DamageReqCode, X_DamageSubtract,
+			DAMAGE_NAME ":Subtract");
+    RegisterRequestName(DamageReqCode, X_DamageAdd,
+			DAMAGE_NAME ":Add");
+
+    RegisterEventName(DamageEventBase + XDamageNotify,
+			DAMAGE_NAME ":Notify");
+
+    RegisterErrorName(extEntry->errorBase + BadDamage,
+			DAMAGE_NAME ":BadDamage");
 }
