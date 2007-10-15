@@ -26,7 +26,7 @@
 #include <xorg-config.h>
 #endif
 
-#ifdef i386
+#ifdef __i386__
 #define _NEED_SYSI86
 #endif
 #include "xf86.h"
@@ -66,7 +66,7 @@ xf86ReadBIOS(unsigned long Base, unsigned long Offset, unsigned char *Buf,
 	Offset += Base & (psize - 1);
 	Base &= ~(psize - 1);
 	mlen = (Offset + Len + psize - 1) & ~(psize - 1);
-#if defined(i386) && !defined(__SOL8__)
+#if defined(__i386__) && !defined(__SOL8__)
 	if (Base >= 0xA0000 && Base + mlen < 0xFFFFF && xf86Info.vtno >= 0)
 		sprintf(solx86_vtname, "/dev/vt%02d", xf86Info.vtno);
 	else

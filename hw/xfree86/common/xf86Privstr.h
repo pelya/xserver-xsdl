@@ -109,7 +109,7 @@ typedef struct {
     PciProbeType	pciFlags;
     Pix24Flags		pixmap24;
     MessageType		pix24From;
-#if defined(i386) || defined(__i386__)
+#ifdef __i386__
     Bool		pc98;
 #endif
     Bool		pmFlag;

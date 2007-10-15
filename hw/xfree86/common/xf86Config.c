@@ -77,7 +77,7 @@ extern DeviceAssocRec mouse_assoc;
 #include "picture.h"
 #endif
 
-#if (defined(i386) || defined(__i386__)) && \
+#if (defined(__i386__)) && \
     (defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || \
      defined(__NetBSD__) || defined(linux) || \
      (defined(SVR4) && !defined(sun)) || defined(__GNU__))
@@ -877,7 +877,7 @@ static OptionInfoRec FlagOptions[] = {
 	{0}, FALSE },
 };
 
-#if defined(i386) || defined(__i386__)
+#ifdef __i386__
 static Bool
 detectPC98(void)
 {
@@ -1164,7 +1164,7 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 	xf86Info.pixmap24 = Pix24DontCare;
 	xf86Info.pix24From = X_DEFAULT;
     }
-#if defined(i386) || defined(__i386__)
+#ifdef __i386__
     if (xf86GetOptValBool(FlagOptions, FLAG_PC98, &value)) {
 	xf86Info.pc98 = value;
 	if (value) {

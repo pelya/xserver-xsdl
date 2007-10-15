@@ -124,7 +124,7 @@ xf86InfoRec xf86Info = {
 	PCIOsConfig,	/* pciFlags */
 	Pix24DontCare,	/* pixmap24 */
 	X_DEFAULT,	/* pix24From */
-#if defined(i386) || defined(__i386__)
+#ifdef __i386__
 	FALSE,		/* pc98 */
 #endif
 	TRUE,		/* pmFlag */

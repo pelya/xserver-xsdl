@@ -119,10 +119,10 @@ SOFTWARE.
 #  include <net/if.h>
 # endif
 #else
-#if defined(SVR4) ||  (defined(SYSV) && defined(i386)) || defined(__GNU__)
+#if defined(SVR4) ||  (defined(SYSV) && defined(__i386__)) || defined(__GNU__)
 # include <sys/utsname.h>
 #endif
-#if defined(SYSV) &&  defined(i386)
+#if defined(SYSV) &&  defined(__i386__)
 # include <sys/stream.h>
 # ifdef ISC
 #  include <sys/stropts.h>
