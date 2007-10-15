@@ -35,6 +35,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/Xproto.h>
 #include "misc.h"
 #include "inputstr.h"
+#include "registry.h"
 #define	XKBSRV_NEED_FILE_FUNCS
 #include <xkbsrv.h>
 #include "extnsionst.h"
@@ -6226,8 +6227,62 @@ XkbExtensionInit(void)
 	XkbErrorBase = (unsigned char)extEntry->errorBase;
 	XkbKeyboardErrorCode = XkbErrorBase+XkbKeyboard;
 	RT_XKBCLIENT = CreateNewResourceType(XkbClientGone);
-    }
-    return;
+    } else
+	return;
+
+    RegisterRequestName(XkbReqCode, X_kbUseExtension,
+			XkbName ":UseExtension");
+    RegisterRequestName(XkbReqCode, X_kbSelectEvents,
+			XkbName ":SelectEvents");
+    RegisterRequestName(XkbReqCode, X_kbBell,
+			XkbName ":Bell");
+    RegisterRequestName(XkbReqCode, X_kbGetState,
+			XkbName ":GetState");
+    RegisterRequestName(XkbReqCode, X_kbLatchLockState,
+			XkbName ":LatchLockState");
+    RegisterRequestName(XkbReqCode, X_kbGetControls,
+			XkbName ":GetControls");
+    RegisterRequestName(XkbReqCode, X_kbSetControls,
+			XkbName ":SetControls");
+    RegisterRequestName(XkbReqCode, X_kbGetMap,
+			XkbName ":GetMap");
+    RegisterRequestName(XkbReqCode, X_kbSetMap,
+			XkbName ":SetMap");
+    RegisterRequestName(XkbReqCode, X_kbGetCompatMap,
+			XkbName ":GetCompatMap");
+    RegisterRequestName(XkbReqCode, X_kbSetCompatMap,
+			XkbName ":SetCompatMap");
+    RegisterRequestName(XkbReqCode, X_kbGetIndicatorState,
+			XkbName ":GetIndicatorState");
+    RegisterRequestName(XkbReqCode, X_kbGetIndicatorMap,
+			XkbName ":GetIndicatorMap");
+    RegisterRequestName(XkbReqCode, X_kbSetIndicatorMap,
+			XkbName ":SetIndicatorMap");
+    RegisterRequestName(XkbReqCode, X_kbGetNamedIndicator,
+			XkbName ":GetNamedIndicator");
+    RegisterRequestName(XkbReqCode, X_kbSetNamedIndicator,
+			XkbName ":SetNamedIndicator");
+    RegisterRequestName(XkbReqCode, X_kbGetNames,
+			XkbName ":GetNames");
+    RegisterRequestName(XkbReqCode, X_kbSetNames,
+			XkbName ":SetNames");
+    RegisterRequestName(XkbReqCode, X_kbGetGeometry,
+			XkbName ":GetGeometry");
+    RegisterRequestName(XkbReqCode, X_kbSetGeometry,
+			XkbName ":SetGeometry");
+    RegisterRequestName(XkbReqCode, X_kbPerClientFlags,
+			XkbName ":PerClientFlags");
+    RegisterRequestName(XkbReqCode, X_kbListComponents,
+			XkbName ":ListComponents");
+    RegisterRequestName(XkbReqCode, X_kbGetKbdByName,
+			XkbName ":GetKbdByName");
+    RegisterRequestName(XkbReqCode, X_kbGetDeviceInfo,
+			XkbName ":GetDeviceInfo");
+    RegisterRequestName(XkbReqCode, X_kbSetDeviceInfo,
+			XkbName ":SetDeviceInfo");
+    RegisterRequestName(XkbReqCode, X_kbSetDebuggingFlags,
+			XkbName ":SetDebuggingFlags");
+
+    RegisterEventName(extEntry->eventBase, XkbName ":EventCode");
+    RegisterErrorName(extEntry->errorBase, XkbName ":Keyboard");
 }
-
-
