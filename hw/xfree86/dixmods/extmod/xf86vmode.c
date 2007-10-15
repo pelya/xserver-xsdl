@@ -43,6 +43,7 @@ from Kaleb S. KEITHLEY
 #include "extnsionst.h"
 #include "scrnintstr.h"
 #include "servermd.h"
+#include "registry.h"
 #define _XF86VIDMODE_SERVER_
 #include <X11/extensions/xf86vmstr.h>
 #include "swaprep.h"
@@ -209,7 +210,71 @@ XFree86VidModeExtensionInit(void)
 	XF86VidModeEventBase = extEntry->eventBase;
 	EventSwapVector[XF86VidModeEventBase] = (EventSwapPtr)SXF86VidModeNotifyEvent;
 #endif
-    }
+    } else
+	return;
+
+    RegisterRequestName(extEntry->base, X_XF86VidModeQueryVersion,
+			XF86VIDMODENAME ":QueryVersion");
+    RegisterRequestName(extEntry->base, X_XF86VidModeGetModeLine,
+			XF86VIDMODENAME ":GetModeLine");
+    RegisterRequestName(extEntry->base, X_XF86VidModeModModeLine,
+			XF86VIDMODENAME ":ModModeLine");
+    RegisterRequestName(extEntry->base, X_XF86VidModeSwitchMode,
+			XF86VIDMODENAME ":SwitchMode");
+    RegisterRequestName(extEntry->base, X_XF86VidModeGetMonitor,
+			XF86VIDMODENAME ":GetMonitor");
+    RegisterRequestName(extEntry->base, X_XF86VidModeLockModeSwitch,
+			XF86VIDMODENAME ":LockModeSwitch");
+    RegisterRequestName(extEntry->base, X_XF86VidModeGetAllModeLines,
+			XF86VIDMODENAME ":GetAllModeLines");
+    RegisterRequestName(extEntry->base, X_XF86VidModeAddModeLine,
+			XF86VIDMODENAME ":AddModeLine");
+    RegisterRequestName(extEntry->base, X_XF86VidModeDeleteModeLine,
+			XF86VIDMODENAME ":DeleteModeLine");
+    RegisterRequestName(extEntry->base, X_XF86VidModeValidateModeLine,
+			XF86VIDMODENAME ":ValidateModeLine");
+    RegisterRequestName(extEntry->base, X_XF86VidModeSwitchToMode,
+			XF86VIDMODENAME ":SwitchToMode");
+    RegisterRequestName(extEntry->base, X_XF86VidModeGetViewPort,
+			XF86VIDMODENAME ":GetViewPort");
+    RegisterRequestName(extEntry->base, X_XF86VidModeSetViewPort,
+			XF86VIDMODENAME ":SetViewPort");
+    RegisterRequestName(extEntry->base, X_XF86VidModeGetDotClocks,
+			XF86VIDMODENAME ":GetDotClocks");
+    RegisterRequestName(extEntry->base, X_XF86VidModeSetClientVersion,
+			XF86VIDMODENAME ":SetClientVersion");
+    RegisterRequestName(extEntry->base, X_XF86VidModeSetGamma,
+			XF86VIDMODENAME ":SetGamma");
+    RegisterRequestName(extEntry->base, X_XF86VidModeGetGamma,
+			XF86VIDMODENAME ":GetGamma");
+    RegisterRequestName(extEntry->base, X_XF86VidModeGetGammaRamp,
+			XF86VIDMODENAME ":GetGammaRamp");
+    RegisterRequestName(extEntry->base, X_XF86VidModeSetGammaRamp,
+			XF86VIDMODENAME ":SetGammaRamp");
+    RegisterRequestName(extEntry->base, X_XF86VidModeGetGammaRampSize,
+			XF86VIDMODENAME ":GetGammaRampSize");
+    RegisterRequestName(extEntry->base, X_XF86VidModeGetPermissions,
+			XF86VIDMODENAME ":GetPermissions");
+
+#ifdef XF86VIDMODE_EVENTS
+    RegisterEventName(extEntry->eventBase + XF86VidModeNotify,
+		      XF86VIDMODENAME ":Notify");
+#endif
+
+    RegisterErrorName(extEntry->errorBase + XF86VidModeBadClock,
+		      XF86VIDMODENAME ":BadClock");
+    RegisterErrorName(extEntry->errorBase + XF86VidModeBadHTimings,
+		      XF86VIDMODENAME ":BadHTimings");
+    RegisterErrorName(extEntry->errorBase + XF86VidModeBadVTimings,
+		      XF86VIDMODENAME ":BadVTimings");
+    RegisterErrorName(extEntry->errorBase + XF86VidModeModeUnsuitable,
+		      XF86VIDMODENAME ":ModeUnsuitable");
+    RegisterErrorName(extEntry->errorBase + XF86VidModeExtensionDisabled,
+		      XF86VIDMODENAME ":ExtensionDisabled");
+    RegisterErrorName(extEntry->errorBase + XF86VidModeClientNotLocal,
+		      XF86VIDMODENAME ":ClientNotLocal");
+    RegisterErrorName(extEntry->errorBase + XF86VidModeZoomLocked,
+		      XF86VIDMODENAME ":ZoomLocked");
 }
 
 /*ARGSUSED*/
