@@ -42,6 +42,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "servermd.h"
 #include "swaprep.h"
 #include "propertyst.h"
+#include "registry.h"
 #include <X11/Xatom.h>
 #include "darwin.h"
 #define _APPLEWM_SERVER_
@@ -127,7 +128,45 @@ AppleWMExtensionInit(
         WMEventBase = extEntry->eventBase;
         EventSwapVector[WMEventBase] = (EventSwapPtr) SNotifyEvent;
         appleWMProcs = procsPtr;
-    }
+    } else
+	return;
+
+    RegisterRequestName(WMReqCode, X_AppleWMQueryVersion,
+			APPLEWMNAME ":QueryVersion");
+    RegisterRequestName(WMReqCode, X_AppleWMFrameGetRect,
+			APPLEWMNAME ":FrameGetRect");
+    RegisterRequestName(WMReqCode, X_AppleWMFrameHitTest,
+			APPLEWMNAME ":FrameHitTest");
+    RegisterRequestName(WMReqCode, X_AppleWMFrameDraw,
+			APPLEWMNAME ":FrameDraw");
+    RegisterRequestName(WMReqCode, X_AppleWMDisableUpdate,
+			APPLEWMNAME ":DisableUpdate");
+    RegisterRequestName(WMReqCode, X_AppleWMReenableUpdate,
+			APPLEWMNAME ":ReenableUpdate");
+    RegisterRequestName(WMReqCode, X_AppleWMSelectInput,
+			APPLEWMNAME ":SelectInput");
+    RegisterRequestName(WMReqCode, X_AppleWMSetWindowMenuCheck,
+			APPLEWMNAME ":SetWindowMenuCheck");
+    RegisterRequestName(WMReqCode, X_AppleWMSetFrontProcess,
+			APPLEWMNAME ":SetFrontProcess");
+    RegisterRequestName(WMReqCode, X_AppleWMSetWindowLevel,
+			APPLEWMNAME ":SetWindowLevel");
+    RegisterRequestName(WMReqCode, X_AppleWMSetCanQuit,
+			APPLEWMNAME ":SetCanQuit");
+    RegisterRequestName(WMReqCode, X_AppleWMSetWindowMenu,
+			APPLEWMNAME ":SetWindowMenu");
+
+    RegisterEventName(WMEventBase + AppleWMControllerNotify,
+		      APPLEWMNAME ":ControllerNotify");
+    RegisterEventName(WMEventBase + AppleWMActivationNotify,
+		      APPLEWMNAME ":ActivationNotify");
+    RegisterEventName(WMEventBase + AppleWMPasteboardNotify,
+		      APPLEWMNAME ":PasteboardNotify");
+
+    RegisterErrorName(WMErrorBase + AppleWMClientNotLocal,
+		      APPLEWMNAME ":ClientNotLocal");
+    RegisterErrorName(WMErrorBase + AppleWMOperationNotSupported,
+		      APPLEWMNAME ":OperationNotSupported");
 }
 
 /*ARGSUSED*/
