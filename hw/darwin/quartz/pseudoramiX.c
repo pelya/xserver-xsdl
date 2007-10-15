@@ -42,6 +42,7 @@ Equipment Corporation.
 #include "window.h"
 #include <X11/extensions/panoramiXproto.h>
 #include "globals.h"
+#include "registry.h"
 
 extern int noPseudoramiXExtension;
 extern int noPanoramiXExtension;
@@ -147,6 +148,19 @@ void PseudoramiXExtensionInit(int argc, char *argv[])
                PANORAMIX_PROTOCOL_NAME);
         return;
     }
+
+    RegisterRequestName(extEntry->base, X_PanoramiXQueryVersion,
+			PANORAMIX_PROTOCOL_NAME ":QueryVersion");
+    RegisterRequestName(extEntry->base, X_PanoramiXGetState,
+			PANORAMIX_PROTOCOL_NAME ":GetState");
+    RegisterRequestName(extEntry->base, X_PanoramiXGetScreenCount,
+			PANORAMIX_PROTOCOL_NAME ":GetScreenCount");
+    RegisterRequestName(extEntry->base, X_PanoramiXGetScreenSize,
+			PANORAMIX_PROTOCOL_NAME ":GetScreenSize");
+    RegisterRequestName(extEntry->base, X_XineramaIsActive,
+			PANORAMIX_PROTOCOL_NAME ":IsActive");
+    RegisterRequestName(extEntry->base, X_XineramaQueryScreens,
+			PANORAMIX_PROTOCOL_NAME ":QueryScreens");
 }
 
 
