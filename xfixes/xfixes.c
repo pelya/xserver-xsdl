@@ -45,6 +45,7 @@
 #endif
 
 #include "xfixesint.h"
+#include "registry.h"
 
 /*
  * Must use these instead of the constants from xfixeswire.h.  They advertise
@@ -257,5 +258,80 @@ XFixesExtensionInit(void)
 	    (EventSwapPtr) SXFixesSelectionNotifyEvent;
 	EventSwapVector[XFixesEventBase + XFixesCursorNotify] =
 	    (EventSwapPtr) SXFixesCursorNotifyEvent;
-    }
+    } else
+	return;
+
+    RegisterRequestName(XFixesReqCode, X_XFixesQueryVersion,
+			XFIXES_NAME ":QueryVersion");
+    RegisterRequestName(XFixesReqCode, X_XFixesChangeSaveSet,
+			XFIXES_NAME ":ChangeSaveSet");
+    RegisterRequestName(XFixesReqCode, X_XFixesSelectSelectionInput,
+			XFIXES_NAME ":SelectSelectionInput");
+    RegisterRequestName(XFixesReqCode, X_XFixesSelectCursorInput,
+			XFIXES_NAME ":SelectCursorInput");
+    RegisterRequestName(XFixesReqCode, X_XFixesGetCursorImage,
+			XFIXES_NAME ":GetCursorImage");
+    /*************** Version 2 ******************/
+    RegisterRequestName(XFixesReqCode, X_XFixesCreateRegion,
+			XFIXES_NAME ":CreateRegion");
+    RegisterRequestName(XFixesReqCode, X_XFixesCreateRegionFromBitmap,
+			XFIXES_NAME ":CreateRegionFromBitmap");
+    RegisterRequestName(XFixesReqCode, X_XFixesCreateRegionFromWindow,
+			XFIXES_NAME ":CreateRegionFromWindow");
+    RegisterRequestName(XFixesReqCode, X_XFixesCreateRegionFromGC,
+			XFIXES_NAME ":CreateRegionFromGC");
+    RegisterRequestName(XFixesReqCode, X_XFixesCreateRegionFromPicture,
+			XFIXES_NAME ":CreateRegionFromPicture");
+    RegisterRequestName(XFixesReqCode, X_XFixesDestroyRegion,
+			XFIXES_NAME ":DestroyRegion");
+    RegisterRequestName(XFixesReqCode, X_XFixesSetRegion,
+			XFIXES_NAME ":SetRegion");
+    RegisterRequestName(XFixesReqCode, X_XFixesCopyRegion,
+			XFIXES_NAME ":CopyRegion");
+    RegisterRequestName(XFixesReqCode, X_XFixesUnionRegion,
+			XFIXES_NAME ":UnionRegion");
+    RegisterRequestName(XFixesReqCode, X_XFixesIntersectRegion,
+			XFIXES_NAME ":IntersectRegion");
+    RegisterRequestName(XFixesReqCode, X_XFixesSubtractRegion,
+			XFIXES_NAME ":SubtractRegion");
+    RegisterRequestName(XFixesReqCode, X_XFixesInvertRegion,
+			XFIXES_NAME ":InvertRegion");
+    RegisterRequestName(XFixesReqCode, X_XFixesTranslateRegion,
+			XFIXES_NAME ":TranslateRegion");
+    RegisterRequestName(XFixesReqCode, X_XFixesRegionExtents,
+			XFIXES_NAME ":RegionExtents");
+    RegisterRequestName(XFixesReqCode, X_XFixesFetchRegion,
+			XFIXES_NAME ":FetchRegion");
+    RegisterRequestName(XFixesReqCode, X_XFixesSetGCClipRegion,
+			XFIXES_NAME ":SetGCClipRegion");
+    RegisterRequestName(XFixesReqCode, X_XFixesSetWindowShapeRegion,
+			XFIXES_NAME ":SetWindowShapeRegion");
+    RegisterRequestName(XFixesReqCode, X_XFixesSetPictureClipRegion,
+			XFIXES_NAME ":SetPictureClipRegion");
+    RegisterRequestName(XFixesReqCode, X_XFixesSetCursorName,
+			XFIXES_NAME ":SetCursorName");
+    RegisterRequestName(XFixesReqCode, X_XFixesGetCursorName,
+			XFIXES_NAME ":GetCursorName");
+    RegisterRequestName(XFixesReqCode, X_XFixesGetCursorImageAndName,
+			XFIXES_NAME ":GetCursorImageAndName");
+    RegisterRequestName(XFixesReqCode, X_XFixesChangeCursor,
+			XFIXES_NAME ":ChangeCursor");
+    RegisterRequestName(XFixesReqCode, X_XFixesChangeCursorByName,
+			XFIXES_NAME ":ChangeCursorByName");
+    /*************** Version 3 ******************/
+    RegisterRequestName(XFixesReqCode, X_XFixesExpandRegion,
+			XFIXES_NAME ":ExpandRegion");
+    /*************** Version 4 ******************/
+    RegisterRequestName(XFixesReqCode, X_XFixesHideCursor,
+			XFIXES_NAME ":HideCursor");
+    RegisterRequestName(XFixesReqCode, X_XFixesShowCursor,
+			XFIXES_NAME ":ShowCursor");
+
+    RegisterEventName(XFixesEventBase + XFixesSelectionNotify,
+			XFIXES_NAME ":SelectionNotify");
+    RegisterEventName(XFixesEventBase + XFixesCursorNotify,
+			XFIXES_NAME ":CursorNotify");
+
+    RegisterErrorName(XFixesErrorBase + BadRegion,
+			XFIXES_NAME ":BadRegion");
 }
