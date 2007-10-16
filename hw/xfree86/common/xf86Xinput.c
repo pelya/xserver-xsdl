@@ -135,11 +135,6 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
         xf86Msg(X_CONFIG, "%s: always reports core events\n", local->name);
     }
 
-    if (xf86SetBoolOption(list, "SharedPointer", 0)) {
-        local->flags |= XI86_SHARED_POINTER;
-        xf86Msg(X_CONFIG, "%s: is shared device\n", local->name);
-    } 
-
     if (xf86SetBoolOption(list, "SendDragEvents", 1)) {
         local->flags |= XI86_SEND_DRAG_EVENTS;
     } else {
@@ -177,7 +172,7 @@ xf86ActivateDevice(LocalDevicePtr local)
         local->dev = dev;      
         
         dev->coreEvents = local->flags & XI86_ALWAYS_CORE; 
-        dev->spriteInfo->spriteOwner = !(local->flags & XI86_SHARED_POINTER);
+        dev->spriteInfo->spriteOwner = FALSE;
 
         if (DeviceIsPointerType(dev))
         {
