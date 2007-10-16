@@ -30,14 +30,12 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "dix.h"
+#include "registry.h"
 #define _XEVI_SERVER_
 #include <X11/extensions/XEVIstr.h>
 #include "EVIstruct.h"
 #include "modinit.h"
 
-#if 0
-static unsigned char XEVIReqCode = 0;
-#endif
 static EviPrivPtr eviPriv;
 
 static int
@@ -182,19 +180,18 @@ EVIResetProc(ExtensionEntry *extEntry)
 void
 EVIExtensionInit(INITARGS)
 {
-#if 0
     ExtensionEntry *extEntry;
 
-    if ((extEntry = AddExtension(EVINAME, 0, 0,
-				ProcEVIDispatch,
-				SProcEVIDispatch,
-				EVIResetProc, StandardMinorOpcode))) {
-	XEVIReqCode = (unsigned char)extEntry->base;
-#else
-    if (AddExtension(EVINAME, 0, 0,
-		     ProcEVIDispatch, SProcEVIDispatch,
-		     EVIResetProc, StandardMinorOpcode)) {
-#endif
-	eviPriv = eviDDXInit();
-    }
+    if (!(extEntry = AddExtension(EVINAME, 0, 0,
+				  ProcEVIDispatch,
+				  SProcEVIDispatch,
+				  EVIResetProc, StandardMinorOpcode)))
+	return;
+
+    eviPriv = eviDDXInit();
+
+    RegisterRequestName(extEntry->base, X_EVIQueryVersion,
+			EVINAME ":QueryVersion");
+    RegisterRequestName(extEntry->base, X_EVIGetVisualInfo,
+			EVINAME ":GetVisualInfo");
 }
