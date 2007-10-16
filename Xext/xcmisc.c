@@ -39,6 +39,7 @@ from The Open Group.
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "swaprep.h"
+#include "registry.h"
 #include <X11/extensions/xcmiscstr.h>
 #include "modinit.h"
 
@@ -46,10 +47,6 @@ from The Open Group.
 #include <stdint.h>
 #elif !defined(UINT32_MAX)
 #define UINT32_MAX 0xffffffffU
-#endif
-
-#if 0
-static unsigned char XCMiscCode;
 #endif
 
 static void XCMiscResetProc(
@@ -68,18 +65,19 @@ static DISPATCH_PROC(SProcXCMiscGetXIDRange);
 void
 XCMiscExtensionInit(INITARGS)
 {
-#if 0
     ExtensionEntry *extEntry;
 
-    if ((extEntry = AddExtension(XCMiscExtensionName, 0, 0,
+    if (!(extEntry = AddExtension(XCMiscExtensionName, 0, 0,
 				ProcXCMiscDispatch, SProcXCMiscDispatch,
-				XCMiscResetProc, StandardMinorOpcode)) != 0)
-	XCMiscCode = (unsigned char)extEntry->base;
-#else
-    (void) AddExtension(XCMiscExtensionName, 0, 0,
-			ProcXCMiscDispatch, SProcXCMiscDispatch,
-			XCMiscResetProc, StandardMinorOpcode);
-#endif
+				XCMiscResetProc, StandardMinorOpcode)))
+	return;
+
+    RegisterRequestName(extEntry->base, X_XCMiscGetVersion,
+			XCMiscExtensionName ":GetVersion");
+    RegisterRequestName(extEntry->base, X_XCMiscGetXIDRange,
+			XCMiscExtensionName ":GetXIDRange");
+    RegisterRequestName(extEntry->base, X_XCMiscGetXIDList,
+			XCMiscExtensionName ":GetXIDList");
 }
 
 /*ARGSUSED*/
