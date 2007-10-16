@@ -39,6 +39,7 @@ from The Open Group.
 #include "windowstr.h"
 #include "colormapst.h"
 #include "servermd.h"
+#include "registry.h"
 #define _XAG_SERVER_
 #include <X11/extensions/Xagstr.h>
 #include "xacestr.h"
@@ -762,14 +763,35 @@ static void XagCallClientStateChange(
 void
 XagExtensionInit(INITARGS)
 {
-    if (AddExtension (XAGNAME,
-		      0,
-		      XagNumberErrors,
-		      ProcXagDispatch,
-		      SProcXagDispatch,
-		      XagResetProc,
-		      StandardMinorOpcode)) {
+    ExtensionEntry *extEntry;
+
+    if ((extEntry = AddExtension (XAGNAME,
+				  0,
+				  XagNumberErrors,
+				  ProcXagDispatch,
+				  SProcXagDispatch,
+				  XagResetProc,
+				  StandardMinorOpcode))) {
 	RT_APPGROUP = CreateNewResourceType (XagAppGroupFree);
 	XaceRegisterCallback(XACE_AUTH_AVAIL, XagCallClientStateChange, NULL);
-    }
+    } else
+	return;
+
+    RegisterRequestName(extEntry->base, X_XagQueryVersion,
+			XAGNAME ":QueryVersion");
+    RegisterRequestName(extEntry->base, X_XagCreate,
+			XAGNAME ":Create");
+    RegisterRequestName(extEntry->base, X_XagDestroy,
+			XAGNAME ":Destroy");
+    RegisterRequestName(extEntry->base, X_XagGetAttr,
+			XAGNAME ":GetAttr");
+    RegisterRequestName(extEntry->base, X_XagQuery,
+			XAGNAME ":Query");
+    RegisterRequestName(extEntry->base, X_XagCreateAssoc,
+			XAGNAME ":CreateAssoc");
+    RegisterRequestName(extEntry->base, X_XagDestroyAssoc,
+			XAGNAME ":DestroyAssoc");
+
+    RegisterErrorName(extEntry->errorBase + XagBadAppGroup,
+			XAGNAME ":BadAppGroup");
 }
