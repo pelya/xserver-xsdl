@@ -400,7 +400,10 @@ typedef struct _DeviceIntRec {
     int			nPrivates;
     DeviceUnwrapProc    unwrapProc;
     SpriteInfoPtr       spriteInfo;
+    union {
     DeviceIntPtr        master;       /* master device */
+    DeviceIntPtr        lastSlave;    /* last slave device used */
+    } u;
 } DeviceIntRec;
 
 typedef struct {
