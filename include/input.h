@@ -469,8 +469,7 @@ extern int AttachDevice(ClientPtr client,
                         DeviceIntPtr slave,
                         DeviceIntPtr master);
 
-extern DeviceIntPtr GetPairedPointer(DeviceIntPtr kbd);
-extern DeviceIntPtr GetPairedKeyboard(DeviceIntPtr ptr);
+extern DeviceIntPtr GetPairedDevice(DeviceIntPtr kbd);
 
 extern Bool RegisterPairingClient(ClientPtr client);
 extern Bool UnregisterPairingClient(ClientPtr client);
