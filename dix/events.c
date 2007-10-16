@@ -3243,7 +3243,12 @@ CheckPassiveGrabsOnWindow(
 
 	gdev= grab->modifierDevice;
         if (grab->coreGrab)
-            gdev = GetPairedDevice(device);
+        {
+            if (IsPointerDevice(device))
+                gdev = GetPairedDevice(device);
+            else
+                gdev = device;
+        }
 	xkbi= gdev->key->xkbInfo;
 #endif
 	tempGrab.modifierDevice = grab->modifierDevice;
