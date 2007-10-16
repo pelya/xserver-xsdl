@@ -2274,46 +2274,19 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 
     return Success;
 }
-/* Return the pointer that is paired with the given keyboard. If no pointer is
- * paired, return the virtual core pointer 
- */ 
-DeviceIntPtr
-GetPairedPointer(DeviceIntPtr kbd)
-{
-    DeviceIntPtr ptr = inputInfo.devices;
-    while(ptr)
-    {
-        if (ptr->spriteInfo->sprite == kbd->spriteInfo->sprite && 
-                ptr->spriteInfo->spriteOwner)
-        {
-            return ptr;
-        }
-        ptr = ptr->next;
-    }
 
-    return inputInfo.pointer;
-}
-
-/* Find the keyboard device that is paired with the given pointer. If none is
- * found, return the VCK.
+/* Return the device paired with the given device or NULL.
  */
 _X_EXPORT DeviceIntPtr
-GetPairedKeyboard(DeviceIntPtr ptr)
+GetPairedDevice(DeviceIntPtr dev)
 {
-    DeviceIntPtr dev = inputInfo.devices;
-
-    if (IsKeyboardDevice(ptr))
-        return ptr;
-
-    while(dev)
+    if (!dev->spriteInfo->paired)
     {
-        if (ptr != dev && 
-            IsKeyboardDevice(dev) &&
-            ptr->spriteInfo->sprite == dev->spriteInfo->sprite)
-            return dev;
-        dev = dev->next;
+        ErrorF("[dix] No device paired with %d (%s).\n", 
+                dev->id, dev->name);
+        return NULL;
     }
-    return (dev) ? dev : inputInfo.keyboard;
+    return dev->spriteInfo->paired;
 }
 
 /*
