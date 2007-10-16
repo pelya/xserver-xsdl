@@ -74,6 +74,7 @@ extern int ChangeWindowProperty(
     Bool /*sendevent*/);
 
 extern int DeleteProperty(
+    ClientPtr /*client*/,
     WindowPtr /*pWin*/,
     Atom /*propName*/);
 
