@@ -92,6 +92,7 @@ SOFTWARE.
 #include "resource.h"
 #include "opaque.h"
 #include "input.h"
+#include "registry.h"
 
 #define GLOBAL
 
@@ -195,6 +196,58 @@ XvExtensionInit(void)
 
       (void)MakeAtom(XvName, strlen(XvName), xTrue);
 
+      RegisterRequestName(XvReqCode, xv_QueryExtension,
+			  XvName ":QueryExtension");
+      RegisterRequestName(XvReqCode, xv_QueryAdaptors,
+			  XvName ":QueryAdaptors");
+      RegisterRequestName(XvReqCode, xv_QueryEncodings,
+			  XvName ":QueryEncodings");
+      RegisterRequestName(XvReqCode, xv_GrabPort,
+			  XvName ":GrabPort");
+      RegisterRequestName(XvReqCode, xv_UngrabPort,
+			  XvName ":UngrabPort");
+      RegisterRequestName(XvReqCode, xv_PutVideo,
+			  XvName ":PutVideo");
+      RegisterRequestName(XvReqCode, xv_PutStill,
+			  XvName ":PutStill");
+      RegisterRequestName(XvReqCode, xv_GetVideo,
+			  XvName ":GetVideo");
+      RegisterRequestName(XvReqCode, xv_GetStill,
+			  XvName ":GetStill");
+      RegisterRequestName(XvReqCode, xv_StopVideo,
+			  XvName ":StopVideo");
+      RegisterRequestName(XvReqCode, xv_SelectVideoNotify,
+			  XvName ":SelectVideoNotify");
+      RegisterRequestName(XvReqCode, xv_SelectPortNotify,
+			  XvName ":SelectPortNotify");
+      RegisterRequestName(XvReqCode, xv_QueryBestSize,
+			  XvName ":QueryBestSize");
+      RegisterRequestName(XvReqCode, xv_SetPortAttribute,
+			  XvName ":SetPortAttribute");
+      RegisterRequestName(XvReqCode, xv_GetPortAttribute,
+			  XvName ":GetPortAttribute");
+      RegisterRequestName(XvReqCode, xv_QueryPortAttributes,
+			  XvName ":QueryPortAttributes");
+      RegisterRequestName(XvReqCode, xv_ListImageFormats,
+			  XvName ":ListImageFormats");
+      RegisterRequestName(XvReqCode, xv_QueryImageAttributes,
+			  XvName ":QueryImageAttributes");
+      RegisterRequestName(XvReqCode, xv_PutImage,
+			  XvName ":PutImage");
+      RegisterRequestName(XvReqCode, xv_ShmPutImage,
+			  XvName ":ShmPutImage");
+
+      RegisterEventName(XvEventBase + XvVideoNotify,
+			XvName ":VideoNotify");
+      RegisterEventName(XvEventBase + XvPortNotify,
+			XvName ":PortNotify");
+
+      RegisterErrorName(XvErrorBase + XvBadPort,
+			XvName ":BadPort");
+      RegisterErrorName(XvErrorBase + XvBadEncoding,
+			XvName ":BadEncoding");
+      RegisterErrorName(XvErrorBase + XvBadControl,
+			XvName ":BadControl");
     }
 }
 
