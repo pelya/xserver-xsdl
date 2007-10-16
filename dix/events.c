@@ -322,7 +322,7 @@ XItoCoreType(int xitype)
 _X_EXPORT Bool
 DevHasCursor(DeviceIntPtr pDev) 
 {
-    return (pDev != inputInfo.pointer && pDev->spriteInfo->spriteOwner);
+    return pDev->spriteInfo->spriteOwner;
 }
 
 /*
@@ -332,7 +332,7 @@ DevHasCursor(DeviceIntPtr pDev)
 _X_EXPORT Bool
 IsPointerDevice(DeviceIntPtr dev)
 {
-    return ((dev->valuator && dev->button) || dev == inputInfo.pointer);
+    return (dev->valuator && dev->button);
 }
 
 /*
@@ -342,7 +342,7 @@ IsPointerDevice(DeviceIntPtr dev)
 _X_EXPORT Bool
 IsKeyboardDevice(DeviceIntPtr dev)
 {
-    return ((dev->key && dev->kbdfeed) || dev == inputInfo.keyboard);
+    return (dev->key && dev->kbdfeed);
 }
 
 #ifdef XEVIE
