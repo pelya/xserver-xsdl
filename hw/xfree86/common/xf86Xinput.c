@@ -172,6 +172,7 @@ xf86ActivateDevice(LocalDevicePtr local)
         local->dev = dev;      
         
         dev->coreEvents = local->flags & XI86_ALWAYS_CORE; 
+        dev->isMaster = FALSE;
         dev->spriteInfo->spriteOwner = FALSE;
 
         if (DeviceIsPointerType(dev))
@@ -446,9 +447,6 @@ NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
     if (dev->inited && dev->startup && xf86Screens[0]->vtSema &&
         (!is_auto || xf86Info.autoEnableDevices))
         EnableDevice(dev);
-
-    if (!IsPointerDevice(dev))
-        PairDevices(NULL, GuessFreePointerDevice(), dev);
 
     /* send enter/leave event, update sprite window */
     CheckMotion(NULL, dev);
