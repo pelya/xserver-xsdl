@@ -2264,6 +2264,7 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
         return BadAccess;
 
     dev->master = master;
+    dev->spriteInfo->sprite = master->spriteInfo->sprite;
 
     return Success;
 }
