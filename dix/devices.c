@@ -540,11 +540,11 @@ InitAndStartDevices(WindowPtr root)
 	ActivateDevice(dev);
     }
 
-    if (!inputInfo.keyboard) {
+    if (!inputInfo.keyboard) { /* In theory, this cannot happen */
 	ErrorF("[dix] No core keyboard\n");
 	return BadImplementation;
     }
-    if (!inputInfo.pointer) {
+    if (!inputInfo.pointer) { /* In theory, this cannot happen */
 	ErrorF("[dix] No core pointer\n");
 	return BadImplementation;
     }
@@ -554,10 +554,6 @@ InitAndStartDevices(WindowPtr root)
         EnableDevice(inputInfo.keyboard);
     if (inputInfo.pointer->inited && inputInfo.pointer->startup)
         EnableDevice(inputInfo.pointer);
-
-    /* Remove VCP and VCK from device list */
-    inputInfo.devices = NULL;
-    inputInfo.keyboard->next = inputInfo.pointer->next = NULL;
 
     /* enable real devices */
     for (dev = inputInfo.off_devices; dev; dev = next)
@@ -569,17 +565,20 @@ InitAndStartDevices(WindowPtr root)
     }
 
     /* All of the devices are started up now. Pair VCK with VCP, then
-     * pair each real keyboard with a real pointer. 
+     * attach each device to the initial master.
      */ 
     PairDevices(NULL, inputInfo.pointer, inputInfo.keyboard);
 
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
         if (!DevHasCursor(dev))
-            PairDevices(NULL, GuessFreePointerDevice(), dev);
+            AttachDevice(NULL, dev, inputInfo.keyboard);
         else
+        {
+            AttachDevice(NULL, dev, inputInfo.pointer);
             /* enter/leave counter on root window */
             ((FocusSemaphoresPtr)root->devPrivates[FocusPrivatesIndex].ptr)->enterleave++;
+        }
     }
 
     return Success;
@@ -2195,7 +2194,7 @@ ProcQueryKeymap(ClientPtr client)
 }
 
 /* Pair the keyboard to the pointer device. Keyboard events will follow the
- * pointer sprite. 
+ * pointer sprite. Only applicable for master devices. 
  * If the client is set, the request to pair comes from some client. In this
  * case, we need to check for access. If the client is NULL, it's from an
  * internal automatic pairing, we must always permit this.
@@ -2204,6 +2203,10 @@ int
 PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
 {
     if (!ptr)
+        return BadDevice;
+
+    /* Don't allow pairing for slave devices */
+    if (ptr->master || kbd->master)
         return BadDevice;
 
     if (!pairingClient)
@@ -2223,6 +2226,32 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
     return Success;
 }
 
+/**
+ * Attach device 'dev' to device 'master'.
+ * Client is set to the client that issued the request, or NULL if it comes
+ * from some internal automatic pairing.
+ *
+ * We don't allow multi-layer hierarchies right now. You can't attach a slave
+ * to another slave. 
+ */
+int
+AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
+{
+    if (!dev || !master)
+        return BadDevice;
+
+    if (master->master) /* can't attach to slave device */
+        return BadDevice;
+
+    if (!pairingClient)
+        RegisterPairingClient(client);
+    else if (client && pairingClient != client)
+        return BadAccess;
+
+    dev->master = master;
+
+    return Success;
+}
 /* Return the pointer that is paired with the given keyboard. If no pointer is
  * paired, return the virtual core pointer 
  */ 

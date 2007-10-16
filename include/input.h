@@ -465,6 +465,9 @@ extern DeviceIntPtr LookupDeviceIntRec(
 extern int PairDevices(ClientPtr client, 
                        DeviceIntPtr pointer, 
                        DeviceIntPtr keyboard);
+extern int AttachDevice(ClientPtr client,
+                        DeviceIntPtr slave,
+                        DeviceIntPtr master);
 
 extern DeviceIntPtr GetPairedPointer(DeviceIntPtr kbd);
 extern DeviceIntPtr GetPairedKeyboard(DeviceIntPtr ptr);
