@@ -215,7 +215,10 @@ EnableDevice(DeviceIntPtr dev)
         {
             /* Sprites appear on first root window, so we can hardcode it */
             if (dev->spriteInfo->spriteOwner)
+            {
                 InitializeSprite(dev, WindowTable[0]);
+                ((FocusSemaphoresPtr)(WindowTable[0])->devPrivates[FocusPrivatesIndex].ptr)->enterleave++;
+            }
             else if ((other = NextFreePointerDevice()) == NULL)
             {
                 ErrorF("[dix] cannot find pointer to pair with. "
@@ -594,23 +597,6 @@ InitAndStartDevices(WindowPtr root)
 	next = dev->next;
 	if (dev->inited && dev->startup)
 	    (void)EnableDevice(dev);
-    }
-
-    /* All of the devices are started up now. Pair VCK with VCP, then
-     * attach each device to the initial master.
-     */ 
-    PairDevices(NULL, inputInfo.pointer, inputInfo.keyboard);
-
-    for (dev = inputInfo.devices; dev; dev = dev->next)
-    {
-        if (!DevHasCursor(dev))
-            AttachDevice(NULL, dev, inputInfo.keyboard);
-        else
-        {
-            AttachDevice(NULL, dev, inputInfo.pointer);
-            /* enter/leave counter on root window */
-            ((FocusSemaphoresPtr)root->devPrivates[FocusPrivatesIndex].ptr)->enterleave++;
-        }
     }
 
     return Success;
