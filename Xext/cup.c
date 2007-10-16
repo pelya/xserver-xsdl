@@ -39,6 +39,7 @@ in this Software without prior written authorization from The Open Group.
 #include "scrnintstr.h"
 #include "servermd.h"
 #include "swapreq.h"
+#include "registry.h"
 #define _XCUP_SERVER_
 #include <X11/extensions/Xcupstr.h>
 #include <X11/Xfuncproto.h>
@@ -50,11 +51,6 @@ in this Software without prior written authorization from The Open Group.
 static int		ProcDispatch(ClientPtr client);
 static int              SProcDispatch(ClientPtr client);
 static void		ResetProc(ExtensionEntry* extEntry);
-
-#if 0
-static unsigned char	ReqCode = 0;
-static int		ErrorBase;
-#endif
 
 #if defined(WIN32) || defined(TESTWIN32)
 #define HAVE_SPECIAL_DESKTOP_COLORS
@@ -128,30 +124,25 @@ static xColorItem citems[] = {
 void
 XcupExtensionInit (INITARGS)
 {
-#if 0
     ExtensionEntry* extEntry;
 
-    if ((extEntry = AddExtension (XCUPNAME,
-				0,
-				XcupNumberErrors,
-				ProcDispatch,
-				SProcDispatch,
-				ResetProc,
-				StandardMinorOpcode))) {
-	ReqCode = (unsigned char)extEntry->base;
-	ErrorBase = extEntry->errorBase;
-    }
-#else
-    (void) AddExtension (XCUPNAME,
-			0,
-			XcupNumberErrors,
-			ProcDispatch,
-			SProcDispatch,
-			ResetProc,
-			StandardMinorOpcode);
-#endif
+    if (!(extEntry = AddExtension (XCUPNAME,
+				   0,
+				   XcupNumberErrors,
+				   ProcDispatch,
+				   SProcDispatch,
+				   ResetProc,
+				   StandardMinorOpcode)))
+	return;
 
     /* PC servers initialize the desktop colors (citems) here! */
+
+    RegisterRequestName(extEntry->base, X_XcupQueryVersion,
+			XCUPNAME ":QueryVersion");
+    RegisterRequestName(extEntry->base, X_XcupGetReservedColormapEntries,
+			XCUPNAME ":GetReservedColormapEntries");
+    RegisterRequestName(extEntry->base, X_XcupStoreColors,
+			XCUPNAME ":StoreColors");
 }
 
 /*ARGSUSED*/
