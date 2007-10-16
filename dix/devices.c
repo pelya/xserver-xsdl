@@ -485,68 +485,27 @@ CorePointerProc(DeviceIntPtr pDev, int what)
 void
 InitCoreDevices(void)
 {
-    DeviceIntPtr dev;
-
     if (CoreDevicePrivatesGeneration != serverGeneration) {
         CoreDevicePrivatesIndex = AllocateDevicePrivateIndex();
         CoreDevicePrivatesGeneration = serverGeneration;
     }
 
-    if (!inputInfo.keyboard) {
-        dev = AddInputDevice(CoreKeyboardProc, TRUE);
-        if (!dev)
-            FatalError("Failed to allocate core keyboard");
-        dev->name = strdup("Virtual core keyboard");
-#ifdef XKB
-        dev->public.processInputProc = ProcessOtherEvent;
-        dev->public.realInputProc = ProcessOtherEvent;
-        if (!noXkbExtension)
-            XkbSetExtension(dev, ProcessKeyboardEvent);
-#else
-        dev->public.processInputProc = ProcessKeyboardEvent;
-        dev->public.realInputProc = ProcessKeyboardEvent;
-#endif
-        dev->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
-        dev->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
-        dev->coreEvents = TRUE;
-        dev->spriteInfo->spriteOwner = FALSE;
-        if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
-            FatalError("Couldn't allocate keyboard devPrivates\n");
-        dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
-        dev->u.lastSlave = NULL;
-        dev->isMaster = TRUE;
-        (void)ActivateDevice(dev);
+    if (AllocMasterDevice("Virtual core", 
+                          &inputInfo.pointer, 
+                          &inputInfo.keyboard) == BadAlloc)
+        FatalError("Failed to allocate core devices");
 
-        inputInfo.keyboard = dev;
-    }
+    if (!AllocateDevicePrivate(inputInfo.keyboard, CoreDevicePrivatesIndex))
+        FatalError("Couldn't allocate keyboard devPrivates\n");
+    inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
 
-    if (!inputInfo.pointer) {
-        dev = AddInputDevice(CorePointerProc, TRUE);
-        if (!dev)
-            FatalError("Failed to allocate core pointer");
-        dev->name = strdup("Virtual core pointer");
-#ifdef XKB
-        dev->public.processInputProc = ProcessOtherEvent;
-        dev->public.realInputProc = ProcessOtherEvent;
-        if (!noXkbExtension)
-           XkbSetExtension(dev, ProcessPointerEvent);
-#else
-        dev->public.processInputProc = ProcessPointerEvent;
-        dev->public.realInputProc = ProcessPointerEvent;
-#endif
-        dev->deviceGrab.ActivateGrab = ActivatePointerGrab;
-        dev->deviceGrab.DeactivateGrab = DeactivatePointerGrab;
-        dev->coreEvents = TRUE;
-        dev->spriteInfo->spriteOwner = TRUE;
-        if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
-            FatalError("Couldn't allocate pointer devPrivates\n");
-        dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
-        dev->u.lastSlave = NULL;
-        dev->isMaster = TRUE;
-        (void)ActivateDevice(dev);
+    if (!AllocateDevicePrivate(inputInfo.pointer, CoreDevicePrivatesIndex))
+        FatalError("Couldn't allocate pointer devPrivates\n");
+    inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
 
-        inputInfo.pointer = dev;
-    }
+    ActivateDevice(inputInfo.keyboard);
+    ActivateDevice(inputInfo.pointer);
+
 }
 
 /**
@@ -2389,9 +2348,9 @@ AllocMasterDevice(char* name, DeviceIntPtr* ptr, DeviceIntPtr* keybd)
     if (!pointer)
         return BadAlloc;
 
-    pointer->name = xcalloc(strlen(name) + strlen("-ptr") + 1, sizeof(char));
+    pointer->name = xcalloc(strlen(name) + strlen(" pointer") + 1, sizeof(char));
     strcpy(pointer->name, name);
-    strcat(pointer->name, "-ptr");
+    strcat(pointer->name, " pointer");
 
 #ifdef XKB
     pointer->public.processInputProc = ProcessOtherEvent;
@@ -2414,9 +2373,9 @@ AllocMasterDevice(char* name, DeviceIntPtr* ptr, DeviceIntPtr* keybd)
     if (!keyboard)
         return BadAlloc;
 
-    keyboard->name = xcalloc(strlen(name) + strlen("-keybd") + 1, sizeof(char));
+    keyboard->name = xcalloc(strlen(name) + strlen(" keyboard") + 1, sizeof(char));
     strcpy(keyboard->name, name);
-    strcat(keyboard->name, "-keybd");
+    strcat(keyboard->name, " keyboard");
 
 #ifdef XKB
     keyboard->public.processInputProc = ProcessOtherEvent;
