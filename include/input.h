@@ -477,6 +477,10 @@ extern Bool UnregisterPairingClient(ClientPtr client);
 extern DeviceIntPtr GuessFreePointerDevice(void);
 extern DeviceIntPtr NextFreePointerDevice(void);
 
+extern int AllocMasterDevice(char* name,
+                             DeviceIntPtr* ptr,
+                             DeviceIntPtr* keybd);
+
 /* Window/device based access control */
 extern Bool ACRegisterClient(ClientPtr client);
 extern Bool ACUnregisterClient(ClientPtr client);

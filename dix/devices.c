@@ -2374,3 +2374,69 @@ NextFreePointerDevice()
             return dev;
     return NULL;
 }
+/**
+ * Create a new master device (== one pointer, one keyboard device).
+ * Only allocates the devices, you will need to call ActivateDevice() and
+ * EnableDevice() manually.
+ */
+int
+AllocMasterDevice(char* name, DeviceIntPtr* ptr, DeviceIntPtr* keybd)
+{
+    DeviceIntPtr pointer;
+    DeviceIntPtr keyboard;
+
+    pointer = AddInputDevice(CorePointerProc, TRUE);
+    if (!pointer)
+        return BadAlloc;
+
+    pointer->name = xcalloc(strlen(name) + strlen("-ptr") + 1, sizeof(char));
+    strcpy(pointer->name, name);
+    strcat(pointer->name, "-ptr");
+
+#ifdef XKB
+    pointer->public.processInputProc = ProcessOtherEvent;
+    pointer->public.realInputProc = ProcessOtherEvent;
+    if (!noXkbExtension)
+        XkbSetExtension(pointer, ProcessPointerEvent);
+#else
+    pointer->public.processInputProc = ProcessPointerEvent;
+    pointer->public.realInputProc = ProcessPointerEvent;
+#endif
+    pointer->deviceGrab.ActivateGrab = ActivatePointerGrab;
+    pointer->deviceGrab.DeactivateGrab = DeactivatePointerGrab;
+    pointer->coreEvents = TRUE;
+    pointer->spriteInfo->spriteOwner = TRUE;
+
+    pointer->u.lastSlave = NULL;
+    pointer->isMaster = TRUE;
+
+    keyboard = AddInputDevice(CoreKeyboardProc, TRUE);
+    if (!keyboard)
+        return BadAlloc;
+
+    keyboard->name = xcalloc(strlen(name) + strlen("-keybd") + 1, sizeof(char));
+    strcpy(keyboard->name, name);
+    strcat(keyboard->name, "-keybd");
+
+#ifdef XKB
+    keyboard->public.processInputProc = ProcessOtherEvent;
+    keyboard->public.realInputProc = ProcessOtherEvent;
+    if (!noXkbExtension)
+        XkbSetExtension(keyboard, ProcessKeyboardEvent);
+#else
+    keyboard->public.processInputProc = ProcessKeyboardEvent;
+    keyboard->public.realInputProc = ProcessKeyboardEvent;
+#endif
+    keyboard->deviceGrab.ActivateGrab = ActivateKeyboardGrab;
+    keyboard->deviceGrab.DeactivateGrab = DeactivateKeyboardGrab;
+    keyboard->coreEvents = TRUE;
+    keyboard->spriteInfo->spriteOwner = FALSE;
+
+    keyboard->u.lastSlave = NULL;
+    keyboard->isMaster = TRUE;
+
+    *ptr = pointer;
+    *keybd = keyboard;
+
+    return Success;
+}
