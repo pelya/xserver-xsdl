@@ -71,6 +71,7 @@
 #include "gcstruct.h"
 #include "dixfontstr.h"
 #include "extnsionst.h"
+#include "registry.h"
 
 #define _XF86BIGFONT_SERVER_
 #include <X11/extensions/xf86bigfstr.h>
@@ -85,10 +86,6 @@ static DISPATCH_PROC(ProcXF86BigfontQueryFont);
 static DISPATCH_PROC(SProcXF86BigfontDispatch);
 static DISPATCH_PROC(SProcXF86BigfontQueryVersion);
 static DISPATCH_PROC(SProcXF86BigfontQueryFont);
-
-#if 0
-static unsigned char XF86BigfontReqCode;
-#endif
 
 #ifdef HAS_SHM
 
@@ -149,7 +146,6 @@ CheckForShmSyscall(void)
 void
 XFree86BigfontExtensionInit()
 {
-#if 0
     ExtensionEntry* extEntry;
 
     if ((extEntry = AddExtension(XF86BIGFONTNAME,
@@ -159,16 +155,6 @@ XFree86BigfontExtensionInit()
 				 SProcXF86BigfontDispatch,
 				 XF86BigfontResetProc,
 				 StandardMinorOpcode))) {
-	XF86BigfontReqCode = (unsigned char) extEntry->base;
-#else
-    if (AddExtension(XF86BIGFONTNAME,
-		     XF86BigfontNumberEvents,
-		     XF86BigfontNumberErrors,
-		     ProcXF86BigfontDispatch,
-		     SProcXF86BigfontDispatch,
-		     XF86BigfontResetProc,
-		     StandardMinorOpcode)) {
-#endif
 #ifdef HAS_SHM
 #ifdef MUST_CHECK_FOR_SHM_SYSCALL
 	/*
@@ -200,7 +186,13 @@ XFree86BigfontExtensionInit()
 # endif
 #endif
 #endif
-    }
+    } else
+	return;
+
+    RegisterRequestName(extEntry->base, X_XF86BigfontQueryVersion,
+			XF86BIGFONTNAME ":QueryVersion");
+    RegisterRequestName(extEntry->base, X_XF86BigfontQueryFont,
+			XF86BIGFONTNAME ":QueryFont");
 }
 
 
