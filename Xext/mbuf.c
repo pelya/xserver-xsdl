@@ -43,6 +43,7 @@ in this Software without prior written authorization from The Open Group.
 #include "resource.h"
 #include "opaque.h"
 #include "sleepuntil.h"
+#include "registry.h"
 #define _MULTIBUF_SERVER_	/* don't want Xlib structures */
 #include <X11/extensions/multibufst.h>
 
@@ -254,7 +255,39 @@ MultibufferExtensionInit()
 	MultibufferErrorBase = extEntry->errorBase;
 	EventSwapVector[MultibufferEventBase + MultibufferClobberNotify] = (EventSwapPtr) SClobberNotifyEvent;
 	EventSwapVector[MultibufferEventBase + MultibufferUpdateNotify] = (EventSwapPtr) SUpdateNotifyEvent;
-    }
+    } else
+	return;
+
+    RegisterRequestName(extEntry->base, X_MbufGetBufferVersion,
+			MULTIBUFFER_PROTOCOL_NAME ":GetBufferVersion");
+    RegisterRequestName(extEntry->base, X_MbufCreateImageBuffers,
+			MULTIBUFFER_PROTOCOL_NAME ":CreateImageBuffers");
+    RegisterRequestName(extEntry->base, X_MbufDestroyImageBuffers,
+			MULTIBUFFER_PROTOCOL_NAME ":DestroyImageBuffers");
+    RegisterRequestName(extEntry->base, X_MbufDisplayImageBuffers,
+			MULTIBUFFER_PROTOCOL_NAME ":DisplayImageBuffers");
+    RegisterRequestName(extEntry->base, X_MbufSetMBufferAttributes,
+			MULTIBUFFER_PROTOCOL_NAME ":SetMBufferAttributes");
+    RegisterRequestName(extEntry->base, X_MbufGetMBufferAttributes,
+			MULTIBUFFER_PROTOCOL_NAME ":GetMBufferAttributes");
+    RegisterRequestName(extEntry->base, X_MbufSetBufferAttributes,
+			MULTIBUFFER_PROTOCOL_NAME ":SetBufferAttributes");
+    RegisterRequestName(extEntry->base, X_MbufGetBufferAttributes,
+			MULTIBUFFER_PROTOCOL_NAME ":GetBufferAttributes");
+    RegisterRequestName(extEntry->base, X_MbufGetBufferInfo,
+			MULTIBUFFER_PROTOCOL_NAME ":GetBufferInfo");
+    RegisterRequestName(extEntry->base, X_MbufCreateStereoWindow,
+			MULTIBUFFER_PROTOCOL_NAME ":CreateStereoWindow");
+    RegisterRequestName(extEntry->base, X_MbufClearImageBufferArea,
+			MULTIBUFFER_PROTOCOL_NAME ":ClearImageBufferArea");
+
+    RegisterEventName(MultibufferEventBase + MultibufferClobberNotify,
+		      MULTIBUFFER_PROTOCOL_NAME ":ClobberNotify");
+    RegisterEventName(MultibufferEventBase + MultibufferUpdateNotify,
+		      MULTIBUFFER_PROTOCOL_NAME ":UpdateNotify");
+
+    RegisterErrorName(MultibufferErrorBase + BadBuffer,
+		      MULTIBUFFER_PROTOCOL_NAME ":BadBuffer");
 }
 
 /*ARGSUSED*/
