@@ -317,11 +317,12 @@ void GlxExtensionInit(void)
 	pScreen = screenInfo.screens[i];
 
 	for (p = __glXProviderStack; p != NULL; p = p->next) {
-	    if (p->screenProbe(pScreen) != NULL)
+	    if (p->screenProbe(pScreen) != NULL) {
 		LogMessage(X_INFO,
 			   "GLX: Initialized %s GL provider for screen %d\n",
 			   p->name, i);
-	    break;
+	    	break;
+	    }
 	}
     }
 }
