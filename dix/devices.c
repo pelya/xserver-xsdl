@@ -2268,11 +2268,17 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
     return Success;
 }
 
-/* Return the device paired with the given device or NULL.
+/**
+ * Return the device paired with the given device or NULL.
+ * Returns the device paired with the parent master if the given device is a
+ * slave device.
  */
 _X_EXPORT DeviceIntPtr
 GetPairedDevice(DeviceIntPtr dev)
 {
+    if (!dev->isMaster && dev->master)
+        dev = dev->master;
+
     if (!dev->spriteInfo->paired)
     {
         ErrorF("[dix] No device paired with %d (%s).\n", 
