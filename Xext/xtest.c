@@ -42,6 +42,7 @@ from The Open Group.
 #include "scrnintstr.h"
 #include "dixevents.h"
 #include "sleepuntil.h"
+#include "registry.h"
 #define _XTEST_SERVER_
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/xteststr.h>
@@ -52,10 +53,6 @@ from The Open Group.
 #endif /* XINPUT */
 
 #include "modinit.h"
-
-#if 0
-static unsigned char XTestReqCode;
-#endif
 
 #ifdef XINPUT
 extern int DeviceValuator;
@@ -88,18 +85,21 @@ static DISPATCH_PROC(SProcXTestGrabControl);
 void
 XTestExtensionInit(INITARGS)
 {
-#if 0
     ExtensionEntry *extEntry;
 
-    if ((extEntry = AddExtension(XTestExtensionName, 0, 0,
-				 ProcXTestDispatch, SProcXTestDispatch,
-				 XTestResetProc, StandardMinorOpcode)) != 0)
-	XTestReqCode = (unsigned char)extEntry->base;
-#else
-    (void) AddExtension(XTestExtensionName, 0, 0,
-			ProcXTestDispatch, SProcXTestDispatch,
-			XTestResetProc, StandardMinorOpcode);
-#endif
+    if (!(extEntry = AddExtension(XTestExtensionName, 0, 0,
+				  ProcXTestDispatch, SProcXTestDispatch,
+				  XTestResetProc, StandardMinorOpcode)))
+	return;
+
+    RegisterRequestName(extEntry->base, X_XTestGetVersion,
+			XTestExtensionName ":GetVersion");
+    RegisterRequestName(extEntry->base, X_XTestCompareCursor,
+			XTestExtensionName ":CompareCursor");
+    RegisterRequestName(extEntry->base, X_XTestFakeInput,
+			XTestExtensionName ":FakeInput");
+    RegisterRequestName(extEntry->base, X_XTestGrabControl,
+			XTestExtensionName ":GrabControl");
 }
 
 /*ARGSUSED*/
