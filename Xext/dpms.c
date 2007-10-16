@@ -44,15 +44,13 @@ Equipment Corporation.
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "opaque.h"
+#include "registry.h"
 #define DPMS_SERVER
 #include <X11/extensions/dpms.h>
 #include <X11/extensions/dpmsstr.h>
 #include "dpmsproc.h"
 #include "modinit.h"
 
-#if 0
-static unsigned char DPMSCode;
-#endif
 static DISPATCH_PROC(ProcDPMSDispatch);
 static DISPATCH_PROC(SProcDPMSDispatch);
 static DISPATCH_PROC(ProcDPMSGetVersion);
@@ -76,18 +74,29 @@ static void DPMSResetProc(ExtensionEntry* extEntry);
 void
 DPMSExtensionInit(INITARGS)
 {
-#if 0
     ExtensionEntry *extEntry;
     
-    if ((extEntry = AddExtension(DPMSExtensionName, 0, 0,
-				ProcDPMSDispatch, SProcDPMSDispatch,
-				DPMSResetProc, StandardMinorOpcode)))
-	DPMSCode = (unsigned char)extEntry->base;
-#else
-    (void) AddExtension(DPMSExtensionName, 0, 0,
-			ProcDPMSDispatch, SProcDPMSDispatch,
-			DPMSResetProc, StandardMinorOpcode);
-#endif
+    if (!(extEntry = AddExtension(DPMSExtensionName, 0, 0,
+				  ProcDPMSDispatch, SProcDPMSDispatch,
+				  DPMSResetProc, StandardMinorOpcode)))
+	return;
+
+    RegisterRequestName(extEntry->base, X_DPMSGetVersion,
+			DPMSExtensionName ":GetVersion");
+    RegisterRequestName(extEntry->base, X_DPMSCapable,
+			DPMSExtensionName ":Capable");
+    RegisterRequestName(extEntry->base, X_DPMSGetTimeouts,
+			DPMSExtensionName ":GetTimeouts");
+    RegisterRequestName(extEntry->base, X_DPMSSetTimeouts,
+			DPMSExtensionName ":SetTimeouts");
+    RegisterRequestName(extEntry->base, X_DPMSEnable,
+			DPMSExtensionName ":Enable");
+    RegisterRequestName(extEntry->base, X_DPMSDisable,
+			DPMSExtensionName ":Disable");
+    RegisterRequestName(extEntry->base, X_DPMSForceLevel,
+			DPMSExtensionName ":ForceLevel");
+    RegisterRequestName(extEntry->base, X_DPMSInfo,
+			DPMSExtensionName ":Info");
 }
 
 /*ARGSUSED*/
