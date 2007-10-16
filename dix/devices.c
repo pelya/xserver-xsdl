@@ -189,8 +189,9 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
  * list. Initialize the DIX sprite or pair the device. All clients are
  * notified about the device being enabled.
  *
- * A device will send events once enabled.
- *
+ * A master pointer device needs to be enabled before a master keyboard
+ * device.
+ * 
  * @param The device to be enabled.
  * @return TRUE on success or FALSE otherwise.
  */
@@ -200,6 +201,7 @@ EnableDevice(DeviceIntPtr dev)
     DeviceIntPtr *prev;
     int ret;
     DeviceIntRec dummyDev;
+    DeviceIntPtr other;
     devicePresenceNotify ev;
 
     for (prev = &inputInfo.off_devices;
@@ -207,15 +209,26 @@ EnableDevice(DeviceIntPtr dev)
 	 prev = &(*prev)->next)
 	;
 
-    /* Sprites pop up on the first root window, so we can supply it directly
-     * here. 
-     */
     if (!dev->spriteInfo->sprite)
     {
-        if (IsPointerDevice(dev) && dev->spriteInfo->spriteOwner)
-            InitializeSprite(dev, WindowTable[0]);
-        else
-            PairDevices(NULL, inputInfo.pointer, dev);
+        if (dev->isMaster)
+        {
+            /* Sprites appear on first root window, so we can hardcode it */
+            if (dev->spriteInfo->spriteOwner)
+                InitializeSprite(dev, WindowTable[0]);
+            else if ((other = NextFreePointerDevice()) == NULL)
+            {
+                ErrorF("[dix] cannot find pointer to pair with. "
+                       "This is a bug.\n");
+                return FALSE;
+            } else
+                PairDevices(NULL, other, dev);
+        } else
+        {
+            other = (IsPointerDevice(dev)) ? inputInfo.pointer :
+                inputInfo.keyboard;
+            AttachDevice(NULL, dev, other);
+        }
     }
 
     if ((*prev != dev) || !dev->inited ||
@@ -247,12 +260,15 @@ EnableDevice(DeviceIntPtr dev)
  * list. A device will not send events while disabled. All clients are
  * notified about the device being disabled.
  *
+ * Master keyboard devices have to be disabled before master pointer devices
+ * otherwise things turn bad.
+ *
  * @return TRUE on success or FALSE otherwise.
  */
 Bool
 DisableDevice(DeviceIntPtr dev)
 {
-    DeviceIntPtr *prev, paired;
+    DeviceIntPtr *prev, other;
     DeviceIntRec dummyDev;
     devicePresenceNotify ev;
 
@@ -262,20 +278,34 @@ DisableDevice(DeviceIntPtr dev)
 	;
     if (*prev != dev)
 	return FALSE;
+
+    if (dev->isMaster && dev->spriteInfo->sprite)
+    {
+        for (other = inputInfo.devices; other; other = other->next)
+        {
+            if (other->spriteInfo->paired == dev)
+            {
+                ErrorF("[dix] cannot disable device, still paired. " 
+                        "This is a bug. \n");
+                return FALSE;
+            }
+        }
+    }
+
     (void)(*dev->deviceProc)(dev, DEVICE_OFF);
     dev->enabled = FALSE;
     *prev = dev->next;
     dev->next = inputInfo.off_devices;
     inputInfo.off_devices = dev;
 
-    /* Some other device may have been paired with this device. 
-       Re-pair with VCP. We don't repair with a real device, as this
-       may cause somebody suddenly typing where they shouldn't. 
-     */
-    for (paired = inputInfo.devices; paired; paired = paired->next)
+    /* float attached devices */
+    if (dev->isMaster)
     {
-        if (paired->spriteInfo->paired == dev)
-            PairDevices(NULL, inputInfo.pointer, paired);
+        for (other = inputInfo.devices; other; other = other->next) 
+        {
+            if (other->master == dev)
+                AttachDevice(NULL, dev, NULL);
+        }
     }
 
     ev.type = DevicePresenceNotify;
@@ -313,7 +343,7 @@ ActivateDevice(DeviceIntPtr dev)
     dev->inited = (ret == Success);
 
     /* Initialize memory for sprites. */
-    if (IsPointerDevice(dev))
+    if (dev->isMaster && dev->spriteInfo->spriteOwner)
         pScreen->DeviceCursorInitialize(dev, pScreen);
     
     ev.type = DevicePresenceNotify;
@@ -485,6 +515,7 @@ InitCoreDevices(void)
             FatalError("Couldn't allocate keyboard devPrivates\n");
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
         dev->master = NULL;
+        dev->isMaster = TRUE;
         (void)ActivateDevice(dev);
 
         inputInfo.keyboard = dev;
@@ -512,6 +543,7 @@ InitCoreDevices(void)
             FatalError("Couldn't allocate pointer devPrivates\n");
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
         dev->master = NULL;
+        dev->isMaster = TRUE;
         (void)ActivateDevice(dev);
 
         inputInfo.pointer = dev;
@@ -550,10 +582,10 @@ InitAndStartDevices(WindowPtr root)
     }
 
     /* Now enable all devices */
-    if (inputInfo.keyboard->inited && inputInfo.keyboard->startup)
-        EnableDevice(inputInfo.keyboard);
     if (inputInfo.pointer->inited && inputInfo.pointer->startup)
         EnableDevice(inputInfo.pointer);
+    if (inputInfo.keyboard->inited && inputInfo.keyboard->startup)
+        EnableDevice(inputInfo.keyboard);
 
     /* enable real devices */
     for (dev = inputInfo.off_devices; dev; dev = next)
@@ -2366,4 +2398,16 @@ GuessFreePointerDevice()
     }
 
     return (lastRealPtr) ? lastRealPtr : inputInfo.pointer;
+}
+
+DeviceIntPtr
+NextFreePointerDevice()
+{
+    DeviceIntPtr dev;
+    for (dev = inputInfo.devices; dev; dev = dev->next)
+        if (dev->isMaster && 
+                dev->spriteInfo->spriteOwner && 
+                !dev->spriteInfo->paired)
+            return dev;
+    return NULL;
 }

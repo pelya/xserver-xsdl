@@ -476,6 +476,7 @@ extern Bool RegisterPairingClient(ClientPtr client);
 extern Bool UnregisterPairingClient(ClientPtr client);
 
 extern DeviceIntPtr GuessFreePointerDevice(void);
+extern DeviceIntPtr NextFreePointerDevice(void);
 
 /* Window/device based access control */
 extern Bool ACRegisterClient(ClientPtr client);
