@@ -41,6 +41,7 @@
 #include "servermd.h"
 #include "picturestr.h"
 #include "xace.h"
+#include "registry.h"
 
 _X_EXPORT DevPrivateKey PictureScreenPrivateKey = &PictureScreenPrivateKey;
 DevPrivateKey	PictureWindowPrivateKey = &PictureWindowPrivateKey;
