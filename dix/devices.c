@@ -302,7 +302,7 @@ DisableDevice(DeviceIntPtr dev)
     {
         for (other = inputInfo.devices; other; other = other->next) 
         {
-            if (other->master == dev)
+            if (other->u.master == dev)
                 AttachDevice(NULL, dev, NULL);
         }
     }
@@ -513,7 +513,7 @@ InitCoreDevices(void)
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
             FatalError("Couldn't allocate keyboard devPrivates\n");
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
-        dev->master = NULL;
+        dev->u.lastSlave = NULL;
         dev->isMaster = TRUE;
         (void)ActivateDevice(dev);
 
@@ -541,7 +541,7 @@ InitCoreDevices(void)
         if (!AllocateDevicePrivate(dev, CoreDevicePrivatesIndex))
             FatalError("Couldn't allocate pointer devPrivates\n");
         dev->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
-        dev->master = NULL;
+        dev->u.lastSlave = NULL;
         dev->isMaster = TRUE;
         (void)ActivateDevice(dev);
 
@@ -2255,7 +2255,7 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
     if (!dev || !master)
         return BadDevice;
 
-    if (master->master) /* can't attach to slave device */
+    if (!master->isMaster) /* can't attach to slave device */
         return BadDevice;
 
     if (!pairingClient)
@@ -2263,7 +2263,7 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
     else if (client && pairingClient != client)
         return BadAccess;
 
-    dev->master = master;
+    dev->u.master = master;
     dev->spriteInfo->sprite = master->spriteInfo->sprite;
 
     return Success;
@@ -2277,8 +2277,8 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 _X_EXPORT DeviceIntPtr
 GetPairedDevice(DeviceIntPtr dev)
 {
-    if (!dev->isMaster && dev->master)
-        dev = dev->master;
+    if (!dev->isMaster && dev->u.master)
+        dev = dev->u.master;
 
     if (!dev->spriteInfo->paired)
     {
