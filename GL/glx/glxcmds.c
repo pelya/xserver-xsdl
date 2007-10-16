@@ -1617,7 +1617,7 @@ int __glXDisp_ReleaseTexImageEXT(__GLXclientState *cl, GLbyte *pc)
 	return error;
 
     pGlxDraw = __glXGetDrawable(NULL, drawId, client, &error);
-    if (error != Success || pGlxDraw->type != GLX_DRAWABLE_PIXMAP) {
+    if (!pGlxDraw || pGlxDraw->type != GLX_DRAWABLE_PIXMAP) {
 	client->errorValue = drawId;
 	return error;
     }
@@ -1675,7 +1675,7 @@ int __glXDisp_CopySubBufferMESA(__GLXclientState *cl, GLbyte *pc)
     }
 
     pGlxDraw = __glXGetDrawable(glxc, drawId, client, &error);
-    if (error != Success)
+    if (!pGlxDraw)
 	return error;
 
     if (pGlxDraw == NULL ||
