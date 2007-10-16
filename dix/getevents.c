@@ -544,6 +544,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     CARD32* valptr;
     deviceKeyButtonPointer *kbp = NULL;
     rawDeviceEvent* ev;
+    DeviceIntPtr master;
 
     /* Thanks to a broken lib, we _always_ have to chase DeviceMotionNotifies
      * with DeviceValuators. */
@@ -558,16 +559,54 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
     if ((type == ButtonPress || type == ButtonRelease) && !pDev->button)
         return 0;
-
+    
     /* FIXME: I guess it should, in theory, be possible to post button events
      *        from devices without valuators. */
     if (!pDev->valuator)
         return 0;
 
-    num_events = 2;
-
     if (type == MotionNotify && num_valuators <= 0)
         return 0;
+
+    ms = GetTimeInMillis();
+
+    num_events = 2;
+
+    master = pDev->u.master;
+    if (master && master->u.lastSlave != pDev)
+    {
+#if 0
+        /* XXX: we should enqueue the state changed event here */
+        devStateEvent *state; 
+        num_events++;
+        state = events->event;
+
+        state->type = GenericEvent;
+        state->extension = IReqCode;
+        state->evtype = XI_DeviceStateChangedNotify;
+        state->deviceid = master->deviceid;
+        state->new_slave = pDev->id;
+        state->time = ms;
+        events++;
+
+#endif
+
+        /* now we need to update our device to the master's device - welcome
+         * to hell. 
+         * We need to match each device's capabilities to the previous
+         * capabilities as used by the master. Valuator[N] of master has to
+         * be written into valuator[N] of pDev. For all relative valuators.
+         * Otherwise we get jumpy valuators.
+         *
+         * However, this if iffy, if pDev->num_valuators !=
+         * master->num_valuators. What do we do with the others? 
+         * 
+         * XXX: just do lastx/y for now.
+         */
+        pDev->valuator->lastx = master->valuator->lastx;
+        pDev->valuator->lasty = master->valuator->lasty;
+        master->u.lastSlave = pDev;
+    }
 
     /* Do we need to send a DeviceValuator event? */
     if (!coreOnly && sendValuators) {
@@ -582,7 +621,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     if (first_valuator < 0 || final_valuator > pDev->valuator->numAxes)
         return 0;
 
-    ms = GetTimeInMillis();
 
 
     /* fill up the raw event, after checking that it is large enough to
@@ -667,6 +705,8 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
     pDev->valuator->lastx = x;
     pDev->valuator->lasty = y;
+    master->valuator->lastx = x;
+    master->valuator->lasty = y;
 
     if (!coreOnly)
     {
