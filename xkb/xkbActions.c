@@ -1273,7 +1273,7 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
 	    keyc->modifierMap[key] = 0;
             tmpdev = dev;
         } else
-            tmpdev = GetPairedPointer(dev);
+            tmpdev = GetPairedDevice(dev);
 
 
         UNWRAP_PROCESS_INPUT_PROC(tmpdev,xkbPrivPtr, backupproc);

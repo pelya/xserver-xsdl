@@ -1038,7 +1038,7 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
     xEvent	    core;
     KeyClassPtr	    keyc = keybd->key;
     DGAScreenPtr    pScreenPriv = DGA_GET_SCREEN_PRIV(pScreen);
-    DeviceIntPtr    pointer = GetPairedPointer(keybd);
+    DeviceIntPtr    pointer = GetPairedDevice(keybd);
     
     coreEquiv = de->u.u.type - *XDGAEventBase;
 
@@ -1145,7 +1145,7 @@ DGAProcessPointerEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr mouse)
      * Fill in remaining event state
      */
     de->u.event.screen = pScreen->myNum;
-    de->u.event.state = butc->state | GetPairedKeyboard(mouse)->key->state;
+    de->u.event.state = butc->state | GetPairedDevice(mouse)->key->state;
     /*
      * Keep the core state in sync by duplicating what
      * CoreProcessPointerEvent does

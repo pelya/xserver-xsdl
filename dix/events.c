@@ -3243,7 +3243,7 @@ CheckPassiveGrabsOnWindow(
 
 	gdev= grab->modifierDevice;
         if (grab->coreGrab)
-            gdev = GetPairedKeyboard(device);
+            gdev = GetPairedDevice(device);
 	xkbi= gdev->key->xkbInfo;
 #endif
 	tempGrab.modifierDevice = grab->modifierDevice;
@@ -3294,7 +3294,7 @@ CheckPassiveGrabsOnWindow(
             if (xE->u.u.type < LASTEvent)
             {
                 grab->device = device; 
-                grab->modifierDevice = GetPairedKeyboard(device);
+                grab->modifierDevice = GetPairedDevice(device);
             }
 
             /* In some cases a passive core grab may exist, but the client
@@ -3453,9 +3453,7 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
 	if (DeliverDeviceEvents(window, xE, NullGrab, focus, keybd, count))
 	    return;
     }
-    pointer = GetPairedPointer(keybd);
-    if (!pointer)
-        pointer = inputInfo.pointer;
+    pointer = GetPairedDevice(keybd);
     /* just deliver it to the focus window */
     FixUpEventFromWindow(pointer, xE, focus, None, FALSE);
     if (xE->u.u.type & EXTENSION_EVENT_BASE)
@@ -3684,7 +3682,7 @@ drawable.id:0;
 #endif
     /* ProcessOtherEvent already updated the keyboard's state, so we need to
      * access prev_state here! */
-    XE_KBPTR.state = (keyc->prev_state | GetPairedPointer(keybd)->button->state);
+    XE_KBPTR.state = (keyc->prev_state | GetPairedDevice(keybd)->button->state);
     XE_KBPTR.rootX = keybd->spriteInfo->sprite->hot.x;
     XE_KBPTR.rootY = keybd->spriteInfo->sprite->hot.y;
     key = xE->u.u.detail;
@@ -3796,7 +3794,7 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
     SpritePtr           pSprite = mouse->spriteInfo->sprite;
 
 #ifdef XKB
-    XkbSrvInfoPtr xkbi= GetPairedKeyboard(mouse)->key->xkbInfo;
+    XkbSrvInfoPtr xkbi= GetPairedDevice(mouse)->key->xkbInfo;
 #endif
 #ifdef XEVIE
     if(xevieFlag && clients[xevieClientIndex] && !xeviegrabState &&
@@ -4141,7 +4139,7 @@ EnterLeaveEvent(
     int                 mskidx;
     OtherInputMasks     *inputMasks;
 
-    keybd = GetPairedKeyboard(mouse);
+    keybd = GetPairedDevice(mouse);
 
     if ((pWin == mouse->valuator->motionHintWindow) &&
 	(detail != NotifyInferior))
@@ -4682,7 +4680,7 @@ SetInputFocus(
     if (IsKeyboardDevice(dev))
         keybd = dev;
     else
-        keybd = GetPairedKeyboard(dev);
+        keybd = GetPairedDevice(dev);
 
     if ((focusID == None) || (focusID == PointerRoot))
 	focusWin = (WindowPtr)(long)focusID;
@@ -5697,7 +5695,7 @@ ProcGrabButton(ClientPtr client)
     }
 
     pointer = PickPointer(client);
-    modifierDevice = GetPairedKeyboard(pointer);
+    modifierDevice = GetPairedDevice(pointer);
 
     grab = CreateGrab(client->index, pointer, pWin, 
         (Mask)stuff->eventMask, (Bool)stuff->ownerEvents,

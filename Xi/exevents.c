@@ -144,12 +144,12 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
          */
         if (IsPointerDevice(device))
         {
-            kbd = GetPairedKeyboard(device);
+            kbd = GetPairedDevice(device);
             mouse = device;
         }
         else
         {
-            mouse = GetPairedPointer(device);
+            mouse = GetPairedDevice(device);
             kbd = device;
         }
         xE->u.keyButtonPointer.state = (kbd) ? (kbd->key->state) : 0;

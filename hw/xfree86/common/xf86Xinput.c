@@ -723,7 +723,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
     int index;
 
 #if XFreeXDGA
-    DeviceIntPtr pointer = GetPairedPointer(device);
+    DeviceIntPtr pointer = GetPairedDevice(device);
 
     if (miPointerGetScreen(pointer)) {
         index = miPointerGetScreen(pointer)->myNum;

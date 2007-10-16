@@ -73,27 +73,20 @@ ProcXGetPairedPointer(ClientPtr client)
     REQUEST_SIZE_MATCH(xGetPairedPointerReq);
 
     kbd = LookupDeviceIntRec(stuff->deviceid);
-    if (!kbd || !kbd->key) {
+    if (!kbd || !kbd->key || !kbd->isMaster) {
         SendErrorToClient(client, IReqCode, X_GetPairedPointer,
                 stuff->deviceid, BadDevice);
         return Success;
     }
 
-    ptr = GetPairedPointer(kbd);
+    ptr = GetPairedDevice(kbd);
 
     rep.repType = X_Reply;
     rep.RepType = X_GetPairedPointer;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    if (ptr == inputInfo.pointer)
-    {
-        rep.paired = FALSE;
-        rep.deviceid = 0;
-    } else 
-    {
-        rep.paired = TRUE;
-        rep.deviceid = ptr->id;
-    }
+    rep.paired = TRUE;
+    rep.deviceid = ptr->id;
     WriteReplyToClient(client, sizeof(xGetPairedPointerReply), &rep);
     return Success;
 }
