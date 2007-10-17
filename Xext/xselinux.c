@@ -50,6 +50,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdarg.h>
 #include "modinit.h"
 
+
+/*
+ * Globals
+ */
+
 /* private state record */
 static DevPrivateKey stateKey = &stateKey;
 
@@ -108,6 +113,14 @@ static struct security_class_mapping map[] = {
     { NULL }
 };
 
+/* forward declarations */
+static void SELinuxScreen(CallbackListPtr *, pointer, pointer);
+
+
+/*
+ * Support Routines
+ */
+
 /*
  * Returns the object class corresponding to the given resource type.
  */
@@ -150,7 +163,6 @@ SELinuxTypeToClass(RESTYPE type)
 	    knownTypes[type] = SECCLASS_X_FONT;
     }
 
-//    ErrorF("Returning a class of %d for a type of %d\n", knownTypes[type], type);
     return knownTypes[type];
 }
 
@@ -162,8 +174,6 @@ SELinuxDoCheck(ClientPtr client, SELinuxStateRec *obj, security_class_t class,
 	       Mask access_mode, SELinuxAuditRec *auditdata)
 {
     SELinuxStateRec *subj;
-
-//    ErrorF("SuperCheck: client=%d, class=%d, access_mode=%x\n", client->index, class, access_mode);
 
     /* serverClient requests OK */
     if (client->index == 0)
@@ -185,11 +195,101 @@ SELinuxDoCheck(ClientPtr client, SELinuxStateRec *obj, security_class_t class,
     return Success;
 }
 
-//static void
-//SELinuxSelection(CallbackListPtr *pcbl, pointer unused, pointer calldata)
-//{
-//    XaceSelectionAccessRec *rec = calldata;
-//}
+/*
+ * Labels initial server objects.
+ */
+static void
+SELinuxFixupLabels(void)
+{
+    int i;
+    XaceScreenAccessRec srec;
+    SELinuxStateRec *state;
+    security_context_t ctx;
+    pointer unused;
+
+    /* Do the serverClient */
+    state = dixLookupPrivate(&serverClient->devPrivates, stateKey);
+    sidput(state->sid);
+
+    /* Use the context of the X server process for the serverClient */
+    if (getcon(&ctx) < 0)
+	FatalError("Couldn't get context of X server process\n");
+
+    /* Get a SID from the context */
+    if (avc_context_to_sid(ctx, &state->sid) < 0)
+	FatalError("serverClient: context_to_sid(%s) failed\n", ctx);
+
+    freecon(ctx);
+
+    srec.client = serverClient;
+    srec.access_mode = DixCreateAccess;
+    srec.status = Success;
+
+    for (i = 0; i < screenInfo.numScreens; i++) {
+	/* Do the screen object */
+	srec.screen = screenInfo.screens[i];
+	SELinuxScreen(NULL, NULL, &srec);
+
+	/* Do the default colormap */
+	dixLookupResource(&unused, screenInfo.screens[i]->defColormap,
+			  RT_COLORMAP, serverClient, DixCreateAccess);
+    }
+}
+
+
+/*
+ * Libselinux Callbacks
+ */
+
+static int
+SELinuxAudit(void *auditdata,
+	     security_class_t class,
+	     char *msgbuf,
+	     size_t msgbufsize)
+{
+    SELinuxAuditRec *audit = auditdata;
+    ClientPtr client = audit->client;
+    char idNum[16], *propertyName;
+    int major = 0, minor = 0;
+    REQUEST(xReq);
+
+    if (audit->id)
+	snprintf(idNum, 16, "%x", audit->id);
+    if (stuff) {
+	major = stuff->reqType;
+	minor = (major < 128) ? 0 : MinorOpcodeOfRequest(client);
+    }
+
+    propertyName = audit->property ? NameForAtom(audit->property) : NULL;
+
+    return snprintf(msgbuf, msgbufsize, "%s%s%s%s%s%s%s%s%s%s%s%s",
+		    stuff ? "request=" : "",
+		    stuff ? LookupRequestName(major, minor) : "",
+		    audit->client_path ? " comm=" : "",
+		    audit->client_path ? audit->client_path : "",
+		    audit->id ? " resid=" : "",
+		    audit->id ? idNum : "",
+		    audit->restype ? " restype=" : "",
+		    audit->restype ? LookupResourceName(audit->restype) : "",
+		    audit->property ? " property=" : "",
+		    audit->property ? propertyName : "",
+		    audit->extension ? " extension=" : "",
+		    audit->extension ? audit->extension : "");
+}
+
+static int
+SELinuxLog(int type, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    VErrorF(fmt, ap);
+    va_end(ap);
+    return 0;
+}
+
+/*
+ * XACE Callbacks
+ */
 
 static void
 SELinuxExtension(CallbackListPtr *pcbl, pointer unused, pointer calldata)
@@ -418,30 +518,10 @@ SELinuxServer(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	rec->status = rc;
 }
 
-/* Extension callbacks */
-static void
-SELinuxStateInit(CallbackListPtr *pcbl, pointer unused, pointer calldata)
-{
-    PrivateCallbackRec *rec = calldata;
-    SELinuxStateRec *state = *rec->value;
 
-    sidget(unlabeled_sid);
-    state->sid = unlabeled_sid;
-
-    avc_entry_ref_init(&state->aeref);
-}
-
-static void
-SELinuxStateFree(CallbackListPtr *pcbl, pointer unused, pointer calldata)
-{
-    PrivateCallbackRec *rec = calldata;
-    SELinuxStateRec *state = *rec->value;
-
-    xfree(state->client_path);
-
-    if (avc_active)
-	sidput(state->sid);
-}
+/*
+ * DIX Callbacks
+ */
 
 static void
 SELinuxClientState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
@@ -506,7 +586,6 @@ finish:
     freecon(ctx);
 }
 
-/* Labeling callbacks */
 static void
 SELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
@@ -553,12 +632,50 @@ SELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	FatalError("XSELinux: Unexpected unlabeled window found\n");
 }
 
-/* Extension dispatch functions */
+
+/*
+ * DevPrivates Callbacks
+ */
+
+static void
+SELinuxStateInit(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+{
+    PrivateCallbackRec *rec = calldata;
+    SELinuxStateRec *state = *rec->value;
+
+    sidget(unlabeled_sid);
+    state->sid = unlabeled_sid;
+
+    avc_entry_ref_init(&state->aeref);
+}
+
+static void
+SELinuxStateFree(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+{
+    PrivateCallbackRec *rec = calldata;
+    SELinuxStateRec *state = *rec->value;
+
+    xfree(state->client_path);
+
+    if (avc_active)
+	sidput(state->sid);
+}
+
+
+/*
+ * Extension Dispatch
+ */
+
 static int
 ProcSELinuxDispatch(ClientPtr client)
 {
     return BadRequest;
 }
+
+
+/*
+ * Extension Setup / Teardown
+ */
 
 static void
 SELinuxResetProc(ExtensionEntry *extEntry)
@@ -576,90 +693,6 @@ SELinuxResetProc(ExtensionEntry *extEntry)
     xfree(knownTypes);
     knownTypes = NULL;
     numKnownTypes = 0;
-}
-
-static int
-SELinuxAudit(void *auditdata,
-	     security_class_t class,
-	     char *msgbuf,
-	     size_t msgbufsize)
-{
-    SELinuxAuditRec *audit = auditdata;
-    ClientPtr client = audit->client;
-    char idNum[16], *propertyName;
-    int major = 0, minor = 0;
-    REQUEST(xReq);
-
-    if (audit->id)
-	snprintf(idNum, 16, "%x", audit->id);
-    if (stuff) {
-	major = stuff->reqType;
-	minor = (major < 128) ? 0 : MinorOpcodeOfRequest(client);
-    }
-
-    propertyName = audit->property ? NameForAtom(audit->property) : NULL;
-
-    return snprintf(msgbuf, msgbufsize, "%s%s%s%s%s%s%s%s%s%s%s%s",
-		    stuff ? "request=" : "",
-		    stuff ? LookupRequestName(major, minor) : "",
-		    audit->client_path ? " client=" : "",
-		    audit->client_path ? audit->client_path : "",
-		    audit->id ? " resid=" : "",
-		    audit->id ? idNum : "",
-		    audit->restype ? " restype=" : "",
-		    audit->restype ? LookupResourceName(audit->restype) : "",
-		    audit->property ? " property=" : "",
-		    audit->property ? propertyName : "",
-		    audit->extension ? " extension=" : "",
-		    audit->extension ? audit->extension : "");
-}
-
-static int
-SELinuxLog(int type, const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    VErrorF(fmt, ap);
-    va_end(ap);
-    return 0;
-}
-
-static void
-SELinuxFixupLabels(void)
-{
-    int i;
-    XaceScreenAccessRec srec;
-    SELinuxStateRec *state;
-    security_context_t ctx;
-    pointer unused;
-
-    /* Do the serverClient */
-    state = dixLookupPrivate(&serverClient->devPrivates, stateKey);
-    sidput(state->sid);
-
-    /* Use the context of the X server process for the serverClient */
-    if (getcon(&ctx) < 0)
-	FatalError("Couldn't get context of X server process\n");
-
-    /* Get a SID from the context */
-    if (avc_context_to_sid(ctx, &state->sid) < 0)
-	FatalError("serverClient: context_to_sid(%s) failed\n", ctx);
-
-    freecon(ctx);
-
-    srec.client = serverClient;
-    srec.access_mode = DixCreateAccess;
-    srec.status = Success;
-
-    for (i = 0; i < screenInfo.numScreens; i++) {
-	/* Do the screen object */
-	srec.screen = screenInfo.screens[i];
-	SELinuxScreen(NULL, NULL, &srec);
-
-	/* Do the default colormap */
-	dixLookupResource(&unused, screenInfo.screens[i]->defColormap,
-			  RT_COLORMAP, serverClient, DixCreateAccess);
-    }
 }
 
 void
