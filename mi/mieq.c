@@ -296,6 +296,9 @@ mieqProcessInputEvents(void)
             }
 
             e->pDev->public.processInputProc(event, e->pDev, e->nevents);
+            if (!e->pDev->isMaster && e->pDev->u.master)
+                e->pDev->u.master->public.processInputProc(event, 
+                        e->pDev->u.master, e->nevents);
 
             if (e->nevents > 1)
                 xfree(event);
