@@ -41,11 +41,12 @@
 #include <windowstr.h>
 #include <os.h>
 
+#include "privates.h"
 #include "glxserver.h"
 #include "glxutil.h"
 #include "glxext.h"
 
-static int glxScreenPrivateIndex;
+static DevPrivateKey glxScreenPrivateKey = &glxScreenPrivateKey;
 
 const char GLServerVersion[] = "1.4";
 static const char GLServerExtensions[] = 
@@ -278,22 +279,11 @@ glxCloseScreen (int index, ScreenPtr pScreen)
 __GLXscreen *
 glxGetScreen(ScreenPtr pScreen)
 {
-    return (__GLXscreen *) pScreen->devPrivates[glxScreenPrivateIndex].ptr;
+    return dixLookupPrivate(&pScreen->devPrivates, glxScreenPrivateKey);
 }
 
 void __glXScreenInit(__GLXscreen *glxScreen, ScreenPtr pScreen)
 {
-    static int glxGeneration;
-
-    if (glxGeneration != serverGeneration)
-    {
-	glxScreenPrivateIndex = AllocateScreenPrivateIndex ();
-	if (glxScreenPrivateIndex == -1)
-	    return;
-
-	glxGeneration = serverGeneration;
-    }
-
     glxScreen->pScreen       = pScreen;
     glxScreen->GLextensions  = xstrdup(GLServerExtensions);
     glxScreen->GLXvendor     = xstrdup(GLXServerVendorName);
@@ -308,9 +298,9 @@ void __glXScreenInit(__GLXscreen *glxScreen, ScreenPtr pScreen)
 
     __glXScreenInitVisuals(glxScreen);
 
-    pScreen->devPrivates[glxScreenPrivateIndex].ptr = (pointer) glxScreen;
+    dixSetPrivate(&pScreen->devPrivates, glxScreenPrivateKey, glxScreen);
 }
- 
+
 void __glXScreenDestroy(__GLXscreen *screen)
 {
     xfree(screen->GLXvendor);
