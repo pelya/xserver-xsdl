@@ -229,7 +229,8 @@ miPointerUndisplayCursor(pDev, pScreen)
     ScreenPtr 	 pScreen;
 {
     SetupScreen(pScreen);
-    (*pScreenPriv->spriteFuncs->UndisplayCursor)(pDev, pScreen);
+    if (pDev->isMaster && pDev->spriteInfo->spriteOwner)
+        (*pScreenPriv->spriteFuncs->UndisplayCursor)(pDev, pScreen);
 }
 
 static void
