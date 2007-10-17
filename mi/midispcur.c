@@ -85,7 +85,7 @@ typedef struct {
 #define MIDCBUFFER(dev) \
  ((DevHasCursor(dev)) ? \
   (miDCBufferPtr)dev->devPrivates[miDCSpriteIndex].ptr :\
-  (miDCBufferPtr)inputInfo.pointer->devPrivates[miDCSpriteIndex].ptr)
+  (miDCBufferPtr)dev->u.master->devPrivates[miDCSpriteIndex].ptr)
 
 /* 
  * The core pointer buffer will point to the index of the virtual core pointer

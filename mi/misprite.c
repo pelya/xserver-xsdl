@@ -77,7 +77,7 @@ static int miSpriteDevPrivatesIndex;
 #define MISPRITE(dev) \
     ((DevHasCursor(dev)) ? \
        (miCursorInfoPtr) dev->devPrivates[miSpriteDevPrivatesIndex].ptr : \
-       (miCursorInfoPtr) inputInfo.pointer->devPrivates[miSpriteDevPrivatesIndex].ptr)
+       (miCursorInfoPtr) dev->u.master->devPrivates[miSpriteDevPrivatesIndex].ptr)
 
 
 /*
@@ -759,6 +759,12 @@ miSpriteRealizeCursor (pDev, pScreen, pCursor)
     miCursorInfoPtr pCursorInfo;
 
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
+
+    if (!pDev->isMaster && !pDev->u.master)
+    {
+        ErrorF("[mi] miSpriteRealizeCursor called for floating device.\n");
+        return FALSE;
+    }
     pCursorInfo = MISPRITE(pDev);
 
     if (pCursor == pCursorInfo->pCursor)
@@ -790,7 +796,14 @@ miSpriteSetCursor (pDev, pScreen, pCursor, x, y)
     miSpriteScreenPtr	pScreenPriv;
 
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
-    miCursorInfoPtr pPointer = MISPRITE(pDev);
+    miCursorInfoPtr pPointer;
+    
+    if (!pDev->isMaster && !pDev->u.master)
+    {
+        ErrorF("[mi] miSpriteSetCursor called for floating device.\n");
+        return;
+    }
+    pPointer = MISPRITE(pDev);
 
     if (!pCursor)
     {
@@ -905,6 +918,11 @@ miSpriteMoveCursor (pDev, pScreen, x, y)
     CursorPtr pCursor;
 
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
+    if (!pDev->isMaster && !pDev->u.master)
+    {
+        ErrorF("[mi] miSpriteMoveCursor called for floating device.\n");
+        return;
+    }
     pCursor = MISPRITE(pDev)->pCursor;
 
     miSpriteSetCursor (pDev, pScreen, pCursor, x, y);
@@ -972,6 +990,11 @@ miSpriteUndisplayCursor(pDev, pScreen)
     DeviceIntPtr pDev;
     ScreenPtr    pScreen;
 {
+    if (!pDev->isMaster && !pDev->u.master)
+    {
+        ErrorF("[mi] miSpriteUndisplayCursor called for floating device.\n");
+        return;
+    }
     if (MISPRITE(pDev)->isUp)
         miSpriteRemoveCursor(pDev, pScreen);
 }
@@ -989,6 +1012,11 @@ miSpriteRemoveCursor (pDev, pScreen)
     miCursorInfoPtr     pCursorInfo;
 
 
+    if (!pDev->isMaster && !pDev->u.master)
+    {
+        ErrorF("[mi] miSpriteRemoveCursor called for floating device.\n");
+        return;
+    }
     DamageDrawInternal (pScreen, TRUE);
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
     pCursorInfo = MISPRITE(pDev);
@@ -1026,6 +1054,11 @@ miSpriteSaveUnderCursor(pDev, pScreen)
     CursorPtr		pCursor;
     miCursorInfoPtr     pCursorInfo;
 
+    if (!pDev->isMaster && !pDev->u.master)
+    {
+        ErrorF("[mi] miSpriteSaveUnderCursor called for floating device.\n");
+        return;
+    }
     DamageDrawInternal (pScreen, TRUE);
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
     pCursorInfo = MISPRITE(pDev);
@@ -1065,6 +1098,12 @@ miSpriteRestoreCursor (pDev, pScreen)
     int			x, y;
     CursorPtr		pCursor;
     miCursorInfoPtr     pCursorInfo;
+    
+    if (!pDev->isMaster && !pDev->u.master)
+    {
+        ErrorF("[mi] miSpriteRestoreCursor called for floating device.\n");
+        return;
+    }
 
     DamageDrawInternal (pScreen, TRUE);
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
@@ -1106,6 +1145,11 @@ miSpriteComputeSaved (pDev, pScreen)
     CursorPtr	    pCursor;
     miCursorInfoPtr pCursorInfo;
 
+    if (!pDev->isMaster && !pDev->u.master)
+    {
+        ErrorF("[mi] miSpriteComputeSaved called for floating device.\n");
+        return;
+    }
     pScreenPriv = (miSpriteScreenPtr) pScreen->devPrivates[miSpriteScreenIndex].ptr;
     pCursorInfo = MISPRITE(pDev);
 
