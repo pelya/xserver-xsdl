@@ -67,6 +67,17 @@ int XaceHook(int hook, ...)
 	    prv = &rec.status;
 	    break;
 	}
+	case XACE_EXT_DISPATCH: {
+	    XaceExtAccessRec rec = {
+		va_arg(ap, ClientPtr),
+		va_arg(ap, ExtensionEntry*),
+		DixUseAccess,
+		Success /* default allow */
+	    };
+	    calldata = &rec;
+	    prv = &rec.status;
+	    break;
+	}
 	case XACE_RESOURCE_ACCESS: {
 	    XaceResourceAccessRec rec = {
 		va_arg(ap, ClientPtr),
@@ -141,11 +152,11 @@ int XaceHook(int hook, ...)
 	    prv = &rec.status;
 	    break;
 	}
-	case XACE_EXT_DISPATCH:
 	case XACE_EXT_ACCESS: {
 	    XaceExtAccessRec rec = {
 		va_arg(ap, ClientPtr),
 		va_arg(ap, ExtensionEntry*),
+		DixGetAttrAccess,
 		Success /* default allow */
 	    };
 	    calldata = &rec;
@@ -228,7 +239,7 @@ int XaceHook(int hook, ...)
  
     /* call callbacks and return result, if any. */
     CallCallbacks(&XaceHooks[hook], calldata);
-    return prv ? *prv : 0;
+    return prv ? *prv : Success;
 }
 
 static int

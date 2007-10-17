@@ -97,6 +97,7 @@ typedef struct {
 typedef struct {
     ClientPtr client;
     ExtensionEntry *ext;
+    Mask access_mode;
     int status;
 } XaceExtAccessRec;
 
