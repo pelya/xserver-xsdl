@@ -39,6 +39,9 @@
 #ifndef M_T_DRIVER
 #define M_T_DRIVER	0x40
 #endif
+#ifndef M_T_USERPREF
+#define M_T_USERPREF	0x80
+#endif
 #ifndef HARDWARE_CURSOR_ARGB
 #define HARDWARE_CURSOR_ARGB				0x00004000
 #endif

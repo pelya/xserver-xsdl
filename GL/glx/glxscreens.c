@@ -45,6 +45,8 @@
 #include "glxutil.h"
 #include "glxext.h"
 
+static int glxScreenPrivateIndex;
+
 const char GLServerVersion[] = "1.4";
 static const char GLServerExtensions[] = 
 			"GL_ARB_depth_texture "
@@ -179,36 +181,25 @@ static char GLXServerExtensions[] =
 			"GLX_MESA_copy_sub_buffer "
 			;
 
-__GLXscreen **__glXActiveScreens;
-
-__GLXSwapBarrierExtensionFuncs *__glXSwapBarrierFuncs = NULL;
-static int __glXNumSwapBarrierFuncs = 0;
-__GLXHyperpipeExtensionFuncs *__glXHyperpipeFuncs = NULL;
-static int __glXNumHyperpipeFuncs = 0;
-
-__GLXscreen *__glXgetActiveScreen(int num) {
-	return __glXActiveScreens[num];
-}
-
-
 /*
 ** This hook gets called when a window moves or changes size.
 */
-static Bool PositionWindow(WindowPtr pWin, int x, int y)
+static Bool glxPositionWindow(WindowPtr pWin, int x, int y)
 {
     ScreenPtr pScreen;
     __GLXcontext *glxc;
     __GLXdrawable *glxPriv;
     Bool ret;
+    __GLXscreen *pGlxScreen;
 
     /*
     ** Call wrapped position window routine
     */
     pScreen = pWin->drawable.pScreen;
-    pScreen->PositionWindow =
-	__glXActiveScreens[pScreen->myNum]->WrappedPositionWindow;
+    pGlxScreen = glxGetScreen(pScreen);
+    pScreen->PositionWindow = pGlxScreen->PositionWindow;
     ret = (*pScreen->PositionWindow)(pWin, x, y);
-    pScreen->PositionWindow = PositionWindow;
+    pScreen->PositionWindow = glxPositionWindow;
 
     /*
     ** Tell all contexts rendering into this window that the window size
@@ -259,110 +250,71 @@ static Bool PositionWindow(WindowPtr pWin, int x, int y)
 
 void __glXHyperpipeInit(int screen, __GLXHyperpipeExtensionFuncs *funcs)
 {
-    if (__glXNumHyperpipeFuncs < screen + 1) {
-        __glXHyperpipeFuncs = xrealloc(__glXHyperpipeFuncs,
-                                           (screen+1) * sizeof(__GLXHyperpipeExtensionFuncs));
-        __glXNumHyperpipeFuncs = screen + 1;
-    }
+    __GLXscreen *pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
 
-    __glXHyperpipeFuncs[screen].queryHyperpipeNetworkFunc =
-        *funcs->queryHyperpipeNetworkFunc;
-    __glXHyperpipeFuncs[screen].queryHyperpipeConfigFunc =
-        *funcs->queryHyperpipeConfigFunc;
-    __glXHyperpipeFuncs[screen].destroyHyperpipeConfigFunc =
-        *funcs->destroyHyperpipeConfigFunc;
-    __glXHyperpipeFuncs[screen].hyperpipeConfigFunc =
-        *funcs->hyperpipeConfigFunc;
+    pGlxScreen->hyperpipeFuncs = funcs;
 }
 
 void __glXSwapBarrierInit(int screen, __GLXSwapBarrierExtensionFuncs *funcs)
 {
-    if (__glXNumSwapBarrierFuncs < screen + 1) {
-        __glXSwapBarrierFuncs = xrealloc(__glXSwapBarrierFuncs,
-                                           (screen+1) * sizeof(__GLXSwapBarrierExtensionFuncs));
-        __glXNumSwapBarrierFuncs = screen + 1;
+    __GLXscreen *pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
+
+    pGlxScreen->swapBarrierFuncs = funcs;
+}
+
+static Bool
+glxCloseScreen (int index, ScreenPtr pScreen)
+{
+    __GLXscreen *pGlxScreen = glxGetScreen(pScreen);
+
+    pScreen->CloseScreen = pGlxScreen->CloseScreen;
+    pScreen->PositionWindow = pGlxScreen->PositionWindow;
+
+    pGlxScreen->destroy(pGlxScreen);
+
+    return pScreen->CloseScreen(index, pScreen);
+}
+
+__GLXscreen *
+glxGetScreen(ScreenPtr pScreen)
+{
+    return (__GLXscreen *) pScreen->devPrivates[glxScreenPrivateIndex].ptr;
+}
+
+void __glXScreenInit(__GLXscreen *glxScreen, ScreenPtr pScreen)
+{
+    static int glxGeneration;
+
+    if (glxGeneration != serverGeneration)
+    {
+	glxScreenPrivateIndex = AllocateScreenPrivateIndex ();
+	if (glxScreenPrivateIndex == -1)
+	    return;
+
+	glxGeneration = serverGeneration;
     }
 
-    __glXSwapBarrierFuncs[screen].bindSwapBarrierFunc =
-        funcs->bindSwapBarrierFunc;
-    __glXSwapBarrierFuncs[screen].queryMaxSwapBarriersFunc =
-        funcs->queryMaxSwapBarriersFunc;
+    glxScreen->pScreen       = pScreen;
+    glxScreen->GLextensions  = xstrdup(GLServerExtensions);
+    glxScreen->GLXvendor     = xstrdup(GLXServerVendorName);
+    glxScreen->GLXversion    = xstrdup(GLXServerVersion);
+    glxScreen->GLXextensions = xstrdup(GLXServerExtensions);
+
+    glxScreen->PositionWindow = pScreen->PositionWindow;
+    pScreen->PositionWindow = glxPositionWindow;
+ 
+    glxScreen->CloseScreen = pScreen->CloseScreen;
+    pScreen->CloseScreen = glxCloseScreen;
+
+    __glXScreenInitVisuals(glxScreen);
+
+    pScreen->devPrivates[glxScreenPrivateIndex].ptr = (pointer) glxScreen;
 }
-
-static __GLXprovider *__glXProviderStack;
-
-void GlxPushProvider(__GLXprovider *provider)
-{
-    provider->next = __glXProviderStack;
-    __glXProviderStack = provider;
-}
-
-void __glXScreenInit(__GLXscreen *screen, ScreenPtr pScreen)
-{
-    screen->pScreen       = pScreen;
-    screen->GLextensions  = xstrdup(GLServerExtensions);
-    screen->GLXvendor     = xstrdup(GLXServerVendorName);
-    screen->GLXversion    = xstrdup(GLXServerVersion);
-    screen->GLXextensions = xstrdup(GLXServerExtensions);
-
-    screen->WrappedPositionWindow = pScreen->PositionWindow;
-    pScreen->PositionWindow = PositionWindow;
-
-    __glXScreenInitVisuals(screen);
-}
-
-void
-__glXScreenDestroy(__GLXscreen *screen)
+ 
+void __glXScreenDestroy(__GLXscreen *screen)
 {
     xfree(screen->GLXvendor);
     xfree(screen->GLXversion);
     xfree(screen->GLXextensions);
     xfree(screen->GLextensions);
-}
-
-void __glXInitScreens(void)
-{
-    GLint i;
-    ScreenPtr pScreen;
-    __GLXprovider *p;
-    size_t size;
-
-    /*
-    ** This alloc has to work or else the server might as well core dump.
-    */
-    size = screenInfo.numScreens * sizeof(__GLXscreen *);
-    __glXActiveScreens = xalloc(size);
-    memset(__glXActiveScreens, 0, size);
-    
-    for (i = 0; i < screenInfo.numScreens; i++) {
-	pScreen = screenInfo.screens[i];
-
-	for (p = __glXProviderStack; p != NULL; p = p->next) {
-	    __glXActiveScreens[i] = p->screenProbe(pScreen);
-	    if (__glXActiveScreens[i] != NULL) {
-		LogMessage(X_INFO,
-			   "GLX: Initialized %s GL provider for screen %d\n",
-			   p->name, i);
-	        break;
-	    }
-	}
-    }
-}
-
-void __glXResetScreens(void)
-{
-  int i;
-
-  for (i = 0; i < screenInfo.numScreens; i++)
-      if (__glXActiveScreens[i])
-	  __glXActiveScreens[i]->destroy(__glXActiveScreens[i]);
-
-    xfree(__glXActiveScreens);
-    xfree(__glXHyperpipeFuncs);
-    xfree(__glXSwapBarrierFuncs);
-    __glXNumHyperpipeFuncs = 0;
-    __glXNumSwapBarrierFuncs = 0;
-    __glXHyperpipeFuncs = NULL;
-    __glXSwapBarrierFuncs = NULL;
-    __glXActiveScreens = NULL;
 }

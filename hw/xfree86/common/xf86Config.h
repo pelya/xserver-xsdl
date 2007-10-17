@@ -34,6 +34,8 @@
 #define _xf86_config_h
 
 #include "xf86Optrec.h"
+#include "xf86Parser.h"
+#include "xf86str.h"
 
 #ifdef HAVE_PARSER_DECLS
 /*
@@ -65,5 +67,8 @@ Bool xf86BuiltinInputDriver(const char *);
 ConfigStatus xf86HandleConfigFile(Bool);
 
 Bool xf86AutoConfig(void);
+GDevPtr autoConfigDevice(GDevPtr preconf_device);
+char* chooseVideoDriver(void);
+int xchomp(char *line);
 
 #endif /* _xf86_config_h */

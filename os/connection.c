@@ -536,10 +536,8 @@ AuthAudit (ClientPtr client, Bool letin,
     char *out = addr;
     int client_uid;
     char client_uid_string[64];
-#ifdef HAS_GETPEERUCRED
-    ucred_t *peercred = NULL;
-#endif
-#if defined(HAS_GETPEERUCRED) || defined(XSERVER_DTRACE)    
+    LocalClientCredRec *lcc;
+#ifdef XSERVER_DTRACE
     pid_t client_pid = -1;
     zoneid_t client_zid = -1;
 #endif
@@ -580,23 +578,50 @@ AuthAudit (ClientPtr client, Bool letin,
 	    strcpy(out, "unknown address");
 	}
 
-#ifdef HAS_GETPEERUCRED
-    if (getpeerucred(((OsCommPtr)client->osPrivate)->fd, &peercred) >= 0) {
-	client_uid = ucred_geteuid(peercred);
-	client_pid = ucred_getpid(peercred);
-	client_zid = ucred_getzoneid(peercred);
+    if (GetLocalClientCreds(client, &lcc) != -1) {
+	int slen; /* length written to client_uid_string */
 
-	ucred_free(peercred);
-	snprintf(client_uid_string, sizeof(client_uid_string),
-		 " (uid %ld, pid %ld, zone %ld)",
-		 (long) client_uid, (long) client_pid, (long) client_zid);
-    }
-#else    
-    if (LocalClientCred(client, &client_uid, NULL) != -1) {
-	snprintf(client_uid_string, sizeof(client_uid_string),
-		 " (uid %d)", client_uid);
-    }
+	strcpy(client_uid_string, " ( ");
+	slen = 3;
+
+	if (lcc->fieldsSet & LCC_UID_SET) {
+	    snprintf(client_uid_string + slen,
+		     sizeof(client_uid_string) - slen,
+		     "uid=%ld ", (long) lcc->euid);
+	    slen = strlen(client_uid_string);
+	}
+
+	if (lcc->fieldsSet & LCC_GID_SET) {
+	    snprintf(client_uid_string + slen,
+		     sizeof(client_uid_string) - slen,
+		     "gid=%ld ", (long) lcc->egid);
+	    slen = strlen(client_uid_string);
+	}
+
+	if (lcc->fieldsSet & LCC_PID_SET) {
+#ifdef XSERVER_DTRACE	    
+	    client_pid = lcc->pid;
 #endif
+	    snprintf(client_uid_string + slen,
+		     sizeof(client_uid_string) - slen,
+		     "pid=%ld ", (long) lcc->pid);
+	    slen = strlen(client_uid_string);
+	}
+	
+	if (lcc->fieldsSet & LCC_ZID_SET) {
+#ifdef XSERVER_DTRACE
+	    client_zid = lcc->zoneid;
+#endif	    
+	    snprintf(client_uid_string + slen,
+		     sizeof(client_uid_string) - slen,
+		     "zoneid=%ld ", (long) lcc->zoneid);
+	    slen = strlen(client_uid_string);
+	}
+
+	snprintf(client_uid_string + slen, sizeof(client_uid_string) - slen,
+		 ")");
+	FreeLocalClientCreds(lcc);
+    }
     else {
 	client_uid_string[0] = '\0';
     }

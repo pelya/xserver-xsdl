@@ -20,7 +20,7 @@ Xfbdev_LDADD = 						\
 
 Xfbdev_DEPENDENCIES =	\
 	libfbdev.a					\
-	@KDRIVE_LOCAL_LIBS@
+	$(KDRIVE_PURE_LIBS)
 
 relink:
 	rm -f $(bin_PROGRAMS) && make $(bin_PROGRAMS)

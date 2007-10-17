@@ -54,7 +54,7 @@ static void fastFill
 {
 int stop_count = bytewidth ;
 register int row_jump = bytes_per_line - bytewidth ;
-#if !defined(OLDHC) && defined(BSDrt) && !defined(i386)
+#if !defined(OLDHC) && defined(BSDrt) && !defined(__i386__)
 register const unsigned int notZero = ((unsigned char)(~0x0));
 #else
 #define notZero ((unsigned char)(~0))
@@ -112,7 +112,7 @@ static void fastFillRMW
 {
 int stop_count = bytewidth ;
 register int row_jump = bytes_per_line - bytewidth ;
-#if !defined(OLDHC) && defined(BSDrt) && !defined(i386)
+#if !defined(OLDHC) && defined(BSDrt) && !defined(__i386__)
 register const unsigned int notZero = ((unsigned char)(~0x0));
 #endif
 register int tmp ;
@@ -369,7 +369,7 @@ register unsigned int height ;		/* MUST BE > 0 !! */
 {
 int stop_count = wordwidth ;
 register int row_jump = bytes_per_line - wordwidth*2 ;
-#if !defined(OLDHC) && defined(BSDrt) && !defined(i386) && 0
+#if !defined(OLDHC) && defined(BSDrt) && !defined(__i386__) && 0
 register const int notZero = ~0x0 ;
 #else
 #define notZero ( ~0 )

@@ -90,9 +90,8 @@ typedef XID GLXDrawable;
 
 typedef struct __GLXclientStateRec __GLXclientState;
 
-extern __GLXscreen **__glXActiveScreens;
-extern GLint __glXNumActiveScreens;
-extern __GLXscreen *__glXgetActiveScreen(int num);
+extern __GLXscreen *glxGetScreen(ScreenPtr pScreen);
+extern __GLXclientState *glxGetClient(ClientPtr pClient);
 
 /************************************************************************/
 

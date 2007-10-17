@@ -71,6 +71,8 @@ extern KdCardFuncs ephyrFuncs;
 extern KdKeyboardInfo *ephyrKbd;
 extern KdPointerInfo *ephyrMouse;
 
+extern miPointerScreenFuncRec ephyrPointerScreenFuncs;
+
 Bool
 ephyrInitialize (KdCardInfo *card, EphyrPriv *priv);
 
@@ -191,5 +193,9 @@ ephyrDrawDisable(ScreenPtr pScreen);
 
 void
 ephyrDrawFini(ScreenPtr pScreen);
+
+/*ephyvideo.c*/
+
+Bool ephyrInitVideo(ScreenPtr pScreen) ;
 
 #endif

@@ -118,7 +118,7 @@ __glXMesaDrawableSwapBuffers(__GLXdrawable *base)
 
 static __GLXdrawable *
 __glXMesaScreenCreateDrawable(__GLXscreen *screen,
-			      DrawablePtr pDraw,
+			      DrawablePtr pDraw, int type,
 			      XID drawId,
 			      __GLcontextModes *modes)
 {
@@ -131,7 +131,8 @@ __glXMesaScreenCreateDrawable(__GLXscreen *screen,
 
     memset(glxPriv, 0, sizeof *glxPriv);
 
-    if (!__glXDrawableInit(&glxPriv->base, screen, pDraw, drawId, modes)) {
+    if (!__glXDrawableInit(&glxPriv->base, screen,
+			   pDraw, type, drawId, modes)) {
         xfree(glxPriv);
 	return NULL;
     }

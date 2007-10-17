@@ -54,6 +54,16 @@ typedef enum {
     DDC_QUIRK_PREFER_LARGE_60 = 1 << 0,
     /* 135MHz clock is too high, drop a bit */
     DDC_QUIRK_135_CLOCK_TOO_HIGH = 1 << 1,
+    /* Prefer the largest mode at 75 Hz */
+    DDC_QUIRK_PREFER_LARGE_75 = 1 << 2,
+    /* Convert detailed timing's horizontal from units of cm to mm */
+    DDC_QUIRK_DETAILED_H_IN_CM = 1 << 3,
+    /* Convert detailed timing's vertical from units of cm to mm */
+    DDC_QUIRK_DETAILED_V_IN_CM = 1 << 4,
+    /* Detailed timing descriptors have bogus size values, so just take the
+     * maximum size and use that.
+     */
+    DDC_QUIRK_DETAILED_USE_MAXIMUM_SIZE = 1 << 5,
 } ddc_quirk_t;
 
 static Bool quirk_prefer_large_60 (int scrnIndex, xf86MonPtr DDC)
@@ -76,6 +86,52 @@ static Bool quirk_prefer_large_60 (int scrnIndex, xf86MonPtr DDC)
     /* Bug #10545: Samsung SyncMaster 226BW */
     if (memcmp (DDC->vendor.name, "SAM", 4) == 0 &&
 	DDC->vendor.prod_id == 638)
+	return TRUE;
+
+    return FALSE;
+}
+
+static Bool quirk_prefer_large_75 (int scrnIndex, xf86MonPtr DDC)
+{
+    /* Bug #11603: Funai Electronics PM36B */
+    if (memcmp (DDC->vendor.name, "FCM", 4) == 0 &&
+	DDC->vendor.prod_id == 13600)
+	return TRUE;
+
+    return FALSE;
+}
+
+static Bool quirk_detailed_h_in_cm (int scrnIndex, xf86MonPtr DDC)
+{
+    /* Bug #10304: "LGPhilipsLCD LP154W01-A5" */
+    /* Bug #12784: "LGPhilipsLCD LP154W01-TLA2" */
+    if (memcmp (DDC->vendor.name, "LPL", 4) == 0 &&
+	DDC->vendor.prod_id == 0)
+	return TRUE;
+
+    /* Bug #11603: Funai Electronics PM36B */
+    if (memcmp (DDC->vendor.name, "FCM", 4) == 0 &&
+	DDC->vendor.prod_id == 13600)
+	return TRUE;
+
+    return FALSE;
+}
+
+static Bool quirk_detailed_v_in_cm (int scrnIndex, xf86MonPtr DDC)
+{
+    /* Bug #11603: Funai Electronics PM36B */
+    if (memcmp (DDC->vendor.name, "FCM", 4) == 0 &&
+	DDC->vendor.prod_id == 13600)
+	return TRUE;
+
+    return FALSE;
+}
+
+static Bool quirk_detailed_use_maximum_size (int scrnIndex, xf86MonPtr DDC)
+{
+    /* Bug #10304: LGPhilipsLCD LP154W01-A5 */
+    if (memcmp (DDC->vendor.name, "LPL", 4) == 0 &&
+	DDC->vendor.prod_id == 0)
 	return TRUE;
 
     return FALSE;
@@ -105,6 +161,22 @@ static const ddc_quirk_map_t ddc_quirks[] = {
     {
 	quirk_135_clock_too_high,   DDC_QUIRK_135_CLOCK_TOO_HIGH,
 	"Recommended 135MHz pixel clock is too high"
+    },
+    {
+	quirk_prefer_large_75,   DDC_QUIRK_PREFER_LARGE_75,
+	"Detailed timing is not preferred, use largest mode at 75Hz"
+    },
+    {
+	quirk_detailed_h_in_cm,   DDC_QUIRK_DETAILED_H_IN_CM,
+	"Detailed timings give horizontal size in cm."
+    },
+    {
+	quirk_detailed_v_in_cm,   DDC_QUIRK_DETAILED_V_IN_CM,
+	"Detailed timings give vertical size in cm."
+    },
+    {
+	quirk_detailed_use_maximum_size,   DDC_QUIRK_DETAILED_USE_MAXIMUM_SIZE,
+	"Detailed timings give sizes in cm."
     },
     { 
 	NULL,		DDC_QUIRK_NONE,
@@ -303,6 +375,98 @@ DDCGuessRangesFromModes(int scrnIndex, MonPtr Monitor, DisplayModePtr Modes)
     }
 }
 
+static ddc_quirk_t
+xf86DDCDetectQuirks(int scrnIndex, xf86MonPtr DDC, Bool verbose)
+{
+    ddc_quirk_t	quirks;
+    int i;
+
+    quirks = DDC_QUIRK_NONE;
+    for (i = 0; ddc_quirks[i].detect; i++) {
+	if (ddc_quirks[i].detect (scrnIndex, DDC)) {
+	    if (verbose) {
+		xf86DrvMsg (scrnIndex, X_INFO, "    EDID quirk: %s\n",
+			    ddc_quirks[i].description);
+	    }
+	    quirks |= ddc_quirks[i].quirk;
+	}
+    }
+
+    return quirks;
+}
+
+/**
+ * Applies monitor-specific quirks to the decoded EDID information.
+ *
+ * Note that some quirks applying to the mode list are still implemented in
+ * xf86DDCGetModes.
+ */
+void
+xf86DDCApplyQuirks(int scrnIndex, xf86MonPtr DDC)
+{
+    ddc_quirk_t quirks = xf86DDCDetectQuirks (scrnIndex, DDC, FALSE);
+    int i;
+
+    for (i = 0; i < DET_TIMINGS; i++) {
+	struct detailed_monitor_section *det_mon = &DDC->det_mon[i];
+
+	if (det_mon->type != DT)
+	    continue;
+
+	if (quirks & DDC_QUIRK_DETAILED_H_IN_CM)
+	    det_mon->section.d_timings.h_size *= 10;
+
+	if (quirks & DDC_QUIRK_DETAILED_V_IN_CM)
+	    det_mon->section.d_timings.v_size *= 10;
+
+	if (quirks & DDC_QUIRK_DETAILED_USE_MAXIMUM_SIZE) {
+	    det_mon->section.d_timings.h_size = 10 * DDC->features.hsize;
+	    det_mon->section.d_timings.v_size = 10 * DDC->features.vsize;
+	}
+    }
+}
+
+/**
+ * Walks the modes list, finding the mode with the largest area which is
+ * closest to the target refresh rate, and marks it as the only preferred mode.
+*/
+static void
+xf86DDCSetPreferredRefresh(int scrnIndex, DisplayModePtr modes,
+			   float target_refresh)
+{
+	DisplayModePtr	mode, best = modes;
+
+	for (mode = modes; mode; mode = mode->next)
+	{
+	    mode->type &= ~M_T_PREFERRED;
+
+	    if (mode == best) continue;
+
+	    if (mode->HDisplay * mode->VDisplay >
+		best->HDisplay * best->VDisplay)
+	    {
+		best = mode;
+		continue;
+	    }
+	    if (mode->HDisplay * mode->VDisplay ==
+		best->HDisplay * best->VDisplay)
+	    {
+		double	mode_refresh = xf86ModeVRefresh (mode);
+		double	best_refresh = xf86ModeVRefresh (best);
+		double	mode_dist = fabs(mode_refresh - target_refresh);
+		double	best_dist = fabs(best_refresh - target_refresh);
+
+		if (mode_dist < best_dist)
+		{
+		    best = mode;
+		    continue;
+		}
+	    }
+	}
+	if (best)
+	    best->type |= M_T_PREFERRED;
+}
+
 _X_EXPORT DisplayModePtr
 xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
 {
@@ -312,15 +476,9 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
 
     xf86DrvMsg (scrnIndex, X_INFO, "EDID vendor \"%s\", prod id %d\n",
 		DDC->vendor.name, DDC->vendor.prod_id);
-    quirks = DDC_QUIRK_NONE;
-    for (i = 0; ddc_quirks[i].detect; i++)
-	if (ddc_quirks[i].detect (scrnIndex, DDC))
-	{
-	    xf86DrvMsg (scrnIndex, X_INFO, "    EDID quirk: %s\n",
-			ddc_quirks[i].description);
-	    quirks |= ddc_quirks[i].quirk;
-	}
-    
+
+    quirks = xf86DDCDetectQuirks(scrnIndex, DDC, TRUE);
+
     preferred = PREFERRED_TIMING_MODE(DDC->features.msc);
     if (quirks & DDC_QUIRK_PREFER_LARGE_60)
 	preferred = 0;
@@ -357,32 +515,11 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
     Modes = xf86ModesAdd(Modes, Mode);
 
     if (quirks & DDC_QUIRK_PREFER_LARGE_60)
-    {
-	DisplayModePtr	best = Modes;
-	for (Mode = Modes; Mode; Mode = Mode->next)
-	{
-	    if (Mode == best) continue;
-	    if (Mode->HDisplay * Mode->VDisplay > best->HDisplay * best->VDisplay)
-	    {
-		best = Mode;
-		continue;
-	    }
-	    if (Mode->HDisplay * Mode->VDisplay == best->HDisplay * best->VDisplay)
-	    {
-		double	mode_refresh = xf86ModeVRefresh (Mode);
-		double	best_refresh = xf86ModeVRefresh (best);
-		double	mode_dist = fabs(mode_refresh - 60.0);
-		double	best_dist = fabs(best_refresh - 60.0);
-		if (mode_dist < best_dist)
-		{
-		    best = Mode;
-		    continue;
-		}
-	    }
-	}
-	if (best)
-	    best->type |= M_T_PREFERRED;
-    }
+	xf86DDCSetPreferredRefresh(scrnIndex, Modes, 60);
+
+    if (quirks & DDC_QUIRK_PREFER_LARGE_75)
+	xf86DDCSetPreferredRefresh(scrnIndex, Modes, 75);
+
     return Modes;
 }
 

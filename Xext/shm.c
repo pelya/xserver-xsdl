@@ -64,6 +64,33 @@ in this Software without prior written authorization from The Open Group.
 #include <X11/extensions/shmstr.h>
 #include <X11/Xfuncproto.h>
 
+/* Needed for Solaris cross-zone shared memory extension */
+#ifdef HAVE_SHMCTL64
+#include <sys/ipc_impl.h>
+#define SHMSTAT(id, buf)	shmctl64(id, IPC_STAT64, buf)
+#define SHMSTAT_TYPE 		struct shmid_ds64
+#define SHMPERM_TYPE 		struct ipc_perm64
+#define SHM_PERM(buf) 		buf.shmx_perm
+#define SHM_SEGSZ(buf)		buf.shmx_segsz
+#define SHMPERM_UID(p)		p->ipcx_uid
+#define SHMPERM_CUID(p)		p->ipcx_cuid
+#define SHMPERM_GID(p)		p->ipcx_gid
+#define SHMPERM_CGID(p)		p->ipcx_cgid
+#define SHMPERM_MODE(p)		p->ipcx_mode
+#define SHMPERM_ZONEID(p)	p->ipcx_zoneid
+#else
+#define SHMSTAT(id, buf) 	shmctl(id, IPC_STAT, buf)
+#define SHMSTAT_TYPE 		struct shmid_ds
+#define SHMPERM_TYPE 		struct ipc_perm
+#define SHM_PERM(buf) 		buf.shm_perm
+#define SHM_SEGSZ(buf)		buf.shm_segsz
+#define SHMPERM_UID(p)		p->uid
+#define SHMPERM_CUID(p)		p->cuid
+#define SHMPERM_GID(p)		p->gid
+#define SHMPERM_CGID(p)		p->cgid
+#define SHMPERM_MODE(p)		p->mode
+#endif
+
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
@@ -362,32 +389,57 @@ ProcShmQueryVersion(client)
  * using the credentials from the client if available
  */
 static int
-shm_access(ClientPtr client, struct ipc_perm *perm, int readonly)
+shm_access(ClientPtr client, SHMPERM_TYPE *perm, int readonly)
 {
     int uid, gid;
     mode_t mask;
+    int uidset = 0, gidset = 0;
+    LocalClientCredRec *lcc;
+    
+    if (GetLocalClientCreds(client, &lcc) != -1) {
 
-    if (LocalClientCred(client, &uid, &gid) != -1) {
+	if (lcc->fieldsSet & LCC_UID_SET) {
+	    uid = lcc->euid;
+	    uidset = 1;
+	}
+	if (lcc->fieldsSet & LCC_GID_SET) {
+	    gid = lcc->egid;
+	    gidset = 1;
+	}
+
+#if defined(HAVE_GETZONEID) && defined(SHMPERM_ZONEID)
+	if ( ((lcc->fieldsSet & LCC_ZID_SET) == 0) || (lcc->zoneid == -1)
+	     || (lcc->zoneid != SHMPERM_ZONEID(perm))) {
+		uidset = 0;
+		gidset = 0;
+	}
+#endif
+	FreeLocalClientCreds(lcc);
 	
-	/* User id 0 always gets access */
-	if (uid == 0) {
-	    return 0;
-	}
-	/* Check the owner */
-	if (perm->uid == uid || perm->cuid == uid) {
-	    mask = S_IRUSR;
-	    if (!readonly) {
-		mask |= S_IWUSR;
+	if (uidset) {
+	    /* User id 0 always gets access */
+	    if (uid == 0) {
+		return 0;
 	    }
-	    return (perm->mode & mask) == mask ? 0 : -1;
-	}
-	/* Check the group */
-	if (perm->gid == gid || perm->cgid == gid) {
-	    mask = S_IRGRP;
-	    if (!readonly) {
-		mask |= S_IWGRP;
+	    /* Check the owner */
+	    if (SHMPERM_UID(perm) == uid || SHMPERM_CUID(perm) == uid) {
+		mask = S_IRUSR;
+		if (!readonly) {
+		    mask |= S_IWUSR;
+		}
+		return (SHMPERM_MODE(perm) & mask) == mask ? 0 : -1;
 	    }
-	    return (perm->mode & mask) == mask ? 0 : -1;
+	}
+
+	if (gidset) {
+	    /* Check the group */
+	    if (SHMPERM_GID(perm) == gid || SHMPERM_CGID(perm) == gid) {
+		mask = S_IRGRP;
+		if (!readonly) {
+		    mask |= S_IWGRP;
+		}
+		return (SHMPERM_MODE(perm) & mask) == mask ? 0 : -1;
+	    }
 	}
     }
     /* Otherwise, check everyone else */
@@ -395,14 +447,14 @@ shm_access(ClientPtr client, struct ipc_perm *perm, int readonly)
     if (!readonly) {
 	mask |= S_IWOTH;
     }
-    return (perm->mode & mask) == mask ? 0 : -1;
+    return (SHMPERM_MODE(perm) & mask) == mask ? 0 : -1;
 }
 
 static int
 ProcShmAttach(client)
     register ClientPtr client;
 {
-    struct shmid_ds buf;
+    SHMSTAT_TYPE buf;
     ShmDescPtr shmdesc;
     REQUEST(xShmAttachReq);
 
@@ -431,7 +483,7 @@ ProcShmAttach(client)
 	shmdesc->addr = shmat(stuff->shmid, 0,
 			      stuff->readOnly ? SHM_RDONLY : 0);
 	if ((shmdesc->addr == ((char *)-1)) ||
-	    shmctl(stuff->shmid, IPC_STAT, &buf))
+	    SHMSTAT(stuff->shmid, &buf))
 	{
 	    xfree(shmdesc);
 	    return BadAccess;
@@ -441,7 +493,7 @@ ProcShmAttach(client)
 	 * do manual checking of access rights for the credentials 
 	 * of the client */
 
-	if (shm_access(client, &(buf.shm_perm), stuff->readOnly) == -1) {
+	if (shm_access(client, &(SHM_PERM(buf)), stuff->readOnly) == -1) {
 	    shmdt(shmdesc->addr);
 	    xfree(shmdesc);
 	    return BadAccess;
@@ -450,7 +502,7 @@ ProcShmAttach(client)
 	shmdesc->shmid = stuff->shmid;
 	shmdesc->refcnt = 1;
 	shmdesc->writable = !stuff->readOnly;
-	shmdesc->size = buf.shm_segsz;
+	shmdesc->size = SHM_SEGSZ(buf);
 	shmdesc->next = Shmsegs;
 	Shmsegs = shmdesc;
     }

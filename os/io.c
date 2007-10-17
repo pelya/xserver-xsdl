@@ -356,7 +356,7 @@ ReadRequestFromClient(ClientPtr client)
 	{
 	    if ((result < 0) && ETEST(errno))
 	    {
-#if defined(SVR4) && defined(i386) && !defined(sun)
+#if defined(SVR4) && defined(__i386__) && !defined(sun)
 		if (0)
 #endif
 		{

@@ -37,4 +37,4 @@ libkdrive_a_SOURCES =	\
         $(top_srcdir)/mi/miinitext.c
 
 libkdrivestubs_a_SOURCES = \
-        $(top_srcdir)/fb/fbcmap.c
+        $(top_srcdir)/fb/fbcmap_mi.c

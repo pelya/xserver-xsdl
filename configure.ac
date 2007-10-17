@@ -179,7 +179,7 @@ dnl Checks for library functions.
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr \
 		strtol getopt getopt_long vsnprintf walkcontext backtrace \
-		getisax])
+		getisax getzoneid shmctl64])
 AC_FUNC_ALLOCA
 dnl Old HAS_* names used in os/*.c.
 AC_CHECK_FUNC([getdtablesize],
@@ -290,6 +290,7 @@ case $host_cpu in
   alpha*)
 	ALPHA_VIDEO=yes
 	case $host_os in
+	        *freebsd*)	SYS_LIBS=-lio ;;
 		*netbsd*)	AC_DEFINE(USE_ALPHA_PIO, 1, [NetBSD PIO alpha IO]) ;;
 	esac
 	;;
@@ -725,6 +726,7 @@ if test "x$XV" = xyes; then
 	AC_DEFINE(XV, 1, [Support Xv extension])
 	AC_DEFINE(XvExtension, 1, [Build Xv extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES videoproto"
+        PKG_CHECK_MODULES(XV, [xv >= 0.22])
 else
 	XVMC=no
 fi
@@ -780,7 +782,7 @@ fi
 
 if test "x$GLX" = xyes && ! test "x$MESA_SOURCE" = x; then
 	PKG_CHECK_MODULES([XLIB], [x11])
-	PKG_CHECK_MODULES([GL], [glproto >= 1.4.8])
+	PKG_CHECK_MODULES([GL], [glproto >= 1.4.9])
 	AC_SUBST(XLIB_CFLAGS)
 	AC_DEFINE(GLXEXT, 1, [Build GLX extension])
 	GLX_LIBS='$(top_builddir)/GL/glx/libglx.la $(top_builddir)/GL/mesa/libGLcore.la'
@@ -1446,6 +1448,7 @@ dnl has it in libc), or if libdl is needed to get it.
                case $host_os in
                  darwin*) ;;
 		 *bsd*) ;;
+		 linux*) ;;
                  *) xorg_bus_ix86pci=yes ;;
                esac
 		;;
@@ -1464,7 +1467,7 @@ dnl has it in libc), or if libdl is needed to get it.
 		;;
 	  x86_64*|amd64*)
 		case $host_os in
-		  darwin*|*bsd*)
+		  darwin*|*bsd*|linux*)
 			;;
 		  *)
 			xorg_bus_ix86pci="yes"
@@ -1859,6 +1862,13 @@ if test "$KDRIVE" = yes; then
     if test "x$XEPHYR" = xauto; then
         XEPHYR=$xephyr
     fi
+    XEPHYR_DRI=no
+    if test x$XEPHYR = xyes -a x$DRI = xyes; then
+        XEPHYR_DRI=yes
+    fi
+    if test x$XEPHYR_DRI = xyes ; then
+        AC_DEFINE(XEPHYR_DRI,1,[enable DRI extension in xephyr])
+    fi
 
     # Xephyr needs nanosleep() which is in librt on Solaris
     AC_CHECK_FUNC([nanosleep], [],
@@ -1878,9 +1888,9 @@ if test "$KDRIVE" = yes; then
     KDRIVE_OS_INC='-I$(top_srcdir)/hw/kdrive/linux'
     KDRIVE_INCS="$KDRIVE_PURE_INCS $KDRIVE_OS_INC"
     
-    KDRIVE_CFLAGS="$XSERVER_CFLAGS -DHAVE_KDRIVE_CONFIG_H $TSLIB_CFLAGS"
+    KDRIVE_CFLAGS="$XSERVER_CFLAGS -DHAVE_KDRIVE_CONFIG_H $TSLIB_CFLAGS $XV_CFLAGS"
 
-    KDRIVE_PURE_LIBS="$FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_SHADOW_LIB $MIEXT_DAMAGE_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB"
+    KDRIVE_PURE_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
     KDRIVE_LIB='$(top_builddir)/hw/kdrive/src/libkdrive.a'
     case $host_os in
 	*linux*)
@@ -1892,7 +1902,7 @@ if test "$KDRIVE" = yes; then
     KDRIVE_LOCAL_LIBS="$TSLIB_LIBS $DIX_LIB $KDRIVE_LIB $KDRIVE_STUB_LIB $CONFIG_LIB"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $FB_LIB $MI_LIB $KDRIVE_PURE_LIBS"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $KDRIVE_OS_LIB $OS_LIB"
-    KDRIVE_LIBS="$KDRIVE_LOCAL_LIBS $XSERVERLIBS_LIBS"
+    KDRIVE_LIBS="$KDRIVE_LOCAL_LIBS $XSERVERLIBS_LIBS $XV_LIBS"
 
     # check if we can build Xephyr
     PKG_CHECK_MODULES(XEPHYR, x11 xext xfont xau xdmcp, [xephyr="yes"], [xephyr="no"])

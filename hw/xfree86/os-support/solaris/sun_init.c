@@ -29,7 +29,7 @@
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86_OSlib.h"
-#if defined(__i386) || defined(__x86)
+#if defined(__i386__) || defined(__x86)
 # include <sys/kd.h>
 #endif
 
@@ -40,7 +40,7 @@ static int VTnum = -1;
 static int xf86StartVT = -1;
 #endif
 
-#if defined(__SOL8__) || !defined(__i386)
+#if defined(__SOL8__) || !defined(__i386__)
 static char fb_dev[PATH_MAX] = "/dev/fb";
 #else
 static char fb_dev[PATH_MAX] = "/dev/console";
@@ -209,11 +209,11 @@ xf86CloseConsole(void)
 #ifdef HAS_USL_VTS
     struct vt_mode VT;
 #endif
-#if defined(__SOL8__) || !defined(i386)
+#if defined(__SOL8__) || !defined(__i386__)
     int tmp;
 #endif
 
-#if !defined(i386) && !defined(__x86)
+#if !defined(__i386__) && !defined(__x86)
 
     if (!xf86DoProbe && !xf86DoConfigure) {
 	int fd;
@@ -332,7 +332,7 @@ xf86ProcessArgument(int argc, char **argv, int i)
 
 #endif /* HAS_USL_VTS */
 
-#if defined(__SOL8__) || !defined(i386)
+#if defined(__SOL8__) || !defined(__i386__)
 
     if ((i + 1) < argc) {
 	if (!strcmp(argv[i], "-dev")) {
@@ -352,7 +352,7 @@ void xf86UseMsg()
 #ifdef HAS_USL_VTS
     ErrorF("vtXX                   Use the specified VT number\n");
 #endif
-#if defined(__SOL8__) || !defined(i386)
+#if defined(__SOL8__) || !defined(__i386__)
     ErrorF("-dev <fb>              Framebuffer device\n");
 #endif
     ErrorF("-keeptty               Don't detach controlling tty\n");

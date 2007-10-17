@@ -44,7 +44,7 @@
 #include "bus/Pci.h"
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || \
-	defined(__DragonFly__)
+	defined(__DragonFly__) || defined(__sun)
 #define xf86StdAccResFromOS xf86AccResFromOS
 #endif
 

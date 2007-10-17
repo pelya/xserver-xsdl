@@ -39,7 +39,7 @@
 #include "fb.h"
 
 #define EXA_VERSION_MAJOR   2
-#define EXA_VERSION_MINOR   3
+#define EXA_VERSION_MINOR   4
 #define EXA_VERSION_RELEASE 0
 
 typedef struct _ExaOffscreenArea ExaOffscreenArea;
@@ -702,6 +702,13 @@ typedef struct _ExaDriver {
      */
     int maxPitchBytes;
 
+    /* Hooks to allow driver to its own pixmap memory management */
+    void *(*CreatePixmap)(ScreenPtr pScreen, int size, int align);
+    void (*DestroyPixmap)(ScreenPtr pScreen, void *driverPriv);
+    Bool (*ModifyPixmapHeader)(PixmapPtr pPixmap, int width, int height,
+                              int depth, int bitsPerPixel, int devKind,
+                              pointer pPixData);
+
     /** @} */
 } ExaDriverRec, *ExaDriverPtr;
 
@@ -726,6 +733,13 @@ typedef struct _ExaDriver {
  * (right-to-left, bottom-to-top).
  */
 #define EXA_TWO_BITBLT_DIRECTIONS	(1 << 2)
+
+/**
+ * EXA_HANDLES_PIXMAPS indicates to EXA that the driver can handle
+ * all pixmap addressing and migration.
+ */
+#define EXA_HANDLES_PIXMAPS             (1 << 3)
+
 /** @} */
 
 ExaDriverPtr
@@ -772,6 +786,9 @@ exaMoveInPixmap (PixmapPtr pPixmap);
 
 void
 exaMoveOutPixmap (PixmapPtr pPixmap);
+
+void *
+exaGetPixmapDriverPrivate(PixmapPtr p);
 
 /**
  * Returns TRUE if the given planemask covers all the significant bits in the

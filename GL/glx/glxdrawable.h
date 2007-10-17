@@ -46,22 +46,12 @@
 #include <GL/internal/dri_interface.h>
 #endif
 
-typedef struct {
-
-    DrawablePtr pDraw;
-    __GLcontextModes *modes;
-    __GLXscreen *pGlxScreen;
-    ScreenPtr pScreen;
-    Bool idExists;
-    int refcnt;
-    GLenum target;
-#ifdef XF86DRI
-    DamagePtr pDamage;
-    __DRIcontext *pDRICtx;
-    GLint texname;
-    unsigned long offset;
-#endif
-} __GLXpixmap;
+/* We just need to avoid clashing with DRAWABLE_{WINDOW,PIXMAP} */
+enum {
+    GLX_DRAWABLE_WINDOW,
+    GLX_DRAWABLE_PIXMAP,
+    GLX_DRAWABLE_PBUFFER
+};
 
 struct __GLXdrawable {
     void (*destroy)(__GLXdrawable *private);
@@ -78,12 +68,10 @@ struct __GLXdrawable {
 
     DrawablePtr pDraw;
     XID drawId;
-    __GLXpixmap *pGlxPixmap;
 
     /*
-    ** Either DRAWABLE_PIXMAP or DRAWABLE_WINDOW, copied from pDraw above.
-    ** Needed by the resource freer because pDraw might already have been
-    ** freed.
+    ** Either GLX_DRAWABLE_PIXMAP, GLX_DRAWABLE_WINDOW or
+    ** GLX_DRAWABLE_PBUFFER.
     */
     int type;
 
@@ -105,6 +93,13 @@ struct __GLXdrawable {
     ** reference count
     */
     int refCount;
+
+    GLenum target;
+
+    /*
+    ** Event mask
+    */
+    unsigned long eventMask;
 };
 
 #endif /* !__GLX_drawable_h__ */

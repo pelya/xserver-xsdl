@@ -711,7 +711,8 @@ xf86DefaultMode (xf86OutputPtr output, int width, int height)
     for (mode = output->probed_modes; mode; mode = mode->next)
     {
 	int	    dpi;
-	int	    preferred = (mode->type & M_T_PREFERRED) != 0;
+	int	    preferred = (((mode->type & M_T_PREFERRED) != 0) +
+				 ((mode->type & M_T_USERPREF) != 0));
 	int	    diff;
 
 	if (xf86ModeWidth (mode, output->initial_rotation) > width ||
@@ -1415,7 +1416,7 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 			mode->prev = NULL;
 			output->probed_modes = mode;
 		    }
-		    mode->type |= M_T_PREFERRED;
+		    mode->type |= (M_T_PREFERRED|M_T_USERPREF);
 		}
 		else
 		    mode->type &= ~M_T_PREFERRED;
@@ -1532,6 +1533,7 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
     int			o, c;
     DisplayModePtr	target_mode = NULL;
+    int			target_preferred = 0;
     Rotation		target_rotation = RR_Rotate_0;
     xf86CrtcPtr		*crtcs;
     DisplayModePtr	*modes;
@@ -1572,43 +1574,34 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
     }
     
     /*
-     * Let outputs with preferred modes drive screen size
+     * User preferred > preferred > other modes
      */
     for (o = 0; o < config->num_output; o++)
     {
-	xf86OutputPtr output = config->output[o];
+	xf86OutputPtr	output = config->output[o];
+	DisplayModePtr	default_mode;
+	int		default_preferred;
 
-	if (enabled[o] &&
-	    xf86OutputHasPreferredMode (output, width, height))
+	if (!enabled[o])
+	    continue;
+	default_mode = xf86DefaultMode (output, width, height);
+	if (!default_mode)
+	    continue;
+	default_preferred = (((default_mode->type & M_T_PREFERRED) != 0) +
+			     ((default_mode->type & M_T_USERPREF) != 0));
+	if (default_preferred > target_preferred || !target_mode)
 	{
-	    target_mode = xf86DefaultMode (output, width, height);
+	    target_mode = default_mode;
+	    target_preferred = default_preferred;
 	    target_rotation = output->initial_rotation;
-	    if (target_mode)
-	    {
-		modes[o] = target_mode;
-		config->compat_output = o;
-		break;
-	    }
+	    config->compat_output = o;
 	}
     }
-    if (!target_mode)
-    {
-	for (o = 0; o < config->num_output; o++)
-	{
-	    xf86OutputPtr output = config->output[o];
-	    if (enabled[o])
-	    {
-		target_mode = xf86DefaultMode (output, width, height);
-		target_rotation = output->initial_rotation;
-		if (target_mode)
-		{
-		    modes[o] = target_mode;
-		    config->compat_output = o;
-		    break;
-		}
-	    }
-	}
-    }
+    if (target_mode)
+	modes[config->compat_output] = target_mode;
+    /*
+     * Fill in other output modes
+     */
     for (o = 0; o < config->num_output; o++)
     {
 	xf86OutputPtr output = config->output[o];
@@ -2134,8 +2127,12 @@ _X_EXPORT xf86MonPtr
 xf86OutputGetEDID (xf86OutputPtr output, I2CBusPtr pDDCBus)
 {
     ScrnInfoPtr	scrn = output->scrn;
+    xf86MonPtr mon;
 
-    return xf86DoEDID_DDC2 (scrn->scrnIndex, pDDCBus);
+    mon = xf86DoEDID_DDC2 (scrn->scrnIndex, pDDCBus);
+    xf86DDCApplyQuirks (scrn->scrnIndex, pDDCBus);
+
+    return mon;
 }
 
 static char *_xf86ConnectorNames[] = { "None", "VGA", "DVI-I", "DVI-D",
