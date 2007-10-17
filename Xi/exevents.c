@@ -124,7 +124,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     int coretype = 0;
 
     coretype = XItoCoreType(xE->u.u.type);
-    if (device->coreEvents && coretype)
+    if (device->isMaster && device->coreEvents && coretype)
         sendCore = TRUE;
 
     CheckMotion(xE, device);
