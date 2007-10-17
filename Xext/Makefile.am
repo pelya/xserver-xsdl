@@ -80,9 +80,6 @@ endif
 XSELINUX_SRCS = xselinux.c xselinux.h
 if XSELINUX
 BUILTIN_SRCS += $(XSELINUX_SRCS)
-
-SERVERCONFIG_DATA += XSELinuxConfig
-AM_CFLAGS += -DXSELINUXCONFIGFILE=\"$(SERVERCONFIGdir)/XSELinuxConfig\"
 endif
 
 # Security extension: multi-level security to protect clients from each other
