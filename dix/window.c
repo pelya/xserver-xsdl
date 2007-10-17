@@ -434,6 +434,12 @@ CreateRootWindow(ScreenPtr pScreen)
     pWin->border.pixel = pScreen->blackPixel;
     pWin->borderWidth = 0;
 
+    /*  security creation/labeling check
+     */
+    if (XaceHook(XACE_RESOURCE_ACCESS, serverClient, pWin->drawable.id,
+		 RT_WINDOW, pWin, RT_NONE, NULL, DixCreateAccess))
+	return FALSE;
+
     if (!AddResource(pWin->drawable.id, RT_WINDOW, (pointer)pWin))
 	return FALSE;
 
