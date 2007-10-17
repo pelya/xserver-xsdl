@@ -292,6 +292,36 @@ SELinuxLog(int type, const char *fmt, ...)
  */
 
 static void
+SELinuxDevice(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+{
+    XaceDeviceAccessRec *rec = calldata;
+    SELinuxStateRec *subj, *obj;
+    SELinuxAuditRec auditdata = { NULL, NULL, 0, 0, 0, NULL };
+    int rc;
+
+    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
+    obj = dixLookupPrivate(&rec->dev->devPrivates, stateKey);
+
+    /* If this is a new object that needs labeling, do it now */
+    if (rec->access_mode & DixCreateAccess) {
+	sidput(obj->sid);
+
+	/* Perform a transition to obtain the final SID */
+	if (avc_compute_create(subj->sid, subj->sid, SECCLASS_X_DEVICE,
+			       &obj->sid) < 0) {
+	    ErrorF("XSELinux: a compute_create call failed!\n");
+	    rec->status = BadValue;
+	    return;
+	}
+    }
+
+    rc = SELinuxDoCheck(rec->client, obj, SECCLASS_X_DEVICE,
+			rec->access_mode, &auditdata);
+    if (rc != Success)
+	rec->status = rc;
+}
+
+static void
 SELinuxExtension(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceExtAccessRec *rec = calldata;
@@ -755,7 +785,7 @@ XSELinuxExtensionInit(INITARGS)
 
     ret &= XaceRegisterCallback(XACE_EXT_DISPATCH, SELinuxExtension, 0);
     ret &= XaceRegisterCallback(XACE_RESOURCE_ACCESS, SELinuxResource, 0);
-//    ret &= XaceRegisterCallback(XACE_DEVICE_ACCESS, SELinuxDevice, 0);
+    ret &= XaceRegisterCallback(XACE_DEVICE_ACCESS, SELinuxDevice, 0);
     ret &= XaceRegisterCallback(XACE_PROPERTY_ACCESS, SELinuxProperty, 0);
 //    ret &= XaceRegisterCallback(XACE_SEND_ACCESS, SELinuxSend, 0);
 //    ret &= XaceRegisterCallback(XACE_RECEIVE_ACCESS, SELinuxReceive, 0);
