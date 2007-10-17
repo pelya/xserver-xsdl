@@ -324,7 +324,6 @@ extern void XaceExtensionInit(INITARGS);
 extern void SecurityExtensionInit(INITARGS);
 #endif
 #ifdef XSELINUX
-extern void XSELinuxExtensionSetup(INITARGS);
 extern void XSELinuxExtensionInit(INITARGS);
 #endif
 #ifdef XPRINT
@@ -537,9 +536,6 @@ InitExtensions(argc, argv)
     int		argc;
     char	*argv[];
 {
-#ifdef XSELINUX
-    XSELinuxExtensionSetup();
-#endif
 #ifdef PANORAMIX
 # if !defined(PRINT_ONLY_SERVER) && !defined(NO_PANORAMIX)
   if (!noPanoramiXExtension) PanoramiXExtensionInit();
@@ -718,7 +714,7 @@ static ExtensionModule staticExtensions[] = {
     { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL, NULL },
 #endif
 #ifdef XSELINUX
-    { XSELinuxExtensionInit, XSELINUX_EXTENSION_NAME, NULL, XSELinuxExtensionSetup, NULL },
+    { XSELinuxExtensionInit, XSELINUX_EXTENSION_NAME, NULL, NULL, NULL },
 #endif
 #ifdef XPRINT
     { XpExtensionInit, XP_PRINTNAME, NULL, NULL, NULL },

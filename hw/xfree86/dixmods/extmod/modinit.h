@@ -130,7 +130,6 @@ extern void XaceExtensionInit(INITARGS);
 #endif
 
 #ifdef XSELINUX
-extern void XSELinuxExtensionSetup(INITARGS);
 extern void XSELinuxExtensionInit(INITARGS);
 #endif
 
