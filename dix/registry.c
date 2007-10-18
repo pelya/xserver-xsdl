@@ -123,6 +123,8 @@ RegisterResourceName(RESTYPE resource, const char *name)
 const char *
 LookupRequestName(int major, int minor)
 {
+    if (major < 128)
+	minor = 0;
     if (major >= nmajor)
 	return XREGISTRY_UNKNOWN;
     if (minor >= nminor[major])
