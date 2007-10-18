@@ -1246,6 +1246,7 @@ exaGlyphs (CARD8	op,
 	    y1 = y - glyph->info.y;
 
 	    if (x1 >= pCmpDrw->width || y1 >= pCmpDrw->height ||
+		glyph->info.width == 0 || glyph->info.height == 0 ||
 		(x1 + glyph->info.width) <= 0 || (y1 + glyph->info.height) <= 0)
 		goto nextglyph;
 
