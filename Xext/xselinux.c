@@ -95,6 +95,10 @@ static security_id_t unlabeled_sid;
 static security_class_t *knownTypes;
 static unsigned numKnownTypes;
 
+/* Array of event SIDs indexed by event type */
+static security_id_t *knownEvents;
+static unsigned numKnownEvents;
+
 /* dynamically allocated security classes and permissions */
 static struct security_class_mapping map[] = {
     { "x_drawable", { "read", "write", "destroy", "create", "getattr", "setattr", "list_property", "get_property", "set_property", "", "", "list_child", "add_child", "remove_child", "hide", "show", "blend", "override", "", "", "", "", "send", "receive", "", "manage", NULL }},
@@ -109,6 +113,7 @@ static struct security_class_mapping map[] = {
     { "x_device", { "read", "write", "", "", "getattr", "setattr", "", "", "", "getfocus", "setfocus", "", "", "", "", "", "", "grab", "freeze", "force_cursor", "", "", "", "", "", "manage", "", "bell", NULL }},
     { "x_server", { "record", "", "", "", "getattr", "setattr", "", "", "", "", "", "", "", "", "", "", "", "grab", "", "", "", "", "", "", "", "manage", "debug", NULL }},
     { "x_extension", { "", "", "", "", "query", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "use", NULL }},
+    { "x_event", { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "send", "receive", NULL }},
     { "x_resource", { "read", "write", "write", "write", "read", "write", "read", "read", "write", "read", "write", "read", "write", "write", "write", "read", "read", "write", "write", "write", "write", "write", "write", "read", "read", "write", "read", "write", NULL }},
     { NULL }
 };
@@ -120,6 +125,43 @@ static void SELinuxScreen(CallbackListPtr *, pointer, pointer);
 /*
  * Support Routines
  */
+
+/*
+ * Looks up the SID corresponding to the given event type
+ */
+static int
+SELinuxEventToSID(int type, SELinuxStateRec *sid_return)
+{
+    const char *name = LookupEventName(type);
+    security_context_t con;
+
+    if (type >= numKnownEvents) {
+	/* Need to increase size of classes array */
+	unsigned size = sizeof(security_id_t);
+	knownEvents = xrealloc(knownEvents, (type + 1) * size);
+	if (!knownEvents)
+	    return BadAlloc;
+	memset(knownEvents + numKnownEvents, 0,
+	       (type - numKnownEvents + 1) * size);
+    }
+
+    if (!knownEvents[type]) {
+	/* Look in the mappings of property names to contexts */
+	if (selabel_lookup(label_hnd, &con, name, SELABEL_X_EVENT) < 0) {
+	    ErrorF("XSELinux: an event label lookup failed!\n");
+	    return BadValue;
+	}
+	/* Get a SID for context */
+	if (avc_context_to_sid(con, knownEvents + type) < 0) {
+	    ErrorF("XSELinux: a context_to_SID call failed!\n");
+	    return BadAlloc;
+	}
+	freecon(con);
+    }
+
+    sid_return->sid = knownEvents[type];
+    return Success;
+}
 
 /*
  * Returns the object class corresponding to the given resource type.
@@ -325,7 +367,7 @@ SELinuxSend(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     XaceSendAccessRec *rec = calldata;
     SELinuxStateRec *subj, *obj;
     SELinuxAuditRec auditdata = { rec->client, NULL, 0, 0, 0, NULL };
-    int clientIndex, rc;
+    int rc, i, clientIndex;
 
     if (rec->dev) {
 	subj = dixLookupPrivate(&rec->dev->devPrivates, stateKey);
@@ -337,10 +379,28 @@ SELinuxSend(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
     obj = dixLookupPrivate(&rec->pWin->devPrivates, stateKey);
 
+    /* Check send permission on window */
     rc = SELinuxDoCheck(clientIndex, subj, obj, SECCLASS_X_DRAWABLE,
 			DixSendAccess, &auditdata);
     if (rc != Success)
-	rec->status = rc;
+	goto err;
+
+    /* Check send permission on specific event types */
+    for (i = 0; i < rec->count; i++) {
+	SELinuxStateRec ev_sid;
+
+	rc = SELinuxEventToSID(rec->events[i].u.u.type, &ev_sid);
+	if (rc != Success)
+	    goto err;
+
+	rc = SELinuxDoCheck(clientIndex, subj, &ev_sid, SECCLASS_X_EVENT,
+			    DixSendAccess, &auditdata);
+	if (rc != Success)
+	    goto err;
+    }
+    return;
+err:
+    rec->status = rc;
 }
 
 static void
@@ -349,15 +409,33 @@ SELinuxReceive(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     XaceReceiveAccessRec *rec = calldata;
     SELinuxStateRec *subj, *obj;
     SELinuxAuditRec auditdata = { rec->client, NULL, 0, 0, 0, NULL };
-    int rc;
+    int rc, i;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
     obj = dixLookupPrivate(&rec->pWin->devPrivates, stateKey);
 
+    /* Check receive permission on window */
     rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_DRAWABLE,
 			DixReceiveAccess, &auditdata);
     if (rc != Success)
-	rec->status = rc;
+	goto err;
+
+    /* Check receive permission on specific event types */
+    for (i = 0; i < rec->count; i++) {
+	SELinuxStateRec ev_sid;
+
+	rc = SELinuxEventToSID(rec->events[i].u.u.type, &ev_sid);
+	if (rc != Success)
+	    goto err;
+
+	rc = SELinuxDoCheck(rec->client->index, subj, &ev_sid, SECCLASS_X_EVENT,
+			    DixReceiveAccess, &auditdata);
+	if (rc != Success)
+	    goto err;
+    }
+    return;
+err:
+    rec->status = rc;
 }
 
 static void
@@ -761,6 +839,10 @@ SELinuxResetProc(ExtensionEntry *extEntry)
 
     avc_destroy();
     avc_active = 0;
+
+    xfree(knownEvents);
+    knownEvents = NULL;
+    numKnownEvents = 0;
 
     xfree(knownTypes);
     knownTypes = NULL;
