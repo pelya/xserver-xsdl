@@ -40,6 +40,7 @@
 #include <string.h>
 #include <windowstr.h>
 #include <os.h>
+#include <colormapst.h>
 
 #include "glxserver.h"
 #include "glxutil.h"
@@ -302,6 +303,144 @@ findVisualForConfig(ScreenPtr pScreen, __GLcontextModes *m)
     return 0;
 }
 
+/* This code inspired by composite/compinit.c.  We could move this to
+ * mi/ and share it with composite.*/
+
+static VisualPtr
+AddScreenVisuals(ScreenPtr pScreen, int count, int d)
+{
+    XID		*installedCmaps, *vids, vid;
+    int		 numInstalledCmaps, numVisuals, i, j;
+    VisualPtr	 visuals;
+    ColormapPtr	 installedCmap;
+    DepthPtr	 depth;
+
+    depth = NULL;
+    for (i = 0; i < pScreen->numDepths; i++) {
+	if (pScreen->allowedDepths[i].depth == d) {
+	    depth = &pScreen->allowedDepths[i];
+	    break;
+	}
+    }
+    if (depth == NULL)
+	return NULL;
+
+    /* Find the installed colormaps */
+    installedCmaps = xalloc (pScreen->maxInstalledCmaps * sizeof (XID));
+    if (!installedCmaps)
+	return NULL;
+
+    numInstalledCmaps = pScreen->ListInstalledColormaps(pScreen, installedCmaps);
+
+    /* realloc the visual array to fit the new one in place */
+    numVisuals = pScreen->numVisuals;
+    visuals = xrealloc(pScreen->visuals, (numVisuals + count) * sizeof(VisualRec));
+    if (!visuals) {
+	xfree(installedCmaps);
+	return NULL;
+    }
+
+    vids = xrealloc(depth->vids, (depth->numVids + count) * sizeof(XID));
+    if (vids == NULL) {
+	xfree(installedCmaps);
+	xfree(visuals);
+	return NULL;
+    }
+
+    /*
+     * Fix up any existing installed colormaps -- we'll assume that
+     * the only ones created so far have been installed.  If this
+     * isn't true, we'll have to walk the resource database looking
+     * for all colormaps.
+     */
+    for (i = 0; i < numInstalledCmaps; i++) {
+	installedCmap = LookupIDByType (installedCmaps[i], RT_COLORMAP);
+	if (!installedCmap)
+	    continue;
+	j = installedCmap->pVisual - pScreen->visuals;
+	installedCmap->pVisual = &visuals[j];
+    }
+
+    xfree(installedCmaps);
+
+    for (i = 0; i < count; i++) {
+	vid = FakeClientID(0);
+	visuals[pScreen->numVisuals + i].vid = vid;
+	vids[depth->numVids + i] = vid;
+    }
+
+    pScreen->visuals = visuals;
+    pScreen->numVisuals += count;
+    depth->vids = vids;
+    depth->numVids += count;
+
+    /* Return a pointer to the first of the added visuals. */ 
+    return pScreen->visuals + pScreen->numVisuals - count;
+}
+
+static int
+findFirstSet(unsigned int v)
+{
+    int i;
+
+    for (i = 0; i < 32; i++)
+	if (v & (1 << i))
+	    return i;
+
+    return -1;
+}
+
+static void
+initGlxVisual(VisualPtr visual, __GLcontextModes *config)
+{
+    ErrorF("Adding visual 0x%02lx for fbconfig %d\n",
+	   visual->vid, config->fbconfigID);
+
+    config->visualID = visual[0].vid;
+    visual->class = _gl_convert_to_x_visual_type(config->visualType);
+    visual->bitsPerRGBValue = config->redBits;
+    visual->ColormapEntries = 1 << config->redBits;
+    visual->nplanes = config->redBits + config->greenBits + config->blueBits;
+
+    visual->redMask = config->redMask;
+    visual->greenMask = config->greenMask;
+    visual->blueMask = config->blueMask;
+    visual->offsetRed = findFirstSet(config->redMask);
+    visual->offsetGreen = findFirstSet(config->greenMask);
+    visual->offsetBlue = findFirstSet(config->blueMask);
+}
+
+static void
+addGlxVisuals(__GLXscreen *pGlxScreen)
+{
+    __GLcontextModes *config;
+    VisualPtr visual;
+
+    /* Select a subset of fbconfigs that we send to the client when it
+     * asks for the glx visuals.  All the fbconfigs here have a valid
+     * value for visual ID and each visual ID is only present once.
+     * This runs before composite adds its extra visual so we have to
+     * remember the number of visuals here.*/
+
+    /* For now, just add the first double buffer fbconfig. */
+    for (config = pGlxScreen->fbconfigs; config != NULL; config = config->next)
+	if (config->doubleBufferMode)
+	    break;
+    if (config == NULL)
+	config = pGlxScreen->fbconfigs;
+
+    pGlxScreen->visuals = xcalloc(1, sizeof (__GLcontextModes *));
+    visual = AddScreenVisuals(pGlxScreen->pScreen, 1, config->rgbBits);
+    if (visual == NULL) {
+	xfree(pGlxScreen->visuals);
+	return;
+    }
+
+    pGlxScreen->numVisuals = 1;
+    pGlxScreen->visuals[0] = config;
+    initGlxVisual(&visual[0], config);
+}
+
 void __glXScreenInit(__GLXscreen *glxScreen, ScreenPtr pScreen)
 {
     static int glxGeneration;
@@ -319,20 +458,13 @@ void __glXScreenInit(__GLXscreen *glxScreen, ScreenPtr pScreen)
 
     i = 0;
     for (m = glxScreen->fbconfigs; m != NULL; m = m->next) {
-	m->fbconfigID = i++;
+	m->fbconfigID = FakeClientID(0);
 	m->visualID = findVisualForConfig(pScreen, m);
-	ErrorF("mapping fbconfig %d to visual 0x%02x\n",
-	       m->fbconfigID, m->visualID);
+	i++;
     }
     glxScreen->numFBConfigs = i;
 
-    /* Select a subset of fbconfigs that we send to the client when it
-     * asks for the glx visuals.  All the fbconfigs here have a valid
-     * value for visual ID and each visual ID is only present once.
-     * This runs before composite adds its extra visual so we have to
-     * remember the number of visuals here.*/
-    glxScreen->visuals = NULL;
-    glxScreen->numVisuals = 0;
+    addGlxVisuals(glxScreen);
 
     glxScreen->pScreen       = pScreen;
     glxScreen->GLextensions  = xstrdup(GLServerExtensions);
