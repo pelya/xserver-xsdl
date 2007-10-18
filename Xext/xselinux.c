@@ -62,7 +62,7 @@ static DevPrivateKey stateKey = &stateKey;
 typedef struct {
     security_id_t sid;
     struct avc_entry_ref aeref;
-    char *client_path;
+    char *command;
 } SELinuxStateRec;
 
 /* audit file descriptor */
@@ -71,7 +71,7 @@ static int audit_fd;
 /* structure passed to auditing callback */
 typedef struct {
     ClientPtr client;	/* client */
-    char *client_path;	/* client's executable path */
+    char *command;	/* client's executable path */
     unsigned id;	/* resource id, if any */
     int restype;	/* resource type, if any */
     Atom property;	/* property name, if any */
@@ -170,21 +170,17 @@ SELinuxTypeToClass(RESTYPE type)
  * Performs an SELinux permission check.
  */
 static int
-SELinuxDoCheck(ClientPtr client, SELinuxStateRec *obj, security_class_t class,
-	       Mask access_mode, SELinuxAuditRec *auditdata)
+SELinuxDoCheck(int clientIndex, SELinuxStateRec *subj, SELinuxStateRec *obj,
+	       security_class_t class, Mask mode, SELinuxAuditRec *auditdata)
 {
-    SELinuxStateRec *subj;
-
     /* serverClient requests OK */
-    if (client->index == 0)
+    if (clientIndex == 0)
 	return Success;
 
-    subj = dixLookupPrivate(&client->devPrivates, stateKey);
-    auditdata->client = client;
-    auditdata->client_path = subj->client_path;
+    auditdata->command = subj->command;
     errno = 0;
 
-    if (avc_has_perm(subj->sid, obj->sid, class, access_mode, &subj->aeref,
+    if (avc_has_perm(subj->sid, obj->sid, class, mode, &subj->aeref,
 		     auditdata) < 0) {
 	if (errno == EACCES)
 	    return BadAccess;
@@ -250,23 +246,25 @@ SELinuxAudit(void *auditdata,
     SELinuxAuditRec *audit = auditdata;
     ClientPtr client = audit->client;
     char idNum[16], *propertyName;
-    int major = 0, minor = 0;
-    REQUEST(xReq);
+    int major = -1, minor = -1;
 
+    if (client) {
+	REQUEST(xReq);
+	if (stuff) {
+	    major = stuff->reqType;
+	    minor = MinorOpcodeOfRequest(client);
+	}
+    }
     if (audit->id)
 	snprintf(idNum, 16, "%x", audit->id);
-    if (stuff) {
-	major = stuff->reqType;
-	minor = (major < 128) ? 0 : MinorOpcodeOfRequest(client);
-    }
 
     propertyName = audit->property ? NameForAtom(audit->property) : NULL;
 
     return snprintf(msgbuf, msgbufsize, "%s%s%s%s%s%s%s%s%s%s%s%s",
-		    stuff ? "request=" : "",
-		    stuff ? LookupRequestName(major, minor) : "",
-		    audit->client_path ? " comm=" : "",
-		    audit->client_path ? audit->client_path : "",
+		    (major >= 0) ? "request=" : "",
+		    (major >= 0) ? LookupRequestName(major, minor) : "",
+		    audit->command ? " comm=" : "",
+		    audit->command ? audit->command : "",
 		    audit->id ? " resid=" : "",
 		    audit->id ? idNum : "",
 		    audit->restype ? " restype=" : "",
@@ -296,7 +294,7 @@ SELinuxDevice(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceDeviceAccessRec *rec = calldata;
     SELinuxStateRec *subj, *obj;
-    SELinuxAuditRec auditdata = { NULL, NULL, 0, 0, 0, NULL };
+    SELinuxAuditRec auditdata = { rec->client, NULL, 0, 0, 0, NULL };
     int rc;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
@@ -315,8 +313,49 @@ SELinuxDevice(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	}
     }
 
-    rc = SELinuxDoCheck(rec->client, obj, SECCLASS_X_DEVICE,
+    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_DEVICE,
 			rec->access_mode, &auditdata);
+    if (rc != Success)
+	rec->status = rc;
+}
+
+static void
+SELinuxSend(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+{
+    XaceSendAccessRec *rec = calldata;
+    SELinuxStateRec *subj, *obj;
+    SELinuxAuditRec auditdata = { rec->client, NULL, 0, 0, 0, NULL };
+    int clientIndex, rc;
+
+    if (rec->dev) {
+	subj = dixLookupPrivate(&rec->dev->devPrivates, stateKey);
+	clientIndex = -1; /* some nonzero value */
+    } else {
+	subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
+	clientIndex = rec->client->index;
+    }
+
+    obj = dixLookupPrivate(&rec->pWin->devPrivates, stateKey);
+
+    rc = SELinuxDoCheck(clientIndex, subj, obj, SECCLASS_X_DRAWABLE,
+			DixSendAccess, &auditdata);
+    if (rc != Success)
+	rec->status = rc;
+}
+
+static void
+SELinuxReceive(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+{
+    XaceReceiveAccessRec *rec = calldata;
+    SELinuxStateRec *subj, *obj;
+    SELinuxAuditRec auditdata = { rec->client, NULL, 0, 0, 0, NULL };
+    int rc;
+
+    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
+    obj = dixLookupPrivate(&rec->pWin->devPrivates, stateKey);
+
+    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_DRAWABLE,
+			DixReceiveAccess, &auditdata);
     if (rc != Success)
 	rec->status = rc;
 }
@@ -326,7 +365,7 @@ SELinuxExtension(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceExtAccessRec *rec = calldata;
     SELinuxStateRec *subj, *obj, *serv;
-    SELinuxAuditRec auditdata = { NULL, NULL, 0, 0, 0, NULL };
+    SELinuxAuditRec auditdata = { rec->client, NULL, 0, 0, 0, NULL };
     int rc;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
@@ -369,7 +408,7 @@ SELinuxExtension(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
     /* Perform the security check */
     auditdata.extension = rec->ext->name;
-    rc = SELinuxDoCheck(rec->client, obj, SECCLASS_X_EXTENSION,
+    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_EXTENSION,
 			rec->access_mode, &auditdata);
     if (rc != Success)
 	rec->status = rc;
@@ -380,7 +419,7 @@ SELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XacePropertyAccessRec *rec = calldata;
     SELinuxStateRec *subj, *obj;
-    SELinuxAuditRec auditdata = { NULL, NULL, 0, 0, 0, NULL };
+    SELinuxAuditRec auditdata = { rec->client, NULL, 0, 0, 0, NULL };
     int rc;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
@@ -421,7 +460,7 @@ SELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
     /* Perform the security check */
     auditdata.property = rec->pProp->propertyName;
-    rc = SELinuxDoCheck(rec->client, obj, SECCLASS_X_PROPERTY,
+    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_PROPERTY,
 			rec->access_mode, &auditdata);
     if (rc != Success)
 	rec->status = rc;
@@ -432,7 +471,7 @@ SELinuxResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceResourceAccessRec *rec = calldata;
     SELinuxStateRec *subj, *obj, *pobj;
-    SELinuxAuditRec auditdata = { NULL, NULL, 0, 0, 0, NULL };
+    SELinuxAuditRec auditdata = { rec->client, NULL, 0, 0, 0, NULL };
     PrivateRec **privatePtr;
     security_class_t class;
     int rc, offset;
@@ -477,7 +516,8 @@ SELinuxResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     /* Perform the security check */
     auditdata.restype = rec->rtype;
     auditdata.id = rec->id;
-    rc = SELinuxDoCheck(rec->client, obj, class, rec->access_mode, &auditdata);
+    rc = SELinuxDoCheck(rec->client->index, subj, obj, class,
+			rec->access_mode, &auditdata);
     if (rc != Success)
 	rec->status = rc;
 }
@@ -487,7 +527,7 @@ SELinuxScreen(CallbackListPtr *pcbl, pointer is_saver, pointer calldata)
 {
     XaceScreenAccessRec *rec = calldata;
     SELinuxStateRec *subj, *obj;
-    SELinuxAuditRec auditdata = { NULL, NULL, 0, 0, 0, NULL };
+    SELinuxAuditRec auditdata = { rec->client, NULL, 0, 0, 0, NULL };
     Mask access_mode = rec->access_mode;
     int rc;
 
@@ -510,7 +550,7 @@ SELinuxScreen(CallbackListPtr *pcbl, pointer is_saver, pointer calldata)
     if (is_saver)
 	access_mode <<= 2;
 
-    rc = SELinuxDoCheck(rec->client, obj, SECCLASS_X_SCREEN,
+    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_SCREEN,
 			access_mode, &auditdata);
     if (rc != Success)
 	rec->status = rc;
@@ -520,13 +560,14 @@ static void
 SELinuxClient(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceClientAccessRec *rec = calldata;
-    SELinuxStateRec *obj;
-    SELinuxAuditRec auditdata = { NULL, NULL, 0, 0, 0, NULL };
+    SELinuxStateRec *subj, *obj;
+    SELinuxAuditRec auditdata = { rec->client, NULL, 0, 0, 0, NULL };
     int rc;
 
+    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
     obj = dixLookupPrivate(&rec->target->devPrivates, stateKey);
 
-    rc = SELinuxDoCheck(rec->client, obj, SECCLASS_X_CLIENT,
+    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_CLIENT,
 			rec->access_mode, &auditdata);
     if (rc != Success)
 	rec->status = rc;
@@ -536,13 +577,14 @@ static void
 SELinuxServer(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceServerAccessRec *rec = calldata;
-    SELinuxStateRec *obj;
-    SELinuxAuditRec auditdata = { NULL, NULL, 0, 0, 0, NULL };
+    SELinuxStateRec *subj, *obj;
+    SELinuxAuditRec auditdata = { rec->client, NULL, 0, 0, 0, NULL };
     int rc;
 
+    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
     obj = dixLookupPrivate(&serverClient->devPrivates, stateKey);
 
-    rc = SELinuxDoCheck(rec->client, obj, SECCLASS_X_SERVER,
+    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_SERVER,
 			rec->access_mode, &auditdata);
     if (rc != Success)
 	rec->status = rc;
@@ -595,12 +637,12 @@ SELinuxClientState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	if (bytes <= 0)
 	    goto finish;
 
-	state->client_path = xalloc(bytes);
-	if (!state->client_path)
+	state->command = xalloc(bytes);
+	if (!state->command)
 	    goto finish;
 
-	memcpy(state->client_path, path, bytes);
-	state->client_path[bytes - 1] = 0;
+	memcpy(state->command, path, bytes);
+	state->command[bytes - 1] = 0;
     } else
 	/* For remote clients, need to use a default context */
 	if (selabel_lookup(label_hnd, &ctx, NULL, SELABEL_X_CLIENT) < 0)
@@ -685,7 +727,7 @@ SELinuxStateFree(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     PrivateCallbackRec *rec = calldata;
     SELinuxStateRec *state = *rec->value;
 
-    xfree(state->client_path);
+    xfree(state->command);
 
     if (avc_active)
 	sidput(state->sid);
@@ -787,8 +829,8 @@ XSELinuxExtensionInit(INITARGS)
     ret &= XaceRegisterCallback(XACE_RESOURCE_ACCESS, SELinuxResource, 0);
     ret &= XaceRegisterCallback(XACE_DEVICE_ACCESS, SELinuxDevice, 0);
     ret &= XaceRegisterCallback(XACE_PROPERTY_ACCESS, SELinuxProperty, 0);
-//    ret &= XaceRegisterCallback(XACE_SEND_ACCESS, SELinuxSend, 0);
-//    ret &= XaceRegisterCallback(XACE_RECEIVE_ACCESS, SELinuxReceive, 0);
+    ret &= XaceRegisterCallback(XACE_SEND_ACCESS, SELinuxSend, 0);
+    ret &= XaceRegisterCallback(XACE_RECEIVE_ACCESS, SELinuxReceive, 0);
     ret &= XaceRegisterCallback(XACE_CLIENT_ACCESS, SELinuxClient, 0);
     ret &= XaceRegisterCallback(XACE_EXT_ACCESS, SELinuxExtension, 0);
     ret &= XaceRegisterCallback(XACE_SERVER_ACCESS, SELinuxServer, 0);
