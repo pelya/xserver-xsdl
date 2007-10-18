@@ -187,6 +187,9 @@ CopySwapDevice(ClientPtr client, DeviceIntPtr d, int num_classes,
         dev->use = IsXExtensionPointer;
     else
 	dev->use = IsXExtensionDevice;
+    if (!d->isMaster) 
+        dev->attached = (d->u.master) ? d->u.master->id : IsFloating;
+
     if (client->swapped) {
 	swapl(&dev->type, n);	/* macro - braces are required */
     }
