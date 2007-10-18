@@ -152,6 +152,9 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     int bpp = pDrawable->bitsPerPixel;
     Bool access_prepared = FALSE;
 
+    if (pExaPixmap->accel_blocked)
+	return FALSE;
+
     /* Don't bother with under 8bpp, XYPixmaps. */
     if (format != ZPixmap || bpp < 8)
 	return FALSE;
