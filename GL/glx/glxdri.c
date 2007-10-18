@@ -1025,7 +1025,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 			   fd,
 			   api_ver,
 			   &interface_methods,
-			   &screen->base.modes);
+			   &screen->base.fbconfigs);
 
     if (screen->driScreen.private == NULL) {
 	LogMessage(X_ERROR, "AIGLX error: Calling driver entry point failed");

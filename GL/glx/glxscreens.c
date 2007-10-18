@@ -44,6 +44,7 @@
 #include "glxserver.h"
 #include "glxutil.h"
 #include "glxext.h"
+#include "glcontextmodes.h"
 
 static int glxScreenPrivateIndex;
 
@@ -284,13 +285,28 @@ glxGetScreen(ScreenPtr pScreen)
 void GlxSetVisualConfigs(int nconfigs, 
                          __GLXvisualConfig *configs, void **privates)
 {
-	/* We keep this stub around for the DDX drivers that still
-	 * call it. */
+    /* We keep this stub around for the DDX drivers that still
+     * call it. */
+}
+
+static XID
+findVisualForConfig(ScreenPtr pScreen, __GLcontextModes *m)
+{
+    int i;
+
+    for (i = 0; i < pScreen->numVisuals; i++) {
+	if (_gl_convert_to_x_visual_type(m->visualType) == pScreen->visuals[i].class)
+	    return pScreen->visuals[i].vid;
+    }
+
+    return 0;
 }
 
 void __glXScreenInit(__GLXscreen *glxScreen, ScreenPtr pScreen)
 {
     static int glxGeneration;
+    __GLcontextModes *m;
+    int i;
 
     if (glxGeneration != serverGeneration)
     {
@@ -300,6 +316,23 @@ void __glXScreenInit(__GLXscreen *glxScreen, ScreenPtr pScreen)
 
 	glxGeneration = serverGeneration;
     }
+
+    i = 0;
+    for (m = glxScreen->fbconfigs; m != NULL; m = m->next) {
+	m->fbconfigID = i++;
+	m->visualID = findVisualForConfig(pScreen, m);
+	ErrorF("mapping fbconfig %d to visual 0x%02x\n",
+	       m->fbconfigID, m->visualID);
+    }
+    glxScreen->numFBConfigs = i;
+
+    /* Select a subset of fbconfigs that we send to the client when it
+     * asks for the glx visuals.  All the fbconfigs here have a valid
+     * value for visual ID and each visual ID is only present once.
+     * This runs before composite adds its extra visual so we have to
+     * remember the number of visuals here.*/
+    glxScreen->visuals = NULL;
+    glxScreen->numVisuals = 0;
 
     glxScreen->pScreen       = pScreen;
     glxScreen->GLextensions  = xstrdup(GLServerExtensions);

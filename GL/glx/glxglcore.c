@@ -280,7 +280,7 @@ find_mesa_visual(__GLXscreen *screen, VisualID vid)
     const __GLcontextModes *modes;
     unsigned i = 0;
 
-    for ( modes = screen->modes ; modes != NULL ; modes = modes->next ) {
+    for ( modes = screen->fbconfigs ; modes != NULL ; modes = modes->next ) {
 	if ( modes->visualID == vid ) {
 	    break;
 	}
@@ -314,7 +314,7 @@ static void init_screen_visuals(__GLXMESAscreen *screen)
     memset(used, 0, pScreen->numVisuals * sizeof(int));
 
     num_vis = 0;
-    for ( modes = screen->base.modes; modes != NULL; modes = modes->next ) {
+    for ( modes = screen->base.fbconfigs; modes != NULL; modes = modes->next ) {
 	const int vis_class = _gl_convert_to_x_visual_type( modes->visualType );
 	const int nplanes = (modes->rgbBits - modes->alphaBits);
 	const VisualPtr pVis = pScreen->visuals;
