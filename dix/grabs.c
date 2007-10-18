@@ -307,7 +307,7 @@ GrabsAreIdentical(GrabPtr pFirstGrab, GrabPtr pSecondGrab)
  * @return Success or X error code on failure.
  */
 int
-AddPassiveGrabToList(GrabPtr pGrab)
+AddPassiveGrabToList(ClientPtr client, GrabPtr pGrab)
 {
     GrabPtr grab;
     Mask access_mode = DixGrabAccess;
@@ -327,8 +327,7 @@ AddPassiveGrabToList(GrabPtr pGrab)
 
     if (grab->keyboardMode == GrabModeSync || grab->pointerMode == GrabModeSync)
 	access_mode |= DixFreezeAccess;
-    rc = XaceHook(XACE_DEVICE_ACCESS, clients[CLIENT_ID(grab->resource)],
-		  grab->device, access_mode);
+    rc = XaceHook(XACE_DEVICE_ACCESS, client, grab->device, access_mode);
     if (rc != Success)
 	return rc;
 

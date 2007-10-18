@@ -4727,7 +4727,7 @@ ProcGrabKey(ClientPtr client)
 	NullWindow, NullCursor);
     if (!grab)
 	return BadAlloc;
-    return AddPassiveGrabToList(grab);
+    return AddPassiveGrabToList(client, grab);
 }
 
 
@@ -4815,7 +4815,7 @@ ProcGrabButton(ClientPtr client)
         stuff->button, confineTo, cursor);
     if (!grab)
 	return BadAlloc;
-    return AddPassiveGrabToList(grab);
+    return AddPassiveGrabToList(client, grab);
 }
 
 /**

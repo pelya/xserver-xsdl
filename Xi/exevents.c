@@ -566,7 +566,7 @@ GrabButton(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 		      DeviceButtonPress, button, confineTo, cursor);
     if (!grab)
 	return BadAlloc;
-    return AddPassiveGrabToList(grab);
+    return AddPassiveGrabToList(client, grab);
 }
 
 int
@@ -621,7 +621,7 @@ GrabKey(ClientPtr client, DeviceIntPtr dev, BYTE this_device_mode,
 		      NullWindow, NullCursor);
     if (!grab)
 	return BadAlloc;
-    return AddPassiveGrabToList(grab);
+    return AddPassiveGrabToList(client, grab);
 }
 
 int

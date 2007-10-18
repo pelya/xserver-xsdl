@@ -50,6 +50,7 @@ extern Bool GrabMatchesSecond(
 	GrabPtr /* pSecondGrab */);
 
 extern int AddPassiveGrabToList(
+	ClientPtr /* client */,
 	GrabPtr /* pGrab */);
 
 extern Bool DeletePassiveGrabFromList(
