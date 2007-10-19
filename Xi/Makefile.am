@@ -9,6 +9,8 @@ libXi_la_SOURCES =	\
         chdevcur.h \
 	chgdctl.c \
 	chgdctl.h \
+        chdevhier.c \
+        chdevhier.h \
 	chgfctl.c \
 	chgfctl.h \
 	chgkbd.c \
@@ -19,8 +21,6 @@ libXi_la_SOURCES =	\
 	chgprop.h \
 	chgptr.c \
 	chgptr.h \
-	chpkpair.c \
-	chpkpair.h \
 	chaccess.c \
 	chaccess.h \
 	closedev.c \

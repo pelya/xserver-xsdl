@@ -79,11 +79,11 @@ SOFTWARE.
 #include "chaccess.h"
 #include "chdevcur.h"
 #include "chgdctl.h"
+#include "chdevhier.h"
 #include "chgfctl.h"
 #include "chgkbd.h"
 #include "chgprop.h"
 #include "chgptr.h"
-#include "chpkpair.h"
 #include "closedev.h"
 #include "extgrbdev.h"
 #include "devbell.h"
@@ -328,8 +328,8 @@ ProcIDispatch(ClientPtr client)
         return (ProcXWarpDevicePointer(client));
     else if (stuff->data == X_ChangeDeviceCursor)
         return (ProcXChangeDeviceCursor(client));
-    else if (stuff->data == X_ChangePointerKeyboardPairing)
-        return (ProcXChangePointerKeyboardPairing(client));
+    else if (stuff->data == X_ChangeDeviceHierarchy)
+        return (ProcXChangeDeviceHierarchy(client));
     else if (stuff->data == X_XiSelectEvent)
         return (ProcXiSelectEvent(client));
     else if (stuff->data == X_RegisterPairingClient)
@@ -445,8 +445,8 @@ SProcIDispatch(ClientPtr client)
 	return (SProcXWarpDevicePointer(client));
     else if (stuff->data == X_ChangeDeviceCursor)
         return (SProcXChangeDeviceCursor(client));
-    else if (stuff->data == X_ChangePointerKeyboardPairing)
-        return (SProcXChangePointerKeyboardPairing(client));
+    else if (stuff->data == X_ChangeDeviceHierarchy)
+        return (SProcXChangeDeviceHierarchy(client));
     else if (stuff->data == X_XiSelectEvent)
         return (SProcXiSelectEvent(client));
     else if (stuff->data == X_RegisterPairingClient)
@@ -1153,10 +1153,6 @@ XIGEEventSwap(xGenericEvent* from, xGenericEvent* to)
     swaps(&from->sequenceNumber, n);
     switch(from->evtype)
     {
-        case XI_PointerKeyboardPairingChangedNotify:
-            SPointerKeyboardPairingChangedNotifyEvent
-                ((pairingChangedNotify*)from, (pairingChangedNotify*)to);
-            break;
         case XI_RawDeviceEvent:
             SRawDeviceEvent((rawDeviceEvent*)from, (rawDeviceEvent*)to);
             break;

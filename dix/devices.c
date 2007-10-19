@@ -2343,6 +2343,7 @@ AllocMasterDevice(char* name, DeviceIntPtr* ptr, DeviceIntPtr* keybd)
 {
     DeviceIntPtr pointer;
     DeviceIntPtr keyboard;
+    *ptr = *keybd = NULL;
 
     pointer = AddInputDevice(CorePointerProc, TRUE);
     if (!pointer)
