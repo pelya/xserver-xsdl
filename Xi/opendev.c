@@ -106,12 +106,6 @@ ProcXOpenDevice(ClientPtr client)
     REQUEST(xOpenDeviceReq);
     REQUEST_SIZE_MATCH(xOpenDeviceReq);
 
-    if (stuff->deviceid == inputInfo.pointer->id ||
-	stuff->deviceid == inputInfo.keyboard->id) {
-	SendErrorToClient(client, IReqCode, X_OpenDevice, 0, BadDevice);
-	return Success;
-    }
-
     if ((dev = LookupDeviceIntRec(stuff->deviceid)) == NULL) {	/* not open */
 	for (dev = inputInfo.off_devices; dev; dev = dev->next)
 	    if (dev->id == stuff->deviceid)
