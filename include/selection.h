@@ -62,8 +62,8 @@ typedef struct _Selection {
     Window window;
     WindowPtr pWin;
     ClientPtr client;
-    ClientPtr destclient; /* support for redirection */
-    Window destwindow;    /* support for redirection */
+    ClientPtr alt_client; /* support for redirection */
+    Window alt_window;    /* support for redirection */
     PrivateRec *devPrivates;
 } Selection;
 
