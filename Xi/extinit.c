@@ -236,8 +236,8 @@ Mask PropagateMask[MAX_DEVICES];
  */
 
 static XExtensionVersion thisversion = { XI_Present,
-    XI_Add_DevicePresenceNotify_Major,
-    XI_Add_DevicePresenceNotify_Minor
+    XI_2_Major,
+    XI_2_Minor
 };
 
 
