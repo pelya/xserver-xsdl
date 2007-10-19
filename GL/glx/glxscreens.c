@@ -469,8 +469,6 @@ addFullSet(__GLXscreen *pGlxScreen)
 	return;
     }
 
-    ErrorF("addFullSet, setting numVisuals to %d\n", pGlxScreen->numFBConfigs);
-
     pGlxScreen->numVisuals = pGlxScreen->numFBConfigs;
     for (i = 0, config = pGlxScreen->fbconfigs; config; config = config->next, i++) {
 	pGlxScreen->visuals[i] = config;
@@ -500,10 +498,24 @@ void __glXScreenInit(__GLXscreen *pGlxScreen, ScreenPtr pScreen)
 	glxGeneration = serverGeneration;
     }
 
+    pGlxScreen->pScreen       = pScreen;
+    pGlxScreen->GLextensions  = xstrdup(GLServerExtensions);
+    pGlxScreen->GLXvendor     = xstrdup(GLXServerVendorName);
+    pGlxScreen->GLXversion    = xstrdup(GLXServerVersion);
+    pGlxScreen->GLXextensions = xstrdup(GLXServerExtensions);
+
+    pGlxScreen->PositionWindow = pScreen->PositionWindow;
+    pScreen->PositionWindow = glxPositionWindow;
+ 
+    pGlxScreen->CloseScreen = pScreen->CloseScreen;
+    pScreen->CloseScreen = glxCloseScreen;
+
     i = 0;
     for (m = pGlxScreen->fbconfigs; m != NULL; m = m->next) {
 	m->fbconfigID = FakeClientID(0);
 	m->visualID = findVisualForConfig(pScreen, m);
+	ErrorF("mapping fbconfig id 0x%02lx to visual id 0x%02lx\n",
+	       m->fbconfigID, m->visualID);
 	i++;
     }
     pGlxScreen->numFBConfigs = i;
@@ -525,18 +537,6 @@ void __glXScreenInit(__GLXscreen *pGlxScreen, ScreenPtr pScreen)
 	addFullSet(pGlxScreen);
 	break;
     }
-
-    pGlxScreen->pScreen       = pScreen;
-    pGlxScreen->GLextensions  = xstrdup(GLServerExtensions);
-    pGlxScreen->GLXvendor     = xstrdup(GLXServerVendorName);
-    pGlxScreen->GLXversion    = xstrdup(GLXServerVersion);
-    pGlxScreen->GLXextensions = xstrdup(GLXServerExtensions);
-
-    pGlxScreen->PositionWindow = pScreen->PositionWindow;
-    pScreen->PositionWindow = glxPositionWindow;
- 
-    pGlxScreen->CloseScreen = pScreen->CloseScreen;
-    pScreen->CloseScreen = glxCloseScreen;
 
     pScreen->devPrivates[glxScreenPrivateIndex].ptr = (pointer) pGlxScreen;
 }
