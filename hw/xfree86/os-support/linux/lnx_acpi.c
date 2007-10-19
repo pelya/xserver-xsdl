@@ -69,9 +69,11 @@ lnxACPIGetEventFromOs(int fd, pmEvent *events, int num)
 	TimerSet(NULL, 0, ACPI_REOPEN_DELAY, lnxACPIReopen, NULL);
 	return 0;
     }
+    /* FIXME: this only processes the first read ACPI event & might break
+     * with interrupted reads. */
     
     /* Check that we have a video event */
-    if (strstr(ev, "video") == ev) {
+    if (!strncmp(ev, "video", 5)) {
 	char *video = NULL;
 	char *GFX = NULL;
 	char *notify = NULL;
@@ -97,26 +99,19 @@ lnxACPIGetEventFromOs(int fd, pmEvent *events, int num)
 	ErrorF("data: 0x%lx\n",data_l);
 #endif
 
-	/* We currently don't differentiate between any event */
+	/* Differentiate between events */
 	switch (notify_l) {
 		case ACPI_VIDEO_NOTIFY_SWITCH:
-			break;
-		case ACPI_VIDEO_NOTIFY_PROBE:
-			break;
 		case ACPI_VIDEO_NOTIFY_CYCLE:
-			break;
 		case ACPI_VIDEO_NOTIFY_NEXT_OUTPUT:
-			break;
 		case ACPI_VIDEO_NOTIFY_PREV_OUTPUT:
-			break;
+		    events[0] = XF86_APM_CAPABILITY_CHANGED;
+		    return 1;
+		case ACPI_VIDEO_NOTIFY_PROBE:
+		    return 0;
 		default:
-			break;
+		    return 0;
 	}
-
-	/* Deal with all ACPI events as a capability change */
-        events[0] = XF86_APM_CAPABILITY_CHANGED;
-
-	return 1;
     }
     
     return 0;
