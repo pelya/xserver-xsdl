@@ -143,6 +143,7 @@ SELinuxEventToSID(int type, SELinuxStateRec *sid_return)
 	    return BadAlloc;
 	memset(knownEvents + numKnownEvents, 0,
 	       (type - numKnownEvents + 1) * size);
+	numKnownEvents = type + 1;
     }
 
     if (!knownEvents[type]) {
@@ -180,6 +181,7 @@ SELinuxTypeToClass(RESTYPE type)
 	    return 0;
 	memset(knownTypes + numKnownTypes, 0,
 	       (type - numKnownTypes + 1) * size);
+	numKnownTypes = type + 1;
     }
 
     if (!knownTypes[type]) {
