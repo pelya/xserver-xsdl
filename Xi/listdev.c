@@ -177,9 +177,9 @@ CopySwapDevice(ClientPtr client, DeviceIntPtr d, int num_classes,
     dev->id = d->id;
     dev->type = d->type;
     dev->num_classes = num_classes;
-    if (d == inputInfo.keyboard)
+    if (d->isMaster && IsKeyboardDevice(d))
 	dev->use = IsXKeyboard;
-    else if (d == inputInfo.pointer)
+    else if (d->isMaster && IsPointerDevice(d))
 	dev->use = IsXPointer;
     else if (d->key && d->kbdfeed)
         dev->use = IsXExtensionKeyboard;
@@ -328,10 +328,6 @@ ProcXListInputDevices(ClientPtr client)
 
     AddOtherInputDevices();
 
-    SizeDeviceInfo(inputInfo.keyboard, &namesize, &size);
-    SizeDeviceInfo(inputInfo.pointer, &namesize, &size);
-    numdevs = 2;
-
     for (d = inputInfo.devices; d; d = d->next) {
 	SizeDeviceInfo(d, &namesize, &size);
         numdevs++;
@@ -348,11 +344,6 @@ ProcXListInputDevices(ClientPtr client)
     savbuf = devbuf;
 
     dev = (xDeviceInfoPtr) devbuf;
-    ListDeviceInfo(client, inputInfo.keyboard, dev++, 
-                   &devbuf, &classbuf, &namebuf);
-    ListDeviceInfo(client, inputInfo.pointer, dev++,
-                   &devbuf, &classbuf, &namebuf);
-
     for (d = inputInfo.devices; d; d = d->next, dev++)
 	ListDeviceInfo(client, d, dev, &devbuf, &classbuf, &namebuf);
     for (d = inputInfo.off_devices; d; d = d->next, dev++)
