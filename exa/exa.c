@@ -286,8 +286,9 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 
         (*pScreen->ModifyPixmapHeader)(pPixmap, w, h, 0, 0,
                                        paddedWidth, NULL);
-         pExaPixmap->driverPriv = driver_priv;
-         pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
+        pExaPixmap->driverPriv = driver_priv;
+        pExaPixmap->score = EXA_PIXMAP_SCORE_PINNED;
+        pExaPixmap->fb_ptr = NULL;
     } else {
          pExaPixmap->driverPriv = NULL;
          /* Glyphs have w/h equal to zero, and may not be migrated. See exaGlyphs. */
@@ -409,7 +410,7 @@ exaPixmapIsOffscreen(PixmapPtr p)
 
     save_ptr = p->devPrivate.ptr;
 
-    if (!save_ptr && pExaPixmap)
+    if (!save_ptr && pExaPixmap && !(pExaScr->info->flags & EXA_HANDLES_PIXMAPS))
 	p->devPrivate.ptr = ExaGetPixmapAddress(p);
 
     if (pExaScr->info->PixmapIsOffscreen)
@@ -459,7 +460,7 @@ ExaDoPrepareAccess(DrawablePtr pDrawable, int index)
     Bool	    offscreen = exaPixmapIsOffscreen(pPixmap);
 
     /* Unhide pixmap pointer */
-    if (pPixmap->devPrivate.ptr == NULL) {
+    if (pPixmap->devPrivate.ptr == NULL && !(pExaScr->info->flags & EXA_HANDLES_PIXMAPS)) {
 	pPixmap->devPrivate.ptr = ExaGetPixmapAddress(pPixmap);
     }
 
@@ -520,8 +521,7 @@ exaFinishAccess(DrawablePtr pDrawable, int index)
     ExaPixmapPriv  (pPixmap);
 
     /* Rehide pixmap pointer if we're doing that. */
-    if (pExaPixmap)
-    {
+    if (pExaPixmap && !(pExaScr->info->flags & EXA_HANDLES_PIXMAPS)) {
 	pPixmap->devPrivate.ptr = NULL;
     }
 

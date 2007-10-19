@@ -95,4 +95,7 @@ xf86GetMonitorModes (ScrnInfoPtr pScrn, XF86ConfMonitorPtr conf_monitor);
 DisplayModePtr
 xf86GetDefaultModes (Bool interlaceAllowed, Bool doubleScanAllowed);
 
+void
+xf86DDCApplyQuirks(int scrnIndex, xf86MonPtr DDC);
+
 #endif /* _XF86MODES_H_ */

@@ -389,8 +389,8 @@ xf86ValidateModesSync(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 
 	bad = TRUE;
 	for (i = 0; i < mon->nHsync; i++) {
-	    if (xf86ModeHSync(mode) >= mon->hsync[i].lo &&
-		xf86ModeHSync(mode) <= mon->hsync[i].hi)
+	    if (xf86ModeHSync(mode) >= mon->hsync[i].lo * (1-SYNC_TOLERANCE) &&
+		xf86ModeHSync(mode) <= mon->hsync[i].hi * (1+SYNC_TOLERANCE))
 	    {
 		bad = FALSE;
 	    }
@@ -400,8 +400,8 @@ xf86ValidateModesSync(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 
 	bad = TRUE;
 	for (i = 0; i < mon->nVrefresh; i++) {
-	    if (xf86ModeVRefresh(mode) >= mon->vrefresh[i].lo &&
-		xf86ModeVRefresh(mode) <= mon->vrefresh[i].hi)
+	    if (xf86ModeVRefresh(mode) >= mon->vrefresh[i].lo * (1-SYNC_TOLERANCE) &&
+		xf86ModeVRefresh(mode) <= mon->vrefresh[i].hi * (1+SYNC_TOLERANCE))
 	    {
 		bad = FALSE;
 	    }
@@ -434,7 +434,8 @@ xf86ValidateModesClocks(ScrnInfoPtr pScrn, DisplayModePtr modeList,
     for (mode = modeList; mode != NULL; mode = mode->next) {
 	Bool good = FALSE;
 	for (i = 0; i < n_ranges; i++) {
-	    if (mode->Clock >= min[i] && mode->Clock <= max[i]) {
+	    if (mode->Clock >= min[i] * (1-SYNC_TOLERANCE) &&
+		mode->Clock <= max[i] * (1+SYNC_TOLERANCE)) {
 		good = TRUE;
 		break;
 	    }

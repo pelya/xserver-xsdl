@@ -152,6 +152,9 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     int bpp = pDrawable->bitsPerPixel;
     Bool access_prepared = FALSE;
 
+    if (pExaPixmap->accel_blocked)
+	return FALSE;
+
     /* Don't bother with under 8bpp, XYPixmaps. */
     if (format != ZPixmap || bpp < 8)
 	return FALSE;
@@ -1134,7 +1137,8 @@ exaFillRegionSolid (DrawablePtr	pDrawable,
 	(*pExaScr->info->DoneSolid) (pPixmap);
 	exaMarkSync(pDrawable->pScreen);
 
-	if (pDrawable->width == 1 && pDrawable->height == 1 &&
+	if (!(pExaScr->info->flags & EXA_HANDLES_PIXMAPS) &&
+	    pDrawable->width == 1 && pDrawable->height == 1 &&
 	    pDrawable->bitsPerPixel != 24) {
 	    ExaPixmapPriv(pPixmap);
 

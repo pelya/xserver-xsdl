@@ -142,6 +142,7 @@ typedef enum {
 # define M_T_DEFAULT 0x10	/* (VESA) default modes */
 # define M_T_USERDEF 0x20	/* One of the modes from the config file */
 # define M_T_DRIVER  0x40	/* Supplied by the driver (EDID, etc) */
+# define M_T_USERPREF 0x80	/* mode preferred by the user config */
 
 /* Video mode */
 typedef struct _DisplayModeRec {

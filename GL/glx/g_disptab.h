@@ -34,7 +34,6 @@
 ** version 1.2.1 Specification.
 */
 
-extern int __glXDisp_GetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDisp_BindSwapBarrierSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDisp_QueryMaxSwapBarriersSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDisp_QueryHyperpipeNetworkSGIX(__GLXclientState *cl, GLbyte *pc);
@@ -42,7 +41,6 @@ extern int __glXDisp_DestroyHyperpipeConfigSGIX (__GLXclientState *cl, GLbyte *p
 extern int __glXDisp_QueryHyperpipeConfigSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDisp_HyperpipeConfigSGIX(__GLXclientState *cl, GLbyte *pc);
 
-extern int __glXDispSwap_GetDrawableAttributesSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDispSwap_BindSwapBarrierSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDispSwap_QueryMaxSwapBarriersSGIX(__GLXclientState *cl, GLbyte *pc);
 extern int __glXDispSwap_QueryHyperpipeNetworkSGIX(__GLXclientState *cl, GLbyte *pc);

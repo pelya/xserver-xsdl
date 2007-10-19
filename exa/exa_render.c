@@ -247,9 +247,23 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
     int nbox;
     int dst_off_x, dst_off_y;
     PixmapPtr pSrcPix, pDstPix;
+    ExaPixmapPrivPtr pSrcExaPix, pDstExaPix;
     CARD32 pixel;
     CARD16 red, green, blue, alpha;
     ExaMigrationRec pixmaps[1];
+
+    pDstPix = exaGetDrawablePixmap (pDst->pDrawable);
+    pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
+
+    pSrcExaPix = ExaGetPixmapPriv(pSrcPix);
+    pDstExaPix = ExaGetPixmapPriv(pDstPix);
+
+    /* Check whether the accelerator can use these pixmaps.
+     */
+    if (pSrcExaPix->accel_blocked || pDstExaPix->accel_blocked)
+    {
+	return -1;
+    }
 
     xDst += pDst->pDrawable->x;
     yDst += pDst->pDrawable->y;
@@ -261,12 +275,10 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 				   width, height))
 	return 1;
 
-    pDstPix = exaGetDrawablePixmap (pDst->pDrawable);
     exaGetDrawableDeltas (pDst->pDrawable, pDstPix, &dst_off_x, &dst_off_y);
 
     REGION_TRANSLATE(pScreen, &region, dst_off_x, dst_off_y);
 
-    pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
     pixel = exaGetPixmapFirstPixel (pSrcPix);
 
     pixmaps[0].as_dst = TRUE;
@@ -1202,6 +1214,7 @@ exaGlyphs (CARD8	op,
 	    y1 = y - glyph->info.y;
 
 	    if (x1 >= pCmpDrw->width || y1 >= pCmpDrw->height ||
+		glyph->info.width == 0 || glyph->info.height == 0 ||
 		(x1 + glyph->info.width) <= 0 || (y1 + glyph->info.height) <= 0)
 		goto nextglyph;
 

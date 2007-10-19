@@ -67,7 +67,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "dristruct.h"
 #include "xf86.h"
 #include "xf86drm.h"
-#include "glxserver.h"
 #include "mi.h"
 #include "mipointer.h"
 #include "xf86_OSproc.h"
@@ -972,24 +971,8 @@ static Bool
 DRICreateDummyContext(ScreenPtr pScreen, Bool needCtxPriv)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
-    __GLXscreen *pGLXScreen = __glXgetActiveScreen(pScreen->myNum);
-    __GLcontextModes *modes = pGLXScreen->modes;
-    void **pVisualConfigPriv = pGLXScreen->pVisualPriv;
     DRIContextPrivPtr pDRIContextPriv;
     void *contextStore;
-    VisualPtr visual;
-    int visNum;
-
-    visual = pScreen->visuals;
-
-    /* Find the X visual that corresponds the the first GLX visual */
-    for (visNum = 0;
-	 visNum < pScreen->numVisuals;
-	 visNum++, visual++) {
-	if (modes->visualID == visual->vid)
-	    break;
-    }
-    if (visNum == pScreen->numVisuals) return FALSE;
 
     if (!(pDRIContextPriv =
 	  DRICreateContextPriv(pScreen,
@@ -999,9 +982,9 @@ DRICreateDummyContext(ScreenPtr pScreen, Bool needCtxPriv)
 
     contextStore = DRIGetContextStore(pDRIContextPriv);
     if (pDRIPriv->pDriverInfo->CreateContext && needCtxPriv) {
-	if (!pDRIPriv->pDriverInfo->CreateContext(pScreen, visual,
+	if (!pDRIPriv->pDriverInfo->CreateContext(pScreen, NULL,
 						  pDRIPriv->pSAREA->dummy_context,
-						  *pVisualConfigPriv,
+						  NULL,
 						  (DRIContextType)(long)contextStore)) {
 	    DRIDestroyContextPriv(pDRIContextPriv);
 	    return FALSE;
@@ -1036,9 +1019,6 @@ DRICreateContext(ScreenPtr pScreen, VisualPtr visual,
                  XID context, drm_context_t * pHWContext)
 {
     DRIScreenPrivPtr pDRIPriv = DRI_SCREEN_PRIV(pScreen);
-    __GLXscreen *pGLXScreen = __glXgetActiveScreen(pScreen->myNum);
-    __GLcontextModes *modes = pGLXScreen->modes;
-    void **pVisualConfigPriv = pGLXScreen->pVisualPriv;
     DRIContextPrivPtr pDRIContextPriv;
     void *contextStore;
 
@@ -1050,26 +1030,14 @@ DRICreateContext(ScreenPtr pScreen, VisualPtr visual,
 	}
     }
 
-    /* Find the GLX visual associated with the one requested */
-    for (modes = pGLXScreen->modes; modes != NULL; modes = modes->next) {
-	if (modes->visualID == visual->vid)
-	    break;
-	pVisualConfigPriv++;
-    }
-
-    if (modes == NULL) {
-	/* No matching GLX visual found */
-	return FALSE;
-    }
-
     if (!(pDRIContextPriv = DRICreateContextPriv(pScreen, pHWContext, 0))) {
 	return FALSE;
     }
 
     contextStore = DRIGetContextStore(pDRIContextPriv);
     if (pDRIPriv->pDriverInfo->CreateContext) {
-	if (!((*pDRIPriv->pDriverInfo->CreateContext)(pScreen, visual,
-		*pHWContext, *pVisualConfigPriv,
+	if (!((*pDRIPriv->pDriverInfo->CreateContext)(pScreen, NULL,
+		*pHWContext, NULL,
 		(DRIContextType)(long)contextStore))) {
 	    DRIDestroyContextPriv(pDRIContextPriv);
 	    return FALSE;

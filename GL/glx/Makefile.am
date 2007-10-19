@@ -53,7 +53,6 @@ libglx_la_SOURCES = \
         glxserver.h \
         glxutil.c \
         glxutil.h \
-        glxvisuals.c \
         indirect_dispatch.c \
         indirect_dispatch.h \
         indirect_dispatch_swap.c \

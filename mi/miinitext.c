@@ -347,7 +347,6 @@ extern void DarwinGlxWrapInitVisuals(miInitVisualsProcPtr *);
 extern __GLXprovider __glXMesaProvider;
 extern void GlxPushProvider(__GLXprovider *impl);
 extern void GlxExtensionInit(INITARGS);
-extern void GlxWrapInitVisuals(miInitVisualsProcPtr *);
 #endif // INXDARWINAPP
 #endif // GLXEXT
 #ifdef XF86DRI
@@ -673,9 +672,7 @@ InitVisualWrap()
 {
     miResetInitVisuals();
 #ifdef GLXEXT
-#ifndef __DARWIN__
-    GlxWrapInitVisuals(&miInitVisualsProc);
-#else
+#ifdef __DARWIN__
     DarwinGlxWrapInitVisuals(&miInitVisualsProc);
 #endif
 #endif

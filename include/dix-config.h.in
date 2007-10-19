@@ -184,6 +184,9 @@
 /* Define to 1 if you have the <rpcsvc/dbm.h> header file. */
 #undef HAVE_RPCSVC_DBM_H
 
+/* Define to 1 if you have the `shmctl64' function. */
+#undef HAVE_SHMCTL64
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
@@ -424,6 +427,8 @@
 
 /* Support DRI extension */
 #undef XF86DRI
+
+#undef XEPHYR_DRI
 
 /* Build DBE support */
 #undef DBE

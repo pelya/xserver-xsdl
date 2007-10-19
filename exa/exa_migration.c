@@ -299,6 +299,9 @@ exaDoMoveInPixmap (ExaMigrationPtr migrate)
     if (pPixmap->drawable.bitsPerPixel < 8)
 	return;
 
+    if (pExaPixmap->accel_blocked)
+	return;
+
     if (pExaPixmap->area == NULL) {
 	pExaPixmap->area =
 	    exaOffscreenAlloc (pScreen, pExaPixmap->fb_size,
@@ -552,6 +555,9 @@ exaDoMigration (ExaMigrationPtr pixmaps, int npixmaps, Bool can_accel)
     ScreenPtr pScreen = pixmaps[0].pPix->drawable.pScreen;
     ExaScreenPriv(pScreen);
     int i, j;
+
+    if (pExaScr->info->flags & EXA_HANDLES_PIXMAPS)
+        return;
 
     /* If this debugging flag is set, check each pixmap for whether it is marked
      * as clean, and if so, actually check if that's the case.  This should help

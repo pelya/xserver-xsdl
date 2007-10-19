@@ -41,18 +41,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "colormap.h"
 #include "micmap.h"
 #include "globals.h"
-
-typedef struct __GLXscreen __GLXscreen;
-typedef struct __GLXprovider __GLXprovider;
-struct __GLXprovider {
-    __GLXscreen *(*screenProbe)(ScreenPtr pScreen);
-    const char    *name;
-    __GLXprovider *next;
-};
-
-extern void GlxPushProvider(__GLXprovider *provider);
-extern void GlxExtensionInit(void);
-extern void GlxWrapInitVisuals(miInitVisualsProcPtr *);
+#include "glxserver.h"
 
 static MODULESETUPPROTO(glxSetup);
 
@@ -114,7 +103,6 @@ static __GLXprovider __glXMesaProxyProvider = {
     NULL
 };
 
-
 static pointer
 glxSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 {
@@ -139,12 +127,22 @@ glxSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 	GlxPushProvider(provider);
     }
 
-    LoadExtension(&GLXExt, FALSE);
-    /* Wrap the init visuals routine in micmap.c */
-    GlxWrapInitVisuals(&miInitVisualsProc);
-    /* Make sure this gets wrapped each time InitVisualWrap is called */
-    miHookInitVisuals(NULL, GlxWrapInitVisuals);
+    switch (xf86Info.glxVisuals) {
+    case XF86_GlxVisualsMinimal:
+	GlxSetVisualConfig(GLX_MINIMAL_VISUALS);
+	xf86Msg(xf86Info.aiglxFrom, "Exporting only minimal set of GLX visuals\n");
+	break;
+    case XF86_GlxVisualsTypical:
+	GlxSetVisualConfig(GLX_TYPICAL_VISUALS);
+	xf86Msg(xf86Info.aiglxFrom, "Exporting typical set of GLX visuals\n");
+	break;
+    case XF86_GlxVisualsAll:
+	GlxSetVisualConfig(GLX_ALL_VISUALS);
+	xf86Msg(xf86Info.aiglxFrom, "Exporting all GLX visuals\n");
+	break;
+    }
 
- bail:
+    LoadExtension(&GLXExt, FALSE);
+
     return module;
 }
