@@ -329,6 +329,7 @@ autoConfigDevice(GDevPtr preconf_device)
     return ptr;
 }
 
+#ifdef __linux__
 static void
 matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip)
 {
@@ -421,6 +422,7 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
     xfree(line);
     closedir(idsdir);
 }
+#endif /* __linux__ */
 
 char*
 chooseVideoDriver(void)
@@ -448,24 +450,27 @@ chooseVideoDriver(void)
 	ErrorF("Primary device is not PCI\n");
     }
 
+#ifdef __linux__
     matchDriverFromFiles(matches, info->vendor_id, info->device_id);
+#endif /* __linux__ */
 
     /* TODO Handle multiple drivers claiming to support the same PCI ID */
     if (matches[0]) {
         chosen_driver = matches[0];
     } else {
-	chosen_driver = videoPtrToDriverName(info);
-    #if 0 /* Save for later */
-        #if defined  __i386__ || defined __amd64__ || defined __hurd__
-        chosen_driver = "vesa";
-        #elif defined __alpha__
-        chosen_driver = "vga";
-        #elif defined __sparc__
-        chosen_driver = "sunffb";
-        #else 
-        chosen_driver = "fbdev";
-        #endif
-    #endif
+	if (info != NULL)
+	    chosen_driver = videoPtrToDriverName(info);
+	if (chosen_driver == NULL) {
+#if defined  __i386__ || defined __amd64__ || defined __hurd__
+	    chosen_driver = "vesa";
+#elif defined __alpha__
+	    chosen_driver = "vga";
+#elif defined __sparc__
+	    chosen_driver = "sunffb";
+#else
+	    chosen_driver = "fbdev";
+#endif
+	}
     }
 
     xf86Msg(X_DEFAULT, "Matched %s for the autoconfigured driver\n", chosen_driver);
