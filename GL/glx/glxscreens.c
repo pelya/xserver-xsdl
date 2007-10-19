@@ -393,10 +393,7 @@ findFirstSet(unsigned int v)
 static void
 initGlxVisual(VisualPtr visual, __GLcontextModes *config)
 {
-    ErrorF("Adding visual 0x%02lx for fbconfig %d\n",
-	   visual->vid, config->fbconfigID);
-
-    config->visualID = visual[0].vid;
+    config->visualID = visual->vid;
     visual->class = _gl_convert_to_x_visual_type(config->visualType);
     visual->bitsPerRGBValue = config->redBits;
     visual->ColormapEntries = 1 << config->redBits;
@@ -411,37 +408,84 @@ initGlxVisual(VisualPtr visual, __GLcontextModes *config)
 }
 
 static void
-addGlxVisuals(__GLXscreen *pGlxScreen)
+addMinimalSet(__GLXscreen *pGlxScreen)
 {
     __GLcontextModes *config;
-    VisualPtr visual;
+    VisualPtr visuals;
+    int depth;
 
-    /* Select a subset of fbconfigs that we send to the client when it
-     * asks for the glx visuals.  All the fbconfigs here have a valid
-     * value for visual ID and each visual ID is only present once.
-     * This runs before composite adds its extra visual so we have to
-     * remember the number of visuals here.*/
-
-    /* For now, just add the first double buffer fbconfig. */
-    for (config = pGlxScreen->fbconfigs; config != NULL; config = config->next)
-	if (config->doubleBufferMode)
+    for (config = pGlxScreen->fbconfigs; config != NULL; config = config->next) {
+	if (config->visualRating != GLX_NONE)
+	    continue;
+	if (config->doubleBufferMode && config->depthBits > 0)
 	    break;
+    }
     if (config == NULL)
 	config = pGlxScreen->fbconfigs;
 
     pGlxScreen->visuals = xcalloc(1, sizeof (__GLcontextModes *));
-    visual = AddScreenVisuals(pGlxScreen->pScreen, 1, config->rgbBits);
-    if (visual == NULL) {
+    if (pGlxScreen->visuals == NULL) {
+	ErrorF("Failed to allocate for minimal set of GLX visuals\n");
+	return;
+    }
+
+    depth = config->redBits + config->greenBits + config->blueBits;
+    visuals = AddScreenVisuals(pGlxScreen->pScreen, 1, depth);
+    if (visuals == NULL) {
 	xfree(pGlxScreen->visuals);
 	return;
     }
 
     pGlxScreen->numVisuals = 1;
     pGlxScreen->visuals[0] = config;
-    initGlxVisual(&visual[0], config);
+    initGlxVisual(&visuals[0], config);
 }
 
-void __glXScreenInit(__GLXscreen *glxScreen, ScreenPtr pScreen)
+static void
+addTypicalSet(__GLXscreen *pGlxScreen)
+{
+    addMinimalSet(pGlxScreen);
+}
+
+static void
+addFullSet(__GLXscreen *pGlxScreen)
+{
+    __GLcontextModes *config;
+    VisualPtr visuals;
+    int i, depth;
+
+    pGlxScreen->visuals =
+	xcalloc(pGlxScreen->numFBConfigs, sizeof (__GLcontextModes *));
+    if (pGlxScreen->visuals == NULL) {
+	ErrorF("Failed to allocate for full set of GLX visuals\n");
+	return;
+    }
+
+    config = pGlxScreen->fbconfigs;
+    depth = config->redBits + config->greenBits + config->blueBits;
+    visuals = AddScreenVisuals(pGlxScreen->pScreen, pGlxScreen->numFBConfigs, depth);
+    if (visuals == NULL) {
+	xfree(pGlxScreen->visuals);
+	return;
+    }
+
+    ErrorF("addFullSet, setting numVisuals to %d\n", pGlxScreen->numFBConfigs);
+
+    pGlxScreen->numVisuals = pGlxScreen->numFBConfigs;
+    for (i = 0, config = pGlxScreen->fbconfigs; config; config = config->next, i++) {
+	pGlxScreen->visuals[i] = config;
+	initGlxVisual(&visuals[i], config);
+    }
+}
+
+static int glxVisualConfig = GLX_ALL_VISUALS;
+
+void GlxSetVisualConfig(int config)
+{
+    glxVisualConfig = config;
+}
+
+void __glXScreenInit(__GLXscreen *pGlxScreen, ScreenPtr pScreen)
 {
     static int glxGeneration;
     __GLcontextModes *m;
@@ -457,28 +501,44 @@ void __glXScreenInit(__GLXscreen *glxScreen, ScreenPtr pScreen)
     }
 
     i = 0;
-    for (m = glxScreen->fbconfigs; m != NULL; m = m->next) {
+    for (m = pGlxScreen->fbconfigs; m != NULL; m = m->next) {
 	m->fbconfigID = FakeClientID(0);
 	m->visualID = findVisualForConfig(pScreen, m);
 	i++;
     }
-    glxScreen->numFBConfigs = i;
+    pGlxScreen->numFBConfigs = i;
 
-    addGlxVisuals(glxScreen);
+    /* Select a subset of fbconfigs that we send to the client when it
+     * asks for the glx visuals.  All the fbconfigs here have a valid
+     * value for visual ID and each visual ID is only present once.
+     * This runs before composite adds its extra visual so we have to
+     * remember the number of visuals here.*/
 
-    glxScreen->pScreen       = pScreen;
-    glxScreen->GLextensions  = xstrdup(GLServerExtensions);
-    glxScreen->GLXvendor     = xstrdup(GLXServerVendorName);
-    glxScreen->GLXversion    = xstrdup(GLXServerVersion);
-    glxScreen->GLXextensions = xstrdup(GLXServerExtensions);
+    switch (glxVisualConfig) {
+    case GLX_MINIMAL_VISUALS:
+	addMinimalSet(pGlxScreen);
+	break;
+    case GLX_TYPICAL_VISUALS:
+	addTypicalSet(pGlxScreen);
+	break;
+    case GLX_ALL_VISUALS:
+	addFullSet(pGlxScreen);
+	break;
+    }
 
-    glxScreen->PositionWindow = pScreen->PositionWindow;
+    pGlxScreen->pScreen       = pScreen;
+    pGlxScreen->GLextensions  = xstrdup(GLServerExtensions);
+    pGlxScreen->GLXvendor     = xstrdup(GLXServerVendorName);
+    pGlxScreen->GLXversion    = xstrdup(GLXServerVersion);
+    pGlxScreen->GLXextensions = xstrdup(GLXServerExtensions);
+
+    pGlxScreen->PositionWindow = pScreen->PositionWindow;
     pScreen->PositionWindow = glxPositionWindow;
  
-    glxScreen->CloseScreen = pScreen->CloseScreen;
+    pGlxScreen->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = glxCloseScreen;
 
-    pScreen->devPrivates[glxScreenPrivateIndex].ptr = (pointer) glxScreen;
+    pScreen->devPrivates[glxScreenPrivateIndex].ptr = (pointer) pGlxScreen;
 }
  
 void __glXScreenDestroy(__GLXscreen *screen)

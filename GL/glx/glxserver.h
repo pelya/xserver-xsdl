@@ -95,6 +95,8 @@ extern __GLXclientState *glxGetClient(ClientPtr pClient);
 
 /************************************************************************/
 
+void GlxExtensionInit(void);
+
 void GlxSetVisualConfigs(int nconfigs, 
                          __GLXvisualConfig *configs, void **privates);
 
@@ -131,6 +133,14 @@ struct __GLXprovider {
 };
 
 void GlxPushProvider(__GLXprovider *provider);
+
+enum {
+    GLX_MINIMAL_VISUALS,
+    GLX_TYPICAL_VISUALS,
+    GLX_ALL_VISUALS
+};
+
+void GlxSetVisualConfig(int config);
 
 void __glXsetEnterLeaveServerFuncs(void (*enter)(GLboolean),
 				   void (*leave)(GLboolean));
