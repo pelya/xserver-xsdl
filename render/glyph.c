@@ -26,6 +26,7 @@
 #include <dix-config.h>
 #endif
 
+#include <stddef.h>  /* buggy openssl/sha.h wants size_t */
 #include <openssl/sha.h>
 
 #include "misc.h"
