@@ -366,7 +366,11 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
                     goto end;
                 }
                 /* Read the file */
+                #ifdef __GLIBC__
                 while ((read = getline(&line, &len, fp)) != -1) {
+                #else
+                while ((line = fgetln(fp, &len)) != (char *)NULL) {
+                #endif /* __GLIBC __ */
                     xchomp(line);
                     if (isdigit(line[0])) {
                         strncpy(vendor_str, line, 4);
