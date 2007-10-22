@@ -342,9 +342,10 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
     char path_name[256], vendor_str[5], chip_str[5];
     uint16_t vendor, chip;
     int i, j;
-    idsdir = opendir("/usr/share/xserver-xorg/pci");
 
+    idsdir = opendir(PCITXTIDSPATH);
     if (idsdir) {
+         xf86Msg(X_INFO, "Scanning %s directory for additional PCI ID's supported by the drivers\n", PCITXTIDSPATH);
         direntry = readdir(idsdir);
         /* Read the directory */
         while (direntry) {
@@ -356,8 +357,9 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
             /* A tiny bit of sanity checking. We should probably do better */
             if (strncmp(&(direntry->d_name[len-4]), ".ids", 4) == 0) {
                 /* We need the full path name to open the file */
-                strncpy(path_name, "/usr/share/xserver-xorg/pci/", 256);
-                strncat(path_name, direntry->d_name, (256 - strlen(path_name)));
+                strncpy(path_name, PCITXTIDSPATH, 256);
+                strncat(path_name, "/", 1);
+                strncat(path_name, direntry->d_name, (256 - strlen(path_name) - 1));
                 fp = fopen(path_name, "r");
                 if (fp == NULL) {
                     xf86Msg(X_ERROR, "Could not open %s for reading. Exiting.\n", path_name);
@@ -406,8 +408,7 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
                                     matches[i][j] = direntry->d_name[j];
                                 }
                             }
-                            xf86Msg(X_INFO, "Matched %s from file name %s in autoconfig\n", matches[i], direntry->d_name);
-
+                            xf86Msg(X_INFO, "Matched %s from file name %s\n", matches[i], direntry->d_name);
                         }
                     } else {
                         /* TODO Handle driver overrides here */
