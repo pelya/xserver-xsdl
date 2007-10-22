@@ -330,6 +330,10 @@ autoConfigDevice(GDevPtr preconf_device)
 }
 
 #ifdef __linux__
+/* This function is used to provide a workaround for binary drivers that
+ * don't export their PCI ID's properly. If distros don't end up using this
+ * feature it can and should be removed because the symbol-based resolution
+ * scheme should be the primary one */
 static void
 matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip)
 {
