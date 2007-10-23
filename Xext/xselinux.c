@@ -133,10 +133,11 @@ static pointer truep = (pointer)1;
  * Looks up the SID corresponding to the given event type
  */
 static int
-SELinuxEventToSID(int type, SELinuxStateRec *sid_return)
+SELinuxEventToSID(unsigned type, SELinuxStateRec *sid_return)
 {
     const char *name = LookupEventName(type);
     security_context_t con;
+    type &= 127;
 
     if (type >= numKnownEvents) {
 	/* Need to increase size of classes array */
