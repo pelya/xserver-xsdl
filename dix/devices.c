@@ -2205,16 +2205,18 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
  * Client is set to the client that issued the request, or NULL if it comes
  * from some internal automatic pairing.
  *
+ * Master may be NULL to set the device floating. 
+ *
  * We don't allow multi-layer hierarchies right now. You can't attach a slave
  * to another slave. 
  */
 int
 AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 {
-    if (!dev || !master)
+    if (!dev || dev->isMaster) 
         return BadDevice;
 
-    if (!master->isMaster) /* can't attach to slave device */
+    if (master && !master->isMaster) /* can't attach to slaves */
         return BadDevice;
 
     if (!pairingClient)
@@ -2222,8 +2224,27 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
     else if (client && pairingClient != client)
         return BadAccess;
 
+    /* set from floating to floating? */
+    if (!dev->u.master && !master)
+        return Success;
+
+    /* free the existing sprite. */
+    if (!dev->u.master && dev->spriteInfo->sprite)
+        xfree(dev->spriteInfo->sprite);
+
     dev->u.master = master;
-    dev->spriteInfo->sprite = master->spriteInfo->sprite;
+
+    /* If device is set to floating, we need to create a sprite for it,
+     * otherwise things go bad. However, we don't want to render the cursor,
+     * so we reset spriteOwner.
+     */
+    if (!master)
+    {
+                              /* current root window */
+        InitializeSprite(dev, dev->spriteInfo->sprite->spriteTrace[0]);
+        dev->spriteInfo->spriteOwner = FALSE;
+    } else
+        dev->spriteInfo->sprite = master->spriteInfo->sprite;
 
     return Success;
 }
