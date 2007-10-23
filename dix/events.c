@@ -1754,7 +1754,7 @@ DeliverEventsToWindow(WindowPtr pWin, xEvent *pEvents, int count,
 	    !((wOtherEventMasks(pWin)|pWin->eventMask) & filter))
 	    return 0;
 	if (XaceHook(XACE_RECEIVE_ACCESS, wClient(pWin), pWin, pEvents, count))
-	    nondeliveries--;
+	    /* do nothing */;
 	else if ( (attempt = TryClientEvents(wClient(pWin), pEvents, count,
 					     pWin->eventMask, filter, grab)) )
 	{
@@ -1785,7 +1785,7 @@ DeliverEventsToWindow(WindowPtr pWin, xEvent *pEvents, int count,
 	{
 	    if (XaceHook(XACE_RECEIVE_ACCESS, rClient(other), pWin, pEvents,
 			 count))
-		nondeliveries--;
+		/* do nothing */;
 	    else if ( (attempt = TryClientEvents(rClient(other), pEvents, count,
 					  other->mask[mskidx], filter, grab)) )
 	    {
@@ -1884,7 +1884,7 @@ MaybeDeliverEventsToClient(WindowPtr pWin, xEvent *pEvents,
 			wClient(pWin), NullGrab, pWin->eventMask, filter);
 #endif
 	if (XaceHook(XACE_RECEIVE_ACCESS, wClient(pWin), pWin, pEvents, count))
-	    return 0;
+	    return 1; /* don't send, but pretend we did */
 	return TryClientEvents(wClient(pWin), pEvents, count,
 			       pWin->eventMask, filter, NullGrab);
     }
@@ -1901,7 +1901,7 @@ MaybeDeliverEventsToClient(WindowPtr pWin, xEvent *pEvents,
 #endif
 	    if (XaceHook(XACE_RECEIVE_ACCESS, rClient(other), pWin, pEvents,
 			 count))
-		return 0;
+		return 1; /* don't send, but pretend we did */
 	    return TryClientEvents(rClient(other), pEvents, count,
 				   other->mask, filter, NullGrab);
 	}
@@ -2896,9 +2896,9 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
 	if (DeliverDeviceEvents(window, xE, NullGrab, focus, keybd, count))
 	    return;
     }
-    /* just deliver it to the focus window */
     if (XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, xE, count))
 	return;
+    /* just deliver it to the focus window */
     FixUpEventFromWindow(xE, focus, None, FALSE);
     if (xE->u.u.type & EXTENSION_EVENT_BASE)
 	mskidx = keybd->id;
@@ -2947,9 +2947,11 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
     if (!deliveries)
     {
 	FixUpEventFromWindow(xE, grab->window, None, TRUE);
-	if (!XaceHook(XACE_SEND_ACCESS, 0, thisDev, grab->window, xE, count) &&
-	    !XaceHook(XACE_RECEIVE_ACCESS, rClient(grab), grab->window, xE,
-		      count))
+	if (XaceHook(XACE_SEND_ACCESS, 0, thisDev, grab->window, xE, count) ||
+	    XaceHook(XACE_RECEIVE_ACCESS, rClient(grab), grab->window, xE,
+		     count))
+	    deliveries = 1; /* don't send, but pretend we did */
+	else
 	    deliveries = TryClientEvents(rClient(grab), xE, count,
 					 (Mask)grab->eventMask,
 					 filters[xE->u.u.type], grab);
