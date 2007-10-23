@@ -517,7 +517,7 @@ __attribute((noreturn))
 #ifdef DEBUG
 #define DebugF ErrorF
 #else
-#define DebugF(x, ...) /* */
+#define DebugF(...) /* */
 #endif
 
 extern void VErrorF(const char *f, va_list args);
