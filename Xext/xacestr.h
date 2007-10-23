@@ -112,7 +112,6 @@ typedef struct {
 typedef struct {
     ClientPtr client;
     Atom name;
-    Selection *selection;
     Mask access_mode;
     int status;
 } XaceSelectionAccessRec;

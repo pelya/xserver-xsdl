@@ -594,12 +594,15 @@ extern CallbackListPtr SelectionCallback;
 
 typedef enum {
     SelectionSetOwner,
+    SelectionGetOwner,
+    SelectionConvertSelection,
     SelectionWindowDestroy,
     SelectionClientClose
 } SelectionCallbackKind;
 
 typedef struct {
     struct _Selection	    *selection;
+    ClientPtr		    client;
     SelectionCallbackKind   kind;
 } SelectionInfoRec;
 
