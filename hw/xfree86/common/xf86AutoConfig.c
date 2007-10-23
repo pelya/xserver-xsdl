@@ -347,9 +347,9 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
     uint16_t vendor, chip;
     int i, j;
 
-    idsdir = opendir(PCITXTIDSPATH);
+    idsdir = opendir(PCI_TXT_IDS_PATH);
     if (idsdir) {
-         xf86Msg(X_INFO, "Scanning %s directory for additional PCI ID's supported by the drivers\n", PCITXTIDSPATH);
+         xf86Msg(X_INFO, "Scanning %s directory for additional PCI ID's supported by the drivers\n", PCI_TXT_IDS_PATH);
         direntry = readdir(idsdir);
         /* Read the directory */
         while (direntry) {
@@ -361,7 +361,7 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
             /* A tiny bit of sanity checking. We should probably do better */
             if (strncmp(&(direntry->d_name[len-4]), ".ids", 4) == 0) {
                 /* We need the full path name to open the file */
-                strncpy(path_name, PCITXTIDSPATH, 256);
+                strncpy(path_name, PCI_TXT_IDS_PATH, 256);
                 strncat(path_name, "/", 1);
                 strncat(path_name, direntry->d_name, (256 - strlen(path_name) - 1));
                 fp = fopen(path_name, "r");
