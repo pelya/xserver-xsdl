@@ -121,6 +121,9 @@ static struct security_class_mapping map[] = {
 /* forward declarations */
 static void SELinuxScreen(CallbackListPtr *, pointer, pointer);
 
+/* "true" pointer value for use as callback data */
+static pointer truep = (pointer)1;
+
 
 /*
  * Support Routines
@@ -832,8 +835,24 @@ ProcSELinuxDispatch(ClientPtr client)
 static void
 SELinuxResetProc(ExtensionEntry *extEntry)
 {
-    /* XXX unregister all callbacks here */
+    /* Unregister callbacks */
+    DeleteCallback(&ClientStateCallback, SELinuxClientState, NULL);
+    DeleteCallback(&ResourceStateCallback, SELinuxResourceState, NULL);
 
+    XaceDeleteCallback(XACE_EXT_DISPATCH, SELinuxExtension, NULL);
+    XaceDeleteCallback(XACE_RESOURCE_ACCESS, SELinuxResource, NULL);
+    XaceDeleteCallback(XACE_DEVICE_ACCESS, SELinuxDevice, NULL);
+    XaceDeleteCallback(XACE_PROPERTY_ACCESS, SELinuxProperty, NULL);
+    XaceDeleteCallback(XACE_SEND_ACCESS, SELinuxSend, NULL);
+    XaceDeleteCallback(XACE_RECEIVE_ACCESS, SELinuxReceive, NULL);
+    XaceDeleteCallback(XACE_CLIENT_ACCESS, SELinuxClient, NULL);
+    XaceDeleteCallback(XACE_EXT_ACCESS, SELinuxExtension, NULL);
+    XaceDeleteCallback(XACE_SERVER_ACCESS, SELinuxServer, NULL);
+//    XaceDeleteCallback(XACE_SELECTION_ACCESS, SELinuxSelection, NULL);
+    XaceDeleteCallback(XACE_SCREEN_ACCESS, SELinuxScreen, NULL);
+    XaceDeleteCallback(XACE_SCREENSAVER_ACCESS, SELinuxScreen, truep);
+
+    /* Tear down SELinux stuff */
     selabel_close(label_hnd);
     label_hnd = NULL;
 
@@ -842,6 +861,7 @@ SELinuxResetProc(ExtensionEntry *extEntry)
     avc_destroy();
     avc_active = 0;
 
+    /* Free local state */
     xfree(knownEvents);
     knownEvents = NULL;
     numKnownEvents = 0;
@@ -906,21 +926,21 @@ XSELinuxExtensionInit(INITARGS)
     ret &= dixRegisterPrivateInitFunc(stateKey, SELinuxStateInit, NULL);
     ret &= dixRegisterPrivateDeleteFunc(stateKey, SELinuxStateFree, NULL);
 
-    ret &= AddCallback(&ClientStateCallback, SELinuxClientState, 0);
-    ret &= AddCallback(&ResourceStateCallback, SELinuxResourceState, 0);
+    ret &= AddCallback(&ClientStateCallback, SELinuxClientState, NULL);
+    ret &= AddCallback(&ResourceStateCallback, SELinuxResourceState, NULL);
 
-    ret &= XaceRegisterCallback(XACE_EXT_DISPATCH, SELinuxExtension, 0);
-    ret &= XaceRegisterCallback(XACE_RESOURCE_ACCESS, SELinuxResource, 0);
-    ret &= XaceRegisterCallback(XACE_DEVICE_ACCESS, SELinuxDevice, 0);
-    ret &= XaceRegisterCallback(XACE_PROPERTY_ACCESS, SELinuxProperty, 0);
-    ret &= XaceRegisterCallback(XACE_SEND_ACCESS, SELinuxSend, 0);
-    ret &= XaceRegisterCallback(XACE_RECEIVE_ACCESS, SELinuxReceive, 0);
-    ret &= XaceRegisterCallback(XACE_CLIENT_ACCESS, SELinuxClient, 0);
-    ret &= XaceRegisterCallback(XACE_EXT_ACCESS, SELinuxExtension, 0);
-    ret &= XaceRegisterCallback(XACE_SERVER_ACCESS, SELinuxServer, 0);
-//    ret &= XaceRegisterCallback(XACE_SELECTION_ACCESS, SELinuxSelection, 0);
-    ret &= XaceRegisterCallback(XACE_SCREEN_ACCESS, SELinuxScreen, 0);
-    ret &= XaceRegisterCallback(XACE_SCREENSAVER_ACCESS, SELinuxScreen, &ret);
+    ret &= XaceRegisterCallback(XACE_EXT_DISPATCH, SELinuxExtension, NULL);
+    ret &= XaceRegisterCallback(XACE_RESOURCE_ACCESS, SELinuxResource, NULL);
+    ret &= XaceRegisterCallback(XACE_DEVICE_ACCESS, SELinuxDevice, NULL);
+    ret &= XaceRegisterCallback(XACE_PROPERTY_ACCESS, SELinuxProperty, NULL);
+    ret &= XaceRegisterCallback(XACE_SEND_ACCESS, SELinuxSend, NULL);
+    ret &= XaceRegisterCallback(XACE_RECEIVE_ACCESS, SELinuxReceive, NULL);
+    ret &= XaceRegisterCallback(XACE_CLIENT_ACCESS, SELinuxClient, NULL);
+    ret &= XaceRegisterCallback(XACE_EXT_ACCESS, SELinuxExtension, NULL);
+    ret &= XaceRegisterCallback(XACE_SERVER_ACCESS, SELinuxServer, NULL);
+//    ret &= XaceRegisterCallback(XACE_SELECTION_ACCESS, SELinuxSelection, NULL);
+    ret &= XaceRegisterCallback(XACE_SCREEN_ACCESS, SELinuxScreen, NULL);
+    ret &= XaceRegisterCallback(XACE_SCREENSAVER_ACCESS, SELinuxScreen, truep);
     if (!ret)
 	FatalError("XSELinux: Failed to register one or more callbacks\n");
 
