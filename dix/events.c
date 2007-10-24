@@ -1400,18 +1400,24 @@ ComputeFreezes(void)
                      * deliver it too.
                      * However, we might get here with a core event, in which
                      * case we mustn't emulate a core event.
-                     * XXX: I think this may break things. If a client has a
-                     * device grab, and another client a core grab on an
-                     * inferior window, we never get the core grab. (whot)
                      */
                     sendCore = (replayDev->coreEvents &&
                         (xE->u.u.type & EXTENSION_EVENT_BASE &&
                          XItoCoreType(xE->u.u.type)));
 
+
                     if (sendCore)
                     {
                         core = *xE;
                         core.u.u.type = XItoCoreType(xE->u.u.type);
+                        /* * XXX: Not sure if this is correct: we need to
+                         * check inferior windows for core passive grabs. 
+                         */
+                        if (CheckDeviceGrabs(replayDev, &core, i+1, 1))
+                        {
+                            syncEvents.playingEvents = FALSE;
+                            return;
+                        }
                     }
 		    if (replayDev->focus)
                     {
