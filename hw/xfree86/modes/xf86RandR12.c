@@ -426,8 +426,18 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 	    xf86OutputPtr   output = config->output[config->compat_output];
 	    xf86CrtcPtr	    crtc = output->crtc;
 
-	    if (crtc && crtc->mode.HDisplay &&
-		output->mm_width && output->mm_height)
+	    if (output->conf_monitor &&
+		(output->conf_monitor->mon_width  > 0 &&
+		 output->conf_monitor->mon_height > 0))
+	    {
+		/*
+		 * Prefer user configured DisplaySize
+		 */
+		mmWidth = output->conf_monitor->mon_width;
+		mmHeight = output->conf_monitor->mon_height;
+	    }
+	    else if (crtc && crtc->mode.HDisplay &&
+		     output->mm_width && output->mm_height)
 	    {
 		/*
 		 * If the output has a mode and a declared size, use that
