@@ -6206,7 +6206,9 @@ IsInterferingGrab(ClientPtr client, DeviceIntPtr dev, xEvent* event)
             if (it->deviceGrab.grab && SameClient(it->deviceGrab.grab, client)
                         && !it->deviceGrab.fromPassiveGrab)
             {
-                return TRUE;
+                if ((IsPointerDevice(it) && IsPointerDevice(dev)) ||
+                        (IsKeyboardDevice(it) && IsKeyboardDevice(dev)))
+                    return TRUE;
             }
         }
         it = it->next;
