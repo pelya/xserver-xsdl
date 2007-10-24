@@ -65,6 +65,15 @@ typedef struct {
     char *command;
 } SELinuxStateRec;
 
+/* selection manager */
+typedef struct {
+    Atom selection;
+    security_id_t sid;
+} SELinuxSelectionRec;
+
+static ClientPtr selectionManager;
+static Window selectionWindow;
+
 /* audit file descriptor */
 static int audit_fd;
 
@@ -99,6 +108,10 @@ static unsigned numKnownTypes;
 static security_id_t *knownEvents;
 static unsigned numKnownEvents;
 
+/* Array of selection SID structures */
+static SELinuxSelectionRec *knownSelections;
+static unsigned numKnownSelections;
+
 /* dynamically allocated security classes and permissions */
 static struct security_class_mapping map[] = {
     { "x_drawable", { "read", "write", "destroy", "create", "getattr", "setattr", "list_property", "get_property", "set_property", "", "", "list_child", "add_child", "remove_child", "hide", "show", "blend", "override", "", "", "", "", "send", "receive", "", "manage", NULL }},
@@ -128,6 +141,52 @@ static pointer truep = (pointer)1;
 /*
  * Support Routines
  */
+
+/*
+ * Looks up the SID corresponding to the given selection atom
+ */
+static int
+SELinuxSelectionToSID(Atom selection, SELinuxStateRec *sid_return)
+{
+    const char *name;
+    unsigned i, size;
+
+    for (i = 0; i < numKnownSelections; i++)
+	if (knownSelections[i].selection == selection) {
+	    sid_return->sid = knownSelections[i].sid;
+	    return Success;
+	}
+
+    /* Need to increase size of array */
+    i = numKnownSelections;
+    size = (i + 1) * sizeof(SELinuxSelectionRec);
+    knownSelections = xrealloc(knownSelections, size);
+    if (!knownSelections)
+	return BadAlloc;
+    knownSelections[i].selection = selection;
+
+    /* Look in the mappings of selection names to contexts */
+    name = NameForAtom(selection);
+    if (name) {
+	security_context_t con;
+	security_id_t sid;
+
+	if (selabel_lookup(label_hnd, &con, name, SELABEL_X_SELN) < 0) {
+	    ErrorF("XSELinux: a selection label lookup failed!\n");
+	    return BadValue;
+	}
+	/* Get a SID for context */
+	if (avc_context_to_sid(con, &sid) < 0) {
+	    ErrorF("XSELinux: a context_to_SID call failed!\n");
+	    return BadAlloc;
+	}
+	freecon(con);
+	knownSelections[i].sid = sid_return->sid = sid;
+    } else
+	knownSelections[i].sid = sid_return->sid = unlabeled_sid;
+
+    return Success;
+}
 
 /*
  * Looks up the SID corresponding to the given event type
@@ -240,10 +299,71 @@ SELinuxDoCheck(int clientIndex, SELinuxStateRec *subj, SELinuxStateRec *obj,
 }
 
 /*
+ * Labels a newly connected client.
+ */
+static void
+SELinuxLabelClient(ClientPtr client)
+{
+    XtransConnInfo ci = ((OsCommPtr)client->osPrivate)->trans_conn;
+    SELinuxStateRec *state;
+    security_context_t ctx;
+
+    state = dixLookupPrivate(&client->devPrivates, stateKey);
+    sidput(state->sid);
+
+    if (_XSERVTransIsLocal(ci)) {
+	int fd = _XSERVTransGetConnectionNumber(ci);
+	struct ucred creds;
+	socklen_t len = sizeof(creds);
+	char path[PATH_MAX + 1];
+	size_t bytes;
+
+	/* For local clients, can get context from the socket */
+	if (getpeercon(fd, &ctx) < 0)
+	    FatalError("Client %d: couldn't get context from socket\n",
+		       client->index);
+
+	/* Try and determine the client's executable name */
+	memset(&creds, 0, sizeof(creds));
+	if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &creds, &len) < 0)
+	    goto finish;
+
+	snprintf(path, PATH_MAX + 1, "/proc/%d/cmdline", creds.pid);
+	fd = open(path, O_RDONLY);
+	if (fd < 0)
+	    goto finish;
+
+	bytes = read(fd, path, PATH_MAX + 1);
+	close(fd);
+	if (bytes <= 0)
+	    goto finish;
+
+	state->command = xalloc(bytes);
+	if (!state->command)
+	    goto finish;
+
+	memcpy(state->command, path, bytes);
+	state->command[bytes - 1] = 0;
+    } else
+	/* For remote clients, need to use a default context */
+	if (selabel_lookup(label_hnd, &ctx, NULL, SELABEL_X_CLIENT) < 0)
+	    FatalError("Client %d: couldn't get default remote context\n",
+		       client->index);
+
+finish:
+    /* Get a SID from the context */
+    if (avc_context_to_sid(ctx, &state->sid) < 0)
+	FatalError("Client %d: context_to_sid(%s) failed\n",
+		   client->index, ctx);
+
+    freecon(ctx);
+}
+
+/*
  * Labels initial server objects.
  */
 static void
-SELinuxFixupLabels(void)
+SELinuxLabelInitial(void)
 {
     int i;
     XaceScreenAccessRec srec;
@@ -674,6 +794,28 @@ SELinuxServer(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	rec->status = rc;
 }
 
+static void
+SELinuxSelection(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+{
+    XaceSelectionAccessRec *rec = (XaceSelectionAccessRec *)calldata;
+    SELinuxStateRec *subj, sel_sid;
+    SELinuxAuditRec auditdata = { rec->client, NULL, 0, 0, 0, NULL };
+    int rc;
+
+    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
+
+    rc = SELinuxSelectionToSID(rec->name, &sel_sid);
+    if (rc != Success) {
+	rec->status = rc;
+	return;
+    }
+
+    rc = SELinuxDoCheck(rec->client->index, subj, &sel_sid,
+			SECCLASS_X_SELECTION, rec->access_mode, &auditdata);
+    if (rc != Success)
+	rec->status = rc;
+}
+
 
 /*
  * DIX Callbacks
@@ -683,63 +825,23 @@ static void
 SELinuxClientState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     NewClientInfoRec *pci = calldata;
-    ClientPtr client = pci->client;
-    XtransConnInfo ci = ((OsCommPtr)client->osPrivate)->trans_conn;
-    SELinuxStateRec *state;
-    security_context_t ctx;
 
-    if (client->clientState != ClientStateInitial)
-	return;
+    switch (pci->client->clientState) {
+    case ClientStateInitial:
+	SELinuxLabelClient(pci->client);
+	break;
 
-    state = dixLookupPrivate(&client->devPrivates, stateKey);
-    sidput(state->sid);
+    case ClientStateRetained:
+    case ClientStateGone:
+	if (pci->client == selectionManager) {
+	    selectionManager = NULL;
+	    selectionWindow = 0;
+	}
+	break;
 
-    if (_XSERVTransIsLocal(ci)) {
-	int fd = _XSERVTransGetConnectionNumber(ci);
-	struct ucred creds;
-	socklen_t len = sizeof(creds);
-	char path[PATH_MAX + 1];
-	size_t bytes;
-
-	/* For local clients, can get context from the socket */
-	if (getpeercon(fd, &ctx) < 0)
-	    FatalError("Client %d: couldn't get context from socket\n",
-		       client->index);
-
-	/* Try and determine the client's executable name */
-	memset(&creds, 0, sizeof(creds));
-	if (getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &creds, &len) < 0)
-	    goto finish;
-
-	snprintf(path, PATH_MAX + 1, "/proc/%d/cmdline", creds.pid);
-	fd = open(path, O_RDONLY);
-	if (fd < 0)
-	    goto finish;
-
-	bytes = read(fd, path, PATH_MAX + 1);
-	close(fd);
-	if (bytes <= 0)
-	    goto finish;
-
-	state->command = xalloc(bytes);
-	if (!state->command)
-	    goto finish;
-
-	memcpy(state->command, path, bytes);
-	state->command[bytes - 1] = 0;
-    } else
-	/* For remote clients, need to use a default context */
-	if (selabel_lookup(label_hnd, &ctx, NULL, SELABEL_X_CLIENT) < 0)
-	    FatalError("Client %d: couldn't get default remote context\n",
-		       client->index);
-
-finish:
-    /* Get a SID from the context */
-    if (avc_context_to_sid(ctx, &state->sid) < 0)
-	FatalError("Client %d: context_to_sid(%s) failed\n",
-		   client->index, ctx);
-
-    freecon(ctx);
+    default:
+	break;
+    }
 }
 
 static void
@@ -788,6 +890,50 @@ SELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	FatalError("XSELinux: Unexpected unlabeled window found\n");
 }
 
+static void
+SELinuxSelectionState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+{
+    SelectionInfoRec *rec = calldata;
+    SELinuxStateRec *subj, *obj;
+
+    switch (rec->kind) {
+    case SelectionSetOwner:
+	/* save off the "real" owner of the selection */
+	rec->selection->alt_client = rec->selection->client;
+	rec->selection->alt_window = rec->selection->window;
+
+	/* figure out the new label for the content */
+	subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
+	obj = dixLookupPrivate(&rec->selection->devPrivates, stateKey);
+	sidput(obj->sid);
+
+	if (avc_compute_create(subj->sid, subj->sid, SECCLASS_X_SELECTION,
+			       &obj->sid) < 0) {
+	    ErrorF("XSELinux: a compute_create call failed!\n");
+	    obj->sid = unlabeled_sid;
+	}
+	break;
+
+    case SelectionGetOwner:
+	/* restore the real owner */
+	rec->selection->window = rec->selection->alt_window;
+	break;
+
+    case SelectionConvertSelection:
+	/* redirect the convert request if necessary */
+	if (selectionManager && selectionManager != rec->client) {
+	    rec->selection->client = selectionManager;
+	    rec->selection->window = selectionWindow;
+	} else {
+	    rec->selection->client = rec->selection->alt_client;
+	    rec->selection->window = rec->selection->alt_window;
+	}
+	break;
+    default:
+	break;
+    }
+}
+
 
 /*
  * DevPrivates Callbacks
@@ -823,9 +969,108 @@ SELinuxStateFree(CallbackListPtr *pcbl, pointer unused, pointer calldata)
  */
 
 static int
+ProcSELinuxQueryVersion(ClientPtr client)
+{
+    SELinuxQueryVersionReply rep;
+    /*
+      REQUEST(SELinuxQueryVersionReq);
+      REQUEST_SIZE_MATCH (SELinuxQueryVersionReq);
+    */
+
+    rep.type = X_Reply;
+    rep.length = 0;
+    rep.sequenceNumber = client->sequence;
+    rep.server_major = XSELINUX_MAJOR_VERSION;
+    rep.server_minor = XSELINUX_MINOR_VERSION;
+    if (client->swapped) {
+	int n;
+	swaps(&rep.sequenceNumber, n);
+	swapl(&rep.length, n);
+	swaps(&rep.server_major, n);
+	swaps(&rep.server_minor, n);
+    }
+    WriteToClient(client, sizeof(rep), (char *)&rep);
+    return (client->noClientException);
+}
+
+static int
+ProcSELinuxSetSelectionManager(ClientPtr client)
+{
+    REQUEST(SELinuxSetSelectionManagerReq);
+    WindowPtr pWin;
+    int rc;
+
+    REQUEST_SIZE_MATCH(SELinuxSetSelectionManagerReq);
+
+    if (stuff->window == None) {
+	selectionManager = NULL;
+	selectionWindow = None;
+    } else {
+	rc = dixLookupResource((pointer *)&pWin, stuff->window, RT_WINDOW,
+			       client, DixGetAttrAccess);
+	if (rc != Success)
+	    return rc;
+
+	selectionManager = client;
+	selectionWindow = stuff->window;
+    }
+
+    return Success;
+}
+
+static int
 ProcSELinuxDispatch(ClientPtr client)
 {
-    return BadRequest;
+    REQUEST(xReq);
+    switch (stuff->data) {
+    case X_SELinuxQueryVersion:
+        return ProcSELinuxQueryVersion(client);
+    case X_SELinuxSetSelectionManager:
+	return ProcSELinuxSetSelectionManager(client);
+    default:
+	return BadRequest;
+    }
+}
+
+static int
+SProcSELinuxQueryVersion(ClientPtr client)
+{
+    REQUEST(SELinuxQueryVersionReq);
+    int n;
+
+    REQUEST_SIZE_MATCH (SELinuxQueryVersionReq);
+    swaps(&stuff->client_major,n);
+    swaps(&stuff->client_minor,n);
+    return ProcSELinuxQueryVersion(client);
+}
+
+static int
+SProcSELinuxSetSelectionManager(ClientPtr client)
+{
+    REQUEST(SELinuxSetSelectionManagerReq);
+    int n;
+
+    REQUEST_SIZE_MATCH (SELinuxSetSelectionManagerReq);
+    swapl(&stuff->window,n);
+    return ProcSELinuxSetSelectionManager(client);
+}
+
+static int
+SProcSELinuxDispatch(ClientPtr client)
+{
+    REQUEST(xReq);
+    int n;
+
+    swaps(&stuff->length, n);
+
+    switch (stuff->data) {
+    case X_SELinuxQueryVersion:
+        return SProcSELinuxQueryVersion(client);
+    case X_SELinuxSetSelectionManager:
+        return SProcSELinuxSetSelectionManager(client);
+    default:
+	return BadRequest;
+    }
 }
 
 
@@ -839,6 +1084,7 @@ SELinuxResetProc(ExtensionEntry *extEntry)
     /* Unregister callbacks */
     DeleteCallback(&ClientStateCallback, SELinuxClientState, NULL);
     DeleteCallback(&ResourceStateCallback, SELinuxResourceState, NULL);
+    DeleteCallback(&SelectionCallback, SELinuxSelectionState, NULL);
 
     XaceDeleteCallback(XACE_EXT_DISPATCH, SELinuxExtension, NULL);
     XaceDeleteCallback(XACE_RESOURCE_ACCESS, SELinuxResource, NULL);
@@ -849,7 +1095,7 @@ SELinuxResetProc(ExtensionEntry *extEntry)
     XaceDeleteCallback(XACE_CLIENT_ACCESS, SELinuxClient, NULL);
     XaceDeleteCallback(XACE_EXT_ACCESS, SELinuxExtension, NULL);
     XaceDeleteCallback(XACE_SERVER_ACCESS, SELinuxServer, NULL);
-//    XaceDeleteCallback(XACE_SELECTION_ACCESS, SELinuxSelection, NULL);
+    XaceDeleteCallback(XACE_SELECTION_ACCESS, SELinuxSelection, NULL);
     XaceDeleteCallback(XACE_SCREEN_ACCESS, SELinuxScreen, NULL);
     XaceDeleteCallback(XACE_SCREENSAVER_ACCESS, SELinuxScreen, truep);
 
@@ -863,6 +1109,10 @@ SELinuxResetProc(ExtensionEntry *extEntry)
     avc_active = 0;
 
     /* Free local state */
+    xfree(knownSelections);
+    knownSelections = NULL;
+    numKnownSelections = 0;
+
     xfree(knownEvents);
     knownEvents = NULL;
     numKnownEvents = 0;
@@ -929,6 +1179,7 @@ XSELinuxExtensionInit(INITARGS)
 
     ret &= AddCallback(&ClientStateCallback, SELinuxClientState, NULL);
     ret &= AddCallback(&ResourceStateCallback, SELinuxResourceState, NULL);
+    ret &= AddCallback(&SelectionCallback, SELinuxSelectionState, NULL);
 
     ret &= XaceRegisterCallback(XACE_EXT_DISPATCH, SELinuxExtension, NULL);
     ret &= XaceRegisterCallback(XACE_RESOURCE_ACCESS, SELinuxResource, NULL);
@@ -939,7 +1190,7 @@ XSELinuxExtensionInit(INITARGS)
     ret &= XaceRegisterCallback(XACE_CLIENT_ACCESS, SELinuxClient, NULL);
     ret &= XaceRegisterCallback(XACE_EXT_ACCESS, SELinuxExtension, NULL);
     ret &= XaceRegisterCallback(XACE_SERVER_ACCESS, SELinuxServer, NULL);
-//    ret &= XaceRegisterCallback(XACE_SELECTION_ACCESS, SELinuxSelection, NULL);
+    ret &= XaceRegisterCallback(XACE_SELECTION_ACCESS, SELinuxSelection, NULL);
     ret &= XaceRegisterCallback(XACE_SCREEN_ACCESS, SELinuxScreen, NULL);
     ret &= XaceRegisterCallback(XACE_SCREENSAVER_ACCESS, SELinuxScreen, truep);
     if (!ret)
@@ -948,9 +1199,9 @@ XSELinuxExtensionInit(INITARGS)
     /* Add extension to server */
     extEntry = AddExtension(XSELINUX_EXTENSION_NAME,
 			    XSELinuxNumberEvents, XSELinuxNumberErrors,
-			    ProcSELinuxDispatch, ProcSELinuxDispatch,
+			    ProcSELinuxDispatch, SProcSELinuxDispatch,
 			    SELinuxResetProc, StandardMinorOpcode);
 
     /* Label objects that were created before we could register ourself */
-    SELinuxFixupLabels();
+    SELinuxLabelInitial();
 }

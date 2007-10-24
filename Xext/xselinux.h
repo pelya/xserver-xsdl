@@ -29,6 +29,43 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define XSELinuxNumberEvents		0
 #define XSELinuxNumberErrors		0
 
+/* Extension protocol */
+#define X_SELinuxQueryVersion		0
+#define X_SELinuxSetSelectionManager	1
+
+typedef struct _SELinuxQueryVersion {
+    CARD8   reqType;
+    CARD8   SELinuxReqType;
+    CARD16  length;
+    CARD8   client_major;
+    CARD8   client_minor;
+    CARD16  unused;
+} SELinuxQueryVersionReq;
+#define sz_SELinuxQueryVersionReq 8
+
+typedef struct {
+    CARD8   type;
+    CARD8   pad1;
+    CARD16  sequenceNumber;
+    CARD32  length;
+    CARD16  server_major;
+    CARD16  server_minor;
+    CARD32  pad2;
+    CARD32  pad3;
+    CARD32  pad4;
+    CARD32  pad5;
+    CARD32  pad6; 
+} SELinuxQueryVersionReply;
+#define sz_SELinuxQueryVersionReply  32
+
+typedef struct _SELinuxSetSelectionManager {
+    CARD8   reqType;
+    CARD8   SELinuxReqType;
+    CARD16  length;
+    CARD32  window;
+} SELinuxSetSelectionManagerReq;
+#define sz_SELinuxSetSelectionManagerReq 8
+
 /* Private Flask definitions */
 #define SECCLASS_X_DRAWABLE		1
 #define SECCLASS_X_SCREEN		2
