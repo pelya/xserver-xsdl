@@ -194,7 +194,8 @@ SELinuxSelectionToSID(Atom selection, SELinuxStateRec *sid_return)
  * Looks up the SID corresponding to the given event type
  */
 static int
-SELinuxEventToSID(unsigned type, SELinuxStateRec *sid_return)
+SELinuxEventToSID(unsigned type, security_id_t sid_of_window,
+		  SELinuxStateRec *sid_return)
 {
     const char *name = LookupEventName(type);
     security_context_t con;
@@ -212,7 +213,7 @@ SELinuxEventToSID(unsigned type, SELinuxStateRec *sid_return)
     }
 
     if (!knownEvents[type]) {
-	/* Look in the mappings of property names to contexts */
+	/* Look in the mappings of event names to contexts */
 	if (selabel_lookup(label_hnd, &con, name, SELABEL_X_EVENT) < 0) {
 	    ErrorF("XSELinux: an event label lookup failed!\n");
 	    return BadValue;
@@ -225,7 +226,13 @@ SELinuxEventToSID(unsigned type, SELinuxStateRec *sid_return)
 	freecon(con);
     }
 
-    sid_return->sid = knownEvents[type];
+    /* Perform a transition to obtain the final SID */
+    if (avc_compute_create(sid_of_window, knownEvents[type], SECCLASS_X_EVENT,
+			   &sid_return->sid) < 0) {
+	ErrorF("XSELinux: a compute_create call failed!\n");
+	return BadValue;
+    }
+
     return Success;
 }
 
@@ -522,7 +529,7 @@ SELinuxSend(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     for (i = 0; i < rec->count; i++) {
 	SELinuxStateRec ev_sid;
 
-	rc = SELinuxEventToSID(rec->events[i].u.u.type, &ev_sid);
+	rc = SELinuxEventToSID(rec->events[i].u.u.type, obj->sid, &ev_sid);
 	if (rc != Success)
 	    goto err;
 
@@ -558,7 +565,7 @@ SELinuxReceive(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     for (i = 0; i < rec->count; i++) {
 	SELinuxStateRec ev_sid;
 
-	rc = SELinuxEventToSID(rec->events[i].u.u.type, &ev_sid);
+	rc = SELinuxEventToSID(rec->events[i].u.u.type, obj->sid, &ev_sid);
 	if (rc != Success)
 	    goto err;
 
