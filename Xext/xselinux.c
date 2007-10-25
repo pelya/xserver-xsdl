@@ -486,13 +486,9 @@ SELinuxDevice(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     if (rec->access_mode & DixCreateAccess) {
 	sidput(obj->sid);
 
-	/* Perform a transition to obtain the final SID */
-	if (avc_compute_create(subj->sid, subj->sid, SECCLASS_X_DEVICE,
-			       &obj->sid) < 0) {
-	    ErrorF("XSELinux: a compute_create call failed!\n");
-	    rec->status = BadValue;
-	    return;
-	}
+	/* Label the device directly with the process SID */
+	sidget(subj->sid);
+	obj->sid = subj->sid;
     }
 
     rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_DEVICE,
