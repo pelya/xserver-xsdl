@@ -185,10 +185,14 @@ __glXDRIdrawableDestroy(__GLXdrawable *drawable)
 
     (*private->driDrawable.destroyDrawable)(&private->driDrawable);
 
-    __glXenterServer(GL_FALSE);
-    DRIDestroyDrawable(drawable->pDraw->pScreen,
-		       serverClient, drawable->pDraw);
-    __glXleaveServer(GL_FALSE);
+    /* If the X window was destroyed, the dri DestroyWindow hook will
+     * aready have taken care of this, so only call if pDraw isn't NULL. */
+    if (drawable->pDraw != NULL) {
+	    __glXenterServer(GL_FALSE);
+	    DRIDestroyDrawable(drawable->pDraw->pScreen,
+			       serverClient, drawable->pDraw);
+	    __glXleaveServer(GL_FALSE);
+    }
 
     xfree(private);
 }
@@ -668,11 +672,16 @@ getDrawableInfo(__DRIdrawable *driDrawable,
 {
     __GLXDRIdrawable *drawable = containerOf(driDrawable,
 					     __GLXDRIdrawable, driDrawable);
-    ScreenPtr pScreen = drawable->base.pDraw->pScreen;
+    ScreenPtr pScreen;
     drm_clip_rect_t *pClipRects, *pBackClipRects;
     GLboolean retval;
     size_t size;
 
+    /* If the X window has been destroyed, give up here. */
+    if (drawable->base.pDraw == NULL)
+	return GL_FALSE;
+
+    pScreen = drawable->base.pDraw->pScreen;
     __glXenterServer(GL_FALSE);
     retval = DRIGetDrawableInfo(pScreen, drawable->base.pDraw, index, stamp,
 				x, y, width, height,

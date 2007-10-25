@@ -122,6 +122,8 @@ static Bool DrawableGone(__GLXdrawable *glxPriv, XID xid)
 	cx->pendingState |= __GLX_PENDING_DESTROY;
     }
 
+    glxPriv->pDraw = NULL;
+    glxPriv->drawId = 0;
     __glXUnrefDrawable(glxPriv);
 
     return True;
