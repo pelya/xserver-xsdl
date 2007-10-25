@@ -40,12 +40,15 @@
 #define GlyphFormatNum	5
 
 typedef struct _Glyph {
-    CARD32	refcnt;
+    CARD32	    refcnt;
     PrivateRec	*devPrivates;
-    CARD32	size;	/* info + bitmap */
-    xGlyphInfo	info;
-    /* bits follow */
+    unsigned char   sha1[20];
+    CARD32	    size; /* info + bitmap */
+    xGlyphInfo	    info;
+    /* per-screen pixmaps follow */
 } GlyphRec, *GlyphPtr;
+
+#define GlyphPicture(glyph) ((PicturePtr *) ((glyph) + 1))
 
 typedef struct _GlyphRef {
     CARD32	signature;
@@ -98,10 +101,19 @@ GlyphHashSetPtr
 FindGlyphHashSet (CARD32 filled);
 
 GlyphRefPtr
-FindGlyphRef (GlyphHashPtr hash, CARD32 signature, Bool match, GlyphPtr compare);
+FindGlyphRef (GlyphHashPtr	hash,
+	      CARD32		signature,
+	      Bool		match,
+	      unsigned char	sha1[20]);
 
-CARD32
-HashGlyph (GlyphPtr glyph);
+GlyphPtr
+FindGlyphByHash (unsigned char sha1[20], int format);
+
+int
+HashGlyph (xGlyphInfo    *gi,
+	   CARD8	 *bits,
+	   unsigned long size,
+	   unsigned char sha1[20]);
 
 void
 FreeGlyph (GlyphPtr glyph, int format);

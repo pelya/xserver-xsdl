@@ -205,9 +205,6 @@ _X_HIDDEN void *miLookupTab[] = {
     SYMVAR(miPointerScreenKey)
     SYMVAR(miInstalledMaps)
     SYMVAR(miInitVisualsProc)
-#ifdef RENDER
-    SYMFUNC(miGlyphExtents)
-#endif
 #ifdef DAMAGE
     SYMFUNC(DamageDamageRegion)
 #endif

@@ -42,10 +42,6 @@
 
 #include <damage.h>
 
-#ifdef XF86DRI
-#include <GL/internal/dri_interface.h>
-#endif
-
 /* We just need to avoid clashing with DRAWABLE_{WINDOW,PIXMAP} */
 enum {
     GLX_DRAWABLE_WINDOW,

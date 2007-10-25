@@ -83,14 +83,13 @@ struct __GLXscreen {
 
     ScreenPtr pScreen;
 
-    /**
-     * Linked list of valid context modes for this screen.
-     */
-    __GLcontextModes *modes;
+    /* Linked list of valid fbconfigs for this screen. */
+    __GLcontextModes *fbconfigs;
+    int numFBConfigs;
 
-    void **pVisualPriv;
+    /* Subset of fbconfigs that are exposed as GLX visuals. */
+    __GLcontextModes **visuals;
     GLint numVisuals;
-    GLint numUsableVisuals;
 
     char *GLextensions;
 

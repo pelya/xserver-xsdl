@@ -299,6 +299,9 @@ exaDoMoveInPixmap (ExaMigrationPtr migrate)
     if (pPixmap->drawable.bitsPerPixel < 8)
 	return;
 
+    if (pExaPixmap->accel_blocked)
+	return;
+
     if (pExaPixmap->area == NULL) {
 	pExaPixmap->area =
 	    exaOffscreenAlloc (pScreen, pExaPixmap->fb_size,

@@ -700,6 +700,17 @@ the builtin handler will be used.
 .BI "Option \*qAIGLX\*q \*q" boolean \*q
 enable or disable AIGLX. AIGLX is enabled by default.
 .TP 7
+.BI "Option \*qGlxVisuals\*q \*q" string \*q
+This option controls how many GLX visuals the GLX modules sets up.
+The default value is
+.BR "typical" ,
+which will setup up a typical subset of
+the GLXFBConfigs provided by the driver as GLX visuals.  Other options are
+.BR "minimal" ,
+which will set up the minimal set allowed by the GLX specification and
+.BR "all"
+which will setup GLX visuals for all GLXFBConfigs.
+.TP 7
 .BI "Option \*qUseDefaultFontPath\*q \*q" boolean \*q
 Include the default font path even if other paths are specified in
 xorg.conf. If enabled, other font paths are included as well. Enabled by

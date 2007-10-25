@@ -329,6 +329,11 @@ autoConfigDevice(GDevPtr preconf_device)
     return ptr;
 }
 
+#ifdef __linux__
+/* This function is used to provide a workaround for binary drivers that
+ * don't export their PCI ID's properly. If distros don't end up using this
+ * feature it can and should be removed because the symbol-based resolution
+ * scheme should be the primary one */
 static void
 matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip)
 {
@@ -341,9 +346,10 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
     char path_name[256], vendor_str[5], chip_str[5];
     uint16_t vendor, chip;
     int i, j;
-    idsdir = opendir("/usr/share/xserver-xorg/pci");
 
+    idsdir = opendir(PCI_TXT_IDS_PATH);
     if (idsdir) {
+         xf86Msg(X_INFO, "Scanning %s directory for additional PCI ID's supported by the drivers\n", PCI_TXT_IDS_PATH);
         direntry = readdir(idsdir);
         /* Read the directory */
         while (direntry) {
@@ -355,15 +361,20 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
             /* A tiny bit of sanity checking. We should probably do better */
             if (strncmp(&(direntry->d_name[len-4]), ".ids", 4) == 0) {
                 /* We need the full path name to open the file */
-                strncpy(path_name, "/usr/share/xserver-xorg/pci/", 256);
-                strncat(path_name, direntry->d_name, (256 - strlen(path_name)));
+                strncpy(path_name, PCI_TXT_IDS_PATH, 256);
+                strncat(path_name, "/", 1);
+                strncat(path_name, direntry->d_name, (256 - strlen(path_name) - 1));
                 fp = fopen(path_name, "r");
                 if (fp == NULL) {
                     xf86Msg(X_ERROR, "Could not open %s for reading. Exiting.\n", path_name);
                     goto end;
                 }
                 /* Read the file */
+                #ifdef __GLIBC__
                 while ((read = getline(&line, &len, fp)) != -1) {
+                #else
+                while ((line = fgetln(fp, &len)) != (char *)NULL) {
+                #endif /* __GLIBC __ */
                     xchomp(line);
                     if (isdigit(line[0])) {
                         strncpy(vendor_str, line, 4);
@@ -405,8 +416,7 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
                                     matches[i][j] = direntry->d_name[j];
                                 }
                             }
-                            xf86Msg(X_INFO, "Matched %s from file name %s in autoconfig\n", matches[i], direntry->d_name);
-
+                            xf86Msg(X_INFO, "Matched %s from file name %s\n", matches[i], direntry->d_name);
                         }
                     } else {
                         /* TODO Handle driver overrides here */
@@ -421,6 +431,7 @@ matchDriverFromFiles (char** matches, uint16_t match_vendor, uint16_t match_chip
     xfree(line);
     closedir(idsdir);
 }
+#endif /* __linux__ */
 
 char*
 chooseVideoDriver(void)
@@ -448,24 +459,27 @@ chooseVideoDriver(void)
 	ErrorF("Primary device is not PCI\n");
     }
 
+#ifdef __linux__
     matchDriverFromFiles(matches, info->vendor_id, info->device_id);
+#endif /* __linux__ */
 
     /* TODO Handle multiple drivers claiming to support the same PCI ID */
     if (matches[0]) {
         chosen_driver = matches[0];
     } else {
-	chosen_driver = videoPtrToDriverName(info);
-    #if 0 /* Save for later */
-        #if defined  __i386__ || defined __amd64__ || defined __hurd__
-        chosen_driver = "vesa";
-        #elif defined __alpha__
-        chosen_driver = "vga";
-        #elif defined __sparc__
-        chosen_driver = "sunffb";
-        #else 
-        chosen_driver = "fbdev";
-        #endif
-    #endif
+	if (info != NULL)
+	    chosen_driver = videoPtrToDriverName(info);
+	if (chosen_driver == NULL) {
+#if defined  __i386__ || defined __amd64__ || defined __hurd__
+	    chosen_driver = "vesa";
+#elif defined __alpha__
+	    chosen_driver = "vga";
+#elif defined __sparc__
+	    chosen_driver = "sunffb";
+#else
+	    chosen_driver = "fbdev";
+#endif
+	}
     }
 
     xf86Msg(X_DEFAULT, "Matched %s for the autoconfigured driver\n", chosen_driver);

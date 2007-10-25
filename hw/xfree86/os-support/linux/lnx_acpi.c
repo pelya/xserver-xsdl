@@ -23,11 +23,11 @@
 #define ACPI_VIDEO_NOTIFY_NEXT_OUTPUT	0x83
 #define ACPI_VIDEO_NOTIFY_PREV_OUTPUT	0x84
 
-#define ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS	0x82
-#define	ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS	0x83
-#define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS	0x84
-#define ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS	0x85
-#define ACPI_VIDEO_NOTIFY_DISPLAY_OFF		0x86
+#define ACPI_VIDEO_NOTIFY_CYCLE_BRIGHTNESS	0x85
+#define	ACPI_VIDEO_NOTIFY_INC_BRIGHTNESS	0x86
+#define ACPI_VIDEO_NOTIFY_DEC_BRIGHTNESS	0x87
+#define ACPI_VIDEO_NOTIFY_ZERO_BRIGHTNESS	0x88
+#define ACPI_VIDEO_NOTIFY_DISPLAY_OFF		0x89
 
 #define ACPI_VIDEO_HEAD_INVALID		(~0u - 1)
 #define ACPI_VIDEO_HEAD_END		(~0u)
@@ -69,9 +69,11 @@ lnxACPIGetEventFromOs(int fd, pmEvent *events, int num)
 	TimerSet(NULL, 0, ACPI_REOPEN_DELAY, lnxACPIReopen, NULL);
 	return 0;
     }
+    /* FIXME: this only processes the first read ACPI event & might break
+     * with interrupted reads. */
     
     /* Check that we have a video event */
-    if (strstr(ev, "video") == ev) {
+    if (!strncmp(ev, "video", 5)) {
 	char *video = NULL;
 	char *GFX = NULL;
 	char *notify = NULL;
@@ -97,26 +99,19 @@ lnxACPIGetEventFromOs(int fd, pmEvent *events, int num)
 	ErrorF("data: 0x%lx\n",data_l);
 #endif
 
-	/* We currently don't differentiate between any event */
+	/* Differentiate between events */
 	switch (notify_l) {
 		case ACPI_VIDEO_NOTIFY_SWITCH:
-			break;
-		case ACPI_VIDEO_NOTIFY_PROBE:
-			break;
 		case ACPI_VIDEO_NOTIFY_CYCLE:
-			break;
 		case ACPI_VIDEO_NOTIFY_NEXT_OUTPUT:
-			break;
 		case ACPI_VIDEO_NOTIFY_PREV_OUTPUT:
-			break;
+		    events[0] = XF86_APM_CAPABILITY_CHANGED;
+		    return 1;
+		case ACPI_VIDEO_NOTIFY_PROBE:
+		    return 0;
 		default:
-			break;
+		    return 0;
 	}
-
-	/* Deal with all ACPI events as a capability change */
-        events[0] = XF86_APM_CAPABILITY_CHANGED;
-
-	return 1;
     }
     
     return 0;

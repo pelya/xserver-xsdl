@@ -64,6 +64,8 @@ typedef enum {
      * maximum size and use that.
      */
     DDC_QUIRK_DETAILED_USE_MAXIMUM_SIZE = 1 << 5,
+    /* Monitor forgot to set the first detailed is preferred bit. */
+    DDC_QUIRK_FIRST_DETAILED_PREFERRED = 1 << 6,
 } ddc_quirk_t;
 
 static Bool quirk_prefer_large_60 (int scrnIndex, xf86MonPtr DDC)
@@ -147,6 +149,16 @@ static Bool quirk_135_clock_too_high (int scrnIndex, xf86MonPtr DDC)
     return FALSE;
 }
 
+static Bool quirk_first_detailed_preferred (int scrnIndex, xf86MonPtr DDC)
+{
+    /* Philips 107p5 CRT. Reported on xorg@ with pastebin. */
+    if (memcmp (DDC->vendor.name, "PHL", 4) == 0 &&
+	DDC->vendor.prod_id == 57364)
+	return TRUE;
+
+    return FALSE;
+}
+
 typedef struct {
     Bool	(*detect) (int scrnIndex, xf86MonPtr DDC);
     ddc_quirk_t	quirk;
@@ -177,6 +189,10 @@ static const ddc_quirk_map_t ddc_quirks[] = {
     {
 	quirk_detailed_use_maximum_size,   DDC_QUIRK_DETAILED_USE_MAXIMUM_SIZE,
 	"Detailed timings give sizes in cm."
+    },
+    {
+	quirk_first_detailed_preferred, DDC_QUIRK_FIRST_DETAILED_PREFERRED,
+	"First detailed timing was not marked as preferred."
     },
     { 
 	NULL,		DDC_QUIRK_NONE,
@@ -257,7 +273,7 @@ DDCModesFromStandardTiming(int scrnIndex, struct std_timings *timing,
  */
 static DisplayModePtr
 DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
-			  int preferred, ddc_quirk_t quirks)
+			  Bool preferred, ddc_quirk_t quirks)
 {
     DisplayModePtr Mode;
 
@@ -470,9 +486,10 @@ xf86DDCSetPreferredRefresh(int scrnIndex, DisplayModePtr modes,
 _X_EXPORT DisplayModePtr
 xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
 {
-    int preferred, i;
+    int		    i;
     DisplayModePtr  Modes = NULL, Mode;
     ddc_quirk_t	    quirks;
+    Bool	    preferred;
 
     xf86DrvMsg (scrnIndex, X_INFO, "EDID vendor \"%s\", prod id %d\n",
 		DDC->vendor.name, DDC->vendor.prod_id);
@@ -480,8 +497,10 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
     quirks = xf86DDCDetectQuirks(scrnIndex, DDC, TRUE);
 
     preferred = PREFERRED_TIMING_MODE(DDC->features.msc);
-    if (quirks & DDC_QUIRK_PREFER_LARGE_60)
-	preferred = 0;
+    if (quirks & DDC_QUIRK_FIRST_DETAILED_PREFERRED)
+	preferred = TRUE;
+    if (quirks & (DDC_QUIRK_PREFER_LARGE_60 | DDC_QUIRK_PREFER_LARGE_75))
+	preferred = FALSE;
 
     for (i = 0; i < DET_TIMINGS; i++) {
 	struct detailed_monitor_section *det_mon = &DDC->det_mon[i];
@@ -492,7 +511,7 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
                                              &det_mon->section.d_timings,
 					     preferred,
 					     quirks);
-	    preferred = 0;
+	    preferred = FALSE;
             Modes = xf86ModesAdd(Modes, Mode);
             break;
         case DS_STD_TIMINGS:

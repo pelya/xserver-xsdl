@@ -112,4 +112,7 @@
 /* Have execinfo.h */
 #undef HAVE_EXECINFO_H
 
+/* Path to text files containing PCI IDs */
+#undef PCI_TXT_IDS_PATH
+
 #endif /* _XORG_CONFIG_H_ */

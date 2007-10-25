@@ -152,6 +152,9 @@ exaDoPutImage (DrawablePtr pDrawable, GCPtr pGC, int depth, int x, int y,
     int bpp = pDrawable->bitsPerPixel;
     Bool access_prepared = FALSE;
 
+    if (pExaPixmap->accel_blocked)
+	return FALSE;
+
     /* Don't bother with under 8bpp, XYPixmaps. */
     if (format != ZPixmap || bpp < 8)
 	return FALSE;
@@ -655,7 +658,7 @@ exaPolylines(DrawablePtr pDrawable, GCPtr pGC, int mode, int npt,
     x1 = ppt[0].x;
     y1 = ppt[0].y;
     /* If we have any non-horizontal/vertical, fall back. */
-    for (i = 0; i < npt; i++) {
+    for (i = 0; i < npt - 1; i++) {
 	if (mode == CoordModePrevious) {
 	    x2 = x1 + ppt[i + 1].x;
 	    y2 = y1 + ppt[i + 1].y;

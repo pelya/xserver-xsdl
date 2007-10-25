@@ -247,9 +247,23 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
     int nbox;
     int dst_off_x, dst_off_y;
     PixmapPtr pSrcPix, pDstPix;
+    ExaPixmapPrivPtr pSrcExaPix, pDstExaPix;
     CARD32 pixel;
     CARD16 red, green, blue, alpha;
     ExaMigrationRec pixmaps[1];
+
+    pDstPix = exaGetDrawablePixmap (pDst->pDrawable);
+    pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
+
+    pSrcExaPix = ExaGetPixmapPriv(pSrcPix);
+    pDstExaPix = ExaGetPixmapPriv(pDstPix);
+
+    /* Check whether the accelerator can use these pixmaps.
+     */
+    if (pSrcExaPix->accel_blocked || pDstExaPix->accel_blocked)
+    {
+	return -1;
+    }
 
     xDst += pDst->pDrawable->x;
     yDst += pDst->pDrawable->y;
@@ -261,12 +275,10 @@ exaTryDriverSolidFill(PicturePtr	pSrc,
 				   width, height))
 	return 1;
 
-    pDstPix = exaGetDrawablePixmap (pDst->pDrawable);
     exaGetDrawableDeltas (pDst->pDrawable, pDstPix, &dst_off_x, &dst_off_y);
 
     REGION_TRANSLATE(pScreen, &region, dst_off_x, dst_off_y);
 
-    pSrcPix = exaGetDrawablePixmap (pSrc->pDrawable);
     pixel = exaGetPixmapFirstPixel (pSrcPix);
 
     pixmaps[0].as_dst = TRUE;
@@ -983,357 +995,5 @@ exaTriangles (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 	
 	for (; ntri; ntri--, tris++)
 	    exaTriangles (op, pSrc, pDst, maskFormat, xSrc, ySrc, 1, tris);
-    }
-}
-
-/**
- * Returns TRUE if the glyphs in the lists intersect.  Only checks based on
- * bounding box, which appears to be good enough to catch most cases at least.
- */
-static Bool
-exaGlyphsIntersect(int nlist, GlyphListPtr list, GlyphPtr *glyphs)
-{
-    int x1, x2, y1, y2;
-    int n;
-    GlyphPtr glyph;
-    int x, y;
-    BoxRec extents;
-    Bool first = TRUE;
-    
-    x = 0;
-    y = 0;
-    while (nlist--) {
-	x += list->xOff;
-	y += list->yOff;
-	n = list->len;
-	list++;
-	while (n--) {
-	    glyph = *glyphs++;
-
-	    if (glyph->info.width == 0 || glyph->info.height == 0) {
-		x += glyph->info.xOff;
-		y += glyph->info.yOff;
-		continue;
-	    }
-
-	    x1 = x - glyph->info.x;
-	    if (x1 < MINSHORT)
-		x1 = MINSHORT;
-	    y1 = y - glyph->info.y;
-	    if (y1 < MINSHORT)
-		y1 = MINSHORT;
-	    x2 = x1 + glyph->info.width;
-	    if (x2 > MAXSHORT)
-		x2 = MAXSHORT;
-	    y2 = y1 + glyph->info.height;
-	    if (y2 > MAXSHORT)
-		y2 = MAXSHORT;
-
-	    if (first) {
-		extents.x1 = x1;
-		extents.y1 = y1;
-		extents.x2 = x2;
-		extents.y2 = y2;
-		first = FALSE;
-	    } else {
-		if (x1 < extents.x2 && x2 > extents.x1 &&
-		    y1 < extents.y2 && y2 > extents.y1)
-		{
-		    return TRUE;
-		}
-
-		if (x1 < extents.x1)
-		    extents.x1 = x1;
-		if (x2 > extents.x2)
-		    extents.x2 = x2;
-		if (y1 < extents.y1)
-		    extents.y1 = y1;
-		if (y2 > extents.y2)
-		    extents.y2 = y2;
-	    }
-	    x += glyph->info.xOff;
-	    y += glyph->info.yOff;
-	}
-    }
-
-    return FALSE;
-}
-
-#define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
-
-/* exaGlyphs is a slight variation on miGlyphs, to support acceleration.  The
- * issue is that miGlyphs' use of ModifyPixmapHeader makes it impossible to
- * migrate these pixmaps.  So, instead we create a pixmap at the beginning of
- * the loop and upload each glyph into the pixmap before compositing.
- *
- * This is now used even when Composite can't be accelerated for better
- * migration control.
- */
-void
-exaGlyphs (CARD8	op,
-	  PicturePtr	pSrc,
-	  PicturePtr	pDst,
-	  PictFormatPtr	maskFormat,
-	  INT16		xSrc,
-	  INT16		ySrc,
-	  int		nlist,
-	  GlyphListPtr	list,
-	  GlyphPtr	*glyphs)
-{
-    ExaScreenPriv (pDst->pDrawable->pScreen);
-    PixmapPtr	pPixmap = NULL;
-    PicturePtr	pPicture;
-    PixmapPtr   pMaskPixmap = NULL;
-    PicturePtr  pMask;
-    ScreenPtr   pScreen = pDst->pDrawable->pScreen;
-    int		width = 0, height = 0;
-    int		x, y, x1, y1;
-    int		xDst = list->xOff, yDst = list->yOff;
-    int		n;
-    int		error;
-    BoxRec	extents;
-    CARD32	component_alpha;
-
-    /* If we have a mask format but it's the same as all the glyphs and
-     * the glyphs don't intersect, we can avoid accumulating the glyphs in the
-     * temporary picture.
-     */
-    if (maskFormat != NULL) {
-	Bool sameFormat = TRUE;
-	int i;
-
-	for (i = 0; i < nlist; i++) {
-	    if (maskFormat->format != list[i].format->format) {
-		sameFormat = FALSE;
-		break;
-	    }
-	}
-	if (sameFormat) {
-	    if (!exaGlyphsIntersect(nlist, list, glyphs)) {
-		maskFormat = NULL;
-	    }
-	}
-    }
-
-    if (maskFormat)
-    {
-	GCPtr	    pGC;
-	xRectangle  rect;
-	
-	miGlyphExtents (nlist, list, glyphs, &extents);
-
-	extents.x1 = max(extents.x1, 0);
-	extents.y1 = max(extents.y1, 0);
-	extents.x2 = min(extents.x2, pDst->pDrawable->width);
-	extents.y2 = min(extents.y2, pDst->pDrawable->height);
-
-	if (extents.x2 <= extents.x1 || extents.y2 <= extents.y1)
-	    return;
-	width = extents.x2 - extents.x1;
-	height = extents.y2 - extents.y1;
-	pMaskPixmap = (*pScreen->CreatePixmap) (pScreen, width, height,
-						maskFormat->depth);
-	if (!pMaskPixmap)
-	    return;
-	component_alpha = NeedsComponent(maskFormat->format);
-	pMask = CreatePicture (0, &pMaskPixmap->drawable,
-			       maskFormat, CPComponentAlpha, &component_alpha,
-			       serverClient, &error);
-	if (!pMask)
-	{
-	    (*pScreen->DestroyPixmap) (pMaskPixmap);
-	    return;
-	}
-	ValidatePicture(pMask);
-	pGC = GetScratchGC (pMaskPixmap->drawable.depth, pScreen);
-	ValidateGC (&pMaskPixmap->drawable, pGC);
-	rect.x = 0;
-	rect.y = 0;
-	rect.width = width;
-	rect.height = height;
-	ExaCheckPolyFillRect (&pMaskPixmap->drawable, pGC, 1, &rect);
-	if (pExaScr->info->PrepareComposite)
-	    (*pGC->ops->PolyFillRect) (&pMaskPixmap->drawable, pGC, 1, &rect);
-	else
-	    exaPixmapDirty(pMaskPixmap, 0, 0, width, height);
-	FreeScratchGC (pGC);
-	x = -extents.x1;
-	y = -extents.y1;
-    }
-    else
-    {
-	pMask = pDst;
-	x = 0;
-	y = 0;
-    }
-
-    while (nlist--)
-    {
-	GCPtr pGC = NULL;
-	int maxwidth = 0, maxheight = 0, i;
-	ExaMigrationRec pixmaps[1];
-	PixmapPtr pScratchPixmap = NULL;
-
-	x += list->xOff;
-	y += list->yOff;
-	n = list->len;
-	for (i = 0; i < n; i++) {
-	    if (glyphs[i]->info.width > maxwidth)
-		maxwidth = glyphs[i]->info.width;
-	    if (glyphs[i]->info.height > maxheight)
-		maxheight = glyphs[i]->info.height;
-	}
-	if (maxwidth == 0 || maxheight == 0) {
-	    while (n--)
-	    {
-		GlyphPtr glyph;
-
-		glyph = *glyphs++;
-		x += glyph->info.xOff;
-		y += glyph->info.yOff;
-	    }
-	    list++;
-	    continue;
-	}
-
-	/* Create the (real) temporary pixmap to store the current glyph in */
-	pPixmap = (*pScreen->CreatePixmap) (pScreen, maxwidth, maxheight,
-					    list->format->depth);
-	if (!pPixmap)
-	    return;
-
-	/* Create a temporary picture to wrap the temporary pixmap, so it can be
-	 * used as a source for Composite.
-	 */
-	component_alpha = NeedsComponent(list->format->format);
-	pPicture = CreatePicture (0, &pPixmap->drawable, list->format,
-				  CPComponentAlpha, &component_alpha, 
-				  serverClient, &error);
-	if (!pPicture) {
-	    (*pScreen->DestroyPixmap) (pPixmap);
-	    return;
-	}
-	ValidatePicture(pPicture);
-
-	/* Give the temporary pixmap an initial kick towards the screen, so
-	 * it'll stick there.
-	 */
-	pixmaps[0].as_dst = TRUE;
-	pixmaps[0].as_src = FALSE;
-	pixmaps[0].pPix = pPixmap;
-	pixmaps[0].pReg = NULL;
-	exaDoMigration (pixmaps, 1, pExaScr->info->PrepareComposite != NULL);
-
-	while (n--)
-	{
-	    GlyphPtr glyph = *glyphs++;
-	    pointer glyphdata = (pointer) (glyph + 1);
-	    DrawablePtr pCmpDrw = (maskFormat ? pMask : pDst)->pDrawable;
-
-	    x1 = x - glyph->info.x;
-	    y1 = y - glyph->info.y;
-
-	    if (x1 >= pCmpDrw->width || y1 >= pCmpDrw->height ||
-		(x1 + glyph->info.width) <= 0 || (y1 + glyph->info.height) <= 0)
-		goto nextglyph;
-
-	    (*pScreen->ModifyPixmapHeader) (pScratchPixmap, 
-					    glyph->info.width,
-					    glyph->info.height,
-					    0, 0, -1, glyphdata);
-
-	    /* Copy the glyph data into the proper pixmap instead of a fake.
-	     * First we try to use UploadToScreen, if we can, then we fall back
-	     * to a plain exaCopyArea in case of failure.
-	     */
-	    if (pExaScr->info->UploadToScreen &&
-		exaPixmapIsOffscreen(pPixmap) &&
-		(*pExaScr->info->UploadToScreen) (pPixmap, 0, 0,
-					glyph->info.width,
-					glyph->info.height,
-					glyphdata,
-					PixmapBytePad(glyph->info.width,
-						      list->format->depth)))
-	    {
-		exaMarkSync (pScreen);
-	    } else {
-		/* Set up the scratch pixmap/GC for doing a CopyArea. */
-		if (pScratchPixmap == NULL) {
-		    /* Get a scratch pixmap to wrap the original glyph data */
-		    pScratchPixmap = GetScratchPixmapHeader (pScreen,
-							glyph->info.width,
-							glyph->info.height, 
-							list->format->depth,
-							list->format->depth, 
-							-1, glyphdata);
-		    if (!pScratchPixmap) {
-			FreePicture(pPicture, 0);
-			(*pScreen->DestroyPixmap) (pPixmap);
-			return;
-		    }
-	
-		    /* Get a scratch GC with which to copy the glyph data from
-		     * scratch to temporary
-		     */
-		    pGC = GetScratchGC (list->format->depth, pScreen);
-		    ValidateGC (&pPixmap->drawable, pGC);
-		} else {
-		    (*pScreen->ModifyPixmapHeader) (pScratchPixmap, 
-						    glyph->info.width,
-						    glyph->info.height,
-						    0, 0, -1, glyphdata);
-		    pScratchPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
-		}
-
-#ifdef MITSHM
-		if (pExaScr->info->PrepareComposite)
-		    exaShmPutImage(&pPixmap->drawable, pGC,
-				   pPixmap->drawable.depth, ZPixmap,
-				   glyph->info.width, glyph->info.height, 0, 0,
-				   glyph->info.width, glyph->info.height, 0, 0,
-				   glyphdata);
-		else
-#endif
-		exaCopyArea (&pScratchPixmap->drawable, &pPixmap->drawable, pGC,
-			     0, 0, glyph->info.width, glyph->info.height, 0, 0);
-	    }
-
-	    exaPixmapDirty (pPixmap, 0, 0,
-			    glyph->info.width, glyph->info.height);
-
-	    if (maskFormat)
-	    {
-		exaComposite (PictOpAdd, pPicture, NULL, pMask, 0, 0, 0, 0,
-			      x1, y1, glyph->info.width, glyph->info.height);
-		exaPixmapDirty(pMaskPixmap, x1, y1, x1 + glyph->info.width,
-			       y1 + glyph->info.height);
-	    }
-	    else
-	    {
-		exaComposite (op, pSrc, pPicture, pDst,
-			      xSrc + x1 - xDst, ySrc + y1 - yDst,
-			      0, 0, x1, y1, glyph->info.width,
-			      glyph->info.height);
-	    }
-nextglyph:
-	    x += glyph->info.xOff;
-	    y += glyph->info.yOff;
-	}
-	list++;
-	if (pGC != NULL)
-	    FreeScratchGC (pGC);
-	FreePicture ((pointer) pPicture, 0);
-	(*pScreen->DestroyPixmap) (pPixmap);
-	if (pScratchPixmap != NULL)
-	    FreeScratchPixmapHeader (pScratchPixmap);
-    }
-    if (maskFormat)
-    {
-	x = extents.x1;
-	y = extents.y1;
-	exaComposite (op, pSrc, pMask, pDst, xSrc + x - xDst, ySrc + y - yDst,
-		      0, 0, x, y, width, height);
-	FreePicture ((pointer) pMask, (XID) 0);
-	(*pScreen->DestroyPixmap) (pMaskPixmap);
     }
 }

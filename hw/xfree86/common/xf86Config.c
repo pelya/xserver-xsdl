@@ -792,6 +792,7 @@ typedef enum {
     FLAG_USE_DEFAULT_FONT_PATH,
     FLAG_AUTO_ADD_DEVICES,
     FLAG_AUTO_ENABLE_DEVICES,
+    FLAG_GLX_VISUALS,
 } FlagValues;
    
 static OptionInfoRec FlagOptions[] = {
@@ -873,6 +874,8 @@ static OptionInfoRec FlagOptions[] = {
         {0}, TRUE },
   { FLAG_AUTO_ENABLE_DEVICES,    "AutoEnableDevices",                   OPTV_BOOLEAN,
         {0}, TRUE },
+  { FLAG_GLX_VISUALS,		"GlxVisuals",			OPTV_STRING,
+        {0}, FALSE },
   { -1,				NULL,				OPTV_NONE,
 	{0}, FALSE },
 };
@@ -904,6 +907,7 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     Pix24Flags pix24 = Pix24DontCare;
     Bool value;
     MessageType from;
+    const char *s;
 
     /*
      * Merge the ServerLayout and ServerFlags options.  The former have
@@ -1021,7 +1025,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     if (xf86GetOptValBool(FlagOptions, FLAG_NOPM, &value)) 
 	xf86Info.pmFlag = !value;
     {
-	const char *s;
 	if ((s = xf86GetOptValString(FlagOptions, FLAG_LOG))) {
 	    if (!xf86NameCmp(s,"flush")) {
 		xf86Msg(X_CONFIG, "Flushing logfile enabled\n");
@@ -1040,8 +1043,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     
 #ifdef RENDER
     {
-	const char *s;
-
 	if ((s = xf86GetOptValString(FlagOptions, FLAG_RENDER_COLORMAP_MODE))){
 	    int policy = PictureParseCmapPolicy (s);
 	    if (policy == PictureCmapPolicyInvalid)
@@ -1055,7 +1056,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     }
 #endif
     {
-	const char *s;
 	if ((s = xf86GetOptValString(FlagOptions, FLAG_HANDLE_SPECIAL_KEYS))) {
 	    if (!xf86NameCmp(s,"always")) {
 		xf86Msg(X_CONFIG, "Always handling special keys in DDX\n");
@@ -1092,6 +1092,27 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 	xf86Info.aiglx = value;
 	xf86Info.aiglxFrom = X_CONFIG;
     }
+
+#ifdef GLXEXT
+    xf86Info.glxVisuals = XF86_GlxVisualsAll;
+    xf86Info.glxVisualsFrom = X_DEFAULT;
+    if ((s = xf86GetOptValString(FlagOptions, FLAG_GLX_VISUALS))) {
+	if (!xf86NameCmp(s, "minimal")) {
+	    xf86Info.glxVisuals = XF86_GlxVisualsMinimal;
+	} else if (!xf86NameCmp(s, "typical")) {
+	    xf86Info.glxVisuals = XF86_GlxVisualsTypical;
+	} else if (!xf86NameCmp(s, "all")) {
+	    xf86Info.glxVisuals = XF86_GlxVisualsAll;
+	} else {
+	    xf86Msg(X_WARNING,"Unknown HandleSpecialKeys option\n");
+	}
+    }
+
+    if (xf86GetOptValBool(FlagOptions, FLAG_AIGLX, &value)) {
+	xf86Info.aiglx = value;
+	xf86Info.aiglxFrom = X_CONFIG;
+    }
+#endif
 
     xf86Info.allowEmptyInput = FALSE;
     if (xf86GetOptValBool(FlagOptions, FLAG_ALLOW_EMPTY_INPUT, &value))

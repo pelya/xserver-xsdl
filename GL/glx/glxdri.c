@@ -658,64 +658,6 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
     return &private->base;
 }
 
-
-static unsigned
-filter_modes(__GLcontextModes **server_modes,
-	     const __GLcontextModes *driver_modes)
-{
-    __GLcontextModes * m;
-    __GLcontextModes ** prev_next;
-    const __GLcontextModes * check;
-    unsigned modes_count = 0;
-
-    if ( driver_modes == NULL ) {
-	LogMessage(X_WARNING,
-		   "AIGLX: 3D driver returned no fbconfigs.\n");
-	return 0;
-    }
-
-    /* For each mode in server_modes, check to see if a matching mode exists
-     * in driver_modes.  If not, then the mode is not available.
-     */
-
-    prev_next = server_modes;
-    for ( m = *prev_next ; m != NULL ; m = *prev_next ) {
-	GLboolean do_delete = GL_TRUE;
-
-	for ( check = driver_modes ; check != NULL ; check = check->next ) {
-	    if ( _gl_context_modes_are_same( m, check ) ) {
-		do_delete = GL_FALSE;
-		break;
-	    }
-	}
-
-	/* The 3D has to support all the modes that match the GLX visuals
-	 * sent from the X server.
-	 */
-	if ( do_delete && (m->visualID != 0) ) {
-	    do_delete = GL_FALSE;
-
-	    LogMessage(X_WARNING,
-		       "AIGLX: 3D driver claims to not support "
-		       "visual 0x%02x\n", m->visualID);
-	}
-
-	if ( do_delete ) {
-	    *prev_next = m->next;
-
-	    m->next = NULL;
-	    _gl_context_modes_destroy( m );
-	}
-	else {
-	    modes_count++;
-	    prev_next = & m->next;
-	}
-    }
-
-    return modes_count;
-}
-
-
 static GLboolean
 getDrawableInfo(__DRIdrawable *driDrawable,
 		unsigned int *index, unsigned int *stamp,
@@ -923,7 +865,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     char *driverName;
     drm_handle_t  hFB;
     int        junk;
-    __GLcontextModes * driver_modes;
     __GLXDRIscreen *screen;
     void *dev_priv = NULL;
     char filename[128];
@@ -1073,7 +1014,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 	goto handle_error;
     }
     
-    driver_modes = NULL;
     screen->driScreen.private =
 	(*createNewScreen)(pScreen->myNum,
 			   &screen->driScreen,
@@ -1085,7 +1025,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 			   fd,
 			   api_ver,
 			   &interface_methods,
-			   &driver_modes);
+			   &screen->base.fbconfigs);
 
     if (screen->driScreen.private == NULL) {
 	LogMessage(X_ERROR, "AIGLX error: Calling driver entry point failed");
@@ -1109,10 +1049,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 	(void) __glXGetExtensionString(screen->glx_enable_bits, 
 				       screen->base.GLXextensions);
     }
-
-
-    filter_modes(&screen->base.modes, driver_modes);
-    _gl_context_modes_destroy(driver_modes);
 
     __glXsetEnterLeaveServerFuncs(__glXDRIenterServer, __glXDRIleaveServer);
 

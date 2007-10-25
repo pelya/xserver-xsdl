@@ -392,7 +392,7 @@ void glxSuspendClients(void)
     int i;
 
     for (i = 1; i < currentMaxClients; i++) {
-	if (glxGetClient(clients[i])->inUse)
+	if (clients[i] && glxGetClient(clients[i])->inUse)
 	    IgnoreClient(clients[i]);
     }
 
@@ -407,7 +407,7 @@ void glxResumeClients(void)
     glxBlockClients = FALSE;
 
     for (i = 1; i < currentMaxClients; i++) {
-	if (glxGetClient(clients[i])->inUse)
+	if (clients[i] && glxGetClient(clients[i])->inUse)
 	    AttendClient(clients[i]);
     }
 
