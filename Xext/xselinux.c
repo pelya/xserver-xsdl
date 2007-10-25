@@ -545,7 +545,7 @@ SELinuxReceive(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceReceiveAccessRec *rec = calldata;
     SELinuxStateRec *subj, *obj;
-    SELinuxAuditRec auditdata = { .client = rec->client };
+    SELinuxAuditRec auditdata = { .client = NULL };
     int rc, i;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
