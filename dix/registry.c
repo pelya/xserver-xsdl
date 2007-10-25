@@ -134,6 +134,7 @@ LookupRequestName(int major, int minor)
 const char *
 LookupEventName(int event)
 {
+    event &= 127;
     if (event >= nevent)
 	return XREGISTRY_UNKNOWN;
 
@@ -153,7 +154,6 @@ const char *
 LookupResourceName(RESTYPE resource)
 {
     resource &= TypeMask;
-
     if (resource >= nresource)
 	return XREGISTRY_UNKNOWN;
 
