@@ -190,7 +190,6 @@ DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
 		__GLXscreen *pGlxScreen, GLboolean isDirect)
 {
     ClientPtr client = cl->client;
-    VisualPtr pVisual;
     __GLXcontext *glxc, *shareglxc;
 
     LEGAL_NEW_RESOURCE(gcId, client);
@@ -250,7 +249,6 @@ DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
     */
     glxc->pScreen = pGlxScreen->pScreen;
     glxc->pGlxScreen = pGlxScreen;
-    glxc->pVisual = pVisual;
     glxc->modes = config;
 
     /*
@@ -1470,7 +1468,7 @@ DoQueryContext(__GLXclientState *cl, GLXContextID gcId)
     *pSendBuf++ = GLX_SHARE_CONTEXT_EXT;
     *pSendBuf++ = (int)(ctx->share_id);
     *pSendBuf++ = GLX_VISUAL_ID_EXT;
-    *pSendBuf++ = (int)(ctx->pVisual->vid);
+    *pSendBuf++ = (int)(ctx->modes->visualID);
     *pSendBuf++ = GLX_SCREEN_EXT;
     *pSendBuf++ = (int)(ctx->pScreen->myNum);
 

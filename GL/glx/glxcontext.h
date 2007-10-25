@@ -89,11 +89,6 @@ struct __GLXcontext {
     __GLXscreen *pGlxScreen;
 
     /*
-    ** This context is created with respect to this visual.
-    */
-    VisualRec *pVisual;
-
-    /*
     ** The XID of this context.
     */
     XID id;
