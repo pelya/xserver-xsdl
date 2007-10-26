@@ -29,6 +29,7 @@
 #endif
 #include "xf86Modes.h"
 #include "xf86Cursor.h"
+#include "xf86i2c.h"
 #include "damage.h"
 #include "picturestr.h"
 
@@ -60,13 +61,13 @@ typedef enum _xf86ConnectorType {
    XF86ConnectorSvideo,
    XF86ConnectorComponent,
    XF86ConnectorLFP,
-   XF86ConnectorProprietary,
+   XF86ConnectorProprietary
 } xf86ConnectorType;
 
 typedef enum _xf86OutputStatus {
    XF86OutputStatusConnected,
    XF86OutputStatusDisconnected,
-   XF86OutputStatusUnknown,
+   XF86OutputStatusUnknown
 } xf86OutputStatus;
 
 typedef struct _xf86CrtcFuncs {
