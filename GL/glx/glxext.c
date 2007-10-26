@@ -106,22 +106,6 @@ static int ContextGone(__GLXcontext* cx, XID id)
 */
 static Bool DrawableGone(__GLXdrawable *glxPriv, XID xid)
 {
-    __GLXcontext *cx, *cx1;
-
-    /*
-    ** When a drawable is destroyed, notify all context bound to 
-    ** it, that there are no longer bound to anything.
-    */
-    for (cx = glxPriv->drawGlxc; cx; cx = cx1) {
-	cx1 = cx->nextDrawPriv;
-	cx->pendingState |= __GLX_PENDING_DESTROY;
-    }
-
-    for (cx = glxPriv->readGlxc; cx; cx = cx1) {
-	cx1 = cx->nextReadPriv;
-	cx->pendingState |= __GLX_PENDING_DESTROY;
-    }
-
     glxPriv->pDraw = NULL;
     glxPriv->drawId = 0;
     __glXUnrefDrawable(glxPriv);

@@ -189,7 +189,6 @@ static char GLXServerExtensions[] =
 static Bool glxPositionWindow(WindowPtr pWin, int x, int y)
 {
     ScreenPtr pScreen;
-    __GLXcontext *glxc;
     __GLXdrawable *glxPriv;
     Bool ret;
     __GLXscreen *pGlxScreen;
@@ -224,16 +223,6 @@ static Bool glxPositionWindow(WindowPtr pWin, int x, int y)
 	/* resize failed! */
 	/* XXX: what can we possibly do here? */
 	ret = False;
-    }
-
-    /* mark contexts as needing resize */
-
-    for (glxc = glxPriv->drawGlxc; glxc; glxc = glxc->nextDrawPriv) {
-	glxc->pendingState |= __GLX_PENDING_RESIZE;
-    }
-
-    for (glxc = glxPriv->readGlxc; glxc; glxc = glxc->nextReadPriv) {
-	glxc->pendingState |= __GLX_PENDING_RESIZE;
     }
 
     return ret;

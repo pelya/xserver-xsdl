@@ -363,7 +363,7 @@ createMesaVisuals(__GLXMESAscreen *pMesaScreen)
 {
     __GLcontextModes *config;
     ScreenPtr pScreen;
-    VisualPtr visual;
+    VisualPtr visual = NULL;
     int i, j;
 
     i = 0;

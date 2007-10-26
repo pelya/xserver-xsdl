@@ -253,7 +253,7 @@ __glXDRIcontextDestroy(__GLXcontext *baseContext)
     context->driContext.destroyContext(&context->driContext);
 
     __glXenterServer(GL_FALSE);
-    retval = DRIDestroyContext(baseContext->pScreen, context->hwContextID);
+    retval = DRIDestroyContext(baseContext->pGlxScreen->pScreen, context->hwContextID);
     __glXleaveServer(GL_FALSE);
 
     __glXContextDestroy(&context->base);
@@ -587,7 +587,6 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
     context->base.loseCurrent       = __glXDRIcontextLoseCurrent;
     context->base.copy              = __glXDRIcontextCopy;
     context->base.forceCurrent      = __glXDRIcontextForceCurrent;
-    context->base.pScreen           = screen->base.pScreen;
 
     context->base.textureFromPixmap = &__glXDRItextureFromPixmap;
     /* Find the requested X visual */
