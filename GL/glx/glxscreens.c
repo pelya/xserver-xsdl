@@ -514,8 +514,6 @@ void __glXScreenInit(__GLXscreen *pGlxScreen, ScreenPtr pScreen)
     for (m = pGlxScreen->fbconfigs; m != NULL; m = m->next) {
 	m->fbconfigID = FakeClientID(0);
 	m->visualID = findVisualForConfig(pScreen, m);
-	ErrorF("mapping fbconfig id 0x%02lx to visual id 0x%02lx\n",
-	       m->fbconfigID, m->visualID);
 	i++;
     }
     pGlxScreen->numFBConfigs = i;
