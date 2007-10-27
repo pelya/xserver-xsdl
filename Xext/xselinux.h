@@ -30,10 +30,19 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define XSELinuxNumberErrors		0
 
 /* Extension protocol */
-#define X_SELinuxQueryVersion		0
-#define X_SELinuxSetSelectionManager	1
+#define X_SELinuxQueryVersion			0
+#define X_SELinuxSetSelectionManager		1
+#define X_SELinuxGetSelectionManager		2
+#define X_SELinuxSetDeviceContext		3
+#define X_SELinuxGetDeviceContext		4
+#define X_SELinuxSetPropertyCreateContext	5
+#define X_SELinuxGetPropertyCreateContext	6
+#define X_SELinuxGetPropertyContext		7
+#define X_SELinuxSetWindowCreateContext		8
+#define X_SELinuxGetWindowCreateContext		9
+#define X_SELinuxGetWindowContext		10
 
-typedef struct _SELinuxQueryVersion {
+typedef struct {
     CARD8   reqType;
     CARD8   SELinuxReqType;
     CARD16  length;
@@ -41,7 +50,6 @@ typedef struct _SELinuxQueryVersion {
     CARD8   client_minor;
     CARD16  unused;
 } SELinuxQueryVersionReq;
-#define sz_SELinuxQueryVersionReq 8
 
 typedef struct {
     CARD8   type;
@@ -56,15 +64,114 @@ typedef struct {
     CARD32  pad5;
     CARD32  pad6; 
 } SELinuxQueryVersionReply;
-#define sz_SELinuxQueryVersionReply  32
 
-typedef struct _SELinuxSetSelectionManager {
+typedef struct {
     CARD8   reqType;
     CARD8   SELinuxReqType;
     CARD16  length;
     CARD32  window;
 } SELinuxSetSelectionManagerReq;
-#define sz_SELinuxSetSelectionManagerReq 8
+
+typedef struct {
+    CARD8   reqType;
+    CARD8   SELinuxReqType;
+    CARD16  length;
+} SELinuxGetSelectionManagerReq;
+
+typedef struct {
+    CARD8   type;
+    CARD8   pad1;
+    CARD16  sequenceNumber;
+    CARD32  length;
+    CARD32  window;
+    CARD32  pad2;
+    CARD32  pad3;
+    CARD32  pad4;
+    CARD32  pad5;
+    CARD32  pad6;
+} SELinuxGetSelectionManagerReply;
+
+typedef struct {
+    CARD8   reqType;
+    CARD8   SELinuxReqType;
+    CARD16  length;
+    CARD8   permanent;
+    CARD8   unused;
+    CARD16  context_len;
+} SELinuxSetCreateContextReq;
+
+typedef struct {
+    CARD8   reqType;
+    CARD8   SELinuxReqType;
+    CARD16  length;
+} SELinuxGetCreateContextReq;
+
+typedef struct {
+    CARD8   type;
+    CARD8   permanent;
+    CARD16  sequenceNumber;
+    CARD32  length;
+    CARD16  context_len;
+    CARD16  pad1;
+    CARD32  pad2;
+    CARD32  pad3;
+    CARD32  pad4;
+    CARD32  pad5;
+    CARD32  pad6;
+} SELinuxGetCreateContextReply;
+
+typedef struct {
+    CARD8   reqType;
+    CARD8   SELinuxReqType;
+    CARD16  length;
+    CARD32  id;
+    CARD16  unused;
+    CARD16  context_len;
+} SELinuxSetContextReq;
+
+typedef struct {
+    CARD8   reqType;
+    CARD8   SELinuxReqType;
+    CARD16  length;
+    CARD32  id;
+} SELinuxGetContextReq;
+
+typedef struct {
+    CARD8   type;
+    CARD8   pad1;
+    CARD16  sequenceNumber;
+    CARD32  length;
+    CARD16  context_len;
+    CARD16  pad2;
+    CARD32  pad3;
+    CARD32  pad4;
+    CARD32  pad5;
+    CARD32  pad6;
+    CARD32  pad7;
+} SELinuxGetContextReply;
+
+typedef struct {
+    CARD8   reqType;
+    CARD8   SELinuxReqType;
+    CARD16  length;
+    CARD32  window;
+    CARD32  property;
+} SELinuxGetPropertyContextReq;
+
+typedef struct {
+    CARD8   type;
+    CARD8   pad1;
+    CARD16  sequenceNumber;
+    CARD32  length;
+    CARD16  context_len;
+    CARD16  pad2;
+    CARD32  pad3;
+    CARD32  pad4;
+    CARD32  pad5;
+    CARD32  pad6;
+    CARD32  pad7;
+} SELinuxGetPropertyContextReply;
+
 
 /* Private Flask definitions */
 #define SECCLASS_X_DRAWABLE		1

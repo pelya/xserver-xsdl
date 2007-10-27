@@ -985,10 +985,6 @@ static int
 ProcSELinuxQueryVersion(ClientPtr client)
 {
     SELinuxQueryVersionReply rep;
-    /*
-      REQUEST(SELinuxQueryVersionReq);
-      REQUEST_SIZE_MATCH (SELinuxQueryVersionReq);
-    */
 
     rep.type = X_Reply;
     rep.length = 0;
@@ -1009,10 +1005,10 @@ ProcSELinuxQueryVersion(ClientPtr client)
 static int
 ProcSELinuxSetSelectionManager(ClientPtr client)
 {
-    REQUEST(SELinuxSetSelectionManagerReq);
     WindowPtr pWin;
     int rc;
 
+    REQUEST(SELinuxSetSelectionManagerReq);
     REQUEST_SIZE_MATCH(SELinuxSetSelectionManagerReq);
 
     if (stuff->window == None) {
@@ -1032,6 +1028,98 @@ ProcSELinuxSetSelectionManager(ClientPtr client)
 }
 
 static int
+ProcSELinuxGetSelectionManager(ClientPtr client)
+{
+    SELinuxGetSelectionManagerReply rep;
+
+    rep.type = X_Reply;
+    rep.length = 0;
+    rep.sequenceNumber = client->sequence;
+    rep.window = selectionWindow;
+    if (client->swapped) {
+	int n;
+	swaps(&rep.sequenceNumber, n);
+	swapl(&rep.length, n);
+	swapl(&rep.window, n);
+    }
+    WriteToClient(client, sizeof(rep), (char *)&rep);
+    return (client->noClientException);
+}
+
+static int
+ProcSELinuxSetDeviceContext(ClientPtr client)
+{
+    char *ctx;
+    security_id_t sid;
+    DeviceIntPtr dev;
+    SELinuxStateRec *state;
+    int rc;
+
+    REQUEST(SELinuxSetContextReq);
+    REQUEST_FIXED_SIZE(SELinuxSetContextReq, stuff->context_len);
+
+    ctx = (char *)(stuff + 1);
+    if (ctx[stuff->context_len - 1])
+	return BadLength;
+
+    rc = dixLookupDevice(&dev, stuff->id, client, DixManageAccess);
+    if (rc != Success)
+	return rc;
+
+    rc = avc_context_to_sid(ctx, &sid);
+    if (rc != Success)
+	return BadValue;
+
+    state = dixLookupPrivate(&dev->devPrivates, stateKey);
+    sidput(state->sid);
+    state->sid = sid;
+    ErrorF("I really, actually did relabel a device to %s\n", ctx);
+    return Success;
+}
+
+static int
+ProcSELinuxGetDeviceContext(ClientPtr client)
+{
+    return Success;
+}
+
+static int
+ProcSELinuxSetPropertyCreateContext(ClientPtr client)
+{
+    return Success;
+}
+
+static int
+ProcSELinuxGetPropertyCreateContext(ClientPtr client)
+{
+    return Success;
+}
+
+static int
+ProcSELinuxGetPropertyContext(ClientPtr client)
+{
+    return Success;
+}
+
+static int
+ProcSELinuxSetWindowCreateContext(ClientPtr client)
+{
+    return Success;
+}
+
+static int
+ProcSELinuxGetWindowCreateContext(ClientPtr client)
+{
+    return Success;
+}
+
+static int
+ProcSELinuxGetWindowContext(ClientPtr client)
+{
+    return Success;
+}
+
+static int
 ProcSELinuxDispatch(ClientPtr client)
 {
     REQUEST(xReq);
@@ -1040,6 +1128,24 @@ ProcSELinuxDispatch(ClientPtr client)
         return ProcSELinuxQueryVersion(client);
     case X_SELinuxSetSelectionManager:
 	return ProcSELinuxSetSelectionManager(client);
+    case X_SELinuxGetSelectionManager:
+    	return ProcSELinuxGetSelectionManager(client);
+    case X_SELinuxSetDeviceContext:
+    	return ProcSELinuxSetDeviceContext(client);
+    case X_SELinuxGetDeviceContext:
+    	return ProcSELinuxGetDeviceContext(client);
+    case X_SELinuxSetPropertyCreateContext:
+    	return ProcSELinuxSetPropertyCreateContext(client);
+    case X_SELinuxGetPropertyCreateContext:
+    	return ProcSELinuxGetPropertyCreateContext(client);
+    case X_SELinuxGetPropertyContext:
+    	return ProcSELinuxGetPropertyContext(client);
+    case X_SELinuxSetWindowCreateContext:
+    	return ProcSELinuxSetWindowCreateContext(client);
+    case X_SELinuxGetWindowCreateContext:
+    	return ProcSELinuxGetWindowCreateContext(client);
+    case X_SELinuxGetWindowContext:
+    	return ProcSELinuxGetWindowContext(client);
     default:
 	return BadRequest;
     }
@@ -1069,6 +1175,60 @@ SProcSELinuxSetSelectionManager(ClientPtr client)
 }
 
 static int
+SProcSELinuxGetSelectionManager(ClientPtr client)
+{
+    return ProcSELinuxGetSelectionManager(client);
+}
+
+static int
+SProcSELinuxSetDeviceContext(ClientPtr client)
+{
+    return ProcSELinuxSetDeviceContext(client);
+}
+
+static int
+SProcSELinuxGetDeviceContext(ClientPtr client)
+{
+    return ProcSELinuxGetDeviceContext(client);
+}
+
+static int
+SProcSELinuxSetPropertyCreateContext(ClientPtr client)
+{
+    return ProcSELinuxSetPropertyCreateContext(client);
+}
+
+static int
+SProcSELinuxGetPropertyCreateContext(ClientPtr client)
+{
+    return ProcSELinuxGetPropertyCreateContext(client);
+}
+
+static int
+SProcSELinuxGetPropertyContext(ClientPtr client)
+{
+    return ProcSELinuxGetPropertyContext(client);
+}
+
+static int
+SProcSELinuxSetWindowCreateContext(ClientPtr client)
+{
+    return ProcSELinuxSetWindowCreateContext(client);
+}
+
+static int
+SProcSELinuxGetWindowCreateContext(ClientPtr client)
+{
+    return ProcSELinuxGetWindowCreateContext(client);
+}
+
+static int
+SProcSELinuxGetWindowContext(ClientPtr client)
+{
+    return ProcSELinuxGetWindowContext(client);
+}
+
+static int
 SProcSELinuxDispatch(ClientPtr client)
 {
     REQUEST(xReq);
@@ -1080,7 +1240,25 @@ SProcSELinuxDispatch(ClientPtr client)
     case X_SELinuxQueryVersion:
         return SProcSELinuxQueryVersion(client);
     case X_SELinuxSetSelectionManager:
-        return SProcSELinuxSetSelectionManager(client);
+	return SProcSELinuxSetSelectionManager(client);
+    case X_SELinuxGetSelectionManager:
+    	return SProcSELinuxGetSelectionManager(client);
+    case X_SELinuxSetDeviceContext:
+    	return SProcSELinuxSetDeviceContext(client);
+    case X_SELinuxGetDeviceContext:
+    	return SProcSELinuxGetDeviceContext(client);
+    case X_SELinuxSetPropertyCreateContext:
+    	return SProcSELinuxSetPropertyCreateContext(client);
+    case X_SELinuxGetPropertyCreateContext:
+    	return SProcSELinuxGetPropertyCreateContext(client);
+    case X_SELinuxGetPropertyContext:
+    	return SProcSELinuxGetPropertyContext(client);
+    case X_SELinuxSetWindowCreateContext:
+    	return SProcSELinuxSetWindowCreateContext(client);
+    case X_SELinuxGetWindowCreateContext:
+    	return SProcSELinuxGetWindowCreateContext(client);
+    case X_SELinuxGetWindowContext:
+    	return SProcSELinuxGetWindowContext(client);
     default:
 	return BadRequest;
     }
