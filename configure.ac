@@ -1560,7 +1560,9 @@ AM_CONDITIONAL([LINUX_ALPHA], [test "x$linux_alpha" = xyes])
 AM_CONDITIONAL([LNXACPI], [test "x$linux_acpi" = xyes])
 AM_CONDITIONAL([SOLARIS_USL_CONSOLE], [test "x$solaris_usl_console" = xyes])
 AM_CONDITIONAL([SOLARIS_ASM_INLINE], [test "x$solaris_asm_inline" = xyes])
-AM_CONDITIONAL(DGA, [test "x$DGA" = xyes])
+AM_CONDITIONAL([DGA], [test "x$DGA" = xyes])
+AM_CONDITIONAL([XF86MISC], [test "x$XF86MISC" = xyes])
+AM_CONDITIONAL([XF86VIDMODE], [test "x$XF86VIDMODE" = xyes])
 
 dnl legacy fb support
 test "x$MFB" = xauto && MFB="$XORG"
