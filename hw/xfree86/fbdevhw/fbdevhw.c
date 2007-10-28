@@ -258,7 +258,7 @@ fbdev_modes_equal(struct fb_var_screeninfo *set, struct fb_var_screeninfo *req)
 static void
 fbdev2xfree_timing(struct fb_var_screeninfo *var, DisplayModePtr mode)
 {
-	mode->Clock = var->pixclock ? 1000000000/var->pixclock : 28000000;
+	mode->Clock = var->pixclock ? 1000000000/var->pixclock : 0;
 	mode->HDisplay = var->xres;
 	mode->HSyncStart = mode->HDisplay+var->right_margin;
 	mode->HSyncEnd = mode->HSyncStart+var->hsync_len;
