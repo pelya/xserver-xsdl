@@ -1513,10 +1513,6 @@ XNFstrdup(const char *s)
 
 #ifdef SMART_SCHEDULE
 
-unsigned long	SmartScheduleIdleCount;
-Bool		SmartScheduleIdle;
-Bool		SmartScheduleTimerStopped;
-
 #ifdef SIGVTALRM
 #define SMART_SCHEDULE_POSSIBLE
 #endif
@@ -1526,7 +1522,7 @@ Bool		SmartScheduleTimerStopped;
 #define SMART_SCHEDULE_TIMER		ITIMER_REAL
 #endif
 
-static void
+void
 SmartScheduleStopTimer (void)
 {
 #ifdef SMART_SCHEDULE_POSSIBLE
@@ -1537,38 +1533,28 @@ SmartScheduleStopTimer (void)
     timer.it_value.tv_sec = 0;
     timer.it_value.tv_usec = 0;
     (void) setitimer (ITIMER_REAL, &timer, 0);
-    SmartScheduleTimerStopped = TRUE;
 #endif
 }
 
-Bool
+void
 SmartScheduleStartTimer (void)
 {
 #ifdef SMART_SCHEDULE_POSSIBLE
     struct itimerval	timer;
     
-    SmartScheduleTimerStopped = FALSE;
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = SmartScheduleInterval * 1000;
     timer.it_value.tv_sec = 0;
     timer.it_value.tv_usec = SmartScheduleInterval * 1000;
-    return setitimer (ITIMER_REAL, &timer, 0) >= 0;
+    setitimer (ITIMER_REAL, &timer, 0);
 #endif
-    return FALSE;
 }
 
 #ifdef SMART_SCHEDULE_POSSIBLE
 static void
 SmartScheduleTimer (int sig)
 {
-    int olderrno = errno;
-
     SmartScheduleTime += SmartScheduleInterval;
-    if (SmartScheduleIdle)
-    {
-	SmartScheduleStopTimer ();
-    }
-    errno = olderrno;
 }
 #endif
 
@@ -1592,14 +1578,6 @@ SmartScheduleInit (void)
 	perror ("sigaction for smart scheduler");
 	return FALSE;
     }
-    /* Set up the virtual timer */
-    if (!SmartScheduleStartTimer ())
-    {
-	perror ("scheduling timer");
-	return FALSE;
-    }
-    /* stop the timer and wait for WaitForSomething to start it */
-    SmartScheduleStopTimer ();
     return TRUE;
 #else
     return FALSE;
