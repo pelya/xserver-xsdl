@@ -630,16 +630,6 @@ InitExtensions(argc, argv)
     if (!noXFree86DRIExtension) XFree86DRIExtensionInit();
 #endif
 #endif
-
-#ifdef GLXEXT
-#ifdef INXDARWINAPP
-    DarwinGlxPushProvider(__DarwinglXMesaProvider);
-    if (!noGlxExtension) DarwinGlxExtensionInit();
-#else
-    GlxPushProvider(&__glXMesaProvider);
-    if (!noGlxExtension) GlxExtensionInit();
-#endif // INXDARWINAPP
-#endif // GLXEXT
 #ifdef XFIXES
     /* must be before Render to layer DisplayCursor correctly */
     if (!noXFixesExtension) XFixesExtensionInit();
@@ -664,6 +654,16 @@ InitExtensions(argc, argv)
 #endif
 #ifdef DAMAGE
     if (!noDamageExtension) DamageExtensionInit();
+#endif
+
+#ifdef GLXEXT
+#ifdef INXDARWINAPP
+    DarwinGlxPushProvider(__DarwinglXMesaProvider);
+    if (!noGlxExtension) DarwinGlxExtensionInit();
+#else
+    GlxPushProvider(&__glXMesaProvider);
+    if (!noGlxExtension) GlxExtensionInit();
+#endif
 #endif
 }
 
