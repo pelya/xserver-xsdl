@@ -322,8 +322,6 @@ ProcXF86DRICreateContext(
 {
     xXF86DRICreateContextReply	rep;
     ScreenPtr pScreen;
-    VisualPtr visual;
-    int i;
 
     REQUEST(xXF86DRICreateContextReq);
     REQUEST_SIZE_MATCH(xXF86DRICreateContextReq);

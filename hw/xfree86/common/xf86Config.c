@@ -1094,7 +1094,7 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     }
 
 #ifdef GLXEXT
-    xf86Info.glxVisuals = XF86_GlxVisualsAll;
+    xf86Info.glxVisuals = XF86_GlxVisualsTypical;
     xf86Info.glxVisualsFrom = X_DEFAULT;
     if ((s = xf86GetOptValString(FlagOptions, FLAG_GLX_VISUALS))) {
 	if (!xf86NameCmp(s, "minimal")) {
