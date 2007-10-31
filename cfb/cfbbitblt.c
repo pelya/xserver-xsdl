@@ -1407,7 +1407,8 @@ RegionPtr cfbCopyPlane(pSrcDrawable, pDstDrawable,
 	ScreenPtr	pScreen = pSrcDrawable->pScreen;
 	GCPtr		pGC1;
 
-	pBitmap = (*pScreen->CreatePixmap) (pScreen, width, height, 1);
+	pBitmap = (*pScreen->CreatePixmap) (pScreen, width, height, 1,
+					    CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!pBitmap)
 	    return NULL;
 	pGC1 = GetScratchGC (1, pScreen);

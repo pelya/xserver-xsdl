@@ -35,7 +35,8 @@ is" without express or implied warranty.
 int xnestPixmapPrivateIndex;	    
 
 PixmapPtr
-xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth)
+xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth,
+		  unsigned usage_hint)
 {
   PixmapPtr pPixmap;
 

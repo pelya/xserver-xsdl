@@ -1605,7 +1605,7 @@ miBankCreateScreenResources(
 
         /* Get shadow pixmap;  width & height of 0 means no pixmap data */
         pScreenPriv->pBankPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0,
-            pScreenPriv->pScreenPixmap->drawable.depth);
+            pScreenPriv->pScreenPixmap->drawable.depth, 0);
         if (!pScreenPriv->pBankPixmap)
             retval = FALSE;
     }

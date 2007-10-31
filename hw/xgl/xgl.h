@@ -870,7 +870,8 @@ PixmapPtr
 xglCreatePixmap (ScreenPtr  pScreen,
 		 int	    width,
 		 int	    height,
-		 int	    depth);
+		 int	    depth,
+		 unsigned   usage_hint);
 
 void
 xglFiniPixmap (PixmapPtr pPixmap);

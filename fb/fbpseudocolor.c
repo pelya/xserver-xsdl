@@ -275,7 +275,7 @@ xxCreateScreenResources(ScreenPtr pScreen)
 		       * (BitsPerPixel(depth) >> 3));
     if (!pBits) return FALSE;
     
-    pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, depth);
+    pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, depth, 0);
     if (!pPixmap) {
 	xfree(pBits);
 	return FALSE;

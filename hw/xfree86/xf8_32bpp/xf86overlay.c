@@ -32,7 +32,7 @@
 static Bool OverlayCloseScreen (int, ScreenPtr);
 static Bool OverlayCreateGC(GCPtr pGC);
 static Bool OverlayDestroyPixmap(PixmapPtr);
-static PixmapPtr OverlayCreatePixmap(ScreenPtr, int, int, int);
+static PixmapPtr OverlayCreatePixmap(ScreenPtr, int, int, int, unsigned);
 static Bool OverlayChangeWindowAttributes(WindowPtr, unsigned long);
 
 /** Funcs **/
@@ -339,13 +339,14 @@ OverlayCreateGC(GCPtr pGC)
 }
 
 static PixmapPtr 
-OverlayCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
+OverlayCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
+		    unsigned usage_hint)
 {
     OverlayScreenPtr pScreenPriv = OVERLAY_GET_SCREEN_PRIVATE(pScreen);
     PixmapPtr pPix;
     
     pScreen->CreatePixmap = pScreenPriv->CreatePixmap;
-    pPix = (*pScreen->CreatePixmap) (pScreen, w, h, depth);
+    pPix = (*pScreen->CreatePixmap) (pScreen, w, h, depth, usage_hint);
     pScreen->CreatePixmap = OverlayCreatePixmap;
 
     /* We initialize all the privates */
@@ -439,7 +440,7 @@ OverlayRefreshPixmap(PixmapPtr pix8)
 	PixmapPtr newPix;
 
 	newPix = (*pScreen->CreatePixmap)(pScreen, pix8->drawable.width,
-		pix8->drawable.height, 24);
+		pix8->drawable.height, 24, 0);
 	newPix->drawable.depth = 8;  /* Bad Mark! Bad Mark! */
         pixPriv->pix32 = newPix;
     }

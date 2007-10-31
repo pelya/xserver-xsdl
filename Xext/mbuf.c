@@ -403,7 +403,7 @@ CreateImageBuffers (pWin, nbuf, ids, action, hint)
 	pMultibuffer->pMultibuffers = pMultibuffers;
 	if (!AddResource (ids[i], MultibufferResType, (pointer) pMultibuffer))
 	    break;
-	pMultibuffer->pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, depth);
+	pMultibuffer->pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, depth, 0);
 	if (!pMultibuffer->pPixmap)
 	    break;
 	if (!AddResource (ids[i], MultibufferDrawableResType, (pointer) pMultibuffer->pPixmap))
@@ -1576,7 +1576,8 @@ MultibufferPositionWindow (pWin, x, y)
     {
 	pMultibuffer = &pMultibuffers->buffers[i];
 	pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height,
-					    pWin->drawable.depth);
+					    pWin->drawable.depth,
+					    CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!pPixmap)
 	{
 	    DestroyImageBuffers (pWin);

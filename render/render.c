@@ -1202,7 +1202,8 @@ ProcRenderAddGlyphs (ClientPtr client)
 		}
 
 		pDstPix = (pScreen->CreatePixmap) (pScreen,
-						   width, height, depth);
+						   width, height, depth,
+						   CREATE_PIMXAP_USAGE_GLYPH_PICTURE);
 
 		GlyphPicture (glyph)[screen] = pDst =
 			CreatePicture (0, &pDstPix->drawable,
@@ -1636,7 +1637,8 @@ ProcRenderCreateCursor (ClientPtr client)
 	    xfree (mskbits);
 	    return (BadImplementation);
 	}
-	pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, 32);
+	pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, 32,
+					    CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!pPixmap)
 	{
 	    xfree (argbbits);

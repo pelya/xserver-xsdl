@@ -1252,7 +1252,7 @@ DoCreatePbuffer(ClientPtr client, int screenNum, XID fbconfigId,
 
     __glXenterServer(GL_FALSE);
     pPixmap = (*pGlxScreen->pScreen->CreatePixmap) (pGlxScreen->pScreen,
-						    width, height, config->rgbBits);
+						    width, height, config->rgbBits, 0);
     __glXleaveServer(GL_FALSE);
 
     return DoCreateGLXDrawable(client, pGlxScreen, config, &pPixmap->drawable,

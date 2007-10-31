@@ -416,7 +416,8 @@ miOpqStipDrawable(DrawablePtr pDraw, GCPtr pGC, RegionPtr prgnSrc,
     RegionPtr	prgnSrcClip;
 
     pPixmap = (*pDraw->pScreen->CreatePixmap)
-			   (pDraw->pScreen, w + srcx, h, 1);
+			   (pDraw->pScreen, w + srcx, h, 1,
+			    CREATE_PIXMAP_USAGE_SCRATCH);
     if (!pPixmap)
 	return;
 
@@ -667,7 +668,8 @@ miGetImage(pDraw, sx, sy, w, h, format, planeMask, pDst)
 	    if (!pGC)
 		return;
             pPixmap = (*pDraw->pScreen->CreatePixmap)
-			       (pDraw->pScreen, w, 1, depth);
+			       (pDraw->pScreen, w, 1, depth,
+			        CREATE_PIXMAP_USAGE_SCRATCH);
 	    if (!pPixmap)
 	    {
 		FreeScratchGC(pGC);

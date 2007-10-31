@@ -183,7 +183,8 @@ PixmapPtr xf4bppCreatePixmap(
     ScreenPtr,
     int,
     int,
-    int
+    int,
+    unsigned
 );
 PixmapPtr xf4bppCopyPixmap(
     PixmapPtr

@@ -462,7 +462,8 @@ compNewPixmap (WindowPtr pWin, int x, int y, int w, int h)
     WindowPtr	    pParent = pWin->parent;
     PixmapPtr	    pPixmap;
 
-    pPixmap = (*pScreen->CreatePixmap) (pScreen, w, h, pWin->drawable.depth);
+    pPixmap = (*pScreen->CreatePixmap) (pScreen, w, h, pWin->drawable.depth,
+					CREATE_PIXMAP_USAGE_BACKING_PIXMAP);
 
     if (!pPixmap)
 	return 0;

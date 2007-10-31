@@ -574,7 +574,7 @@ extern void PsSetFillColor(DrawablePtr pDrawable, GCPtr pGC, PsOutPtr psOut,
  */
 
 extern PixmapPtr PsCreatePixmap(ScreenPtr pScreen, int width, int height,
-                                int depth);
+                                int depth, unsigned usage_hint);
 extern void PsScrubPixmap(PixmapPtr pPixmap);
 extern Bool PsDestroyPixmap(PixmapPtr pPixmap);
 extern DisplayListPtr PsGetFreeDisplayBlock(PsPixmapPrivPtr priv);

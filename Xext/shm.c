@@ -543,7 +543,8 @@ miShmPutImage(dst, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy, data)
     putGC = GetScratchGC(depth, dst->pScreen);
     if (!putGC)
 	return;
-    pmap = (*dst->pScreen->CreatePixmap)(dst->pScreen, sw, sh, depth);
+    pmap = (*dst->pScreen->CreatePixmap)(dst->pScreen, sw, sh, depth,
+					 CREATE_PIXMAP_USAGE_SCRATCH);
     if (!pmap)
     {
 	FreeScratchGC(putGC);
@@ -1070,7 +1071,7 @@ fbShmCreatePixmap (pScreen, width, height, depth, addr)
 {
     register PixmapPtr pPixmap;
 
-    pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, pScreen->rootDepth);
+    pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, pScreen->rootDepth, 0);
     if (!pPixmap)
 	return NullPixmap;
 

@@ -1554,7 +1554,7 @@ ProcCreatePixmap(ClientPtr client)
 CreatePmap:
     pMap = (PixmapPtr)(*pDraw->pScreen->CreatePixmap)
 		(pDraw->pScreen, stuff->width,
-		 stuff->height, stuff->depth);
+		 stuff->height, stuff->depth, 0);
     if (pMap)
     {
 	pMap->drawable.serialNumber = NEXT_SERIAL_NUMBER;

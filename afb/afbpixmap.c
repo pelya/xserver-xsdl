@@ -70,11 +70,12 @@ SOFTWARE.
 #include "mfb.h"
 
 PixmapPtr
-afbCreatePixmap(pScreen, width, height, depth)
+afbCreatePixmap(pScreen, width, height, depth, usage_hint)
 	ScreenPtr		pScreen;
 	int				width;
 	int				height;
 	int				depth;
+	unsigned			usage_hint;
 {
 	PixmapPtr pPixmap;
 	size_t datasize;
@@ -127,8 +128,10 @@ afbCopyPixmap(PixmapPtr pSrc)
 
 	size = pSrc->drawable.height * pSrc->devKind * pSrc->drawable.depth;
 	pScreen = pSrc->drawable.pScreen;
-	pDst = (*pScreen->CreatePixmap)(pScreen, pSrc->drawable.width,
-											  pSrc->drawable.height, pSrc->drawable.depth);
+	pDst = (*pScreen->CreatePixmap)(pScreen,
+					pSrc->drawable.width,
+					pSrc->drawable.height,
+					pSrc->drawable.depth, 0);
 	if (!pDst)
 		return(NullPixmap);
 	memmove((char *)pDst->devPrivate.ptr, (char *)pSrc->devPrivate.ptr, size);

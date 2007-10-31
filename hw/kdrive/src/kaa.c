@@ -294,7 +294,7 @@ kaaDestroyPixmap (PixmapPtr pPixmap)
 }
 
 static PixmapPtr 
-kaaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
+kaaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth, unsigned usage_hint)
 {
     PixmapPtr		pPixmap;
     KaaPixmapPrivPtr	pKaaPixmap;

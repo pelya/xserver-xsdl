@@ -494,7 +494,7 @@ xglSyncPicture (ScreenPtr  pScreen,
 		return FALSE;
 
 	    pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height,
-						pFormat->depth);
+						pFormat->depth, 0);
 	    if (!pPixmap)
 		return FALSE;
 

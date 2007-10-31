@@ -79,7 +79,8 @@ xf4bppGetImage( pDraw, sx, sy, w, h, format, planeMask, pdstLine )
 		 != (unsigned)( 1 << pDraw->depth ) - 1 ) {
 	    pGC = GetScratchGC( depth, pDraw->pScreen ) ;
 	    pPixmap = (PixmapPtr)
-	      (* pDraw->pScreen->CreatePixmap)( pDraw->pScreen, w, h, depth ) ;
+	      (* pDraw->pScreen->CreatePixmap)( pDraw->pScreen, w, h, depth,
+						CREATE_PIXMAP_USAGE_SCRATCH) ;
 	    gcv[0] = GXcopy ;
 	    gcv[1] = planeMask ;
 	    DoChangeGC( pGC, GCPlaneMask | GCFunction, gcv, 0 ) ;
