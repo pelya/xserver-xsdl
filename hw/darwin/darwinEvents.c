@@ -166,6 +166,9 @@ static void DarwinSimulateMouseClick(
     int modifierMask)   // modifiers used for the fake click
 {
     // first fool X into forgetting about the keys
+	// for some reason, it's not enough to tell X we released the Command key -- 
+	// it has to be the *left* Command key.
+	if (modifierMask & NX_COMMANDMASK) modifierMask |=NX_DEVICELCMDKEYMASK ;
     DarwinUpdateModifiers(KeyRelease, modifierMask);
 
     // push the mouse button
