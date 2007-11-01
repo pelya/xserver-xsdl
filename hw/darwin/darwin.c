@@ -99,8 +99,8 @@ int                     darwinSyncKeymap = FALSE;
 int                     darwinSwapAltMeta = FALSE;
 
 // modifier masks for faking mouse buttons
-int                     darwinFakeMouse2Mask = NX_COMMANDMASK;
-int                     darwinFakeMouse3Mask = NX_ALTERNATEMASK;
+int                     darwinFakeMouse2Mask = NX_ALTERNATEMASK;
+int                     darwinFakeMouse3Mask = NX_COMMANDMASK;
 
 // devices
 DeviceIntPtr            darwinPointer = NULL;
