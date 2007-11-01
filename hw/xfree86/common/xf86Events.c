@@ -510,12 +510,14 @@ static void
 xf86SigioReadInput(int fd,
 		   void *closure)
 {
+    int errno_save = errno;
     int sigstate = xf86BlockSIGIO();
     InputInfoPtr pInfo = (InputInfoPtr) closure;
 
     pInfo->read_input(pInfo);
 
     xf86UnblockSIGIO(sigstate);
+    errno = errno_save;
 }
 
 /*
