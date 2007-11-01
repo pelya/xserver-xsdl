@@ -449,6 +449,8 @@ main(int argc, char *argv[], char *envp[])
 	    }
 	}
 
+	NotifyParentProcess();
+
 	Dispatch();
 
 	/* Now free up whatever must be freed */

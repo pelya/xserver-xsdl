@@ -124,6 +124,8 @@ extern void ResetOsBuffers(void);
 
 extern void InitConnectionLimits(void);
 
+extern void NotifyParentProcess(void);
+
 extern void CreateWellKnownSockets(void);
 
 extern void ResetWellKnownSockets(void);

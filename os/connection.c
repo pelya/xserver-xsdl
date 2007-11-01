@@ -362,6 +362,52 @@ InitConnectionLimits(void)
 #endif
 }
 
+/*
+ * If SIGUSR1 was set to SIG_IGN when the server started, assume that either
+ *
+ *  a- The parent process is ignoring SIGUSR1
+ *
+ * or
+ *
+ *  b- The parent process is expecting a SIGUSR1
+ *     when the server is ready to accept connections
+ *
+ * In the first case, the signal will be harmless, in the second case,
+ * the signal will be quite useful.
+ */
+static void
+InitParentProcess(void)
+{
+#if !defined(WIN32)
+    OsSigHandlerPtr handler;
+    handler = OsSignal (SIGUSR1, SIG_IGN);
+    if ( handler == SIG_IGN)
+	RunFromSmartParent = TRUE;
+    OsSignal(SIGUSR1, handler);
+    ParentProcess = getppid ();
+#ifdef __UNIXOS2__
+    /*
+     * fg030505: under OS/2, xinit is not the parent process but
+     * the "grant parent" process of the server because execvpe()
+     * presents us an additional process number;
+     * GetPPID(pid) is part of libemxfix
+     */
+    ParentProcess = GetPPID (ParentProcess);
+#endif /* __UNIXOS2__ */
+#endif
+}
+
+void
+NotifyParentProcess(void)
+{
+#if !defined(WIN32)
+    if (RunFromSmartParent) {
+	if (ParentProcess > 1) {
+	    kill (ParentProcess, SIGUSR1);
+	}
+    }
+#endif
+}
 
 /*****************
  * CreateWellKnownSockets
@@ -374,7 +420,6 @@ CreateWellKnownSockets(void)
     int		i;
     int		partial;
     char 	port[20];
-    OsSigHandlerPtr handler;
 
     FD_ZERO(&AllSockets);
     FD_ZERO(&AllClients);
@@ -428,33 +473,9 @@ CreateWellKnownSockets(void)
     OsSignal (SIGTERM, GiveUp);
     XFD_COPYSET (&WellKnownConnections, &AllSockets);
     ResetHosts(display);
-    /*
-     * Magic:  If SIGUSR1 was set to SIG_IGN when
-     * the server started, assume that either
-     *
-     *  a- The parent process is ignoring SIGUSR1
-     *
-     * or
-     *
-     *  b- The parent process is expecting a SIGUSR1
-     *     when the server is ready to accept connections
-     *
-     * In the first case, the signal will be harmless,
-     * in the second case, the signal will be quite
-     * useful
-     */
-#if !defined(WIN32)
-    handler = OsSignal (SIGUSR1, SIG_IGN);
-    if ( handler == SIG_IGN)
-	RunFromSmartParent = TRUE;
-    OsSignal(SIGUSR1, handler);
-    ParentProcess = getppid ();
-    if (RunFromSmartParent) {
-	if (ParentProcess > 1) {
-	    kill (ParentProcess, SIGUSR1);
-	}
-    }
-#endif
+
+    InitParentProcess();
+
 #ifdef XDMCP
     XdmcpInit ();
 #endif
@@ -503,16 +524,6 @@ ResetWellKnownSockets (void)
 
     ResetAuthorization ();
     ResetHosts(display);
-    /*
-     * See above in CreateWellKnownSockets about SIGUSR1
-     */
-#if !defined(WIN32)
-    if (RunFromSmartParent) {
-	if (ParentProcess > 1) {
-	    kill (ParentProcess, SIGUSR1);
-	}
-    }
-#endif
     /*
      * restart XDMCP
      */
