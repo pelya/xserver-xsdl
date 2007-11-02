@@ -13,14 +13,14 @@ MFB_SUBDIR = xf1bpp xf4bpp
 endif
 
 if CFB
-CFB_SUBDIR = xf8_16bpp xf8_32bpp
+CFB_SUBDIR = xf8_32bpp
 endif
 
 DOC_SUBDIR = doc
 
 SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support parser rac \
 	  ramdac shadowfb vbe vgahw xaa $(MFB_SUBDIR) $(CFB_SUBDIR) \
-	  loader dixmods exa modes \
+	  xf8_16bpp loader dixmods exa modes \
 	  $(DRI_SUBDIR) $(XF86UTILS_SUBDIR) $(DOC_SUBDIR)
 
 DIST_SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support \
