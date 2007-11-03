@@ -426,6 +426,18 @@ void DarwinModeProcessEvent(
 	    RootlessOrderAllWindows();
             break;
 
+        case kXDarwinWindowState:
+	  ErrorF("kXDarwinWindowState\n");
+	  break;
+    case kXDarwinWindowMoved: {
+	  WindowPtr pWin = (WindowPtr)xe->u.clientMessage.u.l.longs0;
+	  short x = xe->u.clientMessage.u.l.longs1,
+	        y = xe->u.clientMessage.u.l.longs2;
+	  ErrorF("kXDarwinWindowMoved(%p, %hd, %hd)\n", pWin, x, y);
+	  RootlessMoveWindow(pWin, x, y, pWin->nextSib, VTMove);
+    }
+	  break;
+
         default:
             ErrorF("Unknown application defined event type %d.\n", xe->u.u.type);
     }
