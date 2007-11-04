@@ -1,7 +1,6 @@
 /*
  * Xplugin rootless implementation screen functions
- */
-/*
+ *
  * Copyright (c) 2002 Apple Computer, Inc. All Rights Reserved.
  * Copyright (c) 2004 Torrey T. Lyons. All Rights Reserved.
  *
@@ -77,8 +76,14 @@ eventHandler(unsigned int type, const void *arg,
         if (arg_size == sizeof(xp_window_id))
         {
             xp_window_id id = * (xp_window_id *) arg;
-
-            QuartzMessageServerThread(kXDarwinWindowMoved, 1, id);
+	    WindowPtr pWin = xprGetXWindow(id);
+	    BoxRec box;
+	    xp_error retval  = xp_get_window_bounds(id, &box);
+	    if (retval != Success) {
+	      ErrorF("Unable to find new bounds for window\n");
+	      break;
+	    }
+            QuartzMessageServerThread(kXDarwinWindowMoved, 3, pWin, box.x1, box.y1);
         }
         break;
 
@@ -177,15 +182,15 @@ xprAddPseudoramiXScreens(int *x, int *y, int *width, int *height)
 
         frame = displayScreenBounds(dpy);
 
-        ErrorF("PseudoramiX screen %d added: %dx%d @ (%d,%d).\n", i,
+	/*        ErrorF("PseudoramiX screen %d added: %dx%d @ (%d,%d).\n", i,
                (int)frame.size.width, (int)frame.size.height,
-               (int)frame.origin.x, (int)frame.origin.y);
+               (int)frame.origin.x, (int)frame.origin.y); */
 
         frame.origin.x -= unionRect.origin.x;
         frame.origin.y -= unionRect.origin.y;
 
-        ErrorF("PseudoramiX screen %d placed at X11 coordinate (%d,%d).\n",
-               i, (int)frame.origin.x, (int)frame.origin.y);
+	/*        ErrorF("PseudoramiX screen %d placed at X11 coordinate (%d,%d).\n",
+		  i, (int)frame.origin.x, (int)frame.origin.y); */
 
         PseudoramiXAddScreen(frame.origin.x, frame.origin.y,
                              frame.size.width, frame.size.height);
@@ -203,7 +208,7 @@ xprDisplayInit(void)
 {
     CGDisplayCount displayCount;
 
-    ErrorF("Display mode: Rootless Quartz -- Xplugin implementation\n");
+    //    ErrorF("Display mode: Rootless Quartz -- Xplugin implementation\n");
 
     CGGetActiveDisplayList(0, NULL, &displayCount);
 
