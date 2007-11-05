@@ -2,8 +2,7 @@
  * quartzCursor.h
  *
  * External interface for Quartz hardware cursor
- */
-/*
+ *
  * Copyright (c) 2001 Torrey T. Lyons and Greg Parker.
  *                 All Rights Reserved.
  *

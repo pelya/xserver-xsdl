@@ -1,9 +1,7 @@
-/**************************************************************
+/*
  *
  * Quartz-specific support for the Darwin X Server
  *
- **************************************************************/
-/*
  * Copyright (c) 2001-2004 Greg Parker and Torrey T. Lyons.
  *                 All Rights Reserved.
  *
@@ -64,7 +62,7 @@ int                     quartzServerVisible = TRUE;
 int                     quartzServerQuitting = FALSE;
 int                     quartzScreenIndex = 0;
 int                     aquaMenuBarHeight = 0;
-int                     noPseudoramiXExtension = TRUE;
+int                     noPseudoramiXExtension = FALSE;
 QuartzModeProcsPtr      quartzProcs = NULL;
 const char             *quartzOpenGLBundle = NULL;
 
@@ -397,10 +395,21 @@ void DarwinModeProcessEvent(
             QuartzUpdateScreens();
             break;
 
-        case kXDarwinWindowState:
-        case kXDarwinWindowMoved:
-            // FIXME: Not implemented yet
+        case kXDarwinBringAllToFront:
+	    RootlessOrderAllWindows();
             break;
+
+        case kXDarwinWindowState:
+	  ErrorF("kXDarwinWindowState\n");
+	  break;
+    case kXDarwinWindowMoved: {
+	  WindowPtr pWin = (WindowPtr)xe->u.clientMessage.u.l.longs0;
+	  short x = xe->u.clientMessage.u.l.longs1,
+	        y = xe->u.clientMessage.u.l.longs2;
+	  ErrorF("kXDarwinWindowMoved(%p, %hd, %hd)\n", pWin, x, y);
+	  RootlessMoveWindow(pWin, x, y, pWin->nextSib, VTMove);
+    }
+	  break;
 
         default:
             ErrorF("Unknown application defined event type %d.\n",

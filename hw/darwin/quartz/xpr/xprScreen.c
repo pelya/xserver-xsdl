@@ -45,6 +45,10 @@
 # include "damage.h"
 #endif
 
+/* 10.4's deferred update makes X slower.. have to live with the tearing
+   for now.. */
+#define XP_NO_DEFERRED_UPDATES 8
+
 // Name of GLX bundle for native OpenGL
 static const char *xprOpenGLBundle = "glxCGL.bundle";
 
@@ -59,10 +63,12 @@ eventHandler(unsigned int type, const void *arg,
     switch (type)
     {
     case XP_EVENT_DISPLAY_CHANGED:
+      //      ErrorF("XP_EVENT_DISPLAY_MOVED\n");
         QuartzMessageServerThread(kXDarwinDisplayChanged, 0);
         break;
 
     case XP_EVENT_WINDOW_STATE_CHANGED:
+      //      ErrorF("XP_EVENT_WINDOW_STATE_CHANGED\n");
         if (arg_size >= sizeof(xp_window_state_event))
         {
             const xp_window_state_event *ws_arg = arg;
@@ -73,6 +79,7 @@ eventHandler(unsigned int type, const void *arg,
         break;
 
     case XP_EVENT_WINDOW_MOVED:
+      //      ErrorF("XP_EVENT_WINDOW_MOVED\n");
         if (arg_size == sizeof(xp_window_id))
         {
             xp_window_id id = * (xp_window_id *) arg;
@@ -89,6 +96,7 @@ eventHandler(unsigned int type, const void *arg,
 
     case XP_EVENT_SURFACE_DESTROYED:
     case XP_EVENT_SURFACE_CHANGED:
+      //      ErrorF("XP_EVENT_SURFACE_MOVED\n");
         if (arg_size == sizeof(xp_surface_id))
         {
             int kind;
