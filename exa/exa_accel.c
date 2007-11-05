@@ -497,7 +497,7 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 
     if (!pGC || !exaGCReadsDestination(pDstDrawable, pGC->planemask,
 				       pGC->fillStyle, pGC->alu)) {
-	xRectangle *rects = ALLOCATE_LOCAL(nbox * sizeof(xRectangle));
+	xRectangle *rects = xalloc(nbox * sizeof(xRectangle));
 
 	if (rects) {
 	    int i;
@@ -510,7 +510,7 @@ exaCopyNtoN (DrawablePtr    pSrcDrawable,
 	    }
 
 	    region  = RECTS_TO_REGION(pScreen, nbox, rects, CT_YXBANDED);
-	    DEALLOCATE_LOCAL(rects);
+	    xfree(rects);
 	}
     }
 
