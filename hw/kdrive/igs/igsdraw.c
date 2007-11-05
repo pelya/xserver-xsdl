@@ -553,12 +553,12 @@ igsFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
 	return;
     }
     nTmp = n * miFindMaxBand(fbGetCompositeClip(pGC));
-    pwidthFree = (int *)ALLOCATE_LOCAL(nTmp * sizeof(int));
-    pptFree = (DDXPointRec *)ALLOCATE_LOCAL(nTmp * sizeof(DDXPointRec));
+    pwidthFree = (int *)xalloc(nTmp * sizeof(int));
+    pptFree = (DDXPointRec *)xalloc(nTmp * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
     {
-	if (pptFree) DEALLOCATE_LOCAL(pptFree);
-	if (pwidthFree) DEALLOCATE_LOCAL(pwidthFree);
+	if (pptFree) xfree(pptFree);
+	if (pwidthFree) xfree(pwidthFree);
 	return;
     }
     n = miClipSpans(fbGetCompositeClip(pGC),
@@ -607,8 +607,8 @@ igsFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
 	    _igsPatRect(cop,x,y,width,1,cmd);
 	}
     }
-    DEALLOCATE_LOCAL(pptFree);
-    DEALLOCATE_LOCAL(pwidthFree);
+    xfree(pptFree);
+    xfree(pwidthFree);
     KdMarkSync (pDrawable->pScreen);
 }
 
