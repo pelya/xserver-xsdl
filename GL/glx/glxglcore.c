@@ -265,7 +265,7 @@ __glXMesaScreenDestroy(__GLXscreen *screen)
     int i;
 
     if (mesaScreen->xm_vis) {
-	for (i = 0; i < mesaScreen->num_vis; i++) {
+	for (i = 0; i < mesaScreen->base.numFBConfigs; i++) {
 	    if (mesaScreen->xm_vis[i])
 		XMesaDestroyVisual(mesaScreen->xm_vis[i]);
 	}
