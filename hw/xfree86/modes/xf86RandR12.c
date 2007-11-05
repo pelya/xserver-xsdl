@@ -636,7 +636,7 @@ xf86RandR12CrtcNotify (RRCrtcPtr	randr_crtc)
     DisplayModePtr	mode = &crtc->mode;
     Bool		ret;
 
-    randr_outputs = ALLOCATE_LOCAL(config->num_output * sizeof (RROutputPtr));
+    randr_outputs = xalloc(config->num_output * sizeof (RROutputPtr));
     if (!randr_outputs)
 	return FALSE;
     x = crtc->x;
@@ -671,7 +671,7 @@ xf86RandR12CrtcNotify (RRCrtcPtr	randr_crtc)
     }
     ret = RRCrtcNotify (randr_crtc, randr_mode, x, y,
 			rotation, numOutputs, randr_outputs);
-    DEALLOCATE_LOCAL(randr_outputs);
+    xfree(randr_outputs);
     return ret;
 }
 
@@ -726,7 +726,7 @@ xf86RandR12CrtcSet (ScreenPtr	pScreen,
     xf86CrtcPtr		*save_crtcs;
     Bool		save_enabled = crtc->enabled;
 
-    save_crtcs = ALLOCATE_LOCAL(config->num_output * sizeof (xf86CrtcPtr));
+    save_crtcs = xalloc(config->num_output * sizeof (xf86CrtcPtr));
     if ((randr_mode != NULL) != crtc->enabled)
 	changed = TRUE;
     else if (randr_mode && !xf86RandRModeMatches (randr_mode, &crtc->mode))
@@ -782,7 +782,7 @@ xf86RandR12CrtcSet (ScreenPtr	pScreen,
 		    xf86OutputPtr	output = config->output[o];
 		    output->crtc = save_crtcs[o];
 		}
-		DEALLOCATE_LOCAL(save_crtcs);
+		xfree(save_crtcs);
 		return FALSE;
 	    }
 	    /*
@@ -795,7 +795,7 @@ xf86RandR12CrtcSet (ScreenPtr	pScreen,
 	}
 	xf86DisableUnusedFunctions (pScrn);
     }
-    DEALLOCATE_LOCAL(save_crtcs);
+    xfree(save_crtcs);
     return xf86RandR12CrtcNotify (randr_crtc);
 }
 
@@ -938,8 +938,8 @@ xf86RandR12SetInfo12 (ScreenPtr pScreen)
     RRCrtcPtr		randr_crtc;
     int			nclone;
     
-    clones = ALLOCATE_LOCAL(config->num_output * sizeof (RROutputPtr));
-    crtcs = ALLOCATE_LOCAL (config->num_crtc * sizeof (RRCrtcPtr));
+    clones = xalloc(config->num_output * sizeof (RROutputPtr));
+    crtcs = xalloc (config->num_crtc * sizeof (RRCrtcPtr));
     for (o = 0; o < config->num_output; o++)
     {
 	xf86OutputPtr	output = config->output[o];
@@ -956,8 +956,8 @@ xf86RandR12SetInfo12 (ScreenPtr pScreen)
 
 	if (!RROutputSetCrtcs (output->randr_output, crtcs, ncrtc))
 	{
-	    DEALLOCATE_LOCAL (crtcs);
-	    DEALLOCATE_LOCAL (clones);
+	    xfree (crtcs);
+	    xfree (clones);
 	    return FALSE;
 	}
 
@@ -993,13 +993,13 @@ xf86RandR12SetInfo12 (ScreenPtr pScreen)
 	}
 	if (!RROutputSetClones (output->randr_output, clones, nclone))
 	{
-	    DEALLOCATE_LOCAL (crtcs);
-	    DEALLOCATE_LOCAL (clones);
+	    xfree (crtcs);
+	    xfree (clones);
 	    return FALSE;
 	}
     }
-    DEALLOCATE_LOCAL (crtcs);
-    DEALLOCATE_LOCAL (clones);
+    xfree (crtcs);
+    xfree (clones);
     return TRUE;
 }
 

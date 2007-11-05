@@ -355,7 +355,7 @@ doImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase,infop)
 	int getWidth;		/* bits to get from glyph */
 #endif
 
-	if(!(ppos = (TEXTPOS *)ALLOCATE_LOCAL(nglyph * sizeof(TEXTPOS))))
+	if(!(ppos = (TEXTPOS *)xalloc(nglyph * sizeof(TEXTPOS))))
 	    return;
 
         pdstBase = pdstBase + (widthDst * y) + (x >> PWSH);
@@ -494,7 +494,7 @@ doImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase,infop)
 		}
 	    } /* for each glyph */
 	} /* while nbox-- */
-	DEALLOCATE_LOCAL(ppos);
+	xfree(ppos);
 	break;
       }
       default:

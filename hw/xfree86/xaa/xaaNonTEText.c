@@ -291,7 +291,7 @@ PolyGlyphBltAsSingleBitmap (
 
     pitch = (Right - Left + 31) >> 5;
     size = (pitch << 2) * (Bottom - Top);
-    block = (CARD32*)ALLOCATE_LOCAL(size);
+    block = (CARD32*)xalloc(size);
     bzero(block, size);
 
     topLine = 10000; botLine = -10000;
@@ -350,7 +350,7 @@ PolyGlyphBltAsSingleBitmap (
 	nbox--; pbox++;
     }
 
-    DEALLOCATE_LOCAL(block);
+    xfree(block);
 }
 
 static void

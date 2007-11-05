@@ -823,7 +823,7 @@ DoConfigure()
     	homebuf[PATH_MAX-1] = '\0';
     	home = homebuf;
     	if (!(filename =
-	     (char *)ALLOCATE_LOCAL(strlen(home) + 
+	     (char *)xalloc(strlen(home) + 
 	  			 strlen(configfile) + 3)))
 
       	if (home[0] == '/' && home[1] == '\0')

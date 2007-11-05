@@ -123,7 +123,7 @@ xf4bppCopyWindow(pWin, ptOldOrg, prgnSrc)
 		/* walk source bottom to top */
 		/* keep ordering in each band, reverse order of bands */
 		if ( !( pboxNew =
-			(BoxPtr) ALLOCATE_LOCAL( sizeof( BoxRec ) * nbox ) ) )
+			(BoxPtr) xalloc( sizeof( BoxRec ) * nbox ) ) )
 			return ;
 		pboxBase = pboxNext = pbox+nbox - 1 ;
 		while ( pboxBase >= pbox ) {
@@ -158,7 +158,7 @@ xf4bppCopyWindow(pWin, ptOldOrg, prgnSrc)
         else if ( dx < 0 ) {
 	/* walk source right to left */
 	    /* reverse order of rects in each band */
-	    if ( !( pboxNew = (BoxPtr)ALLOCATE_LOCAL(sizeof(BoxRec) * nbox) ) )
+	    if ( !( pboxNew = (BoxPtr)xalloc(sizeof(BoxRec) * nbox) ) )
 		return ;
 	    pboxBase = pboxNext = pbox ;
 	    while (pboxBase < pbox+nbox)
@@ -190,7 +190,7 @@ xf4bppCopyWindow(pWin, ptOldOrg, prgnSrc)
 
     /* free up stuff */
     if ( pboxNew )
-	DEALLOCATE_LOCAL( pboxNew ) ;
+	xfree( pboxNew ) ;
 
     REGION_DESTROY(pWin->drawable.pScreen, prgnDst);
 }

@@ -86,7 +86,7 @@ xf4bppGetImage( pDraw, sx, sy, w, h, format, planeMask, pdstLine )
 	    DoChangeGC( pGC, GCPlaneMask | GCFunction, gcv, 0 ) ;
 	    ValidateGC( (DrawablePtr)pPixmap, pGC ) ;
 
-	    pbits = (char *)ALLOCATE_LOCAL(w);
+	    pbits = (char *)xalloc(w);
 
 	    for ( i = 0 ; i < h ; i++ ) {
 		pt.x = sx ;
@@ -102,7 +102,7 @@ xf4bppGetImage( pDraw, sx, sy, w, h, format, planeMask, pdstLine )
 		pDst += linelength ;
 	    }
 
-	    DEALLOCATE_LOCAL(pbits) ;
+	    xfree(pbits) ;
 	    (* pGC->pScreen->DestroyPixmap)( pPixmap ) ;
 	    FreeScratchGC( pGC ) ;
 	    return ;

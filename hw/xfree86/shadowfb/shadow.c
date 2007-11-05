@@ -1035,7 +1035,7 @@ ShadowPolyRectangle(
 	    offset1 = offset2 >> 1;
 	    offset3 = offset2 - offset1;
 
-	    pBoxInit = (BoxPtr)ALLOCATE_LOCAL(nRects * 4 * sizeof(BoxRec));
+	    pBoxInit = (BoxPtr)xalloc(nRects * 4 * sizeof(BoxRec));
 	    pbox = pBoxInit;
 
 	    while(nRects--) {
@@ -1086,7 +1086,7 @@ ShadowPolyRectangle(
                 if(pPriv->preRefresh)
                     (*pPriv->preRefresh)(pPriv->pScrn, num, pBoxInit);
             } else {
-                DEALLOCATE_LOCAL(pBoxInit);
+                xfree(pBoxInit);
             }                
 	}
     }
@@ -1098,7 +1098,7 @@ ShadowPolyRectangle(
     } else if(num) {
        if(pPriv->postRefresh)
           (*pPriv->postRefresh)(pPriv->pScrn, num, pBoxInit);
-       DEALLOCATE_LOCAL(pBoxInit);
+       xfree(pBoxInit);
     }
     
     SHADOW_GC_OP_EPILOGUE(pGC);
