@@ -42,12 +42,6 @@ XCOMM **********************************************************************
 
 Section "Files"
 
-XCOMM The location of the RGB database.  Note, this is the name of the
-XCOMM file minus the extension (like ".txt" or ".db").  There is normally
-XCOMM no need to change the default.
-
-    RgbPath	RGBPATH
-
 XCOMM Multiple FontPath entries are allowed (which are concatenated together),
 XCOMM as well as specifying multiple comma-separated entries in one FontPath
 XCOMM command (or a combination of both methods)

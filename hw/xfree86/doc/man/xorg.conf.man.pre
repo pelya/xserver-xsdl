@@ -373,7 +373,6 @@ The recommended font path contains the following font path elements:
 .I __projectroot__/lib/X11/fonts/75dpi/:unscaled
 .I __projectroot__/lib/X11/fonts/100dpi/:unscaled
 .I __projectroot__/lib/X11/fonts/Type1/
-.I __projectroot__/lib/X11/fonts/Speedo/
 .I __projectroot__/lib/X11/fonts/75dpi/
 .I __projectroot__/lib/X11/fonts/100dpi/
 .fi
@@ -382,20 +381,6 @@ The recommended font path contains the following font path elements:
 Font path elements that are found to be invalid are removed from the
 font path when the server starts up.
 .RE
-.TP 7
-.BI "RGBPath \*q" path \*q
-sets the path name for the RGB color database.
-When this entry is not specified in the config file, the server falls back
-to the compiled\-in default RGB path, which is:
-.PP
-.RS 11
-.I __projectroot__/share/X11/rgb
-.RE
-.PP
-Note that an implicit
-.I .txt
-is added to this path if the server was compiled to use text rather than
-binary format RGB color databases.
 .TP 7
 .BI "ModulePath \*q" path \*q
 sets the search path for loadable __xservername__ server modules.

@@ -472,15 +472,6 @@ CreateFiles(TreeNode *files)
     files->child = node;
     files->update = UpdateFiles;
 
-    if (XF86RGB_path)
-	value = XF86RGB_path;
-    else
-	value = file->file_rgbpath ? file->file_rgbpath : "";
-    node->next = NewNode(files, NULL, NULL, files->node,
-			 (TreeData*)XtCalloc(1, sizeof(TreeData)));
-    node = node->next;
-    CreateFilesField(node, "RgbPath", value);
-
     w = XtVaCreateManagedWidget("ModulePath", toggleWidgetClass, tree,
 				XtNtreeParent, files->node, NULL);
     node->next = modulepath = NewNode(files, w, w, files->node, NULL);
@@ -523,15 +514,6 @@ UpdateFiles(TreeNode *files)
 	XF86Config->conf_files->file_logfile = XtNewString(str);
     else
 	XF86Config->conf_files->file_logfile = NULL;
-
-    /* LogFile */
-    files = files->next;
-    XtVaGetValues(files->data->files.text, XtNstring, &str, NULL);
-    XtFree(XF86Config->conf_files->file_rgbpath);
-    if (*str)
-	XF86Config->conf_files->file_rgbpath = XtNewString(str);
-    else
-	XF86Config->conf_files->file_rgbpath = NULL;
 }
 
 /* FontPath */

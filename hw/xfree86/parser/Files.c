@@ -69,7 +69,6 @@ static xf86ConfigSymTabRec FilesTab[] =
 {
 	{ENDSECTION, "endsection"},
 	{FONTPATH, "fontpath"},
-	{RGBPATH, "rgbpath"},
 	{MODULEPATH, "modulepath"},
 	{INPUTDEVICES, "inputdevices"},
 	{LOGFILEPATH, "logfile"},
@@ -121,11 +120,6 @@ xf86parseFilesSection (void)
 
 			strcat (ptr->file_fontpath, str);
 			xf86conffree (val.str);
-			break;
-		case RGBPATH:
-			if (xf86getSubToken (&(ptr->file_comment)) != STRING)
-				Error (QUOTE_MSG, "RGBPath");
-			ptr->file_rgbpath = val.str;
 			break;
 		case MODULEPATH:
 			if (xf86getSubToken (&(ptr->file_comment)) != STRING)
@@ -216,8 +210,6 @@ xf86printFileSection (FILE * cf, XF86ConfFilesPtr ptr)
 		fprintf (cf, "%s", ptr->file_comment);
 	if (ptr->file_logfile)
 		fprintf (cf, "\tLogFile      \"%s\"\n", ptr->file_logfile);
-	if (ptr->file_rgbpath)
-		fprintf (cf, "\tRgbPath      \"%s\"\n", ptr->file_rgbpath);
 	if (ptr->file_modulepath)
 	{
 		s = ptr->file_modulepath;
@@ -272,7 +264,6 @@ xf86freeFiles (XF86ConfFilesPtr p)
 		return;
 
 	TestFree (p->file_logfile);
-	TestFree (p->file_rgbpath);
 	TestFree (p->file_modulepath);
 	TestFree (p->file_inputdevs);
 	TestFree (p->file_fontpath);

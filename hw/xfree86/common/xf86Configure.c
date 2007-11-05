@@ -605,8 +605,6 @@ configureFilesSection (void)
        ptr->file_modulepath = strdup(xf86ModulePath);
    if (defaultFontPath)
        ptr->file_fontpath = strdup(defaultFontPath);
-   if (rgbPath)
-       ptr->file_rgbpath = strdup(rgbPath);
    
     return ptr;
 }
