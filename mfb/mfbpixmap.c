@@ -253,13 +253,13 @@ mfbYRotatePixmap(pPix, rh)
 
     nbyDown = rh * pPix->devKind;
     nbyUp = (pPix->devKind * height) - nbyDown;
-    if(!(ptmp = (char *)ALLOCATE_LOCAL(nbyUp)))
+    if(!(ptmp = (char *)xalloc(nbyUp)))
 	return;
 
     memmove(ptmp, pbase, nbyUp);		/* save the low rows */
     memmove(pbase, pbase+nbyUp, nbyDown);	/* slide the top rows down */
     memmove(pbase+nbyDown, ptmp, nbyUp);	/* move lower rows up to row rh */
-    DEALLOCATE_LOCAL(ptmp);
+    xfree(ptmp);
 }
 
 void
