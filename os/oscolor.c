@@ -180,7 +180,7 @@ lookup(char *name, int len, Bool create)
   dbEntryPtr   entry, *prev = NULL;
   char         *str = name;
 
-  if (!(name = (char*)ALLOCATE_LOCAL(len +1))) return NULL;
+  if (!(name = (char*)xalloc(len +1))) return NULL;
   CopyISOLatin1Lowered((unsigned char *)name, (unsigned char *)str, len);
   name[len] = '\0';
 
@@ -206,7 +206,7 @@ lookup(char *name, int len, Bool create)
       strcpy( entry->name, name );
     }
 
-  DEALLOCATE_LOCAL(name);
+  xfree(name);
 
   return entry;
 }
@@ -225,13 +225,13 @@ OsInitColors(void)
 
   if (!was_here)
     {
-      path = (char*)ALLOCATE_LOCAL(strlen(rgbPath) +5);
+      path = (char*)xalloc(strlen(rgbPath) +5);
       strcpy(path, rgbPath);
       strcat(path, ".txt");
       if (!(rgb = fopen(path, "r")))
         {
 	   ErrorF( "Couldn't open RGB_DB '%s'\n", rgbPath );
-	   DEALLOCATE_LOCAL(path);
+	   xfree(path);
 	   return FALSE;
 	}
 
@@ -259,7 +259,7 @@ OsInitColors(void)
 	}
       
       fclose(rgb);
-      DEALLOCATE_LOCAL(path);
+      xfree(path);
 
       was_here = TRUE;
     }
