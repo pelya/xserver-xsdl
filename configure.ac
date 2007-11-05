@@ -1536,6 +1536,17 @@ dnl has it in libc), or if libdl is needed to get it.
 	AC_SUBST([sdkdir])
 	AC_SUBST([extdir])
 	AC_SUBST([logdir])
+
+	# stuff the ABI versions into the pc file too
+	extract_abi() {
+	    grep ^.define.*${1}_VERSION ${srcdir}/hw/xfree86/common/xf86Module.h | tr '(),' '  .' | awk '{ print $4$5 }'
+	}
+	abi_ansic=`extract_abi ANSIC`
+	abi_videodrv=`extract_abi VIDEODRV`
+	abi_xinput=`extract_abi XINPUT`
+	abi_extension=`extract_abi EXTENSION`
+	abi_font=`extract_abi FONT`
+	AC_SUBST([abi_ansic abi_videodrv abi_xinput abi_extension abi_font])
 fi
 AM_CONDITIONAL([XORG], [test "x$XORG" = xyes])
 AM_CONDITIONAL([XORG_BUS_LINUXPCI], [test "x$xorg_bus_linuxpci" = xyes])
