@@ -122,7 +122,7 @@ ProcRotateProperties(ClientPtr client)
     if (!stuff->nAtoms)
 	return(Success);
     atoms = (Atom *) & stuff[1];
-    props = (PropertyPtr *)ALLOCATE_LOCAL(stuff->nAtoms * sizeof(PropertyPtr));
+    props = (PropertyPtr *)xalloc(stuff->nAtoms * sizeof(PropertyPtr));
     if (!props)
 	return(BadAlloc);
     for (i = 0; i < stuff->nAtoms; i++)
@@ -131,19 +131,19 @@ ProcRotateProperties(ClientPtr client)
 				DixReadAccess|DixWriteAccess);
 
         if (!ValidAtom(atoms[i]) || (XaceErrorOperation == action)) {
-            DEALLOCATE_LOCAL(props);
+            xfree(props);
 	    client->errorValue = atoms[i];
             return BadAtom;
         }
 	if (XaceIgnoreOperation == action) {
-            DEALLOCATE_LOCAL(props);
+            xfree(props);
 	    return Success;
 	}
 
         for (j = i + 1; j < stuff->nAtoms; j++)
             if (atoms[j] == atoms[i])
             {
-                DEALLOCATE_LOCAL(props);
+                xfree(props);
                 return BadMatch;
             }
         pProp = wUserProps (pWin);
@@ -153,7 +153,7 @@ ProcRotateProperties(ClientPtr client)
                 goto found;
 	    pProp = pProp->next;
         }
-        DEALLOCATE_LOCAL(props);
+        xfree(props);
         return BadMatch;
 found: 
         props[i] = pProp;
@@ -175,7 +175,7 @@ found:
             props[i]->propertyName = atoms[(i + delta) % stuff->nAtoms];
 	}
     }
-    DEALLOCATE_LOCAL(props);
+    xfree(props);
     return Success;
 }
 
@@ -575,7 +575,7 @@ ProcListProperties(ClientPtr client)
 	numProps++;
     }
     if (numProps)
-        if(!(pAtoms = (Atom *)ALLOCATE_LOCAL(numProps * sizeof(Atom))))
+        if(!(pAtoms = (Atom *)xalloc(numProps * sizeof(Atom))))
             return(BadAlloc);
 
     xlpr.type = X_Reply;
@@ -594,7 +594,7 @@ ProcListProperties(ClientPtr client)
     {
         client->pSwapReplyFunc = (ReplySwapPtr)Swap32Write;
         WriteSwappedDataToClient(client, numProps * sizeof(Atom), pAtoms);
-        DEALLOCATE_LOCAL(pAtoms);
+        xfree(pAtoms);
     }
     return(client->noClientException);
 }
