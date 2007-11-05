@@ -50,9 +50,6 @@ SOFTWARE.
 #define OS_H
 
 #include "misc.h"
-#define ALLOCATE_LOCAL_FALLBACK(_size) Xalloc((unsigned long)(_size))
-#define DEALLOCATE_LOCAL_FALLBACK(_ptr) Xfree((pointer)(_ptr))
-#include <X11/Xalloca.h>
 #include <stdarg.h>
 
 #define NullFID ((FID) 0)
