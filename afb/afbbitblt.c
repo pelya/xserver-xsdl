@@ -279,7 +279,7 @@ afbBitBlt(register DrawablePtr pSrcDrawable, register DrawablePtr pDstDrawable, 
 	/* Do bit blitting */
 	numRects = REGION_NUM_RECTS(&rgnDst);
 	if (numRects && width && height) {
-		if(!(pptSrc = (DDXPointPtr)ALLOCATE_LOCAL(numRects *
+		if(!(pptSrc = (DDXPointPtr)xalloc(numRects *
 												  sizeof(DDXPointRec)))) {
 			REGION_UNINIT(pGC->pScreen, &rgnDst);
 			if (freeSrcClip)
@@ -296,7 +296,7 @@ afbBitBlt(register DrawablePtr pSrcDrawable, register DrawablePtr pDstDrawable, 
 		(*doBitBlt)(pSrcDrawable, pDstDrawable, pGC->alu, &rgnDst, pptSrc,
 					 planemask);
 
-		DEALLOCATE_LOCAL(pptSrc);
+		xfree(pptSrc);
 	}
 
 	prgnExposed = NULL;
