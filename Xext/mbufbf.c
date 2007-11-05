@@ -614,7 +614,7 @@ bufDrawSelectPlane(pScreen, selectPlane, prgn, bufferNum)
     if (!pGC)
 	return;
 
-    prect = (xRectangle *)ALLOCATE_LOCAL(REGION_NUM_RECTS(prgn) *
+    prect = (xRectangle *)xalloc(REGION_NUM_RECTS(prgn) *
 					 sizeof(xRectangle));
     if (!prect)
     {
@@ -638,7 +638,7 @@ bufDrawSelectPlane(pScreen, selectPlane, prgn, bufferNum)
     prect -= numRects;
     (* pGC->ops->PolyFillRect)(pDrawable, pGC, numRects, prect);
 
-    DEALLOCATE_LOCAL(prect);
+    xfree(prect);
     FreeScratchGC (pGC);
 }
 

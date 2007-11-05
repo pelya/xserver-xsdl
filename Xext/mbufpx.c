@@ -263,7 +263,7 @@ MultibufferPaintBackgroundRegion(pWin, pDrawable, pRegion)
     int nrects  = REGION_NUM_RECTS(pRegion);
     BoxPtr pbox = REGION_RECTS(pRegion);
 
-    pRects = (xRectangle *)ALLOCATE_LOCAL(nrects * sizeof(xRectangle));
+    pRects = (xRectangle *)xalloc(nrects * sizeof(xRectangle));
     if (pRects)
     {
 	int i;
@@ -275,7 +275,7 @@ MultibufferPaintBackgroundRegion(pWin, pDrawable, pRegion)
 	    pRects[i].height = pbox->y2 - pbox->y1;
 	}
 	MultibufferPaintBackgroundRectangles(pWin, pDrawable, nrects, pRects);
-	DEALLOCATE_LOCAL(pRects);
+	xfree(pRects);
     }
 }
 
