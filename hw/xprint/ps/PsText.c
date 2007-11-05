@@ -535,7 +535,7 @@ PsPolyGlyphBlt(
 
     
     nbyLine = BitmapBytePad(width);
-    pbits = (unsigned char *)ALLOCATE_LOCAL(height*nbyLine);
+    pbits = (unsigned char *)xalloc(height*nbyLine);
     if (!pbits){
         PsDestroyPixmap(pPixmap);
         return;
@@ -576,6 +576,6 @@ PsPolyGlyphBlt(
         
         x  += pci->metrics.characterWidth;
     }
-    DEALLOCATE_LOCAL(pbits);
+    xfree(pbits);
     FreeScratchGC(pGCtmp);
 }

@@ -777,7 +777,7 @@ finish:
     reply.nFonts = nnames;
     reply.sequenceNumber = client->sequence;
 
-    bufptr = bufferStart = (char *) ALLOCATE_LOCAL(reply.length << 2);
+    bufptr = bufferStart = (char *) xalloc(reply.length << 2);
 
     if (!bufptr && reply.length) {
 	SendErrorToClient(client, X_ListFonts, 0, 0, BadAlloc);
@@ -802,7 +802,7 @@ finish:
     client->pSwapReplyFunc = ReplySwapVector[X_ListFonts];
     WriteSwappedDataToClient(client, sizeof(xListFontsReply), &reply);
     (void) WriteToClient(client, stringLens + nnames, bufferStart);
-    DEALLOCATE_LOCAL(bufferStart);
+    xfree(bufferStart);
 
 bail:
     if (c->slept)
@@ -1797,7 +1797,7 @@ SetDefaultFontPath(char *path)
 
     /* get enough for string, plus values -- use up commas */
     len = strlen(path) + 1;
-    nump = cp = newpath = (unsigned char *) ALLOCATE_LOCAL(len);
+    nump = cp = newpath = (unsigned char *) xalloc(len);
     if (!newpath)
 	return BadAlloc;
     pp = (unsigned char *) path;
@@ -1818,7 +1818,7 @@ SetDefaultFontPath(char *path)
 
     err = SetFontPathElements(num, newpath, &bad, TRUE);
 
-    DEALLOCATE_LOCAL(newpath);
+    xfree(newpath);
 
     return err;
 }

@@ -2030,7 +2030,7 @@ static void GetSendColorCellsRep(ClientPtr client, xResourceReq *req)
     }
     nmasks = creq->planes;
     length = ((long)npixels + (long)nmasks) * sizeof(Pixel);
-    data = (XETrapDatum *)ALLOCATE_LOCAL(sizeof(XETrapDatum)+length);
+    data = (XETrapDatum *)xalloc(sizeof(XETrapDatum)+length);
     if (!data)
     {
         SendErrorToClient(penv->client, XETrap_avail.data.major_opcode,
@@ -2048,7 +2048,7 @@ static void GetSendColorCellsRep(ClientPtr client, xResourceReq *req)
     {
         SendErrorToClient(penv->client, XETrap_avail.data.major_opcode,
             req->reqType, 0L, retval);
-        DEALLOCATE_LOCAL(data);
+        xfree(data);
         return;
     }
     crep = (xAllocColorCellsReply *)&(data->u.reply);
@@ -2073,7 +2073,7 @@ static void GetSendColorCellsRep(ClientPtr client, xResourceReq *req)
         SendErrorToClient(penv->client, XETrap_avail.data.major_opcode,
             req->reqType, 0L, XETrapErrorBase + BadIO);
     }
-    DEALLOCATE_LOCAL(data);
+    xfree(data);
 }
 static void GetSendColorPlanesRep(ClientPtr client, xResourceReq *req)
 {   /* adapted from ProcAllocColorPlanes() in dispatch.c */
@@ -2101,7 +2101,7 @@ static void GetSendColorPlanesRep(ClientPtr client, xResourceReq *req)
         return;
     }
     length = (long)npixels * sizeof(Pixel);
-    data = (XETrapDatum *)ALLOCATE_LOCAL(sizeof(XETrapDatum)+length);
+    data = (XETrapDatum *)xalloc(sizeof(XETrapDatum)+length);
     if (!data)
     {
         SendErrorToClient(penv->client, XETrap_avail.data.major_opcode,
@@ -2121,7 +2121,7 @@ static void GetSendColorPlanesRep(ClientPtr client, xResourceReq *req)
     {
         SendErrorToClient(penv->client, XETrap_avail.data.major_opcode,
             req->reqType, 0L, retval);
-        DEALLOCATE_LOCAL(data);
+        xfree(data);
         return;
     }
     crep->nPixels = npixels;
@@ -2146,6 +2146,6 @@ static void GetSendColorPlanesRep(ClientPtr client, xResourceReq *req)
         SendErrorToClient(penv->client, XETrap_avail.data.major_opcode,
             req->reqType, 0L, XETrapErrorBase + BadIO);
     }
-    DEALLOCATE_LOCAL(data);
+    xfree(data);
 }
 #endif /* COLOR_REPLIES */

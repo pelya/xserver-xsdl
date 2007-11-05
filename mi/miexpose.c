@@ -369,7 +369,7 @@ miSendGraphicsExpose (client, pRgn, drawable, major, minor)
 
 	numRects = REGION_NUM_RECTS(pRgn);
 	pBox = REGION_RECTS(pRgn);
-	if(!(pEvent = (xEvent *)ALLOCATE_LOCAL(numRects * sizeof(xEvent))))
+	if(!(pEvent = (xEvent *)xalloc(numRects * sizeof(xEvent))))
 		return;
 	pe = pEvent;
 
@@ -387,7 +387,7 @@ miSendGraphicsExpose (client, pRgn, drawable, major, minor)
 	}
 	TryClientEvents(client, pEvent, numRects,
 			    (Mask)0, NoEventMask, NullGrab);
-	DEALLOCATE_LOCAL(pEvent);
+	xfree(pEvent);
     }
     else
     {
@@ -415,7 +415,7 @@ miSendExposures(pWin, pRgn, dx, dy)
 
     pBox = REGION_RECTS(pRgn);
     numRects = REGION_NUM_RECTS(pRgn);
-    if(!(pEvent = (xEvent *) ALLOCATE_LOCAL(numRects * sizeof(xEvent))))
+    if(!(pEvent = (xEvent *) xalloc(numRects * sizeof(xEvent))))
 	return;
 
     for (i=numRects, pe = pEvent; --i >= 0; pe++, pBox++)
@@ -445,7 +445,7 @@ miSendExposures(pWin, pRgn, dx, dy)
 	    win = PanoramiXFindIDByScrnum(XRT_WINDOW, 
 			pWin->drawable.id, scrnum);
 	    if(!win) {
-		DEALLOCATE_LOCAL(pEvent);
+		xfree(pEvent);
 		return;
 	    }
 	    realWin = win->info[0].id;
@@ -462,7 +462,7 @@ miSendExposures(pWin, pRgn, dx, dy)
 
     DeliverEvents(pWin, pEvent, numRects, NullWindow);
 
-    DEALLOCATE_LOCAL(pEvent);
+    xfree(pEvent);
 }
 
 _X_EXPORT void 
@@ -620,7 +620,7 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
 	gcmask |= GCFillStyle | GCTile | GCTileStipXOrigin | GCTileStipYOrigin;
     }
 
-    prect = (xRectangle *)ALLOCATE_LOCAL(REGION_NUM_RECTS(prgn) *
+    prect = (xRectangle *)xalloc(REGION_NUM_RECTS(prgn) *
 					 sizeof(xRectangle));
     if (!prect)
 	return;
@@ -628,7 +628,7 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
     pGC = GetScratchGC(drawable->depth, drawable->pScreen);
     if (!pGC)
     {
-	DEALLOCATE_LOCAL(prect);
+	xfree(prect);
 	return;
     }
     
@@ -646,7 +646,7 @@ miPaintWindow(WindowPtr pWin, RegionPtr prgn, int what)
     }
     prect -= numRects;
     (*pGC->ops->PolyFillRect)(drawable, pGC, numRects, prect);
-    DEALLOCATE_LOCAL(prect);
+    xfree(prect);
 
     FreeScratchGC(pGC);
 }

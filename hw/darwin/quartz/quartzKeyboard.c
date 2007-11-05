@@ -217,42 +217,41 @@ DarwinModeReadSystemKeymap (darwinKeyboardInfo *info)
     const void *chr_data = NULL;
     int num_keycodes = NUM_KEYCODES;
     UInt32 keyboard_type = 0;
-    int is_uchr, i, j;
+    int is_uchr = 1, i, j;
     OSStatus err;
     KeySym *k;
 
     TISInputSourceRef currentKeyLayoutRef = TISCopyCurrentKeyboardLayoutInputSource();
-    if (currentKeyLayoutRef) 
-      {
-	CFDataRef currentKeyLayoutDataRef = (CFDataRef )TISGetInputSourceProperty(currentKeyLayoutRef, kTISPropertyUnicodeKeyLayoutData);
-	if (currentKeyLayoutDataRef)
-	  chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
-      }
-    
-    if (chr_data != NULL)
-    {
-      KLGetCurrentKeyboardLayout (&key_layout);
-      KLGetKeyboardLayoutProperty (key_layout, kKLuchrData, &chr_data);
-
-      if (chr_data != NULL)
+	if (currentKeyLayoutRef)
 	{
-	  is_uchr = 1;
-	  keyboard_type = LMGetKbdType ();
+		CFDataRef currentKeyLayoutDataRef = (CFDataRef )TISGetInputSourceProperty(currentKeyLayoutRef, kTISPropertyUnicodeKeyLayoutData);
+		if (currentKeyLayoutDataRef)
+			chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
 	}
-      else
-	{
-	  KLGetKeyboardLayoutProperty (key_layout, kKLKCHRData, &chr_data);
-	  
-	  if (chr_data == NULL)
-	    {
-	      ErrorF ( "Couldn't get uchr or kchr resource\n");
-	      return FALSE;
-	    }
-	  
-	  is_uchr = 0;
-	  num_keycodes = 128;
-	}    
-    }
+	
+	if(chr_data == NULL) {
+		KLGetCurrentKeyboardLayout (&key_layout);
+		KLGetKeyboardLayoutProperty (key_layout, kKLuchrData, &chr_data);
+
+		if (chr_data != NULL)
+		{
+			is_uchr = 1;
+			keyboard_type = LMGetKbdType ();
+		}
+		else
+		{
+			KLGetKeyboardLayoutProperty (key_layout, kKLKCHRData, &chr_data);
+
+			if (chr_data == NULL)
+			{
+				ErrorF ( "Couldn't get uchr or kchr resource\n");
+				return FALSE;
+			}
+
+			is_uchr = 0;
+			num_keycodes = 128;
+		}    
+	}
 
     /* Scan the keycode range for the Unicode character that each
        key produces in the four shift states. Then convert that to
@@ -376,8 +375,7 @@ DarwinModeReadSystemKeymap (darwinKeyboardInfo *info)
             }
         }
     }
-
-    if(currentKeyLayoutRef) CFRelease(currentKeyLayoutRef);
+	if(currentKeyLayoutRef)	CFRelease(currentKeyLayoutRef);
 
     return TRUE;
 }

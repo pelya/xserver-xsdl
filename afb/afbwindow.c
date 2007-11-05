@@ -141,7 +141,7 @@ afbCopyWindow(pWin, ptOldOrg, prgnSrc)
 
 	pbox = REGION_RECTS(prgnDst);
 	nbox = REGION_NUM_RECTS(prgnDst);
-	if(!(pptSrc = (DDXPointPtr )ALLOCATE_LOCAL(nbox * sizeof(DDXPointRec))))
+	if(!(pptSrc = (DDXPointPtr )xalloc(nbox * sizeof(DDXPointRec))))
 		return;
 	ppt = pptSrc;
 
@@ -152,7 +152,7 @@ afbCopyWindow(pWin, ptOldOrg, prgnSrc)
 
 	afbDoBitblt((DrawablePtr)pwinRoot, (DrawablePtr)pwinRoot, GXcopy, prgnDst,
 					 pptSrc, ~0);
-	DEALLOCATE_LOCAL(pptSrc);
+	xfree(pptSrc);
 	REGION_DESTROY(pWin->drawable.pScreen, prgnDst);
 }
 

@@ -1,5 +1,3 @@
-<!-- $XFree86: xc/programs/Xserver/hw/darwin/bundle/English.lproj/XDarwinHelp.html.cpp,v 1.1 2001/05/21 01:42:17 torrey Exp $ -->
-
 <html>
 <head>
 <title>XDarwin Help</title>

@@ -172,8 +172,8 @@ typedef struct _miBankQueue
         (*pScreenPriv->BankInfo.SetDestinationBank)(pScreen, (_no)) - \
         (pScreenPriv->BankInfo.BankSize * (_no)))
 
-#define ALLOCATE_LOCAL_ARRAY(atype, ntype) \
-    (atype *)ALLOCATE_LOCAL((ntype) * sizeof(atype))
+#define xalloc_ARRAY(atype, ntype) \
+    (atype *)xalloc((ntype) * sizeof(atype))
 
 static int           miBankScreenIndex;
 static int           miBankGCIndex;
@@ -318,14 +318,14 @@ static unsigned long miBankGeneration = 0;
             atype *aarg = pArray, *acopy; \
             int   i; \
             CLIP_SAVE; \
-            if ((acopy = ALLOCATE_LOCAL_ARRAY(atype, nArray))) \
+            if ((acopy = xalloc_ARRAY(atype, nArray))) \
                 aarg = acopy; \
             GCOP_TOP_PART; \
             if (acopy) \
                 memcpy(acopy, pArray, nArray * sizeof(atype)); \
             (*pGC->ops->aop)(pDrawable, pGC, GCOP_ARGS nArray, aarg); \
             GCOP_BOTTOM_PART; \
-            DEALLOCATE_LOCAL(acopy); \
+            xfree(acopy); \
             CLIP_RESTORE; \
         } \
         SCREEN_RESTORE; \
@@ -787,7 +787,7 @@ miBankCopy(
             fastBlit = pGCPriv->fastCopy;
 
         nQueue = nBox * pScreenPriv->maxRects * 2;
-        pQueue = Queue = ALLOCATE_LOCAL_ARRAY(miBankQueue, nQueue);
+        pQueue = Queue = xalloc_ARRAY(miBankQueue, nQueue);
 
         if (Queue)
         {
@@ -953,7 +953,7 @@ miBankCopy(
 
             paddedWidth = PixmapBytePad(maxWidth,
                 pScreenPriv->pScreenPixmap->drawable.depth);
-            pImage = (char *)ALLOCATE_LOCAL(paddedWidth * maxHeight);
+            pImage = (char *)xalloc(paddedWidth * maxHeight);
 
             pGC->fExpose = FALSE;
 
@@ -1031,7 +1031,7 @@ miBankCopy(
                 pQueue++;
             }
 
-            DEALLOCATE_LOCAL(pImage);
+            xfree(pImage);
 
             BANK_RESTORE;
         }
@@ -1040,7 +1040,7 @@ miBankCopy(
 
         pGC->fExpose = fExpose;
 
-        DEALLOCATE_LOCAL(Queue);
+        xfree(Queue);
     }
 
     SCREEN_RESTORE;
@@ -1748,7 +1748,7 @@ miBankGetImage(
 
             paddedWidth = PixmapBytePad(w,
                 pScreenPriv->pScreenPixmap->drawable.depth);
-            pBankImage = (char *)ALLOCATE_LOCAL(paddedWidth * h);
+            pBankImage = (char *)xalloc(paddedWidth * h);
 
             if (pBankImage)
             {
@@ -1768,7 +1768,7 @@ miBankGetImage(
 
                 BANK_RESTORE;
 
-                DEALLOCATE_LOCAL(pBankImage);
+                xfree(pBankImage);
             }
         }
 
@@ -1809,7 +1809,7 @@ miBankGetSpans(
             paddedWidth =
                 PixmapBytePad(pScreenPriv->pScreenPixmap->drawable.width,
                     pScreenPriv->pScreenPixmap->drawable.depth);
-            pBankImage = (char *)ALLOCATE_LOCAL(paddedWidth);
+            pBankImage = (char *)xalloc(paddedWidth);
 
             if (pBankImage)
             {
@@ -1838,7 +1838,7 @@ miBankGetSpans(
 
                 BANK_RESTORE;
 
-                DEALLOCATE_LOCAL(pBankImage);
+                xfree(pBankImage);
             }
         }
 
@@ -1911,7 +1911,7 @@ miBankCopyWindow(
         if (dy < 0)
         {
             /* Sort boxes from bottom to top */
-            pBoxNew1 = ALLOCATE_LOCAL_ARRAY(BoxRec, nBox);
+            pBoxNew1 = xalloc_ARRAY(BoxRec, nBox);
 
             if (pBoxNew1)
             {
@@ -1939,7 +1939,7 @@ miBankCopyWindow(
         if (dx < 0)
         {
             /* Sort boxes from right to left */
-            pBoxNew2 = ALLOCATE_LOCAL_ARRAY(BoxRec, nBox);
+            pBoxNew2 = xalloc_ARRAY(BoxRec, nBox);
 
             if (pBoxNew2)
             {
@@ -1979,8 +1979,8 @@ miBankCopyWindow(
 
     REGION_DESTROY(pScreen, pRgnDst);
 
-    DEALLOCATE_LOCAL(pBoxNew2);
-    DEALLOCATE_LOCAL(pBoxNew1);
+    xfree(pBoxNew2);
+    xfree(pBoxNew1);
 }
 
 _X_EXPORT Bool

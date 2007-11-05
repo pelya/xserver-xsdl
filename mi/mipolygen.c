@@ -92,13 +92,13 @@ miFillGeneralPoly(dst, pgc, count, ptsIn)
 	return(TRUE);
 
     if(!(pETEs = (EdgeTableEntry *)
-        ALLOCATE_LOCAL(sizeof(EdgeTableEntry) * count)))
+        xalloc(sizeof(EdgeTableEntry) * count)))
 	return(FALSE);
     ptsOut = FirstPoint;
     width = FirstWidth;
     if (!miCreateETandAET(count, ptsIn, &ET, &AET, pETEs, &SLLBlock))
     {
-	DEALLOCATE_LOCAL(pETEs);
+	xfree(pETEs);
 	return(FALSE);
     }
     pSLL = ET.scanlines.next;
@@ -224,7 +224,7 @@ miFillGeneralPoly(dst, pgc, count, ptsIn)
      *     Get any spans that we missed by buffering
      */
     (*pgc->ops->FillSpans)(dst, pgc, nPts, FirstPoint, FirstWidth, 1);
-    DEALLOCATE_LOCAL(pETEs);
+    xfree(pETEs);
     miFreeStorage(SLLBlock.next);
     return(TRUE);
 }

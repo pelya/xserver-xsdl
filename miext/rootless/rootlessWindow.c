@@ -1376,3 +1376,29 @@ RootlessChangeBorderWidth(WindowPtr pWin, unsigned int width)
 
     RL_DEBUG_MSG("change border width end\n");
 }
+
+/*
+ * RootlessOrderAllWindows
+ * Brings all X11 windows to the top of the window stack
+ * (i.e in front of Aqua windows) -- called when X11.app is given focus
+ */
+void
+RootlessOrderAllWindows (void)
+{
+  int i;
+  WindowPtr pWin;
+  
+  RL_DEBUG_MSG("RootlessOrderAllWindows() ");
+  for (i = 0; i < screenInfo.numScreens; i++) {
+    if (screenInfo.screens[i] == NULL) continue;
+    pWin = WindowTable[i];
+    if (pWin == NULL) continue;
+      
+    for (pWin = pWin->firstChild; pWin != NULL; pWin = pWin->nextSib) {
+      if (!pWin->realized) continue;
+      if (RootlessEnsureFrame(pWin) == NULL) continue;
+      RootlessReorderWindow (pWin);
+    }
+  }
+  RL_DEBUG_MSG("RootlessOrderAllWindows() done");
+}

@@ -182,7 +182,7 @@ char *			pval;
 	ErrorF("Atom error: %s not created\n",_XKB_RF_NAMES_PROP_ATOM);
 	return True;
     }
-    pval= (char*) ALLOCATE_LOCAL(len);
+    pval= (char*) xalloc(len);
     if (!pval) {
 	ErrorF("Allocation error: %s proprerty not created\n",
 						_XKB_RF_NAMES_PROP_ATOM);
@@ -223,7 +223,7 @@ char *			pval;
     }
     ChangeWindowProperty(WindowTable[0],name,XA_STRING,8,PropModeReplace,
 							len,pval,True);
-    DEALLOCATE_LOCAL(pval);
+    xfree(pval);
     return True;
 }
 

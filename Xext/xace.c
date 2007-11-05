@@ -437,7 +437,7 @@ XaceCensorImage(client, pVisibleRegion, widthBytesLine, pDraw, x, y, w, h,
 
 	/* convert region to list-of-rectangles for PolyFillRect */
 
-	pRects = (xRectangle *)ALLOCATE_LOCAL(nRects * sizeof(xRectangle *));
+	pRects = (xRectangle *)xalloc(nRects * sizeof(xRectangle *));
 	if (!pRects)
 	{
 	    failed = TRUE;
@@ -489,7 +489,7 @@ XaceCensorImage(client, pVisibleRegion, widthBytesLine, pDraw, x, y, w, h,
 	     */
 	    bzero(pBuf, (int)(widthBytesLine * h));
 	}
-	if (pRects)     DEALLOCATE_LOCAL(pRects);
+	if (pRects)     xfree(pRects);
 	if (pScratchGC) FreeScratchGC(pScratchGC);
 	if (pPix)       FreeScratchPixmapHeader(pPix);
     }

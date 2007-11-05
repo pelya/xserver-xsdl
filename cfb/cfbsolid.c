@@ -811,12 +811,12 @@ RROP_NAME(cfbSolidSpans) (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     devPriv = cfbGetGCPrivate(pGC);
     RROP_FETCH_GCPRIV(devPriv)
     n = nInit * miFindMaxBand(pGC->pCompositeClip);
-    pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
-    pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
+    pwidthFree = (int *)xalloc(n * sizeof(int));
+    pptFree = (DDXPointRec *)xalloc(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
     {
-	if (pptFree) DEALLOCATE_LOCAL(pptFree);
-	if (pwidthFree) DEALLOCATE_LOCAL(pwidthFree);
+	if (pptFree) xfree(pptFree);
+	if (pwidthFree) xfree(pwidthFree);
 	return;
     }
     pwidth = pwidthFree;
@@ -1359,7 +1359,7 @@ RROP_NAME(cfbSolidSpans) (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
 	}
 #endif
     }
-    DEALLOCATE_LOCAL(pptFree);
-    DEALLOCATE_LOCAL(pwidthFree);
+    xfree(pptFree);
+    xfree(pwidthFree);
     RROP_UNDECLARE
 }

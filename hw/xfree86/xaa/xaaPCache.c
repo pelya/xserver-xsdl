@@ -1557,7 +1557,7 @@ XAACacheMonoStipple(ScrnInfoPtr pScrn, PixmapPtr pPix)
 
    pad = BitmapBytePad(pCache->w * bpp);
    dwords = pad >> 2;
-   dstPtr = data = (unsigned char*)ALLOCATE_LOCAL(pad * pCache->h);
+   dstPtr = data = (unsigned char*)xalloc(pad * pCache->h);
    srcPtr = (unsigned char*)pPix->devPrivate.ptr;
 
    if(infoRec->ScreenToScreenColorExpandFillFlags & BIT_ORDER_IN_BYTE_MSBFIRST)
@@ -1588,7 +1588,7 @@ XAACacheMonoStipple(ScrnInfoPtr pScrn, PixmapPtr pPix)
 	pScrn, pCache->x, pCache->y, pCache->w, pCache->h, data,
 	pad, bpp, pScrn->depth);
 
-   DEALLOCATE_LOCAL(data);
+   xfree(data);
 
    return pCache;
 }
@@ -1967,7 +1967,7 @@ XAAWriteMono8x8PatternToCache(
 
    pad = BitmapBytePad(pCache->w * pScrn->bitsPerPixel);
 
-   data = (unsigned char*)ALLOCATE_LOCAL(pad * pCache->h);
+   data = (unsigned char*)xalloc(pad * pCache->h);
    if(!data) return;
 
    if(infoRec->Mono8x8PatternFillFlags & HARDWARE_PATTERN_PROGRAMMED_ORIGIN) {
@@ -1991,7 +1991,7 @@ XAAWriteMono8x8PatternToCache(
    (*infoRec->WritePixmapToCache)(pScrn, pCache->x, pCache->y, 
 	pCache->w, pCache->h, data, pad, pScrn->bitsPerPixel, pScrn->depth);
 
-   DEALLOCATE_LOCAL(data);
+   xfree(data);
 }
 
 void 
@@ -2012,7 +2012,7 @@ XAAWriteColor8x8PatternToCache(
    if(pixPriv->flags & REDUCIBLE_TO_2_COLOR) {
 	CARD32* ptr;
 	pad = BitmapBytePad(pCache->w);
-	data = (unsigned char*)ALLOCATE_LOCAL(pad * pCache->h);
+	data = (unsigned char*)xalloc(pad * pCache->h);
 	if(!data) return;
 
 	if(infoRec->Color8x8PatternFillFlags & 
@@ -2037,7 +2037,7 @@ XAAWriteColor8x8PatternToCache(
 	(*infoRec->WriteBitmapToCache)(pScrn, pCache->x, pCache->y, 
 		pCache->w, pCache->h, data, pad, pCache->fg, pCache->bg);
 
-   	DEALLOCATE_LOCAL(data);
+   	xfree(data);
 	return;
    } 
 
@@ -2046,7 +2046,7 @@ XAAWriteColor8x8PatternToCache(
    w = min(8,pPix->drawable.width);
    pad = BitmapBytePad(pCache->w * pScrn->bitsPerPixel);
 
-   data = (unsigned char*)ALLOCATE_LOCAL(pad * pCache->h);
+   data = (unsigned char*)xalloc(pad * pCache->h);
    if(!data) return;
 
    /* Write and expand horizontally. */
@@ -2085,7 +2085,7 @@ XAAWriteColor8x8PatternToCache(
    (*infoRec->WritePixmapToCache)(pScrn, pCache->x, pCache->y, 
 	pCache->w, pCache->h, data, pad, pScrn->bitsPerPixel, pScrn->depth);
 
-   DEALLOCATE_LOCAL(data);   
+   xfree(data);   
 }
 
 

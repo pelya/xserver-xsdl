@@ -491,7 +491,7 @@ ProcXF86BigfontQueryFont(
 	    } else {
 #endif
 		pCI = (xCharInfo *)
-		      ALLOCATE_LOCAL(nCharInfos * sizeof(xCharInfo));
+		      xalloc(nCharInfos * sizeof(xCharInfo));
 		if (!pCI)
 		    return BadAlloc;
 #ifdef HAS_SHM
@@ -554,9 +554,9 @@ ProcXF86BigfontQueryFont(
 		hashModulus = nCharInfos+1;
 
 	    tmp = (CARD16*)
-		  ALLOCATE_LOCAL((4*nCharInfos+1) * sizeof(CARD16));
+		  xalloc((4*nCharInfos+1) * sizeof(CARD16));
 	    if (!tmp) {
-		if (!pDesc) DEALLOCATE_LOCAL(pCI);
+		if (!pDesc) xfree(pCI);
 		return BadAlloc;
 	    }
 	    pIndex2UniqIndex = tmp;
@@ -639,12 +639,12 @@ ProcXF86BigfontQueryFont(
 	        + (nCharInfos+1)/2 * 2 * sizeof(CARD16)
 	      : 0);
 	xXF86BigfontQueryFontReply* reply =
-	   (xXF86BigfontQueryFontReply *) ALLOCATE_LOCAL(rlength);
+	   (xXF86BigfontQueryFontReply *) xalloc(rlength);
 	char* p;
 	if (!reply) {
 	    if (nCharInfos > 0) {
-		if (shmid == -1) DEALLOCATE_LOCAL(pIndex2UniqIndex);
-		if (!pDesc) DEALLOCATE_LOCAL(pCI);
+		if (shmid == -1) xfree(pIndex2UniqIndex);
+		if (!pDesc) xfree(pCI);
 	    }
 	    return BadAlloc;
 	}
@@ -722,10 +722,10 @@ ProcXF86BigfontQueryFont(
 	    }
 	}
 	WriteToClient(client, rlength, (char *)reply);
-	DEALLOCATE_LOCAL(reply);
+	xfree(reply);
 	if (nCharInfos > 0) {
-	    if (shmid == -1) DEALLOCATE_LOCAL(pIndex2UniqIndex);
-	    if (!pDesc) DEALLOCATE_LOCAL(pCI);
+	    if (shmid == -1) xfree(pIndex2UniqIndex);
+	    if (!pDesc) xfree(pCI);
 	}
 	return (client->noClientException);
     }

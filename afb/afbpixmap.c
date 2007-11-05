@@ -251,7 +251,7 @@ afbYRotatePixmap(pPix, rh)
 	nbyDown = rh * pPix->devKind;
 	nbyUp = (pPix->devKind * height) - nbyDown;
 
-	if(!(ptmp = (char *)ALLOCATE_LOCAL(nbyUp)))
+	if(!(ptmp = (char *)xalloc(nbyUp)))
 		return;
 
 	for (d = 0; d < pPix->drawable.depth; d++) {
@@ -261,7 +261,7 @@ afbYRotatePixmap(pPix, rh)
 		memmove(pbase, pbase+nbyUp, nbyDown);		/* slide the top rows down */
 		memmove(pbase+nbyDown, ptmp, nbyUp);		/* move lower rows up to row rh */
 	}
-	DEALLOCATE_LOCAL(ptmp);
+	xfree(ptmp);
 }
 
 void

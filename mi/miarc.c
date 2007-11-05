@@ -925,14 +925,14 @@ miFillWideEllipse(
 
     yorgu = parc->height + pGC->lineWidth;
     n = (sizeof(int) * 2) * yorgu;
-    widths = (int *)ALLOCATE_LOCAL(n + (sizeof(DDXPointRec) * 2) * yorgu);
+    widths = (int *)xalloc(n + (sizeof(DDXPointRec) * 2) * yorgu);
     if (!widths)
 	return;
     points = (DDXPointPtr)((char *)widths + n);
     spdata = miComputeWideEllipse((int)pGC->lineWidth, parc, &mustFree);
     if (!spdata)
     {
-	DEALLOCATE_LOCAL(widths);
+	xfree(widths);
 	return;
     }
     pts = points;
@@ -1025,7 +1025,7 @@ miFillWideEllipse(
 	xfree(spdata);
     (*pGC->ops->FillSpans)(pDraw, pGC, pts - points, points, widths, FALSE);
 
-    DEALLOCATE_LOCAL(widths);
+    xfree(widths);
 }
 
 /*
@@ -1899,13 +1899,13 @@ miComputeArcs (
 	isDoubleDash = (pGC->lineStyle == LineDoubleDash);
 	dashOffset = pGC->dashOffset;
 
-	data = (struct arcData *) ALLOCATE_LOCAL (narcs * sizeof (struct arcData));
+	data = (struct arcData *) xalloc (narcs * sizeof (struct arcData));
 	if (!data)
 	    return (miPolyArcPtr)NULL;
 	arcs = (miPolyArcPtr) xalloc (sizeof (*arcs) * (isDoubleDash ? 2 : 1));
 	if (!arcs)
 	{
-	    DEALLOCATE_LOCAL(data);
+	    xfree(data);
 	    return (miPolyArcPtr)NULL;
 	}
 	for (i = 0; i < narcs; i++) {
@@ -2254,11 +2254,11 @@ miComputeArcs (
 			arcs[iphase].arcs[arcs[iphase].narcs-1].cap =
 			         arcs[iphase].ncaps;
 		}
-	DEALLOCATE_LOCAL(data);
+	xfree(data);
 	return arcs;
 arcfail:
 	miFreeArcs(arcs, pGC);
-	DEALLOCATE_LOCAL(data);
+	xfree(data);
 	return (miPolyArcPtr)NULL;
 }
 
@@ -3162,8 +3162,8 @@ fillSpans (
 
 	if (nspans == 0)
 		return;
-	xSpan = xSpans = (DDXPointPtr) ALLOCATE_LOCAL (nspans * sizeof (DDXPointRec));
-	xWidth = xWidths = (int *) ALLOCATE_LOCAL (nspans * sizeof (int));
+	xSpan = xSpans = (DDXPointPtr) xalloc (nspans * sizeof (DDXPointRec));
+	xWidth = xWidths = (int *) xalloc (nspans * sizeof (int));
 	if (xSpans && xWidths)
 	{
 	    i = 0;
@@ -3183,9 +3183,9 @@ fillSpans (
 	}
 	disposeFinalSpans ();
 	if (xSpans)
-	    DEALLOCATE_LOCAL (xSpans);
+	    xfree (xSpans);
 	if (xWidths)
-	    DEALLOCATE_LOCAL (xWidths);
+	    xfree (xWidths);
 	finalMiny = 0;
 	finalMaxy = -1;
 	finalSize = 0;

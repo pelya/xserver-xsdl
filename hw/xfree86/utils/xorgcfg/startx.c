@@ -73,9 +73,6 @@ startx(void)
 	if (XF86Font_path && ((len = sizeof(commandline) - c_pos) > 0))
 	    c_pos += XmuSnprintf(commandline + c_pos,len,
 				 " -fontpath %s",XF86Font_path);
-	if (XF86RGB_path && ((len = sizeof(commandline) - c_pos) > 0))
-	    c_pos += XmuSnprintf(commandline + c_pos,len,
-				 " -rgbpath %s",XF86RGB_path);
 	
 	if (system(commandline) != 0) {
 	    fprintf(stderr, "Failed to run \"X -configure\".\n");

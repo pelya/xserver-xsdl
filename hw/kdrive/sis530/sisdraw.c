@@ -1234,12 +1234,12 @@ sisFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
 	return;
     }
     nTmp = n * miFindMaxBand(fbGetCompositeClip(pGC));
-    pwidthFree = (int *)ALLOCATE_LOCAL(nTmp * sizeof(int));
-    pptFree = (DDXPointRec *)ALLOCATE_LOCAL(nTmp * sizeof(DDXPointRec));
+    pwidthFree = (int *)xalloc(nTmp * sizeof(int));
+    pptFree = (DDXPointRec *)xalloc(nTmp * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
     {
-	if (pptFree) DEALLOCATE_LOCAL(pptFree);
-	if (pwidthFree) DEALLOCATE_LOCAL(pwidthFree);
+	if (pptFree) xfree(pptFree);
+	if (pwidthFree) xfree(pwidthFree);
 	return;
     }
     n = miClipSpans(fbGetCompositeClip(pGC),
@@ -1273,8 +1273,8 @@ sisFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
 	}
     }
     KdMarkSync (pDrawable->pScreen);
-    DEALLOCATE_LOCAL(pptFree);
-    DEALLOCATE_LOCAL(pwidthFree);
+    xfree(pptFree);
+    xfree(pwidthFree);
 }
 
 #define NUM_STACK_RECTS	1024
@@ -1323,7 +1323,7 @@ sisPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
     numRects = REGION_NUM_RECTS(prgnClip) * nrectFill;
     if (numRects > NUM_STACK_RECTS)
     {
-	pboxClippedBase = (BoxPtr)ALLOCATE_LOCAL(numRects * sizeof(BoxRec));
+	pboxClippedBase = (BoxPtr)xalloc(numRects * sizeof(BoxRec));
 	if (!pboxClippedBase)
 	    return;
     }
@@ -1448,7 +1448,7 @@ sisPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
 	}
     }
     if (pboxClippedBase != stackRects)
-    	DEALLOCATE_LOCAL(pboxClippedBase);
+    	xfree(pboxClippedBase);
 }
 
 static const GCOps sisOps = {

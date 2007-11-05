@@ -49,12 +49,19 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#define USE_RGB_BUILTIN 1
-
-#if USE_RGB_BUILTIN
-
 #include <X11/keysym.h>
 #include "os.h"
+
+typedef struct _builtinColor {
+    unsigned char	red;
+    unsigned char	green;
+    unsigned char	blue;
+    unsigned short	name;
+} BuiltinColor;
+
+/* These have to come after the struct definition because despair. */
+#include "oscolor.h"
+#define NUM_BUILTIN_COLORS  (sizeof (BuiltinColors) / sizeof (BuiltinColors[0]))
 
 static unsigned char
 OsToLower (unsigned char a)
@@ -89,17 +96,6 @@ OsStrCaseCmp (const unsigned char *s1, const unsigned char *s2, int l2)
     }
     return c2 - c1;
 }
-
-typedef struct _builtinColor {
-    unsigned char	red;
-    unsigned char	green;
-    unsigned char	blue;
-    unsigned short	name;
-} BuiltinColor;
-
-#include "oscolor.h"
-
-#define NUM_BUILTIN_COLORS  (sizeof (BuiltinColors) / sizeof (BuiltinColors[0]))
 
 Bool
 OsInitColors(void)
@@ -141,146 +137,3 @@ OsLookupColor(int		screen,
     }
     return FALSE;
 }
-
-#else
-
-/*
- * This file builds the server's internal database mapping color names to
- * RGB tuples by reading in an rgb.txt file.  This is still slightly foolish,
- * rgb.txt hasn't changed in years, we should really include a precompiled
- * version into the server.
- */
-
-#include <stdio.h>
-#include "os.h"
-#include "opaque.h"
-
-#define HASHSIZE 63
-
-typedef struct _dbEntry * dbEntryPtr;
-typedef struct _dbEntry {
-  dbEntryPtr     link;
-  unsigned short red;
-  unsigned short green;
-  unsigned short blue;
-  char           name[1];	/* some compilers complain if [0] */
-} dbEntry;
-
-extern void CopyISOLatin1Lowered(
-    unsigned char * /*dest*/,
-    unsigned char * /*source*/,
-    int /*length*/);
-
-static dbEntryPtr hashTab[HASHSIZE];
-
-static dbEntryPtr
-lookup(char *name, int len, Bool create)
-{
-  unsigned int h = 0, g;
-  dbEntryPtr   entry, *prev = NULL;
-  char         *str = name;
-
-  if (!(name = (char*)ALLOCATE_LOCAL(len +1))) return NULL;
-  CopyISOLatin1Lowered((unsigned char *)name, (unsigned char *)str, len);
-  name[len] = '\0';
-
-  for(str = name; *str; str++) {
-    h = (h << 4) + *str;
-    if ((g = h) & 0xf0000000) h ^= (g >> 24);
-    h &= g;
-  }
-  h %= HASHSIZE;
-
-  if ( (entry = hashTab[h]) )
-    {
-      for( ; entry; prev = (dbEntryPtr*)entry, entry = entry->link )
-	if (! strcmp(name, entry->name) ) break;
-    }
-  else
-    prev = &(hashTab[h]);
-
-  if (!entry && create && (entry = (dbEntryPtr)xalloc(sizeof(dbEntry) +len)))
-    {
-      *prev = entry;
-      entry->link = NULL;
-      strcpy( entry->name, name );
-    }
-
-  DEALLOCATE_LOCAL(name);
-
-  return entry;
-}
-
-Bool
-OsInitColors(void)
-{
-  FILE       *rgb;
-  char       *path;
-  char       line[BUFSIZ];
-  char       name[BUFSIZ];
-  int        red, green, blue, lineno = 0;
-  dbEntryPtr entry;
-
-  static Bool was_here = FALSE;
-
-  if (!was_here)
-    {
-      path = (char*)ALLOCATE_LOCAL(strlen(rgbPath) +5);
-      strcpy(path, rgbPath);
-      strcat(path, ".txt");
-      if (!(rgb = fopen(path, "r")))
-        {
-	   ErrorF( "Couldn't open RGB_DB '%s'\n", rgbPath );
-	   DEALLOCATE_LOCAL(path);
-	   return FALSE;
-	}
-
-      while(fgets(line, sizeof(line), rgb))
-	{
-	  lineno++;
-	  if (sscanf(line,"%d %d %d %[^\n]\n", &red, &green, &blue, name) == 4)
-	    {
-	      if (red >= 0   && red <= 0xff &&
-		  green >= 0 && green <= 0xff &&
-		  blue >= 0  && blue <= 0xff)
-		{
-		  if ((entry = lookup(name, strlen(name), TRUE)))
-		    {
-		      entry->red   = (red * 65535)   / 255;
-		      entry->green = (green * 65535) / 255;
-		      entry->blue  = (blue  * 65535) / 255;
-		    }
-		}
-	      else
-		ErrorF("Value out of range: %s:%d\n", path, lineno);
-	    }
-	  else if (*line && *line != '#' && *line != '!')
-	    ErrorF("Syntax Error: %s:%d\n", path, lineno);
-	}
-      
-      fclose(rgb);
-      DEALLOCATE_LOCAL(path);
-
-      was_here = TRUE;
-    }
-  return TRUE;
-}
-
-Bool
-OsLookupColor(int screen, char *name, unsigned int len, 
-    unsigned short *pred, unsigned short *pgreen, unsigned short *pblue)
-{
-  dbEntryPtr entry;
-
-  if ((entry = lookup(name, len, FALSE)))
-    {
-      *pred   = entry->red;
-      *pgreen = entry->green;
-      *pblue  = entry->blue;
-      return TRUE;
-    }
-
-  return FALSE;
-}
-
-#endif /* USE_RGB_BUILTIN */

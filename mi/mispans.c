@@ -528,7 +528,7 @@ void miFillUniqueSpanGroup(pDraw, pGC, spanGroup)
 	xfree(points);
 	xfree(widths);
 	xfree(yspans);
-	xfree(ysizes);		/* use (DE)ALLOCATE_LOCAL for these? */
+	xfree(ysizes);		/* use (DE)xalloc for these? */
     }
 
     spanGroup->count = 0;

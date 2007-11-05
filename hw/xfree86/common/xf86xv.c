@@ -1856,7 +1856,7 @@ xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes)
 
    REGION_TRANSLATE(pDraw->pScreen, clipboxes, -pDraw->x, -pDraw->y);
 
-   rects = ALLOCATE_LOCAL(nbox * sizeof(xRectangle));
+   rects = xalloc(nbox * sizeof(xRectangle));
 
    for(i = 0; i < nbox; i++, pbox++) {
       rects[i].x = pbox->x1;
@@ -1869,7 +1869,7 @@ xf86XVFillKeyHelperDrawable (DrawablePtr pDraw, CARD32 key, RegionPtr clipboxes)
 
    if (!pPriv) FreeGC(pGC, 0);
 
-   DEALLOCATE_LOCAL(rects);
+   xfree(rects);
 }
 
 _X_EXPORT void

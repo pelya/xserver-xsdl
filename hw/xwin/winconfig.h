@@ -190,7 +190,6 @@ typedef struct
   char *configFile;
 #endif
   char *fontPath;
-  char *rgbPath;
   /* input devices - keyboard */
 #ifdef XWIN_XF86CONFIG
   char *keyboard;
