@@ -135,7 +135,7 @@ ProcXGetDeviceMotionEvents(ClientPtr client)
     if (num_events) {
 	size = sizeof(Time) + (axes * sizeof(INT32));
 	tsize = num_events * size;
-	coords = (INT32 *) ALLOCATE_LOCAL(tsize);
+	coords = (INT32 *) xalloc(tsize);
 	if (!coords)
 	    return BadAlloc;
 	rep.nEvents = (v->GetMotionProc) (dev, (xTimecoord *) coords,	/* XXX */
@@ -161,7 +161,7 @@ ProcXGetDeviceMotionEvents(ClientPtr client)
 	WriteToClient(client, length * 4, (char *)coords);
     }
     if (coords)
-	DEALLOCATE_LOCAL(coords);
+	xfree(coords);
     return Success;
 }
 
