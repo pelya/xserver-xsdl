@@ -406,7 +406,7 @@ Dispatch(void)
     InitSelections();
     nClients = 0;
 
-    clientReady = (int *) ALLOCATE_LOCAL(sizeof(int) * MaxClients);
+    clientReady = (int *) xalloc(sizeof(int) * MaxClients);
     if (!clientReady)
 	return;
 
@@ -535,7 +535,7 @@ Dispatch(void)
     ddxBeforeReset ();
 #endif
     KillAllClients();
-    DEALLOCATE_LOCAL(clientReady);
+    xfree(clientReady);
     dispatchException &= ~DE_RESET;
 #ifdef XSERVER_DTRACE
     FreeRequestNames();
