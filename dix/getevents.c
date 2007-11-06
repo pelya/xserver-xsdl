@@ -207,11 +207,13 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
  *
  * Should be used in DIX as:
  * xEvent *events = xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+ *
+ * This MUST be absolutely constant, from init until exit.
  */
 _X_EXPORT int
 GetMaximumEventsNum(void) {
     /* Two base events -- core and device, plus valuator events.  Multiply
-     * by two if we're doing key repeats. */
+     * by two if we're doing non-XKB key repeats. */
     int ret = 2 + MAX_VALUATOR_EVENTS;
 
 #ifdef XKB
