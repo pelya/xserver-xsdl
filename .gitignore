@@ -8,6 +8,9 @@ Makefile.in
 *.a
 *.o
 *~
+.*.swp
+obj*
+build*
 aclocal.m4
 autom4te.cache
 compile
@@ -298,4 +301,3 @@ mfb/mfbteblack.c
 mfb/mfbtewhite.c
 mfb/mfbtileC.c
 mfb/mfbtileG.c
-.*.swp
