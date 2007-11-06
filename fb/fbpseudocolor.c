@@ -272,7 +272,7 @@ xxCreateScreenResources(ScreenPtr pScreen)
 		       * (BitsPerPixel(depth) >> 3));
     if (!pBits) return FALSE;
     
-    pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, depth);
+    pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, depth, 0);
     if (!pPixmap) {
 	xfree(pBits);
 	return FALSE;
@@ -491,7 +491,7 @@ xxStoreColors(ColormapPtr pmap, int nColors, xColorItem *pColors)
 
 	DBG("StoreColors\n");
 	
-	expanddefs = ALLOCATE_LOCAL(sizeof(xColorItem)
+	expanddefs = xalloc(sizeof(xColorItem)
 				    * (1 <<  pScrPriv->myDepth));
 	if (!expanddefs) return;
 	
@@ -518,7 +518,7 @@ xxStoreColors(ColormapPtr pmap, int nColors, xColorItem *pColors)
 	    pColors++;
 	}
 
-	DEALLOCATE_LOCAL(expanddefs);
+	xfree(expanddefs);
 
 	pCmapPriv->dirty = TRUE;
 	pScrPriv->colormapDirty = TRUE;
@@ -556,9 +556,9 @@ xxInstallColormap(ColormapPtr pmap)
 	    wrap(pScrPriv,pmap->pScreen,InstallColormap,xxInstallColormap);
 	}
 	    
-	pixels = ALLOCATE_LOCAL(sizeof(Pixel) * (1 <<  pScrPriv->myDepth));
-	colors = ALLOCATE_LOCAL(sizeof(xrgb) * (1 <<  pScrPriv->myDepth));
-	defs = ALLOCATE_LOCAL(sizeof(xColorItem) * (1 << pScrPriv->myDepth));
+	pixels = xalloc(sizeof(Pixel) * (1 <<  pScrPriv->myDepth));
+	colors = xalloc(sizeof(xrgb) * (1 <<  pScrPriv->myDepth));
+	defs = xalloc(sizeof(xColorItem) * (1 << pScrPriv->myDepth));
 	
 	if (!pixels || !colors)
 	    return;
@@ -586,9 +586,9 @@ xxInstallColormap(ColormapPtr pmap)
         }
 	xxStoreColors(pmap,(1 <<  pScrPriv->myDepth),defs);
 
-	DEALLOCATE_LOCAL(pixels);
-	DEALLOCATE_LOCAL(colors);
-	DEALLOCATE_LOCAL(defs);
+	xfree(pixels);
+	xfree(colors);
+	xfree(defs);
 
 	return;
     } 

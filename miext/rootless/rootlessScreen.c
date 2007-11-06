@@ -84,7 +84,7 @@ RootlessUpdateScreenPixmap(ScreenPtr pScreen)
 
     pPix = (*pScreen->GetScreenPixmap)(pScreen);
     if (pPix == NULL) {
-        pPix = (*pScreen->CreatePixmap)(pScreen, 0, 0, pScreen->rootDepth);
+        pPix = (*pScreen->CreatePixmap)(pScreen, 0, 0, pScreen->rootDepth, 0);
         (*pScreen->SetScreenPixmap)(pPix);
     }
 

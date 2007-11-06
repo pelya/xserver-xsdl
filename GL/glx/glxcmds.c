@@ -190,7 +190,6 @@ DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
 		__GLXscreen *pGlxScreen, GLboolean isDirect)
 {
     ClientPtr client = cl->client;
-    VisualPtr pVisual;
     __GLXcontext *glxc, *shareglxc;
 
     LEGAL_NEW_RESOURCE(gcId, client);
@@ -248,9 +247,7 @@ DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
     ** Initially, setup the part of the context that could be used by
     ** a GL core that needs windowing information (e.g., Mesa).
     */
-    glxc->pScreen = pGlxScreen->pScreen;
     glxc->pGlxScreen = pGlxScreen;
-    glxc->pVisual = pVisual;
     glxc->modes = config;
 
     /*
@@ -499,7 +496,7 @@ __glXGetDrawable(__GLXcontext *glxc, GLXDrawable drawId, ClientPtr client,
      * a GLX drawable for it.  Check that the drawable screen matches
      * the context screen and that the context fbconfig is compatible
      * with the window visual. */
-    if (pDraw->pScreen != glxc->pScreen ||
+    if (pDraw->pScreen != glxc->pGlxScreen->pScreen ||
 	!validGlxFBConfigForWindow(client, glxc->modes, pDraw, error))
 	return NULL;
 
@@ -1255,7 +1252,7 @@ DoCreatePbuffer(ClientPtr client, int screenNum, XID fbconfigId,
 
     __glXenterServer(GL_FALSE);
     pPixmap = (*pGlxScreen->pScreen->CreatePixmap) (pGlxScreen->pScreen,
-						    width, height, config->rgbBits);
+						    width, height, config->rgbBits, 0);
     __glXleaveServer(GL_FALSE);
 
     return DoCreateGLXDrawable(client, pGlxScreen, config, &pPixmap->drawable,
@@ -1470,9 +1467,9 @@ DoQueryContext(__GLXclientState *cl, GLXContextID gcId)
     *pSendBuf++ = GLX_SHARE_CONTEXT_EXT;
     *pSendBuf++ = (int)(ctx->share_id);
     *pSendBuf++ = GLX_VISUAL_ID_EXT;
-    *pSendBuf++ = (int)(ctx->pVisual->vid);
+    *pSendBuf++ = (int)(ctx->modes->visualID);
     *pSendBuf++ = GLX_SCREEN_EXT;
-    *pSendBuf++ = (int)(ctx->pScreen->myNum);
+    *pSendBuf++ = (int)(ctx->pGlxScreen->pScreen->myNum);
 
     if (client->swapped) {
 	__glXSwapQueryContextInfoEXTReply(client, &reply, sendBuf);

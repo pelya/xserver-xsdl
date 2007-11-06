@@ -692,6 +692,8 @@ ProcessPointerEvent(	register xEvent  *	xE,
 DeviceIntPtr	dev = inputInfo.keyboard;
 XkbSrvInfoPtr	xkbi = dev->key->xkbInfo;
 unsigned 	changed = 0;
+ProcessInputProc backupproc;
+xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(mouse);
 
     xkbi->shiftKeyCount = 0;
     xkbi->lastPtrEventTime= xE->u.keyButtonPointer.time;
@@ -703,7 +705,26 @@ unsigned 	changed = 0;
 	xkbi->lockedPtrButtons&= ~(1<<(xE->u.u.detail&0x7));
 	changed |= XkbPointerButtonMask;
     }
-    CoreProcessPointerEvent(xE,mouse,count);
+
+    /* Guesswork. mostly. 
+     * xkb actuall goes through some effort to transparently wrap the
+     * processInputProcs (see XkbSetExtension). But we all love fun, so the
+     * previous XKB implementation just hardcoded the CPPE call here instead
+     * of unwrapping like anybody with any sense of decency would do. 
+     * I got no clue what the correct thing to do is, but my guess is that
+     * it's not hardcoding. I may be wrong. whatever it is, don't come whining
+     * to me. I just work here. 
+     *
+     * Anyway. here's the old call, if you don't like the wrapping, revert it.
+     *
+     * CoreProcessPointerEvent(xE,mouse,count);
+     *
+     *          see. it's still steaming. told you. (whot)
+     */
+    UNWRAP_PROCESS_INPUT_PROC(mouse, xkbPrivPtr, backupproc);
+    mouse->public.processInputProc(xE, mouse, count);
+    COND_WRAP_PROCESS_INPUT_PROC(mouse, xkbPrivPtr,
+				     backupproc, xkbUnwrapProc);
 
     xkbi->state.ptr_buttons = mouse->button->state;
     

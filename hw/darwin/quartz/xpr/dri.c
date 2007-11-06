@@ -229,7 +229,7 @@ DRIFinishScreenInit(ScreenPtr pScreen)
     pDRIPriv->wrap.ClipNotify = pScreen->ClipNotify;
     pScreen->ClipNotify = DRIClipNotify;
 
-    ErrorF("[DRI] screen %d installation complete\n", pScreen->myNum);
+    //    ErrorF("[DRI] screen %d installation complete\n", pScreen->myNum);
 
     return TRUE;
 }

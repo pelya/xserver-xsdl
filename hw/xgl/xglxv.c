@@ -290,7 +290,7 @@ xglXvPutImage (ClientPtr     client,
 
     if (!pPortPriv->pPixmap)
     {
-	pPortPriv->pPixmap = (*pScreen->CreatePixmap) (pScreen, 0, 0, depth);
+	pPortPriv->pPixmap = (*pScreen->CreatePixmap) (pScreen, 0, 0, depth, 0);
 	if (!pPortPriv->pPixmap)
 	    return BadAlloc;
     }

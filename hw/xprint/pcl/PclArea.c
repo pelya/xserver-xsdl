@@ -415,7 +415,8 @@ PclCopyPlane(DrawablePtr pSrc,
      * know how to do a CopyArea.
      */
     scratchPix = (*pDst->pScreen->CreatePixmap)( pDst->pScreen, width,
-						height, pDst->depth );
+						height, pDst->depth,
+						CREATE_PIXMAP_USAGE_SCRATCH );
 
     scratchGC = GetScratchGC( pDst->depth, pDst->pScreen );
     CopyGC( pGC, scratchGC, ~0L );

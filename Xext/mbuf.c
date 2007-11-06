@@ -436,7 +436,7 @@ CreateImageBuffers (pWin, nbuf, ids, action, hint)
 	pMultibuffer->pMultibuffers = pMultibuffers;
 	if (!AddResource (ids[i], MultibufferResType, (pointer) pMultibuffer))
 	    break;
-	pMultibuffer->pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, depth);
+	pMultibuffer->pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, depth, 0);
 	if (!pMultibuffer->pPixmap)
 	    break;
 	if (!AddResource (ids[i], MultibufferDrawableResType, (pointer) pMultibuffer->pPixmap))
@@ -557,12 +557,12 @@ ProcDisplayImageBuffers (client)
 	return Success;
     minDelay = stuff->minDelay;
     ids = (XID *) &stuff[1];
-    ppMultibuffers = (MultibuffersPtr *) ALLOCATE_LOCAL(nbuf * sizeof (MultibuffersPtr));
-    pMultibuffer = (MultibufferPtr *) ALLOCATE_LOCAL(nbuf * sizeof (MultibufferPtr));
+    ppMultibuffers = (MultibuffersPtr *) xalloc(nbuf * sizeof (MultibuffersPtr));
+    pMultibuffer = (MultibufferPtr *) xalloc(nbuf * sizeof (MultibufferPtr));
     if (!ppMultibuffers || !pMultibuffer)
     {
-	if (ppMultibuffers) DEALLOCATE_LOCAL(ppMultibuffers);
-	if (pMultibuffer)   DEALLOCATE_LOCAL(pMultibuffer);
+	if (ppMultibuffers) xfree(ppMultibuffers);
+	if (pMultibuffer)   xfree(pMultibuffer);
 	client->errorValue = 0;
 	return BadAlloc;
     }
@@ -574,8 +574,8 @@ ProcDisplayImageBuffers (client)
 MultibufferResType);
 	if (!pMultibuffer[i])
 	{
-	    DEALLOCATE_LOCAL(ppMultibuffers);
-	    DEALLOCATE_LOCAL(pMultibuffer);
+	    xfree(ppMultibuffers);
+	    xfree(pMultibuffer);
 	    client->errorValue = ids[i];
 	    return MultibufferErrorBase + MultibufferBadBuffer;
 	}
@@ -584,8 +584,8 @@ MultibufferResType);
 	{
 	    if (ppMultibuffers[i] == ppMultibuffers[j])
 	    {
-	    	DEALLOCATE_LOCAL(ppMultibuffers);
-	    	DEALLOCATE_LOCAL(pMultibuffer);
+	    	xfree(ppMultibuffers);
+	    	xfree(pMultibuffer);
 		client->errorValue = ids[i];
 	    	return BadMatch;
 	    }
@@ -604,8 +604,8 @@ MultibufferResType);
     else
 	PerformDisplayRequest (ppMultibuffers, pMultibuffer, nbuf);
 
-    DEALLOCATE_LOCAL(ppMultibuffers);
-    DEALLOCATE_LOCAL(pMultibuffer);
+    xfree(ppMultibuffers);
+    xfree(pMultibuffer);
     return Success;
 }
 
@@ -698,7 +698,7 @@ ProcGetMBufferAttributes (client)
     pMultibuffers = (MultibuffersPtr)LookupIDByType (pWin->drawable.id, MultibuffersResType);
     if (!pMultibuffers)
 	return BadAccess;
-    ids = (XID *) ALLOCATE_LOCAL (pMultibuffers->numMultibuffer * sizeof (XID));
+    ids = (XID *) xalloc (pMultibuffers->numMultibuffer * sizeof (XID));
     if (!ids)
 	return BadAlloc;
     for (i = 0; i < pMultibuffers->numMultibuffer; i++)
@@ -721,7 +721,7 @@ ProcGetMBufferAttributes (client)
 		   (char *)&rep);
     WriteToClient (client, (int)(pMultibuffers->numMultibuffer * sizeof (XID)),
 		   (char *)ids);
-    DEALLOCATE_LOCAL((pointer) ids);
+    xfree((pointer) ids);
     return client->noClientException;
 }
 
@@ -836,7 +836,7 @@ ProcGetBufferInfo (client)
 	nInfo += pDepth->numVids;
     }
     pInfo = (xMbufBufferInfo *)
-		ALLOCATE_LOCAL (nInfo * sizeof (xMbufBufferInfo));
+		xalloc (nInfo * sizeof (xMbufBufferInfo));
     if (!pInfo)
 	return BadAlloc;
 
@@ -872,7 +872,7 @@ ProcGetBufferInfo (client)
     }
     WriteToClient (client, sizeof (xMbufGetBufferInfoReply), (pointer) &rep);
     WriteToClient (client, (int) nInfo * sizeof (xMbufBufferInfo), (pointer) pInfo);
-    DEALLOCATE_LOCAL ((pointer) pInfo);
+    xfree ((pointer) pInfo);
     return client->noClientException;
 }
 
@@ -1289,7 +1289,7 @@ DisplayImageBuffers (ids, nbuf)
     MultibuffersPtr *pMultibuffers;
     int		    i, j;
 
-    pMultibuffer = (MultibufferPtr *) ALLOCATE_LOCAL (nbuf * sizeof *pMultibuffer +
+    pMultibuffer = (MultibufferPtr *) xalloc (nbuf * sizeof *pMultibuffer +
 				   nbuf * sizeof *pMultibuffers);
     if (!pMultibuffer)
 	return BadAlloc;
@@ -1299,19 +1299,19 @@ DisplayImageBuffers (ids, nbuf)
 	pMultibuffer[i] = (MultibufferPtr) LookupIDByType (ids[i], MultibufferResType);
 	if (!pMultibuffer[i])
 	{
-	    DEALLOCATE_LOCAL (pMultibuffer);
+	    xfree (pMultibuffer);
 	    return MultibufferErrorBase + MultibufferBadBuffer;
 	}
 	pMultibuffers[i] = pMultibuffer[i]->pMultibuffers;
 	for (j = 0; j < i; j++)
 	    if (pMultibuffers[i] == pMultibuffers[j])
 	    {
-		DEALLOCATE_LOCAL (pMultibuffer);
+		xfree (pMultibuffer);
 		return BadMatch;
 	    }
     }
     PerformDisplayRequest (pMultibuffers, pMultibuffer, nbuf);
-    DEALLOCATE_LOCAL (pMultibuffer);
+    xfree (pMultibuffer);
     return Success;
 }
 
@@ -1415,7 +1415,7 @@ MultibufferExpose (pMultibuffer, pRegion)
 	numRects = REGION_NUM_RECTS(pRegion);
 	pBox = REGION_RECTS(pRegion);
 
-	pEvent = (xEvent *) ALLOCATE_LOCAL(numRects * sizeof(xEvent));
+	pEvent = (xEvent *) xalloc(numRects * sizeof(xEvent));
 	if (pEvent) {
 	    pe = pEvent;
 
@@ -1431,7 +1431,7 @@ MultibufferExpose (pMultibuffer, pRegion)
 	    }
 	    (void) DeliverEventsToMultibuffer (pMultibuffer, pEvent, numRects,
 					       ExposureMask);
-	    DEALLOCATE_LOCAL(pEvent);
+	    xfree(pEvent);
 	}
     }
 }
@@ -1609,7 +1609,8 @@ MultibufferPositionWindow (pWin, x, y)
     {
 	pMultibuffer = &pMultibuffers->buffers[i];
 	pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height,
-					    pWin->drawable.depth);
+					    pWin->drawable.depth,
+					    CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!pPixmap)
 	{
 	    DestroyImageBuffers (pWin);

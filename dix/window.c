@@ -313,7 +313,7 @@ MakeRootTile(WindowPtr pWin)
     int i, j;
 
     pWin->background.pixmap = (*pScreen->CreatePixmap)(pScreen, 4, 4,
-						    pScreen->rootDepth);
+						    pScreen->rootDepth, 0);
 
     pWin->backgroundState = BackgroundPixmap;
     pGC = GetScratchGC(pScreen->rootDepth, pScreen);

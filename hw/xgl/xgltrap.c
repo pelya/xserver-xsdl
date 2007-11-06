@@ -194,7 +194,8 @@ xglTrapezoids (CARD8	     op,
 
 	pPixmap = (*pScreen->CreatePixmap) (pScreen,
 					    rect.width, rect.height,
-					    maskFormat->depth);
+					    maskFormat->depth,
+					    CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!pPixmap)
 	    return;
 

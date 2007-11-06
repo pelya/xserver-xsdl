@@ -190,7 +190,6 @@ static char GLXServerExtensions[] =
 static Bool glxPositionWindow(WindowPtr pWin, int x, int y)
 {
     ScreenPtr pScreen;
-    __GLXcontext *glxc;
     __GLXdrawable *glxPriv;
     Bool ret;
     __GLXscreen *pGlxScreen;
@@ -225,16 +224,6 @@ static Bool glxPositionWindow(WindowPtr pWin, int x, int y)
 	/* resize failed! */
 	/* XXX: what can we possibly do here? */
 	ret = False;
-    }
-
-    /* mark contexts as needing resize */
-
-    for (glxc = glxPriv->drawGlxc; glxc; glxc = glxc->nextDrawPriv) {
-	glxc->pendingState |= __GLX_PENDING_RESIZE;
-    }
-
-    for (glxc = glxPriv->readGlxc; glxc; glxc = glxc->nextReadPriv) {
-	glxc->pendingState |= __GLX_PENDING_RESIZE;
     }
 
     return ret;
@@ -408,38 +397,61 @@ initGlxVisual(VisualPtr visual, __GLcontextModes *config)
     visual->offsetBlue = findFirstSet(config->blueMask);
 }
 
+typedef struct {
+    GLboolean doubleBuffer;
+    GLboolean depthBuffer;
+} FBConfigTemplateRec, *FBConfigTemplatePtr;
+
+static __GLcontextModes *
+pickFBConfig(__GLXscreen *pGlxScreen, FBConfigTemplatePtr template, int class)
+{
+    __GLcontextModes *config;
+
+    for (config = pGlxScreen->fbconfigs; config != NULL; config = config->next) {
+	if (config->visualRating != GLX_NONE)
+	    continue;
+	if (_gl_convert_to_x_visual_type(config->visualType) != class)
+	    continue;
+	if ((config->doubleBufferMode > 0) != template->doubleBuffer)
+	    continue;
+	if ((config->depthBits > 0) != template->depthBuffer)
+	    continue;
+
+	return config;
+    }
+
+    return NULL;
+}
+
 static void
 addMinimalSet(__GLXscreen *pGlxScreen)
 {
     __GLcontextModes *config;
     VisualPtr visuals;
-    int depth;
+    int i;
+    FBConfigTemplateRec best = { GL_TRUE, GL_TRUE };
+    FBConfigTemplateRec minimal = { GL_FALSE, GL_FALSE };
 
-    for (config = pGlxScreen->fbconfigs; config != NULL; config = config->next) {
-	if (config->visualRating != GLX_NONE)
-	    continue;
-	if (config->doubleBufferMode && config->depthBits > 0)
-	    break;
-    }
-    if (config == NULL)
-	config = pGlxScreen->fbconfigs;
-
-    pGlxScreen->visuals = xcalloc(1, sizeof (__GLcontextModes *));
+    pGlxScreen->visuals = xcalloc(pGlxScreen->pScreen->numVisuals,
+				  sizeof (__GLcontextModes *));
     if (pGlxScreen->visuals == NULL) {
 	ErrorF("Failed to allocate for minimal set of GLX visuals\n");
 	return;
     }
 
-    depth = config->redBits + config->greenBits + config->blueBits;
-    visuals = AddScreenVisuals(pGlxScreen->pScreen, 1, depth);
-    if (visuals == NULL) {
-	xfree(pGlxScreen->visuals);
-	return;
+    pGlxScreen->numVisuals = pGlxScreen->pScreen->numVisuals;
+    visuals = pGlxScreen->pScreen->visuals;
+    for (i = 0; i < pGlxScreen->numVisuals; i++) {
+	if (visuals[i].nplanes == 32)
+	    config = pickFBConfig(pGlxScreen, &minimal, visuals[i].class);
+	else
+	    config = pickFBConfig(pGlxScreen, &best, visuals[i].class);
+	if (config == NULL)
+	    config = pGlxScreen->fbconfigs;
+	pGlxScreen->visuals[i] = config;
+	config->visualID = visuals[i].vid;
     }
 
-    pGlxScreen->numVisuals = 1;
-    pGlxScreen->visuals[0] = config;
-    initGlxVisual(&visuals[0], config);
 }
 
 static void
@@ -505,8 +517,6 @@ void __glXScreenInit(__GLXscreen *pGlxScreen, ScreenPtr pScreen)
     for (m = pGlxScreen->fbconfigs; m != NULL; m = m->next) {
 	m->fbconfigID = FakeClientID(0);
 	m->visualID = findVisualForConfig(pScreen, m);
-	ErrorF("mapping fbconfig id 0x%02lx to visual id 0x%02lx\n",
-	       m->fbconfigID, m->visualID);
 	i++;
     }
     pGlxScreen->numFBConfigs = i;

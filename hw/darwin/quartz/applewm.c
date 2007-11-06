@@ -1,6 +1,6 @@
 /**************************************************************************
 
-Copyright (c) 2002 Apple Computer, Inc. All Rights Reserved.
+Copyright (c) 2002-2007 Apple Inc. All Rights Reserved.
 Copyright (c) 2003 Torrey T. Lyons. All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a

@@ -492,13 +492,13 @@ RebuildTable(int client)
      */
 
     j = 2 * clientTable[client].buckets;
-    tails = (ResourcePtr **)ALLOCATE_LOCAL(j * sizeof(ResourcePtr *));
+    tails = (ResourcePtr **)xalloc(j * sizeof(ResourcePtr *));
     if (!tails)
 	return;
     resources = (ResourcePtr *)xalloc(j * sizeof(ResourcePtr));
     if (!resources)
     {
-	DEALLOCATE_LOCAL(tails);
+	xfree(tails);
 	return;
     }
     for (rptr = resources, tptr = tails; --j >= 0; rptr++, tptr++)
@@ -521,7 +521,7 @@ RebuildTable(int client)
 	    *tptr = &res->next;
 	}
     }
-    DEALLOCATE_LOCAL(tails);
+    xfree(tails);
     clientTable[client].buckets *= 2;
     xfree(clientTable[client].resources);
     clientTable[client].resources = resources;

@@ -1318,7 +1318,7 @@ unsigned	i,len;
 char		*desc,*start;
 
     len= (rep->length*4)-(SIZEOF(xkbGetMapReply)-SIZEOF(xGenericReply));
-    start= desc= (char *)ALLOCATE_LOCAL(len);
+    start= desc= (char *)xalloc(len);
     if (!start)
 	return BadAlloc;
     if ( rep->nTypes>0 )
@@ -1358,7 +1358,7 @@ char		*desc,*start;
     }
     WriteToClient(client, (i=SIZEOF(xkbGetMapReply)), (char *)rep);
     WriteToClient(client, len, start);
-    DEALLOCATE_LOCAL((char *)start);
+    xfree((char *)start);
     return client->noClientException;
 }
 
@@ -2505,7 +2505,7 @@ int		size;
 
     size= rep->length*4;
     if (size>0) {
-	data = (char *)ALLOCATE_LOCAL(size);
+	data = (char *)xalloc(size);
 	if (data) {
 	    register unsigned i,bit;
 	    xkbModsWireDesc *	grp;
@@ -2556,7 +2556,7 @@ int		size;
     WriteToClient(client, SIZEOF(xkbGetCompatMapReply), (char *)rep);
     if (data) {
 	WriteToClient(client, size, data);
-	DEALLOCATE_LOCAL((char *)data);
+	xfree((char *)data);
     }
     return client->noClientException;
 }
@@ -2807,7 +2807,7 @@ register unsigned	bit;
     length = rep->length*4;
     if (length>0) {
 	CARD8 *to;
-	to= map= (CARD8 *)ALLOCATE_LOCAL(length);
+	to= map= (CARD8 *)xalloc(length);
 	if (map) {
 	    xkbIndicatorMapWireDesc  *wire = (xkbIndicatorMapWireDesc *)to;
 	    for (i=0,bit=1;i<XkbNumIndicators;i++,bit<<=1) {
@@ -2846,7 +2846,7 @@ register unsigned	bit;
     WriteToClient(client, SIZEOF(xkbGetIndicatorMapReply), (char *)rep);
     if (map) {
 	WriteToClient(client, length, (char *)map);
-	DEALLOCATE_LOCAL((char *)map);
+	xfree((char *)map);
     }
     return client->noClientException;
 }
@@ -3295,7 +3295,7 @@ register int            n;
 	swapl(&rep->indicators,n);
     }
 
-    start = desc = (char *)ALLOCATE_LOCAL(length);
+    start = desc = (char *)xalloc(length);
     if ( !start )
 	return BadAlloc;
     if (xkb->names) {
@@ -3419,7 +3419,7 @@ register int            n;
     }
     WriteToClient(client, SIZEOF(xkbGetNamesReply), (char *)rep);
     WriteToClient(client, length, start);
-    DEALLOCATE_LOCAL((char *)start);
+    xfree((char *)start);
     return client->noClientException;
 }
 
@@ -4317,7 +4317,7 @@ XkbSendGeometry(	ClientPtr		client,
 
     if (geom!=NULL) {
 	len= rep->length*4;
-	start= desc= (char *)ALLOCATE_LOCAL(len);
+	start= desc= (char *)xalloc(len);
 	if (!start)
 	    return BadAlloc;
 	desc=  XkbWriteCountedString(desc,geom->label_font,client->swapped);
@@ -4361,7 +4361,7 @@ XkbSendGeometry(	ClientPtr		client,
     if (len>0)
 	WriteToClient(client, len, start);
     if (start!=NULL)
-	DEALLOCATE_LOCAL((char *)start);
+	xfree((char *)start);
     if (freeGeom)
 	XkbFreeGeometry(geom,XkbGeomAllMask,True);
     return client->noClientException;
@@ -5763,12 +5763,12 @@ char *			str;
     }
     WriteToClient(client,SIZEOF(xkbGetDeviceInfoReply), (char *)&rep);
 
-    str= (char*) ALLOCATE_LOCAL(nameLen);
+    str= (char*) xalloc(nameLen);
     if (!str) 
 	return BadAlloc;
     XkbWriteCountedString(str,dev->name,client->swapped);
     WriteToClient(client,nameLen,str);
-    DEALLOCATE_LOCAL(str);
+    xfree(str);
     length-= nameLen;
 
     if (rep.nBtnsRtrn>0) {

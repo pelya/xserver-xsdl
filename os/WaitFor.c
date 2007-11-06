@@ -217,7 +217,8 @@ WaitForSomething(int *pClientsReady)
 	XFD_COPYSET(&AllSockets, &LastSelectMask);
 #ifdef SMART_SCHEDULE
 	}
-	SmartScheduleIdle = TRUE;
+	SmartScheduleStopTimer ();
+
 #endif
 	BlockHandler((pointer)&wt, (pointer)&LastSelectMask);
 	if (NewOutputPending)
@@ -237,13 +238,7 @@ WaitForSomething(int *pClientsReady)
 	selecterr = GetErrno();
 	WakeupHandler(i, (pointer)&LastSelectMask);
 #ifdef SMART_SCHEDULE
-	if (i >= 0)
-	{
-	    SmartScheduleIdle = FALSE;
-	    SmartScheduleIdleCount = 0;
-	    if (SmartScheduleTimerStopped)
-		(void) SmartScheduleStartTimer ();
-	}
+	SmartScheduleStartTimer ();
 #endif
 	if (i <= 0) /* An error or timeout occurred */
 	{

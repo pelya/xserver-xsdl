@@ -222,7 +222,8 @@ PixmapPtr
 xglCreatePixmap (ScreenPtr  pScreen,
 		 int	    width,
 		 int	    height,
-		 int	    depth)
+		 int	    depth,
+		 unsigned   usage_hint)
 {
     xglPixmapPtr pPixmapPriv;
     PixmapPtr	 pPixmap;

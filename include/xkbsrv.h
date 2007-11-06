@@ -126,6 +126,24 @@ typedef struct	_XkbEventCause {
 #define	_BEEP_LED_CHANGE	14
 #define	_BEEP_BOUNCE_REJECT	15
 
+struct _XkbSrvInfo; /* definition see below */
+
+typedef struct _XkbFilter {
+	CARD16			  keycode;
+	CARD8			  what;
+	CARD8			  active;
+	CARD8			  filterOthers;
+	CARD32			  priv;
+	XkbAction		  upAction;
+	int			(*filter)(
+					struct _XkbSrvInfo* 	/* xkbi */,
+					struct _XkbFilter *	/* filter */,
+					unsigned		/* keycode */,
+					XkbAction *		/* action */
+				  );
+	struct _XkbFilter	 *next;
+} XkbFilterRec,*XkbFilterPtr;
+
 typedef struct _XkbSrvInfo {
 	XkbStateRec	 prev_state;
 	XkbStateRec	 state;
@@ -169,6 +187,9 @@ typedef struct _XkbSrvInfo {
 	OsTimerPtr	 bounceKeysTimer;
 	OsTimerPtr	 repeatKeyTimer;
 	OsTimerPtr	 krgTimer;
+
+	int		 szFilters;
+	XkbFilterPtr	 filters;
 } XkbSrvInfoRec, *XkbSrvInfoPtr;
 
 #define	XkbSLI_IsDefault	(1L<<0)
@@ -241,12 +262,16 @@ typedef struct
 	oldprocs->unwrapProc = device->unwrapProc; \
 	device->unwrapProc = unwrapproc;
 
-#define UNWRAP_PROCESS_INPUT_PROC(device, oldprocs) \
+#define UNWRAP_PROCESS_INPUT_PROC(device, oldprocs, backupproc) \
+        backupproc = device->public.processInputProc; \
 	device->public.processInputProc = oldprocs->processInputProc; \
 	device->public.realInputProc = oldprocs->realInputProc; \
 	device->unwrapProc = oldprocs->unwrapProc;
 
+extern DevPrivateKey xkbDevicePrivateKey;
 #define XKBDEVICEINFO(dev) ((xkbDeviceInfoPtr)dixLookupPrivate(&(dev)->devPrivates, xkbDevicePrivateKey))
+
+extern void xkbUnwrapProc(DeviceIntPtr, DeviceHandleProc, pointer);
 
 /***====================================================================***/
 
@@ -290,8 +315,9 @@ extern CARD32	xkbDebugFlags;
 #define	_XkbErrCode3(a,b,c)	_XkbErrCode2(a,(((unsigned int)(b))<<16)|(c))
 #define	_XkbErrCode4(a,b,c,d) _XkbErrCode3(a,b,((((unsigned int)(c))<<8)|(d)))
 
-extern	int	DeviceKeyPress,DeviceKeyRelease;
+extern	int	DeviceKeyPress,DeviceKeyRelease,DeviceMotionNotify;
 extern	int	DeviceButtonPress,DeviceButtonRelease;
+extern	int	DeviceEnterNotify,DeviceLeaveNotify;
 
 #ifdef XINPUT
 #define	_XkbIsPressEvent(t)	(((t)==KeyPress)||((t)==DeviceKeyPress))

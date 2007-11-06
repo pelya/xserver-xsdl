@@ -57,6 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <GL/glx.h>
 #include <X11/dri/xf86dri.h>
 #include <X11/dri/xf86dristr.h>
+#include "GL/internal/dri_interface.h"
 
 static XExtensionInfo _xf86dri_info_data;
 static XExtensionInfo *xf86dri_info = &_xf86dri_info_data;
@@ -384,8 +385,7 @@ Bool XF86DRICreateContext(dpy, screen, visual, context, hHWContext)
 					   context, hHWContext );
 }
 
-GLboolean XF86DRIDestroyContext( __DRInativeDisplay * ndpy, int screen, 
-    __DRIid context )
+Bool XF86DRIDestroyContext( __DRInativeDisplay * ndpy, int screen, __DRIid context)
 {
     Display * const dpy = (Display *) ndpy;
     XExtDisplayInfo *info = find_display (dpy);
@@ -406,8 +406,9 @@ GLboolean XF86DRIDestroyContext( __DRInativeDisplay * ndpy, int screen,
     return True;
 }
 
-GLboolean XF86DRICreateDrawable( __DRInativeDisplay * ndpy, int screen, 
-    __DRIid drawable, drm_drawable_t * hHWDrawable )
+Bool
+XF86DRICreateDrawable (__DRInativeDisplay * ndpy, int screen,
+                       __DRIid drawable, drm_drawable_t * hHWDrawable)
 {
     Display * const dpy = (Display *) ndpy;
     XExtDisplayInfo *info = find_display (dpy);
@@ -436,7 +437,7 @@ GLboolean XF86DRICreateDrawable( __DRInativeDisplay * ndpy, int screen,
     return True;
 }
 
-GLboolean XF86DRIDestroyDrawable( __DRInativeDisplay * ndpy, int screen,
+Bool XF86DRIDestroyDrawable( __DRInativeDisplay * ndpy, int screen,
     __DRIid drawable )
 {
     Display * const dpy = (Display *) ndpy;

@@ -139,7 +139,8 @@ static void RACCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
 			  RegionPtr prgnSrc );
 static void RACClearToBackground (WindowPtr pWin, int x, int y,
 				  int w, int h, Bool generateExposures );
-static PixmapPtr RACCreatePixmap(ScreenPtr pScreen, int w, int h, int depth);
+static PixmapPtr RACCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
+				 unsigned usage_hint);
 static Bool  RACCreateGC(GCPtr pGC);
 static Bool RACSaveScreen(ScreenPtr pScreen, Bool unblank);
 static void RACStoreColors (ColormapPtr pmap, int ndef, xColorItem *pdefs);
@@ -440,14 +441,14 @@ RACClearToBackground (
 }
 
 static PixmapPtr 
-RACCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
+RACCreatePixmap(ScreenPtr pScreen, int w, int h, int depth, unsigned usage_hint)
 {
     PixmapPtr pPix;
 
     DPRINT_S("RACCreatePixmap",pScreen->myNum);
     SCREEN_PROLOG ( CreatePixmap);
     ENABLE;
-    pPix = (*pScreen->CreatePixmap) (pScreen, w, h, depth);
+    pPix = (*pScreen->CreatePixmap) (pScreen, w, h, depth, usage_hint);
     SCREEN_EPILOG (CreatePixmap, RACCreatePixmap);
 
     return pPix;

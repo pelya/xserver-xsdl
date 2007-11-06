@@ -1398,7 +1398,7 @@ damageText (DrawablePtr	    pDrawable,
 
     imageblt = (textType == TT_IMAGE8) || (textType == TT_IMAGE16);
 
-    charinfo = (CharInfoPtr *) ALLOCATE_LOCAL(count * sizeof(CharInfoPtr));
+    charinfo = (CharInfoPtr *) xalloc(count * sizeof(CharInfoPtr));
     if (!charinfo)
 	return x;
 
@@ -1420,7 +1420,7 @@ damageText (DrawablePtr	    pDrawable,
 	    (*pGC->ops->PolyGlyphBlt)(pDrawable, pGC, x, y, n, charinfo,
 				      FONTGLYPHS(pGC->font));
     }
-    DEALLOCATE_LOCAL(charinfo);
+    xfree(charinfo);
     return x + w;
 }
 

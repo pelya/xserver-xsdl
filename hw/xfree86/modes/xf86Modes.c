@@ -196,9 +196,8 @@ xf86DuplicateMode(DisplayModePtr pMode)
     pNew->prev = NULL;
     if (pNew->name == NULL) {
 	xf86SetModeDefaultName(pMode);
-    } else {
-	pNew->name = xnfstrdup(pMode->name);
     }
+    pNew->name = xnfstrdup(pMode->name);
 
     return pNew;
 }

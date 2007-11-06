@@ -1278,16 +1278,6 @@ ddxProcessArgument (int argc, char *argv[], int i)
     }
 
   /*
-   * Look for the '-co' argument
-   */
-  if (IS_OPTION ("-co"))
-    {
-      CHECK_ARGS (1);
-      g_cmdline.rgbPath = argv[++i];
-      return 0; /* Let DIX parse this again */
-    }
-
-  /*
    * Look for the '-query' argument
    */
   if (IS_OPTION ("-query"))

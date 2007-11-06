@@ -167,7 +167,7 @@ SafeAlphaComposite (CARD8           op,
         pDst->format = PICT_a8r8g8b8;
     }
     
-    if (pSrc->pDrawable && pMask->pDrawable &&
+    if (pSrc && pMask && pSrc->pDrawable && pMask->pDrawable &&
 	!pSrc->transform && !pMask->transform &&
 	!pSrc->alphaMap && !pMask->alphaMap &&
 	!pMask->repeat && !pMask->componentAlpha && !pDst->alphaMap &&

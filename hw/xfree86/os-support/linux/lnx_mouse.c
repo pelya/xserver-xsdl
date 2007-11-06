@@ -45,7 +45,8 @@ typedef enum {
 	MOUSE_PROTO_SERIAL,
 	MOUSE_PROTO_PS2,
 	MOUSE_PROTO_MSC,
-	MOUSE_PROTO_GPM
+	MOUSE_PROTO_GPM,
+	MOUSE_PROTO_EXPPS2,
 } protocolTypes;
 
 static struct {
@@ -55,7 +56,8 @@ static struct {
 	{ MOUSE_PROTO_UNKNOWN,	NULL },
 	{ MOUSE_PROTO_PS2,	"PS/2" },
 	{ MOUSE_PROTO_MSC,	"MouseSystems" },
-	{ MOUSE_PROTO_GPM,	"GPM" }
+	{ MOUSE_PROTO_GPM,	"GPM" },
+	{ MOUSE_PROTO_EXPPS2,   "ExplorerPS/2" },
 };
 
 static const char *
@@ -87,7 +89,7 @@ FindDevice(InputInfoPtr pInfo, const char *protocol, int flags)
 }
 
 static const char *
-GuessProtocol(InputInfoPtr pInfo, int flags)
+lnxMouseMagic(InputInfoPtr pInfo)
 {
     int fd = -1;
     const char *dev;
@@ -137,8 +139,10 @@ GuessProtocol(InputInfoPtr pInfo, int flags)
 	}
     }
 
-    if (strcmp(realdev, DEFAULT_PS2_DEV) == 0)
-	proto = MOUSE_PROTO_PS2;
+    if (strcmp(realdev, DEFAULT_MOUSE_DEV) == 0)
+	proto = MOUSE_PROTO_EXPPS2;
+    else if (strcmp(realdev, DEFAULT_PS2_DEV) == 0)
+	proto = MOUSE_PROTO_EXPPS2;
     else if (strcmp(realdev, DEFAULT_GPM_DATA_DEV) == 0)
 	proto = MOUSE_PROTO_MSC;
     else if (strcmp(realdev, DEFAULT_GPM_CTL_DEV) == 0)
@@ -171,21 +175,32 @@ GuessProtocol(InputInfoPtr pInfo, int flags)
 	close(fd);
     }
     if (proto == MOUSE_PROTO_UNKNOWN) {
-	xf86Msg(X_ERROR, "%s: GuessProtocol: Cannot find mouse protocol.\n",
+	xf86Msg(X_ERROR, "%s: Cannot find mouse protocol.\n",
 		pInfo->name);
 	return NULL;
     } else {
 	for (i = 0; i < sizeof(devproto)/sizeof(devproto[0]); i++) {
 	    if (devproto[i].proto == proto) {
 		xf86Msg(X_INFO,
-			"%s: GuessProtocol: "
-			"setting mouse protocol to \"%s\"\n", 
+			"%s: Setting mouse protocol to \"%s\"\n",
 			pInfo->name, devproto[i].name);
 		return devproto[i].name;
 	    }
 	}
     }
     return NULL;
+}
+
+static const char *
+GuessProtocol(InputInfoPtr pInfo, int flags)
+{
+    return lnxMouseMagic(pInfo);
+}
+
+static const char *
+SetupAuto(InputInfoPtr pInfo, int *protoPara)
+{
+    return lnxMouseMagic(pInfo);
 }
 
 _X_EXPORT OSMouseInfoPtr
@@ -200,6 +215,7 @@ xf86OSMouseInit(int flags)
     p->DefaultProtocol = DefaultProtocol;
     p->FindDevice = FindDevice;
     p->GuessProtocol = GuessProtocol;
+    p->SetupAuto = SetupAuto;
     return p;
 }
 

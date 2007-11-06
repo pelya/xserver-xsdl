@@ -29,7 +29,7 @@ typedef struct {
 #define xnestSharePixmap(pPixmap) ((pPixmap)->refcnt++)
 
 PixmapPtr xnestCreatePixmap(ScreenPtr pScreen, int width, int height,
-			    int depth);
+			    int depth, unsigned usage_hint);
 Bool xnestDestroyPixmap(PixmapPtr pPixmap);
 RegionPtr xnestPixmapToRegion(PixmapPtr pPixmap);
 

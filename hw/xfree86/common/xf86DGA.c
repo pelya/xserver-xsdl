@@ -427,7 +427,7 @@ xf86SetDGAMode(
    } 
 
    if(pMode->flags & DGA_PIXMAP_AVAILABLE) {
-	if((pPix = (*pScreen->CreatePixmap)(pScreen, 0, 0, pMode->depth))) {
+	if((pPix = (*pScreen->CreatePixmap)(pScreen, 0, 0, pMode->depth, 0))) {
 	    (*pScreen->ModifyPixmapHeader)(pPix, 
 			pMode->pixmapWidth, pMode->pixmapHeight,
 			pMode->depth, pMode->bitsPerPixel, 

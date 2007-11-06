@@ -233,7 +233,7 @@ shadowInit(ScreenPtr pScreen, ShadowUpdateProc update, ShadowWindowProc window)
     PixmapPtr pPixmap;
     
     pPixmap = pScreen->CreatePixmap(pScreen, pScreen->width, pScreen->height,
-				    pScreen->rootDepth);
+				    pScreen->rootDepth, 0);
     if (!pPixmap)
 	return FALSE;
     

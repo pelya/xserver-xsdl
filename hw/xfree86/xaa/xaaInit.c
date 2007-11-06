@@ -30,7 +30,8 @@ static void XAAGetImage(DrawablePtr pDrawable, int sx, int sy, int w, int h,
 			char *pdstLine);
 static void XAAGetSpans(DrawablePtr pDrawable, int wMax, DDXPointPtr ppt,
 			int *pwidth, int nspans, char *pdstStart);
-static PixmapPtr XAACreatePixmap(ScreenPtr pScreen, int w, int h, int depth);
+static PixmapPtr XAACreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
+				 unsigned usage_hint);
 static Bool XAADestroyPixmap(PixmapPtr pPixmap);
 static Bool XAAEnterVT (int index, int flags);
 static void XAALeaveVT (int index, int flags);
@@ -295,7 +296,8 @@ XAAPixmapBPP (ScreenPtr pScreen, int depth)
     DestroyPixmapProcPtr    destroyPixmap;
     
     XAA_SCREEN_PROLOGUE (pScreen, CreatePixmap);
-    pPix = (*pScreen->CreatePixmap) (pScreen, 1, 1, depth);
+    pPix = (*pScreen->CreatePixmap) (pScreen, 1, 1, depth,
+				     CREATE_PIXMAP_USAGE_SCRATCH);
     XAA_SCREEN_EPILOGUE (pScreen, CreatePixmap, XAACreatePixmap);
     if (!pPix)
 	return 0;
@@ -326,7 +328,7 @@ XAAInitializeOffscreenDepths (ScreenPtr pScreen)
 }
 
 static PixmapPtr 
-XAACreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
+XAACreatePixmap(ScreenPtr pScreen, int w, int h, int depth, unsigned usage_hint)
 {
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
@@ -372,7 +374,7 @@ XAACreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 	}
 
 	XAA_SCREEN_PROLOGUE (pScreen, CreatePixmap);
-	pPix = (*pScreen->CreatePixmap) (pScreen, 0, 0, depth);
+	pPix = (*pScreen->CreatePixmap) (pScreen, 0, 0, depth, usage_hint);
 	XAA_SCREEN_EPILOGUE (pScreen, CreatePixmap, XAACreatePixmap);
 
 	if (!pPix) {
@@ -404,7 +406,7 @@ XAACreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
     }
 BAILOUT:
     XAA_SCREEN_PROLOGUE (pScreen, CreatePixmap);
-    pPix = (*pScreen->CreatePixmap) (pScreen, w, h, depth);
+    pPix = (*pScreen->CreatePixmap) (pScreen, w, h, depth, usage_hint);
     XAA_SCREEN_EPILOGUE (pScreen, CreatePixmap, XAACreatePixmap);
 
     if(pPix) {

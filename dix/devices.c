@@ -2048,7 +2048,7 @@ ProcGetMotionEvents(ClientPtr client)
     {
 	if (CompareTimeStamps(stop, currentTime) == LATER)
 	    stop = currentTime;
-	coords = (xTimecoord *)ALLOCATE_LOCAL(mouse->valuator->numMotionEvents
+	coords = (xTimecoord *)xalloc(mouse->valuator->numMotionEvents
 					      * sizeof(xTimecoord));
 	if (!coords)
 	    return BadAlloc;
@@ -2082,7 +2082,7 @@ ProcGetMotionEvents(ClientPtr client)
 				 (char *)coords);
     }
     if (coords)
-	DEALLOCATE_LOCAL(coords);
+	xfree(coords);
     return Success;
 }
 

@@ -132,7 +132,7 @@ mfbSolidPP(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
     if (!REGION_NIL(&rgnDst))
     {
 	i = REGION_NUM_RECTS(&rgnDst);
-	pptSrc = (DDXPointPtr)ALLOCATE_LOCAL(i * sizeof(DDXPointRec));
+	pptSrc = (DDXPointPtr)xalloc(i * sizeof(DDXPointRec));
         if(pptSrc)
         {
 	    for (pbox = REGION_RECTS(&rgnDst), ppt = pptSrc;
@@ -143,7 +143,7 @@ mfbSolidPP(pGC, pBitMap, pDrawable, dx, dy, xOrg, yOrg)
 		ppt->y = pbox->y1 - yOrg;
 	    }
 	    mfbDoBitblt((DrawablePtr)pBitMap, pDrawable, alu, &rgnDst, pptSrc);
-	    DEALLOCATE_LOCAL(pptSrc);
+	    xfree(pptSrc);
 	}
     }
     REGION_UNINIT(pGC->pScreen, &rgnDst);

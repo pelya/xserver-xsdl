@@ -30,7 +30,6 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/Preferences.m,v 1.5 2004/06/08 22:58:10 torrey Exp $ */
 
 #include <dix-config.h>
 

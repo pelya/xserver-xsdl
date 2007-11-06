@@ -36,7 +36,8 @@ is" without express or implied warranty.
 DevPrivateKey xnestPixmapPrivateKey = &xnestPixmapPrivateKey;
 
 PixmapPtr
-xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth)
+xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth,
+		  unsigned usage_hint)
 {
   PixmapPtr pPixmap;
 

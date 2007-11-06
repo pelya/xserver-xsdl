@@ -1726,7 +1726,7 @@ RecordRegisterClients(RecordContextPtr pContext, ClientPtr client, xRecordRegist
      * range for extension replies.
      */
     maxSets = PREDEFSETS + 2 * stuff->nRanges;
-    si = (SetInfoPtr)ALLOCATE_LOCAL(sizeof(SetInfoRec) * maxSets);
+    si = (SetInfoPtr)xalloc(sizeof(SetInfoRec) * maxSets);
     if (!si)
     {
 	err = BadAlloc;
@@ -1933,7 +1933,7 @@ bailout:
 	for (i = 0; i < maxSets; i++)
 	    if (si[i].intervals)
 		xfree(si[i].intervals);
-	DEALLOCATE_LOCAL(si);
+	xfree(si);
     }
     if (pCanonClients && pCanonClients != (XID *)&stuff[1])
 	xfree(pCanonClients);
@@ -2300,7 +2300,7 @@ ProcRecordGetContext(ClientPtr client)
 
     /* allocate and initialize space for record range info */
 
-    pRangeInfo = (GetContextRangeInfoPtr)ALLOCATE_LOCAL(
+    pRangeInfo = (GetContextRangeInfoPtr)xalloc(
 				nRCAPs * sizeof(GetContextRangeInfoRec));
     if (!pRangeInfo && nRCAPs > 0)
 	return BadAlloc;
@@ -2417,7 +2417,7 @@ bailout:
     {
 	if (pRangeInfo[i].pRanges) xfree(pRangeInfo[i].pRanges);
     }
-    DEALLOCATE_LOCAL(pRangeInfo);
+    xfree(pRangeInfo);
     return err;
 } /* ProcRecordGetContext */
 
@@ -2817,14 +2817,14 @@ RecordConnectionSetupInfo(RecordContextPtr pContext, NewClientInfoRec *pci)
 
     if (pci->client->swapped)
     {
-	char *pConnSetup = (char *)ALLOCATE_LOCAL(prefixsize + restsize);
+	char *pConnSetup = (char *)xalloc(prefixsize + restsize);
 	if (!pConnSetup)
 	    return;
 	SwapConnSetupPrefix(pci->prefix, pConnSetup);
 	SwapConnSetupInfo(pci->setup, pConnSetup + prefixsize);
 	RecordAProtocolElement(pContext, pci->client, XRecordClientStarted,
 			       (pointer)pConnSetup, prefixsize + restsize, 0);
-	DEALLOCATE_LOCAL(pConnSetup);
+	xfree(pConnSetup);
     }
     else
     {

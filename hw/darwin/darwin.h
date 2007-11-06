@@ -141,6 +141,7 @@ enum {
     kXDarwinQuit,             // kill the X server and release the display
     kXDarwinReadPasteboard,   // copy Mac OS X pasteboard into X cut buffer
     kXDarwinWritePasteboard,  // copy X cut buffer onto Mac OS X pasteboard
+    kXDarwinBringAllToFront,  // bring all X windows to front
     /*
      * AppleWM events
      */

@@ -605,8 +605,6 @@ configureFilesSection (void)
        ptr->file_modulepath = strdup(xf86ModulePath);
    if (defaultFontPath)
        ptr->file_fontpath = strdup(defaultFontPath);
-   if (rgbPath)
-       ptr->file_rgbpath = strdup(rgbPath);
    
     return ptr;
 }
@@ -823,7 +821,7 @@ DoConfigure()
     	homebuf[PATH_MAX-1] = '\0';
     	home = homebuf;
     	if (!(filename =
-	     (char *)ALLOCATE_LOCAL(strlen(home) + 
+	     (char *)xalloc(strlen(home) + 
 	  			 strlen(configfile) + 3)))
 
       	if (home[0] == '/' && home[1] == '\0')

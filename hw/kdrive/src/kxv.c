@@ -1915,7 +1915,7 @@ KXVPaintRegion (DrawablePtr pDraw, RegionPtr pRgn, Pixel fg)
     BoxPtr	pBox = REGION_RECTS (pRgn);
     int		nBox = REGION_NUM_RECTS (pRgn);
     
-    rects = ALLOCATE_LOCAL (nBox * sizeof (xRectangle));
+    rects = xalloc (nBox * sizeof (xRectangle));
     if (!rects)
 	goto bail0;
     r = rects;
@@ -1944,7 +1944,7 @@ KXVPaintRegion (DrawablePtr pDraw, RegionPtr pRgn, Pixel fg)
 
     FreeScratchGC (pGC);
 bail1:
-    DEALLOCATE_LOCAL (rects);
+    xfree (rects);
 bail0:
     ;
 }

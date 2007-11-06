@@ -26,7 +26,7 @@
 #include <dix-config.h>
 #endif
 
-#include <stddef.h>
+#include <stddef.h>  /* buggy openssl/sha.h wants size_t */
 #include <openssl/sha.h>
 
 #include "misc.h"
@@ -611,20 +611,22 @@ GlyphExtents (int		nlist,
 
 #define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
 
-/* Stub ABI compatibility for mi*Glyph, should go away */
 _X_EXPORT void
-miGlyphs (CARD8		op,
-	  PicturePtr	pSrc,
-	  PicturePtr	pDst,
-	  PictFormatPtr	maskFormat,
-	  INT16		xSrc,
-	  INT16		ySrc,
-	  int		nlist,
-	  GlyphListPtr	list,
-	  GlyphPtr	*glyphs)
+CompositeGlyphs (CARD8		op,
+		 PicturePtr	pSrc,
+		 PicturePtr	pDst,
+		 PictFormatPtr	maskFormat,
+		 INT16		xSrc,
+		 INT16		ySrc,
+		 int		nlist,
+		 GlyphListPtr	lists,
+		 GlyphPtr	*glyphs)
 {
-    CompositeGlyphs(op, pSrc, pDst, maskFormat, xSrc, ySrc, nlist, list,
-		    glyphs);
+    PictureScreenPtr	ps = GetPictureScreen(pDst->pDrawable->pScreen);
+
+    ValidatePicture (pSrc);
+    ValidatePicture (pDst);
+    (*ps->Glyphs) (op, pSrc, pDst, maskFormat, xSrc, ySrc, nlist, lists, glyphs);
 }
 
 Bool
@@ -641,15 +643,15 @@ miUnrealizeGlyph (ScreenPtr pScreen,
 }
 
 _X_EXPORT void
-CompositeGlyphs (CARD8		op,
-		 PicturePtr	pSrc,
-		 PicturePtr	pDst,
-		 PictFormatPtr	maskFormat,
-		 INT16		xSrc,
-		 INT16		ySrc,
-		 int		nlist,
-		 GlyphListPtr	list,
-		 GlyphPtr	*glyphs)
+miGlyphs (CARD8		op,
+	  PicturePtr	pSrc,
+	  PicturePtr	pDst,
+	  PictFormatPtr	maskFormat,
+	  INT16		xSrc,
+	  INT16		ySrc,
+	  int		nlist,
+	  GlyphListPtr	list,
+	  GlyphPtr	*glyphs)
 {
     PicturePtr	pPicture;
     PixmapPtr   pMaskPixmap = 0;
@@ -664,9 +666,6 @@ CompositeGlyphs (CARD8		op,
     BoxRec	extents = {0, 0, 0, 0};
     CARD32	component_alpha;
 
-    ValidatePicture (pSrc);
-    ValidatePicture (pDst);
-
     if (maskFormat)
     {
 	GCPtr	    pGC;
@@ -679,7 +678,8 @@ CompositeGlyphs (CARD8		op,
 	width = extents.x2 - extents.x1;
 	height = extents.y2 - extents.y1;
 	pMaskPixmap = (*pScreen->CreatePixmap) (pScreen, width, height,
-						maskFormat->depth);
+						maskFormat->depth,
+						CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!pMaskPixmap)
 	    return;
 	component_alpha = NeedsComponent(maskFormat->format);

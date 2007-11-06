@@ -85,13 +85,7 @@ struct __GLXcontext {
     ** Pointer to screen info data for this context.  This is set
     ** when the context is created.
     */
-    ScreenPtr pScreen;
     __GLXscreen *pGlxScreen;
-
-    /*
-    ** This context is created with respect to this visual.
-    */
-    VisualRec *pVisual;
 
     /*
     ** The XID of this context.
@@ -102,11 +96,6 @@ struct __GLXcontext {
     ** The XID of the shareList context.
     */
     XID share_id;
-
-    /*
-    ** Visual id.
-    */
-    VisualID vid;
 
     /*
     ** screen number.
@@ -127,11 +116,6 @@ struct __GLXcontext {
     ** Whether this context is a direct rendering context.
     */
     GLboolean isDirect;
-
-    /*
-    ** Window pending state
-    */
-    GLuint pendingState;
 
     /*
     ** This flag keeps track of whether there are unflushed GL commands.

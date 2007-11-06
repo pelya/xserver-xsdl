@@ -558,6 +558,14 @@ xf86InitOrigins(void)
 
 	    screen = &xf86ConfigLayout.screens[i];
 
+	    if (screen->refscreen != NULL &&
+		screen->refscreen->screennum >= xf86NumScreens) {
+		screensLeft &= ~(1 << i);
+	        xf86Msg(X_WARNING, "Not including screen \"%s\" in origins calculation.\n",
+			screen->screen->id);
+	        continue;
+	    }
+
 	    switch(screen->where) {
 	    case PosObsolete:
 		OldStyleConfig = TRUE;

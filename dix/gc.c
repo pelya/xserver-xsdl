@@ -677,7 +677,7 @@ CreateDefaultTile (GCPtr pGC)
     (*pGC->pScreen->QueryBestSize)(TileShape, &w, &h, pGC->pScreen);
     pTile = (PixmapPtr)
 	    (*pGC->pScreen->CreatePixmap)(pGC->pScreen,
-					  w, h, pGC->depth);
+					  w, h, pGC->depth, 0);
     pgcScratch = GetScratchGC(pGC->depth, pGC->pScreen);
     if (!pTile || !pgcScratch)
     {
@@ -1020,7 +1020,7 @@ CreateDefaultStipple(int screenNum)
     h = 16;
     (* pScreen->QueryBestSize)(StippleShape, &w, &h, pScreen);
     if (!(pScreen->PixmapPerDepth[0] =
-			(*pScreen->CreatePixmap)(pScreen, w, h, 1)))
+			(*pScreen->CreatePixmap)(pScreen, w, h, 1, 0)))
 	return FALSE;
     /* fill stipple with 1 */
     tmpval[0] = GXcopy; tmpval[1] = 1; tmpval[2] = FillSolid;

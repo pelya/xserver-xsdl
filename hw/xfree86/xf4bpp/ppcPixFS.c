@@ -128,13 +128,13 @@ xf4bppSolidPixmapFS( pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted )
 	return ;
 
     n = nInit * miFindMaxBand(pGC->pCompositeClip) ;
-    if ( !( pwidthFree = (int *) ALLOCATE_LOCAL( n * sizeof( int ) ) ) )
+    if ( !( pwidthFree = (int *) xalloc( n * sizeof( int ) ) ) )
 	return ;
     pwidth = pwidthFree ;
 
     if ( !( pptFree = (DDXPointRec *)
-	    ALLOCATE_LOCAL( n * sizeof( DDXPointRec ) ) ) ) {
-	DEALLOCATE_LOCAL( pwidth ) ;
+	    xalloc( n * sizeof( DDXPointRec ) ) ) ) {
+	xfree( pwidth ) ;
 	return ;
     }
     ppt = pptFree ;
@@ -160,8 +160,8 @@ xf4bppSolidPixmapFS( pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted )
 	    *addrl = ( *addrl & npm ) | ( pm & DoRop( alu, fg, *addrl ) ) ;
 #endif /* PURDUE */
     }
-    DEALLOCATE_LOCAL( pptFree ) ;
-    DEALLOCATE_LOCAL( pwidthFree ) ;
+    xfree( pptFree ) ;
+    xfree( pwidthFree ) ;
     return ;
 }
 
@@ -316,8 +316,8 @@ int fSorted ;
 	ppt++ ;
 	pwidth++ ;
     }
-    DEALLOCATE_LOCAL( pptFree ) ;
-    DEALLOCATE_LOCAL( pwidthFree ) ;
+    xfree( pptFree ) ;
+    xfree( pwidthFree ) ;
     return ;
 }
 
@@ -416,8 +416,8 @@ int fSorted ;
 #endif /* PURDUE */
 	}
     }
-    DEALLOCATE_LOCAL( pptFree ) ;
-    DEALLOCATE_LOCAL( pwidthFree ) ;
+    xfree( pptFree ) ;
+    xfree( pwidthFree ) ;
     return ;
 }
 
@@ -496,7 +496,7 @@ int fSorted ;
 #endif /* PURDUE */
 	}
     }
-    DEALLOCATE_LOCAL( pptFree ) ;
-    DEALLOCATE_LOCAL( pwidthFree ) ;
+    xfree( pptFree ) ;
+    xfree( pwidthFree ) ;
     return ;
 }

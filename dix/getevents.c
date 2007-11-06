@@ -95,7 +95,14 @@ set_key_up(DeviceIntPtr pDev, int key_code)
 static Bool
 key_is_down(DeviceIntPtr pDev, int key_code)
 {
-    return pDev->key->postdown[key_code >> 3] >> (key_code & 7);
+    return !!(pDev->key->postdown[key_code >> 3] & (1 << (key_code & 7)));
+}
+
+static Bool
+key_autorepeats(DeviceIntPtr pDev, int key_code)
+{
+    return !!(pDev->kbdfeed->ctrl.autoRepeats[key_code >> 3] &
+              (1 << (key_code & 7)));
 }
 
 /**
@@ -444,10 +451,11 @@ GetKeyboardValuatorEvents(xEvent *events, DeviceIntPtr pDev, int type,
      * FIXME: In theory, if you're repeating with two keyboards in non-XKB,
      *        you could get unbalanced events here. */
     if (type == KeyPress && key_is_down(pDev, key_code)) {
+        /* If autorepeating is disabled either globally or just for that key,
+         * or we have a modifier, don't generate a repeat event. */
         if (!pDev->kbdfeed->ctrl.autoRepeat ||
-            pDev->key->modifierMap[key_code] ||
-            !(pDev->kbdfeed->ctrl.autoRepeats[key_code >> 3]
-                & (1 << (key_code & 7))))
+            !key_autorepeats(pDev, key_code) ||
+            pDev->key->modifierMap[key_code])
             return 0;
 
 #ifdef XKB

@@ -100,13 +100,13 @@ xf4bppSolidWindowFS( pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted )
 	return ;
 
     n = nInit * miFindMaxBand( pGC->pCompositeClip ) ;
-    if ( !( pwidthFree = (int *) ALLOCATE_LOCAL( n * sizeof( int ) ) ) )
+    if ( !( pwidthFree = (int *) xalloc( n * sizeof( int ) ) ) )
 	return ;
     pwidth = pwidthFree ;
 
     if ( !( pptFree = (DDXPointRec *)
-			ALLOCATE_LOCAL( n * sizeof( DDXPointRec ) ) ) ) {
-	DEALLOCATE_LOCAL( pwidth ) ;
+			xalloc( n * sizeof( DDXPointRec ) ) ) ) {
+	xfree( pwidth ) ;
 	return ;
     }
     ppt = pptFree ;
@@ -122,8 +122,8 @@ xf4bppSolidWindowFS( pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted )
 	    xf4bppFillSolid( (WindowPtr)pDrawable,
 		           fg, alu, pm, ppt->x, ppt->y, *pwidth, 1 ) ;
 
-    DEALLOCATE_LOCAL( pptFree ) ;
-    DEALLOCATE_LOCAL( pwidthFree ) ;
+    xfree( pptFree ) ;
+    xfree( pwidthFree ) ;
     return ;
 }
 
@@ -180,8 +180,8 @@ int fSorted ;
 	xf4bppFillStipple( (WindowPtr)pDrawable, pTile, fg, alu, pm,
 			ppt->x, ppt->y, *pwidth, 1, xSrc, ySrc ) ;
 
-    DEALLOCATE_LOCAL( pptFree ) ;
-    DEALLOCATE_LOCAL( pwidthFree ) ;
+    xfree( pptFree ) ;
+    xfree( pwidthFree ) ;
 
     return ;
 }
@@ -232,8 +232,8 @@ int fSorted ;
 	xf4bppOpaqueStipple( (WindowPtr)pDrawable, pGC->stipple, fg, bg, alu, pm,
 		ppt->x, ppt->y, *pwidth, 1, xSrc, ySrc ) ;
 
-    DEALLOCATE_LOCAL( pptFree ) ;
-    DEALLOCATE_LOCAL( pwidthFree ) ;
+    xfree( pptFree ) ;
+    xfree( pwidthFree ) ;
     return ;
 }
 
@@ -274,7 +274,7 @@ int fSorted ;
 	    xf4bppTileRect( (WindowPtr)pDrawable, pGC->tile.pixmap, alu, pm,
 		     ppt->x, ppt->y, *pwidth, 1, xSrc, ySrc ) ;
 
-    DEALLOCATE_LOCAL( pptFree ) ;
-    DEALLOCATE_LOCAL( pwidthFree ) ;
+    xfree( pptFree ) ;
+    xfree( pwidthFree ) ;
     return ;
 }

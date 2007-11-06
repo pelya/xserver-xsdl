@@ -602,7 +602,7 @@ SyncSendCounterNotifyEvents(client, ppAwait, num_events)
     if (client->clientGone)
 	return;
     pev = pEvents = (xSyncCounterNotifyEvent *)
-		 ALLOCATE_LOCAL(num_events * sizeof(xSyncCounterNotifyEvent));
+		 xalloc(num_events * sizeof(xSyncCounterNotifyEvent));
     if (!pEvents) 
 	return;
     UpdateCurrentTime();
@@ -623,7 +623,7 @@ SyncSendCounterNotifyEvents(client, ppAwait, num_events)
     }
     /* swapping will be taken care of by this */
     WriteEventsToClient(client, num_events, (xEvent *)pEvents);
-    DEALLOCATE_LOCAL(pEvents);
+    xfree(pEvents);
 }
 
 
@@ -733,7 +733,7 @@ SyncAwaitTriggerFired(pTrigger)
 
     pAwaitUnion = (SyncAwaitUnion *)pAwait->pHeader;
     numwaits = pAwaitUnion->header.num_waitconditions;
-    ppAwait = (SyncAwait **)ALLOCATE_LOCAL(numwaits * sizeof(SyncAwait *));
+    ppAwait = (SyncAwait **)xalloc(numwaits * sizeof(SyncAwait *));
     if (!ppAwait)
 	goto bail;
 
@@ -802,7 +802,7 @@ SyncAwaitTriggerFired(pTrigger)
     if (num_events)
 	SyncSendCounterNotifyEvents(pAwaitUnion->header.client, ppAwait,
 				    num_events);
-    DEALLOCATE_LOCAL(ppAwait);
+    xfree(ppAwait);
 
 bail:
     /* unblock the client */
@@ -1397,7 +1397,7 @@ ProcSyncListSystemCounters(client)
 
     if (len)
     {
-	walklist = list = (xSyncSystemCounter *) ALLOCATE_LOCAL(len);
+	walklist = list = (xSyncSystemCounter *) xalloc(len);
 	if (!list)
 	    return BadAlloc;
     }
@@ -1443,7 +1443,7 @@ ProcSyncListSystemCounters(client)
     if (len) 
     {
 	WriteToClient(client, len, (char *) list);
-	DEALLOCATE_LOCAL(list);
+	xfree(list);
     }
 
     return (client->noClientException);

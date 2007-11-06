@@ -447,7 +447,7 @@ xglCreateSolidAlphaPicture (ScreenPtr pScreen)
     if (!pGC)
 	return;
 
-    pPixmap = (*pScreen->CreatePixmap) (pScreen, 1, 1, pFormat->depth);
+    pPixmap = (*pScreen->CreatePixmap) (pScreen, 1, 1, pFormat->depth, 0);
     if (!pPixmap)
 	return;
 

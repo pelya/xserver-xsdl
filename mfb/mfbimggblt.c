@@ -294,7 +294,7 @@ MFBIMAGEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	int getWidth;		/* bits to get from glyph */
 #endif
 
-	if(!(ppos = (TEXTPOS *)ALLOCATE_LOCAL(nglyph * sizeof(TEXTPOS))))
+	if(!(ppos = (TEXTPOS *)xalloc(nglyph * sizeof(TEXTPOS))))
 	    return;
 
 	pdstBase = mfbScanlineNoBankSwitch(pdstBase, x, y, widthDst);
@@ -435,7 +435,7 @@ MFBIMAGEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 		}
 	    } /* for each glyph */
 	} /* while nbox-- */
-	DEALLOCATE_LOCAL(ppos);
+	xfree(ppos);
 	break;
       }
       default:

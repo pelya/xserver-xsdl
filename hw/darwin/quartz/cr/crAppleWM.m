@@ -1,7 +1,6 @@
 /*
  * Cocoa rootless implementation functions for AppleWM extension
- */
-/*
+ *
  * Copyright (c) 2003 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -26,7 +25,6 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/xpr/xprFrame.c,v 1.2 2003/06/30 01:45:13 torrey Exp $ */
 
 #include <dix-config.h>
 

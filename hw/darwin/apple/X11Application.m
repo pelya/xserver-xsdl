@@ -45,7 +45,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#define DEFAULTS_FILE "/usr/X11/lib/X11xserver/Xquartz.plist"
+#define DEFAULTS_FILE "/usr/X11/lib/X11/xserver/Xquartz.plist"
 
 int X11EnableKeyEquivalents = TRUE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
@@ -311,6 +311,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
     [NSApp activateIgnoringOtherApps:YES];
 	
     if ([self modalWindow] == nil) [self activateX:YES];
+    QuartzMessageServerThread(kXDarwinBringAllToFront, 0);
 }
 
 - (void) set_can_quit:(NSNumber *)state {

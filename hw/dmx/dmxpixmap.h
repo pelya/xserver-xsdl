@@ -49,7 +49,8 @@ typedef struct _dmxPixPriv {
 extern Bool      dmxInitPixmap(ScreenPtr pScreen);
 
 extern PixmapPtr dmxCreatePixmap(ScreenPtr pScreen,
-				 int width, int height, int depth);
+				 int width, int height, int depth,
+				 unsigned usage_hint);
 extern Bool      dmxDestroyPixmap(PixmapPtr pPixmap);
 extern RegionPtr dmxBitmapToRegion(PixmapPtr pPixmap);
 

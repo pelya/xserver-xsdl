@@ -712,7 +712,8 @@ PclUpdateDrawableGC(
 		
 		scratchPix = 
 		  (*pGC->pScreen->CreatePixmap)( pGC->pScreen,
-						w, h, pGC->depth );
+						w, h, pGC->depth,
+						CREATE_PIXMAP_USAGE_SCRATCH );
 		scratchGC = GetScratchGC( pGC->depth, pGC->pScreen );
 		CopyGC( pGC, scratchGC, ~0L );
 

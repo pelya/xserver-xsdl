@@ -464,7 +464,7 @@ static int ProcDMXChangeScreensAttributes(ClientPtr client)
     
     if (!_DMXXineramaActive()) goto noxinerama;
 
-    if (!(attribs = ALLOCATE_LOCAL(stuff->screenCount * sizeof(*attribs))))
+    if (!(attribs = xalloc(stuff->screenCount * sizeof(*attribs))))
         return BadAlloc;
 
     for (i = 0; i < stuff->screenCount; i++) {
@@ -483,7 +483,7 @@ static int ProcDMXChangeScreensAttributes(ClientPtr client)
 				       &errorScreen);
 #endif
 
-    DEALLOCATE_LOCAL(attribs);
+    xfree(attribs);
 
     if (status == BadValue) return status;
 
@@ -529,7 +529,7 @@ static int ProcDMXAddScreen(ClientPtr client)
     value_list = (CARD32 *)(stuff + 1);
     count      = dmxFetchScreenAttributes(stuff->valueMask, &attr, value_list);
     
-    if (!(name = ALLOCATE_LOCAL(stuff->displayNameLength + 1 + 4)))
+    if (!(name = xalloc(stuff->displayNameLength + 1 + 4)))
         return BadAlloc;
     memcpy(name, &value_list[count], stuff->displayNameLength);
     name[stuff->displayNameLength] = '\0';
@@ -537,7 +537,7 @@ static int ProcDMXAddScreen(ClientPtr client)
 
     status = dmxAttachScreen(stuff->physicalScreen, &attr);
 
-    DEALLOCATE_LOCAL(name);
+    xfree(name);
 
     rep.type           = X_Reply;
     rep.sequenceNumber = client->sequence;
@@ -657,30 +657,30 @@ static int ProcDMXGetWindowAttributes(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xDMXGetWindowAttributesReq);
 
-    if (!(screens = ALLOCATE_LOCAL(count * sizeof(*screens))))
+    if (!(screens = xalloc(count * sizeof(*screens))))
         return BadAlloc;
-    if (!(windows = ALLOCATE_LOCAL(count * sizeof(*windows)))) {
-        DEALLOCATE_LOCAL(screens);
-        return BadAlloc;
-    }
-    if (!(pos = ALLOCATE_LOCAL(count * sizeof(*pos)))) {
-        DEALLOCATE_LOCAL(windows);
-        DEALLOCATE_LOCAL(screens);
+    if (!(windows = xalloc(count * sizeof(*windows)))) {
+        xfree(screens);
         return BadAlloc;
     }
-    if (!(vis = ALLOCATE_LOCAL(count * sizeof(*vis)))) {
-        DEALLOCATE_LOCAL(pos);
-        DEALLOCATE_LOCAL(windows);
-        DEALLOCATE_LOCAL(screens);
+    if (!(pos = xalloc(count * sizeof(*pos)))) {
+        xfree(windows);
+        xfree(screens);
+        return BadAlloc;
+    }
+    if (!(vis = xalloc(count * sizeof(*vis)))) {
+        xfree(pos);
+        xfree(windows);
+        xfree(screens);
         return BadAlloc;
     }
 
     if ((count = dmxPopulate(client, stuff->window, screens, windows,
                              pos, vis)) < 0) {
-        DEALLOCATE_LOCAL(vis);
-        DEALLOCATE_LOCAL(pos);
-        DEALLOCATE_LOCAL(windows);
-        DEALLOCATE_LOCAL(screens);
+        xfree(vis);
+        xfree(pos);
+        xfree(windows);
+        xfree(screens);
         return BadWindow;
     }
 
@@ -718,10 +718,10 @@ static int ProcDMXGetWindowAttributes(ClientPtr client)
         WriteToClient(client, count * sizeof(*vis),     (char *)vis);
     }
 
-    DEALLOCATE_LOCAL(vis);
-    DEALLOCATE_LOCAL(pos);
-    DEALLOCATE_LOCAL(windows);
-    DEALLOCATE_LOCAL(screens);
+    xfree(vis);
+    xfree(pos);
+    xfree(windows);
+    xfree(screens);
 
     return client->noClientException;
 }
@@ -882,7 +882,7 @@ static int ProcDMXAddInput(ClientPtr client)
     value_list = (CARD32 *)(stuff + 1);
     count      = dmxFetchInputAttributes(stuff->valueMask, &attr, value_list);
     
-    if (!(name = ALLOCATE_LOCAL(stuff->displayNameLength + 1 + 4)))
+    if (!(name = xalloc(stuff->displayNameLength + 1 + 4)))
         return BadAlloc;
     memcpy(name, &value_list[count], stuff->displayNameLength);
     name[stuff->displayNameLength] = '\0';
@@ -890,7 +890,7 @@ static int ProcDMXAddInput(ClientPtr client)
 
     status = dmxAddInput(&attr, &id);
 
-    DEALLOCATE_LOCAL(name);
+    xfree(name);
 
     if (status) return status;
 

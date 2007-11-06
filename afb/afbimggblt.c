@@ -298,7 +298,7 @@ afbImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 				int getWidth;				/* bits to get from glyph */
 #endif
 
-				if(!(ppos = (afbTEXTPOS *)ALLOCATE_LOCAL(nglyph * sizeof(afbTEXTPOS))))
+				if(!(ppos = (afbTEXTPOS *)xalloc(nglyph * sizeof(afbTEXTPOS))))
 					return;
 
 				pdstBase = afbScanlineNoBankSwitch(pdstBase, x, y, widthDst);
@@ -462,7 +462,7 @@ afbImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 						} /* depth */
 					} /* for each glyph */
 				} /* while nbox-- */
-				DEALLOCATE_LOCAL(ppos);
+				xfree(ppos);
 				break;
 			}
 

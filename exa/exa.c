@@ -233,7 +233,8 @@ exaLog2(int val)
  * for scratch pixmaps, or to represent the visible screen.
  */
 static PixmapPtr
-exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
+exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
+		unsigned usage_hint)
 {
     PixmapPtr		pPixmap;
     ExaPixmapPrivPtr	pExaPixmap;
@@ -245,10 +246,10 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth)
 	return NullPixmap;
 
     if (!pExaScr->info->CreatePixmap) {
-        pPixmap = fbCreatePixmap (pScreen, w, h, depth);
+        pPixmap = fbCreatePixmap (pScreen, w, h, depth, usage_hint);
     } else {
         driver_alloc = 1;
-        pPixmap = fbCreatePixmap(pScreen, 0, 0, depth);
+        pPixmap = fbCreatePixmap(pScreen, 0, 0, depth, usage_hint);
     }
 
     if (!pPixmap)

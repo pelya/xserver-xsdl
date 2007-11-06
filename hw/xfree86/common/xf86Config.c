@@ -699,21 +699,6 @@ configFiles(XF86ConfFilesPtr fileconf)
   }
 
 
-  /* RgbPath */
-
-  pathFrom = X_DEFAULT;
-
-  if (xf86coFlag)
-    pathFrom = X_CMDLINE;
-  else if (fileconf) {
-    if (fileconf->file_rgbpath) {
-      rgbPath = fileconf->file_rgbpath;
-      pathFrom = X_CONFIG;
-    }
-  }
-
-  xf86Msg(pathFrom, "RgbPath set to \"%s\"\n", rgbPath);
-
   if (fileconf && fileconf->file_inputdevs) {
       xf86InputDeviceList = fileconf->file_inputdevs;
       xf86Msg(X_CONFIG, "Input device list set to \"%s\"\n",
@@ -1094,7 +1079,7 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
     }
 
 #ifdef GLXEXT
-    xf86Info.glxVisuals = XF86_GlxVisualsAll;
+    xf86Info.glxVisuals = XF86_GlxVisualsTypical;
     xf86Info.glxVisualsFrom = X_DEFAULT;
     if ((s = xf86GetOptValString(FlagOptions, FLAG_GLX_VISUALS))) {
 	if (!xf86NameCmp(s, "minimal")) {

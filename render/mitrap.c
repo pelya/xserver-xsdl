@@ -61,7 +61,7 @@ miCreateAlphaPicture (ScreenPtr	    pScreen,
     }
 
     pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, 
-					pPictFormat->depth);
+					pPictFormat->depth, 0);
     if (!pPixmap)
 	return 0;
     pGC = GetScratchGC (pPixmap->drawable.depth, pScreen);

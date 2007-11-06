@@ -301,7 +301,7 @@ EXPNAME(XAATEGlyphRenderer3)(
     } 
 
     dwords = ((3 * w + 31) >> 5) * h;
-    mem = (CARD32*)ALLOCATE_LOCAL(((w + 31) >> 3) * sizeof(char));
+    mem = (CARD32*)xalloc(((w + 31) >> 3) * sizeof(char));
     if (!mem) return;
 
     (*infoRec->SubsequentCPUToScreenColorExpandFill)(pScrn, x, y, w, h, 0);
@@ -321,7 +321,7 @@ EXPNAME(XAATEGlyphRenderer3)(
 	    DrawTextScanline3(base, mem, w);
 	}
 
-    DEALLOCATE_LOCAL(mem);
+    xfree(mem);
 
     if((infoRec->TEGlyphRendererFlags & CPU_TRANSFER_PAD_QWORD) &&
 			(dwords & 1)) {
@@ -478,7 +478,7 @@ EXPNAME(XAATEGlyphRendererScanline3)(
 
     w += skipleft;
     x -= skipleft;
-    mem = (CARD32*)ALLOCATE_LOCAL(((w + 31) >> 3) * sizeof(char));
+    mem = (CARD32*)xalloc(((w + 31) >> 3) * sizeof(char));
     if (!mem) return;
 
    (*infoRec->SubsequentScanlineCPUToScreenColorExpandFill)(	
@@ -495,7 +495,7 @@ EXPNAME(XAATEGlyphRendererScanline3)(
 	    bufferNo = 0;
     }
 
-    DEALLOCATE_LOCAL(mem);
+    xfree(mem);
     
 THE_END:
 

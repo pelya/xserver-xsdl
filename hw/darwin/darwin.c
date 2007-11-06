@@ -3,8 +3,6 @@
  * Shared code for the Darwin X Server
  * running with Quartz or IOKit display mode
  *
- **************************************************************/
-/*
  * Copyright (c) 2001-2004 Torrey T. Lyons. All Rights Reserved.
  * Copyright (c) 2007 Apple Inc.
  *

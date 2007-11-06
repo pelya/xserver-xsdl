@@ -1098,9 +1098,10 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
 #endif
 	sprite.hotPhys.x = XE_KBPTR.rootX;
 	sprite.hotPhys.y = XE_KBPTR.rootY;
-	/* do motion compression */
+	/* do motion compression, but not if from different devices */
 	if (tail &&
 	    (tail->event->u.u.type == MotionNotify) &&
+            (tail->device == device) &&
 	    (tail->pScreen == sprite.hotPhys.pScreen))
 	{
 	    tail->event->u.keyButtonPointer.rootX = sprite.hotPhys.x;
@@ -3174,7 +3175,7 @@ drawable.id:0;
 #ifdef XKB
 /* This function is used to set the key pressed or key released state -
    this is only used when the pressing of keys does not cause 
-   CoreProcessKeyEvent to be called, as in for example Mouse Keys.
+   the device's processInputProc to be called, as in for example Mouse Keys.
 */
 void
 FixKeyState (xEvent *xE, DeviceIntPtr keybd)
@@ -3187,22 +3188,19 @@ FixKeyState (xEvent *xE, DeviceIntPtr keybd)
     kptr = &keyc->down[key >> 3];
     bit = 1 << (key & 7);
 
-    if (((xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease))) {
+    if (((xE->u.u.type==KeyPress)||(xE->u.u.type==KeyRelease)||
+         (xE->u.u.type==DeviceKeyPress)||(xE->u.u.type==DeviceKeyRelease))
+            ) {
 	DebugF("FixKeyState: Key %d %s\n",key,
-			(xE->u.u.type==KeyPress?"down":"up"));
+               (((xE->u.u.type==KeyPress)||(xE->u.u.type==DeviceKeyPress))?"down":"up"));
     }
 
-    switch (xE->u.u.type)
-    {
-	case KeyPress: 
+    if (xE->u.u.type == KeyPress || xE->u.u.type == DeviceKeyPress)
 	    *kptr |= bit;
-	    break;
-	case KeyRelease: 
+    else if (xE->u.u.type == KeyRelease || xE->u.u.type == DeviceKeyRelease)
 	    *kptr &= ~bit;
-	    break;
-	default: 
-	    FatalError("Impossible keyboard event");
-    }
+    else
+        FatalError("Impossible keyboard event");
 }
 #endif
 

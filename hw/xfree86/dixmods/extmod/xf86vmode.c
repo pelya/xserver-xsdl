@@ -1373,14 +1373,14 @@ ProcXF86VidModeGetMonitor(ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.nhsync = nHsync;
     rep.nvsync = nVrefresh;
-    hsyncdata = ALLOCATE_LOCAL(nHsync * sizeof(CARD32));
+    hsyncdata = xalloc(nHsync * sizeof(CARD32));
     if (!hsyncdata) {
 	return BadAlloc;
     }
 
-    vsyncdata = ALLOCATE_LOCAL(nVrefresh * sizeof(CARD32));
+    vsyncdata = xalloc(nVrefresh * sizeof(CARD32));
     if (!vsyncdata) {
-	DEALLOCATE_LOCAL(hsyncdata);
+	xfree(hsyncdata);
 	return BadAlloc;
     }
 
@@ -1413,8 +1413,8 @@ ProcXF86VidModeGetMonitor(ClientPtr client)
     if (rep.modelLength)
 	WriteToClient(client, rep.modelLength, (char *)(VidModeGetMonitorValue(monitor, VIDMODE_MON_MODEL, 0)).ptr);
 
-    DEALLOCATE_LOCAL(hsyncdata);
-    DEALLOCATE_LOCAL(vsyncdata);
+    xfree(hsyncdata);
+    xfree(vsyncdata);
 
     return (client->noClientException);
 }
@@ -1498,11 +1498,11 @@ ProcXF86VidModeGetDotClocks(ClientPtr client)
     rep.flags = 0;
 
     if (!ClockProg) {
-	Clocks = ALLOCATE_LOCAL(numClocks * sizeof(int));
+	Clocks = xalloc(numClocks * sizeof(int));
 	if (!Clocks)
 	    return BadValue;
 	if (!VidModeGetClocks(stuff->screen, Clocks)) {
-	    DEALLOCATE_LOCAL(Clocks);
+	    xfree(Clocks);
 	    return BadValue;
 	}
     }
@@ -1529,7 +1529,7 @@ ProcXF86VidModeGetDotClocks(ClientPtr client)
 	}
     }
 
-    DEALLOCATE_LOCAL(Clocks);
+    xfree(Clocks);
     return (client->noClientException);
 }
 

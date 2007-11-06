@@ -196,7 +196,7 @@ cfbPolyFillRect(pDrawable, pGC, nrectFill, prectInit)
     numRects = REGION_NUM_RECTS(prgnClip) * nrectFill;
     if (numRects > NUM_STACK_RECTS)
     {
-	pboxClippedBase = (BoxPtr)ALLOCATE_LOCAL(numRects * sizeof(BoxRec));
+	pboxClippedBase = (BoxPtr)xalloc(numRects * sizeof(BoxRec));
 	if (!pboxClippedBase)
 	    return;
     }
@@ -301,5 +301,5 @@ cfbPolyFillRect(pDrawable, pGC, nrectFill, prectInit)
 	(*BoxFill) (pDrawable, pGC,
 		    pboxClipped-pboxClippedBase, pboxClippedBase);
     if (pboxClippedBase != stackRects)
-    	DEALLOCATE_LOCAL(pboxClippedBase);
+    	xfree(pboxClippedBase);
 }

@@ -687,7 +687,7 @@ CreateSaverWindow (pScreen)
     wantMap = wColormap (pWin);
     if (wantMap == None)
 	return TRUE;
-    installedMaps = (Colormap *) ALLOCATE_LOCAL (pScreen->maxInstalledCmaps *
+    installedMaps = (Colormap *) xalloc (pScreen->maxInstalledCmaps *
 						 sizeof (Colormap));
     numInstalled = (*pWin->drawable.pScreen->ListInstalledColormaps)
 						    (pScreen, installedMaps);
@@ -695,7 +695,7 @@ CreateSaverWindow (pScreen)
 	if (installedMaps[i] == wantMap)
 	    break;
 
-    DEALLOCATE_LOCAL ((char *) installedMaps);
+    xfree ((char *) installedMaps);
 
     if (i < numInstalled)
 	return TRUE;

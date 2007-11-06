@@ -349,7 +349,7 @@ XAAOverCopyWindow(
 
     nbox = REGION_NUM_RECTS(&rgnDst);
     if(nbox &&
-	(pptSrc = (DDXPointPtr )ALLOCATE_LOCAL(nbox * sizeof(DDXPointRec)))) {
+	(pptSrc = (DDXPointPtr )xalloc(nbox * sizeof(DDXPointRec)))) {
 
 	pbox = REGION_RECTS(&rgnDst);
 	for (i = nbox, ppt = pptSrc; i--; ppt++, pbox++) {
@@ -367,7 +367,7 @@ XAAOverCopyWindow(
         		&(infoRec->ScratchGC), &rgnDst, pptSrc);
 	}
 
-	DEALLOCATE_LOCAL(pptSrc);
+	xfree(pptSrc);
     }
 
     REGION_UNINIT(pScreen, &rgnDst);
@@ -379,7 +379,7 @@ XAAOverCopyWindow(
 	REGION_INTERSECT(pScreen, &rgnDst, &rgnDst, prgnSrc);
 	nbox = REGION_NUM_RECTS(&rgnDst);
 	if(nbox &&
-	  (pptSrc = (DDXPointPtr )ALLOCATE_LOCAL(nbox * sizeof(DDXPointRec)))){
+	  (pptSrc = (DDXPointPtr )xalloc(nbox * sizeof(DDXPointRec)))){
 
 	    pbox = REGION_RECTS(&rgnDst);
 	    for (i = nbox, ppt = pptSrc; i--; ppt++, pbox++) {
@@ -390,7 +390,7 @@ XAAOverCopyWindow(
 	    SWITCH_DEPTH(pScrn->depth);
 	    XAADoBitBlt((DrawablePtr)pRoot, (DrawablePtr)pRoot,
         		&(infoRec->ScratchGC), &rgnDst, pptSrc);
-	    DEALLOCATE_LOCAL(pptSrc);
+	    xfree(pptSrc);
 	}
       }
       REGION_UNINIT(pScreen, &rgnDst);

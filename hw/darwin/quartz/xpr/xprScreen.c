@@ -1,7 +1,6 @@
 /*
  * Xplugin rootless implementation screen functions
- */
-/*
+ *
  * Copyright (c) 2002 Apple Computer, Inc. All Rights Reserved.
  * Copyright (c) 2004 Torrey T. Lyons. All Rights Reserved.
  *
@@ -46,6 +45,10 @@
 # include "damage.h"
 #endif
 
+/* 10.4's deferred update makes X slower.. have to live with the tearing
+   for now.. */
+#define XP_NO_DEFERRED_UPDATES 8
+
 // Name of GLX bundle for native OpenGL
 static const char *xprOpenGLBundle = "glxCGL.bundle";
 
@@ -60,10 +63,12 @@ eventHandler(unsigned int type, const void *arg,
     switch (type)
     {
     case XP_EVENT_DISPLAY_CHANGED:
+      //      ErrorF("XP_EVENT_DISPLAY_MOVED\n");
         QuartzMessageServerThread(kXDarwinDisplayChanged, 0);
         break;
 
     case XP_EVENT_WINDOW_STATE_CHANGED:
+      //      ErrorF("XP_EVENT_WINDOW_STATE_CHANGED\n");
         if (arg_size >= sizeof(xp_window_state_event))
         {
             const xp_window_state_event *ws_arg = arg;
@@ -74,16 +79,24 @@ eventHandler(unsigned int type, const void *arg,
         break;
 
     case XP_EVENT_WINDOW_MOVED:
+      //      ErrorF("XP_EVENT_WINDOW_MOVED\n");
         if (arg_size == sizeof(xp_window_id))
         {
             xp_window_id id = * (xp_window_id *) arg;
-
-            QuartzMessageServerThread(kXDarwinWindowMoved, 1, id);
+	    WindowPtr pWin = xprGetXWindow(id);
+	    BoxRec box;
+	    xp_error retval  = xp_get_window_bounds(id, &box);
+	    if (retval != Success) {
+	      ErrorF("Unable to find new bounds for window\n");
+	      break;
+	    }
+            QuartzMessageServerThread(kXDarwinWindowMoved, 3, pWin, box.x1, box.y1);
         }
         break;
 
     case XP_EVENT_SURFACE_DESTROYED:
     case XP_EVENT_SURFACE_CHANGED:
+      //      ErrorF("XP_EVENT_SURFACE_MOVED\n");
         if (arg_size == sizeof(xp_surface_id))
         {
             int kind;
@@ -177,15 +190,15 @@ xprAddPseudoramiXScreens(int *x, int *y, int *width, int *height)
 
         frame = displayScreenBounds(dpy);
 
-        ErrorF("PseudoramiX screen %d added: %dx%d @ (%d,%d).\n", i,
+	/*        ErrorF("PseudoramiX screen %d added: %dx%d @ (%d,%d).\n", i,
                (int)frame.size.width, (int)frame.size.height,
-               (int)frame.origin.x, (int)frame.origin.y);
+               (int)frame.origin.x, (int)frame.origin.y); */
 
         frame.origin.x -= unionRect.origin.x;
         frame.origin.y -= unionRect.origin.y;
 
-        ErrorF("PseudoramiX screen %d placed at X11 coordinate (%d,%d).\n",
-               i, (int)frame.origin.x, (int)frame.origin.y);
+	/*        ErrorF("PseudoramiX screen %d placed at X11 coordinate (%d,%d).\n",
+		  i, (int)frame.origin.x, (int)frame.origin.y); */
 
         PseudoramiXAddScreen(frame.origin.x, frame.origin.y,
                              frame.size.width, frame.size.height);
@@ -203,7 +216,7 @@ xprDisplayInit(void)
 {
     CGDisplayCount displayCount;
 
-    ErrorF("Display mode: Rootless Quartz -- Xplugin implementation\n");
+    //    ErrorF("Display mode: Rootless Quartz -- Xplugin implementation\n");
 
     CGGetActiveDisplayList(0, NULL, &displayCount);
 

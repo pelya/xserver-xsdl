@@ -80,7 +80,8 @@ fbCreatePixmapBpp (ScreenPtr pScreen, int width, int height, int depth, int bpp)
 }
 
 PixmapPtr
-fbCreatePixmap (ScreenPtr pScreen, int width, int height, int depth)
+fbCreatePixmap (ScreenPtr pScreen, int width, int height, int depth,
+		unsigned usage_hint)
 {
     int	bpp;
     bpp = BitsPerPixel (depth);

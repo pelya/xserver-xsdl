@@ -45,7 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 static MODULESETUPPROTO(glxSetup);
 
-static const char *initdeps[] = { "DOUBLE-BUFFER", NULL };
+static const char *initdeps[] = { "DOUBLE-BUFFER", "COMPOSITE", NULL };
 
 static ExtensionModule GLXExt =
 {

@@ -243,9 +243,6 @@ xf86BlockSIGIO (void)
     sigaddset (&set, SIGIO);
     sigprocmask (SIG_BLOCK, &set, &old);
     ret = sigismember (&old, SIGIO);
-#ifdef DEBUG
-    ErrorF("%i = xf86BlockSIGIO()\n",ret);
-#endif
     return ret; 
 }
 
@@ -253,9 +250,6 @@ _X_EXPORT void
 xf86UnblockSIGIO (int wasset)
 {
     sigset_t	set;
-#ifdef DEBUG
-    ErrorF("xf86UnblockSIGIO(%i)\n",wasset);
-#endif
 
     if (!wasset)
     {
