@@ -222,36 +222,27 @@ DarwinModeReadSystemKeymap (darwinKeyboardInfo *info)
     KeySym *k;
 
     TISInputSourceRef currentKeyLayoutRef = TISCopyCurrentKeyboardLayoutInputSource();
-	if (currentKeyLayoutRef)
-	{
-		CFDataRef currentKeyLayoutDataRef = (CFDataRef )TISGetInputSourceProperty(currentKeyLayoutRef, kTISPropertyUnicodeKeyLayoutData);
-		if (currentKeyLayoutDataRef)
-			chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
-	}
-	
-	if(chr_data == NULL) {
-		KLGetCurrentKeyboardLayout (&key_layout);
-		KLGetKeyboardLayoutProperty (key_layout, kKLuchrData, &chr_data);
-
-		if (chr_data != NULL)
-		{
-			is_uchr = 1;
-			keyboard_type = LMGetKbdType ();
-		}
-		else
-		{
-			KLGetKeyboardLayoutProperty (key_layout, kKLKCHRData, &chr_data);
-
-			if (chr_data == NULL)
-			{
-				ErrorF ( "Couldn't get uchr or kchr resource\n");
-				return FALSE;
-			}
-
-			is_uchr = 0;
-			num_keycodes = 128;
-		}    
-	}
+    keyboard_type = LMGetKbdType ();
+    if (currentKeyLayoutRef) {
+      CFDataRef currentKeyLayoutDataRef = (CFDataRef )TISGetInputSourceProperty(currentKeyLayoutRef, kTISPropertyUnicodeKeyLayoutData);
+      if (currentKeyLayoutDataRef) chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
+    }
+    
+    if (chr_data == NULL) {
+      KLGetCurrentKeyboardLayout (&key_layout);
+      KLGetKeyboardLayoutProperty (key_layout, kKLuchrData, &chr_data);
+    }
+    
+    if (chr_data == NULL) {
+      KLGetKeyboardLayoutProperty (key_layout, kKLKCHRData, &chr_data);
+      is_uchr = 0;
+      num_keycodes = 128;
+    }
+    
+    if (chr_data == NULL) {
+      ErrorF ( "Couldn't get uchr or kchr resource\n");
+      return FALSE;
+    }
 
     /* Scan the keycode range for the Unicode character that each
        key produces in the four shift states. Then convert that to
