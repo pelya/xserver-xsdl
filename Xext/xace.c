@@ -44,6 +44,22 @@ static int (*SwappedUntrustedProcVector[256])(
     ClientPtr /*client*/
 );
 
+/* Special-cased hook functions.  Called by Xserver.
+ */
+void XaceHookAuditBegin(ClientPtr ptr)
+{
+    XaceAuditRec rec = { ptr, 0 };
+    /* call callbacks, there is no return value. */
+    CallCallbacks(&XaceHooks[XACE_AUDIT_BEGIN], &rec);
+}
+
+void XaceHookAuditEnd(ClientPtr ptr, int result)
+{
+    XaceAuditRec rec = { ptr, result };
+    /* call callbacks, there is no return value. */
+    CallCallbacks(&XaceHooks[XACE_AUDIT_END], &rec);
+}
+
 /* Entry point for hook functions.  Called by Xserver.
  */
 int XaceHook(int hook, ...)
@@ -60,15 +76,6 @@ int XaceHook(int hook, ...)
      */
     switch (hook)
     {
-	case XACE_CORE_DISPATCH: {
-	    XaceCoreDispatchRec rec = {
-		va_arg(ap, ClientPtr),
-		TRUE	/* default allow */
-	    };
-	    calldata = &rec;
-	    prv = &rec.rval;
-	    break;
-	}
 	case XACE_RESOURCE_ACCESS: {
 	    XaceResourceAccessRec rec = {
 		va_arg(ap, ClientPtr),
@@ -190,22 +197,6 @@ int XaceHook(int hook, ...)
 	    calldata = &rec;
 	    break;
 	}
-	case XACE_AUDIT_BEGIN: {
-	    XaceAuditRec rec = {
-		va_arg(ap, ClientPtr),
-		0
-	    };
-	    calldata = &rec;
-	    break;
-	}
-	case XACE_AUDIT_END: {
-	    XaceAuditRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, int)
-	    };
-	    calldata = &rec;
-	    break;
-	}
 	default: {
 	    va_end(ap);
 	    return 0;	/* unimplemented hook number */
@@ -271,11 +262,15 @@ XaceCatchDispatchProc(ClientPtr client)
 {
     REQUEST(xReq);
     int major = stuff->reqType;
+    XaceCoreDispatchRec rec = { client, TRUE /* default allow */ };
 
     if (!ProcVector[major])
 	return (BadRequest);
 
-    if (!XaceHook(XACE_CORE_DISPATCH, client))
+    /* call callbacks and return result, if any. */
+    CallCallbacks(&XaceHooks[XACE_CORE_DISPATCH], &rec);
+
+    if (!rec.rval)
 	return (BadAccess);
 
     return client->swapped ? 
