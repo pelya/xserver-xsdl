@@ -719,6 +719,10 @@ ephyrRestore (KdCardInfo *card)
 void
 ephyrScreenFini (KdScreenInfo *screen)
 {
+    EphyrScrPriv  *scrpriv = screen->driver;
+    if (scrpriv->shadow) {
+        KdShadowFbFree (screen, 0);
+    }
     xfree(screen->driver);
     screen->driver = NULL;
 }
