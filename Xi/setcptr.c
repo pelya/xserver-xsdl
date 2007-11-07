@@ -78,11 +78,10 @@ ProcXSetClientPointer(ClientPtr client)
 
 
     pDev = LookupDeviceIntRec(stuff->deviceid);
-    if (pDev == NULL || !IsPointerDevice(pDev))
+    if (pDev == NULL || !IsPointerDevice(pDev) || !pDev->isMaster)
     {
-        SendErrorToClient(client, IReqCode, X_SetClientPointer, 0,
-                BadDevice); 
-        return Success;
+        client->errorValue = stuff->deviceid;
+        return BadDevice;
     }
 
     if (stuff->win != None)
@@ -90,19 +89,18 @@ ProcXSetClientPointer(ClientPtr client)
         err = dixLookupWindow(&pWin, stuff->win, client, DixReadWriteAccess);
         if (err != Success)
         {
-            SendErrorToClient(client, IReqCode, X_SetClientPointer, 
-                    stuff->win, err);
-            return Success;
+            client->errorValue = stuff->win;
+            return err;
         }
         targetClient= wClient(pWin);
     } else
         targetClient = client;
-    
+
     if (!SetClientPointer(targetClient, client, pDev))
     {
-        SendErrorToClient(client, IReqCode, X_SetClientPointer, 
-                stuff->win, BadAccess);
-        return Success;
+        client->errorValue = stuff->win;
+        return BadAccess;
     }
+
     return Success;
 }
