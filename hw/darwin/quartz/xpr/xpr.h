@@ -38,6 +38,9 @@ void AppleDRIExtensionInit(void);
 void xprAppleWMInit(void);
 Bool xprInit(ScreenPtr pScreen);
 Bool xprIsX11Window(void *nsWindow, int windowNumber);
+WindowPtr xprGetX11Window(xp_window_id wid);
+WindowPtr xprGetXWindowFromAppKit(int windowNumber);
+
 void xprHideWindows(Bool hide);
 
 Bool QuartzInitCursor(ScreenPtr pScreen);

@@ -424,6 +424,37 @@ xprGetXWindow(xp_window_id wid)
     return winRec != NULL ? winRec->win : NULL;
 }
 
+/*
+ * Given the id of a physical window, try to find the top-level (or root)
+ * X window that it represents.
+ */
+WindowPtr
+xprGetXWindowFromAppKit(int windowNumber)
+{
+    RootlessWindowRec *winRec;
+    Bool ret;
+    xp_window_id wid;
+
+    if (window_hash == NULL)
+        return FALSE;
+
+    /* need to lock, since this function can be called by any thread */
+
+    pthread_mutex_lock(&window_hash_mutex);
+
+    if (xp_lookup_native_window(windowNumber, &wid))
+        ret = xprGetXWindow(wid) != NULL;
+    else
+        ret = FALSE;
+
+    pthread_mutex_unlock(&window_hash_mutex);
+
+    if (!ret) return NULL;
+    winRec = x_hash_table_lookup(window_hash, (void *) wid, NULL);
+
+    return winRec != NULL ? winRec->win : NULL;
+}
+
 
 /*
  * The windowNumber is an AppKit window number. Returns TRUE if xpr is
