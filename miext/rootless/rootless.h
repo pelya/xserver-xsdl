@@ -74,6 +74,8 @@ typedef struct _RootlessWindowRec {
 
     unsigned int is_drawing :1;	// Currently drawing?
     unsigned int is_reorder_pending :1;
+    unsigned int is_offscreen :1;
+    unsigned int is_obscured :1;
 } RootlessWindowRec, *RootlessWindowPtr;
 
 

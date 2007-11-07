@@ -342,8 +342,22 @@ void DarwinModeProcessEvent(
     xEvent *xe)
 {
     switch (xe->u.u.type) {
+        case kXDarwinControllerNotify:
+            AppleWMSendEvent(AppleWMControllerNotify,
+                             AppleWMControllerNotifyMask,
+                             xe->u.clientMessage.u.l.longs0,
+                             xe->u.clientMessage.u.l.longs1);
+            break;
+
+        case kXDarwinPasteboardNotify:
+            AppleWMSendEvent(AppleWMPasteboardNotify,
+                             AppleWMPasteboardNotifyMask,
+                             xe->u.clientMessage.u.l.longs0,
+                             xe->u.clientMessage.u.l.longs1);
+            break;
 
         case kXDarwinActivate:
+	  ErrorF("kXDarwinActivate\n");
             QuartzShow(xe->u.keyButtonPointer.rootX,
                        xe->u.keyButtonPointer.rootY);
             AppleWMSendEvent(AppleWMActivationNotify,
@@ -352,10 +366,46 @@ void DarwinModeProcessEvent(
             break;
 
         case kXDarwinDeactivate:
+	  ErrorF("kXDarwinDeactivate\n");
             AppleWMSendEvent(AppleWMActivationNotify,
                              AppleWMActivationNotifyMask,
                              AppleWMIsInactive, 0);
             QuartzHide();
+            break;
+
+        case kXDarwinDisplayChanged:
+	  ErrorF("kXDarwinDisplayChanged\n");
+            QuartzUpdateScreens();
+            break;
+
+        case kXDarwinWindowState:
+	  ErrorF("kXDarwinWindowState\n");
+            RootlessNativeWindowStateChanged(xe->u.clientMessage.u.l.longs0,
+		  			     xe->u.clientMessage.u.l.longs1);
+	    break;
+	  
+        case kXDarwinWindowMoved:
+	  ErrorF("kXDarwinWindowMoved\n");
+            RootlessNativeWindowMoved (xe->u.clientMessage.u.l.longs0);
+	    break;
+
+        case kXDarwinToggleFullscreen:
+#ifdef DARWIN_DDX_MISSING
+            if (quartzEnableRootless) QuartzSetFullscreen(!quartzHasRoot);
+            else if (quartzHasRoot) QuartzHide();
+            else QuartzShow();
+#else
+	    ErrorF("kXDarwinToggleFullscreen not implemented\n");
+#endif
+            break;
+
+        case kXDarwinSetRootless:
+#ifdef DARWIN_DDX_MISSING
+            QuartzSetRootless(xe->u.clientMessage.u.l.longs0);
+            if (!quartzEnableRootless && !quartzHasRoot) QuartzHide();
+#else
+	    ErrorF("kXDarwinSetRootless not implemented\n");
+#endif
             break;
 
         case kXDarwinSetRootClip:
@@ -374,46 +424,13 @@ void DarwinModeProcessEvent(
             QuartzWritePasteboard();
             break;
 
-        /*
-         * AppleWM events
-         */
-        case kXDarwinControllerNotify:
-            AppleWMSendEvent(AppleWMControllerNotify,
-                             AppleWMControllerNotifyMask,
-                             xe->u.clientMessage.u.l.longs0,
-                             xe->u.clientMessage.u.l.longs1);
-            break;
-
-        case kXDarwinPasteboardNotify:
-            AppleWMSendEvent(AppleWMPasteboardNotify,
-                             AppleWMPasteboardNotifyMask,
-                             xe->u.clientMessage.u.l.longs0,
-                             xe->u.clientMessage.u.l.longs1);
-            break;
-
-        case kXDarwinDisplayChanged:
-            QuartzUpdateScreens();
-            break;
-
         case kXDarwinBringAllToFront:
+	  ErrorF("kXDarwinBringAllToFront\n");
 	    RootlessOrderAllWindows();
             break;
 
-        case kXDarwinWindowState:
-	  ErrorF("kXDarwinWindowState\n");
-	  break;
-    case kXDarwinWindowMoved: {
-	  WindowPtr pWin = (WindowPtr)xe->u.clientMessage.u.l.longs0;
-	  short x = xe->u.clientMessage.u.l.longs1,
-	        y = xe->u.clientMessage.u.l.longs2;
-	  ErrorF("kXDarwinWindowMoved(%p, %hd, %hd)\n", pWin, x, y);
-	  RootlessMoveWindow(pWin, x, y, pWin->nextSib, VTMove);
-    }
-	  break;
-
         default:
-            ErrorF("Unknown application defined event type %d.\n",
-                   xe->u.u.type);
+            ErrorF("Unknown application defined event type %d.\n", xe->u.u.type);
     }
 }
 
