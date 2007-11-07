@@ -232,7 +232,8 @@ mieqProcessInputEvents(void)
 {
     EventRec *e = NULL;
     int x = 0, y = 0;
-    xEvent* event;
+    xEvent* event,
+            *master_event;
 
     while (miEventQueue.head != miEventQueue.tail) {
         if (screenIsSaved == SCREEN_SAVER_ON)
@@ -283,25 +284,43 @@ mieqProcessInputEvents(void)
              * copy. Eventually the interface for the processInputProc needs
              * to be changed. (whot)
              */ 
+
+            /* The event is changed during event processing, so we need to
+             * memcpy the event we have and pass the copy through for master
+             */
             if (e->nevents > 1)
             {
                 int i;
                 event = xcalloc(e->nevents, sizeof(xEvent));
+                master_event = xcalloc(e->nevents, sizeof(xEvent));
+                if (!event || !master_event)
+                    FatalError("[mi] No memory left for event processing.\n");
                 for (i = 0; i < e->nevents; i++)
+                {
                     memcpy(&event[i], e->events[i].event, sizeof(xEvent));
+                    memcpy(&master_event[i], e->events[i].event, sizeof(xEvent));
+                }
             }
             else 
             {
+                int len = sizeof(xEvent); 
                 event = e->events->event;
+                if (event->u.u.type == GenericEvent) 
+                        len += GEV(event)->length * 4;
+                master_event = xalloc(len);
+                if (!master_event)
+                    FatalError("[mi] No memory left for master event.\n");
+                memcpy(master_event, event, len);
             }
 
             e->pDev->public.processInputProc(event, e->pDev, e->nevents);
             if (!e->pDev->isMaster && e->pDev->u.master)
-                e->pDev->u.master->public.processInputProc(event, 
+                e->pDev->u.master->public.processInputProc(master_event, 
                         e->pDev->u.master, e->nevents);
 
             if (e->nevents > 1)
                 xfree(event);
+            xfree(master_event);
         }
 
         /* Update the sprite now. Next event may be from different device. */
