@@ -152,11 +152,9 @@ extern long SmartScheduleTime;
 extern long SmartScheduleInterval;
 extern long SmartScheduleSlice;
 extern long SmartScheduleMaxSlice;
-extern unsigned long SmartScheduleIdleCount;
 extern Bool SmartScheduleDisable;
-extern Bool SmartScheduleIdle;
-extern Bool SmartScheduleTimerStopped;
-extern Bool SmartScheduleStartTimer(void);
+extern void SmartScheduleStartTimer(void);
+extern void SmartScheduleStopTimer(void);
 #define SMART_MAX_PRIORITY  (20)
 #define SMART_MIN_PRIORITY  (-20)
 

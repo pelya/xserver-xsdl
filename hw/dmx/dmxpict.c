@@ -531,13 +531,13 @@ static int dmxProcRenderCompositeGlyphs(ClientPtr client)
 	/* The following only works for Render version > 0.2 */
 
 	/* All of the XGlyphElt* structure sizes are identical */
-	elts = ALLOCATE_LOCAL(nelt * sizeof(XGlyphElt8));
+	elts = xalloc(nelt * sizeof(XGlyphElt8));
 	if (!elts)
 	    return BadAlloc;
 
-	glyphs = ALLOCATE_LOCAL(nglyph * size);
+	glyphs = xalloc(nglyph * size);
 	if (!glyphs) {
-	    DEALLOCATE_LOCAL(elts);
+	    xfree(elts);
 	    return BadAlloc;
 	}
 
@@ -605,8 +605,8 @@ static int dmxProcRenderCompositeGlyphs(ClientPtr client)
 
 	dmxSync(dmxScreen, FALSE);
 
-	DEALLOCATE_LOCAL(elts);
-	DEALLOCATE_LOCAL(glyphs);
+	xfree(elts);
+	xfree(glyphs);
     }
 
     return ret;

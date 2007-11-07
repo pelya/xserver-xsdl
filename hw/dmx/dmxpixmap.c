@@ -81,7 +81,8 @@ void dmxBECreatePixmap(PixmapPtr pPixmap)
 
 /** Create a pixmap for \a pScreen with the specified \a width, \a
  *  height, and \a depth. */
-PixmapPtr dmxCreatePixmap(ScreenPtr pScreen, int width, int height, int depth)
+PixmapPtr dmxCreatePixmap(ScreenPtr pScreen, int width, int height, int depth,
+			  unsigned usage_hint)
 {
     DMXScreenInfo *dmxScreen = &dmxScreens[pScreen->myNum];
     PixmapPtr      pPixmap;

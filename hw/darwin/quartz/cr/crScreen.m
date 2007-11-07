@@ -1,8 +1,6 @@
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.4 2004/08/12 20:24:36 torrey Exp $ */
 /*
  * Cocoa rootless implementation initialization
- */
-/*
+ *
  * Copyright (c) 2001 Greg Parker. All Rights Reserved.
  * Copyright (c) 2002-2004 Torrey T. Lyons. All Rights Reserved.
  *
@@ -28,10 +26,9 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/cr/crScreen.m,v 1.5 2003/11/12 20:21:52 torrey Exp $ */
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
+
+#include <dix-config.h>
+
 #include "quartz/quartzCommon.h"
 #include "quartz/cr/cr.h"
 

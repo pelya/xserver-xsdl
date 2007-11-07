@@ -46,6 +46,8 @@
 #include <mach.h>
 #include <sys/ioctl.h>
 
+#define DEFAULT_MOUSE_DEV	"/dev/mouse"
+
 typedef unsigned short kev_type;		/* kd event type */
 typedef unsigned char Scancode;
 
@@ -166,6 +168,26 @@ OsMousePreInit(InputInfoPtr pInfo, const char *protocol, int flags)
     return TRUE;
 }
 
+static const char *
+FindDevice(InputInfoPtr pInfo, const char *protocol, int flags)
+{
+    const char path[] = DEFAULT_MOUSE_DEV;
+    int fd;
+
+    SYSCALL (fd = open(path, O_RDWR | O_NONBLOCK | O_EXCL));
+
+    if (fd == -1)
+	return NULL;
+
+    close(fd);
+    pInfo->conf_idev->commonOptions =
+	xf86AddNewOption(pInfo->conf_idev->commonOptions, "Device", path);
+    xf86Msg(X_INFO, "%s: Setting Device option to \"%s\"\n", pInfo->name,
+	    path);
+
+    return path;
+}
+
 static int
 SupportedInterfaces(void)
 {
@@ -195,7 +217,6 @@ CheckProtocol(const char *protocol)
     return FALSE;
 }
 
-/* XXX Is this appropriate?  If not, this function should be removed. */
 static const char *
 DefaultProtocol(void)
 {
@@ -212,6 +233,7 @@ xf86OSMouseInit(int flags)
 	return NULL;
     p->SupportedInterfaces = SupportedInterfaces;
     p->BuiltinNames = BuiltinNames;
+    p->FindDevice = FindDevice;
     p->DefaultProtocol = DefaultProtocol;
     p->CheckProtocol = CheckProtocol;
     p->PreInit = OsMousePreInit;

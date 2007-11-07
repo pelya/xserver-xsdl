@@ -84,10 +84,6 @@ __xservername__ binary.
 Specifies the path to the fonts that should be used by the server started
 by xorgcfg.
 .TP 8
-.I -rgbpath
-Specifies the path to the rgb.txt file that should be used by the server
-started by xorgcfg, if any.
-.TP 8
 .I -textmode
 If xorgcfg was compiled with support for ncurses, this option makes xorgcfg
 enter a text mode interface.

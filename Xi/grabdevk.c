@@ -56,14 +56,11 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include "windowstr.h"	/* window structure  */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "exevents.h"
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
@@ -115,27 +112,19 @@ ProcXGrabDeviceKey(ClientPtr client)
     REQUEST(xGrabDeviceKeyReq);
     REQUEST_AT_LEAST_SIZE(xGrabDeviceKeyReq);
 
-    if (stuff->length != (sizeof(xGrabDeviceKeyReq) >> 2) + stuff->event_count) {
-	SendErrorToClient(client, IReqCode, X_GrabDeviceKey, 0, BadLength);
-	return Success;
-    }
+    if (stuff->length != (sizeof(xGrabDeviceKeyReq) >> 2) + stuff->event_count)
+	return BadLength;
 
     dev = LookupDeviceIntRec(stuff->grabbed_device);
-    if (dev == NULL) {
-	SendErrorToClient(client, IReqCode, X_GrabDeviceKey, 0, BadDevice);
-	return Success;
-    }
+    if (dev == NULL)
+	return BadDevice;
 
     if (stuff->modifier_device != UseXKeyboard) {
 	mdev = LookupDeviceIntRec(stuff->modifier_device);
-	if (mdev == NULL) {
-	    SendErrorToClient(client, IReqCode, X_GrabDeviceKey, 0, BadDevice);
-	    return Success;
-	}
-	if (mdev->key == NULL) {
-	    SendErrorToClient(client, IReqCode, X_GrabDeviceKey, 0, BadMatch);
-	    return Success;
-	}
+	if (mdev == NULL)
+	    return BadDevice;
+	if (mdev->key == NULL)
+	    return BadMatch;
     } else
 	mdev = PickKeyboard(client);
 
@@ -144,17 +133,12 @@ ProcXGrabDeviceKey(ClientPtr client)
     if ((ret = CreateMaskFromList(client, class,
 				  stuff->event_count, tmp, dev,
 				  X_GrabDeviceKey)) != Success)
-	return Success;
+	return ret;
 
     ret = GrabKey(client, dev, stuff->this_device_mode,
 		  stuff->other_devices_mode, stuff->modifiers, mdev,
 		  stuff->key, stuff->grabWindow, stuff->ownerEvents,
 		  tmp[stuff->grabbed_device].mask);
 
-    if (ret != Success) {
-	SendErrorToClient(client, IReqCode, X_GrabDeviceKey, 0, ret);
-	return Success;
-    }
-
-    return Success;
+    return ret;
 }

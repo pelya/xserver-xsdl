@@ -351,7 +351,7 @@ int dstx, dsty;
     numRects = REGION_NUM_RECTS(&rgnDst);
     if (numRects && width && height)
     {
-	if(!(pptSrc = (DDXPointPtr)ALLOCATE_LOCAL(numRects *
+	if(!(pptSrc = (DDXPointPtr)xalloc(numRects *
 						  sizeof(DDXPointRec))))
 	{
 	    REGION_UNINIT(pGC->pScreen, &rgnDst);
@@ -370,7 +370,7 @@ int dstx, dsty;
 	if (pGC->planemask & 1)
 	    (*localDoBitBlt) (pSrcDrawable, pDstDrawable, pGC->alu, &rgnDst, pptSrc);
 
-	DEALLOCATE_LOCAL(pptSrc);
+	xfree(pptSrc);
     }
 
     prgnExposed = NULL;

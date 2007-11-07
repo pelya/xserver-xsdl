@@ -71,8 +71,6 @@ in this Software without prior written authorization from The Open Group.
 #undef cfbDoBitbltGeneral
 #undef cfbDoBitbltOr
 #undef cfbDoBitbltXor
-#undef cfbFillBoxSolid
-#undef cfbFillBoxTile32
 #undef cfbFillBoxTile32sCopy
 #undef cfbFillBoxTile32sGeneral
 #undef cfbFillBoxTileOdd
@@ -108,7 +106,6 @@ in this Software without prior written authorization from The Open Group.
 #undef cfbNonTEOps
 #undef cfbNonTEOps1Rect
 #undef cfbPadPixmap
-#undef cfbPaintWindow
 #undef cfbPolyFillArcSolidCopy
 #undef cfbPolyFillArcSolidGeneral
 #undef cfbPolyFillRect
@@ -250,8 +247,6 @@ cfb can not hack PSZ yet
 #define cfbDoBitbltOr CFBNAME(DoBitbltOr)
 #define cfbDoBitbltXor CFBNAME(DoBitbltXor)
 #define cfbExpandDirectColors CFBNAME(cfbExpandDirectColors)
-#define cfbFillBoxSolid CFBNAME(FillBoxSolid)
-#define cfbFillBoxTile32 CFBNAME(FillBoxTile32)
 #define cfbFillBoxTile32sCopy CFBNAME(FillBoxTile32sCopy)
 #define cfbFillBoxTile32sGeneral CFBNAME(FillBoxTile32sGeneral)
 #define cfbFillBoxTileOdd CFBNAME(FillBoxTileOdd)
@@ -288,7 +283,6 @@ cfb can not hack PSZ yet
 #define cfbNonTEOps CFBNAME(NonTEOps)
 #define cfbNonTEOps1Rect CFBNAME(NonTEOps1Rect)
 #define cfbPadPixmap CFBNAME(PadPixmap)
-#define cfbPaintWindow CFBNAME(PaintWindow)
 #define cfbPolyFillArcSolidCopy CFBNAME(PolyFillArcSolidCopy)
 #define cfbPolyFillArcSolidGeneral CFBNAME(PolyFillArcSolidGeneral)
 #define cfbPolyFillRect CFBNAME(PolyFillRect)

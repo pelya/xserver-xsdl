@@ -13,19 +13,19 @@ MFB_SUBDIR = xf1bpp xf4bpp
 endif
 
 if CFB
-CFB_SUBDIR = xf8_16bpp xf8_32bpp
+CFB_SUBDIR = xf8_32bpp
 endif
 
 DOC_SUBDIR = doc
 
 SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support parser rac \
 	  ramdac shadowfb vbe vgahw xaa $(MFB_SUBDIR) $(CFB_SUBDIR) \
-	  loader scanpci dixmods exa modes \
+	  xf8_16bpp loader dixmods exa modes \
 	  $(DRI_SUBDIR) $(XF86UTILS_SUBDIR) $(DOC_SUBDIR)
 
 DIST_SUBDIRS = common ddc dummylib i2c x86emu int10 fbdevhw os-support \
                parser rac ramdac shadowfb vbe vgahw xaa xf1bpp xf4bpp \
-               xf8_16bpp xf8_32bpp loader scanpci dixmods dri exa modes \
+               xf8_16bpp xf8_32bpp loader dixmods dri exa modes \
 	       utils doc
 
 bin_PROGRAMS = Xorg
@@ -48,7 +48,7 @@ osandcommon.c xorg.c:
 DISTCLEANFILES = osandcommon.c xorg.c
 
 XORG_LIBS = \
-            @XORG_CORE_LIBS@ \
+            $(XSERVER_LIBS) \
             common/libinit.a \
             loader/libloader.a \
             libosandcommon.la \
@@ -59,14 +59,14 @@ XORG_LIBS = \
 	    ramdac/libramdac.a \
 	    ddc/libddc.a \
 	    i2c/libi2c.a \
-            @XORG_LIBS@
+	    dixmods/libxorgxkb.la \
+	    $(top_builddir)/mi/libmi.la \
+	    $(top_builddir)/os/libos.la \
+	    @XORG_LIBS@ \
+	    dixmods/libxorgxkb.la
 
-Xorg_DEPENDENCIES = \
-	$(XORG_LIBS)
-
-Xorg_LDADD = $(XORG_LIBS) \
-             @XSERVER_LIBS@ \
-	     dixmods/libxorgxkb.la
+Xorg_DEPENDENCIES = $(XORG_LIBS)
+Xorg_LDADD = $(XORG_LIBS) $(XORG_SYS_LIBS) $(XSERVER_SYS_LIBS)
 
 Xorg_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
@@ -100,7 +100,6 @@ optionsdir = $(libdir)/X11
 dist_options_DATA = Options
 
 CPP_FILES_FLAGS = \
-	-DRGBPATH=\"$(RGB_DB)\" \
 	-DLOCALFONTPATH="\"$(BASE_FONT_PATH)/local\"" \
 	-DMISCFONTPATH="\"$(BASE_FONT_PATH)/misc\"" \
 	-DT1FONTPATH="\"$(BASE_FONT_PATH)/Type1\"" \

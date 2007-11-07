@@ -129,22 +129,6 @@ void
 DarwinHandleGUI(int argc, char *argv[])
 {
 }
-
-void GlxExtensionInit();
-void GlxWrapInitVisuals(void *procPtr);
-
-void
-DarwinGlxExtensionInit()
-{
-    GlxExtensionInit();
-}
-
-void
-DarwinGlxWrapInitVisuals(
-    void *procPtr)
-{
-    GlxWrapInitVisuals(procPtr);
-}
 #endif
 
 void OsVendorInit()

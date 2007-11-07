@@ -622,7 +622,7 @@ xf86SbusCmapLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices,
     int i, index;
     sbusCmapPtr cmap;
     struct fbcmap fbcmap;
-    unsigned char *data = ALLOCATE_LOCAL(numColors*3);
+    unsigned char *data = xalloc(numColors*3);
                              
     cmap = SBUSCMAPPTR(pScrn->pScreen);
     if (!cmap) return;
@@ -643,7 +643,7 @@ xf86SbusCmapLoadPalette(ScrnInfoPtr pScrn, int numColors, int *indices,
 	fbcmap.blue[fbcmap.count++] = colors[index].blue;
     }
     ioctl (cmap->psdp->fd, FBIOPUTCMAP, &fbcmap);
-    DEALLOCATE_LOCAL(data);
+    xfree(data);
 }
 
 static Bool

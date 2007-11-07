@@ -63,7 +63,7 @@ ProcXResQueryClients (ClientPtr client)
 
     REQUEST_SIZE_MATCH(xXResQueryClientsReq);
 
-    current_clients = ALLOCATE_LOCAL((currentMaxClients - 1) * sizeof(int));
+    current_clients = xalloc((currentMaxClients - 1) * sizeof(int));
 
     num_clients = 0;
     for(i = 1; i < currentMaxClients; i++) {
@@ -101,7 +101,7 @@ ProcXResQueryClients (ClientPtr client)
         }
     }
 
-    DEALLOCATE_LOCAL(current_clients);
+    xfree(current_clients);
 
     return (client->noClientException);
 }
@@ -134,7 +134,7 @@ ProcXResQueryClientResources (ClientPtr client)
         return BadValue;
     }
 
-    counts = ALLOCATE_LOCAL((lastResourceType + 1) * sizeof(int));
+    counts = xalloc((lastResourceType + 1) * sizeof(int));
 
     memset(counts, 0, (lastResourceType + 1) * sizeof(int));
 
@@ -183,7 +183,7 @@ ProcXResQueryClientResources (ClientPtr client)
         }
     }
 
-    DEALLOCATE_LOCAL(counts);
+    xfree(counts);
     
     return (client->noClientException);
 }

@@ -74,11 +74,12 @@ add_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
     int ret, err;
     DeviceIntPtr dev = NULL;
 
+    dbus_message_iter_init_append(reply, &reply_iter);
+
     if (!dbus_message_iter_init(message, &iter)) {
         ErrorF("[config/dbus] couldn't initialise iterator\n");
-        return BadAlloc;
+        MALFORMED_MESSAGE();
     }
-    dbus_message_iter_init_append(reply, &reply_iter);
 
     options = xcalloc(sizeof(*options), 1);
     if (!options) {
@@ -138,7 +139,7 @@ add_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
             MALFORMED_MESSAGE();
         options->value = xstrdup(tmp);
         if (!options->value) {
-            ErrorF("[config] couldn't duplicate option!\n");
+            ErrorF("[config/dbus] couldn't duplicate option!\n");
             ret = BadAlloc;
             goto unwind;
         }
@@ -200,11 +201,12 @@ remove_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
     DeviceIntPtr dev;
     DBusMessageIter iter, reply_iter;
 
-    if (!dbus_message_iter_init(message, &iter)) {
-        ErrorF("[config] failed to init iterator\n");
-        return BadAlloc;
-    }
     dbus_message_iter_init_append(reply, &reply_iter);
+
+    if (!dbus_message_iter_init(message, &iter)) {
+        ErrorF("[config/dbus] failed to init iterator\n");
+        MALFORMED_MESSAGE();
+    }
 
     if (!dbus_message_get_args(message, error, DBUS_TYPE_UINT32,
                                &deviceid, DBUS_TYPE_INVALID)) {
@@ -213,12 +215,12 @@ remove_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
 
     dev = LookupDeviceIntRec(deviceid);
     if (!dev) {
-        DebugF("[config] bogus device id %d given\n", deviceid);
+        DebugF("[config/dbus] bogus device id %d given\n", deviceid);
         ret = BadMatch;
         goto unwind;
     }
 
-    DebugF("[config] removing device %s (id %d)\n", dev->name, deviceid);
+    DebugF("[config/dbus] removing device %s (id %d)\n", dev->name, deviceid);
 
     /* Call PIE here so we don't try to dereference a device that's
      * already been removed. */
@@ -353,8 +355,8 @@ connect_hook(DBusConnection *connection, void *data)
 
     dbus_error_init(&error);
 
-    if (!dbus_bus_request_name(info->connection, info->busname,
-                               0, &error)) {
+    dbus_bus_request_name(info->connection, info->busname, 0, &error);
+    if (dbus_error_is_set(&error)) {
         ErrorF("[config/dbus] couldn't take over org.x.config: %s (%s)\n",
                error.name, error.message);
         goto err_start;

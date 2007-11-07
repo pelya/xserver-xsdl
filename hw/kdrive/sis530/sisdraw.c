@@ -1234,12 +1234,12 @@ sisFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
 	return;
     }
     nTmp = n * miFindMaxBand(fbGetCompositeClip(pGC));
-    pwidthFree = (int *)ALLOCATE_LOCAL(nTmp * sizeof(int));
-    pptFree = (DDXPointRec *)ALLOCATE_LOCAL(nTmp * sizeof(DDXPointRec));
+    pwidthFree = (int *)xalloc(nTmp * sizeof(int));
+    pptFree = (DDXPointRec *)xalloc(nTmp * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
     {
-	if (pptFree) DEALLOCATE_LOCAL(pptFree);
-	if (pwidthFree) DEALLOCATE_LOCAL(pwidthFree);
+	if (pptFree) xfree(pptFree);
+	if (pwidthFree) xfree(pwidthFree);
 	return;
     }
     n = miClipSpans(fbGetCompositeClip(pGC),
@@ -1273,8 +1273,8 @@ sisFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
 	}
     }
     KdMarkSync (pDrawable->pScreen);
-    DEALLOCATE_LOCAL(pptFree);
-    DEALLOCATE_LOCAL(pwidthFree);
+    xfree(pptFree);
+    xfree(pwidthFree);
 }
 
 #define NUM_STACK_RECTS	1024
@@ -1323,7 +1323,7 @@ sisPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
     numRects = REGION_NUM_RECTS(prgnClip) * nrectFill;
     if (numRects > NUM_STACK_RECTS)
     {
-	pboxClippedBase = (BoxPtr)ALLOCATE_LOCAL(numRects * sizeof(BoxRec));
+	pboxClippedBase = (BoxPtr)xalloc(numRects * sizeof(BoxRec));
 	if (!pboxClippedBase)
 	    return;
     }
@@ -1448,7 +1448,7 @@ sisPolyFillRect (DrawablePtr pDrawable, GCPtr pGC,
 	}
     }
     if (pboxClippedBase != stackRects)
-    	DEALLOCATE_LOCAL(pboxClippedBase);
+    	xfree(pboxClippedBase);
 }
 
 static const GCOps sisOps = {
@@ -1537,75 +1537,6 @@ sisCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     REGION_UNINIT(pWin->drawable.pScreen, &rgnDst);
 }
 
-void
-sisPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    KdScreenPriv(pWin->drawable.pScreen);
-    PixmapPtr	pTile;
-
-    if (!REGION_NUM_RECTS(pRegion)) 
-	return;
-    switch (what) {
-    case PW_BACKGROUND:
-	switch (pWin->backgroundState) {
-	case None:
-	    return;
-	case ParentRelative:
-	    do {
-		pWin = pWin->parent;
-	    } while (pWin->backgroundState == ParentRelative);
-	    (*pWin->drawable.pScreen->PaintWindowBackground)(pWin, pRegion,
-							     what);
-	    return;
-	case BackgroundPixmap:
-	    pTile = pWin->background.pixmap;
-	    if (sisPatternDimOk (pTile->drawable.width) &&
-		sisPatternDimOk (pTile->drawable.height))
-	    {
-		sisFillBoxTiled ((DrawablePtr)pWin,
-				 (int)REGION_NUM_RECTS(pRegion),
-				 REGION_RECTS(pRegion),
-				 pTile, 
-				 pWin->drawable.x, pWin->drawable.y, GXcopy);
-		return;
-	    }
-	    break;
-	case BackgroundPixel:
-	    sisFillBoxSolid((DrawablePtr)pWin,
-			     (int)REGION_NUM_RECTS(pRegion),
-			     REGION_RECTS(pRegion),
-			     pWin->background.pixel, GXcopy);
-	    return;
-    	}
-    	break;
-    case PW_BORDER:
-	if (pWin->borderIsPixel)
-	{
-	    sisFillBoxSolid((DrawablePtr)pWin,
-			     (int)REGION_NUM_RECTS(pRegion),
-			     REGION_RECTS(pRegion),
-			     pWin->border.pixel, GXcopy);
-	    return;
-	}
-	else
-	{
-	    pTile = pWin->border.pixmap;
-	    if (sisPatternDimOk (pTile->drawable.width) &&
-		sisPatternDimOk (pTile->drawable.height))
-	    {
-		sisFillBoxTiled ((DrawablePtr)pWin,
-				 (int)REGION_NUM_RECTS(pRegion),
-				 REGION_RECTS(pRegion),
-				 pTile, 
-				 pWin->drawable.x, pWin->drawable.y, GXcopy);
-		return;
-	    }
-	}
-	break;
-    }
-    KdCheckPaintWindow (pWin, pRegion, what);
-}
-
 Bool
 sisDrawInit (ScreenPtr pScreen)
 {
@@ -1621,9 +1552,7 @@ sisDrawInit (ScreenPtr pScreen)
      */
     pScreen->CreateGC = sisCreateGC;
     pScreen->CopyWindow = sisCopyWindow;
-    pScreen->PaintWindowBackground = sisPaintWindow;
-    pScreen->PaintWindowBorder = sisPaintWindow;
-    
+
     return TRUE;
 }
 

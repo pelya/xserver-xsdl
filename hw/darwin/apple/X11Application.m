@@ -41,13 +41,11 @@
 # include "micmap.h"
 #undef BOOL
 
-#include "xf86Version.h"
-
 #include <mach/mach.h>
 #include <unistd.h>
 #include <pthread.h>
 
-#define DEFAULTS_FILE "/etc/X11/xserver/Xquartz.plist"
+#define DEFAULTS_FILE "/usr/X11/lib/X11/xserver/Xquartz.plist"
 
 int X11EnableKeyEquivalents = TRUE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
@@ -275,9 +273,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 	  _appFlags._active = YES;
 	  
 	  [self activateX:YES];
-#ifdef DARWIN_DDX_MISSING
-	  if ([e data2] & 0x10) QuartzMessageServerThread (kXDarwinBringAllToFront, 0);
-#endif
+	  if ([e data2] & 0x10) X11ApplicationSetFrontProcess();
 	}
 	break;
 			
@@ -315,6 +311,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
     [NSApp activateIgnoringOtherApps:YES];
 	
     if ([self modalWindow] == nil) [self activateX:YES];
+    QuartzMessageServerThread(kXDarwinBringAllToFront, 0);
 }
 
 - (void) set_can_quit:(NSNumber *)state {

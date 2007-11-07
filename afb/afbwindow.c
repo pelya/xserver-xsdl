@@ -62,39 +62,16 @@ SOFTWARE.
 #include "maskbits.h"
 
 Bool
-afbCreateWindow(pWin)
-	register WindowPtr pWin;
+afbCreateWindow(WindowPtr pWin)
 {
-	register afbPrivWin *pPrivWin;
-
-	pPrivWin = (afbPrivWin *)(pWin->devPrivates[afbWindowPrivateIndex].ptr);
-	pPrivWin->pRotatedBorder = NullPixmap;
-	pPrivWin->pRotatedBackground = NullPixmap;
-	pPrivWin->fastBackground = FALSE;
-	pPrivWin->fastBorder = FALSE;
-#ifdef PIXMAP_PER_WINDOW
-	pWin->devPrivates[frameWindowPrivateIndex].ptr =
-			pWin->pDrawable.pScreen->devPrivates[afbScreenPrivateIndex].ptr;
-#endif
-
 	return (TRUE);
 }
 
 /* This always returns true, because Xfree can't fail.  It might be possible
  * on some devices for Destroy to fail */
 Bool
-afbDestroyWindow(pWin)
-	WindowPtr pWin;
+afbDestroyWindow(WindowPtr pWin)
 {
-	register afbPrivWin *pPrivWin;
-
-	pPrivWin = (afbPrivWin *)(pWin->devPrivates[afbWindowPrivateIndex].ptr);
-
-	if (pPrivWin->pRotatedBorder)
-		(*pWin->drawable.pScreen->DestroyPixmap)(pPrivWin->pRotatedBorder);
-	if (pPrivWin->pRotatedBackground)
-		(*pWin->drawable.pScreen->DestroyPixmap)(pPrivWin->pRotatedBackground);
-
 	return (TRUE);
 }
 
@@ -106,46 +83,10 @@ afbMapWindow(pWindow)
 	return (TRUE);
 }
 
-/* (x, y) is the upper left corner of the window on the screen
-   do we really need to pass this?  (is it a;ready in pWin->absCorner?)
-   we only do the rotation for pixmaps that are 32 bits wide (padded
-or otherwise.)
-   afbChangeWindowAttributes() has already put a copy of the pixmap
-in pPrivWin->pRotated*
-*/
-
 /*ARGSUSED*/
 Bool
-afbPositionWindow(pWin, x, y)
-	WindowPtr pWin;
-	int x, y;
+afbPositionWindow(WindowPtr pWin, int x, int y)
 {
-	register afbPrivWin *pPrivWin;
-	int		reset = 0;
-
-	pPrivWin = (afbPrivWin *)(pWin->devPrivates[afbWindowPrivateIndex].ptr);
-	if (pWin->backgroundState == BackgroundPixmap && pPrivWin->fastBackground) {
-		afbXRotatePixmap(pPrivWin->pRotatedBackground,
-								pWin->drawable.x - pPrivWin->oldRotate.x);
-		afbYRotatePixmap(pPrivWin->pRotatedBackground,
-								pWin->drawable.y - pPrivWin->oldRotate.y);
-		reset = 1;
-	}
-
-	if (!pWin->borderIsPixel && pPrivWin->fastBorder) {
-		while (pWin->backgroundState == ParentRelative)
-			pWin = pWin->parent;
-		afbXRotatePixmap(pPrivWin->pRotatedBorder,
-								pWin->drawable.x - pPrivWin->oldRotate.x);
-		afbYRotatePixmap(pPrivWin->pRotatedBorder,
-								pWin->drawable.y - pPrivWin->oldRotate.y);
-		reset = 1;
-	}
-	if (reset) {
-		pPrivWin->oldRotate.x = pWin->drawable.x;
-		pPrivWin->oldRotate.y = pWin->drawable.y;
-	}
-
 	/* This is the "wrong" fix to the right problem, but it doesn't really
 	 * cost very much.  When the window is moved, we need to invalidate any
 	 * RotatedPixmap that exists in any GC currently validated against this
@@ -200,7 +141,7 @@ afbCopyWindow(pWin, ptOldOrg, prgnSrc)
 
 	pbox = REGION_RECTS(prgnDst);
 	nbox = REGION_NUM_RECTS(prgnDst);
-	if(!(pptSrc = (DDXPointPtr )ALLOCATE_LOCAL(nbox * sizeof(DDXPointRec))))
+	if(!(pptSrc = (DDXPointPtr )xalloc(nbox * sizeof(DDXPointRec))))
 		return;
 	ppt = pptSrc;
 
@@ -211,108 +152,12 @@ afbCopyWindow(pWin, ptOldOrg, prgnSrc)
 
 	afbDoBitblt((DrawablePtr)pwinRoot, (DrawablePtr)pwinRoot, GXcopy, prgnDst,
 					 pptSrc, ~0);
-	DEALLOCATE_LOCAL(pptSrc);
+	xfree(pptSrc);
 	REGION_DESTROY(pWin->drawable.pScreen, prgnDst);
 }
 
-
-
-/* swap in correct PaintWindow* routine.  If we can use a fast output
-routine (i.e. the pixmap is paddable to 32 bits), also pre-rotate a copy
-of it in devPrivate.
-*/
 Bool
-afbChangeWindowAttributes(pWin, mask)
-	register WindowPtr pWin;
-	register unsigned long mask;
+afbChangeWindowAttributes(WindowPtr pWin, unsigned long mask)
 {
-	register unsigned long index;
-	register afbPrivWin *pPrivWin;
-	WindowPtr		pBgWin;
-
-	pPrivWin = (afbPrivWin *)(pWin->devPrivates[afbWindowPrivateIndex].ptr);
-	/*
-	 * When background state changes from ParentRelative and
-	 * we had previously rotated the fast border pixmap to match
-	 * the parent relative origin, rerotate to match window
-	 */
-	if (mask & (CWBackPixmap | CWBackPixel) &&
-		 pWin->backgroundState != ParentRelative && pPrivWin->fastBorder &&
-		 (pPrivWin->oldRotate.x != pWin->drawable.x ||
-		  pPrivWin->oldRotate.y != pWin->drawable.y)) {
-		afbXRotatePixmap(pPrivWin->pRotatedBorder,
-								pWin->drawable.x - pPrivWin->oldRotate.x);
-		afbYRotatePixmap(pPrivWin->pRotatedBorder,
-								pWin->drawable.y - pPrivWin->oldRotate.y);
-		pPrivWin->oldRotate.x = pWin->drawable.x;
-		pPrivWin->oldRotate.y = pWin->drawable.y;
-	}
-	while(mask) {
-		index = lowbit (mask);
-		mask &= ~index;
-		switch(index) {
-			case CWBackPixmap:
-				if (pWin->backgroundState == None)
-					pPrivWin->fastBackground = FALSE;
-				else if (pWin->backgroundState == ParentRelative) {
-					pPrivWin->fastBackground = FALSE;
-					/* Rotate border to match parent origin */
-					if (pPrivWin->pRotatedBorder) {
-						for (pBgWin = pWin->parent;
-							  pBgWin->backgroundState == ParentRelative;
-							  pBgWin = pBgWin->parent);
-						afbXRotatePixmap(pPrivWin->pRotatedBorder,
-												pBgWin->drawable.x - pPrivWin->oldRotate.x);
-						afbYRotatePixmap(pPrivWin->pRotatedBorder,
-												pBgWin->drawable.y - pPrivWin->oldRotate.y);
-						pPrivWin->oldRotate.x = pBgWin->drawable.x;
-						pPrivWin->oldRotate.y = pBgWin->drawable.y;
-					}
-				} else if ((pWin->background.pixmap->drawable.width <= PPW) &&
-							  !(pWin->background.pixmap->drawable.width &
-								 (pWin->background.pixmap->drawable.width - 1))) {
-					afbCopyRotatePixmap(pWin->background.pixmap,
-												&pPrivWin->pRotatedBackground,
-												pWin->drawable.x, pWin->drawable.y);
-					if (pPrivWin->pRotatedBackground) {
-						pPrivWin->fastBackground = TRUE;
-						pPrivWin->oldRotate.x = pWin->drawable.x;
-						pPrivWin->oldRotate.y = pWin->drawable.y;
-					} else
-						pPrivWin->fastBackground = FALSE;
-				} else
-					pPrivWin->fastBackground = FALSE;
-					break;
-
-			case CWBackPixel:
-				pPrivWin->fastBackground = FALSE;
-				break;
-
-			case CWBorderPixmap:
-				if ((pWin->border.pixmap->drawable.width <= PPW) &&
-					 !(pWin->border.pixmap->drawable.width &
-						(pWin->border.pixmap->drawable.width - 1))) {
-					for (pBgWin = pWin;
-						  pBgWin->backgroundState == ParentRelative;
-						  pBgWin = pBgWin->parent);
-					afbCopyRotatePixmap(pWin->border.pixmap,
-												&pPrivWin->pRotatedBorder,
-												pBgWin->drawable.x, pBgWin->drawable.y);
-					if (pPrivWin->pRotatedBorder) {
-						pPrivWin->fastBorder = TRUE;
-						pPrivWin->oldRotate.x = pBgWin->drawable.x;
-						pPrivWin->oldRotate.y = pBgWin->drawable.y;
-					} else
-						pPrivWin->fastBorder = FALSE;
-				} else
-					pPrivWin->fastBorder = FALSE;
-				break;
-			case CWBorderPixel:
-				pPrivWin->fastBorder = FALSE;
-				break;
-		}
-	}
-	/* Again, we have no failure modes indicated by any of the routines
-	 * we've called, so we have to assume it worked */
 	return (TRUE);
 }

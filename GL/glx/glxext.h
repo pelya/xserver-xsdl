@@ -71,24 +71,6 @@ extern void __glXClearErrorOccured(void);
 extern GLboolean __glXErrorOccured(void);
 extern void __glXResetLargeCommandStatus(__GLXclientState*);
 
-extern int DoMakeCurrent( __GLXclientState *cl, GLXDrawable drawId,
-    GLXDrawable readId, GLXContextID contextId, GLXContextTag tag );
-extern int DoGetVisualConfigs(__GLXclientState *cl, unsigned screen,
-    GLboolean do_swap);
-extern int DoGetFBConfigs(__GLXclientState *cl, unsigned screen,
-    GLboolean do_swap);
-extern int DoCreateContext(__GLXclientState *cl, GLXContextID gcId,
-    GLXContextID shareList, VisualID visual, GLuint screen, GLboolean isDirect);
-extern int DoCreateGLXPixmap(__GLXclientState *cl, XID fbconfigId,
-    GLuint screenNum, XID pixmapId, XID glxpixmapId, CARD32 *attribs,
-    CARD32 numAttribs);
-extern int DoDestroyPixmap(__GLXclientState *cl, XID glxpixmapId);
-
-extern int DoQueryContext(__GLXclientState *cl, GLXContextID gcId);
-
-extern int DoRender(__GLXclientState *cl, GLbyte *pc, int do_swap);
-extern int DoRenderLarge(__GLXclientState *cl, GLbyte *pc, int do_swap);
-
 extern void GlxExtensionInit(void);
 
 extern const char GLServerVersion[];
@@ -105,26 +87,6 @@ extern int GlxInitVisuals(
     int               bitsPerRGB,
     int               preferredVis
 );
-
-typedef struct {
-    void * (* queryHyperpipeNetworkFunc)(int, int *, int *);
-    void * (* queryHyperpipeConfigFunc)(int, int, int *, int *);
-    int    (* destroyHyperpipeConfigFunc)(int, int);
-    void * (* hyperpipeConfigFunc)(int, int, int *, int *, void *);
-} __GLXHyperpipeExtensionFuncs;
-
-extern void __glXHyperpipeInit(int screen, __GLXHyperpipeExtensionFuncs *funcs);
-
-extern __GLXHyperpipeExtensionFuncs *__glXHyperpipeFuncs;
-
-typedef struct {
-    int    (* bindSwapBarrierFunc)(int, XID, int);
-    int    (* queryMaxSwapBarriersFunc)(int);
-} __GLXSwapBarrierExtensionFuncs;
-
-extern void __glXSwapBarrierInit(int screen, __GLXSwapBarrierExtensionFuncs *funcs);
-
-extern __GLXSwapBarrierExtensionFuncs *__glXSwapBarrierFuncs;
 
 #endif /* _glxext_h_ */
 

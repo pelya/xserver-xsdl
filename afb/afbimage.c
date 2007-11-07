@@ -72,7 +72,8 @@ afbPutImage(pDraw, pGC, depth, x, y, width, height, leftPad, format, pImage)
 		int depthDst;
 
 		/* Create a tmp pixmap */
-		pPixmap = (pScreen->CreatePixmap)(pScreen, width, height, depth);
+		pPixmap = (pScreen->CreatePixmap)(pScreen, width, height, depth,
+						  CREATE_PIXMAP_USAGE_SCRATCH);
 		if (!pPixmap)
 			return;
 

@@ -553,12 +553,12 @@ igsFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
 	return;
     }
     nTmp = n * miFindMaxBand(fbGetCompositeClip(pGC));
-    pwidthFree = (int *)ALLOCATE_LOCAL(nTmp * sizeof(int));
-    pptFree = (DDXPointRec *)ALLOCATE_LOCAL(nTmp * sizeof(DDXPointRec));
+    pwidthFree = (int *)xalloc(nTmp * sizeof(int));
+    pptFree = (DDXPointRec *)xalloc(nTmp * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
     {
-	if (pptFree) DEALLOCATE_LOCAL(pptFree);
-	if (pwidthFree) DEALLOCATE_LOCAL(pwidthFree);
+	if (pptFree) xfree(pptFree);
+	if (pwidthFree) xfree(pwidthFree);
 	return;
     }
     n = miClipSpans(fbGetCompositeClip(pGC),
@@ -607,8 +607,8 @@ igsFillSpans (DrawablePtr pDrawable, GCPtr pGC, int n,
 	    _igsPatRect(cop,x,y,width,1,cmd);
 	}
     }
-    DEALLOCATE_LOCAL(pptFree);
-    DEALLOCATE_LOCAL(pwidthFree);
+    xfree(pptFree);
+    xfree(pwidthFree);
     KdMarkSync (pDrawable->pScreen);
 }
 
@@ -1367,74 +1367,6 @@ igsCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
     REGION_UNINIT(pWin->drawable.pScreen, &rgnDst);
 }
 
-void
-igsPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    KdScreenPriv(pWin->drawable.pScreen);
-    PixmapPtr	pTile;
-
-    if (!REGION_NUM_RECTS(pRegion)) 
-	return;
-    switch (what) {
-    case PW_BACKGROUND:
-	switch (pWin->backgroundState) {
-	case None:
-	    return;
-	case ParentRelative:
-	    do {
-		pWin = pWin->parent;
-	    } while (pWin->backgroundState == ParentRelative);
-	    (*pWin->drawable.pScreen->PaintWindowBackground)(pWin, pRegion,
-							     what);
-	    return;
-	case BackgroundPixmap:
-	    pTile = pWin->background.pixmap;
-	    if (igsPatternDimOk (pTile->drawable.width) &&
-		igsPatternDimOk (pTile->drawable.height))
-	    {
-		igsFillBoxTiled ((DrawablePtr)pWin,
-				 (int)REGION_NUM_RECTS(pRegion),
-				 REGION_RECTS(pRegion),
-				 pTile, 
-				 pWin->drawable.x, pWin->drawable.y, GXcopy);
-		return;
-	    }
-	    break;
-	case BackgroundPixel:
-	    igsFillBoxSolid((DrawablePtr)pWin,
-			     (int)REGION_NUM_RECTS(pRegion),
-			     REGION_RECTS(pRegion),
-			     pWin->background.pixel, GXcopy, ~0);
-	    return;
-    	}
-    	break;
-    case PW_BORDER:
-	if (pWin->borderIsPixel)
-	{
-	    igsFillBoxSolid((DrawablePtr)pWin,
-			     (int)REGION_NUM_RECTS(pRegion),
-			     REGION_RECTS(pRegion),
-			     pWin->border.pixel, GXcopy, ~0);
-	    return;
-	}
-	else
-	{
-	    pTile = pWin->border.pixmap;
-	    if (igsPatternDimOk (pTile->drawable.width) &&
-		igsPatternDimOk (pTile->drawable.height))
-	    {
-		igsFillBoxTiled ((DrawablePtr)pWin,
-				 (int)REGION_NUM_RECTS(pRegion),
-				 REGION_RECTS(pRegion),
-				 pTile, 
-				 pWin->drawable.x, pWin->drawable.y, GXcopy);
-		return;
-	    }
-	}
-	break;
-    }
-    KdCheckPaintWindow (pWin, pRegion, what);
-}
 
 Bool
 igsDrawInit (ScreenPtr pScreen)
@@ -1453,9 +1385,7 @@ igsDrawInit (ScreenPtr pScreen)
      */
     pScreen->CreateGC = igsCreateGC;
     pScreen->CopyWindow = igsCopyWindow;
-    pScreen->PaintWindowBackground = igsPaintWindow;
-    pScreen->PaintWindowBorder = igsPaintWindow;
-    
+
     /*
      * Initialize patterns
      */

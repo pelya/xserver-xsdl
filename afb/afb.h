@@ -182,23 +182,7 @@ extern void afbBresD(
 	unsigned char * /*rrops*/,
 	unsigned char * /*bgrrops*/
 );
-/* afbbstore.c */
 
-extern void afbSaveAreas(
-	PixmapPtr /*pPixmap*/,
-	RegionPtr /*prgnSave*/,
-	int /*xorg*/,
-	int /*yorg*/,
-	WindowPtr /*pWin*/
-);
-
-extern void afbRestoreAreas(
-	PixmapPtr /*pPixmap*/,
-	RegionPtr /*prgnRestore*/,
-	int /*xorg*/,
-	int /*yorg*/,
-	WindowPtr /*pWin*/
-);
 /* afbclip.c */
 
 extern RegionPtr afbPixmapToRegion(
@@ -499,7 +483,8 @@ extern PixmapPtr afbCreatePixmap(
 	ScreenPtr /*pScreen*/,
 	int /*width*/,
 	int /*height*/,
-	int /*depth*/
+	int /*depth*/,
+	unsigned /*usage_hint*/
 );
 
 extern Bool afbDestroyPixmap(
@@ -521,11 +506,6 @@ extern void afbCopyRotatePixmap(
 	PixmapPtr * /*ppdstPix*/,
 	int /*xrot*/,
 	int /*yrot*/
-);
-extern void afbPaintWindow(
-	WindowPtr /*pWin*/,
-	RegionPtr /*pRegion*/,
-	int /*what*/
 );
 /* afbpolypnt.c */
 
@@ -759,16 +739,6 @@ extern int frameWindowPrivateIndex;		/* index into Window private array */
 
 #define afbGetGCPrivate(pGC) \
 	((afbPrivGC *)((pGC)->devPrivates[afbGCPrivateIndex].ptr))
-
-/* private field of window */
-typedef struct {
-	unsigned char fastBorder;	/* non-zero if border tile is 32 bits wide */
-	unsigned char fastBackground;
-	unsigned short unused; /* pad for alignment with Sun compiler */
-	DDXPointRec oldRotate;
-	PixmapPtr pRotatedBackground;
-	PixmapPtr pRotatedBorder;
-} afbPrivWin;
 
 /* Common macros for extracting drawing information */
 

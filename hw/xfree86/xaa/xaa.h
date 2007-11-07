@@ -1238,8 +1238,6 @@ typedef struct _XAAInfoRec {
 
    GetImageProcPtr GetImage;
    GetSpansProcPtr GetSpans;
-   PaintWindowBackgroundProcPtr PaintWindowBackground;
-   PaintWindowBorderProcPtr PaintWindowBorder;
    CopyWindowProcPtr CopyWindow;
    BackingStoreSaveAreasProcPtr SaveAreas;
    BackingStoreRestoreAreasProcPtr RestoreAreas;

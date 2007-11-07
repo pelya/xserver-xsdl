@@ -52,6 +52,7 @@
 #include "xf86_OSproc.h"
 
 #include "xf86RAC.h"
+#include "Pci.h"
 
 /* Entity data */
 EntityPtr *xf86Entities = NULL;	/* Bus slots claimed by drivers */
@@ -75,9 +76,6 @@ static resPtr AccReducers = NULL;
 /* resource lists */
 resPtr Acc = NULL;
 resPtr osRes = NULL;
-
-/* allocatable ranges */
-resPtr ResRange = NULL;
 
 /* predefined special resources */
 _X_EXPORT resRange resVgaExclusive[] = {_VGA_EXCLUSIVE, _END};
@@ -253,9 +251,7 @@ xf86IsEntityPrimary(int entityIndex)
 
     switch (pEnt->busType) {
     case BUS_PCI:
-	return (pEnt->pciBusId.bus == primaryBus.id.pci.bus &&
-		pEnt->pciBusId.device == primaryBus.id.pci.device &&
-		pEnt->pciBusId.func == primaryBus.id.pci.func);
+	return (pEnt->bus.id.pci == primaryBus.id.pci);
     case BUS_ISA:
 	return TRUE;
     case BUS_SBUS:
@@ -1361,14 +1357,11 @@ xf86AddRangesToList(resPtr list, resRange *pRange, int entityIndex)
 void
 xf86ResourceBrokerInit(void)
 {
+#if 0
     resPtr resPci;
+#endif
 
     osRes = NULL;
-
-    /* Get the addressable ranges */
-    ResRange = xf86BusAccWindowsFromOS();
-    xf86MsgVerb(X_INFO, 3, "Addressable bus resource ranges are\n");
-    xf86PrintResList(3, ResRange);
 
     /* Get the ranges used exclusively by the system */
     osRes = xf86AccResFromOS(osRes);
@@ -1376,8 +1369,12 @@ xf86ResourceBrokerInit(void)
     xf86PrintResList(3, osRes);
 
     /* Bus dep initialization */
+#if 0
     resPci = ResourceBrokerInitPci(&osRes);
     Acc = xf86JoinResLists(xf86DupResList(osRes), resPci);
+#else
+    Acc = xf86DupResList( osRes );
+#endif
     
     xf86MsgVerb(X_INFO, 3, "All system resource ranges:\n");
     xf86PrintResList(3, Acc);
@@ -1544,213 +1541,6 @@ RemoveOverlaps(resPtr target, resPtr list, Bool pow2Alignment, Bool useEstimated
 #endif
 
 /*
- * Resource request code
- */
-
-#define ALIGN(x,a) ((x) + a) &~(a)
-
-_X_EXPORT resRange 
-xf86GetBlock(unsigned long type, memType size,
-	 memType window_start, memType window_end,
-	 memType align_mask, resPtr avoid)
-{
-    memType min, max, tmp;
-    resRange r = {ResEnd,0,0};
-    resPtr res_range = ResRange;
-    
-    if (!size) return r;
-    if (window_end < window_start || (window_end - window_start) < (size - 1)) {
-	ErrorF("Requesting insufficient memory window!:"
-	       " start: 0x%lx end: 0x%lx size 0x%lx\n",
-	       window_start,window_end,size);
-	return r;
-    }
-    type = (type & ~(ResExtMask | ResBios | ResEstimated)) | ResBlock;
-    
-    while (res_range) {
-	if ((type & ResTypeMask) == (res_range->res_type & ResTypeMask)) {
-	    if (res_range->block_begin > window_start)
-		min = res_range->block_begin;
-	    else
-		min = window_start;
-	    if (res_range->block_end < window_end)
-		max = res_range->block_end;
-	    else
-		max = window_end;
-	    min = ALIGN(min,align_mask);
-	    /* do not produce an overflow! */
-	    while (min < max && (max - min) >= (size - 1)) {
-		RANGE(r,min,min + size - 1,type);
-		tmp = ChkConflict(&r,Acc,SETUP);
-		if (!tmp) {
-		    tmp = ChkConflict(&r,avoid,SETUP);
-		    if (!tmp) {
-			return r;
-		    } 
-		}
-		min = ALIGN(tmp,align_mask);
-	    }
-	}
-	res_range = res_range->next;
-    }
-    RANGE(r,0,0,ResEnd);
-    return r;
-}
-
-#define mt_max ~(memType)0
-#define length sizeof(memType) * 8
-/*
- * make_base() -- assign the lowest bits to the bits set in mask.
- *                example: mask 011010 val 0000110 -> 011000 
- */
-static memType
-make_base(memType val, memType mask)
-{
-    int i,j = 0;
-    memType ret = 0
-	;
-    for (i = 0;i<length;i++) {
-	if ((1 << i) & mask) {
-	    ret |= (((val >> j) & 1) << i);
-	    j++;
-	}
-    }
-    return ret;
-}
-
-/*
- * make_base() -- assign the bits set in mask to the lowest bits.
- *                example: mask 011010 , val 010010 -> 000011
- */
-static memType
-unmake_base(memType val, memType mask)
-{
-    int i,j = 0;
-    memType ret = 0;
-    
-    for (i = 0;i<length;i++) {
-	if ((1 << i) & mask) {
-	    ret |= (((val >> i) & 1) << j);
-	    j++;
-	}
-    }
-    return ret;
-}
-
-static memType
-fix_counter(memType val, memType old_mask, memType mask)
-{
-    mask = old_mask & mask;
-    
-    val = make_base(val,old_mask);
-    return unmake_base(val,mask);
-}
-
-_X_EXPORT resRange
-xf86GetSparse(unsigned long type,  memType fixed_bits,
-	  memType decode_mask, memType address_mask, resPtr avoid)
-{
-    resRange r = {ResEnd,0,0};
-    memType new_mask;
-    memType mask1;
-    memType base;
-    memType counter = 0;
-    memType counter1;
-    memType max_counter = ~(memType)0;
-    memType max_counter1;
-    memType conflict = 0;
-    
-    /* for sanity */
-    type = (type & ~(ResExtMask | ResBios | ResEstimated)) | ResSparse;
-
-    /*
-     * a sparse address consists of 3 parts:
-     * fixed_bits:   F bits which hard decoded by the hardware
-     * decode_bits:  D bits which are used to decode address
-     *                 but which may be set by software
-     * address_bits: A bits which are used to address the
-     *                 sparse range.
-     * the decode_mask marks all decode bits while the address_mask
-     * masks out all address_bits:
-     *                F D A
-     * decode_mask:   0 1 0
-     * address_mask:  1 1 0
-     */
-    decode_mask &= address_mask;
-    new_mask = decode_mask;
-
-    /*
-     * We start by setting the decode_mask bits to different values
-     * when a conflict is found the address_mask of the conflicting
-     * resource is returned. We remove those bits from decode_mask
-     * that are also set in the returned address_mask as they always
-     * conflict with resources which use them as address masks.
-     * The resoulting mask is stored in new_mask.
-     * We continue until no conflict is found or until we have
-     * tried all possible settings of new_mask.
-     */
-    while (1) {
-	base = make_base(counter,new_mask) | fixed_bits;
-	RANGE(r,base,address_mask,type);
-	conflict = ChkConflict(&r,Acc,SETUP);
-	if (!conflict) {
-	    conflict = ChkConflict(&r,avoid,SETUP);
-	    if (!conflict) {
-		return r;
-	    }
-	}
-	counter = fix_counter(counter,new_mask,conflict);
-	max_counter = fix_counter(max_counter,new_mask,conflict);
-	new_mask &= conflict;
-	counter ++;
-	if (counter > max_counter) break;
-    }
-    if (!new_mask && (new_mask == decode_mask)) {
-	RANGE(r,0,0,ResEnd);
-	return r;
-    }
-    /*
-     * if we haven't been successful we also try to modify those
-     * bits in decode_mask that are not at the same time set in
-     * new mask. These bits overlap with address_bits of some
-     * resources. If a conflict with a resource of this kind is
-     * found (ie. returned_mask & mask1 != mask1) with
-     * mask1 = decode_mask & ~new_mask we cannot
-     * use our choice of bits in the new_mask part. We try
-     * another choice.
-     */
-    max_counter = fix_counter(mt_max,mt_max,new_mask);
-    mask1 = decode_mask & ~new_mask;
-    max_counter1 = fix_counter(mt_max,mt_max,mask1);
-    counter = 0;
-    
-    while (1) {
-	counter1 = 0;
-	while (1) {
-	    base = make_base(counter1,mask1);
-	    RANGE(r,base,address_mask,type);
-	    conflict = ChkConflict(&r,Acc,SETUP);
-	    if (!conflict) {
-		conflict = ChkConflict(&r,avoid,SETUP);
-		if (!conflict) {
-		    return r;
-		}
-	    }
-	    counter1 ++;
-	    if ((mask1 & conflict) != mask1 || counter1 > max_counter1)
-		break;
-	}
-	counter ++;
-	if (counter > max_counter) break;
-    }
-    RANGE(r,0,0,ResEnd);
-    return r;
-}
-
-#undef length
-#undef mt_max
-
-/*
  * Resource registrarion
  */
 
@@ -1765,7 +1555,7 @@ xf86GetResourcesImplicitly(int entityIndex)
     case BUS_SBUS:
 	return NULL;
     case BUS_PCI:
-	return GetImplicitPciResources(entityIndex);
+	return NULL;
     case BUS_last:
 	return NULL;
     }
@@ -1856,31 +1646,34 @@ xf86RegisterResources(int entityIndex, resList list, unsigned long access)
 }
 
 static void
-busTypeSpecific(EntityPtr pEnt, xf86State state, xf86AccessPtr *acc_mem,
+busTypeSpecific(EntityPtr pEnt, xf86AccessPtr *acc_mem,
 		xf86AccessPtr *acc_io, xf86AccessPtr *acc_mem_io)
 {
-    pciAccPtr *ppaccp;
-    
     switch (pEnt->bus.type) {
     case BUS_ISA:
     case BUS_SBUS:
-	    *acc_mem = *acc_io = *acc_mem_io = &AccessNULL;
-	    break;
+	*acc_mem = *acc_io = *acc_mem_io = &AccessNULL;
 	break;
-    case BUS_PCI:
-	ppaccp = xf86PciAccInfo;
-	while (*ppaccp) {
-	    if ((*ppaccp)->busnum == pEnt->pciBusId.bus
-		&& (*ppaccp)->devnum == pEnt->pciBusId.device
-		&& (*ppaccp)->funcnum == pEnt->pciBusId.func) {
-		*acc_io = &(*ppaccp)->ioAccess;
-		*acc_mem = &(*ppaccp)->memAccess;
-		*acc_mem_io = &(*ppaccp)->io_memAccess;
-		break;
-	    }
-	    ppaccp++;
+    case BUS_PCI: {
+	struct pci_device *const dev = pEnt->bus.id.pci;
+
+	if ((dev != NULL) && ((void *)dev->user_data != NULL)) {
+	    pciAccPtr const paccp = (pciAccPtr) dev->user_data;
+	    
+	    *acc_io = & paccp->ioAccess;
+	    *acc_mem = & paccp->memAccess;
+	    *acc_mem_io = & paccp->io_memAccess;
+	}
+	else {
+	    /* FIXME: This is an error path.  We should probably have an
+	     * FIXME: assertion here or something.
+	     */
+	    *acc_io = NULL;
+	    *acc_mem = NULL;
+	    *acc_mem_io = NULL;
 	}
 	break;
+    }
     default:
 	*acc_mem = *acc_io = *acc_mem_io = NULL;
 	break;
@@ -1896,7 +1689,7 @@ setAccess(EntityPtr pEnt, xf86State state)
     xf86AccessPtr org_mem = NULL, org_io = NULL, org_mem_io = NULL;
     int prop;
     
-    busTypeSpecific(pEnt,state,&acc_mem,&acc_io,&acc_mem_io);
+    busTypeSpecific(pEnt, &acc_mem, &acc_io, &acc_mem_io);
 
     /* The replacement function needs to handle _all_ shared resources */
     /* unless they are handeled locally and disabled otherwise         */
@@ -2449,15 +2242,6 @@ xf86PostProbe(void)
 #endif
     }
     xf86FreeResList(acc);
-#if !(defined(__alpha__) && defined(linux)) && \
-    !(defined(__ia64__) && defined(linux)) && \
-    !(defined(__sparc64__) && defined(__OpenBSD__))
-    /* 
-     * No need to validate on Alpha Linux or OpenBSD/sparc64, 
-     * trust the kernel.
-     */
-    ValidatePci();
-#endif
     
     xf86MsgVerb(X_INFO, 3, "resource ranges after probing:\n");
     xf86PrintResList(3, Acc);
@@ -2976,14 +2760,16 @@ xf86FindPrimaryDevice()
         CheckGenericGA();
     if (primaryBus.type != BUS_NONE) {
 	char *bus;
-	char *loc = xnfcalloc(1,9);
-	if (loc == NULL) return;
+	char loc[16];
 
 	switch (primaryBus.type) {
 	case BUS_PCI:
 	    bus = "PCI";
-	    sprintf(loc," %2.2x:%2.2x:%1.1x",primaryBus.id.pci.bus,
-	    primaryBus.id.pci.device,primaryBus.id.pci.func);
+	    snprintf(loc, sizeof(loc), " %2.2x@%2.2x:%2.2x:%1.1x",
+		     primaryBus.id.pci->bus,
+		     primaryBus.id.pci->domain,
+		     primaryBus.id.pci->dev,
+		     primaryBus.id.pci->func);
 	    break;
 	case BUS_ISA:
 	    bus = "ISA";
@@ -2991,17 +2777,15 @@ xf86FindPrimaryDevice()
 	    break;
 	case BUS_SBUS:
 	    bus = "SBUS";
-	    sprintf(loc," %2.2x",primaryBus.id.sbus.fbNum);
+	    snprintf(loc, sizeof(loc), " %2.2x", primaryBus.id.sbus.fbNum);
 	    break;
 	default:
 	    bus = "";
 	    loc[0] = '\0';
 	}
-	
+
 	xf86MsgVerb(X_INFO, 2, "Primary Device is: %s%s\n",bus,loc);
-	xfree(loc);
     }
-    
 }
 
 #if !defined(__sparc) && !defined(__sparc__) && !defined(__powerpc__) && !defined(__mips__) && !defined(__arm__)

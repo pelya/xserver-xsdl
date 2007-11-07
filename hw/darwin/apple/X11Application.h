@@ -79,7 +79,7 @@ extern void X11ApplicationMain (int argc, const char *argv[],
 extern int X11EnableKeyEquivalents;
 extern int quartzHasRoot, quartzEnableRootless;
 
-#define APP_PREFS "com.apple.x11"
+#define APP_PREFS "org.x.X11"
 
 #define PREFS_APPSMENU		"apps_menu"
 #define PREFS_FAKEBUTTONS	"enable_fake_buttons"

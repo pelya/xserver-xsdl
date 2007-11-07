@@ -32,7 +32,6 @@ libxf1bppmfb_a_SOURCES = \
         mfbbitblt.c \
         mfbbres.c \
         mfbbresd.c \
-        mfbbstore.c \
         mfbclip.c \
         mfbcmap.c \
         mfbfillarc.c \
@@ -46,7 +45,6 @@ libxf1bppmfb_a_SOURCES = \
         mfbline.c \
         mfbmisc.c \
         mfbpixmap.c \
-        mfbpntwin.c \
         mfbpolypnt.c \
         mfbpushpxl.c \
         mfbscrclse.c \

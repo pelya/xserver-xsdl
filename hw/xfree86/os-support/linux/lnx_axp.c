@@ -183,7 +183,7 @@ _alpha_iobase_query(unsigned flags, int hose, int bus, int devfn)
     /* 
      * Only take over the inx/outx functions if this is a dense I/O
      * system *and* addressing domains are being used. The dense I/O
-     * routines expect I/O to be mapped (as done in xf86MapDomainIO)
+     * routines expect I/O to be mapped (as done in xf86MapLegacyIO)
      */
     _alpha_outb = _dense_outb;
     _alpha_outw = _dense_outw;

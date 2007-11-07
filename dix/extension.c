@@ -184,6 +184,8 @@ _X_EXPORT Bool AddExtensionAlias(char *alias, ExtensionEntry *ext)
     char *name;
     char **aliases;
 
+    if (!ext)
+        return FALSE ;
     aliases = (char **)xrealloc(ext->aliases,
 				(ext->num_aliases + 1) * sizeof(char *));
     if (!aliases)
@@ -362,7 +364,7 @@ ProcListExtensions(ClientPtr client)
 		total_length += strlen(extensions[i]->aliases[j]) + 1;
 	}
         reply.length = (total_length + 3) >> 2;
-	buffer = bufptr = (char *)ALLOCATE_LOCAL(total_length);
+	buffer = bufptr = (char *)xalloc(total_length);
 	if (!buffer)
 	    return(BadAlloc);
         for (i=0;  i<NumExtensions; i++)
@@ -386,7 +388,7 @@ ProcListExtensions(ClientPtr client)
     if (reply.length)
     {
         WriteToClient(client, total_length, buffer);
-    	DEALLOCATE_LOCAL(buffer);
+    	xfree(buffer);
     }
     return(client->noClientException);
 }

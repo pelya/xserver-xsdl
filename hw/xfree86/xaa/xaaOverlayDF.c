@@ -28,11 +28,7 @@
 /* Screen funcs */
 
 static void XAAOverCopyWindow(WindowPtr, DDXPointRec, RegionPtr);
-static void XAAOverPaintWindow(WindowPtr, RegionPtr, int);
 static void XAAOverWindowExposures(WindowPtr, RegionPtr, RegionPtr);
-static void XAAOverSaveAreas(PixmapPtr, RegionPtr, int, int, WindowPtr);
-static void XAAOverRestoreAreas(PixmapPtr, RegionPtr, int, int, WindowPtr);
-
 
 static int XAAOverStippledFillChooser(GCPtr);
 static int XAAOverOpaqueStippledFillChooser(GCPtr);
@@ -197,11 +193,7 @@ XAAInitDualFramebufferOverlay(
     /* Overwrite key screen functions.  The XAA core will clean up */
 
     pScreen->CopyWindow = XAAOverCopyWindow;
-    pScreen->PaintWindowBackground = XAAOverPaintWindow;
-    pScreen->PaintWindowBorder = XAAOverPaintWindow;
     pScreen->WindowExposures = XAAOverWindowExposures;
-    pScreen->BackingStoreFuncs.SaveAreas = XAAOverSaveAreas;
-    pScreen->BackingStoreFuncs.RestoreAreas = XAAOverRestoreAreas;
 
     pOverPriv->StippledFillChooser = infoRec->StippledFillChooser;
     pOverPriv->OpaqueStippledFillChooser = infoRec->OpaqueStippledFillChooser;
@@ -366,7 +358,7 @@ XAAOverCopyWindow(
 
     nbox = REGION_NUM_RECTS(&rgnDst);
     if(nbox &&
-	(pptSrc = (DDXPointPtr )ALLOCATE_LOCAL(nbox * sizeof(DDXPointRec)))) {
+	(pptSrc = (DDXPointPtr )xalloc(nbox * sizeof(DDXPointRec)))) {
 
 	pbox = REGION_RECTS(&rgnDst);
 	for (i = nbox, ppt = pptSrc; i--; ppt++, pbox++) {
@@ -384,7 +376,7 @@ XAAOverCopyWindow(
         		&(infoRec->ScratchGC), &rgnDst, pptSrc);
 	}
 
-	DEALLOCATE_LOCAL(pptSrc);
+	xfree(pptSrc);
     }
 
     REGION_UNINIT(pScreen, &rgnDst);
@@ -396,7 +388,7 @@ XAAOverCopyWindow(
 	REGION_INTERSECT(pScreen, &rgnDst, &rgnDst, prgnSrc);
 	nbox = REGION_NUM_RECTS(&rgnDst);
 	if(nbox &&
-	  (pptSrc = (DDXPointPtr )ALLOCATE_LOCAL(nbox * sizeof(DDXPointRec)))){
+	  (pptSrc = (DDXPointPtr )xalloc(nbox * sizeof(DDXPointRec)))){
 
 	    pbox = REGION_RECTS(&rgnDst);
 	    for (i = nbox, ppt = pptSrc; i--; ppt++, pbox++) {
@@ -407,60 +399,10 @@ XAAOverCopyWindow(
 	    SWITCH_DEPTH(pScrn->depth);
 	    XAADoBitBlt((DrawablePtr)pRoot, (DrawablePtr)pRoot,
         		&(infoRec->ScratchGC), &rgnDst, pptSrc);
-	    DEALLOCATE_LOCAL(pptSrc);
+	    xfree(pptSrc);
 	}
       }
       REGION_UNINIT(pScreen, &rgnDst);
-    }
-}
-
-
-static void
-XAAOverPaintWindow(
-    WindowPtr   pWin,
-    RegionPtr   pRegion,
-    int         what
-){
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-    XAAOverlayPtr pOverPriv = GET_OVERLAY_PRIV(pScreen);
-    XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
-    ScrnInfoPtr pScrn = infoRec->pScrn;
-
-    if(pScrn->vtSema) {
-	if(what == PW_BACKGROUND) {
-	    SWITCH_DEPTH(pWin->drawable.depth);
-	    (*infoRec->PaintWindowBackground)(pWin, pRegion, what);
-	    return;
-	} else {
-	    if(pWin->drawable.bitsPerPixel == 8) {
-		SWITCH_DEPTH(8);
-		(*infoRec->PaintWindowBorder)(pWin, pRegion, what);
-		return;
-	    } else if (infoRec->FillSolidRects)  {
-		SWITCH_DEPTH(8);
-		(*infoRec->FillSolidRects)(pScrn, pScrn->colorKey, GXcopy, 
-			~0, REGION_NUM_RECTS(pRegion), REGION_RECTS(pRegion));
-
-		SWITCH_DEPTH(pWin->drawable.depth);
-		(*infoRec->PaintWindowBorder)(pWin, pRegion, what);
-		return;
-	    } 
-	}
-
-	if(infoRec->NeedToSync) {
-	    (*infoRec->Sync)(infoRec->pScrn);
-	    infoRec->NeedToSync = FALSE;
-	}
-    }
-
-    if(what == PW_BACKGROUND) {
-	XAA_SCREEN_PROLOGUE (pScreen, PaintWindowBackground);
-	(*pScreen->PaintWindowBackground) (pWin, pRegion, what);
-	XAA_SCREEN_EPILOGUE(pScreen, PaintWindowBackground, XAAOverPaintWindow);
-    } else {
-	XAA_SCREEN_PROLOGUE (pScreen, PaintWindowBorder);
-	(*pScreen->PaintWindowBorder) (pWin, pRegion, what);
-	XAA_SCREEN_EPILOGUE(pScreen, PaintWindowBorder, XAAOverPaintWindow);
     }
 }
 
@@ -493,46 +435,6 @@ XAAOverWindowExposures(
     XAA_SCREEN_PROLOGUE (pScreen, WindowExposures);
     (*pScreen->WindowExposures) (pWin, pReg, pOtherReg);
     XAA_SCREEN_EPILOGUE(pScreen, WindowExposures, XAAOverWindowExposures);
-}
-
-
-static void
-XAAOverSaveAreas (
-    PixmapPtr pPixmap,
-    RegionPtr prgnSave,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin
-){
-    XAAOverlayPtr pOverPriv = GET_OVERLAY_PRIV(pWin->drawable.pScreen);
-    XAAInfoRecPtr infoRec = 
-		GET_XAAINFORECPTR_FROM_DRAWABLE((DrawablePtr)pWin);
-
-    if(pOverPriv->pScrn->vtSema) {
-	SWITCH_DEPTH(pWin->drawable.depth);
-    }
-    
-    (*infoRec->SaveAreas)(pPixmap, prgnSave, xorg, yorg, pWin);
-}
-
-
-static void
-XAAOverRestoreAreas (    
-    PixmapPtr pPixmap,
-    RegionPtr prgnRestore,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin 
-){
-    XAAOverlayPtr pOverPriv = GET_OVERLAY_PRIV(pWin->drawable.pScreen);
-    XAAInfoRecPtr infoRec = 
-		GET_XAAINFORECPTR_FROM_DRAWABLE((DrawablePtr)pWin);
-
-    if(pOverPriv->pScrn->vtSema) {
-	SWITCH_DEPTH(pWin->drawable.depth);
-    }
-    
-    (*infoRec->RestoreAreas)(pPixmap, prgnRestore, xorg, yorg, pWin);
 }
 
 /*********************  Choosers *************************/

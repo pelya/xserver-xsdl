@@ -355,7 +355,7 @@ cfbPolyGlyphBlt8Clipped(
     }
     if (!numRects)
 	return;
-    clips = (CARD32 *)ALLOCATE_LOCAL ((maxAscent + maxDescent) *
+    clips = (CARD32 *)xalloc ((maxAscent + maxDescent) *
 						sizeof (CARD32));
     while (nglyph--)
     {
@@ -471,7 +471,7 @@ cfbPolyGlyphBlt8Clipped(
 	    }
 	}
     }
-    DEALLOCATE_LOCAL (clips);
+    xfree (clips);
 }
 
 #endif /* FOUR_BIT_CODE */

@@ -81,10 +81,6 @@ extern Bool dmxUnrealizeWindow(WindowPtr pWindow);
 extern void dmxRestackWindow(WindowPtr pWindow, WindowPtr pOldNextSib);
 extern void dmxWindowExposures(WindowPtr pWindow, RegionPtr prgn,
 			       RegionPtr other_exposed);
-extern void dmxPaintWindowBackground(WindowPtr pWindow, RegionPtr pRegion,
-				     int what);
-extern void dmxPaintWindowBorder(WindowPtr pWindow, RegionPtr pRegion,
-				 int what);
 extern void dmxCopyWindow(WindowPtr pWindow, DDXPointRec ptOldOrg,
 			  RegionPtr prgnSrc);
 

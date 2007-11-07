@@ -120,7 +120,8 @@ miPolyGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	     FONTMAXBOUNDS(pfont,descent);
 
     pPixmap = (*pDrawable->pScreen->CreatePixmap)(pDrawable->pScreen,
-						  width, height, 1);
+						  width, height, 1,
+						  CREATE_PIXMAP_USAGE_SCRATCH);
     if (!pPixmap)
 	return;
 
@@ -138,7 +139,7 @@ miPolyGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
     DoChangeGC(pGCtmp, GCFunction|GCForeground|GCBackground, gcvals, 0);
 
     nbyLine = BitmapBytePad(width);
-    pbits = (unsigned char *)ALLOCATE_LOCAL(height*nbyLine);
+    pbits = (unsigned char *)xalloc(height*nbyLine);
     if (!pbits)
     {
 	(*pDrawable->pScreen->DestroyPixmap)(pPixmap);
@@ -189,7 +190,7 @@ miPolyGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	x += pci->metrics.characterWidth;
     }
     (*pDrawable->pScreen->DestroyPixmap)(pPixmap);
-    DEALLOCATE_LOCAL(pbits);
+    xfree(pbits);
     FreeScratchGC(pGCtmp);
 }
 

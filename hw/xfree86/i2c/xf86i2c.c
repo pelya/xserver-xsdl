@@ -883,7 +883,7 @@ xf86I2CGetScreenBuses(int scrnIndex, I2CBusPtr **pppI2CBus)
 	    continue;
 
         *pppI2CBus = xnfrealloc(*pppI2CBus, n * sizeof(I2CBusPtr));
-	*pppI2CBus[n - 1] = pI2CBus;
+	(*pppI2CBus)[n - 1] = pI2CBus;
     }
 
     return n;

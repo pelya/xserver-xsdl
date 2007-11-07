@@ -95,13 +95,13 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
     
     if (!spanData)
     {
-    	pptInit = (DDXPointPtr) ALLOCATE_LOCAL (overall_height * sizeof(*ppt));
+    	pptInit = (DDXPointPtr) xalloc (overall_height * sizeof(*ppt));
     	if (!pptInit)
 	    return;
-    	pwidthInit = (int *) ALLOCATE_LOCAL (overall_height * sizeof(*pwidth));
+    	pwidthInit = (int *) xalloc (overall_height * sizeof(*pwidth));
     	if (!pwidthInit)
     	{
-	    DEALLOCATE_LOCAL (pptInit);
+	    xfree (pptInit);
 	    return;
     	}
 	ppt = pptInit;
@@ -167,8 +167,8 @@ miFillPolyHelper (DrawablePtr pDrawable, GCPtr pGC, unsigned long pixel,
     if (!spanData)
     {
     	(*pGC->ops->FillSpans) (pDrawable, pGC, ppt - pptInit, pptInit, pwidthInit, TRUE);
-    	DEALLOCATE_LOCAL (pwidthInit);
-    	DEALLOCATE_LOCAL (pptInit);
+    	xfree (pwidthInit);
+    	xfree (pptInit);
     	if (pixel != oldPixel)
     	{
 	    DoChangeGC (pGC, GCForeground, &oldPixel, FALSE);
@@ -1045,13 +1045,13 @@ miLineArc (
     }
     if (!spanData)
     {
-    	points = (DDXPointPtr)ALLOCATE_LOCAL(sizeof(DDXPointRec) * pGC->lineWidth);
+    	points = (DDXPointPtr)xalloc(sizeof(DDXPointRec) * pGC->lineWidth);
     	if (!points)
 	    return;
-    	widths = (int *)ALLOCATE_LOCAL(sizeof(int) * pGC->lineWidth);
+    	widths = (int *)xalloc(sizeof(int) * pGC->lineWidth);
     	if (!widths)
     	{
-	    DEALLOCATE_LOCAL(points);
+	    xfree(points);
 	    return;
     	}
     	oldPixel = pGC->fgPixel;
@@ -1086,8 +1086,8 @@ miLineArc (
     if (!spanData)
     {
     	(*pGC->ops->FillSpans)(pDraw, pGC, n, points, widths, TRUE);
-    	DEALLOCATE_LOCAL(widths);
-    	DEALLOCATE_LOCAL(points);
+    	xfree(widths);
+    	xfree(points);
     	if (pixel != oldPixel)
     	{
 	    DoChangeGC(pGC, GCForeground, &oldPixel, FALSE);

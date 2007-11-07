@@ -75,6 +75,9 @@ DamageEmpty (DamagePtr pDamage);
 RegionPtr
 DamageRegion (DamagePtr		    pDamage);
 
+RegionPtr
+DamagePendingRegion (DamagePtr	    pDamage);
+
 void
 DamageDamageRegion (DrawablePtr	    pDrawable,
 		    const RegionPtr pRegion);

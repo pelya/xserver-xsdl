@@ -26,6 +26,9 @@
 #include <dix-config.h>
 #endif
 
+#include <stddef.h>  /* buggy openssl/sha.h wants size_t */
+#include <openssl/sha.h>
+
 #include "misc.h"
 #include "scrnintstr.h"
 #include "os.h"
@@ -41,6 +44,7 @@
 #include "servermd.h"
 #include "picturestr.h"
 #include "glyphstr.h"
+#include "mipict.h"
 
 /*
  * From Knuth -- a good choice for hash/rehash values is p, p-2 where
@@ -412,7 +416,10 @@ _GlyphSetSetNewPrivate (GlyphSetPtr glyphSet, int n, pointer ptr)
 }
 
 GlyphRefPtr
-FindGlyphRef (GlyphHashPtr hash, CARD32 signature, Bool match, GlyphPtr compare)
+FindGlyphRef (GlyphHashPtr	hash,
+	      CARD32		signature,
+	      Bool		match,
+	      unsigned char	sha1[20])
 {
     CARD32	elt, step, s;
     GlyphPtr	glyph;
@@ -443,7 +450,7 @@ FindGlyphRef (GlyphHashPtr hash, CARD32 signature, Bool match, GlyphPtr compare)
 	}
 	else if (s == signature &&
 		 (!match || 
-		  memcmp (&compare->info, &glyph->info, compare->size) == 0))
+		  memcmp (glyph->sha1, sha1, 20) == 0))
 	{
 	    break;
 	}
@@ -460,17 +467,47 @@ FindGlyphRef (GlyphHashPtr hash, CARD32 signature, Bool match, GlyphPtr compare)
     return gr;
 }
 
-CARD32
-HashGlyph (GlyphPtr glyph)
+int
+HashGlyph (xGlyphInfo    *gi,
+	   CARD8	 *bits,
+	   unsigned long size,
+	   unsigned char sha1[20])
 {
-    CARD32  *bits = (CARD32 *) &(glyph->info);
-    CARD32  hash;
-    int	    n = glyph->size / sizeof (CARD32);
+    SHA_CTX ctx;
+    int success;
 
-    hash = 0;
-    while (n--)
-	hash ^= *bits++;
-    return hash;
+    success = SHA1_Init (&ctx);
+    if (! success)
+	return BadAlloc;
+
+    success = SHA1_Update (&ctx, gi, sizeof (xGlyphInfo));
+    if (! success)
+	return BadAlloc;
+
+    success = SHA1_Update (&ctx, bits, size);
+    if (! success)
+	return BadAlloc;
+
+    success = SHA1_Final (sha1, &ctx);
+    if (! success)
+	return BadAlloc;
+
+    return Success;
+}
+
+GlyphPtr
+FindGlyphByHash (unsigned char sha1[20], int format)
+{
+    GlyphRefPtr gr;
+    CARD32 signature = *(CARD32 *) sha1;
+
+    gr = FindGlyphRef (&globalGlyphs[format],
+		       signature, TRUE, sha1);
+
+    if (gr->glyph && gr->glyph != DeletedGlyph)
+	return gr->glyph;
+    else
+	return NULL;
 }
 
 #ifdef CHECK_DUPLICATES
@@ -511,6 +548,7 @@ FreeGlyph (GlyphPtr glyph, int format)
 	GlyphRefPtr      gr;
 	int	         i;
 	int	         first;
+	CARD32		 signature;
 
 	first = -1;
 	for (i = 0; i < globalGlyphs[format].hashSet->size; i++)
@@ -521,8 +559,9 @@ FreeGlyph (GlyphPtr glyph, int format)
 		first = i;
 	    }
 
-	gr = FindGlyphRef (&globalGlyphs[format],
-			   HashGlyph (glyph), TRUE, glyph);
+	signature = *(CARD32 *) glyph->sha1;
+	gr = FindGlyphRef (&globalGlyphs[format], signature,
+			   TRUE, glyph->sha1);
 	if (gr - globalGlyphs[format].table != first)
 	    DuplicateRef (glyph, "Found wrong one");
 	if (gr->glyph && gr->glyph != DeletedGlyph)
@@ -534,9 +573,13 @@ FreeGlyph (GlyphPtr glyph, int format)
 
 	for (i = 0; i < screenInfo.numScreens; i++)
 	{
-	    ps = GetPictureScreenIfSet (screenInfo.screens[i]);
+	    ScreenPtr pScreen = screenInfo.screens[i];
+
+	    FreePicture ((pointer) GlyphPicture (glyph)[i], 0);
+
+	    ps = GetPictureScreenIfSet (pScreen);
 	    if (ps)
-		(*ps->UnrealizeGlyph) (screenInfo.screens[i], glyph);
+		(*ps->UnrealizeGlyph) (pScreen, glyph);
 	}
 	
 	if (glyph->devPrivates)
@@ -549,13 +592,14 @@ void
 AddGlyph (GlyphSetPtr glyphSet, GlyphPtr glyph, Glyph id)
 {
     GlyphRefPtr	    gr;
-    CARD32	    hash;
+    CARD32	    signature;
 
     CheckDuplicates (&globalGlyphs[glyphSet->fdepth], "AddGlyph top global");
     /* Locate existing matching glyph */
-    hash = HashGlyph (glyph);
-    gr = FindGlyphRef (&globalGlyphs[glyphSet->fdepth], hash, TRUE, glyph);
-    if (gr->glyph && gr->glyph != DeletedGlyph)
+    signature = *(CARD32 *) glyph->sha1;
+    gr = FindGlyphRef (&globalGlyphs[glyphSet->fdepth], signature,
+		       TRUE, glyph->sha1);
+    if (gr->glyph && gr->glyph != DeletedGlyph && gr->glyph != glyph)
     {
 	PictureScreenPtr ps;
 	int              i;
@@ -571,10 +615,10 @@ AddGlyph (GlyphSetPtr glyphSet, GlyphPtr glyph, Glyph id)
 	xfree (glyph);
 	glyph = gr->glyph;
     }
-    else
+    else if (gr->glyph != glyph)
     {
 	gr->glyph = glyph;
-	gr->signature = hash;
+	gr->signature = signature;
 	globalGlyphs[glyphSet->fdepth].tableEntries++;
     }
     
@@ -627,7 +671,7 @@ AllocateGlyph (xGlyphInfo *gi, int fdepth)
     GlyphPtr	     glyph;
     int		     i;
 
-    size = gi->height * PixmapBytePad (gi->width, glyphDepths[fdepth]);
+    size = screenInfo.numScreens * sizeof (PicturePtr);
     glyph = (GlyphPtr) xalloc (size + sizeof (GlyphRec));
     if (!glyph)
 	return 0;
@@ -648,26 +692,28 @@ AllocateGlyph (xGlyphInfo *gi, int fdepth)
     for (i = 0; i < screenInfo.numScreens; i++)
     {
 	ps = GetPictureScreenIfSet (screenInfo.screens[i]);
+
 	if (ps)
 	{
 	    if (!(*ps->RealizeGlyph) (screenInfo.screens[i], glyph))
-	    {
-		while (i--)
-		{
-		    ps = GetPictureScreenIfSet (screenInfo.screens[i]);
-		    if (ps)
-			(*ps->UnrealizeGlyph) (screenInfo.screens[i], glyph);
-		}
-		
-		if (glyph->devPrivates)
-		    xfree (glyph->devPrivates);
-		xfree (glyph);
-		return 0;
-	    }
+		goto bail;
 	}
     }
     
     return glyph;
+
+bail:
+    while (i--)
+    {
+	ps = GetPictureScreenIfSet (screenInfo.screens[i]);
+	if (ps)
+	    (*ps->UnrealizeGlyph) (screenInfo.screens[i], glyph);
+    }
+		
+    if (glyph->devPrivates)
+	xfree (glyph->devPrivates);
+    xfree (glyph);
+    return 0;
 }
     
 Bool
@@ -711,7 +757,7 @@ ResizeGlyphHash (GlyphHashPtr hash, CARD32 change, Bool global)
 	    if (glyph && glyph != DeletedGlyph)
 	    {
 		s = hash->table[i].signature;
-		gr = FindGlyphRef (&newHash, s, global, glyph);
+		gr = FindGlyphRef (&newHash, s, global, glyph->sha1);
 		gr->signature = s;
 		gr->glyph = glyph;
 		++newHash.tableEntries;
@@ -800,4 +846,216 @@ FreeGlyphSet (pointer	value,
 	xfree (glyphSet);
     }
     return Success;
+}
+
+static void
+GlyphExtents (int		nlist,
+		GlyphListPtr	list,
+		GlyphPtr	*glyphs,
+		BoxPtr		extents)
+{
+    int		x1, x2, y1, y2;
+    int		n;
+    GlyphPtr	glyph;
+    int		x, y;
+    
+    x = 0;
+    y = 0;
+    extents->x1 = MAXSHORT;
+    extents->x2 = MINSHORT;
+    extents->y1 = MAXSHORT;
+    extents->y2 = MINSHORT;
+    while (nlist--)
+    {
+	x += list->xOff;
+	y += list->yOff;
+	n = list->len;
+	list++;
+	while (n--)
+	{
+	    glyph = *glyphs++;
+	    x1 = x - glyph->info.x;
+	    if (x1 < MINSHORT)
+		x1 = MINSHORT;
+	    y1 = y - glyph->info.y;
+	    if (y1 < MINSHORT)
+		y1 = MINSHORT;
+	    x2 = x1 + glyph->info.width;
+	    if (x2 > MAXSHORT)
+		x2 = MAXSHORT;
+	    y2 = y1 + glyph->info.height;
+	    if (y2 > MAXSHORT)
+		y2 = MAXSHORT;
+	    if (x1 < extents->x1)
+		extents->x1 = x1;
+	    if (x2 > extents->x2)
+		extents->x2 = x2;
+	    if (y1 < extents->y1)
+		extents->y1 = y1;
+	    if (y2 > extents->y2)
+		extents->y2 = y2;
+	    x += glyph->info.xOff;
+	    y += glyph->info.yOff;
+	}
+    }
+}
+
+#define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
+
+_X_EXPORT void
+CompositeGlyphs (CARD8		op,
+		 PicturePtr	pSrc,
+		 PicturePtr	pDst,
+		 PictFormatPtr	maskFormat,
+		 INT16		xSrc,
+		 INT16		ySrc,
+		 int		nlist,
+		 GlyphListPtr	lists,
+		 GlyphPtr	*glyphs)
+{
+    PictureScreenPtr	ps = GetPictureScreen(pDst->pDrawable->pScreen);
+
+    ValidatePicture (pSrc);
+    ValidatePicture (pDst);
+    (*ps->Glyphs) (op, pSrc, pDst, maskFormat, xSrc, ySrc, nlist, lists, glyphs);
+}
+
+Bool
+miRealizeGlyph (ScreenPtr pScreen,
+		GlyphPtr  glyph)
+{
+    return TRUE;
+}
+
+void
+miUnrealizeGlyph (ScreenPtr pScreen,
+		  GlyphPtr  glyph)
+{
+}
+
+_X_EXPORT void
+miGlyphs (CARD8		op,
+	  PicturePtr	pSrc,
+	  PicturePtr	pDst,
+	  PictFormatPtr	maskFormat,
+	  INT16		xSrc,
+	  INT16		ySrc,
+	  int		nlist,
+	  GlyphListPtr	list,
+	  GlyphPtr	*glyphs)
+{
+    PicturePtr	pPicture;
+    PixmapPtr   pMaskPixmap = 0;
+    PicturePtr  pMask;
+    ScreenPtr   pScreen = pDst->pDrawable->pScreen;
+    int		width = 0, height = 0;
+    int		x, y;
+    int		xDst = list->xOff, yDst = list->yOff;
+    int		n;
+    GlyphPtr	glyph;
+    int		error;
+    BoxRec	extents = {0, 0, 0, 0};
+    CARD32	component_alpha;
+
+    if (maskFormat)
+    {
+	GCPtr	    pGC;
+	xRectangle  rect;
+
+	GlyphExtents (nlist, list, glyphs, &extents);
+
+	if (extents.x2 <= extents.x1 || extents.y2 <= extents.y1)
+	    return;
+	width = extents.x2 - extents.x1;
+	height = extents.y2 - extents.y1;
+	pMaskPixmap = (*pScreen->CreatePixmap) (pScreen, width, height,
+						maskFormat->depth,
+						CREATE_PIXMAP_USAGE_SCRATCH);
+	if (!pMaskPixmap)
+	    return;
+	component_alpha = NeedsComponent(maskFormat->format);
+	pMask = CreatePicture (0, &pMaskPixmap->drawable,
+			       maskFormat, CPComponentAlpha, &component_alpha,
+			       serverClient, &error);
+	if (!pMask)
+	{
+	    (*pScreen->DestroyPixmap) (pMaskPixmap);
+	    return;
+	}
+	pGC = GetScratchGC (pMaskPixmap->drawable.depth, pScreen);
+	ValidateGC (&pMaskPixmap->drawable, pGC);
+	rect.x = 0;
+	rect.y = 0;
+	rect.width = width;
+	rect.height = height;
+	(*pGC->ops->PolyFillRect) (&pMaskPixmap->drawable, pGC, 1, &rect);
+	FreeScratchGC (pGC);
+	x = -extents.x1;
+	y = -extents.y1;
+    }
+    else
+    {
+	pMask = pDst;
+	x = 0;
+	y = 0;
+    }
+    while (nlist--)
+    {
+	x += list->xOff;
+	y += list->yOff;
+	n = list->len;
+	while (n--)
+	{
+	    glyph = *glyphs++;
+	    pPicture = GlyphPicture (glyph)[pScreen->myNum];
+
+	    if (maskFormat)
+	    {
+		CompositePicture (PictOpAdd,
+				  pPicture,
+				  None,
+				  pMask,
+				  0, 0,
+				  0, 0,
+				  x - glyph->info.x,
+				  y - glyph->info.y,
+				  glyph->info.width,
+				  glyph->info.height);
+	    }
+	    else
+	    {
+		CompositePicture (op,
+				  pSrc,
+				  pPicture,
+				  pDst,
+				  xSrc + (x - glyph->info.x) - xDst,
+				  ySrc + (y - glyph->info.y) - yDst,
+				  0, 0,
+				  x - glyph->info.x,
+				  y - glyph->info.y,
+				  glyph->info.width,
+				  glyph->info.height);
+	    }
+
+	    x += glyph->info.xOff;
+	    y += glyph->info.yOff;
+	}
+	list++;
+    }
+    if (maskFormat)
+    {
+	x = extents.x1;
+	y = extents.y1;
+	CompositePicture (op,
+			  pSrc,
+			  pMask,
+			  pDst,
+			  xSrc + x - xDst,
+			  ySrc + y - yDst,
+			  0, 0,
+			  x, y,
+			  width, height);
+	FreePicture ((pointer) pMask, (XID) 0);
+	(*pScreen->DestroyPixmap) (pMaskPixmap);
+    }
 }

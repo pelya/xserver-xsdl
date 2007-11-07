@@ -19,8 +19,6 @@ bin_PROGRAMS = Xneomagic
 noinst_LIBRARIES = libneomagic.a
 
 libneomagic_a_SOURCES =         \
-	backend.h                   \
-	backend.c                   \
 	neomagic.c                  \
 	neomagic.h                  \
 	neo_draw.c

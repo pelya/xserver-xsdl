@@ -158,7 +158,7 @@ miCreateScreenResources(pScreen)
 	/* create a pixmap with no data, then redirect it to point to
 	 * the screen
 	 */
-	pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, pScreen->rootDepth);
+	pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, pScreen->rootDepth, 0);
 	if (!pPixmap)
 	    return FALSE;
 
@@ -251,7 +251,7 @@ miScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width,
     pScreen->ValidateTree = miValidateTree;
     pScreen->PostValidateTree = (PostValidateTreeProcPtr) 0;
     pScreen->WindowExposures = miWindowExposures;
-    /* PaintWindowBackground, PaintWindowBorder, CopyWindow */
+    /* CopyWindow */
     pScreen->ClearToBackground = miClearToBackground;
     pScreen->ClipNotify = (ClipNotifyProcPtr) 0;
     pScreen->RestackWindow = (RestackWindowProcPtr) 0;

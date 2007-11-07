@@ -210,8 +210,6 @@ xglScreenInit (ScreenPtr pScreen)
     XGL_SCREEN_WRAP (CreateWindow, xglCreateWindow);
     XGL_SCREEN_WRAP (DestroyWindow, xglDestroyWindow);
     XGL_SCREEN_WRAP (ChangeWindowAttributes, xglChangeWindowAttributes);
-    XGL_SCREEN_WRAP (PaintWindowBackground, xglPaintWindowBackground);
-    XGL_SCREEN_WRAP (PaintWindowBorder, xglPaintWindowBorder);
 
     XGL_SCREEN_WRAP (CreateGC, xglCreateGC);
 
@@ -252,9 +250,6 @@ xglScreenInit (ScreenPtr pScreen)
 	XGL_PICTURE_SCREEN_WRAP (ChangePictureFilter, xglChangePictureFilter);
     }
 #endif
-
-    XGL_SCREEN_WRAP (BackingStoreFuncs.SaveAreas, xglSaveAreas);
-    XGL_SCREEN_WRAP (BackingStoreFuncs.RestoreAreas, xglRestoreAreas);
 
     if (!fbCreateDefColormap (pScreen))
 	return FALSE;
@@ -452,7 +447,7 @@ xglCreateSolidAlphaPicture (ScreenPtr pScreen)
     if (!pGC)
 	return;
 
-    pPixmap = (*pScreen->CreatePixmap) (pScreen, 1, 1, pFormat->depth);
+    pPixmap = (*pScreen->CreatePixmap) (pScreen, 1, 1, pFormat->depth, 0);
     if (!pPixmap)
 	return;
 

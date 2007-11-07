@@ -9,10 +9,22 @@ Xprt_CFLAGS = @DIX_CFLAGS@ @XPRINT_CFLAGS@ \
 	-DXFree86Server
 
 Xprt_LDFLAGS = -L$(top_srcdir)
-Xprt_LDADD = @XPRINT_LIBS@ ps/libps.la raster/libraster.la  \
-	pcl/libpcl.la pcl-mono/libpcl.la $(top_builddir)/fb/libfb.la \
-	$(top_builddir)/render/librender.la $(top_builddir)/mi/libmi.la \
-	$(top_builddir)/Xext/libXext.la  @FREETYPE_LIBS@
+XPRINT_LIBS = \
+	@XPRINT_LIBS@ \
+	ps/libps.la \
+	raster/libraster.la \
+	pcl/libpcl.la \
+	pcl-mono/libpcl.la \
+	$(top_builddir)/fb/libfb.la \
+	$(top_builddir)/render/librender.la \
+	$(XSERVER_LIBS) \
+	$(top_builddir)/Xext/libXext.la \
+	$(top_builddir)/xkb/libxkb.la \
+	$(top_builddir)/xkb/libxkbstubs.la \
+	$(top_builddir)/os/libos.la # for Xprintf
+
+Xprt_DEPENDENCIES = $(XPRINT_LIBS)
+Xprt_LDADD = $(XPRINT_LIBS) $(XPRINT_SYS_LIBS) $(XSERVER_SYS_LIBS)
 
 miinitext-wrapper.c:
 	echo "#include \"$(top_srcdir)/mi/miinitext.c\"" >> $@

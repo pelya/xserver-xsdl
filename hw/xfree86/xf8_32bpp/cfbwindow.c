@@ -27,11 +27,6 @@
 Bool
 cfb8_32CreateWindow(WindowPtr pWin)
 {
-    cfbPrivWin *pPrivWin = cfbGetWindowPrivate(pWin);
-
-    pPrivWin->fastBackground = FALSE;
-    pPrivWin->fastBorder = FALSE;
-
     pWin->drawable.bitsPerPixel = 32;
     return TRUE;
 }
@@ -82,7 +77,7 @@ cfb8_32CopyWindow(pWin, ptOldOrg, prgnSrc)
     pbox = REGION_RECTS(&rgnDst);
     nbox = REGION_NUM_RECTS(&rgnDst);
     if(!nbox || 
-       !(pptSrc = (DDXPointPtr )ALLOCATE_LOCAL(nbox * sizeof(DDXPointRec))))
+       !(pptSrc = (DDXPointPtr )xalloc(nbox * sizeof(DDXPointRec))))
     {
 	REGION_UNINIT(pScreen, &rgnDst);
 	return;
@@ -102,7 +97,7 @@ cfb8_32CopyWindow(pWin, ptOldOrg, prgnSrc)
 	cfbDoBitblt8To8GXcopy((DrawablePtr)pwinRoot, (DrawablePtr)pwinRoot,
 			GXcopy, &rgnDst, pptSrc, ~0);
 
-    DEALLOCATE_LOCAL(pptSrc);
+    xfree(pptSrc);
     REGION_UNINIT(pScreen, &rgnDst);
     if(freeReg) 
 	REGION_DESTROY(pScreen, borderClip);

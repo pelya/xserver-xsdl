@@ -90,11 +90,12 @@ typedef XID GLXDrawable;
 
 typedef struct __GLXclientStateRec __GLXclientState;
 
-extern __GLXscreen **__glXActiveScreens;
-extern GLint __glXNumActiveScreens;
-extern __GLXscreen *__glXgetActiveScreen(int num);
+extern __GLXscreen *glxGetScreen(ScreenPtr pScreen);
+extern __GLXclientState *glxGetClient(ClientPtr pClient);
 
 /************************************************************************/
+
+void GlxExtensionInit(void);
 
 void GlxSetVisualConfigs(int nconfigs, 
                          __GLXvisualConfig *configs, void **privates);
@@ -132,6 +133,14 @@ struct __GLXprovider {
 };
 
 void GlxPushProvider(__GLXprovider *provider);
+
+enum {
+    GLX_MINIMAL_VISUALS,
+    GLX_TYPICAL_VISUALS,
+    GLX_ALL_VISUALS
+};
+
+void GlxSetVisualConfig(int config);
 
 void __glXsetEnterLeaveServerFuncs(void (*enter)(GLboolean),
 				   void (*leave)(GLboolean));

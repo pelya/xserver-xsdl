@@ -435,6 +435,10 @@ extern void InitializeSprite(
     DeviceIntPtr /* pDev */,
     WindowPtr    /* pWin */);
 
+extern void UpdateSpriteForScreen(
+    DeviceIntPtr /* pDev */,
+    ScreenPtr /* pScreen */);
+
 extern void WindowHasNewCursor(
     WindowPtr /* pWin */);
 

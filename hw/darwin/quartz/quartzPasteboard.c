@@ -30,11 +30,9 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
-#include "quartzPasteboard.h"
+#include <dix-config.h>
 
+#include "quartzPasteboard.h"
 #include <X11/Xatom.h>
 #include "windowstr.h"
 #include "propertyst.h"

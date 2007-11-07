@@ -83,9 +83,7 @@
 #undef XF86MISC
 #undef XFreeXDGA
 #undef XF86DRI
-#undef MITSHM
 #undef TOGCUP
-#undef DPSEXT
 #undef MITMISC
 #undef SCREENSAVER
 #undef RANDR

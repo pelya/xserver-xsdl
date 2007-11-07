@@ -411,7 +411,7 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 # ifndef JENSEN_SUPPORT
 	  FatalError("Jensen is not supported any more\n"
 		     "If you are intereseted in fixing Jensen support\n"
-		     "please contact xfree86@xfree86.org\n");
+		     "please contact xorg@lists.freedesktop.org\n");
 # else
 	  xf86Msg(X_INFO,"Machine type is Jensen\n");
 	  pVidMem->mapMem = mapVidMemJensen;

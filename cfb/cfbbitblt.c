@@ -296,7 +296,7 @@ cfbBitBlt (
     numRects = REGION_NUM_RECTS(&rgnDst);
     if (numRects && width && height)
     {
-	if(!(pptSrc = (DDXPointPtr)ALLOCATE_LOCAL(numRects *
+	if(!(pptSrc = (DDXPointPtr)xalloc(numRects *
 						  sizeof(DDXPointRec))))
 	{
 	    REGION_UNINIT(pGC->pScreen, &rgnDst);
@@ -313,7 +313,7 @@ cfbBitBlt (
 	}
 
 	(*doBitBlt) (pSrcDrawable, pDstDrawable, pGC->alu, &rgnDst, pptSrc, pGC->planemask);
-	DEALLOCATE_LOCAL(pptSrc);
+	xfree(pptSrc);
     }
 
     prgnExposed = NULL;
@@ -559,7 +559,7 @@ cfbCopyPlaneReduce (
     numRects = REGION_NUM_RECTS(&rgnDst);
     if (numRects && width && height)
     {
-	if(!(pptSrc = (DDXPointPtr)ALLOCATE_LOCAL(numRects *
+	if(!(pptSrc = (DDXPointPtr)xalloc(numRects *
 						  sizeof(DDXPointRec))))
 	{
 	    REGION_UNINIT(pGC->pScreen, &rgnDst);
@@ -576,7 +576,7 @@ cfbCopyPlaneReduce (
 	}
 
 	(*doCopyPlane) (pSrcDrawable, pDstDrawable, pGC->alu, &rgnDst, pptSrc, pGC->planemask, bitPlane);
-	DEALLOCATE_LOCAL(pptSrc);
+	xfree(pptSrc);
     }
 
     prgnExposed = NULL;
@@ -1407,7 +1407,8 @@ RegionPtr cfbCopyPlane(pSrcDrawable, pDstDrawable,
 	ScreenPtr	pScreen = pSrcDrawable->pScreen;
 	GCPtr		pGC1;
 
-	pBitmap = (*pScreen->CreatePixmap) (pScreen, width, height, 1);
+	pBitmap = (*pScreen->CreatePixmap) (pScreen, width, height, 1,
+					    CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!pBitmap)
 	    return NULL;
 	pGC1 = GetScratchGC (1, pScreen);

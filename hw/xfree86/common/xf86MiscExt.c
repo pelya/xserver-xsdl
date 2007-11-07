@@ -152,8 +152,6 @@ MiscExtGetMouseSettings(pointer *mouse, char **devname)
 {
     mseParamsPtr mseptr;
 
-    DEBUG_P("MiscExtGetMouseSettings");
-
     mseptr = MiscExtCreateStruct(MISC_POINTER);
     if (!mseptr)
 	return FALSE;
@@ -184,8 +182,6 @@ MiscExtGetMouseValue(pointer mouse, MiscExtMseValType valtype)
 {
     mseParamsPtr mse = mouse;
 
-    DEBUG_P("MiscExtGetMouseValue");
-
     switch (valtype) {
 	case MISC_MSE_PROTO:		return mse->type;
 	case MISC_MSE_BAUDRATE:		return mse->baudrate;
@@ -204,8 +200,6 @@ _X_EXPORT Bool
 MiscExtSetMouseValue(pointer mouse, MiscExtMseValType valtype, int value)
 {
     mseParamsPtr mse = mouse;
-
-    DEBUG_P("MiscExtSetMouseValue");
 
     switch (valtype) {
 	case MISC_MSE_PROTO:
@@ -251,8 +245,6 @@ MiscExtSetMouseDevice(pointer mouse, char* device)
 _X_EXPORT Bool
 MiscExtGetKbdSettings(pointer *kbd)
 {
-    DEBUG_P("MiscExtGetKbdSettings");
-
     return FALSE;
 }
 
@@ -290,8 +282,6 @@ MiscExtClientStateCallback(CallbackListPtr *callbacks,
 _X_EXPORT int
 MiscExtSetGrabKeysState(ClientPtr client, int state)
 {
-    DEBUG_P("MiscExtSetGrabKeysState");
-
     if (xf86Info.grabInfo.override == NULL ||
 	xf86Info.grabInfo.override == client) {
 	if (state == 0 && xf86Info.grabInfo.disabled == 0) {
@@ -318,8 +308,6 @@ MiscExtSetGrabKeysState(ClientPtr client, int state)
 _X_EXPORT pointer
 MiscExtCreateStruct(MiscExtStructType mse_or_kbd)
 {
-    DEBUG_P("MiscExtCreateStruct");
-    
     switch (mse_or_kbd) {
     case MISC_POINTER:
     {
@@ -348,8 +336,6 @@ MiscExtCreateStruct(MiscExtStructType mse_or_kbd)
 _X_EXPORT void
 MiscExtDestroyStruct(pointer structure, MiscExtStructType mse_or_kbd)
 {
-    DEBUG_P("MiscExtDestroyStruct");
-
     switch (mse_or_kbd) {
 	case MISC_POINTER:
 	case MISC_KEYBOARD:
@@ -410,8 +396,6 @@ MiscExtAuthorizeDevice(InputInfoPtr pInfo, char *device)
 _X_EXPORT MiscExtReturn
 MiscExtApply(pointer structure, MiscExtStructType mse_or_kbd)
 {
-    DEBUG_P("MiscExtApply");
-
     if (mse_or_kbd == MISC_POINTER) {
 	Bool protoChanged = FALSE;
 	int oldflags;
@@ -551,8 +535,6 @@ _X_EXPORT Bool
 MiscExtGetFilePaths(const char **configfile, const char **modulepath,
 		    const char **logfile)
 {
-    DEBUG_P("MiscExtGetFilePaths");
-
     *configfile = xf86ConfigFile;
     *modulepath = xf86ModulePath;
     *logfile    = xf86LogFile;
@@ -565,8 +547,6 @@ MiscExtPassMessage(int scrnIndex, const char *msgtype, const char *msgval,
 		   char **retstr)
 {
     ScrnInfoPtr pScr = xf86Screens[scrnIndex];
-
-    DEBUG_P("MiscExtPassMessage");
 
     if (*pScr->HandleMessage == NULL)
 	    return BadImplementation;

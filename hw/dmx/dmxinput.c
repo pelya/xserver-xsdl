@@ -105,3 +105,14 @@ void dmxUpdateWindowInfo(DMXUpdateType type, WindowPtr pWindow)
         if (!dmxInput->detached && dmxInput->updateWindowInfo)
             dmxInput->updateWindowInfo(dmxInput, type, pWindow);
 }
+
+int
+NewInputDeviceRequest (InputOption *options, DeviceIntPtr *pdev)
+{
+    return BadRequest;
+}
+
+void
+DeleteInputDeviceRequest(DeviceIntPtr pDev)
+{
+}

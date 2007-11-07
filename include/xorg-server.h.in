@@ -109,12 +109,6 @@
 /* Support UNIX socket connections */
 #undef UNIXCONN
 
-/* Use builtin rgb color database */
-#undef USE_RGB_BUILTIN
-
-/* Use rgb.txt directly */
-#undef USE_RGB_TXT
-
 /* unaligned word accesses behave as expected */
 #undef WORKING_UNALIGNED_INT
 
@@ -250,5 +244,8 @@
 
 /* Loadable XFree86 server awesomeness */
 #undef XFree86LOADER
+
+/* Use libpciaccess */
+#undef XSERVER_LIBPCIACCESS
 
 #endif /* _XORG_SERVER_H_ */

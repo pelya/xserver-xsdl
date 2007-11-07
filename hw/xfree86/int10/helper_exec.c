@@ -3,8 +3,8 @@
  *   execute BIOS int 10h calls in x86 real mode environment
  *                 Copyright 1999 Egbert Eich
  *
- *   Part of this is based on code taken from DOSEMU
- *   (C) Copyright 1992, ..., 1999 the "DOSEMU-Development-Team"
+ *   Part of this code was inspired  by the VBIOS POSTing code in DOSEMU
+ *   developed by the "DOSEMU-Development-Team"
  */
 
 /*
@@ -29,6 +29,7 @@
 #define _INT10_PRIVATE
 #include "int10Defines.h"
 #include "xf86int10.h"
+#include "Pci.h"
 #ifdef _X86EMU
 #include "x86emu/x86emui.h"
 #endif
@@ -470,7 +471,7 @@ pciCfg1in(CARD16 addr, CARD32 *val)
 	return 1;
     }
     if (addr == 0xCFC) {
-	*val = pciReadLong(Int10Current->Tag, OFFSET(PciCfg1Addr));
+	pci_device_cfg_read_u32(Int10Current->dev, val, OFFSET(PciCfg1Addr));
 	if (PRINT_PORT && DEBUG_IO_TRACE())
 	    ErrorF(" cfg_inl(%#x) = %8.8x\n", PciCfg1Addr, *val);
 	return 1;
@@ -488,7 +489,7 @@ pciCfg1out(CARD16 addr, CARD32 val)
     if (addr == 0xCFC) {
 	if (PRINT_PORT && DEBUG_IO_TRACE())
 	    ErrorF(" cfg_outl(%#x, %8.8x)\n", PciCfg1Addr, val);
-	pciWriteLong(Int10Current->Tag, OFFSET(PciCfg1Addr), val);
+	pci_device_cfg_write_u32(Int10Current->dev, val, OFFSET(PciCfg1Addr));
 	return 1;
     }
     return 0;
@@ -497,7 +498,7 @@ pciCfg1out(CARD16 addr, CARD32 val)
 static int
 pciCfg1inw(CARD16 addr, CARD16 *val)
 {
-    int offset, shift;
+    int shift;
 
     if ((addr >= 0xCF8) && (addr <= 0xCFB)) {
 	shift = (addr - 0xCF8) * 8;
@@ -505,8 +506,9 @@ pciCfg1inw(CARD16 addr, CARD16 *val)
 	return 1;
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
-	offset = addr - 0xCFC;
-	*val = pciReadWord(Int10Current->Tag, OFFSET(PciCfg1Addr) + offset);
+	const unsigned offset = addr - 0xCFC;
+
+	pci_device_cfg_read_u16(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
 	if (PRINT_PORT && DEBUG_IO_TRACE())
 	    ErrorF(" cfg_inw(%#x) = %4.4x\n", PciCfg1Addr + offset, *val);
 	return 1;
@@ -517,7 +519,7 @@ pciCfg1inw(CARD16 addr, CARD16 *val)
 static int
 pciCfg1outw(CARD16 addr, CARD16 val)
 {
-    int offset, shift;
+    int shift;
 
     if ((addr >= 0xCF8) && (addr <= 0xCFB)) {
 	shift = (addr - 0xCF8) * 8;
@@ -526,10 +528,11 @@ pciCfg1outw(CARD16 addr, CARD16 val)
 	return 1;
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
-	offset = addr - 0xCFC;
+	const unsigned offset = addr - 0xCFC;
+
 	if (PRINT_PORT && DEBUG_IO_TRACE())
 	    ErrorF(" cfg_outw(%#x, %4.4x)\n", PciCfg1Addr + offset, val);
-	pciWriteWord(Int10Current->Tag, OFFSET(PciCfg1Addr) + offset, val);
+	pci_device_cfg_write_u16(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }
     return 0;
@@ -538,7 +541,7 @@ pciCfg1outw(CARD16 addr, CARD16 val)
 static int
 pciCfg1inb(CARD16 addr, CARD8 *val)
 {
-    int offset, shift;
+    int shift;
 
     if ((addr >= 0xCF8) && (addr <= 0xCFB)) {
 	shift = (addr - 0xCF8) * 8;
@@ -546,8 +549,9 @@ pciCfg1inb(CARD16 addr, CARD8 *val)
 	return 1;
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
-	offset = addr - 0xCFC;
-	*val = pciReadByte(Int10Current->Tag, OFFSET(PciCfg1Addr) + offset);
+	const unsigned offset = addr - 0xCFC;
+
+	pci_device_cfg_read_u8(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
 	if (PRINT_PORT && DEBUG_IO_TRACE())
 	    ErrorF(" cfg_inb(%#x) = %2.2x\n", PciCfg1Addr + offset, *val);
 	return 1;
@@ -558,7 +562,7 @@ pciCfg1inb(CARD16 addr, CARD8 *val)
 static int
 pciCfg1outb(CARD16 addr, CARD8 val)
 {
-    int offset, shift;
+    int shift;
 
     if ((addr >= 0xCF8) && (addr <= 0xCFB)) {
 	shift = (addr - 0xCF8) * 8;
@@ -567,10 +571,11 @@ pciCfg1outb(CARD16 addr, CARD8 val)
 	return 1;
     }
     if ((addr >= 0xCFC) && (addr <= 0xCFF)) {
-	offset = addr - 0xCFC;
+	const unsigned offset = addr - 0xCFC;
+
 	if (PRINT_PORT && DEBUG_IO_TRACE())
 	    ErrorF(" cfg_outb(%#x, %2.2x)\n", PciCfg1Addr + offset, val);
-	pciWriteByte(Int10Current->Tag, OFFSET(PciCfg1Addr) + offset, val);
+	pci_device_cfg_write_u8(Int10Current->dev, val, OFFSET(PciCfg1Addr) + offset);
 	return 1;
     }
     return 0;

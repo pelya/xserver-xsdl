@@ -211,7 +211,7 @@ extern Bool Must_have_memory;
 			fclose(f);			\
 		  }					\
 		}
-#if defined(linux) && defined(i386)
+#if defined(linux) && defined(__i386__)
 #define LOG_ALLOC(_fun, _size, _ret)						\
 	{	unsigned long *from;						\
 		__asm__("movl %%ebp,%0" : /*OUT*/ "=r" (from) : /*IN*/ );	\

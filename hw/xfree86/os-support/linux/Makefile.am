@@ -11,7 +11,7 @@ PLATFORM_PCI_SUPPORT = \
        $(srcdir)/lnx_axp.c \
        $(srcdir)/../shared/xf86Axp.c
 
-liblinuxev56_la_CFLAGS = -mcpu=ev56
+liblinuxev56_la_CFLAGS = $(AM_CFLAGS) -mcpu=ev56
 
 liblinuxev56_la_SOURCES = lnx_ev56.c
 endif

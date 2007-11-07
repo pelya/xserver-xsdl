@@ -228,22 +228,12 @@ extern PMClose xf86OSPMOpen(void);
 #ifdef NEED_OS_RAC_PROTOS
 /* RAC-related privs */
 /* internal to os-support layer */
-resPtr xf86StdBusAccWindowsFromOS(void);
-resPtr xf86StdPciAccWindowsFromOS(void);
-resPtr xf86StdIsaAccWindowsFromOS(void);
 resPtr xf86StdAccResFromOS(resPtr ret);
 
 /* available to the common layer */
-resPtr xf86BusAccWindowsFromOS(void);
-resPtr xf86PciBusAccWindowsFromOS(void);
-#ifdef INCLUDE_UNUSED
-resPtr xf86IsaBusAccWindowsFromOS(void);
-#endif
 resPtr xf86AccResFromOS(resPtr ret);
 #endif /* NEED_OS_RAC_PROTOS */
 
-extern Bool xf86GetPciSizeFromOS(PCITAG tag, int indx, int* bits);
-extern Bool xf86GetPciOffsetFromOS(PCITAG tag, int indx, unsigned long* bases);
 extern unsigned long xf86GetOSOffsetFromPCI(PCITAG tag, int space, unsigned long base);
 
 extern void xf86MakeNewMapping(int, int, unsigned long, unsigned long, pointer);

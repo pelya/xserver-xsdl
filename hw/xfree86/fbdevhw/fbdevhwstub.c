@@ -1,4 +1,3 @@
-
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
@@ -23,13 +22,13 @@ fbdevHWFreeRec(ScrnInfoPtr pScrn)
 
 
 Bool
-fbdevHWProbe(pciVideoPtr pPci, char *device, char **namep)
+fbdevHWProbe(struct pci_device *pPci, char *device, char **namep)
 {
 	return FALSE;
 }
 
 Bool
-fbdevHWInit(ScrnInfoPtr pScrn, pciVideoPtr pPci, char *device)
+fbdevHWInit(ScrnInfoPtr pScrn, struct pci_device *pPci, char *device)
 {
 	xf86Msg(X_ERROR, "fbdevhw is not available on this platform\n");
 	return FALSE;

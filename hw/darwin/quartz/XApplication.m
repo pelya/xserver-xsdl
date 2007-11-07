@@ -2,7 +2,7 @@
 //  XApplication.m
 //
 //  Created by Andreas Monitzer on January 6, 2001.
-//
+
 /*
  * Copyright (c) 2001 Andreas Monitzer. All Rights Reserved.
  *
@@ -30,7 +30,6 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XFree86: $ */
 
 #import "XApplication.h"
 

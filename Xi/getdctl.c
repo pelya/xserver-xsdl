@@ -56,12 +56,9 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
@@ -250,10 +247,8 @@ ProcXGetDeviceControl(ClientPtr client)
     REQUEST_SIZE_MATCH(xGetDeviceControlReq);
 
     dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
-	SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0, BadDevice);
-	return Success;
-    }
+    if (dev == NULL)
+	return BadDevice;
 
     rep.repType = X_Reply;
     rep.RepType = X_GetDeviceControl;
@@ -262,29 +257,20 @@ ProcXGetDeviceControl(ClientPtr client)
 
     switch (stuff->control) {
     case DEVICE_RESOLUTION:
-	if (!dev->valuator) {
-	    SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0,
-			      BadMatch);
-	    return Success;
-	}
+	if (!dev->valuator)
+	    return BadMatch;
 	total_length = sizeof(xDeviceResolutionState) +
 	    (3 * sizeof(int) * dev->valuator->numAxes);
 	break;
     case DEVICE_ABS_CALIB:
-        if (!dev->absolute) {
-            SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0,
-                              BadMatch);
-            return Success;
-        }
+        if (!dev->absolute)
+	    return BadMatch;
 
         total_length = sizeof(xDeviceAbsCalibCtl);
         break;
     case DEVICE_ABS_AREA:
-        if (!dev->absolute) {
-            SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0,
-                              BadMatch);
-            return Success;
-        }
+        if (!dev->absolute)
+	    return BadMatch;
 
         total_length = sizeof(xDeviceAbsAreaCtl);
         break;
@@ -295,15 +281,12 @@ ProcXGetDeviceControl(ClientPtr client)
         total_length = sizeof(xDeviceEnableCtl);
         break;
     default:
-	SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0, BadValue);
-	return Success;
+	return BadValue;
     }
 
     buf = (char *)xalloc(total_length);
-    if (!buf) {
-	SendErrorToClient(client, IReqCode, X_GetDeviceControl, 0, BadAlloc);
-	return Success;
-    }
+    if (!buf)
+	return BadAlloc;
     savbuf = buf;
 
     switch (stuff->control) {

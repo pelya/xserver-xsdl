@@ -322,8 +322,6 @@ ProcXF86DRICreateContext(
 {
     xXF86DRICreateContextReply	rep;
     ScreenPtr pScreen;
-    VisualPtr visual;
-    int i;
 
     REQUEST(xXF86DRICreateContextReq);
     REQUEST_SIZE_MATCH(xXF86DRICreateContextReq);
@@ -337,19 +335,9 @@ ProcXF86DRICreateContext(
     rep.sequenceNumber = client->sequence;
 
     pScreen = screenInfo.screens[stuff->screen];
-    visual = pScreen->visuals;
-
-    /* Find the requested X visual */
-    for (i = 0; i < pScreen->numVisuals; i++, visual++)
-	if (visual->vid == stuff->visual)
-	    break;
-    if (i == pScreen->numVisuals) {
-	/* No visual found */
-	return BadValue;
-    }
 
     if (!DRICreateContext( pScreen,
-			   visual,
+			   NULL,
 			   stuff->context,
 			   (drm_context_t *)&rep.hHWContext)) {
 	return BadValue;

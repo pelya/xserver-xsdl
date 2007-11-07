@@ -257,7 +257,7 @@ xf86_crtc_hide_cursor (xf86CrtcPtr crtc)
     }
 }
 
-void
+_X_EXPORT void
 xf86_hide_cursors (ScrnInfoPtr scrn)
 {
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -283,7 +283,7 @@ xf86_crtc_show_cursor (xf86CrtcPtr crtc)
     }
 }
 
-void
+_X_EXPORT void
 xf86_show_cursors (ScrnInfoPtr scrn)
 {
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -448,7 +448,10 @@ xf86_use_hw_cursor (ScreenPtr screen, CursorPtr cursor)
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     xf86CursorInfoPtr	cursor_info = xf86_config->cursor_info;
 
+    if (xf86_config->cursor)
+	FreeCursor (xf86_config->cursor, None);
     xf86_config->cursor = cursor;
+    ++cursor->refcnt;
     
     if (cursor->bits->width > cursor_info->MaxWidth ||
 	cursor->bits->height> cursor_info->MaxHeight)
@@ -464,7 +467,10 @@ xf86_use_hw_cursor_argb (ScreenPtr screen, CursorPtr cursor)
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     xf86CursorInfoPtr	cursor_info = xf86_config->cursor_info;
     
+    if (xf86_config->cursor)
+	FreeCursor (xf86_config->cursor, None);
     xf86_config->cursor = cursor;
+    ++cursor->refcnt;
     
     /* Make sure ARGB support is available */
     if ((cursor_info->Flags & HARDWARE_CURSOR_ARGB) == 0)
@@ -523,7 +529,7 @@ xf86_load_cursor_argb (ScrnInfoPtr scrn, CursorPtr cursor)
     }
 }
 
-Bool
+_X_EXPORT Bool
 xf86_cursors_init (ScreenPtr screen, int max_width, int max_height, int flags)
 {
     ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
@@ -574,7 +580,7 @@ xf86_cursors_init (ScreenPtr screen, int max_width, int max_height, int flags)
  * Reloads cursor images as needed, then adjusts cursor positions
  */
 
-void
+_X_EXPORT void
 xf86_reload_cursors (ScreenPtr screen)
 {
     ScrnInfoPtr		scrn;
@@ -617,7 +623,7 @@ xf86_reload_cursors (ScreenPtr screen)
 /**
  * Clean up CRTC-based cursor code
  */
-void
+_X_EXPORT void
 xf86_cursors_fini (ScreenPtr screen)
 {
     ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
@@ -632,5 +638,10 @@ xf86_cursors_fini (ScreenPtr screen)
     {
 	xfree (xf86_config->cursor_image);
 	xf86_config->cursor_image = NULL;
+    }
+    if (xf86_config->cursor)
+    {
+	FreeCursor (xf86_config->cursor, None);
+	xf86_config->cursor = NULL;
     }
 }

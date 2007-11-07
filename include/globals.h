@@ -16,7 +16,6 @@ extern Bool screenSaverSuspended;
 #endif
 
 extern char *defaultFontPath;
-extern char *rgbPath;
 extern int monitorResolution;
 extern Bool loadableFonts;
 extern int defaultColorVisualClass;

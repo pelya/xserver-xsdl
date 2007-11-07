@@ -259,11 +259,7 @@ typedef struct _XAAStateWrapRec {
 				       XAACacheInfoPtr pCache);
    GetImageProcPtr GetImage;
    GetSpansProcPtr GetSpans;
-   PaintWindowBackgroundProcPtr PaintWindowBackground;
-   PaintWindowBorderProcPtr PaintWindowBorder;
    CopyWindowProcPtr CopyWindow;
-   BackingStoreSaveAreasProcPtr SaveAreas;
-   BackingStoreRestoreAreasProcPtr RestoreAreas;
 #ifdef RENDER
    Bool (*SetupForCPUToScreenAlphaTexture2)(ScrnInfoPtr pScrn, int op,
                                            CARD16 red, CARD16 green,
@@ -1451,26 +1447,6 @@ static void XAAStateWrapGetSpans(DrawablePtr pDrawable, int wMax, DDXPointPtr pp
 			   pwidth, nspans, pdstStart);
 }
 
-static void XAAStateWrapPaintWindowBackground(WindowPtr pWindow, RegionPtr pRegion,
-					      int what)
-{
-   GET_STATEPRIV_SCREEN(pWindow->drawable.pScreen);
-   STATE_CHECK_SP(pStatePriv);
-
-   (*pStatePriv->PaintWindowBackground)(pWindow, pRegion,
-					what);
-}
-
-static void XAAStateWrapPaintWindowBorder(WindowPtr pWindow, RegionPtr pRegion, 
-					  int what)
-{
-   GET_STATEPRIV_SCREEN(pWindow->drawable.pScreen);
-   STATE_CHECK_SP(pStatePriv);
-
-   (*pStatePriv->PaintWindowBorder)(pWindow, pRegion, 
-				    what);
-}
-
 static void XAAStateWrapCopyWindow(WindowPtr pWindow, DDXPointRec ptOldOrg, 
 				   RegionPtr prgnSrc)
 {
@@ -1479,26 +1455,6 @@ static void XAAStateWrapCopyWindow(WindowPtr pWindow, DDXPointRec ptOldOrg,
 
    (*pStatePriv->CopyWindow)(pWindow, ptOldOrg, 
 			     prgnSrc);
-}
-
-static void XAAStateWrapSaveAreas(PixmapPtr pBackingPixmap, RegionPtr pObscured, int x, 
-				  int y, WindowPtr pWin)
-{
-   GET_STATEPRIV_SCREEN(pBackingPixmap->drawable.pScreen);
-   STATE_CHECK_SP(pStatePriv);
-
-   (*pStatePriv->SaveAreas)(pBackingPixmap, pObscured, x, 
-			    y, pWin);
-}
-
-static void XAAStateWrapRestoreAreas(PixmapPtr pBackingPixmap, RegionPtr pExposed,
-				     int x, int y, WindowPtr pWin)
-{
-   GET_STATEPRIV_SCREEN(pBackingPixmap->drawable.pScreen);
-   STATE_CHECK_SP(pStatePriv);
-
-   (*pStatePriv->RestoreAreas)(pBackingPixmap, pExposed,
-			       x, y, pWin);
 }
 
 #ifdef RENDER
@@ -1671,11 +1627,7 @@ XAAInitStateWrap(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
    XAA_STATE_WRAP(WriteColor8x8PatternToCache);
    XAA_STATE_WRAP(GetImage);
    XAA_STATE_WRAP(GetSpans);
-   XAA_STATE_WRAP(PaintWindowBackground);
-   XAA_STATE_WRAP(PaintWindowBorder);
    XAA_STATE_WRAP(CopyWindow);
-   XAA_STATE_WRAP(SaveAreas);
-   XAA_STATE_WRAP(RestoreAreas);
 #ifdef RENDER
    XAA_STATE_WRAP(SetupForCPUToScreenAlphaTexture2);
    XAA_STATE_WRAP(SetupForCPUToScreenTexture2);

@@ -59,7 +59,7 @@ GetScratchPixmapHeader(ScreenPtr pScreen, int width, int height, int depth,
 	pScreen->pScratchPixmap = NULL;
     else
 	/* width and height of 0 means don't allocate any pixmap data */
-	pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, depth);
+	pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, depth, 0);
 
     if (pPixmap) {
 	if ((*pScreen->ModifyPixmapHeader)(pPixmap, width, height, depth,

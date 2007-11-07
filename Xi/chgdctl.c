@@ -56,14 +56,11 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>	/* control constants */
 #include "XIstubs.h"
 
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 #include "exevents.h"
@@ -153,11 +150,8 @@ ProcXChangeDeviceControl(ClientPtr client)
 	    a = &dev->valuator->axes[r->first_valuator];
 	    for (i = 0; i < r->num_valuators; i++)
 		if (*(resolution + i) < (a + i)->min_resolution ||
-		    *(resolution + i) > (a + i)->max_resolution) {
-		    SendErrorToClient(client, IReqCode,
-				      X_ChangeDeviceControl, 0, BadValue);
-		    return Success;
-		}
+		    *(resolution + i) > (a + i)->max_resolution)
+		    return BadValue;
 	    for (i = 0; i < r->num_valuators; i++)
 		(a++)->resolution = *resolution++;
 
@@ -269,11 +263,8 @@ out:
 
         WriteReplyToClient(client, sizeof(xChangeDeviceControlReply), &rep);
     }
-    else {
-        SendErrorToClient(client, IReqCode, X_ChangeDeviceControl, 0, ret);
-    }
 
-    return Success;
+    return ret;
 }
 
 /***********************************************************************

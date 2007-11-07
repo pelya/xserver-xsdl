@@ -24,8 +24,8 @@
 #ifndef _PICTURESTR_H_
 #define _PICTURESTR_H_
 
-#include "glyphstr.h"
 #include "scrnintstr.h"
+#include "glyphstr.h"
 #include "resource.h"
 
 typedef struct _DirectFormat {
@@ -345,7 +345,7 @@ typedef struct _PictureScreen {
     ValidatePictureProcPtr	ValidatePicture;
 
     CompositeProcPtr		Composite;
-    GlyphsProcPtr		Glyphs;
+    GlyphsProcPtr		Glyphs; /* unused */
     CompositeRectsProcPtr	CompositeRects;
 
     DestroyWindowProcPtr	DestroyWindow;
@@ -449,7 +449,7 @@ void
 PictureStoreColors (ColormapPtr pColormap, int ndef, xColorItem *pdef);
 
 Bool
-PictureInitIndexedFormats (ScreenPtr pScreen);
+PictureInitIndexedFormat (ScreenPtr pScreen, PictFormatPtr format);
 
 Bool
 PictureSetSubpixelOrder (ScreenPtr pScreen, int subpixel);

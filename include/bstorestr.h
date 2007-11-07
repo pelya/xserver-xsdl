@@ -45,13 +45,11 @@ typedef    PixmapPtr (* BackingStoreGetImagePixmapProcPtr)(void);
 typedef    PixmapPtr (* BackingStoreGetSpansPixmapProcPtr)(void);
 
 typedef struct _BSFuncs {
-
 	BackingStoreSaveAreasProcPtr SaveAreas;
 	BackingStoreRestoreAreasProcPtr RestoreAreas;
 	BackingStoreSetClipmaskRgnProcPtr SetClipmaskRgn;
 	BackingStoreGetImagePixmapProcPtr GetImagePixmap;
 	BackingStoreGetSpansPixmapProcPtr GetSpansPixmap;
-
 } BSFuncRec, *BSFuncPtr;
 
 #endif /* _BSTORESTR_H_ */

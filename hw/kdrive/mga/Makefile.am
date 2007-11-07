@@ -24,8 +24,7 @@ MGA_LIBS =						\
 
 Xmga_LDADD = \
 	$(MGA_LIBS)					\
-	@KDRIVE_LIBS@                                  \
-	@XSERVER_LIBS@
+	@KDRIVE_LIBS@
 
 Xmga_DEPENDENCIES =	\
 	libmga.a 					\

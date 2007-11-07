@@ -81,13 +81,16 @@ Xdmx_SOURCES = dmx.c \
 #Xdmx_SOURCES += fakecw.c
 #endif
 
+XDMX_LIBS = \
+	@XDMX_LIBS@ \
+	$(GLX_LIBS) \
+        input/libdmxinput.a \
+        config/libdmxconfig.a \
+	$(XSERVER_LIBS)
+
 Xdmx_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
-Xdmx_LDADD = $(XORG_CORE_LIBS) \
-             $(XDMX_LIBS) \
-             $(GLX_LIBS) \
-             input/libdmxinput.a \
-             config/libdmxconfig.a \
-             @DMXMODULES_LIBS@
+Xdmx_DEPENDENCIES= $(XDMX_LIBS)
+Xdmx_LDADD = $(XDMX_LIBS) $(XDMX_SYS_LIBS) $(XSERVER_SYS_LIBS)
 
 # Man page
 appmandir = $(APP_MAN_DIR)

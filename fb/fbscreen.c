@@ -122,8 +122,6 @@ fbSetupScreen(ScreenPtr	pScreen,
     pScreen->ChangeWindowAttributes = fbChangeWindowAttributes;
     pScreen->RealizeWindow = fbMapWindow;
     pScreen->UnrealizeWindow = fbUnmapWindow;
-    pScreen->PaintWindowBackground = fbPaintWindow;
-    pScreen->PaintWindowBorder = fbPaintWindow;
     pScreen->CopyWindow = fbCopyWindow;
     pScreen->CreatePixmap = fbCreatePixmap;
     pScreen->DestroyPixmap = fbDestroyPixmap;
@@ -142,12 +140,6 @@ fbSetupScreen(ScreenPtr	pScreen,
     pScreen->GetWindowPixmap = _fbGetWindowPixmap;
     pScreen->SetWindowPixmap = _fbSetWindowPixmap;
 
-    pScreen->BackingStoreFuncs.SaveAreas = fbSaveAreas;
-    pScreen->BackingStoreFuncs.RestoreAreas = fbRestoreAreas;
-    pScreen->BackingStoreFuncs.SetClipmaskRgn = 0;
-    pScreen->BackingStoreFuncs.GetImagePixmap = 0;
-    pScreen->BackingStoreFuncs.GetSpansPixmap = 0;
-    
     return TRUE;
 }
 

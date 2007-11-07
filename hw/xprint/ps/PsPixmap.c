@@ -91,7 +91,8 @@ PsCreatePixmap(
   ScreenPtr pScreen,
   int       width,
   int       height,
-  int       depth)
+  int       depth,
+  unsigned  usage_hint)
 {
   PixmapPtr pPixmap;
 

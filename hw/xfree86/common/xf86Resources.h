@@ -133,7 +133,5 @@ extern resRange res8514Shared[];
 	{ResExcIoSparse | ResBus, 0x0200, 0x0200},\
         {ResExcMemBlock | ResBus, 0xA0000,0xFFFFF}
 
-extern resRange PciAvoid[];
-
 #define RES_UNDEFINED NULL
 #endif

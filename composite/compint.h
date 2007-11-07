@@ -123,7 +123,6 @@ typedef struct _CompScreen {
     DestroyWindowProcPtr	DestroyWindow;
     RealizeWindowProcPtr	RealizeWindow;
     UnrealizeWindowProcPtr	UnrealizeWindow;
-    PaintWindowProcPtr		PaintWindowBackground;
     ClipNotifyProcPtr		ClipNotify;
     /*
      * Called from ConfigureWindow, these
@@ -142,6 +141,11 @@ typedef struct _CompScreen {
      * Colormaps for new visuals better not get installed
      */
     InstallColormapProcPtr	InstallColormap;
+
+    /*
+     * Fake backing store via automatic redirection
+     */
+    ChangeWindowAttributesProcPtr ChangeWindowAttributes;
 
     ScreenBlockHandlerProcPtr	BlockHandler;
     CloseScreenProcPtr		CloseScreen;
@@ -232,6 +236,9 @@ compCheckTree (ScreenPtr pScreen);
 #define compCheckTree(s)
 #endif
 
+PictFormatPtr
+compWindowFormat (WindowPtr pWin);
+
 void
 compSetPixmap (WindowPtr pWin, PixmapPtr pPixmap);
 
@@ -246,9 +253,6 @@ compRealizeWindow (WindowPtr pWin);
 
 Bool
 compUnrealizeWindow (WindowPtr pWin);
-
-void
-compPaintWindowBackground (WindowPtr pWin, RegionPtr pRegion, int what);
 
 void
 compClipNotify (WindowPtr pWin, int dx, int dy);

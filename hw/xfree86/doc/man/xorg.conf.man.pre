@@ -293,15 +293,50 @@ server searches for font databases.
 Multiple
 .B FontPath
 entries may be specified, and they will be concatenated to build up the
-fontpath used by the server.  Font path elements may be either absolute
-directory paths, or a font server identifier.
-Font server identifiers have the form:
+fontpath used by the server.  Font path elements can be absolute
+directory paths, catalogue directories or a font server identifier. The
+formats of the later two are explained below:
 .PP
-.RS 11
+.RS 7
+Catalogue directories:
+.PP
+.RS 4
+Catalogue directories can be specified using the prefix \fBcatalogue:\fR
+before the directory name. The directory can then be populated with
+symlinks pointing to the real font directories, using the following
+syntax in the symlink name:
+.PP
+.RS 4
+.IR <identifier> : [attribute]: pri= <priority>
+.RE
+.PP
+where
+.I <identifier>
+is an alphanumeric identifier,
+.I [attribute]
+is an attribute wich will be passed to the underlying FPE and
+.I <priority>
+is a number used to order the fontfile FPEs. Examples:
+.PP
+.RS 4
+.nf
+.I 75dpi:unscaled:pri=20  -> /usr/share/X11/fonts/75dpi
+.I gscript:pri=60 -> /usr/share/fonts/default/ghostscript
+.I misc:unscaled:pri=10 \-> /usr/share/X11/fonts/misc
+.fi
+.PP
+.RE .RE .RE
+.PP
+.RS 7
+Font server identifiers:
+.PP
+.RS 4
+Font server identifiers have the form:
+.RS 4
+.PP
 .IR <trans> / <hostname> : <port\-number>
 .RE
 .PP
-.RS 7
 where
 .I <trans>
 is the transport type to use to connect to the font server (e.g.,
@@ -313,10 +348,11 @@ for a TCP/IP connection),
 is the hostname of the machine running the font server, and
 .I <port\-number>
 is the port number that the font server is listening on (usually 7100).
+.RE
 .PP
 When this entry is not specified in the config file, the server falls back
 to the compiled\-in default font path, which contains the following
-font path elements:
+font path elements (which can be set inside a catalogue directory):
 .PP
 .RS 4
 .nf
@@ -337,7 +373,6 @@ The recommended font path contains the following font path elements:
 .I __projectroot__/lib/X11/fonts/75dpi/:unscaled
 .I __projectroot__/lib/X11/fonts/100dpi/:unscaled
 .I __projectroot__/lib/X11/fonts/Type1/
-.I __projectroot__/lib/X11/fonts/Speedo/
 .I __projectroot__/lib/X11/fonts/75dpi/
 .I __projectroot__/lib/X11/fonts/100dpi/
 .fi
@@ -346,20 +381,6 @@ The recommended font path contains the following font path elements:
 Font path elements that are found to be invalid are removed from the
 font path when the server starts up.
 .RE
-.TP 7
-.BI "RGBPath \*q" path \*q
-sets the path name for the RGB color database.
-When this entry is not specified in the config file, the server falls back
-to the compiled\-in default RGB path, which is:
-.PP
-.RS 11
-.I __projectroot__/share/X11/rgb
-.RE
-.PP
-Note that an implicit
-.I .txt
-is added to this path if the server was compiled to use text rather than
-binary format RGB color databases.
 .TP 7
 .BI "ModulePath \*q" path \*q
 sets the search path for loadable __xservername__ server modules.
@@ -664,6 +685,17 @@ the builtin handler will be used.
 .BI "Option \*qAIGLX\*q \*q" boolean \*q
 enable or disable AIGLX. AIGLX is enabled by default.
 .TP 7
+.BI "Option \*qGlxVisuals\*q \*q" string \*q
+This option controls how many GLX visuals the GLX modules sets up.
+The default value is
+.BR "typical" ,
+which will setup up a typical subset of
+the GLXFBConfigs provided by the driver as GLX visuals.  Other options are
+.BR "minimal" ,
+which will set up the minimal set allowed by the GLX specification and
+.BR "all"
+which will setup GLX visuals for all GLXFBConfigs.
+.TP 7
 .BI "Option \*qUseDefaultFontPath\*q \*q" boolean \*q
 Include the default font path even if other paths are specified in
 xorg.conf. If enabled, other font paths are included as well. Enabled by
@@ -700,10 +732,10 @@ The standard name is case\-sensitive, and does not include the \(lqlib\(rq
 prefix, or the \(lq.a\(rq, \(lq.o\(rq, or \(lq.so\(rq suffixes.
 .PP
 .RS 7
-Example: the Type 1 font rasteriser can be loaded with the following entry:
+Example: the FreeType font rasteriser can be loaded with the following entry:
 .PP
 .RS 4
-.B "Load \*qtype1\*q"
+.B "Load \*qfreetype\*q"
 .RE
 .RE
 .TP 7

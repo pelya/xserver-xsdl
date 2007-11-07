@@ -40,10 +40,14 @@
 #include <string.h>
 #include <windowstr.h>
 #include <os.h>
+#include <colormapst.h>
 
 #include "glxserver.h"
 #include "glxutil.h"
 #include "glxext.h"
+#include "glcontextmodes.h"
+
+static int glxScreenPrivateIndex;
 
 const char GLServerVersion[] = "1.4";
 static const char GLServerExtensions[] = 
@@ -179,36 +183,24 @@ static char GLXServerExtensions[] =
 			"GLX_MESA_copy_sub_buffer "
 			;
 
-__GLXscreen **__glXActiveScreens;
-
-__GLXSwapBarrierExtensionFuncs *__glXSwapBarrierFuncs = NULL;
-static int __glXNumSwapBarrierFuncs = 0;
-__GLXHyperpipeExtensionFuncs *__glXHyperpipeFuncs = NULL;
-static int __glXNumHyperpipeFuncs = 0;
-
-__GLXscreen *__glXgetActiveScreen(int num) {
-	return __glXActiveScreens[num];
-}
-
-
 /*
 ** This hook gets called when a window moves or changes size.
 */
-static Bool PositionWindow(WindowPtr pWin, int x, int y)
+static Bool glxPositionWindow(WindowPtr pWin, int x, int y)
 {
     ScreenPtr pScreen;
-    __GLXcontext *glxc;
     __GLXdrawable *glxPriv;
     Bool ret;
+    __GLXscreen *pGlxScreen;
 
     /*
     ** Call wrapped position window routine
     */
     pScreen = pWin->drawable.pScreen;
-    pScreen->PositionWindow =
-	__glXActiveScreens[pScreen->myNum]->WrappedPositionWindow;
+    pGlxScreen = glxGetScreen(pScreen);
+    pScreen->PositionWindow = pGlxScreen->PositionWindow;
     ret = (*pScreen->PositionWindow)(pWin, x, y);
-    pScreen->PositionWindow = PositionWindow;
+    pScreen->PositionWindow = glxPositionWindow;
 
     /*
     ** Tell all contexts rendering into this window that the window size
@@ -233,16 +225,6 @@ static Bool PositionWindow(WindowPtr pWin, int x, int y)
 	ret = False;
     }
 
-    /* mark contexts as needing resize */
-
-    for (glxc = glxPriv->drawGlxc; glxc; glxc = glxc->nextDrawPriv) {
-	glxc->pendingState |= __GLX_PENDING_RESIZE;
-    }
-
-    for (glxc = glxPriv->readGlxc; glxc; glxc = glxc->nextReadPriv) {
-	glxc->pendingState |= __GLX_PENDING_RESIZE;
-    }
-
     return ret;
 }
 
@@ -259,110 +241,320 @@ static Bool PositionWindow(WindowPtr pWin, int x, int y)
 
 void __glXHyperpipeInit(int screen, __GLXHyperpipeExtensionFuncs *funcs)
 {
-    if (__glXNumHyperpipeFuncs < screen + 1) {
-        __glXHyperpipeFuncs = xrealloc(__glXHyperpipeFuncs,
-                                           (screen+1) * sizeof(__GLXHyperpipeExtensionFuncs));
-        __glXNumHyperpipeFuncs = screen + 1;
-    }
+    __GLXscreen *pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
 
-    __glXHyperpipeFuncs[screen].queryHyperpipeNetworkFunc =
-        *funcs->queryHyperpipeNetworkFunc;
-    __glXHyperpipeFuncs[screen].queryHyperpipeConfigFunc =
-        *funcs->queryHyperpipeConfigFunc;
-    __glXHyperpipeFuncs[screen].destroyHyperpipeConfigFunc =
-        *funcs->destroyHyperpipeConfigFunc;
-    __glXHyperpipeFuncs[screen].hyperpipeConfigFunc =
-        *funcs->hyperpipeConfigFunc;
+    pGlxScreen->hyperpipeFuncs = funcs;
 }
 
 void __glXSwapBarrierInit(int screen, __GLXSwapBarrierExtensionFuncs *funcs)
 {
-    if (__glXNumSwapBarrierFuncs < screen + 1) {
-        __glXSwapBarrierFuncs = xrealloc(__glXSwapBarrierFuncs,
-                                           (screen+1) * sizeof(__GLXSwapBarrierExtensionFuncs));
-        __glXNumSwapBarrierFuncs = screen + 1;
+    __GLXscreen *pGlxScreen = glxGetScreen(screenInfo.screens[screen]);
+
+    pGlxScreen->swapBarrierFuncs = funcs;
+}
+
+static Bool
+glxCloseScreen (int index, ScreenPtr pScreen)
+{
+    __GLXscreen *pGlxScreen = glxGetScreen(pScreen);
+
+    pScreen->CloseScreen = pGlxScreen->CloseScreen;
+    pScreen->PositionWindow = pGlxScreen->PositionWindow;
+
+    pGlxScreen->destroy(pGlxScreen);
+
+    return pScreen->CloseScreen(index, pScreen);
+}
+
+__GLXscreen *
+glxGetScreen(ScreenPtr pScreen)
+{
+    return (__GLXscreen *) pScreen->devPrivates[glxScreenPrivateIndex].ptr;
+}
+
+void GlxSetVisualConfigs(int nconfigs, 
+                         __GLXvisualConfig *configs, void **privates)
+{
+    /* We keep this stub around for the DDX drivers that still
+     * call it. */
+}
+
+static XID
+findVisualForConfig(ScreenPtr pScreen, __GLcontextModes *m)
+{
+    int i;
+
+    for (i = 0; i < pScreen->numVisuals; i++) {
+	if (_gl_convert_to_x_visual_type(m->visualType) == pScreen->visuals[i].class)
+	    return pScreen->visuals[i].vid;
     }
 
-    __glXSwapBarrierFuncs[screen].bindSwapBarrierFunc =
-        funcs->bindSwapBarrierFunc;
-    __glXSwapBarrierFuncs[screen].queryMaxSwapBarriersFunc =
-        funcs->queryMaxSwapBarriersFunc;
+    return 0;
 }
 
-static __GLXprovider *__glXProviderStack;
+/* This code inspired by composite/compinit.c.  We could move this to
+ * mi/ and share it with composite.*/
 
-void GlxPushProvider(__GLXprovider *provider)
+static VisualPtr
+AddScreenVisuals(ScreenPtr pScreen, int count, int d)
 {
-    provider->next = __glXProviderStack;
-    __glXProviderStack = provider;
+    XID		*installedCmaps, *vids, vid;
+    int		 numInstalledCmaps, numVisuals, i, j;
+    VisualPtr	 visuals;
+    ColormapPtr	 installedCmap;
+    DepthPtr	 depth;
+
+    depth = NULL;
+    for (i = 0; i < pScreen->numDepths; i++) {
+	if (pScreen->allowedDepths[i].depth == d) {
+	    depth = &pScreen->allowedDepths[i];
+	    break;
+	}
+    }
+    if (depth == NULL)
+	return NULL;
+
+    /* Find the installed colormaps */
+    installedCmaps = xalloc (pScreen->maxInstalledCmaps * sizeof (XID));
+    if (!installedCmaps)
+	return NULL;
+
+    numInstalledCmaps = pScreen->ListInstalledColormaps(pScreen, installedCmaps);
+
+    /* realloc the visual array to fit the new one in place */
+    numVisuals = pScreen->numVisuals;
+    visuals = xrealloc(pScreen->visuals, (numVisuals + count) * sizeof(VisualRec));
+    if (!visuals) {
+	xfree(installedCmaps);
+	return NULL;
+    }
+
+    vids = xrealloc(depth->vids, (depth->numVids + count) * sizeof(XID));
+    if (vids == NULL) {
+	xfree(installedCmaps);
+	xfree(visuals);
+	return NULL;
+    }
+
+    /*
+     * Fix up any existing installed colormaps -- we'll assume that
+     * the only ones created so far have been installed.  If this
+     * isn't true, we'll have to walk the resource database looking
+     * for all colormaps.
+     */
+    for (i = 0; i < numInstalledCmaps; i++) {
+	installedCmap = LookupIDByType (installedCmaps[i], RT_COLORMAP);
+	if (!installedCmap)
+	    continue;
+	j = installedCmap->pVisual - pScreen->visuals;
+	installedCmap->pVisual = &visuals[j];
+    }
+
+    xfree(installedCmaps);
+
+    for (i = 0; i < count; i++) {
+	vid = FakeClientID(0);
+	visuals[pScreen->numVisuals + i].vid = vid;
+	vids[depth->numVids + i] = vid;
+    }
+
+    pScreen->visuals = visuals;
+    pScreen->numVisuals += count;
+    depth->vids = vids;
+    depth->numVids += count;
+
+    /* Return a pointer to the first of the added visuals. */ 
+    return pScreen->visuals + pScreen->numVisuals - count;
 }
 
-void __glXScreenInit(__GLXscreen *screen, ScreenPtr pScreen)
+static int
+findFirstSet(unsigned int v)
 {
-    screen->pScreen       = pScreen;
-    screen->GLextensions  = xstrdup(GLServerExtensions);
-    screen->GLXvendor     = xstrdup(GLXServerVendorName);
-    screen->GLXversion    = xstrdup(GLXServerVersion);
-    screen->GLXextensions = xstrdup(GLXServerExtensions);
+    int i;
 
-    screen->WrappedPositionWindow = pScreen->PositionWindow;
-    pScreen->PositionWindow = PositionWindow;
+    for (i = 0; i < 32; i++)
+	if (v & (1 << i))
+	    return i;
 
-    __glXScreenInitVisuals(screen);
+    return -1;
 }
 
-void
-__glXScreenDestroy(__GLXscreen *screen)
+static void
+initGlxVisual(VisualPtr visual, __GLcontextModes *config)
+{
+    config->visualID = visual->vid;
+    visual->class = _gl_convert_to_x_visual_type(config->visualType);
+    visual->bitsPerRGBValue = config->redBits;
+    visual->ColormapEntries = 1 << config->redBits;
+    visual->nplanes = config->redBits + config->greenBits + config->blueBits;
+
+    visual->redMask = config->redMask;
+    visual->greenMask = config->greenMask;
+    visual->blueMask = config->blueMask;
+    visual->offsetRed = findFirstSet(config->redMask);
+    visual->offsetGreen = findFirstSet(config->greenMask);
+    visual->offsetBlue = findFirstSet(config->blueMask);
+}
+
+typedef struct {
+    GLboolean doubleBuffer;
+    GLboolean depthBuffer;
+} FBConfigTemplateRec, *FBConfigTemplatePtr;
+
+static __GLcontextModes *
+pickFBConfig(__GLXscreen *pGlxScreen, FBConfigTemplatePtr template, int class)
+{
+    __GLcontextModes *config;
+
+    for (config = pGlxScreen->fbconfigs; config != NULL; config = config->next) {
+	if (config->visualRating != GLX_NONE)
+	    continue;
+	if (_gl_convert_to_x_visual_type(config->visualType) != class)
+	    continue;
+	if ((config->doubleBufferMode > 0) != template->doubleBuffer)
+	    continue;
+	if ((config->depthBits > 0) != template->depthBuffer)
+	    continue;
+
+	return config;
+    }
+
+    return NULL;
+}
+
+static void
+addMinimalSet(__GLXscreen *pGlxScreen)
+{
+    __GLcontextModes *config;
+    VisualPtr visuals;
+    int i;
+    FBConfigTemplateRec best = { GL_TRUE, GL_TRUE };
+    FBConfigTemplateRec minimal = { GL_FALSE, GL_FALSE };
+
+    pGlxScreen->visuals = xcalloc(pGlxScreen->pScreen->numVisuals,
+				  sizeof (__GLcontextModes *));
+    if (pGlxScreen->visuals == NULL) {
+	ErrorF("Failed to allocate for minimal set of GLX visuals\n");
+	return;
+    }
+
+    pGlxScreen->numVisuals = pGlxScreen->pScreen->numVisuals;
+    visuals = pGlxScreen->pScreen->visuals;
+    for (i = 0; i < pGlxScreen->numVisuals; i++) {
+	if (visuals[i].nplanes == 32)
+	    config = pickFBConfig(pGlxScreen, &minimal, visuals[i].class);
+	else
+	    config = pickFBConfig(pGlxScreen, &best, visuals[i].class);
+	if (config == NULL)
+	    config = pGlxScreen->fbconfigs;
+	pGlxScreen->visuals[i] = config;
+	config->visualID = visuals[i].vid;
+    }
+
+}
+
+static void
+addTypicalSet(__GLXscreen *pGlxScreen)
+{
+    addMinimalSet(pGlxScreen);
+}
+
+static void
+addFullSet(__GLXscreen *pGlxScreen)
+{
+    __GLcontextModes *config;
+    VisualPtr visuals;
+    int i, depth;
+
+    pGlxScreen->visuals =
+	xcalloc(pGlxScreen->numFBConfigs, sizeof (__GLcontextModes *));
+    if (pGlxScreen->visuals == NULL) {
+	ErrorF("Failed to allocate for full set of GLX visuals\n");
+	return;
+    }
+
+    config = pGlxScreen->fbconfigs;
+    depth = config->redBits + config->greenBits + config->blueBits;
+    visuals = AddScreenVisuals(pGlxScreen->pScreen, pGlxScreen->numFBConfigs, depth);
+    if (visuals == NULL) {
+	xfree(pGlxScreen->visuals);
+	return;
+    }
+
+    pGlxScreen->numVisuals = pGlxScreen->numFBConfigs;
+    for (i = 0, config = pGlxScreen->fbconfigs; config; config = config->next, i++) {
+	pGlxScreen->visuals[i] = config;
+	initGlxVisual(&visuals[i], config);
+    }
+}
+
+static int glxVisualConfig = GLX_ALL_VISUALS;
+
+void GlxSetVisualConfig(int config)
+{
+    glxVisualConfig = config;
+}
+
+void __glXScreenInit(__GLXscreen *pGlxScreen, ScreenPtr pScreen)
+{
+    static int glxGeneration;
+    __GLcontextModes *m;
+    int i;
+
+    if (glxGeneration != serverGeneration)
+    {
+	glxScreenPrivateIndex = AllocateScreenPrivateIndex ();
+	if (glxScreenPrivateIndex == -1)
+	    return;
+
+	glxGeneration = serverGeneration;
+    }
+
+    pGlxScreen->pScreen       = pScreen;
+    pGlxScreen->GLextensions  = xstrdup(GLServerExtensions);
+    pGlxScreen->GLXvendor     = xstrdup(GLXServerVendorName);
+    pGlxScreen->GLXversion    = xstrdup(GLXServerVersion);
+    pGlxScreen->GLXextensions = xstrdup(GLXServerExtensions);
+
+    pGlxScreen->PositionWindow = pScreen->PositionWindow;
+    pScreen->PositionWindow = glxPositionWindow;
+ 
+    pGlxScreen->CloseScreen = pScreen->CloseScreen;
+    pScreen->CloseScreen = glxCloseScreen;
+
+    i = 0;
+    for (m = pGlxScreen->fbconfigs; m != NULL; m = m->next) {
+	m->fbconfigID = FakeClientID(0);
+	m->visualID = findVisualForConfig(pScreen, m);
+	i++;
+    }
+    pGlxScreen->numFBConfigs = i;
+
+    /* Select a subset of fbconfigs that we send to the client when it
+     * asks for the glx visuals.  All the fbconfigs here have a valid
+     * value for visual ID and each visual ID is only present once.
+     * This runs before composite adds its extra visual so we have to
+     * remember the number of visuals here.*/
+
+    switch (glxVisualConfig) {
+    case GLX_MINIMAL_VISUALS:
+	addMinimalSet(pGlxScreen);
+	break;
+    case GLX_TYPICAL_VISUALS:
+	addTypicalSet(pGlxScreen);
+	break;
+    case GLX_ALL_VISUALS:
+	addFullSet(pGlxScreen);
+	break;
+    }
+
+    pScreen->devPrivates[glxScreenPrivateIndex].ptr = (pointer) pGlxScreen;
+}
+ 
+void __glXScreenDestroy(__GLXscreen *screen)
 {
     xfree(screen->GLXvendor);
     xfree(screen->GLXversion);
     xfree(screen->GLXextensions);
     xfree(screen->GLextensions);
-}
-
-void __glXInitScreens(void)
-{
-    GLint i;
-    ScreenPtr pScreen;
-    __GLXprovider *p;
-    size_t size;
-
-    /*
-    ** This alloc has to work or else the server might as well core dump.
-    */
-    size = screenInfo.numScreens * sizeof(__GLXscreen *);
-    __glXActiveScreens = xalloc(size);
-    memset(__glXActiveScreens, 0, size);
-    
-    for (i = 0; i < screenInfo.numScreens; i++) {
-	pScreen = screenInfo.screens[i];
-
-	for (p = __glXProviderStack; p != NULL; p = p->next) {
-	    __glXActiveScreens[i] = p->screenProbe(pScreen);
-	    if (__glXActiveScreens[i] != NULL) {
-		LogMessage(X_INFO,
-			   "GLX: Initialized %s GL provider for screen %d\n",
-			   p->name, i);
-	        break;
-	    }
-	}
-    }
-}
-
-void __glXResetScreens(void)
-{
-  int i;
-
-  for (i = 0; i < screenInfo.numScreens; i++)
-      if (__glXActiveScreens[i])
-	  __glXActiveScreens[i]->destroy(__glXActiveScreens[i]);
-
-    xfree(__glXActiveScreens);
-    xfree(__glXHyperpipeFuncs);
-    xfree(__glXSwapBarrierFuncs);
-    __glXNumHyperpipeFuncs = 0;
-    __glXNumSwapBarrierFuncs = 0;
-    __glXHyperpipeFuncs = NULL;
-    __glXSwapBarrierFuncs = NULL;
-    __glXActiveScreens = NULL;
 }

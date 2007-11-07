@@ -61,7 +61,6 @@
 #define mfbListInstalledColormaps  xf1bppListInstalledColormaps
 #define mfbMapWindow  xf1bppMapWindow
 #define mfbPadPixmap  xf1bppPadPixmap
-#define mfbPaintWindow  xf1bppPaintWindow
 #define mfbPixmapToRegion  xf1bppPixmapToRegion
 #define mfbPixmapToRegionWeak xf1bppPixmapToRegionWeak
 #define mfbPolyFillArcSolid  xf1bppPolyFillArcSolid

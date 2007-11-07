@@ -46,14 +46,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "cfbmskbits.h"
 #include "mibstore.h"
 
-BSFuncRec cfbBSFuncRec = {
-    cfbSaveAreas,
-    cfbRestoreAreas,
-    (BackingStoreSetClipmaskRgnProcPtr) 0,
-    (BackingStoreGetImagePixmapProcPtr) 0,
-    (BackingStoreGetSpansPixmapProcPtr) 0,
-};
-
 Bool
 cfbCloseScreen (index, pScreen)
     int		index;
@@ -96,7 +88,7 @@ cfbSetupScreen(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     int dpix, dpiy;		/* dots per inch */
     int width;			/* pixel width of frame buffer */
 {
-    if (!cfbAllocatePrivates(pScreen, (int *) 0, (int *) 0))
+    if (!cfbAllocatePrivates(pScreen, NULL))
 	return FALSE;
     pScreen->defColormap = FakeClientID(0);
     /* let CreateDefColormap do whatever it wants for pixels */ 
@@ -111,8 +103,6 @@ cfbSetupScreen(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     pScreen->ChangeWindowAttributes = cfbChangeWindowAttributes;
     pScreen->RealizeWindow = cfbMapWindow;
     pScreen->UnrealizeWindow = cfbUnmapWindow;
-    pScreen->PaintWindowBackground = cfbPaintWindow;
-    pScreen->PaintWindowBorder = cfbPaintWindow;
     pScreen->CopyWindow = cfbCopyWindow;
     pScreen->CreatePixmap = cfbCreatePixmap;
     pScreen->DestroyPixmap = cfbDestroyPixmap;
@@ -184,7 +174,6 @@ cfbFinishScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     pScreen->devPrivates[cfbScreenPrivateIndex].ptr = pScreen->devPrivate;
     pScreen->devPrivate = oldDevPrivate;
 #endif
-    pScreen->BackingStoreFuncs = cfbBSFuncRec;
     pScreen->GetScreenPixmap = cfbGetScreenPixmap;
     pScreen->SetScreenPixmap = cfbSetScreenPixmap;
     return TRUE;

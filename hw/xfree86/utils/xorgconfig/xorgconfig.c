@@ -631,7 +631,7 @@ mouse_configuration(void) {
 		config_emulate3buttons = 0;
 	printf("\n");
 
-#if (defined(sun) && (defined(__i386) || defined(__x86)))
+#if (defined(sun) && (defined(__i386__) || defined(__x86)))
 	/* SPARC & USB mice (VUID or AUTO protocols) default to /dev/mouse, 
 	   but PS/2 mice default to /dev/kdmouse */
 	if ((config_mousetype != M_AUTO) && (config_mousetype != M_VUID)) {
@@ -1898,21 +1898,9 @@ static char *XF86Config_firstchunk_text =
 "\n"
 "Section \"Files\"\n"
 "\n"
-"# The location of the RGB database.  Note, this is the name of the\n"
-"# file minus the extension (like \".txt\" or \".db\").  There is normally\n"
-"# no need to change the default.\n"
-"\n"
-"#    RgbPath	\"" TREEROOTSHARE "/rgb\"\n"
-"\n"
 "# Multiple FontPath entries are allowed (which are concatenated together),\n"
 "# as well as specifying multiple comma-separated entries in one FontPath\n"
 "# command (or a combination of both methods)\n"
-"# \n"
-#if 0
-"# If you don't have a floating point coprocessor and emacs, Mosaic or other\n"
-"# programs take long to start up, try moving the Type1 directory\n"
-"# to the end of this list (or comment it out).\n"
-#endif
 "# \n"
 "\n";
 
@@ -1923,7 +1911,6 @@ static char *XF86Config_fontpaths[] =
 	"/misc/",
 	"/75dpi/:unscaled",
 	"/100dpi/:unscaled",
-	"/Speedo/",
 	"/Type1/",
 	"/TrueType/",
 	"/freefont/",

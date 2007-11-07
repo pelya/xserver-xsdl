@@ -1,6 +1,6 @@
 /**************************************************************************
 
-Copyright (c) 2002 Apple Computer, Inc. All Rights Reserved.
+Copyright (c) 2002-2007 Apple Inc. All Rights Reserved.
 Copyright (c) 2003 Torrey T. Lyons. All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a
@@ -24,9 +24,9 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 **************************************************************************/
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
+
+#include <dix-config.h>
+
 #include "quartzCommon.h"
 
 #define NEED_REPLIES

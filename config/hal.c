@@ -177,7 +177,8 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         if (strcmp(props[i], "input.keys") == 0 ||
             strcmp(props[i], "input.keyboard") == 0)
             type |= TYPE_KEYS;
-        if (strcmp(props[i], "input.mouse") == 0)
+        if (strcmp(props[i], "input.mouse") == 0 ||
+            strcmp(props[i], "input.touchpad") == 0)
             type |= TYPE_POINTER;
     }
     libhal_free_string_array(props);

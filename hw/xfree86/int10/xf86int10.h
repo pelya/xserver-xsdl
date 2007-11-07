@@ -40,7 +40,7 @@ typedef struct {
     int bp;
     int flags;
     int stackseg;
-    PCITAG Tag;
+    struct pci_device *dev;
     IOADDRESS ioBase;
 } xf86Int10InfoRec, *xf86Int10InfoPtr;
 
@@ -178,9 +178,6 @@ Bool xf86int10GetBiosSegment(xf86Int10InfoPtr pInt, void *base);
 #ifdef DEBUG
 void dprint(unsigned long start, unsigned long size);
 #endif
-
-/* pci.c */
-int mapPciRom(int pciEntity, unsigned char *address);
 
 #endif /* _INT10_PRIVATE */
 #endif /* _XF86INT10_H */

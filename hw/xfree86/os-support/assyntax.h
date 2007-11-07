@@ -91,7 +91,7 @@
 #define GNU_ASSEMBLER
 #endif
 
-#if (defined(__STDC__) && !defined(UNIXCPP)) || (defined (sun) && defined (i386) && defined (SVR4) && defined (__STDC__) && !defined (__GNUC__)) 
+#if (defined(__STDC__) && !defined(UNIXCPP)) || (defined (sun) && defined (__i386__) && defined (SVR4) && defined (__STDC__) && !defined (__GNUC__)) 
 #define	CONCAT(x, y)	x ## y
 #else
 #define	CONCAT(x, y)	x/**/y

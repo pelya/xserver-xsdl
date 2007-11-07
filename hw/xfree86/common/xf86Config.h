@@ -34,6 +34,8 @@
 #define _xf86_config_h
 
 #include "xf86Optrec.h"
+#include "xf86Parser.h"
+#include "xf86str.h"
 
 #ifdef HAVE_PARSER_DECLS
 /*
@@ -54,17 +56,6 @@ typedef struct _ModuleDefault {
     XF86OptionPtr load_opt;
 } ModuleDefault;
 
-static ModuleDefault ModuleDefaults[] = {
-    {.name = "extmod",   .toLoad = TRUE,    .load_opt=NULL},
-    {.name = "dbe",      .toLoad = TRUE,    .load_opt=NULL},
-    {.name = "glx",      .toLoad = TRUE,    .load_opt=NULL},
-    {.name = "freetype", .toLoad = TRUE,    .load_opt=NULL},
-    {.name = "type1",    .toLoad = TRUE,    .load_opt=NULL},
-    {.name = "record",   .toLoad = TRUE,    .load_opt=NULL},
-    {.name = "dri",      .toLoad = TRUE,    .load_opt=NULL},
-    {.name = NULL,       .toLoad = FALSE,   .load_opt=NULL}
-};
-
 /*
  * prototypes
  */
@@ -76,5 +67,8 @@ Bool xf86BuiltinInputDriver(const char *);
 ConfigStatus xf86HandleConfigFile(Bool);
 
 Bool xf86AutoConfig(void);
+GDevPtr autoConfigDevice(GDevPtr preconf_device);
+char* chooseVideoDriver(void);
+int xchomp(char *line);
 
 #endif /* _xf86_config_h */

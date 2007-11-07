@@ -155,7 +155,7 @@ pixCreateImageBuffers (pWin, nbuf, ids, action, hint)
     {
 	pMBBuffer = &pMBWindow->buffers[i];
 	pMBBuffer->pDrawable = (DrawablePtr)
-	    (*pScreen->CreatePixmap) (pScreen, width, height, depth);
+	    (*pScreen->CreatePixmap) (pScreen, width, height, depth, 0);
 	if (!pMBBuffer->pDrawable)
 	    break;
 
@@ -263,7 +263,7 @@ MultibufferPaintBackgroundRegion(pWin, pDrawable, pRegion)
     int nrects  = REGION_NUM_RECTS(pRegion);
     BoxPtr pbox = REGION_RECTS(pRegion);
 
-    pRects = (xRectangle *)ALLOCATE_LOCAL(nrects * sizeof(xRectangle));
+    pRects = (xRectangle *)xalloc(nrects * sizeof(xRectangle));
     if (pRects)
     {
 	int i;
@@ -275,7 +275,7 @@ MultibufferPaintBackgroundRegion(pWin, pDrawable, pRegion)
 	    pRects[i].height = pbox->y2 - pbox->y1;
 	}
 	MultibufferPaintBackgroundRectangles(pWin, pDrawable, nrects, pRects);
-	DEALLOCATE_LOCAL(pRects);
+	xfree(pRects);
     }
 }
 
@@ -542,7 +542,8 @@ pixPositionWindow (pWin, x, y)
     for (i = 0; i < pMBWindow->numMultibuffer; i++)
     {
 	pMBBuffer = &pMBWindow->buffers[i];
-	pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, pWin->drawable.depth);
+	pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, pWin->drawable.depth,
+					    CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!pPixmap)
 	{
 	    (* MB_SCREEN_PRIV(pScreen)->DestroyImageBuffers)(pWin);

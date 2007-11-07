@@ -74,8 +74,6 @@
 #undef cfbDoBitbltOr
 #undef cfbDoBitbltXor
 #undef cfbExpandDirectColors
-#undef cfbFillBoxSolid
-#undef cfbFillBoxTile32
 #undef cfbFillBoxTile32sCopy
 #undef cfbFillBoxTile32sGeneral
 #undef cfbFillBoxTileOdd
@@ -112,7 +110,6 @@
 #undef cfbNonTEOps
 #undef cfbNonTEOps1Rect
 #undef cfbPadPixmap
-#undef cfbPaintWindow
 #undef cfbPolyFillArcSolidCopy
 #undef cfbPolyFillArcSolidGeneral
 #undef cfbPolyFillRect

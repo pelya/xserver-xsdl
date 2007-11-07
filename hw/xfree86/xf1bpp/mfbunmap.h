@@ -53,7 +53,6 @@
 #undef mfbListInstalledColormaps
 #undef mfbMapWindow
 #undef mfbPadPixmap
-#undef mfbPaintWindow
 #undef mfbPixmapToRegion
 #undef mfbPixmapToRegionWeak
 #undef mfbPolyFillArcSolid

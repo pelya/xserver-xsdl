@@ -68,8 +68,6 @@ VidModeExtensionInit(ScreenPtr pScreen)
 #ifdef XF86VIDMODE
     VidModePtr pVidMode;
     
-    DEBUG_P("VidModeExtensionInit");
-
     if (!xf86GetVidModeEnabled()) {
 	DEBUG_P("!xf86GetVidModeEnabled()");
 	return FALSE;
@@ -109,8 +107,6 @@ VidModeClose(int i, ScreenPtr pScreen)
 {
     VidModePtr pVidMode = VMPTR(pScreen);
 
-    DEBUG_P("VidModeClose");
-
     /* This shouldn't happen */
     if (!pVidMode)
 	return FALSE;
@@ -131,8 +127,6 @@ VidModeAvailable(int scrnIndex)
 {
     ScrnInfoPtr pScrn;
     VidModePtr pVidMode;
-
-    DEBUG_P("VidModeAvailable");
 
     if (VidModeIndex < 0) {
 	DEBUG_P("VidModeIndex < 0");
@@ -159,8 +153,6 @@ VidModeGetCurrentModeline(int scrnIndex, pointer *mode, int *dotClock)
 {
     ScrnInfoPtr pScrn;
 
-    DEBUG_P("VidModeGetCurrentModeline");
-
     if (!VidModeAvailable(scrnIndex))
 	return FALSE;
 
@@ -176,8 +168,6 @@ VidModeGetDotClock(int scrnIndex, int Clock)
 {
     ScrnInfoPtr pScrn;
 
-    DEBUG_P("VidModeGetDotClock");
-
     if (!VidModeAvailable(scrnIndex))
 	return 0;
 
@@ -192,8 +182,6 @@ _X_EXPORT int
 VidModeGetNumOfClocks(int scrnIndex, Bool *progClock)
 {
     ScrnInfoPtr pScrn;
-
-    DEBUG_P("VidModeGetNumOfClocks");
 
     if (!VidModeAvailable(scrnIndex))
 	return 0;
@@ -213,8 +201,6 @@ VidModeGetClocks(int scrnIndex, int *Clocks)
 {
     ScrnInfoPtr pScrn;
     int i;
-
-    DEBUG_P("VidModeGetClocks");
 
     if (!VidModeAvailable(scrnIndex))
 	return FALSE;
@@ -236,8 +222,6 @@ VidModeGetFirstModeline(int scrnIndex, pointer *mode, int *dotClock)
 {
     ScrnInfoPtr pScrn;
     VidModePtr pVidMode;
-
-    DEBUG_P("VidModeGetFirstModeline");
 
     if (!VidModeAvailable(scrnIndex))
 	return FALSE;
@@ -263,8 +247,6 @@ VidModeGetNextModeline(int scrnIndex, pointer *mode, int *dotClock)
     VidModePtr pVidMode;
     DisplayModePtr p;
 
-    DEBUG_P("VidModeGetNextModeline");
-
     if (!VidModeAvailable(scrnIndex))
 	return FALSE;
 
@@ -288,8 +270,6 @@ VidModeDeleteModeline(int scrnIndex, pointer mode)
 {
     ScrnInfoPtr pScrn;
 
-    DEBUG_P("VidModeDeleteModeline");
-
     if ((mode == NULL) || (!VidModeAvailable(scrnIndex)))
 	return FALSE;
 
@@ -303,8 +283,6 @@ VidModeZoomViewport(int scrnIndex, int zoom)
 {
     ScrnInfoPtr pScrn;
 
-    DEBUG_P("VidModeZoomViewPort");
-
     if (!VidModeAvailable(scrnIndex))
 	return FALSE;
 
@@ -317,8 +295,6 @@ _X_EXPORT Bool
 VidModeSetViewPort(int scrnIndex, int x, int y)
 {
     ScrnInfoPtr pScrn;
-
-    DEBUG_P("VidModeSetViewPort");
 
     if (!VidModeAvailable(scrnIndex))
 	return FALSE;
@@ -341,8 +317,6 @@ VidModeGetViewPort(int scrnIndex, int *x, int *y)
 {
     ScrnInfoPtr pScrn;
 
-    DEBUG_P("VidModeGetViewPort");
-
     if (!VidModeAvailable(scrnIndex))
 	return FALSE;
 
@@ -358,8 +332,6 @@ VidModeSwitchMode(int scrnIndex, pointer mode)
     ScrnInfoPtr pScrn;
     DisplayModePtr pTmpMode;
     Bool retval;
-
-    DEBUG_P("VidModeSwitchMode");
 
     if (!VidModeAvailable(scrnIndex))
 	return FALSE;
@@ -381,8 +353,6 @@ VidModeLockZoom(int scrnIndex, Bool lock)
 {
     ScrnInfoPtr pScrn;
 
-    DEBUG_P("VidModeLockZoom");
-
     if (!VidModeAvailable(scrnIndex))
 	return FALSE;
 
@@ -400,8 +370,6 @@ VidModeGetMonitor(int scrnIndex, pointer *monitor)
 {
     ScrnInfoPtr pScrn;
 
-    DEBUG_P("VidModeGetMonitor");
-
     if (!VidModeAvailable(scrnIndex))
 	return FALSE;
 
@@ -416,8 +384,6 @@ VidModeCheckModeForMonitor(int scrnIndex, pointer mode)
 {
     ScrnInfoPtr pScrn;
 
-    DEBUG_P("VidModeCheckModeForMonitor");
-
     if ((mode == NULL) || (!VidModeAvailable(scrnIndex)))
 	return MODE_ERROR;
 
@@ -430,8 +396,6 @@ _X_EXPORT ModeStatus
 VidModeCheckModeForDriver(int scrnIndex, pointer mode)
 {
     ScrnInfoPtr pScrn;
-
-    DEBUG_P("VidModeCheckModeForDriver");
 
     if ((mode == NULL) || (!VidModeAvailable(scrnIndex)))
 	return MODE_ERROR;
@@ -447,8 +411,6 @@ VidModeSetCrtcForMode(int scrnIndex, pointer mode)
     ScrnInfoPtr pScrn;
     DisplayModePtr ScreenModes;
     
-    DEBUG_P("VidModeSetCrtcForMode");
-
     if ((mode == NULL) || (!VidModeAvailable(scrnIndex)))
 	return;
 
@@ -467,8 +429,6 @@ VidModeAddModeline(int scrnIndex, pointer mode)
 {
     ScrnInfoPtr pScrn;
     
-    DEBUG_P("VidModeAddModeline");
-
     if ((mode == NULL) || (!VidModeAvailable(scrnIndex)))
 	return FALSE;
 
@@ -491,8 +451,6 @@ VidModeGetNumOfModes(int scrnIndex)
     pointer mode = NULL;
     int dotClock= 0, nummodes = 0;
   
-    DEBUG_P("VidModeGetNumOfModes");
-
     if (!VidModeGetFirstModeline(scrnIndex, &mode, &dotClock))
 	return nummodes;
 
@@ -508,8 +466,6 @@ VidModeSetGamma(int scrnIndex, float red, float green, float blue)
 {
     ScrnInfoPtr pScrn;
     Gamma gamma;
-
-    DEBUG_P("VidModeSetGamma");
 
     if (!VidModeAvailable(scrnIndex))
 	return FALSE;
@@ -528,8 +484,6 @@ _X_EXPORT Bool
 VidModeGetGamma(int scrnIndex, float *red, float *green, float *blue)
 {
     ScrnInfoPtr pScrn;
-
-    DEBUG_P("VidModeGetGamma");
 
     if (!VidModeAvailable(scrnIndex))
 	return FALSE;

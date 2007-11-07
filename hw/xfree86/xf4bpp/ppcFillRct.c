@@ -106,7 +106,7 @@ xf4bppPolyFillRect(pDrawable, pGC, nrectFill, prectInit)
     numRects = REGION_NUM_RECTS(prgnClip) * nrectFill;
     if (numRects > NUM_STACK_RECTS)
     {
-	pboxClippedBase = (BoxPtr)ALLOCATE_LOCAL(numRects * sizeof(BoxRec));
+	pboxClippedBase = (BoxPtr)xalloc(numRects * sizeof(BoxRec));
 	if (!pboxClippedBase)
 	    return;
     }
@@ -211,5 +211,5 @@ xf4bppPolyFillRect(pDrawable, pGC, nrectFill, prectInit)
 	xf4bppFillArea((WindowPtr)pDrawable, pboxClipped-pboxClippedBase,
 		       pboxClippedBase, pGC);
     if (pboxClippedBase != stackRects)
-    	DEALLOCATE_LOCAL(pboxClippedBase);
+    	xfree(pboxClippedBase);
 }

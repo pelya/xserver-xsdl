@@ -16,7 +16,7 @@ libxaa_la_SOURCES = xaaInit.c xaaGC.c xaaInitAccel.c xaaFallback.c \
                    xaaBitBlt.c xaaCpyArea.c xaaGCmisc.c xaaCpyWin.c \
                    xaaCpyPlane.c xaaFillRect.c xaaTEText.c xaaNonTEText.c \
                    xaaPCache.c xaaSpans.c xaaROP.c xaaImage.c xaaWrapper.c \
-                   xaaPaintWin.c xaaRect.c xaaLineMisc.c xaaBitOrder.c \
+                   xaaRect.c xaaLineMisc.c xaaBitOrder.c \
                    xaaFillPoly.c xaaWideLine.c xaaTables.c xaaFillArc.c \
                    xaaLine.c xaaDashLine.c xaaOverlay.c xaaOffscreen.c \
                    xaaOverlayDF.c xaaStateChange.c xaaPict.c $(POLYSEG) \

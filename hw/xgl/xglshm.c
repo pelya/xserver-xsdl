@@ -64,7 +64,8 @@ xglShmPutImage (DrawablePtr  pDrawable,
     }
     else
     {
-	pPixmap = (*pScreen->CreatePixmap) (pScreen, sw, sh, depth);
+	pPixmap = (*pScreen->CreatePixmap) (pScreen, sw, sh, depth,
+					    CREATE_PIXMAP_USAGE_SCRATCH);
 	if (pPixmap)
 	{
 	    GCPtr pScratchGC;

@@ -33,9 +33,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *   Rickard E. (Rik) Faith <faith@valinux.com>
  *
  */
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
+
+#include <dix-config.h>
 
 #include <sys/time.h>
 #include <unistd.h>
@@ -237,7 +236,7 @@ DRIFinishScreenInit(ScreenPtr pScreen)
     pDRIPriv->wrap.ClipNotify = pScreen->ClipNotify;
     pScreen->ClipNotify = DRIClipNotify;
 
-    ErrorF("[DRI] screen %d installation complete\n", pScreen->myNum);
+    //    ErrorF("[DRI] screen %d installation complete\n", pScreen->myNum);
 
     return TRUE;
 }

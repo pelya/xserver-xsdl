@@ -348,7 +348,6 @@ extern void DarwinGlxWrapInitVisuals(miInitVisualsProcPtr *);
 extern __GLXprovider __glXMesaProvider;
 extern void GlxPushProvider(__GLXprovider *impl);
 extern void GlxExtensionInit(INITARGS);
-extern void GlxWrapInitVisuals(miInitVisualsProcPtr *);
 #endif // INXDARWINAPP
 #endif // GLXEXT
 #ifdef XF86DRI
@@ -636,16 +635,6 @@ InitExtensions(argc, argv)
     if (!noXFree86DRIExtension) XFree86DRIExtensionInit();
 #endif
 #endif
-
-#ifdef GLXEXT
-#ifdef INXDARWINAPP
-    DarwinGlxPushProvider(__DarwinglXMesaProvider);
-    if (!noGlxExtension) DarwinGlxExtensionInit();
-#else
-    GlxPushProvider(&__glXMesaProvider);
-    if (!noGlxExtension) GlxExtensionInit();
-#endif // INXDARWINAPP
-#endif // GLXEXT
 #ifdef XFIXES
     /* must be before Render to layer DisplayCursor correctly */
     if (!noXFixesExtension) XFixesExtensionInit();
@@ -671,6 +660,16 @@ InitExtensions(argc, argv)
 #ifdef DAMAGE
     if (!noDamageExtension) DamageExtensionInit();
 #endif
+
+#ifdef GLXEXT
+#ifdef INXDARWINAPP
+    DarwinGlxPushProvider(__DarwinglXMesaProvider);
+    if (!noGlxExtension) DarwinGlxExtensionInit();
+#else
+    GlxPushProvider(&__glXMesaProvider);
+    if (!noGlxExtension) GlxExtensionInit();
+#endif
+#endif
 }
 
 void
@@ -678,9 +677,7 @@ InitVisualWrap()
 {
     miResetInitVisuals();
 #ifdef GLXEXT
-#ifndef __DARWIN__
-    GlxWrapInitVisuals(&miInitVisualsProc);
-#else
+#ifdef __DARWIN__
     DarwinGlxWrapInitVisuals(&miInitVisualsProc);
 #endif
 #endif

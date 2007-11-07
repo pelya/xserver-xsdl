@@ -30,6 +30,8 @@
 
 #include "xf86cmap.h"
 
+#include "Pci.h"
+
 #ifndef SAVE_FONT1
 #define SAVE_FONT1 1
 #endif
@@ -1636,7 +1638,6 @@ vgaHWGetHWRec(ScrnInfoPtr scrp)
 {
     vgaRegPtr regp;
     vgaHWPtr hwp;
-    pciVideoPtr pvp;
     int i;
     
     /*
@@ -1722,8 +1723,7 @@ vgaHWGetHWRec(ScrnInfoPtr scrp)
     vgaHWSetStdFuncs(hwp);
 
     hwp->PIOOffset = scrp->domainIOBase;
-    if ((pvp = xf86GetPciInfoForEntity(scrp->entityList[0])))
-	hwp->Tag = pciTag(pvp->bus, pvp->device, pvp->func);
+    hwp->dev = xf86GetPciInfoForEntity(scrp->entityList[0]);
 
     return TRUE;
 }
@@ -1775,7 +1775,7 @@ vgaHWMapMem(ScrnInfoPtr scrp)
 #ifdef DEBUG
     ErrorF("Mapping VGAMem\n");
 #endif
-    hwp->Base = xf86MapDomainMemory(scr_index, VIDMEM_MMIO_32BIT, hwp->Tag,
+    hwp->Base = xf86MapDomainMemory(scr_index, VIDMEM_MMIO_32BIT, hwp->dev,
 				    hwp->MapPhys, hwp->MapSize);
     return hwp->Base != NULL;
 }

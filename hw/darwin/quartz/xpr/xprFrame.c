@@ -1,7 +1,6 @@
 /*
  * Xplugin rootless implementation frame functions
- */
-/*
+ *
  * Copyright (c) 2002 Apple Computer, Inc. All rights reserved.
  * Copyright (c) 2003 Torrey T. Lyons. All Rights Reserved.
  *
@@ -27,9 +26,9 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
+
+#include <dix-config.h>
+
 #include "xpr.h"
 #include "rootlessCommon.h"
 #include "Xplugin.h"
@@ -411,7 +410,7 @@ xprInit(ScreenPtr pScreen)
  * Given the id of a physical window, try to find the top-level (or root)
  * X window that it represents.
  */
-static WindowPtr
+WindowPtr
 xprGetXWindow(xp_window_id wid)
 {
     RootlessWindowRec *winRec;

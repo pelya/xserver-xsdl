@@ -198,11 +198,19 @@ typedef    void (* ClipNotifyProcPtr)(
 	int /*dx*/,
 	int /*dy*/);
 
+/* pixmap will exist only for the duration of the current rendering operation */
+#define CREATE_PIXMAP_USAGE_SCRATCH                     1
+/* pixmap will be the backing pixmap for a redirected window */
+#define CREATE_PIXMAP_USAGE_BACKING_PIXMAP              2
+/* pixmap will contain a glyph */
+#define CREATE_PIMXAP_USAGE_GLYPH_PICTURE               3
+
 typedef    PixmapPtr (* CreatePixmapProcPtr)(
 	ScreenPtr /*pScreen*/,
 	int /*width*/,
 	int /*height*/,
-	int /*depth*/);
+	int /*depth*/,
+	unsigned /*usage_hint*/);
 
 typedef    Bool (* DestroyPixmapProcPtr)(
 	PixmapPtr /*pPixmap*/);
@@ -497,8 +505,8 @@ typedef struct _Screen {
     ValidateTreeProcPtr		ValidateTree;
     PostValidateTreeProcPtr	PostValidateTree;
     WindowExposuresProcPtr	WindowExposures;
-    PaintWindowBackgroundProcPtr PaintWindowBackground;
-    PaintWindowBorderProcPtr	PaintWindowBorder;
+    PaintWindowBackgroundProcPtr PaintWindowBackground; /** unused */
+    PaintWindowBorderProcPtr	PaintWindowBorder; /** unused */
     CopyWindowProcPtr		CopyWindow;
     ClearToBackgroundProcPtr	ClearToBackground;
     ClipNotifyProcPtr		ClipNotify;

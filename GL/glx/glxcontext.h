@@ -44,12 +44,12 @@
 
 typedef struct __GLXtextureFromPixmap __GLXtextureFromPixmap;
 struct __GLXtextureFromPixmap {
-    int (*bindTexImage)		(__GLXcontext *baseContext,
-				 int           buffer,
-				 __GLXpixmap  *pixmap);
-    int (*releaseTexImage)	(__GLXcontext *baseContext,
-				 int           buffer,
-				 __GLXpixmap  *pixmap);
+    int (*bindTexImage)		(__GLXcontext  *baseContext,
+				 int            buffer,
+				 __GLXdrawable *pixmap);
+    int (*releaseTexImage)	(__GLXcontext  *baseContext,
+				 int            buffer,
+				 __GLXdrawable *pixmap);
 };
 
 
@@ -85,13 +85,7 @@ struct __GLXcontext {
     ** Pointer to screen info data for this context.  This is set
     ** when the context is created.
     */
-    ScreenPtr pScreen;
     __GLXscreen *pGlxScreen;
-
-    /*
-    ** This context is created with respect to this visual.
-    */
-    VisualRec *pVisual;
 
     /*
     ** The XID of this context.
@@ -102,11 +96,6 @@ struct __GLXcontext {
     ** The XID of the shareList context.
     */
     XID share_id;
-
-    /*
-    ** Visual id.
-    */
-    VisualID vid;
 
     /*
     ** screen number.
@@ -129,11 +118,6 @@ struct __GLXcontext {
     GLboolean isDirect;
 
     /*
-    ** Window pending state
-    */
-    GLuint pendingState;
-
-    /*
     ** This flag keeps track of whether there are unflushed GL commands.
     */
     GLboolean hasUnflushedCommands;
@@ -150,12 +134,6 @@ struct __GLXcontext {
     GLint feedbackBufSize;	/* number of elements allocated */
     GLuint *selectBuf;
     GLint selectBufSize;	/* number of elements allocated */
-
-    /*
-    ** Set only if current drawable is a glx pixmap.
-    */
-    __GLXpixmap *drawPixmap;
-    __GLXpixmap *readPixmap;
 
     /*
     ** The drawable private this context is bound to

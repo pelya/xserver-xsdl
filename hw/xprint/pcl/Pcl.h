@@ -568,10 +568,6 @@ extern void PclCopyWindow(
 extern Bool PclChangeWindowAttributes(
     register WindowPtr pWin,
     register unsigned long mask);
-extern void PclPaintWindow(
-    WindowPtr   pWin,
-    RegionPtr   pRegion,
-    int         what);
 
 /******
  * Functions in PclFonts.c

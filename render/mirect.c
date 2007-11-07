@@ -135,8 +135,8 @@ miCompositeRects (CARD8		op,
 	if (!rgbaFormat)
 	    goto bail1;
 	
-	pPixmap = (*pScreen->CreatePixmap) (pScreen, 1, 1,
-					    rgbaFormat->depth);
+	pPixmap = (*pScreen->CreatePixmap) (pScreen, 1, 1, rgbaFormat->depth,
+					    CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!pPixmap)
 	    goto bail2;
 	

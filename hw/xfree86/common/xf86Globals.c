@@ -124,7 +124,7 @@ xf86InfoRec xf86Info = {
 	PCIOsConfig,	/* pciFlags */
 	Pix24DontCare,	/* pixmap24 */
 	X_DEFAULT,	/* pix24From */
-#if defined(i386) || defined(__i386__)
+#ifdef __i386__
 	FALSE,		/* pc98 */
 #endif
 	TRUE,		/* pmFlag */
@@ -203,4 +203,7 @@ Bool xf86MiscModInDevAllowNonLocal = FALSE;
 RootWinPropPtr *xf86RegisteredPropertiesTable = NULL;
 _X_EXPORT Bool xf86inSuspend = FALSE;
 Bool xorgHWAccess = FALSE;
-PciBusId xf86IsolateDevice;
+
+struct pci_slot_match xf86IsolateDevice = {
+    PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, PCI_MATCH_ANY, 0
+};

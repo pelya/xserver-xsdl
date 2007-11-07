@@ -57,7 +57,6 @@ libbsd_la_SOURCES = \
 	$(srcdir)/../shared/libc_wrapper.c \
 	$(srcdir)/../shared/posix_tty.c \
 	$(srcdir)/../shared/sigio.c \
-	$(srcdir)/../shared/stdPci.c \
 	$(srcdir)/../shared/vidmem.c \
 	bsd_VTsw.c \
 	bsd_init.c \

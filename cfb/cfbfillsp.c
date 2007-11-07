@@ -186,12 +186,12 @@ int fSorted;
     n = nInit * miFindMaxBand( cfbGetCompositeClip(pGC) );
     if ( n == 0 )
 	return;
-    pwidth = (int *)ALLOCATE_LOCAL(n * sizeof(int));
-    ppt = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
+    pwidth = (int *)xalloc(n * sizeof(int));
+    ppt = (DDXPointRec *)xalloc(n * sizeof(DDXPointRec));
     if(!ppt || !pwidth)
     {
-	if (ppt) DEALLOCATE_LOCAL(ppt);
-	if (pwidth) DEALLOCATE_LOCAL(pwidth);
+	if (ppt) xfree(ppt);
+	if (pwidth) xfree(pwidth);
 	return;
     }
     n = miClipSpans( cfbGetCompositeClip(pGC),
@@ -203,8 +203,8 @@ int fSorted;
 
     (*fill) (pDrawable, n, ppt, pwidth, pGC->tile.pixmap, xrot, yrot, pGC->alu, pGC->planemask);
 
-    DEALLOCATE_LOCAL(ppt);
-    DEALLOCATE_LOCAL(pwidth);
+    xfree(ppt);
+    xfree(pwidth);
 }
 
 #if PSZ == 8
@@ -251,12 +251,12 @@ int fSorted;
     n = nInit * miFindMaxBand( cfbGetCompositeClip(pGC) );
     if ( n == 0 )
 	return;
-    pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
-    pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
+    pwidthFree = (int *)xalloc(n * sizeof(int));
+    pptFree = (DDXPointRec *)xalloc(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
     {
-	if (pptFree) DEALLOCATE_LOCAL(pptFree);
-	if (pwidthFree) DEALLOCATE_LOCAL(pwidthFree);
+	if (pptFree) xfree(pptFree);
+	if (pwidthFree) xfree(pwidthFree);
 	return;
     }
 
@@ -392,8 +392,8 @@ int fSorted;
 	    }
 	}
     }
-    DEALLOCATE_LOCAL(pptFree);
-    DEALLOCATE_LOCAL(pwidthFree);
+    xfree(pptFree);
+    xfree(pwidthFree);
 }
 
 #else /* PSZ != 8 */
@@ -434,12 +434,12 @@ int fSorted;
     n = nInit * miFindMaxBand( cfbGetCompositeClip(pGC) );
     if ( n == 0 )
 	return;
-    pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
-    pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
+    pwidthFree = (int *)xalloc(n * sizeof(int));
+    pptFree = (DDXPointRec *)xalloc(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
     {
-	if (pptFree) DEALLOCATE_LOCAL(pptFree);
-	if (pwidthFree) DEALLOCATE_LOCAL(pwidthFree);
+	if (pptFree) xfree(pptFree);
+	if (pwidthFree) xfree(pwidthFree);
 	return;
     }
     pwidth = pwidthFree;
@@ -599,8 +599,8 @@ int fSorted;
 	ppt++;
 	pwidth++;
     }
-    DEALLOCATE_LOCAL(pptFree);
-    DEALLOCATE_LOCAL(pwidthFree);
+    xfree(pptFree);
+    xfree(pwidthFree);
 }
 
 #endif /* PSZ == 8 */
@@ -648,12 +648,12 @@ cfb8Stipple32FS (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     n = nInit * miFindMaxBand(pGC->pCompositeClip);
     if ( n == 0 )
 	return;
-    pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
-    pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
+    pwidthFree = (int *)xalloc(n * sizeof(int));
+    pptFree = (DDXPointRec *)xalloc(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
     {
-	if (pptFree) DEALLOCATE_LOCAL(pptFree);
-	if (pwidthFree) DEALLOCATE_LOCAL(pwidthFree);
+	if (pptFree) xfree(pptFree);
+	if (pwidthFree) xfree(pwidthFree);
 	return;
     }
     pwidth = pwidthFree;
@@ -816,8 +816,8 @@ cfb8Stipple32FS (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
 	    }
 	}
     }
-    DEALLOCATE_LOCAL(pptFree);
-    DEALLOCATE_LOCAL(pwidthFree);
+    xfree(pptFree);
+    xfree(pwidthFree);
 }
 
 void
@@ -862,12 +862,12 @@ cfb8OpaqueStipple32FS (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
     n = nInit * miFindMaxBand(pGC->pCompositeClip);
     if ( n == 0 )
 	return;
-    pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
-    pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
+    pwidthFree = (int *)xalloc(n * sizeof(int));
+    pptFree = (DDXPointRec *)xalloc(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
     {
-	if (pptFree) DEALLOCATE_LOCAL(pptFree);
-	if (pwidthFree) DEALLOCATE_LOCAL(pwidthFree);
+	if (pptFree) xfree(pptFree);
+	if (pwidthFree) xfree(pwidthFree);
 	return;
     }
     pwidth = pwidthFree;
@@ -997,8 +997,8 @@ cfb8OpaqueStipple32FS (pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
 	    }
 	}
     }
-    DEALLOCATE_LOCAL(pptFree);
-    DEALLOCATE_LOCAL(pwidthFree);
+    xfree(pptFree);
+    xfree(pwidthFree);
 }
 
 #endif /* PSZ == 8 */

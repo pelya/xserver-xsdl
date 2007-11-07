@@ -36,10 +36,10 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/keysym.h>
 #include "misc.h"
 #include "inputstr.h"
+#include "exevents.h"
 #include <xkbsrv.h>
 #include <ctype.h>
 #define EXTENSION_EVENT_BASE 64
-
 
 /***====================================================================***/
 
@@ -115,12 +115,12 @@ int             xiEvent;
 		break;
 	    case XkbKB_Lock:
 		if ( xE->u.u.type == KeyRelease || 
-                        xE->u.u.type == DeviceKeyRelease)
+                        xE->u.u.type == DeviceKeyRelease) {
 		    return;
+                }
 		else {
 		    int	bit= 1<<(key&7);
-		    if ( keyc->down[key>>3]&bit )
-                    {
+		    if ( keyc->down[key>>3]&bit ) {
                         if (xiEvent)
                             xE->u.u.type = DeviceKeyRelease;
                         else
@@ -193,23 +193,42 @@ int             xiEvent;
 void
 ProcessKeyboardEvent(xEvent *xE,DeviceIntPtr keybd,int count)
 {
-KeyClassPtr	keyc = keybd->key;
-XkbSrvInfoPtr	xkbi;
 
-    xkbi= keyc->xkbInfo;
+    KeyClassPtr keyc = keybd->key;
+    XkbSrvInfoPtr xkbi = NULL;
+    ProcessInputProc backup_proc;
+    xkbDeviceInfoPtr xkb_priv = XKBDEVICEINFO(keybd);
+    int is_press = (xE->u.u.type == KeyPress || xE->u.u.type == DeviceKeyPress);
+    int is_release = (xE->u.u.type == KeyRelease ||
+                      xE->u.u.type == DeviceKeyRelease);
 
-#ifdef DEBUG
-    if (xkbDebugFlags&0x8) {
-	int key= xE->u.u.detail;
-	ErrorF("[xkb] PKE: Key %d %s\n",key,(xE->u.u.type==KeyPress?"down":"up"));
+    if (keyc)
+        xkbi = keyc->xkbInfo;
+
+    /* We're only interested in key events. */
+    if (!is_press && !is_release) {
+        UNWRAP_PROCESS_INPUT_PROC(keybd, xkb_priv, backup_proc);
+        keybd->public.processInputProc(xE, keybd, count);
+        COND_WRAP_PROCESS_INPUT_PROC(keybd, xkb_priv, backup_proc,
+                                     xkbUnwrapProc);
+        return;
     }
-#endif
-    if ((xkbi->desc->ctrls->enabled_ctrls&XkbAllFilteredEventsMask)==0)
-	XkbProcessKeyboardEvent(xE,keybd,count);
-    else if (xE->u.u.type==KeyPress || xE->u.u.type==DeviceKeyPress)
-	AccessXFilterPressEvent(xE,keybd,count);
-    else if (xE->u.u.type==KeyRelease || xE->u.u.type==DeviceKeyRelease)
-	AccessXFilterReleaseEvent(xE,keybd,count);
+
+    /* If AccessX filters are active, then pass it through to
+     * AccessXFilter{Press,Release}Event; else, punt to
+     * XkbProcessKeyboardEvent.
+     *
+     * If AXF[PK]E don't intercept anything (which they probably won't),
+     * they'll punt through XPKE anyway. */
+    if ((xkbi->desc->ctrls->enabled_ctrls & XkbAllFilteredEventsMask)) {
+        if (is_press)
+            AccessXFilterPressEvent(xE, keybd, count);
+        else if (is_release)
+            AccessXFilterReleaseEvent(xE, keybd, count);
+
+    } else {
+        XkbProcessKeyboardEvent(xE, keybd, count);
+    }
+    
     return;
 }
-

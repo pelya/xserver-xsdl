@@ -136,6 +136,9 @@
 /* Define to 1 if you have the `getuid' function. */
 #undef HAVE_GETUID
 
+/* Define to 1 if you have the `getzoneid' function. */
+#undef HAVE_GETZONEID
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -180,6 +183,9 @@
 
 /* Define to 1 if you have the <rpcsvc/dbm.h> header file. */
 #undef HAVE_RPCSVC_DBM_H
+
+/* Define to 1 if you have the `shmctl64' function. */
+#undef HAVE_SHMCTL64
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -282,6 +288,9 @@
 /* Support MIT-SCREEN-SAVER extension */
 #undef SCREENSAVER
 
+/* Support Secure RPC ("SUN-DES-1") authentication for X11 clients */
+#undef SECURE_RPC
+
 /* Use a lock to prevent multiple servers on a display */
 #undef SERVER_LOCK
 
@@ -316,12 +325,6 @@
 
 /* Support UNIX socket connections */
 #undef UNIXCONN
-
-/* Use builtin rgb color database */
-#undef USE_RGB_BUILTIN
-
-/* Use rgb.txt directly */
-#undef USE_RGB_TXT
 
 /* Define to use byteswap macros from <sys/endian.h> */
 #undef USE_SYS_ENDIAN_H
@@ -419,6 +422,8 @@
 /* Support DRI extension */
 #undef XF86DRI
 
+#undef XEPHYR_DRI
+
 /* Build DBE support */
 #undef DBE
 
@@ -452,9 +457,6 @@
 
 /* Define to 1 if unsigned long is 64 bits. */
 #undef _XSERVER64
-
-/* Define to location of RGB database */
-#undef RGB_DB
 
 /* System is BSD-like */
 #undef CSRG_BASED
