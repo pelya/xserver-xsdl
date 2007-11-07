@@ -357,7 +357,7 @@ void DarwinModeProcessEvent(
             break;
 
         case kXDarwinActivate:
-	  ErrorF("kXDarwinActivate\n");
+  //	  ErrorF("kXDarwinActivate\n");
             QuartzShow(xe->u.keyButtonPointer.rootX,
                        xe->u.keyButtonPointer.rootY);
             AppleWMSendEvent(AppleWMActivationNotify,
@@ -366,7 +366,7 @@ void DarwinModeProcessEvent(
             break;
 
         case kXDarwinDeactivate:
-	  ErrorF("kXDarwinDeactivate\n");
+  //	  ErrorF("kXDarwinDeactivate\n");
             AppleWMSendEvent(AppleWMActivationNotify,
                              AppleWMActivationNotifyMask,
                              AppleWMIsInactive, 0);
@@ -374,18 +374,18 @@ void DarwinModeProcessEvent(
             break;
 
         case kXDarwinDisplayChanged:
-	  ErrorF("kXDarwinDisplayChanged\n");
+  //	  ErrorF("kXDarwinDisplayChanged\n");
             QuartzUpdateScreens();
             break;
 
         case kXDarwinWindowState:
-	  ErrorF("kXDarwinWindowState\n");
+  //	  ErrorF("kXDarwinWindowState\n");
             RootlessNativeWindowStateChanged(xe->u.clientMessage.u.l.longs0,
 		  			     xe->u.clientMessage.u.l.longs1);
 	    break;
 	  
         case kXDarwinWindowMoved:
-	  ErrorF("kXDarwinWindowMoved\n");
+  //	  ErrorF("kXDarwinWindowMoved\n");
             RootlessNativeWindowMoved (xe->u.clientMessage.u.l.longs0);
 	    break;
 
@@ -395,7 +395,7 @@ void DarwinModeProcessEvent(
             else if (quartzHasRoot) QuartzHide();
             else QuartzShow();
 #else
-	    ErrorF("kXDarwinToggleFullscreen not implemented\n");
+    //	    ErrorF("kXDarwinToggleFullscreen not implemented\n");
 #endif
             break;
 
@@ -404,7 +404,7 @@ void DarwinModeProcessEvent(
             QuartzSetRootless(xe->u.clientMessage.u.l.longs0);
             if (!quartzEnableRootless && !quartzHasRoot) QuartzHide();
 #else
-	    ErrorF("kXDarwinSetRootless not implemented\n");
+    //	    ErrorF("kXDarwinSetRootless not implemented\n");
 #endif
             break;
 
@@ -425,7 +425,7 @@ void DarwinModeProcessEvent(
             break;
 
         case kXDarwinBringAllToFront:
-	  ErrorF("kXDarwinBringAllToFront\n");
+  //	  ErrorF("kXDarwinBringAllToFront\n");
 	    RootlessOrderAllWindows();
             break;
 
