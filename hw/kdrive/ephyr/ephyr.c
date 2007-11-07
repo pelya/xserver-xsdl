@@ -36,7 +36,6 @@
 #include "ephyrdri.h"
 #include "ephyrdriext.h"
 #include "ephyrglxext.h"
-#include "ephyrproxyext.h"
 #endif /*XEPHYR_DRI*/
 
 extern int KdTsPhyScreen;
@@ -640,7 +639,6 @@ ephyrInitScreen (ScreenPtr pScreen)
   if (!ephyrNoDRI) {
     ephyrDRIExtensionInit (pScreen) ;
     ephyrHijackGLXExtension () ;
-    ephyrProxyExtensionInit ("ATIFGLRXDRI") ;
   }
 #endif
 
