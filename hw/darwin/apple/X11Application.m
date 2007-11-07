@@ -819,7 +819,7 @@ void X11ApplicationMain (int argc, const char *argv[],
 	
     /* Calculate the height of the menubar so we can avoid it. */
     aquaMenuBarHeight = NSHeight([[NSScreen mainScreen] frame]) -
-      NSMaxY([[NSScreen mainScreen] visibleFrame]) - 1;
+      NSMaxY([[NSScreen mainScreen] visibleFrame]);
 	
     if (!create_thread (server_thread, server_arg)) {
       ErrorF("can't create secondary thread\n");
