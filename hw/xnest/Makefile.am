@@ -50,8 +50,7 @@ libfbcmap_a_CFLAGS = $(AM_CFLAGS)
 
 XNEST_LIBS = \
         @XNEST_LIBS@ \
-	libfbcmap.a \
-	$(XSERVER_LIBS)
+	libfbcmap.a
 
 Xnest_SOURCES = $(SRCS)
 
