@@ -127,7 +127,8 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     if (device->isMaster && device->coreEvents && coretype)
         sendCore = TRUE;
 
-    CheckMotion(xE, device);
+    if (device->isMaster)
+        CheckMotion(xE, device);
 
     if (xE->u.u.type != DeviceValuator && xE->u.u.type != GenericEvent) {
         DeviceIntPtr mouse = NULL, kbd = NULL;
