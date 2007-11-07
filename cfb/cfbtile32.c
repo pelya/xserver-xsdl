@@ -1,5 +1,5 @@
 /*
- * Fill 32 bit tiled rectangles.  Used by both PolyFillRect and PaintWindow.
+ * Fill 32 bit tiled rectangles.  Used by PolyFillRect.
  * no depth dependencies.
  */
 
@@ -367,12 +367,12 @@ MROP_NAME(cfbTile32FS)(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
 #endif
 
     n = nInit * miFindMaxBand( cfbGetCompositeClip(pGC) );
-    pwidthFree = (int *)ALLOCATE_LOCAL(n * sizeof(int));
-    pptFree = (DDXPointRec *)ALLOCATE_LOCAL(n * sizeof(DDXPointRec));
+    pwidthFree = (int *)xalloc(n * sizeof(int));
+    pptFree = (DDXPointRec *)xalloc(n * sizeof(DDXPointRec));
     if(!pptFree || !pwidthFree)
     {
-	if (pptFree) DEALLOCATE_LOCAL(pptFree);
-	if (pwidthFree) DEALLOCATE_LOCAL(pwidthFree);
+	if (pptFree) xfree(pptFree);
+	if (pwidthFree) xfree(pwidthFree);
 	return;
     }
     pwidth = pwidthFree;
@@ -512,6 +512,6 @@ MROP_NAME(cfbTile32FS)(pDrawable, pGC, nInit, pptInit, pwidthInit, fSorted)
 	    }
     	}
     }
-    DEALLOCATE_LOCAL(pptFree);
-    DEALLOCATE_LOCAL(pwidthFree);
+    xfree(pptFree);
+    xfree(pwidthFree);
 }

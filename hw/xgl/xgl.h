@@ -272,8 +272,6 @@ typedef struct _xglScreen {
     CreateWindowProcPtr		  CreateWindow;
     DestroyWindowProcPtr	  DestroyWindow;
     ChangeWindowAttributesProcPtr ChangeWindowAttributes;
-    PaintWindowBackgroundProcPtr  PaintWindowBackground;
-    PaintWindowBorderProcPtr	  PaintWindowBorder;
     CopyWindowProcPtr		  CopyWindow;
     CreateGCProcPtr		  CreateGC;
     CloseScreenProcPtr		  CloseScreen;
@@ -293,8 +291,6 @@ typedef struct _xglScreen {
     RealizeGlyphProcPtr		  RealizeGlyph;
     UnrealizeGlyphProcPtr	  UnrealizeGlyph;
 #endif
-
-    BSFuncRec			  BackingStoreFuncs;
 } xglScreenRec, *xglScreenPtr;
 
 extern int xglScreenPrivateIndex;
@@ -874,7 +870,8 @@ PixmapPtr
 xglCreatePixmap (ScreenPtr  pScreen,
 		 int	    width,
 		 int	    height,
-		 int	    depth);
+		 int	    depth,
+		 unsigned   usage_hint);
 
 void
 xglFiniPixmap (PixmapPtr pPixmap);
@@ -1092,39 +1089,12 @@ xglCopyWindow (WindowPtr   pWin,
 	       DDXPointRec ptOldOrg,
 	       RegionPtr   prgnSrc);
 
-void
-xglPaintWindowBackground (WindowPtr pWin,
-			  RegionPtr pRegion,
-			  int	    what);
-
-void
-xglPaintWindowBorder (WindowPtr pWin,
-		      RegionPtr pRegion,
-		      int	what);
-
 PixmapPtr
 xglGetWindowPixmap (WindowPtr pWin);
 
 void
 xglSetWindowPixmap (WindowPtr pWin,
 		    PixmapPtr pPixmap);
-
-
-/* xglbstore.c */
-
-void
-xglSaveAreas (PixmapPtr	pPixmap,
-	      RegionPtr	prgnSave,
-	      int	xorg,
-	      int	yorg,
-	      WindowPtr	pWin);
-
-void
-xglRestoreAreas (PixmapPtr pPixmap,
-		 RegionPtr prgnRestore,
-		 int	   xorg,
-		 int	   yorg,
-		 WindowPtr pWin);
 
 
 /* xglget.c */

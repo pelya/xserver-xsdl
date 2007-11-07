@@ -60,8 +60,7 @@ ATI_LIBS =				\
 
 Xati_LDADD = \
 	$(ATI_LIBS)			\
-	@KDRIVE_LIBS@			\
-	@XSERVER_LIBS@
+	@KDRIVE_LIBS@
 
 Xati_DEPENDENCIES =	\
 	libati.a 			\

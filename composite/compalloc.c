@@ -461,9 +461,9 @@ compNewPixmap (WindowPtr pWin, int x, int y, int w, int h)
     ScreenPtr	    pScreen = pWin->drawable.pScreen;
     WindowPtr	    pParent = pWin->parent;
     PixmapPtr	    pPixmap;
-    GCPtr	    pGC;
 
-    pPixmap = (*pScreen->CreatePixmap) (pScreen, w, h, pWin->drawable.depth);
+    pPixmap = (*pScreen->CreatePixmap) (pScreen, w, h, pWin->drawable.depth,
+					CREATE_PIXMAP_USAGE_BACKING_PIXMAP);
 
     if (!pPixmap)
 	return 0;
@@ -471,25 +471,63 @@ compNewPixmap (WindowPtr pWin, int x, int y, int w, int h)
     pPixmap->screen_x = x;
     pPixmap->screen_y = y;
     
-    pGC = GetScratchGC (pWin->drawable.depth, pScreen);
-    
-    /*
-     * Copy bits from the parent into the new pixmap so that it will
-     * have "reasonable" contents in case for background None areas.
-     */
-    if (pGC)
+    if (pParent->drawable.depth == pWin->drawable.depth)
     {
-	XID val = IncludeInferiors;
+	GCPtr	pGC = GetScratchGC (pWin->drawable.depth, pScreen);
 	
-	ValidateGC(&pPixmap->drawable, pGC);
-	dixChangeGC (serverClient, pGC, GCSubwindowMode, &val, NULL);
-	(*pGC->ops->CopyArea) (&pParent->drawable,
-			       &pPixmap->drawable,
-			       pGC,
-			       x - pParent->drawable.x,
-			       y - pParent->drawable.y,
-			       w, h, 0, 0);
-	FreeScratchGC (pGC);
+	/*
+	 * Copy bits from the parent into the new pixmap so that it will
+	 * have "reasonable" contents in case for background None areas.
+	 */
+	if (pGC)
+	{
+	    XID val = IncludeInferiors;
+	    
+	    ValidateGC(&pPixmap->drawable, pGC);
+	    dixChangeGC (serverClient, pGC, GCSubwindowMode, &val, NULL);
+	    (*pGC->ops->CopyArea) (&pParent->drawable,
+				   &pPixmap->drawable,
+				   pGC,
+				   x - pParent->drawable.x,
+				   y - pParent->drawable.y,
+				   w, h, 0, 0);
+	    FreeScratchGC (pGC);
+	}
+    }
+    else
+    {
+	PictFormatPtr	pSrcFormat = compWindowFormat (pParent);
+	PictFormatPtr	pDstFormat = compWindowFormat (pWin);
+	XID		inferiors = IncludeInferiors;
+	int		error;
+
+	PicturePtr	pSrcPicture = CreatePicture (None,
+						     &pParent->drawable,
+						     pSrcFormat,
+						     CPSubwindowMode,
+						     &inferiors,
+						     serverClient, &error);
+						    
+	PicturePtr	pDstPicture = CreatePicture (None,
+						     &pPixmap->drawable,
+						     pDstFormat,
+						     0, 0,
+						     serverClient, &error);
+
+	if (pSrcPicture && pDstPicture)
+	{
+	    CompositePicture (PictOpSrc,
+			      pSrcPicture,
+			      NULL,
+			      pDstPicture,
+			      x - pParent->drawable.x,
+			      y - pParent->drawable.y,
+			      0, 0, 0, 0, w, h);
+	}
+	if (pSrcPicture)
+	    FreePicture (pSrcPicture, 0);
+	if (pDstPicture)
+	    FreePicture (pDstPicture, 0);
     }
     return pPixmap;
 }

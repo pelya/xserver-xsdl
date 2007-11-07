@@ -98,7 +98,8 @@ ServerBitsFromGlyph(FontPtr pfont, unsigned ch, CursorMetricPtr cm, unsigned cha
     bzero(pbits, nby);
 
     ppix = (PixmapPtr)(*pScreen->CreatePixmap)(pScreen, cm->width,
-					       cm->height, 1);
+					       cm->height, 1,
+					       CREATE_PIXMAP_USAGE_SCRATCH);
     pGC = GetScratchGC(1, pScreen);
     if (!ppix || !pGC)
     {

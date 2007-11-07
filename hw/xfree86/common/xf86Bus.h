@@ -91,7 +91,6 @@ typedef struct {
 #define NEED_SHARED (NEED_MEM_SHARED | NEED_IO_SHARED)
 
 #define busType bus.type
-#define pciBusId bus.id.pci
 #define isaBusId bus.id.isa
 #define sbusBusId bus.id.sbus
 
@@ -114,7 +113,7 @@ typedef struct x_BusAccRec {
 	struct {
 	    int bus;
 	    int primary_bus;
-	    PCITAG acc;
+	    struct pci_device * dev;
 	    pciBridgesSave save;
 	} pci;
     } busdep;

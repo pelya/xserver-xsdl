@@ -56,13 +56,10 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include "windowstr.h"	/* window struct     */
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 #include "swaprep.h"
@@ -118,11 +115,8 @@ ProcXGetSelectedExtensionEvents(ClientPtr client)
     rep.all_clients_count = 0;
 
     rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
-    if (rc != Success) {
-	SendErrorToClient(client, IReqCode, X_GetSelectedExtensionEvents, 0,
-			  rc);
-	return Success;
-    }
+    if (rc != Success)
+	return rc;
 
     if ((pOthers = wOtherInputMasks(pWin)) != 0) {
 	for (others = pOthers->inputClients; others; others = others->next)

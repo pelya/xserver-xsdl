@@ -245,7 +245,7 @@ xf86RandR12SetMode (ScreenPtr	    pScreen,
     return ret;
 }
 
-Bool
+_X_EXPORT Bool
 xf86RandR12SetConfig (ScreenPtr		pScreen,
 		    Rotation		rotation,
 		    int			rate,
@@ -346,7 +346,7 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
 	randrp->virtualX = pScrn->virtualX;
 	randrp->virtualY = pScrn->virtualY;
     }
-    if (pRoot)
+    if (pRoot && pScrn->vtSema)
 	(*pScrn->EnableDisableFBAccess) (pScreen->myNum, FALSE);
 
     /* Let the driver update virtualX and virtualY */
@@ -364,7 +364,7 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
     xf86SetViewport (pScreen, 0, 0);
 
 finish:
-    if (pRoot)
+    if (pRoot && pScrn->vtSema)
 	(*pScrn->EnableDisableFBAccess) (pScreen->myNum, TRUE);
 #if RANDR_12_INTERFACE
     if (WindowTable[pScreen->myNum] && ret)
@@ -373,7 +373,7 @@ finish:
     return ret;
 }
 
-Rotation
+_X_EXPORT Rotation
 xf86RandR12GetRotation(ScreenPtr pScreen)
 {
     XF86RandRInfoPtr	    randrp = XF86RANDRINFO(pScreen);
@@ -381,7 +381,7 @@ xf86RandR12GetRotation(ScreenPtr pScreen)
     return randrp->rotation;
 }
 
-Bool
+_X_EXPORT Bool
 xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 {
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
@@ -427,8 +427,18 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 	    xf86OutputPtr   output = config->output[config->compat_output];
 	    xf86CrtcPtr	    crtc = output->crtc;
 
-	    if (crtc && crtc->mode.HDisplay &&
-		output->mm_width && output->mm_height)
+	    if (output->conf_monitor &&
+		(output->conf_monitor->mon_width  > 0 &&
+		 output->conf_monitor->mon_height > 0))
+	    {
+		/*
+		 * Prefer user configured DisplaySize
+		 */
+		mmWidth = output->conf_monitor->mon_width;
+		mmHeight = output->conf_monitor->mon_height;
+	    }
+	    else if (crtc && crtc->mode.HDisplay &&
+		     output->mm_width && output->mm_height)
 	    {
 		/*
 		 * If the output has a mode and a declared size, use that
@@ -471,7 +481,7 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 }
 
 
-Bool
+_X_EXPORT Bool
 xf86RandR12Init (ScreenPtr pScreen)
 {
     rrScrPrivPtr	rp;
@@ -521,7 +531,7 @@ xf86RandR12Init (ScreenPtr pScreen)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 xf86RandR12SetRotations (ScreenPtr pScreen, Rotation rotations)
 {
     XF86RandRInfoPtr	randrp = XF86RANDRINFO(pScreen);
@@ -539,7 +549,7 @@ xf86RandR12SetRotations (ScreenPtr pScreen, Rotation rotations)
     randrp->supported_rotations = rotations;
 }
 
-void
+_X_EXPORT void
 xf86RandR12GetOriginalVirtualSize(ScrnInfoPtr pScrn, int *x, int *y)
 {
     ScreenPtr pScreen = screenInfo.screens[pScrn->scrnIndex];
@@ -627,7 +637,7 @@ xf86RandR12CrtcNotify (RRCrtcPtr	randr_crtc)
     DisplayModePtr	mode = &crtc->mode;
     Bool		ret;
 
-    randr_outputs = ALLOCATE_LOCAL(config->num_output * sizeof (RROutputPtr));
+    randr_outputs = xalloc(config->num_output * sizeof (RROutputPtr));
     if (!randr_outputs)
 	return FALSE;
     x = crtc->x;
@@ -662,7 +672,7 @@ xf86RandR12CrtcNotify (RRCrtcPtr	randr_crtc)
     }
     ret = RRCrtcNotify (randr_crtc, randr_mode, x, y,
 			rotation, numOutputs, randr_outputs);
-    DEALLOCATE_LOCAL(randr_outputs);
+    xfree(randr_outputs);
     return ret;
 }
 
@@ -717,7 +727,7 @@ xf86RandR12CrtcSet (ScreenPtr	pScreen,
     xf86CrtcPtr		*save_crtcs;
     Bool		save_enabled = crtc->enabled;
 
-    save_crtcs = ALLOCATE_LOCAL(config->num_output * sizeof (xf86CrtcPtr));
+    save_crtcs = xalloc(config->num_output * sizeof (xf86CrtcPtr));
     if ((randr_mode != NULL) != crtc->enabled)
 	changed = TRUE;
     else if (randr_mode && !xf86RandRModeMatches (randr_mode, &crtc->mode))
@@ -773,7 +783,7 @@ xf86RandR12CrtcSet (ScreenPtr	pScreen,
 		    xf86OutputPtr	output = config->output[o];
 		    output->crtc = save_crtcs[o];
 		}
-		DEALLOCATE_LOCAL(save_crtcs);
+		xfree(save_crtcs);
 		return FALSE;
 	    }
 	    /*
@@ -786,7 +796,7 @@ xf86RandR12CrtcSet (ScreenPtr	pScreen,
 	}
 	xf86DisableUnusedFunctions (pScrn);
     }
-    DEALLOCATE_LOCAL(save_crtcs);
+    xfree(save_crtcs);
     return xf86RandR12CrtcNotify (randr_crtc);
 }
 
@@ -929,8 +939,8 @@ xf86RandR12SetInfo12 (ScreenPtr pScreen)
     RRCrtcPtr		randr_crtc;
     int			nclone;
     
-    clones = ALLOCATE_LOCAL(config->num_output * sizeof (RROutputPtr));
-    crtcs = ALLOCATE_LOCAL (config->num_crtc * sizeof (RRCrtcPtr));
+    clones = xalloc(config->num_output * sizeof (RROutputPtr));
+    crtcs = xalloc (config->num_crtc * sizeof (RRCrtcPtr));
     for (o = 0; o < config->num_output; o++)
     {
 	xf86OutputPtr	output = config->output[o];
@@ -947,8 +957,8 @@ xf86RandR12SetInfo12 (ScreenPtr pScreen)
 
 	if (!RROutputSetCrtcs (output->randr_output, crtcs, ncrtc))
 	{
-	    DEALLOCATE_LOCAL (crtcs);
-	    DEALLOCATE_LOCAL (clones);
+	    xfree (crtcs);
+	    xfree (clones);
 	    return FALSE;
 	}
 
@@ -984,13 +994,13 @@ xf86RandR12SetInfo12 (ScreenPtr pScreen)
 	}
 	if (!RROutputSetClones (output->randr_output, clones, nclone))
 	{
-	    DEALLOCATE_LOCAL (crtcs);
-	    DEALLOCATE_LOCAL (clones);
+	    xfree (crtcs);
+	    xfree (clones);
 	    return FALSE;
 	}
     }
-    DEALLOCATE_LOCAL (crtcs);
-    DEALLOCATE_LOCAL (clones);
+    xfree (crtcs);
+    xfree (clones);
     return TRUE;
 }
 
@@ -1073,7 +1083,7 @@ xf86RandR12CreateScreenResources12 (ScreenPtr pScreen)
  * to DGA, VidMode or hot key. Tell RandR
  */
 
-void
+_X_EXPORT void
 xf86RandR12TellChanged (ScreenPtr pScreen)
 {
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
@@ -1123,7 +1133,7 @@ xf86RandR12Init12 (ScreenPtr pScreen)
 
 #endif
 
-Bool
+_X_EXPORT Bool
 xf86RandR12PreInit (ScrnInfoPtr pScrn)
 {
     return TRUE;

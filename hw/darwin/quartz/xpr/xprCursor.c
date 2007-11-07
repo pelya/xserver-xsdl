@@ -2,8 +2,6 @@
  *
  * Xplugin cursor support
  *
- **************************************************************/
-/*
  * Copyright (c) 2001 Torrey T. Lyons and Greg Parker.
  * Copyright (c) 2002 Apple Computer, Inc.
  *                 All Rights Reserved.
@@ -30,9 +28,9 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
+
+#include <dix-config.h>
+
 #include "quartz/quartzCommon.h"
 #include "xpr.h"
 #include "darwin.h"
@@ -84,8 +82,17 @@ load_cursor(CursorPtr src, int screen)
 #ifdef ARGB_CURSOR
     if (src->bits->argb != NULL)
     {
-        rowbytes = src->bits->width * sizeof(CARD32);
+#if BITMAP_BIT_ORDER == MSBFirst
+        rowbytes = src->bits->width * sizeof (CARD32);
         data = (uint32_t *) src->bits->argb;
+#else
+        const uint32_t *be_data=(uint32_t *) src->bits->argb;
+        unsigned i;
+        rowbytes = src->bits->width * sizeof (CARD32);
+        data=alloca (rowbytes * src->bits->height);
+        for(i=0;i<(src->bits->width*src->bits->height);i++)
+            data[i]=ntohl(be_data[i]);
+#endif
     }
     else
 #endif

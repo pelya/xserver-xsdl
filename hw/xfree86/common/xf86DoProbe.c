@@ -92,9 +92,7 @@ DoProbe()
 
 	xf86MsgVerb(X_INFO, 3, "Probing in driver %s\n",  drv->driverName);
 
-	if (drv->Probe == NULL) continue;
-
-	probeResult = (*drv->Probe)( drv, PROBE_DETECT );
+	probeResult = xf86CallDriverProbe( drv, TRUE );
 	if (!probeResult) {
 	    xf86ErrorF("Probe in driver `%s' returns FALSE\n",
 		drv->driverName);

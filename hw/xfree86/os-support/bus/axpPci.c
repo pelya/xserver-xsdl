@@ -229,9 +229,6 @@ axpPciInit()
 
 	pciNumBuses = bus + 1;
     }
-
-    pciFindFirstFP = pciGenFindFirst;
-    pciFindNextFP  = pciGenFindNext;
 }
 
 /*
@@ -330,12 +327,11 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 			 pDomain->dense_mem + Base - _bus_base(), Size);
 }
 
-_X_EXPORT IOADDRESS
-xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
-		IOADDRESS Base, unsigned long Size)
+IOADDRESS
+xf86MapLegacyIO(struct pci_device *dev)
 {
     axpDomainPtr pDomain;
-    int domain = PCI_DOM_FROM_TAG(Tag);
+    const int domain = dev->domain;
 
     if ((domain < 0) || (domain >= pciNumDomains) ||
 	!(pDomain = xf86DomainInfo[domain])) 
@@ -346,7 +342,7 @@ xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
      * base [this is ok since we also constrain sparse I/O systems to
      * a single domain in axpSetupDomains()]
      */
-    if (pDomain->sparse_io) return Base;
+    if (pDomain->sparse_io) return 0;
 
     /*
      * I/O addresses on Alpha are really just different physical memory
@@ -359,70 +355,11 @@ xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
      * Map the entire I/O space (64kB) at once and only once.
      */
     if (!pDomain->mapped_io)
-        pDomain->mapped_io = (IOADDRESS)xf86MapVidMem(ScreenNum, Flags, 
+        pDomain->mapped_io = (IOADDRESS)xf86MapVidMem(-1, VIDMEM_MMIO,
 		   	            pDomain->dense_io - _bus_base(), 
                                     0x10000);
 
-    return pDomain->mapped_io + Base;
-}
-
-_X_EXPORT int
-xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
-{
-    static unsigned long pagemask = 0;
-    unsigned char *MappedAddr;
-    unsigned long MapSize;
-    ADDRESS MapBase;
-    int i;
-
-    if (!pagemask) pagemask = xf86getpagesize() - 1;
-
-    /* Ensure page boundaries */
-    MapBase = Base & ~pagemask;
-    MapSize = ((Base + Len + pagemask) & ~pagemask) - MapBase;
-
-    /*
-     * VIDMEM_MMIO in order to get sparse mapping on sparse memory systems
-     * so we can use mmio functions to read (that way we can really get byte
-     * at a time reads on dense memory systems with byte/word instructions.
-     */
-    MappedAddr = xf86MapDomainMemory(-1, VIDMEM_READONLY | VIDMEM_MMIO, 
-                                     Tag, MapBase, MapSize);
-
-    for (i = 0; i < Len; i++) {
-	*Buf++ = xf86ReadMmio8(MappedAddr, Base - MapBase + i);
-    }
-    
-    xf86UnMapVidMem(-1, MappedAddr, MapSize);
-    return Len;
-}
-
-resPtr
-xf86PciBusAccWindowsFromOS(void)
-{
-    resPtr pRes = NULL;
-    resRange range;
-    int domain;
-
-    for(domain = 0; domain < pciNumDomains; domain++) {
-	if (!xf86DomainInfo[domain]) continue;
-
-	RANGE(range, 0, 0xffffffffUL,
-	      RANGE_TYPE(ResExcMemBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);
-
-	RANGE(range, 0, 0x0000ffffUL,
-	      RANGE_TYPE(ResExcIoBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);		      
-    }
-
-    return pRes;
-}
-
-resPtr
-xf86BusAccWindowsFromOS(void)
-{
-    return xf86PciBusAccWindowsFromOS();
+    return pDomain->mapped_io;
 }
 
 resPtr

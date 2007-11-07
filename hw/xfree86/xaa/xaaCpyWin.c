@@ -59,7 +59,7 @@ XAACopyWindow(
     pbox = REGION_RECTS(&rgnDst);
     nbox = REGION_NUM_RECTS(&rgnDst);
     if(!nbox || 
-      !(pptSrc = (DDXPointPtr )ALLOCATE_LOCAL(nbox * sizeof(DDXPointRec)))) {
+      !(pptSrc = (DDXPointPtr )xalloc(nbox * sizeof(DDXPointRec)))) {
 	REGION_UNINIT(pScreen, &rgnDst);
 	return;
     }
@@ -77,6 +77,6 @@ XAACopyWindow(
     XAADoBitBlt((DrawablePtr)pwinRoot, (DrawablePtr)pwinRoot,
         		&(infoRec->ScratchGC), &rgnDst, pptSrc);
 
-    DEALLOCATE_LOCAL(pptSrc);
+    xfree(pptSrc);
     REGION_UNINIT(pScreen, &rgnDst);
 }

@@ -186,8 +186,6 @@ else\
 "The Inactive keyword must be followed by a Device name in quotes."
 #define UNDEFINED_SCREEN_MSG \
 "Undefined Screen \"%s\" referenced by ServerLayout \"%s\"."
-#define UNDEFINED_MONITOR_MSG \
-"Undefined Monitor \"%s\" referenced by Screen \"%s\"."
 #define UNDEFINED_MODES_MSG \
 "Undefined Modes Section \"%s\" referenced by Monitor \"%s\"."
 #define UNDEFINED_DEVICE_MSG \
@@ -204,8 +202,6 @@ else\
 "This section must have an Identifier line."
 #define ONLY_ONE_MSG \
 "This section must have only one of either %s line."
-#define UNDEFINED_DRIVER_MSG \
-"Device section \"%s\" must have a Driver line."
 #define UNDEFINED_INPUTDRIVER_MSG \
 "InputDevice section \"%s\" must have a Driver line."
 #define INVALID_GAMMA_MSG \

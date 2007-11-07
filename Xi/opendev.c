@@ -56,14 +56,11 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
 #include "windowstr.h"	/* window structure  */
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
@@ -110,17 +107,13 @@ ProcXOpenDevice(ClientPtr client)
 	for (dev = inputInfo.off_devices; dev; dev = dev->next)
 	    if (dev->id == stuff->deviceid)
 		break;
-	if (dev == NULL) {
-	    SendErrorToClient(client, IReqCode, X_OpenDevice, 0, BadDevice);
-	    return Success;
-	}
+	if (dev == NULL)
+	    return BadDevice;
     }
 
     OpenInputDevice(dev, client, &status);
-    if (status != Success) {
-	SendErrorToClient(client, IReqCode, X_OpenDevice, 0, status);
-	return Success;
-    }
+    if (status != Success)
+	return status;
 
     rep.repType = X_Reply;
     rep.RepType = X_OpenDevice;

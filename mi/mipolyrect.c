@@ -94,7 +94,7 @@ miPolyRectangle(pDraw, pGC, nrects, pRects)
 	offset2 = pGC->lineWidth;
 	offset1 = offset2 >> 1;
 	offset3 = offset2 - offset1;
-	tmp = (xRectangle *) ALLOCATE_LOCAL(ntmp * sizeof (xRectangle));
+	tmp = (xRectangle *) xalloc(ntmp * sizeof (xRectangle));
 	if (!tmp)
 	    return;
 	t = tmp;
@@ -162,7 +162,7 @@ miPolyRectangle(pDraw, pGC, nrects, pRects)
 	    }
 	}
 	(*pGC->ops->PolyFillRect) (pDraw, pGC, t - tmp, tmp);
-	DEALLOCATE_LOCAL ((pointer) tmp);
+	xfree ((pointer) tmp);
     }
     else
     {

@@ -49,7 +49,7 @@ extern XF86ConfigPtr xf86configptr;
  *
  * Exact copy of xf86Mode.c's.
  */
-double
+_X_EXPORT double
 xf86ModeHSync(DisplayModePtr mode)
 {
     double hsync = 0.0;
@@ -67,7 +67,7 @@ xf86ModeHSync(DisplayModePtr mode)
  *
  * Exact copy of xf86Mode.c's.
  */
-double
+_X_EXPORT double
 xf86ModeVRefresh(DisplayModePtr mode)
 {
     double refresh = 0.0;
@@ -86,7 +86,7 @@ xf86ModeVRefresh(DisplayModePtr mode)
     return refresh;
 }
 
-int
+_X_EXPORT int
 xf86ModeWidth (DisplayModePtr mode, Rotation rotation)
 {
     switch (rotation & 0xf) {
@@ -101,7 +101,7 @@ xf86ModeWidth (DisplayModePtr mode, Rotation rotation)
     }
 }
 
-int
+_X_EXPORT int
 xf86ModeHeight (DisplayModePtr mode, Rotation rotation)
 {
     switch (rotation & 0xf) {
@@ -117,7 +117,7 @@ xf86ModeHeight (DisplayModePtr mode, Rotation rotation)
 }
 
 /** Sets a default mode name of <width>x<height> on a mode. */
-void
+_X_EXPORT void
 xf86SetModeDefaultName(DisplayModePtr mode)
 {
     if (mode->name != NULL)
@@ -134,7 +134,7 @@ xf86SetModeDefaultName(DisplayModePtr mode)
  *
  * Exact copy of xf86Mode.c's.
  */
-void
+_X_EXPORT void
 xf86SetModeCrtc(DisplayModePtr p, int adjustFlags)
 {
     if ((p == NULL) || ((p->type & M_T_CRTC_C) == M_T_BUILTIN))
@@ -185,7 +185,7 @@ xf86SetModeCrtc(DisplayModePtr p, int adjustFlags)
 /**
  * Allocates and returns a copy of pMode, including pointers within pMode.
  */
-DisplayModePtr
+_X_EXPORT DisplayModePtr
 xf86DuplicateMode(DisplayModePtr pMode)
 {
     DisplayModePtr pNew;
@@ -196,9 +196,8 @@ xf86DuplicateMode(DisplayModePtr pMode)
     pNew->prev = NULL;
     if (pNew->name == NULL) {
 	xf86SetModeDefaultName(pMode);
-    } else {
-	pNew->name = xnfstrdup(pMode->name);
     }
+    pNew->name = xnfstrdup(pMode->name);
 
     return pNew;
 }
@@ -209,7 +208,7 @@ xf86DuplicateMode(DisplayModePtr pMode)
  *
  * \param modeList doubly-linked mode list
  */
-DisplayModePtr
+_X_EXPORT DisplayModePtr
 xf86DuplicateModes(ScrnInfoPtr pScrn, DisplayModePtr modeList)
 {
     DisplayModePtr first = NULL, last = NULL;
@@ -243,7 +242,7 @@ xf86DuplicateModes(ScrnInfoPtr pScrn, DisplayModePtr modeList)
  *
  * This isn't in xf86Modes.c, but it might deserve to be there.
  */
-Bool
+_X_EXPORT Bool
 xf86ModesEqual(DisplayModePtr pMode1, DisplayModePtr pMode2)
 {
      if (pMode1->Clock == pMode2->Clock &&
@@ -279,7 +278,7 @@ add(char **p, char *new)
  *
  * Convenient VRefresh printing was added, though, compared to xf86Mode.c
  */
-void
+_X_EXPORT void
 xf86PrintModeline(int scrnIndex,DisplayModePtr mode)
 {
     char tmp[256];
@@ -327,7 +326,7 @@ xf86PrintModeline(int scrnIndex,DisplayModePtr mode)
  *
  * This is not in xf86Modes.c, but would be part of the proposed new API.
  */
-void
+_X_EXPORT void
 xf86ValidateModesFlags(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 			    int flags)
 {
@@ -348,7 +347,7 @@ xf86ValidateModesFlags(ScrnInfoPtr pScrn, DisplayModePtr modeList,
  *
  * This is not in xf86Modes.c, but would be part of the proposed new API.
  */
-void
+_X_EXPORT void
 xf86ValidateModesSize(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 			  int maxX, int maxY, int maxPitch)
 {
@@ -377,7 +376,7 @@ xf86ValidateModesSize(ScrnInfoPtr pScrn, DisplayModePtr modeList,
  *
  * This is not in xf86Modes.c, but would be part of the proposed new API.
  */
-void
+_X_EXPORT void
 xf86ValidateModesSync(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 			  MonPtr mon)
 {
@@ -389,8 +388,8 @@ xf86ValidateModesSync(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 
 	bad = TRUE;
 	for (i = 0; i < mon->nHsync; i++) {
-	    if (xf86ModeHSync(mode) >= mon->hsync[i].lo &&
-		xf86ModeHSync(mode) <= mon->hsync[i].hi)
+	    if (xf86ModeHSync(mode) >= mon->hsync[i].lo * (1-SYNC_TOLERANCE) &&
+		xf86ModeHSync(mode) <= mon->hsync[i].hi * (1+SYNC_TOLERANCE))
 	    {
 		bad = FALSE;
 	    }
@@ -400,8 +399,8 @@ xf86ValidateModesSync(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 
 	bad = TRUE;
 	for (i = 0; i < mon->nVrefresh; i++) {
-	    if (xf86ModeVRefresh(mode) >= mon->vrefresh[i].lo &&
-		xf86ModeVRefresh(mode) <= mon->vrefresh[i].hi)
+	    if (xf86ModeVRefresh(mode) >= mon->vrefresh[i].lo * (1-SYNC_TOLERANCE) &&
+		xf86ModeVRefresh(mode) <= mon->vrefresh[i].hi * (1+SYNC_TOLERANCE))
 	    {
 		bad = FALSE;
 	    }
@@ -424,7 +423,7 @@ xf86ValidateModesSync(ScrnInfoPtr pScrn, DisplayModePtr modeList,
  *
  * This is not in xf86Modes.c, but would be part of the proposed new API.
  */
-void
+_X_EXPORT void
 xf86ValidateModesClocks(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 			    int *min, int *max, int n_ranges)
 {
@@ -434,7 +433,8 @@ xf86ValidateModesClocks(ScrnInfoPtr pScrn, DisplayModePtr modeList,
     for (mode = modeList; mode != NULL; mode = mode->next) {
 	Bool good = FALSE;
 	for (i = 0; i < n_ranges; i++) {
-	    if (mode->Clock >= min[i] && mode->Clock <= max[i]) {
+	    if (mode->Clock >= min[i] * (1-SYNC_TOLERANCE) &&
+		mode->Clock <= max[i] * (1+SYNC_TOLERANCE)) {
 		good = TRUE;
 		break;
 	    }
@@ -458,7 +458,7 @@ xf86ValidateModesClocks(ScrnInfoPtr pScrn, DisplayModePtr modeList,
  *
  * This is not in xf86Modes.c, but would be part of the proposed new API.
  */
-void
+_X_EXPORT void
 xf86ValidateModesUserConfig(ScrnInfoPtr pScrn, DisplayModePtr modeList)
 {
     DisplayModePtr mode;
@@ -492,7 +492,7 @@ xf86ValidateModesUserConfig(ScrnInfoPtr pScrn, DisplayModePtr modeList)
  *
  * This is not in xf86Modes.c, but would be part of the proposed new API.
  */
-void
+_X_EXPORT void
 xf86PruneInvalidModes(ScrnInfoPtr pScrn, DisplayModePtr *modeList,
 			  Bool verbose)
 {
@@ -526,7 +526,7 @@ xf86PruneInvalidModes(ScrnInfoPtr pScrn, DisplayModePtr *modeList,
  *
  * \param modes doubly-linked mode list.
  */
-DisplayModePtr
+_X_EXPORT DisplayModePtr
 xf86ModesAdd(DisplayModePtr modes, DisplayModePtr new)
 {
     if (modes == NULL)
@@ -592,7 +592,7 @@ xf86GetConfigModes (XF86ConfModeLinePtr conf_mode)
 /**
  * Build a mode list from a monitor configuration
  */
-DisplayModePtr
+_X_EXPORT DisplayModePtr
 xf86GetMonitorModes (ScrnInfoPtr pScrn, XF86ConfMonitorPtr conf_monitor)
 {
     DisplayModePtr	    modes = NULL;
@@ -624,7 +624,7 @@ xf86GetMonitorModes (ScrnInfoPtr pScrn, XF86ConfMonitorPtr conf_monitor)
 /**
  * Build a mode list containing all of the default modes
  */
-DisplayModePtr
+_X_EXPORT DisplayModePtr
 xf86GetDefaultModes (Bool interlaceAllowed, Bool doubleScanAllowed)
 {
     DisplayModePtr  head = NULL, prev = NULL, mode;

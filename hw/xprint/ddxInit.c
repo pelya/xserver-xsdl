@@ -310,6 +310,17 @@ ChangeDeviceControl (
     return BadMatch;
 }
 
+int
+NewInputDeviceRequest(InputOption *options, DeviceIntPtr *pdev)
+{
+    return BadValue;
+}
+
+void
+DeleteInputDeviceRequest(DeviceIntPtr dev)
+{
+}
+
 void
 OpenInputDevice (
     DeviceIntPtr dev,

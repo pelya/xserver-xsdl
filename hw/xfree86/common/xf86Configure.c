@@ -35,13 +35,14 @@
 #include <fcntl.h>
 #include <X11/X.h>
 #include <X11/Xmd.h>
+#include <pciaccess.h>
+#include "Pci.h"
 #include "os.h"
 #include "loaderProcs.h"
 #include "xf86.h"
 #include "xf86Config.h"
 #include "xf86_OSlib.h"
 #include "xf86Priv.h"
-#include "xf86PciData.h"
 #define IN_XSERVER
 #include "xf86Parser.h"
 #include "xf86tokens.h"
@@ -56,7 +57,7 @@
 
 typedef struct _DevToConfig {
     GDevRec GDev;
-    pciVideoPtr pVideo;
+    struct pci_device * pVideo;
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     sbusDevicePtr sVideo;
 #endif
@@ -101,7 +102,7 @@ GDevPtr
 xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int chipset)
 {
     int i, j;
-    pciVideoPtr pVideo = NULL;
+    struct pci_device * pVideo = NULL;
     Bool isPrimary = FALSE;
 
     if (xf86DoProbe || !xf86DoConfigure || !xf86DoConfigurePass1)
@@ -110,11 +111,12 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
     /* Check for duplicates */
     switch (bus) {
     case BUS_PCI:
-	pVideo = (pciVideoPtr) busData;
+	pVideo = (struct pci_device *) busData;
 	for (i = 0;  i < nDevToConfig;  i++)
 	    if (DevToConfig[i].pVideo &&
+		(DevToConfig[i].pVideo->domain == pVideo->domain) &&
 		(DevToConfig[i].pVideo->bus == pVideo->bus) &&
-		(DevToConfig[i].pVideo->device == pVideo->device) &&
+		(DevToConfig[i].pVideo->dev == pVideo->dev) &&
 		(DevToConfig[i].pVideo->func == pVideo->func))
 		return NULL;
 	isPrimary = xf86IsPrimaryPci(pVideo);
@@ -173,9 +175,9 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 	char busnum[8];
 
 	NewDevice.pVideo = pVideo;
-	xf86FindPciNamesByDevice(pVideo->vendor, pVideo->chipType,
-				 NOVENDOR, NOSUBSYS,
-				 &VendorName, &CardName, NULL, NULL);
+
+	VendorName = pci_device_get_vendor_name( pVideo );
+	CardName = pci_device_get_device_name( pVideo );
 
 	if (!VendorName) {
 	    VendorName = xnfalloc(15);
@@ -197,13 +199,13 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
 	NewDevice.GDev.busID = xnfalloc(16);
 	xf86FormatPciBusNumber(pVideo->bus, busnum);
 	sprintf(NewDevice.GDev.busID, "PCI:%s:%d:%d",
-	    busnum, pVideo->device, pVideo->func);
+	    busnum, pVideo->dev, pVideo->func);
 
-	NewDevice.GDev.chipID = pVideo->chipType;
-	NewDevice.GDev.chipRev = pVideo->chipRev;
+	NewDevice.GDev.chipID = pVideo->device_id;
+	NewDevice.GDev.chipRev = pVideo->revision;
 
 	if (chipset < 0)
-	    chipset = (pVideo->vendor << 16) | pVideo->chipType;
+	    chipset = (pVideo->vendor_id << 16) | pVideo->device_id;
 	}
 	break;
     case BUS_ISA:
@@ -249,7 +251,8 @@ xf86AddBusDeviceToConfigure(const char *driver, BusType bus, void *busData, int 
  * Backwards compatibility
  */
 _X_EXPORT GDevPtr
-xf86AddDeviceToConfigure(const char *driver, pciVideoPtr pVideo, int chipset)
+xf86AddDeviceToConfigure(const char *driver, struct pci_device * pVideo, 
+			 int chipset)
 {
     return xf86AddBusDeviceToConfigure(driver, pVideo ? BUS_PCI : BUS_ISA,
 				       pVideo, chipset);
@@ -602,8 +605,6 @@ configureFilesSection (void)
        ptr->file_modulepath = strdup(xf86ModulePath);
    if (defaultFontPath)
        ptr->file_fontpath = strdup(defaultFontPath);
-   if (rgbPath)
-       ptr->file_rgbpath = strdup(rgbPath);
    
     return ptr;
 }
@@ -759,22 +760,20 @@ DoConfigure()
     /* Call all of the probe functions, reporting the results. */
     for (CurrentDriver = 0;  CurrentDriver < xf86NumDrivers;  CurrentDriver++) {
 	xorgHWFlags flags;
-	
+	Bool found_screen;
+	DriverRec * const drv = xf86DriverList[CurrentDriver];
+
 	if (!xorgHWAccess) {
-	    if (!xf86DriverList[CurrentDriver]->driverFunc
-		|| !xf86DriverList[CurrentDriver]->driverFunc(NULL,
-						GET_REQUIRED_HW_INTERFACES,
-						&flags)
+	    if (!drv->driverFunc
+		|| !drv->driverFunc( NULL, GET_REQUIRED_HW_INTERFACES, &flags )
 		|| NEED_IO_ENABLED(flags)) 
 		continue;
 	}
 	
-	if (xf86DriverList[CurrentDriver]->Probe == NULL) continue;
-
-	if ((*xf86DriverList[CurrentDriver]->Probe)(
-	    xf86DriverList[CurrentDriver], PROBE_DETECT) &&
-	    xf86DriverList[CurrentDriver]->Identify)
-	    (*xf86DriverList[CurrentDriver]->Identify)(0);
+	found_screen = xf86CallDriverProbe( drv, TRUE );
+	if ( found_screen && drv->Identify ) {
+	    (*drv->Identify)(0);
+	}
     }
 
     if (nDevToConfig <= 0) {
@@ -822,7 +821,7 @@ DoConfigure()
     	homebuf[PATH_MAX-1] = '\0';
     	home = homebuf;
     	if (!(filename =
-	     (char *)ALLOCATE_LOCAL(strlen(home) + 
+	     (char *)xalloc(strlen(home) + 
 	  			 strlen(configfile) + 3)))
 
       	if (home[0] == '/' && home[1] == '\0')
@@ -860,7 +859,7 @@ DoConfigure()
 	    
 	    oldNumScreens = xf86NumScreens;
 
-	    (*xf86DriverList[i]->Probe)(xf86DriverList[i], 0);
+	    xf86CallDriverProbe( xf86DriverList[i], FALSE );
 
 	    /* reorder */
 	    k = screennum > 0 ? screennum : 1;
@@ -888,7 +887,6 @@ DoConfigure()
 		    }
 		}
 	    }
-	    xf86SetPciVideo(NULL,NONE);
 	}
 	xfree(driverProbed);
     }

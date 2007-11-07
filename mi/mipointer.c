@@ -387,6 +387,7 @@ miPointerWarpCursor (pDev, pScreen, x, y)
 	pPointer->y = y;
 	pPointer->pScreen = pScreen;
     }
+    UpdateSpriteForScreen (pDev, pScreen) ;
 }
 
 /*

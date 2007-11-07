@@ -74,6 +74,9 @@ SOFTWARE.
 #define TRANS_SERVER
 #define TRANS_REOPEN
 #include <X11/Xtrans/Xtrans.h>
+#ifdef HAVE_LAUNCHD
+#include <X11/Xtrans/Xtransint.h>
+#endif
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
@@ -359,6 +362,52 @@ InitConnectionLimits(void)
 #endif
 }
 
+/*
+ * If SIGUSR1 was set to SIG_IGN when the server started, assume that either
+ *
+ *  a- The parent process is ignoring SIGUSR1
+ *
+ * or
+ *
+ *  b- The parent process is expecting a SIGUSR1
+ *     when the server is ready to accept connections
+ *
+ * In the first case, the signal will be harmless, in the second case,
+ * the signal will be quite useful.
+ */
+static void
+InitParentProcess(void)
+{
+#if !defined(WIN32)
+    OsSigHandlerPtr handler;
+    handler = OsSignal (SIGUSR1, SIG_IGN);
+    if ( handler == SIG_IGN)
+	RunFromSmartParent = TRUE;
+    OsSignal(SIGUSR1, handler);
+    ParentProcess = getppid ();
+#ifdef __UNIXOS2__
+    /*
+     * fg030505: under OS/2, xinit is not the parent process but
+     * the "grant parent" process of the server because execvpe()
+     * presents us an additional process number;
+     * GetPPID(pid) is part of libemxfix
+     */
+    ParentProcess = GetPPID (ParentProcess);
+#endif /* __UNIXOS2__ */
+#endif
+}
+
+void
+NotifyParentProcess(void)
+{
+#if !defined(WIN32)
+    if (RunFromSmartParent) {
+	if (ParentProcess > 1) {
+	    kill (ParentProcess, SIGUSR1);
+	}
+    }
+#endif
+}
 
 /*****************
  * CreateWellKnownSockets
@@ -371,7 +420,6 @@ CreateWellKnownSockets(void)
     int		i;
     int		partial;
     char 	port[20];
-    OsSigHandlerPtr handler;
 
     FD_ZERO(&AllSockets);
     FD_ZERO(&AllClients);
@@ -425,33 +473,9 @@ CreateWellKnownSockets(void)
     OsSignal (SIGTERM, GiveUp);
     XFD_COPYSET (&WellKnownConnections, &AllSockets);
     ResetHosts(display);
-    /*
-     * Magic:  If SIGUSR1 was set to SIG_IGN when
-     * the server started, assume that either
-     *
-     *  a- The parent process is ignoring SIGUSR1
-     *
-     * or
-     *
-     *  b- The parent process is expecting a SIGUSR1
-     *     when the server is ready to accept connections
-     *
-     * In the first case, the signal will be harmless,
-     * in the second case, the signal will be quite
-     * useful
-     */
-#if !defined(WIN32)
-    handler = OsSignal (SIGUSR1, SIG_IGN);
-    if ( handler == SIG_IGN)
-	RunFromSmartParent = TRUE;
-    OsSignal(SIGUSR1, handler);
-    ParentProcess = getppid ();
-    if (RunFromSmartParent) {
-	if (ParentProcess > 1) {
-	    kill (ParentProcess, SIGUSR1);
-	}
-    }
-#endif
+
+    InitParentProcess();
+
 #ifdef XDMCP
     XdmcpInit ();
 #endif
@@ -501,16 +525,6 @@ ResetWellKnownSockets (void)
     ResetAuthorization ();
     ResetHosts(display);
     /*
-     * See above in CreateWellKnownSockets about SIGUSR1
-     */
-#if !defined(WIN32)
-    if (RunFromSmartParent) {
-	if (ParentProcess > 1) {
-	    kill (ParentProcess, SIGUSR1);
-	}
-    }
-#endif
-    /*
      * restart XDMCP
      */
 #ifdef XDMCP
@@ -536,10 +550,8 @@ AuthAudit (ClientPtr client, Bool letin,
     char *out = addr;
     int client_uid;
     char client_uid_string[64];
-#ifdef HAS_GETPEERUCRED
-    ucred_t *peercred = NULL;
-#endif
-#if defined(HAS_GETPEERUCRED) || defined(XSERVER_DTRACE)    
+    LocalClientCredRec *lcc;
+#ifdef XSERVER_DTRACE
     pid_t client_pid = -1;
     zoneid_t client_zid = -1;
 #endif
@@ -580,23 +592,50 @@ AuthAudit (ClientPtr client, Bool letin,
 	    strcpy(out, "unknown address");
 	}
 
-#ifdef HAS_GETPEERUCRED
-    if (getpeerucred(((OsCommPtr)client->osPrivate)->fd, &peercred) >= 0) {
-	client_uid = ucred_geteuid(peercred);
-	client_pid = ucred_getpid(peercred);
-	client_zid = ucred_getzoneid(peercred);
+    if (GetLocalClientCreds(client, &lcc) != -1) {
+	int slen; /* length written to client_uid_string */
 
-	ucred_free(peercred);
-	snprintf(client_uid_string, sizeof(client_uid_string),
-		 " (uid %ld, pid %ld, zone %ld)",
-		 (long) client_uid, (long) client_pid, (long) client_zid);
-    }
-#else    
-    if (LocalClientCred(client, &client_uid, NULL) != -1) {
-	snprintf(client_uid_string, sizeof(client_uid_string),
-		 " (uid %d)", client_uid);
-    }
+	strcpy(client_uid_string, " ( ");
+	slen = 3;
+
+	if (lcc->fieldsSet & LCC_UID_SET) {
+	    snprintf(client_uid_string + slen,
+		     sizeof(client_uid_string) - slen,
+		     "uid=%ld ", (long) lcc->euid);
+	    slen = strlen(client_uid_string);
+	}
+
+	if (lcc->fieldsSet & LCC_GID_SET) {
+	    snprintf(client_uid_string + slen,
+		     sizeof(client_uid_string) - slen,
+		     "gid=%ld ", (long) lcc->egid);
+	    slen = strlen(client_uid_string);
+	}
+
+	if (lcc->fieldsSet & LCC_PID_SET) {
+#ifdef XSERVER_DTRACE	    
+	    client_pid = lcc->pid;
 #endif
+	    snprintf(client_uid_string + slen,
+		     sizeof(client_uid_string) - slen,
+		     "pid=%ld ", (long) lcc->pid);
+	    slen = strlen(client_uid_string);
+	}
+	
+	if (lcc->fieldsSet & LCC_ZID_SET) {
+#ifdef XSERVER_DTRACE
+	    client_zid = lcc->zoneid;
+#endif	    
+	    snprintf(client_uid_string + slen,
+		     sizeof(client_uid_string) - slen,
+		     "zoneid=%ld ", (long) lcc->zoneid);
+	    slen = strlen(client_uid_string);
+	}
+
+	snprintf(client_uid_string + slen, sizeof(client_uid_string) - slen,
+		 ")");
+	FreeLocalClientCreds(lcc);
+    }
     else {
 	client_uid_string[0] = '\0';
     }
@@ -660,9 +699,20 @@ ClientAuthorized(ClientPtr client,
     XID	 		auth_id;
     char	 	*reason = NULL;
     XtransConnInfo	trans_conn;
+#ifdef HAVE_LAUNCHD
+    struct sockaddr     *saddr;
+#endif
 
     priv = (OsCommPtr)client->osPrivate;
     trans_conn = priv->trans_conn;
+
+#ifdef HAVE_LAUNCHD
+    saddr = (struct sockaddr *) (trans_conn->addr);
+    /* Allow any client to connect without authorization on a launchd socket,
+       because it is securely created -- this prevents a race condition on launch */
+    if (saddr->sa_len > 11 && saddr->sa_family == AF_UNIX &&
+        !strncmp(saddr->sa_data, "/tmp/launch", 11)) goto done;
+#endif
 
     auth_id = CheckAuthorization (proto_n, auth_proto,
 				  string_n, auth_string, client, &reason);
@@ -719,6 +769,7 @@ ClientAuthorized(ClientPtr client,
 	}
     }
     priv->auth_id = auth_id;
+ done:
     priv->conn_time = 0;
 
 #ifdef XDMCP

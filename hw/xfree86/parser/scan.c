@@ -948,7 +948,7 @@ StringToToken (char *str, xf86ConfigSymTabRec * tab)
  * Compare two names.  The characters '_', ' ', and '\t' are ignored
  * in the comparison.
  */
-int
+__attribute__((visibility("default"))) int
 xf86nameCompare (const char *s1, const char *s2)
 {
 	char c1, c2;

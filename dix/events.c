@@ -1400,18 +1400,24 @@ ComputeFreezes(void)
                      * deliver it too.
                      * However, we might get here with a core event, in which
                      * case we mustn't emulate a core event.
-                     * XXX: I think this may break things. If a client has a
-                     * device grab, and another client a core grab on an
-                     * inferior window, we never get the core grab. (whot)
                      */
                     sendCore = (replayDev->coreEvents &&
                         (xE->u.u.type & EXTENSION_EVENT_BASE &&
                          XItoCoreType(xE->u.u.type)));
 
+
                     if (sendCore)
                     {
                         core = *xE;
                         core.u.u.type = XItoCoreType(xE->u.u.type);
+                        /* * XXX: Not sure if this is correct: we need to
+                         * check inferior windows for core passive grabs. 
+                         */
+                        if (CheckDeviceGrabs(replayDev, &core, i+1, 1))
+                        {
+                            syncEvents.playingEvents = FALSE;
+                            return;
+                        }
                     }
 		    if (replayDev->focus)
                     {
@@ -2912,6 +2918,69 @@ InitializeSprite(DeviceIntPtr pDev, WindowPtr pWin)
         /* gotta UNINIT these someplace */
         REGION_NULL(pScreen, &pSprite->Reg1);
         REGION_NULL(pScreen, &pSprite->Reg2);
+    }
+#endif
+}
+
+/**
+ * Update the mouse sprite info when the server switches from a pScreen to another.
+ * Otherwise, the pScreen of the mouse sprite is never updated when we switch
+ * from a pScreen to another. Never updating the pScreen of the mouse sprite
+ * implies that windows that are in pScreen whose pScreen->myNum >0 will never
+ * get pointer events. This is  because in CheckMotion(), sprite.hotPhys.pScreen
+ * always points to the first pScreen it has been set by
+ * DefineInitialRootWindow().
+ *
+ * Calling this function is useful for use cases where the server
+ * has more than one pScreen.
+ * This function is similar to DefineInitialRootWindow() but it does not
+ * reset the mouse pointer position.
+ * @param win must be the new pScreen we are switching to.
+ */
+void
+UpdateSpriteForScreen(DeviceIntPtr pDev, ScreenPtr pScreen)
+{
+    SpritePtr pSprite = NULL;
+    WindowPtr win = NULL;
+    if (!pScreen)
+        return ;
+
+    if (!pDev->spriteInfo->sprite)
+        return;
+
+    pSprite = pDev->spriteInfo->sprite;
+
+    win = WindowTable[pScreen->myNum];
+
+    pSprite->hotPhys.pScreen = pScreen;
+    pSprite->hot = pSprite->hotPhys;
+    pSprite->hotLimits.x2 = pScreen->width;
+    pSprite->hotLimits.y2 = pScreen->height;
+#ifdef XEVIE
+    xeviewin =
+#endif
+    pSprite->win = win;
+    pSprite->current = wCursor (win);
+    pSprite->current->refcnt++;
+    pSprite->spriteTraceGood = 1;
+    pSprite->spriteTrace[0] = win;
+    (*pScreen->CursorLimits) (pDev,
+                              pScreen,
+                              pSprite->current,
+                              &pSprite->hotLimits,
+                              &pSprite->physLimits);
+    pSprite->confined = FALSE;
+    (*pScreen->ConstrainCursor) (pDev, pScreen, &pSprite->physLimits);
+    (*pScreen->DisplayCursor) (pDev, pScreen, pSprite->current);
+
+#ifdef PANORAMIX
+    if(!noPanoramiXExtension) {
+        pSprite->hotLimits.x1 = -panoramiXdataPtr[0].x;
+        pSprite->hotLimits.y1 = -panoramiXdataPtr[0].y;
+        pSprite->hotLimits.x2 = PanoramiXPixWidth  - panoramiXdataPtr[0].x;
+        pSprite->hotLimits.y2 = PanoramiXPixHeight - panoramiXdataPtr[0].y;
+        pSprite->physLimits = pSprite->hotLimits;
+        pSprite->screen = pScreen;
     }
 #endif
 }
@@ -6198,7 +6267,9 @@ IsInterferingGrab(ClientPtr client, DeviceIntPtr dev, xEvent* event)
             if (it->deviceGrab.grab && SameClient(it->deviceGrab.grab, client)
                         && !it->deviceGrab.fromPassiveGrab)
             {
-                return TRUE;
+                if ((IsPointerDevice(it) && IsPointerDevice(dev)) ||
+                        (IsKeyboardDevice(it) && IsKeyboardDevice(dev)))
+                    return TRUE;
             }
         }
         it = it->next;

@@ -36,6 +36,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/keysym.h>
 #include "misc.h"
 #include "inputstr.h"
+#include "exevents.h"
 #include <xkbsrv.h>
 #include "xkb.h"
 #include <ctype.h>
@@ -80,8 +81,7 @@ XkbSetExtension(DeviceIntPtr device, ProcessInputProc proc)
     xkbPrivPtr->unwrapProc = NULL;
 
     device->devPrivates[xkbDevicePrivateIndex].ptr = xkbPrivPtr;
-    WRAP_PROCESS_INPUT_PROC(device,xkbPrivPtr,
-			    proc,xkbUnwrapProc);
+    WRAP_PROCESS_INPUT_PROC(device, xkbPrivPtr, proc, xkbUnwrapProc);
 }
 
 extern	void	ProcessOtherEvent(
@@ -400,7 +400,6 @@ _XkbFilterLockState(	XkbSrvInfoPtr	xkbi,
 			unsigned	keycode,
 			XkbAction *	pAction)
 {
-
     if (pAction&&(pAction->type==XkbSA_LockGroup)) {
 	if (pAction->group.flags&XkbSA_GroupAbsolute)
 	     xkbi->state.locked_group= XkbSAGroup(&pAction->group);
@@ -1275,7 +1274,6 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
         } else
             tmpdev = GetPairedDevice(dev);
 
-
         UNWRAP_PROCESS_INPUT_PROC(tmpdev,xkbPrivPtr, backupproc);
         dev->public.processInputProc(xE,tmpdev,count);
         COND_WRAP_PROCESS_INPUT_PROC(tmpdev, xkbPrivPtr,
@@ -1283,8 +1281,9 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
         if (keyEvent)
 	    keyc->modifierMap[key] = realMods;
     }
-    else if (keyEvent)
+    else if (keyEvent) {
 	FixKeyState(xE,dev);
+    }
 
     xkbi->prev_state= oldState;
     XkbComputeDerivedState(xkbi);
@@ -1306,7 +1305,7 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
     if (changed) {
 	XkbEventCauseRec	cause;
 	XkbSetCauseKey(&cause,key,xE->u.u.type);
-	XkbUpdateIndicators(dev,changed,True,NULL,&cause);
+	XkbUpdateIndicators(dev,changed,False,NULL,&cause);
     }
     return;
 }

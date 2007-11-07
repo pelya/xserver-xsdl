@@ -37,6 +37,9 @@ void
 ShmSetPixmapFormat(ScreenPtr pScreen, int format);
 
 void
+fbShmPutImage(XSHM_PUT_IMAGE_ARGS);
+
+void
 ShmRegisterFbFuncs(ScreenPtr pScreen);
 
 #endif /* _SHMINT_H_ */

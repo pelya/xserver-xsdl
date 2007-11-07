@@ -60,8 +60,6 @@ typedef struct _damageScrPriv {
      */
     DamagePtr			pScreenDamage;
 
-    PaintWindowBackgroundProcPtr PaintWindowBackground;
-    PaintWindowBorderProcPtr	PaintWindowBorder;
     CopyWindowProcPtr		CopyWindow;
     CloseScreenProcPtr		CloseScreen;
     CreateGCProcPtr		CreateGC;
@@ -72,7 +70,6 @@ typedef struct _damageScrPriv {
     CompositeProcPtr		Composite;
     GlyphsProcPtr		Glyphs;
 #endif
-    BSFuncRec			BackingStoreFuncs;
 } DamageScrPrivRec, *DamageScrPrivPtr;
 
 typedef struct _damageGCPriv {

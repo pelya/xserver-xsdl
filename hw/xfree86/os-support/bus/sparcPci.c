@@ -622,7 +622,7 @@ xf86MapDomainMemory(int ScreenNum, int Flags, PCITAG Tag,
 }
 
 _X_EXPORT IOADDRESS
-xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
+xf86MapLegacyIO(int ScreenNum, int Flags, PCITAG Tag,
 		IOADDRESS Base, unsigned long Size)
 {
     sparcDomainPtr pDomain;
@@ -632,7 +632,7 @@ xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
 	!(pDomain = xf86DomainInfo[domain]) ||
 	(((unsigned long long)Base + (unsigned long long)Size) >
 	 pDomain->io_size))
-	FatalError("xf86MapDomainIO() called with invalid parameters.\n");
+	FatalError("xf86MapLegacyIO() called with invalid parameters.\n");
 
     /* Permanently map all of I/O space */
     if (!pDomain->io) {
@@ -646,78 +646,6 @@ xf86MapDomainIO(int ScreenNum, int Flags, PCITAG Tag,
     }
 
     return (IOADDRESS)pDomain->io + Base;
-}
-
-_X_EXPORT int
-xf86ReadDomainMemory(PCITAG Tag, ADDRESS Base, int Len, unsigned char *Buf)
-{
-    unsigned char *ptr, *src;
-    ADDRESS offset;
-    unsigned long size;
-    int len;
-
-    /* Ensure page boundaries */
-    offset = Base & ~pagemask;
-    size = ((Base + Len + pagemask) & ~pagemask) - offset;
-
-    ptr = xf86MapDomainMemory(-1, VIDMEM_READONLY, Tag, offset, size);
-
-    /* Using memcpy() here hangs the system */
-    src = ptr + (Base - offset);
-    for (len = Len;  len-- > 0;)
-	    *Buf++ = *src++;
-
-    xf86UnMapVidMem(-1, ptr, size);
-
-    return Len;
-}
-
-resPtr
-xf86BusAccWindowsFromOS(void)
-{
-    sparcDomainPtr pDomain;
-    resPtr         pRes = NULL;
-    resRange       range;
-    int            domain;
-
-    for (domain = 1;  domain < pciNumDomains;  domain++) {
-	if (!(pDomain = xf86DomainInfo[domain]))
-	    continue;
-
-	RANGE(range, 0, pDomain->mem_size - 1,
-	      RANGE_TYPE(ResExcMemBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);
-
-	RANGE(range, 0, pDomain->io_size - 1,
-	      RANGE_TYPE(ResExcIoBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);
-    }
-
-    return pRes;
-}
-
-resPtr
-xf86PciBusAccWindowsFromOS(void)
-{
-    sparcDomainPtr pDomain;
-    resPtr         pRes = NULL;
-    resRange       range;
-    int            domain;
-
-    for (domain = 1;  domain < pciNumDomains;  domain++) {
-	if (!(pDomain = xf86DomainInfo[domain]))
-	    continue;
-
-	RANGE(range, 0, pDomain->mem_size - 1,
-	      RANGE_TYPE(ResExcMemBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);
-
-	RANGE(range, 0, pDomain->io_size - 1,
-	      RANGE_TYPE(ResExcIoBlock, domain));
-	pRes = xf86AddResToList(pRes, &range, -1);
-    }
-
-    return pRes;
 }
 
 resPtr

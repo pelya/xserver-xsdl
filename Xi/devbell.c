@@ -56,12 +56,9 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
@@ -108,14 +105,12 @@ ProcXDeviceBell(ClientPtr client)
     dev = LookupDeviceIntRec(stuff->deviceid);
     if (dev == NULL) {
 	client->errorValue = stuff->deviceid;
-	SendErrorToClient(client, IReqCode, X_DeviceBell, 0, BadDevice);
-	return Success;
+	return BadDevice;
     }
 
     if (stuff->percent < -100 || stuff->percent > 100) {
 	client->errorValue = stuff->percent;
-	SendErrorToClient(client, IReqCode, X_DeviceBell, 0, BadValue);
-	return Success;
+	return BadValue;
     }
     if (stuff->feedbackclass == KbdFeedbackClass) {
 	for (k = dev->kbdfeed; k; k = k->next)
@@ -123,8 +118,7 @@ ProcXDeviceBell(ClientPtr client)
 		break;
 	if (!k) {
 	    client->errorValue = stuff->feedbackid;
-	    SendErrorToClient(client, IReqCode, X_DeviceBell, 0, BadValue);
-	    return Success;
+	    return BadValue;
 	}
 	base = k->ctrl.bell;
 	proc = k->BellProc;
@@ -136,8 +130,7 @@ ProcXDeviceBell(ClientPtr client)
 		break;
 	if (!b) {
 	    client->errorValue = stuff->feedbackid;
-	    SendErrorToClient(client, IReqCode, X_DeviceBell, 0, BadValue);
-	    return Success;
+	    return BadValue;
 	}
 	base = b->ctrl.percent;
 	proc = b->BellProc;
@@ -145,8 +138,7 @@ ProcXDeviceBell(ClientPtr client)
 	class = BellFeedbackClass;
     } else {
 	client->errorValue = stuff->feedbackclass;
-	SendErrorToClient(client, IReqCode, X_DeviceBell, 0, BadValue);
-	return Success;
+	return BadValue;
     }
     newpercent = (base * stuff->percent) / 100;
     if (stuff->percent < 0)

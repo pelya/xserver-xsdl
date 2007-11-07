@@ -357,26 +357,6 @@ xf86freeDeviceList (XF86ConfDevicePtr ptr)
 	}
 }
 
-int
-xf86validateDevice (XF86ConfigPtr p)
-{
-	XF86ConfDevicePtr device = p->conf_device_lst;
-
-	if (!device) {
-		xf86validationError ("At least one Device section is required.");
-		return (FALSE);
-	}
-
-	while (device) {
-		if (!device->dev_driver) {
-			xf86validationError (UNDEFINED_DRIVER_MSG, device->dev_identifier);
-			return (FALSE);
-		}
-	device = device->list.next;
-	}
-	return (TRUE);
-}
-
 XF86ConfDevicePtr
 xf86findDevice (const char *ident, XF86ConfDevicePtr p)
 {

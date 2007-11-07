@@ -517,7 +517,6 @@ extern Bool PsUnmapWindow(WindowPtr pWin);
 extern void PsCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
                          RegionPtr prgnSrc);
 extern Bool PsChangeWindowAttributes(WindowPtr pWin, unsigned long mask);
-extern void PsPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what);
 extern Bool PsDestroyWindow(WindowPtr pWin);
 
 /*
@@ -575,7 +574,7 @@ extern void PsSetFillColor(DrawablePtr pDrawable, GCPtr pGC, PsOutPtr psOut,
  */
 
 extern PixmapPtr PsCreatePixmap(ScreenPtr pScreen, int width, int height,
-                                int depth);
+                                int depth, unsigned usage_hint);
 extern void PsScrubPixmap(PixmapPtr pPixmap);
 extern Bool PsDestroyPixmap(PixmapPtr pPixmap);
 extern DisplayListPtr PsGetFreeDisplayBlock(PsPixmapPrivPtr priv);

@@ -190,7 +190,14 @@
 
 
 /* EDID Ver. >= 1.2 */
-#define _IS_MONITOR_DESC(x) (x[0] == 0 && x[1] == 0 && x[2] == 0 && x[4] == 0)
+/**
+ * Returns true if the pointer is the start of a monitor descriptor block
+ * instead of a detailed timing descriptor.
+ *
+ * Checking the reserved pad fields for zeroes fails on some monitors with
+ * broken empty ASCII strings.  Only the first two bytes are reliable.
+ */
+#define _IS_MONITOR_DESC(x) (x[0] == 0 && x[1] == 0)
 #define IS_MONITOR_DESC _IS_MONITOR_DESC(c)
 #define _PIXEL_CLOCK(x) (x[0] + (x[1] << 8)) * 10000
 #define PIXEL_CLOCK _PIXEL_CLOCK(c)

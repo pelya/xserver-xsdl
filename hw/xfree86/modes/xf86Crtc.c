@@ -45,13 +45,15 @@
 #include "picturestr.h"
 #endif
 
+#include "xf86xv.h"
+
 /*
  * Initialize xf86CrtcConfig structure
  */
 
 int xf86CrtcConfigPrivateIndex = -1;
 
-void
+_X_EXPORT void
 xf86CrtcConfigInit (ScrnInfoPtr scrn,
 		    const xf86CrtcConfigFuncsRec *funcs)
 {
@@ -66,7 +68,7 @@ xf86CrtcConfigInit (ScrnInfoPtr scrn,
     scrn->privates[xf86CrtcConfigPrivateIndex].ptr = config;
 }
  
-void
+_X_EXPORT void
 xf86CrtcSetSizeRange (ScrnInfoPtr scrn,
 		      int minWidth, int minHeight,
 		      int maxWidth, int maxHeight)
@@ -82,7 +84,7 @@ xf86CrtcSetSizeRange (ScrnInfoPtr scrn,
 /*
  * Crtc functions
  */
-xf86CrtcPtr
+_X_EXPORT xf86CrtcPtr
 xf86CrtcCreate (ScrnInfoPtr		scrn,
 		const xf86CrtcFuncsRec	*funcs)
 {
@@ -114,7 +116,7 @@ xf86CrtcCreate (ScrnInfoPtr		scrn,
     return crtc;
 }
 
-void
+_X_EXPORT void
 xf86CrtcDestroy (xf86CrtcPtr crtc)
 {
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(crtc->scrn);
@@ -126,7 +128,7 @@ xf86CrtcDestroy (xf86CrtcPtr crtc)
 	{
 	    memmove (&xf86_config->crtc[c],
 		     &xf86_config->crtc[c+1],
-		     xf86_config->num_crtc - (c + 1));
+		     ((xf86_config->num_crtc - (c + 1)) * sizeof(void*)));
 	    xf86_config->num_crtc--;
 	    break;
 	}
@@ -138,7 +140,7 @@ xf86CrtcDestroy (xf86CrtcPtr crtc)
  * Return whether any outputs are connected to the specified pipe
  */
 
-Bool
+_X_EXPORT Bool
 xf86CrtcInUse (xf86CrtcPtr crtc)
 {
     ScrnInfoPtr		pScrn = crtc->scrn;
@@ -151,7 +153,7 @@ xf86CrtcInUse (xf86CrtcPtr crtc)
     return FALSE;
 }
 
-void
+_X_EXPORT void
 xf86CrtcSetScreenSubpixelOrder (ScreenPtr pScreen)
 {
 #ifdef RENDER
@@ -219,7 +221,7 @@ xf86CrtcSetScreenSubpixelOrder (ScreenPtr pScreen)
 /**
  * Sets the given video mode on the given crtc
  */
-Bool
+_X_EXPORT Bool
 xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 		 int x, int y)
 {
@@ -490,7 +492,7 @@ xf86OutputInitialRotation (xf86OutputPtr output)
     return RR_Rotate_0;
 }
 
-xf86OutputPtr
+_X_EXPORT xf86OutputPtr
 xf86OutputCreate (ScrnInfoPtr		    scrn,
 		  const xf86OutputFuncsRec  *funcs,
 		  const char		    *name)
@@ -550,7 +552,7 @@ xf86OutputCreate (ScrnInfoPtr		    scrn,
     return output;
 }
 
-Bool
+_X_EXPORT Bool
 xf86OutputRename (xf86OutputPtr output, const char *name)
 {
     int	    len = strlen(name) + 1;
@@ -569,7 +571,7 @@ xf86OutputRename (xf86OutputPtr output, const char *name)
     return TRUE;
 }
 
-void
+_X_EXPORT void
 xf86OutputUseScreenMonitor (xf86OutputPtr output, Bool use_screen_monitor)
 {
     if (use_screen_monitor != output->use_screen_monitor)
@@ -579,7 +581,7 @@ xf86OutputUseScreenMonitor (xf86OutputPtr output, Bool use_screen_monitor)
     }
 }
 
-void
+_X_EXPORT void
 xf86OutputDestroy (xf86OutputPtr output)
 {
     ScrnInfoPtr		scrn = output->scrn;
@@ -594,7 +596,7 @@ xf86OutputDestroy (xf86OutputPtr output)
 	{
 	    memmove (&xf86_config->output[o],
 		     &xf86_config->output[o+1],
-		     xf86_config->num_output - (o + 1));
+		     ((xf86_config->num_output - (o + 1)) * sizeof(void*)));
 	    xf86_config->num_output--;
 	    break;
 	}
@@ -655,7 +657,7 @@ xf86CrtcCloseScreen (int index, ScreenPtr screen)
 /*
  * Called at ScreenInit time to set up
  */
-Bool
+_X_EXPORT Bool
 xf86CrtcScreenInit (ScreenPtr screen)
 {
     ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
@@ -709,7 +711,8 @@ xf86DefaultMode (xf86OutputPtr output, int width, int height)
     for (mode = output->probed_modes; mode; mode = mode->next)
     {
 	int	    dpi;
-	int	    preferred = (mode->type & M_T_PREFERRED) != 0;
+	int	    preferred = (((mode->type & M_T_PREFERRED) != 0) +
+				 ((mode->type & M_T_USERPREF) != 0));
 	int	    diff;
 
 	if (xf86ModeWidth (mode, output->initial_rotation) > width ||
@@ -1212,7 +1215,7 @@ xf86SortModes (DisplayModePtr input)
     return output;
 }
 
-void
+_X_EXPORT void
 xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -1413,10 +1416,9 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 			mode->prev = NULL;
 			output->probed_modes = mode;
 		    }
-		    mode->type |= M_T_PREFERRED;
+		    mode->type |= (M_T_PREFERRED|M_T_USERPREF);
+		    break;
 		}
-		else
-		    mode->type &= ~M_T_PREFERRED;
 	    }
 	}
 	
@@ -1453,10 +1455,10 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
  */
 
 /* XXX where does this function belong? Here? */
-void
+_X_EXPORT void
 xf86RandR12GetOriginalVirtualSize(ScrnInfoPtr scrn, int *x, int *y);
 
-void
+_X_EXPORT void
 xf86SetScrnInfoModes (ScrnInfoPtr scrn)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -1524,12 +1526,13 @@ xf86SetScrnInfoModes (ScrnInfoPtr scrn)
  * accordingly.
  */
 
-Bool
+_X_EXPORT Bool
 xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
     int			o, c;
     DisplayModePtr	target_mode = NULL;
+    int			target_preferred = 0;
     Rotation		target_rotation = RR_Rotate_0;
     xf86CrtcPtr		*crtcs;
     DisplayModePtr	*modes;
@@ -1570,43 +1573,34 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
     }
     
     /*
-     * Let outputs with preferred modes drive screen size
+     * User preferred > preferred > other modes
      */
     for (o = 0; o < config->num_output; o++)
     {
-	xf86OutputPtr output = config->output[o];
+	xf86OutputPtr	output = config->output[o];
+	DisplayModePtr	default_mode;
+	int		default_preferred;
 
-	if (enabled[o] &&
-	    xf86OutputHasPreferredMode (output, width, height))
+	if (!enabled[o])
+	    continue;
+	default_mode = xf86DefaultMode (output, width, height);
+	if (!default_mode)
+	    continue;
+	default_preferred = (((default_mode->type & M_T_PREFERRED) != 0) +
+			     ((default_mode->type & M_T_USERPREF) != 0));
+	if (default_preferred > target_preferred || !target_mode)
 	{
-	    target_mode = xf86DefaultMode (output, width, height);
+	    target_mode = default_mode;
+	    target_preferred = default_preferred;
 	    target_rotation = output->initial_rotation;
-	    if (target_mode)
-	    {
-		modes[o] = target_mode;
-		config->compat_output = o;
-		break;
-	    }
+	    config->compat_output = o;
 	}
     }
-    if (!target_mode)
-    {
-	for (o = 0; o < config->num_output; o++)
-	{
-	    xf86OutputPtr output = config->output[o];
-	    if (enabled[o])
-	    {
-		target_mode = xf86DefaultMode (output, width, height);
-		target_rotation = output->initial_rotation;
-		if (target_mode)
-		{
-		    modes[o] = target_mode;
-		    config->compat_output = o;
-		    break;
-		}
-	    }
-	}
-    }
+    if (target_mode)
+	modes[config->compat_output] = target_mode;
+    /*
+     * Fill in other output modes
+     */
     for (o = 0; o < config->num_output; o++)
     {
 	xf86OutputPtr output = config->output[o];
@@ -1728,7 +1722,7 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
  * modes (used in EnterVT functions, or at server startup)
  */
 
-Bool
+_X_EXPORT Bool
 xf86SetDesiredModes (ScrnInfoPtr scrn)
 {
     xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -1808,7 +1802,7 @@ xf86SetDesiredModes (ScrnInfoPtr scrn)
  * - Closer in refresh rate to the requested mode.
  */
 
-DisplayModePtr
+_X_EXPORT DisplayModePtr
 xf86OutputFindClosestMode (xf86OutputPtr output, DisplayModePtr desired)
 {
     DisplayModePtr	best = NULL, scan = NULL;
@@ -1871,7 +1865,7 @@ xf86OutputFindClosestMode (xf86OutputPtr output, DisplayModePtr desired)
  * mode across all outputs that are currently active.
  */
 
-Bool
+_X_EXPORT Bool
 xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(pScrn);
@@ -1943,7 +1937,7 @@ xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
  * If the new mode is off, it will turn off outputs and then CRTCs.
  * Otherwise, it will affect CRTCs before outputs.
  */
-void
+_X_EXPORT void
 xf86DPMSSet(ScrnInfoPtr scrn, int mode, int flags)
 {
     xf86CrtcConfigPtr	config = XF86_CRTC_CONFIG_PTR(scrn);
@@ -1981,7 +1975,7 @@ xf86DPMSSet(ScrnInfoPtr scrn, int mode, int flags)
  * Even for monitors with no DPMS support, by the definition of our DPMS hooks,
  * the outputs will still get disabled (blanked).
  */
-Bool
+_X_EXPORT Bool
 xf86SaveScreen(ScreenPtr pScreen, int mode)
 {
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
@@ -1997,7 +1991,7 @@ xf86SaveScreen(ScreenPtr pScreen, int mode)
 /**
  * Disable all inactive crtcs and outputs
  */
-void
+_X_EXPORT void
 xf86DisableUnusedFunctions(ScrnInfoPtr pScrn)
 {
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
@@ -2051,7 +2045,7 @@ xf86OutputSetEDIDProperty (xf86OutputPtr output, void *data, int data_len)
 /**
  * Set the EDID information for the specified output
  */
-void
+_X_EXPORT void
 xf86OutputSetEDID (xf86OutputPtr output, xf86MonPtr edid_mon)
 {
     ScrnInfoPtr		scrn = output->scrn;
@@ -2117,7 +2111,7 @@ xf86OutputSetEDID (xf86OutputPtr output, xf86MonPtr edid_mon)
  * Return the list of modes supported by the EDID information
  * stored in 'output'
  */
-DisplayModePtr
+_X_EXPORT DisplayModePtr
 xf86OutputGetEDIDModes (xf86OutputPtr output)
 {
     ScrnInfoPtr	scrn = output->scrn;
@@ -2128,19 +2122,142 @@ xf86OutputGetEDIDModes (xf86OutputPtr output)
     return xf86DDCGetModes(scrn->scrnIndex, edid_mon);
 }
 
-xf86MonPtr
+_X_EXPORT xf86MonPtr
 xf86OutputGetEDID (xf86OutputPtr output, I2CBusPtr pDDCBus)
 {
     ScrnInfoPtr	scrn = output->scrn;
+    xf86MonPtr mon;
 
-    return xf86DoEDID_DDC2 (scrn->scrnIndex, pDDCBus);
+    mon = xf86DoEDID_DDC2 (scrn->scrnIndex, pDDCBus);
+    xf86DDCApplyQuirks (scrn->scrnIndex, pDDCBus);
+
+    return mon;
 }
 
 static char *_xf86ConnectorNames[] = { "None", "VGA", "DVI-I", "DVI-D",
 				      "DVI-A", "Composite", "S-Video",
 				      "Component", "LFP", "Proprietary" };
-char *
+_X_EXPORT char *
 xf86ConnectorGetName(xf86ConnectorType connector)
 {
     return _xf86ConnectorNames[connector];
+}
+
+static void
+x86_crtc_box_intersect(BoxPtr dest, BoxPtr a, BoxPtr b)
+{
+    dest->x1 = a->x1 > b->x1 ? a->x1 : b->x1;
+    dest->x2 = a->x2 < b->x2 ? a->x2 : b->x2;
+    dest->y1 = a->y1 > b->y1 ? a->y1 : b->y1;
+    dest->y2 = a->y2 < b->y2 ? a->y2 : b->y2;
+
+    if (dest->x1 >= dest->x2 || dest->y1 >= dest->y2)
+	dest->x1 = dest->x2 = dest->y1 = dest->y2 = 0;
+}
+
+static void
+x86_crtc_box(xf86CrtcPtr crtc, BoxPtr crtc_box)
+{
+    if (crtc->enabled) {
+	crtc_box->x1 = crtc->x;
+	crtc_box->x2 = crtc->x + xf86ModeWidth(&crtc->mode, crtc->rotation);
+	crtc_box->y1 = crtc->y;
+	crtc_box->y2 = crtc->y + xf86ModeHeight(&crtc->mode, crtc->rotation);
+    } else
+	crtc_box->x1 = crtc_box->x2 = crtc_box->y1 = crtc_box->y2 = 0;
+}
+
+static int
+xf86_crtc_box_area(BoxPtr box)
+{
+    return (int) (box->x2 - box->x1) * (int) (box->y2 - box->y1);
+}
+
+/*
+ * Return the crtc covering 'box'. If two crtcs cover a portion of
+ * 'box', then prefer 'desired'. If 'desired' is NULL, then prefer the crtc
+ * with greater coverage
+ */
+
+static xf86CrtcPtr
+xf86_covering_crtc(ScrnInfoPtr pScrn,
+		   BoxPtr      box,
+		   xf86CrtcPtr desired,
+		   BoxPtr      crtc_box_ret)
+{
+    xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
+    xf86CrtcPtr		crtc, best_crtc;
+    int			coverage, best_coverage;
+    int			c;
+    BoxRec		crtc_box, cover_box;
+
+    best_crtc = NULL;
+    best_coverage = 0;
+    crtc_box_ret->x1 = 0;
+    crtc_box_ret->x2 = 0;
+    crtc_box_ret->y1 = 0;
+    crtc_box_ret->y2 = 0;
+    for (c = 0; c < xf86_config->num_crtc; c++) {
+	crtc = xf86_config->crtc[c];
+	x86_crtc_box(crtc, &crtc_box);
+	x86_crtc_box_intersect(&cover_box, &crtc_box, box);
+	coverage = xf86_crtc_box_area(&cover_box);
+	if (coverage && crtc == desired) {
+	    *crtc_box_ret = crtc_box;
+	    return crtc;
+	} else if (coverage > best_coverage) {
+	    *crtc_box_ret = crtc_box;
+	    best_crtc = crtc;
+	    best_coverage = coverage;
+	}
+    }
+    return best_crtc;
+}
+
+/*
+ * For overlay video, compute the relevant CRTC and
+ * clip video to that.
+ *
+ * returning FALSE means there was a memory failure of some kind,
+ * not that the video shouldn't be displayed
+ */
+
+_X_EXPORT Bool
+xf86_crtc_clip_video_helper(ScrnInfoPtr pScrn,
+			    xf86CrtcPtr *crtc_ret,
+			    xf86CrtcPtr desired_crtc,
+			    BoxPtr      dst,
+			    INT32	*xa,
+			    INT32	*xb,
+			    INT32	*ya,
+			    INT32	*yb,
+			    RegionPtr   reg,
+			    INT32	width,
+			    INT32	height)
+{
+    Bool	ret;
+    RegionRec	crtc_region_local;
+    RegionPtr	crtc_region = reg;
+    
+    if (crtc_ret) {
+	BoxRec		crtc_box;
+	xf86CrtcPtr	crtc = xf86_covering_crtc(pScrn, dst,
+						  desired_crtc,
+						  &crtc_box);
+
+	if (crtc) {
+	    REGION_INIT (pScreen, &crtc_region_local, &crtc_box, 1);
+	    crtc_region = &crtc_region_local;
+	    REGION_INTERSECT (pScreen, crtc_region, crtc_region, reg);
+	}
+	*crtc_ret = crtc;
+    }
+
+    ret = xf86XVClipVideoHelper(dst, xa, xb, ya, yb, 
+				crtc_region, width, height);
+
+    if (crtc_region != reg)
+	REGION_UNINIT (pScreen, &crtc_region_local);
+
+    return ret;
 }

@@ -169,8 +169,6 @@ InitializePsDriver(ndx, pScreen, argc, argv)
   pScreen->ChangeWindowAttributes = PsChangeWindowAttributes;
   pScreen->RealizeWindow          = PsMapWindow;
   pScreen->UnrealizeWindow        = PsUnmapWindow;
-  pScreen->PaintWindowBackground  = PsPaintWindow;
-  pScreen->PaintWindowBorder      = PsPaintWindow;
   pScreen->CloseScreen            = PsCloseScreen;
   pScreen->CopyWindow             = PsCopyWindow;
        /* XXX Hard routine to write! */

@@ -319,7 +319,7 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 	}
 	break;
 #if !defined(__SOL8__) && !defined(sgi) && \
-    (!defined(sun) || defined(i386)) && defined(VT_ACTIVATE)
+    (!defined(sun) || defined(__i386__)) && defined(VT_ACTIVATE)
     case ACTION_SWITCHSCREEN:
 	if (VTSwitchEnabled && !xf86Info.dontVTSwitch && arg) {
 	    int vtno = *((int *) arg);
@@ -342,7 +342,7 @@ xf86ProcessActionEvent(ActionEvent action, void *arg)
 #else
 	    if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, xf86Info.vtno + 1) < 0)
 #endif
-#if defined (__SCO__) || (defined(sun) && defined (i386) && defined (SVR4)) || defined(__UNIXWARE__)
+#if defined (__SCO__) || (defined(sun) && defined (__i386__) && defined (SVR4)) || defined(__UNIXWARE__)
 		if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, 0) < 0)
 #else
 		if (ioctl(xf86Info.consoleFd, VT_ACTIVATE, 1) < 0)
@@ -512,12 +512,14 @@ static void
 xf86SigioReadInput(int fd,
 		   void *closure)
 {
+    int errno_save = errno;
     int sigstate = xf86BlockSIGIO();
     InputInfoPtr pInfo = (InputInfoPtr) closure;
 
     pInfo->read_input(pInfo);
 
     xf86UnblockSIGIO(sigstate);
+    errno = errno_save;
 }
 
 /*
@@ -813,9 +815,11 @@ xf86ReleaseKeys(DeviceIntPtr pDev)
                     (*pDev->public.processInputProc) (&ke, pDev, 1);
                 }
                 else {
+		    int sigstate = xf86BlockSIGIO ();
                     nevents = GetKeyboardEvents(xf86Events, pDev, KeyRelease, i);
                     for (j = 0; j < nevents; j++)
-                        EqEnqueue(pDev, xf86Events + i);
+                        mieqEnqueue(pDev, xf86Events + j);
+		    xf86UnblockSIGIO(sigstate);
                 }
                 break;
             }

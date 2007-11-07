@@ -187,7 +187,6 @@ static Bool TileScreenSaver(int i, int kind);
 
 #define SubStrSend(pWin,pParent) (StrSend(pWin) || SubSend(pParent))
 
-
 _X_EXPORT int numSaveUndersViewable = 0;
 _X_EXPORT int deltaSaveUndersViewable = 0;
 
@@ -332,7 +331,7 @@ MakeRootTile(WindowPtr pWin)
     int i, j;
 
     pWin->background.pixmap = (*pScreen->CreatePixmap)(pScreen, 4, 4,
-						    pScreen->rootDepth);
+						    pScreen->rootDepth, 0);
 
     pWin->backgroundState = BackgroundPixmap;
     pGC = GetScratchGC(pScreen->rootDepth, pScreen);
@@ -1571,7 +1570,7 @@ PatchUp:
 
 	REGION_NULL(pScreen, &exposed);
 	REGION_SUBTRACT(pScreen, &exposed, &pWin->borderClip, &pWin->winSize);
-	(*pWin->drawable.pScreen->PaintWindowBorder)(pWin, &exposed, PW_BORDER);
+	miPaintWindow(pWin, &exposed, PW_BORDER);
 	REGION_UNINIT(pScreen, &exposed);
     }
     return error;
@@ -3079,9 +3078,6 @@ UnrealizeTree(
 		    deltaSaveUndersViewable--;
 #endif
 		pChild->viewable = FALSE;
-		if (pChild->backStorage)
-		    (*pChild->drawable.pScreen->SaveDoomedAreas)(
-					    pChild, &pChild->clipList, 0, 0);
 		(* MarkUnrealizedWindow)(pChild, pWin, fromConfigure);
 		pChild->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 	    }
@@ -3209,9 +3205,6 @@ UnmapSubwindows(WindowPtr pWin)
 #ifdef DO_SAVE_UNDERS
 		pChild->DIXsaveUnder = FALSE;
 #endif /* DO_SAVE_UNDERS */
-		if (pChild->backStorage)
-		    (*pScreen->SaveDoomedAreas)(
-					    pChild, &pChild->clipList, 0, 0);
 	    }
 	}
     }

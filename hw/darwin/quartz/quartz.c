@@ -1,9 +1,7 @@
-/**************************************************************
+/*
  *
  * Quartz-specific support for the Darwin X Server
  *
- **************************************************************/
-/*
  * Copyright (c) 2001-2004 Greg Parker and Torrey T. Lyons.
  *                 All Rights Reserved.
  *
@@ -29,9 +27,9 @@
  * holders shall not be used in advertising or otherwise to promote the sale,
  * use or other dealings in this Software without prior written authorization.
  */
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
+
+#include <dix-config.h>
+
 #include "quartzCommon.h"
 #include "quartz.h"
 #include "darwin.h"
@@ -64,7 +62,7 @@ int                     quartzServerVisible = TRUE;
 int                     quartzServerQuitting = FALSE;
 int                     quartzScreenIndex = 0;
 int                     aquaMenuBarHeight = 0;
-int                     noPseudoramiXExtension = TRUE;
+int                     noPseudoramiXExtension = FALSE;
 QuartzModeProcsPtr      quartzProcs = NULL;
 const char             *quartzOpenGLBundle = NULL;
 
@@ -217,7 +215,7 @@ static void QuartzUpdateScreens(void)
     pRoot = WindowTable[pScreen->myNum];
     AppleWMSetScreenOrigin(pRoot);
     pScreen->ResizeWindow(pRoot, x - sx, y - sy, width, height, NULL);
-    pScreen->PaintWindowBackground(pRoot, &pRoot->borderClip,  PW_BACKGROUND);
+    miPaintWindow(pRoot, &pRoot->borderClip,  PW_BACKGROUND);
 //    QuartzIgnoreNextWarpCursor();
     DefineInitialRootWindow(pRoot);
 
@@ -397,10 +395,21 @@ void DarwinModeProcessEvent(
             QuartzUpdateScreens();
             break;
 
-        case kXDarwinWindowState:
-        case kXDarwinWindowMoved:
-            // FIXME: Not implemented yet
+        case kXDarwinBringAllToFront:
+	    RootlessOrderAllWindows();
             break;
+
+        case kXDarwinWindowState:
+	  ErrorF("kXDarwinWindowState\n");
+	  break;
+    case kXDarwinWindowMoved: {
+	  WindowPtr pWin = (WindowPtr)xe->u.clientMessage.u.l.longs0;
+	  short x = xe->u.clientMessage.u.l.longs1,
+	        y = xe->u.clientMessage.u.l.longs2;
+	  ErrorF("kXDarwinWindowMoved(%p, %hd, %hd)\n", pWin, x, y);
+	  RootlessMoveWindow(pWin, x, y, pWin->nextSib, VTMove);
+    }
+	  break;
 
         default:
             ErrorF("Unknown application defined event type %d.\n",

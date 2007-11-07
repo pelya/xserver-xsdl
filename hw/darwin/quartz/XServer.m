@@ -34,11 +34,8 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XdotOrg: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.3 2004/07/30 19:12:17 torrey Exp $ */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/XServer.m,v 1.19 2003/11/24 05:39:01 torrey Exp $ */
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
+
+#include <dix-config.h>
 #include "quartzCommon.h"
 
 #define BOOL xBOOL

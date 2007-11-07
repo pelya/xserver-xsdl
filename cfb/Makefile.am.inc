@@ -8,14 +8,14 @@ DISTCLEANFILES = $(libcfb_gen_sources)
 CFB_INCLUDES = -I$(top_srcdir)/mfb -I$(top_srcdir)/cfb
 
 libcfb_common_sources =  $(top_srcdir)/cfb/cfbgc.c $(top_srcdir)/cfb/cfbrrop.c \
-	$(top_srcdir)/cfb/cfbwindow.c $(top_srcdir)/cfb/cfbpntwin.c \
+	$(top_srcdir)/cfb/cfbwindow.c \
 	$(top_srcdir)/cfb/cfbmskbits.c $(top_srcdir)/cfb/cfbpixmap.c \
 	$(top_srcdir)/cfb/cfbbitblt.c $(top_srcdir)/cfb/cfbfillsp.c \
 	$(top_srcdir)/cfb/cfbsetsp.c $(top_srcdir)/cfb/cfbscrinit.c \
 	$(top_srcdir)/cfb/cfballpriv.c $(top_srcdir)/cfb/cfbgetsp.c \
 	$(top_srcdir)/cfb/cfbfillrct.c $(top_srcdir)/cfb/cfbigblt8.c \
 	$(top_srcdir)/cfb/cfbglblt8.c $(top_srcdir)/cfb/cfbtegblt.c \
-	$(top_srcdir)/cfb/cfbbstore.c $(top_srcdir)/cfb/cfbpolypnt.c \
+	$(top_srcdir)/cfb/cfbpolypnt.c \
 	$(top_srcdir)/cfb/cfbbres.c $(top_srcdir)/cfb/cfbline.c \
 	$(top_srcdir)/cfb/cfbhrzvert.c $(top_srcdir)/cfb/cfbbresd.c \
 	$(top_srcdir)/cfb/cfbimage.c $(top_srcdir)/cfb/cfbcppl.c \

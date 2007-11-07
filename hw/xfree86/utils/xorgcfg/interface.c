@@ -213,7 +213,6 @@ Usage(void)
 "   -modulepath <module-path>  "__XSERVERNAME__" modules location.\n"
 "   -serverpath <server-path>  X server to start (if $DISPLAY is not defined).\n"
 "   -fontpath   <font-path>    Font path for fonts.\n"
-"   -rgbpath    <rgb-path>     Where the rgb.txt file is located.\n"
 #ifdef HAS_NCURSES
 "   -textmode                  Use this option for the text only interface.\n"
 #endif
@@ -270,10 +269,7 @@ main(int argc, char *argv[])
 	} else if (strcmp(argv[i], "-fontpath") == 0) {
 	    if (i + 1 < argc)
 		XF86Font_path = argv[++i];
-	} else if (strcmp(argv[i], "-rgbpath") == 0) {
-	    if (i + 1 < argc)
-		XF86RGB_path = argv[++i];
-	}
+        }
 #ifdef HAS_NCURSES
 	else if (strcmp(argv[i], "-textmode") == 0)
 	    textmode = True;

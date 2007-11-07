@@ -57,13 +57,10 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>	/* for inputstr.h    */
-#include <X11/Xproto.h>	/* Request macro     */
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include "windowstr.h"	/* window structure  */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extnsionst.h"
 #include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
@@ -164,40 +161,29 @@ ProcXSelectExtensionEvent(ClientPtr client)
     REQUEST(xSelectExtensionEventReq);
     REQUEST_AT_LEAST_SIZE(xSelectExtensionEventReq);
 
-    if (stuff->length != (sizeof(xSelectExtensionEventReq) >> 2) + stuff->count) {
-	SendErrorToClient(client, IReqCode, X_SelectExtensionEvent, 0,
-			  BadLength);
-	return Success;
-    }
+    if (stuff->length != (sizeof(xSelectExtensionEventReq) >> 2) + stuff->count)
+	return BadLength;
 
     ret = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
-    if (ret != Success) {
-	SendErrorToClient(client, IReqCode, X_SelectExtensionEvent, 0, ret);
-	return Success;
-    }
+    if (ret != Success)
+	return ret;
 
     if (HandleDevicePresenceMask(client, pWin, (XEventClass *) & stuff[1],
-                                &stuff->count) != Success) {
-       SendErrorToClient(client, IReqCode, X_SelectExtensionEvent, 0,
-                         BadAlloc);
-       return Success;
-    }
+                                &stuff->count) != Success)
+	return BadAlloc;
 
     if ((ret = CreateMaskFromList(client, (XEventClass *) & stuff[1],
 				  stuff->count, tmp, NULL,
 				  X_SelectExtensionEvent)) != Success)
-	return Success;
+	return ret;
 
     for (i = 0; i < EMASKSIZE; i++)
 	if (tmp[i].dev != NULL) {
 	    if ((ret =
 		 SelectForWindow((DeviceIntPtr) tmp[i].dev, pWin, client,
 				 tmp[i].mask, ExtExclusiveMasks[i],
-				 ExtValidMasks[i])) != Success) {
-		SendErrorToClient(client, IReqCode, X_SelectExtensionEvent, 0,
-				  ret);
-		return Success;
-	    }
+				 ExtValidMasks[i])) != Success)
+		return ret;
 	}
 
     return Success;

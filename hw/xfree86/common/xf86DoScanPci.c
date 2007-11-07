@@ -38,20 +38,76 @@
 #include <stdlib.h>
 #include <X11/X.h>
 #include <X11/Xmd.h>
+#include <pciaccess.h>
 #include "os.h"
-#include "loaderProcs.h"
 #include "xf86.h"
 #include "xf86Priv.h"
 #include "xf86Pci.h"
-#include "xf86ScanPci.h"
+#include "Pci.h"
+#include "xf86_OSproc.h"
+
+static void ScanPciDisplayPCICardInfo(void);
+
+void
+ScanPciDisplayPCICardInfo(void)
+{
+    struct pci_id_match   match;
+    struct pci_device_iterator *iter;
+    const struct pci_device *dev;
+
+    xf86EnableIO();
+
+    if (! xf86scanpci()) {
+        xf86MsgVerb(X_NONE, 0, "No PCI info available\n");
+	return;
+    }
+    xf86MsgVerb(X_NONE, 0,
+		"Probing for PCI devices (Bus:Device:Function)\n\n");
+
+    iter = pci_id_match_iterator_create(NULL);
+    while ((dev = pci_device_next(iter)) != NULL) {
+	const char *svendorname = NULL, *subsysname = NULL;
+	const char *vendorname = NULL, *devicename = NULL;
+
+
+	xf86MsgVerb(X_NONE, 0, "(%d:%d:%d) ",
+		    PCI_MAKE_BUS(dev->domain, dev->bus), dev->dev, dev->func);
+
+	/*
+	 * Lookup as much as we can about the device.
+	 */
+	match.vendor_id = dev->vendor_id;
+	match.device_id = dev->device_id;
+	match.subvendor_id = (dev->subvendor_id != 0)
+	  ? dev->subvendor_id : PCI_MATCH_ANY;
+	match.subdevice_id = (dev->subdevice_id != 0)
+	  ? dev->subdevice_id : PCI_MATCH_ANY;
+	match.device_class = 0;
+	match.device_class_mask = 0;
+
+	pci_get_strings(& match, & vendorname, & devicename,
+			& svendorname, & subsysname);
+
+	if ((dev->subvendor_id != 0) || (dev->subdevice_id != 0)) {
+	    xf86MsgVerb(X_NONE, 0, "%s %s (0x%04x / 0x%04x) using ",
+			(svendorname == NULL) ? "unknown vendor" : svendorname,
+			(subsysname == NULL) ? "unknown card" : subsysname,
+			dev->subvendor_id, dev->subdevice_id);
+	}
+
+	xf86MsgVerb(X_NONE, 0, "%s %s (0x%04x / 0x%04x)\n",
+		    (vendorname == NULL) ? "unknown vendor" : vendorname,
+		    (devicename == NULL) ? "unknown chip" : devicename,
+		    dev->vendor_id, dev->device_id);
+    }
+
+    pci_iterator_destroy(iter);
+}
 
 
 void DoScanPci(int argc, char **argv, int i)
 {
-  int j,skip,globalVerbose,scanpciVerbose;
-  ScanPciSetupProcPtr PciSetup;
-  ScanPciDisplayCardInfoProcPtr DisplayPCICardInfo;
-  int errmaj, errmin;
+  int j,skip,globalVerbose;
 
   /*
    * first we need to finish setup of the OS so that we can call other
@@ -81,32 +137,7 @@ void DoScanPci(int argc, char **argv, int i)
   if (xf86Verbose > globalVerbose)
     xf86SetVerbosity(globalVerbose);
 
-  /*
-   * Setting scanpciVerbose to 0 will ensure that the output will go to
-   * stderr for all reasonable default stderr verbosity levels.
-   */
-  scanpciVerbose = 0;
-
-  /*
-   * now get the loader set up and load the scanpci module
-   */
-  /* Initialise the loader */
-  LoaderInit();
-  /* Tell the loader the default module search path */
-  LoaderSetPath(xf86ModulePath);
-
-  if (!LoadModule("scanpci", NULL, NULL, NULL, NULL, NULL,
-                  &errmaj, &errmin)) {
-    LoaderErrorMsg(NULL, "scanpci", errmaj, errmin);
-    exit(1);
-  }
-  PciSetup = (ScanPciSetupProcPtr)LoaderSymbol("ScanPciSetupPciIds");
-  DisplayPCICardInfo =
-    (ScanPciDisplayCardInfoProcPtr)LoaderSymbol("ScanPciDisplayPCICardInfo");
-
-  if (!(*PciSetup)())
-    FatalError("ScanPciSetupPciIds() failed\n");
-  (*DisplayPCICardInfo)(scanpciVerbose);
+  ScanPciDisplayPCICardInfo();
 
   /*
    * That's it; we really should clean things up, but a simple

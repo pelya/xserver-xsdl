@@ -5,6 +5,8 @@
 #include "xf86str.h"
 #include "colormapst.h"
 
+#include <pciaccess.h>
+
 #define FBDEVHW_PACKED_PIXELS		0	/* Packed Pixels	*/
 #define FBDEVHW_PLANES			1	/* Non interleaved planes */
 #define FBDEVHW_INTERLEAVED_PLANES	2	/* Interleaved planes	*/
@@ -14,8 +16,8 @@
 Bool  fbdevHWGetRec(ScrnInfoPtr pScrn);
 void  fbdevHWFreeRec(ScrnInfoPtr pScrn);
 
-Bool  fbdevHWProbe(pciVideoPtr pPci, char *device, char **namep);
-Bool  fbdevHWInit(ScrnInfoPtr pScrn, pciVideoPtr pPci, char *device);
+Bool  fbdevHWProbe(struct pci_device * pPci, char *device, char **namep);
+Bool  fbdevHWInit(ScrnInfoPtr pScrn, struct pci_device * pPci, char *device);
 
 char* fbdevHWGetName(ScrnInfoPtr pScrn);
 int   fbdevHWGetDepth(ScrnInfoPtr pScrn, int *fbbpp);

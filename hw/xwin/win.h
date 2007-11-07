@@ -579,8 +579,6 @@ typedef struct _winPrivScreenRec
   ValidateTreeProcPtr			ValidateTree;
   PostValidateTreeProcPtr		PostValidateTree;
   WindowExposuresProcPtr		WindowExposures;
-  PaintWindowBackgroundProcPtr		PaintWindowBackground;
-  PaintWindowBorderProcPtr		PaintWindowBorder;
   CopyWindowProcPtr			CopyWindow;
   ClearToBackgroundProcPtr		ClearToBackground;
   ClipNotifyProcPtr			ClipNotify;
@@ -1038,7 +1036,8 @@ winSetEngineFunctionsPrimaryDD (ScreenPtr pScreen);
  */
 
 PixmapPtr
-winCreatePixmapNativeGDI (ScreenPtr pScreen, int width, int height, int depth);
+winCreatePixmapNativeGDI (ScreenPtr pScreen, int width, int height, int depth,
+			  unsigned usage_hint);
 
 Bool
 winDestroyPixmapNativeGDI (PixmapPtr pPixmap);
@@ -1051,17 +1050,6 @@ winModifyPixmapHeaderNativeGDI (PixmapPtr pPixmap,
 				int devKind,
 				pointer pPixData);
 #endif
-
-
-#ifdef XWIN_NATIVEGDI
-/*
- * winpntwin.c
- */
-
-void
-winPaintWindowNativeGDI (WindowPtr pWin, RegionPtr pRegion, int what);
-#endif
-
 
 #ifdef XWIN_NATIVEGDI
 /*

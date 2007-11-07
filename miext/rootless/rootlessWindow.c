@@ -217,10 +217,8 @@ RootlessSetShape(WindowPtr pWin)
 
 
 /* Disallow ParentRelative background on top-level windows
-   because the root window doesn't really have the right background
-   and fb will try to draw on the root instead of on the window.
-   ParentRelative prevention is also in PaintWindowBackground/Border()
-   so it is no longer really needed here. */
+   because the root window doesn't really have the right background.
+ */
 Bool
 RootlessChangeWindowAttributes(WindowPtr pWin, unsigned long vmask)
 {
@@ -670,7 +668,7 @@ RootlessResizeCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg,
 /*
  * RootlessCopyWindow
  *  Update *new* location of window. Old location is redrawn with
- *  PaintWindowBackground/Border. Cloned from fbCopyWindow.
+ *  miPaintWindow. Cloned from fbCopyWindow.
  *  The original always draws on the root pixmap, which we don't have.
  *  Instead, draw on the parent window's pixmap.
  */
@@ -1326,96 +1324,6 @@ out:
     }
 }
 
-
-/*
- * SetPixmapOfAncestors
- *  Set the Pixmaps on all ParentRelative windows up the ancestor chain.
- */
-static void
-SetPixmapOfAncestors(WindowPtr pWin)
-{
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-    WindowPtr topWin = TopLevelParent(pWin);
-    RootlessWindowRec *topWinRec = WINREC(topWin);
-
-    while (pWin->backgroundState == ParentRelative) {
-        if (pWin == topWin) {
-            // disallow ParentRelative background state on top level
-            XID pixel = 0;
-            ChangeWindowAttributes(pWin, CWBackPixel, &pixel, serverClient);
-            RL_DEBUG_MSG("Cleared ParentRelative on 0x%x.\n", pWin);
-            break;
-        }
-
-        pWin = pWin->parent;
-        pScreen->SetWindowPixmap(pWin, topWinRec->pixmap);
-    }
-}
-
-
-/*
- * RootlessPaintWindowBackground
- */
-void
-RootlessPaintWindowBackground(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    ScreenPtr pScreen = pWin->drawable.pScreen;
- 
-    if (IsRoot(pWin))
-        return;
-
-    RL_DEBUG_MSG("paintwindowbackground start (win 0x%x, framed %i) ",
-                 pWin, IsFramedWindow(pWin));
-
-    if (IsFramedWindow(pWin)) {
-        RootlessStartDrawing(pWin);
-        RootlessDamageRegion(pWin, pRegion);
-
-        // For ParentRelative windows, we have to make sure the window
-        // pixmap is set correctly all the way up the ancestor chain.
-        if (pWin->backgroundState == ParentRelative) {
-            SetPixmapOfAncestors(pWin);
-        }
-    }
-
-    SCREEN_UNWRAP(pScreen, PaintWindowBackground);
-    pScreen->PaintWindowBackground(pWin, pRegion, what);
-    SCREEN_WRAP(pScreen, PaintWindowBackground);
-
-    RL_DEBUG_MSG("paintwindowbackground end\n");
-}
-
-
-/*
- * RootlessPaintWindowBorder
- */
-void
-RootlessPaintWindowBorder(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    RL_DEBUG_MSG("paintwindowborder start (win 0x%x) ", pWin);
-
-    if (IsFramedWindow(pWin)) {
-        RootlessStartDrawing(pWin);
-        RootlessDamageRegion(pWin, pRegion);
-
-        // For ParentRelative windows with tiled borders, we have to make
-        // sure the window pixmap is set correctly all the way up the
-        // ancestor chain.
-        if (!pWin->borderIsPixel &&
-            pWin->backgroundState == ParentRelative)
-        {
-            SetPixmapOfAncestors(pWin);
-        }
-    }
-
-    SCREEN_UNWRAP(pWin->drawable.pScreen, PaintWindowBorder);
-    pWin->drawable.pScreen->PaintWindowBorder(pWin, pRegion, what);
-    SCREEN_WRAP(pWin->drawable.pScreen, PaintWindowBorder);
-
-    RL_DEBUG_MSG("paintwindowborder end\n");
-}
-
-
 /*
  * RootlessChangeBorderWidth
  *  FIXME: untested!
@@ -1467,4 +1375,30 @@ RootlessChangeBorderWidth(WindowPtr pWin, unsigned int width)
     }
 
     RL_DEBUG_MSG("change border width end\n");
+}
+
+/*
+ * RootlessOrderAllWindows
+ * Brings all X11 windows to the top of the window stack
+ * (i.e in front of Aqua windows) -- called when X11.app is given focus
+ */
+void
+RootlessOrderAllWindows (void)
+{
+  int i;
+  WindowPtr pWin;
+  
+  RL_DEBUG_MSG("RootlessOrderAllWindows() ");
+  for (i = 0; i < screenInfo.numScreens; i++) {
+    if (screenInfo.screens[i] == NULL) continue;
+    pWin = WindowTable[i];
+    if (pWin == NULL) continue;
+      
+    for (pWin = pWin->firstChild; pWin != NULL; pWin = pWin->nextSib) {
+      if (!pWin->realized) continue;
+      if (RootlessEnsureFrame(pWin) == NULL) continue;
+      RootlessReorderWindow (pWin);
+    }
+  }
+  RL_DEBUG_MSG("RootlessOrderAllWindows() done");
 }

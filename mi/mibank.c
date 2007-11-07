@@ -121,10 +121,7 @@ typedef struct _miBankScreen
     GetImageProcPtr               GetImage;
     GetSpansProcPtr               GetSpans;
     CreateGCProcPtr               CreateGC;
-    PaintWindowBackgroundProcPtr  PaintWindowBackground;
-    PaintWindowBorderProcPtr      PaintWindowBorder;
     CopyWindowProcPtr             CopyWindow;
-    BSFuncRec                     BackingStoreFuncs;
 } miBankScreenRec, *miBankScreenPtr;
 
 typedef struct _miBankGC
@@ -175,8 +172,8 @@ typedef struct _miBankQueue
         (*pScreenPriv->BankInfo.SetDestinationBank)(pScreen, (_no)) - \
         (pScreenPriv->BankInfo.BankSize * (_no)))
 
-#define ALLOCATE_LOCAL_ARRAY(atype, ntype) \
-    (atype *)ALLOCATE_LOCAL((ntype) * sizeof(atype))
+#define xalloc_ARRAY(atype, ntype) \
+    (atype *)xalloc((ntype) * sizeof(atype))
 
 static int           miBankScreenIndex;
 static int           miBankGCIndex;
@@ -321,14 +318,14 @@ static unsigned long miBankGeneration = 0;
             atype *aarg = pArray, *acopy; \
             int   i; \
             CLIP_SAVE; \
-            if ((acopy = ALLOCATE_LOCAL_ARRAY(atype, nArray))) \
+            if ((acopy = xalloc_ARRAY(atype, nArray))) \
                 aarg = acopy; \
             GCOP_TOP_PART; \
             if (acopy) \
                 memcpy(acopy, pArray, nArray * sizeof(atype)); \
             (*pGC->ops->aop)(pDrawable, pGC, GCOP_ARGS nArray, aarg); \
             GCOP_BOTTOM_PART; \
-            DEALLOCATE_LOCAL(acopy); \
+            xfree(acopy); \
             CLIP_RESTORE; \
         } \
         SCREEN_RESTORE; \
@@ -790,7 +787,7 @@ miBankCopy(
             fastBlit = pGCPriv->fastCopy;
 
         nQueue = nBox * pScreenPriv->maxRects * 2;
-        pQueue = Queue = ALLOCATE_LOCAL_ARRAY(miBankQueue, nQueue);
+        pQueue = Queue = xalloc_ARRAY(miBankQueue, nQueue);
 
         if (Queue)
         {
@@ -956,7 +953,7 @@ miBankCopy(
 
             paddedWidth = PixmapBytePad(maxWidth,
                 pScreenPriv->pScreenPixmap->drawable.depth);
-            pImage = (char *)ALLOCATE_LOCAL(paddedWidth * maxHeight);
+            pImage = (char *)xalloc(paddedWidth * maxHeight);
 
             pGC->fExpose = FALSE;
 
@@ -1034,7 +1031,7 @@ miBankCopy(
                 pQueue++;
             }
 
-            DEALLOCATE_LOCAL(pImage);
+            xfree(pImage);
 
             BANK_RESTORE;
         }
@@ -1043,7 +1040,7 @@ miBankCopy(
 
         pGC->fExpose = fExpose;
 
-        DEALLOCATE_LOCAL(Queue);
+        xfree(Queue);
     }
 
     SCREEN_RESTORE;
@@ -1608,7 +1605,7 @@ miBankCreateScreenResources(
 
         /* Get shadow pixmap;  width & height of 0 means no pixmap data */
         pScreenPriv->pBankPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0,
-            pScreenPriv->pScreenPixmap->drawable.depth);
+            pScreenPriv->pScreenPixmap->drawable.depth, 0);
         if (!pScreenPriv->pBankPixmap)
             retval = FALSE;
     }
@@ -1713,10 +1710,7 @@ miBankCloseScreen(
     SCREEN_UNWRAP(GetImage);
     SCREEN_UNWRAP(GetSpans);
     SCREEN_UNWRAP(CreateGC);
-    SCREEN_UNWRAP(PaintWindowBackground);
-    SCREEN_UNWRAP(PaintWindowBorder);
     SCREEN_UNWRAP(CopyWindow);
-    SCREEN_UNWRAP(BackingStoreFuncs);
 
     Xfree(pScreenPriv);
     return (*pScreen->CloseScreen)(nIndex, pScreen);
@@ -1754,7 +1748,7 @@ miBankGetImage(
 
             paddedWidth = PixmapBytePad(w,
                 pScreenPriv->pScreenPixmap->drawable.depth);
-            pBankImage = (char *)ALLOCATE_LOCAL(paddedWidth * h);
+            pBankImage = (char *)xalloc(paddedWidth * h);
 
             if (pBankImage)
             {
@@ -1774,7 +1768,7 @@ miBankGetImage(
 
                 BANK_RESTORE;
 
-                DEALLOCATE_LOCAL(pBankImage);
+                xfree(pBankImage);
             }
         }
 
@@ -1815,7 +1809,7 @@ miBankGetSpans(
             paddedWidth =
                 PixmapBytePad(pScreenPriv->pScreenPixmap->drawable.width,
                     pScreenPriv->pScreenPixmap->drawable.depth);
-            pBankImage = (char *)ALLOCATE_LOCAL(paddedWidth);
+            pBankImage = (char *)xalloc(paddedWidth);
 
             if (pBankImage)
             {
@@ -1844,7 +1838,7 @@ miBankGetSpans(
 
                 BANK_RESTORE;
 
-                DEALLOCATE_LOCAL(pBankImage);
+                xfree(pBankImage);
             }
         }
 
@@ -1877,71 +1871,6 @@ miBankCreateGC(
     SCREEN_WRAP(CreateGC, miBankCreateGC);
 
     return ret;
-}
-
-static void
-miBankPaintWindow(
-    WindowPtr pWin,
-    RegionPtr pRegion,
-    int       what
-)
-{
-    ScreenPtr          pScreen = pWin->drawable.pScreen;
-    RegionRec          tmpReg;
-    int                i;
-    PaintWindowProcPtr PaintWindow;
-
-    SCREEN_INIT;
-    SCREEN_SAVE;
-
-    if (what == PW_BORDER)
-    {
-        SCREEN_UNWRAP(PaintWindowBorder);
-        PaintWindow = pScreen->PaintWindowBorder;
-    }
-    else
-    {
-        SCREEN_UNWRAP(PaintWindowBackground);
-        PaintWindow = pScreen->PaintWindowBackground;
-    }
-
-    if (!IS_BANKED(pWin))
-    {
-        (*PaintWindow)(pWin, pRegion, what);
-    }
-    else
-    {
-        REGION_NULL(pScreen, &tmpReg);
-
-        for (i = 0;  i < pScreenPriv->nBanks;  i++)
-        {
-            if (!pScreenPriv->pBanks[i])
-                continue;
-
-            REGION_INTERSECT(pScreen, &tmpReg, pRegion,
-                pScreenPriv->pBanks[i]);
-
-            if (REGION_NIL(&tmpReg))
-                continue;
-
-            SET_SINGLE_BANK(pScreenPriv->pScreenPixmap, -1, -1, i);
-
-            (*PaintWindow)(pWin, &tmpReg, what);
-        }
-
-        REGION_UNINIT(pScreen, &tmpReg);
-    }
-
-    if (what == PW_BORDER)
-    {
-        SCREEN_WRAP(PaintWindowBorder, miBankPaintWindow);
-    }
-    else
-    {
-        SCREEN_WRAP(PaintWindowBackground, miBankPaintWindow);
-    }
-
-    SCREEN_RESTORE;
 }
 
 static void
@@ -1982,7 +1911,7 @@ miBankCopyWindow(
         if (dy < 0)
         {
             /* Sort boxes from bottom to top */
-            pBoxNew1 = ALLOCATE_LOCAL_ARRAY(BoxRec, nBox);
+            pBoxNew1 = xalloc_ARRAY(BoxRec, nBox);
 
             if (pBoxNew1)
             {
@@ -2010,7 +1939,7 @@ miBankCopyWindow(
         if (dx < 0)
         {
             /* Sort boxes from right to left */
-            pBoxNew2 = ALLOCATE_LOCAL_ARRAY(BoxRec, nBox);
+            pBoxNew2 = xalloc_ARRAY(BoxRec, nBox);
 
             if (pBoxNew2)
             {
@@ -2050,116 +1979,8 @@ miBankCopyWindow(
 
     REGION_DESTROY(pScreen, pRgnDst);
 
-    DEALLOCATE_LOCAL(pBoxNew2);
-    DEALLOCATE_LOCAL(pBoxNew1);
-}
-
-/**************************
- * Backing store wrappers *
- **************************/
-
-static void
-miBankSaveAreas(
-    PixmapPtr pPixmap,
-    RegionPtr prgnSave,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin
-)
-{
-    ScreenPtr   pScreen   = pPixmap->drawable.pScreen;
-    RegionRec   rgnClipped;
-    int         i;
-
-    SCREEN_INIT;
-    SCREEN_SAVE;
-    SCREEN_UNWRAP(BackingStoreFuncs.SaveAreas);
-
-    if (!IS_BANKED(pWin))
-    {
-        (*pScreen->BackingStoreFuncs.SaveAreas)(pPixmap, prgnSave, xorg, yorg,
-            pWin);
-    }
-    else
-    {
-        REGION_NULL(pScreen, &rgnClipped);
-        REGION_TRANSLATE(pScreen, prgnSave, xorg, yorg);
-
-        for (i = 0;  i < pScreenPriv->nBanks;  i++)
-        {
-            if (!pScreenPriv->pBanks[i])
-                continue;
-
-            REGION_INTERSECT(pScreen, &rgnClipped,
-                prgnSave, pScreenPriv->pBanks[i]);
-
-            if (REGION_NIL(&rgnClipped))
-                continue;
-
-            SET_SINGLE_BANK(pScreenPriv->pScreenPixmap, -1, -1, i);
-
-            REGION_TRANSLATE(pScreen, &rgnClipped, -xorg, -yorg);
-
-            (*pScreen->BackingStoreFuncs.SaveAreas)(pPixmap, &rgnClipped,
-                xorg, yorg, pWin);
-        }
-
-        REGION_TRANSLATE(pScreen, prgnSave, -xorg, -yorg);
-        REGION_UNINIT(pScreen, &rgnClipped);
-    }
-
-    SCREEN_WRAP(BackingStoreFuncs.SaveAreas, miBankSaveAreas);
-    SCREEN_RESTORE;
-}
-
-static void
-miBankRestoreAreas(
-    PixmapPtr pPixmap,
-    RegionPtr prgnRestore,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin
-)
-{
-    ScreenPtr   pScreen   = pPixmap->drawable.pScreen;
-    RegionRec   rgnClipped;
-    int         i;
-
-    SCREEN_INIT;
-    SCREEN_SAVE;
-    SCREEN_UNWRAP(BackingStoreFuncs.RestoreAreas);
-
-    if (!IS_BANKED(pWin))
-    {
-        (*pScreen->BackingStoreFuncs.RestoreAreas)(pPixmap, prgnRestore,
-            xorg, yorg, pWin);
-    }
-    else
-    {
-        REGION_NULL(pScreen, &rgnClipped);
-
-        for (i = 0;  i < pScreenPriv->nBanks;  i++)
-        {
-            if (!pScreenPriv->pBanks[i])
-                continue;
-
-            REGION_INTERSECT(pScreen, &rgnClipped,
-                prgnRestore, pScreenPriv->pBanks[i]);
-
-            if (REGION_NIL(&rgnClipped))
-                continue;
-
-            SET_SINGLE_BANK(pScreenPriv->pScreenPixmap, -1, -1, i);
-
-            (*pScreen->BackingStoreFuncs.RestoreAreas)(pPixmap, &rgnClipped,
-                xorg, yorg, pWin);
-        }
-
-        REGION_UNINIT(pScreen, &rgnClipped);
-    }
-
-    SCREEN_WRAP(BackingStoreFuncs.RestoreAreas, miBankRestoreAreas);
-    SCREEN_RESTORE;
+    xfree(pBoxNew2);
+    xfree(pBoxNew1);
 }
 
 _X_EXPORT Bool
@@ -2379,17 +2200,7 @@ miInitializeBanking(
     SCREEN_WRAP(GetImage,              miBankGetImage);
     SCREEN_WRAP(GetSpans,              miBankGetSpans);
     SCREEN_WRAP(CreateGC,              miBankCreateGC);
-    SCREEN_WRAP(PaintWindowBackground, miBankPaintWindow);
-    SCREEN_WRAP(PaintWindowBorder,     miBankPaintWindow);
     SCREEN_WRAP(CopyWindow,            miBankCopyWindow);
-
-    pScreenPriv->BackingStoreFuncs     = pScreen->BackingStoreFuncs;
-
-    pScreen->BackingStoreFuncs.SaveAreas      = miBankSaveAreas;
-    pScreen->BackingStoreFuncs.RestoreAreas   = miBankRestoreAreas;
-    /* ??????????????????????????????????????????????????????????????
-    pScreen->BackingStoreFuncs.SetClipmaskRgn = miBankSetClipmaskRgn;
-    ?????????????????????????????????????????????????????????????? */
 
     BANK_SCRPRIVLVAL = (pointer)pScreenPriv;
 

@@ -386,7 +386,7 @@ ProcRRListOutputProperties (ClientPtr client)
     for (prop = output->properties; prop; prop = prop->next)
 	numProps++;
     if (numProps)
-        if(!(pAtoms = (Atom *)ALLOCATE_LOCAL(numProps * sizeof(Atom))))
+        if(!(pAtoms = (Atom *)xalloc(numProps * sizeof(Atom))))
             return(BadAlloc);
 
     rep.type = X_Reply;
@@ -408,7 +408,7 @@ ProcRRListOutputProperties (ClientPtr client)
     {
         client->pSwapReplyFunc = (ReplySwapPtr)Swap32Write;
         WriteSwappedDataToClient(client, numProps * sizeof(Atom), pAtoms);
-        DEALLOCATE_LOCAL(pAtoms);
+        xfree(pAtoms);
     }
     return(client->noClientException);
 }

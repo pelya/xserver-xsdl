@@ -34,14 +34,17 @@ Equipment Corporation.
 ******************************************************************/
 
 #include "pseudoramiX.h"
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
+
+#include <dix-config.h>
+
 #include "extnsionst.h"
 #include "dixstruct.h"
 #include "window.h"
 #include <X11/extensions/panoramiXproto.h>
 #include "globals.h"
+
+extern int noPseudoramiXExtension;
+extern int noPanoramiXExtension;
 
 extern int ProcPanoramiXQueryVersion (ClientPtr client);
 

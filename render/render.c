@@ -1080,9 +1080,13 @@ ProcRenderFreeGlyphSet (ClientPtr client)
 }
 
 typedef struct _GlyphNew {
-    Glyph	id;
-    GlyphPtr    glyph;
+    Glyph	    id;
+    GlyphPtr        glyph;
+    Bool	    found;
+    unsigned char   sha1[20];
 } GlyphNewRec, *GlyphNewPtr;
+
+#define NeedsComponent(f) (PICT_FORMAT_A(f) != 0 && PICT_FORMAT_RGB(f) != 0)
 
 static int
 ProcRenderAddGlyphs (ClientPtr client)
@@ -1090,14 +1094,17 @@ ProcRenderAddGlyphs (ClientPtr client)
     GlyphSetPtr     glyphSet;
     REQUEST(xRenderAddGlyphsReq);
     GlyphNewRec	    glyphsLocal[NLOCALGLYPH];
-    GlyphNewPtr	    glyphsBase, glyphs;
-    GlyphPtr	    glyph;
+    GlyphNewPtr	    glyphsBase, glyphs, glyph_new;
     int		    remain, nglyphs;
     CARD32	    *gids;
     xGlyphInfo	    *gi;
     CARD8	    *bits;
     int		    size;
     int		    err = BadAlloc;
+    int		    i, screen;
+    PicturePtr	    pSrc = NULL, pDst = NULL;
+    PixmapPtr	    pSrcPix = NULL, pDstPix = NULL;
+    CARD32	    component_alpha;
 
     REQUEST_AT_LEAST_SIZE(xRenderAddGlyphsReq);
     glyphSet = (GlyphSetPtr) SecurityLookupIDByType (client,
@@ -1114,11 +1121,15 @@ ProcRenderAddGlyphs (ClientPtr client)
     if (nglyphs > UINT32_MAX / sizeof(GlyphNewRec))
 	    return BadAlloc;
 
-    if (nglyphs <= NLOCALGLYPH)
+    component_alpha = NeedsComponent (glyphSet->format->format);
+
+    if (nglyphs <= NLOCALGLYPH) {
+	memset (glyphsLocal, 0, sizeof (glyphsLocal));
 	glyphsBase = glyphsLocal;
+    }
     else
     {
-	glyphsBase = (GlyphNewPtr) Xalloc (nglyphs * sizeof (GlyphNewRec));
+	glyphsBase = (GlyphNewPtr) Xcalloc (nglyphs * sizeof (GlyphNewRec));
 	if (!glyphsBase)
 	    return BadAlloc;
     }
@@ -1131,58 +1142,134 @@ ProcRenderAddGlyphs (ClientPtr client)
     gi = (xGlyphInfo *) (gids + nglyphs);
     bits = (CARD8 *) (gi + nglyphs);
     remain -= (sizeof (CARD32) + sizeof (xGlyphInfo)) * nglyphs;
-    while (remain >= 0 && nglyphs)
+    for (i = 0; i < nglyphs; i++)
     {
-	glyph = AllocateGlyph (gi, glyphSet->fdepth);
-	if (!glyph)
-	{
-	    err = BadAlloc;
-	    goto bail;
-	}
-	
-	glyphs->glyph = glyph;
-	glyphs->id = *gids;	
-	
-	size = glyph->size - sizeof (xGlyphInfo);
+	glyph_new = &glyphs[i];
+	size = gi[i].height * PixmapBytePad (gi[i].width,
+					     glyphSet->format->depth);
 	if (remain < size)
 	    break;
-	memcpy ((CARD8 *) (glyph + 1), bits, size);
+
+	err = HashGlyph (&gi[i], bits, size, glyph_new->sha1);
+	if (err)
+	    goto bail;
+
+	glyph_new->glyph = FindGlyphByHash (glyph_new->sha1,
+					    glyphSet->fdepth);
+
+	if (glyph_new->glyph && glyph_new->glyph != DeletedGlyph)
+	{
+	    glyph_new->found = TRUE;
+	}
+	else
+	{
+	    GlyphPtr glyph;
+
+	    glyph_new->found = FALSE;
+	    glyph_new->glyph = glyph = AllocateGlyph (&gi[i], glyphSet->fdepth);
+	    if (! glyph)
+	    {
+		err = BadAlloc;
+		goto bail;
+	    }
+
+	    for (screen = 0; screen < screenInfo.numScreens; screen++)
+	    {
+		int	    width = gi[i].width;
+		int	    height = gi[i].height;
+		int	    depth = glyphSet->format->depth;
+		ScreenPtr   pScreen;
+		int	    error;
+
+		pScreen = screenInfo.screens[screen];
+		pSrcPix = GetScratchPixmapHeader (pScreen,
+						  width, height,
+						  depth, depth,
+						  -1, bits);
+		if (! pSrcPix)
+		{
+		    err = BadAlloc;
+		    goto bail;
+		}
+
+		pSrc = CreatePicture (0, &pSrcPix->drawable,
+				      glyphSet->format, 0, NULL,
+				      serverClient, &error);
+		if (! pSrc)
+		{
+		    err = BadAlloc;
+		    goto bail;
+		}
+
+		pDstPix = (pScreen->CreatePixmap) (pScreen,
+						   width, height, depth,
+						   CREATE_PIMXAP_USAGE_GLYPH_PICTURE);
+
+		GlyphPicture (glyph)[screen] = pDst =
+			CreatePicture (0, &pDstPix->drawable,
+				       glyphSet->format,
+				       CPComponentAlpha, &component_alpha,
+				       serverClient, &error);
+
+		/* The picture takes a reference to the pixmap, so we
+		   drop ours. */
+		(pScreen->DestroyPixmap) (pDstPix);
+
+		if (! pDst)
+		{
+		    err = BadAlloc;
+		    goto bail;
+		}
+
+		CompositePicture (PictOpSrc,
+				  pSrc,
+				  None,
+				  pDst,
+				  0, 0,
+				  0, 0,
+				  0, 0,
+				  width, height);
+
+		FreePicture ((pointer) pSrc, 0);
+		pSrc = NULL;
+		FreeScratchPixmapHeader (pSrcPix);
+		pSrcPix = NULL;
+	    }
+
+	    memcpy (glyph_new->glyph->sha1, glyph_new->sha1, 20);
+	}
+
+	glyph_new->id = gids[i];
 	
 	if (size & 3)
 	    size += 4 - (size & 3);
 	bits += size;
 	remain -= size;
-	gi++;
-	gids++;
-	glyphs++;
-	nglyphs--;
     }
-    if (nglyphs || remain)
+    if (remain || i < nglyphs)
     {
 	err = BadLength;
 	goto bail;
     }
-    nglyphs = stuff->nglyphs;
     if (!ResizeGlyphSet (glyphSet, nglyphs))
     {
 	err = BadAlloc;
 	goto bail;
     }
-    glyphs = glyphsBase;
-    while (nglyphs--) {
-	AddGlyph (glyphSet, glyphs->glyph, glyphs->id);
-	glyphs++;
-    }
+    for (i = 0; i < nglyphs; i++)
+	AddGlyph (glyphSet, glyphs[i].glyph, glyphs[i].id);
 
     if (glyphsBase != glyphsLocal)
 	Xfree (glyphsBase);
     return client->noClientException;
 bail:
-    while (glyphs != glyphsBase)
-    {
-	--glyphs;
-	xfree (glyphs->glyph);
-    }
+    if (pSrc)
+	FreePicture ((pointer) pSrc, 0);
+    if (pSrcPix)
+	FreeScratchPixmapHeader (pSrcPix);
+    for (i = 0; i < nglyphs; i++)
+	if (glyphs[i].glyph && ! glyphs[i].found)
+	    xfree (glyphs[i].glyph);
     if (glyphsBase != glyphsLocal)
 	Xfree (glyphsBase);
     return err;
@@ -1322,7 +1409,7 @@ ProcRenderCompositeGlyphs (ClientPtr client)
 	glyphsBase = glyphsLocal;
     else
     {
-	glyphsBase = (GlyphPtr *) ALLOCATE_LOCAL (nglyph * sizeof (GlyphPtr));
+	glyphsBase = (GlyphPtr *) xalloc (nglyph * sizeof (GlyphPtr));
 	if (!glyphsBase)
 	    return BadAlloc;
     }
@@ -1330,7 +1417,7 @@ ProcRenderCompositeGlyphs (ClientPtr client)
 	listsBase = listsLocal;
     else
     {
-	listsBase = (GlyphListPtr) ALLOCATE_LOCAL (nlist * sizeof (GlyphListRec));
+	listsBase = (GlyphListPtr) xalloc (nlist * sizeof (GlyphListRec));
 	if (!listsBase)
 	    return BadAlloc;
     }
@@ -1355,9 +1442,9 @@ ProcRenderCompositeGlyphs (ClientPtr client)
 		{
 		    client->errorValue = gs;
 		    if (glyphsBase != glyphsLocal)
-			DEALLOCATE_LOCAL (glyphsBase);
+			xfree (glyphsBase);
 		    if (listsBase != listsLocal)
-			DEALLOCATE_LOCAL (listsBase);
+			xfree (listsBase);
 		    return RenderErrBase + BadGlyphSet;
 		}
 	    }
@@ -1411,9 +1498,9 @@ ProcRenderCompositeGlyphs (ClientPtr client)
 		     glyphsBase);
 
     if (glyphsBase != glyphsLocal)
-	DEALLOCATE_LOCAL (glyphsBase);
+	xfree (glyphsBase);
     if (listsBase != listsLocal)
-	DEALLOCATE_LOCAL (listsBase);
+	xfree (listsBase);
     
     return client->noClientException;
 }
@@ -1550,7 +1637,8 @@ ProcRenderCreateCursor (ClientPtr client)
 	    xfree (mskbits);
 	    return (BadImplementation);
 	}
-	pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, 32);
+	pPixmap = (*pScreen->CreatePixmap) (pScreen, width, height, 32,
+					    CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!pPixmap)
 	{
 	    xfree (argbbits);
@@ -2877,7 +2965,7 @@ PanoramiXRenderFillRectangles (ClientPtr client)
 			RenderErrBase + BadPicture);
     extra_len = (client->req_len << 2) - sizeof (xRenderFillRectanglesReq);
     if (extra_len &&
-	(extra = (char *) ALLOCATE_LOCAL (extra_len)))
+	(extra = (char *) xalloc (extra_len)))
     {
 	memcpy (extra, stuff + 1, extra_len);
 	FOR_NSCREENS_FORWARD(j) {
@@ -2903,7 +2991,7 @@ PanoramiXRenderFillRectangles (ClientPtr client)
 	    result = (*PanoramiXSaveRenderVector[X_RenderFillRectangles]) (client);
 	    if(result != Success) break;
 	}
-	DEALLOCATE_LOCAL(extra);
+	xfree(extra);
     }
 
     return result;
@@ -2928,7 +3016,7 @@ PanoramiXRenderTrapezoids(ClientPtr client)
     extra_len = (client->req_len << 2) - sizeof (xRenderTrapezoidsReq);
 
     if (extra_len &&
-	(extra = (char *) ALLOCATE_LOCAL (extra_len))) {
+	(extra = (char *) xalloc (extra_len))) {
 	memcpy (extra, stuff + 1, extra_len);
 
 	FOR_NSCREENS_FORWARD(j) {
@@ -2965,7 +3053,7 @@ PanoramiXRenderTrapezoids(ClientPtr client)
 	    if(result != Success) break;
 	}
 	
-        DEALLOCATE_LOCAL(extra);
+        xfree(extra);
     }
 
     return result;
@@ -2990,7 +3078,7 @@ PanoramiXRenderTriangles(ClientPtr client)
     extra_len = (client->req_len << 2) - sizeof (xRenderTrianglesReq);
 
     if (extra_len &&
-	(extra = (char *) ALLOCATE_LOCAL (extra_len))) {
+	(extra = (char *) xalloc (extra_len))) {
 	memcpy (extra, stuff + 1, extra_len);
 
 	FOR_NSCREENS_FORWARD(j) {
@@ -3023,7 +3111,7 @@ PanoramiXRenderTriangles(ClientPtr client)
 	    if(result != Success) break;
 	}
 	
-        DEALLOCATE_LOCAL(extra);
+        xfree(extra);
     }
 
     return result;
@@ -3048,7 +3136,7 @@ PanoramiXRenderTriStrip(ClientPtr client)
     extra_len = (client->req_len << 2) - sizeof (xRenderTriStripReq);
 
     if (extra_len &&
-	(extra = (char *) ALLOCATE_LOCAL (extra_len))) {
+	(extra = (char *) xalloc (extra_len))) {
 	memcpy (extra, stuff + 1, extra_len);
 
 	FOR_NSCREENS_FORWARD(j) {
@@ -3077,7 +3165,7 @@ PanoramiXRenderTriStrip(ClientPtr client)
 	    if(result != Success) break;
 	}
 	
-        DEALLOCATE_LOCAL(extra);
+        xfree(extra);
     }
 
     return result;
@@ -3102,7 +3190,7 @@ PanoramiXRenderTriFan(ClientPtr client)
     extra_len = (client->req_len << 2) - sizeof (xRenderTriFanReq);
 
     if (extra_len &&
-	(extra = (char *) ALLOCATE_LOCAL (extra_len))) {
+	(extra = (char *) xalloc (extra_len))) {
 	memcpy (extra, stuff + 1, extra_len);
 
 	FOR_NSCREENS_FORWARD(j) {
@@ -3131,7 +3219,7 @@ PanoramiXRenderTriFan(ClientPtr client)
 	    if(result != Success) break;
 	}
 	
-        DEALLOCATE_LOCAL(extra);
+        xfree(extra);
     }
 
     return result;
@@ -3156,7 +3244,7 @@ PanoramiXRenderColorTrapezoids(ClientPtr client)
     extra_len = (client->req_len << 2) - sizeof (xRenderColorTrapezoidsReq);
 
     if (extra_len &&
-	(extra = (char *) ALLOCATE_LOCAL (extra_len))) {
+	(extra = (char *) xalloc (extra_len))) {
 	memcpy (extra, stuff + 1, extra_len);
 
 	FOR_NSCREENS_FORWARD(j) {
@@ -3177,7 +3265,7 @@ PanoramiXRenderColorTrapezoids(ClientPtr client)
 	    if(result != Success) break;
 	}
 	
-        DEALLOCATE_LOCAL(extra);
+        xfree(extra);
     }
 
     return result;
@@ -3200,7 +3288,7 @@ PanoramiXRenderColorTriangles(ClientPtr client)
     extra_len = (client->req_len << 2) - sizeof (xRenderColorTrianglesReq);
 
     if (extra_len &&
-	(extra = (char *) ALLOCATE_LOCAL (extra_len))) {
+	(extra = (char *) xalloc (extra_len))) {
 	memcpy (extra, stuff + 1, extra_len);
 
 	FOR_NSCREENS_FORWARD(j) {
@@ -3221,7 +3309,7 @@ PanoramiXRenderColorTriangles(ClientPtr client)
 	    if(result != Success) break;
 	}
 	
-        DEALLOCATE_LOCAL(extra);
+        xfree(extra);
     }
 
     return result;
@@ -3244,7 +3332,7 @@ PanoramiXRenderAddTraps (ClientPtr client)
 			RenderErrBase + BadPicture);
     extra_len = (client->req_len << 2) - sizeof (xRenderAddTrapsReq);
     if (extra_len &&
-	(extra = (char *) ALLOCATE_LOCAL (extra_len)))
+	(extra = (char *) xalloc (extra_len)))
     {
 	memcpy (extra, stuff + 1, extra_len);
 	x_off = stuff->xOff;
@@ -3261,7 +3349,7 @@ PanoramiXRenderAddTraps (ClientPtr client)
 	    result = (*PanoramiXSaveRenderVector[X_RenderAddTraps]) (client);
 	    if(result != Success) break;
 	}
-	DEALLOCATE_LOCAL(extra);
+	xfree(extra);
     }
 
     return result;

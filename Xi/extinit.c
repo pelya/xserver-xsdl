@@ -58,8 +58,6 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#include <X11/X.h>
-#include <X11/Xproto.h>
 #include "inputstr.h"
 #include "gcstruct.h"	/* pointer for extnsionst.h */
 #include "extnsionst.h"	/* extension entry   */
@@ -1209,6 +1207,7 @@ XInputExtensionInit(void)
 	EventSwapVector[DeviceButtonStateNotify] = SEventIDispatch;
 	EventSwapVector[DeviceMappingNotify] = SEventIDispatch;
 	EventSwapVector[ChangeDeviceNotify] = SEventIDispatch;
+	EventSwapVector[DevicePresenceNotify] = SEventIDispatch;
 	EventSwapVector[DeviceEnterNotify] = SEventIDispatch;
 	EventSwapVector[DeviceLeaveNotify] = SEventIDispatch;
 

@@ -87,14 +87,6 @@ xf4bppNeverCalled()
 	FatalError("xf4bppNeverCalled was nevertheless called\n");
 }
 
-static BSFuncRec ppcBSFuncRec = {
-    xf4bppSaveAreas,
-    xf4bppRestoreAreas,
-    (BackingStoreSetClipmaskRgnProcPtr) 0,
-    (BackingStoreGetImagePixmapProcPtr) 0,
-    (BackingStoreGetSpansPixmapProcPtr) 0,
-};
-
 /*ARGSUSED*/
 static Bool
 vgaScreenClose
@@ -154,7 +146,7 @@ v16CreateScreenResources
 	/* create a pixmap with no data, then redirect it to point to
 	 * the screen
 	 */
-	pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, pScreen->rootDepth);
+	pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, pScreen->rootDepth, 0);
 	if (!pPixmap)
 	    return FALSE;
 
@@ -213,16 +205,8 @@ xf4bppScreenInit( pScreen, pbits, virtx, virty, dpix, dpiy, width )
   pScreen-> CreateWindow = xf4bppCreateWindowForXYhardware;
   pScreen-> DestroyWindow = xf4bppDestroyWindow;
   pScreen-> PositionWindow = xf4bppPositionWindow;
-  pScreen-> PaintWindowBackground = xf4bppPaintWindow;
-  pScreen-> PaintWindowBorder = xf4bppPaintWindow;
   pScreen-> CopyWindow = xf4bppCopyWindow;
   pScreen-> CreatePixmap = xf4bppCreatePixmap;
-  pScreen-> SaveDoomedAreas = (SaveDoomedAreasProcPtr)NoopDDA;
-  pScreen-> RestoreAreas = (RestoreAreasProcPtr)NoopDDA;
-  pScreen-> ExposeCopy = (ExposeCopyProcPtr)NoopDDA;
-  pScreen-> TranslateBackingStore = (TranslateBackingStoreProcPtr)NoopDDA;
-  pScreen-> ClearBackingStore = (ClearBackingStoreProcPtr)NoopDDA;
-  pScreen-> DrawGuarantee = (DrawGuaranteeProcPtr)NoopDDA;
   pScreen-> CreateGC = xf4bppCreateGC;
   pScreen-> CreateColormap = xf4bppInitializeColormap;
   pScreen-> DestroyColormap = (DestroyColormapProcPtr)NoopDDA;
@@ -233,14 +217,13 @@ xf4bppScreenInit( pScreen, pbits, virtx, virty, dpix, dpiy, width )
   pScreen-> ResolveColor = xf4bppResolveColor;
   mfbFillInScreen(pScreen);
 
-  if (!mfbAllocatePrivates(pScreen, (int*)NULL, (int*)NULL))
+  if (!mfbAllocatePrivates(pScreen, NULL))
 	return FALSE;
 
   if (!miScreenInit(pScreen, pbits, virtx, virty, dpix, dpiy, width,
 	rootdepth, ndepths, depths, defaultVisual /* See above */,
 	nvisuals, visuals))
      return FALSE;
-  pScreen->BackingStoreFuncs = ppcBSFuncRec;
 
   /* GJA -- Now we override the supplied default: */
   pScreen -> CreateScreenResources = v16CreateScreenResources;

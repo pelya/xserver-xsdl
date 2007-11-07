@@ -19,22 +19,6 @@ void xf4bppFillArea(
     GCPtr
 );
 
-/* ppcBStore.c */
-void xf4bppSaveAreas(
-    PixmapPtr,
-    RegionPtr,
-    int,
-    int,
-    WindowPtr
-);
-void xf4bppRestoreAreas(
-    PixmapPtr,
-    RegionPtr,
-    int,
-    int,
-    WindowPtr
-);
-
 /* ppcClip.c */
 void xf4bppDestroyClip(
     GCPtr
@@ -199,17 +183,11 @@ PixmapPtr xf4bppCreatePixmap(
     ScreenPtr,
     int,
     int,
-    int
+    int,
+    unsigned
 );
 PixmapPtr xf4bppCopyPixmap(
     PixmapPtr
-);
-
-/* ppcPntWin.c */
-void xf4bppPaintWindow(
-    WindowPtr,
-    RegionPtr,
-    int
 );
 
 /* ppcPolyPnt.c */

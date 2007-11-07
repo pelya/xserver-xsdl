@@ -1,5 +1,4 @@
 /* X11Controller.m -- connect the IB ui, also the NSApp delegate
-   $Id: X11Controller.m,v 1.40 2006/09/06 21:19:32 jharper Exp $
  
    Copyright (c) 2002-2007 Apple Inc. All rights reserved.
  
@@ -38,14 +37,12 @@
 
 /* ouch! */
 #define BOOL X_BOOL
-//# include "Xproto.h"
 #include "opaque.h"
 # include "darwin.h"
 # include "../quartz/quartz.h"
 # define _APPLEWM_SERVER_
 # include "X11/extensions/applewm.h"
 # include "../quartz/applewmExt.h"
-//# include "X.h"
 #undef BOOL
 
 #include <stdio.h>
@@ -296,20 +293,18 @@
 - (void) launch_client:(NSString *)filename
 {
   const char *command = [filename UTF8String];
-  const char *shell;
-  const char *argv[5];
+  const char *argv[7];
   int child1, child2 = 0;
   int status;
 	
-  shell = getenv("SHELL");
-  if (shell == NULL) shell = "/bin/bash";
-    
-  argv[0] = shell;
-  argv[1] = "-l";
-  argv[2] = "-c";
-  argv[3] = command;
-  argv[4] = NULL;
-    
+  argv[0] = "/usr/bin/login";
+  argv[1] = "-fp";
+  argv[2] = getlogin();
+  argv[3] = "/bin/sh";
+  argv[4] = "-c";
+  argv[5] = command;
+  argv[6] = NULL;
+
   /* Do the fork-twice trick to avoid having to reap zombies */
     
   child1 = fork();
@@ -655,7 +650,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 - (IBAction) x11_help:sender
 {
-  AHLookupAnchor (CFSTR ("Mac Help"), CFSTR ("mchlp2276"));
+  AHLookupAnchor ((CFStringRef)NSLocalizedString(@"Mac Help", no comment), CFSTR ("mchlp2276"));
 }
 
 - (BOOL) validateMenuItem:(NSMenuItem *)item

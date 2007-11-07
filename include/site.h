@@ -75,9 +75,6 @@ SOFTWARE.
 #ifndef COMPILEDDEFAULTFONTPATH
 #define COMPILEDDEFAULTFONTPATH	"/usr/lib/X11/fonts/misc/"
 #endif
-#ifndef RGB_DB
-#define RGB_DB			"/usr/lib/X11/rgb"
-#endif
 
 /*
  * The following constants contain default values for all of the variables 

@@ -30,10 +30,9 @@
  * sale, use or other dealings in this Software without prior written
  * authorization.
  */
-/* $XFree86: xc/programs/Xserver/hw/darwin/quartz/Preferences.m,v 1.5 2004/06/08 22:58:10 torrey Exp $ */
-#ifdef HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
+
+#include <dix-config.h>
+
 #import "quartzCommon.h"
 
 #define BOOL xBOOL
@@ -356,7 +355,7 @@ static NSString *X11EnableKeyEquivalentsKey = @"EnableKeyEquivalents";
     [[NSUserDefaults standardUserDefaults] setBool:newMouseAccelChange
             forKey:@"AllowMouseAccelChange"];
     // Update the setting used by the X server thread
-    darwinMouseAccelChange = newMouseAccelChange;
+    //    darwinMouseAccelChange = newMouseAccelChange;
 }
 
 + (void)setUseQDCursor:(int)newUseQDCursor

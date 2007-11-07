@@ -66,7 +66,7 @@
 #define KanaMask	Mod4Mask
 #define ScrollLockMask	Mod5Mask
 
-#define KeyPressed(k) (keyc->down[k >> 3] & (1 << (k & 7)))
+#define KeyPressed(k) (keyc->postdown[k >> 3] & (1 << (k & 7)))
 #define ModifierDown(k) ((keyc->state & (k)) == (k))
 
 /*

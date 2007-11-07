@@ -110,13 +110,13 @@ vga16DoBitblt
 	if (nbox > 1)
 	{
 	    /* keep ordering in each band, reverse order of bands */
-	    pboxNew1 = (BoxPtr)ALLOCATE_LOCAL(sizeof(BoxRec) * nbox);
+	    pboxNew1 = (BoxPtr)xalloc(sizeof(BoxRec) * nbox);
 	    if(!pboxNew1)
 		return;
-	    pptNew1 = (DDXPointPtr)ALLOCATE_LOCAL(sizeof(DDXPointRec) * nbox);
+	    pptNew1 = (DDXPointPtr)xalloc(sizeof(DDXPointRec) * nbox);
 	    if(!pptNew1)
 	    {
-	        DEALLOCATE_LOCAL(pboxNew1);
+	        xfree(pboxNew1);
 	        return;
 	    }
 	    pboxBase = pboxNext = pbox+nbox-1;
@@ -146,16 +146,16 @@ vga16DoBitblt
 	if (nbox > 1)
 	{
 	    /* reverse order of rects in each band */
-	    pboxNew2 = (BoxPtr)ALLOCATE_LOCAL(sizeof(BoxRec) * nbox);
-	    pptNew2 = (DDXPointPtr)ALLOCATE_LOCAL(sizeof(DDXPointRec) * nbox);
+	    pboxNew2 = (BoxPtr)xalloc(sizeof(BoxRec) * nbox);
+	    pptNew2 = (DDXPointPtr)xalloc(sizeof(DDXPointRec) * nbox);
 	    if(!pboxNew2 || !pptNew2)
 	    {
-		if (pptNew2) DEALLOCATE_LOCAL(pptNew2);
-		if (pboxNew2) DEALLOCATE_LOCAL(pboxNew2);
+		if (pptNew2) xfree(pptNew2);
+		if (pboxNew2) xfree(pboxNew2);
 		if (pboxNew1)
 		{
-		    DEALLOCATE_LOCAL(pptNew1);
-		    DEALLOCATE_LOCAL(pboxNew1);
+		    xfree(pptNew1);
+		    xfree(pboxNew1);
 		}
 	        return;
 	    }
@@ -207,13 +207,13 @@ vga16DoBitblt
     }
     if (pboxNew2)
     {
-	DEALLOCATE_LOCAL(pptNew2);
-	DEALLOCATE_LOCAL(pboxNew2);
+	xfree(pptNew2);
+	xfree(pboxNew2);
     }
     if (pboxNew1)
     {
-	DEALLOCATE_LOCAL(pptNew1);
-	DEALLOCATE_LOCAL(pboxNew1);
+	xfree(pptNew1);
+	xfree(pboxNew1);
     }
 }
 
@@ -430,7 +430,7 @@ int dstx, dsty;
     numRects = REGION_NUM_RECTS(&rgnDst);
     if (numRects && width && height)
     {
-	if(!(pptSrc = (DDXPointPtr)ALLOCATE_LOCAL(numRects *
+	if(!(pptSrc = (DDXPointPtr)xalloc(numRects *
 						  sizeof(DDXPointRec))))
 	{
 	    REGION_UNINIT(pGC->pScreen, &rgnDst);
@@ -448,7 +448,7 @@ int dstx, dsty;
 
 	vga16DoBitblt(pSrcDrawable, pDstDrawable, pGC->alu,
 			&rgnDst, pptSrc, pGC->planemask );
-	DEALLOCATE_LOCAL(pptSrc);
+	xfree(pptSrc);
     }
 
     prgnExposed = NULL;

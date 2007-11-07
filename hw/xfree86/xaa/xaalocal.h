@@ -45,11 +45,8 @@ typedef struct _XAAScreen {
    CloseScreenProcPtr 		CloseScreen;
    GetImageProcPtr 		GetImage;
    GetSpansProcPtr 		GetSpans;
-   PaintWindowBackgroundProcPtr PaintWindowBackground;
-   PaintWindowBorderProcPtr 	PaintWindowBorder;
    CopyWindowProcPtr 		CopyWindow;
    WindowExposuresProcPtr	WindowExposures;
-   BSFuncRec 			BackingStoreFuncs;
    CreatePixmapProcPtr 		CreatePixmap;
    DestroyPixmapProcPtr 	DestroyPixmap;
    ChangeWindowAttributesProcPtr ChangeWindowAttributes;
@@ -1314,14 +1311,6 @@ XAAWritePixmapToCacheLinear(
    unsigned char *src,
    int srcwidth,
    int bpp, int depth
-);
-
-
-void
-XAAPaintWindow(
-  WindowPtr pWin,
-  RegionPtr prgn,
-  int what 
 );
 
 void 

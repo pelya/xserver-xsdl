@@ -95,6 +95,7 @@ RROutputCreate (ScreenPtr   pScreen,
     output->numUserModes = 0;
     output->userModes = NULL;
     output->properties = NULL;
+    output->pendingProperties = FALSE;
     output->changed = FALSE;
     output->devPrivate = devPrivate;
     

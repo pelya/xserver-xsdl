@@ -36,6 +36,8 @@
 #ifndef _XF86PRIV_H
 #define _XF86PRIV_H
 
+#include <pciaccess.h>
+
 #include "xf86Privstr.h"
 #include "propertyst.h"
 #include "input.h"
@@ -77,7 +79,7 @@ extern Bool xf86BestRefresh;
 extern Gamma xf86Gamma;
 extern char *xf86ServerName;
 extern Bool xf86ShowUnresolved;
-extern PciBusId xf86IsolateDevice;
+extern struct pci_slot_match xf86IsolateDevice;
 
 /* Other parameters */
 
@@ -102,7 +104,6 @@ extern int xf86NumDrivers;
 extern Bool xf86Resetting;
 extern Bool xf86Initialising;
 extern int xf86NumScreens;
-extern pciVideoPtr *xf86PciVideoInfo;
 extern xf86CurrentAccessRec xf86CurrentAccess;
 extern const char *xf86VisualNames[];
 extern int xf86Verbose;                 /* verbosity level */
@@ -149,9 +150,6 @@ void xf86ClearEntityListForScreen(int scrnIndex);
 void xf86AddDevToEntity(int entityIndex, GDevPtr dev);
 extern void xf86PostPreInit(void);
 extern void xf86PostScreenInit(void);
-extern memType getValidBIOSBase(PCITAG tag, int num);
-extern memType getEmptyPciRange(PCITAG tag, int base_reg);
-extern int pciTestMultiDeviceCard(int bus, int dev, int func, PCITAG** pTag);
 
 /* xf86Config.c */
 
@@ -188,6 +186,7 @@ void xf86CloseLog(void);
 Bool xf86LoadModules(char **list, pointer *optlist);
 int xf86SetVerbosity(int verb);
 int xf86SetLogVerbosity(int verb);
+Bool xf86CallDriverProbe( struct _DriverRec * drv, Bool detect_only );
 
 /* xf86Lock.c */
 

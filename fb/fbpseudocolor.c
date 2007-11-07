@@ -94,8 +94,6 @@ typedef struct {
     CreateScreenResourcesProcPtr CreateScreenResources;
     CreateWindowProcPtr		CreateWindow;
     CopyWindowProcPtr		CopyWindow;
-    PaintWindowProcPtr		PaintWindowBackground;
-    PaintWindowProcPtr		PaintWindowBorder;
     WindowExposuresProcPtr	WindowExposures;
     CreateGCProcPtr		CreateGC;
     CreateColormapProcPtr	CreateColormap;
@@ -277,7 +275,7 @@ xxCreateScreenResources(ScreenPtr pScreen)
 		       * (BitsPerPixel(depth) >> 3));
     if (!pBits) return FALSE;
     
-    pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, depth);
+    pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, depth, 0);
     if (!pPixmap) {
 	xfree(pBits);
 	return FALSE;
@@ -502,7 +500,7 @@ xxStoreColors(ColormapPtr pmap, int nColors, xColorItem *pColors)
 
 	DBG("StoreColors\n");
 	
-	expanddefs = ALLOCATE_LOCAL(sizeof(xColorItem)
+	expanddefs = xalloc(sizeof(xColorItem)
 				    * (1 <<  pScrPriv->myDepth));
 	if (!expanddefs) return;
 	
@@ -529,7 +527,7 @@ xxStoreColors(ColormapPtr pmap, int nColors, xColorItem *pColors)
 	    pColors++;
 	}
 
-	DEALLOCATE_LOCAL(expanddefs);
+	xfree(expanddefs);
 
 	pCmapPriv->dirty = TRUE;
 	pScrPriv->colormapDirty = TRUE;
@@ -567,9 +565,9 @@ xxInstallColormap(ColormapPtr pmap)
 	    wrap(pScrPriv,pmap->pScreen,InstallColormap,xxInstallColormap);
 	}
 	    
-	pixels = ALLOCATE_LOCAL(sizeof(Pixel) * (1 <<  pScrPriv->myDepth));
-	colors = ALLOCATE_LOCAL(sizeof(xrgb) * (1 <<  pScrPriv->myDepth));
-	defs = ALLOCATE_LOCAL(sizeof(xColorItem) * (1 << pScrPriv->myDepth));
+	pixels = xalloc(sizeof(Pixel) * (1 <<  pScrPriv->myDepth));
+	colors = xalloc(sizeof(xrgb) * (1 <<  pScrPriv->myDepth));
+	defs = xalloc(sizeof(xColorItem) * (1 << pScrPriv->myDepth));
 	
 	if (!pixels || !colors)
 	    return;
@@ -597,9 +595,9 @@ xxInstallColormap(ColormapPtr pmap)
         }
 	xxStoreColors(pmap,(1 <<  pScrPriv->myDepth),defs);
 
-	DEALLOCATE_LOCAL(pixels);
-	DEALLOCATE_LOCAL(colors);
-	DEALLOCATE_LOCAL(defs);
+	xfree(pixels);
+	xfree(colors);
+	xfree(defs);
 
 	return;
     } 
@@ -792,70 +790,6 @@ xxWindowExposures (WindowPtr	pWin,
     unwrap (pScrPriv, pWin->drawable.pScreen, WindowExposures);
     pWin->drawable.pScreen->WindowExposures(pWin, prgn, other_exposed);
     wrap(pScrPriv, pWin->drawable.pScreen, WindowExposures, xxWindowExposures);
-}
-
-static void
-xxPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what)
-{
-    xxScrPriv(pWin->drawable.pScreen);
-    RegionRec		rgni;
-
-    DBG("xxPaintWindow\n");
-
-    REGION_NULL (pWin->drawable.pScreen, &rgni);
-#if 0
-    REGION_UNION (pWin->drawable.pScreen, &rgni, &rgni, &pWin->borderClip);
-    REGION_INTERSECT(pWin->drawable.pScreen, &rgni, &rgni, pRegion);
-#else
-    REGION_UNION (pWin->drawable.pScreen, &rgni, &rgni, pRegion);
-#endif
-    switch (what) {
-    case PW_BORDER:
-	REGION_SUBTRACT (pWin->drawable.pScreen, &rgni, &rgni, &pWin->winSize);
-	if (fbGetWindowPixmap(pWin) == pScrPriv->pPixmap) {
-	    DBG("PaintWindowBorder\n");
-	    REGION_UNION (pWin->drawable.pScreen, &pScrPriv->region,
-			  &pScrPriv->region, &rgni);
-	} else {
-	    DBG("PaintWindowBorder NoOverlay\n");
-	    REGION_SUBTRACT (pWin->drawable.pScreen, &pScrPriv->region,
-			     &pScrPriv->region, &rgni);	
-	}
-	unwrap (pScrPriv, pWin->drawable.pScreen, PaintWindowBorder);
-	pWin->drawable.pScreen->PaintWindowBorder (pWin, pRegion, what);
-	wrap(pScrPriv, pWin->drawable.pScreen, PaintWindowBorder,
-	     xxPaintWindow);	
-	break;
-    case PW_BACKGROUND:
-	switch (pWin->backgroundState) {
-	case None:
-	    break;
-	default:
-	    REGION_INTERSECT (pWin->drawable.pScreen, &rgni,
-			      &rgni,&pWin->winSize);
-	    if (fbGetWindowPixmap(pWin) == pScrPriv->pPixmap) {
-		DBG("PaintWindowBackground\n");
-		REGION_UNION (pWin->drawable.pScreen, &pScrPriv->region,
-			      &pScrPriv->region, &rgni);
-	    } else {
-		DBG("PaintWindowBackground NoOverlay\n");
-		REGION_SUBTRACT (pWin->drawable.pScreen, &pScrPriv->region,
-				 &pScrPriv->region, &rgni);	
-	    }
-	    break;
-	}
-	
-	unwrap (pScrPriv, pWin->drawable.pScreen, PaintWindowBackground);
-	pWin->drawable.pScreen->PaintWindowBackground (pWin, pRegion, what);
-	wrap(pScrPriv, pWin->drawable.pScreen, PaintWindowBackground,
-	     xxPaintWindow);
-	break;
-    }
-    PRINT_RECTS(rgni);
-    PRINT_RECTS(pScrPriv->region);
-#if 1
-    REGION_UNINIT(pWin->drawable.pScreen,&rgni);
-#endif
 }
 
 static void
@@ -1171,8 +1105,6 @@ xxSetup(ScreenPtr pScreen, int myDepth, int baseDepth, char* addr, xxSyncFunc sy
     wrap (pScrPriv, pScreen, CreateScreenResources, xxCreateScreenResources);
     wrap (pScrPriv, pScreen, CreateWindow, xxCreateWindow);
     wrap (pScrPriv, pScreen, CopyWindow, xxCopyWindow);
-    wrap (pScrPriv, pScreen, PaintWindowBorder, xxPaintWindow);
-    wrap (pScrPriv, pScreen, PaintWindowBackground, xxPaintWindow);
 #if 0 /* can we leave this out even with backing store enabled ? */
     wrap (pScrPriv, pScreen, WindowExposures, xxWindowExposures);
 #endif

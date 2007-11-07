@@ -35,18 +35,6 @@
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
 static Bool ShadowCloseScreen (int i, ScreenPtr pScreen);
-static void ShadowRestoreAreas (    
-    PixmapPtr pPixmap,
-    RegionPtr prgn,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin 
-);
-static void ShadowPaintWindow (
-    WindowPtr pWin,
-    RegionPtr prgn,
-    int what 
-);
 static void ShadowCopyWindow(
     WindowPtr pWin,
     DDXPointRec ptOldOrg,
@@ -89,11 +77,8 @@ typedef struct {
   RefreshAreaFuncPtr			preRefresh;
   RefreshAreaFuncPtr                    postRefresh;
   CloseScreenProcPtr			CloseScreen;
-  PaintWindowBackgroundProcPtr		PaintWindowBackground;
-  PaintWindowBorderProcPtr		PaintWindowBorder;
   CopyWindowProcPtr			CopyWindow;
   CreateGCProcPtr			CreateGC;
-  BackingStoreRestoreAreasProcPtr	RestoreAreas;  
   ModifyPixmapHeaderProcPtr		ModifyPixmapHeader;
 #ifdef RENDER
   CompositeProcPtr Composite;
@@ -208,22 +193,16 @@ ShadowFBInit2 (
     pPriv->vtSema = TRUE;
 
     pPriv->CloseScreen = pScreen->CloseScreen;
-    pPriv->PaintWindowBackground = pScreen->PaintWindowBackground;
-    pPriv->PaintWindowBorder = pScreen->PaintWindowBorder;
     pPriv->CopyWindow = pScreen->CopyWindow;
     pPriv->CreateGC = pScreen->CreateGC;
-    pPriv->RestoreAreas = pScreen->BackingStoreFuncs.RestoreAreas;
     pPriv->ModifyPixmapHeader = pScreen->ModifyPixmapHeader;
 
     pPriv->EnterVT = pScrn->EnterVT;
     pPriv->LeaveVT = pScrn->LeaveVT;
 
     pScreen->CloseScreen = ShadowCloseScreen;
-    pScreen->PaintWindowBackground = ShadowPaintWindow;
-    pScreen->PaintWindowBorder = ShadowPaintWindow;
     pScreen->CopyWindow = ShadowCopyWindow;
     pScreen->CreateGC = ShadowCreateGC;
-    pScreen->BackingStoreFuncs.RestoreAreas = ShadowRestoreAreas;
     pScreen->ModifyPixmapHeader = ShadowModifyPixmapHeader;
 
     pScrn->EnterVT = ShadowEnterVT;
@@ -286,11 +265,8 @@ ShadowCloseScreen (int i, ScreenPtr pScreen)
 #endif /* RENDER */
 
     pScreen->CloseScreen = pPriv->CloseScreen;
-    pScreen->PaintWindowBackground = pPriv->PaintWindowBackground;
-    pScreen->PaintWindowBorder = pPriv->PaintWindowBorder;
     pScreen->CopyWindow = pPriv->CopyWindow;
     pScreen->CreateGC = pPriv->CreateGC;
-    pScreen->BackingStoreFuncs.RestoreAreas = pPriv->RestoreAreas;
     pScreen->ModifyPixmapHeader = pPriv->ModifyPixmapHeader;
 
     pScrn->EnterVT = pPriv->EnterVT;
@@ -306,62 +282,6 @@ ShadowCloseScreen (int i, ScreenPtr pScreen)
 
     return (*pScreen->CloseScreen) (i, pScreen);
 }
-
-
-static void
-ShadowRestoreAreas (    
-    PixmapPtr pPixmap,
-    RegionPtr prgn,
-    int       xorg,
-    int       yorg,
-    WindowPtr pWin 
-){
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-    ShadowScreenPtr pPriv = GET_SCREEN_PRIVATE(pScreen);
-    int num = 0;
-
-    if(pPriv->vtSema && (num = REGION_NUM_RECTS(prgn)))
-        if(pPriv->preRefresh)
-            (*pPriv->preRefresh)(pPriv->pScrn, num, REGION_RECTS(prgn));
-
-    pScreen->BackingStoreFuncs.RestoreAreas = pPriv->RestoreAreas;
-    (*pScreen->BackingStoreFuncs.RestoreAreas) (
-                pPixmap, prgn, xorg, yorg, pWin);
-    pScreen->BackingStoreFuncs.RestoreAreas = ShadowRestoreAreas;
-
-    if(num && pPriv->postRefresh)
-	(*pPriv->postRefresh)(pPriv->pScrn, num, REGION_RECTS(prgn));
-}
-
-
-static void
-ShadowPaintWindow(
-  WindowPtr pWin,
-  RegionPtr prgn,
-  int what 
-){
-    ScreenPtr pScreen = pWin->drawable.pScreen;
-    ShadowScreenPtr pPriv = GET_SCREEN_PRIVATE(pScreen);
-    int num = 0;
-
-    if(pPriv->vtSema && (num = REGION_NUM_RECTS(prgn)))
-        if(pPriv->preRefresh)
-            (*pPriv->preRefresh)(pPriv->pScrn, num, REGION_RECTS(prgn));
-
-    if(what == PW_BACKGROUND) {
-	pScreen->PaintWindowBackground = pPriv->PaintWindowBackground;
-	(*pScreen->PaintWindowBackground) (pWin, prgn, what);
-	pScreen->PaintWindowBackground = ShadowPaintWindow;
-    } else {
-	pScreen->PaintWindowBorder = pPriv->PaintWindowBorder;
-	(*pScreen->PaintWindowBorder) (pWin, prgn, what);
-	pScreen->PaintWindowBorder = ShadowPaintWindow;
-    }
-
-    if(num && pPriv->postRefresh)
-        (*pPriv->postRefresh)(pPriv->pScrn, num, REGION_RECTS(prgn));    
-}
-
 
 static void 
 ShadowCopyWindow(
@@ -1115,7 +1035,7 @@ ShadowPolyRectangle(
 	    offset1 = offset2 >> 1;
 	    offset3 = offset2 - offset1;
 
-	    pBoxInit = (BoxPtr)ALLOCATE_LOCAL(nRects * 4 * sizeof(BoxRec));
+	    pBoxInit = (BoxPtr)xalloc(nRects * 4 * sizeof(BoxRec));
 	    pbox = pBoxInit;
 
 	    while(nRects--) {
@@ -1166,7 +1086,7 @@ ShadowPolyRectangle(
                 if(pPriv->preRefresh)
                     (*pPriv->preRefresh)(pPriv->pScrn, num, pBoxInit);
             } else {
-                DEALLOCATE_LOCAL(pBoxInit);
+                xfree(pBoxInit);
             }                
 	}
     }
@@ -1178,7 +1098,7 @@ ShadowPolyRectangle(
     } else if(num) {
        if(pPriv->postRefresh)
           (*pPriv->postRefresh)(pPriv->pScrn, num, pBoxInit);
-       DEALLOCATE_LOCAL(pBoxInit);
+       xfree(pBoxInit);
     }
     
     SHADOW_GC_OP_EPILOGUE(pGC);

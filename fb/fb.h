@@ -1262,23 +1262,6 @@ fbBltPlane (FbBits	    *src,
 	    Pixel	    planeMask);
 
 /*
- * fbbstore.c
- */
-void
-fbSaveAreas(PixmapPtr	pPixmap,
-	    RegionPtr	prgnSave,
-	    int		xorg,
-	    int		yorg,
-	    WindowPtr	pWin);
-
-void
-fbRestoreAreas(PixmapPtr    pPixmap,
-	       RegionPtr    prgnRestore,
-	       int	    xorg,
-	       int	    yorg,
-	       WindowPtr    pWin);
-
-/*
  * fbcmap.c
  */
 int
@@ -1641,7 +1624,8 @@ PixmapPtr
 fbCreatePixmapBpp (ScreenPtr pScreen, int width, int height, int depth, int bpp);
 
 PixmapPtr
-fbCreatePixmap (ScreenPtr pScreen, int width, int height, int depth);
+fbCreatePixmap (ScreenPtr pScreen, int width, int height, int depth,
+		unsigned usage_hint);
 
 Bool
 fbDestroyPixmap (PixmapPtr pPixmap);
@@ -2110,10 +2094,6 @@ void
 fbFillRegionTiled (DrawablePtr	pDrawable,
 		   RegionPtr	pRegion,
 		   PixmapPtr	pTile);
-
-void
-fbPaintWindow(WindowPtr pWin, RegionPtr pRegion, int what);
-
 
 pixman_image_t *image_from_pict (PicturePtr pict,
 				 Bool       has_clip);

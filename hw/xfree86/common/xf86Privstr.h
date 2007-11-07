@@ -60,6 +60,12 @@ typedef enum {
     SKAlways
 } SpecialKeysInDDX;
 
+typedef enum {
+    XF86_GlxVisualsMinimal,
+    XF86_GlxVisualsTypical,
+    XF86_GlxVisualsAll,
+} XF86_GlxVisuals;
+
 /*
  * xf86InfoRec contains global parameters which the video drivers never
  * need to access.  Global parameters which the video drivers do need
@@ -109,7 +115,7 @@ typedef struct {
     PciProbeType	pciFlags;
     Pix24Flags		pixmap24;
     MessageType		pix24From;
-#if defined(i386) || defined(__i386__)
+#ifdef __i386__
     Bool		pc98;
 #endif
     Bool		pmFlag;
@@ -120,6 +126,9 @@ typedef struct {
     MessageType		randRFrom;
     Bool		aiglx;
     MessageType		aiglxFrom;
+    XF86_GlxVisuals	glxVisuals;
+    MessageType		glxVisualsFrom;
+    
     Bool		useDefaultFontPath;
     MessageType		useDefaultFontPathFrom;
     Bool        ignoreABI;

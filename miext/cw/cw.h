@@ -84,8 +84,6 @@ typedef struct {
     GetSpansProcPtr		GetSpans;
     CreateGCProcPtr		CreateGC;
 
-    PaintWindowBackgroundProcPtr PaintWindowBackground;
-    PaintWindowBorderProcPtr	PaintWindowBorder;
     CopyWindowProcPtr		CopyWindow;
 
     GetWindowPixmapProcPtr	GetWindowPixmap;
@@ -100,7 +98,6 @@ typedef struct {
     ValidatePictureProcPtr	ValidatePicture;
 
     CompositeProcPtr		Composite;
-    GlyphsProcPtr		Glyphs;
     CompositeRectsProcPtr	CompositeRects;
 
     TrapezoidsProcPtr		Trapezoids;

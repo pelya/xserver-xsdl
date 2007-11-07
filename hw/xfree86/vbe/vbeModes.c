@@ -152,34 +152,6 @@ CheckMode(ScrnInfoPtr pScrn, vbeInfoPtr pVbe, VbeInfoBlock *vbe, int id,
 	xf86ErrorFVerb(DEBUG_VERB, "*");
     }
 
-    /*
-     * Check if there's a valid monitor mode that this one can be matched
-     * up with.  The actual matching is done later.
-     */
-    if (modeOK) {
-	Bool sizeMatch = FALSE;
-	modeOK = FALSE;
-	for (p = pScrn->monitor->Modes; p != NULL; p = p->next) {
-	    if ((p->HDisplay != mode->XResolution) ||
-		(p->VDisplay != mode->YResolution) ||
-		(p->Flags & (V_INTERLACE | V_DBLSCAN | V_CLKDIV2)))
-		continue;
-	    sizeMatch = TRUE;
-	    /* XXX could support the various V_ flags */
-	    status = xf86CheckModeForMonitor(p, pScrn->monitor);
-	    if (status == MODE_OK) {
-		modeOK = TRUE;
-		break;
-	    }
-	}
-	if (sizeMatch && !modeOK) {
-	    xf86DrvMsg(pScrn->scrnIndex, X_INFO,
-		       "Not using built-in mode \"%dx%d\" (%s)\n",
-		        mode->XResolution, mode->YResolution,
-		        xf86ModeStatusToString(status));
-	}
-    }
-
     xf86ErrorFVerb(DEBUG_VERB,
 	    "Mode: %x (%dx%d)\n", id, mode->XResolution, mode->YResolution);
     xf86ErrorFVerb(DEBUG_VERB,

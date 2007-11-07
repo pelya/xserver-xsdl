@@ -155,8 +155,8 @@ miZeroLine(pDraw, pGC, mode, npt, pptInit)
     width = xright - xleft + 1;
     height = ybottom - ytop + 1;
     list_len = (height >= width) ? height : width;
-    pspanInit = (DDXPointPtr)ALLOCATE_LOCAL(list_len * sizeof(DDXPointRec));
-    pwidthInit = (int *)ALLOCATE_LOCAL(list_len * sizeof(int));
+    pspanInit = (DDXPointPtr)xalloc(list_len * sizeof(DDXPointRec));
+    pwidthInit = (int *)xalloc(list_len * sizeof(int));
     if (!pspanInit || !pwidthInit)
 	return;
 
@@ -359,8 +359,8 @@ miZeroLine(pDraw, pGC, mode, npt, pptInit)
 	(*pGC->ops->FillSpans)(pDraw, pGC, Nspans, pspanInit,
 			       pwidthInit, FALSE);
 
-    DEALLOCATE_LOCAL(pwidthInit);
-    DEALLOCATE_LOCAL(pspanInit);
+    xfree(pwidthInit);
+    xfree(pspanInit);
 }
 
 _X_EXPORT void

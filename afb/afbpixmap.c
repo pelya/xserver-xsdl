@@ -70,11 +70,12 @@ SOFTWARE.
 #include "mfb.h"
 
 PixmapPtr
-afbCreatePixmap(pScreen, width, height, depth)
+afbCreatePixmap(pScreen, width, height, depth, usage_hint)
 	ScreenPtr		pScreen;
 	int				width;
 	int				height;
 	int				depth;
+	unsigned			usage_hint;
 {
 	PixmapPtr pPixmap;
 	size_t datasize;
@@ -127,8 +128,10 @@ afbCopyPixmap(PixmapPtr pSrc)
 
 	size = pSrc->drawable.height * pSrc->devKind * pSrc->drawable.depth;
 	pScreen = pSrc->drawable.pScreen;
-	pDst = (*pScreen->CreatePixmap)(pScreen, pSrc->drawable.width,
-											  pSrc->drawable.height, pSrc->drawable.depth);
+	pDst = (*pScreen->CreatePixmap)(pScreen,
+					pSrc->drawable.width,
+					pSrc->drawable.height,
+					pSrc->drawable.depth, 0);
 	if (!pDst)
 		return(NullPixmap);
 	memmove((char *)pDst->devPrivate.ptr, (char *)pSrc->devPrivate.ptr, size);
@@ -248,7 +251,7 @@ afbYRotatePixmap(pPix, rh)
 	nbyDown = rh * pPix->devKind;
 	nbyUp = (pPix->devKind * height) - nbyDown;
 
-	if(!(ptmp = (char *)ALLOCATE_LOCAL(nbyUp)))
+	if(!(ptmp = (char *)xalloc(nbyUp)))
 		return;
 
 	for (d = 0; d < pPix->drawable.depth; d++) {
@@ -258,7 +261,7 @@ afbYRotatePixmap(pPix, rh)
 		memmove(pbase, pbase+nbyUp, nbyDown);		/* slide the top rows down */
 		memmove(pbase+nbyDown, ptmp, nbyUp);		/* move lower rows up to row rh */
 	}
-	DEALLOCATE_LOCAL(ptmp);
+	xfree(ptmp);
 }
 
 void

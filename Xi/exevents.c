@@ -74,6 +74,10 @@ SOFTWARE.
 #include "dixgrabs.h"	/* CreateGrab() */
 #include "scrnintstr.h"
 
+#ifdef XKB
+#include "xkbsrv.h"
+#endif
+
 #define WID(w) ((w) ? ((w)->drawable.id) : 0)
 #define AllModifiersMask ( \
 	ShiftMask | LockMask | ControlMask | Mod1Mask | Mod2Mask | \
@@ -1005,7 +1009,7 @@ SetModifierMapping(ClientPtr client, DeviceIntPtr dev, int len, int rlen,
 }
 
 void
-SendDeviceMappingNotify(CARD8 request,
+SendDeviceMappingNotify(ClientPtr client, CARD8 request,
 			KeyCode firstKeyCode, CARD8 count, DeviceIntPtr dev)
 {
     xEvent event;
@@ -1019,6 +1023,11 @@ SendDeviceMappingNotify(CARD8 request,
 	ev->firstKeyCode = firstKeyCode;
 	ev->count = count;
     }
+
+#ifdef XKB
+    if (request == MappingKeyboard || request == MappingModifier)
+        XkbApplyMappingChange(dev, request, firstKeyCode, count, client);
+#endif
 
     SendEventToAllWindows(dev, DeviceMappingNotifyMask, (xEvent *) ev, 1);
 }
@@ -1055,7 +1064,7 @@ ChangeKeyMapping(ClientPtr client,
     keysyms.map = map;
     if (!SetKeySymsMap(&k->curKeySyms, &keysyms))
 	return BadAlloc;
-    SendDeviceMappingNotify(MappingKeyboard, firstKeyCode, keyCodes, dev);
+    SendDeviceMappingNotify(client, MappingKeyboard, firstKeyCode, keyCodes, dev);
     return client->noClientException;
 }
 

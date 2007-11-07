@@ -291,9 +291,9 @@ create_bits_picture (PicturePtr pict,
     pixman_image_t *image;
     
     fbGetDrawable (pict->pDrawable, bits, stride, bpp, xoff, yoff);
-    
-    bits += yoff * stride + xoff;
-    
+
+    bits = (CARD8*)bits + yoff * stride * sizeof(FbBits) + xoff * (bpp / 8);
+
     image = pixman_image_create_bits (
 	pict->format,
 	pict->pDrawable->width, pict->pDrawable->height,
@@ -397,6 +397,7 @@ set_image_properties (pixman_image_t *image, PicturePtr pict)
     }
     
     pixman_image_set_filter (image, filter, (pixman_fixed_t *)pict->filter_params, pict->filter_nparams);
+    pixman_image_set_source_clipping (image, TRUE);
 }
 
 pixman_image_t *

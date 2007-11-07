@@ -273,7 +273,8 @@ miDCRealize (
 	pPriv->sourceBits = 0;
 	pPriv->maskBits = 0;
 	pPixmap = (*pScreen->CreatePixmap) (pScreen, pCursor->bits->width,
-					    pCursor->bits->height, 32);
+					    pCursor->bits->height, 32,
+					    CREATE_PIXMAP_USAGE_SCRATCH);
 	if (!pPixmap)
 	{
 	    xfree ((pointer) pPriv);
@@ -305,13 +306,13 @@ miDCRealize (
     }
     pPriv->pPicture = 0;
 #endif
-    pPriv->sourceBits = (*pScreen->CreatePixmap) (pScreen, pCursor->bits->width, pCursor->bits->height, 1);
+    pPriv->sourceBits = (*pScreen->CreatePixmap) (pScreen, pCursor->bits->width, pCursor->bits->height, 1, 0);
     if (!pPriv->sourceBits)
     {
 	xfree ((pointer) pPriv);
 	return (miDCCursorPtr)NULL;
     }
-    pPriv->maskBits =  (*pScreen->CreatePixmap) (pScreen, pCursor->bits->width, pCursor->bits->height, 1);
+    pPriv->maskBits =  (*pScreen->CreatePixmap) (pScreen, pCursor->bits->width, pCursor->bits->height, 1, 0);
     if (!pPriv->maskBits)
     {
 	(*pScreen->DestroyPixmap) (pPriv->sourceBits);
@@ -454,8 +455,6 @@ miDCMakeGC(
     gcvals[1] = FALSE;
     pGC = CreateGC((DrawablePtr)pWin,
 		   GCSubwindowMode|GCGraphicsExposures, gcvals, &status);
-    if (pGC && pWin->drawable.pScreen->DrawGuarantee)
-	(*pWin->drawable.pScreen->DrawGuarantee) (pWin, pGC, GuaranteeVisBack);
     *ppGC = pGC;
     return pGC;
 }
@@ -568,7 +567,7 @@ miDCSaveUnderCursor (pDev, pScreen, x, y, w, h)
 	if (pSave)
 	    (*pScreen->DestroyPixmap) (pSave);
 	pBuffer->pSave = pSave =
-		(*pScreen->CreatePixmap) (pScreen, w, h, pScreen->rootDepth);
+		(*pScreen->CreatePixmap) (pScreen, w, h, pScreen->rootDepth, 0);
 	if (!pSave)
 	    return FALSE;
     }
@@ -814,7 +813,7 @@ miDCMoveCursor (pDev, pScreen, pCursor, x, y, w, h, dx, dy, source, mask)
 	}
 #endif
 	pBuffer->pTemp = pTemp = (*pScreen->CreatePixmap)
-	    (pScreen, w, h, pBuffer->pSave->drawable.depth);
+	    (pScreen, w, h, pBuffer->pSave->drawable.depth, 0);
 	if (!pTemp)
 	    return FALSE;
     }

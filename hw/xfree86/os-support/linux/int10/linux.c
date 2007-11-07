@@ -89,7 +89,6 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     memType cs;
     legacyVGARec vga;
     Bool videoBiosMapped = FALSE;
-    pciVideoPtr pvp;
     
     if (int10Generation != serverGeneration) {
 	counter = 0;
@@ -151,8 +150,8 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
     pInt = (xf86Int10InfoPtr)xnfcalloc(1, sizeof(xf86Int10InfoRec));
     pInt->scrnIndex = screen;
     pInt->entityIndex = entityIndex;
-    pvp = xf86GetPciInfoForEntity(entityIndex);
-    if (pvp) pInt->Tag = pciTag(pvp->bus, pvp->device, pvp->func);
+    pInt->dev = xf86GetPciInfoForEntity(entityIndex);
+
     if (!xf86Int10ExecSetup(pInt))
 	goto error0;
     pInt->mem = &linuxMem;
@@ -275,12 +274,17 @@ xf86ExtendedInitInt10(int entityIndex, int Flags)
 
 	switch (location_type) {
 	case BUS_PCI: {
-	    const int pci_entity = pInt->entityIndex;
-	    
-	    if (!mapPciRom(pci_entity, (unsigned char *)(V_BIOS))) {
-	        xf86DrvMsg(screen, X_ERROR, "Cannot read V_BIOS\n");
+	    int err;
+	    struct pci_device *rom_device =
+		xf86GetPciInfoForEntity(pInt->entityIndex);
+
+	    err = pci_device_read_rom(rom_device, (unsigned char *)(V_BIOS));
+	    if (err) {
+		xf86DrvMsg(screen,X_ERROR,"Cannot read V_BIOS (%s)\n",
+			   strerror(err));
 		goto error3;
 	    }
+
 	    pInt->BIOSseg = V_BIOS >> 4;
 	    break;
 	}

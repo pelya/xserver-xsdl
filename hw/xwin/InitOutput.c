@@ -600,24 +600,6 @@ winFixupPaths (void)
         winMsg (font_from, "FontPath set to \"%s\"\n", defaultFontPath);
 
 #ifdef RELOCATE_PROJECTROOT
-    if (1) {
-      const char *libx11dir = "/usr/X11R6/lib/X11";
-      size_t libx11dir_len = strlen(libx11dir);
-
-      if (strncmp(libx11dir, rgbPath, libx11dir_len) == 0)
-      {
-          size_t newsize = strlen(rgbPath) - libx11dir_len + basedirlen;
-          char *compose = malloc(newsize + 1);  
-          strcpy(compose, basedir);
-          strcat(compose, rgbPath + libx11dir_len);
-          compose[newsize] = 0;
-          rgbPath = xstrdup (compose);
-          free (compose);
-
-          winMsg (X_DEFAULT, "RgbPath set to \"%s\"\n", rgbPath);
-      }
-    }
-
     if (getenv("XKEYSYMDB") == NULL)
     {
         char buffer[MAX_PATH];

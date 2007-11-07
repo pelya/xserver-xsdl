@@ -23,8 +23,7 @@ PM2_LIBS =					\
 
 Xpm2_LDADD = \
 	$(PM2_LIBS)				\
-	@KDRIVE_LIBS@                          \
-	@XSERVER_LIBS@			
+	@KDRIVE_LIBS@
 
 Xpm2_DEPENDENCIES =	\
 	libpm2.a 				\

@@ -29,10 +29,7 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
-
-#if HAVE_XORG_CONFIG_H
-#include <xorg-config.h>
-#endif
+#include <dix-config.h>
 
 #include "darwin.h"
 #include "darwinKeyboard.h"

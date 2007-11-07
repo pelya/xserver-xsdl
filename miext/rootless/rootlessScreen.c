@@ -84,7 +84,7 @@ RootlessUpdateScreenPixmap(ScreenPtr pScreen)
 
     pPix = (*pScreen->GetScreenPixmap)(pScreen);
     if (pPix == NULL) {
-        pPix = (*pScreen->CreatePixmap)(pScreen, 0, 0, pScreen->rootDepth);
+        pPix = (*pScreen->CreatePixmap)(pScreen, 0, 0, pScreen->rootDepth, 0);
         (*pScreen->SetScreenPixmap)(pPix);
     }
 
@@ -598,8 +598,6 @@ RootlessWrap(ScreenPtr pScreen)
     WRAP(CreateScreenResources);
     WRAP(CloseScreen);
     WRAP(CreateGC);
-    WRAP(PaintWindowBackground);
-    WRAP(PaintWindowBorder);
     WRAP(CopyWindow);
     WRAP(GetImage);
     WRAP(SourceValidate);
@@ -633,7 +631,6 @@ RootlessWrap(ScreenPtr pScreen)
 #endif
 
     // WRAP(ClearToBackground); fixme put this back? useful for shaped wins?
-    // WRAP(RestoreAreas); fixme put this back?
 
 #undef WRAP
 }

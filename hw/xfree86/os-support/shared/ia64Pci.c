@@ -55,7 +55,7 @@
  * space of a given PCI domain; reads and writes are used to do port I/O.
  * The file descriptor for the file is stored in the upper bits of the
  * value passed in by the caller, and is created and populated by
- * xf86MapDomainIO.
+ * xf86MapLegacyIO.
  *
  * If the legacy_io interface doesn't exist, we fall back to the glibc in/out
  * routines, which are prefixed by an underscore (e.g. _outb).

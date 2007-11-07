@@ -85,6 +85,30 @@ GetMotionHistorySize(void)
     return MOTION_HISTORY_SIZE;
 }
 
+static void
+set_key_down(DeviceIntPtr pDev, int key_code)
+{
+    pDev->key->postdown[key_code >> 3] |= (1 << (key_code & 7));
+}
+
+static void
+set_key_up(DeviceIntPtr pDev, int key_code)
+{
+    pDev->key->postdown[key_code >> 3] &= ~(1 << (key_code & 7));
+}
+
+static Bool
+key_is_down(DeviceIntPtr pDev, int key_code)
+{
+    return !!(pDev->key->postdown[key_code >> 3] & (1 << (key_code & 7)));
+}
+
+static Bool
+key_autorepeats(DeviceIntPtr pDev, int key_code)
+{
+    return !!(pDev->kbdfeed->ctrl.autoRepeats[key_code >> 3] &
+              (1 << (key_code & 7)));
+}
 
 /**
  * Allocate the motion history buffer.
@@ -256,7 +280,7 @@ acceleratePointer(DeviceIntPtr pDev, int first_valuator, int num_valuators,
             }
         }
         else {
-            mult = pow((float)(dx * dx + dy * dy),
+	    mult = pow((float)dx * (float)dx + (float)dy * (float)dy,
                        ((float)(pDev->ptrfeed->ctrl.num) /
                         (float)(pDev->ptrfeed->ctrl.den) - 1.0) /
                        2.0) / 2.0;
@@ -395,6 +419,7 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     if (!events)
         return 0;
 
+    /* DO NOT WANT */
     if (type != KeyPress && type != KeyRelease)
         return 0;
 
@@ -403,6 +428,9 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
         return 0;
 
     numEvents = 1;
+
+    if (key_code < 8 || key_code > 255)
+        return 0;
 
     if (num_valuators) {
         if ((num_valuators / 6) + 1 > MAX_VALUATOR_EVENTS)
@@ -421,21 +449,20 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
             case XK_Shift_Lock:
                 if (type == KeyRelease)
                     return 0;
-                else if (type == KeyPress &&
-                         (pDev->key->down[key_code >> 3] & (key_code & 7)) & 1)
-                        type = KeyRelease;
+                else if (type == KeyPress && key_is_down(pDev, key_code))
+                    type = KeyRelease;
         }
     }
 
     /* Handle core repeating, via press/release/press/release.
      * FIXME: In theory, if you're repeating with two keyboards in non-XKB,
      *        you could get unbalanced events here. */
-    if (type == KeyPress &&
-        (((pDev->key->down[key_code >> 3] & (key_code & 7))) & 1)) {
+    if (type == KeyPress && key_is_down(pDev, key_code)) {
+        /* If autorepeating is disabled either globally or just for that key,
+         * or we have a modifier, don't generate a repeat event. */
         if (!pDev->kbdfeed->ctrl.autoRepeat ||
-            pDev->key->modifierMap[key_code] ||
-            !(pDev->kbdfeed->ctrl.autoRepeats[key_code >> 3]
-                & (1 << (key_code & 7))))
+            !key_autorepeats(pDev, key_code) ||
+            pDev->key->modifierMap[key_code])
             return 0;
 
 #ifdef XKB
@@ -456,10 +483,14 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     kbp->time = ms;
     kbp->deviceid = pDev->id;
     kbp->detail = key_code;
-    if (type == KeyPress)
+    if (type == KeyPress) {
         kbp->type = DeviceKeyPress;
-    else if (type == KeyRelease)
+	set_key_down(pDev, key_code);
+    }
+    else if (type == KeyRelease) {
         kbp->type = DeviceKeyRelease;
+	set_key_up(pDev, key_code);
+    }
 
     events++;
     if (num_valuators) {
