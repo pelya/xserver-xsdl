@@ -123,9 +123,6 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #ifdef XKB
 #include <xkbsrv.h>
 #endif
-#ifdef XCSECURITY
-#include "securitysrv.h"
-#endif
 
 #ifdef RENDER
 #include "picture.h"
@@ -621,9 +618,6 @@ void UseMsg(void)
     ErrorF("-render [default|mono|gray|color] set render color alloc policy\n");
 #endif
     ErrorF("-s #                   screen-saver timeout (minutes)\n");
-#ifdef XCSECURITY
-    ErrorF("-sp file               security policy file\n");
-#endif
 #ifdef XPRINT
     PrinterUseMsg();
 #endif
@@ -1036,12 +1030,6 @@ ProcessCommandLine(int argc, char *argv[])
 #endif
 #ifdef XPRINT
 	else if ((skip = PrinterOptions(argc, argv, i)) != i)
-	{
-	    i = skip - 1;
-	}
-#endif
-#ifdef XCSECURITY
-	else if ((skip = XSecurityOptions(argc, argv, i)) != i)
 	{
 	    i = skip - 1;
 	}
