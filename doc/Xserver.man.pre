@@ -407,15 +407,6 @@ elapse between autorepeat-generated keystrokes).
 .TP 8
 .B \-xkbmap \fIfilename\fP
 loads keyboard description in \fIfilename\fP on server startup.
-.SH SECURITY EXTENSION OPTIONS
-X servers that support the SECURITY extension accept the following option:
-.TP 8
-.B \-sp \fIfilename\fP
-causes the server to attempt to read and interpret filename as a security
-policy file with the format described below.  The file is read at server
-startup and reread at each server reset.
-The syntax of the security policy file is described in 
-\fISecurityPolicy\fP(__filemansuffix__).
 .SH "NETWORK CONNECTIONS"
 The X server supports client connections via a platform-dependent subset of
 the following transport types: TCP\/IP, Unix Domain sockets, DECnet,
@@ -580,9 +571,6 @@ Error log file for display number \fBn\fP if run from \fIinit\fP(__adminmansuffi
 .TP 30
 .I __projectroot__/lib/X11/xdm/xdm-errors
 Default error log file if the server is run from \fIxdm\fP(1)
-.TP 30
-.I __projectroot__/lib/xserver/SecurityPolicy
-Default X server security policy
 .SH "SEE ALSO"
 General information: \fIX\fP(__miscmansuffix__)
 .PP
@@ -597,7 +585,6 @@ Fonts: \fIbdftopcf\fP(1), \fImkfontdir\fP(1), \fImkfontscale\fP(1),
 .PP
 Security: \fIXsecurity\fP(__miscmansuffix__), \fIxauth\fP(1), \fIXau\fP(1), 
 \fIxdm\fP(1), \fIxhost\fP(1), \fIxfwp\fP(1),
-\fISecurityPolicy\fP(__filemansuffix__),
 .I "Security Extension Specification"
 .PP
 Starting the server: \fIxdm\fP(1), \fIxinit\fP(1)

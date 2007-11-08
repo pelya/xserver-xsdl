@@ -33,9 +33,6 @@ MODULE_SRCS =			\
 	sync.c			\
 	xcmisc.c
 
-# Extra configuration files ship with some extensions
-SERVERCONFIG_DATA =
-
 # Optional sources included if extension enabled by configure.ac rules
 
 # MIT Shared Memory extension
@@ -86,9 +83,6 @@ endif
 XCSECURITY_SRCS = security.c securitysrv.h
 if XCSECURITY   
 BUILTIN_SRCS += $(XCSECURITY_SRCS)
-
-SERVERCONFIG_DATA += SecurityPolicy
-AM_CFLAGS += -DDEFAULTPOLICYFILE=\"$(SERVERCONFIGdir)/SecurityPolicy\"
 endif
 
 XCALIBRATE_SRCS = xcalibrate.c
@@ -166,7 +160,6 @@ libXextmodule_la_SOURCES =	$(MODULE_SRCS)
 endif
 
 EXTRA_DIST = \
-	$(SERVERCONFIG_DATA) \
 	$(MITSHM_SRCS) \
 	$(XV_SRCS) \
 	$(RES_SRCS) \

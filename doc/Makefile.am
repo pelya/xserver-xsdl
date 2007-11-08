@@ -5,7 +5,7 @@ filemandir = $(FILE_MAN_DIR)
 # (i.e. those handled in the os/utils.c options processing instead of in
 #  the DDX-level options processing)
 appman_PRE = Xserver.man.pre
-fileman_PRE = SecurityPolicy.man.pre
+fileman_PRE =
 
 appman_PROCESSED = $(appman_PRE:man.pre=man)
 fileman_PROCESSED = $(fileman_PRE:man.pre=man)
