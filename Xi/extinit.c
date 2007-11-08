@@ -137,9 +137,8 @@ Mask ExtExclusiveMasks[EMASKSIZE];
  * Evtype is index, mask is value at index.
  */
 static Mask xi_filters[3] = {
-    XI_PointerKeyboardPairingChangedMask,
-    XI_RandomStringMask,
-    XI_RawDeviceEventMask,  
+    XI_DeviceHierarchyChangedMask,
+    XI_RawDeviceEventMask,
 };
 
 static struct dev_type

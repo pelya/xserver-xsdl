@@ -79,9 +79,11 @@ int
 ProcXChangeDeviceHierarchy(ClientPtr client)
 {
     DeviceIntPtr ptr, keybd;
+    DeviceIntRec dummyDev;
     xAnyHierarchyChangeInfo *any;
     int required_len = sizeof(xChangeDeviceHierarchyReq);
     char n;
+    deviceHierarchyChangedEvent ev;
 
     REQUEST(xChangeDeviceHierarchyReq);
     REQUEST_AT_LEAST_SIZE(xChangeDeviceHierarchyReq);
@@ -226,6 +228,14 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
         any = (xAnyHierarchyChangeInfo*)((char*)any + any->length);
     }
 
+    ev.type = GenericEvent;
+    ev.extension = IReqCode;
+    ev.length = 0;
+    ev.evtype = XI_DeviceHierarchyChangedNotify;
+    ev.time = GetTimeInMillis();
+
+    SendEventToAllWindows(&dummyDev, XI_DeviceHierarchyChangedMask, 
+            (xEvent*)&ev, 1);
     return Success;
 }
 
