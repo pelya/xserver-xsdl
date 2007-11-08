@@ -1307,7 +1307,7 @@ AbortDDX()
   /*
    * try to restore the original video state
    */
-#ifdef HAS_USL_VTS
+#if defined(HAS_USL_VTS) && !defined(linux)
   /* Need the sleep when starting X from within another X session */
   sleep(1);
 #endif
