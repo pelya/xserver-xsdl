@@ -226,6 +226,68 @@ mieqSetHandler(int event, mieqHandler handler)
     miEventQueue.handlers[event] = handler;
 }
 
+/**
+ * Change the device id of the given event to the given device's id.
+ */
+static void
+ChangeDeviceID(DeviceIntPtr dev, xEvent* event)
+{
+    int type = event->u.u.type;
+
+    if (type == DeviceKeyPress || type == DeviceKeyRelease ||
+            type == DeviceButtonPress || type == DeviceButtonRelease ||
+            type == DeviceMotionNotify)
+        ((deviceKeyButtonPointer*)event)->deviceid = dev->id;
+    else if (type == DeviceValuator)
+        ((deviceValuator*)event)->deviceid = dev->id;
+    else if (type == GenericEvent)
+    {
+        /* FIXME: need to put something into XGE to make this saner */
+        xGenericEvent* generic = (xGenericEvent*)event;
+        if (generic->extension == IReqCode
+                && generic->evtype == XI_RawDeviceEvent)
+        {
+            rawDeviceEvent* raw = (rawDeviceEvent*)event;
+            raw->deviceid = dev->id;
+        } else
+            ErrorF("[mi] Unknown generic event, cannot change id.\n");
+    } else
+        ErrorF("[mi] Unknown event type, cannot change id.\n");
+}
+
+/**
+ * Copy the given event into master.
+ * @param mdev The master device
+ * @param original The event as it came from the EQ
+ * @param master The event after being copied
+ * @param count Number of events in original.
+ */
+static void
+CopyGetMasterEvent(DeviceIntPtr mdev, xEvent* original,
+                   xEvent** master, int count)
+{
+    if (count > 1) {
+        *master = xcalloc(count, sizeof(xEvent));
+        if (!*master)
+            FatalError("[mi] No memory left for master event.\n");
+        while(count--)
+        {
+            memcpy(&(*master)[count], &original[count], sizeof(xEvent));
+            ChangeDeviceID(mdev, &(*master)[count]);
+        }
+    } else
+    {
+        int len = sizeof(xEvent);
+        if (original->u.u.type == GenericEvent)
+            len += GEV(original)->length * 4;
+        *master = xalloc(len);
+        if (!*master)
+            FatalError("[mi] No memory left for master event.\n");
+        memcpy(*master, original, len);
+        ChangeDeviceID(mdev, *master);
+    }
+}
+
 /* Call this from ProcessInputEvents(). */
 void
 mieqProcessInputEvents(void)
@@ -233,7 +295,7 @@ mieqProcessInputEvents(void)
     EventRec *e = NULL;
     int x = 0, y = 0;
     xEvent* event,
-            *master_event;
+            *master_event = NULL;
 
     while (miEventQueue.head != miEventQueue.tail) {
         if (screenIsSaved == SCREEN_SAVER_ON)
@@ -284,39 +346,32 @@ mieqProcessInputEvents(void)
              * copy. Eventually the interface for the processInputProc needs
              * to be changed. (whot)
              */ 
-
-            /* The event is changed during event processing, so we need to
-             * memcpy the event we have and pass the copy through for master
-             */
             if (e->nevents > 1)
             {
                 int i;
                 event = xcalloc(e->nevents, sizeof(xEvent));
-                master_event = xcalloc(e->nevents, sizeof(xEvent));
-                if (!event || !master_event)
+                if (!event)
                     FatalError("[mi] No memory left for event processing.\n");
                 for (i = 0; i < e->nevents; i++)
                 {
                     memcpy(&event[i], e->events[i].event, sizeof(xEvent));
-                    memcpy(&master_event[i], e->events[i].event, sizeof(xEvent));
                 }
-            }
-            else 
-            {
-                int len = sizeof(xEvent); 
+            } else
                 event = e->events->event;
-                if (event->u.u.type == GenericEvent) 
-                        len += GEV(event)->length * 4;
-                master_event = xalloc(len);
-                if (!master_event)
-                    FatalError("[mi] No memory left for master event.\n");
-                memcpy(master_event, event, len);
+            if (!e->pDev->isMaster && e->pDev->u.master)
+            {
+                CopyGetMasterEvent(e->pDev->u.master, event,
+                                   &master_event, e->nevents);
             }
 
+            /* process slave first, then master */
             e->pDev->public.processInputProc(event, e->pDev, e->nevents);
+
             if (!e->pDev->isMaster && e->pDev->u.master)
+            {
                 e->pDev->u.master->public.processInputProc(master_event, 
                         e->pDev->u.master, e->nevents);
+            }
 
             if (e->nevents > 1)
                 xfree(event);
@@ -331,3 +386,4 @@ mieqProcessInputEvents(void)
         }
     }
 }
+
