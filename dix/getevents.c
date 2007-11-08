@@ -736,8 +736,11 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
     pDev->valuator->lastx = x;
     pDev->valuator->lasty = y;
-    master->valuator->lastx = x;
-    master->valuator->lasty = y;
+    if (master)
+    {
+        master->valuator->lastx = x;
+        master->valuator->lasty = y;
+    }
 
     if (!coreOnly)
     {

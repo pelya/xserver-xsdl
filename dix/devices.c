@@ -2265,11 +2265,8 @@ GetPairedDevice(DeviceIntPtr dev)
         dev = dev->u.master;
 
     if (!dev->spriteInfo->paired)
-    {
-        ErrorF("[dix] No device paired with %d (%s).\n", 
-                dev->id, dev->name);
         return NULL;
-    }
+
     return dev->spriteInfo->paired;
 }
 

@@ -529,7 +529,7 @@ miPointerCurrentScreen ()
 _X_EXPORT ScreenPtr
 miPointerGetScreen(DeviceIntPtr pDev)
 {
-    if (!pDev->isMaster && !pDev->u.master)
+    if (!pDev || (!pDev->isMaster && !pDev->u.master))
         return NULL;
 
     return MIPOINTER(pDev)->pScreen;
