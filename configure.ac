@@ -1861,7 +1861,6 @@ if test "$KDRIVE" = yes; then
     if test x$XEPHYR_DRI = xyes ; then
         AC_DEFINE(XEPHYR_DRI,1,[enable DRI extension in xephyr])
     fi
-    AM_CONDITIONAL(XEPHYR_HAS_DRI, [test x$XEPHYR_DRI = xyes])
 
     # Xephyr needs nanosleep() which is in librt on Solaris
     AC_CHECK_FUNC([nanosleep], [],
@@ -1919,6 +1918,7 @@ AM_CONDITIONAL(KDRIVEFBDEV, [test "x$XFBDEV" = xyes])
 AM_CONDITIONAL(XSDLSERVER, [test x"$XSDL" = xyes])
 AM_CONDITIONAL(XEPHYR, [test "x$KDRIVE" = xyes && test "x$XEPHYR" = xyes])
 AM_CONDITIONAL(BUILD_KDRIVEFBDEVLIB, [test "x$KDRIVE" = xyes && test "x$KDRIVEFBDEVLIB" = xyes])
+AM_CONDITIONAL(XEPHYR_HAS_DRI, [test x$XEPHYR_DRI = xyes])
 AM_CONDITIONAL(XFAKESERVER, [test "x$KDRIVE" = xyes && test "x$XFAKE" = xyes])
 
 dnl these only go in xkb-config.h (which is shared by the Xorg and Xnest servers)
