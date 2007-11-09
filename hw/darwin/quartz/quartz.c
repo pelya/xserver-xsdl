@@ -189,6 +189,7 @@ void DarwinModeInitInput(
     int argc,
     char **argv )
 {
+    X11ApplicationSetCanQuit(1);
     X11ApplicationServerReady();
     // Do final display mode specific initialization before handling events
     if (quartzProcs->InitInput)
