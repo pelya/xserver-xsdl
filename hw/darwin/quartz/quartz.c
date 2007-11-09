@@ -54,6 +54,8 @@
 #include <fcntl.h>
 #include <IOKit/pwr_mgt/IOPMLib.h>
 
+#define FAKE_RANDR 1
+
 // Shared global variables for Quartz modes
 int                     quartzEventWriteFD = -1;
 int                     quartzStartClients = 1;
@@ -68,6 +70,30 @@ int                     aquaMenuBarHeight = 0;
 int                     noPseudoramiXExtension = FALSE;
 QuartzModeProcsPtr      quartzProcs = NULL;
 const char             *quartzOpenGLBundle = NULL;
+
+#if defined(RANDR) && !defined(FAKE_RANDR)
+Bool DarwinModeRandRGetInfo (ScreenPtr pScreen, Rotation *rotations) {
+  return FALSE;
+}
+
+Bool DarwinModeRandRSetConfig (ScreenPtr           pScreen,
+			       Rotation            randr,
+			       int                 rate,
+			       RRScreenSizePtr     pSize) {
+  return FALSE;
+}
+
+Bool DarwinModeRandRInit (ScreenPtr pScreen) {
+  rrScrPrivPtr    pScrPriv;
+    
+  if (!RRScreenInit (pScreen)) return FALSE;
+
+  pScrPriv = rrGetScrPriv(pScreen);
+  pScrPriv->rrGetInfo = DarwinModeRandRGetInfo;
+  pScrPriv->rrSetConfig = DarwinModeRandRSetConfig;
+  return TRUE;
+}
+#endif
 
 /*
 ===========================================================================
@@ -170,6 +196,51 @@ void DarwinModeInitInput(
 }
 
 
+#ifdef FAKE_RANDR
+extern char	*ConnectionInfo;
+
+static int padlength[4] = {0, 3, 2, 1};
+
+static void
+RREditConnectionInfo (ScreenPtr pScreen)
+{
+    xConnSetup	    *connSetup;
+    char	    *vendor;
+    xPixmapFormat   *formats;
+    xWindowRoot	    *root;
+    xDepth	    *depth;
+    xVisualType	    *visual;
+    int		    screen = 0;
+    int		    d;
+
+    connSetup = (xConnSetup *) ConnectionInfo;
+    vendor = (char *) connSetup + sizeof (xConnSetup);
+    formats = (xPixmapFormat *) ((char *) vendor +
+				 connSetup->nbytesVendor +
+				 padlength[connSetup->nbytesVendor & 3]);
+    root = (xWindowRoot *) ((char *) formats +
+			    sizeof (xPixmapFormat) * screenInfo.numPixmapFormats);
+    while (screen != pScreen->myNum)
+    {
+	depth = (xDepth *) ((char *) root + 
+			    sizeof (xWindowRoot));
+	for (d = 0; d < root->nDepths; d++)
+	{
+	    visual = (xVisualType *) ((char *) depth +
+				      sizeof (xDepth));
+	    depth = (xDepth *) ((char *) visual +
+				depth->nVisuals * sizeof (xVisualType));
+	}
+	root = (xWindowRoot *) ((char *) depth);
+	screen++;
+    }
+    root->pixWidth = pScreen->width;
+    root->pixHeight = pScreen->height;
+    root->mmWidth = pScreen->mmWidth;
+    root->mmHeight = pScreen->mmHeight;
+}
+#endif
+
 /*
  * QuartzUpdateScreens
  *  Adjust for screen arrangement changes.
@@ -181,6 +252,7 @@ static void QuartzUpdateScreens(void)
     int x, y, width, height, sx, sy;
     xEvent e;
 
+    ErrorF("QuartzUpdateScreens()\n");
     if (noPseudoramiXExtension || screenInfo.numScreens != 1)
     {
         /* FIXME: if not using Xinerama, we have multiple screens, and
@@ -202,8 +274,11 @@ static void QuartzUpdateScreens(void)
     pScreen->mmHeight = pScreen->mmHeight * ((double) height / pScreen->height);
     pScreen->width = width;
     pScreen->height = height;
-
-    /* FIXME: should probably do something with RandR here. */
+    
+#ifndef FAKE_RANDR
+    if(!DarwinModeRandRInit(pScreen))
+      FatalError("Failed to init RandR extension.\n");
+#endif
 
     DarwinAdjustScreenOrigins(&screenInfo);
     quartzProcs->UpdateScreen(pScreen);
@@ -231,7 +306,9 @@ static void QuartzUpdateScreens(void)
     e.u.configureNotify.override = pRoot->overrideRedirect;
     DeliverEvents(pRoot, &e, 1, NullWindow);
 
-    /* FIXME: Should we use RREditConnectionInfo(pScreen)? */
+#ifdef FAKE_RANDR
+    RREditConnectionInfo(pScreen);
+#endif
 }
 
 
