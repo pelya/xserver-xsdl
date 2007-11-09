@@ -73,6 +73,7 @@ SOFTWARE.
 #include "dixevents.h"	/* DeliverFocusedEvent */
 #include "dixgrabs.h"	/* CreateGrab() */
 #include "scrnintstr.h"
+#include "listdev.h" /* for CopySwapXXXClass */
 
 #ifdef XKB
 #include "xkbsrv.h"
@@ -126,6 +127,62 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     BOOL sendCore = FALSE;
     xEvent core;
     int coretype = 0;
+
+    /* This event is always the first we get, before the actual events with
+     * the data. However, the way how the DDX is set up, "device" will
+     * actually be the slave device that caused the event.
+     */
+    if (GEIsType(xE, IReqCode, XI_DeviceClassesChangedNotify))
+    {
+        deviceClassesChangedEvent* dcce = (deviceClassesChangedEvent*)xE;
+        DeviceIntPtr master = device->u.master;
+        char* classbuff;
+
+        if (device->isMaster)
+            return;
+
+        if (!master) /* if device was set floating between SIGIO and now */
+            return;
+
+        dcce->deviceid     = master->id;
+        dcce->num_classes  = 0;
+
+        master->key        = device->key;
+        master->valuator   = device->valuator;
+        master->button     = device->button;
+        master->focus      = device->focus;
+        master->proximity  = device->proximity;
+        master->absolute   = device->absolute;
+        master->kbdfeed    = device->kbdfeed;
+        master->ptrfeed    = device->ptrfeed;
+        master->intfeed    = device->intfeed;
+        master->stringfeed = device->stringfeed;
+        master->bell       = device->bell;
+        master->leds       = device->leds;
+
+        /* event is already correct size, see comment in GetPointerEvents */
+        classbuff = (char*)&xE[1];
+        if (master->key) 
+        {
+            /* we don't actually swap here, swapping is done later */
+            CopySwapKeyClass(NullClient, master->key, &classbuff);
+            dcce->num_classes++;
+        }
+        if (master->button) 
+        {
+            CopySwapButtonClass(NullClient, master->button, &classbuff);
+            dcce->num_classes++;
+        }
+        if (master->valuator)
+        {
+            CopySwapValuatorClass(NullClient, master->valuator, &classbuff);
+            dcce->num_classes++;
+        }
+
+        SendEventToAllWindows(master, XI_DeviceClassesChangedMask,
+                              xE, 1);
+        return;
+    }
 
     coretype = XItoCoreType(xE->u.u.type);
     if (device->isMaster && device->coreEvents && coretype)

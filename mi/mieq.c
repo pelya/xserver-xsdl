@@ -243,12 +243,13 @@ ChangeDeviceID(DeviceIntPtr dev, xEvent* event)
     else if (type == GenericEvent)
     {
         /* FIXME: need to put something into XGE to make this saner */
-        xGenericEvent* generic = (xGenericEvent*)event;
-        if (generic->extension == IReqCode
-                && generic->evtype == XI_RawDeviceEvent)
+        if (GEIsType(event, IReqCode, XI_RawDeviceEvent))
         {
             rawDeviceEvent* raw = (rawDeviceEvent*)event;
             raw->deviceid = dev->id;
+        } else if (GEIsType(event, IReqCode, XI_DeviceClassesChangedNotify))
+        {
+            // do nothing or drink a beer. your choice.
         } else
             ErrorF("[mi] Unknown generic event, cannot change id.\n");
     } else

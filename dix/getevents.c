@@ -67,6 +67,7 @@ extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
 #include "exevents.h"
 #include "exglobals.h"
 #include "extnsionst.h"
+#include "listdev.h" /* for sizing up DeviceClassesChangedEvent */
 
 /* Maximum number of valuators, divided by six, rounded up, to get number
  * of events. */
@@ -108,6 +109,52 @@ key_autorepeats(DeviceIntPtr pDev, int key_code)
 {
     return !!(pDev->kbdfeed->ctrl.autoRepeats[key_code >> 3] &
               (1 << (key_code & 7)));
+}
+
+static void
+CreateClassesChangedEvent(EventList* event, 
+                          DeviceIntPtr master, 
+                          DeviceIntPtr slave)
+{
+    deviceClassesChangedEvent *dcce; 
+    int len = sizeof(xEvent);
+    CARD32 ms = GetTimeInMillis();
+
+    /* XXX: ok, this is a bit weird. We need to alloc enough size for the
+     * event so it can be filled in in POE lateron. Reason being that if
+     * we realloc the event in POE we can get SIGABRT when we try to free
+     * or realloc the original pointer. 
+     * We can only do it here as we don't have the EventList in the event
+     * processing any more.
+     *
+     * Code is basically same as in Xi/listdev.c
+     */
+    if (slave->key)
+        len += sizeof(xKeyInfo);
+    if (slave->button)
+        len += sizeof(xButtonInfo);
+    if (slave->valuator)
+    {
+        int chunks = ((int)slave->valuator->numAxes + 19) / VPC;
+        len += (chunks * sizeof(xValuatorInfo) +
+                slave->valuator->numAxes * sizeof(xAxisInfo));
+    }
+    if (event->evlen < len)
+    {
+        event->event = realloc(event->event, len);
+        if (!event->event)
+            FatalError("[dix] Cannot allocate memory for "
+                    "DeviceClassesChangedEvent.\n");
+        event->evlen = len;
+    }
+
+    dcce = (deviceClassesChangedEvent*)event->event;
+    dcce->type = GenericEvent;
+    dcce->extension = IReqCode;
+    dcce->evtype = XI_DeviceClassesChangedNotify;
+    dcce->time = ms;
+    dcce->new_slave = slave->id;
+    dcce->length = (len - sizeof(xEvent))/4;
 }
 
 /**
@@ -415,6 +462,7 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     KeySym *map = pDev->key->curKeySyms.map;
     KeySym sym = map[key_code * pDev->key->curKeySyms.mapWidth];
     deviceKeyButtonPointer *kbp = NULL;
+    DeviceIntPtr master;
 
     if (!events)
         return 0;
@@ -431,6 +479,18 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
 
     if (key_code < 8 || key_code > 255)
         return 0;
+
+    master = pDev->u.master;
+    if (master && master->u.lastSlave != pDev)
+    {
+        CreateClassesChangedEvent(events, master, pDev);
+
+        pDev->valuator->lastx = master->valuator->lastx;
+        pDev->valuator->lasty = master->valuator->lasty;
+        master->u.lastSlave = pDev;
+        numEvents++;
+        events++;
+    }
 
     if (num_valuators) {
         if ((num_valuators / 6) + 1 > MAX_VALUATOR_EVENTS)
@@ -606,37 +666,14 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     master = pDev->u.master;
     if (master && master->u.lastSlave != pDev)
     {
-#if 0
-        /* XXX: we should enqueue the state changed event here */
-        devStateEvent *state; 
-        num_events++;
-        state = events->event;
+        CreateClassesChangedEvent(events, master, pDev);
 
-        state->type = GenericEvent;
-        state->extension = IReqCode;
-        state->evtype = XI_DeviceStateChangedNotify;
-        state->deviceid = master->deviceid;
-        state->new_slave = pDev->id;
-        state->time = ms;
-        events++;
-
-#endif
-
-        /* now we need to update our device to the master's device - welcome
-         * to hell. 
-         * We need to match each device's capabilities to the previous
-         * capabilities as used by the master. Valuator[N] of master has to
-         * be written into valuator[N] of pDev. For all relative valuators.
-         * Otherwise we get jumpy valuators.
-         *
-         * However, this if iffy, if pDev->num_valuators !=
-         * master->num_valuators. What do we do with the others? 
-         * 
-         * XXX: just do lastx/y for now.
-         */
         pDev->valuator->lastx = master->valuator->lastx;
         pDev->valuator->lasty = master->valuator->lasty;
         master->u.lastSlave = pDev;
+
+        num_events++;
+        events++;
     }
 
     /* Do we need to send a DeviceValuator event? */
@@ -651,8 +688,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     /* You fail. */
     if (first_valuator < 0 || final_valuator > pDev->valuator->numAxes)
         return 0;
-
-
 
     /* fill up the raw event, after checking that it is large enough to
      * accommodate all valuators. 

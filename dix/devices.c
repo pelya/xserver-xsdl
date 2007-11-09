@@ -84,8 +84,25 @@ SOFTWARE.
  * This file handles input device-related stuff.
  */
 
+typedef struct {
+    KeyClassPtr		key;
+    ValuatorClassPtr	valuator;
+    ButtonClassPtr	button;
+    FocusClassPtr	focus;
+    ProximityClassPtr	proximity;
+    AbsoluteClassPtr    absolute;
+    KbdFeedbackPtr	kbdfeed;
+    PtrFeedbackPtr	ptrfeed;
+    IntegerFeedbackPtr	intfeed;
+    StringFeedbackPtr	stringfeed;
+    BellFeedbackPtr	bell;
+    LedFeedbackPtr	leds;
+} ClassesRec, *ClassesPtr;
+
+
 int CoreDevicePrivatesIndex = 0;
 static int CoreDevicePrivatesGeneration = -1;
+int MasterDevClassesPrivIdx = -1;
 
 /* The client that is allowed to change pointer-keyboard pairings. */
 static ClientPtr pairingClient = NULL;
@@ -385,9 +402,16 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
 #ifdef XKB
     XkbComponentNamesRec names;
 #endif
+    ClassesPtr classes;
 
     switch (what) {
     case DEVICE_INIT:
+        if (MasterDevClassesPrivIdx == -1)
+            MasterDevClassesPrivIdx = AllocateDevicePrivateIndex();
+
+        if (!AllocateDevicePrivate(pDev, MasterDevClassesPrivIdx) ||
+                !(classes = xcalloc(1, sizeof(ClassesRec))))
+
         keySyms.minKeyCode = 8;
         keySyms.maxKeyCode = 255;
         keySyms.mapWidth = 4;
@@ -425,6 +449,19 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
         xfree(keySyms.map);
         xfree(modMap);
 
+        classes->key = pDev->key;
+        classes->valuator = pDev->valuator;
+        classes->button = pDev->button;
+        classes->focus = pDev->focus;
+        classes->proximity = pDev->proximity;
+        classes->absolute = pDev->absolute;
+        classes->kbdfeed = pDev->kbdfeed;
+        classes->ptrfeed = pDev->ptrfeed;
+        classes->intfeed = pDev->intfeed;
+        classes->stringfeed = pDev->stringfeed;
+        classes->bell = pDev->bell;
+        classes->leds = pDev->leds;
+        pDev->devPrivates[MasterDevClassesPrivIdx].ptr = classes;
         break;
 
     case DEVICE_CLOSE:
@@ -439,15 +476,27 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
 
 /**
  * Device control function for the Virtual Core Pointer.
+ * 
+ * Aside from initialisation, it backs up the original device classes into the
+ * devicePrivates. This only needs to be done for master devices.
  */
 static int
 CorePointerProc(DeviceIntPtr pDev, int what)
 {
     BYTE map[33];
     int i = 0;
+    ClassesPtr classes;
+
 
     switch (what) {
     case DEVICE_INIT:
+        if (MasterDevClassesPrivIdx == -1)
+            MasterDevClassesPrivIdx = AllocateDevicePrivateIndex();
+
+        if (!AllocateDevicePrivate(pDev, MasterDevClassesPrivIdx) || 
+                !(classes = xcalloc(1, sizeof(ClassesRec))))
+            return BadAlloc;
+
         for (i = 1; i <= 32; i++)
             map[i] = i;
         InitPointerDeviceStruct((DevicePtr)pDev, map, 32,
@@ -457,6 +506,21 @@ CorePointerProc(DeviceIntPtr pDev, int what)
         pDev->valuator->lastx = pDev->valuator->axisVal[0];
         pDev->valuator->axisVal[1] = screenInfo.screens[0]->height / 2;
         pDev->valuator->lasty = pDev->valuator->axisVal[1];
+
+        classes->key = pDev->key;
+        classes->valuator = pDev->valuator;
+        classes->button = pDev->button;
+        classes->focus = pDev->focus;
+        classes->proximity = pDev->proximity;
+        classes->absolute = pDev->absolute;
+        classes->kbdfeed = pDev->kbdfeed;
+        classes->ptrfeed = pDev->ptrfeed;
+        classes->intfeed = pDev->intfeed;
+        classes->stringfeed = pDev->stringfeed;
+        classes->bell = pDev->bell;
+        classes->leds = pDev->leds;
+
+        pDev->devPrivates[MasterDevClassesPrivIdx].ptr = classes;
         break;
 
     case DEVICE_CLOSE:
@@ -574,6 +638,7 @@ CloseDevice(DeviceIntPtr dev)
     BellFeedbackPtr b, bnext;
     LedFeedbackPtr l, lnext;
     ScreenPtr screen = screenInfo.screens[0];
+    ClassesPtr classes;
     int j;
 
     if (!dev)
@@ -588,41 +653,46 @@ CloseDevice(DeviceIntPtr dev)
 
     xfree(dev->name);
 
-    if (dev->key) {
+    if (dev->isMaster)
+        classes = (ClassesPtr)dev->devPrivates[MasterDevClassesPrivIdx].ptr;
+    else 
+        classes = (ClassesPtr)&dev->key;
+
+    if (classes->key) {
 #ifdef XKB
-	if (dev->key->xkbInfo)
-	    XkbFreeInfo(dev->key->xkbInfo);
+	if (classes->key->xkbInfo)
+	    XkbFreeInfo(classes->key->xkbInfo);
 #endif
-	xfree(dev->key->curKeySyms.map);
-	xfree(dev->key->modifierKeyMap);
-	xfree(dev->key);
+	xfree(classes->key->curKeySyms.map);
+	xfree(classes->key->modifierKeyMap);
+	xfree(classes->key);
     }
 
-    if (dev->valuator) {
+    if (classes->valuator) {
         /* Counterpart to 'biggest hack ever' in init. */
-        if (dev->valuator->motion &&
-            dev->valuator->GetMotionProc == GetMotionHistory)
-            xfree(dev->valuator->motion);
-        xfree(dev->valuator);
+        if (classes->valuator->motion &&
+            classes->valuator->GetMotionProc == GetMotionHistory)
+            xfree(classes->valuator->motion);
+        xfree(classes->valuator);
     }
 
-    if (dev->button) {
+    if (classes->button) {
 #ifdef XKB
-        if (dev->button->xkb_acts)
-            xfree(dev->button->xkb_acts);
+        if (classes->button->xkb_acts)
+            xfree(classes->button->xkb_acts);
 #endif
-        xfree(dev->button);
+        xfree(classes->button);
     }
 
-    if (dev->focus) {
-	xfree(dev->focus->trace);
-	xfree(dev->focus);
+    if (classes->focus) {
+	xfree(classes->focus->trace);
+	xfree(classes->focus);
     }
 
-    if (dev->proximity)
-        xfree(dev->proximity);
+    if (classes->proximity)
+        xfree(classes->proximity);
 
-    for (k = dev->kbdfeed; k; k = knext) {
+    for (k = classes->kbdfeed; k; k = knext) {
 	knext = k->next;
 #ifdef XKB
 	if (k->xkb_sli)
@@ -631,29 +701,29 @@ CloseDevice(DeviceIntPtr dev)
 	xfree(k);
     }
 
-    for (p = dev->ptrfeed; p; p = pnext) {
+    for (p = classes->ptrfeed; p; p = pnext) {
 	pnext = p->next;
 	xfree(p);
     }
     
-    for (i = dev->intfeed; i; i = inext) {
+    for (i = classes->intfeed; i; i = inext) {
 	inext = i->next;
 	xfree(i);
     }
 
-    for (s = dev->stringfeed; s; s = snext) {
+    for (s = classes->stringfeed; s; s = snext) {
 	snext = s->next;
 	xfree(s->ctrl.symbols_supported);
 	xfree(s->ctrl.symbols_displayed);
 	xfree(s);
     }
 
-    for (b = dev->bell; b; b = bnext) {
+    for (b = classes->bell; b; b = bnext) {
 	bnext = b->next;
 	xfree(b);
     }
 
-    for (l = dev->leds; l; l = lnext) {
+    for (l = classes->leds; l; l = lnext) {
 	lnext = l->next;
 #ifdef XKB
 	if (l->xkb_sli)

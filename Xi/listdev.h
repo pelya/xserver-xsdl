@@ -30,6 +30,8 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef LISTDEV_H
 #define LISTDEV_H 1
 
+#define VPC	20	/* Max # valuators per chunk */
+
 int SProcXListInputDevices(ClientPtr	/* client */
     );
 
@@ -41,4 +43,16 @@ void SRepXListInputDevices(ClientPtr /* client */ ,
 			   xListInputDevicesReply *	/* rep */
     );
 
+void
+CopySwapKeyClass(ClientPtr /* client */, 
+                 KeyClassPtr /* k */, 
+                 char** /* buf */);
+void
+CopySwapButtonClass(ClientPtr /* client */, 
+                    ButtonClassPtr /* b */, 
+                    char** /* buf */);
+int
+CopySwapValuatorClass(ClientPtr /* client */, 
+                      ValuatorClassPtr /* v */, 
+                      char** /* buf */);
 #endif /* LISTDEV_H */

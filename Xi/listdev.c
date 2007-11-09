@@ -68,7 +68,6 @@ SOFTWARE.
 
 #include "listdev.h"
 
-#define VPC	20	/* Max # valuators per chunk */
 
 /***********************************************************************
  *
@@ -143,7 +142,7 @@ CopyDeviceName(char **namebuf, char *name)
  *
  */
 
-static void
+void
 CopySwapButtonClass(ClientPtr client, ButtonClassPtr b, char **buf)
 {
     char n;
@@ -153,7 +152,7 @@ CopySwapButtonClass(ClientPtr client, ButtonClassPtr b, char **buf)
     b2->class = ButtonClass;
     b2->length = sizeof(xButtonInfo);
     b2->num_buttons = b->numButtons;
-    if (client->swapped) {
+    if (client && client->swapped) {
 	swaps(&b2->num_buttons, n);	/* macro - braces are required */
     }
     *buf += sizeof(xButtonInfo);
@@ -202,7 +201,7 @@ CopySwapDevice(ClientPtr client, DeviceIntPtr d, int num_classes,
  *
  */
 
-static void
+void
 CopySwapKeyClass(ClientPtr client, KeyClassPtr k, char **buf)
 {
     char n;
@@ -214,7 +213,7 @@ CopySwapKeyClass(ClientPtr client, KeyClassPtr k, char **buf)
     k2->min_keycode = k->curKeySyms.minKeyCode;
     k2->max_keycode = k->curKeySyms.maxKeyCode;
     k2->num_keys = k2->max_keycode - k2->min_keycode + 1;
-    if (client->swapped) {
+    if (client && client->swapped) {
 	swaps(&k2->num_keys, n);
     }
     *buf += sizeof(xKeyInfo);
@@ -232,7 +231,7 @@ CopySwapKeyClass(ClientPtr client, KeyClassPtr k, char **buf)
  *
  */
 
-static int
+int
 CopySwapValuatorClass(ClientPtr client, ValuatorClassPtr v, char **buf)
 {
     int i, j, axes, t_axes;
@@ -252,7 +251,7 @@ CopySwapValuatorClass(ClientPtr client, ValuatorClassPtr v, char **buf)
 	v2->num_axes = t_axes;
 	v2->mode = v->mode & DeviceMode;
 	v2->motion_buffer_size = v->numMotionEvents;
-	if (client->swapped) {
+	if (client && client->swapped) {
 	    swapl(&v2->motion_buffer_size, n);
 	}
 	*buf += sizeof(xValuatorInfo);
@@ -262,7 +261,7 @@ CopySwapValuatorClass(ClientPtr client, ValuatorClassPtr v, char **buf)
 	    a2->min_value = a->min_value;
 	    a2->max_value = a->max_value;
 	    a2->resolution = a->resolution;
-	    if (client->swapped) {
+	    if (client && client->swapped) {
 		swapl(&a2->min_value, n);
 		swapl(&a2->max_value, n);
 		swapl(&a2->resolution, n);
