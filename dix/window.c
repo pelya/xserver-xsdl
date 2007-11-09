@@ -455,7 +455,12 @@ CreateRootWindow(ScreenPtr pScreen)
 #ifdef XINPUT
     pWin->optional->inputMasks = NULL;
     pWin->optional->deviceCursors = NULL;
-    pWin->optional->geMasks = NULL;
+    pWin->optional->geMasks = (GenericClientMasksPtr)xcalloc(1, sizeof(GenericClientMasksRec));
+    if (!pWin->optional->geMasks)
+    {
+        xfree(pWin->optional);
+        return FALSE;
+    }
 #endif
 
     pWin->optional->access.perm = NULL;
