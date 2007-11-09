@@ -129,6 +129,7 @@ static struct security_class_mapping map[] = {
     { "x_server", { "record", "", "", "", "getattr", "setattr", "", "", "", "", "", "", "", "", "", "", "", "grab", "", "", "", "", "", "", "", "manage", "debug", NULL }},
     { "x_extension", { "", "", "", "", "query", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "use", NULL }},
     { "x_event", { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "send", "receive", NULL }},
+    { "x_synthetic_event", { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "send", "receive", NULL }},
     { "x_resource", { "read", "write", "write", "write", "read", "write", "read", "read", "write", "read", "write", "read", "write", "write", "write", "read", "read", "write", "write", "write", "write", "write", "write", "read", "read", "write", "read", "write", NULL }},
     { NULL }
 };
@@ -501,9 +502,10 @@ static void
 SELinuxSend(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceSendAccessRec *rec = calldata;
-    SELinuxStateRec *subj, *obj;
+    SELinuxStateRec *subj, *obj, ev_sid;
     SELinuxAuditRec auditdata = { .client = rec->client };
-    int rc, i, clientIndex;
+    security_class_t class;
+    int rc, i, type, clientIndex;
 
     if (rec->dev) {
 	subj = dixLookupPrivate(&rec->dev->devPrivates, stateKey);
@@ -523,14 +525,15 @@ SELinuxSend(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
     /* Check send permission on specific event types */
     for (i = 0; i < rec->count; i++) {
-	SELinuxStateRec ev_sid;
+	type = rec->events[i].u.u.type;
+	class = (type & 128) ? SECCLASS_X_FAKEEVENT : SECCLASS_X_EVENT;
 
-	rc = SELinuxEventToSID(rec->events[i].u.u.type, obj->sid, &ev_sid);
+	rc = SELinuxEventToSID(type, obj->sid, &ev_sid);
 	if (rc != Success)
 	    goto err;
 
 	auditdata.event = rec->events[i].u.u.type;
-	rc = SELinuxDoCheck(clientIndex, subj, &ev_sid, SECCLASS_X_EVENT,
+	rc = SELinuxDoCheck(clientIndex, subj, &ev_sid, class,
 			    DixSendAccess, &auditdata);
 	if (rc != Success)
 	    goto err;
@@ -1073,7 +1076,6 @@ ProcSELinuxSetDeviceContext(ClientPtr client)
     state = dixLookupPrivate(&dev->devPrivates, stateKey);
     sidput(state->sid);
     state->sid = sid;
-    ErrorF("I really, actually did relabel a device to %s\n", ctx);
     return Success;
 }
 
@@ -1397,26 +1399,26 @@ XSELinuxExtensionInit(INITARGS)
     SELinuxLabelInitial();
 
     /* Add names to registry */
-    RegisterRequestName(X_SELinuxQueryVersion, 0,
+    RegisterRequestName(extEntry->base, X_SELinuxQueryVersion,
 			XSELINUX_EXTENSION_NAME ":SELinuxQueryVersion");
-    RegisterRequestName(X_SELinuxSetSelectionManager, 0,
+    RegisterRequestName(extEntry->base, X_SELinuxSetSelectionManager,
 			XSELINUX_EXTENSION_NAME ":SELinuxSetSelectionManager");
-    RegisterRequestName(X_SELinuxGetSelectionManager, 0,
+    RegisterRequestName(extEntry->base, X_SELinuxGetSelectionManager,
 			XSELINUX_EXTENSION_NAME ":SELinuxGetSelectionManager");
-    RegisterRequestName(X_SELinuxSetDeviceContext, 0,
+    RegisterRequestName(extEntry->base, X_SELinuxSetDeviceContext,
 			XSELINUX_EXTENSION_NAME ":SELinuxSetDeviceContext");
-    RegisterRequestName(X_SELinuxGetDeviceContext, 0,
+    RegisterRequestName(extEntry->base, X_SELinuxGetDeviceContext,
 			XSELINUX_EXTENSION_NAME ":SELinuxGetDeviceContext");
-    RegisterRequestName(X_SELinuxSetPropertyCreateContext, 0,
+    RegisterRequestName(extEntry->base, X_SELinuxSetPropertyCreateContext,
 			XSELINUX_EXTENSION_NAME ":SELinuxSetPropertyCreateContext");
-    RegisterRequestName(X_SELinuxGetPropertyCreateContext, 0,
+    RegisterRequestName(extEntry->base, X_SELinuxGetPropertyCreateContext,
 			XSELINUX_EXTENSION_NAME ":SELinuxGetPropertyCreateContext");
-    RegisterRequestName(X_SELinuxGetPropertyContext, 0,
+    RegisterRequestName(extEntry->base, X_SELinuxGetPropertyContext,
 			XSELINUX_EXTENSION_NAME ":SELinuxGetPropertyContext");
-    RegisterRequestName(X_SELinuxSetWindowCreateContext, 0,
+    RegisterRequestName(extEntry->base, X_SELinuxSetWindowCreateContext,
 			XSELINUX_EXTENSION_NAME ":SELinuxSetWindowCreateContext");
-    RegisterRequestName(X_SELinuxGetWindowCreateContext, 0,
+    RegisterRequestName(extEntry->base, X_SELinuxGetWindowCreateContext,
 			XSELINUX_EXTENSION_NAME ":SELinuxGetWindowCreateContext");
-    RegisterRequestName(X_SELinuxGetWindowContext, 0,
+    RegisterRequestName(extEntry->base, X_SELinuxGetWindowContext,
 			XSELINUX_EXTENSION_NAME ":SELinuxGetWindowContext");
 }

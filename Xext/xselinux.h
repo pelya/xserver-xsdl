@@ -187,6 +187,7 @@ typedef struct {
 #define SECCLASS_X_SERVER		11
 #define SECCLASS_X_EXTENSION		12
 #define SECCLASS_X_EVENT		13
-#define SECCLASS_X_RESOURCE		14
+#define SECCLASS_X_FAKEEVENT		14
+#define SECCLASS_X_RESOURCE		15
 
 #endif /* _XSELINUX_H */
