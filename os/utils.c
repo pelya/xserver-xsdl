@@ -933,6 +933,10 @@ ProcessCommandLine(int argc, char *argv[])
 	    else
 		UseMsg();
 	}
+	else if (strcmp(argv[i], "-pogo") == 0)
+	{
+	    dispatchException = DE_TERMINATE;
+	}
 	else if ( strcmp( argv[i], "-pn") == 0)
 	    PartialNetwork = TRUE;
 	else if ( strcmp( argv[i], "-nopn") == 0)
