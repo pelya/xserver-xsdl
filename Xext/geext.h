@@ -87,6 +87,12 @@ extern GEExtension GEExtensions[MAXEXTENSIONS];
 #define GEEventFill(ev) \
     GEExtensions[GEEXTIDX(xE)].evfill
 
+#define GEIsType(ev, ext, ev_type) \
+        ((ev->u.u.type == GenericEvent) &&  \
+         ((xGenericEvent*)(ev))->extension == ext && \
+         ((xGenericEvent*)(ev))->evtype == ev_type)
+
+
 /* Interface for other extensions */
 void GEWindowSetMask(ClientPtr pClient, WindowPtr pWin, int extension, Mask mask);
 void GERegisterExtension(
