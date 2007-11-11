@@ -231,7 +231,8 @@ xprDisplayInit(void)
     else
         darwinScreensFound =  1;
 
-    if (xp_init(XP_IN_BACKGROUND | XP_NO_DEFERRED_UPDATES) != Success)
+    if (xp_init(XP_BACKGROUND_EVENTS | XP_NO_DEFERRED_UPDATES) != Success)
+    {
         FatalError("Could not initialize the Xplugin library.");
 
     xp_select_events(XP_EVENT_DISPLAY_CHANGED
