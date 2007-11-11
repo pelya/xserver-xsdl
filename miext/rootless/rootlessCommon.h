@@ -32,6 +32,7 @@
 #include <dix-config.h>
 #endif
 
+#include <stdint.h>
 #ifndef _ROOTLESSCOMMON_H
 #define _ROOTLESSCOMMON_H
 
@@ -106,13 +107,20 @@ typedef struct _RootlessScreenRec {
     GlyphsProcPtr Glyphs;
 #endif
 
+    InstallColormapProcPtr InstallColormap;
+    UninstallColormapProcPtr UninstallColormap;
+    StoreColorsProcPtr StoreColors;
+
     void *pixmap_data;
     unsigned int pixmap_data_size;
+
+    ColormapPtr colormap;
 
     void *redisplay_timer;
     unsigned int redisplay_timer_set :1;
     unsigned int redisplay_queued :1;
     unsigned int redisplay_expired :1;
+    unsigned int colormap_changed :1;
 } RootlessScreenRec, *RootlessScreenPtr;
 
 
@@ -252,6 +260,16 @@ void RootlessRedisplay(WindowPtr pWindow);
 void RootlessRedisplayScreen(ScreenPtr pScreen);
 
 void RootlessQueueRedisplay(ScreenPtr pScreen);
+
+/* Return the colormap currently installed on the given screen. */
+ColormapPtr RootlessGetColormap (ScreenPtr pScreen);
+
+/* Convert colormap to ARGB. */
+Bool RootlessResolveColormap (ScreenPtr pScreen, int first_color,
+			      int n_colors, uint32_t *colors);
+
+void RootlessFlushWindowColormap (WindowPtr pWin);
+void RootlessFlushScreenColormaps (ScreenPtr pScreen);
 
 // Move a window to its proper location on the screen.
 void RootlessRepositionWindow(WindowPtr pWin);

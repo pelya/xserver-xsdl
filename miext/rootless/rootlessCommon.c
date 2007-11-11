@@ -37,6 +37,7 @@
 #include <limits.h> /* For CHAR_BIT */
 
 #include "rootlessCommon.h"
+#include "colormapst.h"
 
 unsigned int rootless_CopyBytes_threshold = 0;
 unsigned int rootless_FillBytes_threshold = 0;
@@ -96,6 +97,41 @@ IsFramedWindow(WindowPtr pWin)
     top = TopLevelParent(pWin);
 
     return (top && WINREC(top));
+}
+
+Bool
+RootlessResolveColormap (ScreenPtr pScreen, int first_color,
+                         int n_colors, uint32_t *colors)
+{
+  int last, i;
+  ColormapPtr map;
+
+  map = RootlessGetColormap (pScreen);
+  if (map == NULL || map->class != PseudoColor) return FALSE;
+
+  last = MIN (map->pVisual->ColormapEntries, first_color + n_colors);
+  for (i = MAX (0, first_color); i < last; i++) {
+    Entry *ent = map->red + i;
+    uint16_t red, green, blue;
+
+      if (!ent->refcnt)	continue;
+      if (ent->fShared) {
+	red = ent->co.shco.red->color;
+	green = ent->co.shco.green->color;
+	blue = ent->co.shco.blue->color;
+      } else {
+	red = ent->co.local.red;
+	green = ent->co.local.green;
+	blue = ent->co.local.blue;
+      }
+
+      colors[i - first_color] = (0xFF000000UL
+				 | ((uint32_t) red & 0xff00) << 8
+				 | (green & 0xff00)
+				 | (blue >> 8));
+    }
+
+  return TRUE;
 }
 
 

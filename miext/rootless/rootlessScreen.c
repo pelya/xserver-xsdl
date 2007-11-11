@@ -42,6 +42,7 @@
 #include "propertyst.h"
 #include "mivalidate.h"
 #include "picturestr.h"
+#include "colormapst.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -469,6 +470,67 @@ RootlessMarkOverlappedWindows(WindowPtr pWin, WindowPtr pFirst,
     return result;
 }
 
+ColormapPtr
+RootlessGetColormap (ScreenPtr pScreen)
+{
+  RootlessScreenRec *s = SCREENREC (pScreen);
+
+  return s->colormap;
+}
+
+static void
+RootlessInstallColormap (ColormapPtr pMap)
+{
+  ScreenPtr pScreen = pMap->pScreen;
+  RootlessScreenRec *s = SCREENREC (pScreen);
+
+  SCREEN_UNWRAP(pScreen, InstallColormap);
+
+  if (s->colormap != pMap) {
+    s->colormap = pMap;
+    s->colormap_changed = TRUE;
+    RootlessQueueRedisplay (pScreen);
+  }
+
+  pScreen->InstallColormap (pMap);
+
+  SCREEN_WRAP (pScreen, InstallColormap);
+}
+
+static void
+RootlessUninstallColormap (ColormapPtr pMap)
+{
+  ScreenPtr pScreen = pMap->pScreen;
+  RootlessScreenRec *s = SCREENREC (pScreen);
+
+  SCREEN_UNWRAP(pScreen, UninstallColormap);
+
+  if (s->colormap == pMap)
+    s->colormap = NULL;
+
+  pScreen->UninstallColormap (pMap);
+
+  SCREEN_WRAP(pScreen, UninstallColormap);
+}
+
+static void
+RootlessStoreColors (ColormapPtr pMap, int ndef, xColorItem *pdef)
+{
+  ScreenPtr pScreen = pMap->pScreen;
+  RootlessScreenRec *s = SCREENREC (pScreen);
+
+  SCREEN_UNWRAP(pScreen, StoreColors);
+
+  if (s->colormap == pMap && ndef > 0) {
+    s->colormap_changed = TRUE;
+    RootlessQueueRedisplay (pScreen);
+  }
+
+  pScreen->StoreColors (pMap, ndef, pdef);
+
+  SCREEN_WRAP(pScreen, StoreColors);
+}
+
 
 static CARD32
 RootlessRedisplayCallback(OsTimerPtr timer, CARD32 time, void *arg)
@@ -614,6 +676,9 @@ RootlessWrap(ScreenPtr pScreen)
     WRAP(MarkOverlappedWindows);
     WRAP(ValidateTree);
     WRAP(ChangeWindowAttributes);
+    WRAP(InstallColormap);
+    WRAP(UninstallColormap);
+    WRAP(StoreColors);
 
 #ifdef SHAPE
     WRAP(SetShape);
