@@ -162,25 +162,10 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 
         /* event is already correct size, see comment in GetPointerEvents */
         classbuff = (char*)&xE[1];
-        if (master->key) 
-        {
-            /* we don't actually swap here, swapping is done later */
-            CopySwapKeyClass(NullClient, master->key, &classbuff);
-            dcce->num_classes++;
-        }
-        if (master->button) 
-        {
-            CopySwapButtonClass(NullClient, master->button, &classbuff);
-            dcce->num_classes++;
-        }
-        if (master->valuator)
-        {
-            CopySwapValuatorClass(NullClient, master->valuator, &classbuff);
-            dcce->num_classes++;
-        }
-
-        SendEventToAllWindows(master, XI_DeviceClassesChangedMask,
-                              xE, 1);
+        /* we don't actually swap if there's a NullClient, swapping is done
+         * later when event is delivered. */
+        CopySwapClasses(NullClient, master, &dcce->num_classes, &classbuff);
+        SendEventToAllWindows(master, XI_DeviceClassesChangedMask, xE, 1);
         return;
     }
 

@@ -142,7 +142,7 @@ CopyDeviceName(char **namebuf, char *name)
  *
  */
 
-void
+static void
 CopySwapButtonClass(ClientPtr client, ButtonClassPtr b, char **buf)
 {
     char n;
@@ -201,7 +201,7 @@ CopySwapDevice(ClientPtr client, DeviceIntPtr d, int num_classes,
  *
  */
 
-void
+static void
 CopySwapKeyClass(ClientPtr client, KeyClassPtr k, char **buf)
 {
     char n;
@@ -231,7 +231,7 @@ CopySwapKeyClass(ClientPtr client, KeyClassPtr k, char **buf)
  *
  */
 
-int
+static int
 CopySwapValuatorClass(ClientPtr client, ValuatorClassPtr v, char **buf)
 {
     int i, j, axes, t_axes;
@@ -286,17 +286,24 @@ ListDeviceInfo(ClientPtr client, DeviceIntPtr d, xDeviceInfoPtr dev,
 {
     CopyDeviceName(namebuf, d->name);
     CopySwapDevice(client, d, 0, devbuf);
-    if (d->key != NULL) {
-	CopySwapKeyClass(client, d->key, classbuf);
-	dev->num_classes++;
+    CopySwapClasses(client, d, &dev->num_classes, classbuf);
+}
+
+void
+CopySwapClasses(ClientPtr client, DeviceIntPtr dev, CARD8 *num_classes,
+                char** classbuf)
+{
+    if (dev->key != NULL) {
+	CopySwapKeyClass(client, dev->key, classbuf);
+	(*num_classes)++;
     }
-    if (d->button != NULL) {
-	CopySwapButtonClass(client, d->button, classbuf);
-	dev->num_classes++;
+    if (dev->button != NULL) {
+	CopySwapButtonClass(client, dev->button, classbuf);
+	(*num_classes)++;
     }
-    if (d->valuator != NULL) {
-	dev->num_classes +=
-	    CopySwapValuatorClass(client, d->valuator, classbuf);
+    if (dev->valuator != NULL) {
+	(*num_classes) +=
+	    CopySwapValuatorClass(client, dev->valuator, classbuf);
     }
 }
 

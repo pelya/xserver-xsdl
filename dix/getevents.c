@@ -111,7 +111,7 @@ key_autorepeats(DeviceIntPtr pDev, int key_code)
               (1 << (key_code & 7)));
 }
 
-static void
+void
 CreateClassesChangedEvent(EventList* event, 
                           DeviceIntPtr master, 
                           DeviceIntPtr slave)

@@ -79,6 +79,7 @@ SOFTWARE.
 #include <X11/extensions/XIproto.h>
 #include "exglobals.h"
 #include "exevents.h"
+#include "listdev.h" /* for CopySwapXXXClass */
 
 /** @file
  * This file handles input device-related stuff.
@@ -2314,9 +2315,50 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
      */
     if (!master)
     {
+        DeviceIntPtr it;
                               /* current root window */
         InitializeSprite(dev, dev->spriteInfo->sprite->spriteTrace[0]);
         dev->spriteInfo->spriteOwner = FALSE;
+
+        /* the master may need to restore the original classes, search for a
+         * device that is still paired with our master. */
+        for (it = inputInfo.devices; it; it = it->next)
+            if (!it->isMaster && it->u.master == master)
+                break;
+
+        if (!it)  /* no dev is paired with our master */
+        {
+            ClassesPtr classes;
+            EventList event = { NULL, 0};
+            char* classbuf;
+
+            classes = master->devPrivates[MasterDevClassesPrivIdx].ptr;
+            master->key = classes->key;
+            master->valuator = classes->valuator;
+            master->button = classes->button;
+            master->focus = classes->focus;
+            master->proximity = classes->proximity;
+            master->absolute = classes->absolute;
+            master->kbdfeed = classes->kbdfeed;
+            master->ptrfeed = classes->ptrfeed;
+            master->intfeed = classes->intfeed;
+            master->stringfeed = classes->stringfeed;
+            master->bell = classes->bell;
+            master->leds = classes->leds;
+
+            /* Send event to clients */
+            CreateClassesChangedEvent(&event, master, master);
+            deviceClassesChangedEvent *dcce = 
+                        (deviceClassesChangedEvent*)event.event;
+            dcce->deviceid = master->id;
+            dcce->num_classes = 0;
+            classbuf = (char*)&event.event[1];
+            CopySwapClasses(NullClient, master, &dcce->num_classes, &classbuf);
+            SendEventToAllWindows(master, XI_DeviceClassesChangedMask, 
+                    event.event, 1);
+            xfree(event.event);
+        }
+
     } else
         dev->spriteInfo->sprite = master->spriteInfo->sprite;
 

@@ -402,6 +402,9 @@ extern int GetMaximumEventsNum(void);
 extern EventListPtr InitEventList(int num_events);
 extern void FreeEventList(EventListPtr list, int num_events);
 
+extern void CreateClassesChangedEvent(EventListPtr event, 
+                                      DeviceIntPtr master,
+                                      DeviceIntPtr slave);
 extern int GetPointerEvents(
     EventListPtr events,
     DeviceIntPtr pDev,
