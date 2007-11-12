@@ -485,8 +485,11 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
     {
         CreateClassesChangedEvent(events, master, pDev);
 
-        pDev->valuator->lastx = master->valuator->lastx;
-        pDev->valuator->lasty = master->valuator->lasty;
+        if (master->valuator && pDev->valuator)
+        {
+            pDev->valuator->lastx = master->valuator->lastx;
+            pDev->valuator->lasty = master->valuator->lasty;
+        }
         master->u.lastSlave = pDev;
         numEvents++;
         events++;
