@@ -363,7 +363,8 @@ mieqProcessInputEvents(void)
             {
                 CopyGetMasterEvent(e->pDev->u.master, event,
                                    &master_event, e->nevents);
-            }
+            } else
+                master_event = NULL;
 
             /* process slave first, then master */
             e->pDev->public.processInputProc(event, e->pDev, e->nevents);
