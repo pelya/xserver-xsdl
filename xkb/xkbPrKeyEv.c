@@ -76,6 +76,7 @@ int             xiEvent;
     if ((behavior.type&XkbKB_Permanent)==0) {
 	switch (behavior.type) {
 	    case XkbKB_Default:
+#if 0
 		if (( xE->u.u.type == KeyPress || 
                             xE->u.u.type == DeviceKeyPress) && 
 		    (keyc->down[key>>3] & (1<<(key&7)))) {
@@ -112,6 +113,7 @@ int             xiEvent;
 		    XkbLastRepeatEvent= NULL;
 		    return;
 		}
+#endif
 		break;
 	    case XkbKB_Lock:
 		if ( xE->u.u.type == KeyRelease || 
