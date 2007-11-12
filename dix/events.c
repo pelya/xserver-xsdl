@@ -3379,7 +3379,7 @@ CheckPassiveGrabsOnWindow(
     {
 #ifdef XKB
 	DeviceIntPtr	gdev;
-	XkbSrvInfoPtr	xkbi;
+	XkbSrvInfoPtr	xkbi = NULL;
 
 	gdev= grab->modifierDevice;
         if (grab->coreGrab)
@@ -3389,7 +3389,8 @@ CheckPassiveGrabsOnWindow(
             else
                 gdev = device;
         }
-	xkbi= gdev->key->xkbInfo;
+        if (gdev)
+            xkbi= gdev->key->xkbInfo;
 #endif
 	tempGrab.modifierDevice = grab->modifierDevice;
 	if ((device == grab->modifierDevice) &&
@@ -3400,16 +3401,20 @@ CheckPassiveGrabsOnWindow(
 	     ))
 	    tempGrab.modifiersDetail.exact =
 #ifdef XKB
-		(noXkbExtension?gdev->key->prev_state:xkbi->state.grab_mods);
+                (noXkbExtension) ?
+                        ((gdev) ? gdev->key->prev_state : 0) :
+                        ((xkbi) ?  xkbi->state.grab_mods : 0);
 #else
-		grab->modifierDevice->key->prev_state;
+                (gdev) ? gdev->key->prev_state : 0;
 #endif
 	else
 	    tempGrab.modifiersDetail.exact =
 #ifdef XKB
-		(noXkbExtension ? gdev->key->state : xkbi->state.grab_mods);
+                (noXkbExtension) ?
+                        ((gdev) ? gdev->key->state : 0) :
+                        ((xkbi) ? xkbi->state.grab_mods : 0);
 #else
-		grab->modifierDevice->key->state;
+                (gdev) ? gdev->key->state : 0;
 #endif
             /* ignore the device for core events when comparing grabs */
 	if (GrabMatchesSecond(&tempGrab, grab, (xE->u.u.type < LASTEvent)) &&
