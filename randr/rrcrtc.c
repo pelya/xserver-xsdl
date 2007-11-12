@@ -150,7 +150,8 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 		break;
 	if (i == numOutputs)
 	{
-	    crtc->outputs[j]->crtc = NULL;
+	    if (crtc->outputs[j]->crtc == crtc)
+		crtc->outputs[j]->crtc = NULL;
 	    RROutputChanged (crtc->outputs[j], FALSE);
 	    RRCrtcChanged (crtc, FALSE);
 	}
