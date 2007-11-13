@@ -76,8 +76,6 @@ libXi_la_SOURCES =	\
 	queryst.h \
 	qryacces.c \
 	qryacces.h \
-	regpair.c \
-	regpair.h \
 	selectev.c \
 	selectev.h \
 	sendexev.c \

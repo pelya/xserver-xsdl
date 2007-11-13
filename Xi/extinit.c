@@ -109,7 +109,6 @@ SOFTWARE.
 #include "qryacces.c"
 #include "querydp.h"
 #include "queryst.h"
-#include "regpair.h"
 #include "selectev.h"
 #include "sendexev.h"
 #include "chgkmap.h"
@@ -329,8 +328,6 @@ ProcIDispatch(ClientPtr client)
         return (ProcXChangeDeviceHierarchy(client));
     else if (stuff->data == X_XiSelectEvent)
         return (ProcXiSelectEvent(client));
-    else if (stuff->data == X_RegisterPairingClient)
-        return (ProcXRegisterPairingClient(client));
     else if (stuff->data == X_GrabAccessControl)
         return (ProcXGrabAccessControl(client));
     else if (stuff->data == X_ChangeWindowAccess)
@@ -446,8 +443,6 @@ SProcIDispatch(ClientPtr client)
         return (SProcXChangeDeviceHierarchy(client));
     else if (stuff->data == X_XiSelectEvent)
         return (SProcXiSelectEvent(client));
-    else if (stuff->data == X_RegisterPairingClient)
-        return (SProcXRegisterPairingClient(client));
     else if (stuff->data == X_GrabAccessControl)
         return (SProcXGrabAccessControl(client));
     else if (stuff->data == X_ChangeWindowAccess)
@@ -539,9 +534,6 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
     else if (rep->RepType == X_QueryDevicePointer)
 	SRepXQueryDevicePointer(client, len,
 				(xQueryDevicePointerReply *) rep);
-    else if (rep->RepType == X_RegisterPairingClient)
-	SRepXRegisterPairingClient(client, len,
-				  (xRegisterPairingClientReply *) rep);
     else if (rep->RepType == X_GrabAccessControl)
         SRepXGrabAccessControl(client, len,
                                   (xGrabAccessControlReply*) rep);
