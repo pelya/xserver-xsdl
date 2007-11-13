@@ -134,7 +134,7 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
 
     if (devid >= MAX_DEVICES)
 	return (DeviceIntPtr)NULL;
-    dev = (DeviceIntPtr) xcalloc(sizeof(DeviceIntRec), 1);
+    dev = (DeviceIntPtr) xcalloc(sizeof(DeviceIntRec) + sizeof(SpriteInfoRec), 1);
     if (!dev)
 	return (DeviceIntPtr)NULL;
     dev->name = (char *)NULL;
@@ -183,9 +183,7 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
     dev->enabled = FALSE;
 
     /* sprite defaults */
-    dev->spriteInfo = (SpriteInfoPtr)xcalloc(sizeof(SpriteInfoRec), 1);
-    if (!dev->spriteInfo)
-        return (DeviceIntPtr)NULL;
+    dev->spriteInfo = (SpriteInfoPtr)&dev[1];
     dev->spriteInfo->sprite = NULL;
     dev->spriteInfo->spriteOwner = FALSE;
 
@@ -757,7 +755,6 @@ CloseDevice(DeviceIntPtr dev)
 	xfree(dev->devPrivates);
 
     xfree(dev->deviceGrab.sync.event);
-    xfree(dev->spriteInfo);
     xfree(dev);
 }
 
