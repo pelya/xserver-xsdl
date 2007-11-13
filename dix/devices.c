@@ -27,13 +27,13 @@ Copyright 1987 by Digital Equipment Corporation, Maynard, Massachusetts.
 
                         All Rights Reserved
 
-Permission to use, copy, modify, and distribute this software and its 
-documentation for any purpose and without fee is hereby granted, 
+Permission to use, copy, modify, and distribute this software and its
+documentation for any purpose and without fee is hereby granted,
 provided that the above copyright notice appear in all copies and that
-both that copyright notice and this permission notice appear in 
+both that copyright notice and this permission notice appear in
 supporting documentation, and that the name of Digital not be
 used in advertising or publicity pertaining to distribution of the
-software without specific, written prior permission.  
+software without specific, written prior permission.
 
 DIGITAL DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING
 ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL
@@ -203,7 +203,7 @@ AddInputDevice(DeviceProc deviceProc, Bool autoStart)
  *
  * A master pointer device needs to be enabled before a master keyboard
  * device.
- * 
+ *
  * @param The device to be enabled.
  * @return TRUE on success or FALSE otherwise.
  */
@@ -300,7 +300,7 @@ DisableDevice(DeviceIntPtr dev)
         {
             if (other->spriteInfo->paired == dev)
             {
-                ErrorF("[dix] cannot disable device, still paired. " 
+                ErrorF("[dix] cannot disable device, still paired. "
                         "This is a bug. \n");
                 return FALSE;
             }
@@ -316,7 +316,7 @@ DisableDevice(DeviceIntPtr dev)
     /* float attached devices */
     if (dev->isMaster)
     {
-        for (other = inputInfo.devices; other; other = other->next) 
+        for (other = inputInfo.devices; other; other = other->next)
         {
             if (other->u.master == dev)
                 AttachDevice(NULL, dev, NULL);
@@ -337,7 +337,7 @@ DisableDevice(DeviceIntPtr dev)
 /**
  * Initialise a new device through the driver and tell all clients about the
  * new device.
- * 
+ *
  * Must be called before EnableDevice.
  * The device will NOT send events until it is enabled!
  *
@@ -360,7 +360,7 @@ ActivateDevice(DeviceIntPtr dev)
     /* Initialize memory for sprites. */
     if (dev->isMaster && dev->spriteInfo->spriteOwner)
         pScreen->DeviceCursorInitialize(dev, pScreen);
-    
+
     ev.type = DevicePresenceNotify;
     ev.time = currentTime.milliseconds;
     ev.devchange = DeviceAdded;
@@ -391,7 +391,7 @@ CoreKeyboardCtl(DeviceIntPtr pDev, KeybdCtrl *ctrl)
 }
 
 /**
- * Device control function for the Virtual Core Keyboard. 
+ * Device control function for the Virtual Core Keyboard.
  */
 static int
 CoreKeyboardProc(DeviceIntPtr pDev, int what)
@@ -475,7 +475,7 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
 
 /**
  * Device control function for the Virtual Core Pointer.
- * 
+ *
  * Aside from initialisation, it backs up the original device classes into the
  * devicePrivates. This only needs to be done for master devices.
  */
@@ -492,7 +492,7 @@ CorePointerProc(DeviceIntPtr pDev, int what)
         if (MasterDevClassesPrivIdx == -1)
             MasterDevClassesPrivIdx = AllocateDevicePrivateIndex();
 
-        if (!AllocateDevicePrivate(pDev, MasterDevClassesPrivIdx) || 
+        if (!AllocateDevicePrivate(pDev, MasterDevClassesPrivIdx) ||
                 !(classes = xcalloc(1, sizeof(ClassesRec))))
             return BadAlloc;
 
@@ -553,8 +553,8 @@ InitCoreDevices(void)
         CoreDevicePrivatesGeneration = serverGeneration;
     }
 
-    if (AllocMasterDevice("Virtual core", 
-                          &inputInfo.pointer, 
+    if (AllocMasterDevice("Virtual core",
+                          &inputInfo.pointer,
                           &inputInfo.keyboard) == BadAlloc)
         FatalError("Failed to allocate core devices");
 
@@ -573,14 +573,14 @@ InitCoreDevices(void)
 
 /**
  * Activate all switched-off devices and then enable all those devices.
- * 
+ *
  * Will return an error if no core keyboard or core pointer is present.
  * In theory this should never happen if you call InitCoreDevices() first.
  *
  * InitAndStartDevices needs to be called AFTER the windows are initialized.
  * Devices will start sending events after InitAndStartDevices() has
  * completed.
- * 
+ *
  * @return Success or error code on failure.
  */
 int
@@ -621,7 +621,7 @@ InitAndStartDevices(WindowPtr root)
 }
 
 /**
- * Close down a device and free all resources. 
+ * Close down a device and free all resources.
  * Once closed down, the driver will probably not expect you that you'll ever
  * enable it again and free associated structs. If you want the device to just
  * be disabled, DisableDevice().
@@ -654,7 +654,7 @@ CloseDevice(DeviceIntPtr dev)
 
     if (dev->isMaster)
         classes = (ClassesPtr)dev->devPrivates[MasterDevClassesPrivIdx].ptr;
-    else 
+    else
         classes = (ClassesPtr)&dev->key;
 
     if (classes->key) {
@@ -704,7 +704,7 @@ CloseDevice(DeviceIntPtr dev)
 	pnext = p->next;
 	xfree(p);
     }
-    
+
     for (i = classes->intfeed; i; i = inext) {
 	inext = i->next;
 	xfree(i);
@@ -735,7 +735,7 @@ CloseDevice(DeviceIntPtr dev)
     while (dev->xkb_interest)
 	XkbRemoveResourceClient((DevicePtr)dev,dev->xkb_interest->resource);
 #endif
-    
+
     if (DevHasCursor(dev)) {
         xfree(dev->spriteInfo->sprite->spriteTrace);
         xfree(dev->spriteInfo->sprite);
@@ -759,7 +759,7 @@ CloseDevice(DeviceIntPtr dev)
 }
 
 /**
- * Shut down all devices, free all resources, etc. 
+ * Shut down all devices, free all resources, etc.
  * Only useful if you're shutting down the server!
  */
 void
@@ -788,7 +788,7 @@ CloseDownDevices(void)
  * Remove the cursor sprite for all devices. This needs to be done before any
  * resources are freed or any device is deleted.
  */
-void 
+void
 UndisplayDevices()
 {
     DeviceIntPtr dev;
@@ -802,7 +802,7 @@ UndisplayDevices()
 
 /**
  * Remove a device from the device list, closes it and thus frees all
- * resources. 
+ * resources.
  * Removes both enabled and disabled devices and notifies all devices about
  * the removal of the device.
  */
@@ -855,7 +855,7 @@ RemoveDevice(DeviceIntPtr dev)
             ret = Success;
 	}
     }
-    
+
     if (ret == Success) {
         inputInfo.numDevices--;
         ev.type = DevicePresenceNotify;
@@ -873,7 +873,7 @@ RemoveDevice(DeviceIntPtr dev)
 int
 NumMotionEvents(void)
 {
-    /* only called to fill data in initial connection reply. 
+    /* only called to fill data in initial connection reply.
      * VCP is ok here, it is the only fixed device we have. */
     return inputInfo.pointer->valuator->numMotionEvents;
 }
@@ -1023,7 +1023,7 @@ InitKeyClassDeviceStruct(DeviceIntPtr dev, KeySymsPtr pKeySyms, CARD8 pModifiers
 {
     int i;
     KeyClassPtr keyc;
-    
+
     keyc = (KeyClassPtr)xalloc(sizeof(KeyClassRec));
     if (!keyc)
 	return FALSE;
@@ -1058,7 +1058,7 @@ InitKeyClassDeviceStruct(DeviceIntPtr dev, KeySymsPtr pKeySyms, CARD8 pModifiers
 }
 
 _X_EXPORT Bool
-InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons, 
+InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons,
                             CARD8 *map)
 {
     ButtonClassPtr butc;
@@ -1082,8 +1082,8 @@ InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons,
 }
 
 _X_EXPORT Bool
-InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes, 
-                              ValuatorMotionProcPtr motionProc, 
+InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
+                              ValuatorMotionProcPtr motionProc,
                               int numMotionEvents, int mode)
 {
     int i;
@@ -1176,7 +1176,7 @@ InitFocusClassDeviceStruct(DeviceIntPtr dev)
 }
 
 _X_EXPORT Bool
-InitKbdFeedbackClassDeviceStruct(DeviceIntPtr dev, BellProcPtr bellProc, 
+InitKbdFeedbackClassDeviceStruct(DeviceIntPtr dev, BellProcPtr bellProc,
                                  KbdCtrlProcPtr controlProc)
 {
     KbdFeedbackPtr feedc;
@@ -1240,7 +1240,7 @@ static IntegerCtrl defaultIntegerControl = {
 
 _X_EXPORT Bool
 InitStringFeedbackClassDeviceStruct (
-      DeviceIntPtr dev, StringCtrlProcPtr controlProc, 
+      DeviceIntPtr dev, StringCtrlProcPtr controlProc,
       int max_symbols, int num_symbols_supported, KeySym *symbols)
 {
     int i;
@@ -1253,9 +1253,9 @@ InitStringFeedbackClassDeviceStruct (
     feedc->ctrl.num_symbols_supported = num_symbols_supported;
     feedc->ctrl.num_symbols_displayed = 0;
     feedc->ctrl.max_symbols = max_symbols;
-    feedc->ctrl.symbols_supported = (KeySym *) 
+    feedc->ctrl.symbols_supported = (KeySym *)
 	xalloc (sizeof (KeySym) * num_symbols_supported);
-    feedc->ctrl.symbols_displayed = (KeySym *) 
+    feedc->ctrl.symbols_displayed = (KeySym *)
 	xalloc (sizeof (KeySym) * max_symbols);
     if (!feedc->ctrl.symbols_supported || !feedc->ctrl.symbols_displayed)
     {
@@ -1279,7 +1279,7 @@ InitStringFeedbackClassDeviceStruct (
 }
 
 _X_EXPORT Bool
-InitBellFeedbackClassDeviceStruct (DeviceIntPtr dev, BellProcPtr bellProc, 
+InitBellFeedbackClassDeviceStruct (DeviceIntPtr dev, BellProcPtr bellProc,
                                    BellCtrlProcPtr controlProc)
 {
     BellFeedbackPtr feedc;
@@ -1338,8 +1338,8 @@ InitIntegerFeedbackClassDeviceStruct (DeviceIntPtr dev, IntegerCtrlProcPtr contr
 }
 
 _X_EXPORT Bool
-InitPointerDeviceStruct(DevicePtr device, CARD8 *map, int numButtons, 
-                        ValuatorMotionProcPtr motionProc, 
+InitPointerDeviceStruct(DevicePtr device, CARD8 *map, int numButtons,
+                        ValuatorMotionProcPtr motionProc,
                         PtrCtrlProcPtr controlProc, int numMotionEvents,
                         int numAxes)
 {
@@ -1352,9 +1352,9 @@ InitPointerDeviceStruct(DevicePtr device, CARD8 *map, int numButtons,
 }
 
 _X_EXPORT Bool
-InitKeyboardDeviceStruct(DevicePtr device, KeySymsPtr pKeySyms, 
-                         CARD8 pModifiers[], BellProcPtr bellProc, 
-                         KbdCtrlProcPtr controlProc) 
+InitKeyboardDeviceStruct(DevicePtr device, KeySymsPtr pKeySyms,
+                         CARD8 pModifiers[], BellProcPtr bellProc,
+                         KbdCtrlProcPtr controlProc)
 {
     DeviceIntPtr dev = (DeviceIntPtr)device;
 
@@ -1525,13 +1525,13 @@ DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
     return Success;
 }
 
-int 
+int
 ProcSetModifierMapping(ClientPtr client)
 {
     xSetModifierMappingReply rep;
     DeviceIntPtr dev;
     REQUEST(xSetModifierMappingReq);
-    
+
     REQUEST_AT_LEAST_SIZE(xSetModifierMappingReq);
 
     if (client->req_len != ((stuff->numKeyPerModifier << 1) +
@@ -1583,7 +1583,7 @@ ProcChangeKeyboardMapping(ClientPtr client)
     DeviceIntPtr pDev = NULL;
     REQUEST_AT_LEAST_SIZE(xChangeKeyboardMappingReq);
 
-    len = client->req_len - (sizeof(xChangeKeyboardMappingReq) >> 2);  
+    len = client->req_len - (sizeof(xChangeKeyboardMappingReq) >> 2);
     if (len != (stuff->keyCodes * stuff->keySymsPerKeyCode))
             return BadLength;
 
@@ -1671,7 +1671,7 @@ ProcSetPointerMapping(ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.success = MappingSuccess;
     map = (BYTE *)&stuff[1];
-    
+
     /* So we're bounded here by the number of core buttons.  This check
      * probably wants disabling through XFixes. */
     /* MPX: With ClientPointer, we can return the right number of buttons.
@@ -1750,7 +1750,7 @@ ProcGetPointerMapping(ClientPtr client)
     rep.length = ((unsigned)rep.nElts + (4-1))/4;
     WriteReplyToClient(client, sizeof(xGetPointerMappingReply), &rep);
     (void)WriteToClient(client, (int)rep.nElts, (char *)&butc->map[1]);
-    return Success;    
+    return Success;
 }
 
 void
@@ -1790,7 +1790,7 @@ DoChangeKeyboardControl (ClientPtr client, DeviceIntPtr keybd, XID *vlist,
 	index2 = (BITS32) lowbit (vmask);
 	vmask &= ~index2;
 	switch (index2) {
-	case KBKeyClickPercent: 
+	case KBKeyClickPercent:
 	    t = (INT8)*vlist;
 	    vlist++;
 	    if (t == -1) {
@@ -1940,7 +1940,7 @@ DoChangeKeyboardControl (ClientPtr client, DeviceIntPtr keybd, XID *vlist,
     return Success;
 
 #undef DO_ALL
-} 
+}
 
 int
 ProcChangeKeyboardControl (ClientPtr client)
@@ -2000,7 +2000,7 @@ ProcGetKeyboardControl (ClientPtr client)
 	rep.map[i] = ctrl->autoRepeats[i];
     WriteReplyToClient(client, sizeof(xGetKeyboardControlReply), &rep);
     return Success;
-} 
+}
 
 int
 ProcBell(ClientPtr client)
@@ -2013,7 +2013,7 @@ ProcBell(ClientPtr client)
 
     if (!keybd->kbdfeed->BellProc)
         return BadDevice;
-    
+
     if (stuff->percent < -100 || stuff->percent > 100) {
 	client->errorValue = stuff->percent;
 	return BadValue;
@@ -2023,7 +2023,7 @@ ProcBell(ClientPtr client)
     if (stuff->percent < 0)
         newpercent = base + newpercent;
     else
-    	newpercent = base - newpercent + stuff->percent;
+	newpercent = base - newpercent + stuff->percent;
 
     for (keybd = inputInfo.devices; keybd; keybd = keybd->next) {
         if ((keybd->coreEvents || keybd == inputInfo.keyboard) &&
@@ -2040,7 +2040,7 @@ ProcBell(ClientPtr client)
     }
 
     return Success;
-} 
+}
 
 int
 ProcChangePointerControl(ClientPtr client)
@@ -2050,10 +2050,10 @@ ProcChangePointerControl(ClientPtr client)
     REQUEST(xChangePointerControlReq);
 
     REQUEST_SIZE_MATCH(xChangePointerControlReq);
-    
+
     if (!mouse->ptrfeed->CtrlProc)
         return BadDevice;
-    
+
     ctrl = mouse->ptrfeed->ctrl;
     if ((stuff->doAccel != xTrue) && (stuff->doAccel != xFalse)) {
 	client->errorValue = stuff->doAccel;
@@ -2109,7 +2109,7 @@ ProcChangePointerControl(ClientPtr client)
     }
 
     return Success;
-} 
+}
 
 int
 ProcGetPointerControl(ClientPtr client)
@@ -2231,17 +2231,17 @@ ProcQueryKeymap(ClientPtr client)
 	bzero((char *)&rep.map[0], 32);
 
     WriteReplyToClient(client, sizeof(xQueryKeymapReply), &rep);
- 
+
    return Success;
 }
 
 /* Pair the keyboard to the pointer device. Keyboard events will follow the
- * pointer sprite. Only applicable for master devices. 
+ * pointer sprite. Only applicable for master devices.
  * If the client is set, the request to pair comes from some client. In this
  * case, we need to check for access. If the client is NULL, it's from an
  * internal automatic pairing, we must always permit this.
  */
-int 
+int
 PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
 {
     if (!ptr)
@@ -2277,15 +2277,15 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
  * Client is set to the client that issued the request, or NULL if it comes
  * from some internal automatic pairing.
  *
- * Master may be NULL to set the device floating. 
+ * Master may be NULL to set the device floating.
  *
  * We don't allow multi-layer hierarchies right now. You can't attach a slave
- * to another slave. 
+ * to another slave.
  */
 int
 AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 {
-    if (!dev || dev->isMaster) 
+    if (!dev || dev->isMaster)
         return BadDevice;
 
     if (master && !master->isMaster) /* can't attach to slaves */
@@ -2345,13 +2345,13 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 
             /* Send event to clients */
             CreateClassesChangedEvent(&event, master, master);
-            deviceClassesChangedEvent *dcce = 
+            deviceClassesChangedEvent *dcce =
                         (deviceClassesChangedEvent*)event.event;
             dcce->deviceid = master->id;
             dcce->num_classes = 0;
             classbuf = (char*)&event.event[1];
             CopySwapClasses(NullClient, master, &dcce->num_classes, &classbuf);
-            SendEventToAllWindows(master, XI_DeviceClassesChangedMask, 
+            SendEventToAllWindows(master, XI_DeviceClassesChangedMask,
                     event.event, 1);
             xfree(event.event);
         }
@@ -2380,7 +2380,7 @@ GetPairedDevice(DeviceIntPtr dev)
 }
 
 /*
- * Register a client to be able to pair devices. 
+ * Register a client to be able to pair devices.
  */
 Bool
 RegisterPairingClient(ClientPtr client)
@@ -2398,22 +2398,22 @@ RegisterPairingClient(ClientPtr client)
 /*
  * Unregister pairing client;
  */
-Bool 
+Bool
 UnregisterPairingClient(ClientPtr client)
 {
-    if (pairingClient) 
+    if (pairingClient)
     {
         if ( pairingClient == client)
         {
             pairingClient = NULL;
-        } else 
+        } else
             return False;
     }
     return True;
 }
 
 /* Guess a pointer that could be a good one for pairing. Any pointer that is
- * not yet paired with keyboard is considered a good one. 
+ * not yet paired with keyboard is considered a good one.
  * If no pointer is found, the last real pointer is chosen. If that doesn't
  * work either, we take the core pointer.
  */
@@ -2422,7 +2422,7 @@ GuessFreePointerDevice()
 {
     DeviceIntPtr it, it2;
     DeviceIntPtr lastRealPtr = NULL;
-        
+
     it = inputInfo.devices;
 
     while(it)
@@ -2436,7 +2436,7 @@ GuessFreePointerDevice()
             while(it2)
             {
                 /* something paired with it? */
-                if (it != it2 && 
+                if (it != it2 &&
                         it2->spriteInfo->sprite == it->spriteInfo->sprite)
                     break;
 
@@ -2458,8 +2458,8 @@ NextFreePointerDevice()
 {
     DeviceIntPtr dev;
     for (dev = inputInfo.devices; dev; dev = dev->next)
-        if (dev->isMaster && 
-                dev->spriteInfo->spriteOwner && 
+        if (dev->isMaster &&
+                dev->spriteInfo->spriteOwner &&
                 !dev->spriteInfo->paired)
             return dev;
     return NULL;
