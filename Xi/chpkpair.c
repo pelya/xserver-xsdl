@@ -77,7 +77,7 @@ ProcXChangePointerKeyboardPairing(ClientPtr client)
 {
     DeviceIntPtr pPointer, pKeyboard;
     int ret;
-    pairingChangedNotify ev; 
+    pairingChangedNotify ev;
 
     REQUEST(xChangePointerKeyboardPairingReq);
     REQUEST_SIZE_MATCH(xChangePointerKeyboardPairingReq);
@@ -87,16 +87,16 @@ ProcXChangePointerKeyboardPairing(ClientPtr client)
     pPointer = LookupDeviceIntRec(stuff->pointer);
     if (pPointer == NULL)
     {
-        SendErrorToClient(client, IReqCode, X_ChangePointerKeyboardPairing, 
-                stuff->pointer, BadDevice); 
+        SendErrorToClient(client, IReqCode, X_ChangePointerKeyboardPairing,
+                stuff->pointer, BadDevice);
         return Success;
     }
 
     pKeyboard = LookupDeviceIntRec(stuff->keyboard);
     if (pKeyboard == NULL)
     {
-        SendErrorToClient(client, IReqCode, X_ChangePointerKeyboardPairing, 
-                stuff->keyboard, BadDevice); 
+        SendErrorToClient(client, IReqCode, X_ChangePointerKeyboardPairing,
+                stuff->keyboard, BadDevice);
         return Success;
     }
 
@@ -116,15 +116,15 @@ ProcXChangePointerKeyboardPairing(ClientPtr client)
     ev.keyboard = pKeyboard->id;
     ev.length = 0;
     ev.time = currentTime.milliseconds;
-    SendEventToAllWindows(inputInfo.pointer, 
+    SendEventToAllWindows(inputInfo.pointer,
             XI_PointerKeyboardPairingChangedMask,
             (xEvent*)&ev, 1);
     return Success;
 }
 
 /* Event swap proc */
-void 
-SPointerKeyboardPairingChangedNotifyEvent (pairingChangedNotify *from, 
+void
+SPointerKeyboardPairingChangedNotifyEvent (pairingChangedNotify *from,
                                                 pairingChangedNotify *to)
 {
     char n;

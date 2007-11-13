@@ -50,9 +50,9 @@ from the author.
  * This procedure allows a client to change window access control.
  */
 
-int 
+int
 SProcXChangeWindowAccess(ClientPtr client)
-{    
+{
     char n;
     REQUEST(xChangeWindowAccessReq);
 
@@ -61,7 +61,7 @@ SProcXChangeWindowAccess(ClientPtr client)
     return ProcXChangeWindowAccess(client);
 }
 
-int 
+int
 ProcXChangeWindowAccess(ClientPtr client)
 {
     int padding, err, i;
@@ -71,14 +71,14 @@ ProcXChangeWindowAccess(ClientPtr client)
     DeviceIntPtr* deny_devices = NULL;
     REQUEST(xChangeWindowAccessReq);
     REQUEST_AT_LEAST_SIZE(xChangeWindowAccessReq);
-    
+
 
     padding = (4 - (((stuff->npermit + stuff->ndeny) * sizeof(XID)) % 4)) % 4;
 
-    if (stuff->length != ((sizeof(xChangeWindowAccessReq)  + 
+    if (stuff->length != ((sizeof(xChangeWindowAccessReq)  +
             (((stuff->npermit + stuff->ndeny) * sizeof(XID)) + padding)) >> 2))
     {
-        SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 
+        SendErrorToClient(client, IReqCode, X_ChangeWindowAccess,
                 0, BadLength);
         return Success;
     }
@@ -87,7 +87,7 @@ ProcXChangeWindowAccess(ClientPtr client)
     err = dixLookupWindow(&win, stuff->win, client, DixWriteAccess);
     if (err != Success)
     {
-        SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 
+        SendErrorToClient(client, IReqCode, X_ChangeWindowAccess,
                           stuff->win, err);
         return Success;
     }
@@ -106,12 +106,12 @@ ProcXChangeWindowAccess(ClientPtr client)
 
     if (stuff->npermit)
     {
-        perm_devices = 
+        perm_devices =
             (DeviceIntPtr*)xalloc(stuff->npermit * sizeof(DeviceIntPtr));
         if (!perm_devices)
         {
             ErrorF("[Xi] ProcXChangeWindowAccess: alloc failure.\n");
-            SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 0, 
+            SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 0,
                     BadImplementation);
             return Success;
         }
@@ -123,8 +123,8 @@ ProcXChangeWindowAccess(ClientPtr client)
             if (!perm_devices[i])
             {
                 xfree(perm_devices);
-                SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 
-                        deviceids[i], BadDevice); 
+                SendErrorToClient(client, IReqCode, X_ChangeWindowAccess,
+                        deviceids[i], BadDevice);
                 return Success;
             }
         }
@@ -132,12 +132,12 @@ ProcXChangeWindowAccess(ClientPtr client)
 
     if (stuff->ndeny)
     {
-        deny_devices = 
+        deny_devices =
             (DeviceIntPtr*)xalloc(stuff->ndeny * sizeof(DeviceIntPtr));
         if (!deny_devices)
         {
             ErrorF("[Xi] ProcXChangeWindowAccecss: alloc failure.\n");
-            SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 0, 
+            SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 0,
                     BadImplementation);
 
             xfree(perm_devices);
@@ -146,15 +146,15 @@ ProcXChangeWindowAccess(ClientPtr client)
 
         for (i = 0; i < stuff->ndeny; i++)
         {
-            deny_devices[i] = 
+            deny_devices[i] =
                 LookupDeviceIntRec(deviceids[i+stuff->npermit]);
-            
+
             if (!deny_devices[i])
             {
                 xfree(perm_devices);
                 xfree(deny_devices);
-                SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 
-                        deviceids[i + stuff->npermit], BadDevice); 
+                SendErrorToClient(client, IReqCode, X_ChangeWindowAccess,
+                        deviceids[i + stuff->npermit], BadDevice);
                 return Success;
             }
         }
@@ -165,11 +165,11 @@ ProcXChangeWindowAccess(ClientPtr client)
                                deny_devices, stuff->ndeny);
     if (err != Success)
     {
-        SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 
+        SendErrorToClient(client, IReqCode, X_ChangeWindowAccess,
                           stuff->win, err);
         return Success;
     }
-    
+
     xfree(perm_devices);
     xfree(deny_devices);
     return Success;

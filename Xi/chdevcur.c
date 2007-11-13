@@ -82,7 +82,7 @@ int ProcXChangeDeviceCursor(ClientPtr client)
     pDev = LookupDeviceIntRec(stuff->deviceid);
     if (pDev == NULL) {
         SendErrorToClient(client, IReqCode, X_ChangeDeviceCursor, 0,
-                BadDevice); 
+                BadDevice);
         return Success;
     }
 
@@ -91,7 +91,7 @@ int ProcXChangeDeviceCursor(ClientPtr client)
         err = dixLookupWindow(&pWin, stuff->win, client, DixReadWriteAccess);
         if (err != Success)
         {
-            SendErrorToClient(client, IReqCode, X_ChangeDeviceCursor, 
+            SendErrorToClient(client, IReqCode, X_ChangeDeviceCursor,
                     stuff->win, err);
             return Success;
         }
@@ -103,18 +103,18 @@ int ProcXChangeDeviceCursor(ClientPtr client)
             pCursor = rootCursor;
         else
             pCursor = (CursorPtr)None;
-    } 
-    else 
+    }
+    else
     {
         pCursor = (CursorPtr)SecurityLookupIDByType(client, stuff->cursor,
-                                RT_CURSOR, DixReadAccess); 
+                                RT_CURSOR, DixReadAccess);
         if (!pCursor)
         {
-            SendErrorToClient(client, IReqCode, X_ChangeDeviceCursor, 
+            SendErrorToClient(client, IReqCode, X_ChangeDeviceCursor,
                     stuff->cursor, BadCursor);
             return Success;
         }
-    } 
+    }
 
     ChangeWindowDeviceCursor(pWin, pDev, pCursor);
 

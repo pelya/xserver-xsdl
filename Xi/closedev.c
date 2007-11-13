@@ -154,7 +154,7 @@ ProcXCloseDevice(ClientPtr client)
     if (d->deviceGrab.grab && SameClient(d->deviceGrab.grab, client))
 	(*d->deviceGrab.DeactivateGrab) (d);	/* release active grab */
 
-    /* Remove event selections from all windows for events from this device 
+    /* Remove event selections from all windows for events from this device
      * and selected by this client.
      * Delete passive grabs from all windows for this device.      */
 

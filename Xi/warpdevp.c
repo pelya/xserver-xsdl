@@ -87,7 +87,7 @@ ProcXWarpDevicePointer(ClientPtr client)
     if (pDev == NULL) {
         SendErrorToClient(client, IReqCode, X_WarpDevicePointer,
                 stuff->deviceid,
-                BadDevice); 
+                BadDevice);
         return Success;
     }
 
@@ -96,7 +96,7 @@ ProcXWarpDevicePointer(ClientPtr client)
         err = dixLookupWindow(&dest, stuff->dst_win, client, DixReadAccess);
         if (err != Success)
         {
-            SendErrorToClient(client, IReqCode, X_WarpDevicePointer, 
+            SendErrorToClient(client, IReqCode, X_WarpDevicePointer,
                     stuff->dst_win, err);
             return Success;
         }
@@ -114,14 +114,14 @@ ProcXWarpDevicePointer(ClientPtr client)
         err = dixLookupWindow(&src, stuff->src_win, client, DixReadAccess);
         if (err != Success)
         {
-            SendErrorToClient(client, IReqCode, X_WarpDevicePointer, 
+            SendErrorToClient(client, IReqCode, X_WarpDevicePointer,
                     stuff->src_win, err);
             return Success;
         }
 
         winX = src->drawable.x;
         winY = src->drawable.y;
-        if (src->drawable.pScreen != pSprite->hotPhys.pScreen || 
+        if (src->drawable.pScreen != pSprite->hotPhys.pScreen ||
                 x < winX + stuff->src_x ||
                 y < winY + stuff->src_y ||
                 (stuff->src_width != 0 &&

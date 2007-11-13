@@ -53,12 +53,12 @@ from the author.
 
 /***********************************************************************
  *
- * This procedure allows a client to register the pairing of a pointer 
+ * This procedure allows a client to register the pairing of a pointer
  * with a keyboard.
  *
  */
 
-int 
+int
 SProcXRegisterPairingClient(ClientPtr client)
 {
     char n;
@@ -67,7 +67,7 @@ SProcXRegisterPairingClient(ClientPtr client)
     return ProcXRegisterPairingClient(client);
 }
 
-int 
+int
 ProcXRegisterPairingClient(ClientPtr client)
 {
     xRegisterPairingClientReply rep;
@@ -96,7 +96,7 @@ ProcXRegisterPairingClient(ClientPtr client)
  */
 
 void
-SRepXRegisterPairingClient(ClientPtr client, int size, 
+SRepXRegisterPairingClient(ClientPtr client, int size,
         xRegisterPairingClientReply* rep)
 {
     register char n;

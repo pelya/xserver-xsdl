@@ -90,7 +90,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
 
     /* XXX: check if client is allowed to change hierarch */
 
-    
+
     any = (xAnyHierarchyChangeInfo*)&stuff[1];
     while(stuff->num_changes--)
     {
@@ -108,7 +108,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                     xCreateMasterInfo* c = (xCreateMasterInfo*)any;
                     char* name;
                     int ret;
-                    
+
                     SWAPIF(swaps(&c->namelen, n));
                     name = xcalloc(c->namelen + 1, sizeof(char));
                     strncpy(name, (char*)&c[1], c->namelen);
@@ -138,7 +138,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                 {
                     xRemoveMasterInfo* r = (xRemoveMasterInfo*)any;
 
-                    if (r->returnMode != AttachToMaster && 
+                    if (r->returnMode != AttachToMaster &&
                             r->returnMode != Floating)
                         return BadValue;
 
@@ -164,8 +164,8 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                      * desired. */
                     if (r->returnMode == AttachToMaster)
                     {
-                        DeviceIntPtr attached, 
-                                     newptr, 
+                        DeviceIntPtr attached,
+                                     newptr,
                                      newkeybd;
 
                         newptr = LookupDeviceIntRec(r->returnPointer);
@@ -174,8 +174,8 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                                 !newkeybd || !newkeybd->isMaster)
                             return BadDevice;
 
-                        for (attached = inputInfo.devices; 
-                                attached; 
+                        for (attached = inputInfo.devices;
+                                attached;
                                 attached = attached->next)
                         {
                             if (!attached->isMaster) {
@@ -216,7 +216,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                         if ((IsPointerDevice(newmaster) &&
                                     !IsPointerDevice(ptr)) ||
                                 (IsKeyboardDevice(newmaster) &&
-                                 !IsKeyboardDevice(ptr))) 
+                                 !IsKeyboardDevice(ptr)))
                                 return BadDevice;
                         AttachDevice(client, ptr, newmaster);
                     }
@@ -234,7 +234,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
     ev.evtype = XI_DeviceHierarchyChangedNotify;
     ev.time = GetTimeInMillis();
 
-    SendEventToAllWindows(&dummyDev, XI_DeviceHierarchyChangedMask, 
+    SendEventToAllWindows(&dummyDev, XI_DeviceHierarchyChangedMask,
             (xEvent*)&ev, 1);
     return Success;
 }

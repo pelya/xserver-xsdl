@@ -186,7 +186,7 @@ CopySwapDevice(ClientPtr client, DeviceIntPtr d, int num_classes,
         dev->use = IsXExtensionPointer;
     else
 	dev->use = IsXExtensionDevice;
-    if (!d->isMaster) 
+    if (!d->isMaster)
         dev->attached = (d->u.master) ? d->u.master->id : IsFloating;
 
     if (client->swapped) {
@@ -225,7 +225,7 @@ CopySwapKeyClass(ClientPtr client, KeyClassPtr k, char **buf)
  *
  * Devices may have up to 255 valuators.  The length of a ValuatorClass is
  * defined to be sizeof(ValuatorClassInfo) + num_axes * sizeof (xAxisInfo).
- * The maximum length is therefore (8 + 255 * 12) = 3068.  However, the 
+ * The maximum length is therefore (8 + 255 * 12) = 3068.  However, the
  * length field is one byte.  If a device has more than 20 valuators, we
  * must therefore return multiple valuator classes to the client.
  *

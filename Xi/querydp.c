@@ -86,14 +86,14 @@ ProcXQueryDevicePointer(ClientPtr client)
     pDev = LookupDeviceIntRec(stuff->deviceid);
     if (pDev == NULL || pDev->valuator == NULL) {
         SendErrorToClient(client, IReqCode, X_QueryDevicePointer,
-                stuff->deviceid, BadDevice); 
+                stuff->deviceid, BadDevice);
         return Success;
     }
 
     rc = dixLookupWindow(&pWin, stuff->win, client, DixReadAccess);
     if (rc != Success)
     {
-        SendErrorToClient(client, IReqCode, X_QueryDevicePointer, 
+        SendErrorToClient(client, IReqCode, X_QueryDevicePointer,
                 stuff->win, rc);
         return Success;
     }
@@ -111,7 +111,7 @@ ProcXQueryDevicePointer(ClientPtr client)
     rep.rootX = pSprite->hot.x;
     rep.rootY = pSprite->hot.y;
     rep.child = None;
-    rep.shared = (pDev->spriteInfo->spriteOwner) ? xFalse : xTrue; 
+    rep.shared = (pDev->spriteInfo->spriteOwner) ? xFalse : xTrue;
 
     if (pSprite->hot.pScreen == pWin->drawable.pScreen)
     {
@@ -155,7 +155,7 @@ ProcXQueryDevicePointer(ClientPtr client)
  */
 
 void
-SRepXQueryDevicePointer(ClientPtr client, int size, 
+SRepXQueryDevicePointer(ClientPtr client, int size,
         xQueryDevicePointerReply * rep)
 {
     char n;

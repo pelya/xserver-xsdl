@@ -110,7 +110,7 @@ SProcXSendExtensionEvent(ClientPtr client)
 
 /***********************************************************************
  *
- * Send an event to some client, as if it had come from an extension input 
+ * Send an event to some client, as if it had come from an extension input
  * device.
  *
  */

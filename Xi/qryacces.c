@@ -78,8 +78,8 @@ ProcXQueryWindowAccess(ClientPtr client)
     err = dixLookupWindow(&win, stuff->win, client, DixReadAccess);
     if (err != Success)
     {
-        SendErrorToClient(client, IReqCode, X_QueryWindowAccess, 
-                          stuff->win, err); 
+        SendErrorToClient(client, IReqCode, X_QueryWindowAccess,
+                          stuff->win, err);
         return Success;
     }
 
@@ -100,8 +100,8 @@ ProcXQueryWindowAccess(ClientPtr client)
         if (!deviceids)
         {
             ErrorF("[Xi] ProcXQueryWindowAccess: xalloc failure.\n");
-            SendErrorToClient(client, IReqCode, X_QueryWindowAccess, 
-                    0, BadImplementation); 
+            SendErrorToClient(client, IReqCode, X_QueryWindowAccess,
+                    0, BadImplementation);
             return Success;
         }
 
@@ -117,8 +117,8 @@ ProcXQueryWindowAccess(ClientPtr client)
 }
 
 void
-SRepXQueryWindowAccess(ClientPtr client, 
-                      int size, 
+SRepXQueryWindowAccess(ClientPtr client,
+                      int size,
                       xQueryWindowAccessReply* rep)
 {
     char n;

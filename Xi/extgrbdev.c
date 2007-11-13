@@ -55,7 +55,7 @@ from the author.
 
 #include "extgrbdev.h"
 
-int 
+int
 SProcXExtendedGrabDevice(ClientPtr client)
 {
     char        n;
@@ -89,15 +89,15 @@ SProcXExtendedGrabDevice(ClientPtr client)
 }
 
 
-int 
+int
 ProcXExtendedGrabDevice(ClientPtr client)
 {
     xExtendedGrabDeviceReply rep;
     DeviceIntPtr             dev;
-    int                      err = Success, 
+    int                      err = Success,
                              errval = 0,
                              i;
-    WindowPtr                grab_window, 
+    WindowPtr                grab_window,
                              confineTo = 0;
     CursorPtr                cursor = NULL;
     struct tmask             tmp[EMASKSIZE];
@@ -119,7 +119,7 @@ ProcXExtendedGrabDevice(ClientPtr client)
     rep.length          = 0;
 
     if (!stuff->ungrab && /* other fields are undefined for ungrab */
-            (stuff->length != (sizeof(xExtendedGrabDeviceReq) >> 2) + 
+            (stuff->length != (sizeof(xExtendedGrabDeviceReq) >> 2) +
             stuff->event_count + 2 * stuff->generic_event_count))
     {
         errval = 0;
@@ -141,21 +141,21 @@ ProcXExtendedGrabDevice(ClientPtr client)
         goto cleanup;
     }
 
-    err = dixLookupWindow(&grab_window, 
-                          stuff->grab_window, 
-                          client, 
+    err = dixLookupWindow(&grab_window,
+                          stuff->grab_window,
+                          client,
                           DixReadAccess);
     if (err != Success)
     {
         errval = stuff->grab_window;
         goto cleanup;
     }
-    
+
     if (stuff->confine_to)
     {
-        err = dixLookupWindow(&confineTo, 
-                              stuff->confine_to, 
-                              client, 
+        err = dixLookupWindow(&confineTo,
+                              stuff->confine_to,
+                              client,
                               DixReadAccess);
         if (err != Success)
         {
@@ -166,10 +166,10 @@ ProcXExtendedGrabDevice(ClientPtr client)
 
     if (stuff->cursor)
     {
-        cursor = (CursorPtr)SecurityLookupIDByType(client, 
+        cursor = (CursorPtr)SecurityLookupIDByType(client,
                                                     stuff->cursor,
-                                                    RT_CURSOR, 
-                                                    DixReadAccess); 
+                                                    RT_CURSOR,
+                                                    DixReadAccess);
         if (!cursor)
         {
             errval = stuff->cursor;
@@ -178,11 +178,11 @@ ProcXExtendedGrabDevice(ClientPtr client)
         }
     }
 
-    if (CreateMaskFromList(client, 
+    if (CreateMaskFromList(client,
                            (XEventClass*)&stuff[1],
-                           stuff->event_count, 
-                           tmp, 
-                           dev, 
+                           stuff->event_count,
+                           tmp,
+                           dev,
                            X_GrabDevice) != Success)
         return Success;
 
@@ -190,7 +190,7 @@ ProcXExtendedGrabDevice(ClientPtr client)
 
     if (stuff->generic_event_count)
     {
-        xgeMask = 
+        xgeMask =
             (XGenericEventMask*)(((XEventClass*)&stuff[1]) + stuff->event_count);
 
         gemasks = xcalloc(1, sizeof(GenericMaskRec));
@@ -203,16 +203,16 @@ ProcXExtendedGrabDevice(ClientPtr client)
             gemasks->eventMask[xgeMask->extension & 0x7F]= xgeMask->evmask;
     }
 
-    ExtGrabDevice(client, dev, stuff->device_mode, 
-                  grab_window, confineTo, time, stuff->owner_events, 
-                  cursor, tmp[stuff->deviceid].mask, 
+    ExtGrabDevice(client, dev, stuff->device_mode,
+                  grab_window, confineTo, time, stuff->owner_events,
+                  cursor, tmp[stuff->deviceid].mask,
                   gemasks);
 
     if (err != Success) {
         errval = 0;
         goto cleanup;
     }
-    
+
 cleanup:
 
     if (gemasks)
@@ -221,18 +221,18 @@ cleanup:
     if (err == Success)
     {
         WriteReplyToClient(client, sizeof(xGrabDeviceReply), &rep);
-    } 
-    else 
+    }
+    else
     {
-        SendErrorToClient(client, IReqCode, 
-                          X_ExtendedGrabDevice, 
+        SendErrorToClient(client, IReqCode,
+                          X_ExtendedGrabDevice,
                           errval, err);
     }
     return Success;
 }
 
 void
-SRepXExtendedGrabDevice(ClientPtr client, int size, 
+SRepXExtendedGrabDevice(ClientPtr client, int size,
                         xExtendedGrabDeviceReply* rep)
 {
     char n;

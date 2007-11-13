@@ -74,7 +74,7 @@ SProcXFakeDeviceData(ClientPtr client)
     return ProcXFakeDeviceData(client);;
 }
 
-int 
+int
 ProcXFakeDeviceData(ClientPtr client)
 {
     DeviceIntPtr dev;
@@ -92,7 +92,7 @@ ProcXFakeDeviceData(ClientPtr client)
 
     dev = LookupDeviceIntRec(stuff->deviceid);
     if (dev == NULL) {
-        SendErrorToClient(client, IReqCode, X_FakeDeviceData, 0, BadDevice); 
+        SendErrorToClient(client, IReqCode, X_FakeDeviceData, 0, BadDevice);
         return Success;
     }
 

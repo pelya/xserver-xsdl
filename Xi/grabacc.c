@@ -62,7 +62,7 @@ SProcXGrabAccessControl(ClientPtr client)
     return ProcXGrabAccessControl(client);
 }
 
-int 
+int
 ProcXGrabAccessControl(ClientPtr client)
 {
     xGrabAccessControlReply rep;
@@ -90,7 +90,7 @@ ProcXGrabAccessControl(ClientPtr client)
  */
 
 void
-SRepXGrabAccessControl(ClientPtr client, int size, 
+SRepXGrabAccessControl(ClientPtr client, int size,
         xGrabAccessControlReply* rep)
 {
     char n;

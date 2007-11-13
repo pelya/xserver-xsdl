@@ -74,8 +74,8 @@ int ProcXGetClientPointer(ClientPtr client)
     err = dixLookupWindow(&win, stuff->win, client, DixReadAccess);
     if (err != Success)
     {
-        SendErrorToClient(client, IReqCode, X_GetClientPointer, 
-                stuff->win, err); 
+        SendErrorToClient(client, IReqCode, X_GetClientPointer,
+                stuff->win, err);
         return Success;
     }
 
@@ -99,8 +99,8 @@ int ProcXGetClientPointer(ClientPtr client)
  *
  */
 
-void 
-SRepXGetClientPointer(ClientPtr client, int size, 
+void
+SRepXGetClientPointer(ClientPtr client, int size,
         xGetClientPointerReply* rep)
 {
     char n;

@@ -103,10 +103,10 @@ RegisterOtherDevice(DeviceIntPtr device)
 }
 
 /**
- * Main device event processing function. 
- * Called from when processing the events from the event queue. 
+ * Main device event processing function.
+ * Called from when processing the events from the event queue.
  * Generates core events for XI events as needed.
- * 
+ *
  * Note that these core events are then delivered first. For passive grabs, XI
  * events have preference over core.
  */
@@ -309,7 +309,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 	    }
 	}
 
-	if (device->deviceGrab.fromPassiveGrab && 
+	if (device->deviceGrab.fromPassiveGrab &&
             (key == device->deviceGrab.activatingKey))
 	    deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == DeviceButtonPress) {
@@ -357,7 +357,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 	if (xE->u.u.detail <= 5)
 	    b->state &= ~((Button1Mask >> 1) << xE->u.u.detail);
 	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
-        if (!b->state 
+        if (!b->state
             && device->deviceGrab.fromPassiveGrab)
             deactivateDeviceGrab = TRUE;
     } else if (xE->u.u.type == ProximityIn)
@@ -413,7 +413,7 @@ InitValuatorAxisStruct(DeviceIntPtr dev, int axnum, int minval, int maxval,
 		       int resolution, int min_res, int max_res)
 {
     AxisInfoPtr ax;
-   
+  
     if (!dev || !dev->valuator)
         return;
 
@@ -1122,7 +1122,7 @@ DeleteDeviceFromAnyExtEvents(WindowPtr pWin, DeviceIntPtr dev)
     if (dev->deviceGrab.grab && (dev->deviceGrab.grab->window == pWin))
 	(*dev->deviceGrab.DeactivateGrab) (dev);
 
-    /* If the focus window is a root window (ie. has no parent) 
+    /* If the focus window is a root window (ie. has no parent)
      * then don't delete the focus from it. */
 
     if (dev->focus && (pWin == dev->focus->win) && (pWin->parent != NullWindow)) {

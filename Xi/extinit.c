@@ -133,7 +133,7 @@ Mask ExtExclusiveMasks[EMASKSIZE];
 
 
 /**
- * Filters for various generic events. 
+ * Filters for various generic events.
  * Evtype is index, mask is value at index.
  */
 static Mask xi_filters[3] = {
@@ -355,7 +355,7 @@ ProcIDispatch(ClientPtr client)
 
 /*******************************************************************************
  *
- * SProcXDispatch 
+ * SProcXDispatch
  *
  * Main swapped dispatch routine for requests to this extension.
  * This routine is used if server and client do not have the same byte ordering.
@@ -659,7 +659,7 @@ SDevicePresenceNotifyEvent (devicePresenceNotify *from, devicePresenceNotify *to
     swaps(&to->control, n);
 }
 
-static void 
+static void
 SDeviceEnterNotifyEvent (deviceEnterNotify *from, deviceEnterNotify *to)
 {
     char n;
@@ -669,7 +669,7 @@ SDeviceEnterNotifyEvent (deviceEnterNotify *from, deviceEnterNotify *to)
     swapl(&to->time, n);
 }
 
-static void 
+static void
 SDeviceLeaveNotifyEvent (deviceLeaveNotify *from, deviceLeaveNotify *to)
 {
     char n;
@@ -692,7 +692,7 @@ SRawDeviceEvent(rawDeviceEvent* from, rawDeviceEvent *to)
     char n;
     int i;
     CARD32* valptr;
-    
+   
 
     *to = *from;
     swaps(&to->sequenceNumber, n);
@@ -704,7 +704,7 @@ SRawDeviceEvent(rawDeviceEvent* from, rawDeviceEvent *to)
 }
 
 static void
-SDeviceClassesChangedEvent(deviceClassesChangedEvent* from, 
+SDeviceClassesChangedEvent(deviceClassesChangedEvent* from,
                            deviceClassesChangedEvent* to)
 {
     char n;
@@ -717,7 +717,7 @@ SDeviceClassesChangedEvent(deviceClassesChangedEvent* from,
     swaps(&to->sequenceNumber, n);
     swapl(&to->length, n);
     swapl(&to->time, n);
-    
+   
     /* now swap the actual classes */
     any = (xAnyClassPtr)&to[1];
     for (i = 0; i < to->num_classes; i++)
@@ -796,7 +796,7 @@ GetNextExtEventMask(void)
  *
  * Since extension event types will never be less than 64, we can use
  * 0-63 in the EventInfo array as the "type" to be used to look up this
- * mask.  This means that the corresponding macros such as 
+ * mask.  This means that the corresponding macros such as
  * DevicePointerMotionHint must have access to the same constants.
  *
  */
@@ -973,7 +973,7 @@ FixExtensionEvents(ExtensionEntry * extEntry)
 
 /************************************************************************
  *
- * This function restores extension event types and masks to their 
+ * This function restores extension event types and masks to their
  * initial state.
  *
  */
@@ -1189,7 +1189,7 @@ SEventIDispatch(xEvent * from, xEvent * to)
  * EventSwap for generic events coming from the GE extension.
  */
 
-static void 
+static void
 XIGEEventSwap(xGenericEvent* from, xGenericEvent* to)
 {
     int n;
@@ -1201,7 +1201,7 @@ XIGEEventSwap(xGenericEvent* from, xGenericEvent* to)
             SRawDeviceEvent((rawDeviceEvent*)from, (rawDeviceEvent*)to);
             break;
         case XI_DeviceClassesChangedNotify:
-            SDeviceClassesChangedEvent((deviceClassesChangedEvent*)from, 
+            SDeviceClassesChangedEvent((deviceClassesChangedEvent*)from,
                                        (deviceClassesChangedEvent*)to);
             break;
     }
@@ -1211,8 +1211,8 @@ XIGEEventSwap(xGenericEvent* from, xGenericEvent* to)
  * EventFill to fill various fields for events before they are delivered to
  * the client.
  */
-static void 
-XIGEEventFill(xGenericEvent* ev, DeviceIntPtr pDev, 
+static void
+XIGEEventFill(xGenericEvent* ev, DeviceIntPtr pDev,
               WindowPtr pWin, GrabPtr grab)
 {
 }
