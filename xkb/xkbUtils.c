@@ -935,7 +935,10 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
     xkbMapNotify mn;
     xkbNewKeyboardNotify nkn;
 
-    if (!src || !dst || src == dst)
+    if (src == dst)
+        return TRUE;
+
+    if (!src || !dst)
         return FALSE;
 
     /* client map */

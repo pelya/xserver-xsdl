@@ -335,8 +335,9 @@ mieqProcessInputEvents(void)
             if ((e->events->event[0].u.u.type == DeviceKeyPress ||
                 e->events->event[0].u.u.type == DeviceKeyRelease ||
                 e->events->event[0].u.u.type == KeyPress ||
-                e->events->event[0].u.u.type == KeyRelease) && 
-                    e->pDev->coreEvents) {
+                e->events->event[0].u.u.type == KeyRelease) &&
+                    !e->pDev->isMaster)
+            {
                 SwitchCoreKeyboard(e->pDev);
             }
 

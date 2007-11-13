@@ -867,63 +867,57 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
 
 
 /**
- * Note that pDev was the last device to send a core event.  This function
- * copies the complete keymap from the originating device to the core
- * device, and makes sure the appropriate notifications are generated.
+ * pDev is the slave device that is about to send an event. If it is attached
+ * to a master device, then we need to send a mapping notify to the client.
+ * To do so, we need to remember the last master device that sent a mapping
+ * event.
+ *
+ * Mapping notify needs to be sent in the following cases:
+ *      - different slave device on same master
+ *      - different master
  *
  * Call this just before processInputProc.
+ *
+ * XXX: They way how the code is we also send a map notify if the slave device
+ * stays the same, but the master changes. This isn't really necessary though.
+ *
+ * XXX: this gives you funny behaviour with the ClientPointer. When a
+ * MappingNotify is sent to the client, the client usually responds with a
+ * GetKeyboardMapping. This will retrieve the ClientPointer's keyboard
+ * mapping, regardless of which keyboard sent the last mapping notify request.
+ * So depending on the CP setting, your keyboard may change layout in each
+ * app...
  */
 _X_EXPORT void
 SwitchCoreKeyboard(DeviceIntPtr pDev)
 {
-    KeyClassPtr ckeyc = inputInfo.keyboard->key;
+    static DeviceIntPtr lastMapNotifyDevice = NULL;
+    DeviceIntPtr master;
+    KeyClassPtr ckeyc;
     int i = 0;
+    BOOL sendNotify = FALSE;
 
-    if (inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr != pDev) {
-        memcpy(ckeyc->modifierMap, pDev->key->modifierMap, MAP_LENGTH);
-        if (ckeyc->modifierKeyMap)
-            xfree(ckeyc->modifierKeyMap);
-        ckeyc->modifierKeyMap = xalloc(8 * pDev->key->maxKeysPerModifier);
-        memcpy(ckeyc->modifierKeyMap, pDev->key->modifierKeyMap,
-                (8 * pDev->key->maxKeysPerModifier));
+    if (pDev->isMaster || !pDev->u.master)
+        return;
 
-        ckeyc->maxKeysPerModifier = pDev->key->maxKeysPerModifier;
-        ckeyc->curKeySyms.minKeyCode = pDev->key->curKeySyms.minKeyCode;
-        ckeyc->curKeySyms.maxKeyCode = pDev->key->curKeySyms.maxKeyCode;
-        SetKeySymsMap(&ckeyc->curKeySyms, &pDev->key->curKeySyms);
+    master = pDev->u.master;
+    ckeyc = master->key;
 
-        /*
-         * Copy state from the extended keyboard to core.  If you omit this,
-         * holding Ctrl on keyboard one, and pressing Q on keyboard two, will
-         * cause your app to quit.  This feels wrong to me, hence the below
-         * code.
-         *
-         * XXX: If you synthesise core modifier events, the state will get
-         *      clobbered here.  You'll have to work out something sensible
-         *      to fix that.  Good luck.
-         */
+    if (master->devPrivates[CoreDevicePrivatesIndex].ptr != pDev) {
+        master->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
+        sendNotify = TRUE;
+    }
 
-#define KEYBOARD_MASK (ShiftMask | LockMask | ControlMask | Mod1Mask | \
-                       Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask)
-        ckeyc->state &= ~(KEYBOARD_MASK);
-        ckeyc->state |= (pDev->key->state & KEYBOARD_MASK);
-#undef KEYBOARD_MASK
-        for (i = 0; i < 8; i++)
-            ckeyc->modifierKeyCount[i] = pDev->key->modifierKeyCount[i];
+    if (lastMapNotifyDevice != master)
+        sendNotify = TRUE;
 
-#ifdef XKB
-        if (!noXkbExtension && pDev->key->xkbInfo && pDev->key->xkbInfo->desc) {
-            if (!XkbCopyKeymap(pDev->key->xkbInfo->desc, ckeyc->xkbInfo->desc,
-                               True))
-                FatalError("Couldn't pivot keymap from device to core!\n");
-        }
-#endif
-
+    if (sendNotify)
+    {
         SendMappingNotify(pDev, MappingKeyboard, ckeyc->curKeySyms.minKeyCode,
                           (ckeyc->curKeySyms.maxKeyCode -
                            ckeyc->curKeySyms.minKeyCode),
                           serverClient);
-        inputInfo.keyboard->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
+        lastMapNotifyDevice = master;
     }
 }
 
