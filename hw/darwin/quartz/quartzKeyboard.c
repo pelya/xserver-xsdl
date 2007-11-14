@@ -1,8 +1,7 @@
 /*
    quartzKeyboard.c
 
-   Code to build a keymap using the Carbon Keyboard Layout API,
-   which is supported on Mac OS X 10.2 and newer.
+   Code to build a keymap using the Carbon Keyboard Layout API.
 
    Copyright (c) 2003, 2007 Apple Inc.
 
@@ -150,15 +149,11 @@ unsigned int
 DarwinModeSystemKeymapSeed (void)
 {
     static unsigned int seed;
-
     static KeyboardLayoutRef last_key_layout;
     KeyboardLayoutRef key_layout;
 
     KLGetCurrentKeyboardLayout (&key_layout);
-
-    if (key_layout != last_key_layout)
-        seed++;
-
+    if (key_layout != last_key_layout) seed++;
     last_key_layout = key_layout;
 
     return seed;
@@ -190,10 +185,8 @@ macroman2ucs (unsigned char c)
         0xaf, 0x2d8, 0x2d9, 0x2da, 0xb8, 0x2dd, 0x2db, 0x2c7,
     };
 
-    if (c < 128)
-        return c;
-    else
-        return table[c - 128];
+    if (c < 128) return c;
+    else         return table[c - 128];
 }
 
 static KeySym
@@ -202,10 +195,7 @@ make_dead_key (KeySym in)
     int i;
 
     for (i = 0; i < sizeof (dead_keys) / sizeof (dead_keys[0]); i++)
-    {
-        if (dead_keys[i].normal == in)
-            return dead_keys[i].dead;
-    }
+        if (dead_keys[i].normal == in) return dead_keys[i].dead;
 
     return in;
 }
@@ -222,89 +212,66 @@ DarwinModeReadSystemKeymap (darwinKeyboardInfo *info)
     KeySym *k;
 
     TISInputSourceRef currentKeyLayoutRef = TISCopyCurrentKeyboardLayoutInputSource();
-	if (currentKeyLayoutRef)
-	{
-		CFDataRef currentKeyLayoutDataRef = (CFDataRef )TISGetInputSourceProperty(currentKeyLayoutRef, kTISPropertyUnicodeKeyLayoutData);
-		if (currentKeyLayoutDataRef)
-			chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
-	}
-	
-	if(chr_data == NULL) {
-		KLGetCurrentKeyboardLayout (&key_layout);
-		KLGetKeyboardLayoutProperty (key_layout, kKLuchrData, &chr_data);
-
-		if (chr_data != NULL)
-		{
-			is_uchr = 1;
-			keyboard_type = LMGetKbdType ();
-		}
-		else
-		{
-			KLGetKeyboardLayoutProperty (key_layout, kKLKCHRData, &chr_data);
-
-			if (chr_data == NULL)
-			{
-				ErrorF ( "Couldn't get uchr or kchr resource\n");
-				return FALSE;
-			}
-
-			is_uchr = 0;
-			num_keycodes = 128;
-		}    
-	}
+    keyboard_type = LMGetKbdType ();
+    if (currentKeyLayoutRef) {
+      CFDataRef currentKeyLayoutDataRef = (CFDataRef )TISGetInputSourceProperty(currentKeyLayoutRef, kTISPropertyUnicodeKeyLayoutData);
+      if (currentKeyLayoutDataRef) chr_data = CFDataGetBytePtr(currentKeyLayoutDataRef);
+    }
+    
+    if (chr_data == NULL) {
+      KLGetCurrentKeyboardLayout (&key_layout);
+      KLGetKeyboardLayoutProperty (key_layout, kKLuchrData, &chr_data);
+    }
+    
+    if (chr_data == NULL) {
+      KLGetKeyboardLayoutProperty (key_layout, kKLKCHRData, &chr_data);
+      is_uchr = 0;
+      num_keycodes = 128;
+    }
+    
+    if (chr_data == NULL) {
+      ErrorF ( "Couldn't get uchr or kchr resource\n");
+      return FALSE;
+    }
 
     /* Scan the keycode range for the Unicode character that each
        key produces in the four shift states. Then convert that to
        an X11 keysym (which may just the bit that says "this is
        Unicode" if it can't find the real symbol.) */
 
-    for (i = 0; i < num_keycodes; i++)
-    {
+    for (i = 0; i < num_keycodes; i++) {
         static const int mods[4] = {0, MOD_SHIFT, MOD_OPTION,
                                     MOD_OPTION | MOD_SHIFT};
 
         k = info->keyMap + i * GLYPHS_PER_KEY;
 
-        for (j = 0; j < 4; j++)
-        {
-            if (is_uchr)
-            {
+        for (j = 0; j < 4; j++) {
+            if (is_uchr)  {
                 UniChar s[8];
                 UniCharCount len;
-                UInt32 dead_key_state, extra_dead;
+                UInt32 dead_key_state = 0, extra_dead = 0;
 
-                dead_key_state = 0;
                 err = UCKeyTranslate (chr_data, i, kUCKeyActionDown,
                                       mods[j] >> 8, keyboard_type, 0,
                                       &dead_key_state, 8, &len, s);
-                if (err != noErr)
-                    continue;
+                if (err != noErr) continue;
 
-                if (len == 0 && dead_key_state != 0)
-                {
+                if (len == 0 && dead_key_state != 0) {
                     /* Found a dead key. Work out which one it is, but
                        remembering that it's dead. */
-
-                    extra_dead = 0;
                     err = UCKeyTranslate (chr_data, i, kUCKeyActionDown,
                                           mods[j] >> 8, keyboard_type,
                                           kUCKeyTranslateNoDeadKeysMask,
                                           &extra_dead, 8, &len, s);
-                    if (err != noErr)
-                        continue;
+                    if (err != noErr) continue;
                 }
 
-                if (len > 0 && s[0] != 0x0010)
-                {
+                if (len > 0 && s[0] != 0x0010) {
                     k[j] = ucs2keysym (s[0]);
-    
-                    if (dead_key_state != 0)
-                        k[j] = make_dead_key (k[j]);
+                    if (dead_key_state != 0) k[j] = make_dead_key (k[j]);
                 }
-            }
-            else
-            {
-                UInt32 c, state = 0;
+            } else { // kchr
+	      UInt32 c, state = 0, state2 = 0;
                 UInt16 code;
 
                 code = i | mods[j];
@@ -316,67 +283,50 @@ DarwinModeReadSystemKeymap (darwinKeyboardInfo *info)
                    us the actual dead character. */
 
                 if (state != 0)
-                {
-                    UInt32 state2 = 0;
                     c = KeyTranslate (chr_data, code | 128, &state2);
-                }
 
                 /* Characters seem to be in MacRoman encoding. */
 
-                if (c != 0 && c != 0x0010)
-                {
+                if (c != 0 && c != 0x0010) {
                     k[j] = ucs2keysym (macroman2ucs (c & 255));
 
-                    if (state != 0)
-                        k[j] = make_dead_key (k[j]);
+                    if (state != 0) k[j] = make_dead_key (k[j]);
                 }
             }
         }
-
-        if (k[3] == k[2])
-            k[3] = NoSymbol;
-        if (k[2] == k[1])
-            k[2] = NoSymbol;
-        if (k[1] == k[0])
-            k[1] = NoSymbol;
-        if (k[0] == k[2] && k[1] == k[3])
-            k[2] = k[3] = NoSymbol;
+	
+        if (k[3] == k[2]) k[3] = NoSymbol;
+        if (k[2] == k[1]) k[2] = NoSymbol;
+        if (k[1] == k[0]) k[1] = NoSymbol;
+        if (k[0] == k[2] && k[1] == k[3]) k[2] = k[3] = NoSymbol;
     }
 
     /* Fix up some things that are normally missing.. */
 
-    if (HACK_MISSING)
-    {
-        for (i = 0; i < sizeof (known_keys) / sizeof (known_keys[0]); i++)
-        {
+    if (HACK_MISSING) {
+        for (i = 0; i < sizeof (known_keys) / sizeof (known_keys[0]); i++) {
             k = info->keyMap + known_keys[i].keycode * GLYPHS_PER_KEY;
 
-            if (k[0] == NoSymbol && k[1] == NoSymbol
+            if    (k[0] == NoSymbol && k[1] == NoSymbol
                 && k[2] == NoSymbol && k[3] == NoSymbol)
-            {
-                k[0] = known_keys[i].keysym;
-            }
+	      k[0] = known_keys[i].keysym;
         }
     }
 
     /* And some more things. We find the right symbols for the numeric
        keypad, but not the KP_ keysyms. So try to convert known keycodes. */
 
-    if (HACK_KEYPAD)
-    {
+    if (HACK_KEYPAD) {
         for (i = 0; i < sizeof (known_numeric_keys)
-                        / sizeof (known_numeric_keys[0]); i++)
-        {
+                        / sizeof (known_numeric_keys[0]); i++) {
             k = info->keyMap + known_numeric_keys[i].keycode * GLYPHS_PER_KEY;
 
             if (k[0] == known_numeric_keys[i].normal)
-            {
                 k[0] = known_numeric_keys[i].keypad;
-            }
         }
     }
-	if(currentKeyLayoutRef)	CFRelease(currentKeyLayoutRef);
-
+    if(currentKeyLayoutRef)	CFRelease(currentKeyLayoutRef);
+    
     return TRUE;
 }
 

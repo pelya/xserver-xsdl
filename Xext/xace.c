@@ -42,6 +42,22 @@ static int (*SwappedUntrustedProcVector[256])(
     ClientPtr /*client*/
 );
 
+/* Special-cased hook functions.  Called by Xserver.
+ */
+void XaceHookAuditBegin(ClientPtr ptr)
+{
+    XaceAuditRec rec = { ptr, 0 };
+    /* call callbacks, there is no return value. */
+    CallCallbacks(&XaceHooks[XACE_AUDIT_BEGIN], &rec);
+}
+
+void XaceHookAuditEnd(ClientPtr ptr, int result)
+{
+    XaceAuditRec rec = { ptr, result };
+    /* call callbacks, there is no return value. */
+    CallCallbacks(&XaceHooks[XACE_AUDIT_END], &rec);
+}
+
 /* Entry point for hook functions.  Called by Xserver.
  */
 int XaceHook(int hook, ...)
@@ -58,26 +74,6 @@ int XaceHook(int hook, ...)
      */
     switch (hook)
     {
-	case XACE_CORE_DISPATCH: {
-	    XaceCoreDispatchRec rec = {
-		va_arg(ap, ClientPtr),
-		Success /* default allow */
-	    };
-	    calldata = &rec;
-	    prv = &rec.status;
-	    break;
-	}
-	case XACE_EXT_DISPATCH: {
-	    XaceExtAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, ExtensionEntry*),
-		DixUseAccess,
-		Success /* default allow */
-	    };
-	    calldata = &rec;
-	    prv = &rec.status;
-	    break;
-	}
 	case XACE_RESOURCE_ACCESS: {
 	    XaceResourceAccessRec rec = {
 		va_arg(ap, ClientPtr),
@@ -213,22 +209,6 @@ int XaceHook(int hook, ...)
 	    calldata = &rec;
 	    break;
 	}
-	case XACE_AUDIT_BEGIN: {
-	    XaceAuditRec rec = {
-		va_arg(ap, ClientPtr),
-		0
-	    };
-	    calldata = &rec;
-	    break;
-	}
-	case XACE_AUDIT_END: {
-	    XaceAuditRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, int)
-	    };
-	    calldata = &rec;
-	    break;
-	}
 	default: {
 	    va_end(ap);
 	    return 0;	/* unimplemented hook number */
@@ -293,14 +273,17 @@ static int
 XaceCatchDispatchProc(ClientPtr client)
 {
     REQUEST(xReq);
-    int rc, major = stuff->reqType;
+    int major = stuff->reqType;
+    XaceCoreDispatchRec rec = { client, Success /* default allow */ };
 
     if (!ProcVector[major])
-	return (BadRequest);
+	return BadRequest;
 
-    rc = XaceHook(XACE_CORE_DISPATCH, client);
-    if (rc != Success)
-        return rc;
+    /* call callbacks and return result, if any. */
+    CallCallbacks(&XaceHooks[XACE_CORE_DISPATCH], &rec);
+
+    if (rec.status != Success)
+	return rec.status;
 
     return client->swapped ? 
 	(* SwappedProcVector[major])(client) :
@@ -313,12 +296,16 @@ XaceCatchExtProc(ClientPtr client)
     REQUEST(xReq);
     int major = stuff->reqType;
     ExtensionEntry *ext = GetExtensionEntry(major);
+    XaceExtAccessRec rec = { client, ext, DixUseAccess, Success };
 
     if (!ext || !ProcVector[major])
-	return (BadRequest);
+	return BadRequest;
 
-    if (XaceHook(XACE_EXT_DISPATCH, client, ext) != Success)
-	return (BadRequest); /* pretend extension doesn't exist */
+    /* call callbacks and return result, if any. */
+    CallCallbacks(&XaceHooks[XACE_EXT_DISPATCH], &rec);
+
+    if (rec.status != Success)
+	return BadRequest; /* pretend extension doesn't exist */
 
     return client->swapped ?
 	(* SwappedProcVector[major])(client) :

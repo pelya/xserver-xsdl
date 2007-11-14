@@ -677,7 +677,7 @@ InitVisualWrap()
 {
     miResetInitVisuals();
 #ifdef GLXEXT
-#ifdef __DARWIN__
+#ifdef INXDARWINAPP
     DarwinGlxWrapInitVisuals(&miInitVisualsProc);
 #endif
 #endif

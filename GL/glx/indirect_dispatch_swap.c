@@ -5325,31 +5325,6 @@ void __glXDispSwap_LoadProgramNV(GLbyte * pc)
     ) );
 }
 
-void __glXDispSwap_ProgramParameter4dvNV(GLbyte * pc)
-{
-#ifdef __GLX_ALIGN64
-    if ((unsigned long)(pc) & 7) {
-        (void) memmove(pc-4, pc, 40);
-        pc -= 4;
-    }
-#endif
-
-    CALL_ProgramParameter4dvNV( GET_DISPATCH(), (
-         (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLuint  )bswap_CARD32 ( pc +  4 ),
-         (const GLdouble *)bswap_64_array( (uint64_t *) (pc +  8), 4 )
-    ) );
-}
-
-void __glXDispSwap_ProgramParameter4fvNV(GLbyte * pc)
-{
-    CALL_ProgramParameter4fvNV( GET_DISPATCH(), (
-         (GLenum  )bswap_ENUM   ( pc +  0 ),
-         (GLuint  )bswap_CARD32 ( pc +  4 ),
-         (const GLfloat *)bswap_32_array( (uint32_t *) (pc +  8), 4 )
-    ) );
-}
-
 void __glXDispSwap_ProgramParameters4dvNV(GLbyte * pc)
 {
     const GLuint num =  (GLuint  )bswap_CARD32 ( pc +  8 );

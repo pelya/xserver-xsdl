@@ -63,6 +63,11 @@ extern int XaceHook(
     ... /*appropriate args for hook*/
     ); 
 
+/* Special-cased hook functions
+ */
+extern void XaceHookAuditEnd(ClientPtr ptr, int result);
+extern void XaceHookAuditBegin(ClientPtr ptr);
+
 /* Register a callback for a given hook.
  */
 #define XaceRegisterCallback(hook,callback,data) \
@@ -93,9 +98,13 @@ extern void XaceCensorImage(
 
 #ifdef __GNUC__
 #define XaceHook(args...) Success
+#define XaceHookAuditEnd(args...) { ; }
+#define XaceHookAuditBegin(args...) { ; }
 #define XaceCensorImage(args...) { ; }
 #else
 #define XaceHook(...) Success
+#define XaceHookAuditEnd(...) { ; }
+#define XaceHookAuditBegin(...) { ; }
 #define XaceCensorImage(...) { ; }
 #endif
 

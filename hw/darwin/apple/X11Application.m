@@ -183,116 +183,113 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 }
 
 - (void) sendEvent:(NSEvent *)e {
-    NSEventType type;
-    BOOL for_appkit, for_x;
-	
-    type = [e type];
-	
-    /* By default pass down the responder chain and to X. */
-    for_appkit = YES;
-    for_x = YES;
-	
-    switch (type) {
-    case NSLeftMouseDown: case NSRightMouseDown: case NSOtherMouseDown:
-    case NSLeftMouseUp: case NSRightMouseUp: case NSOtherMouseUp:
-      if ([e window] != nil) {
-	/* Pointer event has a window. Probably something for the kit. */
-	
-	for_x = NO;
-	
-	if (_x_active) [self activateX:NO];
-      } else if ([self modalWindow] == nil) {
-	/* Must be an X window. Tell appkit it doesn't have focus. */
-			
-	for_appkit = NO;
-	
-	if ([self isActive]) {
-	  [self deactivate];
-	  
-	  if (!_x_active && quartzProcs->IsX11Window([e window], [e windowNumber]))
-	    [self activateX:YES];
-	}
-      }
-      break;
+  NSEventType type;
+  BOOL for_appkit, for_x;
+  
+  type = [e type];
+  
+  /* By default pass down the responder chain and to X. */
+  for_appkit = YES;
+  for_x = YES;
+  
+  switch (type) {
+  case NSLeftMouseDown: case NSRightMouseDown: case NSOtherMouseDown:
+  case NSLeftMouseUp: case NSRightMouseUp: case NSOtherMouseUp:
+    if ([e window] != nil) {
+      /* Pointer event has an (AppKit) window. Probably something for the kit. */
+      for_x = NO;
+      if (_x_active) [self activateX:NO];
+    } else if ([self modalWindow] == nil) {
+      /* Must be an X window. Tell appkit it doesn't have focus. */
+      WindowPtr pWin = xprGetXWindowFromAppKit([e windowNumber]);
+      if (pWin) RootlessReorderWindow(pWin);
+      for_appkit = NO;
       
-    case NSKeyDown: case NSKeyUp:
-      if (_x_active) {
-	static int swallow_up;
+      if ([self isActive]) {
+	[self deactivate];
 	
-	/* No kit window is focused, so send it to X. */
+	if (!_x_active && quartzProcs->IsX11Window([e window],
+						   [e windowNumber]))
+	  [self activateX:YES];
+      }
+    }
+    break;
+      
+  case NSKeyDown: case NSKeyUp:
+    if (_x_active) {
+      static int swallow_up;
+      
+      /* No kit window is focused, so send it to X. */
+      for_appkit = NO;
+      if (type == NSKeyDown) {
+	/* Before that though, see if there are any global
+	   shortcuts bound to it. */
 	
-	for_appkit = NO;
-	
-	if (type == NSKeyDown) {
-	  /* Before that though, see if there are any global
-	     shortcuts bound to it. */
-	  
-	  if (X11EnableKeyEquivalents
-	      && [[self mainMenu] performKeyEquivalent:e]) {
-	    swallow_up = [e keyCode];
-	    for_x = NO;
-	  } else if (!quartzEnableRootless
+	if (X11EnableKeyEquivalents
+	    && [[self mainMenu] performKeyEquivalent:e]) {
+	  swallow_up = [e keyCode];
+	  for_x = NO;
+	} else if (!quartzEnableRootless
 		   && ([e modifierFlags] & ALL_KEY_MASKS)
 		   == (NSCommandKeyMask | NSAlternateKeyMask)
 		   && ([e keyCode] == 0 /*a*/
-		       || [e keyCode] == 53 /*Esc*/)) {
-	    swallow_up = 0;
-	    for_x = NO;
+		    || [e keyCode] == 53 /*Esc*/)) {
+	  swallow_up = 0;
+	  for_x = NO;
 #ifdef DARWIN_DDX_MISSING
-	    QuartzMessageServerThread (kXDarwinToggleFullscreen, 0);
+	  QuartzMessageServerThread (kXDarwinToggleFullscreen, 0);
 #endif
-	  }
-	} else {
-	  /* If we saw a key equivalent on the down, don't pass
-	     the up through to X. */
-	  
-	  if (swallow_up != 0 && [e keyCode] == swallow_up) {
-	    swallow_up = 0;
-	    for_x = NO;
-	  }
+	}
+      } else {
+	/* If we saw a key equivalent on the down, don't pass
+	   the up through to X. */
+	
+	if (swallow_up != 0 && [e keyCode] == swallow_up) {
+	  swallow_up = 0;
+	  for_x = NO;
 	}
       }
-      else for_x = NO;
-      break;
-		
-    case NSFlagsChanged:
-      /* For the l33t X users who remap modifier keys to normal keysyms. */
-      if (!_x_active)
-	for_x = NO;
-      break;
-		
-    case NSAppKitDefined:
-      switch ([e subtype]) {
-      case NSApplicationActivatedEventType:
-	for_x = NO;
-	if ([self modalWindow] == nil) {
-	  for_appkit = NO;
-	  
-	  /* FIXME: hack to avoid having to pass the event to appkit,
-	     which would cause it to raise one of its windows. */
-	  _appFlags._active = YES;
-	  
-	  [self activateX:YES];
-	  if ([e data2] & 0x10) X11ApplicationSetFrontProcess();
-	}
-	break;
-			
-      case 18: /* ApplicationDidReactivate */
-	if (quartzHasRoot) for_appkit = NO;
-	break;
-			
-      case NSApplicationDeactivatedEventType:
-	for_x = NO;
-	[self activateX:NO];
-	break;
+    } else for_x = NO;
+    break;
+    
+  case NSFlagsChanged:
+    /* For the l33t X users who remap modifier keys to normal keysyms. */
+    if (!_x_active) for_x = NO;
+    break;
+    
+  case NSAppKitDefined:
+    switch ([e subtype]) {
+    case NSApplicationActivatedEventType:
+      for_x = NO;
+      if ([self modalWindow] == nil) {
+	for_appkit = NO;
+	
+	/* FIXME: hack to avoid having to pass the event to appkit,
+	   which would cause it to raise one of its windows. */
+	_appFlags._active = YES;
+	
+	[self activateX:YES];
+	if ([e data2] & 0x10) X11ApplicationSetFrontProcess();
       }
       break;
       
-    default: break; /* for gcc */
+    case 18: /* ApplicationDidReactivate */
+      if (quartzHasRoot) for_appkit = NO;
+      break;
+      
+    case NSApplicationDeactivatedEventType:
+      for_x = NO;
+      [self activateX:NO];
+      break;
     }
-	
-    if (for_appkit) [super sendEvent:e];
-    if (for_x) send_nsevent (type, e);
+    break;
+    
+  default: break; /* for gcc */
+  }
+  
+  if (for_appkit) [super sendEvent:e];
+  
+  if (for_x) send_nsevent (type, e);
 }
 
 - (void) set_window_menu:(NSArray *)list {
@@ -596,52 +593,51 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
     CFPreferencesAppSynchronize (kCFPreferencesCurrentApplication);
 }
 
-- (void) read_defaults {
-  const char *tem;
-  
-  quartzUseSysBeep = [self prefs_get_boolean:@PREFS_SYSBEEP
-			   default:quartzUseSysBeep];
-  quartzEnableRootless = [self prefs_get_boolean:@PREFS_ROOTLESS
-			       default:quartzEnableRootless];
+- (void) read_defaults
+{
+    const char *tem;
+	
+    quartzUseSysBeep = [self prefs_get_boolean:@PREFS_SYSBEEP
+                        default:quartzUseSysBeep];
+    quartzEnableRootless = [self prefs_get_boolean:@PREFS_ROOTLESS
+                        default:quartzEnableRootless];
 #ifdef DARWIN_DDX_MISSING
-  quartzFullscreenDisableHotkeys = ![self prefs_get_boolean:
-					    @PREFS_FULLSCREEN_HOTKEYS default:
-					    !quartzFullscreenDisableHotkeys];
-  quartzXpluginOptions = [self prefs_get_integer:@PREFS_XP_OPTIONS
-			       default:quartzXpluginOptions];
+    quartzFullscreenDisableHotkeys = ![self prefs_get_boolean:
+					      @PREFS_FULLSCREEN_HOTKEYS default:
+					      !quartzFullscreenDisableHotkeys];
+    quartzXpluginOptions = [self prefs_get_integer:@PREFS_XP_OPTIONS
+                            default:quartzXpluginOptions];
 #endif
-  
-  darwinSwapAltMeta = [self prefs_get_boolean:@PREFS_SWAP_ALT_META
-			    default:darwinSwapAltMeta];
-  darwinFakeButtons = [self prefs_get_boolean:@PREFS_FAKEBUTTONS
-			    default:darwinFakeButtons];
-  if (darwinFakeButtons) {
-    const char *fake2, *fake3;
-    
-    fake2 = [self prefs_get_string:@PREFS_FAKE_BUTTON2 default:NULL];
-    fake3 = [self prefs_get_string:@PREFS_FAKE_BUTTON3 default:NULL];
-													      
-     if (fake2 != NULL) darwinFakeMouse2Mask = DarwinParseModifierList(fake2);
-     if (fake3 != NULL) darwinFakeMouse3Mask = DarwinParseModifierList(fake3);
-		
-  }
 	
-  X11EnableKeyEquivalents = [self prefs_get_boolean:@PREFS_KEYEQUIVS
-				  default:X11EnableKeyEquivalents];
+    darwinSwapAltMeta = [self prefs_get_boolean:@PREFS_SWAP_ALT_META
+                         default:darwinSwapAltMeta];
+    darwinFakeButtons = [self prefs_get_boolean:@PREFS_FAKEBUTTONS
+                         default:darwinFakeButtons];
+    if (darwinFakeButtons) {
+      const char *fake2, *fake3;
+      
+      fake2 = [self prefs_get_string:@PREFS_FAKE_BUTTON2 default:NULL];
+      fake3 = [self prefs_get_string:@PREFS_FAKE_BUTTON3 default:NULL];
+      
+      if (fake2 != NULL) darwinFakeMouse2Mask = DarwinParseModifierList(fake2);
+      if (fake3 != NULL) darwinFakeMouse3Mask = DarwinParseModifierList(fake3);
+    }
 	
-  darwinSyncKeymap = [self prefs_get_boolean:@PREFS_SYNC_KEYMAP
-			   default:darwinSyncKeymap];
+    X11EnableKeyEquivalents = [self prefs_get_boolean:@PREFS_KEYEQUIVS
+                               default:X11EnableKeyEquivalents];
 	
-  tem = [self prefs_get_string:@PREFS_KEYMAP_FILE default:NULL];
-
-  if (tem != NULL) darwinKeymapFile = strdup (tem);
-  else darwinKeymapFile = NULL;
+    darwinSyncKeymap = [self prefs_get_boolean:@PREFS_SYNC_KEYMAP
+                        default:darwinSyncKeymap];
 	
-  darwinDesiredDepth = [self prefs_get_integer:@PREFS_DEPTH
-			     default:darwinDesiredDepth];
+    tem = [self prefs_get_string:@PREFS_KEYMAP_FILE default:NULL];
+    if (tem != NULL) darwinKeymapFile = strdup (tem);
+    else             darwinKeymapFile = NULL;
 	
-  enable_stereo = [self prefs_get_boolean:@PREFS_ENABLE_STEREO
-			default:false];
+    darwinDesiredDepth = [self prefs_get_integer:@PREFS_DEPTH
+                          default:darwinDesiredDepth];
+	
+    enable_stereo = [self prefs_get_boolean:@PREFS_ENABLE_STEREO
+                     default:false];
 }
 
 /* This will end up at the end of the responder chain. */
@@ -793,44 +789,40 @@ environment?", @"Startup xinitrc dialog");
 
 void X11ApplicationMain (int argc, const char *argv[],
 			 void (*server_thread) (void *), void *server_arg) {
-    NSAutoreleasePool *pool;
-	
+  NSAutoreleasePool *pool;
+  
 #ifdef DEBUG
-    while (access ("/tmp/x11-block", F_OK) == 0) sleep (1);
+  while (access ("/tmp/x11-block", F_OK) == 0) sleep (1);
 #endif
+  
+  pool = [[NSAutoreleasePool alloc] init];
+  X11App = (X11Application *) [X11Application sharedApplication];
+  init_ports ();
+  [NSApp read_defaults];
+  [NSBundle loadNibNamed:@"main" owner:NSApp];
+  [[NSNotificationCenter defaultCenter] addObserver:NSApp
+					selector:@selector (became_key:)
+					name:NSWindowDidBecomeKeyNotification object:nil];
+  check_xinitrc ();
 	
-    pool = [[NSAutoreleasePool alloc] init];
-	
-    X11App = (X11Application *) [X11Application sharedApplication];
-
-    init_ports ();
-	
-    [NSApp read_defaults];
-	
-    [NSBundle loadNibNamed:@"main" owner:NSApp];
-	
-    [[NSNotificationCenter defaultCenter] addObserver:NSApp
-					  selector:@selector (became_key:)
-					  name:NSWindowDidBecomeKeyNotification object:nil];
-	
-    check_xinitrc ();
-	
-    /*
-     * The xpr Quartz mode is statically linked into this server.
-     * Initialize all the Quartz functions.
-     */
-    QuartzModeBundleInit();
-	
-    /* Calculate the height of the menubar so we can avoid it. */
-    aquaMenuBarHeight = NSHeight([[NSScreen mainScreen] frame]) -
-      NSMaxY([[NSScreen mainScreen] visibleFrame]) - 1;
-	
-    if (!create_thread (server_thread, server_arg)) {
-      ErrorF("can't create secondary thread\n");
-      exit(1);
-    }
-	
-    [NSApp run];
+  /*
+   * The xpr Quartz mode is statically linked into this server.
+   * Initialize all the Quartz functions.
+   */
+  QuartzModeBundleInit();
+  
+  /* Calculate the height of the menubar so we can avoid it. */
+  aquaMenuBarHeight = NSHeight([[NSScreen mainScreen] frame]) -
+    NSMaxY([[NSScreen mainScreen] visibleFrame]);
+  
+  if (!create_thread (server_thread, server_arg)) {
+    ErrorF("can't create secondary thread\n");
+    exit (1);
+  }
+  
+  [NSApp run];
+  
+  /* not reached */
 }
 
 

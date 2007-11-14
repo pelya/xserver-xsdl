@@ -355,8 +355,8 @@ connect_hook(DBusConnection *connection, void *data)
 
     dbus_error_init(&error);
 
-    if (!dbus_bus_request_name(info->connection, info->busname,
-                               0, &error)) {
+    dbus_bus_request_name(info->connection, info->busname, 0, &error);
+    if (dbus_error_is_set(&error)) {
         ErrorF("[config/dbus] couldn't take over org.x.config: %s (%s)\n",
                error.name, error.message);
         goto err_start;

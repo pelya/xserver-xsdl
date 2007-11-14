@@ -67,6 +67,7 @@ static inline xp_error
 xprConfigureWindow(xp_window_id id, unsigned int mask,
                    const xp_window_changes *values)
 {
+  //  ErrorF("xprConfigureWindow()\n");
     if (!no_configure_window)
         return xp_configure_window(id, mask, values);
     else
@@ -184,7 +185,7 @@ xprMoveFrame(RootlessFrameID wid, ScreenPtr pScreen, int newX, int newY)
 
     wc.x = newX;
     wc.y = newY;
-
+    //    ErrorF("xprMoveFrame(%d, %p, %d, %d)\n", wid, pScreen, newX, newY);
     xprConfigureWindow((xp_window_id) wid, XP_ORIGIN, &wc);
 }
 
@@ -418,6 +419,37 @@ xprGetXWindow(xp_window_id wid)
     if (window_hash == NULL)
         return NULL;
 
+    winRec = x_hash_table_lookup(window_hash, (void *) wid, NULL);
+
+    return winRec != NULL ? winRec->win : NULL;
+}
+
+/*
+ * Given the id of a physical window, try to find the top-level (or root)
+ * X window that it represents.
+ */
+WindowPtr
+xprGetXWindowFromAppKit(int windowNumber)
+{
+    RootlessWindowRec *winRec;
+    Bool ret;
+    xp_window_id wid;
+
+    if (window_hash == NULL)
+        return FALSE;
+
+    /* need to lock, since this function can be called by any thread */
+
+    pthread_mutex_lock(&window_hash_mutex);
+
+    if (xp_lookup_native_window(windowNumber, &wid))
+        ret = xprGetXWindow(wid) != NULL;
+    else
+        ret = FALSE;
+
+    pthread_mutex_unlock(&window_hash_mutex);
+
+    if (!ret) return NULL;
     winRec = x_hash_table_lookup(window_hash, (void *) wid, NULL);
 
     return winRec != NULL ? winRec->win : NULL;

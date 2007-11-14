@@ -31,6 +31,12 @@ Disables acceleration of downloading of pixmap data from the framebuffer.
 Not usable with drivers which rely on DownloadFromScreen succeeding.
 Default: No.
 .TP
+.BI "Option \*qEXAOptimizeMigration\*q \*q" boolean \*q
+Enables an additional optimization for migration of destination pixmaps. This
+may improve performance in some cases (e.g. when switching virtual desktops with
+no compositing manager) but causes corruption in others (e.g. when starting
+compiz). Default: No.
+.TP
 .BI "Option \*qMigrationHeuristic\*q \*q" anystr \*q
 Chooses an alternate pixmap migration heuristic, for debugging purposes.  The
 default is intended to be the best performing one for general use, though others

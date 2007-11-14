@@ -1508,6 +1508,8 @@ SmartScheduleStopTimer (void)
 #ifdef SMART_SCHEDULE_POSSIBLE
     struct itimerval	timer;
     
+    if (SmartScheduleDisable)
+	return;
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = 0;
     timer.it_value.tv_sec = 0;
@@ -1522,6 +1524,8 @@ SmartScheduleStartTimer (void)
 #ifdef SMART_SCHEDULE_POSSIBLE
     struct itimerval	timer;
     
+    if (SmartScheduleDisable)
+	return;
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = SmartScheduleInterval * 1000;
     timer.it_value.tv_sec = 0;

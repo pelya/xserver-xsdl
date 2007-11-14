@@ -49,6 +49,7 @@ typedef enum {
     EXAOPT_NO_COMPOSITE,
     EXAOPT_NO_UTS,
     EXAOPT_NO_DFS,
+    EXAOPT_OPTIMIZE_MIGRATION
 } EXAOpts;
 
 static const OptionInfoRec EXAOptions[] = {
@@ -59,6 +60,8 @@ static const OptionInfoRec EXAOptions[] = {
     { EXAOPT_NO_UTS,			"EXANoUploadToScreen",
 				OPTV_BOOLEAN,	{0}, FALSE },
     { EXAOPT_NO_DFS,			"EXANoDownloadFromScreen",
+				OPTV_BOOLEAN,	{0}, FALSE },
+    { EXAOPT_OPTIMIZE_MIGRATION,	"EXAOptimizeMigration",
 				OPTV_BOOLEAN,	{0}, FALSE },
     { -1,				NULL,
 				OPTV_NONE,	{0}, FALSE }
@@ -138,6 +141,11 @@ exaDDXDriverInit(ScreenPtr pScreen)
 			    heuristicName);
 	    }
 	}
+
+	pExaScr->optimize_migration =
+	    xf86ReturnOptValBool(pScreenPriv->options,
+				 EXAOPT_OPTIMIZE_MIGRATION,
+				 FALSE);
     }
 
     if (xf86IsOptionSet(pScreenPriv->options, EXAOPT_NO_COMPOSITE)) {

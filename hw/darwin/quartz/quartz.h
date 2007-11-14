@@ -122,6 +122,7 @@ typedef struct _QuartzModeProcs {
 } QuartzModeProcsRec, *QuartzModeProcsPtr;
 
 extern QuartzModeProcsPtr quartzProcs;
+extern int quartzHasRoot, quartzEnableRootless;
 
 Bool QuartzLoadDisplayBundle(const char *dpyBundleName);
 

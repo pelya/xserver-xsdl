@@ -36,7 +36,6 @@
 #include "ephyrdri.h"
 #include "ephyrdriext.h"
 #include "ephyrglxext.h"
-#include "ephyrproxyext.h"
 #endif /*XEPHYR_DRI*/
 
 extern int KdTsPhyScreen;
@@ -640,7 +639,6 @@ ephyrInitScreen (ScreenPtr pScreen)
   if (!ephyrNoDRI) {
     ephyrDRIExtensionInit (pScreen) ;
     ephyrHijackGLXExtension () ;
-    ephyrProxyExtensionInit ("ATIFGLRXDRI") ;
   }
 #endif
 
@@ -719,6 +717,10 @@ ephyrRestore (KdCardInfo *card)
 void
 ephyrScreenFini (KdScreenInfo *screen)
 {
+    EphyrScrPriv  *scrpriv = screen->driver;
+    if (scrpriv->shadow) {
+        KdShadowFbFree (screen, 0);
+    }
     xfree(screen->driver);
     screen->driver = NULL;
 }

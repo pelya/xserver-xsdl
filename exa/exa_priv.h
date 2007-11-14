@@ -119,6 +119,7 @@ typedef struct {
     enum ExaMigrationHeuristic	 migration;
     Bool			 checkDirtyCorrectness;
     unsigned			 disableFbCount;
+    Bool			 optimize_migration;
 } ExaScreenPrivRec, *ExaScreenPrivPtr;
 
 /*

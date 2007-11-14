@@ -36,12 +36,22 @@
 #include <stddef.h> /* For NULL */
 #include <limits.h> /* For CHAR_BIT */
 #include <assert.h>
+#ifdef __APPLE__
+//#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include "mi.h"
+#include "pixmapstr.h"
+#include "windowstr.h"
+#include <Xplugin.h>
+//#include <X11/extensions/applewm.h>
+extern int darwinMainScreenX, darwinMainScreenY;
+#endif
+#include "fb.h"
+
+#define AppleWMNumWindowLevels 5
 
 #include "rootlessCommon.h"
 #include "rootlessWindow.h"
-
-#include "fb.h"
-
 
 #ifdef ROOTLESS_GLOBAL_COORDS
 #define SCREEN_TO_GLOBAL_X \
@@ -53,6 +63,127 @@
 #define SCREEN_TO_GLOBAL_Y 0
 #endif
 
+#define DEFINE_ATOM_HELPER(func,atom_name)                      \
+  static Atom func (void) {                                       \
+    static unsigned int generation;                             \
+    static Atom atom;                                           \
+    if (generation != serverGeneration) {                       \
+      generation = serverGeneration;                          \
+      atom = MakeAtom (atom_name, strlen (atom_name), TRUE);  \
+    }                                                           \
+    return atom;                                                \
+  }
+
+DEFINE_ATOM_HELPER (xa_native_screen_origin, "_NATIVE_SCREEN_ORIGIN")
+DEFINE_ATOM_HELPER (xa_native_window_id, "_NATIVE_WINDOW_ID")
+DEFINE_ATOM_HELPER (xa_apple_no_order_in, "_APPLE_NO_ORDER_IN")
+
+static Bool no_configure_window;
+static Bool windows_hidden;
+// TODO - abstract xp functions
+
+static const int normal_window_levels[AppleWMNumWindowLevels+1] = {
+  0, 3, 4, 5, LONG_MIN + 30, LONG_MIN + 29,
+};
+static const int rooted_window_levels[AppleWMNumWindowLevels+1] = {
+  202, 203, 204, 205, 201, 200
+};
+
+static inline int
+configure_window (xp_window_id id, unsigned int mask,
+                  const xp_window_changes *values)
+{
+  if (!no_configure_window)
+    return xp_configure_window (id, mask, values);
+  else
+    return XP_Success;
+}
+
+/*static inline unsigned long
+current_time_in_seconds (void)
+{
+  unsigned long t = 0;
+
+  t += currentTime.milliseconds / 1000;
+  t += currentTime.months * 4294967;
+
+  return t;
+  } */
+
+static inline Bool
+rootlessHasRoot (ScreenPtr pScreen)
+{
+  return WINREC (WindowTable[pScreen->myNum]) != NULL;
+}
+
+void
+RootlessNativeWindowStateChanged (xp_window_id id, unsigned int state)
+{
+  WindowPtr pWin;
+  RootlessWindowRec *winRec;
+
+  pWin = xprGetXWindow (id);
+  if (pWin == NULL) return;
+
+  winRec = WINREC (pWin);
+  if (winRec == NULL) return;
+
+  winRec->is_offscreen = ((state & XP_WINDOW_STATE_OFFSCREEN) != 0);
+  winRec->is_obscured = ((state & XP_WINDOW_STATE_OBSCURED) != 0);
+  //  pWin->rootlessUnhittable = winRec->is_offscreen;
+}
+
+void
+RootlessNativeWindowMoved (WindowPtr pWin)
+{
+  xp_box bounds;
+  int sx, sy;
+  XID vlist[2];
+  Mask mask;
+  ClientPtr client;
+  RootlessWindowRec *winRec = WINREC(pWin);
+
+  if (xp_get_window_bounds (winRec->wid, &bounds) != Success) return;
+
+  sx = dixScreenOrigins[pWin->drawable.pScreen->myNum].x + darwinMainScreenX;
+  sy = dixScreenOrigins[pWin->drawable.pScreen->myNum].y + darwinMainScreenY;
+
+  /* Fake up a ConfigureWindow packet to resize the window to the current bounds. */
+
+  vlist[0] = (INT16) bounds.x1 - sx;
+  vlist[1] = (INT16) bounds.y1 - sy;
+  mask = CWX | CWY;
+
+  /* pretend we're the owner of the window! */
+  client = LookupClient (pWin->drawable.id, NullClient);
+
+  /* Don't want to do anything to the physical window (avoids 
+     notification-response feedback loops) */
+
+  no_configure_window = TRUE;
+  ConfigureWindow (pWin, mask, vlist, client);
+  no_configure_window = FALSE;
+}
+
+/* Updates the _NATIVE_SCREEN_ORIGIN property on the given root window. */
+static void
+set_screen_origin (WindowPtr pWin)
+{
+  long data[2];
+
+  if (!IsRoot (pWin))
+    return;
+
+  /* FIXME: move this to an extension? */
+
+  data[0] = (dixScreenOrigins[pWin->drawable.pScreen->myNum].x
+	     + darwinMainScreenX);
+  data[1] = (dixScreenOrigins[pWin->drawable.pScreen->myNum].y
+	     + darwinMainScreenY);
+
+  ChangeWindowProperty (pWin, xa_native_screen_origin (), XA_INTEGER,
+			32, PropModeReplace, 2, data, TRUE);
+}
 
 /*
  * RootlessCreateWindow
@@ -565,7 +696,6 @@ RootlessRestackWindow(WindowPtr pWin, WindowPtr pOldNextSib)
     RL_DEBUG_MSG("restackwindow end\n");
 }
 
-
 /*
  * Specialized window copy procedures
  */
@@ -706,13 +836,13 @@ RootlessCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
         top = TopLevelParent(pWin);
         if (top == NULL) {
             RL_DEBUG_MSG("no parent\n");
-            return;
+            goto out;
         }
 
         winRec = WINREC(top);
         if (winRec == NULL) {
             RL_DEBUG_MSG("not framed\n");
-            return;
+            goto out;
         }
 
         /* Move region to window local coords */
@@ -735,6 +865,7 @@ RootlessCopyWindow(WindowPtr pWin, DDXPointRec ptOldOrg, RegionPtr prgnSrc)
         RootlessDamageRegion(pWin, prgnSrc);
     }
 
+out:
     REGION_UNINIT(pScreen, &rgnDst);
     fbValidateDrawable(&pWin->drawable);
 

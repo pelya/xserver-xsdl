@@ -5169,31 +5169,6 @@ void __glXDisp_LoadProgramNV(GLbyte * pc)
     ) );
 }
 
-void __glXDisp_ProgramParameter4dvNV(GLbyte * pc)
-{
-#ifdef __GLX_ALIGN64
-    if ((unsigned long)(pc) & 7) {
-        (void) memmove(pc-4, pc, 40);
-        pc -= 4;
-    }
-#endif
-
-    CALL_ProgramParameter4dvNV( GET_DISPATCH(), (
-        *(GLenum   *)(pc +  0),
-        *(GLuint   *)(pc +  4),
-         (const GLdouble *)(pc +  8)
-    ) );
-}
-
-void __glXDisp_ProgramParameter4fvNV(GLbyte * pc)
-{
-    CALL_ProgramParameter4fvNV( GET_DISPATCH(), (
-        *(GLenum   *)(pc +  0),
-        *(GLuint   *)(pc +  4),
-         (const GLfloat *)(pc +  8)
-    ) );
-}
-
 void __glXDisp_ProgramParameters4dvNV(GLbyte * pc)
 {
     const GLuint num = *(GLuint   *)(pc +  8);
