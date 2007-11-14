@@ -118,6 +118,7 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
     dcce->deviceid     = master->id;
     dcce->num_classes  = 0;
 
+    master->public.devicePrivate = device->public.devicePrivate;
     master->key        = device->key;
     master->valuator   = device->valuator;
     master->button     = device->button;
