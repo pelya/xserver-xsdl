@@ -532,7 +532,7 @@ SELinuxSend(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	if (rc != Success)
 	    goto err;
 
-	auditdata.event = rec->events[i].u.u.type;
+	auditdata.event = type;
 	rc = SELinuxDoCheck(clientIndex, subj, &ev_sid, class,
 			    DixSendAccess, &auditdata);
 	if (rc != Success)
@@ -547,9 +547,10 @@ static void
 SELinuxReceive(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceReceiveAccessRec *rec = calldata;
-    SELinuxStateRec *subj, *obj;
+    SELinuxStateRec *subj, *obj, ev_sid;
     SELinuxAuditRec auditdata = { .client = NULL };
-    int rc, i;
+    security_class_t class;
+    int rc, i, type;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
     obj = dixLookupPrivate(&rec->pWin->devPrivates, stateKey);
@@ -562,14 +563,15 @@ SELinuxReceive(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
     /* Check receive permission on specific event types */
     for (i = 0; i < rec->count; i++) {
-	SELinuxStateRec ev_sid;
+	type = rec->events[i].u.u.type;
+	class = (type & 128) ? SECCLASS_X_FAKEEVENT : SECCLASS_X_EVENT;
 
-	rc = SELinuxEventToSID(rec->events[i].u.u.type, obj->sid, &ev_sid);
+	rc = SELinuxEventToSID(type, obj->sid, &ev_sid);
 	if (rc != Success)
 	    goto err;
 
-	auditdata.event = rec->events[i].u.u.type;
-	rc = SELinuxDoCheck(rec->client->index, subj, &ev_sid, SECCLASS_X_EVENT,
+	auditdata.event = type;
+	rc = SELinuxDoCheck(rec->client->index, subj, &ev_sid, class,
 			    DixReceiveAccess, &auditdata);
 	if (rc != Success)
 	    goto err;
