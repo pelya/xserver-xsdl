@@ -31,9 +31,6 @@
 /* Build DPMS extension */
 #undef DPMSExtension
 
-/* Built-in output drivers */
-#undef DRIVERS
-
 /* Build GLX extension */
 #undef GLXEXT
 
@@ -45,9 +42,6 @@
 
 /* Support SHM */
 #undef HAS_SHM
-
-/* Built-in input drivers */
-#undef IDRIVERS
 
 /* Support IPv6 for TCP connections */
 #undef IPv6

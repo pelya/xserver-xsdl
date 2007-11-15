@@ -1518,8 +1518,6 @@ dnl has it in libc), or if libdl is needed to get it.
 	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
 	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])
 	AC_DEFINE(WITH_VGAHW, 1, [Building vgahw module])
-	AC_DEFINE(DRIVERS, {}, [Built-in output drivers (none)])
-	AC_DEFINE(IDRIVERS, {}, [Built-in input drivers (none)])
 	AC_DEFINE_DIR(__XCONFIGFILE__, XF86CONFIGFILE, [Name of configuration file])
 	AC_DEFINE_DIR(XF86CONFIGFILE, XF86CONFIGFILE, [Name of configuration file])
 	AC_DEFINE_DIR(DEFAULT_MODULE_PATH, moduledir, [Default module search path])

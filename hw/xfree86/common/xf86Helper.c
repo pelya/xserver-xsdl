@@ -1492,9 +1492,6 @@ xf86PrintChipsets(const char *drvname, const char *drvmsg, SymTabPtr chips)
 }
 
 
-#define MAXDRIVERS 64	/* A >hack<, to be sure ... */
-
-
 _X_EXPORT int
 xf86MatchDevice(const char *drivername, GDevPtr **sectlist)
 {
