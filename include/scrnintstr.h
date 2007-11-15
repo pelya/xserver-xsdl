@@ -202,7 +202,7 @@ typedef    void (* ClipNotifyProcPtr)(
 /* pixmap will be the backing pixmap for a redirected window */
 #define CREATE_PIXMAP_USAGE_BACKING_PIXMAP              2
 /* pixmap will contain a glyph */
-#define CREATE_PIMXAP_USAGE_GLYPH_PICTURE               3
+#define CREATE_PIXMAP_USAGE_GLYPH_PICTURE               3
 
 typedef    PixmapPtr (* CreatePixmapProcPtr)(
 	ScreenPtr /*pScreen*/,
