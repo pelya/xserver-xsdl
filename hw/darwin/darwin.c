@@ -75,6 +75,10 @@
 #include "darwin.h"
 #include "darwinClut8.h"
 
+#ifdef ENABLE_DEBUG_LOG
+FILE *debug_log_fp = NULL;
+#endif
+
 /*
  * X server shared global variables
  */
@@ -652,6 +656,20 @@ void OsVendorInit(void)
 {
     if (serverGeneration == 1) {
         DarwinPrintBanner();
+#ifdef ENABLE_DEBUG_LOG
+	{
+	  char *home_dir=NULL, *log_file_path=NULL;
+	  home_dir = getenv("HOME");
+	  if (home_dir) asprintf(&log_file_path, "%s/%s", home_dir, DEBUG_LOG_NAME);
+	  if (log_file_path) {
+	    if (!access(log_file_path, F_OK)) {
+	      debug_log_fp = fopen(log_file_path, "a");
+	      if (debug_log_fp) ErrorF("Debug logging enabled to %s\n", log_file_path);
+	    }
+	    free(log_file_path);
+	  }
+	}
+#endif
     }
 
     // Find the full path to the keymapping file.

@@ -157,4 +157,14 @@ enum {
     kXDarwinWindowMoved       // window has moved on screen
 };
 
+#define ENABLE_DEBUG_LOG 1
+
+#ifdef ENABLE_DEBUG_LOG
+extern FILE *debug_log_fp;
+#define DEBUG_LOG_NAME "x11-debug.txt"
+#define DEBUG_LOG(msg, args...) if (debug_log_fp) fprintf(debug_log_fp, "%s:%d: " msg, __FUNCTION__, __LINE__, ##args )
+#else
+#define DEBUG_LOG(msg, args...) 
+#endif
+
 #endif  /* _DARWIN_H */
