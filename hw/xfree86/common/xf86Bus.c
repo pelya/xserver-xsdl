@@ -75,7 +75,6 @@ static resPtr AccReducers = NULL;
 
 /* resource lists */
 resPtr Acc = NULL;
-resPtr osRes = NULL;
 
 /* predefined special resources */
 _X_EXPORT resRange resVgaExclusive[] = {_VGA_EXCLUSIVE, _END};
@@ -1357,28 +1356,12 @@ xf86AddRangesToList(resPtr list, resRange *pRange, int entityIndex)
 void
 xf86ResourceBrokerInit(void)
 {
-#if 0
-    resPtr resPci;
-#endif
-
-    osRes = NULL;
+    Acc = NULL;
 
     /* Get the ranges used exclusively by the system */
-    osRes = xf86AccResFromOS(osRes);
-    xf86MsgVerb(X_INFO, 3, "OS-reported resource ranges:\n");
-    xf86PrintResList(3, osRes);
-
-    /* Bus dep initialization */
-#if 0
-    resPci = ResourceBrokerInitPci(&osRes);
-    Acc = xf86JoinResLists(xf86DupResList(osRes), resPci);
-#else
-    Acc = xf86DupResList( osRes );
-#endif
-    
-    xf86MsgVerb(X_INFO, 3, "All system resource ranges:\n");
+    Acc = xf86AccResFromOS(Acc);
+    xf86MsgVerb(X_INFO, 3, "System resource ranges:\n");
     xf86PrintResList(3, Acc);
-
 }
 
 #define MEM_ALIGN (1024 * 1024)
