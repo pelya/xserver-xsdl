@@ -331,23 +331,13 @@ mieqProcessInputEvents(void)
                 return;
             }
 
-            /* Make sure our keymap, et al, is changed to suit. */
-            if ((e->events->event[0].u.u.type == DeviceKeyPress ||
-                e->events->event[0].u.u.type == DeviceKeyRelease ||
-                e->events->event[0].u.u.type == KeyPress ||
-                e->events->event[0].u.u.type == KeyRelease) &&
-                    !e->pDev->isMaster)
-            {
-                SwitchCoreKeyboard(e->pDev);
-            }
-
             /* FIXME: Bad hack. The only event where we actually get multiple
              * events at once is a DeviceMotionNotify followed by
              * DeviceValuators. For now it's save enough to just take the
              * event directly or copy the bunch of events and pass in the
              * copy. Eventually the interface for the processInputProc needs
              * to be changed. (whot)
-             */ 
+             */
             if (e->nevents > 1)
             {
                 int i;
@@ -372,7 +362,7 @@ mieqProcessInputEvents(void)
 
             if (!e->pDev->isMaster && e->pDev->u.master)
             {
-                e->pDev->u.master->public.processInputProc(master_event, 
+                e->pDev->u.master->public.processInputProc(master_event,
                         e->pDev->u.master, e->nevents);
             }
 
@@ -382,7 +372,7 @@ mieqProcessInputEvents(void)
         }
 
         /* Update the sprite now. Next event may be from different device. */
-        if (e->events->event[0].u.u.type == DeviceMotionNotify 
+        if (e->events->event[0].u.u.type == DeviceMotionNotify
                 && e->pDev->coreEvents)
         {
             miPointerUpdateSprite(e->pDev);
