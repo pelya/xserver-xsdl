@@ -220,6 +220,7 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 #ifdef XKB
         to->key->xkbInfo = NULL;
 #endif
+        to->key->curKeySyms.map = NULL;
         CopyKeyClass(from, to);
     }
 
@@ -233,8 +234,12 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         if (!v)
             FatalError("[Xi] no memory for class shift.\n");
         memcpy(v, from->valuator, sizeof(ValuatorClassRec));
+        v->motion = NULL;
+
         v->axes = (AxisInfoPtr)&v[1];
         memcpy(v->axes, from->valuator->axes, v->numAxes * sizeof(AxisInfo));
+
+        v->axisVal = (int*)(v->axes + from->valuator->numAxes);
     }
 
     ALLOC_COPY_CLASS_IF(button, ButtonClassRec);
