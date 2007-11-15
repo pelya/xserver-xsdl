@@ -178,9 +178,9 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
             mk->modifierKeyCount[i] = dk->modifierKeyCount[i];
 
 #ifdef XKB
-        if (!mk->xkbInfo || !mk->xkbInfo->desc)
-            XkbInitDevice(master);
         if (!noXkbExtension && dk->xkbInfo && dk->xkbInfo->desc) {
+            if (!mk->xkbInfo || !mk->xkbInfo->desc)
+                XkbInitDevice(master);
             if (!XkbCopyKeymap(dk->xkbInfo->desc, mk->xkbInfo->desc, True))
                 FatalError("Couldn't pivot keymap from device to core!\n");
         }
@@ -238,18 +238,36 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
     }
 
     ALLOC_COPY_CLASS_IF(button, ButtonClassRec);
+#ifdef XKB
+    if (to->button)
+    {
+        to->button->xkb_acts = NULL;
         /* XXX: XkbAction needs to be copied */
+    }
+#endif
     ALLOC_COPY_CLASS_IF(focus, FocusClassRec);
     ALLOC_COPY_CLASS_IF(proximity, ProximityClassRec);
     ALLOC_COPY_CLASS_IF(absolute, AbsoluteClassRec);
     ALLOC_COPY_CLASS_IF(kbdfeed, KbdFeedbackClassRec);
+#ifdef XKB
+    if (to->kbdfeed)
+    {
+        to->kbdfeed->xkb_sli = NULL;
         /* XXX: XkbSrvLedInfo needs to be copied*/
+    }
+#endif
     ALLOC_COPY_CLASS_IF(ptrfeed, PtrFeedbackClassRec);
     ALLOC_COPY_CLASS_IF(intfeed, IntegerFeedbackClassRec);
     ALLOC_COPY_CLASS_IF(stringfeed, StringFeedbackClassRec);
     ALLOC_COPY_CLASS_IF(bell, BellFeedbackClassRec);
     ALLOC_COPY_CLASS_IF(leds, LedFeedbackClassRec);
-        /* XXX: XkbSrvLedInfo needs to be copied. */
+#ifdef XKB
+    if (to->leds)
+    {
+        to->leds->xkb_sli = NULL;
+        /* XXX: XkbSrvLedInfo needs to be copied*/
+    }
+#endif
 }
 
 static void
