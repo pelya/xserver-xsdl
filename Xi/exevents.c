@@ -76,7 +76,9 @@ SOFTWARE.
 #include "listdev.h" /* for CopySwapXXXClass */
 
 #ifdef XKB
+#include <X11/extensions/XKBproto.h>
 #include "xkbsrv.h"
+extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
 #endif
 
 #define WID(w) ((w) ? ((w)->drawable.id) : 0)
@@ -102,6 +104,154 @@ RegisterOtherDevice(DeviceIntPtr device)
     device->public.realInputProc = ProcessOtherEvent;
 }
 
+/**
+ * Copy the device->key into master->key and send a mapping notify to the
+ * clients if appropriate.
+ * master->key needs to be allocated by the caller.
+ *
+ * Device is the slave device. If it is attached to a master device, we may
+ * need to send a mapping notify to the client because it causes the MD
+ * to change state.
+ *
+ * Mapping notify needs to be sent in the following cases:
+ *      - different slave device on same master
+ *      - different master
+ *
+ * XXX: They way how the code is we also send a map notify if the slave device
+ * stays the same, but the master changes. This isn't really necessary though.
+ *
+ * XXX: this gives you funny behaviour with the ClientPointer. When a
+ * MappingNotify is sent to the client, the client usually responds with a
+ * GetKeyboardMapping. This will retrieve the ClientPointer's keyboard
+ * mapping, regardless of which keyboard sent the last mapping notify request.
+ * So depending on the CP setting, your keyboard may change layout in each
+ * app...
+ *
+ * This code is basically the old SwitchCoreKeyboard.
+ */
+
+static void
+CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
+{
+    static DeviceIntPtr lastMapNotifyDevice = NULL;
+    KeyClassPtr mk, dk; /* master, device */
+    BOOL sendNotify = FALSE;
+    int i;
+
+    if (device == master)
+        return;
+
+    dk = device->key;
+    mk = master->key;
+
+    if (master->devPrivates[CoreDevicePrivatesIndex].ptr != device) {
+        memcpy(mk->modifierMap, dk->modifierMap, MAP_LENGTH);
+
+        mk->modifierKeyMap = xcalloc(8, dk->maxKeysPerModifier);
+        if (!mk->modifierKeyMap)
+            FatalError("[Xi] no memory for class shift.\n");
+        memcpy(mk->modifierKeyMap, dk->modifierKeyMap,
+                (8 * dk->maxKeysPerModifier));
+
+        mk->maxKeysPerModifier = dk->maxKeysPerModifier;
+        mk->curKeySyms.minKeyCode = dk->curKeySyms.minKeyCode;
+        mk->curKeySyms.maxKeyCode = dk->curKeySyms.maxKeyCode;
+        SetKeySymsMap(&mk->curKeySyms, &dk->curKeySyms);
+
+        /*
+         * Copy state from the extended keyboard to core.  If you omit this,
+         * holding Ctrl on keyboard one, and pressing Q on keyboard two, will
+         * cause your app to quit.  This feels wrong to me, hence the below
+         * code.
+         *
+         * XXX: If you synthesise core modifier events, the state will get
+         *      clobbered here.  You'll have to work out something sensible
+         *      to fix that.  Good luck.
+         */
+
+#define KEYBOARD_MASK (ShiftMask | LockMask | ControlMask | Mod1Mask | \
+        Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask)
+        mk->state &= ~(KEYBOARD_MASK);
+        mk->state |= (dk->state & KEYBOARD_MASK);
+#undef KEYBOARD_MASK
+        for (i = 0; i < 8; i++)
+            mk->modifierKeyCount[i] = dk->modifierKeyCount[i];
+
+#ifdef XKB
+        if (!mk->xkbInfo || !mk->xkbInfo->desc)
+            XkbInitDevice(master);
+        if (!noXkbExtension && dk->xkbInfo && dk->xkbInfo->desc) {
+            if (!XkbCopyKeymap(dk->xkbInfo->desc, mk->xkbInfo->desc, True))
+                FatalError("Couldn't pivot keymap from device to core!\n");
+        }
+#endif
+
+        master->devPrivates[CoreDevicePrivatesIndex].ptr = device;
+        sendNotify = TRUE;
+    } else if (lastMapNotifyDevice != master)
+        sendNotify = TRUE;
+
+    if (sendNotify)
+    {
+        SendMappingNotify(master, MappingKeyboard,
+                           mk->curKeySyms.minKeyCode,
+                          (mk->curKeySyms.maxKeyCode -
+                           mk->curKeySyms.minKeyCode),
+                          serverClient);
+        lastMapNotifyDevice = master;
+    }
+}
+
+_X_EXPORT void
+DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
+{
+#define ALLOC_COPY_CLASS_IF(field, type) \
+    if (from->field)\
+    { \
+        to->field = xcalloc(1, sizeof(type)); \
+        if (!to->field) \
+            FatalError("[Xi] no memory for class shift.\n"); \
+        memcpy(to->field, from->field, sizeof(type)); \
+    }
+
+    ALLOC_COPY_CLASS_IF(key, KeyClassRec);
+    if (to->key)
+    {
+#ifdef XKB
+        to->key->xkbInfo = NULL;
+#endif
+        CopyKeyClass(from, to);
+    }
+
+    if (from->valuator)
+    {
+        ValuatorClassPtr v;
+        to->valuator = xalloc(sizeof(ValuatorClassRec) +
+                from->valuator->numAxes * sizeof(AxisInfo) +
+                from->valuator->numAxes * sizeof(unsigned int));
+        v = to->valuator;
+        if (!v)
+            FatalError("[Xi] no memory for class shift.\n");
+        memcpy(v, from->valuator, sizeof(ValuatorClassRec));
+        v->axes = (AxisInfoPtr)&v[1];
+        memcpy(v->axes, from->valuator->axes, v->numAxes * sizeof(AxisInfo));
+    }
+
+    ALLOC_COPY_CLASS_IF(button, ButtonClassRec);
+        /* XXX: XkbAction needs to be copied */
+    ALLOC_COPY_CLASS_IF(focus, FocusClassRec);
+    ALLOC_COPY_CLASS_IF(proximity, ProximityClassRec);
+    ALLOC_COPY_CLASS_IF(absolute, AbsoluteClassRec);
+    ALLOC_COPY_CLASS_IF(kbdfeed, KbdFeedbackClassRec);
+        /* XXX: XkbSrvLedInfo needs to be copied*/
+    ALLOC_COPY_CLASS_IF(ptrfeed, PtrFeedbackClassRec);
+    ALLOC_COPY_CLASS_IF(intfeed, IntegerFeedbackClassRec);
+    ALLOC_COPY_CLASS_IF(stringfeed, StringFeedbackClassRec);
+    ALLOC_COPY_CLASS_IF(bell, BellFeedbackClassRec);
+    ALLOC_COPY_CLASS_IF(leds, LedFeedbackClassRec);
+        /* XXX: XkbSrvLedInfo needs to be copied. */
+}
+
 static void
 ChangeMasterDeviceClasses(DeviceIntPtr device,
                           deviceClassesChangedEvent *dcce)
@@ -119,21 +269,31 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
     dcce->num_classes  = 0;
 
     master->public.devicePrivate = device->public.devicePrivate;
-    master->key        = device->key;
-    master->valuator   = device->valuator;
-    master->button     = device->button;
-    master->focus      = device->focus;
-    master->proximity  = device->proximity;
-    master->absolute   = device->absolute;
-    master->kbdfeed    = device->kbdfeed;
-    master->ptrfeed    = device->ptrfeed;
-    master->intfeed    = device->intfeed;
-    master->stringfeed = device->stringfeed;
-    master->bell       = device->bell;
-    master->leds       = device->leds;
+
+    if (master->key)
+        xfree(master->key->modifierKeyMap);
+#ifdef XKB
+    if (master->key && master->key->xkbInfo)
+        XkbFreeInfo(master->key->xkbInfo);
+#endif
+    xfree(master->key);         master->key = NULL;
+    xfree(master->valuator);    master->valuator = NULL;
+    xfree(master->button);      master->button = NULL;
+    xfree(master->focus);       master->focus = NULL;
+    xfree(master->proximity);   master->proximity = NULL;
+    xfree(master->absolute);    master->absolute = NULL;
+    xfree(master->kbdfeed);     master->kbdfeed = NULL;
+    xfree(master->ptrfeed);     master->ptrfeed = NULL;
+    xfree(master->stringfeed);  master->stringfeed = NULL;
+    xfree(master->bell);        master->bell = NULL;
+    xfree(master->leds);        master->leds = NULL;
+    xfree(master->intfeed);     master->intfeed = NULL;
+
+    DeepCopyDeviceClasses(device, master);
 
     /* event is already correct size, see comment in GetPointerEvents */
     classbuff = (char*)&dcce[1];
+
     /* we don't actually swap if there's a NullClient, swapping is done
      * later when event is delivered. */
     CopySwapClasses(NullClient, master, &dcce->num_classes, &classbuff);
@@ -159,9 +319,9 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
     int key = 0,
         bit = 0;
 
-    KeyClassPtr k       = device->key;
-    ButtonClassPtr b    = device->button;
-    ValuatorClassPtr v  = device->valuator;
+    KeyClassPtr k       = NULL;
+    ButtonClassPtr b    = NULL;
+    ValuatorClassPtr v  = NULL;
     deviceValuator *xV  = (deviceValuator *) xE;
     BYTE *kptr          = NULL;
     CARD16 modifiers    = 0,
@@ -180,6 +340,11 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
     /* currently no other generic event modifies the device */
     if (xE->u.u.type == GenericEvent)
         return DEFAULT;
+
+    k = device->key;
+    v = device->valuator;
+    b = device->button;
+
 
     if (xE->u.u.type != DeviceValuator)
     {
@@ -272,10 +437,9 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 	*kptr |= bit;
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
-        if (!device->isMaster)
-            b->buttonsDown++;
+        b->buttonsDown++;
 	b->motionMask = DeviceButtonMotionMask;
-        if (!device->isMaster && !b->map[key]) /* bit already unset for MDs */
+        if (!b->map[key])
             return DONT_PROCESS;
         if (b->map[key] <= 5)
 	    b->state |= (Button1Mask >> 1) << b->map[key];
@@ -290,9 +454,7 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 	*kptr &= ~bit;
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
-        if (!device->isMaster)
-            b->buttonsDown--;
-        if (b->buttonsDown >= 1 && !b->buttonsDown)
+        if (b->buttonsDown >= 1 && !--b->buttonsDown)
 	    b->motionMask = 0;
         if (!b->map[key])
             return DONT_PROCESS;
@@ -323,9 +485,9 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     GrabPtr grab = device->deviceGrab.grab;
     Bool deactivateDeviceGrab = FALSE;
     int key = 0, rootX, rootY;
-    ButtonClassPtr b = device->button;
-    KeyClassPtr k = device->key;
-    ValuatorClassPtr v  = device->valuator;
+    ButtonClassPtr b;
+    KeyClassPtr k;
+    ValuatorClassPtr v;
     deviceValuator *xV  = (deviceValuator *) xE;
     BOOL sendCore = FALSE;
     xEvent core;
@@ -335,6 +497,10 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
     ret = UpdateDeviceState(device, xE, count);
     if (ret == DONT_PROCESS)
         return;
+
+    v = device->valuator;
+    b = device->button;
+    k = device->key;
 
     coretype = XItoCoreType(xE->u.u.type);
     if (device->isMaster && device->coreEvents && coretype)

@@ -458,7 +458,6 @@ extern int GetMotionHistory(
     unsigned long stop,
     ScreenPtr pScreen);
 
-extern void SwitchCoreKeyboard(DeviceIntPtr pDev);
 extern void SwitchCorePointer(DeviceIntPtr pDev);
 
 extern DeviceIntPtr LookupDeviceIntRec(
@@ -483,6 +482,8 @@ extern DeviceIntPtr NextFreePointerDevice(void);
 extern int AllocMasterDevice(char* name,
                              DeviceIntPtr* ptr,
                              DeviceIntPtr* keybd);
+extern void DeepCopyDeviceClasses(DeviceIntPtr from,
+                                  DeviceIntPtr to);
 
 /* Window/device based access control */
 extern Bool ACRegisterClient(ClientPtr client);

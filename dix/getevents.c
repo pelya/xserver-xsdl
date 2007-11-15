@@ -865,63 +865,6 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
     return num_events;
 }
 
-
-/**
- * pDev is the slave device that is about to send an event. If it is attached
- * to a master device, then we need to send a mapping notify to the client.
- * To do so, we need to remember the last master device that sent a mapping
- * event.
- *
- * Mapping notify needs to be sent in the following cases:
- *      - different slave device on same master
- *      - different master
- *
- * Call this just before processInputProc.
- *
- * XXX: They way how the code is we also send a map notify if the slave device
- * stays the same, but the master changes. This isn't really necessary though.
- *
- * XXX: this gives you funny behaviour with the ClientPointer. When a
- * MappingNotify is sent to the client, the client usually responds with a
- * GetKeyboardMapping. This will retrieve the ClientPointer's keyboard
- * mapping, regardless of which keyboard sent the last mapping notify request.
- * So depending on the CP setting, your keyboard may change layout in each
- * app...
- */
-_X_EXPORT void
-SwitchCoreKeyboard(DeviceIntPtr pDev)
-{
-    static DeviceIntPtr lastMapNotifyDevice = NULL;
-    DeviceIntPtr master;
-    KeyClassPtr ckeyc;
-    int i = 0;
-    BOOL sendNotify = FALSE;
-
-    if (pDev->isMaster || !pDev->u.master)
-        return;
-
-    master = pDev->u.master;
-    ckeyc = master->key;
-
-    if (master->devPrivates[CoreDevicePrivatesIndex].ptr != pDev) {
-        master->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
-        sendNotify = TRUE;
-    }
-
-    if (lastMapNotifyDevice != master)
-        sendNotify = TRUE;
-
-    if (sendNotify)
-    {
-        SendMappingNotify(pDev, MappingKeyboard, ckeyc->curKeySyms.minKeyCode,
-                          (ckeyc->curKeySyms.maxKeyCode -
-                           ckeyc->curKeySyms.minKeyCode),
-                          serverClient);
-        lastMapNotifyDevice = master;
-    }
-}
-
-
 /**
  * Note that pDev was the last function to send a core pointer event.
  * Currently a no-op.
