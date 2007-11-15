@@ -84,6 +84,7 @@ typedef unsigned long Leds;
 typedef struct _OtherClients *OtherClientsPtr;
 typedef struct _InputClients *InputClientsPtr;
 typedef struct _DeviceIntRec *DeviceIntPtr;
+typedef struct _ClassesRec *ClassesPtr;
 
 typedef struct _EventList {
     xEvent* event;
@@ -484,6 +485,9 @@ extern int AllocMasterDevice(char* name,
                              DeviceIntPtr* keybd);
 extern void DeepCopyDeviceClasses(DeviceIntPtr from,
                                   DeviceIntPtr to);
+extern void FreeDeviceClass(int type, pointer* class);
+extern void FreeFeedbackClass(int type, pointer* class);
+extern void FreeAllDeviceClasses(ClassesPtr classes);
 
 /* Window/device based access control */
 extern Bool ACRegisterClient(ClientPtr client);

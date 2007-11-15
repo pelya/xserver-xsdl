@@ -283,6 +283,22 @@ typedef struct _LedFeedbackClassRec {
 } LedFeedbackClassRec;
 
 
+typedef struct _ClassesRec {
+    KeyClassPtr		key;
+    ValuatorClassPtr	valuator;
+    ButtonClassPtr	button;
+    FocusClassPtr	focus;
+    ProximityClassPtr	proximity;
+    AbsoluteClassPtr    absolute;
+    KbdFeedbackPtr	kbdfeed;
+    PtrFeedbackPtr	ptrfeed;
+    IntegerFeedbackPtr	intfeed;
+    StringFeedbackPtr	stringfeed;
+    BellFeedbackPtr	bell;
+    LedFeedbackPtr	leds;
+} ClassesRec;
+
+
 /**
  * Sprite information for a device.
  */

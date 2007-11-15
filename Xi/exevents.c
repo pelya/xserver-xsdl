@@ -288,34 +288,7 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
 
     master->public.devicePrivate = device->public.devicePrivate;
 
-    if (master->key)
-        xfree(master->key->modifierKeyMap);
-#ifdef XKB
-    if (master->key && master->key->xkbInfo)
-        XkbFreeInfo(master->key->xkbInfo);
-#endif
-    xfree(master->key);         master->key = NULL;
-    xfree(master->valuator);    master->valuator = NULL;
-    /* XXX: xkb_acts needs to be freed for master->button */
-    xfree(master->button);      master->button = NULL;
-    xfree(master->focus);       master->focus = NULL;
-    xfree(master->proximity);   master->proximity = NULL;
-    xfree(master->absolute);    master->absolute = NULL;
-#ifdef XKB
-    if (master->kbdfeed && master->kbdfeed->xkb_sli)
-        XkbFreeSrvLedInfo(master->kbdfeed->xkb_sli);
-#endif
-    xfree(master->kbdfeed);     master->kbdfeed = NULL;
-    xfree(master->ptrfeed);     master->ptrfeed = NULL;
-    xfree(master->stringfeed);  master->stringfeed = NULL;
-    xfree(master->bell);        master->bell = NULL;
-#ifdef XKB
-    if (master->leds && master->leds->xkb_sli)
-        XkbFreeSrvLedInfo(master->leds->xkb_sli);
-#endif
-    xfree(master->leds);        master->leds = NULL;
-    xfree(master->intfeed);     master->intfeed = NULL;
-
+    FreeAllDeviceClasses(&master->key);
     DeepCopyDeviceClasses(device, master);
 
     /* event is already correct size, see comment in GetPointerEvents */

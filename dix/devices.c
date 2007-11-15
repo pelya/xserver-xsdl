@@ -85,22 +85,6 @@ SOFTWARE.
  * This file handles input device-related stuff.
  */
 
-typedef struct {
-    KeyClassPtr		key;
-    ValuatorClassPtr	valuator;
-    ButtonClassPtr	button;
-    FocusClassPtr	focus;
-    ProximityClassPtr	proximity;
-    AbsoluteClassPtr    absolute;
-    KbdFeedbackPtr	kbdfeed;
-    PtrFeedbackPtr	ptrfeed;
-    IntegerFeedbackPtr	intfeed;
-    StringFeedbackPtr	stringfeed;
-    BellFeedbackPtr	bell;
-    LedFeedbackPtr	leds;
-} ClassesRec, *ClassesPtr;
-
-
 int CoreDevicePrivatesIndex = 0;
 static int CoreDevicePrivatesGeneration = -1;
 int MasterDevClassesPrivIdx = -1;
@@ -638,6 +622,174 @@ InitAndStartDevices(WindowPtr root)
     return Success;
 }
 
+_X_EXPORT void
+FreeAllDeviceClasses(ClassesPtr classes)
+{
+    if (!classes)
+        return;
+
+    FreeDeviceClass(KeyClass, (pointer)&classes->key);
+    FreeDeviceClass(ValuatorClass, (pointer)&classes->valuator);
+    FreeDeviceClass(ButtonClass, (pointer)&classes->button);
+    FreeDeviceClass(FocusClass, (pointer)&classes->focus);
+    FreeDeviceClass(ProximityClass, (pointer)&classes->proximity);
+
+    FreeFeedbackClass(KbdFeedbackClass, (pointer)&classes->kbdfeed);
+    FreeFeedbackClass(PtrFeedbackClass, (pointer)&classes->ptrfeed);
+    FreeFeedbackClass(IntegerFeedbackClass, (pointer)&classes->intfeed);
+    FreeFeedbackClass(StringFeedbackClass, (pointer)&classes->stringfeed);
+    FreeFeedbackClass(BellFeedbackClass, (pointer)&classes->bell);
+    FreeFeedbackClass(LedFeedbackClass, (pointer)&classes->leds);
+
+}
+
+/**
+ * Free the given device class and reset the pointer to NULL.
+ */
+_X_EXPORT void
+FreeDeviceClass(int type, pointer *class)
+{
+    if (!(*class))
+        return;
+
+    switch(type)
+    {
+        case KeyClass:
+            {
+                KeyClassPtr* k = (KeyClassPtr*)class;
+#ifdef XKB
+                if ((*k)->xkbInfo)
+                    XkbFreeInfo((*k)->xkbInfo);
+#endif
+
+                xfree((*k)->curKeySyms.map);
+                xfree((*k)->modifierKeyMap);
+                xfree((*k));
+                break;
+            }
+        case ButtonClass:
+            {
+                ButtonClassPtr *b = (ButtonClassPtr*)class;
+#ifdef XKB
+                if ((*b)->xkb_acts)
+                    xfree((*b)->xkb_acts);
+#endif
+                xfree((*b));
+                break;
+            }
+        case ValuatorClass:
+            {
+                ValuatorClassPtr *v = (ValuatorClassPtr*)class;
+
+                /* Counterpart to 'biggest hack ever' in init. */
+                if ((*v)->motion && (*v)->GetMotionProc == GetMotionHistory)
+                    xfree((*v)->motion);
+                xfree((*v));
+                break;
+            }
+        case FocusClass:
+            {
+                FocusClassPtr *f = (FocusClassPtr*)class;
+                xfree((*f)->trace);
+                xfree((*f));
+                break;
+            }
+        case ProximityClass:
+            {
+                ProximityClassPtr *p = (ProximityClassPtr*)class;
+                xfree((*p));
+                break;
+            }
+
+    }
+    *class = NULL;
+}
+_X_EXPORT void
+FreeFeedbackClass(int type, pointer *class)
+{
+    if (!(*class))
+        return;
+
+    switch(type)
+    {
+        case KbdFeedbackClass:
+            {
+                KbdFeedbackPtr *kbdfeed = (KbdFeedbackPtr*)class;
+                KbdFeedbackPtr k, knext;
+                for (k = (*kbdfeed); k; k = knext) {
+                    knext = k->next;
+#ifdef XKB
+                    if (k->xkb_sli)
+                        XkbFreeSrvLedInfo(k->xkb_sli);
+#endif
+                    xfree(k);
+                }
+                break;
+            }
+        case PtrFeedbackClass:
+            {
+                PtrFeedbackPtr *ptrfeed = (PtrFeedbackPtr*)class;
+                PtrFeedbackPtr p, pnext;
+
+                for (p = (*ptrfeed); p; p = pnext) {
+                    pnext = p->next;
+                    xfree(p);
+                }
+                break;
+            }
+        case IntegerFeedbackClass:
+            {
+                IntegerFeedbackPtr *intfeed = (IntegerFeedbackPtr*)class;
+                IntegerFeedbackPtr i, inext;
+
+                for (i = (*intfeed); i; i = inext) {
+                    inext = i->next;
+                    xfree(i);
+                }
+                break;
+            }
+        case StringFeedbackClass:
+            {
+                StringFeedbackPtr *stringfeed = (StringFeedbackPtr*)class;
+                StringFeedbackPtr s, snext;
+
+                for (s = (*stringfeed); s; s = snext) {
+                    snext = s->next;
+                    xfree(s->ctrl.symbols_supported);
+                    xfree(s->ctrl.symbols_displayed);
+                    xfree(s);
+                }
+                break;
+            }
+        case BellFeedbackClass:
+            {
+                BellFeedbackPtr *bell = (BellFeedbackPtr*)class;
+                BellFeedbackPtr b, bnext;
+
+                for (b = (*bell); b; b = bnext) {
+                    bnext = b->next;
+                    xfree(b);
+                }
+                break;
+            }
+        case LedFeedbackClass:
+            {
+                LedFeedbackPtr *leds = (LedFeedbackPtr*)class;
+                LedFeedbackPtr l, lnext;
+
+                for (l = (*leds); l; l = lnext) {
+                    lnext = l->next;
+#ifdef XKB
+                    if (l->xkb_sli)
+                        XkbFreeSrvLedInfo(l->xkb_sli);
+#endif
+                    xfree(l);
+                }
+                break;
+            }
+    }
+    *class = NULL;
+}
 /**
  * Close down a device and free all resources.
  * Once closed down, the driver will probably not expect you that you'll ever
@@ -648,12 +800,6 @@ InitAndStartDevices(WindowPtr root)
 static void
 CloseDevice(DeviceIntPtr dev)
 {
-    KbdFeedbackPtr k, knext;
-    PtrFeedbackPtr p, pnext;
-    IntegerFeedbackPtr i, inext;
-    StringFeedbackPtr s, snext;
-    BellFeedbackPtr b, bnext;
-    LedFeedbackPtr l, lnext;
     ScreenPtr screen = screenInfo.screens[0];
     ClassesPtr classes;
     int j;
@@ -675,79 +821,7 @@ CloseDevice(DeviceIntPtr dev)
     else
         classes = (ClassesPtr)&dev->key;
 
-    if (classes->key) {
-#ifdef XKB
-	if (classes->key->xkbInfo)
-	    XkbFreeInfo(classes->key->xkbInfo);
-#endif
-	xfree(classes->key->curKeySyms.map);
-	xfree(classes->key->modifierKeyMap);
-	xfree(classes->key);
-    }
-
-    if (classes->valuator) {
-        /* Counterpart to 'biggest hack ever' in init. */
-        if (classes->valuator->motion &&
-            classes->valuator->GetMotionProc == GetMotionHistory)
-            xfree(classes->valuator->motion);
-        xfree(classes->valuator);
-    }
-
-    if (classes->button) {
-#ifdef XKB
-        if (classes->button->xkb_acts)
-            xfree(classes->button->xkb_acts);
-#endif
-        xfree(classes->button);
-    }
-
-    if (classes->focus) {
-	xfree(classes->focus->trace);
-	xfree(classes->focus);
-    }
-
-    if (classes->proximity)
-        xfree(classes->proximity);
-
-    for (k = classes->kbdfeed; k; k = knext) {
-	knext = k->next;
-#ifdef XKB
-	if (k->xkb_sli)
-	    XkbFreeSrvLedInfo(k->xkb_sli);
-#endif
-	xfree(k);
-    }
-
-    for (p = classes->ptrfeed; p; p = pnext) {
-	pnext = p->next;
-	xfree(p);
-    }
-
-    for (i = classes->intfeed; i; i = inext) {
-	inext = i->next;
-	xfree(i);
-    }
-
-    for (s = classes->stringfeed; s; s = snext) {
-	snext = s->next;
-	xfree(s->ctrl.symbols_supported);
-	xfree(s->ctrl.symbols_displayed);
-	xfree(s);
-    }
-
-    for (b = classes->bell; b; b = bnext) {
-	bnext = b->next;
-	xfree(b);
-    }
-
-    for (l = classes->leds; l; l = lnext) {
-	lnext = l->next;
-#ifdef XKB
-	if (l->xkb_sli)
-	    XkbFreeSrvLedInfo(l->xkb_sli);
-#endif
-	xfree(l);
-    }
+    FreeAllDeviceClasses(classes);
 
 #ifdef XKB
     while (dev->xkb_interest)
