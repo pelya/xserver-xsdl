@@ -1046,10 +1046,9 @@ SetKeySymsMap(KeySymsPtr dst, KeySymsPtr src)
         KeySym *map;
 	int bytes = sizeof(KeySym) * src->mapWidth *
 		    (dst->maxKeyCode - dst->minKeyCode + 1);
-        map = (KeySym *)xalloc(bytes);
+        map = (KeySym *)xcalloc(1, bytes);
 	if (!map)
 	    return FALSE;
-	bzero((char *)map, bytes);
         if (dst->map)
 	{
             for (i = 0; i <= dst->maxKeyCode-dst->minKeyCode; i++)
@@ -1060,6 +1059,15 @@ SetKeySymsMap(KeySymsPtr dst, KeySymsPtr src)
 	}
 	dst->mapWidth = src->mapWidth;
 	dst->map = map;
+    } else if (!dst->map)
+    {
+        KeySym *map;
+	int bytes = sizeof(KeySym) * src->mapWidth *
+		    (dst->maxKeyCode - dst->minKeyCode + 1);
+        map = (KeySym *)xcalloc(1, bytes);
+        if (!map)
+            return FALSE;
+        dst->map = map;
     }
     memmove((char *)&dst->map[rowDif * dst->mapWidth],
 	    (char *)src->map,
