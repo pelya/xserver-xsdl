@@ -147,11 +147,14 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
     if (master->devPrivates[CoreDevicePrivatesIndex].ptr != device) {
         memcpy(mk->modifierMap, dk->modifierMap, MAP_LENGTH);
 
-        mk->modifierKeyMap = xcalloc(8, dk->maxKeysPerModifier);
-        if (!mk->modifierKeyMap)
-            FatalError("[Xi] no memory for class shift.\n");
-        memcpy(mk->modifierKeyMap, dk->modifierKeyMap,
-                (8 * dk->maxKeysPerModifier));
+        if (dk->maxKeysPerModifier)
+        {
+            mk->modifierKeyMap = xcalloc(8, dk->maxKeysPerModifier);
+            if (!mk->modifierKeyMap)
+                FatalError("[Xi] no memory for class shift.\n");
+            memcpy(mk->modifierKeyMap, dk->modifierKeyMap,
+                    (8 * dk->maxKeysPerModifier));
+        }
 
         mk->maxKeysPerModifier = dk->maxKeysPerModifier;
         mk->curKeySyms.minKeyCode = dk->curKeySyms.minKeyCode;
