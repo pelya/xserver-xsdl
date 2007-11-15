@@ -372,9 +372,6 @@ configureDeviceSection (int screennum)
     char identifier[16];
     OptionInfoPtr p;
     int i = 0;
-#ifdef DO_FBDEV_PROBE
-    Bool foundFBDEV = FALSE;
-#endif
     parsePrologue (XF86ConfDevicePtr, XF86ConfDeviceRec)
 
     /* Move device info to parser structure */
@@ -442,32 +439,6 @@ configureDeviceSection (int screennum)
 	    }
     	}
     }
-
-#ifdef DO_FBDEV_PROBE
-    /* Crude mechanism to auto-detect fbdev (os dependent) */
-    /* Skip it for now. Options list it anyway, and we can't
-     * determine which screen/driver this belongs too anyway. */
-    {
-	int fd;
-
-	fd = open("/dev/fb0", 0);
-	if (fd != -1) {
-	    foundFBDEV = TRUE;
-	    close(fd);
-	}
-    }
-
-    if (foundFBDEV) {
-	XF86OptionPtr fbdev;
-
-    	fbdev = xf86confmalloc(sizeof(XF86OptionRec));
-    	memset((XF86OptionPtr)fbdev,0,sizeof(XF86OptionRec));
-    	fbdev->opt_name = "UseFBDev";
-	fbdev->opt_val = "ON";
-	ptr->dev_option_lst = (XF86OptionPtr)xf86addListItem(
-					(glp)ptr->dev_option_lst, (glp)fbdev);
-    }
-#endif
 
     return ptr;
 }
