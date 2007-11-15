@@ -29,7 +29,8 @@
 #include "fb.h"
 
 PixmapPtr
-fbCreatePixmapBpp (ScreenPtr pScreen, int width, int height, int depth, int bpp)
+fbCreatePixmapBpp (ScreenPtr pScreen, int width, int height, int depth, int bpp,
+		   unsigned usage_hint)
 {
     PixmapPtr	pPixmap;
     size_t	datasize;
@@ -76,6 +77,8 @@ fbCreatePixmapBpp (ScreenPtr pScreen, int width, int height, int depth, int bpp)
     pPixmap->screen_y = 0;
 #endif
 
+    pPixmap->usage_hint = usage_hint;
+
     return pPixmap;
 }
 
@@ -89,7 +92,7 @@ fbCreatePixmap (ScreenPtr pScreen, int width, int height, int depth,
     if (bpp == 32 && depth <= 24)
 	bpp = fbGetScreenPrivate(pScreen)->pix32bpp;
 #endif
-    return fbCreatePixmapBpp (pScreen, width, height, depth, bpp);
+    return fbCreatePixmapBpp (pScreen, width, height, depth, bpp, usage_hint);
 }
 
 Bool

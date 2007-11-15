@@ -98,6 +98,7 @@ winCreatePixmapNativeGDI (ScreenPtr pScreen,
   pPixmap->devKind = 0;
   pPixmap->refcnt = 1;
   pPixmap->devPrivate.ptr = NULL;
+  pPixmap->usage_hint = usage_hint;
 
   /* Pixmap privates are allocated by AllocatePixmap */
   pPixmapPriv = winGetPixmapPriv (pPixmap);

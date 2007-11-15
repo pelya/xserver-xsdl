@@ -254,6 +254,7 @@ xglCreatePixmap (ScreenPtr  pScreen,
     pPixmap->devKind = 0;
     pPixmap->refcnt = 1;
     pPixmap->devPrivate.ptr = 0;
+    pPixmap->usage_hint = usage_hint;
 
     pPixmapPriv = XGL_GET_PIXMAP_PRIV (pPixmap);
 

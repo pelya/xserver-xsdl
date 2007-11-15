@@ -58,6 +58,7 @@ xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth,
   pPixmap->devKind = PixmapBytePad(width, depth);
   pPixmap->devPrivates[xnestPixmapPrivateIndex].ptr =
       (pointer)((char *)pPixmap + pScreen->totalPixmapSize);
+  pPixmap->usage_hint = usage_hint;
   if (width && height)
       xnestPixmapPriv(pPixmap)->pixmap = 
 	  XCreatePixmap(xnestDisplay, 

@@ -116,6 +116,7 @@ PixmapPtr dmxCreatePixmap(ScreenPtr pScreen, int width, int height, int depth,
     pPixmap->drawable.height = height;
     pPixmap->devKind = PixmapBytePad(width, bpp);
     pPixmap->refcnt = 1;
+    pPixmap->usage_hint = usage_hint;
 
     pPixPriv = DMX_GET_PIXMAP_PRIV(pPixmap);
     pPixPriv->pixmap = (Pixmap)0;

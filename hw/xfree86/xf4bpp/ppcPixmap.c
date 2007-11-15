@@ -123,6 +123,7 @@ xf4bppCreatePixmap( pScreen, width, height, depth, usage_hint )
     pPixmap->devPrivate.ptr = (pointer) (((CARD8*)pPixmap)
 					 + pScreen->totalPixmapSize);
     bzero( (char *) pPixmap->devPrivate.ptr, size ) ;
+    pPixmap->usage_hint = usage_hint;
     return pPixmap ;
 }
 
