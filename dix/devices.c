@@ -402,6 +402,7 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
     XkbComponentNamesRec names;
 #endif
     ClassesPtr classes;
+    DeviceIntRec dummy;
 
     switch (what) {
     case DEVICE_INIT:
@@ -460,6 +461,19 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
         classes->stringfeed = pDev->stringfeed;
         classes->bell = pDev->bell;
         classes->leds = pDev->leds;
+
+        /* Each time we switch classes we free the MD's classes and copy the
+         * SD's classes into the MD. We mustn't lose the first set of classes
+         * though as we need it to restore them when the last SD disconnects.
+         *
+         * So we create a fake device, seem to copy from the fake to the real
+         * one, thus ending up with a copy of the original ones in our MD.
+         *
+         * If we don't do that, we're in SIGABRT territory (double-frees, etc)
+         */
+        memcpy(&dummy, pDev, sizeof(DeviceIntRec));
+        DeepCopyDeviceClasses(&dummy, pDev);
+
         pDev->devPrivates[MasterDevClassesPrivIdx].ptr = classes;
         break;
 
@@ -485,6 +499,7 @@ CorePointerProc(DeviceIntPtr pDev, int what)
     BYTE map[33];
     int i = 0;
     ClassesPtr classes;
+    DeviceIntRec dummy;
 
 
     switch (what) {
@@ -518,6 +533,10 @@ CorePointerProc(DeviceIntPtr pDev, int what)
         classes->stringfeed = pDev->stringfeed;
         classes->bell = pDev->bell;
         classes->leds = pDev->leds;
+
+        /* See comment in CoreKeyboardProc. */
+        memcpy(&dummy, pDev, sizeof(DeviceIntRec));
+        DeepCopyDeviceClasses(&dummy, pDev);
 
         pDev->devPrivates[MasterDevClassesPrivIdx].ptr = classes;
         break;
@@ -568,7 +587,6 @@ InitCoreDevices(void)
 
     ActivateDevice(inputInfo.keyboard);
     ActivateDevice(inputInfo.pointer);
-
 }
 
 /**
