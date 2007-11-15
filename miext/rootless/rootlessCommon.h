@@ -60,6 +60,7 @@
 extern int rootlessGCPrivateIndex;
 extern int rootlessScreenPrivateIndex;
 extern int rootlessWindowPrivateIndex;
+extern int rootlessWindowOldPixmapPrivateIndex;
 
 
 // RootlessGCRec: private per-gc data

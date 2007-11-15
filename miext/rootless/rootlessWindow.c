@@ -198,6 +198,7 @@ RootlessCreateWindow(WindowPtr pWin)
     RegionRec saveRoot;
 
     WINREC(pWin) = NULL;
+    pWin->devPrivates[rootlessWindowOldPixmapPrivateIndex].ptr = NULL;
 
     SCREEN_UNWRAP(pWin->drawable.pScreen, CreateWindow);
 

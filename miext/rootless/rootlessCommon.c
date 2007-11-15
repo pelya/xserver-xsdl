@@ -172,8 +172,24 @@ void RootlessStartDrawing(WindowPtr pWindow)
         winRec->is_drawing = TRUE;
     }
 
-    winRec->oldPixmap = pScreen->GetWindowPixmap(pWindow);
-    pScreen->SetWindowPixmap(pWindow, winRec->pixmap);
+    PixmapPtr curPixmap = pScreen->GetWindowPixmap(pWindow);
+    if (curPixmap == winRec->pixmap)
+    {
+        RL_DEBUG_MSG("Window %p already has winRec->pixmap %p; not pushing\n", pWindow, winRec->pixmap);
+    }
+    else
+    {
+        PixmapPtr oldPixmap = pWindow->devPrivates[rootlessWindowOldPixmapPrivateIndex].ptr;
+        if (oldPixmap != NULL)
+        {
+            if (oldPixmap == curPixmap)
+                RL_DEBUG_MSG("Window %p's curPixmap %p is the same as its oldPixmap; strange\n", pWindow, curPixmap);
+            else
+                RL_DEBUG_MSG("Window %p's existing oldPixmap %p being lost!\n", pWindow, oldPixmap);
+        }
+        pWindow->devPrivates[rootlessWindowOldPixmapPrivateIndex].ptr = curPixmap;
+        pScreen->SetWindowPixmap(pWindow, winRec->pixmap);
+    }
 }
 
 
@@ -182,6 +198,29 @@ void RootlessStartDrawing(WindowPtr pWindow)
  *  Stop drawing to a window's backing buffer. If flush is true,
  *  damaged regions are flushed to the screen.
  */
+static int RestorePreDrawingPixmapVisitor(WindowPtr pWindow, pointer data)
+{
+    RootlessWindowRec *winRec = (RootlessWindowRec*)data;
+    ScreenPtr pScreen = pWindow->drawable.pScreen;
+    PixmapPtr exPixmap = pScreen->GetWindowPixmap(pWindow);
+    PixmapPtr oldPixmap = pWindow->devPrivates[rootlessWindowOldPixmapPrivateIndex].ptr;
+    if (oldPixmap == NULL)
+    {
+        if (exPixmap == winRec->pixmap)
+            RL_DEBUG_MSG("Window %p appears to be in drawing mode (ex-pixmap %p equals winRec->pixmap, which is being freed) but has no oldPixmap!\n", pWindow, exPixmap);
+    }
+    else
+    {
+        if (exPixmap != winRec->pixmap)
+            RL_DEBUG_MSG("Window %p appears to be in drawing mode (oldPixmap %p) but ex-pixmap %p not winRec->pixmap %p!\n", pWindow, oldPixmap, exPixmap, winRec->pixmap);
+        if (oldPixmap == winRec->pixmap)
+            RL_DEBUG_MSG("Window %p's oldPixmap %p is winRec->pixmap, which has just been freed!\n", pWindow, oldPixmap);
+        pScreen->SetWindowPixmap(pWindow, oldPixmap);
+        pWindow->devPrivates[rootlessWindowOldPixmapPrivateIndex].ptr = NULL;
+    }
+    return WT_WALKCHILDREN;
+}
+
 void RootlessStopDrawing(WindowPtr pWindow, Bool flush)
 {
     ScreenPtr pScreen = pWindow->drawable.pScreen;
@@ -198,7 +237,7 @@ void RootlessStopDrawing(WindowPtr pWindow, Bool flush)
         SCREENREC(pScreen)->imp->StopDrawing(winRec->wid, flush);
 
         FreeScratchPixmapHeader(winRec->pixmap);
-        pScreen->SetWindowPixmap(pWindow, winRec->oldPixmap);
+        TraverseTree(top, RestorePreDrawingPixmapVisitor, (pointer)winRec);
         winRec->pixmap = NULL;
 
         winRec->is_drawing = FALSE;

@@ -65,6 +65,7 @@ extern Bool RootlessCreateGC(GCPtr pGC);
 int rootlessGCPrivateIndex = -1;
 int rootlessScreenPrivateIndex = -1;
 int rootlessWindowPrivateIndex = -1;
+int rootlessWindowOldPixmapPrivateIndex = -1;
 
 
 /*
@@ -618,6 +619,8 @@ RootlessAllocatePrivates(ScreenPtr pScreen)
         if (rootlessGCPrivateIndex == -1) return FALSE;
         rootlessWindowPrivateIndex = AllocateWindowPrivateIndex();
         if (rootlessWindowPrivateIndex == -1) return FALSE;
+        rootlessWindowOldPixmapPrivateIndex = AllocateWindowPrivateIndex();
+        if (rootlessWindowOldPixmapPrivateIndex == -1) return FALSE;
         rootlessGeneration = serverGeneration;
     }
 
@@ -626,6 +629,8 @@ RootlessAllocatePrivates(ScreenPtr pScreen)
                            sizeof(RootlessGCRec)))
         return FALSE;
     if (!AllocateWindowPrivate(pScreen, rootlessWindowPrivateIndex, 0))
+        return FALSE;
+    if (!AllocateWindowPrivate(pScreen, rootlessWindowOldPixmapPrivateIndex, 0))
         return FALSE;
 
     s = xalloc(sizeof(RootlessScreenRec));
