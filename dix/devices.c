@@ -2390,6 +2390,7 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
 int
 AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 {
+    DeviceIntPtr oldmaster;
     if (!dev || dev->isMaster)
         return BadDevice;
 
@@ -2409,6 +2410,7 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
     if (!dev->u.master && dev->spriteInfo->sprite)
         xfree(dev->spriteInfo->sprite);
 
+    oldmaster = dev->u.master;
     dev->u.master = master;
 
     /* If device is set to floating, we need to create a sprite for it,
@@ -2417,52 +2419,49 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
      */
     if (!master)
     {
-        DeviceIntPtr it;
                               /* current root window */
         InitializeSprite(dev, dev->spriteInfo->sprite->spriteTrace[0]);
         dev->spriteInfo->spriteOwner = FALSE;
 
-        /* the master may need to restore the original classes, search for a
-         * device that is still paired with our master. */
+    } else
+        dev->spriteInfo->sprite = master->spriteInfo->sprite;
+
+    /* If we were connected to master device before, this MD may need to
+     * change back to it's original classes.
+     */
+    if (oldmaster)
+    {
+        DeviceIntPtr it;
         for (it = inputInfo.devices; it; it = it->next)
-            if (!it->isMaster && it->u.master == master)
+            if (!it->isMaster && it->u.master == oldmaster)
                 break;
 
-        if (!it)  /* no dev is paired with our master */
+        if (!it)  /* no dev is paired with old master */
         {
             ClassesPtr classes;
             EventList event = { NULL, 0};
             char* classbuf;
+            DeviceIntRec dummy;
 
-            classes = master->devPrivates[MasterDevClassesPrivIdx].ptr;
-            master->key = classes->key;
-            master->valuator = classes->valuator;
-            master->button = classes->button;
-            master->focus = classes->focus;
-            master->proximity = classes->proximity;
-            master->absolute = classes->absolute;
-            master->kbdfeed = classes->kbdfeed;
-            master->ptrfeed = classes->ptrfeed;
-            master->intfeed = classes->intfeed;
-            master->stringfeed = classes->stringfeed;
-            master->bell = classes->bell;
-            master->leds = classes->leds;
+            FreeAllDeviceClasses((ClassesPtr)&oldmaster->key);
+            classes = oldmaster->devPrivates[MasterDevClassesPrivIdx].ptr;
+            memcpy(&dummy.key, classes, sizeof(ClassesRec));
+            DeepCopyDeviceClasses(&dummy, oldmaster);
 
             /* Send event to clients */
-            CreateClassesChangedEvent(&event, master, master);
+            CreateClassesChangedEvent(&event, oldmaster, oldmaster);
             deviceClassesChangedEvent *dcce =
-                        (deviceClassesChangedEvent*)event.event;
-            dcce->deviceid = master->id;
+                (deviceClassesChangedEvent*)event.event;
+            dcce->deviceid = oldmaster->id;
             dcce->num_classes = 0;
             classbuf = (char*)&event.event[1];
-            CopySwapClasses(NullClient, master, &dcce->num_classes, &classbuf);
-            SendEventToAllWindows(master, XI_DeviceClassesChangedMask,
+            CopySwapClasses(NullClient, oldmaster,
+                    &dcce->num_classes, &classbuf);
+            SendEventToAllWindows(oldmaster, XI_DeviceClassesChangedMask,
                     event.event, 1);
             xfree(event.event);
         }
-
-    } else
-        dev->spriteInfo->sprite = master->spriteInfo->sprite;
+    }
 
     return Success;
 }
