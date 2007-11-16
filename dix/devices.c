@@ -859,6 +859,17 @@ CloseDownDevices(void)
 {
     DeviceIntPtr dev, next;
 
+    /* Float all SDs before closing them. Note that at this point resources
+     * (e.g. cursors) have been freed already, so we can't just call
+     * AttachDevice(NULL, dev, NULL). Instead, we have to forcibly set master
+     * to NULL and pretend nothing happened.
+     */
+    for (dev = inputInfo.devices; dev; dev = dev->next)
+    {
+        if (!dev->isMaster && dev->u.master)
+            dev->u.master = NULL;
+    }
+
     for (dev = inputInfo.devices; dev; dev = next)
     {
 	next = dev->next;
