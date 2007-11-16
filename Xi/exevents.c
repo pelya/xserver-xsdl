@@ -205,6 +205,106 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
     }
 }
 
+/**
+ * Copies the feedback classes from device "from" into device "to". Classes
+ * are duplicated (not just flipping the pointers). All feedback classes are
+ * linked lists, the full list is duplicated.
+ *
+ * XXX: some XKB stuff is still missing.
+ */
+static void
+DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
+{
+    if (from->kbdfeed)
+    {
+        KbdFeedbackPtr *k, it;
+        k = &to->kbdfeed;
+        for(it = from->kbdfeed; it; it = it->next)
+        {
+            *k = xcalloc(1, sizeof(KbdFeedbackClassRec));
+            (*k)->BellProc = it->BellProc;
+            (*k)->CtrlProc = it->CtrlProc;
+            (*k)->ctrl     = it->ctrl;
+            /* XXX: xkb_sli needs to be copied */
+
+            k = &(*k)->next;
+        }
+    }
+
+    if (from->ptrfeed)
+    {
+        PtrFeedbackPtr *p, it;
+        p = &to->ptrfeed;
+        for (it = from->ptrfeed; it; it = it->next)
+        {
+            *p = xcalloc(1, sizeof(PtrFeedbackClassRec));
+            (*p)->CtrlProc = it->CtrlProc;
+            (*p)->ctrl     = it->ctrl;
+            /* XXX: xkb_sli needs to be copied */
+
+            p = &(*p)->next;
+        }
+    }
+
+    if (from->intfeed)
+    {
+        IntegerFeedbackPtr *i, it;
+        i = &to->intfeed;
+        for (it = from->intfeed; it; it = it->next)
+        {
+            *i = xcalloc(1, sizeof(IntegerFeedbackClassRec));
+            (*i)->CtrlProc = it->CtrlProc;
+            (*i)->ctrl     = it->ctrl;
+
+            i = &(*i)->next;
+        }
+    }
+
+    if (from->stringfeed)
+    {
+        StringFeedbackPtr *s, it;
+        s = &to->stringfeed;
+        for (it = from->stringfeed; it; it = it->next)
+        {
+            *s = xcalloc(1, sizeof(StringFeedbackClassRec));
+            (*s)->CtrlProc = it->CtrlProc;
+            (*s)->ctrl     = it->ctrl;
+
+            s = &(*s)->next;
+        }
+    }
+
+    if (from->bell)
+    {
+        BellFeedbackPtr *b, it;
+        b = &to->bell;
+        for (it = from->bell; it; it = it->next)
+        {
+            *b = xcalloc(1, sizeof(BellFeedbackClassRec));
+            (*b)->BellProc = it->BellProc;
+            (*b)->CtrlProc = it->CtrlProc;
+            (*b)->ctrl     = it->ctrl;
+
+            b = &(*b)->next;
+        }
+    }
+
+    if (from->leds)
+    {
+        LedFeedbackPtr *l, it;
+        l = &to->leds;
+        for (it = from->leds; it; it = it->next)
+        {
+            *l = xcalloc(1, sizeof(LedFeedbackClassRec));
+            (*l)->CtrlProc = it->CtrlProc;
+            (*l)->ctrl     = it->ctrl;
+            /* XXX: xkb_sli needs to be copied */
+
+            l = &(*l)->next;
+        }
+    }
+}
+
 _X_EXPORT void
 DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 {
@@ -256,26 +356,24 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
     ALLOC_COPY_CLASS_IF(focus, FocusClassRec);
     ALLOC_COPY_CLASS_IF(proximity, ProximityClassRec);
     ALLOC_COPY_CLASS_IF(absolute, AbsoluteClassRec);
+
     ALLOC_COPY_CLASS_IF(kbdfeed, KbdFeedbackClassRec);
 #ifdef XKB
     if (to->kbdfeed)
     {
         to->kbdfeed->xkb_sli = NULL;
         /* XXX: XkbSrvLedInfo needs to be copied*/
+        to->kbdfeed->next = NULL;
     }
 #endif
     ALLOC_COPY_CLASS_IF(ptrfeed, PtrFeedbackClassRec);
-    ALLOC_COPY_CLASS_IF(intfeed, IntegerFeedbackClassRec);
-    ALLOC_COPY_CLASS_IF(stringfeed, StringFeedbackClassRec);
-    ALLOC_COPY_CLASS_IF(bell, BellFeedbackClassRec);
-    ALLOC_COPY_CLASS_IF(leds, LedFeedbackClassRec);
-#ifdef XKB
-    if (to->leds)
+    if (to->ptrfeed)
     {
-        to->leds->xkb_sli = NULL;
-        /* XXX: XkbSrvLedInfo needs to be copied*/
+        to->ptrfeed->next = NULL;
     }
-#endif
+
+
+    DeepCopyFeedbackClasses(from, to);
 }
 
 static void
@@ -296,7 +394,7 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
 
     master->public.devicePrivate = device->public.devicePrivate;
 
-    FreeAllDeviceClasses(&master->key);
+    FreeAllDeviceClasses((ClassesPtr)&master->key);
     DeepCopyDeviceClasses(device, master);
 
     /* event is already correct size, see comment in GetPointerEvents */
