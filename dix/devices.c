@@ -817,10 +817,12 @@ CloseDevice(DeviceIntPtr dev)
     xfree(dev->name);
 
     if (dev->isMaster)
+    {
         classes = (ClassesPtr)dev->devPrivates[MasterDevClassesPrivIdx].ptr;
-    else
-        classes = (ClassesPtr)&dev->key;
+        FreeAllDeviceClasses(classes);
+    }
 
+    classes = (ClassesPtr)&dev->key;
     FreeAllDeviceClasses(classes);
 
 #ifdef XKB
