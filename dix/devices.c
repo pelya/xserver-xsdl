@@ -396,6 +396,8 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
         if (!AllocateDevicePrivate(pDev, MasterDevClassesPrivIdx) ||
                 !(classes = xcalloc(1, sizeof(ClassesRec))))
 
+        pDev->devPrivates[MasterDevClassesPrivIdx].ptr = NULL;
+
         keySyms.minKeyCode = 8;
         keySyms.maxKeyCode = 255;
         keySyms.mapWidth = 4;
@@ -494,6 +496,8 @@ CorePointerProc(DeviceIntPtr pDev, int what)
         if (!AllocateDevicePrivate(pDev, MasterDevClassesPrivIdx) ||
                 !(classes = xcalloc(1, sizeof(ClassesRec))))
             return BadAlloc;
+
+        pDev->devPrivates[MasterDevClassesPrivIdx].ptr = NULL;
 
         for (i = 1; i <= 32; i++)
             map[i] = i;
