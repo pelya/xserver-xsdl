@@ -175,6 +175,12 @@ fi
 AC_CHECK_FUNC([dlopen], [],
 	AC_CHECK_LIB([dl], [dlopen], DLOPEN_LIBS="-ldl"))
 
+case $host_os in
+    linux*)
+	AC_DEFINE(HAVE_URANDOM, 1, [Has /dev/urandom]) ;;
+    *) ;;
+esac
+
 dnl Checks for library functions.
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([geteuid getuid link memmove memset mkstemp strchr strrchr \
