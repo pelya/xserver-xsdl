@@ -257,6 +257,7 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
         return NULL;
 
     pExaPixmap = ExaGetPixmapPriv(pPixmap);
+    pExaPixmap->driverPriv = NULL;
 
     bpp = pPixmap->drawable.bitsPerPixel;
 
