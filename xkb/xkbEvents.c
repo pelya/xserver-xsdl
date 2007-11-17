@@ -405,7 +405,8 @@ XID		winID = 0;
 
     if ((force||(xkbi->desc->ctrls->enabled_ctrls&XkbAudibleBellMask))&&
 							(!eventOnly)) {
-	(*kbd->kbdfeed->BellProc)(percent,kbd,(pointer)pCtrl,class);
+        if (kbd->kbdfeed->BellProc)
+            (*kbd->kbdfeed->BellProc)(percent,kbd,(pointer)pCtrl,class);
     }
     interest = kbd->xkb_interest;
     if ((!interest)||(force))
