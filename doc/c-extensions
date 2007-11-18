@@ -30,3 +30,4 @@ The server will not build if your toolchain does not support these extensions.
                           struct foo bar = { .baz = quux, .brian = "dog" };
     * variadic macros: macros with a variable number of arguments, e.g.:
                        #define DebugF(x, ...) /**/
+    * interleaved code and declarations: { foo = TRUE; int bar; do_stuff(); }
