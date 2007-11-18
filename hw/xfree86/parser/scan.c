@@ -558,7 +558,6 @@ xf86pathIsSafe(const char *path)
  *    %E    config file environment ($XORGCONFIG) as an absolute path
  *    %F    config file environment ($XORGCONFIG) as a relative path
  *    %G    config file environment ($XORGCONFIG) as a safe path
- *    %D    $HOME
  *    %P    projroot
  *    %M    major version number
  *    %%    %
@@ -701,14 +700,6 @@ DoSubstitution(const char *template, const char *cmdline, const char *projroot,
 					if (envUsed)
 						*envUsed = 1;
 				} else
-					BAIL_OUT;
-				break;
-			case 'D':
-				if (!home)
-					home = getenv("HOME");
-				if (home && xf86pathIsAbsolute(home))
-					APPEND_STR(home);
-				else
 					BAIL_OUT;
 				break;
 			case 'P':

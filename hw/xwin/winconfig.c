@@ -49,7 +49,6 @@
                     "/etc/X11/%R," "%P/etc/X11/%R," \
                     "%E," "%F," \
                     "/etc/X11/%F," "%P/etc/X11/%F," \
-                    "%D/%X," \
                     "/etc/X11/%X-%M," "/etc/X11/%X," "/etc/%X," \
                     "%P/etc/X11/%X.%H," "%P/etc/X11/%X-%M," \
                     "%P/etc/X11/%X," \

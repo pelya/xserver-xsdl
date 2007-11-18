@@ -62,7 +62,7 @@ xrealloc (void *p, int size)
 #endif
 
 #define CONFPATH "%A,%R,/etc/X11/%R,%P/etc/X11/%R,%E,%F,/etc/X11/%F," \
-		 "%P/etc/X11/%F,%D/%X,/etc/X11/%X,/etc/%X,%P/etc/X11/%X.%H," \
+		 "%P/etc/X11/%F,/etc/X11/%X,/etc/%X,%P/etc/X11/%X.%H," \
 		 "%P/etc/X11/%X,%P/lib/X11/%X.%H,%P/lib/X11/%X"
 
 int
