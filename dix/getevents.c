@@ -23,7 +23,7 @@
  *
  * Author: Daniel Stone <daniel@fooishbar.org>
  */
- /* 
+ /*
   * MPX additions:
   * Copyright © 2006 Peter Hutterer
   * Author: Peter Hutterer <peter@cs.unisa.edu.au>
@@ -263,7 +263,7 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
 _X_EXPORT int
 GetMaximumEventsNum(void) {
     /* Three base events -- raw event and device, plus valuator events.
-     * Multiply by two if we're doing key repeats. 
+     * Multiply by two if we're doing key repeats.
      */
     int ret = 2 + MAX_VALUATOR_EVENTS;
 
@@ -567,7 +567,7 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
 }
 
 /**
- * Initialize an event list and fill with 32 byte sized events. 
+ * Initialize an event list and fill with 32 byte sized events.
  * This event list is to be passed into GetPointerEvents() and
  * GetKeyboardEvents().
  *
@@ -653,7 +653,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
     if ((type == ButtonPress || type == ButtonRelease) && !pDev->button)
         return 0;
-    
+
     /* FIXME: I guess it should, in theory, be possible to post button events
      *        from devices without valuators. */
     if (!pDev->valuator)
@@ -693,12 +693,12 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         return 0;
 
     /* fill up the raw event, after checking that it is large enough to
-     * accommodate all valuators. 
+     * accommodate all valuators.
      */
-    if (events->evlen < 
+    if (events->evlen <
             (sizeof(xEvent) + ((num_valuators - 4) * sizeof(CARD32))))
     {
-        events->evlen = sizeof(xEvent) + 
+        events->evlen = sizeof(xEvent) +
             ((num_valuators - 4) * sizeof(CARD32));
         events->event = realloc(events->event, events->evlen);
         if (!events->event)
@@ -886,11 +886,11 @@ SwitchCorePointer(DeviceIntPtr pDev)
  * to shift the pointer to get it inside the new bounds.
  */
 void
-PostSyntheticMotion(DeviceIntPtr pDev, 
-                    int x, 
-                    int y, 
+PostSyntheticMotion(DeviceIntPtr pDev,
+                    int x,
+                    int y,
                     int screen,
-                    unsigned long time) 
+                    unsigned long time)
 {
     xEvent xE;
 
