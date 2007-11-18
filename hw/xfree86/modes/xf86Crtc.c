@@ -704,9 +704,9 @@ xf86DefaultMode (xf86OutputPtr output, int width, int height)
     
     mm_height = output->mm_height;
     if (!mm_height)
-	mm_height = 203;	/* 768 pixels at 96dpi */
+	mm_height = (768 * 25.4) / DEFAULT_DPI;
     /*
-     * Pick a mode closest to 96dpi 
+     * Pick a mode closest to DEFAULT_DPI
      */
     for (mode = output->probed_modes; mode; mode = mode->next)
     {
@@ -721,7 +721,7 @@ xf86DefaultMode (xf86OutputPtr output, int width, int height)
 	
 	/* yes, use VDisplay here, not xf86ModeHeight */
 	dpi = (mode->VDisplay * 254) / (mm_height * 10);
-	diff = dpi - 96;
+	diff = dpi - DEFAULT_DPI;
 	diff = diff < 0 ? -diff : diff;
 	if (target_mode == NULL || (preferred > target_preferred) ||
 	    (preferred == target_preferred && diff < target_diff))
