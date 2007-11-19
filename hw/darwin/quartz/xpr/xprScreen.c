@@ -63,26 +63,24 @@ static void
 eventHandler(unsigned int type, const void *arg,
              unsigned int arg_size, void *data)
 {
-    switch (type)
-    {
+    switch (type) {
     case XP_EVENT_DISPLAY_CHANGED:
-      //      ErrorF("XP_EVENT_DISPLAY_MOVED\n");
-        QuartzMessageServerThread(kXDarwinDisplayChanged, 0);
-        break;
+      DEBUG_LOG("XP_EVENT_DISPLAY_CHANGED\n");
+      QuartzMessageServerThread(kXDarwinDisplayChanged, 0);
+      break;
 
     case XP_EVENT_WINDOW_STATE_CHANGED:
-      //      ErrorF("XP_EVENT_WINDOW_STATE_CHANGED\n");
-        if (arg_size >= sizeof(xp_window_state_event))
-        {
-            const xp_window_state_event *ws_arg = arg;
-
-            QuartzMessageServerThread(kXDarwinWindowState, 2,
-                                      ws_arg->id, ws_arg->state);
-        }
-        break;
+      DEBUG_LOG("XP_EVENT_WINDOW_STATE_CHANGED\n");
+      if (arg_size >= sizeof(xp_window_state_event)) {
+	const xp_window_state_event *ws_arg = arg;
+	
+	QuartzMessageServerThread(kXDarwinWindowState, 2,
+				  ws_arg->id, ws_arg->state);
+      }
+      break;
 
     case XP_EVENT_WINDOW_MOVED:
-      //      ErrorF("XP_EVENT_WINDOW_MOVED\n");
+     	DEBUG_LOG("XP_EVENT_WINDOW_MOVED\n");
         if (arg_size == sizeof(xp_window_id))
         {
             xp_window_id id = * (xp_window_id *) arg;
@@ -98,20 +96,23 @@ eventHandler(unsigned int type, const void *arg,
         break;
 
     case XP_EVENT_SURFACE_DESTROYED:
+      DEBUG_LOG("XP_EVENT_SURFACE_DESTROYED\n");
     case XP_EVENT_SURFACE_CHANGED:
-      //      ErrorF("XP_EVENT_SURFACE_MOVED\n");
-        if (arg_size == sizeof(xp_surface_id))
-        {
-            int kind;
-
-            if (type == XP_EVENT_SURFACE_DESTROYED)
-                kind = AppleDRISurfaceNotifyDestroyed;
-            else
-                kind = AppleDRISurfaceNotifyChanged;
-
-            DRISurfaceNotify(*(xp_surface_id *) arg, kind);
+      DEBUG_LOG("XP_EVENT_SURFACE_CHANGED\n");
+        if (arg_size == sizeof(xp_surface_id)) {
+	  int kind;
+	  
+	  if (type == XP_EVENT_SURFACE_DESTROYED)
+	    kind = AppleDRISurfaceNotifyDestroyed;
+	  else
+	    kind = AppleDRISurfaceNotifyChanged;
+	  
+	  DRISurfaceNotify(*(xp_surface_id *) arg, kind);
         }
         break;
+    default:
+      ErrorF("Unknown XP_EVENT type (%d) in xprScreen:eventHandler\n",
+	     type);
     }
 }
 
