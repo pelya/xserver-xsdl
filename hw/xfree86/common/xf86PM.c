@@ -116,7 +116,7 @@ resume(pmEvent event, Bool undo)
 	if (xf86Screens[i]->EnableDisableFBAccess)
 	    (*xf86Screens[i]->EnableDisableFBAccess) (i, TRUE);
     }
-    SaveScreens(serverClient, SCREEN_SAVER_FORCER, ScreenSaverReset);
+    dixSaveScreens(serverClient, SCREEN_SAVER_FORCER, ScreenSaverReset);
     pInfo = xf86InputDevs;
     while (pInfo) {
 	EnableDevice(pInfo->dev);

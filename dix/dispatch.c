@@ -3582,7 +3582,7 @@ int ProcForceScreenSaver(ClientPtr client)
 	client->errorValue = stuff->mode;
         return BadValue;
     }
-    rc = SaveScreens(client, SCREEN_SAVER_FORCER, (int)stuff->mode);
+    rc = dixSaveScreens(client, SCREEN_SAVER_FORCER, (int)stuff->mode);
     if (rc != Success)
 	return rc;
     return client->noClientException;

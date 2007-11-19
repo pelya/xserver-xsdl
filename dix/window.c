@@ -3337,7 +3337,7 @@ static void DrawLogo(
 #endif
 
 _X_EXPORT int
-SaveScreens(ClientPtr client, int on, int mode)
+dixSaveScreens(ClientPtr client, int on, int mode)
 {
     int rc, i, what, type;
 
@@ -3453,6 +3453,12 @@ SaveScreens(ClientPtr client, int on, int mode)
     if (mode == ScreenSaverReset)
        SetScreenSaverTimer();
     return Success;
+}
+
+_X_EXPORT int
+SaveScreens(int on, int mode)
+{
+    return dixSaveScreens(serverClient, on, mode);
 }
 
 static Bool

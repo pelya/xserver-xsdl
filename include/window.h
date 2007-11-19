@@ -204,8 +204,12 @@ extern RegionPtr NotClippedByChildren(
 extern void SendVisibilityNotify(
     WindowPtr /*pWin*/);
 
-extern int SaveScreens(
+extern int dixSaveScreens(
     ClientPtr client,
+    int on,
+    int mode);
+
+extern int SaveScreens(
     int on,
     int mode);
 

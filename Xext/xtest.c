@@ -459,7 +459,7 @@ ProcXTestFakeInput(client)
 	break;
     }
     if (screenIsSaved == SCREEN_SAVER_ON)
-	SaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
+	dixSaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
     ev->u.keyButtonPointer.time = currentTime.milliseconds;
     (*dev->public.processInputProc)(ev, dev, nev);
     return client->noClientException;

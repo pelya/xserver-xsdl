@@ -319,6 +319,7 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(NotClippedByChildren)
     SYMFUNC(ResizeChildrenWinSize)
     SYMFUNC(SaveScreens)
+    SYMFUNC(dixSaveScreens)
     SYMFUNC(SendVisibilityNotify)
     SYMFUNC(SetWinSize)
     SYMFUNC(SetBorderSize)

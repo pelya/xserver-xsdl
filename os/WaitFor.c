@@ -647,7 +647,7 @@ ScreenSaverTimeoutExpire(OsTimerPtr timer,CARD32 now,pointer arg)
     }
 
     ResetOsBuffers(); /* not ideal, but better than nothing */
-    SaveScreens(serverClient, SCREEN_SAVER_ON, ScreenSaverActive);
+    dixSaveScreens(serverClient, SCREEN_SAVER_ON, ScreenSaverActive);
 
     if (ScreenSaverInterval > 0)
     {

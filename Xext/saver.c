@@ -468,8 +468,8 @@ ScreenSaverFreeAttr (value, id)
     pPriv->attr = NULL;
     if (pPriv->hasWindow)
     {
-	SaveScreens (serverClient, SCREEN_SAVER_FORCER, ScreenSaverReset);
-	SaveScreens (serverClient, SCREEN_SAVER_FORCER, ScreenSaverActive);
+	dixSaveScreens (serverClient, SCREEN_SAVER_FORCER, ScreenSaverReset);
+	dixSaveScreens (serverClient, SCREEN_SAVER_FORCER, ScreenSaverActive);
     }
     CheckScreenPrivate (pScreen);
     return TRUE;

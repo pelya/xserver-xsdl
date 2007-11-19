@@ -200,7 +200,7 @@ mieqProcessInputEvents(void)
 
     while (miEventQueue.head != miEventQueue.tail) {
         if (screenIsSaved == SCREEN_SAVER_ON)
-            SaveScreens (serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
+            dixSaveScreens (serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
 #ifdef DPMSExtension
         else if (DPMSPowerLevel != DPMSModeOn)
             SetScreenSaverTimer();

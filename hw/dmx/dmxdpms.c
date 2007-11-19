@@ -175,7 +175,7 @@ void dmxDPMSTerm(DMXScreenInfo *dmxScreen)
 void dmxDPMSWakeup(void)
 {
     if (screenIsSaved == SCREEN_SAVER_ON)
-        SaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
+        dixSaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
 #ifdef DPMSExtension
     if (DPMSPowerLevel) DPMSSet(serverClient, 0);
 #endif

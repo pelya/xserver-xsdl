@@ -153,7 +153,7 @@ DPMSSet(ClientPtr client, int level)
 	return Success;
 
     if (level != DPMSModeOn) {
-	rc = SaveScreens(client, SCREEN_SAVER_FORCER, ScreenSaverActive);
+	rc = dixSaveScreens(client, SCREEN_SAVER_FORCER, ScreenSaverActive);
 	if (rc != Success)
 	    return rc;
     }

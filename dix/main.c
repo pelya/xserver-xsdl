@@ -425,7 +425,7 @@ main(int argc, char *argv[], char *envp[])
 	for (i = 0; i < screenInfo.numScreens; i++)
 	    InitRootWindow(WindowTable[i]);
 	DefineInitialRootWindow(WindowTable[0]);
-	SaveScreens(serverClient, SCREEN_SAVER_FORCER, ScreenSaverReset);
+	dixSaveScreens(serverClient, SCREEN_SAVER_FORCER, ScreenSaverReset);
 
 #ifdef PANORAMIX
 	if (!noPanoramiXExtension) {
@@ -446,7 +446,7 @@ main(int argc, char *argv[], char *envp[])
 
 	/* Now free up whatever must be freed */
 	if (screenIsSaved == SCREEN_SAVER_ON)
-	    SaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
+	    dixSaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
 	FreeScreenSaverTimer();
 	CloseDownExtensions();
 
