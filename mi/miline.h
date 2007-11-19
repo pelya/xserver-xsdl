@@ -28,6 +28,7 @@ in this Software without prior written authorization from The Open Group.
 #ifndef MILINE_H
 
 #include "screenint.h"
+#include "privates.h"
 
 /*
  * Public definitions used for configuring basic pixelization aspects
