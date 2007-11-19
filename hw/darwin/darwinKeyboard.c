@@ -61,7 +61,7 @@
 #undef DUMP_DARWIN_KEYMAP
 
 /* Define this to use Alt for Mode_switch. */
-#define ALT_IS_MODE_SWITCH 1
+//#define ALT_IS_MODE_SWITCH 1
 
 #include <stdio.h>
 #include <stdlib.h>
