@@ -450,10 +450,10 @@ xf86RandR12CreateScreenResources (ScreenPtr pScreen)
 	    else
 	    {
 		/*
-		 * Otherwise, just set the screen to 96dpi
+		 * Otherwise, just set the screen to DEFAULT_DPI
 		 */
-		mmWidth = width * 25.4 / 96;
-		mmHeight = height * 25.4 / 96;
+		mmWidth = width * 25.4 / DEFAULT_DPI;
+		mmHeight = height * 25.4 / DEFAULT_DPI;
 	    }
 	}
 	xf86DrvMsg(pScrn->scrnIndex, X_INFO,

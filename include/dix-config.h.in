@@ -240,6 +240,9 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Have /dev/urandom */
+#undef HAVE_URANDOM
+
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
 

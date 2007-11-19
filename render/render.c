@@ -1292,7 +1292,7 @@ ProcRenderAddGlyphs (ClientPtr client)
 
 		pDstPix = (pScreen->CreatePixmap) (pScreen,
 						   width, height, depth,
-						   CREATE_PIMXAP_USAGE_GLYPH_PICTURE);
+						   CREATE_PIXMAP_USAGE_GLYPH_PICTURE);
 
 		GlyphPicture (glyph)[screen] = pDst =
 			CreatePicture (0, &pDstPix->drawable,

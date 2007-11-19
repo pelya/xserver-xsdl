@@ -120,7 +120,7 @@ extern RootWinPropPtr *xf86RegisteredPropertiesTable;
 #define DEFAULT_LOG_VERBOSE	3
 #endif
 #ifndef DEFAULT_DPI
-#define DEFAULT_DPI		75
+#define DEFAULT_DPI		96
 #endif
 
 #define DEFAULT_UNRESOLVED	TRUE

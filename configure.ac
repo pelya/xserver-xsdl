@@ -26,7 +26,7 @@ dnl
 dnl Process this file with autoconf to create configure.
 
 AC_PREREQ(2.57)
-AC_INIT([xorg-server], 1.4.0.1, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
+AC_INIT([xorg-server], 1.4.99.1, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 AM_MAINTAINER_MODE
@@ -174,6 +174,12 @@ fi
 
 AC_CHECK_FUNC([dlopen], [],
 	AC_CHECK_LIB([dl], [dlopen], DLOPEN_LIBS="-ldl"))
+
+case $host_os in
+    linux*)
+	AC_DEFINE(HAVE_URANDOM, 1, [Has /dev/urandom]) ;;
+    *) ;;
+esac
 
 dnl Checks for library functions.
 AC_FUNC_VPRINTF
@@ -1536,8 +1542,6 @@ dnl has it in libc), or if libdl is needed to get it.
 	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
 	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])
 	AC_DEFINE(WITH_VGAHW, 1, [Building vgahw module])
-	AC_DEFINE(DRIVERS, {}, [Built-in output drivers (none)])
-	AC_DEFINE(IDRIVERS, {}, [Built-in input drivers (none)])
 	AC_DEFINE_DIR(__XCONFIGFILE__, XF86CONFIGFILE, [Name of configuration file])
 	AC_DEFINE_DIR(XF86CONFIGFILE, XF86CONFIGFILE, [Name of configuration file])
 	AC_DEFINE_DIR(DEFAULT_MODULE_PATH, moduledir, [Default module search path])

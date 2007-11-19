@@ -209,5 +209,3 @@ InitAtoms(void)
     if (lastAtom != XA_LAST_PREDEFINED)
 	AtomError ();
 }
-
-    

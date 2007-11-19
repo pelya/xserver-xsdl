@@ -250,7 +250,7 @@ UpdateCurrentTimeIf(void)
 	currentTime = systime;
 }
 
-void
+static void
 InitSelections(void)
 {
     if (CurrentSelections)
@@ -3842,7 +3842,7 @@ ProcInitialConnection(ClientPtr client)
     return (client->noClientException);
 }
 
-int
+static int
 SendConnSetup(ClientPtr client, char *reason)
 {
     xWindowRoot *root;

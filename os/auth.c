@@ -314,6 +314,20 @@ GenerateAuthorization(
     return -1;
 }
 
+#ifdef HAVE_URANDOM
+
+void
+GenerateRandomData (int len, char *buf)
+{
+    int fd;
+
+    fd = open("/dev/urandom", O_RDONLY);
+    read(fd, buf, len);
+    close(fd);
+}
+
+#else /* !HAVE_URANDOM */
+
 /* A random number generator that is more unpredictable
    than that shipped with some systems.
    This code is taken from the C standard. */
@@ -350,5 +364,7 @@ GenerateRandomData (int len, char *buf)
 
     /* XXX add getrusage, popen("ps -ale") */
 }
+
+#endif /* HAVE_URANDOM */
 
 #endif /* XCSECURITY */

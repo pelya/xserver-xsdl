@@ -1299,10 +1299,6 @@ AbortDDX()
   /*
    * try to restore the original video state
    */
-#ifdef HAS_USL_VTS
-  /* Need the sleep when starting X from within another X session */
-  sleep(1);
-#endif
 #ifdef DPMSExtension /* Turn screens back on */
   if (DPMSPowerLevel != DPMSModeOn)
       DPMSSet(serverClient, DPMSModeOn);

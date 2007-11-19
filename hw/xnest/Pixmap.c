@@ -57,6 +57,7 @@ xnestCreatePixmap(ScreenPtr pScreen, int width, int height, int depth,
   pPixmap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
   pPixmap->refcnt = 1;
   pPixmap->devKind = PixmapBytePad(width, depth);
+  pPixmap->usage_hint = usage_hint;
   dixSetPrivate(&pPixmap->devPrivates, xnestPixmapPrivateKey,
 		(char *)pPixmap + pScreen->totalPixmapSize);
   if (width && height)

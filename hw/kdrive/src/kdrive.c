@@ -632,11 +632,6 @@ KdProcessArgument (int argc, char **argv, int i)
 	kdDontZap = TRUE;
 	return 1;
     }
-    if (!strcmp (argv[i], "-nozap"))
-    {
-	kdDontZap = TRUE;
-	return 1;
-    }
     if (!strcmp (argv[i], "-3button"))
     {
 	kdEmulateMiddleButton = FALSE;

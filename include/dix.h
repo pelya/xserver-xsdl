@@ -145,8 +145,6 @@ extern void UpdateCurrentTime(void);
 
 extern void UpdateCurrentTimeIf(void);
 
-extern void InitSelections(void);
-
 extern int dixDestroyPixmap(
     pointer /*value*/,
     XID /*pid*/);
@@ -171,10 +169,6 @@ extern void DeleteWindowFromAnySelections(
 
 extern void MarkClientException(
     ClientPtr /*client*/);
-
-extern int SendConnSetup(
-    ClientPtr /*client*/,
-    char* /*reason*/);
 
 #if defined(DDXBEFORERESET)
 extern void ddxBeforeReset (void);
@@ -335,13 +329,6 @@ extern void EnqueueEvent(
     xEventPtr /* xE */,
     DeviceIntPtr /* device */,
     int	/* count */);
-
-extern void ComputeFreezes(void);
-
-extern void CheckGrabForSyncs(
-    DeviceIntPtr /* dev */,
-    Bool /* thisMode */,
-    Bool /* otherMode */);
 
 extern void ActivatePointerGrab(
     DeviceIntPtr /* mouse */,

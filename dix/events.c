@@ -1184,7 +1184,7 @@ FreezeThaw(DeviceIntPtr dev, Bool frozen)
 	dev->public.processInputProc = dev->public.realInputProc;
 }
 
-void
+static void
 ComputeFreezes(void)
 {
     DeviceIntPtr replayDev = syncEvents.replayDev;
@@ -1268,7 +1268,7 @@ ScreenRestructured (ScreenPtr pScreen)
 }
 #endif
 
-void
+static void
 CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
 {
     GrabPtr grab = thisDev->grab;

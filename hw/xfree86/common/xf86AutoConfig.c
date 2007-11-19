@@ -43,16 +43,6 @@
 
 /* Sections for the default built-in configuration. */
 
-#define BUILTIN_MODULE_SECTION \
-	"Section \"Module\"\n" \
-	"\tLoad\t\"extmod\"\n" \
-	"\tLoad\t\"dbe\"\n" \
-	"\tLoad\t\"glx\"\n" \
-	"\tLoad\t\"freetype\"\n" \
-	"\tLoad\t\"record\"\n" \
-	"\tLoad\t\"dri\"\n" \
-	"EndSection\n\n"
-
 #define BUILTIN_DEVICE_NAME \
 	"\"Builtin Default %s Device %d\""
 
@@ -68,14 +58,6 @@
 	BUILTIN_DEVICE_SECTION_PRE \
 	BUILTIN_DEVICE_SECTION_POST
 
-#define BUILTIN_MONITOR_NAME \
-	"\"Builtin Default Monitor\""
-
-#define BUILTIN_MONITOR_SECTION \
-	"Section \"Monitor\"\n" \
-	"\tIdentifier\t" BUILTIN_MONITOR_NAME "\n" \
-	"EndSection\n\n"
-
 #define BUILTIN_SCREEN_NAME \
 	"\"Builtin Default %s Screen %d\""
 
@@ -83,7 +65,6 @@
 	"Section \"Screen\"\n" \
 	"\tIdentifier\t" BUILTIN_SCREEN_NAME "\n" \
 	"\tDevice\t" BUILTIN_DEVICE_NAME "\n" \
-	"\tMonitor\t" BUILTIN_MONITOR_NAME "\n" \
 	"EndSection\n\n"
 
 #define BUILTIN_LAYOUT_SECTION_PRE \
@@ -219,9 +200,6 @@ xf86AutoConfig(void)
     ConfigStatus ret;
 
     driver = chooseVideoDriver();
-
-    AppendToConfig(BUILTIN_MODULE_SECTION);
-    AppendToConfig(BUILTIN_MONITOR_SECTION);
 
     if (driver) {
 	snprintf(buf, sizeof(buf), BUILTIN_DEVICE_SECTION_PRE,

@@ -2,9 +2,6 @@ noinst_LTLIBRARIES = libos.la libcwrapper.la
 
 AM_CFLAGS = $(DIX_CFLAGS)
 
-# FIXME: Add support for these in configure.ac
-INTERNALMALLOC_SRCS = xalloc.c
-
 SECURERPC_SRCS = rpcauth.c
 XDMCP_SRCS = xdmcp.c
 STRLCAT_SRCS = strlcat.c strlcpy.c

@@ -166,6 +166,8 @@ RRModesForScreen (ScreenPtr pScreen, int *num_ret)
     int		num_screen_modes = 0;
 
     screen_modes = xalloc ((num_modes ? num_modes : 1) * sizeof (RRModePtr));
+    if (!screen_modes)
+	return NULL;
     
     /*
      * Add modes from all outputs
