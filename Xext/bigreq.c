@@ -37,7 +37,6 @@ from The Open Group.
 #include "os.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
-#include "registry.h"
 #include <X11/extensions/bigreqstr.h>
 #include "opaque.h"
 #include "modinit.h"
@@ -51,15 +50,9 @@ static DISPATCH_PROC(ProcBigReqDispatch);
 void
 BigReqExtensionInit(INITARGS)
 {
-    ExtensionEntry *extEntry;
-
-    if (!(extEntry = AddExtension(XBigReqExtensionName, 0, 0,
-				  ProcBigReqDispatch, ProcBigReqDispatch,
-				  BigReqResetProc, StandardMinorOpcode)))
-	return;
-
-    RegisterRequestName(extEntry->base, X_BigReqEnable,
-			XBigReqExtensionName ":Enable");
+    AddExtension(XBigReqExtensionName, 0, 0,
+		 ProcBigReqDispatch, ProcBigReqDispatch,
+		 BigReqResetProc, StandardMinorOpcode)))
 }
 
 /*ARGSUSED*/
