@@ -45,7 +45,6 @@ of the copyright holder.
 #include "colormapst.h"
 #include "scrnintstr.h"
 #include "servermd.h"
-#include "registry.h"
 #define  _XEVIE_SERVER_
 #include <X11/extensions/Xeviestr.h>
 #include <X11/Xfuncproto.h>
@@ -147,21 +146,9 @@ XevieExtensionInit (void)
 				StandardMinorOpcode))) {
 	ReqCode = (unsigned char)extEntry->base;
 	ErrorBase = extEntry->errorBase;
-    } else
-	return;
+    }
 
     /* PC servers initialize the desktop colors (citems) here! */
-
-    RegisterRequestName(ReqCode, X_XevieQueryVersion,
-			XEVIENAME ":QueryVersion");
-    RegisterRequestName(ReqCode, X_XevieStart,
-			XEVIENAME ":Start");
-    RegisterRequestName(ReqCode, X_XevieEnd,
-			XEVIENAME ":End");
-    RegisterRequestName(ReqCode, X_XevieSend,
-			XEVIENAME ":Send");
-    RegisterRequestName(ReqCode, X_XevieSelectInput,
-			XEVIENAME ":SelectInput");
 }
 
 /*ARGSUSED*/
