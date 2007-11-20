@@ -71,7 +71,6 @@
 #include "randrstr.h"
 #include "swaprep.h"
 #include <X11/extensions/panoramiXproto.h>
-#include "registry.h"
 
 #define RR_XINERAMA_MAJOR_VERSION   1
 #define RR_XINERAMA_MINOR_VERSION   1
@@ -424,8 +423,6 @@ RRXineramaResetProc(ExtensionEntry* extEntry)
 void
 RRXineramaExtensionInit(void)
 {
-    ExtensionEntry *extEntry;
-
 #ifdef PANORAMIX
     if(!noPanoramiXExtension)
 	return;
@@ -439,22 +436,9 @@ RRXineramaExtensionInit(void)
     if (screenInfo.numScreens > 1)
 	return;
 
-    extEntry = AddExtension(PANORAMIX_PROTOCOL_NAME, 0, 0,
-			    ProcRRXineramaDispatch,
-			    SProcRRXineramaDispatch,
-			    RRXineramaResetProc,
-			    StandardMinorOpcode);
-
-    RegisterRequestName(extEntry->base, X_PanoramiXQueryVersion,
-			PANORAMIX_PROTOCOL_NAME ":QueryVersion");
-    RegisterRequestName(extEntry->base, X_PanoramiXGetState,
-			PANORAMIX_PROTOCOL_NAME ":GetState");
-    RegisterRequestName(extEntry->base, X_PanoramiXGetScreenCount,
-			PANORAMIX_PROTOCOL_NAME ":GetScreenCount");
-    RegisterRequestName(extEntry->base, X_PanoramiXGetScreenSize,
-			PANORAMIX_PROTOCOL_NAME ":GetScreenSize");
-    RegisterRequestName(extEntry->base, X_XineramaIsActive,
-			PANORAMIX_PROTOCOL_NAME ":IsActive");
-    RegisterRequestName(extEntry->base, X_XineramaQueryScreens,
-			PANORAMIX_PROTOCOL_NAME ":QueryScreens");
+    (void) AddExtension(PANORAMIX_PROTOCOL_NAME, 0,0,
+			ProcRRXineramaDispatch,
+			SProcRRXineramaDispatch,
+			RRXineramaResetProc,
+			StandardMinorOpcode);
 }

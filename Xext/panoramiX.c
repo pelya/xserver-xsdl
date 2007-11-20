@@ -53,7 +53,6 @@ Equipment Corporation.
 #include "globals.h"
 #include "servermd.h"
 #include "resource.h"
-#include "registry.h"
 #ifdef RENDER
 #include "picturestr.h"
 #endif
@@ -590,19 +589,6 @@ void PanoramiXExtensionInit(int argc, char *argv[])
 #ifdef RENDER
     PanoramiXRenderInit ();
 #endif
-
-    RegisterRequestName(extEntry->base, X_PanoramiXQueryVersion,
-			PANORAMIX_PROTOCOL_NAME ":QueryVersion");
-    RegisterRequestName(extEntry->base, X_PanoramiXGetState,
-			PANORAMIX_PROTOCOL_NAME ":GetState");
-    RegisterRequestName(extEntry->base, X_PanoramiXGetScreenCount,
-			PANORAMIX_PROTOCOL_NAME ":GetScreenCount");
-    RegisterRequestName(extEntry->base, X_PanoramiXGetScreenSize,
-			PANORAMIX_PROTOCOL_NAME ":GetScreenSize");
-    RegisterRequestName(extEntry->base, X_XineramaIsActive,
-			PANORAMIX_PROTOCOL_NAME ":IsActive");
-    RegisterRequestName(extEntry->base, X_XineramaQueryScreens,
-			PANORAMIX_PROTOCOL_NAME ":QueryScreens");
 }
 
 extern Bool CreateConnectionBlock(void);
