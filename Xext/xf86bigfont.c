@@ -71,7 +71,6 @@
 #include "gcstruct.h"
 #include "dixfontstr.h"
 #include "extnsionst.h"
-#include "registry.h"
 
 #define _XF86BIGFONT_SERVER_
 #include <X11/extensions/xf86bigfstr.h>
@@ -186,13 +185,7 @@ XFree86BigfontExtensionInit()
 # endif
 #endif
 #endif
-    } else
-	return;
-
-    RegisterRequestName(extEntry->base, X_XF86BigfontQueryVersion,
-			XF86BIGFONTNAME ":QueryVersion");
-    RegisterRequestName(extEntry->base, X_XF86BigfontQueryFont,
-			XF86BIGFONTNAME ":QueryFont");
+    }
 }
 
 
