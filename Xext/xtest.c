@@ -42,7 +42,6 @@ from The Open Group.
 #include "scrnintstr.h"
 #include "dixevents.h"
 #include "sleepuntil.h"
-#include "registry.h"
 #define _XTEST_SERVER_
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/xteststr.h>
@@ -85,21 +84,9 @@ static DISPATCH_PROC(SProcXTestGrabControl);
 void
 XTestExtensionInit(INITARGS)
 {
-    ExtensionEntry *extEntry;
-
-    if (!(extEntry = AddExtension(XTestExtensionName, 0, 0,
-				  ProcXTestDispatch, SProcXTestDispatch,
-				  XTestResetProc, StandardMinorOpcode)))
-	return;
-
-    RegisterRequestName(extEntry->base, X_XTestGetVersion,
-			XTestExtensionName ":GetVersion");
-    RegisterRequestName(extEntry->base, X_XTestCompareCursor,
-			XTestExtensionName ":CompareCursor");
-    RegisterRequestName(extEntry->base, X_XTestFakeInput,
-			XTestExtensionName ":FakeInput");
-    RegisterRequestName(extEntry->base, X_XTestGrabControl,
-			XTestExtensionName ":GrabControl");
+    AddExtension(XTestExtensionName, 0, 0,
+		 ProcXTestDispatch, SProcXTestDispatch,
+		 XTestResetProc, StandardMinorOpcode))
 }
 
 /*ARGSUSED*/
