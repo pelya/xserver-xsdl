@@ -30,7 +30,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "dix.h"
-#include "registry.h"
 #define _XEVI_SERVER_
 #include <X11/extensions/XEVIstr.h>
 #include "EVIstruct.h"
@@ -189,9 +188,4 @@ EVIExtensionInit(INITARGS)
 	return;
 
     eviPriv = eviDDXInit();
-
-    RegisterRequestName(extEntry->base, X_EVIQueryVersion,
-			EVINAME ":QueryVersion");
-    RegisterRequestName(extEntry->base, X_EVIGetVisualInfo,
-			EVINAME ":GetVisualInfo");
 }
