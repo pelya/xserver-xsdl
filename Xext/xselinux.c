@@ -1399,28 +1399,4 @@ XSELinuxExtensionInit(INITARGS)
 
     /* Label objects that were created before we could register ourself */
     SELinuxLabelInitial();
-
-    /* Add names to registry */
-    RegisterRequestName(extEntry->base, X_SELinuxQueryVersion,
-			XSELINUX_EXTENSION_NAME ":SELinuxQueryVersion");
-    RegisterRequestName(extEntry->base, X_SELinuxSetSelectionManager,
-			XSELINUX_EXTENSION_NAME ":SELinuxSetSelectionManager");
-    RegisterRequestName(extEntry->base, X_SELinuxGetSelectionManager,
-			XSELINUX_EXTENSION_NAME ":SELinuxGetSelectionManager");
-    RegisterRequestName(extEntry->base, X_SELinuxSetDeviceContext,
-			XSELINUX_EXTENSION_NAME ":SELinuxSetDeviceContext");
-    RegisterRequestName(extEntry->base, X_SELinuxGetDeviceContext,
-			XSELINUX_EXTENSION_NAME ":SELinuxGetDeviceContext");
-    RegisterRequestName(extEntry->base, X_SELinuxSetPropertyCreateContext,
-			XSELINUX_EXTENSION_NAME ":SELinuxSetPropertyCreateContext");
-    RegisterRequestName(extEntry->base, X_SELinuxGetPropertyCreateContext,
-			XSELINUX_EXTENSION_NAME ":SELinuxGetPropertyCreateContext");
-    RegisterRequestName(extEntry->base, X_SELinuxGetPropertyContext,
-			XSELINUX_EXTENSION_NAME ":SELinuxGetPropertyContext");
-    RegisterRequestName(extEntry->base, X_SELinuxSetWindowCreateContext,
-			XSELINUX_EXTENSION_NAME ":SELinuxSetWindowCreateContext");
-    RegisterRequestName(extEntry->base, X_SELinuxGetWindowCreateContext,
-			XSELINUX_EXTENSION_NAME ":SELinuxGetWindowCreateContext");
-    RegisterRequestName(extEntry->base, X_SELinuxGetWindowContext,
-			XSELINUX_EXTENSION_NAME ":SELinuxGetWindowContext");
 }
