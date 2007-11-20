@@ -43,7 +43,6 @@ and Jim Haggerty of Metheus.
 #include <X11/extensions/recordstr.h>
 #include "set.h"
 #include "swaprep.h"
-#include "registry.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -2966,24 +2965,5 @@ RecordExtensionInit(void)
     }
     RecordErrorBase = extentry->errorBase;
 
-    RegisterRequestName(extentry->base, X_RecordQueryVersion,
-			RECORD_NAME ":QueryVersion");
-    RegisterRequestName(extentry->base, X_RecordCreateContext,
-			RECORD_NAME ":CreateContext");
-    RegisterRequestName(extentry->base, X_RecordRegisterClients,
-			RECORD_NAME ":RegisterClients");
-    RegisterRequestName(extentry->base, X_RecordUnregisterClients,
-			RECORD_NAME ":UnregisterClients");
-    RegisterRequestName(extentry->base, X_RecordGetContext,
-			RECORD_NAME ":GetContext");
-    RegisterRequestName(extentry->base, X_RecordEnableContext,
-			RECORD_NAME ":EnableContext");
-    RegisterRequestName(extentry->base, X_RecordDisableContext,
-			RECORD_NAME ":DisableContext");
-    RegisterRequestName(extentry->base, X_RecordFreeContext,
-			RECORD_NAME ":FreeContext");
-
-    RegisterErrorName(RecordErrorBase + XRecordBadContext,
-			RECORD_NAME ":BadContext");
 } /* RecordExtensionInit */
 
