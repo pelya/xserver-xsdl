@@ -53,7 +53,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "cursorstr.h"
 #include "scrnintstr.h"
 #include "servermd.h"
-#include "registry.h"
 #define _XF86DRI_SERVER_
 #include "xf86dristr.h"
 #include "swaprep.h"
@@ -113,42 +112,7 @@ XFree86DRIExtensionInit(void)
 				 StandardMinorOpcode))) {
 	DRIReqCode = (unsigned char)extEntry->base;
 	DRIErrorBase = extEntry->errorBase;
-    } else
-	return;
-
-    RegisterRequestName(DRIReqCode, X_XF86DRIQueryVersion,
-			XF86DRINAME ":QueryVersion");
-    RegisterRequestName(DRIReqCode, X_XF86DRIQueryDirectRenderingCapable,
-			XF86DRINAME ":QueryDirectRenderingCapable");
-    RegisterRequestName(DRIReqCode, X_XF86DRIOpenConnection,
-			XF86DRINAME ":OpenConnection");
-    RegisterRequestName(DRIReqCode, X_XF86DRICloseConnection,
-			XF86DRINAME ":CloseConnection");
-    RegisterRequestName(DRIReqCode, X_XF86DRIGetClientDriverName,
-			XF86DRINAME ":GetClientDriverName");
-    RegisterRequestName(DRIReqCode, X_XF86DRICreateContext,
-			XF86DRINAME ":CreateContext");
-    RegisterRequestName(DRIReqCode, X_XF86DRIDestroyContext,
-			XF86DRINAME ":DestroyContext");
-    RegisterRequestName(DRIReqCode, X_XF86DRICreateDrawable,
-			XF86DRINAME ":CreateDrawable");
-    RegisterRequestName(DRIReqCode, X_XF86DRIDestroyDrawable,
-			XF86DRINAME ":DestroyDrawable");
-    RegisterRequestName(DRIReqCode, X_XF86DRIGetDrawableInfo,
-			XF86DRINAME ":GetDrawableInfo");
-    RegisterRequestName(DRIReqCode, X_XF86DRIGetDeviceInfo,
-			XF86DRINAME ":GetDeviceInfo");
-    RegisterRequestName(DRIReqCode, X_XF86DRIAuthConnection,
-			XF86DRINAME ":AuthConnection");
-    RegisterRequestName(DRIReqCode, X_XF86DRIOpenFullScreen,
-			XF86DRINAME ":OpenFullScreen");
-    RegisterRequestName(DRIReqCode, X_XF86DRICloseFullScreen,
-			XF86DRINAME ":CloseFullScreen");
-
-    RegisterErrorName(DRIErrorBase + XF86DRIClientNotLocal,
-		      XF86DRINAME ":ClientNotLocal");
-    RegisterErrorName(DRIErrorBase + XF86DRIOperationNotSupported,
-		      XF86DRINAME ":OperationNotSupported");
+    }
 }
 
 /*ARGSUSED*/
