@@ -16,7 +16,6 @@
 #include "scrnintstr.h"
 #include "extnsionst.h"
 #include "servermd.h"
-#include "registry.h"
 #include <X11/Xfuncproto.h>
 #include "xvdix.h"
 #include <X11/extensions/XvMC.h>
@@ -701,34 +700,6 @@ XvMCExtensionInit(void)
    XvMCReqCode = extEntry->base;
    XvMCEventBase = extEntry->eventBase;
    XvMCErrorBase = extEntry->errorBase;
-
-    RegisterRequestName(XvMCReqCode, xvmc_QueryVersion,
-			XvMCName ":QueryVersion");
-    RegisterRequestName(XvMCReqCode, xvmc_ListSurfaceTypes,
-			XvMCName ":ListSurfaceTypes");
-    RegisterRequestName(XvMCReqCode, xvmc_CreateContext,
-			XvMCName ":CreateContext");
-    RegisterRequestName(XvMCReqCode, xvmc_DestroyContext,
-			XvMCName ":DestroyContext");
-    RegisterRequestName(XvMCReqCode, xvmc_CreateSurface,
-			XvMCName ":CreateSurface");
-    RegisterRequestName(XvMCReqCode, xvmc_DestroySurface,
-			XvMCName ":DestroySurface");
-    RegisterRequestName(XvMCReqCode, xvmc_CreateSubpicture,
-			XvMCName ":CreateSubpicture");
-    RegisterRequestName(XvMCReqCode, xvmc_DestroySubpicture,
-			XvMCName ":DestroySubpicture");
-    RegisterRequestName(XvMCReqCode, xvmc_ListSubpictureTypes,
-			XvMCName ":ListSubpictureTypes");
-    RegisterRequestName(XvMCReqCode, xvmc_GetDRInfo,
-			XvMCName ":GetDRInfo");
-
-    RegisterErrorName(XvMCErrorBase + XvMCBadContext,
-		      XvMCName ":BadContext");
-    RegisterErrorName(XvMCErrorBase + XvMCBadSurface,
-		      XvMCName ":BadSurface");
-    RegisterErrorName(XvMCErrorBase + XvMCBadSubpicture,
-		      XvMCName ":BadSubpicture");
 }
 
 static Bool
