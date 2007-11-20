@@ -17,7 +17,6 @@
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "swaprep.h"
-#include "registry.h"
 #include <X11/extensions/XResproto.h>
 #include "pixmapstr.h"
 #include "windowstr.h"
@@ -388,18 +387,7 @@ SProcResDispatch (ClientPtr client)
 void
 ResExtensionInit(INITARGS)
 {
-    ExtensionEntry *extEntry;
-
-    extEntry = AddExtension(XRES_NAME, 0, 0,
+    (void) AddExtension(XRES_NAME, 0, 0,
                             ProcResDispatch, SProcResDispatch,
                             ResResetProc, StandardMinorOpcode);
-
-    RegisterRequestName(extEntry->base, X_XResQueryVersion,
-			XRES_NAME ":QueryVersion");
-    RegisterRequestName(extEntry->base, X_XResQueryClients,
-			XRES_NAME ":QueryClients");
-    RegisterRequestName(extEntry->base, X_XResQueryClientResources,
-			XRES_NAME ":QueryClientResources");
-    RegisterRequestName(extEntry->base, X_XResQueryClientPixmapBytes,
-			XRES_NAME ":QueryClientPixmapBytes");
 }
