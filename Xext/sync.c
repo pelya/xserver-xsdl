@@ -67,7 +67,6 @@ PERFORMANCE OF THIS SOFTWARE.
 #include "dixstruct.h"
 #include "resource.h"
 #include "opaque.h"
-#include "registry.h"
 #define _SYNC_SERVER
 #include <X11/extensions/sync.h>
 #include <X11/extensions/syncstr.h>
@@ -2412,45 +2411,6 @@ SyncExtensionInit(INITARGS)
     fprintf(stderr, "Sync Extension %d.%d\n",
 	    SYNC_MAJOR_VERSION, SYNC_MINOR_VERSION);
 #endif
-
-    RegisterRequestName(extEntry->base, X_SyncInitialize,
-			SYNC_NAME ":Initialize");
-    RegisterRequestName(extEntry->base, X_SyncListSystemCounters,
-			SYNC_NAME ":ListSystemCounters");
-    RegisterRequestName(extEntry->base, X_SyncCreateCounter,
-			SYNC_NAME ":CreateCounter");
-    RegisterRequestName(extEntry->base, X_SyncSetCounter,
-			SYNC_NAME ":SetCounter");
-    RegisterRequestName(extEntry->base, X_SyncChangeCounter,
-			SYNC_NAME ":ChangeCounter");
-    RegisterRequestName(extEntry->base, X_SyncQueryCounter,
-			SYNC_NAME ":QueryCounter");
-    RegisterRequestName(extEntry->base, X_SyncDestroyCounter,
-			SYNC_NAME ":DestroyCounter");
-    RegisterRequestName(extEntry->base, X_SyncAwait,
-			SYNC_NAME ":Await");
-    RegisterRequestName(extEntry->base, X_SyncCreateAlarm,
-			SYNC_NAME ":CreateAlarm");
-    RegisterRequestName(extEntry->base, X_SyncChangeAlarm,
-			SYNC_NAME ":ChangeAlarm");
-    RegisterRequestName(extEntry->base, X_SyncQueryAlarm,
-			SYNC_NAME ":QueryAlarm");
-    RegisterRequestName(extEntry->base, X_SyncDestroyAlarm,
-			SYNC_NAME ":DestroyAlarm");
-    RegisterRequestName(extEntry->base, X_SyncSetPriority,
-			SYNC_NAME ":SetPriority");
-    RegisterRequestName(extEntry->base, X_SyncGetPriority,
-			SYNC_NAME ":GetPriority");
-
-    RegisterEventName(SyncEventBase + XSyncCounterNotify,
-		      SYNC_NAME ":CounterNotify");
-    RegisterEventName(SyncEventBase + XSyncAlarmNotify,
-		      SYNC_NAME ":AlarmNotify");
-
-    RegisterErrorName(SyncErrorBase + XSyncBadCounter,
-		      SYNC_NAME ":BadCounter");
-    RegisterErrorName(SyncErrorBase + XSyncBadAlarm,
-		      SYNC_NAME ":BadAlarm");
 }
 
 
