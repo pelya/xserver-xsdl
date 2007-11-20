@@ -19,7 +19,6 @@
 #include "scrnintstr.h"
 #include "inputstr.h"
 #include "servermd.h"
-#include "registry.h"
 #define _XF86MISC_SERVER_
 #undef _XF86MISC_SAVER_COMPAT_
 #include <X11/extensions/xf86mscstr.h>
@@ -138,50 +137,7 @@ XFree86MiscExtensionInit(void)
 	XF86MiscReqCode = (unsigned char)extEntry->base;
 #endif
 	miscErrorBase = extEntry->errorBase;
-    } else
-	return;
-
-    RegisterRequestName(extEntry->base, X_XF86MiscQueryVersion,
-			XF86MISCNAME ":QueryVersion");
-#ifdef _XF86MISC_SAVER_COMPAT_
-    RegisterRequestName(extEntry->base, X_XF86MiscGetSaver,
-			XF86MISCNAME ":GetSaver");
-    RegisterRequestName(extEntry->base, X_XF86MiscSetSaver,
-			XF86MISCNAME ":SetSaver");
-#endif
-    RegisterRequestName(extEntry->base, X_XF86MiscGetMouseSettings,
-			XF86MISCNAME ":GetMouseSettings");
-    RegisterRequestName(extEntry->base, X_XF86MiscGetKbdSettings,
-			XF86MISCNAME ":GetKbdSettings");
-    RegisterRequestName(extEntry->base, X_XF86MiscSetMouseSettings,
-			XF86MISCNAME ":SetMouseSettings");
-    RegisterRequestName(extEntry->base, X_XF86MiscSetKbdSettings,
-			XF86MISCNAME ":SetKbdSettings");
-    RegisterRequestName(extEntry->base, X_XF86MiscSetGrabKeysState,
-			XF86MISCNAME ":SetGrabKeysState");
-    RegisterRequestName(extEntry->base, X_XF86MiscSetClientVersion,
-			XF86MISCNAME ":SetClientVersion");
-    RegisterRequestName(extEntry->base, X_XF86MiscGetFilePaths,
-			XF86MISCNAME ":GetFilePaths");
-    RegisterRequestName(extEntry->base, X_XF86MiscPassMessage,
-			XF86MISCNAME ":PassMessage");
-
-    RegisterErrorName(extEntry->errorBase + XF86MiscBadMouseProtocol,
-			XF86MISCNAME ":BadMouseProtocol");
-    RegisterErrorName(extEntry->errorBase + XF86MiscBadMouseBaudRate,
-			XF86MISCNAME ":BadMouseBaudRate");
-    RegisterErrorName(extEntry->errorBase + XF86MiscBadMouseFlags,
-			XF86MISCNAME ":BadMouseFlags");
-    RegisterErrorName(extEntry->errorBase + XF86MiscBadMouseCombo,
-			XF86MISCNAME ":BadMouseCombo");
-    RegisterErrorName(extEntry->errorBase + XF86MiscBadKbdType,
-			XF86MISCNAME ":BadKbdType");
-    RegisterErrorName(extEntry->errorBase + XF86MiscModInDevDisabled,
-			XF86MISCNAME ":ModInDevDisabled");
-    RegisterErrorName(extEntry->errorBase + XF86MiscModInDevClientNotLocal,
-			XF86MISCNAME ":ModInDevClientNotLocal");
-    RegisterErrorName(extEntry->errorBase + XF86MiscNoModule,
-			XF86MISCNAME ":NoModule");
+    }
 }
 
 /*ARGSUSED*/
