@@ -59,7 +59,6 @@ in this Software without prior written authorization from The Open Group.
 #include "servermd.h"
 #include "shmint.h"
 #include "xace.h"
-#include "registry.h"
 #define _XSHM_SERVER_
 #include <X11/extensions/shmstr.h>
 #include <X11/Xfuncproto.h>
@@ -274,27 +273,7 @@ ShmExtensionInit(INITARGS)
 	ShmCompletionCode = extEntry->eventBase;
 	BadShmSegCode = extEntry->errorBase;
 	EventSwapVector[ShmCompletionCode] = (EventSwapPtr) SShmCompletionEvent;
-    } else
-	return;
-
-    RegisterRequestName(ShmReqCode, X_ShmQueryVersion,
-			SHMNAME ":QueryVersion");
-    RegisterRequestName(ShmReqCode, X_ShmAttach,
-			SHMNAME ":Attach");
-    RegisterRequestName(ShmReqCode, X_ShmDetach,
-			SHMNAME ":Detach");
-    RegisterRequestName(ShmReqCode, X_ShmPutImage,
-			SHMNAME ":PutImage");
-    RegisterRequestName(ShmReqCode, X_ShmGetImage,
-			SHMNAME ":GetImage");
-    RegisterRequestName(ShmReqCode, X_ShmCreatePixmap,
-			SHMNAME ":CreatePixmap");
-
-    RegisterEventName(extEntry->eventBase + ShmCompletion,
-		      SHMNAME ":Completion");
-
-    RegisterErrorName(extEntry->errorBase + BadShmSeg,
-		      SHMNAME ":BadShmSeg");
+    }
 }
 
 /*ARGSUSED*/
