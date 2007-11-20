@@ -53,7 +53,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "swaprep.h"
 #include "dri.h"
 #include "dristruct.h"
-#include "registry.h"
 
 static int DRIErrorBase = 0;
 
@@ -93,33 +92,7 @@ AppleDRIExtensionInit(void)
         DRIErrorBase = extEntry->errorBase;
         DRIEventBase = extEntry->eventBase;
         EventSwapVector[DRIEventBase] = (EventSwapPtr) SNotifyEvent;
-    } else
-	return;
-
-    RegisterRequestName(DRIReqCode, X_AppleDRIQueryVersion,
-			APPLEDRINAME ":QueryVersion");
-    RegisterRequestName(DRIReqCode, X_AppleDRIQueryDirectRenderingCapable,
-			APPLEDRINAME ":QueryDirectRenderingCapable");
-    RegisterRequestName(DRIReqCode, X_AppleDRICreateSurface,
-			APPLEDRINAME ":CreateSurface");
-    RegisterRequestName(DRIReqCode, X_AppleDRIDestroySurface,
-			APPLEDRINAME ":DestroySurface");
-    RegisterRequestName(DRIReqCode, X_AppleDRIAuthConnection,
-			APPLEDRINAME ":AuthConnection");
-
-    RegisterEventName(DRIEventBase + AppleDRIObsoleteEvent1,
-		      APPLEDRINAME ":ObsoleteEvent1");
-    RegisterEventName(DRIEventBase + AppleDRIObsoleteEvent2,
-		      APPLEDRINAME ":ObsoleteEvent2");
-    RegisterEventName(DRIEventBase + AppleDRIObsoleteEvent3,
-		      APPLEDRINAME ":ObsoleteEvent3");
-    RegisterEventName(DRIEventBase + AppleDRISurfaceNotify,
-		      APPLEDRINAME ":SurfaceNotify");
-
-    RegisterErrorName(DRIEventBase + AppleDRIClientNotLocal,
-		      APPLEDRINAME ":ClientNotLocal");
-    RegisterErrorName(DRIEventBase + AppleDRIOperationNotSupported,
-		      APPLEDRINAME ":OperationNotSupported");
+    }
 }
 
 /*ARGSUSED*/
