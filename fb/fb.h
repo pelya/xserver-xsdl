@@ -41,7 +41,6 @@
 #include "mi.h"
 #include "migc.h"
 #include "mibstore.h"
-#include "privates.h"
 #ifdef RENDER
 #include "picturestr.h"
 #else

@@ -23,7 +23,6 @@
 #include "windowstr.h"
 #include "gcstruct.h"
 #include "modinit.h"
-#include "registry.h"
 
 static int
 ProcXResQueryVersion (ClientPtr client)
