@@ -40,7 +40,6 @@
 #include "colormapst.h"
 #include "extnsionst.h"
 #include "servermd.h"
-#include "registry.h"
 #include <X11/extensions/render.h>
 #include <X11/extensions/renderproto.h>
 #include "picturestr.h"
@@ -263,95 +262,6 @@ RenderExtensionInit (void)
     RenderReqCode = (CARD8) extEntry->base;
 #endif
     RenderErrBase = extEntry->errorBase;
-
-    RegisterRequestName(extEntry->base, X_RenderQueryVersion,
-			RENDER_NAME ":QueryVersion");
-    RegisterRequestName(extEntry->base, X_RenderQueryPictFormats,
-			RENDER_NAME ":QueryPictFormats");
-    RegisterRequestName(extEntry->base, X_RenderQueryPictIndexValues,
-			RENDER_NAME ":QueryPictIndexValues");
-    RegisterRequestName(extEntry->base, X_RenderQueryDithers,
-			RENDER_NAME ":QueryDithers");
-    RegisterRequestName(extEntry->base, X_RenderCreatePicture,
-			RENDER_NAME ":CreatePicture");
-    RegisterRequestName(extEntry->base, X_RenderChangePicture,
-			RENDER_NAME ":ChangePicture");
-    RegisterRequestName(extEntry->base, X_RenderSetPictureClipRectangles,
-			RENDER_NAME ":SetPictureClipRectangles");
-    RegisterRequestName(extEntry->base, X_RenderFreePicture,
-			RENDER_NAME ":FreePicture");
-    RegisterRequestName(extEntry->base, X_RenderComposite,
-			RENDER_NAME ":Composite");
-    RegisterRequestName(extEntry->base, X_RenderScale,
-			RENDER_NAME ":Scale");
-    RegisterRequestName(extEntry->base, X_RenderTrapezoids,
-			RENDER_NAME ":Trapezoids");
-    RegisterRequestName(extEntry->base, X_RenderTriangles,
-			RENDER_NAME ":Triangles");
-    RegisterRequestName(extEntry->base, X_RenderTriStrip,
-			RENDER_NAME ":TriStrip");
-    RegisterRequestName(extEntry->base, X_RenderTriFan,
-			RENDER_NAME ":TriFan");
-    RegisterRequestName(extEntry->base, X_RenderColorTrapezoids,
-			RENDER_NAME ":ColorTrapezoids");
-    RegisterRequestName(extEntry->base, X_RenderColorTriangles,
-			RENDER_NAME ":ColorTriangles");
-    RegisterRequestName(extEntry->base, X_RenderCreateGlyphSet,
-			RENDER_NAME ":CreateGlyphSet");
-    RegisterRequestName(extEntry->base, X_RenderReferenceGlyphSet,
-			RENDER_NAME ":ReferenceGlyphSet");
-    RegisterRequestName(extEntry->base, X_RenderFreeGlyphSet,
-			RENDER_NAME ":FreeGlyphSet");
-    RegisterRequestName(extEntry->base, X_RenderAddGlyphs,
-			RENDER_NAME ":AddGlyphs");
-    RegisterRequestName(extEntry->base, X_RenderAddGlyphsFromPicture,
-			RENDER_NAME ":AddGlyphsFromPicture");
-    RegisterRequestName(extEntry->base, X_RenderFreeGlyphs,
-			RENDER_NAME ":FreeGlyphs");
-    RegisterRequestName(extEntry->base, X_RenderCompositeGlyphs8,
-			RENDER_NAME ":CompositeGlyphs8");
-    RegisterRequestName(extEntry->base, X_RenderCompositeGlyphs16,
-			RENDER_NAME ":CompositeGlyphs16");
-    RegisterRequestName(extEntry->base, X_RenderCompositeGlyphs32,
-			RENDER_NAME ":CompositeGlyphs32");
-    RegisterRequestName(extEntry->base, X_RenderFillRectangles,
-			RENDER_NAME ":FillRectangles");
-    /* 0.5 */
-    RegisterRequestName(extEntry->base, X_RenderCreateCursor,
-			RENDER_NAME ":CreateCursor");
-    /* 0.6 */
-    RegisterRequestName(extEntry->base, X_RenderSetPictureTransform,
-			RENDER_NAME ":SetPictureTransform");
-    RegisterRequestName(extEntry->base, X_RenderQueryFilters,
-			RENDER_NAME ":QueryFilters");
-    RegisterRequestName(extEntry->base, X_RenderSetPictureFilter,
-			RENDER_NAME ":SetPictureFilter");
-    /* 0.8 */
-    RegisterRequestName(extEntry->base, X_RenderCreateAnimCursor,
-			RENDER_NAME ":CreateAnimCursor");
-    /* 0.9 */
-    RegisterRequestName(extEntry->base, X_RenderAddTraps,
-			RENDER_NAME ":AddTraps");
-    /* 0.10 */
-    RegisterRequestName(extEntry->base, X_RenderCreateSolidFill,
-			RENDER_NAME ":CreateSolidFill");
-    RegisterRequestName(extEntry->base, X_RenderCreateLinearGradient,
-			RENDER_NAME ":CreateLinearGradient");
-    RegisterRequestName(extEntry->base, X_RenderCreateRadialGradient,
-			RENDER_NAME ":CreateRadialGradient");
-    RegisterRequestName(extEntry->base, X_RenderCreateConicalGradient,
-			RENDER_NAME ":CreateConicalGradient");
-
-    RegisterErrorName(RenderErrBase + BadPictFormat,
-		      RENDER_NAME ":BadPictFormat");
-    RegisterErrorName(RenderErrBase + BadPicture,
-		      RENDER_NAME ":BadPicture");
-    RegisterErrorName(RenderErrBase + BadPictOp,
-		      RENDER_NAME ":BadPictOp");
-    RegisterErrorName(RenderErrBase + BadGlyphSet,
-		      RENDER_NAME ":BadGlyphSet");
-    RegisterErrorName(RenderErrBase + BadGlyph,
-		      RENDER_NAME ":BadGlyph");
 }
 
 static void
