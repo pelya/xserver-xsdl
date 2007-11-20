@@ -72,7 +72,7 @@ FontCacheExtensionInit(INITARGS)
 {
     AddExtension(FONTCACHENAME, FontCacheNumberEvents, FontCacheNumberErrors,
 		 ProcFontCacheDispatch, SProcFontCacheDispatch,
-		 FontCacheResetProc, StandardMinorOpcode)))
+		 FontCacheResetProc, StandardMinorOpcode);
 }
 
 /*ARGSUSED*/

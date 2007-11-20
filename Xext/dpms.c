@@ -75,7 +75,7 @@ DPMSExtensionInit(INITARGS)
 {
     AddExtension(DPMSExtensionName, 0, 0,
 		 ProcDPMSDispatch, SProcDPMSDispatch,
-		 DPMSResetProc, StandardMinorOpcode)))
+		 DPMSResetProc, StandardMinorOpcode);
 }
 
 /*ARGSUSED*/

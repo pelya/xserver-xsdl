@@ -58,7 +58,7 @@ MITMiscExtensionInit(INITARGS)
 {
     AddExtension(MITMISCNAME, 0, 0,
 		 ProcMITDispatch, SProcMITDispatch,
-		 MITResetProc, StandardMinorOpcode)))
+		 MITResetProc, StandardMinorOpcode);
 }
 
 /*ARGSUSED*/

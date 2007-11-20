@@ -52,7 +52,7 @@ BigReqExtensionInit(INITARGS)
 {
     AddExtension(XBigReqExtensionName, 0, 0,
 		 ProcBigReqDispatch, ProcBigReqDispatch,
-		 BigReqResetProc, StandardMinorOpcode)))
+		 BigReqResetProc, StandardMinorOpcode);
 }
 
 /*ARGSUSED*/

@@ -66,7 +66,7 @@ XCMiscExtensionInit(INITARGS)
 {
     AddExtension(XCMiscExtensionName, 0, 0,
 		 ProcXCMiscDispatch, SProcXCMiscDispatch,
-		 XCMiscResetProc, StandardMinorOpcode))
+		 XCMiscResetProc, StandardMinorOpcode);
 }
 
 /*ARGSUSED*/

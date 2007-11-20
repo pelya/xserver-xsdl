@@ -86,7 +86,7 @@ XTestExtensionInit(INITARGS)
 {
     AddExtension(XTestExtensionName, 0, 0,
 		 ProcXTestDispatch, SProcXTestDispatch,
-		 XTestResetProc, StandardMinorOpcode))
+		 XTestResetProc, StandardMinorOpcode);
 }
 
 /*ARGSUSED*/
