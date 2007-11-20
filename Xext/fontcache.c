@@ -42,7 +42,6 @@
 #include "scrnintstr.h"
 #include "inputstr.h"
 #include "servermd.h"
-#include "registry.h"
 #define _FONTCACHE_SERVER_
 #include <X11/extensions/fontcacheP.h>
 #include <X11/extensions/fontcachstr.h>
@@ -71,31 +70,9 @@ static DISPATCH_PROC(SProcFontCacheChangeCacheSettings);
 void
 FontCacheExtensionInit(INITARGS)
 {
-    ExtensionEntry* extEntry;
-
-    if (!
-	(extEntry = AddExtension(FONTCACHENAME,
-				FontCacheNumberEvents,
-				FontCacheNumberErrors,
-				ProcFontCacheDispatch,
-				SProcFontCacheDispatch,
-				FontCacheResetProc,
-				StandardMinorOpcode)))
-	return;
-
-    RegisterRequestName(extEntry->base, X_FontCacheQueryVersion,
-			FONTCACHENAME ":QueryVersion");
-    RegisterRequestName(extEntry->base, X_FontCacheGetCacheSettings,
-			FONTCACHENAME ":GetCacheSettings");
-    RegisterRequestName(extEntry->base, X_FontCacheChangeCacheSettings,
-			FONTCACHENAME ":ChangeCacheSettings");
-    RegisterRequestName(extEntry->base, X_FontCacheGetCacheStatistics,
-			FONTCACHENAME ":GetCacheStatistics");
-
-    RegisterErrorName(extEntry->errorBase + FontCacheBadProtocol,
-		      FONTCACHENAME ":BadProtocol");
-    RegisterErrorName(extEntry->errorBase + FontCacheCannotAllocMemory,
-		      FONTCACHENAME ":CannotAllocMemory");
+    AddExtension(FONTCACHENAME, FontCacheNumberEvents, FontCacheNumberErrors,
+		 ProcFontCacheDispatch, SProcFontCacheDispatch,
+		 FontCacheResetProc, StandardMinorOpcode)))
 }
 
 /*ARGSUSED*/
