@@ -1114,20 +1114,4 @@ SecurityExtensionInit(INITARGS)
 
     /* Label objects that were created before we could register ourself */
     SecurityLabelInitial();
-
-    /* Register protocol names */
-    RegisterRequestName(extEntry->base, X_SecurityQueryVersion,
-			SECURITY_EXTENSION_NAME ":QueryVersion");
-    RegisterRequestName(extEntry->base, X_SecurityGenerateAuthorization,
-			SECURITY_EXTENSION_NAME ":GenerateAuthorization");
-    RegisterRequestName(extEntry->base, X_SecurityRevokeAuthorization,
-			SECURITY_EXTENSION_NAME ":RevokeAuthorization");
-
-    RegisterEventName(SecurityEventBase + XSecurityAuthorizationRevoked,
-		      SECURITY_EXTENSION_NAME ":AuthorizationRevoked");
-
-    RegisterErrorName(SecurityErrorBase + XSecurityBadAuthorization,
-		      SECURITY_EXTENSION_NAME ":BadAuthorization");
-    RegisterErrorName(SecurityErrorBase + XSecurityBadAuthorizationProtocol,
-		      SECURITY_EXTENSION_NAME ":BadAuthorizationProtocol");
 }
