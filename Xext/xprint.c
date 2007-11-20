@@ -80,7 +80,6 @@ copyright holders.
 #include "pixmapstr.h"
 #include "extnsionst.h"
 #include "dixstruct.h"
-#include "registry.h"
 #include <X11/Xatom.h>
 #include <X11/extensions/Print.h>
 #include <X11/extensions/Printstr.h>
@@ -311,69 +310,6 @@ XpExtensionInit(INITARGS)
 	    screenInfo.screens[i]->CloseScreen = XpCloseScreen;
 	}
     }
-
-    RegisterRequestName(XpReqCode, X_PrintQueryVersion,
-			XP_PRINTNAME ":QueryVersion");
-    RegisterRequestName(XpReqCode, X_PrintGetPrinterList,
-			XP_PRINTNAME ":GetPrinterList");
-    RegisterRequestName(XpReqCode, X_PrintCreateContext,
-			XP_PRINTNAME ":CreateContext");
-    RegisterRequestName(XpReqCode, X_PrintSetContext,
-			XP_PRINTNAME ":SetContext");
-    RegisterRequestName(XpReqCode, X_PrintGetContext,
-			XP_PRINTNAME ":GetContext");
-    RegisterRequestName(XpReqCode, X_PrintDestroyContext,
-			XP_PRINTNAME ":DestroyContext");
-    RegisterRequestName(XpReqCode, X_PrintGetContextScreen,
-			XP_PRINTNAME ":GetContextScreen");
-    RegisterRequestName(XpReqCode, X_PrintStartJob,
-			XP_PRINTNAME ":StartJob");
-    RegisterRequestName(XpReqCode, X_PrintEndJob,
-			XP_PRINTNAME ":EndJob");
-    RegisterRequestName(XpReqCode, X_PrintStartDoc,
-			XP_PRINTNAME ":StartDoc");
-    RegisterRequestName(XpReqCode, X_PrintEndDoc,
-			XP_PRINTNAME ":EndDoc");
-    RegisterRequestName(XpReqCode, X_PrintPutDocumentData,
-			XP_PRINTNAME ":PutDocumentData");
-    RegisterRequestName(XpReqCode, X_PrintGetDocumentData,
-			XP_PRINTNAME ":GetDocumentData");
-    RegisterRequestName(XpReqCode, X_PrintStartPage,
-			XP_PRINTNAME ":StartPage");
-    RegisterRequestName(XpReqCode, X_PrintEndPage,
-			XP_PRINTNAME ":EndPage");
-    RegisterRequestName(XpReqCode, X_PrintSelectInput,
-			XP_PRINTNAME ":SelectInput");
-    RegisterRequestName(XpReqCode, X_PrintInputSelected,
-			XP_PRINTNAME ":InputSelected");
-    RegisterRequestName(XpReqCode, X_PrintGetAttributes,
-			XP_PRINTNAME ":GetAttributes");
-    RegisterRequestName(XpReqCode, X_PrintSetAttributes,
-			XP_PRINTNAME ":SetAttributes");
-    RegisterRequestName(XpReqCode, X_PrintGetOneAttribute,
-			XP_PRINTNAME ":GetOneAttribute");
-    RegisterRequestName(XpReqCode, X_PrintRehashPrinterList,
-			XP_PRINTNAME ":RehashPrinterList");
-    RegisterRequestName(XpReqCode, X_PrintGetPageDimensions,
-			XP_PRINTNAME ":GetPageDimensions");
-    RegisterRequestName(XpReqCode, X_PrintQueryScreens,
-			XP_PRINTNAME ":QueryScreens");
-    RegisterRequestName(XpReqCode, X_PrintSetImageResolution,
-			XP_PRINTNAME ":SetImageResolution");
-    RegisterRequestName(XpReqCode, X_PrintGetImageResolution,
-			XP_PRINTNAME ":GetImageResolution");
-
-    RegisterEventName(XpEventBase + XPPrintNotify,
-		      XP_PRINTNAME ":PrintNotify");
-    RegisterEventName(XpEventBase + XPAttributeNotify,
-		      XP_PRINTNAME ":AttributeNotify");
-
-    RegisterErrorName(XpErrorBase + XPBadContext,
-		      XP_PRINTNAME ":BadContext");
-    RegisterErrorName(XpErrorBase + XPBadSequence,
-		      XP_PRINTNAME ":BadSequence");
-    RegisterErrorName(XpErrorBase + XPBadResourceID,
-		      XP_PRINTNAME ":BadResourceID");
 }
 
 static void
