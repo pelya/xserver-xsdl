@@ -43,7 +43,6 @@ in this Software without prior written authorization from The Open Group.
 #include "dixstruct.h"
 #include "resource.h"
 #include "opaque.h"
-#include "registry.h"
 #define _SHAPE_SERVER_	/* don't want Xlib structures */
 #include <X11/extensions/shapestr.h>
 #include "regionstr.h"
@@ -112,6 +111,9 @@ static DISPATCH_PROC(SProcShapeSelectInput);
 #include "panoramiXsrv.h"
 #endif
 
+#if 0
+static unsigned char ShapeReqCode = 0;
+#endif
 static int ShapeEventBase = 0;
 static RESTYPE ClientType, EventType; /* resource types for event masks */
 
@@ -152,32 +154,12 @@ ShapeExtensionInit(void)
 				 ProcShapeDispatch, SProcShapeDispatch,
 				 ShapeResetProc, StandardMinorOpcode)))
     {
+#if 0
+	ShapeReqCode = (unsigned char)extEntry->base;
+#endif
 	ShapeEventBase = extEntry->eventBase;
 	EventSwapVector[ShapeEventBase] = (EventSwapPtr) SShapeNotifyEvent;
-    } else
-	return;
-
-    RegisterRequestName(extEntry->base, X_ShapeQueryVersion,
-			SHAPENAME ":QueryVersion");
-    RegisterRequestName(extEntry->base, X_ShapeRectangles,
-			SHAPENAME ":Rectangles");
-    RegisterRequestName(extEntry->base, X_ShapeMask,
-			SHAPENAME ":Mask");
-    RegisterRequestName(extEntry->base, X_ShapeCombine,
-			SHAPENAME ":Combine");
-    RegisterRequestName(extEntry->base, X_ShapeOffset,
-			SHAPENAME ":Offset");
-    RegisterRequestName(extEntry->base, X_ShapeQueryExtents,
-			SHAPENAME ":QueryExtents");
-    RegisterRequestName(extEntry->base, X_ShapeSelectInput,
-			SHAPENAME ":SelectInput");
-    RegisterRequestName(extEntry->base, X_ShapeInputSelected,
-			SHAPENAME ":InputSelected");
-    RegisterRequestName(extEntry->base, X_ShapeGetRectangles,
-			SHAPENAME ":GetRectangles");
-
-    RegisterEventName(ShapeEventBase + ShapeNotify,
-		      SHAPENAME ":Notify");
+    }
 }
 
 /*ARGSUSED*/
