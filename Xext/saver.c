@@ -49,7 +49,6 @@ in this Software without prior written authorization from the X Consortium.
 #include "cursorstr.h"
 #include "colormapst.h"
 #include "xace.h"
-#include "registry.h"
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
@@ -63,6 +62,9 @@ in this Software without prior written authorization from the X Consortium.
 
 #include "modinit.h"
 
+#if 0
+static unsigned char ScreenSaverReqCode = 0;
+#endif
 static int ScreenSaverEventBase = 0;
 
 static DISPATCH_PROC(ProcScreenSaverQueryInfo);
@@ -272,26 +274,12 @@ ScreenSaverExtensionInit(INITARGS)
 				 ProcScreenSaverDispatch, SProcScreenSaverDispatch,
 				 ScreenSaverResetProc, StandardMinorOpcode)))
     {
+#if 0
+	ScreenSaverReqCode = (unsigned char)extEntry->base;
+#endif
 	ScreenSaverEventBase = extEntry->eventBase;
 	EventSwapVector[ScreenSaverEventBase] = (EventSwapPtr) SScreenSaverNotifyEvent;
-    } else
-	return;
-
-    RegisterRequestName(extEntry->base, X_ScreenSaverQueryVersion,
-			ScreenSaverName ":QueryVersion");
-    RegisterRequestName(extEntry->base, X_ScreenSaverQueryInfo,
-			ScreenSaverName ":QueryInfo");
-    RegisterRequestName(extEntry->base, X_ScreenSaverSelectInput,
-			ScreenSaverName ":SelectInput");
-    RegisterRequestName(extEntry->base, X_ScreenSaverSetAttributes,
-			ScreenSaverName ":SetAttributes");
-    RegisterRequestName(extEntry->base, X_ScreenSaverUnsetAttributes,
-			ScreenSaverName ":UnsetAttributes");
-    RegisterRequestName(extEntry->base, X_ScreenSaverSuspend,
-			ScreenSaverName ":Suspend");
-
-    RegisterEventName(ScreenSaverEventBase + ScreenSaverNotify,
-		      ScreenSaverName ":Notify");
+    }
 }
 
 /*ARGSUSED*/
