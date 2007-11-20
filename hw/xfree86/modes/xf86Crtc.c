@@ -260,6 +260,30 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
     crtc->y = y;
     crtc->rotation = rotation;
 
+    /* Shift offsets that move us out of virtual size */
+    if (x + mode->HDisplay > xf86_config->maxWidth ||
+	y + mode->VDisplay > xf86_config->maxHeight)
+    {
+	if (x + mode->HDisplay > xf86_config->maxWidth)
+	    crtc->x = xf86_config->maxWidth - mode->HDisplay;
+	if (y + mode->VDisplay > xf86_config->maxHeight)
+	    crtc->y = xf86_config->maxHeight - mode->VDisplay;
+	if (crtc->x < 0 || crtc->y < 0)
+	{
+	    xf86DrvMsg (scrn->scrnIndex, X_ERROR,
+			"Mode %dx%d does not fit virtual size %dx%d - "
+			"internal error\n", mode->HDisplay, mode->VDisplay,
+			xf86_config->maxWidth, xf86_config->maxHeight);
+	    goto done;
+	}
+	xf86DrvMsg (scrn->scrnIndex, X_ERROR,
+		    "Mode %dx%d+%d+%d does not fit virtual size %dx%d - "
+		    "offset updated to +%d+%d\n",
+		    mode->HDisplay, mode->VDisplay, x, y,
+		    xf86_config->maxWidth, xf86_config->maxHeight,
+		    crtc->x, crtc->y);
+    }
+
     /* XXX short-circuit changes to base location only */
     
     /* Pass our mode to the outputs and the CRTC to give them a chance to
@@ -301,7 +325,7 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
     /* Set up the DPLL and any output state that needs to adjust or depend
      * on the DPLL.
      */
-    crtc->funcs->mode_set(crtc, mode, adjusted_mode, x, y);
+    crtc->funcs->mode_set(crtc, mode, adjusted_mode, crtc->x, crtc->y);
     for (i = 0; i < xf86_config->num_output; i++) 
     {
 	xf86OutputPtr output = xf86_config->output[i];
