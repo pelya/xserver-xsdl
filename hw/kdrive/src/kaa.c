@@ -314,7 +314,7 @@ kaaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth, unsigned usage_hint)
 	    }
     }
 
-    pPixmap = fbCreatePixmapBpp (pScreen, w, h, depth, bpp);
+    pPixmap = fbCreatePixmapBpp (pScreen, w, h, depth, bpp, usage_hint);
     if (!pPixmap)
 	return NULL;
     pKaaPixmap = KaaGetPixmapPriv(pPixmap);
