@@ -22,7 +22,6 @@
 #include "cursorstr.h"
 #include "scrnintstr.h"
 #include "servermd.h"
-#include "registry.h"
 #define _XF86DGA_SERVER_
 #include <X11/extensions/xf86dga.h>
 #include <X11/extensions/xf86dgastr.h>
@@ -100,72 +99,7 @@ XFree86DGAExtensionInit(INITARGS)
 	DGAEventBase = extEntry->eventBase;
 	for (i = KeyPress; i <= MotionNotify; i++)
 	    SetCriticalEvent (DGAEventBase + i);
-    } else
-	return;
-
-    RegisterRequestName(DGAReqCode, X_XF86DGAQueryVersion,
-			XF86DGANAME ":QueryVersion");
-    RegisterRequestName(DGAReqCode, X_XF86DGAGetVideoLL,
-			XF86DGANAME ":GetVideoLL");
-    RegisterRequestName(DGAReqCode, X_XF86DGADirectVideo,
-			XF86DGANAME ":DirectVideo");
-    RegisterRequestName(DGAReqCode, X_XF86DGAGetViewPortSize,
-			XF86DGANAME ":GetViewPortSize");
-    RegisterRequestName(DGAReqCode, X_XF86DGASetViewPort,
-			XF86DGANAME ":SetViewPort");
-    RegisterRequestName(DGAReqCode, X_XF86DGAGetVidPage,
-			XF86DGANAME ":GetVidPage");
-    RegisterRequestName(DGAReqCode, X_XF86DGASetVidPage,
-			XF86DGANAME ":SetVidPage");
-    RegisterRequestName(DGAReqCode, X_XF86DGAInstallColormap,
-			XF86DGANAME ":InstallColormap");
-    RegisterRequestName(DGAReqCode, X_XF86DGAQueryDirectVideo,
-			XF86DGANAME ":QueryDirectVideo");
-    RegisterRequestName(DGAReqCode, X_XF86DGAViewPortChanged,
-			XF86DGANAME ":ViewPortChanged");
-    RegisterRequestName(DGAReqCode, X_XDGAQueryModes,
-			XF86DGANAME ":QueryModes");
-    RegisterRequestName(DGAReqCode, X_XDGASetMode,
-			XF86DGANAME ":SetMode");
-    RegisterRequestName(DGAReqCode, X_XDGASetViewport,
-			XF86DGANAME ":SetViewport");
-    RegisterRequestName(DGAReqCode, X_XDGAInstallColormap,
-			XF86DGANAME ":InstallColormap");
-    RegisterRequestName(DGAReqCode, X_XDGASelectInput,
-			XF86DGANAME ":SelectInput");
-    RegisterRequestName(DGAReqCode, X_XDGAFillRectangle,
-			XF86DGANAME ":FillRectangle");
-    RegisterRequestName(DGAReqCode, X_XDGACopyArea,
-			XF86DGANAME ":CopyArea");
-    RegisterRequestName(DGAReqCode, X_XDGACopyTransparentArea,
-			XF86DGANAME ":CopyTransparentArea");
-    RegisterRequestName(DGAReqCode, X_XDGAGetViewportStatus,
-			XF86DGANAME ":GetViewportStatus");
-    RegisterRequestName(DGAReqCode, X_XDGASync,
-			XF86DGANAME ":Sync");
-    RegisterRequestName(DGAReqCode, X_XDGAOpenFramebuffer,
-			XF86DGANAME ":OpenFramebuffer");
-    RegisterRequestName(DGAReqCode, X_XDGACloseFramebuffer,
-			XF86DGANAME ":CloseFramebuffer");
-    RegisterRequestName(DGAReqCode, X_XDGASetClientVersion,
-			XF86DGANAME ":SetClientVersion");
-    RegisterRequestName(DGAReqCode, X_XDGAChangePixmapMode,
-			XF86DGANAME ":ChangePixmapMode");
-    RegisterRequestName(DGAReqCode, X_XDGACreateColormap,
-			XF86DGANAME ":CreateColormap");
-
-    /* 7 Events: Don't know where they are defined. EFW */
-
-    RegisterErrorName(extEntry->errorBase + XF86DGAClientNotLocal,
-		      XF86DGANAME ":ClientNotLocal");
-    RegisterErrorName(extEntry->errorBase + XF86DGANoDirectVideoMode,
-		      XF86DGANAME ":NoDirectVideoMode");
-    RegisterErrorName(extEntry->errorBase + XF86DGAScreenNotActive,
-		      XF86DGANAME ":ScreenNotActive");
-    RegisterErrorName(extEntry->errorBase + XF86DGADirectNotActivated,
-		      XF86DGANAME ":DirectNotActivated");
-    RegisterErrorName(extEntry->errorBase + XF86DGAOperationNotSupported,
-		      XF86DGANAME ":OperationNotSupported");
+    }
 }
 
 
