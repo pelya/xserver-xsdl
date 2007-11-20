@@ -81,6 +81,8 @@ typedef struct {
     CfbBits	xor, and;
 } cfbRRopRec, *cfbRRopPtr;
 
+/* cfb8bit.c */
+
 extern int cfbSetStipple(
     int /*alu*/,
     CfbBits /*fg*/,
