@@ -38,7 +38,6 @@ in this Software without prior written authorization from The Open Group.
 #include "os.h"
 #include "dixstruct.h"
 #include "extnsionst.h"
-#include "registry.h"
 #define _MITMISC_SERVER_
 #include <X11/extensions/mitmiscstr.h>
 #include "modinit.h"
@@ -57,17 +56,9 @@ static DISPATCH_PROC(SProcMITSetBugMode);
 void
 MITMiscExtensionInit(INITARGS)
 {
-    ExtensionEntry *extEntry;
-
-    if (!(extEntry = AddExtension(MITMISCNAME, 0, 0,
-				  ProcMITDispatch, SProcMITDispatch,
-				  MITResetProc, StandardMinorOpcode)))
-	return;
-
-    RegisterRequestName(extEntry->base, X_MITSetBugMode,
-			MITMISCNAME ":SetBugMode");
-    RegisterRequestName(extEntry->base, X_MITGetBugMode,
-			MITMISCNAME ":GetBugMode");
+    AddExtension(MITMISCNAME, 0, 0,
+		 ProcMITDispatch, SProcMITDispatch,
+		 MITResetProc, StandardMinorOpcode)))
 }
 
 /*ARGSUSED*/
