@@ -39,7 +39,6 @@ from The Open Group.
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "swaprep.h"
-#include "registry.h"
 #include <X11/extensions/xcmiscstr.h>
 #include "modinit.h"
 
@@ -65,19 +64,9 @@ static DISPATCH_PROC(SProcXCMiscGetXIDRange);
 void
 XCMiscExtensionInit(INITARGS)
 {
-    ExtensionEntry *extEntry;
-
-    if (!(extEntry = AddExtension(XCMiscExtensionName, 0, 0,
-				ProcXCMiscDispatch, SProcXCMiscDispatch,
-				XCMiscResetProc, StandardMinorOpcode)))
-	return;
-
-    RegisterRequestName(extEntry->base, X_XCMiscGetVersion,
-			XCMiscExtensionName ":GetVersion");
-    RegisterRequestName(extEntry->base, X_XCMiscGetXIDRange,
-			XCMiscExtensionName ":GetXIDRange");
-    RegisterRequestName(extEntry->base, X_XCMiscGetXIDList,
-			XCMiscExtensionName ":GetXIDList");
+    AddExtension(XCMiscExtensionName, 0, 0,
+		 ProcXCMiscDispatch, SProcXCMiscDispatch,
+		 XCMiscResetProc, StandardMinorOpcode))
 }
 
 /*ARGSUSED*/
