@@ -46,7 +46,6 @@
 
 #include "compint.h"
 #include "xace.h"
-#include "registry.h"
 
 #define SERVER_COMPOSITE_MAJOR	0
 #define SERVER_COMPOSITE_MINOR	4
@@ -755,23 +754,4 @@ CompositeExtensionInit (void)
 
     /* Initialization succeeded */
     noCompositeExtension = FALSE;
-
-    RegisterRequestName(CompositeReqCode, X_CompositeQueryVersion,
-			COMPOSITE_NAME ":CompositeQueryVersion");
-    RegisterRequestName(CompositeReqCode, X_CompositeRedirectWindow,
-			COMPOSITE_NAME ":CompositeRedirectWindow");
-    RegisterRequestName(CompositeReqCode, X_CompositeRedirectSubwindows,
-			COMPOSITE_NAME ":CompositeRedirectSubwindows");
-    RegisterRequestName(CompositeReqCode, X_CompositeUnredirectWindow,
-			COMPOSITE_NAME ":CompositeUnredirectWindow");
-    RegisterRequestName(CompositeReqCode, X_CompositeUnredirectSubwindows,
-			COMPOSITE_NAME ":CompositeUnredirectSubwindows");
-    RegisterRequestName(CompositeReqCode, X_CompositeCreateRegionFromBorderClip,
-			COMPOSITE_NAME ":CompositeCreateRegionFromBorderClip");
-    RegisterRequestName(CompositeReqCode, X_CompositeNameWindowPixmap,
-			COMPOSITE_NAME ":CompositeNameWindowPixmap");
-    RegisterRequestName(CompositeReqCode, X_CompositeGetOverlayWindow,
-			COMPOSITE_NAME ":CompositeGetOverlayWindow");
-    RegisterRequestName(CompositeReqCode, X_CompositeReleaseOverlayWindow,
-			COMPOSITE_NAME ":CompositeReleaseOverlayWindow");
 }
