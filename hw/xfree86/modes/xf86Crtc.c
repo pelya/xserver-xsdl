@@ -1094,10 +1094,10 @@ xf86InitialOutputPositions (ScrnInfoPtr scrn, DisplayModePtr *modes)
 		    output->initial_x += xf86ModeWidth (modes[or], relative->initial_rotation);
 		    break;
 		case OPTION_ABOVE:
-		    output->initial_y -= xf86ModeHeight (modes[or], relative->initial_rotation);
+		    output->initial_y -= xf86ModeHeight (modes[o], relative->initial_rotation);
 		    break;
 		case OPTION_LEFT_OF:
-		    output->initial_x -= xf86ModeWidth (modes[or], relative->initial_rotation);
+		    output->initial_x -= xf86ModeWidth (modes[o], relative->initial_rotation);
 		    break;
 		default:
 		    break;
