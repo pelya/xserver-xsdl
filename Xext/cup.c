@@ -39,7 +39,6 @@ in this Software without prior written authorization from The Open Group.
 #include "scrnintstr.h"
 #include "servermd.h"
 #include "swapreq.h"
-#include "registry.h"
 #define _XCUP_SERVER_
 #include <X11/extensions/Xcupstr.h>
 #include <X11/Xfuncproto.h>
@@ -136,13 +135,6 @@ XcupExtensionInit (INITARGS)
 	return;
 
     /* PC servers initialize the desktop colors (citems) here! */
-
-    RegisterRequestName(extEntry->base, X_XcupQueryVersion,
-			XCUPNAME ":QueryVersion");
-    RegisterRequestName(extEntry->base, X_XcupGetReservedColormapEntries,
-			XCUPNAME ":GetReservedColormapEntries");
-    RegisterRequestName(extEntry->base, X_XcupStoreColors,
-			XCUPNAME ":StoreColors");
 }
 
 /*ARGSUSED*/
