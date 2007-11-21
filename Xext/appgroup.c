@@ -183,11 +183,11 @@ void XagResetProc(
 
 static 
 int ProcXagQueryVersion(
-    register ClientPtr client)
+     ClientPtr client)
 {
     /* REQUEST (xXagQueryVersionReq); */
     xXagQueryVersionReply rep;
-    register int n;
+     int n;
 
     REQUEST_SIZE_MATCH (xXagQueryVersionReq);
     rep.type = X_Reply;
@@ -378,7 +378,7 @@ int AttrValidate(
 }
 
 static int ProcXagCreate (
-    register ClientPtr client)
+     ClientPtr client)
 {
     REQUEST (xXagCreateReq);
     AppGroupPtr pAppGrp;
@@ -409,7 +409,7 @@ static int ProcXagCreate (
 }
 
 static int ProcXagDestroy(
-    register ClientPtr client)
+     ClientPtr client)
 {
     AppGroupPtr pAppGrp;
     REQUEST (xXagDestroyReq);
@@ -426,7 +426,7 @@ static int ProcXagDestroy(
 
 static 
 int ProcXagGetAttr(
-    register ClientPtr client)
+     ClientPtr client)
 {
     AppGroupPtr pAppGrp;
     REQUEST (xXagGetAttrReq);
@@ -462,7 +462,7 @@ int ProcXagGetAttr(
 
 static 
 int ProcXagQuery(
-    register ClientPtr client)
+     ClientPtr client)
 {
     ClientPtr pClient;
     AppGroupPtr pAppGrp;
@@ -497,7 +497,7 @@ int ProcXagQuery(
 
 static 
 int ProcXagCreateAssoc(
-    register ClientPtr client)
+     ClientPtr client)
 {
     REQUEST (xXagCreateAssocReq);
 
@@ -520,7 +520,7 @@ int ProcXagCreateAssoc(
 
 static 
 int ProcXagDestroyAssoc(
-    register ClientPtr client)
+     ClientPtr client)
 {
     /* REQUEST (xXagDestroyAssocReq); */
 
@@ -531,7 +531,7 @@ int ProcXagDestroyAssoc(
 
 static 
 int ProcXagDispatch (
-    register ClientPtr client)
+     ClientPtr client)
 {
     REQUEST (xReq);
     switch (stuff->data)
@@ -557,9 +557,9 @@ int ProcXagDispatch (
 
 static 
 int SProcXagQueryVersion(
-    register ClientPtr client)
+     ClientPtr client)
 {
-    register int n;
+     int n;
     REQUEST(xXagQueryVersionReq);
     swaps(&stuff->length, n);
     return ProcXagQueryVersion(client);
@@ -569,7 +569,7 @@ static
 int SProcXagCreate(
     ClientPtr client)
 {
-    register int n;
+     int n;
     REQUEST (xXagCreateReq);
     swaps (&stuff->length, n);
     REQUEST_AT_LEAST_SIZE (xXagCreateReq);
@@ -583,7 +583,7 @@ static
 int SProcXagDestroy(
     ClientPtr client)
 {
-    register int n;
+     int n;
     REQUEST (xXagDestroyReq);
     swaps (&stuff->length, n);
     REQUEST_SIZE_MATCH (xXagDestroyReq);
@@ -595,7 +595,7 @@ static
 int SProcXagGetAttr(
     ClientPtr client)
 {
-    register int n;
+     int n;
     REQUEST (xXagGetAttrReq);
     swaps (&stuff->length, n);
     REQUEST_SIZE_MATCH (xXagGetAttrReq);
@@ -607,7 +607,7 @@ static
 int SProcXagQuery(
     ClientPtr client)
 {
-    register int n;
+     int n;
     REQUEST (xXagQueryReq);
     swaps (&stuff->length, n);
     REQUEST_SIZE_MATCH (xXagQueryReq);
@@ -619,7 +619,7 @@ static
 int SProcXagCreateAssoc(
     ClientPtr client)
 {
-    register int n;
+     int n;
     REQUEST (xXagCreateAssocReq);
     swaps (&stuff->length, n);
     REQUEST_SIZE_MATCH (xXagCreateAssocReq);
@@ -633,7 +633,7 @@ static
 int SProcXagDestroyAssoc(
     ClientPtr client)
 {
-    register int n;
+     int n;
     REQUEST (xXagDestroyAssocReq);
     swaps (&stuff->length, n);
     REQUEST_SIZE_MATCH (xXagDestroyAssocReq);
@@ -643,7 +643,7 @@ int SProcXagDestroyAssoc(
 
 static 
 int SProcXagDispatch(
-    register ClientPtr client)
+     ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data)

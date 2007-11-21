@@ -63,7 +63,7 @@ extern Bool noXkbExtension;
 #endif
 extern int    xeviegrabState;
 
-static int		ProcDispatch (register ClientPtr client), SProcDispatch (register ClientPtr client);
+static int		ProcDispatch (ClientPtr client), SProcDispatch (ClientPtr client);
 static void		ResetProc (ExtensionEntry *extEntry);
 
 static unsigned char	ReqCode = 0;
@@ -164,7 +164,7 @@ void ResetProc (ExtensionEntry *extEntry)
 }
 
 static 
-int ProcQueryVersion (register ClientPtr client)
+int ProcQueryVersion (ClientPtr client)
 {
     xXevieQueryVersionReply rep;
 
@@ -179,7 +179,7 @@ int ProcQueryVersion (register ClientPtr client)
 }
 
 static
-int ProcStart (register ClientPtr client)
+int ProcStart (ClientPtr client)
 {
     xXevieStartReply rep;
 
@@ -220,7 +220,7 @@ int ProcStart (register ClientPtr client)
 }
 
 static
-int ProcEnd (register ClientPtr client)
+int ProcEnd (ClientPtr client)
 {
     xXevieEndReply rep;
 
@@ -239,7 +239,7 @@ int ProcEnd (register ClientPtr client)
 }
 
 static
-int ProcSend (register ClientPtr client)
+int ProcSend (ClientPtr client)
 {
     REQUEST (xXevieSendReq);
     xXevieSendReply rep;
@@ -285,7 +285,7 @@ int ProcSend (register ClientPtr client)
 }
 
 static
-int ProcSelectInput (register ClientPtr client)
+int ProcSelectInput (ClientPtr client)
 {
     REQUEST (xXevieSelectInputReq);
     xXevieSelectInputReply rep;
@@ -301,7 +301,7 @@ int ProcSelectInput (register ClientPtr client)
 }
 
 static 
-int ProcDispatch (register ClientPtr client)
+int ProcDispatch (ClientPtr client)
 {
     REQUEST (xReq);
     switch (stuff->data)
@@ -322,9 +322,9 @@ int ProcDispatch (register ClientPtr client)
 }
 
 static 
-int SProcQueryVersion (register ClientPtr client)
+int SProcQueryVersion (ClientPtr client)
 {
-    register int n;
+    int n;
 
     REQUEST(xXevieQueryVersionReq);
     swaps(&stuff->length, n);
@@ -334,7 +334,7 @@ int SProcQueryVersion (register ClientPtr client)
 static 
 int SProcStart (ClientPtr client)
 {
-    register int n;
+    int n;
 
     REQUEST (xXevieStartReq);
     swaps (&stuff->length, n);
@@ -346,7 +346,7 @@ int SProcStart (ClientPtr client)
 static 
 int SProcEnd (ClientPtr client)
 {
-    register int n;
+    int n;
 
     REQUEST (xXevieEndReq);
     swaps (&stuff->length, n);
@@ -358,7 +358,7 @@ int SProcEnd (ClientPtr client)
 static
 int SProcSend (ClientPtr client)
 {
-    register int n;
+    int n;
 
     REQUEST (xXevieSendReq);
     swaps (&stuff->length, n);
@@ -370,7 +370,7 @@ int SProcSend (ClientPtr client)
 static
 int SProcSelectInput (ClientPtr client)
 {
-    register int n;
+    int n;
 
     REQUEST (xXevieSelectInputReq);
     swaps (&stuff->length, n);
@@ -381,7 +381,7 @@ int SProcSelectInput (ClientPtr client)
 
 
 static 
-int SProcDispatch (register ClientPtr client)
+int SProcDispatch (ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data)

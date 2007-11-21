@@ -1405,7 +1405,7 @@ ProcSyncListSystemCounters(client)
 
     if (client->swapped)
     {
-	register char n;
+	char n;
 	swaps(&rep.sequenceNumber, n);
 	swapl(&rep.length, n);
 	swapl(&rep.nCounters, n);
@@ -1425,7 +1425,7 @@ ProcSyncListSystemCounters(client)
 
 	if (client->swapped)
 	{
-	    register char n;
+	    char n;
 	    swapl(&walklist->counter, n);
 	    swapl(&walklist->resolution_hi, n);
 	    swapl(&walklist->resolution_lo, n);
@@ -1514,7 +1514,7 @@ ProcSyncGetPriority(client)
 
     if (client->swapped)
     {
-	register char n;
+	char n;
 	swaps(&rep.sequenceNumber, n);
 	swapl(&rep.priority, n);
     }
@@ -1799,7 +1799,7 @@ ProcSyncQueryCounter(client)
     rep.value_lo = XSyncValueLow32(pCounter->value);
     if (client->swapped)
     {
-	register char n;
+	char n;
 	swaps(&rep.sequenceNumber, n);
 	swapl(&rep.length, n);
 	swapl(&rep.value_hi, n);
@@ -1981,7 +1981,7 @@ ProcSyncQueryAlarm(client)
 
     if (client->swapped)
     {
-	register char n;
+	char n;
 	swaps(&rep.sequenceNumber, n);
 	swapl(&rep.length, n);
 	swapl(&rep.counter, n);
@@ -2070,7 +2070,7 @@ SProcSyncInitialize(client)
     ClientPtr       client;
 {
     REQUEST(xSyncInitializeReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH (xSyncInitializeReq);
@@ -2083,7 +2083,7 @@ SProcSyncListSystemCounters(client)
     ClientPtr       client;
 {
     REQUEST(xSyncListSystemCountersReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH (xSyncListSystemCountersReq);
@@ -2096,7 +2096,7 @@ SProcSyncCreateCounter(client)
     ClientPtr       client;
 {
     REQUEST(xSyncCreateCounterReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH (xSyncCreateCounterReq);
@@ -2112,7 +2112,7 @@ SProcSyncSetCounter(client)
     ClientPtr       client;
 {
     REQUEST(xSyncSetCounterReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH (xSyncSetCounterReq);
@@ -2128,7 +2128,7 @@ SProcSyncChangeCounter(client)
     ClientPtr       client;
 {
     REQUEST(xSyncChangeCounterReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH (xSyncChangeCounterReq);
@@ -2144,7 +2144,7 @@ SProcSyncQueryCounter(client)
     ClientPtr       client;
 {
     REQUEST(xSyncQueryCounterReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH (xSyncQueryCounterReq);
@@ -2158,7 +2158,7 @@ SProcSyncDestroyCounter(client)
     ClientPtr       client;
 {
     REQUEST(xSyncDestroyCounterReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH (xSyncDestroyCounterReq);
@@ -2172,7 +2172,7 @@ SProcSyncAwait(client)
     ClientPtr       client;
 {
     REQUEST(xSyncAwaitReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_AT_LEAST_SIZE(xSyncAwaitReq);
@@ -2187,7 +2187,7 @@ SProcSyncCreateAlarm(client)
     ClientPtr       client;
 {
     REQUEST(xSyncCreateAlarmReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_AT_LEAST_SIZE(xSyncCreateAlarmReq);
@@ -2203,7 +2203,7 @@ SProcSyncChangeAlarm(client)
     ClientPtr       client;
 {
     REQUEST(xSyncChangeAlarmReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_AT_LEAST_SIZE(xSyncChangeAlarmReq);
@@ -2218,7 +2218,7 @@ SProcSyncQueryAlarm(client)
     ClientPtr       client;
 {
     REQUEST(xSyncQueryAlarmReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH (xSyncQueryAlarmReq);
@@ -2232,7 +2232,7 @@ SProcSyncDestroyAlarm(client)
     ClientPtr       client;
 {
     REQUEST(xSyncDestroyAlarmReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH (xSyncDestroyAlarmReq);
@@ -2246,7 +2246,7 @@ SProcSyncSetPriority(client)
     ClientPtr       client;
 {
     REQUEST(xSyncSetPriorityReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH (xSyncSetPriorityReq);
@@ -2261,7 +2261,7 @@ SProcSyncGetPriority(client)
     ClientPtr       client;
 {
     REQUEST(xSyncGetPriorityReq);
-    register char   n;
+    char   n;
 
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH (xSyncGetPriorityReq);

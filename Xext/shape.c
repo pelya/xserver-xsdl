@@ -282,10 +282,10 @@ CreateClipShape (pWin)
 
 static int
 ProcShapeQueryVersion (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     xShapeQueryVersionReply	rep;
-    register int		n;
+    int		n;
 
     REQUEST_SIZE_MATCH (xShapeQueryVersionReq);
     rep.type = X_Reply;
@@ -310,7 +310,7 @@ ProcShapeQueryVersion (client)
 
 static int
 ProcShapeRectangles (client)
-    register ClientPtr client;
+    ClientPtr client;
 {
     WindowPtr		pWin;
     ScreenPtr		pScreen;
@@ -381,7 +381,7 @@ ProcShapeRectangles (client)
 #ifdef PANORAMIX
 static int
 ProcPanoramiXShapeRectangles(
-    register ClientPtr client)
+    ClientPtr client)
 {
     REQUEST(xShapeRectanglesReq);
     PanoramiXRes	*win;
@@ -410,7 +410,7 @@ ProcPanoramiXShapeRectangles(
 
 static int
 ProcShapeMask (client)
-    register ClientPtr client;
+    ClientPtr client;
 {
     WindowPtr		pWin;
     ScreenPtr		pScreen;
@@ -480,7 +480,7 @@ ProcShapeMask (client)
 #ifdef PANORAMIX
 static int
 ProcPanoramiXShapeMask(
-    register ClientPtr client)
+    ClientPtr client)
 {
     REQUEST(xShapeMaskReq);
     PanoramiXRes	*win, *pmap;
@@ -517,7 +517,7 @@ ProcPanoramiXShapeMask(
 
 static int
 ProcShapeCombine (client)
-    register ClientPtr client;
+    ClientPtr client;
 {
     WindowPtr		pSrcWin, pDestWin;
     ScreenPtr		pScreen;
@@ -609,7 +609,7 @@ ProcShapeCombine (client)
 #ifdef PANORAMIX
 static int
 ProcPanoramiXShapeCombine(
-    register ClientPtr client)
+    ClientPtr client)
 {
     REQUEST(xShapeCombineReq);
     PanoramiXRes	*win, *win2;
@@ -641,7 +641,7 @@ ProcPanoramiXShapeCombine(
 
 static int
 ProcShapeOffset (client)
-    register ClientPtr client;
+    ClientPtr client;
 {
     WindowPtr		pWin;
     ScreenPtr		pScreen;
@@ -682,7 +682,7 @@ ProcShapeOffset (client)
 #ifdef PANORAMIX
 static int
 ProcPanoramiXShapeOffset(
-    register ClientPtr client)
+    ClientPtr client)
 {
     REQUEST(xShapeOffsetReq);
     PanoramiXRes *win;
@@ -706,13 +706,13 @@ ProcPanoramiXShapeOffset(
 
 static int
 ProcShapeQueryExtents (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xShapeQueryExtentsReq);
     WindowPtr		pWin;
     xShapeQueryExtentsReply	rep;
     BoxRec		extents, *pExtents;
-    register int	n, rc;
+    int	n, rc;
     RegionPtr		region;
 
     REQUEST_SIZE_MATCH (xShapeQueryExtentsReq);
@@ -817,7 +817,7 @@ ShapeFreeEvents (data, id)
 
 static int
 ProcShapeSelectInput (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xShapeSelectInputReq);
     WindowPtr		pWin;
@@ -989,14 +989,14 @@ SendShapeNotify (pWin, which)
 
 static int
 ProcShapeInputSelected (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xShapeInputSelectedReq);
     WindowPtr		pWin;
     ShapeEventPtr	pShapeEvent, *pHead;
     int			enabled, rc;
     xShapeInputSelectedReply	rep;
-    register int		n;
+    int		n;
 
     REQUEST_SIZE_MATCH (xShapeInputSelectedReq);
     rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
@@ -1030,7 +1030,7 @@ ProcShapeInputSelected (client)
 
 static int
 ProcShapeGetRectangles (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xShapeGetRectanglesReq);
     WindowPtr			pWin;
@@ -1038,7 +1038,7 @@ ProcShapeGetRectangles (client)
     xRectangle			*rects;
     int				nrects, i, rc;
     RegionPtr			region;
-    register int		n;
+    int		n;
 
     REQUEST_SIZE_MATCH(xShapeGetRectanglesReq);
     rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
@@ -1116,7 +1116,7 @@ ProcShapeGetRectangles (client)
 
 static int
 ProcShapeDispatch (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xReq);
     switch (stuff->data) {
@@ -1181,9 +1181,9 @@ SShapeNotifyEvent(from, to)
 
 static int
 SProcShapeQueryVersion (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int    n;
+    int    n;
     REQUEST (xShapeQueryVersionReq);
 
     swaps (&stuff->length, n);
@@ -1192,9 +1192,9 @@ SProcShapeQueryVersion (client)
 
 static int
 SProcShapeRectangles (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register char   n;
+    char   n;
     REQUEST (xShapeRectanglesReq);
 
     swaps (&stuff->length, n);
@@ -1208,9 +1208,9 @@ SProcShapeRectangles (client)
 
 static int
 SProcShapeMask (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register char   n;
+    char   n;
     REQUEST (xShapeMaskReq);
 
     swaps (&stuff->length, n);
@@ -1224,9 +1224,9 @@ SProcShapeMask (client)
 
 static int
 SProcShapeCombine (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register char   n;
+    char   n;
     REQUEST (xShapeCombineReq);
 
     swaps (&stuff->length, n);
@@ -1240,9 +1240,9 @@ SProcShapeCombine (client)
 
 static int
 SProcShapeOffset (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register char   n;
+    char   n;
     REQUEST (xShapeOffsetReq);
 
     swaps (&stuff->length, n);
@@ -1255,9 +1255,9 @@ SProcShapeOffset (client)
 
 static int
 SProcShapeQueryExtents (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register char   n;
+    char   n;
     REQUEST (xShapeQueryExtentsReq);
 
     swaps (&stuff->length, n);
@@ -1268,9 +1268,9 @@ SProcShapeQueryExtents (client)
 
 static int
 SProcShapeSelectInput (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register char   n;
+    char   n;
     REQUEST (xShapeSelectInputReq);
 
     swaps (&stuff->length, n);
@@ -1281,9 +1281,9 @@ SProcShapeSelectInput (client)
 
 static int
 SProcShapeInputSelected (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int    n;
+    int    n;
     REQUEST (xShapeInputSelectedReq);
 
     swaps (&stuff->length, n);
@@ -1294,10 +1294,10 @@ SProcShapeInputSelected (client)
 
 static int
 SProcShapeGetRectangles (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xShapeGetRectanglesReq);
-    register char   n;
+    char   n;
 
     swaps (&stuff->length, n);
     REQUEST_SIZE_MATCH(xShapeGetRectanglesReq);
@@ -1307,7 +1307,7 @@ SProcShapeGetRectangles (client)
 
 static int
 SProcShapeDispatch (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xReq);
     switch (stuff->data) {

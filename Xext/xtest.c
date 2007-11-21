@@ -112,10 +112,10 @@ ExtensionEntry	*extEntry;
 
 static int
 ProcXTestGetVersion(client)
-    register ClientPtr client;
+     ClientPtr client;
 {
     xXTestGetVersionReply rep;
-    register int n;
+     int n;
 
     REQUEST_SIZE_MATCH(xXTestGetVersionReq);
     rep.type = X_Reply;
@@ -133,13 +133,13 @@ ProcXTestGetVersion(client)
 
 static int
 ProcXTestCompareCursor(client)
-    register ClientPtr client;
+     ClientPtr client;
 {
     REQUEST(xXTestCompareCursorReq);
     xXTestCompareCursorReply rep;
     WindowPtr pWin;
     CursorPtr pCursor;
-    register int n, rc;
+     int n, rc;
 
     REQUEST_SIZE_MATCH(xXTestCompareCursorReq);
     rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
@@ -170,7 +170,7 @@ ProcXTestCompareCursor(client)
 
 static int
 ProcXTestFakeInput(client)
-    register ClientPtr client;
+     ClientPtr client;
 {
     REQUEST(xXTestFakeInputReq);
     int nev, n, type, rc;
@@ -468,7 +468,7 @@ ProcXTestFakeInput(client)
 
 static int
 ProcXTestGrabControl(client)
-    register ClientPtr client;
+     ClientPtr client;
 {
     REQUEST(xXTestGrabControlReq);
 
@@ -487,7 +487,7 @@ ProcXTestGrabControl(client)
 
 static int
 ProcXTestDispatch (client)
-    register ClientPtr	client;
+     ClientPtr	client;
 {
     REQUEST(xReq);
     switch (stuff->data)
@@ -507,9 +507,9 @@ ProcXTestDispatch (client)
 
 static int
 SProcXTestGetVersion(client)
-    register ClientPtr	client;
+     ClientPtr	client;
 {
-    register int n;
+     int n;
     REQUEST(xXTestGetVersionReq);
 
     swaps(&stuff->length, n);
@@ -520,9 +520,9 @@ SProcXTestGetVersion(client)
 
 static int
 SProcXTestCompareCursor(client)
-    register ClientPtr	client;
+     ClientPtr	client;
 {
-    register int n;
+     int n;
     REQUEST(xXTestCompareCursorReq);
 
     swaps(&stuff->length, n);
@@ -534,11 +534,11 @@ SProcXTestCompareCursor(client)
 
 static int
 XTestSwapFakeInput(client, req)
-    register ClientPtr	client;
+     ClientPtr	client;
     xReq *req;
 {
-    register int nev;
-    register xEvent *ev;
+     int nev;
+     xEvent *ev;
     xEvent sev;
     EventSwapPtr proc;
 
@@ -560,9 +560,9 @@ XTestSwapFakeInput(client, req)
 
 static int
 SProcXTestFakeInput(client)
-    register ClientPtr	client;
+     ClientPtr	client;
 {
-    register int n;
+     int n;
     REQUEST(xReq);
 
     swaps(&stuff->length, n);
@@ -574,9 +574,9 @@ SProcXTestFakeInput(client)
 
 static int
 SProcXTestGrabControl(client)
-    register ClientPtr	client;
+     ClientPtr	client;
 {
-    register int n;
+     int n;
     REQUEST(xXTestGrabControlReq);
 
     swaps(&stuff->length, n);
@@ -586,7 +586,7 @@ SProcXTestGrabControl(client)
 
 static int
 SProcXTestDispatch (client)
-    register ClientPtr	client;
+     ClientPtr	client;
 {
     REQUEST(xReq);
     switch (stuff->data)

@@ -163,11 +163,11 @@ void ResetProc(
 
 static 
 int ProcQueryVersion(
-    register ClientPtr client)
+    ClientPtr client)
 {
     /* REQUEST (xXcupQueryVersionReq); */
     xXcupQueryVersionReply rep;
-    register int n;
+    int n;
 
     REQUEST_SIZE_MATCH (xXcupQueryVersionReq);
     rep.type = X_Reply;
@@ -187,12 +187,12 @@ int ProcQueryVersion(
 
 static
 int ProcGetReservedColormapEntries(
-    register ClientPtr client)
+    ClientPtr client)
 {
     REQUEST (xXcupGetReservedColormapEntriesReq);
     xXcupGetReservedColormapEntriesReply rep;
     xColorItem* cptr;
-    register int n;
+    int n;
 
     REQUEST_SIZE_MATCH (xXcupGetReservedColormapEntriesReq);
 
@@ -220,7 +220,7 @@ int ProcGetReservedColormapEntries(
 
 static
 int ProcStoreColors(
-    register ClientPtr client)
+    ClientPtr client)
 {
     REQUEST (xXcupStoreColorsReq);
     ColormapPtr pcmp;
@@ -279,7 +279,7 @@ int ProcStoreColors(
 
 static 
 int ProcDispatch(
-    register ClientPtr client)
+    ClientPtr client)
 {
     REQUEST (xReq);
     switch (stuff->data)
@@ -297,9 +297,9 @@ int ProcDispatch(
 
 static 
 int SProcQueryVersion(
-    register ClientPtr client)
+    ClientPtr client)
 {
-    register int n;
+    int n;
 
     REQUEST(xXcupQueryVersionReq);
     swaps(&stuff->length, n);
@@ -310,7 +310,7 @@ static
 int SProcGetReservedColormapEntries(
     ClientPtr client)
 {
-    register int n;
+    int n;
 
     REQUEST (xXcupGetReservedColormapEntriesReq);
     swaps (&stuff->length, n);
@@ -323,7 +323,7 @@ static
 int SProcXcupStoreColors(
     ClientPtr client)
 {
-    register int n;
+    int n;
     int count;
     xColorItem* pItem;
 
@@ -339,7 +339,7 @@ int SProcXcupStoreColors(
 
 static 
 int SProcDispatch(
-    register ClientPtr client)
+    ClientPtr client)
 {
     REQUEST(xReq);
     switch (stuff->data)

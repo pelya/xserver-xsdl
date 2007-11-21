@@ -46,7 +46,7 @@ static int sampleGetVisualInfo(
     VisualID32 *temp_conflict;
     xExtendedVisualInfo *evi;
     int max_visuals = 0, max_sz_conflict, sz_conflict = 0;
-    register int visualI, scrI, sz_evi = 0, conflictI, n_conflict;
+    int visualI, scrI, sz_evi = 0, conflictI, n_conflict;
     *evi_rn = evi = (xExtendedVisualInfo *)xalloc(max_sz_evi);
     if (!*evi_rn)
          return BadAlloc;

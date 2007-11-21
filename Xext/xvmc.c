@@ -613,8 +613,8 @@ ProcXvMCGetDRInfo(ClientPtr client)
 #ifdef HAS_XVMCSHM
     patternP = (CARD32 *)shmat( stuff->shmKey, NULL, SHM_RDONLY );
     if ( -1 != (long) patternP) {
-        register volatile CARD32 *patternC = patternP;
-	register int i;
+        volatile CARD32 *patternC = patternP;
+	int i;
 	CARD32 magic = stuff->magic;
 	
 	rep.isLocal = 1;

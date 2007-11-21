@@ -93,7 +93,7 @@ ProcXResQueryClients (ClientPtr client)
             scratch.resource_mask = RESOURCE_ID_MASK;
         
             if(client->swapped) {
-                register int n;
+                int n;
                 swapl (&scratch.resource_base, n);
                 swapl (&scratch.resource_mask, n);
             }
@@ -175,7 +175,7 @@ ProcXResQueryClientResources (ClientPtr client)
             scratch.count = counts[i];
 
             if(client->swapped) {
-                register int n;
+                int n;
                 swapl (&scratch.resource_type, n);
                 swapl (&scratch.count, n);
             }

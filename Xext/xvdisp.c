@@ -1334,7 +1334,7 @@ ProcXvListImageFormats(ClientPtr client)
 static int
 SProcXvQueryExtension(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvQueryExtensionReq);
   swaps(&stuff->length, n);
   return ProcXvQueryExtension(client);
@@ -1343,7 +1343,7 @@ SProcXvQueryExtension(ClientPtr client)
 static int
 SProcXvQueryAdaptors(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvQueryAdaptorsReq);
   swaps(&stuff->length, n);
   swapl(&stuff->window, n);
@@ -1353,7 +1353,7 @@ SProcXvQueryAdaptors(ClientPtr client)
 static int
 SProcXvQueryEncodings(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvQueryEncodingsReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1363,7 +1363,7 @@ SProcXvQueryEncodings(ClientPtr client)
 static int
 SProcXvGrabPort(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvGrabPortReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1374,7 +1374,7 @@ SProcXvGrabPort(ClientPtr client)
 static int
 SProcXvUngrabPort(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvUngrabPortReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1385,7 +1385,7 @@ SProcXvUngrabPort(ClientPtr client)
 static int
 SProcXvPutVideo(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvPutVideoReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1405,7 +1405,7 @@ SProcXvPutVideo(ClientPtr client)
 static int
 SProcXvPutStill(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvPutStillReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1425,7 +1425,7 @@ SProcXvPutStill(ClientPtr client)
 static int
 SProcXvGetVideo(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvGetVideoReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1445,7 +1445,7 @@ SProcXvGetVideo(ClientPtr client)
 static int
 SProcXvGetStill(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvGetStillReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1465,7 +1465,7 @@ SProcXvGetStill(ClientPtr client)
 static int
 SProcXvPutImage(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvPutImageReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1489,7 +1489,7 @@ SProcXvPutImage(ClientPtr client)
 static int
 SProcXvShmPutImage(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvShmPutImageReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1516,7 +1516,7 @@ SProcXvShmPutImage(ClientPtr client)
 static int
 SProcXvSelectVideoNotify(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvSelectVideoNotifyReq);
   swaps(&stuff->length, n);
   swapl(&stuff->drawable, n);
@@ -1526,7 +1526,7 @@ SProcXvSelectVideoNotify(ClientPtr client)
 static int
 SProcXvSelectPortNotify(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvSelectPortNotifyReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1536,7 +1536,7 @@ SProcXvSelectPortNotify(ClientPtr client)
 static int
 SProcXvStopVideo(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvStopVideoReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1547,7 +1547,7 @@ SProcXvStopVideo(ClientPtr client)
 static int
 SProcXvSetPortAttribute(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvSetPortAttributeReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1558,7 +1558,7 @@ SProcXvSetPortAttribute(ClientPtr client)
 static int
 SProcXvGetPortAttribute(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvGetPortAttributeReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1569,7 +1569,7 @@ SProcXvGetPortAttribute(ClientPtr client)
 static int
 SProcXvQueryBestSize(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvQueryBestSizeReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1583,7 +1583,7 @@ SProcXvQueryBestSize(ClientPtr client)
 static int
 SProcXvQueryPortAttributes(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvQueryPortAttributesReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1593,7 +1593,7 @@ SProcXvQueryPortAttributes(ClientPtr client)
 static int
 SProcXvQueryImageAttributes(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvQueryImageAttributesReq);
   swaps(&stuff->length, n);
   swapl(&stuff->id, n);
@@ -1605,7 +1605,7 @@ SProcXvQueryImageAttributes(ClientPtr client)
 static int
 SProcXvListImageFormats(ClientPtr client)
 {
-  register char n;
+  char n;
   REQUEST(xvListImageFormatsReq);
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
@@ -1618,7 +1618,7 @@ SWriteQueryExtensionReply(
    ClientPtr client,
    xvQueryExtensionReply *rep
 ){
-  register char n;
+  char n;
 
   swaps(&rep->sequenceNumber, n);
   swapl(&rep->length, n);
@@ -1635,7 +1635,7 @@ SWriteQueryAdaptorsReply(
    ClientPtr client,
    xvQueryAdaptorsReply *rep
 ){
-  register char n;
+  char n;
 
   swaps(&rep->sequenceNumber, n);
   swapl(&rep->length, n);
@@ -1651,7 +1651,7 @@ SWriteQueryEncodingsReply(
    ClientPtr client,
    xvQueryEncodingsReply *rep
 ){
-  register char n;
+  char n;
 
   swaps(&rep->sequenceNumber, n);
   swapl(&rep->length, n);
@@ -1667,7 +1667,7 @@ SWriteAdaptorInfo(
    ClientPtr client,
    xvAdaptorInfo *pAdaptor
 ){
-  register char n;
+  char n;
 
   swapl(&pAdaptor->base_id, n);
   swaps(&pAdaptor->name_size, n);
@@ -1684,7 +1684,7 @@ SWriteEncodingInfo(
    ClientPtr client,
    xvEncodingInfo *pEncoding
 ){
-  register char n;
+  char n;
   
   swapl(&pEncoding->encoding, n);
   swaps(&pEncoding->name_size, n);
@@ -1702,7 +1702,7 @@ SWriteFormat(
    ClientPtr client,
    xvFormat *pFormat
 ){
-  register char n;
+  char n;
 
   swapl(&pFormat->visual, n);
   (void)WriteToClient(client, sz_xvFormat, (char *)pFormat);
@@ -1715,7 +1715,7 @@ SWriteAttributeInfo(
    ClientPtr client,
    xvAttributeInfo *pAtt
 ){
-  register char n;
+  char n;
 
   swapl(&pAtt->flags, n);
   swapl(&pAtt->size, n);
@@ -1731,7 +1731,7 @@ SWriteImageFormatInfo(
    ClientPtr client,
    xvImageFormatInfo *pImage
 ){
-  register char n;
+  char n;
 
   swapl(&pImage->id, n);
   swapl(&pImage->red_mask, n);
@@ -1759,7 +1759,7 @@ SWriteGrabPortReply(
    ClientPtr client,
    xvGrabPortReply *rep
 ){
-  register char n;
+  char n;
 
   swaps(&rep->sequenceNumber, n);
   swapl(&rep->length, n);
@@ -1774,7 +1774,7 @@ SWriteGetPortAttributeReply(
    ClientPtr client,
    xvGetPortAttributeReply *rep
 ){
-  register char n;
+  char n;
 
   swaps(&rep->sequenceNumber, n);
   swapl(&rep->length, n);
@@ -1790,7 +1790,7 @@ SWriteQueryBestSizeReply(
    ClientPtr client,
    xvQueryBestSizeReply *rep
 ){
-  register char n;
+  char n;
 
   swaps(&rep->sequenceNumber, n);
   swapl(&rep->length, n);
@@ -1807,7 +1807,7 @@ SWriteQueryPortAttributesReply(
    ClientPtr client,
    xvQueryPortAttributesReply *rep
 ){
-  register char n;
+  char n;
 
   swaps(&rep->sequenceNumber, n);
   swapl(&rep->length, n);
@@ -1824,7 +1824,7 @@ SWriteQueryImageAttributesReply(
    ClientPtr client,
    xvQueryImageAttributesReply *rep
 ){
-  register char n;
+  char n;
 
   swaps(&rep->sequenceNumber, n);
   swapl(&rep->length, n);
@@ -1844,7 +1844,7 @@ SWriteListImageFormatsReply(
    ClientPtr client,
    xvListImageFormatsReply *rep
 ){
-  register char n;
+  char n;
 
   swaps(&rep->sequenceNumber, n);
   swapl(&rep->length, n);

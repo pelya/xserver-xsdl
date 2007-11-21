@@ -282,10 +282,10 @@ ExtensionEntry	*extEntry;
 
 static int
 ProcGetBufferVersion (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     xMbufGetBufferVersionReply	rep;
-    register int		n;
+    int		n;
 
     REQUEST_SIZE_MATCH (xMbufGetBufferVersionReq);
     rep.type = X_Reply;
@@ -441,11 +441,11 @@ CreateImageBuffers (pWin, nbuf, ids, action, hint)
 
 static int
 ProcCreateImageBuffers (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xMbufCreateImageBuffersReq);
     xMbufCreateImageBuffersReply	rep;
-    register int		n;
+    int		n;
     WindowPtr			pWin;
     XID				*ids;
     int				len, nbuf, i, err, rc;
@@ -506,7 +506,7 @@ ProcCreateImageBuffers (client)
 
 static int
 ProcDisplayImageBuffers (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xMbufDisplayImageBuffersReq);
     MultibufferPtr	    *pMultibuffer;
@@ -579,7 +579,7 @@ MultibufferResType);
 
 static int
 ProcDestroyImageBuffers (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST (xMbufDestroyImageBuffersReq);
     WindowPtr	pWin;
@@ -595,7 +595,7 @@ ProcDestroyImageBuffers (client)
 
 static int
 ProcSetMBufferAttributes (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST (xMbufSetMBufferAttributesReq);
     WindowPtr	pWin;
@@ -694,7 +694,7 @@ ProcGetMBufferAttributes (client)
 
 static int
 ProcSetBufferAttributes (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xMbufSetBufferAttributesReq);
     MultibufferPtr	pMultibuffer;
@@ -736,7 +736,7 @@ ProcSetBufferAttributes (client)
 
 int
 ProcGetBufferAttributes (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xMbufGetBufferAttributesReq);
     MultibufferPtr	pMultibuffer;
@@ -780,7 +780,7 @@ ProcGetBufferAttributes (client)
 
 static int
 ProcGetBufferInfo (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST (xMbufGetBufferInfoReq);
     DrawablePtr		    pDrawable;
@@ -845,7 +845,7 @@ ProcGetBufferInfo (client)
 
 static int
 ProcClearImageBufferArea (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST (xMbufClearImageBufferAreaReq);
     MultibufferPtr	pMultibuffer;
@@ -907,7 +907,7 @@ ProcClearImageBufferArea (client)
 
 static int
 ProcMultibufferDispatch (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xReq);
     switch (stuff->data) {
@@ -938,9 +938,9 @@ ProcMultibufferDispatch (client)
 
 static int
 SProcGetBufferVersion (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int    n;
+    int    n;
     REQUEST (xMbufGetBufferVersionReq);
 
     swaps (&stuff->length, n);
@@ -949,9 +949,9 @@ SProcGetBufferVersion (client)
 
 static int
 SProcCreateImageBuffers (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int    n;
+    int    n;
     REQUEST (xMbufCreateImageBuffersReq);
 
     swaps (&stuff->length, n);
@@ -963,9 +963,9 @@ SProcCreateImageBuffers (client)
 
 static int
 SProcDisplayImageBuffers (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int    n;
+    int    n;
     REQUEST (xMbufDisplayImageBuffersReq);
     
     swaps (&stuff->length, n);
@@ -978,9 +978,9 @@ SProcDisplayImageBuffers (client)
 
 static int
 SProcDestroyImageBuffers (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int    n;
+    int    n;
     REQUEST (xMbufDestroyImageBuffersReq);
     
     swaps (&stuff->length, n);
@@ -991,9 +991,9 @@ SProcDestroyImageBuffers (client)
 
 static int
 SProcSetMBufferAttributes (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int    n;
+    int    n;
     REQUEST (xMbufSetMBufferAttributesReq);
 
     swaps (&stuff->length, n);
@@ -1006,9 +1006,9 @@ SProcSetMBufferAttributes (client)
 
 static int
 SProcGetMBufferAttributes (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int    n;
+    int    n;
     REQUEST (xMbufGetMBufferAttributesReq);
 
     swaps (&stuff->length, n);
@@ -1019,9 +1019,9 @@ SProcGetMBufferAttributes (client)
 
 static int
 SProcSetBufferAttributes (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int    n;
+    int    n;
     REQUEST (xMbufSetBufferAttributesReq);
 
     swaps (&stuff->length, n);
@@ -1034,9 +1034,9 @@ SProcSetBufferAttributes (client)
 
 static int
 SProcGetBufferAttributes (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int    n;
+    int    n;
     REQUEST (xMbufGetBufferAttributesReq);
 
     swaps (&stuff->length, n);
@@ -1047,9 +1047,9 @@ SProcGetBufferAttributes (client)
 
 static int
 SProcGetBufferInfo (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int    n;
+    int    n;
     REQUEST (xMbufGetBufferInfoReq);
 
     swaps (&stuff->length, n);
@@ -1060,9 +1060,9 @@ SProcGetBufferInfo (client)
 
 static int
 SProcClearImageBufferArea(client)
-    register ClientPtr client;
+    ClientPtr client;
 {
-    register char n;
+    char n;
     REQUEST(xMbufClearImageBufferAreaReq);
 
     swaps(&stuff->length, n);
@@ -1077,7 +1077,7 @@ SProcClearImageBufferArea(client)
 
 static int
 SProcMultibufferDispatch (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xReq);
     switch (stuff->data) {
@@ -1297,7 +1297,7 @@ QueueDisplayRequest (client, activateTime)
     /* swap the request back so we can simply re-execute it */
     if (client->swapped)
     {
-    	register int    n;
+    	int    n;
     	REQUEST (xMbufDisplayImageBuffersReq);
     	
     	SwapRestL(stuff);
@@ -1370,9 +1370,9 @@ MultibufferExpose (pMultibuffer, pRegion)
     {
 	xEvent *pEvent;
 	PixmapPtr   pPixmap;
-	register xEvent *pe;
-	register BoxPtr pBox;
-	register int i;
+	xEvent *pe;
+	BoxPtr pBox;
+	int i;
 	int numRects;
 
 	pPixmap = pMultibuffer->pPixmap;
@@ -1682,7 +1682,7 @@ OtherClientDelete (value, id)
     XID		id;
 {
     MultibufferPtr	pMultibuffer = (MultibufferPtr)value;
-    register OtherClientsPtr	other, prev;
+    OtherClientsPtr	other, prev;
 
     prev = 0;
     for (other = pMultibuffer->otherClients; other; other = other->next)

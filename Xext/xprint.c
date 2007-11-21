@@ -570,7 +570,7 @@ ProcXpQueryVersion(ClientPtr client)
 {
     /* REQUEST(xPrintQueryVersionReq); */
     xPrintQueryVersionReply rep;
-    register int n;
+    int n;
     long l;
 
     REQUEST_SIZE_MATCH(xPrintQueryVersionReq);
@@ -1101,8 +1101,8 @@ ProcXpGetContext(ClientPtr client)
     xPrintGetContextReply rep;
 
     XpContextPtr pContext;
-    register int n;
-    register long l;
+    int n;
+    long l;
 
     REQUEST_SIZE_MATCH(xPrintGetContextReq);
 
@@ -1383,11 +1383,11 @@ XpFreePage(pointer data, XID id)
 static void
 InitContextPrivates(XpContextPtr context)
 {
-    register char *ptr;
+    char *ptr;
     DevUnion *ppriv;
-    register unsigned *sizes;
-    register unsigned size;
-    register int i;
+    unsigned *sizes;
+    unsigned size;
+    int i;
 
     if (totalContextSize == sizeof(XpContextRec))
         ppriv = (DevUnion *)NULL;
@@ -2330,7 +2330,7 @@ ProcXpInputSelected(ClientPtr client)
 {
     REQUEST(xPrintInputSelectedReq);
     xPrintInputSelectedReply rep;
-    register int n;
+    int n;
     long l;
     XpClientPtr pXpClient;
     XpContextPtr pContext;

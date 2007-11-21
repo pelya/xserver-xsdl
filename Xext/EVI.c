@@ -45,7 +45,7 @@ ProcEVIQueryVersion(ClientPtr client)
 {
     /* REQUEST(xEVIQueryVersionReq); */
     xEVIQueryVersionReply rep;
-    register int n;
+    int n;
     REQUEST_SIZE_MATCH (xEVIQueryVersionReq);
     rep.type = X_Reply;
     rep.length = 0;
@@ -144,7 +144,7 @@ SProcEVIQueryVersion(ClientPtr client)
 static int
 SProcEVIGetVisualInfo(ClientPtr client)
 {
-    register int n;
+    int n;
     REQUEST(xEVIGetVisualInfoReq);
     swaps(&stuff->length, n);
     return ProcEVIGetVisualInfo(client);

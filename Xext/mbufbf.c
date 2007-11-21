@@ -600,9 +600,9 @@ bufDrawSelectPlane(pScreen, selectPlane, prgn, bufferNum)
 {
     DrawablePtr pDrawable;
     GCPtr pGC;
-    register int i;
-    register BoxPtr pbox;
-    register xRectangle *prect;
+    int i;
+    BoxPtr pbox;
+    xRectangle *prect;
     int numRects;
     XID	value;
 
@@ -882,7 +882,7 @@ bufChangeWindowAttributes(pWin, mask)
 static void 
 bufWindowExposures(pWin, prgn, other_exposed)
     WindowPtr pWin;
-    register RegionPtr prgn, other_exposed;
+    RegionPtr prgn, other_exposed;
 {
     ScreenPtr pScreen = pWin->drawable.pScreen;
     mbufWindowPtr pMBWindow = MB_WINDOW_PRIV(pWin);

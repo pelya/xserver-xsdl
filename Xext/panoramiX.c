@@ -916,7 +916,7 @@ ProcPanoramiXGetState(ClientPtr client)
 	REQUEST(xPanoramiXGetStateReq);
     	WindowPtr			pWin;
 	xPanoramiXGetStateReply		rep;
-	register int			n, rc;
+	int			n, rc;
 	
 	REQUEST_SIZE_MATCH(xPanoramiXGetStateReq);
 	rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
@@ -943,7 +943,7 @@ ProcPanoramiXGetScreenCount(ClientPtr client)
 	REQUEST(xPanoramiXGetScreenCountReq);
     	WindowPtr			pWin;
 	xPanoramiXGetScreenCountReply	rep;
-	register int			n, rc;
+	int			n, rc;
 
 	REQUEST_SIZE_MATCH(xPanoramiXGetScreenCountReq);
 	rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
@@ -969,7 +969,7 @@ ProcPanoramiXGetScreenSize(ClientPtr client)
 	REQUEST(xPanoramiXGetScreenSizeReq);
     	WindowPtr			pWin;
 	xPanoramiXGetScreenSizeReply	rep;
-	register int			n, rc;
+	int			n, rc;
 	
 	REQUEST_SIZE_MATCH(xPanoramiXGetScreenSizeReq);
 	rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
@@ -1014,7 +1014,7 @@ ProcXineramaIsActive(ClientPtr client)
     rep.state = !noPanoramiXExtension;
 #endif
     if (client->swapped) {
-	register int n;
+	int n;
 	swaps (&rep.sequenceNumber, n);
 	swapl (&rep.length, n);
 	swapl (&rep.state, n);
@@ -1037,7 +1037,7 @@ ProcXineramaQueryScreens(ClientPtr client)
     rep.number = (noPanoramiXExtension) ? 0 : PanoramiXNumScreens;
     rep.length = rep.number * sz_XineramaScreenInfo >> 2;
     if (client->swapped) {
-	register int n;
+	int n;
 	swaps (&rep.sequenceNumber, n);
 	swapl (&rep.length, n);
 	swapl (&rep.number, n);
@@ -1055,7 +1055,7 @@ ProcXineramaQueryScreens(ClientPtr client)
 	    scratch.height = panoramiXdataPtr[i].height;
 	
 	    if(client->swapped) {
-		register int n;
+		int n;
 		swaps (&scratch.x_org, n);
 		swaps (&scratch.y_org, n);
 		swaps (&scratch.width, n);

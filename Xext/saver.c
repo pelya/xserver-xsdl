@@ -755,10 +755,10 @@ ScreenSaverHandle (pScreen, xstate, force)
 
 static int
 ProcScreenSaverQueryVersion (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     xScreenSaverQueryVersionReply	rep;
-    register int		n;
+    int		n;
 
     REQUEST_SIZE_MATCH (xScreenSaverQueryVersionReq);
     rep.type = X_Reply;
@@ -776,11 +776,11 @@ ProcScreenSaverQueryVersion (client)
 
 static int
 ProcScreenSaverQueryInfo (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xScreenSaverQueryInfoReq);
     xScreenSaverQueryInfoReply	rep;
-    register int		n, rc;
+    int		n, rc;
     ScreenSaverStuffPtr		pSaver;
     DrawablePtr			pDraw;
     CARD32			lastInput;
@@ -849,7 +849,7 @@ ProcScreenSaverQueryInfo (client)
 
 static int
 ProcScreenSaverSelectInput (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xScreenSaverSelectInputReq);
     DrawablePtr			pDraw;

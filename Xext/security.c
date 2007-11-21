@@ -336,7 +336,7 @@ ProcSecurityQueryVersion(
     rep.minorVersion  	= SECURITY_MINOR_VERSION;
     if(client->swapped)
     {
-	register char n;
+	char n;
     	swaps(&rep.sequenceNumber, n);
 	swaps(&rep.majorVersion, n);
 	swaps(&rep.minorVersion, n);
@@ -554,7 +554,7 @@ ProcSecurityGenerateAuthorization(
 
     if (client->swapped)
     {
-	register char n;
+	char n;
     	swapl(&rep.length, n);
     	swaps(&rep.sequenceNumber, n);
     	swapl(&rep.authId, n);
@@ -633,7 +633,7 @@ SProcSecurityQueryVersion(
     ClientPtr client)
 {
     REQUEST(xSecurityQueryVersionReq);
-    register char 	n;
+    char 	n;
 
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xSecurityQueryVersionReq);
@@ -648,7 +648,7 @@ SProcSecurityGenerateAuthorization(
     ClientPtr client)
 {
     REQUEST(xSecurityGenerateAuthorizationReq);
-    register char 	n;
+    char 	n;
     CARD32 *values;
     unsigned long nvalues;
 
@@ -671,7 +671,7 @@ SProcSecurityRevokeAuthorization(
     ClientPtr client)
 {
     REQUEST(xSecurityRevokeAuthorizationReq);
-    register char 	n;
+    char 	n;
 
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xSecurityRevokeAuthorizationReq);

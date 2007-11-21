@@ -343,10 +343,10 @@ ShmRegisterFbFuncs(pScreen)
 
 static int
 ProcShmQueryVersion(client)
-    register ClientPtr client;
+    ClientPtr client;
 {
     xShmQueryVersionReply rep;
-    register int n;
+    int n;
 
     REQUEST_SIZE_MATCH(xShmQueryVersionReq);
     rep.type = X_Reply;
@@ -438,7 +438,7 @@ shm_access(ClientPtr client, SHMPERM_TYPE *perm, int readonly)
 
 static int
 ProcShmAttach(client)
-    register ClientPtr client;
+    ClientPtr client;
 {
     SHMSTAT_TYPE buf;
     ShmDescPtr shmdesc;
@@ -518,7 +518,7 @@ ShmDetachSegment(value, shmseg)
 
 static int
 ProcShmDetach(client)
-    register ClientPtr client;
+    ClientPtr client;
 {
     ShmDescPtr shmdesc;
     REQUEST(xShmDetachReq);
@@ -595,7 +595,7 @@ fbShmPutImage(dst, pGC, depth, format, w, h, sx, sy, sw, sh, dx, dy, data)
 
 #ifdef PANORAMIX
 static int 
-ProcPanoramiXShmPutImage(register ClientPtr client)
+ProcPanoramiXShmPutImage(ClientPtr client)
 {
     int			 j, result = 0, orig_x, orig_y;
     PanoramiXRes	*draw, *gc;
@@ -742,7 +742,7 @@ ProcPanoramiXShmGetImage(ClientPtr client)
     }
     
     if (client->swapped) {
-	register int n;
+	int n;
     	swaps(&xgi.sequenceNumber, n);
     	swapl(&xgi.length, n);
 	swapl(&xgi.visual, n);
@@ -755,7 +755,7 @@ ProcPanoramiXShmGetImage(ClientPtr client)
 
 static int
 ProcPanoramiXShmCreatePixmap(
-    register ClientPtr client)
+    ClientPtr client)
 {
     ScreenPtr pScreen = NULL;
     PixmapPtr pMap = NULL;
@@ -846,7 +846,7 @@ CreatePmap:
 
 static int
 ProcShmPutImage(client)
-    register ClientPtr client;
+    ClientPtr client;
 {
     GCPtr pGC;
     DrawablePtr pDraw;
@@ -950,7 +950,7 @@ ProcShmPutImage(client)
 
 static int
 ProcShmGetImage(client)
-    register ClientPtr client;
+    ClientPtr client;
 {
     DrawablePtr		pDraw;
     long		lenPer = 0, length;
@@ -1069,7 +1069,7 @@ fbShmCreatePixmap (pScreen, width, height, depth, addr)
     int		depth;
     char	*addr;
 {
-    register PixmapPtr pPixmap;
+    PixmapPtr pPixmap;
 
     pPixmap = (*pScreen->CreatePixmap)(pScreen, 0, 0, pScreen->rootDepth, 0);
     if (!pPixmap)
@@ -1085,12 +1085,12 @@ fbShmCreatePixmap (pScreen, width, height, depth, addr)
 
 static int
 ProcShmCreatePixmap(client)
-    register ClientPtr client;
+    ClientPtr client;
 {
     PixmapPtr pMap;
     DrawablePtr pDraw;
     DepthPtr pDepth;
-    register int i, rc;
+    int i, rc;
     ShmDescPtr shmdesc;
     REQUEST(xShmCreatePixmapReq);
 
@@ -1143,7 +1143,7 @@ CreatePmap:
 
 static int
 ProcShmDispatch (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xReq);
     switch (stuff->data)
@@ -1192,9 +1192,9 @@ SShmCompletionEvent(from, to)
 
 static int
 SProcShmQueryVersion(client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int n;
+    int n;
     REQUEST(xShmQueryVersionReq);
 
     swaps(&stuff->length, n);
@@ -1205,7 +1205,7 @@ static int
 SProcShmAttach(client)
     ClientPtr client;
 {
-    register int n;
+    int n;
     REQUEST(xShmAttachReq);
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xShmAttachReq);
@@ -1218,7 +1218,7 @@ static int
 SProcShmDetach(client)
     ClientPtr client;
 {
-    register int n;
+    int n;
     REQUEST(xShmDetachReq);
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xShmDetachReq);
@@ -1230,7 +1230,7 @@ static int
 SProcShmPutImage(client)
     ClientPtr client;
 {
-    register int n;
+    int n;
     REQUEST(xShmPutImageReq);
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xShmPutImageReq);
@@ -1253,7 +1253,7 @@ static int
 SProcShmGetImage(client)
     ClientPtr client;
 {
-    register int n;
+    int n;
     REQUEST(xShmGetImageReq);
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xShmGetImageReq);
@@ -1272,7 +1272,7 @@ static int
 SProcShmCreatePixmap(client)
     ClientPtr client;
 {
-    register int n;
+    int n;
     REQUEST(xShmCreatePixmapReq);
     swaps(&stuff->length, n);
     REQUEST_SIZE_MATCH(xShmCreatePixmapReq);
@@ -1287,7 +1287,7 @@ SProcShmCreatePixmap(client)
 
 static int
 SProcShmDispatch (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xReq);
     switch (stuff->data)

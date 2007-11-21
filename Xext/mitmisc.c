@@ -83,7 +83,7 @@ ExtensionEntry	*extEntry;
 
 static int
 ProcMITSetBugMode(client)
-    register ClientPtr client;
+    ClientPtr client;
 {
     REQUEST(xMITSetBugModeReq);
 
@@ -95,10 +95,10 @@ ProcMITSetBugMode(client)
 
 static int
 ProcMITGetBugMode(client)
-    register ClientPtr client;
+    ClientPtr client;
 {
     xMITGetBugModeReply rep;
-    register int n;
+    int n;
 
     REQUEST_SIZE_MATCH(xMITGetBugModeReq);
     rep.type = X_Reply;
@@ -115,7 +115,7 @@ ProcMITGetBugMode(client)
 
 static int
 ProcMITDispatch (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xReq);
     switch (stuff->data)
@@ -131,9 +131,9 @@ ProcMITDispatch (client)
 
 static int
 SProcMITSetBugMode(client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int n;
+    int n;
     REQUEST(xMITSetBugModeReq);
 
     swaps(&stuff->length, n);
@@ -142,9 +142,9 @@ SProcMITSetBugMode(client)
 
 static int
 SProcMITGetBugMode(client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
-    register int n;
+    int n;
     REQUEST(xMITGetBugModeReq);
 
     swaps(&stuff->length, n);
@@ -153,7 +153,7 @@ SProcMITGetBugMode(client)
 
 static int
 SProcMITDispatch (client)
-    register ClientPtr	client;
+    ClientPtr	client;
 {
     REQUEST(xReq);
     switch (stuff->data)
