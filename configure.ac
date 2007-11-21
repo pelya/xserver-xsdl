@@ -172,12 +172,19 @@ b = bswap16(a);
 	fi
 fi
 
+dnl Check to see if dlopen is in default libraries (like Solaris, which
+dnl has it in libc), or if libdl is needed to get it.
 AC_CHECK_FUNC([dlopen], [],
 	AC_CHECK_LIB([dl], [dlopen], DLOPEN_LIBS="-ldl"))
 
 case $host_os in
     linux*)
 	AC_DEFINE(HAVE_URANDOM, 1, [Has /dev/urandom]) ;;
+    solaris*)
+	# Solaris 8 with patches, or Solaris 9 or later have /dev/urandom
+	if test -r /dev/urandom ; then
+	   AC_DEFINE(HAVE_URANDOM, 1, [Has /dev/urandom])
+	fi ;;
     *) ;;
 esac
 
@@ -1313,9 +1320,6 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 	XORG_INCS="$XORG_DDXINCS $XORG_OSINCS"
 	XORG_CFLAGS="$XORGSERVER_CFLAGS -DHAVE_XORG_CONFIG_H"
 	XORG_LIBS="$COMPOSITE_LIB $FIXES_LIB $XEXTXORG_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XPSTUBS_LIB"
-
-dnl Check to see if dlopen is in default libraries (like Solaris, which
-dnl has it in libc), or if libdl is needed to get it.
 
 	PKG_CHECK_MODULES([PCIACCESS], [pciaccess >= 0.8.0])
 	XORG_SYS_LIBS="$XORG_SYS_LIBS $PCIACCESS_LIBS $DLOPEN_LIBS $GLX_SYS_LIBS"
