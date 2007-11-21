@@ -89,10 +89,17 @@ ProcXSetClientPointer(ClientPtr client)
         err = dixLookupWindow(&pWin, stuff->win, client, DixReadWriteAccess);
         if (err != Success)
         {
-            client->errorValue = stuff->win;
-            return err;
-        }
-        targetClient= wClient(pWin);
+            /* window could not be found. maybe the window ID given was a pure
+               client id? */
+            err = dixLookupClient(&targetClient, stuff->win,
+                                  client, DixReadWriteAccess);
+            if (err != Success)
+            {
+                client->errorValue = stuff->win;
+                return err;
+            }
+        } else
+            targetClient= wClient(pWin);
     } else
         targetClient = client;
 
