@@ -124,7 +124,7 @@ ProcXTestGetVersion(client)
     rep.majorVersion = XTestMajorVersion;
     rep.minorVersion = XTestMinorVersion;
     if (client->swapped) {
-    	swaps(&rep.sequenceNumber, n);
+	swaps(&rep.sequenceNumber, n);
 	swaps(&rep.minorVersion, n);
     }
     WriteToClient(client, sizeof(xXTestGetVersionReply), (char *)&rep);
@@ -139,7 +139,8 @@ ProcXTestCompareCursor(client)
     xXTestCompareCursorReply rep;
     WindowPtr pWin;
     CursorPtr pCursor;
-     int n, rc;
+    int n, rc;
+    DeviceIntPtr pointer = PickPointer(client);
 
     REQUEST_SIZE_MATCH(xXTestCompareCursorReq);
     rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
@@ -148,10 +149,10 @@ ProcXTestCompareCursor(client)
     if (stuff->cursor == None)
 	pCursor = NullCursor;
     else if (stuff->cursor == XTestCurrentCursor)
-	pCursor = GetSpriteCursor(inputInfo.pointer);
+	pCursor = GetSpriteCursor(pointer);
     else {
 	pCursor = (CursorPtr)LookupIDByType(stuff->cursor, RT_CURSOR);
-	if (!pCursor) 
+	if (!pCursor)
 	{
 	    client->errorValue = stuff->cursor;
 	    return (BadCursor);
@@ -162,7 +163,7 @@ ProcXTestCompareCursor(client)
     rep.sequenceNumber = client->sequence;
     rep.same = (wCursor(pWin) == pCursor);
     if (client->swapped) {
-    	swaps(&rep.sequenceNumber, n);
+	swaps(&rep.sequenceNumber, n);
     }
     WriteToClient(client, sizeof(xXTestCompareCursorReply), (char *)&rep);
     return(client->noClientException);
@@ -276,7 +277,7 @@ ProcXTestFakeInput(client)
 	/* swap the request back so we can simply re-execute it */
 	if (client->swapped)
 	{
-    	    (void) XTestSwapFakeInput(client, (xReq *)stuff);
+	    (void) XTestSwapFakeInput(client, (xReq *)stuff);
 	    swaps(&stuff->length, n);
 	}
 	ResetCurrentRequest (client);
@@ -426,7 +427,7 @@ ProcXTestFakeInput(client)
 
 #ifdef PANORAMIX
 	if ((!noPanoramiXExtension
-	     && root->drawable.pScreen->myNum 
+	     && root->drawable.pScreen->myNum
                 != XineramaGetCursorScreen(dev))
 	    || (noPanoramiXExtension && root != GetCurrentRootWindow(dev)))
 
@@ -545,14 +546,14 @@ XTestSwapFakeInput(client, req)
     nev = ((req->length << 2) - sizeof(xReq)) / sizeof(xEvent);
     for (ev = (xEvent *)&req[1]; --nev >= 0; ev++)
     {
-    	/* Swap event */
-    	proc = EventSwapVector[ev->u.u.type & 0177];
+	/* Swap event */
+	proc = EventSwapVector[ev->u.u.type & 0177];
 	/* no swapping proc; invalid event type? */
-    	if (!proc ||  proc ==  NotImplemented) {
+	if (!proc ||  proc ==  NotImplemented) {
 	    client->errorValue = ev->u.u.type;
 	    return BadValue;
 	}
-    	(*proc)(ev, &sev);
+	(*proc)(ev, &sev);
 	*ev = sev;
     }
     return Success;
