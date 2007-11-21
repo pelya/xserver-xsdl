@@ -210,7 +210,7 @@
 #  define ARCH_PCI_INIT ia64linuxPciInit
 # endif
 # define XF86SCANPCI_WRAPPER ia64ScanPCIWrapper
-#elif defined(__i386__)
+#elif defined(__i386__) || defined(__i386)
 # if defined(linux)
 #  define ARCH_PCI_INIT linuxPciInit
 # else
