@@ -1,54 +1,36 @@
 noinst_LIBRARIES = libXQuartz.a
 
-AM_CFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@
-AM_OBJCFLAGS = @XORG_CFLAGS@ @DIX_CFLAGS@
+AM_CFLAGS = $(XORG_CFLAGS) $(DIX_CFLAGS)
+AM_OBJCFLAGS = $(XORG_CFLAGS) $(DIX_CFLAGS)
+AM_CPPFLAGS = $(XORG_INCS) \
+	-DHAS_KL_API \
+	-I$(srcdir) -I$(srcdir)/.. \
+	-I$(top_srcdir)/miext/rootless
 
-INCLUDES = -I$(srcdir) -I$(srcdir)/.. @XORG_INCS@
-AM_DEFS = -DHAS_CG_MACH_PORT -DHAS_KL_API
-if HAVE_XPLUGIN
-AM_DEFS += -DBUILD_XPR
-endif
-DEFS = @DEFS@ $(AM_DEFS) -DXBINDIR=\"${bindir}\"
+SUBDIRS = xpr
 
 libXQuartz_a_SOURCES = \
-		  Preferences.m \
-	          XApplication.m \
-	          XServer.m \
-	          applewm.c \
-	          keysym2ucs.c \
-	          quartz.c \
-	          quartzAudio.c \
-	          quartzCocoa.m \
-	          quartzPasteboard.c \
-	          quartzKeyboard.c \
-	          quartzStartup.c \
-	          pseudoramiX.c
-
-bin_PROGRAMS = XDarwinStartup
-
-XDarwinStartup_SOURCES = XDarwinStartup.c
-XDarwinStartup_LDFLAGS = -Wl,-framework,CoreFoundation \
-			 -Wl,-framework,ApplicationServices
-XDarwinStartupCFLAGS = -DXBINDIR="${bindir}"
-XDARWINROOT = @APPLE_APPLICATIONS_DIR@
-BINDIR = $(bindir)
-install-exec-local:
-	-(cd $(DESTDIR)$(BINDIR); rm X; $(LN_S) XDarwinStartup X)
-
-man1_MANS = XDarwinStartup.man
+	X11Application.m \
+	X11Controller.m \
+	applewm.c \
+	keysym2ucs.c \
+	pseudoramiX.c \
+	quartz.c \
+	quartzAudio.c \
+	quartzCocoa.m \
+	quartzKeyboard.c \
+	quartzPasteboard.c \
+	quartzStartup.c
 
 EXTRA_DIST = \
+	X11Application.h \
+	X11Controller.h \
 	applewmExt.h \
 	keysym2ucs.h \
-	Preferences.h \
 	pseudoramiX.h \
 	quartzAudio.h \
 	quartzCommon.h \
 	quartzCursor.c \
 	quartzCursor.h \
 	quartz.h \
-	quartzPasteboard.h \
-	XApplication.h \
-	XDarwin.pbproj/project.pbxproj \
-	XServer.h \
-	XDarwinStartup.man
+	quartzPasteboard.h

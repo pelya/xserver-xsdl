@@ -46,6 +46,7 @@
 #undef Cursor
 #undef WindowPtr
 #undef Picture
+#include <X11/Xdefs.h>
 
 // Quartz specific per screen storage structure
 typedef struct {
@@ -87,8 +88,8 @@ void QuartzSetWindowMenu(int nitems, const char **items,
 void QuartzFSCapture(void);
 void QuartzFSRelease(void);
 int  QuartzFSUseQDCursor(int depth);
-void QuartzBlockHandler(void *blockData, void *pTimeout, void *pReadmask);
-void QuartzWakeupHandler(void *blockData, int result, void *pReadmask);
+void QuartzBlockHandler(pointer blockData, OSTimePtr pTimeout, pointer pReadmask);
+void QuartzWakeupHandler(pointer blockData, int result, pointer pReadmask);
 
 // Messages that can be sent to the main thread.
 enum {

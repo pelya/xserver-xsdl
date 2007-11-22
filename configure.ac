@@ -101,8 +101,6 @@ AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h])
 
-AC_CHECK_PROG(HAVE_LAUNCHD, [launchd], [yes], [])
-
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_C_BIGENDIAN([ENDIAN="X_BIG_ENDIAN"], [ENDIAN="X_LITTLE_ENDIAN"])
@@ -470,10 +468,13 @@ AC_ARG_WITH(xkb-output,       AS_HELP_STRING([--with-xkb-output=PATH], [Path to 
 AC_ARG_WITH(serverconfig-path, AS_HELP_STRING([--with-serverconfig-path=PATH], [Path to server config (default: ${libdir}/xserver)]),
 				[ SERVERCONFIG="$withval" ],
 				[ SERVERCONFIG="${libdir}/xserver" ])
-APPLE_APPLICATIONS_DIR="${bindir}/Applications"
-AC_ARG_WITH(apple-applications-dir,AS_HELP_STRING([--with-apple-applications-dir=PATH], [Path to the Applications directory (default: ${bindir}/Applications)]),
-                               [ APPLE_APPLICATIONS_DIR="${withval}" ].
-                               [ APPLE_APPLICATIONS_DIR="${bindir}/Applications" ])
+APPLE_APPLICATIONS_DIR="/Applications/Utilities"
+AC_ARG_WITH(apple-applications-dir,AS_HELP_STRING([--with-apple-applications-dir=PATH], [Path to the Applications directory (default: /Applications/Utilities)]),
+				[ APPLE_APPLICATIONS_DIR="${withval}" ].
+				[ APPLE_APPLICATIONS_DIR="/Applications/Utilities" ])
+
+AC_ARG_WITH(launchd,          AS_HELP_STRING([--with-launchd], [Build with support for Apple's launchd (default: auto)]), [LAUNCHD=$withval], [LAUNCHD=auto])
+
 AC_ARG_WITH(pci-txt-ids-dir, AS_HELP_STRING([--with-pci-txt-ids-dir=PATH],
 [Path to pci id directory (default: ${datadir}/X11/pci)]),
 				[ PCI_TXT_IDS_DIR="$withval" ],
@@ -546,10 +547,10 @@ AC_ARG_ENABLE(xorg,    	      AS_HELP_STRING([--enable-xorg], [Build Xorg server
 AC_ARG_ENABLE(dmx,    	      AS_HELP_STRING([--enable-dmx], [Build DMX server (default: no)]), [DMX=$enableval], [DMX=no])
 AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb], [Build Xvfb server (default: yes)]), [XVFB=$enableval], [XVFB=yes])
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest server (default: auto)]), [XNEST=$enableval], [XNEST=auto])
-AC_ARG_ENABLE(xdarwin, 	      AS_HELP_STRING([--enable-xdarwin], [Build XDarwin server (default: auto)]), [XDARWIN=$enableval], [XDARWIN=auto])
-AC_ARG_ENABLE(xdarwinapp,     AS_HELP_STRING([--enable-xdarwinapp], [Build XDarwin.app server (default: no)]), [XDARWINAPP=$enableval], [XDARWINAPP=no])
-AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--disable-xquartz], [Build Xquartz server on Darwin (default: auto)]), [XQUARTZ=$enableval], [XQUARTZ=auto])
-AC_ARG_ENABLE(x11app,         AS_HELP_STRING([--enable-x11app], [Build Apple's X11.app wrapper for Xquartz (default: no)]), [X11APP=$enableval], [X11APP=no])
+AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--enable-xquartz], [Build Xquartz server for OS-X (default: auto)]), [XQUARTZ=$enableval], [XQUARTZ=auto])
+AC_ARG_ENABLE(x11app,         AS_HELP_STRING([--enable-x11app], [Build Apple's X11.app for Xquartz (default: auto)]), [X11APP=$enableval], [X11APP=auto])
+AC_ARG_WITH(x11app-archs,     AS_HELP_STRING([--with-x11app-archs=ARCHS], [Architectures to build X11.app for, space delimeted (default: "ppc i386")]), [X11APP_ARCHS=$enableval], [X11APP_ARCHS="ppc i386"])
+AC_SUBST([X11APP_ARCHS])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
 AC_ARG_ENABLE(xprint,         AS_HELP_STRING([--enable-xprint], [Build Xprint extension and server (default: no)]), [XPRINT=$enableval], [XPRINT=no])
 AC_ARG_ENABLE(xgl,            AS_HELP_STRING([--enable-xgl], [Build Xgl server (default: no)]), [XGL=$enableval], [XGL=no])
@@ -1155,58 +1156,6 @@ dnl ---------------------------------------------------------------------------
 dnl DDX section.
 dnl ---------------------------------------------------------------------------
 
-dnl DMX DDX
-
-AC_MSG_CHECKING([whether to build Xdmx DDX])
-PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto xau $XDMCP_MODULES], [have_dmx=yes], [have_dmx=no])
-if test "x$DMX" = xauto; then
-	DMX="$have_dmx"
-fi
-AC_MSG_RESULT([$DMX])
-AM_CONDITIONAL(DMX, [test "x$DMX" = xyes])
-
-if test "x$DMX" = xyes; then
-	if test "x$have_dmx" = xno; then
-		AC_MSG_ERROR([Xdmx build explicitly requested, but required
-		              modules not found.])
-	fi
-	DMX_INCLUDES="$XEXT_INC $RENDER_INC $XTRAP_INC $RECORD_INC"
-	XDMX_CFLAGS="$DMXMODULES_CFLAGS"
-	XDMX_LIBS="$XEXT_LIB $FB_LIB $CONFIG_LIB $RENDER_LIB $XTRAP_LIB $RECORD_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $MIEXT_SHADOW_LIB $MIEXT_DAMAGE_LIB $CWRAP_LIB"
-	XDMX_SYS_LIBS="$DMXMODULES_LIBS"
-	AC_SUBST([XDMX_CFLAGS])
-	AC_SUBST([XDMX_LIBS])
-	AC_SUBST([XDMX_SYS_LIBS])
-
-dnl USB sources in DMX require <linux/input.h>
-	AC_CHECK_HEADER([linux/input.h], DMX_BUILD_USB="yes",
-			DMX_BUILD_USB="no")
-dnl Linux sources in DMX require <linux/keyboard.h>
-	AC_CHECK_HEADER([linux/keyboard.h], DMX_BUILD_LNX="yes",
-			DMX_BUILD_LNX="no")
-	if test "x$GLX" = xyes; then
-		PKG_CHECK_MODULES([GL], [glproto])
-	fi
-	PKG_CHECK_MODULES([XDMXCONFIG_DEP], [xaw7 xmu xt xpm x11])
-	AC_SUBST(XDMXCONFIG_DEP_CFLAGS)
-	AC_SUBST(XDMXCONFIG_DEP_LIBS)
-	PKG_CHECK_MODULES([DMXEXAMPLES_DEP], [dmx xext x11])
-	AC_SUBST(DMXEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([DMXXMUEXAMPLES_DEP], [dmx xmu xext x11])
-	AC_SUBST(DMXXMUEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([DMXXIEXAMPLES_DEP], [dmx xi xext x11])
-	AC_SUBST(DMXXIEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([XTSTEXAMPLES_DEP], [xtst xext x11])
-	AC_SUBST(XTSTEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([XRESEXAMPLES_DEP], [xres xext x11])
-	AC_SUBST(XRESEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([X11EXAMPLES_DEP], [xext x11])
-	AC_SUBST(X11EXAMPLES_DEP_LIBS)
-fi
-AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
-AM_CONDITIONAL([DMX_BUILD_USB], [test "x$DMX_BUILD_USB" = xyes])
-
-
 dnl Xvfb DDX
 
 AC_MSG_CHECKING([whether to build Xvfb DDX])
@@ -1712,35 +1661,25 @@ AM_CONDITIONAL(XWIN_RANDR, [test "x$XWIN" = xyes])
 AM_CONDITIONAL(XWIN_XV, [test "x$XWIN" = xyes && test "x$XV" = xyes])
 
 dnl Darwin / OS X DDX
-AC_MSG_CHECKING([whether to build XDarwin (Mac OS X) DDX])
-if test "x$XDARWIN" = xauto; then
-	case $host_os in
-		darwin*) XDARWIN="yes" ;;
-		*) XDARWIN="no" ;;
-	esac
+if test "X$XQUARTZ" = Xauto; then
+	AC_CACHE_CHECK([whether to build Xquartz],xorg_cv_Carbon_framework,[
+	 	save_LDFLAGS=$LDFLAGS
+		LDFLAGS="$LDFLAGS -framework Carbon"
+		AC_LINK_IFELSE([char FSFindFolder(); int main() { FSFindFolder(); return 0;}],
+			[xorg_cv_Carbon_framework=yes],
+			[xorg_cv_Carbon_framework=no])
+		LDFLAGS=$save_LDFLAGS])
+                
+	if test "X$xorg_cv_Carbon_framework" = Xyes; then
+		XQUARTZ=yes
+	else
+		XQUARTZ=no
+	fi
 fi
-AC_MSG_RESULT([$XDARWIN])
 
-if test "x$XDARWIN" = xyes; then
-        if test "X$XQUARTZ" = Xauto; then
-                 AC_CACHE_CHECK([for Carbon framework],xorg_cv_Carbon_framework,[
-                 save_LDFLAGS=$LDFLAGS
-                 LDFLAGS="$LDFLAGS -framework Carbon"
-                 AC_LINK_IFELSE([char FSFindFolder();
-int main() {
-FSFindFolder();
-return 0;}
-                 ],[xorg_cv_Carbon_framework=yes],
-                  [xorg_cv_Carbon_framework=no])
-                  LDFLAGS=$save_LDFLAGS])
-                 if test "X$xorg_cv_Carbon_framework" = Xyes; then
-                   AC_DEFINE([DARWIN_WITH_QUARTZ],[1],
-                         [Have Quartz])
-                   XQUARTZ=yes
-                 else
-                   XQUARTZ=no
-                 fi
-               fi
+if test "x$XQUARTZ" = xyes; then
+	AC_DEFINE([XQUARTZ],[1],[Have Quartz])
+
 #	       glxAGL / glxCGL don't work yet
 #               AC_CACHE_CHECK([for AGL framework],xorg_cv_AGL_framework,[
 #               save_LDFLAGS=$LDFLAGS
@@ -1755,11 +1694,11 @@ return 0;}
 #               ])
                xorg_cv_AGL_framework=no
                DARWIN_GLX_LIBS='$(top_builddir)/GL/apple/indirect.o $(top_builddir)/GL/glx/libglx.la'
-	       DARWIN_LIBS="$FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $DARWIN_GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB"
+	       DARWIN_LIBS="$FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB"
 	       AC_SUBST([DARWIN_LIBS])
                AC_CHECK_LIB([Xplugin],[xp_init],[:])
                AC_SUBST([APPLE_APPLICATIONS_DIR])
-               CFLAGS="${CFLAGS} -D__DARWIN__"
+               CFLAGS="${CFLAGS} -D__DARWIN__ -DROOTLESS_WORKAROUND"
                PLIST_VERSION_STRING=$PACKAGE_VERSION
                AC_SUBST([PLIST_VERSION_STRING])
                PLIST_VENDOR_WEB=$VENDOR_WEB
@@ -1780,7 +1719,38 @@ return 0;}
                        AC_MSG_NOTICE([Disabling DGA extension])
                        DGA=no
                fi
+               if test "x$DMX" = xyes || test "x$DMX" = xauto; then
+                       AC_MSG_NOTICE([Disabling DMX DDX])
+                       DMX=no
+               fi
 fi
+
+if test "x$X11APP" = xauto; then
+	AC_MSG_CHECKING([whether to build X11.app])
+	if test "x$XQUARTZ" = xyes ; then
+		X11APP=yes
+	else
+		X11APP=no
+	fi
+	AC_MSG_RESULT([$X11APP])
+fi
+
+if test "x$LAUNCHD" = xauto; then
+	# Do we want to have this default to on for Xquartz builds only or any time we have launchd (like Xnest or Xvfb on OS-X)
+	#AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no])
+	AC_MSG_CHECKING([whether to support launchd])
+	if test "x$XQUARTZ" = xyes ; then
+		LAUNCHD=yes
+	else
+		LAUNCHD=no
+	fi
+	AC_MSG_RESULT([$LAUNCHD])
+fi
+
+if test "x$LAUNCHD" = xyes ; then
+	AC_DEFINE(HAVE_LAUNCHD, 1, [launchd support available])
+fi
+
 # Support for objc in autotools is minimal and not documented.
 OBJC='$(CC)'
 OBJCLD='$(CCLD)'
@@ -1794,9 +1764,59 @@ AC_SUBST([OBJCFLAGS])
 _AM_DEPENDENCIES([OBJC])
 AM_CONDITIONAL(HAVE_XPLUGIN, [test "x$ac_cv_lib_Xplugin_xp_init" = xyes])
 AM_CONDITIONAL(HAVE_AGL_FRAMEWORK, [test "x$xorg_cv_AGL_framework" = xyes])
-AM_CONDITIONAL(XDARWIN, [test "x$XDARWIN" = xyes])
-AM_CONDITIONAL(XDARWINAPP, [test "x$XDARWINAPP" = xyes])
 AM_CONDITIONAL(XQUARTZ, [test "x$XQUARTZ" = xyes])
+AM_CONDITIONAL(X11APP,[test "X$X11APP" = Xyes]) 
+
+dnl DMX DDX
+
+AC_MSG_CHECKING([whether to build Xdmx DDX])
+PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto xau $XDMCP_MODULES], [have_dmx=yes], [have_dmx=no])
+if test "x$DMX" = xauto; then
+	DMX="$have_dmx"
+fi
+AC_MSG_RESULT([$DMX])
+AM_CONDITIONAL(DMX, [test "x$DMX" = xyes])
+
+if test "x$DMX" = xyes; then
+	if test "x$have_dmx" = xno; then
+		AC_MSG_ERROR([Xdmx build explicitly requested, but required
+		              modules not found.])
+	fi
+	DMX_INCLUDES="$XEXT_INC $RENDER_INC $XTRAP_INC $RECORD_INC"
+	XDMX_CFLAGS="$DMXMODULES_CFLAGS"
+	XDMX_LIBS="$XEXT_LIB $FB_LIB $CONFIG_LIB $RENDER_LIB $XTRAP_LIB $RECORD_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $MIEXT_SHADOW_LIB $MIEXT_DAMAGE_LIB $CWRAP_LIB"
+	XDMX_SYS_LIBS="$DMXMODULES_LIBS"
+	AC_SUBST([XDMX_CFLAGS])
+	AC_SUBST([XDMX_LIBS])
+	AC_SUBST([XDMX_SYS_LIBS])
+
+dnl USB sources in DMX require <linux/input.h>
+	AC_CHECK_HEADER([linux/input.h], DMX_BUILD_USB="yes",
+			DMX_BUILD_USB="no")
+dnl Linux sources in DMX require <linux/keyboard.h>
+	AC_CHECK_HEADER([linux/keyboard.h], DMX_BUILD_LNX="yes",
+			DMX_BUILD_LNX="no")
+	if test "x$GLX" = xyes; then
+		PKG_CHECK_MODULES([GL], [glproto])
+	fi
+	PKG_CHECK_MODULES([XDMXCONFIG_DEP], [xaw7 xmu xt xpm x11])
+	AC_SUBST(XDMXCONFIG_DEP_CFLAGS)
+	AC_SUBST(XDMXCONFIG_DEP_LIBS)
+	PKG_CHECK_MODULES([DMXEXAMPLES_DEP], [dmx xext x11])
+	AC_SUBST(DMXEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([DMXXMUEXAMPLES_DEP], [dmx xmu xext x11])
+	AC_SUBST(DMXXMUEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([DMXXIEXAMPLES_DEP], [dmx xi xext x11])
+	AC_SUBST(DMXXIEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([XTSTEXAMPLES_DEP], [xtst xext x11])
+	AC_SUBST(XTSTEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([XRESEXAMPLES_DEP], [xres xext x11])
+	AC_SUBST(XRESEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([X11EXAMPLES_DEP], [xext x11])
+	AC_SUBST(X11EXAMPLES_DEP_LIBS)
+fi
+AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
+AM_CONDITIONAL([DMX_BUILD_USB], [test "x$DMX_BUILD_USB" = xyes])
 
 dnl kdrive DDX
 
@@ -2144,19 +2164,8 @@ hw/xgl/glxext/module/Makefile
 hw/xnest/Makefile
 hw/xwin/Makefile
 hw/darwin/Makefile
-hw/darwin/bundle/Makefile
-hw/darwin/bundle/Dutch.lproj/Makefile
-hw/darwin/bundle/English.lproj/Makefile
-hw/darwin/bundle/French.lproj/Makefile
-hw/darwin/bundle/German.lproj/Makefile
-hw/darwin/bundle/Japanese.lproj/Makefile
-hw/darwin/bundle/Portuguese.lproj/Makefile
-hw/darwin/bundle/Spanish.lproj/Makefile
-hw/darwin/bundle/Swedish.lproj/Makefile
-hw/darwin/bundle/ko.lproj/Makefile
-hw/darwin/iokit/Makefile
 hw/darwin/quartz/Makefile
-hw/darwin/utils/Makefile
+hw/darwin/quartz/xpr/Makefile
 hw/kdrive/Makefile
 hw/kdrive/ati/Makefile
 hw/kdrive/chips/Makefile

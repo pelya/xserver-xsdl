@@ -39,11 +39,14 @@
 #include "X11/extensions/applewm.h"
 #include "applewmExt.h"
 
+#include "X11Application.h"
+
 // X headers
 #include "scrnintstr.h"
 #include "windowstr.h"
 #include "colormapst.h"
 #include "globals.h"
+#include "rootlessWindow.h"
 
 // System headers
 #include <sys/types.h>
@@ -84,7 +87,9 @@ Bool DarwinModeAddScreen(
 {
     // allocate space for private per screen Quartz specific storage
     QuartzScreenPtr displayInfo = xcalloc(sizeof(QuartzScreenRec), 1);
-    QUARTZ_PRIV(pScreen) = displayInfo;
+
+    // QUARTZ_PRIV(pScreen) = displayInfo;
+    pScreen->devPrivates[quartzScreenIndex].ptr = displayInfo;
 
     // do Quartz mode specific initialization
     return quartzProcs->AddScreen(index, pScreen);
@@ -158,12 +163,7 @@ void DarwinModeInitInput(
     int argc,
     char **argv )
 {
-#ifdef INXQUARTZ
-  X11ApplicationServerReady();
-#else
-    QuartzMessageMainThread(kQuartzServerStarted, NULL, 0);
-#endif
-
+    X11ApplicationServerReady();
     // Do final display mode specific initialization before handling events
     if (quartzProcs->InitInput)
         quartzProcs->InitInput(argc, argv);
@@ -276,9 +276,6 @@ static void QuartzHide(void)
         }
     }
     quartzServerVisible = FALSE;
-#ifndef INXQUARTZ
-    QuartzMessageMainThread(kQuartzServerHidden, NULL, 0);
-#endif
 }
 
 
@@ -386,7 +383,7 @@ void DarwinModeProcessEvent(
 	  
         case kXDarwinWindowMoved:
   //	  ErrorF("kXDarwinWindowMoved\n");
-            RootlessNativeWindowMoved (xe->u.clientMessage.u.l.longs0);
+            RootlessNativeWindowMoved ((WindowPtr)xe->u.clientMessage.u.l.longs0);
 	    break;
 
         case kXDarwinToggleFullscreen:

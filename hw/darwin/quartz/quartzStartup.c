@@ -42,32 +42,13 @@
 char **envpGlobal;      // argcGlobal and argvGlobal
                         // are from dix/globals.c
 
-#ifdef INXQUARTZ
+
 void X11ControllerMain(int argc, char *argv[], void (*server_thread) (void *), void *server_arg);
-# ifdef GLXEXT
-void GlxExtensionInit(void);
-void GlxWrapInitVisuals(miInitVisualsProcPtr *);
-# endif
 
 static void server_thread (void *arg) {
-  extern int main (int argc, char **argv, char **envp);
+  extern int main(int argc, char **argv, char **envp);
   exit (main (argcGlobal, argvGlobal, envpGlobal));
 }
-#else
-int NSApplicationMain(int argc, char *argv[]);
-typedef Bool (*QuartzModeBundleInitPtr)(void);
-
-# ifdef GLXEXT
-// GLX bundle function pointers
-typedef void (*GlxExtensionInitPtr)(void); 
-static GlxExtensionInitPtr GlxExtensionInit = NULL;
-typedef void (*GlxWrapInitVisualsPtr)(miInitVisualsProcPtr *);
-static GlxWrapInitVisualsPtr GlxWrapInitVisuals = NULL;
-void * __DarwinglXMesaProvider = NULL;
-typedef void (*GlxPushProviderPtr)(void *);
-GlxPushProviderPtr GlxPushProvider = NULL;
-# endif
-#endif
 
 /*
  * DarwinHandleGUI
@@ -83,13 +64,10 @@ void DarwinHandleGUI(
     char        *envp[] )
 {
     static Bool been_here = FALSE;
-    int         main_exit, i;
+    int         i;
     int         fd[2];
 
     if (been_here) {
-#ifdef INXDARWINAPP
-        QuartzReadPreferences();
-#endif
         return;
     }
     been_here = TRUE;
@@ -124,7 +102,7 @@ void DarwinHandleGUI(
         }
     }
 
-#ifdef INXQUARTZ
+
     /* Initially I ran the X server on the main thread, and received
        events on the second thread. But now we may be using Carbon,
        that needs to run on the main thread. (Otherwise, when it's
@@ -133,221 +111,10 @@ void DarwinHandleGUI(
        grr.. but doing that means that if the X thread gets scheduled
        before the main thread when we're _not_ prebound, things fail,
        so initialize by hand. */
+
     extern void _InitHLTB(void);
     
-    _InitHLTB();
-    
+    _InitHLTB();    
     X11ControllerMain(argc, argv, server_thread, NULL);
-#else
-    main_exit = NSApplicationMain(argc, argv);
-#endif
-    exit(main_exit);
-}
-
-#ifndef INXQUARTZ
-/*
- * QuartzLoadDisplayBundle
- *  Try to load the appropriate bundle containing the back end display code.
- */
-Bool QuartzLoadDisplayBundle(
-    const char *dpyBundleName)
-{
-    CFBundleRef mainBundle;
-    CFStringRef bundleName;
-    CFURLRef    bundleURL;
-    CFBundleRef dpyBundle;
-    QuartzModeBundleInitPtr bundleInit;
-
-    // Get the main bundle for the application
-    mainBundle = CFBundleGetMainBundle();
-
-    // Make CFString from bundle name
-    bundleName = CFStringCreateWithCStringNoCopy(kCFAllocatorDefault,
-                                                 dpyBundleName,
-                                                 kCFStringEncodingASCII,
-                                                 kCFAllocatorNull);
-
-    // Look for the appropriate bundle in the main bundle
-    bundleURL = CFBundleCopyResourceURL(mainBundle, bundleName,
-                                        NULL, NULL);
-    if (!bundleURL) {
-        ErrorF("Could not find display mode bundle %s.\n", dpyBundleName);
-        return FALSE;
-    }
-
-    // Make a bundle instance using the URLRef
-    dpyBundle = CFBundleCreate(kCFAllocatorDefault, bundleURL);
-
-    if (!CFBundleLoadExecutable(dpyBundle)) {
-        ErrorF("Could not load display mode bundle %s.\n", dpyBundleName);
-        return FALSE;
-    }
-
-    // Lookup the bundle initialization function
-    bundleInit = (void *)
-            CFBundleGetFunctionPointerForName(dpyBundle,
-                                              CFSTR("QuartzModeBundleInit"));
-    if (!bundleInit) {
-        ErrorF("Could not initialize display mode bundle %s.\n",
-               dpyBundleName);
-        return FALSE;
-    }
-    if (!bundleInit())
-        return FALSE;
-
-    // Release the CF objects
-    CFRelease(bundleName);
-    CFRelease(bundleURL);
-
-    return TRUE;
-}
-
-#ifdef GLXEXT
-/*
- * LoadGlxBundle
- *  The Quartz mode X server needs to dynamically load the appropriate
- *  bundle before initializing GLX.
- */
-static void LoadGlxBundle(void)
-{
-    CFBundleRef mainBundle;
-    CFStringRef bundleName;
-    CFURLRef    bundleURL;
-    CFBundleRef glxBundle;
-
-    // Get the main bundle for the application
-    mainBundle = CFBundleGetMainBundle();
-
-    // Choose the bundle to load
-    ErrorF("Loading GLX bundle ");
-    if (/*quartzUseAGL*/0) {
-        bundleName = CFStringCreateWithCStringNoCopy(kCFAllocatorDefault,
-                                                     quartzOpenGLBundle,
-                                                     kCFStringEncodingASCII,
-                                                     kCFAllocatorNull);
-        ErrorF("%s (using Apple's OpenGL)\n", quartzOpenGLBundle);
-    } else {
-        bundleName = CFSTR("glxMesa.bundle");
-        CFRetain(bundleName);			// so we can release later
-        ErrorF("glxMesa.bundle (using Mesa)\n");
-    }
-
-    // Look for the appropriate GLX bundle in the main bundle by name
-    bundleURL = CFBundleCopyResourceURL(mainBundle, bundleName,
-                                        NULL, NULL);
-    if (!bundleURL) {
-        FatalError("Could not find GLX bundle.");
-    }
-
-    // Make a bundle instance using the URLRef
-    glxBundle = CFBundleCreate(kCFAllocatorDefault, bundleURL);
-
-    if (!CFBundleLoadExecutable(glxBundle)) {
-        FatalError("Could not load GLX bundle.");
-    }
-
-    // Find the GLX init functions
-
-
-    __DarwinglXMesaProvider = (void *) CFBundleGetDataPointerForName(
-			       glxBundle, CFSTR("__glXMesaProvider"));
-
-    GlxPushProvider = (void *) CFBundleGetFunctionPointerForName(
-                                glxBundle, CFSTR("GlxPushProvider"));
-
-    GlxExtensionInit = (void *) CFBundleGetFunctionPointerForName(
-                                glxBundle, CFSTR("GlxExtensionInit"));
-
-    GlxWrapInitVisuals = (void *) CFBundleGetFunctionPointerForName(
-                                glxBundle, CFSTR("GlxWrapInitVisuals"));
-
-    if (!GlxExtensionInit || !GlxWrapInitVisuals) {
-        FatalError("Could not initialize GLX bundle.");
-    }
-
-    // Release the CF objects
-    CFRelease(bundleName);
-    CFRelease(bundleURL);
-}
-# endif
-#else
-
-Bool QuartzLoadDisplayBundle(const char *dpyBundleName)
-{
-      return TRUE;
-  }
-
-#endif
-
-#ifdef GLXEXT
-void DarwinGlxPushProvider(void *impl)
-{
-#ifndef INXQUARTZ
-    if (!GlxExtensionInit)
-        LoadGlxBundle();
-#endif
-	
-    GlxPushProvider(impl);
-}
-
-/*
- * DarwinGlxExtensionInit
- *  Initialize the GLX extension.
- */
-void DarwinGlxExtensionInit(void)
-{
-#ifndef INXQUARTZ
-    if (!GlxExtensionInit)
-        LoadGlxBundle();
-#endif
-    GlxExtensionInit();
-}
-
-
-/*
- * DarwinGlxWrapInitVisuals
- */
-void DarwinGlxWrapInitVisuals(
-    miInitVisualsProcPtr *procPtr)
-{
-#ifndef INXQUARTZ
-    if (!GlxWrapInitVisuals)
-        LoadGlxBundle();
-#endif
-    GlxWrapInitVisuals(procPtr);
-}
-#endif
-
-int DarwinModeProcessArgument( int argc, char *argv[], int i )
-{
-    // fullscreen: CoreGraphics full-screen mode
-    // rootless: Cocoa rootless mode
-    // quartz: Default, either fullscreen or rootless
-
-    if ( !strcmp( argv[i], "-fullscreen" ) ) {
-        ErrorF( "Running full screen in parallel with Mac OS X Quartz window server.\n" );
-        return 1;
-    }
-
-    if ( !strcmp( argv[i], "-rootless" ) ) {
-        ErrorF( "Running rootless inside Mac OS X window server.\n" );
-        return 1;
-    }
-
-    if ( !strcmp( argv[i], "-quartz" ) ) {
-        ErrorF( "Running in parallel with Mac OS X Quartz window server.\n" );
-        return 1;
-    }
-
-    // The Mac OS X front end uses this argument, which we just ignore here.
-    if ( !strcmp( argv[i], "-nostartx" ) ) {
-        return 1;
-    }
-
-    // This command line arg is passed when launched from the Aqua GUI.
-    if ( !strncmp( argv[i], "-psn_", 5 ) ) {
-        return 1;
-    }
-
-    return 0;
+    exit(0);
 }

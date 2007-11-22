@@ -145,6 +145,9 @@
 /* Define to 1 if you have version 2.2 (or newer) of the drm library */
 #undef HAVE_LIBDRM_2_2
 
+/* Have Quartz */
+#undef XQUARTZ
+
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 

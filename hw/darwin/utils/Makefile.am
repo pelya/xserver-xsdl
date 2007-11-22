@@ -7,5 +7,5 @@ dumpkeymap_LDFLAGS = -Wl,-framework,IOKit
 man1_MANS = dumpkeymap.man
 
 EXTRA_DIST = \
-            README.txt \
-            dumpkeymap.man
+	     README.txt \
+	     dumpkeymap.man

@@ -195,41 +195,40 @@
 		527F24090B5D8FFC007840A7 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DSTROOT = "$(DSTROOT)";
-				SKIP_INSTALL = YES;
+				INSTALL_MODE_FLAG = "a+rX";
 			};
 			name = Development;
 		};
 		527F240A0B5D8FFC007840A7 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DSTROOT = "$(DSTROOT)";
-				SKIP_INSTALL = YES;
+				INSTALL_MODE_FLAG = "a+rX";
 			};
 			name = Deployment;
 		};
 		527F240B0B5D8FFC007840A7 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DSTROOT = "$(DSTROOT)";
-				SKIP_INSTALL = YES;
+				INSTALL_MODE_FLAG = "a+rX";
 			};
 			name = Default;
 		};
 		527F24230B5D938C007840A7 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ARCHS = "$(NATIVE_ARCH_32_BIT)";
 				COPY_PHASE_STRIP = NO;
-				DSTROOT = "$(DSTROOT)";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = $DSTROOT/Applications/Utilties;
-				LIBRARY_SEARCH_PATHS = "";
-				OTHER_CFLAGS = "$(CFLAGS)";
-				OTHER_LDFLAGS = "$(LDFLAGS)";
+				INSTALL_PATH = /usr/X11;
+				LIBRARY_SEARCH_PATHS = /usr/X11/lib;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-lXau",
+					"-lxcb",
+					"-lX11",
+				);
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = X11;
 				SECTORDER_FLAGS = "";
@@ -246,15 +245,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = YES;
-				DSTROOT = "$(DSTROOT)";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = $DSTROOT/Applications/Utilties;
-				LIBRARY_SEARCH_PATHS = "";
-				OTHER_CFLAGS = "$(CFLAGS)";
-				OTHER_LDFLAGS = "$(LDFLAGS)";
+				INSTALL_PATH = /usr/X11;
+				LIBRARY_SEARCH_PATHS = /usr/X11/lib;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-lXau",
+					"-lxcb",
+					"-lX11",
+				);
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = X11;
 				SECTORDER_FLAGS = "";
@@ -270,15 +272,18 @@
 		527F24250B5D938C007840A7 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DSTROOT = "$(DSTROOT)";
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = Info.plist;
-				INSTALL_PATH = $DSTROOT/Applications/Utilties;
-				LIBRARY_SEARCH_PATHS = "";
-				OTHER_CFLAGS = "$(CFLAGS)";
-				OTHER_LDFLAGS = "$(LDFLAGS)";
+				INSTALL_PATH = /usr/X11;
+				LIBRARY_SEARCH_PATHS = /usr/X11/lib;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = (
+					"-lXau",
+					"-lxcb",
+					"-lX11",
+				);
 				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = X11;
 				SECTORDER_FLAGS = "";

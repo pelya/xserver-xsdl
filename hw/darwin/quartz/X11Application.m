@@ -45,6 +45,10 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include "rootlessCommon.h"
+
+WindowPtr xprGetXWindowFromAppKit(int windowNumber); // xpr/xprFrame.c
+
 #define DEFAULTS_FILE "/usr/X11/lib/X11/xserver/Xquartz.plist"
 
 int X11EnableKeyEquivalents = TRUE;
@@ -514,7 +518,7 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
     else if (CFGetTypeID (value) == CFBooleanGetTypeID ())
       ret = CFBooleanGetValue (value);
     else if (CFGetTypeID (value) == CFStringGetTypeID ()) {
-      const char *tem = [(NSString *) value lossyCString];
+      const char *tem = [(NSString *) value UTF8String];
       if (strcasecmp (tem, "true") == 0 || strcasecmp (tem, "yes") == 0)
 	ret = YES;
       else

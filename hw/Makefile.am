@@ -1,9 +1,5 @@
 if DMX
-if XDARWIN
-# Darwin does not need the dmx subdir
-else
 DMX_SUBDIRS = dmx
-endif
 endif
 
 if XORG
@@ -34,19 +30,19 @@ if XPRINT
 XPRINT_SUBDIRS = xprint
 endif
 
-if XDARWIN
-XDARWIN_SUBDIRS = darwin
+if XQUARTZ
+XQUARTZ_SUBDIRS = darwin
 endif
 
 SUBDIRS =			\
 	$(XORG_SUBDIRS)		\
 	$(XGL_SUBDIRS)		\
 	$(XWIN_SUBDIRS)		\
-	$(XDARWIN_SUBDIRS)	\
+	$(XQUARTZ_SUBDIRS)	\
 	$(XVFB_SUBDIRS)		\
 	$(XNEST_SUBDIRS)	\
 	$(DMX_SUBDIRS)          \
-        $(KDRIVE_SUBDIRS)	\
+	$(KDRIVE_SUBDIRS)	\
 	$(XPRINT_SUBDIRS)
 
 DIST_SUBDIRS = dmx xfree86 vfb xnest xwin darwin kdrive xgl xprint

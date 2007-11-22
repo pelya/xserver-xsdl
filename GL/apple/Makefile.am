@@ -1,8 +1,9 @@
-AM_CFLAGS = -I$(top_srcdir) \
-	 -I$(top_srcdir)/hw/darwin/quartz \
-	 -I$(top_srcdir)/GL/glx \
-	 -I$(top_srcdir)/hw/darwin/quartz/cr \
-	 -I$(top_srcdir)/GL/include
+AM_CPPFLAGS = \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/GL/glx \
+	-I$(top_srcdir)/GL/include \
+	-I$(top_srcdir)/hw/darwin/quartz \
+	-I$(top_srcdir)/hw/darwin/quartz/cr
 
 if HAVE_AGL_FRAMEWORK
 noinst_LIBRARIES = libAGLcore.a 

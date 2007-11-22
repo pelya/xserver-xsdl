@@ -38,6 +38,10 @@
 #include "rootless.h"
 #include "fb.h"
 
+#ifdef SHAPE
+#include "scrnintstr.h"
+#endif /* SHAPE */
+
 #ifdef RENDER
 #include "picturestr.h"
 #endif

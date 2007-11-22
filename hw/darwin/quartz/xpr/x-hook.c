@@ -65,6 +65,7 @@ X_PFX (hook_remove) (x_list *lst, x_hook_function *fun, void *data)
     }
 
     X_PFX (list_free) (to_delete);
+    return lst;
 }
 
 X_EXTERN void

@@ -42,62 +42,11 @@
 
 #include <Cocoa/Cocoa.h>
 
-#ifndef INXQUARTZ
-#import "Preferences.h"
-#endif
 #include "pseudoramiX.h"
 
 extern void FatalError(const char *, ...);
 extern char *display;
 extern int noPanoramiXExtension;
-
-#ifndef INXQUARTZ
-/*
- * QuartzReadPreferences
- *  Read the user preferences from the Cocoa front end.
- */
-void QuartzReadPreferences(void)
-{
-    char *fileString;
-
-    darwinFakeButtons = [Preferences fakeButtons];
-    darwinFakeMouse2Mask = [Preferences button2Mask];
-    darwinFakeMouse3Mask = [Preferences button3Mask];
-    //    darwinMouseAccelChange = [Preferences mouseAccelChange];
-    quartzUseSysBeep = [Preferences systemBeep];
-    quartzEnableKeyEquivalents = [Preferences enableKeyEquivalents];
-
-    // quartzRootless has already been set
-    if (quartzRootless) {
-        // Use PseudoramiX instead of Xinerama
-        noPanoramiXExtension = TRUE;
-        noPseudoramiXExtension = ![Preferences xinerama];
-
-        quartzUseAGL = [Preferences useAGL];
-    } else {
-        noPanoramiXExtension = ![Preferences xinerama];
-        noPseudoramiXExtension = TRUE;
-
-        // Full screen can't use AGL for GLX
-        quartzUseAGL = FALSE;
-    }
-
-    if ([Preferences useKeymapFile]) {
-        fileString = (char *) [[Preferences keymapFile] lossyCString];
-        darwinKeymapFile = (char *) malloc(strlen(fileString)+1);
-        if (! darwinKeymapFile)
-            FatalError("malloc failed in QuartzReadPreferences()!\n");
-        strcpy(darwinKeymapFile, fileString);
-    }
-
-    display = (char *) malloc(8);
-    if (! display)
-        FatalError("malloc failed in QuartzReadPreferences()!\n");
-    snprintf(display, 8, "%i", [Preferences display]);
-
-    darwinDesiredDepth = [Preferences depth] - 1;
-}
-#endif
 
 /*
  * QuartzWriteCocoaPasteboard
@@ -162,19 +111,6 @@ char *QuartzReadCocoaPasteboard(void)
 int QuartzFSUseQDCursor(
     int depth)  // screen depth
 {
-#ifndef INXQUARTZ
-    switch ([Preferences useQDCursor]) {
-        case qdCursor_Always:
-            return TRUE;
-        case qdCursor_Never:
-            return FALSE;
-        case qdCursor_Not8Bit:
-            if (depth > 8)
-                return TRUE;
-            else
-                return FALSE;
-    }
-#endif
     return TRUE;
 }
 
@@ -184,9 +120,9 @@ int QuartzFSUseQDCursor(
  *  Clean out any autoreleased objects.
  */
 void QuartzBlockHandler(
-    void *blockData,
-    void *pTimeout,
-    void *pReadmask)
+    pointer blockData,
+    OSTimePtr pTimeout,
+    pointer pReadmask)
 {
     static NSAutoreleasePool *aPool = nil;
 
@@ -199,9 +135,9 @@ void QuartzBlockHandler(
  * QuartzWakeupHandler
  */
 void QuartzWakeupHandler(
-    void *blockData,
+    pointer blockData,
     int result,
-    void *pReadmask)
+    pointer pReadmask)
 {
     // nothing here
 }

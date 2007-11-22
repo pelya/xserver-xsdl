@@ -380,7 +380,8 @@ QuartzInitCursor(ScreenPtr pScreen)
     if (ScreenPriv == NULL)
         return FALSE;
 
-    CURSOR_PRIV(pScreen) = ScreenPriv;
+    /* CURSOR_PRIV(pScreen) = ScreenPriv; */
+    pScreen->devPrivates[darwinCursorScreenIndex].ptr = ScreenPriv;
 
     /* override some screen procedures */
     ScreenPriv->QueryBestSize = pScreen->QueryBestSize;
