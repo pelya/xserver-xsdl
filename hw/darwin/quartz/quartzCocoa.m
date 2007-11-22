@@ -94,7 +94,7 @@ char *QuartzReadCocoaPasteboard(void)
         char *buffer;
 
         if (! string) return NULL;
-        buffer = (char *) [string lossyCString];
+        buffer = (char *) [string UTF8String];
         text = (char *) malloc(strlen(buffer)+1);
         if (text)
             strcpy(text, buffer);
