@@ -80,21 +80,14 @@ eventHandler(unsigned int type, const void *arg,
       break;
 
     case XP_EVENT_WINDOW_MOVED:
-     	DEBUG_LOG("XP_EVENT_WINDOW_MOVED\n");
-        if (arg_size == sizeof(xp_window_id))
-        {
-            xp_window_id id = * (xp_window_id *) arg;
-	    WindowPtr pWin = xprGetXWindow(id);
-	    BoxRec box;
-	    xp_error retval  = xp_get_window_bounds(id, &box);
-	    if (retval != Success) {
-	      ErrorF("Unable to find new bounds for window\n");
-	      break;
-	    }
-            QuartzMessageServerThread(kXDarwinWindowMoved, 3, pWin, box.x1, box.y1);
-        }
-        break;
-
+      DEBUG_LOG("XP_EVENT_WINDOW_MOVED\n");
+      if (arg_size == sizeof(xp_window_id))  {
+	xp_window_id id = * (xp_window_id *) arg;
+	WindowPtr pWin = xprGetXWindow(id);
+	QuartzMessageServerThread(kXDarwinWindowMoved, 1, pWin);
+      }
+      break;
+      
     case XP_EVENT_SURFACE_DESTROYED:
       DEBUG_LOG("XP_EVENT_SURFACE_DESTROYED\n");
     case XP_EVENT_SURFACE_CHANGED:
