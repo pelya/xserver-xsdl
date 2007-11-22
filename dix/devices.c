@@ -505,9 +505,9 @@ CorePointerProc(DeviceIntPtr pDev, int what)
                                 GetMotionHistory, (PtrCtrlProcPtr)NoopDDA,
                                 GetMotionHistorySize(), 2);
         pDev->valuator->axisVal[0] = screenInfo.screens[0]->width / 2;
-        pDev->valuator->lastx = pDev->valuator->axisVal[0];
+        pDev->lastx = pDev->valuator->axisVal[0];
         pDev->valuator->axisVal[1] = screenInfo.screens[0]->height / 2;
-        pDev->valuator->lasty = pDev->valuator->axisVal[1];
+        pDev->lasty = pDev->valuator->axisVal[1];
 
         classes->key = pDev->key;
         classes->valuator = pDev->valuator;
@@ -1226,8 +1226,6 @@ InitValuatorClassDeviceStruct(DeviceIntPtr dev, int numAxes,
     valc->mode = mode;
     valc->axes = (AxisInfoPtr)(valc + 1);
     valc->axisVal = (int *)(valc->axes + numAxes);
-    valc->lastx = 0;
-    valc->lasty = 0;
     valc->dxremaind = 0;
     valc->dyremaind = 0;
     dev->valuator = valc;

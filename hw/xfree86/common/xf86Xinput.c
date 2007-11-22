@@ -554,14 +554,14 @@ xf86PostMotionEventP(DeviceIntPtr	device,
             {
                 dx = valuators[0];
                 if (is_absolute)
-                    dx -= device->valuator->lastx;
+                    dx -= device->lastx;
             }
 
             if (first_valuator == 1 || num_valuators >= 2)
             {
                 dy = valuators[1 - first_valuator];
                 if (is_absolute)
-                    dy -= device->valuator->lasty;
+                    dy -= device->lasty;
             }
 
             if (DGAStealMotionEvent(device, index, dx, dy))
@@ -825,11 +825,11 @@ xf86InitValuatorDefaults(DeviceIntPtr dev, int axnum)
 {
     if (axnum == 0) {
 	dev->valuator->axisVal[0] = screenInfo.screens[0]->width / 2;
-        dev->valuator->lastx = dev->valuator->axisVal[0];
+        dev->lastx = dev->valuator->axisVal[0];
     }
     else if (axnum == 1) {
 	dev->valuator->axisVal[1] = screenInfo.screens[0]->height / 2;
-        dev->valuator->lasty = dev->valuator->axisVal[1];
+        dev->lasty = dev->valuator->axisVal[1];
     }
 }
 

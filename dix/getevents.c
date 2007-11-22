@@ -487,8 +487,8 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
 
         if (master->valuator && pDev->valuator)
         {
-            pDev->valuator->lastx = master->valuator->lastx;
-            pDev->valuator->lasty = master->valuator->lasty;
+            pDev->lastx = master->lastx;
+            pDev->lasty = master->lasty;
         }
         master->u.lastSlave = pDev;
         numEvents++;
@@ -671,8 +671,8 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     {
         CreateClassesChangedEvent(events, master, pDev);
 
-        pDev->valuator->lastx = master->valuator->lastx;
-        pDev->valuator->lasty = master->valuator->lasty;
+        pDev->lastx = master->lastx;
+        pDev->lasty = master->lasty;
         master->u.lastSlave = pDev;
 
         num_events++;
@@ -728,14 +728,14 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
             x = valuators[0];
         }
         else {
-            x = pDev->valuator->lastx;
+            x = pDev->lastx;
         }
 
         if (first_valuator <= 1 && num_valuators >= (2 - first_valuator)) {
             y = valuators[1 - first_valuator];
         }
         else {
-            y = pDev->valuator->lasty;
+            y = pDev->lasty;
         }
     }
     else {
@@ -744,14 +744,14 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
                               valuators);
 
         if (first_valuator == 0 && num_valuators >= 1)
-            x = pDev->valuator->lastx + valuators[0];
+            x = pDev->lastx + valuators[0];
         else
-            x = pDev->valuator->lastx;
+            x = pDev->lastx;
 
         if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-            y = pDev->valuator->lasty + valuators[1 - first_valuator];
+            y = pDev->lasty + valuators[1 - first_valuator];
         else
-            y = pDev->valuator->lasty;
+            y = pDev->lasty;
     }
 
     /* Clip both x and y to the defined limits (usually co-ord space limit). */
@@ -772,12 +772,12 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
     updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
 
-    pDev->valuator->lastx = x;
-    pDev->valuator->lasty = y;
+    pDev->lastx = x;
+    pDev->lasty = y;
     if (master)
     {
-        master->valuator->lastx = x;
-        master->valuator->lasty = y;
+        master->lastx = x;
+        master->lasty = y;
     }
 
     if (!coreOnly)

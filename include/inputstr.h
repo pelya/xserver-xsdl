@@ -174,8 +174,6 @@ typedef struct _ValuatorClassRec {
     AxisInfoPtr 	  axes;
     unsigned short	  numAxes;
     int			  *axisVal;
-    int                   lastx, lasty; /* last event recorded, not posted to
-                                         * client; see dix/devices.c */
     int                   dxremaind, dyremaind; /* for acceleration */
     CARD8	 	  mode;
 } ValuatorClassRec, *ValuatorClassPtr;
@@ -421,6 +419,8 @@ typedef struct _DeviceIntRec {
     DeviceIntPtr        master;       /* master device */
     DeviceIntPtr        lastSlave;    /* last slave device used */
     } u;
+    int                 lastx, lasty; /* last event recorded, not posted to
+                                       * client; see dix/devices.c */
 } DeviceIntRec;
 
 typedef struct {
