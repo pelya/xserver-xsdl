@@ -1,5 +1,3 @@
-.\" $XFree86: xc/programs/Xserver/hw/darwin/XDarwin.man,v 1.4 2002/01/09 18:01:58 torrey Exp $
-.\"
 .TH XQUARTZ 1 __vendorversion__
 .SH NAME
 Xquartz \- X window system server for Quartz operating system
