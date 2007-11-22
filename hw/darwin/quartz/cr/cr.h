@@ -1,7 +1,6 @@
 /*
  * Internal definitions of the Cocoa rootless implementation
- */
-/*
+ *
  * Copyright (c) 2003 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a

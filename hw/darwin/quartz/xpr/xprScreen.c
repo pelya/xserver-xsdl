@@ -117,7 +117,7 @@ eventHandler(unsigned int type, const void *arg,
 }
 
 /*
- * displayScreenBounds
+ * displayAtIndex
  *  Return the display ID for a particular display index.
  */
 static CGDirectDisplayID
@@ -233,7 +233,6 @@ xprDisplayInit(void)
         darwinScreensFound =  1;
 
     if (xp_init(XP_BACKGROUND_EVENTS | XP_NO_DEFERRED_UPDATES) != Success)
-    {
         FatalError("Could not initialize the Xplugin library.");
 
     xp_select_events(XP_EVENT_DISPLAY_CHANGED
@@ -324,6 +323,9 @@ static Bool
 xprSetupScreen(int index, ScreenPtr pScreen)
 {
     // Add alpha protecting replacements for fb screen functions
+    pScreen->PaintWindowBackground = SafeAlphaPaintWindow;
+    pScreen->PaintWindowBorder = SafeAlphaPaintWindow;
+
 #ifdef RENDER
     {
         PictureScreenPtr ps = GetPictureScreen(pScreen);

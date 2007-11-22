@@ -3,7 +3,7 @@
 
    Code to build a keymap using the Carbon Keyboard Layout API.
 
-   Copyright (c) 2003, 2007 Apple Inc.
+   Copyright (c) 2003-2007 Apple Inc.
 
    Permission is hereby granted, free of charge, to any person
    obtaining a copy of this software and associated documentation files
@@ -34,6 +34,7 @@
 #include <dix-config.h>
 
 #include "quartzCommon.h"
+
 #include <CoreServices/CoreServices.h>
 #include <Carbon/Carbon.h>
 

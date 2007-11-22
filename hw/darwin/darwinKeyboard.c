@@ -217,7 +217,7 @@ static void DarwinChangeKeyboardControl( DeviceIntPtr device, KeybdCtrl *ctrl )
     // keyclick, bell volume / pitch, autorepead, LED's
 }
 
-static darwinKeyboardInfo keyInfo;
+darwinKeyboardInfo keyInfo;
 static FILE *fref = NULL;
 static char *inBuffer = NULL;
 
@@ -816,7 +816,7 @@ void DarwinKeyboardInit(
     assert( darwinParamConnect = NXOpenEventStatus() );
 
     DarwinLoadKeyboardMapping(&keySyms);
-
+    //    DarwinKeyboardReload(pDev);
     /* Initialize the seed, so we don't reload the keymap unnecessarily
        (and possibly overwrite xinitrc changes) */
     DarwinModeSystemKeymapSeed();
@@ -835,6 +835,7 @@ InitModMap(register KeyClassPtr keyc)
     CARD8 keysPerModifier[8];
     CARD8 mask;
 
+    //    darwinKeyc = keyc;
     if (keyc->modifierKeyMap != NULL)
         xfree (keyc->modifierKeyMap);
 
@@ -886,7 +887,7 @@ DarwinKeyboardReload(DeviceIntPtr pDev)
 
         memmove(pDev->key->modifierMap, keyInfo.modMap, MAP_LENGTH);
         InitModMap(pDev->key);
-    }
+    } else DEBUG_LOG("SetKeySymsMap=0\n");
 
     SendMappingNotify(MappingKeyboard, MIN_KEYCODE, NUM_KEYCODES, 0);
     SendMappingNotify(MappingModifier, 0, 0, 0);
@@ -936,6 +937,32 @@ int DarwinModifierNXKeycodeToNXKey(unsigned char keycode, int *outSide)
 }
 
 /*
+ * DarwinModifierNXMaskToNXKeyCode
+ *      Returns 0 if mask is not a known modifier mask.
+ */
+int DarwinModifierNXMaskToNXKeyCode(int mask)
+{
+  switch (mask) {
+  case NX_ALPHASHIFTMASK:       return XK_Caps_Lock;
+  case NX_SHIFTMASK: ErrorF("Warning: Received NX_SHIFTMASK, treating as NX_DEVICELSHIFTKEYMASK\n");
+  case NX_DEVICELSHIFTKEYMASK:  return NX_MODIFIERKEY_SHIFT; //XK_Shift_L;
+  case NX_DEVICERSHIFTKEYMASK:  return NX_MODIFIERKEY_RSHIFT; //XK_Shift_R;
+  case NX_CONTROLMASK: ErrorF("Warning: Received NX_CONTROLMASK, treating as NX_DEVICELCTLKEYMASK\n");
+  case NX_DEVICELCTLKEYMASK:    return XK_Control_L;
+  case NX_DEVICERCTLKEYMASK:    return XK_Control_R;
+  case NX_ALTERNATEMASK: ErrorF("Warning: Received NX_ALTERNATEMASK, treating as NX_DEVICELALTKEYMASK\n");
+  case NX_DEVICELALTKEYMASK:    return XK_Alt_L;
+  case NX_DEVICERALTKEYMASK:    return XK_Alt_R;
+  case NX_COMMANDMASK: ErrorF("Warning: Received NX_COMMANDMASK, treating as NX_DEVICELCMDKEYMASK\n");
+  case NX_DEVICELCMDKEYMASK:    return XK_Meta_L;
+  case NX_DEVICERCMDKEYMASK:    return XK_Meta_R;
+  case NX_NUMERICPADMASK:       return XK_Num_Lock;
+  case NX_HELPMASK:             return XK_Help;
+  case NX_SECONDARYFNMASK:      return XK_Control_L; // this seems very wrong, but is what the old code did
+    }
+}
+
+/*
  * DarwinModifierNXMaskToNXKey
  *      Returns -1 if mask is not a known modifier mask.
  */
@@ -968,6 +995,29 @@ int DarwinModifierNXMaskToNXKey(int mask)
         case NX_SECONDARYFNMASK:      return NX_MODIFIERKEY_SECONDARYFN;
     }
     return -1;
+}
+
+char * DarwinModifierNXMaskTostring(int mask)
+{
+    switch (mask) {
+    case NX_ALPHASHIFTMASK: return "NX_ALPHASHIFTMASK";
+    case NX_SHIFTMASK: return "NX_SHIFTMASK";
+    case NX_DEVICELSHIFTKEYMASK: return "NX_DEVICELSHIFTKEYMASK";
+    case NX_DEVICERSHIFTKEYMASK: return "NX_DEVICERSHIFTKEYMASK";
+    case NX_CONTROLMASK: return "NX_CONTROLMASK";
+    case NX_DEVICELCTLKEYMASK: return "NX_DEVICELCTLKEYMASK";
+    case NX_DEVICERCTLKEYMASK: return "NX_DEVICERCTLKEYMASK";
+    case NX_ALTERNATEMASK: return "NX_ALTERNATEMASK";
+    case NX_DEVICELALTKEYMASK: return "NX_DEVICELALTKEYMASK";
+    case NX_DEVICERALTKEYMASK: return "NX_DEVICERALTKEYMASK";
+    case NX_COMMANDMASK: return "NX_COMMANDMASK";
+    case NX_DEVICELCMDKEYMASK: return "NX_DEVICELCMDKEYMASK";
+    case NX_DEVICERCMDKEYMASK: return "NX_DEVICERCMDKEYMASK";
+    case NX_NUMERICPADMASK: return "NX_NUMERICPADMASK";
+    case NX_HELPMASK: return "NX_HELPMASK";
+    case NX_SECONDARYFNMASK: return "NX_SECONDARYFNMASK";
+    }
+    return "unknown mask";
 }
 
 /*
@@ -1020,7 +1070,7 @@ int DarwinModifierStringToNXKey(const char *str)
  *      This allows the ddx layer to prevent some keys from being remapped
  *      as modifier keys.
  */
-Bool LegalModifier(unsigned int key, DeviceIntPtr pDev)
+Bool LegalModifier(unsigned int key, DevicePtr pDev)
 {
     return 1;
 }

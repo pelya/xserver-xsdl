@@ -2,8 +2,6 @@
  *
  * Startup code for the Quartz Darwin X Server
  *
- **************************************************************/
-/*
  * Copyright (c) 2001-2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a

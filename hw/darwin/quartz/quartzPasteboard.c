@@ -33,6 +33,7 @@
 #include <dix-config.h>
 
 #include "quartzPasteboard.h"
+
 #include <X11/Xatom.h>
 #include "windowstr.h"
 #include "propertyst.h"

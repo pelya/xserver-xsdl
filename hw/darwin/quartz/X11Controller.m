@@ -29,7 +29,7 @@
 
 #define DEFAULT_PATH "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/X11/bin"
 
-#include "../quartz/quartzCommon.h"
+#include "quartzCommon.h"
 
 #import "X11Controller.h"
 #import "X11Application.h"
@@ -39,10 +39,10 @@
 #define BOOL X_BOOL
 #include "opaque.h"
 # include "darwin.h"
-# include "../quartz/quartz.h"
+# include "quartz.h"
 # define _APPLEWM_SERVER_
 # include "X11/extensions/applewm.h"
-# include "../quartz/applewmExt.h"
+# include "applewmExt.h"
 #undef BOOL
 
 #include <stdio.h>
@@ -50,8 +50,6 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-
-#define TRACE() fprintf (stderr, "%s\n", __FUNCTION__)
 
 @implementation X11Controller
 

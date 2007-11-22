@@ -1,7 +1,6 @@
 /*
  * Xplugin rootless implementation functions for AppleWM extension
- */
-/*
+ *
  * Copyright (c) 2002 Apple Computer, Inc. All rights reserved.
  * Copyright (c) 2003 Torrey T. Lyons. All Rights Reserved.
  *

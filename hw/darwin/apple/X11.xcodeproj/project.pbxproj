@@ -14,6 +14,7 @@
 		527F241F0B5D938C007840A7 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 50F4F0A7039D6ACA0E82C0CB /* CoreFoundation.framework */; };
 		527F24200B5D938C007840A7 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 570C5748047186C400ACF82F /* SystemConfiguration.framework */; };
 		527F24370B5D9D89007840A7 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 527F24260B5D938C007840A7 /* Info.plist */; };
+		52D9C0ED0BCDDF6B00CD2AFC /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 52D9C0EB0BCDDF6B00CD2AFC /* Localizable.strings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		50F4F0A7039D6ACA0E82C0CB /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 		527F24260B5D938C007840A7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
 		527F24270B5D938C007840A7 /* X11.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = X11.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		52D9C0EC0BCDDF6B00CD2AFC /* English */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
 		570C5748047186C400ACF82F /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = /System/Library/Frameworks/SystemConfiguration.framework; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
@@ -71,6 +73,7 @@
 		20286C2CFDCF999611CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				52D9C0EB0BCDDF6B00CD2AFC /* Localizable.strings */,
 				50459C5F038587C60ECA21EC /* X11.icns */,
 				0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */,
 				02345980000FD03B11CA0E72 /* main.nib */,
@@ -146,6 +149,7 @@
 				527F24190B5D938C007840A7 /* InfoPlist.strings in Resources */,
 				527F241A0B5D938C007840A7 /* main.nib in Resources */,
 				527F241B0B5D938C007840A7 /* X11.icns in Resources */,
+				52D9C0ED0BCDDF6B00CD2AFC /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -189,6 +193,14 @@
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
+		52D9C0EB0BCDDF6B00CD2AFC /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				52D9C0EC0BCDDF6B00CD2AFC /* English */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
@@ -219,7 +231,7 @@
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				HEADER_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = /usr/X11/include;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = /usr/X11;
 				LIBRARY_SEARCH_PATHS = /usr/X11/lib;
@@ -247,7 +259,7 @@
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				HEADER_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = /usr/X11/include;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = /usr/X11;
 				LIBRARY_SEARCH_PATHS = /usr/X11/lib;
@@ -274,7 +286,7 @@
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				HEADER_SEARCH_PATHS = "";
+				HEADER_SEARCH_PATHS = /usr/X11/include;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = /usr/X11;
 				LIBRARY_SEARCH_PATHS = /usr/X11/lib;

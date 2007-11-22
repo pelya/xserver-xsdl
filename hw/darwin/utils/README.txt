@@ -105,7 +105,3 @@ The implementation of dumpkeymap is based upon information gathered on
 September 3, 1997 by Eric Sunshine <sunshine@sunshineco.com> and Paul S.
 McCarthy <zarnuk@zarnuk.com> during an effort to reverse engineer the format
 of the NeXT .keymapping file.
-
-
-
-$XFree86: xc/programs/Xserver/hw/darwin/utils/README.txt,v 1.1 2000/12/01 19:47:39 dawes Exp $

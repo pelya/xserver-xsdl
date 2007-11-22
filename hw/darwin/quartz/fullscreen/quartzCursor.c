@@ -2,8 +2,6 @@
  *
  * Support for using the Quartz Window Manager cursor
  *
- **************************************************************/
-/*
  * Copyright (c) 2001-2003 Torrey T. Lyons and Greg Parker.
  *                 All Rights Reserved.
  *
