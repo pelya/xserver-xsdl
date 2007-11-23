@@ -154,8 +154,7 @@ static void DarwinUpdateModifiers(
  * are held down during a "context" switch -- otherwise, we would miss the KeyUp.
  */
 static void DarwinReleaseModifiers(void) {
-	xEvent e;
-	DarwinUpdateModifiers(&e, KeyRelease, COMMAND_MASK(-1) | CONTROL_MASK(-1) | ALTERNATE_MASK(-1) | SHIFT_MASK(-1));
+	DarwinUpdateModifiers(KeyRelease, COMMAND_MASK(-1) | CONTROL_MASK(-1) | ALTERNATE_MASK(-1) | SHIFT_MASK(-1));
 }
 
 /*

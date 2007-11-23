@@ -48,7 +48,7 @@ Xquartz_LDADD = \
 	$(top_builddir)/miext/rootless/librootless.la \
 	$(top_builddir)/miext/rootless/safeAlpha/libsafeAlpha.la \
 	$(top_builddir)/miext/rootless/accel/librlAccel.la \
-	$(DARWIN_LIBS) $(XSERVER_LIBS) -lXplugin
+	$(DARWIN_LIBS) $(XSERVER_LIBS) $(XSERVER_SYS_LIBS) -lXplugin
 
 Xquartz_LDFLAGS =  \
 	-XCClinker -Objc \

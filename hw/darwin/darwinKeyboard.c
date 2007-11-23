@@ -1070,7 +1070,7 @@ int DarwinModifierStringToNXKey(const char *str)
  *      This allows the ddx layer to prevent some keys from being remapped
  *      as modifier keys.
  */
-Bool LegalModifier(unsigned int key, DevicePtr pDev)
+Bool LegalModifier(unsigned int key, DeviceIntPtr pDev)
 {
     return 1;
 }
