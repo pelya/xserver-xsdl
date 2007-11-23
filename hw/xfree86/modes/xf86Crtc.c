@@ -1079,6 +1079,16 @@ xf86InitialOutputPositions (ScrnInfoPtr scrn, DisplayModePtr *modes)
 		    any_set = TRUE;
 		    continue;
 		}
+		if (!modes[or])
+		{
+		    xf86DrvMsg (scrn->scrnIndex, X_ERROR,
+				"Cannot position output %s relative to output %s without modes\n",
+				output->name, relative_name);
+		    output->initial_x = 0;
+		    output->initial_y = 0;
+		    any_set = TRUE;
+		    continue;
+		}
 		if (relative->initial_x == POSITION_UNSET)
 		{
 		    keep_going = TRUE;
