@@ -4326,7 +4326,7 @@ EnterLeaveEvent(
 #endif
     {
         event.u.enterLeave.state = (keybd) ? keybd->key->state : 0;
-        event.u.enterLeave.state |+ mouse->button->state;
+        event.u.enterLeave.state |= mouse->button->state;
     }
     event.u.enterLeave.mode = mode;
     focus = (keybd) ? keybd->focus->win : None;
