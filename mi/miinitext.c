@@ -624,6 +624,10 @@ InitExtensions(argc, argv)
 #endif
 #endif
 #ifdef XFIXES
+    /* must be before Render to layer DisplayCursor correctly */
+    if (!noXFixesExtension) XFixesExtensionInit();
+#endif
+#ifdef RENDER
     if (!noRenderExtension) RenderExtensionInit();
 #endif
 #ifdef RANDR
