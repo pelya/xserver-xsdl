@@ -4468,15 +4468,20 @@ LeaveNotifies(DeviceIntPtr pDev,
     }
 }
 
+/* welcome to insanity */
 #define FOCUS_SEMAPHORE_MODIFY(win, field, mode, val) \
-    { \
-        if (mode != NotifyGrab && mode != NotifyUngrab) \
-        { \
-            FocusSemaphoresPtr sem;\
-            sem = (FocusSemaphoresPtr)win->devPrivates[FocusPrivatesIndex].ptr; \
+{ \
+    FocusSemaphoresPtr sem;\
+    sem = (FocusSemaphoresPtr)win->devPrivates[FocusPrivatesIndex].ptr; \
+    if (mode != NotifyGrab && mode != NotifyUngrab) { \
+        sem->field += val; \
+    } else if (mode == NotifyUngrab) { \
+        if (sem->field == 0 && val > 0) \
             sem->field += val; \
-        } \
-    }
+        else if (sem->field == 1 && val < 0) \
+            sem->field += val; \
+    } \
+}
 #define ENTER_LEAVE_SEMAPHORE_UP(win, mode)  \
         FOCUS_SEMAPHORE_MODIFY(win, enterleave, mode, 1);
 
