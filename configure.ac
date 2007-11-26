@@ -90,13 +90,6 @@ if test "x$WDTRACE" != "xno" ; then
 fi
 AM_CONDITIONAL(XSERVER_DTRACE, [test "x$WDTRACE" != "xno"])
 
-# DTrace support uses XErrorDB to get request names
-AC_ARG_WITH(xerrordb,
-            AS_HELP_STRING([--with-xerrordb=PATH], [Path to XErrorDB file (default: ${datadir}/X11/XErrorDB)]),
-	    [ XERRORDB_PATH="$withval" ],
-	    [ XERRORDB_PATH="${datadir}/X11/XErrorDB" ])
-AC_DEFINE_DIR(XERRORDB_PATH, XERRORDB_PATH, [Path to XErrorDB file])
-
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS([fcntl.h stdlib.h string.h unistd.h])

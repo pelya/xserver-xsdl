@@ -500,9 +500,6 @@
 /* Define to 1 if the DTrace Xserver provider probes should be built in */
 #undef XSERVER_DTRACE
 
-/* Path to XErrorDB file */
-#undef XERRORDB_PATH
-
 /* Define to 16-bit byteswap macro */
 #undef bswap_16
 
