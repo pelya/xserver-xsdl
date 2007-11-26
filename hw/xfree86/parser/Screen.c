@@ -214,6 +214,7 @@ static xf86ConfigSymTabRec ScreenTab[] =
 	{DEFAULTDEPTH, "defaultdepth"},
 	{DEFAULTBPP, "defaultbpp"},
 	{DEFAULTFBBPP, "defaultfbbpp"},
+	{VIRTUAL, "virtual"},
 	{OPTION, "option"},
 	{-1, ""},
 };
@@ -299,6 +300,14 @@ xf86parseScreenSection (void)
 				}
 			}
 			break;
+		case VIRTUAL:
+			if (xf86getSubToken (&(ptr->scrn_comment)) != NUMBER)
+				Error (VIRTUAL_MSG, NULL);
+			ptr->scrn_virtualX = val.num;
+			if (xf86getSubToken (&(ptr->scrn_comment)) != NUMBER)
+				Error (VIRTUAL_MSG, NULL);
+			ptr->scrn_virtualY = val.num;
+			break;
 		case OPTION:
 			ptr->scrn_option_lst = xf86parseOption(ptr->scrn_option_lst);
 			break;
@@ -364,6 +373,10 @@ xf86printScreenSection (FILE * cf, XF86ConfScreenPtr ptr)
 		{
 			fprintf (cf, "\tVideoAdaptor \"%s\"\n", aptr->al_adaptor_str);
 		}
+		if (ptr->scrn_virtualX && ptr->scrn_virtualY)
+			fprintf (cf, "\tVirtual     %d %d\n",
+				 ptr->scrn_virtualX,
+				 ptr->scrn_virtualY);
 		for (dptr = ptr->scrn_display_lst; dptr; dptr = dptr->list.next)
 		{
 			fprintf (cf, "\tSubSection \"Display\"\n");

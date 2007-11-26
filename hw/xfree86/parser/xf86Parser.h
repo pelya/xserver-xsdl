@@ -307,6 +307,7 @@ typedef struct
 	XF86ConfDisplayPtr scrn_display_lst;
 	XF86OptionPtr scrn_option_lst;
 	char *scrn_comment;
+	int scrn_virtualX, scrn_virtualY;
 }
 XF86ConfScreenRec, *XF86ConfScreenPtr;
 
