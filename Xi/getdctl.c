@@ -128,7 +128,7 @@ static void CopySwapDeviceAbsCalib (ClientPtr client, AbsoluteClassPtr dts,
     xDeviceAbsCalibState *calib = (xDeviceAbsCalibState *) buf;
 
     calib->control = DEVICE_ABS_CALIB;
-    calib->length = sizeof(calib);
+    calib->length = sizeof(xDeviceAbsCalibState);
     calib->min_x = dts->min_x;
     calib->max_x = dts->max_x;
     calib->min_y = dts->min_y;
@@ -159,7 +159,7 @@ static void CopySwapDeviceAbsArea (ClientPtr client, AbsoluteClassPtr dts,
     xDeviceAbsAreaState *area = (xDeviceAbsAreaState *) buf;
 
     area->control = DEVICE_ABS_AREA;
-    area->length = sizeof(area);
+    area->length = sizeof(xDeviceAbsAreaState);
     area->offset_x = dts->offset_x;
     area->offset_y = dts->offset_y;
     area->width = dts->width;
@@ -185,7 +185,7 @@ static void CopySwapDeviceCore (ClientPtr client, DeviceIntPtr dev, char *buf)
     xDeviceCoreState *c = (xDeviceCoreState *) buf;
 
     c->control = DEVICE_CORE;
-    c->length = sizeof(c);
+    c->length = sizeof(xDeviceCoreState);
     c->status = dev->coreEvents;
     c->iscore = (dev == inputInfo.keyboard || dev == inputInfo.pointer);
 
@@ -202,7 +202,7 @@ static void CopySwapDeviceEnable (ClientPtr client, DeviceIntPtr dev, char *buf)
     xDeviceEnableState *e = (xDeviceEnableState *) buf;
 
     e->control = DEVICE_ENABLE;
-    e->length = sizeof(e);
+    e->length = sizeof(xDeviceEnableState);
     e->enable = dev->enabled;
 
     if (client->swapped) {
