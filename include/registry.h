@@ -15,6 +15,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifdef XREGISTRY
 
 #include "resource.h"
+#include "extnsionst.h"
 
 /* Internal string registry - for auditing, debugging, security, etc. */
 
@@ -22,13 +23,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * Registration functions.  The name string is not copied, so it must
  * not be a stack variable.
  */
-void RegisterRequestName(unsigned major, unsigned minor, const char *name);
-void RegisterEventName(unsigned event, const char *name);
-void RegisterErrorName(unsigned error, const char *name);
-void RegisterResourceName(RESTYPE type, const char *name);
+void RegisterResourceName(RESTYPE type, char *name);
+void RegisterExtensionNames(ExtensionEntry *ext);
 
 /*
- * Lookup functions.  The returned string must not be modified.
+ * Lookup functions.  The returned string must not be modified or freed.
  */
 const char *LookupRequestName(int major, int minor);
 const char *LookupEventName(int event);
@@ -49,10 +48,8 @@ void dixResetRegistry(void);
 
 /* Define calls away when the registry is not being built. */
 
-#define RegisterRequestName(a, b, c) { ; }
-#define RegisterEventName(a, b) { ; }
-#define RegisterErrorName(a, b) { ; }
 #define RegisterResourceName(a, b) { ; }
+#define RegisterExtensionNames(a) { ; }
 
 #define LookupRequestName(a, b) XREGISTRY_UNKNOWN
 #define LookupEventName(a) XREGISTRY_UNKNOWN

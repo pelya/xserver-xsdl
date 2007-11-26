@@ -288,9 +288,6 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMVAR(ResourceStateCallback)
     /* registry.c */
 #ifdef XREGISTRY
-    SYMFUNC(RegisterRequestName)
-    SYMFUNC(RegisterEventName)
-    SYMFUNC(RegisterErrorName)
     SYMFUNC(RegisterResourceName)
 #endif
     /* swaprep.c */

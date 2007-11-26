@@ -60,6 +60,7 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "dispatch.h"
 #include "privates.h"
+#include "registry.h"
 #include "xace.h"
 
 #define EXTENSION_BASE  128
@@ -143,6 +144,7 @@ AddExtension(char *name, int NumEvents, int NumErrors,
         ext->errorLast = 0;
     }
 
+    RegisterExtensionNames(ext);
     return(ext);
 }
 
