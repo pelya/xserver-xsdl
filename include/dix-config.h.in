@@ -21,6 +21,9 @@
 /* Default font path */
 #undef COMPILEDDEFAULTFONTPATH
 
+/* Miscellaneous server configuration files path */
+#undef SERVER_MISC_CONFIG_PATH
+
 /* Support Composite Extension */
 #undef COMPOSITE
 
