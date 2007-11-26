@@ -1,6 +1,6 @@
 noinst_LIBRARIES = libxpr.a
-AM_CFLAGS =  $(XORG_CFLAGS) $(DIX_CFLAGS)
-AM_CPPFLAGS = $(XORG_INCS) \
+AM_CFLAGS =  $(XSERVER_CFLAGS) $(DIX_CFLAGS)
+AM_CPPFLAGS = \
 	   -DHAVE_XORG_CONFIG_H \
 	   -I$(srcdir) -I$(srcdir)/.. -I$(srcdir)/../.. \
 	   -I$(top_srcdir)/miext \
@@ -9,14 +9,14 @@ AM_CPPFLAGS = $(XORG_INCS) \
 
 libxpr_a_SOURCES = \
 	appledri.c \
-        dri.c \
-        xprAppleWM.c \
-        xprCursor.c \
-        xprFrame.c \
-        xprScreen.c \
-        x-hash.c \
-        x-hook.c \
-        x-list.c
+	dri.c \
+	xprAppleWM.c \
+	xprCursor.c \
+	xprFrame.c \
+	xprScreen.c \
+	x-hash.c \
+	x-hook.c \
+	x-list.c
 
 EXTRA_DIST = \
 	dri.h \

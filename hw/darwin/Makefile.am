@@ -1,11 +1,16 @@
-AM_CFLAGS = $(XORG_CFLAGS) $(DIX_CFLAGS)
-AM_CPPFLAGS = $(XORG_INCS) \
+AM_CFLAGS = $(XSERVER_CFLAGS) $(DIX_CFLAGS)
+AM_CPPFLAGS = \
 	-DINXQUARTZ \
 	-DUSE_NEW_CLUT \
 	-DXFree86Server \
 	-I$(top_srcdir)/miext/rootless
 
-SUBDIRS = quartz utils
+if X11APP
+X11APP_SUBDIRS = apple launcher
+endif
+
+SUBDIRS = quartz utils $(X11APP_SUBDIRS)
+DIST_SUBDIRS = quartz utils apple launcher
 
 bin_PROGRAMS = Xquartz
 man1_MANS = Xquartz.man
@@ -26,7 +31,6 @@ Xquartz_LDADD = \
 	./quartz/libXquartz.a \
 	./quartz/xpr/libxpr.a \
 	$(top_builddir)/dix/dixfonts.lo \
-	$(top_builddir)/config/libconfig.a \
 	$(top_builddir)/dix/libdix.la \
 	$(top_builddir)/os/libos.la \
 	$(top_builddir)/dix/libxpstubs.la \
@@ -60,47 +64,8 @@ Xquartz_LDFLAGS =  \
 	-Wl,-framework,CoreAudio \
 	-Wl,-framework,IOKit
 
-if X11APP
-bin_SCRIPTS = x11app x11launcher
-
-x11app:
-	cd apple && xcodebuild CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" ARCHS="$(X11APP_ARCHS)"
-
-x11launcher:
-	cd launcher && xcodebuild CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" ARCHS="$(X11APP_ARCHS)"
-
-x11app-install:
-	cd apple && xcodebuild install DSTROOT=$(DESTDIR) INSTALL_PATH=$(prefix) DEPLOYMENT_LOCATION=YES SKIP_INSTALL=NO ARCHS="$(X11APP_ARCHS)"
-
-x11launcher-install:
-	cd launcher && xcodebuild install DSTROOT=$(DESTDIR) INSTALL_PATH=$(APPLE_APPLICATIONS_DIR) DEPLOYMENT_LOCATION=YES SKIP_INSTALL=NO ARCHS="$(X11APP_ARCHS)"
-
-x11app-clean:
-	rm -rf apple/build
-
-x11launcher-clean:
-	rm -rf launcher/build
-
-install-data-hook: x11app-install x11launcher-install
-clean-local: x11app-clean x11launcher-clean
-
-endif
-
 EXTRA_DIST = \
 	Xquartz.man \
 	darwinClut8.h \
 	darwin.h \
-	darwinKeyboard.h \
-	apple/Info.plist \
-	apple/X11.icns \
-	apple/bundle-main.c \
-	apple/English.lproj/InfoPlist.strings \
-	apple/English.lproj/Localizable.strings \
-	apple/English.lproj/main.nib/classes.nib \
-	apple/English.lproj/main.nib/info.nib \
-	apple/English.lproj/main.nib/keyedobjects.nib \
-	apple/X11.xcodeproj/project.pbxproj \
-	launcher/bundle-main.c \
-	launcher/Info.plist \
-	launcher/X11.icns \
-	launcher/X11.xcodeproj/project.pbxproj
+	darwinKeyboard.h
