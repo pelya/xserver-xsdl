@@ -683,11 +683,8 @@ xf86RandRModeConvert (ScrnInfoPtr	scrn,
 		      RRModePtr		randr_mode,
 		      DisplayModePtr	mode)
 {
-    mode->prev = NULL;
-    mode->next = NULL;
-    mode->name = NULL;
+    memset(mode, 0, sizeof(DisplayModeRec));
     mode->status = MODE_OK;
-    mode->type = 0;
 
     mode->Clock = randr_mode->mode.dotClock / 1000;
     
