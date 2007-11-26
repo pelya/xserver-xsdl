@@ -29,6 +29,7 @@ void RegisterExtensionNames(ExtensionEntry *ext);
 /*
  * Lookup functions.  The returned string must not be modified or freed.
  */
+const char *LookupMajorName(int major);
 const char *LookupRequestName(int major, int minor);
 const char *LookupEventName(int event);
 const char *LookupErrorName(int error);
@@ -51,6 +52,7 @@ void dixResetRegistry(void);
 #define RegisterResourceName(a, b) { ; }
 #define RegisterExtensionNames(a) { ; }
 
+#define LookupMajorName(a) XREGISTRY_UNKNOWN
 #define LookupRequestName(a, b) XREGISTRY_UNKNOWN
 #define LookupEventName(a) XREGISTRY_UNKNOWN
 #define LookupErrorName(a) XREGISTRY_UNKNOWN

@@ -218,6 +218,25 @@ LookupRequestName(int major, int minor)
 }
 
 const char *
+LookupMajorName(int major)
+{
+    if (major < 128) {
+	const char *retval;
+
+	if (major >= nmajor)
+	    return XREGISTRY_UNKNOWN;
+	if (0 >= nminor[major])
+	    return XREGISTRY_UNKNOWN;
+
+	retval = requests[major][0];
+	return retval ? retval + sizeof(CORE) : XREGISTRY_UNKNOWN;
+    } else {
+	ExtensionEntry *extEntry = GetExtensionEntry(major);
+	return extEntry ? extEntry->name : XREGISTRY_UNKNOWN;
+    }
+}
+
+const char *
 LookupEventName(int event)
 {
     event &= 127;

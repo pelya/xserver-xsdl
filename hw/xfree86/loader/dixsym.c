@@ -289,6 +289,11 @@ _X_HIDDEN void *dixLookupTab[] = {
     /* registry.c */
 #ifdef XREGISTRY
     SYMFUNC(RegisterResourceName)
+    SYMFUNC(LookupMajorName)
+    SYMFUNC(LookupRequestName)
+    SYMFUNC(LookupEventName)
+    SYMFUNC(LookupErrorName)
+    SYMFUNC(LookupResourceName)
 #endif
     /* swaprep.c */
     SYMFUNC(CopySwap32Write)
