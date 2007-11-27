@@ -463,7 +463,7 @@ xf86OutputSetMonitor (xf86OutputPtr output)
 }
 
 static Bool
-xf86OutputEnabled (xf86OutputPtr output)
+xf86OutputEnabled (xf86OutputPtr output, Bool strict)
 {
     Bool    enable, disable;
 
@@ -481,8 +481,16 @@ xf86OutputEnabled (xf86OutputPtr output)
 		    "Output %s disabled by config file\n", output->name);
 	return FALSE;
     }
-    /* otherwise, enable if it is not disconnected */
-    enable = output->status != XF86OutputStatusDisconnected;
+
+    /* If not, try to only light up the ones we know are connected */
+    if (strict) {
+	enable = output->status == XF86OutputStatusConnected;
+    }
+    /* But if that fails, try to light up even outputs we're unsure of */
+    else {
+	enable = output->status != XF86OutputStatusDisconnected;
+    }
+
     xf86DrvMsg (output->scrn->scrnIndex, X_INFO,
     	    "Output %s %sconnected\n", output->name, enable ? "" : "dis");
     return enable;
@@ -1571,7 +1579,7 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
     Rotation		target_rotation = RR_Rotate_0;
     xf86CrtcPtr		*crtcs;
     DisplayModePtr	*modes;
-    Bool		*enabled;
+    Bool		*enabled, any_enabled = FALSE;
     int			width;
     int			height;
 
@@ -1604,9 +1612,23 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 	xf86OutputPtr output = config->output[o];
 	
 	modes[o] = NULL;
-	enabled[o] = xf86OutputEnabled (output);
+	any_enabled |= (enabled[o] = xf86OutputEnabled (output, TRUE));
     }
     
+    if (!any_enabled)
+    {
+	xf86DrvMsg (scrn->scrnIndex, X_WARNING,
+		    "No outputs definitely connected, trying again...\n");
+
+	for (o = 0; o < config->num_output; o++)
+	{
+	    xf86OutputPtr output = config->output[o];
+	
+	    modes[o] = NULL;
+	    enabled[o] = xf86OutputEnabled (output, FALSE);
+	}
+    }
+
     /*
      * User preferred > preferred > other modes
      */
