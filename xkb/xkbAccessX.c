@@ -691,7 +691,7 @@ ProcessPointerEvent(	register xEvent  *	xE,
 			register DeviceIntPtr	mouse, 
 			int		        count)
 {
-DeviceIntPtr	dev = (DeviceIntPtr)LookupKeyboardDevice();
+DeviceIntPtr	dev = GetPairedDevice(mouse);
 XkbSrvInfoPtr	xkbi = dev->key->xkbInfo;
 unsigned 	changed = 0;
 ProcessInputProc backupproc;
