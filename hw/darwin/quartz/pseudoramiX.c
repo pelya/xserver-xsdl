@@ -33,10 +33,11 @@ dealings in this Software without prior written authorization from Digital
 Equipment Corporation.
 ******************************************************************/
 
-#include "pseudoramiX.h"
-
+#ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
+#endif
 
+#include "pseudoramiX.h"
 #include "extnsionst.h"
 #include "dixstruct.h"
 #include "window.h"

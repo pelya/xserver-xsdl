@@ -27,9 +27,6 @@
 #ifndef _DARWIN_H
 #define _DARWIN_H
 
-//#include "dix-config.h" // This crashes us for some reason...
-#define SHAPE
-
 #include <IOKit/IOTypes.h>
 #include "inputstr.h"
 #include "scrnintstr.h"

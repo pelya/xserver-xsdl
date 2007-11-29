@@ -56,9 +56,13 @@
 ===========================================================================
 */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 // Define this to get a diagnostic output to stderr which is helpful
 // in determining how the X server is interpreting the Darwin keymap.
-#define DUMP_DARWIN_KEYMAP
+// #define DUMP_DARWIN_KEYMAP
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,7 +73,15 @@
 #include <architecture/byte_order.h>  // For the NXSwap*
 #include "darwin.h"
 #include "darwinKeyboard.h"
+
+#ifdef NDEBUG
+#undef NDEBUG
 #include <assert.h>
+#define NDEBUG 1
+#else
+#include <assert.h>
+#endif
+
 #define AltMask         Mod1Mask
 #define MetaMask        Mod2Mask
 #define FunctionMask    Mod3Mask

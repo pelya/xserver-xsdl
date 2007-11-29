@@ -27,6 +27,10 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
 #include <fcntl.h>
 #include <unistd.h>
 #include <CoreFoundation/CoreFoundation.h>
@@ -35,7 +39,14 @@
 #include "quartz.h"
 #include "opaque.h"
 #include "micmap.h"
+
+#ifdef NDEBUG
+#undef NDEBUG
 #include <assert.h>
+#define NDEBUG 1
+#else
+#include <assert.h>
+#endif
 
 char **envpGlobal;      // argcGlobal and argvGlobal
                         // are from dix/globals.c

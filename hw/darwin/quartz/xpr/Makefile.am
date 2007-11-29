@@ -1,7 +1,6 @@
 noinst_LIBRARIES = libxpr.a
 AM_CFLAGS =  $(XSERVER_CFLAGS) $(DIX_CFLAGS)
 AM_CPPFLAGS = \
-	   -DHAVE_XORG_CONFIG_H \
 	   -I$(srcdir) -I$(srcdir)/.. -I$(srcdir)/../.. \
 	   -I$(top_srcdir)/miext \
 	   -I$(top_srcdir)/miext/rootless \
