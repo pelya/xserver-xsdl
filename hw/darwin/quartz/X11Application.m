@@ -612,9 +612,6 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
     quartzXpluginOptions = [self prefs_get_integer:@PREFS_XP_OPTIONS
                             default:quartzXpluginOptions];
 #endif
-	
-    darwinSwapAltMeta = [self prefs_get_boolean:@PREFS_SWAP_ALT_META
-                         default:darwinSwapAltMeta];
     darwinFakeButtons = [self prefs_get_boolean:@PREFS_FAKEBUTTONS
                          default:darwinFakeButtons];
     if (darwinFakeButtons) {

@@ -27,7 +27,7 @@
 #ifndef _DARWIN_H
 #define _DARWIN_H
 
-// #include "dix-config.h" // This makes us crash for some reason...
+//#include "dix-config.h" // This crashes us for some reason...
 #define SHAPE
 
 #include <IOKit/IOTypes.h>
@@ -113,7 +113,6 @@ extern int              darwinMouseAccelChange;
 extern int              darwinFakeButtons;
 extern int              darwinFakeMouse2Mask;
 extern int              darwinFakeMouse3Mask;
-extern int              darwinSwapAltMeta;
 extern char            *darwinKeymapFile;
 extern int              darwinSyncKeymap;
 extern unsigned int     darwinDesiredWidth, darwinDesiredHeight;

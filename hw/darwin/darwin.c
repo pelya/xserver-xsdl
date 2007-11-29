@@ -100,7 +100,6 @@ int                     darwinDesiredDepth = -1;
 int                     darwinDesiredRefresh = -1;
 char                    *darwinKeymapFile = "USA.keymapping";
 int                     darwinSyncKeymap = FALSE;
-int                     darwinSwapAltMeta = FALSE;
 
 // modifier masks for faking mouse buttons
 int                     darwinFakeMouse2Mask = NX_ALTERNATEMASK;
@@ -764,11 +763,6 @@ int ddxProcessArgument( int argc, char *argv[], int i )
         ErrorF("Modifier mask to fake mouse button 3 = 0x%x\n",
                darwinFakeMouse3Mask);
         return 2;
-    }
-
-    if ( !strcmp( argv[i], "-swapAltMeta" ) ) {
-        darwinSwapAltMeta = 1;
-        return 1;
     }
 
     if ( !strcmp( argv[i], "-keymap" ) ) {
