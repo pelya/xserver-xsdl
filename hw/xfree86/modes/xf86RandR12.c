@@ -538,7 +538,11 @@ xf86RandR12SetRotations (ScreenPtr pScreen, Rotation rotations)
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
     int			c;
     xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(pScrn);
+#endif
+    if (!xf86RandR12Index)
+	return;
 
+#if RANDR_12_INTERFACE
     for (c = 0; c < config->num_crtc; c++) {
 	xf86CrtcPtr    crtc = config->crtc[c];
 
@@ -1062,12 +1066,15 @@ static Bool
 xf86RandR12CreateScreenResources12 (ScreenPtr pScreen)
 {
     int			c;
+    XF86RandRInfoPtr	randrp = XF86RANDRINFO(pScreen);
     ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
     xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(pScrn);
 
+    if (!xf86RandR12Index)
+	return TRUE;
+
     for (c = 0; c < config->num_crtc; c++)
-	xf86RandR12CrtcNotify (config->crtc[c]->randr_crtc);
-    
+        xf86RandR12CrtcNotify (config->crtc[c]->randr_crtc);
     
     RRScreenSetSizeRange (pScreen, config->minWidth, config->minHeight,
 			  config->maxWidth, config->maxHeight);
@@ -1087,7 +1094,7 @@ xf86RandR12TellChanged (ScreenPtr pScreen)
     XF86RandRInfoPtr	randrp = XF86RANDRINFO(pScreen);
     int			c;
 
-    if (!randrp)
+    if (!xf86RandR12Index)
 	return;
     xf86RandR12SetInfo12 (pScreen);
     for (c = 0; c < config->num_crtc; c++)
