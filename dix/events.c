@@ -1520,23 +1520,24 @@ CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
 	     CLIENT_BITS(grab->resource)))
 	    thisDev->deviceGrab.sync.other = NullGrab;
     }
-    /* XXX: other should only work on the paired keyboard, not on all other
-       devices
+
+    /*
+        XXX: Direct slave grab won't freeze the paired master device.
+        The correct thing to do would be to freeze all SDs attached to the
+        paired master device.
      */
-    for (dev = inputInfo.devices; dev; dev = dev->next)
+    if (thisDev->isMaster)
     {
-	if (dev != thisDev)
-	{
-	    if (otherMode == GrabModeSync)
-		dev->deviceGrab.sync.other = grab;
-	    else
-	    {	/* free both if same client owns both */
-		if (dev->deviceGrab.sync.other &&
-		    (CLIENT_BITS(dev->deviceGrab.sync.other->resource) ==
-		     CLIENT_BITS(grab->resource)))
-		    dev->deviceGrab.sync.other = NullGrab;
-	    }
-	}
+        dev = GetPairedDevice(thisDev);
+        if (otherMode == GrabModeSync)
+            dev->deviceGrab.sync.other = grab;
+        else
+        {	/* free both if same client owns both */
+            if (dev->deviceGrab.sync.other &&
+                    (CLIENT_BITS(dev->deviceGrab.sync.other->resource) ==
+                     CLIENT_BITS(grab->resource)))
+                dev->deviceGrab.sync.other = NullGrab;
+        }
     }
     ComputeFreezes();
 }
