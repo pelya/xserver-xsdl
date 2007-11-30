@@ -3572,7 +3572,6 @@ CloseDownClient(ClientPtr client)
 	ReleaseActiveGrabs(client);
 	DeleteClientFontStuff(client);
         ACUnregisterClient(client);
-        UnregisterPairingClient(client); /* other clients can pair devices */
 	if (!really_close_down)
 	{
 	    /*  This frees resources that should never be retained

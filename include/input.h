@@ -475,7 +475,6 @@ extern int AttachDevice(ClientPtr client,
 extern DeviceIntPtr GetPairedDevice(DeviceIntPtr kbd);
 
 extern Bool RegisterPairingClient(ClientPtr client);
-extern Bool UnregisterPairingClient(ClientPtr client);
 
 extern DeviceIntPtr GuessFreePointerDevice(void);
 extern DeviceIntPtr NextFreePointerDevice(void);

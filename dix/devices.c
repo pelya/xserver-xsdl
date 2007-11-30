@@ -2371,11 +2371,6 @@ PairDevices(ClientPtr client, DeviceIntPtr ptr, DeviceIntPtr kbd)
     if (ptr->spriteInfo->paired)
         return BadDevice;
 
-    if (!pairingClient)
-        RegisterPairingClient(client);
-    else if (client && pairingClient != client)
-        return BadAccess;
-
     if (kbd->spriteInfo->spriteOwner)
     {
         xfree(kbd->spriteInfo->sprite);
@@ -2408,11 +2403,6 @@ AttachDevice(ClientPtr client, DeviceIntPtr dev, DeviceIntPtr master)
 
     if (master && !master->isMaster) /* can't attach to slaves */
         return BadDevice;
-
-    if (!pairingClient)
-        RegisterPairingClient(client);
-    else if (client && pairingClient != client)
-        return BadAccess;
 
     /* set from floating to floating? */
     if (!dev->u.master && !master)
@@ -2493,39 +2483,6 @@ GetPairedDevice(DeviceIntPtr dev)
         return NULL;
 
     return dev->spriteInfo->paired;
-}
-
-/*
- * Register a client to be able to pair devices.
- */
-Bool
-RegisterPairingClient(ClientPtr client)
-{
-    if (!pairingClient)
-    {
-        pairingClient = client;
-    } else if (pairingClient != client)
-    {
-        return False;
-    }
-    return True;
-}
-
-/*
- * Unregister pairing client;
- */
-Bool
-UnregisterPairingClient(ClientPtr client)
-{
-    if (pairingClient)
-    {
-        if ( pairingClient == client)
-        {
-            pairingClient = NULL;
-        } else
-            return False;
-    }
-    return True;
 }
 
 /* Guess a pointer that could be a good one for pairing. Any pointer that is
