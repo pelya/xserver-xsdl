@@ -244,7 +244,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 	    other->valuator->motionHintWindow = NullWindow;
 	b->buttonsDown++;
 	b->motionMask = DeviceButtonMotionMask;
-	xE->u.u.detail = b->map[key];
+	xE->u.u.detail = key;
 	if (xE->u.u.detail == 0)
 	    return;
 	if (xE->u.u.detail <= 5)
@@ -266,7 +266,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr other, int count)
 	    other->valuator->motionHintWindow = NullWindow;
         if (b->buttonsDown >= 1 && !--b->buttonsDown)
 	    b->motionMask = 0;
-	xE->u.u.detail = b->map[key];
+	xE->u.u.detail = key;
 	if (xE->u.u.detail == 0)
 	    return;
 	if (xE->u.u.detail <= 5)
