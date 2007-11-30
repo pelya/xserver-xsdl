@@ -572,9 +572,6 @@ InitCoreDevices(void)
     if (!AllocateDevicePrivate(inputInfo.pointer, CoreDevicePrivatesIndex))
         FatalError("Couldn't allocate pointer devPrivates\n");
     inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr = NULL;
-
-    ActivateDevice(inputInfo.keyboard);
-    ActivateDevice(inputInfo.pointer);
 }
 
 /**
