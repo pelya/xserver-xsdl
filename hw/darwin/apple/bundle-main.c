@@ -70,9 +70,8 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xauth.h>
-#ifdef USE_XCB
 #include <xcb/xcb.h>
-#endif
+
 #include <CoreFoundation/CoreFoundation.h>
 #include <SystemConfiguration/SystemConfiguration.h>
 
@@ -597,25 +596,28 @@ static Boolean
 display_exists_p (int number)
 {
     char buf[64];
-#ifdef USE_XCB
     xcb_connection_t *conn;
-#endif
-
+    char *fullname = NULL;
+    int idisplay, iscreen;
+    char *conn_auth_name, *conn_auth_data;
+    int conn_auth_namelen, conn_auth_datalen;
+    
+    //    extern void *_X11TransConnectDisplay ();
+    //    extern void _XDisconnectDisplay ();
+	
     /* Since connecting to the display waits for a few seconds if the
 	 display doesn't exist, check for trivial non-existence - if the
 	 socket in /tmp exists or not.. (note: if the socket exists, the
 	 server may still not, so we need to try to connect in that case..) */
 	
     sprintf (buf, "/tmp/.X11-unix/X%d", number);
-    if (access (buf, F_OK) != 0) return FALSE;
-
-#ifdef USE_XCB
+    if (access (buf, F_OK) != 0)
+		return FALSE;
+	
     sprintf (buf, ":%d", number);
-    conn = xcb_connect(buf, NULL);
-    if (conn == NULL) return FALSE;
+    if (xcb_connection_has_error(conn)) return FALSE;
+	
     xcb_disconnect(conn);
-#endif
-
     return TRUE;
 }
 
