@@ -145,13 +145,6 @@ _X_EXPORT int screenIsSaved = SCREEN_SAVER_OFF;
 
 _X_EXPORT ScreenSaverStuffRec savedScreenInfo[MAXSCREENS];
 
-#if 0
-extern void DeleteWindowFromAnyEvents();
-extern Mask EventMaskForClient();
-extern void WindowHasNewCursor();
-extern void RecalculateDeliverableEvents();
-#endif
-
 static Bool TileScreenSaver(int i, int kind);
 
 

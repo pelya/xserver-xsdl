@@ -57,9 +57,8 @@ SOFTWARE.
 #include <dix-config.h>
 #endif
 
-#if 0
-#define DEBUG_COMMUNICATION
-#endif
+#undef DEBUG_COMMUNICATION
+
 #ifdef WIN32
 #include <X11/Xwinsock.h>
 #endif

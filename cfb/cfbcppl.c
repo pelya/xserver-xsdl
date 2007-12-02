@@ -42,9 +42,7 @@ in this Software without prior written authorization from The Open Group.
 #include "maskbits.h"
 #define PSZ 8
 #include "mergerop.h"
-#else /* PSZ==8 */
-#include "cfbtab.h" /* provides starttab, endttab, partmasks */
-#endif /* PSZ==8 */
+#endif
 
 
 void

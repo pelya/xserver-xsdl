@@ -389,25 +389,6 @@ XpCloseScreen(int index, ScreenPtr pScreen)
     return (*CloseScreen)(index, pScreen);
 }
 
-#if 0 /* NOT USED */
-static void
-FreeScreenEntry(XpScreenPtr pScreenEntry)
-{
-    XpDriverPtr pDriver;
-
-    pDriver = pScreenEntry->drivers; 
-    while(pDriver != (XpDriverPtr)NULL)
-    {
-	XpDriverPtr tmp;
-
-	tmp = pDriver->next;
-	xfree(pDriver);
-	pDriver = tmp;
-    }
-    xfree(pScreenEntry);
-}
-#endif
-
 /*
  * XpRegisterInitFunc tells the print extension which screens
  * are printers as opposed to displays, and what drivers are

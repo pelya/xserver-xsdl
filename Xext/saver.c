@@ -61,9 +61,6 @@ in this Software without prior written authorization from the X Consortium.
 
 #include "modinit.h"
 
-#if 0
-static unsigned char ScreenSaverReqCode = 0;
-#endif
 static int ScreenSaverEventBase = 0;
 
 static DISPATCH_PROC(ProcScreenSaverQueryInfo);
@@ -272,9 +269,6 @@ ScreenSaverExtensionInit(INITARGS)
 				 ProcScreenSaverDispatch, SProcScreenSaverDispatch,
 				 ScreenSaverResetProc, StandardMinorOpcode)))
     {
-#if 0
-	ScreenSaverReqCode = (unsigned char)extEntry->base;
-#endif
 	ScreenSaverEventBase = extEntry->eventBase;
 	EventSwapVector[ScreenSaverEventBase] = (EventSwapPtr) SScreenSaverNotifyEvent;
     }

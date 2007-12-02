@@ -54,10 +54,6 @@ from The Open Group.
 
 #include "modinit.h"
 
-#if 0
-static unsigned char XTestReqCode;
-#endif
-
 #ifdef XINPUT
 extern int DeviceValuator;
 #endif /* XINPUT */
@@ -89,18 +85,9 @@ static DISPATCH_PROC(SProcXTestGrabControl);
 void
 XTestExtensionInit(INITARGS)
 {
-#if 0
-    ExtensionEntry *extEntry;
-
-    if ((extEntry = AddExtension(XTestExtensionName, 0, 0,
-				 ProcXTestDispatch, SProcXTestDispatch,
-				 XTestResetProc, StandardMinorOpcode)) != 0)
-	XTestReqCode = (unsigned char)extEntry->base;
-#else
     (void) AddExtension(XTestExtensionName, 0, 0,
 			ProcXTestDispatch, SProcXTestDispatch,
 			XTestResetProc, StandardMinorOpcode);
-#endif
 }
 
 /*ARGSUSED*/

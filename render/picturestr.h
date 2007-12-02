@@ -504,12 +504,6 @@ SetPictureToDefaults (PicturePtr pPicture);
 PicturePtr
 AllocatePicture (ScreenPtr  pScreen);
 
-#if 0
-Bool
-miPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats);
-#endif
-
-
 PicturePtr
 CreatePicture (Picture		pid,
 	       DrawablePtr	pDrawable,

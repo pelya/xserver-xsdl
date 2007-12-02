@@ -163,26 +163,6 @@ DbeAllocWinPriv(ScreenPtr pScreen)
 
 /******************************************************************************
  *
- * DBE DIX Procedure: DbeFallbackAllocWinPriv
- *
- * Description:
- *
- *     This is a fallback function for AllocWinPriv().
- *
- *****************************************************************************/
-
-#if 0 /* NOT USED */
-static DbeWindowPrivPtr
-DbeFallbackAllocWinPriv(pScreen)
-    ScreenPtr	pScreen;
-{
-    return (NULL);
-} /* DbeFallbackAllocWinPriv() */
-#endif
-
-
-/******************************************************************************
- *
  * DBE DIX Procedure: DbeAllocWinPrivPrivIndex
  *
  * Description:

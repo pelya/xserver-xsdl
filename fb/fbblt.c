@@ -825,9 +825,6 @@ fbBltOdd24 (FbBits	*srcLine,
 	    even = TRUE;
 	}
     }
-#if 0
-    fprintf (stderr, "\n");
-#endif
 }
 #endif
 
