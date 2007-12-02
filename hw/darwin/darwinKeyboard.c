@@ -518,8 +518,8 @@ Bool DarwinParseNXKeyMapping(
                                 (left ? XK_Control_L : XK_Control_R);
                         break;
                     case NX_MODIFIERKEY_ALTERNATE:
-                        info->keyMap[keyCode * GLYPHS_PER_KEY] =
-                                (left ? XK_Alt_L : XK_Alt_R);
+                        info->keyMap[keyCode * GLYPHS_PER_KEY] = XK_Mode_switch;
+                                // (left ? XK_Alt_L : XK_Alt_R);
                         break;
                     case NX_MODIFIERKEY_COMMAND:
                         info->keyMap[keyCode * GLYPHS_PER_KEY] =
@@ -709,6 +709,11 @@ DarwinBuildModifierMaps(darwinKeyboardInfo *info) {
                 break;
 
             case XK_Mode_switch:
+                // Yes, this is ugly.  This needs to be cleaned up when we integrate quartzKeyboard with this code and refactor.
+#ifdef NX_MODIFIERKEY_RALTERNATE
+                info->modifierKeycodes[NX_MODIFIERKEY_RALTERNATE][0] = i;
+#endif
+                info->modifierKeycodes[NX_MODIFIERKEY_ALTERNATE][0] = i;
                 info->modMap[MIN_KEYCODE + i] = Mod1Mask;
                 break;
 

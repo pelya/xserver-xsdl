@@ -44,8 +44,6 @@
 #include "X11/keysym.h"
 #include "keysym2ucs.h"
 
-#ifdef HAS_KL_API
-
 #define HACK_MISSING 1
 #define HACK_KEYPAD 1
 
@@ -68,11 +66,11 @@ const static struct {
     {55,  XK_Meta_L},
     {56,  XK_Shift_L},
     {57,  XK_Caps_Lock},
-    {58,  XK_Alt_L},
+    {58,  XK_Mode_switch},
     {59,  XK_Control_L},
 
     {60,  XK_Shift_R},
-    {61,  XK_Alt_R},
+    {61,  XK_Mode_switch},
     {62,  XK_Control_R},
     {63,  XK_Meta_R},
 
@@ -332,19 +330,3 @@ DarwinModeReadSystemKeymap (darwinKeyboardInfo *info)
     
     return TRUE;
 }
-
-#else /* !HAS_KL_API */
-
-unsigned int
-DarwinModeSystemKeymapSeed (void)
-{
-    return 0;
-}
-
-Bool
-DarwinModeReadSystemKeymap (darwinKeyboardInfo *info)
-{
-    return FALSE;
-}
-
-#endif /* HAS_KL_API */
