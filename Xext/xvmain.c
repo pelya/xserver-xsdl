@@ -102,8 +102,8 @@ SOFTWARE.
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
-#include "xvdisp.h"
 #endif
+#include "xvdisp.h"
 
 int  XvScreenIndex = -1;
 unsigned long XvExtensionGeneration = 0;
@@ -326,12 +326,12 @@ XvCloseScreen(
   pScreen->devPrivates[XvScreenIndex].ptr = (pointer)NULL;
 
   return (*pScreen->CloseScreen)(ii, pScreen);
-
 }
 
 static void
 XvResetProc(ExtensionEntry* extEntry)
 {
+    XvResetProcVector();
 }
 
 _X_EXPORT int
