@@ -613,8 +613,9 @@ display_exists_p (int number)
     sprintf (buf, "/tmp/.X11-unix/X%d", number);
     if (access (buf, F_OK) != 0)
 		return FALSE;
-	
+    
     sprintf (buf, ":%d", number);
+    conn = xcb_connect(buf, NULL);
     if (xcb_connection_has_error(conn)) return FALSE;
 	
     xcb_disconnect(conn);
