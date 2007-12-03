@@ -34,7 +34,6 @@ liblinux_la_SOURCES = lnx_init.c lnx_video.c lnx_mouse.c \
                      $(srcdir)/../shared/vidmem.c \
 		     $(srcdir)/../shared/sigio.c \
                      $(srcdir)/../shared/stdResource.c \
-		     $(srcdir)/../shared/libc_wrapper.c \
                      $(ACPI_SRCS) \
                      $(APM_SRCS) \
                      $(PLATFORM_PCI_SUPPORT)

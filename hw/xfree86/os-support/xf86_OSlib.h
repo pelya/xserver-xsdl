@@ -76,21 +76,6 @@
 #include <X11/Xos.h>
 #include <X11/Xfuncproto.h>
 
-/*
- * Define some things from the "ANSI" C wrappers that are needed in the
- * the core server.
- */
-#ifndef HAVE_WRAPPER_DECLS
-#define HAVE_WRAPPER_DECLS
-#undef usleep
-#define usleep(a) xf86usleep(a)
-extern void xf86usleep(unsigned long);
-extern int xf86getpagesize(void);
-extern int xf86GetErrno(void);  
-typedef unsigned long xf86size_t;
-typedef signed long xf86ssize_t;
-#endif
-
 #include <stdio.h>
 #include <ctype.h>
 #include <stddef.h>

@@ -54,7 +54,6 @@ AM_CFLAGS = -DUSESTDRES $(XORG_CFLAGS) $(DIX_CFLAGS)
 INCLUDES = $(XORG_INCS)
 
 libbsd_la_SOURCES = \
-	$(srcdir)/../shared/libc_wrapper.c \
 	$(srcdir)/../shared/posix_tty.c \
 	$(srcdir)/../shared/sigio.c \
 	$(srcdir)/../shared/vidmem.c \

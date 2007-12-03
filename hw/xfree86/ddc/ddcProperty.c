@@ -31,7 +31,6 @@
 #include "property.h"
 #include "propertyst.h"
 #include "xf86DDC.h"
-#include "xf86_ansic.h"
 
 #define EDID1_ATOM_NAME         "XFree86_DDC_EDID1_RAWDATA"
 #define EDID2_ATOM_NAME         "XFree86_DDC_EDID2_RAWDATA"
