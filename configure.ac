@@ -1077,6 +1077,11 @@ CORE_INCS='-I$(top_srcdir)/include -I$(top_builddir)/include'
 PKG_CHECK_MODULES([XSERVERCFLAGS], [$REQUIRED_MODULES $REQUIRED_LIBS])
 PKG_CHECK_MODULES([XSERVERLIBS], [$REQUIRED_LIBS])
 
+# OpenSSL used for SHA1 hashing in render/glyph.c, but we don't need all of
+# the OpenSSL libraries, just libcrypto
+PKG_CHECK_MODULES([OPENSSL], [openssl], [OPENSSL_LIB_FLAGS=`$PKG_CONFIG --libs-only-L --libs-only-other openssl`])
+LIBCRYPTO="$OPENSSL_LIB_FLAGS -lcrypto"
+
 # Autotools has some unfortunate issues with library handling.  In order to
 # get a server to rebuild when a dependency in the tree is changed, it must
 # be listed in SERVERNAME_DEPENDENCIES.  However, no system libraries may be
@@ -1092,9 +1097,9 @@ PKG_CHECK_MODULES([XSERVERLIBS], [$REQUIRED_LIBS])
 # XSERVER_SYS_LIBS is the set of out-of-tree libraries which all servers
 # require.
 #
-XSERVER_CFLAGS="${XSERVERCFLAGS_CFLAGS}"
+XSERVER_CFLAGS="${XSERVERCFLAGS_CFLAGS} ${OPENSSL_CFLAGS}"
 XSERVER_LIBS="$DIX_LIB $CONFIG_LIB $MI_LIB $OS_LIB"
-XSERVER_SYS_LIBS="${XSERVERLIBS_LIBS} ${SYS_LIBS} ${LIBS} -lcrypto"
+XSERVER_SYS_LIBS="${XSERVERLIBS_LIBS} ${SYS_LIBS} ${LIBS} ${LIBCRYPTO}"
 AC_SUBST([XSERVER_LIBS])
 AC_SUBST([XSERVER_SYS_LIBS])
 
