@@ -23,8 +23,8 @@ BUSSOURCES = xf86isaBus.c xf86pciBus.c xf86fbBus.c xf86noBus.c $(SBUS_SOURCES)
 
 MODEDEFSOURCES = $(srcdir)/vesamodes $(srcdir)/extramodes
 
-xf86DefModeSet.c: $(srcdir)/modeline2c.pl $(MODEDEFSOURCES)
-	cat $(MODEDEFSOURCES) | $(PERL) $(srcdir)/modeline2c.pl > $@
+xf86DefModeSet.c: $(srcdir)/modeline2c.awk $(MODEDEFSOURCES)
+	cat $(MODEDEFSOURCES) | $(AWK) -f $(srcdir)/modeline2c.awk > $@
 
 BUILT_SOURCES = xf86DefModeSet.c
 
