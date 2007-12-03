@@ -104,19 +104,14 @@ xf86DoEDID_DDC1(
 }
 
 static I2CDevPtr
-DDC2Init(int scrnIndex, I2CBusPtr pBus)
+DDC2MakeDevice(I2CBusPtr pBus, int address, char *name)
 {
     I2CDevPtr dev = NULL;
-    /*
-     * Slow down the bus so that older monitors don't 
-     * miss things.
-     */
-    pBus->RiseFallTime = 20;
-    
-    if (!(dev = xf86I2CFindDev(pBus, 0x00A0))) {
+
+    if (!(dev = xf86I2CFindDev(pBus, address))) {
 	dev = xf86CreateI2CDevRec();
-	dev->DevName = "ddc2";
-	dev->SlaveAddr = 0xA0;
+	dev->DevName = name;
+	dev->SlaveAddr = address;
 	dev->ByteTimeout = 2200; /* VESA DDC spec 3 p. 43 (+10 %) */
 	dev->StartTimeout = 550;
 	dev->BitTimeout = 40;
@@ -132,33 +127,70 @@ DDC2Init(int scrnIndex, I2CBusPtr pBus)
     return dev;
 }
 
-static unsigned char *
-DDC2Read(I2CDevPtr dev, int start, int len)
+static I2CDevPtr
+DDC2Init(int scrnIndex, I2CBusPtr pBus)
 {
-    unsigned char W_Buffer[2];
-    int w_bytes;
-    unsigned char *R_Buffer;
-    int i;
-    
-    if (start < 0x100) {
-	w_bytes = 1;
-	W_Buffer[0] = start;
-    } else {
-	w_bytes = 2;
-	W_Buffer[0] = start & 0xFF;
-	W_Buffer[1] = (start & 0xFF00) >> 8;
-    }
+    I2CDevPtr dev = NULL;
 
-    R_Buffer = xcalloc(sizeof(unsigned char), len);
+    /*
+     * Slow down the bus so that older monitors don't 
+     * miss things.
+     */
+    pBus->RiseFallTime = 20;
+ 
+    DDC2MakeDevice(pBus, 0x0060, "E-EDID segment register");
+    dev = DDC2MakeDevice(pBus, 0x00A0, "ddc2");
+
+    return dev;
+}
+
+/* Mmmm, smell the hacks */
+static void
+EEDIDStop(I2CDevPtr d)
+{
+}
+
+/* block is the EDID block number.  a segment is two blocks. */
+static Bool
+DDC2Read(I2CDevPtr dev, int block, unsigned char *R_Buffer)
+{
+    unsigned char W_Buffer[1];
+    int i, segment;
+    I2CDevPtr seg;
+    void (*stop)(I2CDevPtr);
+
     for (i = 0; i < RETRIES; i++) {
-	if (xf86I2CWriteRead(dev, W_Buffer, w_bytes, R_Buffer, len)) {
-	    if (!DDC_checksum(R_Buffer, len))
-		return R_Buffer;
+	/* Stop bits reset the segment pointer to 0, so be careful here. */
+	segment = block >> 1;
+	if (segment) {
+	    Bool b;
+	    
+	    if (!(seg = xf86I2CFindDev(dev->pI2CBus, 0x0060)))
+		return FALSE;
+
+	    W_Buffer[0] = segment;
+
+	    stop = dev->pI2CBus->I2CStop;
+	    dev->pI2CBus->I2CStop = EEDIDStop;
+
+	    b = xf86I2CWriteRead(seg, W_Buffer, 1, NULL, 0);
+
+	    dev->pI2CBus->I2CStop = stop;
+	    if (!b) {
+		dev->pI2CBus->I2CStop(dev);
+		continue;
+	    }
+	}
+
+	W_Buffer[0] = (block & 0x01) * EDID1_LEN;
+
+	if (xf86I2CWriteRead(dev, W_Buffer, 1, R_Buffer, EDID1_LEN)) {
+	    if (!DDC_checksum(R_Buffer, EDID1_LEN))
+		return TRUE;
 	}
     }
  
-    xfree(R_Buffer);
-    return NULL;
+    return FALSE;
 }
 
 /**
@@ -189,7 +221,9 @@ xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, int *nblocks)
     Bool noddc = FALSE, noddc2 = FALSE;
     OptionInfoPtr options;
 
-    options = xnfalloc(sizeof(DDCOptions));
+    options = xalloc(sizeof(DDCOptions));
+    if (!options)
+	return NULL;
     memcpy(options, DDCOptions, sizeof(DDCOptions));
     xf86ProcessOptions(pScrn->scrnIndex, pScrn->options, options);
 
@@ -203,10 +237,13 @@ xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, int *nblocks)
     if (!(dev = DDC2Init(scrnIndex, pBus)))
 	return NULL;
 
-    EDID_block = DDC2Read(dev, 0, EDID1_LEN);
+    EDID_block = xcalloc(1, EDID1_LEN);
+    if (!EDID_block)
+	return NULL;
 
-    if (EDID_block)
+    if (DDC2Read(dev, 0, EDID_block)) {
 	tmp = xf86InterpretEDID(scrnIndex, EDID_block);
+    }
 
     if (nblocks) {
 	if (tmp)
