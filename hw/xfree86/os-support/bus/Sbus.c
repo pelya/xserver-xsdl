@@ -559,7 +559,7 @@ _X_EXPORT pointer
 xf86MapSbusMem(sbusDevicePtr psdp, unsigned long offset, unsigned long size)
 {
     pointer ret;
-    unsigned long pagemask = xf86getpagesize() - 1;
+    unsigned long pagemask = getpagesize() - 1;
     unsigned long off = offset & ~pagemask;
     unsigned long len = ((offset + size + pagemask) & ~pagemask) - off;
 
