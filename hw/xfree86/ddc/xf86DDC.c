@@ -39,13 +39,6 @@ static unsigned int *FetchEDID_DDC1(
     register unsigned int (*)(ScrnInfoPtr)
 );
 
-static unsigned char * DDCRead_DDC2(
-    int scrnIndex,
-    I2CBusPtr pBus, 
-    int start, 
-    int len
-);
-
 typedef enum {
     DDCOPT_NODDC1,
     DDCOPT_NODDC2,
@@ -110,6 +103,64 @@ xf86DoEDID_DDC1(
 	return tmp;
 }
 
+static I2CDevPtr
+DDC2Init(int scrnIndex, I2CBusPtr pBus)
+{
+    I2CDevPtr dev = NULL;
+    /*
+     * Slow down the bus so that older monitors don't 
+     * miss things.
+     */
+    pBus->RiseFallTime = 20;
+    
+    if (!(dev = xf86I2CFindDev(pBus, 0x00A0))) {
+	dev = xf86CreateI2CDevRec();
+	dev->DevName = "ddc2";
+	dev->SlaveAddr = 0xA0;
+	dev->ByteTimeout = 2200; /* VESA DDC spec 3 p. 43 (+10 %) */
+	dev->StartTimeout = 550;
+	dev->BitTimeout = 40;
+	dev->AcknTimeout = 40;
+
+	dev->pI2CBus = pBus;
+	if (!xf86I2CDevInit(dev)) {
+	    xf86DrvMsg(scrnIndex, X_PROBED, "No DDC2 device\n");
+	    return NULL;
+	}
+    }
+
+    return dev;
+}
+
+static unsigned char *
+DDC2Read(I2CDevPtr dev, int start, int len)
+{
+    unsigned char W_Buffer[2];
+    int w_bytes;
+    unsigned char *R_Buffer;
+    int i;
+    
+    if (start < 0x100) {
+	w_bytes = 1;
+	W_Buffer[0] = start;
+    } else {
+	w_bytes = 2;
+	W_Buffer[0] = start & 0xFF;
+	W_Buffer[1] = (start & 0xFF00) >> 8;
+    }
+
+    R_Buffer = xcalloc(sizeof(unsigned char), len);
+    for (i = 0; i < RETRIES; i++) {
+	if (xf86I2CWriteRead(dev, W_Buffer, w_bytes, R_Buffer, len)) {
+	    if (!DDC_checksum(R_Buffer, len))
+		return R_Buffer;
+	}
+    }
+ 
+    xfree(R_Buffer);
+    return NULL;
+}
+
 /**
  * Attempts to probe the monitor for EDID information, if NoDDC and NoDDC2 are
  * unset.  EDID information blocks are interpreted and the results returned in
@@ -133,6 +184,7 @@ xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, int *nblocks)
     ScrnInfoPtr pScrn = xf86Screens[scrnIndex];
     unsigned char *EDID_block = NULL;
     xf86MonPtr tmp = NULL;
+    I2CDevPtr dev = NULL;
     /* Default DDC and DDC2 to enabled. */
     Bool noddc = FALSE, noddc2 = FALSE;
     OptionInfoPtr options;
@@ -144,11 +196,14 @@ xf86DoEEDID(int scrnIndex, I2CBusPtr pBus, int *nblocks)
     xf86GetOptValBool(options, DDCOPT_NODDC, &noddc);
     xf86GetOptValBool(options, DDCOPT_NODDC2, &noddc2);
     xfree(options);
-    
+
     if (noddc || noddc2)
 	return NULL;
 
-    EDID_block = DDCRead_DDC2(scrnIndex, pBus, 0, EDID1_LEN);
+    if (!(dev = DDC2Init(scrnIndex, pBus)))
+	return NULL;
+
+    EDID_block = DDC2Read(dev, 0, EDID1_LEN);
 
     if (EDID_block)
 	tmp = xf86InterpretEDID(scrnIndex, EDID_block);
@@ -246,63 +301,4 @@ FetchEDID_DDC1(register ScrnInfoPtr pScrn,
 	xp++;
     } while(--count);
     return (ptr);
-}
-
-static unsigned char *
-DDCRead_DDC2(int scrnIndex, I2CBusPtr pBus, int start, int len)
-{
-    I2CDevPtr dev;
-    unsigned char W_Buffer[2];
-    int w_bytes;
-    unsigned char *R_Buffer;
-    int i;
-    
-    /*
-     * Slow down the bus so that older monitors don't 
-     * miss things.
-     */
-    pBus->RiseFallTime = 20;
-    
-    if (!(dev = xf86I2CFindDev(pBus, 0x00A0))) {
-	dev = xf86CreateI2CDevRec();
-	dev->DevName = "ddc2";
-	dev->SlaveAddr = 0xA0;
-	dev->ByteTimeout = 2200; /* VESA DDC spec 3 p. 43 (+10 %) */
-	dev->StartTimeout = 550;
-	dev->BitTimeout = 40;
-	dev->AcknTimeout = 40;
-
-	dev->pI2CBus = pBus;
-	if (!xf86I2CDevInit(dev)) {
-	    xf86DrvMsg(scrnIndex, X_PROBED, "No DDC2 device\n");
-	    return NULL;
-	}
-    }
-    if (start < 0x100) {
-	w_bytes = 1;
-	W_Buffer[0] = start;
-    } else {
-	w_bytes = 2;
-	W_Buffer[0] = start & 0xFF;
-	W_Buffer[1] = (start & 0xFF00) >> 8;
-    }
-    R_Buffer = xcalloc(1,sizeof(unsigned char) 
-					* (len));
-    for (i=0; i<RETRIES; i++) {
-	if (xf86I2CWriteRead(dev, W_Buffer,w_bytes, R_Buffer,len)) {
-	    if (!DDC_checksum(R_Buffer,len))
-		return R_Buffer;
-
-#ifdef DEBUG
-	    else ErrorF("Checksum error in EDID block\n");
-#endif
-	}
-#ifdef DEBUG
-	else ErrorF("Error reading EDID block\n");
-#endif
-    }
-    
-    xf86DestroyI2CDevRec(dev,TRUE);
-    xfree(R_Buffer);
-    return NULL;
 }
