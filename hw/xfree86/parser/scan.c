@@ -64,6 +64,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <X11/Xfuncproto.h>
 
 #if !defined(X_NOT_POSIX)
 #if defined(_POSIX_SOURCE)
@@ -939,7 +940,7 @@ StringToToken (char *str, xf86ConfigSymTabRec * tab)
  * Compare two names.  The characters '_', ' ', and '\t' are ignored
  * in the comparison.
  */
-__attribute__((visibility("default"))) int
+_X_EXPORT int
 xf86nameCompare (const char *s1, const char *s2)
 {
 	char c1, c2;

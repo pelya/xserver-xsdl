@@ -63,6 +63,7 @@
 #include "xf86tokens.h"
 #include "Configint.h"
 #include <math.h>
+#include <X11/Xfuncproto.h>
 
 extern LexRec val;
 
@@ -330,7 +331,7 @@ xf86findOption (XF86OptionPtr list, const char *name)
  * returned.  If the option is not found, a NULL is returned.
  */
 
-__attribute__((visibility("default"))) char *
+_X_EXPORT char *
 xf86findOptionValue (XF86OptionPtr list, const char *name)
 {
 	XF86OptionPtr p = xf86findOption (list, name);
