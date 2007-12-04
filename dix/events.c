@@ -237,24 +237,21 @@ static int DontPropagateRefCnts[DNPMCOUNT];
  *     inputInfo.pointer
  *     is the core pointer. Referred to as "virtual core pointer", "VCP",
  *     "core pointer" or inputInfo.pointer. There is exactly one core pointer,
- *     but multiple devices may send core events. The VCP is only used if no
- *     physical device is connected and does not have a visible cursor.
- *     Before the integration of MPX, any core request would operate on the
- *     VCP/VCK. Core events would always come from one of those two. Now both
- *     are only fallback devices if no physical devices are available.
+ *     but multiple devices may send core events. The VCP is the first master
+ *     pointer device and cannot be deleted.
  *
  *     inputInfo.keyboard
  *     is the core keyboard ("virtual core keyboard", "VCK", "core keyboard").
  *     See inputInfo.pointer.
  *
  *     inputInfo.devices
- *     linked list containing all devices BUT NOT INCLUDING VCK and VCP.
+ *     linked list containing all devices including VCP and VCK.
  *
  *     inputInfo.off_devices
  *     Devices that have not been initialized and are thus turned off.
  *
  *     inputInfo.numDevices
- *     Total number of devices (not counting VCP and VCK).
+ *     Total number of devices.
  */
 _X_EXPORT InputInfo inputInfo;
 
