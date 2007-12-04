@@ -6,7 +6,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/miext/rootless
 
 if X11APP
-X11APP_SUBDIRS = apple launcher
+X11APP_SUBDIRS = apple
 endif
 
 SUBDIRS = quartz utils $(X11APP_SUBDIRS)

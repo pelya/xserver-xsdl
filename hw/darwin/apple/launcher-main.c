@@ -35,7 +35,7 @@
 
 #define DEFAULT_APP "/usr/X11/bin/xterm"
 
-int main (int argc, char **argv) {
+int launcher_main (int argc, char **argv) {
   char *command = DEFAULT_APP;
   const char *newargv[7];
   int child;
