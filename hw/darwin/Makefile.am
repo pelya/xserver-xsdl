@@ -9,8 +9,8 @@ if X11APP
 X11APP_SUBDIRS = apple
 endif
 
-SUBDIRS = quartz utils $(X11APP_SUBDIRS)
-DIST_SUBDIRS = quartz utils apple launcher
+SUBDIRS = quartz $(X11APP_SUBDIRS)
+DIST_SUBDIRS = quartz apple
 
 bin_PROGRAMS = Xquartz
 man1_MANS = Xquartz.man
