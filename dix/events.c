@@ -367,8 +367,12 @@ static Mask lastEventMask;
 
 extern int DeviceMotionNotify;
 
+/**
+ * Event filters. One set of filters for each device, but only the first layer
+ * is initialized. The rest is memcpy'd in InitEvents.
+ */
 #define CantBeFiltered NoEventMask
-static Mask filters[128] =
+static Mask filters[MAX_DEVICES][128] = {
 {
 	NoSuchEvent,		       /* 0 */
 	NoSuchEvent,		       /* 1 */
@@ -405,7 +409,7 @@ static Mask filters[128] =
 	ColormapChangeMask,	       /* ColormapNotify */
 	CantBeFiltered,		       /* ClientMessage */
 	CantBeFiltered		       /* MappingNotify */
-};
+}};
 
 
 /**
@@ -787,17 +791,19 @@ XineramaChangeToCursor(DeviceIntPtr pDev, CursorPtr cursor)
 #endif  /* PANORAMIX */
 
 void
-SetMaskForEvent(Mask mask, int event)
+SetMaskForEvent(int deviceid, Mask mask, int event)
 {
     int coretype;
+    if (deviceid < 0 || deviceid > MAX_DEVICES)
+        FatalError("SetMaskForEvent: bogus device id");
     if ((event < LASTEvent) || (event >= 128))
 	FatalError("SetMaskForEvent: bogus event number");
-    filters[event] = mask;
+    filters[deviceid][event] = mask;
 
     /* Need to change the mask for the core events too */
     coretype = XItoCoreType(event);
     if (coretype)
-        filters[coretype] = mask;
+        filters[deviceid][coretype] = mask;
 }
 
 _X_EXPORT void
@@ -2440,7 +2446,7 @@ DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
 {
     Window child = None;
     int type = xE->u.u.type;
-    Mask filter = filters[type];
+    Mask filter = filters[dev->id][type];
     int deliveries = 0;
 
     if (type & EXTENSION_EVENT_BASE)
@@ -2555,7 +2561,9 @@ DeliverEvents(WindowPtr pWin, xEvent *xE, int count,
 
     if (!count)
 	return 0;
-    filter = filters[xE->u.u.type];
+    /* We don't know a device here. However, this should only ever be called
+       for a non-device event so we are safe to use 0*/
+    filter = filters[0][xE->u.u.type];
     if ((filter & SubstructureNotifyMask) && (xE->u.u.type != CreateNotify))
 	xE->u.destroyNotify.event = pWin->drawable.id;
     if (filter != StructureAndSubMask)
@@ -3466,8 +3474,8 @@ CheckPassiveGrabsOnWindow(
 	    FixUpEventFromWindow(device, xE, grab->window, None, TRUE);
 
 	    (void) TryClientEvents(rClient(grab), xE, count,
-				   filters[xE->u.u.type],
-				   filters[xE->u.u.type],  grab);
+				   filters[device->id][xE->u.u.type],
+				   filters[device->id][xE->u.u.type],  grab);
 
 	    if (grabinfo->sync.state == FROZEN_NO_EVENT)
 	    {
@@ -3590,7 +3598,8 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
     FixUpEventFromWindow(pointer, xE, focus, None, FALSE);
     if (xE->u.u.type & EXTENSION_EVENT_BASE)
 	mskidx = keybd->id;
-    (void)DeliverEventsToWindow(keybd, focus, xE, count, filters[xE->u.u.type],
+    (void)DeliverEventsToWindow(keybd, focus, xE, count,
+                                filters[keybd->id][xE->u.u.type],
 				NullGrab, mskidx);
 }
 
@@ -3671,7 +3680,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
                         IsInterferingGrab(rClient(grab), thisDev, xE)))
                 {
                     deliveries = TryClientEvents(rClient(grab), xE, count,
-                            mask, filters[xE->u.u.type], grab);
+                            mask, filters[thisDev->id][xE->u.u.type], grab);
                 }
             }
             if (deliveries && (xE->u.u.type == MotionNotify
@@ -3989,7 +3998,7 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
              */
 	    if (xE->u.u.detail == 0)
 		return;
-	    filters[MotionNotify] = Motion_Filter(butc);
+            filters[mouse->id][Motion_Filter(butc)] = MotionNotify;
 	    if (!grab)
 		if (CheckDeviceGrabs(mouse, xE, 0, count))
 		    return;
@@ -3997,7 +4006,7 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
 	case ButtonRelease:
 	    if (xE->u.u.detail == 0)
 		return;
-	    filters[MotionNotify] = Motion_Filter(butc);
+            filters[mouse->id][Motion_Filter(butc)] = MotionNotify;
 	    if (!butc->state && mouse->deviceGrab.fromPassiveGrab)
 		deactivateGrab = TRUE;
 	    break;
@@ -4350,14 +4359,14 @@ EnterLeaveEvent(
             sendevent = TRUE;
     }
 
-    if ((mask & filters[type]) && sendevent)
+    if ((mask & filters[mouse->id][type]) && sendevent)
     {
         if (grab)
             (void)TryClientEvents(rClient(grab), &event, 1, mask,
-                                  filters[type], grab);
+                                  filters[mouse->id][type], grab);
         else
-            (void)DeliverEventsToWindow(mouse, pWin, &event, 1, filters[type],
-                                        NullGrab, 0);
+            (void)DeliverEventsToWindow(mouse, pWin, &event, 1,
+                                  filters[mouse->id][type], NullGrab, 0);
     }
 
     /* we don't have enough bytes, so we squash flags and mode into
@@ -4372,15 +4381,17 @@ EnterLeaveEvent(
     mskidx = mouse->id;
     inputMasks = wOtherInputMasks(pWin);
     if (inputMasks &&
-       (filters[devEnterLeave->type] & inputMasks->deliverableEvents[mskidx]))
+       (filters[mouse->id][devEnterLeave->type] &
+            inputMasks->deliverableEvents[mskidx]))
     {
         if (devgrab)
             (void)TryClientEvents(rClient(devgrab), (xEvent*)devEnterLeave, 1,
-                                mask, filters[devEnterLeave->type], devgrab);
+                                mask, filters[mouse->id][devEnterLeave->type],
+                                devgrab);
 	else
 	    (void)DeliverEventsToWindow(mouse, pWin, (xEvent*)devEnterLeave,
-                                        1, filters[devEnterLeave->type],
-                                        NullGrab, mouse->id);
+                                   1, filters[mouse->id][devEnterLeave->type],
+                                   NullGrab, mouse->id);
     }
 
     if ((type == EnterNotify) && (mask & KeymapStateMask))
@@ -4579,8 +4590,8 @@ FocusEvent(DeviceIntPtr dev, int type, int mode, int detail, WindowPtr pWin)
         event.u.u.type = type;
         event.u.u.detail = detail;
         event.u.focus.window = pWin->drawable.id;
-        (void)DeliverEventsToWindow(dev, pWin, &event, 1, filters[type], NullGrab,
-                                    0);
+        (void)DeliverEventsToWindow(dev, pWin, &event, 1,
+                                    filters[dev->id][type], NullGrab, 0);
         if ((type == FocusIn) &&
                 ((pWin->eventMask | wOtherEventMasks(pWin)) & KeymapStateMask))
         {
@@ -5528,7 +5539,12 @@ InitEvents(void)
     inputInfo.keyboard = (DeviceIntPtr)NULL;
     inputInfo.pointer = (DeviceIntPtr)NULL;
     lastEventMask = OwnerGrabButtonMask;
-    filters[MotionNotify] = PointerMotionMask;
+    filters[0][PointerMotionMask] = MotionNotify;
+    for (i = 1; i < MAX_DEVICES; i++)
+    {
+        memcpy(&filters[i], filters[0], sizeof(filters[0]));
+    }
+
 #ifdef XEVIE
     xeviewin = NULL;
 #endif

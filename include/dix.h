@@ -345,6 +345,7 @@ extern void SetVendorString(char *string);
 /* events.c */
 
 extern void SetMaskForEvent(
+    int /* deviceid */,
     Mask /* mask */,
     int /* event */);
 

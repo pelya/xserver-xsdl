@@ -550,7 +550,7 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
             return DONT_PROCESS;
         if (b->map[key] <= 5)
 	    b->state |= (Button1Mask >> 1) << b->map[key];
-	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
+	SetMaskForEvent(device->id, Motion_Filter(b), DeviceMotionNotify);
     } else if (xE->u.u.type == DeviceButtonRelease) {
         if (!b)
             return DONT_PROCESS;
@@ -567,7 +567,7 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
             return DONT_PROCESS;
 	if (b->map[key] <= 5)
 	    b->state &= ~((Button1Mask >> 1) << b->map[key]);
-	SetMaskForEvent(Motion_Filter(b), DeviceMotionNotify);
+	SetMaskForEvent(device->id, Motion_Filter(b), DeviceMotionNotify);
     } else if (xE->u.u.type == ProximityIn)
 	device->valuator->mode &= ~OutOfProximity;
     else if (xE->u.u.type == ProximityOut)

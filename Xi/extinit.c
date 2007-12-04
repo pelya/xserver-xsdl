@@ -827,13 +827,16 @@ SetExclusiveAccess(Mask mask)
 static void
 SetMaskForExtEvent(Mask mask, int event)
 {
+    int i;
 
     EventInfo[ExtEventIndex].mask = mask;
     EventInfo[ExtEventIndex++].type = event;
 
     if ((event < LASTEvent) || (event >= 128))
 	FatalError("MaskForExtensionEvent: bogus event number");
-    SetMaskForEvent(mask, event);
+
+    for (i = 0; i < MAX_DEVICES; i++)
+        SetMaskForEvent(i, mask, event);
 }
 
 /************************************************************************
@@ -974,13 +977,16 @@ FixExtensionEvents(ExtensionEntry * extEntry)
 static void
 RestoreExtensionEvents(void)
 {
-    int i;
+    int i, j;
 
     IReqCode = 0;
 
     for (i = 0; i < ExtEventIndex - 1; i++) {
 	if ((EventInfo[i].type >= LASTEvent) && (EventInfo[i].type < 128))
-	    SetMaskForEvent(0, EventInfo[i].type);
+        {
+            for (j = 0; j < MAX_DEVICES; j++)
+                SetMaskForEvent(j, 0, EventInfo[i].type);
+        }
 	EventInfo[i].mask = 0;
 	EventInfo[i].type = 0;
     }
