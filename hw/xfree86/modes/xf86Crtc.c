@@ -2186,7 +2186,7 @@ xf86OutputGetEDID (xf86OutputPtr output, I2CBusPtr pDDCBus)
     xf86MonPtr mon;
 
     mon = xf86DoEDID_DDC2 (scrn->scrnIndex, pDDCBus);
-    xf86DDCApplyQuirks (scrn->scrnIndex, pDDCBus);
+    xf86DDCApplyQuirks (scrn->scrnIndex, mon);
 
     return mon;
 }
