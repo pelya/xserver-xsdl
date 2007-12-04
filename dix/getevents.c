@@ -23,12 +23,6 @@
  *
  * Author: Daniel Stone <daniel@fooishbar.org>
  */
- /*
-  * MPX additions:
-  * Copyright © 2006 Peter Hutterer
-  * Author: Peter Hutterer <peter@cs.unisa.edu.au>
-  *
-  */
 
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
@@ -112,18 +106,18 @@ key_autorepeats(DeviceIntPtr pDev, int key_code)
 }
 
 void
-CreateClassesChangedEvent(EventList* event, 
-                          DeviceIntPtr master, 
+CreateClassesChangedEvent(EventList* event,
+                          DeviceIntPtr master,
                           DeviceIntPtr slave)
 {
-    deviceClassesChangedEvent *dcce; 
+    deviceClassesChangedEvent *dcce;
     int len = sizeof(xEvent);
     CARD32 ms = GetTimeInMillis();
 
     /* XXX: ok, this is a bit weird. We need to alloc enough size for the
      * event so it can be filled in in POE lateron. Reason being that if
      * we realloc the event in POE we can get SIGABRT when we try to free
-     * or realloc the original pointer. 
+     * or realloc the original pointer.
      * We can only do it here as we don't have the EventList in the event
      * processing any more.
      *

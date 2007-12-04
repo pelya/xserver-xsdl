@@ -107,12 +107,6 @@ of the copyright holder.
 
 ******************************************************************/
 
-/*
- * MPX additions
- * Copyright 2006 by Peter Hutterer
- * Author: Peter Hutterer <peter@cs.unisa.edu.au>
- */
-
 /** @file
  * This file handles event delivery and a big part of the server-side protocol
  * handling (the parts for input devices).
@@ -5022,6 +5016,12 @@ ProcGrabPointer(ClientPtr client)
     }
 
     grab = device->deviceGrab.grab;
+    /* check for
+       1. other client has a grab on the device already.
+       2. window is viewable
+       3. other client has this device as frozen "other" device
+       4. times are screwed.
+     */
     if ((grab) && !SameClient(grab, client))
 	rep.status = AlreadyGrabbed;
     else if ((!pWin->realized) ||
