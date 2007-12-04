@@ -371,9 +371,7 @@ extern int lastEvent;
 
 static Mask lastEventMask;
 
-#ifdef XINPUT
 extern int DeviceMotionNotify;
-#endif
 
 #define CantBeFiltered NoEventMask
 static Mask filters[128] =
@@ -2049,7 +2047,6 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
 		pEvents->u.u.detail = NotifyNormal;
 	    }
 	}
-#ifdef XINPUT
 	else
 	{
 	    if ((type == DeviceMotionNotify) &&
@@ -2057,7 +2054,6 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
 			((deviceKeyButtonPointer*)pEvents, mask) != 0)
 		return 1;
 	}
-#endif
 	type &= 0177;
 	if (type != KeymapNotify)
 	{
@@ -2271,7 +2267,6 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
     }
     else if ((type == MotionNotify) && deliveries)
 	pDev->valuator->motionHintWindow = pWin;
-#ifdef XINPUT
     else
     {
 	if (((type == DeviceMotionNotify)
@@ -2283,7 +2278,6 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 					  (deviceKeyButtonPointer*) pEvents,
 					  grab, client, deliveryMask);
     }
-#endif
     if (deliveries)
 	return deliveries;
     return nondeliveries;
@@ -3395,11 +3389,7 @@ CheckPassiveGrabsOnWindow(
 #endif
 	tempGrab.modifierDevice = grab->modifierDevice;
 	if ((device == grab->modifierDevice) &&
-	    ((xE->u.u.type == KeyPress)
-#if defined(XINPUT) && defined(XKB)
-	     || (xE->u.u.type == DeviceKeyPress)
-#endif
-	     ))
+	    ((xE->u.u.type == KeyPress) || (xE->u.u.type == DeviceKeyPress)))
 	    tempGrab.modifiersDetail.exact =
 #ifdef XKB
                 (noXkbExtension) ?
@@ -3537,11 +3527,8 @@ CheckDeviceGrabs(DeviceIntPtr device, xEvent *xE,
     WindowPtr pWin = NULL;
     FocusClassPtr focus = device->focus;
 
-    if (((xE->u.u.type == ButtonPress)
-#if defined(XINPUT) && defined(XKB)
-	 || (xE->u.u.type == DeviceButtonPress)
-#endif
-	 ) && (device->button->buttonsDown != 1))
+    if (((xE->u.u.type == ButtonPress) || (xE->u.u.type == DeviceButtonPress))
+            && (device->button->buttonsDown != 1))
 	return FALSE;
 
     i = checkFirst;
@@ -3694,18 +3681,13 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
                 }
             }
             if (deliveries && (xE->u.u.type == MotionNotify
-#ifdef XINPUT
-                        || xE->u.u.type == DeviceMotionNotify
-#endif
-                        ))
+                        || xE->u.u.type == DeviceMotionNotify))
                 thisDev->valuator->motionHintWindow = grab->window;
         }
     }
-    if (deliveries && !deactivateGrab && (xE->u.u.type != MotionNotify
-#ifdef XINPUT
-					  && xE->u.u.type != DeviceMotionNotify
-#endif
-					  ))
+    if (deliveries && !deactivateGrab &&
+       (xE->u.u.type != MotionNotify && xE->u.u.type != DeviceMotionNotify))
+    {
 	switch (grabinfo->sync.state)
 	{
 	case FREEZE_BOTH_NEXT_EVENT:
@@ -3737,6 +3719,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
 		*dxE = *xE;
 	    break;
 	}
+    }
 }
 
 /**
@@ -6022,9 +6005,8 @@ DeleteWindowFromAnyEvents(WindowPtr pWin, Bool freeResources)
 	while ( (passive = wPassiveGrabs(pWin)) )
 	    FreeResource(passive->resource, RT_NONE);
      }
-#ifdef XINPUT
+
     DeleteWindowFromAnyExtEvents(pWin, freeResources);
-#endif
 }
 
 /**

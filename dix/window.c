@@ -452,7 +452,6 @@ CreateRootWindow(ScreenPtr pScreen)
     pWin->optional->clipShape = NULL;
     pWin->optional->inputShape = NULL;
 #endif
-#ifdef XINPUT
     pWin->optional->inputMasks = NULL;
     pWin->optional->deviceCursors = NULL;
     pWin->optional->geMasks = (GenericClientMasksPtr)xcalloc(1, sizeof(GenericClientMasksRec));
@@ -461,7 +460,6 @@ CreateRootWindow(ScreenPtr pScreen)
         xfree(pWin->optional);
         return FALSE;
     }
-#endif
 
     pWin->optional->access.perm = NULL;
     pWin->optional->access.deny = NULL;
@@ -3690,10 +3688,8 @@ CheckWindowOptionalNeed (WindowPtr w)
     if (optional->inputShape != NULL)
 	return;
 #endif
-#ifdef XINPUT
     if (optional->inputMasks != NULL)
 	return;
-#endif
     if (optional->deviceCursors != NULL)
     {
         DevCursNodePtr pNode = optional->deviceCursors;
@@ -3753,9 +3749,7 @@ MakeWindowOptional (WindowPtr pWin)
     optional->clipShape = NULL;
     optional->inputShape = NULL;
 #endif
-#ifdef XINPUT
     optional->inputMasks = NULL;
-#endif
     optional->deviceCursors = NULL;
 
     optional->geMasks = 
