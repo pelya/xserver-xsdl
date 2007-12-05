@@ -1059,7 +1059,8 @@ CheckConnections(void)
             FD_SET(curclient, &tmask);
             r = Select (curclient + 1, &tmask, NULL, NULL, &notime);
             if (r < 0)
-		CloseDownClient(clients[ConnectionTranslation[curclient]]);
+                if (ConnectionTranslation[curclient] > 0)
+                    CloseDownClient(clients[ConnectionTranslation[curclient]]);
 	    mask &= ~((fd_mask)1 << curoff);
 	}
     }	
