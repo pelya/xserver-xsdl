@@ -2171,8 +2171,8 @@ hw/xgl/glxext/module/Makefile
 hw/xnest/Makefile
 hw/xwin/Makefile
 hw/darwin/Makefile
-hw/darwin/apple/Makefile
 hw/darwin/quartz/Makefile
+hw/darwin/quartz/apple/Makefile
 hw/darwin/quartz/xpr/Makefile
 hw/kdrive/Makefile
 hw/kdrive/ati/Makefile

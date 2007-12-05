@@ -59,8 +59,7 @@ int X11EnableKeyEquivalents = TRUE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
 
 extern int darwinFakeButtons, input_check_flag;
-// extern Bool enable_stereo; 
-Bool enable_stereo;  //<-- this needs to go back to being an extern once glxCGL is fixed
+extern Bool enable_stereo; 
 
 extern xEvent *darwinEvents;
 
