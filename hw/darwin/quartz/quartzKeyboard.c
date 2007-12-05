@@ -40,7 +40,7 @@
 #include <CoreServices/CoreServices.h>
 #include <Carbon/Carbon.h>
 
-#include "darwinKeyboard.h"
+#include "darwinKeyboard_interface.h"
 #include "X11/keysym.h"
 #include "keysym2ucs.h"
 
@@ -146,9 +146,7 @@ const static struct {
     {UKEYSYM (0x31b), XK_dead_horn},		/* COMBINING HORN */
 };
 
-unsigned int
-DarwinModeSystemKeymapSeed (void)
-{
+unsigned int DarwinModeSystemKeymapSeed(void) {
     static unsigned int seed;
     static KeyboardLayoutRef last_key_layout;
     KeyboardLayoutRef key_layout;
@@ -160,9 +158,7 @@ DarwinModeSystemKeymapSeed (void)
     return seed;
 }
 
-static inline UniChar
-macroman2ucs (unsigned char c)
-{
+static inline UniChar macroman2ucs(unsigned char c) {
     /* Precalculated table mapping MacRoman-128 to Unicode. Generated
        by creating single element CFStringRefs then extracting the
        first character. */
@@ -190,9 +186,7 @@ macroman2ucs (unsigned char c)
     else         return table[c - 128];
 }
 
-static KeySym
-make_dead_key (KeySym in)
-{
+static KeySym make_dead_key(KeySym in) {
     int i;
 
     for (i = 0; i < sizeof (dead_keys) / sizeof (dead_keys[0]); i++)
@@ -201,9 +195,7 @@ make_dead_key (KeySym in)
     return in;
 }
 
-Bool
-DarwinModeReadSystemKeymap (darwinKeyboardInfo *info)
-{
+Bool DarwinModeReadSystemKeymap(darwinKeyboardInfo *info) {
     KeyboardLayoutRef key_layout;
     const void *chr_data = NULL;
     int num_keycodes = NUM_KEYCODES;

@@ -24,22 +24,29 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
-#ifndef DARWIN_KEYBOARD_H
-#define DARWIN_KEYBOARD_H 1
+#ifndef DARWIN_KEYBOARD_INTERFACE_H
+#define DARWIN_KEYBOARD_INTERFACE_H 1
 
-#include "darwinKeyboard_interface.h"
+#define XK_TECHNICAL		// needed to get XK_Escape
+#define XK_PUBLISHING
+#include "X11/keysym.h"
+#include "inputstr.h"
 
-/* Provided for darwinEvents.c */
-extern darwinKeyboardInfo keyInfo;
+// Each key can generate 4 glyphs. They are, in order:
+// unshifted, shifted, modeswitch unshifted, modeswitch shifted
+#define GLYPHS_PER_KEY  4
+#define NUM_KEYCODES    248	// NX_NUMKEYCODES might be better
+#define MAX_KEYCODE     NUM_KEYCODES + MIN_KEYCODE - 1
+
+typedef struct darwinKeyboardInfo_struct {
+    CARD8 modMap[MAP_LENGTH];
+    KeySym keyMap[MAP_LENGTH * GLYPHS_PER_KEY];
+    unsigned char modifierKeycodes[32][2];
+} darwinKeyboardInfo;
+
+/* These functions need to be implemented by XQuartz, XDarwin, etc. */
 void DarwinKeyboardReload(DeviceIntPtr pDev);
-void DarwinKeyboardInit(DeviceIntPtr pDev);
-int DarwinModifierNXKeycodeToNXKey(unsigned char keycode, int *outSide);
-int DarwinModifierNXKeyToNXKeycode(int key, int side);
-int DarwinModifierNXKeyToNXMask(int key);
-int DarwinModifierNXMaskToNXKey(int mask);
-int DarwinModifierStringToNXKey(const char *string);
+Bool DarwinModeReadSystemKeymap(darwinKeyboardInfo *info);
+unsigned int DarwinModeSystemKeymapSeed(void);
 
-/* Provided for darwin.c */
-void DarwinKeyboardInit(DeviceIntPtr pDev);
-
-#endif /* DARWIN_KEYBOARD_H */
+#endif /* DARWIN_KEYBOARD_INTERFACE_H */

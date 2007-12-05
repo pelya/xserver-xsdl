@@ -179,7 +179,7 @@ static KeySym const next_to_x[256] = {
 static KeySym const symbol_to_x[] = {
     XK_Left,        XK_Up,          XK_Right,      XK_Down
   };
-int const NUM_SYMBOL = sizeof(symbol_to_x) / sizeof(symbol_to_x[0]);
+static int const NUM_SYMBOL = sizeof(symbol_to_x) / sizeof(symbol_to_x[0]);
 
 #define MIN_FUNCKEY     0x20
 static KeySym const funckey_to_x[] = {
@@ -190,7 +190,7 @@ static KeySym const funckey_to_x[] = {
     XK_Page_Up,     XK_Page_Down,   XK_F13,         XK_F14,
     XK_F15
   };
-int const NUM_FUNCKEY = sizeof(funckey_to_x) / sizeof(funckey_to_x[0]);
+static int const NUM_FUNCKEY = sizeof(funckey_to_x) / sizeof(funckey_to_x[0]);
 
 typedef struct {
     KeySym      normalSym;
@@ -216,7 +216,7 @@ static darwinKeyPad_t const normal_to_keypad[] = {
     { XK_period,    XK_KP_Decimal },
     { XK_slash,     XK_KP_Divide }
 };
-int const NUM_KEYPAD = sizeof(normal_to_keypad) / sizeof(normal_to_keypad[0]);
+static int const NUM_KEYPAD = sizeof(normal_to_keypad) / sizeof(normal_to_keypad[0]);
 
 static void DarwinChangeKeyboardControl( DeviceIntPtr device, KeybdCtrl *ctrl )
 {
@@ -232,35 +232,32 @@ static char *inBuffer = NULL;
 //      Can be configured to treat embedded "numbers" as being composed of
 //      either 1, 2, or 4 bytes, apiece.
 //-----------------------------------------------------------------------------
-typedef struct _DataStream
-{
+typedef struct _DataStream {
     unsigned char const *data;
     unsigned char const *data_end;
     short number_size;  // Size in bytes of a "number" in the stream.
 } DataStream;
 
-static DataStream* new_data_stream( unsigned char const* data, int size )
-{
+static DataStream* new_data_stream(unsigned char const* data, int size) {
     DataStream* s = (DataStream*)xalloc( sizeof(DataStream) );
-    s->data = data;
-    s->data_end = data + size;
-    s->number_size = 1; // Default to byte-sized numbers.
+    if(s) {
+        s->data = data;
+        s->data_end = data + size;
+        s->number_size = 1; // Default to byte-sized numbers.
+    }
     return s;
 }
 
-static void destroy_data_stream( DataStream* s )
-{
+static void destroy_data_stream(DataStream* s) {
     xfree(s);
 }
 
-static unsigned char get_byte( DataStream* s )
-{
+static unsigned char get_byte(DataStream* s) {
     assert(s->data + 1 <= s->data_end);
     return *s->data++;
 }
 
-static short get_word( DataStream* s )
-{
+static short get_word(DataStream* s) {
     short hi, lo;
     assert(s->data + 2 <= s->data_end);
     hi = *s->data++;
@@ -268,8 +265,7 @@ static short get_word( DataStream* s )
     return ((hi << 8) | lo);
 }
 
-static int get_dword( DataStream* s )
-{
+static int get_dword(DataStream* s) {
     int b1, b2, b3, b4;
     assert(s->data + 4 <= s->data_end);
     b4 = *s->data++;
@@ -279,8 +275,7 @@ static int get_dword( DataStream* s )
     return ((b4 << 24) | (b3 << 16) | (b2 << 8) | b1);
 }
 
-static int get_number( DataStream* s )
-{
+static int get_number(DataStream* s) {
     switch (s->number_size) {
         case 4:  return get_dword(s);
         case 2:  return get_word(s);
@@ -296,8 +291,7 @@ static int get_number( DataStream* s )
  * bits_set
  *      Calculate number of bits set in the modifier mask.
  */
-static short bits_set( short mask )
-{
+static short bits_set(short mask) {
     short n = 0;
 
     for ( ; mask != 0; mask >>= 1)
@@ -311,10 +305,7 @@ static short bits_set( short mask )
  *      Read the next character code from the Darwin keymapping
  *      and write it to the X keymap.
  */
-static void parse_next_char_code(
-    DataStream  *s,
-    KeySym      *k )
-{
+static void parse_next_char_code(DataStream *s, KeySym *k) {
     const short charSet = get_number(s);
     const short charCode = get_number(s);
 
@@ -337,9 +328,7 @@ static void parse_next_char_code(
  * DarwinReadKeymapFile
  *      Read the appropriate keymapping from a keymapping file.
  */
-Bool DarwinReadKeymapFile(
-    NXKeyMapping        *keyMap)
-{
+Bool DarwinReadKeymapFile(NXKeyMapping *keyMap) {
     struct stat         st;
     NXEventSystemDevice info[20];
     int                 interface = 0, handler_id = 0;
@@ -448,9 +437,7 @@ Bool DarwinReadKeymapFile(
 /*
  * DarwinParseNXKeyMapping
  */
-Bool DarwinParseNXKeyMapping(
-    darwinKeyboardInfo  *info)
-{
+Bool DarwinParseNXKeyMapping(darwinKeyboardInfo  *info) {
     KeySym              *k;
     int                 i;
     short               numMods, numKeys, numPadKeys = 0;
@@ -649,8 +636,7 @@ Bool DarwinParseNXKeyMapping(
  *      Use the keyMap field of keyboard info structure to populate
  *      the modMap and modifierKeycodes fields.
  */
-static void
-DarwinBuildModifierMaps(darwinKeyboardInfo *info) {
+static void DarwinBuildModifierMaps(darwinKeyboardInfo *info) {
     int i;
     KeySym *k;
 
@@ -743,12 +729,7 @@ DarwinBuildModifierMaps(darwinKeyboardInfo *info) {
  *  Load the keyboard map from a file or system and convert
  *  it to an equivalent X keyboard map and modifier map.
  */
-static void
-DarwinLoadKeyboardMapping(KeySymsRec *keySyms)
-{
-    int i;
-    KeySym *k;
-
+static void DarwinLoadKeyboardMapping(KeySymsRec *keySyms) {
     memset(keyInfo.keyMap, 0, sizeof(keyInfo.keyMap));
 
     /* TODO: Clean this up
@@ -765,6 +746,8 @@ DarwinLoadKeyboardMapping(KeySymsRec *keySyms)
     DarwinBuildModifierMaps(&keyInfo);
 
 #ifdef DUMP_DARWIN_KEYMAP
+    int i;
+    KeySym *k;
     DEBUG_LOG("Darwin -> X converted keyboard map\n");
     for (i = 0, k = keyInfo.keyMap; i < NX_NUMKEYCODES;
          i++, k += GLYPHS_PER_KEY)
@@ -793,9 +776,7 @@ DarwinLoadKeyboardMapping(KeySymsRec *keySyms)
  *      X keyboard map and modifier map. Set the new keyboard
  *      device structure.
  */
-void DarwinKeyboardInit(
-    DeviceIntPtr        pDev )
-{
+void DarwinKeyboardInit(DeviceIntPtr pDev) {
     KeySymsRec          keySyms;
 
     // Open a shared connection to the HID System.
@@ -816,9 +797,7 @@ void DarwinKeyboardInit(
 
 
 /* Borrowed from dix/devices.c */
-static Bool
-InitModMap(register KeyClassPtr keyc)
-{
+static Bool InitModMap(register KeyClassPtr keyc) {
     int i, j;
     CARD8 keysPerModifier[8];
     CARD8 mask;
@@ -863,9 +842,7 @@ InitModMap(register KeyClassPtr keyc)
 }
 
 
-void
-DarwinKeyboardReload(DeviceIntPtr pDev)
-{
+void DarwinKeyboardReload(DeviceIntPtr pDev) {
     KeySymsRec keySyms;
 
     DarwinLoadKeyboardMapping(&keySyms);
@@ -898,8 +875,7 @@ DarwinKeyboardReload(DeviceIntPtr pDev)
  *      side = 0 for left or 1 for right.
  *      Returns 0 if key+side is not a known modifier.
  */
-int DarwinModifierNXKeyToNXKeycode(int key, int side)
-{
+int DarwinModifierNXKeyToNXKeycode(int key, int side) {
     return keyInfo.modifierKeycodes[key][side];
 }
 
@@ -908,8 +884,7 @@ int DarwinModifierNXKeyToNXKeycode(int key, int side)
  *      Returns -1 if keycode+side is not a modifier key
  *      outSide may be NULL, else it gets 0 for left and 1 for right.
  */
-int DarwinModifierNXKeycodeToNXKey(unsigned char keycode, int *outSide)
-{
+int DarwinModifierNXKeycodeToNXKey(unsigned char keycode, int *outSide) {
     int key, side;
 
     keycode += MIN_KEYCODE;
@@ -928,8 +903,7 @@ int DarwinModifierNXKeycodeToNXKey(unsigned char keycode, int *outSide)
  * DarwinModifierNXMaskToNXKey
  *      Returns -1 if mask is not a known modifier mask.
  */
-int DarwinModifierNXMaskToNXKey(int mask)
-{
+int DarwinModifierNXMaskToNXKey(int mask) {
     switch (mask) {
         case NX_ALPHASHIFTMASK:       return NX_MODIFIERKEY_ALPHALOCK;
         case NX_SHIFTMASK:            return NX_MODIFIERKEY_SHIFT;
@@ -959,8 +933,7 @@ int DarwinModifierNXMaskToNXKey(int mask)
     return -1;
 }
 
-const char *DarwinModifierNXMaskTostring(int mask)
-{
+const char *DarwinModifierNXMaskTostring(int mask) {
     switch (mask) {
         case NX_ALPHASHIFTMASK:      return "NX_ALPHASHIFTMASK";
         case NX_SHIFTMASK:           return "NX_SHIFTMASK";
@@ -986,8 +959,7 @@ const char *DarwinModifierNXMaskTostring(int mask)
  * DarwinModifierNXKeyToNXMask
  *      Returns 0 if key is not a known modifier key.
  */
-int DarwinModifierNXKeyToNXMask(int key)
-{
+int DarwinModifierNXKeyToNXMask(int key) {
     switch (key) {
         case NX_MODIFIERKEY_ALPHALOCK:   return NX_ALPHASHIFTMASK;
         case NX_MODIFIERKEY_SHIFT:       return NX_SHIFTMASK;
@@ -1017,8 +989,7 @@ int DarwinModifierNXKeyToNXMask(int key)
  * DarwinModifierStringToNXKey
  *      Returns -1 if string is not a known modifier.
  */
-int DarwinModifierStringToNXKey(const char *str)
-{
+int DarwinModifierStringToNXKey(const char *str) {
     if      (!strcasecmp(str, "shift"))   return NX_MODIFIERKEY_SHIFT;
     else if (!strcasecmp(str, "control")) return NX_MODIFIERKEY_CONTROL;
     else if (!strcasecmp(str, "option"))  return NX_MODIFIERKEY_ALTERNATE;

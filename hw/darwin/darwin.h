@@ -46,7 +46,6 @@ typedef struct {
     int                 bitsPerComponent;
 } DarwinFramebufferRec, *DarwinFramebufferPtr;
 
-
 // From darwin.c
 void DarwinPrintBanner(void);
 int DarwinParseModifierList(const char *constmodifiers);
@@ -62,14 +61,6 @@ void DarwinPokeEQ(void);
 void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y);
 void DarwinSendKeyboardEvents(int ev_type, int keycode);
 void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y);
-
-// From darwinKeyboard.c
-int DarwinModifierNXKeyToNXKeycode(int key, int side);
-void DarwinKeyboardInit(DeviceIntPtr pDev);
-int DarwinModifierNXKeycodeToNXKey(unsigned char keycode, int *outSide);
-int DarwinModifierNXKeyToNXMask(int key);
-int DarwinModifierNXMaskToNXKey(int mask);
-int DarwinModifierStringToNXKey(const char *string);
 
 // Mode specific functions
 Bool DarwinModeAddScreen(int index, ScreenPtr pScreen);
