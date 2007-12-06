@@ -87,7 +87,6 @@ EXTRA_DIST = \
 	xf86Date.h \
 	xf86DefModes.c \
 	$(MODEDEFSOURCES) \
-	modeline2c.pl \
         $(DISTKBDSOURCES)
 
 if LNXACPI
