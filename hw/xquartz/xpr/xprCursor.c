@@ -33,7 +33,7 @@
 #include <dix-config.h>
 #endif
 
-#include "quartz/quartzCommon.h"
+#include "quartzCommon.h"
 #include "xpr.h"
 #include "darwin.h"
 #include "Xplugin.h"

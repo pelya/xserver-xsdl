@@ -24,8 +24,8 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
-#ifndef DARWIN_KEYBOARD_INTERFACE_H
-#define DARWIN_KEYBOARD_INTERFACE_H 1
+#ifndef QUARTZ_KEYBOARD_H
+#define QUARTZ_KEYBOARD_H 1
 
 #define XK_TECHNICAL		// needed to get XK_Escape
 #define XK_PUBLISHING
@@ -49,4 +49,4 @@ void DarwinKeyboardReload(DeviceIntPtr pDev);
 Bool DarwinModeReadSystemKeymap(darwinKeyboardInfo *info);
 unsigned int DarwinModeSystemKeymapSeed(void);
 
-#endif /* DARWIN_KEYBOARD_INTERFACE_H */
+#endif /* QUARTZ_KEYBOARD_H */

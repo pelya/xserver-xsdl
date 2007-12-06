@@ -40,7 +40,7 @@
 #include <CoreServices/CoreServices.h>
 #include <Carbon/Carbon.h>
 
-#include "darwinKeyboard_interface.h"
+#include "quartzKeyboard.h"
 #include "X11/keysym.h"
 #include "keysym2ucs.h"
 

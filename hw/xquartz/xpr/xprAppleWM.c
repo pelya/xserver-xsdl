@@ -32,7 +32,7 @@
 #endif
 
 #include "xpr.h"
-#include "quartz/applewmExt.h"
+#include "applewmExt.h"
 #include "rootless.h"
 #include "Xplugin.h"
 #include <X11/X.h>

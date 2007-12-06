@@ -27,7 +27,7 @@
 #ifndef DARWIN_KEYBOARD_H
 #define DARWIN_KEYBOARD_H 1
 
-#include "darwinKeyboard_interface.h"
+#include "quartzKeyboard.h"
 
 /* Provided for darwinEvents.c */
 extern darwinKeyboardInfo keyInfo;

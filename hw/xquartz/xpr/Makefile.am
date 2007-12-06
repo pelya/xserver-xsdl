@@ -5,7 +5,7 @@ man1_MANS = Xquartz.man
 
 AM_CFLAGS =  $(XSERVER_CFLAGS) $(DIX_CFLAGS)
 AM_CPPFLAGS = \
-	-I$(srcdir) -I$(srcdir)/.. -I$(srcdir)/../.. \
+	-I$(srcdir) -I$(srcdir)/.. \
 	-I$(top_srcdir)/miext \
 	-I$(top_srcdir)/miext/rootless \
 	-I$(top_srcdir)/miext/rootless/safeAlpha
@@ -22,8 +22,7 @@ Xquartz_SOURCES = \
 	x-list.c
 
 Xquartz_LDADD = \
-	$(top_builddir)/hw/darwin/quartz/libXquartz.la \
-	$(top_builddir)/hw/darwin/libXdarwin.la \
+	$(top_builddir)/hw/xquartz/libXquartz.la \
 	$(top_builddir)/dix/dixfonts.lo \
 	$(top_builddir)/dix/libdix.la \
 	$(top_builddir)/os/libos.la \

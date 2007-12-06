@@ -31,17 +31,17 @@
 #include <dix-config.h>
 #endif
 
-#include "quartz/quartzCommon.h"
-#include "quartz/quartz.h"
+#include "quartzCommon.h"
+#include "quartz.h"
 #include "xpr.h"
-#include "quartz/pseudoramiX.h"
+#include "pseudoramiX.h"
 #include "darwin.h"
 #include "rootless.h"
 #include "safeAlpha/safeAlpha.h"
 #include "dri.h"
 #include "globals.h"
 #include "Xplugin.h"
-#include "quartz/applewmExt.h"
+#include "applewmExt.h"
 
 // From xprFrame.c
 WindowPtr xprGetXWindow(xp_window_id wid);

@@ -1,24 +1,29 @@
-noinst_LTLIBRARIES = libXQuartz.la
-
+noinst_LTLIBRARIES = libXquartz.la
 AM_CFLAGS = $(XSERVER_CFLAGS) $(DIX_CFLAGS)
-AM_OBJCFLAGS = $(XSERVER_CFLAGS) $(DIX_CFLAGS)
-
-# TODO: This should not pull in rootless... rootless should all be in xpr
 AM_CPPFLAGS = \
-	-I$(srcdir) -I$(srcdir)/.. \
+	-DBUILD_DATE=\"$(BUILD_DATE)\" \
+	-DINXQUARTZ \
+	-DUSE_NEW_CLUT \
+	-DXFree86Server \
 	-I$(top_srcdir)/miext/rootless
 
 if X11APP
-X11APP_SUBDIRS = apple
+X11APP_SUBDIRS = bundle
 endif
 
 SUBDIRS = . xpr $(X11APP_SUBDIRS)
-DIST_SUBDIRS = xpr apple
+DIST_SUBDIRS = xpr bundle
 
-libXQuartz_la_SOURCES = \
+libXquartz_la_SOURCES = \
+	$(top_srcdir)/fb/fbcmap.c \
+	$(top_srcdir)/mi/miinitext.c \
 	X11Application.m \
 	X11Controller.m \
 	applewm.c \
+	darwin.c \
+	darwinEvents.c \
+	darwinKeyboard.c \
+	darwinXinput.c \
 	keysym2ucs.c \
 	pseudoramiX.c \
 	quartz.c \
@@ -32,6 +37,9 @@ EXTRA_DIST = \
 	X11Application.h \
 	X11Controller.h \
 	applewmExt.h \
+	darwinClut8.h \
+	darwin.h \
+	darwinKeyboard.h \
 	keysym2ucs.h \
 	pseudoramiX.h \
 	quartzAudio.h \
