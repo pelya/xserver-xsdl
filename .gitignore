@@ -9,6 +9,8 @@ Makefile.in
 *.o
 *~
 .*.swp
+*.pbxuser
+*.mode1v3
 obj*
 build*
 aclocal.m4
