@@ -52,26 +52,6 @@ int DarwinParseModifierList(const char *constmodifiers);
 void DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo);
 void xf86SetRootClip (ScreenPtr pScreen, BOOL enable);
 
-// From darwinEvents.c
-Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr);
-void DarwinEQEnqueue(const xEvent *e);
-void DarwinEQPointerPost(xEvent *e);
-void DarwinEQSwitchScreen(ScreenPtr pScreen, Bool fromDIX);
-void DarwinPokeEQ(void);
-void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y);
-void DarwinSendKeyboardEvents(int ev_type, int keycode);
-void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y);
-
-// Mode specific functions
-Bool DarwinModeAddScreen(int index, ScreenPtr pScreen);
-Bool DarwinModeSetupScreen(int index, ScreenPtr pScreen);
-void DarwinModeInitOutput(int argc,char **argv);
-void DarwinModeInitInput(int argc, char **argv);
-void DarwinModeProcessEvent(xEvent *xe);
-void DarwinModeGiveUp(void);
-void DarwinModeBell(int volume, DeviceIntPtr pDevice, pointer ctrl, int class);
-
-
 #undef assert
 #define assert(x) { if ((x) == 0) \
     FatalError("assert failed on line %d of %s!\n", __LINE__, __FILE__); }
@@ -80,10 +60,6 @@ void DarwinModeBell(int volume, DeviceIntPtr pDevice, pointer ctrl, int class);
                 __LINE__, __FILE__, x); }
 #define SCREEN_PRIV(pScreen) \
     ((DarwinFramebufferPtr)pScreen->devPrivates[darwinScreenIndex].ptr)
-
-
-#define MIN_KEYCODE XkbMinLegalKeyCode     // unfortunately, this isn't 0...
-
 
 /*
  * Global variables from darwin.c

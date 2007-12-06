@@ -39,6 +39,7 @@
 /* ouch! */
 #define BOOL X_BOOL
 # include "darwin.h"
+# include "darwinEvents.h"
 # include "quartz.h"
 # define _APPLEWM_SERVER_
 # include "X11/extensions/applewm.h"

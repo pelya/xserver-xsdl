@@ -73,6 +73,8 @@
 #include <architecture/byte_order.h>  // For the NXSwap*
 #include "darwin.h"
 #include "darwinKeyboard.h"
+#include "quartzKeyboard.h"
+#include "quartzAudio.h"
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -791,7 +793,7 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
     DarwinModeSystemKeymapSeed();
 
     assert( InitKeyboardDeviceStruct( (DevicePtr)pDev, &keySyms,
-                                      keyInfo.modMap, DarwinModeBell,
+                                      keyInfo.modMap, QuartzBell,
                                       DarwinChangeKeyboardControl ));
 }
 

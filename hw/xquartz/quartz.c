@@ -35,6 +35,7 @@
 #include "quartzCommon.h"
 #include "quartz.h"
 #include "darwin.h"
+#include "darwinEvents.h"
 #include "quartzAudio.h"
 #include "pseudoramiX.h"
 #define _APPLEWM_SERVER_
@@ -74,25 +75,25 @@ QuartzModeProcsPtr      quartzProcs = NULL;
 const char             *quartzOpenGLBundle = NULL;
 
 #if defined(RANDR) && !defined(FAKE_RANDR)
-Bool DarwinModeRandRGetInfo (ScreenPtr pScreen, Rotation *rotations) {
+Bool QuartzRandRGetInfo (ScreenPtr pScreen, Rotation *rotations) {
   return FALSE;
 }
 
-Bool DarwinModeRandRSetConfig (ScreenPtr           pScreen,
+Bool QuartzRandRSetConfig (ScreenPtr           pScreen,
 			       Rotation            randr,
 			       int                 rate,
 			       RRScreenSizePtr     pSize) {
   return FALSE;
 }
 
-Bool DarwinModeRandRInit (ScreenPtr pScreen) {
+Bool QuartzRandRInit (ScreenPtr pScreen) {
   rrScrPrivPtr    pScrPriv;
     
   if (!RRScreenInit (pScreen)) return FALSE;
 
   pScrPriv = rrGetScrPriv(pScreen);
-  pScrPriv->rrGetInfo = DarwinModeRandRGetInfo;
-  pScrPriv->rrSetConfig = DarwinModeRandRSetConfig;
+  pScrPriv->rrGetInfo = QuartzRandRGetInfo;
+  pScrPriv->rrSetConfig = QuartzRandRSetConfig;
   return TRUE;
 }
 #endif
@@ -106,10 +107,10 @@ Bool DarwinModeRandRInit (ScreenPtr pScreen) {
 */
 
 /*
- * DarwinModeAddScreen
+ * QuartzAddScreen
  *  Do mode dependent initialization of each screen for Quartz.
  */
-Bool DarwinModeAddScreen(
+Bool QuartzAddScreen(
     int index,
     ScreenPtr pScreen)
 {
@@ -125,10 +126,10 @@ Bool DarwinModeAddScreen(
 
 
 /*
- * DarwinModeSetupScreen
+ * QuartzSetupScreen
  *  Finalize mode specific setup of each screen.
  */
-Bool DarwinModeSetupScreen(
+Bool QuartzSetupScreen(
     int index,
     ScreenPtr pScreen)
 {
@@ -145,10 +146,10 @@ Bool DarwinModeSetupScreen(
 
 
 /*
- * DarwinModeInitOutput
+ * QuartzInitOutput
  *  Quartz display initialization.
  */
-void DarwinModeInitOutput(
+void QuartzInitOutput(
     int argc,
     char **argv )
 {
@@ -184,10 +185,10 @@ void DarwinModeInitOutput(
 
 
 /*
- * DarwinModeInitInput
+ * QuartzInitInput
  *  Inform the main thread the X server is ready to handle events.
  */
-void DarwinModeInitInput(
+void QuartzInitInput(
     int argc,
     char **argv )
 {
@@ -279,7 +280,7 @@ static void QuartzUpdateScreens(void)
     pScreen->height = height;
     
 #ifndef FAKE_RANDR
-    if(!DarwinModeRandRInit(pScreen))
+    if(!QuartzRandRInit(pScreen))
       FatalError("Failed to init RandR extension.\n");
 #endif
 
@@ -412,10 +413,10 @@ QuartzMessageServerThread(
 
 
 /*
- * DarwinModeProcessEvent
+ * QuartzProcessEvent
  *  Process Quartz specific events.
  */
-void DarwinModeProcessEvent(
+void QuartzProcessEvent(
     xEvent *xe)
 {
     switch (xe->u.u.type) {
@@ -516,11 +517,11 @@ void DarwinModeProcessEvent(
 
 
 /*
- * DarwinModeGiveUp
+ * QuartzGiveUp
  *  Cleanup before X server shutdown
  *  Release the screen and restore the Aqua cursor.
  */
-void DarwinModeGiveUp(void)
+void QuartzGiveUp(void)
 {
 #if 0
 // Trying to switch cursors when quitting causes deadlock

@@ -124,4 +124,11 @@ typedef struct _QuartzModeProcs {
 extern QuartzModeProcsPtr quartzProcs;
 extern int quartzHasRoot, quartzEnableRootless;
 
+Bool QuartzAddScreen(int index, ScreenPtr pScreen);
+Bool QuartzSetupScreen(int index, ScreenPtr pScreen);
+void QuartzInitOutput(int argc,char **argv);
+void QuartzInitInput(int argc, char **argv);
+void QuartzGiveUp(void);
+void QuartzProcessEvent(xEvent *xe);
+
 #endif

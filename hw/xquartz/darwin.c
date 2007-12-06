@@ -75,6 +75,9 @@
 #endif
 
 #include "darwin.h"
+#include "darwinEvents.h"
+#include "darwinKeyboard.h"
+#include "quartz.h"
 #include "darwinClut8.h"
 
 #ifdef ENABLE_DEBUG_LOG
@@ -195,7 +198,7 @@ static Bool DarwinAddScreen(
     pScreen->devPrivates[darwinScreenIndex].ptr = dfb;
 
     // setup hardware/mode specific details
-    ret = DarwinModeAddScreen(foundIndex, pScreen);
+    ret = QuartzAddScreen(foundIndex, pScreen);
     foundIndex++;
     if (! ret)
         return FALSE;
@@ -274,7 +277,7 @@ static Bool DarwinAddScreen(
     pScreen->SaveScreen = DarwinSaveScreen;
 
     // finish mode dependent screen setup including cursor support
-    if (!DarwinModeSetupScreen(index, pScreen)) {
+    if (!QuartzSetupScreen(index, pScreen)) {
         return FALSE;
     }
 
@@ -539,7 +542,7 @@ void InitInput( int argc, char **argv )
 
     DarwinEQInit( (DevicePtr)darwinKeyboard, (DevicePtr)darwinPointer );
 
-    DarwinModeInitInput(argc, argv);
+    QuartzInitInput(argc, argv);
 }
 
 
@@ -629,7 +632,7 @@ void InitOutput( ScreenInfo *pScreenInfo, int argc, char **argv )
     }
 
     // Discover screens and do mode specific initialization
-    DarwinModeInitOutput(argc, argv);
+    QuartzInitOutput(argc, argv);
 
     // Add screens
     for (i = 0; i < darwinScreensFound; i++) {
@@ -895,7 +898,7 @@ void ddxGiveUp( void )
 {
     ErrorF( "Quitting XQuartz...\n" );
 
-    DarwinModeGiveUp();
+    QuartzGiveUp();
 }
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004 Torrey T. Lyons. All Rights Reserved.
+ * Copyright (c) 2001-2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,30 +24,16 @@
  * use or other dealings in this Software without prior written authorization.
  */
 
-#ifndef QUARTZ_KEYBOARD_H
-#define QUARTZ_KEYBOARD_H 1
+#ifndef _DARWIN_EVENTS_H
+#define _DARWIN_EVENTS_H
 
-#define XK_TECHNICAL		// needed to get XK_Escape
-#define XK_PUBLISHING
-#include "X11/keysym.h"
-#include "inputstr.h"
+Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr);
+void DarwinEQEnqueue(const xEvent *e);
+void DarwinEQPointerPost(xEvent *e);
+void DarwinEQSwitchScreen(ScreenPtr pScreen, Bool fromDIX);
+void DarwinPokeEQ(void);
+void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y);
+void DarwinSendKeyboardEvents(int ev_type, int keycode);
+void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y);
 
-// Each key can generate 4 glyphs. They are, in order:
-// unshifted, shifted, modeswitch unshifted, modeswitch shifted
-#define GLYPHS_PER_KEY  4
-#define NUM_KEYCODES    248	// NX_NUMKEYCODES might be better
-#define MIN_KEYCODE     XkbMinLegalKeyCode     // unfortunately, this isn't 0...
-#define MAX_KEYCODE     NUM_KEYCODES + MIN_KEYCODE - 1
-
-typedef struct darwinKeyboardInfo_struct {
-    CARD8 modMap[MAP_LENGTH];
-    KeySym keyMap[MAP_LENGTH * GLYPHS_PER_KEY];
-    unsigned char modifierKeycodes[32][2];
-} darwinKeyboardInfo;
-
-/* These functions need to be implemented by XQuartz, XDarwin, etc. */
-void DarwinKeyboardReload(DeviceIntPtr pDev);
-Bool DarwinModeReadSystemKeymap(darwinKeyboardInfo *info);
-unsigned int DarwinModeSystemKeymapSeed(void);
-
-#endif /* QUARTZ_KEYBOARD_H */
+#endif  /* _DARWIN_EVENTS_H */

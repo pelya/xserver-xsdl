@@ -246,10 +246,10 @@ static void QuartzCoreAudioBell(
 
 
 /*
- * DarwinModeBell
+ * QuartzBell
  *  Ring the bell
  */
-void DarwinModeBell(
+void QuartzBell(
     int volume,             // volume in percent of max
     DeviceIntPtr pDevice,
     pointer ctrl,
