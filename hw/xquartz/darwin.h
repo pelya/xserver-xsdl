@@ -52,12 +52,6 @@ int DarwinParseModifierList(const char *constmodifiers);
 void DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo);
 void xf86SetRootClip (ScreenPtr pScreen, BOOL enable);
 
-#undef assert
-#define assert(x) { if ((x) == 0) \
-    FatalError("assert failed on line %d of %s!\n", __LINE__, __FILE__); }
-#define kern_assert(x) { if ((x) != KERN_SUCCESS) \
-    FatalError("assert failed on line %d of %s with kernel return 0x%x!\n", \
-                __LINE__, __FILE__, x); }
 #define SCREEN_PRIV(pScreen) \
     ((DarwinFramebufferPtr)pScreen->devPrivates[darwinScreenIndex].ptr)
 
