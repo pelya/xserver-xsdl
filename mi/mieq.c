@@ -187,7 +187,7 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
         evt->event = xrealloc(evt->event, evt->evlen);
         if (!evt->event)
         {
-            ErrorF("Running out of memory. Tossing event.\n");
+            ErrorF("[mi] Running out of memory. Tossing event.\n");
             return;
         }
     }
@@ -221,7 +221,7 @@ void
 mieqSetHandler(int event, mieqHandler handler)
 {
     if (handler && miEventQueue.handlers[event])
-        ErrorF("mieq: warning: overriding existing handler %p with %p for "
+        ErrorF("[mi] mieq: warning: overriding existing handler %p with %p for "
                "event %d\n", miEventQueue.handlers[event], handler, event);
 
     miEventQueue.handlers[event] = handler;
