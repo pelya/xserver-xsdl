@@ -4008,7 +4008,7 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
 		deactivateGrab = TRUE;
 	    break;
 	default:
-	    FatalError("bogus pointer event from ddx");
+	    FatalError("bogus pointer event from ddx. Type %d\n", xE->u.u.type);
 	}
     }
 
