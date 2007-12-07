@@ -707,7 +707,7 @@ _X_EXPORT int
 GetProximityEvents(xEvent *events, DeviceIntPtr pDev, int type,
                    int first_valuator, int num_valuators, int *valuators)
 {
-    int num_events = 0;
+    int num_events = 1;
     deviceKeyButtonPointer *kbp = (deviceKeyButtonPointer *) events;
 
     /* Sanity checks. */

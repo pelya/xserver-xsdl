@@ -128,7 +128,9 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
         if (oldtail == miEventQueue.head ||
             !(lastkbp->type == DeviceMotionNotify ||
               lastkbp->type == DeviceButtonPress ||
-              lastkbp->type == DeviceButtonRelease) ||
+              lastkbp->type == DeviceButtonRelease ||
+              lastkbp->type == ProximityIn ||
+              lastkbp->type == ProximityOut) ||
             ((lastkbp->deviceid & DEVICE_BITS) !=
              (v->deviceid & DEVICE_BITS))) {
             ErrorF("mieqEnequeue: out-of-order valuator event; dropping.\n");
