@@ -267,13 +267,13 @@ miPrintRegion(rgn)
     num = REGION_NUM_RECTS(rgn);
     size = REGION_SIZE(rgn);
     rects = REGION_RECTS(rgn);
-    ErrorF("num: %d size: %d\n", num, size);
-    ErrorF("extents: %d %d %d %d\n",
+    ErrorF("[mi] num: %d size: %d\n", num, size);
+    ErrorF("[mi] extents: %d %d %d %d\n",
 	   rgn->extents.x1, rgn->extents.y1, rgn->extents.x2, rgn->extents.y2);
     for (i = 0; i < num; i++)
-      ErrorF("%d %d %d %d \n",
+      ErrorF("[mi] %d %d %d %d \n",
 	     rects[i].x1, rects[i].y1, rects[i].x2, rects[i].y2);
-    ErrorF("\n");
+    ErrorF("[mi] \n");
 }
 
 _X_EXPORT Bool

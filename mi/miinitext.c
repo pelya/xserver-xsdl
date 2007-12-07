@@ -518,11 +518,11 @@ void EnableDisableExtensionError(char *name, Bool enable)
 {
     ExtensionToggle *ext = &ExtensionToggleList[0];
 
-    ErrorF("Extension \"%s\" is not recognized\n", name);
-    ErrorF("Only the following extensions can be run-time %s:\n",
+    ErrorF("[mi] Extension \"%s\" is not recognized\n", name);
+    ErrorF("[mi] Only the following extensions can be run-time %s:\n",
 	   enable ? "enabled" : "disabled");
     for (ext = &ExtensionToggleList[0]; ext->name != NULL; ext++)
-	ErrorF("    %s\n", ext->name);
+	ErrorF("[mi]    %s\n", ext->name);
 }
 
 #ifndef XFree86LOADER
