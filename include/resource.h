@@ -153,7 +153,7 @@ extern XID FakeClientID(
 
 /* Quartz support on Mac OS X uses the CarbonCore
    framework whose AddResource function conflicts here. */
-#ifdef __DARWIN__
+#ifdef __APPLE__
 #define AddResource Darwin_X_AddResource
 #endif
 extern Bool AddResource(

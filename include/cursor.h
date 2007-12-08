@@ -70,7 +70,7 @@ extern int FreeCursor(
 
 /* Quartz support on Mac OS X pulls in the QuickDraw
    framework whose AllocCursor function conflicts here. */ 
-#ifdef __DARWIN__
+#ifdef __APPLE__
 #define AllocCursor Darwin_X_AllocCursor
 #endif
 extern CursorPtr AllocCursor(

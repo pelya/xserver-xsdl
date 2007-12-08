@@ -38,11 +38,11 @@ SUBDIRS =			\
 	$(XORG_SUBDIRS)		\
 	$(XGL_SUBDIRS)		\
 	$(XWIN_SUBDIRS)		\
-	$(XQUARTZ_SUBDIRS)	\
 	$(XVFB_SUBDIRS)		\
 	$(XNEST_SUBDIRS)	\
-	$(DMX_SUBDIRS)          \
+	$(DMX_SUBDIRS)		\
 	$(KDRIVE_SUBDIRS)	\
+	$(XQUARTZ_SUBDIRS)	\
 	$(XPRINT_SUBDIRS)
 
 DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive xgl xprint

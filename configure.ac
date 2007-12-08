@@ -1712,7 +1712,7 @@ if test "x$XQUARTZ" = xyes; then
 	       AC_SUBST([DARWIN_LIBS])
                AC_CHECK_LIB([Xplugin],[xp_init],[:])
                AC_SUBST([APPLE_APPLICATIONS_DIR])
-               CFLAGS="${CFLAGS} -D__DARWIN__ -DROOTLESS_WORKAROUND -DNO_ALLOCA"
+               CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DNO_ALLOCA"
                PLIST_VERSION_STRING=$PACKAGE_VERSION
                AC_SUBST([PLIST_VERSION_STRING])
                PLIST_VENDOR_WEB=$VENDOR_WEB
