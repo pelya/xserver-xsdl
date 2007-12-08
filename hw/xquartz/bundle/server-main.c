@@ -138,7 +138,7 @@ read_boolean_pref (CFStringRef name, int default_)
     int value;
     Boolean ok;
 	
-    value = CFPreferencesGetAppBooleanValue (name, CFSTR ("org.x.x11"), &ok);
+    value = CFPreferencesGetAppBooleanValue (name, CFSTR ("org.x.X11"), &ok);
     return ok ? value : default_;
 }
 
