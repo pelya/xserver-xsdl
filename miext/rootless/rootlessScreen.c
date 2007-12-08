@@ -722,6 +722,8 @@ Bool RootlessInit(ScreenPtr pScreen, RootlessFrameProcsPtr procs)
         pScreen->devPrivates[rootlessScreenPrivateIndex].ptr;
 
     s->imp = procs;
+    s->colormap = NULL;
+    s->redisplay_expired = FALSE;
 
     RootlessWrap(pScreen);
 
