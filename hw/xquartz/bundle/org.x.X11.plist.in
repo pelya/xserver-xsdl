@@ -5,11 +5,11 @@
 	<key>Label</key>
 		<string>org.x.X11</string>
 	<key>Program</key>
-		<string>/Applications/Utilities/X11.app/Contents/MacOS/X11</string>
+		<string>@APPLE_APPLICATIONS_DIR@/X11.app/Contents/MacOS/X11</string>
 	<key>ProgramArguments</key>
 		<array>
-		<string>/Applications/Utilities/X11.app/Contents/MacOS/X11</string>
-		<string>--launchd</string>
+		<string>@APPLE_APPLICATIONS_DIR@/X11.app/Contents/MacOS/X11</string>
+		<string>-launchd</string>
 		</array>
 	<key>Sockets</key>
 		<dict>

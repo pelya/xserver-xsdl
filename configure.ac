@@ -1694,75 +1694,43 @@ fi
 if test "x$XQUARTZ" = xyes; then
 	AC_DEFINE([XQUARTZ],[1],[Have Quartz])
 
-#	       glxAGL / glxCGL don't work yet
-#               AC_CACHE_CHECK([for AGL framework],xorg_cv_AGL_framework,[
-#               save_LDFLAGS=$LDFLAGS
-#               LDFLAGS="$LDFLAGS -framework AGL"
-#               AC_LINK_IFELSE([char aglEnable();
-#int main() {
-#aglEnable();
-#return 0;}
-#               ],[xorg_cv_AGL_framework=yes],
-#               [xorg_cv_AGL_framework=no])
-#               LDFLAGS=$save_LDFLAGS
-#               ])
-               xorg_cv_AGL_framework=no
-               DARWIN_GLX_LIBS='$(top_builddir)/GL/apple/indirect.o $(top_builddir)/GL/glx/libglx.la'
-	       DARWIN_LIBS="$FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB"
-	       AC_SUBST([DARWIN_LIBS])
-               AC_CHECK_LIB([Xplugin],[xp_init],[:])
-               AC_SUBST([APPLE_APPLICATIONS_DIR])
-               CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DNO_ALLOCA"
-               PLIST_VERSION_STRING=$PACKAGE_VERSION
-               AC_SUBST([PLIST_VERSION_STRING])
-               PLIST_VENDOR_WEB=$VENDOR_WEB
-               AC_SUBST([PLIST_VENDOR_WEB])
-               if test "x$XF86MISC" = xyes || test "x$XF86MISC" = xauto; then
-                       AC_MSG_NOTICE([Disabling XF86Misc extension])
-                       XF86MISC=no
-               fi
-               if test "x$XF86VIDMODE" = xyes || test "x$XF86VIDMODE" = xauto; then
-                       AC_MSG_NOTICE([Disabling XF86VidMode extension])
-                       XF86VIDMODE=no
-               fi
-               if test "x$XF86BIGFONT" = xyes || test "x$XF86BIGFONT" = xauto; then
-                       AC_MSG_NOTICE([Disabling XF86BigFont extension])
-                       XF86BIGFONT=no
-               fi
-               if test "x$DGA" = xyes || test "x$DGA" = xauto; then
-                       AC_MSG_NOTICE([Disabling DGA extension])
-                       DGA=no
-               fi
-               if test "x$DMX" = xyes || test "x$DMX" = xauto; then
-                       AC_MSG_NOTICE([Disabling DMX DDX])
-                       DMX=no
-               fi
-fi
-
-if test "x$X11APP" = xauto; then
-	AC_MSG_CHECKING([whether to build X11.app])
-	if test "x$XQUARTZ" = xyes ; then
-		X11APP=yes
-	else
-		X11APP=no
+#glxAGL / glxCGL don't work yet
+#	AC_CACHE_CHECK([for AGL framework],xorg_cv_AGL_framework,[
+#		save_LDFLAGS=$LDFLAGS
+#		LDFLAGS="$LDFLAGS -framework AGL"
+#		AC_LINK_IFELSE(
+#			[char aglEnable(); int main() { aglEnable(); return 0;}],
+#			[xorg_cv_AGL_framework=yes],
+#			[xorg_cv_AGL_framework=no])
+#		LDFLAGS=$save_LDFLAGS
+#	])
+	xorg_cv_AGL_framework=no
+	DARWIN_GLX_LIBS='$(top_builddir)/GL/apple/indirect.o $(top_builddir)/GL/glx/libglx.la'
+	DARWIN_LIBS="$MI_LIB $OS_LIB $DIX_LIB $FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB"
+	AC_SUBST([DARWIN_LIBS])
+	AC_CHECK_LIB([Xplugin],[xp_init],[:])
+	AC_SUBST([APPLE_APPLICATIONS_DIR])
+	CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DNO_ALLOCA"
+	if test "x$XF86MISC" = xyes || test "x$XF86MISC" = xauto; then
+		AC_MSG_NOTICE([Disabling XF86Misc extension])
+		XF86MISC=no
 	fi
-	AC_MSG_RESULT([$X11APP])
-fi
-
-if test "x$LAUNCHD" = xauto; then
-	# Do we want to have this default to on for Xquartz builds only or any time we have launchd (like Xnest or Xvfb on OS-X)
-	#AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no])
-	AC_MSG_CHECKING([whether to support launchd])
-	if test "x$XQUARTZ" = xyes ; then
-		LAUNCHD=yes
-	else
-		LAUNCHD=no
+	if test "x$XF86VIDMODE" = xyes || test "x$XF86VIDMODE" = xauto; then
+		AC_MSG_NOTICE([Disabling XF86VidMode extension])
+		XF86VIDMODE=no
 	fi
-	AC_MSG_RESULT([$LAUNCHD])
-fi
-
-if test "x$LAUNCHD" = xyes ; then
-	AC_DEFINE(HAVE_LAUNCHD, 1, [launchd support available])
+	if test "x$XF86BIGFONT" = xyes || test "x$XF86BIGFONT" = xauto; then
+		AC_MSG_NOTICE([Disabling XF86BigFont extension])
+		XF86BIGFONT=no
+	fi
+	if test "x$DGA" = xyes || test "x$DGA" = xauto; then
+		AC_MSG_NOTICE([Disabling DGA extension])
+		DGA=no
+	fi
+	if test "x$DMX" = xyes || test "x$DMX" = xauto; then
+		AC_MSG_NOTICE([Disabling DMX DDX])
+		DMX=no
+	fi
 fi
 
 # Support for objc in autotools is minimal and not documented.
@@ -1779,7 +1747,30 @@ _AM_DEPENDENCIES([OBJC])
 AM_CONDITIONAL(HAVE_XPLUGIN, [test "x$ac_cv_lib_Xplugin_xp_init" = xyes])
 AM_CONDITIONAL(HAVE_AGL_FRAMEWORK, [test "x$xorg_cv_AGL_framework" = xyes])
 AM_CONDITIONAL(XQUARTZ, [test "x$XQUARTZ" = xyes])
+
+if test "x$X11APP" = xauto; then
+	AC_MSG_CHECKING([whether to build X11.app])
+	if test "x$XQUARTZ" = xyes ; then
+		X11APP=yes
+	else
+		X11APP=no
+	fi
+	AC_MSG_RESULT([$X11APP])
+fi
 AM_CONDITIONAL(X11APP,[test "X$X11APP" = Xyes]) 
+
+if test "x$LAUNCHD" = xauto; then
+	# Do we want to have this default to on for Xquartz builds only or any time we have launchd (like Xnest or Xvfb on OS-X)
+	#AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no])
+	AC_MSG_CHECKING([whether to support launchd])
+	if test "x$XQUARTZ" = xyes ; then
+		LAUNCHD=yes
+	else
+		LAUNCHD=no
+	fi
+	AC_MSG_RESULT([$LAUNCHD])
+fi
+AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = xyes])
 
 dnl DMX DDX
 
@@ -1831,6 +1822,10 @@ dnl Linux sources in DMX require <linux/keyboard.h>
 fi
 AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
 AM_CONDITIONAL([DMX_BUILD_USB], [test "x$DMX_BUILD_USB" = xyes])
+if test "x$LAUNCHD" = xyes ; then
+	AC_DEFINE(HAVE_LAUNCHD, 1, [launchd support available])
+fi
+AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = xyes])
 
 dnl kdrive DDX
 
@@ -2179,6 +2174,7 @@ hw/xnest/Makefile
 hw/xwin/Makefile
 hw/xquartz/Makefile
 hw/xquartz/bundle/Makefile
+hw/xquartz/bundle/org.x.X11.plist
 hw/xquartz/xpr/Makefile
 hw/kdrive/Makefile
 hw/kdrive/ati/Makefile

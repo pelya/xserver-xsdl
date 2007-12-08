@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
     }
     
     /* First check if launchd started us */
-    if(argc == 2 && !strncmp(argv[1], "--launchd", 9)) {
+    if(argc == 2 && !strncmp(argv[1], "-launchd", 8)) {
         argc--;
         argv[1] = argv[0];
         argv++;

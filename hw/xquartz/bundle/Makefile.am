@@ -7,8 +7,10 @@ x11app:
 
 install-data-hook:
 	xcodebuild install DSTROOT="/$(DESTDIR)" INSTALL_PATH="$(APPLE_APPLICATIONS_DIR)" DEPLOYMENT_LOCATION=YES SKIP_INSTALL=NO ARCHS="$(X11APP_ARCHS)"
+if LAUNCHD
 	$(MKDIR_P) "$(DESTDIR)/System/Library/LaunchAgents/"
 	$(INSTALL) org.x.X11.plist "$(DESTDIR)/System/Library/LaunchAgents/"
+endif
 
 clean-local:
 	rm -rf build
