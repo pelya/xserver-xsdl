@@ -29,6 +29,7 @@ libXquartz_la_SOURCES = \
 	quartz.c \
 	quartzAudio.c \
 	quartzCocoa.m \
+	quartzForeground.c \
 	quartzKeyboard.c \
 	quartzPasteboard.c \
 	quartzStartup.c
@@ -46,5 +47,6 @@ EXTRA_DIST = \
 	quartzCommon.h \
 	quartzCursor.c \
 	quartzCursor.h \
+	quartzForeground.h \
 	quartz.h \
 	quartzPasteboard.h

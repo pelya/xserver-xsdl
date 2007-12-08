@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <CoreFoundation/CoreFoundation.h>
+#include "quartzForeground.h"
 #include "quartzCommon.h"
 #include "darwin.h"
 #include "quartz.h"
@@ -76,6 +77,8 @@ void DarwinHandleGUI(
     int         i;
     int         fd[2];
 
+    QuartzMoveToForeground();
+    
     if (been_here) {
         return;
     }

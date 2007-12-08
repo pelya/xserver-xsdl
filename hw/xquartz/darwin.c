@@ -707,6 +707,11 @@ void ddxInitGlobals(void)
  */
 int ddxProcessArgument( int argc, char *argv[], int i )
 {
+    if( !strcmp( argv[i], "-launchd" ) ) {
+        ErrorF( "Launchd command line argument noticed.\n" );
+        return 1;
+    }
+
     if ( !strcmp( argv[i], "-fullscreen" ) ) {
         ErrorF( "Running full screen in parallel with Mac OS X Quartz window server.\n" );
         return 1;
