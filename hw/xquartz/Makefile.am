@@ -40,6 +40,7 @@ EXTRA_DIST = \
 	applewmExt.h \
 	darwinClut8.h \
 	darwin.h \
+	darwinEvents.h \
 	darwinKeyboard.h \
 	keysym2ucs.h \
 	pseudoramiX.h \
