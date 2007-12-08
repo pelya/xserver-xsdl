@@ -44,10 +44,11 @@ EXTRA_DIST = \
 	darwinKeyboard.h \
 	keysym2ucs.h \
 	pseudoramiX.h \
+	quartz.h \
 	quartzAudio.h \
 	quartzCommon.h \
 	quartzCursor.c \
 	quartzCursor.h \
 	quartzForeground.h \
-	quartz.h \
+	quartzKeyboard.h \
 	quartzPasteboard.h
