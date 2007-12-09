@@ -24,6 +24,7 @@ Xquartz_SOURCES = \
 Xquartz_LDADD = \
 	$(top_builddir)/hw/xquartz/libXquartz.la \
 	$(top_builddir)/dix/dixfonts.lo \
+	$(top_builddir)/config/libconfig.a \
 	$(top_builddir)/dix/libdix.la \
 	$(top_builddir)/os/libos.la \
 	$(top_builddir)/dix/libxpstubs.la \
