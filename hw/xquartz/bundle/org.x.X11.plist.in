@@ -4,8 +4,6 @@
 <dict>
 	<key>Label</key>
 		<string>org.x.X11</string>
-	<key>Program</key>
-		<string>@APPLE_APPLICATIONS_DIR@/X11.app/Contents/MacOS/X11</string>
 	<key>ProgramArguments</key>
 		<array>
 		<string>@APPLE_APPLICATIONS_DIR@/X11.app/Contents/MacOS/X11</string>

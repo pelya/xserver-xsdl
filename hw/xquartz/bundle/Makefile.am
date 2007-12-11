@@ -15,6 +15,9 @@ endif
 clean-local:
 	rm -rf build
 
+resourcedir=$(libdir)/X11/xserver
+resource_DATA = Xquartz.plist
+
 EXTRA_DIST = \
 	org.x.X11.plist \
 	Info.plist \
