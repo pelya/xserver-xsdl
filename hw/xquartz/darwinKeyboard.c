@@ -507,8 +507,9 @@ Bool DarwinParseNXKeyMapping(darwinKeyboardInfo  *info) {
                                 (left ? XK_Control_L : XK_Control_R);
                         break;
                     case NX_MODIFIERKEY_ALTERNATE:
-                        info->keyMap[keyCode * GLYPHS_PER_KEY] = XK_Mode_switch;
-                                // (left ? XK_Alt_L : XK_Alt_R);
+                        // info->keyMap[keyCode * GLYPHS_PER_KEY] = XK_Mode_switch;
+                        info->keyMap[keyCode * GLYPHS_PER_KEY] =
+                                (left ? XK_Alt_L : XK_Alt_R);
                         break;
                     case NX_MODIFIERKEY_COMMAND:
                         info->keyMap[keyCode * GLYPHS_PER_KEY] =
@@ -685,6 +686,7 @@ static void DarwinBuildModifierMaps(darwinKeyboardInfo *info) {
             case XK_Alt_L:
                 info->modifierKeycodes[NX_MODIFIERKEY_ALTERNATE][0] = i;
                 info->modMap[MIN_KEYCODE + i] = Mod1Mask;
+                *k = XK_Mode_switch; // Yes, this is ugly.  This needs to be cleaned up when we integrate quartzKeyboard with this code and refactor.
                 break;
 
             case XK_Alt_R:
@@ -693,15 +695,11 @@ static void DarwinBuildModifierMaps(darwinKeyboardInfo *info) {
 #else
                 info->modifierKeycodes[NX_MODIFIERKEY_ALTERNATE][0] = i;
 #endif
+                *k = XK_Mode_switch; // Yes, this is ugly.  This needs to be cleaned up when we integrate quartzKeyboard with this code and refactor.
                 info->modMap[MIN_KEYCODE + i] = Mod1Mask;
                 break;
 
             case XK_Mode_switch:
-                // Yes, this is ugly.  This needs to be cleaned up when we integrate quartzKeyboard with this code and refactor.
-#ifdef NX_MODIFIERKEY_RALTERNATE
-                info->modifierKeycodes[NX_MODIFIERKEY_RALTERNATE][0] = i;
-#endif
-                info->modifierKeycodes[NX_MODIFIERKEY_ALTERNATE][0] = i;
                 info->modMap[MIN_KEYCODE + i] = Mod1Mask;
                 break;
 
@@ -735,12 +733,12 @@ static void DarwinLoadKeyboardMapping(KeySymsRec *keySyms) {
     memset(keyInfo.keyMap, 0, sizeof(keyInfo.keyMap));
 
     /* TODO: Clean this up
-     * DarwinModeReadSystemKeymap is in quartz/quartzKeyboard.c
+     * QuartzReadSystemKeymap is in quartz/quartzKeyboard.c
      * DarwinParseNXKeyMapping is here
      */
     if (!DarwinParseNXKeyMapping(&keyInfo)) {
-        DEBUG_LOG("DarwinParseNXKeyMapping returned 0... running DarwinModeReadSystemKeymap().\n");
-        if (!DarwinModeReadSystemKeymap(&keyInfo)) {
+        DEBUG_LOG("DarwinParseNXKeyMapping returned 0... running QuartzReadSystemKeymap().\n");
+        if (!QuartzReadSystemKeymap(&keyInfo)) {
             FatalError("Could not build a valid keymap.");
         }
     }
@@ -790,7 +788,7 @@ void DarwinKeyboardInit(DeviceIntPtr pDev) {
     //    DarwinKeyboardReload(pDev);
     /* Initialize the seed, so we don't reload the keymap unnecessarily
        (and possibly overwrite xinitrc changes) */
-    DarwinModeSystemKeymapSeed();
+    QuartzSystemKeymapSeed();
 
     assert( InitKeyboardDeviceStruct( (DevicePtr)pDev, &keySyms,
                                       keyInfo.modMap, QuartzBell,

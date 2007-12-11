@@ -66,11 +66,11 @@ const static struct {
     {55,  XK_Meta_L},
     {56,  XK_Shift_L},
     {57,  XK_Caps_Lock},
-    {58,  XK_Mode_switch},
+    {58,  XK_Alt_L},
     {59,  XK_Control_L},
 
     {60,  XK_Shift_R},
-    {61,  XK_Mode_switch},
+    {61,  XK_Alt_R},
     {62,  XK_Control_R},
     {63,  XK_Meta_R},
 
@@ -146,7 +146,7 @@ const static struct {
     {UKEYSYM (0x31b), XK_dead_horn},		/* COMBINING HORN */
 };
 
-unsigned int DarwinModeSystemKeymapSeed(void) {
+unsigned int QuartzSystemKeymapSeed(void) {
     static unsigned int seed;
     static KeyboardLayoutRef last_key_layout;
     KeyboardLayoutRef key_layout;
@@ -195,7 +195,7 @@ static KeySym make_dead_key(KeySym in) {
     return in;
 }
 
-Bool DarwinModeReadSystemKeymap(darwinKeyboardInfo *info) {
+Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info) {
     KeyboardLayoutRef key_layout;
     const void *chr_data = NULL;
     int num_keycodes = NUM_KEYCODES;
