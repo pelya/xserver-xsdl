@@ -1,8 +1,5 @@
 bin_PROGRAMS = Xquartz
 
-# TODO: This man page needs sed magic and cleanup
-man1_MANS = Xquartz.man
-
 AM_CFLAGS =  $(XSERVER_CFLAGS) $(DIX_CFLAGS)
 AM_CPPFLAGS = \
 	-I$(srcdir) -I$(srcdir)/.. \
@@ -58,8 +55,19 @@ Xquartz_LDFLAGS =  \
 	-Wl,-framework,CoreAudio \
 	-Wl,-framework,IOKit
 
+appmandir = $(APP_MAN_DIR)
+appman_PRE = Xquartz.man.pre
+appman_PROCESSED = $(appman_PRE:man.pre=man)
+appman_DATA = $(appman_PRE:man.pre=@APP_MAN_SUFFIX@)
+
+CLEANFILES = $(appman_PROCESSED) $(appman_DATA)
+
+include $(top_srcdir)/cpprules.in
+
+.man.$(APP_MAN_SUFFIX):
+	cp $< $@
+
 EXTRA_DIST = \
-	Xquartz.man \
 	dri.h \
 	dristruct.h \
 	appledri.h \

@@ -65,48 +65,48 @@ of the main display.
 .SH CUSTOMIZATION
 \fIXquartz\fP can also be customized using the defaults(1) command. The available options are:
 .TP 8
-.B defaults write com.apple.x11 enable_fake_buttons -boolean true
+.B defaults write org.x.X11 enable_fake_buttons -boolean true
 Equivalent to the \fB-fakebuttons\fP command line option.
 .TP 8
-.B defaults write com.apple.x11 fake_button2 \fImodifiers\fP
+.B defaults write org.x.X11 fake_button2 \fImodifiers\fP
 Equivalent to the \fB-fakemouse2\fP option.
 .TP 8
-.B defaults write com.apple.x11 fake_button3 \fImodifiers\fP
+.B defaults write org.x.X11 fake_button3 \fImodifiers\fP
 Equivalent to the \fB-fakemouse3\fP option.
 .TP 8
-.B defaults write com.apple.x11 swap_alt_meta -boolean true
+.B defaults write org.x.X11 swap_alt_meta -boolean true
 Equivalent to the \fB-swapAltMeta\fP option.
 .TP 8
-.B defaults write com.apple.x11 keymap_file \fIfilename\fP
+.B defaults write org.x.X11 keymap_file \fIfilename\fP
 Equivalent to the \fB-keymap\fP option.
 .TP 8
-.B defaults write com.apple.x11 no_quit_alert -boolean true
+.B defaults write org.x.X11 no_quit_alert -boolean true
 Disables the alert dialog displayed when attempting to quit X11.
 .TP 8
-.B defaults write com.apple.x11 no_auth -boolean true
+.B defaults write org.x.X11 no_auth -boolean true
 Stops the X server requiring that clients authenticate themselves when
 connecting. See Xsecurity(__miscmansuffix__).
 .TP 8
-.B defaults write com.apple.x11 nolisten_tcp -boolean true
+.B defaults write org.x.X11 nolisten_tcp -boolean true
 Prevents the X server accepting remote connections.
 .TP 8
-.B defaults write com.apple.x11 xinit_kills_server -boolean false
+.B defaults write org.x.X11 xinit_kills_server -boolean false
 Stops the X server exiting when the xinitrc script terminates.
 .TP 8
-.B defaults write com.apple.x11 fullscreen_hotkeys -boolean false
+.B defaults write org.x.X11 fullscreen_hotkeys -boolean false
 Allows system hotkeys to be handled while in X11 fullscreen mode.
 .TP 8
-.B defaults write com.apple.x11 enable_system_beep -boolean false
+.B defaults write org.x.X11 enable_system_beep -boolean false
 Don't use the standard system beep effect for X11 alerts.
 .TP 8
-.B defaults write com.apple.x11 enable_key_equivalents -boolean false
+.B defaults write org.x.X11 enable_key_equivalents -boolean false
 Disable menu keyboard equivalents while X11 windows are focused.
 .TP 8
-.B defaults write com.apple.x11 depth \fIdepth\fP
+.B defaults write org.x.X11 depth \fIdepth\fP
 Equivalent to the \fB-depth\fP option.
 .SH "SEE ALSO"
 .PP
-X(__miscmansuffix__), XFree86(1), Xserver(1), xdm(1), xinit(1)
+X(__miscmansuffix__), Xserver(1), xdm(1), xinit(1)
 .PP
 .SH AUTHORS
 XFree86 was originally ported to Mac OS X Server by John Carmack. Dave
