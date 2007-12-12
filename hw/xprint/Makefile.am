@@ -53,3 +53,5 @@ Xprt_SOURCES =			\
         $(top_srcdir)/fb/fbcmap_mi.c
 
 EXTRA_DIST = ValTree.c
+
+CLEANFILES = miinitext-wrapper.c dpmsstubs-wrapper.c
