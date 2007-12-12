@@ -29,7 +29,7 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# Usage: modeline2c.awk < modefile > xf86DefModes.c
+# Usage: modeline2c.awk < modefile > xf86DefModeSet.c
 #
 
 BEGIN {

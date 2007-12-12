@@ -85,7 +85,6 @@ EXTRA_DIST = \
 	xf86Version.h \
 	xorgVersion.h \
 	xf86Date.h \
-	xf86DefModes.c \
 	$(MODEDEFSOURCES) \
         $(DISTKBDSOURCES)
 
