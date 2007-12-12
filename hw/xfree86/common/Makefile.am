@@ -86,6 +86,7 @@ EXTRA_DIST = \
 	xorgVersion.h \
 	xf86Date.h \
 	$(MODEDEFSOURCES) \
+	modeline2c.awk \
         $(DISTKBDSOURCES)
 
 if LNXACPI
