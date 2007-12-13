@@ -38,12 +38,14 @@
 
 extern XF86ConfigPtr xf86configptr;
 
-/**
- * @file this file contains symbols from xf86Mode.c and friends that are static
- * there but we still want to use.  We need to come up with better API here.
+/*
+ * This is the version number where we epoched.  These files get copied
+ * into drivers that want to use this setup infrastructure on pre-1.3
+ * servers, so when that happens they need to define these symbols
+ * themselves.  However, _in_ the server, we basically always define them now.
  */
-
 #if XORG_VERSION_CURRENT <= XORG_VERSION_NUMERIC(7,2,99,2,0)
+
 /**
  * Calculates the horizontal sync rate of a mode.
  *
