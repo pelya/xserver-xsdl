@@ -37,6 +37,7 @@
 #include <limits.h> /* For CHAR_BIT */
 
 #include "rootlessCommon.h"
+#include "colormapst.h"
 
 unsigned int rootless_CopyBytes_threshold = 0;
 unsigned int rootless_FillBytes_threshold = 0;
@@ -98,6 +99,41 @@ IsFramedWindow(WindowPtr pWin)
     return (top && WINREC(top));
 }
 
+Bool
+RootlessResolveColormap (ScreenPtr pScreen, int first_color,
+                         int n_colors, uint32_t *colors)
+{
+  int last, i;
+  ColormapPtr map;
+
+  map = RootlessGetColormap (pScreen);
+  if (map == NULL || map->class != PseudoColor) return FALSE;
+
+  last = MIN (map->pVisual->ColormapEntries, first_color + n_colors);
+  for (i = MAX (0, first_color); i < last; i++) {
+    Entry *ent = map->red + i;
+    uint16_t red, green, blue;
+
+      if (!ent->refcnt)	continue;
+      if (ent->fShared) {
+	red = ent->co.shco.red->color;
+	green = ent->co.shco.green->color;
+	blue = ent->co.shco.blue->color;
+      } else {
+	red = ent->co.local.red;
+	green = ent->co.local.green;
+	blue = ent->co.local.blue;
+      }
+
+      colors[i - first_color] = (0xFF000000UL
+				 | ((uint32_t) red & 0xff00) << 8
+				 | (green & 0xff00)
+				 | (blue >> 8));
+    }
+
+  return TRUE;
+}
+
 
 /*
  * RootlessStartDrawing
@@ -136,8 +172,24 @@ void RootlessStartDrawing(WindowPtr pWindow)
         winRec->is_drawing = TRUE;
     }
 
-    winRec->oldPixmap = pScreen->GetWindowPixmap(pWindow);
-    pScreen->SetWindowPixmap(pWindow, winRec->pixmap);
+    PixmapPtr curPixmap = pScreen->GetWindowPixmap(pWindow);
+    if (curPixmap == winRec->pixmap)
+    {
+        RL_DEBUG_MSG("Window %p already has winRec->pixmap %p; not pushing\n", pWindow, winRec->pixmap);
+    }
+    else
+    {
+        PixmapPtr oldPixmap = dixLookupPrivate(&pWindow->devPrivates, rootlessWindowOldPixmapPrivateKey);
+        if (oldPixmap != NULL)
+        {
+            if (oldPixmap == curPixmap)
+                RL_DEBUG_MSG("Window %p's curPixmap %p is the same as its oldPixmap; strange\n", pWindow, curPixmap);
+            else
+                RL_DEBUG_MSG("Window %p's existing oldPixmap %p being lost!\n", pWindow, oldPixmap);
+        }
+	dixSetPrivate(&pWindow->devPrivates, rootlessWindowOldPixmapPrivateKey, curPixmap);
+        pScreen->SetWindowPixmap(pWindow, winRec->pixmap);
+    }
 }
 
 
@@ -146,6 +198,29 @@ void RootlessStartDrawing(WindowPtr pWindow)
  *  Stop drawing to a window's backing buffer. If flush is true,
  *  damaged regions are flushed to the screen.
  */
+static int RestorePreDrawingPixmapVisitor(WindowPtr pWindow, pointer data)
+{
+    RootlessWindowRec *winRec = (RootlessWindowRec*)data;
+    ScreenPtr pScreen = pWindow->drawable.pScreen;
+    PixmapPtr exPixmap = pScreen->GetWindowPixmap(pWindow);
+    PixmapPtr oldPixmap = dixLookupPrivate(&pWindow->devPrivates, rootlessWindowOldPixmapPrivateKey);
+    if (oldPixmap == NULL)
+    {
+        if (exPixmap == winRec->pixmap)
+            RL_DEBUG_MSG("Window %p appears to be in drawing mode (ex-pixmap %p equals winRec->pixmap, which is being freed) but has no oldPixmap!\n", pWindow, exPixmap);
+    }
+    else
+    {
+        if (exPixmap != winRec->pixmap)
+            RL_DEBUG_MSG("Window %p appears to be in drawing mode (oldPixmap %p) but ex-pixmap %p not winRec->pixmap %p!\n", pWindow, oldPixmap, exPixmap, winRec->pixmap);
+        if (oldPixmap == winRec->pixmap)
+            RL_DEBUG_MSG("Window %p's oldPixmap %p is winRec->pixmap, which has just been freed!\n", pWindow, oldPixmap);
+        pScreen->SetWindowPixmap(pWindow, oldPixmap);
+        dixSetPrivate(&pWindow->devPrivates, rootlessWindowOldPixmapPrivateKey, NULL);
+    }
+    return WT_WALKCHILDREN;
+}
+
 void RootlessStopDrawing(WindowPtr pWindow, Bool flush)
 {
     ScreenPtr pScreen = pWindow->drawable.pScreen;
@@ -162,7 +237,7 @@ void RootlessStopDrawing(WindowPtr pWindow, Bool flush)
         SCREENREC(pScreen)->imp->StopDrawing(winRec->wid, flush);
 
         FreeScratchPixmapHeader(winRec->pixmap);
-        pScreen->SetWindowPixmap(pWindow, winRec->oldPixmap);
+        TraverseTree(top, RestorePreDrawingPixmapVisitor, (pointer)winRec);
         winRec->pixmap = NULL;
 
         winRec->is_drawing = FALSE;

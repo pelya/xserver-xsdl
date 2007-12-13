@@ -18,7 +18,7 @@ xf86UDelay(long usec)
     int sigio;
 
     sigio = xf86BlockSIGIO();
-    xf86usleep(usec);
+    usleep(usec);
     xf86UnblockSIGIO(sigio);
 #endif
 

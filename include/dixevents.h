@@ -41,28 +41,6 @@ extern int MaybeDeliverEventsToClient(
 
 extern int ProcWarpPointer(ClientPtr /* client */);
 
-#if 0
-extern void
-#ifdef XKB
-CoreProcessKeyboardEvent (
-#else
-ProcessKeyboardEvent (
-#endif
-	xEvent *               /* xE */,
-	DeviceIntPtr           /* keybd */,
-	int                    /* count */);
-
-extern void
-#ifdef XKB
-CoreProcessPointerEvent (
-#else
-ProcessPointerEvent (
-#endif
-	xEvent *               /* xE */,
-	DeviceIntPtr           /* mouse */,
-	int                    /* count */);
-#endif
-
 extern int EventSelectForWindow(
 	WindowPtr              /* pWin */,
 	ClientPtr              /* client */,

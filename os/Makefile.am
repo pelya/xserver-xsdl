@@ -1,4 +1,4 @@
-noinst_LTLIBRARIES = libos.la libcwrapper.la
+noinst_LTLIBRARIES = libos.la
 
 AM_CFLAGS = $(DIX_CFLAGS)
 
@@ -35,13 +35,6 @@ endif
 if NEED_STRLCAT
 libos_la_SOURCES += $(STRLCAT_SRCS)
 endif
-
-libcwrapper_la_SOURCES = \
-	$(top_srcdir)/hw/xfree86/os-support/shared/libc_wrapper.c
-libcwrapper_la_CFLAGS = \
-	-DSELF_CONTAINED_WRAPPER \
-	-I$(top_srcdir)/hw/xfree86/os-support \
-	$(AM_CFLAGS)
 
 EXTRA_DIST = $(SECURERPC_SRCS) $(INTERNALMALLOC_SRCS) \
      $(XDMCP_SRCS) $(STRLCAT_SRCS)

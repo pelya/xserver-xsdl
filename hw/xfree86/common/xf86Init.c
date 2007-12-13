@@ -1195,8 +1195,6 @@ OsVendorInit()
 {
   static Bool beenHere = FALSE;
 
-  xf86WrapperInit();
-
 #ifdef SIGCHLD
   signal(SIGCHLD, SIG_DFL);	/* Need to wait for child processes */
 #endif

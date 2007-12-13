@@ -339,6 +339,7 @@ Bool xf86IsUnblank(int mode);
 
 void xf86AddModuleInfo(ModuleInfoPtr info, pointer module);
 void xf86DeleteModuleInfo(int idx);
+void xf86getsecs(long *, long *);
 
 /* xf86Debug.c */
 #ifdef BUILDDEBUG

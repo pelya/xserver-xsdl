@@ -484,12 +484,6 @@ PictureFinishInit (void);
 void
 SetPictureToDefaults (PicturePtr pPicture);
 
-#if 0
-Bool
-miPictureInit (ScreenPtr pScreen, PictFormatPtr formats, int nformats);
-#endif
-
-
 PicturePtr
 CreatePicture (Picture		pid,
 	       DrawablePtr	pDrawable,

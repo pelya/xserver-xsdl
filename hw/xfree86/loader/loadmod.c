@@ -859,7 +859,7 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
     char *m = NULL;
     const char **cim;
 
-    xf86MsgVerb(X_INFO, 3, "LoadModule: \"%s\"", module);
+    xf86MsgVerb(X_INFO, 3, "LoadModule: \"%s\"\n", module);
 
     for (cim = compiled_in_modules; *cim; cim++)
 	if (!strcmp (module, *cim))

@@ -257,7 +257,7 @@ WaitForSomething(int *pClientsReady)
 		    FatalError("WaitForSomething(): select: errno=%d\n",
 			selecterr);
             }
-		else if (selecterr != EINTR)
+		else if (selecterr != EINTR && selecterr != EAGAIN)
 		{
 		    ErrorF("WaitForSomething(): select: errno=%d\n",
 			selecterr);
@@ -409,21 +409,6 @@ WaitForSomething(int *pClientsReady)
     }
     return nready;
 }
-
-#if 0
-/*
- * This is not always a macro.
- */
-ANYSET(FdMask *src)
-{
-    int i;
-
-    for (i=0; i<mskcnt; i++)
-	if (src[ i ])
-	    return (TRUE);
-    return (FALSE);
-}
-#endif
 
 /* If time has rewound, re-run every affected timer.
  * Timers might drop out of the list, so we have to restart every time. */

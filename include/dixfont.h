@@ -120,7 +120,7 @@ extern void DeleteClientFontStuff(ClientPtr /*client*/);
 
 /* Quartz support on Mac OS X pulls in the QuickDraw
    framework whose InitFonts function conflicts here. */
-#ifdef __DARWIN__
+#ifdef __APPLE__
 #define InitFonts Darwin_X_InitFonts
 #endif
 extern void InitFonts(void);

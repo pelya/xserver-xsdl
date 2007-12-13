@@ -308,14 +308,19 @@ xkbControlsNotify	cn;
 static CARD32
 AccessXRepeatKeyExpire(OsTimerPtr timer,CARD32 now,pointer arg)
 {
-XkbSrvInfoPtr	xkbi= ((DeviceIntPtr)arg)->key->xkbInfo;
+DeviceIntPtr    dev = (DeviceIntPtr) arg;
+XkbSrvInfoPtr	xkbi = dev->key->xkbInfo;
 KeyCode		key;
+BOOL            is_core;
 
-    if (xkbi->repeatKey==0)
+    if (xkbi->repeatKey == 0)
 	return 0;
-    key= xkbi->repeatKey;
-    AccessXKeyboardEvent((DeviceIntPtr)arg,KeyRelease,key,True);
-    AccessXKeyboardEvent((DeviceIntPtr)arg,KeyPress,key,True);
+
+    is_core = (dev == inputInfo.keyboard);
+    key = xkbi->repeatKey;
+    AccessXKeyboardEvent(dev, is_core ? KeyRelease : DeviceKeyRelease, key,
+                         True);
+    AccessXKeyboardEvent(dev, is_core ? KeyPress : DeviceKeyPress, key, True);
     return xkbi->desc->ctrls->repeat_interval;
 }
 

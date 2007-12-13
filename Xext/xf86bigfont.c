@@ -145,15 +145,13 @@ CheckForShmSyscall(void)
 void
 XFree86BigfontExtensionInit()
 {
-    ExtensionEntry* extEntry;
-
-    if ((extEntry = AddExtension(XF86BIGFONTNAME,
-				 XF86BigfontNumberEvents,
-				 XF86BigfontNumberErrors,
-				 ProcXF86BigfontDispatch,
-				 SProcXF86BigfontDispatch,
-				 XF86BigfontResetProc,
-				 StandardMinorOpcode))) {
+    if (AddExtension(XF86BIGFONTNAME,
+		     XF86BigfontNumberEvents,
+		     XF86BigfontNumberErrors,
+		     ProcXF86BigfontDispatch,
+		     SProcXF86BigfontDispatch,
+		     XF86BigfontResetProc,
+		     StandardMinorOpcode)) {
 #ifdef HAS_SHM
 #ifdef MUST_CHECK_FOR_SHM_SYSCALL
 	/*

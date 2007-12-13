@@ -28,7 +28,7 @@
 
 #include <sys/types.h> /* get __x86 definition if not set by compiler */
 
-#if defined(__i386__) || defined(__x86)
+#if defined(__i386__) || defined(__i386) || defined(__x86)
 #define _NEED_SYSI86
 #endif
 #include "xf86.h"
@@ -148,14 +148,14 @@ xf86UnMapVidMem(int ScreenNum, pointer Base, unsigned long Size)
 /* I/O Permissions section						   */
 /***************************************************************************/
 
-#if defined(__i386__) || defined(__x86)
+#if defined(__i386__) || defined(__i386) || defined(__x86)
 static Bool ExtendedEnabled = FALSE;
 #endif
 
 _X_EXPORT Bool
 xf86EnableIO(void)
 {
-#if defined(__i386__) || defined(__x86)
+#if defined(__i386__) || defined(__i386) || defined(__x86)
 	if (ExtendedEnabled)
 		return TRUE;
 
@@ -171,7 +171,7 @@ xf86EnableIO(void)
 _X_EXPORT void
 xf86DisableIO(void)
 {
-#if defined(__i386__) || defined(__x86)
+#if defined(__i386__) || defined(__i386) || defined(__x86)
 	if(!ExtendedEnabled)
 		return;
 
@@ -188,7 +188,7 @@ xf86DisableIO(void)
 
 _X_EXPORT Bool xf86DisableInterrupts(void)
 {
-#if defined(__i386__) || defined(__x86)
+#if defined(__i386__) || defined(__i386) || defined(__x86)
 	if (!ExtendedEnabled && (sysi86(SI86V86, V86SC_IOPL, PS_IOPL) < 0))
 		return FALSE;
 
@@ -207,7 +207,7 @@ _X_EXPORT Bool xf86DisableInterrupts(void)
 
 _X_EXPORT void xf86EnableInterrupts(void)
 {
-#if defined(__i386__) || defined(__x86)
+#if defined(__i386__) || defined(__i386) || defined(__x86)
 	if (!ExtendedEnabled && (sysi86(SI86V86, V86SC_IOPL, PS_IOPL) < 0))
 		return;
 

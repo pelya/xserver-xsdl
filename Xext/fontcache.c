@@ -70,9 +70,18 @@ static DISPATCH_PROC(SProcFontCacheChangeCacheSettings);
 void
 FontCacheExtensionInit(INITARGS)
 {
-    AddExtension(FONTCACHENAME, FontCacheNumberEvents, FontCacheNumberErrors,
-		 ProcFontCacheDispatch, SProcFontCacheDispatch,
-		 FontCacheResetProc, StandardMinorOpcode);
+    ExtensionEntry* extEntry;
+
+    if (
+	(extEntry = AddExtension(FONTCACHENAME,
+				FontCacheNumberEvents,
+				FontCacheNumberErrors,
+				ProcFontCacheDispatch,
+				SProcFontCacheDispatch,
+				FontCacheResetProc,
+				StandardMinorOpcode))) {
+	miscErrorBase = extEntry->errorBase;
+    }
 }
 
 /*ARGSUSED*/

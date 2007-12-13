@@ -26,17 +26,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef SWAPREQ_H
 #define SWAPREQ_H 1
 
-/* The first two are in misc.h */
-#if 0
-extern void SwapLongs (
-    CARD32 * /* list */,
-    unsigned long /* count */);
-
-extern void SwapShorts (
-    short * /* list */,
-    unsigned long  /* count */);
-#endif
-
 extern void SwapColorItem(
     xColorItem	* /* pItem */);
 

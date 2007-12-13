@@ -16,7 +16,6 @@ INCLUDES = $(CFB_INCLUDES) -I$(top_srcdir)/hw/xfree86/os-support  -I$(top_srcdir
 EXTRA_DIST = cfbline.c cfbfillarc.c cfbzerarc.c cfbblt.c cfbsolid.c \
              cfbtileodd.c cfbtile32.c cfb8line.c cfbply1rct.c cfbglblt8.c \
 	     cfb16.h cfb24.h cfb32.h cfb8bit.h cfbrrop.h \
-	     cfbtab.h \
 	     stip68kgnu.h stipmips.s stipsparc.s stipsprc32.s
 
 sdk_HEADERS = cfb.h cfb32.h cfb16.h cfbmap.h cfbunmap.h cfbmskbits.h

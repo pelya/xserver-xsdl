@@ -213,9 +213,6 @@ int	(*SProcRenderVector[RenderNumberRequests])(ClientPtr) = {
 static void
 RenderResetProc (ExtensionEntry *extEntry);
     
-#if 0
-static CARD8	RenderReqCode;
-#endif
 int	RenderErrBase;
 DevPrivateKey RenderClientPrivateKey;
 
@@ -258,9 +255,6 @@ RenderExtensionInit (void)
 			     RenderResetProc, StandardMinorOpcode);
     if (!extEntry)
 	return;
-#if 0
-    RenderReqCode = (CARD8) extEntry->base;
-#endif
     RenderErrBase = extEntry->errorBase;
 }
 
@@ -295,26 +289,6 @@ ProcRenderQueryVersion (ClientPtr client)
     WriteToClient(client, sizeof(xRenderQueryVersionReply), (char *)&rep);
     return (client->noClientException);
 }
-
-#if 0
-static int
-VisualDepth (ScreenPtr pScreen, VisualPtr pVisual)
-{
-    DepthPtr    pDepth;
-    int		d, v;
-
-    for (d = 0; d < pScreen->numDepths; d++)
-    {
-	pDepth = pScreen->allowedDepths + d;
-	for (v = 0; v < pDepth->numVids; v++)
-	{
-	    if (pDepth->vids[v] == pVisual->vid)
-		return pDepth->depth;
-	}
-    }
-    return 0;
-}
-#endif
 
 static VisualPtr
 findVisual (ScreenPtr pScreen, VisualID vid)
@@ -3246,98 +3220,6 @@ PanoramiXRenderTriFan(ClientPtr client)
 
     return result;
 }
-
-#if 0 /* Not implemented yet */
-
-static int
-PanoramiXRenderColorTrapezoids(ClientPtr client)
-{
-    PanoramiXRes        *src, *dst;
-    int                 result = Success, j;
-    REQUEST(xRenderColorTrapezoidsReq);
-    char		*extra;
-    int			extra_len;
-    
-    REQUEST_AT_LEAST_SIZE (xRenderColorTrapezoidsReq);
-    
-    VERIFY_XIN_PICTURE (dst, stuff->dst, client, DixWriteAccess,
-			RenderErrBase + BadPicture);
-
-    extra_len = (client->req_len << 2) - sizeof (xRenderColorTrapezoidsReq);
-
-    if (extra_len &&
-	(extra = (char *) xalloc (extra_len))) {
-	memcpy (extra, stuff + 1, extra_len);
-
-	FOR_NSCREENS_FORWARD(j) {
-	    if (j) memcpy (stuff + 1, extra, extra_len);
-	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
-
-		if(x_off || y_off) {
-			....; 
-		}
-	    }
-	    
-            stuff->dst = dst->info[j].id;
-	    result =
-		(*PanoramiXSaveRenderVector[X_RenderColorTrapezoids]) (client);
-
-	    if(result != Success) break;
-	}
-	
-        xfree(extra);
-    }
-
-    return result;
-}
-
-static int
-PanoramiXRenderColorTriangles(ClientPtr client)
-{
-    PanoramiXRes        *src, *dst;
-    int                 result = Success, j;
-    REQUEST(xRenderColorTrianglesReq);
-    char		*extra;
-    int			extra_len;
-    
-    REQUEST_AT_LEAST_SIZE (xRenderColorTrianglesReq);
-    
-    VERIFY_XIN_PICTURE (dst, stuff->dst, client, DixWriteAccess,
-			RenderErrBase + BadPicture);
-
-    extra_len = (client->req_len << 2) - sizeof (xRenderColorTrianglesReq);
-
-    if (extra_len &&
-	(extra = (char *) xalloc (extra_len))) {
-	memcpy (extra, stuff + 1, extra_len);
-
-	FOR_NSCREENS_FORWARD(j) {
-	    if (j) memcpy (stuff + 1, extra, extra_len);
-	    if (dst->u.pict.root) {
-                int x_off = panoramiXdataPtr[j].x;
-		int y_off = panoramiXdataPtr[j].y;
-
-		if(x_off || y_off) {
-			....; 
-		}
-	    }
-	    
-            stuff->dst = dst->info[j].id;
-	    result =
-		(*PanoramiXSaveRenderVector[X_RenderColorTriangles]) (client);
-
-	    if(result != Success) break;
-	}
-	
-        xfree(extra);
-    }
-
-    return result;
-}
-
-#endif
 
 static int
 PanoramiXRenderAddTraps (ClientPtr client)

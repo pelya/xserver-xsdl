@@ -32,10 +32,22 @@
 #endif
 
 #include <stddef.h> /* For NULL */
+#include <string.h>
 #include "fb.h"
 #include "rootlessCommon.h"
 #include "rlAccel.h"
 
+#define InitializeShifts(sx,dx,ls,rs) { \
+    if (sx != dx) { \
+	if (sx > dx) { \
+	    ls = sx - dx; \
+	    rs = FB_UNIT - ls; \
+	} else { \
+	    rs = dx - sx; \
+	    ls = FB_UNIT - rs; \
+	} \
+    } \
+}
 
 void
 rlBlt (FbBits   *srcLine,
@@ -74,6 +86,29 @@ rlBlt (FbBits   *srcLine,
 	return;
     }
 #endif
+
+    if (alu == GXcopy && pm == FB_ALLONES && !reverse &&
+            !(srcX & 7) && !(dstX & 7) && !(width & 7)) {
+        int i;
+        CARD8 *src = (CARD8 *) srcLine;
+        CARD8 *dst = (CARD8 *) dstLine;
+        
+        srcStride *= sizeof(FbBits);
+        dstStride *= sizeof(FbBits);
+        width >>= 3;
+        src += (srcX >> 3);
+        dst += (dstX >> 3);
+
+        if (!upsidedown)
+            for (i = 0; i < height; i++)
+                memcpy(dst + i * dstStride, src + i * srcStride, width);
+        else
+            for (i = height - 1; i >= 0; i--)
+                memcpy(dst + i * dstStride, src + i * srcStride, width);
+
+        return;
+    }
+
     FbInitializeMergeRop(alu, pm);
     destInvarient = FbDestInvarientMergeRop();
     if (upsidedown)
@@ -325,9 +360,12 @@ rlBlt (FbBits   *srcLine,
 		    bits1 = *src++;
 		if (startmask)
 		{
-		    bits = FbScrLeft(bits1, leftShift);
-		    bits1 = *src++;
-		    bits |= FbScrRight(bits1, rightShift);
+		    bits = FbScrLeft(bits1, leftShift); 
+		    if (FbScrLeft(startmask, rightShift))
+		    {
+			bits1 = *src++;
+			bits |= FbScrRight(bits1, rightShift);
+		    }
 		    FbDoLeftMaskByteMergeRop (dst, bits, startbyte, startmask);
 		    dst++;
 		}

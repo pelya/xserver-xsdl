@@ -270,7 +270,7 @@ sparcPciInit(void)
     }
 
     sparcPromInit();
-    pagemask = xf86getpagesize() - 1;
+    pagemask = getpagesize() - 1;
 
     for (node = promGetChild(promRootNode);
 	 node;

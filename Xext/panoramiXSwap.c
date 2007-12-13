@@ -41,10 +41,6 @@ Equipment Corporation.
 #include "window.h"
 #include "windowstr.h"
 #include "pixmapstr.h"
-#if 0
-#include <sys/workstation.h>
-#include <X11/Xserver/ws.h> 
-#endif
 #include "panoramiX.h"
 #include <X11/extensions/panoramiXproto.h>
 #include "panoramiXsrv.h"
@@ -70,6 +66,7 @@ SProcPanoramiXGetState(ClientPtr client)
 
  	swaps (&stuff->length, n);	
 	REQUEST_SIZE_MATCH(xPanoramiXGetStateReq);
+	swapl (&stuff->window, n);
 	return ProcPanoramiXGetState(client);
 }
 
@@ -81,6 +78,7 @@ SProcPanoramiXGetScreenCount(ClientPtr client)
 
 	swaps (&stuff->length, n);
 	REQUEST_SIZE_MATCH(xPanoramiXGetScreenCountReq);
+	swapl (&stuff->window, n);
 	return ProcPanoramiXGetScreenCount(client);
 }
 
@@ -92,6 +90,8 @@ SProcPanoramiXGetScreenSize(ClientPtr client)
 
 	swaps (&stuff->length, n);
 	REQUEST_SIZE_MATCH(xPanoramiXGetScreenSizeReq);
+	swapl (&stuff->window, n);
+	swapl (&stuff->screen, n);
 	return ProcPanoramiXGetScreenSize(client);
 }
 

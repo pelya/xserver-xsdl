@@ -179,13 +179,9 @@ EVIResetProc(ExtensionEntry *extEntry)
 void
 EVIExtensionInit(INITARGS)
 {
-    ExtensionEntry *extEntry;
-
-    if (!(extEntry = AddExtension(EVINAME, 0, 0,
-				  ProcEVIDispatch,
-				  SProcEVIDispatch,
-				  EVIResetProc, StandardMinorOpcode)))
-	return;
-
-    eviPriv = eviDDXInit();
+    if (AddExtension(EVINAME, 0, 0,
+		     ProcEVIDispatch, SProcEVIDispatch,
+		     EVIResetProc, StandardMinorOpcode)) {
+	eviPriv = eviDDXInit();
+    }
 }

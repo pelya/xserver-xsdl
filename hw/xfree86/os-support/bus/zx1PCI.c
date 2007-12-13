@@ -469,7 +469,7 @@ void
 xf86PreScanZX1(void)
 {
     resRange range;
-    unsigned long mapSize = xf86getpagesize();
+    unsigned long mapSize = getpagesize();
     unsigned long tmp, base, ioaaddr;
     unsigned long flagsd, based, lastd, maskd, routed;
     unsigned long flags0, base0, last0, mask0, route0;

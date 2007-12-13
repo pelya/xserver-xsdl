@@ -1,7 +1,7 @@
 SUBDIRS = bus @XORG_OS_SUBDIR@ misc $(DRI_SUBDIRS)
 DIST_SUBDIRS = bsd bus misc linux lynxos solaris sysv sco usl hurd
 
-sdk_HEADERS = xf86_OSproc.h xf86_OSlib.h xf86_ansic.h xf86_libc.h \
+sdk_HEADERS = xf86_OSproc.h xf86_OSlib.h \
               assyntax.h xf86OSmouse.h
 
 EXTRA_DIST = int10Defines.h xf86OSpriv.h README.OS-lib

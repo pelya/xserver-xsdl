@@ -79,8 +79,6 @@
 #include "vidmodeproc.h"
 #include "xf86miscproc.h"
 #include "loader.h"
-#define DONT_DEFINE_WRAPPERS
-#include "xf86_ansic.h"
 #include "xisb.h"
 #include "vbe.h"
 #ifndef __OpenBSD__
@@ -269,7 +267,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86ReadSerial)
     SYMFUNC(xf86WriteSerial)
     SYMFUNC(xf86CloseSerial)
-    SYMFUNC(xf86GetErrno)
     SYMFUNC(xf86WaitForInput)
     SYMFUNC(xf86SerialSendBreak)
     SYMFUNC(xf86FlushInput)
@@ -724,186 +721,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(LoaderGetOS)
     SYMFUNC(LoaderGetABIVersion)
 
-    /*
-     * These are our own interfaces to libc functions.
-     */
-    SYMFUNC(xf86abort)
-    SYMFUNC(xf86abs)
-    SYMFUNC(xf86acos)
-    SYMFUNC(xf86asin)
-    SYMFUNC(xf86atan)
-    SYMFUNC(xf86atan2)
-    SYMFUNC(xf86atof)
-    SYMFUNC(xf86atoi)
-    SYMFUNC(xf86atol)
-    SYMFUNC(xf86bsearch)
-    SYMFUNC(xf86ceil)
-    SYMFUNC(xf86calloc)
-    SYMFUNC(xf86clearerr)
-    SYMFUNC(xf86close)
-    SYMFUNC(xf86cos)
-    SYMFUNC(xf86exit)
-    SYMFUNC(xf86exp)
-    SYMFUNC(xf86fabs)
-    SYMFUNC(xf86fclose)
-    SYMFUNC(xf86feof)
-    SYMFUNC(xf86ferror)
-    SYMFUNC(xf86fflush)
-    SYMFUNC(xf86fgetc)
-    SYMFUNC(xf86fgetpos)
-    SYMFUNC(xf86fgets)
-    SYMFUNC(xf86finite)
-    SYMFUNC(xf86floor)
-    SYMFUNC(xf86fmod)
-    SYMFUNC(xf86fopen)
-    SYMFUNC(xf86fprintf)
-    SYMFUNC(xf86fputc)
-    SYMFUNC(xf86fputs)
-    SYMFUNC(xf86fread)
-    SYMFUNC(xf86free)
-    SYMFUNC(xf86freopen)
-    SYMFUNC(xf86frexp)
-    SYMFUNC(xf86fscanf)
-    SYMFUNC(xf86fseek)
-    SYMFUNC(xf86fsetpos)
-    SYMFUNC(xf86ftell)
-    SYMFUNC(xf86fwrite)
-    SYMFUNC(xf86getc)
-    SYMFUNC(xf86getenv)
-    SYMFUNC(xf86getpagesize)
-    SYMFUNC(xf86hypot)
-    SYMFUNC(xf86ioctl)
-    SYMFUNC(xf86isalnum)
-    SYMFUNC(xf86isalpha)
-    SYMFUNC(xf86iscntrl)
-    SYMFUNC(xf86isdigit)
-    SYMFUNC(xf86isgraph)
-    SYMFUNC(xf86islower)
-    SYMFUNC(xf86isprint)
-    SYMFUNC(xf86ispunct)
-    SYMFUNC(xf86isspace)
-    SYMFUNC(xf86isupper)
-    SYMFUNC(xf86isxdigit)
-    SYMFUNC(xf86labs)
-    SYMFUNC(xf86ldexp)
-    SYMFUNC(xf86log)
-    SYMFUNC(xf86log10)
-    SYMFUNC(xf86lseek)
-    SYMFUNC(xf86malloc)
-    SYMFUNC(xf86memchr)
-    SYMFUNC(xf86memcmp)
-    SYMFUNC(xf86memcpy)
-    /*
-     * Some compilers generate calls to memcpy to handle structure copies
-     * or run-time initializations.
-     */
-    SYMFUNCALIAS("memcpy", xf86memcpy)
-    SYMFUNC(xf86memset)
-    /*
-     * Some compilers generate calls to memset to handle aggregate
-     * initializations.
-     */
-    SYMFUNCALIAS("memset", xf86memset)
-    SYMFUNC(xf86memmove)
-    SYMFUNC(xf86mmap)
-    SYMFUNC(xf86modf)
-    SYMFUNC(xf86munmap)
-    SYMFUNC(xf86open)
-    SYMFUNC(xf86perror)
-    SYMFUNC(xf86pow)
-    SYMFUNC(xf86printf)
-    SYMFUNC(xf86qsort)
-    SYMFUNC(xf86read)
-    SYMFUNC(xf86realloc)
-    SYMFUNC(xf86remove)
-    SYMFUNC(xf86rename)
-    SYMFUNC(xf86rewind)
-    SYMFUNC(xf86setbuf)
-    SYMFUNC(xf86setvbuf)
-    SYMFUNC(xf86sin)
-    SYMFUNC(xf86snprintf)
-    SYMFUNC(xf86sprintf)
-    SYMFUNC(xf86sqrt)
-    SYMFUNC(xf86sscanf)
-    SYMFUNC(xf86strcat)
-    SYMFUNC(xf86strcmp)
-    SYMFUNC(xf86strcasecmp)
-    SYMFUNC(xf86strcpy)
-    SYMFUNC(xf86strcspn)
-    SYMFUNC(xf86strerror)
-    SYMFUNC(xf86strlcat)
-    SYMFUNC(xf86strlcpy)
-    SYMFUNC(xf86strlen)
-    SYMFUNC(xf86strncasecmp)
-    SYMFUNC(xf86strncat)
-    SYMFUNC(xf86strncmp)
-    SYMFUNC(xf86strncpy)
-    SYMFUNC(xf86strpbrk)
-    SYMFUNC(xf86strchr)
-    SYMFUNC(xf86strrchr)
-    SYMFUNC(xf86strspn)
-    SYMFUNC(xf86strstr)
-    SYMFUNC(xf86strtod)
-    SYMFUNC(xf86strtok)
-    SYMFUNC(xf86strtol)
-    SYMFUNC(xf86strtoul)
-    SYMFUNC(xf86tan)
-    SYMFUNC(xf86tmpfile)
-    SYMFUNC(xf86tolower)
-    SYMFUNC(xf86toupper)
-    SYMFUNC(xf86ungetc)
-    SYMFUNC(xf86vfprintf)
-    SYMFUNC(xf86vsnprintf)
-    SYMFUNC(xf86vsprintf)
-    SYMFUNC(xf86write)
-
-    /* non-ANSI C functions */
-    SYMFUNC(xf86opendir)
-    SYMFUNC(xf86closedir)
-    SYMFUNC(xf86readdir)
-    SYMFUNC(xf86rewinddir)
-    SYMFUNC(xf86ffs)
-    SYMFUNC(xf86strdup)
-    SYMFUNC(xf86bzero)
-    SYMFUNC(xf86usleep)
-    SYMFUNC(xf86execl)
-
-    SYMFUNC(xf86getsecs)
-    SYMFUNC(xf86fpossize) /* for returning sizeof(fpos_t) */
-
-    /* Some of these were added for DRI support. */
-    SYMFUNC(xf86stat)
-    SYMFUNC(xf86fstat)
-    SYMFUNC(xf86access)
-    SYMFUNC(xf86geteuid)
-    SYMFUNC(xf86getegid)
-    SYMFUNC(xf86getpid)
-    SYMFUNC(xf86mknod)
-    SYMFUNC(xf86chmod)
-    SYMFUNC(xf86chown)
-    SYMFUNC(xf86sleep)
-    SYMFUNC(xf86mkdir)
-    SYMFUNC(xf86shmget)
-    SYMFUNC(xf86shmat)
-    SYMFUNC(xf86shmdt)
-    SYMFUNC(xf86shmctl)
-#ifdef HAS_GLIBC_SIGSETJMP
-    SYMFUNC(xf86setjmp)
-    SYMFUNC(xf86setjmp0)
-#if defined(__GLIBC__) && (__GLIBC__ >= 2)
-    SYMFUNCALIAS("xf86setjmp1", __sigsetjmp)
-#else
-    SYMFUNC(xf86setjmp1)	/* For libc5 */
-#endif
-#else
-    SYMFUNCALIAS("xf86setjmp", setjmp)
-    SYMFUNC(xf86setjmp0)
-    SYMFUNC(xf86setjmp1)
-#endif
-    SYMFUNCALIAS("xf86longjmp", longjmp)
-    SYMFUNC(xf86getjmptype)
-    SYMFUNC(xf86setjmp1_arg2)
-    SYMFUNC(xf86setjmperror)
 #ifdef XF86DRI
     /*
      * These may have more general uses, but for now, they are only used
@@ -1087,14 +904,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(_Qp_dtoq)
 #endif
 #endif
-
-    /* Some variables. */
-
-    SYMVAR(xf86stdin)
-    SYMVAR(xf86stdout)
-    SYMVAR(xf86stderr)
-    SYMVAR(xf86errno)
-    SYMVAR(xf86HUGE_VAL)
 
     /* General variables (from xf86.h) */
     SYMVAR(xf86ScreenKey)

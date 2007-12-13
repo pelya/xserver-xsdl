@@ -66,7 +66,6 @@ typedef struct _RootlessWindowRec {
     int bytesPerRow;
 
     PixmapPtr pixmap;
-    PixmapPtr oldPixmap;
 
 #ifdef ROOTLESS_TRACK_DAMAGE
     RegionRec damage;

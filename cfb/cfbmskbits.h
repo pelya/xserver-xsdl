@@ -831,42 +831,6 @@ if ((x) + (w) <= PPW) {\
     *(destpix) = (*(psrcpix)) & QuartetPixelMaskTable[q]; \
 }
 #if PSZ == 24
-# if 0
-#define getstipplepixels24(psrcstip,xt,w,ones,psrcpix,destpix,stipindex,srcindex,dstindex) \
-{ \
-    PixelGroup q; \
-    CfbBits src; \
-    register unsigned int sidx; \
-    register unsigned int didx; \
-    sidx = ((srcindex) & 3)<<1; \
-    didx = ((dstindex) & 3)<<1; \
-    q = *(psrcstip) >> (xt); \
-/*    if((srcindex)!=0)*/ \
-/*    src = (((*(psrcpix)) << cfb24Shift[sidx]) & (cfbmask[sidx])) |*/ \
-/*	(((*((psrcpix)+1)) << cfb24Shift[sidx+1]) & (cfbmask[sidx+1])); */\
-/*    else */\
-	src = (*(psrcpix))&0xFFFFFF; \
-    if ( ((xt)+(w)) > PGSZ ) \
-        q |= (*((psrcstip)+1)) << (PGSZ -(xt)); \
-    q = QuartetBitsTable[(w)] & ((ones) ? q : ~q); \
-    src &= QuartetPixelMaskTable[q]; \
-    *(destpix) &= cfbrmask[didx]; \
-    switch(didx) {\
-	case 0: \
-		*(destpix) |= (src &cfbmask[didx]); \
-		break; \
-	case 2: \
-	case 4: \
-		destpix++;didx++; \
-		*(destpix) = ((*(destpix)) & (cfbrmask[didx]))| \
-			(BitLeft(src, cfb24Shift[didx]) & (cfbmask[didx])); \
-		destpix--; didx--;\
-	case 6: \
-		*(destpix) |= (BitRight(src, cfb24Shift[didx]) & cfbmask[didx]); \
-		break; \
-	}; \
-}
-# else
 #define getstipplepixels24(psrcstip,xt,ones,psrcpix,destpix,stipindex) \
 { \
     PixelGroup q; \
@@ -874,7 +838,6 @@ if ((x) + (w) <= PPW) {\
     q = ((ones) ? q : ~q) & 1; \
     *(destpix) = (*(psrcpix)) & QuartetPixelMaskTable[q]; \
 }
-# endif
 #endif /* PSZ == 24 */
 #endif
 

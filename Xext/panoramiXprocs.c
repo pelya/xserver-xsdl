@@ -54,16 +54,6 @@ Equipment Corporation.
 #define INPUTONLY_LEGAL_MASK (CWWinGravity | CWEventMask | \
                               CWDontPropagate | CWOverrideRedirect | CWCursor )
 
-#if 0
-extern void (* EventSwapVector[128]) (fsError *, fsError *);
-
-extern void Swap32Write();
-extern void SLHostsExtend();
-extern void SQColorsExtend();
-WriteSConnectionInfo();
-extern void WriteSConnSetupPrefix();
-#endif
-
 /* Various of the DIX function interfaces were not designed to allow
  * the client->errorValue to be set on BadValue and other errors.
  * Rather than changing interfaces and breaking untold code we introduce

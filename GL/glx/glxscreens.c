@@ -175,7 +175,7 @@ static char GLXServerExtensions[] =
                         "GLX_EXT_texture_from_pixmap "
 			"GLX_OML_swap_method "
 			"GLX_SGI_make_current_read "
-#ifndef __DARWIN__
+#ifndef __APPLE__
 			"GLX_SGIS_multisample "
                         "GLX_SGIX_hyperpipe "
                         "GLX_SGIX_swap_barrier "

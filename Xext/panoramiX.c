@@ -65,9 +65,6 @@ extern VisualPtr glxMatchVisual(ScreenPtr pScreen,
 				ScreenPtr pMatchScreen);
 #endif
 
-#if 0
-static unsigned char PanoramiXReqCode = 0;
-#endif
 /*
  *	PanoramiX data declarations
  */
@@ -470,10 +467,6 @@ void PanoramiXExtensionInit(int argc, char *argv[])
 	    ErrorF("PanoramiXExtensionInit(): failed to AddExtension\n");
 	    break;
  	}
-
-#if 0
-	PanoramiXReqCode = (unsigned char)extEntry->base;
-#endif
 
 	/*
 	 *	First make sure all the basic allocations succeed.  If not,

@@ -102,8 +102,8 @@ SOFTWARE.
 #ifdef PANORAMIX
 #include "panoramiX.h"
 #include "panoramiXsrv.h"
-#include "xvdisp.h"
 #endif
+#include "xvdisp.h"
 
 static DevPrivateKey XvScreenKey = &XvScreenKey;
 unsigned long XvExtensionGeneration = 0;
@@ -314,12 +314,12 @@ XvCloseScreen(
   dixSetPrivate(&pScreen->devPrivates, XvScreenKey, NULL);
 
   return (*pScreen->CloseScreen)(ii, pScreen);
-
 }
 
 static void
 XvResetProc(ExtensionEntry* extEntry)
 {
+    XvResetProcVector();
 }
 
 _X_EXPORT DevPrivateKey

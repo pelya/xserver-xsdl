@@ -163,8 +163,8 @@ extern int  PictureCmapPolicy;
 
 int	PictureParseCmapPolicy (const char *name);
 
-extern int	RenderErrBase;
-extern int	RenderClientPrivateIndex;
+extern int RenderErrBase;
+extern DevPrivateKey RenderClientPrivateKey;
 
 /* Fixed point updates from Carl Worth, USC, Information Sciences Institute */
 

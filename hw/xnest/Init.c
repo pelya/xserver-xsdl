@@ -122,7 +122,7 @@ void ddxGiveUp()
   AbortDDX();
 }
 
-#ifdef __DARWIN__
+#ifdef __APPLE__
 void
 DarwinHandleGUI(int argc, char *argv[])
 {

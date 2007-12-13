@@ -242,9 +242,6 @@ damageDamageRegion (DrawablePtr pDrawable, RegionPtr pRegion, Bool clip,
 	if (pDamage->pDrawable->type == DRAWABLE_WINDOW &&
 	    !((WindowPtr) (pDamage->pDrawable))->realized)
 	{
-#if 0
-	    DAMAGE_DEBUG (("damage while window unrealized\n"));
-#endif
 	    continue;
 	}
 	

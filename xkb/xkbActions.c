@@ -552,6 +552,9 @@ _XkbFilterPointerMove(	XkbSrvInfoPtr	xkbi,
 int	x,y;
 Bool	accel;
 
+    if (xkbi->device == inputInfo.keyboard)
+        return 0;
+
     if (filter->keycode==0) {		/* initial press */
 	filter->keycode = keycode;
 	filter->active = 1;
@@ -592,6 +595,9 @@ _XkbFilterPointerBtn(	XkbSrvInfoPtr	xkbi,
 			unsigned	keycode,
 			XkbAction *	pAction)
 {
+    if (xkbi->device == inputInfo.keyboard)
+        return 0;
+
     if (filter->keycode==0) {		/* initial press */
 	int	button= pAction->btn.button;
 
@@ -971,8 +977,11 @@ _XkbFilterSwitchScreen(	XkbSrvInfoPtr	xkbi,
 			unsigned	keycode,
 			XkbAction *	pAction)
 {
+    DeviceIntPtr dev = xkbi->device;
+    if (dev == inputInfo.keyboard)
+        return 0;
+
     if (filter->keycode==0) {		/* initial press */
-        DeviceIntPtr	dev = xkbi->device;
 	filter->keycode = keycode;
 	filter->active = 1;
 	filter->filterOthers = 0;
@@ -994,8 +1003,11 @@ _XkbFilterXF86Private(	XkbSrvInfoPtr	xkbi,
 			unsigned	keycode,
 			XkbAction *	pAction)
 {
+    DeviceIntPtr dev = xkbi->device;
+    if (dev == inputInfo.keyboard)
+        return 0;
+
     if (filter->keycode==0) {		/* initial press */
-        DeviceIntPtr	dev = xkbi->device;
 	filter->keycode = keycode;
 	filter->active = 1;
 	filter->filterOthers = 0;
@@ -1019,6 +1031,9 @@ _XkbFilterDeviceBtn(	XkbSrvInfoPtr	xkbi,
 {
 DeviceIntPtr	dev;
 int		button;
+
+    if (dev == inputInfo.keyboard)
+        return 0;
 
     if (filter->keycode==0) {		/* initial press */
 	_XkbLookupButtonDevice(&dev, pAction->devbtn.device, serverClient,

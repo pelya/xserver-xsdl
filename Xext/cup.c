@@ -123,16 +123,13 @@ static xColorItem citems[] = {
 void
 XcupExtensionInit (INITARGS)
 {
-    ExtensionEntry* extEntry;
-
-    if (!(extEntry = AddExtension (XCUPNAME,
-				   0,
-				   XcupNumberErrors,
-				   ProcDispatch,
-				   SProcDispatch,
-				   ResetProc,
-				   StandardMinorOpcode)))
-	return;
+    (void) AddExtension (XCUPNAME,
+			0,
+			XcupNumberErrors,
+			ProcDispatch,
+			SProcDispatch,
+			ResetProc,
+			StandardMinorOpcode);
 
     /* PC servers initialize the desktop colors (citems) here! */
 }

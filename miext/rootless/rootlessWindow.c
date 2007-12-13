@@ -198,6 +198,7 @@ RootlessCreateWindow(WindowPtr pWin)
     RegionRec saveRoot;
 
     SETWINREC(pWin, NULL);
+    dixSetPrivate(&pWin->devPrivates, rootlessWindowOldPixmapPrivateKey, NULL);
 
     SCREEN_UNWRAP(pWin->drawable.pScreen, CreateWindow);
 
@@ -445,6 +446,12 @@ RootlessInitializeFrame(WindowPtr pWin, RootlessWindowRec *winRec)
 }
 
 
+Bool
+RootlessColormapCallback (void *data, int first_color, int n_colors, uint32_t *colors)
+{
+  return RootlessResolveColormap (data, first_color, n_colors, colors);
+}
+
 /*
  * RootlessEnsureFrame
  *  Make sure the given window is framed. If the window doesn't have a
@@ -502,6 +509,9 @@ RootlessEnsureFrame(WindowPtr pWin)
         SETWINREC(pWin, NULL);
         return NULL;
     }
+
+    if (pWin->drawable.depth == 8)
+      RootlessFlushWindowColormap(pWin);
 
 #ifdef SHAPE
     if (pShape != NULL)
@@ -1455,6 +1465,26 @@ out:
     }
 }
 
+
+void
+RootlessFlushWindowColormap (WindowPtr pWin)
+{
+  RootlessWindowRec *winRec = WINREC (pWin);
+  xp_window_changes wc;
+
+  if (winRec == NULL)
+    return;
+
+  RootlessStopDrawing (pWin, FALSE);
+
+  /* This is how we tell xp that the colormap may have changed. */
+
+  wc.colormap = RootlessColormapCallback;
+  wc.colormap_data = pWin->drawable.pScreen;
+
+  configure_window (winRec->wid, XP_COLORMAP, &wc);
+}
+
 /*
  * RootlessChangeBorderWidth
  *  FIXME: untested!
@@ -1516,20 +1546,20 @@ RootlessChangeBorderWidth(WindowPtr pWin, unsigned int width)
 void
 RootlessOrderAllWindows (void)
 {
-  int i;
-  WindowPtr pWin;
-  
-  RL_DEBUG_MSG("RootlessOrderAllWindows() ");
-  for (i = 0; i < screenInfo.numScreens; i++) {
-    if (screenInfo.screens[i] == NULL) continue;
-    pWin = WindowTable[i];
-    if (pWin == NULL) continue;
+    int i;
+    WindowPtr pWin;
+    
+    RL_DEBUG_MSG("RootlessOrderAllWindows() ");
+    for (i = 0; i < screenInfo.numScreens; i++) {
+      if (screenInfo.screens[i] == NULL) continue;
+      pWin = WindowTable[i];
+      if (pWin == NULL) continue;
       
-    for (pWin = pWin->firstChild; pWin != NULL; pWin = pWin->nextSib) {
-      if (!pWin->realized) continue;
-      if (RootlessEnsureFrame(pWin) == NULL) continue;
-      RootlessReorderWindow (pWin);
+      for (pWin = pWin->firstChild; pWin != NULL; pWin = pWin->nextSib) {
+	if (!pWin->realized) continue;
+	if (RootlessEnsureFrame(pWin) == NULL) continue;
+	RootlessReorderWindow (pWin);
+      }
     }
-  }
-  RL_DEBUG_MSG("RootlessOrderAllWindows() done");
+    RL_DEBUG_MSG("RootlessOrderAllWindows() done");
 }

@@ -20,7 +20,6 @@ solaris-@SOLARIS_INOUT_ARCH@.il: solaris-@SOLARIS_INOUT_ARCH@.S
 noinst_LTLIBRARIES = libsolaris.la
 libsolaris_la_SOURCES = sun_bios.c sun_init.c \
 	sun_mouse.c sun_vid.c sun_bell.c $(AGP_SRC) sun_apm.c \
-	$(srcdir)/../shared/libc_wrapper.c \
 	$(srcdir)/../shared/kmod_noop.c \
 	$(srcdir)/../shared/posix_tty.c $(srcdir)/../shared/sigiostubs.c \
 	$(srcdir)/../shared/stdResource.c \

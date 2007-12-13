@@ -93,7 +93,7 @@
 #undef cfbFillSpanTileOddGeneral
 #undef cfbFinishScreenInit
 #undef cfbGCFuncs
-#undef cfbGCPrivateIndex
+#undef cfbGCPrivateKey
 #undef cfbGetImage
 #undef cfbGetScreenPixmap
 #undef cfbGetSpans
@@ -123,7 +123,7 @@
 #undef cfbRestoreAreas
 #undef cfbSaveAreas
 #undef cfbScreenInit
-#undef cfbScreenPrivateIndex
+#undef cfbScreenPrivateKey
 #undef cfbSegmentSD
 #undef cfbSegmentSS
 #undef cfbSetScanline
@@ -147,7 +147,7 @@
 #undef cfbUnnaturalTileFS
 #undef cfbValidateGC
 #undef cfbVertS
-#undef cfbWindowPrivateIndex
+#undef cfbWindowPrivateKey
 #undef cfbXRotatePixmap
 #undef cfbYRotatePixmap
 #undef cfbZeroPolyArcSS8Copy

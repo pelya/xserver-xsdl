@@ -72,7 +72,8 @@ static Bool quirk_prefer_large_60 (int scrnIndex, xf86MonPtr DDC)
 {
     /* Belinea 10 15 55 */
     if (memcmp (DDC->vendor.name, "MAX", 4) == 0 &&
-	DDC->vendor.prod_id == 1516)
+	((DDC->vendor.prod_id == 1516) ||
+	(DDC->vendor.prod_id == 0x77e)))
 	return TRUE;
     
     /* Acer AL1706 */
@@ -326,6 +327,12 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
     Mode->VSyncStart = timing->v_active + timing->v_sync_off;
     Mode->VSyncEnd = Mode->VSyncStart + timing->v_sync_width;
     Mode->VTotal = timing->v_active + timing->v_blanking;
+
+    /* perform basic check on the detail timing */
+    if (Mode->HSyncEnd > Mode->HTotal || Mode->VSyncEnd > Mode->VTotal) {
+	xfree(Mode);
+	return NULL;
+    }
 
     xf86SetModeDefaultName(Mode);
 

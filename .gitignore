@@ -9,6 +9,8 @@ Makefile.in
 *.o
 *~
 .*.swp
+*.pbxuser
+*.mode1v3
 obj*
 build*
 aclocal.m4
@@ -271,6 +273,7 @@ hw/xprint/doc/Xprt.1x
 hw/xprint/doc/Xprt.man
 hw/xprint/dpmsstubs-wrapper.c
 hw/xprint/miinitext-wrapper.c
+hw/xquartz/bundle/org.x.X11.plist
 include/dix-config.h
 include/kdrive-config.h
 include/xgl-config.h
