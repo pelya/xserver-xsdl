@@ -368,52 +368,6 @@ xf86HandleBuiltinMode(ScrnInfoPtr scrp,
     return MODE_OK;
 }
 
-#if 0
-/** Calculates the horizontal sync rate of a mode */
-_X_EXPORT double
-xf86ModeHSync(DisplayModePtr mode)
-{
-    double hsync = 0.0;
-    
-    if (mode->HSync > 0.0)
-	    hsync = mode->HSync;
-    else if (mode->HTotal > 0)
-	    hsync = (float)mode->Clock / (float)mode->HTotal;
-
-    return hsync;
-}
-
-/** Calculates the vertical refresh rate of a mode */
-_X_EXPORT double
-xf86ModeVRefresh(DisplayModePtr mode)
-{
-    double refresh = 0.0;
-
-    if (mode->VRefresh > 0.0)
-	refresh = mode->VRefresh;
-    else if (mode->HTotal > 0 && mode->VTotal > 0) {
-	refresh = mode->Clock * 1000.0 / mode->HTotal / mode->VTotal;
-	if (mode->Flags & V_INTERLACE)
-	    refresh *= 2.0;
-	if (mode->Flags & V_DBLSCAN)
-	    refresh /= 2.0;
-	if (mode->VScan > 1)
-	    refresh /= (float)(mode->VScan);
-    }
-    return refresh;
-}
-
-/** Sets a default mode name of <width>x<height> on a mode. */
-_X_EXPORT void
-xf86SetModeDefaultName(DisplayModePtr mode)
-{
-    if (mode->name != NULL)
-	xfree(mode->name);
-
-    mode->name = XNFprintf("%dx%d", mode->HDisplay, mode->VDisplay);
-}
-#endif
-
 /*
  * xf86LookupMode
  *
