@@ -183,6 +183,8 @@ xf86ModeStatusToString(ModeStatus status)
         return "all modes must have the same resolution";
     case MODE_NO_REDUCED:
         return "monitor doesn't support reduced blanking";
+    case MODE_BANDWIDTH:
+	return "mode requires too much memory bandwidth";
     case MODE_BAD:
 	return "unknown reason";
     case MODE_ERROR:

@@ -118,6 +118,24 @@ xf86ModeHeight (DisplayModePtr mode, Rotation rotation)
     }
 }
 
+/** Calculates the memory bandwidth (in MiB/sec) of a mode. */
+_X_EXPORT unsigned int
+xf86ModeBandwidth(DisplayModePtr mode, int depth)
+{
+    float a_active, a_total, active_percent, pixels_per_second;
+    int bytes_per_pixel = (depth + 7) / 8;
+
+    if (!mode->HTotal || !mode->VTotal || !mode->Clock)
+	return 0;
+
+    a_active = mode->HDisplay * mode->VDisplay;
+    a_total = mode->HTotal * mode->VTotal;
+    active_percent = a_active / a_total;
+    pixels_per_second = active_percent * mode->Clock * 1000.0;
+
+    return (unsigned int)(pixels_per_second * bytes_per_pixel / (1024 * 1024));
+}
+
 /** Sets a default mode name of <width>x<height> on a mode. */
 _X_EXPORT void
 xf86SetModeDefaultName(DisplayModePtr mode)
@@ -484,6 +502,25 @@ xf86ValidateModesUserConfig(ScrnInfoPtr pScrn, DisplayModePtr modeList)
     }
 }
 
+
+/**
+ * Marks as bad any modes exceeding the given bandwidth.
+ *
+ * \param modeList doubly-linked or circular list of modes.
+ * \param bandwidth bandwidth in MHz.
+ * \param depth color depth.
+ */
+_X_EXPORT void
+xf86ValidateModesBandwidth(ScrnInfoPtr pScrn, DisplayModePtr modeList,
+			   unsigned int bandwidth, int depth)
+{
+    DisplayModePtr mode;
+
+    for (mode = modeList; mode != NULL; mode = mode->next) {
+	if (xf86ModeBandwidth(mode, depth) > bandwidth)
+	    mode->status = MODE_BANDWIDTH;
+    }
+}
 
 /**
  * Frees any modes from the list with a status other than MODE_OK.
