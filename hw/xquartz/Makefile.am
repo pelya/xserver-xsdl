@@ -1,3 +1,7 @@
+libexec_PROGRAMS = x11-exec
+
+x11_exec_LDFLAGS = -framework ApplicationServices
+
 noinst_LTLIBRARIES = libXquartz.la
 AM_CFLAGS = $(XSERVER_CFLAGS) $(DIX_CFLAGS)
 AM_CPPFLAGS = \
