@@ -339,12 +339,10 @@ xf86PrintModeline(int scrnIndex,DisplayModePtr mode)
 /**
  * Marks as bad any modes with unsupported flags.
  *
- * \param modeList doubly-linked or circular list of modes.
+ * \param modeList doubly-linked list of modes.
  * \param flags flags supported by the driver.
  *
  * \bug only V_INTERLACE and V_DBLSCAN are supported.  Is that enough?
- *
- * This is not in xf86Modes.c, but would be part of the proposed new API.
  */
 _X_EXPORT void
 xf86ValidateModesFlags(ScrnInfoPtr pScrn, DisplayModePtr modeList,
@@ -363,9 +361,7 @@ xf86ValidateModesFlags(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 /**
  * Marks as bad any modes extending beyond the given max X, Y, or pitch.
  *
- * \param modeList doubly-linked or circular list of modes.
- *
- * This is not in xf86Modes.c, but would be part of the proposed new API.
+ * \param modeList doubly-linked list of modes.
  */
 _X_EXPORT void
 xf86ValidateModesSize(ScrnInfoPtr pScrn, DisplayModePtr modeList,
@@ -392,9 +388,7 @@ xf86ValidateModesSize(ScrnInfoPtr pScrn, DisplayModePtr modeList,
  * Marks as bad any modes that aren't supported by the given monitor's
  * hsync and vrefresh ranges.
  *
- * \param modeList doubly-linked or circular list of modes.
- *
- * This is not in xf86Modes.c, but would be part of the proposed new API.
+ * \param modeList doubly-linked list of modes.
  */
 _X_EXPORT void
 xf86ValidateModesSync(ScrnInfoPtr pScrn, DisplayModePtr modeList,
@@ -436,12 +430,10 @@ xf86ValidateModesSync(ScrnInfoPtr pScrn, DisplayModePtr modeList,
 /**
  * Marks as bad any modes extending beyond outside of the given clock ranges.
  *
- * \param modeList doubly-linked or circular list of modes.
+ * \param modeList doubly-linked list of modes.
  * \param min pointer to minimums of clock ranges
  * \param max pointer to maximums of clock ranges
  * \param n_ranges number of ranges.
- *
- * This is not in xf86Modes.c, but would be part of the proposed new API.
  */
 _X_EXPORT void
 xf86ValidateModesClocks(ScrnInfoPtr pScrn, DisplayModePtr modeList,
@@ -474,9 +466,7 @@ xf86ValidateModesClocks(ScrnInfoPtr pScrn, DisplayModePtr modeList,
  *
  * MODE_BAD is used as the rejection flag, for lack of a better flag.
  *
- * \param modeList doubly-linked or circular list of modes.
- *
- * This is not in xf86Modes.c, but would be part of the proposed new API.
+ * \param modeList doubly-linked list of modes.
  */
 _X_EXPORT void
 xf86ValidateModesUserConfig(ScrnInfoPtr pScrn, DisplayModePtr modeList)
@@ -506,7 +496,7 @@ xf86ValidateModesUserConfig(ScrnInfoPtr pScrn, DisplayModePtr modeList)
 /**
  * Marks as bad any modes exceeding the given bandwidth.
  *
- * \param modeList doubly-linked or circular list of modes.
+ * \param modeList doubly-linked list of modes.
  * \param bandwidth bandwidth in MHz.
  * \param depth color depth.
  */
@@ -528,8 +518,6 @@ xf86ValidateModesBandwidth(ScrnInfoPtr pScrn, DisplayModePtr modeList,
  * \param modeList pointer to a doubly-linked or circular list of modes.
  * \param verbose determines whether the reason for mode invalidation is
  *	  printed.
- *
- * This is not in xf86Modes.c, but would be part of the proposed new API.
  */
 _X_EXPORT void
 xf86PruneInvalidModes(ScrnInfoPtr pScrn, DisplayModePtr *modeList,
