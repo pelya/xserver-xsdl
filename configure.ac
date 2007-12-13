@@ -478,17 +478,15 @@ AC_ARG_WITH(xkb-output,       AS_HELP_STRING([--with-xkb-output=PATH], [Path to 
 AC_ARG_WITH(serverconfig-path, AS_HELP_STRING([--with-serverconfig-path=PATH], [Path to server config (default: ${libdir}/xserver)]),
 				[ SERVERCONFIG="$withval" ],
 				[ SERVERCONFIG="${libdir}/xserver" ])
-APPLE_APPLICATIONS_DIR="/Applications/Utilities"
 AC_ARG_WITH(apple-applications-dir,AS_HELP_STRING([--with-apple-applications-dir=PATH], [Path to the Applications directory (default: /Applications/Utilities)]),
-				[ APPLE_APPLICATIONS_DIR="${withval}" ].
+				[ APPLE_APPLICATIONS_DIR="${withval}" ],
 				[ APPLE_APPLICATIONS_DIR="/Applications/Utilities" ])
-
+AC_SUBST([APPLE_APPLICATIONS_DIR])
 AC_ARG_WITH(launchd,          AS_HELP_STRING([--with-launchd], [Build with support for Apple's launchd (default: auto)]), [LAUNCHD=$withval], [LAUNCHD=auto])
-
-AC_ARG_WITH(pci-txt-ids-dir, AS_HELP_STRING([--with-pci-txt-ids-dir=PATH],
-[Path to pci id directory (default: ${datadir}/X11/pci)]),
-				[ PCI_TXT_IDS_DIR="$withval" ],
-				[ PCI_TXT_IDS_DIR="${datadir}/X11/pci" ])
+AC_ARG_WITH(launchagents-dir,AS_HELP_STRING([--with-launchagents-dir=PATH], [Path to launchd's LaunchAgents directory (default: /Library/LaunchAgents)]),
+				[ launchagentsdir="${withval}" ],
+				[ launchagentsdir="/Library/LaunchAgents" ])
+AC_SUBST([launchagentsdir])
 AC_ARG_ENABLE(builddocs,      AS_HELP_STRING([--enable-builddocs], [Build docs (default: disabled)]),
                                 [BUILDDOCS=$enableval],
                                 [BUILDDOCS=no])
@@ -1709,7 +1707,6 @@ if test "x$XQUARTZ" = xyes; then
 	DARWIN_LIBS="$MI_LIB $OS_LIB $DIX_LIB $FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB"
 	AC_SUBST([DARWIN_LIBS])
 	AC_CHECK_LIB([Xplugin],[xp_init],[:])
-	AC_SUBST([APPLE_APPLICATIONS_DIR])
 	CFLAGS="${CFLAGS} -DROOTLESS_WORKAROUND -DNO_ALLOCA"
 	if test "x$XF86MISC" = xyes || test "x$XF86MISC" = xauto; then
 		AC_MSG_NOTICE([Disabling XF86Misc extension])
@@ -1759,73 +1756,20 @@ if test "x$X11APP" = xauto; then
 fi
 AM_CONDITIONAL(X11APP,[test "X$X11APP" = Xyes]) 
 
-if test "x$LAUNCHD" = xauto; then
-	# Do we want to have this default to on for Xquartz builds only or any time we have launchd (like Xnest or Xvfb on OS-X)
-	#AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no])
-	AC_MSG_CHECKING([whether to support launchd])
-	if test "x$XQUARTZ" = xyes ; then
+if test "x$LAUNCHD" = "xauto"; then
+	if test "x$XQUARTZ" = "xyes" ; then
 		LAUNCHD=yes
 	else
-		LAUNCHD=no
+		AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no])
 	fi
-	AC_MSG_RESULT([$LAUNCHD])
-fi
-AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = xyes])
-
-dnl DMX DDX
-
-AC_MSG_CHECKING([whether to build Xdmx DDX])
-PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto xau $XDMCP_MODULES], [have_dmx=yes], [have_dmx=no])
-if test "x$DMX" = xauto; then
-	DMX="$have_dmx"
 fi
 AC_MSG_RESULT([$DMX])
 AM_CONDITIONAL(DMX, [test "x$DMX" = xyes])
 
-if test "x$DMX" = xyes; then
-	if test "x$have_dmx" = xno; then
-		AC_MSG_ERROR([Xdmx build explicitly requested, but required
-		              modules not found.])
-	fi
-	DMX_INCLUDES="$XEXT_INC $RENDER_INC $XTRAP_INC $RECORD_INC"
-	XDMX_CFLAGS="$DMXMODULES_CFLAGS"
-	XDMX_LIBS="$XEXT_LIB $FB_LIB $CONFIG_LIB $RENDER_LIB $XTRAP_LIB $RECORD_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $MIEXT_SHADOW_LIB $MIEXT_DAMAGE_LIB"
-	XDMX_SYS_LIBS="$DMXMODULES_LIBS"
-	AC_SUBST([XDMX_CFLAGS])
-	AC_SUBST([XDMX_LIBS])
-	AC_SUBST([XDMX_SYS_LIBS])
-
-dnl USB sources in DMX require <linux/input.h>
-	AC_CHECK_HEADER([linux/input.h], DMX_BUILD_USB="yes",
-			DMX_BUILD_USB="no")
-dnl Linux sources in DMX require <linux/keyboard.h>
-	AC_CHECK_HEADER([linux/keyboard.h], DMX_BUILD_LNX="yes",
-			DMX_BUILD_LNX="no")
-	if test "x$GLX" = xyes; then
-		PKG_CHECK_MODULES([GL], [glproto])
-	fi
-	PKG_CHECK_MODULES([XDMXCONFIG_DEP], [xaw7 xmu xt xpm x11])
-	AC_SUBST(XDMXCONFIG_DEP_CFLAGS)
-	AC_SUBST(XDMXCONFIG_DEP_LIBS)
-	PKG_CHECK_MODULES([DMXEXAMPLES_DEP], [dmx xext x11])
-	AC_SUBST(DMXEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([DMXXMUEXAMPLES_DEP], [dmx xmu xext x11])
-	AC_SUBST(DMXXMUEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([DMXXIEXAMPLES_DEP], [dmx xi xext x11])
-	AC_SUBST(DMXXIEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([XTSTEXAMPLES_DEP], [xtst xext x11])
-	AC_SUBST(XTSTEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([XRESEXAMPLES_DEP], [xres xext x11])
-	AC_SUBST(XRESEXAMPLES_DEP_LIBS)
-	PKG_CHECK_MODULES([X11EXAMPLES_DEP], [xext x11])
-	AC_SUBST(X11EXAMPLES_DEP_LIBS)
-fi
-AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
-AM_CONDITIONAL([DMX_BUILD_USB], [test "x$DMX_BUILD_USB" = xyes])
-if test "x$LAUNCHD" = xyes ; then
+if test "x$LAUNCHD" = "xyes" ; then
 	AC_DEFINE(HAVE_LAUNCHD, 1, [launchd support available])
 fi
-AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = xyes])
+AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = "xyes"])
 
 dnl kdrive DDX
 
