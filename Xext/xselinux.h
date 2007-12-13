@@ -33,14 +33,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define X_SELinuxQueryVersion			0
 #define X_SELinuxSetSelectionManager		1
 #define X_SELinuxGetSelectionManager		2
-#define X_SELinuxSetDeviceContext		3
-#define X_SELinuxGetDeviceContext		4
-#define X_SELinuxSetPropertyCreateContext	5
-#define X_SELinuxGetPropertyCreateContext	6
-#define X_SELinuxGetPropertyContext		7
-#define X_SELinuxSetWindowCreateContext		8
-#define X_SELinuxGetWindowCreateContext		9
-#define X_SELinuxGetWindowContext		10
+#define X_SELinuxSetDeviceCreateContext		3
+#define X_SELinuxGetDeviceCreateContext		4
+#define X_SELinuxSetDeviceContext		5
+#define X_SELinuxGetDeviceContext		6
+#define X_SELinuxSetPropertyCreateContext	7
+#define X_SELinuxGetPropertyCreateContext	8
+#define X_SELinuxGetPropertyContext		9
+#define X_SELinuxSetWindowCreateContext		10
+#define X_SELinuxGetWindowCreateContext		11
+#define X_SELinuxGetWindowContext		12
 
 typedef struct {
     CARD8   reqType;

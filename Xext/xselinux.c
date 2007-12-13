@@ -1052,6 +1052,18 @@ ProcSELinuxGetSelectionManager(ClientPtr client)
 }
 
 static int
+ProcSELinuxSetDeviceCreateContext(ClientPtr client)
+{
+    return Success;
+}
+
+static int
+ProcSELinuxGetDeviceCreateContext(ClientPtr client)
+{
+    return Success;
+}
+
+static int
 ProcSELinuxSetDeviceContext(ClientPtr client)
 {
     char *ctx;
@@ -1134,6 +1146,10 @@ ProcSELinuxDispatch(ClientPtr client)
 	return ProcSELinuxSetSelectionManager(client);
     case X_SELinuxGetSelectionManager:
     	return ProcSELinuxGetSelectionManager(client);
+    case X_SELinuxSetDeviceCreateContext:
+    	return ProcSELinuxSetDeviceCreateContext(client);
+    case X_SELinuxGetDeviceCreateContext:
+    	return ProcSELinuxGetDeviceCreateContext(client);
     case X_SELinuxSetDeviceContext:
     	return ProcSELinuxSetDeviceContext(client);
     case X_SELinuxGetDeviceContext:
@@ -1182,6 +1198,18 @@ static int
 SProcSELinuxGetSelectionManager(ClientPtr client)
 {
     return ProcSELinuxGetSelectionManager(client);
+}
+
+static int
+SProcSELinuxSetDeviceCreateContext(ClientPtr client)
+{
+    return ProcSELinuxSetDeviceCreateContext(client);
+}
+
+static int
+SProcSELinuxGetDeviceCreateContext(ClientPtr client)
+{
+    return ProcSELinuxGetDeviceCreateContext(client);
 }
 
 static int
@@ -1247,6 +1275,10 @@ SProcSELinuxDispatch(ClientPtr client)
 	return SProcSELinuxSetSelectionManager(client);
     case X_SELinuxGetSelectionManager:
     	return SProcSELinuxGetSelectionManager(client);
+    case X_SELinuxSetDeviceCreateContext:
+    	return SProcSELinuxSetDeviceCreateContext(client);
+    case X_SELinuxGetDeviceCreateContext:
+    	return SProcSELinuxGetDeviceCreateContext(client);
     case X_SELinuxSetDeviceContext:
     	return SProcSELinuxSetDeviceContext(client);
     case X_SELinuxGetDeviceContext:
