@@ -28,7 +28,7 @@
  promote the sale, use or other dealings in this Software without
  prior written authorization. */
 
-#include <ApplicationServices/ApplicationServices.h>
+#include <CoreServices/CoreServices.h>
 #include <stdio.h>
 
 #define kX11AppBundleId "org.x.X11"
@@ -36,10 +36,10 @@
 
 int main(int argc, char **argv) {
   char x11_path[PATH_MAX];
+  char** args = NULL;
   CFURLRef appURL = NULL;
-  OSStatus osstatus = 
-    LSFindApplicationForInfo(kLSUnknownCreator, CFSTR(kX11AppBundleId), 
-			     nil, nil, &appURL);
+  OSStatus osstatus = LSFindApplicationForInfo(kLSUnknownCreator, CFSTR(kX11AppBundleId), 
+					       nil, nil, &appURL);
   
   switch (osstatus) {
   case noErr:
@@ -52,10 +52,20 @@ int main(int argc, char **argv) {
       fprintf(stderr, "%s: Error resolving URL for %s\n", argv[0], kX11AppBundleId);
       exit(2);
     }
-    strlcpy(argv[0], "X11", strlen(argv[0])+1);
+    
+    args = (char**)malloc(sizeof (char*) * (argc + 1));
     strlcat(x11_path, kX11AppBundlePath, sizeof(x11_path));
-//  fprintf(stderr, "X11.app = %s\n", x11_path);
-    execv(x11_path, argv);
+    if (args) {
+      int i;
+      args[0] = x11_path;
+      for (i = 1; i < argc; ++i) {
+        args[i] = argv[i];
+      }
+      args[i] = NULL;
+    }
+    
+    fprintf(stderr, "X11.app = %s\n", x11_path);
+    execv(x11_path, args);
     fprintf(stderr, "Error executing X11.app (%s):", x11_path);
     perror(NULL);
     exit(3);
