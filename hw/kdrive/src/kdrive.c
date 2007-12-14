@@ -29,6 +29,7 @@
 #endif
 #include <mivalidate.h>
 #include <dixstruct.h>
+#include "privates.h"
 #ifdef RANDR
 #include <randrstr.h>
 #endif
@@ -66,8 +67,8 @@ KdDepths    kdDepths[] = {
 
 #define KD_DEFAULT_BUTTONS 5
 
-int                 kdScreenPrivateIndex;
-unsigned long       kdGeneration;
+DevPrivateKey       kdScreenPrivateKey = &kdScreenPrivateKey;
+unsigned long	    kdGeneration;
 
 Bool                kdVideoTest;
 unsigned long       kdVideoTestTime;
@@ -751,10 +752,8 @@ KdAllocatePrivates (ScreenPtr pScreen)
     KdPrivScreenPtr	pScreenPriv;
     
     if (kdGeneration != serverGeneration)
-    {
-	kdScreenPrivateIndex = AllocateScreenPrivateIndex();
-	kdGeneration         = serverGeneration;
-    }
+	kdGeneration = serverGeneration;
+
     pScreenPriv = (KdPrivScreenPtr) xalloc(sizeof (*pScreenPriv));
     if (!pScreenPriv)
 	return FALSE;
@@ -1401,8 +1400,8 @@ KdInitOutput (ScreenInfo    *pScreenInfo,
 }
 
 #ifdef DPMSExtension
-void
-DPMSSet(int level)
+int
+DPMSSet(ClientPtr client, int level)
 {
 }
 

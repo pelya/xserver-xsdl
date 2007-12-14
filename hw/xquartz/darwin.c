@@ -88,7 +88,7 @@ FILE *debug_log_fp = NULL;
  * X server shared global variables
  */
 int                     darwinScreensFound = 0;
-int                     darwinScreenIndex = 0;
+DevPrivateKey           darwinScreenKey = &darwinScreenKey;
 io_connect_t            darwinParamConnect = 0;
 int                     darwinEventReadFD = -1;
 int                     darwinEventWriteFD = -1;
@@ -613,7 +613,6 @@ DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo)
 void InitOutput( ScreenInfo *pScreenInfo, int argc, char **argv )
 {
     int i;
-    static unsigned long generation = 0;
 
     pScreenInfo->imageByteOrder = IMAGE_BYTE_ORDER;
     pScreenInfo->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
@@ -624,12 +623,6 @@ void InitOutput( ScreenInfo *pScreenInfo, int argc, char **argv )
     pScreenInfo->numPixmapFormats = NUMFORMATS;
     for (i = 0; i < NUMFORMATS; i++)
         pScreenInfo->formats[i] = formats[i];
-
-    // Allocate private storage for each screen's Darwin specific info
-    if (generation != serverGeneration) {
-        darwinScreenIndex = AllocateScreenPrivateIndex();
-        generation = serverGeneration;
-    }
 
     // Discover screens and do mode specific initialization
     QuartzInitOutput(argc, argv);
