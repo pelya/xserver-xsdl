@@ -12,6 +12,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef DIX_REGISTRY_H
 #define DIX_REGISTRY_H
 
+/*
+ * Result returned from any unsuccessful lookup
+ */
+#define XREGISTRY_UNKNOWN "<unknown>"
+
 #ifdef XREGISTRY
 
 #include "resource.h"
@@ -34,11 +39,6 @@ const char *LookupRequestName(int major, int minor);
 const char *LookupEventName(int event);
 const char *LookupErrorName(int error);
 const char *LookupResourceName(RESTYPE rtype);
-
-/*
- * Result returned from any unsuccessful lookup
- */
-#define XREGISTRY_UNKNOWN "<unknown>"
 
 /*
  * Setup and teardown
