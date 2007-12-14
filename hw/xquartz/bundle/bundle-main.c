@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
         /* Now, try to open a display, if so, run the launcher */
         display = XOpenDisplay(NULL);
         if(display) {
-            fprintf(stderr, "X11.app: main(): closing the display");
+            fprintf(stderr, "X11.app: main(): closing the display and sleeping");
             /* Could open the display, start the launcher */
             XCloseDisplay(display);
             
