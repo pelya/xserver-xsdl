@@ -7,9 +7,16 @@ x11app:
 
 install-data-hook:
 	xcodebuild install DSTROOT="/$(DESTDIR)" INSTALL_PATH="$(APPLE_APPLICATIONS_DIR)" DEPLOYMENT_LOCATION=YES SKIP_INSTALL=NO ARCHS="$(X11APP_ARCHS)"
+
 if LAUNCHD
-	$(MKDIR_P) "$(DESTDIR)/System/Library/LaunchAgents/"
-	$(INSTALL) org.x.X11.plist "$(DESTDIR)/System/Library/LaunchAgents/"
+launchagents_PRE = org.x.X11.plist.pre
+launchagents_DATA = $(launchagents_PRE:plist.pre=plist)
+
+CPP_FILES_FLAGS = -D__libexecdir__="${libexecdir}"
+
+CLEANFILES = $(launchagents_DATA)
+
+include $(top_srcdir)/cpprules.in
 endif
 
 clean-local:

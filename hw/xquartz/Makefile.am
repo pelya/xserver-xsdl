@@ -9,6 +9,12 @@ AM_CPPFLAGS = \
 
 if X11APP
 X11APP_SUBDIRS = bundle
+
+if LAUNCHD
+libexec_PROGRAMS = x11-exec
+x11_exec_LDFLAGS = -framework ApplicationServices
+endif
+
 endif
 
 SUBDIRS = . xpr $(X11APP_SUBDIRS)

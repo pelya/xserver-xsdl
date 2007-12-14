@@ -6,7 +6,7 @@
 		<string>org.x.X11</string>
 	<key>ProgramArguments</key>
 		<array>
-		<string>@APPLE_APPLICATIONS_DIR@/X11.app/Contents/MacOS/X11</string>
+		<string>__libexecdir__/x11-exec</string>
 		<string>-launchd</string>
 		</array>
 	<key>Sockets</key>
