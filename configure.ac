@@ -2118,7 +2118,6 @@ hw/xnest/Makefile
 hw/xwin/Makefile
 hw/xquartz/Makefile
 hw/xquartz/bundle/Makefile
-hw/xquartz/bundle/org.x.X11.plist
 hw/xquartz/xpr/Makefile
 hw/kdrive/Makefile
 hw/kdrive/ati/Makefile

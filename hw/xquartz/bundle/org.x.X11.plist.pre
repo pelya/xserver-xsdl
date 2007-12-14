@@ -6,7 +6,7 @@
 		<string>org.x.X11</string>
 	<key>ProgramArguments</key>
 		<array>
-		<string>/usr/libexec/x11-exec</string>
+		<string>__libexecdir__/x11-exec</string>
 		<string>-launchd</string>
 		</array>
 	<key>Sockets</key>
