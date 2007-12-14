@@ -15,9 +15,9 @@ launchagents_DATA = $(launchagents_PRE:plist.pre=plist)
 CPP_FILES_FLAGS = -D__libexecdir__="${libexecdir}"
 
 CLEANFILES = $(launchagents_DATA)
+endif
 
 include $(top_srcdir)/cpprules.in
-endif
 
 clean-local:
 	rm -rf build
