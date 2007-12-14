@@ -26,7 +26,7 @@ dnl
 dnl Process this file with autoconf to create configure.
 
 AC_PREREQ(2.57)
-AC_INIT([xorg-server], 1.4.99.1, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
+AC_INIT([xorg-server], 1.4.99.2, [https://bugs.freedesktop.org/enter_bug.cgi?product=xorg], xorg-server)
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE([dist-bzip2 foreign])
 AM_MAINTAINER_MODE
