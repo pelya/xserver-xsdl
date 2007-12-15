@@ -1120,10 +1120,6 @@ XSERVER_SYS_LIBS="${XSERVERLIBS_LIBS} ${SYS_LIBS} ${LIBS} ${LIBCRYPTO}"
 AC_SUBST([XSERVER_LIBS])
 AC_SUBST([XSERVER_SYS_LIBS])
 
-if test "x$HAVE_LAUNCHD" = xyes; then
-   XSERVER_CFLAGS="$XSERVER_CFLAGS -DHAVE_LAUNCHD"
-fi
-
 # The Xorg binary needs to export symbols so that they can be used from modules
 # Some platforms require extra flags to do this.   gcc should set these flags
 # when -rdynamic is passed to it, other compilers/linkers may need to be added
@@ -1772,16 +1768,18 @@ if test "x$LAUNCHD" = "xauto"; then
 	if test "x$XQUARTZ" = "xyes" ; then
 		LAUNCHD=yes
 	else
+		unset LAUNCHD
 		AC_CHECK_PROG(LAUNCHD, [launchd], [yes], [no])
 	fi
 fi
-AC_MSG_RESULT([$DMX])
-AM_CONDITIONAL(DMX, [test "x$DMX" = xyes])
 
 if test "x$LAUNCHD" = "xyes" ; then
 	AC_DEFINE(HAVE_LAUNCHD, 1, [launchd support available])
 fi
 AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = "xyes"])
+
+AC_MSG_RESULT([$DMX])
+AM_CONDITIONAL(DMX, [test "x$DMX" = xyes])
 
 dnl kdrive DDX
 
