@@ -301,7 +301,7 @@ miAllocateGCPrivateIndex()
     return privateKey;
 }
 
-_X_EXPORT DevPrivateKey miZeroLineScreenKey;
+_X_EXPORT DevPrivateKey miZeroLineScreenKey = &miZeroLineScreenKey;
 
 _X_EXPORT void
 miSetZeroLineBias(pScreen, bias)
