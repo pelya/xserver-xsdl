@@ -1778,8 +1778,54 @@ if test "x$LAUNCHD" = "xyes" ; then
 fi
 AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = "xyes"])
 
+AC_MSG_CHECKING([whether to build Xdmx DDX])
+PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto
+if test "x$DMX" = xauto; then
+       DMX="$have_dmx"
+fi
 AC_MSG_RESULT([$DMX])
 AM_CONDITIONAL(DMX, [test "x$DMX" = xyes])
+
+if test "x$DMX" = xyes; then
+       if test "x$have_dmx" = xno; then
+               AC_MSG_ERROR([Xdmx build explicitly requested, but required
+                             modules not found.])
+       fi
+       DMX_INCLUDES="$XEXT_INC $RENDER_INC $XTRAP_INC $RECORD_INC"
+       XDMX_CFLAGS="$DMXMODULES_CFLAGS"
+       XDMX_LIBS="$XEXT_LIB $FB_LIB $CONFIG_LIB $RENDER_LIB $XTRAP_LIB $RECORD_
+       XDMX_SYS_LIBS="$DMXMODULES_LIBS"
+       AC_SUBST([XDMX_CFLAGS])
+       AC_SUBST([XDMX_LIBS])
+       AC_SUBST([XDMX_SYS_LIBS])
+
+dnl USB sources in DMX require <linux/input.h>
+       AC_CHECK_HEADER([linux/input.h], DMX_BUILD_USB="yes",
+                       DMX_BUILD_USB="no")
+dnl Linux sources in DMX require <linux/keyboard.h>
+       AC_CHECK_HEADER([linux/keyboard.h], DMX_BUILD_LNX="yes",
+                       DMX_BUILD_LNX="no")
+       if test "x$GLX" = xyes; then
+               PKG_CHECK_MODULES([GL], [glproto])
+       fi
+       PKG_CHECK_MODULES([XDMXCONFIG_DEP], [xaw7 xmu xt xpm x11])
+       AC_SUBST(XDMXCONFIG_DEP_CFLAGS)
+       AC_SUBST(XDMXCONFIG_DEP_LIBS)
+       PKG_CHECK_MODULES([DMXEXAMPLES_DEP], [dmx xext x11])
+       AC_SUBST(DMXEXAMPLES_DEP_LIBS)
+       PKG_CHECK_MODULES([DMXXMUEXAMPLES_DEP], [dmx xmu xext x11])
+       AC_SUBST(DMXXMUEXAMPLES_DEP_LIBS)
+       PKG_CHECK_MODULES([DMXXIEXAMPLES_DEP], [dmx xi xext x11])
+       AC_SUBST(DMXXIEXAMPLES_DEP_LIBS)
+       PKG_CHECK_MODULES([XTSTEXAMPLES_DEP], [xtst xext x11])
+       AC_SUBST(XTSTEXAMPLES_DEP_LIBS)
+       PKG_CHECK_MODULES([XRESEXAMPLES_DEP], [xres xext x11])
+       AC_SUBST(XRESEXAMPLES_DEP_LIBS)
+       PKG_CHECK_MODULES([X11EXAMPLES_DEP], [xext x11])
+       AC_SUBST(X11EXAMPLES_DEP_LIBS)
+fi
+AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
+AM_CONDITIONAL([DMX_BUILD_USB], [test "x$DMX_BUILD_USB" = xyes])
 
 dnl kdrive DDX
 
