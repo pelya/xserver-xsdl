@@ -704,7 +704,7 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
 	return NullWindow;
     }
 
-    pWin->backgroundState = BackgroundPixel;
+    pWin->backgroundState = XaceBackgroundNoneState;
     pWin->background.pixel = 0;
 
     pWin->borderIsPixel = pParent->borderIsPixel;
@@ -1016,7 +1016,7 @@ ChangeWindowAttributes(WindowPtr pWin, Mask vmask, XID *vlist, ClientPtr client)
 		if (!pWin->parent)
 		    MakeRootTile(pWin);
 		else {
-		    pWin->backgroundState = BackgroundPixel;
+		    pWin->backgroundState = XaceBackgroundNoneState;
 		    pWin->background.pixel = 0;
 		}
 	    }

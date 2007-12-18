@@ -32,6 +32,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define XaceNumberEvents		0
 #define XaceNumberErrors		0
 
+/* Default window background */
+#define XaceBackgroundNoneState		None
+
 /* security hooks */
 /* Constants used to identify the available security hooks
  */
@@ -93,6 +96,9 @@ extern void XaceCensorImage(
     );
 
 #else /* XACE */
+
+/* Default window background */
+#define XaceBackgroundNoneState		None
 
 /* Define calls away when XACE is not being built. */
 
