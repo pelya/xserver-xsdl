@@ -368,7 +368,7 @@ int SProcSelectInput (ClientPtr client)
 
     REQUEST (xXevieSelectInputReq);
     swaps (&stuff->length, n);
-    REQUEST_AT_LEAST_SIZE (xXevieSendReq);
+    REQUEST_AT_LEAST_SIZE (xXevieSelectInputReq);
     swapl(&stuff->event_mask, n);
     return ProcSelectInput (client);
 }
