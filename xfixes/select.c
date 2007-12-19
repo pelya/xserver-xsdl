@@ -135,8 +135,7 @@ XFixesSelectSelectionInput (ClientPtr	pClient,
     int rc;
     SelectionEventPtr	*prev, e;
 
-    rc = XaceHook(XACE_SELECTION_ACCESS, pClient, selection, NULL,
-		  DixGetAttrAccess);
+    rc = XaceHook(XACE_SELECTION_ACCESS, pClient, selection, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
