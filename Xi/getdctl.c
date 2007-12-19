@@ -265,19 +265,19 @@ ProcXGetDeviceControl(ClientPtr client)
         if (!dev->absolute)
 	    return BadMatch;
 
-        total_length = sizeof(xDeviceAbsCalibCtl);
+        total_length = sizeof(xDeviceAbsCalibState);
         break;
     case DEVICE_ABS_AREA:
         if (!dev->absolute)
 	    return BadMatch;
 
-        total_length = sizeof(xDeviceAbsAreaCtl);
+        total_length = sizeof(xDeviceAbsAreaState);
         break;
     case DEVICE_CORE:
-        total_length = sizeof(xDeviceCoreCtl);
+        total_length = sizeof(xDeviceCoreState);
         break;
     case DEVICE_ENABLE:
-        total_length = sizeof(xDeviceEnableCtl);
+        total_length = sizeof(xDeviceEnableState);
         break;
     default:
 	return BadValue;
