@@ -258,7 +258,8 @@ typedef struct
 	    device->public.processInputProc = proc; \
 	oldprocs->processInputProc = \
 	oldprocs->realInputProc = device->public.realInputProc; \
-	device->public.realInputProc = proc; \
+	if (proc != device->public.enqueueInputProc) \
+		device->public.realInputProc = proc; \
 	oldprocs->unwrapProc = device->unwrapProc; \
 	device->unwrapProc = unwrapproc;
 
