@@ -238,6 +238,10 @@ static int indexForScanlinePad[ 65 ] = {
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #endif
 
+#ifdef __APPLE__
+void DarwinHandleGUI(int argc, char **argv, char **envp);
+#endif
+
 int
 main(int argc, char *argv[], char *envp[])
 {

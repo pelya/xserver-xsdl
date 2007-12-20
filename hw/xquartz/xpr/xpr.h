@@ -31,7 +31,7 @@
 
 #include "screenint.h"
 
-extern Bool QuartzModeBundleInit(void);
+Bool QuartzModeBundleInit(void);
 
 void AppleDRIExtensionInit(void);
 void xprAppleWMInit(void);

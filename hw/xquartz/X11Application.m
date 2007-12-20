@@ -32,6 +32,7 @@
 #endif
 
 #include "quartzCommon.h"
+#include "quartzForeground.h"
 
 #import "X11Application.h"
 #include <Carbon/Carbon.h>
@@ -82,8 +83,8 @@ static mach_port_t _port;
 static void send_nsevent (NSEventType type, NSEvent *e);
 
 /* Quartz mode initialization routine. This is often dynamically loaded
- but is statically linked into this X server. */
-extern Bool QuartzModeBundleInit(void);
+   but is statically linked into this X server. */
+Bool QuartzModeBundleInit(void);
 
 static void init_ports (void) {
     kern_return_t r;
@@ -789,44 +790,43 @@ environment?", @"Startup xinitrc dialog");
     [X11App prefs_synchronize];
 }
 
-void X11ApplicationMain (int argc, const char *argv[],
-			 void (*server_thread) (void *), void *server_arg) {
-  NSAutoreleasePool *pool;
-  
+void X11ApplicationMain (int argc, char **argv, void (*server_thread) (void *), void *server_arg) {
+    NSAutoreleasePool *pool;
+
 #ifdef DEBUG
-  while (access ("/tmp/x11-block", F_OK) == 0) sleep (1);
+    while (access ("/tmp/x11-block", F_OK) == 0) sleep (1);
 #endif
   
-  pool = [[NSAutoreleasePool alloc] init];
-  X11App = (X11Application *) [X11Application sharedApplication];
-  init_ports ();
-  [NSApp read_defaults];
-  [NSBundle loadNibNamed:@"main" owner:NSApp];
-  [[NSNotificationCenter defaultCenter] addObserver:NSApp
+    pool = [[NSAutoreleasePool alloc] init];
+    X11App = (X11Application *) [X11Application sharedApplication];
+    init_ports ();
+    [NSApp read_defaults];
+    [NSBundle loadNibNamed:@"main" owner:NSApp];
+    [[NSNotificationCenter defaultCenter] addObserver:NSApp
 					selector:@selector (became_key:)
 					name:NSWindowDidBecomeKeyNotification object:nil];
-  check_xinitrc ();
-	
-  /*
-   * The xpr Quartz mode is statically linked into this server.
-   * Initialize all the Quartz functions.
-   */
-  QuartzModeBundleInit();
-  
-  /* Calculate the height of the menubar so we can avoid it. */
-  aquaMenuBarHeight = NSHeight([[NSScreen mainScreen] frame]) -
+    check_xinitrc ();
+
+    /*
+     * The xpr Quartz mode is statically linked into this server.
+     * Initialize all the Quartz functions.
+     */
+    QuartzModeBundleInit();
+
+    /* Calculate the height of the menubar so we can avoid it. */
+    aquaMenuBarHeight = NSHeight([[NSScreen mainScreen] frame]) -
     NSMaxY([[NSScreen mainScreen] visibleFrame]);
   
-  if (!create_thread (server_thread, server_arg)) {
-    ErrorF("can't create secondary thread\n");
-    exit (1);
-  }
-  
-  [NSApp run];
-  
-  /* not reached */
-}
+    if (!create_thread (server_thread, server_arg)) {
+        ErrorF("can't create secondary thread\n");
+        exit (1);
+    }
 
+    QuartzMoveToForeground();
+
+    [NSApp run];
+    /* not reached */
+}
 
 /* event conversion */
 

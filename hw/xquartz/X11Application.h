@@ -64,40 +64,38 @@ extern X11Application *X11App;
 
 #endif /* __OBJC__ */
 
-extern void X11ApplicationSetWindowMenu (int nitems, const char **items,
+void X11ApplicationSetWindowMenu (int nitems, const char **items,
 					 const char *shortcuts);
-extern void X11ApplicationSetWindowMenuCheck (int idx);
-extern void X11ApplicationSetFrontProcess (void);
-extern void X11ApplicationSetCanQuit (int state);
-extern void X11ApplicationServerReady (void);
-extern void X11ApplicationShowHideMenubar (int state);
+void X11ApplicationSetWindowMenuCheck (int idx);
+void X11ApplicationSetFrontProcess (void);
+void X11ApplicationSetCanQuit (int state);
+void X11ApplicationServerReady (void);
+void X11ApplicationShowHideMenubar (int state);
 
-extern void X11ApplicationMain (int argc, const char *argv[],
-				void (*server_thread) (void *),
-				void *server_arg);
+void X11ApplicationMain(int argc, char **argv, void (*server_thread) (void *), void *server_arg);
 
 extern int X11EnableKeyEquivalents;
 extern int quartzHasRoot, quartzEnableRootless;
 
 #define APP_PREFS "org.x.X11"
 
-#define PREFS_APPSMENU		"apps_menu"
-#define PREFS_FAKEBUTTONS	"enable_fake_buttons"
-#define PREFS_SYSBEEP		"enable_system_beep"
-#define PREFS_KEYEQUIVS		"enable_key_equivalents"
-#define PREFS_KEYMAP_FILE	"keymap_file"
-#define PREFS_SYNC_KEYMAP	"sync_keymap"
-#define PREFS_DEPTH		"depth"
-#define PREFS_NO_AUTH		"no_auth"
-#define PREFS_NO_TCP		"nolisten_tcp"
-#define PREFS_DONE_XINIT_CHECK	"done_xinit_check"
-#define PREFS_NO_QUIT_ALERT	"no_quit_alert"
-#define PREFS_FAKE_BUTTON2	"fake_button2"
-#define PREFS_FAKE_BUTTON3	"fake_button3"
-#define PREFS_ROOTLESS		"rootless"
-#define PREFS_FULLSCREEN_HOTKEYS "fullscreen_hotkeys"
-#define PREFS_SWAP_ALT_META	"swap_alt_meta"
-#define PREFS_XP_OPTIONS	"xp_options"
-#define PREFS_ENABLE_STEREO	"enable_stereo"
+#define PREFS_APPSMENU              "apps_menu"
+#define PREFS_FAKEBUTTONS           "enable_fake_buttons"
+#define PREFS_SYSBEEP               "enable_system_beep"
+#define PREFS_KEYEQUIVS             "enable_key_equivalents"
+#define PREFS_KEYMAP_FILE           "keymap_file"
+#define PREFS_SYNC_KEYMAP           "sync_keymap"
+#define PREFS_DEPTH                 "depth"
+#define PREFS_NO_AUTH               "no_auth"
+#define PREFS_NO_TCP                "nolisten_tcp"
+#define PREFS_DONE_XINIT_CHECK      "done_xinit_check"
+#define PREFS_NO_QUIT_ALERT         "no_quit_alert"
+#define PREFS_FAKE_BUTTON2          "fake_button2"
+#define PREFS_FAKE_BUTTON3          "fake_button3"
+#define PREFS_ROOTLESS              "rootless"
+#define PREFS_FULLSCREEN_HOTKEYS    "fullscreen_hotkeys"
+#define PREFS_SWAP_ALT_META         "swap_alt_meta"
+#define PREFS_XP_OPTIONS            "xp_options"
+#define PREFS_ENABLE_STEREO         "enable_stereo"
 
 #endif /* X11APPLICATION_H */

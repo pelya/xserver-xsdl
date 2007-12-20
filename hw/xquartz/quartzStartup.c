@@ -34,8 +34,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <CoreFoundation/CoreFoundation.h>
-#include "quartzForeground.h"
 #include "quartzCommon.h"
+#include "X11Application.h"
 #include "darwin.h"
 #include "quartz.h"
 #include "opaque.h"
@@ -52,9 +52,6 @@
 char **envpGlobal;      // argcGlobal and argvGlobal
                         // are from dix/globals.c
 
-
-void X11ControllerMain(int argc, char *argv[], void (*server_thread) (void *), void *server_arg);
-
 static void server_thread (void *arg) {
   extern int main(int argc, char **argv, char **envp);
   exit (main (argcGlobal, argvGlobal, envpGlobal));
@@ -68,22 +65,16 @@ static void server_thread (void *arg) {
  *  server. On the second call this function loads the user
  *  preferences set by the Mac OS X front end.
  */
-void DarwinHandleGUI(
-    int         argc,
-    char        *argv[],
-    char        *envp[] )
-{
+void DarwinHandleGUI(int argc, char **argv, char **envp) {
     static Bool been_here = FALSE;
     int         i;
     int         fd[2];
 
-    QuartzMoveToForeground();
-    
     if (been_here) {
         return;
     }
     been_here = TRUE;
-
+    
     // Make a pipe to pass events
     assert( pipe(fd) == 0 );
     darwinEventReadFD = fd[0];
@@ -95,25 +86,13 @@ void DarwinHandleGUI(
     argvGlobal = argv;
     envpGlobal = envp;
 
-    quartzStartClients = 1;
     for (i = 1; i < argc; i++) {
         // Display version info without starting Mac OS X UI if requested
         if (!strcmp( argv[i], "-showconfig" ) || !strcmp( argv[i], "-version" )) {
             DarwinPrintBanner();
             exit(0);
         }
-
-        // Determine if we need to start X clients
-        // and what display mode to use
-        if (!strcmp(argv[i], "-nostartx")) {
-            quartzStartClients = 0;    
-        } else if (!strcmp( argv[i], "-fullscreen")) {
-            quartzRootless = 0;
-        } else if (!strcmp( argv[i], "-rootless")) {
-            quartzRootless = 1;
-        }
     }
-
 
     /* Initially I ran the X server on the main thread, and received
        events on the second thread. But now we may be using Carbon,
@@ -127,6 +106,6 @@ void DarwinHandleGUI(
     extern void _InitHLTB(void);
     
     _InitHLTB();    
-    X11ControllerMain(argc, argv, server_thread, NULL);
+    X11ApplicationMain(argc, argv, server_thread, NULL);
     exit(0);
 }

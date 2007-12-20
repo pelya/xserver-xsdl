@@ -337,7 +337,7 @@
       /* Setup environment */
       temp = getenv("DISPLAY");
       if (temp == NULL || temp[0] == 0) {
-	snprintf(buf, sizeof(buf), ":%s", display);
+    snprintf(buf, sizeof(buf), ":%s", display);
 	setenv("DISPLAY", buf, TRUE);
       }
 	
@@ -741,9 +741,3 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 }
 
 @end
-
-void X11ControllerMain (int argc, const char *argv[],
-			void (*server_thread) (void *), void *server_arg)
-{
-  X11ApplicationMain (argc, argv, server_thread, server_arg);
-}

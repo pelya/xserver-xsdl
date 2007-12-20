@@ -715,16 +715,6 @@ int ddxProcessArgument( int argc, char *argv[], int i )
         return 1;
     }
 
-    if ( !strcmp( argv[i], "-quartz" ) ) {
-        ErrorF( "Running in parallel with Mac OS X Quartz window server.\n" );
-        return 1;
-    }
-
-    // The Mac OS X front end uses this argument, which we just ignore here.
-    if ( !strcmp( argv[i], "-nostartx" ) ) {
-        return 1;
-    }
-
     // This command line arg is passed when launched from the Aqua GUI.
     if ( !strncmp( argv[i], "-psn_", 5 ) ) {
         return 1;
@@ -876,9 +866,9 @@ void ddxUseMsg( void )
     ErrorF("-keymap <file> : read the keymapping from a file instead of the kernel.\n");
     ErrorF("-version : show the server version.\n");
     ErrorF("\n");
-    ErrorF("Quartz modes (Experimental / In Development):\n");
-    ErrorF("-fullscreen : run full screen in parallel with Mac OS X window server.\n");
-    ErrorF("-rootless : run rootless inside Mac OS X window server.\n");
+//    ErrorF("Quartz modes (Experimental / In Development):\n");
+//    ErrorF("-fullscreen : run full screen in parallel with Mac OS X window server.\n");
+//    ErrorF("-rootless : run rootless inside Mac OS X window server.\n");
     ErrorF("\n");
     ErrorF("Options ignored in rootless mode:\n");
     ErrorF("-size <height> <width> : use a screen resolution of <height> x <width>.\n");
@@ -896,7 +886,8 @@ void ddxGiveUp( void )
 {
     ErrorF( "Quitting XQuartz...\n" );
 
-    QuartzGiveUp();
+    //if (!quartzRootless)
+    //    quartzProcs->ReleaseScreens();
 }
 
 
