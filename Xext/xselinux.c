@@ -462,8 +462,12 @@ static int
 SELinuxLog(int type, const char *fmt, ...)
 {
     va_list ap;
+    char buf[MAX_AUDIT_MESSAGE_LENGTH];
+    int rc, aut = AUDIT_USER_AVC;
+
     va_start(ap, fmt);
-    VErrorF(fmt, ap);
+    vsnprintf(buf, MAX_AUDIT_MESSAGE_LENGTH, fmt, ap);
+    rc = audit_log_user_avc_message(audit_fd, aut, buf, NULL, NULL, NULL, 0);
     va_end(ap);
     return 0;
 }
