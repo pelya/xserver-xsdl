@@ -741,3 +741,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 }
 
 @end
+
+void X11ControllerMain(int argc, const char **argv, void (*server_thread) (void *), void *server_arg) {
+    X11ApplicationMain (argc, argv, server_thread, server_arg);
+}

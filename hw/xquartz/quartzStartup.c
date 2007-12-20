@@ -35,7 +35,7 @@
 #include <unistd.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include "quartzCommon.h"
-#include "X11Application.h"
+#include "X11Controller.h"
 #include "darwin.h"
 #include "quartz.h"
 #include "opaque.h"
@@ -106,6 +106,6 @@ void DarwinHandleGUI(int argc, char **argv, char **envp) {
     extern void _InitHLTB(void);
     
     _InitHLTB();    
-    X11ApplicationMain(argc, argv, server_thread, NULL);
+    X11ControllerMain(argc, argv, server_thread, NULL);
     exit(0);
 }

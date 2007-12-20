@@ -78,4 +78,6 @@
 
 #endif /* __OBJC__ */
 
+void X11ControllerMain(int argc, const char **argv, void (*server_thread) (void *), void *server_arg);
+
 #endif /* X11CONTROLLER_H */
