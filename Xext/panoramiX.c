@@ -932,10 +932,11 @@ ProcPanoramiXGetState(ClientPtr client)
 	rep.length = 0;
 	rep.sequenceNumber = client->sequence;
 	rep.state = !noPanoramiXExtension;
+	rep.window = stuff->window;
     	if (client->swapped) {
 	    swaps (&rep.sequenceNumber, n);
 	    swapl (&rep.length, n);
-	    swaps (&rep.state, n);
+	    swapl (&rep.window, n);
 	}	
 	WriteToClient (client, sizeof (xPanoramiXGetStateReply), (char *) &rep);
 	return client->noClientException;
@@ -959,10 +960,11 @@ ProcPanoramiXGetScreenCount(ClientPtr client)
 	rep.length = 0;
 	rep.sequenceNumber = client->sequence;
 	rep.ScreenCount = PanoramiXNumScreens;
+	rep.window = stuff->window;
     	if (client->swapped) {
 	    swaps (&rep.sequenceNumber, n);
 	    swapl (&rep.length, n);
-	    swaps (&rep.ScreenCount, n);
+	    swapl (&rep.window, n);
 	}	
 	WriteToClient (client, sizeof (xPanoramiXGetScreenCountReply), (char *) &rep);
 	return client->noClientException;
@@ -976,6 +978,9 @@ ProcPanoramiXGetScreenSize(ClientPtr client)
 	xPanoramiXGetScreenSizeReply	rep;
 	int			n, rc;
 	
+	if (stuff->screen >= PanoramiXNumScreens)
+	    return BadMatch;
+
 	REQUEST_SIZE_MATCH(xPanoramiXGetScreenSizeReq);
 	rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
 	if (rc != Success)
@@ -987,11 +992,15 @@ ProcPanoramiXGetScreenSize(ClientPtr client)
 		/* screen dimensions */
 	rep.width  = panoramiXdataPtr[stuff->screen].width; 
 	rep.height = panoramiXdataPtr[stuff->screen].height; 
+	rep.window = stuff->window;
+	rep.screen = stuff->screen;
     	if (client->swapped) {
 	    swaps (&rep.sequenceNumber, n);
 	    swapl (&rep.length, n);
-	    swaps (&rep.width, n);
-	    swaps (&rep.height, n);
+	    swapl (&rep.width, n);
+	    swapl (&rep.height, n);
+	    swapl (&rep.window, n);
+	    swapl (&rep.screen, n);
 	}	
 	WriteToClient (client, sizeof (xPanoramiXGetScreenSizeReply), (char *) &rep);
 	return client->noClientException;
