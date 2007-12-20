@@ -290,8 +290,10 @@ xf86AddEntityToScreen(ScrnInfoPtr pScrn, int entityIndex)
     if (entityIndex == -1)
 	return;
     if (xf86Entities[entityIndex]->inUse &&
-	!(xf86Entities[entityIndex]->entityProp & IS_SHARED_ACCEL))
-	FatalError("Requested Entity already in use!\n");
+	!(xf86Entities[entityIndex]->entityProp & IS_SHARED_ACCEL)) {
+	ErrorF("Requested Entity already in use!\n");
+	return;
+    }
 
     pScrn->numEntities++;
     pScrn->entityList = xnfrealloc(pScrn->entityList,
