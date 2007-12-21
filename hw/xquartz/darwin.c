@@ -701,20 +701,15 @@ void ddxInitGlobals(void)
  */
 int ddxProcessArgument( int argc, char *argv[], int i )
 {
-    if( !strcmp( argv[i], "-launchd" ) ) {
-        ErrorF( "Launchd command line argument noticed.\n" );
-        return 1;
-    }
+//    if ( !strcmp( argv[i], "-fullscreen" ) ) {
+//        ErrorF( "Running full screen in parallel with Mac OS X Quartz window server.\n" );
+//        return 1;
+//    }
 
-    if ( !strcmp( argv[i], "-fullscreen" ) ) {
-        ErrorF( "Running full screen in parallel with Mac OS X Quartz window server.\n" );
-        return 1;
-    }
-
-    if ( !strcmp( argv[i], "-rootless" ) ) {
-        ErrorF( "Running rootless inside Mac OS X window server.\n" );
-        return 1;
-    }
+//    if ( !strcmp( argv[i], "-rootless" ) ) {
+//        ErrorF( "Running rootless inside Mac OS X window server.\n" );
+//        return 1;
+//    }
 
     // This command line arg is passed when launched from the Aqua GUI.
     if ( !strncmp( argv[i], "-psn_", 5 ) ) {
@@ -836,12 +831,6 @@ int ddxProcessArgument( int argc, char *argv[], int i )
     if (!strcmp( argv[i], "-showconfig" ) || !strcmp( argv[i], "-version" )) {
         DarwinPrintBanner();
         exit(0);
-    }
-
-    // XDarwinStartup uses this argument to indicate the IOKit X server
-    // should be started. Ignore it here.
-    if ( !strcmp( argv[i], "-iokit" ) ) {
-        return 1;
     }
 
     return 0;
