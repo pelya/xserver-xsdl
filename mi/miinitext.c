@@ -206,6 +206,9 @@ extern Bool noXkbExtension;
 #ifdef PANORAMIX
 extern Bool noPanoramiXExtension;
 #endif
+#ifdef INXQUARTZ
+extern Bool noPseudoramiXExtension;
+#endif
 #ifdef XINPUT
 extern Bool noXInputExtension;
 #endif
@@ -273,6 +276,9 @@ extern void MultibufferExtensionInit(INITARGS);
 #endif
 #ifdef PANORAMIX
 extern void PanoramiXExtensionInit(INITARGS);
+#endif
+#ifdef INXQUARTZ
+extern void PseudoramiXExtensionInit(INITARGS);
 #endif
 #ifdef XINPUT
 extern void XInputExtensionInit(INITARGS);
@@ -532,6 +538,9 @@ InitExtensions(argc, argv)
 # if !defined(PRINT_ONLY_SERVER) && !defined(NO_PANORAMIX)
   if (!noPanoramiXExtension) PanoramiXExtensionInit();
 # endif
+#endif
+#ifdef INXQUARTZ
+    if(!noPseudoramiXExtension) PseudoramiXExtensionInit();
 #endif
 #ifdef SHAPE
     if (!noShapeExtension) ShapeExtensionInit();

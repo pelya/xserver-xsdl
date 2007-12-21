@@ -106,6 +106,6 @@ void DarwinHandleGUI(int argc, char **argv, char **envp) {
     extern void _InitHLTB(void);
     
     _InitHLTB();    
-    X11ControllerMain(argc, argv, server_thread, NULL);
+    X11ControllerMain(argc, (const char **)argv, server_thread, NULL);
     exit(0);
 }

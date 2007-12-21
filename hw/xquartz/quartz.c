@@ -39,10 +39,12 @@
 #include "quartzAudio.h"
 #include "pseudoramiX.h"
 #define _APPLEWM_SERVER_
-#include "X11/extensions/applewm.h"
 #include "applewmExt.h"
 
 #include "X11Application.h"
+
+#include <X11/extensions/applewm.h>
+#include <X11/extensions/randr.h>
 
 // X headers
 #include "scrnintstr.h"
@@ -69,7 +71,6 @@ int                     quartzServerVisible = TRUE;
 int                     quartzServerQuitting = FALSE;
 DevPrivateKey           quartzScreenKey = &quartzScreenKey;
 int                     aquaMenuBarHeight = 0;
-int                     noPseudoramiXExtension = FALSE;
 QuartzModeProcsPtr      quartzProcs = NULL;
 const char             *quartzOpenGLBundle = NULL;
 
@@ -165,13 +166,6 @@ void QuartzInitOutput(
 
     // Do display mode specific initialization
     quartzProcs->DisplayInit();
-
-    // Init PseudoramiX implementation of Xinerama.
-    // This should be in InitExtensions, but that causes link errors
-    // for servers that don't link in pseudoramiX.c.
-    if (!noPseudoramiXExtension) {
-        PseudoramiXExtensionInit(argc, argv);
-    }
 }
 
 
