@@ -1199,68 +1199,81 @@ SProcSELinuxSetSelectionManager(ClientPtr client)
 }
 
 static int
-SProcSELinuxGetSelectionManager(ClientPtr client)
-{
-    return ProcSELinuxGetSelectionManager(client);
-}
-
-static int
 SProcSELinuxSetDeviceCreateContext(ClientPtr client)
 {
-    return ProcSELinuxSetDeviceCreateContext(client);
-}
+    REQUEST(SELinuxSetCreateContextReq);
+    int n;
 
-static int
-SProcSELinuxGetDeviceCreateContext(ClientPtr client)
-{
-    return ProcSELinuxGetDeviceCreateContext(client);
+    REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
+    swaps(&stuff->context_len,n);
+    return ProcSELinuxSetDeviceCreateContext(client);
 }
 
 static int
 SProcSELinuxSetDeviceContext(ClientPtr client)
 {
+    REQUEST(SELinuxSetContextReq);
+    int n;
+
+    REQUEST_AT_LEAST_SIZE(SELinuxSetContextReq);
+    swapl(&stuff->id,n);
+    swaps(&stuff->context_len,n);
     return ProcSELinuxSetDeviceContext(client);
 }
 
 static int
 SProcSELinuxGetDeviceContext(ClientPtr client)
 {
+    REQUEST(SELinuxGetContextReq);
+    int n;
+
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+    swapl(&stuff->id,n);
     return ProcSELinuxGetDeviceContext(client);
 }
 
 static int
 SProcSELinuxSetPropertyCreateContext(ClientPtr client)
 {
-    return ProcSELinuxSetPropertyCreateContext(client);
-}
+    REQUEST(SELinuxSetCreateContextReq);
+    int n;
 
-static int
-SProcSELinuxGetPropertyCreateContext(ClientPtr client)
-{
-    return ProcSELinuxGetPropertyCreateContext(client);
+    REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
+    swaps(&stuff->context_len,n);
+    return ProcSELinuxSetPropertyCreateContext(client);
 }
 
 static int
 SProcSELinuxGetPropertyContext(ClientPtr client)
 {
+    REQUEST(SELinuxGetPropertyContextReq);
+    int n;
+
+    REQUEST_SIZE_MATCH(SELinuxGetPropertyContextReq);
+    swapl(&stuff->window,n);
+    swapl(&stuff->property,n);
     return ProcSELinuxGetPropertyContext(client);
 }
 
 static int
 SProcSELinuxSetWindowCreateContext(ClientPtr client)
 {
-    return ProcSELinuxSetWindowCreateContext(client);
-}
+    REQUEST(SELinuxSetCreateContextReq);
+    int n;
 
-static int
-SProcSELinuxGetWindowCreateContext(ClientPtr client)
-{
-    return ProcSELinuxGetWindowCreateContext(client);
+    REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
+    swaps(&stuff->context_len,n);
+    return ProcSELinuxSetWindowCreateContext(client);
 }
 
 static int
 SProcSELinuxGetWindowContext(ClientPtr client)
 {
+    REQUEST(SELinuxGetContextReq);
+    int n;
+
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+    swapl(&stuff->id,n);
     return ProcSELinuxGetWindowContext(client);
 }
 
@@ -1278,11 +1291,11 @@ SProcSELinuxDispatch(ClientPtr client)
     case X_SELinuxSetSelectionManager:
 	return SProcSELinuxSetSelectionManager(client);
     case X_SELinuxGetSelectionManager:
-    	return SProcSELinuxGetSelectionManager(client);
+    	return ProcSELinuxGetSelectionManager(client);
     case X_SELinuxSetDeviceCreateContext:
     	return SProcSELinuxSetDeviceCreateContext(client);
     case X_SELinuxGetDeviceCreateContext:
-    	return SProcSELinuxGetDeviceCreateContext(client);
+    	return ProcSELinuxGetDeviceCreateContext(client);
     case X_SELinuxSetDeviceContext:
     	return SProcSELinuxSetDeviceContext(client);
     case X_SELinuxGetDeviceContext:
@@ -1290,13 +1303,13 @@ SProcSELinuxDispatch(ClientPtr client)
     case X_SELinuxSetPropertyCreateContext:
     	return SProcSELinuxSetPropertyCreateContext(client);
     case X_SELinuxGetPropertyCreateContext:
-    	return SProcSELinuxGetPropertyCreateContext(client);
+    	return ProcSELinuxGetPropertyCreateContext(client);
     case X_SELinuxGetPropertyContext:
     	return SProcSELinuxGetPropertyContext(client);
     case X_SELinuxSetWindowCreateContext:
     	return SProcSELinuxSetWindowCreateContext(client);
     case X_SELinuxGetWindowCreateContext:
-    	return SProcSELinuxGetWindowCreateContext(client);
+    	return ProcSELinuxGetWindowCreateContext(client);
     case X_SELinuxGetWindowContext:
     	return SProcSELinuxGetWindowContext(client);
     default:
