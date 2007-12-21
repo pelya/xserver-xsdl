@@ -36,10 +36,11 @@
 
 #include <CoreFoundation/CoreFoundation.h>
 
-#define DEFAULT_APP "/usr/X11/bin/xterm"
+#define DEFAULT_CLIENT "/usr/X11/bin/xterm"
+#define DEFAULT_STARTX "/usr/X11/bin/startx"
 
 static int launcher_main(int argc, char **argv);
-int server_main(int argc, char **argv);
+static int server_main(int argc, char **argv);
 
 int main(int argc, char **argv) {
     Display *display;
@@ -57,7 +58,7 @@ int main(int argc, char **argv) {
         /* Now, try to open a display, if so, run the launcher */
         display = XOpenDisplay(NULL);
         if(display) {
-            fprintf(stderr, "X11.app: closing the display and sleeping for 2s to allow the X server to start up.\n");
+            fprintf(stderr, "X11.app: Closing the display and sleeping for 2s to allow the X server to start up.\n");
             /* Could open the display, start the launcher */
             XCloseDisplay(display);
             
@@ -70,29 +71,13 @@ int main(int argc, char **argv) {
     }
     
     /* Start the server */
-    fprintf(stderr, "X11.app: main(): running server_main()");
+    fprintf(stderr, "X11.app: Could not connect to server.  Starting X server.");
     return server_main(argc, argv);
 }
 
-int launcher_main (int argc, char **argv) {
-    char *command = DEFAULT_APP;
+static int myexecvp(const char *command) {
     const char *newargv[7];
-    int child;
     const char **s;
-    
-	CFPropertyListRef PlistRef = CFPreferencesCopyAppValue(CFSTR("app_to_run"), kCFPreferencesCurrentApplication);
-	
-	if ((PlistRef == NULL) || (CFGetTypeID(PlistRef) != CFStringGetTypeID())) {
-		CFPreferencesSetAppValue(CFSTR("app_to_run"), CFSTR(DEFAULT_APP), kCFPreferencesCurrentApplication);
-		CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication);
-	} else {
-		int len = CFStringGetLength((CFStringRef)PlistRef)+1;
-		command = (char *)malloc(len);
-		CFStringGetCString((CFStringRef)PlistRef, command, len,  kCFStringEncodingASCII);
-		fprintf(stderr, "command=%s\n", command);
-	}
-
-	if (PlistRef) CFRelease(PlistRef);
 
 	newargv[0] = "/usr/bin/login";
 	newargv[1] = "-fp";
@@ -102,7 +87,7 @@ int launcher_main (int argc, char **argv) {
 	newargv[5] = command;
 	newargv[6] = NULL;
 
-    fprintf(stderr, "X11.app: Launching X11 Application:\n");
+    fprintf(stderr, "X11.app: Launching %s:\n", command);
     for(s=newargv; *s; s++) {
         fprintf(stderr, "\targv[%d] = %s\n", s - newargv, *s);
     }
@@ -110,4 +95,44 @@ int launcher_main (int argc, char **argv) {
     execvp (newargv[0], (const char **) newargv);
     perror ("X11.app: Couldn't exec.");
     return(1);
+}
+
+int launcher_main (int argc, char **argv) {
+    char *command = DEFAULT_CLIENT;
+    
+	CFPropertyListRef PlistRef = CFPreferencesCopyAppValue(CFSTR("app_to_run"), kCFPreferencesCurrentApplication);
+	
+	if ((PlistRef == NULL) || (CFGetTypeID(PlistRef) != CFStringGetTypeID())) {
+		CFPreferencesSetAppValue(CFSTR("app_to_run"), CFSTR(DEFAULT_CLIENT), kCFPreferencesCurrentApplication);
+		CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication);
+	} else {
+        int len = CFStringGetLength((CFStringRef)PlistRef)+1;
+		command = (char *)malloc(len);
+		CFStringGetCString((CFStringRef)PlistRef, command, len,  kCFStringEncodingASCII);
+	}
+
+	if (PlistRef)
+        CFRelease(PlistRef);
+
+    return myexecvp(command);
+}
+
+int server_main (int argc, char **argv) {
+    char *command = DEFAULT_STARTX;
+
+	CFPropertyListRef PlistRef = CFPreferencesCopyAppValue(CFSTR("startx_script"), kCFPreferencesCurrentApplication);
+	
+	if ((PlistRef == NULL) || (CFGetTypeID(PlistRef) != CFStringGetTypeID())) {
+		CFPreferencesSetAppValue(CFSTR("startx_script"), CFSTR(DEFAULT_STARTX), kCFPreferencesCurrentApplication);
+		CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication);
+	} else {
+        int len = CFStringGetLength((CFStringRef)PlistRef)+1;
+		command = (char *)malloc(len);
+		CFStringGetCString((CFStringRef)PlistRef, command, len,  kCFStringEncodingASCII);
+	}
+    
+	if (PlistRef)
+        CFRelease(PlistRef);
+    
+    return myexecvp(command);
 }
