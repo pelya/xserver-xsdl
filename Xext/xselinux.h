@@ -139,20 +139,6 @@ typedef struct {
 } SELinuxGetContextReq;
 
 typedef struct {
-    CARD8   type;
-    CARD8   pad1;
-    CARD16  sequenceNumber;
-    CARD32  length;
-    CARD16  context_len;
-    CARD16  pad2;
-    CARD32  pad3;
-    CARD32  pad4;
-    CARD32  pad5;
-    CARD32  pad6;
-    CARD32  pad7;
-} SELinuxGetContextReply;
-
-typedef struct {
     CARD8   reqType;
     CARD8   SELinuxReqType;
     CARD16  length;
@@ -172,7 +158,7 @@ typedef struct {
     CARD32  pad5;
     CARD32  pad6;
     CARD32  pad7;
-} SELinuxGetPropertyContextReply;
+} SELinuxGetContextReply;
 
 
 /* Private Flask definitions */
