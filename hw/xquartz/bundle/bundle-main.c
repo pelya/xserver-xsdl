@@ -39,8 +39,8 @@
 #define DEFAULT_CLIENT "/usr/X11/bin/xterm"
 #define DEFAULT_STARTX "/usr/X11/bin/startx"
 
-static int launcher_main(int argc, char **argv);
-static int server_main(int argc, char **argv);
+static int execute(const char *command);
+static char *command_from_prefs(const char *key, const char *default_value);
 
 int main(int argc, char **argv) {
     Display *display;
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
     for(i=0; i < argc; i++) {
         fprintf(stderr, "\targv[%u] = %s\n", (unsigned)i, argv[i]);
     }
-    
+
     /* If we have a process serial number and it's our only arg, act as if
      * the user double clicked the app bundle: launch app_to_run if possible
      */
@@ -61,32 +61,32 @@ int main(int argc, char **argv) {
             fprintf(stderr, "X11.app: Closing the display and sleeping for 2s to allow the X server to start up.\n");
             /* Could open the display, start the launcher */
             XCloseDisplay(display);
-            
+
             /* Give 2 seconds for the server to start... 
              * TODO: *Really* fix this race condition
              */
             usleep(2000);
-            return launcher_main(argc, argv);
+            return execute(command_from_prefs("app_to_run", DEFAULT_CLIENT));
         }
     }
-    
+
     /* Start the server */
     fprintf(stderr, "X11.app: Could not connect to server.  Starting X server.");
-    return server_main(argc, argv);
+    return execute(command_from_prefs("startx_script", DEFAULT_STARTX));
 }
 
-static int myexecvp(const char *command) {
+static int execute(const char *command) {
     const char *newargv[7];
     const char **s;
 
-	newargv[0] = "/usr/bin/login";
-	newargv[1] = "-fp";
-	newargv[2] = getlogin();
-	newargv[3] = "/bin/sh";
-	newargv[4] = "-c";
-	newargv[5] = command;
-	newargv[6] = NULL;
-
+    newargv[0] = "/usr/bin/login";
+    newargv[1] = "-fp";
+    newargv[2] = getlogin();
+    newargv[3] = "/bin/sh";
+    newargv[4] = "-c";
+    newargv[5] = command;
+    newargv[6] = NULL;
+    
     fprintf(stderr, "X11.app: Launching %s:\n", command);
     for(s=newargv; *s; s++) {
         fprintf(stderr, "\targv[%d] = %s\n", s - newargv, *s);
@@ -97,42 +97,33 @@ static int myexecvp(const char *command) {
     return(1);
 }
 
-int launcher_main (int argc, char **argv) {
-    char *command = DEFAULT_CLIENT;
+static char *command_from_prefs(const char *key, const char *default_value) {
+    char *command = NULL;
     
-	CFPropertyListRef PlistRef = CFPreferencesCopyAppValue(CFSTR("app_to_run"), kCFPreferencesCurrentApplication);
-	
-	if ((PlistRef == NULL) || (CFGetTypeID(PlistRef) != CFStringGetTypeID())) {
-		CFPreferencesSetAppValue(CFSTR("app_to_run"), CFSTR(DEFAULT_CLIENT), kCFPreferencesCurrentApplication);
-		CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication);
-	} else {
-        int len = CFStringGetLength((CFStringRef)PlistRef)+1;
-		command = (char *)malloc(len);
-		CFStringGetCString((CFStringRef)PlistRef, command, len,  kCFStringEncodingASCII);
-	}
+    CFStringRef cfKey = CFStringCreateWithPascalString(NULL, key, kCFStringEncodingASCII);
+    CFPropertyListRef PlistRef = CFPreferencesCopyAppValue(cfKey, kCFPreferencesCurrentApplication);
+    
+    if ((PlistRef == NULL) || (CFGetTypeID(PlistRef) != CFStringGetTypeID())) {
+        CFStringRef cfDefaultValue = CFStringCreateWithPascalString(NULL, default_value, kCFStringEncodingASCII);
 
-	if (PlistRef)
-        CFRelease(PlistRef);
-
-    return myexecvp(command);
-}
-
-int server_main (int argc, char **argv) {
-    char *command = DEFAULT_STARTX;
-
-	CFPropertyListRef PlistRef = CFPreferencesCopyAppValue(CFSTR("startx_script"), kCFPreferencesCurrentApplication);
-	
-	if ((PlistRef == NULL) || (CFGetTypeID(PlistRef) != CFStringGetTypeID())) {
-		CFPreferencesSetAppValue(CFSTR("startx_script"), CFSTR(DEFAULT_STARTX), kCFPreferencesCurrentApplication);
-		CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication);
-	} else {
-        int len = CFStringGetLength((CFStringRef)PlistRef)+1;
-		command = (char *)malloc(len);
-		CFStringGetCString((CFStringRef)PlistRef, command, len,  kCFStringEncodingASCII);
+        CFPreferencesSetAppValue(cfKey, cfDefaultValue, kCFPreferencesCurrentApplication);
+        CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication);
+        
+        int len = strlen(default_value) + 1;
+        command = (char *)malloc(len * sizeof(char));
+        if(!command)
+            return NULL;
+        strcpy(command, default_value);
+    } else {
+        int len = CFStringGetLength((CFStringRef)PlistRef) + 1;
+        command = (char *)malloc(len * sizeof(char));
+        if(!command)
+            return NULL;
+        CFStringGetCString((CFStringRef)PlistRef, command, len,  kCFStringEncodingASCII);
 	}
     
-	if (PlistRef)
+    if (PlistRef)
         CFRelease(PlistRef);
     
-    return myexecvp(command);
+    return command;
 }
