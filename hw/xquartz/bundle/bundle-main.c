@@ -100,7 +100,7 @@ static int execute(const char *command) {
 static char *command_from_prefs(const char *key, const char *default_value) {
     char *command = NULL;
     
-    CFStringRef cfKey = CFStringCreateWithPascalString(NULL, key, kCFStringEncodingASCII);
+    CFStringRef cfKey = CFStringCreateWithCString(NULL, key, kCFStringEncodingASCII);
     CFPropertyListRef PlistRef = CFPreferencesCopyAppValue(cfKey, kCFPreferencesCurrentApplication);
     
     if ((PlistRef == NULL) || (CFGetTypeID(PlistRef) != CFStringGetTypeID())) {
