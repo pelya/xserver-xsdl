@@ -32,18 +32,23 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
-int launcher_main(int argc, char **argv);
+#include <CoreFoundation/CoreFoundation.h>
+
+#define DEFAULT_APP "/usr/X11/bin/xterm"
+
+static int launcher_main(int argc, char **argv);
 int server_main(int argc, char **argv);
 
 int main(int argc, char **argv) {
     Display *display;
 
-    //size_t i;
-    //fprintf(stderr, "X11.app: main(): argc=%d\n", argc);
-    //for(i=0; i < argc; i++) {
-    //    fprintf(stderr, "\targv[%u] = %s\n", (unsigned)i, argv[i]);
-    //}
+    size_t i;
+    fprintf(stderr, "X11.app: main(): argc=%d\n", argc);
+    for(i=0; i < argc; i++) {
+        fprintf(stderr, "\targv[%u] = %s\n", (unsigned)i, argv[i]);
+    }
     
     /* If we have a process serial number and it's our only arg, act as if
      * the user double clicked the app bundle: launch app_to_run if possible
@@ -52,7 +57,7 @@ int main(int argc, char **argv) {
         /* Now, try to open a display, if so, run the launcher */
         display = XOpenDisplay(NULL);
         if(display) {
-            fprintf(stderr, "X11.app: main(): closing the display and sleeping");
+            fprintf(stderr, "X11.app: closing the display and sleeping for 2s to allow the X server to start up.\n");
             /* Could open the display, start the launcher */
             XCloseDisplay(display);
             
@@ -60,13 +65,49 @@ int main(int argc, char **argv) {
              * TODO: *Really* fix this race condition
              */
             usleep(2000);
-            //fprintf(stderr, "X11.app: main(): running launcher_main()");
             return launcher_main(argc, argv);
         }
     }
     
     /* Start the server */
-    //fprintf(stderr, "X11.app: main(): running server_main()");
+    fprintf(stderr, "X11.app: main(): running server_main()");
     return server_main(argc, argv);
 }
 
+int launcher_main (int argc, char **argv) {
+    char *command = DEFAULT_APP;
+    const char *newargv[7];
+    int child;
+    const char **s;
+    
+	CFPropertyListRef PlistRef = CFPreferencesCopyAppValue(CFSTR("app_to_run"), kCFPreferencesCurrentApplication);
+	
+	if ((PlistRef == NULL) || (CFGetTypeID(PlistRef) != CFStringGetTypeID())) {
+		CFPreferencesSetAppValue(CFSTR("app_to_run"), CFSTR(DEFAULT_APP), kCFPreferencesCurrentApplication);
+		CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication);
+	} else {
+		int len = CFStringGetLength((CFStringRef)PlistRef)+1;
+		command = (char *)malloc(len);
+		CFStringGetCString((CFStringRef)PlistRef, command, len,  kCFStringEncodingASCII);
+		fprintf(stderr, "command=%s\n", command);
+	}
+
+	if (PlistRef) CFRelease(PlistRef);
+
+	newargv[0] = "/usr/bin/login";
+	newargv[1] = "-fp";
+	newargv[2] = getlogin();
+	newargv[3] = "/bin/sh";
+	newargv[4] = "-c";
+	newargv[5] = command;
+	newargv[6] = NULL;
+
+    fprintf(stderr, "X11.app: Launching X11 Application:\n");
+    for(s=newargv; *s; s++) {
+        fprintf(stderr, "\targv[%d] = %s\n", s - newargv, *s);
+    }
+
+    execvp (newargv[0], (const char **) newargv);
+    perror ("X11.app: Couldn't exec.");
+    return(1);
+}

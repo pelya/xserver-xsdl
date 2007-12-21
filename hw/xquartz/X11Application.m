@@ -153,7 +153,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 	
     tem = [infoDict objectForKey:@"CFBundleShortVersionString"];
 	
-    [dict setObject:[NSString stringWithFormat:@"X11.app %@ - X.org X11R7.3", tem] 
+    [dict setObject:[NSString stringWithFormat:@"XQuartz %@ - (xorg-server %s)", tem, XSERVER_VERSION] 
 	  forKey:@"ApplicationVersion"];
 	
     [self orderFrontStandardAboutPanelWithOptions: dict];

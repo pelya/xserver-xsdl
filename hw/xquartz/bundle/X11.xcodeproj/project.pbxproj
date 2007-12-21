@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3F5E1BE00D04BF110020CA24 /* launcher-main.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F5E1BDE0D04BF110020CA24 /* launcher-main.c */; };
 		3F5E1BE10D04BF110020CA24 /* server-main.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F5E1BDF0D04BF110020CA24 /* server-main.c */; };
 		527F24190B5D938C007840A7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0867D6AAFE840B52C02AAC07 /* InfoPlist.strings */; };
 		527F241A0B5D938C007840A7 /* main.nib in Resources */ = {isa = PBXBuildFile; fileRef = 02345980000FD03B11CA0E72 /* main.nib */; };
@@ -22,7 +21,6 @@
 /* Begin PBXFileReference section */
 		0867D6ABFE840B52C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1870340FFE93FCAF11CA0CD7 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/main.nib; sourceTree = "<group>"; };
-		3F5E1BDE0D04BF110020CA24 /* launcher-main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "launcher-main.c"; sourceTree = "<group>"; };
 		3F5E1BDF0D04BF110020CA24 /* server-main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "server-main.c"; sourceTree = "<group>"; };
 		50459C5F038587C60ECA21EC /* X11.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = X11.icns; sourceTree = "<group>"; };
 		50EE2AB703849F0B0ECA21EC /* bundle-main.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = "bundle-main.c"; sourceTree = "<group>"; };
@@ -69,7 +67,6 @@
 		20286C2AFDCF999611CA2CEA /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				3F5E1BDE0D04BF110020CA24 /* launcher-main.c */,
 				3F5E1BDF0D04BF110020CA24 /* server-main.c */,
 				50EE2AB703849F0B0ECA21EC /* bundle-main.c */,
 			);
@@ -176,7 +173,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				527F241D0B5D938C007840A7 /* bundle-main.c in Sources */,
-				3F5E1BE00D04BF110020CA24 /* launcher-main.c in Sources */,
 				3F5E1BE10D04BF110020CA24 /* server-main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
