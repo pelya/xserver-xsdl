@@ -40,10 +40,14 @@ typedef struct {
     int                 width;
     int                 height;
     int                 pitch;
-    int                 colorType;
+    int                 depth;
+    int                 visuals;
+    int                 bitsPerRGB;
     int                 bitsPerPixel;
-    int                 colorBitsPerPixel;
-    int                 bitsPerComponent;
+    int                 preferredCVC;
+    Pixel               redMask;
+    Pixel               greenMask;
+    Pixel               blueMask;
 } DarwinFramebufferRec, *DarwinFramebufferPtr;
 
 // From darwin.c
