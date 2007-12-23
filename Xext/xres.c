@@ -67,7 +67,7 @@ ProcXResQueryClients (ClientPtr client)
     current_clients = xalloc((currentMaxClients - 1) * sizeof(int));
 
     num_clients = 0;
-    for(i = 1; i < currentMaxClients; i++) {
+    for(i = 0; i < currentMaxClients; i++) {
        if(clients[i]) {
            current_clients[num_clients] = i;
            num_clients++;   
@@ -128,9 +128,7 @@ ProcXResQueryClientResources (ClientPtr client)
 
     clientID = CLIENT_ID(stuff->xid);
 
-    /* we could remove the (clientID == 0) check if we wanted to allow
-       probing the X-server's resource usage */
-    if(!clientID || (clientID >= currentMaxClients) || !clients[clientID]) {
+    if((clientID >= currentMaxClients) || !clients[clientID]) {
         client->errorValue = stuff->xid;
         return BadValue;
     }
@@ -254,9 +252,7 @@ ProcXResQueryClientPixmapBytes (ClientPtr client)
 
     clientID = CLIENT_ID(stuff->xid);
 
-    /* we could remove the (clientID == 0) check if we wanted to allow
-       probing the X-server's resource usage */
-    if(!clientID || (clientID >= currentMaxClients) || !clients[clientID]) {
+    if((clientID >= currentMaxClients) || !clients[clientID]) {
         client->errorValue = stuff->xid;
         return BadValue;
     }
