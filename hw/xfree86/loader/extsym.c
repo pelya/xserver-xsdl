@@ -44,7 +44,6 @@ extern RESTYPE ShmSegType, ShmPixType;
 extern Bool noPanoramiXExtension;
 extern int PanoramiXNumScreens;
 extern PanoramiXData *panoramiXdataPtr;
-extern XID *PanoramiXVisualTable;
 extern unsigned long XRT_WINDOW;
 extern unsigned long XRT_PIXMAP;
 extern unsigned long XRT_GC;
@@ -69,7 +68,6 @@ _X_HIDDEN void *extLookupTab[] = {
     SYMFUNC(XineramaDeleteResource)
     SYMVAR(PanoramiXNumScreens)
     SYMVAR(panoramiXdataPtr)
-    SYMVAR(PanoramiXVisualTable)
     SYMVAR(XRT_WINDOW)
     SYMVAR(XRT_PIXMAP)
     SYMVAR(XRT_GC)

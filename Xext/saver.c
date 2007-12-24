@@ -1346,8 +1346,7 @@ ProcScreenSaverSetAttributes (ClientPtr client)
              *((CARD32 *) &stuff[1] + cmap_offset) = cmap->info[i].id;
 
           if (orig_visual != CopyFromParent) 
-            stuff->visualID = 
-                     PanoramiXVisualTable[(orig_visual*MAXSCREENS) + i];
+            stuff->visualID = PanoramiXTranslateVisualID(i, orig_visual);
 
           status = ScreenSaverSetAttributes(client);
        }
