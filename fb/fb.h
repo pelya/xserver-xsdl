@@ -2087,11 +2087,6 @@ fbFillRegionSolid (DrawablePtr	pDrawable,
 		   FbBits	and,
 		   FbBits	xor);
 
-void
-fbFillRegionTiled (DrawablePtr	pDrawable,
-		   RegionPtr	pRegion,
-		   PixmapPtr	pTile);
-
 pixman_image_t *image_from_pict (PicturePtr pict,
 				 Bool       has_clip);
 void free_pixman_pict (PicturePtr, pixman_image_t *);

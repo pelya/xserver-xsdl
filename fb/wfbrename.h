@@ -79,7 +79,6 @@
 #define fbExpandDirectColors wfbExpandDirectColors
 #define fbFill wfbFill
 #define fbFillRegionSolid wfbFillRegionSolid
-#define fbFillRegionTiled wfbFillRegionTiled
 #define fbFillSpans wfbFillSpans
 #define fbFixCoordModePrevious wfbFixCoordModePrevious
 #define fbGCFuncs wfbGCFuncs

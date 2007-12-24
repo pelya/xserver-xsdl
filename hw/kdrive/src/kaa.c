@@ -996,18 +996,6 @@ kaaFillRegionSolid (DrawablePtr	pDrawable,
     kaaDrawableDirty (pDrawable);
 }
 
-#if 0
-static void
-kaaFillRegionTiled (DrawablePtr pDrawable,
-		    RegionPtr	pRegion,
-		    Pixmap	pTile)
-{
-    else
-    {
-	kaaWaitSync
-}
-#endif
-
 Bool
 kaaDrawInit (ScreenPtr		pScreen,
 	     KaaScreenInfoPtr	pScreenInfo)
