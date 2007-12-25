@@ -221,6 +221,8 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         goto unwind;
     sprintf(config_info, "hal:%s", udi);
 
+    if (xkb_rules)
+        add_option(&options, "xkb_rules", xkb_rules);
     if (xkb_model)
         add_option(&options, "xkb_model", xkb_model);
     if (xkb_layout)
