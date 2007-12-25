@@ -251,6 +251,8 @@ unwind:
         xfree(xkb_model);
     if (xkb_layout)
         xfree(xkb_layout);
+    if (xkb_variant)
+        xfree(xkb_variant);
     if (xkb_options)
         xfree(xkb_options);
     if (config_info)
