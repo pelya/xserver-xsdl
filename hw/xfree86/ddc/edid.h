@@ -1,5 +1,5 @@
-
-/* edid.h: defines to parse an EDID block 
+/*
+ * edid.h: defines to parse an EDID block 
  *
  * This file contains all information to interpret a standard EDIC block 
  * transmitted by a display device via DDC (Display Data Channel). So far 
@@ -241,14 +241,18 @@
 #define SERIAL_NUMBER 0xFF
 #define ASCII_STR 0xFE
 #define MONITOR_RANGES 0xFD
+#define _MIN_V_OFFSET(x) ((!!(x[4] & 0x01)) * 255)
+#define _MAX_V_OFFSET(x) ((!!(x[4] & 0x02)) * 255)
+#define _MIN_H_OFFSET(x) ((!!(x[4] & 0x04)) * 255)
+#define _MAX_H_OFFSET(x) ((!!(x[4] & 0x08)) * 255)
 #define _MIN_V(x) x[5]
-#define MIN_V _MIN_V(c) 
+#define MIN_V (_MIN_V(c) + _MIN_V_OFFSET(c))
 #define _MAX_V(x) x[6]
-#define MAX_V _MAX_V(c) 
+#define MAX_V (_MAX_V(c) + _MAX_V_OFFSET(c))
 #define _MIN_H(x) x[7]
-#define MIN_H _MIN_H(c) 
+#define MIN_H (_MIN_H(c) + _MIN_H_OFFSET(c))
 #define _MAX_H(x) x[8]
-#define MAX_H _MAX_H(c) 
+#define MAX_H (_MAX_H(c) + _MAX_H_OFFSET(c))
 #define _MAX_CLOCK(x) x[9]
 #define MAX_CLOCK _MAX_CLOCK(c) 
 #define _HAVE_2ND_GTF(x) (x[10] == 0x02)
