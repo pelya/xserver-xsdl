@@ -51,6 +51,9 @@ static DevPrivateKey rlAccelScreenPrivateKey = &rlAccelScreenPrivateKey;
 #define RLACCELREC(pScreen) ((rlAccelScreenRec *) \
     dixLookupPrivate(&(pScreen)->devPrivates, rlAccelScreenPrivateKey))
 
+#define SETRLACCELREC(pScreen, v) \
+    dixSetPrivate(&(pScreen)->devPrivates, rlAccelScreenPrivateKey, v)
+
 /* This is mostly identical to fbGCOps. */
 static GCOps rlAccelOps = {
     rlFillSpans,
@@ -132,7 +135,7 @@ RootlessAccelInit(ScreenPtr pScreen)
 
     s = xalloc(sizeof(rlAccelScreenRec));
     if (!s) return FALSE;
-    RLACCELREC(pScreen) = s;
+    SETRLACCELREC(pScreen, s);
 
     // Wrap the screen functions we need
     s->CreateGC = pScreen->CreateGC;
