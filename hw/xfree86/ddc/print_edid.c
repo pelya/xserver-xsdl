@@ -172,21 +172,28 @@ print_whitepoint(int scrnIndex, struct disp_features *disp)
 
 static void
 print_display(int scrnIndex, struct disp_features *disp,
-	      struct edid_version *version)
+	      struct edid_version *v)
 {
-    print_input_features(scrnIndex, disp, version);
-    xf86DrvMsg(scrnIndex,X_INFO,"Max H-Image Size [cm]: ");
-    if (disp->hsize)
-	xf86ErrorF("horiz.: %i  ",disp->hsize);
-    else
-	xf86ErrorF("H-Size may change,  ");
-    if (disp->vsize)
-	xf86ErrorF("vert.: %i\n",disp->vsize);
-      else
-	xf86ErrorF("V-Size may change\n");
-    xf86DrvMsg(scrnIndex,X_INFO,"Gamma: %.2f\n", disp->gamma);
-    print_dpms_features(scrnIndex,disp,version);
-    print_whitepoint(scrnIndex,disp);
+    print_input_features(scrnIndex, disp, v);
+    if (disp->hsize && disp->vsize) {
+	xf86DrvMsg(scrnIndex, X_INFO, "Max Image Size [cm]: ");
+	xf86ErrorF("horiz.: %i  ", disp->hsize);
+	xf86ErrorF("vert.: %i\n", disp->vsize);
+    } else if (v->revision >= 4 && (disp->hsize || disp->vsize)) {
+	if (disp->hsize)
+	    xf86DrvMsg(scrnIndex, X_INFO, "Aspect ratio: %.2f (landscape)\n",
+		       (disp->hsize + 99) / 100.0);
+	if (disp->vsize)
+	    xf86DrvMsg(scrnIndex, X_INFO, "Aspect ratio: %.2f (portrait)\n",
+		       100.0 / (float)(disp->vsize + 99));
+
+    } else {
+	xf86DrvMsg(scrnIndex, X_INFO, "Indeterminate output size\n");
+    }
+
+    xf86DrvMsg(scrnIndex, X_INFO, "Gamma: %.2f\n", disp->gamma);
+    print_dpms_features(scrnIndex, disp, v);
+    print_whitepoint(scrnIndex, disp);
 }
 
 static void 
