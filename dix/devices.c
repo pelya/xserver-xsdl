@@ -469,7 +469,8 @@ InitAndStartDevices(void)
 
     for (dev = inputInfo.off_devices; dev; dev = dev->next) {
         DebugF("(dix) initialising device %d\n", dev->id);
-	ActivateDevice(dev);
+        if (!dev->inited)
+            ActivateDevice(dev);
     }
     for (dev = inputInfo.off_devices; dev; dev = next)
     {
