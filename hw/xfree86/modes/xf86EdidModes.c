@@ -534,6 +534,8 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
     quirks = xf86DDCDetectQuirks(scrnIndex, DDC, TRUE);
 
     preferred = PREFERRED_TIMING_MODE(DDC->features.msc);
+    if (DDC->ver.revision >= 4)
+	preferred = TRUE;
     if (quirks & DDC_QUIRK_FIRST_DETAILED_PREFERRED)
 	preferred = TRUE;
     if (quirks & (DDC_QUIRK_PREFER_LARGE_60 | DDC_QUIRK_PREFER_LARGE_75))
