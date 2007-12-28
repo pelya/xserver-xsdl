@@ -235,6 +235,24 @@ print_std_timings(int scrnIndex, struct std_timings *t)
 	}
     }
 }
+
+static void
+print_cvt_timings(int si, struct cvt_timings *t)
+{
+    int i;
+
+    for (i = 0; i < 4; i++) {
+	if (t[i].height) {
+	    xf86DrvMsg(si, X_INFO, "%dx%d @ %s%s%s%s%s Hz\n",
+		    t[i].width, t[i].height,
+		    t[i].rates & 0x10 ? "50," : "",
+		    t[i].rates & 0x08 ? "60," : "",
+		    t[i].rates & 0x04 ? "75," : "",
+		    t[i].rates & 0x02 ? "85," : "",
+		    t[i].rates & 0x01 ? "60RB" : "");
+	} else break;
+    }
+}
   
 static void
 print_detailed_monitor_section(int scrnIndex,
@@ -296,7 +314,8 @@ print_detailed_monitor_section(int scrnIndex,
 	    break;
 	case DS_CVT:
 	    xf86DrvMsg(scrnIndex, X_INFO,
-		       "CVT 3-byte-code modes: (not decoded)\n");
+		       "CVT 3-byte-code modes:\n");
+	    print_cvt_timings(scrnIndex, m[i].section.cvt);
 	    break;
 	case DS_EST_III:
 	    xf86DrvMsg(scrnIndex, X_INFO,

@@ -449,17 +449,33 @@ struct whitePoints{
   float white_gamma;
 };
 
+struct cvt_timings {
+    int width;
+    int height;
+    int rate;
+    int rates;
+};
+
+/*
+ * Be careful when adding new sections; this structure can't grow, it's
+ * embedded in the middle of xf86Monitor which is ABI.  Sizes below are
+ * in bytes, for ILP32 systems.  If all else fails just copy the section
+ * literally like serial and friends.
+ */
 struct detailed_monitor_section {
   int type;
   union {
-    struct detailed_timings d_timings;
+    struct detailed_timings d_timings;	/* 56 */
     Uchar serial[13];
     Uchar ascii_data[13];
     Uchar name[13];
-    struct monitor_ranges ranges;
-    struct std_timings std_t[5];
-    struct whitePoints wp[2];
-  } section;
+    struct monitor_ranges ranges;	/* 40 */
+    struct std_timings std_t[5];	/* 80 */
+    struct whitePoints wp[2];		/* 32 */
+    /* color management data */
+    struct cvt_timings cvt[4];		/* 64 */
+    /* established timings III */
+  } section;				/* max: 80 */
 };
 
 typedef struct {

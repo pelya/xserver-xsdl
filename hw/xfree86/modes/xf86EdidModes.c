@@ -354,6 +354,36 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
     return Mode;
 }
 
+static DisplayModePtr
+DDCModesFromCVT(int scrnIndex, struct cvt_timings *t)
+{
+    DisplayModePtr modes = NULL;
+    int i;
+
+    for (i = 0; i < 4; i++) {
+	if (t[i].height) {
+	    if (t[i].rates & 0x10)
+		modes = xf86ModesAdd(modes,
+			xf86CVTMode(t[i].width, t[i].height, 50, 0, 0));
+	    if (t[i].rates & 0x08)
+		modes = xf86ModesAdd(modes,
+			xf86CVTMode(t[i].width, t[i].height, 60, 0, 0));
+	    if (t[i].rates & 0x04)
+		modes = xf86ModesAdd(modes,
+			xf86CVTMode(t[i].width, t[i].height, 75, 0, 0));
+	    if (t[i].rates & 0x02)
+		modes = xf86ModesAdd(modes,
+			xf86CVTMode(t[i].width, t[i].height, 85, 0, 0));
+	    if (t[i].rates & 0x01)
+		modes = xf86ModesAdd(modes,
+			xf86CVTMode(t[i].width, t[i].height, 60, 1, 0));
+	} else break;
+    }
+
+    return modes;
+}
+
+
 /*
  *
  */
@@ -527,6 +557,10 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
 					      quirks);
             Modes = xf86ModesAdd(Modes, Mode);
             break;
+	case DS_CVT:
+	    Mode = DDCModesFromCVT(scrnIndex, det_mon->section.cvt);
+	    Modes = xf86ModesAdd(Modes, Mode);
+	    break;
         default:
             break;
         }

@@ -175,6 +175,34 @@ get_established_timing_section(Uchar *c, struct established_timings *r)
 }
 
 static void
+get_cvt_timing_section(Uchar *c, struct cvt_timings *r)
+{
+    int i;
+
+    for (i = 0; i < 4; i++) {
+	if (c[0] && c[1] && c[2]) {
+	    r[i].height = (c[0] + ((c[1] & 0xF0) << 8) + 1) * 2;
+	    switch (c[1] & 0xc0) {
+		case 0x00: r[i].width = r[i].height * 4 / 3; break;
+		case 0x40: r[i].width = r[i].height * 16 / 9; break;
+		case 0x80: r[i].width = r[i].height * 16 / 10; break;
+		case 0xc0: r[i].width = r[i].height * 15 / 9; break;
+	    }
+	    switch (c[2] & 0x60) {
+		case 0x00: r[i].rate = 50; break;
+		case 0x20: r[i].rate = 60; break;
+		case 0x40: r[i].rate = 75; break;
+		case 0x60: r[i].rate = 85; break;
+	    }
+	    r[i].rates = c[2] & 0x1f;
+	} else {
+	    return;
+	}
+	c += 3;
+    }
+}
+
+static void
 get_std_timing_section(Uchar *c, struct std_timings *r,
 		       struct edid_version *v)
 {
@@ -232,6 +260,7 @@ get_dt_md_section(Uchar *c, struct edid_version *ver,
 	break;
       case CVT_3BYTE_DATA:
 	det_mon[i].type = DS_CVT;
+	get_cvt_timing_section(c, det_mon[i].section.cvt);
 	break;
       case ADD_EST_TIMINGS:
 	det_mon[i].type = DS_EST_III;
