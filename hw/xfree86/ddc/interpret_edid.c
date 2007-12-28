@@ -369,13 +369,16 @@ get_detailed_timing_section(Uchar *c, struct detailed_timings *r)
   r->misc = MISC;
 }
 
-#define MAX_EDID_MINOR 3
+#define MAX_EDID_MINOR 4
 
 static Bool
 validate_version(int scrnIndex, struct edid_version *r)
 {
-    if (r->version != 1)
+    if (r->version != 1) {
+	xf86DrvMsg(scrnIndex, X_ERROR, "Unknown EDID version %d\n",
+		   r->version);
 	return FALSE;
+    }
 
     if (r->revision > MAX_EDID_MINOR)
 	xf86DrvMsg(scrnIndex, X_WARNING,
