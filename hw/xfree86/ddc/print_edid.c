@@ -191,7 +191,11 @@ print_display(int scrnIndex, struct disp_features *disp,
 	xf86DrvMsg(scrnIndex, X_INFO, "Indeterminate output size\n");
     }
 
-    xf86DrvMsg(scrnIndex, X_INFO, "Gamma: %.2f\n", disp->gamma);
+    if (!gamma && v->revision >= 1.4)
+	xf86DrvMsg(scrnIndex, X_INFO, "Gamma defined in extension block\n");
+    else
+	xf86DrvMsg(scrnIndex, X_INFO, "Gamma: %.2f\n", disp->gamma);
+
     print_dpms_features(scrnIndex, disp, v);
     print_whitepoint(scrnIndex, disp);
 }

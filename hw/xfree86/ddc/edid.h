@@ -129,7 +129,7 @@
 #define BPC _BPC(GET(D_INPUT))
 #define _DIGITAL_INTERFACE(x) (x & 0x0F)
 #define DIGITAL_INTERFACE _DIGITAL_INTERFACE(GET(D_INPUT))
-#define _GAMMA(x) (x == 0xff ? 1.0 : ((x + 100.0)/100.0))
+#define _GAMMA(x) (x == 0xff ? 0.0 : ((x + 100.0)/100.0))
 #define GAMMA _GAMMA(GET(D_GAMMA))
 #define HSIZE_MAX GET(D_HSIZE)
 #define VSIZE_MAX GET(D_VSIZE)
