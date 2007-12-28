@@ -154,16 +154,27 @@ print_dpms_features(int scrnIndex, struct disp_features *c,
     if (STD_COLOR_SPACE(c->msc))
 	xf86DrvMsg(scrnIndex,X_INFO,
 		   "Default color space is primary color space\n"); 
-    if (PREFERRED_TIMING_MODE(c->msc))
-	xf86DrvMsg(scrnIndex,X_INFO,
+
+    if (PREFERRED_TIMING_MODE(c->msc) || v->revision >= 4) {
+	xf86DrvMsg(scrnIndex, X_INFO,
 		   "First detailed timing is preferred mode\n"); 
-    else if (v->version == 1 && v->revision >= 3)
+	if (v->revision >= 4)
+	    xf86DrvMsg(scrnIndex, X_INFO,
+		"Preferred mode is native pixel format and refresh rate\n");
+    } else if (v->revision == 3) {
 	xf86DrvMsg(scrnIndex,X_INFO,
 		   "First detailed timing not preferred "
 		   "mode in violation of standard!");
-    if (GFT_SUPPORTED(c->msc))
-	xf86DrvMsg(scrnIndex,X_INFO,
-		   "GTF timings supported\n"); 
+    }
+
+    if (v->revision >= 4) {
+	if (GFT_SUPPORTED(c->msc)) {
+	    xf86DrvMsg(scrnIndex, X_INFO, "Display is continuous-frequency\n");
+	}
+    } else {
+	if (GFT_SUPPORTED(c->msc))
+	    xf86DrvMsg(scrnIndex, X_INFO, "GTF timings supported\n"); 
+    }
 }
   
 static void 
