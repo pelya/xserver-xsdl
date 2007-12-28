@@ -125,6 +125,10 @@
 #define SYNC _SYNC(GET(D_INPUT))
 #define _DFP(x) (x & 0x01)
 #define DFP _DFP(GET(D_INPUT))
+#define _BPC(x) ((x & 0x70) >> 4)
+#define BPC _BPC(GET(D_INPUT))
+#define _DIGITAL_INTERFACE(x) (x & 0x0F)
+#define DIGITAL_INTERFACE _DIGITAL_INTERFACE(GET(D_INPUT))
 #define _GAMMA(x) (x == 0xff ? 1.0 : ((x + 100.0)/100.0))
 #define GAMMA _GAMMA(GET(D_GAMMA))
 #define HSIZE_MAX GET(D_HSIZE)
@@ -364,6 +368,9 @@ struct disp_features {
   unsigned int input_setup:1;
   unsigned int input_sync:5;
   unsigned int input_dfp:1;
+  unsigned int input_bpc:3;
+  unsigned int input_interface:4;
+  /* 15 bit hole */
   int hsize;
   int vsize;
   float gamma;

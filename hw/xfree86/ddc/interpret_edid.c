@@ -148,8 +148,12 @@ get_display_section(Uchar *c, struct disp_features *r,
 	r->input_voltage = INPUT_VOLTAGE;
 	r->input_setup = SETUP;
 	r->input_sync = SYNC;
-    } else if (v->version > 1 || v->revision > 2)
+    } else if (v->revision == 2 || v->revision == 3) {
 	r->input_dfp = DFP;
+    } else if (v->revision >= 4) {
+	r->input_bpc = BPC;
+	r->input_interface = DIGITAL_INTERFACE;
+    }
     r->hsize = HSIZE_MAX;
     r->vsize = VSIZE_MAX;
     r->gamma = GAMMA;
