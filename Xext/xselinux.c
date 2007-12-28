@@ -1376,15 +1376,20 @@ XSELinuxExtensionInit(INITARGS)
 
     /* Setup SELinux stuff */
     if (!is_selinux_enabled()) {
-        ErrorF("XSELinux: Extension failed to load: SELinux not enabled\n");
+        ErrorF("XSELinux: SELinux not enabled, disabling SELinux support.\n");
         return;
     }
 
     selinux_set_callback(SELINUX_CB_LOG, (union selinux_callback)SELinuxLog);
     selinux_set_callback(SELINUX_CB_AUDIT, (union selinux_callback)SELinuxAudit);
 
-    if (selinux_set_mapping(map) < 0)
+    if (selinux_set_mapping(map) < 0) {
+	if (errno == EINVAL) {
+	    ErrorF("XSELinux: Invalid object class mapping, disabling SELinux support.\n");
+	    return;
+	}
 	FatalError("XSELinux: Failed to set up security class mapping\n");
+    }
 
     if (avc_open(NULL, 0) < 0)
 	FatalError("XSELinux: Couldn't initialize SELinux userspace AVC\n");
