@@ -1145,31 +1145,31 @@ ProcSELinuxDispatch(ClientPtr client)
     REQUEST(xReq);
     switch (stuff->data) {
     case X_SELinuxQueryVersion:
-        return ProcSELinuxQueryVersion(client);
+	return ProcSELinuxQueryVersion(client);
     case X_SELinuxSetSelectionManager:
 	return ProcSELinuxSetSelectionManager(client);
     case X_SELinuxGetSelectionManager:
-    	return ProcSELinuxGetSelectionManager(client);
+	return ProcSELinuxGetSelectionManager(client);
     case X_SELinuxSetDeviceCreateContext:
-    	return ProcSELinuxSetDeviceCreateContext(client);
+	return ProcSELinuxSetDeviceCreateContext(client);
     case X_SELinuxGetDeviceCreateContext:
-    	return ProcSELinuxGetDeviceCreateContext(client);
+	return ProcSELinuxGetDeviceCreateContext(client);
     case X_SELinuxSetDeviceContext:
-    	return ProcSELinuxSetDeviceContext(client);
+	return ProcSELinuxSetDeviceContext(client);
     case X_SELinuxGetDeviceContext:
-    	return ProcSELinuxGetDeviceContext(client);
+	return ProcSELinuxGetDeviceContext(client);
     case X_SELinuxSetPropertyCreateContext:
-    	return ProcSELinuxSetPropertyCreateContext(client);
+	return ProcSELinuxSetPropertyCreateContext(client);
     case X_SELinuxGetPropertyCreateContext:
-    	return ProcSELinuxGetPropertyCreateContext(client);
+	return ProcSELinuxGetPropertyCreateContext(client);
     case X_SELinuxGetPropertyContext:
-    	return ProcSELinuxGetPropertyContext(client);
+	return ProcSELinuxGetPropertyContext(client);
     case X_SELinuxSetWindowCreateContext:
-    	return ProcSELinuxSetWindowCreateContext(client);
+	return ProcSELinuxSetWindowCreateContext(client);
     case X_SELinuxGetWindowCreateContext:
-    	return ProcSELinuxGetWindowCreateContext(client);
+	return ProcSELinuxGetWindowCreateContext(client);
     case X_SELinuxGetWindowContext:
-    	return ProcSELinuxGetWindowContext(client);
+	return ProcSELinuxGetWindowContext(client);
     default:
 	return BadRequest;
     }
