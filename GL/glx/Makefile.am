@@ -14,7 +14,8 @@ AM_CFLAGS = \
 	-I@MESA_SOURCE@/src/mesa/glapi \
 	-I@MESA_SOURCE@/src/mesa/main \
 	-DXFree86Server \
-	@GLX_DEFINES@
+	@GLX_DEFINES@ \
+	@GLX_ARCH_DEFINES@
 
 # none yet
 #sdk_HEADERS =

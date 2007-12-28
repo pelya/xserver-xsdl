@@ -304,6 +304,7 @@ case $host_cpu in
 	        *freebsd*)	SYS_LIBS=-lio ;;
 		*netbsd*)	AC_DEFINE(USE_ALPHA_PIO, 1, [NetBSD PIO alpha IO]) ;;
 	esac
+	GLX_ARCH_DEFINES="-D__GLX_ALIGN64 -mieee"
 	;;
   arm*)
 	ARM_VIDEO=yes
@@ -333,6 +334,7 @@ case $host_cpu in
 	xorg_loader_sparcmuldiv="yes"
 	SPARC64_VIDEO=yes
 	BSD_ARCH_SOURCES="sparc64_video.c ioperm_noop.c"
+	GLX_ARCH_DEFINES="-D__GLX_ALIGN64"
 	;;
   x86_64*|amd64*)
   	use_x86_asm="yes"
@@ -347,8 +349,16 @@ case $host_cpu in
 				SYS_LIBS=-lamd64
 				;;
 	esac
+	GLX_ARCH_DEFINES="-D__GLX_ALIGN64"
+	;;
+  ia64*)
+  	GLX_ARCH_DEFINES="-D__GLX_ALIGN64"
+	;;
+  s390*)
+  	GLX_ARCH_DEFINES="-D__GLX_ALIGN64"
 	;;
 esac
+AC_SUBST(GLX_ARCH_DEFINES)
 
 dnl BSD *_video.c selection
 AM_CONDITIONAL(ALPHA_VIDEO, [test "x$ALPHA_VIDEO" = xyes])
