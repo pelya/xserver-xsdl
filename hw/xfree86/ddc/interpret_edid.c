@@ -1,8 +1,28 @@
-
-/* interpret_edid.c: interpret a primary EDID block
- * 
+/*
  * Copyright 1998 by Egbert Eich <Egbert.Eich@Physik.TU-Darmstadt.DE>
+ * Copyright 2007 Red Hat, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software")
+ * to deal in the software without restriction, including without limitation
+ * on the rights to use, copy, modify, merge, publish, distribute, sub
+ * license, and/or sell copies of the Software, and to permit persons to whom
+ * them Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTIBILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * interpret_edid.c: interpret a primary EDID block
  */
+
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
@@ -207,12 +227,24 @@ get_dt_md_section(Uchar *c, struct edid_version *ver,
 	det_mon[i].type = DS_STD_TIMINGS;
 	get_dst_timing_section(c,det_mon[i].section.std_t, ver);
 	break;
+      case COLOR_MANAGEMENT_DATA:
+	det_mon[i].type = DS_CMD;
+	break;
+      case CVT_3BYTE_DATA:
+	det_mon[i].type = DS_CVT;
+	break;
+      case ADD_EST_TIMINGS:
+	det_mon[i].type = DS_EST_III;
+	break;
       case ADD_DUMMY:
 	det_mon[i].type = DS_DUMMY;
         break;
       default:
         det_mon[i].type = DS_UNKOWN;
         break;
+      }
+      if (c[3] <= 0x0F) {
+	det_mon[i].type = DS_VENDOR + c[3];
       }
     } else { 
       det_mon[i].type = DT;

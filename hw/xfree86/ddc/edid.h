@@ -286,6 +286,9 @@
 #define _WHITE_GAMMA2(x) _GAMMA(x[14])
 #define WHITE_GAMMA2 _WHITE_GAMMA2(c)
 #define ADD_STD_TIMINGS 0xFA
+#define COLOR_MANAGEMENT_DATA 0xF9
+#define CVT_3BYTE_DATA 0xF8
+#define ADD_EST_TIMINGS 0xF7
 #define ADD_DUMMY 0x10
 
 #define _NEXT_DT_MD_SECTION(x) (x = (x + DET_TIMING_INFO_LEN))
@@ -418,8 +421,13 @@ struct detailed_timings {
 #define DS_RANGES 0xFD
 #define DS_WHITE_P 0xFB
 #define DS_STD_TIMINGS 0xFA
+#define DS_CMD 0xF9
+#define DS_CVT 0xF8
+#define DS_EST_III 0xF7
 #define DS_DUMMY 0x10
 #define DS_UNKOWN 0x100 /* type is an int */
+#define DS_VENDOR 0x101
+#define DS_VENDOR_MAX 0x110
 
 struct monitor_ranges {
   int min_v;

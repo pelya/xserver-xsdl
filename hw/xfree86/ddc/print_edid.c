@@ -290,9 +290,26 @@ print_detailed_monitor_section(int scrnIndex,
 			       m[i].section.wp[j].white_y,
 			       m[i].section.wp[j].white_gamma);
 	    break;
+	case DS_CMD:
+	    xf86DrvMsg(scrnIndex, X_INFO,
+		       "Color management data: (not decoded)\n");
+	    break;
+	case DS_CVT:
+	    xf86DrvMsg(scrnIndex, X_INFO,
+		       "CVT 3-byte-code modes: (not decoded)\n");
+	    break;
+	case DS_EST_III:
+	    xf86DrvMsg(scrnIndex, X_INFO,
+		       "Established timings III: (not decoded)\n");
+	    break;
 	case DS_DUMMY:
 	default:
 	    break;
+	}
+	if (m[i].type >= DS_VENDOR && m[i].type <= DS_VENDOR_MAX) {
+	    xf86DrvMsg(scrnIndex, X_WARNING,
+		       "Unknown vendor-specific block %hx\n",
+		       m[i].type - DS_VENDOR);
 	}
     }
 }
