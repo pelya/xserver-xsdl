@@ -128,20 +128,29 @@ print_dpms_features(int scrnIndex, struct disp_features *c,
 	 if (DPMS_OFF(c->dpms)) xf86ErrorF(" Off");
      } else 
 	 xf86DrvMsg(scrnIndex,X_INFO,"No DPMS capabilities specified");
-    switch (c->display_type){
-    case DISP_MONO:
-	xf86ErrorF("; Monochorome/GrayScale Display\n");
-	break;
-    case DISP_RGB:
-	xf86ErrorF("; RGB/Color Display\n");
-	break;
-    case DISP_MULTCOLOR:
-	xf86ErrorF("; Non RGB Multicolor Display\n");
-	break;
-    default:
-	xf86ErrorF("\n");
-	break;
+    if (!c->input_type) { /* analog */
+	switch (c->display_type){
+	    case DISP_MONO:
+		xf86ErrorF("; Monochorome/GrayScale Display\n");
+		break;
+	    case DISP_RGB:
+		xf86ErrorF("; RGB/Color Display\n");
+		break;
+	    case DISP_MULTCOLOR:
+		xf86ErrorF("; Non RGB Multicolor Display\n");
+		break;
+	    default:
+		xf86ErrorF("\n");
+		break;
+	}
+    } else {
+	int enc = c->display_type;
+	xf86DrvMsg(scrnIndex, X_INFO, "\nSupported color encodings: "
+		   "RGB 4:4:4 %s%s\n",
+		   enc & DISP_YCRCB444 ? "YCrCb 4:4:4 " : "",
+		   enc & DISP_YCRCB422 ? "YCrCb 4:2:2" : "");
     }
+
     if (STD_COLOR_SPACE(c->msc))
 	xf86DrvMsg(scrnIndex,X_INFO,
 		   "Default color space is primary color space\n"); 
