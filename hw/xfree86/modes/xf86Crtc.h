@@ -61,7 +61,9 @@ typedef enum _xf86ConnectorType {
    XF86ConnectorSvideo,
    XF86ConnectorComponent,
    XF86ConnectorLFP,
-   XF86ConnectorProprietary
+   XF86ConnectorProprietary,
+   XF86ConnectorHDMI,
+   XF86ConnectorDisplayPort,
 } xf86ConnectorType;
 
 typedef enum _xf86OutputStatus {

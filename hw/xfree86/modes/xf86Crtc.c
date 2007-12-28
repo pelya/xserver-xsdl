@@ -2192,9 +2192,12 @@ xf86OutputGetEDID (xf86OutputPtr output, I2CBusPtr pDDCBus)
     return mon;
 }
 
-static char *_xf86ConnectorNames[] = { "None", "VGA", "DVI-I", "DVI-D",
-				      "DVI-A", "Composite", "S-Video",
-				      "Component", "LFP", "Proprietary" };
+static char *_xf86ConnectorNames[] = {
+					"None", "VGA", "DVI-I", "DVI-D",
+					"DVI-A", "Composite", "S-Video",
+					"Component", "LFP", "Proprietary",
+					"HDMI", "DisplayPort",
+				     };
 _X_EXPORT char *
 xf86ConnectorGetName(xf86ConnectorType connector)
 {
