@@ -538,6 +538,7 @@ __glGetBooleanv_size(GLenum e)
     case GL_UNPACK_SKIP_IMAGES:
     case GL_UNPACK_IMAGE_HEIGHT:
     case GL_TEXTURE_3D:
+    case GL_MAX_3D_TEXTURE_SIZE:
     case GL_VERTEX_ARRAY:
     case GL_NORMAL_ARRAY:
     case GL_COLOR_ARRAY:
