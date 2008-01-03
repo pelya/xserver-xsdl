@@ -415,12 +415,14 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
                                         keySyms.mapWidth);
         if (!keySyms.map) {
             ErrorF("[dix] Couldn't allocate core keymap\n");
+            xfree(classes);
             return BadAlloc;
         }
 
         modMap = (CARD8 *)xalloc(MAP_LENGTH);
         if (!modMap) {
             ErrorF("[dix] Couldn't allocate core modifier map\n");
+            xfree(classes);
             return BadAlloc;
         }
         bzero((char *)modMap, MAP_LENGTH);
