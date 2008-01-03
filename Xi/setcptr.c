@@ -68,7 +68,6 @@ int
 ProcXSetClientPointer(ClientPtr client)
 {
     DeviceIntPtr pDev;
-    WindowPtr pWin;
     ClientPtr targetClient;
     int rc;
 
@@ -88,21 +87,12 @@ ProcXSetClientPointer(ClientPtr client)
 
     if (stuff->win != None)
     {
-        rc = dixLookupWindow(&pWin, stuff->win, client, DixWriteAccess);
+        rc = dixLookupClient(&targetClient, stuff->win, client,
+                DixWriteAccess);
+
         if (rc != Success)
-        {
-            /* window could not be found. maybe the window ID given was a pure
-               client id? */
-            /* XXX: Needs to be fixed for XACE */
-            rc = dixLookupClient(&targetClient, stuff->win,
-                                  client, DixWriteAccess);
-            if (rc != Success)
-            {
-                client->errorValue = stuff->win;
-                return rc;
-            }
-        } else
-            targetClient= wClient(pWin);
+            return rc;
+
     } else
         targetClient = client;
 
