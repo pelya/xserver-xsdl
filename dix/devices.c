@@ -2016,8 +2016,8 @@ DoChangeKeyboardControl (ClientPtr client, DeviceIntPtr keybd, XID *vlist,
 	case KBKey:
 	    key = (KeyCode)*vlist;
 	    vlist++;
-	    if ((KeyCode)key < inputInfo.keyboard->key->curKeySyms.minKeyCode ||
-		(KeyCode)key > inputInfo.keyboard->key->curKeySyms.maxKeyCode) {
+	    if ((KeyCode)key < keybd->key->curKeySyms.minKeyCode ||
+		(KeyCode)key > keybd->key->curKeySyms.maxKeyCode) {
 		client->errorValue = key;
 		return BadValue;
 	    }
