@@ -212,8 +212,6 @@ extern SIGVAL GiveUp(int /*sig*/);
 
 extern void UseMsg(void);
 
-extern void InitGlobals(void);
-
 extern void ProcessCommandLine(int /*argc*/, char* /*argv*/[]);
 
 extern int set_font_authorizations(
@@ -410,8 +408,6 @@ extern XID GenerateAuthorization(
 #ifdef COMMANDLINE_CHALLENGED_OPERATING_SYSTEMS
 extern void ExpandCommandLine(int * /*pargc*/, char *** /*pargv*/);
 #endif
-
-extern void ddxInitGlobals(void);
 
 extern int ddxProcessArgument(int /*argc*/, char * /*argv*/ [], int /*i*/);
 

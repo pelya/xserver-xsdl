@@ -330,7 +330,3 @@ OsVendorInit (void)
     if (xglEnsureDDXModule ())
 	(*__ddxFunc.osVendorInit) ();
 }
-
-void ddxInitGlobals()
-{
-}

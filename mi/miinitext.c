@@ -59,6 +59,7 @@ SOFTWARE.
 
 #ifdef HAVE_XNEST_CONFIG_H
 #include <xnest-config.h>
+#undef COMPOSITE
 #undef DPMSExtension
 #endif
 

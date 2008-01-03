@@ -678,15 +678,6 @@ void OsVendorInit(void)
 
 
 /*
- * ddxInitGlobals
- *  Called by InitGlobals() from os/util.c.
- */
-void ddxInitGlobals(void)
-{
-}
-
-
-/*
  * ddxProcessArgument
  *  Process device-dependent command line args. Returns 0 if argument is
  *  not device dependent, otherwise Count of number of elements of argv

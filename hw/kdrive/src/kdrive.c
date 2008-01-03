@@ -1412,5 +1412,3 @@ DPMSSupported (void)
 }
 #endif
 
-void ddxInitGlobals(void) { /* THANK YOU XPRINT */ }
-
