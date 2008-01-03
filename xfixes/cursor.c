@@ -355,7 +355,7 @@ ProcXFixesGetCursorImage (ClientPtr client)
 		  pCursor, RT_NONE, NULL, DixReadAccess);
     if (rc != Success)
 	return rc;
-    GetSpritePosition (inputInfo.pointer, &x, &y);
+    GetSpritePosition (PickPointer(client), &x, &y);
     width = pCursor->bits->width;
     height = pCursor->bits->height;
     npixels = width * height;
@@ -507,7 +507,7 @@ ProcXFixesGetCursorImageAndName (ClientPtr client)
 		  pCursor, RT_NONE, NULL, DixReadAccess|DixGetAttrAccess);
     if (rc != Success)
 	return rc;
-    GetSpritePosition (inputInfo.pointer, &x, &y);
+    GetSpritePosition (PickPointer(client), &x, &y);
     width = pCursor->bits->width;
     height = pCursor->bits->height;
     npixels = width * height;
@@ -879,7 +879,7 @@ ProcXFixesHideCursor (ClientPtr client)
     ret = createCursorHideCount(client, pWin->drawable.pScreen);
 
     if (ret == Success) {
-        (void) CursorDisplayCursor(inputInfo.pointer, pWin->drawable.pScreen, CursorCurrent);
+        (void) CursorDisplayCursor(PickPointer(client), pWin->drawable.pScreen, CursorCurrent);
     }
 
     return ret;
