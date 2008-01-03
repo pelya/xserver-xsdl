@@ -96,7 +96,8 @@ mfbPolyFillRect(pDrawable, pGC, nrectFill, prectInit)
     if (!(pGC->planemask & 1))
 	return;
 
-    priv = (mfbPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr;
+    priv = (mfbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					 mfbGetGCPrivateKey());
     alu = priv->ropFillArea;
     pfn = priv->FillArea;
     ppix = pGC->pRotatedPixmap;

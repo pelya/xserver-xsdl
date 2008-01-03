@@ -463,7 +463,8 @@ xglCreateSolidAlphaPicture (ScreenPtr pScreen)
 
     tmpval[0] = xTrue;
     pScreenPriv->pSolidAlpha = CreatePicture (0, &pPixmap->drawable, pFormat,
-					      CPRepeat, tmpval, 0, &error);
+					      CPRepeat, tmpval,
+					      serverClient, &error);
     (*pScreen->DestroyPixmap) (pPixmap);
 
     if (pScreenPriv->pSolidAlpha)

@@ -40,9 +40,8 @@
 #include "exa.h"
 #include "cw.h"
 
-static int exaGeneration;
-int exaScreenPrivateIndex;
-int exaPixmapPrivateIndex;
+DevPrivateKey exaScreenPrivateKey = &exaScreenPrivateKey;
+DevPrivateKey exaPixmapPrivateKey = &exaPixmapPrivateKey;
 
 static _X_INLINE void*
 ExaGetPixmapAddress(PixmapPtr p)
@@ -257,6 +256,7 @@ exaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth,
         return NULL;
 
     pExaPixmap = ExaGetPixmapPriv(pPixmap);
+    pExaPixmap->driverPriv = NULL;
 
     bpp = pPixmap->drawable.bitsPerPixel;
 
@@ -812,12 +812,6 @@ exaDriverInit (ScreenPtr		pScreen,
 #ifdef RENDER
     ps = GetPictureScreenIfSet(pScreen);
 #endif
-    if (exaGeneration != serverGeneration)
-    {
-	exaScreenPrivateIndex = AllocateScreenPrivateIndex();
-	exaPixmapPrivateIndex = AllocatePixmapPrivateIndex();
-	exaGeneration = serverGeneration;
-    }
 
     pExaScr = xcalloc (sizeof (ExaScreenPrivRec), 1);
 
@@ -829,7 +823,7 @@ exaDriverInit (ScreenPtr		pScreen,
 
     pExaScr->info = pScreenInfo;
 
-    pScreen->devPrivates[exaScreenPrivateIndex].ptr = (pointer) pExaScr;
+    dixSetPrivate(&pScreen->devPrivates, exaScreenPrivateKey, pExaScr);
 
     pExaScr->migration = ExaMigrationAlways;
 
@@ -884,8 +878,7 @@ exaDriverInit (ScreenPtr		pScreen,
      */
     if (pExaScr->info->flags & EXA_OFFSCREEN_PIXMAPS)
     {
-	if (!AllocatePixmapPrivate(pScreen, exaPixmapPrivateIndex,
-				   sizeof (ExaPixmapPrivRec))) {
+	if (!dixRequestPrivate(exaPixmapPrivateKey, sizeof(ExaPixmapPrivRec))) {
             LogMessage(X_WARNING,
 		       "EXA(%d): Failed to allocate pixmap private\n",
 		       pScreen->myNum);
@@ -910,11 +903,7 @@ exaDriverInit (ScreenPtr		pScreen,
 	}
     }
     else
-    {
         LogMessage(X_INFO, "EXA(%d): No offscreen pixmaps\n", pScreen->myNum);
-	if (!AllocatePixmapPrivate(pScreen, exaPixmapPrivateIndex, 0))
-	    return FALSE;
-    }
 
     if (!pExaScr->info->CreatePixmap) {
 	DBG_PIXMAP(("============== %ld < %ld\n", pExaScr->info->offScreenBase,

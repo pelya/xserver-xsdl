@@ -55,6 +55,7 @@ SOFTWARE.
 #include "property.h"
 #include "resource.h"	/* for ROOT_WINDOW_ID_BASE */
 #include "dix.h"
+#include "privates.h"
 #include "miscstruct.h"
 #include <X11/Xprotostr.h>
 #include "opaque.h"
@@ -151,6 +152,7 @@ typedef struct _WindowOpt {
 
 typedef struct _Window {
     DrawableRec		drawable;
+    PrivateRec		*devPrivates;
     WindowPtr		parent;		/* ancestor chain */
     WindowPtr		nextSib;	/* next lower sibling */
     WindowPtr		prevSib;	/* next higher sibling */
@@ -187,7 +189,6 @@ typedef struct _Window {
 #ifdef COMPOSITE
     unsigned		redirectDraw:2;	/* rendering is redirected from here */
 #endif
-    DevUnion		*devPrivates;
 } WindowRec;
 
 /*
@@ -254,7 +255,7 @@ typedef struct _ScreenSaverStuff {
 
 extern int screenIsSaved;
 extern ScreenSaverStuffRec savedScreenInfo[MAXSCREENS];
-extern int FocusPrivatesIndex;
+extern DevPrivateKey FocusPrivatesKey;
 
 /* Used to maintain semantics of core protocol for Enter/LeaveNotifies and
  * FocusIn/Out events for multiple pointers/keyboards. 

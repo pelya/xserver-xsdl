@@ -175,15 +175,15 @@ typedef struct _miBankQueue
 #define xalloc_ARRAY(atype, ntype) \
     (atype *)xalloc((ntype) * sizeof(atype))
 
-static int           miBankScreenIndex;
-static int           miBankGCIndex;
+static DevPrivateKey miBankScreenKey = &miBankScreenKey;
+static DevPrivateKey miBankGCKey = &miBankGCKey;
 static unsigned long miBankGeneration = 0;
 
-#define BANK_SCRPRIVLVAL pScreen->devPrivates[miBankScreenIndex].ptr
+#define BANK_SCRPRIVLVAL dixLookupPrivate(&pScreen->devPrivates, miBankScreenKey)
 
 #define BANK_SCRPRIVATE ((miBankScreenPtr)(BANK_SCRPRIVLVAL))
 
-#define BANK_GCPRIVLVAL(pGC) (pGC)->devPrivates[miBankGCIndex].ptr
+#define BANK_GCPRIVLVAL(pGC) dixLookupPrivate(&(pGC)->devPrivates, miBankGCKey)
 
 #define BANK_GCPRIVATE(pGC) ((miBankGCPtr)(BANK_GCPRIVLVAL(pGC)))
 
@@ -2047,15 +2047,9 @@ miInitializeBanking(
     /* Private areas */
 
     if (miBankGeneration != serverGeneration)
-    {
-        if (((miBankScreenIndex = AllocateScreenPrivateIndex()) < 0) ||
-            ((miBankGCIndex = AllocateGCPrivateIndex()) < 0))
-            return FALSE;
-
         miBankGeneration = serverGeneration;
-    }
 
-    if (!AllocateGCPrivate(pScreen, miBankGCIndex,
+    if (!dixRequestPrivate(miBankGCKey,
         (nBanks * sizeof(RegionPtr)) +
             (sizeof(miBankGCRec) - sizeof(RegionPtr))))
         return FALSE;
@@ -2202,7 +2196,7 @@ miInitializeBanking(
     SCREEN_WRAP(CreateGC,              miBankCreateGC);
     SCREEN_WRAP(CopyWindow,            miBankCopyWindow);
 
-    BANK_SCRPRIVLVAL = (pointer)pScreenPriv;
+    dixSetPrivate(&pScreen->devPrivates, miBankScreenKey, pScreenPriv);
 
     return TRUE;
 }

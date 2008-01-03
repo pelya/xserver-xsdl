@@ -37,7 +37,6 @@ from the author.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "extnsionst.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
@@ -68,15 +67,17 @@ ProcXGetPairedPointer(ClientPtr client)
 {
     xGetPairedPointerReply rep;
     DeviceIntPtr kbd, ptr;
+    int rc;
 
     REQUEST(xGetPairedPointerReq);
     REQUEST_SIZE_MATCH(xGetPairedPointerReq);
 
-    kbd = LookupDeviceIntRec(stuff->deviceid);
-    if (!kbd || !kbd->key || !kbd->isMaster) {
-        SendErrorToClient(client, IReqCode, X_GetPairedPointer,
-                stuff->deviceid, BadDevice);
-        return Success;
+    rc = dixLookupDevice(&kbd, stuff->deviceid, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
+    else if (!kbd->key || !kbd->isMaster) {
+        client->errorValue = stuff->deviceid;
+        return BadDevice;
     }
 
     ptr = GetPairedDevice(kbd);

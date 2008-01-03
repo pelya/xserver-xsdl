@@ -61,7 +61,6 @@ SOFTWARE.
 #include <X11/extensions/XIproto.h>	/* control constants */
 #include "XIstubs.h"
 
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 #include "exevents.h"
 
@@ -112,11 +111,9 @@ ProcXChangeDeviceControl(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xChangeDeviceControlReq);
 
     len = stuff->length - (sizeof(xChangeDeviceControlReq) >> 2);
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
-        ret = BadDevice;
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetAttrAccess);
+    if (ret != Success)
         goto out;
-    }
 
     rep.repType = X_Reply;
     rep.RepType = X_ChangeDeviceControl;

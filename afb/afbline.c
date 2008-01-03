@@ -147,7 +147,8 @@ afbLineSS(pDrawable, pGC, mode, npt, pptInit)
 	RegionPtr cclip;
 
 	cclip = pGC->pCompositeClip;
-	rrops = ((afbPrivGC *)(pGC->devPrivates[afbGCPrivateIndex].ptr))->rrops;
+	rrops = ((afbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					       afbGCPrivateKey))->rrops;
 	pboxInit = REGION_RECTS(cclip);
 	nboxInit = REGION_NUM_RECTS(cclip);
 
@@ -487,7 +488,8 @@ afbLineSD(pDrawable, pGC, mode, npt, pptInit)
 #endif
 
 	cclip = pGC->pCompositeClip;
-	rrops = ((afbPrivGC *)(pGC->devPrivates[afbGCPrivateIndex].ptr))->rrops;
+	rrops = ((afbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					       afbGCPrivateKey))->rrops;
 	pboxInit = REGION_RECTS(cclip);
 	nboxInit = REGION_NUM_RECTS(cclip);
 

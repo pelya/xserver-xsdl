@@ -49,7 +49,6 @@ from the author.
 #include <X11/extensions/XIproto.h>
 #include <X11/extensions/geproto.h>
 #include "extnsionst.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 #include "geext.h"
@@ -83,6 +82,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
     xAnyHierarchyChangeInfo *any;
     int required_len = sizeof(xChangeDeviceHierarchyReq);
     char n;
+    int rc;
     deviceHierarchyChangedEvent ev;
 
     REQUEST(xChangeDeviceHierarchyReq);
@@ -142,9 +142,16 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                             r->returnMode != Floating)
                         return BadValue;
 
-                    ptr = LookupDeviceIntRec(r->deviceid);
-                    if (!ptr || !ptr->isMaster)
+                    rc = dixLookupDevice(&ptr, r->deviceid, client,
+                                         DixWriteAccess);
+                    if (rc != Success)
+                        return rc;
+
+                    if (!ptr->isMaster)
+                    {
+                        client->errorValue = r->deviceid;
                         return BadDevice;
+                    }
 
                     /* XXX: For now, don't allow removal of VCP, VCK */
                     if (ptr == inputInfo.pointer ||
@@ -168,11 +175,27 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                                      newptr,
                                      newkeybd;
 
-                        newptr = LookupDeviceIntRec(r->returnPointer);
-                        newkeybd = LookupDeviceIntRec(r->returnKeyboard);
-                        if (!newptr || !newptr->isMaster ||
-                                !newkeybd || !newkeybd->isMaster)
+                        rc = dixLookupDevice(&newptr, r->returnPointer,
+                                             client, DixWriteAccess);
+                        if (rc != Success)
+                            return rc;
+
+                        if (!newptr->isMaster)
+                        {
+                            client->errorValue = r->returnPointer;
                             return BadDevice;
+                        }
+
+                        rc = dixLookupDevice(&newkeybd, r->returnKeyboard,
+                                             client, DixWriteAccess);
+                        if (rc != Success)
+                            return rc;
+
+                        if (!newkeybd->isMaster)
+                        {
+                            client->errorValue = r->returnKeyboard;
+                            return BadDevice;
+                        }
 
                         for (attached = inputInfo.devices;
                                 attached;
@@ -201,17 +224,31 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                 {
                     xChangeAttachmentInfo* c = (xChangeAttachmentInfo*)any;
 
-                    ptr = LookupDeviceIntRec(c->deviceid);
-                    if (!ptr || ptr->isMaster)
+                    rc = dixLookupDevice(&ptr, c->deviceid, client,
+                                          DixWriteAccess);
+                    if (rc != Success)
+                        return rc;
+
+                    if (ptr->isMaster)
+                    {
+                        client->errorValue = c->deviceid;
                         return BadDevice;
+                    }
 
                     if (c->changeMode == Floating)
                         AttachDevice(client, ptr, NULL);
                     else
                     {
-                        DeviceIntPtr newmaster = LookupDeviceIntRec(c->newMaster);
-                        if (!newmaster || !newmaster->isMaster)
+                        DeviceIntPtr newmaster;
+                        rc = dixLookupDevice(&newmaster, c->newMaster,
+                                             client, DixWriteAccess);
+                        if (rc != Success)
+                            return rc;
+                        if (!newmaster->isMaster)
+                        {
+                            client->errorValue = c->newMaster;
                             return BadDevice;
+                        }
 
                         if ((IsPointerDevice(newmaster) &&
                                     !IsPointerDevice(ptr)) ||

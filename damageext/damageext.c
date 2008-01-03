@@ -29,7 +29,7 @@
 static unsigned char	DamageReqCode;
 static int		DamageEventBase;
 static int		DamageErrorBase;
-static int		DamageClientPrivateIndex;
+static DevPrivateKey	DamageClientPrivateKey = &DamageClientPrivateKey;
 static RESTYPE		DamageExtType;
 static RESTYPE		DamageExtWinType;
 
@@ -185,7 +185,7 @@ ProcDamageCreate (ClientPtr client)
     REQUEST_SIZE_MATCH(xDamageCreateReq);
     LEGAL_NEW_RESOURCE(stuff->damage, client);
     rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
-			   DixReadAccess);
+			   DixGetAttrAccess|DixReadAccess);
     if (rc != Success)
 	return rc;
 
@@ -295,7 +295,7 @@ ProcDamageAdd (ClientPtr client)
     REQUEST_SIZE_MATCH(xDamageAddReq);
     VERIFY_REGION(pRegion, stuff->region, client, DixWriteAccess);
     rc = dixLookupDrawable(&pDrawable, stuff->drawable, client, 0,
-			   DixReadAccess);
+			   DixWriteAccess);
     if (rc != Success)
 	return rc;
 
@@ -511,9 +511,7 @@ DamageExtensionInit(void)
     if (!DamageExtWinType)
 	return;
 
-    DamageClientPrivateIndex = AllocateClientPrivateIndex ();
-    if (!AllocateClientPrivate (DamageClientPrivateIndex, 
-				sizeof (DamageClientRec)))
+    if (!dixRequestPrivate(DamageClientPrivateKey, sizeof (DamageClientRec)))
 	return;
     if (!AddCallback (&ClientStateCallback, DamageClientCallback, 0))
 	return;

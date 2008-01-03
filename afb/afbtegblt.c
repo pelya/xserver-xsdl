@@ -261,8 +261,8 @@ afbTEGlyphBlt (pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	xpos += FONTMAXBOUNDS(pfont,leftSideBearing);
 	ypos -= FONTASCENT(pfont);
 
-	rrops = ((afbPrivGCPtr) pGC->devPrivates[afbGCPrivateIndex].ptr)->rropOS;
-
+	rrops = ((afbPrivGCPtr)dixLookupPrivate(&pGC->devPrivates,
+						afbGCPrivateKey))->rropOS;
 	bbox.x1 = xpos;
 	bbox.x2 = xpos + (widthGlyph * nglyph);
 	bbox.y1 = ypos;

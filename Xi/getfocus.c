@@ -60,7 +60,6 @@ SOFTWARE.
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "getfocus.h"
@@ -93,12 +92,15 @@ ProcXGetDeviceFocus(ClientPtr client)
     DeviceIntPtr dev;
     FocusClassPtr focus;
     xGetDeviceFocusReply rep;
+    int rc;
 
     REQUEST(xGetDeviceFocusReq);
     REQUEST_SIZE_MATCH(xGetDeviceFocusReq);
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL || !dev->focus)
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixGetFocusAccess);
+    if (rc != Success)
+	return rc;
+    if (!dev->focus)
 	return BadDevice;
 
     rep.repType = X_Reply;

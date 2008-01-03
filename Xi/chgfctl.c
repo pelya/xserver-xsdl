@@ -60,7 +60,6 @@ SOFTWARE.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>	/* control constants */
 
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "chgfctl.h"
@@ -444,14 +443,15 @@ ProcXChangeFeedbackControl(ClientPtr client)
     StringFeedbackPtr s;
     BellFeedbackPtr b;
     LedFeedbackPtr l;
+    int rc;
 
     REQUEST(xChangeFeedbackControlReq);
     REQUEST_AT_LEAST_SIZE(xChangeFeedbackControlReq);
 
     len = stuff->length - (sizeof(xChangeFeedbackControlReq) >> 2);
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixSetAttrAccess);
+    if (rc != Success)
+	return rc;
 
     switch (stuff->feedbackid) {
     case KbdFeedbackClass:

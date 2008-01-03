@@ -433,18 +433,18 @@ SyncInitTrigger(client, pTrigger, counter, changes)
     Mask	     changes;
 {
     SyncCounter *pCounter = pTrigger->pCounter;
-    int		status;
+    int		rc;
     Bool	newcounter = FALSE;
 
     if (changes & XSyncCACounter)
     {
 	if (counter == None)
 	    pCounter = NULL;
-	else if (!(pCounter = (SyncCounter *)SecurityLookupIDByType(
-			client, counter, RTCounter, DixReadAccess)))
+	else if (Success != (rc = dixLookupResource((pointer *)&pCounter,
+				counter, RTCounter, client, DixReadAccess)))
 	{
 	    client->errorValue = counter;
-	    return SyncErrorBase + XSyncBadCounter;
+	    return (rc == BadValue) ? SyncErrorBase + XSyncBadCounter : rc;
 	}
 	if (pCounter != pTrigger->pCounter)
 	{ /* new counter for trigger */
@@ -526,8 +526,8 @@ SyncInitTrigger(client, pTrigger, counter, changes)
      */
     if (newcounter)
     {
-	if ((status = SyncAddTriggerToCounter(pTrigger)) != Success)
-	    return status;
+	if ((rc = SyncAddTriggerToCounter(pTrigger)) != Success)
+	    return rc;
     }
     else if (IsSystemCounter(pCounter))
     {
@@ -1465,7 +1465,7 @@ ProcSyncSetPriority(client)
 	priorityclient = client;
     else {
 	rc = dixLookupClient(&priorityclient, stuff->id, client,
-			     DixUnknownAccess);
+			     DixSetAttrAccess);
 	if (rc != Success)
 	    return rc;
     }
@@ -1502,7 +1502,7 @@ ProcSyncGetPriority(client)
 	priorityclient = client;
     else {
 	rc = dixLookupClient(&priorityclient, stuff->id, client,
-			     DixUnknownAccess);
+			     DixGetAttrAccess);
 	if (rc != Success)
 	    return rc;
     }

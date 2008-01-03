@@ -253,12 +253,13 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
  *
  * Should be used in DIX as:
  * xEvent *events = xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+ *
+ * This MUST be absolutely constant, from init until exit.
  */
 _X_EXPORT int
 GetMaximumEventsNum(void) {
     /* Three base events -- raw event and device, plus valuator events.
-     * Multiply by two if we're doing key repeats.
-     */
+     *  Multiply by two if we're doing non-XKB key repeats. */
     int ret = 2 + MAX_VALUATOR_EVENTS;
 
 #ifdef XKB
@@ -818,7 +819,7 @@ _X_EXPORT int
 GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
                    int first_valuator, int num_valuators, int *valuators)
 {
-    int num_events = 0;
+    int num_events = 1;
     deviceKeyButtonPointer *kbp = (deviceKeyButtonPointer *) events->event;
 
     /* Sanity checks. */
@@ -868,8 +869,10 @@ GetProximityEvents(EventList *events, DeviceIntPtr pDev, int type,
 _X_EXPORT void
 SwitchCorePointer(DeviceIntPtr pDev)
 {
-    if (inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr != pDev)
-        inputInfo.pointer->devPrivates[CoreDevicePrivatesIndex].ptr = pDev;
+    if (pDev != dixLookupPrivate(&inputInfo.pointer->devPrivates,
+				 CoreDevicePrivateKey))
+	dixSetPrivate(&inputInfo.pointer->devPrivates,
+		      CoreDevicePrivateKey, pDev);
 }
 
 

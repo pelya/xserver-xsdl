@@ -1492,9 +1492,6 @@ xf86PrintChipsets(const char *drvname, const char *drvmsg, SymTabPtr chips)
 }
 
 
-#define MAXDRIVERS 64	/* A >hack<, to be sure ... */
-
-
 _X_EXPORT int
 xf86MatchDevice(const char *drivername, GDevPtr **sectlist)
 {
@@ -2959,4 +2956,18 @@ xf86GetMotionEvents(DeviceIntPtr pDev, xTimecoord *buff, unsigned long start,
                     unsigned long stop, ScreenPtr pScreen)
 {
     return GetMotionHistory(pDev, buff, start, stop, pScreen);
+}
+
+_X_EXPORT void
+xf86getsecs(long * secs, long * usecs)
+{
+    struct timeval tv;
+
+    X_GETTIMEOFDAY(&tv);
+    if (secs)
+	*secs = tv.tv_sec;
+    if (usecs)
+	*usecs= tv.tv_usec;
+
+    return;
 }

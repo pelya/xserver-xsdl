@@ -9,6 +9,7 @@ libdix_la_SOURCES = 	\
 	atom.c		\
 	colormap.c	\
 	cursor.c	\
+	deprecated.c	\
 	devices.c	\
 	dispatch.c	\
 	dispatch.h	\
@@ -27,6 +28,7 @@ libdix_la_SOURCES = 	\
 	pixmap.c	\
 	privates.c	\
 	property.c	\
+	registry.c	\
 	resource.c	\
 	swaprep.c	\
 	swapreq.c	\
@@ -40,6 +42,10 @@ libxpstubs_la_SOURCES =	\
 INCLUDES = -I$(top_srcdir)/Xprint
 
 EXTRA_DIST = buildatoms BuiltInAtoms CHANGES Xserver.d Xserver-dtrace.h.in
+
+# Install list of protocol names
+miscconfigdir = $(SERVER_MISC_CONFIG_PATH)
+dist_miscconfig_DATA = protocol.txt
 
 if XSERVER_DTRACE
 # Generate dtrace header file for C sources to include

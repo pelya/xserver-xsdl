@@ -117,8 +117,8 @@ xf86InitHardwareCursor(ScreenPtr pScreen, xf86CursorInfoPtr infoPtr)
 void
 xf86SetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
 {
-    xf86CursorScreenPtr ScreenPriv =
-	pScreen->devPrivates[xf86CursorScreenIndex].ptr;
+    xf86CursorScreenPtr ScreenPriv = (xf86CursorScreenPtr)dixLookupPrivate(
+	&pScreen->devPrivates, xf86CursorScreenKey);
     xf86CursorInfoPtr infoPtr = ScreenPriv->CursorInfoPtr;
     unsigned char *bits;
 
@@ -127,7 +127,7 @@ xf86SetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
 	return;
     }
 
-    bits = pCurs->devPriv[pScreen->myNum];
+    bits = (unsigned char *)dixLookupPrivate(&pCurs->devPrivates, pScreen);
 
     x -= infoPtr->pScrn->frameX0 + ScreenPriv->HotX;
     y -= infoPtr->pScrn->frameY0 + ScreenPriv->HotY;
@@ -137,7 +137,7 @@ xf86SetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
 #endif
     if (!bits) {
 	bits = (*infoPtr->RealizeCursor)(infoPtr, pCurs);
-	pCurs->devPriv[pScreen->myNum] = bits;
+	dixSetPrivate(&pCurs->devPrivates, pScreen, bits);
     }
 
     if (!(infoPtr->Flags & HARDWARE_CURSOR_UPDATE_UNHIDDEN))
@@ -161,8 +161,8 @@ xf86SetCursor(ScreenPtr pScreen, CursorPtr pCurs, int x, int y)
 void
 xf86SetTransparentCursor(ScreenPtr pScreen)
 {
-    xf86CursorScreenPtr ScreenPriv =
-	pScreen->devPrivates[xf86CursorScreenIndex].ptr;
+    xf86CursorScreenPtr ScreenPriv = (xf86CursorScreenPtr)dixLookupPrivate(
+	&pScreen->devPrivates, xf86CursorScreenKey);
     xf86CursorInfoPtr infoPtr = ScreenPriv->CursorInfoPtr;
 
     if (!ScreenPriv->transparentData)
@@ -182,8 +182,8 @@ xf86SetTransparentCursor(ScreenPtr pScreen)
 void
 xf86MoveCursor(ScreenPtr pScreen, int x, int y)
 {
-    xf86CursorScreenPtr ScreenPriv =
-	pScreen->devPrivates[xf86CursorScreenIndex].ptr;
+    xf86CursorScreenPtr ScreenPriv = (xf86CursorScreenPtr)dixLookupPrivate(
+	&pScreen->devPrivates, xf86CursorScreenKey);
     xf86CursorInfoPtr infoPtr = ScreenPriv->CursorInfoPtr;
 
     x -= infoPtr->pScrn->frameX0 + ScreenPriv->HotX;
@@ -195,8 +195,8 @@ xf86MoveCursor(ScreenPtr pScreen, int x, int y)
 void
 xf86RecolorCursor(ScreenPtr pScreen, CursorPtr pCurs, Bool displayed)
 {
-    xf86CursorScreenPtr ScreenPriv =
-	pScreen->devPrivates[xf86CursorScreenIndex].ptr;
+    xf86CursorScreenPtr ScreenPriv = (xf86CursorScreenPtr)dixLookupPrivate(
+	&pScreen->devPrivates, xf86CursorScreenKey);
     xf86CursorInfoPtr infoPtr = ScreenPriv->CursorInfoPtr;
 
 #ifdef ARGB_CURSOR

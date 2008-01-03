@@ -100,8 +100,8 @@ afbFillPolygonSolid (pDrawable, pGC, shape, mode, count, ptsIn)
 	int depthDst;
 	register PixelType *pdst;
 
-	devPriv = (afbPrivGC *)(pGC->devPrivates[afbGCPrivateIndex].ptr);
-
+	devPriv = (afbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+						afbGCPrivateKey);
 	if (mode == CoordModePrevious || shape != Convex ||
 		REGION_NUM_RECTS(pGC->pCompositeClip) != 1) {
 		miFillPolygon (pDrawable, pGC, shape, mode, count, ptsIn);

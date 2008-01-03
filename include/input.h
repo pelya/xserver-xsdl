@@ -168,10 +168,6 @@ typedef struct {
     unsigned char id;
 } LedCtrl;
 
-extern int AllocateDevicePrivateIndex(void);
-extern Bool AllocateDevicePrivate(DeviceIntPtr device, int index);
-extern void ResetDevicePrivateIndex(void);
-
 extern KeybdCtrl	defaultKeyboardControl;
 extern PtrCtrl		defaultPointerControl;
 
@@ -215,12 +211,11 @@ extern void RegisterPointerDevice(
 extern void RegisterKeyboardDevice(
     DeviceIntPtr /*device*/);
 
-extern DevicePtr LookupKeyboardDevice(void);
-
-extern DevicePtr LookupPointerDevice(void);
-
-extern DevicePtr LookupDevice(
-    int /* id */);
+extern int dixLookupDevice(
+    DeviceIntPtr *         /* dev */,
+    int                    /* id */,
+    ClientPtr              /* client */,
+    Mask                   /* access_mode */);
 
 extern void QueryMinMaxKeyCodes(
     KeyCode* /*minCode*/,
@@ -460,9 +455,6 @@ extern int GetMotionHistory(
     ScreenPtr pScreen);
 
 extern void SwitchCorePointer(DeviceIntPtr pDev);
-
-extern DeviceIntPtr LookupDeviceIntRec(
-    CARD8 deviceid);
 
 /* Pairing input devices */
 extern int PairDevices(ClientPtr client, 

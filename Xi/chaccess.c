@@ -40,7 +40,6 @@ from the author.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "extnsionst.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
@@ -119,13 +118,12 @@ ProcXChangeWindowAccess(ClientPtr client)
         /* if one of the devices cannot be accessed, we don't do anything.*/
         for (i = 0; i < stuff->npermit; i++)
         {
-            perm_devices[i] = LookupDeviceIntRec(deviceids[i]);
-            if (!perm_devices[i])
+            err = dixLookupDevice(&perm_devices[i], deviceids[i], client,
+                                  DixWriteAccess);
+            if (err != Success)
             {
                 xfree(perm_devices);
-                SendErrorToClient(client, IReqCode, X_ChangeWindowAccess,
-                        deviceids[i], BadDevice);
-                return Success;
+                return err;
             }
         }
     }
@@ -146,16 +144,15 @@ ProcXChangeWindowAccess(ClientPtr client)
 
         for (i = 0; i < stuff->ndeny; i++)
         {
-            deny_devices[i] =
-                LookupDeviceIntRec(deviceids[i+stuff->npermit]);
-
-            if (!deny_devices[i])
+            err = dixLookupDevice(&deny_devices[i],
+                                  deviceids[i+stuff->npermit],
+                                  client,
+                                  DixWriteAccess);
+            if (err != Success)
             {
                 xfree(perm_devices);
                 xfree(deny_devices);
-                SendErrorToClient(client, IReqCode, X_ChangeWindowAccess,
-                        deviceids[i + stuff->npermit], BadDevice);
-                return Success;
+                return err;
             }
         }
     }

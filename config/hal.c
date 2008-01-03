@@ -134,10 +134,11 @@ get_prop_string_array(LibHalContext *hal_ctx, const char *udi, const char *prop)
 
         str = ret;
         for (i = 0; props[i]; i++) {
-            str = strcpy(str, props[i]);
+            strcpy(str, props[i]);
+            str += strlen(props[i]);
             *str++ = ',';
         }
-        *str = '\0';
+        *(str-1) = '\0';
 
         libhal_free_string_array(props);
     }
@@ -220,6 +221,8 @@ device_added(LibHalContext *hal_ctx, const char *udi)
         goto unwind;
     sprintf(config_info, "hal:%s", udi);
 
+    if (xkb_rules)
+        add_option(&options, "xkb_rules", xkb_rules);
     if (xkb_model)
         add_option(&options, "xkb_model", xkb_model);
     if (xkb_layout)
@@ -250,6 +253,8 @@ unwind:
         xfree(xkb_model);
     if (xkb_layout)
         xfree(xkb_layout);
+    if (xkb_variant)
+        xfree(xkb_variant);
     if (xkb_options)
         xfree(xkb_options);
     if (config_info)

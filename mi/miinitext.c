@@ -206,6 +206,9 @@ extern Bool noXkbExtension;
 #ifdef PANORAMIX
 extern Bool noPanoramiXExtension;
 #endif
+#ifdef INXQUARTZ
+extern Bool noPseudoramiXExtension;
+#endif
 #ifdef XINPUT
 extern Bool noXInputExtension;
 #endif
@@ -249,6 +252,9 @@ typedef void (*InitExtension)(INITARGS);
 #include "securitysrv.h"
 #include <X11/extensions/securstr.h>
 #endif
+#ifdef XSELINUX
+#include "xselinux.h"
+#endif
 #ifdef PANORAMIX
 #include <X11/extensions/panoramiXproto.h>
 #endif
@@ -271,6 +277,9 @@ extern void MultibufferExtensionInit(INITARGS);
 #endif
 #ifdef PANORAMIX
 extern void PanoramiXExtensionInit(INITARGS);
+#endif
+#ifdef INXQUARTZ
+extern void PseudoramiXExtensionInit(INITARGS);
 #endif
 #ifdef XINPUT
 extern void XInputExtensionInit(INITARGS);
@@ -319,8 +328,10 @@ extern void XagExtensionInit(INITARGS);
 extern void XaceExtensionInit(INITARGS);
 #endif
 #ifdef XCSECURITY
-extern void SecurityExtensionSetup(INITARGS);
 extern void SecurityExtensionInit(INITARGS);
+#endif
+#ifdef XSELINUX
+extern void XSELinuxExtensionInit(INITARGS);
 #endif
 #ifdef XPRINT
 extern void XpExtensionInit(INITARGS);
@@ -339,17 +350,10 @@ extern void XFree86DGAExtensionInit(INITARGS);
 #endif
 #ifdef GLXEXT
 typedef struct __GLXprovider __GLXprovider;
-#ifdef INXDARWINAPP
-extern __GLXprovider* __DarwinglXMesaProvider;
-extern void DarwinGlxPushProvider(__GLXprovider *impl);
-extern void DarwinGlxExtensionInit(INITARGS);
-extern void DarwinGlxWrapInitVisuals(miInitVisualsProcPtr *);
-#else
 extern __GLXprovider __glXMesaProvider;
 extern void GlxPushProvider(__GLXprovider *impl);
 extern void GlxExtensionInit(INITARGS);
-#endif // INXDARWINAPP
-#endif // GLXEXT
+#endif
 #ifdef XF86DRI
 extern void XFree86DRIExtensionInit(INITARGS);
 #endif
@@ -535,13 +539,13 @@ InitExtensions(argc, argv)
 {
     if (!noGEExtension) GEExtensionInit();
 
-#ifdef XCSECURITY
-    SecurityExtensionSetup();
-#endif
 #ifdef PANORAMIX
 # if !defined(PRINT_ONLY_SERVER) && !defined(NO_PANORAMIX)
   if (!noPanoramiXExtension) PanoramiXExtensionInit();
 # endif
+#endif
+#ifdef INXQUARTZ
+    if(!noPseudoramiXExtension) PseudoramiXExtensionInit();
 #endif
 #ifdef SHAPE
     if (!noShapeExtension) ShapeExtensionInit();
@@ -606,6 +610,9 @@ InitExtensions(argc, argv)
 #ifdef XCSECURITY
     if (!noSecurityExtension) SecurityExtensionInit();
 #endif
+#ifdef XSELINUX
+    XSELinuxExtensionInit();
+#endif
 #ifdef XPRINT
     XpExtensionInit(); /* server-specific extension, cannot be disabled */
 #endif
@@ -662,13 +669,8 @@ InitExtensions(argc, argv)
 #endif
 
 #ifdef GLXEXT
-#ifdef INXDARWINAPP
-    DarwinGlxPushProvider(__DarwinglXMesaProvider);
-    if (!noGlxExtension) DarwinGlxExtensionInit();
-#else
     GlxPushProvider(&__glXMesaProvider);
     if (!noGlxExtension) GlxExtensionInit();
-#endif
 #endif
 }
 
@@ -676,11 +678,6 @@ void
 InitVisualWrap()
 {
     miResetInitVisuals();
-#ifdef GLXEXT
-#ifdef __DARWIN__
-    DarwinGlxWrapInitVisuals(&miInitVisualsProc);
-#endif
-#endif
 }
 
 #else /* XFree86LOADER */
@@ -709,7 +706,10 @@ static ExtensionModule staticExtensions[] = {
     { XaceExtensionInit, XACE_EXTENSION_NAME, NULL, NULL, NULL },
 #endif
 #ifdef XCSECURITY
-    { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, SecurityExtensionSetup, NULL },
+    { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL, NULL },
+#endif
+#ifdef XSELINUX
+    { XSELinuxExtensionInit, XSELINUX_EXTENSION_NAME, NULL, NULL, NULL },
 #endif
 #ifdef XPRINT
     { XpExtensionInit, XP_PRINTNAME, NULL, NULL, NULL },

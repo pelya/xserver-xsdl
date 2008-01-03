@@ -68,11 +68,11 @@ SOFTWARE.
 #include "servermd.h"
 
 #ifdef PIXMAP_PER_WINDOW
-int frameWindowPrivateIndex;
-int frameGetWindowPrivateIndex(void) { return frameWindowPrivateIndex; }
+static DevPrivateKey frameWindowPrivateKey = &frameWindowPrivateKey;
+DevPrivateKey frameGetWindowPrivateKey(void) { return frameWindowPrivateKey; }
 #endif
-int mfbGCPrivateIndex;
-int mfbGetGCPrivateIndex(void) { return mfbGCPrivateIndex; }
+static DevPrivateKey mfbGCPrivateKey = &mfbGCPrivateKey;
+DevPrivateKey mfbGetGCPrivateKey(void) { return mfbGCPrivateKey; }
 static unsigned long mfbGeneration = 0;
 
 static VisualRec visual = {
@@ -88,23 +88,19 @@ static DepthRec depth = {
 };
 
 Bool
-mfbAllocatePrivates(ScreenPtr pScreen, int *pGCIndex)
+mfbAllocatePrivates(ScreenPtr pScreen, DevPrivateKey *pGCKey)
 {
     if (mfbGeneration != serverGeneration)
     {
-#ifdef PIXMAP_PER_WINDOW
-	frameWindowPrivateIndex = AllocateWindowPrivateIndex();
-#endif
-	mfbGCPrivateIndex = miAllocateGCPrivateIndex();
 	visual.vid = FakeClientID(0);
 	VID = visual.vid;
 	mfbGeneration = serverGeneration;
     }
-    if (pGCIndex)
-	*pGCIndex = mfbGCPrivateIndex;
+    if (pGCKey)
+	*pGCKey = mfbGCPrivateKey;
     pScreen->GetWindowPixmap = mfbGetWindowPixmap;
     pScreen->SetWindowPixmap = mfbSetWindowPixmap;
-    return AllocateGCPrivate(pScreen, mfbGCPrivateIndex, sizeof(mfbPrivGC));
+    return dixRequestPrivate(mfbGCPrivateKey, sizeof(mfbPrivGC));
 }
 
 
@@ -154,7 +150,8 @@ mfbGetWindowPixmap(pWin)
     WindowPtr pWin;
 {
 #ifdef PIXMAP_PER_WINDOW
-    return (PixmapPtr)(pWin->devPrivates[frameWindowPrivateIndex].ptr);
+    return (PixmapPtr)dixLookupPrivate(&pWin->devPrivates,
+				       frameWindowPrivateKey);
 #else
     ScreenPtr pScreen = pWin->drawable.pScreen;
 
@@ -168,7 +165,7 @@ mfbSetWindowPixmap(pWin, pPix)
     PixmapPtr pPix;
 {
 #ifdef PIXMAP_PER_WINDOW
-    pWin->devPrivates[frameWindowPrivateIndex].ptr = (pointer)pPix;
+    dixSetPrivate(&pWin->devPrivates, frameWindowPrivateKey, pPix);
 #else
     (* pWin->drawable.pScreen->SetScreenPixmap)(pPix);
 #endif

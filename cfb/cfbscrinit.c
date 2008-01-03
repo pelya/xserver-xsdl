@@ -59,7 +59,7 @@ cfbCloseScreen (index, pScreen)
     xfree (depths);
     xfree (pScreen->visuals);
 #ifdef CFB_NEED_SCREEN_PRIVATE
-    xfree (pScreen->devPrivates[cfbScreenPrivateIndex].ptr);
+    xfree (dixLookupPrivate(&pScreen->devPrivates, cfbScreenPrivateKey));
 #else
     xfree (pScreen->devPrivate);
 #endif
@@ -130,9 +130,11 @@ cfbCreateScreenResources(pScreen)
     Bool retval;
 
     pointer oldDevPrivate = pScreen->devPrivate;
-    pScreen->devPrivate = pScreen->devPrivates[cfbScreenPrivateIndex].ptr;
+    pScreen->devPrivate = dixLookupPrivate(&pScreen->devPrivates,
+					   cfbScreenPrivateKey);
     retval = miCreateScreenResources(pScreen);
-    pScreen->devPrivates[cfbScreenPrivateIndex].ptr = pScreen->devPrivate;
+    dixSetPrivate(&pScreen->devPrivates, cfbScreenPrivateKey,
+		  pScreen->devPrivate);
     pScreen->devPrivate = oldDevPrivate;
     return retval;
 }
@@ -171,7 +173,8 @@ cfbFinishScreenInit(pScreen, pbits, xsize, ysize, dpix, dpiy, width)
     pScreen->CloseScreen = cfbCloseScreen;
 #ifdef CFB_NEED_SCREEN_PRIVATE
     pScreen->CreateScreenResources = cfbCreateScreenResources;
-    pScreen->devPrivates[cfbScreenPrivateIndex].ptr = pScreen->devPrivate;
+    dixSetPrivate(&pScreen->devPrivates, cfbScreenPrivateKey,
+		  pScreen->devPrivate);
     pScreen->devPrivate = oldDevPrivate;
 #endif
     pScreen->GetScreenPixmap = cfbGetScreenPixmap;
@@ -198,7 +201,8 @@ cfbGetScreenPixmap(pScreen)
     ScreenPtr pScreen;
 {
 #ifdef CFB_NEED_SCREEN_PRIVATE
-    return (PixmapPtr)pScreen->devPrivates[cfbScreenPrivateIndex].ptr;
+    return (PixmapPtr)dixLookupPrivate(&pScreen->devPrivates,
+				       cfbScreenPrivateKey);
 #else
     return (PixmapPtr)pScreen->devPrivate;
 #endif
@@ -210,8 +214,8 @@ cfbSetScreenPixmap(pPix)
 {
 #ifdef CFB_NEED_SCREEN_PRIVATE
     if (pPix)
-	pPix->drawable.pScreen->devPrivates[cfbScreenPrivateIndex].ptr =
-	    (pointer)pPix;
+	dixSetPrivate(&pPix->drawable.pScreen->devPrivates,
+		      cfbScreenPrivateKey, pPix);
 #else
     if (pPix)
 	pPix->drawable.pScreen->devPrivate = (pointer)pPix;

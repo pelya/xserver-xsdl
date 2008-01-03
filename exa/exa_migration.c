@@ -153,22 +153,39 @@ exaCopyDirty(ExaMigrationPtr migrate, RegionPtr pValidDst, RegionPtr pValidSrc,
     REGION_SUBTRACT(pScreen, &CopyReg, pValidSrc, pValidDst);
 
     if (migrate->as_dst) {
-	RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
+	ExaScreenPriv (pPixmap->drawable.pScreen);
 
-	if (REGION_NIL(pending_damage)) {
-	    static Bool firsttime = TRUE;
+	/* XXX: The pending damage region will be marked as damaged after the
+	 * operation, so it should serve as an upper bound for the region that
+	 * needs to be synchronized for the operation. Unfortunately, this
+	 * causes corruption in some cases, e.g. when starting compiz. See
+	 * https://bugs.freedesktop.org/show_bug.cgi?id=12916 .
+	 */
+	if (pExaScr->optimize_migration) {
+	    RegionPtr pending_damage = DamagePendingRegion(pExaPixmap->pDamage);
 
-	    if (firsttime) {
-		ErrorF("%s: Pending damage region empty!\n", __func__);
-		firsttime = FALSE;
+	    if (REGION_NIL(pending_damage)) {
+		static Bool firsttime = TRUE;
+
+		if (firsttime) {
+		    ErrorF("%s: Pending damage region empty!\n", __func__);
+		    firsttime = FALSE;
+		}
 	    }
+
+	    REGION_INTERSECT(pScreen, &CopyReg, &CopyReg, pending_damage);
 	}
 
-	REGION_INTERSECT(pScreen, &CopyReg, &CopyReg, pending_damage);
-
+	/* The caller may provide a region to be subtracted from the calculated
+	 * dirty region. This is to avoid migration of bits that don't
+	 * contribute to the result of the operation.
+	 */
 	if (migrate->pReg)
 	    REGION_SUBTRACT(pScreen, &CopyReg, &CopyReg, migrate->pReg);
     } else {
+	/* The caller may restrict the region to be migrated for source pixmaps
+	 * to what's relevant for the operation.
+	 */
 	if (migrate->pReg)
 	    REGION_INTERSECT(pScreen, &CopyReg, &CopyReg, migrate->pReg);
     }

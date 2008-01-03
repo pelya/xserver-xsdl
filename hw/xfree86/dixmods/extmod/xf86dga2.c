@@ -62,8 +62,7 @@ unsigned char DGAReqCode = 0;
 int DGAErrorBase;
 int DGAEventBase;
 
-static int DGAGeneration = 0;
-static int DGAClientPrivateIndex;
+static DevPrivateKey DGAClientPrivateKey = &DGAClientPrivateKey;
 static int DGACallbackRefCount = 0;
 
 /* This holds the client's version information */
@@ -72,7 +71,11 @@ typedef struct {
     int		minor;
 } DGAPrivRec, *DGAPrivPtr;
 
-#define DGAPRIV(c) ((c)->devPrivates[DGAClientPrivateIndex].ptr)
+#define DGA_GETPRIV(c) ((DGAPrivPtr) \
+    dixLookupPrivate(&(c)->devPrivates, DGAClientPrivateKey))
+#define DGA_SETPRIV(c,p) \
+    dixSetPrivate(&(c)->devPrivates, DGAClientPrivateKey, p)
+
 
 void
 XFree86DGAExtensionInit(INITARGS)
@@ -96,23 +99,6 @@ XFree86DGAExtensionInit(INITARGS)
 	DGAEventBase = extEntry->eventBase;
 	for (i = KeyPress; i <= MotionNotify; i++)
 	    SetCriticalEvent (DGAEventBase + i);
-    }
-
-    /*
-     * Allocate a client private index to hold the client's version
-     * information.
-     */
-    if (DGAGeneration != serverGeneration) {
-	DGAClientPrivateIndex = AllocateClientPrivateIndex();
-	/*
-	 * Allocate 0 length, and use the private to hold a pointer to
-	 * our DGAPrivRec.
-	 */
-	if (!AllocateClientPrivate(DGAClientPrivateIndex, 0)) {
-	    ErrorF("XFree86DGAExtensionInit: AllocateClientPrivate failed\n");
-	    return;
-	}
-	DGAGeneration = serverGeneration;
     }
 }
 
@@ -590,12 +576,12 @@ ProcXDGASetClientVersion(ClientPtr client)
     DGAPrivPtr pPriv;
 
     REQUEST_SIZE_MATCH(xXDGASetClientVersionReq);
-    if ((pPriv = DGAPRIV(client)) == NULL) {
+    if ((pPriv = DGA_GETPRIV(client)) == NULL) {
 	pPriv = xalloc(sizeof(DGAPrivRec));
 	/* XXX Need to look into freeing this */
 	if (!pPriv)
 	    return BadAlloc;
-	DGAPRIV(client) = pPriv;
+	DGA_SETPRIV(client, pPriv);
     }
     pPriv->major = stuff->major;
     pPriv->minor = stuff->minor;

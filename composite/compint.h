@@ -64,6 +64,7 @@
 #include "globals.h"
 #include "picturestr.h"
 #include "extnsionst.h"
+#include "privates.h"
 #include "mi.h"
 #include "damage.h"
 #include "damageextint.h"
@@ -158,13 +159,16 @@ typedef struct _CompScreen {
     
 } CompScreenRec, *CompScreenPtr;
 
-extern int  CompScreenPrivateIndex;
-extern int  CompWindowPrivateIndex;
-extern int  CompSubwindowsPrivateIndex;
+extern DevPrivateKey CompScreenPrivateKey;
+extern DevPrivateKey CompWindowPrivateKey;
+extern DevPrivateKey CompSubwindowsPrivateKey;
 
-#define GetCompScreen(s) ((CompScreenPtr) ((s)->devPrivates[CompScreenPrivateIndex].ptr))
-#define GetCompWindow(w) ((CompWindowPtr) ((w)->devPrivates[CompWindowPrivateIndex].ptr))
-#define GetCompSubwindows(w) ((CompSubwindowsPtr) ((w)->devPrivates[CompSubwindowsPrivateIndex].ptr))
+#define GetCompScreen(s) ((CompScreenPtr) \
+    dixLookupPrivate(&(s)->devPrivates, CompScreenPrivateKey))
+#define GetCompWindow(w) ((CompWindowPtr) \
+    dixLookupPrivate(&(w)->devPrivates, CompWindowPrivateKey))
+#define GetCompSubwindows(w) ((CompSubwindowsPtr) \
+    dixLookupPrivate(&(w)->devPrivates, CompSubwindowsPrivateKey))
 
 extern RESTYPE		CompositeClientWindowType;
 extern RESTYPE		CompositeClientSubwindowsType;

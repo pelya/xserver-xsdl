@@ -61,7 +61,6 @@ SOFTWARE.
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
 #include "windowstr.h"	/* window structure  */
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "opendev.h"
@@ -103,13 +102,15 @@ ProcXOpenDevice(ClientPtr client)
     REQUEST(xOpenDeviceReq);
     REQUEST_SIZE_MATCH(xOpenDeviceReq);
 
-    if ((dev = LookupDeviceIntRec(stuff->deviceid)) == NULL) {	/* not open */
+    status = dixLookupDevice(&dev, stuff->deviceid, client, DixReadAccess);
+    if (status == BadDevice) {  /* not open */
 	for (dev = inputInfo.off_devices; dev; dev = dev->next)
 	    if (dev->id == stuff->deviceid)
 		break;
 	if (dev == NULL)
 	    return BadDevice;
-    }
+    } else if (status != Success)
+	return status;
 
     OpenInputDevice(dev, client, &status);
     if (status != Success)

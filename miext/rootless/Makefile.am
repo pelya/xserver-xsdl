@@ -1,22 +1,19 @@
-AM_CFLAGS =  \
-	    $(DIX_CFLAGS) \
-	    $(XORG_CFLAGS)
-
-INCLUDES = -I$(top_srcdir)/hw/xfree86/os-support
+AM_CFLAGS = $(DIX_CFLAGS) $(XSERVER_CFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir)/hw/xfree86/os-support
 
 SUBDIRS = safeAlpha accel
 
 noinst_LTLIBRARIES = librootless.la
 librootless_la_SOURCES = \
 	rootlessCommon.c \
-	rootlessCommon.h \
-	rootlessConfig.h \
 	rootlessGC.c \
-	rootless.h \
 	rootlessScreen.c \
 	rootlessValTree.c \
-	rootlessWindow.c \
-	rootlessWindow.h 
+	rootlessWindow.c
 
 EXTRA_DIST = \
-	README.txt
+	README.txt \
+	rootless.h \
+	rootlessCommon.h \
+	rootlessConfig.h \
+	rootlessWindow.h 

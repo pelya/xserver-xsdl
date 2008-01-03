@@ -47,8 +47,7 @@
 
 
 #ifdef DPMSExtension
-static int DPMSGeneration = 0;
-static int DPMSIndex = -1;
+static DevPrivateKey DPMSKey = NULL;
 static Bool DPMSClose(int i, ScreenPtr pScreen);
 static int DPMSCount = 0;
 #endif
@@ -62,18 +61,15 @@ xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
     DPMSPtr pDPMS;
     pointer DPMSOpt;
 
-    if (serverGeneration != DPMSGeneration) {
-	if ((DPMSIndex = AllocateScreenPrivateIndex()) < 0)
-	    return FALSE;
-	DPMSGeneration = serverGeneration;
-    }
+    DPMSKey = &DPMSKey;
 
     if (DPMSDisabledSwitch)
 	DPMSEnabled = FALSE;
-    if (!(pScreen->devPrivates[DPMSIndex].ptr = xcalloc(sizeof(DPMSRec), 1)))
+    if (!dixSetPrivate(&pScreen->devPrivates, DPMSKey,
+		       xcalloc(sizeof(DPMSRec), 1)))
 	return FALSE;
 
-    pDPMS = (DPMSPtr)pScreen->devPrivates[DPMSIndex].ptr;
+    pDPMS = (DPMSPtr)dixLookupPrivate(&pScreen->devPrivates, DPMSKey);
     pScrn->DPMSSet = set;
     pDPMS->Flags = flags;
     DPMSOpt = xf86FindOption(pScrn->options, "dpms");
@@ -110,10 +106,10 @@ DPMSClose(int i, ScreenPtr pScreen)
     DPMSPtr pDPMS;
 
     /* This shouldn't happen */
-    if (DPMSIndex < 0)
+    if (DPMSKey == NULL)
 	return FALSE;
 
-    pDPMS = (DPMSPtr)pScreen->devPrivates[DPMSIndex].ptr;
+    pDPMS = (DPMSPtr)dixLookupPrivate(&pScreen->devPrivates, DPMSKey);
 
     /* This shouldn't happen */
     if (!pDPMS)
@@ -132,9 +128,9 @@ DPMSClose(int i, ScreenPtr pScreen)
     }
     
     xfree((pointer)pDPMS);
-    pScreen->devPrivates[DPMSIndex].ptr = NULL;
+    dixSetPrivate(&pScreen->devPrivates, DPMSKey, NULL);
     if (--DPMSCount == 0)
-	DPMSIndex = -1;
+	DPMSKey = NULL;
     return pScreen->CloseScreen(i, pScreen);
 }
 
@@ -144,30 +140,35 @@ DPMSClose(int i, ScreenPtr pScreen)
  *	Device dependent DPMS mode setting hook.  This is called whenever
  *	the DPMS mode is to be changed.
  */
-_X_EXPORT void
-DPMSSet(int level)
+_X_EXPORT int
+DPMSSet(ClientPtr client, int level)
 {
-    int i;
+    int rc, i;
     DPMSPtr pDPMS;
     ScrnInfoPtr pScrn;
 
     DPMSPowerLevel = level;
 
-    if (DPMSIndex < 0)
-	return;
+    if (DPMSKey == NULL)
+	return Success;
 
-    if (level != DPMSModeOn)
-	SaveScreens(SCREEN_SAVER_FORCER, ScreenSaverActive);
+    if (level != DPMSModeOn) {
+	rc = dixSaveScreens(client, SCREEN_SAVER_FORCER, ScreenSaverActive);
+	if (rc != Success)
+	    return rc;
+    }
 
     /* For each screen, set the DPMS level */
     for (i = 0; i < xf86NumScreens; i++) {
     	pScrn = xf86Screens[i];
-	pDPMS = (DPMSPtr)screenInfo.screens[i]->devPrivates[DPMSIndex].ptr;
+	pDPMS = (DPMSPtr)dixLookupPrivate(&screenInfo.screens[i]->devPrivates,
+					  DPMSKey);
 	if (pDPMS && pScrn->DPMSSet && pDPMS->Enabled && pScrn->vtSema) { 
 	    xf86EnableAccess(pScrn);
 	    pScrn->DPMSSet(pScrn, level, 0);
 	}
     }
+    return Success;
 }
 
 
@@ -182,14 +183,15 @@ DPMSSupported(void)
     DPMSPtr pDPMS;
     ScrnInfoPtr pScrn;
 
-    if (DPMSIndex < 0) {
+    if (DPMSKey == NULL) {
 	return FALSE;
     }
 
     /* For each screen, check if DPMS is supported */
     for (i = 0; i < xf86NumScreens; i++) {
     	pScrn = xf86Screens[i];
-	pDPMS = (DPMSPtr)screenInfo.screens[i]->devPrivates[DPMSIndex].ptr;
+	pDPMS = (DPMSPtr)dixLookupPrivate(&screenInfo.screens[i]->devPrivates,
+					  DPMSKey);
 	if (pDPMS && pScrn->DPMSSet)
 	    return TRUE;
     }

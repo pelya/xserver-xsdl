@@ -123,9 +123,9 @@ PsCreateWindow(WindowPtr pWin)
     Bool status = Success;
     ScreenPtr pScreen = pWin->drawable.pScreen;
     PsScreenPrivPtr pScreenPriv = (PsScreenPrivPtr) 
-		     pScreen->devPrivates[PsScreenPrivateIndex].ptr;
+	dixLookupPrivate(&pScreen->devPrivates, PsScreenPrivateKey);
     PsWindowPrivPtr pWinPriv = (PsWindowPrivPtr)
-			 pWin->devPrivates[PsWindowPrivateIndex].ptr;
+	dixLookupPrivate(&pWin->devPrivates, PsWindowPrivateKey);
 
     /*
      * Initialize this window's private struct.
@@ -165,7 +165,8 @@ PsCreateWindow(WindowPtr pWin)
     return status;
 #endif
 
-  pPriv = (PsWindowPrivPtr)pWin->devPrivates[PsWindowPrivateIndex].ptr;
+  pPriv = (PsWindowPrivPtr)
+      dixLookupPrivate(&pWin->devPrivates, PsWindowPrivateKey);
   pPriv->validContext = 0;
 
   return TRUE;

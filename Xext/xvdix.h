@@ -55,7 +55,6 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include <X11/extensions/Xvproto.h>
 
-extern int  XvScreenIndex;
 extern unsigned long XvExtensionGeneration;
 extern unsigned long XvScreenGeneration;
 extern unsigned long XvResourceGeneration;
@@ -224,10 +223,8 @@ typedef struct {
   DevUnion devPriv;
 } XvScreenRec, *XvScreenPtr;
 
-#define SCREEN_PROLOGUE(pScreen, field)\
-  ((pScreen)->field = \
-   ((XvScreenPtr) \
-    (pScreen)->devPrivates[XvScreenIndex].ptr)->field)
+#define SCREEN_PROLOGUE(pScreen, field) ((pScreen)->field = ((XvScreenPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, XvScreenKey))->field)
 
 #define SCREEN_EPILOGUE(pScreen, field, wrapper)\
     ((pScreen)->field = wrapper)
@@ -242,7 +239,7 @@ extern int SProcXvDispatch(ClientPtr);
 
 extern void XvExtensionInit(void);
 extern int XvScreenInit(ScreenPtr);
-extern int XvGetScreenIndex(void);
+extern DevPrivateKey XvGetScreenKey(void);
 extern unsigned long XvGetRTPort(void);
 extern int XvdiSendPortNotify(XvPortPtr, Atom, INT32);
 extern int XvdiVideoStopped(XvPortPtr, int);

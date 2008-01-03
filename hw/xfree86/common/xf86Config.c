@@ -93,7 +93,6 @@ extern DeviceAssocRec mouse_assoc;
 			"/etc/X11/%R," "%P/etc/X11/%R," \
 			"%E," "%F," \
 			"/etc/X11/%F," "%P/etc/X11/%F," \
-			"%D/%X," \
 			"/etc/X11/%X-%M," "/etc/X11/%X," "/etc/%X," \
 			"%P/etc/X11/%X.%H," "%P/etc/X11/%X-%M," \
 			"%P/etc/X11/%X," \
@@ -538,14 +537,8 @@ fixup_video_driver_list(char **drivers)
     }
 }
 
-
-/*
- * Generate a compiled-in list of driver names.  This is used to produce a
- * consistent probe order.  For the loader server, we also look for vendor-
- * provided modules, pre-pending them to our own list.
- */
 static char **
-GenerateDriverlist(char * dirname, char * drivernames)
+GenerateDriverlist(char * dirname)
 {
     char **ret;
     const char *subdirs[] = { dirname, NULL };
@@ -559,20 +552,13 @@ GenerateDriverlist(char * dirname, char * drivernames)
     return ret;
 }
 
-
 char **
 xf86DriverlistFromCompile(void)
 {
     static char **driverlist = NULL;
-    static Bool generated = FALSE;
 
-    /* This string is modified in-place */
-    static char drivernames[] = DRIVERS;
-
-    if (!generated) {
-        generated = TRUE;
-        driverlist = GenerateDriverlist("drivers", drivernames);
-    }
+    if (!driverlist)
+        driverlist = GenerateDriverlist("drivers");
 
     return driverlist;
 }
@@ -1972,6 +1958,18 @@ configScreen(confScreenPtr screenp, XF86ConfScreenPtr conf_screen, int scrnum,
     }
     screenp->displays   = xnfalloc((count) * sizeof(DispRec));
     screenp->numdisplays = count;
+    
+    /* Fill in the default Virtual size, if any */
+    if (conf_screen->scrn_virtualX && conf_screen->scrn_virtualY) {
+	for (count = 0, dispptr = conf_screen->scrn_display_lst;
+	     dispptr;
+	     dispptr = (XF86ConfDisplayPtr)dispptr->list.next, count++) {
+	    screenp->displays[count].virtualX = conf_screen->scrn_virtualX;
+	    screenp->displays[count].virtualY = conf_screen->scrn_virtualY;
+	}
+    }
+
+    /* Now do the per-Display Virtual sizes */
     count = 0;
     dispptr = conf_screen->scrn_display_lst;
     while(dispptr) {

@@ -47,7 +47,6 @@ from the author.
 #include <X11/extensions/XIproto.h>
 #include <X11/extensions/Xge.h>
 #include "extnsionst.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
@@ -127,10 +126,8 @@ ProcXExtendedGrabDevice(ClientPtr client)
         goto cleanup;
     }
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
-        errval = stuff->deviceid;
-        err = BadDevice;
+    err = dixLookupDevice(&dev, stuff->deviceid, client, DixGrabAccess);
+    if (err != Success) {
 	goto cleanup;
     }
 
@@ -224,9 +221,7 @@ cleanup:
     }
     else
     {
-        SendErrorToClient(client, IReqCode,
-                          X_ExtendedGrabDevice,
-                          errval, err);
+        return err;
     }
     return Success;
 }

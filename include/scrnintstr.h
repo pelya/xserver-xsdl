@@ -56,6 +56,7 @@ SOFTWARE.
 #include "validate.h"
 #include <X11/Xproto.h>
 #include "dix.h"
+#include "privates.h"
 
 typedef struct _PixmapFormat {
     unsigned char	depth;
@@ -203,7 +204,7 @@ typedef    void (* ClipNotifyProcPtr)(
 /* pixmap will be the backing pixmap for a redirected window */
 #define CREATE_PIXMAP_USAGE_BACKING_PIXMAP              2
 /* pixmap will contain a glyph */
-#define CREATE_PIMXAP_USAGE_GLYPH_PICTURE               3
+#define CREATE_PIXMAP_USAGE_GLYPH_PICTURE               3
 
 typedef    PixmapPtr (* CreatePixmapProcPtr)(
 	ScreenPtr /*pScreen*/,
@@ -477,12 +478,6 @@ typedef struct _Screen {
     pointer		devPrivate;
     short       	numVisuals;
     VisualPtr		visuals;
-    int			WindowPrivateLen;
-    unsigned		*WindowPrivateSizes;
-    unsigned		totalWindowSize;
-    int			GCPrivateLen;
-    unsigned		*GCPrivateSizes;
-    unsigned		totalGCSize;
 
     /* Random screen procedures */
 
@@ -574,7 +569,7 @@ typedef struct _Screen {
     pointer wakeupData;
 
     /* anybody can get a piece of this array */
-    DevUnion	*devPrivates;
+    PrivateRec	*devPrivates;
 
     CreateScreenResourcesProcPtr CreateScreenResources;
     ModifyPixmapHeaderProcPtr	ModifyPixmapHeader;
@@ -586,8 +581,6 @@ typedef struct _Screen {
 
     PixmapPtr pScratchPixmap;		/* scratch pixmap "pool" */
 
-    int			PixmapPrivateLen;
-    unsigned int		*PixmapPrivateSizes;
     unsigned int		totalPixmapSize;
 
     MarkWindowProcPtr		MarkWindow;

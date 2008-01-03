@@ -82,11 +82,11 @@ copyright holders.
 #define InitializePclDriver		CATNAME(Initialize, PclDriver)
 #define PclCloseScreen			PCLNAME(CloseScreen)
 #define PclGetContextFromWindow		PCLNAME(GetContextFromWindow)
-#define PclScreenPrivateIndex	PCLNAME(ScreenPrivateIndex)
-#define PclWindowPrivateIndex	PCLNAME(WindowPrivateIndex)
-#define PclContextPrivateIndex	PCLNAME(ContextPrivateIndex)
-#define PclPixmapPrivateIndex	PCLNAME(PixmapPrivateIndex)
-#define PclGCPrivateIndex	PCLNAME(GCPrivateIndex)
+#define PclScreenPrivateKey	PCLNAME(ScreenPrivateKey)
+#define PclWindowPrivateKey	PCLNAME(WindowPrivateKey)
+#define PclContextPrivateKey	PCLNAME(ContextPrivateKey)
+#define PclPixmapPrivateKey	PCLNAME(PixmapPrivateKey)
+#define PclGCPrivateKey		PCLNAME(GCPrivateKey)
 
 /* PclPrint.c */
 #define PclStartJob			PCLNAME(StartJob)

@@ -38,7 +38,7 @@ fbCloseScreen (int index, ScreenPtr pScreen)
     xfree (pScreen->visuals);
     xfree (pScreen->devPrivate);
 #ifdef FB_SCREEN_PRIVATE
-    xfree (pScreen->devPrivates[fbScreenPrivateIndex].ptr);
+    xfree (dixLookupPrivate(&pScreen->devPrivates, fbGetScreenPrivateKey()));
 #endif
     return TRUE;
 }
@@ -93,7 +93,7 @@ _fbSetWindowPixmap (WindowPtr pWindow, PixmapPtr pPixmap)
 #ifdef FB_NO_WINDOW_PIXMAPS
     FatalError ("Attempted to set window pixmap without fb support\n");
 #else
-    pWindow->devPrivates[fbWinPrivateIndex].ptr = (pointer) pPixmap;
+    dixSetPrivate(&pWindow->devPrivates, fbGetWinPrivateKey(), pPixmap);
 #endif
 }
 
@@ -107,7 +107,7 @@ fbSetupScreen(ScreenPtr	pScreen,
 	      int	width,		/* pixel width of frame buffer */
 	      int	bpp)		/* bits per pixel for screen */
 {
-    if (!fbAllocatePrivates(pScreen, (int *) 0))
+    if (!fbAllocatePrivates(pScreen, NULL))
 	return FALSE;
     pScreen->defColormap = FakeClientID(0);
     /* let CreateDefColormap do whatever it wants for pixels */ 

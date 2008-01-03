@@ -22,6 +22,7 @@
 
 #include "randrstr.h"
 #include "swaprep.h"
+#include "registry.h"
 
 RESTYPE	RRCrtcType;
 
@@ -72,7 +73,7 @@ RRCrtcCreate (ScreenPtr pScreen, void *devPrivate)
 	return FALSE;
     pScrPriv->crtcs = crtcs;
     
-    crtc = xalloc (sizeof (RRCrtcRec));
+    crtc = xcalloc (1, sizeof (RRCrtcRec));
     if (!crtc)
 	return NULL;
     crtc->id = FakeClientID (0);
@@ -150,7 +151,8 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 		break;
 	if (i == numOutputs)
 	{
-	    crtc->outputs[j]->crtc = NULL;
+	    if (crtc->outputs[j]->crtc == crtc)
+		crtc->outputs[j]->crtc = NULL;
 	    RROutputChanged (crtc->outputs[j], FALSE);
 	    RRCrtcChanged (crtc, FALSE);
 	}
@@ -500,9 +502,7 @@ RRCrtcInit (void)
     RRCrtcType = CreateNewResourceType (RRCrtcDestroyResource);
     if (!RRCrtcType)
 	return FALSE;
-#ifdef XResExtension
-	RegisterResourceName (RRCrtcType, "CRTC");
-#endif
+    RegisterResourceName (RRCrtcType, "CRTC");
     return TRUE;
 }
 

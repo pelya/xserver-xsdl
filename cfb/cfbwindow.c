@@ -64,8 +64,8 @@ cfbCreateWindow(WindowPtr pWin)
 {
 #ifdef PIXMAP_PER_WINDOW
     /* Setup pointer to Screen pixmap */
-    pWin->devPrivates[frameWindowPrivateIndex].ptr =
-	(pointer) cfbGetScreenPixmap(pWin->drawable.pScreen);
+    dixSetPrivate(&pWin->devPrivates, frameWindowPrivateKey,
+		  cfbGetScreenPixmap(pWin->drawable.pScreen));
 #endif
 
     return TRUE;

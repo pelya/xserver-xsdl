@@ -224,10 +224,11 @@ typedef struct _xglGlyph {
     xglAreaPtr pArea;
 } xglGlyphRec, *xglGlyphPtr;
 
-extern int xglGlyphPrivateIndex;
+extern DevPrivateKey xglGlyphPrivateKey;
 
 #define XGL_GET_GLYPH_PRIV(pScreen, pGlyph) ((xglGlyphPtr)		     \
-    (GetGlyphPrivatesForScreen (pGlyph, pScreen))[xglGlyphPrivateIndex].ptr)
+    dixLookupPrivate(GetGlyphPrivatesForScreen (pGlyph, pScreen),	     \
+    					        xglGlyphPrivateKey))
 
 #define XGL_GLYPH_PRIV(pScreen, pGlyph)				  \
     xglGlyphPtr pGlyphPriv = XGL_GET_GLYPH_PRIV (pScreen, pGlyph)
@@ -293,13 +294,13 @@ typedef struct _xglScreen {
 #endif
 } xglScreenRec, *xglScreenPtr;
 
-extern int xglScreenPrivateIndex;
+extern DevPrivateKey xglScreenPrivateKey;
 
-#define XGL_GET_SCREEN_PRIV(pScreen)				       \
-    ((xglScreenPtr) (pScreen)->devPrivates[xglScreenPrivateIndex].ptr)
+#define XGL_GET_SCREEN_PRIV(pScreen) ((xglScreenPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, xglScreenPrivateKey))
 
-#define XGL_SET_SCREEN_PRIV(pScreen, v)				      \
-    ((pScreen)->devPrivates[xglScreenPrivateIndex].ptr = (pointer) v)
+#define XGL_SET_SCREEN_PRIV(pScreen, v) \
+    dixSetPrivate(&(pScreen)->devPrivates, xglScreenPrivateKey, v)
 
 #define XGL_SCREEN_PRIV(pScreen)			     \
     xglScreenPtr pScreenPriv = XGL_GET_SCREEN_PRIV (pScreen)
@@ -334,10 +335,10 @@ typedef struct _xglGC {
     GCOpsPtr	      ops;
 } xglGCRec, *xglGCPtr;
 
-extern int xglGCPrivateIndex;
+extern DevPrivateKey xglGCPrivateKey;
 
-#define XGL_GET_GC_PRIV(pGC)				   \
-    ((xglGCPtr) (pGC)->devPrivates[xglGCPrivateIndex].ptr)
+#define XGL_GET_GC_PRIV(pGC) ((xglGCPtr) \
+    dixLookupPrivate(&(pGC)->devPrivates, xglGCPrivateKey))
 
 #define XGL_GC_PRIV(pGC)		     \
     xglGCPtr pGCPriv = XGL_GET_GC_PRIV (pGC)
@@ -394,10 +395,10 @@ typedef struct _xglPixmap {
 
 } xglPixmapRec, *xglPixmapPtr;
 
-extern int xglPixmapPrivateIndex;
+extern DevPrivateKey xglPixmapPrivateKey;
 
-#define XGL_GET_PIXMAP_PRIV(pPixmap)				       \
-    ((xglPixmapPtr) (pPixmap)->devPrivates[xglPixmapPrivateIndex].ptr)
+#define XGL_GET_PIXMAP_PRIV(pPixmap) ((xglPixmapPtr) \
+    dixLookupPrivate(&(pPixmap)->devPrivates, xglPixmapPrivateKey))
 
 #define XGL_PIXMAP_PRIV(pPixmap)			     \
     xglPixmapPtr pPixmapPriv = XGL_GET_PIXMAP_PRIV (pPixmap)
@@ -409,10 +410,10 @@ typedef struct _xglWin {
     PixmapPtr    pPixmap;
 } xglWinRec, *xglWinPtr;
 
-extern int xglWinPrivateIndex;
+extern DevPrivateKey xglWinPrivateKey;
 
-#define XGL_GET_WINDOW_PRIV(pWin)			      \
-    ((xglWinPtr) (pWin)->devPrivates[xglWinPrivateIndex].ptr)
+#define XGL_GET_WINDOW_PRIV(pWin) ((xglWinPtr) \
+    dixLookupPrivate(&(pWin)->devPrivates, xglWinPrivateKey))
 
 #define XGL_WINDOW_PRIV(pWin)			    \
     xglWinPtr pWinPriv = XGL_GET_WINDOW_PRIV (pWin)

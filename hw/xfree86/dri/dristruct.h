@@ -37,15 +37,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "xf86drm.h"
 
 
-#define DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin) \
-    ((DRIWindowPrivIndex < 0) ? \
-     NULL : \
-     ((DRIDrawablePrivPtr)((pWin)->devPrivates[DRIWindowPrivIndex].ptr)))
-
-#define DRI_DRAWABLE_PRIV_FROM_PIXMAP(pPix) \
-    ((DRIPixmapPrivIndex < 0) ? \
-     NULL : \
-     ((DRIDrawablePrivPtr)((pPix)->devPrivates[DRIWindowPrivIndex].ptr)))
+#define DRI_DRAWABLE_PRIV_FROM_WINDOW(pWin) ((DRIDrawablePrivPtr) \
+    dixLookupPrivate(&(pWin)->devPrivates, DRIWindowPrivKey))
+#define DRI_DRAWABLE_PRIV_FROM_PIXMAP(pPix) ((DRIDrawablePrivPtr) \
+    dixLookupPrivate(&(pPix)->devPrivates, DRIWindowPrivKey))
 
 typedef struct _DRIDrawablePrivRec
 {
@@ -65,13 +60,12 @@ struct _DRIContextPrivRec
     void**     		pContextStore;
 };
 
-#define DRI_SCREEN_PRIV(pScreen) \
-    ((DRIScreenPrivIndex < 0) ? \
-     NULL : \
-     ((DRIScreenPrivPtr)((pScreen)->devPrivates[DRIScreenPrivIndex].ptr)))
+#define DRI_SCREEN_PRIV(pScreen) ((DRIScreenPrivPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, DRIScreenPrivKey))
 
 #define DRI_SCREEN_PRIV_FROM_INDEX(screenIndex) ((DRIScreenPrivPtr) \
-    (screenInfo.screens[screenIndex]->devPrivates[DRIScreenPrivIndex].ptr))
+    dixLookupPrivate(&screenInfo.screens[screenIndex]->devPrivates, \
+		     DRIScreenPrivKey))
 
 #define DRI_ENT_PRIV(pScrn)  \
     ((DRIEntPrivIndex < 0) ? \

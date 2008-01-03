@@ -84,29 +84,16 @@ SOFTWARE.
         return(BadIDChoice);\
     }
 
-#define VALIDATE_DRAWABLE_AND_GC(drawID, pDraw, pGC, client)\
-    if ((stuff->gc == INVALID) || (client->lastGCID != stuff->gc) ||\
-	(client->lastDrawableID != drawID))\
+#define VALIDATE_DRAWABLE_AND_GC(drawID, pDraw, mode)\
     {\
-	int rc;\
-	rc = dixLookupDrawable(&(pDraw), drawID, client, M_ANY,\
-			       DixWriteAccess);\
+	int rc = dixLookupDrawable(&(pDraw), drawID, client, M_ANY, mode);\
 	if (rc != Success)\
 	    return rc;\
-	rc = dixLookupGC(&(pGC), stuff->gc, client, DixReadAccess);\
+	rc = dixLookupGC(&(pGC), stuff->gc, client, DixUseAccess);\
 	if (rc != Success)\
 	    return rc;\
 	if ((pGC->depth != pDraw->depth) || (pGC->pScreen != pDraw->pScreen))\
 	    return (BadMatch);\
-	client->lastDrawable = pDraw;\
-	client->lastDrawableID = drawID;\
-	client->lastGC = pGC;\
-	client->lastGCID = stuff->gc;\
-    }\
-    else\
-    {\
-        pGC = client->lastGC;\
-        pDraw = client->lastDrawable;\
     }\
     if (pGC->serialNumber != pDraw->serialNumber)\
 	ValidateGC(pDraw, pGC);
@@ -161,10 +148,6 @@ extern void UpdateCurrentTime(void);
 
 extern void UpdateCurrentTimeIf(void);
 
-extern void InitSelections(void);
-
-extern void FlushClientCaches(XID /*id*/);
-
 extern int dixDestroyPixmap(
     pointer /*value*/,
     XID /*pid*/);
@@ -189,10 +172,6 @@ extern void DeleteWindowFromAnySelections(
 
 extern void MarkClientException(
     ClientPtr /*client*/);
-
-extern int SendConnSetup(
-    ClientPtr /*client*/,
-    char* /*reason*/);
 
 #if defined(DDXBEFORERESET)
 extern void ddxBeforeReset (void);
@@ -235,17 +214,6 @@ extern int dixLookupClient(
     XID id,
     ClientPtr client,
     Mask access_mode);
-
-/*
- * These are deprecated compatibility functions and will be removed soon!
- * Please use the new dixLookup*() functions above.
- */
-extern WindowPtr SecurityLookupWindow(XID, ClientPtr, Mask);
-extern WindowPtr LookupWindow(XID, ClientPtr);
-extern pointer SecurityLookupDrawable(XID, ClientPtr, Mask);
-extern pointer LookupDrawable(XID, ClientPtr);
-extern ClientPtr LookupClient(XID, ClientPtr);
-/* end deprecated functions */
 
 extern void NoopDDA(void);
 
@@ -372,13 +340,6 @@ extern void EnqueueEvent(
     xEventPtr /* xE */,
     DeviceIntPtr /* device */,
     int	/* count */);
-
-extern void ComputeFreezes(void);
-
-extern void CheckGrabForSyncs(
-    DeviceIntPtr /* dev */,
-    Bool /* thisMode */,
-    Bool /* otherMode */);
 
 extern void ActivatePointerGrab(
     DeviceIntPtr /* mouse */,
@@ -574,14 +535,6 @@ void
 ScreenRestructured (ScreenPtr pScreen);
 #endif
 
-extern void ResetClientPrivates(void);
-
-extern int AllocateClientPrivateIndex(void);
-
-extern Bool AllocateClientPrivate(
-    int /*index*/,
-    unsigned /*amount*/);
-
 extern int ffs(int i);
 
 /*
@@ -679,12 +632,15 @@ extern CallbackListPtr SelectionCallback;
 
 typedef enum {
     SelectionSetOwner,
+    SelectionGetOwner,
+    SelectionConvertSelection,
     SelectionWindowDestroy,
     SelectionClientClose
 } SelectionCallbackKind;
 
 typedef struct {
     struct _Selection	    *selection;
+    ClientPtr		    client;
     SelectionCallbackKind   kind;
 } SelectionInfoRec;
 
@@ -696,14 +652,41 @@ extern int xstrcasecmp(char *s1, char *s2);
 
 extern int XItoCoreType(int xi_type);
 extern Bool DevHasCursor(DeviceIntPtr pDev);
-
 extern Bool IsPointerDevice( DeviceIntPtr dev);
 extern Bool IsKeyboardDevice(DeviceIntPtr dev);
 
+/*
+ * These are deprecated compatibility functions and will be removed soon!
+ * Please use the noted replacements instead.
+ */
+/* replaced by dixLookupWindow */
+extern WindowPtr SecurityLookupWindow(
+    XID id,
+    ClientPtr client,
+    Mask access_mode);
+/* replaced by dixLookupWindow */
+extern WindowPtr LookupWindow(
+    XID id,
+    ClientPtr client);
+
+/* replaced by dixLookupDrawable */
+extern pointer SecurityLookupDrawable(
+    XID id,
+    ClientPtr client,
+    Mask access_mode);
+
+/* replaced by dixLookupDrawable */
+extern pointer LookupDrawable(
+    XID id,
+    ClientPtr client);
+
+/* replaced by dixLookupClient */
+extern ClientPtr LookupClient(
+    XID id,
+    ClientPtr client);
 
 /* GE stuff */
 extern void SetGenericFilter(int extension, Mask* filters);
-
 extern int ExtGrabDevice(ClientPtr client,
                          DeviceIntPtr dev,
                          int device_mode,
@@ -714,7 +697,6 @@ extern int ExtGrabDevice(ClientPtr client,
                          CursorPtr cursor, 
                          Mask xi_mask,
                          GenericMaskPtr ge_masks);
-
 extern int ExtUngrabDevice(ClientPtr client,
                          DeviceIntPtr dev);
 

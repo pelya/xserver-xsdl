@@ -48,18 +48,18 @@ in this Software without prior written authorization from The Open Group.
 # include   "dixstruct.h"
 # include   "inputstr.h"
 
-_X_EXPORT int miPointerScreenIndex;
-static unsigned long miPointerGeneration = 0;
+_X_EXPORT DevPrivateKey miPointerScreenKey = &miPointerScreenKey;
 
-#define GetScreenPrivate(s) ((miPointerScreenPtr) ((s)->devPrivates[miPointerScreenIndex].ptr))
+#define GetScreenPrivate(s) ((miPointerScreenPtr) \
+    dixLookupPrivate(&(s)->devPrivates, miPointerScreenKey))
 #define SetupScreen(s)	miPointerScreenPtr  pScreenPriv = GetScreenPrivate(s)
 
-static int miPointerPrivatesIndex = 0;
+static DevPrivateKey miPointerPrivKey = &miPointerPrivKey;
 
 #define MIPOINTER(dev) \
     ((DevHasCursor((dev))) ? \
-        (miPointerPtr) dev->devPrivates[miPointerPrivatesIndex].ptr : \
-        (miPointerPtr) dev->u.master->devPrivates[miPointerPrivatesIndex].ptr)
+        (miPointerPtr)dixLookupPrivate(&(dev)->devPrivates, miPointerPrivKey): \
+        (miPointerPtr)dixLookupPrivate(&(dev)->u.master->devPrivates, miPointerPrivKey))
 
 static Bool miPointerRealizeCursor(DeviceIntPtr pDev, ScreenPtr pScreen, 
                                    CursorPtr pCursor);
@@ -97,13 +97,6 @@ miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
 {
     miPointerScreenPtr	pScreenPriv;
 
-    if (miPointerGeneration != serverGeneration)
-    {
-	miPointerScreenIndex = AllocateScreenPrivateIndex();
-	if (miPointerScreenIndex < 0)
-	    return FALSE;
-	miPointerGeneration = serverGeneration;
-    }
     pScreenPriv = (miPointerScreenPtr) xalloc (sizeof (miPointerScreenRec));
     if (!pScreenPriv)
 	return FALSE;
@@ -120,7 +113,7 @@ miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
     pScreenPriv->showTransparent = FALSE;
     pScreenPriv->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = miPointerCloseScreen;
-    pScreen->devPrivates[miPointerScreenIndex].ptr = (pointer) pScreenPriv;
+    dixSetPrivate(&pScreen->devPrivates, miPointerScreenKey, pScreenPriv);
     /*
      * set up screen cursor method table
      */
@@ -136,8 +129,6 @@ miPointerInitialize (pScreen, spriteFuncs, screenFuncs, waitForUpdate)
     pScreen->PointerNonInterestBox = miPointerPointerNonInterestBox;
     pScreen->DeviceCursorInitialize = miPointerDeviceInitialize;
     pScreen->DeviceCursorCleanup = miPointerDeviceCleanup;
-
-    miPointerPrivatesIndex = AllocateDevicePrivateIndex();
 
     events = NULL;
     return TRUE;
@@ -303,9 +294,6 @@ miPointerDeviceInitialize(pDev, pScreen)
     miPointerPtr pPointer;
     SetupScreen (pScreen);
 
-    if (!AllocateDevicePrivate(pDev, miPointerPrivatesIndex))
-        return FALSE;
-
     pPointer = xalloc(sizeof(miPointerRec));
     if (!pPointer)
         return FALSE;
@@ -328,7 +316,7 @@ miPointerDeviceInitialize(pDev, pScreen)
         return FALSE;
     }
 
-    pDev->devPrivates[miPointerPrivatesIndex].ptr = pPointer;
+    dixSetPrivate(&pDev->devPrivates, miPointerPrivKey, pPointer);
     return TRUE;
 }
 
@@ -344,8 +332,8 @@ miPointerDeviceCleanup(pDev, pScreen)
     {
         SetupScreen(pScreen);
         (*pScreenPriv->spriteFuncs->DeviceCursorCleanup)(pDev, pScreen);
-        xfree(pDev->devPrivates[miPointerPrivatesIndex].ptr);
-        pDev->devPrivates[miPointerPrivatesIndex].ptr = NULL;
+        xfree(dixLookupPrivate(&pDev->devPrivates, miPointerPrivKey));
+        dixSetPrivate(&pDev->devPrivates, miPointerPrivKey, NULL);
     }
 }
 

@@ -94,14 +94,13 @@ typedef struct {
 } ShadowGCRec, *ShadowGCPtr;
 
 
-static int ShadowScreenIndex = -1;
-static int ShadowGCIndex = -1;
-static unsigned long ShadowGeneration = 0;
+static DevPrivateKey ShadowScreenKey = &ShadowScreenKey;
+static DevPrivateKey ShadowGCKey = &ShadowGCKey;
 
 #define GET_SCREEN_PRIVATE(pScreen) \
-	(ShadowScreenPtr)((pScreen)->devPrivates[ShadowScreenIndex].ptr)
+    (ShadowScreenPtr)dixLookupPrivate(&(pScreen)->devPrivates, ShadowScreenKey)
 #define GET_GC_PRIVATE(pGC) \
-	(ShadowGCPtr)((pGC)->devPrivates[ShadowGCIndex].ptr)
+    (ShadowGCPtr)dixLookupPrivate(&(pGC)->devPrivates, ShadowGCKey);
 
 #define SHADOW_GC_FUNC_PROLOGUE(pGC)\
     ShadowGCPtr pGCPriv = GET_GC_PRIVATE(pGC);\
@@ -172,20 +171,13 @@ ShadowFBInit2 (
 
     if(!preRefreshArea && !postRefreshArea) return FALSE;
     
-    if (ShadowGeneration != serverGeneration) {
-	if(((ShadowScreenIndex = AllocateScreenPrivateIndex ()) < 0) ||
-	   ((ShadowGCIndex = AllocateGCPrivateIndex()) < 0))
-	    return FALSE;
-	ShadowGeneration = serverGeneration;
-    }
-
-    if(!AllocateGCPrivate(pScreen, ShadowGCIndex, sizeof(ShadowGCRec)))
+    if(!dixRequestPrivate(ShadowGCKey, sizeof(ShadowGCRec)))
 	return FALSE;
 
     if(!(pPriv = (ShadowScreenPtr)xalloc(sizeof(ShadowScreenRec))))
 	return FALSE;
 
-    pScreen->devPrivates[ShadowScreenIndex].ptr = (pointer)pPriv;  
+    dixSetPrivate(&pScreen->devPrivates, ShadowScreenKey, pPriv);
 
     pPriv->pScrn = pScrn;
     pPriv->preRefresh = preRefreshArea;

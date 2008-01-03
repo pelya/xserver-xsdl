@@ -28,6 +28,7 @@ in this Software without prior written authorization from The Open Group.
 #ifndef MILINE_H
 
 #include "screenint.h"
+#include "privates.h"
 
 /*
  * Public definitions used for configuring basic pixelization aspects
@@ -119,9 +120,8 @@ extern void miSetZeroLineBias(
         t = y1;  y1 = y2;  y2 = t;\
 }
 
-#define miGetZeroLineBias(_pScreen) \
-    ((miZeroLineScreenIndex < 0) ? \
-     		0 : ((_pScreen)->devPrivates[miZeroLineScreenIndex].uval))
+#define miGetZeroLineBias(_pScreen) ((unsigned long) \
+    dixLookupPrivate(&(_pScreen)->devPrivates, miZeroLineScreenKey))
 
 #define CalcLineDeltas(_x1,_y1,_x2,_y2,_adx,_ady,_sx,_sy,_SX,_SY,_octant) \
     (_octant) = 0;				\
@@ -148,7 +148,7 @@ extern void miSetZeroLineBias(
 #define IsXDecreasingOctant(_octant)	((_octant) & XDECREASING)
 #define IsYDecreasingOctant(_octant)	((_octant) & YDECREASING)
 
-extern int miZeroLineScreenIndex;
+extern DevPrivateKey miZeroLineScreenKey;
 
 extern int miZeroClipLine(
     int /*xmin*/,

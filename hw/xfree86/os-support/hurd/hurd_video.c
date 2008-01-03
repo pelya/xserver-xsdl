@@ -126,7 +126,7 @@ extern int ioperm(unsigned long __from, unsigned long __num, int __turn_on);
 Bool
 xf86EnableIO()
 {
-    if (ioperm(0, 0xffff, 1)) {
+    if (ioperm(0, 0x10000, 1)) {
 	FatalError("xf86EnableIO: ioperm() failed (%s)\n", strerror(errno));
 	return FALSE;
     }
@@ -138,7 +138,7 @@ xf86EnableIO()
 void
 xf86DisableIO()
 {
-    ioperm(0,0xffff,0);
+    ioperm(0,0x10000,0);
     return;
 }
 

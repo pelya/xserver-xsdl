@@ -39,9 +39,8 @@
                                   pScreen->x = y;}
 #define UNWRAP_SCREEN(x)    pScreen->x = pScreenPriv->x
 
-#define SCREEN_PROLOG(x) \
-            pScreen->x = \
-             ((RACScreenPtr) (pScreen)->devPrivates[RACScreenIndex].ptr)->x
+#define SCREEN_PROLOG(x) pScreen->x = ((RACScreenPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, RACScreenKey))->x
 #define SCREEN_EPILOG(x,y) pScreen->x = y;
 
 #define WRAP_PICT_COND(x,y,cond) if (ps)\
@@ -50,9 +49,8 @@
 					ps->x = y;}
 #define UNWRAP_PICT(x) 	if (ps) {ps->x = pScreenPriv->x;}
 
-#define PICTURE_PROLOGUE(field) \
-	ps->field = \
-	((RACScreenPtr) (pScreen)->devPrivates[RACScreenIndex].ptr)->field
+#define PICTURE_PROLOGUE(field) ps->field = \
+	((RACScreenPtr)dixLookupPrivate(&(pScreen)->devPrivates, RACScreenKey))->field
 #define PICTURE_EPILOGUE(field, wrap) \
 	ps->field = wrap
 
@@ -65,9 +63,9 @@
 #define UNWRAP_SCREEN_INFO(x)    pScrn->x = pScreenPriv->x
 
 #define SPRITE_PROLOG     miPointerScreenPtr PointPriv = \
-(miPointerScreenPtr)pScreen->devPrivates[miPointerScreenIndex].ptr;\
-                               RACScreenPtr pScreenPriv = \
-((RACScreenPtr) (pScreen)->devPrivates[RACScreenIndex].ptr);\
+    (miPointerScreenPtr)dixLookupPrivate(&pScreen->devPrivates, miPointerScreenKey); \
+    RACScreenPtr pScreenPriv = \
+    ((RACScreenPtr)dixLookupPrivate(&(pScreen)->devPrivates, RACScreenKey));\
 			PointPriv->spriteFuncs = pScreenPriv->miSprite;
 #define SPRITE_EPILOG pScreenPriv->miSprite = PointPriv->spriteFuncs;\
 	              PointPriv->spriteFuncs  = &RACSpriteFuncs;
@@ -82,7 +80,7 @@
                            (x)->ops = &RACGCOps;\
                          (x)->funcs = &RACGCFuncs;
 #define GC_UNWRAP(x)\
-           RACGCPtr  pGCPriv = (RACGCPtr) (x)->devPrivates[RACGCIndex].ptr;\
+    RACGCPtr  pGCPriv = (RACGCPtr)dixLookupPrivate(&(x)->devPrivates, RACGCKey);\
                     (x)->ops = pGCPriv->wrapOps;\
 	          (x)->funcs = pGCPriv->wrapFuncs;
 
@@ -258,9 +256,8 @@ static miPointerSpriteFuncRec RACSpriteFuncs = {
     RACSpriteMoveCursor
 };
 
-static int RACScreenIndex = -1;
-static int RACGCIndex = -1;
-static unsigned long RACGeneration = 0;
+static DevPrivateKey RACScreenKey = &RACScreenKey;
+static DevPrivateKey RACGCKey = &RACGCKey;
 
 
 Bool 
@@ -274,24 +271,17 @@ xf86RACInit(ScreenPtr pScreen, unsigned int flag)
 #endif
 
     pScrn = xf86Screens[pScreen->myNum];
-    PointPriv = (miPointerScreenPtr)pScreen->devPrivates[miPointerScreenIndex].ptr;
-
+    PointPriv = (miPointerScreenPtr)dixLookupPrivate(&pScreen->devPrivates,
+						     miPointerScreenKey);
     DPRINT_S("RACInit",pScreen->myNum);
-    if (RACGeneration != serverGeneration) {
-	if (	((RACScreenIndex = AllocateScreenPrivateIndex()) < 0) ||
-		((RACGCIndex = AllocateGCPrivateIndex()) < 0))
-	    return FALSE;
 
-	RACGeneration = serverGeneration;
-    }
-
-    if (!AllocateGCPrivate(pScreen, RACGCIndex, sizeof(RACGCRec)))
+    if (!dixRequestPrivate(RACGCKey, sizeof(RACGCRec)))
 	return FALSE;
 
     if (!(pScreenPriv = xalloc(sizeof(RACScreenRec))))
 	return FALSE;
 
-    pScreen->devPrivates[RACScreenIndex].ptr = (pointer)pScreenPriv;
+    dixSetPrivate(&pScreen->devPrivates, RACScreenKey, pScreenPriv);
     
     WRAP_SCREEN(CloseScreen, RACCloseScreen);
     WRAP_SCREEN(SaveScreen, RACSaveScreen);
@@ -328,10 +318,10 @@ static Bool
 RACCloseScreen (int i, ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
-    RACScreenPtr pScreenPriv = 
-	(RACScreenPtr) pScreen->devPrivates[RACScreenIndex].ptr;
-    miPointerScreenPtr PointPriv
-	= (miPointerScreenPtr)pScreen->devPrivates[miPointerScreenIndex].ptr;
+    RACScreenPtr pScreenPriv = (RACScreenPtr)dixLookupPrivate(
+	&pScreen->devPrivates, RACScreenKey);
+    miPointerScreenPtr PointPriv = (miPointerScreenPtr)dixLookupPrivate(
+	&pScreen->devPrivates, miPointerScreenKey);
 #ifdef RENDER
     PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
 #endif
@@ -592,8 +582,8 @@ static void
 RACAdjustFrame(int index, int x, int y, int flags)
 {
     ScreenPtr pScreen = screenInfo.screens[index];
-    RACScreenPtr pScreenPriv =
-	(RACScreenPtr) pScreen->devPrivates[RACScreenIndex].ptr;
+    RACScreenPtr pScreenPriv = (RACScreenPtr)dixLookupPrivate(
+	&pScreen->devPrivates, RACScreenKey);
 
     DPRINT_S("RACAdjustFrame",index);
     xf86EnableAccess(xf86Screens[index]);
@@ -605,8 +595,8 @@ static Bool
 RACSwitchMode(int index, DisplayModePtr mode, int flags)
 {
     ScreenPtr pScreen = screenInfo.screens[index];
-    RACScreenPtr pScreenPriv =
-	(RACScreenPtr) pScreen->devPrivates[RACScreenIndex].ptr;
+    RACScreenPtr pScreenPriv = (RACScreenPtr)dixLookupPrivate(
+	&pScreen->devPrivates, RACScreenKey);
 
     DPRINT_S("RACSwitchMode",index);
     xf86EnableAccess(xf86Screens[index]);
@@ -618,8 +608,8 @@ static Bool
 RACEnterVT(int index, int flags)
 {
     ScreenPtr pScreen = screenInfo.screens[index];
-    RACScreenPtr pScreenPriv =
-	(RACScreenPtr) pScreen->devPrivates[RACScreenIndex].ptr;
+    RACScreenPtr pScreenPriv = (RACScreenPtr)dixLookupPrivate(
+	&pScreen->devPrivates, RACScreenKey);
 
     DPRINT_S("RACEnterVT",index);
     xf86EnableAccess(xf86Screens[index]);
@@ -631,8 +621,8 @@ static void
 RACLeaveVT(int index, int flags)
 {
     ScreenPtr pScreen = screenInfo.screens[index];
-    RACScreenPtr pScreenPriv =
-	(RACScreenPtr) pScreen->devPrivates[RACScreenIndex].ptr;
+    RACScreenPtr pScreenPriv = (RACScreenPtr)dixLookupPrivate(
+	&pScreen->devPrivates, RACScreenKey);
 
     DPRINT_S("RACLeaveVT",index);
     xf86EnableAccess(xf86Screens[index]);
@@ -644,8 +634,8 @@ static void
 RACFreeScreen(int index, int flags)
 {
     ScreenPtr pScreen = screenInfo.screens[index];
-    RACScreenPtr pScreenPriv =
-	(RACScreenPtr) pScreen->devPrivates[RACScreenIndex].ptr;
+    RACScreenPtr pScreenPriv = (RACScreenPtr)dixLookupPrivate(
+	&pScreen->devPrivates, RACScreenKey);
 
     DPRINT_S("RACFreeScreen",index);
     xf86EnableAccess(xf86Screens[index]);
@@ -657,7 +647,7 @@ static Bool
 RACCreateGC(GCPtr pGC)
 {
     ScreenPtr    pScreen = pGC->pScreen;
-    RACGCPtr     pGCPriv = (RACGCPtr) (pGC)->devPrivates[RACGCIndex].ptr;
+    RACGCPtr pGCPriv = (RACGCPtr)dixLookupPrivate(&pGC->devPrivates, RACGCKey);
     Bool         ret;
 
     DPRINT_S("RACCreateGC",pScreen->myNum);

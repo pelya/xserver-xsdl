@@ -26,8 +26,6 @@ Equipment Corporation.
 
 ******************************************************************/
 
-typedef int Bool;
-
 #ifdef HAVE_DIX_CONFIG_H
 #include <dix-config.h>
 #endif
@@ -46,7 +44,7 @@ int DPMSGet(int *plevel)
     return -1;
 }
 
-void DPMSSet(int level)
+int DPMSSet(ClientPtr client, int level)
 {
-
+    return Success;
 }

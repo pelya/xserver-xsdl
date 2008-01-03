@@ -17,6 +17,7 @@
 #include "dixstruct.h"
 #include "extnsionst.h"
 #include "swaprep.h"
+#include "registry.h"
 #include <X11/extensions/XResproto.h>
 #include "pixmapstr.h"
 #include "windowstr.h"
@@ -66,7 +67,7 @@ ProcXResQueryClients (ClientPtr client)
     current_clients = xalloc((currentMaxClients - 1) * sizeof(int));
 
     num_clients = 0;
-    for(i = 1; i < currentMaxClients; i++) {
+    for(i = 0; i < currentMaxClients; i++) {
        if(clients[i]) {
            current_clients[num_clients] = i;
            num_clients++;   
@@ -127,9 +128,7 @@ ProcXResQueryClientResources (ClientPtr client)
 
     clientID = CLIENT_ID(stuff->xid);
 
-    /* we could remove the (clientID == 0) check if we wanted to allow
-       probing the X-server's resource usage */
-    if(!clientID || (clientID >= currentMaxClients) || !clients[clientID]) {
+    if((clientID >= currentMaxClients) || !clients[clientID]) {
         client->errorValue = stuff->xid;
         return BadValue;
     }
@@ -161,17 +160,20 @@ ProcXResQueryClientResources (ClientPtr client)
 
     if(num_types) {
         xXResType scratch;
+	char *name;
 
         for(i = 0; i < lastResourceType; i++) {
             if(!counts[i]) continue;
 
-            if(!ResourceNames[i + 1]) {
+	    name = (char *)LookupResourceName(i + 1);
+            if (strcmp(name, XREGISTRY_UNKNOWN))
+		scratch.resource_type = MakeAtom(name, strlen(name), TRUE);
+	    else {
                 char buf[40];
                 snprintf(buf, sizeof(buf), "Unregistered resource %i", i + 1);
-                RegisterResourceName(i + 1, buf);
+		scratch.resource_type = MakeAtom(buf, strlen(buf), TRUE);
             }
 
-            scratch.resource_type = ResourceNames[i + 1];
             scratch.count = counts[i];
 
             if(client->swapped) {
@@ -250,9 +252,7 @@ ProcXResQueryClientPixmapBytes (ClientPtr client)
 
     clientID = CLIENT_ID(stuff->xid);
 
-    /* we could remove the (clientID == 0) check if we wanted to allow
-       probing the X-server's resource usage */
-    if(!clientID || (clientID >= currentMaxClients) || !clients[clientID]) {
+    if((clientID >= currentMaxClients) || !clients[clientID]) {
         client->errorValue = stuff->xid;
         return BadValue;
     }
@@ -387,15 +387,4 @@ ResExtensionInit(INITARGS)
     (void) AddExtension(XRES_NAME, 0, 0,
                             ProcResDispatch, SProcResDispatch,
                             ResResetProc, StandardMinorOpcode);
-
-    RegisterResourceName(RT_NONE, "NONE");
-    RegisterResourceName(RT_WINDOW, "WINDOW");
-    RegisterResourceName(RT_PIXMAP, "PIXMAP");
-    RegisterResourceName(RT_GC, "GC");
-    RegisterResourceName(RT_FONT, "FONT");
-    RegisterResourceName(RT_CURSOR, "CURSOR");
-    RegisterResourceName(RT_COLORMAP, "COLORMAP");
-    RegisterResourceName(RT_CMAPENTRY, "COLORMAP ENTRY");
-    RegisterResourceName(RT_OTHERCLIENT, "OTHER CLIENT");
-    RegisterResourceName(RT_PASSIVEGRAB, "PASSIVE GRAB");
 }

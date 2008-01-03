@@ -21,6 +21,7 @@
  */
 
 #include "randrstr.h"
+#include "registry.h"
 
 RESTYPE	RRModeType;
 
@@ -165,6 +166,8 @@ RRModesForScreen (ScreenPtr pScreen, int *num_ret)
     int		num_screen_modes = 0;
 
     screen_modes = xalloc ((num_modes ? num_modes : 1) * sizeof (RRModePtr));
+    if (!screen_modes)
+	return NULL;
     
     /*
      * Add modes from all outputs
@@ -266,9 +269,7 @@ RRModeInit (void)
     RRModeType = CreateNewResourceType (RRModeDestroyResource);
     if (!RRModeType)
 	return FALSE;
-#ifdef XResExtension
     RegisterResourceName (RRModeType, "MODE");
-#endif
     return TRUE;
 }
 

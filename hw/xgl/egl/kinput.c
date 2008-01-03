@@ -439,7 +439,7 @@ KdKeybdProc(DeviceIntPtr pDevice, int onoff)
     switch (onoff)
     {
     case DEVICE_INIT:
-	if (pDev != LookupKeyboardDevice())
+	if (pDev != (DevicePtr)inputInfo.keyboard)
 	{
 	    return !Success;
 	}

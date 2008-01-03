@@ -58,6 +58,7 @@ SOFTWARE.
 #include "region.h"
 #include "gc.h"
 #include "colormap.h"
+#include "privates.h"
 #include "miscstruct.h"
 #include "mibstore.h"
 
@@ -698,7 +699,7 @@ extern Bool mfbCloseScreen(
 
 extern Bool mfbAllocatePrivates(
     ScreenPtr /*pScreen*/,
-    int * /*pGCIndex*/
+    DevPrivateKey * /*pGCKey*/
 );
 
 extern Bool mfbScreenInit(
@@ -883,12 +884,9 @@ typedef struct {
 typedef mfbPrivGC	*mfbPrivGCPtr;
 #endif
 
-/* XXX these should be static, but it breaks the ABI */
-extern int  mfbGCPrivateIndex;		/* index into GC private array */
-extern int  mfbGetGCPrivateIndex(void);
+extern DevPrivateKey mfbGetGCPrivateKey(void);
 #ifdef PIXMAP_PER_WINDOW
-extern int  frameWindowPrivateIndex;	/* index into Window private array */
-extern int  frameGetWindowPrivateIndex(void);
+extern DevPrivateKey frameGetWindowPrivateKey(void);
 #endif
 
 #ifndef MFB_PROTOTYPES_ONLY

@@ -151,11 +151,10 @@ typedef struct {
    int (*TiledFillChooser)(GCPtr);
 } XAAOverlayRec, *XAAOverlayPtr;
 
-static int XAAOverlayIndex = -1;
-static unsigned long XAAOverlayGeneration = 0;
+static DevPrivateKey XAAOverlayKey = &XAAOverlayKey;
 
 #define GET_OVERLAY_PRIV(pScreen) \
-    ((XAAOverlayPtr)((pScreen)->devPrivates[XAAOverlayIndex].ptr))
+    (XAAOverlayPtr)dixLookupPrivate(&(pScreen)->devPrivates, XAAOverlayKey)
 
 #define SWITCH_DEPTH(d) \
    if(pOverPriv->currentDepth != d) { \
@@ -173,18 +172,10 @@ XAAInitDualFramebufferOverlay(
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
     XAAOverlayPtr pOverPriv;
 
-    if (XAAOverlayGeneration != serverGeneration) {
-	if((XAAOverlayIndex = AllocateScreenPrivateIndex()) < 0)
-		return FALSE;
-
-	XAAOverlayGeneration = serverGeneration;
-    }
-   
-
     if(!(pOverPriv = xalloc(sizeof(XAAOverlayRec))))
 	return FALSE;
 
-    pScreen->devPrivates[XAAOverlayIndex].ptr = (pointer)pOverPriv;
+    dixSetPrivate(&pScreen->devPrivates, XAAOverlayKey, pOverPriv);
 
     pOverPriv->pScrn = pScrn;
     pOverPriv->callback = callback;

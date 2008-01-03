@@ -274,18 +274,17 @@ typedef struct _XAAStateWrapRec {
 #endif
 } XAAStateWrapRec, *XAAStateWrapPtr;
 
-static int XAAStateIndex = -1;
-static unsigned long XAAStateGeneration = 0;
+static DevPrivateKey XAAStateKey = &XAAStateKey;
 
 /* Wrap functions start here */
 #define GET_STATEPRIV_GC(pGC)   XAAStateWrapPtr pStatePriv =\
-(XAAStateWrapPtr)(pGC->pScreen->devPrivates[XAAStateIndex].ptr)
+(XAAStateWrapPtr)dixLookupPrivate(&(pGC)->pScreen->devPrivates, XAAStateKey)
 
 #define GET_STATEPRIV_SCREEN(pScreen)   XAAStateWrapPtr pStatePriv =\
-(XAAStateWrapPtr)(pScreen->devPrivates[XAAStateIndex].ptr)
+(XAAStateWrapPtr)dixLookupPrivate(&(pScreen)->devPrivates, XAAStateKey)
 
 #define GET_STATEPRIV_PSCRN(pScrn)   XAAStateWrapPtr pStatePriv =\
-(XAAStateWrapPtr)(pScrn->pScreen->devPrivates[XAAStateIndex].ptr)
+(XAAStateWrapPtr)dixLookupPrivate(&(pScrn)->pScreen->devPrivates, XAAStateKey)
 
 #define STATE_CHECK_SP(pStatePriv) {\
 	ScrnInfoPtr pScrn = pStatePriv->pScrn;\
@@ -1504,12 +1503,8 @@ XAAInitStateWrap(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
    XAAStateWrapPtr pStatePriv;
    int i = 0;
    
-   if (XAAStateGeneration != serverGeneration) {
-      if((XAAStateIndex = AllocateScreenPrivateIndex()) < 0) return FALSE;
-      XAAStateGeneration = serverGeneration;
-   }
    if(!(pStatePriv = xalloc(sizeof(XAAStateWrapRec)))) return FALSE;
-   pScreen->devPrivates[XAAStateIndex].ptr = (pointer)pStatePriv;   
+   dixSetPrivate(&pScreen->devPrivates, XAAStateKey, pStatePriv);
    pStatePriv->RestoreAccelState = infoRec->RestoreAccelState;
    pStatePriv->pScrn = pScrn;
    

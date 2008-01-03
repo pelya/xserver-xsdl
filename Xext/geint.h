@@ -45,14 +45,14 @@ from the author.
 extern int GEEventType;
 extern int GEEventBase;
 extern int GEErrorBase;
-extern int GEClientPrivateIndex;
+extern DevPrivateKey GEClientPrivateKey;
 
 typedef struct _GEClientInfo {
     CARD32  major_version;
     CARD32  minor_version;
 } GEClientInfoRec, *GEClientInfoPtr;
 
-#define GEGetClient(pClient)    ((GEClientInfoPtr) (pClient)->devPrivates[GEClientPrivateIndex].ptr)
+#define GEGetClient(pClient)    ((GEClientInfoPtr)(dixLookupPrivate(&((pClient)->devPrivates), GEClientPrivateKey)))
 
 extern int (*ProcGEVector[/*GENumRequests*/])(ClientPtr);
 extern int (*SProcGEVector[/*GENumRequests*/])(ClientPtr);

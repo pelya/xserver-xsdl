@@ -184,7 +184,8 @@ MFBIMAGEGLYPHBLT(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
        but that is usually not a cheap thing to do.
     */
 
-    pPrivGC = pGC->devPrivates[mfbGCPrivateIndex].ptr;
+    pPrivGC = (mfbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					    mfbGetGCPrivateKey());
     oldFillArea = pPrivGC->FillArea;
 
     if (pGC->bgPixel & 1)

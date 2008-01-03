@@ -151,8 +151,8 @@ static int RasterReproducibleArea(XpContextPtr pCon,
 #define DOC_PCL		1
 #define DOC_RASTER	2
 
-static int RasterScreenPrivateIndex, RasterContextPrivateIndex;
-static int RasterGeneration = 0;
+static DevPrivateKey RasterScreenPrivateKey = &RasterScreenPrivateKey;
+static DevPrivateKey RasterContextPrivateKey = &RasterContextPrivateKey;
 static char RASTER_DRIV_NAME[] = "XP-RASTER";
 static int doc_type = DOC_RASTER;
 
@@ -205,7 +205,7 @@ InitializeRasterDriver(
     AllocateRasterPrivates(pScreen);
    
     pPriv = (RasterScreenPrivPtr)
-      pScreen->devPrivates[RasterScreenPrivateIndex].ptr;
+	dixLookupPrivate(&pScreen->devPrivates, RasterScreenPrivateKey);
 
     maxDim = MAX( pScreen->height, pScreen->width );
     numBytes = maxDim + BITMAP_SCANLINE_PAD - 1; /* pixels per row */
@@ -252,7 +252,7 @@ GetPropString(
      char *propName)
 {
     RasterContextPrivPtr pConPriv = (RasterContextPrivPtr)
-      pCon->devPrivates[RasterContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, RasterContextPrivateKey);
     char *type;
     XrmValue val;
     struct stat status;
@@ -371,7 +371,7 @@ StartJob(
      ClientPtr client)
 {
     RasterContextPrivPtr pConPriv = (RasterContextPrivPtr)
-			 pCon->devPrivates[RasterContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, RasterContextPrivateKey);
 
     SetDocumentType( pCon );
 
@@ -488,7 +488,7 @@ EndJob(
      Bool cancel)
 {
     RasterContextPrivPtr pConPriv = (RasterContextPrivPtr)
-			 pCon->devPrivates[RasterContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, RasterContextPrivateKey);
 
     if( cancel == True )
     {
@@ -549,7 +549,7 @@ StartPage(
      WindowPtr pWin)
 {
     RasterContextPrivPtr pConPriv = (RasterContextPrivPtr)
-			 pCon->devPrivates[RasterContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, RasterContextPrivateKey);
 
     if(pConPriv->pPageFile != (FILE *)NULL)
     {
@@ -830,7 +830,7 @@ SendPage( XpContextPtr pCon )
 {
     struct stat statBuf;
     RasterContextPrivPtr pConPriv = (RasterContextPrivPtr)
-			 pCon->devPrivates[RasterContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, RasterContextPrivateKey);
 
     if(stat(pConPriv->pageFileName, &statBuf) < 0)
         return BadAlloc;
@@ -872,7 +872,7 @@ EndPage(
      WindowPtr pWin)
 {
     RasterContextPrivPtr pConPriv = (RasterContextPrivPtr)
-			 pCon->devPrivates[RasterContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, RasterContextPrivateKey);
     struct stat statBuf;
     char *rasterFileName = (char *)NULL, *pCommand = (char *)NULL;
     FILE *pRasterFile = (FILE *)NULL;
@@ -1068,7 +1068,7 @@ DocumentData(
      ClientPtr client)
 {
     RasterContextPrivPtr pConPriv = (RasterContextPrivPtr)
-			 pCon->devPrivates[RasterContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, RasterContextPrivateKey);
     char *preRasterStr = PRE_RASTER, *postRasterStr = POST_RASTER,
 	 *noRasterStr = NO_RASTER;
 
@@ -1135,7 +1135,7 @@ GetDocumentData(
     int maxBufferSize)
 {
     RasterContextPrivPtr pConPriv = (RasterContextPrivPtr)
-			 pContext->devPrivates[RasterContextPrivateIndex].ptr;
+	dixLookupPrivate(&pContext->devPrivates, RasterContextPrivateKey);
 
     pConPriv->getDocClient = client;
     pConPriv->getDocBufSize = maxBufferSize;
@@ -1146,17 +1146,9 @@ static void
 AllocateRasterPrivates(
     ScreenPtr pScreen)
 {
-    if(RasterGeneration != serverGeneration)
-    {
-        RasterScreenPrivateIndex = AllocateScreenPrivateIndex();
-	RasterContextPrivateIndex = XpAllocateContextPrivateIndex();
-        XpAllocateContextPrivate( RasterContextPrivateIndex, 
-			     sizeof( RasterContextPrivRec ) );
-
-        RasterGeneration = serverGeneration;
-    }
-    pScreen->devPrivates[RasterScreenPrivateIndex].ptr = (pointer)Xalloc(
-                sizeof(RasterScreenPrivRec));
+    dixRequestPrivate(RasterContextPrivateKey, sizeof( RasterContextPrivRec ) );
+    dixSetPrivate(&pScreen->devPrivates, RasterScreenPrivateKey,
+		  Xalloc(sizeof(RasterScreenPrivRec)));
 }
 
 /*
@@ -1171,7 +1163,7 @@ RasterChangeWindowAttributes(
     Bool status = Success;
     ScreenPtr pScreen = pWin->drawable.pScreen;
     RasterScreenPrivPtr pScreenPriv = (RasterScreenPrivPtr) 
-		     pScreen->devPrivates[RasterScreenPrivateIndex].ptr;
+	dixLookupPrivate(&pScreen->devPrivates, RasterScreenPrivateKey);
 
     if(pWin->backingStore == NotUseful)
     {
@@ -1270,7 +1262,7 @@ RasterInitContext(
      * Set up the context privates
      */
     pConPriv = (RasterContextPrivPtr)
-      pCon->devPrivates[RasterContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, RasterContextPrivateKey);
     
     pConPriv->jobFileName = (char *)NULL;
     pConPriv->pageFileName = (char *)NULL;
@@ -1355,7 +1347,7 @@ RasterDestroyContext(
      XpContextPtr pCon)
 {
     RasterContextPrivPtr pConPriv = (RasterContextPrivPtr)
-      pCon->devPrivates[RasterContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, RasterContextPrivateKey);
     
     /*
      * Clean up the temporary files
@@ -1477,7 +1469,7 @@ RasterCloseScreen(
 {
     Bool status = Success;
     RasterScreenPrivPtr pScreenPriv = (RasterScreenPrivPtr) 
-		     pScreen->devPrivates[RasterScreenPrivateIndex].ptr;
+	dixLookupPrivate(&pScreen->devPrivates, RasterScreenPrivateKey);
     
     /*
      * Call any wrapped CloseScreen proc.

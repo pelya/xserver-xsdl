@@ -2144,7 +2144,9 @@ The data therein is not used in this release.
 General:
 .BR X (__miscmansuffix__),
 .BR Xserver (__appmansuffix__),
-.BR __xservername__ (__appmansuffix__).
+.BR __xservername__ (__appmansuffix__),
+.BR cvt (__appmansuffix__),
+.BR gtf (__appmansuffix__).
 .PP
 .B Not all modules or interfaces are available on all platforms.
 .PP

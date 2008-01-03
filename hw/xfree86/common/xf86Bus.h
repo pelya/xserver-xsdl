@@ -132,7 +132,6 @@ extern int xf86NumEntities;
 extern xf86AccessRec AccessNULL;
 extern BusRec primaryBus;
 extern resPtr Acc;
-extern resPtr osRes;
 extern resPtr ResRange;
 extern BusAccPtr xf86BusAccInfo;
 

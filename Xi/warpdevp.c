@@ -46,7 +46,6 @@ from the author.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "extnsionst.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
@@ -83,13 +82,10 @@ ProcXWarpDevicePointer(ClientPtr client)
 
     /* FIXME: panoramix stuff is missing, look at ProcWarpPointer */
 
-    pDev = LookupDeviceIntRec(stuff->deviceid);
-    if (pDev == NULL) {
-        SendErrorToClient(client, IReqCode, X_WarpDevicePointer,
-                stuff->deviceid,
-                BadDevice);
-        return Success;
-    }
+    err = dixLookupDevice(&pDev, stuff->deviceid, client, DixWriteAccess);
+
+    if (err != Success)
+        return err;
 
     if (stuff->dst_win != None)
     {

@@ -60,7 +60,6 @@ SOFTWARE.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "exevents.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "setmmap.h"
@@ -99,9 +98,9 @@ ProcXSetDeviceModifierMapping(ClientPtr client)
     REQUEST(xSetDeviceModifierMappingReq);
     REQUEST_AT_LEAST_SIZE(xSetDeviceModifierMappingReq);
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetAttrAccess);
+    if (ret != Success)
+	return ret;
 
     rep.repType = X_Reply;
     rep.RepType = X_SetDeviceModifierMapping;

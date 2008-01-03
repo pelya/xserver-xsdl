@@ -48,10 +48,6 @@ from The Open Group.
 #define UINT32_MAX 0xffffffffU
 #endif
 
-#if 0
-static unsigned char XCMiscCode;
-#endif
-
 static void XCMiscResetProc(
     ExtensionEntry * /* extEntry */
 );
@@ -68,20 +64,9 @@ static DISPATCH_PROC(SProcXCMiscGetXIDRange);
 void
 XCMiscExtensionInit(INITARGS)
 {
-#if 0
-    ExtensionEntry *extEntry;
-
-    if ((extEntry = AddExtension(XCMiscExtensionName, 0, 0,
-				ProcXCMiscDispatch, SProcXCMiscDispatch,
-				XCMiscResetProc, StandardMinorOpcode)) != 0)
-	XCMiscCode = (unsigned char)extEntry->base;
-#else
-    (void) AddExtension(XCMiscExtensionName, 0, 0,
-			ProcXCMiscDispatch, SProcXCMiscDispatch,
-			XCMiscResetProc, StandardMinorOpcode);
-#endif
-
-    DeclareExtensionSecurity(XCMiscExtensionName, TRUE);
+    AddExtension(XCMiscExtensionName, 0, 0,
+		 ProcXCMiscDispatch, SProcXCMiscDispatch,
+		 XCMiscResetProc, StandardMinorOpcode);
 }
 
 /*ARGSUSED*/

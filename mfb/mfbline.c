@@ -146,7 +146,8 @@ mfbLineSS (pDrawable, pGC, mode, npt, pptInit)
 	return;
 
     cclip = pGC->pCompositeClip;
-    alu = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->rop;
+    alu = ((mfbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					 mfbGetGCPrivateKey()))->rop;
     pboxInit = REGION_RECTS(cclip);
     nboxInit = REGION_NUM_RECTS(cclip);
 
@@ -525,7 +526,8 @@ mfbLineSD( pDrawable, pGC, mode, npt, pptInit)
 	return;
 
     cclip = pGC->pCompositeClip;
-    fgrop = ((mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr))->rop;
+    fgrop = ((mfbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					   mfbGetGCPrivateKey()))->rop;
     pboxInit = REGION_RECTS(cclip);
     nboxInit = REGION_NUM_RECTS(cclip);
 

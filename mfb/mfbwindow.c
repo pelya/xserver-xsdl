@@ -55,6 +55,7 @@ SOFTWARE.
 #include <X11/X.h>
 #include "scrnintstr.h"
 #include "windowstr.h"
+#include "privates.h"
 #include "mfb.h"
 #include "mistruct.h"
 #include "regionstr.h"

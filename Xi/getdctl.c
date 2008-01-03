@@ -59,7 +59,6 @@ SOFTWARE.
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "getdctl.h"
@@ -238,7 +237,7 @@ SRepXGetDeviceControl(ClientPtr client, int size, xGetDeviceControlReply * rep)
 int
 ProcXGetDeviceControl(ClientPtr client)
 {
-    int total_length = 0;
+    int rc, total_length = 0;
     char *buf, *savbuf;
     DeviceIntPtr dev;
     xGetDeviceControlReply rep;
@@ -246,9 +245,9 @@ ProcXGetDeviceControl(ClientPtr client)
     REQUEST(xGetDeviceControlReq);
     REQUEST_SIZE_MATCH(xGetDeviceControlReq);
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
 
     rep.repType = X_Reply;
     rep.RepType = X_GetDeviceControl;
@@ -266,19 +265,19 @@ ProcXGetDeviceControl(ClientPtr client)
         if (!dev->absolute)
 	    return BadMatch;
 
-        total_length = sizeof(xDeviceAbsCalibCtl);
+        total_length = sizeof(xDeviceAbsCalibState);
         break;
     case DEVICE_ABS_AREA:
         if (!dev->absolute)
 	    return BadMatch;
 
-        total_length = sizeof(xDeviceAbsAreaCtl);
+        total_length = sizeof(xDeviceAbsAreaState);
         break;
     case DEVICE_CORE:
-        total_length = sizeof(xDeviceCoreCtl);
+        total_length = sizeof(xDeviceCoreState);
         break;
     case DEVICE_ENABLE:
-        total_length = sizeof(xDeviceEnableCtl);
+        total_length = sizeof(xDeviceEnableState);
         break;
     default:
 	return BadValue;

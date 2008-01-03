@@ -42,7 +42,6 @@ xorgcfg_LDADD = $(XORGCFG_DEP_LIBS) ../../parser/libxf86config.a $(LOADERLIB) \
 
 #if DoLoadableServer
 LDSRCS  = \
-	$(top_srcdir)/hw/xfree86/os-support/shared/libc_wrapper.c \
 	loader.c loadmod.c
 LOADERLIB = ../../loader/libloader.a
 #endif

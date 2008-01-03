@@ -59,7 +59,6 @@ SOFTWARE.
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "getbmap.h"
@@ -92,6 +91,7 @@ ProcXGetDeviceButtonMapping(ClientPtr client)
     DeviceIntPtr dev;
     xGetDeviceButtonMappingReply rep;
     ButtonClassPtr b;
+    int rc;
 
     REQUEST(xGetDeviceButtonMappingReq);
     REQUEST_SIZE_MATCH(xGetDeviceButtonMappingReq);
@@ -102,9 +102,9 @@ ProcXGetDeviceButtonMapping(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
 
     b = dev->button;
     if (b == NULL)

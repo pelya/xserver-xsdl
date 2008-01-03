@@ -38,7 +38,7 @@ from the author.
 
 int GEEventBase;
 int GEErrorBase;
-int GEClientPrivateIndex;
+DevPrivateKey GEClientPrivateKey = &GEClientPrivateKey;
 int GEEventType; /* The opcode for all GenericEvents will have. */
 
 
@@ -95,7 +95,6 @@ static int ProcGEQueryVersion(ClientPtr client)
         swaps(&rep.majorVersion, n);
         swaps(&rep.minorVersion, n);
     }
-
 
     WriteToClient(client, sizeof(xGEQueryVersionReply), (char*)&rep);
     return(client->noClientException);
@@ -166,6 +165,12 @@ static void GEClientCallback(CallbackListPtr *list,
     ClientPtr		pClient = clientinfo->client;
     GEClientInfoPtr     pGEClient = GEGetClient(pClient);
 
+    if (pGEClient == NULL)
+    {
+        pGEClient = xcalloc(1, sizeof(GEClientInfoRec));
+        dixSetPrivate(&pClient->devPrivates, GEClientPrivateKey, pGEClient);
+    }
+
     pGEClient->major_version = 0;
     pGEClient->minor_version = 0;
 }
@@ -200,17 +205,10 @@ SGEGenericEvent(xEvent* from, xEvent* to)
 }
 
 /* init extension, register at server */
-void 
+void
 GEExtensionInit(void)
 {
     ExtensionEntry *extEntry;
-
-    GEClientPrivateIndex = AllocateClientPrivateIndex(); 
-    if (!AllocateClientPrivate(GEClientPrivateIndex, 
-                               sizeof(GenericMaskRec)))
-    {
-        FatalError("GEExtensionInit: Alloc client private failed.\n");
-    }
 
     if(!AddCallback(&ClientStateCallback, GEClientCallback, 0))
     {
@@ -228,7 +226,7 @@ GEExtensionInit(void)
 
         memset(GEExtensions, 0, sizeof(GEExtensions));
 
-        EventSwapVector[X_GenericEvent] = (EventSwapPtr) SGEGenericEvent;
+        EventSwapVector[GenericEvent] = (EventSwapPtr) SGEGenericEvent;
     } else {
         FatalError("GEInit: AddExtensions failed.\n");
     }

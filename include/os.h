@@ -154,7 +154,7 @@ extern void AddEnabledDevice(int /*fd*/);
 
 extern void RemoveEnabledDevice(int /*fd*/);
 
-extern void OnlyListenToOneClient(ClientPtr /*client*/);
+extern int OnlyListenToOneClient(ClientPtr /*client*/);
 
 extern void ListenToAllClients(void);
 

@@ -598,7 +598,8 @@ winInitCursor (ScreenPtr pScreen)
   pScreenPriv->cursor.QueryBestSize = pScreen->QueryBestSize;
   pScreen->QueryBestSize = winCursorQueryBestSize;
   
-  pPointPriv = (miPointerScreenPtr) pScreen->devPrivates[miPointerScreenIndex].ptr;
+  pPointPriv = (miPointerScreenPtr)
+      dixLookupPrivate(&pScreen->devPrivates, miPointerScreenKey);
   
   pScreenPriv->cursor.spriteFuncs = pPointPriv->spriteFuncs;
   pPointPriv->spriteFuncs = &winSpriteFuncsRec;

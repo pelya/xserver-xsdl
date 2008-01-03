@@ -57,12 +57,6 @@ winAllocatePrivates (ScreenPtr pScreen)
   /* We need a new slot for our privates if the screen gen has changed */
   if (g_ulServerGeneration != serverGeneration)
     {
-      /* Get an index that we can store our privates at */
-      g_iScreenPrivateIndex = AllocateScreenPrivateIndex ();
-      g_iGCPrivateIndex = AllocateGCPrivateIndex ();
-      g_iPixmapPrivateIndex = AllocatePixmapPrivateIndex ();
-      g_iWindowPrivateIndex = AllocateWindowPrivateIndex ();
-
       g_ulServerGeneration = serverGeneration;
     }
 
@@ -84,24 +78,21 @@ winAllocatePrivates (ScreenPtr pScreen)
   winSetScreenPriv (pScreen, pScreenPriv);
 
   /* Reserve GC memory for our privates */
-  if (!AllocateGCPrivate (pScreen, g_iGCPrivateIndex,
-			  sizeof (winPrivGCRec)))
+  if (!dixRequestPrivate(g_iGCPrivateKey, sizeof (winPrivGCRec)))
     {
       ErrorF ("winAllocatePrivates - AllocateGCPrivate () failed\n");
       return FALSE;
     }
 
   /* Reserve Pixmap memory for our privates */
-  if (!AllocatePixmapPrivate (pScreen, g_iPixmapPrivateIndex,
-			      sizeof (winPrivPixmapRec)))
+  if (!dixRequestPrivate(g_iPixmapPrivateKey, sizeof (winPrivPixmapRec)))
     {
       ErrorF ("winAllocatePrivates - AllocatePixmapPrivates () failed\n");
       return FALSE;
     }
 
   /* Reserve Window memory for our privates */
-  if (!AllocateWindowPrivate (pScreen, g_iWindowPrivateIndex,
-			      sizeof (winPrivWinRec)))
+  if (!dixRequestPrivate(g_iWindowPrivateKey, sizeof (winPrivWinRec)))
     {
       ErrorF ("winAllocatePrivates () - AllocateWindowPrivates () failed\n");
        return FALSE;
@@ -155,9 +146,6 @@ winAllocateCmapPrivates (ColormapPtr pCmap)
   /* Get a new privates index when the server generation changes */
   if (s_ulPrivateGeneration != serverGeneration)
     {
-      /* Get an index that we can store our privates at */
-      g_iCmapPrivateIndex = AllocateColormapPrivateIndex (winInitCmapPrivates);
-      
       /* Save the new server generation */
       s_ulPrivateGeneration = serverGeneration;
     }

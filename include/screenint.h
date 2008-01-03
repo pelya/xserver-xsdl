@@ -55,28 +55,6 @@ typedef struct _Visual *VisualPtr;
 typedef struct _Depth  *DepthPtr;
 typedef struct _Screen *ScreenPtr;
 
-extern void ResetScreenPrivates(void);
-
-extern int AllocateScreenPrivateIndex(void);
-
-extern void ResetWindowPrivates(void);
-
-extern int AllocateWindowPrivateIndex(void);
-
-extern Bool AllocateWindowPrivate(
-    ScreenPtr /* pScreen */,
-    int /* index */,
-    unsigned /* amount */);
-
-extern void ResetGCPrivates(void);
-
-extern int AllocateGCPrivateIndex(void);
-
-extern Bool AllocateGCPrivate(
-    ScreenPtr /* pScreen */,
-    int /* index */,
-    unsigned /* amount */);
-
 extern int AddScreen(
     Bool (* /*pfnInit*/)(
 	int /*index*/,
@@ -86,22 +64,6 @@ extern int AddScreen(
     int /*argc*/,
     char** /*argv*/);
 
-extern void ResetPixmapPrivates(void);
-
-extern int AllocatePixmapPrivateIndex(void);
-
-extern Bool AllocatePixmapPrivate(
-    ScreenPtr /* pScreen */,
-    int /* index */,
-    unsigned /* amount */);
-
-extern void ResetColormapPrivates(void);
-
-
 typedef struct _ColormapRec *ColormapPtr;
-typedef int (*InitCmapPrivFunc)(ColormapPtr, int);
-
-extern int AllocateColormapPrivateIndex(
-    InitCmapPrivFunc /* initPrivFunc */);
 
 #endif /* SCREENINT_H */

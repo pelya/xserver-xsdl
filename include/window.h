@@ -87,9 +87,6 @@ extern int WalkTree(
     VisitWindowProcPtr /*func*/,
     pointer /*data*/);
 
-extern WindowPtr AllocateWindow(
-    ScreenPtr /*pScreen*/);
-
 extern Bool CreateRootWindow(
     ScreenPtr /*pScreen*/);
 
@@ -123,13 +120,13 @@ extern int DeleteWindow(
     pointer /*pWin*/,
     XID /*wid*/);
 
-extern void DestroySubwindows(
+extern int DestroySubwindows(
     WindowPtr /*pWin*/,
     ClientPtr /*client*/);
 
 /* Quartz support on Mac OS X uses the HIToolbox
    framework whose ChangeWindowAttributes function conflicts here. */
-#ifdef __DARWIN__
+#ifdef __APPLE__
 #define ChangeWindowAttributes Darwin_X_ChangeWindowAttributes
 #endif
 extern int ChangeWindowAttributes(
@@ -149,7 +146,7 @@ extern struct _Cursor* WindowGetDeviceCursor(
 
 /* Quartz support on Mac OS X uses the HIToolbox
    framework whose GetWindowAttributes function conflicts here. */
-#ifdef __DARWIN__
+#ifdef __APPLE__
 #define GetWindowAttributes(w,c,x) Darwin_X_GetWindowAttributes(w,c,x)
 extern void Darwin_X_GetWindowAttributes(
 #else
@@ -220,9 +217,14 @@ extern RegionPtr NotClippedByChildren(
 extern void SendVisibilityNotify(
     WindowPtr /*pWin*/);
 
-extern void SaveScreens(
-    int /*on*/,
-    int /*mode*/);
+extern int dixSaveScreens(
+    ClientPtr client,
+    int on,
+    int mode);
+
+extern int SaveScreens(
+    int on,
+    int mode);
 
 extern WindowPtr FindWindowWithOptional(
     WindowPtr /*w*/);

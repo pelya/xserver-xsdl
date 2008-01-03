@@ -59,6 +59,8 @@ SOFTWARE.
 #include "gcstruct.h"
 #include "scrnintstr.h"
 #include "dispatch.h"
+#include "privates.h"
+#include "registry.h"
 #include "xace.h"
 
 #define EXTENSION_BASE  128
@@ -71,39 +73,6 @@ static ExtensionEntry **extensions = (ExtensionEntry **)NULL;
 int lastEvent = EXTENSION_EVENT_BASE;
 static int lastError = FirstExtensionError;
 static unsigned int NumExtensions = 0;
-
-extern int extensionPrivateLen;
-extern unsigned *extensionPrivateSizes;
-extern unsigned totalExtensionSize;
-
-static void
-InitExtensionPrivates(ExtensionEntry *ext)
-{
-    char *ptr;
-    DevUnion *ppriv;
-    unsigned *sizes;
-    unsigned size;
-    int i;
-
-    if (totalExtensionSize == sizeof(ExtensionEntry))
-	ppriv = (DevUnion *)NULL;
-    else
-	ppriv = (DevUnion *)(ext + 1);
-
-    ext->devPrivates = ppriv;
-    sizes = extensionPrivateSizes;
-    ptr = (char *)(ppriv + extensionPrivateLen);
-    for (i = extensionPrivateLen; --i >= 0; ppriv++, sizes++)
-    {
-	if ( (size = *sizes) )
-	{
-	    ppriv->ptr = (pointer)ptr;
-	    ptr += size;
-	}
-	else
-	    ppriv->ptr = (pointer)NULL;
-    }
-}
 
 _X_EXPORT ExtensionEntry *
 AddExtension(char *name, int NumEvents, int NumErrors, 
@@ -121,14 +90,13 @@ AddExtension(char *name, int NumEvents, int NumErrors,
 	        (unsigned)(lastError + NumErrors > LAST_ERROR))
         return((ExtensionEntry *) NULL);
 
-    ext = (ExtensionEntry *) xalloc(totalExtensionSize);
+    ext = (ExtensionEntry *) xalloc(sizeof(ExtensionEntry));
     if (!ext)
 	return((ExtensionEntry *) NULL);
-    bzero(ext, totalExtensionSize);
-    InitExtensionPrivates(ext);
     ext->name = (char *)xalloc(strlen(name) + 1);
     ext->num_aliases = 0;
     ext->aliases = (char **)NULL;
+    ext->devPrivates = NULL;
     if (!ext->name)
     {
 	xfree(ext);
@@ -176,6 +144,7 @@ AddExtension(char *name, int NumEvents, int NumErrors,
         ext->errorLast = 0;
     }
 
+    RegisterExtensionNames(ext);
     return(ext);
 }
 
@@ -251,14 +220,6 @@ GetExtensionEntry(int major)
     return extensions[major];
 }
 
-_X_EXPORT void
-DeclareExtensionSecurity(char *extname, Bool secure)
-{
-    int i = FindExtension(extname, strlen(extname));
-    if (i >= 0)
-	XaceHook(XACE_DECLARE_EXT_SECURE, extensions[i], secure);
-}
-
 _X_EXPORT unsigned short
 StandardMinorOpcode(ClientPtr client)
 {
@@ -292,6 +253,7 @@ CloseDownExtensions(void)
 	for (j = extensions[i]->num_aliases; --j >= 0;)
 	    xfree(extensions[i]->aliases[j]);
 	xfree(extensions[i]->aliases);
+	dixFreePrivates(extensions[i]->devPrivates);
 	xfree(extensions[i]);
     }
     xfree(extensions);
@@ -319,7 +281,7 @@ ProcQueryExtension(ClientPtr client)
     else
     {
 	i = FindExtension((char *)&stuff[1], stuff->nbytes);
-        if (i < 0 || !XaceHook(XACE_EXT_ACCESS, client, extensions[i]))
+        if (i < 0 || XaceHook(XACE_EXT_ACCESS, client, extensions[i]))
             reply.present = xFalse;
         else
         {            
@@ -355,7 +317,7 @@ ProcListExtensions(ClientPtr client)
         for (i=0;  i<NumExtensions; i++)
 	{
 	    /* call callbacks to find out whether to show extension */
-	    if (!XaceHook(XACE_EXT_ACCESS, client, extensions[i]))
+	    if (XaceHook(XACE_EXT_ACCESS, client, extensions[i]) != Success)
 		continue;
 
 	    total_length += strlen(extensions[i]->name) + 1;
@@ -370,7 +332,7 @@ ProcListExtensions(ClientPtr client)
         for (i=0;  i<NumExtensions; i++)
         {
 	    int len;
-	    if (!XaceHook(XACE_EXT_ACCESS, client, extensions[i]))
+	    if (XaceHook(XACE_EXT_ACCESS, client, extensions[i]) != Success)
 		continue;
 
             *bufptr++ = len = strlen(extensions[i]->name);
@@ -392,17 +354,3 @@ ProcListExtensions(ClientPtr client)
     }
     return(client->noClientException);
 }
-
-#ifdef XSERVER_DTRACE
-void LoadExtensionNames(char **RequestNames) {
-    int i;
-
-    for (i=0; i<NumExtensions; i++) {
-	int r = extensions[i]->base;
-
-	if (RequestNames[r] == NULL) {
-	    RequestNames[r] = strdup(extensions[i]->name);
-	}
-    }
-}
-#endif

@@ -365,7 +365,7 @@ winTopLevelWindowProc (HWND hwnd, UINT message,
       ErrorF ("\thenght %08X\n", pWin->drawable.height);
       ErrorF ("\tpScreen %08X\n", pWin->drawable.pScreen);
       ErrorF ("\tserialNumber %08X\n", pWin->drawable.serialNumber);
-      ErrorF ("g_iWindowPrivateIndex %d\n", g_iWindowPrivateIndex);
+      ErrorF ("g_iWindowPrivateKey %p\n", g_iWindowPrivateKey);
       ErrorF ("pWinPriv %08X\n", pWinPriv);
       ErrorF ("s_pScreenPriv %08X\n", s_pScreenPriv);
       ErrorF ("s_pScreenInfo %08X\n", s_pScreenInfo);

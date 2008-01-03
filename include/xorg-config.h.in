@@ -57,9 +57,6 @@
 /* Solaris 8 or later? */
 #undef __SOL8__
 
-/* Whether to use pixmap privates */
-#undef PIXPRIV
-
 /* Define to 1 if you have the `walkcontext' function (used on Solaris for
    xorg_backtrace in hw/xfree86/common/xf86Events.c */
 #undef HAVE_WALKCONTEXT

@@ -104,6 +104,7 @@ mfbCreatePixmap (pScreen, width, height, depth, usage_hint)
     pPixmap->refcnt = 1;
     pPixmap->devPrivate.ptr =  datasize ?
 		(pointer)((char *)pPixmap + pScreen->totalPixmapSize) : NULL;
+    pPixmap->usage_hint = usage_hint;
     return pPixmap;
 }
 
@@ -114,6 +115,7 @@ mfbDestroyPixmap(pPixmap)
 {
     if(--pPixmap->refcnt)
 	return TRUE;
+    dixFreePrivates(pPixmap->devPrivates);
     xfree(pPixmap);
     return TRUE;
 }

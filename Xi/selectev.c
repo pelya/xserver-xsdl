@@ -61,7 +61,6 @@ SOFTWARE.
 #include "windowstr.h"	/* window structure  */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
@@ -164,7 +163,7 @@ ProcXSelectExtensionEvent(ClientPtr client)
     if (stuff->length != (sizeof(xSelectExtensionEventReq) >> 2) + stuff->count)
 	return BadLength;
 
-    ret = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    ret = dixLookupWindow(&pWin, stuff->window, client, DixReceiveAccess);
     if (ret != Success)
 	return ret;
 

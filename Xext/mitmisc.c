@@ -42,10 +42,6 @@ in this Software without prior written authorization from The Open Group.
 #include <X11/extensions/mitmiscstr.h>
 #include "modinit.h"
 
-#if 0
-static unsigned char MITReqCode;
-#endif
-
 static void MITResetProc(
     ExtensionEntry * /* extEntry */
 );
@@ -60,18 +56,9 @@ static DISPATCH_PROC(SProcMITSetBugMode);
 void
 MITMiscExtensionInit(INITARGS)
 {
-#if 0
-    ExtensionEntry *extEntry;
-
-    if ((extEntry = AddExtension(MITMISCNAME, 0, 0,
-				 ProcMITDispatch, SProcMITDispatch,
-				 MITResetProc, StandardMinorOpcode)) != 0)
-	MITReqCode = (unsigned char)extEntry->base;
-#else
-    (void) AddExtension(MITMISCNAME, 0, 0,
-			ProcMITDispatch, SProcMITDispatch,
-			MITResetProc, StandardMinorOpcode);
-#endif
+    AddExtension(MITMISCNAME, 0, 0,
+		 ProcMITDispatch, SProcMITDispatch,
+		 MITResetProc, StandardMinorOpcode);
 }
 
 /*ARGSUSED*/

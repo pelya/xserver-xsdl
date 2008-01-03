@@ -629,11 +629,11 @@ extern DWORD			g_dwEvents;
 #ifdef HAS_DEVWINDOWS
 extern int			g_fdMessageQueue;
 #endif
-extern int			g_iScreenPrivateIndex;
-extern int			g_iCmapPrivateIndex;
-extern int			g_iGCPrivateIndex;
-extern int			g_iPixmapPrivateIndex;
-extern int			g_iWindowPrivateIndex;
+extern DevPrivateKey		g_iScreenPrivateKey;
+extern DevPrivateKey		g_iCmapPrivateKey;
+extern DevPrivateKey		g_iGCPrivateKey;
+extern DevPrivateKey		g_iPixmapPrivateKey;
+extern DevPrivateKey		g_iWindowPrivateKey;
 extern unsigned long		g_ulServerGeneration;
 extern CARD32			g_c32LastInputEventTime;
 extern DWORD			g_dwEnginesSupported;
@@ -659,11 +659,11 @@ extern FARPROC			g_fpTrackMouseEvent;
  * Screen privates macros
  */
 
-#define winGetScreenPriv(pScreen) \
-	((winPrivScreenPtr) (pScreen)->devPrivates[g_iScreenPrivateIndex].ptr)
+#define winGetScreenPriv(pScreen) ((winPrivScreenPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, g_iScreenPrivateKey))
 
 #define winSetScreenPriv(pScreen,v) \
-	((pScreen)->devPrivates[g_iScreenPrivateIndex].ptr = (pointer) v)
+    dixSetPrivate(&(pScreen)->devPrivates, g_iScreenPrivateKey, v)
 
 #define winScreenPriv(pScreen) \
 	winPrivScreenPtr pScreenPriv = winGetScreenPriv(pScreen)
@@ -673,11 +673,11 @@ extern FARPROC			g_fpTrackMouseEvent;
  * Colormap privates macros
  */
 
-#define winGetCmapPriv(pCmap) \
-	((winPrivCmapPtr) (pCmap)->devPrivates[g_iCmapPrivateIndex].ptr)
+#define winGetCmapPriv(pCmap) ((winPrivCmapPtr) \
+    dixLookupPrivate(&(pCmap)->devPrivates, g_iCmapPrivateKey))
 
 #define winSetCmapPriv(pCmap,v) \
-	((pCmap)->devPrivates[g_iCmapPrivateIndex].ptr = (pointer) v)
+    dixSetPrivate(&(pCmap)->devPrivates, g_iCmapPrivateKey, v)
 
 #define winCmapPriv(pCmap) \
 	winPrivCmapPtr pCmapPriv = winGetCmapPriv(pCmap)
@@ -687,11 +687,11 @@ extern FARPROC			g_fpTrackMouseEvent;
  * GC privates macros
  */
 
-#define winGetGCPriv(pGC) \
-	((winPrivGCPtr) (pGC)->devPrivates[g_iGCPrivateIndex].ptr)
+#define winGetGCPriv(pGC) ((winPrivGCPtr) \
+    dixLookupPrivate(&(pGC)->devPrivates, g_iGCPrivateKey))
 
 #define winSetGCPriv(pGC,v) \
-	((pGC)->devPrivates[g_iGCPrivateIndex].ptr = (pointer) v)
+    dixSetPrivate(&(pGC)->devPrivates, g_iGCPrivateKey, v)
 
 #define winGCPriv(pGC) \
 	winPrivGCPtr pGCPriv = winGetGCPriv(pGC)
@@ -701,11 +701,11 @@ extern FARPROC			g_fpTrackMouseEvent;
  * Pixmap privates macros
  */
 
-#define winGetPixmapPriv(pPixmap) \
-	((winPrivPixmapPtr) (pPixmap)->devPrivates[g_iPixmapPrivateIndex].ptr)
+#define winGetPixmapPriv(pPixmap) ((winPrivPixmapPtr) \
+    dixLookupPrivate(&(pPixmap)->devPrivates, g_iPixmapPrivateKey))
 
 #define winSetPixmapPriv(pPixmap,v) \
-	((pPixmap)->devPrivates[g_iPixmapPrivateIndex].ptr = (pointer) v)
+    dixLookupPrivate(&(pPixmap)->devPrivates, g_iPixmapPrivateKey, v)
 
 #define winPixmapPriv(pPixmap) \
 	winPrivPixmapPtr pPixmapPriv = winGetPixmapPriv(pPixmap)
@@ -715,11 +715,11 @@ extern FARPROC			g_fpTrackMouseEvent;
  * Window privates macros
  */
 
-#define winGetWindowPriv(pWin) \
-	((winPrivWinPtr) (pWin)->devPrivates[g_iWindowPrivateIndex].ptr)
+#define winGetWindowPriv(pWin) ((winPrivWinPtr) \
+    dixLookupPrivate(&(pWin)->devPrivates, g_iWindowPrivateKey))
 
 #define winSetWindowPriv(pWin,v) \
-	((pWin)->devPrivates[g_iWindowPrivateIndex].ptr = (pointer) v)
+    dixLookupPrivate(&(pWin)->devPrivates, g_iWindowPrivateKey, v)
 
 #define winWindowPriv(pWin) \
 	winPrivWinPtr pWinPriv = winGetWindowPriv(pWin)

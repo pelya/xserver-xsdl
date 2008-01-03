@@ -42,9 +42,6 @@ from The Open Group.
 # include   "dixstruct.h"
 # include   <sys/types.h>
 # include   <sys/stat.h>
-#ifdef XCSECURITY
-# include   "securitysrv.h"
-#endif
 #ifdef WIN32
 #include    <X11/Xw32defs.h>
 #endif
@@ -87,14 +84,6 @@ static struct protocol   protocols[] = {
 #ifdef XCSECURITY
 		NULL
 #endif
-},
-#endif
-#ifdef XCSECURITY
-{   (unsigned short) XSecurityAuthorizationNameLen,
-	XSecurityAuthorizationName,
-		NULL, AuthSecurityCheck, NULL,
-		NULL, NULL, NULL,
-		NULL
 },
 #endif
 };
@@ -325,6 +314,20 @@ GenerateAuthorization(
     return -1;
 }
 
+#ifdef HAVE_URANDOM
+
+void
+GenerateRandomData (int len, char *buf)
+{
+    int fd;
+
+    fd = open("/dev/urandom", O_RDONLY);
+    read(fd, buf, len);
+    close(fd);
+}
+
+#else /* !HAVE_URANDOM */
+
 /* A random number generator that is more unpredictable
    than that shipped with some systems.
    This code is taken from the C standard. */
@@ -361,5 +364,7 @@ GenerateRandomData (int len, char *buf)
 
     /* XXX add getrusage, popen("ps -ale") */
 }
+
+#endif /* HAVE_URANDOM */
 
 #endif /* XCSECURITY */

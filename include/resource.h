@@ -48,6 +48,7 @@ SOFTWARE.
 #ifndef RESOURCE_H
 #define RESOURCE_H 1
 #include "misc.h"
+#include "dixaccess.h"
 
 /*****************************************************************
  * STUFF FOR RESOURCES 
@@ -71,9 +72,9 @@ typedef unsigned long RESTYPE;
 
 /* types for Resource routines */
 
-#define RT_WINDOW	((RESTYPE)1|RC_CACHED|RC_DRAWABLE)
-#define RT_PIXMAP	((RESTYPE)2|RC_CACHED|RC_DRAWABLE)
-#define RT_GC		((RESTYPE)3|RC_CACHED)
+#define RT_WINDOW	((RESTYPE)1|RC_DRAWABLE)
+#define RT_PIXMAP	((RESTYPE)2|RC_DRAWABLE)
+#define RT_GC		((RESTYPE)3)
 #undef RT_FONT
 #undef RT_CURSOR
 #define RT_FONT		((RESTYPE)4)
@@ -120,6 +121,19 @@ typedef unsigned long RESTYPE;
 
 #define BAD_RESOURCE 0xe0000000
 
+/* Resource state callback */
+extern CallbackListPtr ResourceStateCallback;
+
+typedef enum {ResourceStateAdding,
+	      ResourceStateFreeing} ResourceState;
+
+typedef struct {
+    ResourceState state;
+    XID id;
+    RESTYPE type;
+    pointer value;
+} ResourceStateInfoRec;
+
 typedef int (*DeleteType)(
     pointer /*value*/,
     XID /*id*/);
@@ -153,7 +167,7 @@ extern XID FakeClientID(
 
 /* Quartz support on Mac OS X uses the CarbonCore
    framework whose AddResource function conflicts here. */
-#ifdef __DARWIN__
+#ifdef __APPLE__
 #define AddResource Darwin_X_AddResource
 #endif
 extern Bool AddResource(
@@ -198,46 +212,18 @@ extern Bool LegalNewID(
     XID /*id*/,
     ClientPtr /*client*/);
 
-extern pointer LookupIDByType(
-    XID /*id*/,
-    RESTYPE /*rtype*/);
-
-extern pointer LookupIDByClass(
-    XID /*id*/,
-    RESTYPE /*classes*/);
-
 extern pointer LookupClientResourceComplex(
     ClientPtr client,
     RESTYPE type,
     FindComplexResType func,
     pointer cdata);
 
-/* These are the access modes that can be passed in the last parameter
- * to SecurityLookupIDByType/Class.  The Security extension doesn't
- * currently make much use of these; they're mainly provided as an
- * example of what you might need for discretionary access control.
- * You can or these values together to indicate multiple modes
- * simultaneously.
- */
-
-#define DixUnknownAccess	0	/* don't know intentions */
-#define DixReadAccess		(1<<0)	/* inspecting the object */
-#define DixWriteAccess		(1<<1)	/* changing the object */
-#define DixReadWriteAccess	(DixReadAccess|DixWriteAccess)
-#define DixDestroyAccess	(1<<2)	/* destroying the object */
-
-extern pointer SecurityLookupIDByType(
-    ClientPtr /*client*/,
-    XID /*id*/,
-    RESTYPE /*rtype*/,
-    Mask /*access_mode*/);
-
-extern pointer SecurityLookupIDByClass(
-    ClientPtr /*client*/,
-    XID /*id*/,
-    RESTYPE /*classes*/,
-    Mask /*access_mode*/);
-
+extern int dixLookupResource(
+    pointer *result,
+    XID id,
+    RESTYPE rtype,
+    ClientPtr client,
+    Mask access_mode);
 
 extern void GetXIDRange(
     int /*client*/,
@@ -253,10 +239,34 @@ extern unsigned int GetXIDList(
 extern RESTYPE lastResourceType;
 extern RESTYPE TypeMask;
 
-#ifdef XResExtension
-extern Atom *ResourceNames;
-void RegisterResourceName(RESTYPE type, char* name);
-#endif
+/*
+ * These are deprecated compatibility functions and will be removed soon!
+ * Please use the noted replacements instead.
+ */
+
+/* replaced by dixLookupResource */
+extern pointer SecurityLookupIDByType(
+    ClientPtr client,
+    XID id,
+    RESTYPE rtype,
+    Mask access_mode);
+
+/* replaced by dixLookupResource */
+extern pointer SecurityLookupIDByClass(
+    ClientPtr client,
+    XID id,
+    RESTYPE classes,
+    Mask access_mode);
+
+/* replaced by dixLookupResource */
+extern pointer LookupIDByType(
+    XID id,
+    RESTYPE rtype);
+
+/* replaced by dixLookupResource */
+extern pointer LookupIDByClass(
+    XID id,
+    RESTYPE classes);
 
 #endif /* RESOURCE_H */
 

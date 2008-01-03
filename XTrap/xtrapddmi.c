@@ -52,7 +52,7 @@ SOFTWARE.
 #define NEED_REPLIES
 #define NEED_EVENTS
 #include <X11/X.h>        /* From library include environment */
-#include "input.h"    /* From server include env. (must be before Xlib.h!) */
+#include "inputstr.h"    /* From server include env. (must be before Xlib.h!) */
 #ifdef PC
 # include "scrintst.h"          /* Screen struct */
 # include "extnsist.h"

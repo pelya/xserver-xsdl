@@ -86,10 +86,8 @@ typedef struct {
     int depth;
 } xaaWrapperScrPrivRec, *xaaWrapperScrPrivPtr;
 
-#define xaaWrapperGetScrPriv(s)	((xaaWrapperScrPrivPtr)( \
-				 (xaaWrapperScrPrivateIndex != -1) \
-                          ? (s)->devPrivates[xaaWrapperScrPrivateIndex].ptr\
-				: NULL))
+#define xaaWrapperGetScrPriv(s)	((xaaWrapperScrPrivPtr) \
+    dixLookupPrivate(&(s)->devPrivates, xaaWrapperScrPrivateKey))
 #define xaaWrapperScrPriv(s)     xaaWrapperScrPrivPtr pScrPriv = xaaWrapperGetScrPriv(s)
 
 #define wrap(priv,real,mem,func) {\
@@ -127,13 +125,12 @@ typedef struct _xaaWrapperGCPriv {
 } xaaWrapperGCPrivRec, *xaaWrapperGCPrivPtr;
 
 #define xaaWrapperGetGCPriv(pGC) ((xaaWrapperGCPrivPtr) \
-				      (pGC)->devPrivates[xaaWrapperGCPrivateIndex].ptr)
+    dixLookupPrivate(&(pGC)->devPrivates, xaaWrapperGCPrivateKey))
 #define xaaWrapperGCPriv(pGC)   xaaWrapperGCPrivPtr  pGCPriv = xaaWrapperGetGCPriv(pGC)
 
 
-static int xaaWrapperScrPrivateIndex = -1;
-static int xaaWrapperGCPrivateIndex = -1;
-static int xaaWrapperGeneration = -1;
+static DevPrivateKey xaaWrapperScrPrivateKey = &xaaWrapperScrPrivateKey;
+static DevPrivateKey xaaWrapperGCPrivateKey = &xaaWrapperGCPrivateKey;
 
 static Bool
 xaaWrapperCreateScreenResources(ScreenPtr pScreen)
@@ -274,18 +271,8 @@ xaaSetupWrapper(ScreenPtr pScreen, XAAInfoRecPtr infoPtr, int depth, SyncFunc *f
 #ifdef RENDER
     PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
 #endif
-    if (xaaWrapperGeneration != serverGeneration) {
-	xaaWrapperScrPrivateIndex = AllocateScreenPrivateIndex ();
-	if (xaaWrapperScrPrivateIndex == -1)
-	    return FALSE;
-	xaaWrapperGCPrivateIndex = AllocateGCPrivateIndex ();
-	if (xaaWrapperGCPrivateIndex == -1)
-	    return FALSE;
-	xaaWrapperGeneration = serverGeneration;
-    }
 
-    if (!AllocateGCPrivate (pScreen, xaaWrapperGCPrivateIndex,
-			    sizeof (xaaWrapperGCPrivRec)))
+    if (!dixRequestPrivate(xaaWrapperGCPrivateKey, sizeof(xaaWrapperGCPrivRec)))
 	return FALSE;
 
     pScrPriv = (xaaWrapperScrPrivPtr) xalloc (sizeof (xaaWrapperScrPrivRec));
@@ -335,7 +322,7 @@ xaaSetupWrapper(ScreenPtr pScreen, XAAInfoRecPtr infoPtr, int depth, SyncFunc *f
     }
 #endif
     pScrPriv->depth = depth;
-    pScreen->devPrivates[xaaWrapperScrPrivateIndex].ptr = (pointer) pScrPriv;
+    dixSetPrivate(&pScreen->devPrivates, xaaWrapperScrPrivateKey, pScrPriv);
 
     *func = XAASync;
     
@@ -486,8 +473,8 @@ xaaWrapperGlyphs (CARD8 op, PicturePtr pSrc, PicturePtr pDst,
 void
 XAASync(ScreenPtr pScreen)
 {
-    XAAScreenPtr pScreenPriv = 
-	(XAAScreenPtr) pScreen->devPrivates[XAAGetScreenIndex()].ptr;
+    XAAScreenPtr pScreenPriv = (XAAScreenPtr)
+	dixLookupPrivate(&pScreen->devPrivates, XAAGetScreenKey());
     XAAInfoRecPtr infoRec = pScreenPriv->AccelInfoRec;
 
     if(infoRec->NeedToSync) {

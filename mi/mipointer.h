@@ -28,6 +28,7 @@ in this Software without prior written authorization from The Open Group.
 
 #include "cursor.h"
 #include "input.h"
+#include "privates.h"
 
 typedef struct _miPointerSpriteFuncRec {
     Bool	(*RealizeCursor)(
@@ -185,6 +186,6 @@ extern void miPointerSetPosition(
 extern void miPointerUpdateSprite(
     DeviceIntPtr pDev);
 
-extern int miPointerScreenIndex;
+extern DevPrivateKey miPointerScreenKey;
 
 #endif /* MIPOINTER_H */

@@ -63,8 +63,8 @@ SOFTWARE.
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
 #include "extnsionst.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"	/* FIXME */
+#include "xace.h"
 
 #include "listdev.h"
 
@@ -319,7 +319,7 @@ ProcXListInputDevices(ClientPtr client)
     xListInputDevicesReply rep;
     int numdevs = 0;
     int namesize = 1;	/* need 1 extra byte for strcpy */
-    int size = 0;
+    int rc, size = 0;
     int total_length;
     char *devbuf;
     char *classbuf;
@@ -338,10 +338,16 @@ ProcXListInputDevices(ClientPtr client)
     AddOtherInputDevices();
 
     for (d = inputInfo.devices; d; d = d->next) {
+	rc = XaceHook(XACE_DEVICE_ACCESS, client, d, DixGetAttrAccess);
+	if (rc != Success)
+	    return rc;
 	SizeDeviceInfo(d, &namesize, &size);
         numdevs++;
     }
     for (d = inputInfo.off_devices; d; d = d->next) {
+	rc = XaceHook(XACE_DEVICE_ACCESS, client, d, DixGetAttrAccess);
+	if (rc != Success)
+	    return rc;
 	SizeDeviceInfo(d, &namesize, &size);
         numdevs++;
     }

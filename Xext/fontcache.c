@@ -67,10 +67,6 @@ static DISPATCH_PROC(SProcFontCacheGetCacheStatistics);
 static DISPATCH_PROC(SProcFontCacheQueryVersion);
 static DISPATCH_PROC(SProcFontCacheChangeCacheSettings);
 
-#if 0
-static unsigned char FontCacheReqCode = 0;
-#endif
-
 void
 FontCacheExtensionInit(INITARGS)
 {
@@ -84,9 +80,6 @@ FontCacheExtensionInit(INITARGS)
 				SProcFontCacheDispatch,
 				FontCacheResetProc,
 				StandardMinorOpcode))) {
-#if 0
-	FontCacheReqCode = (unsigned char)extEntry->base;
-#endif
 	miscErrorBase = extEntry->errorBase;
     }
 }

@@ -20,91 +20,110 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _XACESTR_H
 #define _XACESTR_H
 
-#include <X11/Xdefs.h>
 #include "dixstruct.h"
 #include "resource.h"
 #include "extnsionst.h"
 #include "gcstruct.h"
 #include "windowstr.h"
 #include "inputstr.h"
+#include "propertyst.h"
+#include "selection.h"
 #include "xace.h"
 
 /* XACE_CORE_DISPATCH */
 typedef struct {
     ClientPtr client;
-    int rval;
+    int status;
 } XaceCoreDispatchRec;
 
 /* XACE_RESOURCE_ACCESS */
-/* XACE_RESOURCE_CREATE */
 typedef struct {
     ClientPtr client;
     XID id;
     RESTYPE rtype;
-    Mask access_mode;
     pointer res;
-    int rval;
+    RESTYPE ptype;
+    pointer parent;
+    Mask access_mode;
+    int status;
 } XaceResourceAccessRec;
 
 /* XACE_DEVICE_ACCESS */
 typedef struct {
     ClientPtr client;
     DeviceIntPtr dev;
-    Bool fromRequest;
-    int rval;
+    Mask access_mode;
+    int status;
 } XaceDeviceAccessRec;
 
 /* XACE_PROPERTY_ACCESS */
 typedef struct {
     ClientPtr client;
     WindowPtr pWin;
-    Atom propertyName;
+    PropertyPtr pProp;
     Mask access_mode;
-    int rval;
+    int status;
 } XacePropertyAccessRec;
 
-/* XACE_DRAWABLE_ACCESS */
+/* XACE_SEND_ACCESS */
 typedef struct {
     ClientPtr client;
-    DrawablePtr pDraw;
-    int rval;
-} XaceDrawableAccessRec;
+    DeviceIntPtr dev;
+    WindowPtr pWin;
+    xEventPtr events;
+    int count;
+    int status;
+} XaceSendAccessRec;
 
-/* XACE_MAP_ACCESS */
-/* XACE_BACKGRND_ACCESS */
+/* XACE_RECEIVE_ACCESS */
 typedef struct {
     ClientPtr client;
     WindowPtr pWin;
-    int rval;
-} XaceMapAccessRec;
+    xEventPtr events;
+    int count;
+    int status;
+} XaceReceiveAccessRec;
 
-/* XACE_EXT_DISPATCH_ACCESS */
+/* XACE_CLIENT_ACCESS */
+typedef struct {
+    ClientPtr client;
+    ClientPtr target;
+    Mask access_mode;
+    int status;
+} XaceClientAccessRec;
+
+/* XACE_EXT_DISPATCH */
 /* XACE_EXT_ACCESS */
 typedef struct {
     ClientPtr client;
     ExtensionEntry *ext;
-    int rval;
+    Mask access_mode;
+    int status;
 } XaceExtAccessRec;
 
-/* XACE_HOSTLIST_ACCESS */
+/* XACE_SERVER_ACCESS */
 typedef struct {
     ClientPtr client;
     Mask access_mode;
-    int rval;
-} XaceHostlistAccessRec;
+    int status;
+} XaceServerAccessRec;
 
-/* XACE_SITE_POLICY */
+/* XACE_SELECTION_ACCESS */
 typedef struct {
-    char *policyString;
-    int len;
-    int rval;
-} XaceSitePolicyRec;
+    ClientPtr client;
+    Atom name;
+    Mask access_mode;
+    int status;
+} XaceSelectionAccessRec;
 
-/* XACE_DECLARE_EXT_SECURE */
+/* XACE_SCREEN_ACCESS */
+/* XACE_SCREENSAVER_ACCESS */
 typedef struct {
-    ExtensionEntry *ext;
-    Bool secure;
-} XaceDeclareExtSecureRec;
+    ClientPtr client;
+    ScreenPtr screen;
+    Mask access_mode;
+    int status;
+} XaceScreenAccessRec;
 
 /* XACE_AUTH_AVAIL */
 typedef struct {
@@ -118,12 +137,6 @@ typedef struct {
     DeviceIntPtr keybd;
     int count;
 } XaceKeyAvailRec;
-
-/* XACE_WINDOW_INIT */
-typedef struct {
-    ClientPtr client;
-    WindowPtr pWin;
-} XaceWindowRec;
 
 /* XACE_AUDIT_BEGIN */
 /* XACE_AUDIT_END */

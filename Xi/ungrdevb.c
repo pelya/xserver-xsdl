@@ -60,7 +60,6 @@ SOFTWARE.
 #include "windowstr.h"	/* window structure  */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 #include "dixgrabs.h"
 
@@ -107,22 +106,23 @@ ProcXUngrabDeviceButton(ClientPtr client)
     REQUEST(xUngrabDeviceButtonReq);
     REQUEST_SIZE_MATCH(xUngrabDeviceButtonReq);
 
-    dev = LookupDeviceIntRec(stuff->grabbed_device);
-    if (dev == NULL)
-	return BadDevice;
+    rc = dixLookupDevice(&dev, stuff->grabbed_device, client, DixGrabAccess);
+    if (rc != Success)
+	return rc;
     if (dev->button == NULL)
 	return BadMatch;
 
     if (stuff->modifier_device != UseXKeyboard) {
-	mdev = LookupDeviceIntRec(stuff->modifier_device);
-	if (mdev == NULL)
+	rc = dixLookupDevice(&mdev, stuff->modifier_device, client,
+			     DixReadAccess);
+	if (rc != Success)
 	    return BadDevice;
 	if (mdev->key == NULL)
 	    return BadMatch;
     } else
 	mdev = PickKeyboard(client);
 
-    rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixUnknownAccess);
+    rc = dixLookupWindow(&pWin, stuff->grabWindow, client, DixSetAttrAccess);
     if (rc != Success)
 	return rc;
 

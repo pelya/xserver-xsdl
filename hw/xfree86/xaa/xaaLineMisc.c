@@ -64,7 +64,8 @@ void
 XAAComputeDash(GCPtr pGC)
 {
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_GC(pGC);
-    XAAGCPtr   pGCPriv = (XAAGCPtr) (pGC)->devPrivates[XAAGetGCIndex()].ptr;
+    XAAGCPtr   pGCPriv = (XAAGCPtr)dixLookupPrivate(&pGC->devPrivates,
+						    XAAGetGCKey());
     Bool EvenDash = (pGC->numInDashList & 0x01) ? FALSE : TRUE;
     int PatternLength = 0;
     unsigned char* DashPtr = (unsigned char*)pGC->dash;

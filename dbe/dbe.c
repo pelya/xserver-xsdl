@@ -54,22 +54,20 @@
 #define NEED_DBE_PROTOCOL
 #include "dbestruct.h"
 #include "midbe.h"
+#include "xace.h"
 
 /* GLOBALS */
 
 /* Per-screen initialization functions [init'ed by DbeRegisterFunction()] */
-static Bool	(* DbeInitFunct[MAXSCREENS])();	/* pScreen, pDbeScreenPriv */
+static Bool (* DbeInitFunct[MAXSCREENS])();	/* pScreen, pDbeScreenPriv */
 
 /* These are static globals copied to DBE's screen private for use by DDX */
-static int	dbeScreenPrivIndex;
-static int	dbeWindowPrivIndex;
+static DevPrivateKey dbeScreenPrivKey = &dbeScreenPrivKey;
+static DevPrivateKey dbeWindowPrivKey = &dbeWindowPrivKey;
 
 /* These are static globals copied to DBE's screen private for use by DDX */
 static RESTYPE	dbeDrawableResType;
 static RESTYPE	dbeWindowPrivResType;
-
-/* This global is used by DbeAllocWinPrivPrivIndex() */
-static int	winPrivPrivCount = 0;
 
 /* Used to generate DBE's BadBuffer error. */
 static int	dbeErrorBase;
@@ -115,146 +113,6 @@ DbeRegisterFunction(ScreenPtr pScreen, Bool (*funct) (/* ??? */))
 
 /******************************************************************************
  *
- * DBE DIX Procedure: DbeAllocWinPriv
- *
- * Description:
- *
- *     This function was cloned from AllocateWindow() in window.c.
- *     This function allocates a window priv structure to be associated 
- *     with a double-buffered window.
- *
- *****************************************************************************/
-static DbeWindowPrivPtr
-DbeAllocWinPriv(ScreenPtr pScreen)
-{
-    DbeWindowPrivPtr		pDbeWindowPriv;
-    DbeScreenPrivPtr		pDbeScreenPriv;
-    register char		*ptr;
-    register DevUnion		*ppriv;
-    register unsigned int	*sizes;
-    register unsigned int	size;
-    register int		i;
-
-    pDbeScreenPriv = DBE_SCREEN_PRIV(pScreen);
-    pDbeWindowPriv = (DbeWindowPrivPtr)xalloc(pDbeScreenPriv->totalWinPrivSize);
-
-    if (pDbeWindowPriv)
-    {
-        ppriv = (DevUnion *)(pDbeWindowPriv + 1);
-        pDbeWindowPriv->devPrivates = ppriv;
-        sizes = pDbeScreenPriv->winPrivPrivSizes;
-        ptr = (char *)(ppriv + pDbeScreenPriv->winPrivPrivLen);
-        for (i = pDbeScreenPriv->winPrivPrivLen; --i >= 0; ppriv++, sizes++)
-        {
-            if ((size = *sizes))
-            {
-                ppriv->ptr = (pointer)ptr;
-                ptr += size;
-            }
-            else
-                ppriv->ptr = (pointer)NULL;
-        }
-    }
-
-    return(pDbeWindowPriv);
-
-} /* DbeAllocWinPriv() */
-
-
-/******************************************************************************
- *
- * DBE DIX Procedure: DbeFallbackAllocWinPriv
- *
- * Description:
- *
- *     This is a fallback function for AllocWinPriv().
- *
- *****************************************************************************/
-
-#if 0 /* NOT USED */
-static DbeWindowPrivPtr
-DbeFallbackAllocWinPriv(pScreen)
-    ScreenPtr	pScreen;
-{
-    return (NULL);
-} /* DbeFallbackAllocWinPriv() */
-#endif
-
-
-/******************************************************************************
- *
- * DBE DIX Procedure: DbeAllocWinPrivPrivIndex
- *
- * Description:
- *
- *     This function was cloned from AllocateWindowPrivateIndex() in window.c.
- *     This function allocates a new window priv priv index by simply returning
- *     an incremented private counter.
- *
- *****************************************************************************/
-
-static int
-DbeAllocWinPrivPrivIndex(void)
-{
-    return winPrivPrivCount++;
-
-} /* DbeAllocWinPrivPrivIndex() */
-
-
-/******************************************************************************
- *
- * DBE DIX Procedure: DbeAllocWinPrivPriv
- *
- * Description:
- *
- *     This function was cloned from AllocateWindowPrivate() in privates.c.
- *     This function allocates a private structure to be hung off
- *     a window private.
- *
- *****************************************************************************/
-
-static Bool
-DbeAllocWinPrivPriv(register ScreenPtr pScreen, int index, unsigned int amount)
-{
-    DbeScreenPrivPtr	pDbeScreenPriv;
-    unsigned int	oldamount;
-
-
-    pDbeScreenPriv = DBE_SCREEN_PRIV(pScreen);
-
-    if (index >= pDbeScreenPriv->winPrivPrivLen)
-    {
-	unsigned *nsizes;
-	nsizes = (unsigned *)xrealloc(pDbeScreenPriv->winPrivPrivSizes,
-				      (index + 1) * sizeof(unsigned));
-	if (!nsizes)
-        {
-	    return(FALSE);
-        }
-
-	while (pDbeScreenPriv->winPrivPrivLen <= index)
-	{
-	    nsizes[pDbeScreenPriv->winPrivPrivLen++] = 0;
-	    pDbeScreenPriv->totalWinPrivSize += sizeof(DevUnion);
-	}
-
-	pDbeScreenPriv->winPrivPrivSizes = nsizes;
-    }
-
-    oldamount = pDbeScreenPriv->winPrivPrivSizes[index];
-
-    if (amount > oldamount)
-    {
-	pDbeScreenPriv->winPrivPrivSizes[index] = amount;
-	pDbeScreenPriv->totalWinPrivSize += (amount - oldamount);
-    }
-    return(TRUE);
-
-} /* DbeAllocWinPrivPriv() */
-
-
-/******************************************************************************
- *
  * DBE DIX Procedure: DbeStubScreen
  *
  * Description:
@@ -269,9 +127,6 @@ DbeStubScreen(DbeScreenPrivPtr pDbeScreenPriv, int *nStubbedScreens)
 {
     /* Stub DIX. */
     pDbeScreenPriv->SetupBackgroundPainter = NULL;
-    pDbeScreenPriv->AllocWinPriv           = NULL;
-    pDbeScreenPriv->AllocWinPrivPrivIndex  = NULL;
-    pDbeScreenPriv->AllocWinPrivPriv       = NULL;
 
     /* Do not unwrap PositionWindow nor DestroyWindow.  If the DDX
      * initialization function failed, we assume that it did not wrap
@@ -379,7 +234,7 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
     REQUEST_SIZE_MATCH(xDbeAllocateBackBufferNameReq);
 
     /* The window must be valid. */
-    status = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    status = dixLookupWindow(&pWin, stuff->window, client, DixManageAccess);
     if (status != Success)
 	return status;
 
@@ -439,11 +294,10 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
          * Allocate a window priv.
          */
 
-        if (!(pDbeWindowPriv =
-            (*pDbeScreenPriv->AllocWinPriv)(pWin->drawable.pScreen)))
-        {
+        pDbeWindowPriv = (DbeWindowPrivPtr)xalloc(sizeof(DbeWindowPrivRec));
+	if (!pDbeWindowPriv)
             return(BadAlloc);
-        }
+	bzero(pDbeWindowPriv, sizeof(DbeWindowPrivRec));
 
         /* Make the window priv a DBE window priv resource. */
         if (!AddResource(stuff->buffer, dbeWindowPrivResType,
@@ -474,7 +328,7 @@ ProcDbeAllocateBackBufferName(ClientPtr client)
 
 
         /* Actually connect the window priv to the window. */
-        pWin->devPrivates[dbeWindowPrivIndex].ptr = (pointer)pDbeWindowPriv;
+	dixSetPrivate(&pWin->devPrivates, dbeWindowPrivKey, pDbeWindowPriv);
 
     } /* if -- There is no buffer associated with the window. */
 
@@ -867,7 +721,7 @@ ProcDbeGetVisualInfo(ClientPtr client)
         for (i = 0; i < stuff->n; i++)
         {
 	    rc = dixLookupDrawable(pDrawables+i, drawables[i], client, 0,
-				   DixReadAccess);
+				   DixGetAttrAccess);
 	    if (rc != Success) {
                 Xfree(pDrawables);
                 return rc;
@@ -895,7 +749,9 @@ ProcDbeGetVisualInfo(ClientPtr client)
                                     pDrawables[i]->pScreen;
         pDbeScreenPriv = DBE_SCREEN_PRIV(pScreen);
 
-        if (!(*pDbeScreenPriv->GetVisualInfo)(pScreen, &pScrVisInfo[i]))
+	rc = XaceHook(XACE_SCREEN_ACCESS, client, pScreen, DixGetAttrAccess);
+	if ((rc != Success) ||
+	    !(*pDbeScreenPriv->GetVisualInfo)(pScreen, &pScrVisInfo[i]))
         {
             /* We failed to alloc pScrVisInfo[i].visinfo. */
 
@@ -911,7 +767,7 @@ ProcDbeGetVisualInfo(ClientPtr client)
                 Xfree(pDrawables);
             }
 
-            return(BadAlloc);
+            return (rc == Success) ? BadAlloc : rc;
         }
 
         /* Account for n, number of xDbeVisInfo items in list. */
@@ -1024,7 +880,7 @@ ProcDbeGetBackBufferAttributes(ClientPtr client)
     REQUEST_SIZE_MATCH(xDbeGetBackBufferAttributesReq);
 
     if (!(pDbeWindowPriv = (DbeWindowPrivPtr)SecurityLookupIDByType(client,
-		stuff->buffer, dbeWindowPrivResType, DixReadAccess)))
+		stuff->buffer, dbeWindowPrivResType, DixGetAttrAccess)))
     {
         rep.attributes = None;
     }
@@ -1592,10 +1448,11 @@ DbeWindowPrivDelete(pointer pDbeWinPriv, XID id)
     if (pDbeWindowPriv->nBufferIDs == 0)
     {
         /* Reset the DBE window priv pointer. */
-        pDbeWindowPriv->pWindow->devPrivates[dbeWindowPrivIndex].ptr =
-            (pointer)NULL;
+	dixSetPrivate(&pDbeWindowPriv->pWindow->devPrivates, dbeWindowPrivKey,
+		      NULL);
 
         /* We are done with the window priv. */
+	dixFreePrivates(pDbeWindowPriv->devPrivates);
         xfree(pDbeWindowPriv);
     }
 
@@ -1622,12 +1479,6 @@ DbeResetProc(ExtensionEntry *extEntry)
     ScreenPtr		pScreen;
     DbeScreenPrivPtr	pDbeScreenPriv;
     
-
-    if (dbeScreenPrivIndex < 0)
-    {
-	return;
-    }
-
     for (i = 0; i < screenInfo.numScreens; i++)
     {
 	pScreen = screenInfo.screens[i];
@@ -1641,11 +1492,7 @@ DbeResetProc(ExtensionEntry *extEntry)
 	    if (pDbeScreenPriv->ResetProc)
 		(*pDbeScreenPriv->ResetProc)(pScreen);
 
-            if (pDbeScreenPriv->winPrivPrivSizes)
-            {
-	        xfree(pDbeScreenPriv->winPrivPrivSizes);
-            }
-
+	    dixFreePrivates(pDbeScreenPriv->devPrivates);
 	    xfree(pDbeScreenPriv);
 	}
     }
@@ -1766,26 +1613,14 @@ DbeExtensionInit(void)
     if(!noPanoramiXExtension) return;
 #endif
 
-    /* Allocate private pointers in windows and screens. */
-
-    if ((dbeScreenPrivIndex = AllocateScreenPrivateIndex()) < 0)
-    {
-	return;
-    }
-
-    if ((dbeWindowPrivIndex = AllocateWindowPrivateIndex()) < 0)
-    {
-	return;
-    }
-
-    /* Initialize the priv priv counts between server generations. */
-    winPrivPrivCount  = 0;
-
     /* Create the resource types. */
     dbeDrawableResType =
-        CreateNewResourceType(DbeDrawableDelete) | RC_CACHED | RC_DRAWABLE;
+        CreateNewResourceType(DbeDrawableDelete) | RC_DRAWABLE;
     dbeWindowPrivResType =
         CreateNewResourceType(DbeWindowPrivDelete);
+    if (!dixRegisterPrivateOffset(dbeDrawableResType,
+				  offsetof(PixmapRec, devPrivates)))
+	return;
 
     for (i = 0; i < screenInfo.numScreens; i++)
     {
@@ -1795,8 +1630,7 @@ DbeExtensionInit(void)
 
 	pScreen = screenInfo.screens[i];
 
-	if (!AllocateWindowPrivate(pScreen, dbeWindowPrivIndex, 0) ||
-	    !(pDbeScreenPriv =
+	if (!(pDbeScreenPriv =
              (DbeScreenPrivPtr)Xcalloc(sizeof(DbeScreenPrivRec))))
 	{
             /* If we can not alloc a window or screen private,
@@ -1805,28 +1639,23 @@ DbeExtensionInit(void)
 
 	    for (j = 0; j < i; j++)
 	    {
-	      xfree(screenInfo.screens[j]->devPrivates[dbeScreenPrivIndex].ptr);
-              screenInfo.screens[j]->devPrivates[dbeScreenPrivIndex].ptr = NULL;
+		xfree(dixLookupPrivate(&screenInfo.screens[j]->devPrivates,
+				       dbeScreenPrivKey));
+		dixSetPrivate(&screenInfo.screens[j]->devPrivates,
+			      dbeScreenPrivKey, NULL);
 	    }
 	    return;
 	}
 
-	pScreen->devPrivates[dbeScreenPrivIndex].ptr = (pointer)pDbeScreenPriv;
-
-        /* Store the DBE priv priv size info for later use when allocating
-         * priv privs at the driver level.
-         */
-        pDbeScreenPriv->winPrivPrivLen   = 0;
-        pDbeScreenPriv->winPrivPrivSizes = (unsigned *)NULL;
-        pDbeScreenPriv->totalWinPrivSize = sizeof(DbeWindowPrivRec);
+	dixSetPrivate(&pScreen->devPrivates, dbeScreenPrivKey, pDbeScreenPriv);
 
         /* Copy the resource types */
         pDbeScreenPriv->dbeDrawableResType   = dbeDrawableResType;
         pDbeScreenPriv->dbeWindowPrivResType = dbeWindowPrivResType;
 
         /* Copy the private indices */
-        pDbeScreenPriv->dbeScreenPrivIndex = dbeScreenPrivIndex;
-        pDbeScreenPriv->dbeWindowPrivIndex = dbeWindowPrivIndex;
+        pDbeScreenPriv->dbeScreenPrivKey = dbeScreenPrivKey;
+        pDbeScreenPriv->dbeWindowPrivKey = dbeWindowPrivKey;
 
         if(DbeInitFunct[i])
         {
@@ -1834,9 +1663,6 @@ DbeExtensionInit(void)
 
             /* Setup DIX. */
             pDbeScreenPriv->SetupBackgroundPainter = DbeSetupBackgroundPainter; 
-            pDbeScreenPriv->AllocWinPriv           = DbeAllocWinPriv;
-            pDbeScreenPriv->AllocWinPrivPrivIndex  = DbeAllocWinPrivPrivIndex;
-            pDbeScreenPriv->AllocWinPrivPriv       = DbeAllocWinPrivPriv;
 
             /* Setup DDX. */
             ddxInitSuccess = (*DbeInitFunct[i])(pScreen, pDbeScreenPriv);
@@ -1868,9 +1694,6 @@ DbeExtensionInit(void)
 #ifndef DISABLE_MI_DBE_BY_DEFAULT
             /* Setup DIX. */
             pDbeScreenPriv->SetupBackgroundPainter = DbeSetupBackgroundPainter; 
-            pDbeScreenPriv->AllocWinPriv           = DbeAllocWinPriv;
-            pDbeScreenPriv->AllocWinPrivPrivIndex  = DbeAllocWinPrivPrivIndex;
-            pDbeScreenPriv->AllocWinPrivPriv       = DbeAllocWinPrivPriv;
 
             /* Setup DDX. */
             ddxInitSuccess = miDbeInit(pScreen, pDbeScreenPriv);
@@ -1909,8 +1732,9 @@ DbeExtensionInit(void)
 
         for (i = 0; i < screenInfo.numScreens; i++)
         {
-             xfree(screenInfo.screens[i]->devPrivates[dbeScreenPrivIndex].ptr);
-             pScreen->devPrivates[dbeScreenPrivIndex].ptr = NULL;
+		xfree(dixLookupPrivate(&screenInfo.screens[i]->devPrivates,
+				       dbeScreenPrivKey));
+		dixSetPrivate(&pScreen->devPrivates, dbeScreenPrivKey, NULL);
         }
         return;
     }

@@ -232,7 +232,7 @@ VxWorksKeyboardRead (int fd)
 void
 VxWorksKeyboardLeds (int leds)
 {
-    DeviceIntPtr	pKeyboard = (DeviceIntPtr) LookupKeyboardDevice ();
+    DeviceIntPtr	pKeyboard = inputInfo.keyboard;
     KeyboardCtrl		*ctrl = &pKeyboard->kbdfeed->ctrl;
     led_ioctl_info	led_info;
     int			i;

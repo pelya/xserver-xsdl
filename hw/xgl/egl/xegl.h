@@ -109,7 +109,7 @@ extern KdMouseInfo     *kdMouseInfo;
 extern KdOsFuncs       *kdOsFuncs;
 extern Bool	       kdDontZap;
 extern Bool	       kdDisableZaphod;
-extern int	       xeglScreenPrivateIndex;
+extern DevPrivateKey   xeglScreenPrivateKey;
 extern KdMouseFuncs    LinuxEvdevMouseFuncs;
 extern KdKeyboardFuncs LinuxEvdevKeyboardFuncs;
 
@@ -117,8 +117,8 @@ extern KdKeyboardFuncs LinuxEvdevKeyboardFuncs;
     (RR_Rotate_0 | RR_Rotate_90 | RR_Rotate_180 | RR_Rotate_270)
 #define RR_Reflect_All (RR_Reflect_X | RR_Reflect_Y)
 
-#define KdGetScreenPriv(pScreen)					   \
-    ((xeglScreenPtr) ((pScreen)->devPrivates[xeglScreenPrivateIndex].ptr))
+#define KdGetScreenPriv(pScreen) ((xeglScreenPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, xeglScreenPrivateKey))
 #define KdScreenPriv(pScreen)				  \
     xeglScreenPtr pScreenPriv = KdGetScreenPriv (pScreen)
 

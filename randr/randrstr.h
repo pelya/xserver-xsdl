@@ -262,11 +262,11 @@ typedef struct _rrScrPriv {
 #endif
 } rrScrPrivRec, *rrScrPrivPtr;
 
-extern int rrPrivIndex;
+extern DevPrivateKey rrPrivKey;
 
-#define rrGetScrPriv(pScr)  ((rrScrPrivPtr) (pScr)->devPrivates[rrPrivIndex].ptr)
+#define rrGetScrPriv(pScr)  ((rrScrPrivPtr)dixLookupPrivate(&(pScr)->devPrivates, rrPrivKey))
 #define rrScrPriv(pScr)	rrScrPrivPtr    pScrPriv = rrGetScrPriv(pScr)
-#define SetRRScreen(s,p) ((s)->devPrivates[rrPrivIndex].ptr = (pointer) (p))
+#define SetRRScreen(s,p) dixSetPrivate(&(s)->devPrivates, rrPrivKey, p)
 
 /*
  * each window has a list of clients requesting
@@ -298,7 +298,7 @@ typedef struct _RRClient {
 } RRClientRec, *RRClientPtr;
 
 extern RESTYPE	RRClientType, RREventType; /* resource types for event masks */
-extern int	RRClientPrivateIndex;
+extern DevPrivateKey RRClientPrivateKey;
 extern RESTYPE	RRCrtcType, RRModeType, RROutputType;
 
 #define LookupOutput(client,id,a) ((RROutputPtr) \
@@ -311,7 +311,7 @@ extern RESTYPE	RRCrtcType, RRModeType, RROutputType;
 				 (SecurityLookupIDByType (client, id, \
 							  RRModeType, a)))
 
-#define GetRRClient(pClient)    ((RRClientPtr) (pClient)->devPrivates[RRClientPrivateIndex].ptr)
+#define GetRRClient(pClient)    ((RRClientPtr)dixLookupPrivate(&(pClient)->devPrivates, RRClientPrivateKey))
 #define rrClientPriv(pClient)	RRClientPtr pRRClient = GetRRClient(pClient)
 
 /* Initialize the extension */

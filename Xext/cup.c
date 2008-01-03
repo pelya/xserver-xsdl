@@ -51,11 +51,6 @@ static int		ProcDispatch(ClientPtr client);
 static int              SProcDispatch(ClientPtr client);
 static void		ResetProc(ExtensionEntry* extEntry);
 
-#if 0
-static unsigned char	ReqCode = 0;
-static int		ErrorBase;
-#endif
-
 #if defined(WIN32) || defined(TESTWIN32)
 #define HAVE_SPECIAL_DESKTOP_COLORS
 #endif
@@ -128,20 +123,6 @@ static xColorItem citems[] = {
 void
 XcupExtensionInit (INITARGS)
 {
-#if 0
-    ExtensionEntry* extEntry;
-
-    if ((extEntry = AddExtension (XCUPNAME,
-				0,
-				XcupNumberErrors,
-				ProcDispatch,
-				SProcDispatch,
-				ResetProc,
-				StandardMinorOpcode))) {
-	ReqCode = (unsigned char)extEntry->base;
-	ErrorBase = extEntry->errorBase;
-    }
-#else
     (void) AddExtension (XCUPNAME,
 			0,
 			XcupNumberErrors,
@@ -149,7 +130,6 @@ XcupExtensionInit (INITARGS)
 			SProcDispatch,
 			ResetProc,
 			StandardMinorOpcode);
-#endif
 
     /* PC servers initialize the desktop colors (citems) here! */
 }
@@ -224,12 +204,13 @@ int ProcStoreColors(
 {
     REQUEST (xXcupStoreColorsReq);
     ColormapPtr pcmp;
+    int rc;
 
     REQUEST_AT_LEAST_SIZE (xXcupStoreColorsReq);
-    pcmp = (ColormapPtr) SecurityLookupIDByType (client, stuff->cmap,
-						 RT_COLORMAP, DixWriteAccess);
+    rc = dixLookupResource((pointer *)&pcmp, stuff->cmap, RT_COLORMAP,
+			   client, DixAddAccess);
 
-    if (pcmp) {
+    if (rc == Success) {
 	int ncolors, n;
 	xXcupStoreColorsReply rep;
 	xColorItem* cptr;
@@ -273,7 +254,7 @@ int ProcStoreColors(
 	return client->noClientException;
     } else {
 	client->errorValue = stuff->cmap;
-	return BadColor;
+	return (rc == BadValue) ? BadColor : rc;
     }
 }
 

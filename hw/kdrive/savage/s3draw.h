@@ -24,8 +24,8 @@
 #ifndef _S3DRAW_H_
 #define _S3DRAW_H_
 
-extern int  s3GCPrivateIndex;
-extern int  s3WindowPrivateIndex;
+extern DevPrivateKey s3GCPrivateKey;
+extern DevPrivateKey s3WindowPrivateKey;
 
 typedef struct _s3Pattern {
     S3PatternCache    	*cache;
@@ -42,16 +42,16 @@ typedef struct _s3PrivGC {
     s3PatternPtr    pPattern;	    /* pattern */
 } s3PrivGCRec, *s3PrivGCPtr;
 
-#define s3GetGCPrivate(g)	    ((s3PrivGCPtr) \
-			    (g)->devPrivates[s3GCPrivateIndex].ptr)
+#define s3GetGCPrivate(g) ((s3PrivGCPtr) \
+    dixLookupPrivate(&(g)->devPrivates, s3GCPrivateKey))
 
-#define s3GCPrivate(g)	    s3PrivGCPtr s3Priv = s3GetGCPrivate(g)
+#define s3GCPrivate(g)    s3PrivGCPtr s3Priv = s3GetGCPrivate(g)
 
-#define s3GetWindowPrivate(w)    ((s3PatternPtr) \
-			    (w)->devPrivates[s3WindowPrivateIndex].ptr)
+#define s3GetWindowPrivate(w) ((s3PatternPtr) \
+    dixLookupPrivate(&(w)->devPrivates, s3WindowPrivateKey))
 
-#define s3SetWindowPrivate(w,p) (\
-	    (w)->devPrivates[s3WindowPrivateIndex].ptr = (pointer) p)
+#define s3SetWindowPrivate(w,p) \
+    dixSetPrivate(&(w)->devPrivates, s3WindowPrivateKey, p)
 
 void	_s3LoadPattern (ScreenPtr pScreen, int fb, s3PatternPtr pPattern);
 

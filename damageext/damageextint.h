@@ -48,7 +48,7 @@ typedef struct _DamageClient {
     int		critical;
 } DamageClientRec, *DamageClientPtr;
 
-#define GetDamageClient(pClient)    ((DamageClientPtr) (pClient)->devPrivates[DamageClientPrivateIndex].ptr)
+#define GetDamageClient(pClient) ((DamageClientPtr)dixLookupPrivate(&(pClient)->devPrivates, DamageClientPrivateKey))
 
 typedef struct _DamageExt {
     DamagePtr		pDamage;

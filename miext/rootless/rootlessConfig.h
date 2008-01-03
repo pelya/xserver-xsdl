@@ -34,7 +34,7 @@
 #ifndef _ROOTLESSCONFIG_H
 #define _ROOTLESSCONFIG_H
 
-#ifdef __DARWIN__
+#ifdef __APPLE__
 
 # define ROOTLESS_ACCEL TRUE
 # define ROOTLESS_GLOBAL_COORDS TRUE
@@ -48,7 +48,7 @@
    alpha for 16bpp. */
 # define RootlessAlphaMask(bpp) ((bpp) == 32 ? 0xFF000000 : 0)
 
-#endif /* __DARWIN__ */
+#endif /* __APPLE__ */
 
 #if defined(__CYGWIN__) || defined(WIN32)
 

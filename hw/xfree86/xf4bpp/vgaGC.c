@@ -107,7 +107,7 @@ xf4bppChangeWindowGC( pGC, changes )
 register GC *pGC ;
 register Mask changes ;
 {
-register ppcPrivGCPtr devPriv = (ppcPrivGCPtr) (pGC->devPrivates[mfbGetGCPrivateIndex()].ptr) ;
+register ppcPrivGCPtr devPriv = (ppcPrivGCPtr)dixLookupPrivate(&pGC->devPrivates, mfbGetGCPrivateKey());
 register unsigned long int idx ; /* used for stepping through bitfields */
 
 #define LOWBIT( x ) ( x & - x ) /* Two's complement */

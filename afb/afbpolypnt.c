@@ -90,8 +90,8 @@ afbPolyPoint(pDrawable, pGC, mode, npt, pptInit)
 	register unsigned char *rrops;
 	afbPrivGC *pGCPriv;
 
-	pGCPriv = (afbPrivGC *) pGC->devPrivates[afbGCPrivateIndex].ptr;
-
+	pGCPriv = (afbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+						afbGCPrivateKey);
 	afbGetPixelWidthSizeDepthAndPointer(pDrawable, nlwidth, sizeDst, depthDst,
 													 pBaseSave);
 

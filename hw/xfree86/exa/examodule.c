@@ -42,14 +42,14 @@ typedef struct _ExaXorgScreenPrivRec {
     OptionInfoPtr		 options;
 } ExaXorgScreenPrivRec, *ExaXorgScreenPrivPtr;
 
-static int exaXorgServerGeneration;
-static int exaXorgScreenPrivateIndex;
+static DevPrivateKey exaXorgScreenPrivateKey = &exaXorgScreenPrivateKey;
 
 typedef enum {
     EXAOPT_MIGRATION_HEURISTIC,
     EXAOPT_NO_COMPOSITE,
     EXAOPT_NO_UTS,
     EXAOPT_NO_DFS,
+    EXAOPT_OPTIMIZE_MIGRATION
 } EXAOpts;
 
 static const OptionInfoRec EXAOptions[] = {
@@ -61,6 +61,8 @@ static const OptionInfoRec EXAOptions[] = {
 				OPTV_BOOLEAN,	{0}, FALSE },
     { EXAOPT_NO_DFS,			"EXANoDownloadFromScreen",
 				OPTV_BOOLEAN,	{0}, FALSE },
+    { EXAOPT_OPTIMIZE_MIGRATION,	"EXAOptimizeMigration",
+				OPTV_BOOLEAN,	{0}, FALSE },
     { -1,				NULL,
 				OPTV_NONE,	{0}, FALSE }
 };
@@ -69,8 +71,8 @@ static Bool
 exaXorgCloseScreen (int i, ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn = XF86SCRNINFO(pScreen);
-    ExaXorgScreenPrivPtr pScreenPriv =
-	pScreen->devPrivates[exaXorgScreenPrivateIndex].ptr;
+    ExaXorgScreenPrivPtr pScreenPriv = (ExaXorgScreenPrivPtr)
+	dixLookupPrivate(&pScreen->devPrivates, exaXorgScreenPrivateKey);
 
     pScreen->CloseScreen = pScreenPriv->SavedCloseScreen;
 
@@ -86,8 +88,8 @@ static void
 exaXorgEnableDisableFBAccess (int index, Bool enable)
 {
     ScreenPtr pScreen = screenInfo.screens[index];
-    ExaXorgScreenPrivPtr pScreenPriv =
-	pScreen->devPrivates[exaXorgScreenPrivateIndex].ptr;
+    ExaXorgScreenPrivPtr pScreenPriv = (ExaXorgScreenPrivPtr)
+	dixLookupPrivate(&pScreen->devPrivates, exaXorgScreenPrivateKey);
 
     if (!enable)
 	exaEnableDisableFBAccess (index, enable);
@@ -110,11 +112,6 @@ exaDDXDriverInit(ScreenPtr pScreen)
     /* Do NOT use XF86SCRNINFO macro here!! */
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
     ExaXorgScreenPrivPtr pScreenPriv;
-
-    if (exaXorgServerGeneration != serverGeneration) {
-	exaXorgScreenPrivateIndex = AllocateScreenPrivateIndex();
-	exaXorgServerGeneration = serverGeneration;
-    }
 
     pScreenPriv = xcalloc (1, sizeof(ExaXorgScreenPrivRec));
     if (pScreenPriv == NULL)
@@ -144,6 +141,11 @@ exaDDXDriverInit(ScreenPtr pScreen)
 			    heuristicName);
 	    }
 	}
+
+	pExaScr->optimize_migration =
+	    xf86ReturnOptValBool(pScreenPriv->options,
+				 EXAOPT_OPTIMIZE_MIGRATION,
+				 FALSE);
     }
 
     if (xf86IsOptionSet(pScreenPriv->options, EXAOPT_NO_COMPOSITE)) {
@@ -166,7 +168,7 @@ exaDDXDriverInit(ScreenPtr pScreen)
 	pExaScr->info->DownloadFromScreen = NULL;
     }
 
-    pScreen->devPrivates[exaXorgScreenPrivateIndex].ptr = pScreenPriv;
+    dixSetPrivate(&pScreen->devPrivates, exaXorgScreenPrivateKey, pScreenPriv);
 
     pScreenPriv->SavedEnableDisableFBAccess = pScrn->EnableDisableFBAccess;
     pScrn->EnableDisableFBAccess = exaXorgEnableDisableFBAccess;

@@ -64,8 +64,7 @@ static void dmxDoSetShape(WindowPtr pWindow);
 /** Initialize the private area for the window functions. */
 Bool dmxInitWindow(ScreenPtr pScreen)
 {
-    if (!AllocateWindowPrivate(pScreen, dmxWinPrivateIndex,
-			       sizeof(dmxWinPrivRec)))
+    if (!dixRequestPrivate(dmxWinPrivateKey, sizeof(dmxWinPrivRec)))
 	return FALSE;
 
     return TRUE;

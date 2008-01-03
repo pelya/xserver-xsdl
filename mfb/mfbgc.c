@@ -381,7 +381,8 @@ matchCommon (
 	FONTMINBOUNDS(pGC->font,leftSideBearing) > 32 ||
 	FONTMINBOUNDS(pGC->font,characterWidth) < 0)
 	return 0;
-    priv = (mfbPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr;
+    priv = (mfbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					 mfbGetGCPrivateKey());
     for (i = 0; i < numberCommonOps; i++) {
 	cop = &mfbCommonOps[i];
 	if ((pGC->fgPixel & 1) != cop->fg)
@@ -420,7 +421,8 @@ mfbCreateGC(pGC)
     /* mfb wants to translate before scan convesion */
     pGC->miTranslate = 1;
 
-    pPriv = (mfbPrivGC *)(pGC->devPrivates[mfbGCPrivateIndex].ptr);
+    pPriv = (mfbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					  mfbGetGCPrivateKey());
     pPriv->rop = mfbReduceRop(pGC->alu, pGC->fgPixel);
     pGC->fExpose = TRUE;
     pGC->pRotatedPixmap = NullPixmap;
@@ -508,8 +510,8 @@ mfbValidateGC(pGC, changes, pDrawable)
     new_rotate = (oldOrg.x != pGC->lastWinOrg.x) ||
 		 (oldOrg.y != pGC->lastWinOrg.y);
 
-    devPriv = ((mfbPrivGCPtr) (pGC->devPrivates[mfbGCPrivateIndex].ptr));
-
+    devPriv = (mfbPrivGCPtr)dixLookupPrivate(&pGC->devPrivates,
+					     mfbGetGCPrivateKey());
     /*
 	if the client clip is different or moved OR
 	the subwindowMode has changed OR

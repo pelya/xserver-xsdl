@@ -431,7 +431,6 @@ winProcSetSelectionOwner (ClientPtr client)
    * and we currently own the Win32 clipboard.
    */
   if (None == stuff->window
-      && g_iClipboardWindow != client->lastDrawableID
       && (None == s_iOwners[CLIP_OWN_PRIMARY]
 	  || g_iClipboardWindow == s_iOwners[CLIP_OWN_PRIMARY])
       && (None == s_iOwners[CLIP_OWN_CLIPBOARD]

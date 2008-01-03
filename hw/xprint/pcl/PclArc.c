@@ -85,7 +85,7 @@ PclDoArc(
 
     pCon = PclGetContextFromWindow( (WindowPtr) pDrawable );
     pConPriv = (PclContextPrivPtr)
-			pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
     XpGetReproductionArea( pCon, &repro );
     
     /* 

@@ -58,6 +58,7 @@ in this Software without prior written authorization from The Open Group.
 #include "extnsionst.h"
 #include "servermd.h"
 #include "shmint.h"
+#include "xace.h"
 #define _XSHM_SERVER_
 #include <X11/extensions/shmstr.h>
 #include <X11/Xfuncproto.h>
@@ -146,7 +147,7 @@ static int pixmapFormat;
 static int shmPixFormat[MAXSCREENS];
 static ShmFuncsPtr shmFuncs[MAXSCREENS];
 static DestroyPixmapProcPtr destroyPixmap[MAXSCREENS];
-static int  shmPixmapPrivate;
+static DevPrivateKey shmPixmapPrivate = &shmPixmapPrivate;
 static ShmFuncs miFuncs = {NULL, miShmPutImage};
 static ShmFuncs fbFuncs = {fbShmCreatePixmap, fbShmPutImage};
 
@@ -256,20 +257,11 @@ ShmExtensionInit(INITARGS)
       if (!pixmapFormat)
 	pixmapFormat = ZPixmap;
       if (sharedPixmaps)
-      {
 	for (i = 0; i < screenInfo.numScreens; i++)
 	{
 	    destroyPixmap[i] = screenInfo.screens[i]->DestroyPixmap;
 	    screenInfo.screens[i]->DestroyPixmap = ShmDestroyPixmap;
 	}
-	shmPixmapPrivate = AllocatePixmapPrivateIndex();
-	for (i = 0; i < screenInfo.numScreens; i++)
-	{
-	    if (!AllocatePixmapPrivate(screenInfo.screens[i],
-				       shmPixmapPrivate, 0))
-		return;
-	}
-      }
     }
     ShmSegType = CreateNewResourceType(ShmDetachSegment);
     if (ShmSegType &&
@@ -322,7 +314,8 @@ ShmDestroyPixmap (PixmapPtr pPixmap)
     if (pPixmap->refcnt == 1)
     {
 	ShmDescPtr  shmdesc;
-	shmdesc = (ShmDescPtr) pPixmap->devPrivates[shmPixmapPrivate].ptr;
+	shmdesc = (ShmDescPtr)dixLookupPrivate(&pPixmap->devPrivates,
+					       shmPixmapPrivate);
 	if (shmdesc)
 	    ShmDetachSegment ((pointer) shmdesc, pPixmap->drawable.id);
     }
@@ -815,7 +808,7 @@ CreatePmap:
 				shmdesc->addr + stuff->offset);
 
 	if (pMap) {
-            pMap->devPrivates[shmPixmapPrivate].ptr = (pointer) shmdesc;
+	    dixSetPrivate(&pMap->devPrivates, shmPixmapPrivate, shmdesc);
             shmdesc->refcnt++;
 	    pMap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 	    pMap->drawable.id = newPix->info[j].id;
@@ -855,7 +848,7 @@ ProcShmPutImage(client)
     REQUEST(xShmPutImageReq);
 
     REQUEST_SIZE_MATCH(xShmPutImageReq);
-    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, pGC, client);
+    VALIDATE_DRAWABLE_AND_GC(stuff->drawable, pDraw, DixWriteAccess);
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, FALSE, shmdesc, client);
     if ((stuff->sendEvent != xTrue) && (stuff->sendEvent != xFalse))
 	return BadValue;
@@ -968,7 +961,7 @@ ProcShmGetImage(client)
         return(BadValue);
     }
     rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
-			   DixUnknownAccess);
+			   DixReadAccess);
     if (rc != Success)
 	return rc;
     VERIFY_SHMPTR(stuff->shmseg, stuff->offset, TRUE, shmdesc, client);
@@ -1100,7 +1093,7 @@ ProcShmCreatePixmap(client)
 	return BadImplementation;
     LEGAL_NEW_RESOURCE(stuff->pid, client);
     rc = dixLookupDrawable(&pDraw, stuff->drawable, client, M_ANY,
-			   DixUnknownAccess);
+			   DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
@@ -1129,7 +1122,13 @@ CreatePmap:
 			    shmdesc->addr + stuff->offset);
     if (pMap)
     {
-	pMap->devPrivates[shmPixmapPrivate].ptr = (pointer) shmdesc;
+	rc = XaceHook(XACE_RESOURCE_ACCESS, client, stuff->pid, RT_PIXMAP,
+		      pMap, RT_NONE, NULL, DixCreateAccess);
+	if (rc != Success) {
+	    pDraw->pScreen->DestroyPixmap(pMap);
+	    return rc;
+	}
+	dixSetPrivate(&pMap->devPrivates, shmPixmapPrivate, shmdesc);
 	shmdesc->refcnt++;
 	pMap->drawable.serialNumber = NEXT_SERIAL_NUMBER;
 	pMap->drawable.id = stuff->pid;
@@ -1137,6 +1136,7 @@ CreatePmap:
 	{
 	    return(client->noClientException);
 	}
+	pDraw->pScreen->DestroyPixmap(pMap);
     }
     return (BadAlloc);
 }

@@ -77,13 +77,7 @@ typedef struct {
     Bool valid; /* did anyone recognize it? if so, set to TRUE */
 } SecurityValidateGroupInfoRec;
 
-extern int XSecurityOptions(int argc, char **argv, int i);
-
 /* Give this value or higher to the -audit option to get security messages */
 #define SECURITY_AUDIT_LEVEL 4
-
-#define SECURITY_POLICY_FILE_VERSION "version-1"
-
-extern char **SecurityGetSitePolicyStrings(int *n);
 
 #endif /* _SECURITY_SRV_H */

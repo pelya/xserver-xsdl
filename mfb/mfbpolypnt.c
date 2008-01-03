@@ -88,7 +88,8 @@ mfbPolyPoint(pDrawable, pGC, mode, npt, pptInit)
     if (!(pGC->planemask & 1))
 	return;
 
-    pGCPriv = (mfbPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr;
+    pGCPriv = (mfbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					    mfbGetGCPrivateKey());
     rop = pGCPriv->rop;
 
     mfbGetPixelWidthAndPointer(pDrawable, nlwidth, addrl);

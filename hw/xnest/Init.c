@@ -74,8 +74,6 @@ InitOutput(ScreenInfo *screenInfo, int argc, char *argv[])
 	break;
       }
   
-  xnestWindowPrivateIndex = AllocateWindowPrivateIndex();
-  xnestGCPrivateIndex = AllocateGCPrivateIndex();
   xnestFontPrivateIndex = AllocateFontPrivateIndex();
   
   if (!xnestNumScreens) xnestNumScreens = 1;
@@ -124,7 +122,7 @@ void ddxGiveUp()
   AbortDDX();
 }
 
-#ifdef __DARWIN__
+#ifdef __APPLE__
 void
 DarwinHandleGUI(int argc, char *argv[])
 {

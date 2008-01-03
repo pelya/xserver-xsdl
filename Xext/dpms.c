@@ -50,9 +50,6 @@ Equipment Corporation.
 #include "dpmsproc.h"
 #include "modinit.h"
 
-#if 0
-static unsigned char DPMSCode;
-#endif
 static DISPATCH_PROC(ProcDPMSDispatch);
 static DISPATCH_PROC(SProcDPMSDispatch);
 static DISPATCH_PROC(ProcDPMSGetVersion);
@@ -76,18 +73,9 @@ static void DPMSResetProc(ExtensionEntry* extEntry);
 void
 DPMSExtensionInit(INITARGS)
 {
-#if 0
-    ExtensionEntry *extEntry;
-    
-    if ((extEntry = AddExtension(DPMSExtensionName, 0, 0,
-				ProcDPMSDispatch, SProcDPMSDispatch,
-				DPMSResetProc, StandardMinorOpcode)))
-	DPMSCode = (unsigned char)extEntry->base;
-#else
-    (void) AddExtension(DPMSExtensionName, 0, 0,
-			ProcDPMSDispatch, SProcDPMSDispatch,
-			DPMSResetProc, StandardMinorOpcode);
-#endif
+    AddExtension(DPMSExtensionName, 0, 0,
+		 ProcDPMSDispatch, SProcDPMSDispatch,
+		 DPMSResetProc, StandardMinorOpcode);
 }
 
 /*ARGSUSED*/
@@ -218,7 +206,7 @@ ProcDPMSDisable(client)
 
     REQUEST_SIZE_MATCH(xDPMSDisableReq);
 
-    DPMSSet(DPMSModeOn);
+    DPMSSet(client, DPMSModeOn);
 
     DPMSEnabled = FALSE;
 
@@ -253,7 +241,7 @@ ProcDPMSForceLevel(client)
 	return BadValue;
     }
 
-    DPMSSet(stuff->level);
+    DPMSSet(client, stuff->level);
 
     return(client->noClientException);
 }

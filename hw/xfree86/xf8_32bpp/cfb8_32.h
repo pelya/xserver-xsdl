@@ -22,10 +22,8 @@ typedef struct {
 } cfb8_32ScreenRec, *cfb8_32ScreenPtr;
 
 
-extern int cfb8_32GCPrivateIndex;	/* XXX */
-extern int cfb8_32GetGCPrivateIndex(void);
-extern int cfb8_32ScreenPrivateIndex;	/* XXX */
-extern int cfb8_32GetScreenPrivateIndex(void);
+extern DevPrivateKey cfb8_32GetGCPrivateKey(void);
+extern DevPrivateKey cfb8_32GetScreenPrivateKey(void);
 
 RegionPtr
 cfb8_32CopyArea(
@@ -182,11 +180,11 @@ cfb8_32ChangeWindowAttributes(
 );
 
 
-#define CFB8_32_GET_GC_PRIVATE(pGC)\
-   (cfb8_32GCPtr)((pGC)->devPrivates[cfb8_32GetGCPrivateIndex()].ptr)
+#define CFB8_32_GET_GC_PRIVATE(pGC) ((cfb8_32GCPtr) \
+    dixLookupPrivate(&(pGC)->devPrivates, cfb8_32GetGCPrivateKey()))
 
-#define CFB8_32_GET_SCREEN_PRIVATE(pScreen)\
-   (cfb8_32ScreenPtr)((pScreen)->devPrivates[cfb8_32GetScreenPrivateIndex()].ptr)
+#define CFB8_32_GET_SCREEN_PRIVATE(pScreen) ((cfb8_32ScreenPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, cfb8_32GetScreenPrivateKey()))
 
 Bool xf86Overlay8Plus32Init (ScreenPtr pScreen);
 

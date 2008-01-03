@@ -145,8 +145,8 @@ afbImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
 	register int nFirst;/* bits of glyph in current longword */
 	PixelType *pdstSave;
 	int oldFill;
-	afbPrivGC *pPriv = (afbPrivGC *)(pGC->devPrivates[afbGCPrivateIndex].ptr);
-
+	afbPrivGC *pPriv = (afbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+							 afbGCPrivateKey);
 	xorg = pDrawable->x;
 	yorg = pDrawable->y;
 	afbGetPixelWidthSizeDepthAndPointer(pDrawable, widthDst, sizeDst, depthDst,

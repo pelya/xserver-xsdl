@@ -66,7 +66,6 @@ typedef struct _RootlessWindowRec {
     int bytesPerRow;
 
     PixmapPtr pixmap;
-    PixmapPtr oldPixmap;
 
 #ifdef ROOTLESS_TRACK_DAMAGE
     RegionRec damage;
@@ -74,6 +73,8 @@ typedef struct _RootlessWindowRec {
 
     unsigned int is_drawing :1;	// Currently drawing?
     unsigned int is_reorder_pending :1;
+    unsigned int is_offscreen :1;
+    unsigned int is_obscured :1;
 } RootlessWindowRec, *RootlessWindowPtr;
 
 

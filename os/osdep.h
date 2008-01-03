@@ -257,9 +257,6 @@ extern int  SecureRPCRemove   (AuthRemCArgs);
 extern int  SecureRPCReset    (AuthRstCArgs);
 #endif
 
-/* in secauth.c */
-extern XID AuthSecurityCheck (AuthCheckArgs);
-
 /* in xdmcp.c */
 extern void XdmcpUseMsg (void);
 extern int XdmcpOptions(int argc, char **argv, int i);

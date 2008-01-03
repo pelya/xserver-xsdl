@@ -62,7 +62,6 @@ SOFTWARE.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "closedev.h"
@@ -140,16 +139,16 @@ DeleteEventsFromChildren(DeviceIntPtr dev, WindowPtr p1, ClientPtr client)
 int
 ProcXCloseDevice(ClientPtr client)
 {
-    int i;
+    int rc, i;
     WindowPtr pWin, p1;
     DeviceIntPtr d;
 
     REQUEST(xCloseDeviceReq);
     REQUEST_SIZE_MATCH(xCloseDeviceReq);
 
-    d = LookupDeviceIntRec(stuff->deviceid);
-    if (d == NULL)
-	return BadDevice;
+    rc = dixLookupDevice(&d, stuff->deviceid, client, DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
 
     if (d->deviceGrab.grab && SameClient(d->deviceGrab.grab, client))
 	(*d->deviceGrab.DeactivateGrab) (d);	/* release active grab */

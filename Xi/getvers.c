@@ -59,7 +59,6 @@ SOFTWARE.
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 
 #include "getvers.h"

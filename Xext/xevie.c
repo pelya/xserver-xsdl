@@ -76,11 +76,11 @@ DeviceIntPtr		xeviemouse = NULL;
 Mask			xevieMask = 0;
 int       		xevieEventSent = 0;
 int			xevieKBEventSent = 0;
-static unsigned int             xevieServerGeneration;
-static int                      xevieDevicePrivateIndex;
+static DevPrivateKey    xevieDevicePrivateKey = &xevieDevicePrivateKey;
 static Bool                     xevieModifiersOn = FALSE;
 
-#define XEVIEINFO(dev)  ((xevieDeviceInfoPtr)dev->devPrivates[xevieDevicePrivateIndex].ptr)
+#define XEVIEINFO(dev)  ((xevieDeviceInfoPtr) \
+    dixLookupPrivate(&(dev)->devPrivates, xevieDevicePrivateKey))
 
 Mask xevieFilters[128] = 
 {
@@ -133,12 +133,6 @@ void
 XevieExtensionInit (void)
 {
     ExtensionEntry* extEntry;
-
-    if (serverGeneration != xevieServerGeneration) {
-        if ((xevieDevicePrivateIndex = AllocateDevicePrivateIndex()) == -1)
-            return;
-        xevieServerGeneration = serverGeneration;
-    }
 
     if (!AddCallback(&ServerGrabCallback,XevieServerGrabStateCallback,NULL))
        return;
@@ -374,7 +368,7 @@ int SProcSelectInput (ClientPtr client)
 
     REQUEST (xXevieSelectInputReq);
     swaps (&stuff->length, n);
-    REQUEST_AT_LEAST_SIZE (xXevieSendReq);
+    REQUEST_AT_LEAST_SIZE (xXevieSelectInputReq);
     swapl(&stuff->event_mask, n);
     return ProcSelectInput (client);
 }
@@ -618,14 +612,11 @@ XevieAdd(DeviceIntPtr device, void* data)
 {
     xevieDeviceInfoPtr xeviep;
 
-    if (!AllocateDevicePrivate(device, xevieDevicePrivateIndex))
-        return FALSE;
-
     xeviep = xalloc (sizeof (xevieDeviceInfoRec));
     if (!xeviep)
             return FALSE;
 
-    device->devPrivates[xevieDevicePrivateIndex].ptr = xeviep;
+    dixSetPrivate(&device->devPrivates, xevieDevicePrivateKey, xeviep);
     XevieUnwrapAdd(device, data);
 
     return TRUE;
@@ -642,7 +633,7 @@ XevieRemove(DeviceIntPtr device,pointer data)
     UNWRAP_UNWRAPPROC(device,xeviep->unwrapProc);
 
     xfree(xeviep);
-    device->devPrivates[xevieDevicePrivateIndex].ptr = NULL;
+    dixSetPrivate(&device->devPrivates, xevieDevicePrivateKey, NULL);
     return TRUE;
 }
 

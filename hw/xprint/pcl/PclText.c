@@ -123,7 +123,7 @@ char font_type;
 
     pCon = PclGetContextFromWindow( (WindowPtr)pDrawable );
     pConPriv = (PclContextPrivPtr)
-			pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
     pSoftFontInfo = pConPriv->pSoftFontInfo;
     font_type = isInternal(pGC->font);
     if ( font_type == DOWNLOAD_FONT ) {
@@ -293,7 +293,7 @@ char font_type;
 
     pCon = PclGetContextFromWindow( (WindowPtr)pDrawable );
     pConPriv = (PclContextPrivPtr)
-			pCon->devPrivates[PclContextPrivateIndex].ptr;
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
     pSoftFontInfo = pConPriv->pSoftFontInfo;
 
     font_type = isInternal(pGC->font);

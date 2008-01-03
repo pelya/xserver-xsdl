@@ -129,8 +129,8 @@ PclCreateColormap(ColormapPtr pColor)
     PclCmapToContexts *new;
     PclScreenPrivPtr sPriv;
 
-    sPriv = (PclScreenPrivPtr)pColor->pScreen
-      ->devPrivates[PclScreenPrivateIndex].ptr;
+    sPriv = (PclScreenPrivPtr)
+	dixLookupPrivate(&pColor->pScreen->devPrivates, PclScreenPrivateKey);
 
 	/*
 	 * Use existing code to initialize the values in the colormap
@@ -175,8 +175,8 @@ PclDestroyColormap(ColormapPtr pColor)
     /*
      * Find the colormap <-> contexts mapping 
      */
-    sPriv = (PclScreenPrivPtr)pColor->pScreen
-      ->devPrivates[PclScreenPrivateIndex].ptr;
+    sPriv = (PclScreenPrivPtr)
+	dixLookupPrivate(&pColor->pScreen->devPrivates, PclScreenPrivateKey);
     pCmap = sPriv->colormaps;
     while( pCmap )
       {
@@ -195,8 +195,8 @@ PclDestroyColormap(ColormapPtr pColor)
 	  con = pCmap->contexts;
 	  while( con )
 	    {
-		cPriv = con->context->devPrivates[PclContextPrivateIndex].ptr;
-
+		cPriv = dixLookupPrivate(&con->context->devPrivates,
+					 PclContextPrivateKey);
 		pPal = cPriv->palettes;
 		while( pPal )
 		  {
@@ -259,8 +259,8 @@ PclStoreColors(ColormapPtr pColor,
     char t[80];
     int i;
 
-    sPriv = (PclScreenPrivPtr)pColor->pScreen
-      ->devPrivates[PclScreenPrivateIndex].ptr;
+    sPriv = (PclScreenPrivPtr)
+	dixLookupPrivate(&pColor->pScreen->devPrivates, PclScreenPrivateKey);
     p = sPriv->colormaps;
     while( p )
       {
@@ -278,8 +278,8 @@ PclStoreColors(ColormapPtr pColor,
 		 * For each context, get the palette ID and update the
 		 * appropriate palette.
 		 */
-		cPriv = con->context
-		  ->devPrivates[PclContextPrivateIndex].ptr;
+		cPriv = dixLookupPrivate(&con->context->devPrivates,
+					 PclContextPrivateKey);
 		pMap = PclFindPaletteMap( cPriv, pColor, NULL );
 
 		/*
@@ -407,7 +407,8 @@ PclUpdateColormap(DrawablePtr pDrawable,
     unsigned short r, g, b, rr, gg, bb;
     int i;
 
-    cPriv = pCon->devPrivates[PclContextPrivateIndex].ptr;
+    cPriv = (PclContextPrivPtr)
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
     
     c = wColormap( win );
     cmap = (ColormapPtr)LookupIDByType( c, RT_COLORMAP );
@@ -436,8 +437,9 @@ PclUpdateColormap(DrawablePtr pDrawable,
 	  /*
 	   * Add the colormap to the screen-level colormap<->context mapping.
 	   */
-	  sPriv = (PclScreenPrivPtr)cmap->pScreen
-	    ->devPrivates[PclScreenPrivateIndex].ptr;
+	  sPriv = (PclScreenPrivPtr)
+	      dixLookupPrivate(&cmap->pScreen->devPrivates,
+			       PclScreenPrivateKey);
 	  pCmap = sPriv->colormaps;
 	  while( pCmap && ( pCmap->colormapId != cmap->mid ) )
 		pCmap = pCmap->next;

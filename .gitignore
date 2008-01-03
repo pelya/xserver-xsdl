@@ -8,6 +8,11 @@ Makefile.in
 *.a
 *.o
 *~
+.*.swp
+*.pbxuser
+*.mode1v3
+obj*
+build*
 aclocal.m4
 autom4te.cache
 compile
@@ -92,8 +97,6 @@ cfb32/cfbzerarcG.c
 cfb32/cfbzerarcX.c
 doc/Xserver.1x
 doc/Xserver.man
-doc/SecurityPolicy.5
-doc/SecurityPolicy.man
 hw/dmx/Xdmx
 hw/dmx/Xdmx.1x
 hw/dmx/config/dmxtodmx
@@ -298,4 +301,3 @@ mfb/mfbteblack.c
 mfb/mfbtewhite.c
 mfb/mfbtileC.c
 mfb/mfbtileG.c
-.*.swp

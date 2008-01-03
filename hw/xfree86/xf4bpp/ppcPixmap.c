@@ -123,6 +123,7 @@ xf4bppCreatePixmap( pScreen, width, height, depth, usage_hint )
     pPixmap->devPrivate.ptr = (pointer) (((CARD8*)pPixmap)
 					 + pScreen->totalPixmapSize);
     bzero( (char *) pPixmap->devPrivate.ptr, size ) ;
+    pPixmap->usage_hint = usage_hint;
     return pPixmap ;
 }
 
@@ -138,6 +139,7 @@ xf4bppCopyPixmap(pSrc)
     pDst = xalloc(sizeof(PixmapRec) + size);
     if (!pDst)
 	return NullPixmap;
+    pDst->devPrivates = NULL;
     pDst->drawable = pSrc->drawable;
     pDst->drawable.id = 0;
     pDst->drawable.serialNumber = NEXT_SERIAL_NUMBER;

@@ -46,9 +46,9 @@ from the author.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "extnsionst.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
+#include "input.h"
 
 #include "chdevcur.h"
 
@@ -79,22 +79,15 @@ int ProcXChangeDeviceCursor(ClientPtr client)
     REQUEST(xChangeDeviceCursorReq);
     REQUEST_SIZE_MATCH(xChangeDeviceCursorReq);
 
-    pDev = LookupDeviceIntRec(stuff->deviceid);
-    if (pDev == NULL) {
-        SendErrorToClient(client, IReqCode, X_ChangeDeviceCursor, 0,
-                BadDevice);
-        return Success;
-    }
+    err = dixLookupDevice(&pDev, stuff->deviceid, client, DixSetAttrAccess);
+    if (err != Success)
+        return err;
 
     if (stuff->win != None)
     {
-        err = dixLookupWindow(&pWin, stuff->win, client, DixReadWriteAccess);
+        err = dixLookupWindow(&pWin, stuff->win, client, DixSetAttrAccess);
         if (err != Success)
-        {
-            SendErrorToClient(client, IReqCode, X_ChangeDeviceCursor,
-                    stuff->win, err);
-            return Success;
-        }
+            return err;
     }
 
     if (stuff->cursor == None)

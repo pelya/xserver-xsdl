@@ -97,10 +97,10 @@ static void AllocatePsPrivates(ScreenPtr pScreen);
 static int PsInitContext(XpContextPtr pCon);
 static int PsDestroyContext(XpContextPtr pCon);
 
-int PsScreenPrivateIndex;
-int PsContextPrivateIndex;
-int PsPixmapPrivateIndex;
-int PsWindowPrivateIndex;
+DevPrivateKey PsScreenPrivateKey = &PsScreenPrivateKey;
+DevPrivateKey PsContextPrivateKey = &PsContextPrivateKey;
+DevPrivateKey PsPixmapPrivateKey = &PsPixmapPrivateKey;
+DevPrivateKey PsWindowPrivateKey = &PsWindowPrivateKey;
 
 #ifdef GLXEXT
 extern void GlxWrapInitVisuals(miInitVisualsProcPtr *);
@@ -152,7 +152,8 @@ InitializePsDriver(ndx, pScreen, argc, argv)
   AllocatePsPrivates(pScreen);
 
 #if 0
-  pPriv = (PsScreenPrivPtr)pScreen->devPrivates[PsScreenPrivateIndex].ptr;
+  pPriv = (PsScreenPrivPtr)
+      dixLookupPrivate(&pScreen->devPrivates, PsScreenPrivateKey);
   pPriv->resDB = rmdb;
 #endif
 
@@ -474,28 +475,12 @@ InitializePsDriver(ndx, pScreen, argc, argv)
 static void
 AllocatePsPrivates(ScreenPtr pScreen)
 {
-  static unsigned long PsGeneration = 0;
+    dixRequestPrivate(PsWindowPrivateKey, sizeof(PsWindowPrivRec));
+    dixRequestPrivate(PsContextPrivateKey, sizeof(PsContextPrivRec));
+    dixRequestPrivate(PsPixmapPrivateKey, sizeof(PsPixmapPrivRec));
 
-  if((unsigned long)PsGeneration != serverGeneration)
-  {
-    PsScreenPrivateIndex = AllocateScreenPrivateIndex();
-
-    PsWindowPrivateIndex = AllocateWindowPrivateIndex();
-    AllocateWindowPrivate(pScreen, PsWindowPrivateIndex,
-                          sizeof(PsWindowPrivRec));
-
-    PsContextPrivateIndex = XpAllocateContextPrivateIndex();
-    XpAllocateContextPrivate(PsContextPrivateIndex, 
-                             sizeof(PsContextPrivRec));
-
-    PsPixmapPrivateIndex = AllocatePixmapPrivateIndex();
-    AllocatePixmapPrivate(pScreen, PsPixmapPrivateIndex,
-                          sizeof(PsPixmapPrivRec));
-
-    PsGeneration = serverGeneration;
-  }
-  pScreen->devPrivates[PsScreenPrivateIndex].ptr =
-           (pointer)xalloc(sizeof(PsScreenPrivRec));
+    dixSetPrivate(&pScreen->devPrivates, PsScreenPrivateKey,
+		  xalloc(sizeof(PsScreenPrivRec)));
 }
 
 /*
@@ -550,8 +535,8 @@ PsInitContext(pCon)
   /*
    * Set up the context privates
    */
-  pConPriv =
-      (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
+  pConPriv = (PsContextPrivPtr)
+      dixLookupPrivate(&pCon->devPrivates, PsContextPrivateKey);
 
   memset(pConPriv, 0, sizeof(PsContextPrivRec));
   pConPriv->jobFileName         = (char *)NULL;
@@ -620,8 +605,8 @@ static Bool
 PsDestroyContext(pCon)
   XpContextPtr pCon;
 {
-  PsContextPrivPtr pConPriv =
-      (PsContextPrivPtr)pCon->devPrivates[PsContextPrivateIndex].ptr;
+  PsContextPrivPtr pConPriv = (PsContextPrivPtr)
+      dixLookupPrivate(&pCon->devPrivates, PsContextPrivateKey);
     
   if( pConPriv->pJobFile!=(FILE *)NULL )
   {
@@ -653,7 +638,8 @@ PsGetContextFromWindow(win)
 
   while( win )
   {
-    pPriv = (PsWindowPrivPtr)win->devPrivates[PsWindowPrivateIndex].ptr;
+    pPriv = (PsWindowPrivPtr)
+	dixLookupPrivate(&win->devPrivates, PsWindowPrivateKey);
     if( pPriv->validContext ) return pPriv->context;
     win = win->parent;
   }

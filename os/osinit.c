@@ -194,10 +194,6 @@ OsInit(void)
 		    rlim.rlim_cur = limitNoFile;
 		else
 		    rlim.rlim_cur = rlim.rlim_max;
-#if 0
-		if (rlim.rlim_cur > MAXSOCKS)
-		    rlim.rlim_cur = MAXSOCKS;
-#endif
 		(void)setrlimit(RLIMIT_NOFILE, &rlim);
 	    }
 	}

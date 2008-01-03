@@ -148,7 +148,9 @@ mieqEnqueue(DeviceIntPtr pDev, xEvent *e)
         if (oldtail == miEventQueue.head ||
             !(lastkbp->type == DeviceMotionNotify ||
               lastkbp->type == DeviceButtonPress ||
-              lastkbp->type == DeviceButtonRelease) ||
+              lastkbp->type == DeviceButtonRelease ||
+              lastkbp->type == ProximityIn ||
+              lastkbp->type == ProximityOut) ||
             ((lastkbp->deviceid & DEVICE_BITS) !=
              (v->deviceid & DEVICE_BITS))) {
             ErrorF("[mi] mieqEnequeue: out-of-order valuator event; dropping.\n");
@@ -301,13 +303,13 @@ mieqProcessInputEvents(void)
 
     while (miEventQueue.head != miEventQueue.tail) {
         if (screenIsSaved == SCREEN_SAVER_ON)
-            SaveScreens (SCREEN_SAVER_OFF, ScreenSaverReset);
+            dixSaveScreens (serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
 #ifdef DPMSExtension
         else if (DPMSPowerLevel != DPMSModeOn)
             SetScreenSaverTimer();
 
         if (DPMSPowerLevel != DPMSModeOn)
-            DPMSSet(DPMSModeOn);
+            DPMSSet(serverClient, DPMSModeOn);
 #endif
 
         e = &miEventQueue.events[miEventQueue.head];

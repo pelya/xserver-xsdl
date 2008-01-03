@@ -53,7 +53,7 @@ deviceValuator *	val;
 int			x,y;
 int			nAxes, i, count;
 
-    if ((dev==(DeviceIntPtr)LookupPointerDevice())||(!dev->public.on))
+    if (dev == inputInfo.pointer || !dev->public.on)
 	return;
 
     nAxes = (dev->valuator?dev->valuator->numAxes:0);

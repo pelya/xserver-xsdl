@@ -32,11 +32,16 @@
 #include <dix-config.h>
 #endif
 
+#include <stdint.h>
 #ifndef _ROOTLESSCOMMON_H
 #define _ROOTLESSCOMMON_H
 
 #include "rootless.h"
 #include "fb.h"
+
+#ifdef SHAPE
+#include "scrnintstr.h"
+#endif /* SHAPE */
 
 #ifdef RENDER
 #include "picturestr.h"
@@ -52,9 +57,10 @@
 
 
 // Global variables
-extern int rootlessGCPrivateIndex;
-extern int rootlessScreenPrivateIndex;
-extern int rootlessWindowPrivateIndex;
+extern DevPrivateKey rootlessGCPrivateKey;
+extern DevPrivateKey rootlessScreenPrivateKey;
+extern DevPrivateKey rootlessWindowPrivateKey;
+extern DevPrivateKey rootlessWindowOldPixmapPrivateKey;
 
 
 // RootlessGCRec: private per-gc data
@@ -102,13 +108,20 @@ typedef struct _RootlessScreenRec {
     GlyphsProcPtr Glyphs;
 #endif
 
+    InstallColormapProcPtr InstallColormap;
+    UninstallColormapProcPtr UninstallColormap;
+    StoreColorsProcPtr StoreColors;
+
     void *pixmap_data;
     unsigned int pixmap_data_size;
+
+    ColormapPtr colormap;
 
     void *redisplay_timer;
     unsigned int redisplay_timer_set :1;
     unsigned int redisplay_queued :1;
     unsigned int redisplay_expired :1;
+    unsigned int colormap_changed :1;
 } RootlessScreenRec, *RootlessScreenPtr;
 
 
@@ -131,12 +144,17 @@ typedef struct _RootlessScreenRec {
 
 // Accessors for screen and window privates
 
-#define SCREENREC(pScreen) \
-   ((RootlessScreenRec *)(pScreen)->devPrivates[rootlessScreenPrivateIndex].ptr)
+#define SCREENREC(pScreen) ((RootlessScreenRec *) \
+    dixLookupPrivate(&(pScreen)->devPrivates, rootlessScreenPrivateKey))
 
-#define WINREC(pWin) \
-    ((RootlessWindowRec *)(pWin)->devPrivates[rootlessWindowPrivateIndex].ptr)
+#define SETSCREENREC(pScreen, v) \
+    dixSetPrivate(&(pScreen)->devPrivates, rootlessScreenPrivateKey, v)
 
+#define WINREC(pWin) ((RootlessWindowRec *) \
+    dixLookupPrivate(&(pWin)->devPrivates, rootlessWindowPrivateKey))
+
+#define SETWINREC(pWin, v) \
+    dixSetPrivate(&(pWin)->devPrivates, rootlessWindowPrivateKey, v)
 
 // Call a rootless implementation function.
 // Many rootless implementation functions are allowed to be NULL.
@@ -248,6 +266,16 @@ void RootlessRedisplay(WindowPtr pWindow);
 void RootlessRedisplayScreen(ScreenPtr pScreen);
 
 void RootlessQueueRedisplay(ScreenPtr pScreen);
+
+/* Return the colormap currently installed on the given screen. */
+ColormapPtr RootlessGetColormap (ScreenPtr pScreen);
+
+/* Convert colormap to ARGB. */
+Bool RootlessResolveColormap (ScreenPtr pScreen, int first_color,
+			      int n_colors, uint32_t *colors);
+
+void RootlessFlushWindowColormap (WindowPtr pWin);
+void RootlessFlushScreenColormaps (ScreenPtr pScreen);
 
 // Move a window to its proper location on the screen.
 void RootlessRepositionWindow(WindowPtr pWin);

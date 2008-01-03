@@ -1,7 +1,9 @@
-if XDARWIN
-DARWIN_SUBDIRS = apple
+if XQUARTZ
+XQUARTZ_SUBDIRS = apple
 endif
-SUBDIRS = glx mesa $(DARWIN_SUBDIRS)
+
+SUBDIRS = glx mesa $(XQUARTZ_SUBDIRS)
+DIST_SUBDIRS = glx mesa apple
 
 WINDOWS_EXTRAS = \
 	windows/ChangeLog \

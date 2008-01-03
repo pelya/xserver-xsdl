@@ -19,11 +19,14 @@ typedef struct {
   Cursor cursor;
 } xnestPrivCursor;
 
-#define xnestCursorPriv(pCursor, pScreen) \
-  ((xnestPrivCursor *)((pCursor)->devPriv[pScreen->myNum]))
+#define xnestGetCursorPriv(pCursor, pScreen) \
+    ((xnestPrivCursor *)dixLookupPrivate(&(pCursor)->devPrivates, pScreen))
+
+#define xnestSetCursorPriv(pCursor, pScreen, v) \
+    dixSetPrivate(&(pCursor)->devPrivates, pScreen, v)
 
 #define xnestCursor(pCursor, pScreen) \
-  (xnestCursorPriv(pCursor, pScreen)->cursor)
+  (xnestGetCursorPriv(pCursor, pScreen)->cursor)
 
 Bool xnestRealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);
 Bool xnestUnrealizeCursor(ScreenPtr pScreen, CursorPtr pCursor);

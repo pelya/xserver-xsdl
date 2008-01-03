@@ -45,8 +45,6 @@ is" without express or implied warranty.
 Window xnestDefaultWindows[MAXSCREENS];
 Window xnestScreenSaverWindows[MAXSCREENS];
 
-static int xnestScreenGeneration = -1;
-
 ScreenPtr
 xnestScreen(Window window)
 {
@@ -142,21 +140,13 @@ xnestOpenScreen(int index, ScreenPtr pScreen, int argc, char *argv[])
   VisualID defaultVisual;
   int rootDepth;
 
-  if (!(AllocateWindowPrivate(pScreen, xnestWindowPrivateIndex,
-			    sizeof(xnestPrivWin))  &&
-	  AllocateGCPrivate(pScreen, xnestGCPrivateIndex, 
-			    sizeof(xnestPrivGC)))) 
-    return False;
-
-  if (xnestScreenGeneration != serverGeneration) {
-      if ((xnestPixmapPrivateIndex = AllocatePixmapPrivateIndex()) < 0)
-	  return False;
-      xnestScreenGeneration = serverGeneration;
-  }
-  
-  if (!AllocatePixmapPrivate(pScreen,xnestPixmapPrivateIndex,
-			     sizeof (xnestPrivPixmap)))
+  if (!dixRequestPrivate(xnestWindowPrivateKey, sizeof(xnestPrivWin)))
       return False;
+  if (!dixRequestPrivate(xnestGCPrivateKey, sizeof(xnestPrivGC)))
+    return False;
+  if (!dixRequestPrivate(xnestPixmapPrivateKey, sizeof (xnestPrivPixmap)))
+      return False;
+
   visuals = (VisualPtr)xalloc(xnestNumVisuals * sizeof(VisualRec));
   numVisuals = 0;
 

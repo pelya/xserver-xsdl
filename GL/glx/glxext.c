@@ -27,6 +27,7 @@
 #include "glxserver.h"
 #include <windowstr.h>
 #include <propertyst.h>
+#include "privates.h"
 #include <os.h>
 #include "g_disptab.h"
 #include "unpack.h"
@@ -53,7 +54,7 @@ RESTYPE __glXSwapBarrierRes;
 */
 xGLXSingleReply __glXReply;
 
-static int glxClientPrivateIndex;
+static DevPrivateKey glxClientPrivateKey = &glxClientPrivateKey;
 
 /*
 ** Client that called into GLX dispatch.
@@ -204,7 +205,7 @@ int __glXError(int error)
 __GLXclientState *
 glxGetClient(ClientPtr pClient)
 {
-    return (__GLXclientState *) pClient->devPrivates[glxClientPrivateIndex].ptr;
+    return dixLookupPrivate(&pClient->devPrivates, glxClientPrivateKey);
 }
 
 static void
@@ -274,9 +275,7 @@ void GlxExtensionInit(void)
     __glXDrawableRes = CreateNewResourceType((DeleteType)DrawableGone);
     __glXSwapBarrierRes = CreateNewResourceType((DeleteType)SwapBarrierGone);
 
-    glxClientPrivateIndex = AllocateClientPrivateIndex ();
-    if (!AllocateClientPrivate (glxClientPrivateIndex,
-				sizeof (__GLXclientState)))
+    if (!dixRequestPrivate(glxClientPrivateKey, sizeof (__GLXclientState)))
 	return;
     if (!AddCallback (&ClientStateCallback, glxClientCallback, 0))
 	return;

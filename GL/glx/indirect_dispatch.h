@@ -149,8 +149,6 @@ extern HIDDEN int __glXDisp_GetProgramNamedParameterfvNV(struct __GLXclientState
 extern HIDDEN int __glXDispSwap_GetProgramNamedParameterfvNV(struct __GLXclientStateRec *, GLbyte *);
 extern HIDDEN void __glXDisp_PointParameterfEXT(GLbyte * pc);
 extern HIDDEN void __glXDispSwap_PointParameterfEXT(GLbyte * pc);
-extern HIDDEN void __glXDisp_ProgramParameter4dvNV(GLbyte * pc);
-extern HIDDEN void __glXDispSwap_ProgramParameter4dvNV(GLbyte * pc);
 extern HIDDEN void __glXDisp_TexCoord2sv(GLbyte * pc);
 extern HIDDEN void __glXDispSwap_TexCoord2sv(GLbyte * pc);
 extern HIDDEN void __glXDisp_Vertex4dv(GLbyte * pc);
@@ -425,8 +423,6 @@ extern HIDDEN void __glXDisp_FramebufferTexture1DEXT(GLbyte * pc);
 extern HIDDEN void __glXDispSwap_FramebufferTexture1DEXT(GLbyte * pc);
 extern HIDDEN int __glXDisp_GetDrawableAttributes(struct __GLXclientStateRec *, GLbyte *);
 extern HIDDEN int __glXDispSwap_GetDrawableAttributes(struct __GLXclientStateRec *, GLbyte *);
-extern HIDDEN void __glXDisp_ProgramParameter4fvNV(GLbyte * pc);
-extern HIDDEN void __glXDispSwap_ProgramParameter4fvNV(GLbyte * pc);
 extern HIDDEN void __glXDisp_RasterPos2sv(GLbyte * pc);
 extern HIDDEN void __glXDispSwap_RasterPos2sv(GLbyte * pc);
 extern HIDDEN void __glXDisp_Color4ubv(GLbyte * pc);

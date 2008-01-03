@@ -46,7 +46,6 @@ from the author.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "extnsionst.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 #include "mi.h"
@@ -80,6 +79,7 @@ ProcXFakeDeviceData(ClientPtr client)
     DeviceIntPtr dev;
     int nevents, i;
     int* valuators = NULL;
+    int rc;
 
     REQUEST(xFakeDeviceDataReq);
     REQUEST_AT_LEAST_SIZE(xFakeDeviceDataReq);
@@ -90,11 +90,9 @@ ProcXFakeDeviceData(ClientPtr client)
         return Success;
     }
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL) {
-        SendErrorToClient(client, IReqCode, X_FakeDeviceData, 0, BadDevice);
-        return Success;
-    }
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixWriteAccess);
+    if (rc != Success)
+        return rc;
 
     if (!fake_events && !(fake_events = InitEventList(GetMaximumEventsNum())))
     {

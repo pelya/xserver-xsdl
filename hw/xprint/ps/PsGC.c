@@ -162,9 +162,11 @@ PsGetDrawablePrivateStuff(
         c = wColormap((WindowPtr)pDrawable);
         cmap = (ColormapPtr)LookupIDByType(c, RT_COLORMAP);
 
-        cPriv = pCon->devPrivates[PsContextPrivateIndex].ptr;
+        cPriv = (PsContextPrivPtr)
+	    dixLookupPrivate(&pCon->devPrivates, PsContextPrivateKey);
         sPriv = (PsScreenPrivPtr)
-                pDrawable->pScreen->devPrivates[PsScreenPrivateIndex].ptr;
+	    dixLookupPrivate(&pDrawable->pScreen->devPrivates,
+			     PsScreenPrivateKey);
         *gc     = cPriv->lastGC;
         *valid  = cPriv->validGC;
         *psOut  = cPriv->pPsOut;
@@ -189,7 +191,8 @@ PsGetPsContextPriv( DrawablePtr pDrawable )
       pCon = PsGetContextFromWindow((WindowPtr)pDrawable);
       if (pCon != NULL)
       {
-        return pCon->devPrivates[PsContextPrivateIndex].ptr;
+	  return (PsContextPrivPtr)
+	      dixLookupPrivate(&pCon->devPrivates, PsContextPrivateKey);
       }
   }
   return NULL;
@@ -257,8 +260,9 @@ PsUpdateDrawableGC(
         PsOut_Offset(*psOut, pDrawable->x, pDrawable->y);
         PsOut_Clip(*psOut, pGC->clientClipType, (PsClipPtr)pGC->clientClip);
       }
-      cPriv = ( PsGetContextFromWindow( (WindowPtr)pDrawable ) )
-             ->devPrivates[PsContextPrivateIndex].ptr;
+      cPriv = (PsContextPrivPtr)dixLookupPrivate(
+	  &PsGetContextFromWindow((WindowPtr)pDrawable)->devPrivates,
+	  PsContextPrivateKey);
       break;
   }
   return TRUE;

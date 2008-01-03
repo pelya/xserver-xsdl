@@ -60,7 +60,6 @@ SOFTWARE.
 #include <X11/extensions/XIproto.h>
 #include "inputstr.h"	/* DeviceIntPtr      */
 #include "windowstr.h"	/* window struct     */
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 #include "swaprep.h"
 
@@ -114,7 +113,7 @@ ProcXGetSelectedExtensionEvents(ClientPtr client)
     rep.this_client_count = 0;
     rep.all_clients_count = 0;
 
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 

@@ -45,7 +45,6 @@ from the author.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "extnsionst.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
@@ -83,11 +82,14 @@ ProcXQueryDevicePointer(ClientPtr client)
     REQUEST(xQueryDevicePointerReq);
     REQUEST_SIZE_MATCH(xQueryDevicePointerReq);
 
-    pDev = LookupDeviceIntRec(stuff->deviceid);
-    if (pDev == NULL || pDev->valuator == NULL) {
-        SendErrorToClient(client, IReqCode, X_QueryDevicePointer,
-                stuff->deviceid, BadDevice);
-        return Success;
+    rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
+
+    if (pDev->valuator == NULL)
+    {
+        client->errorValue = stuff->deviceid;
+        return BadDevice;
     }
 
     rc = dixLookupWindow(&pWin, stuff->win, client, DixReadAccess);

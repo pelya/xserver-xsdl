@@ -48,7 +48,6 @@ from the author.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "extnsionst.h"
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
@@ -77,8 +76,11 @@ ProcXSetClientPointer(ClientPtr client)
     REQUEST_SIZE_MATCH(xSetClientPointerReq);
 
 
-    pDev = LookupDeviceIntRec(stuff->deviceid);
-    if (pDev == NULL || !IsPointerDevice(pDev) || !pDev->isMaster)
+    err = dixLookupDevice(&pDev, stuff->deviceid, client, DixWriteAccess);
+    if (err != Success)
+        return err;
+
+    if (!IsPointerDevice(pDev) || !pDev->isMaster)
     {
         client->errorValue = stuff->deviceid;
         return BadDevice;
@@ -86,13 +88,14 @@ ProcXSetClientPointer(ClientPtr client)
 
     if (stuff->win != None)
     {
-        err = dixLookupWindow(&pWin, stuff->win, client, DixReadWriteAccess);
+        err = dixLookupWindow(&pWin, stuff->win, client, DixWriteAccess);
         if (err != Success)
         {
             /* window could not be found. maybe the window ID given was a pure
                client id? */
+            /* XXX: Needs to be fixed for XACE */
             err = dixLookupClient(&targetClient, stuff->win,
-                                  client, DixReadWriteAccess);
+                                  client, DixWriteAccess);
             if (err != Success)
             {
                 client->errorValue = stuff->win;

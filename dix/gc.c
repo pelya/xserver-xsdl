@@ -61,7 +61,9 @@ SOFTWARE.
 #include "scrnintstr.h"
 #include "region.h"
 
+#include "privates.h"
 #include "dix.h"
+#include "xace.h"
 #include <assert.h>
 
 extern XID clientErrorValue;
@@ -147,7 +149,7 @@ _X_EXPORT int
 dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr pUnion)
 {
     BITS32 	index2;
-    int 	error = 0;
+    int 	rc, error = 0;
     PixmapPtr 	pPixmap;
     BITS32	maskQ;
 
@@ -266,14 +268,15 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 		if (pUnion)
 		{
 		    NEXT_PTR(PixmapPtr, pPixmap);
+		    rc = Success;
 		}
 		else
 		{
 		    NEXTVAL(XID, newpix);
-		    pPixmap = (PixmapPtr)SecurityLookupIDByType(client,
-					newpix, RT_PIXMAP, DixReadAccess);
+		    rc = dixLookupResource((pointer *)&pPixmap, newpix,
+					   RT_PIXMAP, client, DixReadAccess);
 		}
-		if (pPixmap)
+		if (rc == Success)
 		{
 		    if ((pPixmap->drawable.depth != pGC->depth) ||
 			(pPixmap->drawable.pScreen != pGC->pScreen))
@@ -292,7 +295,7 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 		else
 		{
 		    clientErrorValue = newpix;
-		    error = BadPixmap;
+		    error = (rc == BadValue) ? BadPixmap : rc;
 		}
 		break;
 	    }
@@ -302,14 +305,15 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 		if (pUnion)
 		{
 		    NEXT_PTR(PixmapPtr, pPixmap);
+		    rc = Success;
 		}
 		else
 		{
 		    NEXTVAL(XID, newstipple)
-		    pPixmap = (PixmapPtr)SecurityLookupIDByType(client,
-				newstipple, RT_PIXMAP, DixReadAccess);
+		    rc = dixLookupResource((pointer *)&pPixmap, newstipple,
+					   RT_PIXMAP, client, DixReadAccess);
 		}
-		if (pPixmap)
+		if (rc == Success)
 		{
 		    if ((pPixmap->drawable.depth != 1) ||
 			(pPixmap->drawable.pScreen != pGC->pScreen))
@@ -327,7 +331,7 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 		else
 		{
 		    clientErrorValue = newstipple;
-		    error = BadPixmap;
+		    error = (rc == BadValue) ? BadPixmap : rc;
 		}
 		break;
 	    }
@@ -344,14 +348,15 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 		if (pUnion)
 		{
 		    NEXT_PTR(FontPtr, pFont);
+		    rc = Success;
 		}
 		else
 		{
 		    NEXTVAL(XID, newfont)
-		    pFont = (FontPtr)SecurityLookupIDByType(client, newfont,
-						RT_FONT, DixReadAccess);
+		    rc = dixLookupResource((pointer *)&pFont, newfont,
+					   RT_FONT, client, DixUseAccess);
 		}
-		if (pFont)
+		if (rc == Success)
 		{
 		    pFont->refcnt++;
 		    if (pGC->font)
@@ -361,7 +366,7 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 		else
 		{
 		    clientErrorValue = newfont;
-		    error = BadFont;
+		    error = (rc == BadValue) ? BadFont : rc;
 		}
 		break;
 	    }
@@ -414,9 +419,15 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 			clipType = CT_NONE;
 			pPixmap = NullPixmap;
 		    }
-		    else
-		        pPixmap = (PixmapPtr)SecurityLookupIDByType(client,
-					pid, RT_PIXMAP, DixReadAccess);
+		    else {
+			rc = dixLookupResource((pointer *)&pPixmap, pid,
+					       RT_PIXMAP, client,
+					       DixReadAccess);
+			if (rc != Success) {
+			    clientErrorValue = pid;
+			    error = (rc == BadValue) ? BadPixmap : rc;
+			}
+		    }
 		}
 
 		if (pPixmap)
@@ -431,11 +442,6 @@ dixChangeGC(ClientPtr client, GC *pGC, BITS32 mask, CARD32 *pC32, ChangeGCValPtr
 			clipType = CT_PIXMAP;
 			pPixmap->refcnt++;
 		    }
-		}
-		else if (!pUnion && (pid != None))
-		{
-		    clientErrorValue = pid;
-		    error = BadPixmap;
 		}
 		if(error == Success)
 		{
@@ -567,44 +573,13 @@ BUG:
    should check for failure to create default tile
 
 */
-
-static GCPtr
-AllocateGC(ScreenPtr pScreen)
-{
-    GCPtr pGC;
-    char *ptr;
-    DevUnion *ppriv;
-    unsigned *sizes;
-    unsigned size;
-    int i;
-
-    pGC = (GCPtr)xalloc(pScreen->totalGCSize);
-    if (pGC)
-    {
-	ppriv = (DevUnion *)(pGC + 1);
-	pGC->devPrivates = ppriv;
-	sizes = pScreen->GCPrivateSizes;
-	ptr = (char *)(ppriv + pScreen->GCPrivateLen);
-	for (i = pScreen->GCPrivateLen; --i >= 0; ppriv++, sizes++)
-	{
-	    if ( (size = *sizes) )
-	    {
-		ppriv->ptr = (pointer)ptr;
-		ptr += size;
-	    }
-	    else
-		ppriv->ptr = (pointer)NULL;
-	}
-    }
-    return pGC;
-}
-
 _X_EXPORT GCPtr
-CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus)
+CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus,
+	 XID gcid, ClientPtr client)
 {
     GCPtr pGC;
 
-    pGC = AllocateGC(pDrawable->pScreen);
+    pGC = (GCPtr)xalloc(sizeof(GC));
     if (!pGC)
     {
 	*pStatus = BadAlloc;
@@ -617,7 +592,7 @@ CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus)
     pGC->planemask = ~0;
     pGC->serialNumber = GC_CHANGE_SERIAL_BIT;
     pGC->funcs = 0;
-
+    pGC->devPrivates = NULL;
     pGC->fgPixel = 0;
     pGC->bgPixel = 1;
     pGC->lineWidth = 0;
@@ -662,6 +637,12 @@ CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus)
     pGC->stipple = pGC->pScreen->PixmapPerDepth[0];
     pGC->stipple->refcnt++;
 
+    /* security creation/labeling check */
+    *pStatus = XaceHook(XACE_RESOURCE_ACCESS, client, gcid, RT_GC, pGC,
+			RT_NONE, NULL, DixCreateAccess|DixSetAttrAccess);
+    if (*pStatus != Success)
+	goto out;
+
     pGC->stateChanges = (1 << (GCLastBit+1)) - 1;
     if (!(*pGC->pScreen->CreateGC)(pGC))
 	*pStatus = BadAlloc;
@@ -669,6 +650,8 @@ CreateGC(DrawablePtr pDrawable, BITS32 mask, XID *pval, int *pStatus)
         *pStatus = ChangeGC(pGC, mask, pval);
     else
 	*pStatus = Success;
+
+out:
     if (*pStatus != Success)
     {
 	if (!pGC->tileIsPixel && !pGC->tile.pixmap)
@@ -903,6 +886,7 @@ FreeGC(pointer value, XID gid)
     (*pGC->funcs->DestroyGC) (pGC);
     if (pGC->dash != DefaultDash)
 	xfree(pGC->dash);
+    dixFreePrivates(pGC->devPrivates);
     xfree(pGC);
     return(Success);
 }
@@ -925,7 +909,7 @@ CreateScratchGC(ScreenPtr pScreen, unsigned depth)
 {
     GCPtr pGC;
 
-    pGC = AllocateGC(pScreen);
+    pGC = (GCPtr)xalloc(sizeof(GC));
     if (!pGC)
 	return (GCPtr)NULL;
 
@@ -934,7 +918,7 @@ CreateScratchGC(ScreenPtr pScreen, unsigned depth)
     pGC->alu = GXcopy; /* dst <- src */
     pGC->planemask = ~0;
     pGC->serialNumber = 0;
-
+    pGC->devPrivates = NULL;
     pGC->fgPixel = 0;
     pGC->bgPixel = 1;
     pGC->lineWidth = 0;

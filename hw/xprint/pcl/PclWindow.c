@@ -97,9 +97,9 @@ PclCreateWindow(
     Bool status = Success;
     ScreenPtr pScreen = pWin->drawable.pScreen;
     PclScreenPrivPtr pScreenPriv = (PclScreenPrivPtr) 
-		     pScreen->devPrivates[PclScreenPrivateIndex].ptr;
+	dixLookupPrivate(&pScreen->devPrivates, PclScreenPrivateKey);
     PclWindowPrivPtr pWinPriv = (PclWindowPrivPtr)
-			 pWin->devPrivates[PclWindowPrivateIndex].ptr;
+	dixLookupPrivate(&pWin->devPrivates, PclWindowPrivateKey);
 
     /*
      * Initialize this window's private struct.
@@ -142,7 +142,8 @@ PclCreateWindow(
     /*
      * Invalidate the window's private print context.
      */
-    pPriv = (PclWindowPrivPtr)pWin->devPrivates[PclWindowPrivateIndex].ptr;
+    pPriv = (PclWindowPrivPtr)
+	dixLookupPrivate(&pWin->devPrivates, PclWindowPrivateKey);
     pPriv->validContext = 0;
     
     return TRUE;

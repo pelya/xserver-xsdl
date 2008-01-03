@@ -71,7 +71,7 @@ Bool	xkbCares,isBtn;
 	if ((!isBtn)||((dev->button)&&(dev->button->xkb_acts))) {
 	   DeviceIntPtr	kbd;
 	   if (dev->key)	kbd= dev;
-	   else		kbd= (DeviceIntPtr)LookupKeyboardDevice();
+	   else		kbd= inputInfo.keyboard;
 	   XkbHandleActions(dev,kbd,xE,count);
 	   return;
 	}

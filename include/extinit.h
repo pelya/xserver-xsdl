@@ -49,9 +49,4 @@ AssignTypeAndName (
 	char *                 /* name */
 	);
 
-DeviceIntPtr
-LookupDeviceIntRec (
-	CARD8                  /* id */
-	);
-
 #endif /* EXTINIT_H */

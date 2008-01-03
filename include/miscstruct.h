@@ -50,7 +50,6 @@ SOFTWARE.
 
 #include "misc.h"
 #include <X11/Xprotostr.h>
-#include "gc.h"
 #include <pixman.h>
 
 typedef xPoint DDXPointRec;
@@ -61,17 +60,7 @@ typedef union _DevUnion {
     pointer		ptr;
     long		val;
     unsigned long	uval;
-    RegionPtr   	(*fptr)(
-        DrawablePtr         /* pSrcDrawable */,
-        DrawablePtr         /* pDstDrawable */,
-        GCPtr               /* pGC */,
-        int                 /* srcx */,
-        int                 /* srcy */,
-        int                 /* width */,
-        int                 /* height */,
-        int                 /* dstx */,
-        int                 /* dsty */,
-        unsigned long       /* bitPlane */);
+    pointer		(*fptr)(void);
 } DevUnion;
 
 #endif /* MISCSTRUCT_H */

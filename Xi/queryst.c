@@ -42,7 +42,6 @@ from The Open Group.
 #include "windowstr.h"	/* window structure  */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exevents.h"
 #include "exglobals.h"
 
@@ -74,7 +73,7 @@ int
 ProcXQueryDeviceState(ClientPtr client)
 {
     char n;
-    int i;
+    int rc, i;
     int num_classes = 0;
     int total_length = 0;
     char *buf, *savbuf;
@@ -96,9 +95,9 @@ ProcXQueryDeviceState(ClientPtr client)
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
 
-    dev = LookupDeviceIntRec(stuff->deviceid);
-    if (dev == NULL)
-	return BadDevice;
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixReadAccess);
+    if (rc != Success)
+	return rc;
 
     v = dev->valuator;
     if (v != NULL && v->motionHintWindow != NULL)

@@ -144,7 +144,8 @@ PclGetDrawablePrivateStuff(
 	    return FALSE;
 	  else
 	    {
-		cPriv = pCon->devPrivates[PclContextPrivateIndex].ptr;
+		cPriv = (PclContextPrivPtr)
+		    dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
 		*gc = cPriv->lastGC;
 		*valid = cPriv->validGC;
 		*file = cPriv->pPageFile;
@@ -171,7 +172,8 @@ PclSetDrawablePrivateGC(
       {
 	case DRAWABLE_PIXMAP:
 	  pix = (PixmapPtr)pDrawable;
-	  pixPriv = pix->devPrivates[PclPixmapPrivateIndex].ptr;
+	  pixPriv = (PclPixmapPrivPtr)
+	      dixLookupPrivate(&pix->devPrivates, PclPixmapPrivateKey);
 	  
 	  pixPriv->lastGC = gc;
 	  pixPriv->validGC = 1;
@@ -179,8 +181,8 @@ PclSetDrawablePrivateGC(
 
 	case DRAWABLE_WINDOW:
 	  pCon = PclGetContextFromWindow( (WindowPtr)pDrawable );
-	  pPriv = ((PclContextPrivPtr)
-		   (pCon->devPrivates[PclContextPrivateIndex].ptr));
+	  pPriv = (PclContextPrivPtr)
+	      dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
 	  
 	  pPriv->validGC = 1;
 	  pPriv->lastGC = gc;
@@ -316,13 +318,14 @@ PclUpdateDrawableGC(
     XpContextPtr pCon;
     PclContextPrivPtr cPriv;
     PclGCPrivPtr gcPriv = (PclGCPrivPtr)
-      (pGC->devPrivates[PclGCPrivateIndex].ptr);
+	dixLookupPrivate(&pGC->devPrivates, PclGCPrivateKey);
     
     if( !PclGetDrawablePrivateStuff( pDrawable, &dGC, &valid, outFile ) )
       return FALSE;
 
     pCon = PclGetContextFromWindow( (WindowPtr)pDrawable );
-    cPriv = pCon->devPrivates[PclContextPrivateIndex].ptr;
+    cPriv = (PclContextPrivPtr)
+	dixLookupPrivate(&pCon->devPrivates, PclContextPrivateKey);
 
     /*
      * Here's where we update the colormap.  Since there can be

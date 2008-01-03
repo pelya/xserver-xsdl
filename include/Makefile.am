@@ -11,6 +11,7 @@ sdk_HEADERS =		\
 	cursor.h	\
 	cursorstr.h	\
 	dix.h		\
+	dixaccess.h	\
 	dixevents.h	\
 	dixfont.h	\
 	dixfontstr.h	\
@@ -31,10 +32,12 @@ sdk_HEADERS =		\
 	os.h		\
 	pixmap.h	\
 	pixmapstr.h	\
+	privates.h	\
 	property.h	\
 	propertyst.h	\
 	region.h	\
 	regionstr.h	\
+	registry.h	\
 	resource.h	\
 	rgb.h		\
 	screenint.h	\

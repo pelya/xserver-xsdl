@@ -42,9 +42,8 @@
 #define DBG_PIXMAP(a)
 #endif
  
-int kaaGeneration;
-int kaaScreenPrivateIndex;
-int kaaPixmapPrivateIndex;
+DevPrivateKey kaaScreenPrivateKey = &kaaScreenPrivateKey;
+DevPrivateKey kaaPixmapPrivateKey = &kaaPixmapPrivateKey;
 
 #define KAA_PIXMAP_SCORE_MOVE_IN    10
 #define KAA_PIXMAP_SCORE_MAX	    20
@@ -314,7 +313,7 @@ kaaCreatePixmap(ScreenPtr pScreen, int w, int h, int depth, unsigned usage_hint)
 	    }
     }
 
-    pPixmap = fbCreatePixmapBpp (pScreen, w, h, depth, bpp);
+    pPixmap = fbCreatePixmapBpp (pScreen, w, h, depth, bpp, usage_hint);
     if (!pPixmap)
 	return NULL;
     pKaaPixmap = KaaGetPixmapPriv(pPixmap);
@@ -1020,13 +1019,6 @@ kaaDrawInit (ScreenPtr		pScreen,
     PictureScreenPtr	ps = GetPictureScreenIfSet(pScreen);
 #endif
     
-    if (kaaGeneration != serverGeneration)
-    {
-	kaaScreenPrivateIndex = AllocateScreenPrivateIndex();
-	kaaPixmapPrivateIndex = AllocatePixmapPrivateIndex();
-	kaaGeneration = serverGeneration;
-    }
-
     pKaaScr = xalloc (sizeof (KaaScreenPrivRec));
 
     if (!pKaaScr)
@@ -1034,7 +1026,7 @@ kaaDrawInit (ScreenPtr		pScreen,
     
     pKaaScr->info = pScreenInfo;
     
-    pScreen->devPrivates[kaaScreenPrivateIndex].ptr = (pointer) pKaaScr;
+    dixSetPrivate(&pScreen->devPrivates, kaaScreenPrivateKey, pKaaScr);
     
     /*
      * Hook up asynchronous drawing
@@ -1058,16 +1050,10 @@ kaaDrawInit (ScreenPtr		pScreen,
     if ((pKaaScr->info->flags & KAA_OFFSCREEN_PIXMAPS) &&
 	screen->off_screen_base < screen->memory_size)
     {
-	if (!AllocatePixmapPrivate(pScreen, kaaPixmapPrivateIndex,
-				   sizeof (KaaPixmapPrivRec)))
+	if (!dixRequestPrivate(kaaPixmapPrivateKey, sizeof (KaaPixmapPrivRec)))
 	    return FALSE;
 	pScreen->CreatePixmap = kaaCreatePixmap;
 	pScreen->DestroyPixmap = kaaDestroyPixmap;
-    }
-    else
-    {
-	if (!AllocatePixmapPrivate(pScreen, kaaPixmapPrivateIndex, 0))
-	    return FALSE;
     }
 
     return TRUE;

@@ -48,6 +48,8 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 int
 XkbDDXTerminateServer(DeviceIntPtr dev,KeyCode key,XkbAction *act)
 {
-    xf86ProcessActionEvent(ACTION_TERMINATE, NULL);
+    if (dev != inputInfo.keyboard)
+        xf86ProcessActionEvent(ACTION_TERMINATE, NULL);
+
     return 0;
 }

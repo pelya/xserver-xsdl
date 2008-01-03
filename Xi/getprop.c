@@ -60,7 +60,6 @@ SOFTWARE.
 #include "windowstr.h"	/* window structs    */
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
-#include "extinit.h"	/* LookupDeviceIntRec */
 #include "exglobals.h"
 #include "swaprep.h"
 
@@ -112,7 +111,7 @@ ProcXGetDeviceDontPropagateList(ClientPtr client)
     rep.length = 0;
     rep.count = 0;
 
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 

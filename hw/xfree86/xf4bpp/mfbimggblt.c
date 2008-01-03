@@ -149,7 +149,8 @@ xf4bppImageGlyphBlt(pDrawable, pGC, x, y, nglyph, ppci, pglyphBase)
        backrect.height = FONTASCENT(pGC->font) + FONTDESCENT(pGC->font);
 
 
-       pPrivGC = pGC->devPrivates[mfbGetGCPrivateIndex()].ptr;
+       pPrivGC = (ppcPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					       mfbGetGCPrivateKey());
        oldfillStyle = pPrivGC->colorRrop.fillStyle; /* GJA */
        oldfg = pPrivGC->colorRrop.fgPixel; /* GJA */
        oldalu = pPrivGC->colorRrop.alu; /* GJA */

@@ -58,7 +58,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <X11/Xos.h>
 #include <X11/X.h>
 #include <X11/Xproto.h>
-#include "input.h"              /* Server DevicePtr definitions */
+#include "inputstr.h"           /* Server DevicePtr definitions */
 #include "misc.h"               /* Server swapping macros */
 #include "dixstruct.h"          /* Server ClientRec definitions */
 #include "resource.h"           /* Used with the MakeAtom call */
@@ -278,7 +278,7 @@ Bool XETrapRedirectDevices()
     /* Do we need to redirect the keyboard device? */
     if (XETrapKbdDev == NULL)
     {
-        if ((XETrapKbdDev = LookupKeyboardDevice()) == NULL)
+        if ((XETrapKbdDev = (DevicePtr)inputInfo.keyboard) == NULL)
         {
             retval = False;
         }
@@ -303,7 +303,7 @@ Bool XETrapRedirectDevices()
 #ifndef VECTORED_EVENTS
     if (XETrapPtrDev == NULL)
     {
-        if ((XETrapPtrDev = LookupPointerDevice()) == 0L)
+        if ((XETrapPtrDev = (DevicePtr)inputInfo.pointer) == 0L)
         {
             retval = False;
         }

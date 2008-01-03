@@ -1521,17 +1521,20 @@ FreeLocalClientCreds(LocalClientCredRec *lcc)
     }
 }
 
-static Bool
+static int
 AuthorizedClient(ClientPtr client)
 {
+    int rc;
+
     if (!client || defeatAccessControl)
-	return TRUE;
+	return Success;
 
     /* untrusted clients can't change host access */
-    if (!XaceHook(XACE_HOSTLIST_ACCESS, client, DixWriteAccess))
-	return FALSE;
+    rc = XaceHook(XACE_SERVER_ACCESS, client, DixManageAccess);
+    if (rc != Success)
+	return rc;
 
-    return LocalClient(client);
+    return LocalClient(client) ? Success : BadAccess;
 }
 
 /* Add a host to the access control list.  This is the external interface
@@ -1543,10 +1546,11 @@ AddHost (ClientPtr	client,
 	 unsigned       length,        /* of bytes in pAddr */
 	 pointer        pAddr)
 {
-    int			len;
+    int rc, len;
 
-    if (!AuthorizedClient(client))
-	return(BadAccess);
+    rc = AuthorizedClient(client);
+    if (rc != Success)
+	return rc;
     switch (family) {
     case FamilyLocalHost:
 	len = length;
@@ -1640,11 +1644,12 @@ RemoveHost (
     unsigned            length,        /* of bytes in pAddr */
     pointer             pAddr)
 {
-    int			len;
+    int rc, len;
     register HOST	*host, **prev;
 
-    if (!AuthorizedClient(client))
-	return(BadAccess);
+    rc = AuthorizedClient(client);
+    if (rc != Success)
+	return rc;
     switch (family) {
     case FamilyLocalHost:
 	len = length;
@@ -1901,8 +1906,9 @@ ChangeAccessControl(
     ClientPtr client,
     int fEnabled)
 {
-    if (!AuthorizedClient(client))
-	return BadAccess;
+    int rc = AuthorizedClient(client);
+    if (rc != Success)
+	return rc;
     AccessEnabled = fEnabled;
     return Success;
 }

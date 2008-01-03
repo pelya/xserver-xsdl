@@ -121,10 +121,10 @@ typedef char *XPointer;
  *  Public index variables from PsInit.c
  */
 
-extern int PsScreenPrivateIndex;
-extern int PsWindowPrivateIndex;
-extern int PsContextPrivateIndex;
-extern int PsPixmapPrivateIndex;
+extern DevPrivateKey PsScreenPrivateKey;
+extern DevPrivateKey PsWindowPrivateKey;
+extern DevPrivateKey PsContextPrivateKey;
+extern DevPrivateKey PsPixmapPrivateKey;
 extern XpValidatePoolsRec PsValidatePoolsRec;
 
 /*

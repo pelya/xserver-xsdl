@@ -36,6 +36,7 @@
 #include "xf86DDC.h"
 #include "xf86Crtc.h"
 #include "xf86Modes.h"
+#include "xf86Priv.h"
 #include "xf86RandR12.h"
 #include "X11/extensions/render.h"
 #define DPMS_SERVER
@@ -259,6 +260,30 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
     crtc->y = y;
     crtc->rotation = rotation;
 
+    /* Shift offsets that move us out of virtual size */
+    if (x + mode->HDisplay > xf86_config->maxWidth ||
+	y + mode->VDisplay > xf86_config->maxHeight)
+    {
+	if (x + mode->HDisplay > xf86_config->maxWidth)
+	    crtc->x = xf86_config->maxWidth - mode->HDisplay;
+	if (y + mode->VDisplay > xf86_config->maxHeight)
+	    crtc->y = xf86_config->maxHeight - mode->VDisplay;
+	if (crtc->x < 0 || crtc->y < 0)
+	{
+	    xf86DrvMsg (scrn->scrnIndex, X_ERROR,
+			"Mode %dx%d does not fit virtual size %dx%d - "
+			"internal error\n", mode->HDisplay, mode->VDisplay,
+			xf86_config->maxWidth, xf86_config->maxHeight);
+	    goto done;
+	}
+	xf86DrvMsg (scrn->scrnIndex, X_ERROR,
+		    "Mode %dx%d+%d+%d does not fit virtual size %dx%d - "
+		    "offset updated to +%d+%d\n",
+		    mode->HDisplay, mode->VDisplay, x, y,
+		    xf86_config->maxWidth, xf86_config->maxHeight,
+		    crtc->x, crtc->y);
+    }
+
     /* XXX short-circuit changes to base location only */
     
     /* Pass our mode to the outputs and the CRTC to give them a chance to
@@ -300,7 +325,7 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
     /* Set up the DPLL and any output state that needs to adjust or depend
      * on the DPLL.
      */
-    crtc->funcs->mode_set(crtc, mode, adjusted_mode, x, y);
+    crtc->funcs->mode_set(crtc, mode, adjusted_mode, crtc->x, crtc->y);
     for (i = 0; i < xf86_config->num_output; i++) 
     {
 	xf86OutputPtr output = xf86_config->output[i];
@@ -438,7 +463,7 @@ xf86OutputSetMonitor (xf86OutputPtr output)
 }
 
 static Bool
-xf86OutputEnabled (xf86OutputPtr output)
+xf86OutputEnabled (xf86OutputPtr output, Bool strict)
 {
     Bool    enable, disable;
 
@@ -456,8 +481,16 @@ xf86OutputEnabled (xf86OutputPtr output)
 		    "Output %s disabled by config file\n", output->name);
 	return FALSE;
     }
-    /* otherwise, enable if it is not disconnected */
-    enable = output->status != XF86OutputStatusDisconnected;
+
+    /* If not, try to only light up the ones we know are connected */
+    if (strict) {
+	enable = output->status == XF86OutputStatusConnected;
+    }
+    /* But if that fails, try to light up even outputs we're unsure of */
+    else {
+	enable = output->status != XF86OutputStatusDisconnected;
+    }
+
     xf86DrvMsg (output->scrn->scrnIndex, X_INFO,
     	    "Output %s %sconnected\n", output->name, enable ? "" : "dis");
     return enable;
@@ -704,9 +737,9 @@ xf86DefaultMode (xf86OutputPtr output, int width, int height)
     
     mm_height = output->mm_height;
     if (!mm_height)
-	mm_height = 203;	/* 768 pixels at 96dpi */
+	mm_height = (768 * 25.4) / DEFAULT_DPI;
     /*
-     * Pick a mode closest to 96dpi 
+     * Pick a mode closest to DEFAULT_DPI
      */
     for (mode = output->probed_modes; mode; mode = mode->next)
     {
@@ -721,7 +754,7 @@ xf86DefaultMode (xf86OutputPtr output, int width, int height)
 	
 	/* yes, use VDisplay here, not xf86ModeHeight */
 	dpi = (mode->VDisplay * 254) / (mm_height * 10);
-	diff = dpi - 96;
+	diff = dpi - DEFAULT_DPI;
 	diff = diff < 0 ? -diff : diff;
 	if (target_mode == NULL || (preferred > target_preferred) ||
 	    (preferred == target_preferred && diff < target_diff))
@@ -1054,6 +1087,16 @@ xf86InitialOutputPositions (ScrnInfoPtr scrn, DisplayModePtr *modes)
 		    any_set = TRUE;
 		    continue;
 		}
+		if (!modes[or])
+		{
+		    xf86DrvMsg (scrn->scrnIndex, X_ERROR,
+				"Cannot position output %s relative to output %s without modes\n",
+				output->name, relative_name);
+		    output->initial_x = 0;
+		    output->initial_y = 0;
+		    any_set = TRUE;
+		    continue;
+		}
 		if (relative->initial_x == POSITION_UNSET)
 		{
 		    keep_going = TRUE;
@@ -1069,10 +1112,10 @@ xf86InitialOutputPositions (ScrnInfoPtr scrn, DisplayModePtr *modes)
 		    output->initial_x += xf86ModeWidth (modes[or], relative->initial_rotation);
 		    break;
 		case OPTION_ABOVE:
-		    output->initial_y -= xf86ModeHeight (modes[or], relative->initial_rotation);
+		    output->initial_y -= xf86ModeHeight (modes[o], relative->initial_rotation);
 		    break;
 		case OPTION_LEFT_OF:
-		    output->initial_x -= xf86ModeWidth (modes[or], relative->initial_rotation);
+		    output->initial_x -= xf86ModeWidth (modes[o], relative->initial_rotation);
 		    break;
 		default:
 		    break;
@@ -1536,7 +1579,7 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
     Rotation		target_rotation = RR_Rotate_0;
     xf86CrtcPtr		*crtcs;
     DisplayModePtr	*modes;
-    Bool		*enabled;
+    Bool		*enabled, any_enabled = FALSE;
     int			width;
     int			height;
 
@@ -1569,9 +1612,23 @@ xf86InitialConfiguration (ScrnInfoPtr scrn, Bool canGrow)
 	xf86OutputPtr output = config->output[o];
 	
 	modes[o] = NULL;
-	enabled[o] = xf86OutputEnabled (output);
+	any_enabled |= (enabled[o] = xf86OutputEnabled (output, TRUE));
     }
     
+    if (!any_enabled)
+    {
+	xf86DrvMsg (scrn->scrnIndex, X_WARNING,
+		    "No outputs definitely connected, trying again...\n");
+
+	for (o = 0; o < config->num_output; o++)
+	{
+	    xf86OutputPtr output = config->output[o];
+	
+	    modes[o] = NULL;
+	    enabled[o] = xf86OutputEnabled (output, FALSE);
+	}
+    }
+
     /*
      * User preferred > preferred > other modes
      */
@@ -2129,7 +2186,8 @@ xf86OutputGetEDID (xf86OutputPtr output, I2CBusPtr pDDCBus)
     xf86MonPtr mon;
 
     mon = xf86DoEDID_DDC2 (scrn->scrnIndex, pDDCBus);
-    xf86DDCApplyQuirks (scrn->scrnIndex, pDDCBus);
+    if (mon)
+        xf86DDCApplyQuirks (scrn->scrnIndex, mon);
 
     return mon;
 }

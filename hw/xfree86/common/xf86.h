@@ -57,9 +57,9 @@
 /* General parameters */
 extern int xf86DoConfigure;
 extern Bool xf86DoConfigurePass1;
-extern int xf86ScreenIndex;		/* Index into pScreen.devPrivates */
-extern int xf86CreateRootWindowIndex;	/* Index into pScreen.devPrivates */
-extern int xf86PixmapIndex;
+extern DevPrivateKey xf86ScreenKey;
+extern DevPrivateKey xf86CreateRootWindowKey;
+extern DevPrivateKey xf86PixmapKey;
 extern ScrnInfoPtr *xf86Screens;	/* List of pointers to ScrnInfoRecs */
 extern const unsigned char byte_reversed[256];
 extern ScrnInfoPtr xf86CurrentScreen;
@@ -72,8 +72,8 @@ extern Bool sbusSlotClaimed;
 extern confDRIRec xf86ConfigDRI;
 extern Bool xf86inSuspend;
 
-#define XF86SCRNINFO(p) ((ScrnInfoPtr)((p)->devPrivates[xf86ScreenIndex].ptr))
-
+#define XF86SCRNINFO(p) ((ScrnInfoPtr)dixLookupPrivate(&(p)->devPrivates, \
+						       xf86ScreenKey))
 #define XF86FLIP_PIXELS() \
 	do { \
 	    if (xf86GetFlipPixels()) { \
@@ -339,6 +339,7 @@ Bool xf86IsUnblank(int mode);
 
 void xf86AddModuleInfo(ModuleInfoPtr info, pointer module);
 void xf86DeleteModuleInfo(int idx);
+void xf86getsecs(long *, long *);
 
 /* xf86Debug.c */
 #ifdef BUILDDEBUG

@@ -21,6 +21,9 @@
 /* Default font path */
 #undef COMPILEDDEFAULTFONTPATH
 
+/* Miscellaneous server configuration files path */
+#undef SERVER_MISC_CONFIG_PATH
+
 /* Support Composite Extension */
 #undef COMPOSITE
 
@@ -145,6 +148,9 @@
 /* Define to 1 if you have version 2.2 (or newer) of the drm library */
 #undef HAVE_LIBDRM_2_2
 
+/* Have Quartz */
+#undef XQUARTZ
+
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
@@ -240,6 +246,9 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Have /dev/urandom */
+#undef HAVE_URANDOM
+
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
 
@@ -266,9 +275,6 @@
 
 /* Internal define for Xinerama */
 #undef PANORAMIX
-
-/* Support pixmap privates */
-#undef PIXPRIV
 
 /* Overall prefix */
 #undef PROJECTROOT
@@ -332,8 +338,14 @@
 /* unaligned word accesses behave as expected */
 #undef WORKING_UNALIGNED_INT
 
+/* Build X string registry */
+#undef XREGISTRY
+
 /* Build X-ACE extension */
 #undef XACE
+
+/* Build SELinux extension */
+#undef XSELINUX
 
 /* Support XCMisc extension */
 #undef XCMISC
@@ -490,9 +502,6 @@
 
 /* Define to 1 if the DTrace Xserver provider probes should be built in */
 #undef XSERVER_DTRACE
-
-/* Path to XErrorDB file */
-#undef XERRORDB_PATH
 
 /* Define to 16-bit byteswap macro */
 #undef bswap_16

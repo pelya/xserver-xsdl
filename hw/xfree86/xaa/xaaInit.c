@@ -39,22 +39,20 @@ static int  XAASetDGAMode(int index, int num, DGADevicePtr devRet);
 static void XAAEnableDisableFBAccess (int index, Bool enable);
 static Bool XAAChangeWindowAttributes (WindowPtr pWin, unsigned long mask);
 
-static int XAAScreenIndex = -1;
-static int XAAGCIndex = -1;
-static int XAAPixmapIndex = -1;
+static DevPrivateKey XAAScreenKey = &XAAScreenKey;
+static DevPrivateKey XAAGCKey = &XAAGCKey;
+static DevPrivateKey XAAPixmapKey = &XAAPixmapKey;
 
-static unsigned long XAAGeneration = 0;
-
-int XAAGetScreenIndex(void) {
-    return XAAScreenIndex;
+DevPrivateKey XAAGetScreenKey(void) {
+    return XAAScreenKey;
 }
 
-int XAAGetGCIndex(void) {
-    return XAAGCIndex;
+DevPrivateKey XAAGetGCKey(void) {
+    return XAAGCKey;
 }
 
-int XAAGetPixmapIndex(void) {
-    return XAAPixmapIndex;
+DevPrivateKey XAAGetPixmapKey(void) {
+    return XAAPixmapKey;
 }
 
 /* temp kludge */
@@ -104,25 +102,16 @@ XAAInit(ScreenPtr pScreen, XAAInfoRecPtr infoRec)
     if (!infoRec)
 	return TRUE;
     
-    if (XAAGeneration != serverGeneration) {
-	if (	((XAAScreenIndex = AllocateScreenPrivateIndex()) < 0) ||
-		((XAAGCIndex = AllocateGCPrivateIndex()) < 0) ||
-		((XAAPixmapIndex = AllocatePixmapPrivateIndex()) < 0))
-		return FALSE;
-
-	XAAGeneration = serverGeneration;
-    }
-
-    if (!AllocateGCPrivate(pScreen, XAAGCIndex, sizeof(XAAGCRec)))
+    if (!dixRequestPrivate(XAAGCKey, sizeof(XAAGCRec)))
 	return FALSE;
 
-    if (!AllocatePixmapPrivate(pScreen, XAAPixmapIndex, sizeof(XAAPixmapRec)))
+    if (!dixRequestPrivate(XAAPixmapKey, sizeof(XAAPixmapRec)))
 	return FALSE;
 
     if (!(pScreenPriv = xalloc(sizeof(XAAScreenRec))))
 	return FALSE;
 
-    pScreen->devPrivates[XAAScreenIndex].ptr = (pointer)pScreenPriv;
+    dixSetPrivate(&pScreen->devPrivates, XAAScreenKey, pScreenPriv);
 
     if(!xf86FBManagerRunning(pScreen))
 	infoRec->Flags &= ~(PIXMAP_CACHE | OFFSCREEN_PIXMAPS);
@@ -219,7 +208,7 @@ XAACloseScreen (int i, ScreenPtr pScreen)
 {
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
     XAAScreenPtr pScreenPriv = 
-	(XAAScreenPtr) pScreen->devPrivates[XAAScreenIndex].ptr;
+	(XAAScreenPtr)dixLookupPrivate(&pScreen->devPrivates, XAAScreenKey);
 
     pScrn->EnterVT = pScreenPriv->EnterVT; 
     pScrn->LeaveVT = pScreenPriv->LeaveVT; 
@@ -516,7 +505,7 @@ XAAEnterVT(int index, int flags)
 {
     ScreenPtr pScreen = screenInfo.screens[index];
     XAAScreenPtr pScreenPriv = 
-	(XAAScreenPtr) pScreen->devPrivates[XAAScreenIndex].ptr;
+	(XAAScreenPtr)dixLookupPrivate(&pScreen->devPrivates, XAAScreenKey);
 
     return((*pScreenPriv->EnterVT)(index, flags));
 }
@@ -526,7 +515,7 @@ XAALeaveVT(int index, int flags)
 {
     ScreenPtr pScreen = screenInfo.screens[index];
     XAAScreenPtr pScreenPriv = 
-	(XAAScreenPtr) pScreen->devPrivates[XAAScreenIndex].ptr;
+	(XAAScreenPtr)dixLookupPrivate(&pScreen->devPrivates, XAAScreenKey);
     XAAInfoRecPtr infoRec = pScreenPriv->AccelInfoRec;
 
     if(infoRec->NeedToSync) {
@@ -549,7 +538,7 @@ XAASetDGAMode(int index, int num, DGADevicePtr devRet)
     ScreenPtr pScreen = screenInfo.screens[index];
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
     XAAScreenPtr pScreenPriv = 
-	(XAAScreenPtr) pScreen->devPrivates[XAAScreenIndex].ptr;
+	(XAAScreenPtr)dixLookupPrivate(&pScreen->devPrivates, XAAScreenKey);
     int ret;
 
     if (!num && infoRec->dgaSaves) { /* restore old pixmap cache state */
@@ -611,7 +600,7 @@ XAAEnableDisableFBAccess (int index, Bool enable)
     ScreenPtr pScreen = screenInfo.screens[index];
     XAAInfoRecPtr infoRec = GET_XAAINFORECPTR_FROM_SCREEN(pScreen);
     XAAScreenPtr pScreenPriv = 
-	(XAAScreenPtr) pScreen->devPrivates[XAAScreenIndex].ptr;
+	(XAAScreenPtr)dixLookupPrivate(&pScreen->devPrivates, XAAScreenKey);
 
     if(!enable) {
 	if((infoRec->Flags & OFFSCREEN_PIXMAPS) && (infoRec->OffscreenPixmaps))

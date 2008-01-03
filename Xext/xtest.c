@@ -49,14 +49,9 @@ from The Open Group.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #define EXTENSION_EVENT_BASE	64
-#include "extinit.h"		/* LookupDeviceIntRec */
 #endif /* XINPUT */
 
 #include "modinit.h"
-
-#if 0
-static unsigned char XTestReqCode;
-#endif
 
 #ifdef XINPUT
 extern int DeviceValuator;
@@ -89,18 +84,9 @@ static DISPATCH_PROC(SProcXTestGrabControl);
 void
 XTestExtensionInit(INITARGS)
 {
-#if 0
-    ExtensionEntry *extEntry;
-
-    if ((extEntry = AddExtension(XTestExtensionName, 0, 0,
-				 ProcXTestDispatch, SProcXTestDispatch,
-				 XTestResetProc, StandardMinorOpcode)) != 0)
-	XTestReqCode = (unsigned char)extEntry->base;
-#else
-    (void) AddExtension(XTestExtensionName, 0, 0,
-			ProcXTestDispatch, SProcXTestDispatch,
-			XTestResetProc, StandardMinorOpcode);
-#endif
+    AddExtension(XTestExtensionName, 0, 0,
+		 ProcXTestDispatch, SProcXTestDispatch,
+		 XTestResetProc, StandardMinorOpcode);
 }
 
 /*ARGSUSED*/
@@ -140,22 +126,23 @@ ProcXTestCompareCursor(client)
     WindowPtr pWin;
     CursorPtr pCursor;
     int n, rc;
-    DeviceIntPtr pointer = PickPointer(client);
+    DeviceIntPtr ptr = PickPointer(client);
 
     REQUEST_SIZE_MATCH(xXTestCompareCursorReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
         return rc;
     if (stuff->cursor == None)
 	pCursor = NullCursor;
     else if (stuff->cursor == XTestCurrentCursor)
-	pCursor = GetSpriteCursor(pointer);
+	pCursor = GetSpriteCursor(ptr);
     else {
-	pCursor = (CursorPtr)LookupIDByType(stuff->cursor, RT_CURSOR);
-	if (!pCursor)
+	rc = dixLookupResource((pointer *)&pCursor, stuff->cursor, RT_CURSOR,
+			       client, DixReadAccess);
+	if (rc != Success)
 	{
 	    client->errorValue = stuff->cursor;
-	    return (BadCursor);
+	    return (rc == BadValue) ? BadCursor : rc;
 	}
     }
     rep.type = X_Reply;
@@ -287,11 +274,12 @@ ProcXTestFakeInput(client)
 #ifdef XINPUT
     if (extension)
     {
-	dev = LookupDeviceIntRec(stuff->deviceid & 0177);
-	if (!dev)
+	rc = dixLookupDevice(&dev, stuff->deviceid & 0177, client,
+			     DixWriteAccess);
+	if (rc != Success)
 	{
 	    client->errorValue = stuff->deviceid & 0177;
-	    return BadValue;
+	    return rc;
 	}
 	if (nev > 1)
 	{
@@ -368,7 +356,7 @@ ProcXTestFakeInput(client)
 	else
 	{
 	    rc = dixLookupWindow(&root, ev->u.keyButtonPointer.root, client,
-				 DixUnknownAccess);
+				 DixGetAttrAccess);
 	    if (rc != Success)
 		return rc;
 	    if (root->parent)
@@ -461,7 +449,7 @@ ProcXTestFakeInput(client)
 	break;
     }
     if (screenIsSaved == SCREEN_SAVER_ON)
-	SaveScreens(SCREEN_SAVER_OFF, ScreenSaverReset);
+	dixSaveScreens(serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
     ev->u.keyButtonPointer.time = currentTime.milliseconds;
     (*dev->public.processInputProc)(ev, dev, nev);
     return client->noClientException;

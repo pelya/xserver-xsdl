@@ -482,6 +482,18 @@ RootlessComputeClips (pParent, pScreen, universe, kind, exposed)
 			       universe, &pParent->clipList);
     }
 
+    /*
+     * One last thing: backing storage. We have to try to save what parts of
+     * the window are about to be obscured. We can just subtract the universe
+     * from the old clipList and get the areas that were in the old but aren't
+     * in the new and, hence, are about to be obscured.
+     */
+    if (pParent->backStorage && !resized)
+    {
+	REGION_SUBTRACT( pScreen, exposed, &pParent->clipList, universe);
+	(* pScreen->SaveDoomedAreas)(pParent, exposed, dx, dy);
+    }
+    
     /* HACK ALERT - copying contents of regions, instead of regions */
     {
 	RegionRec   tmp;

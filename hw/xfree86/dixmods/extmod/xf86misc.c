@@ -41,8 +41,7 @@
 #endif
 
 static int miscErrorBase;
-static int MiscGeneration = 0;
-static int MiscClientPrivateIndex;
+static DevPrivateKey MiscClientPrivateKey = &MiscClientPrivateKey;
 
 /* This holds the client's version information */
 typedef struct {
@@ -50,7 +49,10 @@ typedef struct {
     int		minor;
 } MiscPrivRec, *MiscPrivPtr;
 
-#define MPRIV(c) ((c)->devPrivates[MiscClientPrivateIndex].ptr)
+#define M_GETPRIV(c) ((MiscPrivPtr) \
+    dixLookupPrivate(&(c)->devPrivates, MiscClientPrivateKey))
+#define M_SETPRIV(c,p) \
+    dixSetPrivate(&(c)->devPrivates, MiscClientPrivateKey, p)
 
 static void XF86MiscResetProc(
     ExtensionEntry* /* extEntry */
@@ -61,7 +63,7 @@ ClientVersion(ClientPtr client, int *major, int *minor)
 {
     MiscPrivPtr pPriv;
 
-    pPriv = MPRIV(client);
+    pPriv = M_GETPRIV(client);
     if (!pPriv) {
 	if (major) *major = 0;
 	if (minor) *minor = 0;
@@ -123,24 +125,6 @@ XFree86MiscExtensionInit(void)
     if (!xf86GetModInDevEnabled())
 	return;
 
-    /*
-     * Allocate a client private index to hold the client's version
-     * information.
-     */
-    if (MiscGeneration != serverGeneration) {
-	MiscClientPrivateIndex = AllocateClientPrivateIndex();
-	/*
-	 * Allocate 0 length, and use the private to hold a pointer to our
-	 * MiscPrivRec.
-	 */
-	if (!AllocateClientPrivate(MiscClientPrivateIndex, 0)) {
-	    ErrorF("XFree86MiscExtensionInit: "
-		   "AllocateClientPrivate failed\n");
-	    return;
-	}
-	MiscGeneration = serverGeneration;
-    }
-    
     if (
 	(extEntry = AddExtension(XF86MISCNAME,
 				XF86MiscNumberEvents,
@@ -205,7 +189,9 @@ ProcXF86MiscSetSaver(client)
     if (stuff->screen > screenInfo.numScreens)
 	return BadValue;
 
-    vptr = (ScrnInfoPtr) screenInfo.screens[stuff->screen]->devPrivates[xf86ScreenIndex].ptr;
+    vptr = (ScrnInfoPtr)
+	dixLookupPrivate(&screenInfo.screens[stuff->screen]->devPrivates,
+			 xf86ScreenKey);
 
     REQUEST_SIZE_MATCH(xXF86MiscSetSaverReq);
 
@@ -233,7 +219,9 @@ ProcXF86MiscGetSaver(client)
     if (stuff->screen > screenInfo.numScreens)
 	return BadValue;
 
-    vptr = (ScrnInfoPtr) screenInfo.screens[stuff->screen]->devPrivates[xf86ScreenIndex].ptr;
+    vptr = (ScrnInfoPtr)
+	dixLookupPrivate(&screenInfo.screens[stuff->screen]->devPrivates,
+			 xf86ScreenKey);
 
     REQUEST_SIZE_MATCH(xXF86MiscGetSaverReq);
     rep.type = X_Reply;
@@ -497,11 +485,11 @@ ProcXF86MiscSetClientVersion(ClientPtr client)
 
     REQUEST_SIZE_MATCH(xXF86MiscSetClientVersionReq);
 
-    if ((pPriv = MPRIV(client)) == NULL) {
+    if ((pPriv = M_GETPRIV(client)) == NULL) {
 	pPriv = xalloc(sizeof(MiscPrivRec));
 	if (!pPriv)
 	    return BadAlloc;
-	MPRIV(client) = pPriv;
+	M_SETPRIV(client, pPriv);
     }
     if (xf86GetVerbosity() > 1) 
 	    ErrorF("SetClientVersion: %i %i\n",stuff->major,stuff->minor);

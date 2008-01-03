@@ -20,15 +20,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _XACE_H
 #define _XACE_H
 
-/* Hook return codes */
-#define XaceErrorOperation  0
-#define XaceAllowOperation  1
-#define XaceIgnoreOperation 2
-
 #ifdef XACE
 
 #define XACE_EXTENSION_NAME		"XAccessControlExtension"
-#define XACE_MAJOR_VERSION		1
+#define XACE_MAJOR_VERSION		2
 #define XACE_MINOR_VERSION		0
 
 #include "pixmap.h"     /* for DrawablePtr */
@@ -36,6 +31,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define XaceNumberEvents		0
 #define XaceNumberErrors		0
+
+/* Default window background */
+#define XaceBackgroundNoneState		None
 
 /* security hooks */
 /* Constants used to identify the available security hooks
@@ -45,16 +43,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define XACE_RESOURCE_ACCESS		2
 #define XACE_DEVICE_ACCESS		3
 #define XACE_PROPERTY_ACCESS		4
-#define XACE_DRAWABLE_ACCESS		5
-#define XACE_MAP_ACCESS			6
-#define XACE_BACKGRND_ACCESS		7
+#define XACE_SEND_ACCESS		5
+#define XACE_RECEIVE_ACCESS		6
+#define XACE_CLIENT_ACCESS		7
 #define XACE_EXT_ACCESS			8
-#define XACE_HOSTLIST_ACCESS		9
-#define XACE_SITE_POLICY		10
-#define XACE_DECLARE_EXT_SECURE		11
-#define XACE_AUTH_AVAIL			12
-#define XACE_KEY_AVAIL			13
-#define XACE_WINDOW_INIT		14
+#define XACE_SERVER_ACCESS		9
+#define XACE_SELECTION_ACCESS		10
+#define XACE_SCREEN_ACCESS		11
+#define XACE_SCREENSAVER_ACCESS		12
+#define XACE_AUTH_AVAIL			13
+#define XACE_KEY_AVAIL			14
 #define XACE_AUDIT_BEGIN		15
 #define XACE_AUDIT_END			16
 #define XACE_NUM_HOOKS			17
@@ -99,15 +97,18 @@ extern void XaceCensorImage(
 
 #else /* XACE */
 
+/* Default window background */
+#define XaceBackgroundNoneState		None
+
 /* Define calls away when XACE is not being built. */
 
 #ifdef __GNUC__
-#define XaceHook(args...) XaceAllowOperation
+#define XaceHook(args...) Success
 #define XaceHookAuditEnd(args...) { ; }
 #define XaceHookAuditBegin(args...) { ; }
 #define XaceCensorImage(args...) { ; }
 #else
-#define XaceHook(...) XaceAllowOperation
+#define XaceHook(...) Success
 #define XaceHookAuditEnd(...) { ; }
 #define XaceHookAuditBegin(...) { ; }
 #define XaceCensorImage(...) { ; }

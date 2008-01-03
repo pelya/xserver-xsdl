@@ -289,7 +289,8 @@ mfbPolyFillArcSolid(pDraw, pGC, narcs, parcs)
     RegionPtr cclip;
     int rop;
 
-    priv = (mfbPrivGC *) pGC->devPrivates[mfbGCPrivateIndex].ptr;
+    priv = (mfbPrivGC *)dixLookupPrivate(&pGC->devPrivates,
+					 mfbGetGCPrivateKey());
     rop = priv->rop;
     if ((rop == RROP_NOP) || !(pGC->planemask & 1))
 	return;

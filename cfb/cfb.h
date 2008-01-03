@@ -37,6 +37,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "colormap.h"
 #include "miscstruct.h"
 #include "servermd.h"
+#include "privates.h"
 #include "windowstr.h"
 #include "mfb.h"
 #undef PixelType
@@ -55,7 +56,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
    pixmap.devKind = width_of_pixmap_in_bytes
 */
 
-extern int  cfbGCPrivateIndex;
+extern DevPrivateKey cfbGCPrivateKey;
 
 /* private field of GC */
 typedef struct {
@@ -70,7 +71,7 @@ typedef struct {
 typedef cfbPrivGC	*cfbPrivGCPtr;
 
 #define cfbGetGCPrivate(pGC)	((cfbPrivGCPtr)\
-	(pGC)->devPrivates[cfbGCPrivateIndex].ptr)
+    dixLookupPrivate(&(pGC)->devPrivates, cfbGCPrivateKey))
 
 #define cfbGetCompositeClip(pGC) ((pGC)->pCompositeClip)
 
@@ -298,7 +299,7 @@ extern int cfb8SegmentSS1RectXor(
 
 extern Bool cfbAllocatePrivates(
     ScreenPtr /*pScreen*/,
-    int * /*gc_index*/
+    DevPrivateKey * /*gc_key*/
 );
 /* cfbbitblt.c */
 
@@ -1193,7 +1194,7 @@ extern void cfbZeroPolyArcSS8Xor(
 
 #define CFB_NEED_SCREEN_PRIVATE
 
-extern int cfbScreenPrivateIndex;
+extern DevPrivateKey cfbScreenPrivateKey;
 #endif
 
 #ifndef CFB_PROTOTYPES_ONLY

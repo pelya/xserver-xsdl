@@ -46,6 +46,7 @@
 #include "fbpict.h"
 #include "safeAlpha.h"
 #include "rootlessCommon.h"
+# define mod(a,b)	((b) == 1 ? 0 : (a) >= 0 ? (a) % (b) : (b) - (-a) % (b))
 
 /* Optimized version of fbCompositeSolidMask_nx8x8888 */
 void
@@ -133,68 +134,78 @@ SafeAlphaCompositeSolidMask_nx8x8888(
 
 void
 SafeAlphaComposite (CARD8           op,
-		    PicturePtr      pSrc,
-		    PicturePtr      pMask,
-		    PicturePtr      pDst,
-		    INT16           xSrc,
-		    INT16           ySrc,
-		    INT16           xMask,
-		    INT16           yMask,
-		    INT16           xDst,
-		    INT16           yDst,
-		    CARD16          width,
-		    CARD16          height)
+                    PicturePtr      pSrc,
+                    PicturePtr      pMask,
+                    PicturePtr      pDst,
+                    INT16           xSrc,
+                    INT16           ySrc,
+                    INT16           xMask,
+                    INT16           yMask,
+                    INT16           xDst,
+                    INT16           yDst,
+                    CARD16          width,
+                    CARD16          height)
 {
-    int oldDepth = pDst->pDrawable->depth;
-    int oldFormat = pDst->format;
+  if (!pSrc) {
+    ErrorF("SafeAlphaComposite: pSrc must not be null!\n");
+    return;
+  }
+
+  if (!pDst) {
+    ErrorF("SafeAlphaComposite: pDst must not be null!\n");
+    return;
+  }
+  
+  int oldDepth = pDst->pDrawable->depth;
+  int oldFormat = pDst->format;
     
-    /*
-     * We can use the more optimized fbpict code, but it sets bits above
-     * the depth to zero. Temporarily adjust destination depth if needed.
-     */
-    if (pDst->pDrawable->type == DRAWABLE_WINDOW
-	&& pDst->pDrawable->depth == 24
-	&& pDst->pDrawable->bitsPerPixel == 32)
+  /*
+   * We can use the more optimized fbpict code, but it sets bits above
+   * the depth to zero. Temporarily adjust destination depth if needed.
+   */
+  if (pDst->pDrawable->type == DRAWABLE_WINDOW
+        && pDst->pDrawable->depth == 24
+      && pDst->pDrawable->bitsPerPixel == 32)
     {
-	pDst->pDrawable->depth = 32;
+      pDst->pDrawable->depth = 32;
     }
     
-    /* For rootless preserve the alpha in x8r8g8b8 which really is
-     * a8r8g8b8
-     */
-    if (oldFormat == PICT_x8r8g8b8)
+  /* For rootless preserve the alpha in x8r8g8b8 which really is
+   * a8r8g8b8
+   */
+  if (oldFormat == PICT_x8r8g8b8)
     {
-        pDst->format = PICT_a8r8g8b8;
+      pDst->format = PICT_a8r8g8b8;
     }
     
-    if (pSrc && pMask && pSrc->pDrawable && pMask->pDrawable &&
-	!pSrc->transform && !pMask->transform &&
-	!pSrc->alphaMap && !pMask->alphaMap &&
-	!pMask->repeat && !pMask->componentAlpha && !pDst->alphaMap &&
-	pMask->format == PICT_a8 &&
-	pSrc->repeatType == RepeatNormal && 
-	pSrc->pDrawable->width == 1 &&
-	pSrc->pDrawable->height == 1 &&
-	(pDst->format == PICT_a8r8g8b8 ||
-	 pDst->format == PICT_x8r8g8b8 ||
-	 pDst->format == PICT_a8b8g8r8 ||
-	 pDst->format == PICT_x8b8g8r8))
+  if (pSrc->pDrawable && pMask && pMask->pDrawable &&
+        !pSrc->transform && !pMask->transform &&
+        !pSrc->alphaMap && !pMask->alphaMap &&
+        !pMask->repeat && !pMask->componentAlpha && !pDst->alphaMap &&
+        pMask->format == PICT_a8 &&
+       pSrc->repeatType == RepeatNormal && 
+        pSrc->pDrawable->width == 1 &&
+        pSrc->pDrawable->height == 1 &&
+      (pDst->format == PICT_a8r8g8b8 ||
+         pDst->format == PICT_x8r8g8b8 ||
+         pDst->format == PICT_a8b8g8r8 ||
+       pDst->format == PICT_x8b8g8r8))
     {
-	fbWalkCompositeRegion (op, pSrc, pMask, pDst,
-			       xSrc, ySrc, xMask, yMask, xDst, yDst,
-			       width, height,
-			       TRUE /* srcRepeat */,
-			       FALSE /* maskRepeat */,
-			       SafeAlphaCompositeSolidMask_nx8x8888);
+      fbWalkCompositeRegion (op, pSrc, pMask, pDst,
+			     xSrc, ySrc, xMask, yMask, xDst, yDst,
+			     width, height,
+			     TRUE /* srcRepeat */,
+			     FALSE /* maskRepeat */,
+			     SafeAlphaCompositeSolidMask_nx8x8888);
     }
-    else
+  else
     {
-	fbComposite (op, pSrc, pMask, pDst,
-		     xSrc, ySrc, xMask, yMask, xDst, yDst, width, height);
+      fbComposite (op, pSrc, pMask, pDst,
+		   xSrc, ySrc, xMask, yMask, xDst, yDst, width, height);
     }
 
-    pDst->pDrawable->depth = oldDepth;
-    pDst->format = oldFormat;
+  pDst->pDrawable->depth = oldDepth;
+  pDst->format = oldFormat;
 }
 
 #endif /* RENDER */

@@ -46,10 +46,9 @@
 
 #include "compint.h"
 
-int	CompScreenPrivateIndex;
-int	CompWindowPrivateIndex;
-int	CompSubwindowsPrivateIndex;
-static int	CompGeneration;
+DevPrivateKey CompScreenPrivateKey = &CompScreenPrivateKey;
+DevPrivateKey CompWindowPrivateKey = &CompWindowPrivateKey;
+DevPrivateKey CompSubwindowsPrivateKey = &CompSubwindowsPrivateKey;
 
 
 static Bool
@@ -86,7 +85,7 @@ compCloseScreen (int index, ScreenPtr pScreen)
     cs->pOverlayWin = NULL;
 
     xfree (cs);
-    pScreen->devPrivates[CompScreenPrivateIndex].ptr = 0;
+    dixSetPrivate(&pScreen->devPrivates, CompScreenPrivateKey, NULL);
     ret = (*pScreen->CloseScreen) (index, pScreen);
 
     return ret;
@@ -374,25 +373,6 @@ compScreenInit (ScreenPtr pScreen)
 {
     CompScreenPtr   cs;
 
-    if (CompGeneration != serverGeneration)
-    {
-	CompScreenPrivateIndex = AllocateScreenPrivateIndex ();
-	if (CompScreenPrivateIndex == -1)
-	    return FALSE;
-	CompWindowPrivateIndex = AllocateWindowPrivateIndex ();
-	if (CompWindowPrivateIndex == -1)
-	    return FALSE;
-	CompSubwindowsPrivateIndex = AllocateWindowPrivateIndex ();
-	if (CompSubwindowsPrivateIndex == -1)
-	    return FALSE;
-	CompGeneration = serverGeneration;
-    }
-    if (!AllocateWindowPrivate (pScreen, CompWindowPrivateIndex, 0))
-	return FALSE;
-
-    if (!AllocateWindowPrivate (pScreen, CompSubwindowsPrivateIndex, 0))
-	return FALSE;
-
     if (GetCompScreen (pScreen))
 	return TRUE;
     cs = (CompScreenPtr) xalloc (sizeof (CompScreenRec));
@@ -457,7 +437,7 @@ compScreenInit (ScreenPtr pScreen)
     cs->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = compCloseScreen;
 
-    pScreen->devPrivates[CompScreenPrivateIndex].ptr = (pointer) cs;
+    dixSetPrivate(&pScreen->devPrivates, CompScreenPrivateKey, cs);
 
     RegisterRealChildHeadProc(CompositeRealChildHead);
 

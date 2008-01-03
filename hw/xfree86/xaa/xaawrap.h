@@ -1,14 +1,14 @@
 
 #define XAA_SCREEN_PROLOGUE(pScreen, field)\
   ((pScreen)->field = \
-   ((XAAScreenPtr) (pScreen)->devPrivates[XAAGetScreenIndex()].ptr)->field)
+   ((XAAScreenPtr)dixLookupPrivate(&(pScreen)->devPrivates, XAAGetScreenKey()))->field)
 
 #define XAA_SCREEN_EPILOGUE(pScreen, field, wrapper)\
     ((pScreen)->field = wrapper)
 
 
 #define XAA_GC_FUNC_PROLOGUE(pGC)\
-    XAAGCPtr   pGCPriv = (XAAGCPtr) (pGC)->devPrivates[XAAGetGCIndex()].ptr;\
+    XAAGCPtr pGCPriv = (XAAGCPtr)dixLookupPrivate(&(pGC)->devPrivates, XAAGetGCKey()); \
     (pGC)->funcs = pGCPriv->wrapFuncs;\
     if(pGCPriv->flags)\
 	(pGC)->ops = pGCPriv->wrapOps
@@ -24,13 +24,13 @@
 
 
 #define XAA_GC_OP_PROLOGUE(pGC)\
-    XAAGCPtr pGCPriv = (XAAGCPtr)(pGC->devPrivates[XAAGetGCIndex()].ptr);\
+    XAAGCPtr pGCPriv = (XAAGCPtr)dixLookupPrivate(&(pGC)->devPrivates, XAAGetGCKey()); \
     GCFuncs *oldFuncs = pGC->funcs;\
     pGC->funcs = pGCPriv->wrapFuncs;\
     pGC->ops = pGCPriv->wrapOps
 
 #define XAA_GC_OP_PROLOGUE_WITH_RETURN(pGC)\
-    XAAGCPtr pGCPriv = (XAAGCPtr)(pGC->devPrivates[XAAGetGCIndex()].ptr);\
+    XAAGCPtr pGCPriv = (XAAGCPtr)dixLookupPrivate(&(pGC)->devPrivates, XAAGetGCKey()); \
     GCFuncs *oldFuncs = pGC->funcs;\
     if(!REGION_NUM_RECTS(pGC->pCompositeClip)) return; \
     pGC->funcs = pGCPriv->wrapFuncs;\
@@ -44,7 +44,7 @@
 
 
 #define XAA_PIXMAP_OP_PROLOGUE(pGC, pDraw)\
-    XAAGCPtr pGCPriv = (XAAGCPtr)(pGC->devPrivates[XAAGetGCIndex()].ptr);\
+    XAAGCPtr pGCPriv = (XAAGCPtr)dixLookupPrivate(&(pGC)->devPrivates, XAAGetGCKey()); \
     XAAPixmapPtr pixPriv = XAA_GET_PIXMAP_PRIVATE((PixmapPtr)(pDraw));\
     GCFuncs *oldFuncs = pGC->funcs;\
     pGC->funcs = pGCPriv->wrapFuncs;\
@@ -64,7 +64,7 @@
 #ifdef RENDER
 #define XAA_RENDER_PROLOGUE(pScreen,field)\
     (GetPictureScreen(pScreen)->field = \
-     ((XAAScreenPtr) (pScreen)->devPrivates[XAAGetScreenIndex()].ptr)->field)
+     ((XAAScreenPtr)dixLookupPrivate(&(pScreen)->devPrivates, XAAGetScreenKey()))->field)
 
 #define XAA_RENDER_EPILOGUE(pScreen, field, wrapper)\
     (GetPictureScreen(pScreen)->field = wrapper)
@@ -74,7 +74,7 @@
 
 #define SYNC_CHECK(pGC) {\
      XAAInfoRecPtr infoRec =\
-((XAAScreenPtr)((pGC)->pScreen->devPrivates[XAAGetScreenIndex()].ptr))->AccelInfoRec;\
+((XAAScreenPtr)dixLookupPrivate(&(pGC)->pScreen->devPrivates, XAAGetScreenKey()))->AccelInfoRec;	\
     if(infoRec->NeedToSync) {\
 	(*infoRec->Sync)(infoRec->pScrn);\
 	infoRec->NeedToSync = FALSE;\

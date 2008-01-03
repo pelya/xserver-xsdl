@@ -123,9 +123,6 @@ OR PERFORMANCE OF THIS SOFTWARE.
 #ifdef XKB
 #include <xkbsrv.h>
 #endif
-#ifdef XCSECURITY
-#include "securitysrv.h"
-#endif
 
 #ifdef RENDER
 #include "picture.h"
@@ -623,9 +620,6 @@ void UseMsg(void)
     ErrorF("-render [default|mono|gray|color] set render color alloc policy\n");
 #endif
     ErrorF("-s #                   screen-saver timeout (minutes)\n");
-#ifdef XCSECURITY
-    ErrorF("-sp file               security policy file\n");
-#endif
 #ifdef XPRINT
     PrinterUseMsg();
 #endif
@@ -935,6 +929,10 @@ ProcessCommandLine(int argc, char *argv[])
 	    else
 		UseMsg();
 	}
+	else if (strcmp(argv[i], "-pogo") == 0)
+	{
+	    dispatchException = DE_TERMINATE;
+	}
 	else if ( strcmp( argv[i], "-pn") == 0)
 	    PartialNetwork = TRUE;
 	else if ( strcmp( argv[i], "-nopn") == 0)
@@ -1038,12 +1036,6 @@ ProcessCommandLine(int argc, char *argv[])
 #endif
 #ifdef XPRINT
 	else if ((skip = PrinterOptions(argc, argv, i)) != i)
-	{
-	    i = skip - 1;
-	}
-#endif
-#ifdef XCSECURITY
-	else if ((skip = XSecurityOptions(argc, argv, i)) != i)
 	{
 	    i = skip - 1;
 	}
@@ -1522,6 +1514,8 @@ SmartScheduleStopTimer (void)
 #ifdef SMART_SCHEDULE_POSSIBLE
     struct itimerval	timer;
     
+    if (SmartScheduleDisable)
+	return;
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = 0;
     timer.it_value.tv_sec = 0;
@@ -1536,6 +1530,8 @@ SmartScheduleStartTimer (void)
 #ifdef SMART_SCHEDULE_POSSIBLE
     struct itimerval	timer;
     
+    if (SmartScheduleDisable)
+	return;
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = SmartScheduleInterval * 1000;
     timer.it_value.tv_sec = 0;

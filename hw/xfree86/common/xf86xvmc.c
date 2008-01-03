@@ -56,11 +56,10 @@ typedef struct {
   XvMCAdaptorPtr dixinfo;
 } xf86XvMCScreenRec, *xf86XvMCScreenPtr;
 
-static unsigned long XF86XvMCGeneration = 0;
-static int XF86XvMCScreenIndex = -1;
+static DevPrivateKey XF86XvMCScreenKey = &XF86XvMCScreenKey;
 
-#define XF86XVMC_GET_PRIVATE(pScreen) \
-   (xf86XvMCScreenPtr)((pScreen)->devPrivates[XF86XvMCScreenIndex].ptr)
+#define XF86XVMC_GET_PRIVATE(pScreen) (xf86XvMCScreenPtr) \
+    dixLookupPrivate(&(pScreen)->devPrivates, XF86XvMCScreenKey)
 
 
 static int 
@@ -164,18 +163,11 @@ _X_EXPORT Bool xf86XvMCScreenInit(
 {
    XvMCAdaptorPtr pAdapt;
    xf86XvMCScreenPtr pScreenPriv;
-   XvScreenPtr pxvs = 
-	(XvScreenPtr)(pScreen->devPrivates[XF86XvScreenIndex].ptr);
-
+   XvScreenPtr pxvs = (XvScreenPtr)dixLookupPrivate(&pScreen->devPrivates,
+						    XF86XvScreenKey);
    int i, j;
 
    if(!XvMCScreenInitProc) return FALSE;
-
-   if(XF86XvMCGeneration != serverGeneration) {
-	if((XF86XvMCScreenIndex = AllocateScreenPrivateIndex()) < 0)
-	   return FALSE;
-	XF86XvMCGeneration = serverGeneration;
-   }
 
    if(!(pAdapt = xalloc(sizeof(XvMCAdaptorRec) * num_adaptors)))
 	return FALSE;
@@ -185,7 +177,7 @@ _X_EXPORT Bool xf86XvMCScreenInit(
 	return FALSE;
    }
 
-   pScreen->devPrivates[XF86XvMCScreenIndex].ptr = (pointer)pScreenPriv; 
+   dixSetPrivate(&pScreen->devPrivates, XF86XvMCScreenKey, pScreenPriv);
 
    pScreenPriv->CloseScreen = pScreen->CloseScreen;
    pScreen->CloseScreen = xf86XvMCCloseScreen;

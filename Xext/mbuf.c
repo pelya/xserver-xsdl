@@ -59,9 +59,6 @@ in this Software without prior written authorization from The Open Group.
 
 #define ValidEventMasks (ExposureMask|MultibufferClobberNotifyMask|MultibufferUpdateNotifyMask)
 
-#if 0
-static unsigned char	MultibufferReqCode;
-#endif
 static int		MultibufferEventBase;
 static int		MultibufferErrorBase;
 int			MultibufferScreenIndex = -1;
@@ -235,7 +232,7 @@ MultibufferExtensionInit()
      * create the resource types
      */
     MultibufferDrawableResType =
-	CreateNewResourceType(MultibufferDrawableDelete)|RC_CACHED|RC_DRAWABLE;
+	CreateNewResourceType(MultibufferDrawableDelete)|RC_DRAWABLE;
     MultibufferResType = CreateNewResourceType(MultibufferDelete);
     MultibuffersResType = CreateNewResourceType(MultibuffersDelete);
     OtherClientResType = CreateNewResourceType(OtherClientDelete);
@@ -247,9 +244,6 @@ MultibufferExtensionInit()
 				 ProcMultibufferDispatch, SProcMultibufferDispatch,
 				 MultibufferResetProc, StandardMinorOpcode)))
     {
-#if 0
-	MultibufferReqCode = (unsigned char)extEntry->base;
-#endif
 	MultibufferEventBase = extEntry->eventBase;
 	MultibufferErrorBase = extEntry->errorBase;
 	EventSwapVector[MultibufferEventBase + MultibufferClobberNotify] = (EventSwapPtr) SClobberNotifyEvent;
