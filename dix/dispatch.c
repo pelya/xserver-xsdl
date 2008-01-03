@@ -149,6 +149,8 @@ int ProcInitialConnection();
 
 #ifdef XSERVER_DTRACE
 #include "registry.h"
+#include <sys/types.h>
+typedef const char *string;
 #include "Xserver-dtrace.h"
 #endif
 
