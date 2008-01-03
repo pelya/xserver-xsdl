@@ -13,6 +13,7 @@ STRL_SRCS = $(top_srcdir)/os/strlcat.c $(top_srcdir)/os/strlcpy.c
 endif
 
 libdummy_nonserver_a_SOURCES = \
+	dixprivates.c \
 	fatalerror.c \
 	logvwrite.c \
 	$(STRL_SRCS) \
