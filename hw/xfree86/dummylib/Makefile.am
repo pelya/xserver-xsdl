@@ -25,7 +25,6 @@ libdummy_nonserver_a_SOURCES = \
 	xf86drvmsgverb.c \
 	xf86errorf.c \
 	xf86errorfverb.c \
-	xf86getpagesize.c \
 	xf86getverb.c \
 	xf86info.c \
 	xf86msg.c \
