@@ -93,7 +93,7 @@ ProcXExtendedGrabDevice(ClientPtr client)
 {
     xExtendedGrabDeviceReply rep;
     DeviceIntPtr             dev;
-    int                      err = Success,
+    int                      rc = Success,
                              errval = 0,
                              i;
     WindowPtr                grab_window,
@@ -122,12 +122,12 @@ ProcXExtendedGrabDevice(ClientPtr client)
             stuff->event_count + 2 * stuff->generic_event_count))
     {
         errval = 0;
-        err = BadLength;
+        rc = BadLength;
         goto cleanup;
     }
 
-    err = dixLookupDevice(&dev, stuff->deviceid, client, DixGrabAccess);
-    if (err != Success) {
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixGrabAccess);
+    if (rc != Success) {
 	goto cleanup;
     }
 
@@ -138,11 +138,11 @@ ProcXExtendedGrabDevice(ClientPtr client)
         goto cleanup;
     }
 
-    err = dixLookupWindow(&grab_window,
+    rc = dixLookupWindow(&grab_window,
                           stuff->grab_window,
                           client,
                           DixReadAccess);
-    if (err != Success)
+    if (rc != Success)
     {
         errval = stuff->grab_window;
         goto cleanup;
@@ -150,11 +150,11 @@ ProcXExtendedGrabDevice(ClientPtr client)
 
     if (stuff->confine_to)
     {
-        err = dixLookupWindow(&confineTo,
+        rc = dixLookupWindow(&confineTo,
                               stuff->confine_to,
                               client,
                               DixReadAccess);
-        if (err != Success)
+        if (rc != Success)
         {
             errval = stuff->confine_to;
             goto cleanup;
@@ -170,7 +170,7 @@ ProcXExtendedGrabDevice(ClientPtr client)
         if (!cursor)
         {
             errval = stuff->cursor;
-            err = BadCursor;
+            rc = BadCursor;
             goto cleanup;
         }
     }
@@ -205,7 +205,7 @@ ProcXExtendedGrabDevice(ClientPtr client)
                   cursor, tmp[stuff->deviceid].mask,
                   gemasks);
 
-    if (err != Success) {
+    if (rc != Success) {
         errval = 0;
         goto cleanup;
     }
@@ -215,13 +215,13 @@ cleanup:
     if (gemasks)
         xfree(gemasks);
 
-    if (err == Success)
+    if (rc == Success)
     {
         WriteReplyToClient(client, sizeof(xGrabDeviceReply), &rep);
     }
     else
     {
-        return err;
+        return rc;
     }
     return Success;
 }

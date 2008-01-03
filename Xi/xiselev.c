@@ -59,16 +59,15 @@ SProcXiSelectEvent(ClientPtr client)
 int
 ProcXiSelectEvent(ClientPtr client)
 {
-    int ret;
+    int rc;
     WindowPtr pWin;
     REQUEST(xXiSelectEventReq);
     REQUEST_SIZE_MATCH(xXiSelectEventReq);
 
-    ret = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
-    if (ret != Success)
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    if (rc != Success)
     {
-        SendErrorToClient(client, IReqCode, X_XiSelectEvent, 0, ret);
-        return Success;
+        return rc;
     }
 
     GEWindowSetMask(client, pWin, IReqCode, stuff->mask);

@@ -70,15 +70,15 @@ ProcXSetClientPointer(ClientPtr client)
     DeviceIntPtr pDev;
     WindowPtr pWin;
     ClientPtr targetClient;
-    int err;
+    int rc;
 
     REQUEST(xSetClientPointerReq);
     REQUEST_SIZE_MATCH(xSetClientPointerReq);
 
 
-    err = dixLookupDevice(&pDev, stuff->deviceid, client, DixWriteAccess);
-    if (err != Success)
-        return err;
+    rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixWriteAccess);
+    if (rc != Success)
+        return rc;
 
     if (!IsPointerDevice(pDev) || !pDev->isMaster)
     {
@@ -88,18 +88,18 @@ ProcXSetClientPointer(ClientPtr client)
 
     if (stuff->win != None)
     {
-        err = dixLookupWindow(&pWin, stuff->win, client, DixWriteAccess);
-        if (err != Success)
+        rc = dixLookupWindow(&pWin, stuff->win, client, DixWriteAccess);
+        if (rc != Success)
         {
             /* window could not be found. maybe the window ID given was a pure
                client id? */
             /* XXX: Needs to be fixed for XACE */
-            err = dixLookupClient(&targetClient, stuff->win,
+            rc = dixLookupClient(&targetClient, stuff->win,
                                   client, DixWriteAccess);
-            if (err != Success)
+            if (rc != Success)
             {
                 client->errorValue = stuff->win;
-                return err;
+                return rc;
             }
         } else
             targetClient= wClient(pWin);

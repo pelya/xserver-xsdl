@@ -71,7 +71,7 @@ SProcXChangeDeviceCursor(ClientPtr client)
 
 int ProcXChangeDeviceCursor(ClientPtr client)
 {
-    int err;
+    int rc;
     WindowPtr pWin    = NULL;
     DeviceIntPtr pDev = NULL;
     CursorPtr pCursor = NULL;
@@ -79,15 +79,15 @@ int ProcXChangeDeviceCursor(ClientPtr client)
     REQUEST(xChangeDeviceCursorReq);
     REQUEST_SIZE_MATCH(xChangeDeviceCursorReq);
 
-    err = dixLookupDevice(&pDev, stuff->deviceid, client, DixSetAttrAccess);
-    if (err != Success)
-        return err;
+    rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixSetAttrAccess);
+    if (rc != Success)
+        return rc;
 
     if (stuff->win != None)
     {
-        err = dixLookupWindow(&pWin, stuff->win, client, DixSetAttrAccess);
-        if (err != Success)
-            return err;
+        rc = dixLookupWindow(&pWin, stuff->win, client, DixSetAttrAccess);
+        if (rc != Success)
+            return rc;
     }
 
     if (stuff->cursor == None)
@@ -103,9 +103,7 @@ int ProcXChangeDeviceCursor(ClientPtr client)
                                 RT_CURSOR, DixReadAccess);
         if (!pCursor)
         {
-            SendErrorToClient(client, IReqCode, X_ChangeDeviceCursor,
-                    stuff->cursor, BadCursor);
-            return Success;
+            return BadCursor;
         }
     }
 

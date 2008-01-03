@@ -70,7 +70,7 @@ SProcXWarpDevicePointer(ClientPtr client)
 int
 ProcXWarpDevicePointer(ClientPtr client)
 {
-    int err;
+    int rc;
     int x, y;
     WindowPtr dest = NULL;
     DeviceIntPtr pDev;
@@ -82,19 +82,17 @@ ProcXWarpDevicePointer(ClientPtr client)
 
     /* FIXME: panoramix stuff is missing, look at ProcWarpPointer */
 
-    err = dixLookupDevice(&pDev, stuff->deviceid, client, DixWriteAccess);
+    rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixWriteAccess);
 
-    if (err != Success)
-        return err;
+    if (rc != Success)
+        return rc;
 
     if (stuff->dst_win != None)
     {
-        err = dixLookupWindow(&dest, stuff->dst_win, client, DixReadAccess);
-        if (err != Success)
+        rc = dixLookupWindow(&dest, stuff->dst_win, client, DixReadAccess);
+        if (rc != Success)
         {
-            SendErrorToClient(client, IReqCode, X_WarpDevicePointer,
-                    stuff->dst_win, err);
-            return Success;
+            return rc;
         }
     }
 
@@ -107,12 +105,10 @@ ProcXWarpDevicePointer(ClientPtr client)
         int winX, winY;
         WindowPtr src;
 
-        err = dixLookupWindow(&src, stuff->src_win, client, DixReadAccess);
-        if (err != Success)
+        rc = dixLookupWindow(&src, stuff->src_win, client, DixReadAccess);
+        if (rc != Success)
         {
-            SendErrorToClient(client, IReqCode, X_WarpDevicePointer,
-                    stuff->src_win, err);
-            return Success;
+            return rc;
         }
 
         winX = src->drawable.x;

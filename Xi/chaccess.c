@@ -63,7 +63,7 @@ SProcXChangeWindowAccess(ClientPtr client)
 int
 ProcXChangeWindowAccess(ClientPtr client)
 {
-    int padding, err, i;
+    int padding, rc, i;
     XID* deviceids = NULL;
     WindowPtr win;
     DeviceIntPtr* perm_devices = NULL;
@@ -77,27 +77,21 @@ ProcXChangeWindowAccess(ClientPtr client)
     if (stuff->length != ((sizeof(xChangeWindowAccessReq)  +
             (((stuff->npermit + stuff->ndeny) * sizeof(XID)) + padding)) >> 2))
     {
-        SendErrorToClient(client, IReqCode, X_ChangeWindowAccess,
-                0, BadLength);
-        return Success;
+        return BadLength;
     }
 
 
-    err = dixLookupWindow(&win, stuff->win, client, DixWriteAccess);
-    if (err != Success)
+    rc = dixLookupWindow(&win, stuff->win, client, DixWriteAccess);
+    if (rc != Success)
     {
-        SendErrorToClient(client, IReqCode, X_ChangeWindowAccess,
-                          stuff->win, err);
-        return Success;
+        return rc;
     }
 
     /* Are we clearing? if so, ignore the rest */
     if (stuff->clear)
     {
-        err = ACClearWindowAccess(client, win, stuff->clear);
-        if (err != Success)
-            SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 0, err);
-        return Success;
+        rc = ACClearWindowAccess(client, win, stuff->clear);
+        return rc;
     }
 
     if (stuff->npermit || stuff->ndeny)
@@ -110,20 +104,18 @@ ProcXChangeWindowAccess(ClientPtr client)
         if (!perm_devices)
         {
             ErrorF("[Xi] ProcXChangeWindowAccess: alloc failure.\n");
-            SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 0,
-                    BadImplementation);
-            return Success;
+            return BadImplementation;
         }
 
         /* if one of the devices cannot be accessed, we don't do anything.*/
         for (i = 0; i < stuff->npermit; i++)
         {
-            err = dixLookupDevice(&perm_devices[i], deviceids[i], client,
+            rc = dixLookupDevice(&perm_devices[i], deviceids[i], client,
                                   DixWriteAccess);
-            if (err != Success)
+            if (rc != Success)
             {
                 xfree(perm_devices);
-                return err;
+                return rc;
             }
         }
     }
@@ -135,36 +127,31 @@ ProcXChangeWindowAccess(ClientPtr client)
         if (!deny_devices)
         {
             ErrorF("[Xi] ProcXChangeWindowAccecss: alloc failure.\n");
-            SendErrorToClient(client, IReqCode, X_ChangeWindowAccess, 0,
-                    BadImplementation);
-
             xfree(perm_devices);
-            return Success;
+            return BadImplementation;
         }
 
         for (i = 0; i < stuff->ndeny; i++)
         {
-            err = dixLookupDevice(&deny_devices[i],
+            rc = dixLookupDevice(&deny_devices[i],
                                   deviceids[i+stuff->npermit],
                                   client,
                                   DixWriteAccess);
-            if (err != Success)
+            if (rc != Success)
             {
                 xfree(perm_devices);
                 xfree(deny_devices);
-                return err;
+                return rc;
             }
         }
     }
 
-    err = ACChangeWindowAccess(client, win, stuff->defaultRule,
+    rc = ACChangeWindowAccess(client, win, stuff->defaultRule,
                                perm_devices, stuff->npermit,
                                deny_devices, stuff->ndeny);
-    if (err != Success)
+    if (rc != Success)
     {
-        SendErrorToClient(client, IReqCode, X_ChangeWindowAccess,
-                          stuff->win, err);
-        return Success;
+        return rc;
     }
 
     xfree(perm_devices);

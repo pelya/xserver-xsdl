@@ -86,8 +86,7 @@ ProcXFakeDeviceData(ClientPtr client)
 
     if (stuff->length != (sizeof(xFakeDeviceDataReq) >> 2) + stuff->num_valuators)
     {
-        SendErrorToClient(client, IReqCode, X_FakeDeviceData, 0, BadLength);
-        return Success;
+        return BadLength;
     }
 
     rc = dixLookupDevice(&dev, stuff->deviceid, client, DixWriteAccess);
@@ -96,8 +95,7 @@ ProcXFakeDeviceData(ClientPtr client)
 
     if (!fake_events && !(fake_events = InitEventList(GetMaximumEventsNum())))
     {
-        SendErrorToClient(client, IReqCode, X_FakeDeviceData, 0, BadAlloc);
-        return Success;
+        return BadAlloc;
     }
     if (stuff->num_valuators)
     {
@@ -106,8 +104,7 @@ ProcXFakeDeviceData(ClientPtr client)
         valuators = xcalloc(stuff->num_valuators, sizeof(int));
         if (!valuators)
         {
-            SendErrorToClient(client, IReqCode, X_FakeDeviceData, 0, BadAlloc);
-            return Success;
+            return BadAlloc;
         }
         for (i = 0; i < stuff->num_valuators; i++, valptr++)
             valuators[i] = (int)(*valptr);

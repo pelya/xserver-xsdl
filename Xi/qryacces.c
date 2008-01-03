@@ -64,7 +64,7 @@ SProcXQueryWindowAccess(ClientPtr client)
 int
 ProcXQueryWindowAccess(ClientPtr client)
 {
-    int err;
+    int rc;
     WindowPtr win;
     DeviceIntPtr *perm, *deny;
     int nperm, ndeny, i;
@@ -75,12 +75,10 @@ ProcXQueryWindowAccess(ClientPtr client)
     REQUEST(xQueryWindowAccessReq);
     REQUEST_SIZE_MATCH(xQueryWindowAccessReq);
 
-    err = dixLookupWindow(&win, stuff->win, client, DixReadAccess);
-    if (err != Success)
+    rc = dixLookupWindow(&win, stuff->win, client, DixReadAccess);
+    if (rc != Success)
     {
-        SendErrorToClient(client, IReqCode, X_QueryWindowAccess,
-                          stuff->win, err);
-        return Success;
+        return rc;
     }
 
     ACQueryWindowAccess(win, &defaultRule, &perm, &nperm, &deny, &ndeny);
@@ -100,9 +98,7 @@ ProcXQueryWindowAccess(ClientPtr client)
         if (!deviceids)
         {
             ErrorF("[Xi] ProcXQueryWindowAccess: xalloc failure.\n");
-            SendErrorToClient(client, IReqCode, X_QueryWindowAccess,
-                    0, BadImplementation);
-            return Success;
+            return BadImplementation;
         }
 
         for (i = 0; i < nperm; i++)
