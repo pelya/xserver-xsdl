@@ -61,8 +61,8 @@ in this Software without prior written authorization from The Open Group.
 
 static int		MultibufferEventBase;
 static int		MultibufferErrorBase;
-int			MultibufferScreenIndex = -1;
-int			MultibufferWindowIndex = -1;
+static DevPrivateKey MultibufferScreenPrivKey = &MultibufferScreenPrivKey;
+static DevPrivateKey MultibufferWindowPrivKey = &MultibufferWindowPrivKey;
 
 static void		PerformDisplayRequest (
 				MultibuffersPtr * /* ppMultibuffers */,
@@ -200,27 +200,16 @@ MultibufferExtensionInit()
     ScreenPtr		    pScreen;
     MultibufferScreenPtr    pMultibufferScreen;
 
-    /*
-     * allocate private pointers in windows and screens.  Allocating
-     * window privates may seem like an unnecessary expense, but every
-     * PositionWindow call must check to see if the window is
-     * multi-buffered; a resource lookup is too expensive.
-     */
-    MultibufferScreenIndex = AllocateScreenPrivateIndex ();
-    if (MultibufferScreenIndex < 0)
-	return;
-    MultibufferWindowIndex = AllocateWindowPrivateIndex ();
     for (i = 0; i < screenInfo.numScreens; i++)
     {
 	pScreen = screenInfo.screens[i];
-	if (!AllocateWindowPrivate (pScreen, MultibufferWindowIndex, 0) ||
-	    !(pMultibufferScreen = (MultibufferScreenPtr) xalloc (sizeof (MultibufferScreenRec))))
+	if (!(pMultibufferScreen = (MultibufferScreenPtr) xalloc (sizeof (MultibufferScreenRec))))
 	{
 	    for (j = 0; j < i; j++)
-		xfree (screenInfo.screens[j]->devPrivates[MultibufferScreenIndex].ptr);
+		xfree (dixLookupPrivate(&screenInfo.screens[j]->devPrivates, MultibufferScreenPrivKey));
 	    return;
 	}
-	pScreen->devPrivates[MultibufferScreenIndex].ptr = (pointer) pMultibufferScreen;
+	dixSetPrivate(&pScreen->devPrivates, MultibufferScreenPrivKey, pMultibufferScreen);
 	/*
  	 * wrap PositionWindow to resize the pixmap when the window
 	 * changes size
@@ -260,14 +249,11 @@ ExtensionEntry	*extEntry;
     ScreenPtr		    pScreen;
     MultibufferScreenPtr    pMultibufferScreen;
     
-    if (MultibufferScreenIndex < 0)
-	return;
     for (i = 0; i < screenInfo.numScreens; i++)
     {
 	pScreen = screenInfo.screens[i];
-	if (pScreen->devPrivates[MultibufferScreenIndex].ptr)
+	if ((pMultibufferScreen = (MultibufferScreenPtr)dixLookupPrivate(&pScreen->devPrivates, MultibufferScreenPrivKey)))
 	{
-	    pMultibufferScreen = (MultibufferScreenPtr) pScreen->devPrivates[MultibufferScreenIndex].ptr;
 	    pScreen->PositionWindow = pMultibufferScreen->PositionWindow;
 	    xfree (pMultibufferScreen);
 	}
@@ -427,7 +413,7 @@ CreateImageBuffers (pWin, nbuf, ids, action, hint)
     pMultibuffers->lastUpdate.milliseconds = 0;
     pMultibuffers->width = width;
     pMultibuffers->height = height;
-    pWin->devPrivates[MultibufferWindowIndex].ptr = (pointer) pMultibuffers;
+    dixSetPrivate(&pWin->devPrivates, MultibufferWindowPrivKey, pMultibuffers);
     if (pClearGC) FreeScratchGC(pClearGC);
     return Success;
 }
@@ -487,7 +473,7 @@ ProcCreateImageBuffers (client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.numberBuffer = ((MultibuffersPtr) (pWin->devPrivates[MultibufferWindowIndex].ptr))->numMultibuffer;
+    rep.numberBuffer = ((MultibuffersPtr) (dixLookupPrivate(&pWin->devPrivates, MultibufferWindowPrivKey)))->numMultibuffer;
     if (client->swapped)
     {
     	swaps(&rep.sequenceNumber, n);
@@ -1236,7 +1222,7 @@ GetBufferPointer (pWin, i)
 {
     MultibuffersPtr pMultibuffers;
 
-    if (!(pMultibuffers = (MultibuffersPtr) pWin->devPrivates[MultibufferWindowIndex].ptr))
+    if (!(pMultibuffers = (MultibuffersPtr) dixLookupPrivate(&pWin->devPrivates, MultibufferWindowPrivKey)))
 	return NULL;
     return (DrawablePtr) pMultibuffers->buffers[i].pPixmap;
 }
@@ -1475,7 +1461,7 @@ DestroyImageBuffers (pWin)
 {
     FreeResourceByType (pWin->drawable.id, MultibuffersResType, FALSE);
     /* Zero out the window's pointer to the buffers so they won't be reused */
-    pWin->devPrivates[MultibufferWindowIndex].ptr = NULL;
+    dixSetPrivate(&pWin->devPrivates, MultibufferWindowPrivKey, NULL);
 }
 
 /*
@@ -1503,11 +1489,11 @@ MultibufferPositionWindow (pWin, x, y)
     Bool	    clear;
 
     pScreen = pWin->drawable.pScreen;
-    pMultibufferScreen = (MultibufferScreenPtr) pScreen->devPrivates[MultibufferScreenIndex].ptr;
+    pMultibufferScreen = (MultibufferScreenPtr) dixLookupPrivate(&pScreen->devPrivates, MultibufferScreenPrivKey);
     (*pMultibufferScreen->PositionWindow) (pWin, x, y);
 
     /* if this window is not multibuffered, we're done */
-    if (!(pMultibuffers = (MultibuffersPtr) pWin->devPrivates[MultibufferWindowIndex].ptr))
+    if (!(pMultibuffers = (MultibuffersPtr) dixLookupPrivate(&pWin->devPrivates, MultibufferWindowPrivKey)))
 	return TRUE;
 
     /* if new size is same as old, we're done */
@@ -1620,7 +1606,7 @@ MultibufferDrawableDelete (value, id)
     if (pDrawable->type == DRAWABLE_WINDOW)
     {
 	pWin = (WindowPtr) pDrawable;
-	pMultibuffers = (MultibuffersPtr) pWin->devPrivates[MultibufferWindowIndex].ptr;
+	pMultibuffers = (MultibuffersPtr) dixLookupPrivate(&pWin->devPrivates, MultibufferWindowPrivKey);
 	pPixmap = pMultibuffers->buffers[pMultibuffers->displayedMultibuffer].pPixmap;
     }
     else
