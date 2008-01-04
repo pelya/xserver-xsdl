@@ -232,6 +232,8 @@ dixResetPrivates(void)
     /* reset internal structures */
     while (items) {
 	next = items->next;
+	DeleteCallbackList(&items->initfuncs);
+	DeleteCallbackList(&items->deletefuncs);
 	xfree(items);
 	items = next;
     }
