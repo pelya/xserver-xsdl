@@ -843,9 +843,6 @@ CloseDevice(DeviceIntPtr dev)
         }
     }
 
-    if (dev->devPrivates)
-	xfree(dev->devPrivates);
-
     xfree(dev->deviceGrab.sync.event);
     dixFreePrivates(dev->devPrivates);
     xfree(dev);
