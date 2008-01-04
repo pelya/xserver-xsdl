@@ -494,7 +494,8 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
 {
     ScrnInfoPtr		pScrn = crtc->scrn;
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
-    ScreenPtr		pScreen = pScrn->pScreen;
+    /* if this is called during ScreenInit() we don't have pScrn->pScreen yet */
+    ScreenPtr		pScreen = screenInfo.screens[pScrn->scrnIndex];
     PictTransform	crtc_to_fb, fb_to_crtc;
     
     PictureTransformIdentity (&crtc_to_fb);
