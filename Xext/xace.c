@@ -262,10 +262,7 @@ XaceResetProc(ExtensionEntry *extEntry)
     int i;
 
     for (i=0; i<XACE_NUM_HOOKS; i++)
-    {
 	DeleteCallbackList(&XaceHooks[i]);
-	XaceHooks[i] = NULL;
-    }
 } /* XaceResetProc */
 
 
