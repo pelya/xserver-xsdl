@@ -1793,6 +1793,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
             if (!tmp)
                 return FALSE;
             dst->geom->sections = tmp;
+            dst->geom->num_sections = src->geom->num_sections;
 
             for (i = 0,
                   ssection = src->geom->sections,
