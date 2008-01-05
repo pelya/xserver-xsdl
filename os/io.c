@@ -1196,7 +1196,7 @@ AllocateOutputBuffer(void)
     oco = (ConnectionOutputPtr)xalloc(sizeof(ConnectionOutput));
     if (!oco)
 	return (ConnectionOutputPtr)NULL;
-    oco->buf = (unsigned char *) xalloc(BUFSIZE);
+    oco->buf = (unsigned char *) xcalloc(1, BUFSIZE);
     if (!oco->buf)
     {
 	xfree(oco);
