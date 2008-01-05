@@ -264,8 +264,7 @@ WMFreeEvents (data, id)
 }
 
 static int
-ProcAppleWMSelectInput (client)
-    register ClientPtr  client;
+ProcAppleWMSelectInput (register ClientPtr client)
 {
     REQUEST(xAppleWMSelectInputReq);
     WMEventPtr      pEvent, pNewEvent, *pHead;
@@ -479,13 +478,11 @@ ProcAppleWMSetFrontProcess(
 }
 
 static int
-ProcAppleWMSetWindowLevel(
-    register ClientPtr client
-)
+ProcAppleWMSetWindowLevel(register ClientPtr client)
 {
     REQUEST(xAppleWMSetWindowLevelReq);
     WindowPtr pWin;
-    int errno;
+    int err;
 
     REQUEST_SIZE_MATCH(xAppleWMSetWindowLevelReq);
 
@@ -497,9 +494,9 @@ ProcAppleWMSetWindowLevel(
         return BadValue;
     }
 
-     errno = appleWMProcs->SetWindowLevel(pWin, stuff->level);
-     if (errno != Success) {
-        return errno;
+     err = appleWMProcs->SetWindowLevel(pWin, stuff->level);
+     if (err != Success) {
+        return err;
     }
 
     return (client->noClientException);

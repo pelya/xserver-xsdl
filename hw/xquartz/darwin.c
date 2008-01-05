@@ -879,24 +879,6 @@ void AbortDDX( void )
     ddxGiveUp();
 }
 
-
-/*
- * DPMS extension stubs
- */
-Bool DPMSSupported(void)
-{
-    return FALSE;
-}
-
-void DPMSSet(int level)
-{
-}
-
-int DPMSGet(int *level)
-{
-    return -1;
-}
-
 #include "mivalidate.h" // for union _Validate used by windowstr.h
 #include "windowstr.h"  // for struct _Window
 #include "scrnintstr.h" // for struct _Screen

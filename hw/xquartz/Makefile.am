@@ -19,6 +19,7 @@ DIST_SUBDIRS = xpr bundle
 libXquartz_la_SOURCES = \
 	$(top_srcdir)/fb/fbcmap_mi.c \
 	$(top_srcdir)/mi/miinitext.c \
+	$(top_srcdir)/Xext/dpmsstubs.c \
 	X11Application.m \
 	X11Controller.m \
 	applewm.c \

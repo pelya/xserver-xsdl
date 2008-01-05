@@ -37,6 +37,7 @@
 #endif
 
 #include "quartzCommon.h"
+#include "quartzPasteboard.h"
 
 #define BOOL xBOOL
 #include "darwin.h"
