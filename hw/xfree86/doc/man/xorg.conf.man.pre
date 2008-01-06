@@ -493,7 +493,7 @@ extension) to connect from another host.
 Default: off.
 .TP 7
 .BI "Option \*qDisableModInDev\*q  \*q" boolean \*q
-This disables the parts of the __xservername__\-Misc extension that can be used to
+This disables the parts of the XFree86\-Misc extension that can be used to
 modify the input device settings dynamically.
 Default: that functionality is enabled.
 .TP 7
