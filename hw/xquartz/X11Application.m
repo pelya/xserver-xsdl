@@ -164,7 +164,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 	 have it activated while X is active (unless using the old
 	 keymapping files) */
     static TSMDocumentID x11_document;
-	
+	DEBUG_LOG("state=%d, _x_active=%d, \n", state, _x_active)
     if (state) {
       QuartzMessageServerThread (kXDarwinActivate, 0);
       
@@ -314,6 +314,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 }
 
 - (void) set_front_process:unused {
+//    [self activateX:YES];
     QuartzMessageServerThread(kXDarwinBringAllToFront, 0);
 }
 
@@ -710,6 +711,10 @@ void X11ApplicationSetWindowMenuCheck (int idx) {
 
 void X11ApplicationSetFrontProcess (void) {
     message_kit_thread (@selector (set_front_process:), nil);
+
+    /* Hackery needed due to argv[0] hackery */
+    ProcessSerialNumber psn = { 0, kCurrentProcess };
+    SetFrontProcess(&psn);
 }
 
 void X11ApplicationSetCanQuit (int state) {
