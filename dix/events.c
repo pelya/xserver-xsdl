@@ -1538,7 +1538,7 @@ CheckGrabForSyncs(DeviceIntPtr thisDev, Bool thisMode, Bool otherMode)
 }
 
 /* Only ever used if a grab is called on an attached slave device. */
-static DevPrivateKey GrabPrivateKey = -1;
+static DevPrivateKey GrabPrivateKey = &GrabPrivateKey;
 typedef struct _GrabMemoryRec {
     DeviceIntPtr oldmaster;
 } GrabMemoryRec, *GrabMemoryPtr;
