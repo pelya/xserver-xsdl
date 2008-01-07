@@ -1481,6 +1481,8 @@ ScreenRestructured (ScreenPtr pScreen)
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next)
     {
+        if (!DevHasCursor(pDev))
+            continue;
 
         /* GrabDevice doesn't have a confineTo field, so we don't need to
          * worry about it. */
