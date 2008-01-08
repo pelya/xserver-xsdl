@@ -60,6 +60,7 @@ xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
     ScrnInfoPtr pScrn = xf86Screens[pScreen->myNum];
     DPMSPtr pDPMS;
     pointer DPMSOpt;
+    MessageType enabled_from = X_INFO;
 
     DPMSKey = &DPMSKey;
 
@@ -78,6 +79,7 @@ xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
 	    = xf86SetBoolOption(pScrn->options, "dpms", FALSE))
 	    && !DPMSDisabledSwitch)
 	    DPMSEnabled = TRUE;
+            enabled_from = X_CONFIG;
 	xf86MarkOptionUsed(DPMSOpt);
     } else if (DPMSEnabledSwitch) {
 	if (!DPMSDisabledSwitch)
@@ -88,7 +90,7 @@ xf86DPMSInit(ScreenPtr pScreen, DPMSSetProcPtr set, int flags)
 	pDPMS->Enabled = defaultDPMSEnabled;
     }
     if (pDPMS->Enabled)
-	xf86DrvMsg(pScreen->myNum, X_CONFIG, "DPMS enabled\n");
+	xf86DrvMsg(pScreen->myNum, enabled_from, "DPMS enabled\n");
     pDPMS->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = DPMSClose;
     DPMSCount++;
