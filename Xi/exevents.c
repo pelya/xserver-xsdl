@@ -348,13 +348,28 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
     }
 
     ALLOC_COPY_CLASS_IF(button, ButtonClassRec);
-#ifdef XKB
     if (to->button)
     {
+        int i;
+        DeviceIntPtr sd;
+
+        memset(to->button, 0, MAP_LENGTH);
+        /* merge button states from all attached devices */
+        for (sd = inputInfo.devices; sd; sd = sd->next)
+        {
+            if (sd->isMaster || sd->u.master != to)
+                continue;
+
+            for (i = 0; i < MAP_LENGTH; i++)
+            {
+                to->button->down[i] += sd->button->down[i];
+            }
+        }
+#ifdef XKB
         to->button->xkb_acts = NULL;
         /* XXX: XkbAction needs to be copied */
-    }
 #endif
+    }
     ALLOC_COPY_CLASS_IF(focus, FocusClassRec);
     ALLOC_COPY_CLASS_IF(proximity, ProximityClassRec);
     ALLOC_COPY_CLASS_IF(absolute, AbsoluteClassRec);
@@ -541,8 +556,8 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
         if (!b)
             return DONT_PROCESS;
 
-	kptr = &b->down[key >> 3];
-	*kptr |= bit;
+        if (b->down[key]++ > 0)
+            return DONT_PROCESS;
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
         b->buttonsDown++;
@@ -556,10 +571,10 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
         if (!b)
             return DONT_PROCESS;
 
-	kptr = &b->down[key >> 3];
-        if (!(*kptr & bit))
+        if (b->down[key] == 0)
             return DONT_PROCESS;
-	*kptr &= ~bit;
+        if (--b->down[key] > 0)
+            return DONT_PROCESS;
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
         if (b->buttonsDown >= 1 && !--b->buttonsDown)

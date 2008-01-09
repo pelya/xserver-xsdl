@@ -1178,7 +1178,7 @@ InitButtonClassDeviceStruct(DeviceIntPtr dev, int numButtons,
     butc->buttonsDown = 0;
     butc->state = 0;
     butc->motionMask = 0;
-    bzero((char *)butc->down, DOWN_LENGTH);
+    bzero((char *)butc->down, MAP_LENGTH);
 #ifdef XKB
     butc->xkb_acts=	NULL;
 #endif

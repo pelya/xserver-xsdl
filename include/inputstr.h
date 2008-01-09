@@ -184,7 +184,7 @@ typedef struct _ButtonClassRec {
     CARD8		buttonsDown;	/* number of buttons currently down */
     unsigned short	state;
     Mask		motionMask;
-    CARD8		down[DOWN_LENGTH];
+    CARD8		down[MAP_LENGTH];
     CARD8		map[MAP_LENGTH];
 #ifdef XKB
     union _XkbAction    *xkb_acts;
