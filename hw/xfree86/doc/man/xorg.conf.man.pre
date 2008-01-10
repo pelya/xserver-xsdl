@@ -2029,7 +2029,7 @@ These both specify that the upper left corner's coordinates are
 The
 .B Absolute
 keyword is optional.
-Some older versions of __xservername__ (4.2 and earlier) don't recognise the
+Some older versions of XFree86 (4.2 and earlier) don't recognise the
 .B Absolute
 keyword, so it's safest to just specify the coordinates without it.
 .TP 4
