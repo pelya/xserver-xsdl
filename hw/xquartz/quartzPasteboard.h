@@ -34,11 +34,11 @@
 #define _QUARTZPASTEBOARD_H
 
 // Aqua->X 
-void QuartzReadPasteboard();
+void QuartzReadPasteboard(void);
 char * QuartzReadCocoaPasteboard(void);	// caller must free string
 
 // X->Aqua
-void QuartzWritePasteboard();
+void QuartzWritePasteboard(void);
 void QuartzWriteCocoaPasteboard(char *text);
 
 #endif	/* _QUARTZPASTEBOARD_H */

@@ -45,6 +45,7 @@ in this Software without prior written authorization from The Open Group.
 #include "darwin.h"
 #include "quartz.h"
 #include "darwinKeyboard.h"
+#include "darwinEvents.h"
 
 #include <sys/types.h>
 #include <sys/uio.h>
@@ -213,9 +214,8 @@ Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) {
  * 
  * This should be deprecated in favor of miEQEnqueue -- BB
  */
-void DarwinEQEnqueue(const xEvent *e) {
+void DarwinEQEnqueue(const xEventPtr e) {
     HWEventQueueType oldtail, newtail;
-    char byte = 0;
 
     oldtail = darwinEventQueue.tail;
 
@@ -253,7 +253,7 @@ void DarwinEQEnqueue(const xEvent *e) {
  * DarwinEQPointerPost
  *  Post a pointer event. Used by the mipointer.c routines.
  */
-void DarwinEQPointerPost(xEvent *e) {
+void DarwinEQPointerPost(DeviceIntPtr pdev, xEventPtr e) {
     (*darwinEventQueue.pPtr->processInputProc)
             (e, (DeviceIntPtr)darwinEventQueue.pPtr, 1);
 }
@@ -274,7 +274,6 @@ void ProcessInputEvents(void) {
     EventRec *e;
     int     x, y;
     xEvent  xe;
-    static int  old_flags = 0;  // last known modifier state
     // button number and modifier mask of currently pressed fake button
     input_check_flag=0;
 

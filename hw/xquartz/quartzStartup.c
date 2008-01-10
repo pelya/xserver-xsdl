@@ -52,8 +52,11 @@
 char **envpGlobal;      // argcGlobal and argvGlobal
                         // are from dix/globals.c
 
+int main(int argc, char **argv, char **envp);
+void _InitHLTB(void);
+void DarwinHandleGUI(int argc, char **argv, char **envp);
+
 static void server_thread (void *arg) {
-  extern int main(int argc, char **argv, char **envp);
   exit (main (argcGlobal, argvGlobal, envpGlobal));
 }
 
@@ -103,8 +106,6 @@ void DarwinHandleGUI(int argc, char **argv, char **envp) {
        before the main thread when we're _not_ prebound, things fail,
        so initialize by hand. */
 
-    extern void _InitHLTB(void);
-    
     _InitHLTB();    
     X11ControllerMain(argc, (const char **)argv, server_thread, NULL);
     exit(0);

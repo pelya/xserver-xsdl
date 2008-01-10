@@ -330,7 +330,7 @@ static void parse_next_char_code(DataStream *s, KeySym *k) {
  * DarwinReadKeymapFile
  *      Read the appropriate keymapping from a keymapping file.
  */
-Bool DarwinReadKeymapFile(NXKeyMapping *keyMap) {
+static Bool DarwinReadKeymapFile(NXKeyMapping *keyMap) {
     struct stat         st;
     NXEventSystemDevice info[20];
     int                 interface = 0, handler_id = 0;
@@ -439,7 +439,7 @@ Bool DarwinReadKeymapFile(NXKeyMapping *keyMap) {
 /*
  * DarwinParseNXKeyMapping
  */
-Bool DarwinParseNXKeyMapping(darwinKeyboardInfo  *info) {
+static Bool DarwinParseNXKeyMapping(darwinKeyboardInfo  *info) {
     KeySym              *k;
     int                 i;
     short               numMods, numKeys, numPadKeys = 0;
@@ -933,7 +933,7 @@ int DarwinModifierNXMaskToNXKey(int mask) {
     return -1;
 }
 
-const char *DarwinModifierNXMaskTostring(int mask) {
+static const char *DarwinModifierNXMaskTostring(int mask) {
     switch (mask) {
         case NX_ALPHASHIFTMASK:      return "NX_ALPHASHIFTMASK";
         case NX_SHIFTMASK:           return "NX_SHIFTMASK";

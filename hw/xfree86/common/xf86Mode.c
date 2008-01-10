@@ -1215,20 +1215,40 @@ inferVirtualSize(ScrnInfoPtr scrp, DisplayModePtr modes, int *vx, int *vy)
 {
     float aspect = 0.0;
     MonPtr mon = scrp->monitor;
+    xf86MonPtr DDC;
     int x = 0, y = 0;
     DisplayModePtr mode;
 
     if (!mon) return 0;
+    DDC = mon->DDC;
+
+    if (DDC && DDC->ver.revision >= 4) {
+	/* For 1.4, we might actually get native pixel format.  How novel. */
+	if (PREFERRED_TIMING_MODE(DDC->features.msc)) {
+		for (mode = modes; mode; mode = mode->next) {
+		    if (mode->type & (M_T_DRIVER | M_T_PREFERRED)) {
+			x = mode->HDisplay;
+			y = mode->VDisplay;
+			goto found;
+		    }
+		}
+	}
+	/*
+	 * Even if we don't, we might get aspect ratio from extra CVT info
+	 * or from the monitor size fields.  TODO.
+	 */
+    }
 
     /*
-     * technically this triggers if _either_ is zero, which is not what EDID
-     * says, but if only one is zero this is best effort.  also we don't
-     * know that all projectors are 4:3, but we certainly suspect it.
+     * Technically this triggers if either is zero.  That wasn't legal
+     * before EDID 1.4, but right now we'll get that wrong. TODO.
      */
-    if (!mon->widthmm || !mon->heightmm)
-	aspect = 4.0/3.0;
-    else
-	aspect = (float)mon->widthmm / (float)mon->heightmm;
+    if (!aspect) {
+	if (!mon->widthmm || !mon->heightmm)
+	    aspect = 4.0/3.0;
+	else
+	    aspect = (float)mon->widthmm / (float)mon->heightmm;
+    }
 
     /* find the largest M_T_DRIVER mode with that aspect ratio */
     for (mode = modes; mode; mode = mode->next) {
@@ -1252,6 +1272,7 @@ inferVirtualSize(ScrnInfoPtr scrp, DisplayModePtr modes, int *vx, int *vy)
 	return 0;
     }
 
+found:
     *vx = x;
     *vy = y;
 

@@ -175,12 +175,12 @@ SELinuxSelectionToSID(Atom selection, SELinuxStateRec *sid_return)
 	security_id_t sid;
 
 	if (selabel_lookup(label_hnd, &con, name, SELABEL_X_SELN) < 0) {
-	    ErrorF("XSELinux: a selection label lookup failed!\n");
+	    ErrorF("SELinux: a selection label lookup failed!\n");
 	    return BadValue;
 	}
 	/* Get a SID for context */
 	if (avc_context_to_sid(con, &sid) < 0) {
-	    ErrorF("XSELinux: a context_to_SID call failed!\n");
+	    ErrorF("SELinux: a context_to_SID call failed!\n");
 	    return BadAlloc;
 	}
 	freecon(con);
@@ -216,12 +216,12 @@ SELinuxEventToSID(unsigned type, security_id_t sid_of_window,
     if (!knownEvents[type]) {
 	/* Look in the mappings of event names to contexts */
 	if (selabel_lookup(label_hnd, &con, name, SELABEL_X_EVENT) < 0) {
-	    ErrorF("XSELinux: an event label lookup failed!\n");
+	    ErrorF("SELinux: an event label lookup failed!\n");
 	    return BadValue;
 	}
 	/* Get a SID for context */
 	if (avc_context_to_sid(con, knownEvents + type) < 0) {
-	    ErrorF("XSELinux: a context_to_SID call failed!\n");
+	    ErrorF("SELinux: a context_to_SID call failed!\n");
 	    return BadAlloc;
 	}
 	freecon(con);
@@ -230,7 +230,7 @@ SELinuxEventToSID(unsigned type, security_id_t sid_of_window,
     /* Perform a transition to obtain the final SID */
     if (avc_compute_create(sid_of_window, knownEvents[type], SECCLASS_X_EVENT,
 			   &sid_return->sid) < 0) {
-	ErrorF("XSELinux: a compute_create call failed!\n");
+	ErrorF("SELinux: a compute_create call failed!\n");
 	return BadValue;
     }
 
@@ -607,13 +607,13 @@ SELinuxExtension(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
 	/* Look in the mappings of property names to contexts */
 	if (selabel_lookup(label_hnd, &con, name, SELABEL_X_EXT) < 0) {
-	    ErrorF("XSELinux: a property label lookup failed!\n");
+	    ErrorF("SELinux: a property label lookup failed!\n");
 	    rec->status = BadValue;
 	    return;
 	}
 	/* Get a SID for context */
 	if (avc_context_to_sid(con, &sid) < 0) {
-	    ErrorF("XSELinux: a context_to_SID call failed!\n");
+	    ErrorF("SELinux: a context_to_SID call failed!\n");
 	    rec->status = BadAlloc;
 	    return;
 	}
@@ -623,7 +623,7 @@ SELinuxExtension(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	/* Perform a transition to obtain the final SID */
 	if (avc_compute_create(serv->sid, sid, SECCLASS_X_EXTENSION,
 			       &obj->sid) < 0) {
-	    ErrorF("XSELinux: a SID transition call failed!\n");
+	    ErrorF("SELinux: a SID transition call failed!\n");
 	    freecon(con);
 	    rec->status = BadValue;
 	    return;
@@ -658,13 +658,13 @@ SELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
 	/* Look in the mappings of property names to contexts */
 	if (selabel_lookup(label_hnd, &con, name, SELABEL_X_PROP) < 0) {
-	    ErrorF("XSELinux: a property label lookup failed!\n");
+	    ErrorF("SELinux: a property label lookup failed!\n");
 	    rec->status = BadValue;
 	    return;
 	}
 	/* Get a SID for context */
 	if (avc_context_to_sid(con, &sid) < 0) {
-	    ErrorF("XSELinux: a context_to_SID call failed!\n");
+	    ErrorF("SELinux: a context_to_SID call failed!\n");
 	    rec->status = BadAlloc;
 	    return;
 	}
@@ -674,7 +674,7 @@ SELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	/* Perform a transition to obtain the final SID */
 	if (avc_compute_create(subj->sid, sid, SECCLASS_X_PROPERTY,
 			       &obj->sid) < 0) {
-	    ErrorF("XSELinux: a SID transition call failed!\n");
+	    ErrorF("SELinux: a SID transition call failed!\n");
 	    freecon(con);
 	    rec->status = BadValue;
 	    return;
@@ -732,7 +732,7 @@ SELinuxResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
 	/* Perform a transition to obtain the final SID */
 	if (avc_compute_create(subj->sid, pobj->sid, class, &obj->sid) < 0) {
-	    ErrorF("XSELinux: a compute_create call failed!\n");
+	    ErrorF("SELinux: a compute_create call failed!\n");
 	    rec->status = BadValue;
 	    return;
 	}
@@ -766,7 +766,7 @@ SELinuxScreen(CallbackListPtr *pcbl, pointer is_saver, pointer calldata)
 	/* Perform a transition to obtain the final SID */
 	if (avc_compute_create(subj->sid, subj->sid, SECCLASS_X_SCREEN,
 			       &obj->sid) < 0) {
-	    ErrorF("XSELinux: a compute_create call failed!\n");
+	    ErrorF("SELinux: a compute_create call failed!\n");
 	    rec->status = BadValue;
 	    return;
 	}
@@ -883,16 +883,16 @@ SELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	security_context_t ctx;
 	int rc = avc_sid_to_context(state->sid, &ctx);
 	if (rc < 0)
-	    FatalError("XSELinux: Failed to get security context!\n");
+	    FatalError("SELinux: Failed to get security context!\n");
 	rc = dixChangeWindowProperty(serverClient,
 				     pWin, atom_client_ctx, XA_STRING, 8,
 				     PropModeReplace, strlen(ctx), ctx, FALSE);
 	if (rc != Success)
-	    FatalError("XSELinux: Failed to set label property on window!\n");
+	    FatalError("SELinux: Failed to set label property on window!\n");
 	freecon(ctx);
     }
     else
-	FatalError("XSELinux: Unexpected unlabeled client found\n");
+	FatalError("SELinux: Unexpected unlabeled client found\n");
 
     state = dixLookupPrivate(&pWin->devPrivates, stateKey);
 
@@ -900,16 +900,16 @@ SELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	security_context_t ctx;
 	int rc = avc_sid_to_context(state->sid, &ctx);
 	if (rc < 0)
-	    FatalError("XSELinux: Failed to get security context!\n");
+	    FatalError("SELinux: Failed to get security context!\n");
 	rc = dixChangeWindowProperty(serverClient,
 				     pWin, atom_ctx, XA_STRING, 8,
 				     PropModeReplace, strlen(ctx), ctx, FALSE);
 	if (rc != Success)
-	    FatalError("XSELinux: Failed to set label property on window!\n");
+	    FatalError("SELinux: Failed to set label property on window!\n");
 	freecon(ctx);
     }
     else
-	FatalError("XSELinux: Unexpected unlabeled window found\n");
+	FatalError("SELinux: Unexpected unlabeled window found\n");
 }
 
 static void
@@ -931,7 +931,7 @@ SELinuxSelectionState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
 	if (avc_compute_create(subj->sid, subj->sid, SECCLASS_X_SELECTION,
 			       &obj->sid) < 0) {
-	    ErrorF("XSELinux: a compute_create call failed!\n");
+	    ErrorF("SELinux: a compute_create call failed!\n");
 	    obj->sid = unlabeled_sid;
 	}
 	break;
@@ -998,8 +998,8 @@ ProcSELinuxQueryVersion(ClientPtr client)
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.server_major = XSELINUX_MAJOR_VERSION;
-    rep.server_minor = XSELINUX_MINOR_VERSION;
+    rep.server_major = SELINUX_MAJOR_VERSION;
+    rep.server_minor = SELINUX_MINOR_VERSION;
     if (client->swapped) {
 	int n;
 	swaps(&rep.sequenceNumber, n);
@@ -1145,31 +1145,31 @@ ProcSELinuxDispatch(ClientPtr client)
     REQUEST(xReq);
     switch (stuff->data) {
     case X_SELinuxQueryVersion:
-        return ProcSELinuxQueryVersion(client);
+	return ProcSELinuxQueryVersion(client);
     case X_SELinuxSetSelectionManager:
 	return ProcSELinuxSetSelectionManager(client);
     case X_SELinuxGetSelectionManager:
-    	return ProcSELinuxGetSelectionManager(client);
+	return ProcSELinuxGetSelectionManager(client);
     case X_SELinuxSetDeviceCreateContext:
-    	return ProcSELinuxSetDeviceCreateContext(client);
+	return ProcSELinuxSetDeviceCreateContext(client);
     case X_SELinuxGetDeviceCreateContext:
-    	return ProcSELinuxGetDeviceCreateContext(client);
+	return ProcSELinuxGetDeviceCreateContext(client);
     case X_SELinuxSetDeviceContext:
-    	return ProcSELinuxSetDeviceContext(client);
+	return ProcSELinuxSetDeviceContext(client);
     case X_SELinuxGetDeviceContext:
-    	return ProcSELinuxGetDeviceContext(client);
+	return ProcSELinuxGetDeviceContext(client);
     case X_SELinuxSetPropertyCreateContext:
-    	return ProcSELinuxSetPropertyCreateContext(client);
+	return ProcSELinuxSetPropertyCreateContext(client);
     case X_SELinuxGetPropertyCreateContext:
-    	return ProcSELinuxGetPropertyCreateContext(client);
+	return ProcSELinuxGetPropertyCreateContext(client);
     case X_SELinuxGetPropertyContext:
-    	return ProcSELinuxGetPropertyContext(client);
+	return ProcSELinuxGetPropertyContext(client);
     case X_SELinuxSetWindowCreateContext:
-    	return ProcSELinuxSetWindowCreateContext(client);
+	return ProcSELinuxSetWindowCreateContext(client);
     case X_SELinuxGetWindowCreateContext:
-    	return ProcSELinuxGetWindowCreateContext(client);
+	return ProcSELinuxGetWindowCreateContext(client);
     case X_SELinuxGetWindowContext:
-    	return ProcSELinuxGetWindowContext(client);
+	return ProcSELinuxGetWindowContext(client);
     default:
 	return BadRequest;
     }
@@ -1199,68 +1199,81 @@ SProcSELinuxSetSelectionManager(ClientPtr client)
 }
 
 static int
-SProcSELinuxGetSelectionManager(ClientPtr client)
-{
-    return ProcSELinuxGetSelectionManager(client);
-}
-
-static int
 SProcSELinuxSetDeviceCreateContext(ClientPtr client)
 {
-    return ProcSELinuxSetDeviceCreateContext(client);
-}
+    REQUEST(SELinuxSetCreateContextReq);
+    int n;
 
-static int
-SProcSELinuxGetDeviceCreateContext(ClientPtr client)
-{
-    return ProcSELinuxGetDeviceCreateContext(client);
+    REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
+    swaps(&stuff->context_len,n);
+    return ProcSELinuxSetDeviceCreateContext(client);
 }
 
 static int
 SProcSELinuxSetDeviceContext(ClientPtr client)
 {
+    REQUEST(SELinuxSetContextReq);
+    int n;
+
+    REQUEST_AT_LEAST_SIZE(SELinuxSetContextReq);
+    swapl(&stuff->id,n);
+    swaps(&stuff->context_len,n);
     return ProcSELinuxSetDeviceContext(client);
 }
 
 static int
 SProcSELinuxGetDeviceContext(ClientPtr client)
 {
+    REQUEST(SELinuxGetContextReq);
+    int n;
+
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+    swapl(&stuff->id,n);
     return ProcSELinuxGetDeviceContext(client);
 }
 
 static int
 SProcSELinuxSetPropertyCreateContext(ClientPtr client)
 {
-    return ProcSELinuxSetPropertyCreateContext(client);
-}
+    REQUEST(SELinuxSetCreateContextReq);
+    int n;
 
-static int
-SProcSELinuxGetPropertyCreateContext(ClientPtr client)
-{
-    return ProcSELinuxGetPropertyCreateContext(client);
+    REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
+    swaps(&stuff->context_len,n);
+    return ProcSELinuxSetPropertyCreateContext(client);
 }
 
 static int
 SProcSELinuxGetPropertyContext(ClientPtr client)
 {
+    REQUEST(SELinuxGetPropertyContextReq);
+    int n;
+
+    REQUEST_SIZE_MATCH(SELinuxGetPropertyContextReq);
+    swapl(&stuff->window,n);
+    swapl(&stuff->property,n);
     return ProcSELinuxGetPropertyContext(client);
 }
 
 static int
 SProcSELinuxSetWindowCreateContext(ClientPtr client)
 {
-    return ProcSELinuxSetWindowCreateContext(client);
-}
+    REQUEST(SELinuxSetCreateContextReq);
+    int n;
 
-static int
-SProcSELinuxGetWindowCreateContext(ClientPtr client)
-{
-    return ProcSELinuxGetWindowCreateContext(client);
+    REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
+    swaps(&stuff->context_len,n);
+    return ProcSELinuxSetWindowCreateContext(client);
 }
 
 static int
 SProcSELinuxGetWindowContext(ClientPtr client)
 {
+    REQUEST(SELinuxGetContextReq);
+    int n;
+
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+    swapl(&stuff->id,n);
     return ProcSELinuxGetWindowContext(client);
 }
 
@@ -1278,11 +1291,11 @@ SProcSELinuxDispatch(ClientPtr client)
     case X_SELinuxSetSelectionManager:
 	return SProcSELinuxSetSelectionManager(client);
     case X_SELinuxGetSelectionManager:
-    	return SProcSELinuxGetSelectionManager(client);
+    	return ProcSELinuxGetSelectionManager(client);
     case X_SELinuxSetDeviceCreateContext:
     	return SProcSELinuxSetDeviceCreateContext(client);
     case X_SELinuxGetDeviceCreateContext:
-    	return SProcSELinuxGetDeviceCreateContext(client);
+    	return ProcSELinuxGetDeviceCreateContext(client);
     case X_SELinuxSetDeviceContext:
     	return SProcSELinuxSetDeviceContext(client);
     case X_SELinuxGetDeviceContext:
@@ -1290,13 +1303,13 @@ SProcSELinuxDispatch(ClientPtr client)
     case X_SELinuxSetPropertyCreateContext:
     	return SProcSELinuxSetPropertyCreateContext(client);
     case X_SELinuxGetPropertyCreateContext:
-    	return SProcSELinuxGetPropertyCreateContext(client);
+    	return ProcSELinuxGetPropertyCreateContext(client);
     case X_SELinuxGetPropertyContext:
     	return SProcSELinuxGetPropertyContext(client);
     case X_SELinuxSetWindowCreateContext:
     	return SProcSELinuxSetWindowCreateContext(client);
     case X_SELinuxGetWindowCreateContext:
-    	return SProcSELinuxGetWindowCreateContext(client);
+    	return ProcSELinuxGetWindowCreateContext(client);
     case X_SELinuxGetWindowContext:
     	return SProcSELinuxGetWindowContext(client);
     default:
@@ -1354,7 +1367,7 @@ SELinuxResetProc(ExtensionEntry *extEntry)
 }
 
 void
-XSELinuxExtensionInit(INITARGS)
+SELinuxExtensionInit(INITARGS)
 {
     ExtensionEntry *extEntry;
     struct selinux_opt options[] = { { SELABEL_OPT_VALIDATE, (char *)1 } };
@@ -1363,46 +1376,51 @@ XSELinuxExtensionInit(INITARGS)
 
     /* Setup SELinux stuff */
     if (!is_selinux_enabled()) {
-        ErrorF("XSELinux: Extension failed to load: SELinux not enabled\n");
+        ErrorF("SELinux: SELinux not enabled, disabling SELinux support.\n");
         return;
     }
 
     selinux_set_callback(SELINUX_CB_LOG, (union selinux_callback)SELinuxLog);
     selinux_set_callback(SELINUX_CB_AUDIT, (union selinux_callback)SELinuxAudit);
 
-    if (selinux_set_mapping(map) < 0)
-	FatalError("XSELinux: Failed to set up security class mapping\n");
+    if (selinux_set_mapping(map) < 0) {
+	if (errno == EINVAL) {
+	    ErrorF("SELinux: Invalid object class mapping, disabling SELinux support.\n");
+	    return;
+	}
+	FatalError("SELinux: Failed to set up security class mapping\n");
+    }
 
     if (avc_open(NULL, 0) < 0)
-	FatalError("XSELinux: Couldn't initialize SELinux userspace AVC\n");
+	FatalError("SELinux: Couldn't initialize SELinux userspace AVC\n");
     avc_active = 1;
 
     label_hnd = selabel_open(SELABEL_CTX_X, options, 1);
     if (!label_hnd)
-	FatalError("XSELinux: Failed to open x_contexts mapping in policy\n");
+	FatalError("SELinux: Failed to open x_contexts mapping in policy\n");
 
     if (security_get_initial_context("unlabeled", &con) < 0)
-	FatalError("XSELinux: Failed to look up unlabeled context\n");
+	FatalError("SELinux: Failed to look up unlabeled context\n");
     if (avc_context_to_sid(con, &unlabeled_sid) < 0)
-	FatalError("XSELinux: a context_to_SID call failed!\n");
+	FatalError("SELinux: a context_to_SID call failed!\n");
     freecon(con);
 
     /* Prepare for auditing */
     audit_fd = audit_open();
     if (audit_fd < 0)
-        FatalError("XSELinux: Failed to open the system audit log\n");
+        FatalError("SELinux: Failed to open the system audit log\n");
 
     /* Allocate private storage */
     if (!dixRequestPrivate(stateKey, sizeof(SELinuxStateRec)))
-	FatalError("XSELinux: Failed to allocate private storage.\n");
+	FatalError("SELinux: Failed to allocate private storage.\n");
 
     /* Create atoms for doing window labeling */
     atom_ctx = MakeAtom("_SELINUX_CONTEXT", 16, TRUE);
     if (atom_ctx == BAD_RESOURCE)
-	FatalError("XSELinux: Failed to create atom\n");
+	FatalError("SELinux: Failed to create atom\n");
     atom_client_ctx = MakeAtom("_SELINUX_CLIENT_CONTEXT", 23, TRUE);
     if (atom_client_ctx == BAD_RESOURCE)
-	FatalError("XSELinux: Failed to create atom\n");
+	FatalError("SELinux: Failed to create atom\n");
 
     /* Register callbacks */
     ret &= dixRegisterPrivateInitFunc(stateKey, SELinuxStateInit, NULL);
@@ -1425,11 +1443,11 @@ XSELinuxExtensionInit(INITARGS)
     ret &= XaceRegisterCallback(XACE_SCREEN_ACCESS, SELinuxScreen, NULL);
     ret &= XaceRegisterCallback(XACE_SCREENSAVER_ACCESS, SELinuxScreen, truep);
     if (!ret)
-	FatalError("XSELinux: Failed to register one or more callbacks\n");
+	FatalError("SELinux: Failed to register one or more callbacks\n");
 
     /* Add extension to server */
-    extEntry = AddExtension(XSELINUX_EXTENSION_NAME,
-			    XSELinuxNumberEvents, XSELinuxNumberErrors,
+    extEntry = AddExtension(SELINUX_EXTENSION_NAME,
+			    SELinuxNumberEvents, SELinuxNumberErrors,
 			    ProcSELinuxDispatch, SProcSELinuxDispatch,
 			    SELinuxResetProc, StandardMinorOpcode);
 

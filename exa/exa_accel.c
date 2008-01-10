@@ -739,6 +739,14 @@ exaPolySegment (DrawablePtr pDrawable, GCPtr pGC, int nseg,
 	    prect[i].y = pSeg[i].y2;
 	    prect[i].height = pSeg[i].y1 - pSeg[i].y2 + 1;
 	}
+
+	/* don't paint last pixel */
+	if (pGC->capStyle == CapNotLast) {
+	    if (prect[i].width == 1)
+		prect[i].height--;
+	    else
+		prect[i].width--;
+	}
     }
     pGC->ops->PolyFillRect(pDrawable, pGC, nseg, prect);
     xfree(prect);

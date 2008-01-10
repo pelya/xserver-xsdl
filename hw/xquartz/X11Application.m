@@ -855,7 +855,7 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
     NSWindow *window;
     int pointer_x, pointer_y, ev_button, ev_type; 
     //    int num_events=0, i=0, state;
-    xEvent xe;
+    // xEvent xe;
 	
     /* convert location to global top-left coordinates */
     location = [e locationInWindow];

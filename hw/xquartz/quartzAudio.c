@@ -50,7 +50,7 @@
 #include <X11/extensions/XI.h>
 #include <assert.h>
 
-void NSBeep();
+void NSBeep(void);
 
 typedef struct QuartzAudioRec {
     double frequency;

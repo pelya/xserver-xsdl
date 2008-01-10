@@ -78,7 +78,7 @@
 #include "darwinEvents.h"
 #include "darwinKeyboard.h"
 #include "quartz.h"
-#include "darwinClut8.h"
+//#include "darwinClut8.h"
 
 #ifdef ENABLE_DEBUG_LOG
 FILE *debug_log_fp = NULL;
@@ -176,17 +176,10 @@ static Bool DarwinSaveScreen(ScreenPtr pScreen, int on)
  *  This is a callback from dix during AddScreen() from InitOutput().
  *  Initialize the screen and communicate information about it back to dix.
  */
-static Bool DarwinAddScreen(
-    int         index,
-    ScreenPtr   pScreen,
-    int         argc,
-    char        **argv )
-{
-    int         bitsPerRGB, i, dpi;
+static Bool DarwinAddScreen(int index, ScreenPtr pScreen, int argc, char **argv) {
+    int         dpi;
     static int  foundIndex = 0;
     Bool        ret;
-    VisualPtr   visual;
-    ColormapPtr pmap;
     DarwinFramebufferPtr dfb;
 
     // reset index of found screens for each server generation
@@ -204,28 +197,13 @@ static Bool DarwinAddScreen(
     if (! ret)
         return FALSE;
 
-    bitsPerRGB = dfb->bitsPerComponent;
-
     // reset the visual list
     miClearVisualTypes();
 
     // setup a single visual appropriate for our pixel type
-    if (dfb->colorType == TrueColor) {
-        if (!miSetVisualTypes( dfb->colorBitsPerPixel, TrueColorMask,
-                               bitsPerRGB, TrueColor )) {
-            return FALSE;
-        }
-    } else if (dfb->colorType == PseudoColor) {
-        if (!miSetVisualTypes( dfb->colorBitsPerPixel, PseudoColorMask,
-                               bitsPerRGB, PseudoColor )) {
-            return FALSE;
-        }
-    } else if (dfb->colorType == StaticColor) {
-        if (!miSetVisualTypes( dfb->colorBitsPerPixel, StaticColorMask,
-                               bitsPerRGB, StaticColor )) {
-            return FALSE;
-        }
-    } else {
+    if(!miSetVisualTypesAndMasks(dfb->depth, dfb->visuals, dfb->bitsPerRGB,
+                                 dfb->preferredCVC, dfb->redMask,
+                                 dfb->greenMask, dfb->blueMask)) {
         return FALSE;
     }
 
@@ -249,20 +227,28 @@ static Bool DarwinAddScreen(
         return FALSE;
     }
 
+//    ErrorF("Screen type: %d, %d=%d, %d=%d, %d=%d, %x=%x=%x, %x=%x=%x, %x=%x=%x\n", pScreen->visuals->class,
+//           pScreen->visuals->offsetRed, dfb->bitsPerRGB * 2,
+//           pScreen->visuals->offsetGreen, dfb->bitsPerRGB,
+//           pScreen->visuals->offsetBlue, 0,
+//           pScreen->visuals->redMask, dfb->redMask, ((1<<dfb->bitsPerRGB)-1) << pScreen->visuals->offsetRed,
+//           pScreen->visuals->greenMask, dfb->greenMask, ((1<<dfb->bitsPerRGB)-1) << pScreen->visuals->offsetGreen,
+//           pScreen->visuals->blueMask, dfb->blueMask, ((1<<dfb->bitsPerRGB)-1) << pScreen->visuals->offsetBlue);
+
     // set the RGB order correctly for TrueColor
-    if (dfb->bitsPerPixel > 8) {
-        for (i = 0, visual = pScreen->visuals;  // someday we may have more than 1
-            i < pScreen->numVisuals; i++, visual++) {
-            if (visual->class == TrueColor) {
-                visual->offsetRed = bitsPerRGB * 2;
-                visual->offsetGreen = bitsPerRGB;
-                visual->offsetBlue = 0;
-                visual->redMask = ((1<<bitsPerRGB)-1) << visual->offsetRed;
-                visual->greenMask = ((1<<bitsPerRGB)-1) << visual->offsetGreen;
-                visual->blueMask = ((1<<bitsPerRGB)-1) << visual->offsetBlue;
-            }
-        }
-    }
+//    if (dfb->bitsPerPixel > 8) {
+//        for (i = 0, visual = pScreen->visuals;  // someday we may have more than 1
+//            i < pScreen->numVisuals; i++, visual++) {
+//            if (visual->class == TrueColor) {
+//                visual->offsetRed = bitsPerRGB * 2;
+//                visual->offsetGreen = bitsPerRGB;
+//                visual->offsetBlue = 0;
+//                visual->redMask = ((1<<bitsPerRGB)-1) << visual->offsetRed;
+//                visual->greenMask = ((1<<bitsPerRGB)-1) << visual->offsetGreen;
+//                visual->blueMask = ((1<<bitsPerRGB)-1) << visual->offsetBlue;
+//            }
+//        }
+//    }
 
 #ifdef RENDER
     if (! fbPictureInit(pScreen, 0, 0)) {
@@ -292,17 +278,16 @@ static Bool DarwinAddScreen(
      * mode and we're using a fixed color map.  Essentially this translates
      * to Darwin/x86 in 8-bit mode.
      */
-    if( (dfb->colorBitsPerPixel == 8) &&
-                (dfb->colorType == StaticColor) )
-    {
-        pmap = miInstalledMaps[pScreen->myNum];
-        visual = pmap->pVisual;
-        for( i = 0; i < visual->ColormapEntries; i++ ) {
-            pmap->red[i].co.local.red   = darwinClut8[i].red;
-            pmap->red[i].co.local.green = darwinClut8[i].green;
-            pmap->red[i].co.local.blue  = darwinClut8[i].blue;
-        }
-    }
+//    if(dfb->depth == 8) {
+//        ColormapPtr map = RootlessGetColormap (pScreen);
+//        for( i = 0; i < map->pVisual->ColormapEntries; i++ ) {
+//            Entry *ent = map->red + i;
+//            ErrorF("Setting lo %d -> r: %04x g: %04x b: %04x\n", i, darwinClut8[i].red, darwinClut8[i].green, darwinClut8[i].blue);
+//            ent->co.local.red   = darwinClut8[i].red;
+//            ent->co.local.green = darwinClut8[i].green;
+//            ent->co.local.blue  = darwinClut8[i].blue;
+//        }
+//    }
 
     dixScreenOrigins[index].x = dfb->x;
     dixScreenOrigins[index].y = dfb->y;
@@ -793,24 +778,21 @@ int ddxProcessArgument( int argc, char *argv[], int i )
     }
 
     if ( !strcmp( argv[i], "-depth" ) ) {
-        int     bitDepth;
-
         if ( i == argc-1 ) {
             FatalError( "-depth must be followed by a number\n" );
         }
 #ifdef OLD_POWERBOOK_G3
         ErrorF( "Ignoring unsupported -depth option on old PowerBook G3\n");
 #else
-        bitDepth = atoi( argv[i+1] );
-        if (bitDepth == 8)
-            darwinDesiredDepth = 0;
-        else if (bitDepth == 15)
-            darwinDesiredDepth = 1;
-        else if (bitDepth == 24)
-            darwinDesiredDepth = 2;
-        else
+        darwinDesiredDepth = atoi( argv[i+1] );
+        if(darwinDesiredDepth != -1 &&
+           darwinDesiredDepth != 8 &&
+           darwinDesiredDepth != 15 &&
+           darwinDesiredDepth != 24) {
             FatalError( "Unsupported pixel depth. Use 8, 15, or 24 bits\n" );
-        ErrorF( "Attempting to use pixel depth of %i\n", bitDepth );
+        }
+
+        ErrorF( "Attempting to use pixel depth of %i\n", darwinDesiredDepth );
 #endif
         return 2;
     }
@@ -895,24 +877,6 @@ void AbortDDX( void )
      * MUST also be performed (i.e. the vt must be left in a defined state)
      */
     ddxGiveUp();
-}
-
-
-/*
- * DPMS extension stubs
- */
-Bool DPMSSupported(void)
-{
-    return FALSE;
-}
-
-void DPMSSet(int level)
-{
-}
-
-int DPMSGet(int *level)
-{
-    return -1;
 }
 
 #include "mivalidate.h" // for union _Validate used by windowstr.h

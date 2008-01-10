@@ -250,6 +250,7 @@ ProcXF86MiscGetMouseSettings(client)
     char *devname;
     pointer mouse;
     register int n;
+    int devnamelen;
 
     DEBUG_P("XF86MiscGetMouseSettings");
 
@@ -269,7 +270,7 @@ ProcXF86MiscGetMouseSettings(client)
     rep.emulate3timeout = MiscExtGetMouseValue(mouse, MISC_MSE_EM3TIMEOUT);
     rep.chordmiddle =	  MiscExtGetMouseValue(mouse, MISC_MSE_CHORDMIDDLE);
     rep.flags =		  MiscExtGetMouseValue(mouse, MISC_MSE_FLAGS);
-    rep.devnamelen = (devname? strlen(devname): 0);
+    devnamelen = rep.devnamelen = (devname? strlen(devname): 0);
     rep.length = (sizeof(xXF86MiscGetMouseSettingsReply) -
 		  sizeof(xGenericReply) + ((rep.devnamelen+3) & ~3)) >> 2;
     
@@ -289,8 +290,8 @@ ProcXF86MiscGetMouseSettings(client)
     WriteToClient(client, SIZEOF(xXF86MiscGetMouseSettingsReply), (char *)&rep);
     MiscExtDestroyStruct(mouse, MISC_POINTER);
     
-    if (rep.devnamelen)
-        WriteToClient(client, rep.devnamelen, devname);
+    if (devnamelen)
+        WriteToClient(client, devnamelen, devname);
     return (client->noClientException);
 }
 
@@ -508,6 +509,7 @@ ProcXF86MiscGetFilePaths(client)
     const char *modulepath;
     const char *logfile;
     register int n;
+    int configlen, modulelen, loglen;
 
     DEBUG_P("XF86MiscGetFilePaths");
 
@@ -518,9 +520,9 @@ ProcXF86MiscGetFilePaths(client)
     if (!MiscExtGetFilePaths(&configfile, &modulepath, &logfile))
 	return BadValue;
 
-    rep.configlen = (configfile? strlen(configfile): 0);
-    rep.modulelen = (modulepath? strlen(modulepath): 0);
-    rep.loglen = (logfile? strlen(logfile): 0);
+    configlen = rep.configlen = (configfile? strlen(configfile): 0);
+    modulelen = rep.modulelen = (modulepath? strlen(modulepath): 0);
+    loglen = rep.loglen = (logfile? strlen(logfile): 0);
     rep.length = (SIZEOF(xXF86MiscGetFilePathsReply) - SIZEOF(xGenericReply) +
 		  ((rep.configlen + 3) & ~3) +
 		  ((rep.modulelen + 3) & ~3) +
@@ -535,12 +537,12 @@ ProcXF86MiscGetFilePaths(client)
     }
     WriteToClient(client, SIZEOF(xXF86MiscGetFilePathsReply), (char *)&rep);
     
-    if (rep.configlen)
-        WriteToClient(client, rep.configlen, (char *)configfile);
-    if (rep.modulelen)
-        WriteToClient(client, rep.modulelen, (char *)modulepath);
-    if (rep.loglen)
-        WriteToClient(client, rep.loglen, (char *)logfile);
+    if (configlen)
+        WriteToClient(client, configlen, (char *)configfile);
+    if (modulelen)
+        WriteToClient(client, modulelen, (char *)modulepath);
+    if (loglen)
+        WriteToClient(client, loglen, (char *)logfile);
 
     return (client->noClientException);
 }
@@ -553,6 +555,7 @@ ProcXF86MiscPassMessage(client)
     char *msgtype, *msgval, *retstr;
     int retval, size;
     register int n;
+    int mesglen;
 
     REQUEST(xXF86MiscPassMessageReq);
 
@@ -589,7 +592,7 @@ ProcXF86MiscPassMessage(client)
 
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
-    rep.mesglen = (retstr? strlen(retstr): 0);
+    mesglen = rep.mesglen = (retstr? strlen(retstr): 0);
     rep.length = (SIZEOF(xXF86MiscPassMessageReply) - SIZEOF(xGenericReply) +
 		  ((rep.mesglen + 3) & ~3)) >> 2;
     rep.status = 0;
@@ -601,8 +604,8 @@ ProcXF86MiscPassMessage(client)
     }
     WriteToClient(client, SIZEOF(xXF86MiscPassMessageReply), (char *)&rep);
     
-    if (rep.mesglen)
-        WriteToClient(client, rep.mesglen, (char *)retstr);
+    if (mesglen)
+        WriteToClient(client, mesglen, (char *)retstr);
 
     xfree(msgtype);
     xfree(msgval);

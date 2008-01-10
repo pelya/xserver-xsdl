@@ -489,4 +489,3 @@ main(argc, argv)
 	return (0);
 }
 
-#include "xf86getpagesize.c"

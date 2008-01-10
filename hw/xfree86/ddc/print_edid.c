@@ -1,8 +1,28 @@
-
-/* print_edid.c: print out all information retrieved from display device 
- * 
+/*
  * Copyright 1998 by Egbert Eich <Egbert.Eich@Physik.TU-Darmstadt.DE>
+ * Copyright 2007 Red Hat, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software")
+ * to deal in the software without restriction, including without limitation
+ * on the rights to use, copy, modify, merge, publish, distribute, sub
+ * license, and/or sell copies of the Software, and to permit persons to whom
+ * them Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTIBILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * print_edid.c: print out all information retrieved from display device  
  */
+
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
@@ -11,53 +31,9 @@
 #include "xf86.h"
 #include "xf86_OSproc.h"
 #include "xf86DDC.h"
+#include "edid.h"
   
-static void print_vendor(int scrnIndex, struct vendor *);
-static void print_version(int scrnIndex, struct edid_version *);
-static void print_display(int scrnIndex, struct disp_features *,
-			  struct edid_version *);
-static void print_established_timings(int scrnIndex,
-				      struct established_timings *);
-static void print_std_timings(int scrnIndex, struct std_timings *);
-static void print_detailed_monitor_section(int scrnIndex,
-					   struct detailed_monitor_section *);
-static void print_detailed_timings(int scrnIndex, struct detailed_timings *);
-
-static void print_input_features(int scrnIndex, struct disp_features *);
-static void print_dpms_features(int scrnIndex, struct disp_features *,
-				struct edid_version *v);
-static void print_whitepoint(int scrnIndex, struct disp_features *);
-static void print_number_sections(int scrnIndex, int);
-
 #define EDID_WIDTH	16
-
-xf86MonPtr
-xf86PrintEDID(xf86MonPtr m)
-{
-    CARD16 i, j;
-    char buf[EDID_WIDTH * 2 + 1];
-
-    if (!(m)) return NULL;
-
-    print_vendor(m->scrnIndex,&m->vendor);
-    print_version(m->scrnIndex,&m->ver);
-    print_display(m->scrnIndex,&m->features, &m->ver);
-    print_established_timings(m->scrnIndex,&m->timings1);
-    print_std_timings(m->scrnIndex,m->timings2);
-    print_detailed_monitor_section(m->scrnIndex,m->det_mon);
-    print_number_sections(m->scrnIndex,m->no_sections);
-
-    xf86DrvMsg(m->scrnIndex, X_INFO, "EDID (in hex):\n");
- 
-    for (i = 0; i < 128; i += j) {
-	for (j = 0; j < EDID_WIDTH; ++j) {
-	    sprintf(&buf[j * 2], "%02x", m->rawData[i + j]);
-	}
-	xf86DrvMsg(m->scrnIndex, X_INFO, "\t%s\n", buf);
-    }
-    
-    return m;
-}
   
 static void
 print_vendor(int scrnIndex, struct vendor *c)
@@ -66,7 +42,7 @@ print_vendor(int scrnIndex, struct vendor *c)
 	(char *)&c->name, c->prod_id, c->serial);
     xf86DrvMsg(scrnIndex, X_INFO, "Year: %u  Week: %u\n", c->year, c->week);
 }
-  
+
 static void
 print_version(int scrnIndex, struct edid_version *c)
 {
@@ -74,32 +50,38 @@ print_version(int scrnIndex, struct edid_version *c)
 	       c->revision);  
 }
   
-static void
-print_display(int scrnIndex, struct disp_features *disp,
-	      struct edid_version *version)
-{
-    print_input_features(scrnIndex,disp);
-    xf86DrvMsg(scrnIndex,X_INFO,"Max H-Image Size [cm]: ");
-    if (disp->hsize)
-	xf86ErrorF("horiz.: %i  ",disp->hsize);
-    else
-	xf86ErrorF("H-Size may change,  ");
-    if (disp->vsize)
-	xf86ErrorF("vert.: %i\n",disp->vsize);
-      else
-	xf86ErrorF("V-Size may change\n");
-    xf86DrvMsg(scrnIndex,X_INFO,"Gamma: %.2f\n", disp->gamma);
-    print_dpms_features(scrnIndex,disp,version);
-    print_whitepoint(scrnIndex,disp);
-}
-  
+static const char *digital_interfaces[] = {
+    "undefined",
+    "DVI",
+    "HDMI-a",
+    "HDMI-b",
+    "MDDI",
+    "DisplayPort",
+    "unknown"
+};
+
 static void 
-print_input_features(int scrnIndex, struct disp_features *c)
+print_input_features(int scrnIndex, struct disp_features *c,
+		     struct edid_version *v)
 {
     if (DIGITAL(c->input_type)) {
-	xf86DrvMsg(scrnIndex,X_INFO,"Digital Display Input\n");
-	if (DFP1(c->input_dfp))
-	    xf86DrvMsg(scrnIndex,X_INFO,"DFP 1.x compatible TMDS\n");
+	xf86DrvMsg(scrnIndex, X_INFO, "Digital Display Input\n");
+	if (v->revision == 2 || v->revision == 3) {
+	    if (DFP1(c->input_dfp))
+		xf86DrvMsg(scrnIndex, X_INFO, "DFP 1.x compatible TMDS\n");
+	} else if (v->revision >= 4) {
+	    int interface = c->input_interface;
+	    int bpc = c->input_bpc;
+	    if (interface > 6)
+		interface = 6; /* unknown */
+	    if (bpc == 0 || bpc == 7)
+		xf86DrvMsg(scrnIndex, X_INFO, "Undefined color depth\n");
+	    else
+		xf86DrvMsg(scrnIndex, X_INFO, "%d bits per channel\n",
+			   bpc * 2 + 4);
+	    xf86DrvMsg(scrnIndex, X_INFO, "Digital interface is %s\n",
+		       digital_interfaces[interface]);
+	}
     } else {
 	xf86DrvMsg(scrnIndex,X_INFO,"Analog Display Input,  ");
 	xf86ErrorF("Input Voltage Level: ");
@@ -146,33 +128,53 @@ print_dpms_features(int scrnIndex, struct disp_features *c,
 	 if (DPMS_OFF(c->dpms)) xf86ErrorF(" Off");
      } else 
 	 xf86DrvMsg(scrnIndex,X_INFO,"No DPMS capabilities specified");
-    switch (c->display_type){
-    case DISP_MONO:
-	xf86ErrorF("; Monochorome/GrayScale Display\n");
-	break;
-    case DISP_RGB:
-	xf86ErrorF("; RGB/Color Display\n");
-	break;
-    case DISP_MULTCOLOR:
-	xf86ErrorF("; Non RGB Multicolor Display\n");
-	break;
-    default:
-	xf86ErrorF("\n");
-	break;
+    if (!c->input_type) { /* analog */
+	switch (c->display_type){
+	    case DISP_MONO:
+		xf86ErrorF("; Monochorome/GrayScale Display\n");
+		break;
+	    case DISP_RGB:
+		xf86ErrorF("; RGB/Color Display\n");
+		break;
+	    case DISP_MULTCOLOR:
+		xf86ErrorF("; Non RGB Multicolor Display\n");
+		break;
+	    default:
+		xf86ErrorF("\n");
+		break;
+	}
+    } else {
+	int enc = c->display_type;
+	xf86DrvMsg(scrnIndex, X_INFO, "\nSupported color encodings: "
+		   "RGB 4:4:4 %s%s\n",
+		   enc & DISP_YCRCB444 ? "YCrCb 4:4:4 " : "",
+		   enc & DISP_YCRCB422 ? "YCrCb 4:2:2" : "");
     }
+
     if (STD_COLOR_SPACE(c->msc))
 	xf86DrvMsg(scrnIndex,X_INFO,
 		   "Default color space is primary color space\n"); 
-    if (PREFERRED_TIMING_MODE(c->msc))
-	xf86DrvMsg(scrnIndex,X_INFO,
+
+    if (PREFERRED_TIMING_MODE(c->msc) || v->revision >= 4) {
+	xf86DrvMsg(scrnIndex, X_INFO,
 		   "First detailed timing is preferred mode\n"); 
-    else if (v->version == 1 && v->revision >= 3)
+	if (v->revision >= 4)
+	    xf86DrvMsg(scrnIndex, X_INFO,
+		"Preferred mode is native pixel format and refresh rate\n");
+    } else if (v->revision == 3) {
 	xf86DrvMsg(scrnIndex,X_INFO,
 		   "First detailed timing not preferred "
 		   "mode in violation of standard!");
-    if (GFT_SUPPORTED(c->msc))
-	xf86DrvMsg(scrnIndex,X_INFO,
-		   "GTF timings supported\n"); 
+    }
+
+    if (v->revision >= 4) {
+	if (GFT_SUPPORTED(c->msc)) {
+	    xf86DrvMsg(scrnIndex, X_INFO, "Display is continuous-frequency\n");
+	}
+    } else {
+	if (GFT_SUPPORTED(c->msc))
+	    xf86DrvMsg(scrnIndex, X_INFO, "GTF timings supported\n"); 
+    }
 }
   
 static void 
@@ -187,7 +189,37 @@ print_whitepoint(int scrnIndex, struct disp_features *disp)
     xf86ErrorF("whiteX: %.3f whiteY: %.3f\n",
 	       disp->whitex,disp->whitey);
 }
-  
+
+static void
+print_display(int scrnIndex, struct disp_features *disp,
+	      struct edid_version *v)
+{
+    print_input_features(scrnIndex, disp, v);
+    if (disp->hsize && disp->vsize) {
+	xf86DrvMsg(scrnIndex, X_INFO, "Max Image Size [cm]: ");
+	xf86ErrorF("horiz.: %i  ", disp->hsize);
+	xf86ErrorF("vert.: %i\n", disp->vsize);
+    } else if (v->revision >= 4 && (disp->hsize || disp->vsize)) {
+	if (disp->hsize)
+	    xf86DrvMsg(scrnIndex, X_INFO, "Aspect ratio: %.2f (landscape)\n",
+		       (disp->hsize + 99) / 100.0);
+	if (disp->vsize)
+	    xf86DrvMsg(scrnIndex, X_INFO, "Aspect ratio: %.2f (portrait)\n",
+		       100.0 / (float)(disp->vsize + 99));
+
+    } else {
+	xf86DrvMsg(scrnIndex, X_INFO, "Indeterminate output size\n");
+    }
+
+    if (!disp->gamma && v->revision >= 1.4)
+	xf86DrvMsg(scrnIndex, X_INFO, "Gamma defined in extension block\n");
+    else
+	xf86DrvMsg(scrnIndex, X_INFO, "Gamma: %.2f\n", disp->gamma);
+
+    print_dpms_features(scrnIndex, disp, v);
+    print_whitepoint(scrnIndex, disp);
+}
+
 static void 
 print_established_timings(int scrnIndex, struct established_timings *t)
 {
@@ -235,7 +267,68 @@ print_std_timings(int scrnIndex, struct std_timings *t)
 	}
     }
 }
-  
+
+static void
+print_cvt_timings(int si, struct cvt_timings *t)
+{
+    int i;
+
+    for (i = 0; i < 4; i++) {
+	if (t[i].height) {
+	    xf86DrvMsg(si, X_INFO, "%dx%d @ %s%s%s%s%s Hz\n",
+		    t[i].width, t[i].height,
+		    t[i].rates & 0x10 ? "50," : "",
+		    t[i].rates & 0x08 ? "60," : "",
+		    t[i].rates & 0x04 ? "75," : "",
+		    t[i].rates & 0x02 ? "85," : "",
+		    t[i].rates & 0x01 ? "60RB" : "");
+	} else break;
+    }
+}
+
+static void
+print_detailed_timings(int scrnIndex, struct detailed_timings *t)
+{
+
+    if (t->clock > 15000000) {  /* sanity check */
+	xf86DrvMsg(scrnIndex,X_INFO,"Supported additional Video Mode:\n");
+	xf86DrvMsg(scrnIndex,X_INFO,"clock: %.1f MHz   ",t->clock/1000000.0);
+	xf86ErrorF("Image Size:  %i x %i mm\n",t->h_size,t->v_size); 
+	xf86DrvMsg(scrnIndex,X_INFO,
+		   "h_active: %i  h_sync: %i  h_sync_end %i h_blank_end %i ",
+		   t->h_active, t->h_sync_off + t->h_active,
+		   t->h_sync_off + t->h_sync_width + t->h_active,
+		   t->h_active + t->h_blanking);
+	xf86ErrorF("h_border: %i\n",t->h_border);
+	xf86DrvMsg(scrnIndex,X_INFO,
+		   "v_active: %i  v_sync: %i  v_sync_end %i v_blanking: %i ",
+		   t->v_active, t->v_sync_off + t->v_active,
+		   t->v_sync_off + t->v_sync_width + t->v_active,
+		   t->v_active + t->v_blanking);
+	xf86ErrorF("v_border: %i\n",t->v_border);
+	if (IS_STEREO(t->stereo)) {
+	    xf86DrvMsg(scrnIndex,X_INFO,"Stereo: ");
+	    if (IS_RIGHT_STEREO(t->stereo)) {
+		if (!t->stereo_1)
+		    xf86ErrorF("right channel on sync\n");
+		else
+		    xf86ErrorF("left channel on sync\n");
+	    } else if (IS_LEFT_STEREO(t->stereo)) {
+		if (!t->stereo_1)
+		    xf86ErrorF("right channel on even line\n");
+		else 
+		    xf86ErrorF("left channel on evel line\n");
+	    }
+	    if (IS_4WAY_STEREO(t->stereo)) {
+		if (!t->stereo_1)
+		    xf86ErrorF("4-way interleaved\n");
+		else
+		    xf86ErrorF("side-by-side interleaved");
+	    }
+	}
+    }
+}
+
 static void
 print_detailed_monitor_section(int scrnIndex,
 			       struct detailed_monitor_section *m)
@@ -290,56 +383,31 @@ print_detailed_monitor_section(int scrnIndex,
 			       m[i].section.wp[j].white_y,
 			       m[i].section.wp[j].white_gamma);
 	    break;
+	case DS_CMD:
+	    xf86DrvMsg(scrnIndex, X_INFO,
+		       "Color management data: (not decoded)\n");
+	    break;
+	case DS_CVT:
+	    xf86DrvMsg(scrnIndex, X_INFO,
+		       "CVT 3-byte-code modes:\n");
+	    print_cvt_timings(scrnIndex, m[i].section.cvt);
+	    break;
+	case DS_EST_III:
+	    xf86DrvMsg(scrnIndex, X_INFO,
+		       "Established timings III: (not decoded)\n");
+	    break;
 	case DS_DUMMY:
 	default:
 	    break;
 	}
-    }
-}
-  
-static void
-print_detailed_timings(int scrnIndex, struct detailed_timings *t)
-{
-
-    if (t->clock > 15000000) {  /* sanity check */
-	xf86DrvMsg(scrnIndex,X_INFO,"Supported additional Video Mode:\n");
-	xf86DrvMsg(scrnIndex,X_INFO,"clock: %.1f MHz   ",t->clock/1000000.0);
-	xf86ErrorF("Image Size:  %i x %i mm\n",t->h_size,t->v_size); 
-	xf86DrvMsg(scrnIndex,X_INFO,
-		   "h_active: %i  h_sync: %i  h_sync_end %i h_blank_end %i ",
-		   t->h_active, t->h_sync_off + t->h_active,
-		   t->h_sync_off + t->h_sync_width + t->h_active,
-		   t->h_active + t->h_blanking);
-	xf86ErrorF("h_border: %i\n",t->h_border);
-	xf86DrvMsg(scrnIndex,X_INFO,
-		   "v_active: %i  v_sync: %i  v_sync_end %i v_blanking: %i ",
-		   t->v_active, t->v_sync_off + t->v_active,
-		   t->v_sync_off + t->v_sync_width + t->v_active,
-		   t->v_active + t->v_blanking);
-	xf86ErrorF("v_border: %i\n",t->v_border);
-	if (IS_STEREO(t->stereo)) {
-	    xf86DrvMsg(scrnIndex,X_INFO,"Stereo: ");
-	    if (IS_RIGHT_STEREO(t->stereo)) {
-		if (!t->stereo_1)
-		    xf86ErrorF("right channel on sync\n");
-		else
-		    xf86ErrorF("left channel on sync\n");
-	    } else if (IS_LEFT_STEREO(t->stereo)) {
-		if (!t->stereo_1)
-		    xf86ErrorF("right channel on even line\n");
-		else 
-		    xf86ErrorF("left channel on evel line\n");
-	    }
-	    if (IS_4WAY_STEREO(t->stereo)) {
-		if (!t->stereo_1)
-		    xf86ErrorF("4-way interleaved\n");
-		else
-		    xf86ErrorF("side-by-side interleaved");
-	    }
+	if (m[i].type >= DS_VENDOR && m[i].type <= DS_VENDOR_MAX) {
+	    xf86DrvMsg(scrnIndex, X_WARNING,
+		       "Unknown vendor-specific block %hx\n",
+		       m[i].type - DS_VENDOR);
 	}
     }
 }
-
+  
 static void
 print_number_sections(int scrnIndex, int num)
 {
@@ -348,3 +416,30 @@ print_number_sections(int scrnIndex, int num)
 		   num);
 }
 
+xf86MonPtr
+xf86PrintEDID(xf86MonPtr m)
+{
+    CARD16 i, j;
+    char buf[EDID_WIDTH * 2 + 1];
+
+    if (!(m)) return NULL;
+
+    print_vendor(m->scrnIndex,&m->vendor);
+    print_version(m->scrnIndex,&m->ver);
+    print_display(m->scrnIndex,&m->features, &m->ver);
+    print_established_timings(m->scrnIndex,&m->timings1);
+    print_std_timings(m->scrnIndex,m->timings2);
+    print_detailed_monitor_section(m->scrnIndex,m->det_mon);
+    print_number_sections(m->scrnIndex,m->no_sections);
+
+    xf86DrvMsg(m->scrnIndex, X_INFO, "EDID (in hex):\n");
+ 
+    for (i = 0; i < 128; i += j) {
+	for (j = 0; j < EDID_WIDTH; ++j) {
+	    sprintf(&buf[j * 2], "%02x", m->rawData[i + j]);
+	}
+	xf86DrvMsg(m->scrnIndex, X_INFO, "\t%s\n", buf);
+    }
+    
+    return m;
+}

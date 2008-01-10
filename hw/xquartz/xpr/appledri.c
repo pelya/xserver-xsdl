@@ -55,6 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "swaprep.h"
 #include "dri.h"
 #include "dristruct.h"
+#include "xpr.h"
 
 static int DRIErrorBase = 0;
 

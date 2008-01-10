@@ -262,10 +262,7 @@ XaceResetProc(ExtensionEntry *extEntry)
     int i;
 
     for (i=0; i<XACE_NUM_HOOKS; i++)
-    {
 	DeleteCallbackList(&XaceHooks[i]);
-	XaceHooks[i] = NULL;
-    }
 } /* XaceResetProc */
 
 
@@ -448,7 +445,7 @@ XaceCensorImage(client, pVisibleRegion, widthBytesLine, pDraw, x, y, w, h,
 
 	/* convert region to list-of-rectangles for PolyFillRect */
 
-	pRects = (xRectangle *)xalloc(nRects * sizeof(xRectangle *));
+	pRects = (xRectangle *)xalloc(nRects * sizeof(xRectangle));
 	if (!pRects)
 	{
 	    failed = TRUE;

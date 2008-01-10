@@ -28,12 +28,13 @@
 #define _DARWIN_EVENTS_H
 
 Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr);
-void DarwinEQEnqueue(const xEvent *e);
-void DarwinEQPointerPost(xEvent *e);
+void DarwinEQEnqueue(const xEventPtr e);
+void DarwinEQPointerPost(DeviceIntPtr pDev, xEventPtr e);
 void DarwinEQSwitchScreen(ScreenPtr pScreen, Bool fromDIX);
 void DarwinPokeEQ(void);
 void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y);
 void DarwinSendKeyboardEvents(int ev_type, int keycode);
 void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y);
+void DarwinUpdateModKeys(int flags);
 
 #endif  /* _DARWIN_EVENTS_H */

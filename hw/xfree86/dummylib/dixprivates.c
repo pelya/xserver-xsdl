@@ -11,11 +11,9 @@
  * Utility functions required by libxf86_os. 
  */
 
-int xf86getpagesize(void);
-
-_X_EXPORT int
-xf86getpagesize(void)
+_X_EXPORT pointer *
+dixAllocatePrivate(PrivateRec **privates, const DevPrivateKey key)
 {
-    return 4096;	/* not used */
+    return NULL;	/* not used */
 }
 

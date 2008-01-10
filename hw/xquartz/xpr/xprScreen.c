@@ -42,6 +42,7 @@
 #include "globals.h"
 #include "Xplugin.h"
 #include "applewmExt.h"
+#include "micmap.h"
 
 // From xprFrame.c
 WindowPtr xprGetXWindow(xp_window_id wid);
@@ -61,53 +62,52 @@ static const char *xprOpenGLBundle = "glxCGL.bundle";
  * eventHandler
  *  Callback handler for Xplugin events.
  */
-static void
-eventHandler(unsigned int type, const void *arg,
-             unsigned int arg_size, void *data)
-{
+static void eventHandler(unsigned int type, const void *arg,
+                         unsigned int arg_size, void *data) {
     switch (type) {
-    case XP_EVENT_DISPLAY_CHANGED:
-      DEBUG_LOG("XP_EVENT_DISPLAY_CHANGED\n");
-      QuartzMessageServerThread(kXDarwinDisplayChanged, 0);
-      break;
-
-    case XP_EVENT_WINDOW_STATE_CHANGED:
-      DEBUG_LOG("XP_EVENT_WINDOW_STATE_CHANGED\n");
-      if (arg_size >= sizeof(xp_window_state_event)) {
-	const xp_window_state_event *ws_arg = arg;
-	
-	QuartzMessageServerThread(kXDarwinWindowState, 2,
-				  ws_arg->id, ws_arg->state);
-      }
-      break;
-
-    case XP_EVENT_WINDOW_MOVED:
-      DEBUG_LOG("XP_EVENT_WINDOW_MOVED\n");
-      if (arg_size == sizeof(xp_window_id))  {
-	xp_window_id id = * (xp_window_id *) arg;
-	WindowPtr pWin = xprGetXWindow(id);
-	QuartzMessageServerThread(kXDarwinWindowMoved, 1, pWin);
-      }
-      break;
-      
-    case XP_EVENT_SURFACE_DESTROYED:
-      DEBUG_LOG("XP_EVENT_SURFACE_DESTROYED\n");
-    case XP_EVENT_SURFACE_CHANGED:
-      DEBUG_LOG("XP_EVENT_SURFACE_CHANGED\n");
-        if (arg_size == sizeof(xp_surface_id)) {
-	  int kind;
-	  
-	  if (type == XP_EVENT_SURFACE_DESTROYED)
-	    kind = AppleDRISurfaceNotifyDestroyed;
-	  else
-	    kind = AppleDRISurfaceNotifyChanged;
-	  
-	  DRISurfaceNotify(*(xp_surface_id *) arg, kind);
-        }
-        break;
-    default:
-      ErrorF("Unknown XP_EVENT type (%d) in xprScreen:eventHandler\n",
-	     type);
+        case XP_EVENT_DISPLAY_CHANGED:
+            DEBUG_LOG("XP_EVENT_DISPLAY_CHANGED\n");
+            QuartzMessageServerThread(kXDarwinDisplayChanged, 0);
+            break;
+            
+        case XP_EVENT_WINDOW_STATE_CHANGED:
+            if (arg_size >= sizeof(xp_window_state_event)) {
+                const xp_window_state_event *ws_arg = arg;
+                
+                DEBUG_LOG("XP_EVENT_WINDOW_STATE_CHANGED: id=%d, state=%d\n", ws_arg->id, ws_arg->state);
+                QuartzMessageServerThread(kXDarwinWindowState, 2,
+                                          ws_arg->id, ws_arg->state);
+            } else {
+                DEBUG_LOG("XP_EVENT_WINDOW_STATE_CHANGED: ignored\n");
+            }
+            break;
+            
+        case XP_EVENT_WINDOW_MOVED:
+            DEBUG_LOG("XP_EVENT_WINDOW_MOVED\n");
+            if (arg_size == sizeof(xp_window_id))  {
+                xp_window_id id = * (xp_window_id *) arg;
+                WindowPtr pWin = xprGetXWindow(id);
+                QuartzMessageServerThread(kXDarwinWindowMoved, 1, pWin);
+            }
+            break;
+            
+        case XP_EVENT_SURFACE_DESTROYED:
+            DEBUG_LOG("XP_EVENT_SURFACE_DESTROYED\n");
+        case XP_EVENT_SURFACE_CHANGED:
+            DEBUG_LOG("XP_EVENT_SURFACE_CHANGED\n");
+            if (arg_size == sizeof(xp_surface_id)) {
+                int kind;
+                
+                if (type == XP_EVENT_SURFACE_DESTROYED)
+                    kind = AppleDRISurfaceNotifyDestroyed;
+                else
+                    kind = AppleDRISurfaceNotifyChanged;
+                
+                DRISurfaceNotify(*(xp_surface_id *) arg, kind);
+            }
+            break;
+        default:
+            ErrorF("Unknown XP_EVENT type (%d) in xprScreen:eventHandler\n", type);
     }
 }
 
@@ -249,35 +249,59 @@ static Bool
 xprAddScreen(int index, ScreenPtr pScreen)
 {
     DarwinFramebufferPtr dfb = SCREEN_PRIV(pScreen);
-
-    /* If no specific depth chosen, look for the depth of the main display.
-       Else if 16bpp specified, use that. Else use 32bpp. */
-
-    dfb->colorType = TrueColor;
-    dfb->bitsPerComponent = 8;
-    dfb->bitsPerPixel = 32;
-    dfb->colorBitsPerPixel = 24;
-
-    if (darwinDesiredDepth == -1)
-    {
-        dfb->bitsPerComponent = CGDisplayBitsPerSample(kCGDirectMainDisplay);
-        dfb->bitsPerPixel = CGDisplayBitsPerPixel(kCGDirectMainDisplay);
-        dfb->colorBitsPerPixel =
-                CGDisplaySamplesPerPixel(kCGDirectMainDisplay) *
-                dfb->bitsPerComponent;
+    int depth = darwinDesiredDepth;
+    
+    if(depth == -1) {
+        depth = CGDisplaySamplesPerPixel(kCGDirectMainDisplay) * CGDisplayBitsPerSample(kCGDirectMainDisplay);
+        //dfb->depth = CGDisplaySamplesPerPixel(kCGDirectMainDisplay) * CGDisplayBitsPerSample(kCGDirectMainDisplay);
+        //dfb->bitsPerRGB = CGDisplayBitsPerSample(kCGDirectMainDisplay);
+        //dfb->bitsPerPixel = CGDisplayBitsPerPixel(kCGDirectMainDisplay);
     }
-    else if (darwinDesiredDepth == 15)
-    {
-        dfb->bitsPerComponent = 5;
-        dfb->bitsPerPixel = 16;
-        dfb->colorBitsPerPixel = 15;
-    }
-    else if (darwinDesiredDepth == 8)
-    {
-        dfb->colorType = PseudoColor;
-        dfb->bitsPerComponent = 8;
-        dfb->bitsPerPixel = 8;
-        dfb->colorBitsPerPixel = 8;
+    
+    switch(depth) {
+        case -8: // broken
+            FatalError("Unsupported color depth %d\n", darwinDesiredDepth);
+            dfb->visuals = (1 << StaticGray) | (1 << GrayScale);
+            dfb->preferredCVC = GrayScale;
+            dfb->depth = 8;
+            dfb->bitsPerRGB = 8;
+            dfb->bitsPerPixel = 8;
+            dfb->redMask = 0;
+            dfb->greenMask = 0;
+            dfb->blueMask = 0;
+            break;
+        case 8: // broken
+            dfb->visuals = PseudoColorMask;
+            dfb->preferredCVC = PseudoColor;
+            dfb->depth = 8;
+            dfb->bitsPerRGB = 8;
+            dfb->bitsPerPixel = 8;
+            dfb->redMask = 0;
+            dfb->greenMask = 0;
+            dfb->blueMask = 0;
+            break;
+        case 15:
+            dfb->visuals = LARGE_VISUALS;
+            dfb->preferredCVC = TrueColor;
+            dfb->depth = 15;
+            dfb->bitsPerRGB = 5;
+            dfb->bitsPerPixel = 16;
+            dfb->redMask   = 0x7c00;
+            dfb->greenMask = 0x03e0;
+            dfb->blueMask  = 0x001f;
+            break;
+        case 24:
+            dfb->visuals = LARGE_VISUALS;
+            dfb->preferredCVC = TrueColor;
+            dfb->depth = 24;
+            dfb->bitsPerRGB = 8;
+            dfb->bitsPerPixel = 32;
+            dfb->redMask   = 0x00ff0000;
+            dfb->greenMask = 0x0000ff00;
+            dfb->blueMask  = 0x000000ff;
+            break;
+        default:
+            FatalError("Unsupported color depth %d\n", darwinDesiredDepth);
     }
 
     if (noPseudoramiXExtension)

@@ -331,7 +331,7 @@ extern void XaceExtensionInit(INITARGS);
 extern void SecurityExtensionInit(INITARGS);
 #endif
 #ifdef XSELINUX
-extern void XSELinuxExtensionInit(INITARGS);
+extern void SELinuxExtensionInit(INITARGS);
 #endif
 #ifdef XPRINT
 extern void XpExtensionInit(INITARGS);
@@ -611,7 +611,7 @@ InitExtensions(argc, argv)
     if (!noSecurityExtension) SecurityExtensionInit();
 #endif
 #ifdef XSELINUX
-    XSELinuxExtensionInit();
+    SELinuxExtensionInit();
 #endif
 #ifdef XPRINT
     XpExtensionInit(); /* server-specific extension, cannot be disabled */
@@ -709,7 +709,7 @@ static ExtensionModule staticExtensions[] = {
     { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL, NULL },
 #endif
 #ifdef XSELINUX
-    { XSELinuxExtensionInit, XSELINUX_EXTENSION_NAME, NULL, NULL, NULL },
+    { SELinuxExtensionInit, SELINUX_EXTENSION_NAME, NULL, NULL, NULL },
 #endif
 #ifdef XPRINT
     { XpExtensionInit, XP_PRINTNAME, NULL, NULL, NULL },

@@ -63,6 +63,7 @@ SOFTWARE.
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
 #include "XIstubs.h"
+#include "chgkbd.h"
 
 /***********************************************************************
  *
@@ -88,16 +89,12 @@ SOFTWARE.
  *
  */
 
-int
-ChangeKeyboardDevice (old_dev, new_dev)
-    DeviceIntPtr	old_dev;
-    DeviceIntPtr	new_dev;
-    {
+int ChangeKeyboardDevice (DeviceIntPtr old_dev, DeviceIntPtr new_dev) {
     /***********************************************************************
      DeleteFocusClassDeviceStruct(old_dev);	 * defined in xchgptr.c *
     **********************************************************************/
     return BadMatch;
-    }
+}
 
 
 /***********************************************************************

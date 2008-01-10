@@ -32,6 +32,8 @@
 #include <ApplicationServices/ApplicationServices.h>
 #include <stdio.h>
 
+#include "quartzForeground.h"
+
 int QuartzMoveToForeground() {
    ProcessSerialNumber psn = { 0, kCurrentProcess };
    OSStatus returnCode = TransformProcessType(& psn, kProcessTransformToForegroundApplication);

@@ -587,7 +587,8 @@ InitAndStartDevices(WindowPtr root)
 
     for (dev = inputInfo.off_devices; dev; dev = dev->next) {
         DebugF("(dix) initialising device %d\n", dev->id);
-	ActivateDevice(dev);
+        if (!dev->inited)
+            ActivateDevice(dev);
     }
 
     if (!inputInfo.keyboard) { /* In theory, this cannot happen */

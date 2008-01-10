@@ -1,8 +1,28 @@
-
-/* interpret_edid.c: interpret a primary EDID block
- * 
+/*
  * Copyright 1998 by Egbert Eich <Egbert.Eich@Physik.TU-Darmstadt.DE>
+ * Copyright 2007 Red Hat, Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software")
+ * to deal in the software without restriction, including without limitation
+ * on the rights to use, copy, modify, merge, publish, distribute, sub
+ * license, and/or sell copies of the Software, and to permit persons to whom
+ * them Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice (including the next
+ * paragraph) shall be included in all copies or substantial portions of the
+ * Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTIBILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.  IN NO EVENT SHALL
+ * THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * interpret_edid.c: interpret a primary EDID block
  */
+
 #ifdef HAVE_XORG_CONFIG_H
 #include <xorg-config.h>
 #endif
@@ -128,8 +148,12 @@ get_display_section(Uchar *c, struct disp_features *r,
 	r->input_voltage = INPUT_VOLTAGE;
 	r->input_setup = SETUP;
 	r->input_sync = SYNC;
-    } else if (v->version > 1 || v->revision > 2)
+    } else if (v->revision == 2 || v->revision == 3) {
 	r->input_dfp = DFP;
+    } else if (v->revision >= 4) {
+	r->input_bpc = BPC;
+	r->input_interface = DIGITAL_INTERFACE;
+    }
     r->hsize = HSIZE_MAX;
     r->vsize = VSIZE_MAX;
     r->gamma = GAMMA;
@@ -152,6 +176,34 @@ get_established_timing_section(Uchar *c, struct established_timings *r)
     r->t1 = T1;
     r->t2 = T2;
     r->t_manu = T_MANU;
+}
+
+static void
+get_cvt_timing_section(Uchar *c, struct cvt_timings *r)
+{
+    int i;
+
+    for (i = 0; i < 4; i++) {
+	if (c[0] && c[1] && c[2]) {
+	    r[i].height = (c[0] + ((c[1] & 0xF0) << 8) + 1) * 2;
+	    switch (c[1] & 0xc0) {
+		case 0x00: r[i].width = r[i].height * 4 / 3; break;
+		case 0x40: r[i].width = r[i].height * 16 / 9; break;
+		case 0x80: r[i].width = r[i].height * 16 / 10; break;
+		case 0xc0: r[i].width = r[i].height * 15 / 9; break;
+	    }
+	    switch (c[2] & 0x60) {
+		case 0x00: r[i].rate = 50; break;
+		case 0x20: r[i].rate = 60; break;
+		case 0x40: r[i].rate = 75; break;
+		case 0x60: r[i].rate = 85; break;
+	    }
+	    r[i].rates = c[2] & 0x1f;
+	} else {
+	    return;
+	}
+	c += 3;
+    }
 }
 
 static void
@@ -207,12 +259,25 @@ get_dt_md_section(Uchar *c, struct edid_version *ver,
 	det_mon[i].type = DS_STD_TIMINGS;
 	get_dst_timing_section(c,det_mon[i].section.std_t, ver);
 	break;
+      case COLOR_MANAGEMENT_DATA:
+	det_mon[i].type = DS_CMD;
+	break;
+      case CVT_3BYTE_DATA:
+	det_mon[i].type = DS_CVT;
+	get_cvt_timing_section(c, det_mon[i].section.cvt);
+	break;
+      case ADD_EST_TIMINGS:
+	det_mon[i].type = DS_EST_III;
+	break;
       case ADD_DUMMY:
 	det_mon[i].type = DS_DUMMY;
         break;
       default:
         det_mon[i].type = DS_UNKOWN;
         break;
+      }
+      if (c[3] <= 0x0F) {
+	det_mon[i].type = DS_VENDOR + c[3];
       }
     } else { 
       det_mon[i].type = DT;
@@ -304,13 +369,16 @@ get_detailed_timing_section(Uchar *c, struct detailed_timings *r)
   r->misc = MISC;
 }
 
-#define MAX_EDID_MINOR 3
+#define MAX_EDID_MINOR 4
 
 static Bool
 validate_version(int scrnIndex, struct edid_version *r)
 {
-    if (r->version != 1)
+    if (r->version != 1) {
+	xf86DrvMsg(scrnIndex, X_ERROR, "Unknown EDID version %d\n",
+		   r->version);
 	return FALSE;
+    }
 
     if (r->revision > MAX_EDID_MINOR)
 	xf86DrvMsg(scrnIndex, X_WARNING,

@@ -1,7 +1,9 @@
 noinst_LTLIBRARIES = libXquartz.la
 AM_CFLAGS = $(XSERVER_CFLAGS) $(DIX_CFLAGS)
+AM_OBJCFLAGS = $(XSERVER_CFLAGS) $(DIX_CFLAGS)
 AM_CPPFLAGS = \
 	-DBUILD_DATE=\"$(BUILD_DATE)\" \
+	-DXSERVER_VERSION=\"$(VERSION)\" \
 	-DINXQUARTZ \
 	-DUSE_NEW_CLUT \
 	-DXFree86Server \
@@ -15,8 +17,9 @@ SUBDIRS = . xpr $(X11APP_SUBDIRS)
 DIST_SUBDIRS = xpr bundle
 
 libXquartz_la_SOURCES = \
-	$(top_srcdir)/fb/fbcmap.c \
+	$(top_srcdir)/fb/fbcmap_mi.c \
 	$(top_srcdir)/mi/miinitext.c \
+	$(top_srcdir)/Xext/dpmsstubs.c \
 	X11Application.m \
 	X11Controller.m \
 	applewm.c \

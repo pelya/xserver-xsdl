@@ -13,6 +13,7 @@ STRL_SRCS = $(top_srcdir)/os/strlcat.c $(top_srcdir)/os/strlcpy.c
 endif
 
 libdummy_nonserver_a_SOURCES = \
+	dixprivates.c \
 	fatalerror.c \
 	logvwrite.c \
 	$(STRL_SRCS) \
@@ -24,7 +25,6 @@ libdummy_nonserver_a_SOURCES = \
 	xf86drvmsgverb.c \
 	xf86errorf.c \
 	xf86errorfverb.c \
-	xf86getpagesize.c \
 	xf86getverb.c \
 	xf86info.c \
 	xf86msg.c \

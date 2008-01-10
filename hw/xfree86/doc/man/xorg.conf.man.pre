@@ -493,7 +493,7 @@ extension) to connect from another host.
 Default: off.
 .TP 7
 .BI "Option \*qDisableModInDev\*q  \*q" boolean \*q
-This disables the parts of the __xservername__\-Misc extension that can be used to
+This disables the parts of the XFree86\-Misc extension that can be used to
 modify the input device settings dynamically.
 Default: that functionality is enabled.
 .TP 7
@@ -704,6 +704,20 @@ default.
 .BI "Option \*qIgnoreABI\*q \*q" boolean \*q
 Allow modules built for a different, potentially incompatible version of
 the X server to load. Disabled by default.
+.TP 7
+.BI "Option \*qAllowEmptyInput\*q \*q" boolean \*q
+If enabled, don't add the standard keyboard and mouse drivers, if there are no
+input devices in the config file.  Disabled by default.
+.TP 7
+.BI "Option \*qAutoAddDevices\*q \*q" boolean \*q
+If this option is disabled, then no devices will be added from HAL events.
+Enabled by default.
+.TP 7
+.BI "Option \*qAutoEnableDevices\*q \*q" boolean \*q
+If this option is disabled, then the devices will be added (and the
+DevicePresenceNotify event sent), but not enabled, thus leaving policy up
+to the client.
+Enabled by default.
 .SH "MODULE SECTION"
 The
 .B Module
@@ -2015,7 +2029,7 @@ These both specify that the upper left corner's coordinates are
 The
 .B Absolute
 keyword is optional.
-Some older versions of __xservername__ (4.2 and earlier) don't recognise the
+Some older versions of XFree86 (4.2 and earlier) don't recognise the
 .B Absolute
 keyword, so it's safest to just specify the coordinates without it.
 .TP 4

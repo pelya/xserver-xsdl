@@ -832,7 +832,10 @@ KdSetPointerMatrix (KdPointerMatrix *pointer);
 
 void
 KdComputePointerMatrix (KdPointerMatrix *pointer, Rotation randr, int width, int height);
-    
+
+void
+KdScreenToPointerCoords (int *x, int *y);
+
 void
 KdBlockHandler (int		screen,
 		pointer		blockData,

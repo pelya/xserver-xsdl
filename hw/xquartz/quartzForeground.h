@@ -32,6 +32,6 @@
 #ifndef _QUARTZ_FOREGROUND_H_
 #define _QUARTZ_FOREGROUND_H_
 
-int QuartzMoveToForeground();
+int QuartzMoveToForeground(void);
 
 #endif /* _QUARTZ_FOREGROUND_H_ */
