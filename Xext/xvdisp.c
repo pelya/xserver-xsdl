@@ -1532,6 +1532,7 @@ SProcXvShmPutImage(ClientPtr client)
   swapl(&stuff->gc, n);
   swapl(&stuff->shmseg, n);
   swapl(&stuff->id, n);
+  swapl(&stuff->offset, n);
   swaps(&stuff->src_x, n);
   swaps(&stuff->src_y, n);
   swaps(&stuff->src_w, n);
@@ -1540,7 +1541,6 @@ SProcXvShmPutImage(ClientPtr client)
   swaps(&stuff->drw_y, n);
   swaps(&stuff->drw_w, n);
   swaps(&stuff->drw_h, n);
-  swaps(&stuff->offset, n);
   swaps(&stuff->width, n);
   swaps(&stuff->height, n);
   return XvProcVector[xv_ShmPutImage](client);
@@ -1632,9 +1632,10 @@ SProcXvQueryImageAttributes(ClientPtr client)
   char n;
   REQUEST(xvQueryImageAttributesReq);
   swaps(&stuff->length, n);
+  swapl(&stuff->port, n);
   swapl(&stuff->id, n);
   swaps(&stuff->width, n);
-  swaps(&stuff->width, n);
+  swaps(&stuff->height, n);
   return XvProcVector[xv_QueryImageAttributes](client);
 }
 
