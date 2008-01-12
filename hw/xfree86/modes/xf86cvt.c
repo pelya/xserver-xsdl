@@ -20,11 +20,6 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * @file This is a copy of xf86cvt.c from the X Server, for compatibility with
- * old servers (pre-1.2).
- */
-
 /*
  * The reason for having this function in a file of its own is
  * so that ../utils/cvt/cvt can link to it, and that xf86CVTMode
