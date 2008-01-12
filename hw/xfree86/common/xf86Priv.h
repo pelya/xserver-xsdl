@@ -153,7 +153,7 @@ Bool xf86PathIsSafe(const char *path);
 
 /* xf86DefaultModes */
 
-extern DisplayModeRec xf86DefaultModes [];
+extern const DisplayModeRec xf86DefaultModes[];
 
 /* xf86DoProbe.c */
 void DoProbe(void);
