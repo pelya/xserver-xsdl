@@ -949,6 +949,7 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86CrtcSetSizeRange)
     SYMFUNC(xf86CrtcScreenInit)
     SYMFUNC(xf86CVTMode)
+    SYMFUNC(xf86GTFMode)
     SYMFUNC(xf86DisableUnusedFunctions)
     SYMFUNC(xf86DPMSSet)
     SYMFUNC(xf86DuplicateMode)
