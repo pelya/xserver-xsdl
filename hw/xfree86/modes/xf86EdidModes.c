@@ -263,6 +263,22 @@ DDCModesFromEstablished(int scrnIndex, struct established_timings *timing,
     return Modes;
 }
 
+#define LEVEL_DMT 0
+#define LEVEL_GTF 1
+#define LEVEL_CVT 2
+
+static int
+MonitorStandardTimingLevel(xf86MonPtr DDC)
+{
+    if (DDC->ver.revision >= 2) {
+	if (DDC->ver.revision >= 4 && CVT_SUPPORTED(DDC->features.msc)) {
+	    return LEVEL_CVT;
+	}
+	return LEVEL_GTF;
+    }
+    return LEVEL_DMT;
+}
+
 /*
  * This is not really correct.  Appendix B of the EDID 1.4 spec defines
  * the right thing to do here.  If the timing given here matches a mode
@@ -282,16 +298,22 @@ DDCModesFromEstablished(int scrnIndex, struct established_timings *timing,
  * for modes in this section, but does say that CVT is preferred.
  */
 static DisplayModePtr
-DDCModesFromStandardTiming(int scrnIndex, struct std_timings *timing,
-			   ddc_quirk_t quirks)
+DDCModesFromStandardTiming(struct std_timings *timing, ddc_quirk_t quirks,
+			   int timing_level)
 {
     DisplayModePtr Modes = NULL, Mode = NULL;
     int i;
 
     for (i = 0; i < STD_TIMINGS; i++) {
         if (timing[i].hsize && timing[i].vsize && timing[i].refresh) {
-            Mode =  xf86CVTMode(timing[i].hsize, timing[i].vsize,
-                                timing[i].refresh, FALSE, FALSE);
+	    /* XXX check for DMT first, else... */
+	    if (timing_level == LEVEL_CVT)
+		Mode = xf86CVTMode(timing[i].hsize, timing[i].vsize,
+				   timing[i].refresh, FALSE, FALSE);
+	    else
+		Mode = xf86GTFMode(timing[i].hsize, timing[i].vsize,
+				   timing[i].refresh, FALSE, FALSE);
+
 	    Mode->type = M_T_DRIVER;
             Modes = xf86ModesAdd(Modes, Mode);
         }
@@ -565,6 +587,7 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
     DisplayModePtr  Modes = NULL, Mode;
     ddc_quirk_t	    quirks;
     Bool	    preferred;
+    int		    timing_level;
 
     xf86DrvMsg (scrnIndex, X_INFO, "EDID vendor \"%s\", prod id %d\n",
 		DDC->vendor.name, DDC->vendor.prod_id);
@@ -579,6 +602,8 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
     if (quirks & (DDC_QUIRK_PREFER_LARGE_60 | DDC_QUIRK_PREFER_LARGE_75))
 	preferred = FALSE;
 
+    timing_level = MonitorStandardTimingLevel(DDC);
+
     for (i = 0; i < DET_TIMINGS; i++) {
 	struct detailed_monitor_section *det_mon = &DDC->det_mon[i];
 
@@ -592,9 +617,8 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
             Modes = xf86ModesAdd(Modes, Mode);
             break;
         case DS_STD_TIMINGS:
-            Mode = DDCModesFromStandardTiming(scrnIndex,
-					      det_mon->section.std_t,
-					      quirks);
+            Mode = DDCModesFromStandardTiming(det_mon->section.std_t,
+					      quirks, timing_level);
             Modes = xf86ModesAdd(Modes, Mode);
             break;
 	case DS_CVT:
@@ -611,7 +635,7 @@ xf86DDCGetModes(int scrnIndex, xf86MonPtr DDC)
     Modes = xf86ModesAdd(Modes, Mode);
 
     /* Add standard timings */
-    Mode = DDCModesFromStandardTiming(scrnIndex, DDC->timings2, quirks);
+    Mode = DDCModesFromStandardTiming(DDC->timings2, quirks, timing_level);
     Modes = xf86ModesAdd(Modes, Mode);
 
     if (quirks & DDC_QUIRK_PREFER_LARGE_60)
