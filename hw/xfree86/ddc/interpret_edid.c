@@ -329,8 +329,21 @@ get_monitor_ranges(Uchar *c, struct monitor_ranges *r)
 	r->gtf_2nd_m = M_2ND_GTF;
 	r->gtf_2nd_k = K_2ND_GTF;
 	r->gtf_2nd_j = J_2ND_GTF;
-    } else
+    } else {
 	r->gtf_2nd_f = 0;
+    }
+    if (HAVE_CVT) {
+	r->max_clock_khz = MAX_CLOCK_KHZ;
+	r->max_clock = r->max_clock_khz / 1000;
+	r->maxwidth = MAXWIDTH;
+	r->supported_aspect = SUPPORTED_ASPECT;
+	r->preferred_aspect = PREFERRED_ASPECT;
+	r->supported_blanking = SUPPORTED_BLANKING;
+	r->supported_scaling = SUPPORTED_SCALING;
+	r->preferred_refresh = PREFERRED_REFRESH;
+    } else {
+	r->max_clock_khz = 0;
+    }
 }
 
 static void
