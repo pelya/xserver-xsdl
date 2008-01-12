@@ -97,5 +97,6 @@ extern int quartzHasRoot, quartzEnableRootless;
 #define PREFS_SWAP_ALT_META         "swap_alt_meta"
 #define PREFS_XP_OPTIONS            "xp_options"
 #define PREFS_ENABLE_STEREO         "enable_stereo"
+#define PREFS_LOGIN_SHELL           "login_shell"
 
 #endif /* X11APPLICATION_H */

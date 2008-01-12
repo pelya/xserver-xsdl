@@ -302,7 +302,7 @@
   argv[0] = "/usr/bin/login";
   argv[1] = "-fp";
   argv[2] = getlogin();
-  argv[3] = "/bin/sh";
+  argv[3] = [X11App prefs_get_string:@PREFS_FAKE_BUTTON2 default:"/bin/sh"];
   argv[4] = "-c";
   argv[5] = command;
   argv[6] = NULL;

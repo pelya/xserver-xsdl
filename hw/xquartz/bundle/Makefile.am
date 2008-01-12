@@ -18,8 +18,6 @@ EXTRA_DIST = \
 	Info.plist \
 	X11.icns \
 	bundle-main.c \
-	launcher-main.c \
-	server-main.c \
 	English.lproj/InfoPlist.strings \
 	English.lproj/Localizable.strings \
 	English.lproj/main.nib/classes.nib \

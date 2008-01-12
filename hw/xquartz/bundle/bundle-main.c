@@ -38,6 +38,7 @@
 
 #define DEFAULT_CLIENT "/usr/X11/bin/xterm"
 #define DEFAULT_STARTX "/usr/X11/bin/startx"
+#define DEFAULT_SHELL  "/bin/sh"
 
 static int execute(const char *command);
 static char *command_from_prefs(const char *key, const char *default_value);
@@ -82,7 +83,7 @@ static int execute(const char *command) {
     newargv[0] = "/usr/bin/login";
     newargv[1] = "-fp";
     newargv[2] = getlogin();
-    newargv[3] = "/bin/sh";
+    newargv[3] = command_from_prefs("login_shell", DEFAULT_SHELL);
     newargv[4] = "-c";
     newargv[5] = command;
     newargv[6] = NULL;
