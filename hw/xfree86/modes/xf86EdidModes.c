@@ -264,7 +264,22 @@ DDCModesFromEstablished(int scrnIndex, struct established_timings *timing,
 }
 
 /*
+ * This is not really correct.  Appendix B of the EDID 1.4 spec defines
+ * the right thing to do here.  If the timing given here matches a mode
+ * defined in the VESA DMT standard, we _must_ use that.  If the device
+ * supports CVT modes, then we should generate a CVT timing.  If both
+ * of the above fail, use GTF.
  *
+ * There are some wrinkles here.  EDID 1.1 and 1.0 sinks can't really
+ * "support" GTF, since it wasn't a standard yet; so if they ask for a
+ * timing in this section that isn't defined in DMT, returning a GTF mode
+ * may not actually be valid.  EDID 1.3 sinks often report support for
+ * some CVT modes, but they are not required to support CVT timings for
+ * modes in the standard timing descriptor, so we should _not_ treat them
+ * as CVT-compliant (unless specified in an extension block I suppose).
+ *
+ * EDID 1.4 requires that all sink devices support both GTF and CVT timings
+ * for modes in this section, but does say that CVT is preferred.
  */
 static DisplayModePtr
 DDCModesFromStandardTiming(int scrnIndex, struct std_timings *timing,
@@ -405,7 +420,11 @@ DDCModesFromCVT(int scrnIndex, struct cvt_timings *t)
 
 
 /*
- *
+ * This is only valid when the sink claims to be continuous-frequency
+ * but does not supply a detailed range descriptor.  Such sinks are
+ * arguably broken.  Currently the mode validation code isn't aware of
+ * this; the non-RANDR code even punts the decision of optional sync
+ * range checking to the driver.  Loss.
  */
 static void
 DDCGuessRangesFromModes(int scrnIndex, MonPtr Monitor, DisplayModePtr Modes)
@@ -623,10 +642,12 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
     Monitor->widthmm = 10 * DDC->features.hsize;
     Monitor->heightmm = 10 * DDC->features.vsize;
 
-    /* If this is a digital display, then we can use reduced blanking */
+    /*
+     * If this is a digital display, then we can use reduced blanking.
+     * XXX This is a 1.3 heuristic.  1.4 explicitly defines rb support.
+     */
     if (DDC->features.input_type)
         Monitor->reducedblanking = TRUE;
-    /* Allow the user to also enable this through config */
 
     Modes = xf86DDCGetModes(scrnIndex, DDC);
 
