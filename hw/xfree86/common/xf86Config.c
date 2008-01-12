@@ -2088,8 +2088,7 @@ configMonitor(MonPtr monitorp, XF86ConfMonitorPtr conf_monitor)
      */
     cmodep = conf_monitor->mon_modeline_lst;
     while( cmodep ) {
-        mode = xnfalloc(sizeof(DisplayModeRec));
-        memset(mode,'\0',sizeof(DisplayModeRec));
+        mode = xnfcalloc(1, sizeof(DisplayModeRec));
 	mode->type       = 0;
         mode->Clock      = cmodep->ml_clock;
         mode->HDisplay   = cmodep->ml_hdisplay;
@@ -2426,10 +2425,7 @@ addDefaultModes(MonPtr monitorp)
 	if ( ! modeIsPresent(xf86DefaultModes[i].name,monitorp) )
 	    do
 	    {
-		mode = xnfalloc(sizeof(DisplayModeRec));
-		memcpy(mode,&xf86DefaultModes[i],sizeof(DisplayModeRec));
-		if (xf86DefaultModes[i].name)
-		    mode->name = xnfstrdup(xf86DefaultModes[i].name);
+		mode = xf86DuplicateMode(&xf86DefaultModes[i]);
 		if( last ) {
 		    mode->prev = last;
 		    last->next = mode;

@@ -625,14 +625,11 @@ fbdevHWSetVideoModes(ScrnInfoPtr pScrn)
 			pScrn->virtualY = mode->VDisplay;
 
 		if (NULL == pScrn->modes) {
-			pScrn->modes = xnfalloc(sizeof(DisplayModeRec));
-			this = pScrn->modes;
-			memcpy(this,mode,sizeof(DisplayModeRec));
+			this = pScrn->modes = xf86DuplicateMode(mode);
 			this->next = this;
 			this->prev = this;
 		} else {
-			this = xnfalloc(sizeof(DisplayModeRec));
-			memcpy(this,mode,sizeof(DisplayModeRec));
+			this = xf86DuplicateMode(mode);
 			this->next = pScrn->modes;
 			this->prev = last;
 			last->next = this;

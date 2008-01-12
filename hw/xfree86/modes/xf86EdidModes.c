@@ -336,8 +336,7 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
                     " sync.\n", __func__, timing->h_active, timing->v_active);
     }
 
-    Mode = xnfalloc(sizeof(DisplayModeRec));
-    memset(Mode, 0, sizeof(DisplayModeRec));
+    Mode = xnfcalloc(1, sizeof(DisplayModeRec));
 
     Mode->type = M_T_DRIVER;
     if (preferred)

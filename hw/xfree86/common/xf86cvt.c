@@ -56,7 +56,7 @@ _X_EXPORT DisplayModePtr
 xf86CVTMode(int HDisplay, int VDisplay, float VRefresh, Bool Reduced,
             Bool Interlaced)
 {
-    DisplayModeRec  *Mode = xnfalloc(sizeof(DisplayModeRec));
+    DisplayModeRec  *Mode = xnfcalloc(1, sizeof(DisplayModeRec));
 
     /* 1) top/bottom margin size (% of height) - default: 1.8 */
 #define CVT_MARGIN_PERCENTAGE 1.8    
@@ -78,8 +78,6 @@ xf86CVTMode(int HDisplay, int VDisplay, float VRefresh, Bool Reduced,
     int  HDisplayRnd, HMargin;
     int  VDisplayRnd, VMargin, VSync;
     float  Interlace; /* Please rename this */
-
-    memset(Mode, 0, sizeof(DisplayModeRec));
 
     /* CVT default is 60.0Hz */
     if (!VRefresh)
