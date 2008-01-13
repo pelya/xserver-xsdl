@@ -3446,10 +3446,8 @@ CheckPassiveGrabsOnWindow(
                than it is assigned to at this point in time.
                Update the grab's device and modifier device to reflect the
                current state.
-               XXX: Since XGrabDeviceButton requires to specify the
+               Since XGrabDeviceButton requires to specify the
                modifierDevice explicitly, we don't override this choice.
-               This essentially requires a client to re-create all
-               passiveGrabs when the pairing changes... oh well.
              */
             if (xE->u.u.type < LASTEvent)
             {
