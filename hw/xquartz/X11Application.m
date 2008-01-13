@@ -314,7 +314,11 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 }
 
 - (void) set_front_process:unused {
-//    [self activateX:YES];
+    /* Hackery needed due to argv[0] hackery */
+    //    [self activateX:YES];
+    ProcessSerialNumber psn = { 0, kCurrentProcess };
+    SetFrontProcess(&psn);
+
     QuartzMessageServerThread(kXDarwinBringAllToFront, 0);
 }
 
@@ -711,10 +715,6 @@ void X11ApplicationSetWindowMenuCheck (int idx) {
 
 void X11ApplicationSetFrontProcess (void) {
     message_kit_thread (@selector (set_front_process:), nil);
-
-    /* Hackery needed due to argv[0] hackery */
-    ProcessSerialNumber psn = { 0, kCurrentProcess };
-    SetFrontProcess(&psn);
 }
 
 void X11ApplicationSetCanQuit (int state) {
