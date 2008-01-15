@@ -318,9 +318,8 @@ BOOL            is_core;
 
     is_core = (dev == inputInfo.keyboard);
     key = xkbi->repeatKey;
-    AccessXKeyboardEvent(dev, is_core ? KeyRelease : DeviceKeyRelease, key,
-                         True);
-    AccessXKeyboardEvent(dev, is_core ? KeyPress : DeviceKeyPress, key, True);
+    AccessXKeyboardEvent(dev, DeviceKeyRelease, key, True);
+    AccessXKeyboardEvent(dev, DeviceKeyPress, key, True);
     return xkbi->desc->ctrls->repeat_interval;
 }
 
