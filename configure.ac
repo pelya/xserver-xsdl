@@ -1901,7 +1901,7 @@ if test "$KDRIVE" = yes; then
         XEPHYR=$xephyr
     fi
     XEPHYR_DRI=no
-    if test x$XEPHYR = xyes -a x$DRI = xyes; then
+    if test x$XEPHYR = xyes -a x$DRI = xyes && test "x$GLX" = xyes; then
         XEPHYR_DRI=yes
         XEPHYR_DRI_LIBS=-lGL
         AC_SUBST(XEPHYR_DRI_LIBS)

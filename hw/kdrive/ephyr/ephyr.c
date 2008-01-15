@@ -635,7 +635,9 @@ ephyrInitScreen (ScreenPtr pScreen)
   if (!ephyrNoDRI && !hostx_has_dri ()) {
       EPHYR_LOG ("host x does not support DRI. Disabling DRI forwarding\n") ;
       ephyrNoDRI = TRUE ;
+#ifdef GLXEXT
       noGlxVisualInit = FALSE ;
+#endif
   }
   if (!ephyrNoDRI) {
     ephyrDRIExtensionInit (pScreen) ;
