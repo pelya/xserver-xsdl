@@ -697,12 +697,7 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 	    }
 	    return;
 	}
-        /* XI grabs have priority */
-        core = *xE;
-        core.u.u.type = coretype;
-	if (!grab &&
-              (CheckDeviceGrabs(device, xE, 0, count) ||
-                 (sendCore && CheckDeviceGrabs(device, &core, 0, 1)))) {
+	if (!grab && CheckDeviceGrabs(device, xE, 0, count)) {
 	    device->deviceGrab.activatingKey = key;
 	    return;
 	}
@@ -714,17 +709,11 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
 	xE->u.u.detail = key;
 	if (xE->u.u.detail == 0)
 	    return;
-        if (!grab)
+        if (!grab && CheckDeviceGrabs(device, xE, 0, count))
         {
-            core = *xE;
-            core.u.u.type = coretype;
-            if (CheckDeviceGrabs(device, xE, 0, count) ||
-                    (sendCore && CheckDeviceGrabs(device, &core, 0, 1)))
-            {
-                /* if a passive grab was activated, the event has been sent
-                 * already */
-                return;
-            }
+            /* if a passive grab was activated, the event has been sent
+             * already */
+            return;
         }
 
     } else if (xE->u.u.type == DeviceButtonRelease) {
