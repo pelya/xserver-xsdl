@@ -1369,11 +1369,10 @@ ComputeFreezes(void)
     DeviceIntPtr replayDev = syncEvents.replayDev;
     int i;
     WindowPtr w;
-    xEvent *xE, core;
+    xEvent *xE;
     int count;
     GrabPtr grab;
     DeviceIntPtr dev;
-    BOOL sendCore;
 
     for (dev = inputInfo.devices; dev; dev = dev->next)
 	FreezeThaw(dev, dev->deviceGrab.sync.other ||
@@ -1394,24 +1393,11 @@ ComputeFreezes(void)
 		replayDev->spriteInfo->sprite->spriteTrace[i])
 	    {
 		if (!CheckDeviceGrabs(replayDev, xE, i+1, count)) {
-                    sendCore = (replayDev->coreEvents && replayDev->isMaster);
-                    core = *xE;
-                    core.u.u.type = XItoCoreType(xE->u.u.type);
-
 		    if (replayDev->focus)
-                    {
-                        if (sendCore)
-                            DeliverFocusedEvent(replayDev, &core, w, 1);
 			DeliverFocusedEvent(replayDev, xE, w, count);
-                    }
 		    else
-                    {
-                        if (sendCore)
-                            DeliverDeviceEvents(w, &core, NullGrab,
-                                                NullWindow, replayDev, 1);
 			DeliverDeviceEvents(w, xE, NullGrab, NullWindow,
 					        replayDev, count);
-                    }
 		}
 		goto playmore;
 	    }
@@ -2439,92 +2425,97 @@ DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
     int type = xE->u.u.type;
     Mask filter = filters[dev->id][type];
     int deliveries = 0;
+    OtherInputMasks *inputMasks;
+    int mskidx = dev->id;
+    xEvent core;
 
     if (XaceHook(XACE_SEND_ACCESS, NULL, dev, pWin, xE, count))
 	return 0;
 
-    if (type & EXTENSION_EVENT_BASE)
+    /* handle generic events */
+    /* XXX: Generic events aren't quite handled correctly yet. They should
+     * eventually fit in with the rest of the stuff
+     */
+    if (type == GenericEvent)
     {
-	OtherInputMasks *inputMasks;
-	int mskidx = dev->id;
+        WindowPtr win = pWin;
+        xGenericEvent* ge = (xGenericEvent*)xE;
 
-	inputMasks = wOtherInputMasks(pWin);
-	if (inputMasks && !(filter & inputMasks->deliverableEvents[mskidx]))
-	    return 0;
-	while (pWin)
-	{
-	    if (inputMasks && (inputMasks->inputEvents[mskidx] & filter))
-	    {
-		FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
-		deliveries = DeliverEventsToWindow(dev, pWin, xE, count, filter,
-						   grab, mskidx);
-		if (deliveries > 0)
-		    return deliveries;
-	    }
-	    if ((deliveries < 0) ||
-		(pWin == stopAt) ||
-		(inputMasks &&
-		 (filter & inputMasks->dontPropagateMask[mskidx])))
-		return 0;
-	    child = pWin->drawable.id;
-	    pWin = pWin->parent;
-	    if (pWin)
-		inputMasks = wOtherInputMasks(pWin);
-	}
-    }
-    else
-    {
-        /* handle generic events */
-        if (type == GenericEvent)
+        if (count > 1)
         {
-            xGenericEvent* ge = (xGenericEvent*)xE;
-
-            if (count > 1)
-            {
-                ErrorF("[dix] Do not send more than one GenericEvent at a time!\n");
-                return 0;
-            }
-            filter = generic_filters[GEEXTIDX(xE)][ge->evtype];
-
-            while(pWin)
-            {
-                if (GEMaskIsSet(pWin, GEEXT(xE), filter))
-                {
-                    if (GEExtensions[GEEXTIDX(xE)].evfill)
-                        GEExtensions[GEEXTIDX(xE)].evfill(ge, dev, pWin, grab);
-                    deliveries = DeliverEventsToWindow(dev, pWin, xE, count,
-                                                        filter, grab, 0);
-                    if (deliveries > 0)
-                        return deliveries;
-                }
-
-                pWin = pWin->parent;
-            }
+            ErrorF("[dix] Do not send more than one GenericEvent at a time!\n");
+            return 0;
         }
-        else
+        filter = generic_filters[GEEXTIDX(xE)][ge->evtype];
+
+        while(win)
         {
-            /* core protocol events */
-            if (!(filter & pWin->deliverableEvents))
+            if (GEMaskIsSet(win, GEEXT(xE), filter))
+            {
+                if (GEExtensions[GEEXTIDX(xE)].evfill)
+                    GEExtensions[GEEXTIDX(xE)].evfill(ge, dev, win, grab);
+                deliveries = DeliverEventsToWindow(dev, win, xE, count,
+                        filter, grab, 0);
+                if (deliveries > 0)
+                    return deliveries;
+            }
+
+            win = win->parent;
+        }
+    }
+
+    while (pWin && type != GenericEvent)
+    {
+        /* First try XI event delivery */
+        inputMasks = wOtherInputMasks(pWin);
+        if (inputMasks && (filter & inputMasks->deliverableEvents[mskidx]))
+        {
+
+            if (inputMasks && (inputMasks->inputEvents[mskidx] & filter))
+            {
+                FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
+                deliveries = DeliverEventsToWindow(dev, pWin, xE, count,
+                                                   filter, grab, mskidx);
+                if (deliveries > 0)
+                    return deliveries;
+            }
+
+            if ((deliveries < 0) ||
+                    (pWin == stopAt) ||
+                    (inputMasks &&
+                     (filter & inputMasks->dontPropagateMask[mskidx])))
                 return 0;
-            while (pWin)
+        }
+
+        if (dev->isMaster && dev->coreEvents)
+        {
+
+            /* no XI event delivered. Try core event */
+            core = *xE;
+            core.u.u.type = XItoCoreType(xE->u.u.type);
+
+            if (filter & pWin->deliverableEvents)
             {
                 if ((wOtherEventMasks(pWin)|pWin->eventMask) & filter)
                 {
-                    FixUpEventFromWindow(dev, xE, pWin, child, FALSE);
-                    deliveries = DeliverEventsToWindow(dev, pWin, xE, count, filter,
-                            grab, 0);
+                    FixUpEventFromWindow(dev, &core, pWin, child, FALSE);
+                    deliveries = DeliverEventsToWindow(dev, pWin, &core, 1,
+                            filter, grab, 0);
                     if (deliveries > 0)
                         return deliveries;
                 }
+
                 if ((deliveries < 0) ||
                         (pWin == stopAt) ||
                         (filter & wDontPropagateMask(pWin)))
                     return 0;
-                child = pWin->drawable.id;
-                pWin = pWin->parent;
             }
-	}
+        }
+
+        child = pWin->drawable.id;
+        pWin = pWin->parent;
     }
+
     return 0;
 }
 
@@ -3604,7 +3595,10 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
 {
     DeviceIntPtr pointer;
     WindowPtr focus = keybd->focus->win;
-    int mskidx = 0;
+    BOOL sendCore = (keybd->isMaster && keybd->coreEvents);
+    xEvent core;
+    int deliveries = 0;
+
     if (focus == FollowKeyboardWin)
 	focus = inputInfo.keyboard->focus->win;
     if (!focus)
@@ -3622,13 +3616,29 @@ DeliverFocusedEvent(DeviceIntPtr keybd, xEvent *xE, WindowPtr window, int count)
     pointer = GetPairedDevice(keybd);
     if (XaceHook(XACE_SEND_ACCESS, NULL, keybd, focus, xE, count))
 	return;
+
+    if (sendCore)
+    {
+        core = *xE;
+        core.u.u.type = XItoCoreType(xE->u.u.type);
+    }
+
     /* just deliver it to the focus window */
     FixUpEventFromWindow(pointer, xE, focus, None, FALSE);
-    if (xE->u.u.type & EXTENSION_EVENT_BASE)
-	mskidx = keybd->id;
-    (void)DeliverEventsToWindow(keybd, focus, xE, count,
-                                filters[keybd->id][xE->u.u.type],
-				NullGrab, mskidx);
+    deliveries = DeliverEventsToWindow(keybd, focus, xE, count,
+                                       filters[keybd->id][xE->u.u.type],
+                                       NullGrab, keybd->id);
+
+    if (deliveries > 0)
+        return;
+
+    if (sendCore)
+    {
+        FixUpEventFromWindow(keybd, &core, focus, None, FALSE);
+        deliveries = DeliverEventsToWindow(keybd, focus, &core, 1,
+                                           filters[keybd->id][xE->u.u.type],
+                                           NullGrab, 0);
+    }
 }
 
 /**
@@ -3646,8 +3656,9 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
     GrabInfoPtr grabinfo;
     int deliveries = 0;
     DeviceIntPtr dev;
-    xEvent *dxE;
+    xEvent *dxE, core;
     SpritePtr pSprite = thisDev->spriteInfo->sprite;
+    BOOL sendCore = FALSE;
 
     grabinfo = &thisDev->deviceGrab;
     grab = grabinfo->grab;
@@ -3697,23 +3708,56 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
             } else
             {
                 Mask mask = grab->eventMask;
-                if (grabinfo->fromPassiveGrab  &&
-                        grabinfo->implicitGrab &&
-                        (xE->u.u.type & EXTENSION_EVENT_BASE))
-                    mask = grab->deviceMask;
 
-                FixUpEventFromWindow(thisDev, xE, grab->window, None, TRUE);
-
-                if (XaceHook(XACE_SEND_ACCESS, 0, thisDev, grab->window, xE,
-                            count) ||
-                    XaceHook(XACE_RECEIVE_ACCESS, rClient(grab), grab->window,
-                             xE, count))
-                    deliveries = 1; /* don't send, but pretend we did */
-                else if (!(!(xE->u.u.type & EXTENSION_EVENT_BASE) &&
-                        IsInterferingGrab(rClient(grab), thisDev, xE)))
+                sendCore = (thisDev->isMaster && thisDev->coreEvents);
+                /* try core event */
+                if (sendCore && grab->coreGrab)
                 {
-                    deliveries = TryClientEvents(rClient(grab), xE, count,
-                            mask, filters[thisDev->id][xE->u.u.type], grab);
+                    core = *xE;
+                    core.u.u.type = XItoCoreType(xE->u.u.type);
+                    FixUpEventFromWindow(thisDev, &core, grab->window,
+                                         None, TRUE);
+                    if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
+                                 grab->window, &core, 1) ||
+                            XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
+                                     grab->window, &count, 1))
+                        deliveries = 1; /* don't send, but pretend we did */
+                    else if (!IsInterferingGrab(rClient(grab), thisDev,
+                                &core))
+                    {
+                        deliveries = TryClientEvents(rClient(grab), &core, 1,
+                                                     mask,
+                                                     filters[thisDev->id][core.u.u.type],
+                                                     grab);
+                    }
+                }
+
+                if (!deliveries)
+                {
+                    /* try XI event */
+                    if (grabinfo->fromPassiveGrab  &&
+                            grabinfo->implicitGrab &&
+                            (xE->u.u.type & EXTENSION_EVENT_BASE))
+                        mask = grab->deviceMask;
+                    FixUpEventFromWindow(thisDev, xE, grab->window,
+                                         None, TRUE);
+
+                    if (XaceHook(XACE_SEND_ACCESS, 0, thisDev,
+                                 grab->window, xE, count) ||
+                            XaceHook(XACE_RECEIVE_ACCESS, rClient(grab),
+                                     grab->window,
+                                xE, count))
+                        deliveries = 1; /* don't send, but pretend we did */
+                    else
+                    {
+                        deliveries =
+                            TryClientEvents(rClient(grab),
+                                           xE, count,
+                                           mask,
+                                           filters[thisDev->id][xE->u.u.type],
+                                           grab);
+                    }
+
                 }
             }
             if (deliveries && (xE->u.u.type == MotionNotify

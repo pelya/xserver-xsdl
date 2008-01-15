@@ -724,32 +724,13 @@ ProcessOtherEvent(xEventPtr xE, DeviceIntPtr device, int count)
             deactivateDeviceGrab = TRUE;
     }
 
-    if (sendCore)
-    {
-        core = *xE;
-        core.u.u.type = coretype;
-    }
-
     if (grab)
-    {
-        if (sendCore)                      /* never deactivate from core */
-            DeliverGrabbedEvent(&core, device, FALSE , 1);
         DeliverGrabbedEvent(xE, device, deactivateDeviceGrab, count);
-    }
     else if (device->focus)
-    {
-        if (sendCore)
-            DeliverFocusedEvent(device, &core, GetSpriteWindow(device), 1);
 	DeliverFocusedEvent(device, xE, GetSpriteWindow(device), count);
-    }
     else
-    {
-        if (sendCore)
-            DeliverDeviceEvents(GetSpriteWindow(device), &core, NullGrab,
-                                NullWindow, device, 1);
 	DeliverDeviceEvents(GetSpriteWindow(device), xE, NullGrab, NullWindow,
 			    device, count);
-    }
 
     if (deactivateDeviceGrab == TRUE)
 	(*device->deviceGrab.DeactivateGrab) (device);
