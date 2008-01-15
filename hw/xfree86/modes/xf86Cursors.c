@@ -400,7 +400,7 @@ xf86_crtc_load_cursor_image (xf86CrtcPtr crtc, CARD8 *src)
 	int flags = cursor_info->Flags;
 	
 	cursor_image = xf86_config->cursor_image;
-	memset(cursor_image, 0, cursor_info->MaxWidth * stride);
+	memset(cursor_image, 0, cursor_info->MaxHeight * stride);
 	
         for (y = 0; y < cursor_info->MaxHeight; y++)
 	    for (x = 0; x < cursor_info->MaxWidth; x++) 
