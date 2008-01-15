@@ -304,6 +304,9 @@ XItoCoreType(int xitype)
         coretype = KeyPress;
     else if (xitype == DeviceKeyRelease)
         coretype = KeyRelease;
+
+    if (coretype == 0)
+        ErrorF("[dix] Cannot convert type %d to core.\n", xitype);
     return coretype;
 }
 
