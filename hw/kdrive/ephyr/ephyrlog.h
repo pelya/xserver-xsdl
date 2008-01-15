@@ -33,8 +33,8 @@
 
 #ifdef NDEBUG
 /*we are not in debug mode*/
-#define EPHYR_LOG
-#define EPHYR_LOG_ERROR
+#define EPHYR_LOG(...)
+#define EPHYR_LOG_ERROR(...)
 #endif /*NDEBUG*/
 
 #define ERROR_LOG_LEVEL 3

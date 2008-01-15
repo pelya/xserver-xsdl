@@ -206,7 +206,7 @@ ephyrDRIScreenInit (ScreenPtr a_screen)
     a_screen->ClipNotify = ephyrDRIClipNotify ;
 
     is_ok = TRUE ;
-out:
+
     return is_ok ;
 }
 
