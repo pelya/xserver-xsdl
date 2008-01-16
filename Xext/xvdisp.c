@@ -1588,6 +1588,7 @@ SProcXvSetPortAttribute(ClientPtr client)
   swaps(&stuff->length, n);
   swapl(&stuff->port, n);
   swapl(&stuff->attribute, n);
+  swapl(&stuff->value, n);
   return XvProcVector[xv_SetPortAttribute](client);
 }
 
