@@ -1,5 +1,13 @@
-indirect_size.h
+glapi.c
 glcontextmodes.c
 glcontextmodes.h
-glapi.c
 glthread.c
+indirect_dispatch.c
+indirect_dispatch.h
+indirect_dispatch_swap.c
+indirect_reqsize.c
+indirect_reqsize.h
+indirect_size.h
+indirect_size_get.c
+indirect_size_get.h
+indirect_table.c

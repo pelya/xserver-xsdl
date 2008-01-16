@@ -229,6 +229,14 @@ symlink_glx() {
     action indirect_size.h
     action glcontextmodes.c
     action glcontextmodes.h
+    action indirect_dispatch.c
+    action indirect_dispatch.h
+    action indirect_dispatch_swap.c
+    action indirect_reqsize.c
+    action indirect_reqsize.h
+    action indirect_size_get.c
+    action indirect_size_get.h
+    action indirect_table.c
 
     src_dir src/mesa/glapi
 
