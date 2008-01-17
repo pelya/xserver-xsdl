@@ -176,6 +176,9 @@ int ProcGetReservedColormapEntries(
 
     REQUEST_SIZE_MATCH (xXcupGetReservedColormapEntriesReq);
 
+    if (stuff->screen >= screenInfo.numScreens)
+	return BadValue;
+
 #ifndef HAVE_SPECIAL_DESKTOP_COLORS
     citems[CUP_BLACK_PIXEL].pixel = 
 	screenInfo.screens[stuff->screen]->blackPixel;
