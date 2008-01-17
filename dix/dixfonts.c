@@ -326,6 +326,13 @@ doOpenFont(ClientPtr client, OFclosurePtr c)
 	err = BadFontName;
 	goto bail;
     }
+    /* check values for firstCol, lastCol, firstRow, and lastRow */
+    if (pfont->info.firstCol > pfont->info.lastCol ||
+       pfont->info.firstRow > pfont->info.lastRow ||
+       pfont->info.lastCol - pfont->info.firstCol > 255) {
+       err = AllocError;
+       goto bail;
+    }
     if (!pfont->fpe)
 	pfont->fpe = fpe;
     pfont->refcnt++;
