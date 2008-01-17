@@ -548,6 +548,10 @@ MiscExtPassMessage(int scrnIndex, const char *msgtype, const char *msgval,
 {
     ScrnInfoPtr pScr = xf86Screens[scrnIndex];
 
+    /* should check this in the protocol, but xf86NumScreens isn't exported */
+    if (scrnIndex >= xf86NumScreens)
+	return BadValue;
+
     if (*pScr->HandleMessage == NULL)
 	    return BadImplementation;
     return (*pScr->HandleMessage)(scrnIndex, msgtype, msgval, retstr);
