@@ -2993,7 +2993,8 @@ UnrealizeTree(
 	    } 
 #endif
 	    (* Unrealize)(pChild);
-	    DeleteWindowFromAnyEvents(pChild, FALSE);
+	    if (MapUnmapEventsEnabled(pWin))
+		DeleteWindowFromAnyEvents(pChild, FALSE);
 	    if (pChild->viewable)
 	    {
 #ifdef DO_SAVE_UNDERS
