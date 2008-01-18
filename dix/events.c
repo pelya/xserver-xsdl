@@ -5265,15 +5265,10 @@ ProcChangeActivePointerGrab(ClientPtr client)
                 if (grab && grab->coreGrab && SameClient(grab, client))
                 {
                     device = grabbed;
+                    grab = device->deviceGrab.grab;
                     break;
                 }
             }
-        }
-        /* nope. no grab on any actual device */
-        if (!grabbed)
-        {
-            device = inputInfo.pointer;
-            grab = inputInfo.pointer->deviceGrab.grab;
         }
     }
 
