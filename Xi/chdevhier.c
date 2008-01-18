@@ -88,9 +88,6 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
     REQUEST(xChangeDeviceHierarchyReq);
     REQUEST_AT_LEAST_SIZE(xChangeDeviceHierarchyReq);
 
-    /* XXX: check if client is allowed to change hierarch */
-
-
     any = (xAnyHierarchyChangeInfo*)&stuff[1];
     while(stuff->num_changes--)
     {
@@ -109,9 +106,12 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                     char* name;
                     int ret;
 
+                    /* XXX: check for creation permission */
+
                     SWAPIF(swaps(&c->namelen, n));
                     name = xcalloc(c->namelen + 1, sizeof(char));
                     strncpy(name, (char*)&c[1], c->namelen);
+
 
                     ret = AllocMasterDevice(name, &ptr, &keybd);
                     if (ret != Success)
@@ -143,7 +143,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                         return BadValue;
 
                     rc = dixLookupDevice(&ptr, r->deviceid, client,
-                                         DixWriteAccess);
+                                         DixDestroyAccess);
                     if (rc != Success)
                         return rc;
 
@@ -160,12 +160,25 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
 
                     /* disable keyboards first */
                     if (IsPointerDevice(ptr))
-                        keybd = ptr->spriteInfo->paired;
+                    {
+                        rc = dixLookupDevice(&keybd,
+                                             ptr->spriteInfo->paired->id,
+                                             client,
+                                             DixDestroyAccess);
+                        if (rc != Success)
+                            return rc;
+                    }
                     else
                     {
                         keybd = ptr;
-                        ptr = keybd->spriteInfo->paired;
+                        rc = dixLookupDevice(&ptr,
+                                             keybd->spriteInfo->paired->id,
+                                             client,
+                                             DixDestroyAccess);
+                        if (rc != Success)
+                            return rc;
                     }
+
 
                     /* Disabling sends the devices floating, reattach them if
                      * desired. */
