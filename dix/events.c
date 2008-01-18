@@ -4202,6 +4202,7 @@ EventSelectForWindow(WindowPtr pWin, ClientPtr client, Mask mask)
 {
     Mask check;
     OtherClients * others;
+    DeviceIntPtr dev;
     int rc;
 
     if (mask & ~AllEventMasks)
@@ -4268,11 +4269,14 @@ EventSelectForWindow(WindowPtr pWin, ClientPtr client, Mask mask)
 	    return BadAlloc;
     }
 maskSet:
-    if ((inputInfo.pointer->valuator->motionHintWindow == pWin) &&
-	(mask & PointerMotionHintMask) &&
-	!(check & PointerMotionHintMask) &&
-	!inputInfo.pointer->deviceGrab.grab) /* VCP shouldn't have deviceGrab */
-	inputInfo.pointer->valuator->motionHintWindow = NullWindow;
+    if ((mask & PointerMotionHintMask) && !(check & PointerMotionHintMask))
+    {
+        for (dev = inputInfo.devices; dev; dev = dev->next)
+        {
+            if (dev->valuator && dev->valuator->motionHintWindow == pWin)
+                dev->valuator->motionHintWindow = NullWindow;
+        }
+    }
     RecalculateDeliverableEvents(pWin);
     return Success;
 }
