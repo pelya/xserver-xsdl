@@ -1627,6 +1627,14 @@ DeactivatePointerGrab(DeviceIntPtr mouse)
     mouse->deviceGrab.grab = NullGrab;
     mouse->deviceGrab.sync.state = NOT_GRABBED;
     mouse->deviceGrab.fromPassiveGrab = FALSE;
+
+    /* make sure the potential XGE event mask is freed too*/
+    if (grab->genericMasks)
+    {
+        xfree(grab->genericMasks);
+        grab->genericMasks = NULL;
+    }
+
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
 	if (dev->deviceGrab.sync.other == grab)
@@ -1704,6 +1712,12 @@ DeactivateKeyboardGrab(DeviceIntPtr keybd)
     keybd->deviceGrab.grab = NullGrab;
     keybd->deviceGrab.sync.state = NOT_GRABBED;
     keybd->deviceGrab.fromPassiveGrab = FALSE;
+    if (grab->genericMasks)
+    {
+        xfree(grab->genericMasks);
+        grab->genericMasks = NULL;
+    }
+
     for (dev = inputInfo.devices; dev; dev = dev->next)
     {
 	if (dev->deviceGrab.sync.other == grab)
@@ -2226,9 +2240,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
         inputMasks = wOtherInputMasks(pWin);
         tempGrab.deviceMask = (inputMasks) ? inputMasks->inputEvents[pDev->id]: 0;
 
-        /* get the XGE event mask.
-         * FIXME: needs to be freed somewhere too.
-         */
+        /* get the XGE event mask. */
         tempGrab.genericMasks = NULL;
         if (pWin->optional && pWin->optional->geMasks)
         {
