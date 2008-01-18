@@ -502,6 +502,7 @@ extern void WriteEventsToClient(
 
 extern int TryClientEvents(
     ClientPtr /*client*/,
+    DeviceIntPtr /* device */,
     xEventPtr /*pEvents*/,
     int /*count*/,
     Mask /*mask*/,

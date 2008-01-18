@@ -385,7 +385,7 @@ miSendGraphicsExpose (client, pRgn, drawable, major, minor)
 	    pe->u.graphicsExposure.majorEvent = major;
 	    pe->u.graphicsExposure.minorEvent = minor;
 	}
-	TryClientEvents(client, pEvent, numRects,
+	TryClientEvents(client, NULL, pEvent, numRects,
 			    (Mask)0, NoEventMask, NullGrab);
 	xfree(pEvent);
     }
@@ -396,7 +396,7 @@ miSendGraphicsExpose (client, pRgn, drawable, major, minor)
 	event.u.noExposure.drawable = drawable;
 	event.u.noExposure.majorEvent = major;
 	event.u.noExposure.minorEvent = minor;
-	TryClientEvents(client, &event, 1,
+	TryClientEvents(client, NULL, &event, 1,
 	    (Mask)0, NoEventMask, NullGrab);
     }
 }

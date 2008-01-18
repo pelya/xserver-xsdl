@@ -1105,7 +1105,7 @@ DGAProcessKeyboardEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr keybd)
     if (pScreenPriv->client)
     {
 	/* If the DGA client has selected input, then deliver based on the usual filter */
-	TryClientEvents (pScreenPriv->client, (xEvent *) de, 1, 
+	TryClientEvents (pScreenPriv->client, keybd, (xEvent *) de, 1,
 			 filters[coreEquiv], pScreenPriv->input, 0);
     }
     else
@@ -1186,7 +1186,7 @@ DGAProcessPointerEvent (ScreenPtr pScreen, dgaEvent *de, DeviceIntPtr mouse)
     if (pScreenPriv->client)
     {
 	/* If the DGA client has selected input, then deliver based on the usual filter */
-	TryClientEvents (pScreenPriv->client, (xEvent *) de, 1, 
+	TryClientEvents (pScreenPriv->client, mouse, (xEvent *) de, 1,
 			 filters[coreEquiv], pScreenPriv->input, 0);
     }
     else

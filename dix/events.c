@@ -1968,6 +1968,7 @@ ReleaseActiveGrabs(ClientPtr client)
  *
  *
  * @param client The target client to deliver to.
+ * @param dev The device the event came from. May be NULL.
  * @param pEvents The events to be delivered.
  * @param count Number of elements in pEvents.
  * @param mask Event mask as set by the window.
@@ -1978,8 +1979,8 @@ ReleaseActiveGrabs(ClientPtr client)
  * client.
  */
 _X_EXPORT int
-TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
-                 Mask filter, GrabPtr grab)
+TryClientEvents (ClientPtr client, DeviceIntPtr dev, xEvent *pEvents,
+                 int count, Mask mask, Mask filter, GrabPtr grab)
 {
     int i;
     int type;
@@ -1998,7 +1999,7 @@ TryClientEvents (ClientPtr client, xEvent *pEvents, int count, Mask mask,
 	{
 	    if (mask & PointerMotionHintMask)
 	    {
-		if (WID(inputInfo.pointer->valuator->motionHintWindow) ==
+		if (WID(dev->valuator->motionHintWindow) ==
 		    pEvents->u.keyButtonPointer.event)
 		{
 #ifdef DEBUG_EVENTS
@@ -2108,8 +2109,9 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 
 	if (XaceHook(XACE_RECEIVE_ACCESS, wClient(pWin), pWin, pEvents, count))
 	    /* do nothing */;
-        else if ( (attempt = TryClientEvents(wClient(pWin), pEvents, count,
-				      pWin->eventMask, filter, grab)) )
+        else if ( (attempt = TryClientEvents(wClient(pWin), pDev, pEvents,
+                                             count, pWin->eventMask,
+                                             filter, grab)) )
 	{
 	    if (attempt > 0)
 	    {
@@ -2146,8 +2148,10 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
                     if (XaceHook(XACE_RECEIVE_ACCESS, pClient->client, pWin,
                                 pEvents, count))
                         /* do nothing */;
-                    else if (TryClientEvents(pClient->client, pEvents, count,
-                            pClient->eventMask[GEEXTIDX(pEvents)], filter, grab) > 0)
+                    else if (TryClientEvents(pClient->client, pDev,
+                             pEvents, count,
+                             pClient->eventMask[GEEXTIDX(pEvents)],
+                             filter, grab) > 0)
                     {
                         deliveries++;
                     } else
@@ -2179,8 +2183,10 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
                 if (XaceHook(XACE_RECEIVE_ACCESS, rClient(other), pWin,
                              pEvents, count))
                     /* do nothing */;
-                else if ( (attempt = TryClientEvents(rClient(other), pEvents, count,
-                                other->mask[mskidx], filter, grab)) )
+                else if ( (attempt = TryClientEvents(rClient(other), pDev,
+                                                     pEvents, count,
+                                                     other->mask[mskidx],
+                                                     filter, grab)) )
                 {
                     if (attempt > 0)
                     {
@@ -2308,7 +2314,7 @@ MaybeDeliverEventsToClient(WindowPtr pWin, xEvent *pEvents,
 #endif
 	if (XaceHook(XACE_RECEIVE_ACCESS, wClient(pWin), pWin, pEvents, count))
 	    return 1; /* don't send, but pretend we did */
-	return TryClientEvents(wClient(pWin), pEvents, count,
+	return TryClientEvents(wClient(pWin), NULL, pEvents, count,
 			       pWin->eventMask, filter, NullGrab);
     }
     for (other = wOtherClients(pWin); other; other = other->next)
@@ -2325,7 +2331,7 @@ MaybeDeliverEventsToClient(WindowPtr pWin, xEvent *pEvents,
 	    if (XaceHook(XACE_RECEIVE_ACCESS, rClient(other), pWin, pEvents,
 			 count))
 		return 1; /* don't send, but pretend we did */
-	    return TryClientEvents(rClient(other), pEvents, count,
+	    return TryClientEvents(rClient(other), NULL, pEvents, count,
 				   other->mask, filter, NullGrab);
 	}
     }
@@ -3469,7 +3475,7 @@ CheckPassiveGrabsOnWindow(
 
 	    FixUpEventFromWindow(device, xE, grab->window, None, TRUE);
 
-	    (void) TryClientEvents(rClient(grab), xE, count,
+	    (void) TryClientEvents(rClient(grab), device, xE, count,
 				   filters[device->id][xE->u.u.type],
 				   filters[device->id][xE->u.u.type],  grab);
 
@@ -3704,8 +3710,8 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
 
                 if (GEEventFill(xE))
                     GEEventFill(xE)(ge, thisDev, grab->window, grab);
-                deliveries = TryClientEvents(rClient(grab), xE, count,
-                        gemask->eventMask[GEEXTIDX(ge)],
+                deliveries = TryClientEvents(rClient(grab), thisDev, xE,
+                        count, gemask->eventMask[GEEXTIDX(ge)],
                         generic_filters[GEEXTIDX(ge)][ge->evtype],
                         grab);
             } else
@@ -3728,8 +3734,8 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
                     else if (!IsInterferingGrab(rClient(grab), thisDev,
                                 &core))
                     {
-                        deliveries = TryClientEvents(rClient(grab), &core, 1,
-                                                     mask,
+                        deliveries = TryClientEvents(rClient(grab), thisDev,
+                                                     &core, 1, mask,
                                                      filters[thisDev->id][core.u.u.type],
                                                      grab);
                     }
@@ -3754,7 +3760,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
                     else
                     {
                         deliveries =
-                            TryClientEvents(rClient(grab),
+                            TryClientEvents(rClient(grab), thisDev,
                                            xE, count,
                                            mask,
                                            filters[thisDev->id][xE->u.u.type],
@@ -4452,10 +4458,10 @@ EnterLeaveEvent(
     if ((mask & filters[mouse->id][type]) && sendevent)
     {
         if (grab)
-            (void)TryClientEvents(rClient(grab), &event, 1, mask,
+            TryClientEvents(rClient(grab), mouse, &event, 1, mask,
                                   filters[mouse->id][type], grab);
         else
-            (void)DeliverEventsToWindow(mouse, pWin, &event, 1,
+            DeliverEventsToWindow(mouse, pWin, &event, 1,
                                   filters[mouse->id][type], NullGrab, 0);
     }
 
@@ -4475,7 +4481,8 @@ EnterLeaveEvent(
             inputMasks->deliverableEvents[mskidx]))
     {
         if (devgrab)
-            (void)TryClientEvents(rClient(devgrab), (xEvent*)devEnterLeave, 1,
+            (void)TryClientEvents(rClient(devgrab), mouse,
+                                (xEvent*)devEnterLeave, 1,
                                 mask, filters[mouse->id][devEnterLeave->type],
                                 devgrab);
 	else
@@ -4496,8 +4503,8 @@ EnterLeaveEvent(
 
 	ke.type = KeymapNotify;
 	if (grab)
-	    (void)TryClientEvents(rClient(grab), (xEvent *)&ke, 1, mask,
-				  KeymapStateMask, grab);
+	    (void)TryClientEvents(rClient(grab), keybd, (xEvent *)&ke, 1,
+                                  mask, KeymapStateMask, grab);
 	else
 	    (void)DeliverEventsToWindow(mouse, pWin, (xEvent *)&ke, 1,
 					KeymapStateMask, NullGrab, 0);

@@ -541,8 +541,8 @@ int reason;
 	  event.u.videoNotify.drawable = pDraw->id;
 	  event.u.videoNotify.port = pPort->id;
 	  event.u.videoNotify.reason = reason;
-	  (void) TryClientEvents(pn->client, (xEventPtr)&event, 1, NoEventMask,
-				 NoEventMask, NullGrab);
+	  TryClientEvents(pn->client, NULL, (xEventPtr)&event, 1,
+                          NoEventMask, NoEventMask, NullGrab);
 	}
       pn = pn->next;
     }
@@ -573,8 +573,8 @@ XvdiSendPortNotify(
 	  event.u.portNotify.port = pPort->id;
 	  event.u.portNotify.attribute = attribute;
 	  event.u.portNotify.value = value;
-	  (void) TryClientEvents(pn->client, (xEventPtr)&event, 1, NoEventMask,
-				 NoEventMask, NullGrab);
+	  TryClientEvents(pn->client, NULL, (xEventPtr)&event, 1,
+                          NoEventMask, NoEventMask, NullGrab);
 	}
       pn = pn->next;
     }
