@@ -5595,7 +5595,8 @@ ProcQueryPointer(ClientPtr client)
     xQueryPointerReply rep;
     WindowPtr pWin, t;
     DeviceIntPtr mouse = PickPointer(client);
-    SpritePtr pSprite = mouse->spriteInfo->sprite;
+    DeviceIntPtr dev;
+    SpritePtr pSprite;
     int rc;
     REQUEST(xResourceReq);
     REQUEST_SIZE_MATCH(xResourceReq);
@@ -5607,6 +5608,19 @@ ProcQueryPointer(ClientPtr client)
     if (rc != Success)
 	return rc;
 
+    for (dev = inputInfo.devices; dev; dev = dev->next)
+    {
+        if (dev->isMaster && IsPointerDevice(dev) &&
+                dev->deviceGrab.grab && dev->deviceGrab.grab->coreGrab &&
+                SameClient(dev->deviceGrab.grab, client))
+        {
+            /* special case, we have a grab on the device so we need to return
+             * this one */
+            mouse = dev;
+        }
+    }
+
+    pSprite = mouse->spriteInfo->sprite;
     if (mouse->valuator->motionHintWindow)
 	MaybeStopHint(mouse, client);
     rep.type = X_Reply;
