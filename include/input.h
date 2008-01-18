@@ -375,12 +375,12 @@ extern void ProcessKeyboardEvent(
 extern void CoreProcessPointerEvent(
     xEventPtr /*xE*/,
     DeviceIntPtr /*mouse*/,
-    int /*count*/);
+    int /*count*/) _X_DEPRECATED;
 
-extern void CoreProcessKeyboardEvent(
+extern _X_DEPRECATED void CoreProcessKeyboardEvent(
     xEventPtr /*xE*/,
     DeviceIntPtr /*keybd*/,
-    int /*count*/);
+    int /*count*/) _X_DEPRECATED;
 #endif
 
 extern Bool LegalModifier(
