@@ -47,6 +47,8 @@
 #include <xf86.h>
 #include <dri.h>
 
+#include "servermd.h"
+
 #define DRI_NEW_INTERFACE_ONLY
 #include "glxserver.h"
 #include "glxutil.h"
@@ -308,18 +310,20 @@ __glXDRIcontextForceCurrent(__GLXcontext *baseContext)
 }
 
 static void
-glxFillAlphaChannel (PixmapPtr pixmap, int x, int y, int width, int height)
+glxFillAlphaChannel (CARD32 *pixels, CARD32 rowstride, int width, int height)
 {
     int i;
-    CARD32 *p, *end, *pixels = (CARD32 *)pixmap->devPrivate.ptr;
-    CARD32 rowstride = pixmap->devKind / 4;
+    CARD32 *p, *end;
+
+    rowstride /= 4;
     
-    for (i = y; i < y + height; i++)
+    for (i = 0; i < height; i++)
     {
-	p = &pixels[i * rowstride + x];
+	p = pixels;
 	end = p + width;
 	while (p < end)
 	  *p++ |= 0xFF000000;
+	pixels += rowstride;
     }
 }
 
@@ -430,22 +434,31 @@ nooverride:
 	type = GL_UNSIGNED_SHORT_5_6_5;
     }
 
-    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_ROW_LENGTH,
-				       pixmap->devKind / bpp) );
-
     if (pRegion == NULL)
     {
-	if (!override && pixmap->drawable.depth == 24)
-	    glxFillAlphaChannel(pixmap,
-				pixmap->drawable.x,
-				pixmap->drawable.y,
-				pixmap->drawable.width,
-				pixmap->drawable.height);
+	void *data = NULL;
 
-        CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_PIXELS,
-					   pixmap->drawable.x) );
-	CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_ROWS,
-					   pixmap->drawable.y) );
+	if (!override) {
+	    unsigned pitch = PixmapBytePad(pixmap->drawable.width,
+					   pixmap->drawable.depth); 
+
+	    data = xalloc(pitch * pixmap->drawable.height);
+
+	    pScreen->GetImage(&pixmap->drawable, 0 /*pixmap->drawable.x*/,
+			      0 /*pixmap->drawable.y*/, pixmap->drawable.width,
+			      pixmap->drawable.height, ZPixmap, ~0, data);
+
+	    if (pixmap->drawable.depth == 24)
+		glxFillAlphaChannel(data,
+				    pitch,
+				    pixmap->drawable.width,
+				    pixmap->drawable.height);
+
+	    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_ROW_LENGTH,
+					       pitch / bpp) );
+	    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_PIXELS, 0) );
+	    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_ROWS, 0) );
+	}
 
 	CALL_TexImage2D( GET_DISPATCH(),
 			 (glxPixmap->target,
@@ -456,26 +469,37 @@ nooverride:
 			  0,
 			  format,
 			  type,
-			  override ? NULL : pixmap->devPrivate.ptr) );
+			  data) );
+
+	xfree(data);
     } else if (!override) {
         int i, numRects;
 	BoxPtr p;
 
 	numRects = REGION_NUM_RECTS (pRegion);
 	p = REGION_RECTS (pRegion);
+
+	CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_PIXELS, 0) );
+	CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_ROWS, 0) );
+
 	for (i = 0; i < numRects; i++)
 	{
+	    unsigned pitch = PixmapBytePad(p[i].x2 - p[i].x1,
+					   pixmap->drawable.depth);
+	    void *data = xalloc(pitch * (p[i].y2 - p[i].y1));
+
+	    pScreen->GetImage(&pixmap->drawable, /*pixmap->drawable.x +*/ p[i].x1,
+			      /*pixmap->drawable.y*/ + p[i].y1, p[i].x2 - p[i].x1,
+			      p[i].y2 - p[i].y1, ZPixmap, ~0, data);
+
 	    if (pixmap->drawable.depth == 24)
-		glxFillAlphaChannel(pixmap,
-				    pixmap->drawable.x + p[i].x1,
-				    pixmap->drawable.y + p[i].y1,
+		glxFillAlphaChannel(data,
+				    pitch,
 				    p[i].x2 - p[i].x1,
 				    p[i].y2 - p[i].y1);
 
-	    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_PIXELS,
-					       pixmap->drawable.x + p[i].x1) );
-	    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_SKIP_ROWS,
-					       pixmap->drawable.y + p[i].y1) );
+	    CALL_PixelStorei( GET_DISPATCH(), (GL_UNPACK_ROW_LENGTH,
+					       pitch / bpp) );
 
 	    CALL_TexSubImage2D( GET_DISPATCH(),
 				(glxPixmap->target,
@@ -484,7 +508,9 @@ nooverride:
 				 p[i].x2 - p[i].x1, p[i].y2 - p[i].y1,
 				 format,
 				 type,
-				 pixmap->devPrivate.ptr) );
+				 data) );
+
+	    xfree(data);
 	}
     }
 
