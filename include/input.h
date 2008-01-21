@@ -180,6 +180,7 @@ typedef struct _InputOption {
 extern void InitCoreDevices(void);
 
 extern DeviceIntPtr AddInputDevice(
+    ClientPtr /*client*/,
     DeviceProc /*deviceProc*/,
     Bool /*autoStart*/);
 
@@ -471,7 +472,8 @@ extern Bool RegisterPairingClient(ClientPtr client);
 extern DeviceIntPtr GuessFreePointerDevice(void);
 extern DeviceIntPtr NextFreePointerDevice(void);
 
-extern int AllocMasterDevice(char* name,
+extern int AllocMasterDevice(ClientPtr client,
+                             char* name,
                              DeviceIntPtr* ptr,
                              DeviceIntPtr* keybd);
 extern void DeepCopyDeviceClasses(DeviceIntPtr from,

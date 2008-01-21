@@ -318,8 +318,8 @@ void
 InitInput(int argc, char *argv[])
 {
     DeviceIntPtr p, k;
-    p = AddInputDevice(vfbMouseProc, TRUE);
-    k = AddInputDevice(vfbKeybdProc, TRUE);
+    p = AddInputDevice(serverClient, vfbMouseProc, TRUE);
+    k = AddInputDevice(serverClient, vfbKeybdProc, TRUE);
     RegisterPointerDevice(p);
     RegisterKeyboardDevice(k);
     (void)mieqInit();

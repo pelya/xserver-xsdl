@@ -100,7 +100,7 @@ DevPrivateKey CoreDevicePrivateKey = &CoreDevicePrivateKey;
  * @return The newly created device.
  */
 DeviceIntPtr
-AddInputDevice(DeviceProc deviceProc, Bool autoStart)
+AddInputDevice(ClientPtr client, DeviceProc deviceProc, Bool autoStart)
 {
     DeviceIntPtr dev, *prev; /* not a typo */
     DeviceIntPtr devtmp;
@@ -562,9 +562,9 @@ CorePointerProc(DeviceIntPtr pDev, int what)
 void
 InitCoreDevices(void)
 {
-    if (AllocMasterDevice("Virtual core",
+    if (AllocMasterDevice(serverClient, "Virtual core",
                           &inputInfo.pointer,
-                          &inputInfo.keyboard) == BadAlloc)
+                          &inputInfo.keyboard) != Success)
         FatalError("Failed to allocate core devices");
 }
 
@@ -2597,13 +2597,13 @@ NextFreePointerDevice()
  * EnableDevice() manually.
  */
 int
-AllocMasterDevice(char* name, DeviceIntPtr* ptr, DeviceIntPtr* keybd)
+AllocMasterDevice(ClientPtr client, char* name, DeviceIntPtr* ptr, DeviceIntPtr* keybd)
 {
     DeviceIntPtr pointer;
     DeviceIntPtr keyboard;
     *ptr = *keybd = NULL;
 
-    pointer = AddInputDevice(CorePointerProc, TRUE);
+    pointer = AddInputDevice(client, CorePointerProc, TRUE);
     if (!pointer)
         return BadAlloc;
 
@@ -2628,7 +2628,7 @@ AllocMasterDevice(char* name, DeviceIntPtr* ptr, DeviceIntPtr* keybd)
     pointer->u.lastSlave = NULL;
     pointer->isMaster = TRUE;
 
-    keyboard = AddInputDevice(CoreKeyboardProc, TRUE);
+    keyboard = AddInputDevice(client, CoreKeyboardProc, TRUE);
     if (!keyboard)
         return BadAlloc;
 

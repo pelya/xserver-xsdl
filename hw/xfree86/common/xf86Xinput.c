@@ -158,7 +158,7 @@ xf86ActivateDevice(LocalDevicePtr local)
     DeviceIntPtr	dev;
 
     if (local->flags & XI86_CONFIGURED) {
-        dev = AddInputDevice(local->device_control, TRUE);
+        dev = AddInputDevice(serverClient, local->device_control, TRUE);
 
         if (dev == NULL)
             FatalError("Too many input devices");

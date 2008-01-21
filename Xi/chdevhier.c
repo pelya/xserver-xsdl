@@ -52,6 +52,7 @@ from the author.
 #include "exevents.h"
 #include "exglobals.h"
 #include "geext.h"
+#include "xace.h"
 
 #include "chdevhier.h"
 
@@ -104,20 +105,17 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                 {
                     xCreateMasterInfo* c = (xCreateMasterInfo*)any;
                     char* name;
-                    int ret;
-
-                    /* XXX: check for creation permission */
 
                     SWAPIF(swaps(&c->namelen, n));
                     name = xcalloc(c->namelen + 1, sizeof(char));
                     strncpy(name, (char*)&c[1], c->namelen);
 
 
-                    ret = AllocMasterDevice(name, &ptr, &keybd);
-                    if (ret != Success)
+                    rc = AllocMasterDevice(client, name, &ptr, &keybd);
+                    if (rc != Success)
                     {
                         xfree(name);
-                        return ret;
+                        return rc;
                     }
 
                     if (!c->sendCore)

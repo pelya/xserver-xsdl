@@ -89,8 +89,8 @@ InitOutput(ScreenInfo *screenInfo, int argc, char *argv[])
 void
 InitInput(int argc, char *argv[])
 {
-  xnestPointerDevice = AddInputDevice(xnestPointerProc, TRUE);
-  xnestKeyboardDevice = AddInputDevice(xnestKeyboardProc, TRUE);
+  xnestPointerDevice = AddInputDevice(serverClient, xnestPointerProc, TRUE);
+  xnestKeyboardDevice = AddInputDevice(serverClient, xnestKeyboardProc, TRUE);
 
   if (!xnestEvents)
       xnestEvents = (xEvent *) xcalloc(sizeof(xEvent), GetMaximumEventsNum());
