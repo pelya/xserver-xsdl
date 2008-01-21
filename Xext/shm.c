@@ -799,10 +799,10 @@ CreatePmap:
     if (sizeof(size) == 4 && BitsPerPixel(depth) > 8) {
         if (size < width * height)
             return BadAlloc;
-        /* thankfully, offset is unsigned */
-        if (stuff->offset + size < size)
-            return BadAlloc;
     }
+    /* thankfully, offset is unsigned */
+    if (stuff->offset + size < size)
+	return BadAlloc;
 
     VERIFY_SHMSIZE(shmdesc, stuff->offset, size, client);
 
@@ -1144,10 +1144,10 @@ CreatePmap:
     if (sizeof(size) == 4 && BitsPerPixel(depth) > 8) {
 	if (size < width * height)
 	    return BadAlloc;
-	/* thankfully, offset is unsigned */
-	if (stuff->offset + size < size)
-	    return BadAlloc;
     }
+    /* thankfully, offset is unsigned */
+    if (stuff->offset + size < size)
+	return BadAlloc;
 
     VERIFY_SHMSIZE(shmdesc, stuff->offset, size, client);
     pMap = (*shmFuncs[pDraw->pScreen->myNum]->CreatePixmap)(
