@@ -39,12 +39,13 @@ from the author.
  * This struct is used both in the window and by grabs to determine the event
  * mask for a client.
  * A window will have a linked list of these structs, with one entry per
- * client, null-terminated.
+ * client per device, null-terminated.
  * A grab has only one instance of this struct.
  */
 typedef struct _GenericMaskRec {
-    ClientPtr   client;                   /* client who set the event mask */
-    Mask        eventMask[MAXEXTENSIONS]; /* one mask per extension */
+    ClientPtr       client;                /* client who set the event mask */
+    DeviceIntPtr    dev;
+    Mask            eventMask[MAXEXTENSIONS]; /* one mask per extension */
     struct _GenericMaskRec* next;            
 } GenericMaskRec, *GenericMaskPtr;
 
@@ -94,7 +95,9 @@ extern GEExtension GEExtensions[MAXEXTENSIONS];
 
 
 /* Interface for other extensions */
-void GEWindowSetMask(ClientPtr pClient, WindowPtr pWin, int extension, Mask mask);
+void GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
+                     WindowPtr pWin, int extension, Mask mask);
+
 void GERegisterExtension(
         int extension,
         void (*ev_dispatch)(xGenericEvent* from, xGenericEvent* to),

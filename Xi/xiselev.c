@@ -61,16 +61,19 @@ ProcXiSelectEvent(ClientPtr client)
 {
     int rc;
     WindowPtr pWin;
+    DeviceIntPtr pDev;
     REQUEST(xXiSelectEventReq);
     REQUEST_SIZE_MATCH(xXiSelectEventReq);
 
     rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
     if (rc != Success)
-    {
         return rc;
-    }
 
-    GEWindowSetMask(client, pWin, IReqCode, stuff->mask);
+    rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixReadAccess);
+    if (rc != Success)
+        return rc;
+
+    GEWindowSetMask(client, pDev, pWin, IReqCode, stuff->mask);
 
     return Success;
 }

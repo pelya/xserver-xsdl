@@ -300,7 +300,8 @@ GERecalculateWinMask(WindowPtr pWin)
 }
 
 /* Set generic event mask for given window. */
-void GEWindowSetMask(ClientPtr pClient, WindowPtr pWin, int extension, Mask mask)
+void GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev, 
+                     WindowPtr pWin, int extension, Mask mask)
 {
     GenericMaskPtr cli;
 
@@ -326,13 +327,13 @@ void GEWindowSetMask(ClientPtr pClient, WindowPtr pWin, int extension, Mask mask
         cli = evmasks->geClients;
         while(cli)
         {
-            if (cli->client == pClient)
+            if (cli->client == pClient && cli->dev == pDev)
                 break;
             cli = cli->next;
         }
         if (!cli)
         {
-            /* new client */
+            /* new client and/or new device */
             cli  = (GenericMaskPtr)xcalloc(1, sizeof(GenericMaskRec));
             if (!cli)
             {
@@ -341,6 +342,7 @@ void GEWindowSetMask(ClientPtr pClient, WindowPtr pWin, int extension, Mask mask
             }
             cli->next = evmasks->geClients;
             cli->client = pClient;
+            cli->dev = pDev;
             evmasks->geClients = cli;
         }
         cli->eventMask[extension] = mask;
@@ -348,7 +350,7 @@ void GEWindowSetMask(ClientPtr pClient, WindowPtr pWin, int extension, Mask mask
     {
         /* remove client. */
         cli = pWin->optional->geMasks->geClients;
-        if (cli->client == pClient)
+        if (cli->client == pClient && cli->dev == pDev)
         {
             pWin->optional->geMasks->geClients = cli->next;
             xfree(cli);
@@ -359,7 +361,7 @@ void GEWindowSetMask(ClientPtr pClient, WindowPtr pWin, int extension, Mask mask
 
             while(cli)
             {
-                if (cli->client == pClient)
+                if (cli->client == pClient && cli->dev == pDev)
                 {
                     prev->next = cli->next;
                     xfree(cli);
