@@ -69,9 +69,13 @@ ProcXiSelectEvent(ClientPtr client)
     if (rc != Success)
         return rc;
 
-    rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixReadAccess);
-    if (rc != Success)
-        return rc;
+    if (stuff->deviceid & (0x1 << 7)) /* all devices */
+        pDev = NULL;
+    else {
+        rc = dixLookupDevice(&pDev, stuff->deviceid, client, DixReadAccess);
+        if (rc != Success)
+            return rc;
+    }
 
     GEWindowSetMask(client, pDev, pWin, IReqCode, stuff->mask);
 
