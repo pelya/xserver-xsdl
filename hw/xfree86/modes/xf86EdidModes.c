@@ -66,6 +66,8 @@ typedef enum {
     DDC_QUIRK_DETAILED_USE_MAXIMUM_SIZE = 1 << 5,
     /* Monitor forgot to set the first detailed is preferred bit. */
     DDC_QUIRK_FIRST_DETAILED_PREFERRED = 1 << 6,
+    /* use +hsync +vsync for detailed mode */
+    DDC_QUIRK_DETAILED_SYNC_PP = 1 << 7,
 } ddc_quirk_t;
 
 static Bool quirk_prefer_large_60 (int scrnIndex, xf86MonPtr DDC)
@@ -160,6 +162,15 @@ static Bool quirk_first_detailed_preferred (int scrnIndex, xf86MonPtr DDC)
     return FALSE;
 }
 
+static Bool quirk_detailed_sync_pp(int scrnIndex, xf86MonPtr DDC)
+{
+    /* Bug #12439: Samsung SyncMaster 205BW */
+    if (memcmp (DDC->vendor.name, "SAM", 4) == 0 &&
+	DDC->vendor.prod_id == 541)
+	return TRUE;
+    return FALSE;
+}
+
 typedef struct {
     Bool	(*detect) (int scrnIndex, xf86MonPtr DDC);
     ddc_quirk_t	quirk;
@@ -194,6 +205,10 @@ static const ddc_quirk_map_t ddc_quirks[] = {
     {
 	quirk_first_detailed_preferred, DDC_QUIRK_FIRST_DETAILED_PREFERRED,
 	"First detailed timing was not marked as preferred."
+    },
+    {
+	quirk_detailed_sync_pp, DDC_QUIRK_DETAILED_SYNC_PP,
+	"Use +hsync +vsync for detailed timing."
     },
     { 
 	NULL,		DDC_QUIRK_NONE,
@@ -341,15 +356,19 @@ DDCModeFromDetailedTiming(int scrnIndex, struct detailed_timings *timing,
     if (timing->interlaced)
         Mode->Flags |= V_INTERLACE;
 
-    if (timing->misc & 0x02)
-	Mode->Flags |= V_PVSYNC;
-    else
-	Mode->Flags |= V_NVSYNC;
+    if (quirks & DDC_QUIRK_DETAILED_SYNC_PP)
+	Mode->Flags |= V_PVSYNC | V_PHSYNC;
+    else {
+	if (timing->misc & 0x02)
+	    Mode->Flags |= V_PVSYNC;
+	else
+	    Mode->Flags |= V_NVSYNC;
 
-    if (timing->misc & 0x01)
-	Mode->Flags |= V_PHSYNC;
-    else
-	Mode->Flags |= V_NHSYNC;
+	if (timing->misc & 0x01)
+	    Mode->Flags |= V_PHSYNC;
+	else
+	    Mode->Flags |= V_NHSYNC;
+    }
 
     return Mode;
 }
