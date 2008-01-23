@@ -378,4 +378,38 @@ void GEWindowSetMask(ClientPtr pClient, DeviceIntPtr pDev,
     GERecalculateWinMask(pWin);
 }
 
+/**
+ * Return TRUE if the mask for the given device is set.
+ * @param pWin Window the event may be delivered to.
+ * @param pDev Device the device originating the event. May be NULL.
+ * @param extension Extension ID
+ * @param mask Event mask
+ */
+BOOL GEDeviceMaskIsSet(WindowPtr pWin, DeviceIntPtr pDev,
+                       int extension, Mask mask)
+{
+    GenericMaskPtr gemask;
+
+    if (!pWin->optional || !pWin->optional->geMasks)
+        return FALSE;
+
+    extension &= 0x7F;
+
+    if (!pWin->optional->geMasks->eventMasks[extension] & mask)
+        return FALSE;
+
+
+    gemask = pWin->optional->geMasks->geClients;
+
+    while(gemask)
+    {
+        if ((!gemask->dev || gemask->dev == pDev) && 
+                (gemask->eventMask[extension] & mask))
+            return TRUE;
+
+        gemask = gemask->next;
+    }
+
+    return FALSE;
+}
 

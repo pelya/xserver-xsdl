@@ -2151,7 +2151,7 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 
             /* if we get here, filter should be set to the GE specific mask.
                check if any client wants it */
-            if (!GEMaskIsSet(pWin, GEEXT(pEvents), filter))
+            if (!GEDeviceMaskIsSet(pWin, pDev, GEEXT(pEvents), filter))
                 return 0;
 
             /* run through all clients, deliver event */
@@ -2471,7 +2471,7 @@ DeliverDeviceEvents(WindowPtr pWin, xEvent *xE, GrabPtr grab,
 
         while(win)
         {
-            if (GEMaskIsSet(win, GEEXT(xE), filter))
+            if (GEDeviceMaskIsSet(win, dev, GEEXT(xE), filter))
             {
                 if (GEExtensions[GEEXTIDX(xE)].evfill)
                     GEExtensions[GEEXTIDX(xE)].evfill(ge, dev, win, grab);

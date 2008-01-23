@@ -106,7 +106,8 @@ void GERegisterExtension(
         );
 
 void GEInitEvent(xGenericEvent* ev, int extension);
-
+BOOL GEDeviceMaskIsSet(WindowPtr pWin, DeviceIntPtr pDev, 
+                       int extension, Mask mask);
 
 void GEExtensionInit(void);
 
