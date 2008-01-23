@@ -65,7 +65,7 @@ ProcXiSelectEvent(ClientPtr client)
     REQUEST(xXiSelectEventReq);
     REQUEST_SIZE_MATCH(xXiSelectEventReq);
 
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixWriteAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixReceiveAccess);
     if (rc != Success)
         return rc;
 
