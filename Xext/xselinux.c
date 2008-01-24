@@ -63,6 +63,7 @@ typedef struct {
     security_id_t sid;
     struct avc_entry_ref aeref;
     char *command;
+    int privileged;
 } SELinuxStateRec;
 
 /* selection manager */
@@ -287,11 +288,11 @@ SELinuxTypeToClass(RESTYPE type)
  * Performs an SELinux permission check.
  */
 static int
-SELinuxDoCheck(int clientIndex, SELinuxStateRec *subj, SELinuxStateRec *obj,
+SELinuxDoCheck(SELinuxStateRec *subj, SELinuxStateRec *obj,
 	       security_class_t class, Mask mode, SELinuxAuditRec *auditdata)
 {
     /* serverClient requests OK */
-    if (clientIndex == 0)
+    if (subj->privileged)
 	return Success;
 
     auditdata->command = subj->command;
@@ -383,6 +384,7 @@ SELinuxLabelInitial(void)
 
     /* Do the serverClient */
     state = dixLookupPrivate(&serverClient->devPrivates, stateKey);
+    state->privileged = 1;
     sidput(state->sid);
 
     /* Use the context of the X server process for the serverClient */
@@ -496,8 +498,8 @@ SELinuxDevice(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	obj->sid = subj->sid;
     }
 
-    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_DEVICE,
-			rec->access_mode, &auditdata);
+    rc = SELinuxDoCheck(subj, obj, SECCLASS_X_DEVICE, rec->access_mode,
+			&auditdata);
     if (rc != Success)
 	rec->status = rc;
 }
@@ -509,21 +511,18 @@ SELinuxSend(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     SELinuxStateRec *subj, *obj, ev_sid;
     SELinuxAuditRec auditdata = { .client = rec->client };
     security_class_t class;
-    int rc, i, type, clientIndex;
+    int rc, i, type;
 
-    if (rec->dev) {
+    if (rec->dev)
 	subj = dixLookupPrivate(&rec->dev->devPrivates, stateKey);
-	clientIndex = -1; /* some nonzero value */
-    } else {
+    else
 	subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
-	clientIndex = rec->client->index;
-    }
 
     obj = dixLookupPrivate(&rec->pWin->devPrivates, stateKey);
 
     /* Check send permission on window */
-    rc = SELinuxDoCheck(clientIndex, subj, obj, SECCLASS_X_DRAWABLE,
-			DixSendAccess, &auditdata);
+    rc = SELinuxDoCheck(subj, obj, SECCLASS_X_DRAWABLE, DixSendAccess,
+			&auditdata);
     if (rc != Success)
 	goto err;
 
@@ -537,8 +536,7 @@ SELinuxSend(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	    goto err;
 
 	auditdata.event = type;
-	rc = SELinuxDoCheck(clientIndex, subj, &ev_sid, class,
-			    DixSendAccess, &auditdata);
+	rc = SELinuxDoCheck(subj, &ev_sid, class, DixSendAccess, &auditdata);
 	if (rc != Success)
 	    goto err;
     }
@@ -560,8 +558,8 @@ SELinuxReceive(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     obj = dixLookupPrivate(&rec->pWin->devPrivates, stateKey);
 
     /* Check receive permission on window */
-    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_DRAWABLE,
-			DixReceiveAccess, &auditdata);
+    rc = SELinuxDoCheck(subj, obj, SECCLASS_X_DRAWABLE, DixReceiveAccess,
+			&auditdata);
     if (rc != Success)
 	goto err;
 
@@ -575,8 +573,7 @@ SELinuxReceive(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	    goto err;
 
 	auditdata.event = type;
-	rc = SELinuxDoCheck(rec->client->index, subj, &ev_sid, class,
-			    DixReceiveAccess, &auditdata);
+	rc = SELinuxDoCheck(subj, &ev_sid, class, DixReceiveAccess, &auditdata);
 	if (rc != Success)
 	    goto err;
     }
@@ -633,8 +630,8 @@ SELinuxExtension(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
     /* Perform the security check */
     auditdata.extension = rec->ext->name;
-    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_EXTENSION,
-			rec->access_mode, &auditdata);
+    rc = SELinuxDoCheck(subj, obj, SECCLASS_X_EXTENSION, rec->access_mode,
+			&auditdata);
     if (rc != Success)
 	rec->status = rc;
 }
@@ -680,13 +677,12 @@ SELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	    return;
 	}
 	freecon(con);
-	avc_entry_ref_init(&obj->aeref);
     }
 
     /* Perform the security check */
     auditdata.property = rec->pProp->propertyName;
-    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_PROPERTY,
-			rec->access_mode, &auditdata);
+    rc = SELinuxDoCheck(subj, obj, SECCLASS_X_PROPERTY, rec->access_mode,
+			&auditdata);
     if (rc != Success)
 	rec->status = rc;
 }
@@ -741,8 +737,7 @@ SELinuxResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     /* Perform the security check */
     auditdata.restype = rec->rtype;
     auditdata.id = rec->id;
-    rc = SELinuxDoCheck(rec->client->index, subj, obj, class,
-			rec->access_mode, &auditdata);
+    rc = SELinuxDoCheck(subj, obj, class, rec->access_mode, &auditdata);
     if (rc != Success)
 	rec->status = rc;
 }
@@ -775,8 +770,7 @@ SELinuxScreen(CallbackListPtr *pcbl, pointer is_saver, pointer calldata)
     if (is_saver)
 	access_mode <<= 2;
 
-    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_SCREEN,
-			access_mode, &auditdata);
+    rc = SELinuxDoCheck(subj, obj, SECCLASS_X_SCREEN, access_mode, &auditdata);
     if (rc != Success)
 	rec->status = rc;
 }
@@ -792,8 +786,8 @@ SELinuxClient(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
     obj = dixLookupPrivate(&rec->target->devPrivates, stateKey);
 
-    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_CLIENT,
-			rec->access_mode, &auditdata);
+    rc = SELinuxDoCheck(subj, obj, SECCLASS_X_CLIENT, rec->access_mode,
+			&auditdata);
     if (rc != Success)
 	rec->status = rc;
 }
@@ -809,8 +803,8 @@ SELinuxServer(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
     obj = dixLookupPrivate(&serverClient->devPrivates, stateKey);
 
-    rc = SELinuxDoCheck(rec->client->index, subj, obj, SECCLASS_X_SERVER,
-			rec->access_mode, &auditdata);
+    rc = SELinuxDoCheck(subj, obj, SECCLASS_X_SERVER, rec->access_mode,
+			&auditdata);
     if (rc != Success)
 	rec->status = rc;
 }
@@ -832,8 +826,8 @@ SELinuxSelection(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     }
 
     auditdata.selection = rec->name;
-    rc = SELinuxDoCheck(rec->client->index, subj, &sel_sid,
-			SECCLASS_X_SELECTION, rec->access_mode, &auditdata);
+    rc = SELinuxDoCheck(subj, &sel_sid, SECCLASS_X_SELECTION, rec->access_mode,
+			&auditdata);
     if (rc != Success)
 	rec->status = rc;
 }
