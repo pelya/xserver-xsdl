@@ -1098,7 +1098,40 @@ ProcSELinuxSetDeviceContext(ClientPtr client)
 static int
 ProcSELinuxGetDeviceContext(ClientPtr client)
 {
-    return Success;
+    char *ctx;
+    DeviceIntPtr dev;
+    SELinuxStateRec *state;
+    SELinuxGetContextReply rep;
+    int rc;
+
+    REQUEST(SELinuxGetContextReq);
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+
+    rc = dixLookupDevice(&dev, stuff->id, client, DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
+
+    state = dixLookupPrivate(&dev->devPrivates, stateKey);
+    rc = avc_sid_to_context(state->sid, &ctx);
+    if (rc != Success)
+	return BadValue;
+
+    rep.type = X_Reply;
+    rep.length = (strlen(ctx) + 4) >> 2;
+    rep.sequenceNumber = client->sequence;
+    rep.context_len = strlen(ctx) + 1;
+
+    if (client->swapped) {
+	int n;
+	swapl(&rep.length, n);
+	swaps(&rep.sequenceNumber, n);
+	swaps(&rep.context_len, n);
+    }
+
+    WriteToClient(client, sizeof(SELinuxGetContextReply), (char *)&rep);
+    WriteToClient(client, rep.context_len, ctx);
+    free(ctx);
+    return client->noClientException;
 }
 
 static int
@@ -1116,7 +1149,54 @@ ProcSELinuxGetPropertyCreateContext(ClientPtr client)
 static int
 ProcSELinuxGetPropertyContext(ClientPtr client)
 {
-    return Success;
+    char *ctx;
+    WindowPtr pWin;
+    PropertyPtr pProp;
+    SELinuxStateRec *state;
+    SELinuxGetContextReply rep;
+    int rc;
+
+    REQUEST(SELinuxGetPropertyContextReq);
+    REQUEST_SIZE_MATCH(SELinuxGetPropertyContextReq);
+
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetPropAccess);
+    if (rc != Success)
+	return rc;
+
+    pProp = wUserProps(pWin);
+    while (pProp) {
+	if (pProp->propertyName == stuff->property)
+	    break;
+	pProp = pProp->next;
+    }
+    if (!pProp)
+	return BadValue;
+
+    rc = XaceHook(XACE_PROPERTY_ACCESS, client, pWin, pProp, DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
+
+    state = dixLookupPrivate(&pProp->devPrivates, stateKey);
+    rc = avc_sid_to_context(state->sid, &ctx);
+    if (rc != Success)
+	return BadValue;
+
+    rep.type = X_Reply;
+    rep.length = (strlen(ctx) + 4) >> 2;
+    rep.sequenceNumber = client->sequence;
+    rep.context_len = strlen(ctx) + 1;
+
+    if (client->swapped) {
+	int n;
+	swapl(&rep.length, n);
+	swaps(&rep.sequenceNumber, n);
+	swaps(&rep.context_len, n);
+    }
+
+    WriteToClient(client, sizeof(SELinuxGetContextReply), (char *)&rep);
+    WriteToClient(client, rep.context_len, ctx);
+    free(ctx);
+    return client->noClientException;
 }
 
 static int
@@ -1134,7 +1214,40 @@ ProcSELinuxGetWindowCreateContext(ClientPtr client)
 static int
 ProcSELinuxGetWindowContext(ClientPtr client)
 {
-    return Success;
+    char *ctx;
+    WindowPtr pWin;
+    SELinuxStateRec *state;
+    SELinuxGetContextReply rep;
+    int rc;
+
+    REQUEST(SELinuxGetContextReq);
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+
+    rc = dixLookupWindow(&pWin, stuff->id, client, DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
+
+    state = dixLookupPrivate(&pWin->devPrivates, stateKey);
+    rc = avc_sid_to_context(state->sid, &ctx);
+    if (rc != Success)
+	return BadValue;
+
+    rep.type = X_Reply;
+    rep.length = (strlen(ctx) + 4) >> 2;
+    rep.sequenceNumber = client->sequence;
+    rep.context_len = strlen(ctx) + 1;
+
+    if (client->swapped) {
+	int n;
+	swapl(&rep.length, n);
+	swaps(&rep.sequenceNumber, n);
+	swaps(&rep.context_len, n);
+    }
+
+    WriteToClient(client, sizeof(SELinuxGetContextReply), (char *)&rep);
+    WriteToClient(client, rep.context_len, ctx);
+    free(ctx);
+    return client->noClientException;
 }
 
 static int
