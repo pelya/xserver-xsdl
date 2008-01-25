@@ -222,51 +222,6 @@ int XaceHook(int hook, ...)
 }
 
 static int
-ProcXaceDispatch(ClientPtr client)
-{
-    REQUEST(xReq);
-
-    switch (stuff->data)
-    {
-	default:
-	    return BadRequest;
-    }
-} /* ProcXaceDispatch */
-
-static int
-SProcXaceDispatch(ClientPtr client)
-{
-    REQUEST(xReq);
-
-    switch (stuff->data)
-    {
-	default:
-	    return BadRequest;
-    }
-} /* SProcXaceDispatch */
-
-
-/* XaceResetProc
- *
- * Arguments:
- *	extEntry is the extension information for the XACE extension.
- *
- * Returns: nothing.
- *
- * Side Effects:
- *	Performs any cleanup needed by XACE at server shutdown time.
- */
-static void
-XaceResetProc(ExtensionEntry *extEntry)
-{
-    int i;
-
-    for (i=0; i<XACE_NUM_HOOKS; i++)
-	DeleteCallbackList(&XaceHooks[i]);
-} /* XaceResetProc */
-
-
-static int
 XaceCatchDispatchProc(ClientPtr client)
 {
     REQUEST(xReq);
@@ -364,11 +319,6 @@ void XaceExtensionInit(INITARGS)
 
     if (!AddCallback(&ClientStateCallback, XaceClientStateCallback, NULL))
 	return;
-
-    extEntry = AddExtension(XACE_EXTENSION_NAME,
-			    XaceNumberEvents, XaceNumberErrors,
-			    ProcXaceDispatch, SProcXaceDispatch,
-			    XaceResetProc, StandardMinorOpcode);
 
     /* initialize dispatching intercept functions */
     for (i = 0; i < 128; i++)

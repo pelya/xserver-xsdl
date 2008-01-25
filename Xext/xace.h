@@ -29,9 +29,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pixmap.h"     /* for DrawablePtr */
 #include "regionstr.h"  /* for RegionPtr */
 
-#define XaceNumberEvents		0
-#define XaceNumberErrors		0
-
 /* Default window background */
 #define XaceBackgroundNoneState		None
 
