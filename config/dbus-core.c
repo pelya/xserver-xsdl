@@ -56,8 +56,9 @@ wakeup_handler(pointer data, int err, pointer read_mask)
     if (info->connection && FD_ISSET(info->fd, (fd_set *) read_mask)) {
         do {
             dbus_connection_read_write_dispatch(info->connection, 0);
-        } while (dbus_connection_get_dispatch_status(info->connection) ==
-                  DBUS_DISPATCH_DATA_REMAINS);
+        } while (info->connection &&
+                 dbus_connection_get_is_connected(info->connection) &&
+                 dbus_connection_get_dispatch_status(info->connection) == DBUS_DISPATCH_DATA_REMAINS);
     }
 }
 
