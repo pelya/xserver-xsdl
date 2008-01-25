@@ -283,12 +283,14 @@ disconnect_hook(void *data)
     struct config_hal_info *info = data;
 
     if (info->hal_ctx) {
-        dbus_error_init(&error);
-        if (!libhal_ctx_shutdown(info->hal_ctx, &error))
-            DebugF("[config/hal] couldn't shut down context: %s (%s)\n",
-                   error.name, error.message);
+        if (dbus_connection_get_is_connected(info->system_bus)) {
+            dbus_error_init(&error);
+            if (!libhal_ctx_shutdown(info->hal_ctx, &error))
+                DebugF("[config/hal] couldn't shut down context: %s (%s)\n",
+                        error.name, error.message);
+            dbus_error_free(&error);
+        }
         libhal_ctx_free(info->hal_ctx);
-        dbus_error_free(&error);
     }
 
     info->hal_ctx = NULL;
