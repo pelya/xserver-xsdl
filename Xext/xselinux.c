@@ -271,7 +271,7 @@ SELinuxTypeToClass(RESTYPE type)
 	    knownTypes[type] = SECCLASS_X_CURSOR;
 	if (fulltype == RT_COLORMAP)
 	    knownTypes[type] = SECCLASS_X_COLORMAP;
-	
+
 	/* Need to do a string lookup */
 	str = LookupResourceName(fulltype);
 	if (!strcmp(str, "PICTURE"))
@@ -890,8 +890,7 @@ SELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	if (rc != Success)
 	    FatalError("SELinux: Failed to set label property on window!\n");
 	freecon(ctx);
-    }
-    else
+    } else
 	FatalError("SELinux: Unexpected unlabeled client found\n");
 
     state = dixLookupPrivate(&pWin->devPrivates, stateKey);
@@ -907,8 +906,7 @@ SELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	if (rc != Success)
 	    FatalError("SELinux: Failed to set label property on window!\n");
 	freecon(ctx);
-    }
-    else
+    } else
 	FatalError("SELinux: Unexpected unlabeled window found\n");
 }
 
@@ -1181,9 +1179,9 @@ SProcSELinuxQueryVersion(ClientPtr client)
     REQUEST(SELinuxQueryVersionReq);
     int n;
 
-    REQUEST_SIZE_MATCH (SELinuxQueryVersionReq);
-    swaps(&stuff->client_major,n);
-    swaps(&stuff->client_minor,n);
+    REQUEST_SIZE_MATCH(SELinuxQueryVersionReq);
+    swaps(&stuff->client_major, n);
+    swaps(&stuff->client_minor, n);
     return ProcSELinuxQueryVersion(client);
 }
 
@@ -1193,8 +1191,8 @@ SProcSELinuxSetSelectionManager(ClientPtr client)
     REQUEST(SELinuxSetSelectionManagerReq);
     int n;
 
-    REQUEST_SIZE_MATCH (SELinuxSetSelectionManagerReq);
-    swapl(&stuff->window,n);
+    REQUEST_SIZE_MATCH(SELinuxSetSelectionManagerReq);
+    swapl(&stuff->window, n);
     return ProcSELinuxSetSelectionManager(client);
 }
 
@@ -1205,7 +1203,7 @@ SProcSELinuxSetDeviceCreateContext(ClientPtr client)
     int n;
 
     REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
-    swaps(&stuff->context_len,n);
+    swaps(&stuff->context_len, n);
     return ProcSELinuxSetDeviceCreateContext(client);
 }
 
@@ -1216,8 +1214,8 @@ SProcSELinuxSetDeviceContext(ClientPtr client)
     int n;
 
     REQUEST_AT_LEAST_SIZE(SELinuxSetContextReq);
-    swapl(&stuff->id,n);
-    swaps(&stuff->context_len,n);
+    swapl(&stuff->id, n);
+    swaps(&stuff->context_len, n);
     return ProcSELinuxSetDeviceContext(client);
 }
 
@@ -1228,7 +1226,7 @@ SProcSELinuxGetDeviceContext(ClientPtr client)
     int n;
 
     REQUEST_SIZE_MATCH(SELinuxGetContextReq);
-    swapl(&stuff->id,n);
+    swapl(&stuff->id, n);
     return ProcSELinuxGetDeviceContext(client);
 }
 
@@ -1239,7 +1237,7 @@ SProcSELinuxSetPropertyCreateContext(ClientPtr client)
     int n;
 
     REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
-    swaps(&stuff->context_len,n);
+    swaps(&stuff->context_len, n);
     return ProcSELinuxSetPropertyCreateContext(client);
 }
 
@@ -1250,8 +1248,8 @@ SProcSELinuxGetPropertyContext(ClientPtr client)
     int n;
 
     REQUEST_SIZE_MATCH(SELinuxGetPropertyContextReq);
-    swapl(&stuff->window,n);
-    swapl(&stuff->property,n);
+    swapl(&stuff->window, n);
+    swapl(&stuff->property, n);
     return ProcSELinuxGetPropertyContext(client);
 }
 
@@ -1262,7 +1260,7 @@ SProcSELinuxSetWindowCreateContext(ClientPtr client)
     int n;
 
     REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
-    swaps(&stuff->context_len,n);
+    swaps(&stuff->context_len, n);
     return ProcSELinuxSetWindowCreateContext(client);
 }
 
@@ -1273,7 +1271,7 @@ SProcSELinuxGetWindowContext(ClientPtr client)
     int n;
 
     REQUEST_SIZE_MATCH(SELinuxGetContextReq);
-    swapl(&stuff->id,n);
+    swapl(&stuff->id, n);
     return ProcSELinuxGetWindowContext(client);
 }
 
@@ -1287,31 +1285,31 @@ SProcSELinuxDispatch(ClientPtr client)
 
     switch (stuff->data) {
     case X_SELinuxQueryVersion:
-        return SProcSELinuxQueryVersion(client);
+	return SProcSELinuxQueryVersion(client);
     case X_SELinuxSetSelectionManager:
 	return SProcSELinuxSetSelectionManager(client);
     case X_SELinuxGetSelectionManager:
-    	return ProcSELinuxGetSelectionManager(client);
+	return ProcSELinuxGetSelectionManager(client);
     case X_SELinuxSetDeviceCreateContext:
-    	return SProcSELinuxSetDeviceCreateContext(client);
+	return SProcSELinuxSetDeviceCreateContext(client);
     case X_SELinuxGetDeviceCreateContext:
-    	return ProcSELinuxGetDeviceCreateContext(client);
+	return ProcSELinuxGetDeviceCreateContext(client);
     case X_SELinuxSetDeviceContext:
-    	return SProcSELinuxSetDeviceContext(client);
+	return SProcSELinuxSetDeviceContext(client);
     case X_SELinuxGetDeviceContext:
-    	return SProcSELinuxGetDeviceContext(client);
+	return SProcSELinuxGetDeviceContext(client);
     case X_SELinuxSetPropertyCreateContext:
-    	return SProcSELinuxSetPropertyCreateContext(client);
+	return SProcSELinuxSetPropertyCreateContext(client);
     case X_SELinuxGetPropertyCreateContext:
-    	return ProcSELinuxGetPropertyCreateContext(client);
+	return ProcSELinuxGetPropertyCreateContext(client);
     case X_SELinuxGetPropertyContext:
-    	return SProcSELinuxGetPropertyContext(client);
+	return SProcSELinuxGetPropertyContext(client);
     case X_SELinuxSetWindowCreateContext:
-    	return SProcSELinuxSetWindowCreateContext(client);
+	return SProcSELinuxSetWindowCreateContext(client);
     case X_SELinuxGetWindowCreateContext:
-    	return ProcSELinuxGetWindowCreateContext(client);
+	return ProcSELinuxGetWindowCreateContext(client);
     case X_SELinuxGetWindowContext:
-    	return SProcSELinuxGetWindowContext(client);
+	return SProcSELinuxGetWindowContext(client);
     default:
 	return BadRequest;
     }
@@ -1376,8 +1374,8 @@ SELinuxExtensionInit(INITARGS)
 
     /* Setup SELinux stuff */
     if (!is_selinux_enabled()) {
-        ErrorF("SELinux: SELinux not enabled, disabling SELinux support.\n");
-        return;
+	ErrorF("SELinux: SELinux not enabled, disabling SELinux support.\n");
+	return;
     }
 
     selinux_set_callback(SELINUX_CB_LOG, (union selinux_callback)SELinuxLog);
@@ -1408,7 +1406,7 @@ SELinuxExtensionInit(INITARGS)
     /* Prepare for auditing */
     audit_fd = audit_open();
     if (audit_fd < 0)
-        FatalError("SELinux: Failed to open the system audit log\n");
+	FatalError("SELinux: Failed to open the system audit log\n");
 
     /* Allocate private storage */
     if (!dixRequestPrivate(stateKey, sizeof(SELinuxStateRec)))
