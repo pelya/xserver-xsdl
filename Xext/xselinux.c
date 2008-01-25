@@ -72,8 +72,8 @@ typedef struct {
     security_id_t sid;
 } SELinuxSelectionRec;
 
-static ClientPtr selectionManager;
-static Window selectionWindow;
+static ClientPtr securityManager;
+static Window securityWindow;
 
 /* audit file descriptor */
 static int audit_fd;
@@ -849,9 +849,9 @@ SELinuxClientState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
     case ClientStateRetained:
     case ClientStateGone:
-	if (pci->client == selectionManager) {
-	    selectionManager = NULL;
-	    selectionWindow = 0;
+	if (pci->client == securityManager) {
+	    securityManager = NULL;
+	    securityWindow = 0;
 	}
 	break;
 
@@ -935,9 +935,9 @@ SELinuxSelectionState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
     case SelectionConvertSelection:
 	/* redirect the convert request if necessary */
-	if (selectionManager && selectionManager != rec->client) {
-	    rec->selection->client = selectionManager;
-	    rec->selection->window = selectionWindow;
+	if (securityManager && securityManager != rec->client) {
+	    rec->selection->client = securityManager;
+	    rec->selection->window = securityWindow;
 	} else {
 	    rec->selection->client = rec->selection->alt_client;
 	    rec->selection->window = rec->selection->alt_window;
@@ -1004,39 +1004,39 @@ ProcSELinuxQueryVersion(ClientPtr client)
 }
 
 static int
-ProcSELinuxSetSelectionManager(ClientPtr client)
+ProcSELinuxSetSecurityManager(ClientPtr client)
 {
     WindowPtr pWin;
     int rc;
 
-    REQUEST(SELinuxSetSelectionManagerReq);
-    REQUEST_SIZE_MATCH(SELinuxSetSelectionManagerReq);
+    REQUEST(SELinuxSetSecurityManagerReq);
+    REQUEST_SIZE_MATCH(SELinuxSetSecurityManagerReq);
 
     if (stuff->window == None) {
-	selectionManager = NULL;
-	selectionWindow = None;
+	securityManager = NULL;
+	securityWindow = None;
     } else {
 	rc = dixLookupResource((pointer *)&pWin, stuff->window, RT_WINDOW,
 			       client, DixGetAttrAccess);
 	if (rc != Success)
 	    return rc;
 
-	selectionManager = client;
-	selectionWindow = stuff->window;
+	securityManager = client;
+	securityWindow = stuff->window;
     }
 
     return Success;
 }
 
 static int
-ProcSELinuxGetSelectionManager(ClientPtr client)
+ProcSELinuxGetSecurityManager(ClientPtr client)
 {
-    SELinuxGetSelectionManagerReply rep;
+    SELinuxGetSecurityManagerReply rep;
 
     rep.type = X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
-    rep.window = selectionWindow;
+    rep.window = securityWindow;
     if (client->swapped) {
 	int n;
 	swaps(&rep.sequenceNumber, n);
@@ -1251,10 +1251,10 @@ ProcSELinuxDispatch(ClientPtr client)
     switch (stuff->data) {
     case X_SELinuxQueryVersion:
 	return ProcSELinuxQueryVersion(client);
-    case X_SELinuxSetSelectionManager:
-	return ProcSELinuxSetSelectionManager(client);
-    case X_SELinuxGetSelectionManager:
-	return ProcSELinuxGetSelectionManager(client);
+    case X_SELinuxSetSecurityManager:
+	return ProcSELinuxSetSecurityManager(client);
+    case X_SELinuxGetSecurityManager:
+	return ProcSELinuxGetSecurityManager(client);
     case X_SELinuxSetDeviceCreateContext:
 	return ProcSELinuxSetDeviceCreateContext(client);
     case X_SELinuxGetDeviceCreateContext:
@@ -1293,14 +1293,14 @@ SProcSELinuxQueryVersion(ClientPtr client)
 }
 
 static int
-SProcSELinuxSetSelectionManager(ClientPtr client)
+SProcSELinuxSetSecurityManager(ClientPtr client)
 {
-    REQUEST(SELinuxSetSelectionManagerReq);
+    REQUEST(SELinuxSetSecurityManagerReq);
     int n;
 
-    REQUEST_SIZE_MATCH(SELinuxSetSelectionManagerReq);
+    REQUEST_SIZE_MATCH(SELinuxSetSecurityManagerReq);
     swapl(&stuff->window, n);
-    return ProcSELinuxSetSelectionManager(client);
+    return ProcSELinuxSetSecurityManager(client);
 }
 
 static int
@@ -1393,10 +1393,10 @@ SProcSELinuxDispatch(ClientPtr client)
     switch (stuff->data) {
     case X_SELinuxQueryVersion:
 	return SProcSELinuxQueryVersion(client);
-    case X_SELinuxSetSelectionManager:
-	return SProcSELinuxSetSelectionManager(client);
-    case X_SELinuxGetSelectionManager:
-	return ProcSELinuxGetSelectionManager(client);
+    case X_SELinuxSetSecurityManager:
+	return SProcSELinuxSetSecurityManager(client);
+    case X_SELinuxGetSecurityManager:
+	return ProcSELinuxGetSecurityManager(client);
     case X_SELinuxSetDeviceCreateContext:
 	return SProcSELinuxSetDeviceCreateContext(client);
     case X_SELinuxGetDeviceCreateContext:
