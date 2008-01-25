@@ -125,10 +125,6 @@ extern void ShmRegisterFuncs(
     ShmFuncsPtr funcs);
 #endif
 
-#ifdef XACE
-extern void XaceExtensionInit(INITARGS);
-#endif
-
 #ifdef XSELINUX
 extern void SELinuxExtensionInit(INITARGS);
 #endif

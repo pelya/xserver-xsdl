@@ -24,7 +24,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdarg.h>
 #include "scrnintstr.h"
 #include "xacestr.h"
-#include "modinit.h"
 
 CallbackListPtr XaceHooks[XACE_NUM_HOOKS] = {0};
 
@@ -220,14 +219,6 @@ int XaceHook(int hook, ...)
     /* call callbacks and return result, if any. */
     CallCallbacks(&XaceHooks[hook], calldata);
     return prv ? *prv : Success;
-}
-
-/* XaceExtensionInit
- *
- * Initialize the XACE Extension
- */
-void XaceExtensionInit(INITARGS)
-{
 }
 
 /* XaceCensorImage
