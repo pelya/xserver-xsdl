@@ -105,7 +105,7 @@ get_prop_string(LibHalContext *hal_ctx, const char *udi, const char *name)
     char *prop, *ret;
 
     prop = libhal_device_get_property_string(hal_ctx, udi, name, NULL);
-    DebugF(" [config/hal] getting %s on %s returned %s\n", name, udi, prop);
+    DebugF("[config/hal] getting %s on %s returned %s\n", name, udi, prop);
     if (prop) {
         ret = xstrdup(prop);
         libhal_free_string(prop);
@@ -234,8 +234,9 @@ device_added(LibHalContext *hal_ctx, const char *udi)
     if (xkb_options)
         add_option(&options, "xkb_options", xkb_options);
 
+    DebugF("[config/hal] Adding device %s\n", name);
     if (NewInputDeviceRequest(options, &dev) != Success) {
-        DebugF("[config/hal] NewInputDeviceRequest failed\n");
+        ErrorF("[config/hal] NewInputDeviceRequest failed\n");
         dev = NULL;
         goto unwind;
     }
