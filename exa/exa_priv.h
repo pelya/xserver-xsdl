@@ -291,9 +291,6 @@ ExaCheckGetSpans (DrawablePtr pDrawable,
 		 int nspans,
 		 char *pdstStart);
 
-CARD32
-exaGetPixmapFirstPixel (PixmapPtr pPixmap); 
-
 /* exa_accel.c */
 
 static _X_INLINE Bool

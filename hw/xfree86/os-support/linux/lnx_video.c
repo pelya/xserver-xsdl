@@ -142,17 +142,8 @@ mtrr_open(int verbosity)
 	/* Only report absence of /proc/mtrr once. */
 	static Bool warned = FALSE;
 
-	char **fn;
-	static char *mtrr_files[] = {
-		"/dev/cpu/mtrr",	/* Possible future name */
-		"/proc/mtrr",		/* Current name */
-		NULL
-	};
-
 	if (mtrr_fd == MTRR_FD_UNOPENED) { 
-		/* So open it. */
-		for (fn = mtrr_files; mtrr_fd < 0 && *fn; fn++)
-			mtrr_fd = open(*fn, O_WRONLY);
+		mtrr_fd = open("/proc/mtrr", O_WRONLY);
 
 		if (mtrr_fd < 0)
 			mtrr_fd = MTRR_FD_PROBLEM;

@@ -38,6 +38,15 @@ static MODULESETUPPROTO(extmodSetup);
  * Array describing extensions to be initialized
  */
 static ExtensionModule extensionModules[] = {
+#ifdef XSELINUX
+    {
+	SELinuxExtensionInit,
+	SELINUX_EXTENSION_NAME,
+	NULL,
+	NULL,
+	NULL
+    },
+#endif
 #ifdef SHAPE
     {
 	ShapeExtensionInit,

@@ -1078,16 +1078,6 @@ out:
 
 }
 
-typedef struct {
-    int is_valid ;
-    int local_id ;
-    int remote_id ;
-} ResourcePair ;
-
-#define RESOURCE_PEERS_SIZE 1024*10
-static ResourcePair resource_peers[RESOURCE_PEERS_SIZE] ;
-
-
 int
 hostx_create_window (int a_screen_number,
                      EphyrBox *a_geometry,
@@ -1259,6 +1249,16 @@ hostx_has_xshape (void)
 }
 
 #ifdef XEPHYR_DRI
+typedef struct {
+    int is_valid ;
+    int local_id ;
+    int remote_id ;
+} ResourcePair ;
+
+#define RESOURCE_PEERS_SIZE 1024*10
+static ResourcePair resource_peers[RESOURCE_PEERS_SIZE] ;
+
+
 int
 hostx_allocate_resource_id_peer (int a_local_resource_id,
                                  int *a_remote_resource_id)

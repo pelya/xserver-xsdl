@@ -31,8 +31,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* Extension protocol */
 #define X_SELinuxQueryVersion			0
-#define X_SELinuxSetSelectionManager		1
-#define X_SELinuxGetSelectionManager		2
+#define X_SELinuxSetSecurityManager		1
+#define X_SELinuxGetSecurityManager		2
 #define X_SELinuxSetDeviceCreateContext		3
 #define X_SELinuxGetDeviceCreateContext		4
 #define X_SELinuxSetDeviceContext		5
@@ -72,13 +72,13 @@ typedef struct {
     CARD8   SELinuxReqType;
     CARD16  length;
     CARD32  window;
-} SELinuxSetSelectionManagerReq;
+} SELinuxSetSecurityManagerReq;
 
 typedef struct {
     CARD8   reqType;
     CARD8   SELinuxReqType;
     CARD16  length;
-} SELinuxGetSelectionManagerReq;
+} SELinuxGetSecurityManagerReq;
 
 typedef struct {
     CARD8   type;
@@ -91,7 +91,7 @@ typedef struct {
     CARD32  pad4;
     CARD32  pad5;
     CARD32  pad6;
-} SELinuxGetSelectionManagerReply;
+} SELinuxGetSecurityManagerReply;
 
 typedef struct {
     CARD8   reqType;

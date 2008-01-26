@@ -635,7 +635,9 @@ ephyrInitScreen (ScreenPtr pScreen)
   if (!ephyrNoDRI && !hostx_has_dri ()) {
       EPHYR_LOG ("host x does not support DRI. Disabling DRI forwarding\n") ;
       ephyrNoDRI = TRUE ;
+#ifdef GLXEXT
       noGlxVisualInit = FALSE ;
+#endif
   }
   if (!ephyrNoDRI) {
     ephyrDRIExtensionInit (pScreen) ;
@@ -1029,6 +1031,7 @@ EphyrKeyboardInit (KdKeyboardInfo *ki)
   ki->minScanCode = ki->keySyms.minKeyCode;
   ki->maxScanCode = ki->keySyms.maxKeyCode;
   ki->keySyms.mapWidth = ephyrKeySyms.mapWidth;
+  xfree(ki->keySyms.map);
   ki->keySyms.map = ephyrKeySyms.map;
   ki->name = KdSaveString("Xephyr virtual keyboard");
   ephyrKbd = ki;

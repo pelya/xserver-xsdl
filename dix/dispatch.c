@@ -463,8 +463,9 @@ Dispatch(void)
 		if (result > (maxBigRequestSize << 2))
 		    result = BadLength;
 		else {
-		    XaceHookAuditBegin(client);
-		    result = (* client->requestVector[MAJOROP])(client);
+		    result = XaceHookDispatch(client, MAJOROP);
+		    if (result == Success)
+			result = (* client->requestVector[MAJOROP])(client);
 		    XaceHookAuditEnd(client, result);
 		}
 #ifdef XSERVER_DTRACE

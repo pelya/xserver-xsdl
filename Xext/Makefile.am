@@ -77,7 +77,7 @@ endif
 # requires X-ACE extension
 XSELINUX_SRCS = xselinux.c xselinux.h
 if XSELINUX
-BUILTIN_SRCS += $(XSELINUX_SRCS)
+MODULE_SRCS += $(XSELINUX_SRCS)
 endif
 
 # Security extension: multi-level security to protect clients from each other
