@@ -127,6 +127,7 @@ extern void ShmRegisterFuncs(
 
 #ifdef XSELINUX
 extern void SELinuxExtensionInit(INITARGS);
+#include "xselinux.h"
 #endif
 
 #if 1

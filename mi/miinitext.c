@@ -690,9 +690,6 @@ static ExtensionModule staticExtensions[] = {
 #ifdef XCSECURITY
     { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL, NULL },
 #endif
-#ifdef XSELINUX
-    { SELinuxExtensionInit, SELINUX_EXTENSION_NAME, NULL, NULL, NULL },
-#endif
 #ifdef XPRINT
     { XpExtensionInit, XP_PRINTNAME, NULL, NULL, NULL },
 #endif
