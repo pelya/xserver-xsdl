@@ -244,9 +244,6 @@ typedef void (*InitExtension)(INITARGS);
 #define _XAG_SERVER_
 #include <X11/extensions/Xagstr.h>
 #endif
-#ifdef XACE
-#include "xace.h"
-#endif
 #ifdef XCSECURITY
 #include "securitysrv.h"
 #include <X11/extensions/securstr.h>
@@ -322,9 +319,6 @@ extern void DbeExtensionInit(INITARGS);
 #endif
 #ifdef XAPPGROUP
 extern void XagExtensionInit(INITARGS);
-#endif
-#ifdef XACE
-extern void XaceExtensionInit(INITARGS);
 #endif
 #ifdef XCSECURITY
 extern void SecurityExtensionInit(INITARGS);
@@ -599,9 +593,6 @@ InitExtensions(argc, argv)
 #ifdef XAPPGROUP
     if (!noXagExtension) XagExtensionInit();
 #endif
-#ifdef XACE
-    XaceExtensionInit();
-#endif
 #ifdef XCSECURITY
     if (!noSecurityExtension) SecurityExtensionInit();
 #endif
@@ -696,14 +687,8 @@ static ExtensionModule staticExtensions[] = {
 #ifdef XAPPGROUP
     { XagExtensionInit, XAGNAME, &noXagExtension, NULL, NULL },
 #endif
-#ifdef XACE
-    { XaceExtensionInit, XACE_EXTENSION_NAME, NULL, NULL, NULL },
-#endif
 #ifdef XCSECURITY
     { SecurityExtensionInit, SECURITY_EXTENSION_NAME, &noSecurityExtension, NULL, NULL },
-#endif
-#ifdef XSELINUX
-    { SELinuxExtensionInit, SELINUX_EXTENSION_NAME, NULL, NULL, NULL },
 #endif
 #ifdef XPRINT
     { XpExtensionInit, XP_PRINTNAME, NULL, NULL, NULL },

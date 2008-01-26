@@ -22,15 +22,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #ifdef XACE
 
-#define XACE_EXTENSION_NAME		"XAccessControlExtension"
 #define XACE_MAJOR_VERSION		2
 #define XACE_MINOR_VERSION		0
 
 #include "pixmap.h"     /* for DrawablePtr */
 #include "regionstr.h"  /* for RegionPtr */
-
-#define XaceNumberEvents		0
-#define XaceNumberErrors		0
 
 /* Default window background */
 #define XaceBackgroundNoneState		None
@@ -68,8 +64,8 @@ extern int XaceHook(
 
 /* Special-cased hook functions
  */
+extern int XaceHookDispatch(ClientPtr ptr, int major);
 extern void XaceHookAuditEnd(ClientPtr ptr, int result);
-extern void XaceHookAuditBegin(ClientPtr ptr);
 
 /* Register a callback for a given hook.
  */
@@ -104,13 +100,13 @@ extern void XaceCensorImage(
 
 #ifdef __GNUC__
 #define XaceHook(args...) Success
+#define XaceHookDispatch(args...) Success
 #define XaceHookAuditEnd(args...) { ; }
-#define XaceHookAuditBegin(args...) { ; }
 #define XaceCensorImage(args...) { ; }
 #else
 #define XaceHook(...) Success
+#define XaceHookDispatch(...) Success
 #define XaceHookAuditEnd(...) { ; }
-#define XaceHookAuditBegin(...) { ; }
 #define XaceCensorImage(...) { ; }
 #endif
 

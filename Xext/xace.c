@@ -24,31 +24,31 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdarg.h>
 #include "scrnintstr.h"
 #include "xacestr.h"
-#include "modinit.h"
 
 CallbackListPtr XaceHooks[XACE_NUM_HOOKS] = {0};
 
-/* Proc vectors for untrusted clients, swapped and unswapped versions.
- * These are the same as the normal proc vectors except that extensions
- * that haven't declared themselves secure will have ProcBadRequest plugged
- * in for their major opcode dispatcher.  This prevents untrusted clients
- * from guessing extension major opcodes and using the extension even though
- * the extension can't be listed or queried.
- */
-static int (*UntrustedProcVector[256])(
-    ClientPtr /*client*/
-);
-static int (*SwappedUntrustedProcVector[256])(
-    ClientPtr /*client*/
-);
-
 /* Special-cased hook functions.  Called by Xserver.
  */
-void XaceHookAuditBegin(ClientPtr ptr)
+int XaceHookDispatch(ClientPtr client, int major)
 {
-    XaceAuditRec rec = { ptr, 0 };
-    /* call callbacks, there is no return value. */
+    /* Call the audit begin callback, there is no return value. */
+    XaceAuditRec rec = { client, 0 };
     CallCallbacks(&XaceHooks[XACE_AUDIT_BEGIN], &rec);
+
+    if (major < 128) {
+	/* Call the core dispatch hook */
+	XaceCoreDispatchRec rec = { client, Success /* default allow */ };
+	CallCallbacks(&XaceHooks[XACE_CORE_DISPATCH], &rec);
+	return rec.status;
+    } else {
+	/* Call the extension dispatch hook */
+	ExtensionEntry *ext = GetExtensionEntry(major);
+	XaceExtAccessRec rec = { client, ext, DixUseAccess, Success };
+	if (ext)
+	    CallCallbacks(&XaceHooks[XACE_EXT_DISPATCH], &rec);
+	/* On error, pretend extension doesn't exist */
+	return (rec.status == Success) ? Success : BadRequest;
+    }
 }
 
 void XaceHookAuditEnd(ClientPtr ptr, int result)
@@ -219,168 +219,6 @@ int XaceHook(int hook, ...)
     /* call callbacks and return result, if any. */
     CallCallbacks(&XaceHooks[hook], calldata);
     return prv ? *prv : Success;
-}
-
-static int
-ProcXaceDispatch(ClientPtr client)
-{
-    REQUEST(xReq);
-
-    switch (stuff->data)
-    {
-	default:
-	    return BadRequest;
-    }
-} /* ProcXaceDispatch */
-
-static int
-SProcXaceDispatch(ClientPtr client)
-{
-    REQUEST(xReq);
-
-    switch (stuff->data)
-    {
-	default:
-	    return BadRequest;
-    }
-} /* SProcXaceDispatch */
-
-
-/* XaceResetProc
- *
- * Arguments:
- *	extEntry is the extension information for the XACE extension.
- *
- * Returns: nothing.
- *
- * Side Effects:
- *	Performs any cleanup needed by XACE at server shutdown time.
- */
-static void
-XaceResetProc(ExtensionEntry *extEntry)
-{
-    int i;
-
-    for (i=0; i<XACE_NUM_HOOKS; i++)
-	DeleteCallbackList(&XaceHooks[i]);
-} /* XaceResetProc */
-
-
-static int
-XaceCatchDispatchProc(ClientPtr client)
-{
-    REQUEST(xReq);
-    int major = stuff->reqType;
-    XaceCoreDispatchRec rec = { client, Success /* default allow */ };
-
-    if (!ProcVector[major])
-	return BadRequest;
-
-    /* call callbacks and return result, if any. */
-    CallCallbacks(&XaceHooks[XACE_CORE_DISPATCH], &rec);
-
-    if (rec.status != Success)
-	return rec.status;
-
-    return client->swapped ? 
-	(* SwappedProcVector[major])(client) :
-	(* ProcVector[major])(client);
-}
-
-static int
-XaceCatchExtProc(ClientPtr client)
-{
-    REQUEST(xReq);
-    int major = stuff->reqType;
-    ExtensionEntry *ext = GetExtensionEntry(major);
-    XaceExtAccessRec rec = { client, ext, DixUseAccess, Success };
-
-    if (!ext || !ProcVector[major])
-	return BadRequest;
-
-    /* call callbacks and return result, if any. */
-    CallCallbacks(&XaceHooks[XACE_EXT_DISPATCH], &rec);
-
-    if (rec.status != Success)
-	return BadRequest; /* pretend extension doesn't exist */
-
-    return client->swapped ?
-	(* SwappedProcVector[major])(client) :
-	(* ProcVector[major])(client);
-}
-
-	
-/* SecurityClientStateCallback
- *
- * Arguments:
- *	pcbl is &ClientStateCallback.
- *	nullata is NULL.
- *	calldata is a pointer to a NewClientInfoRec (include/dixstruct.h)
- *	which contains information about client state changes.
- *
- * Returns: nothing.
- *
- * Side Effects:
- * 
- * If a new client is connecting, its authorization ID is copied to
- * client->authID.  If this is a generated authorization, its reference
- * count is bumped, its timer is cancelled if it was running, and its
- * trustlevel is copied to TRUSTLEVEL(client).
- * 
- * If a client is disconnecting and the client was using a generated
- * authorization, the authorization's reference count is decremented, and
- * if it is now zero, the timer for this authorization is started.
- */
-
-static void
-XaceClientStateCallback(
-    CallbackListPtr *pcbl,
-    pointer nulldata,
-    pointer calldata)
-{
-    NewClientInfoRec *pci = (NewClientInfoRec *)calldata;
-    ClientPtr client = pci->client;
-
-    switch (client->clientState)
-    {
-	case ClientStateRunning:
-	{ 
-	    client->requestVector = client->swapped ?
-		SwappedUntrustedProcVector : UntrustedProcVector;
-	    break;
-	}
-	default: break; 
-    }
-} /* XaceClientStateCallback */
-
-/* XaceExtensionInit
- *
- * Initialize the XACE Extension
- */
-void XaceExtensionInit(INITARGS)
-{
-    ExtensionEntry	*extEntry;
-    int i;
-
-    if (!AddCallback(&ClientStateCallback, XaceClientStateCallback, NULL))
-	return;
-
-    extEntry = AddExtension(XACE_EXTENSION_NAME,
-			    XaceNumberEvents, XaceNumberErrors,
-			    ProcXaceDispatch, SProcXaceDispatch,
-			    XaceResetProc, StandardMinorOpcode);
-
-    /* initialize dispatching intercept functions */
-    for (i = 0; i < 128; i++)
-    {
-	UntrustedProcVector[i] = XaceCatchDispatchProc;
-	SwappedUntrustedProcVector[i] = XaceCatchDispatchProc;
-    }
-    for (i = 128; i < 256; i++)
-    {
-	UntrustedProcVector[i] = XaceCatchExtProc;
-	SwappedUntrustedProcVector[i] = XaceCatchExtProc;
-    }
 }
 
 /* XaceCensorImage
