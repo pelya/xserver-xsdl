@@ -1432,24 +1432,24 @@ This optional entry specifies the position of the monitor within the X
 screen.
 (RandR 1.2-supporting drivers only)
 .TP 7
-.BI "Option " "\*qLeftOf\*q  " \*qmonitor\*q
+.BI "Option " "\*qLeftOf\*q  " \*qoutput\*q
 This optional entry specifies that the monitor should be positioned to the
-left of the monitor of the given name.
+left of the output (not monitor) of the given name.
 (RandR 1.2-supporting drivers only)
 .TP 7
-.BI "Option " "\*qRightOf\*q  " \*qmonitor\*q
+.BI "Option " "\*qRightOf\*q  " \*qoutput\*q
 This optional entry specifies that the monitor should be positioned to the
-right of the monitor of the given name.
+right of the output (not monitor) of the given name.
 (RandR 1.2-supporting drivers only)
 .TP 7
-.BI "Option " "\*qAbove\*q  " \*qmonitor\*q
+.BI "Option " "\*qAbove\*q  " \*qoutput\*q
 This optional entry specifies that the monitor should be positioned above the
-monitor of the given name.
+output (not monitor) of the given name.
 (RandR 1.2-supporting drivers only)
 .TP 7
-.BI "Option " "\*qBelow\*q  " \*qmonitor\*q
+.BI "Option " "\*qBelow\*q  " \*qoutput\*q
 This optional entry specifies that the monitor should be positioned below the
-monitor of the given name.
+output (not monitor) of the given name.
 (RandR 1.2-supporting drivers only)
 .TP 7
 .BI "Option " "\*qEnable\*q  " \*qbool\*q
