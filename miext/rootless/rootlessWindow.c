@@ -471,7 +471,7 @@ RootlessEnsureFrame(WindowPtr pWin)
     if (WINREC(pWin) != NULL)
         return WINREC(pWin);
 
-    if (!IsTopLevel(pWin))
+    if (!IsTopLevel(pWin) && !IsRoot(pWin))
         return NULL;
 
     if (pWin->drawable.class != InputOutput)
