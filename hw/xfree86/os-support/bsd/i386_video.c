@@ -602,7 +602,7 @@ cleanMTRR()
 #ifdef DEBUG
 			ErrorF("Clean for (0x%lx,0x%lx)\n",
 				(unsigned long)mrd[i].mr_base,
-				(unsigned long)rd[i].mr_len);
+				(unsigned long)mrd[i].mr_len);
 #endif
 			if (mrd[i].mr_flags & MDF_FIXACTIVE) {
 				mro.mo_arg[0] = MEMRANGE_SET_UPDATE;
