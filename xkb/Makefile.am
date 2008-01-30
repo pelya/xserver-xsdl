@@ -32,7 +32,6 @@ XKBFILE_SRCS = \
         xkmread.c \
         xkbtext.c \
         xkbfmisc.c \
-        xkberrs.c \
         xkbout.c
 
 X11_SRCS = \
