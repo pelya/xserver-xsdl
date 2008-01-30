@@ -63,6 +63,9 @@ XkbSrvLedInfoPtr	sli;
 
     sli= XkbFindSrvLedInfo(dev,XkbDfltXIClass,XkbDfltXIId,0);
 
+    if (!sli)
+        return update;
+
     if (state_changes&(XkbModifierStateMask|XkbGroupStateMask))
 	update|= sli->usesEffective;
     if (state_changes&(XkbModifierBaseMask|XkbGroupBaseMask))
