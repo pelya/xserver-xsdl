@@ -3312,7 +3312,7 @@ ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
 		deactivateGrab = TRUE;
 	    break;
 	default: 
-	    FatalError("bogus pointer event from ddx");
+	    FatalError("bogus pointer event from ddx: %d", xE->u.u.type);
 	}
     }
     else if (!CheckMotion(xE))
