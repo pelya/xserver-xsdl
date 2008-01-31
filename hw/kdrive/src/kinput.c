@@ -1015,7 +1015,7 @@ KdAddKeyboard (KdKeyboardInfo *ki)
     if (!ki)
         return !Success;
     
-    ki->dixdev = AddInputDevice(KdKeyboardProc, TRUE);
+    ki->dixdev = AddInputDevice(serverClient, KdKeyboardProc, TRUE);
     if (!ki->dixdev) {
         ErrorF("Couldn't register keyboard device %s\n",
                ki->name ? ki->name : "(unnamed)");
@@ -1084,7 +1084,7 @@ KdAddPointer (KdPointerInfo *pi)
     pi->mouseState = start;
     pi->eventHeld = FALSE;
 
-    pi->dixdev = AddInputDevice(KdPointerProc, TRUE);
+    pi->dixdev = AddInputDevice(serverClient, KdPointerProc, TRUE);
     if (!pi->dixdev) {
         ErrorF("Couldn't add pointer device %s\n",
                pi->name ? pi->name : "(unnamed)");
