@@ -124,7 +124,7 @@ _X_EXPORT void
 xf86ProcessCommonOptions(LocalDevicePtr local,
                          pointer	list)
 {
-    if (xf86SetBoolOption(list, "AlwaysCore", 0) ||
+    if (!xf86SetBoolOption(list, "AlwaysCore", 1) ||
         !xf86SetBoolOption(list, "SendCoreEvents", 1) ||
         !xf86SetBoolOption(list, "CorePointer", 1) ||
         !xf86SetBoolOption(list, "CoreKeyboard", 1)) {

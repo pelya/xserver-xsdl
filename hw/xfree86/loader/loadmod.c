@@ -864,7 +864,7 @@ doLoadModule(const char *module, const char *path, const char **subdirlist,
     for (cim = compiled_in_modules; *cim; cim++)
 	if (!strcmp (module, *cim))
 	{
-	    xf86MsgVerb(X_INFO, 0, "Module \"%s\" already built-in\n", module);
+	    xf86MsgVerb(X_INFO, 3, "Module \"%s\" already built-in\n", module);
 	    return (ModuleDescPtr) 1;
 	}
 
