@@ -187,7 +187,6 @@ typedef struct _CallbackRec {
 } CallbackRec, *CallbackPtr;
 
 typedef struct _CallbackList {
-  CallbackFuncsRec funcs;
   int inCallback;
   Bool deleted;
   int numDeleted;

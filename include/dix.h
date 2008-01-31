@@ -498,25 +498,6 @@ typedef struct _CallbackList *CallbackListPtr; /* also in misc.h */
 typedef void (*CallbackProcPtr) (
     CallbackListPtr *, pointer, pointer);
 
-typedef Bool (*AddCallbackProcPtr) (
-    CallbackListPtr *, CallbackProcPtr, pointer);
-
-typedef Bool (*DeleteCallbackProcPtr) (
-    CallbackListPtr *, CallbackProcPtr, pointer);
-
-typedef void (*CallCallbacksProcPtr) (
-    CallbackListPtr *, pointer);
-
-typedef void (*DeleteCallbackListProcPtr) (
-    CallbackListPtr *);
-
-typedef struct _CallbackProcs {
-    AddCallbackProcPtr		AddCallback;
-    DeleteCallbackProcPtr	DeleteCallback;
-    CallCallbacksProcPtr	CallCallbacks;
-    DeleteCallbackListProcPtr	DeleteCallbackList;
-} CallbackFuncsRec, *CallbackFuncsPtr;
-
 extern Bool AddCallback(
     CallbackListPtr * /*pcbl*/,
     CallbackProcPtr /*callback*/,
