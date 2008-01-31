@@ -424,10 +424,9 @@ Dispatch(void)
 	    while (!isItTimeToYield)
 	    {
 	        if (*icheck[0] != *icheck[1])
-		{
 		    ProcessInputEvents();
-		    FlushIfCriticalOutputPending();
-		}
+		
+		FlushIfCriticalOutputPending();
 #ifdef SMART_SCHEDULE
 		if (!SmartScheduleDisable && 
 		    (SmartScheduleTime - start_tick) >= SmartScheduleSlice)
@@ -483,9 +482,6 @@ Dispatch(void)
 					  client->errorValue, result);
 		    break;
 	        }
-#ifdef DAMAGEEXT
-		FlushIfCriticalOutputPending ();
-#endif
 	    }
 	    FlushAllOutput();
 #ifdef SMART_SCHEDULE
