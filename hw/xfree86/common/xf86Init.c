@@ -1566,15 +1566,6 @@ ddxProcessArgument(int argc, char **argv, int i)
     xf86sFlag = TRUE;
     return 0;
   }
-  if (!strcmp(argv[i], "-bpp"))
-  {
-    ErrorF("The -bpp option is no longer supported.\n"
-	"\tUse -depth to set the color depth, and use -fbbpp if you really\n"
-	"\tneed to force a non-default framebuffer (hardware) pixel format.\n");
-    if (++i >= argc)
-      return 1;
-    return 2;
-  }
   if (!strcmp(argv[i], "-pixmap24"))
   {
     xf86Pix24 = Pix24Use24;
