@@ -507,6 +507,12 @@ xf86PostMotionEventP(DeviceIntPtr	device,
     int index;
     int flags = 0;
 
+    if (num_valuators > MAX_VALUATORS) {
+	xf86Msg(X_ERROR, "xf86PostMotionEvent: num_valuator %d"
+	    " is greater than MAX_VALUATORS\n", num_valuators);
+	return;
+    }
+
     if (is_absolute)
         flags = POINTER_ABSOLUTE;
     else
@@ -643,6 +649,12 @@ xf86PostKeyEvent(DeviceIntPtr	device,
     DebugF("this function has never been tested properly.  if things go quite "
            "badly south after this message, then xf86PostKeyEvent is "
            "broken.\n");
+
+    if (num_valuators > MAX_VALUATORS) {
+	xf86Msg(X_ERROR, "xf86PostMotionEvent: num_valuator %d"
+	    " is greater than MAX_VALUATORS\n", num_valuators);
+	return;
+    }
 
     if (!xf86Events)
         FatalError("Didn't allocate event store\n");
