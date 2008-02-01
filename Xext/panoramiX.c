@@ -463,10 +463,8 @@ void PanoramiXExtensionInit(int argc, char *argv[])
 				ProcPanoramiXDispatch,
 				SProcPanoramiXDispatch, PanoramiXResetProc, 
 				StandardMinorOpcode);
-	if (!extEntry) {
-	    ErrorF("PanoramiXExtensionInit(): failed to AddExtension\n");
+	if (!extEntry)
 	    break;
- 	}
 
 	/*
 	 *	First make sure all the basic allocations succeed.  If not,
@@ -514,7 +512,7 @@ void PanoramiXExtensionInit(int argc, char *argv[])
 
     if (!success) {
 	noPanoramiXExtension = TRUE;
-	ErrorF("%s Extension failed to initialize\n", PANORAMIX_PROTOCOL_NAME);
+	ErrorF(PANORAMIX_PROTOCOL_NAME " extension failed to initialize\n");
 	return;
     }
   
@@ -604,14 +602,14 @@ Bool PanoramiXCreateConnectionBlock(void)
      */
 
     if(!PanoramiXNumDepths) {
-	ErrorF("PanoramiX error: Incompatible screens. No common visuals\n");
+	ErrorF("Xinerama error: No common visuals\n");
 	return FALSE;
     }
 
     for(i = 1; i < screenInfo.numScreens; i++) {
 	pScreen = screenInfo.screens[i];
 	if(pScreen->rootDepth != screenInfo.screens[0]->rootDepth) {
-	    ErrorF("PanoramiX error: Incompatible screens. Root window depths differ\n");
+	    ErrorF("Xinerama error: Root window depths differ\n");
 	    return FALSE;
 	}
 	if(pScreen->backingStoreSupport != screenInfo.screens[0]->backingStoreSupport)
