@@ -344,13 +344,13 @@ static Bool DarwinReadKeymapFile(NXKeyMapping *keyMap) {
 
     fref = fopen( darwinKeymapFile, "rb" );
     if (fref == NULL) {
-        ErrorF("Unable to open keymapping file '%s' (errno %d).\n",
-               darwinKeymapFile, errno);
+        ErrorF("Unable to open keymapping file '%s' (%s).\n",
+               darwinKeymapFile, strerror(errno));
         return FALSE;
     }
     if (fstat(fileno(fref), &st) == -1) {
-        ErrorF("Could not stat keymapping file '%s' (errno %d).\n",
-               darwinKeymapFile, errno);
+        ErrorF("Could not stat keymapping file '%s' (%s).\n",
+               darwinKeymapFile, strerror(errno));
         return FALSE;
     }
 
@@ -364,8 +364,8 @@ static Bool DarwinReadKeymapFile(NXKeyMapping *keyMap) {
     inBuffer = (char*) xalloc( st.st_size );
     bufferEnd = (int *) (inBuffer + st.st_size);
     if (fread(inBuffer, st.st_size, 1, fref) != 1) {
-        ErrorF("Could not read %qd bytes from keymapping file '%s' (errno %d).\n",
-               st.st_size, darwinKeymapFile, errno);
+        ErrorF("Could not read %qd bytes from keymapping file '%s' (%s).\n",
+               st.st_size, darwinKeymapFile, strerror(errno));
         return FALSE;
     }
 

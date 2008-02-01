@@ -567,7 +567,7 @@ vm86_loop(Vm86InfoPtr vi)
                 if(errno == ENOSYS) {
                     ErrorF("No vm86 support.  Are you running on AMD64?\n");
                 } else {
-                    ErrorF("vm86 failed (errno = %d).\n", errno);
+                    ErrorF("vm86 failed (%s).\n", strerror(errno));
                     Vm86Debug(vi);
                 }
             } else {

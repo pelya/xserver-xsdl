@@ -441,7 +441,7 @@ LinuxFini (void)
 	memset (&vts, '\0', sizeof (vts));	/* valgrind */
 	ioctl (fd, VT_GETSTATE, &vts);
 	if (ioctl (fd, VT_DISALLOCATE, vtno) < 0)
-	    fprintf (stderr, "Can't deallocate console %d errno %d\n", vtno, errno);
+	    fprintf (stderr, "Can't deallocate console %d %s\n", vtno, strerror(errno));
 	close (fd);
     }
     return;

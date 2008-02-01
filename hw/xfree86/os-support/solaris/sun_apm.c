@@ -149,7 +149,7 @@ sunPMGetEventFromOS(int fd, pmEvent *events, int num)
 	if (ioctl(fd, APM_IOC_NEXTEVENT, &sunEvent) < 0) {
 	    if (errno != EAGAIN) {
 		xf86Msg(X_WARNING, "sunPMGetEventFromOS: APM_IOC_NEXTEVENT"
-			" errno = %d\n", errno);
+			" %s\n", strerror(errno));
 	    }
 	    break;
 	}
@@ -178,7 +178,7 @@ sunPMConfirmEventToOs(int fd, pmEvent event)
             return PM_CONTINUE;
         else {
 	    xf86Msg(X_WARNING, "sunPMConfirmEventToOs: APM_IOC_SUSPEND"
-		" errno = %d\n", errno);
+		" %s\n", strerror(errno));
             return PM_FAILED;
 	}
       case XF86_APM_STANDBY_RESUME:
@@ -191,7 +191,7 @@ sunPMConfirmEventToOs(int fd, pmEvent event)
             return PM_CONTINUE;
         else {
 	    xf86Msg(X_WARNING, "sunPMConfirmEventToOs: APM_IOC_RESUME"
-		" errno = %d\n", errno);
+		" %s\n", strerror(errno));
             return PM_FAILED;
 	}
       default:
