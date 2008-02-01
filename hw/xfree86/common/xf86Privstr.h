@@ -75,7 +75,6 @@ typedef enum {
 typedef struct {
     int			consoleFd;
     int			vtno;
-    char *		vtinit;
     Bool		vtSysreq;
     SpecialKeysInDDX	ddxSpecialKeys;
 

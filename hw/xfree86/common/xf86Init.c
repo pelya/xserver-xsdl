@@ -102,7 +102,6 @@ static void xf86PrintBanner(void);
 static void xf86PrintMarkers(void);
 static void xf86PrintDefaultModulePath(void);
 static void xf86PrintDefaultLibraryPath(void);
-static void xf86RunVtInit(void);
 
 static Bool probe_devices_from_device_sections(DriverPtr drvp);
 static Bool add_matching_devices_to_configure_list(DriverPtr drvp);
@@ -238,9 +237,6 @@ PostConfigInit(void)
     xf86OSPMClose = xf86OSPMOpen();
 #endif
     
-    /* Run an external VT Init program if specified in the config file */
-    xf86RunVtInit();
-
     /* Do this after XF86Config is read (it's normally in OsInit()) */
     OsInitColors();
 }
@@ -1913,44 +1909,6 @@ static void
 xf86PrintDefaultLibraryPath(void)
 {
   ErrorF("%s\n", DEFAULT_LIBRARY_PATH);
-}
-
-static void
-xf86RunVtInit(void)
-{
-    int i;
-
-    /*
-     * If VTInit was set, run that program with consoleFd as stdin and stdout
-     */
-
-    if (xf86Info.vtinit) {
-      switch(fork()) {
-      case -1:
-          FatalError("xf86RunVtInit: fork failed (%s)\n", strerror(errno));
-          break;
-      case 0:  /* child */
-	  if (setuid(getuid()) == -1) {
-	      xf86Msg(X_ERROR, "xf86RunVtInit: setuid failed (%s)\n",
-			 strerror(errno));
-	      exit(255);
-	  }
-          /* set stdin, stdout to the consoleFd */
-          for (i = 0; i < 2; i++) {
-            if (xf86Info.consoleFd != i) {
-              close(i);
-              dup(xf86Info.consoleFd);
-            }
-          }
-          execl("/bin/sh", "sh", "-c", xf86Info.vtinit, (void *)NULL);
-          xf86Msg(X_WARNING, "exec of /bin/sh failed for VTInit (%s)\n",
-                 strerror(errno));
-          exit(255);
-          break;
-      default:  /* parent */
-          wait(NULL);
-      }
-    }
 }
 
 /*

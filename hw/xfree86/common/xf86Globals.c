@@ -97,7 +97,6 @@ InputInfoPtr xf86InputDevs = NULL;
 xf86InfoRec xf86Info = {
 	-1,		/* consoleFd */
 	-1,		/* vtno */
-	NULL,		/* vtinit */
 	FALSE,		/* vtSysreq */
 	SKWhenNeeded,	/* ddxSpecialKeys */
 	NULL,		/* pMouse */

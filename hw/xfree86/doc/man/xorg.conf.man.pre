@@ -507,17 +507,6 @@ This allows the server to start up even if the mouse device can't be
 opened/initialised.
 Default: false.
 .TP 7
-.BI "Option \*qVTInit\*q  \*q" command \*q
-Runs
-.I command
-after the VT used by the server has been opened.
-The command string is passed to \*q/bin/sh \-c\*q, and is run with the real
-user's id with stdin and stdout set to the VT.
-The purpose of this option is to allow system dependent VT initialisation
-commands to be run.
-This option should rarely be needed.
-Default: not set.
-.TP 7
 .BI "Option \*qVTSysReq\*q  \*q" boolean \*q
 enables the SYSV\-style VT switch sequence for non\-SYSV systems
 which support VT switching.
