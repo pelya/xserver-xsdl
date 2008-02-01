@@ -2155,7 +2155,7 @@ WhereDoIGoInTheStack(
 	    return pWin->nextSib;
       default:
       {
-	ErrorF("Internal error in ConfigureWindow, smode == %d\n",smode );
+	/* should never happen; make something up. */
 	return pWin->nextSib;
       }
     }
