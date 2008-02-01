@@ -535,7 +535,6 @@ FreeResource(XID id, RESTYPE skipDeleteFuncType)
     ResourcePtr *prev, *head;
     int *eltptr;
     int		elements;
-    Bool	gotOne = FALSE;
 
     if (((cid = CLIENT_ID(id)) < MAXCLIENTS) && clientTable[cid].buckets)
     {
@@ -563,15 +562,11 @@ FreeResource(XID id, RESTYPE skipDeleteFuncType)
 		xfree(res);
 		if (*eltptr != elements)
 		    prev = head; /* prev may no longer be valid */
-		gotOne = TRUE;
 	    }
 	    else
 		prev = &res->next;
         }
     }
-    if (!gotOne)
-	ErrorF("Freeing resource id=%lX which isn't there.\n",
-		   (unsigned long)id);
 }
 
 
