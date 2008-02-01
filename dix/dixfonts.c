@@ -1934,12 +1934,15 @@ GetDefaultPointSize ()
 FontResolutionPtr
 GetClientResolutions (int *num)
 {
+#ifdef XPRINT
     if (requestingClient && requestingClient->fontResFunc != NULL &&
 	!requestingClient->clientGone)
     {
 	return (*requestingClient->fontResFunc)(requestingClient, num);
     }
-    else {
+    else
+#endif
+    {
 	static struct _FontResolution res;
 	ScreenPtr   pScreen;
 

@@ -116,7 +116,9 @@ typedef struct _Client *ClientPtr; /* also in misc.h */
 
 typedef struct _WorkQueue	*WorkQueuePtr;
 
+#ifdef XPRINT
 extern ClientPtr requestingClient;
+#endif
 extern ClientPtr *clients;
 extern ClientPtr serverClient;
 extern int currentMaxClients;

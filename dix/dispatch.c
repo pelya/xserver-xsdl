@@ -417,7 +417,9 @@ Dispatch(void)
 	    }
 	    isItTimeToYield = FALSE;
  
+#ifdef XPRINT
             requestingClient = client;
+#endif
 #ifdef SMART_SCHEDULE
 	    start_tick = SmartScheduleTime;
 #endif
@@ -489,7 +491,9 @@ Dispatch(void)
 	    if (client)
 		client->smart_stop_tick = SmartScheduleTime;
 #endif
+#ifdef XPRINT
 	    requestingClient = NULL;
+#endif
 	}
 	dispatchException &= ~DE_PRIORITYCHANGE;
     }
