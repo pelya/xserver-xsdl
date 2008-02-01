@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 1997-2003 by The XFree86 Project, Inc.
  *
