@@ -153,8 +153,6 @@ DriverPtr *xf86DriverList = NULL;
 int xf86NumDrivers = 0;
 InputDriverPtr *xf86InputDriverList = NULL;
 int xf86NumInputDrivers = 0;
-ModuleInfoPtr *xf86ModuleInfoList = NULL;
-int xf86NumModuleInfos = 0;
 int xf86NumScreens = 0;
 
 const char *xf86VisualNames[] = {

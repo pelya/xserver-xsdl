@@ -479,8 +479,6 @@ _X_HIDDEN void *xfree86LookupTab[] = {
     SYMFUNC(xf86IsScreenPrimary)
     SYMFUNC(xf86RegisterRootWindowProperty)
     SYMFUNC(xf86IsUnblank)
-    SYMFUNC(xf86AddModuleInfo)
-    SYMFUNC(xf86DeleteModuleInfo)
 
 #if (defined(__sparc__) || defined(__sparc)) && !defined(__OpenBSD__)
     /* xf86sbusBus.c */

@@ -170,36 +170,16 @@ xf86LookupInput(const char *name)
     return NULL;
 }
 
+/* ABI stubs of despair */
 _X_EXPORT void
-xf86AddModuleInfo(ModuleInfoPtr info, pointer module)
+xf86AddModuleInfo(pointer info, pointer module)
 {
-    /* Don't add null entries */
-    if (!module)
-	return;
-
-    if (xf86ModuleInfoList == NULL)
-	xf86NumModuleInfos = 0;
-
-    xf86NumModuleInfos++;
-    xf86ModuleInfoList = xnfrealloc(xf86ModuleInfoList,
-				    xf86NumModuleInfos * sizeof(ModuleInfoPtr));
-    xf86ModuleInfoList[xf86NumModuleInfos - 1] = xnfalloc(sizeof(ModuleInfoRec));
-    *xf86ModuleInfoList[xf86NumModuleInfos - 1] = *info;
-    xf86ModuleInfoList[xf86NumModuleInfos - 1]->module = module;
-    xf86ModuleInfoList[xf86NumModuleInfos - 1]->refCount = 0;
 }
 
 _X_EXPORT void
 xf86DeleteModuleInfo(int idx)
 {
-    if (xf86ModuleInfoList[idx]) {
-	if (xf86ModuleInfoList[idx]->module)
-	    UnloadModule(xf86ModuleInfoList[idx]->module);
-	xfree(xf86ModuleInfoList[idx]);
-	xf86ModuleInfoList[idx] = NULL;
-    }
 }
-
 
 /* Allocate a new ScrnInfoRec in xf86Screens */
 

@@ -337,8 +337,8 @@ int  xf86RegisterRootWindowProperty(int ScrnIndex, Atom	property, Atom type,
 				    pointer value);
 Bool xf86IsUnblank(int mode);
 
-void xf86AddModuleInfo(ModuleInfoPtr info, pointer module);
-void xf86DeleteModuleInfo(int idx);
+_X_DEPRECATED void xf86AddModuleInfo(pointer info, pointer module);
+_X_DEPRECATED void xf86DeleteModuleInfo(int idx);
 void xf86getsecs(long *, long *);
 
 /* xf86Debug.c */
