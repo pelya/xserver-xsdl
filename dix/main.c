@@ -137,8 +137,6 @@ _X_EXPORT PaddingInfo PixmapWidthPaddingInfo[33];
 
 int connBlockScreenStart;
 
-static int restart = 0;
-
 _X_EXPORT void
 NotImplemented(xEvent *from, xEvent *to)
 {
@@ -263,13 +261,6 @@ main(int argc, char *argv[], char *envp[])
      * from another thread. */
     DarwinHandleGUI(argc, argv, envp);
 #endif
-
-    /* Notice if we're restarted.  Probably this is because we jumped through
-     * an uninitialized pointer */
-    if (restart)
-	FatalError("server restarted. Jumped through uninitialized pointer?\n");
-    else
-	restart = 1;
 
     CheckUserParameters(argc, argv, envp);
 
