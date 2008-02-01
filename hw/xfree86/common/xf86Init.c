@@ -1135,12 +1135,6 @@ InitInput(argc, argv)
 	for (pDev = xf86ConfigLayout.inputs; pDev && *pDev; pDev++) {
 	    /* Replace obsolete keyboard driver with kbd */
 	    if (!xf86NameCmp((*pDev)->driver, "keyboard")) {
-		xf86MsgVerb(X_WARNING, 0,
-			    "*** WARNING the legacy keyboard driver \"%s\" has been removed\n",
-			    (*pDev)->driver);
-		xf86MsgVerb(X_WARNING, 0,
-			    "*** Using the new \"kbd\" driver for \"%s\".\n",
-			    (*pDev)->identifier);
 		strcpy((*pDev)->driver, "kbd");
             }
 
