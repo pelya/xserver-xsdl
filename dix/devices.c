@@ -206,6 +206,10 @@ EnableDevice(DeviceIntPtr dev)
     DeviceIntRec dummyDev;
     DeviceIntPtr other;
     devicePresenceNotify ev;
+    int namelen = 0; /* dummy */
+    int evsize  = sizeof(xEvent);
+    int listlen;
+    EventListPtr evlist;
 
     for (prev = &inputInfo.off_devices;
 	 *prev && (*prev != dev);
@@ -237,6 +241,18 @@ EnableDevice(DeviceIntPtr dev)
             AttachDevice(NULL, dev, other);
         }
     }
+
+    /* Before actually enabling the device, we need to make sure the event
+     * list's events have enough memory for a ClassesChangedEvent from the
+     * device
+     */
+
+    SizeDeviceInfo(dev, &namelen, &evsize);
+
+    listlen = GetEventList(&evlist);
+    OsBlockSignals();
+    SetMinimumEventSize(evlist, listlen, evsize);
+    OsReleaseSignals();
 
     if ((*prev != dev) || !dev->inited ||
 	((ret = (*dev->deviceProc)(dev, DEVICE_ON)) != Success)) {
