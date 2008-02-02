@@ -94,6 +94,8 @@ typedef struct _EventList {
                   ((xGenericEvent*)event)->length * 4 for GenericEvents */
 } EventList, *EventListPtr;
 
+/* The DIX stores incoming input events in this list */
+extern EventListPtr InputEventList;
 
 typedef int (*DeviceProc)(
     DeviceIntPtr /*device*/,
@@ -396,6 +398,7 @@ extern void InitInput(
 
 extern int GetMaximumEventsNum(void);
 
+extern EventListPtr GetEventList();
 extern EventListPtr InitEventList(int num_events);
 extern void FreeEventList(EventListPtr list, int num_events);
 

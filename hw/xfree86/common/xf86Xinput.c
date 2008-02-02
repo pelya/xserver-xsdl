@@ -569,11 +569,7 @@ xf86PostMotionEventP(DeviceIntPtr	device,
     }
 #endif
 
-    if (!xf86Events)
-        xf86Events = InitEventList(GetMaximumEventsNum());
-    if (!xf86Events)
-        FatalError("Couldn't allocate event store\n");
-
+    xf86Events = GetEventList();
     nevents = GetPointerEvents(xf86Events, device, MotionNotify, 0,
                                flags, first_valuator, num_valuators,
                                valuators);
@@ -605,11 +601,7 @@ xf86PostProximityEvent(DeviceIntPtr	device,
         valuators[i] = va_arg(var, int);
     va_end(var);
 
-    if (!xf86Events)
-        xf86Events = InitEventList(GetMaximumEventsNum());
-    if (!xf86Events)
-        FatalError("Couldn't allocate event store\n");
-
+    xf86Events = GetEventList();
     nevents = GetProximityEvents(xf86Events, device,
                                  is_in ? ProximityIn : ProximityOut, 
                                  first_valuator, num_valuators, valuators);
@@ -647,11 +639,7 @@ xf86PostButtonEvent(DeviceIntPtr	device,
         valuators[i] = va_arg(var, int);
     va_end(var);
 
-    if (!xf86Events)
-        xf86Events = InitEventList(GetMaximumEventsNum());
-    if (!xf86Events)
-        FatalError("Couldn't allocate event store\n");
-
+    xf86Events = GetEventList();
     nevents = GetPointerEvents(xf86Events, device,
                                is_down ? ButtonPress : ButtonRelease, button,
                                (is_absolute) ? POINTER_ABSOLUTE : POINTER_RELATIVE,
@@ -680,11 +668,6 @@ xf86PostKeyEvent(DeviceIntPtr	device,
            "badly south after this message, then xf86PostKeyEvent is "
            "broken.\n");
 
-    if (!xf86Events)
-        xf86Events = InitEventList(GetMaximumEventsNum());
-    if (!xf86Events)
-        FatalError("Couldn't allocate event store\n");
-
     if (is_absolute) {
         valuators = xcalloc(sizeof(int), num_valuators);
         va_start(var, num_valuators);
@@ -692,6 +675,7 @@ xf86PostKeyEvent(DeviceIntPtr	device,
             valuators[i] = va_arg(var, int);
         va_end(var);
 
+        xf86Events = GetEventList();
         nevents = GetKeyboardValuatorEvents(xf86Events, device,
                                             is_down ? KeyPress : KeyRelease,
                                             key_code, first_valuator,
@@ -726,11 +710,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
     }
 #endif
 
-    if (!xf86Events)
-        xf86Events = InitEventList(GetMaximumEventsNum());
-    if (!xf86Events)
-        FatalError("Couldn't allocate event store\n");
-
+    xf86Events = GetEventList();
     nevents = GetKeyboardEvents(xf86Events, device,
                                 is_down ? KeyPress : KeyRelease, key_code);
 

@@ -5711,6 +5711,10 @@ InitEvents(void)
 	DontPropagateMasks[i] = 0;
 	DontPropagateRefCnts[i] = 0;
     }
+
+    InputEventList = InitEventList(GetMaximumEventsNum());
+    if (!InputEventList)
+        FatalError("[dix] Failed to allocate input event list.\n");
 }
 
 /**

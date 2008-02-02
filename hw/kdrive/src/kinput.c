@@ -65,7 +65,7 @@ static struct KdConfigDevice *kdConfigPointers    = NULL;
 static KdKeyboardDriver *kdKeyboardDrivers = NULL;
 static KdPointerDriver  *kdPointerDrivers  = NULL;
 
-static xEvent           *kdEvents = NULL;
+static EventListPtr     *kdEvents = NULL;
 
 static Bool		kdInputEnabled;
 static Bool		kdOffScreen;
@@ -1391,11 +1391,6 @@ KdInitInput (void)
             ErrorF("Failed to add keyboard!\n");
     }
 
-    if (!kdEvents)
-        kdEvents = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
-    if (!kdEvents)
-        FatalError("Couldn't allocate event buffer\n");
-
     mieqInit();
 }
 
@@ -1984,6 +1979,7 @@ KdReleaseAllKeys (void)
              key++) {
             if (IsKeyDown(ki, key)) {
                 KdHandleKeyboardEvent(ki, KeyRelease, key);
+                kdEvents = GetEventList();
                 nEvents = GetKeyboardEvents(kdEvents, ki->dixdev, KeyRelease, key);
                 for (i = 0; i < nEvents; i++)
                     KdQueueEvent (ki->dixdev, kdEvents + i);
@@ -2048,9 +2044,10 @@ KdEnqueueKeyboardEvent(KdKeyboardInfo   *ki,
             KdHandleKeyboardEvent(ki, type, key_code);
 	}
 	
+        kdEvents = GetEventList();
         nEvents = GetKeyboardEvents(kdEvents, ki->dixdev, type, key_code);
         for (i = 0; i < nEvents; i++)
-            KdQueueEvent(ki->dixdev, kdEvents + i);
+            KdQueueEvent(ki->dixdev, kdEvents);
     }
     else {
         ErrorF("driver %s wanted to post scancode %d outside of [%d, %d]!\n",
@@ -2148,8 +2145,9 @@ _KdEnqueuePointerEvent (KdPointerInfo *pi, int type, int x, int y, int z,
     if (!force && KdHandlePointerEvent(pi, type, x, y, z, b, absrel))
         return;
 
-    nEvents = GetPointerEvents(kdEvents, pi->dixdev, type, b, absrel, 0, 3,
-                               valuators);
+    kdEvents = GetEventList();
+    nEvents = GetPointerEvents(kdEvents, pi->dixdev, type, b, absrel,
+                               0, 3, valuators);
     for (i = 0; i < nEvents; i++)
         KdQueueEvent(pi->dixdev, kdEvents + i);
 }
