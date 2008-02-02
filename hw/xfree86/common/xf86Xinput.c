@@ -569,7 +569,7 @@ xf86PostMotionEventP(DeviceIntPtr	device,
     }
 #endif
 
-    xf86Events = GetEventList();
+    GetEventList(&xf86Events);
     nevents = GetPointerEvents(xf86Events, device, MotionNotify, 0,
                                flags, first_valuator, num_valuators,
                                valuators);
@@ -601,7 +601,7 @@ xf86PostProximityEvent(DeviceIntPtr	device,
         valuators[i] = va_arg(var, int);
     va_end(var);
 
-    xf86Events = GetEventList();
+    GetEventList(&xf86Events);
     nevents = GetProximityEvents(xf86Events, device,
                                  is_in ? ProximityIn : ProximityOut, 
                                  first_valuator, num_valuators, valuators);
@@ -639,7 +639,7 @@ xf86PostButtonEvent(DeviceIntPtr	device,
         valuators[i] = va_arg(var, int);
     va_end(var);
 
-    xf86Events = GetEventList();
+    GetEventList(&xf86Events);
     nevents = GetPointerEvents(xf86Events, device,
                                is_down ? ButtonPress : ButtonRelease, button,
                                (is_absolute) ? POINTER_ABSOLUTE : POINTER_RELATIVE,
@@ -675,7 +675,7 @@ xf86PostKeyEvent(DeviceIntPtr	device,
             valuators[i] = va_arg(var, int);
         va_end(var);
 
-        xf86Events = GetEventList();
+        GetEventList(&xf86Events);
         nevents = GetKeyboardValuatorEvents(xf86Events, device,
                                             is_down ? KeyPress : KeyRelease,
                                             key_code, first_valuator,
@@ -710,7 +710,7 @@ xf86PostKeyboardEvent(DeviceIntPtr      device,
     }
 #endif
 
-    xf86Events = GetEventList();
+    GetEventList(&xf86Events);
     nevents = GetKeyboardEvents(xf86Events, device,
                                 is_down ? KeyPress : KeyRelease, key_code);
 

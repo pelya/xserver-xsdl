@@ -399,7 +399,7 @@ extern void InitInput(
 
 extern int GetMaximumEventsNum(void);
 
-extern EventListPtr GetEventList();
+extern int GetEventList(EventListPtr* list);
 extern EventListPtr InitEventList(int num_events);
 extern void SetMinimumEventSize(EventListPtr list,
                                 int num_events,
