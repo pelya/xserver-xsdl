@@ -113,6 +113,7 @@ CreateClassesChangedEvent(EventList* event,
     deviceClassesChangedEvent *dcce;
     int len = sizeof(xEvent);
     CARD32 ms = GetTimeInMillis();
+    int namelen = 0; /* dummy */
 
     /* XXX: ok, this is a bit weird. We need to alloc enough size for the
      * event so it can be filled in in POE lateron. Reason being that if
@@ -120,19 +121,9 @@ CreateClassesChangedEvent(EventList* event,
      * or realloc the original pointer.
      * We can only do it here as we don't have the EventList in the event
      * processing any more.
-     *
-     * Code is basically same as in Xi/listdev.c
      */
-    if (slave->key)
-        len += sizeof(xKeyInfo);
-    if (slave->button)
-        len += sizeof(xButtonInfo);
-    if (slave->valuator)
-    {
-        int chunks = ((int)slave->valuator->numAxes + 19) / VPC;
-        len += (chunks * sizeof(xValuatorInfo) +
-                slave->valuator->numAxes * sizeof(xAxisInfo));
-    }
+    SizeDeviceInfo(slave, &namelen, &len);
+
     if (event->evlen < len)
     {
         event->event = realloc(event->event, len);

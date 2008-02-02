@@ -92,7 +92,7 @@ SProcXListInputDevices(ClientPtr client)
  *
  */
 
-static void
+_X_EXPORT void
 SizeDeviceInfo(DeviceIntPtr d, int *namesize, int *size)
 {
     int chunks;

@@ -49,4 +49,9 @@ CopySwapClasses(ClientPtr /* client */,
                 CARD8* /* num_classes */,
                 char** /* classbuf */);
 
+void
+SizeDeviceInfo(DeviceIntPtr /* dev */,
+               int* /* namesize */,
+               int* /* size */);
+
 #endif /* LISTDEV_H */
