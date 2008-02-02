@@ -525,9 +525,6 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     int num_events = 0, final_valuator = 0;
     CARD32 ms = 0;
     deviceKeyButtonPointer *kbp = NULL;
-    /* Thanks to a broken lib, we _always_ have to chase DeviceMotionNotifies
-     * with DeviceValuators. */
-    Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
     DeviceIntPtr cp = inputInfo.pointer;
     int x = 0, y = 0;
     Bool coreOnly = (pDev == inputInfo.pointer);
@@ -553,7 +550,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         return 0;
 
     /* Do we need to send a DeviceValuator event? */
-    if (!coreOnly && sendValuators) {
+    if (!coreOnly && num_valuators) {
         if ((((num_valuators - 1) / 6) + 1) > MAX_VALUATOR_EVENTS)
             num_valuators = MAX_VALUATOR_EVENTS * 6;
         num_events += ((num_valuators - 1) / 6) + 1;
@@ -684,7 +681,7 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         kbp->root_y = y;
 
         events++;
-        if (sendValuators) {
+        if (num_valuators) {
             kbp->deviceid |= MORE_EVENTS;
             clipValuators(pDev, first_valuator, num_valuators, valuators);
             events = getValuatorEvents(events, pDev, first_valuator,
