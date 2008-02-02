@@ -667,15 +667,6 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         }
     }
 
-    /* Drop x and y back into the valuators list, if they were originally
-     * present. */
-    if (first_valuator == 0 && num_valuators >= 1)
-        valuators[0] = x;
-    if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-        valuators[1 - first_valuator] = y;
-
-    updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
-
     pDev->valuator->lastx = x;
     pDev->valuator->lasty = y;
     /* Convert the dev coord back to screen coord if we're
@@ -720,6 +711,15 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
         cp->valuator->lastx = x;
         cp->valuator->lasty = y;
     }
+
+    /* Drop x and y back into the valuators list, if they were originally
+     * present. */
+    if (first_valuator == 0 && num_valuators >= 1)
+        valuators[0] = pDev->valuator->lastx;
+    if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
+        valuators[1 - first_valuator] = pDev->valuator->lasty;
+
+    updateMotionHistory(pDev, ms, first_valuator, num_valuators, valuators);
 
     /* for some reason inputInfo.pointer does not have coreEvents set */
     if (coreOnly || pDev->coreEvents) {
