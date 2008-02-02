@@ -609,6 +609,10 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
                     y = cp->valuator->lasty;
             }
         }
+
+        /* Clip both x and y to the defined limits (usually co-ord space limit). */
+        clipAxis(pDev, 0, &x);
+        clipAxis(pDev, 1, &y);
     }
     else {
         if (flags & POINTER_ACCELERATE)
@@ -647,21 +651,21 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
                 y += valuators[1 - first_valuator];
         }
         else {
+            x = pDev->valuator->lastx;
+            y = pDev->valuator->lasty;
             if (first_valuator == 0 && num_valuators >= 1)
-                x = pDev->valuator->lastx + valuators[0];
-            else
-                x = pDev->valuator->lastx;
-
+                x += valuators[0];
             if (first_valuator <= 1 && num_valuators >= (2 - first_valuator))
-                y = pDev->valuator->lasty + valuators[1 - first_valuator];
-            else
-                y = pDev->valuator->lasty;
+                y += valuators[1 - first_valuator];
+
+            if(!coreOnly) {
+                /* Since we're not sending core-events we must clip both x and y
+                 * to the defined limits so we don't run outside the box. */
+                clipAxis(pDev, 0, &x);
+                clipAxis(pDev, 1, &y);
+            }
         }
     }
-
-    /* Clip both x and y to the defined limits (usually co-ord space limit). */
-    clipAxis(pDev, 0, &x);
-    clipAxis(pDev, 1, &y);
 
     /* Drop x and y back into the valuators list, if they were originally
      * present. */
@@ -695,6 +699,24 @@ GetPointerEvents(xEvent *events, DeviceIntPtr pDev, int type, int buttons,
     miPointerSetPosition(pDev, &x, &y, ms);
 
     if (pDev->coreEvents) {
+        /* miPointerSetPosition may have changed screen */
+        scr = miPointerGetScreen(pDev);
+        if(x != cp->valuator->lastx) {
+            int min = pDev->valuator->axes[0].min_value;
+            int max = pDev->valuator->axes[0].max_value;
+            cp->valuator->lastx = pDev->valuator->lastx = x;
+            if(min < max)
+                pDev->valuator->lastx = (int)((float)(x)*(max-min+1)/scr->width)+min;
+        }
+        if(y != cp->valuator->lasty) {
+            int min = pDev->valuator->axes[1].min_value;
+            int max = pDev->valuator->axes[1].max_value;
+            cp->valuator->lasty = pDev->valuator->lasty = y;
+            if(min < max)
+                pDev->valuator->lasty = (int)((float)(y)*(max-min+1)/scr->height)+min;
+        }
+    }
+    else if (coreOnly) {
         cp->valuator->lastx = x;
         cp->valuator->lasty = y;
     }
