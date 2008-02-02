@@ -5712,7 +5712,8 @@ InitEvents(void)
 	DontPropagateRefCnts[i] = 0;
     }
 
-    InputEventList = InitEventList(GetMaximumEventsNum());
+    InputEventListLen = GetMaximumEventsNum();
+    InputEventList = InitEventList(InputEventListLen);
     if (!InputEventList)
         FatalError("[dix] Failed to allocate input event list.\n");
 }

@@ -75,6 +75,7 @@ extern Bool XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies);
  * Get{Pointer|Keyboard}Events.
  */
 EventListPtr InputEventList = NULL;
+int InputEventListLen = 0;
 
 _X_EXPORT EventListPtr
 GetEventList()
@@ -596,6 +597,29 @@ InitEventList(int num_events)
     }
 
     return events;
+}
+
+/**
+ * Allocs min_size memory for each event in the list.
+ */
+_X_EXPORT void
+SetMinimumEventSize(EventListPtr list, int num_events, int min_size)
+{
+    if (!list)
+        return;
+
+    while(num_events--)
+    {
+        if (list[num_events].evlen < min_size)
+        {
+            list[num_events].event = realloc(list[num_events].event, min_size);
+            if (!list[num_events].event)
+            {
+                FatalError("[dix] Failed to set event list's "
+                        "min_size to %d.\n", min_size);
+            }
+        }
+    }
 }
 
 /**

@@ -96,6 +96,7 @@ typedef struct _EventList {
 
 /* The DIX stores incoming input events in this list */
 extern EventListPtr InputEventList;
+extern int InputEventListLen;
 
 typedef int (*DeviceProc)(
     DeviceIntPtr /*device*/,
@@ -400,6 +401,9 @@ extern int GetMaximumEventsNum(void);
 
 extern EventListPtr GetEventList();
 extern EventListPtr InitEventList(int num_events);
+extern void SetMinimumEventSize(EventListPtr list,
+                                int num_events,
+                                int min_size);
 extern void FreeEventList(EventListPtr list, int num_events);
 
 extern void CreateClassesChangedEvent(EventListPtr event, 
