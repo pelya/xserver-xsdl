@@ -459,7 +459,7 @@ Bool 		append = False;
     rule->types= _XkbDupString(tmp.name[TYPES]);
     rule->compat= _XkbDupString(tmp.name[COMPAT]);
     rule->geometry= _XkbDupString(tmp.name[GEOMETRY]);
-    rule->keymap= _XkbDupString(tmp.name[KEYMAP]);
+    rule->keymap= NULL;
 
     rule->layout_num = rule->variant_num = 0;
     for (i = 0; i < nread; i++) {
@@ -589,7 +589,6 @@ XkbRF_ApplyRule(	XkbRF_RulePtr 		rule,
     Apply(rule->types,    &names->types);
     Apply(rule->compat,   &names->compat);
     Apply(rule->geometry, &names->geometry);
-    Apply(rule->keymap,   &names->keymap);
 }
 
 static Bool
@@ -1279,7 +1278,6 @@ XkbRF_GroupPtr	group;
 	    if (rule->types)	_XkbFree(rule->types);
 	    if (rule->compat)	_XkbFree(rule->compat);
 	    if (rule->geometry)	_XkbFree(rule->geometry);
-	    if (rule->keymap)	_XkbFree(rule->keymap);
 	    bzero((char *)rule,sizeof(XkbRF_RuleRec));
 	}
 	_XkbFree(rules->rules);

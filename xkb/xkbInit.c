@@ -591,7 +591,7 @@ XkbRF_VarDefsRec	defs;
      * generation. Eventually they will be freed at the end of this
      * function.
      */
-    if (names->keymap) names->keymap = _XkbDupString(names->keymap);
+    names->keymap = NULL;
     if (names->keycodes) names->keycodes = _XkbDupString(names->keycodes);
     if (names->types) names->types = _XkbDupString(names->types);
     if (names->compat) names->compat = _XkbDupString(names->compat);
@@ -602,11 +602,6 @@ XkbRF_VarDefsRec	defs;
 	XkbComponentNamesRec	rNames;
 	bzero(&rNames,sizeof(XkbComponentNamesRec));
 	if (XkbDDXNamesFromRules(dev,rules,&defs,&rNames)) {
-	    if (rNames.keymap) {
-		if (!names->keymap)
-		    names->keymap = rNames.keymap;
-		else _XkbFree(rNames.keymap);
-	    }
 	    if (rNames.keycodes) {
 		if (!names->keycodes)
 		    names->keycodes =  rNames.keycodes;
@@ -637,16 +632,8 @@ XkbRF_VarDefsRec	defs;
 	}
     }
 
-    if (names->keymap) {
-        XkbComponentNamesRec	tmpNames;
-	bzero(&tmpNames,sizeof(XkbComponentNamesRec));
-	tmpNames.keymap = names->keymap;
-        ok = (Bool) XkbDDXLoadKeymapByNames(dev,&tmpNames,XkmAllIndicesMask,0,
-					    &finfo,name,PATH_MAX);
-    }
-    if (!(ok && (finfo.xkb!=NULL)))
-        ok = (Bool) XkbDDXLoadKeymapByNames(dev,names,XkmAllIndicesMask,0,
-					    &finfo,name,PATH_MAX);
+    ok = (Bool) XkbDDXLoadKeymapByNames(dev,names,XkmAllIndicesMask,0,
+                                        &finfo,name,PATH_MAX);
 
     if (ok && (finfo.xkb!=NULL)) {
 	XkbDescPtr	xkb;
@@ -694,8 +681,6 @@ XkbRF_VarDefsRec	defs;
 	pSyms->map= NULL;
     }
 
-    if (names->keymap) _XkbFree(names->keymap);
-    names->keymap = NULL;
     if (names->keycodes) _XkbFree(names->keycodes);
     names->keycodes = NULL;
     if (names->types) _XkbFree(names->types);

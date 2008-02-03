@@ -5157,25 +5157,20 @@ ProcXkbGetKbdByName(ClientPtr client)
     if (stuff->load)
 	 fwant= XkbGBN_AllComponentsMask;
     else fwant= stuff->want|stuff->need;
-    if (!names.keymap) {
-	if ((!names.compat)&&
-    		(fwant&(XkbGBN_CompatMapMask|XkbGBN_IndicatorMapMask))) {
-	    names.compat= _XkbDupString("%");
-	}
-	if ((!names.types)&&(fwant&(XkbGBN_TypesMask))) {
-	    names.types= _XkbDupString("%");
-	}
-	if ((!names.symbols)&&(fwant&XkbGBN_SymbolsMask)) {
-	    names.symbols= _XkbDupString("%");
-	}
-	geom_changed= ((names.geometry!=NULL)&&(strcmp(names.geometry,"%")!=0));
-	if ((!names.geometry)&&(fwant&XkbGBN_GeometryMask)) {
-	    names.geometry= _XkbDupString("%");
-	    geom_changed= False;
-	}
+    if ((!names.compat)&&
+        (fwant&(XkbGBN_CompatMapMask|XkbGBN_IndicatorMapMask))) {
+        names.compat= _XkbDupString("%");
     }
-    else {
-	geom_changed= True;
+    if ((!names.types)&&(fwant&(XkbGBN_TypesMask))) {
+        names.types= _XkbDupString("%");
+    }
+    if ((!names.symbols)&&(fwant&XkbGBN_SymbolsMask)) {
+        names.symbols= _XkbDupString("%");
+    }
+    geom_changed= ((names.geometry!=NULL)&&(strcmp(names.geometry,"%")!=0));
+    if ((!names.geometry)&&(fwant&XkbGBN_GeometryMask)) {
+        names.geometry= _XkbDupString("%");
+        geom_changed= False;
     }
 
     bzero(mapFile,PATH_MAX);

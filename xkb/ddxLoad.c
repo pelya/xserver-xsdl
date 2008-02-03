@@ -178,74 +178,6 @@ OutputDirectory(
     }
 }
 
-static Bool
-XkbDDXCompileNamedKeymap(	XkbDescPtr		xkb,
-				XkbComponentNamesPtr	names,
-				char *			nameRtrn,
-				int			nameRtrnLen)
-{
-char 	*cmd = NULL,file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
-
-    if (names->keymap==NULL)
-	return False;
-    strncpy(file,names->keymap,PATH_MAX); file[PATH_MAX-1]= '\0';
-    if ((map= strrchr(file,'('))!=NULL) {
-	char *tmp;
-	if ((tmp= strrchr(map,')'))!=NULL) {
-	    *map++= '\0';
-	    *tmp= '\0';
-	}
-	else {
-	    map= NULL;
-	}
-    }
-    if ((outFile= strrchr(file,'/'))!=NULL)
-	 outFile= _XkbDupString(&outFile[1]);
-    else outFile= _XkbDupString(file);
-    XkbEnsureSafeMapName(outFile);
-    OutputDirectory(xkm_output_dir, sizeof(xkm_output_dir));
-
-    if (XkbBaseDirectory!=NULL) {
-        char *xkbbasedir = XkbBaseDirectory;
-        char *xkbbindir = XkbBinDirectory;
-
-	cmd = Xprintf("\"%s" PATHSEPARATOR "xkbcomp\" -w %d \"-R%s\" -xkm %s%s -em1 %s -emp %s -eml %s keymap/%s \"%s%s.xkm\"",
-		xkbbindir,
-		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:(int)xkbDebugFlags)),
-		xkbbasedir,(map?"-m ":""),(map?map:""),
-		PRE_ERROR_MSG,ERROR_PREFIX,POST_ERROR_MSG1,file,
-		xkm_output_dir,outFile);
-    }
-    else {
-	cmd = Xprintf("xkbcomp -w %d -xkm %s%s -em1 %s -emp %s -eml %s keymap/%s \"%s%s.xkm\"",
-		((xkbDebugFlags<2)?1:((xkbDebugFlags>10)?10:(int)xkbDebugFlags)),
-		(map?"-m ":""),(map?map:""),
-		PRE_ERROR_MSG,ERROR_PREFIX,POST_ERROR_MSG1,file,
-		xkm_output_dir,outFile);
-    }
-    if (xkbDebugFlags) {
-	DebugF("XkbDDXCompileNamedKeymap compiling keymap using:\n");
-	DebugF("    \"cmd\"\n");
-    }
-    if (System(cmd)==0) {
-	if (nameRtrn) {
-	    strncpy(nameRtrn,outFile,nameRtrnLen);
-	    nameRtrn[nameRtrnLen-1]= '\0';
-	}
-	if (outFile!=NULL)
-	    _XkbFree(outFile);
-        if (cmd!=NULL)
-            xfree(cmd);
-	return True;
-    } 
-    DebugF("Error compiling keymap (%s)\n",names->keymap);
-    if (outFile!=NULL)
-	_XkbFree(outFile);
-    if (cmd!=NULL)
-        xfree(cmd);
-    return False;
-}
-
 static Bool    	
 XkbDDXCompileKeymapByNames(	XkbDescPtr		xkb,
 				XkbComponentNamesPtr	names,
@@ -418,20 +350,7 @@ unsigned	missing;
     if ((names->keycodes==NULL)&&(names->types==NULL)&&
 	(names->compat==NULL)&&(names->symbols==NULL)&&
 	(names->geometry==NULL)) {
-	if (names->keymap==NULL) {
-	    bzero(finfoRtrn,sizeof(XkbFileInfo));
-	    if (xkb && XkbDetermineFileType(finfoRtrn,XkbXKMFile,NULL) &&
-	   				((finfoRtrn->defined&need)==need) ) {
-		finfoRtrn->xkb= xkb;
-		nameRtrn[0]= '\0';
-		return finfoRtrn->defined;
-	    }
-	    return 0;
-	}
-	else if (!XkbDDXCompileNamedKeymap(xkb,names,nameRtrn,nameRtrnLen)) {
-	    DebugF("Couldn't compile keymap file\n");
-	    return 0;
-	}
+        return 0;
     }
     else if (!XkbDDXCompileKeymapByNames(xkb,names,want,need,
 						nameRtrn,nameRtrnLen)){

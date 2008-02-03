@@ -1022,13 +1022,6 @@ extern	Bool XkbDDXApplyConfig(
 	XkbSrvInfoPtr	/* xkbi */
 );
 
-extern void *XkbDDXPreloadConfig(
-	char **			/* rulesFileRtrn */,
-	XkbRF_VarDefsPtr	/* defs */,
-	XkbComponentNamesPtr	/* names */,
-	DeviceIntPtr		/* dev */
-);
-
 extern	int _XkbStrCaseCmp(
 	char *			/* str1 */,
 	char *			/* str2 */
