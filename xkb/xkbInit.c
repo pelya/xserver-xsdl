@@ -280,10 +280,6 @@ XkbSetRulesDflts(char *rulesFile,char *model,char *layout,
 
 /***====================================================================***/
 
-#if defined(luna)
-#define	XKB_DDX_PERMANENT_LOCK	1
-#endif
-
 #include "xkbDflts.h"
 
 static Bool
@@ -390,15 +386,6 @@ Atom		unknown;
 	    names->indicators[LED_COMPOSE-1] = CREATE_ATOM("Compose");
 #endif
     }
-#ifdef DEBUG_RADIO_GROUPS
-    if (names->num_rg<1) {
-	names->radio_groups= (Atom *)_XkbCalloc(RG_COUNT, sizeof(Atom));
-	if (names->radio_groups) {
-	    names->num_rg = RG_COUNT;
-	    names->radio_groups[RG_BOGUS_FUNCTION_GROUP]= CREATE_ATOM("BOGUS");
-	}
-    }
-#endif
     if (xkb->geom!=NULL)
 	 names->geometry= xkb->geom->name;
     else names->geometry= unknown;
@@ -771,9 +758,7 @@ XkbSrvLedInfoPtr	sli;
     sli= XkbFindSrvLedInfo(pXDev,XkbDfltXIClass,XkbDfltXIId,0);
     if (sli && xkbi)
 	XkbCheckIndicatorMaps(xkbi->device,sli,XkbAllIndicatorsMask);
-#ifdef DEBUG
-    else ErrorF("No indicator feedback in XkbFinishInit (shouldn't happen)!\n");
-#endif
+    else DebugF("No indicator feedback in XkbFinishInit (shouldn't happen)!\n");
     return softRepeat;
 }
 

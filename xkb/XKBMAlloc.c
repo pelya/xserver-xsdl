@@ -55,10 +55,8 @@ XkbClientMapPtr map;
 	((!XkbIsLegalKeycode(xkb->min_key_code))||
 	 (!XkbIsLegalKeycode(xkb->max_key_code))||
 	 (xkb->max_key_code<xkb->min_key_code))) {
-#ifdef DEBUG
-fprintf(stderr,"bad keycode (%d,%d) in XkbAllocClientMap\n",
+        DebugF("bad keycode (%d,%d) in XkbAllocClientMap\n",
 				xkb->min_key_code,xkb->max_key_code);
-#endif
 	return BadValue;
     }
 

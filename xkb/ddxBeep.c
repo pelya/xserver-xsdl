@@ -139,10 +139,6 @@ Atom		name;
     next= 0;
     pitch= oldPitch= ctrl->bell_pitch;
     duration= oldDuration= ctrl->bell_duration;
-#ifdef DEBUG
-    if (xkbDebugFlags>1)
-	ErrorF("beep: %d (count= %d)\n",xkbInfo->beepType,xkbInfo->beepCount);
-#endif
     name= None;
     switch (xkbInfo->beepType) {
 	default:

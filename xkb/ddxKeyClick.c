@@ -42,9 +42,5 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 void
 XkbDDXKeyClick(DeviceIntPtr pXDev,int keycode,int synthetic)
 {
-#ifdef DEBUG
-    if (xkbDebugFlags)
-	ErrorF("Click.\n");
-#endif
     return;
 }

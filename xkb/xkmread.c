@@ -40,8 +40,7 @@
 #include "misc.h"
 #include "inputstr.h"
 #include "xkbstr.h"
-#define	 XKBSRV_NEED_FILE_FUNCS
-#include <xkbsrv.h>
+#include "xkbsrv.h"
 #include "xkbgeom.h"
 
 Atom
@@ -51,10 +50,6 @@ XkbInternAtom(Display *dpy,char *str,Bool only_if_exists)
 	return None;
     return MakeAtom(str,strlen(str),!only_if_exists);
 }
-
-#ifndef SEEK_SET
-#define	SEEK_SET 0
-#endif
 
 char *
 _XkbDupString(char *str)
@@ -562,10 +557,8 @@ FindTypeForKey(XkbDescPtr xkb,Atom name,unsigned width,KeySym *syms)
 	register unsigned i;
 	for (i=0;i<xkb->map->num_types;i++) {
 	    if (xkb->map->types[i].name==name) {
-#ifdef DEBUG
 		if (xkb->map->types[i].num_levels!=width)
-		    fprintf(stderr,"Group width mismatch between key and type\n");
-#endif
+		    DebugF("Group width mismatch between key and type\n");
 		return &xkb->map->types[i];
 	    }
 	}
@@ -1086,10 +1079,8 @@ unsigned i,size_toc;
     fread(file_info,SIZEOF(xkmFileInfo),1,file);
     size_toc= file_info->num_toc;
     if (size_toc>max_toc) {
-#ifdef DEBUG
-	fprintf(stderr,"Warning! Too many TOC entries; last %d ignored\n",
+	DebugF("Warning! Too many TOC entries; last %d ignored\n",
 							size_toc-max_toc);
-#endif
 	size_toc= max_toc;
     }
     for (i=0;i<size_toc;i++) {
@@ -1227,11 +1218,7 @@ unsigned		which= need|want;
     if (result->xkb==NULL)
 	result->xkb= XkbAllocKeyboard();
     for (i=0;i<fileInfo.num_toc;i++) {
-#ifdef SEEK_SET
 	fseek(file,toc[i].offset,SEEK_SET);
-#else
-	fseek(file,toc[i].offset,0);
-#endif
 	tmp= fread(&tmpTOC,SIZEOF(xkmSectionInfo),1,file);
 	nRead= tmp*SIZEOF(xkmSectionInfo);
 	if ((tmpTOC.type!=toc[i].type)||(tmpTOC.format!=toc[i].format)||

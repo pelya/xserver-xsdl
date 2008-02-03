@@ -52,14 +52,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <paths.h>
 #endif
 
-#ifndef PATH_MAX
-#ifdef MAXPATHLEN
-#define	PATH_MAX MAXPATHLEN
-#else
-#define	PATH_MAX 1024
-#endif
-#endif
-
 	/*
 	 * If XKM_OUTPUT_DIR specifies a path without a leading slash, it is
 	 * relative to the top-level XKB configuration directory.
@@ -161,44 +153,19 @@ Win32System(const char *cmdline)
 #define System(x) Win32System(x)
 #endif
 
-#ifdef MAKE_XKM_OUTPUT_DIR
-/* Borrow trans_mkdir from Xtransutil.c to more safely make directories */
-# undef X11_t
-# define TRANS_SERVER
-# define PRMSG(lvl,x,a,b,c) \
-	if (lvl <= 1) { LogMessage(X_ERROR,x,a,b,c); } else ((void)0)
-# include <X11/Xtrans/Xtransutil.c>
-# ifndef XKM_OUTPUT_DIR_MODE
-#  define XKM_OUTPUT_DIR_MODE 0755
-# endif
-#endif
-
 static void
 OutputDirectory(
     char* outdir,
     size_t size)
 {
 #ifndef WIN32
-    if (getuid() == 0 && (strlen(XKM_OUTPUT_DIR) < size)
-#ifdef MAKE_XKM_OUTPUT_DIR    
-	&& (trans_mkdir(XKM_OUTPUT_DIR, XKM_OUTPUT_DIR_MODE) == 0)
-#endif
-	)
+    if (getuid() == 0 && (strlen(XKM_OUTPUT_DIR) < size))
     {
 	/* if server running as root it *may* be able to write */
 	/* FIXME: check whether directory is writable at all */
 	(void) strcpy (outdir, XKM_OUTPUT_DIR);
     } else
-#endif
-#ifdef _PATH_VARTMP
-    if ((strlen(_PATH_VARTMP) + 1) < size) 
-    {
-	(void) strcpy (outdir, _PATH_VARTMP);
-	if (outdir[strlen(outdir) - 1] != '/')	/* Hi IBM, Digital */
-	    (void) strcat (outdir, "/");
-    } else
-#endif
-#ifdef WIN32
+#else
     if (strlen(Win32TempDir()) + 1 < size)
     {
 	(void) strcpy(outdir, Win32TempDir());
@@ -256,15 +223,10 @@ char 	*cmd = NULL,file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
 		PRE_ERROR_MSG,ERROR_PREFIX,POST_ERROR_MSG1,file,
 		xkm_output_dir,outFile);
     }
-#ifdef DEBUG
     if (xkbDebugFlags) {
-	ErrorF("XkbDDXCompileNamedKeymap compiling keymap using:\n");
-	ErrorF("    \"cmd\"\n");
+	DebugF("XkbDDXCompileNamedKeymap compiling keymap using:\n");
+	DebugF("    \"cmd\"\n");
     }
-#endif
-#ifdef DEBUG_CMD
-    ErrorF("xkb executes: %s\n",cmd);
-#endif
     if (System(cmd)==0) {
 	if (nameRtrn) {
 	    strncpy(nameRtrn,outFile,nameRtrnLen);
@@ -276,9 +238,7 @@ char 	*cmd = NULL,file[PATH_MAX],xkm_output_dir[PATH_MAX],*map,*outFile;
             xfree(cmd);
 	return True;
     } 
-#ifdef DEBUG
-    ErrorF("Error compiling keymap (%s)\n",names->keymap);
-#endif
+    DebugF("Error compiling keymap (%s)\n",names->keymap);
     if (outFile!=NULL)
 	_XkbFree(outFile);
     if (cmd!=NULL)
@@ -371,12 +331,8 @@ char tmpname[PATH_MAX];
 	if (fclose(out)==0 && System(buf) >= 0)
 #endif
 	{
-#ifdef DEBUG_CMD
-	    ErrorF("xkb executes: %s\n",buf);
-	    ErrorF("xkbcomp input:\n");
-	    XkbWriteXKBKeymapForNames(stderr,names,NULL,xkb,want,need);
-	    ErrorF("end xkbcomp input\n");
-#endif
+            if (xkbDebugFlags)
+                DebugF("xkb executes: %s\n",buf);
 	    if (nameRtrn) {
 		strncpy(nameRtrn,keymap,nameRtrnLen);
 		nameRtrn[nameRtrnLen-1]= '\0';
@@ -385,24 +341,20 @@ char tmpname[PATH_MAX];
                 xfree (buf);
 	    return True;
 	}
-#ifdef DEBUG
 	else
-	    ErrorF("Error compiling keymap (%s)\n",keymap);
-#endif
+	    DebugF("Error compiling keymap (%s)\n",keymap);
 #ifdef WIN32
         /* remove the temporary file */
         unlink(tmpname);
 #endif
     }
-#ifdef DEBUG
     else {
 #ifndef WIN32
-	ErrorF("Could not invoke keymap compiler\n");
+	DebugF("Could not invoke keymap compiler\n");
 #else
-	ErrorF("Could not open file %s\n", tmpname);
+	DebugF("Could not open file %s\n", tmpname);
 #endif
     }
-#endif
     if (nameRtrn)
 	nameRtrn[0]= '\0';
     if (buf != NULL)
@@ -477,17 +429,13 @@ unsigned	missing;
 	    return 0;
 	}
 	else if (!XkbDDXCompileNamedKeymap(xkb,names,nameRtrn,nameRtrnLen)) {
-#ifdef NOISY
-	    ErrorF("Couldn't compile keymap file\n");
-#endif
+	    DebugF("Couldn't compile keymap file\n");
 	    return 0;
 	}
     }
     else if (!XkbDDXCompileKeymapByNames(xkb,names,want,need,
 						nameRtrn,nameRtrnLen)){
-#ifdef NOISY
-	ErrorF("Couldn't compile keymap file\n");
-#endif
+	DebugF("Couldn't compile keymap file\n");
 	return 0;
     }
     file= XkbDDXOpenConfigFile(nameRtrn,fileName,PATH_MAX);
@@ -502,11 +450,9 @@ unsigned	missing;
 	(void) unlink (fileName);
 	return 0;
     }
-#ifdef DEBUG
     else if (xkbDebugFlags) {
-	ErrorF("Loaded %s, defined=0x%x\n",fileName,finfoRtrn->defined);
+	DebugF("Loaded XKB keymap %s, defined=0x%x\n",fileName,finfoRtrn->defined);
     }
-#endif
     fclose(file);
     (void) unlink (fileName);
     return (need|want)&(~missing);

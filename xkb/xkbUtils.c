@@ -211,16 +211,6 @@ KeySym			tsyms[XkbMaxSymsPerKey],*syms;
 XkbMapChangesPtr	mc;
 
     xkb= pXDev->key->xkbInfo->desc;
-#ifdef NOTYET
-    if (first<xkb->min_key_code) {
-	if (first>=XkbMinLegalKeyCode) {
-	    xkb->min_key_code= first;
-	    /* 1/12/95 (ef) -- XXX! should zero out the new maps */
-	    changes->map.changed|= XkbKeycodesMask;
-/* generate a NewKeyboard notify here? */
-	}
-    }
-#endif
     if (first+num-1>xkb->max_key_code) {
 	/* 1/12/95 (ef) -- XXX! should allow XKB structures to grow */
 	num= xkb->max_key_code-first+1;

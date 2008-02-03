@@ -56,11 +56,9 @@ int             xiEvent;
     xkbi= keyc->xkbInfo;
     key= xE->u.u.detail;
     xiEvent= (xE->u.u.type & EXTENSION_EVENT_BASE);
-#ifdef DEBUG
     if (xkbDebugFlags&0x8) {
-	ErrorF("XkbPKE: Key %d %s\n",key,(xE->u.u.type==KeyPress?"down":"up"));
+	DebugF("XkbPKE: Key %d %s\n",key,(xE->u.u.type==KeyPress?"down":"up"));
     }
-#endif
 
     if ( (xkbi->repeatKey==key) && (xE->u.u.type==KeyRelease) &&
 	 ((xkbi->desc->ctrls->enabled_ctrls&XkbRepeatKeysMask)==0) ) {
