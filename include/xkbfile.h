@@ -96,7 +96,6 @@ extern	char *	XkbIndentText(
 );
 
 extern	char *	XkbAtomText(
-    Display *	/* dpy */,
     Atom 	/* atm */,
     unsigned	/* format */
 );
@@ -129,14 +128,12 @@ XkbModMaskText(
 );
 
 extern char *	XkbVModIndexText(
-    Display *	/* dpy */,
     XkbDescPtr	/* xkb */,
     unsigned	/* ndx */,
     unsigned	/* format */
 );
 
 extern	char *	XkbVModMaskText(
-    Display *	/* dpy */,
     XkbDescPtr	/* xkb */,
     unsigned	/* modMask */,
     unsigned	/* mask */,
@@ -189,7 +186,6 @@ extern char *	XkbActionTypeText(
 );
 
 extern char *	XkbActionText(
-    Display *	/* dpy */,
     XkbDescPtr	/* xkb */,
     XkbAction *	/* action */,
     unsigned	/* format */
@@ -232,31 +228,12 @@ extern	Bool	XkbLookupGroupAndLevel(
 
 /***====================================================================***/
 
-extern	char *	XkbAtomGetString(
-    Display *	/* dpy */,
-    Atom 	/* atm */
-);
-
 extern	Atom	XkbInternAtom(
-    Display *	/* dpy */,
     char *	/* name */,
     Bool	/* onlyIfExists */
 );
 
-extern	Status	XkbChangeKbdDisplay(
-    Display *		/* newDpy */,
-    XkbFileInfo *	/* result */
-);
-
-extern	Atom	XkbChangeAtomDisplay(
-    Display *	/* oldDpy */,
-    Display *	/* newDpy */,
-    Atom	/* atm */
-);
-
-extern	void	XkbInitAtoms(
-    Display *	/* dpy */
-);
+extern	void	XkbInitAtoms(void);
 
 /***====================================================================***/
 
@@ -415,7 +392,6 @@ extern	void	XkbEnsureSafeMapName(
 extern	Bool	XkbWriteXKBKeymapForNames(
     FILE *			/* file */,
     XkbComponentNamesPtr	/* names */,
-    Display *			/* dpy */,
     XkbDescPtr			/* xkb */,
     unsigned			/* want */,
     unsigned			/* need */
@@ -430,13 +406,6 @@ extern	Status	XkbMergeFile(
 
 extern Bool	XkmProbe(
     FILE *		/* file */
-);
-
-extern unsigned XkbReadFromServer(
-    Display *		/* dpy */,
-    unsigned		/* need */,
-    unsigned		/* want */,
-    XkbFileInfo *	/* result */
 );
 
 extern unsigned	XkmReadFile(

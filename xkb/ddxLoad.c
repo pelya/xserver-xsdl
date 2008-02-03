@@ -321,10 +321,10 @@ char tmpname[PATH_MAX];
 #ifdef DEBUG
     if (xkbDebugFlags) {
        ErrorF("XkbDDXCompileKeymapByNames compiling keymap:\n");
-       XkbWriteXKBKeymapForNames(stderr,names,NULL,xkb,want,need);
+       XkbWriteXKBKeymapForNames(stderr,names,xkb,want,need);
     }
 #endif
-	XkbWriteXKBKeymapForNames(out,names,NULL,xkb,want,need);
+	XkbWriteXKBKeymapForNames(out,names,xkb,want,need);
 #ifndef WIN32
 	if (Pclose(out)==0)
 #else

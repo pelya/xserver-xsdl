@@ -599,13 +599,6 @@ XkbAllocGeometry(
 	XkbGeometrySizesPtr	/* sizes */
 );
 
-extern	Status
-XkbSetGeometry(
-	Display *		/* dpy */,
-	unsigned		/* deviceSpec */,
-	XkbGeometryPtr		/* geom */
-);
-
 extern	Bool
 XkbComputeShapeTop(
 	XkbShapePtr		/* shape */,
@@ -635,19 +628,6 @@ XkbFindOverlayForKey(
 	XkbGeometryPtr		/* geom */,
 	XkbSectionPtr		/* wanted */,
 	char *			/* under */
-);
-
-extern	Status
-XkbGetGeometry(
-    Display *			/* dpy */,
-    XkbDescPtr			/* xkb */
-);
-
-extern	Status
-XkbGetNamedGeometry(
-    Display *			/* dpy */,
-    XkbDescPtr			/* xkb */,
-    Atom			/* name */
 );
 
 _XFUNCPROTOEND

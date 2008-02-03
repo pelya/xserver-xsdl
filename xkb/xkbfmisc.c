@@ -160,7 +160,6 @@ _AddIncl(	FILE *		file,
 Bool
 XkbWriteXKBKeymapForNames(	FILE *			file,
 				XkbComponentNamesPtr	names,
-				Display *		dpy,
 				XkbDescPtr		xkb,
 				unsigned		want,
 				unsigned		need)
@@ -233,7 +232,7 @@ XkbFileInfo	finfo;
     if ((xkb!=NULL) && (old_names!=NULL)) {
 	if (wantNames&XkmTypesMask) {
 	    if (old_names->types!=None) {
-		tmp= XkbAtomGetString(dpy,old_names->types);
+		tmp= XkbAtomGetString(old_names->types);
 		names->types= _XkbDupString(tmp);
 	    }
 	    else {
@@ -243,7 +242,7 @@ XkbFileInfo	finfo;
 	}
 	if (wantNames&XkmCompatMapMask) {
 	    if (old_names->compat!=None) {
-		tmp= XkbAtomGetString(dpy,old_names->compat);
+		tmp= XkbAtomGetString(old_names->compat);
 		names->compat= _XkbDupString(tmp);
 	    }
 	    else wantDflts|= XkmCompatMapMask;
@@ -252,13 +251,13 @@ XkbFileInfo	finfo;
 	if (wantNames&XkmSymbolsMask) {
 	    if (old_names->symbols==None)
 		return False;
-	    tmp= XkbAtomGetString(dpy,old_names->symbols);
+	    tmp= XkbAtomGetString(old_names->symbols);
 	    names->symbols= _XkbDupString(tmp);
 	    complete|= XkmSymbolsMask; 
 	}
 	if (wantNames&XkmKeyNamesMask) {
 	   if (old_names->keycodes!=None) {
-		tmp= XkbAtomGetString(dpy,old_names->keycodes);
+		tmp= XkbAtomGetString(old_names->keycodes);
 		names->keycodes= _XkbDupString(tmp);
 	    }
 	    else wantDflts|= XkmKeyNamesMask;
@@ -267,7 +266,7 @@ XkbFileInfo	finfo;
 	if (wantNames&XkmGeometryMask) {
 	    if (old_names->geometry==None)
 		return False;
-	    tmp= XkbAtomGetString(dpy,old_names->geometry);
+	    tmp= XkbAtomGetString(old_names->geometry);
 	    names->geometry= _XkbDupString(tmp);
 	    complete|= XkmGeometryMask; 
 	    wantNames&= ~XkmGeometryMask;

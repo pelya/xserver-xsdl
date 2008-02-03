@@ -44,7 +44,7 @@
 #include "xkbgeom.h"
 
 Atom
-XkbInternAtom(Display *dpy,char *str,Bool only_if_exists)
+XkbInternAtom(char *str,Bool only_if_exists)
 {
     if (str==NULL)
 	return None;
@@ -66,18 +66,18 @@ char *new;
 
 /***====================================================================***/
 
-static XPointer
-XkmInsureSize(XPointer oldPtr,int oldCount,int *newCountRtrn,int elemSize)
+static void *
+XkmInsureSize(void *oldPtr,int oldCount,int *newCountRtrn,int elemSize)
 {
 int	newCount= *newCountRtrn;
 
     if (oldPtr==NULL) {
 	if (newCount==0)
 	    return NULL;
-	oldPtr= (XPointer)_XkbCalloc(newCount,elemSize);
+	oldPtr= _XkbCalloc(newCount,elemSize);
     }
     else if (oldCount<newCount) {
-	oldPtr= (XPointer)_XkbRealloc(oldPtr,newCount*elemSize);
+	oldPtr= _XkbRealloc(oldPtr,newCount*elemSize);
 	if (oldPtr!=NULL) {
 	    char *tmp= (char *)oldPtr;
 	    bzero(&tmp[oldCount*elemSize],(newCount-oldCount)*elemSize);
@@ -197,7 +197,7 @@ XkbDescPtr	xkb;
 	char name[100];
 	if (named&bit) {
 	    if (nRead+=XkmGetCountedString(file,name,100)) {
-		xkb->names->vmods[i]= XkbInternAtom(xkb->dpy,name,False);
+		xkb->names->vmods[i]= XkbInternAtom(name,False);
 		if (changes)
 		    changes->names.changed_vmods|= bit;
 	    }
@@ -244,7 +244,7 @@ XkbDescPtr	xkb;
 	return -1;
     }
     if (name[0]!='\0') {
-	xkb->names->keycodes= XkbInternAtom(xkb->dpy,name,False);
+	xkb->names->keycodes= XkbInternAtom(name,False);
     }
 
     for (pN=&xkb->names->keys[minKC],i=minKC;i<=(int)maxKC;i++,pN++) {
@@ -300,7 +300,7 @@ XkbDescPtr		xkb;
 	    _XkbLibError(_XkbErrBadAlloc,"ReadXkmKeyTypes",0);
 	    return -1;
         }
-	xkb->names->types= XkbInternAtom(xkb->dpy,buf,False);
+	xkb->names->types= XkbInternAtom(buf,False);
     }
     num_types= XkmGetCARD16(file,&nRead);
     nRead+= XkmSkipPadding(file,2);
@@ -355,7 +355,7 @@ XkbDescPtr		xkb;
 	   return -1;
 	}
 	if (buf[0]!='\0') {
-	     type->name= XkbInternAtom(xkb->dpy,buf,False);
+	     type->name= XkbInternAtom(buf,False);
 	}
 	else type->name= None;
 
@@ -393,7 +393,7 @@ XkbDescPtr		xkb;
 		    nRead+= tmp;
 		    if (strlen(buf)==0)
 			 type->level_names[n]= None;
-		    else type->level_names[n]= XkbInternAtom(xkb->dpy,buf,0);
+		    else type->level_names[n]= XkbInternAtom(buf,0);
 		}
 	    }
 	}
@@ -437,7 +437,7 @@ XkbCompatMapPtr		compat;
 	    _XkbLibError(_XkbErrBadAlloc,"ReadXkmCompatMap",0);
 	    return -1;
 	}
-	xkb->names->compat= XkbInternAtom(xkb->dpy,name,False);
+	xkb->names->compat= XkbInternAtom(name,False);
     }
     num_si= XkmGetCARD16(file,&nRead);
     groups= XkmGetCARD8(file,&nRead);
@@ -523,7 +523,7 @@ XkbDescPtr		xkb;
 	}
 	nRead+= tmp;
 	if (buf[0]!='\0')
-	     name= XkbInternAtom(xkb->dpy,buf,False);
+	     name= XkbInternAtom(buf,False);
 	else name= None;
 	if ((tmp=fread(&wire,SIZEOF(xkmIndicatorMapDesc),1,file))<1) {
 	    _XkbLibError(_XkbErrBadLength,"ReadXkmIndicators",0);
@@ -600,7 +600,7 @@ XkbDescPtr		xkb;
     }
     if ((buf[0]!='\0')&&(xkb->names)) {
 	Atom name;
-	name= XkbInternAtom(xkb->dpy,buf,0);
+	name= XkbInternAtom(buf,0);
 	xkb->names->symbols= name;
 	xkb->names->phys_symbols= name;
     }
@@ -611,7 +611,7 @@ XkbDescPtr		xkb;
 	    nRead+= tmp;
 	    if ((buf[0]!='\0')&&(xkb->names)) {
 		Atom name;
-		name= XkbInternAtom(xkb->dpy,buf,0);
+		name= XkbInternAtom(buf,0);
 		xkb->names->groups[i]= name;
 	    }	
 	    else xkb->names->groups[i]= None;
@@ -654,7 +654,7 @@ XkbDescPtr		xkb;
 	    for (g=0;g<XkbNumKbdGroups;g++) {
 		if ((wireMap.flags&(1<<g))&&
 			((tmp=XkmGetCountedString(file,buf,100))>0)) {
-		    typeName[g]= XkbInternAtom(xkb->dpy,buf,1);
+		    typeName[g]= XkbInternAtom(buf,1);
 		    nRead+= tmp;
 		}
 		type[g]=FindTypeForKey(xkb,typeName[g],wireMap.width,NULL);
@@ -732,7 +732,6 @@ XkbDescPtr		xkb;
 static int
 ReadXkmGeomDoodad(
     FILE *		file,
-    Display *		dpy,
     XkbGeometryPtr	geom,
     XkbSectionPtr	section)
 {
@@ -745,7 +744,7 @@ int		nRead=0;
     nRead+= XkmGetCountedString(file,buf,100);
     tmp= fread(&doodadWire,SIZEOF(xkmDoodadDesc),1,file);
     nRead+= SIZEOF(xkmDoodadDesc)*tmp;
-    doodad= XkbAddGeomDoodad(geom,section,XkbInternAtom(dpy,buf,False));
+    doodad= XkbAddGeomDoodad(geom,section,XkbInternAtom(buf,False));
     if (!doodad)
 	return nRead;
     doodad->any.type= doodadWire.any.type;
@@ -790,7 +789,6 @@ int		nRead=0;
 
 static int
 ReadXkmGeomOverlay(	FILE *		file,
-			Display *	dpy,
 			XkbGeometryPtr	geom,
 			XkbSectionPtr	section)
 {
@@ -806,7 +804,7 @@ register int		r;
     nRead+= XkmGetCountedString(file,buf,100);
     tmp= fread(&olWire,SIZEOF(xkmOverlayDesc),1,file);
     nRead+= tmp*SIZEOF(xkmOverlayDesc);
-    ol= XkbAddGeomOverlay(section,XkbInternAtom(dpy,buf,False),
+    ol= XkbAddGeomOverlay(section,XkbInternAtom(buf,False),
     							olWire.num_rows);
     if (!ol)
 	return nRead;
@@ -833,7 +831,6 @@ register int		r;
 
 static int
 ReadXkmGeomSection(	FILE *		file,
-			Display *	dpy,
 			XkbGeometryPtr	geom)
 {
 register int	i;
@@ -845,7 +842,7 @@ char		buf[100];
 Atom		nameAtom;
 
     nRead+= XkmGetCountedString(file,buf,100);
-    nameAtom= XkbInternAtom(dpy,buf,False);
+    nameAtom= XkbInternAtom(buf,False);
     tmp= fread(&sectionWire,SIZEOF(xkmSectionDesc),1,file);
     nRead+= SIZEOF(xkmSectionDesc)*tmp;
     section= XkbAddGeomSection(geom,nameAtom,sectionWire.num_rows,
@@ -896,7 +893,7 @@ Atom		nameAtom;
     }
     if (sectionWire.num_doodads>0) {
 	for (i=0;i<sectionWire.num_doodads;i++) {
-	    tmp= ReadXkmGeomDoodad(file,dpy,geom,section);
+	    tmp= ReadXkmGeomDoodad(file,geom,section);
 	    nRead+= tmp;
 	    if (tmp<1)
 		return nRead;
@@ -904,7 +901,7 @@ Atom		nameAtom;
     }
     if (sectionWire.num_overlays>0) {
 	for (i=0;i<sectionWire.num_overlays;i++) {
-	    tmp= ReadXkmGeomOverlay(file,dpy,geom,section);
+	    tmp= ReadXkmGeomOverlay(file,geom,section);
 	    nRead+= tmp;
 	    if (tmp<1)
 		return nRead;
@@ -939,7 +936,7 @@ XkbGeometrySizesRec	sizes;
 	return nRead;
     }
     geom= result->xkb->geom;
-    geom->name= XkbInternAtom(result->xkb->dpy,buf,False);
+    geom->name= XkbInternAtom(buf,False);
     geom->width_mm= wireGeom.width_mm;
     geom->height_mm= wireGeom.height_mm;
     nRead+= XkmGetCountedString(file,buf,100);
@@ -975,7 +972,7 @@ XkbGeometrySizesRec	sizes;
 	    XkbOutlinePtr	ol;
 	    xkmOutlineDesc	olWire;
 	    nRead+= XkmGetCountedString(file,buf,100);
-	    nameAtom= XkbInternAtom(result->xkb->dpy,buf,False);
+	    nameAtom= XkbInternAtom(buf,False);
 	    tmp= fread(&shapeWire,SIZEOF(xkmShapeDesc),1,file);
 	    nRead+= tmp*SIZEOF(xkmShapeDesc);
 	    shape= XkbAddGeomShape(geom,nameAtom,shapeWire.num_outlines);
@@ -1014,7 +1011,7 @@ XkbGeometrySizesRec	sizes;
     }
     if (wireGeom.num_sections>0) {
 	for (i=0;i<wireGeom.num_sections;i++) {
-	    tmp= ReadXkmGeomSection(file,result->xkb->dpy,geom);
+	    tmp= ReadXkmGeomSection(file,geom);
 	    nRead+= tmp;
 	    if (tmp==0)
 		return nRead;
@@ -1022,7 +1019,7 @@ XkbGeometrySizesRec	sizes;
     }
     if (wireGeom.num_doodads>0) {
 	for (i=0;i<wireGeom.num_doodads;i++) {
-	    tmp= ReadXkmGeomDoodad(file,result->xkb->dpy,geom,NULL);
+	    tmp= ReadXkmGeomDoodad(file,geom,NULL);
 	    nRead+= tmp;
 	    if (tmp==0)
 		return nRead;

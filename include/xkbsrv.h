@@ -328,12 +328,10 @@ extern	int	DeviceEnterNotify,DeviceLeaveNotify;
 #define	IsKeypadKey(s)		XkbKSIsKeypad(s)
 
 #define	Status		int
-#define	XPointer	pointer
-#define	Display		struct _XDisplay
 
 #ifndef True
-#define	True	1
-#define	False	0
+#define	True	TRUE
+#define	False	FALSE
 #endif
 
 _XFUNCPROTOBEGIN
@@ -1020,11 +1018,11 @@ extern	Bool XkbDDXNamesFromRules(
 );
 
 extern	Bool XkbDDXApplyConfig(
-	XPointer	/* cfg_in */,
+	void *	/* cfg_in */,
 	XkbSrvInfoPtr	/* xkbi */
 );
 
-extern XPointer XkbDDXPreloadConfig(
+extern void *XkbDDXPreloadConfig(
 	char **			/* rulesFileRtrn */,
 	XkbRF_VarDefsPtr	/* defs */,
 	XkbComponentNamesPtr	/* names */,
@@ -1038,6 +1036,6 @@ extern	int _XkbStrCaseCmp(
 
 _XFUNCPROTOEND
 
-#define	XkbAtomGetString(d,s)	NameForAtom(s)
+#define	XkbAtomGetString(s)	NameForAtom(s)
 
 #endif /* _XKBSRV_H_ */
