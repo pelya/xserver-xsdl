@@ -124,8 +124,6 @@ typedef struct	_XkbEventCause {
 #define	_BEEP_LED_CHANGE	14
 #define	_BEEP_BOUNCE_REJECT	15
 
-struct _XkbSrvInfo; /* definition see below */
-
 typedef struct _XkbFilter {
 	CARD16			  keycode;
 	CARD8			  what;
@@ -317,13 +315,8 @@ extern	int	DeviceKeyPress,DeviceKeyRelease,DeviceMotionNotify;
 extern	int	DeviceButtonPress,DeviceButtonRelease;
 extern	int	DeviceEnterNotify,DeviceLeaveNotify;
 
-#ifdef XINPUT
 #define	_XkbIsPressEvent(t)	(((t)==KeyPress)||((t)==DeviceKeyPress))
 #define	_XkbIsReleaseEvent(t)	(((t)==KeyRelease)||((t)==DeviceKeyRelease))
-#else
-#define	_XkbIsPressEvent(t)	((t)==KeyPress)
-#define	_XkbIsReleaseEvent(t)	((t)==KeyRelease)
-#endif
 
 #define	_XkbCoreKeycodeInRange(c,k)	(((k)>=(c)->curKeySyms.minKeyCode)&&\
 					 ((k)<=(c)->curKeySyms.maxKeyCode))
@@ -341,14 +334,6 @@ extern	int	DeviceEnterNotify,DeviceLeaveNotify;
 #ifndef True
 #define	True	1
 #define	False	0
-#endif
-
-#ifndef PATH_MAX
-#ifdef MAXPATHLEN
-#define	PATH_MAX MAXPATHLEN
-#else
-#define	PATH_MAX 1024
-#endif
 #endif
 
 _XFUNCPROTOBEGIN
@@ -987,10 +972,8 @@ extern void XkbSendNewKeyboardNotify(
 	xkbNewKeyboardNotify *	/* pNKN */
 );
 
-#ifdef XKBSRV_NEED_FILE_FUNCS
-
+#include "xkbfile.h"
 #include <X11/extensions/XKMformat.h>
-#include <X11/extensions/XKBfile.h>
 #include <X11/extensions/XKBrules.h>
 
 #define	_XkbListKeymaps		0
@@ -1052,8 +1035,6 @@ extern	int _XkbStrCaseCmp(
 	char *			/* str1 */,
 	char *			/* str2 */
 );
-
-#endif /* XKBSRV_NEED_FILE_FUNCS */
 
 _XFUNCPROTOEND
 
