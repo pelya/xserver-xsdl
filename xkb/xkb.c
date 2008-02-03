@@ -3870,7 +3870,7 @@ ProcXkbSetNames(ClientPtr client)
 
 /***====================================================================***/
 
-#include <X11/extensions/XKBgeom.h>
+#include "xkbgeom.h"
 
 #define	XkbSizeCountedString(s)  ((s)?((((2+strlen(s))+3)/4)*4):4)
 

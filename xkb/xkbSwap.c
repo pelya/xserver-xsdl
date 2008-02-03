@@ -36,7 +36,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "misc.h"
 #include "inputstr.h"
 #include <xkbsrv.h>
-#include <X11/extensions/XKBstr.h>
+#include "xkbstr.h"
 #include "extnsionst.h"
 #include "xkb.h"
 

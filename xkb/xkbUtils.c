@@ -42,7 +42,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #define	XKBSRV_NEED_FILE_FUNCS
 #include <xkbsrv.h>
-#include <X11/extensions/XKBgeom.h>
+#include "xkbgeom.h"
 #include "xkb.h"
 
 int	XkbDisableLockActions = 0;

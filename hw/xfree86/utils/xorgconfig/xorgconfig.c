@@ -106,7 +106,7 @@
 #include <sys/stat.h>
 
 #include <X11/Xlib.h>
-#include <X11/extensions/XKBstr.h>
+#include "xkbstr.h"
 #include <X11/extensions/XKBrules.h>
 #define MAX_XKBOPTIONS	5
 
