@@ -280,6 +280,30 @@ void GlxSetVisualConfigs(int nconfigs,
      * call it. */
 }
 
+static void
+filterOutNativeConfigs(__GLXscreen *pGlxScreen)
+{
+    __GLcontextModes *m, *next, *native_modes, **last;
+    ScreenPtr pScreen = pGlxScreen->pScreen;
+    int i, depth;
+
+    last = &pGlxScreen->fbconfigs;
+    for (m = pGlxScreen->fbconfigs; m != NULL; m = next) {
+	next = m->next;
+	depth = m->redBits + m->blueBits + m->greenBits;
+
+	for (i = 0; i < pScreen->numVisuals; i++) {
+	    if (pScreen->visuals[i].nplanes == depth) {
+		*last = m;
+		last = &m->next;
+		break;
+	    }
+	}
+    }
+
+    *last = NULL;
+}
+
 static XID
 findVisualForConfig(ScreenPtr pScreen, __GLcontextModes *m)
 {
@@ -512,6 +536,8 @@ void __glXScreenInit(__GLXscreen *pGlxScreen, ScreenPtr pScreen)
  
     pGlxScreen->CloseScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = glxCloseScreen;
+
+    filterOutNativeConfigs(pGlxScreen);
 
     i = 0;
     for (m = pGlxScreen->fbconfigs; m != NULL; m = m->next) {

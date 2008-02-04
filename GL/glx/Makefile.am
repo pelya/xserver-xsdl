@@ -25,6 +25,7 @@ INCLUDES = \
 	-I$(top_srcdir)/hw/xfree86/os-support/bus \
 	-I$(top_srcdir)/hw/xfree86/common \
 	-I$(top_srcdir)/hw/xfree86/dri \
+	-I$(top_srcdir)/hw/xfree86/dri2 \
 	-I$(top_srcdir)/mi
 
 
@@ -36,6 +37,7 @@ nodist_libglx_la_SOURCES = indirect_size.h \
 
 libglxdri_la_SOURCES = \
         glxdri.c \
+        glxdri2.c \
         extension_string.c \
         extension_string.h
 
