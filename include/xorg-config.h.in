@@ -54,6 +54,9 @@
 /* Building DRI-capable DDX. */
 #undef XF86DRI
 
+/* Build DRI2 extension */
+#undef DRI2
+
 /* Solaris 8 or later? */
 #undef __SOL8__
 

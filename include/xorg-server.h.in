@@ -142,6 +142,9 @@
 /* Build DRI extension */
 #undef XF86DRI
 
+/* Build DRI2 extension */
+#undef DRI2
+
 /* Build Xorg server */
 #undef XORGSERVER
 

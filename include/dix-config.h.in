@@ -436,6 +436,9 @@
 
 #undef XEPHYR_DRI
 
+/* Build DRI2 extension */
+#undef DRI2
+
 /* Build DBE support */
 #undef DBE
 

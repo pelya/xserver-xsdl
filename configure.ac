@@ -368,6 +368,7 @@ AM_CONDITIONAL(PPC_VIDEO, [test "x$PPC_VIDEO" = xyes])
 AM_CONDITIONAL(SPARC64_VIDEO, [test "x$SPARC64_VIDEO" = xyes])
 
 DRI=no
+DRI2=no
 KDRIVE_HW=no
 dnl it would be nice to autodetect these *CONS_SUPPORTs
 case $host_os in
@@ -380,6 +381,7 @@ case $host_os in
 	AC_DEFINE(PCVT_SUPPORT, 1, [System has PCVT console])
 	AC_DEFINE(SYSCONS_SUPPORT, 1, [System has syscons console])
 	DRI=yes
+	DRI2=yes
 	;;
   *netbsd*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
@@ -387,6 +389,7 @@ case $host_os in
 	AC_DEFINE(PCVT_SUPPORT, 1, [System has PCVT console])
 	AC_DEFINE(WSCONS_SUPPORT, 1, [System has wscons console])
 	DRI=yes
+	DRI2=yes
 	;;
   *openbsd*)
 	AC_DEFINE(CSRG_BASED, 1, [System is BSD-like])
@@ -395,6 +398,7 @@ case $host_os in
 	;;
   *linux*)
 	DRI=yes
+	DRI2=yes
 	KDRIVE_HW=yes
 	;;
   *solaris*)
@@ -535,6 +539,7 @@ AC_ARG_ENABLE(xdmcp,          AS_HELP_STRING([--disable-xdmcp], [Build XDMCP ext
 AC_ARG_ENABLE(xdm-auth-1,     AS_HELP_STRING([--disable-xdm-auth-1], [Build XDM-Auth-1 extension (default: auto)]), [XDMAUTH=$enableval], [XDMAUTH=auto])
 AC_ARG_ENABLE(glx,            AS_HELP_STRING([--disable-glx], [Build GLX extension (default: enabled)]), [GLX=$enableval], [GLX=yes])
 AC_ARG_ENABLE(dri,            AS_HELP_STRING([--enable-dri], [Build DRI extension (default: auto)]), [DRI=$enableval])
+AC_ARG_ENABLE(dri2,           AS_HELP_STRING([--enable-dri2], [Build DRI2 extension (default: auto)]), [DRI2=$enableval])
 AC_ARG_ENABLE(xinerama,	      AS_HELP_STRING([--disable-xinerama], [Build Xinerama extension (default: enabled)]), [XINERAMA=$enableval], [XINERAMA=yes])
 AC_ARG_ENABLE(xf86vidmode,    AS_HELP_STRING([--disable-xf86vidmode], [Build XF86VidMode extension (default: auto)]), [XF86VIDMODE=$enableval], [XF86VIDMODE=auto])
 AC_ARG_ENABLE(xf86misc,       AS_HELP_STRING([--disable-xf86misc], [Build XF86Misc extension (default: auto)]), [XF86MISC=$enableval], [XF86MISC=auto])
@@ -855,6 +860,14 @@ if test "x$DRI" = xyes; then
 	AC_SUBST(LIBDRM_CFLAGS)
 	AC_SUBST(LIBDRM_LIBS)
 	AC_SUBST(GL_CFLAGS)
+fi
+
+AM_CONDITIONAL(DRI2, test "x$DRI2" = xyes)
+if test "x$DRI2" = xyes; then
+	# FIXME: Bump the versions once we have releases of these.
+	AC_DEFINE(DRI2, 1, [Build DRI2 extension])
+	PKG_CHECK_MODULES([DRIPROTO], [xf86driproto >= 2.0.3])
+	PKG_CHECK_MODULES([LIBDRM], [libdrm >= 2.3.1])
 fi
 
 AM_CONDITIONAL(XINERAMA, [test "x$XINERAMA" = xyes])
@@ -2129,6 +2142,7 @@ hw/xfree86/doc/devel/Makefile
 hw/xfree86/doc/man/Makefile
 hw/xfree86/doc/sgml/Makefile
 hw/xfree86/dri/Makefile
+hw/xfree86/dri2/Makefile
 hw/xfree86/dummylib/Makefile
 hw/xfree86/exa/Makefile
 hw/xfree86/fbdevhw/Makefile
