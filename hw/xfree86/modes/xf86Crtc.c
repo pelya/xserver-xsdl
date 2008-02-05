@@ -1410,9 +1410,12 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 	/*
 	 * Check default modes against monitor max clock
 	 */
-	if (max_clock)
+	if (max_clock) {
 	    xf86ValidateModesClocks(scrn, default_modes,
 				    &min_clock, &max_clock, 1);
+	    xf86ValidateModesClocks(scrn, output_modes,
+				    &min_clock, &max_clock, 1);
+	}
 	
 	output->probed_modes = NULL;
 	output->probed_modes = xf86ModesAdd (output->probed_modes, config_modes);
