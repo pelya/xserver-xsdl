@@ -1362,8 +1362,8 @@ xf86ProbeOutputModes (ScrnInfoPtr scrn, int maxX, int maxY)
 			if (sync_source == sync_default)
 			    sync_source = sync_edid;
 		    }
-		    if (ranges->max_clock > max_clock)
-			max_clock = ranges->max_clock;
+		    if (ranges->max_clock * 1000 > max_clock)
+			max_clock = ranges->max_clock * 1000;
 		}
 	    }
 	}
