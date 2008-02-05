@@ -231,10 +231,14 @@ miPointerWarpCursor (pScreen, x, y)
     ScreenPtr	pScreen;
     int		x, y;
 {
+    BOOL changedScreen = FALSE;
     SetupScreen (pScreen);
 
     if (miPointer.pScreen != pScreen)
+    {
 	(*pScreenPriv->screenFuncs->NewEventScreen) (pScreen, TRUE);
+        changedScreen = TRUE;
+    }
 
     if (GenerateEvent)
     {
@@ -255,7 +259,9 @@ miPointerWarpCursor (pScreen, x, y)
 	miPointer.y = y;
 	miPointer.pScreen = pScreen;
     }
-    UpdateSpriteForScreen (pScreen) ;
+
+    if (changedScreen)
+        UpdateSpriteForScreen (pScreen) ;
 }
 
 /*
