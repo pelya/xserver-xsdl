@@ -1806,6 +1806,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                         return FALSE;
                     dsection->rows = tmp;
                 }
+                dsection->num_rows = ssection->num_rows;
                 for (j = 0, srow = ssection->rows, drow = dsection->rows;
                      j < ssection->num_rows;
                      j++, srow++, drow++) {
