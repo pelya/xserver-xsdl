@@ -1166,7 +1166,7 @@ ProcSELinuxGetPropertyContext(ClientPtr client)
     if (!pProp)
 	return BadValue;
 
-    rc = XaceHook(XACE_PROPERTY_ACCESS, client, pWin, pProp, DixGetAttrAccess);
+    rc = XaceHookPropertyAccess(client, pWin, pProp, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 

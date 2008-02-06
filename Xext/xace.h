@@ -27,6 +27,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "pixmap.h"     /* for DrawablePtr */
 #include "regionstr.h"  /* for RegionPtr */
+#include "window.h"  /* for WindowPtr */
+#include "property.h" /* for PropertyPtr */
 
 /* Default window background */
 #define XaceBackgroundNoneState		None
@@ -65,6 +67,8 @@ extern int XaceHook(
 /* Special-cased hook functions
  */
 extern int XaceHookDispatch(ClientPtr ptr, int major);
+extern int XaceHookPropertyAccess(ClientPtr ptr, WindowPtr pWin,
+				  PropertyPtr pProp, Mask access_mode);
 extern void XaceHookAuditEnd(ClientPtr ptr, int result);
 
 /* Register a callback for a given hook.
@@ -101,11 +105,13 @@ extern void XaceCensorImage(
 #ifdef __GNUC__
 #define XaceHook(args...) Success
 #define XaceHookDispatch(args...) Success
+#define XaceHookPropertyAccess(args...) Success
 #define XaceHookAuditEnd(args...) { ; }
 #define XaceCensorImage(args...) { ; }
 #else
 #define XaceHook(...) Success
 #define XaceHookDispatch(...) Success
+#define XaceHookPropertyAccess(...) Success
 #define XaceHookAuditEnd(...) { ; }
 #define XaceCensorImage(...) { ; }
 #endif

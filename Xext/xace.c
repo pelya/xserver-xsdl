@@ -51,6 +51,14 @@ int XaceHookDispatch(ClientPtr client, int major)
     }
 }
 
+int XaceHookPropertyAccess(ClientPtr client, WindowPtr pWin,
+			   PropertyPtr pProp, Mask access_mode)
+{
+    XacePropertyAccessRec rec = { client, pWin, pProp, access_mode, Success };
+    CallCallbacks(&XaceHooks[XACE_PROPERTY_ACCESS], &rec);
+    return rec.status;
+}
+
 void XaceHookAuditEnd(ClientPtr ptr, int result)
 {
     XaceAuditRec rec = { ptr, result };
@@ -93,18 +101,6 @@ int XaceHook(int hook, ...)
 	    XaceDeviceAccessRec rec = {
 		va_arg(ap, ClientPtr),
 		va_arg(ap, DeviceIntPtr),
-		va_arg(ap, Mask),
-		Success /* default allow */
-	    };
-	    calldata = &rec;
-	    prv = &rec.status;
-	    break;
-	}
-	case XACE_PROPERTY_ACCESS: {
-	    XacePropertyAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, WindowPtr),
-		va_arg(ap, PropertyPtr),
 		va_arg(ap, Mask),
 		Success /* default allow */
 	    };
