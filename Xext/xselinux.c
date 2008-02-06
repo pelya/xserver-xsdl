@@ -22,21 +22,28 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * All rights reserved.
  */
 
+#ifdef HAVE_DIX_CONFIG_H
+#include <dix-config.h>
+#endif
+
+#include <sys/socket.h>
+#include <stdio.h>
+#include <stdarg.h>
+
 #include <selinux/selinux.h>
 #include <selinux/label.h>
 #include <selinux/avc.h>
 
 #include <libaudit.h>
 
-#ifdef HAVE_DIX_CONFIG_H
-#include <dix-config.h>
-#endif
-
 #include <X11/Xatom.h>
 #include "resource.h"
 #include "privates.h"
 #include "registry.h"
 #include "dixstruct.h"
+#include "inputstr.h"
+#include "windowstr.h"
+#include "propertyst.h"
 #include "extnsionst.h"
 #include "scrnintstr.h"
 #include "selection.h"
@@ -46,8 +53,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define TRANS_SERVER
 #include <X11/Xtrans/Xtrans.h>
 #include "../os/osdep.h"
-#include <stdio.h>
-#include <stdarg.h>
 #include "modinit.h"
 
 

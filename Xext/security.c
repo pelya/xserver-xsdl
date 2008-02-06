@@ -29,6 +29,9 @@ in this Software without prior written authorization from The Open Group.
 #endif
 
 #include "scrnintstr.h"
+#include "inputstr.h"
+#include "windowstr.h"
+#include "propertyst.h"
 #include "colormapst.h"
 #include "privates.h"
 #include "registry.h"
