@@ -92,6 +92,7 @@ static int audit_fd;
 /* structure passed to auditing callback */
 typedef struct {
     ClientPtr client;	/* client */
+    DeviceIntPtr dev;	/* device */
     char *command;	/* client's executable path */
     unsigned id;	/* resource id, if any */
     int restype;	/* resource type, if any */
@@ -461,11 +462,15 @@ SELinuxAudit(void *auditdata,
     propertyName = audit->property ? NameForAtom(audit->property) : NULL;
     selectionName = audit->selection ? NameForAtom(audit->selection) : NULL;
 
-    return snprintf(msgbuf, msgbufsize, "%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+    return snprintf(msgbuf, msgbufsize,
+		    "%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
 		    (major >= 0) ? "request=" : "",
 		    (major >= 0) ? LookupRequestName(major, minor) : "",
 		    audit->command ? " comm=" : "",
 		    audit->command ? audit->command : "",
+		    audit->dev ? " xdevice=\"" : "",
+		    audit->dev ? audit->dev->name : "",
+		    audit->dev ? "\"" : "",
 		    audit->id ? " resid=" : "",
 		    audit->id ? idNum : "",
 		    audit->restype ? " restype=" : "",
@@ -504,7 +509,7 @@ SELinuxDevice(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     XaceDeviceAccessRec *rec = calldata;
     SELinuxSubjectRec *subj;
     SELinuxObjectRec *obj;
-    SELinuxAuditRec auditdata = { .client = rec->client };
+    SELinuxAuditRec auditdata = { .client = rec->client, .dev = rec->dev };
     int rc;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
@@ -537,7 +542,7 @@ SELinuxSend(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     XaceSendAccessRec *rec = calldata;
     SELinuxSubjectRec *subj;
     SELinuxObjectRec *obj, ev_sid;
-    SELinuxAuditRec auditdata = { .client = rec->client };
+    SELinuxAuditRec auditdata = { .client = rec->client, .dev = rec->dev };
     security_class_t class;
     int rc, i, type;
 
