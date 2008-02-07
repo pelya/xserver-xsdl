@@ -1733,9 +1733,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         else {
             if (dst->geom->sz_shapes) {
                 xfree(dst->geom->shapes);
-                dst->geom->shapes = NULL;
             }
-            
+            dst->geom->shapes = NULL;
             dst->geom->num_shapes = 0;
             dst->geom->sz_shapes = 0;
         }
@@ -1784,6 +1783,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
             }
 
             dst->geom->num_sections = 0;
+            dst->geom->sections = NULL;
         }
 
         if (src->geom->num_sections) {
@@ -1795,6 +1795,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                 tmp = xalloc(src->geom->num_sections * sizeof(XkbSectionRec));
             if (!tmp)
                 return FALSE;
+            memset(tmp, 0, src->geom->num_sections * sizeof(XkbSectionRec));
             dst->geom->sections = tmp;
             dst->geom->num_sections = src->geom->num_sections;
 
@@ -1831,6 +1832,10 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                         return FALSE;
                     dsection->doodads = tmp;
                 }
+                else {
+                    dsection->doodads = NULL;
+                }
+
                 for (k = 0,
                       sdoodad = ssection->doodads,
                       ddoodad = dsection->doodads;
@@ -1858,9 +1863,9 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         else {
             if (dst->geom->sz_sections) {
                 xfree(dst->geom->sections);
-                dst->geom->sections = NULL;
             }
 
+            dst->geom->sections = NULL;
             dst->geom->num_sections = 0;
             dst->geom->sz_sections = 0;
         }
@@ -1889,6 +1894,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                     }
                 }
             }
+            dst->geom->num_doodads = 0;
+            dst->geom->doodads = NULL;
         }
 
         if (src->geom->num_doodads) {
@@ -1901,7 +1908,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                               sizeof(XkbDoodadRec));
             if (!tmp)
                 return FALSE;
-            bzero(tmp, src->geom->num_doodads * sizeof(XkbDoodadRec));
+            memset(tmp, 0, src->geom->num_doodads * sizeof(XkbDoodadRec));
             dst->geom->doodads = tmp;
 
             dst->geom->sz_doodads = src->geom->num_doodads;
@@ -1930,9 +1937,9 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         else {
             if (dst->geom->sz_doodads) {
                 xfree(dst->geom->doodads);
-                dst->geom->doodads = NULL;
             }
 
+            dst->geom->doodads = NULL;
             dst->geom->num_doodads = 0;
             dst->geom->sz_doodads = 0;
         }
@@ -1960,10 +1967,10 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
             dst->geom->num_key_aliases = dst->geom->sz_key_aliases;
         }
         else {
-            if (dst->geom->sz_key_aliases && dst->geom->key_aliases) {
+            if (dst->geom->key_aliases) {
                 xfree(dst->geom->key_aliases);
-                dst->geom->key_aliases = NULL;
             }
+            dst->geom->key_aliases = NULL;
             dst->geom->num_key_aliases = 0;
             dst->geom->sz_key_aliases = 0;
         }
@@ -1994,8 +2001,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         else {
             if (dst->geom->label_font) {
                 xfree(dst->geom->label_font);
-                dst->geom->label_font = NULL;
             }
+            dst->geom->label_font = NULL;
             dst->geom->label_color = NULL;
             dst->geom->base_color = NULL;
         }
