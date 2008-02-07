@@ -61,7 +61,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 /* private state record */
-static DevPrivateKey stateKey = &stateKey;
+static DevPrivateKey subjectKey = &subjectKey;
+static DevPrivateKey objectKey = &objectKey;
 
 /* This is what we store for security state */
 typedef struct {
@@ -69,7 +70,12 @@ typedef struct {
     struct avc_entry_ref aeref;
     char *command;
     int privileged;
-} SELinuxStateRec;
+} SELinuxSubjectRec;
+
+typedef struct {
+    security_id_t sid;
+    int poly;
+} SELinuxObjectRec;
 
 /* selection manager */
 typedef struct {
@@ -155,7 +161,7 @@ static pointer truep = (pointer)1;
  * Looks up the SID corresponding to the given selection atom
  */
 static int
-SELinuxSelectionToSID(Atom selection, SELinuxStateRec *sid_return)
+SELinuxSelectionToSID(Atom selection, SELinuxObjectRec *sid_return)
 {
     const char *name;
     unsigned i, size;
@@ -202,7 +208,7 @@ SELinuxSelectionToSID(Atom selection, SELinuxStateRec *sid_return)
  */
 static int
 SELinuxEventToSID(unsigned type, security_id_t sid_of_window,
-		  SELinuxStateRec *sid_return)
+		  SELinuxObjectRec *sid_return)
 {
     const char *name = LookupEventName(type);
     security_context_t con;
@@ -293,7 +299,7 @@ SELinuxTypeToClass(RESTYPE type)
  * Performs an SELinux permission check.
  */
 static int
-SELinuxDoCheck(SELinuxStateRec *subj, SELinuxStateRec *obj,
+SELinuxDoCheck(SELinuxSubjectRec *subj, SELinuxObjectRec *obj,
 	       security_class_t class, Mask mode, SELinuxAuditRec *auditdata)
 {
     /* serverClient requests OK */
@@ -321,11 +327,14 @@ static void
 SELinuxLabelClient(ClientPtr client)
 {
     XtransConnInfo ci = ((OsCommPtr)client->osPrivate)->trans_conn;
-    SELinuxStateRec *state;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj;
     security_context_t ctx;
 
-    state = dixLookupPrivate(&client->devPrivates, stateKey);
-    sidput(state->sid);
+    subj = dixLookupPrivate(&client->devPrivates, subjectKey);
+    sidput(subj->sid);
+    obj = dixLookupPrivate(&client->devPrivates, objectKey);
+    sidput(obj->sid);
 
     if (_XSERVTransIsLocal(ci)) {
 	int fd = _XSERVTransGetConnectionNumber(ci);
@@ -354,12 +363,12 @@ SELinuxLabelClient(ClientPtr client)
 	if (bytes <= 0)
 	    goto finish;
 
-	state->command = xalloc(bytes);
-	if (!state->command)
+	subj->command = xalloc(bytes);
+	if (!subj->command)
 	    goto finish;
 
-	memcpy(state->command, path, bytes);
-	state->command[bytes - 1] = 0;
+	memcpy(subj->command, path, bytes);
+	subj->command[bytes - 1] = 0;
     } else
 	/* For remote clients, need to use a default context */
 	if (selabel_lookup(label_hnd, &ctx, NULL, SELABEL_X_CLIENT) < 0)
@@ -368,10 +377,12 @@ SELinuxLabelClient(ClientPtr client)
 
 finish:
     /* Get a SID from the context */
-    if (avc_context_to_sid(ctx, &state->sid) < 0)
+    if (avc_context_to_sid(ctx, &subj->sid) < 0)
 	FatalError("Client %d: context_to_sid(%s) failed\n",
 		   client->index, ctx);
 
+    sidget(subj->sid);
+    obj->sid = subj->sid;
     freecon(ctx);
 }
 
@@ -383,23 +394,27 @@ SELinuxLabelInitial(void)
 {
     int i;
     XaceScreenAccessRec srec;
-    SELinuxStateRec *state;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj;
     security_context_t ctx;
     pointer unused;
 
     /* Do the serverClient */
-    state = dixLookupPrivate(&serverClient->devPrivates, stateKey);
-    state->privileged = 1;
-    sidput(state->sid);
+    subj = dixLookupPrivate(&serverClient->devPrivates, subjectKey);
+    obj = dixLookupPrivate(&serverClient->devPrivates, objectKey);
+    subj->privileged = 1;
+    sidput(subj->sid);
 
     /* Use the context of the X server process for the serverClient */
     if (getcon(&ctx) < 0)
 	FatalError("Couldn't get context of X server process\n");
 
     /* Get a SID from the context */
-    if (avc_context_to_sid(ctx, &state->sid) < 0)
+    if (avc_context_to_sid(ctx, &subj->sid) < 0)
 	FatalError("serverClient: context_to_sid(%s) failed\n", ctx);
 
+    sidget(subj->sid);
+    obj->sid = subj->sid;
     freecon(ctx);
 
     srec.client = serverClient;
@@ -487,20 +502,27 @@ static void
 SELinuxDevice(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceDeviceAccessRec *rec = calldata;
-    SELinuxStateRec *subj, *obj;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj;
     SELinuxAuditRec auditdata = { .client = rec->client };
     int rc;
 
-    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
-    obj = dixLookupPrivate(&rec->dev->devPrivates, stateKey);
+    subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
+    obj = dixLookupPrivate(&rec->dev->devPrivates, objectKey);
 
     /* If this is a new object that needs labeling, do it now */
     if (rec->access_mode & DixCreateAccess) {
+	SELinuxSubjectRec *dsubj;
+	dsubj = dixLookupPrivate(&rec->dev->devPrivates, subjectKey);
+
+	sidput(dsubj->sid);
 	sidput(obj->sid);
 
 	/* Label the device directly with the process SID */
 	sidget(subj->sid);
 	obj->sid = subj->sid;
+	sidget(subj->sid);
+	dsubj->sid = subj->sid;
     }
 
     rc = SELinuxDoCheck(subj, obj, SECCLASS_X_DEVICE, rec->access_mode,
@@ -513,17 +535,18 @@ static void
 SELinuxSend(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceSendAccessRec *rec = calldata;
-    SELinuxStateRec *subj, *obj, ev_sid;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj, ev_sid;
     SELinuxAuditRec auditdata = { .client = rec->client };
     security_class_t class;
     int rc, i, type;
 
     if (rec->dev)
-	subj = dixLookupPrivate(&rec->dev->devPrivates, stateKey);
+	subj = dixLookupPrivate(&rec->dev->devPrivates, subjectKey);
     else
-	subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
+	subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
 
-    obj = dixLookupPrivate(&rec->pWin->devPrivates, stateKey);
+    obj = dixLookupPrivate(&rec->pWin->devPrivates, objectKey);
 
     /* Check send permission on window */
     rc = SELinuxDoCheck(subj, obj, SECCLASS_X_DRAWABLE, DixSendAccess,
@@ -554,13 +577,14 @@ static void
 SELinuxReceive(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceReceiveAccessRec *rec = calldata;
-    SELinuxStateRec *subj, *obj, ev_sid;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj, ev_sid;
     SELinuxAuditRec auditdata = { .client = NULL };
     security_class_t class;
     int rc, i, type;
 
-    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
-    obj = dixLookupPrivate(&rec->pWin->devPrivates, stateKey);
+    subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
+    obj = dixLookupPrivate(&rec->pWin->devPrivates, objectKey);
 
     /* Check receive permission on window */
     rc = SELinuxDoCheck(subj, obj, SECCLASS_X_DRAWABLE, DixReceiveAccess,
@@ -591,12 +615,13 @@ static void
 SELinuxExtension(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceExtAccessRec *rec = calldata;
-    SELinuxStateRec *subj, *obj, *serv;
+    SELinuxSubjectRec *subj, *serv;
+    SELinuxObjectRec *obj;
     SELinuxAuditRec auditdata = { .client = rec->client };
     int rc;
 
-    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
-    obj = dixLookupPrivate(&rec->ext->devPrivates, stateKey);
+    subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
+    obj = dixLookupPrivate(&rec->ext->devPrivates, objectKey);
 
     /* If this is a new object that needs labeling, do it now */
     /* XXX there should be a separate callback for this */
@@ -605,9 +630,9 @@ SELinuxExtension(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	security_context_t con;
 	security_id_t sid;
 
-	serv = dixLookupPrivate(&serverClient->devPrivates, stateKey);
+	serv = dixLookupPrivate(&serverClient->devPrivates, subjectKey);
 
-	/* Look in the mappings of property names to contexts */
+	/* Look in the mappings of extension names to contexts */
 	if (selabel_lookup(label_hnd, &con, name, SELABEL_X_EXT) < 0) {
 	    ErrorF("SELinux: a property label lookup failed!\n");
 	    rec->status = BadValue;
@@ -645,12 +670,13 @@ static void
 SELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XacePropertyAccessRec *rec = calldata;
-    SELinuxStateRec *subj, *obj;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj;
     SELinuxAuditRec auditdata = { .client = rec->client };
     int rc;
 
-    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
-    obj = dixLookupPrivate(&rec->pProp->devPrivates, stateKey);
+    subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
+    obj = dixLookupPrivate(&rec->pProp->devPrivates, objectKey);
 
     /* If this is a new object that needs labeling, do it now */
     if (rec->access_mode & DixCreateAccess) {
@@ -696,13 +722,15 @@ static void
 SELinuxResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceResourceAccessRec *rec = calldata;
-    SELinuxStateRec *subj, *obj, *pobj;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj, *sobj, *pobj;
     SELinuxAuditRec auditdata = { .client = rec->client };
     PrivateRec **privatePtr;
     security_class_t class;
     int rc, offset;
 
-    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
+    subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
+    sobj = dixLookupPrivate(&rec->client->devPrivates, objectKey);
 
     /* Determine if the resource object has a devPrivates field */
     offset = dixLookupPrivateOffset(rec->rtype);
@@ -710,12 +738,12 @@ SELinuxResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	/* No: use the SID of the owning client */
 	class = SECCLASS_X_RESOURCE;
 	privatePtr = &clients[CLIENT_ID(rec->id)]->devPrivates;
-	obj = dixLookupPrivate(privatePtr, stateKey);
+	obj = dixLookupPrivate(privatePtr, objectKey);
     } else {
 	/* Yes: use the SID from the resource object itself */
 	class = SELinuxTypeToClass(rec->rtype);
 	privatePtr = DEVPRIV_AT(rec->res, offset);
-	obj = dixLookupPrivate(privatePtr, stateKey);
+	obj = dixLookupPrivate(privatePtr, objectKey);
     }
 
     /* If this is a new object that needs labeling, do it now */
@@ -724,10 +752,10 @@ SELinuxResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	    offset = dixLookupPrivateOffset(rec->ptype);
 	if (rec->parent && offset >= 0)
 	    /* Use the SID of the parent object in the labeling operation */
-	    pobj = dixLookupPrivate(DEVPRIV_AT(rec->parent, offset), stateKey);
+	    pobj = dixLookupPrivate(DEVPRIV_AT(rec->parent, offset), objectKey);
 	else
 	    /* Use the SID of the subject */
-	    pobj = subj;
+	    pobj = sobj;
 
 	sidput(obj->sid);
 
@@ -751,13 +779,14 @@ static void
 SELinuxScreen(CallbackListPtr *pcbl, pointer is_saver, pointer calldata)
 {
     XaceScreenAccessRec *rec = calldata;
-    SELinuxStateRec *subj, *obj;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj;
     SELinuxAuditRec auditdata = { .client = rec->client };
     Mask access_mode = rec->access_mode;
     int rc;
 
-    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
-    obj = dixLookupPrivate(&rec->screen->devPrivates, stateKey);
+    subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
+    obj = dixLookupPrivate(&rec->screen->devPrivates, objectKey);
 
     /* If this is a new object that needs labeling, do it now */
     if (access_mode & DixCreateAccess) {
@@ -784,12 +813,13 @@ static void
 SELinuxClient(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceClientAccessRec *rec = calldata;
-    SELinuxStateRec *subj, *obj;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj;
     SELinuxAuditRec auditdata = { .client = rec->client };
     int rc;
 
-    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
-    obj = dixLookupPrivate(&rec->target->devPrivates, stateKey);
+    subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
+    obj = dixLookupPrivate(&rec->target->devPrivates, objectKey);
 
     rc = SELinuxDoCheck(subj, obj, SECCLASS_X_CLIENT, rec->access_mode,
 			&auditdata);
@@ -801,12 +831,13 @@ static void
 SELinuxServer(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceServerAccessRec *rec = calldata;
-    SELinuxStateRec *subj, *obj;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj;
     SELinuxAuditRec auditdata = { .client = rec->client };
     int rc;
 
-    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
-    obj = dixLookupPrivate(&serverClient->devPrivates, stateKey);
+    subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
+    obj = dixLookupPrivate(&serverClient->devPrivates, objectKey);
 
     rc = SELinuxDoCheck(subj, obj, SECCLASS_X_SERVER, rec->access_mode,
 			&auditdata);
@@ -818,11 +849,12 @@ static void
 SELinuxSelection(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     XaceSelectionAccessRec *rec = (XaceSelectionAccessRec *)calldata;
-    SELinuxStateRec *subj, sel_sid;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec sel_sid;
     SELinuxAuditRec auditdata = { .client = rec->client };
     int rc;
 
-    subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
+    subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
 
     rc = SELinuxSelectionToSID(rec->name, &sel_sid);
     if (rc != Success) {
@@ -869,18 +901,19 @@ static void
 SELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     ResourceStateInfoRec *rec = calldata;
-    SELinuxStateRec *state;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj;
     WindowPtr pWin;
 
     if (rec->type != RT_WINDOW)
 	return;
 
     pWin = (WindowPtr)rec->value;
-    state = dixLookupPrivate(&wClient(pWin)->devPrivates, stateKey);
+    subj = dixLookupPrivate(&wClient(pWin)->devPrivates, subjectKey);
 
-    if (state->sid) {
+    if (subj->sid) {
 	security_context_t ctx;
-	int rc = avc_sid_to_context(state->sid, &ctx);
+	int rc = avc_sid_to_context(subj->sid, &ctx);
 	if (rc < 0)
 	    FatalError("SELinux: Failed to get security context!\n");
 	rc = dixChangeWindowProperty(serverClient,
@@ -892,11 +925,11 @@ SELinuxResourceState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     } else
 	FatalError("SELinux: Unexpected unlabeled client found\n");
 
-    state = dixLookupPrivate(&pWin->devPrivates, stateKey);
+    obj = dixLookupPrivate(&pWin->devPrivates, objectKey);
 
-    if (state->sid) {
+    if (obj->sid) {
 	security_context_t ctx;
-	int rc = avc_sid_to_context(state->sid, &ctx);
+	int rc = avc_sid_to_context(obj->sid, &ctx);
 	if (rc < 0)
 	    FatalError("SELinux: Failed to get security context!\n");
 	rc = dixChangeWindowProperty(serverClient,
@@ -913,7 +946,8 @@ static void
 SELinuxSelectionState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     SelectionInfoRec *rec = calldata;
-    SELinuxStateRec *subj, *obj;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj;
 
     switch (rec->kind) {
     case SelectionSetOwner:
@@ -922,8 +956,8 @@ SELinuxSelectionState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	rec->selection->alt_window = rec->selection->window;
 
 	/* figure out the new label for the content */
-	subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
-	obj = dixLookupPrivate(&rec->selection->devPrivates, stateKey);
+	subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
+	obj = dixLookupPrivate(&rec->selection->devPrivates, objectKey);
 	sidput(obj->sid);
 
 	if (avc_compute_create(subj->sid, subj->sid, SECCLASS_X_SELECTION,
@@ -959,27 +993,47 @@ SELinuxSelectionState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
  */
 
 static void
-SELinuxStateInit(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+SELinuxSubjectInit(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     PrivateCallbackRec *rec = calldata;
-    SELinuxStateRec *state = *rec->value;
+    SELinuxSubjectRec *subj = *rec->value;
 
     sidget(unlabeled_sid);
-    state->sid = unlabeled_sid;
+    subj->sid = unlabeled_sid;
 
-    avc_entry_ref_init(&state->aeref);
+    avc_entry_ref_init(&subj->aeref);
 }
 
 static void
-SELinuxStateFree(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+SELinuxSubjectFree(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     PrivateCallbackRec *rec = calldata;
-    SELinuxStateRec *state = *rec->value;
+    SELinuxSubjectRec *subj = *rec->value;
 
-    xfree(state->command);
+    xfree(subj->command);
 
     if (avc_active)
-	sidput(state->sid);
+	sidput(subj->sid);
+}
+
+static void
+SELinuxObjectInit(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+{
+    PrivateCallbackRec *rec = calldata;
+    SELinuxObjectRec *obj = *rec->value;
+
+    sidget(unlabeled_sid);
+    obj->sid = unlabeled_sid;
+}
+
+static void
+SELinuxObjectFree(CallbackListPtr *pcbl, pointer unused, pointer calldata)
+{
+    PrivateCallbackRec *rec = calldata;
+    SELinuxObjectRec *obj = *rec->value;
+
+    if (avc_active)
+	sidput(obj->sid);
 }
 
 
@@ -1070,7 +1124,8 @@ ProcSELinuxSetDeviceContext(ClientPtr client)
     char *ctx;
     security_id_t sid;
     DeviceIntPtr dev;
-    SELinuxStateRec *state;
+    SELinuxSubjectRec *subj;
+    SELinuxObjectRec *obj;
     int rc;
 
     REQUEST(SELinuxSetContextReq);
@@ -1088,9 +1143,13 @@ ProcSELinuxSetDeviceContext(ClientPtr client)
     if (rc != Success)
 	return BadValue;
 
-    state = dixLookupPrivate(&dev->devPrivates, stateKey);
-    sidput(state->sid);
-    state->sid = sid;
+    subj = dixLookupPrivate(&dev->devPrivates, subjectKey);
+    sidput(subj->sid);
+    subj->sid = sid;
+    obj = dixLookupPrivate(&dev->devPrivates, objectKey);
+    sidput(obj->sid);
+    obj->sid = sid;
+
     return Success;
 }
 
@@ -1099,7 +1158,7 @@ ProcSELinuxGetDeviceContext(ClientPtr client)
 {
     char *ctx;
     DeviceIntPtr dev;
-    SELinuxStateRec *state;
+    SELinuxSubjectRec *subj;
     SELinuxGetContextReply rep;
     int rc;
 
@@ -1110,8 +1169,8 @@ ProcSELinuxGetDeviceContext(ClientPtr client)
     if (rc != Success)
 	return rc;
 
-    state = dixLookupPrivate(&dev->devPrivates, stateKey);
-    rc = avc_sid_to_context(state->sid, &ctx);
+    subj = dixLookupPrivate(&dev->devPrivates, subjectKey);
+    rc = avc_sid_to_context(subj->sid, &ctx);
     if (rc != Success)
 	return BadValue;
 
@@ -1151,7 +1210,7 @@ ProcSELinuxGetPropertyContext(ClientPtr client)
     char *ctx;
     WindowPtr pWin;
     PropertyPtr pProp;
-    SELinuxStateRec *state;
+    SELinuxObjectRec *obj;
     SELinuxGetContextReply rep;
     int rc;
 
@@ -1175,8 +1234,8 @@ ProcSELinuxGetPropertyContext(ClientPtr client)
     if (rc != Success)
 	return rc;
 
-    state = dixLookupPrivate(&pProp->devPrivates, stateKey);
-    rc = avc_sid_to_context(state->sid, &ctx);
+    obj = dixLookupPrivate(&pProp->devPrivates, objectKey);
+    rc = avc_sid_to_context(obj->sid, &ctx);
     if (rc != Success)
 	return BadValue;
 
@@ -1215,7 +1274,7 @@ ProcSELinuxGetWindowContext(ClientPtr client)
 {
     char *ctx;
     WindowPtr pWin;
-    SELinuxStateRec *state;
+    SELinuxObjectRec *obj;
     SELinuxGetContextReply rep;
     int rc;
 
@@ -1226,8 +1285,8 @@ ProcSELinuxGetWindowContext(ClientPtr client)
     if (rc != Success)
 	return rc;
 
-    state = dixLookupPrivate(&pWin->devPrivates, stateKey);
-    rc = avc_sid_to_context(state->sid, &ctx);
+    obj = dixLookupPrivate(&pWin->devPrivates, objectKey);
+    rc = avc_sid_to_context(obj->sid, &ctx);
     if (rc != Success)
 	return BadValue;
 
@@ -1521,7 +1580,8 @@ SELinuxExtensionInit(INITARGS)
 	FatalError("SELinux: Failed to open the system audit log\n");
 
     /* Allocate private storage */
-    if (!dixRequestPrivate(stateKey, sizeof(SELinuxStateRec)))
+    if (!dixRequestPrivate(subjectKey, sizeof(SELinuxSubjectRec)) ||
+	!dixRequestPrivate(objectKey, sizeof(SELinuxObjectRec)))
 	FatalError("SELinux: Failed to allocate private storage.\n");
 
     /* Create atoms for doing window labeling */
@@ -1533,8 +1593,10 @@ SELinuxExtensionInit(INITARGS)
 	FatalError("SELinux: Failed to create atom\n");
 
     /* Register callbacks */
-    ret &= dixRegisterPrivateInitFunc(stateKey, SELinuxStateInit, NULL);
-    ret &= dixRegisterPrivateDeleteFunc(stateKey, SELinuxStateFree, NULL);
+    ret &= dixRegisterPrivateInitFunc(subjectKey, SELinuxSubjectInit, NULL);
+    ret &= dixRegisterPrivateDeleteFunc(subjectKey, SELinuxSubjectFree, NULL);
+    ret &= dixRegisterPrivateInitFunc(objectKey, SELinuxObjectInit, NULL);
+    ret &= dixRegisterPrivateDeleteFunc(objectKey, SELinuxObjectFree, NULL);
 
     ret &= AddCallback(&ClientStateCallback, SELinuxClientState, NULL);
     ret &= AddCallback(&ResourceStateCallback, SELinuxResourceState, NULL);
