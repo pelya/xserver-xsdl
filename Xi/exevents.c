@@ -184,7 +184,10 @@ CopyKeyClass(DeviceIntPtr device, DeviceIntPtr master)
 #ifdef XKB
         if (!noXkbExtension && dk->xkbInfo && dk->xkbInfo->desc) {
             if (!mk->xkbInfo || !mk->xkbInfo->desc)
+            {
                 XkbInitDevice(master);
+                XkbFinishDeviceInit(master);
+            }
             if (!XkbCopyKeymap(dk->xkbInfo->desc, mk->xkbInfo->desc, True))
                 FatalError("Couldn't pivot keymap from device to core!\n");
         }
