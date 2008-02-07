@@ -185,6 +185,42 @@ __glXDRIdrawableDestroy(__GLXdrawable *drawable)
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
 
+    int i;
+
+    for (i = 0; i < screenInfo.numScreens; i++) {
+	__GLXDRIscreen * const screen = (__GLXDRIscreen *)
+	    glxGetScreen(screenInfo.screens[i]);
+
+	GLuint lastOverride = screen->lastTexOffsetOverride;
+
+	if (lastOverride) {
+	    __GLXDRIdrawable **texOffsetOverride = screen->texOffsetOverride;
+	    int i;
+	    
+	    for (i = 0; i < lastOverride; i++) {
+		if (texOffsetOverride[i] == private) {
+		    
+		    texOffsetOverride[i] = NULL;
+		    
+		    if (i + 1 == lastOverride) {
+			lastOverride = 0;
+			
+			while (i--) {
+			    if (texOffsetOverride[i]) {
+				lastOverride = i + 1;
+				break;
+			    }
+			}
+			
+			screen->lastTexOffsetOverride = lastOverride;
+			
+			break;
+		    }
+		}
+	    }
+	}
+    }
+
     (*private->driDrawable.destroyDrawable)(&private->driDrawable);
 
     /* If the X window was destroyed, the dri DestroyWindow hook will
