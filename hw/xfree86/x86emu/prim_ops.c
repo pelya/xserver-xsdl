@@ -102,6 +102,12 @@
 #define	PRIM_OPS_NO_REDEFINE_ASM
 #include "x86emu/x86emui.h"
 
+#if defined(__GNUC__)
+# if defined (__i386__) || defined(__i386) || defined(__AMD64__) || defined(__x86_64__) || defined(__amd64__)
+#  include "x86emu/prim_x86_gcc.h"
+# endif
+#endif
+
 /*------------------------- Global Variables ------------------------------*/
 
 static u32 x86emu_parity_tab[8] =
@@ -2652,5 +2658,65 @@ DB(	if (CHECK_SP_ACCESS())
 	res = (*sys_rdl)(((u32)M.x86.R_SS << 4)  + M.x86.R_SP);
 	M.x86.R_SP += 4;
     return res;
+}
+
+/****************************************************************************
+REMARKS:
+CPUID takes EAX/ECX as inputs, writes EAX/EBX/ECX/EDX as output
+****************************************************************************/
+void cpuid (void)
+{
+    u32 feature = M.x86.R_EAX;
+
+#ifdef X86EMU_HAS_HW_CPUID
+    /* If the platform allows it, we will base our values on the real
+     * results from the CPUID instruction.  We limit support to the
+     * first two features, and the results of those are sanitized.
+     */
+    if (feature <= 1)
+	hw_cpuid(&M.x86.R_EAX, &M.x86.R_EBX, &M.x86.R_ECX, &M.x86.R_EDX);
+#endif
+
+    switch (feature) {
+    case 0:
+        /* Regardless if we have real data from the hardware, the emulator
+	 * will only support upto feature 1, which we set in register EAX.
+	 * Registers EBX:EDX:ECX contain a string identifying the CPU.
+	 */
+        M.x86.R_EAX = 1;
+#ifndef X86EMU_HAS_HW_CPUID
+        /* EBX:EDX:ECX = "GenuineIntel" */
+        M.x86.R_EBX = 0x756e6547;
+        M.x86.R_EDX = 0x49656e69;
+        M.x86.R_ECX = 0x6c65746e;
+#endif
+        break;
+    case 1:
+#ifndef X86EMU_HAS_HW_CPUID
+        /* If we don't have x86 compatible hardware, we return values from an
+	 * Intel 486dx4; which was one of the first processors to have CPUID.
+	 */
+        M.x86.R_EAX = 0x00000480;
+        M.x86.R_EBX = 0x00000000;
+        M.x86.R_ECX = 0x00000000;
+        M.x86.R_EDX = 0x00000002;	/* VME */
+#else
+        /* In the case that we have hardware CPUID instruction, we make sure
+	 * that the features reported are limited to TSC and VME.
+	 */
+        M.x86.R_EDX &= 0x00000012;
+#endif
+        break;
+    default:
+        /* Finally, we don't support any additional features.  Most CPUs
+	 * return all zeros when queried for invalid or unsupported feature
+	 * numbers.
+	 */
+        M.x86.R_EAX = 0;
+        M.x86.R_EBX = 0;
+        M.x86.R_ECX = 0;
+        M.x86.R_EDX = 0;
+        break;
+    }
 }
 
