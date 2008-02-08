@@ -2537,7 +2537,7 @@ ProcFreeColormap(ClientPtr client)
     else 
     {
 	client->errorValue = stuff->id;
-	return rc;
+	return (rc == BadValue) ? BadColor : rc;
     }
 }
 
@@ -2566,7 +2566,7 @@ ProcCopyColormapAndFree(ClientPtr client)
     else
     {
 	client->errorValue = stuff->srcCmap;
-	return rc;
+	return (rc == BadValue) ? BadColor : rc;
     }
 }
 
@@ -2658,7 +2658,7 @@ ProcListInstalledColormaps(ClientPtr client)
     xfree(preply);
     rc = client->noClientException;
 out:
-    return (rc == BadValue) ? BadColor : rc;
+    return rc;
 }
 
 int
