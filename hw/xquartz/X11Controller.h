@@ -37,29 +37,30 @@
 
 @interface X11Controller : NSObject
 {
-    NSPanel *prefs_panel;
+    IBOutlet NSPanel *prefs_panel;
 
-    NSButton *fake_buttons;
-    NSButton *enable_fullscreen;
-    NSButton *use_sysbeep;
-    NSButton *enable_keyequivs;
-    NSButton *sync_keymap;
-    NSButton *enable_auth;
-    NSButton *enable_tcp;
-    NSPopUpButton *depth;
+    IBOutlet NSButton *fake_buttons;
+    IBOutlet NSButton *enable_fullscreen;
+    IBOutlet NSButton *use_sysbeep;
+    IBOutlet NSButton *enable_keyequivs;
+    IBOutlet NSButton *sync_keymap;
+    IBOutlet NSButton *click_through;
+    IBOutlet NSButton *enable_auth;
+    IBOutlet NSButton *enable_tcp;
+    IBOutlet NSPopUpButton *depth;
 
-    NSMenuItem *x11_about_item;
-    NSMenuItem *window_separator;
-    NSMenuItem *dock_window_separator;
-    NSMenuItem *apps_separator;
-    NSMenuItem *toggle_fullscreen_item;
-    NSMenu *dock_apps_menu;
-    NSTableView *apps_table;
+    IBOutlet NSMenuItem *x11_about_item;
+    IBOutlet NSMenuItem *window_separator;
+    IBOutlet NSMenuItem *dock_window_separator;
+    IBOutlet NSMenuItem *apps_separator;
+    IBOutlet NSMenuItem *toggle_fullscreen_item;
+    IBOutlet NSMenu *dock_apps_menu;
+    IBOutlet NSTableView *apps_table;
 
     NSArray *apps;
     NSMutableArray *table_apps;
 
-    NSMenu *dock_menu;
+    IBOutlet NSMenu *dock_menu;
 
     int checked_window_item;
     x_list *pending_apps;
@@ -73,6 +74,25 @@
 - (void) set_apps_menu:(NSArray *)list;
 - (void) set_can_quit:(BOOL)state;
 - (void) server_ready;
+
+- (IBAction) apps_table_show:(id)sender;
+- (IBAction) apps_table_cancel:(id)sender;
+- (IBAction) apps_table_done:(id)sender;
+- (IBAction) apps_table_new:(id)sender;
+- (IBAction) apps_table_duplicate:(id)sender;
+- (IBAction) apps_table_delete:(id)sender;
+- (IBAction) bring_to_front:(id)sender;
+- (IBAction) close_window:(id)sender;
+- (IBAction) minimize_window:(id)sender;
+- (IBAction) zoom_window:(id)sender;
+- (IBAction) next_window:(id)sender;
+- (IBAction) previous_window:(id)sender;
+- (IBAction) enable_fullscreen_changed:(id)sender;
+- (IBAction) toggle_fullscreen:(id)sender;
+- (IBAction) prefs_changed:(id)sender;
+- (IBAction) prefs_show:(id)sender;
+- (IBAction) quit:(id)sender;
+- (IBAction) x11_help:(id)sender;
 
 @end
 
