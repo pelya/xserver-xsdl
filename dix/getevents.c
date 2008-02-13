@@ -258,9 +258,9 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
  */
 _X_EXPORT int
 GetMaximumEventsNum(void) {
-    /* Three base events -- raw event and device, plus valuator events.
+    /* One base event -- device, plus valuator events.
      *  Multiply by two if we're doing non-XKB key repeats. */
-    int ret = 2 + MAX_VALUATOR_EVENTS;
+    int ret = 1 + MAX_VALUATOR_EVENTS;
 
 #ifdef XKB
     if (noXkbExtension)
@@ -628,11 +628,9 @@ _X_EXPORT int
 GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
                  int flags, int first_valuator, int num_valuators,
                  int *valuators) {
-    int num_events = 0, final_valuator = 0, i;
+    int num_events = 0, final_valuator = 0;
     CARD32 ms = 0;
-    CARD32* valptr;
     deviceKeyButtonPointer *kbp = NULL;
-    rawDeviceEvent* ev;
     DeviceIntPtr master;
 
     /* Thanks to a broken lib, we _always_ have to chase DeviceMotionNotifies
@@ -686,35 +684,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     /* You fail. */
     if (first_valuator < 0 || final_valuator > pDev->valuator->numAxes)
         return 0;
-
-    /* fill up the raw event, after checking that it is large enough to
-     * accommodate all valuators.
-     */
-    if (events->evlen <
-            (sizeof(xEvent) + ((num_valuators - 4) * sizeof(CARD32))))
-    {
-        events->evlen = sizeof(xEvent) +
-            ((num_valuators - 4) * sizeof(CARD32));
-        events->event = realloc(events->event, events->evlen);
-        if (!events->event)
-            FatalError("Could not allocate event storage.\n");
-    }
-
-    ev = (rawDeviceEvent*)events->event;
-    ev->type = GenericEvent;
-    ev->evtype = XI_RawDeviceEvent;
-    ev->extension = IReqCode;
-    ev->length = (num_valuators > 4) ? (num_valuators - 4) : 0;
-    ev->event_type = type;
-    ev->buttons = buttons;
-    ev->num_valuators = num_valuators;
-    ev->first_valuator = first_valuator;
-    ev->deviceid = pDev->id;
-    valptr = &(ev->valuator0);
-    for (i = 0; i < num_valuators; i++, valptr++)
-        *valptr = valuators[i];
-
-    events++;
 
     /* Set x and y based on whether this is absolute or relative, and
      * accelerate if we need to. */
