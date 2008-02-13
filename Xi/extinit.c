@@ -86,7 +86,6 @@ SOFTWARE.
 #include "closedev.h"
 #include "extgrbdev.h"
 #include "devbell.h"
-#include "fakedevdata.h"
 #include "getbmap.h"
 #include "getbmap.h"
 #include "getcptr.h"
@@ -338,8 +337,6 @@ ProcIDispatch(ClientPtr client)
         return ProcXGetClientPointer(client);
     else if (stuff->data == X_GetPairedPointer)
         return ProcXGetPairedPointer(client);
-    else if (stuff->data == X_FakeDeviceData)
-        return ProcXFakeDeviceData(client);
     else if (stuff->data == X_ExtendedGrabDevice)
         return ProcXExtendedGrabDevice(client);
     else {
@@ -451,8 +448,6 @@ SProcIDispatch(ClientPtr client)
         return SProcXGetClientPointer(client);
     else if (stuff->data == X_GetPairedPointer)
         return SProcXGetPairedPointer(client);
-    else if (stuff->data == X_FakeDeviceData)
-        return SProcXFakeDeviceData(client);
     else if (stuff->data == X_ExtendedGrabDevice)
         return SProcXExtendedGrabDevice(client);
     else {
@@ -530,9 +525,6 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
     else if (rep->RepType == X_QueryDevicePointer)
 	SRepXQueryDevicePointer(client, len,
 				(xQueryDevicePointerReply *) rep);
-    else if (rep->RepType == X_GrabAccessControl)
-        SRepXGrabAccessControl(client, len,
-                                  (xGrabAccessControlReply*) rep);
     else if (rep->RepType == X_QueryWindowAccess)
         SRepXQueryWindowAccess(client, len,
                                (xQueryWindowAccessReply*) rep);

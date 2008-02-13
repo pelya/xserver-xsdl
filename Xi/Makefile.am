@@ -32,8 +32,6 @@ libXi_la_SOURCES =	\
         extgrbdev.c \
         extgrbdev.h \
 	extinit.c \
-	fakedevdata.c \
-	fakedevdata.h \
 	getbmap.c \
 	getbmap.h \
 	getcptr.c \
