@@ -56,8 +56,6 @@ libXi_la_SOURCES =	\
 	getselev.h \
 	getvers.c \
 	getvers.h \
-        grabacc.c \
-        grabacc.h \
 	grabdev.c \
 	grabdev.h \
 	grabdevb.c \

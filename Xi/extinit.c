@@ -100,7 +100,6 @@ SOFTWARE.
 #include "getselev.h"
 #include "getvers.h"
 #include "getvers.h"
-#include "grabacc.h"
 #include "grabdev.h"
 #include "grabdevb.h"
 #include "grabdevk.h"
@@ -330,8 +329,6 @@ ProcIDispatch(ClientPtr client)
         return (ProcXChangeDeviceHierarchy(client));
     else if (stuff->data == X_XiSelectEvent)
         return (ProcXiSelectEvent(client));
-    else if (stuff->data == X_GrabAccessControl)
-        return (ProcXGrabAccessControl(client));
     else if (stuff->data == X_ChangeWindowAccess)
         return (ProcXChangeWindowAccess(client));
     else if (stuff->data == X_QueryWindowAccess)
@@ -445,8 +442,6 @@ SProcIDispatch(ClientPtr client)
         return (SProcXChangeDeviceHierarchy(client));
     else if (stuff->data == X_XiSelectEvent)
         return (SProcXiSelectEvent(client));
-    else if (stuff->data == X_GrabAccessControl)
-        return (SProcXGrabAccessControl(client));
     else if (stuff->data == X_ChangeWindowAccess)
         return (SProcXChangeWindowAccess(client));
     else if (stuff->data == X_QueryWindowAccess)
