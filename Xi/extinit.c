@@ -138,7 +138,6 @@ Mask ExtExclusiveMasks[EMASKSIZE];
 static Mask xi_filters[4] = {
     XI_DeviceHierarchyChangedMask,
     XI_DeviceClassesChangedMask,
-    XI_RawDeviceEventMask,
 };
 
 static struct dev_type
@@ -676,23 +675,6 @@ SDeviceLeaveNotifyEvent (deviceLeaveNotify *from, deviceLeaveNotify *to)
 }
 
 static void
-SRawDeviceEvent(rawDeviceEvent* from, rawDeviceEvent *to)
-{
-    char n;
-    int i;
-    CARD32* valptr;
-   
-
-    *to = *from;
-    swaps(&to->sequenceNumber, n);
-    swapl(&to->length, n);
-    swapl(&to->evtype, n);
-    valptr = &to->valuator0;
-    for (i = 0; i < from->num_valuators; i++, valptr++)
-        swapl(valptr, n);
-}
-
-static void
 SDeviceClassesChangedEvent(deviceClassesChangedEvent* from,
                            deviceClassesChangedEvent* to)
 {
@@ -1169,9 +1151,6 @@ XIGEEventSwap(xGenericEvent* from, xGenericEvent* to)
     swaps(&from->sequenceNumber, n);
     switch(from->evtype)
     {
-        case XI_RawDeviceEvent:
-            SRawDeviceEvent((rawDeviceEvent*)from, (rawDeviceEvent*)to);
-            break;
         case XI_DeviceClassesChangedNotify:
             SDeviceClassesChangedEvent((deviceClassesChangedEvent*)from,
                                        (deviceClassesChangedEvent*)to);
