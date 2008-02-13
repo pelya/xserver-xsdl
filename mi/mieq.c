@@ -246,11 +246,7 @@ ChangeDeviceID(DeviceIntPtr dev, xEvent* event)
     else if (type == GenericEvent)
     {
         /* FIXME: need to put something into XGE to make this saner */
-        if (GEIsType(event, IReqCode, XI_RawDeviceEvent))
-        {
-            rawDeviceEvent* raw = (rawDeviceEvent*)event;
-            raw->deviceid = dev->id;
-        } else if (GEIsType(event, IReqCode, XI_DeviceClassesChangedNotify))
+        if (GEIsType(event, IReqCode, XI_DeviceClassesChangedNotify))
         {
             // do nothing or drink a beer. your choice.
         } else
