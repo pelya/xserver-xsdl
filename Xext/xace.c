@@ -63,6 +63,13 @@ int XaceHookPropertyAccess(ClientPtr client, WindowPtr pWin,
     return rec.status;
 }
 
+int XaceHookSelectionAccess(ClientPtr client, Atom name, Mask access_mode)
+{
+    XaceSelectionAccessRec rec = { client, name, access_mode, Success };
+    CallCallbacks(&XaceHooks[XACE_SELECTION_ACCESS], &rec);
+    return rec.status;
+}
+
 void XaceHookAuditEnd(ClientPtr ptr, int result)
 {
     XaceAuditRec rec = { ptr, result };
@@ -162,17 +169,6 @@ int XaceHook(int hook, ...)
 	case XACE_SERVER_ACCESS: {
 	    XaceServerAccessRec rec = {
 		va_arg(ap, ClientPtr),
-		va_arg(ap, Mask),
-		Success /* default allow */
-	    };
-	    calldata = &rec;
-	    prv = &rec.status;
-	    break;
-	}
-	case XACE_SELECTION_ACCESS: {
-	    XaceSelectionAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, Atom),
 		va_arg(ap, Mask),
 		Success /* default allow */
 	    };

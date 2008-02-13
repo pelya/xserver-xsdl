@@ -69,6 +69,8 @@ extern int XaceHook(
 extern int XaceHookDispatch(ClientPtr ptr, int major);
 extern int XaceHookPropertyAccess(ClientPtr ptr, WindowPtr pWin,
 				  PropertyPtr pProp, Mask access_mode);
+extern int XaceHookSelectionAccess(ClientPtr ptr, Atom name,
+				   Mask access_mode);
 extern void XaceHookAuditEnd(ClientPtr ptr, int result);
 
 /* Register a callback for a given hook.
@@ -106,12 +108,14 @@ extern void XaceCensorImage(
 #define XaceHook(args...) Success
 #define XaceHookDispatch(args...) Success
 #define XaceHookPropertyAccess(args...) Success
+#define XaceHookSelectionAccess(args...) Success
 #define XaceHookAuditEnd(args...) { ; }
 #define XaceCensorImage(args...) { ; }
 #else
 #define XaceHook(...) Success
 #define XaceHookDispatch(...) Success
 #define XaceHookPropertyAccess(...) Success
+#define XaceHookSelectionAccess(...) Success
 #define XaceHookAuditEnd(...) { ; }
 #define XaceCensorImage(...) { ; }
 #endif

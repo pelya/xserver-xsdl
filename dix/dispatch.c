@@ -995,8 +995,8 @@ ProcSetSelectionOwner(ClientPtr client)
     {
 	int i = 0;
 
-	rc = XaceHook(XACE_SELECTION_ACCESS, client, stuff->selection,
-		      DixSetAttrAccess);
+	rc = XaceHookSelectionAccess(client, stuff->selection,
+				     DixSetAttrAccess);
 	if (rc != Success)
 	    return rc;
 
@@ -1081,8 +1081,7 @@ ProcGetSelectionOwner(ClientPtr client)
 	int rc, i;
         xGetSelectionOwnerReply reply;
 
-	rc = XaceHook(XACE_SELECTION_ACCESS, client, stuff->id,
-		      DixGetAttrAccess);
+	rc = XaceHookSelectionAccess(client, stuff->id, DixGetAttrAccess);
 	if (rc != Success)
 	    return rc;
 
@@ -1127,8 +1126,7 @@ ProcConvertSelection(ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->requestor, client, DixSetAttrAccess);
     if (rc != Success)
         return rc;
-    rc = XaceHook(XACE_SELECTION_ACCESS, client, stuff->selection,
-		  DixReadAccess);
+    rc = XaceHookSelectionAccess(client, stuff->selection, DixReadAccess);
     if (rc != Success)
 	return rc;
 
