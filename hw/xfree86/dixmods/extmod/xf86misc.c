@@ -110,7 +110,8 @@ static unsigned char XF86MiscReqCode = 0;
 #ifdef DEBUG
 # define DEBUG_P(x) ErrorF(x"\n");
 #else
-# define DEBUG_P(x) /**/
+# define DEBUG_P(x) do {} while (0)
+}
 #endif
 
 #define MISCERR(x)	(miscErrorBase + x)
@@ -345,10 +346,10 @@ ProcXF86MiscSetMouseSettings(client)
     ClientVersion(client, &major, &minor);
     
     if (xf86GetVerbosity() > 1) {
-	ErrorF("SetMouseSettings - type: %d brate: %d srate: %d chdmid: %d\n",
+	DEBUG_P("SetMouseSettings - type: %d brate: %d srate: %d chdmid: %d\n",
 		(int)stuff->mousetype, (int)stuff->baudrate,
 		(int)stuff->samplerate, stuff->chordmiddle);
-	ErrorF("                   em3but: %d em3tim: %d res: %d flags: %ld\n",
+	DEBUG_P("                   em3but: %d em3tim: %d res: %d flags: %ld\n",
 		stuff->emulate3buttons, (int)stuff->emulate3timeout,
 		(int)stuff->resolution, (unsigned long)stuff->flags);
     }
@@ -376,7 +377,7 @@ ProcXF86MiscSetMouseSettings(client)
 		return BadAlloc;
 	    strncpy(devname,(char*)(&stuff[1]),stuff->devnamelen);
 	    if (xf86GetVerbosity() > 1)
-		ErrorF("SetMouseSettings - device: %s\n",devname);
+		DEBUG_P("SetMouseSettings - device: %s\n",devname);
 	    MiscExtSetMouseDevice(mouse, devname);
 	}
     }
@@ -395,12 +396,12 @@ ProcXF86MiscSetMouseSettings(client)
         case MISC_RET_BADCOMBO:     return MISCERR(XF86MiscBadMouseCombo);
         case MISC_RET_NOMODULE:     return MISCERR(XF86MiscNoModule);
         default:
-	    ErrorF("Unexpected return from MiscExtApply(POINTER) = %d\n", ret);
+	    DEBUG_P("Unexpected return from MiscExtApply(POINTER) = %d\n", ret);
 	    return BadImplementation;
     }
 
     if (xf86GetVerbosity() > 1)
-	ErrorF("SetMouseSettings - Succeeded\n");
+	DEBUG_P("SetMouseSettings - Succeeded\n");
     return (client->noClientException);
 }
 
@@ -417,7 +418,7 @@ ProcXF86MiscSetKbdSettings(client)
     REQUEST_SIZE_MATCH(xXF86MiscSetKbdSettingsReq);
 
     if (xf86GetVerbosity() > 1)
-	ErrorF("SetKbdSettings - type: %d rate: %d delay: %d snumlk: %d\n",
+	DEBUG_P("SetKbdSettings - type: %d rate: %d delay: %d snumlk: %d\n",
 		(int)stuff->kbdtype, (int)stuff->rate,
 		(int)stuff->delay, stuff->servnumlock);
 
@@ -434,12 +435,12 @@ ProcXF86MiscSetKbdSettings(client)
 	case MISC_RET_BADVAL:       return BadValue;
 	case MISC_RET_BADKBDTYPE:   return MISCERR(XF86MiscBadKbdType);
 	default:
-	    ErrorF("Unexpected return from MiscExtApply(KEYBOARD) = %d\n", ret);
+	    DEBUG_P("Unexpected return from MiscExtApply(KEYBOARD) = %d\n", ret);
 	    return BadImplementation;
     }
 
     if (xf86GetVerbosity() > 1)
-	ErrorF("SetKbdSettings - Succeeded\n");
+	DEBUG_P("SetKbdSettings - Succeeded\n");
     return (client->noClientException);
 }
 
@@ -457,7 +458,7 @@ ProcXF86MiscSetGrabKeysState(client)
 
     if ((status = MiscExtSetGrabKeysState(client, stuff->enable)) == 0) {
 	if (xf86GetVerbosity() > 1)
-	    ErrorF("SetGrabKeysState - %s\n",
+	    DEBUG_P("SetGrabKeysState - %s\n",
 		   stuff->enable ? "enabled" : "disabled");
     }
 
@@ -493,7 +494,7 @@ ProcXF86MiscSetClientVersion(ClientPtr client)
 	M_SETPRIV(client, pPriv);
     }
     if (xf86GetVerbosity() > 1) 
-	    ErrorF("SetClientVersion: %i %i\n",stuff->major,stuff->minor);
+	    DEBUG_P("SetClientVersion: %i %i\n",stuff->major,stuff->minor);
     pPriv->major = stuff->major;
     pPriv->minor = stuff->minor;
     
