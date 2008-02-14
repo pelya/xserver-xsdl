@@ -138,7 +138,7 @@ static struct security_class_mapping map[] = {
     { "x_selection", { "read", "", "", "", "getattr", "setattr", NULL }},
     { "x_cursor", { "read", "write", "destroy", "create", "getattr", "setattr", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "use", NULL }},
     { "x_client", { "", "", "destroy", "", "getattr", "setattr", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "manage", NULL }},
-    { "x_device", { "read", "write", "", "", "getattr", "setattr", "", "", "", "getfocus", "setfocus", "", "", "", "", "", "", "grab", "freeze", "force_cursor", "", "", "", "", "", "manage", "", "bell", NULL }},
+    { "x_device", { "read", "write", "", "", "getattr", "setattr", "", "", "", "getfocus", "setfocus", "", "", "", "", "", "", "grab", "freeze", "force_cursor", "", "", "", "", "use", "manage", "", "bell", NULL }},
     { "x_server", { "record", "", "", "", "getattr", "setattr", "", "", "", "", "", "", "", "", "", "", "", "grab", "", "", "", "", "", "", "", "manage", "debug", NULL }},
     { "x_extension", { "", "", "", "", "query", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "use", NULL }},
     { "x_event", { "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "send", "receive", NULL }},
