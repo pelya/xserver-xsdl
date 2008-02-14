@@ -111,7 +111,6 @@ static unsigned char XF86MiscReqCode = 0;
 # define DEBUG_P(x) ErrorF(x"\n");
 #else
 # define DEBUG_P(x) do {} while (0)
-}
 #endif
 
 #define MISCERR(x)	(miscErrorBase + x)
