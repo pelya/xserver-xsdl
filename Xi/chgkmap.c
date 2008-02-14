@@ -106,7 +106,7 @@ ProcXChangeDeviceKeyMapping(ClientPtr client)
     count = stuff->keyCodes * stuff->keySymsPerKeyCode;
     REQUEST_FIXED_SIZE(xChangeDeviceKeyMappingReq, count * sizeof(CARD32));
 
-    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetAttrAccess);
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixManageAccess);
     if (ret != Success)
 	return ret;
     len = stuff->length - (sizeof(xChangeDeviceKeyMappingReq) >> 2);

@@ -98,7 +98,7 @@ ProcXSetDeviceModifierMapping(ClientPtr client)
     REQUEST(xSetDeviceModifierMappingReq);
     REQUEST_AT_LEAST_SIZE(xSetDeviceModifierMappingReq);
 
-    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetAttrAccess);
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixManageAccess);
     if (ret != Success)
 	return ret;
 

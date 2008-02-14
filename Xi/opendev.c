@@ -106,7 +106,7 @@ ProcXOpenDevice(ClientPtr client)
 	stuff->deviceid == inputInfo.keyboard->id)
 	return BadDevice;
 
-    status = dixLookupDevice(&dev, stuff->deviceid, client, DixReadAccess);
+    status = dixLookupDevice(&dev, stuff->deviceid, client, DixUseAccess);
     if (status == BadDevice) {  /* not open */
 	for (dev = inputInfo.off_devices; dev; dev = dev->next)
 	    if (dev->id == stuff->deviceid)

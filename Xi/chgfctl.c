@@ -444,7 +444,7 @@ ProcXChangeFeedbackControl(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xChangeFeedbackControlReq);
 
     len = stuff->length - (sizeof(xChangeFeedbackControlReq) >> 2);
-    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixSetAttrAccess);
+    rc = dixLookupDevice(&dev, stuff->deviceid, client, DixManageAccess);
     if (rc != Success)
 	return rc;
 

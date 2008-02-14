@@ -211,7 +211,7 @@ ProcXkbSelectEvents(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_ANY_DEVICE(dev, stuff->deviceSpec, client, DixReadAccess);
+    CHK_ANY_DEVICE(dev, stuff->deviceSpec, client, DixUseAccess);
 
     if (((stuff->affectWhich&XkbMapNotifyMask)!=0)&&(stuff->affectMap)) {
 	client->mapNotifyMask&= ~stuff->affectMap;
@@ -694,7 +694,7 @@ ProcXkbSetControls(ClientPtr client)
     if (!(client->xkbClientFlags & _XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixManageAccess);
     CHK_MASK_LEGAL(0x01, stuff->changeCtrls, XkbAllControlsMask);
 
     for (tmpd = inputInfo.keyboard; tmpd; tmpd = tmpd->next) {
@@ -2304,7 +2304,7 @@ ProcXkbSetMap(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixManageAccess);
     CHK_MASK_LEGAL(0x01,stuff->present,XkbAllMapComponentsMask);
 
     XkbSetCauseXkbReq(&cause,X_kbSetMap,client);
@@ -2618,7 +2618,7 @@ ProcXkbSetCompatMap(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixManageAccess);
 
     data = (char *)&stuff[1];
     xkbi = dev->key->xkbInfo;
@@ -4844,7 +4844,7 @@ ProcXkbSetGeometry(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixManageAccess);
     CHK_ATOM_OR_NONE(stuff->name);
 
     xkb= dev->key->xkbInfo->desc;
@@ -5126,7 +5126,7 @@ ProcXkbGetKbdByName(ClientPtr client)
     Bool			geom_changed;
     XkbSrvLedInfoPtr            old_sli;
     XkbSrvLedInfoPtr            sli;
-    Mask access_mode = DixGetAttrAccess | DixSetAttrAccess;
+    Mask access_mode = DixGetAttrAccess | DixManageAccess;
 
     REQUEST(xkbGetKbdByNameReq);
     REQUEST_AT_LEAST_SIZE(xkbGetKbdByNameReq);
@@ -5997,7 +5997,7 @@ xkbExtensionDeviceNotify ed;
 
     change= stuff->change;
 
-    CHK_ANY_DEVICE(dev, stuff->deviceSpec, client, DixSetAttrAccess);
+    CHK_ANY_DEVICE(dev, stuff->deviceSpec, client, DixManageAccess);
     CHK_MASK_LEGAL(0x01,change,XkbXI_AllFeaturesMask);
 
     wire= (char *)&stuff[1];

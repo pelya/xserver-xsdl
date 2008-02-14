@@ -109,7 +109,7 @@ ProcXSetDeviceButtonMapping(ClientPtr client)
     rep.sequenceNumber = client->sequence;
     rep.status = MappingSuccess;
 
-    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetAttrAccess);
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixManageAccess);
     if (ret != Success)
 	return ret;
 

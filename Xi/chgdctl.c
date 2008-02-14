@@ -111,7 +111,7 @@ ProcXChangeDeviceControl(ClientPtr client)
     REQUEST_AT_LEAST_SIZE(xChangeDeviceControlReq);
 
     len = stuff->length - (sizeof(xChangeDeviceControlReq) >> 2);
-    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixSetAttrAccess);
+    ret = dixLookupDevice(&dev, stuff->deviceid, client, DixManageAccess);
     if (ret != Success)
         goto out;
 
