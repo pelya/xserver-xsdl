@@ -62,6 +62,9 @@ Bool DRI2Connect(ScreenPtr pScreen,
 		 int *ddxPatch,
 		 unsigned int *sareaHandle);
 
+unsigned int DRI2GetPixmapHandle(PixmapPtr pPixmap,
+				 unsigned int *flags);
+
 void DRI2Lock(ScreenPtr pScreen);
 void DRI2Unlock(ScreenPtr pScreen);
 

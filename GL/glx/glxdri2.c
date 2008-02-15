@@ -75,6 +75,7 @@ struct __GLXDRIscreen {
 
     __DRIcopySubBufferExtension *copySubBuffer;
     __DRIswapControlExtension *swapControl;
+    __DRItexBufferExtension *texBuffer;
 
     unsigned char glx_enable_bits[__GLX_EXT_BYTES];
 };
@@ -213,6 +214,55 @@ __glXDRIcontextForceCurrent(__GLXcontext *baseContext)
 					      &read->driDrawable);
 }
 
+#ifdef __DRI_TEX_BUFFER
+
+#define isPowerOfTwo(n) (((n) & ((n) - 1 )) == 0)
+
+static int
+__glXDRIbindTexImage(__GLXcontext *baseContext,
+		     int buffer,
+		     __GLXdrawable *glxPixmap)
+{
+    ScreenPtr pScreen = glxPixmap->pDraw->pScreen;
+    __GLXDRIscreen * const screen = (__GLXDRIscreen *) glxGetScreen(pScreen);
+    PixmapPtr pixmap;
+    __GLXDRIcontext *context = (__GLXDRIcontext *) baseContext;
+    unsigned int flags;
+    int w, h, target;
+
+    if (screen->texBuffer == NULL)
+        return Success;
+
+    pixmap = (PixmapPtr) glxPixmap->pDraw;
+    w = pixmap->drawable.width;
+    h = pixmap->drawable.height;
+
+    if (!isPowerOfTwo(w) || !isPowerOfTwo(h))
+	target = GL_TEXTURE_RECTANGLE_ARB;
+    else
+	target = GL_TEXTURE_2D;
+
+    screen->texBuffer->setTexBuffer(&context->driContext,
+				    target,
+				    DRI2GetPixmapHandle(pixmap, &flags),
+				    pixmap->drawable.depth,
+				    pixmap->devKind,
+				    h);
+
+    return Success;
+}
+
+static int
+__glXDRIreleaseTexImage(__GLXcontext *baseContext,
+			int buffer,
+			__GLXdrawable *pixmap)
+{
+    /* FIXME: Just unbind the texture? */
+    return Success;
+}
+
+#else
+
 static int
 __glXDRIbindTexImage(__GLXcontext *baseContext,
 		     int buffer,
@@ -228,6 +278,8 @@ __glXDRIreleaseTexImage(__GLXcontext *baseContext,
 {
     return Success;
 }
+
+#endif
 
 static __GLXtextureFromPixmap __glXDRItextureFromPixmap = {
     __glXDRIbindTexImage,
@@ -432,6 +484,14 @@ initializeExtensions(__GLXDRIscreen *screen)
 				 "GLX_MESA_swap_control");
 	    
 	    LogMessage(X_INFO, "AIGLX: enabled GLX_SGI_swap_control and GLX_MESA_swap_control\n");
+	}
+#endif
+
+#ifdef __DRI_TEX_BUFFER
+	if (strcmp(extensions[i]->name, __DRI_TEX_BUFFER) == 0) {
+	    screen->texBuffer = (__DRItexBufferExtension *) extensions[i];
+	    /* GLX_EXT_texture_from_pixmap is always enabled. */
+	    LogMessage(X_INFO, "AIGLX: GLX_EXT_texture_from_pixmap backed by buffer objects\n");
 	}
 #endif
 	/* Ignore unknown extensions */

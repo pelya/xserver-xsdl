@@ -348,6 +348,14 @@ DRI2Connect(ScreenPtr pScreen, int *fd, const char **driverName,
     return TRUE;
 }
 
+unsigned int
+DRI2GetPixmapHandle(PixmapPtr pPixmap, unsigned int *flags)
+{
+    DRI2ScreenPtr ds = DRI2GetScreen(pPixmap->drawable.pScreen);
+
+    return ds->getPixmapHandle(pPixmap, flags);
+}
+
 static void *
 DRI2SetupSAREA(ScreenPtr pScreen, size_t driverSareaSize)
 {
