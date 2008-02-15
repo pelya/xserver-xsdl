@@ -180,6 +180,41 @@ __glXDRIenterServer(GLboolean rendering)
     DRIWakeupHandler(NULL, 0, NULL);
 }
 
+
+static void
+__glXDRIdoReleaseTexImage(__GLXDRIscreen *screen, __GLXDRIdrawable *drawable)
+{
+    GLuint lastOverride = screen->lastTexOffsetOverride;
+
+    if (lastOverride) {
+	__GLXDRIdrawable **texOffsetOverride = screen->texOffsetOverride;
+	int i;
+
+	for (i = 0; i < lastOverride; i++) {
+	    if (texOffsetOverride[i] == drawable) {
+
+		texOffsetOverride[i] = NULL;
+
+		if (i + 1 == lastOverride) {
+		    lastOverride = 0;
+
+		    while (i--) {
+			if (texOffsetOverride[i]) {
+			    lastOverride = i + 1;
+			    break;
+			}
+		    }
+
+		    screen->lastTexOffsetOverride = lastOverride;
+
+		    break;
+		}
+	    }
+	}
+    }
+}
+
+
 static void
 __glXDRIdrawableDestroy(__GLXdrawable *drawable)
 {
@@ -188,37 +223,9 @@ __glXDRIdrawableDestroy(__GLXdrawable *drawable)
     int i;
 
     for (i = 0; i < screenInfo.numScreens; i++) {
-	__GLXDRIscreen * const screen = (__GLXDRIscreen *)
-	    glxGetScreen(screenInfo.screens[i]);
-
-	GLuint lastOverride = screen->lastTexOffsetOverride;
-
-	if (lastOverride) {
-	    __GLXDRIdrawable **texOffsetOverride = screen->texOffsetOverride;
-	    int i;
-	    
-	    for (i = 0; i < lastOverride; i++) {
-		if (texOffsetOverride[i] == private) {
-		    
-		    texOffsetOverride[i] = NULL;
-		    
-		    if (i + 1 == lastOverride) {
-			lastOverride = 0;
-			
-			while (i--) {
-			    if (texOffsetOverride[i]) {
-				lastOverride = i + 1;
-				break;
-			    }
-			}
-			
-			screen->lastTexOffsetOverride = lastOverride;
-			
-			break;
-		    }
-		}
-	    }
-	}
+	__glXDRIdoReleaseTexImage((__GLXDRIscreen *)
+				  glxGetScreen(screenInfo.screens[i]),
+				  private);
     }
 
     (*private->driDrawable.destroyDrawable)(&private->driDrawable);
@@ -561,41 +568,9 @@ __glXDRIreleaseTexImage(__GLXcontext *baseContext,
 			int buffer,
 			__GLXdrawable *pixmap)
 {
-    ScreenPtr pScreen = pixmap->pDraw->pScreen;
-    __GLXDRIdrawable *driDraw =
-	    containerOf(pixmap, __GLXDRIdrawable, base);
-    __GLXDRIscreen * const screen =
-	(__GLXDRIscreen *) glxGetScreen(pScreen);
-    GLuint lastOverride = screen->lastTexOffsetOverride;
-
-    if (lastOverride) {
-	__GLXDRIdrawable **texOffsetOverride = screen->texOffsetOverride;
-	int i;
-
-	for (i = 0; i < lastOverride; i++) {
-	    if (texOffsetOverride[i] == driDraw) {
-		if (screen->texOffsetFinish)
-		    screen->texOffsetFinish((PixmapPtr)pixmap->pDraw);
-
-		texOffsetOverride[i] = NULL;
-
-		if (i + 1 == lastOverride) {
-		    lastOverride = 0;
-
-		    while (i--) {
-			if (texOffsetOverride[i]) {
-			    lastOverride = i + 1;
-			    break;
-			}
-		    }
-
-		    screen->lastTexOffsetOverride = lastOverride;
-
-		    break;
-		}
-	    }
-	}
-    }
+    __glXDRIdoReleaseTexImage((__GLXDRIscreen *)
+			      glxGetScreen(pixmap->pDraw->pScreen),
+			      containerOf(pixmap, __GLXDRIdrawable, base));
 
     return Success;
 }
