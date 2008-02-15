@@ -3823,8 +3823,14 @@ ChangeWindowDeviceCursor(WindowPtr pWin,
 
         if (!pCursor) /* remove from list */
         {
-            pPrev->next = pNode->next;
+                if(pPrev)
+                    pPrev->next = pNode->next;
+                else
+                    /* first item in list */
+                    pWin->optional->deviceCursors = pNode->next;
+
             xfree(pNode);
+            return Success;
         }
 
     } else
