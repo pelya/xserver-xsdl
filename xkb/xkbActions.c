@@ -843,7 +843,7 @@ _XkbFilterRedirectKey(	XkbSrvInfoPtr	xkbi,
 			unsigned	keycode,
 			XkbAction *	pAction)
 {
-unsigned	realMods;
+unsigned	realMods = 0;
 xEvent 		ev;
 int		x,y;
 XkbStateRec	old;
@@ -1145,7 +1145,7 @@ void
 XkbHandleActions(DeviceIntPtr dev,DeviceIntPtr kbd,xEvent *xE,int count)
 {
 int		key,bit,i;
-CARD8		realMods;
+CARD8		realMods = 0;
 XkbSrvInfoPtr	xkbi;
 KeyClassPtr	keyc;
 int		changed,sendEvent;

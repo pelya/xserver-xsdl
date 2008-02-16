@@ -5109,7 +5109,6 @@ ProcXkbGetKbdByName(ClientPtr client)
 {
     DeviceIntPtr 		dev;
     DeviceIntPtr                tmpd;
-    XkbFileInfo			finfo;
     xkbGetKbdByNameReply 	rep;
     xkbGetMapReply		mrep;
     xkbGetCompatMapReply	crep;
@@ -5117,7 +5116,7 @@ ProcXkbGetKbdByName(ClientPtr client)
     xkbGetNamesReply		nrep;
     xkbGetGeometryReply		grep;
     XkbComponentNamesRec	names;
-    XkbDescPtr			xkb;
+    XkbDescPtr			xkb, new;
     unsigned char *		str;
     char 			mapFile[PATH_MAX];
     unsigned			len;
@@ -5194,35 +5193,35 @@ ProcXkbGetKbdByName(ClientPtr client)
     }
 
     /* We pass dev in here so we can get the old names out if needed. */
-    rep.found = XkbDDXLoadKeymapByNames(dev,&names,fwant,fneed,&finfo,
+    rep.found = XkbDDXLoadKeymapByNames(dev,&names,fwant,fneed,&new,
                                         mapFile,PATH_MAX);
     rep.newKeyboard= False;
     rep.pad1= rep.pad2= rep.pad3= rep.pad4= 0;
 
     stuff->want|= stuff->need;
-    if (finfo.xkb==NULL)
+    if (new==NULL)
 	rep.reported= 0;
     else {
 	if (stuff->load)
 	    rep.loaded= True;
 	if (stuff->load || 
-		((rep.reported&XkbGBN_SymbolsMask) && (finfo.xkb->compat))) {
+		((rep.reported&XkbGBN_SymbolsMask) && (new->compat))) {
 	    XkbChangesRec changes;
 	    bzero(&changes,sizeof(changes));
-	    XkbUpdateDescActions(finfo.xkb,
-			finfo.xkb->min_key_code,XkbNumKeys(finfo.xkb),
+	    XkbUpdateDescActions(new,
+			new->min_key_code,XkbNumKeys(new),
 			&changes);
 	}
 
-	if (finfo.xkb->map==NULL)
+	if (new->map==NULL)
 	    rep.reported&= ~(XkbGBN_SymbolsMask|XkbGBN_TypesMask);
 	else if (rep.reported&(XkbGBN_SymbolsMask|XkbGBN_TypesMask)) {
 	    mrep.type= X_Reply;
 	    mrep.deviceID = dev->id;
 	    mrep.sequenceNumber= client->sequence;
 	    mrep.length = ((SIZEOF(xkbGetMapReply)-SIZEOF(xGenericReply))>>2);
-	    mrep.minKeyCode = finfo.xkb->min_key_code;
-	    mrep.maxKeyCode = finfo.xkb->max_key_code;
+	    mrep.minKeyCode = new->min_key_code;
+	    mrep.maxKeyCode = new->max_key_code;
 	    mrep.present = 0;
 	    mrep.totalSyms = mrep.totalActs =
 		mrep.totalKeyBehaviors= mrep.totalKeyExplicit= 
@@ -5230,7 +5229,7 @@ ProcXkbGetKbdByName(ClientPtr client)
 	    if (rep.reported&(XkbGBN_TypesMask|XkbGBN_ClientSymbolsMask)) {
 		mrep.present|= XkbKeyTypesMask;
 		mrep.firstType = 0;
-		mrep.nTypes = mrep.totalTypes= finfo.xkb->map->num_types;
+		mrep.nTypes = mrep.totalTypes= new->map->num_types;
 	    }
 	    else {
 		mrep.firstType = mrep.nTypes= 0;
@@ -5238,8 +5237,8 @@ ProcXkbGetKbdByName(ClientPtr client)
 	    }
 	    if (rep.reported&XkbGBN_ClientSymbolsMask) {
 		mrep.present|= (XkbKeySymsMask|XkbModifierMapMask);
-		mrep.firstKeySym = mrep.firstModMapKey= finfo.xkb->min_key_code;
-		mrep.nKeySyms = mrep.nModMapKeys= XkbNumKeys(finfo.xkb);
+		mrep.firstKeySym = mrep.firstModMapKey= new->min_key_code;
+		mrep.nKeySyms = mrep.nModMapKeys= XkbNumKeys(new);
 	    }
 	    else {
 		mrep.firstKeySym= mrep.firstModMapKey= 0;
@@ -5249,9 +5248,9 @@ ProcXkbGetKbdByName(ClientPtr client)
 		mrep.present|= XkbAllServerInfoMask;
 		mrep.virtualMods= ~0;
 		mrep.firstKeyAct = mrep.firstKeyBehavior = 
-			mrep.firstKeyExplicit = finfo.xkb->min_key_code;
+			mrep.firstKeyExplicit = new->min_key_code;
 		mrep.nKeyActs = mrep.nKeyBehaviors = 
-			mrep.nKeyExplicit = XkbNumKeys(finfo.xkb);
+			mrep.nKeyExplicit = XkbNumKeys(new);
 	    }
 	    else {
 		mrep.virtualMods= 0;
@@ -5259,10 +5258,10 @@ ProcXkbGetKbdByName(ClientPtr client)
 			mrep.firstKeyExplicit = 0;
 		mrep.nKeyActs= mrep.nKeyBehaviors= mrep.nKeyExplicit= 0;
 	    }
-	    XkbComputeGetMapReplySize(finfo.xkb,&mrep);
+	    XkbComputeGetMapReplySize(new,&mrep);
 	    rep.length+= SIZEOF(xGenericReply)/4+mrep.length;
 	}
-	if (finfo.xkb->compat==NULL)
+	if (new->compat==NULL)
 	    rep.reported&= ~XkbGBN_CompatMapMask;
 	else if (rep.reported&XkbGBN_CompatMapMask) {
 	    crep.type= X_Reply;
@@ -5271,11 +5270,11 @@ ProcXkbGetKbdByName(ClientPtr client)
 	    crep.length= 0;
 	    crep.groups= XkbAllGroupsMask;
 	    crep.firstSI= 0;
-	    crep.nSI= crep.nTotalSI= finfo.xkb->compat->num_si;
-	    XkbComputeGetCompatMapReplySize(finfo.xkb->compat,&crep);
+	    crep.nSI= crep.nTotalSI= new->compat->num_si;
+	    XkbComputeGetCompatMapReplySize(new->compat,&crep);
 	    rep.length+= SIZEOF(xGenericReply)/4+crep.length;
 	}
-	if (finfo.xkb->indicators==NULL)
+	if (new->indicators==NULL)
 	    rep.reported&= ~XkbGBN_IndicatorMapMask;
 	else if (rep.reported&XkbGBN_IndicatorMapMask) {
 	    irep.type= X_Reply;
@@ -5283,28 +5282,28 @@ ProcXkbGetKbdByName(ClientPtr client)
 	    irep.sequenceNumber= client->sequence;
 	    irep.length= 0;
 	    irep.which= XkbAllIndicatorsMask;
-	    XkbComputeGetIndicatorMapReplySize(finfo.xkb->indicators,&irep);
+	    XkbComputeGetIndicatorMapReplySize(new->indicators,&irep);
 	    rep.length+= SIZEOF(xGenericReply)/4+irep.length;
 	}
-	if (finfo.xkb->names==NULL)
+	if (new->names==NULL)
 	    rep.reported&= ~(XkbGBN_OtherNamesMask|XkbGBN_KeyNamesMask);
 	else if (rep.reported&(XkbGBN_OtherNamesMask|XkbGBN_KeyNamesMask)) {
 	    nrep.type= X_Reply;
 	    nrep.deviceID= dev->id;
 	    nrep.sequenceNumber= client->sequence;
 	    nrep.length= 0;
-	    nrep.minKeyCode= finfo.xkb->min_key_code;
-	    nrep.maxKeyCode= finfo.xkb->max_key_code;
+	    nrep.minKeyCode= new->min_key_code;
+	    nrep.maxKeyCode= new->max_key_code;
 	    if (rep.reported&XkbGBN_OtherNamesMask) {
 		nrep.which= XkbAllNamesMask;
-		if (finfo.xkb->map!=NULL)
-		     nrep.nTypes= finfo.xkb->map->num_types;
+		if (new->map!=NULL)
+		     nrep.nTypes= new->map->num_types;
 		else nrep.nTypes= 0;
 		nrep.nKTLevels= 0;
 		nrep.groupNames= XkbAllGroupsMask;
 		nrep.virtualMods= XkbAllVirtualModsMask;
 		nrep.indicators= XkbAllIndicatorsMask;
-		nrep.nRadioGroups= finfo.xkb->names->num_rg;
+		nrep.nRadioGroups= new->names->num_rg;
 	    }
 	    else {
 		nrep.which= 0;
@@ -5317,9 +5316,9 @@ ProcXkbGetKbdByName(ClientPtr client)
 	    }
 	    if (rep.reported&XkbGBN_KeyNamesMask) {
 		nrep.which|= XkbKeyNamesMask;
-		nrep.firstKey= finfo.xkb->min_key_code;
-		nrep.nKeys= XkbNumKeys(finfo.xkb);
-		nrep.nKeyAliases= finfo.xkb->names->num_key_aliases;
+		nrep.firstKey= new->min_key_code;
+		nrep.nKeys= XkbNumKeys(new);
+		nrep.nKeyAliases= new->names->num_key_aliases;
 		if (nrep.nKeyAliases)
 		    nrep.which|= XkbKeyAliasesMask;
 	    }
@@ -5328,10 +5327,10 @@ ProcXkbGetKbdByName(ClientPtr client)
 		nrep.firstKey= nrep.nKeys= 0;
 		nrep.nKeyAliases= 0;
 	    }
-	    XkbComputeGetNamesReplySize(finfo.xkb,&nrep);
+	    XkbComputeGetNamesReplySize(new,&nrep);
 	    rep.length+= SIZEOF(xGenericReply)/4+nrep.length;
 	}
-	if (finfo.xkb->geom==NULL)
+	if (new->geom==NULL)
 	    rep.reported&= ~XkbGBN_GeometryMask;
 	else if (rep.reported&XkbGBN_GeometryMask) {
 	    grep.type= X_Reply;
@@ -5344,7 +5343,7 @@ ProcXkbGetKbdByName(ClientPtr client)
 	    grep.nProperties= grep.nColors= grep.nShapes= 0;
 	    grep.nSections= grep.nDoodads= 0;
 	    grep.baseColorNdx= grep.labelColorNdx= 0;
-	    XkbComputeGetGeometryReplySize(finfo.xkb->geom,&grep,None);
+	    XkbComputeGetGeometryReplySize(new->geom,&grep,None);
 	    rep.length+= SIZEOF(xGenericReply)/4+grep.length;
 	}
     }
@@ -5359,23 +5358,23 @@ ProcXkbGetKbdByName(ClientPtr client)
     }
     WriteToClient(client,SIZEOF(xkbGetKbdByNameReply), (char *)&rep);
     if (reported&(XkbGBN_SymbolsMask|XkbGBN_TypesMask))
-	XkbSendMap(client,finfo.xkb,&mrep);
+	XkbSendMap(client,new,&mrep);
     if (reported&XkbGBN_CompatMapMask)
-	XkbSendCompatMap(client,finfo.xkb->compat,&crep);
+	XkbSendCompatMap(client,new->compat,&crep);
     if (reported&XkbGBN_IndicatorMapMask)
-	XkbSendIndicatorMap(client,finfo.xkb->indicators,&irep);
+	XkbSendIndicatorMap(client,new->indicators,&irep);
     if (reported&(XkbGBN_KeyNamesMask|XkbGBN_OtherNamesMask))
-	XkbSendNames(client,finfo.xkb,&nrep);
+	XkbSendNames(client,new,&nrep);
     if (reported&XkbGBN_GeometryMask)
-	XkbSendGeometry(client,finfo.xkb->geom,&grep,False);
+	XkbSendGeometry(client,new->geom,&grep,False);
     if (rep.loaded) {
 	XkbDescPtr		old_xkb;
 	xkbNewKeyboardNotify 	nkn;
 	int 			i,nG,nTG;
 	old_xkb= xkb;
-	xkb= finfo.xkb;
+	xkb= new;
 	dev->key->xkbInfo->desc= xkb;
-	finfo.xkb= old_xkb; /* so it'll get freed automatically */
+	new= old_xkb; /* so it'll get freed automatically */
 
 	*xkb->ctrls= *old_xkb->ctrls;
 	for (nG=nTG=0,i=xkb->min_key_code;i<=xkb->max_key_code;i++) {
@@ -5419,8 +5418,8 @@ ProcXkbGetKbdByName(ClientPtr client)
         /* this should be either a MN or an NKN, depending on whether or not
          * the keycode range changed? */
 	nkn.deviceID= nkn.oldDeviceID= dev->id;
-	nkn.minKeyCode= finfo.xkb->min_key_code;
-	nkn.maxKeyCode= finfo.xkb->max_key_code;
+	nkn.minKeyCode= new->min_key_code;
+	nkn.maxKeyCode= new->max_key_code;
 	nkn.oldMinKeyCode= xkb->min_key_code;
 	nkn.oldMaxKeyCode= xkb->max_key_code;
 	nkn.requestMajor= XkbReqCode;
@@ -5430,9 +5429,9 @@ ProcXkbGetKbdByName(ClientPtr client)
 	    nkn.changed|= XkbNKN_GeometryMask;
 	XkbSendNewKeyboardNotify(dev,&nkn);
     }
-    if ((finfo.xkb!=NULL)&&(finfo.xkb!=xkb)) {
-	XkbFreeKeyboard(finfo.xkb,XkbAllComponentsMask,True);
-	finfo.xkb= NULL;
+    if ((new!=NULL)&&(new!=xkb)) {
+	XkbFreeKeyboard(new,XkbAllComponentsMask,True);
+	new= NULL;
     }
     if (names.keymap)	{ _XkbFree(names.keymap); names.keymap= NULL; }
     if (names.keycodes)	{ _XkbFree(names.keycodes); names.keycodes= NULL; }

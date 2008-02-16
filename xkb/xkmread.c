@@ -165,14 +165,12 @@ int	count,nRead=0;
 /***====================================================================***/
 
 static int
-ReadXkmVirtualMods(FILE *file,XkbFileInfo *result,XkbChangesPtr changes)
+ReadXkmVirtualMods(FILE *file,XkbDescPtr xkb,XkbChangesPtr changes)
 {
 register unsigned int i,bit;
 unsigned int	bound,named,tmp;
 int		nRead=0;
-XkbDescPtr	xkb;
 
-    xkb= result->xkb;
     if (XkbAllocServerMap(xkb,XkbVirtualModsMask,0)!=Success) {
 	_XkbLibError(_XkbErrBadAlloc,"ReadXkmVirtualMods",0);
 	return -1;
@@ -209,16 +207,14 @@ XkbDescPtr	xkb;
 /***====================================================================***/
 
 static int
-ReadXkmKeycodes(FILE *file,XkbFileInfo *result,XkbChangesPtr changes)
+ReadXkmKeycodes(FILE *file,XkbDescPtr xkb,XkbChangesPtr changes)
 {
 register int	i;
 unsigned	minKC,maxKC,nAl;
 int		nRead=0;
 char 		name[100];
 XkbKeyNamePtr	pN;
-XkbDescPtr	xkb;
 
-    xkb= result->xkb;
     name[0]= '\0';
     nRead+= XkmGetCountedString(file,name,100);
     minKC= XkmGetCARD8(file,&nRead);
@@ -276,7 +272,7 @@ XkbDescPtr	xkb;
 /***====================================================================***/
 
 static int
-ReadXkmKeyTypes(FILE *file,XkbFileInfo *result,XkbChangesPtr changes)
+ReadXkmKeyTypes(FILE *file,XkbDescPtr xkb,XkbChangesPtr changes)
 {
 register unsigned	i,n;
 unsigned		num_types;
@@ -287,9 +283,7 @@ xkmKeyTypeDesc		wire;
 XkbKTMapEntryPtr	entry;
 xkmKTMapEntryDesc	wire_entry;
 char 			buf[100];
-XkbDescPtr		xkb;
 
-    xkb= result->xkb;
     if ((tmp= XkmGetCountedString(file,buf,100))<1) {
 	_XkbLibError(_XkbErrBadLength,"ReadXkmKeyTypes",0);
 	return -1;
@@ -414,7 +408,7 @@ XkbDescPtr		xkb;
 /***====================================================================***/
 
 static int
-ReadXkmCompatMap(FILE *file,XkbFileInfo *result,XkbChangesPtr changes)
+ReadXkmCompatMap(FILE *file,XkbDescPtr xkb,XkbChangesPtr changes)
 {
 register int		i;
 unsigned		num_si,groups;
@@ -423,10 +417,8 @@ XkbSymInterpretPtr	interp;
 xkmSymInterpretDesc	wire;
 unsigned		tmp;
 int			nRead=0;
-XkbDescPtr		xkb;
 XkbCompatMapPtr		compat;
 
-    xkb= result->xkb;
     if ((tmp= XkmGetCountedString(file,name,100))<1) {
 	_XkbLibError(_XkbErrBadLength,"ReadXkmCompatMap",0);
 	return -1;
@@ -492,16 +484,14 @@ XkbCompatMapPtr		compat;
 }
 
 static int
-ReadXkmIndicators(FILE *file,XkbFileInfo *result,XkbChangesPtr changes)
+ReadXkmIndicators(FILE *file,XkbDescPtr xkb,XkbChangesPtr changes)
 {
 register unsigned	nLEDs;
 xkmIndicatorMapDesc	wire;
 char			buf[100];
 unsigned		tmp;
 int			nRead=0;
-XkbDescPtr		xkb;
 
-    xkb= result->xkb;
     if ((xkb->indicators==NULL)&&(XkbAllocIndicatorMaps(xkb)!=Success)) {
 	_XkbLibError(_XkbErrBadAlloc,"indicator rec",0);
 	return -1;
@@ -575,16 +565,14 @@ FindTypeForKey(XkbDescPtr xkb,Atom name,unsigned width,KeySym *syms)
 }
 
 static int
-ReadXkmSymbols(FILE *file,XkbFileInfo *result)
+ReadXkmSymbols(FILE *file,XkbDescPtr xkb)
 {
 register int		i,g,s,totalVModMaps;
 xkmKeySymMapDesc 	wireMap;
 char 			buf[100];
 unsigned		minKC,maxKC,groupNames,tmp;
 int			nRead=0;
-XkbDescPtr		xkb;
 
-    xkb= result->xkb;
     if ((tmp=XkmGetCountedString(file,buf,100))<1)
 	return -1;
     nRead+= tmp;
@@ -911,7 +899,7 @@ Atom		nameAtom;
 }
 
 static int
-ReadXkmGeometry(FILE *file,XkbFileInfo *result)
+ReadXkmGeometry(FILE *file,XkbDescPtr xkb)
 {
 register int		i;
 char 			buf[100];
@@ -931,11 +919,11 @@ XkbGeometrySizesRec	sizes;
     sizes.num_sections= wireGeom.num_sections;
     sizes.num_doodads= wireGeom.num_doodads;
     sizes.num_key_aliases= wireGeom.num_key_aliases;
-    if (XkbAllocGeometry(result->xkb,&sizes)!=Success) {
+    if (XkbAllocGeometry(xkb,&sizes)!=Success) {
 	_XkbLibError(_XkbErrBadAlloc,"ReadXkmGeometry",0);
 	return nRead;
     }
-    geom= result->xkb->geom;
+    geom= xkb->geom;
     geom->name= XkbInternAtom(buf,False);
     geom->width_mm= wireGeom.width_mm;
     geom->height_mm= wireGeom.height_mm;
@@ -1055,7 +1043,7 @@ int	 nRead=0;
     return 1;
 }
 
-Bool
+static Bool
 XkmReadTOC(FILE *file,xkmFileInfo* file_info,int max_toc,xkmSectionInfo *toc)
 {
 unsigned hdr,tmp;
@@ -1086,117 +1074,11 @@ unsigned i,size_toc;
     return 1;
 }
 
-Bool
-XkmReadFileSection(	FILE *			file,
-			xkmSectionInfo *	toc,
-			XkbFileInfo *		result,
-			unsigned *		loaded_rtrn)
-{
-xkmSectionInfo		tmpTOC;
-int			nRead;
-
-    if ((!result)||(!result->xkb)) {
-	_XkbLibError(_XkbErrBadMatch,"XkmReadFileSection",0);
-	return 0;
-    }
-    fseek(file,toc->offset,SEEK_SET);
-    fread(&tmpTOC,SIZEOF(xkmSectionInfo),1,file);
-    nRead= SIZEOF(xkmSectionInfo);
-    if ((tmpTOC.type!=toc->type)||(tmpTOC.format!=toc->format)||
-	(tmpTOC.size!=toc->size)||(tmpTOC.offset!=toc->offset)) {
-	_XkbLibError(_XkbErrIllegalContents,"XkmReadFileSection",0);
-	return 0;
-    }
-    switch (tmpTOC.type) {
-	case XkmVirtualModsIndex:
-	    nRead+= ReadXkmVirtualMods(file,result,NULL);
-	    if ((loaded_rtrn)&&(nRead>=0))
-		*loaded_rtrn|= XkmVirtualModsMask;
-	    break;
-	case XkmTypesIndex:
-	    nRead+= ReadXkmKeyTypes(file,result,NULL);
-	    if ((loaded_rtrn)&&(nRead>=0))
-		*loaded_rtrn|= XkmTypesMask;
-	    break;
-	case XkmCompatMapIndex:
-	    nRead+= ReadXkmCompatMap(file,result,NULL);
-	    if ((loaded_rtrn)&&(nRead>=0))
-		*loaded_rtrn|= XkmCompatMapMask;
-	    break;
-	case XkmKeyNamesIndex:
-	    nRead+= ReadXkmKeycodes(file,result,NULL);
-	    if ((loaded_rtrn)&&(nRead>=0))
-		*loaded_rtrn|= XkmKeyNamesMask;
-	    break;
-	case XkmSymbolsIndex:
-	    nRead+= ReadXkmSymbols(file,result);
-	    if ((loaded_rtrn)&&(nRead>=0))
-		*loaded_rtrn|= XkmSymbolsMask;
-	    break;
-	case XkmIndicatorsIndex:
-	    nRead+= ReadXkmIndicators(file,result,NULL);
-	    if ((loaded_rtrn)&&(nRead>=0))
-		*loaded_rtrn|= XkmIndicatorsMask;
-	    break;
-	case XkmGeometryIndex:
-	    nRead+= ReadXkmGeometry(file,result);
-	    if ((loaded_rtrn)&&(nRead>=0))
-		*loaded_rtrn|= XkmGeometryMask;
-	    break;
-	default:
-	    _XkbLibError(_XkbErrBadImplementation,
-	    			XkbConfigText(tmpTOC.type,XkbMessage),0);
-	    nRead= 0;
-	    break;
-    }
-    if (nRead!=tmpTOC.size) {
-	_XkbLibError(_XkbErrBadLength,XkbConfigText(tmpTOC.type,XkbMessage),
-						nRead-tmpTOC.size);
-	return 0;
-    }
-    return (nRead>=0);
-}
-
-char *
-XkmReadFileSectionName(FILE *file,xkmSectionInfo *toc)
-{
-xkmSectionInfo	tmpTOC;
-char 		name[100];
-
-    if ((!file)||(!toc))
-	return 0;
-    switch (toc->type) {
-	case XkmVirtualModsIndex:
-	case XkmIndicatorsIndex:
-	    break;
-	case XkmTypesIndex:
-	case XkmCompatMapIndex:
-	case XkmKeyNamesIndex:
-	case XkmSymbolsIndex:
-	case XkmGeometryIndex:
-	    fseek(file,toc->offset,SEEK_SET);
-	    fread(&tmpTOC,SIZEOF(xkmSectionInfo),1,file);
-	    if ((tmpTOC.type!=toc->type)||(tmpTOC.format!=toc->format)||
-		(tmpTOC.size!=toc->size)||(tmpTOC.offset!=toc->offset)) {
-		_XkbLibError(_XkbErrIllegalContents,"XkmReadFileSectionName",0);
-		return 0;
-	    }
-	    if (XkmGetCountedString(file,name,100)>0)
-		return _XkbDupString(name);
-	    break;
-	default:
-	    _XkbLibError(_XkbErrBadImplementation,
-				XkbConfigText(tmpTOC.type,XkbMessage),0);
-	    break;
-    }
-    return NULL;
-}
-
 /***====================================================================***/
 
 #define	MAX_TOC	16
 unsigned
-XkmReadFile(FILE *file,unsigned need,unsigned want,XkbFileInfo *result)
+XkmReadFile(FILE *file,unsigned need,unsigned want,XkbDescPtr *xkb)
 {
 register unsigned	i;
 xkmSectionInfo		toc[MAX_TOC],tmpTOC;
@@ -1211,9 +1093,8 @@ unsigned		which= need|want;
        						need&(~fileInfo.present));
        return which;
     }
-    result->type= fileInfo.type;
-    if (result->xkb==NULL)
-	result->xkb= XkbAllocKeyboard();
+    if (*xkb==NULL)
+	*xkb= XkbAllocKeyboard();
     for (i=0;i<fileInfo.num_toc;i++) {
 	fseek(file,toc[i].offset,SEEK_SET);
 	tmp= fread(&tmpTOC,SIZEOF(xkmSectionInfo),1,file);
@@ -1227,25 +1108,25 @@ unsigned		which= need|want;
 	}
 	switch (tmpTOC.type) {
 	    case XkmVirtualModsIndex:
-		tmp= ReadXkmVirtualMods(file,result,NULL);
+		tmp= ReadXkmVirtualMods(file,*xkb,NULL);
 		break;
 	    case XkmTypesIndex:
-		tmp= ReadXkmKeyTypes(file,result,NULL);
+		tmp= ReadXkmKeyTypes(file,*xkb,NULL);
 		break;
 	    case XkmCompatMapIndex:
-		tmp= ReadXkmCompatMap(file,result,NULL);
+		tmp= ReadXkmCompatMap(file,*xkb,NULL);
 		break;
 	    case XkmKeyNamesIndex:
-		tmp= ReadXkmKeycodes(file,result,NULL);
+		tmp= ReadXkmKeycodes(file,*xkb,NULL);
 		break;
 	    case XkmIndicatorsIndex:
-		tmp= ReadXkmIndicators(file,result,NULL);
+		tmp= ReadXkmIndicators(file,*xkb,NULL);
 		break;
 	    case XkmSymbolsIndex:
-		tmp= ReadXkmSymbols(file,result);
+		tmp= ReadXkmSymbols(file,*xkb);
 		break;
 	    case XkmGeometryIndex:
-		tmp= ReadXkmGeometry(file,result);
+		tmp= ReadXkmGeometry(file,*xkb);
 		break;
 	    default:
 		_XkbLibError(_XkbErrBadImplementation,
@@ -1256,7 +1137,7 @@ unsigned		which= need|want;
 	if (tmp>0) {
 	    nRead+= tmp;
 	    which&= ~(1<<toc[i].type);
-	    result->defined|= (1<<toc[i].type);
+	    (*xkb)->defined|= (1<<toc[i].type);
 	}
 	if (nRead!=tmpTOC.size) {
 	    _XkbLibError(_XkbErrBadLength,XkbConfigText(tmpTOC.type,XkbMessage),

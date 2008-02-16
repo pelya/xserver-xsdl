@@ -1005,7 +1005,7 @@ extern	unsigned int XkbDDXLoadKeymapByNames(
 	XkbComponentNamesPtr	/* names */,
 	unsigned int		/* want */,
 	unsigned int		/* need */,
-	XkbFileInfoPtr		/* finfoRtrn */,
+	XkbDescPtr *		/* finfoRtrn */,
 	char *			/* keymapNameRtrn */,
 	int 			/* keymapNameRtrnLen */
 );

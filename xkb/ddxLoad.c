@@ -334,16 +334,16 @@ XkbDDXLoadKeymapByNames(	DeviceIntPtr		keybd,
 				XkbComponentNamesPtr	names,
 				unsigned		want,
 				unsigned		need,
-				XkbFileInfo *		finfoRtrn,
+				XkbDescPtr *		xkbRtrn,
 				char *			nameRtrn,
 				int 			nameRtrnLen)
 {
-XkbDescPtr	xkb;
+XkbDescPtr      xkb;
 FILE	*	file;
 char		fileName[PATH_MAX];
 unsigned	missing;
 
-    bzero(finfoRtrn,sizeof(XkbFileInfo));
+    *xkbRtrn = NULL;
     if ((keybd==NULL)||(keybd->key==NULL)||(keybd->key->xkbInfo==NULL))
 	 xkb= NULL;
     else xkb= keybd->key->xkbInfo->desc;
@@ -353,7 +353,7 @@ unsigned	missing;
         return 0;
     }
     else if (!XkbDDXCompileKeymapByNames(xkb,names,want,need,
-						nameRtrn,nameRtrnLen)){
+                                         nameRtrn,nameRtrnLen)){
 	DebugF("Couldn't compile keymap file\n");
 	return 0;
     }
@@ -362,15 +362,15 @@ unsigned	missing;
 	LogMessage(X_ERROR, "Couldn't open compiled keymap file %s\n",fileName);
 	return 0;
     }
-    missing= XkmReadFile(file,need,want,finfoRtrn);
-    if (finfoRtrn->xkb==NULL) {
+    missing= XkmReadFile(file,need,want,xkbRtrn);
+    if (*xkbRtrn==NULL) {
 	LogMessage(X_ERROR, "Error loading keymap %s\n",fileName);
 	fclose(file);
 	(void) unlink (fileName);
 	return 0;
     }
     else if (xkbDebugFlags) {
-	DebugF("Loaded XKB keymap %s, defined=0x%x\n",fileName,finfoRtrn->defined);
+	DebugF("Loaded XKB keymap %s, defined=0x%x\n",fileName,(*xkbRtrn)->defined);
     }
     fclose(file);
     (void) unlink (fileName);

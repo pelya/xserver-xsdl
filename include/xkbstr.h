@@ -418,6 +418,7 @@ typedef	struct _XkbGeometry	*XkbGeometryPtr;
 	 * Tie it all together into one big keyboard description
 	 */
 typedef	struct _XkbDesc {
+        unsigned int            defined;
 	unsigned short	 	flags;
 	unsigned short		device_spec;
 	KeyCode			min_key_code;
