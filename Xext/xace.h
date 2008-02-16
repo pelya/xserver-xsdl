@@ -31,7 +31,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "property.h"
 
 /* Default window background */
-#define XaceBackgroundNoneState		None
+#define XaceBackgroundNoneState(w) ((w)->forcedBG ? BackgroundPixel : None)
 
 /* security hooks */
 /* Constants used to identify the available security hooks
@@ -100,7 +100,7 @@ extern void XaceCensorImage(
 #else /* XACE */
 
 /* Default window background */
-#define XaceBackgroundNoneState		None
+#define XaceBackgroundNoneState(w)		None
 
 /* Define calls away when XACE is not being built. */
 

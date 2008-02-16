@@ -810,6 +810,11 @@ SecurityResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
     obj = dixLookupPrivate(&clients[cid]->devPrivates, stateKey);
 
+    /* disable background None for untrusted windows */
+    if ((requested & DixCreateAccess) && (rec->rtype == RT_WINDOW))
+	if (subj->haveState && subj->trustLevel != XSecurityClientTrusted)
+	    ((WindowPtr)rec->res)->forcedBG = TRUE;
+
     /* special checks for server-owned resources */
     if (cid == 0) {
 	if (rec->rtype & RC_DRAWABLE)

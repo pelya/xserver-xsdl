@@ -291,6 +291,7 @@ SetWindowToDefaults(WindowPtr pWin)
     pWin->dontPropagate = 0;
     pWin->forcedBS = FALSE;
     pWin->redirectDraw = RedirectDrawNone;
+    pWin->forcedBG = FALSE;
 }
 
 static void
@@ -702,8 +703,8 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
 	return NullWindow;
     }
 
-    pWin->backgroundState = XaceBackgroundNoneState;
-    pWin->background.pixel = 0;
+    pWin->backgroundState = XaceBackgroundNoneState(pWin);
+    pWin->background.pixel = pScreen->whitePixel;
 
     pWin->borderIsPixel = pParent->borderIsPixel;
     pWin->border = pParent->border;
@@ -1014,8 +1015,8 @@ ChangeWindowAttributes(WindowPtr pWin, Mask vmask, XID *vlist, ClientPtr client)
 		if (!pWin->parent)
 		    MakeRootTile(pWin);
 		else {
-		    pWin->backgroundState = XaceBackgroundNoneState;
-		    pWin->background.pixel = 0;
+		    pWin->backgroundState = XaceBackgroundNoneState(pWin);
+		    pWin->background.pixel = pScreen->whitePixel;
 		}
 	    }
 	    else if (pixID == ParentRelative)
