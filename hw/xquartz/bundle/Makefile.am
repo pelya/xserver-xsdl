@@ -15,6 +15,7 @@ resourcedir=$(libdir)/X11/xserver
 resource_DATA = Xquartz.plist
 
 EXTRA_DIST = \
+	$(resource_DATA) \
 	Info.plist \
 	X11.icns \
 	bundle-main.c \
