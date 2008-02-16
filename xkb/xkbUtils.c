@@ -1506,10 +1506,12 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
         /* properties */
         if (src->geom->num_properties) {
             if (src->geom->num_properties != dst->geom->sz_properties) {
+                /* If we've got more properties in the destination than
+                 * the source, run through and free all the excess ones
+                 * first. */
                 if (src->geom->num_properties < dst->geom->sz_properties) {
                     for (i = src->geom->num_properties,
-                          dprop = dst->geom->properties +
-                                  src->geom->num_properties;
+                         dprop = dst->geom->properties + i;
                          i < dst->geom->num_properties;
                          i++, dprop++) {
                         xfree(dprop->name);
@@ -1529,6 +1531,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                 dst->geom->properties = tmp;
             }
 
+            /* We don't set num_properties as we need it to try and avoid
+             * too much reallocing. */
             dst->geom->sz_properties = src->geom->num_properties;
 
             if (dst->geom->sz_properties > dst->geom->num_properties) {
@@ -1564,6 +1568,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                 }
             }
 
+            /* ... which is already src->geom->num_properties. */
             dst->geom->num_properties = dst->geom->sz_properties;
         }
         else {
@@ -1587,8 +1592,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
             if (src->geom->num_colors != dst->geom->sz_colors) {
                 if (src->geom->num_colors < dst->geom->sz_colors) {
                     for (i = src->geom->num_colors,
-                          dcolor = dst->geom->colors +
-                                   src->geom->num_colors;
+                         dcolor = dst->geom->colors + i;
                          i < dst->geom->num_colors;
                          i++, dcolor++) {
                         xfree(dcolor->spec);
@@ -1706,7 +1710,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                         }
 
                         doutline->num_points = soutline->num_points;
-                        doutline->sz_points = soutline->sz_points;
+                        doutline->sz_points = soutline->num_points;
                     }
                 }
 
@@ -1785,6 +1789,7 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
             memset(tmp, 0, src->geom->num_sections * sizeof(XkbSectionRec));
             dst->geom->sections = tmp;
             dst->geom->num_sections = src->geom->num_sections;
+            dst->geom->sz_sections = src->geom->num_sections;
 
             for (i = 0,
                   ssection = src->geom->sections,
@@ -1798,6 +1803,8 @@ XkbCopyKeymap(XkbDescPtr src, XkbDescPtr dst, Bool sendNotifies)
                     dsection->rows = tmp;
                 }
                 dsection->num_rows = ssection->num_rows;
+                dsection->sz_rows = ssection->num_rows;
+
                 for (j = 0, srow = ssection->rows, drow = dsection->rows;
                      j < ssection->num_rows;
                      j++, srow++, drow++) {
