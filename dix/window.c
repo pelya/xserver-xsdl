@@ -290,9 +290,7 @@ SetWindowToDefaults(WindowPtr pWin)
     pWin->deliverableEvents = 0;
     pWin->dontPropagate = 0;
     pWin->forcedBS = FALSE;
-#ifdef COMPOSITE
     pWin->redirectDraw = RedirectDrawNone;
-#endif
 }
 
 static void
