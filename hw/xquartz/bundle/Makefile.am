@@ -18,7 +18,7 @@ EXTRA_DIST = \
 	Info.plist \
 	X11.icns \
 	bundle-main.c \
-	X11.xcodeproj/project.pbxproj
+	X11.xcodeproj/project.pbxproj \
 	Dutch.lproj/InfoPlist.strings \
 	Dutch.lproj/Localizable.strings \
 	Dutch.lproj/main.nib/keyedobjects.nib \
