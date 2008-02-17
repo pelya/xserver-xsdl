@@ -165,6 +165,29 @@ compCheckRedirect (WindowPtr pWin)
     return TRUE;
 }
 
+static int
+updateOverlayWindow(ScreenPtr pScreen)
+{
+	CompScreenPtr cs;
+	WindowPtr pWin; /* overlay window */
+	XID vlist[2];
+
+	cs = GetCompScreen(pScreen);
+	if ((pWin = cs->pOverlayWin) != NULL) {
+		if ((pWin->drawable.width == pScreen->width) &&
+			(pWin->drawable.height == pScreen->height))
+			return Success;
+
+		/* Let's resize the overlay window. */
+		vlist[0] = pScreen->width;
+		vlist[1] = pScreen->height;
+		return ConfigureWindow(pWin, CWWidth | CWHeight, vlist, wClient(pWin));
+	}
+
+	/* Let's be on the safe side and not assume an overlay window is always allocated. */
+	return Success;
+}
+
 Bool
 compPositionWindow (WindowPtr pWin, int x, int y)
 {
@@ -203,6 +226,8 @@ compPositionWindow (WindowPtr pWin, int x, int y)
     cs->PositionWindow = pScreen->PositionWindow;
     pScreen->PositionWindow = compPositionWindow;
     compCheckTree (pWin->drawable.pScreen);
+    if (updateOverlayWindow(pScreen) != Success)
+	ret = FALSE;
     return ret;
 }
 
