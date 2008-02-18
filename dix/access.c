@@ -254,6 +254,7 @@ ACQueryWindowAccess(WindowPtr win,
  * If the device is explicitely permitted, allow.
  * If the window has a default of DenyAll, do not allow.
  * If the device is explicitely denied, do not allow.
+ * If the window has a default of AllowAll, allow.
  * Check parent window. Rinse, wash, repeat.
  * If no rule could be found, allow.
  */
@@ -308,6 +309,9 @@ ACDeviceAllowed(WindowPtr win, DeviceIntPtr dev, xEvent* xE)
         if (win->optional->access.deny[i]->id == dev->id)
             return False;
     }
+
+    if (win->optional->access.defaultRule == WindowAccessAllowAll)
+        return True;
 
     return ACDeviceAllowed(win->parent, dev, xE);
 }
