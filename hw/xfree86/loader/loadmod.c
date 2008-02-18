@@ -177,6 +177,7 @@ InitPathList(const char *path)
     }
     if (list)
 	list[n] = NULL;
+    xfree(fullpath);
     return list;
 }
 
