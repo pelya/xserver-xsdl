@@ -1353,7 +1353,7 @@ xf86ErrorF(const char *format, ...)
 void
 xf86LogInit()
 {
-    char *lf;
+    char *lf = NULL;
 
 #define LOGSUFFIX ".log"
 #define LOGOLDSUFFIX ".old"
@@ -1377,6 +1377,8 @@ xf86LogInit()
 
 #undef LOGSUFFIX
 #undef LOGOLDSUFFIX
+
+    free(lf);
 }
 
 void
