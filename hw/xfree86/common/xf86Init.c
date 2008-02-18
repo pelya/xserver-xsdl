@@ -1922,6 +1922,7 @@ xf86LoadModules(char **list, pointer *optlist)
     int i;
     char *name;
     Bool failed = FALSE;
+    ModuleDescPtr desc;
 
     if (!list)
 	return TRUE;
@@ -1945,11 +1946,15 @@ xf86LoadModules(char **list, pointer *optlist)
 	else
 	    opt = NULL;
 
-        if (!LoadModule(name, NULL, NULL, NULL, opt, NULL, &errmaj, &errmin)) {
+	desc = LoadModule(name, NULL, NULL, NULL, opt, NULL, &errmaj,
+		&errmin);
+	if (!desc) {
 	    LoaderErrorMsg(NULL, name, errmaj, errmin);
 	    failed = TRUE;
 	}
 	xfree(name);
+	xfree(desc->name);
+	xfree(desc);
     }
     return !failed;
 }
