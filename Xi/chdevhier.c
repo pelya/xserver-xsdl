@@ -84,6 +84,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
     int required_len = sizeof(xChangeDeviceHierarchyReq);
     char n;
     int rc;
+    int nchanges = 0;
     deviceHierarchyChangedEvent ev;
 
     REQUEST(xChangeDeviceHierarchyReq);
@@ -115,7 +116,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                     if (rc != Success)
                     {
                         xfree(name);
-                        return rc;
+                        goto unwind;
                     }
 
                     if (!c->sendCore)
@@ -130,6 +131,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                         EnableDevice(keybd);
                     }
                     xfree(name);
+                    nchanges++;
                 }
                 break;
             case CH_RemoveMasterDevice:
@@ -143,18 +145,22 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                     rc = dixLookupDevice(&ptr, r->deviceid, client,
                                          DixDestroyAccess);
                     if (rc != Success)
-                        return rc;
+                        goto unwind;
 
                     if (!ptr->isMaster)
                     {
                         client->errorValue = r->deviceid;
-                        return BadDevice;
+                        rc = BadDevice;
+                        goto unwind;
                     }
 
                     /* XXX: For now, don't allow removal of VCP, VCK */
                     if (ptr == inputInfo.pointer ||
                             ptr == inputInfo.keyboard)
-                        return BadDevice;
+                    {
+                        rc = BadDevice;
+                        goto unwind;
+                    }
 
                     /* disable keyboards first */
                     if (IsPointerDevice(ptr))
@@ -164,7 +170,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                                              client,
                                              DixDestroyAccess);
                         if (rc != Success)
-                            return rc;
+                            goto unwind;
                     }
                     else
                     {
@@ -174,7 +180,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                                              client,
                                              DixDestroyAccess);
                         if (rc != Success)
-                            return rc;
+                            goto unwind;
                     }
 
 
@@ -189,23 +195,25 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                         rc = dixLookupDevice(&newptr, r->returnPointer,
                                              client, DixWriteAccess);
                         if (rc != Success)
-                            return rc;
+                            goto unwind;
 
                         if (!newptr->isMaster)
                         {
                             client->errorValue = r->returnPointer;
-                            return BadDevice;
+                            rc = BadDevice;
+                            goto unwind;
                         }
 
                         rc = dixLookupDevice(&newkeybd, r->returnKeyboard,
                                              client, DixWriteAccess);
                         if (rc != Success)
-                            return rc;
+                            goto unwind;
 
                         if (!newkeybd->isMaster)
                         {
                             client->errorValue = r->returnKeyboard;
-                            return BadDevice;
+                            rc = BadDevice;
+                            goto unwind;
                         }
 
                         for (attached = inputInfo.devices;
@@ -229,6 +237,7 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
 
                     RemoveDevice(keybd);
                     RemoveDevice(ptr);
+                    nchanges++;
                 }
                 break;
             case CH_ChangeAttachment:
@@ -238,12 +247,13 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                     rc = dixLookupDevice(&ptr, c->deviceid, client,
                                           DixWriteAccess);
                     if (rc != Success)
-                        return rc;
+                       goto unwind;
 
                     if (ptr->isMaster)
                     {
                         client->errorValue = c->deviceid;
-                        return BadDevice;
+                        rc = BadDevice;
+                        goto unwind;
                     }
 
                     if (c->changeMode == Floating)
@@ -254,21 +264,25 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
                         rc = dixLookupDevice(&newmaster, c->newMaster,
                                              client, DixWriteAccess);
                         if (rc != Success)
-                            return rc;
+                            goto unwind;
                         if (!newmaster->isMaster)
                         {
                             client->errorValue = c->newMaster;
-                            return BadDevice;
+                            rc = BadDevice;
+                            goto unwind;
                         }
 
                         if ((IsPointerDevice(newmaster) &&
                                     !IsPointerDevice(ptr)) ||
                                 (IsKeyboardDevice(newmaster) &&
                                  !IsKeyboardDevice(ptr)))
-                                return BadDevice;
+                        {
+                            rc = BadDevice;
+                            goto unwind;
+                        }
                         AttachDevice(client, ptr, newmaster);
                     }
-
+                    nchanges++;
                 }
                 break;
         }
@@ -276,14 +290,20 @@ ProcXChangeDeviceHierarchy(ClientPtr client)
         any = (xAnyHierarchyChangeInfo*)((char*)any + any->length);
     }
 
-    ev.type = GenericEvent;
-    ev.extension = IReqCode;
-    ev.length = 0;
-    ev.evtype = XI_DeviceHierarchyChangedNotify;
-    ev.time = GetTimeInMillis();
+unwind:
 
-    SendEventToAllWindows(&dummyDev, XI_DeviceHierarchyChangedMask,
-            (xEvent*)&ev, 1);
-    return Success;
+    if (nchanges > 0) /* even if an error occured, we need to send an event if
+                       we changed anything in the hierarchy. */
+    {
+        ev.type = GenericEvent;
+        ev.extension = IReqCode;
+        ev.length = 0;
+        ev.evtype = XI_DeviceHierarchyChangedNotify;
+        ev.time = GetTimeInMillis();
+
+        SendEventToAllWindows(&dummyDev, XI_DeviceHierarchyChangedMask,
+                (xEvent*)&ev, 1);
+    }
+    return rc;
 }
 
