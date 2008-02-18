@@ -657,7 +657,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
 
     ms = GetTimeInMillis();
 
-    num_events = 2;
+    num_events = 1;
 
     master = pDev->u.master;
     if (master && master->u.lastSlave != pDev)
