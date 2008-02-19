@@ -1951,10 +1951,11 @@ xf86LoadModules(char **list, pointer *optlist)
 	if (!desc) {
 	    LoaderErrorMsg(NULL, name, errmaj, errmin);
 	    failed = TRUE;
+	} else {
+	    xfree(desc->name);
+	    xfree(desc);
 	}
 	xfree(name);
-	xfree(desc->name);
-	xfree(desc);
     }
     return !failed;
 }
