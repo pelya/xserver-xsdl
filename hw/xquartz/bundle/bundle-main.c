@@ -45,6 +45,7 @@ static char *command_from_prefs(const char *key, const char *default_value);
 
 int main(int argc, char **argv) {
     Display *display;
+    const char *s;
 
     size_t i;
     fprintf(stderr, "X11.app: main(): argc=%d\n", argc);
@@ -72,7 +73,12 @@ int main(int argc, char **argv) {
     }
 
     /* Start the server */
-    fprintf(stderr, "X11.app: Could not connect to server.  Starting X server.");
+    if(s = getenv("DISPLAY")) {
+        fprintf(stderr, "X11.app: Could not connect to server (DISPLAY=\"%s\", unsetting).  Starting X server.\n", s);
+        unsetenv("DISPLAY");
+    } else {
+        fprintf(stderr, "X11.app: Could not connect to server (DISPLAY is not set).  Starting X server.\n");
+    }
     return execute(command_from_prefs("startx_script", DEFAULT_STARTX));
 }
 
@@ -93,7 +99,7 @@ static int execute(const char *command) {
         fprintf(stderr, "\targv[%d] = %s\n", s - newargv, *s);
     }
 
-    execvp (newargv[0], (const char **) newargv);
+    execvp (newargv[0], (char * const *) newargv);
     perror ("X11.app: Couldn't exec.");
     return(1);
 }
