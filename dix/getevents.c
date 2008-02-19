@@ -613,6 +613,7 @@ SetMinimumEventSize(EventListPtr list, int num_events, int min_size)
     {
         if (list[num_events].evlen < min_size)
         {
+            list[num_events].evlen = min_size;
             list[num_events].event = realloc(list[num_events].event, min_size);
             if (!list[num_events].event)
             {
