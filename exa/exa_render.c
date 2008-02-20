@@ -587,7 +587,6 @@ exaComposite(CARD8	op,
     int ret = -1;
     Bool saveSrcRepeat = pSrc->repeat;
     Bool saveMaskRepeat = pMask ? pMask->repeat : 0;
-    PixmapPtr pSrcPixmap = NULL;
     RegionRec region;
 
     /* We currently don't support acceleration of gradients, or other pictures
@@ -624,7 +623,9 @@ exaComposite(CARD8	op,
 		if (ret == 1)
 		    goto done;
 	    }
-	    else if (pSrcPixmap && !pSrc->repeat && !pSrc->transform)
+	    else if (pSrc->pDrawable != NULL &&
+		     !pSrc->repeat &&
+		     !pSrc->transform)
 	    {
 		xDst += pDst->pDrawable->x;
 		yDst += pDst->pDrawable->y;
@@ -644,7 +645,9 @@ exaComposite(CARD8	op,
 		REGION_UNINIT(pDst->pDrawable->pScreen, &region);
 		goto done;
 	    }
-	    else if (pSrcPixmap && !pSrc->transform &&
+	    else if (pSrc->pDrawable != NULL &&
+		     pSrc->pDrawable->type == DRAWABLE_PIXMAP &&
+		     !pSrc->transform &&
 		     pSrc->repeatType == RepeatNormal)
 	    {
 		DDXPointRec srcOrg;
@@ -671,10 +674,11 @@ exaComposite(CARD8	op,
 					       width, height))
 		    goto done;
 
-		srcOrg.x = (xSrc - xDst) % pSrcPixmap->drawable.width;
-		srcOrg.y = (ySrc - yDst) % pSrcPixmap->drawable.height;
+		srcOrg.x = (xSrc - xDst) % pSrc->pDrawable->width;
+		srcOrg.y = (ySrc - yDst) % pSrc->pDrawable->height;
 
-		ret = exaFillRegionTiled(pDst->pDrawable, &region, pSrcPixmap,
+		ret = exaFillRegionTiled(pDst->pDrawable, &region,
+					 (PixmapPtr)pSrc->pDrawable,
 					 &srcOrg, FB_ALLONES, GXcopy);
 
 		REGION_UNINIT(pDst->pDrawable->pScreen, &region);
