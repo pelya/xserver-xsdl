@@ -59,10 +59,6 @@
 #define _HAVE_XALLOC_DECLS
 #include "ephyrlog.h"
 
-typedef struct {
-    WindowPtr local ;
-    int remote ;
-} EphyrWindowPair;
 
 typedef struct {
     int foo;
@@ -943,6 +939,26 @@ findWindowPairFromLocal (WindowPtr a_local,
             *a_pair = &window_pairs[i] ;
             EPHYR_LOG ("found (%#x, %d)\n",
                        (unsigned int)(*a_pair)->local,
+                       (*a_pair)->remote) ;
+            return TRUE ;
+        }
+    }
+    return FALSE ;
+}
+
+Bool
+findWindowPairFromRemote (int a_remote,
+                          EphyrWindowPair **a_pair)
+{
+    int i=0 ;
+
+    EPHYR_RETURN_VAL_IF_FAIL (a_pair, FALSE) ;
+
+    for (i=0; i < NUM_WINDOW_PAIRS; i++) {
+        if (window_pairs[i].remote == a_remote) {
+            *a_pair = &window_pairs[i] ;
+            EPHYR_LOG ("found (%p, %d)\n",
+                       (*a_pair)->local,
                        (*a_pair)->remote) ;
             return TRUE ;
         }
