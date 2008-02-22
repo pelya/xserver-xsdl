@@ -138,6 +138,8 @@ static char *		XkbLayoutUsed=	NULL;
 static char *		XkbVariantUsed=	NULL;
 static char *		XkbOptionsUsed=	NULL;
 
+static XkbDescPtr       xkb_cached_map = NULL;
+
 _X_EXPORT Bool		noXkbExtension=		XKB_DFLT_DISABLED;
 static Bool		XkbWantRulesProp=	XKB_DFLT_RULES_PROP;
 
@@ -284,6 +286,9 @@ XkbSetRulesDflts(char *rulesFile,char *model,char *layout,
 static Bool
 XkbInitKeyTypes(XkbDescPtr xkb)
 {
+    if (xkb->defined & XkmTypesMask)
+        return True;
+
     initTypeNames(NULL);
     if (XkbAllocClientMap(xkb,XkbKeyTypesMask,num_dflt_types)!=Success)
 	return False;
@@ -309,6 +314,9 @@ XkbInitCompatStructs(XkbDescPtr xkb)
 {
 register int 	i;
 XkbCompatMapPtr	compat;
+
+    if (xkb->defined & XkmCompatMapMask)
+        return True;
 
     if (XkbAllocCompatMap(xkb,XkbAllCompatMask,num_dfltSI)!=Success)
 	return BadAlloc;
@@ -358,28 +366,33 @@ Atom		unknown;
     if (names->symbols==None)		names->symbols= unknown;
     if (names->types==None)		names->types= unknown;
     if (names->compat==None)		names->compat= unknown;
-    if (names->vmods[vmod_NumLock]==None)
-        names->vmods[vmod_NumLock]= CREATE_ATOM("NumLock");
-    if (names->vmods[vmod_Alt]==None)
-        names->vmods[vmod_Alt]= CREATE_ATOM("Alt");
-    if (names->vmods[vmod_AltGr]==None)
-        names->vmods[vmod_AltGr]= CREATE_ATOM("ModeSwitch");
+    if (!(xkb->defined & XkmVirtualModsMask)) {
+        if (names->vmods[vmod_NumLock]==None)
+            names->vmods[vmod_NumLock]= CREATE_ATOM("NumLock");
+        if (names->vmods[vmod_Alt]==None)
+            names->vmods[vmod_Alt]= CREATE_ATOM("Alt");
+        if (names->vmods[vmod_AltGr]==None)
+            names->vmods[vmod_AltGr]= CREATE_ATOM("ModeSwitch");
+    }
 
-    initIndicatorNames(NULL,xkb);
-    if (names->indicators[LED_CAPS-1]==None)
-        names->indicators[LED_CAPS-1] = CREATE_ATOM("Caps Lock");
-    if (names->indicators[LED_NUM-1]==None)
-        names->indicators[LED_NUM-1] = CREATE_ATOM("Num Lock");
-    if (names->indicators[LED_SCROLL-1]==None)
-        names->indicators[LED_SCROLL-1] = CREATE_ATOM("Scroll Lock");
+    if (!(xkb->defined & XkmIndicatorsMask)) {
+        initIndicatorNames(NULL,xkb);
+        if (names->indicators[LED_CAPS-1]==None)
+            names->indicators[LED_CAPS-1] = CREATE_ATOM("Caps Lock");
+        if (names->indicators[LED_NUM-1]==None)
+            names->indicators[LED_NUM-1] = CREATE_ATOM("Num Lock");
+        if (names->indicators[LED_SCROLL-1]==None)
+            names->indicators[LED_SCROLL-1] = CREATE_ATOM("Scroll Lock");
 #ifdef LED_COMPOSE
-    if (names->indicators[LED_COMPOSE-1]==None)
-        names->indicators[LED_COMPOSE-1] = CREATE_ATOM("Compose");
+        if (names->indicators[LED_COMPOSE-1]==None)
+            names->indicators[LED_COMPOSE-1] = CREATE_ATOM("Compose");
 #endif
+    }
 
     if (xkb->geom!=NULL)
 	 names->geometry= xkb->geom->name;
     else names->geometry= unknown;
+
     return Success;
 }
 
@@ -393,27 +406,31 @@ XkbSrvLedInfoPtr	sli;
     xkb= xkbi->desc;
     if (XkbAllocIndicatorMaps(xkb)!=Success)
 	return BadAlloc;
-    map= xkb->indicators;
-    map->phys_indicators = PHYS_LEDS;
-    map->maps[LED_CAPS-1].flags= XkbIM_NoExplicit;
-    map->maps[LED_CAPS-1].which_mods= XkbIM_UseLocked;
-    map->maps[LED_CAPS-1].mods.mask= LockMask;
-    map->maps[LED_CAPS-1].mods.real_mods= LockMask;
 
-    map->maps[LED_NUM-1].flags= XkbIM_NoExplicit;
-    map->maps[LED_NUM-1].which_mods= XkbIM_UseLocked;
-    map->maps[LED_NUM-1].mods.mask= 0;
-    map->maps[LED_NUM-1].mods.real_mods= 0;
-    map->maps[LED_NUM-1].mods.vmods= vmod_NumLockMask;
+    if (!(xkb->defined & XkmIndicatorsMask)) {
+        map= xkb->indicators;
+        map->phys_indicators = PHYS_LEDS;
+        map->maps[LED_CAPS-1].flags= XkbIM_NoExplicit;
+        map->maps[LED_CAPS-1].which_mods= XkbIM_UseLocked;
+        map->maps[LED_CAPS-1].mods.mask= LockMask;
+        map->maps[LED_CAPS-1].mods.real_mods= LockMask;
 
-    map->maps[LED_SCROLL-1].flags= XkbIM_NoExplicit;
-    map->maps[LED_SCROLL-1].which_mods= XkbIM_UseLocked;
-    map->maps[LED_SCROLL-1].mods.mask= Mod3Mask;
-    map->maps[LED_SCROLL-1].mods.real_mods= Mod3Mask;
+        map->maps[LED_NUM-1].flags= XkbIM_NoExplicit;
+        map->maps[LED_NUM-1].which_mods= XkbIM_UseLocked;
+        map->maps[LED_NUM-1].mods.mask= 0;
+        map->maps[LED_NUM-1].mods.real_mods= 0;
+        map->maps[LED_NUM-1].mods.vmods= vmod_NumLockMask;
+
+        map->maps[LED_SCROLL-1].flags= XkbIM_NoExplicit;
+        map->maps[LED_SCROLL-1].which_mods= XkbIM_UseLocked;
+        map->maps[LED_SCROLL-1].mods.mask= Mod3Mask;
+        map->maps[LED_SCROLL-1].mods.real_mods= Mod3Mask;
+    }
 
     sli= XkbFindSrvLedInfo(xkbi->device,XkbDfltXIClass,XkbDfltXIId,0);
     if (sli)
 	XkbCheckIndicatorMaps(xkbi->device,sli,XkbAllIndicatorsMask);
+
     return Success;
 }
 
@@ -428,7 +445,8 @@ XkbControlsPtr	ctrls;
     if (XkbAllocControls(xkb,XkbAllControlsMask)!=Success)
 	FatalError("Couldn't allocate keyboard controls\n");
     ctrls= xkb->ctrls;
-    ctrls->num_groups = 1;
+    if (!(xkb->defined & XkmSymbolsMask))
+        ctrls->num_groups = 1;
     ctrls->groups_wrap = XkbSetGroupInfo(1,XkbWrapIntoRange,0);
     ctrls->internal.mask = 0;
     ctrls->internal.real_mods = 0;
@@ -458,11 +476,18 @@ XkbEventCauseRec	cause;
     pXDev->key->xkbInfo= xkbi= _XkbTypedCalloc(1,XkbSrvInfoRec);
     if ( xkbi ) {
 	XkbDescPtr	xkb;
-        xkbi->desc= XkbAllocKeyboard();
-	if (!xkbi->desc)
-	    FatalError("Couldn't allocate keyboard description\n");
-	xkbi->desc->min_key_code = pXDev->key->curKeySyms.minKeyCode;
-	xkbi->desc->max_key_code = pXDev->key->curKeySyms.maxKeyCode;
+
+        if (xkb_cached_map) {
+            xkbi->desc = xkb_cached_map;
+            xkb_cached_map = NULL;
+        }
+        else {
+            xkbi->desc= XkbAllocKeyboard();
+            if (!xkbi->desc)
+                FatalError("Couldn't allocate keyboard description\n");
+            xkbi->desc->min_key_code = pXDev->key->curKeySyms.minKeyCode;
+            xkbi->desc->max_key_code = pXDev->key->curKeySyms.maxKeyCode;
+        }
 	xkb= xkbi->desc;
 	if (xkb->min_key_code == 0)
 	    xkb->min_key_code = pXDev->key->curKeySyms.minKeyCode;
@@ -494,14 +519,23 @@ XkbEventCauseRec	cause;
 
 	XkbInitControls(pXDev,xkbi);
 
-        memcpy(xkb->map->modmap,pXDev->key->modifierMap,xkb->max_key_code+1);
+        if (xkb->defined & XkmSymbolsMask)
+            memcpy(pXDev->key->modifierMap, xkb->map->modmap,
+                   xkb->max_key_code + 1);
+        else
+            memcpy(xkb->map->modmap, pXDev->key->modifierMap,
+                   xkb->max_key_code + 1);
 
 	XkbInitIndicatorMap(xkbi);
 
 	XkbDDXInitDevice(pXDev);
 
-        XkbUpdateKeyTypesFromCore(pXDev,xkb->min_key_code,XkbNumKeys(xkb),
-                                  &changes);
+        if (xkb->defined & XkmSymbolsMask)
+            XkbUpdateKeyTypesFromCore(pXDev, xkb->min_key_code,
+                                      XkbNumKeys(xkb), &changes);
+        else
+            XkbUpdateCoreDescription(pXDev, True);
+
 	XkbSetCauseUnknown(&cause);
 	XkbUpdateActions(pXDev,xkb->min_key_code, XkbNumKeys(xkb),&changes,
 								&check,&cause);
@@ -632,11 +666,15 @@ XkbDescPtr              xkb;
 		pMods= tmpMods;
 	    }
 	}
+        /* Store the map here so we can pick it back up in XkbInitDevice.
+         * Sigh. */
+        xkb_cached_map = xkb;
     }
     else {
 	LogMessage(X_WARNING, "Couldn't load XKB keymap, falling back to pre-XKB keymap\n");
     }
     ok= InitKeyboardDeviceStruct((DevicePtr)dev,pSyms,pMods,bellProc,ctrlProc);
+    xkb_cached_map = NULL;
     if ((pSyms==&tmpSyms)&&(pSyms->map!=NULL)) {
 	_XkbFree(pSyms->map);
 	pSyms->map= NULL;
