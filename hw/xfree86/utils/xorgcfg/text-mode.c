@@ -39,7 +39,7 @@
 #endif
 #include <ctype.h>
 #include <X11/Xlib.h>
-#include "xkbstr.h"
+#include <X11/extensions/XKBstr.h>
 #include <X11/extensions/XKBrules.h>
 #include "cards.h"
 #include "config.h"
