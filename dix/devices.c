@@ -618,12 +618,12 @@ CloseDownDevices(void)
     for (dev = inputInfo.devices; dev; dev = next)
     {
 	next = dev->next;
-	CloseDevice(dev);
+        DeleteInputDeviceRequest(dev);
     }
     for (dev = inputInfo.off_devices; dev; dev = next)
     {
 	next = dev->next;
-	CloseDevice(dev);
+        DeleteInputDeviceRequest(dev);
     }
     inputInfo.devices = NULL;
     inputInfo.off_devices = NULL;
