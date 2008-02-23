@@ -2,14 +2,14 @@
 <archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="7.02">
 	<data>
 		<int key="IBDocument.SystemTarget">1050</int>
-		<string key="IBDocument.SystemVersion">9B18</string>
+		<string key="IBDocument.SystemVersion">9C31</string>
 		<string key="IBDocument.InterfaceBuilderVersion">639</string>
-		<string key="IBDocument.AppKitVersion">949</string>
-		<string key="IBDocument.HIToolboxVersion">343.00</string>
+		<string key="IBDocument.AppKitVersion">949.26</string>
+		<string key="IBDocument.HIToolboxVersion">352.00</string>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
+			<integer value="57"/>
 			<integer value="285"/>
-			<integer value="29"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -448,7 +448,7 @@
 			<object class="NSWindowTemplate" id="124913468">
 				<int key="NSWindowStyleMask">3</int>
 				<int key="NSWindowBacking">2</int>
-				<string key="NSWindowRect">{{479, 459}, {481, 345}}</string>
+				<string key="NSWindowRect">{{319, 294}, {481, 345}}</string>
 				<int key="NSWTFlags">1350041600</int>
 				<string key="NSWindowTitle">X11 Preferences</string>
 				<string key="NSWindowClass">NSPanel</string>
@@ -993,7 +993,7 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 					</object>
 					<string key="NSFrameSize">{481, 345}</string>
 				</object>
-				<string key="NSScreenRect">{{0, 0}, {1920, 1178}}</string>
+				<string key="NSScreenRect">{{0, 0}, {1440, 878}}</string>
 				<string key="NSMinSize">{213, 129}</string>
 				<string key="NSMaxSize">{3.40282e+38, 3.40282e+38}</string>
 				<string key="NSFrameAutosaveName">x11_prefs</string>
@@ -1001,7 +1001,7 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 			<object class="NSWindowTemplate" id="604417141">
 				<int key="NSWindowStyleMask">11</int>
 				<int key="NSWindowBacking">2</int>
-				<string key="NSWindowRect">{{537, 554}, {454, 311}}</string>
+				<string key="NSWindowRect">{{361, 362}, {454, 311}}</string>
 				<int key="NSWTFlags">1350041600</int>
 				<string key="NSWindowTitle">X11 Application Menu</string>
 				<string key="NSWindowClass">NSPanel</string>
@@ -1355,7 +1355,7 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 					<string key="NSFrameSize">{454, 311}</string>
 					<reference key="NSSuperview"/>
 				</object>
-				<string key="NSScreenRect">{{0, 0}, {1920, 1178}}</string>
+				<string key="NSScreenRect">{{0, 0}, {1440, 878}}</string>
 				<string key="NSMinSize">{320, 262}</string>
 				<string key="NSFrameAutosaveName">x11_apps</string>
 			</object>
@@ -1866,20 +1866,20 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 					<int key="connectionID">300332</int>
 				</object>
 				<object class="IBConnectionRecord">
-					<object class="IBActionConnection" key="connection">
-						<string key="label">quit:</string>
-						<reference key="source" ref="485884620"/>
-						<reference key="destination" ref="274138642"/>
-					</object>
-					<int key="connectionID">300333</int>
-				</object>
-				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">menu</string>
 						<reference key="source" ref="815810918"/>
 						<reference key="destination" ref="524015605"/>
 					</object>
 					<int key="connectionID">300334</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBActionConnection" key="connection">
+						<string key="label">terminate:</string>
+						<reference key="source" ref="815810918"/>
+						<reference key="destination" ref="274138642"/>
+					</object>
+					<int key="connectionID">300336</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -3075,6 +3075,7 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 					<string>545.ImportedFromIB2</string>
 					<string>56.IBPluginDependency</string>
 					<string>56.ImportedFromIB2</string>
+					<string>57.IBEditorWindowLastContentRect</string>
 					<string>57.IBPluginDependency</string>
 					<string>57.ImportedFromIB2</string>
 					<string>57.editorWindowContentRectSynchronizationRect</string>
@@ -3168,11 +3169,11 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 					<string>{{100, 746}, {155, 33}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
-					<string>{{537, 554}, {454, 311}}</string>
+					<string>{{537, 545}, {454, 311}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
 					<reference ref="9"/>
-					<string>{{537, 554}, {454, 311}}</string>
+					<string>{{537, 545}, {454, 311}}</string>
 					<reference ref="9"/>
 					<string>{{433, 406}, {486, 327}}</string>
 					<object class="NSDictionary">
@@ -3194,7 +3195,7 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 					<string>{320, 240}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
-					<string>{{0, 1114}, {336, 20}}</string>
+					<string>{{0, 836}, {336, 20}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
 					<string>{{67, 819}, {336, 20}}</string>
@@ -3319,6 +3320,7 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 					<reference ref="9"/>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
+					<string>{{12, 633}, {218, 203}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
 					<string>{{79, 616}, {218, 203}}</string>
@@ -3354,7 +3356,7 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">300334</int>
+			<int key="maxID">300336</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
