@@ -107,127 +107,6 @@ xf86FormatPciBusNumber(int busnum, char *buffer)
 	sprintf(buffer, "%d@%d", busnum & 0x00ff, busnum >> 8);
 }
 
-static void
-FindPCIVideoInfo(void)
-{
-    int i = 0, k;
-    int num = 0;
-    struct pci_device *info;
-    struct pci_device_iterator *iter;
-
-
-    if (!xf86scanpci()) {
-	xf86PciVideoInfo = NULL;
-	return;
-    }
-
-    iter = pci_slot_match_iterator_create(& xf86IsolateDevice);
-    while ((info = pci_device_next(iter)) != NULL) {
-	if (PCIINFOCLASSES(info->device_class)) {
-	    num++;
-	    xf86PciVideoInfo = xnfrealloc(xf86PciVideoInfo,
-					  (sizeof(struct pci_device *)
-					   * (num + 1)));
-	    xf86PciVideoInfo[num] = NULL;
-	    xf86PciVideoInfo[num - 1] = info;
-
-	    pci_device_probe(info);
-	    info->user_data = 0;
-	}
-    }
-
-
-    /* If we haven't found a primary device try a different heuristic */
-    if (primaryBus.type == BUS_NONE && num) {
-	for (i = 0; i < num; i++) {
-	    uint16_t  command;
-
-	    info = xf86PciVideoInfo[i];
-	    pci_device_cfg_read_u16(info, & command, 4);
-
-	    if ((command & PCI_CMD_MEM_ENABLE) 
-		&& ((num == 1) || IS_VGA(info->device_class))) {
-		if (primaryBus.type == BUS_NONE) {
-		    primaryBus.type = BUS_PCI;
-		    primaryBus.id.pci = info;
-		} else {
-		    xf86Msg(X_NOTICE,
-			    "More than one possible primary device found\n");
-		    primaryBus.type ^= (BusType)(-1);
-		}
-	    }
-	}
-    }
-    
-    /* Print a summary of the video devices found */
-    for (k = 0; k < num; k++) {
-	const char *vendorname = NULL, *chipname = NULL;
-	const char *prim = " ";
-	Bool memdone = FALSE, iodone = FALSE;
-
-
-	info = xf86PciVideoInfo[k];
-
-	vendorname = pci_device_get_vendor_name( info );
-	chipname = pci_device_get_device_name( info );
-
-	if ((!vendorname || !chipname) &&
-	    !PCIALWAYSPRINTCLASSES(info->device_class))
-	    continue;
-
-	if (xf86IsPrimaryPci(info))
-	    prim = "*";
-
-	xf86Msg( X_PROBED, "PCI:%s(%u@%u:%u:%u) ", prim, info->domain,
-		 info->bus, info->dev, info->func );
-
-	if (vendorname)
-	    xf86ErrorF("%s ", vendorname);
-	else
-	    xf86ErrorF("unknown vendor (0x%04x) ", info->vendor_id);
-
-	if (chipname)
-	    xf86ErrorF("%s ", chipname);
-	else
-	    xf86ErrorF("unknown chipset (0x%04x) ", info->device_id);
-
-	xf86ErrorF("rev %d", info->revision);
-
-	for (i = 0; i < 6; i++) {
-	    struct pci_mem_region * r = & info->regions[i];
-
-	    if ( r->size && ! r->is_IO ) {
-		if (!memdone) {
-		    xf86ErrorF(", Mem @ ");
-		    memdone = TRUE;
-		} else
-		    xf86ErrorF(", ");
-		xf86ErrorF("0x%08lx/%ld", r->base_addr, r->size);
-	    }
-	}
-
-	for (i = 0; i < 6; i++) {
-	    struct pci_mem_region * r = & info->regions[i];
-
-	    if ( r->size && r->is_IO ) {
-		if (!iodone) {
-		    xf86ErrorF(", I/O @ ");
-		    iodone = TRUE;
-		} else
-		    xf86ErrorF(", ");
-		xf86ErrorF("0x%08lx/%ld", r->base_addr, r->size);
-	    }
-	}
-
-	if ( info->rom_size ) {
-	    xf86ErrorF(", BIOS @ 0x\?\?\?\?\?\?\?\?/%ld", info->rom_size);
-	}
-
-	xf86ErrorF("\n");
-    }
-}
-
-
 /*
  * IO enable/disable related routines for PCI
  */
@@ -401,10 +280,10 @@ savePciState( struct pci_device * dev, pciSavePtr ptr )
 }
 
 /* move to OS layer */
+#if 0
 static void
 restorePciState( struct pci_device * dev, pciSavePtr ptr)
 {
-#if 0
     int i;
     
     /* disable card before setting anything */
@@ -419,8 +298,8 @@ restorePciState( struct pci_device * dev, pciSavePtr ptr)
     }
 
     pci_device_cfg_write_u32(dev, ptr->command, PCI_CMD_STAT_REG);
-#endif
 }
+#endif
 
 /* move to OS layer */
 static void
@@ -470,7 +349,121 @@ restorePciBusState(BusAccPtr ptr)
 void
 xf86PciProbe(void)
 {
-    FindPCIVideoInfo();
+    int i = 0, k;
+    int num = 0;
+    struct pci_device *info;
+    struct pci_device_iterator *iter;
+
+
+    if (!xf86scanpci()) {
+	xf86PciVideoInfo = NULL;
+	return;
+    }
+
+    iter = pci_slot_match_iterator_create(& xf86IsolateDevice);
+    while ((info = pci_device_next(iter)) != NULL) {
+	if (PCIINFOCLASSES(info->device_class)) {
+	    num++;
+	    xf86PciVideoInfo = xnfrealloc(xf86PciVideoInfo,
+					  (sizeof(struct pci_device *)
+					   * (num + 1)));
+	    xf86PciVideoInfo[num] = NULL;
+	    xf86PciVideoInfo[num - 1] = info;
+
+	    pci_device_probe(info);
+	    info->user_data = 0;
+	}
+    }
+
+
+    /* If we haven't found a primary device try a different heuristic */
+    if (primaryBus.type == BUS_NONE && num) {
+	for (i = 0; i < num; i++) {
+	    uint16_t  command;
+
+	    info = xf86PciVideoInfo[i];
+	    pci_device_cfg_read_u16(info, & command, 4);
+
+	    if ((command & PCI_CMD_MEM_ENABLE) 
+		&& ((num == 1) || IS_VGA(info->device_class))) {
+		if (primaryBus.type == BUS_NONE) {
+		    primaryBus.type = BUS_PCI;
+		    primaryBus.id.pci = info;
+		} else {
+		    xf86Msg(X_NOTICE,
+			    "More than one possible primary device found\n");
+		    primaryBus.type ^= (BusType)(-1);
+		}
+	    }
+	}
+    }
+    
+    /* Print a summary of the video devices found */
+    for (k = 0; k < num; k++) {
+	const char *vendorname = NULL, *chipname = NULL;
+	const char *prim = " ";
+	Bool memdone = FALSE, iodone = FALSE;
+
+
+	info = xf86PciVideoInfo[k];
+
+	vendorname = pci_device_get_vendor_name( info );
+	chipname = pci_device_get_device_name( info );
+
+	if ((!vendorname || !chipname) &&
+	    !PCIALWAYSPRINTCLASSES(info->device_class))
+	    continue;
+
+	if (xf86IsPrimaryPci(info))
+	    prim = "*";
+
+	xf86Msg( X_PROBED, "PCI:%s(%u@%u:%u:%u) ", prim, info->domain,
+		 info->bus, info->dev, info->func );
+
+	if (vendorname)
+	    xf86ErrorF("%s ", vendorname);
+	else
+	    xf86ErrorF("unknown vendor (0x%04x) ", info->vendor_id);
+
+	if (chipname)
+	    xf86ErrorF("%s ", chipname);
+	else
+	    xf86ErrorF("unknown chipset (0x%04x) ", info->device_id);
+
+	xf86ErrorF("rev %d", info->revision);
+
+	for (i = 0; i < 6; i++) {
+	    struct pci_mem_region * r = & info->regions[i];
+
+	    if ( r->size && ! r->is_IO ) {
+		if (!memdone) {
+		    xf86ErrorF(", Mem @ ");
+		    memdone = TRUE;
+		} else
+		    xf86ErrorF(", ");
+		xf86ErrorF("0x%08lx/%ld", r->base_addr, r->size);
+	    }
+	}
+
+	for (i = 0; i < 6; i++) {
+	    struct pci_mem_region * r = & info->regions[i];
+
+	    if ( r->size && r->is_IO ) {
+		if (!iodone) {
+		    xf86ErrorF(", I/O @ ");
+		    iodone = TRUE;
+		} else
+		    xf86ErrorF(", ");
+		xf86ErrorF("0x%08lx/%ld", r->base_addr, r->size);
+	    }
+	}
+
+	if ( info->rom_size ) {
+	    xf86ErrorF(", BIOS @ 0x\?\?\?\?\?\?\?\?/%ld", info->rom_size);
+	}
+
+	xf86ErrorF("\n");
+    }
 }
 
 void

@@ -268,18 +268,7 @@ pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS addr)
 _X_EXPORT Bool
 xf86scanpci(void)
 {
-    static Bool  done = FALSE;
-    static Bool  success = FALSE;
-
-    /*
-     * if we haven't found PCI devices checking for pci_devp may
-     * result in an endless recursion if platform/OS specific PCI
-     * bus probing code calls this function from with in it.
-     */
-    if (done)
-	return success;
-
-    done = TRUE;
+    Bool  success = FALSE;
 
     success = (pci_system_init() == 0);
     pciInit();
