@@ -148,22 +148,6 @@ _X_EXPORT int            pciNumBuses = 0;     /* Actual number of PCI buses */
 int            pciMaxBusNum = MAX_PCI_BUSES;
 
 
-/*
- * pciInit - choose correct platform/OS specific PCI init routine
- */
-static void
-pciInit(void)
-{
-	/* XXX */
-#if defined(DEBUGPCI)
-	if (DEBUGPCI >= xf86Verbose) {
-	    xf86Verbose = DEBUGPCI;
-	}
-#endif
-
-	ARCH_PCI_INIT();
-}
-
 _X_EXPORT ADDRESS
 pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
 {
@@ -194,7 +178,16 @@ xf86scanpci(void)
     Bool  success = FALSE;
 
     success = (pci_system_init() == 0);
-    pciInit();
+
+	/* XXX */
+#if defined(DEBUGPCI)
+	if (DEBUGPCI >= xf86Verbose) {
+	    xf86Verbose = DEBUGPCI;
+	}
+#endif
+
+    /* choose correct platform/OS specific PCI init routine */
+	ARCH_PCI_INIT();
 
     return success;
 }
