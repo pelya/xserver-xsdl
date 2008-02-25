@@ -198,13 +198,6 @@ xf86CreateRootWindow(WindowPtr pWin)
 }
 
 
-/*
- * InitOutput --
- *	Initialize screenInfo for all actually accessible framebuffers.
- *      That includes vt-manager setup, querying all possible devices and
- *      collecting the pixmap formats.
- */
-
 static void
 PostConfigInit(void)
 {
@@ -467,7 +460,12 @@ xf86CallDriverProbe( DriverPtr drv, Bool detect_only )
     return foundScreen;
 }
 
-
+/*
+ * InitOutput --
+ *	Initialize screenInfo for all actually accessible framebuffers.
+ *      That includes vt-manager setup, querying all possible devices and
+ *      collecting the pixmap formats.
+ */
 void
 InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 {
