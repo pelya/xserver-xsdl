@@ -25,8 +25,6 @@
 #define PCIADDR_FMT		"%lx"
 #endif
 
-int lnxPciInit(void);
-
 struct pci_dev {
     unsigned int domain;
     unsigned int bus;
@@ -137,14 +135,6 @@ static struct pci_dev *xf86OSLinuxGetPciDevs(void) {
     } while (res);
     fclose(file);
     return ret;
-}
-
-/* not to be confused with linuxPciInit (i.e. ARCH_PCI_INIT), found in
- * os-support/bus/linuxPci.c. */
-int lnxPciInit(void) {
-    if (!xf86OSLinuxPCIDevs)
-        xf86OSLinuxPCIDevs = xf86OSLinuxGetPciDevs();
-    return xf86OSLinuxNumPciDevs;
 }
 
 /* Query the kvirt address (64bit) of a BAR range from size for a given TAG */
