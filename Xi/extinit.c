@@ -94,7 +94,6 @@ SOFTWARE.
 #include "getfocus.h"
 #include "getkmap.h"
 #include "getmmap.h"
-#include "getpairp.h"
 #include "getprop.h"
 #include "getselev.h"
 #include "getvers.h"
@@ -335,8 +334,6 @@ ProcIDispatch(ClientPtr client)
         return ProcXSetClientPointer(client);
     else if (stuff->data == X_GetClientPointer)
         return ProcXGetClientPointer(client);
-    else if (stuff->data == X_GetPairedPointer)
-        return ProcXGetPairedPointer(client);
     else if (stuff->data == X_ExtendedGrabDevice)
         return ProcXExtendedGrabDevice(client);
     else {
@@ -446,8 +443,6 @@ SProcIDispatch(ClientPtr client)
         return SProcXSetClientPointer(client);
     else if (stuff->data == X_GetClientPointer)
         return SProcXGetClientPointer(client);
-    else if (stuff->data == X_GetPairedPointer)
-        return SProcXGetPairedPointer(client);
     else if (stuff->data == X_ExtendedGrabDevice)
         return SProcXExtendedGrabDevice(client);
     else {
@@ -530,8 +525,6 @@ SReplyIDispatch(ClientPtr client, int len, xGrabDeviceReply * rep)
                                (xQueryWindowAccessReply*) rep);
     else if (rep->RepType == X_GetClientPointer)
         SRepXGetClientPointer(client, len, (xGetClientPointerReply*) rep);
-    else if (rep->RepType == X_GetPairedPointer)
-        SRepXGetPairedPointer(client, len, (xGetPairedPointerReply*) rep);
     else if (rep->RepType == X_ExtendedGrabDevice)
         SRepXExtendedGrabDevice(client, len, (xExtendedGrabDeviceReply*) rep);
     else {

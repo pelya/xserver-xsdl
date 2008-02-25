@@ -46,8 +46,6 @@ libXi_la_SOURCES =	\
 	getkmap.h \
 	getmmap.c \
 	getmmap.h \
-	getpairp.c \
-	getpairp.h \
 	getprop.c \
 	getprop.h \
 	getselev.c \
