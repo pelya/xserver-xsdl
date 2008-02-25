@@ -40,9 +40,8 @@
  * or for non-video devices unless they're needed by a driver or elsewhere.
  * A comprehensive set of PCI vendor, device and subsystem data is
  * auto-generated from the ../etc/pci.ids file using the pciids2c.pl script,
- * and is used in both the scanpci module and the scanpci utility.  Don't
- * modify the pci.ids file.  If new/corrected entries are required, add them
- * to ../etc/extrapci.ids.
+ * and is used in scanpci utility.  Don't modify the pci.ids file.  If 
+ * new/corrected entries are required, add them to ../etc/extrapci.ids.
  */
 
 #ifndef _XF86_PCIINFO_H

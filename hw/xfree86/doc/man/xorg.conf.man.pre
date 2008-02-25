@@ -994,10 +994,8 @@ In multi-head configurations, or when using a secondary graphics card in a
 single-head configuration, this entry is mandatory.
 Its main purpose is to make an unambiguous connection between the device
 section and the hardware it is representing.
-This information can usually be found by running the __xservername__ server
-with the
-.B \-scanpci
-command line option.
+This information can usually be found by running the pciaccess tool
+scanpci.
 .TP 7
 .BI "Screen  " number
 This option is mandatory for cards where a single PCI entity can drive more

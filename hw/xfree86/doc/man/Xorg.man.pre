@@ -378,13 +378,6 @@ and
 .B \-ggamma
 options.
 .TP 8
-.B \-scanpci
-When this option is specified, the
-.B __xservername__
-server scans the PCI bus, and prints out some information about each
-device that was detected.  See also scanpci(__appmansuffix__) 
-and pcitweak(__appmansuffix__).
-.TP 8
 .BI \-screen " screen-name"
 Use the __xconfigfile__(__filemansuffix__) file
 .B Screen

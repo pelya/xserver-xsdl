@@ -155,10 +155,6 @@ Bool xf86PathIsSafe(const char *path);
 
 extern DisplayModeRec xf86DefaultModes [];
 
-/* xf86DoScanPci.c */
-
-void DoScanPci(int argc, char **argv, int i);
-
 /* xf86DoProbe.c */
 void DoProbe(void);
 void DoConfigure(void);
