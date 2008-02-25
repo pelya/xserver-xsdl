@@ -698,7 +698,4 @@ extern int ExtGrabDevice(ClientPtr client,
                          CursorPtr cursor, 
                          Mask xi_mask,
                          GenericMaskPtr ge_masks);
-extern int ExtUngrabDevice(ClientPtr client,
-                         DeviceIntPtr dev);
-
 #endif /* DIX_H */

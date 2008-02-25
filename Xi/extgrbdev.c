@@ -107,19 +107,13 @@ ProcXExtendedGrabDevice(ClientPtr client)
     REQUEST(xExtendedGrabDeviceReq);
     REQUEST_AT_LEAST_SIZE(xExtendedGrabDeviceReq);
 
-    if (stuff->ungrab)
-    {
-        REQUEST_SIZE_MATCH(xExtendedGrabDeviceReq);
-    }
-
     rep.repType         = X_Reply;
     rep.RepType         = X_ExtendedGrabDevice;
     rep.sequenceNumber  = client->sequence;
     rep.length          = 0;
 
-    if (!stuff->ungrab && /* other fields are undefined for ungrab */
-            (stuff->length != (sizeof(xExtendedGrabDeviceReq) >> 2) +
-            stuff->event_count + 2 * stuff->generic_event_count))
+    if (stuff->length != (sizeof(xExtendedGrabDeviceReq) >> 2) +
+            stuff->event_count + 2 * stuff->generic_event_count)
     {
         errval = 0;
         rc = BadLength;
@@ -129,13 +123,6 @@ ProcXExtendedGrabDevice(ClientPtr client)
     rc = dixLookupDevice(&dev, stuff->deviceid, client, DixGrabAccess);
     if (rc != Success) {
 	goto cleanup;
-    }
-
-
-    if (stuff->ungrab)
-    {
-        ExtUngrabDevice(client, dev);
-        goto cleanup;
     }
 
     rc = dixLookupWindow(&grab_window,

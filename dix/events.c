@@ -6604,15 +6604,3 @@ ExtGrabDevice(ClientPtr client,
     return GrabSuccess;
 }
 
-
-_X_EXPORT int
-ExtUngrabDevice(ClientPtr client, DeviceIntPtr dev)
-{
-    GrabInfoPtr grabinfo = &dev->deviceGrab;
-    if (grabinfo->grab && SameClient(grabinfo->grab, client))
-        (*grabinfo->DeactivateGrab)(dev);
-    return GrabSuccess;
-}
-
-
-
