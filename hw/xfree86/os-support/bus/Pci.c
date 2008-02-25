@@ -154,11 +154,6 @@ int            pciMaxBusNum = MAX_PCI_BUSES;
 static void
 pciInit(void)
 {
-    static int pciInitialized = 0;
-
-    if (!pciInitialized) {
-	pciInitialized = 1;
-
 	/* XXX */
 #if defined(DEBUGPCI)
 	if (DEBUGPCI >= xf86Verbose) {
@@ -167,15 +162,12 @@ pciInit(void)
 #endif
 
 	ARCH_PCI_INIT();
-    }
 }
 
 _X_EXPORT ADDRESS
 pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
 {
   int bus = PCI_BUS_FROM_TAG(tag);
-
-  pciInit();
 
   if ((bus >= 0) && (bus < pciNumBuses) && pciBusInfo[bus] &&
 	pciBusInfo[bus]->funcs->pciAddrBusToHost)
