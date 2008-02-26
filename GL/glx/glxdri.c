@@ -798,10 +798,14 @@ static void __glXReportDamage(__DRIdrawable *driDraw,
     DrawablePtr pDraw = drawable->base.pDraw;
     RegionRec region;
 
+    __glXenterServer(GL_FALSE);
+
     REGION_INIT(pDraw->pScreen, &region, (BoxPtr) rects, num_rects);
     REGION_TRANSLATE(pScreen, &region, pDraw->x, pDraw->y);
     DamageDamageRegion(pDraw, &region);
     REGION_UNINIT(pDraw->pScreen, &region);
+
+    __glXleaveServer(GL_FALSE);
 }
 
 /* Table of functions that we export to the driver. */
