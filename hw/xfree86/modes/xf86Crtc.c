@@ -236,6 +236,9 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
     int			saved_x, saved_y;
     Rotation		saved_rotation;
 
+    if (crtc->funcs->set_mode_major)
+	return crtc->funcs->set_mode_major(crtc, mode, rotation, x, y);
+	
     crtc->enabled = xf86CrtcInUse (crtc);
     
     if (!crtc->enabled)
