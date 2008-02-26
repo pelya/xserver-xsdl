@@ -484,6 +484,21 @@ CoreKeyboardProc(DeviceIntPtr pDev, int what)
          * If we don't do that, we're in SIGABRT territory (double-frees, etc)
          */
         memcpy(&dummy, pDev, sizeof(DeviceIntRec));
+        /* Need to set them to NULL. Otherwise, Xkb does some weird stuff and
+         * the dev->key->xkbInfo->kbdProc starts calling itself. This can
+         * probably be fixed in a better way, but I don't know how. (whot) */
+        pDev->key        = NULL;
+        pDev->valuator   = NULL;
+        pDev->button     = NULL;
+        pDev->focus      = NULL;
+        pDev->proximity  = NULL;
+        pDev->absolute   = NULL;
+        pDev->kbdfeed    = NULL;
+        pDev->ptrfeed    = NULL;
+        pDev->intfeed    = NULL;
+        pDev->stringfeed = NULL;
+        pDev->bell       = NULL;
+        pDev->leds       = NULL;
         DeepCopyDeviceClasses(&dummy, pDev);
 
         dixSetPrivate(&pDev->devPrivates, MasterDevClassesPrivateKey,
@@ -547,6 +562,20 @@ CorePointerProc(DeviceIntPtr pDev, int what)
 
         /* See comment in CoreKeyboardProc. */
         memcpy(&dummy, pDev, sizeof(DeviceIntRec));
+        /* Need to set them to NULL for the VCK (see CoreKeyboardProc). Not
+         * sure if also necessary for the VCP, but it doesn't seem to hurt */
+        pDev->key        = NULL;
+        pDev->valuator   = NULL;
+        pDev->button     = NULL;
+        pDev->focus      = NULL;
+        pDev->proximity  = NULL;
+        pDev->absolute   = NULL;
+        pDev->kbdfeed    = NULL;
+        pDev->ptrfeed    = NULL;
+        pDev->intfeed    = NULL;
+        pDev->stringfeed = NULL;
+        pDev->bell       = NULL;
+        pDev->leds       = NULL;
         DeepCopyDeviceClasses(&dummy, pDev);
 
         dixSetPrivate(&pDev->devPrivates, MasterDevClassesPrivateKey, classes);
