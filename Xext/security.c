@@ -1105,6 +1105,8 @@ SecurityExtensionInit(INITARGS)
 	return;
 
     RTEventClient |= RC_NEVERRETAIN;
+    RegisterResourceName(SecurityAuthorizationResType, "SecurityAuthorization");
+    RegisterResourceName(RTEventClient, "SecurityEventClient");
 
     /* Allocate the private storage */
     if (!dixRequestPrivate(stateKey, sizeof(SecurityStateRec)))
