@@ -77,11 +77,46 @@ int
 SProcXChangeDeviceControl(ClientPtr client)
 {
     char n;
+    xDeviceCtl *ctl;
+    xDeviceAbsCalibCtl *calib;
+    xDeviceAbsAreaCtl *area;
 
     REQUEST(xChangeDeviceControlReq);
     swaps(&stuff->length, n);
     REQUEST_AT_LEAST_SIZE(xChangeDeviceControlReq);
     swaps(&stuff->control, n);
+    ctl = (xDeviceCtl*)&stuff[1];
+    swaps(&ctl->control, n);
+    swaps(&ctl->length, n);
+    switch(stuff->control) {
+        case DEVICE_ABS_CALIB:
+            calib = (xDeviceAbsCalibCtl*)ctl;
+            swaps(&calib->length, n);
+            swapl(&calib->min_x, n);
+            swapl(&calib->max_x, n);
+            swapl(&calib->min_y, n);
+            swapl(&calib->max_y, n);
+            swapl(&calib->flip_x, n);
+            swapl(&calib->flip_y, n);
+            swapl(&calib->rotation, n);
+            swapl(&calib->button_threshold, n);
+            break;
+        case DEVICE_ABS_AREA:
+            area = (xDeviceAbsAreaCtl*)ctl;
+            swapl(&area->offset_x, n);
+            swapl(&area->offset_y, n);
+            swapl(&area->width, n);
+            swapl(&area->height, n);
+            swapl(&area->screen, n);
+            swapl(&area->following, n);
+            break;
+        case DEVICE_CORE:
+        case DEVICE_ENABLE:
+        case DEVICE_RESOLUTION:
+            /* hmm. beer. *drool* */
+            break;
+
+    }
     return (ProcXChangeDeviceControl(client));
 }
 
