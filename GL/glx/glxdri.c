@@ -614,6 +614,9 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
     else
 	driShare = NULL;
 
+    if (baseShareContext && baseShareContext->isDirect)
+        return NULL;
+
     context = xalloc(sizeof *context);
     if (context == NULL)
 	return NULL;
@@ -648,6 +651,11 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
 					   driShare,
 					   hwContext,
 					   &context->driContext);
+
+    if (context->driContext.private == NULL) {
+	xfree(context);
+	return NULL;
+    }
 
     return &context->base;
 }
