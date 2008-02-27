@@ -653,6 +653,9 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
 					   &context->driContext);
 
     if (context->driContext.private == NULL) {
+    	__glXenterServer(GL_FALSE);
+	retval = DRIDestroyContext(baseScreen->pScreen, context->hwContextID);
+    	__glXleaveServer(GL_FALSE);
 	xfree(context);
 	return NULL;
     }
@@ -702,6 +705,14 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
 						 modes,
 						 &private->driDrawable,
 						 hwDrawable, 0, NULL);
+
+    if (private->driDrawable.private == NULL) {
+	__glXenterServer(GL_FALSE);
+	DRIDestroyDrawable(screen->pScreen, serverClient, pDraw);
+	__glXleaveServer(GL_FALSE);
+	xfree(private);
+	return NULL;
+    }
 
     return &private->base;
 }
