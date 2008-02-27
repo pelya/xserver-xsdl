@@ -43,6 +43,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define X_SELinuxSetWindowCreateContext		10
 #define X_SELinuxGetWindowCreateContext		11
 #define X_SELinuxGetWindowContext		12
+#define X_SELinuxSetSelectionCreateContext	13
+#define X_SELinuxGetSelectionCreateContext	14
+#define X_SELinuxGetSelectionContext		15
 
 typedef struct {
     CARD8   reqType;

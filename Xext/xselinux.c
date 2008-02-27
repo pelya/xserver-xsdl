@@ -1283,6 +1283,24 @@ ProcSELinuxGetWindowContext(ClientPtr client)
 }
 
 static int
+ProcSELinuxSetSelectionCreateContext(ClientPtr client)
+{
+    return Success;
+}
+
+static int
+ProcSELinuxGetSelectionCreateContext(ClientPtr client)
+{
+    return Success;
+}
+
+static int
+ProcSELinuxGetSelectionContext(ClientPtr client)
+{
+    return Success;
+}
+
+static int
 ProcSELinuxDispatch(ClientPtr client)
 {
     REQUEST(xReq);
@@ -1313,6 +1331,12 @@ ProcSELinuxDispatch(ClientPtr client)
 	return ProcSELinuxGetWindowCreateContext(client);
     case X_SELinuxGetWindowContext:
 	return ProcSELinuxGetWindowContext(client);
+    case X_SELinuxSetSelectionCreateContext:
+	return ProcSELinuxSetSelectionCreateContext(client);
+    case X_SELinuxGetSelectionCreateContext:
+	return ProcSELinuxGetSelectionCreateContext(client);
+    case X_SELinuxGetSelectionContext:
+	return ProcSELinuxGetSelectionContext(client);
     default:
 	return BadRequest;
     }
@@ -1421,6 +1445,28 @@ SProcSELinuxGetWindowContext(ClientPtr client)
 }
 
 static int
+SProcSELinuxSetSelectionCreateContext(ClientPtr client)
+{
+    REQUEST(SELinuxSetCreateContextReq);
+    int n;
+
+    REQUEST_AT_LEAST_SIZE(SELinuxSetCreateContextReq);
+    swaps(&stuff->context_len, n);
+    return ProcSELinuxSetSelectionCreateContext(client);
+}
+
+static int
+SProcSELinuxGetSelectionContext(ClientPtr client)
+{
+    REQUEST(SELinuxGetContextReq);
+    int n;
+
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+    swapl(&stuff->id, n);
+    return ProcSELinuxGetSelectionContext(client);
+}
+
+static int
 SProcSELinuxDispatch(ClientPtr client)
 {
     REQUEST(xReq);
@@ -1455,6 +1501,12 @@ SProcSELinuxDispatch(ClientPtr client)
 	return ProcSELinuxGetWindowCreateContext(client);
     case X_SELinuxGetWindowContext:
 	return SProcSELinuxGetWindowContext(client);
+    case X_SELinuxSetSelectionCreateContext:
+	return SProcSELinuxSetSelectionCreateContext(client);
+    case X_SELinuxGetSelectionCreateContext:
+	return ProcSELinuxGetSelectionCreateContext(client);
+    case X_SELinuxGetSelectionContext:
+	return SProcSELinuxGetSelectionContext(client);
     default:
 	return BadRequest;
     }
