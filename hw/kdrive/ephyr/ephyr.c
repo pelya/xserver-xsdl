@@ -841,6 +841,7 @@ miPointerScreenFuncRec ephyrPointerScreenFuncs =
   ephyrWarpCursor
 };
 
+#ifdef XEPHYR_DRI
 /**
  * find if the remote window denoted by a_remote
  * is paired with an internal Window within the Xephyr server.
@@ -872,6 +873,7 @@ ephyrExposePairedWindow (int a_remote)
     screen->WindowExposures (pair->local, &reg, NullRegion);
     REGION_UNINIT (screen, &reg);
 }
+#endif /*XEPHYR_DRI*/
 
 void
 ephyrPoll(void)
@@ -948,6 +950,7 @@ ephyrPoll(void)
 	  KdEnqueueKeyboardEvent (ephyrKbd, ev.data.key_up.scancode, TRUE);
 	  break;
 
+#ifdef XEPHYR_DRI
 	case EPHYR_EV_EXPOSE:
 	  /*
 	   * We only receive expose events when the expose event have
@@ -957,6 +960,7 @@ ephyrPoll(void)
 	   */
 	  ephyrExposePairedWindow (ev.data.expose.window);
 	  break;
+#endif /*XEPHYR_DRI*/
 
 	default:
 	  break;
