@@ -529,6 +529,7 @@ CloseDevice(DeviceIntPtr dev)
 	xfree(dev->key->curKeySyms.map);
 	xfree(dev->key->modifierKeyMap);
 	xfree(dev->key);
+        dev->key = NULL;
     }
 
     if (dev->valuator) {
