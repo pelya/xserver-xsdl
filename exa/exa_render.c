@@ -696,8 +696,6 @@ exaComposite(CARD8	op,
 	    pMask->repeat = 0;
 
     if (pExaScr->info->PrepareComposite &&
-	(!pSrc->repeat || pSrc->repeatType == RepeatNormal) &&
-	(!pMask || !pMask->repeat || pMask->repeatType == RepeatNormal) &&
 	!pSrc->alphaMap && (!pMask || !pMask->alphaMap) && !pDst->alphaMap)
     {
 	Bool isSrcSolid;
