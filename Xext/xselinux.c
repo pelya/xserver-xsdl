@@ -951,42 +951,11 @@ static void
 SELinuxSelectionState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {
     SelectionInfoRec *rec = calldata;
-    SELinuxSubjectRec *subj;
-    SELinuxObjectRec *obj;
 
     switch (rec->kind) {
     case SelectionSetOwner:
-	/* save off the "real" owner of the selection */
-	rec->selection->alt_client = rec->selection->client;
-	rec->selection->alt_window = rec->selection->window;
-
-	/* figure out the new label for the content */
-	subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
-	obj = dixLookupPrivate(&rec->selection->devPrivates, objectKey);
-	sidput(obj->sid);
-
-	if (avc_compute_create(subj->sid, subj->sid, SECCLASS_X_SELECTION,
-			       &obj->sid) < 0) {
-	    ErrorF("SELinux: a compute_create call failed!\n");
-	    obj->sid = unlabeled_sid;
-	}
-	break;
-
     case SelectionGetOwner:
-	/* restore the real owner */
-	rec->selection->window = rec->selection->alt_window;
-	break;
-
     case SelectionConvertSelection:
-	/* redirect the convert request if necessary */
-	if (securityManager && securityManager != rec->client) {
-	    rec->selection->client = securityManager;
-	    rec->selection->window = securityWindow;
-	} else {
-	    rec->selection->client = rec->selection->alt_client;
-	    rec->selection->window = rec->selection->alt_window;
-	}
-	break;
     default:
 	break;
     }
