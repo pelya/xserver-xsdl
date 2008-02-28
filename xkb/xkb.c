@@ -3545,7 +3545,7 @@ ProcXkbSetNames(ClientPtr client)
     if (!(client->xkbClientFlags&_XkbClientInitialized))
 	return BadAccess;
 
-    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixUnknownAccess);
+    CHK_KBD_DEVICE(dev, stuff->deviceSpec, client, DixManageAccess);
     CHK_MASK_LEGAL(0x01,stuff->which,XkbAllNamesMask);
 
     xkb = dev->key->xkbInfo->desc;
