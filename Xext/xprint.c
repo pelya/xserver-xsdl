@@ -1800,7 +1800,7 @@ ProcXpPutDocumentData(ClientPtr client)
 	if (pContext->state & DOC_RAW_STARTED)
 	    return BadDrawable;
 	result = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
-				   DixUnknownAccess);
+				   DixWriteAccess);
 	if (result != Success)
 	    return result;
 	if (pDraw->pScreen->myNum != pContext->screenNum)

@@ -213,7 +213,7 @@ remove_device(DBusMessage *message, DBusMessage *reply, DBusError *error)
         MALFORMED_MESSAGE_ERROR();
     }
 
-    dixLookupDevice(&dev, deviceid, serverClient, DixUnknownAccess);
+    dixLookupDevice(&dev, deviceid, serverClient, DixDestroyAccess);
     if (!dev) {
         DebugF("[config/dbus] bogus device id %d given\n", deviceid);
         ret = BadMatch;

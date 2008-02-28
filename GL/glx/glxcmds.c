@@ -479,7 +479,7 @@ __glXGetDrawable(__GLXcontext *glxc, GLXDrawable drawId, ClientPtr client,
      * resource ID clashes.  Effectively, the X Window is now also a
      * GLXWindow. */
 
-    rc = dixLookupDrawable(&pDraw, drawId, client, 0, DixUnknownAccess);
+    rc = dixLookupDrawable(&pDraw, drawId, client, 0, DixGetAttrAccess);
     if (rc != Success || pDraw->type != DRAWABLE_WINDOW) {
 	client->errorValue = drawId;
 	*error = __glXError(GLXBadDrawable);
@@ -1086,7 +1086,7 @@ DoCreateGLXPixmap(ClientPtr client, __GLXscreen *pGlxScreen, __GLcontextModes *c
     DrawablePtr pDraw;
     int err;
 
-    err = dixLookupDrawable(&pDraw, drawableId, client, 0, DixUnknownAccess);
+    err = dixLookupDrawable(&pDraw, drawableId, client, 0, DixAddAccess);
     if (err != Success || pDraw->type != DRAWABLE_PIXMAP) {
 	client->errorValue = drawableId;
 	return BadPixmap;
@@ -1364,7 +1364,7 @@ int __glXDisp_CreateWindow(__GLXclientState *cl, GLbyte *pc)
     if (!validGlxFBConfig(client, pGlxScreen, req->fbconfig, &config, &err))
 	return err;
 
-    err = dixLookupDrawable(&pDraw, req->window, client, 0, DixUnknownAccess);
+    err = dixLookupDrawable(&pDraw, req->window, client, 0, DixAddAccess);
     if (err != Success || pDraw->type != DRAWABLE_WINDOW) {
 	client->errorValue = req->window;
 	return BadWindow;
@@ -2004,7 +2004,7 @@ int __glXDisp_BindSwapBarrierSGIX(__GLXclientState *cl, GLbyte *pc)
     int screen, rc;
     __GLXscreen *pGlxScreen;
 
-    rc = dixLookupDrawable(&pDraw, drawable, client, 0, DixUnknownAccess);
+    rc = dixLookupDrawable(&pDraw, drawable, client, 0, DixGetAttrAccess);
     pGlxScreen = glxGetScreen(pDraw->pScreen);
     if (rc == Success && (pDraw->type == DRAWABLE_WINDOW)) {
 	screen = pDraw->pScreen->myNum;

@@ -92,7 +92,7 @@ static Bool
 compRepaintBorder (ClientPtr pClient, pointer closure)
 {
     WindowPtr pWindow;
-    int rc = dixLookupWindow(&pWindow, (XID)closure, pClient,DixUnknownAccess);
+    int rc = dixLookupWindow(&pWindow, (XID)closure, pClient, DixWriteAccess);
 
     if (rc == Success) {
 	RegionRec exposed;

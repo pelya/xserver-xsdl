@@ -655,7 +655,7 @@ ProcPanoramiXShmGetImage(ClientPtr client)
 	return ProcShmGetImage(client);
 
     rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
-			   DixUnknownAccess);
+			   DixReadAccess);
     if (rc != Success)
 	return rc;
 
@@ -692,7 +692,7 @@ ProcPanoramiXShmGetImage(ClientPtr client)
     drawables[0] = pDraw;
     for(i = 1; i < PanoramiXNumScreens; i++) {
 	rc = dixLookupDrawable(drawables+i, draw->info[i].id, client, 0, 
-			       DixUnknownAccess);
+			       DixReadAccess);
 	if (rc != Success)
 	    return rc;
     }
@@ -767,7 +767,7 @@ ProcPanoramiXShmCreatePixmap(
 	return BadImplementation;
     LEGAL_NEW_RESOURCE(stuff->pid, client);
     rc = dixLookupDrawable(&pDraw, stuff->drawable, client, M_ANY,
-			   DixUnknownAccess);
+			   DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 

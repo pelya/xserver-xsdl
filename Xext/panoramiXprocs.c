@@ -525,7 +525,7 @@ int PanoramiXGetGeometry(ClientPtr client)
     REQUEST(xResourceReq);
 
     REQUEST_SIZE_MATCH(xResourceReq);
-    rc = dixLookupDrawable(&pDraw, stuff->id, client, M_ANY, DixUnknownAccess);
+    rc = dixLookupDrawable(&pDraw, stuff->id, client, M_ANY, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
@@ -1024,7 +1024,7 @@ int PanoramiXCopyArea(ClientPtr client)
 
 	FOR_NSCREENS(j) {
 	    rc = dixLookupDrawable(drawables+j, src->info[j].id, client, 0,
-				   DixUnknownAccess);
+				   DixGetAttrAccess);
 	    if (rc != Success)
 		return rc;
 	}
@@ -1779,7 +1779,7 @@ int PanoramiXGetImage(ClientPtr client)
 	return (*SavedProcVector[X_GetImage])(client);
 
     rc = dixLookupDrawable(&pDraw, stuff->drawable, client, 0,
-			   DixUnknownAccess);
+			   DixReadAccess);
     if (rc != Success)
 	return rc;
 
@@ -1817,7 +1817,7 @@ int PanoramiXGetImage(ClientPtr client)
     drawables[0] = pDraw;
     for(i = 1; i < PanoramiXNumScreens; i++) {
 	rc = dixLookupDrawable(drawables+i, draw->info[i].id, client, 0,
-			       DixUnknownAccess);
+			       DixGetAttrAccess);
 	if (rc != Success)
 	    return rc;
     }

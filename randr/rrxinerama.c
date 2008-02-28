@@ -122,7 +122,7 @@ ProcRRXineramaGetState(ClientPtr client)
     Bool			active = FALSE;
 
     REQUEST_SIZE_MATCH(xPanoramiXGetStateReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if(rc != Success)
 	return rc;
 
@@ -184,7 +184,7 @@ ProcRRXineramaGetScreenCount(ClientPtr client)
     register int			n, rc;
 
     REQUEST_SIZE_MATCH(xPanoramiXGetScreenCountReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
     
@@ -211,7 +211,7 @@ ProcRRXineramaGetScreenSize(ClientPtr client)
     register int			n, rc;
 
     REQUEST_SIZE_MATCH(xPanoramiXGetScreenSizeReq);
-    rc = dixLookupWindow(&pWin, stuff->window, client, DixUnknownAccess);
+    rc = dixLookupWindow(&pWin, stuff->window, client, DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
