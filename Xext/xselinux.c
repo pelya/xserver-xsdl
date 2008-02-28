@@ -316,7 +316,7 @@ SELinuxDoCheck(SELinuxSubjectRec *subj, SELinuxObjectRec *obj,
 	    return Success; /* DixUnknownAccess requests OK ... for now */
 	if (errno == EACCES)
 	    return BadAccess;
-	ErrorF("ServerPerm: unexpected error %d\n", errno);
+	ErrorF("SELinux: avc_has_perm: unexpected error %d\n", errno);
 	return BadValue;
     }
 
@@ -348,7 +348,7 @@ SELinuxLabelClient(ClientPtr client)
 
 	/* For local clients, can get context from the socket */
 	if (getpeercon(fd, &ctx) < 0)
-	    FatalError("Client %d: couldn't get context from socket\n",
+	    FatalError("SELinux: client %d: couldn't get context from socket\n",
 		       client->index);
 
 	/* Try and determine the client's executable name */
@@ -375,13 +375,12 @@ SELinuxLabelClient(ClientPtr client)
     } else
 	/* For remote clients, need to use a default context */
 	if (selabel_lookup(label_hnd, &ctx, NULL, SELABEL_X_CLIENT) < 0)
-	    FatalError("Client %d: couldn't get default remote context\n",
-		       client->index);
+	    FatalError("SELinux: failed to look up remote-client context\n");
 
 finish:
     /* Get a SID from the context */
     if (avc_context_to_sid(ctx, &subj->sid) < 0)
-	FatalError("Client %d: context_to_sid(%s) failed\n",
+	FatalError("SELinux: client %d: context_to_sid(%s) failed\n",
 		   client->index, ctx);
 
     sidget(subj->sid);
@@ -410,11 +409,11 @@ SELinuxLabelInitial(void)
 
     /* Use the context of the X server process for the serverClient */
     if (getcon(&ctx) < 0)
-	FatalError("Couldn't get context of X server process\n");
+	FatalError("SELinux: couldn't get context of X server process\n");
 
     /* Get a SID from the context */
     if (avc_context_to_sid(ctx, &subj->sid) < 0)
-	FatalError("serverClient: context_to_sid(%s) failed\n", ctx);
+	FatalError("SELinux: serverClient: context_to_sid(%s) failed\n", ctx);
 
     sidget(subj->sid);
     obj->sid = subj->sid;
