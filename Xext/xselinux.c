@@ -312,6 +312,8 @@ SELinuxDoCheck(SELinuxSubjectRec *subj, SELinuxObjectRec *obj,
 
     if (avc_has_perm(subj->sid, obj->sid, class, mode, &subj->aeref,
 		     auditdata) < 0) {
+	if (mode == DixUnknownAccess)
+	    return Success; /* DixUnknownAccess requests OK ... for now */
 	if (errno == EACCES)
 	    return BadAccess;
 	ErrorF("ServerPerm: unexpected error %d\n", errno);
