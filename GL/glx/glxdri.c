@@ -828,17 +828,37 @@ static void __glXReportDamage(__DRIdrawable *driDraw,
 }
 
 /* Table of functions that we export to the driver. */
-static const __DRIinterfaceMethods interface_methods = {
+static const __DRIcontextModesExtension contextModesExtension = {
+    { __DRI_CONTEXT_MODES, __DRI_CONTEXT_MODES_VERSION },
     _gl_context_modes_create,
     _gl_context_modes_destroy,
+};
 
-    getDrawableInfo,
-
+static const __DRIsystemTimeExtension systemTimeExtension = {
+    { __DRI_SYSTEM_TIME, __DRI_SYSTEM_TIME_VERSION },
     getUST,
-    NULL, /* glXGetMscRateOML, */
+    NULL,
+};
 
+static const __DRIgetDrawableInfoExtension getDrawableInfoExtension = {
+    { __DRI_GET_DRAWABLE_INFO, __DRI_GET_DRAWABLE_INFO_VERSION },
+    getDrawableInfo
+};
+
+static const __DRIdamageExtension damageExtension = {
+    { __DRI_DAMAGE, __DRI_DAMAGE_VERSION },
     __glXReportDamage,
 };
+
+static const __DRIextension *loader_extensions[] = {
+    &contextModesExtension.base,
+    &systemTimeExtension.base,
+    &getDrawableInfoExtension.base,
+    &damageExtension.base,
+    NULL
+};
+
+
 
 static const char dri_driver_path[] = DRI_DRIVER_PATH;
 
@@ -926,7 +946,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     __DRIframebuffer  framebuffer;
     int   fd = -1;
     int   status;
-    int api_ver = 20070121;
     drm_magic_t magic;
     drmVersionPtr version;
     int newlyopened;
@@ -1091,8 +1110,7 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 			   &framebuffer,
 			   pSAREA,
 			   fd,
-			   api_ver,
-			   &interface_methods,
+			   loader_extensions,
 			   &screen->base.fbconfigs);
 
     if (screen->driScreen.private == NULL) {

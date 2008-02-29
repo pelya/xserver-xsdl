@@ -43,7 +43,6 @@ typedef struct {
     int fd;
     size_t driverSareaSize;
     const char *driverName;
-    int ddxVersionMajor, ddxVersionMinor, ddxVersionPatch;
     DRI2GetPixmapHandleProcPtr getPixmapHandle;
     DRI2BeginClipNotifyProcPtr beginClipNotify;
     DRI2EndClipNotifyProcPtr endClipNotify;
@@ -57,9 +56,6 @@ void DRI2CloseScreen(ScreenPtr pScreen);
 Bool DRI2Connect(ScreenPtr pScreen,
 		 int *fd,
 		 const char **driverName,
-		 int *ddxMajor,
-		 int *ddxMinor,
-		 int *ddxPatch,
 		 unsigned int *sareaHandle);
 
 unsigned int DRI2GetPixmapHandle(PixmapPtr pPixmap,

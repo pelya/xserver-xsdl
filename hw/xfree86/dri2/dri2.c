@@ -58,9 +58,6 @@ typedef struct _DRI2Screen {
     void			*sarea;
     unsigned int		 sareaSize;
     const char			*driverName;
-    int				 ddxVersionMajor;
-    int				 ddxVersionMinor;
-    int				 ddxVersionPatch;
 
     __DRIEventBuffer		*buffer;
     int				 locked;
@@ -330,7 +327,6 @@ DRI2DestroyDrawable(ScreenPtr pScreen, DrawablePtr pDraw)
 
 Bool
 DRI2Connect(ScreenPtr pScreen, int *fd, const char **driverName,
-	    int *ddxMajor, int *ddxMinor, int *ddxPatch,
 	    unsigned int *sareaHandle)
 {
     DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
@@ -340,9 +336,6 @@ DRI2Connect(ScreenPtr pScreen, int *fd, const char **driverName,
 
     *fd = ds->fd;
     *driverName = ds->driverName;
-    *ddxMajor = ds->ddxVersionMajor;
-    *ddxMinor = ds->ddxVersionMinor;
-    *ddxPatch = ds->ddxVersionPatch;
     *sareaHandle = ds->sareaBO.handle;
 
     return TRUE;
@@ -406,9 +399,6 @@ DRI2ScreenInit(ScreenPtr pScreen, DRI2InfoPtr info)
 
     ds->fd = info->fd;
     ds->driverName		= info->driverName;
-    ds->ddxVersionMajor		= info->ddxVersionMajor;
-    ds->ddxVersionMinor		= info->ddxVersionMinor;
-    ds->ddxVersionPatch		= info->ddxVersionPatch;
 
     ds->getPixmapHandle		= info->getPixmapHandle;
     ds->beginClipNotify		= info->beginClipNotify;

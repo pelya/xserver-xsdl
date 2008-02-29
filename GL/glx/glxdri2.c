@@ -414,16 +414,28 @@ static void __glXReportDamage(__DRIdrawable *driDraw,
 }
 
 /* Table of functions that we export to the driver. */
-static const __DRIinterfaceMethods interface_methods = {
+static const __DRIcontextModesExtension contextModesExtension = {
+    { __DRI_CONTEXT_MODES, __DRI_CONTEXT_MODES_VERSION },
     _gl_context_modes_create,
     _gl_context_modes_destroy,
+};
 
-    NULL,
-
+static const __DRIsystemTimeExtension systemTimeExtension = {
+    { __DRI_SYSTEM_TIME, __DRI_SYSTEM_TIME_VERSION },
     getUST,
     NULL,
+};
 
+static const __DRIdamageExtension damageExtension = {
+    { __DRI_DAMAGE, __DRI_DAMAGE_VERSION },
     __glXReportDamage,
+};
+
+static const __DRIextension *loader_extensions[] = {
+    &contextModesExtension.base,
+    &systemTimeExtension.base,
+    &damageExtension.base,
+    NULL
 };
 
 static const char dri_driver_path[] = DRI_DRIVER_PATH;
@@ -502,10 +514,6 @@ static __GLXscreen *
 __glXDRIscreenProbe(ScreenPtr pScreen)
 {
     __DRI2_CREATE_NEW_SCREEN_FUNC *createNewScreen;
-    __DRIversion   ddx_version;
-    __DRIversion   dri_version;
-    __DRIversion   drm_version;
-    drmVersionPtr version;
     const char *driverName;
     __GLXDRIscreen *screen;
     char filename[128];
@@ -522,9 +530,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 	!DRI2Connect(pScreen,
 		     &screen->fd,
 		     &driverName,
-		     &ddx_version.major,
-		     &ddx_version.minor,
-		     &ddx_version.patch,
 		     &sareaHandle)) {
 	LogMessage(X_INFO,
 		   "AIGLX: Screen %d is not DRI2 capable\n", pScreen->myNum);
@@ -538,24 +543,6 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     screen->base.pScreen       = pScreen;
 
     __glXInitExtensionEnableBits(screen->glx_enable_bits);
-
-    /* DRI protocol version. */
-    dri_version.major = XF86DRI_MAJOR_VERSION;
-    dri_version.minor = XF86DRI_MINOR_VERSION;
-    dri_version.patch = XF86DRI_PATCH_VERSION;
-
-    version = drmGetVersion(screen->fd);
-    if (version) {
-	drm_version.major = version->version_major;
-	drm_version.minor = version->version_minor;
-	drm_version.patch = version->version_patchlevel;
-	drmFreeVersion(version);
-    }
-    else {
-	drm_version.major = -1;
-	drm_version.minor = -1;
-	drm_version.patch = -1;
-    }
 
     snprintf(filename, sizeof filename, "%s/%s_dri.so",
              dri_driver_path, driverName);
@@ -577,12 +564,9 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
     screen->driScreen.private =
 	(*createNewScreen)(pScreen->myNum,
 			   &screen->driScreen,
-			   &ddx_version,
-			   &dri_version,
-			   &drm_version,
 			   screen->fd,
 			   sareaHandle,
-			   &interface_methods,
+			   loader_extensions,
 			   &screen->base.fbconfigs);
 
     if (screen->driScreen.private == NULL) {
