@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <signal.h>
+#include <libgen.h>
 
 #include "os.h"  		/* for OsSignal() */
 #include "kdrive.h"
