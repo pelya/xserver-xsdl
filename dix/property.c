@@ -103,7 +103,7 @@ dixLookupProperty(PropertyPtr *result, WindowPtr pWin, Atom propertyName,
 	    break;
 
     if (pProp)
-	rc = XaceHookPropertyAccess(client, pWin, pProp, access_mode);
+	rc = XaceHookPropertyAccess(client, pWin, &pProp, access_mode);
     *result = pProp;
     return rc;
 }
@@ -256,12 +256,14 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
     PropertyPtr pProp;
     int sizeInBytes, totalSize, rc;
     pointer data;
+    Mask access_mode;
 
     sizeInBytes = format>>3;
     totalSize = len * sizeInBytes;
+    access_mode = (mode == PropModeReplace) ? DixWriteAccess : DixBlendAccess;
 
     /* first see if property already exists */
-    rc = dixLookupProperty(&pProp, pWin, property, pClient, DixWriteAccess);
+    rc = dixLookupProperty(&pProp, pWin, property, pClient, access_mode);
 
     if (rc == BadMatch)   /* just add to list */
     {
@@ -284,7 +286,7 @@ dixChangeWindowProperty(ClientPtr pClient, WindowPtr pWin, Atom property,
 	    memmove((char *)data, (char *)value, totalSize);
 	pProp->size = len;
 	pProp->devPrivates = NULL;
-	rc = XaceHookPropertyAccess(pClient, pWin, pProp,
+	rc = XaceHookPropertyAccess(pClient, pWin, &pProp,
 				    DixCreateAccess|DixWriteAccess);
 	if (rc != Success) {
 	    xfree(data);
@@ -588,7 +590,7 @@ ProcListProperties(ClientPtr client)
     temppAtoms = pAtoms;
     for (pProp = wUserProps(pWin); pProp; pProp = pProp->next) {
 	realProp = pProp;
-	rc = XaceHookPropertyAccess(client, pWin, pProp, DixGetAttrAccess);
+	rc = XaceHookPropertyAccess(client, pWin, &realProp, DixGetAttrAccess);
 	if (rc == Success && realProp == pProp) {
 	    *temppAtoms++ = pProp->propertyName;
 	    numProps++;

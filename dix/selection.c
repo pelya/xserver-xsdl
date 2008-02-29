@@ -80,7 +80,7 @@ dixLookupSelection(Selection **result, Atom selectionName,
     for (i = 0; i < NumCurrentSelections; i++)
 	if (CurrentSelections[i].selection == selectionName) {
 	    pSel = CurrentSelections + i;
-	    rc = XaceHookSelectionAccess(client, selectionName, access_mode);
+	    rc = XaceHookSelectionAccess(client, &pSel, access_mode);
 	    break;
 	}
 
@@ -206,6 +206,10 @@ ProcSetSelectionOwner(ClientPtr client)
 	pSel = CurrentSelections + NumCurrentSelections;
 	pSel->selection = stuff->selection;
 	pSel->devPrivates = NULL;
+
+	/* security creation/labeling check */
+	(void)XaceHookSelectionAccess(client, &pSel, DixCreateAccess);
+
 	pSel->next = NULL;
 	if (NumCurrentSelections > 0)
 	    CurrentSelections[NumCurrentSelections - 1].next = pSel;

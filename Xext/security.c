@@ -910,7 +910,7 @@ SecurityProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 {    
     XacePropertyAccessRec *rec = calldata;
     SecurityStateRec *subj, *obj;
-    ATOM name = rec->pProp->propertyName;
+    ATOM name = (*rec->ppProp)->propertyName;
     Mask requested = rec->access_mode;
     Mask allowed = SecurityResourceMask | DixReadAccess;
 

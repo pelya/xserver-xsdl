@@ -56,16 +56,17 @@ int XaceHookDispatch(ClientPtr client, int major)
 }
 
 int XaceHookPropertyAccess(ClientPtr client, WindowPtr pWin,
-			   PropertyPtr pProp, Mask access_mode)
+			   PropertyPtr *ppProp, Mask access_mode)
 {
-    XacePropertyAccessRec rec = { client, pWin, pProp, access_mode, Success };
+    XacePropertyAccessRec rec = { client, pWin, ppProp, access_mode, Success };
     CallCallbacks(&XaceHooks[XACE_PROPERTY_ACCESS], &rec);
     return rec.status;
 }
 
-int XaceHookSelectionAccess(ClientPtr client, Atom name, Mask access_mode)
+int XaceHookSelectionAccess(ClientPtr client,
+			    Selection **ppSel, Mask access_mode)
 {
-    XaceSelectionAccessRec rec = { client, name, access_mode, Success };
+    XaceSelectionAccessRec rec = { client, ppSel, access_mode, Success };
     CallCallbacks(&XaceHooks[XACE_SELECTION_ACCESS], &rec);
     return rec.status;
 }

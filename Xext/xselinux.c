@@ -134,7 +134,7 @@ static struct security_class_mapping map[] = {
     { "x_gc", { "", "", "destroy", "create", "getattr", "setattr", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "use", NULL }},
     { "x_font", { "", "", "destroy", "create", "getattr", "", "", "", "", "", "", "", "add_glyph", "remove_glyph", "", "", "", "", "", "", "", "", "", "", "use", NULL }},
     { "x_colormap", { "read", "write", "destroy", "create", "getattr", "", "", "", "", "", "", "", "add_color", "remove_color", "", "", "", "", "", "", "install", "uninstall", "", "", "use", NULL }},
-    { "x_property", { "read", "write", "destroy", "create", "getattr", "setattr", NULL }},
+    { "x_property", { "read", "write", "destroy", "create", "getattr", "setattr", "", "", "", "", "", "", "", "", "", "", "write", NULL }},
     { "x_selection", { "read", "", "", "", "getattr", "setattr", NULL }},
     { "x_cursor", { "read", "write", "destroy", "create", "getattr", "setattr", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "use", NULL }},
     { "x_client", { "", "", "destroy", "", "getattr", "setattr", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "manage", NULL }},
@@ -691,14 +691,15 @@ SELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     SELinuxSubjectRec *subj;
     SELinuxObjectRec *obj;
     SELinuxAuditRec auditdata = { .client = rec->client };
+    PropertyPtr pProp = *rec->ppProp;
     int rc;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
-    obj = dixLookupPrivate(&rec->pProp->devPrivates, objectKey);
+    obj = dixLookupPrivate(&pProp->devPrivates, objectKey);
 
     /* If this is a new object that needs labeling, do it now */
     if (rec->access_mode & DixCreateAccess) {
-	const char *name = NameForAtom(rec->pProp->propertyName);
+	const char *name = NameForAtom(pProp->propertyName);
 	security_context_t con;
 	security_id_t sid;
 
@@ -729,7 +730,7 @@ SELinuxProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     }
 
     /* Perform the security check */
-    auditdata.property = rec->pProp->propertyName;
+    auditdata.property = pProp->propertyName;
     rc = SELinuxDoCheck(subj, obj, SECCLASS_X_PROPERTY, rec->access_mode,
 			&auditdata);
     if (rc != Success)
@@ -870,17 +871,21 @@ SELinuxSelection(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     SELinuxSubjectRec *subj;
     SELinuxObjectRec sel_sid;
     SELinuxAuditRec auditdata = { .client = rec->client };
+    Selection *pSel = *rec->ppSel;
     int rc;
+
+    if (rec->access_mode & DixCreateAccess)
+	return; /* don't use create currently */
 
     subj = dixLookupPrivate(&rec->client->devPrivates, subjectKey);
 
-    rc = SELinuxSelectionToSID(rec->name, &sel_sid);
+    rc = SELinuxSelectionToSID(pSel->selection, &sel_sid);
     if (rc != Success) {
 	rec->status = rc;
 	return;
     }
 
-    auditdata.selection = rec->name;
+    auditdata.selection = pSel->selection;
     rc = SELinuxDoCheck(subj, &sel_sid, SECCLASS_X_SELECTION, rec->access_mode,
 			&auditdata);
     if (rc != Success)
@@ -1206,16 +1211,8 @@ ProcSELinuxGetPropertyContext(ClientPtr client)
     if (rc != Success)
 	return rc;
 
-    pProp = wUserProps(pWin);
-    while (pProp) {
-	if (pProp->propertyName == stuff->property)
-	    break;
-	pProp = pProp->next;
-    }
-    if (!pProp)
-	return BadValue;
-
-    rc = XaceHookPropertyAccess(client, pWin, pProp, DixGetAttrAccess);
+    rc = dixLookupProperty(&pProp, pWin, stuff->property, client,
+			   DixGetAttrAccess);
     if (rc != Success)
 	return rc;
 
