@@ -193,6 +193,7 @@ _X_HIDDEN void *dixLookupTab[] = {
     SYMFUNC(XineramaGetCursorScreen)
 #endif
     /* property.c */
+    SYMFUNC(dixLookupProperty)
     SYMFUNC(ChangeWindowProperty)
     SYMFUNC(dixChangeWindowProperty)
     /* extension.c */
