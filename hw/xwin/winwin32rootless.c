@@ -1087,6 +1087,6 @@ winMWExtWMSetNativeProperty (RootlessWindowPtr pFrame)
   /* FIXME: move this to WindowsWM extension */
 
   lData = (long) pRLWinPriv->hWnd;
-  ChangeWindowProperty (pFrame->win, AtmWindowsWmNativeHwnd (),
-			XA_INTEGER, 32, PropModeReplace, 1, &lData, TRUE);
+  dixChangeWindowProperty(serverClient, pFrame->win, AtmWindowsWmNativeHwnd(),
+			  XA_INTEGER, 32, PropModeReplace, 1, &lData, TRUE);
 }

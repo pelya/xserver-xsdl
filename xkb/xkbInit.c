@@ -222,8 +222,8 @@ char *			pval;
 	ErrorF("Internal Error! bad size (%d!=%d) for _XKB_RULES_NAMES\n",
 								out,len);
     }
-    ChangeWindowProperty(WindowTable[0],name,XA_STRING,8,PropModeReplace,
-							len,pval,True);
+    dixChangeWindowProperty(serverClient, WindowTable[0], name, XA_STRING, 8,
+			    PropModeReplace, len, pval, True);
     xfree(pval);
     return True;
 }

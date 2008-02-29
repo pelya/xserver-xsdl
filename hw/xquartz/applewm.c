@@ -154,8 +154,8 @@ AppleWMSetScreenOrigin(
     data[1] = (dixScreenOrigins[pWin->drawable.pScreen->myNum].y
                 + darwinMainScreenY);
 
-    ChangeWindowProperty(pWin, xa_native_screen_origin(), XA_INTEGER,
-                         32, PropModeReplace, 2, data, TRUE);
+    dixChangeWindowProperty(serverClient, pWin, xa_native_screen_origin(),
+			    XA_INTEGER, 32, PropModeReplace, 2, data, TRUE);
 }
 
 /* Window managers can set the _APPLE_NO_ORDER_IN property on windows
@@ -169,15 +169,11 @@ AppleWMDoReorderWindow(
 {
     Atom atom;
     PropertyPtr prop;
+    int rc;
 
     atom = xa_apple_no_order_in();
-    for (prop = wUserProps(pWin); prop != NULL; prop = prop->next)
-    {
-        if (prop->propertyName == atom && prop->type == atom)
-            return FALSE;
-    }
-
-    return TRUE;
+    rc = dixLookupProperty(&prop, pWin, atom, serverClient, DixReadAccess);
+    return (rc == Success) && (prop->type == atom);
 }
 
 

@@ -90,8 +90,8 @@ xprSetNativeProperty(RootlessWindowPtr pFrame)
         /* FIXME: move this to AppleWM extension */
 
         data = native_id;
-        ChangeWindowProperty(pFrame->win, xa_native_window_id(),
-                             XA_INTEGER, 32, PropModeReplace, 1, &data, TRUE);
+        dixChangeWindowProperty(serverClient, pFrame->win, xa_native_window_id(),
+				XA_INTEGER, 32, PropModeReplace, 1, &data, TRUE);
     }
 }
 

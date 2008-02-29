@@ -43,9 +43,6 @@
 #include "selection.h"
 #include "globals.h"
 
-extern Selection *CurrentSelections;
-extern int NumCurrentSelections;
-
 
 // Helper function to read the X11 cut buffer
 // FIXME: What about multiple screens? Currently, this reads the first
@@ -54,18 +51,16 @@ extern int NumCurrentSelections;
 // Returns NULL if there is no cut text or there is not enough memory.
 static char * QuartzReadCutBuffer(void)
 {
-    int i;
+    int rc, i;
     char *text = NULL;
 
     for (i = 0; i < screenInfo.numScreens; i++) {
         ScreenPtr pScreen = screenInfo.screens[i];
         PropertyPtr pProp;
 
-        pProp = wUserProps (WindowTable[pScreen->myNum]);
-        while (pProp && pProp->propertyName != XA_CUT_BUFFER0) {
-	    pProp = pProp->next;
-        }
-        if (! pProp) continue;
+	rc = dixLookupProperty(&pProp, WindowTable[pScreen->myNum],
+			       XA_CUT_BUFFER0, serverClient, DixReadAccess);
+        if (rc != Success) continue;
         if (pProp->type != XA_STRING) continue;
         if (pProp->format != 8) continue;
 
@@ -108,43 +103,40 @@ void QuartzReadPasteboard(void)
 
     if ((text && oldText && !strequal(text, oldText)) ||
         (text && !oldText)) {
-        int scrn, sel;
+        int scrn, rc;
+	Selection *pSel;
 
         for (scrn = 0; scrn < screenInfo.numScreens; scrn++) {
 	    ScreenPtr pScreen = screenInfo.screens[scrn];
 	    // Set the cut buffers on each screen
 	    // fixme really on each screen?
-	    ChangeWindowProperty(WindowTable[pScreen->myNum], XA_CUT_BUFFER0,
-				 XA_STRING, 8, PropModeReplace,
-				 strlen(text), (pointer)text, TRUE);
+	    dixChangeWindowProperty(serverClient, WindowTable[pScreen->myNum],
+				    XA_CUT_BUFFER0, XA_STRING, 8, PropModeReplace,
+				    strlen(text), (pointer)text, TRUE);
         }
 
         // Undo any current X selection (similar to code in dispatch.c)
         // FIXME: what about secondary selection?
         // FIXME: only touch first XA_PRIMARY selection?
-        sel = 0;
-        while ((sel < NumCurrentSelections)  &&
-	       CurrentSelections[sel].selection != XA_PRIMARY)
-	    sel++;
-        if (sel < NumCurrentSelections) {
+	rc = dixLookupSelection(&pSel, XA_PRIMARY, serverClient,
+				DixSetAttrAccess);
+        if (rc == Success) {
 	    // Notify client if necessary
-	    if (CurrentSelections[sel].client) {
+	    if (pSel->client) {
 	        xEvent event;
 
 	        event.u.u.type = SelectionClear;
 		event.u.selectionClear.time = GetTimeInMillis();
-		event.u.selectionClear.window = CurrentSelections[sel].window;
-		event.u.selectionClear.atom = CurrentSelections[sel].selection;
-		TryClientEvents(CurrentSelections[sel].client, &event, 1,
-				NoEventMask, NoEventMask /*CantBeFiltered*/,
-				NullGrab);
+		event.u.selectionClear.window = pSel->window;
+		event.u.selectionClear.atom = pSel->selection;
+		TryClientEvents(pSel->client, &event, 1, NoEventMask,
+				NoEventMask /*CantBeFiltered*/, NullGrab);
 	    }
 
 	    // Erase it
-	    // FIXME: need to erase .selection too? dispatch.c doesn't
-	    CurrentSelections[sel].pWin = NullWindow;
-	    CurrentSelections[sel].window = None;
-	    CurrentSelections[sel].client = NullClient;
+	    pSel->pWin = NullWindow;
+	    pSel->window = None;
+	    pSel->client = NullClient;
         }
     }
 
