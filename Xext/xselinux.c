@@ -532,6 +532,17 @@ SELinuxDevice(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	dsubj->sid = subj->sid;
     }
 
+    /* XXX only check read permission on XQueryKeymap */
+    /* This is to allow the numerous apps that call XQueryPointer to work */
+    if (rec->access_mode & DixReadAccess) {
+	ClientPtr client = rec->client;
+	REQUEST(xReq);
+	if (stuff && stuff->reqType != X_QueryKeymap) {
+	    rec->access_mode &= ~DixReadAccess;
+	    rec->access_mode |= DixGetAttrAccess;
+	}
+    }
+
     rc = SELinuxDoCheck(subj, obj, SECCLASS_X_DEVICE, rec->access_mode,
 			&auditdata);
     if (rc != Success)
