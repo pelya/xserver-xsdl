@@ -967,8 +967,6 @@ SELinuxSelectionState(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 
     switch (rec->kind) {
     case SelectionSetOwner:
-    case SelectionGetOwner:
-    case SelectionConvertSelection:
     default:
 	break;
     }

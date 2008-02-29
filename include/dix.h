@@ -166,9 +166,6 @@ extern void SendErrorToClient(
     XID /*resId*/,
     int /*errorCode*/);
 
-extern void DeleteWindowFromAnySelections(
-    WindowPtr /*pWin*/);
-
 extern void MarkClientException(
     ClientPtr /*client*/);
 
@@ -555,26 +552,6 @@ typedef struct {
     xEventPtr events;
     int count;
 } DeviceEventInfoRec;
-
-/*
- * SelectionCallback stuff
- */
-
-extern CallbackListPtr SelectionCallback;
-
-typedef enum {
-    SelectionSetOwner,
-    SelectionGetOwner,
-    SelectionConvertSelection,
-    SelectionWindowDestroy,
-    SelectionClientClose
-} SelectionCallbackKind;
-
-typedef struct {
-    struct _Selection	    *selection;
-    ClientPtr		    client;
-    SelectionCallbackKind   kind;
-} SelectionInfoRec;
 
 /* strcasecmp.c */
 #if NEED_STRCASECMP

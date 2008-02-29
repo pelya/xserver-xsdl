@@ -93,6 +93,7 @@ Equipment Corporation.
 #include "colormap.h"
 #include "colormapst.h"
 #include "cursorstr.h"
+#include "selection.h"
 #include <X11/fonts/font.h>
 #include "opaque.h"
 #include "servermd.h"
@@ -346,6 +347,7 @@ main(int argc, char *argv[], char *envp[])
 
 	InitAtoms();
 	InitEvents();
+	InitSelections();
 	InitGlyphCaching();
 	if (!dixResetPrivates())
 	    FatalError("couldn't init private data storage");

@@ -165,10 +165,6 @@ typedef const char *string;
 extern xConnSetupPrefix connSetupPrefix;
 extern char *ConnectionInfo;
 
-_X_EXPORT Selection *CurrentSelections;
-_X_EXPORT int NumCurrentSelections;
-CallbackListPtr SelectionCallback = NULL;
-
 static ClientPtr grabClient;
 #define GrabNone 0
 #define GrabActive 1
@@ -180,8 +176,6 @@ HWEventQueuePtr checkForInput[2];
 extern int connBlockScreenStart;
 
 static void KillAllClients(void);
-
-static void DeleteClientFromAnySelections(ClientPtr client);
 
 static int nextFreeClientID; /* always MIN free client ID */
 
@@ -246,14 +240,6 @@ UpdateCurrentTimeIf(void)
 	currentTime = systime;
 }
 
-static void
-InitSelections(void)
-{
-    if (CurrentSelections)
-	xfree(CurrentSelections);
-    CurrentSelections = (Selection *)NULL;
-    NumCurrentSelections = 0;
-}
 #ifdef SMART_SCHEDULE
 
 #undef SMART_DEBUG
@@ -372,7 +358,6 @@ Dispatch(void)
 #endif
 
     nextFreeClientID = 1;
-    InitSelections();
     nClients = 0;
 
     clientReady = (int *) xalloc(sizeof(int) * MaxClients);
@@ -964,217 +949,6 @@ ProcGetAtomName(ClientPtr client)
     { 
 	client->errorValue = stuff->id;
 	return (BadAtom);
-    }
-}
-
-int
-ProcSetSelectionOwner(ClientPtr client)
-{
-    WindowPtr pWin;
-    TimeStamp time;
-    int rc;
-    REQUEST(xSetSelectionOwnerReq);
-    REQUEST_SIZE_MATCH(xSetSelectionOwnerReq);
-
-    UpdateCurrentTime();
-    time = ClientTimeToServerTime(stuff->time);
-
-    /* If the client's time stamp is in the future relative to the server's
-	time stamp, do not set the selection, just return success. */
-    if (CompareTimeStamps(time, currentTime) == LATER)
-    	return Success;
-    if (stuff->window != None)
-    {
-	rc = dixLookupWindow(&pWin, stuff->window, client, DixSetAttrAccess);
-        if (rc != Success)
-            return rc;
-    }
-    else
-        pWin = (WindowPtr)None;
-    if (ValidAtom(stuff->selection))
-    {
-	int i = 0;
-
-	rc = XaceHookSelectionAccess(client, stuff->selection,
-				     DixSetAttrAccess);
-	if (rc != Success)
-	    return rc;
-
-	/*
-	 * First, see if the selection is already set... 
-	 */
-	while ((i < NumCurrentSelections) && 
-	       CurrentSelections[i].selection != stuff->selection) 
-            i++;
-        if (i < NumCurrentSelections)
-        {        
-	    xEvent event;
-
-	    /* If the timestamp in client's request is in the past relative
-		to the time stamp indicating the last time the owner of the
-		selection was set, do not set the selection, just return 
-		success. */
-            if (CompareTimeStamps(time, CurrentSelections[i].lastTimeChanged)
-		== EARLIER)
-		return Success;
-	    if (CurrentSelections[i].client &&
-		(!pWin || (CurrentSelections[i].client != client)))
-	    {
-		event.u.u.type = SelectionClear;
-		event.u.selectionClear.time = time.milliseconds;
-		event.u.selectionClear.window = CurrentSelections[i].window;
-		event.u.selectionClear.atom = CurrentSelections[i].selection;
-		(void) TryClientEvents (CurrentSelections[i].client, &event, 1,
-				NoEventMask, NoEventMask /* CantBeFiltered */,
-				NullGrab);
-	    }
-	}
-	else
-	{
-	    /*
-	     * It doesn't exist, so add it...
-	     */
-	    Selection *newsels;
-
-	    if (i == 0)
-		newsels = (Selection *)xalloc(sizeof(Selection));
-	    else
-		newsels = (Selection *)xrealloc(CurrentSelections,
-			    (NumCurrentSelections + 1) * sizeof(Selection));
-	    if (!newsels)
-		return BadAlloc;
-	    NumCurrentSelections++;
-	    CurrentSelections = newsels;
-	    CurrentSelections[i].selection = stuff->selection;
-	    CurrentSelections[i].devPrivates = NULL;
-	}
-        CurrentSelections[i].lastTimeChanged = time;
-	CurrentSelections[i].window = stuff->window;
-	CurrentSelections[i].pWin = pWin;
-	CurrentSelections[i].client = (pWin ? client : NullClient);
-	if (SelectionCallback)
-	{
-	    SelectionInfoRec	info;
-
-	    info.selection = &CurrentSelections[i];
-	    info.client = client;
-	    info.kind= SelectionSetOwner;
-	    CallCallbacks(&SelectionCallback, &info);
-	}
-	return (client->noClientException);
-    }
-    else 
-    {
-	client->errorValue = stuff->selection;
-        return (BadAtom);
-    }
-}
-
-int
-ProcGetSelectionOwner(ClientPtr client)
-{
-    REQUEST(xResourceReq);
-
-    REQUEST_SIZE_MATCH(xResourceReq);
-    if (ValidAtom(stuff->id))
-    {
-	int rc, i;
-        xGetSelectionOwnerReply reply;
-
-	rc = XaceHookSelectionAccess(client, stuff->id, DixGetAttrAccess);
-	if (rc != Success)
-	    return rc;
-
-	i = 0;
-        while ((i < NumCurrentSelections) && 
-	       CurrentSelections[i].selection != stuff->id) i++;
-        reply.type = X_Reply;
-	reply.length = 0;
-	reply.sequenceNumber = client->sequence;
-	if (i < NumCurrentSelections) {
-	    if (SelectionCallback) {
-		SelectionInfoRec info;
-
-		info.selection = &CurrentSelections[i];
-		info.client = client;
-		info.kind= SelectionGetOwner;
-		CallCallbacks(&SelectionCallback, &info);
-	    }
-            reply.owner = CurrentSelections[i].window;
-	} else
-            reply.owner = None;
-        WriteReplyToClient(client, sizeof(xGetSelectionOwnerReply), &reply);
-        return(client->noClientException);
-    }
-    else            
-    {
-	client->errorValue = stuff->id;
-        return (BadAtom); 
-    }
-}
-
-int
-ProcConvertSelection(ClientPtr client)
-{
-    Bool paramsOkay;
-    xEvent event;
-    WindowPtr pWin;
-    REQUEST(xConvertSelectionReq);
-    int rc;
-
-    REQUEST_SIZE_MATCH(xConvertSelectionReq);
-    rc = dixLookupWindow(&pWin, stuff->requestor, client, DixSetAttrAccess);
-    if (rc != Success)
-        return rc;
-    rc = XaceHookSelectionAccess(client, stuff->selection, DixReadAccess);
-    if (rc != Success)
-	return rc;
-
-    paramsOkay = (ValidAtom(stuff->selection) && ValidAtom(stuff->target));
-    if (stuff->property != None)
-	paramsOkay &= ValidAtom(stuff->property);
-    if (paramsOkay)
-    {
-	int i;
-
-	i = 0;
-	while ((i < NumCurrentSelections) && 
-	       CurrentSelections[i].selection != stuff->selection) i++;
-	if (i < NumCurrentSelections && CurrentSelections[i].window != None) {
-	    if (SelectionCallback) {
-		SelectionInfoRec info;
-
-		info.selection = &CurrentSelections[i];
-		info.client = client;
-		info.kind= SelectionConvertSelection;
-		CallCallbacks(&SelectionCallback, &info);
-	    }
-	    event.u.u.type = SelectionRequest;
-	    event.u.selectionRequest.time = stuff->time;
-	    event.u.selectionRequest.owner = CurrentSelections[i].window;
-	    event.u.selectionRequest.requestor = stuff->requestor;
-	    event.u.selectionRequest.selection = stuff->selection;
-	    event.u.selectionRequest.target = stuff->target;
-	    event.u.selectionRequest.property = stuff->property;
-	    if (TryClientEvents(
-		CurrentSelections[i].client, &event, 1, NoEventMask,
-		NoEventMask /* CantBeFiltered */, NullGrab))
-		return (client->noClientException);
-	}
-	event.u.u.type = SelectionNotify;
-	event.u.selectionNotify.time = stuff->time;
-	event.u.selectionNotify.requestor = stuff->requestor;
-	event.u.selectionNotify.selection = stuff->selection;
-	event.u.selectionNotify.target = stuff->target;
-	event.u.selectionNotify.property = None;
-	(void) TryClientEvents(client, &event, 1, NoEventMask,
-			       NoEventMask /* CantBeFiltered */, NullGrab);
-	return (client->noClientException);
-    }
-    else 
-    {
-	client->errorValue = stuff->property;
-        return (BadAtom);
     }
 }
 
@@ -3978,54 +3752,6 @@ SendErrorToClient(ClientPtr client, unsigned majorCode, unsigned minorCode,
     rep.resourceID = resId;
 
     WriteEventsToClient (client, 1, (xEvent *)&rep);
-}
-
-void
-DeleteWindowFromAnySelections(WindowPtr pWin)
-{
-    int i;
-
-    for (i = 0; i< NumCurrentSelections; i++)
-        if (CurrentSelections[i].pWin == pWin)
-        {
-	    if (SelectionCallback)
-	    {
-	        SelectionInfoRec    info;
-
-		info.selection = &CurrentSelections[i];
-		info.kind = SelectionWindowDestroy;
-		CallCallbacks(&SelectionCallback, &info);
-	    }
-	    dixFreePrivates(CurrentSelections[i].devPrivates);
-            CurrentSelections[i].pWin = (WindowPtr)NULL;
-            CurrentSelections[i].window = None;
-	    CurrentSelections[i].client = NullClient;
-	    CurrentSelections[i].devPrivates = NULL;
-	}
-}
-
-static void
-DeleteClientFromAnySelections(ClientPtr client)
-{
-    int i;
-
-    for (i = 0; i< NumCurrentSelections; i++)
-        if (CurrentSelections[i].client == client)
-        {
-	    if (SelectionCallback)
-	    {
-	        SelectionInfoRec    info;
-
-		info.selection = &CurrentSelections[i];
-		info.kind = SelectionWindowDestroy;
-		CallCallbacks(&SelectionCallback, &info);
-	    }
-	    dixFreePrivates(CurrentSelections[i].devPrivates);
-            CurrentSelections[i].pWin = (WindowPtr)NULL;
-            CurrentSelections[i].window = None;
-	    CurrentSelections[i].client = NullClient;
-	    CurrentSelections[i].devPrivates = NULL;
-	}
 }
 
 void
