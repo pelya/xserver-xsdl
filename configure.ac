@@ -293,7 +293,6 @@ dnl Bus options and CPU capabilities.  Replaces logic in
 dnl hw/xfree86/os-support/bus/Makefile.am, among others.
 dnl ---------------------------------------------------------------------------
 DEFAULT_INT10="x86emu"
-use_x86_asm="no"
 
 dnl Override defaults as needed for specific platforms:
 
@@ -310,10 +309,8 @@ case $host_cpu in
 	ARM_VIDEO=yes
 	;;
   i*86)
-	use_x86_asm="yes"
 	I386_VIDEO=yes
 	case $host_os in
-	        darwin*)	use_x86_asm="no" ;;
 		*linux*)	DEFAULT_INT10=vm86 ;;
 		*freebsd*)	AC_DEFINE(USE_DEV_IO) ;;
 		*netbsd*)	AC_DEFINE(USE_I386_IOPL)
@@ -337,10 +334,8 @@ case $host_cpu in
 	GLX_ARCH_DEFINES="-D__GLX_ALIGN64"
 	;;
   x86_64*|amd64*)
-  	use_x86_asm="yes"
 	I386_VIDEO=yes
 	case $host_os in
-	        darwin*)	use_x86_asm="no" ;;
 		*freebsd*)	AC_DEFINE(USE_DEV_IO, 1, [BSD /dev/io]) ;;
 		*netbsd*)	AC_DEFINE(USE_I386_IOPL, 1, [BSD i386 iopl])
 				SYS_LIBS=-lx86_64
@@ -758,7 +753,6 @@ if test "x$XV" = xyes; then
 	AC_DEFINE(XV, 1, [Support Xv extension])
 	AC_DEFINE(XvExtension, 1, [Build Xv extension])
 	REQUIRED_MODULES="$REQUIRED_MODULES videoproto"
-        PKG_CHECK_MODULES(XV, [xv >= 0.22])
 else
 	XVMC=no
 fi
@@ -1160,9 +1154,6 @@ if test "x$GCC" = "xyes"; then
        LD_EXPORT_SYMBOLS_FLAG="-rdynamic"
 fi
 case $host_os in
-       darwin*)
-       LD_EXPORT_SYMBOLS_FLAG=""
-       ;;
        openbsd*)
        LD_EXPORT_SYMBOLS_FLAG="-Wl,--export-dynamic"
        ;;
@@ -1423,17 +1414,9 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 	esac
 
 	case $host_cpu in
-	  i*86)
-               case $host_os in
-                 darwin*) ;;
-		 *bsd*) ;;
-		 linux*) ;;
-                 *) xorg_bus_ix86pci=yes ;;
-               esac
-		;;
 	  powerpc*)
 		case $host_os in
-		  darwin*|linux*|freebsd*|netbsd*|openbsd*|kfreebsd*-gnu)
+		  linux*|freebsd*|netbsd*|openbsd*|kfreebsd*-gnu)
 			;;
 		  *)
 			xorg_bus_ppcpci="yes"
@@ -1444,9 +1427,9 @@ if test "x$XORG" = xyes -o "x$XGL" = xyes; then
 		xorg_bus_sparcpci="yes"
 		xorg_bus_sparc="yes"
 		;;
-	  x86_64*|amd64*)
+	  i*86|x86_64*|amd64*)
 		case $host_os in
-		  darwin*|*bsd*|linux*)
+		  *bsd*|linux*)
 			;;
 		  *)
 			xorg_bus_ix86pci="yes"
@@ -1649,17 +1632,17 @@ fi
 AC_MSG_RESULT([$XWIN])
 
 if test "x$XWIN" = xyes; then
-	XWIN_SERVER_NAME=XWin
 	case $host_os in
 		cygwin*)
+			XWIN_SERVER_NAME=XWin
 			PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau xfont])
 			AC_DEFINE(HAS_DEVWINDOWS,1,[Cygwin has /dev/windows for signaling new win32 messages])
 			AC_DEFINE(ROOTLESS,1,[Build Rootless code])
 			CFLAGS="$CFLAGS -DFD_SETSIZE=256"
 			;;
 		mingw*)
-			PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau xfont])
 			XWIN_SERVER_NAME=Xming
+			PKG_CHECK_MODULES([XWINMODULES],[x11 xdmcp xau xfont])
 			AC_DEFINE(RELOCATE_PROJECTROOT,1,[Make PROJECT_ROOT relative to the xserver location])
 			AC_DEFINE(HAS_WINSOCK,1,[Use Windows sockets])
 			XWIN_SYS_LIBS=-lwinsock2
@@ -1755,10 +1738,6 @@ if test "x$XQUARTZ" = xyes; then
 		AC_MSG_NOTICE([Disabling DGA extension])
 		DGA=no
 	fi
-	if test "x$DMX" = xyes || test "x$DMX" = xauto; then
-		AC_MSG_NOTICE([Disabling DMX DDX])
-		DMX=no
-	fi
 fi
 
 # Support for objc in autotools is minimal and not documented.
@@ -1801,51 +1780,58 @@ if test "x$LAUNCHD" = "xyes" ; then
 fi
 AM_CONDITIONAL(LAUNCHD, [test "x$LAUNCHD" = "xyes"])
 
+
+dnl DMX DDX
+
 AC_MSG_CHECKING([whether to build Xdmx DDX])
 PKG_CHECK_MODULES([DMXMODULES], [xmuu xext x11 xrender xfixes xfont xi dmxproto xau $XDMCP_MODULES], [have_dmx=yes], [have_dmx=no])
 if test "x$DMX" = xauto; then
-       DMX="$have_dmx"
+	DMX="$have_dmx"
+	case $host_os in
+		cygwin*) DMX="no" ;;
+		darwin*) DMX="no" ;;
+	esac
 fi
 AC_MSG_RESULT([$DMX])
 AM_CONDITIONAL(DMX, [test "x$DMX" = xyes])
 
 if test "x$DMX" = xyes; then
-       if test "x$have_dmx" = xno; then
-               AC_MSG_ERROR([Xdmx build explicitly requested, but required
-                             modules not found.])
-       fi
-       DMX_INCLUDES="$XEXT_INC $RENDER_INC $XTRAP_INC $RECORD_INC"
-       XDMX_CFLAGS="$DMXMODULES_CFLAGS"
-       XDMX_LIBS="$XEXT_LIB $FB_LIB $CONFIG_LIB $RENDER_LIB $XTRAP_LIB $RECORD_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $MIEXT_SHADOW_LIB $MIEXT_DAMAGE_LIB"
-       XDMX_SYS_LIBS="$DMXMODULES_LIBS"
-       AC_SUBST([XDMX_CFLAGS])
-       AC_SUBST([XDMX_LIBS])
-       AC_SUBST([XDMX_SYS_LIBS])
+	if test "x$have_dmx" = xno; then
+		AC_MSG_ERROR([Xdmx build explicitly requested, but required
+		              modules not found.])
+	fi
+	DMX_INCLUDES="$XEXT_INC $RENDER_INC $XTRAP_INC $RECORD_INC"
+	XDMX_CFLAGS="$DMXMODULES_CFLAGS"
+	XDMX_LIBS="$XEXT_LIB $FB_LIB $CONFIG_LIB $RENDER_LIB $XTRAP_LIB $RECORD_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $MIEXT_SHADOW_LIB $MIEXT_DAMAGE_LIB"
+	XDMX_SYS_LIBS="$DMXMODULES_LIBS"
+	AC_SUBST([XDMX_CFLAGS])
+	AC_SUBST([XDMX_LIBS])
+	AC_SUBST([XDMX_SYS_LIBS])
 
 dnl USB sources in DMX require <linux/input.h>
-       AC_CHECK_HEADER([linux/input.h], DMX_BUILD_USB="yes",
-                       DMX_BUILD_USB="no")
+	AC_CHECK_HEADER([linux/input.h], DMX_BUILD_USB="yes",
+			DMX_BUILD_USB="no")
 dnl Linux sources in DMX require <linux/keyboard.h>
-       AC_CHECK_HEADER([linux/keyboard.h], DMX_BUILD_LNX="yes",
-                       DMX_BUILD_LNX="no")
-       if test "x$GLX" = xyes; then
-               PKG_CHECK_MODULES([GL], [glproto])
-       fi
-       PKG_CHECK_MODULES([XDMXCONFIG_DEP], [xaw7 xmu xt xpm x11])
-       AC_SUBST(XDMXCONFIG_DEP_CFLAGS)
-       AC_SUBST(XDMXCONFIG_DEP_LIBS)
-       PKG_CHECK_MODULES([DMXEXAMPLES_DEP], [dmx xext x11])
-       AC_SUBST(DMXEXAMPLES_DEP_LIBS)
-       PKG_CHECK_MODULES([DMXXMUEXAMPLES_DEP], [dmx xmu xext x11])
-       AC_SUBST(DMXXMUEXAMPLES_DEP_LIBS)
-       PKG_CHECK_MODULES([DMXXIEXAMPLES_DEP], [dmx xi xext x11])
-       AC_SUBST(DMXXIEXAMPLES_DEP_LIBS)
-       PKG_CHECK_MODULES([XTSTEXAMPLES_DEP], [xtst xext x11])
-       AC_SUBST(XTSTEXAMPLES_DEP_LIBS)
-       PKG_CHECK_MODULES([XRESEXAMPLES_DEP], [xres xext x11])
-       AC_SUBST(XRESEXAMPLES_DEP_LIBS)
-       PKG_CHECK_MODULES([X11EXAMPLES_DEP], [xext x11])
-       AC_SUBST(X11EXAMPLES_DEP_LIBS)
+	AC_CHECK_HEADER([linux/keyboard.h], DMX_BUILD_LNX="yes",
+			DMX_BUILD_LNX="no")
+	if test "x$GLX" = xyes; then
+		PKG_CHECK_MODULES([GL], [glproto])
+	fi
+	PKG_CHECK_MODULES([XDMXCONFIG_DEP], [xaw7 xmu xt xpm x11])
+	AC_SUBST(XDMXCONFIG_DEP_CFLAGS)
+	AC_SUBST(XDMXCONFIG_DEP_LIBS)
+	PKG_CHECK_MODULES([DMXEXAMPLES_DEP], [dmx xext x11])
+	AC_SUBST(DMXEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([DMXXMUEXAMPLES_DEP], [dmx xmu xext x11])
+	AC_SUBST(DMXXMUEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([DMXXIEXAMPLES_DEP], [dmx xi xext x11])
+	AC_SUBST(DMXXIEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([XTSTEXAMPLES_DEP], [xtst xext x11])
+	AC_SUBST(XTSTEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([XRESEXAMPLES_DEP], [xres xext x11])
+	AC_SUBST(XRESEXAMPLES_DEP_LIBS)
+	PKG_CHECK_MODULES([X11EXAMPLES_DEP], [xext x11])
+	AC_SUBST(X11EXAMPLES_DEP_LIBS)
 fi
 AM_CONDITIONAL([DMX_BUILD_LNX], [test "x$DMX_BUILD_LNX" = xyes])
 AM_CONDITIONAL([DMX_BUILD_USB], [test "x$DMX_BUILD_USB" = xyes])
@@ -1909,7 +1895,11 @@ if test "$KDRIVE" = yes; then
        XSDL_INCS="`sdl-config --cflags` $XSERVER_CFLAGS"
     fi
 
-    PKG_CHECK_MODULES(XEPHYR, x11 xext xfont xau xdmcp, [xephyr="yes"], [xephyr="no"])
+    XEPHYR_REQUIRED_LIBS="x11 xext xfont xau xdmcp"
+    if test "x$XV" = xyes; then
+        XEPHYR_REQUIRED_LIBS="$XEPHYR_REQUIRED_LIBS xv"
+    fi
+    PKG_CHECK_MODULES(XEPHYR, $XEPHYR_REQUIRED_LIBS, [xephyr="yes"], [xephyr="no"])
     if test "x$XEPHYR" = xauto; then
         XEPHYR=$xephyr
     fi
@@ -1941,7 +1931,7 @@ if test "$KDRIVE" = yes; then
     KDRIVE_OS_INC='-I$(top_srcdir)/hw/kdrive/linux'
     KDRIVE_INCS="$KDRIVE_PURE_INCS $KDRIVE_OS_INC"
     
-    KDRIVE_CFLAGS="$XSERVER_CFLAGS -DHAVE_KDRIVE_CONFIG_H $TSLIB_CFLAGS $XV_CFLAGS"
+    KDRIVE_CFLAGS="$XSERVER_CFLAGS -DHAVE_KDRIVE_CONFIG_H $TSLIB_CFLAGS"
 
     KDRIVE_PURE_LIBS="$FB_LIB $MI_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $XTRAP_LIB $RECORD_LIB $GLX_LIBS $RENDER_LIB $RANDR_LIB $DAMAGE_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $XPSTUBS_LIB $OS_LIB"
     KDRIVE_LIB='$(top_builddir)/hw/kdrive/src/libkdrive.a'
@@ -1955,10 +1945,10 @@ if test "$KDRIVE" = yes; then
     KDRIVE_LOCAL_LIBS="$TSLIB_LIBS $DIX_LIB $KDRIVE_LIB $KDRIVE_STUB_LIB $CONFIG_LIB"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $FB_LIB $MI_LIB $KDRIVE_PURE_LIBS"
     KDRIVE_LOCAL_LIBS="$KDRIVE_LOCAL_LIBS $KDRIVE_OS_LIB $OS_LIB"
-    KDRIVE_LIBS="$KDRIVE_LOCAL_LIBS $XSERVER_SYS_LIBS $XV_LIBS"
+    KDRIVE_LIBS="$KDRIVE_LOCAL_LIBS $XSERVER_SYS_LIBS"
 
     # check if we can build Xephyr
-    PKG_CHECK_MODULES(XEPHYR, x11 xext xfont xau xdmcp, [xephyr="yes"], [xephyr="no"])
+    PKG_CHECK_MODULES(XEPHYR, $XEPHYR_REQUIRED_LIBS, [xephyr="yes"], [xephyr="no"])
 
     AC_SUBST([XEPHYR_LIBS])
     AC_SUBST([XEPHYR_INCS])
