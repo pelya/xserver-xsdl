@@ -12,7 +12,7 @@ MESA_LIBS           = main/libmain.la \
                       shader/libshader.la \
 		      shader/grammar/libgrammar.la \
 		      shader/slang/libslang.la \
-                      vbo/libvbo.la \
+                      vbo/libvbo.la
 
 libGLcore_la_LIBADD = $(MESA_LIBS) \
                       X/libX.la
