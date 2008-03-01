@@ -938,7 +938,6 @@ miSetShape(pWin)
     Bool	WasViewable = (Bool)(pWin->viewable);
     ScreenPtr 	pScreen = pWin->drawable.pScreen;
     Bool	anyMarked = FALSE;
-    RegionPtr	pOldClip = NULL;
 #ifdef DO_SAVE_UNDERS
     Bool	dosave = FALSE;
 #endif

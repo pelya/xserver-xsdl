@@ -546,7 +546,6 @@ AuthAudit (ClientPtr client, Bool letin,
 {
     char addr[128];
     char *out = addr;
-    int client_uid;
     char client_uid_string[64];
     LocalClientCredRec *lcc;
 #ifdef XSERVER_DTRACE

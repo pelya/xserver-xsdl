@@ -46,8 +46,6 @@ static void SetResetBIOSVars(xf86Int10InfoPtr pInt, Bool set);
 
 #define REG pInt
 
-static int pci_config_cycle = 0;
-
 int
 setup_int(xf86Int10InfoPtr pInt)
 {

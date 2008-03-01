@@ -52,38 +52,6 @@ SOFTWARE.
 #include "mistruct.h"
 #include "mifpoly.h"
 
-static miDashPtr CheckDashStorage(miDashPtr *ppseg, int nseg, int *pnsegMax);
-
-#define NSEGDELTA 16
-
-/* returns a pointer to the pseg[nseg-1], growing the storage as
-necessary.  this interface seems unnecessarily cumbersome.
-
-*/
-
-static miDashPtr
-CheckDashStorage(
-    miDashPtr *ppseg,		/* base pointer */
-    int nseg,			/* number of segment we want to write to */
-    int *pnsegMax)		/* size (in segments) of list so far */
-{
-    if (nseg > *pnsegMax)
-    {
-	miDashPtr newppseg;
-
-	*pnsegMax += NSEGDELTA;
-	newppseg = (miDashPtr)xrealloc(*ppseg,
-				       (*pnsegMax)*sizeof(miDashRec));
-	if (!newppseg)
-	{
-	    xfree(*ppseg);
-	    return (miDashPtr)NULL;
-	}
-	*ppseg = newppseg;
-    }
-    return(*ppseg+(nseg-1));
-}
-
 _X_EXPORT void
 miStepDash (dist, pDashIndex, pDash, numInDashList, pDashOffset)
     int dist;			/* distance to step */

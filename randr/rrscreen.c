@@ -731,7 +731,6 @@ ProcRRSetScreenConfig (ClientPtr client)
     int			    n, rc;
     ScreenPtr		    pScreen;
     rrScrPrivPtr	    pScrPriv;
-    TimeStamp		    configTime;
     TimeStamp		    time;
     int			    i;
     Rotation		    rotation;

@@ -612,7 +612,7 @@ DoSubstitution(const char *template, const char *cmdline, const char *projroot,
 {
 	char *result;
 	int i, l;
-	static const char *env = NULL, *home = NULL;
+	static const char *env = NULL;
 	static char *hostname = NULL;
 	static char majorvers[3] = "";
 

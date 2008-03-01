@@ -13,8 +13,6 @@
 #include "ddcPriv.h"
 #include <string.h>
 
-static const OptionInfoRec *DDCAvailableOptions(void *unused);
-
 #define RETRIES 4
 
 static unsigned char *EDIDRead_DDC1(
@@ -57,13 +55,6 @@ static const OptionInfoRec DDCOptions[] = {
     { DDCOPT_NODDC,	"NoDDC",	OPTV_BOOLEAN,	{0},	FALSE },
     { -1,		NULL,		OPTV_NONE,	{0},	FALSE },
 };
-
-/*ARGSUSED*/
-static const OptionInfoRec *
-DDCAvailableOptions(void *unused)
-{
-    return (DDCOptions);
-}
 
 /**
  * Attempts to probe the monitor for EDID information, if NoDDC and NoDDC1 are
