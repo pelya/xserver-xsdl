@@ -214,8 +214,15 @@ xf86DuplicateMode(DisplayModePtr pMode)
     *pNew = *pMode;
     pNew->next = NULL;
     pNew->prev = NULL;
-    if (pNew->name == NULL)
+    /*
+     * It is important to copy the name explicitly.
+     * Otherwise a mode could reference an invalid piece of memory, after one of them runs free().
+     * This will lead to obscure problems, that you really don't want.
+     */
+    if (pMode->name == NULL)
 	xf86SetModeDefaultName(pNew);
+    else
+	pNew->name = xnfstrdup(pMode->name);
 
     return pNew;
 }
