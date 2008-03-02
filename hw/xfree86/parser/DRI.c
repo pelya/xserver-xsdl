@@ -117,6 +117,8 @@ xf86parseDRISection (void)
 	    case MODE:
 		if (xf86getSubToken (&(ptr->dri_comment)) != NUMBER)
 		    Error (NUMBER_MSG, "Mode");
+                if (val.numType != PARSE_OCTAL)
+                    Error (MUST_BE_OCTAL_MSG, val.num);
 		ptr->dri_mode = val.num;
 		break;
 	    case BUFFERS:

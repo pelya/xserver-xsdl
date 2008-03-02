@@ -71,11 +71,14 @@
 #include <stddef.h>
 #include "xf86Parser.h"
 
+typedef enum { PARSE_DECIMAL, PARSE_OCTAL, PARSE_HEX } ParserNumType;
+
 typedef struct
 {
 	int num;		/* returned number */
 	char *str;		/* private copy of the return-string */
 	double realnum;		/* returned number as a real */
+        ParserNumType numType;  /* used to enforce correct number formatting */
 }
 LexRec, *LexPtr;
 
@@ -211,6 +214,8 @@ else\
 "\ta numerical group id."
 #define MULTIPLE_MSG \
 "Multiple \"%s\" lines."
+#define MUST_BE_OCTAL_MSG \
+"The number \"%d\" given in this section must be in octal (0xxx) format."
 
 /* Warning messages */
 #define OBSOLETE_MSG \
