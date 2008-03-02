@@ -380,11 +380,20 @@ again:
 			if (c == '0')
 				if ((configBuf[configPos] == 'x') ||
 					(configBuf[configPos] == 'X'))
+                                {
 					base = 16;
+                                        val.numType = PARSE_HEX;
+                                }
 				else
+                                {
 					base = 8;
+                                        val.numType = PARSE_OCTAL;
+                                }
 			else
+                        {
 				base = 10;
+                                val.numType = PARSE_DECIMAL;
+                        }
 
 			configRBuf[0] = c;
 			i = 1;
