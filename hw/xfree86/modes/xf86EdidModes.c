@@ -662,8 +662,10 @@ xf86DDCMonitorSet(int scrnIndex, MonPtr Monitor, xf86MonPtr DDC)
 
     Monitor->DDC = DDC;
 
-    Monitor->widthmm = 10 * DDC->features.hsize;
-    Monitor->heightmm = 10 * DDC->features.vsize;
+    if (Monitor->widthmm <= 0 && Monitor->heightmm <= 0) {
+	Monitor->widthmm = 10 * DDC->features.hsize;
+	Monitor->heightmm = 10 * DDC->features.vsize;
+    }
 
     /*
      * If this is a digital display, then we can use reduced blanking.
