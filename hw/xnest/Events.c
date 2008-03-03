@@ -88,7 +88,7 @@ xnestCollectExposures(void)
   while (XCheckIfEvent(xnestDisplay, &X, xnestExposurePredicate, NULL)) {
     pWin = xnestWindowPtr(X.xexpose.window);
     
-    if (pWin) {
+    if (pWin && X.xexpose.width && X.xexpose.height) {
       Box.x1 = pWin->drawable.x + wBorderWidth(pWin) + X.xexpose.x;
       Box.y1 = pWin->drawable.y + wBorderWidth(pWin) + X.xexpose.y;
       Box.x2 = Box.x1 + X.xexpose.width;
@@ -96,7 +96,7 @@ xnestCollectExposures(void)
       
       REGION_INIT(pWin->drawable.pScreen, &Rgn, &Box, 1);
       
-      miWindowExposures(pWin, &Rgn, NullRegion); 
+      miSendExposures(pWin, &Rgn, Box.x2, Box.y2);
     }
   }
 }
