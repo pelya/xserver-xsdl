@@ -29,6 +29,7 @@ ltmain.sh
 missing
 TAGS
 tags
+cscope*
 ylwrap
 xorg-server.pc
 stamp-h?
