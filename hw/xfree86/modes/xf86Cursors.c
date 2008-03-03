@@ -226,8 +226,13 @@ xf86_set_cursor_colors (ScrnInfoPtr scrn, int bg, int fg)
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(scrn);
     CursorPtr		cursor = xf86_config->cursor;
     int			c;
-    CARD8		*bits = cursor ? dixLookupPrivate(&cursor->devPrivates,
-							  screen) : NULL;
+    CARD8		*bits = cursor ?
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
+        dixLookupPrivate(&cursor->devPrivates, screen)
+#else
+        cursor->devPriv[screen->myNum]
+#endif
+      : NULL;
 
     /* Save ARGB versions of these colors */
     xf86_config->cursor_fg = (CARD32) fg | 0xff000000;
@@ -613,7 +618,12 @@ xf86_reload_cursors (ScreenPtr screen)
 	else
 #endif
 	    (*cursor_info->LoadCursorImage)(cursor_info->pScrn,
-			dixLookupPrivate(&cursor->devPrivates, screen));
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
+			dixLookupPrivate(&cursor->devPrivates, screen)
+#else
+			cursor->devPriv[screen->myNum]
+#endif
+	    );
 
 	(*cursor_info->SetCursorPosition)(cursor_info->pScrn, x, y);
 	(*cursor_info->ShowCursor)(cursor_info->pScrn);
