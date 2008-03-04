@@ -66,24 +66,22 @@ SOFTWARE.
  *****************************************************************/
 
 _X_EXPORT Selection *CurrentSelections;
-static int NumCurrentSelections;
 CallbackListPtr SelectionCallback;
 
 _X_EXPORT int
 dixLookupSelection(Selection **result, Atom selectionName,
 		   ClientPtr client, Mask access_mode)
 {
-    Selection *pSel = NULL;
-    int i, rc = BadMatch;
+    Selection *pSel;
+    int rc = BadMatch;
     client->errorValue = selectionName;
 
-    for (i = 0; i < NumCurrentSelections; i++)
-	if (CurrentSelections[i].selection == selectionName) {
-	    pSel = CurrentSelections + i;
-	    rc = XaceHookSelectionAccess(client, &pSel, access_mode);
+    for (pSel = CurrentSelections; pSel; pSel = pSel->next)
+	if (pSel->selection == selectionName)
 	    break;
-	}
 
+    if (pSel)
+	rc = XaceHookSelectionAccess(client, &pSel, access_mode);
     *result = pSel;
     return rc;
 }
@@ -91,14 +89,17 @@ dixLookupSelection(Selection **result, Atom selectionName,
 void
 InitSelections(void)
 {
-    Selection *pSel = CurrentSelections;
+    Selection *pSel, *pNextSel;
 
-    for (; pSel - CurrentSelections < NumCurrentSelections; pSel++)
+    pSel = CurrentSelections;
+    while (pSel) {
+	pNextSel = pSel->next;
 	dixFreePrivates(pSel->devPrivates);
+	xfree(pSel);
+	pSel = pNextSel;
+    }
 
-    xfree(CurrentSelections);
     CurrentSelections = NULL;
-    NumCurrentSelections = 0;
 }
 
 static _X_INLINE void
@@ -112,9 +113,9 @@ CallSelectionCallback(Selection *pSel, ClientPtr client,
 void
 DeleteWindowFromAnySelections(WindowPtr pWin)
 {
-    Selection *pSel = CurrentSelections;
+    Selection *pSel;
 
-    for (; pSel - CurrentSelections < NumCurrentSelections; pSel++)
+    for (pSel = CurrentSelections; pSel; pSel = pSel->next)
         if (pSel->pWin == pWin) {
 	    CallSelectionCallback(pSel, NULL, SelectionWindowDestroy);
 
@@ -127,9 +128,9 @@ DeleteWindowFromAnySelections(WindowPtr pWin)
 void
 DeleteClientFromAnySelections(ClientPtr client)
 {
-    Selection *pSel = CurrentSelections;
+    Selection *pSel;
 
-    for (; pSel - CurrentSelections < NumCurrentSelections; pSel++)
+    for (pSel = CurrentSelections; pSel; pSel = pSel->next)
         if (pSel->client == client) {
 	    CallSelectionCallback(pSel, NULL, SelectionClientClose);
 
@@ -197,23 +198,18 @@ ProcSetSelectionOwner(ClientPtr client)
 	/*
 	 * It doesn't exist, so add it...
 	 */
-	int size = (NumCurrentSelections + 1) * sizeof(Selection);
-	CurrentSelections = xrealloc(CurrentSelections, size);
-	if (!CurrentSelections) {
-	    NumCurrentSelections = 0;
+	pSel = xalloc(sizeof(Selection));
+	if (!pSel)
 	    return BadAlloc;
-	}
-	pSel = CurrentSelections + NumCurrentSelections;
+
 	pSel->selection = stuff->selection;
 	pSel->devPrivates = NULL;
 
 	/* security creation/labeling check */
 	(void)XaceHookSelectionAccess(client, &pSel, DixCreateAccess);
 
-	pSel->next = NULL;
-	if (NumCurrentSelections > 0)
-	    CurrentSelections[NumCurrentSelections - 1].next = pSel;
-	NumCurrentSelections++;
+	pSel->next = CurrentSelections;
+	CurrentSelections = pSel;
     }
     else
 	return rc;
