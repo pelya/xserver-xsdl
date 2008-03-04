@@ -375,7 +375,8 @@ Atom		unknown;
             names->vmods[vmod_AltGr]= CREATE_ATOM("ModeSwitch");
     }
 
-    if (!(xkb->defined & XkmIndicatorsMask)) {
+    if (!(xkb->defined & XkmIndicatorsMask) ||
+        !(xkb->defined & XkmGeometryMask)) {
         initIndicatorNames(NULL,xkb);
         if (names->indicators[LED_CAPS-1]==None)
             names->indicators[LED_CAPS-1] = CREATE_ATOM("Caps Lock");
@@ -531,10 +532,10 @@ XkbEventCauseRec	cause;
 	XkbDDXInitDevice(pXDev);
 
         if (xkb->defined & XkmSymbolsMask)
+            XkbUpdateCoreDescription(pXDev, True);
+        else
             XkbUpdateKeyTypesFromCore(pXDev, xkb->min_key_code,
                                       XkbNumKeys(xkb), &changes);
-        else
-            XkbUpdateCoreDescription(pXDev, True);
 
 	XkbSetCauseUnknown(&cause);
 	XkbUpdateActions(pXDev,xkb->min_key_code, XkbNumKeys(xkb),&changes,
