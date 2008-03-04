@@ -82,7 +82,6 @@ static int builtinLines = 0;
 static const char *deviceList[] = {
 	"fbdev",
 	"vesa",
-	"vga",
 	NULL
 };
 
@@ -450,8 +449,6 @@ chooseVideoDriver(void)
 	if (chosen_driver == NULL) {
 #if defined  __i386__ || defined __amd64__ || defined __hurd__
 	    chosen_driver = "vesa";
-#elif defined __alpha__
-	    chosen_driver = "vga";
 #elif defined __sparc__
 	    chosen_driver = "sunffb";
 #else
