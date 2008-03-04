@@ -113,6 +113,7 @@ ProcXQueryDevicePointer(ClientPtr client)
     rep.rootX = pSprite->hot.x;
     rep.rootY = pSprite->hot.y;
     rep.child = None;
+    rep.deviceid = pDev->id;
 
     if (pSprite->hot.pScreen == pWin->drawable.pScreen)
     {
