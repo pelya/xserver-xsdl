@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 1997-2002 by The XFree86 Project, Inc.
  *
@@ -98,8 +97,6 @@ extern Bool xf86SupportedMouseTypes[];
 extern int xf86NumMouseTypes;
 
 extern DriverPtr *xf86DriverList;
-extern ModuleInfoPtr *xf86ModuleInfoList;
-extern int xf86NumModuleInfos;
 extern int xf86NumDrivers;
 extern Bool xf86Resetting;
 extern Bool xf86Initialising;
@@ -158,10 +155,6 @@ Bool xf86PathIsSafe(const char *path);
 /* xf86DefaultModes */
 
 extern DisplayModeRec xf86DefaultModes [];
-
-/* xf86DoScanPci.c */
-
-void DoScanPci(int argc, char **argv, int i);
 
 /* xf86DoProbe.c */
 void DoProbe(void);

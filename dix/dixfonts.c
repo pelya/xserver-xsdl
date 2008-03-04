@@ -1644,9 +1644,6 @@ FreeFontPath(FontPathElementPtr *list, int n, Bool force)
 		    found++;
 	    }
 	    if (list[i]->refcount != found) {
-		ErrorF("[dix] FreeFontPath: FPE \"%.*s\" refcount is %d, should be %d; fixing.\n",
-		       list[i]->name_length, list[i]->name,
-		       list[i]->refcount, found);
 		list[i]->refcount = found; /* ensure it will get freed */
 	    }
 	}
@@ -1934,12 +1931,15 @@ GetDefaultPointSize ()
 FontResolutionPtr
 GetClientResolutions (int *num)
 {
+#ifdef XPRINT
     if (requestingClient && requestingClient->fontResFunc != NULL &&
 	!requestingClient->clientGone)
     {
 	return (*requestingClient->fontResFunc)(requestingClient, num);
     }
-    else {
+    else
+#endif
+    {
 	static struct _FontResolution res;
 	ScreenPtr   pScreen;
 

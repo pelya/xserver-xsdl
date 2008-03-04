@@ -16,7 +16,7 @@ libxf86modes_a_SOURCES = \
 
 INCLUDES = $(XORG_INCS) -I$(srcdir)/../ddc -I$(srcdir)/../i2c \
 	   -I$(srcdir)/../loader -I$(srcdir)/../rac -I$(srcdir)/../parser \
-           -I$(srcdir)/../scanpci -I$(srcdir)/../vbe -I$(srcdir)/../int10 \
+	   -I$(srcdir)/../vbe -I$(srcdir)/../int10 \
 	   -I$(srcdir)/../vgahw -I$(srcdir)/../ramdac \
 	   -I$(srcdir)/../dixmods/extmod
 

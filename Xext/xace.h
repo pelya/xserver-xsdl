@@ -25,11 +25,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define XACE_MAJOR_VERSION		2
 #define XACE_MINOR_VERSION		0
 
-#include "pixmap.h"     /* for DrawablePtr */
-#include "regionstr.h"  /* for RegionPtr */
+#include "pixmap.h"
+#include "region.h"
+#include "window.h"
+#include "property.h"
 
 /* Default window background */
-#define XaceBackgroundNoneState		None
+#define XaceBackgroundNoneState(w) ((w)->forcedBG ? BackgroundPixel : None)
 
 /* security hooks */
 /* Constants used to identify the available security hooks
@@ -65,6 +67,10 @@ extern int XaceHook(
 /* Special-cased hook functions
  */
 extern int XaceHookDispatch(ClientPtr ptr, int major);
+extern int XaceHookPropertyAccess(ClientPtr ptr, WindowPtr pWin,
+				  PropertyPtr pProp, Mask access_mode);
+extern int XaceHookSelectionAccess(ClientPtr ptr, Atom name,
+				   Mask access_mode);
 extern void XaceHookAuditEnd(ClientPtr ptr, int result);
 
 /* Register a callback for a given hook.
@@ -94,18 +100,22 @@ extern void XaceCensorImage(
 #else /* XACE */
 
 /* Default window background */
-#define XaceBackgroundNoneState		None
+#define XaceBackgroundNoneState(w)		None
 
 /* Define calls away when XACE is not being built. */
 
 #ifdef __GNUC__
 #define XaceHook(args...) Success
 #define XaceHookDispatch(args...) Success
+#define XaceHookPropertyAccess(args...) Success
+#define XaceHookSelectionAccess(args...) Success
 #define XaceHookAuditEnd(args...) { ; }
 #define XaceCensorImage(args...) { ; }
 #else
 #define XaceHook(...) Success
 #define XaceHookDispatch(...) Success
+#define XaceHookPropertyAccess(...) Success
+#define XaceHookSelectionAccess(...) Success
 #define XaceHookAuditEnd(...) { ; }
 #define XaceCensorImage(...) { ; }
 #endif

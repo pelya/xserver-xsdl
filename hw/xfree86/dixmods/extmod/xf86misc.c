@@ -108,9 +108,9 @@ static unsigned char XF86MiscReqCode = 0;
 #endif
 
 #ifdef DEBUG
-# define DEBUG_P(x) ErrorF(x"\n");
+# define DEBUG_P(x) ErrorF x;
 #else
-# define DEBUG_P(x) /**/
+# define DEBUG_P(x) do {} while (0)
 #endif
 
 #define MISCERR(x)	(miscErrorBase + x)
@@ -119,8 +119,6 @@ void
 XFree86MiscExtensionInit(void)
 {
     ExtensionEntry* extEntry;
-
-    DEBUG_P("XFree86MiscExtensionInit");
 
     if (!xf86GetModInDevEnabled())
 	return;
@@ -153,8 +151,6 @@ ProcXF86MiscQueryVersion(client)
 {
     xXF86MiscQueryVersionReply rep;
     register int n;
-
-    DEBUG_P("XF86MiscQueryVersion");
 
     REQUEST_SIZE_MATCH(xXF86MiscQueryVersionReq);
     rep.type = X_Reply;
@@ -252,8 +248,6 @@ ProcXF86MiscGetMouseSettings(client)
     register int n;
     int devnamelen;
 
-    DEBUG_P("XF86MiscGetMouseSettings");
-
     REQUEST_SIZE_MATCH(xXF86MiscGetMouseSettingsReq);
     rep.type = X_Reply;
     rep.sequenceNumber = client->sequence;
@@ -303,8 +297,6 @@ ProcXF86MiscGetKbdSettings(client)
     pointer kbd;
     register int n;
 
-    DEBUG_P("XF86MiscGetKbdSettings");
-
     REQUEST_SIZE_MATCH(xXF86MiscGetKbdSettingsReq);
     rep.type = X_Reply;
     rep.length = 0;
@@ -338,19 +330,17 @@ ProcXF86MiscSetMouseSettings(client)
     
     REQUEST(xXF86MiscSetMouseSettingsReq);
 
-    DEBUG_P("XF86MiscSetMouseSettings");
-
     REQUEST_AT_LEAST_SIZE(xXF86MiscSetMouseSettingsReq);
 
     ClientVersion(client, &major, &minor);
     
     if (xf86GetVerbosity() > 1) {
-	ErrorF("SetMouseSettings - type: %d brate: %d srate: %d chdmid: %d\n",
+	DEBUG_P(("SetMouseSettings - type: %d brate: %d srate: %d chdmid: %d\n",
 		(int)stuff->mousetype, (int)stuff->baudrate,
-		(int)stuff->samplerate, stuff->chordmiddle);
-	ErrorF("                   em3but: %d em3tim: %d res: %d flags: %ld\n",
+		(int)stuff->samplerate, stuff->chordmiddle));
+	DEBUG_P(("                   em3but: %d em3tim: %d res: %d flags: %ld\n",
 		stuff->emulate3buttons, (int)stuff->emulate3timeout,
-		(int)stuff->resolution, (unsigned long)stuff->flags);
+		(int)stuff->resolution, (unsigned long)stuff->flags));
     }
 
     if ((mouse = MiscExtCreateStruct(MISC_POINTER)) == (pointer) 0)
@@ -376,7 +366,7 @@ ProcXF86MiscSetMouseSettings(client)
 		return BadAlloc;
 	    strncpy(devname,(char*)(&stuff[1]),stuff->devnamelen);
 	    if (xf86GetVerbosity() > 1)
-		ErrorF("SetMouseSettings - device: %s\n",devname);
+		DEBUG_P(("SetMouseSettings - device: %s\n",devname));
 	    MiscExtSetMouseDevice(mouse, devname);
 	}
     }
@@ -395,12 +385,12 @@ ProcXF86MiscSetMouseSettings(client)
         case MISC_RET_BADCOMBO:     return MISCERR(XF86MiscBadMouseCombo);
         case MISC_RET_NOMODULE:     return MISCERR(XF86MiscNoModule);
         default:
-	    ErrorF("Unexpected return from MiscExtApply(POINTER) = %d\n", ret);
+	    DEBUG_P(("Unexpected return from MiscExtApply(POINTER) = %d\n", ret));
 	    return BadImplementation;
     }
 
     if (xf86GetVerbosity() > 1)
-	ErrorF("SetMouseSettings - Succeeded\n");
+	DEBUG_P(("SetMouseSettings - Succeeded\n"));
     return (client->noClientException);
 }
 
@@ -412,14 +402,12 @@ ProcXF86MiscSetKbdSettings(client)
     pointer kbd;
     REQUEST(xXF86MiscSetKbdSettingsReq);
 
-    DEBUG_P("XF86MiscSetKbdSettings");
-
     REQUEST_SIZE_MATCH(xXF86MiscSetKbdSettingsReq);
 
     if (xf86GetVerbosity() > 1)
-	ErrorF("SetKbdSettings - type: %d rate: %d delay: %d snumlk: %d\n",
+	DEBUG_P(("SetKbdSettings - type: %d rate: %d delay: %d snumlk: %d\n",
 		(int)stuff->kbdtype, (int)stuff->rate,
-		(int)stuff->delay, stuff->servnumlock);
+		(int)stuff->delay, stuff->servnumlock));
 
     if ((kbd = MiscExtCreateStruct(MISC_KEYBOARD)) == (pointer) 0)
 	return BadAlloc;
@@ -434,12 +422,12 @@ ProcXF86MiscSetKbdSettings(client)
 	case MISC_RET_BADVAL:       return BadValue;
 	case MISC_RET_BADKBDTYPE:   return MISCERR(XF86MiscBadKbdType);
 	default:
-	    ErrorF("Unexpected return from MiscExtApply(KEYBOARD) = %d\n", ret);
+	    DEBUG_P(("Unexpected return from MiscExtApply(KEYBOARD) = %d\n", ret));
 	    return BadImplementation;
     }
 
     if (xf86GetVerbosity() > 1)
-	ErrorF("SetKbdSettings - Succeeded\n");
+	DEBUG_P(("SetKbdSettings - Succeeded\n"));
     return (client->noClientException);
 }
 
@@ -451,14 +439,12 @@ ProcXF86MiscSetGrabKeysState(client)
     xXF86MiscSetGrabKeysStateReply rep;
     REQUEST(xXF86MiscSetGrabKeysStateReq);
 
-    DEBUG_P("XF86MiscSetGrabKeysState");
-
     REQUEST_SIZE_MATCH(xXF86MiscSetGrabKeysStateReq);
 
     if ((status = MiscExtSetGrabKeysState(client, stuff->enable)) == 0) {
 	if (xf86GetVerbosity() > 1)
-	    ErrorF("SetGrabKeysState - %s\n",
-		   stuff->enable ? "enabled" : "disabled");
+	    DEBUG_P(("SetGrabKeysState - %s\n",
+		   stuff->enable ? "enabled" : "disabled"));
     }
 
     rep.type = X_Reply;
@@ -482,8 +468,6 @@ ProcXF86MiscSetClientVersion(ClientPtr client)
 
     MiscPrivPtr pPriv;
 
-    DEBUG_P("XF86MiscSetClientVersion");
-
     REQUEST_SIZE_MATCH(xXF86MiscSetClientVersionReq);
 
     if ((pPriv = M_GETPRIV(client)) == NULL) {
@@ -493,7 +477,7 @@ ProcXF86MiscSetClientVersion(ClientPtr client)
 	M_SETPRIV(client, pPriv);
     }
     if (xf86GetVerbosity() > 1) 
-	    ErrorF("SetClientVersion: %i %i\n",stuff->major,stuff->minor);
+	    DEBUG_P(("SetClientVersion: %i %i\n",stuff->major,stuff->minor));
     pPriv->major = stuff->major;
     pPriv->minor = stuff->minor;
     
@@ -510,8 +494,6 @@ ProcXF86MiscGetFilePaths(client)
     const char *logfile;
     register int n;
     int configlen, modulelen, loglen;
-
-    DEBUG_P("XF86MiscGetFilePaths");
 
     REQUEST_SIZE_MATCH(xXF86MiscGetFilePathsReq);
     rep.type = X_Reply;
@@ -558,8 +540,6 @@ ProcXF86MiscPassMessage(client)
     int mesglen;
 
     REQUEST(xXF86MiscPassMessageReq);
-
-    DEBUG_P("XF86MiscPassMessage");
 
     REQUEST_AT_LEAST_SIZE(xXF86MiscPassMessageReq);
     size = (sizeof(xXF86MiscPassMessageReq) + 3) >> 2;

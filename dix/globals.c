@@ -143,7 +143,9 @@ Bool loadableFonts = FALSE;
 CursorPtr rootCursor;
 Bool blackRoot=FALSE;
 Bool whiteRoot=FALSE;
+#ifdef XPRINT
 ClientPtr requestingClient;	/* XXX this should be obsolete now, remove? */
+#endif
 
 _X_EXPORT TimeStamp currentTime;
 _X_EXPORT TimeStamp lastDeviceEventTime;

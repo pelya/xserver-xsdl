@@ -358,10 +358,13 @@ clipAxis(DeviceIntPtr pDev, int axisNum, int *val)
 {
     AxisInfoPtr axes = pDev->valuator->axes + axisNum;
 
-    if (*val < axes->min_value)
-        *val = axes->min_value;
-    if (axes->max_value >= 0 && *val > axes->max_value)
-        *val = axes->max_value;
+    /* No clipping if the value-range <= 0 */
+    if(axes->min_value < axes->min_value) {
+        if (*val < axes->min_value)
+            *val = axes->min_value;
+        if (*val > axes->max_value)
+            *val = axes->max_value;
+    }
 }
 
 /**
@@ -660,10 +663,6 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     CARD32 ms = 0;
     deviceKeyButtonPointer *kbp = NULL;
     DeviceIntPtr master;
-
-    /* Thanks to a broken lib, we _always_ have to chase DeviceMotionNotifies
-     * with DeviceValuators. */
-    Bool sendValuators = (type == MotionNotify || flags & POINTER_ABSOLUTE);
     int x = 0, y = 0;
     /* The core pointer must not send Xi events. */
     Bool coreOnly = (pDev == inputInfo.pointer);
@@ -701,7 +700,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
     }
 
     /* Do we need to send a DeviceValuator event? */
-    if (!coreOnly && sendValuators) {
+    if (!coreOnly && num_valuators) {
         if ((((num_valuators - 1) / 6) + 1) > MAX_VALUATOR_EVENTS)
             num_valuators = MAX_VALUATOR_EVENTS * 6;
         num_events += ((num_valuators - 1) / 6) + 1;
@@ -793,7 +792,7 @@ GetPointerEvents(EventList *events, DeviceIntPtr pDev, int type, int buttons,
         kbp->root_y = y;
 
         events++;
-        if (sendValuators) {
+        if (num_valuators) {
             kbp->deviceid |= MORE_EVENTS;
             clipValuators(pDev, first_valuator, num_valuators, valuators);
             events = getValuatorEvents(events, pDev, first_valuator,

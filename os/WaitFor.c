@@ -254,13 +254,13 @@ WaitForSomething(int *pClientsReady)
 		}
 		else if (selecterr == EINVAL)
 		{
-		    FatalError("WaitForSomething(): select: errno=%d\n",
-			selecterr);
+		    FatalError("WaitForSomething(): select: %s\n",
+			strerror(selecterr));
             }
 		else if (selecterr != EINTR && selecterr != EAGAIN)
 		{
-		    ErrorF("WaitForSomething(): select: errno=%d\n",
-			selecterr);
+		    ErrorF("WaitForSomething(): select: %s\n",
+			strerror(selecterr));
 		}
 	    }
 #ifdef SMART_SCHEDULE

@@ -2004,18 +2004,6 @@ enum BadCode {
 #define BUGADDRESS "xorg@freedesktop.org"
 #endif
 
-#define ARGMSG \
-    "\nIf the arguments used are valid, and have been rejected incorrectly\n" \
-      "please send details of the arguments and why they are valid to\n" \
-      "%s.  In the meantime, you can start the Xserver as\n" \
-      "the \"super user\" (root).\n"   
-
-#define ENVMSG \
-    "\nIf the environment is valid, and have been rejected incorrectly\n" \
-      "please send details of the environment and why it is valid to\n" \
-      "%s.  In the meantime, you can start the Xserver as\n" \
-      "the \"super user\" (root).\n"
-
 void
 CheckUserParameters(int argc, char **argv, char **envp)
 {
@@ -2062,10 +2050,6 @@ CheckUserParameters(int argc, char **argv, char **envp)
 		/* Check for bad environment variables and values */
 #if REMOVE_ENV_LD
 		while (envp[i] && (strncmp(envp[i], "LD", 2) == 0)) {
-#ifdef ENVDEBUG
-		    ErrorF("CheckUserParameters: removing %s from the "
-			   "environment\n", strtok(envp[i], "="));
-#endif
 		    for (j = i; envp[j]; j++) {
 			envp[j] = envp[j+1];
 		    }
@@ -2073,10 +2057,6 @@ CheckUserParameters(int argc, char **argv, char **envp)
 #endif   
 		if (envp[i] && (strlen(envp[i]) > MAX_ENV_LENGTH)) {
 #if REMOVE_LONG_ENV
-#ifdef ENVDEBUG
-		    ErrorF("CheckUserParameters: removing %s from the "
-			   "environment\n", strtok(envp[i], "="));
-#endif
 		    for (j = i; envp[j]; j++) {
 			envp[j] = envp[j+1];
 		    }
@@ -2129,20 +2109,16 @@ CheckUserParameters(int argc, char **argv, char **envp)
 	return;
     case UnsafeArg:
 	ErrorF("Command line argument number %d is unsafe\n", i);
-	ErrorF(ARGMSG, BUGADDRESS);
 	break;
     case ArgTooLong:
 	ErrorF("Command line argument number %d is too long\n", i);
-	ErrorF(ARGMSG, BUGADDRESS);
 	break;
     case UnprintableArg:
 	ErrorF("Command line argument number %d contains unprintable"
 		" characters\n", i);
-	ErrorF(ARGMSG, BUGADDRESS);
 	break;
     case EnvTooLong:
 	ErrorF("Environment variable `%s' is too long\n", e);
-	ErrorF(ENVMSG, BUGADDRESS);
 	break;
     case OutputIsPipe:
 	ErrorF("Stdout and/or stderr is a pipe\n");
@@ -2152,8 +2128,6 @@ CheckUserParameters(int argc, char **argv, char **envp)
 	break;
     default:
 	ErrorF("Unknown error\n");
-	ErrorF(ARGMSG, BUGADDRESS);
-	ErrorF(ENVMSG, BUGADDRESS);
 	break;
     }
     FatalError("X server aborted because of unsafe environment\n");

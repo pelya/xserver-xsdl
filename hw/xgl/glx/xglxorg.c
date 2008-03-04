@@ -253,8 +253,6 @@ xglxArgRec xorgUidArgs[] = {
 xglxArgRec xorgArgs[] = {
     ARG (xglxProcessXorgWaitExitArgument, "-probeonly",
 	 "             probe for devices, then exit"),
-    ARG (xglxProcessXorgWaitExitArgument, "-scanpci",
-	 "               execute the scanpci module and exit"),
     XORG_UARG ("-verbose", " [n]           verbose startup messages", 2),
     XORG_UARG ("-logverbose", " [n]        verbose log messages", 2),
     XORG_UARG ("-quiet", "                 minimal startup messages", 1),

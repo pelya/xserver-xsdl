@@ -417,17 +417,18 @@ Dispatch(void)
 	    }
 	    isItTimeToYield = FALSE;
  
+#ifdef XPRINT
             requestingClient = client;
+#endif
 #ifdef SMART_SCHEDULE
 	    start_tick = SmartScheduleTime;
 #endif
 	    while (!isItTimeToYield)
 	    {
 	        if (*icheck[0] != *icheck[1])
-		{
 		    ProcessInputEvents();
-		    FlushIfCriticalOutputPending();
-		}
+		
+		FlushIfCriticalOutputPending();
 #ifdef SMART_SCHEDULE
 		if (!SmartScheduleDisable && 
 		    (SmartScheduleTime - start_tick) >= SmartScheduleSlice)
@@ -483,9 +484,6 @@ Dispatch(void)
 					  client->errorValue, result);
 		    break;
 	        }
-#ifdef DAMAGEEXT
-		FlushIfCriticalOutputPending ();
-#endif
 	    }
 	    FlushAllOutput();
 #ifdef SMART_SCHEDULE
@@ -493,7 +491,9 @@ Dispatch(void)
 	    if (client)
 		client->smart_stop_tick = SmartScheduleTime;
 #endif
+#ifdef XPRINT
 	    requestingClient = NULL;
+#endif
 	}
 	dispatchException &= ~DE_PRIORITYCHANGE;
     }
@@ -995,8 +995,8 @@ ProcSetSelectionOwner(ClientPtr client)
     {
 	int i = 0;
 
-	rc = XaceHook(XACE_SELECTION_ACCESS, client, stuff->selection,
-		      DixSetAttrAccess);
+	rc = XaceHookSelectionAccess(client, stuff->selection,
+				     DixSetAttrAccess);
 	if (rc != Success)
 	    return rc;
 
@@ -1082,8 +1082,7 @@ ProcGetSelectionOwner(ClientPtr client)
 	int rc, i;
         xGetSelectionOwnerReply reply;
 
-	rc = XaceHook(XACE_SELECTION_ACCESS, client, stuff->id,
-		      DixGetAttrAccess);
+	rc = XaceHookSelectionAccess(client, stuff->id, DixGetAttrAccess);
 	if (rc != Success)
 	    return rc;
 
@@ -1128,8 +1127,7 @@ ProcConvertSelection(ClientPtr client)
     rc = dixLookupWindow(&pWin, stuff->requestor, client, DixSetAttrAccess);
     if (rc != Success)
         return rc;
-    rc = XaceHook(XACE_SELECTION_ACCESS, client, stuff->selection,
-		  DixReadAccess);
+    rc = XaceHookSelectionAccess(client, stuff->selection, DixReadAccess);
     if (rc != Success)
 	return rc;
 
@@ -2538,7 +2536,7 @@ ProcFreeColormap(ClientPtr client)
     else 
     {
 	client->errorValue = stuff->id;
-	return rc;
+	return (rc == BadValue) ? BadColor : rc;
     }
 }
 
@@ -2567,7 +2565,7 @@ ProcCopyColormapAndFree(ClientPtr client)
     else
     {
 	client->errorValue = stuff->srcCmap;
-	return rc;
+	return (rc == BadValue) ? BadColor : rc;
     }
 }
 
@@ -2659,7 +2657,7 @@ ProcListInstalledColormaps(ClientPtr client)
     xfree(preply);
     rc = client->noClientException;
 out:
-    return (rc == BadValue) ? BadColor : rc;
+    return rc;
 }
 
 int

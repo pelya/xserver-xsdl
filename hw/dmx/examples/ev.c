@@ -174,7 +174,7 @@ int main(int argc, char **argv)
                 }
                 printf("\n");
             }
-            printf("rc = %d, errno = %d (%s)\n", rc, errno, strerror(errno));
+            printf("rc = %d, (%s)\n", rc, strerror(errno));
             close(fd);
         }
     }

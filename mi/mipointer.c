@@ -348,7 +348,7 @@ miPointerWarpCursor (pDev, pScreen, x, y)
 {
     miPointerPtr pPointer;
     BOOL changedScreen = FALSE;
-    
+
     if (!pDev->isMaster && !pDev->u.master)
         return;
     pPointer = MIPOINTER(pDev);
@@ -379,6 +379,7 @@ miPointerWarpCursor (pDev, pScreen, x, y)
 	pPointer->y = y;
 	pPointer->pScreen = pScreen;
     }
+
     if (changedScreen)
         UpdateSpriteForScreen (pDev, pScreen) ;
 }

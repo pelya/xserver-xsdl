@@ -178,8 +178,6 @@ exaDDXDriverInit(ScreenPtr pScreen)
     
 }
 
-static MODULESETUPPROTO(exaSetup);
-
 /*ARGSUSED*/
 static const OptionInfoRec *
 EXAAvailableOptions(void *unused)
@@ -201,26 +199,4 @@ static XF86ModuleVersionInfo exaVersRec =
 	{0,0,0,0}
 };
 
-_X_EXPORT XF86ModuleData exaModuleData = { &exaVersRec, exaSetup, NULL };
-
-static ModuleInfoRec EXA = {
-    1,
-    "EXA",
-    NULL,
-    0,
-    EXAAvailableOptions,
-};
-
-/*ARGSUSED*/
-static pointer
-exaSetup(pointer Module, pointer Options, int *ErrorMajor, int *ErrorMinor)
-{
-    static Bool Initialised = FALSE;
-
-    if (!Initialised) {
-	Initialised = TRUE;
-	xf86AddModuleInfo(&EXA, Module);
-    }
-
-    return (pointer)TRUE;
-}
+_X_EXPORT XF86ModuleData exaModuleData = { &exaVersRec, NULL, NULL };

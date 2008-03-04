@@ -1,6 +1,6 @@
 # libdummy.a contains just those bits used in the server itself
 # libdummy-nonserver.a contains additional routines normally found in the
-# server for use in building the utilities like scanpci & the config tools
+# server for use in building the utilities like config tools
 
 noinst_LIBRARIES = libdummy-nonserver.a
 

@@ -179,8 +179,8 @@ ddxGiveUp()
 	    if (-1 == unlink(vfbScreens[i].mmap_file))
 	    {
 		perror("unlink");
-		ErrorF("unlink %s failed, errno %d",
-		       vfbScreens[i].mmap_file, errno);
+		ErrorF("unlink %s failed, %s",
+		       vfbScreens[i].mmap_file, strerror(errno));
 	    }
 	}
 	break;
@@ -196,7 +196,7 @@ ddxGiveUp()
 	    if (-1 == shmdt((char *)vfbScreens[i].pXWDHeader))
 	    {
 		perror("shmdt");
-		ErrorF("shmdt failed, errno %d", errno);
+		ErrorF("shmdt failed, %s", strerror(errno));
 	    }
 	}
 	break;
@@ -582,7 +582,7 @@ vfbBlockHandler(pointer blockData, OSTimePtr pTimeout, pointer pReadmask)
 #endif
 	{
 	    perror("msync");
-	    ErrorF("msync failed, errno %d", errno);
+	    ErrorF("msync failed, %s", strerror(errno));
 	}
     }
 }
@@ -605,7 +605,7 @@ vfbAllocateMmappedFramebuffer(vfbScreenInfoPtr pvfb)
     if (-1 == (pvfb->mmap_fd = open(pvfb->mmap_file, O_CREAT|O_RDWR, 0666)))
     {
 	perror("open");
-	ErrorF("open %s failed, errno %d", pvfb->mmap_file, errno);
+	ErrorF("open %s failed, %s", pvfb->mmap_file, strerror(errno));
 	return;
     }
 
@@ -621,7 +621,7 @@ vfbAllocateMmappedFramebuffer(vfbScreenInfoPtr pvfb)
 	if (-1 == write(pvfb->mmap_fd, dummyBuffer, writeThisTime))
 	{
 	    perror("write");
-	    ErrorF("write %s failed, errno %d", pvfb->mmap_file, errno);
+	    ErrorF("write %s failed, %s", pvfb->mmap_file, strerror(errno));
 	    return;
 	}
     }
@@ -635,7 +635,7 @@ vfbAllocateMmappedFramebuffer(vfbScreenInfoPtr pvfb)
     if (-1 == (long)pvfb->pXWDHeader)
     {
 	perror("mmap");
-	ErrorF("mmap %s failed, errno %d", pvfb->mmap_file, errno);
+	ErrorF("mmap %s failed, %s", pvfb->mmap_file, strerror(errno));
 	pvfb->pXWDHeader = NULL;
 	return;
     }
@@ -659,7 +659,7 @@ vfbAllocateSharedMemoryFramebuffer(vfbScreenInfoPtr pvfb)
     if (pvfb->shmid < 0)
     {
 	perror("shmget");
-	ErrorF("shmget %d bytes failed, errno %d", pvfb->sizeInBytes, errno);
+	ErrorF("shmget %d bytes failed, %s", pvfb->sizeInBytes, strerror(errno));
 	return;
     }
 
@@ -669,7 +669,7 @@ vfbAllocateSharedMemoryFramebuffer(vfbScreenInfoPtr pvfb)
     if (-1 == (long)pvfb->pXWDHeader)
     {
 	perror("shmat");
-	ErrorF("shmat failed, errno %d", errno);
+	ErrorF("shmat failed, %s", strerror(errno));
 	pvfb->pXWDHeader = NULL; 
 	return;
     }

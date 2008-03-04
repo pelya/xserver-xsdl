@@ -46,19 +46,9 @@
 #include "misc.h"
 #include "inputstr.h"
 #include "dix.h"
-#include <X11/extensions/XKBstr.h>
+#include "xkbstr.h"
 #define XKBSRV_NEED_FILE_FUNCS
 #include <xkbsrv.h>
-
-#ifdef DEBUG
-#define PR_DEBUG(s)		fprintf(stderr,s)
-#define PR_DEBUG1(s,a)		fprintf(stderr,s,a)
-#define PR_DEBUG2(s,a,b)	fprintf(stderr,s,a,b)
-#else
-#define PR_DEBUG(s)
-#define PR_DEBUG1(s,a)
-#define PR_DEBUG2(s,a,b)
-#endif
 
 /***====================================================================***/
 
@@ -171,8 +161,8 @@ Bool	endOfFile,spacePending,slashPending,inComment;
 		}
 		if (checkbang && ch=='!') {
 		    if (line->num_line!=0) {
-			PR_DEBUG("The '!' legal only at start of line\n");
-			PR_DEBUG("Line containing '!' ignored\n");
+			DebugF("The '!' legal only at start of line\n");
+			DebugF("Line containing '!' ignored\n");
 			line->num_line= 0;
 			inComment= 0;
 			break;
@@ -273,9 +263,7 @@ unsigned	present, l_ndx_present, v_ndx_present;
 register int	i;
 int		len, ndx;
 _Xstrtokparams	strtok_buf;
-#ifdef DEBUG
 Bool		found;
-#endif
 
 
    l_ndx_present = v_ndx_present = present= 0;
@@ -284,9 +272,7 @@ Bool		found;
    bzero((char *)remap,sizeof(RemapSpec));
    remap->number = len;
    while ((tok=_XStrtok(str," ",strtok_buf))!=NULL) {
-#ifdef DEBUG
 	found= False;
-#endif
 	str= NULL;
 	if (strcmp(tok,"=")==0)
 	    continue;
@@ -299,22 +285,20 @@ Bool		found;
 			*end != '\0' || ndx == -1)
 		        break;
 		     if (ndx < 1 || ndx > XkbNumKbdGroups) {
-		        PR_DEBUG2("Illegal %s index: %d\n", cname[i], ndx);
-		        PR_DEBUG1("Index must be in range 1..%d\n",
+		        DebugF("Illegal %s index: %d\n", cname[i], ndx);
+		        DebugF("Index must be in range 1..%d\n",
 				   XkbNumKbdGroups);
 			break;
 		     }
                 } else {
 		    ndx = 0;
                 }
-#ifdef DEBUG
 		found= True;
-#endif
 		if (present&(1<<i)) {
 		    if ((i == LAYOUT && l_ndx_present&(1<<ndx)) ||
 			(i == VARIANT && v_ndx_present&(1<<ndx)) ) {
-		        PR_DEBUG1("Component \"%s\" listed twice\n",tok);
-		        PR_DEBUG("Second definition ignored\n");
+		        DebugF("Component \"%s\" listed twice\n",tok);
+		        DebugF("Second definition ignored\n");
 		        break;
 		    }
 		}
@@ -328,38 +312,34 @@ Bool		found;
 		break;
 	    }
 	}
-#ifdef DEBUG
 	if (!found) {
 	    fprintf(stderr,"Unknown component \"%s\" ignored\n",tok);
 	}
-#endif
    }
    if ((present&PART_MASK)==0) {
-#ifdef DEBUG
 	unsigned mask= PART_MASK;
-	fprintf(stderr,"Mapping needs at least one of ");
+	ErrorF("Mapping needs at least one of ");
 	for (i=0; (i<MAX_WORDS); i++) {
 	    if ((1L<<i)&mask) {
 		mask&= ~(1L<<i);
-		if (mask)	fprintf(stderr,"\"%s,\" ",cname[i]);
-		else		fprintf(stderr,"or \"%s\"\n",cname[i]);
+		if (mask)	DebugF("\"%s,\" ",cname[i]);
+		else		DebugF("or \"%s\"\n",cname[i]);
 	    }
 	}
-	fprintf(stderr,"Illegal mapping ignored\n");
-#endif
+	DebugF("Illegal mapping ignored\n");
 	remap->num_remap= 0;
 	return;
    }
    if ((present&COMPONENT_MASK)==0) {
-	PR_DEBUG("Mapping needs at least one component\n");
-	PR_DEBUG("Illegal mapping ignored\n");
+	DebugF("Mapping needs at least one component\n");
+	DebugF("Illegal mapping ignored\n");
 	remap->num_remap= 0;
 	return;
    }
    if (((present&COMPONENT_MASK)&(1<<KEYMAP))&&
 				((present&COMPONENT_MASK)!=(1<<KEYMAP))) {
-	PR_DEBUG("Keymap cannot appear with other components\n");
-	PR_DEBUG("Illegal mapping ignored\n");
+	DebugF("Keymap cannot appear with other components\n");
+	DebugF("Illegal mapping ignored\n");
 	remap->num_remap= 0;
 	return;
    }
@@ -434,8 +414,8 @@ Bool 		append = False;
     }
 
     if (remap->num_remap==0) {
-	PR_DEBUG("Must have a mapping before first line of data\n");
-	PR_DEBUG("Illegal line of data ignored\n");
+	DebugF("Must have a mapping before first line of data\n");
+	DebugF("Illegal line of data ignored\n");
 	return False;
     }
     bzero((char *)&tmp,sizeof(FileSpec));
@@ -447,8 +427,8 @@ Bool 		append = False;
 	    continue;
 	}
 	if (nread>remap->num_remap) {
-	    PR_DEBUG("Too many words on a line\n");
-	    PR_DEBUG1("Extra word \"%s\" ignored\n",tok);
+	    DebugF("Too many words on a line\n");
+	    DebugF("Extra word \"%s\" ignored\n",tok);
 	    continue;
 	}
 	tmp.name[remap->remap[nread].word]= tok;
@@ -456,8 +436,8 @@ Bool 		append = False;
 	    append = True;
     }
     if (nread<remap->num_remap) {
-	PR_DEBUG1("Too few words on a line: %s\n", line->line);
-	PR_DEBUG("line ignored\n");
+	DebugF("Too few words on a line: %s\n", line->line);
+	DebugF("line ignored\n");
 	return False;
     }
 
@@ -479,7 +459,7 @@ Bool 		append = False;
     rule->types= _XkbDupString(tmp.name[TYPES]);
     rule->compat= _XkbDupString(tmp.name[COMPAT]);
     rule->geometry= _XkbDupString(tmp.name[GEOMETRY]);
-    rule->keymap= _XkbDupString(tmp.name[KEYMAP]);
+    rule->keymap= NULL;
 
     rule->layout_num = rule->variant_num = 0;
     for (i = 0; i < nread; i++) {
@@ -609,7 +589,6 @@ XkbRF_ApplyRule(	XkbRF_RulePtr 		rule,
     Apply(rule->types,    &names->types);
     Apply(rule->compat,   &names->compat);
     Apply(rule->geometry, &names->geometry);
-    Apply(rule->keymap,   &names->keymap);
 }
 
 static Bool
@@ -903,9 +882,7 @@ XkbRF_AddRule(XkbRF_RulesPtr	rules)
     }
     if (!rules->rules) {
 	rules->sz_rules= rules->num_rules= 0;
-#ifdef DEBUG
-	fprintf(stderr,"Allocation failure in XkbRF_AddRule\n");
-#endif
+	DebugF("Allocation failure in XkbRF_AddRule\n");
 	return NULL;
     }
     bzero((char *)&rules->rules[rules->num_rules],sizeof(XkbRF_RuleRec));
@@ -1022,7 +999,7 @@ XkbRF_AddVarDesc(XkbRF_DescribeVarsPtr	vars)
     }
     if (!vars->desc) {
 	vars->sz_desc= vars->num_desc= 0;
-	PR_DEBUG("Allocation failure in XkbRF_AddVarDesc\n");
+	DebugF("Allocation failure in XkbRF_AddVarDesc\n");
 	return NULL;
     }
     vars->desc[vars->num_desc].name= NULL;
@@ -1059,7 +1036,7 @@ XkbRF_AddVarToDescribe(XkbRF_RulesPtr rules,char *name)
 							XkbRF_DescribeVarsRec);
     }
     if ((!rules->extra_names)||(!rules->extra)) {
-	PR_DEBUG("allocation error in extra parts\n");
+	DebugF("allocation error in extra parts\n");
 	rules->sz_extra= rules->num_extra= 0;
 	rules->extra_names= NULL;
 	rules->extra= NULL;
@@ -1102,7 +1079,7 @@ int			len,headingtype,extra_ndx = 0;
 		}
 		if (extra_ndx<0) {
 		    XkbRF_DescribeVarsPtr	var;
-		    PR_DEBUG1("Extra heading \"%s\" encountered\n",tok);
+		    DebugF("Extra heading \"%s\" encountered\n",tok);
 		    var= XkbRF_AddVarToDescribe(rules,tok);
 		    if (var)
 			 extra_ndx= var-rules->extra;
@@ -1113,20 +1090,20 @@ int			len,headingtype,extra_ndx = 0;
 	}
 
 	if (headingtype == HEAD_NONE) {
-	    PR_DEBUG("Must have a heading before first line of data\n");
-	    PR_DEBUG("Illegal line of data ignored\n");
+	    DebugF("Must have a heading before first line of data\n");
+	    DebugF("Illegal line of data ignored\n");
 	    continue;
 	}
 
 	len = strlen(line.line);
 	if ((tmp.name= strtok(line.line, " \t")) == NULL) {
-	    PR_DEBUG("Huh? No token on line\n");
-	    PR_DEBUG("Illegal line of data ignored\n");
+	    DebugF("Huh? No token on line\n");
+	    DebugF("Illegal line of data ignored\n");
 	    continue;
 	}
 	if (strlen(tmp.name) == len) {
-	    PR_DEBUG("No description found\n");
-	    PR_DEBUG("Illegal line of data ignored\n");
+	    DebugF("No description found\n");
+	    DebugF("Illegal line of data ignored\n");
 	    continue;
 	}
 
@@ -1134,8 +1111,8 @@ int			len,headingtype,extra_ndx = 0;
 	while ((*tok!='\n')&&isspace(*tok))
 		tok++;
 	if (*tok == '\0') {
-	    PR_DEBUG("No description found\n");
-	    PR_DEBUG("Illegal line of data ignored\n");
+	    DebugF("No description found\n");
+	    DebugF("Illegal line of data ignored\n");
 	    continue;
 	}
 	tmp.desc= tok;
@@ -1301,7 +1278,6 @@ XkbRF_GroupPtr	group;
 	    if (rule->types)	_XkbFree(rule->types);
 	    if (rule->compat)	_XkbFree(rule->compat);
 	    if (rule->geometry)	_XkbFree(rule->geometry);
-	    if (rule->keymap)	_XkbFree(rule->keymap);
 	    bzero((char *)rule,sizeof(XkbRF_RuleRec));
 	}
 	_XkbFree(rules->rules);

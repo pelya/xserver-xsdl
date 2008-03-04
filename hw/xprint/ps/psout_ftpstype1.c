@@ -124,7 +124,7 @@ int PsOut_DownloadFreeType1(PsOutPtr self, const char *psfontname, FontPtr pFont
   switch(childpid)
   {
     case -1:
-        FatalError("PS DDX internal error: Cannot fork() converter child process, errno=%d\n", (int)errno);
+        FatalError("PS DDX internal error: Cannot fork() converter child process, %s\n", strerror(errno));
         break;
     case 0: /* child */
         fclose(self->Fp);

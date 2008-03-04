@@ -146,7 +146,7 @@ ProcXCloseDevice(ClientPtr client)
     REQUEST(xCloseDeviceReq);
     REQUEST_SIZE_MATCH(xCloseDeviceReq);
 
-    rc = dixLookupDevice(&d, stuff->deviceid, client, DixGetAttrAccess);
+    rc = dixLookupDevice(&d, stuff->deviceid, client, DixUseAccess);
     if (rc != Success)
 	return rc;
 

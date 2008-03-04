@@ -180,10 +180,53 @@ __glXDRIenterServer(GLboolean rendering)
     DRIWakeupHandler(NULL, 0, NULL);
 }
 
+
+static void
+__glXDRIdoReleaseTexImage(__GLXDRIscreen *screen, __GLXDRIdrawable *drawable)
+{
+    GLuint lastOverride = screen->lastTexOffsetOverride;
+
+    if (lastOverride) {
+	__GLXDRIdrawable **texOffsetOverride = screen->texOffsetOverride;
+	int i;
+
+	for (i = 0; i < lastOverride; i++) {
+	    if (texOffsetOverride[i] == drawable) {
+
+		texOffsetOverride[i] = NULL;
+
+		if (i + 1 == lastOverride) {
+		    lastOverride = 0;
+
+		    while (i--) {
+			if (texOffsetOverride[i]) {
+			    lastOverride = i + 1;
+			    break;
+			}
+		    }
+
+		    screen->lastTexOffsetOverride = lastOverride;
+
+		    break;
+		}
+	    }
+	}
+    }
+}
+
+
 static void
 __glXDRIdrawableDestroy(__GLXdrawable *drawable)
 {
     __GLXDRIdrawable *private = (__GLXDRIdrawable *) drawable;
+
+    int i;
+
+    for (i = 0; i < screenInfo.numScreens; i++) {
+	__glXDRIdoReleaseTexImage((__GLXDRIscreen *)
+				  glxGetScreen(screenInfo.screens[i]),
+				  private);
+    }
 
     (*private->driDrawable.destroyDrawable)(&private->driDrawable);
 
@@ -525,41 +568,9 @@ __glXDRIreleaseTexImage(__GLXcontext *baseContext,
 			int buffer,
 			__GLXdrawable *pixmap)
 {
-    ScreenPtr pScreen = pixmap->pDraw->pScreen;
-    __GLXDRIdrawable *driDraw =
-	    containerOf(pixmap, __GLXDRIdrawable, base);
-    __GLXDRIscreen * const screen =
-	(__GLXDRIscreen *) glxGetScreen(pScreen);
-    GLuint lastOverride = screen->lastTexOffsetOverride;
-
-    if (lastOverride) {
-	__GLXDRIdrawable **texOffsetOverride = screen->texOffsetOverride;
-	int i;
-
-	for (i = 0; i < lastOverride; i++) {
-	    if (texOffsetOverride[i] == driDraw) {
-		if (screen->texOffsetFinish)
-		    screen->texOffsetFinish((PixmapPtr)pixmap->pDraw);
-
-		texOffsetOverride[i] = NULL;
-
-		if (i + 1 == lastOverride) {
-		    lastOverride = 0;
-
-		    while (i--) {
-			if (texOffsetOverride[i]) {
-			    lastOverride = i + 1;
-			    break;
-			}
-		    }
-
-		    screen->lastTexOffsetOverride = lastOverride;
-
-		    break;
-		}
-	    }
-	}
-    }
+    __glXDRIdoReleaseTexImage((__GLXDRIscreen *)
+			      glxGetScreen(pixmap->pDraw->pScreen),
+			      containerOf(pixmap, __GLXDRIdrawable, base));
 
     return Success;
 }
@@ -603,6 +614,9 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
     else
 	driShare = NULL;
 
+    if (baseShareContext && baseShareContext->isDirect)
+        return NULL;
+
     context = xalloc(sizeof *context);
     if (context == NULL)
 	return NULL;
@@ -637,6 +651,14 @@ __glXDRIscreenCreateContext(__GLXscreen *baseScreen,
 					   driShare,
 					   hwContext,
 					   &context->driContext);
+
+    if (context->driContext.private == NULL) {
+    	__glXenterServer(GL_FALSE);
+	retval = DRIDestroyContext(baseScreen->pScreen, context->hwContextID);
+    	__glXleaveServer(GL_FALSE);
+	xfree(context);
+	return NULL;
+    }
 
     return &context->base;
 }
@@ -683,6 +705,14 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
 						 modes,
 						 &private->driDrawable,
 						 hwDrawable, 0, NULL);
+
+    if (private->driDrawable.private == NULL) {
+	__glXenterServer(GL_FALSE);
+	DRIDestroyDrawable(screen->pScreen, serverClient, pDraw);
+	__glXleaveServer(GL_FALSE);
+	xfree(private);
+	return NULL;
+    }
 
     return &private->base;
 }
@@ -787,10 +817,14 @@ static void __glXReportDamage(__DRIdrawable *driDraw,
     DrawablePtr pDraw = drawable->base.pDraw;
     RegionRec region;
 
+    __glXenterServer(GL_FALSE);
+
     REGION_INIT(pDraw->pScreen, &region, (BoxPtr) rects, num_rects);
     REGION_TRANSLATE(pScreen, &region, pDraw->x, pDraw->y);
     DamageDamageRegion(pDraw, &region);
     REGION_UNINIT(pDraw->pScreen, &region);
+
+    __glXleaveServer(GL_FALSE);
 }
 
 /* Table of functions that we export to the driver. */

@@ -110,8 +110,9 @@ static Bool quirk_detailed_h_in_cm (int scrnIndex, xf86MonPtr DDC)
 {
     /* Bug #10304: "LGPhilipsLCD LP154W01-A5" */
     /* Bug #12784: "LGPhilipsLCD LP154W01-TLA2" */
+    /* Red Hat #435216 "LGPhilipsLCD LP154W01-TLAE" */
     if (memcmp (DDC->vendor.name, "LPL", 4) == 0 &&
-	DDC->vendor.prod_id == 0)
+	(DDC->vendor.prod_id == 0 || DDC->vendor.prod_id == 0x2a00))
 	return TRUE;
 
     /* Bug #11603: Funai Electronics PM36B */

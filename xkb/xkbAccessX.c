@@ -130,11 +130,9 @@ xEvent		xE;
     xE.u.u.type = type;
     xE.u.u.detail = keyCode;
     xE.u.keyButtonPointer.time = GetTimeInMillis();	    
-#ifdef DEBUG
     if (xkbDebugFlags&0x8) {
-	ErrorF("[xkb] AXKE: Key %d %s\n",keyCode,(xE.u.u.type==KeyPress?"down":"up"));
+	DebugF("[xkb] AXKE: Key %d %s\n",keyCode,(xE.u.u.type==KeyPress?"down":"up"));
     }
-#endif
 
     if (_XkbIsPressEvent(type))
 	XkbDDXKeyClick(keybd,keyCode,TRUE);
@@ -532,10 +530,8 @@ KeySym *	sym = XkbKeySymsPtr(xkbi->desc,key);
 		((ctrls->enabled_ctrls&(XkbSlowKeysMask|XkbRepeatKeysMask))==
 							XkbRepeatKeysMask)) {
 	    if (BitIsOn(keybd->kbdfeed->ctrl.autoRepeats,key)) {
-#ifdef DEBUG
 		if (xkbDebugFlags&0x10)
-		    ErrorF("[xkb] Starting software autorepeat...\n");
-#endif	    
+		    DebugF("Starting software autorepeat...\n");
 		xkbi->repeatKey = key;
 		xkbi->repeatKeyTimer= TimerSet(xkbi->repeatKeyTimer,
 					0, ctrls->repeat_delay,

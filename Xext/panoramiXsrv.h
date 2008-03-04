@@ -12,8 +12,8 @@ extern int PanoramiXNumScreens;
 extern PanoramiXData *panoramiXdataPtr;
 extern int PanoramiXPixWidth;
 extern int PanoramiXPixHeight;
-extern XID *PanoramiXVisualTable;
 
+extern VisualID PanoramiXTranslateVisualID(int screen, VisualID orig);
 extern void PanoramiXConsolidate(void);
 extern Bool PanoramiXCreateConnectionBlock(void);
 extern PanoramiXRes * PanoramiXFindIDByScrnum(RESTYPE, XID, int);

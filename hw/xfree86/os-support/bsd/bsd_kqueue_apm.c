@@ -102,7 +102,7 @@ bsdPMGetEventFromOS(int kq, pmEvent *events, int num)
 	    break;
 	} else if (result < 0) {
 	    xf86Msg(X_WARNING, "bsdPMGetEventFromOS: kevent returns"
-		    " errno = %d\n", errno);
+		    " %s\n", strerror(errno));
 	    break;
 	}
 	events[i] = bsdToXF86(APM_EVENT_TYPE(ev.data));

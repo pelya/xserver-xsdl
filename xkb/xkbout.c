@@ -40,19 +40,19 @@
 #include "misc.h"
 #include "inputstr.h"
 #include "dix.h"
-#include <X11/extensions/XKBstr.h>
+#include "xkbstr.h"
 #define XKBSRV_NEED_FILE_FUNCS	1
 #include <xkbsrv.h>
 
-#include <X11/extensions/XKBgeom.h>
-#include <X11/extensions/XKBfile.h>
+#include "xkbgeom.h"
+#include "xkbfile.h"
 
 #define	VMOD_HIDE_VALUE	0
 #define	VMOD_SHOW_VALUE	1
 #define	VMOD_COMMENT_VALUE 2
 
 static Bool
-WriteXKBVModDecl(FILE *file,Display *dpy,XkbDescPtr xkb,int showValue)
+WriteXKBVModDecl(FILE *file,XkbDescPtr xkb,int showValue)
 {
 register int 	i,nMods;
 Atom *		vmodNames;
@@ -67,7 +67,7 @@ Atom *		vmodNames;
 	if ((vmodNames!=NULL)&&(vmodNames[i]!=None)) {
 	    if (nMods==0)	fprintf(file,"    virtual_modifiers ");
 	    else		fprintf(file,",");
-	    fprintf(file,"%s",XkbAtomText(dpy,vmodNames[i],XkbXKBFile));
+	    fprintf(file,"%s",XkbAtomText(vmodNames[i],XkbXKBFile));
 	    if ((showValue!=VMOD_HIDE_VALUE)&&
 		(xkb->server)&&(xkb->server->vmods[i]!=XkbNoModifierMask)) {
 		if (showValue==VMOD_COMMENT_VALUE) {
@@ -90,14 +90,9 @@ Atom *		vmodNames;
 /***====================================================================***/
 
 static Bool
-WriteXKBAction(FILE *file,XkbFileInfo *result,XkbAnyAction *action)
+WriteXKBAction(FILE *file,XkbDescPtr xkb,XkbAnyAction *action)
 {
-XkbDescPtr	xkb;
-Display *	dpy;
-
-    xkb= result->xkb;
-    dpy= xkb->dpy;
-    fprintf(file,"%s",XkbActionText(dpy,xkb,(XkbAction *)action,XkbXKBFile));
+    fprintf(file,"%s",XkbActionText(xkb,(XkbAction *)action,XkbXKBFile));
     return True;
 }
 
@@ -105,7 +100,7 @@ Display *	dpy;
 
 Bool
 XkbWriteXKBKeycodes(	FILE *			file,
-			XkbFileInfo *		result,
+			XkbDescPtr		xkb,
 			Bool			topLevel,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
@@ -113,12 +108,8 @@ XkbWriteXKBKeycodes(	FILE *			file,
 {
 Atom			kcName;
 register unsigned 	i;
-XkbDescPtr		xkb;
-Display *		dpy;
 char *			alternate;
 
-    xkb= result->xkb;
-    dpy= xkb->dpy;
     if ((!xkb)||(!xkb->names)||(!xkb->names->keys)) {
 	_XkbLibError(_XkbErrMissingNames,"XkbWriteXKBKeycodes",0);
 	return False;
@@ -126,7 +117,7 @@ char *			alternate;
     kcName= xkb->names->keycodes;
     if (kcName!=None)
 	 fprintf(file,"xkb_keycodes \"%s\" {\n",
-					XkbAtomText(dpy,kcName,XkbXKBFile));
+					XkbAtomText(kcName,XkbXKBFile));
     else fprintf(file,"xkb_keycodes {\n");
     fprintf(file,"    minimum = %d;\n",xkb->min_key_code);
     fprintf(file,"    maximum = %d;\n",xkb->max_key_code);
@@ -148,7 +139,7 @@ char *			alternate;
 	    else	type= "    virtual ";
 	    if (xkb->names->indicators[i]!=None) {
 		fprintf(file,"%sindicator %d = \"%s\";\n",type,i+1,
-			XkbAtomText(dpy,xkb->names->indicators[i],XkbXKBFile));
+			XkbAtomText(xkb->names->indicators[i],XkbXKBFile));
 	    }
 	}
     }
@@ -162,27 +153,23 @@ char *			alternate;
 	}
     }
     if (addOn)
-	(*addOn)(file,result,topLevel,showImplicit,XkmKeyNamesIndex,priv);
+	(*addOn)(file,xkb,topLevel,showImplicit,XkmKeyNamesIndex,priv);
     fprintf(file,"};\n\n");
     return True;
 }
 
 Bool
 XkbWriteXKBKeyTypes(	FILE *			file,
-			XkbFileInfo *		result,
+			XkbDescPtr              xkb,
 			Bool			topLevel,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
 {
-Display *		dpy;
 register unsigned	i,n;
 XkbKeyTypePtr		type;
 XkbKTMapEntryPtr	entry;
-XkbDescPtr		xkb;
 
-    xkb= result->xkb;
-    dpy= xkb->dpy;
     if ((!xkb)||(!xkb->map)||(!xkb->map->types)) {
 	_XkbLibError(_XkbErrMissingTypes,"XkbWriteXKBKeyTypes",0);
 	return False;
@@ -194,27 +181,27 @@ XkbDescPtr		xkb;
     if ((xkb->names==NULL)||(xkb->names->types==None))
 	 fprintf(file,"xkb_types {\n\n");
     else fprintf(file,"xkb_types \"%s\" {\n\n",
-			XkbAtomText(dpy,xkb->names->types,XkbXKBFile));
-    WriteXKBVModDecl(file,dpy,xkb,
+			XkbAtomText(xkb->names->types,XkbXKBFile));
+    WriteXKBVModDecl(file,xkb,
 			(showImplicit?VMOD_COMMENT_VALUE:VMOD_HIDE_VALUE));
 
     type= xkb->map->types;
     for (i=0;i<xkb->map->num_types;i++,type++) {
 	fprintf(file,"    type \"%s\" {\n",
-		XkbAtomText(dpy,type->name,XkbXKBFile));
+		XkbAtomText(type->name,XkbXKBFile));
 	fprintf(file,"        modifiers= %s;\n",
-	       XkbVModMaskText(dpy,xkb,type->mods.real_mods,type->mods.vmods,
+	       XkbVModMaskText(xkb,type->mods.real_mods,type->mods.vmods,
 								XkbXKBFile));
 	entry= type->map;
 	for (n=0;n<type->map_count;n++,entry++) {
 	    char *str;	
-	    str=XkbVModMaskText(dpy,xkb,entry->mods.real_mods,entry->mods.vmods,
+	    str=XkbVModMaskText(xkb,entry->mods.real_mods,entry->mods.vmods,
 								XkbXKBFile);
 	    fprintf(file,"        map[%s]= Level%d;\n",str,entry->level+1);
 	    if ((type->preserve)&&((type->preserve[n].real_mods)||
 				   (type->preserve[n].vmods))) {
 		fprintf(file,"        preserve[%s]= ",str);
-		fprintf(file,"%s;\n",XkbVModMaskText(dpy,xkb,
+		fprintf(file,"%s;\n",XkbVModMaskText(xkb,
 					type->preserve[n].real_mods,
 					type->preserve[n].vmods,
 					XkbXKBFile));
@@ -226,29 +213,27 @@ XkbDescPtr		xkb;
 		if ((*name)==None)
 		    continue;
 		fprintf(file,"        level_name[Level%d]= \"%s\";\n",n+1,
-					XkbAtomText(dpy,*name,XkbXKBFile));
+					XkbAtomText(*name,XkbXKBFile));
 	    }
 	}
 	fprintf(file,"    };\n");
     }
     if (addOn)
-	(*addOn)(file,result,topLevel,showImplicit,XkmTypesIndex,priv);
+	(*addOn)(file,xkb,topLevel,showImplicit,XkmTypesIndex,priv);
     fprintf(file,"};\n\n");
     return True;
 }
 
 static Bool
 WriteXKBIndicatorMap(	FILE *			file,
-			XkbFileInfo *		result,
+			XkbDescPtr              xkb,
 			Atom			name,
 			XkbIndicatorMapPtr	led,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
 {
-XkbDescPtr	xkb;
 
-    xkb= result->xkb;
-    fprintf(file,"    indicator \"%s\" {\n",XkbAtomGetString(xkb->dpy,name));
+    fprintf(file,"    indicator \"%s\" {\n",XkbAtomGetString(name));
     if (led->flags&XkbIM_NoExplicit)
 	fprintf(file,"        !allowExplicit;\n");
     if (led->flags&XkbIM_LEDDrivesKB)
@@ -266,7 +251,7 @@ XkbDescPtr	xkb;
 			XkbIMWhichStateMaskText(led->which_mods,XkbXKBFile));
 	}
 	fprintf(file,"        modifiers= %s;\n",
-			XkbVModMaskText(xkb->dpy,xkb,
+			XkbVModMaskText(xkb,
 					led->mods.real_mods,led->mods.vmods,
 					XkbXKBFile));
     }
@@ -275,26 +260,22 @@ XkbDescPtr	xkb;
 			XkbControlsMaskText(led->ctrls,XkbXKBFile));
     }
     if (addOn)
-	(*addOn)(file,result,False,True,XkmIndicatorsIndex,priv);
+	(*addOn)(file,xkb,False,True,XkmIndicatorsIndex,priv);
     fprintf(file,"    };\n");
     return True;
 }
 
 Bool
 XkbWriteXKBCompatMap(	FILE *			file,
-			XkbFileInfo *		result,
+			XkbDescPtr              xkb,
 			Bool			topLevel,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
 {
-Display *		dpy;
 register unsigned	i;
 XkbSymInterpretPtr	interp;
-XkbDescPtr		xkb;
 
-    xkb= result->xkb;
-    dpy= xkb->dpy;
     if ((!xkb)||(!xkb->compat)||(!xkb->compat->sym_interpret)) {
 	_XkbLibError(_XkbErrMissingCompatMap,"XkbWriteXKBCompatMap",0);
 	return False;
@@ -302,8 +283,8 @@ XkbDescPtr		xkb;
     if ((xkb->names==NULL)||(xkb->names->compat==None))
 	 fprintf(file,"xkb_compatibility {\n\n");
     else fprintf(file,"xkb_compatibility \"%s\" {\n\n",
-			XkbAtomText(dpy,xkb->names->compat,XkbXKBFile));
-    WriteXKBVModDecl(file,dpy,xkb,
+			XkbAtomText(xkb->names->compat,XkbXKBFile));
+    WriteXKBVModDecl(file,xkb,
 			(showImplicit?VMOD_COMMENT_VALUE:VMOD_HIDE_VALUE));
 
     fprintf(file,"    interpret.useModMapMods= AnyLevel;\n");
@@ -318,7 +299,7 @@ XkbDescPtr		xkb;
 				XkbModMaskText(interp->mods,XkbXKBFile));
 	if (interp->virtual_mod!=XkbNoModifier) {
 	    fprintf(file,"        virtualModifier= %s;\n",
-		XkbVModIndexText(dpy,xkb,interp->virtual_mod,XkbXKBFile));
+		XkbVModIndexText(xkb,interp->virtual_mod,XkbXKBFile));
 	}
 	if (interp->match&XkbSI_LevelOneOnly)
 	    fprintf(file,"        useModMapMods=level1;\n");
@@ -327,7 +308,7 @@ XkbDescPtr		xkb;
 	if (interp->flags&XkbSI_AutoRepeat)
 	    fprintf(file,"        repeat= True;\n");
 	fprintf(file,"        action= ");
-	WriteXKBAction(file,result,&interp->act);
+	WriteXKBAction(file,xkb,&interp->act);
 	fprintf(file,";\n");
 	fprintf(file,"    };\n");
     }
@@ -337,7 +318,7 @@ XkbDescPtr		xkb;
 	gc= &xkb->compat->groups[i];
 	if ((gc->real_mods==0)&&(gc->vmods==0))
 	    continue;
-	fprintf(file,"    group %d = %s;\n",i+1,XkbVModMaskText(xkb->dpy,xkb,
+	fprintf(file,"    group %d = %s;\n",i+1,XkbVModMaskText(xkb,
 							gc->real_mods,gc->vmods,
 							XkbXKBFile));
     }
@@ -348,36 +329,32 @@ XkbDescPtr		xkb;
 		(map->which_mods!=0)||
 		(map->mods.real_mods!=0)||(map->mods.vmods!=0)||
 		(map->ctrls!=0)) {
-		WriteXKBIndicatorMap(file,result,xkb->names->indicators[i],map,
+		WriteXKBIndicatorMap(file,xkb,xkb->names->indicators[i],map,
 								addOn,priv);
 	    }
 	}
     }
     if (addOn)
-	(*addOn)(file,result,topLevel,showImplicit,XkmCompatMapIndex,priv);
+	(*addOn)(file,xkb,topLevel,showImplicit,XkmCompatMapIndex,priv);
     fprintf(file,"};\n\n");
     return True;
 }
 
 Bool
 XkbWriteXKBSymbols(	FILE *			file,
-			XkbFileInfo *		result,
+			XkbDescPtr              xkb,
 			Bool			topLevel,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
 {
-Display *		dpy;
 register unsigned	i,tmp;
-XkbDescPtr		xkb;
 XkbClientMapPtr		map;
 XkbServerMapPtr		srv;
 Bool			showActions;
 
-    xkb= result->xkb;
     map= xkb->map;
     srv= xkb->server;
-    dpy= xkb->dpy;
     if ((!xkb)||(!map)||(!map->syms)||(!map->key_sym_map)) {
 	_XkbLibError(_XkbErrMissingSymbols,"XkbWriteXKBSymbols",0);
 	return False;
@@ -389,11 +366,11 @@ Bool			showActions;
     if ((xkb->names==NULL)||(xkb->names->symbols==None))
 	 fprintf(file,"xkb_symbols {\n\n");
     else fprintf(file,"xkb_symbols \"%s\" {\n\n",
-			XkbAtomText(dpy,xkb->names->symbols,XkbXKBFile));
+			XkbAtomText(xkb->names->symbols,XkbXKBFile));
     for (tmp=i=0;i<XkbNumKbdGroups;i++) {
 	if (xkb->names->groups[i]!=None) {
 	    fprintf(file,"    name[group%d]=\"%s\";\n",i+1,
-			XkbAtomText(dpy,xkb->names->groups[i],XkbXKBFile));
+			XkbAtomText(xkb->names->groups[i],XkbXKBFile));
 	    tmp++;
 	}
     }
@@ -429,19 +406,19 @@ Bool			showActions;
 			if (srv->explicit[i]&(1<<g)) {
 			    fprintf(file,"\n%s      type[group%d]= \"%s\",",
 			    	comment,g+1,
-				XkbAtomText(dpy,map->types[typeNdx].name,
+				XkbAtomText(map->types[typeNdx].name,
 			    	XkbXKBFile));
 			}
 			else if (showImplicit) {
 			    fprintf(file,"\n//      type[group%d]= \"%s\",",g+1,
-				XkbAtomText(dpy,map->types[typeNdx].name,
+				XkbAtomText(map->types[typeNdx].name,
 			    	XkbXKBFile));
 			}
 		    }
 		}
 		else {
 		    fprintf(file,"\n%s      type= \"%s\",",comment,
-				XkbAtomText(dpy,map->types[typeNdx].name,
+				XkbAtomText(map->types[typeNdx].name,
 			    	XkbXKBFile));
 		}
 		simple= False;
@@ -457,13 +434,13 @@ Bool			showActions;
 					(xkb->server->vmodmap[i]!=0)) {
 		if ((srv->explicit[i]&XkbExplicitVModMapMask)!=0) {
 		    fprintf(file,"\n        virtualMods= %s,",
-				XkbVModMaskText(dpy,xkb,0,
+				XkbVModMaskText(xkb,0,
 						xkb->server->vmodmap[i],
 						XkbXKBFile));
 		}
 		else if (showImplicit) {
 		    fprintf(file,"\n//      virtualMods= %s,",
-				XkbVModMaskText(dpy,xkb,0,
+				XkbVModMaskText(xkb,0,
 						xkb->server->vmodmap[i],
 						XkbXKBFile));
 		}
@@ -530,7 +507,7 @@ Bool			showActions;
 		    for (s=0;s<XkbKeyGroupWidth(xkb,i,g);s++) {
 			if (s!=0)
 			    fprintf(file,", ");
-			WriteXKBAction(file,result,(XkbAnyAction *)&acts[s]);
+			WriteXKBAction(file,xkb,(XkbAnyAction *)&acts[s]);
 		    }
 		    fprintf(file," ]");
 		    acts+= XkbKeyGroupsWidth(xkb,i);
@@ -556,7 +533,7 @@ Bool			showActions;
 	}
     }
     if (addOn)
-	(*addOn)(file,result,topLevel,showImplicit,XkmSymbolsIndex,priv);
+	(*addOn)(file,xkb,topLevel,showImplicit,XkmSymbolsIndex,priv);
     fprintf(file,"};\n\n");
     return True;
 }
@@ -603,7 +580,6 @@ char *		iStr;
 
 static Bool
 WriteXKBDoodad(	FILE *		file,
-		Display *	dpy,
 		unsigned	indent,
 		XkbGeometryPtr	geom,
 		XkbDoodadPtr	doodad)
@@ -615,7 +591,7 @@ XkbColorPtr	color;
     i_str= XkbIndentText(indent);
     fprintf(file,"%s%s \"%s\" {\n",i_str,
 				XkbDoodadTypeText(doodad->any.type,XkbMessage),
-				XkbAtomText(dpy,doodad->any.name,XkbMessage));
+				XkbAtomText(doodad->any.name,XkbMessage));
     fprintf(file,"%s    top=      %s;\n",i_str,
 				 XkbGeomFPText(doodad->any.top,XkbXKBFile));
     fprintf(file,"%s    left=     %s;\n",i_str,
@@ -634,7 +610,7 @@ XkbColorPtr	color;
 	    }
 	    shape= XkbShapeDoodadShape(geom,&doodad->shape);
 	    fprintf(file,"%s    shape= \"%s\";\n",i_str,
-			    XkbAtomText(dpy,shape->name,XkbXKBFile));
+			    XkbAtomText(shape->name,XkbXKBFile));
 	    break;
 	case XkbTextDoodad:
 	    if (doodad->text.angle!=0) {
@@ -670,7 +646,7 @@ XkbColorPtr	color;
 	    fprintf(file,"%s    offColor= \"%s\";\n",i_str,
 	    		    XkbStringText(color->spec,XkbXKBFile));
 	    fprintf(file,"%s    shape= \"%s\";\n",i_str,
-			     XkbAtomText(dpy,shape->name,XkbXKBFile));
+			     XkbAtomText(shape->name,XkbXKBFile));
 	    break;
 	case XkbLogoDoodad:
 	    fprintf(file,"%s    logoName= \"%s\";\n",i_str,
@@ -685,7 +661,7 @@ XkbColorPtr	color;
 	    }
 	    shape= XkbLogoDoodadShape(geom,&doodad->logo);
 	    fprintf(file,"%s    shape= \"%s\";\n",i_str,
-			    XkbAtomText(dpy,shape->name,XkbXKBFile));
+			    XkbAtomText(shape->name,XkbXKBFile));
 	    break;
     }
     fprintf(file,"%s};\n",i_str);
@@ -695,7 +671,6 @@ XkbColorPtr	color;
 /*ARGSUSED*/
 static Bool
 WriteXKBOverlay(	FILE *		file,
-			Display *	dpy,
 			unsigned	indent,
 			XkbGeometryPtr	geom,
 			XkbOverlayPtr	ol)
@@ -708,7 +683,7 @@ XkbOverlayKeyPtr	key;
     i_str= XkbIndentText(indent);
     if (ol->name!=None) {
 	 fprintf(file,"%soverlay \"%s\" {\n",i_str,
-    					XkbAtomText(dpy,ol->name,XkbMessage));
+    					XkbAtomText(ol->name,XkbMessage));
     }
     else fprintf(file,"%soverlay {\n",i_str);
     for (nOut=r=0,row=ol->rows;r<ol->num_rows;r++,row++) {
@@ -730,7 +705,6 @@ XkbOverlayKeyPtr	key;
 
 static Bool
 WriteXKBSection(	FILE *		file,
-			Display *	dpy,
 			XkbSectionPtr 	s,
 			XkbGeometryPtr	geom)
 {
@@ -739,7 +713,7 @@ XkbRowPtr	row;
 int		dfltKeyColor = 0;
 
     fprintf(file,"    section \"%s\" {\n",
-				XkbAtomText(dpy,s->name,XkbXKBFile));
+				XkbAtomText(s->name,XkbXKBFile));
     if (s->rows&&(s->rows->num_keys>0)) {
 	dfltKeyColor= s->rows->keys[0].color_ndx;
 	fprintf(file,"        key.color= \"%s\";\n",
@@ -788,7 +762,7 @@ int		dfltKeyColor = 0;
 		shape= XkbKeyShape(geom,key);
 		fprintf(file,"{ %6s, \"%s\", %3s",
 		      XkbKeyNameText(key->name.name,XkbXKBFile),
-		      XkbAtomText(dpy,shape->name,XkbXKBFile),
+		      XkbAtomText(shape->name,XkbXKBFile),
 		      XkbGeomFPText(key->gap,XkbXKBFile));
 		if (key->color_ndx!=dfltKeyColor) {
 		    fprintf(file,", color=\"%s\"",XkbKeyColor(geom,key)->spec);
@@ -803,44 +777,40 @@ int		dfltKeyColor = 0;
     if (s->doodads!=NULL) {
 	XkbDoodadPtr	doodad;
 	for (i=0,doodad=s->doodads;i<s->num_doodads;i++,doodad++) {
-	    WriteXKBDoodad(file,dpy,8,geom,doodad);
+	    WriteXKBDoodad(file,8,geom,doodad);
 	}
     }
     if (s->overlays!=NULL) {
 	XkbOverlayPtr	ol;
 	for (i=0,ol=s->overlays;i<s->num_overlays;i++,ol++) {
-	    WriteXKBOverlay(file,dpy,8,geom,ol);
+	    WriteXKBOverlay(file,8,geom,ol);
 	}
     }
     fprintf(file,"    }; // End of \"%s\" section\n\n",
-				XkbAtomText(dpy,s->name,XkbXKBFile));
+				XkbAtomText(s->name,XkbXKBFile));
     return True;
 }
 
 Bool
 XkbWriteXKBGeometry(	FILE *			file,
-			XkbFileInfo *		result,
+			XkbDescPtr              xkb,
 			Bool			topLevel,
 			Bool			showImplicit,
 			XkbFileAddOnFunc	addOn,
 			void *			priv)
 {
-Display *		dpy;
 register unsigned	i,n;
-XkbDescPtr		xkb;
 XkbGeometryPtr		geom;
 
-    xkb= result->xkb;
     if ((!xkb)||(!xkb->geom)) {
 	_XkbLibError(_XkbErrMissingGeometry,"XkbWriteXKBGeometry",0);
  	return False;
     }
-    dpy= xkb->dpy;
     geom= xkb->geom;
     if (geom->name==None)
 	 fprintf(file,"xkb_geometry {\n\n");
     else fprintf(file,"xkb_geometry \"%s\" {\n\n",
-				XkbAtomText(dpy,geom->name,XkbXKBFile));
+				XkbAtomText(geom->name,XkbXKBFile));
     fprintf(file,"    width=       %s;\n",
 				XkbGeomFPText(geom->width_mm,XkbXKBFile));
     fprintf(file,"    height=      %s;\n\n",
@@ -889,7 +859,7 @@ XkbGeometryPtr		geom;
 	for (shape=geom->shapes,i=0;i<geom->num_shapes;i++,shape++) {
 	    lastR=0;
 	    fprintf(file,"    shape \"%s\" {",
-				   XkbAtomText(dpy,shape->name,XkbXKBFile));
+				   XkbAtomText(shape->name,XkbXKBFile));
 	    outline= shape->outlines;
 	    if (shape->num_outlines>1) {
 		for (n=0;n<shape->num_outlines;n++,outline++) {
@@ -909,17 +879,17 @@ XkbGeometryPtr		geom;
     if (geom->num_sections>0) {
 	XkbSectionPtr	section;
 	for (section=geom->sections,i=0;i<geom->num_sections;i++,section++){
-	    WriteXKBSection(file,dpy,section,geom);
+	    WriteXKBSection(file,section,geom);
 	}
     }
     if (geom->num_doodads>0) {
 	XkbDoodadPtr	doodad;
 	for (i=0,doodad=geom->doodads;i<geom->num_doodads;i++,doodad++) {
-	    WriteXKBDoodad(file,dpy,4,geom,doodad);
+	    WriteXKBDoodad(file,4,geom,doodad);
 	}
     }
     if (addOn)
-	(*addOn)(file,result,topLevel,showImplicit,XkmGeometryIndex,priv);
+	(*addOn)(file,xkb,topLevel,showImplicit,XkmGeometryIndex,priv);
     fprintf(file,"};\n\n");
     return True;
 }

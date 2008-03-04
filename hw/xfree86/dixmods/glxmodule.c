@@ -125,6 +125,9 @@ glxSetup(pointer module, pointer opts, int *errmaj, int *errmin)
       provider = LoaderSymbol("__glXDRIProvider");
       if (provider)
 	GlxPushProvider(provider);
+      provider = LoaderSymbol("__glXDRI2Provider");
+      if (provider)
+	GlxPushProvider(provider);
     }
 
     switch (xf86Info.glxVisuals) {

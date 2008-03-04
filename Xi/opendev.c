@@ -102,7 +102,8 @@ ProcXOpenDevice(ClientPtr client)
     REQUEST(xOpenDeviceReq);
     REQUEST_SIZE_MATCH(xOpenDeviceReq);
 
-    status = dixLookupDevice(&dev, stuff->deviceid, client, DixReadAccess);
+    status = dixLookupDevice(&dev, stuff->deviceid, client, DixUseAccess);
+
     if (status == BadDevice) {  /* not open */
 	for (dev = inputInfo.off_devices; dev; dev = dev->next)
 	    if (dev->id == stuff->deviceid)

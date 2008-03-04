@@ -27,7 +27,6 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #ifndef _XKBSRV_H_
 #define	_XKBSRV_H_
 
-#ifdef XKB_IN_SERVER
 #define XkbAllocClientMap		SrvXkbAllocClientMap
 #define XkbAllocServerMap		SrvXkbAllocServerMap
 #define XkbChangeTypesOfKey		SrvXkbChangeTypesOfKey
@@ -52,10 +51,9 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define XkbVirtualModsToReal		SrvXkbVirtualModsToReal
 #define	XkbChangeKeycodeRange		SrvXkbChangeKeycodeRange
 #define	XkbApplyVirtualModChanges	SrvXkbApplyVirtualModChanges
-#endif
 
-#include <X11/extensions/XKBstr.h>
 #include <X11/extensions/XKBproto.h>
+#include "xkbstr.h"
 #include "inputstr.h"
 
 typedef struct _XkbInterest {
@@ -125,8 +123,6 @@ typedef struct	_XkbEventCause {
 #define	_BEEP_LED_OFF		13
 #define	_BEEP_LED_CHANGE	14
 #define	_BEEP_BOUNCE_REJECT	15
-
-struct _XkbSrvInfo; /* definition see below */
 
 typedef struct _XkbFilter {
 	CARD16			  keycode;
@@ -310,8 +306,7 @@ extern CARD32	xkbDebugFlags;
 #define	_XkbClearElems(a,f,l,t)	bzero(&(a)[f],((l)-(f)+1)*sizeof(t))
 #define	_XkbFree(p)		Xfree(p)
 
-#define	_XkbLibError(c,l,d) \
-	{ _XkbErrCode= (c); _XkbErrLocation= (l); _XkbErrData= (d); }
+#define	_XkbLibError(c,l,d) /* Epoch fail */
 #define	_XkbErrCode2(a,b) ((XID)((((unsigned int)(a))<<24)|((b)&0xffffff)))
 #define	_XkbErrCode3(a,b,c)	_XkbErrCode2(a,(((unsigned int)(b))<<16)|(c))
 #define	_XkbErrCode4(a,b,c,d) _XkbErrCode3(a,b,((((unsigned int)(c))<<8)|(d)))
@@ -320,13 +315,8 @@ extern	int	DeviceKeyPress,DeviceKeyRelease,DeviceMotionNotify;
 extern	int	DeviceButtonPress,DeviceButtonRelease;
 extern	int	DeviceEnterNotify,DeviceLeaveNotify;
 
-#ifdef XINPUT
 #define	_XkbIsPressEvent(t)	(((t)==KeyPress)||((t)==DeviceKeyPress))
 #define	_XkbIsReleaseEvent(t)	(((t)==KeyRelease)||((t)==DeviceKeyRelease))
-#else
-#define	_XkbIsPressEvent(t)	((t)==KeyPress)
-#define	_XkbIsReleaseEvent(t)	((t)==KeyRelease)
-#endif
 
 #define	_XkbCoreKeycodeInRange(c,k)	(((k)>=(c)->curKeySyms.minKeyCode)&&\
 					 ((k)<=(c)->curKeySyms.maxKeyCode))
@@ -338,20 +328,10 @@ extern	int	DeviceEnterNotify,DeviceLeaveNotify;
 #define	IsKeypadKey(s)		XkbKSIsKeypad(s)
 
 #define	Status		int
-#define	XPointer	pointer
-#define	Display		struct _XDisplay
 
 #ifndef True
-#define	True	1
-#define	False	0
-#endif
-
-#ifndef PATH_MAX
-#ifdef MAXPATHLEN
-#define	PATH_MAX MAXPATHLEN
-#else
-#define	PATH_MAX 1024
-#endif
+#define	True	TRUE
+#define	False	FALSE
 #endif
 
 _XFUNCPROTOBEGIN
@@ -990,10 +970,8 @@ extern void XkbSendNewKeyboardNotify(
 	xkbNewKeyboardNotify *	/* pNKN */
 );
 
-#ifdef XKBSRV_NEED_FILE_FUNCS
-
+#include "xkbfile.h"
 #include <X11/extensions/XKMformat.h>
-#include <X11/extensions/XKBfile.h>
 #include <X11/extensions/XKBrules.h>
 
 #define	_XkbListKeymaps		0
@@ -1027,7 +1005,7 @@ extern	unsigned int XkbDDXLoadKeymapByNames(
 	XkbComponentNamesPtr	/* names */,
 	unsigned int		/* want */,
 	unsigned int		/* need */,
-	XkbFileInfoPtr		/* finfoRtrn */,
+	XkbDescPtr *		/* finfoRtrn */,
 	char *			/* keymapNameRtrn */,
 	int 			/* keymapNameRtrnLen */
 );
@@ -1040,15 +1018,8 @@ extern	Bool XkbDDXNamesFromRules(
 );
 
 extern	Bool XkbDDXApplyConfig(
-	XPointer	/* cfg_in */,
+	void *	/* cfg_in */,
 	XkbSrvInfoPtr	/* xkbi */
-);
-
-extern XPointer XkbDDXPreloadConfig(
-	char **			/* rulesFileRtrn */,
-	XkbRF_VarDefsPtr	/* defs */,
-	XkbComponentNamesPtr	/* names */,
-	DeviceIntPtr		/* dev */
 );
 
 extern	int _XkbStrCaseCmp(
@@ -1056,10 +1027,8 @@ extern	int _XkbStrCaseCmp(
 	char *			/* str2 */
 );
 
-#endif /* XKBSRV_NEED_FILE_FUNCS */
-
 _XFUNCPROTOEND
 
-#define	XkbAtomGetString(d,s)	NameForAtom(s)
+#define	XkbAtomGetString(s)	NameForAtom(s)
 
 #endif /* _XKBSRV_H_ */

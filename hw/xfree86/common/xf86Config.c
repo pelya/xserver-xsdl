@@ -733,7 +733,6 @@ typedef enum {
     FLAG_DISABLEMODINDEV,
     FLAG_MODINDEVALLOWNONLOCAL,
     FLAG_ALLOWMOUSEOPENFAIL,
-    FLAG_VTINIT,
     FLAG_VTSYSREQ,
     FLAG_XKBDISABLE,
     FLAG_PCIPROBE1,
@@ -784,8 +783,6 @@ static OptionInfoRec FlagOptions[] = {
   { FLAG_MODINDEVALLOWNONLOCAL,	"AllowNonLocalModInDev",	OPTV_BOOLEAN,
 	{0}, FALSE },
   { FLAG_ALLOWMOUSEOPENFAIL,	"AllowMouseOpenFail",		OPTV_BOOLEAN,
-	{0}, FALSE },
-  { FLAG_VTINIT,		"VTInit",			OPTV_STRING,
 	{0}, FALSE },
   { FLAG_VTSYSREQ,		"VTSysReq",			OPTV_BOOLEAN,
 	{0}, FALSE },
@@ -976,8 +973,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 	    xf86Msg(X_WARNING, "Xserver doesn't support XKB\n");
 #endif
     }
-
-    xf86Info.vtinit = xf86GetOptValString(FlagOptions, FLAG_VTINIT);
 
     if (xf86IsOptionSet(FlagOptions, FLAG_PCIPROBE1))
 	xf86Info.pciFlags = PCIProbe1;

@@ -47,7 +47,8 @@ typedef enum EphyrHostXEventType
   EPHYR_EV_MOUSE_PRESS,
   EPHYR_EV_MOUSE_RELEASE,
   EPHYR_EV_KEY_PRESS,
-  EPHYR_EV_KEY_RELEASE
+  EPHYR_EV_KEY_RELEASE,
+  EPHYR_EV_EXPOSE
 } 
 EphyrHostXEventType;
 
@@ -86,6 +87,10 @@ struct EphyrHostXEvent
     struct key_down {
       int scancode;
     } key_down;
+
+    struct expose {
+      int window;
+    } expose;
 
   } data;
 

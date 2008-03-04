@@ -305,9 +305,8 @@ SetWindowToDefaults(WindowPtr pWin)
     pWin->deliverableEvents = 0;
     pWin->dontPropagate = 0;
     pWin->forcedBS = FALSE;
-#ifdef COMPOSITE
     pWin->redirectDraw = RedirectDrawNone;
-#endif
+    pWin->forcedBG = FALSE;
 
     sem = xcalloc(1, sizeof(FocusSemaphoresRec));
     dixSetPrivate(&pWin->devPrivates, FocusPrivatesKey, sem);
@@ -734,8 +733,8 @@ CreateWindow(Window wid, WindowPtr pParent, int x, int y, unsigned w,
 	return NullWindow;
     }
 
-    pWin->backgroundState = XaceBackgroundNoneState;
-    pWin->background.pixel = 0;
+    pWin->backgroundState = XaceBackgroundNoneState(pWin);
+    pWin->background.pixel = pScreen->whitePixel;
 
     pWin->borderIsPixel = pParent->borderIsPixel;
     pWin->border = pParent->border;
@@ -1066,8 +1065,8 @@ ChangeWindowAttributes(WindowPtr pWin, Mask vmask, XID *vlist, ClientPtr client)
 		if (!pWin->parent)
 		    MakeRootTile(pWin);
 		else {
-		    pWin->backgroundState = XaceBackgroundNoneState;
-		    pWin->background.pixel = 0;
+		    pWin->backgroundState = XaceBackgroundNoneState(pWin);
+		    pWin->background.pixel = pScreen->whitePixel;
 		}
 	    }
 	    else if (pixID == ParentRelative)
@@ -2205,7 +2204,7 @@ WhereDoIGoInTheStack(
 	    return pWin->nextSib;
       default:
       {
-	ErrorF("[dix] Internal error in ConfigureWindow, smode == %d\n",smode );
+	/* should never happen; make something up. */
 	return pWin->nextSib;
       }
     }

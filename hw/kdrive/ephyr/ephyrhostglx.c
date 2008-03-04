@@ -151,6 +151,7 @@ ephyrHostGLXGetStringFromServer (int a_screen_number,
 {
     Bool is_ok=FALSE ;
     Display *dpy = hostx_get_display () ;
+    int default_screen = DefaultScreen (dpy);
     xGLXGenericGetStringReq *req=NULL;
     xGLXSingleReply reply;
     int length=0, numbytes=0, major_opcode=0, get_string_op=0;
@@ -188,13 +189,17 @@ ephyrHostGLXGetStringFromServer (int a_screen_number,
     GetReq (GLXGenericGetString, req);
     req->reqType = major_opcode;
     req->glxCode = get_string_op;
-    req->for_whom = DefaultScreen (dpy);
+    req->for_whom = default_screen;
     req->name = a_string_name;
 
     _XReply (dpy, (xReply *)&reply, 0, False);
 
     length = reply.length * 4;
-    numbytes = reply.size;
+    if (!length) {
+        numbytes = 0;
+    } else {
+        numbytes = reply.size;
+    }
     EPHYR_LOG ("going to get a string of size:%d\n", numbytes) ;
 
     *a_string = (char *) Xmalloc (numbytes +1);

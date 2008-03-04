@@ -184,7 +184,7 @@ videoPtrToDriverName(struct pci_device *dev)
 	case 0x3d3d:		    return "glint";
 	case 0x1023:		    return "trident";
 	case 0x100c:		    return "tseng";
-	case 0x1106:		    return "via";
+	case 0x1106:		    return "openchrome";
 	case 0x15ad:		    return "vmware";
 	default: break;
     }

@@ -328,6 +328,20 @@ static void x86emuOp2_pop_FS(u8 X86EMU_UNUSED(op2))
 }
 
 /****************************************************************************
+REMARKS: CPUID takes EAX/ECX as inputs, writes EAX/EBX/ECX/EDX as output
+Handles opcode 0x0f,0xa2
+****************************************************************************/
+static void x86emuOp2_cpuid(u8 X86EMU_UNUSED(op2))
+{
+    START_OF_INSTR();
+    DECODE_PRINTF("CPUID\n");
+    TRACE_AND_STEP();
+    cpuid();
+    DECODE_CLEAR_SEGOVR();
+    END_OF_INSTR();
+}
+
+/****************************************************************************
 REMARKS:
 Handles opcode 0x0f,0xa3
 ****************************************************************************/
@@ -2734,7 +2748,7 @@ void (*x86emu_optab2[256])(u8) =
 
 /*  0xa0 */ x86emuOp2_push_FS,
 /*  0xa1 */ x86emuOp2_pop_FS,
-/*  0xa2 */ x86emuOp2_illegal_op,
+/*  0xa2 */ x86emuOp2_cpuid,
 /*  0xa3 */ x86emuOp2_bt_R,
 /*  0xa4 */ x86emuOp2_shld_IMM,
 /*  0xa5 */ x86emuOp2_shld_CL,

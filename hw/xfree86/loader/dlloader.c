@@ -71,15 +71,9 @@
 #define DLSYM_PREFIX ""
 #endif
 
-typedef struct {
-    int handle;
-    void *dlhandle;
-    int flags;
-} DLModuleRec, *DLModulePtr;
-
 /* Hooray, yet another open coded linked list! FIXME */
 typedef struct DLModuleList {
-    DLModulePtr module;
+    void *module;
     struct DLModuleList *next;
 } DLModuleList;
 
@@ -88,19 +82,22 @@ static DLModuleList *dlModuleList = NULL;
 static void *
 DLFindSymbolLocal(pointer module, const char *name)
 {
-    DLModulePtr dlfile = module;
     void *p;
     char *n;
 
     static const char symPrefix[] = DLSYM_PREFIX;
 
-    n = malloc(strlen(symPrefix) + strlen(name) + 1);
-    if (strlen(symPrefix))
+    if (strlen(symPrefix)) {
+	n = malloc(strlen(symPrefix) + strlen(name) + 1);
 	sprintf(n, "%s%s", symPrefix, name);
-    else
-	sprintf(n, "%s", name);
-    p = dlsym(dlfile->dlhandle, n);
-    free(n);
+    } else {
+	n = name;
+    }
+
+    p = dlsym(module, n);
+
+    if (strlen(symPrefix))
+	free(n);
 
     return p;
 }
@@ -127,7 +124,7 @@ DLFindSymbol(const char *name)
 	global_scope = dlopen(NULL, DLOPEN_LAZY | DLOPEN_GLOBAL);
 
     if (global_scope)
-	return dlsym(global_scope, name);
+	return DLFindSymbolLocal(global_scope, name);
 
     return NULL;
 }
@@ -135,23 +132,17 @@ DLFindSymbol(const char *name)
 void *
 DLLoadModule(loaderPtr modrec, int flags)
 {
-    DLModulePtr dlfile;
+    void * dlfile;
     DLModuleList *l;
     int dlopen_flags;
 
-    if ((dlfile = calloc(1, sizeof(DLModuleRec))) == NULL) {
-	ErrorF("Unable to allocate DLModuleRec\n");
-	return NULL;
-    }
-    dlfile->handle = modrec->handle;
     if (flags & LD_FLAG_GLOBAL)
 	dlopen_flags = DLOPEN_LAZY | DLOPEN_GLOBAL;
     else
 	dlopen_flags = DLOPEN_LAZY;
-    dlfile->dlhandle = dlopen(modrec->name, dlopen_flags);
-    if (dlfile->dlhandle == NULL) {
+    dlfile = dlopen(modrec->name, dlopen_flags);
+    if (dlfile == NULL) {
 	ErrorF("dlopen: %s\n", dlerror());
-	free(dlfile);
 	return NULL;
     }
 
@@ -166,7 +157,6 @@ DLLoadModule(loaderPtr modrec, int flags)
 void
 DLUnloadModule(void *modptr)
 {
-    DLModulePtr dlfile = (DLModulePtr) modptr;
     DLModuleList *l, *p;
 
     /* remove it from dlModuleList. */
@@ -185,6 +175,5 @@ DLUnloadModule(void *modptr)
 	    p = l;
 	}
     }
-    dlclose(dlfile->dlhandle);
-    free(modptr);
+    dlclose(modptr);
 }

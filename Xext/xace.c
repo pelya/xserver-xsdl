@@ -23,6 +23,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <stdarg.h>
 #include "scrnintstr.h"
+#include "extnsionst.h"
+#include "pixmapstr.h"
+#include "regionstr.h"
+#include "gcstruct.h"
 #include "xacestr.h"
 
 CallbackListPtr XaceHooks[XACE_NUM_HOOKS] = {0};
@@ -49,6 +53,21 @@ int XaceHookDispatch(ClientPtr client, int major)
 	/* On error, pretend extension doesn't exist */
 	return (rec.status == Success) ? Success : BadRequest;
     }
+}
+
+int XaceHookPropertyAccess(ClientPtr client, WindowPtr pWin,
+			   PropertyPtr pProp, Mask access_mode)
+{
+    XacePropertyAccessRec rec = { client, pWin, pProp, access_mode, Success };
+    CallCallbacks(&XaceHooks[XACE_PROPERTY_ACCESS], &rec);
+    return rec.status;
+}
+
+int XaceHookSelectionAccess(ClientPtr client, Atom name, Mask access_mode)
+{
+    XaceSelectionAccessRec rec = { client, name, access_mode, Success };
+    CallCallbacks(&XaceHooks[XACE_SELECTION_ACCESS], &rec);
+    return rec.status;
 }
 
 void XaceHookAuditEnd(ClientPtr ptr, int result)
@@ -93,18 +112,6 @@ int XaceHook(int hook, ...)
 	    XaceDeviceAccessRec rec = {
 		va_arg(ap, ClientPtr),
 		va_arg(ap, DeviceIntPtr),
-		va_arg(ap, Mask),
-		Success /* default allow */
-	    };
-	    calldata = &rec;
-	    prv = &rec.status;
-	    break;
-	}
-	case XACE_PROPERTY_ACCESS: {
-	    XacePropertyAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, WindowPtr),
-		va_arg(ap, PropertyPtr),
 		va_arg(ap, Mask),
 		Success /* default allow */
 	    };
@@ -162,17 +169,6 @@ int XaceHook(int hook, ...)
 	case XACE_SERVER_ACCESS: {
 	    XaceServerAccessRec rec = {
 		va_arg(ap, ClientPtr),
-		va_arg(ap, Mask),
-		Success /* default allow */
-	    };
-	    calldata = &rec;
-	    prv = &rec.status;
-	    break;
-	}
-	case XACE_SELECTION_ACCESS: {
-	    XaceSelectionAccessRec rec = {
-		va_arg(ap, ClientPtr),
-		va_arg(ap, Atom),
 		va_arg(ap, Mask),
 		Success /* default allow */
 	    };

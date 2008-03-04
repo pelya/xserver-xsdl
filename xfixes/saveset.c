@@ -72,5 +72,5 @@ SProcXFixesChangeSaveSet(ClientPtr client)
 
     swaps(&stuff->length, n);
     swapl(&stuff->window, n);
-    return ProcXFixesChangeSaveSet(client);
+    return (*ProcXFixesVector[stuff->xfixesReqType])(client);
 }

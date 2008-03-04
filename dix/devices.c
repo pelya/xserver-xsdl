@@ -743,7 +743,6 @@ FreeDeviceClass(int type, pointer *class)
                 xfree((*p));
                 break;
             }
-
     }
     *class = NULL;
 }
@@ -1623,7 +1622,7 @@ DoSetModifierMapping(ClientPtr client, KeyCode *inputMap,
                 }
             }
 
-	    rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixSetAttrAccess);
+	    rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
 	    if (rc != Success)
 		return rc;
 
@@ -1762,7 +1761,7 @@ ProcChangeKeyboardMapping(ClientPtr client)
 
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) && pDev->key) {
-            rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixSetAttrAccess);
+            rc = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
 	    if (rc != Success)
                 return rc;
         }
@@ -1797,7 +1796,7 @@ DoSetPointerMapping(ClientPtr client, DeviceIntPtr device, BYTE *map, int n)
 
     for (dev = inputInfo.devices; dev; dev = dev->next) {
         if ((dev->coreEvents || dev == inputInfo.pointer) && dev->button) {
-	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixSetAttrAccess);
+	    rc = XaceHook(XACE_DEVICE_ACCESS, client, dev, DixManageAccess);
 	    if (rc != Success)
 		return rc;
 	}
@@ -2142,7 +2141,7 @@ ProcChangeKeyboardControl (ClientPtr client)
     for (pDev = inputInfo.devices; pDev; pDev = pDev->next) {
         if ((pDev->coreEvents || pDev == inputInfo.keyboard) &&
             pDev->kbdfeed && pDev->kbdfeed->CtrlProc) {
-            ret = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixSetAttrAccess);
+            ret = XaceHook(XACE_DEVICE_ACCESS, client, pDev, DixManageAccess);
 	    if (ret != Success)
                 return ret;
         }
@@ -2298,7 +2297,7 @@ ProcChangePointerControl(ClientPtr client)
     for (mouse = inputInfo.devices; mouse; mouse = mouse->next) {
         if ((mouse->coreEvents || mouse == inputInfo.pointer) &&
             mouse->ptrfeed && mouse->ptrfeed->CtrlProc) {
-	    rc = XaceHook(XACE_DEVICE_ACCESS, client, mouse, DixSetAttrAccess);
+	    rc = XaceHook(XACE_DEVICE_ACCESS, client, mouse, DixManageAccess);
 	    if (rc != Success)
 		return rc;
 	}

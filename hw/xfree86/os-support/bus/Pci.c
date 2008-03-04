@@ -1,65 +1,4 @@
 /*
- * Pci.c - New server PCI access functions
- *
- * The XFree86 server PCI access functions have been reimplemented as a
- * framework that allows each supported platform/OS to have their own
- * platform/OS specific pci driver.
- *
- * All of the public PCI access functions exported to the other parts of
- * the server are declared in Pci.h and defined herein.  These include:
- *	pciInit()              - Initialize PCI access functions
- *	pciReadLong()          - Read a 32 bit value from a device's cfg space
- *	pciReadWord()          - Read a 16 bit value from a device's cfg space
- *	pciReadByte()          - Read an 8 bit value from a device's cfg space
- *	pciWriteLong()         - Write a 32 bit value to a device's cfg space
- *	pciWriteWord()         - Write a 16 bit value to a device's cfg space
- *	pciWriteByte()         - Write an 8 bit value to a device's cfg space
- *	pciSetBitsLong()       - Write a 32 bit value against a mask
- *	pciSetBitsByte()       - Write an 8 bit value against a mask
- *	pciTag()               - Return tag for a given PCI bus, device, &
- *                               function
- *	pciBusAddrToHostAddr() - Convert a PCI address to a host address
- *	xf86scanpci()          - Return info about all PCI devices
- *	xf86MapDomainMemory()  - Like xf86MapPciMem() but can handle
- *                               domain/host address translation
- *	xf86MapLegacyIO()      - Maps PCI I/O spaces
- *
- * The actual PCI backend driver is selected by the pciInit() function
- * (see below)  using either compile time definitions, run-time checks,
- * or both.
- *
- * Certain generic functions are provided that make the implementation
- * of certain well behaved platforms (e.g. those supporting PCI config
- * mechanism 1 or some thing close to it) very easy.
- *
- * Less well behaved platforms/OS's can roll their own functions.
- *
- * To add support for another platform/OS, add a call to fooPciInit() within
- * pciInit() below under the correct compile time definition or run-time
- * conditional.
- *
- * The fooPciInit() procedure must do three things:
- *	1) Initialize the pciBusTable[] for all primary PCI buses including
- *	   the per domain PCI access functions (readLong, writeLong,
- *	   addrBusToHost, and addrHostToBus).
- *
- *	2) Add entries to pciBusTable[] for configured secondary buses.  This
- *	   step may be skipped if a platform is using the generic findFirst/
- *	   findNext functions because these procedures will automatically
- *	   discover and add secondary buses dynamically.
- *
- *      3) Overide default settings for global PCI access functions if
- *	   required. These include pciFindFirstFP, pciFindNextFP,
- *	   Of course, if you choose not to use one of the generic
- *	   functions, you will need to provide a platform specifc replacement.
- *
- * Gary Barton
- * Concurrent Computer Corporation
- * garyb@gate.net
- *
- */
-
-/*
  * Copyright 1998 by Concurrent Computer Corporation
  *
  * Permission to use, copy, modify, distribute, and sell this software
@@ -197,14 +136,6 @@
 
 #include <pciaccess.h>
 
-#if 0
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#endif
-
 #define PCI_MFDEV_SUPPORT   1 /* Include PCI multifunction device support */
 #define PCI_BRIDGE_SUPPORT  1 /* Include support for PCI-to-PCI bridges */
 
@@ -217,34 +148,10 @@ _X_EXPORT int            pciNumBuses = 0;     /* Actual number of PCI buses */
 int            pciMaxBusNum = MAX_PCI_BUSES;
 
 
-/*
- * pciInit - choose correct platform/OS specific PCI init routine
- */
-static void
-pciInit(void)
-{
-    static int pciInitialized = 0;
-
-    if (!pciInitialized) {
-	pciInitialized = 1;
-
-	/* XXX */
-#if defined(DEBUGPCI)
-	if (DEBUGPCI >= xf86Verbose) {
-	    xf86Verbose = DEBUGPCI;
-	}
-#endif
-
-	ARCH_PCI_INIT();
-    }
-}
-
 _X_EXPORT ADDRESS
 pciBusAddrToHostAddr(PCITAG tag, PciAddrType type, ADDRESS addr)
 {
   int bus = PCI_BUS_FROM_TAG(tag);
-
-  pciInit();
 
   if ((bus >= 0) && (bus < pciNumBuses) && pciBusInfo[bus] &&
 	pciBusInfo[bus]->funcs->pciAddrBusToHost)
@@ -268,21 +175,19 @@ pciAddrNOOP(PCITAG tag, PciAddrType type, ADDRESS addr)
 _X_EXPORT Bool
 xf86scanpci(void)
 {
-    static Bool  done = FALSE;
-    static Bool  success = FALSE;
-
-    /*
-     * if we haven't found PCI devices checking for pci_devp may
-     * result in an endless recursion if platform/OS specific PCI
-     * bus probing code calls this function from with in it.
-     */
-    if (done)
-	return success;
-
-    done = TRUE;
+    Bool  success = FALSE;
 
     success = (pci_system_init() == 0);
-    pciInit();
+
+	/* XXX */
+#if defined(DEBUGPCI)
+	if (DEBUGPCI >= xf86Verbose) {
+	    xf86Verbose = DEBUGPCI;
+	}
+#endif
+
+    /* choose correct platform/OS specific PCI init routine */
+	ARCH_PCI_INIT();
 
     return success;
 }

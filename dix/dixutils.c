@@ -816,16 +816,8 @@ _DeleteCallbackList(
     *pcbl = NULL;
 }
 
-static CallbackFuncsRec default_cbfuncs =
-{
-    _AddCallback,
-    _DeleteCallback,
-    _CallCallbacks,
-    _DeleteCallbackList
-};
-
 static Bool
-CreateCallbackList(CallbackListPtr *pcbl, CallbackFuncsPtr cbfuncs)
+CreateCallbackList(CallbackListPtr *pcbl)
 {
     CallbackListPtr  cbl;
     int i;
@@ -833,7 +825,6 @@ CreateCallbackList(CallbackListPtr *pcbl, CallbackFuncsPtr cbfuncs)
     if (!pcbl) return FALSE;
     cbl = (CallbackListPtr) xalloc(sizeof(CallbackListRec));
     if (!cbl) return FALSE;
-    cbl->funcs = cbfuncs ? *cbfuncs : default_cbfuncs;
     cbl->inCallback = 0;
     cbl->deleted = FALSE;
     cbl->numDeleted = 0;
@@ -864,31 +855,31 @@ AddCallback(CallbackListPtr *pcbl, CallbackProcPtr callback, pointer data)
     if (!pcbl) return FALSE;
     if (!*pcbl)
     {	/* list hasn't been created yet; go create it */
-	if (!CreateCallbackList(pcbl, (CallbackFuncsPtr)NULL))
+	if (!CreateCallbackList(pcbl))
 	    return FALSE;
     }
-    return ((*(*pcbl)->funcs.AddCallback) (pcbl, callback, data));
+    return _AddCallback(pcbl, callback, data);
 }
 
 _X_EXPORT Bool 
 DeleteCallback(CallbackListPtr *pcbl, CallbackProcPtr callback, pointer data)
 {
     if (!pcbl || !*pcbl) return FALSE;
-    return ((*(*pcbl)->funcs.DeleteCallback) (pcbl, callback, data));
+    return _DeleteCallback(pcbl, callback, data);
 }
 
 void 
 CallCallbacks(CallbackListPtr *pcbl, pointer call_data)
 {
     if (!pcbl || !*pcbl) return;
-    (*(*pcbl)->funcs.CallCallbacks) (pcbl, call_data);
+    _CallCallbacks(pcbl, call_data);
 }
 
 void
 DeleteCallbackList(CallbackListPtr *pcbl)
 {
     if (!pcbl || !*pcbl) return;
-    (*(*pcbl)->funcs.DeleteCallbackList) (pcbl);
+    _DeleteCallbackList(pcbl);
 }
 
 void 

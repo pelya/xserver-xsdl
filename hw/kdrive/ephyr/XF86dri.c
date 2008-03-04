@@ -385,7 +385,7 @@ Bool XF86DRICreateContext(dpy, screen, visual, context, hHWContext)
 					   context, hHWContext );
 }
 
-Bool XF86DRIDestroyContext( __DRInativeDisplay * ndpy, int screen, __DRIid context)
+GLboolean XF86DRIDestroyContext( __DRInativeDisplay * ndpy, int screen, __DRIid context)
 {
     Display * const dpy = (Display *) ndpy;
     XExtDisplayInfo *info = find_display (dpy);
@@ -406,7 +406,7 @@ Bool XF86DRIDestroyContext( __DRInativeDisplay * ndpy, int screen, __DRIid conte
     return True;
 }
 
-Bool
+GLboolean
 XF86DRICreateDrawable (__DRInativeDisplay * ndpy, int screen,
                        __DRIid drawable, drm_drawable_t * hHWDrawable)
 {
@@ -437,7 +437,7 @@ XF86DRICreateDrawable (__DRInativeDisplay * ndpy, int screen,
     return True;
 }
 
-Bool XF86DRIDestroyDrawable( __DRInativeDisplay * ndpy, int screen,
+GLboolean XF86DRIDestroyDrawable( __DRInativeDisplay * ndpy, int screen,
     __DRIid drawable )
 {
     Display * const dpy = (Display *) ndpy;

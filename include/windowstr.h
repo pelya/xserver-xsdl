@@ -186,9 +186,8 @@ typedef struct _Window {
     unsigned		viewable:1;	/* realized && InputOutput */
     unsigned		dontPropagate:3;/* index into DontPropagateMasks */
     unsigned		forcedBS:1;	/* system-supplied backingStore */
-#ifdef COMPOSITE
-    unsigned		redirectDraw:2;	/* rendering is redirected from here */
-#endif
+    unsigned		redirectDraw:2;	/* COMPOSITE rendering redirect */
+    unsigned		forcedBG:1;	/* must have an opaque background */
 } WindowRec;
 
 /*

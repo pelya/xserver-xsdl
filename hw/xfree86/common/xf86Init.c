@@ -102,7 +102,6 @@ static void xf86PrintBanner(void);
 static void xf86PrintMarkers(void);
 static void xf86PrintDefaultModulePath(void);
 static void xf86PrintDefaultLibraryPath(void);
-static void xf86RunVtInit(void);
 
 static Bool probe_devices_from_device_sections(DriverPtr drvp);
 static Bool add_matching_devices_to_configure_list(DriverPtr drvp);
@@ -199,13 +198,6 @@ xf86CreateRootWindow(WindowPtr pWin)
 }
 
 
-/*
- * InitOutput --
- *	Initialize screenInfo for all actually accessible framebuffers.
- *      That includes vt-manager setup, querying all possible devices and
- *      collecting the pixmap formats.
- */
-
 static void
 PostConfigInit(void)
 {
@@ -238,9 +230,6 @@ PostConfigInit(void)
     xf86OSPMClose = xf86OSPMOpen();
 #endif
     
-    /* Run an external VT Init program if specified in the config file */
-    xf86RunVtInit();
-
     /* Do this after XF86Config is read (it's normally in OsInit()) */
     OsInitColors();
 }
@@ -471,7 +460,12 @@ xf86CallDriverProbe( DriverPtr drv, Bool detect_only )
     return foundScreen;
 }
 
-
+/*
+ * InitOutput --
+ *	Initialize screenInfo for all actually accessible framebuffers.
+ *      That includes vt-manager setup, querying all possible devices and
+ *      collecting the pixmap formats.
+ */
 void
 InitOutput(ScreenInfo *pScreenInfo, int argc, char **argv)
 {
@@ -1135,12 +1129,6 @@ InitInput(argc, argv)
 	for (pDev = xf86ConfigLayout.inputs; pDev && *pDev; pDev++) {
 	    /* Replace obsolete keyboard driver with kbd */
 	    if (!xf86NameCmp((*pDev)->driver, "keyboard")) {
-		xf86MsgVerb(X_WARNING, 0,
-			    "*** WARNING the legacy keyboard driver \"%s\" has been removed\n",
-			    (*pDev)->driver);
-		xf86MsgVerb(X_WARNING, 0,
-			    "*** Using the new \"kbd\" driver for \"%s\".\n",
-			    (*pDev)->identifier);
 		strcpy((*pDev)->driver, "kbd");
             }
 
@@ -1566,15 +1554,6 @@ ddxProcessArgument(int argc, char **argv, int i)
     xf86sFlag = TRUE;
     return 0;
   }
-  if (!strcmp(argv[i], "-bpp"))
-  {
-    ErrorF("The -bpp option is no longer supported.\n"
-	"\tUse -depth to set the color depth, and use -fbbpp if you really\n"
-	"\tneed to force a non-default framebuffer (hardware) pixel format.\n");
-    if (++i >= argc)
-      return 1;
-    return 2;
-  }
   if (!strcmp(argv[i], "-pixmap24"))
   {
     xf86Pix24 = Pix24Use24;
@@ -1687,10 +1666,6 @@ ddxProcessArgument(int argc, char **argv, int i)
     return 1;
   }
 #endif
-  if (!strcmp(argv[i], "-scanpci"))
-  {
-    DoScanPci(argc, argv, i);
-  }
   if (!strcmp(argv[i], "-probe"))
   {
     xf86DoProbe = TRUE;
@@ -1753,7 +1728,6 @@ ddxUseMsg()
   ErrorF("-config file           specify a configuration file, relative to the\n");
   ErrorF("                       "__XCONFIGFILE__" search path, only root can use absolute\n");
   ErrorF("-probeonly             probe for devices, then exit\n");
-  ErrorF("-scanpci               execute the scanpci module and exit\n");
   ErrorF("-verbose [n]           verbose startup messages\n");
   ErrorF("-logverbose [n]        verbose log messages\n");
   ErrorF("-quiet                 minimal startup messages\n");
@@ -1928,44 +1902,6 @@ static void
 xf86PrintDefaultLibraryPath(void)
 {
   ErrorF("%s\n", DEFAULT_LIBRARY_PATH);
-}
-
-static void
-xf86RunVtInit(void)
-{
-    int i;
-
-    /*
-     * If VTInit was set, run that program with consoleFd as stdin and stdout
-     */
-
-    if (xf86Info.vtinit) {
-      switch(fork()) {
-      case -1:
-          FatalError("xf86RunVtInit: fork failed (%s)\n", strerror(errno));
-          break;
-      case 0:  /* child */
-	  if (setuid(getuid()) == -1) {
-	      xf86Msg(X_ERROR, "xf86RunVtInit: setuid failed (%s)\n",
-			 strerror(errno));
-	      exit(255);
-	  }
-          /* set stdin, stdout to the consoleFd */
-          for (i = 0; i < 2; i++) {
-            if (xf86Info.consoleFd != i) {
-              close(i);
-              dup(xf86Info.consoleFd);
-            }
-          }
-          execl("/bin/sh", "sh", "-c", xf86Info.vtinit, (void *)NULL);
-          xf86Msg(X_WARNING, "exec of /bin/sh failed for VTInit (%s)\n",
-                 strerror(errno));
-          exit(255);
-          break;
-      default:  /* parent */
-          wait(NULL);
-      }
-    }
 }
 
 /*

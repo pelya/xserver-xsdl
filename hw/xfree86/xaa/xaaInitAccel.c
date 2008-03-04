@@ -93,8 +93,6 @@ static const OptionInfoRec XAAOptions[] = {
 				OPTV_NONE,	{0}, FALSE }
 };
 
-static MODULESETUPPROTO(xaaSetup);
-
 static XF86ModuleVersionInfo xaaVersRec =
 {
 	"xaa",
@@ -109,29 +107,7 @@ static XF86ModuleVersionInfo xaaVersRec =
 	{0,0,0,0}
 };
 
-_X_EXPORT XF86ModuleData xaaModuleData = { &xaaVersRec, xaaSetup, NULL };
-
-ModuleInfoRec XAA = {
-    1,
-    "XAA",
-    NULL,
-    0,
-    XAAAvailableOptions,
-};
-
-/*ARGSUSED*/
-static pointer
-xaaSetup(pointer Module, pointer Options, int *ErrorMajor, int *ErrorMinor)
-{
-    static Bool Initialised = FALSE;
-
-    if (!Initialised) {
-	Initialised = TRUE;
-	xf86AddModuleInfo(&XAA, Module);
-    }
-
-    return (pointer)TRUE;
-}
+_X_EXPORT XF86ModuleData xaaModuleData = { &xaaVersRec, NULL, NULL };
 
 /*ARGSUSED*/
 static const OptionInfoRec *

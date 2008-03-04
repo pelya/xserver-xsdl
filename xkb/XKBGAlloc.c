@@ -37,13 +37,7 @@ THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "misc.h"
 #include "inputstr.h"
 #include <xkbsrv.h>
-#include <X11/extensions/XKBgeom.h>
-
-#ifdef X_NOT_POSIX
-#define Size_t unsigned int
-#else
-#define Size_t size_t
-#endif
+#include "xkbgeom.h"
 
 /***====================================================================***/
 
@@ -461,11 +455,11 @@ XkbFreeGeometry(XkbGeometryPtr geom,unsigned which,Bool freeMap)
 /***====================================================================***/
 
 static Status
-_XkbGeomAlloc(	XPointer *		old,
+_XkbGeomAlloc(	void **		old,
 		unsigned short *	num,
 		unsigned short *	total,
 		int			num_new,
-		Size_t			sz_elem)
+		size_t			sz_elem)
 {
     if (num_new<1)
 	return Success;
@@ -477,8 +471,8 @@ _XkbGeomAlloc(	XPointer *		old,
 
     *total= (*num)+num_new;
     if ((*old)!=NULL)
-	 (*old)= (XPointer)_XkbRealloc((*old),(*total)*sz_elem);
-    else (*old)= (XPointer)_XkbCalloc((*total),sz_elem);
+	 (*old)= _XkbRealloc((*old),(*total)*sz_elem);
+    else (*old)= _XkbCalloc((*total),sz_elem);
     if ((*old)==NULL) {
 	*total= *num= 0;
 	return BadAlloc;
@@ -491,44 +485,44 @@ _XkbGeomAlloc(	XPointer *		old,
     return Success;
 }
 
-#define	_XkbAllocProps(g,n) _XkbGeomAlloc((XPointer *)&(g)->properties,\
+#define	_XkbAllocProps(g,n) _XkbGeomAlloc((void *)&(g)->properties,\
 				&(g)->num_properties,&(g)->sz_properties,\
 				(n),sizeof(XkbPropertyRec))
-#define	_XkbAllocColors(g,n) _XkbGeomAlloc((XPointer *)&(g)->colors,\
+#define	_XkbAllocColors(g,n) _XkbGeomAlloc((void *)&(g)->colors,\
 				&(g)->num_colors,&(g)->sz_colors,\
 				(n),sizeof(XkbColorRec))
-#define	_XkbAllocShapes(g,n) _XkbGeomAlloc((XPointer *)&(g)->shapes,\
+#define	_XkbAllocShapes(g,n) _XkbGeomAlloc((void *)&(g)->shapes,\
 				&(g)->num_shapes,&(g)->sz_shapes,\
 				(n),sizeof(XkbShapeRec))
-#define	_XkbAllocSections(g,n) _XkbGeomAlloc((XPointer *)&(g)->sections,\
+#define	_XkbAllocSections(g,n) _XkbGeomAlloc((void *)&(g)->sections,\
 				&(g)->num_sections,&(g)->sz_sections,\
 				(n),sizeof(XkbSectionRec))
-#define	_XkbAllocDoodads(g,n) _XkbGeomAlloc((XPointer *)&(g)->doodads,\
+#define	_XkbAllocDoodads(g,n) _XkbGeomAlloc((void *)&(g)->doodads,\
 				&(g)->num_doodads,&(g)->sz_doodads,\
 				(n),sizeof(XkbDoodadRec))
-#define	_XkbAllocKeyAliases(g,n) _XkbGeomAlloc((XPointer *)&(g)->key_aliases,\
+#define	_XkbAllocKeyAliases(g,n) _XkbGeomAlloc((void *)&(g)->key_aliases,\
 				&(g)->num_key_aliases,&(g)->sz_key_aliases,\
 				(n),sizeof(XkbKeyAliasRec))
 
-#define	_XkbAllocOutlines(s,n) _XkbGeomAlloc((XPointer *)&(s)->outlines,\
+#define	_XkbAllocOutlines(s,n) _XkbGeomAlloc((void *)&(s)->outlines,\
 				&(s)->num_outlines,&(s)->sz_outlines,\
 				(n),sizeof(XkbOutlineRec))
-#define	_XkbAllocRows(s,n) _XkbGeomAlloc((XPointer *)&(s)->rows,\
+#define	_XkbAllocRows(s,n) _XkbGeomAlloc((void *)&(s)->rows,\
 				&(s)->num_rows,&(s)->sz_rows,\
 				(n),sizeof(XkbRowRec))
-#define	_XkbAllocPoints(o,n) _XkbGeomAlloc((XPointer *)&(o)->points,\
+#define	_XkbAllocPoints(o,n) _XkbGeomAlloc((void *)&(o)->points,\
 				&(o)->num_points,&(o)->sz_points,\
 				(n),sizeof(XkbPointRec))
-#define	_XkbAllocKeys(r,n) _XkbGeomAlloc((XPointer *)&(r)->keys,\
+#define	_XkbAllocKeys(r,n) _XkbGeomAlloc((void *)&(r)->keys,\
 				&(r)->num_keys,&(r)->sz_keys,\
 				(n),sizeof(XkbKeyRec))
-#define	_XkbAllocOverlays(s,n) _XkbGeomAlloc((XPointer *)&(s)->overlays,\
+#define	_XkbAllocOverlays(s,n) _XkbGeomAlloc((void *)&(s)->overlays,\
 				&(s)->num_overlays,&(s)->sz_overlays,\
 				(n),sizeof(XkbOverlayRec))
-#define	_XkbAllocOverlayRows(o,n) _XkbGeomAlloc((XPointer *)&(o)->rows,\
+#define	_XkbAllocOverlayRows(o,n) _XkbGeomAlloc((void *)&(o)->rows,\
 				&(o)->num_rows,&(o)->sz_rows,\
 				(n),sizeof(XkbOverlayRowRec))
-#define	_XkbAllocOverlayKeys(r,n) _XkbGeomAlloc((XPointer *)&(r)->keys,\
+#define	_XkbAllocOverlayKeys(r,n) _XkbGeomAlloc((void *)&(r)->keys,\
 				&(r)->num_keys,&(r)->sz_keys,\
 				(n),sizeof(XkbOverlayKeyRec))
     

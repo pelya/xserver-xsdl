@@ -1019,7 +1019,7 @@ VBEGetPixelClock(vbeInfoPtr pVbe, int mode, int clock)
     /*
     Input:
 	AX := 4F0Bh VBE Get Pixel Clock
-	BL := 01h Get Pixel Clock
+	BL := 00h Get Pixel Clock
 	ECX := pixel clock in units of Hz
         DX := mode number
      
@@ -1030,7 +1030,7 @@ VBEGetPixelClock(vbeInfoPtr pVbe, int mode, int clock)
 
     pVbe->pInt10->num = 0x10;
     pVbe->pInt10->ax = 0x4f0b;
-    pVbe->pInt10->bx = 0x01;
+    pVbe->pInt10->bx = 0x00;
     pVbe->pInt10->cx = clock;
     pVbe->pInt10->dx = mode;
     xf86ExecX86int10(pVbe->pInt10);

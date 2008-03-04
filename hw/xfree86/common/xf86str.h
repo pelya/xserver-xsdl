@@ -348,7 +348,7 @@ typedef struct _DriverRec {
  * functions to configuration tools, the Xserver, or any other
  * application/module interested in such information.
  */
-typedef struct _ModuleInfoRec {
+_X_DEPRECATED typedef struct _ModuleInfoRec {
     int			moduleVersion;
     char *		moduleName;
     pointer		module;

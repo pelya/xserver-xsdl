@@ -580,9 +580,9 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
     }
     else
     {
-	PictureTransformTranslate (&crtc_to_fb, &fb_to_crtc, crtc->x, crtc->y);
+	PictureTransformTranslate (&crtc_to_fb, &fb_to_crtc, F(crtc->x), F(crtc->y));
 	PictureTransformIsInverse ("offset", &crtc_to_fb, &fb_to_crtc);
-	
+
 	/* 
 	 * these are the size of the shadow pixmap, which
 	 * matches the mode, not the pre-rotated copy in the

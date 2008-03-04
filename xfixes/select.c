@@ -224,7 +224,7 @@ SProcXFixesSelectSelectionInput (ClientPtr client)
     swapl(&stuff->window, n);
     swapl(&stuff->selection, n);
     swapl(&stuff->eventMask, n);
-    return ProcXFixesSelectSelectionInput(client);
+    return (*ProcXFixesVector[stuff->xfixesReqType])(client);
 }
     
 void

@@ -416,10 +416,7 @@ unsigned		changed,tmp;
 	if (((explicit&XkbExplicitAutoRepeatMask)==0)&&(xkb->ctrls)) {
 	    CARD8 old;
 	    old= xkb->ctrls->per_key_repeat[key/8];
-#ifdef RETURN_SHOULD_REPEAT
-	    if (*XkbKeySymsPtr(xkb,key) != XK_Return)
-#endif
-		xkb->ctrls->per_key_repeat[key/8]|= (1<<(key%8));
+            xkb->ctrls->per_key_repeat[key/8]|= (1<<(key%8));
 	    if (changes && (old!=xkb->ctrls->per_key_repeat[key/8]))
 		changes->ctrls.changed_ctrls|= XkbPerKeyRepeatMask;
 	}

@@ -29,6 +29,9 @@ in this Software without prior written authorization from The Open Group.
 #endif
 
 #include "scrnintstr.h"
+#include "inputstr.h"
+#include "windowstr.h"
+#include "propertyst.h"
 #include "colormapst.h"
 #include "privates.h"
 #include "registry.h"
@@ -67,10 +70,19 @@ static char *SecurityUntrustedExtensions[] = {
     NULL
 };
 
-/* Access modes that untrusted clients can do to trusted stuff */
-static const Mask SecurityAllowedMask =
-    DixGetAttrAccess | DixListPropAccess | DixGetPropAccess |
-    DixGetFocusAccess | DixListAccess | DixReceiveAccess;
+/*
+ * Access modes that untrusted clients are allowed on trusted objects.
+ */
+static const Mask SecurityResourceMask =
+    DixGetAttrAccess | DixReceiveAccess | DixListPropAccess |
+    DixGetPropAccess | DixListAccess;
+static const Mask SecurityRootWindowExtraMask =
+    DixReceiveAccess | DixSendAccess | DixAddAccess | DixRemoveAccess;
+static const Mask SecurityDeviceMask =
+    DixGetAttrAccess | DixReceiveAccess | DixGetFocusAccess |
+    DixGrabAccess | DixSetAttrAccess | DixUseAccess;
+static const Mask SecurityServerMask = DixGetAttrAccess | DixGrabAccess;
+static const Mask SecurityClientMask = DixGetAttrAccess;
 
 
 /* SecurityAudit
@@ -748,10 +760,14 @@ SecurityDevice(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     XaceDeviceAccessRec *rec = calldata;
     SecurityStateRec *subj, *obj;
     Mask requested = rec->access_mode;
-    Mask allowed = SecurityAllowedMask;
+    Mask allowed = SecurityDeviceMask;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
     obj = dixLookupPrivate(&serverClient->devPrivates, stateKey);
+
+    if (rec->dev != inputInfo.keyboard)
+	/* this extension only supports the core keyboard */
+	allowed = requested;
 
     if (SecurityDoCheck(subj, obj, requested, allowed) != Success) {
 	SecurityAudit("Security denied client %d keyboard access on request "
@@ -789,20 +805,29 @@ SecurityResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     SecurityStateRec *subj, *obj;
     int cid = CLIENT_ID(rec->id);
     Mask requested = rec->access_mode;
-    Mask allowed = SecurityAllowedMask;
+    Mask allowed = SecurityResourceMask;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
     obj = dixLookupPrivate(&clients[cid]->devPrivates, stateKey);
+
+    /* disable background None for untrusted windows */
+    if ((requested & DixCreateAccess) && (rec->rtype == RT_WINDOW))
+	if (subj->haveState && subj->trustLevel != XSecurityClientTrusted)
+	    ((WindowPtr)rec->res)->forcedBG = TRUE;
 
     /* special checks for server-owned resources */
     if (cid == 0) {
 	if (rec->rtype & RC_DRAWABLE)
 	    /* additional operations allowed on root windows */
-	    allowed |= DixReadAccess|DixSendAccess;
+	    allowed |= SecurityRootWindowExtraMask;
 
 	else if (rec->rtype == RT_COLORMAP)
 	    /* allow access to default colormaps */
 	    allowed = requested;
+
+	else
+	    /* allow read access to other server-owned resources */
+	    allowed |= DixReadAccess;
     }
 
     if (SecurityDoCheck(subj, obj, requested, allowed) == Success)
@@ -813,9 +838,10 @@ SecurityResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	return;
 #endif
 
-    SecurityAudit("Security: denied client %d access to resource 0x%x "
-		  "of client %d on request %s\n", rec->client->index, rec->id,
-		  cid, SecurityLookupRequestName(rec->client));
+    SecurityAudit("Security: denied client %d access %x to resource 0x%x "
+		  "of client %d on request %s\n", rec->client->index,
+		  requested, rec->id, cid,
+		  SecurityLookupRequestName(rec->client));
     rec->status = BadAccess; /* deny access */
 }
 
@@ -847,7 +873,7 @@ SecurityServer(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     XaceServerAccessRec *rec = calldata;
     SecurityStateRec *subj, *obj;
     Mask requested = rec->access_mode;
-    Mask allowed = SecurityAllowedMask;
+    Mask allowed = SecurityServerMask;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
     obj = dixLookupPrivate(&serverClient->devPrivates, stateKey);
@@ -866,7 +892,7 @@ SecurityClient(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     XaceClientAccessRec *rec = calldata;
     SecurityStateRec *subj, *obj;
     Mask requested = rec->access_mode;
-    Mask allowed = SecurityAllowedMask;
+    Mask allowed = SecurityClientMask;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
     obj = dixLookupPrivate(&rec->target->devPrivates, stateKey);
@@ -886,7 +912,7 @@ SecurityProperty(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     SecurityStateRec *subj, *obj;
     ATOM name = rec->pProp->propertyName;
     Mask requested = rec->access_mode;
-    Mask allowed = SecurityAllowedMask | DixReadAccess;
+    Mask allowed = SecurityResourceMask | DixReadAccess;
 
     subj = dixLookupPrivate(&rec->client->devPrivates, stateKey);
     obj = dixLookupPrivate(&wClient(rec->pWin)->devPrivates, stateKey);
@@ -1079,6 +1105,8 @@ SecurityExtensionInit(INITARGS)
 	return;
 
     RTEventClient |= RC_NEVERRETAIN;
+    RegisterResourceName(SecurityAuthorizationResType, "SecurityAuthorization");
+    RegisterResourceName(RTEventClient, "SecurityEventClient");
 
     /* Allocate the private storage */
     if (!dixRequestPrivate(stateKey, sizeof(SecurityStateRec)))

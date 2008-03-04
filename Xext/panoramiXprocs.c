@@ -150,7 +150,7 @@ int PanoramiXCreateWindow(ClientPtr client)
 	if (cmap)
 	    *((CARD32 *) &stuff[1] + cmap_offset) = cmap->info[j].id;
 	if ( orig_visual != CopyFromParent ) 
-	    stuff->visual = PanoramiXVisualTable[(orig_visual*MAXSCREENS) + j];
+	    stuff->visual = PanoramiXTranslateVisualID(j, orig_visual);
         result = (*SavedProcVector[X_CreateWindow])(client);
         if(result != Success) break;
     }
@@ -2077,9 +2077,6 @@ int PanoramiXCreateColormap(ClientPtr client)
 		client, stuff->window, XRT_WINDOW, DixReadAccess)))
 	return BadWindow;    
 
-    if(!stuff->visual || (stuff->visual > 255)) 
-	return BadValue;
-
     if(!(newCmap = (PanoramiXRes *) xalloc(sizeof(PanoramiXRes))))
         return BadAlloc;
 
@@ -2092,7 +2089,7 @@ int PanoramiXCreateColormap(ClientPtr client)
     FOR_NSCREENS_BACKWARD(j){
 	stuff->mid = newCmap->info[j].id;
 	stuff->window = win->info[j].id;
-	stuff->visual = PanoramiXVisualTable[(orig_visual * MAXSCREENS) + j];
+	stuff->visual = PanoramiXTranslateVisualID(j, orig_visual);
 	result = (* SavedProcVector[X_CreateColormap])(client);
 	if(result != Success) break;
     }

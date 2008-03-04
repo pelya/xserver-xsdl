@@ -142,6 +142,11 @@ xf86ProcessCommonOptions(LocalDevicePtr local,
 
     /* Backwards compatibility. */
     local->history_size = GetMotionHistorySize();
+    /* Preallocate xEvent store */
+    if (!xf86Events)
+        xf86Events = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+    if (!xf86Events)
+        FatalError("Couldn't allocate event store\n");
 }
 
 /***********************************************************************
@@ -495,6 +500,8 @@ DeleteInputDeviceRequest(DeviceIntPtr pDev)
  * convenient functions to post events
  */
 
+#define MAX_VALUATORS 36 /* XXX from comment in dix/getevents.c */
+
 _X_EXPORT void
 xf86PostMotionEvent(DeviceIntPtr	device,
                     int			is_absolute,
@@ -504,17 +511,12 @@ xf86PostMotionEvent(DeviceIntPtr	device,
 {
     va_list var;
     int i = 0;
-    static int *valuators = NULL;
-    static int n_valuators = 0;
+    static int valuators[MAX_VALUATORS];
 
-    if (num_valuators > n_valuators) {
-	xfree (valuators);
-	valuators = NULL;
-    }
-
-    if (!valuators) {
-	valuators = xcalloc(sizeof(int), num_valuators);
-	n_valuators = num_valuators;
+    if (num_valuators > MAX_VALUATORS) {
+	xf86Msg(X_ERROR, "xf86PostMotionEvent: num_valuator %d"
+	    " is greater than MAX_VALUATORS\n", num_valuators);
+	return;
     }
 
     va_start(var, num_valuators);
@@ -538,6 +540,12 @@ xf86PostMotionEventP(DeviceIntPtr	device,
     xEvent *xE = NULL;
     int index;
     int flags = 0;
+
+    if (num_valuators > MAX_VALUATORS) {
+	xf86Msg(X_ERROR, "xf86PostMotionEvent: num_valuator %d"
+	    " is greater than MAX_VALUATORS\n", num_valuators);
+	return;
+    }
 
     if (is_absolute)
         flags = POINTER_ABSOLUTE;
@@ -592,9 +600,15 @@ xf86PostProximityEvent(DeviceIntPtr	device,
                        ...)
 {
     va_list var;
-    int i, nevents, *valuators = NULL;
+    int i, nevents;
+    int valuators[MAX_VALUATORS];
 
-    valuators = xcalloc(sizeof(int), num_valuators);
+
+    if (num_valuators > MAX_VALUATORS) {
+	xf86Msg(X_ERROR, "xf86PostMotionEvent: num_valuator %d"
+	    " is greater than MAX_VALUATORS\n", num_valuators);
+	return;
+    }
 
     va_start(var, num_valuators);
     for (i = 0; i < num_valuators; i++)
@@ -608,7 +622,6 @@ xf86PostProximityEvent(DeviceIntPtr	device,
     for (i = 0; i < nevents; i++)
         mieqEnqueue(device, (xf86Events + i)->event);
 
-    xfree(valuators);
 }
 
 _X_EXPORT void
@@ -621,7 +634,7 @@ xf86PostButtonEvent(DeviceIntPtr	device,
                     ...)
 {
     va_list var;
-    int *valuators = NULL;
+    int valuators[MAX_VALUATORS];
     int i = 0, nevents = 0;
     int index;
 
@@ -632,7 +645,11 @@ xf86PostButtonEvent(DeviceIntPtr	device,
             return;
     }
 #endif
-    valuators = xcalloc(sizeof(int), num_valuators);
+    if (num_valuators > MAX_VALUATORS) {
+	xf86Msg(X_ERROR, "xf86PostMotionEvent: num_valuator %d"
+	    " is greater than MAX_VALUATORS\n", num_valuators);
+	return;
+    }
 
     va_start(var, num_valuators);
     for (i = 0; i < num_valuators; i++)
@@ -648,7 +665,6 @@ xf86PostButtonEvent(DeviceIntPtr	device,
     for (i = 0; i < nevents; i++)
         mieqEnqueue(device, (xf86Events + i)->event);
 
-    xfree(valuators);
 }
 
 _X_EXPORT void
@@ -661,15 +677,21 @@ xf86PostKeyEvent(DeviceIntPtr	device,
                  ...)
 {
     va_list var;
-    int i = 0, nevents = 0, *valuators = NULL;
+    int i = 0, nevents = 0;
+    static int valuators[MAX_VALUATORS];
 
     /* instil confidence in the user */
     DebugF("this function has never been tested properly.  if things go quite "
            "badly south after this message, then xf86PostKeyEvent is "
            "broken.\n");
 
+    if (num_valuators > MAX_VALUATORS) {
+	xf86Msg(X_ERROR, "xf86PostMotionEvent: num_valuator %d"
+	    " is greater than MAX_VALUATORS\n", num_valuators);
+	return;
+    }
+
     if (is_absolute) {
-        valuators = xcalloc(sizeof(int), num_valuators);
         va_start(var, num_valuators);
         for (i = 0; i < num_valuators; i++)
             valuators[i] = va_arg(var, int);
@@ -680,7 +702,6 @@ xf86PostKeyEvent(DeviceIntPtr	device,
                                             is_down ? KeyPress : KeyRelease,
                                             key_code, first_valuator,
                                             num_valuators, valuators);
-        xfree(valuators);
     }
     else {
         nevents = GetKeyboardEvents(xf86Events, device,
