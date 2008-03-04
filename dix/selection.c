@@ -206,7 +206,12 @@ ProcSetSelectionOwner(ClientPtr client)
 	pSel->devPrivates = NULL;
 
 	/* security creation/labeling check */
-	(void)XaceHookSelectionAccess(client, &pSel, DixCreateAccess);
+	rc = XaceHookSelectionAccess(client, &pSel,
+				     DixCreateAccess|DixSetAttrAccess);
+	if (rc != Success) {
+	    xfree(pSel);
+	    return rc;
+	}
 
 	pSel->next = CurrentSelections;
 	CurrentSelections = pSel;
