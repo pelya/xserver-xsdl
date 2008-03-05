@@ -356,7 +356,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
         int i;
         DeviceIntPtr sd;
 
-        memset(to->button, 0, MAP_LENGTH);
         /* merge button states from all attached devices */
         for (sd = inputInfo.devices; sd; sd = sd->next)
         {
