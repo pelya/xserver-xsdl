@@ -713,19 +713,21 @@ void
 DefineSelf (int fd)
 {
 #ifndef HAS_GETIFADDRS
-    char		buf[2048], *cp, *cplim;
-    void *		bufptr = buf;   
-#ifdef USE_SIOCGLIFCONF
+    char 		*cp, *cplim;
+# ifdef USE_SIOCGLIFCONF
+    struct sockaddr_storage buf[16];
     struct lifconf	ifc;
     register struct lifreq *ifr;
-#ifdef SIOCGLIFNUM
+#  ifdef SIOCGLIFNUM
     struct lifnum	ifn;
-#endif
-#else
+#  endif
+# else /* !USE_SIOCGLIFCONF */
+    char		buf[2048];
     struct ifconf	ifc;
     register struct ifreq *ifr;
-#endif 
-#else 
+# endif
+    void *		bufptr = buf;   
+#else /* HAS_GETIFADDRS */
     struct ifaddrs *	ifap, *ifr;
 #endif
     int 		len;
