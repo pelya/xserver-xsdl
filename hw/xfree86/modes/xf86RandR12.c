@@ -848,6 +848,20 @@ xf86RandR12OutputSetProperty (ScreenPtr pScreen,
 }
 
 static Bool
+xf86RandR13OutputGetProperty (ScreenPtr pScreen,
+			      RROutputPtr randr_output,
+			      Atom property)
+{
+    xf86OutputPtr output = randr_output->devPrivate;
+
+    if (output->funcs->get_property == NULL)
+	return TRUE;
+
+    /* Should be safe even w/o vtSema */
+    return output->funcs->get_property(output, property);
+}
+
+static Bool
 xf86RandR12OutputValidateMode (ScreenPtr    pScreen,
 			       RROutputPtr  randr_output,
 			       RRModePtr    randr_mode)
@@ -1126,6 +1140,9 @@ xf86RandR12Init12 (ScreenPtr pScreen)
     rp->rrCrtcSetGamma = xf86RandR12CrtcSetGamma;
     rp->rrOutputSetProperty = xf86RandR12OutputSetProperty;
     rp->rrOutputValidateMode = xf86RandR12OutputValidateMode;
+#if RANDR_13_INTERFACE
+    rp->rrOutputGetProperty = xf86RandR13OutputGetProperty;
+#endif
     rp->rrModeDestroy = xf86RandR12ModeDestroy;
     rp->rrSetConfig = NULL;
     pScrn->PointerMoved = xf86RandR12PointerMoved;
