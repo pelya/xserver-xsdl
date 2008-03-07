@@ -216,8 +216,6 @@ __glXDRIcontextForceCurrent(__GLXcontext *baseContext)
 
 #ifdef __DRI_TEX_BUFFER
 
-#define isPowerOfTwo(n) (((n) & ((n) - 1 )) == 0)
-
 static int
 __glXDRIbindTexImage(__GLXcontext *baseContext,
 		     int buffer,
@@ -228,26 +226,17 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
     PixmapPtr pixmap;
     __GLXDRIcontext *context = (__GLXDRIcontext *) baseContext;
     unsigned int flags;
-    int w, h, target;
 
     if (screen->texBuffer == NULL)
         return Success;
 
     pixmap = (PixmapPtr) glxPixmap->pDraw;
-    w = pixmap->drawable.width;
-    h = pixmap->drawable.height;
-
-    if (!isPowerOfTwo(w) || !isPowerOfTwo(h))
-	target = GL_TEXTURE_RECTANGLE_ARB;
-    else
-	target = GL_TEXTURE_2D;
-
     screen->texBuffer->setTexBuffer(&context->driContext,
-				    target,
+				    glxPixmap->target,
 				    DRI2GetPixmapHandle(pixmap, &flags),
 				    pixmap->drawable.depth,
 				    pixmap->devKind,
-				    h);
+				    pixmap->drawable.height);
 
     return Success;
 }
