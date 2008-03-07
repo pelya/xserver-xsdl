@@ -2420,28 +2420,16 @@ addDefaultModes(MonPtr monitorp)
     DisplayModePtr last = monitorp->Last;
     int i = 0;
 
-    while (xf86DefaultModes[i].name != NULL)
+    for (i = 0; i < xf86NumDefaultModes; i++)
     {
-	if ( ! modeIsPresent(xf86DefaultModes[i].name,monitorp) )
-	    do
-	    {
-		mode = xf86DuplicateMode(&xf86DefaultModes[i]);
-		if( last ) {
-		    mode->prev = last;
-		    last->next = mode;
-		}
-		else {
-		    /* this is the first mode */
-		    monitorp->Modes = mode;
-		    mode->prev = NULL;
-		}
-		last = mode;
-		i++;
-	    }
-	    while((xf86DefaultModes[i].name != NULL) &&
-		  (!strcmp(xf86DefaultModes[i].name,xf86DefaultModes[i-1].name)));
-	else
-	    i++;
+	mode = xf86DuplicateMode(&xf86DefaultModes[i]);
+	if (!modeIsPresent(mode, monitorp))
+	{
+	    monitorp->Modes = xf86ModesAdd(monitorp->Modes, mode);
+	    last = mode;
+	} else {
+	    xfree(mode);
+	}
     }
     monitorp->Last = last;
 

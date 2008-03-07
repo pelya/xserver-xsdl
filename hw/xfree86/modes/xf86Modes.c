@@ -214,11 +214,7 @@ xf86DuplicateMode(DisplayModePtr pMode)
     *pNew = *pMode;
     pNew->next = NULL;
     pNew->prev = NULL;
-    /*
-     * It is important to copy the name explicitly.
-     * Otherwise a mode could reference an invalid piece of memory, after one of them runs free().
-     * This will lead to obscure problems, that you really don't want.
-     */
+
     if (pMode->name == NULL)
 	xf86SetModeDefaultName(pNew);
     else
@@ -667,7 +663,7 @@ xf86GetDefaultModes (Bool interlaceAllowed, Bool doubleScanAllowed)
     DisplayModePtr  head = NULL, prev = NULL, mode;
     int		    i;
 
-    for (i = 0; xf86DefaultModes[i].name != NULL; i++)
+    for (i = 0; i < xf86NumDefaultModes; i++)
     {
 	DisplayModePtr	defMode = &xf86DefaultModes[i];
 	
@@ -676,23 +672,9 @@ xf86GetDefaultModes (Bool interlaceAllowed, Bool doubleScanAllowed)
 	if (!doubleScanAllowed && (defMode->Flags & V_DBLSCAN))
 	    continue;
 
-	mode = xalloc(sizeof(DisplayModeRec));
-	if (!mode)
-	    continue;
-        memcpy(mode,&xf86DefaultModes[i],sizeof(DisplayModeRec));
-        mode->name = xstrdup(xf86DefaultModes[i].name);
-        if (!mode->name)
-	{
-	    xfree (mode);
-	    continue;
-	}
-        mode->prev = prev;
-	mode->next = NULL;
-	if (prev)
-	    prev->next = mode;
-	else
-	    head = mode;
-	prev = mode;
+	mode = xf86DuplicateMode(defMode);
+
+	head = xf86ModesAdd(head, mode);
     }
     return head;
 }

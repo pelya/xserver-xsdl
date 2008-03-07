@@ -91,5 +91,6 @@ BEGIN {
 }
 
 END {
-	printf("\t{MODEPREFIX,0,0,0,0,0,0,0,0,0,0,0,0,MODESUFFIX}\n};\n")
+	print "};"
+	printf "const int xf86NumDefaultModes = sizeof(xf86NumDefaultModes) / sizeof(DisplayModeRec);"
 }
