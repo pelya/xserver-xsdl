@@ -1678,6 +1678,9 @@ nextAspectMode(DisplayModePtr start, float aspect)
 {
     DisplayModePtr m = start;
 
+    if (!m)
+	return NULL;
+
     for (m = m->next; m; m = m->next)
 	if (aspectMatch(aspect, (float)m->HDisplay / (float)m->VDisplay))
 	    return m;
