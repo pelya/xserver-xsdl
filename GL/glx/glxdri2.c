@@ -225,7 +225,7 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
     __GLXDRIscreen * const screen = (__GLXDRIscreen *) glxGetScreen(pScreen);
     PixmapPtr pixmap;
     __GLXDRIcontext *context = (__GLXDRIcontext *) baseContext;
-    unsigned int flags;
+    __GLXDRIdrawable *drawable = (__GLXDRIdrawable *) glxPixmap;
 
     if (screen->texBuffer == NULL)
         return Success;
@@ -233,10 +233,7 @@ __glXDRIbindTexImage(__GLXcontext *baseContext,
     pixmap = (PixmapPtr) glxPixmap->pDraw;
     screen->texBuffer->setTexBuffer(&context->driContext,
 				    glxPixmap->target,
-				    DRI2GetPixmapHandle(pixmap, &flags),
-				    pixmap->drawable.depth,
-				    pixmap->devKind,
-				    pixmap->drawable.height);
+				    &drawable->driDrawable);
 
     return Success;
 }
