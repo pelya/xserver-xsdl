@@ -56,6 +56,8 @@
 #define RANDR_12_INTERFACE 1
 #define RANDR_13_INTERFACE 1 /* requires RANDR_12_INTERFACE */
 
+#define RANDR_INTERFACE_VERSION 0x0103
+
 typedef XID	RRMode;
 typedef XID	RROutput;
 typedef XID	RRCrtc;

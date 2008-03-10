@@ -694,7 +694,12 @@ xf86CrtcCloseScreen (int index, ScreenPtr screen)
 /*
  * Called at ScreenInit time to set up
  */
-_X_EXPORT Bool
+_X_EXPORT
+#ifdef RANDR_13_INTERFACE
+int
+#else
+Bool
+#endif
 xf86CrtcScreenInit (ScreenPtr screen)
 {
     ScrnInfoPtr		scrn = xf86Screens[screen->myNum];
@@ -727,7 +732,11 @@ xf86CrtcScreenInit (ScreenPtr screen)
     config->CloseScreen = screen->CloseScreen;
     screen->CloseScreen = xf86CrtcCloseScreen;
     
+#ifdef RANDR_13_INTERFACE
+    return RANDR_INTERFACE_VERSION;
+#else
     return TRUE;
+#endif
 }
 
 static DisplayModePtr
@@ -2228,7 +2237,7 @@ xf86SetSingleMode (ScrnInfoPtr pScrn, DisplayModePtr desired, Rotation rotation)
 	}
     }
     xf86DisableUnusedFunctions(pScrn);
-#if RANDR_12_INTERFACE
+#ifdef RANDR_12_INTERFACE
     xf86RandR12TellChanged (pScrn->pScreen);
 #endif
     return ok;

@@ -692,7 +692,11 @@ xf86ProbeOutputModes (ScrnInfoPtr pScrn, int maxX, int maxY);
 void
 xf86SetScrnInfoModes (ScrnInfoPtr pScrn);
 
+#ifdef RANDR_13_INTERFACE
+int
+#else
 Bool
+#endif
 xf86CrtcScreenInit (ScreenPtr pScreen);
 
 Bool
