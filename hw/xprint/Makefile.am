@@ -17,6 +17,7 @@ XPRINT_LIBS = \
 	pcl-mono/libpcl.la \
 	$(top_builddir)/fb/libfb.la \
 	$(top_builddir)/render/librender.la \
+	$(top_builddir)/dix/libXpdix.la \
 	$(XSERVER_LIBS) \
 	$(top_builddir)/Xext/libXext.la \
 	$(top_builddir)/xkb/libxkb.la \
