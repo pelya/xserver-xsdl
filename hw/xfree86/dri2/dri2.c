@@ -262,8 +262,8 @@ DRI2CloseScreen(ScreenPtr pScreen)
 }
 
 Bool
-DRI2CreateDrawable(ScreenPtr pScreen,
-		   DrawablePtr pDraw, drm_drawable_t *pDrmDrawable)
+DRI2CreateDrawable(ScreenPtr pScreen, DrawablePtr pDraw,
+		   drm_drawable_t *pDrmDrawable, unsigned int *head)
 {
     DRI2ScreenPtr	ds = DRI2GetScreen(pScreen);
     WindowPtr		pWin;
@@ -293,6 +293,7 @@ DRI2CreateDrawable(ScreenPtr pScreen,
 
     *pDrmDrawable = pPriv->drawable;
 
+    *head = ds->buffer->head;
     DRI2PostDrawableConfig(pDraw);
     DRI2PostBufferAttach(pDraw);
     DRI2ScreenCommitEvents(ds);

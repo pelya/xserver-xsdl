@@ -66,7 +66,8 @@ void DRI2Unlock(ScreenPtr pScreen);
 
 Bool DRI2CreateDrawable(ScreenPtr	 pScreen,
 			DrawablePtr	 pDraw,
-			drm_drawable_t	*pDrmDrawable);
+			drm_drawable_t	*pDrmDrawable,
+			unsigned int    *head);
 
 void DRI2DestroyDrawable(ScreenPtr	pScreen,
 			 DrawablePtr	pDraw);

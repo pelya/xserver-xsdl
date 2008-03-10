@@ -341,6 +341,7 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
     __GLXDRIdrawable *private;
     GLboolean retval;
     drm_drawable_t hwDrawable;
+    unsigned int head;
 
     private = xalloc(sizeof *private);
     if (private == NULL)
@@ -359,13 +360,14 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
     private->base.swapBuffers   = __glXDRIdrawableSwapBuffers;
     private->base.copySubBuffer = __glXDRIdrawableCopySubBuffer;
 
-    retval = DRI2CreateDrawable(screen->pScreen, pDraw, &hwDrawable);
+    retval = DRI2CreateDrawable(screen->pScreen, pDraw,
+				&hwDrawable, &head);
 
     private->driDrawable.private =
 	(driScreen->driScreen.createNewDrawable)(&driScreen->driScreen,
 						 modes,
 						 &private->driDrawable,
-						 hwDrawable, 0, NULL);
+						 hwDrawable, head, 0, NULL);
 
     return &private->base;
 }

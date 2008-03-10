@@ -704,7 +704,7 @@ __glXDRIscreenCreateDrawable(__GLXscreen *screen,
 	(driScreen->driScreen.createNewDrawable)(&driScreen->driScreen,
 						 modes,
 						 &private->driDrawable,
-						 hwDrawable, 0, NULL);
+						 hwDrawable, 0, 0, NULL);
 
     if (private->driDrawable.private == NULL) {
 	__glXenterServer(GL_FALSE);
