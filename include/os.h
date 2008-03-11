@@ -115,7 +115,7 @@ extern void FlushIfCriticalOutputPending(void);
 
 extern void SetCriticalOutputPending(void);
 
-extern int WriteToClient(ClientPtr /*who*/, int /*count*/, char* /*buf*/);
+extern int WriteToClient(ClientPtr /*who*/, int /*count*/, const void* /*buf*/);
 
 extern void ResetOsBuffers(void);
 
@@ -448,7 +448,7 @@ typedef struct {
 extern CallbackListPtr ReplyCallback;
 typedef struct {
     ClientPtr client;
-    pointer replyData;
+    const void *replyData;
     unsigned long dataLenBytes;
     unsigned long bytesRemaining;
     Bool startOfReply;
