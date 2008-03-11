@@ -58,6 +58,8 @@ Bool DRI2Connect(ScreenPtr pScreen,
 		 const char **driverName,
 		 unsigned int *sareaHandle);
 
+Bool DRI2AuthConnection(ScreenPtr pScreen, drm_magic_t magic);
+
 unsigned int DRI2GetPixmapHandle(PixmapPtr pPixmap,
 				 unsigned int *flags);
 

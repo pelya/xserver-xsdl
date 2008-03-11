@@ -342,6 +342,17 @@ DRI2Connect(ScreenPtr pScreen, int *fd, const char **driverName,
     return TRUE;
 }
 
+Bool
+DRI2AuthConnection(ScreenPtr pScreen, drm_magic_t magic)
+{
+    DRI2ScreenPtr ds = DRI2GetScreen(pScreen);
+
+    if (ds == NULL || drmAuthMagic(ds->fd, magic))
+	return FALSE;
+
+    return TRUE;
+}
+
 unsigned int
 DRI2GetPixmapHandle(PixmapPtr pPixmap, unsigned int *flags)
 {
