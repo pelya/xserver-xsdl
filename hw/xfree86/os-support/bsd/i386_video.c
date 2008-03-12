@@ -212,6 +212,9 @@ xf86OSInitVidMem(VidMemInfoPtr pVidMem)
 	pVidMem->mapMem = mapVidMem;
 	pVidMem->unmapMem = unmapVidMem;
 
+	if (useDevMem)
+		pci_system_init_dev_mem(devMemFd);
+
 #ifdef HAS_MTRR_SUPPORT
 	if (useDevMem) {
 		if (cleanMTRR()) {
