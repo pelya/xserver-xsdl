@@ -355,8 +355,8 @@ xf86RandR12ScreenSetSize (ScreenPtr	pScreen,
 
     pScreen->width = pScrnPix->drawable.width = width;
     pScreen->height = pScrnPix->drawable.height = height;
-    pScreen->mmWidth = mmWidth;
-    pScreen->mmHeight = mmHeight;
+    randrp->mmWidth = pScreen->mmWidth = mmWidth;
+    randrp->mmHeight = pScreen->mmHeight = mmHeight;
 
     xf86SetViewport (pScreen, pScreen->width-1, pScreen->height-1);
     xf86SetViewport (pScreen, 0, 0);
