@@ -602,14 +602,6 @@ CompositeTriFan (CARD8		op,
 		 int		npoints,
 		 xPointFixed	*points);
 
-Bool
-PictureTransformPoint (PictTransformPtr transform,
-		       PictVectorPtr	vector);
-
-Bool
-PictureTransformPoint3d (PictTransformPtr transform,
-                         PictVectorPtr	vector);
-
 CARD32
 PictureGradientColor (PictGradientStopPtr stop1,
 		      PictGradientStopPtr stop2,
@@ -672,5 +664,68 @@ CreateConicalGradientPicture (Picture pid,
 void PanoramiXRenderInit (void);
 void PanoramiXRenderReset (void);
 #endif
+
+/*
+ * matrix.c
+ */
+void
+PictureTransformInitIdentity (PictTransformPtr matrix);
+
+Bool
+PictureTransformPoint3d (PictTransformPtr transform,
+                         PictVectorPtr	vector);
+
+Bool
+PictureTransformPoint (PictTransformPtr transform,
+		       PictVectorPtr	vector);
+
+Bool
+PictureTransformMultiply (PictTransformPtr dst,
+			  PictTransformPtr l, PictTransformPtr r);
+
+void
+PictureTransformInitScale (PictTransformPtr t, xFixed sx, xFixed sy);
+
+Bool
+PictureTransformScale (PictTransformPtr forward,
+		       PictTransformPtr reverse,
+		       xFixed sx, xFixed sy);
+
+void
+PictureTransformInitRotate (PictTransformPtr t, xFixed c, xFixed s);
+
+Bool
+PictureTransformRotate (PictTransformPtr forward,
+			PictTransformPtr reverse,
+			xFixed c, xFixed s);
+
+void
+PictureTransformInitTranslate (PictTransformPtr t, xFixed tx, xFixed ty);
+
+Bool
+PictureTransformTranslate (PictTransformPtr forward,
+			   PictTransformPtr reverse,
+			   xFixed tx, xFixed ty);
+
+void
+PictureTransformBounds (BoxPtr b, PictTransformPtr matrix);
+
+Bool
+PictureTransformIsIdentity(PictTransform *t);
+
+Bool
+PictureTransformIsUnit(PictTransform *t);
+
+Bool
+PictureTransformIsScale(PictTransform *t);
+
+Bool
+PictureTransformIsScale(PictTransform *t);
+
+Bool
+PictureTransformIsTranslate (PictTransform *t);
+
+Bool
+PictureTransformIsInverse(PictTransform *t, PictTransform *i);
 
 #endif /* _PICTURESTR_H_ */
