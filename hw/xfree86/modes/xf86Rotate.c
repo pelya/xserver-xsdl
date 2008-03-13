@@ -261,7 +261,7 @@ PictureTransformIsInverse (char *where, PictTransform *a, PictTransform *b)
 	ErrorF (" * ");
 	PictureTransformErrorF (b);
 	ErrorF (" = ");
-	PictureTransformErrorF (a);
+	PictureTransformErrorF (&t);
 	ErrorF ("\n");
 	return FALSE;
     }
@@ -331,10 +331,11 @@ xf86CrtcDamageShadow (xf86CrtcPtr crtc)
     RegionRec   damage_region;
     ScreenPtr	pScreen = pScrn->pScreen;
 
-    damage_box.x1 = crtc->x;
-    damage_box.x2 = crtc->x + xf86ModeWidth (&crtc->mode, crtc->rotation);
-    damage_box.y1 = crtc->y;
-    damage_box.y2 = crtc->y + xf86ModeHeight (&crtc->mode, crtc->rotation);
+    damage_box.x1 = 0;
+    damage_box.x2 = crtc->mode.HDisplay;
+    damage_box.y1 = 0;
+    damage_box.y2 = crtc->mode.VDisplay;
+    PictureTransformBounds (&damage_box, &crtc->crtc_to_framebuffer);
     REGION_INIT (pScreen, &damage_region, &damage_box, 1);
     DamageRegionAppend(&(*pScreen->GetScreenPixmap)(pScreen)->drawable,
 			&damage_region);
@@ -401,7 +402,7 @@ xf86RotateRedisplay(ScreenPtr pScreen)
 	{
 	    xf86CrtcPtr	    crtc = xf86_config->crtc[c];
 
-	    if (crtc->rotation != RR_Rotate_0 && crtc->enabled)
+	    if (crtc->transform_in_use && crtc->enabled)
 	    {
 		RegionRec   crtc_damage;
 
@@ -582,6 +583,17 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
 
     }
     
+#ifdef RANDR_12_INTERFACE
+    {
+	PictTransform	user_forward, user_reverse;
+	if (RRCrtcGetTransform (crtc->randr_crtc, &user_forward, &user_reverse))
+	{
+	    PictureTransformIsInverse ("user", &user_forward, &user_reverse);
+	    PictureTransformMultiply (&crtc_to_fb, &user_forward, &crtc_to_fb);
+	    PictureTransformMultiply (&fb_to_crtc, &fb_to_crtc, &user_reverse);
+	}
+    }
+#endif
     /*
      * If the untranslated transformation is the identity,
      * disable the shadow buffer

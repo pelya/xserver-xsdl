@@ -359,6 +359,25 @@ RRCrtcSet (RRCrtcPtr    crtc,
 }
 
 /*
+ * Return crtc transform
+ */
+Bool
+RRCrtcGetTransform (RRCrtcPtr crtc,
+		    PictTransformPtr crtc_to_fb,
+		    PictTransformPtr fb_to_crtc)
+{
+    return FALSE;
+}
+
+/*
+ * Mark the pending transform as current
+ */
+void
+RRCrtcPostPendingTransform (RRCrtcPtr crtc)
+{
+}
+
+/*
  * Destroy a Crtc at shutdown
  */
 void
