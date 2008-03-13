@@ -428,6 +428,9 @@ xf86GetEntityInfo(int entityIndex)
     EntityInfoPtr pEnt;
     int i;
     
+    if (entityIndex == -1)
+	return NULL;
+
     if (entityIndex >= xf86NumEntities)
 	return NULL;
     

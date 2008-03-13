@@ -57,6 +57,13 @@ xf86ClaimFbSlot(DriverPtr drvp, int chipset, GDevPtr dev, Bool active)
 {
     EntityPtr p;
     int num;
+
+    if (pciSlotClaimed)
+	return -1;
+#if defined(__sparc__) || defined (__sparc64__)
+    if (sbusSlotClaimed)
+	return -1;
+#endif
     
     num = xf86AllocateEntity();
     p = xf86Entities[num];
