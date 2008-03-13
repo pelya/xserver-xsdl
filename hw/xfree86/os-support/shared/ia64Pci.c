@@ -42,12 +42,7 @@
 #include <linux/pci.h>
 
 #include "compiler.h"
-#include "460gxPCI.h"
-#include "e8870PCI.h"
-#include "zx1PCI.h"
-#include "altixPCI.h"
 #include "Pci.h"
-#include "ia64Pci.h"
 
 /*
  * We use special in/out routines here since Altix platforms require the
@@ -191,53 +186,3 @@ _X_EXPORT unsigned int inl(unsigned long port)
     return val;
 }
 
-void
-ia64ScanPCIWrapper(scanpciWrapperOpt flags)
-{
-    static IA64Chipset chipset = NONE_CHIPSET;
-    
-    if (flags == SCANPCI_INIT) {
-
-	/* PCI configuration space probes should be done first */
-	if (xorgProbe460GX(flags)) {
-	    chipset = I460GX_CHIPSET;
-	    xf86PreScan460GX();	
-	    return;
-	} else if (xorgProbeE8870(flags)) {
-	    chipset = E8870_CHIPSET;
-	    xf86PreScanE8870();
-	    return;
-	}
-#ifdef OS_PROBE_PCI_CHIPSET
-	chipset = OS_PROBE_PCI_CHIPSET(flags);
-	switch (chipset) {
-	    case ZX1_CHIPSET:
-		xf86PreScanZX1();
-		return;
-	    case ALTIX_CHIPSET:
-		xf86PreScanAltix();
-		return;
-	    default:
-		return;
-	}
-#endif
-    } else /* if (flags == SCANPCI_TERM) */ {
-
-	switch (chipset) {
-	    case I460GX_CHIPSET:
-		xf86PostScan460GX();
-		return;
-	    case E8870_CHIPSET:
-		xf86PostScanE8870();
-		return;
-	    case ZX1_CHIPSET:
-		xf86PostScanZX1();
-		return;
-	    case ALTIX_CHIPSET:
-		xf86PostScanAltix();
-		return;
-	    default:
-		return;
-	}
-    }
-}

@@ -27,18 +27,6 @@ if LINUX_ALPHA
 PCI_SOURCES += axpPci.c
 endif
 
-if LINUX_IA64
-PLATFORM_PCI_SOURCES = \
-	460gxPCI.c \
-	460gxPCI.h \
-	altixPCI.c \
-	altixPCI.h \
-	e8870PCI.c \
-	e8870PCI.h \
-	zx1PCI.c \
-	zx1PCI.h
-endif
-
 if XORG_BUS_SPARC
 PLATFORM_SOURCES = Sbus.c
 sdk_HEADERS += xf86Sbus.h
