@@ -184,7 +184,7 @@ typedef struct _Picture {
     SourcePictPtr   pSourcePict;
 } PictureRec;
 
-typedef Bool (*PictFilterValidateParamsProcPtr) (PicturePtr pPicture, int id,
+typedef Bool (*PictFilterValidateParamsProcPtr) (ScreenPtr pScreen, int id,
 						 xFixed *params, int nparams);
 typedef struct {
     char			    *name;
@@ -473,7 +473,12 @@ PictFilterPtr
 PictureFindFilter (ScreenPtr pScreen, char *name, int len);
 
 int
-SetPictureFilter (PicturePtr pPicture, char *name, int len, xFixed *params, int nparams);
+SetPicturePictFilter (PicturePtr pPicture, PictFilterPtr pFilter,
+		      xFixed *params, int nparams);
+
+int
+SetPictureFilter (PicturePtr pPicture, char *name, int len,
+		  xFixed *params, int nparams);
 
 Bool
 PictureFinishInit (void);
