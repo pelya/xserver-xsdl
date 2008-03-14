@@ -720,12 +720,17 @@ Bool
 PictureTransformIsScale(PictTransform *t);
 
 Bool
-PictureTransformIsScale(PictTransform *t);
-
-Bool
 PictureTransformIsTranslate (PictTransform *t);
 
 Bool
 PictureTransformIsInverse(PictTransform *t, PictTransform *i);
+
+void
+PictTransform_from_xRenderTransform (PictTransformPtr pict,
+				     xRenderTransform *render);
+
+void
+xRenderTransform_from_PictTransform (xRenderTransform *render,
+				     PictTransformPtr pict);
 
 #endif /* _PICTURESTR_H_ */
