@@ -23,7 +23,7 @@
 #include "randrstr.h"
 
 #define SERVER_RANDR_MAJOR	1
-#define SERVER_RANDR_MINOR	2
+#define SERVER_RANDR_MINOR	3
 
 Bool
 RRClientKnowsRates (ClientPtr	pClient)
@@ -211,5 +211,8 @@ int (*ProcRandrVector[RRNumberRequests])(ClientPtr) = {
     ProcRRGetCrtcGammaSize,	/* 22 */
     ProcRRGetCrtcGamma,		/* 23 */
     ProcRRSetCrtcGamma,		/* 24 */
+/* V1.3 additions */
+    ProcRRSetCrtcTransform,	/* 25 */
+    ProcRRGetCrtcTransform,	/* 26 */
 };
 

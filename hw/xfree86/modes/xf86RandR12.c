@@ -755,6 +755,9 @@ xf86RandR12CrtcSet (ScreenPtr	pScreen,
     if (rotation != crtc->rotation)
 	changed = TRUE;
 
+    if (RRCrtcPendingTransform (randr_crtc))
+	changed = TRUE;
+
     if (x != crtc->x || y != crtc->y)
 	changed = TRUE;
     for (o = 0; o < config->num_output; o++) 

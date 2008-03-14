@@ -364,6 +364,26 @@ SProcRRSetCrtcGamma (ClientPtr client)
     return (*ProcRandrVector[stuff->randrReqType]) (client);
 }
 
+static int
+SProcRRSetCrtcTransform (ClientPtr client)
+{
+    REQUEST(xRRSetCrtcTransformReq);
+    
+    REQUEST_SIZE_MATCH(xRRSetCrtcTransformReq);
+    (void) stuff;
+    return BadImplementation; 
+}
+
+static int
+SProcRRGetCrtcTransform (ClientPtr client)
+{
+    REQUEST(xRRGetCrtcTransformReq);
+    
+    REQUEST_SIZE_MATCH(xRRGetCrtcTransformReq);
+    (void) stuff;
+    return BadImplementation; 
+}
+
 int (*SProcRandrVector[RRNumberRequests])(ClientPtr) = {
     SProcRRQueryVersion,	/* 0 */
 /* we skip 1 to make old clients fail pretty immediately */
@@ -394,5 +414,8 @@ int (*SProcRandrVector[RRNumberRequests])(ClientPtr) = {
     SProcRRGetCrtcGammaSize,	/* 22 */
     SProcRRGetCrtcGamma,	/* 23 */
     SProcRRSetCrtcGamma,	/* 24 */
+/* V1.3 additions */
+    SProcRRSetCrtcTransform,	/* 25 */
+    SProcRRGetCrtcTransform,	/* 26 */
 };
 

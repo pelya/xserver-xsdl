@@ -351,6 +351,10 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 #endif
 	}
     }
+#ifdef RANDR_12_INTERFACE
+    if (crtc->randr_crtc)
+	RRCrtcPostPendingTransform (crtc->randr_crtc);
+#endif
 
     /* XXX free adjustedmode */
     ret = TRUE;

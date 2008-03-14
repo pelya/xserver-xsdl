@@ -89,6 +89,12 @@ RRCrtcCreate (ScreenPtr pScreen, void *devPrivate)
     crtc->gammaRed = crtc->gammaBlue = crtc->gammaGreen = NULL;
     crtc->changed = FALSE;
     crtc->devPrivate = devPrivate;
+    PictureTransformInitIdentity (&crtc->client_pending_transform);
+    PictureTransformInitIdentity (&crtc->client_pending_inverse);
+    PictureTransformInitIdentity (&crtc->client_current_transform);
+    PictureTransformInitIdentity (&crtc->client_current_inverse);
+    PictureTransformInitIdentity (&crtc->transform);
+    PictureTransformInitIdentity (&crtc->inverse);
 
     if (!AddResource (crtc->id, RRCrtcType, (pointer) crtc))
 	return NULL;
@@ -290,7 +296,8 @@ RRCrtcSet (RRCrtcPtr    crtc,
 	crtc->rotation == rotation &&
 	crtc->numOutputs == numOutputs &&
 	!memcmp (crtc->outputs, outputs, numOutputs * sizeof (RROutputPtr)) &&
-	!RRCrtcPendingProperties (crtc))
+	!RRCrtcPendingProperties (crtc) &&
+	!RRCrtcPendingTransform (crtc))
     {
 	ret = TRUE;
     }
@@ -366,7 +373,9 @@ RRCrtcGetTransform (RRCrtcPtr crtc,
 		    PictTransformPtr crtc_to_fb,
 		    PictTransformPtr fb_to_crtc)
 {
-    return FALSE;
+    *crtc_to_fb = crtc->client_pending_transform;
+    *fb_to_crtc = crtc->client_pending_inverse;
+    return !PictureTransformIsIdentity (crtc_to_fb);
 }
 
 /*
@@ -375,6 +384,24 @@ RRCrtcGetTransform (RRCrtcPtr crtc,
 void
 RRCrtcPostPendingTransform (RRCrtcPtr crtc)
 {
+    crtc->client_current_transform = crtc->client_pending_transform;
+    crtc->client_current_inverse = crtc->client_pending_inverse;
+    RRComputeTransform (crtc->mode, crtc->rotation, crtc->x, crtc->y,
+			&crtc->client_current_transform,
+			&crtc->client_current_inverse,
+			&crtc->transform,
+			&crtc->inverse);
+}
+
+/*
+ * Check whether the pending and current transforms are the same
+ */
+Bool
+RRCrtcPendingTransform (RRCrtcPtr crtc)
+{
+    return memcmp (&crtc->client_current_transform,
+		   &crtc->client_pending_transform,
+		   sizeof (PictTransform)) != 0;
 }
 
 /*
@@ -510,6 +537,122 @@ RRCrtcGammaSetSize (RRCrtcPtr	crtc,
     crtc->gammaBlue = gamma + size*2;
     crtc->gammaSize = size;
     return TRUE;
+}
+
+/*
+ * Set the pending CRTC transformation
+ */
+
+int
+RRCrtcTransformSet (RRCrtcPtr		crtc,
+		    PictTransformPtr	transform,
+		    PictTransformPtr	inverse)
+{
+    if (!PictureTransformIsInverse (transform, inverse))
+	return BadMatch;
+    crtc->client_pending_transform = *transform;
+    crtc->client_pending_inverse = *inverse;
+    return Success;
+}
+
+#define F(x)	IntToxFixed(x)
+
+/*
+ * Compute the complete transformation matrix including
+ * client-specified transform, rotation/reflection values and the crtc 
+ * offset.
+ *
+ * Return TRUE if the resulting transform is not a simple translation.
+ */
+Bool
+RRComputeTransform (RRModePtr		mode,
+		    Rotation		rotation,
+		    int			x,
+		    int			y,
+		    PictTransformPtr	client_transform,
+		    PictTransformPtr	client_inverse,
+		    PictTransformPtr    transform,
+		    PictTransformPtr    inverse)
+{
+    PictureTransformInitIdentity (transform);
+    PictureTransformInitIdentity (inverse);
+    if (rotation != RR_Rotate_0)
+    {
+	xFixed	rot_cos, rot_sin, rot_dx, rot_dy;
+	xFixed	scale_x, scale_y, scale_dx, scale_dy;
+	int	mode_w = mode->mode.width;
+	int	mode_h = mode->mode.height;
+	
+	/* rotation */
+	switch (rotation & 0xf) {
+	default:
+	case RR_Rotate_0:
+	    rot_cos = F ( 1);	    rot_sin = F ( 0);
+	    rot_dx  = F ( 0);	    rot_dy  = F ( 0);
+	    break;
+	case RR_Rotate_90:
+	    rot_cos = F ( 0);	    rot_sin = F ( 1);
+	    rot_dx =  F ( mode_h);  rot_dy  = F (0);
+	    break;
+	case RR_Rotate_180:
+	    rot_cos = F (-1);	    rot_sin = F ( 0);
+	    rot_dx  = F (mode_w);   rot_dy  = F ( mode_h);
+	    break;
+	case RR_Rotate_270:
+	    rot_cos = F ( 0);	    rot_sin = F (-1);
+	    rot_dx  = F ( 0);	    rot_dy  = F ( mode_w);
+	    break;
+	}
+	
+	PictureTransformRotate (inverse, transform, rot_cos, rot_sin);
+	PictureTransformTranslate (inverse, transform, rot_dx, rot_dy);
+
+	/* reflection */
+	scale_x = F (1);
+	scale_dx = 0;
+	scale_y = F (1);
+	scale_dy = 0;
+	if (rotation & RR_Reflect_X)
+	{
+	    scale_x = F(-1);
+	    if (rotation & (RR_Rotate_0|RR_Rotate_180))
+		scale_dx = F(mode_w);
+	    else
+		scale_dx = F(mode_h);
+	}
+	if (rotation & RR_Reflect_Y)
+	{
+	    scale_y = F(-1);
+	    if (rotation & (RR_Rotate_0|RR_Rotate_180))
+		scale_dy = F(mode_h);
+	    else
+		scale_dy = F(mode_w);
+	}
+	
+	PictureTransformScale (inverse, transform, scale_x, scale_y);
+	PictureTransformTranslate (inverse, transform, scale_dx, scale_dy);
+    }
+    
+#ifdef RANDR_12_INTERFACE
+    {
+        PictureTransformMultiply (inverse, client_inverse, inverse);
+        PictureTransformMultiply (transform, transform, client_transform);
+    }
+#endif
+    /*
+     * Compute the class of the resulting transform
+     */
+    if (PictureTransformIsIdentity (transform))
+    {
+	PictureTransformInitTranslate (inverse,   F (-x), F (-y));
+	PictureTransformInitTranslate (transform, F ( x), F ( y));
+	return FALSE;
+    }
+    else
+    {
+	PictureTransformTranslate (inverse, transform, x, y);
+	return TRUE;
+    }
 }
 
 /*
@@ -977,3 +1120,59 @@ ProcRRSetCrtcGamma (ClientPtr client)
     return Success;
 }
 
+/* Version 1.3 additions */
+
+int
+ProcRRSetCrtcTransform (ClientPtr client)
+{
+    REQUEST(xRRSetCrtcTransformReq);
+    RRCrtcPtr		    crtc;
+    PictTransform	    transform, inverse;
+
+    REQUEST_SIZE_MATCH (xRRSetCrtcTransformReq);
+    crtc = LookupCrtc (client, stuff->crtc, DixWriteAccess);
+    if (!crtc)
+	return RRErrorBase + BadRRCrtc;
+
+    PictTransform_from_xRenderTransform (&transform, &stuff->transform);
+    PictTransform_from_xRenderTransform (&inverse, &stuff->inverse);
+
+    return RRCrtcTransformSet (crtc, &transform, &inverse);
+}
+
+
+#define CrtcTransformExtra	(SIZEOF(xRRGetCrtcTransformReply) - 32)
+				
+int
+ProcRRGetCrtcTransform (ClientPtr client)
+{
+    REQUEST(xRRGetCrtcTransformReq);
+    xRRGetCrtcTransformReply	reply;
+    RRCrtcPtr			crtc;
+    int				n;
+
+    REQUEST_SIZE_MATCH (xRRGetCrtcTransformReq);
+    crtc = LookupCrtc (client, stuff->crtc, DixWriteAccess);
+    if (!crtc)
+	return RRErrorBase + BadRRCrtc;
+
+    reply.type = X_Reply;
+    reply.sequenceNumber = client->sequence;
+    reply.length = CrtcTransformExtra >> 2;
+    
+    xRenderTransform_from_PictTransform (&reply.pendingTransform,
+					 &crtc->client_pending_transform);
+    xRenderTransform_from_PictTransform (&reply.pendingInverse,
+					 &crtc->client_pending_inverse);
+    xRenderTransform_from_PictTransform (&reply.currentTransform,
+					 &crtc->client_current_transform);
+    xRenderTransform_from_PictTransform (&reply.currentInverse,
+					 &crtc->client_current_inverse);
+    if (client->swapped) {
+	swaps (&reply.sequenceNumber, n);
+	swapl (&reply.length, n);
+	SwapLongs ((CARD32 *) &reply.pendingTransform, 40);
+    }
+    WriteToClient (client, sizeof (xRRGetCrtcTransformReply), (char *) &reply);
+    return client->noClientException;
+}
