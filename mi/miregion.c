@@ -89,9 +89,14 @@ Equipment Corporation.
 
 #undef assert
 #ifdef DEBUG
-#define assert(expr) {if (!(expr)) \
-		FatalError("Assertion failed file %s, line %d: expr\n", \
-			__FILE__, __LINE__); }
+#define assert(expr) { \
+            CARD32 *foo = NULL; \
+            if (!(expr)) { \
+                ErrorF("Assertion failed file %s, line %d: %s\n", \
+                       __FILE__, __LINE__, #expr); \
+                *foo = 0xdeadbeef; /* to get a backtrace */ \
+            } \
+        }
 #else
 #define assert(expr)
 #endif
