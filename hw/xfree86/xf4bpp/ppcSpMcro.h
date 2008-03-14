@@ -28,11 +28,11 @@
 #define SETSPANPTRS(IN,N,IPW,PW,IPPT,PPT,FPW,FPPT,FSORT)		\
 	{								\
 	N = IN * miFindMaxBand(pGC->pCompositeClip);			\
-	if(!(PW = (int *)ALLOCATE_LOCAL(N * sizeof(int))))		\
+	if(!(PW = (int *)xalloc(N * sizeof(int))))		\
 		return;							\
-	if(!(PPT = (DDXPointRec *)ALLOCATE_LOCAL(N * sizeof(DDXPointRec)))) \
+	if(!(PPT = (DDXPointRec *)xalloc(N * sizeof(DDXPointRec)))) \
 		{							\
-		DEALLOCATE_LOCAL(PW);					\
+		free(PW);					\
 		return;							\
     		}							\
 	FPW = PW;							\
