@@ -1683,14 +1683,19 @@ aspectMatch(float a, float b)
 }
 
 static DisplayModePtr
-nextAspectMode(DisplayModePtr start, float aspect)
+nextAspectMode(xf86OutputPtr o, DisplayModePtr last, float aspect)
 {
-    DisplayModePtr m = start;
+    DisplayModePtr m = NULL;
 
-    if (!m)
+    if (!o)
 	return NULL;
 
-    for (m = m->next; m; m = m->next)
+    if (!last)
+	m = o->probed_modes;
+    else
+	m = last->next;
+
+    for (; m; m = m->next)
 	if (aspectMatch(aspect, (float)m->HDisplay / (float)m->VDisplay))
 	    return m;
 
@@ -1700,31 +1705,29 @@ nextAspectMode(DisplayModePtr start, float aspect)
 static DisplayModePtr
 bestModeForAspect(xf86CrtcConfigPtr config, Bool *enabled, float aspect)
 {
-    int o, p;
-    DisplayModePtr mode, test = NULL, match = NULL;
+    int o = -1, p;
+    DisplayModePtr mode = NULL, test = NULL, match = NULL;
 
-    for (o = -1; nextEnabledOutput(config, enabled, &o); ) {
-	mode = config->output[o]->probed_modes;
-	while ((mode = nextAspectMode(mode, aspect))) {
-	    for (p = o; nextEnabledOutput(config, enabled, &p); ) {
-		test = xf86OutputFindClosestMode(config->output[p], mode);
-		if (!test)
-		    break;
-		if (test->HDisplay != mode->HDisplay ||
-		    test->VDisplay != mode->VDisplay) {
-		    test = NULL;
-		    break;
-		}
-	    }
-
-	    /* if we didn't match it on all outputs, try the next one */
+    nextEnabledOutput(config, enabled, &o);
+    while ((mode = nextAspectMode(config->output[o], mode, aspect))) {
+	for (p = o; nextEnabledOutput(config, enabled, &p); ) {
+	    test = xf86OutputFindClosestMode(config->output[p], mode);
 	    if (!test)
-		continue;
-
-	    /* if it's bigger than the last one, save it */
-	    if (!match || (test->HDisplay > match->HDisplay))
-		match = test;
+		break;
+	    if (test->HDisplay != mode->HDisplay ||
+		    test->VDisplay != mode->VDisplay) {
+		test = NULL;
+		break;
+	    }
 	}
+
+	/* if we didn't match it on all outputs, try the next one */
+	if (!test)
+	    continue;
+
+	/* if it's bigger than the last one, save it */
+	if (!match || (test->HDisplay > match->HDisplay))
+	    match = test;
     }
 
     /* return the biggest one found */
