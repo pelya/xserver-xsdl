@@ -109,6 +109,9 @@ xf86RotateCrtcRedisplay (xf86CrtcPtr crtc, RegionPtr region)
     error = SetPictureTransform (src, &crtc->crtc_to_framebuffer);
     if (error)
 	return;
+    if (crtc->transform_in_use && crtc->filter)
+	SetPicturePictFilter (src, crtc->filter,
+			      crtc->params, crtc->nparams);
 
     while (n--)
     {
@@ -380,13 +383,33 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
     }
     
 #ifdef RANDR_12_INTERFACE
+    if (crtc->randr_crtc)
     {
-	PictTransform	user_forward, user_reverse;
-	if (crtc->randr_crtc && RRCrtcGetTransform (crtc->randr_crtc, &user_forward, &user_reverse))
+	xFixed		*new_params = NULL;
+	int		new_nparams = 0;
+	PictFilterPtr   new_filter = NULL;
+
+	RRTransformPtr	transform = RRCrtcGetTransform (crtc->randr_crtc);
+	if (transform)
 	{
-	    PictureTransformMultiply (&crtc_to_fb, &user_forward, &crtc_to_fb);
-	    PictureTransformMultiply (&fb_to_crtc, &fb_to_crtc, &user_reverse);
+	    if (transform->nparams) {
+		new_params = xalloc (transform->nparams * sizeof (xFixed));
+		if (new_params) {
+		    memcpy (new_params, transform->params,
+			    transform->nparams * sizeof (xFixed));
+		    new_nparams = transform->nparams;
+		    new_filter = transform->filter;
+		}
+	    } else
+		new_filter = transform->filter;
+	    PictureTransformMultiply (&crtc_to_fb, &transform->transform, &crtc_to_fb);
+	    PictureTransformMultiply (&fb_to_crtc, &fb_to_crtc, &transform->inverse);
 	}
+	if (crtc->params)
+	    xfree (crtc->params);
+	crtc->params = new_params;
+	crtc->nparams = new_nparams;
+	crtc->filter = new_filter;
     }
 #endif
     /*

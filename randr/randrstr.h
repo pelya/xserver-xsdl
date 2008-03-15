@@ -78,6 +78,7 @@ typedef struct _rrPropertyValue	RRPropertyValueRec, *RRPropertyValuePtr;
 typedef struct _rrProperty	RRPropertyRec, *RRPropertyPtr;
 typedef struct _rrCrtc		RRCrtcRec, *RRCrtcPtr;
 typedef struct _rrOutput	RROutputRec, *RROutputPtr;
+typedef struct _rrTransform	RRTransformRec, *RRTransformPtr;
 
 struct _rrMode {
     int		    refcnt;
@@ -104,6 +105,14 @@ struct _rrProperty {
     RRPropertyValueRec	current, pending;
 };
 
+struct _rrTransform {
+    PictTransform   transform;
+    PictTransform   inverse;
+    PictFilterPtr   filter;
+    xFixed	    *params;
+    int		    nparams;
+};
+
 struct _rrCrtc {
     RRCrtc	    id;
     ScreenPtr	    pScreen;
@@ -119,10 +128,8 @@ struct _rrCrtc {
     CARD16	    *gammaBlue;
     CARD16	    *gammaGreen;
     void	    *devPrivate;
-    PictTransform   client_pending_transform;
-    PictTransform   client_pending_inverse;
-    PictTransform   client_current_transform;
-    PictTransform   client_current_inverse;
+    RRTransformRec  client_pending_transform;
+    RRTransformRec  client_current_transform;
     PictTransform   transform;
     PictTransform   inverse;
 };
@@ -612,10 +619,8 @@ RRComputeTransform (RRModePtr		mode,
 /*
  * Return crtc transform
  */
-Bool
-RRCrtcGetTransform (RRCrtcPtr crtc,
-		    PictTransformPtr crtc_to_fb,
-		    PictTransformPtr fb_to_crtc);
+RRTransformPtr
+RRCrtcGetTransform (RRCrtcPtr crtc);
 
 /*
  * Mark the pending transform as current
@@ -643,7 +648,11 @@ RRCrtcDestroy (RRCrtcPtr crtc);
 int
 RRCrtcTransformSet (RRCrtcPtr		crtc,
 		    PictTransformPtr	transform,
-		    PictTransformPtr	inverse);
+		    PictTransformPtr	inverse,
+		    char		*filter,
+		    int			filter_len,
+		    xFixed		*params,
+		    int			nparams);
 
 /*
  * Initialize crtc type

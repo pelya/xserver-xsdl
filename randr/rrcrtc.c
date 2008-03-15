@@ -48,6 +48,52 @@ RRCrtcChanged (RRCrtcPtr crtc, Bool layoutChanged)
     }
 }
 
+static void
+RRTransformInit (RRTransformPtr transform)
+{
+    PictureTransformInitIdentity (&transform->transform);
+    PictureTransformInitIdentity (&transform->inverse);
+    transform->filter = NULL;
+    transform->params = NULL;
+    transform->nparams = 0;
+}
+
+static Bool
+RRTransformSetFilter (RRTransformPtr	dst,
+		      PictFilterPtr	filter,
+		      xFixed		*params,
+		      int		nparams)
+{
+    xFixed  *new_params;
+
+    if (nparams)
+    {
+	new_params = xalloc (nparams * sizeof (xFixed));
+	if (!new_params)
+	    return FALSE;
+	memcpy (new_params, params, nparams * sizeof (xFixed));
+    }
+    else
+	new_params = NULL;
+    if (dst->params)
+	xfree (dst->params);
+    dst->filter = filter;
+    dst->params = new_params;
+    dst->nparams = nparams;
+    return TRUE;
+}
+
+static Bool
+RRTransformCopy (RRTransformPtr dst, RRTransformPtr src)
+{
+    if (!RRTransformSetFilter (dst, src->filter,
+			       src->params, src->nparams))
+	return FALSE;
+    dst->transform = src->transform;
+    dst->inverse = src->inverse;
+    return TRUE;
+}
+
 /*
  * Create a CRTC
  */
@@ -89,10 +135,8 @@ RRCrtcCreate (ScreenPtr pScreen, void *devPrivate)
     crtc->gammaRed = crtc->gammaBlue = crtc->gammaGreen = NULL;
     crtc->changed = FALSE;
     crtc->devPrivate = devPrivate;
-    PictureTransformInitIdentity (&crtc->client_pending_transform);
-    PictureTransformInitIdentity (&crtc->client_pending_inverse);
-    PictureTransformInitIdentity (&crtc->client_current_transform);
-    PictureTransformInitIdentity (&crtc->client_current_inverse);
+    RRTransformInit (&crtc->client_pending_transform);
+    RRTransformInit (&crtc->client_current_transform);
     PictureTransformInitIdentity (&crtc->transform);
     PictureTransformInitIdentity (&crtc->inverse);
 
@@ -368,14 +412,14 @@ RRCrtcSet (RRCrtcPtr    crtc,
 /*
  * Return crtc transform
  */
-Bool
-RRCrtcGetTransform (RRCrtcPtr crtc,
-		    PictTransformPtr crtc_to_fb,
-		    PictTransformPtr fb_to_crtc)
+RRTransformPtr
+RRCrtcGetTransform (RRCrtcPtr crtc)
 {
-    *crtc_to_fb = crtc->client_pending_transform;
-    *fb_to_crtc = crtc->client_pending_inverse;
-    return !PictureTransformIsIdentity (crtc_to_fb);
+    RRTransformPtr  transform = &crtc->client_pending_transform;
+
+    if (PictureTransformIsIdentity (&transform->transform))
+	return NULL;
+    return transform;
 }
 
 /*
@@ -384,11 +428,11 @@ RRCrtcGetTransform (RRCrtcPtr crtc,
 void
 RRCrtcPostPendingTransform (RRCrtcPtr crtc)
 {
-    crtc->client_current_transform = crtc->client_pending_transform;
-    crtc->client_current_inverse = crtc->client_pending_inverse;
+    RRTransformCopy (&crtc->client_current_transform,
+		     &crtc->client_pending_transform);
     RRComputeTransform (crtc->mode, crtc->rotation, crtc->x, crtc->y,
-			&crtc->client_current_transform,
-			&crtc->client_current_inverse,
+			&crtc->client_current_transform.transform,
+			&crtc->client_current_transform.inverse,
 			&crtc->transform,
 			&crtc->inverse);
 }
@@ -399,8 +443,8 @@ RRCrtcPostPendingTransform (RRCrtcPtr crtc)
 Bool
 RRCrtcPendingTransform (RRCrtcPtr crtc)
 {
-    return memcmp (&crtc->client_current_transform,
-		   &crtc->client_pending_transform,
+    return memcmp (&crtc->client_current_transform.transform,
+		   &crtc->client_pending_transform.transform,
 		   sizeof (PictTransform)) != 0;
 }
 
@@ -546,12 +590,41 @@ RRCrtcGammaSetSize (RRCrtcPtr	crtc,
 int
 RRCrtcTransformSet (RRCrtcPtr		crtc,
 		    PictTransformPtr	transform,
-		    PictTransformPtr	inverse)
+		    PictTransformPtr	inverse,
+		    char		*filter_name,
+		    int			filter_len,
+		    xFixed		*params,
+		    int			nparams)
 {
+    PictFilterPtr   filter = NULL;
+
     if (!PictureTransformIsInverse (transform, inverse))
 	return BadMatch;
-    crtc->client_pending_transform = *transform;
-    crtc->client_pending_inverse = *inverse;
+    if (filter_len)
+    {
+	filter = PictureFindFilter (crtc->pScreen,
+				    filter_name,
+				    filter_len);
+	if (!filter)
+	    return BadName;
+	if (filter->ValidateParams)
+	{
+	    if (!filter->ValidateParams (crtc->pScreen, filter->id,
+					 params, nparams))
+		return BadMatch;
+	}
+    }
+    else
+    {
+	if (nparams)
+	    return BadMatch;
+    }
+    if (!RRTransformSetFilter (&crtc->client_pending_transform,
+			       filter, params, nparams))
+	return BadAlloc;
+
+    crtc->client_pending_transform.transform = *transform;
+    crtc->client_pending_transform.inverse = *inverse;
     return Success;
 }
 
@@ -1128,8 +1201,12 @@ ProcRRSetCrtcTransform (ClientPtr client)
     REQUEST(xRRSetCrtcTransformReq);
     RRCrtcPtr		    crtc;
     PictTransform	    transform, inverse;
+    char		    *filter;
+    int			    nbytes;
+    xFixed		    *params;
+    int			    nparams;
 
-    REQUEST_SIZE_MATCH (xRRSetCrtcTransformReq);
+    REQUEST_AT_LEAST_SIZE(xRRSetCrtcTransformReq);
     crtc = LookupCrtc (client, stuff->crtc, DixWriteAccess);
     if (!crtc)
 	return RRErrorBase + BadRRCrtc;
@@ -1137,42 +1214,124 @@ ProcRRSetCrtcTransform (ClientPtr client)
     PictTransform_from_xRenderTransform (&transform, &stuff->transform);
     PictTransform_from_xRenderTransform (&inverse, &stuff->inverse);
 
-    return RRCrtcTransformSet (crtc, &transform, &inverse);
+    filter = (char *) (stuff + 1);
+    nbytes = stuff->nbytesFilter;
+    params = (xFixed *) (filter + ((nbytes + 3) & ~3));
+    nparams = ((xFixed *) stuff + client->req_len) - params;
+    if (nparams < 0)
+	return BadLength;
+
+    return RRCrtcTransformSet (crtc, &transform, &inverse,
+			       filter, nbytes, params, nparams);
 }
 
 
 #define CrtcTransformExtra	(SIZEOF(xRRGetCrtcTransformReply) - 32)
 				
+static int
+transform_filter_length (RRTransformPtr transform)
+{
+    int	nbytes, nparams;
+
+    if (transform->filter == NULL)
+	return 0;
+    nbytes = strlen (transform->filter->name);
+    nparams = transform->nparams;
+    return ((nbytes + 3) & ~3) + (nparams * sizeof (xFixed));
+}
+
+static int
+transform_filter_encode (ClientPtr client, char *output,
+			 CARD16	*nbytesFilter,
+			 CARD16	*nparamsFilter,
+			 RRTransformPtr transform)
+{
+    char    *output_orig = output;
+    int	    nbytes, nparams;
+    int	    n;
+
+    if (transform->filter == NULL) {
+	*nbytesFilter = 0;
+	*nparamsFilter = 0;
+	return 0;
+    }
+    nbytes = strlen (transform->filter->name);
+    nparams = transform->nparams;
+    *nbytesFilter = nbytes;
+    *nparamsFilter = nparams;
+    memcpy (output, transform->filter->name, nbytes);
+    output += nbytes;
+    while ((nbytes & 3) != 0)
+	*output++ = 0;
+    memcpy (output, transform->params, nparams * sizeof (xFixed));
+    if (client->swapped) {
+	swaps (nbytesFilter, n);
+	swaps (nparamsFilter, n);
+	SwapLongs ((CARD32 *) output, nparams * sizeof (xFixed));
+    }
+    output += nparams * sizeof (xFixed);
+    return output - output_orig;
+}
+
+static void
+transform_encode (ClientPtr client, xRenderTransform *wire, PictTransform *pict)
+{
+    xRenderTransform_from_PictTransform (wire, pict);
+    if (client->swapped)
+	SwapLongs ((CARD32 *) wire, sizeof (xRenderTransform));
+}
+
 int
 ProcRRGetCrtcTransform (ClientPtr client)
 {
     REQUEST(xRRGetCrtcTransformReq);
-    xRRGetCrtcTransformReply	reply;
+    xRRGetCrtcTransformReply	*reply;
     RRCrtcPtr			crtc;
-    int				n;
+    int				n, nextra;
+    RRTransformPtr		current, pending;
+    char			*extra;
 
     REQUEST_SIZE_MATCH (xRRGetCrtcTransformReq);
     crtc = LookupCrtc (client, stuff->crtc, DixWriteAccess);
     if (!crtc)
 	return RRErrorBase + BadRRCrtc;
 
-    reply.type = X_Reply;
-    reply.sequenceNumber = client->sequence;
-    reply.length = CrtcTransformExtra >> 2;
-    
-    xRenderTransform_from_PictTransform (&reply.pendingTransform,
-					 &crtc->client_pending_transform);
-    xRenderTransform_from_PictTransform (&reply.pendingInverse,
-					 &crtc->client_pending_inverse);
-    xRenderTransform_from_PictTransform (&reply.currentTransform,
-					 &crtc->client_current_transform);
-    xRenderTransform_from_PictTransform (&reply.currentInverse,
-					 &crtc->client_current_inverse);
+    pending = &crtc->client_pending_transform;
+    current = &crtc->client_current_transform;
+
+    nextra = (transform_filter_length (pending) +
+	      transform_filter_length (current));
+
+    reply = xalloc (sizeof (xRRGetCrtcTransformReply) + nextra);
+    if (!reply)
+	return BadAlloc;
+
+    extra = (char *) (reply + 1);
+    reply->type = X_Reply;
+    reply->sequenceNumber = client->sequence;
+    reply->length = (CrtcTransformExtra + nextra) >> 2;
+
+    /* XXX deal with DDXen that can't do transforms */
+    reply->hasTransforms = xTrue;
+
+    transform_encode (client, &reply->pendingTransform, &pending->transform);
+    transform_encode (client, &reply->pendingInverse, &pending->inverse);
+    extra += transform_filter_encode (client, extra,
+				      &reply->pendingNbytesFilter,
+				      &reply->pendingNparamsFilter,
+				      pending);
+
+    transform_encode (client, &reply->currentTransform, &current->transform);
+    transform_encode (client, &reply->currentInverse, &current->inverse);
+    extra += transform_filter_encode (client, extra,
+				      &reply->currentNbytesFilter,
+				      &reply->currentNparamsFilter,
+				      current);
+
     if (client->swapped) {
-	swaps (&reply.sequenceNumber, n);
-	swapl (&reply.length, n);
-	SwapLongs ((CARD32 *) &reply.pendingTransform, 40);
+	swaps (&reply->sequenceNumber, n);
+	swapl (&reply->length, n);
     }
-    WriteToClient (client, sizeof (xRRGetCrtcTransformReply), (char *) &reply);
+    WriteToClient (client, sizeof (xRRGetCrtcTransformReply) + nextra, (char *) reply);
     return client->noClientException;
 }

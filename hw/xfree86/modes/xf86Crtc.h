@@ -306,6 +306,9 @@ struct _xf86Crtc {
      */
     PictTransform   crtc_to_framebuffer;
     PictTransform   framebuffer_to_crtc;
+    PictFilterPtr   filter;
+    xFixed	    *params;
+    int		    nparams;
     Bool	    transform_in_use;
     /**
      * Bounding box in screen space
