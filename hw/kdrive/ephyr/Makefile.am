@@ -35,6 +35,7 @@ if XEPHYR_HAS_DRI
 
 libxephyr_hostdri_a_SOURCES= \
 ephyrdriext.c	\
+ephyrdriext.h	\
 ephyrdri.c	\
 ephyrdri.h	\
 XF86dri.c	\
