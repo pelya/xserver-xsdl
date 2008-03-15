@@ -320,6 +320,8 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
     SetFrontProcess(&psn);
 
     QuartzMessageServerThread(kXDarwinBringAllToFront, 0);
+    ProcessSerialNumber psn = { 0, kCurrentProcess };
+    SetFrontProcess(&psn);
 }
 
 - (void) set_can_quit:(NSNumber *)state {
