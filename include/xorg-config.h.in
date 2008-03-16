@@ -115,6 +115,9 @@
 /* Have execinfo.h */
 #undef HAVE_EXECINFO_H
 
+/* Have pci_system_init_dev_mem() */
+#undef HAVE_PCI_SYSTEM_INIT_DEV_MEM
+
 /* Path to text files containing PCI IDs */
 #undef PCI_TXT_IDS_PATH
 
