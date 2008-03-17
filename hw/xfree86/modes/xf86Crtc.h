@@ -309,6 +309,8 @@ struct _xf86Crtc {
     PictFilterPtr   filter;
     xFixed	    *params;
     int		    nparams;
+    int		    filter_width;
+    int		    filter_height;
     Bool	    transform_in_use;
     /**
      * Bounding box in screen space

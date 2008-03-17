@@ -118,6 +118,10 @@ xf86RotateCrtcRedisplay (xf86CrtcPtr crtc, RegionPtr region)
 	BoxRec	dst_box;
 
 	dst_box = *b;
+	dst_box.x1 -= crtc->filter_width >> 2;
+	dst_box.x2 += crtc->filter_width >> 2;
+	dst_box.y1 -= crtc->filter_width >> 2;
+	dst_box.y2 += crtc->filter_width >> 2;
 	PictureTransformBounds (&dst_box, &crtc->framebuffer_to_crtc);
 	CompositePicture (PictOpSrc,
 			  src, NULL, dst,
@@ -322,6 +326,11 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
     /* if this is called during ScreenInit() we don't have pScrn->pScreen yet */
     ScreenPtr		pScreen = screenInfo.screens[pScrn->scrnIndex];
     PictTransform	crtc_to_fb, fb_to_crtc;
+    xFixed		*new_params = NULL;
+    int			new_nparams = 0;
+    PictFilterPtr	new_filter = NULL;
+    int			new_width = 0;
+    int			new_height = 0;
     
     PictureTransformInitIdentity (&crtc_to_fb);
     PictureTransformInitIdentity (&fb_to_crtc);
@@ -385,9 +394,6 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
 #ifdef RANDR_12_INTERFACE
     if (crtc->randr_crtc)
     {
-	xFixed		*new_params = NULL;
-	int		new_nparams = 0;
-	PictFilterPtr   new_filter = NULL;
 
 	RRTransformPtr	transform = RRCrtcGetTransform (crtc->randr_crtc);
 	if (transform)
@@ -405,11 +411,6 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
 	    PictureTransformMultiply (&crtc_to_fb, &transform->transform, &crtc_to_fb);
 	    PictureTransformMultiply (&fb_to_crtc, &fb_to_crtc, &transform->inverse);
 	}
-	if (crtc->params)
-	    xfree (crtc->params);
-	crtc->params = new_params;
-	crtc->nparams = new_nparams;
-	crtc->filter = new_filter;
     }
 #endif
     /*
@@ -418,12 +419,19 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
      */
     if (PictureTransformIsIdentity (&crtc_to_fb))
     {
-	crtc->transform_in_use = FALSE;
-	PictureTransformInitTranslate (&crtc->crtc_to_framebuffer, 
+	PictureTransformInitTranslate (&crtc_to_fb,
 				       F (-crtc->x), F (-crtc->y));
-	PictureTransformInitTranslate (&crtc->framebuffer_to_crtc,
+	PictureTransformInitTranslate (&fb_to_crtc,
 				       F ( crtc->x), F ( crtc->y));
 	xf86RotateDestroy (crtc);
+	crtc->transform_in_use = FALSE;
+	if (new_params)
+	    xfree (new_params);
+	new_params = NULL;
+	new_nparams = 0;
+	new_filter = NULL;
+	new_width = 0;
+	new_height = 0;
     }
     else
     {
@@ -494,17 +502,26 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
 								  NULL,
 								  old_width,
 								  old_height);
+	    if (new_params)
+		xfree (new_params);
 	    return FALSE;
 	}
 	crtc->transform_in_use = TRUE;
-	crtc->crtc_to_framebuffer = crtc_to_fb;
-	crtc->framebuffer_to_crtc = fb_to_crtc;
-	crtc->bounds.x1 = 0;
-	crtc->bounds.x2 = crtc->mode.HDisplay;
-	crtc->bounds.y1 = 0;
-	crtc->bounds.y2 = crtc->mode.VDisplay;
-	PictureTransformBounds (&crtc->bounds, &crtc_to_fb);
     }
+    crtc->crtc_to_framebuffer = crtc_to_fb;
+    crtc->framebuffer_to_crtc = fb_to_crtc;
+    if (crtc->params)
+	xfree (crtc->params);
+    crtc->params = new_params;
+    crtc->nparams = new_nparams;
+    crtc->filter = new_filter;
+    crtc->filter_width = new_width;
+    crtc->filter_height = new_height;
+    crtc->bounds.x1 = 0;
+    crtc->bounds.x2 = crtc->mode.HDisplay;
+    crtc->bounds.y1 = 0;
+    crtc->bounds.y2 = crtc->mode.VDisplay;
+    PictureTransformBounds (&crtc->bounds, &crtc_to_fb);
     
     /* All done */
     return TRUE;
