@@ -37,6 +37,7 @@
 #include "xf86Crtc.h"
 #include "xf86Modes.h"
 #include "xf86RandR12.h"
+#include "xf86CursorPriv.h"
 #include "X11/extensions/render.h"
 #define DPMS_SERVER
 #include "X11/extensions/dpms.h"
@@ -321,10 +322,18 @@ xf86_crtc_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
      */
     if (crtc->transform_in_use)
     {
+	ScreenPtr	screen = scrn->pScreen;
+	xf86CursorScreenPtr ScreenPriv =
+	    (xf86CursorScreenPtr)dixLookupPrivate(&screen->devPrivates,
+						  xf86CursorScreenKey);
 	PictVector	v;
+	x += ScreenPriv->HotX;
+	y += ScreenPriv->HotY;
 	v.vector[0] = IntToxFixed (x); v.vector[1] = IntToxFixed (y); v.vector[2] = IntToxFixed(1);
 	PictureTransformPoint (&crtc->framebuffer_to_crtc, &v);
 	x = xFixedToInt (v.vector[0]); y = xFixedToInt (v.vector[1]);
+	x -= ScreenPriv->HotX;
+	y -= ScreenPriv->HotY;
     }
     else
     {
