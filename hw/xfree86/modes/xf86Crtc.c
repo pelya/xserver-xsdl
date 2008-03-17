@@ -2047,13 +2047,9 @@ xf86PrepareOutputs (ScrnInfoPtr scrn)
     for (o = 0; o < config->num_output; o++) {
 	xf86OutputPtr output = config->output[o];
 #if RANDR_GET_CRTC_INTERFACE
-	/* If we can't get the current CRTC, play it safe */
-	if (!output->funcs->get_crtc) {
-	    (*output->funcs->dpms)(output, DPMSModeOff);
-	    continue;
-	}
 	/* Disable outputs that are unused or will be re-routed */
-	if (output->crtc != (*output->funcs->get_crtc)(output) ||
+	if (!output->funcs->get_crtc ||
+	    output->crtc != (*output->funcs->get_crtc)(output) ||
 	    output->crtc == NULL)
 #endif
 	    (*output->funcs->dpms)(output, DPMSModeOff);
