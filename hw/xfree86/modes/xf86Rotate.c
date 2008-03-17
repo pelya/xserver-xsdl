@@ -118,10 +118,10 @@ xf86RotateCrtcRedisplay (xf86CrtcPtr crtc, RegionPtr region)
 	BoxRec	dst_box;
 
 	dst_box = *b;
-	dst_box.x1 -= crtc->filter_width >> 2;
-	dst_box.x2 += crtc->filter_width >> 2;
-	dst_box.y1 -= crtc->filter_width >> 2;
-	dst_box.y2 += crtc->filter_width >> 2;
+	dst_box.x1 -= crtc->filter_width >> 1;
+	dst_box.x2 += crtc->filter_width >> 1;
+	dst_box.y1 -= crtc->filter_height >> 1;
+	dst_box.y2 += crtc->filter_height >> 1;
 	PictureTransformBounds (&dst_box, &crtc->framebuffer_to_crtc);
 	CompositePicture (PictOpSrc,
 			  src, NULL, dst,
@@ -408,6 +408,11 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
 		}
 	    } else
 		new_filter = transform->filter;
+	    if (new_filter)
+	    {
+		new_width = new_filter->width;
+		new_height = new_filter->height;
+	    }
 	    PictureTransformMultiply (&crtc_to_fb, &transform->transform, &crtc_to_fb);
 	    PictureTransformMultiply (&fb_to_crtc, &fb_to_crtc, &transform->inverse);
 	}
