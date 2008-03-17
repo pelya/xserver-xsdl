@@ -722,7 +722,9 @@ if ! test "x$have_clock_gettime" = xno; then
     LIBS="$CLOCK_LIBS"
 
     AC_RUN_IFELSE([
+#ifdef __linux__
 #define _POSIX_C_SOURCE 199309L
+#endif
 #include <time.h>
 
 int main(int argc, char *argv[[]]) {
