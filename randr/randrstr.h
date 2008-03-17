@@ -111,6 +111,8 @@ struct _rrTransform {
     PictFilterPtr   filter;
     xFixed	    *params;
     int		    nparams;
+    int		    width;
+    int		    height;
 };
 
 struct _rrCrtc {

@@ -62,7 +62,9 @@ static Bool
 RRTransformSetFilter (RRTransformPtr	dst,
 		      PictFilterPtr	filter,
 		      xFixed		*params,
-		      int		nparams)
+		      int		nparams,
+		      int		width,
+		      int		height)
 {
     xFixed  *new_params;
 
@@ -80,6 +82,8 @@ RRTransformSetFilter (RRTransformPtr	dst,
     dst->filter = filter;
     dst->params = new_params;
     dst->nparams = nparams;
+    dst->width = width;
+    dst->height = height;
     return TRUE;
 }
 
@@ -87,7 +91,7 @@ static Bool
 RRTransformCopy (RRTransformPtr dst, RRTransformPtr src)
 {
     if (!RRTransformSetFilter (dst, src->filter,
-			       src->params, src->nparams))
+			       src->params, src->nparams, src->width, src->height))
 	return FALSE;
     dst->transform = src->transform;
     dst->inverse = src->inverse;
@@ -602,6 +606,7 @@ RRCrtcTransformSet (RRCrtcPtr		crtc,
 		    int			nparams)
 {
     PictFilterPtr   filter = NULL;
+    int		    width = 0, height = 0;
 
     if (!PictureTransformIsInverse (transform, inverse))
 	return BadMatch;
@@ -615,8 +620,12 @@ RRCrtcTransformSet (RRCrtcPtr		crtc,
 	if (filter->ValidateParams)
 	{
 	    if (!filter->ValidateParams (crtc->pScreen, filter->id,
-					 params, nparams))
+					 params, nparams, &width, &height))
 		return BadMatch;
+	}
+	else {
+	    width = filter->width;
+	    height = filter->height;
 	}
     }
     else
@@ -625,7 +634,7 @@ RRCrtcTransformSet (RRCrtcPtr		crtc,
 	    return BadMatch;
     }
     if (!RRTransformSetFilter (&crtc->client_pending_transform,
-			       filter, params, nparams))
+			       filter, params, nparams, width, height))
 	return BadAlloc;
 
     crtc->client_pending_transform.transform = *transform;
@@ -1037,12 +1046,11 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	    int	source_height;
 	    PictTransform transform, inverse;
 
-	    if (!RRComputeTransform (mode, stuff->rotation,
-				     stuff->x, stuff->y,
-				     &crtc->client_pending_transform.transform,
-				     &crtc->client_pending_transform.inverse,
-				     &transform, &inverse))
-		return BadMatch;
+	    RRComputeTransform (mode, stuff->rotation,
+				stuff->x, stuff->y,
+				&crtc->client_pending_transform.transform,
+				&crtc->client_pending_transform.inverse,
+				&transform, &inverse);
 
 	    RRModeGetScanoutSize (mode, &transform, &source_width, &source_height);
 	    if (stuff->x + source_width > pScreen->width)
