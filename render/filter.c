@@ -126,7 +126,9 @@ PictureFreeFilterIds (void)
 _X_EXPORT int
 PictureAddFilter (ScreenPtr			    pScreen,
 		  char				    *filter,
-		  PictFilterValidateParamsProcPtr   ValidateParams)
+		  PictFilterValidateParamsProcPtr   ValidateParams,
+		  int				    width,
+		  int				    height)
 {
     PictureScreenPtr    ps = GetPictureScreen(pScreen);
     int			id = PictureGetFilterId (filter, -1,  TRUE);
@@ -152,6 +154,8 @@ PictureAddFilter (ScreenPtr			    pScreen,
     ps->filters[i].name = PictureGetFilterName (id);
     ps->filters[i].id = id;
     ps->filters[i].ValidateParams = ValidateParams;
+    ps->filters[i].width = width;
+    ps->filters[i].height = height;
     return id;
 }
 
@@ -216,18 +220,26 @@ static Bool
 convolutionFilterValidateParams (ScreenPtr pScreen,
                                  int	   filter,
                                  xFixed	   *params,
-                                 int	   nparams)
+                                 int	   nparams,
+				 int       *width,
+				 int	   *height)
 {
+    int	w, h;
     if (nparams < 3)
         return FALSE;
 
     if (xFixedFrac (params[0]) || xFixedFrac (params[1]))
         return FALSE;
 
+    w = xFixedToInt (params[0]);
+    h = xFixedToInt (params[1]);
+
     nparams -= 2;
-    if ((xFixedToInt (params[0]) * xFixedToInt (params[1])) > nparams)
+    if (w * h > nparams)
         return FALSE;
 
+    *width = w;
+    *height = h;
     return TRUE;
 }
 
@@ -238,9 +250,9 @@ PictureSetDefaultFilters (ScreenPtr pScreen)
     if (!filterNames)
 	if (!PictureSetDefaultIds ())
 	    return FALSE;
-    if (PictureAddFilter (pScreen, FilterNearest, 0) < 0)
+    if (PictureAddFilter (pScreen, FilterNearest, 0, 1, 1) < 0)
 	return FALSE;
-    if (PictureAddFilter (pScreen, FilterBilinear, 0) < 0)
+    if (PictureAddFilter (pScreen, FilterBilinear, 0, 4, 4) < 0)
 	return FALSE;
 
     if (!PictureSetFilterAlias (pScreen, FilterNearest, FilterFast))
@@ -250,7 +262,7 @@ PictureSetDefaultFilters (ScreenPtr pScreen)
     if (!PictureSetFilterAlias (pScreen, FilterBilinear, FilterBest))
 	return FALSE;
 
-    if (PictureAddFilter (pScreen, FilterConvolution, convolutionFilterValidateParams) < 0)
+    if (PictureAddFilter (pScreen, FilterConvolution, convolutionFilterValidateParams, 0, 0) < 0)
         return FALSE;
 
     return TRUE;
@@ -314,7 +326,8 @@ SetPicturePictFilter (PicturePtr pPicture, PictFilterPtr pFilter,
 
     if (pFilter->ValidateParams)
     {
-	if (!(*pFilter->ValidateParams) (pScreen, pFilter->id, params, nparams))
+	int width, height;
+	if (!(*pFilter->ValidateParams) (pScreen, pFilter->id, params, nparams, &width, &height))
 	    return BadMatch;
     }
     else if (nparams)

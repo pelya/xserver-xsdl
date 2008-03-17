@@ -185,11 +185,13 @@ typedef struct _Picture {
 } PictureRec;
 
 typedef Bool (*PictFilterValidateParamsProcPtr) (ScreenPtr pScreen, int id,
-						 xFixed *params, int nparams);
+						 xFixed *params, int nparams,
+						 int *width, int *height);
 typedef struct {
     char			    *name;
     int				    id;
     PictFilterValidateParamsProcPtr ValidateParams;
+    int				    width, height;
 } PictFilterRec, *PictFilterPtr;
 
 #define PictFilterNearest	0
@@ -458,7 +460,9 @@ PictureGetFilterName (int id);
 int
 PictureAddFilter (ScreenPtr			    pScreen,
 		  char				    *filter,
-		  PictFilterValidateParamsProcPtr   ValidateParams);
+		  PictFilterValidateParamsProcPtr   ValidateParams,
+		  int				    width,
+		  int				    height);
 
 Bool
 PictureSetFilterAlias (ScreenPtr pScreen, char *filter, char *alias);
