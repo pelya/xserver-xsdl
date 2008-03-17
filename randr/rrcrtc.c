@@ -528,30 +528,35 @@ RRCrtcGammaNotify (RRCrtcPtr	crtc)
     return TRUE;    /* not much going on here */
 }
 
+static void
+RRModeGetScanoutSize (RRModePtr mode, PictTransformPtr transform,
+		      int *width, int *height)
+{
+    BoxRec  box;
+
+    if (mode == NULL) {
+	*width = 0;
+	*height = 0;
+	return;
+    }
+
+    box.x1 = 0;
+    box.y1 = 0;
+    box.x2 = mode->mode.width;
+    box.y2 = mode->mode.height;
+
+    PictureTransformBounds (&box, transform);
+    *width = box.x2 - box.x1;
+    *height = box.y2 - box.y1;
+}
+
 /**
  * Returns the width/height that the crtc scans out from the framebuffer
  */
 void
 RRCrtcGetScanoutSize(RRCrtcPtr crtc, int *width, int *height)
 {
-    if (crtc->mode == NULL) {
-	*width = 0;
-	*height = 0;
-	return;
-    }
-
-    switch (crtc->rotation & 0xf) {
-    case RR_Rotate_0:
-    case RR_Rotate_180:
-	*width = crtc->mode->mode.width;
-	*height = crtc->mode->mode.height;
-	break;
-    case RR_Rotate_90:
-    case RR_Rotate_270:
-	*width = crtc->mode->mode.height;
-	*height = crtc->mode->mode.width;
-	break;
-    }
+    return RRModeGetScanoutSize (crtc->mode, &crtc->transform, width, height);
 }
 
 /*
@@ -1028,14 +1033,18 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	 */
 	if (pScrPriv->rrScreenSetSize)
 	{
-	    int source_width = mode->mode.width;
-	    int	source_height = mode->mode.height;
+	    int source_width;
+	    int	source_height;
+	    PictTransform transform, inverse;
 
-	    if ((rotation & 0xf) == RR_Rotate_90 || (rotation & 0xf) == RR_Rotate_270)
-	    {
-		source_width = mode->mode.height;
-		source_height = mode->mode.width;
-	    }
+	    if (!RRComputeTransform (mode, stuff->rotation,
+				     stuff->x, stuff->y,
+				     &crtc->client_pending_transform.transform,
+				     &crtc->client_pending_transform.inverse,
+				     &transform, &inverse))
+		return BadMatch;
+
+	    RRModeGetScanoutSize (mode, &transform, &source_width, &source_height);
 	    if (stuff->x + source_width > pScreen->width)
 	    {
 		client->errorValue = stuff->x;
@@ -1246,7 +1255,6 @@ transform_filter_encode (ClientPtr client, char *output,
 			 CARD16	*nparamsFilter,
 			 RRTransformPtr transform)
 {
-    char    *output_orig = output;
     int	    nbytes, nparams;
     int	    n;
 
@@ -1260,17 +1268,17 @@ transform_filter_encode (ClientPtr client, char *output,
     *nbytesFilter = nbytes;
     *nparamsFilter = nparams;
     memcpy (output, transform->filter->name, nbytes);
-    output += nbytes;
     while ((nbytes & 3) != 0)
-	*output++ = 0;
-    memcpy (output, transform->params, nparams * sizeof (xFixed));
+	output[nbytes++] = 0;
+    memcpy (output + nbytes, transform->params, nparams * sizeof (xFixed));
     if (client->swapped) {
 	swaps (nbytesFilter, n);
 	swaps (nparamsFilter, n);
-	SwapLongs ((CARD32 *) output, nparams * sizeof (xFixed));
+	SwapLongs ((CARD32 *) (output + nbytes),
+		   nparams * sizeof (xFixed));
     }
-    output += nparams * sizeof (xFixed);
-    return output - output_orig;
+    nbytes += nparams * sizeof (xFixed);
+    return nbytes;
 }
 
 static void
