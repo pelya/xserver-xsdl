@@ -103,6 +103,16 @@ xf86CrtcCreate (ScrnInfoPtr		scrn,
 #endif
     crtc->rotation = RR_Rotate_0;
     crtc->desiredRotation = RR_Rotate_0;
+    PictureTransformInitIdentity (&crtc->crtc_to_framebuffer);
+    PictureTransformInitIdentity (&crtc->framebuffer_to_crtc);
+    crtc->filter = NULL;
+    crtc->params = NULL;
+    crtc->nparams = 0;
+    crtc->filter_width = 0;
+    crtc->filter_height = 0;
+    crtc->transform_in_use = FALSE;
+    memset (&crtc->bounds, '\0', sizeof (crtc->bounds));
+
     if (xf86_config->crtc)
 	crtcs = xrealloc (xf86_config->crtc,
 			  (xf86_config->num_crtc + 1) * sizeof (xf86CrtcPtr));
@@ -134,6 +144,8 @@ xf86CrtcDestroy (xf86CrtcPtr crtc)
 	    xf86_config->num_crtc--;
 	    break;
 	}
+    if (crtc->params)
+	xfree (crtc->params);
     xfree (crtc);
 }
 
