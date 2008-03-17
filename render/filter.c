@@ -252,7 +252,7 @@ PictureSetDefaultFilters (ScreenPtr pScreen)
 	    return FALSE;
     if (PictureAddFilter (pScreen, FilterNearest, 0, 1, 1) < 0)
 	return FALSE;
-    if (PictureAddFilter (pScreen, FilterBilinear, 0, 4, 4) < 0)
+    if (PictureAddFilter (pScreen, FilterBilinear, 0, 2, 2) < 0)
 	return FALSE;
 
     if (!PictureSetFilterAlias (pScreen, FilterNearest, FilterFast))
