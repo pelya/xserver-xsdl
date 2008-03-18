@@ -608,8 +608,6 @@ RRCrtcTransformSet (RRCrtcPtr		crtc,
     PictFilterPtr   filter = NULL;
     int		    width = 0, height = 0;
 
-    if (!PictureTransformIsInverse (transform, inverse))
-	return BadMatch;
     if (filter_len)
     {
 	filter = PictureFindFilter (crtc->pScreen,
@@ -1229,7 +1227,8 @@ ProcRRSetCrtcTransform (ClientPtr client)
 	return RRErrorBase + BadRRCrtc;
 
     PictTransform_from_xRenderTransform (&transform, &stuff->transform);
-    PictTransform_from_xRenderTransform (&inverse, &stuff->inverse);
+    if (!PictureTransformInvert (&inverse, &transform))
+	return BadMatch;
 
     filter = (char *) (stuff + 1);
     nbytes = stuff->nbytesFilter;
