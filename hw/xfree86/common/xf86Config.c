@@ -65,11 +65,7 @@
 #include "xf86Xinput.h"
 extern DeviceAssocRec mouse_assoc;
 
-#ifdef XKB
-#undef XKB_IN_SERVER
-#define XKB_IN_SERVER
-#include <xkbsrv.h>
-#endif
+#include "xkbsrv.h"
 
 #ifdef RENDER
 #include "picture.h"
@@ -697,7 +693,6 @@ typedef enum {
     FLAG_ALLOWNONLOCAL,
     FLAG_ALLOWMOUSEOPENFAIL,
     FLAG_VTSYSREQ,
-    FLAG_XKBDISABLE,
     FLAG_SAVER_BLANKTIME,
     FLAG_DPMS_STANDBYTIME,
     FLAG_DPMS_SUSPENDTIME,
@@ -735,8 +730,6 @@ static OptionInfoRec FlagOptions[] = {
   { FLAG_ALLOWMOUSEOPENFAIL,	"AllowMouseOpenFail",		OPTV_BOOLEAN,
 	{0}, FALSE },
   { FLAG_VTSYSREQ,		"VTSysReq",			OPTV_BOOLEAN,
-	{0}, FALSE },
-  { FLAG_XKBDISABLE,		"XkbDisable",			OPTV_BOOLEAN,
 	{0}, FALSE },
   { FLAG_SAVER_BLANKTIME,	"BlankTime"		,	OPTV_INTEGER,
 	{0}, FALSE },
@@ -884,16 +877,6 @@ configServerFlags(XF86ConfFlagsPtr flagsconf, XF86OptionPtr layoutopts)
 #else
 	if (value)
 	    xf86Msg(X_WARNING, "VTSysReq is not supported on this OS\n");
-#endif
-    }
-
-    if (xf86GetOptValBool(FlagOptions, FLAG_XKBDISABLE, &value)) {
-#ifdef XKB
-	noXkbExtension = value;
-	xf86Msg(X_CONFIG, "Xkb %s\n", value ? "disabled" : "enabled");
-#else
-	if (!value)
-	    xf86Msg(X_WARNING, "Xserver doesn't support XKB\n");
 #endif
     }
 

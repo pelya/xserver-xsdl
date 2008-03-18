@@ -118,9 +118,7 @@ __stdcall unsigned long GetTickCount(void);
 
 #include "dixstruct.h"
 
-#ifdef XKB
-#include <xkbsrv.h>
-#endif
+#include "xkbsrv.h"
 
 #ifdef RENDER
 #include "picture.h"
@@ -180,7 +178,6 @@ Bool noXFree86VidModeExtension = FALSE;
 #ifdef XFIXES
 Bool noXFixesExtension = FALSE;
 #endif
-/* noXkbExtension is defined in xkb/xkbInit.c */
 #ifdef PANORAMIX
 /* Xinerama is disabled by default unless enabled via +xinerama */
 Bool noPanoramiXExtension = TRUE;
@@ -551,9 +548,7 @@ void UseMsg(void)
 #ifdef XDMCP
     XdmcpUseMsg();
 #endif
-#ifdef XKB
     XkbUseMsg();
-#endif
     ddxUseMsg();
 }
 
@@ -722,13 +717,11 @@ ProcessCommandLine(int argc, char *argv[])
 	    UseMsg();
 	    exit(0);
 	}
-#ifdef XKB
         else if ( (skip=XkbProcessArguments(argc,argv,i))!=0 ) {
 	    if (skip>0)
 		 i+= skip-1;
 	    else UseMsg();
 	}
-#endif
 #ifdef RLIMIT_DATA
 	else if ( strcmp( argv[i], "-ld") == 0)
 	{

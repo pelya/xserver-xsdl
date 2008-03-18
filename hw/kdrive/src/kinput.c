@@ -38,9 +38,7 @@
 #include <sys/file.h> /* needed for FNONBLOCK & FASYNC */
 #endif
 
-#ifdef XKB
-#include <xkbsrv.h>
-#endif
+#include "xkbsrv.h"
 
 #include <X11/extensions/XI.h>
 #include <X11/extensions/XIproto.h>
@@ -748,9 +746,7 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
     DevicePtr   pDev = (DevicePtr)pDevice;
     KdKeyboardInfo *ki;
     Atom xiclass;
-#ifdef XKB
     XkbComponentNamesRec names;
-#endif
 
     if (!pDev)
 	return BadImplementation;
@@ -799,25 +795,16 @@ KdKeyboardProc(DeviceIntPtr pDevice, int onoff)
         KdInitModMap(ki);
         KdInitAutoRepeats(ki);
 
-#ifdef XKB
-        if (!noXkbExtension) {
-            memset(&names, 0, sizeof(XkbComponentNamesRec));
+        memset(&names, 0, sizeof(XkbComponentNamesRec));
 
-            XkbSetRulesDflts (ki->xkbRules, ki->xkbModel, ki->xkbLayout,
-                              ki->xkbVariant, ki->xkbOptions);
+        XkbSetRulesDflts (ki->xkbRules, ki->xkbModel, ki->xkbLayout,
+                          ki->xkbVariant, ki->xkbOptions);
 
-            ret = XkbInitKeyboardDeviceStruct (pDevice,
-                                               &names,
-                                               &ki->keySyms,
-                                               ki->modmap,
-                                               KdBell, KdKbdCtrl);
-        }
-        else
-#endif
-	ret = InitKeyboardDeviceStruct(pDev,
-				       &ki->keySyms,
-				       ki->modmap,
-				       KdBell, KdKbdCtrl);
+        ret = XkbInitKeyboardDeviceStruct (pDevice,
+                                           &names,
+                                           &ki->keySyms,
+                                           ki->modmap,
+                                           KdBell, KdKbdCtrl);
 	if (!ret) {
             ErrorF("Couldn't initialise keyboard %s\n", ki->name);
 	    return BadImplementation;
@@ -974,13 +961,11 @@ KdNewKeyboard (void)
     ki->bellDuration = 200;
     ki->next = NULL;
     ki->options = NULL;
-#ifdef XKB
     ki->xkbRules = KdSaveString("base");
     ki->xkbModel = KdSaveString("pc105");
     ki->xkbLayout = KdSaveString("us");
     ki->xkbVariant = NULL;
     ki->xkbOptions = NULL;
-#endif
 
     return ki;
 }
@@ -1160,7 +1145,6 @@ KdParseKbdOptions (KdKeyboardInfo *ki)
 
     for (option = ki->options; option; option = option->next)
     {
-#ifdef XKB
         if (strcasecmp(option->key, "XkbRules") == 0)
             ki->xkbRules = option->value;
         else if (strcasecmp(option->key, "XkbModel") == 0)
@@ -1174,7 +1158,6 @@ KdParseKbdOptions (KdKeyboardInfo *ki)
         else if (!strcasecmp (option->key, "device"))
             ki->path = KdSaveString(option->value);
         else
-#endif
            ErrorF("Kbd option key (%s) of value (%s) not assigned!\n", 
                     option->key, option->value);
     }
@@ -1196,9 +1179,7 @@ KdParseKeyboard (char *arg)
     ki->path = NULL;
     ki->driver = NULL;
     ki->driverPrivate = NULL;
-#ifdef XKB
     ki->xkb = NULL;
-#endif
     ki->next = NULL;
 
     if (!arg)
@@ -1880,57 +1861,6 @@ CARD32	KdSpecialKeys = 0;
 
 extern int nClients;
 
-static void
-KdCheckSpecialKeys(KdKeyboardInfo *ki, int type, int sym)
-{
-    if (!ki)
-        return;
-
-    /*
-     * Ignore key releases
-     */
-
-    if (type == KeyRelease)
-        return;
-
-    /* Some iPaq keyboard -> mouse button mapping used to be here, but I
-     * refuse to perpetuate this madness. -daniels */
-
-    /*
-     * Check for control/alt pressed
-     */
-    if ((ki->dixdev->key->state & (ControlMask|Mod1Mask)) !=
-	(ControlMask|Mod1Mask))
-	return;
-
-    /*
-     * Let OS function see keysym first
-     */
-    
-    if (kdOsFuncs->SpecialKey)
-	if ((*kdOsFuncs->SpecialKey) (sym))
-	    return;
-
-    /*
-     * Now check for backspace or delete; these signal the
-     * X server to terminate
-     *
-     * I can't believe it's not XKB. -daniels
-     */
-    switch (sym) {
-    case XK_BackSpace:
-    case XK_Delete:
-    case XK_KP_Delete:
-	/*
-	 * Set the dispatch exception flag so the server will terminate the
-	 * next time through the dispatch loop.
-	 */
-	if (kdAllowZap || party_like_its_1989)
-	    dispatchException |= DE_TERMINATE;
-	break;
-    }
-}
-
 /*
  * kdEnqueueKeyboardEvent
  *
@@ -2024,7 +1954,7 @@ KdEnqueueKeyboardEvent(KdKeyboardInfo   *ki,
     if (scan_code >= ki->minScanCode && scan_code <= ki->maxScanCode)
     {
 	key_code = scan_code + KD_MIN_KEYCODE - ki->minScanCode;
-	
+
 	/*
 	 * Set up this event -- the type may be modified below
 	 */
@@ -2032,16 +1962,9 @@ KdEnqueueKeyboardEvent(KdKeyboardInfo   *ki,
 	    type = KeyRelease;
 	else
 	    type = KeyPress;
-	
-#ifdef XKB
-        if (noXkbExtension)
-#endif
-        {
-            KdCheckSpecialKeys(ki, type, key_code);
-            KdHandleKeyboardEvent(ki, type, key_code);
-	}
-	
+
         GetEventList(&kdEvents);
+
         nEvents = GetKeyboardEvents(kdEvents, ki->dixdev, type, key_code);
         for (i = 0; i < nEvents; i++)
             KdQueueEvent(ki->dixdev, (kdEvents + i)->event);

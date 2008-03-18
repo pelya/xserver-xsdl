@@ -409,7 +409,6 @@ extern _X_EXPORT void ProcessKeyboardEvent(
     DeviceIntPtr /*keybd*/,
     int /*count*/);
 
-#ifdef XKB
 extern _X_EXPORT void CoreProcessPointerEvent(
     xEventPtr /*xE*/,
     DeviceIntPtr /*mouse*/,
@@ -419,7 +418,6 @@ extern _X_EXPORT _X_DEPRECATED void CoreProcessKeyboardEvent(
     xEventPtr /*xE*/,
     DeviceIntPtr /*keybd*/,
     int /*count*/) _X_DEPRECATED;
-#endif
 
 extern _X_EXPORT Bool LegalModifier(
     unsigned int /*key*/, 

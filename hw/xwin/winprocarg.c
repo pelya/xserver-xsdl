@@ -1369,16 +1369,6 @@ ddxProcessArgument (int argc, char *argv[], int i)
     }
 #endif
 
-#ifdef XKB
-  /*
-   * Look for the '-kb' argument
-   */
-  if (IS_OPTION ("-kb"))
-    {
-      g_cmdline.noXkbExtension = TRUE;  
-      return 0; /* Let DIX parse this again */
-    }
-
   if (IS_OPTION ("-xkbrules"))
     {
       CHECK_ARGS (1);
@@ -1409,7 +1399,6 @@ ddxProcessArgument (int argc, char *argv[], int i)
       g_cmdline.xkbOptions = argv[++i];
       return 2;
     }
-#endif
 
   if (IS_OPTION ("-keyhook"))
     {

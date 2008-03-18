@@ -434,8 +434,6 @@ void kbdUSBGetInfo(DevicePtr pDev, DMXLocalInitInfoPtr info)
     kbdUSBGetMap(pDev, &info->keySyms, info->modMap);
     info->focusClass       = 1;
     info->kbdFeedbackClass = 1;
-#ifdef XKB
     info->names.keycodes   = xstrdup("powerpcps2");
     info->force            = 1;
-#endif
 }

@@ -144,11 +144,7 @@ typedef struct _KeyClassRec {
     CARD8		maxKeysPerModifier;
     unsigned short	state;
     unsigned short	prev_state;
-#ifdef XKB
     struct _XkbSrvInfo *xkbInfo;
-#else
-    void               *pad0;
-#endif
 } KeyClassRec, *KeyClassPtr;
 
 typedef struct _AxisInfo {
@@ -192,11 +188,7 @@ typedef struct _ButtonClassRec {
     Mask		motionMask;
     CARD8		down[DOWN_LENGTH];
     CARD8		map[MAP_LENGTH];
-#ifdef XKB
     union _XkbAction    *xkb_acts;
-#else
-    void                *pad0;
-#endif
 } ButtonClassRec, *ButtonClassPtr;
 
 typedef struct _FocusClassRec {
@@ -244,11 +236,7 @@ typedef struct _KbdFeedbackClassRec {
     KbdCtrlProcPtr	CtrlProc;
     KeybdCtrl	 	ctrl;
     KbdFeedbackPtr	next;
-#ifdef XKB
     struct _XkbSrvLedInfo *xkb_sli;
-#else
-    void                *pad0;
-#endif
 } KbdFeedbackClassRec;
 
 typedef struct _PtrFeedbackClassRec {
@@ -280,11 +268,7 @@ typedef struct _LedFeedbackClassRec {
     LedCtrlProcPtr	CtrlProc;
     LedCtrl	 	ctrl;
     LedFeedbackPtr	next;
-#ifdef XKB
     struct _XkbSrvLedInfo *xkb_sli;
-#else
-    void                *pad0;
-#endif
 } LedFeedbackClassRec;
 
 
@@ -446,11 +430,7 @@ typedef struct _DeviceIntRec {
     StringFeedbackPtr	stringfeed;
     BellFeedbackPtr	bell;
     LedFeedbackPtr	leds;
-#ifdef XKB
     struct _XkbInterest *xkb_interest;
-#else
-    void                *pad0;
-#endif
     char                *config_info; /* used by the hotplug layer */
     PrivateRec		*devPrivates;
     int			nPrivates;

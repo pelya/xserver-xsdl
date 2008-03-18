@@ -136,13 +136,8 @@ int ProcInitialConnection();
 #endif
 #include "privates.h"
 #include "xace.h"
-#ifdef XKB
-#ifndef XKB_IN_SERVER
-#define XKB_IN_SERVER
-#endif
 #include "inputstr.h"
-#include <xkbsrv.h>
-#endif
+#include "xkbsrv.h"
 
 #ifdef XSERVER_DTRACE
 #include "registry.h"
@@ -3478,15 +3473,11 @@ void InitClient(ClientPtr client, int i, pointer ospriv)
     client->priority = 0;
     client->clientState = ClientStateInitial;
     client->devPrivates = NULL;
-#ifdef XKB
-    if (!noXkbExtension) {
-	client->xkbClientFlags = 0;
-	client->mapNotifyMask = 0;
-	client->newKeyboardNotifyMask = 0;
-	client->vMinor = client->vMajor = 0;
-	QueryMinMaxKeyCodes(&client->minKC,&client->maxKC);
-    }
-#endif
+    client->xkbClientFlags = 0;
+    client->mapNotifyMask = 0;
+    client->newKeyboardNotifyMask = 0;
+    client->vMinor = client->vMajor = 0;
+    QueryMinMaxKeyCodes(&client->minKC,&client->maxKC);
     client->replyBytesRemaining = 0;
     client->fontResFunc = NULL;
     client->smart_priority = 0;

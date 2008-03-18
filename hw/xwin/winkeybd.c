@@ -40,12 +40,7 @@
 #include "winconfig.h"
 #include "winmsg.h"
 
-#ifdef XKB
-#ifndef XKB_IN_SERVER
-#define XKB_IN_SERVER
-#endif
-#include <xkbsrv.h>
-#endif
+#include "xkbsrv.h"
 
 static Bool g_winKeyState[NUM_KEYCODES];
 
@@ -224,11 +219,9 @@ winKeybdProc (DeviceIntPtr pDeviceInt, int iState)
   KeySymsRec		keySyms;
   CARD8 		modMap[MAP_LENGTH];
   DevicePtr		pDevice = (DevicePtr) pDeviceInt;
-#ifdef XKB
   XkbComponentNamesRec names;
   XkbSrvInfoPtr       xkbi;
   XkbControlsPtr      ctrl;
-#endif
 
   switch (iState)
     {
@@ -237,23 +230,16 @@ winKeybdProc (DeviceIntPtr pDeviceInt, int iState)
 
       winGetKeyMappings (&keySyms, modMap);
 
-#ifdef XKB
       /* FIXME: Maybe we should use winGetKbdLeds () here? */
       defaultKeyboardControl.leds = g_winInfo.keyboard.leds;
-#else
-      defaultKeyboardControl.leds = g_winInfo.keyboard.leds;
-#endif
 
-#ifdef XKB
       if (g_winInfo.xkb.disable) 
 	{
-#endif
 	  InitKeyboardDeviceStruct (pDevice,
 				    &keySyms,
 				    modMap,
 				    winKeybdBell,
 				    winKeybdCtrl);
-#ifdef XKB
 	} 
       else 
 	{
@@ -279,9 +265,7 @@ winKeybdProc (DeviceIntPtr pDeviceInt, int iState)
 	  XkbInitKeyboardDeviceStruct (pDeviceInt, &names, &keySyms,
 				       modMap, winKeybdBell, winKeybdCtrl);
 	}
-#endif
 
-#ifdef XKB
       if (!g_winInfo.xkb.disable)
         {  
           xkbi = pDeviceInt->key->xkbInfo;
@@ -296,7 +280,6 @@ winKeybdProc (DeviceIntPtr pDeviceInt, int iState)
               winErrorFVerb (1, "winKeybdProc - Error initializing keyboard AutoRepeat (No XKB)\n");
             }
         }
-#endif
 
       g_winInternalModeKeyStatesPtr = &(pDeviceInt->key->state);
       break;

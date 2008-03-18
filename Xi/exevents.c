@@ -74,10 +74,8 @@ SOFTWARE.
 #include "listdev.h" /* for CopySwapXXXClass */
 #include "xace.h"
 
-#ifdef XKB
 #include <X11/extensions/XKBproto.h>
 #include "xkbsrv.h"
-#endif
 
 #define WID(w) ((w) ? ((w)->drawable.id) : 0)
 #define AllModifiersMask ( \
@@ -304,11 +302,9 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
             (*k)->BellProc = it->BellProc;
             (*k)->CtrlProc = it->CtrlProc;
             (*k)->ctrl     = it->ctrl;
-#ifdef XKB
             if ((*k)->xkb_sli)
                 XkbFreeSrvLedInfo((*k)->xkb_sli);
             (*k)->xkb_sli = XkbCopySrvLedInfo(from, it->xkb_sli, *k, NULL);
-#endif
 
             k = &(*k)->next;
         }
@@ -489,11 +485,9 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
             }
             (*l)->CtrlProc = it->CtrlProc;
             (*l)->ctrl     = it->ctrl;
-#ifdef XKB
             if ((*l)->xkb_sli)
                 XkbFreeSrvLedInfo((*l)->xkb_sli);
             (*l)->xkb_sli = XkbCopySrvLedInfo(from, it->xkb_sli, NULL, *l);
-#endif
 
             l = &(*l)->next;
         }
@@ -529,9 +523,7 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
     {
         KeyCode             *oldModKeyMap;
         KeySym              *oldMap;
-#ifdef XKB
         struct _XkbSrvInfo  *oldXkbInfo;
-#endif
         if (!to->key)
         {
             classes = dixLookupPrivate(&to->devPrivates,
@@ -548,9 +540,7 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 
         oldModKeyMap    = to->key->modifierKeyMap;
         oldMap          = to->key->curKeySyms.map;
-#ifdef XKB
         oldXkbInfo      = to->key->xkbInfo;
-#endif
 
         if (!oldMap) /* newly created key struct */
         {
@@ -563,9 +553,7 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 
         to->key->modifierKeyMap = oldModKeyMap;
         to->key->curKeySyms.map = oldMap;
-#ifdef XKB
         to->key->xkbInfo        = oldXkbInfo;
-#endif
 
         CopyKeyClass(from, to);
     } else if (to->key && !from->key)
@@ -624,7 +612,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
                 classes->button = NULL;
         }
 
-#ifdef XKB
         if (from->button->xkb_acts)
         {
             if (!to->button->xkb_acts)
@@ -637,7 +624,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
                     sizeof(XkbAction));
         } else
             xfree(to->button->xkb_acts);
-#endif
     } else if (to->button && !from->button)
     {
         ClassesPtr classes;
@@ -1821,10 +1807,8 @@ SendDeviceMappingNotify(ClientPtr client, CARD8 request,
 	ev->count = count;
     }
 
-#ifdef XKB
     if (request == MappingKeyboard || request == MappingModifier)
         XkbApplyMappingChange(dev, request, firstKeyCode, count, client);
-#endif
 
     SendEventToAllWindows(dev, DeviceMappingNotifyMask, (xEvent *) ev, 1);
 }

@@ -295,8 +295,6 @@ extern _X_EXPORT int	XkbKeyboardErrorCode;
 extern _X_EXPORT char *	XkbBaseDirectory;
 extern _X_EXPORT char *	XkbBinDirectory;
 
-extern _X_EXPORT Bool	noXkbExtension;
-
 extern _X_EXPORT pointer	XkbLastRepeatEvent;
 
 extern _X_EXPORT CARD32	xkbDebugFlags;

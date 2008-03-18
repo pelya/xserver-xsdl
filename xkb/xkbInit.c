@@ -85,9 +85,6 @@ typedef struct	_SrvXkmInfo {
 
 /***====================================================================***/
 
-#ifndef XKB_DFLT_DISABLED
-#define	XKB_DFLT_DISABLED	True
-#endif
 #ifndef XKB_DFLT_RULES_PROP
 #define	XKB_DFLT_RULES_PROP	True
 #endif
@@ -110,7 +107,6 @@ static char *		XkbOptionsUsed=	NULL;
 
 static XkbDescPtr       xkb_cached_map = NULL;
 
-Bool			noXkbExtension=		XKB_DFLT_DISABLED;
 static Bool		XkbWantRulesProp=	XKB_DFLT_RULES_PROP;
 
 /***====================================================================***/
@@ -817,15 +813,7 @@ extern unsigned char	XkbDfltAccessXOptions;
 int
 XkbProcessArguments(int argc,char *argv[],int i)
 {
-    if (strcmp(argv[i],"-kb")==0) {
-	noXkbExtension= True;
-	return 1;
-    }
-    else if (strcmp(argv[i],"+kb")==0) {
-	noXkbExtension= False;
-	return 1;
-    }
-    else if (strncmp(argv[i], "-xkbdir", 7) == 0) {
+    if (strncmp(argv[i], "-xkbdir", 7) == 0) {
 	if(++i < argc) {
 #if !defined(WIN32) && !defined(__CYGWIN__)
 	    if (getuid() != geteuid()) {

@@ -42,9 +42,7 @@
 #include "globals.h"
 #include "servermd.h"
 #include "micmap.h"
-#ifdef XKB
-#include <xkbsrv.h>
-#endif
+#include "xkbsrv.h"
 #include "xf86Xinput.h"
 #include "exglobals.h"
 #include "exevents.h"

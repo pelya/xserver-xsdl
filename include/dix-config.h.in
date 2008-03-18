@@ -315,15 +315,6 @@
 /* Support Xinerama extension */
 #undef XINERAMA
 
-/* Build XKB */
-#undef XKB
-
-/* Enable XKB per default */
-#undef XKB_DFLT_DISABLED
-
-/* Build XKB server */
-#undef XKB_IN_SERVER
-
 /* Vendor release */
 #undef XORG_RELEASE
 

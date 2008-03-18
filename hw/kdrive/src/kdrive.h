@@ -44,9 +44,7 @@
 #include "randrstr.h"
 #include "globals.h"
 
-#ifdef XKB
-#include <X11/extensions/XKBstr.h>
-#endif
+#include "xkbstr.h"
 
 #define KD_DPMS_NORMAL	    0
 #define KD_DPMS_STANDBY	    1
@@ -300,14 +298,12 @@ struct _KdKeyboardInfo {
     char                *name;
     char                *path;
     int                 inputClass;
-#ifdef XKB
     XkbDescPtr          xkb;
     char                *xkbRules;
     char                *xkbModel;
     char                *xkbLayout;
     char                *xkbVariant;
     char                *xkbOptions;
-#endif
     int                 LockLed;
 
     CARD8               keyState[KD_KEY_COUNT/8];

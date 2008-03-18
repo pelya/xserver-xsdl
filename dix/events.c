@@ -133,11 +133,10 @@ of the copyright holder.
 #endif
 #include "globals.h"
 
-#ifdef XKB
 #include <X11/extensions/XKBproto.h>
-#include <xkbsrv.h>
+#include "xkbsrv.h"
+/* XKB FIXME: why is this here? */
 extern Bool XkbFilterEvents(ClientPtr, int, xEvent *);
-#endif
 
 #include "xace.h"
 
@@ -1078,12 +1077,10 @@ EnqueueEvent(xEvent *xE, DeviceIntPtr device, int count)
 
     NoticeTime(xE);
 
-#ifdef XKB
     /* Fix for key repeating bug. */
     if (device->key != NULL && device->key->xkbInfo != NULL &&
 	xE->u.u.type == KeyRelease)
 	AccessXCancelRepeatKey(device->key->xkbInfo, xE->u.u.detail);
-#endif
 
     if (DeviceEventCallback)
     {
@@ -2116,11 +2113,8 @@ DeliverEventsToWindow(DeviceIntPtr pDev, WindowPtr pWin, xEvent
 	pDev->valuator->motionHintWindow = pWin;
     else
     {
-	if (((type == DeviceMotionNotify)
-#ifdef XKB
-	     || (type == DeviceButtonPress)
-#endif
-	    ) && deliveries)
+	if ((type == DeviceMotionNotify || type == DeviceButtonPress) &&
+	    deliveries)
 	    CheckDeviceGrabAndHintWindow (pWin, type,
 					  (deviceKeyButtonPointer*) pEvents,
 					  grab, client, deliveryMask);
@@ -3246,7 +3240,6 @@ CheckPassiveGrabsOnWindow(
     tempGrab.next = NULL;
     for (; grab; grab = grab->next)
     {
-#ifdef XKB
 	DeviceIntPtr	gdev;
 	XkbSrvInfoPtr	xkbi = NULL;
 
@@ -3260,40 +3253,16 @@ CheckPassiveGrabsOnWindow(
         }
         if (gdev && gdev->key)
             xkbi= gdev->key->xkbInfo;
-#endif
 	tempGrab.modifierDevice = grab->modifierDevice;
-	if ((device == grab->modifierDevice) &&
-	    ((xE->u.u.type == KeyPress) || (xE->u.u.type == DeviceKeyPress)))
-	    tempGrab.modifiersDetail.exact =
-#ifdef XKB
-                (noXkbExtension) ?
-                        ((gdev) ? gdev->key->prev_state : 0) :
-                        ((xkbi) ?  xkbi->state.grab_mods : 0);
-#else
-                (gdev) ? gdev->key->prev_state : 0;
-#endif
-	else
-	    tempGrab.modifiersDetail.exact =
-#ifdef XKB
-                (noXkbExtension) ?
-                        ((gdev) ? gdev->key->state : 0) :
-                        ((xkbi) ? xkbi->state.grab_mods : 0);
-#else
-                (gdev) ? gdev->key->state : 0;
-#endif
-            /* ignore the device for core events when comparing grabs */
+        tempGrab.modifiersDetail.exact = xkbi ? xkbi->state.grab_mods : 0;
+        /* ignore the device for core events when comparing grabs */
 	if (GrabMatchesSecond(&tempGrab, grab, (xE->u.u.type < LASTEvent)) &&
 	    (!grab->confineTo ||
 	     (grab->confineTo->realized &&
 				BorderSizeNotEmpty(device, grab->confineTo))))
 	{
-#ifdef XKB
-	    if (!noXkbExtension) {
-		XE_KBPTR.state &= 0x1f00;
-		XE_KBPTR.state |=
-				tempGrab.modifiersDetail.exact&(~0x1f00);
-	    }
-#endif
+            XE_KBPTR.state &= 0x1f00;
+            XE_KBPTR.state |= tempGrab.modifiersDetail.exact&(~0x1f00);
             grabinfo = &device->deviceGrab;
             /* A passive grab may have been created for a different device
                than it is assigned to at this point in time.
@@ -3690,11 +3659,7 @@ DeliverGrabbedEvent(xEvent *xE, DeviceIntPtr thisDev,
  * @param count Number of elements in xE.
  */
 void
-#ifdef XKB
 CoreProcessKeyboardEvent (xEvent *xE, DeviceIntPtr keybd, int count)
-#else
-ProcessKeyboardEvent (xEvent *xE, DeviceIntPtr keybd, int count)
-#endif
 {
     int             key, bit;
     BYTE            *kptr;
@@ -3765,7 +3730,6 @@ ProcessKeyboardEvent (xEvent *xE, DeviceIntPtr keybd, int count)
     XaceHook(XACE_KEY_AVAIL, xE, keybd, count);
 }
 
-#ifdef XKB
 /* This function is used to set the key pressed or key released state -
    this is only used when the pressing of keys does not cause
    the device's processInputProc to be called, as in for example Mouse Keys.
@@ -3795,7 +3759,6 @@ FixKeyState (xEvent *xE, DeviceIntPtr keybd)
     else
         FatalError("Impossible keyboard event");
 }
-#endif
 
 /**
  * Main pointer event processing function for core pointer events.
@@ -3810,32 +3773,18 @@ FixKeyState (xEvent *xE, DeviceIntPtr keybd)
  * @param count Number of elements in xE.
  */
 void
-#ifdef XKB
 CoreProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
-#else
-ProcessPointerEvent (xEvent *xE, DeviceIntPtr mouse, int count)
-#endif
 {
     GrabPtr	        grab = mouse->deviceGrab.grab;
     Bool                deactivateGrab = FALSE;
     ButtonClassPtr      butc = mouse->button;
     SpritePtr           pSprite = mouse->spriteInfo->sprite;
 
-#ifdef XKB
     XkbSrvInfoPtr xkbi= GetPairedDevice(mouse)->key->xkbInfo;
-#endif
 
     if (!syncEvents.playingEvents)
 	NoticeTime(xE)
-    XE_KBPTR.state = (butc->state | (
-#ifdef XKB
-			(noXkbExtension ?
-				inputInfo.keyboard->key->state :
-				xkbi->state.grab_mods)
-#else
-			inputInfo.keyboard->key->state
-#endif
-				    ));
+    XE_KBPTR.state = (butc->state | xkbi->state.grab_mods);
     {
 	NoticeTime(xE);
 	if (DeviceEventCallback)
@@ -4171,18 +4120,10 @@ CoreEnterLeaveEvent(
     event.u.enterLeave.child = child;
     event.u.enterLeave.flags = event.u.keyButtonPointer.sameScreen ?
         ELFlagSameScreen : 0;
-#ifdef XKB
-    if (!noXkbExtension) {
-        event.u.enterLeave.state = mouse->button->state & 0x1f00;
-        if (keybd)
-            event.u.enterLeave.state |=
+    event.u.enterLeave.state = mouse->button->state & 0x1f00;
+    if (keybd)
+        event.u.enterLeave.state |=
                 XkbGrabStateFromRec(&keybd->key->xkbInfo->state);
-    } else
-#endif
-    {
-        event.u.enterLeave.state = (keybd) ? keybd->key->state : 0;
-        event.u.enterLeave.state |= mouse->button->state;
-    }
     event.u.enterLeave.mode = mode;
     focus = (keybd) ? keybd->focus->win : None;
     if ((focus != NoneWin) &&
@@ -4262,18 +4203,9 @@ DeviceEnterLeaveEvent(
     devEnterLeave->mode     = mode;
     devEnterLeave->mode    |= (sameScreen ?  (ELFlagSameScreen << 4) : 0);
 
-#ifdef XKB
-    if (!noXkbExtension) {
-        devEnterLeave->state = mouse->button->state & 0x1f00;
-        if (keybd)
-            devEnterLeave->state |=
-                XkbGrabStateFromRec(&keybd->key->xkbInfo->state);
-    } else
-#endif
-    {
-        devEnterLeave->state = (keybd) ? keybd->key->state : 0;
-        devEnterLeave->state |= mouse->button->state;
-    }
+    devEnterLeave->state = mouse->button->state & 0x1f00;
+    if (keybd)
+        devEnterLeave->state |= XkbGrabStateFromRec(&keybd->key->xkbInfo->state);
 
     mskidx = mouse->id;
     inputMasks = wOtherInputMasks(pWin);
@@ -5540,10 +5472,8 @@ WriteEventsToClient(ClientPtr pClient, int count, xEvent *events)
     int       i,
               eventlength = sizeof(xEvent);
 
-#ifdef XKB
-    if ((!noXkbExtension)&&(!XkbFilterEvents(pClient, count, events)))
+    if (!XkbFilterEvents(pClient, count, events))
 	return;
-#endif
 
 #ifdef PANORAMIX
     if(!noPanoramiXExtension &&

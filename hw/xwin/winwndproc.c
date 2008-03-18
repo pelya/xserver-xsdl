@@ -42,9 +42,7 @@
 #include "winmsg.h"
 #include "inputstr.h"
 
-#ifdef XKB
 extern BOOL winCheckKeyPressed(WPARAM wParam, LPARAM lParam);
-#endif
 extern void winFixShiftKeys (int iScanCode);
 
 
@@ -1031,7 +1029,6 @@ winWindowProc (HWND hwnd, UINT message,
       if ((wParam == VK_LWIN || wParam == VK_RWIN) && !g_fKeyboardHookLL)
 	break;
 
-#ifdef XKB
       /* 
        * Discard presses generated from Windows auto-repeat
        * ago: Only discard them if XKB is not disabled 
@@ -1052,7 +1049,6 @@ winWindowProc (HWND hwnd, UINT message,
             return 0;
         }
       } 
-#endif 
       
       /* Discard fake Ctrl_L presses that precede AltGR on non-US keyboards */
       if (winIsFakeCtrl_L (message, wParam, lParam))

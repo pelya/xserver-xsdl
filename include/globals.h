@@ -114,11 +114,6 @@ extern _X_EXPORT Bool noXFree86VidModeExtension;
 extern _X_EXPORT Bool noXFixesExtension;
 #endif
 
-#ifdef XKB
-/* noXkbExtension is defined in xkb/xkbInit.c */
-extern _X_EXPORT Bool noXkbExtension;
-#endif
-
 #ifdef PANORAMIX
 extern _X_EXPORT Bool noPanoramiXExtension;
 #endif

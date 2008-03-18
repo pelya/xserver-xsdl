@@ -408,11 +408,9 @@ extern _X_EXPORT void DeliverGrabbedEvent(
     Bool /* deactivateGrab */,
     int /* count */);
 
-#ifdef XKB
 extern _X_EXPORT void FixKeyState(
     xEvent * /* xE */,
     DeviceIntPtr /* keybd */);
-#endif /* XKB */
 
 extern _X_EXPORT void RecalculateDeliverableEvents(
     WindowPtr /* pWin */);

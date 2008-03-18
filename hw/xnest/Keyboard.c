@@ -33,9 +33,8 @@ is" without express or implied warranty.
 #include "Args.h"
 #include "Events.h"
 
-#ifdef XKB
 #include <X11/extensions/XKB.h>
-#include <xkbsrv.h>
+#include "xkbsrv.h"
 #include <X11/extensions/XKBconfig.h>
 
 extern Bool
@@ -59,7 +58,6 @@ extern	Status	XkbGetControls(
 	unsigned long		/* which */,
 	XkbDescPtr		/* desc */
 );
-#endif
 
 DeviceIntPtr xnestKeyboardDevice = NULL;
 
@@ -124,6 +122,10 @@ xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
   CARD8 modmap[MAP_LENGTH];
   int i, j;
   XKeyboardState values;
+  XkbComponentNamesRec names;
+  XkbDescPtr xkb;
+  char *rules, *model, *layout, *variants, *options;
+  int op, event, error, major, minor;
 
   switch (onoff)
     {
@@ -168,50 +170,29 @@ xnestKeyboardProc(DeviceIntPtr pDev, int onoff)
       keySyms.mapWidth = mapWidth;
       keySyms.map = keymap;
 
-#ifdef XKB
-      if (noXkbExtension) {
-XkbError:
-#endif
-      XGetKeyboardControl(xnestDisplay, &values);
-
-      memmove((char *) defaultKeyboardControl.autoRepeats,
-             (char *) values.auto_repeats, sizeof(values.auto_repeats));
-
-      InitKeyboardDeviceStruct(&pDev->public, &keySyms, modmap,
-			       xnestBell, xnestChangeKeyboardControl);
-#ifdef XKB
-      } else {
-	XkbComponentNamesRec names;
-	char *rules, *model, *layout, *variants, *options;
-
-	XkbDescPtr xkb;
-	int op, event, error, major, minor;
-
-	if (XkbQueryExtension(xnestDisplay, &op, &event, &error, &major, &minor) == 0) {
-	  ErrorF("Unable to initialize XKEYBOARD extension.\n");
+      if (XkbQueryExtension(xnestDisplay, &op, &event, &error, &major, &minor) == 0) {
+          ErrorF("Unable to initialize XKEYBOARD extension.\n");
 	  goto XkbError;
-        }
-	xkb = XkbGetKeyboard(xnestDisplay, XkbGBN_AllComponentsMask, XkbUseCoreKbd);
-	if (xkb == NULL || xkb->geom == NULL) {
-	  ErrorF("Couldn't get keyboard.\n");
-	  goto XkbError;
-	}
-	XkbGetControls(xnestDisplay, XkbAllControlsMask, xkb);
-
-	memset(&names, 0, sizeof(XkbComponentNamesRec));
-	rules = XKB_DFLT_RULES;
-	model = XKB_DFLT_MODEL;
-	layout = XKB_DFLT_LAYOUT;
-	variants = XKB_DFLT_VARIANT;
-	options = XKB_DFLT_OPTIONS;
-
-	XkbSetRulesDflts(rules, model, layout, variants, options);
-	XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, modmap,
-				    xnestBell, xnestChangeKeyboardControl);
-	XkbDDXChangeControls(pDev, xkb->ctrls, xkb->ctrls);
-	XkbFreeKeyboard(xkb, 0, False);
       }
-#endif
+      xkb = XkbGetKeyboard(xnestDisplay, XkbGBN_AllComponentsMask, XkbUseCoreKbd);
+      if (xkb == NULL || xkb->geom == NULL) {
+	  ErrorF("Couldn't get keyboard.\n");
+          goto XkbError;
+      }
+      XkbGetControls(xnestDisplay, XkbAllControlsMask, xkb);
+
+      memset(&names, 0, sizeof(XkbComponentNamesRec));
+      rules = XKB_DFLT_RULES;
+      model = XKB_DFLT_MODEL;
+      layout = XKB_DFLT_LAYOUT;
+      variants = XKB_DFLT_VARIANT;
+      options = XKB_DFLT_OPTIONS;
+
+      XkbSetRulesDflts(rules, model, layout, variants, options);
+      XkbInitKeyboardDeviceStruct(pDev, &names, &keySyms, modmap,
+				    xnestBell, xnestChangeKeyboardControl);
+      XkbDDXChangeControls(pDev, xkb->ctrls, xkb->ctrls);
+      XkbFreeKeyboard(xkb, 0, False);
       xfree(keymap);
       break;
     case DEVICE_ON: 
@@ -227,6 +208,17 @@ XkbError:
     case DEVICE_CLOSE: 
       break;
     }
+  return Success;
+
+XkbError:
+  XGetKeyboardControl(xnestDisplay, &values);
+  memmove((char *)defaultKeyboardControl.autoRepeats,
+          (char *)values.auto_repeats,
+          sizeof(values.auto_repeats));
+
+  InitKeyboardDeviceStruct(&pDev->public, &keySyms,
+                           xnestBell, xnestChangeKeyboardControl);
+  xfree(keymap);
   return Success;
 }
 

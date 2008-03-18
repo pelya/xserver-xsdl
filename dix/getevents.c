@@ -42,10 +42,8 @@
 #include "dixevents.h"
 #include "mipointer.h"
 
-#ifdef XKB
 #include <X11/extensions/XKBproto.h>
 #include "xkbsrv.h"
-#endif
 
 #ifdef PANORAMIX
 #include "panoramiX.h"
@@ -454,14 +452,8 @@ updateMotionHistory(DeviceIntPtr pDev, CARD32 ms, int first_valuator,
  */
 int
 GetMaximumEventsNum(void) {
-    /* One base event -- device, plus valuator events.
-     *  Multiply by two if we're doing non-XKB key repeats. */
+    /* One base event -- device, plus valuator events. */
     int ret = 1 + MAX_VALUATOR_EVENTS;
-
-#ifdef XKB
-    if (noXkbExtension)
-#endif
-        ret *= 2;
 
     /* One possible DeviceClassesChangedEvent */
     ret++;
@@ -814,25 +806,7 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
 
     numEvents += countValuatorEvents(num_valuators);
 
-#ifdef XKB
-    if (noXkbExtension)
-#endif
-    {
-        switch (sym) {
-            case XK_Num_Lock:
-            case XK_Caps_Lock:
-            case XK_Scroll_Lock:
-            case XK_Shift_Lock:
-                if (type == KeyRelease)
-                    return 0;
-                else if (type == KeyPress && key_is_down(pDev, key_code))
-                    type = KeyRelease;
-        }
-    }
-
-    /* Handle core repeating, via press/release/press/release.
-     * FIXME: In theory, if you're repeating with two keyboards in non-XKB,
-     *        you could get unbalanced events here. */
+    /* Handle core repeating, via press/release/press/release. */
     if (type == KeyPress && key_is_down(pDev, key_code)) {
         /* If autorepeating is disabled either globally or just for that key,
          * or we have a modifier, don't generate a repeat event. */
@@ -840,17 +814,6 @@ GetKeyboardValuatorEvents(EventList *events, DeviceIntPtr pDev, int type,
             !key_autorepeats(pDev, key_code) ||
             pDev->key->modifierMap[key_code])
             return 0;
-
-#ifdef XKB
-        if (noXkbExtension)
-#endif
-        {
-            numEvents += GetKeyboardValuatorEvents(events, pDev,
-                                                   KeyRelease, key_code,
-                                                   first_valuator, num_valuators,
-                                                   valuators);
-            events += numEvents;
-        }
     }
 
     ms = GetTimeInMillis();

@@ -112,13 +112,11 @@ typedef struct _Client {
     int		priority;
     ClientState clientState;
     PrivateRec	*devPrivates;
-#ifdef XKB
     unsigned short	xkbClientFlags;
     unsigned short	mapNotifyMask;
     unsigned short	newKeyboardNotifyMask;
     unsigned short	vMajor,vMinor;
     KeyCode		minKC,maxKC;
-#endif
 
 #ifdef DEBUG
     unsigned char requestLog[MAX_REQUEST_LOG];
