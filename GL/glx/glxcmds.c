@@ -944,6 +944,12 @@ int __glXDisp_GetVisualConfigs(__GLXclientState *cl, GLbyte *pc)
 	buf[p++] = modes->transparentAlpha;
 	buf[p++] = GLX_TRANSPARENT_INDEX_VALUE;
 	buf[p++] = modes->transparentIndex;
+	buf[p++] = 0;
+	buf[p++] = 0;
+	buf[p++] = 0;
+	buf[p++] = 0;
+	buf[p++] = 0;
+	buf[p++] = 0;
 
 	if (client->swapped) {
 	    __GLX_SWAP_INT_ARRAY(buf, __GLX_TOTAL_CONFIG);
