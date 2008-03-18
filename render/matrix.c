@@ -72,9 +72,9 @@ PictureTransformPoint3d (PictTransformPtr transform,
 	    return FALSE;
 	result.vector[j] = (xFixed) v;
     }
+    *vector = result;
     if (!result.vector[2])
 	return FALSE;
-    *vector = result;
     return TRUE;
 }
 
@@ -286,7 +286,8 @@ from_doubles (PictTransformPtr t, double m[3][3])
 	    double  d = m[j][i];
 	    if (d < -32767.0 || d > 32767.0)
 		return FALSE;
-	    t->matrix[j][i] = pixman_double_to_fixed (d);
+	    d = d * 65536.0 + 0.5;
+	    t->matrix[j][i] = (xFixed) floor (d);
 	}
     return TRUE;
 }
@@ -294,7 +295,7 @@ from_doubles (PictTransformPtr t, double m[3][3])
 static Bool
 invert (double r[3][3], double m[3][3])
 {
-    double  det, norm;
+    double  det;
     int	    i, j;
     static int	a[3] = { 2, 2, 1 };
     static int	b[3] = { 1, 0, 0 };
