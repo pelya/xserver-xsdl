@@ -164,6 +164,15 @@ RRCrtcSetRotations (RRCrtcPtr crtc, Rotation rotations)
 }
 
 /*
+ * Set whether transforms are allowed on a CRTC
+ */
+void
+RRCrtcSetTransform (RRCrtcPtr crtc, Bool transforms)
+{
+    crtc->transforms = transforms;
+}
+
+/*
  * Notify the extension that the Crtc has been reconfigured,
  * the driver calls this whenever it has updated the mode
  */
@@ -607,6 +616,9 @@ RRCrtcTransformSet (RRCrtcPtr		crtc,
 {
     PictFilterPtr   filter = NULL;
     int		    width = 0, height = 0;
+
+    if (!crtc->transforms)
+	return BadValue;
 
     if (filter_len)
     {
@@ -1326,8 +1338,7 @@ ProcRRGetCrtcTransform (ClientPtr client)
     reply->sequenceNumber = client->sequence;
     reply->length = (CrtcTransformExtra + nextra) >> 2;
 
-    /* XXX deal with DDXen that can't do transforms */
-    reply->hasTransforms = xTrue;
+    reply->hasTransforms = crtc->transforms;
 
     transform_encode (client, &reply->pendingTransform, &pending->transform);
     transform_encode (client, &reply->pendingInverse, &pending->inverse);

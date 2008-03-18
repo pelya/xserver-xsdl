@@ -569,6 +569,31 @@ xf86RandR12SetRotations (ScreenPtr pScreen, Rotation rotations)
 }
 
 _X_EXPORT void
+xf86RandR12SetTransform (ScreenPtr pScreen, Bool transforms)
+{
+    XF86RandRInfoPtr	randrp;
+#if RANDR_13_INTERFACE
+    ScrnInfoPtr		pScrn = xf86Screens[pScreen->myNum];
+    int			c;
+    xf86CrtcConfigPtr   config = XF86_CRTC_CONFIG_PTR(pScrn);
+#endif
+
+#if XORG_VERSION_CURRENT < XORG_VERSION_NUMERIC(7,0,0,0,0)
+    if (xf86RandR12Key == NULL)
+	return;
+#endif
+
+    randrp = XF86RANDRINFO(pScreen);
+#if RANDR_13_INTERFACE
+    for (c = 0; c < config->num_crtc; c++) {
+	xf86CrtcPtr    crtc = config->crtc[c];
+
+	RRCrtcSetTransform (crtc->randr_crtc, transforms);
+    }
+#endif
+}
+
+_X_EXPORT void
 xf86RandR12GetOriginalVirtualSize(ScrnInfoPtr pScrn, int *x, int *y)
 {
     ScreenPtr pScreen = screenInfo.screens[pScrn->scrnIndex];
