@@ -891,9 +891,12 @@ ephyrPoll(void)
               continue;
           }
           {
-            if (ephyrCurScreen != ev.data.mouse_motion.screen)
+            if (ev.data.mouse_motion.screen >=0
+                && (ephyrCurScreen != ev.data.mouse_motion.screen))
               {
-                  EPHYR_LOG ("warping mouse cursor:%d\n", ephyrCurScreen) ;
+                  EPHYR_LOG ("warping mouse cursor. "
+                             "cur_screen%d, motion_screen:%d\n",
+                             ephyrCurScreen, ev.data.mouse_motion.screen) ;
                   if (ev.data.mouse_motion.screen >= 0)
                     {
                       ephyrWarpCursor
@@ -904,11 +907,30 @@ ephyrPoll(void)
               }
             else
               {
+                  int x=0, y=0;
+#ifdef XEPHYR_DRI
+                  EphyrWindowPair *pair = NULL;
+#endif
                   EPHYR_LOG ("enqueuing mouse motion:%d\n", ephyrCurScreen) ;
-                  KdEnqueuePointerEvent(ephyrMouse, mouseState,
-                                        ev.data.mouse_motion.x,
-                                        ev.data.mouse_motion.y,
-                                        0);
+                  x = ev.data.mouse_motion.x;
+                  y = ev.data.mouse_motion.y;
+                  EPHYR_LOG ("initial (x,y):(%d,%d)\n", x, y) ;
+#ifdef XEPHYR_DRI
+                  EPHYR_LOG ("is this window peered by a gl drawable ?\n") ;
+                  if (findWindowPairFromRemote (ev.data.mouse_motion.window,
+                                                &pair))
+                    {
+                        EPHYR_LOG ("yes, it is peered\n") ;
+                        x += pair->local->drawable.x;
+                        y += pair->local->drawable.y;
+                    }
+                  else
+                    {
+                        EPHYR_LOG ("no, it is not peered\n") ;
+                    }
+                  EPHYR_LOG ("final (x,y):(%d,%d)\n", x, y) ;
+#endif
+                  KdEnqueuePointerEvent(ephyrMouse, mouseState, x, y, 0);
               }
           }
           break;

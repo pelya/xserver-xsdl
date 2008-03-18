@@ -70,6 +70,7 @@ struct EphyrHostXEvent
       int x;
       int y;
       int screen;
+      int window;
     } mouse_motion;
 
     struct mouse_down { 	
