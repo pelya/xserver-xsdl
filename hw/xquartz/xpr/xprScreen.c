@@ -37,7 +37,6 @@
 #include "pseudoramiX.h"
 #include "darwin.h"
 #include "rootless.h"
-#include "safeAlpha/safeAlpha.h"
 #include "dri.h"
 #include "globals.h"
 #include "Xplugin.h"
@@ -341,15 +340,6 @@ xprAddScreen(int index, ScreenPtr pScreen)
 static Bool
 xprSetupScreen(int index, ScreenPtr pScreen)
 {
-    // Add alpha protecting replacements for fb screen functions
-
-#ifdef RENDER
-    {
-        PictureScreenPtr ps = GetPictureScreen(pScreen);
-        ps->Composite = SafeAlphaComposite;
-    }
-#endif /* RENDER */
-
     // Initialize accelerated rootless drawing
     // Note that this must be done before DamageSetup().
     RootlessAccelInit(pScreen);
