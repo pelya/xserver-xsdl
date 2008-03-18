@@ -262,6 +262,86 @@ PictureTransformBounds (BoxPtr b, PictTransformPtr matrix)
     }
 }
 
+static const int	a[3] = { 3, 3, 2 };
+static const int	b[3] = { 2, 1, 1 };
+
+static void
+to_doubles (double m[3][3], const PictTransformPtr t)
+{
+    int	i, j;
+
+    for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++)
+	    m[j][i] = pixman_fixed_to_double (t->matrix[j][i]);
+}
+
+static Bool
+from_doubles (PictTransformPtr t, double m[3][3])
+{
+    int	i, j;
+
+    for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++)
+	{
+	    double  d = m[j][i];
+	    if (d < -32767.0 || d > 32767.0)
+		return FALSE;
+	    t->matrix[j][i] = pixman_double_to_fixed (d);
+	}
+    return TRUE;
+}
+
+static Bool
+invert (double r[3][3], double m[3][3])
+{
+    double  det, norm;
+    int	    i, j;
+    static int	a[3] = { 2, 2, 1 };
+    static int	b[3] = { 1, 0, 0 };
+
+    det = 0;
+    for (i = 0; i < 3; i++) {
+	double	p;
+	int	ai = a[i];
+	int	bi = b[i];
+	p = m[i][0] * (m[ai][2] * m[bi][1] - m[ai][1] * m[bi][2]);
+	if (i == 1)
+	    p = -p;
+	det += p;
+    }
+    if (det == 0)
+	return FALSE;
+    det = 1/det;
+    for (j = 0; j < 3; j++) {
+	for (i = 0; i < 3; i++) {
+	    double  p;
+	    int	    ai = a[i];
+	    int	    aj = a[j];
+	    int	    bi = b[i];
+	    int	    bj = b[j];
+
+	    p = m[ai][aj] * m[bi][bj] - m[ai][bj] * m[bi][aj];
+	    if (((i + j) & 1) != 0)
+		p = -p;
+	    r[j][i] = det * p;
+	}
+    }
+    return TRUE;
+}
+
+_X_EXPORT Bool
+PictureTransformInvert (PictTransformPtr dst, const PictTransformPtr src)
+{
+    double  m[3][3], r[3][3];
+
+    to_doubles (m, src);
+    if (!invert (r, m))
+	return FALSE;
+    if (!from_doubles (dst, r))
+	return FALSE;
+    return TRUE;
+}
+
 static Bool
 within_epsilon (xFixed a, xFixed b, xFixed epsilon)
 {
