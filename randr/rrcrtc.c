@@ -1341,14 +1341,12 @@ ProcRRGetCrtcTransform (ClientPtr client)
     reply->hasTransforms = crtc->transforms;
 
     transform_encode (client, &reply->pendingTransform, &pending->transform);
-    transform_encode (client, &reply->pendingInverse, &pending->inverse);
     extra += transform_filter_encode (client, extra,
 				      &reply->pendingNbytesFilter,
 				      &reply->pendingNparamsFilter,
 				      pending);
 
     transform_encode (client, &reply->currentTransform, &current->transform);
-    transform_encode (client, &reply->currentInverse, &current->inverse);
     extra += transform_filter_encode (client, extra,
 				      &reply->currentNbytesFilter,
 				      &reply->currentNparamsFilter,
