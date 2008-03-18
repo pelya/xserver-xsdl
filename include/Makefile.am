@@ -54,6 +54,7 @@ sdk_HEADERS =		\
 	xkbfile.h	\
 	xkbsrv.h	\
 	xkbstr.h        \
+	xkbrules.h      \
 	xserver-properties.h
 
 nodist_sdk_HEADERS = xorg-server.h
