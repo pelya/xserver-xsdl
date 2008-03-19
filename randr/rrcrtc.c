@@ -52,7 +52,8 @@ static void
 RRTransformInit (RRTransformPtr transform)
 {
     PictureTransformInitIdentity (&transform->transform);
-    PictureTransformInitIdentity (&transform->inverse);
+    pict_f_transform_init_identity (&transform->f_transform);
+    pict_f_transform_init_identity (&transform->f_inverse);
     transform->filter = NULL;
     transform->params = NULL;
     transform->nparams = 0;
@@ -94,7 +95,8 @@ RRTransformCopy (RRTransformPtr dst, RRTransformPtr src)
 			       src->params, src->nparams, src->width, src->height))
 	return FALSE;
     dst->transform = src->transform;
-    dst->inverse = src->inverse;
+    dst->f_transform = src->f_transform;
+    dst->f_inverse = src->f_inverse;
     return TRUE;
 }
 
@@ -142,7 +144,8 @@ RRCrtcCreate (ScreenPtr pScreen, void *devPrivate)
     RRTransformInit (&crtc->client_pending_transform);
     RRTransformInit (&crtc->client_current_transform);
     PictureTransformInitIdentity (&crtc->transform);
-    PictureTransformInitIdentity (&crtc->inverse);
+    pict_f_transform_init_identity (&crtc->f_transform);
+    pict_f_transform_init_identity (&crtc->f_inverse);
 
     if (!AddResource (crtc->id, RRCrtcType, (pointer) crtc))
 	return NULL;
@@ -441,13 +444,19 @@ RRCrtcGetTransform (RRCrtcPtr crtc)
 void
 RRCrtcPostPendingTransform (RRCrtcPtr crtc)
 {
+    if (!crtc->mode)
+	return;
+
     RRTransformCopy (&crtc->client_current_transform,
 		     &crtc->client_pending_transform);
-    RRComputeTransform (crtc->mode, crtc->rotation, crtc->x, crtc->y,
-			&crtc->client_current_transform.transform,
-			&crtc->client_current_transform.inverse,
+    RRComputeTransform (crtc->x, crtc->y,
+			crtc->mode->mode.width,
+			crtc->mode->mode.height,
+			crtc->rotation,
+			&crtc->client_current_transform,
 			&crtc->transform,
-			&crtc->inverse);
+			&crtc->f_transform,
+			&crtc->f_inverse);
 }
 
 /*
@@ -608,7 +617,8 @@ RRCrtcGammaSetSize (RRCrtcPtr	crtc,
 int
 RRCrtcTransformSet (RRCrtcPtr		crtc,
 		    PictTransformPtr	transform,
-		    PictTransformPtr	inverse,
+		    struct pict_f_transform *f_transform,
+		    struct pict_f_transform *f_inverse,
 		    char		*filter_name,
 		    int			filter_len,
 		    xFixed		*params,
@@ -648,7 +658,8 @@ RRCrtcTransformSet (RRCrtcPtr		crtc,
 	return BadAlloc;
 
     crtc->client_pending_transform.transform = *transform;
-    crtc->client_pending_transform.inverse = *inverse;
+    crtc->client_pending_transform.f_transform = *f_transform;
+    crtc->client_pending_transform.f_inverse = *f_inverse;
     return Success;
 }
 
@@ -662,78 +673,110 @@ RRCrtcTransformSet (RRCrtcPtr		crtc,
  * Return TRUE if the resulting transform is not a simple translation.
  */
 Bool
-RRComputeTransform (RRModePtr		mode,
-		    Rotation		rotation,
-		    int			x,
-		    int			y,
-		    PictTransformPtr	client_transform,
-		    PictTransformPtr	client_inverse,
-		    PictTransformPtr    transform,
-		    PictTransformPtr    inverse)
+RRComputeTransform (int			    x,
+		    int			    y,
+		    int			    width,
+		    int			    height,
+		    Rotation		    rotation,
+		    RRTransformPtr	    rr_transform,
+
+		    PictTransformPtr	    transform,
+		    struct pict_f_transform *f_transform,
+		    struct pict_f_transform *f_inverse)
 {
+    PictTransform	    inverse;
+
     PictureTransformInitIdentity (transform);
-    PictureTransformInitIdentity (inverse);
+    PictureTransformInitIdentity (&inverse);
+    pict_f_transform_init_identity (f_transform);
+    pict_f_transform_init_identity (f_inverse);
     if (rotation != RR_Rotate_0)
     {
+	double	f_rot_cos, f_rot_sin, f_rot_dx, f_rot_dy;
+	double	f_scale_x, f_scale_y, f_scale_dx, f_scale_dy;
 	xFixed	rot_cos, rot_sin, rot_dx, rot_dy;
 	xFixed	scale_x, scale_y, scale_dx, scale_dy;
-	int	mode_w = mode->mode.width;
-	int	mode_h = mode->mode.height;
-	
+
 	/* rotation */
 	switch (rotation & 0xf) {
 	default:
 	case RR_Rotate_0:
+	    f_rot_cos = 1;	    f_rot_sin = 0;
+	    f_rot_dx  = 0;	    f_rot_dy  = 0;
 	    rot_cos = F ( 1);	    rot_sin = F ( 0);
 	    rot_dx  = F ( 0);	    rot_dy  = F ( 0);
 	    break;
 	case RR_Rotate_90:
+	    f_rot_cos = 0;	    f_rot_sin = 1;
+	    f_rot_dx  = height;	    f_rot_dy  = 0;
 	    rot_cos = F ( 0);	    rot_sin = F ( 1);
-	    rot_dx =  F ( mode_h);  rot_dy  = F (0);
+	    rot_dx =  F ( height);  rot_dy  = F (0);
 	    break;
 	case RR_Rotate_180:
+	    f_rot_cos = -1;	    f_rot_sin = 0;
+	    f_rot_dx  = width;	    f_rot_dy  = height;
 	    rot_cos = F (-1);	    rot_sin = F ( 0);
-	    rot_dx  = F (mode_w);   rot_dy  = F ( mode_h);
+	    rot_dx  = F (width);   rot_dy  = F ( height);
 	    break;
 	case RR_Rotate_270:
+	    f_rot_cos = 0;	    f_rot_sin = -1;
+	    f_rot_dx  = 0;	    f_rot_dy  = width;
 	    rot_cos = F ( 0);	    rot_sin = F (-1);
-	    rot_dx  = F ( 0);	    rot_dy  = F ( mode_w);
+	    rot_dx  = F ( 0);	    rot_dy  = F ( width);
 	    break;
 	}
 	
-	PictureTransformRotate (inverse, transform, rot_cos, rot_sin);
-	PictureTransformTranslate (inverse, transform, rot_dx, rot_dy);
+	PictureTransformRotate (&inverse, transform, rot_cos, rot_sin);
+	PictureTransformTranslate (&inverse, transform, rot_dx, rot_dy);
+	pict_f_transform_rotate (f_inverse, f_transform, f_rot_cos, f_rot_sin);
+	pict_f_transform_translate (f_inverse, f_transform, f_rot_dx, f_rot_dy);
 
 	/* reflection */
+	f_scale_x = 1;
+	f_scale_dx = 0;
+	f_scale_y = 1;
+	f_scale_dy = 0;
 	scale_x = F (1);
 	scale_dx = 0;
 	scale_y = F (1);
 	scale_dy = 0;
 	if (rotation & RR_Reflect_X)
 	{
+	    f_scale_x = -1;
 	    scale_x = F(-1);
-	    if (rotation & (RR_Rotate_0|RR_Rotate_180))
-		scale_dx = F(mode_w);
-	    else
-		scale_dx = F(mode_h);
+	    if (rotation & (RR_Rotate_0|RR_Rotate_180)) {
+		f_scale_dx = width;
+		scale_dx = F(width);
+	    } else {
+		f_scale_dx = height;
+		scale_dx = F(height);
+	    }
 	}
 	if (rotation & RR_Reflect_Y)
 	{
+	    f_scale_y = -1;
 	    scale_y = F(-1);
-	    if (rotation & (RR_Rotate_0|RR_Rotate_180))
-		scale_dy = F(mode_h);
-	    else
-		scale_dy = F(mode_w);
+	    if (rotation & (RR_Rotate_0|RR_Rotate_180)) {
+		f_scale_dy = height;
+		scale_dy = F(height);
+	    } else {
+		f_scale_dy = width;
+		scale_dy = F(width);
+	    }
 	}
 	
-	PictureTransformScale (inverse, transform, scale_x, scale_y);
-	PictureTransformTranslate (inverse, transform, scale_dx, scale_dy);
+	PictureTransformScale (&inverse, transform, scale_x, scale_y);
+	pict_f_transform_scale (f_inverse, f_transform, f_scale_x, f_scale_y);
+	PictureTransformTranslate (&inverse, transform, scale_dx, scale_dy);
+	pict_f_transform_translate (f_inverse, f_transform, f_scale_dx, f_scale_dy);
     }
     
 #ifdef RANDR_12_INTERFACE
+    if (rr_transform)
     {
-        PictureTransformMultiply (inverse, client_inverse, inverse);
-        PictureTransformMultiply (transform, transform, client_transform);
+        PictureTransformMultiply (transform, transform, &rr_transform->transform);
+	pict_f_transform_multiply (f_transform, f_transform, &rr_transform->f_transform);
+	pict_f_transform_multiply (f_inverse, &rr_transform->f_inverse, f_inverse);
     }
 #endif
     /*
@@ -741,13 +784,16 @@ RRComputeTransform (RRModePtr		mode,
      */
     if (PictureTransformIsIdentity (transform))
     {
-	PictureTransformInitTranslate (inverse,   F (-x), F (-y));
 	PictureTransformInitTranslate (transform, F ( x), F ( y));
+
+	pict_f_transform_init_translate (f_transform, F( x), F( y));
+	pict_f_transform_init_translate (f_inverse,   F(-x), F(-y));
 	return FALSE;
     }
     else
     {
-	PictureTransformTranslate (inverse, transform, x, y);
+	PictureTransformTranslate (&inverse, transform, x, y);
+	pict_f_transform_translate (f_inverse, f_transform, x, y);
 	return TRUE;
     }
 }
@@ -1045,6 +1091,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	}
     
 #ifdef RANDR_12_INTERFACE
+#if 0
 	/*
 	 * Check screen size bounds if the DDX provides a 1.2 interface
 	 * for setting screen size. Else, assume the CrtcSet sets
@@ -1079,6 +1126,7 @@ ProcRRSetCrtcConfig (ClientPtr client)
 		return BadValue;
 	    }
 	}
+#endif
 #endif
     }
     
@@ -1227,7 +1275,8 @@ ProcRRSetCrtcTransform (ClientPtr client)
 {
     REQUEST(xRRSetCrtcTransformReq);
     RRCrtcPtr		    crtc;
-    PictTransform	    transform, inverse;
+    PictTransform	    transform;
+    struct pict_f_transform f_transform, f_inverse;
     char		    *filter;
     int			    nbytes;
     xFixed		    *params;
@@ -1239,7 +1288,8 @@ ProcRRSetCrtcTransform (ClientPtr client)
 	return RRErrorBase + BadRRCrtc;
 
     PictTransform_from_xRenderTransform (&transform, &stuff->transform);
-    if (!PictureTransformInvert (&inverse, &transform))
+    pict_f_transform_from_pixman_transform (&f_transform, &transform);
+    if (!pict_f_transform_invert (&f_inverse, &f_transform))
 	return BadMatch;
 
     filter = (char *) (stuff + 1);
@@ -1249,7 +1299,7 @@ ProcRRSetCrtcTransform (ClientPtr client)
     if (nparams < 0)
 	return BadLength;
 
-    return RRCrtcTransformSet (crtc, &transform, &inverse,
+    return RRCrtcTransformSet (crtc, &transform, &f_transform, &f_inverse,
 			       filter, nbytes, params, nparams);
 }
 

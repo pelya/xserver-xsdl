@@ -326,15 +326,13 @@ xf86_crtc_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
 	xf86CursorScreenPtr ScreenPriv =
 	    (xf86CursorScreenPtr)dixLookupPrivate(&screen->devPrivates,
 						  xf86CursorScreenKey);
-	PictVector	v;
-	x += ScreenPriv->HotX;
-	y += ScreenPriv->HotY;
-	v.vector[0] = IntToxFixed (x); v.vector[1] = IntToxFixed (y); v.vector[2] = IntToxFixed(1);
-	PictureTransformPoint (&crtc->framebuffer_to_crtc, &v);
-	x = xFixedToInt (v.vector[0]); y = xFixedToInt (v.vector[1]);
-	x -= ScreenPriv->HotX;
-	y -= ScreenPriv->HotY;
-    }
+	struct pict_f_vector   v;
+
+	v.v[0] = x + ScreenPriv->HotX; v.v[1] = y + ScreenPriv->HotY; v.v[2] = 1;
+	pict_f_transform_point (&crtc->f_framebuffer_to_crtc, &v);
+	x = floor (v.v[0] + 0.5) - ScreenPriv->HotX;
+	y = floor (v.v[1] + 0.5) - ScreenPriv->HotY;
+   }
     else
     {
 	x -= crtc->x;

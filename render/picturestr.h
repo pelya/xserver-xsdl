@@ -56,6 +56,14 @@ typedef struct _PictFormat {
 typedef struct pixman_vector PictVector, *PictVectorPtr;
 typedef struct pixman_transform PictTransform, *PictTransformPtr;
 
+struct pict_f_vector {
+    double  v[3];
+};
+
+struct pict_f_transform {
+    double  m[3][3];
+};
+
 #define PICT_GRADIENT_STOPTABLE_SIZE 1024
 #define SourcePictTypeSolidFill 0
 #define SourcePictTypeLinear 1
@@ -744,5 +752,60 @@ PictTransform_from_xRenderTransform (PictTransformPtr pict,
 void
 xRenderTransform_from_PictTransform (xRenderTransform *render,
 				     PictTransformPtr pict);
+
+void
+pict_f_transform_from_pixman_transform (struct pict_f_transform *ft,
+					struct pixman_transform	*t);
+
+Bool
+pixman_transform_from_pict_f_transform (struct pixman_transform	*t,
+					struct pict_f_transform	*ft);
+
+Bool
+pict_f_transform_invert (struct pict_f_transform *r,
+			 struct pict_f_transform *m);
+
+
+Bool
+pict_f_transform_point (struct pict_f_transform *t,
+			struct pict_f_vector	*v);
+
+void
+pict_f_transform_point_3d (struct pict_f_transform *t,
+			   struct pict_f_vector	*v);
+
+void
+pict_f_transform_multiply (struct pict_f_transform *dst,
+			   struct pict_f_transform *l, struct pict_f_transform *r);
+
+void
+pict_f_transform_init_scale (struct pict_f_transform *t, double sx, double sy);
+
+Bool
+pict_f_transform_scale (struct pict_f_transform *forward,
+			struct pict_f_transform *reverse,
+			double sx, double sy);
+
+void
+pict_f_transform_init_rotate (struct pict_f_transform *t, double c, double s);
+
+Bool
+pict_f_transform_rotate (struct pict_f_transform *forward,
+			 struct pict_f_transform *reverse,
+			 double c, double s);
+
+void
+pict_f_transform_init_translate (struct pict_f_transform *t, double tx, double ty);
+
+Bool
+pict_f_transform_translate (struct pict_f_transform *forward,
+			    struct pict_f_transform *reverse,
+			    double tx, double ty);
+
+Bool
+pict_f_transform_bounds (struct pict_f_transform *t, BoxPtr b);
+
+void
+pict_f_transform_init_identity (struct pict_f_transform *t);
 
 #endif /* _PICTURESTR_H_ */

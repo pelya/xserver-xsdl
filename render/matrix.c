@@ -262,83 +262,15 @@ PictureTransformBounds (BoxPtr b, PictTransformPtr matrix)
     }
 }
 
-static const int	a[3] = { 3, 3, 2 };
-static const int	b[3] = { 2, 1, 1 };
-
-static void
-to_doubles (double m[3][3], const PictTransformPtr t)
-{
-    int	i, j;
-
-    for (j = 0; j < 3; j++)
-	for (i = 0; i < 3; i++)
-	    m[j][i] = pixman_fixed_to_double (t->matrix[j][i]);
-}
-
-static Bool
-from_doubles (PictTransformPtr t, double m[3][3])
-{
-    int	i, j;
-
-    for (j = 0; j < 3; j++)
-	for (i = 0; i < 3; i++)
-	{
-	    double  d = m[j][i];
-	    if (d < -32767.0 || d > 32767.0)
-		return FALSE;
-	    d = d * 65536.0 + 0.5;
-	    t->matrix[j][i] = (xFixed) floor (d);
-	}
-    return TRUE;
-}
-
-static Bool
-invert (double r[3][3], double m[3][3])
-{
-    double  det;
-    int	    i, j;
-    static int	a[3] = { 2, 2, 1 };
-    static int	b[3] = { 1, 0, 0 };
-
-    det = 0;
-    for (i = 0; i < 3; i++) {
-	double	p;
-	int	ai = a[i];
-	int	bi = b[i];
-	p = m[i][0] * (m[ai][2] * m[bi][1] - m[ai][1] * m[bi][2]);
-	if (i == 1)
-	    p = -p;
-	det += p;
-    }
-    if (det == 0)
-	return FALSE;
-    det = 1/det;
-    for (j = 0; j < 3; j++) {
-	for (i = 0; i < 3; i++) {
-	    double  p;
-	    int	    ai = a[i];
-	    int	    aj = a[j];
-	    int	    bi = b[i];
-	    int	    bj = b[j];
-
-	    p = m[ai][aj] * m[bi][bj] - m[ai][bj] * m[bi][aj];
-	    if (((i + j) & 1) != 0)
-		p = -p;
-	    r[j][i] = det * p;
-	}
-    }
-    return TRUE;
-}
-
 _X_EXPORT Bool
 PictureTransformInvert (PictTransformPtr dst, const PictTransformPtr src)
 {
-    double  m[3][3], r[3][3];
+    struct pict_f_transform m, r;
 
-    to_doubles (m, src);
-    if (!invert (r, m))
+    pict_f_transform_from_pixman_transform (&m, src);
+    if (!pict_f_transform_invert (&r, &m))
 	return FALSE;
-    if (!from_doubles (dst, r))
+    if (!pixman_transform_from_pict_f_transform (dst, &r))
 	return FALSE;
     return TRUE;
 }
@@ -464,3 +396,251 @@ xRenderTransform_from_PictTransform (xRenderTransform *render,
     render->matrix33 = pict->matrix[2][2];
 }
 
+/*
+ * Floating point matrix interfaces
+ */
+
+_X_EXPORT void
+pict_f_transform_from_pixman_transform (struct pict_f_transform *ft,
+					struct pixman_transform	*t)
+{
+    int	i, j;
+
+    for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++)
+	    ft->m[j][i] = pixman_fixed_to_double (t->matrix[j][i]);
+}
+
+_X_EXPORT Bool
+pixman_transform_from_pict_f_transform (struct pixman_transform	*t,
+					struct pict_f_transform	*ft)
+{
+    int	i, j;
+
+    for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++)
+	{
+	    double  d = ft->m[j][i];
+	    if (d < -32767.0 || d > 32767.0)
+		return FALSE;
+	    d = d * 65536.0 + 0.5;
+	    t->matrix[j][i] = (xFixed) floor (d);
+	}
+    return TRUE;
+}
+
+static const int	a[3] = { 3, 3, 2 };
+static const int	b[3] = { 2, 1, 1 };
+
+_X_EXPORT Bool
+pict_f_transform_invert (struct pict_f_transform *r,
+			 struct pict_f_transform *m)
+{
+    double  det;
+    int	    i, j;
+    static int	a[3] = { 2, 2, 1 };
+    static int	b[3] = { 1, 0, 0 };
+
+    det = 0;
+    for (i = 0; i < 3; i++) {
+	double	p;
+	int	ai = a[i];
+	int	bi = b[i];
+	p = m->m[i][0] * (m->m[ai][2] * m->m[bi][1] - m->m[ai][1] * m->m[bi][2]);
+	if (i == 1)
+	    p = -p;
+	det += p;
+    }
+    if (det == 0)
+	return FALSE;
+    det = 1/det;
+    for (j = 0; j < 3; j++) {
+	for (i = 0; i < 3; i++) {
+	    double  p;
+	    int	    ai = a[i];
+	    int	    aj = a[j];
+	    int	    bi = b[i];
+	    int	    bj = b[j];
+
+	    p = m->m[ai][aj] * m->m[bi][bj] - m->m[ai][bj] * m->m[bi][aj];
+	    if (((i + j) & 1) != 0)
+		p = -p;
+	    r->m[j][i] = det * p;
+	}
+    }
+    return TRUE;
+}
+
+_X_EXPORT Bool
+pict_f_transform_point (struct pict_f_transform *t,
+			struct pict_f_vector	*v)
+{
+    struct pict_f_vector    result;
+    int			    i, j;
+    double		    a;
+
+    for (j = 0; j < 3; j++)
+    {
+	a = 0;
+	for (i = 0; i < 3; i++)
+	    a += t->m[j][i] * v->v[i];
+	result.v[j] = a;
+    }
+    if (!result.v[2])
+	return FALSE;
+    for (j = 0; j < 2; j++)
+	v->v[j] = result.v[j] / result.v[2];
+    v->v[2] = 1;
+    return TRUE;
+}
+
+_X_EXPORT void
+pict_f_transform_point_3d (struct pict_f_transform *t,
+			   struct pict_f_vector	*v)
+{
+    struct pict_f_vector    result;
+    int			    i, j;
+    double		    a;
+
+    for (j = 0; j < 3; j++)
+    {
+	a = 0;
+	for (i = 0; i < 3; i++)
+	    a += t->m[j][i] * v->v[i];
+	result.v[j] = a;
+    }
+    *v = result;
+}
+
+_X_EXPORT void
+pict_f_transform_multiply (struct pict_f_transform *dst,
+			   struct pict_f_transform *l, struct pict_f_transform *r)
+{
+    struct pict_f_transform d;
+    int			    dx, dy;
+    int			    o;
+
+    for (dy = 0; dy < 3; dy++)
+	for (dx = 0; dx < 3; dx++)
+	{
+	    double v = 0;
+	    for (o = 0; o < 3; o++)
+		v += l->m[dy][o] * r->m[o][dx];
+	    d.m[dy][dx] = v;
+	}
+    *dst = d;
+}
+
+_X_EXPORT void
+pict_f_transform_init_scale (struct pict_f_transform *t, double sx, double sy)
+{
+    t->m[0][0] = sx;	t->m[0][1] = 0;	    t->m[0][2] = 0;
+    t->m[1][0] = 0;	t->m[1][1] = sy;    t->m[1][2] = 0;
+    t->m[2][0] = 0;	t->m[2][1] = 0;	    t->m[2][2] = 1;
+}
+
+_X_EXPORT Bool
+pict_f_transform_scale (struct pict_f_transform *forward,
+			struct pict_f_transform *reverse,
+			double sx, double sy)
+{
+    struct pict_f_transform t;
+
+    if (sx == 0 || sy == 0)
+	return FALSE;
+
+    pict_f_transform_init_scale (&t, sx, sy);
+    pict_f_transform_multiply (forward, &t, forward);
+    pict_f_transform_init_scale (&t, 1/sx, 1/sy);
+    pict_f_transform_multiply (reverse, reverse, &t);
+    return TRUE;
+}
+
+_X_EXPORT void
+pict_f_transform_init_rotate (struct pict_f_transform *t, double c, double s)
+{
+    t->m[0][0] = c;	t->m[0][1] = -s;    t->m[0][2] = 0;
+    t->m[1][0] = s;	t->m[1][1] = c;	    t->m[1][2] = 0;
+    t->m[2][0] = 0;	t->m[2][1] = 0;	    t->m[2][2] = 1;
+}
+
+_X_EXPORT Bool
+pict_f_transform_rotate (struct pict_f_transform *forward,
+			 struct pict_f_transform *reverse,
+			 double c, double s)
+{
+    struct pict_f_transform t;
+
+    pict_f_transform_init_rotate (&t, c, s);
+    pict_f_transform_multiply (forward, &t, forward);
+    pict_f_transform_init_rotate (&t, c, -s);
+    pict_f_transform_multiply (reverse, reverse, &t);
+    return TRUE;
+}
+
+_X_EXPORT void
+pict_f_transform_init_translate (struct pict_f_transform *t, double tx, double ty)
+{
+    t->m[0][0] = 1;	t->m[0][1] = 0;	    t->m[0][2] = tx;
+    t->m[1][0] = 0;	t->m[1][1] = 1;	    t->m[1][2] = ty;
+    t->m[2][0] = 0;	t->m[2][1] = 0;	    t->m[2][2] = 1;
+}
+
+_X_EXPORT Bool
+pict_f_transform_translate (struct pict_f_transform *forward,
+			    struct pict_f_transform *reverse,
+			    double tx, double ty)
+{
+    struct pict_f_transform t;
+
+    pict_f_transform_init_translate (&t, tx, ty);
+    pict_f_transform_multiply (forward, &t, forward);
+    pict_f_transform_init_translate (&t, -tx, -ty);
+    pict_f_transform_multiply (reverse, reverse, &t);
+    return TRUE;
+}
+
+_X_EXPORT Bool
+pict_f_transform_bounds (struct pict_f_transform *t, BoxPtr b)
+{
+    struct pict_f_vector    v[4];
+    int			    i;
+    int			    x1, y1, x2, y2;
+
+    v[0].v[0] = b->x1;    v[0].v[1] = b->y1;	v[0].v[2] = 1;
+    v[1].v[0] = b->x2;    v[1].v[1] = b->y1;	v[1].v[2] = 1;
+    v[2].v[0] = b->x2;    v[2].v[1] = b->y2;	v[2].v[2] = 1;
+    v[3].v[0] = b->x1;    v[3].v[1] = b->y2;	v[3].v[2] = 1;
+    for (i = 0; i < 4; i++)
+    {
+	if (!pict_f_transform_point (t, &v[i]))
+	    return FALSE;
+	x1 = floor (v[i].v[0]);
+	y1 = floor (v[i].v[1]);
+	x2 = ceil (v[i].v[0]);
+	y2 = ceil (v[i].v[1]);
+	if (i == 0)
+	{
+	    b->x1 = x1; b->y1 = y1;
+	    b->x2 = x2; b->y2 = y2;
+	}
+	else
+	{
+	    if (x1 < b->x1) b->x1 = x1;
+	    if (y1 < b->y1) b->y1 = y1;
+	    if (x2 > b->x2) b->x2 = x2;
+	    if (y2 > b->y2) b->y2 = y2;
+	}
+    }
+    return TRUE;
+}
+
+_X_EXPORT void
+pict_f_transform_init_identity (struct pict_f_transform *t)
+{
+    int	i, j;
+
+    for (j = 0; j < 3; j++)
+	for (i = 0; i < 3; i++)
+	    t->m[j][i] = i == j ? 1 : 0;
+}
