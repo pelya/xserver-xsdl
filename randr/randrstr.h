@@ -545,7 +545,7 @@ RRCrtcSetRotations (RRCrtcPtr crtc, Rotation rotations);
  * Set whether transforms are allowed on a CRTC
  */
 void
-RRCrtcSetTransform (RRCrtcPtr crtc, Bool transforms);
+RRCrtcSetTransformSupport (RRCrtcPtr crtc, Bool transforms);
 
 /*
  * Notify the extension that the Crtc has been reconfigured,
@@ -639,7 +639,7 @@ RRCrtcGetTransform (RRCrtcPtr crtc);
  * Mark the pending transform as current
  */
 void
-RRCrtcPostPendingTransform (RRCrtcPtr crtc);
+RRCrtcSetTransform (RRCrtcPtr crtc, RRTransformPtr transform);
 
 /*
  * Check whether the pending and current transforms are the same

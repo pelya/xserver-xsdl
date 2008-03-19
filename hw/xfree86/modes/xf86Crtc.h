@@ -313,6 +313,10 @@ struct _xf86Crtc {
     int		    filter_width;
     int		    filter_height;
     Bool	    transform_in_use;
+    RRTransformRec  transform;
+    Bool	    transformPresent;
+    RRTransformRec  desiredTransform;
+    Bool	    desiredTransformPresent;
     /**
      * Bounding box in screen space
      */
@@ -665,6 +669,11 @@ xf86CrtcDestroy (xf86CrtcPtr		crtc);
 /**
  * Sets the given video mode on the given crtc
  */
+
+Bool
+xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
+			  RRTransformPtr transform, int x, int y);
+
 Bool
 xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
 		 int x, int y);
@@ -673,7 +682,7 @@ xf86CrtcSetMode (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation,
  * Assign crtc rotation during mode set
  */
 Bool
-xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation);
+xf86CrtcRotate (xf86CrtcPtr crtc);
 
 /*
  * free shadow memory allocated for all crtcs

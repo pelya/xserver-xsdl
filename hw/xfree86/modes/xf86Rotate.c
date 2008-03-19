@@ -349,8 +349,35 @@ xf86RotateCloseScreen (ScreenPtr screen)
 	xf86RotateDestroy (xf86_config->crtc[c]);
 }
 
+static Bool
+xf86CrtcFitsScreen (xf86CrtcPtr crtc, struct pict_f_transform *crtc_to_fb)
+{
+    ScrnInfoPtr		pScrn = crtc->scrn;
+    /* if this is called during ScreenInit() we don't have pScrn->pScreen yet */
+    ScreenPtr		pScreen = screenInfo.screens[pScrn->scrnIndex];
+    BoxRec		b;
+
+    if (!pScreen)
+	return TRUE;
+    b.x1 = 0;
+    b.y1 = 0;
+    b.x2 = crtc->mode.HDisplay;
+    b.y2 = crtc->mode.VDisplay;
+    if (crtc_to_fb)
+	pict_f_transform_bounds (crtc_to_fb, &b);
+    else {
+	b.x1 += crtc->x;
+	b.y1 += crtc->y;
+	b.x2 += crtc->x;
+	b.y2 += crtc->y;
+    }
+
+    return (0 <= b.x1 && b.x2 <= pScreen->width &&
+	    0 <= b.y1 && b.y2 <= pScreen->height);
+}
+
 _X_EXPORT Bool
-xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
+xf86CrtcRotate (xf86CrtcPtr crtc)
 {
     ScrnInfoPtr		pScrn = crtc->scrn;
     xf86CrtcConfigPtr   xf86_config = XF86_CRTC_CONFIG_PTR(pScrn);
@@ -364,20 +391,19 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
     int			new_width = 0;
     int			new_height = 0;
     RRTransformPtr	transform = NULL;
-    
-#ifdef RANDR_12_INTERFACE
-    if (crtc->randr_crtc)
-	transform = RRCrtcGetTransform (crtc->randr_crtc);
-#endif
-    if (!transform ||
-	!RRComputeTransform (crtc->x, crtc->y,
+
+    if (crtc->transformPresent)
+	transform = &crtc->transform;
+
+    if (!RRComputeTransform (crtc->x, crtc->y,
 			     crtc->mode.HDisplay, crtc->mode.VDisplay,
-			     rotation,
+			     crtc->rotation,
 			     transform,
 
 			     &crtc_to_fb,
 			     &f_crtc_to_fb,
-			     &f_fb_to_crtc))
+			     &f_fb_to_crtc) &&
+	xf86CrtcFitsScreen (crtc, &f_crtc_to_fb))
     {
 	/*
 	 * If the untranslated transformation is the identity,
@@ -400,8 +426,8 @@ xf86CrtcRotate (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotation)
 	 * matches the mode, not the pre-rotated copy in the
 	 * frame buffer
 	 */
-	int	    width = mode->HDisplay;
-	int	    height = mode->VDisplay;
+	int	    width = crtc->mode.HDisplay;
+	int	    height = crtc->mode.VDisplay;
 	void	    *shadowData = crtc->rotatedData;
 	PixmapPtr   shadow = crtc->rotatedPixmap;
 	int	    old_width = shadow ? shadow->drawable.width : 0;

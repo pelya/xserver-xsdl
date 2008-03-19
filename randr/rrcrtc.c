@@ -91,12 +91,23 @@ RRTransformSetFilter (RRTransformPtr	dst,
 static Bool
 RRTransformCopy (RRTransformPtr dst, RRTransformPtr src)
 {
-    if (!RRTransformSetFilter (dst, src->filter,
-			       src->params, src->nparams, src->width, src->height))
-	return FALSE;
-    dst->transform = src->transform;
-    dst->f_transform = src->f_transform;
-    dst->f_inverse = src->f_inverse;
+    if (src)
+    {
+	if (!RRTransformSetFilter (dst, src->filter,
+				   src->params, src->nparams, src->width, src->height))
+	    return FALSE;
+	dst->transform = src->transform;
+	dst->f_transform = src->f_transform;
+	dst->f_inverse = src->f_inverse;
+    }
+    else
+    {
+	if (!RRTransformSetFilter (dst, NULL, NULL, 0, 0, 0))
+	    return FALSE;
+	PictureTransformInitIdentity (&dst->transform);
+	pict_f_transform_init_identity (&dst->f_transform);
+	pict_f_transform_init_identity (&dst->f_inverse);
+    }
     return TRUE;
 }
 
@@ -170,7 +181,7 @@ RRCrtcSetRotations (RRCrtcPtr crtc, Rotation rotations)
  * Set whether transforms are allowed on a CRTC
  */
 void
-RRCrtcSetTransform (RRCrtcPtr crtc, Bool transforms)
+RRCrtcSetTransformSupport (RRCrtcPtr crtc, Bool transforms)
 {
     crtc->transforms = transforms;
 }
@@ -439,21 +450,21 @@ RRCrtcGetTransform (RRCrtcPtr crtc)
 }
 
 /*
- * Mark the pending transform as current
+ * Called when driver applies a transform to a crtc
  */
 void
-RRCrtcPostPendingTransform (RRCrtcPtr crtc)
+RRCrtcSetTransform (RRCrtcPtr crtc, RRTransformPtr transform)
 {
     if (!crtc->mode)
 	return;
 
-    RRTransformCopy (&crtc->client_current_transform,
-		     &crtc->client_pending_transform);
+    RRTransformCopy (&crtc->client_current_transform, transform);
+
     RRComputeTransform (crtc->x, crtc->y,
 			crtc->mode->mode.width,
 			crtc->mode->mode.height,
 			crtc->rotation,
-			&crtc->client_current_transform,
+			transform,
 			&crtc->transform,
 			&crtc->f_transform,
 			&crtc->f_inverse);
@@ -1091,23 +1102,25 @@ ProcRRSetCrtcConfig (ClientPtr client)
 	}
     
 #ifdef RANDR_12_INTERFACE
-#if 0
 	/*
 	 * Check screen size bounds if the DDX provides a 1.2 interface
 	 * for setting screen size. Else, assume the CrtcSet sets
-	 * the size along with the mode
+	 * the size along with the mode. If the driver supports transforms,
+	 * then it must allow crtcs to display a subset of the screen, so
+	 * only do this check for drivers without transform support.
 	 */
-	if (pScrPriv->rrScreenSetSize)
+	if (pScrPriv->rrScreenSetSize && !crtc->transforms)
 	{
 	    int source_width;
 	    int	source_height;
-	    PictTransform transform, inverse;
+	    PictTransform transform;
+	    struct pict_f_transform f_transform, f_inverse;
 
-	    RRComputeTransform (mode, stuff->rotation,
-				stuff->x, stuff->y,
-				&crtc->client_pending_transform.transform,
-				&crtc->client_pending_transform.inverse,
-				&transform, &inverse);
+	    RRComputeTransform (stuff->x, stuff->y,
+				mode->mode.width, mode->mode.height,
+				rotation,
+				&crtc->client_pending_transform,
+				&transform, &f_transform, &f_inverse);
 
 	    RRModeGetScanoutSize (mode, &transform, &source_width, &source_height);
 	    if (stuff->x + source_width > pScreen->width)
@@ -1126,7 +1139,6 @@ ProcRRSetCrtcConfig (ClientPtr client)
 		return BadValue;
 	    }
 	}
-#endif
 #endif
     }
     
