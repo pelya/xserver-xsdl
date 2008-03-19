@@ -147,8 +147,6 @@ XevieExtensionInit (void)
 	ReqCode = (unsigned char)extEntry->base;
 	ErrorBase = extEntry->errorBase;
     }
-
-    /* PC servers initialize the desktop colors (citems) here! */
 }
 
 /*ARGSUSED*/
@@ -218,6 +216,8 @@ int ProcEnd (register ClientPtr client)
 {
     xXevieEndReply rep;
 
+    REQUEST_SIZE_MATCH (xXevieEndReq);
+    
     if (xevieFlag) {
         if (client->index != xevieClientIndex)
             return BadAccess;
@@ -240,6 +240,8 @@ int ProcSend (register ClientPtr client)
     xEvent *xE;
     static unsigned char lastDetail = 0, lastType = 0;
 
+    REQUEST_SIZE_MATCH (xXevieSendReq);
+    
     if (client->index != xevieClientIndex)
         return BadAccess;
 
@@ -284,10 +286,12 @@ int ProcSelectInput (register ClientPtr client)
     REQUEST (xXevieSelectInputReq);
     xXevieSelectInputReply rep;
 
+    REQUEST_SIZE_MATCH (xXevieSelectInputReq);
+
     if (client->index != xevieClientIndex)
         return BadAccess;
 
-    xevieMask = (long)stuff->event_mask;
+    xevieMask = stuff->event_mask;
     rep.type = X_Reply;
     rep.sequence_number = client->sequence;
     WriteToClient (client, sizeof (xXevieSelectInputReply), (char *)&rep);
@@ -321,7 +325,10 @@ int SProcQueryVersion (register ClientPtr client)
     register int n;
 
     REQUEST(xXevieQueryVersionReq);
-    swaps(&stuff->length, n);
+    swaps (&stuff->length, n);
+    REQUEST_SIZE_MATCH (xXevieQueryVersionReq);
+    swaps (&stuff->client_major_version, n);
+    swaps (&stuff->client_minor_version, n);
     return ProcQueryVersion(client);
 }
 
@@ -332,8 +339,8 @@ int SProcStart (ClientPtr client)
 
     REQUEST (xXevieStartReq);
     swaps (&stuff->length, n);
+    REQUEST_SIZE_MATCH (xXevieStartReq);
     swapl (&stuff->screen, n);
-    REQUEST_AT_LEAST_SIZE (xXevieStartReq);
     return ProcStart (client);
 }
 
@@ -344,8 +351,8 @@ int SProcEnd (ClientPtr client)
 
     REQUEST (xXevieEndReq);
     swaps (&stuff->length, n);
-    REQUEST_AT_LEAST_SIZE (xXevieEndReq);
-    swapl(&stuff->cmap, n);
+    REQUEST_SIZE_MATCH (xXevieEndReq);
+    swapl (&stuff->cmap, n);
     return ProcEnd (client);
 }
 
@@ -353,11 +360,21 @@ static
 int SProcSend (ClientPtr client)
 {
     register int n;
+    xEvent eventT;
+    EventSwapPtr proc;
 
     REQUEST (xXevieSendReq);
     swaps (&stuff->length, n);
-    REQUEST_AT_LEAST_SIZE (xXevieSendReq);
-    swapl(&stuff->event, n);
+    REQUEST_SIZE_MATCH (xXevieSendReq);
+    swapl (&stuff->dataType, n);
+
+    /* Swap event */
+    proc = EventSwapVector[stuff->event.u.u.type & 0177];
+    if (!proc ||  proc == NotImplemented) /* no swapping proc; invalid event type? */
+	return (BadValue);
+    (*proc)(&stuff->event, &eventT);
+    stuff->event = eventT;
+    
     return ProcSend (client);
 }
 
@@ -368,8 +385,8 @@ int SProcSelectInput (ClientPtr client)
 
     REQUEST (xXevieSelectInputReq);
     swaps (&stuff->length, n);
-    REQUEST_AT_LEAST_SIZE (xXevieSelectInputReq);
-    swapl(&stuff->event_mask, n);
+    REQUEST_SIZE_MATCH (xXevieSelectInputReq);
+    swapl (&stuff->event_mask, n);
     return ProcSelectInput (client);
 }
 
