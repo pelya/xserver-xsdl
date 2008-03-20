@@ -152,6 +152,12 @@ static struct security_class_mapping map[] = {
     { NULL }
 };
 
+/* x_resource "read" bits from the list above */
+#define SELinuxReadMask (DixReadAccess|DixGetAttrAccess|DixListPropAccess| \
+			 DixGetPropAccess|DixGetFocusAccess|DixListAccess| \
+			 DixShowAccess|DixBlendAccess|DixReceiveAccess| \
+			 DixUseAccess|DixDebugAccess)
+
 /* forward declarations */
 static void SELinuxScreen(CallbackListPtr *, pointer, pointer);
 
@@ -853,6 +859,7 @@ SELinuxSelection(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     SELinuxObjectRec *obj, *data;
     Selection *pSel = *rec->ppSel;
     Atom name = pSel->selection;
+    Mask access_mode = rec->access_mode;
     SELinuxAuditRec auditdata = { .client = rec->client, .selection = name };
     security_id_t tsid;
     int rc;
@@ -861,11 +868,12 @@ SELinuxSelection(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     obj = dixLookupPrivate(&pSel->devPrivates, objectKey);
 
     /* If this is a new object that needs labeling, do it now */
-    if (rec->access_mode & DixCreateAccess) {
+    if (access_mode & DixCreateAccess) {
 	sidput(obj->sid);
 	rc = SELinuxSelectionToSID(name, subj, &obj->sid, &obj->poly);
 	if (rc != Success)
 	    obj->sid = unlabeled_sid;
+	access_mode = DixSetAttrAccess;
     }
     /* If this is a polyinstantiated object, find the right instance */
     else if (obj->poly) {
@@ -890,13 +898,13 @@ SELinuxSelection(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     }
 
     /* Perform the security check */
-    rc = SELinuxDoCheck(subj, obj, SECCLASS_X_SELECTION, rec->access_mode,
+    rc = SELinuxDoCheck(subj, obj, SECCLASS_X_SELECTION, access_mode,
 			&auditdata);
     if (rc != Success)
 	rec->status = rc;
 
     /* Label the content (advisory only) */
-    if (rec->access_mode & DixSetAttrAccess) {
+    if (access_mode & DixSetAttrAccess) {
 	data = dixLookupPrivate(&pSel->devPrivates, dataKey);
 	sidput(data->sid);
 	if (subj->sel_create_sid)
@@ -976,6 +984,7 @@ SELinuxResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     SELinuxSubjectRec *subj;
     SELinuxObjectRec *obj;
     SELinuxAuditRec auditdata = { .client = rec->client };
+    Mask access_mode = rec->access_mode;
     PrivateRec **privatePtr;
     security_class_t class;
     int rc, offset;
@@ -997,7 +1006,7 @@ SELinuxResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     }
 
     /* If this is a new object that needs labeling, do it now */
-    if (rec->access_mode & DixCreateAccess && offset >= 0) {
+    if (access_mode & DixCreateAccess && offset >= 0) {
 	rc = SELinuxLabelResource(rec, subj, obj, class);
 	if (rc != Success) {
 	    rec->status = rc;
@@ -1005,10 +1014,16 @@ SELinuxResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
 	}
     }
 
+    /* Collapse generic resource permissions down to read/write */
+    if (class == SECCLASS_X_RESOURCE) {
+	access_mode = !!(rec->access_mode & SELinuxReadMask); /* rd */
+	access_mode |= !!(rec->access_mode & ~SELinuxReadMask) << 1; /* wr */
+    }
+
     /* Perform the security check */
     auditdata.restype = rec->rtype;
     auditdata.id = rec->id;
-    rc = SELinuxDoCheck(subj, obj, class, rec->access_mode, &auditdata);
+    rc = SELinuxDoCheck(subj, obj, class, access_mode, &auditdata);
     if (rc != Success)
 	rec->status = rc;
 }
