@@ -137,7 +137,8 @@ cursor_bitpos (int flags, int x, Bool mask)
 	mask = !mask;
     if (flags & HARDWARE_CURSOR_NIBBLE_SWAPPED)
 	x = (x & ~3) | (3 - (x & 3));
-    if (flags & HARDWARE_CURSOR_BIT_ORDER_MSBFIRST)
+    if (((flags & HARDWARE_CURSOR_BIT_ORDER_MSBFIRST) == 0) ==
+	(X_BYTE_ORDER == X_BIG_ENDIAN))
 	x = (x & ~7) | (7 - (x & 7));
     if (flags & HARDWARE_CURSOR_SOURCE_MASK_INTERLEAVE_1)
 	x = (x << 1) + mask;
