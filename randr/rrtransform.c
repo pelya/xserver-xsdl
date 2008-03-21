@@ -20,6 +20,7 @@
  * OF THIS SOFTWARE.
  */
 
+#include "randrstr.h"
 #include "rrtransform.h"
 
 void
