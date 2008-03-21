@@ -715,7 +715,9 @@ xf86RandR12CrtcNotify (RRCrtcPtr	randr_crtc)
 	}
     }
     ret = RRCrtcNotify (randr_crtc, randr_mode, x, y,
-			rotation, numOutputs, randr_outputs);
+			rotation, 
+			crtc->transformPresent ? &crtc->transform : NULL,
+			numOutputs, randr_outputs);
     xfree(randr_outputs);
     return ret;
 }

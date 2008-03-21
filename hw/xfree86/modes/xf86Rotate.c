@@ -395,7 +395,7 @@ xf86CrtcRotate (xf86CrtcPtr crtc)
     if (crtc->transformPresent)
 	transform = &crtc->transform;
 
-    if (!RRComputeTransform (crtc->x, crtc->y,
+    if (!RRTransformCompute (crtc->x, crtc->y,
 			     crtc->mode.HDisplay, crtc->mode.VDisplay,
 			     crtc->rotation,
 			     transform,

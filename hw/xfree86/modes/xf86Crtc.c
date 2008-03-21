@@ -282,6 +282,7 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
     crtc->y = y;
     crtc->rotation = rotation;
     if (transform) {
+	RRTransformCopy (&crtc->transform, transform);
 	crtc->transform = *transform;
 	crtc->transformPresent = TRUE;
     } else
@@ -367,10 +368,6 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
 	if (output->crtc == crtc)
 	    output->funcs->commit(output);
     }
-#ifdef RANDR_12_INTERFACE
-    if (crtc->randr_crtc)
-	RRCrtcSetTransform (crtc->randr_crtc, transform);
-#endif
 
     /* XXX free adjustedmode */
     ret = TRUE;

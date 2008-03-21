@@ -170,7 +170,7 @@ RRScanOldConfig (ScreenPtr pScreen, Rotation rotations)
     /* notice current mode */
     if (newMode)
 	RRCrtcNotify (crtc, newMode, 0, 0, pScrPriv->rotation,
-		      1, &output);
+		      NULL, 1, &output);
 }
 #endif
 

@@ -159,7 +159,7 @@ miRandRInit (ScreenPtr pScreen)
 	return FALSE;
     if (!RROutputSetConnection (output, RR_Connected))
 	return FALSE;
-    RRCrtcNotify (crtc, mode, 0, 0, RR_Rotate_0, 1, &output);
+    RRCrtcNotify (crtc, mode, 0, 0, RR_Rotate_0, NULL, 1, &output);
 #endif
     return TRUE;
 }

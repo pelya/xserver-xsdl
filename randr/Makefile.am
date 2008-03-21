@@ -20,7 +20,9 @@ librandr_la_SOURCES =	\
 	rrpointer.c	\
 	rrproperty.c	\
 	rrscreen.c	\
-	rrsdispatch.c
+	rrsdispatch.c	\
+	rrtransform.h	\
+	rrtransform.c
 
 if XINERAMA
 librandr_la_SOURCES += ${XINERAMA_SRCS}
