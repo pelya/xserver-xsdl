@@ -330,23 +330,23 @@ xf86_crtc_set_cursor_position (xf86CrtcPtr crtc, int x, int y)
 
 	v.v[0] = x + ScreenPriv->HotX; v.v[1] = y + ScreenPriv->HotY; v.v[2] = 1;
 	pict_f_transform_point (&crtc->f_framebuffer_to_crtc, &v);
-	x = floor (v.v[0] + 0.5) - ScreenPriv->HotX;
-	y = floor (v.v[1] + 0.5) - ScreenPriv->HotY;
+	x = floor (v.v[0] + 0.5);
+	y = floor (v.v[1] + 0.5);
+	/*
+	 * Transform position of cursor upper left corner
+	 */
+	xf86_crtc_rotate_coord_back (crtc->rotation,
+				     cursor_info->MaxWidth,
+				     cursor_info->MaxHeight,
+				     ScreenPriv->HotX, ScreenPriv->HotY, &dx, &dy);
+	x -= dx;
+	y -= dy;
    }
     else
     {
 	x -= crtc->x;
 	y -= crtc->y;
     }
-    /*
-     * Transform position of cursor upper left corner
-     */
-    xf86_crtc_rotate_coord_back (crtc->rotation,
-				 cursor_info->MaxWidth,
-				 cursor_info->MaxHeight,
-				 0, 0, &dx, &dy);
-    x -= dx;
-    y -= dy;
 
     /*
      * Disable the cursor when it is outside the viewport
