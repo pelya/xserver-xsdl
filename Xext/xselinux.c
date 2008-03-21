@@ -1026,6 +1026,13 @@ SELinuxResource(CallbackListPtr *pcbl, pointer unused, pointer calldata)
     rc = SELinuxDoCheck(subj, obj, class, access_mode, &auditdata);
     if (rc != Success)
 	rec->status = rc;
+
+    /* Perform the background none check on windows */
+    if (access_mode & DixCreateAccess && rec->rtype == RT_WINDOW) {
+	rc = SELinuxDoCheck(subj, obj, class, DixBlendAccess, &auditdata);
+	if (rc != Success)
+	    ((WindowPtr)rec->res)->forcedBG = TRUE;
+    }
 }
 
 static void
