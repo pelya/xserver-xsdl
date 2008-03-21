@@ -271,7 +271,10 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
     saved_x = crtc->x;
     saved_y = crtc->y;
     saved_rotation = crtc->rotation;
-    saved_transform = crtc->transform;
+    if (crtc->transformPresent) {
+	RRTransformInit (&saved_transform);
+	RRTransformCopy (&saved_transform, &crtc->transform);
+    }
     saved_transform_present = crtc->transformPresent;
 
     /* Update crtc values up front so the driver can rely on them for mode
@@ -283,7 +286,6 @@ xf86CrtcSetModeTransform (xf86CrtcPtr crtc, DisplayModePtr mode, Rotation rotati
     crtc->rotation = rotation;
     if (transform) {
 	RRTransformCopy (&crtc->transform, transform);
-	crtc->transform = *transform;
 	crtc->transformPresent = TRUE;
     } else
 	crtc->transformPresent = FALSE;
@@ -380,7 +382,8 @@ done:
 	crtc->y = saved_y;
 	crtc->rotation = saved_rotation;
 	crtc->mode = saved_mode;
-	crtc->transform = saved_transform;
+	if (saved_transform_present)
+	    RRTransformCopy (&crtc->transform, &saved_transform);
 	crtc->transformPresent = saved_transform_present;
     }
 
