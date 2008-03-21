@@ -734,13 +734,10 @@ Bool
 PictureTransformIsIdentity(PictTransform *t);
 
 Bool
-PictureTransformIsUnit(PictTransform *t);
-
-Bool
 PictureTransformIsScale(PictTransform *t);
 
 Bool
-PictureTransformIsTranslate (PictTransform *t);
+PictureTransformIsIntTranslate (PictTransform *t);
 
 Bool
 PictureTransformIsInverse(PictTransform *t, PictTransform *i);

@@ -50,6 +50,8 @@ PictureTransformInitIdentity (PictTransformPtr matrix)
 	matrix->matrix[i][i] = F(1);
 }
 
+typedef xFixed_32_32	xFixed_34_30;
+
 _X_EXPORT Bool
 PictureTransformPoint3d (PictTransformPtr transform,
                          PictVectorPtr	vector)
@@ -78,7 +80,6 @@ PictureTransformPoint3d (PictTransformPtr transform,
     return TRUE;
 }
 
-
 _X_EXPORT Bool
 PictureTransformPoint (PictTransformPtr transform,
 		       PictVectorPtr	vector)
@@ -86,30 +87,27 @@ PictureTransformPoint (PictTransformPtr transform,
     PictVector	    result;
     int		    i, j;
     xFixed_32_32    partial;
-    xFixed_48_16    v;
+    xFixed_34_30    v[3];
+    xFixed_48_16    quo;
 
     for (j = 0; j < 3; j++)
     {
-	v = 0;
+	v[j] = 0;
 	for (i = 0; i < 3; i++)
 	{
-	    partial = ((xFixed_48_16) transform->matrix[j][i] * 
-		       (xFixed_48_16) vector->vector[i]);
-	    v += partial >> 16;
+	    partial = ((xFixed_32_32) transform->matrix[j][i] * 
+		       (xFixed_32_32) vector->vector[i]);
+	    v[j] += partial >> 2;
 	}
-	if (v > MAX_FIXED_48_16 || v < MIN_FIXED_48_16)
-	    return FALSE;
-	result.vector[j] = (xFixed) v;
     }
-    if (!result.vector[2])
+    if (!v[2])
 	return FALSE;
     for (j = 0; j < 2; j++)
     {
-	partial = (xFixed_48_16) result.vector[j] << 16;
-	v = partial / result.vector[2];
-	if (v > MAX_FIXED_48_16 || v < MIN_FIXED_48_16)
+	quo = v[j] / (v[2] >> 16);
+	if (quo > MAX_FIXED_48_16 || quo < MIN_FIXED_48_16)
 	    return FALSE;
-	vector->vector[j] = (xFixed) v;
+	vector->vector[j] = (xFixed) quo;
     }
     vector->vector[2] = xFixed1;
     return TRUE;
@@ -296,29 +294,15 @@ within_epsilon (xFixed a, xFixed b, xFixed epsilon)
 _X_EXPORT Bool
 PictureTransformIsIdentity(PictTransform *t)
 {
-    return (IsUnit (t->matrix[0][0]) &&
-	    IsUnit (t->matrix[0][1]) &&
-            IsInt  (t->matrix[0][2]) &&
-	    IsUnit (t->matrix[1][0]) &&
-	    IsUnit (t->matrix[1][1]) &&
-            IsInt  (t->matrix[1][2]) &&
-            IsZero (t->matrix[2][0]) &&
-            IsZero (t->matrix[2][1]) &&
-	    IsOne  (t->matrix[2][2]));
-}
-
-_X_EXPORT Bool
-PictureTransformIsUnit(PictTransform *t)
-{
-    return (IsSame (t->matrix[0][0],t->matrix[1][1]) &&
+    return (IsSame (t->matrix[0][0], t->matrix[1][1]) &&
 	    IsSame (t->matrix[0][0], t->matrix[2][2]) &&
-            !IsZero (t->matrix[0][0]) &&
+	    !IsZero (t->matrix[0][0]) &&
 	    IsZero (t->matrix[0][1]) &&
-            IsZero (t->matrix[0][2]) &&
-            IsZero (t->matrix[1][0]) &&
-            IsZero (t->matrix[1][2]) &&
-            IsZero (t->matrix[2][0]) &&
-            IsZero (t->matrix[2][1]));
+	    IsZero (t->matrix[0][2]) &&
+	    IsZero (t->matrix[1][0]) &&
+	    IsZero (t->matrix[1][2]) &&
+	    IsZero (t->matrix[2][0]) &&
+	    IsZero (t->matrix[2][1]));
 }
 
 _X_EXPORT Bool
@@ -334,11 +318,11 @@ PictureTransformIsScale(PictTransform *t)
 	    
 	     IsZero (t->matrix[2][0]) &&
 	     IsZero (t->matrix[2][1]) &&
-	     IsOne (t->matrix[2][2]));
+	    !IsZero (t->matrix[2][2]));
 }
 
 _X_EXPORT Bool
-PictureTransformIsTranslate(PictTransform *t)
+PictureTransformIsIntTranslate(PictTransform *t)
 {
     return ( IsOne  (t->matrix[0][0]) &&
 	     IsZero (t->matrix[0][1]) &&
