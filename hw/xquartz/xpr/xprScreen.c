@@ -63,6 +63,7 @@ static const char *xprOpenGLBundle = "glxCGL.bundle";
  */
 static void eventHandler(unsigned int type, const void *arg,
                          unsigned int arg_size, void *data) {
+    
     switch (type) {
         case XP_EVENT_DISPLAY_CHANGED:
             DEBUG_LOG("XP_EVENT_DISPLAY_CHANGED\n");
@@ -103,6 +104,13 @@ static void eventHandler(unsigned int type, const void *arg,
                     kind = AppleDRISurfaceNotifyChanged;
                 
                 DRISurfaceNotify(*(xp_surface_id *) arg, kind);
+            }
+            break;
+        case  XP_EVENT_SPACE_CHANGED:
+            ErrorF("XP_EVENT_SPACE_CHANGED\n");
+            if(arg_size == sizeof(uint32_t)) {
+                uint32_t space_id = *(uint32_t *)arg;
+                QuartzMessageServerThread(kXDarwinSpaceChanged, 1, space_id);
             }
             break;
         default:
@@ -233,7 +241,8 @@ xprDisplayInit(void)
                      | XP_EVENT_WINDOW_STATE_CHANGED
                      | XP_EVENT_WINDOW_MOVED
                      | XP_EVENT_SURFACE_CHANGED
-                     | XP_EVENT_SURFACE_DESTROYED,
+                     | XP_EVENT_SURFACE_DESTROYED
+                     | XP_EVENT_SPACE_CHANGED,
                      eventHandler, NULL);
 
     AppleDRIExtensionInit();
