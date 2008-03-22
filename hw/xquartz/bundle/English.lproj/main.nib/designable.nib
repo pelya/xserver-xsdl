@@ -472,7 +472,7 @@
 										<characters key="NS.bytes">1</characters>
 									</object>
 									<object class="NSView" key="NSView" id="596750588">
-										<nil key="NSNextResponder"/>
+										<reference key="NSNextResponder" ref="448510093"/>
 										<int key="NSvFlags">256</int>
 										<object class="NSMutableArray" key="NSSubviews">
 											<bool key="EncodedWithXMLCoder">YES</bool>
@@ -616,6 +616,7 @@ ZSBhbmQgcmlnaHQgbW91c2UgYnV0dG9ucy4KA</string>
 											</object>
 										</object>
 										<string key="NSFrame">{{10, 33}, {438, 218}}</string>
+										<reference key="NSSuperview" ref="448510093"/>
 									</object>
 									<string key="NSLabel">Input</string>
 									<reference key="NSColor" ref="57160303"/>
@@ -839,7 +840,7 @@ ZSBhbmQgcmlnaHQgbW91c2UgYnV0dG9ucy4KA</string>
 										<characters key="NS.bytes">2</characters>
 									</object>
 									<object class="NSView" key="NSView" id="184765684">
-										<reference key="NSNextResponder" ref="448510093"/>
+										<nil key="NSNextResponder"/>
 										<int key="NSvFlags">256</int>
 										<object class="NSMutableArray" key="NSSubviews">
 											<bool key="EncodedWithXMLCoder">YES</bool>
@@ -956,7 +957,6 @@ ZSBhbmQgcmlnaHQgbW91c2UgYnV0dG9ucy4KA</string>
 											</object>
 										</object>
 										<string key="NSFrame">{{10, 33}, {438, 218}}</string>
-										<reference key="NSSuperview" ref="448510093"/>
 									</object>
 									<string key="NSLabel">Windows</string>
 									<reference key="NSColor" ref="57160303"/>
@@ -1068,14 +1068,14 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 									<reference key="NSTabView" ref="448510093"/>
 								</object>
 							</object>
-							<reference key="NSSelectedTabViewItem" ref="10973343"/>
+							<reference key="NSSelectedTabViewItem" ref="287591690"/>
 							<reference key="NSFont" ref="463863101"/>
 							<int key="NSTvFlags">0</int>
 							<bool key="NSAllowTruncatedLabels">YES</bool>
 							<bool key="NSDrawsBackground">YES</bool>
 							<object class="NSMutableArray" key="NSSubviews">
 								<bool key="EncodedWithXMLCoder">YES</bool>
-								<reference ref="184765684"/>
+								<reference ref="596750588"/>
 							</object>
 						</object>
 					</object>
@@ -3363,9 +3363,9 @@ d2hpY2ggbWF5IHByZXZlbnQgWDExIGFwcGxpY2F0aW9ucyBmcm9tIGxhdW5jaGluZy4</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
 					<reference ref="9"/>
 					<string>{{271, 666}, {301, 153}}</string>
-					<string>{{460, 353}, {484, 280}}</string>
+					<string>{{313, 353}, {484, 280}}</string>
 					<string>com.apple.InterfaceBuilder.CocoaPlugin</string>
-					<string>{{460, 353}, {484, 280}}</string>
+					<string>{{313, 353}, {484, 280}}</string>
 					<reference ref="9"/>
 					<string>{{184, 290}, {481, 345}}</string>
 					<object class="NSDictionary">

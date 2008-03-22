@@ -612,8 +612,10 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 	
     quartzUseSysBeep = [self prefs_get_boolean:@PREFS_SYSBEEP
                         default:quartzUseSysBeep];
-    quartzEnableRootless = [self prefs_get_boolean:@PREFS_ROOTLESS
-                        default:quartzEnableRootless];
+
+    // TODO: Add fullscreen support
+    //quartzEnableRootless = [self prefs_get_boolean:@PREFS_ROOTLESS
+    //                    default:quartzEnableRootless];
 #ifdef DARWIN_DDX_MISSING
     quartzFullscreenDisableHotkeys = ![self prefs_get_boolean:
 					      @PREFS_FULLSCREEN_HOTKEYS default:
@@ -645,6 +647,10 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 	
     darwinDesiredDepth = [self prefs_get_integer:@PREFS_DEPTH
                           default:darwinDesiredDepth];
+    
+    // TODO: Add 256 color support
+    if(darwinDesiredDepth == 8)
+        darwinDesiredDepth = -1;
 	
     enable_stereo = [self prefs_get_boolean:@PREFS_ENABLE_STEREO
                      default:false];

@@ -635,22 +635,27 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 - (IBAction) prefs_show:sender
 {
-  [fake_buttons setIntValue:darwinFakeButtons];
-  [use_sysbeep setIntValue:quartzUseSysBeep];
-  [enable_keyequivs setIntValue:X11EnableKeyEquivalents];
-  [sync_keymap setIntValue:darwinSyncKeymap];
-  [sync_keymap setEnabled:darwinKeymapFile == NULL];
-  [click_through setIntValue:[NSApp prefs_get_boolean:@PREFS_CLICK_THROUGH default:NO]];
-  [focus_follows_mouse setIntValue:[NSApp prefs_get_boolean:@PREFS_FFM default:NO]];
-  [focus_on_new_window setIntValue:[NSApp prefs_get_boolean:@PREFS_FOCUS_ON_NEW_WINDOW default:YES]];
+    [fake_buttons setIntValue:darwinFakeButtons];
+    [use_sysbeep setIntValue:quartzUseSysBeep];
+    [enable_keyequivs setIntValue:X11EnableKeyEquivalents];
+    [sync_keymap setIntValue:darwinSyncKeymap];
+    [sync_keymap setEnabled:darwinKeymapFile == NULL];
+    [click_through setIntValue:[NSApp prefs_get_boolean:@PREFS_CLICK_THROUGH default:NO]];
+    [focus_follows_mouse setIntValue:[NSApp prefs_get_boolean:@PREFS_FFM default:NO]];
+    [focus_on_new_window setIntValue:[NSApp prefs_get_boolean:@PREFS_FOCUS_ON_NEW_WINDOW default:YES]];
+    
+    [enable_auth setIntValue:![NSApp prefs_get_boolean:@PREFS_NO_AUTH default:NO]];
+    [enable_tcp setIntValue:![NSApp prefs_get_boolean:@PREFS_NO_TCP default:NO]];
 
-  [enable_auth setIntValue:![NSApp prefs_get_boolean:@PREFS_NO_AUTH default:NO]];
-  [enable_tcp setIntValue:![NSApp prefs_get_boolean:@PREFS_NO_TCP default:NO]];
-  [depth selectItemAtIndex:[depth indexOfItemWithTag:[NSApp prefs_get_integer:@PREFS_DEPTH default:-1]]];
+    [depth selectItemAtIndex:[depth indexOfItemWithTag:[NSApp prefs_get_integer:@PREFS_DEPTH default:-1]]];
+    // TODO: Add 256 color support
+    [depth removeItemAtIndex:[depth indexOfItemWithTag:8]];
 	
-  [enable_fullscreen setIntValue:!quartzEnableRootless];
+    [enable_fullscreen setIntValue:!quartzEnableRootless];
+    // TODO: Add fullscreen support
+    [enable_fullscreen setEnabled:NO];
 	
-  [prefs_panel makeKeyAndOrderFront:sender];
+    [prefs_panel makeKeyAndOrderFront:sender];
 }
 
 - (IBAction) quit:sender
