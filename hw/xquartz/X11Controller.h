@@ -45,6 +45,8 @@
     IBOutlet NSButton *enable_keyequivs;
     IBOutlet NSButton *sync_keymap;
     IBOutlet NSButton *click_through;
+    IBOutlet NSButton *focus_follows_mouse;
+    IBOutlet NSButton *focus_on_new_window;
     IBOutlet NSButton *enable_auth;
     IBOutlet NSButton *enable_tcp;
     IBOutlet NSPopUpButton *depth;

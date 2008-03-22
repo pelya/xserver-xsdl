@@ -609,24 +609,28 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 - (IBAction)prefs_changed:sender
 {
-  darwinFakeButtons = [fake_buttons intValue];
-  quartzUseSysBeep = [use_sysbeep intValue];
-  X11EnableKeyEquivalents = [enable_keyequivs intValue];
-  darwinSyncKeymap = [sync_keymap intValue];
-
-  /* after adding prefs here, also add to [X11Application read_defaults]
+    darwinFakeButtons = [fake_buttons intValue];
+    quartzUseSysBeep = [use_sysbeep intValue];
+    X11EnableKeyEquivalents = [enable_keyequivs intValue];
+    darwinSyncKeymap = [sync_keymap intValue];
+    
+    /* after adding prefs here, also add to [X11Application read_defaults]
      and below */
 	
-  [NSApp prefs_set_boolean:@PREFS_FAKEBUTTONS value:darwinFakeButtons];
-  [NSApp prefs_set_boolean:@PREFS_SYSBEEP value:quartzUseSysBeep];
-  [NSApp prefs_set_boolean:@PREFS_KEYEQUIVS value:X11EnableKeyEquivalents];
-  [NSApp prefs_set_boolean:@PREFS_SYNC_KEYMAP value:darwinSyncKeymap];
-  [NSApp prefs_set_boolean:@PREFS_QUARTZ_WM_CLICK_THROUGH value:[click_through intValue]];
-  [NSApp prefs_set_boolean:@PREFS_NO_AUTH value:![enable_auth intValue]];
-  [NSApp prefs_set_boolean:@PREFS_NO_TCP value:![enable_tcp intValue]];
-  [NSApp prefs_set_integer:@PREFS_DEPTH value:[depth selectedTag]];
+    [NSApp prefs_set_boolean:@PREFS_FAKEBUTTONS value:darwinFakeButtons];
+    [NSApp prefs_set_boolean:@PREFS_SYSBEEP value:quartzUseSysBeep];
+    [NSApp prefs_set_boolean:@PREFS_KEYEQUIVS value:X11EnableKeyEquivalents];
+    [NSApp prefs_set_boolean:@PREFS_SYNC_KEYMAP value:darwinSyncKeymap];
+    [NSApp prefs_set_boolean:@PREFS_CLICK_THROUGH value:[click_through intValue]];
+    [NSApp prefs_set_boolean:@PREFS_FFM value:[focus_follows_mouse intValue]];
+    [NSApp prefs_set_boolean:@PREFS_FOCUS_ON_NEW_WINDOW value:[focus_on_new_window intValue]];
+    [NSApp prefs_set_boolean:@PREFS_NO_AUTH value:![enable_auth intValue]];
+    [NSApp prefs_set_boolean:@PREFS_NO_TCP value:![enable_tcp intValue]];
+    [NSApp prefs_set_integer:@PREFS_DEPTH value:[depth selectedTag]];
+    
+    system("killall -HUP quartz-wm");
 	
-  [NSApp prefs_synchronize];
+    [NSApp prefs_synchronize];
 }
 
 - (IBAction) prefs_show:sender
@@ -636,8 +640,10 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   [enable_keyequivs setIntValue:X11EnableKeyEquivalents];
   [sync_keymap setIntValue:darwinSyncKeymap];
   [sync_keymap setEnabled:darwinKeymapFile == NULL];
-  [click_through setIntValue:[NSApp prefs_get_boolean:@PREFS_QUARTZ_WM_CLICK_THROUGH default:NO]];
-	
+  [click_through setIntValue:[NSApp prefs_get_boolean:@PREFS_CLICK_THROUGH default:NO]];
+  [focus_follows_mouse setIntValue:[NSApp prefs_get_boolean:@PREFS_FFM default:NO]];
+  [focus_on_new_window setIntValue:[NSApp prefs_get_boolean:@PREFS_FOCUS_ON_NEW_WINDOW default:YES]];
+
   [enable_auth setIntValue:![NSApp prefs_get_boolean:@PREFS_NO_AUTH default:NO]];
   [enable_tcp setIntValue:![NSApp prefs_get_boolean:@PREFS_NO_TCP default:NO]];
   [depth selectItemAtIndex:[depth indexOfItemWithTag:[NSApp prefs_get_integer:@PREFS_DEPTH default:-1]]];
