@@ -26,6 +26,10 @@ if MFB
 MFBMOD = libmfb.la
 endif
 
+if RECORD
+RECORDMOD = librecord.la
+endif
+
 module_LTLIBRARIES = $(AFBMOD) \
                      $(CFBMOD) \
                      libfb.la \
@@ -34,7 +38,7 @@ module_LTLIBRARIES = $(AFBMOD) \
                      libshadow.la
 
 extsmoduledir = $(moduledir)/extensions
-extsmodule_LTLIBRARIES = librecord.la \
+extsmodule_LTLIBRARIES = $(RECORDMOD) \
 			 $(DBEMOD) \
                          $(GLXMODS) \
                          $(XTRAPMOD)
