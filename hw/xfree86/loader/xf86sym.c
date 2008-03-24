@@ -68,8 +68,10 @@
 # include "xf86Xinput.h"
 #endif
 #include "xf86OSmouse.h"
+#ifdef XV
 #include "xf86xv.h"
 #include "xf86xvmc.h"
+#endif
 #include "xf86cmap.h"
 #include "xf86fbman.h"
 #include "dgaproc.h"
