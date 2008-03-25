@@ -349,7 +349,7 @@ getValuatorEvents(xEvent *events, DeviceIntPtr pDev, int first_valuator,
     for (i = first_valuator; i < final_valuator; i += 6, xv++, events++) {
         xv->type = DeviceValuator;
         xv->first_valuator = i;
-        xv->num_valuators = ((num_valuators - i) > 6) ? 6 : (num_valuators - i);
+        xv->num_valuators = ((final_valuator - i) > 6) ? 6 : (final_valuator - i);
         xv->deviceid = pDev->id;
         switch (final_valuator - i) {
         case 6:
