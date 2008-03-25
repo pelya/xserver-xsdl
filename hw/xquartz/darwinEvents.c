@@ -391,10 +391,12 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
       DarwinSimulateMouseClick(pointer_x, pointer_y, 2, darwinFakeMouse2Mask);
       darwinFakeMouseButtonDown = 2;
       darwinFakeMouseButtonMask = darwinFakeMouse2Mask;
+      return;
     } else if ((old_flags & darwinFakeMouse3Mask) == darwinFakeMouse3Mask) {
       DarwinSimulateMouseClick(pointer_x, pointer_y, 3, darwinFakeMouse3Mask);
       darwinFakeMouseButtonDown = 3;
       darwinFakeMouseButtonMask = darwinFakeMouse3Mask;
+      return;
     }
   }
   if (ev_type == ButtonRelease && darwinFakeButtons && darwinFakeMouseButtonDown) {
@@ -406,6 +408,7 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
     // Bring modifiers back up to date
     DarwinUpdateModifiers(KeyPress, darwinFakeMouseButtonMask & old_flags);
     darwinFakeMouseButtonMask = 0;
+    return;
   } 
 
   num_events = GetPointerEvents(darwinEvents, darwinPointer, ev_type, ev_button, 
