@@ -38,9 +38,10 @@
 #include "config-backends.h"
 #include "os.h"
 
-#define TYPE_NONE 0
-#define TYPE_KEYS 1
-#define TYPE_POINTER 2
+
+#define LIBHAL_PROP_KEY "input.x11_options."
+#define LIBHAL_XKB_PROP_KEY "input.xkb."
+
 
 struct config_hal_info {
     DBusConnection *system_bus;
@@ -50,7 +51,8 @@ struct config_hal_info {
 static void
 remove_device(DeviceIntPtr dev)
 {
-    DebugF("[config/hal] removing device %s\n", dev->name);
+    /* this only gets called for devices that have already been added */
+    LogMessage(X_INFO, "config/hal: removing device %s\n", dev->name);
 
     /* Call PIE here so we don't try to dereference a device that's
      * already been removed. */
@@ -105,7 +107,7 @@ get_prop_string(LibHalContext *hal_ctx, const char *udi, const char *name)
     char *prop, *ret;
 
     prop = libhal_device_get_property_string(hal_ctx, udi, name, NULL);
-    DebugF("[config/hal] getting %s on %s returned %s\n", name, udi, prop);
+    LogMessageVerb(X_INFO, 10, "config/hal: getting %s on %s returned %s\n", name, udi, prop);
     if (prop) {
         ret = xstrdup(prop);
         libhal_free_string(prop);
@@ -117,6 +119,9 @@ get_prop_string(LibHalContext *hal_ctx, const char *udi, const char *name)
     return ret;
 }
 
+/* this function is no longer used... keep it here in case its needed in 
+ * the future. */
+#if 0
 static char *
 get_prop_string_array(LibHalContext *hal_ctx, const char *udi, const char *prop)
 {
@@ -150,117 +155,146 @@ get_prop_string_array(LibHalContext *hal_ctx, const char *udi, const char *prop)
 
     return ret;
 }
+#endif 
 
 static void
 device_added(LibHalContext *hal_ctx, const char *udi)
 {
-    char **props;
-    char *path = NULL, *driver = NULL, *name = NULL, *xkb_rules = NULL;
-    char *xkb_model = NULL, *xkb_layout = NULL, *xkb_variant = NULL;
-    char *xkb_options = NULL, *config_info = NULL;
+    char *path = NULL, *driver = NULL, *name = NULL, *config_info = NULL;
     InputOption *options = NULL, *tmpo = NULL;
     DeviceIntPtr dev;
     DBusError error;
-    int type = TYPE_NONE;
-    int i;
-
+	
+    LibHalPropertySet *set = NULL;
+	LibHalPropertySetIterator set_iter;
+    char *psi_key = NULL, *tmp_val, *tmp_key;
+    
+    
     dbus_error_init(&error);
 
-    props = libhal_device_get_property_strlist(hal_ctx, udi,
-                                               "info.capabilities", &error);
-    if (!props) {
-        DebugF("[config/hal] couldn't get capabilities for %s: %s (%s)\n",
-               udi, error.name, error.message);
-        goto out_error;
-    }
-    for (i = 0; props[i]; i++) {
-        /* input.keys is the new, of which input.keyboard is a subset, but
-         * input.keyboard is the old 'we have keys', so we have to keep it
-         * around. */
-        if (strcmp(props[i], "input.keys") == 0 ||
-            strcmp(props[i], "input.keyboard") == 0)
-            type |= TYPE_KEYS;
-        if (strcmp(props[i], "input.mouse") == 0 ||
-            strcmp(props[i], "input.touchpad") == 0)
-            type |= TYPE_POINTER;
-    }
-    libhal_free_string_array(props);
-
-    if (type == TYPE_NONE)
-        goto out_error;
-
     driver = get_prop_string(hal_ctx, udi, "input.x11_driver");
-    path = get_prop_string(hal_ctx, udi, "input.device");
-    if (!driver || !path) {
-        DebugF("[config/hal] no driver or path specified for %s\n", udi);
+    if (!driver){
+        /* verbose, don't tell the user unless they _want_ to see it */
+        LogMessageVerb(X_INFO,7,"config/hal: no driver specified for device %s\n", udi);
         goto unwind;
     }
+    
+    path = get_prop_string(hal_ctx, udi, "input.device");
+    if (!path) {
+        LogMessage(X_WARNING,"config/hal: no driver or path specified for %s\n", udi);
+        goto unwind;
+    }
+    
     name = get_prop_string(hal_ctx, udi, "info.product");
     if (!name)
         name = xstrdup("(unnamed)");
 
-    if (type & TYPE_KEYS) {
-        xkb_rules = get_prop_string(hal_ctx, udi, "input.xkb.rules");
-        xkb_model = get_prop_string(hal_ctx, udi, "input.xkb.model");
-        xkb_layout = get_prop_string(hal_ctx, udi, "input.xkb.layout");
-        xkb_variant = get_prop_string(hal_ctx, udi, "input.xkb.variant");
-        xkb_options = get_prop_string_array(hal_ctx, udi, "input.xkb.options");
-    }
-
     options = xcalloc(sizeof(*options), 1);
+    if (!options){
+        LogMessage(X_ERROR, "config/hal: couldn't allocate space for input options!\n");
+        goto unwind;
+    }
+    
     options->key = xstrdup("_source");
     options->value = xstrdup("server/hal");
     if (!options->key || !options->value) {
-        ErrorF("[config] couldn't allocate first key/value pair\n");
+        LogMessage(X_ERROR, "config/hal: couldn't allocate first key/value pair\n");
         goto unwind;
     }
 
+    /* most drivers use device.. not path. evdev uses both however, but the 
+     * path version isn't documented apparently. support both for now. */
     add_option(&options, "path", path);
+    add_option(&options, "device", path);
+    
     add_option(&options, "driver", driver);
     add_option(&options, "name", name);
+    
     config_info = xalloc(strlen(udi) + 5); /* "hal:" and NULL */
-    if (!config_info)
+    if (!config_info) {
+        LogMessage(X_ERROR, "config/hal: couldn't allocate name\n");
         goto unwind;
+    }
     sprintf(config_info, "hal:%s", udi);
 
-    if (xkb_rules)
-        add_option(&options, "xkb_rules", xkb_rules);
-    if (xkb_model)
-        add_option(&options, "xkb_model", xkb_model);
-    if (xkb_layout)
-        add_option(&options, "xkb_layout", xkb_layout);
-    if (xkb_variant)
-        add_option(&options, "xkb_variant", xkb_variant);
-    if (xkb_options)
-        add_option(&options, "xkb_options", xkb_options);
+    /* ok, grab options from hal.. iterate through all properties
+    * and lets see if any of them are options that we can add */
+    set = libhal_device_get_all_properties(hal_ctx, udi, &error);
+    
+    if (!set) {
+        LogMessage(X_ERROR, "config/hal: couldn't get property list for %s: %s (%s)\n",
+               udi, error.name, error.message);
+        goto unwind;
+    }
+	
+    libhal_psi_init(&set_iter,set);
+    while (libhal_psi_has_more(&set_iter)) {
+        /* we are looking for supported keys.. extract and add to options */
+        psi_key = libhal_psi_get_key(&set_iter);    
+        
+        if (psi_key){
 
-    DebugF("[config/hal] Adding device %s\n", name);
+            /* normal options first (input.x11_options.<propname>) */
+            if (!strncasecmp(psi_key, LIBHAL_PROP_KEY, sizeof(LIBHAL_PROP_KEY)-1)){
+                
+                /* only support strings for all values */
+                tmp_val = get_prop_string(hal_ctx, udi, psi_key);
+                
+                if (tmp_val){
+                    add_option(&options, psi_key + sizeof(LIBHAL_PROP_KEY)-1, tmp_val);
+                    xfree(tmp_val);
+                }
+            
+            /* evdev's XKB options... we should probably depreciate this usage */
+            } else if (!strncasecmp(psi_key, LIBHAL_XKB_PROP_KEY, sizeof(LIBHAL_XKB_PROP_KEY)-1)){
+                
+                /* only support strings for all values */
+                tmp_val = get_prop_string(hal_ctx, udi, psi_key);
+                
+                if (tmp_val){
+                    /* add "xkb_" + NULL */
+		    tmp_key = xalloc(strlen(psi_key) - ( sizeof(LIBHAL_XKB_PROP_KEY) - 1) + 5);
+                    
+                    if (!tmp_key){
+                        LogMessage(X_ERROR, "config/hal: couldn't allocate memory for option %s\n", psi_key);
+                    } else {
+                        sprintf(tmp_key, "xkb_%s", psi_key + sizeof(LIBHAL_XKB_PROP_KEY)-1);
+                        add_option(&options, tmp_key, tmp_val);
+                        
+                        xfree(tmp_key);
+                    }
+                    xfree(tmp_val);
+                }   
+            }
+        }
+        
+        /* psi_key doesn't need to be freed */
+        libhal_psi_next(&set_iter);
+    }
+	
+    /* this isn't an error, but how else do you output something that the user can see? */
+    LogMessage(X_INFO, "config/hal: Adding input device %s\n", name);
     if (NewInputDeviceRequest(options, &dev) != Success) {
-        ErrorF("[config/hal] NewInputDeviceRequest failed\n");
+        LogMessage(X_ERROR, "config/hal: NewInputDeviceRequest failed\n");
         dev = NULL;
         goto unwind;
     }
 
-    for (; dev; dev = dev->next)
+    for (; dev; dev = dev->next){
+        if (dev->config_info)
+            xfree(dev->config_info);
         dev->config_info = xstrdup(config_info);
+    }
 
 unwind:
+    if (set)
+        libhal_free_property_set(set);
     if (path)
         xfree(path);
     if (driver)
         xfree(driver);
     if (name)
         xfree(name);
-    if (xkb_rules)
-        xfree(xkb_rules);
-    if (xkb_model)
-        xfree(xkb_model);
-    if (xkb_layout)
-        xfree(xkb_layout);
-    if (xkb_variant)
-        xfree(xkb_variant);
-    if (xkb_options)
-        xfree(xkb_options);
     if (config_info)
         xfree(config_info);
     while (!dev && (tmpo = options)) {
@@ -270,7 +304,6 @@ unwind:
         xfree(tmpo);
     }
 
-out_error:
     dbus_error_free(&error);
 
     return;
@@ -286,7 +319,7 @@ disconnect_hook(void *data)
         if (dbus_connection_get_is_connected(info->system_bus)) {
             dbus_error_init(&error);
             if (!libhal_ctx_shutdown(info->hal_ctx, &error))
-                DebugF("[config/hal] couldn't shut down context: %s (%s)\n",
+                LogMessage(X_WARNING, "config/hal: disconnect_hook couldn't shut down context: %s (%s)\n",
                         error.name, error.message);
             dbus_error_free(&error);
         }
@@ -312,21 +345,21 @@ connect_hook(DBusConnection *connection, void *data)
     if (!info->hal_ctx)
         info->hal_ctx = libhal_ctx_new();
     if (!info->hal_ctx) {
-        ErrorF("[config/hal] couldn't create HAL context\n");
+        LogMessage(X_ERROR, "config/hal: couldn't create HAL context\n");
         goto out_err;
     }
 
     if (!libhal_ctx_set_dbus_connection(info->hal_ctx, info->system_bus)) {
-        ErrorF("[config/hal] couldn't associate HAL context with bus\n");
+        LogMessage(X_ERROR, "config/hal: couldn't associate HAL context with bus\n");
         goto out_ctx;
     }
     if (!libhal_ctx_init(info->hal_ctx, &error)) {
-        ErrorF("[config/hal] couldn't initialise context: %s (%s)\n",
+        LogMessage(X_ERROR, "config/hal: couldn't initialise context: %s (%s)\n",
                error.name, error.message);
         goto out_ctx;
     }
     if (!libhal_device_property_watch_all(info->hal_ctx, &error)) {
-        ErrorF("[config/hal] couldn't watch all properties: %s (%s)\n",
+        LogMessage(X_ERROR, "config/hal: couldn't watch all properties: %s (%s)\n",
                error.name, error.message);
         goto out_ctx2;
     }
@@ -346,7 +379,7 @@ connect_hook(DBusConnection *connection, void *data)
 
 out_ctx2:
     if (!libhal_ctx_shutdown(info->hal_ctx, &error))
-        DebugF("[config/hal] couldn't shut down context: %s (%s)\n",
+        LogMessage(X_WARNING, "config/hal: couldn't shut down context: %s (%s)\n",
                error.name, error.message);
 out_ctx:
     libhal_ctx_free(info->hal_ctx);
@@ -374,10 +407,13 @@ config_hal_init(void)
     hal_info.hal_ctx = NULL;
 
     if (!config_dbus_core_add_hook(&hook)) {
-        ErrorF("[config/hal] failed to add D-Bus hook\n");
+        LogMessage(X_ERROR, "config/hal: failed to add D-Bus hook\n");
         return 0;
     }
 
+    /* verbose message */
+    LogMessageVerb(X_INFO,7,"config/hal: initialized");
+    
     return 1;
 }
 

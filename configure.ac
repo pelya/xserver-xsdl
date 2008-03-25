@@ -1009,6 +1009,8 @@ XKB_STUB_LIB='$(top_builddir)/xkb/libxkbstubs.la'
 
 AC_CHECK_FUNC(strcasecmp, [], AC_DEFINE([NEED_STRCASECMP], 1,
                                         [Do not have 'strcasecmp'.]))
+AC_CHECK_FUNC(strncasecmp, [], AC_DEFINE([NEED_STRNCASECMP], 1,
+                                        [Do not have 'strncasecmp'.]))
 
 if test "x$NULL_ROOT_CURSOR" = xyes; then
         AC_DEFINE(NULL_ROOT_CURSOR, 1, [Use an empty root cursor])
