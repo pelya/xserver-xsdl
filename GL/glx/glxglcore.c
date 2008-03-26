@@ -46,7 +46,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <glxcontext.h>
 #include <glxutil.h>
 
-#include "glcontextmodes.h"
 #include "os.h"
 
 typedef struct __GLXMESAscreen   __GLXMESAscreen;
@@ -120,7 +119,7 @@ static __GLXdrawable *
 __glXMesaScreenCreateDrawable(__GLXscreen *screen,
 			      DrawablePtr pDraw, int type,
 			      XID drawId,
-			      __GLcontextModes *modes)
+			      __GLXconfig *modes)
 {
     __GLXMESAdrawable *glxPriv;
     XMesaVisual xm_vis;
@@ -217,7 +216,7 @@ __glXMesaContextForceCurrent(__GLXcontext *baseContext)
 
 static __GLXcontext *
 __glXMesaScreenCreateContext(__GLXscreen *screen,
-			     __GLcontextModes *modes,
+			     __GLXconfig *config,
 			     __GLXcontext *baseShareContext)
 {
     __GLXMESAcontext *context;
@@ -232,7 +231,7 @@ __glXMesaScreenCreateContext(__GLXscreen *screen,
     memset(context, 0, sizeof *context);
 
     context->base.pGlxScreen = screen;
-    context->base.modes      = modes;
+    context->base.config     = config;
 
     context->base.destroy        = __glXMesaContextDestroy;
     context->base.makeCurrent    = __glXMesaContextMakeCurrent;
@@ -240,10 +239,10 @@ __glXMesaScreenCreateContext(__GLXscreen *screen,
     context->base.copy           = __glXMesaContextCopy;
     context->base.forceCurrent   = __glXMesaContextForceCurrent;
 
-    xm_vis = find_mesa_visual(screen, modes->fbconfigID);
+    xm_vis = find_mesa_visual(screen, config->fbconfigID);
     if (!xm_vis) {
 	ErrorF("find_mesa_visual returned NULL for visualID = 0x%04x\n",
-	       modes->visualID);
+	       config->visualID);
 	xfree(context);
 	return NULL;
     }
@@ -282,11 +281,11 @@ static XMesaVisual
 find_mesa_visual(__GLXscreen *screen, XID fbconfigID)
 {
     __GLXMESAscreen *mesaScreen = (__GLXMESAscreen *) screen;
-    const __GLcontextModes *modes;
+    const __GLXconfig *config;
     unsigned i = 0;
 
-    for (modes = screen->fbconfigs; modes != NULL; modes = modes->next) {
- 	if (modes->fbconfigID == fbconfigID)
+    for (config = screen->fbconfigs; config != NULL; config = config->next) {
+ 	if (config->fbconfigID == fbconfigID)
 	    return mesaScreen->xm_vis[i];
 	i++;
     }
@@ -298,18 +297,31 @@ const static int numBack = 2;
 const static int numDepth = 2;
 const static int numStencil = 2;
 
-static __GLcontextModes *
+static const int glx_visual_types[] = {
+    GLX_STATIC_GRAY,
+    GLX_GRAY_SCALE,
+    GLX_STATIC_COLOR,
+    GLX_PSEUDO_COLOR,
+    GLX_TRUE_COLOR,
+    GLX_DIRECT_COLOR
+};
+
+static __GLXconfig *
 createFBConfigsForVisual(__GLXscreen *screen, ScreenPtr pScreen,
-			 VisualPtr visual, __GLcontextModes *config)
+			 VisualPtr visual, __GLXconfig *tail)
 {
     int back, depth, stencil;
+    __GLXconfig *config;
 
     /* FIXME: Ok, I'm making all this up... anybody has a better idea? */
 
     for (back = numBack - 1; back >= 0; back--)
 	for (depth = 0; depth < numDepth; depth++)
 	    for (stencil = 0; stencil < numStencil; stencil++) {
-		config->visualType = _gl_convert_from_x_visual_type(visual->class);
+		config->next = xalloc(sizeof *config);
+		config = config->next;
+
+		config->visualType = glx_visual_types[visual->class];
 		config->xRenderable = GL_TRUE;
 		config->drawableType = GLX_WINDOW_BIT | GLX_PIXMAP_BIT;
 		config->rgbMode = (visual->class >= TrueColor);
@@ -333,35 +345,35 @@ createFBConfigsForVisual(__GLXscreen *screen, ScreenPtr pScreen,
 		config->alphaMask = 0;
 		config->rgbBits = config->rgbMode ? visual->nplanes : 0;
 		config->indexBits = config->colorIndexMode ? visual->nplanes : 0;
-		config = config->next;
 	    }
 
-    return config;
+    return tail;
 }
 
 static void
 createFBConfigs(__GLXscreen *pGlxScreen, ScreenPtr pScreen)
 {
-    __GLcontextModes *configs;
+    __GLXconfig head, *tail;
     int i;
 
     /* We assume here that each existing visual correspond to a
      * different visual class.  Note, this runs before COMPOSITE adds
      * its visual, so it's not entirely crazy. */
     pGlxScreen->numFBConfigs = pScreen->numVisuals * numBack * numDepth * numStencil;
-    pGlxScreen->fbconfigs = _gl_context_modes_create(pGlxScreen->numFBConfigs,
-						     sizeof *configs);
-
-    configs = pGlxScreen->fbconfigs;
+    
+    head.next = NULL;
+    tail = &head;
     for (i = 0; i < pScreen->numVisuals; i++)
-	configs = createFBConfigsForVisual(pGlxScreen, pScreen,
-					   &pScreen->visuals[i], configs);
+	tail = createFBConfigsForVisual(pGlxScreen, pScreen,
+					&pScreen->visuals[i], tail);
+
+    pGlxScreen->fbconfigs = head.next;
 }
 
 static void
 createMesaVisuals(__GLXMESAscreen *pMesaScreen)
 {
-    __GLcontextModes *config;
+    __GLXconfig *config;
     ScreenPtr pScreen;
     VisualPtr visual = NULL;
     int i, j;

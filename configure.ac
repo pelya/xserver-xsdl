@@ -860,7 +860,7 @@ AM_CONDITIONAL(DRI2, test "x$DRI2" = xyes)
 if test "x$DRI2" = xyes; then
 	# FIXME: Bump the versions once we have releases of these.
 	AC_DEFINE(DRI2, 1, [Build DRI2 extension])
-	PKG_CHECK_MODULES([DRIPROTO], [xf86driproto >= 2.0.3])
+	PKG_CHECK_MODULES([DRI2PROTO], [dri2proto >= 1.0.0])
 	PKG_CHECK_MODULES([LIBDRM], [libdrm >= 2.3.1])
 fi
 

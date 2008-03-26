@@ -121,6 +121,7 @@ static ModuleDefault ModuleDefaults[] = {
     {.name = "freetype", .toLoad = TRUE,    .load_opt=NULL},
     {.name = "record",   .toLoad = TRUE,    .load_opt=NULL},
     {.name = "dri",      .toLoad = TRUE,    .load_opt=NULL},
+    {.name = "dri2",     .toLoad = TRUE,    .load_opt=NULL},
     {.name = NULL,       .toLoad = FALSE,   .load_opt=NULL}
 };
 

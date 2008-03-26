@@ -66,14 +66,16 @@ unsigned int DRI2GetPixmapHandle(PixmapPtr pPixmap,
 void DRI2Lock(ScreenPtr pScreen);
 void DRI2Unlock(ScreenPtr pScreen);
 
-Bool DRI2CreateDrawable(ScreenPtr	 pScreen,
-			DrawablePtr	 pDraw,
-			drm_drawable_t	*pDrmDrawable,
-			unsigned int    *head);
+Bool DRI2CreateDrawable(DrawablePtr pDraw,
+			unsigned int *handle,
+			unsigned int *head);
 
-void DRI2DestroyDrawable(ScreenPtr	pScreen,
-			 DrawablePtr	pDraw);
+void DRI2DestroyDrawable(DrawablePtr pDraw);
 
-void DRI2ExtensionInit(void);
+void DRI2ReemitDrawableInfo(DrawablePtr pDraw,
+			    unsigned int *head);
+
+Bool DRI2PostDamage(DrawablePtr pDrawable,
+		    struct drm_clip_rect *rects, int numRects);
 
 #endif

@@ -37,6 +37,7 @@
 #include <dix-config.h>
 #endif
 
+#include <GL/glxtokens.h>
 #include <string.h>
 #include <windowstr.h>
 #include <os.h>
@@ -46,7 +47,6 @@
 #include "glxserver.h"
 #include "glxutil.h"
 #include "glxext.h"
-#include "glcontextmodes.h"
 
 static DevPrivateKey glxScreenPrivateKey = &glxScreenPrivateKey;
 
@@ -280,10 +280,23 @@ void GlxSetVisualConfigs(int nconfigs,
      * call it. */
 }
 
+GLint glxConvertToXVisualType(int visualType)
+{
+    static const int x_visual_types[] = {
+	TrueColor,   DirectColor,
+	PseudoColor, StaticColor,
+	GrayScale,   StaticGray
+    };
+
+    return ( (unsigned) (visualType - GLX_TRUE_COLOR) < 6 )
+	? x_visual_types[ visualType - GLX_TRUE_COLOR ] : -1;
+}
+
+
 static void
 filterOutNativeConfigs(__GLXscreen *pGlxScreen)
 {
-    __GLcontextModes *m, *next, *native_modes, **last;
+    __GLXconfig *m, *next, **last;
     ScreenPtr pScreen = pGlxScreen->pScreen;
     int i, depth;
 
@@ -305,12 +318,12 @@ filterOutNativeConfigs(__GLXscreen *pGlxScreen)
 }
 
 static XID
-findVisualForConfig(ScreenPtr pScreen, __GLcontextModes *m)
+findVisualForConfig(ScreenPtr pScreen, __GLXconfig *m)
 {
     int i;
 
     for (i = 0; i < pScreen->numVisuals; i++) {
-	if (_gl_convert_to_x_visual_type(m->visualType) == pScreen->visuals[i].class)
+	if (glxConvertToXVisualType(m->visualType) == pScreen->visuals[i].class)
 	    return pScreen->visuals[i].vid;
     }
 
@@ -405,10 +418,10 @@ findFirstSet(unsigned int v)
 }
 
 static void
-initGlxVisual(VisualPtr visual, __GLcontextModes *config)
+initGlxVisual(VisualPtr visual, __GLXconfig *config)
 {
     config->visualID = visual->vid;
-    visual->class = _gl_convert_to_x_visual_type(config->visualType);
+    visual->class = glxConvertToXVisualType(config->visualType);
     visual->bitsPerRGBValue = config->redBits;
     visual->ColormapEntries = 1 << config->redBits;
     visual->nplanes = config->redBits + config->greenBits + config->blueBits;
@@ -426,15 +439,15 @@ typedef struct {
     GLboolean depthBuffer;
 } FBConfigTemplateRec, *FBConfigTemplatePtr;
 
-static __GLcontextModes *
+static __GLXconfig *
 pickFBConfig(__GLXscreen *pGlxScreen, FBConfigTemplatePtr template, int class)
 {
-    __GLcontextModes *config;
+    __GLXconfig *config;
 
     for (config = pGlxScreen->fbconfigs; config != NULL; config = config->next) {
 	if (config->visualRating != GLX_NONE)
 	    continue;
-	if (_gl_convert_to_x_visual_type(config->visualType) != class)
+	if (glxConvertToXVisualType(config->visualType) != class)
 	    continue;
 	if ((config->doubleBufferMode > 0) != template->doubleBuffer)
 	    continue;
@@ -450,32 +463,36 @@ pickFBConfig(__GLXscreen *pGlxScreen, FBConfigTemplatePtr template, int class)
 static void
 addMinimalSet(__GLXscreen *pGlxScreen)
 {
-    __GLcontextModes *config;
+    __GLXconfig *config;
     VisualPtr visuals;
-    int i;
+    int i, j;
     FBConfigTemplateRec best = { GL_TRUE, GL_TRUE };
     FBConfigTemplateRec minimal = { GL_FALSE, GL_FALSE };
 
     pGlxScreen->visuals = xcalloc(pGlxScreen->pScreen->numVisuals,
-				  sizeof (__GLcontextModes *));
+				  sizeof (__GLXconfig *));
     if (pGlxScreen->visuals == NULL) {
 	ErrorF("Failed to allocate for minimal set of GLX visuals\n");
 	return;
     }
 
-    pGlxScreen->numVisuals = pGlxScreen->pScreen->numVisuals;
     visuals = pGlxScreen->pScreen->visuals;
-    for (i = 0; i < pGlxScreen->numVisuals; i++) {
+    for (i = 0, j = 0; i < pGlxScreen->pScreen->numVisuals; i++) {
 	if (visuals[i].nplanes == 32)
 	    config = pickFBConfig(pGlxScreen, &minimal, visuals[i].class);
 	else
 	    config = pickFBConfig(pGlxScreen, &best, visuals[i].class);
 	if (config == NULL)
 	    config = pGlxScreen->fbconfigs;
-	pGlxScreen->visuals[i] = config;
-	config->visualID = visuals[i].vid;
+	if (config == NULL)
+	    continue;
+
+	pGlxScreen->visuals[j] = config;
+	config->visualID = visuals[j].vid;
+	j++;
     }
 
+    pGlxScreen->numVisuals = j;
 }
 
 static void
@@ -487,12 +504,12 @@ addTypicalSet(__GLXscreen *pGlxScreen)
 static void
 addFullSet(__GLXscreen *pGlxScreen)
 {
-    __GLcontextModes *config;
+    __GLXconfig *config;
     VisualPtr visuals;
     int i, depth;
 
     pGlxScreen->visuals =
-	xcalloc(pGlxScreen->numFBConfigs, sizeof (__GLcontextModes *));
+	xcalloc(pGlxScreen->numFBConfigs, sizeof (__GLXconfig *));
     if (pGlxScreen->visuals == NULL) {
 	ErrorF("Failed to allocate for full set of GLX visuals\n");
 	return;
@@ -522,7 +539,7 @@ void GlxSetVisualConfig(int config)
 
 void __glXScreenInit(__GLXscreen *pGlxScreen, ScreenPtr pScreen)
 {
-    __GLcontextModes *m;
+    __GLXconfig *m;
     int i;
 
     pGlxScreen->pScreen       = pScreen;

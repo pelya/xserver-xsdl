@@ -51,7 +51,7 @@ extern void __glXUnrefDrawable(__GLXdrawable *glxPriv);
 extern GLboolean __glXDrawableInit(__GLXdrawable *drawable,
 				   __GLXscreen *screen,
 				   DrawablePtr pDraw, int type, XID drawID,
-				   __GLcontextModes *modes);
+				   __GLXconfig *config);
 
 /* context helper routines */
 extern __GLXcontext *__glXLookupContextByTag(__GLXclientState*, GLXContextTag);
