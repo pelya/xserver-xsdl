@@ -649,7 +649,8 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
     [depth selectItemAtIndex:[depth indexOfItemWithTag:[NSApp prefs_get_integer:@PREFS_DEPTH default:-1]]];
     // TODO: Add 256 color support
-    [depth removeItemAtIndex:[depth indexOfItemWithTag:8]];
+    if([depth indexOfItemWithTag:8] != -1)
+        [depth removeItemAtIndex:[depth indexOfItemWithTag:8]];
 	
     [enable_fullscreen setIntValue:!quartzEnableRootless];
     // TODO: Add fullscreen support
