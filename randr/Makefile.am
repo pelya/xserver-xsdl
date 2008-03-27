@@ -5,7 +5,7 @@ AM_CFLAGS = $(DIX_CFLAGS)
 XINERAMA_SRCS = rrxinerama.c
 
 if XORG
-sdk_HEADERS = randrstr.h
+sdk_HEADERS = randrstr.h rrtransform.h
 endif
 
 librandr_la_SOURCES =	\
