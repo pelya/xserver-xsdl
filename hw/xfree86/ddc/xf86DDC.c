@@ -119,7 +119,7 @@ DDC2MakeDevice(I2CBusPtr pBus, int address, char *name)
 
 	dev->pI2CBus = pBus;
 	if (!xf86I2CDevInit(dev)) {
-	    xf86DrvMsg(scrnIndex, X_PROBED, "No DDC2 device\n");
+	    xf86DrvMsg(pBus->scrnIndex, X_PROBED, "No DDC2 device\n");
 	    return NULL;
 	}
     }
