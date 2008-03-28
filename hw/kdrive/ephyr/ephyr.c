@@ -753,6 +753,18 @@ ephyrUpdateModifierState(unsigned int state)
   if (!pkeydev)
     return;
   
+/* This is pretty broken.
+ *
+ * What should happen is that focus out should do as a VT switch does in
+ * traditional servers: fake releases for all keys (and buttons too, come
+ * to think of it) currently down.  Then, on focus in, get the state from
+ * the host, and fake keypresses for everything currently down.
+ *
+ * So I'm leaving this broken for a little while.  Sorry, folks.
+ *
+ * -daniels
+ */
+#if 0
   keyc = pkeydev->key;
   
   state = state & 0xff;
@@ -798,6 +810,7 @@ ephyrUpdateModifierState(unsigned int state)
 	      break;
 	    }
     }
+#endif
 }
 
 static void
