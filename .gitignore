@@ -8,11 +8,12 @@ Makefile.in
 *.a
 *.o
 *~
-.*.swp
+.*sw?
 *.pbxuser
 *.mode1v3
 obj*
 build*
+local
 aclocal.m4
 autom4te.cache
 compile
