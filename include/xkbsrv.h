@@ -291,12 +291,9 @@ extern _X_EXPORT void xkbUnwrapProc(DeviceIntPtr, DeviceHandleProc, pointer);
 
 extern _X_EXPORT int	XkbReqCode;
 extern _X_EXPORT int	XkbEventBase;
-extern _X_EXPORT int	XkbDisableLockActions;
 extern _X_EXPORT int	XkbKeyboardErrorCode;
 extern _X_EXPORT char *	XkbBaseDirectory;
 extern _X_EXPORT char *	XkbBinDirectory;
-extern _X_EXPORT int	XkbDfltRepeatDelay;
-extern _X_EXPORT int	XkbDfltRepeatInterval;
 
 extern _X_EXPORT Bool	noXkbExtension;
 

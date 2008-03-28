@@ -68,8 +68,6 @@ DEALINGS IN THE SOFTWARE.
 #include "xkbgeom.h"
 #include "xkb.h"
 
-int	XkbDisableLockActions = 0;
-
 /***====================================================================***/
 
 int

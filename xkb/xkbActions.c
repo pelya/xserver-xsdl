@@ -85,41 +85,6 @@ static XkbAction	fake;
 	fake.type = XkbSA_NoAction;
 	return fake;
     }
-    if (XkbDisableLockActions) {
-	switch (act->type) {
-	    case XkbSA_LockMods:
-		fake.mods.type  = XkbSA_SetMods;
-		fake.mods.flags = 0;
-		fake.mods.mask  = act->mods.mask;
-		return fake;
-	    case XkbSA_LatchMods:
-		fake.mods.type  = XkbSA_SetMods;
-		fake.mods.flags = 0;
-		fake.mods.mask  = act->mods.mask;
-		return fake;
-	    case XkbSA_ISOLock:
-		if (act->iso.flags&XkbSA_ISODfltIsGroup) {
-		     fake.group.type = XkbSA_SetGroup;
-		     fake.group.flags = act->iso.flags&XkbSA_GroupAbsolute;
-		     XkbSASetGroup(&fake.group,XkbSAGroup(&act->iso));
-		}
-		else {
-		     fake.mods.type  = XkbSA_SetMods;
-		     fake.mods.flags = 0;
-		     fake.mods.mask  = act->iso.mask;
-		}
-		return fake;
-	    case XkbSA_LockGroup:
-	    case XkbSA_LatchGroup:
-		/* We want everything from the latch/lock action except the
-		 * type should be changed to set.
-		 */
-		fake = *act;
-		fake.group.type = XkbSA_SetGroup;
-		return fake;
-	}
-    }
-    else 
     if (xkb->ctrls->enabled_ctrls&XkbStickyKeysMask) {
 	if (act->any.type==XkbSA_SetMods) {
 	    fake.mods.type = XkbSA_LatchMods;

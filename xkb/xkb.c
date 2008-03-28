@@ -6611,8 +6611,6 @@ int rc;
     xkbDebugFlags = newFlags;
     xkbDebugCtrls = newCtrls;
 
-    XkbDisableLockActions= (xkbDebugCtrls&XkbDF_DisableLocks);
-
     rep.type= X_Reply;
     rep.length = 0;
     rep.sequenceNumber = client->sequence;
