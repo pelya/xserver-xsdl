@@ -42,7 +42,7 @@ static ExtensionModule extensionModules[] = {
     {
 	SELinuxExtensionInit,
 	SELINUX_EXTENSION_NAME,
-	NULL,
+	&noSELinuxExtension,
 	NULL,
 	NULL
     },
@@ -258,6 +258,27 @@ extmodSetup(pointer module, pointer opts, int *errmaj, int *errmin)
 		}
 	    }
 	}
+
+#ifdef XSELINUX
+	if (! strcmp(SELINUX_EXTENSION_NAME, extensionModules[i].name)) {
+	    pointer o;
+	    selinuxEnforcingState = SELINUX_MODE_DEFAULT;
+
+	    if ((o = xf86FindOption(opts, "SELinux mode disabled"))) {
+		xf86MarkOptionUsed(o);
+		selinuxEnforcingState = SELINUX_MODE_DISABLED;
+	    }
+	    if ((o = xf86FindOption(opts, "SELinux mode permissive"))) {
+		xf86MarkOptionUsed(o);
+		selinuxEnforcingState = SELINUX_MODE_PERMISSIVE;
+	    }
+	    if ((o = xf86FindOption(opts, "SELinux mode enforcing"))) {
+		xf86MarkOptionUsed(o);
+		selinuxEnforcingState = SELINUX_MODE_ENFORCING;
+	    }
+	}
+#endif
+
 	LoadExtension(&extensionModules[i], FALSE);
     }
     /* Need a non-NULL return */

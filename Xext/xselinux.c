@@ -37,6 +37,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <libaudit.h>
 
 #include <X11/Xatom.h>
+#include "globals.h"
 #include "resource.h"
 #include "privates.h"
 #include "registry.h"
@@ -1891,16 +1892,36 @@ void
 SELinuxExtensionInit(INITARGS)
 {
     ExtensionEntry *extEntry;
-    struct selinux_opt options[] = { { SELABEL_OPT_VALIDATE, (char *)1 } };
+    struct selinux_opt selabel_option = { SELABEL_OPT_VALIDATE, (char *)1 };
+    struct selinux_opt avc_option = { AVC_OPT_SETENFORCE, (char *)0 };
     security_context_t con;
     int ret = TRUE;
 
-    /* Setup SELinux stuff */
+    /* Check SELinux mode on system */
     if (!is_selinux_enabled()) {
-	ErrorF("SELinux: SELinux not enabled, disabling SELinux support.\n");
+	ErrorF("SELinux: Disabled on system, not enabling in X server\n");
 	return;
     }
 
+    /* Check SELinux mode in configuration file */
+    switch(selinuxEnforcingState) {
+    case SELINUX_MODE_DISABLED:
+	LogMessage(X_INFO, "SELinux: Disabled in configuration file\n");
+	return;
+    case SELINUX_MODE_ENFORCING:
+	LogMessage(X_INFO, "SELinux: Configured in enforcing mode\n");
+	avc_option.value = (char *)1;
+	break;
+    case SELINUX_MODE_PERMISSIVE:
+	LogMessage(X_INFO, "SELinux: Configured in permissive mode\n");
+	avc_option.value = (char *)0;
+	break;
+    default:
+	avc_option.type = AVC_OPT_UNUSED;
+	break;
+    }
+
+    /* Set up SELinux stuff */
     selinux_set_callback(SELINUX_CB_LOG, (union selinux_callback)SELinuxLog);
     selinux_set_callback(SELINUX_CB_AUDIT, (union selinux_callback)SELinuxAudit);
 
@@ -1912,11 +1933,11 @@ SELinuxExtensionInit(INITARGS)
 	FatalError("SELinux: Failed to set up security class mapping\n");
     }
 
-    if (avc_open(NULL, 0) < 0)
+    if (avc_open(&avc_option, 1) < 0)
 	FatalError("SELinux: Couldn't initialize SELinux userspace AVC\n");
     avc_active = 1;
 
-    label_hnd = selabel_open(SELABEL_CTX_X, options, 1);
+    label_hnd = selabel_open(SELABEL_CTX_X, &selabel_option, 1);
     if (!label_hnd)
 	FatalError("SELinux: Failed to open x_contexts mapping in policy\n");
 

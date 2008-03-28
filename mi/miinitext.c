@@ -215,6 +215,9 @@ extern Bool noXInputExtension;
 #ifdef XIDLE
 extern Bool noXIdleExtension;
 #endif
+#ifdef XSELINUX
+extern Bool noSELinuxExtension;
+#endif
 #ifdef XV
 extern Bool noXvExtension;
 #endif
@@ -488,6 +491,9 @@ static ExtensionToggle ExtensionToggleList[] =
 #ifdef XKB
     { "XKEYBOARD", &noXkbExtension },
 #endif
+#ifdef XSELINUX
+    { "SELinux", &noSELinuxExtension },
+#endif
     { "XTEST", &noTestExtensions },
 #ifdef XV
     { "XVideo", &noXvExtension },
@@ -597,7 +603,7 @@ InitExtensions(argc, argv)
     if (!noSecurityExtension) SecurityExtensionInit();
 #endif
 #ifdef XSELINUX
-    SELinuxExtensionInit();
+    if (!noSELinuxExtension) SELinuxExtensionInit();
 #endif
 #ifdef XPRINT
     XpExtensionInit(); /* server-specific extension, cannot be disabled */
