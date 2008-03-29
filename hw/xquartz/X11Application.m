@@ -314,14 +314,10 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 }
 
 - (void) set_front_process:unused {
-    /* Hackery needed due to argv[0] hackery */
-    //    [self activateX:YES];
-    ProcessSerialNumber psn = { 0, kCurrentProcess };
-    SetFrontProcess(&psn);
+    [NSApp activateIgnoringOtherApps:YES];
 
-    QuartzMessageServerThread(kXDarwinBringAllToFront, 0);
-    ProcessSerialNumber psn = { 0, kCurrentProcess };
-    SetFrontProcess(&psn);
+    if ([self modalWindow] == nil)
+        [self activateX:YES];
 }
 
 - (void) set_can_quit:(NSNumber *)state {
