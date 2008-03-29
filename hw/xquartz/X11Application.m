@@ -61,7 +61,7 @@ int X11EnableKeyEquivalents = TRUE;
 int quartzHasRoot = FALSE, quartzEnableRootless = TRUE;
 
 extern int darwinFakeButtons, input_check_flag;
-extern Bool enable_stereo; 
+extern Bool enable_stereo;
 
 extern xEvent *darwinEvents;
 
@@ -153,7 +153,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 	
     tem = [infoDict objectForKey:@"CFBundleShortVersionString"];
 	
-    [dict setObject:[NSString stringWithFormat:@"Xquartz %@ - (xorg-server %s)", tem, XSERVER_VERSION] 
+    [dict setObject:[NSString stringWithFormat:@"XQuartz %@ - (xorg-server %s)", tem, XSERVER_VERSION]
 	  forKey:@"ApplicationVersion"];
 	
     [self orderFrontStandardAboutPanelWithOptions: dict];
@@ -501,7 +501,7 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
   
   if (value != NULL
       && CFGetTypeID (value) == CFNumberGetTypeID ()
-      && CFNumberIsFloatType (value)) 
+      && CFNumberIsFloatType (value))
     CFNumberGetValue (value, kCFNumberFloatType, &ret);
   else if (value != NULL && CFGetTypeID (value) == CFStringGetTypeID ())
     ret = CFStringGetDoubleValue (value);
@@ -862,7 +862,9 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
     NSRect screen;
     NSPoint location;
     NSWindow *window;
-    int pointer_x, pointer_y, ev_button, ev_type; 
+    int pointer_x, pointer_y, ev_button, ev_type;
+    float pressure, tilt_x, tilt_y;
+
     //    int num_events=0, i=0, state;
     // xEvent xe;
 	
@@ -884,6 +886,10 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
     pointer_y -= aquaMenuBarHeight;
     //    state = convert_flags ([e modifierFlags]);
     
+    pressure = 0;  // for tablets
+    tilt_x = 0;
+    tilt_y = 0;
+
     switch (type) {
     case NSLeftMouseDown:    ev_button=1; ev_type=ButtonPress; goto handle_mouse;
     case NSOtherMouseDown:   ev_button=2; ev_type=ButtonPress; goto handle_mouse;
@@ -894,6 +900,10 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
     case NSLeftMouseDragged:  ev_button=1; ev_type=MotionNotify; goto handle_mouse;
     case NSOtherMouseDragged: ev_button=2; ev_type=MotionNotify; goto handle_mouse;
     case NSRightMouseDragged: ev_button=3; ev_type=MotionNotify; goto handle_mouse;
+    case NSTabletPoint:
+      pressure = [e pressure];
+      tilt_x = [e tilt].x;
+      tilt_y = [e tilt].y; // fall through
     case NSMouseMoved: ev_button=0; ev_type=MotionNotify; goto handle_mouse;
     handle_mouse:
       
@@ -907,10 +917,14 @@ static void send_nsevent (NSEventType type, NSEvent *e) {
 	DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y);
       } else if (ev_type==ButtonRelease && (button_state & (1 << ev_button)) == 0) break;
       */
-      DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y);
+
+      //      if ([e subtype] == NSTabletPointEventSubtype) pressure = [e pressure];
+      DarwinSendPointerEvents(ev_type, ev_button, pointer_x, pointer_y,
+			      pressure, tilt_x, tilt_y);
       break;
-    case NSScrollWheel: 
-      DarwinSendScrollEvents([e deltaY], pointer_x, pointer_y);
+    case NSScrollWheel:
+      DarwinSendScrollEvents([e deltaY], pointer_x, pointer_y,
+			     pressure, tilt_x, tilt_y);
       break;
       
     case NSKeyDown:  // do we need to translate these keyCodes?

@@ -173,6 +173,9 @@ static void DarwinReleaseModifiers(void) {
 static void DarwinSimulateMouseClick(
     int pointer_x,
     int pointer_y,
+    float pressure,
+    float tilt_x,
+    float tilt_y,
     int whichButton,    // mouse button to be pressed
     int modifierMask)   // modifiers used for the fake click
 {
@@ -183,8 +186,10 @@ static void DarwinSimulateMouseClick(
     DarwinUpdateModifiers(KeyRelease, modifierMask);
 
     // push the mouse button
-    DarwinSendPointerEvents(ButtonPress, whichButton, pointer_x, pointer_y);
-    DarwinSendPointerEvents(ButtonRelease, whichButton, pointer_x, pointer_y);
+    DarwinSendPointerEvents(ButtonPress, whichButton, pointer_x, pointer_y, 
+			    pressure, tilt_x, tilt_y);
+    DarwinSendPointerEvents(ButtonRelease, whichButton, pointer_x, pointer_y, 
+			    pressure, tilt_x, tilt_y);
 
     // restore old modifiers
     DarwinUpdateModifiers(KeyPress, modifierMask);
@@ -378,22 +383,39 @@ void DarwinPokeEQ(void) {
   write(darwinEventWriteFD, &nullbyte, 1);
 }
 
-void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y) {
+void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int pointer_y, 
+			     float pressure, float tilt_x, float tilt_y) {
   static int darwinFakeMouseButtonDown = 0;
   static int darwinFakeMouseButtonMask = 0;
   int i, num_events;
-  int valuators[2] = {pointer_x, pointer_y};
+
+  /* I can't find a spec for this, but at least GTK expects that tablets are
+     just like mice, except they have either one or three extra valuators, in this
+     order:
+     
+     X coord, Y coord, pressure, X tilt, Y tilt
+     Pressure and tilt should be represented natively as floats; unfortunately,
+     we can't do that.  Again, GTK seems to record the min/max of each valuator,
+     and then perform scaling back to float itself using that info. Soo.... */
+
+  int valuators[5] = {pointer_x, pointer_y, 
+		      pressure * INT32_MAX * 1.0f, 
+		      tilt_x * INT32_MAX * 1.0f, 
+		      tilt_y * INT32_MAX * 1.0f};
+
   if (ev_type == ButtonPress && darwinFakeButtons && ev_button == 1) {
     // Mimic multi-button mouse with modifier-clicks
     // If both sets of modifiers are pressed,
     // button 2 is clicked.
     if ((old_flags & darwinFakeMouse2Mask) == darwinFakeMouse2Mask) {
-      DarwinSimulateMouseClick(pointer_x, pointer_y, 2, darwinFakeMouse2Mask);
+      DarwinSimulateMouseClick(pointer_x, pointer_y, pressure, 
+			       tilt_x, tilt_y, 2, darwinFakeMouse2Mask);
       darwinFakeMouseButtonDown = 2;
       darwinFakeMouseButtonMask = darwinFakeMouse2Mask;
       return;
     } else if ((old_flags & darwinFakeMouse3Mask) == darwinFakeMouse3Mask) {
-      DarwinSimulateMouseClick(pointer_x, pointer_y, 3, darwinFakeMouse3Mask);
+      DarwinSimulateMouseClick(pointer_x, pointer_y, pressure, 
+			       tilt_x, tilt_y, 3, darwinFakeMouse3Mask);
       darwinFakeMouseButtonDown = 3;
       darwinFakeMouseButtonMask = darwinFakeMouse3Mask;
       return;
@@ -412,7 +434,7 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
   } 
 
   num_events = GetPointerEvents(darwinEvents, darwinPointer, ev_type, ev_button, 
-				POINTER_ABSOLUTE, 0, 2, valuators);
+				POINTER_ABSOLUTE, 0, 5, valuators);
       
   for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
   DarwinPokeEQ();
@@ -438,18 +460,38 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
   DarwinPokeEQ();
 }
 
+void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y, 
+			       float pressure, float tilt_x, float tilt_y) {
+  int i, num_events;
+  int valuators[5] = {pointer_x, pointer_y, 
+		      pressure * INT32_MAX * 1.0f, 
+		      tilt_x * INT32_MAX * 1.0f, 
+		      tilt_y * INT32_MAX * 1.0f};
+
+  num_events = GetProximityEvents(darwinEvents, darwinPointer, ev_type,
+				0, 5, valuators);
+      
+  for(i=0; i<num_events; i++) mieqEnqueue (darwinPointer,&darwinEvents[i]);
+  DarwinPokeEQ();
+}
+
+
 /* Send the appropriate number of button 4 / 5 clicks to emulate scroll wheel */
-void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y) {
+void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y, 
+			    float pressure, float tilt_x, float tilt_y) {
   int i;
   int ev_button = count > 0.0f ? 4 : 5;
-  int valuators[2] = {pointer_x, pointer_y};
+  int valuators[5] = {pointer_x, pointer_y, 
+		      pressure * INT32_MAX * 1.0f, 
+		      tilt_x * INT32_MAX * 1.0f, 
+		      tilt_y * INT32_MAX * 1.0f};
 
   for (count = fabs(count); count > 0.0; count = count - 1.0f) {
     int num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonPress, ev_button, 
-				      POINTER_ABSOLUTE, 0, 2, valuators);
+				      POINTER_ABSOLUTE, 0, 5, valuators);
     for(i=0; i<num_events; i++) mieqEnqueue(darwinPointer,&darwinEvents[i]);
     num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonRelease, ev_button, 
-				      POINTER_ABSOLUTE, 0, 2, valuators);
+				      POINTER_ABSOLUTE, 0, 5, valuators);
     for(i=0; i<num_events; i++) mieqEnqueue(darwinPointer,&darwinEvents[i]);
   }
   DarwinPokeEQ();
