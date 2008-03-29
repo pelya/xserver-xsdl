@@ -103,7 +103,7 @@
 {
   [NSApp activateIgnoringOtherApps:YES];
 	
-  QuartzMessageServerThread (kXDarwinControllerNotify, 2,
+  QuartzMessageServerThread (kXquartzControllerNotify, 2,
 			     AppleWMWindowMenuItem, [sender tag]);
 }
 
@@ -254,7 +254,7 @@
   [self remove_window_menu];
   [self install_window_menu:list];
 	
-  QuartzMessageServerThread (kXDarwinControllerNotify, 1,
+  QuartzMessageServerThread (kXquartzControllerNotify, 1,
 			     AppleWMWindowMenuNotify);
 }
 
@@ -539,20 +539,20 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (void) hide_window:sender
 {
   if ([X11App x_active])
-    QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMHideWindow);
+    QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMHideWindow);
   else
     NSBeep ();			/* FIXME: something here */
 }
 
 - (IBAction)bring_to_front:sender
 {
-  QuartzMessageServerThread(kXDarwinControllerNotify, 1, AppleWMBringAllToFront);
+  QuartzMessageServerThread(kXquartzControllerNotify, 1, AppleWMBringAllToFront);
 }
 
 - (IBAction)close_window:sender
 {
   if ([X11App x_active])
-    QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMCloseWindow);
+    QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMCloseWindow);
   else
     [[NSApp keyWindow] performClose:sender];
 }
@@ -560,7 +560,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (IBAction)minimize_window:sender
 {
   if ([X11App x_active])
-    QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMMinimizeWindow);
+    QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMMinimizeWindow);
   else
     [[NSApp keyWindow] performMiniaturize:sender];
 }
@@ -568,19 +568,19 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (IBAction)zoom_window:sender
 {
   if ([X11App x_active])
-    QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMZoomWindow);
+    QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMZoomWindow);
   else
     [[NSApp keyWindow] performZoom:sender];
 }
 
 - (IBAction) next_window:sender
 {
-  QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMNextWindow);
+  QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMNextWindow);
 }
 
 - (IBAction) previous_window:sender
 {
-  QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMPreviousWindow);
+  QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMPreviousWindow);
 }
 
 - (IBAction) enable_fullscreen_changed:sender
@@ -588,7 +588,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   int value = ![enable_fullscreen intValue];
 	
 #ifdef DARWIN_DDX_MISSING
-  QuartzMessageServerThread (kXDarwinSetRootless, 1, value);
+  QuartzMessageServerThread (kXquartzSetRootless, 1, value);
 #endif
 	
   [NSApp prefs_set_boolean:@PREFS_ROOTLESS value:value];
@@ -598,7 +598,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 - (IBAction) toggle_fullscreen:sender
 {
 #ifdef DARWIN_DDX_MISSING
-  QuartzMessageServerThread (kXDarwinToggleFullscreen, 0);
+  QuartzMessageServerThread (kXquartzToggleFullscreen, 0);
 #endif
 }
 
@@ -661,7 +661,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 - (IBAction) quit:sender
 {
-  QuartzMessageServerThread (kXDarwinQuit, 0);
+  QuartzMessageServerThread (kXquartzQuit, 0);
 }
 
 - (IBAction) x11_help:sender
@@ -684,12 +684,12 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
 
 - (void) applicationDidHide:(NSNotification *)notify
 {
-  QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMHideAll);
+  QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMHideAll);
 }
 
 - (void) applicationDidUnhide:(NSNotification *)notify
 {
-  QuartzMessageServerThread (kXDarwinControllerNotify, 1, AppleWMShowAll);
+  QuartzMessageServerThread (kXquartzControllerNotify, 1, AppleWMShowAll);
 }
 
 - (NSApplicationTerminateReply) applicationShouldTerminate:sender
@@ -717,7 +717,7 @@ objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row
   [X11App prefs_synchronize];
 	
   /* shutdown the X server, it will exit () for us. */
-  QuartzMessageServerThread (kXDarwinQuit, 0);
+  QuartzMessageServerThread (kXquartzQuit, 0);
 	
   /* In case it doesn't, exit anyway after a while. */
   while (sleep (10) != 0) ;

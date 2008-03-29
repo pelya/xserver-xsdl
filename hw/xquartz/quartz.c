@@ -411,24 +411,24 @@ QuartzMessageServerThread(
  */
 void QuartzProcessEvent(xEvent *xe) {
     switch (xe->u.u.type) {
-        case kXDarwinControllerNotify:
-            DEBUG_LOG("kXDarwinControllerNotify\n");
+        case kXquartzControllerNotify:
+            DEBUG_LOG("kXquartzControllerNotify\n");
             AppleWMSendEvent(AppleWMControllerNotify,
                              AppleWMControllerNotifyMask,
                              xe->u.clientMessage.u.l.longs0,
                              xe->u.clientMessage.u.l.longs1);
             break;
 
-        case kXDarwinPasteboardNotify:
-            DEBUG_LOG("kXDarwinPasteboardNotify\n");
+        case kXquartzPasteboardNotify:
+            DEBUG_LOG("kXquartzPasteboardNotify\n");
             AppleWMSendEvent(AppleWMPasteboardNotify,
                              AppleWMPasteboardNotifyMask,
                              xe->u.clientMessage.u.l.longs0,
                              xe->u.clientMessage.u.l.longs1);
             break;
 
-        case kXDarwinActivate:
-            DEBUG_LOG("kXDarwinActivate\n");
+        case kXquartzActivate:
+            DEBUG_LOG("kXquartzActivate\n");
             QuartzShow(xe->u.keyButtonPointer.rootX,
                        xe->u.keyButtonPointer.rootY);
             AppleWMSendEvent(AppleWMActivationNotify,
@@ -436,74 +436,74 @@ void QuartzProcessEvent(xEvent *xe) {
                              AppleWMIsActive, 0);
             break;
 
-        case kXDarwinDeactivate:
-            DEBUG_LOG("kXDarwinDeactivate\n");
+        case kXquartzDeactivate:
+            DEBUG_LOG("kXquartzDeactivate\n");
             AppleWMSendEvent(AppleWMActivationNotify,
                              AppleWMActivationNotifyMask,
                              AppleWMIsInactive, 0);
             QuartzHide();
             break;
 
-        case kXDarwinDisplayChanged:
-            DEBUG_LOG("kXDarwinDisplayChanged\n");
+        case kXquartzDisplayChanged:
+            DEBUG_LOG("kXquartzDisplayChanged\n");
             QuartzUpdateScreens();
             break;
 
-        case kXDarwinWindowState:
-            DEBUG_LOG("kXDarwinWindowState\n");
+        case kXquartzWindowState:
+            DEBUG_LOG("kXquartzWindowState\n");
             RootlessNativeWindowStateChanged(xe->u.clientMessage.u.l.longs0,
 		  			     xe->u.clientMessage.u.l.longs1);
 	    break;
 	  
-        case kXDarwinWindowMoved:
-            DEBUG_LOG("kXDarwinWindowMoved\n");
+        case kXquartzWindowMoved:
+            DEBUG_LOG("kXquartzWindowMoved\n");
             RootlessNativeWindowMoved ((WindowPtr)xe->u.clientMessage.u.l.longs0);
 	    break;
 
-        case kXDarwinToggleFullscreen:
-            DEBUG_LOG("kXDarwinToggleFullscreen\n");
+        case kXquartzToggleFullscreen:
+            DEBUG_LOG("kXquartzToggleFullscreen\n");
 #ifdef DARWIN_DDX_MISSING
             if (quartzEnableRootless) QuartzSetFullscreen(!quartzHasRoot);
             else if (quartzHasRoot) QuartzHide();
             else QuartzShow();
 #else
-    //	    ErrorF("kXDarwinToggleFullscreen not implemented\n");
+    //	    ErrorF("kXquartzToggleFullscreen not implemented\n");
 #endif
             break;
 
-        case kXDarwinSetRootless:
-            DEBUG_LOG("kXDarwinSetRootless\n");
+        case kXquartzSetRootless:
+            DEBUG_LOG("kXquartzSetRootless\n");
 #ifdef DARWIN_DDX_MISSING
             QuartzSetRootless(xe->u.clientMessage.u.l.longs0);
             if (!quartzEnableRootless && !quartzHasRoot) QuartzHide();
 #else
-    //	    ErrorF("kXDarwinSetRootless not implemented\n");
+    //	    ErrorF("kXquartzSetRootless not implemented\n");
 #endif
             break;
 
-        case kXDarwinSetRootClip:
+        case kXquartzSetRootClip:
             QuartzSetRootClip((BOOL)xe->u.clientMessage.u.l.longs0);
             break;
 
-        case kXDarwinQuit:
+        case kXquartzQuit:
             GiveUp(0);
             break;
 
-        case kXDarwinReadPasteboard:
+        case kXquartzReadPasteboard:
             QuartzReadPasteboard();
             break;
 
-        case kXDarwinWritePasteboard:
+        case kXquartzWritePasteboard:
             QuartzWritePasteboard();
             break;
 
-        case kXDarwinBringAllToFront:
-            DEBUG_LOG("kXDarwinBringAllToFront\n");
+        case kXquartzBringAllToFront:
+            DEBUG_LOG("kXquartzBringAllToFront\n");
             RootlessOrderAllWindows();
             break;
 
-        case kXDarwinSpaceChanged:
-            DEBUG_LOG("kXDarwinSpaceChanged\n");
+        case kXquartzSpaceChanged:
+            DEBUG_LOG("kXquartzSpaceChanged\n");
             QuartzSpaceChanged(xe->u.clientMessage.u.l.longs0);
             break;
         default:

@@ -150,7 +150,7 @@ void
 DarwinPrintBanner(void)
 { 
   // this should change depending on which specific server we are building
-  ErrorF("XQuartz starting:\n");
+  ErrorF("Xquartz starting:\n");
   ErrorF("X.org Release 7.2\n"); // This is here to help fink until they fix their packages.
   ErrorF("X.Org X Server %s\nBuild Date: %s\n", XSERVER_VERSION, BUILD_DATE );
 }
@@ -856,7 +856,7 @@ void ddxUseMsg( void )
  */
 void ddxGiveUp( void )
 {
-    ErrorF( "Quitting XQuartz...\n" );
+    ErrorF( "Quitting Xquartz...\n" );
 
     //if (!quartzRootless)
     //    quartzProcs->ReleaseScreens();

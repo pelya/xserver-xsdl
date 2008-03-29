@@ -45,7 +45,7 @@ typedef struct darwinKeyboardInfo_struct {
     unsigned char modifierKeycodes[32][2];
 } darwinKeyboardInfo;
 
-/* These functions need to be implemented by XQuartz, XDarwin, etc. */
+/* These functions need to be implemented by Xquartz, XDarwin, etc. */
 void DarwinKeyboardReload(DeviceIntPtr pDev);
 Bool QuartzReadSystemKeymap(darwinKeyboardInfo *info);
 unsigned int QuartzSystemKeymapSeed(void);

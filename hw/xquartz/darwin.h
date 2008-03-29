@@ -90,34 +90,34 @@ extern int              darwinMainScreenY;
  * Special ddx events understood by the X server
  */
 enum {
-    kXDarwinUpdateModifiers   // update all modifier keys
+    kXquartzUpdateModifiers   // update all modifier keys
             = LASTEvent+1,    // (from X.h list of event names)
-    kXDarwinUpdateButtons,    // update state of mouse buttons 2 and up
-    kXDarwinScrollWheel,      // scroll wheel event
+    kXquartzUpdateButtons,    // update state of mouse buttons 2 and up
+    kXquartzScrollWheel,      // scroll wheel event
     /*
      * Quartz-specific events -- not used in IOKit mode
      */
-    kXDarwinActivate,         // restore X drawing and cursor
-    kXDarwinDeactivate,       // clip X drawing and switch to Aqua cursor
-    kXDarwinSetRootClip,      // enable or disable drawing to the X screen
-    kXDarwinQuit,             // kill the X server and release the display
-    kXDarwinReadPasteboard,   // copy Mac OS X pasteboard into X cut buffer
-    kXDarwinWritePasteboard,  // copy X cut buffer onto Mac OS X pasteboard
-    kXDarwinBringAllToFront,  // bring all X windows to front
-    kXDarwinToggleFullscreen, // Enable/Disable fullscreen mode
-    kXDarwinSetRootless,      // Set rootless mode
-    kXDarwinSpaceChanged,     // Spaces changed
+    kXquartzActivate,         // restore X drawing and cursor
+    kXquartzDeactivate,       // clip X drawing and switch to Aqua cursor
+    kXquartzSetRootClip,      // enable or disable drawing to the X screen
+    kXquartzQuit,             // kill the X server and release the display
+    kXquartzReadPasteboard,   // copy Mac OS X pasteboard into X cut buffer
+    kXquartzWritePasteboard,  // copy X cut buffer onto Mac OS X pasteboard
+    kXquartzBringAllToFront,  // bring all X windows to front
+    kXquartzToggleFullscreen, // Enable/Disable fullscreen mode
+    kXquartzSetRootless,      // Set rootless mode
+    kXquartzSpaceChanged,     // Spaces changed
     /*
      * AppleWM events
      */
-    kXDarwinControllerNotify, // send an AppleWMControllerNotify event
-    kXDarwinPasteboardNotify, // notify the WM to copy or paste
+    kXquartzControllerNotify, // send an AppleWMControllerNotify event
+    kXquartzPasteboardNotify, // notify the WM to copy or paste
     /*
      * Xplugin notification events
      */
-    kXDarwinDisplayChanged,   // display configuration has changed
-    kXDarwinWindowState,      // window visibility state has changed
-    kXDarwinWindowMoved,      // window has moved on screen
+    kXquartzDisplayChanged,   // display configuration has changed
+    kXquartzWindowState,      // window visibility state has changed
+    kXquartzWindowMoved,      // window has moved on screen
 };
 
 #define ENABLE_DEBUG_LOG 1

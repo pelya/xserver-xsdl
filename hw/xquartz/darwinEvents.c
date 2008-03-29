@@ -152,7 +152,7 @@ static void DarwinUpdateModifiers(
 /*
  * DarwinReleaseModifiers
  * This hacky function releases all modifier keys.  It should be called when X11.app
- * is deactivated (kXDarwinDeactivate) to prevent modifiers from getting stuck if they
+ * is deactivated (kXquartzDeactivate) to prevent modifiers from getting stuck if they
  * are held down during a "context" switch -- otherwise, we would miss the KeyUp.
  */
 static void DarwinReleaseModifiers(void) {
@@ -341,22 +341,22 @@ void ProcessInputEvents(void) {
                 break;
 
             case MotionNotify:
-	      ErrorF("Unexpected ButtonRelease event in DarwinProcessInputEvents\n");
+	      ErrorF("Unexpected MotionNotify event in DarwinProcessInputEvents\n");
                 break;
 
-            case kXDarwinUpdateModifiers:
-	      ErrorF("Unexpected ButtonRelease event in DarwinProcessInputEvents\n");
+            case kXquartzUpdateModifiers:
+	      ErrorF("Unexpected kXquartzUpdateModifiers event in DarwinProcessInputEvents\n");
 	      break;
 
-            case kXDarwinUpdateButtons:
-	      ErrorF("Unexpected XDarwinScrollWheel event in DarwinProcessInputEvents\n");
+            case kXquartzUpdateButtons:
+	      ErrorF("Unexpected kXquartzUpdateButtons event in DarwinProcessInputEvents\n");
 	      break;
 
-            case kXDarwinScrollWheel: 
-	      ErrorF("Unexpected XDarwinScrollWheel event in DarwinProcessInputEvents\n");
+            case kXquartzScrollWheel: 
+	      ErrorF("Unexpected kXquartzScrollWheel event in DarwinProcessInputEvents\n");
 	      break;
 
-			case kXDarwinDeactivate:
+			case kXquartzDeactivate:
 				DarwinReleaseModifiers();
 				// fall through
             default:

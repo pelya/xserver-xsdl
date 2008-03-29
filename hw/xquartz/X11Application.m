@@ -153,7 +153,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 	
     tem = [infoDict objectForKey:@"CFBundleShortVersionString"];
 	
-    [dict setObject:[NSString stringWithFormat:@"XQuartz %@ - (xorg-server %s)", tem, XSERVER_VERSION] 
+    [dict setObject:[NSString stringWithFormat:@"Xquartz %@ - (xorg-server %s)", tem, XSERVER_VERSION] 
 	  forKey:@"ApplicationVersion"];
 	
     [self orderFrontStandardAboutPanelWithOptions: dict];
@@ -166,7 +166,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
     static TSMDocumentID x11_document;
 	DEBUG_LOG("state=%d, _x_active=%d, \n", state, _x_active)
     if (state) {
-      QuartzMessageServerThread (kXDarwinActivate, 0);
+      QuartzMessageServerThread (kXquartzActivate, 0);
       
       if (!_x_active) {
 	if (x11_document == 0 && darwinKeymapFile == NULL) {
@@ -178,7 +178,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 	if (x11_document != 0)	ActivateTSMDocument (x11_document);
       }
     } else {
-      QuartzMessageServerThread (kXDarwinDeactivate, 0);
+      QuartzMessageServerThread (kXquartzDeactivate, 0);
       
       if (_x_active && x11_document != 0)
 	DeactivateTSMDocument (x11_document);
@@ -246,7 +246,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 	  swallow_up = 0;
 	  for_x = NO;
 #ifdef DARWIN_DDX_MISSING
-	  QuartzMessageServerThread (kXDarwinToggleFullscreen, 0);
+	  QuartzMessageServerThread (kXquartzToggleFullscreen, 0);
 #endif
 	}
       } else {
@@ -654,7 +654,7 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 
 /* This will end up at the end of the responder chain. */
 - (void) copy:sender {
-  QuartzMessageServerThread (kXDarwinPasteboardNotify, 1,
+  QuartzMessageServerThread (kXquartzPasteboardNotify, 1,
 			     AppleWMCopyToPasteboard);
 }
 
