@@ -798,7 +798,6 @@ _XkbFilterRedirectKey(	XkbSrvInfoPtr	xkbi,
 			unsigned	keycode,
 			XkbAction *	pAction)
 {
-unsigned	realMods = 0;
 xEvent 		ev;
 int		x,y;
 XkbStateRec	old;
@@ -852,13 +851,10 @@ ProcessInputProc backupproc;
 	    XkbComputeDerivedState(xkbi);
 	}
 
-	realMods = xkbi->device->key->modifierMap[ev.u.u.detail];
-	xkbi->device->key->modifierMap[ev.u.u.detail] = 0;
 	UNWRAP_PROCESS_INPUT_PROC(xkbi->device,xkbPrivPtr, backupproc);
 	xkbi->device->public.processInputProc(&ev,xkbi->device,1);
 	COND_WRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr,
 				     backupproc,xkbUnwrapProc);
-	xkbi->device->key->modifierMap[ev.u.u.detail] = realMods;
 	
 	if ( mask || mods )
 	    xkbi->state= old;
@@ -887,13 +883,10 @@ ProcessInputProc backupproc;
 	    XkbComputeDerivedState(xkbi);
 	}
 
-	realMods = xkbi->device->key->modifierMap[ev.u.u.detail];
-	xkbi->device->key->modifierMap[ev.u.u.detail] = 0;
 	UNWRAP_PROCESS_INPUT_PROC(xkbi->device,xkbPrivPtr, backupproc);
 	xkbi->device->public.processInputProc(&ev,xkbi->device,1);
 	COND_WRAP_PROCESS_INPUT_PROC(xkbi->device, xkbPrivPtr,
 				     backupproc,xkbUnwrapProc);
-	xkbi->device->key->modifierMap[ev.u.u.detail] = realMods;
 
 	if ( mask || mods )
 	    xkbi->state= old;
@@ -1078,7 +1071,6 @@ void
 XkbHandleActions(DeviceIntPtr dev,DeviceIntPtr kbd,xEvent *xE,int count)
 {
 int		key,bit,i;
-CARD8		realMods = 0;
 XkbSrvInfoPtr	xkbi;
 KeyClassPtr	keyc;
 int		changed,sendEvent;
@@ -1216,19 +1208,15 @@ xkbDeviceInfoPtr xkbPrivPtr = XKBDEVICEINFO(dev);
 
     if (sendEvent) {
         DeviceIntPtr tmpdev;
-	if (keyEvent) {
-	    realMods = keyc->modifierMap[key];
-	    keyc->modifierMap[key] = 0;
+	if (keyEvent)
             tmpdev = dev;
-        } else
+        else
             tmpdev = GetPairedDevice(dev);
 
         UNWRAP_PROCESS_INPUT_PROC(tmpdev,xkbPrivPtr, backupproc);
         dev->public.processInputProc(xE,tmpdev,count);
         COND_WRAP_PROCESS_INPUT_PROC(tmpdev, xkbPrivPtr,
                                      backupproc,xkbUnwrapProc);
-        if (keyEvent)
-	    keyc->modifierMap[key] = realMods;
     }
     else if (keyEvent) {
 	FixKeyState(xE,dev);

@@ -3663,7 +3663,6 @@ CoreProcessKeyboardEvent (xEvent *xE, DeviceIntPtr keybd, int count)
 {
     int             key, bit;
     BYTE            *kptr;
-    CARD8           modifiers;
     GrabPtr         grab;
     GrabInfoPtr     grabinfo;
     Bool            deactivateGrab = FALSE;
@@ -3694,7 +3693,6 @@ CoreProcessKeyboardEvent (xEvent *xE, DeviceIntPtr keybd, int count)
     key = xE->u.u.detail;
     kptr = &keyc->down[key >> 3];
     bit = 1 << (key & 7);
-    modifiers = keyc->modifierMap[key];
 
     switch (xE->u.u.type)
     {

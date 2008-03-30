@@ -763,8 +763,6 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
     ValuatorClassPtr v  = NULL;
     deviceValuator *xV  = (deviceValuator *) xE;
     BYTE *kptr          = NULL;
-    CARD16 modifiers    = 0,
-           mask         = 0;
 
     /* This event is always the first we get, before the actual events with
      * the data. However, the way how the DDX is set up, "device" will
@@ -855,7 +853,6 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
         if (!k)
             return DONT_PROCESS;
 
-	modifiers = k->modifierMap[key];
 	kptr = &k->down[key >> 3];
 	if (*kptr & bit) {	/* allow ddx to generate multiple downs */
 	    return IS_REPEAT;
@@ -863,13 +860,6 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
 	*kptr |= bit;
-	for (i = 0, mask = 1; modifiers; i++, mask <<= 1) {
-	    if (mask & modifiers) {
-		/* This key affects modifier "i" */
-		k->modifierKeyCount[i]++;
-		modifiers &= ~mask;
-	    }
-	}
     } else if (xE->u.u.type == DeviceKeyRelease) {
         if (!k)
             return DONT_PROCESS;
@@ -877,19 +867,9 @@ UpdateDeviceState(DeviceIntPtr device, xEvent* xE, int count)
 	kptr = &k->down[key >> 3];
 	if (!(*kptr & bit))	/* guard against duplicates */
 	    return DONT_PROCESS;
-	modifiers = k->modifierMap[key];
 	if (device->valuator)
 	    device->valuator->motionHintWindow = NullWindow;
 	*kptr &= ~bit;
-	for (i = 0, mask = 1; modifiers; i++, mask <<= 1) {
-	    if (mask & modifiers) {
-		/* This key affects modifier "i" */
-		if (--k->modifierKeyCount[i] <= 0) {
-		    k->modifierKeyCount[i] = 0;
-		}
-		modifiers &= ~mask;
-	    }
-	}
     } else if (xE->u.u.type == DeviceButtonPress) {
         if (!b)
             return DONT_PROCESS;
