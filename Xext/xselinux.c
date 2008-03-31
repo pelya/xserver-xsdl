@@ -1473,6 +1473,24 @@ ProcSELinuxGetSelectionContext(ClientPtr client, pointer privKey)
 }
 
 static int
+ProcSELinuxGetClientContext(ClientPtr client)
+{
+    ClientPtr target;
+    SELinuxSubjectRec *subj;
+    int rc;
+
+    REQUEST(SELinuxGetContextReq);
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+
+    rc = dixLookupClient(&target, stuff->id, client, DixGetAttrAccess);
+    if (rc != Success)
+	return rc;
+
+    subj = dixLookupPrivate(&target->devPrivates, subjectKey);
+    return SELinuxSendContextReply(client, subj->sid);
+}
+
+static int
 SELinuxPopulateItem(SELinuxListItemRec *i, PrivateRec **privPtr, CARD32 id,
 		    int *size)
 {
@@ -1686,6 +1704,8 @@ ProcSELinuxDispatch(ClientPtr client)
 	return ProcSELinuxGetSelectionContext(client, dataKey);
     case X_SELinuxListSelections:
 	return ProcSELinuxListSelections(client);
+    case X_SELinuxGetClientContext:
+	return ProcSELinuxGetClientContext(client);
     default:
 	return BadRequest;
     }
@@ -1783,6 +1803,17 @@ SProcSELinuxListProperties(ClientPtr client)
 }
 
 static int
+SProcSELinuxGetClientContext(ClientPtr client)
+{
+    REQUEST(SELinuxGetContextReq);
+    int n;
+
+    REQUEST_SIZE_MATCH(SELinuxGetContextReq);
+    swapl(&stuff->id, n);
+    return ProcSELinuxGetClientContext(client);
+}
+
+static int
 SProcSELinuxDispatch(ClientPtr client)
 {
     REQUEST(xReq);
@@ -1835,6 +1866,8 @@ SProcSELinuxDispatch(ClientPtr client)
 	return SProcSELinuxGetSelectionContext(client, dataKey);
     case X_SELinuxListSelections:
 	return ProcSELinuxListSelections(client);
+    case X_SELinuxGetClientContext:
+	return SProcSELinuxGetClientContext(client);
     default:
 	return BadRequest;
     }
