@@ -195,10 +195,34 @@ static void DarwinSimulateMouseClick(
     DarwinUpdateModifiers(KeyPress, modifierMask);
 }
 
+void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents) {
+  int i;
+
+  DEBUG_LOG("DarwinEventHandler(%d, %p, %p, %d)\n", screenNum, xe, dev, nevents);
+  for (i=0; i<nevents; i++) QuartzProcessEvent(&xe[i]);
+}
 
 Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) { 
+
+  void mieqSetHandler(int event, mieqHandler handler);
+
     darwinEvents = (xEvent *)malloc(sizeof(xEvent) * GetMaximumEventsNum());
     mieqInit();
+    mieqSetHandler(kXquartzActivate, DarwinEventHandler);
+    mieqSetHandler(kXquartzDeactivate, DarwinEventHandler);
+    mieqSetHandler(kXquartzSetRootClip, DarwinEventHandler);
+    mieqSetHandler(kXquartzQuit, DarwinEventHandler);
+    mieqSetHandler(kXquartzReadPasteboard, DarwinEventHandler);
+    mieqSetHandler(kXquartzWritePasteboard, DarwinEventHandler);
+    mieqSetHandler(kXquartzToggleFullscreen, DarwinEventHandler);
+    mieqSetHandler(kXquartzSetRootless, DarwinEventHandler);
+    mieqSetHandler(kXquartzSpaceChanged, DarwinEventHandler);
+    mieqSetHandler(kXquartzControllerNotify, DarwinEventHandler);
+    mieqSetHandler(kXquartzPasteboardNotify, DarwinEventHandler);
+    mieqSetHandler(kXquartzDisplayChanged, DarwinEventHandler);
+    mieqSetHandler(kXquartzWindowState, DarwinEventHandler);
+    mieqSetHandler(kXquartzWindowMoved, DarwinEventHandler);
+
     darwinEventQueue.head = darwinEventQueue.tail = 0;
     darwinEventQueue.lastEventTime = GetTimeInMillis ();
     darwinEventQueue.pKbd = pKbd;
