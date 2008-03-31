@@ -233,7 +233,7 @@ RRCrtcNotify (RRCrtcPtr	    crtc,
 	RRTransformCopy (&crtc->client_current_transform, transform);
 	RRCrtcChanged (crtc, TRUE);
     }
-    if (crtc->changed)
+    if (crtc->changed && mode)
     {
 	RRTransformCompute (x, y,
 			    mode->mode.width, mode->mode.height,
