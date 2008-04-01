@@ -33,6 +33,7 @@
 #endif
 
 #include "quartzCommon.h"
+#include "inputstr.h"
 #include "quartz.h"
 #include "darwin.h"
 #include "darwinEvents.h"
@@ -489,6 +490,7 @@ void QuartzProcessEvent(xEvent *xe) {
             GiveUp(0);
             break;
 
+#if 0
         case kXquartzReadPasteboard:
             QuartzReadPasteboard();
             break;
@@ -496,6 +498,7 @@ void QuartzProcessEvent(xEvent *xe) {
         case kXquartzWritePasteboard:
             QuartzWritePasteboard();
             break;
+#endif
 
         case kXquartzBringAllToFront:
             DEBUG_LOG("kXquartzBringAllToFront\n");

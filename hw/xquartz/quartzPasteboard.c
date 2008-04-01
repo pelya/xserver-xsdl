@@ -34,6 +34,8 @@
 #include <dix-config.h>
 #endif
 
+#include "misc.h"
+#include "inputstr.h"
 #include "quartzPasteboard.h"
 
 #include <X11/Xatom.h>
@@ -76,8 +78,8 @@ static char * QuartzReadCutBuffer(void)
 }
 
 // Write X cut buffer to Mac OS X pasteboard
-// Called by ProcessInputEvents() in response to request from X server thread.
-void QuartzWritePasteboard(void)
+// Called by mieqProcessInputEvents() in response to request from X server thread.
+void QuartzWritePasteboard(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents)
 {
     char *text;
     text = QuartzReadCutBuffer();
@@ -90,8 +92,8 @@ void QuartzWritePasteboard(void)
 #define strequal(a, b) (0 == strcmp((a), (b)))
 
 // Read Mac OS X pasteboard into X cut buffer
-// Called by ProcessInputEvents() in response to request from X server thread.
-void QuartzReadPasteboard(void)
+// Called by mieqProcessInputEvents() in response to request from X server thread.
+void QuartzReadPasteboard(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents)
 {
     char *oldText = QuartzReadCutBuffer();
     char *text = QuartzReadCocoaPasteboard();

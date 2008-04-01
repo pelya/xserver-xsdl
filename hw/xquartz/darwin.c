@@ -880,7 +880,7 @@ void AbortDDX( void )
  */
 
 void
-xf86SetRootClip (ScreenPtr pScreen, BOOL enable)
+xf86SetRootClip (ScreenPtr pScreen, int enable)
 {
     WindowPtr	pWin = WindowTable[pScreen->myNum];
     WindowPtr	pChild;

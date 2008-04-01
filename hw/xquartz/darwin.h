@@ -54,7 +54,7 @@ typedef struct {
 void DarwinPrintBanner(void);
 int DarwinParseModifierList(const char *constmodifiers);
 void DarwinAdjustScreenOrigins(ScreenInfo *pScreenInfo);
-void xf86SetRootClip (ScreenPtr pScreen, BOOL enable);
+void xf86SetRootClip (ScreenPtr pScreen, int enable);
 
 #define SCREEN_PRIV(pScreen) ((DarwinFramebufferPtr) \
     dixLookupPrivate(&pScreen->devPrivates, darwinScreenKey))

@@ -32,6 +32,7 @@
 #endif
 
 #include "quartzCommon.h"
+#include "inputstr.h"
 #include "quartz.h"
 #include "xpr.h"
 #include "pseudoramiX.h"
