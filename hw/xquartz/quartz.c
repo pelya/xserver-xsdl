@@ -401,7 +401,7 @@ QuartzMessageServerThread(
         va_end (args);
     }
 
-    DarwinEQEnqueue(&xe);
+    mieqEnqueue(NULL, &xe);
 }
 
 

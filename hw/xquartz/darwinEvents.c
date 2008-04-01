@@ -56,28 +56,10 @@ in this Software without prior written authorization from The Open Group.
 #define SCROLLWHEELUPFAKE   4
 #define SCROLLWHEELDOWNFAKE 5
 
-#define QUEUE_SIZE 256
-
-typedef struct _Event {
-    xEvent      event;
-    ScreenPtr   pScreen;
-} EventRec, *EventPtr;
-
 int input_check_zero, input_check_flag;
 
 static int old_flags = 0;  // last known modifier state
 
-typedef struct _EventQueue {
-    HWEventQueueType    head, tail; /* long for SetInputCheck */
-    CARD32      lastEventTime;      /* to avoid time running backwards */
-    Bool        lastMotion;
-    EventRec    events[QUEUE_SIZE]; /* static allocation for signals */
-    DevicePtr   pKbd, pPtr;         /* device pointer, to get funcs */
-    ScreenPtr   pEnqueueScreen;     /* screen events are being delivered to */
-    ScreenPtr   pDequeueScreen;     /* screen events are being dispatched to */
-} EventQueueRec, *EventQueuePtr;
-
-static EventQueueRec darwinEventQueue;
 xEvent *darwinEvents = NULL;
 
 /*
@@ -229,21 +211,6 @@ Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) {
     mieqSetHandler(kXquartzWindowMoved, DarwinEventHandler);
 
     return TRUE;
-}
-
-
-/*
- * DarwinEQEnqueue
- *  Must be thread safe with ProcessInputEvents.
- *    DarwinEQEnqueue    - called from event gathering thread
- *    ProcessInputEvents - called from X server thread
- *  DarwinEQEnqueue should never be called from more than one thread.
- * 
- * This should be deprecated in favor of miEQEnqueue -- BB
- */
-void DarwinEQEnqueue(const xEventPtr e) {
-  mieqEnqueue(NULL, e);
-  DarwinPokeEQ();
 }
 
 /*
