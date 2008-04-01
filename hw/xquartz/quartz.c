@@ -373,34 +373,3 @@ void QuartzSpaceChanged(uint32_t space_id) {
     /* Do something special here, so we don't depend on quartz-wm for spaces to work... */
     DEBUG_LOG("Space Changed (%u) ... do something interesting...\n", space_id);
 }
-
-/*
- * QuartzMessageServerThread
- *  Send the X server thread a message by placing it on the event queue.
- */
-void
-QuartzMessageServerThread(
-    int type,
-    int argc, ...)
-{
-    xEvent xe;
-    INT32 *argv;
-    int i, max_args;
-    va_list args;
-
-    memset(&xe, 0, sizeof(xe));
-    xe.u.u.type = type;
-    xe.u.clientMessage.u.l.type = type;
-
-    argv = &xe.u.clientMessage.u.l.longs0;
-    max_args = 4;
-
-    if (argc > 0 && argc <= max_args) {
-        va_start (args, argc);
-        for (i = 0; i < argc; i++)
-            argv[i] = (int) va_arg (args, int);
-        va_end (args);
-    }
-
-    mieqEnqueue(NULL, &xe);
-}

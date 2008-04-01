@@ -68,7 +68,7 @@ static void eventHandler(unsigned int type, const void *arg,
     switch (type) {
         case XP_EVENT_DISPLAY_CHANGED:
             DEBUG_LOG("XP_EVENT_DISPLAY_CHANGED\n");
-            QuartzMessageServerThread(kXquartzDisplayChanged, 0);
+            DarwinSendDDXEvent(kXquartzDisplayChanged, 0);
             break;
             
         case XP_EVENT_WINDOW_STATE_CHANGED:
@@ -76,7 +76,7 @@ static void eventHandler(unsigned int type, const void *arg,
                 const xp_window_state_event *ws_arg = arg;
                 
                 DEBUG_LOG("XP_EVENT_WINDOW_STATE_CHANGED: id=%d, state=%d\n", ws_arg->id, ws_arg->state);
-                QuartzMessageServerThread(kXquartzWindowState, 2,
+                DarwinSendDDXEvent(kXquartzWindowState, 2,
                                           ws_arg->id, ws_arg->state);
             } else {
                 DEBUG_LOG("XP_EVENT_WINDOW_STATE_CHANGED: ignored\n");
@@ -88,7 +88,7 @@ static void eventHandler(unsigned int type, const void *arg,
             if (arg_size == sizeof(xp_window_id))  {
                 xp_window_id id = * (xp_window_id *) arg;
                 WindowPtr pWin = xprGetXWindow(id);
-                QuartzMessageServerThread(kXquartzWindowMoved, 1, pWin);
+                DarwinSendDDXEvent(kXquartzWindowMoved, 1, pWin);
             }
             break;
             
@@ -111,7 +111,7 @@ static void eventHandler(unsigned int type, const void *arg,
             ErrorF("XP_EVENT_SPACE_CHANGED\n");
             if(arg_size == sizeof(uint32_t)) {
                 uint32_t space_id = *(uint32_t *)arg;
-                QuartzMessageServerThread(kXquartzSpaceChanged, 1, space_id);
+                DarwinSendDDXEvent(kXquartzSpaceChanged, 1, space_id);
             }
             break;
         default:

@@ -1,6 +1,6 @@
 /* X11Application.m -- subclass of NSApplication to multiplex events
  
- Copyright (c) 2002-2007 Apple Inc.
+ Copyright (c) 2002-2008 Apple Inc.
  
  Permission is hereby granted, free of charge, to any person
  obtaining a copy of this software and associated documentation files
@@ -166,7 +166,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
     static TSMDocumentID x11_document;
 	DEBUG_LOG("state=%d, _x_active=%d, \n", state, _x_active)
     if (state) {
-      QuartzMessageServerThread (kXquartzActivate, 0);
+      DarwinSendDDXEvent(kXquartzActivate, 0);
       
       if (!_x_active) {
 	if (x11_document == 0 && darwinKeymapFile == NULL) {
@@ -178,10 +178,10 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 	if (x11_document != 0)	ActivateTSMDocument (x11_document);
       }
     } else {
-      QuartzMessageServerThread (kXquartzDeactivate, 0);
+      DarwinSendDDXEvent(kXquartzDeactivate, 0);
       
       if (_x_active && x11_document != 0)
-	DeactivateTSMDocument (x11_document);
+		DeactivateTSMDocument (x11_document);
     }
     
     _x_active = state;
@@ -246,7 +246,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
 	  swallow_up = 0;
 	  for_x = NO;
 #ifdef DARWIN_DDX_MISSING
-	  QuartzMessageServerThread (kXquartzToggleFullscreen, 0);
+	  DarwinSendDDXEvent(kXquartzToggleFullscreen, 0);
 #endif
 	}
       } else {
@@ -271,7 +271,7 @@ static void message_kit_thread (SEL selector, NSObject *arg) {
     case NSApplicationActivatedEventType:
       for_x = NO;
       if ([self modalWindow] == nil) {
-	for_appkit = NO;
+		for_appkit = NO;
 	
 	/* FIXME: hack to avoid having to pass the event to appkit,
 	   which would cause it to raise one of its windows. */
@@ -654,7 +654,7 @@ static NSMutableArray * cfarray_to_nsarray (CFArrayRef in) {
 
 /* This will end up at the end of the responder chain. */
 - (void) copy:sender {
-  QuartzMessageServerThread (kXquartzPasteboardNotify, 1,
+  DarwinSendDDXEvent(kXquartzPasteboardNotify, 1,
 			     AppleWMCopyToPasteboard);
 }
 

@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2008 Apple, Inc.
  * Copyright (c) 2001-2004 Torrey T. Lyons. All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
@@ -43,4 +44,5 @@ void DarwinUpdateModKeys(int flags);
 
 void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, 
 			int nevents);
+
 #endif  /* _DARWIN_EVENTS_H */
