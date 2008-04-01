@@ -41,4 +41,6 @@ void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y,
 			    float pressure, float tilt_x, float tilt_y);
 void DarwinUpdateModKeys(int flags);
 
+void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, 
+			int nevents);
 #endif  /* _DARWIN_EVENTS_H */

@@ -204,8 +204,6 @@ void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int neven
 
 Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) { 
 
-  void mieqSetHandler(int event, mieqHandler handler);
-
     darwinEvents = (xEvent *)malloc(sizeof(xEvent) * GetMaximumEventsNum());
     mieqInit();
     mieqSetHandler(kXquartzActivate, DarwinEventHandler);
