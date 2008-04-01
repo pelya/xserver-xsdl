@@ -52,6 +52,11 @@ in this Software without prior written authorization from The Open Group.
 #include <unistd.h>
 #include <IOKit/hidsystem/IOLLEvent.h>
 
+#define _APPLEWM_SERVER_
+#include "applewmExt.h"
+#include <X11/extensions/applewm.h>
+
+
 /* Fake button press/release for scroll wheel move. */
 #define SCROLLWHEELUPFAKE   4
 #define SCROLLWHEELDOWNFAKE 5
@@ -177,14 +182,103 @@ static void DarwinSimulateMouseClick(
     DarwinUpdateModifiers(KeyPress, modifierMask);
 }
 
+/* Generic handler for Xquartz-specifc events.  When possible, these should
+   be moved into their own individual functions and set as handlers using
+   mieqSetHandler. */
+
 void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents) {
   int i;
 
   DEBUG_LOG("DarwinEventHandler(%d, %p, %p, %d)\n", screenNum, xe, dev, nevents);
   for (i=0; i<nevents; i++) {
-    if (xe[i].u.u.type == kXquartzDeactivate)
-      DarwinReleaseModifiers();
-    QuartzProcessEvent(&xe[i]);
+	switch(xe[i].u.u.type) {
+		case kXquartzControllerNotify:
+            DEBUG_LOG("kXquartzControllerNotify\n");
+            AppleWMSendEvent(AppleWMControllerNotify,
+                             AppleWMControllerNotifyMask,
+                             xe[i].u.clientMessage.u.l.longs0,
+                             xe[i].u.clientMessage.u.l.longs1);
+            break;
+
+        case kXquartzPasteboardNotify:
+            DEBUG_LOG("kXquartzPasteboardNotify\n");
+            AppleWMSendEvent(AppleWMPasteboardNotify,
+                             AppleWMPasteboardNotifyMask,
+                             xe[i].u.clientMessage.u.l.longs0,
+                             xe[i].u.clientMessage.u.l.longs1);
+            break;
+
+        case kXquartzActivate:
+            DEBUG_LOG("kXquartzActivate\n");
+            QuartzShow(xe[i].u.keyButtonPointer.rootX,
+                       xe[i].u.keyButtonPointer.rootY);
+            AppleWMSendEvent(AppleWMActivationNotify,
+                             AppleWMActivationNotifyMask,
+                             AppleWMIsActive, 0);
+            break;
+
+        case kXquartzDeactivate:
+            DEBUG_LOG("kXquartzDeactivate\n");
+      		DarwinReleaseModifiers();
+            AppleWMSendEvent(AppleWMActivationNotify,
+                             AppleWMActivationNotifyMask,
+                             AppleWMIsInactive, 0);
+            QuartzHide();
+            break;
+
+        case kXquartzWindowState:
+            DEBUG_LOG("kXquartzWindowState\n");
+            RootlessNativeWindowStateChanged(xe[i].u.clientMessage.u.l.longs0,
+                                             xe[i].u.clientMessage.u.l.longs1);
+            break;
+
+        case kXquartzWindowMoved:
+            DEBUG_LOG("kXquartzWindowMoved\n");
+            RootlessNativeWindowMoved ((WindowPtr)xe[i].u.clientMessage.u.l.longs0);
+            break;
+
+        case kXquartzToggleFullscreen:
+            DEBUG_LOG("kXquartzToggleFullscreen\n");
+#ifdef DARWIN_DDX_MISSING
+            if (quartzEnableRootless) QuartzSetFullscreen(!quartzHasRoot);
+            else if (quartzHasRoot) QuartzHide();
+            else QuartzShow();
+#else
+    //      ErrorF("kXquartzToggleFullscreen not implemented\n");               
+#endif
+            break;
+
+        case kXquartzSetRootless:
+            DEBUG_LOG("kXquartzSetRootless\n");
+#ifdef DARWIN_DDX_MISSING
+            QuartzSetRootless(xe[i].u.clientMessage.u.l.longs0);
+            if (!quartzEnableRootless && !quartzHasRoot) QuartzHide();
+#else
+    //      ErrorF("kXquartzSetRootless not implemented\n");                    
+#endif
+            break;
+
+        case kXquartzSetRootClip:
+            QuartzSetRootClip((BOOL)xe[i].u.clientMessage.u.l.longs0);
+		     break;
+
+        case kXquartzQuit:
+            GiveUp(0);
+            break;
+
+        case kXquartzBringAllToFront:
+     	    DEBUG_LOG("kXquartzBringAllToFront\n");
+            RootlessOrderAllWindows();
+            break;
+
+		case kXquartzSpaceChanged:
+            DEBUG_LOG("kXquartzSpaceChanged\n");
+            QuartzSpaceChanged(xe[i].u.clientMessage.u.l.longs0);
+
+            break;
+        default:
+            ErrorF("Unknown application defined event type %d.\n", xe[i].u.u.type);
+		}	
   }
 }
 
@@ -199,14 +293,14 @@ Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) {
     mieqSetHandler(kXquartzDeactivate, DarwinEventHandler);
     mieqSetHandler(kXquartzSetRootClip, DarwinEventHandler);
     mieqSetHandler(kXquartzQuit, DarwinEventHandler);
-    mieqSetHandler(kXquartzReadPasteboard, DarwinEventHandler);
-    mieqSetHandler(kXquartzWritePasteboard, DarwinEventHandler);
+    mieqSetHandler(kXquartzReadPasteboard, QuartzReadPasteboard);
+	mieqSetHandler(kXquartzWritePasteboard, QuartzWritePasteboard);
     mieqSetHandler(kXquartzToggleFullscreen, DarwinEventHandler);
     mieqSetHandler(kXquartzSetRootless, DarwinEventHandler);
     mieqSetHandler(kXquartzSpaceChanged, DarwinEventHandler);
     mieqSetHandler(kXquartzControllerNotify, DarwinEventHandler);
     mieqSetHandler(kXquartzPasteboardNotify, DarwinEventHandler);
-    mieqSetHandler(kXquartzDisplayChanged, DarwinEventHandler);
+    mieqSetHandler(kXquartzDisplayChanged, QuartzDisplayChangedHandler);
     mieqSetHandler(kXquartzWindowState, DarwinEventHandler);
     mieqSetHandler(kXquartzWindowMoved, DarwinEventHandler);
 

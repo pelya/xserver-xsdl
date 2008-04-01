@@ -113,6 +113,9 @@ Equipment Corporation.
 #include "dispatch.h"		/* InitProcVectors() */
 #endif
 
+#include <pthread.h>
+pthread_key_t threadname_key=0;
+
 #ifdef DPMSExtension
 #define DPMS_SERVER
 #include <X11/extensions/dpms.h>
@@ -248,6 +251,17 @@ main(int argc, char *argv[], char *envp[])
     char	*xauthfile;
     HWEventQueueType	alwaysCheckForInput[2];
 
+    if(threadname_key == 0) ErrorF("pthread_key_create returned %d\n", pthread_key_create(&threadname_key, NULL));
+    ErrorF("threadname_key = %d\n", threadname_key);
+    if(pthread_getspecific(threadname_key) == NULL) {
+      char *nameptr = malloc(32);
+      sprintf(nameptr, "main thread %d", random());
+      //      strcpy(nameptr, "main thread");
+      ErrorF("calling: pthread_setspecific(%d, %s)=%d\n", threadname_key, nameptr, pthread_setspecific(threadname_key, nameptr));
+      if (pthread_getspecific(threadname_key) != NULL) ErrorF("current thread: %s\n", (char *)pthread_getspecific(threadname_key));
+    } else {
+      if (pthread_getspecific(threadname_key) != NULL) ErrorF("thread was already: %s\n", (char *)pthread_getspecific(threadname_key));
+    }
     display = "0";
 
     InitGlobals();

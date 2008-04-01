@@ -232,17 +232,17 @@ RREditConnectionInfo (ScreenPtr pScreen)
 #endif
 
 /*
- * QuartzUpdateScreens
+ * QuartzDisplayChangeHandler
  *  Adjust for screen arrangement changes.
  */
-static void QuartzUpdateScreens(void)
+void QuartzDisplayChangedHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents)
 {
     ScreenPtr pScreen;
     WindowPtr pRoot;
     int x, y, width, height, sx, sy;
     xEvent e;
 
-    DEBUG_LOG("QuartzUpdateScreens()\n");
+    DEBUG_LOG("QuartzDisplayChangedHandler()\n");
     if (noPseudoramiXExtension || screenInfo.numScreens != 1)
     {
         /* FIXME: if not using Xinerama, we have multiple screens, and
@@ -308,7 +308,7 @@ static void QuartzUpdateScreens(void)
  *  Calls mode specific screen resume to restore the X clip regions
  *  (if needed) and the X server cursor state.
  */
-static void QuartzShow(
+void QuartzShow(
     int x,      // cursor location
     int y )
 {
@@ -331,7 +331,7 @@ static void QuartzShow(
  *  hidden. Calls mode specific screen suspend to set X clip regions to
  *  prevent drawing (if needed) and restore the Aqua cursor.
  */
-static void QuartzHide(void)
+void QuartzHide(void)
 {
     int i;
 
@@ -350,7 +350,7 @@ static void QuartzHide(void)
  * QuartzSetRootClip
  *  Enable or disable rendering to the X screen.
  */
-static void QuartzSetRootClip(
+void QuartzSetRootClip(
     BOOL enable)
 {
     int i;
@@ -369,7 +369,7 @@ static void QuartzSetRootClip(
  * QuartzSpaceChanged
  *  Unmap offscreen windows, map onscreen windows
  */
-static void QuartzSpaceChanged(uint32_t space_id) {
+void QuartzSpaceChanged(uint32_t space_id) {
     /* Do something special here, so we don't depend on quartz-wm for spaces to work... */
     DEBUG_LOG("Space Changed (%u) ... do something interesting...\n", space_id);
 }
@@ -403,113 +403,4 @@ QuartzMessageServerThread(
     }
 
     mieqEnqueue(NULL, &xe);
-}
-
-
-/*
- * QuartzProcessEvent
- *  Process Quartz specific events.
- */
-void QuartzProcessEvent(xEvent *xe) {
-    switch (xe->u.u.type) {
-        case kXquartzControllerNotify:
-            DEBUG_LOG("kXquartzControllerNotify\n");
-            AppleWMSendEvent(AppleWMControllerNotify,
-                             AppleWMControllerNotifyMask,
-                             xe->u.clientMessage.u.l.longs0,
-                             xe->u.clientMessage.u.l.longs1);
-            break;
-
-        case kXquartzPasteboardNotify:
-            DEBUG_LOG("kXquartzPasteboardNotify\n");
-            AppleWMSendEvent(AppleWMPasteboardNotify,
-                             AppleWMPasteboardNotifyMask,
-                             xe->u.clientMessage.u.l.longs0,
-                             xe->u.clientMessage.u.l.longs1);
-            break;
-
-        case kXquartzActivate:
-            DEBUG_LOG("kXquartzActivate\n");
-            QuartzShow(xe->u.keyButtonPointer.rootX,
-                       xe->u.keyButtonPointer.rootY);
-            AppleWMSendEvent(AppleWMActivationNotify,
-                             AppleWMActivationNotifyMask,
-                             AppleWMIsActive, 0);
-            break;
-
-        case kXquartzDeactivate:
-            DEBUG_LOG("kXquartzDeactivate\n");
-            AppleWMSendEvent(AppleWMActivationNotify,
-                             AppleWMActivationNotifyMask,
-                             AppleWMIsInactive, 0);
-            QuartzHide();
-            break;
-
-        case kXquartzDisplayChanged:
-            DEBUG_LOG("kXquartzDisplayChanged\n");
-            QuartzUpdateScreens();
-            break;
-
-        case kXquartzWindowState:
-            DEBUG_LOG("kXquartzWindowState\n");
-            RootlessNativeWindowStateChanged(xe->u.clientMessage.u.l.longs0,
-		  			     xe->u.clientMessage.u.l.longs1);
-	    break;
-	  
-        case kXquartzWindowMoved:
-            DEBUG_LOG("kXquartzWindowMoved\n");
-            RootlessNativeWindowMoved ((WindowPtr)xe->u.clientMessage.u.l.longs0);
-	    break;
-
-        case kXquartzToggleFullscreen:
-            DEBUG_LOG("kXquartzToggleFullscreen\n");
-#ifdef DARWIN_DDX_MISSING
-            if (quartzEnableRootless) QuartzSetFullscreen(!quartzHasRoot);
-            else if (quartzHasRoot) QuartzHide();
-            else QuartzShow();
-#else
-    //	    ErrorF("kXquartzToggleFullscreen not implemented\n");
-#endif
-            break;
-
-        case kXquartzSetRootless:
-            DEBUG_LOG("kXquartzSetRootless\n");
-#ifdef DARWIN_DDX_MISSING
-            QuartzSetRootless(xe->u.clientMessage.u.l.longs0);
-            if (!quartzEnableRootless && !quartzHasRoot) QuartzHide();
-#else
-    //	    ErrorF("kXquartzSetRootless not implemented\n");
-#endif
-            break;
-
-        case kXquartzSetRootClip:
-            QuartzSetRootClip((BOOL)xe->u.clientMessage.u.l.longs0);
-            break;
-
-        case kXquartzQuit:
-            GiveUp(0);
-            break;
-
-#if 0
-        case kXquartzReadPasteboard:
-            QuartzReadPasteboard();
-            break;
-
-        case kXquartzWritePasteboard:
-            QuartzWritePasteboard();
-            break;
-#endif
-
-        case kXquartzBringAllToFront:
-            DEBUG_LOG("kXquartzBringAllToFront\n");
-            RootlessOrderAllWindows();
-            break;
-
-        case kXquartzSpaceChanged:
-            DEBUG_LOG("kXquartzSpaceChanged\n");
-            QuartzSpaceChanged(xe->u.clientMessage.u.l.longs0);
-            break;
-        default:
-            ErrorF("Unknown application defined event type %d.\n", xe->u.u.type);
-    }
 }
