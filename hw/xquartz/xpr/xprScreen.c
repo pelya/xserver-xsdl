@@ -107,6 +107,7 @@ static void eventHandler(unsigned int type, const void *arg,
                 DRISurfaceNotify(*(xp_surface_id *) arg, kind);
             }
             break;
+#ifdef XP_EVENT_SPACE_CHANGED
         case  XP_EVENT_SPACE_CHANGED:
             DEBUG_LOG("XP_EVENT_SPACE_CHANGED\n");
             if(arg_size == sizeof(uint32_t)) {
@@ -114,6 +115,7 @@ static void eventHandler(unsigned int type, const void *arg,
                 DarwinSendDDXEvent(kXquartzSpaceChanged, 1, space_id);
             }
             break;
+#endif
         default:
             ErrorF("Unknown XP_EVENT type (%d) in xprScreen:eventHandler\n", type);
     }
@@ -245,9 +247,11 @@ xprDisplayInit(void)
     xp_select_events(XP_EVENT_DISPLAY_CHANGED
                      | XP_EVENT_WINDOW_STATE_CHANGED
                      | XP_EVENT_WINDOW_MOVED
+#ifdef XP_EVENT_SPACE_CHANGED
+                     | XP_EVENT_SPACE_CHANGED
+#endif
                      | XP_EVENT_SURFACE_CHANGED
-                     | XP_EVENT_SURFACE_DESTROYED
-                     | XP_EVENT_SPACE_CHANGED,
+                     | XP_EVENT_SURFACE_DESTROYED,
                      eventHandler, NULL);
 
     AppleDRIExtensionInit();
