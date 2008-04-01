@@ -199,7 +199,11 @@ void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int neven
   int i;
 
   DEBUG_LOG("DarwinEventHandler(%d, %p, %p, %d)\n", screenNum, xe, dev, nevents);
-  for (i=0; i<nevents; i++) QuartzProcessEvent(&xe[i]);
+  for (i=0; i<nevents; i++) {
+    if (xe[i].u.u.type == kXquartzDeactivate)
+      DarwinReleaseModifiers();
+    QuartzProcessEvent(&xe[i]);
+  }
 }
 
 Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) { 
@@ -242,39 +246,9 @@ Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) {
  * This should be deprecated in favor of miEQEnqueue -- BB
  */
 void DarwinEQEnqueue(const xEventPtr e) {
-    HWEventQueueType oldtail, newtail;
-
-    oldtail = darwinEventQueue.tail;
-
-    // mieqEnqueue() collapses successive motion events into one event.
-    // This is difficult to do in a thread-safe way and rarely useful.
-
-    newtail = oldtail + 1;
-    if (newtail == QUEUE_SIZE) newtail = 0;
-    /* Toss events which come in late */
-    if (newtail == darwinEventQueue.head) return;
-
-    darwinEventQueue.events[oldtail].event = *e;
-
-    /*
-     * Make sure that event times don't go backwards - this
-     * is "unnecessary", but very useful
-     */
-    if (e->u.keyButtonPointer.time < darwinEventQueue.lastEventTime &&
-        darwinEventQueue.lastEventTime - e->u.keyButtonPointer.time < 10000)
-    {
-        darwinEventQueue.events[oldtail].event.u.keyButtonPointer.time =
-        darwinEventQueue.lastEventTime;
-    }
-    darwinEventQueue.events[oldtail].pScreen = darwinEventQueue.pEnqueueScreen;
-
-    // Update the tail after the event is prepared
-    darwinEventQueue.tail = newtail;
-
-    // Signal there is an event ready to handle
-    DarwinPokeEQ();
+  mieqEnqueue(NULL, e);
+  DarwinPokeEQ();
 }
-
 
 /*
  * DarwinEQPointerPost
