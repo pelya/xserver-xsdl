@@ -289,6 +289,7 @@ Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) {
         FatalError("Couldn't allocate event buffer\n");
 
     mieqInit();
+    mieqSetHandler(kXquartzReloadKeymap, DarwinKeyboardReloadHandler);
     mieqSetHandler(kXquartzActivate, DarwinEventHandler);
     mieqSetHandler(kXquartzDeactivate, DarwinEventHandler);
     mieqSetHandler(kXquartzSetRootClip, DarwinEventHandler);
@@ -322,7 +323,7 @@ void ProcessInputEvents(void) {
     // Empty the signaling pipe
     int x = sizeof(xe);
     while (x == sizeof(xe)) {
-      DEBUG_LOG("draining pipe\n");
+//      DEBUG_LOG("draining pipe\n");
       x = read(darwinEventReadFD, &xe, sizeof(xe));
     }
 }
@@ -412,8 +413,8 @@ void DarwinSendKeyboardEvents(int ev_type, int keycode) {
 
     this_seed = QuartzSystemKeymapSeed();
     if (this_seed != last_seed) {
-      last_seed = this_seed;
-      DarwinKeyboardReload(darwinKeyboard);
+		last_seed = this_seed;
+		DarwinSendDDXEvent(kXquartzReloadKeymap, 0);
     }
   }
 

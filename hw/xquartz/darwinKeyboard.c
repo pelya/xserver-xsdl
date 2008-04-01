@@ -850,16 +850,18 @@ static Bool InitModMap(register KeyClassPtr keyc) {
 }
 
 
-void DarwinKeyboardReload(DeviceIntPtr pDev) {
+void DarwinKeyboardReloadHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int nevents) {
     KeySymsRec keySyms;
-
+	if (dev == NULL) dev = darwinKeyboard;
+	
+	DEBUG_LOG("DarwinKeyboardReloadHandler(%p)\n", dev);
     DarwinLoadKeyboardMapping(&keySyms);
 
-    if (SetKeySymsMap(&pDev->key->curKeySyms, &keySyms)) {
+    if (SetKeySymsMap(&dev->key->curKeySyms, &keySyms)) {
         /* now try to update modifiers. */
 
-        memmove(pDev->key->modifierMap, keyInfo.modMap, MAP_LENGTH);
-        InitModMap(pDev->key);
+        memmove(dev->key->modifierMap, keyInfo.modMap, MAP_LENGTH);
+        InitModMap(dev->key);
     } else DEBUG_LOG("SetKeySymsMap=0\n");
 
     SendMappingNotify(MappingKeyboard, MIN_KEYCODE, NUM_KEYCODES, 0);

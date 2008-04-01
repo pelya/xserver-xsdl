@@ -91,13 +91,8 @@ extern int              darwinMainScreenY;
  * Special ddx events understood by the X server
  */
 enum {
-    kXquartzUpdateModifiers   // update all modifier keys
+    kXquartzReloadKeymap      // Reload system keymap
             = LASTEvent+1,    // (from X.h list of event names)
-    kXquartzUpdateButtons,    // update state of mouse buttons 2 and up
-    kXquartzScrollWheel,      // scroll wheel event
-    /*
-     * Quartz-specific events -- not used in IOKit mode
-     */
     kXquartzActivate,         // restore X drawing and cursor
     kXquartzDeactivate,       // clip X drawing and switch to Aqua cursor
     kXquartzSetRootClip,      // enable or disable drawing to the X screen
