@@ -251,23 +251,6 @@ void DarwinEQEnqueue(const xEventPtr e) {
 }
 
 /*
- * DarwinEQPointerPost
- *  Post a pointer event. Used by the mipointer.c routines.
- */
-void DarwinEQPointerPost(DeviceIntPtr pdev, xEventPtr e) {
-    (*darwinEventQueue.pPtr->processInputProc)
-            (e, (DeviceIntPtr)darwinEventQueue.pPtr, 1);
-}
-
-
-void DarwinEQSwitchScreen(ScreenPtr pScreen, Bool fromDIX) {
-    darwinEventQueue.pEnqueueScreen = pScreen;
-    if (fromDIX)
-        darwinEventQueue.pDequeueScreen = pScreen;
-}
-
-
-/*
  * ProcessInputEvents
  *  Read and process events from the event queue until it is empty.
  */
