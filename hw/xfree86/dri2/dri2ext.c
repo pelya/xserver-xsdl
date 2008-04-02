@@ -114,7 +114,7 @@ ProcDRI2Connect(ClientPtr client)
     ScreenPtr pScreen;
     int fd;
     const char *driverName;
-    char *busId;
+    char *busId = NULL;
     unsigned int sareaHandle;
 
     REQUEST_SIZE_MATCH(xDRI2ConnectReq);
