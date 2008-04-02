@@ -308,10 +308,9 @@ static const int glx_visual_types[] = {
 
 static __GLXconfig *
 createFBConfigsForVisual(__GLXscreen *screen, ScreenPtr pScreen,
-			 VisualPtr visual, __GLXconfig *tail)
+			 VisualPtr visual, __GLXconfig *config)
 {
     int back, depth, stencil;
-    __GLXconfig *config;
 
     /* FIXME: Ok, I'm making all this up... anybody has a better idea? */
 
@@ -347,7 +346,7 @@ createFBConfigsForVisual(__GLXscreen *screen, ScreenPtr pScreen,
 		config->indexBits = config->colorIndexMode ? visual->nplanes : 0;
 	    }
 
-    return tail;
+    return config;
 }
 
 static void
