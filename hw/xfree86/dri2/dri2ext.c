@@ -37,12 +37,12 @@
 #define NEED_REPLIES
 #include <X11/X.h>
 #include <X11/Xproto.h>
+#include <X11/extensions/dri2proto.h>
 #include "dixstruct.h"
 #include "scrnintstr.h"
 #include "pixmapstr.h"
 #include "extnsionst.h"
 #include "xf86drm.h"
-#include "dri2proto.h"
 #include "dri2.h"
 
 /* The only xf86 include */
