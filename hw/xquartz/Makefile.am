@@ -50,8 +50,6 @@ EXTRA_DIST = \
 	quartz.h \
 	quartzAudio.h \
 	quartzCommon.h \
-	quartzCursor.c \
-	quartzCursor.h \
 	quartzForeground.h \
 	quartzKeyboard.h \
 	quartzPasteboard.h
