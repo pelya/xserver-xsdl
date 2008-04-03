@@ -78,7 +78,7 @@ typedef struct _EventQueue {
 } EventQueueRec, *EventQueuePtr;
 
 static EventQueueRec darwinEventQueue;
-xEvent *darwinEvents;
+xEvent *darwinEvents = NULL;
 
 /*
  * DarwinPressModifierMask
@@ -207,8 +207,11 @@ void DarwinEventHandler(int screenNum, xEventPtr xe, DeviceIntPtr dev, int neven
 }
 
 Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) { 
+    if (!darwinEvents)
+        darwinEvents = (xEvent *)xcalloc(sizeof(xEvent), GetMaximumEventsNum());
+    if (!darwinEvents)
+        FatalError("Couldn't allocate event buffer\n");
 
-    darwinEvents = (xEvent *)malloc(sizeof(xEvent) * GetMaximumEventsNum());
     mieqInit();
     mieqSetHandler(kXquartzActivate, DarwinEventHandler);
     mieqSetHandler(kXquartzDeactivate, DarwinEventHandler);
@@ -225,13 +228,6 @@ Bool DarwinEQInit(DevicePtr pKbd, DevicePtr pPtr) {
     mieqSetHandler(kXquartzWindowState, DarwinEventHandler);
     mieqSetHandler(kXquartzWindowMoved, DarwinEventHandler);
 
-    darwinEventQueue.head = darwinEventQueue.tail = 0;
-    darwinEventQueue.lastEventTime = GetTimeInMillis ();
-    darwinEventQueue.pKbd = pKbd;
-    darwinEventQueue.pPtr = pPtr;
-    darwinEventQueue.pEnqueueScreen = screenInfo.screens[0];
-    darwinEventQueue.pDequeueScreen = darwinEventQueue.pEnqueueScreen;
-    SetInputCheck(&input_check_zero, &input_check_flag);
     return TRUE;
 }
 
@@ -255,8 +251,6 @@ void DarwinEQEnqueue(const xEventPtr e) {
  *  Read and process events from the event queue until it is empty.
  */
 void ProcessInputEvents(void) {
-    EventRec *e;
-    int     x, y;
     xEvent  xe;
     // button number and modifier mask of currently pressed fake button
     input_check_flag=0;
@@ -265,92 +259,11 @@ void ProcessInputEvents(void) {
     mieqProcessInputEvents();
 
     // Empty the signaling pipe
-    x = sizeof(xe);
-    while (x == sizeof(xe)) 
-        x = read(darwinEventReadFD, &xe, sizeof(xe));
-
-    while (darwinEventQueue.head != darwinEventQueue.tail)
-    {
-        if (screenIsSaved == SCREEN_SAVER_ON)
-            dixSaveScreens (serverClient, SCREEN_SAVER_OFF, ScreenSaverReset);
-
-        e = &darwinEventQueue.events[darwinEventQueue.head];
-        xe = e->event;
-
-        // Shift from global screen coordinates to coordinates relative to
-        // the origin of the current screen.
-        xe.u.keyButtonPointer.rootX -= darwinMainScreenX +
-                dixScreenOrigins[miPointerCurrentScreen()->myNum].x;
-        xe.u.keyButtonPointer.rootY -= darwinMainScreenY +
-                dixScreenOrigins[miPointerCurrentScreen()->myNum].y;
-	
-	/*	ErrorF("old rootX = (%d,%d) darwinMainScreen = (%d,%d) dixScreenOrigins[%d]=(%d,%d)\n",
-	       xe.u.keyButtonPointer.rootX, xe.u.keyButtonPointer.rootY,
-	       darwinMainScreenX, darwinMainScreenY,
-	       miPointerCurrentScreen()->myNum,
-	       dixScreenOrigins[miPointerCurrentScreen()->myNum].x,
-	       dixScreenOrigins[miPointerCurrentScreen()->myNum].y); */
-
-	//Assumption - screen switching can only occur on motion events
-
-        if (e->pScreen != darwinEventQueue.pDequeueScreen)
-        {
-            darwinEventQueue.pDequeueScreen = e->pScreen;
-            x = xe.u.keyButtonPointer.rootX;
-            y = xe.u.keyButtonPointer.rootY;
-            if (darwinEventQueue.head == QUEUE_SIZE - 1)
-                darwinEventQueue.head = 0;
-            else
-                ++darwinEventQueue.head;
-            NewCurrentScreen (darwinEventQueue.pDequeueScreen, x, y);
-        }
-        else
-        {
-            if (darwinEventQueue.head == QUEUE_SIZE - 1)
-                darwinEventQueue.head = 0;
-            else
-                ++darwinEventQueue.head;
-            switch (xe.u.u.type) {
-            case KeyPress:
-            case KeyRelease:
-	      ErrorF("Unexpected Keyboard event in DarwinProcessInputEvents\n");
-	      break;
-
-            case ButtonPress:
-	      ErrorF("Unexpected ButtonPress event in DarwinProcessInputEvents\n");
-                break;
-
-            case ButtonRelease:
-	      ErrorF("Unexpected ButtonRelease event in DarwinProcessInputEvents\n");
-                break;
-
-            case MotionNotify:
-	      ErrorF("Unexpected MotionNotify event in DarwinProcessInputEvents\n");
-                break;
-
-            case kXquartzUpdateModifiers:
-	      ErrorF("Unexpected kXquartzUpdateModifiers event in DarwinProcessInputEvents\n");
-	      break;
-
-            case kXquartzUpdateButtons:
-	      ErrorF("Unexpected kXquartzUpdateButtons event in DarwinProcessInputEvents\n");
-	      break;
-
-            case kXquartzScrollWheel: 
-	      ErrorF("Unexpected kXquartzScrollWheel event in DarwinProcessInputEvents\n");
-	      break;
-
-			case kXquartzDeactivate:
-				DarwinReleaseModifiers();
-				// fall through
-            default:
-                // Check for mode specific event
-                QuartzProcessEvent(&xe);
-            }
-        }
+    int x = sizeof(xe);
+    while (x == sizeof(xe)) {
+      DEBUG_LOG("draining pipe\n");
+      x = read(darwinEventReadFD, &xe, sizeof(xe));
     }
-
-    //    miPointerUpdate();
 }
 
 /* Sends a null byte down darwinEventWriteFD, which will cause the
@@ -368,6 +281,10 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
   static int darwinFakeMouseButtonMask = 0;
   int i, num_events;
 
+	if(!darwinEvents) {
+		ErrorF("DarwinSendPointerEvents called before darwinEvents was initialized\n");
+		return;
+	}
   /* I can't find a spec for this, but at least GTK expects that tablets are
      just like mice, except they have either one or three extra valuators, in this
      order:
@@ -421,6 +338,11 @@ void DarwinSendPointerEvents(int ev_type, int ev_button, int pointer_x, int poin
 
 void DarwinSendKeyboardEvents(int ev_type, int keycode) {
   int i, num_events;
+	if(!darwinEvents) {
+		ErrorF("DarwinSendKeyboardEvents called before darwinEvents was initialized\n");
+		return;
+	}
+
   if (old_flags == 0 && darwinSyncKeymap && darwinKeymapFile == NULL) {
     /* See if keymap has changed. */
 
@@ -447,6 +369,11 @@ void DarwinSendProximityEvents(int ev_type, int pointer_x, int pointer_y,
 		      tilt_x * INT32_MAX * 1.0f, 
 		      tilt_y * INT32_MAX * 1.0f};
 
+  if(!darwinEvents) {
+		ErrorF("DarwinSendProximityvents called before darwinEvents was initialized\n");
+		return;
+}
+
   num_events = GetProximityEvents(darwinEvents, darwinPointer, ev_type,
 				0, 5, valuators);
       
@@ -464,6 +391,11 @@ void DarwinSendScrollEvents(float count, int pointer_x, int pointer_y,
 		      pressure * INT32_MAX * 1.0f, 
 		      tilt_x * INT32_MAX * 1.0f, 
 		      tilt_y * INT32_MAX * 1.0f};
+
+	if(!darwinEvents) {
+		ErrorF("DarwinSendScrollEvents called before darwinEvents was initialized\n");
+		return;
+	}
 
   for (count = fabs(count); count > 0.0; count = count - 1.0f) {
     int num_events = GetPointerEvents(darwinEvents, darwinPointer, ButtonPress, ev_button, 
