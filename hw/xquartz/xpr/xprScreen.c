@@ -108,7 +108,7 @@ static void eventHandler(unsigned int type, const void *arg,
             }
             break;
         case  XP_EVENT_SPACE_CHANGED:
-            ErrorF("XP_EVENT_SPACE_CHANGED\n");
+            DEBUG_LOG("XP_EVENT_SPACE_CHANGED\n");
             if(arg_size == sizeof(uint32_t)) {
                 uint32_t space_id = *(uint32_t *)arg;
                 DarwinSendDDXEvent(kXquartzSpaceChanged, 1, space_id);
