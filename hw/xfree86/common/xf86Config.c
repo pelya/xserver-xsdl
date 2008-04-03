@@ -119,7 +119,9 @@ static ModuleDefault ModuleDefaults[] = {
     {.name = "dbe",      .toLoad = TRUE,    .load_opt=NULL},
     {.name = "glx",      .toLoad = TRUE,    .load_opt=NULL},
     {.name = "freetype", .toLoad = TRUE,    .load_opt=NULL},
+#ifdef XRECORD
     {.name = "record",   .toLoad = TRUE,    .load_opt=NULL},
+#endif
     {.name = "dri",      .toLoad = TRUE,    .load_opt=NULL},
     {.name = "dri2",     .toLoad = TRUE,    .load_opt=NULL},
     {.name = NULL,       .toLoad = FALSE,   .load_opt=NULL}
