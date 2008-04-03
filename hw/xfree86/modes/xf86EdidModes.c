@@ -158,6 +158,11 @@ static Bool quirk_first_detailed_preferred (int scrnIndex, xf86MonPtr DDC)
 	DDC->vendor.prod_id == 765)
 	return TRUE;
 
+    /* ACR of some sort RH #284231 */
+    if (memcmp (DDC->vendor.name, "ACR", 4) == 0 &&
+	DDC->vendor.prod_id == 2423)
+	return TRUE;
+
     return FALSE;
 }
 
