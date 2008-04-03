@@ -118,7 +118,7 @@ static GCOps rootlessGCOps = {
 
 /*
    There are two issues we must contend with when drawing. These are
-   controlled with ROOTLESS_PROTECT_ALPHA and ROOTLESS_ACCEL.
+   controlled with ROOTLESS_PROTECT_ALPHA and RootlessAccelInit().
 
    If ROOTLESS_PROTECT_ALPHA is set, we have to make sure that the alpha
    channel of the on screen windows is always opaque. fb makes this harder
@@ -141,9 +141,9 @@ static GCOps rootlessGCOps = {
    from another window since its alpha channel must also be opaque.
 
    The other issue to consider is that the rootless implementation may
-   provide accelerated drawing functions if ROOTLESS_ACCEL is set. For some
-   drawing primitives we swap in rootless acceleration functions, which use
-   the accelerated drawing functions where possible.
+   provide accelerated drawing functions if RootlessAccelInit() is called.For 
+   some drawing primitives we swap in rootless acceleration functions, which
+   use the accelerated drawing functions where possible.
 
    Where both alpha protection and acceleration is used, it is even a bigger
    win to relax the planemask to all ones because most accelerated drawing
