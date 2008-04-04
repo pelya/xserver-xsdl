@@ -363,9 +363,12 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 #define ALLOC_COPY_CLASS_IF(field, type) \
     if (from->field)\
     { \
-        to->field = xcalloc(1, sizeof(type)); \
         if (!to->field) \
+        { \
+            to->field = xcalloc(1, sizeof(type)); \
+            if (!to->field) \
             FatalError("[Xi] no memory for class shift.\n"); \
+        } \
         memcpy(to->field, from->field, sizeof(type)); \
     }
 
