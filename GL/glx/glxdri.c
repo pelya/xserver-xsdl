@@ -1117,12 +1117,12 @@ __glXDRIscreenProbe(ScreenPtr pScreen)
 					   &driConfigs,
 					   screen);
 
-    screen->base.fbconfigs = glxConvertConfigs(screen->core, driConfigs);
-
     if (screen->driScreen == NULL) {
 	LogMessage(X_ERROR, "AIGLX error: Calling driver entry point failed");
 	goto handle_error;
     }
+
+    screen->base.fbconfigs = glxConvertConfigs(screen->core, driConfigs);
 
     initializeExtensions(screen);
 
