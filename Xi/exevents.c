@@ -424,22 +424,6 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
     ALLOC_COPY_CLASS_IF(proximity, ProximityClassRec);
     ALLOC_COPY_CLASS_IF(absolute, AbsoluteClassRec);
 
-    ALLOC_COPY_CLASS_IF(kbdfeed, KbdFeedbackClassRec);
-#ifdef XKB
-    if (to->kbdfeed)
-    {
-        to->kbdfeed->xkb_sli = NULL;
-        /* XXX: XkbSrvLedInfo needs to be copied*/
-        to->kbdfeed->next = NULL;
-    }
-#endif
-    ALLOC_COPY_CLASS_IF(ptrfeed, PtrFeedbackClassRec);
-    if (to->ptrfeed)
-    {
-        to->ptrfeed->next = NULL;
-    }
-
-
     DeepCopyFeedbackClasses(from, to);
 }
 
