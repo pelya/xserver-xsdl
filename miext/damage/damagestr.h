@@ -73,6 +73,7 @@ typedef struct _damageScrPriv {
 #ifdef RENDER
     CompositeProcPtr		Composite;
     GlyphsProcPtr		Glyphs;
+    AddTrapsProcPtr		AddTraps;
 #endif
 } DamageScrPrivRec, *DamageScrPrivPtr;
 

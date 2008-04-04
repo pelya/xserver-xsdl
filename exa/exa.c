@@ -757,6 +757,7 @@ exaCloseScreen(int i, ScreenPtr pScreen)
 	ps->Glyphs = pExaScr->SavedGlyphs;
 	ps->Trapezoids = pExaScr->SavedTrapezoids;
 	ps->Triangles = pExaScr->SavedTriangles;
+	ps->AddTraps = pExaScr->SavedAddTraps;
     }
 #endif
 
@@ -928,6 +929,9 @@ exaDriverInit (ScreenPtr		pScreen,
 
 	pExaScr->SavedTrapezoids = ps->Trapezoids;
 	ps->Trapezoids = exaTrapezoids;
+
+	pExaScr->SavedAddTraps = ps->AddTraps;
+	ps->AddTraps = ExaCheckAddTraps;
     }
 #endif
 

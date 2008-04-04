@@ -722,6 +722,58 @@ damageGlyphs (CARD8		op,
     damageRegionProcessPending (pDst->pDrawable);
     wrap (pScrPriv, ps, Glyphs, damageGlyphs);
 }
+
+static void
+damageAddTraps (PicturePtr  pPicture,
+		INT16	    x_off,
+		INT16	    y_off,
+		int	    ntrap,
+		xTrap	    *traps)
+{
+    ScreenPtr		pScreen = pPicture->pDrawable->pScreen;
+    PictureScreenPtr	ps = GetPictureScreen(pScreen);
+    damageScrPriv(pScreen);
+
+    if (checkPictureDamage (pPicture))
+    {
+	BoxRec	box;
+	int	i;
+	int	x, y;
+	xTrap	*t = traps;
+
+	box.x1 = 32767;
+	box.y1 = 32767;
+	box.x2 = -32767;
+	box.y2 = -32767;
+	x = pPicture->pDrawable->x + x_off;
+	y = pPicture->pDrawable->y + y_off;
+	for (i = 0; i < ntrap; i++)
+	{
+	    pixman_fixed_t   l = min (t->top.l, t->bot.l);
+	    pixman_fixed_t   r = max (t->top.r, t->bot.r);
+	    int	    x1 = x + pixman_fixed_to_int (l);
+	    int	    x2 = x + pixman_fixed_to_int (pixman_fixed_ceil (r));
+	    int	    y1 = y + pixman_fixed_to_int (t->top.y);
+	    int	    y2 = y + pixman_fixed_to_int (pixman_fixed_ceil (t->bot.y));
+	    
+	    if (x1 < box.x1)
+		box.x1 = x1;
+	    if (x2 > box.x2)
+		box.x2 = x2;
+	    if (y1 < box.y1)
+		box.y1 = y1;
+	    if (y2 > box.y2)
+		box.y2 = y2;
+	}
+	TRIM_PICTURE_BOX (box, pPicture);
+	if (BOX_NOT_EMPTY(box))
+	    damageDamageBox (pPicture->pDrawable, &box, pPicture->subWindowMode);
+    }
+    unwrap (pScrPriv, ps, AddTraps);
+    (*ps->AddTraps) (pPicture, x_off, y_off, ntrap, traps);
+    damageReportPostOp (pPicture->pDrawable);
+    wrap (pScrPriv, ps, AddTraps, damageAddTraps);
+}
 #endif
 
 /**********************************************************/
@@ -1838,6 +1890,7 @@ DamageSetup (ScreenPtr pScreen)
     if (ps) {
 	wrap (pScrPriv, ps, Glyphs, damageGlyphs);
 	wrap (pScrPriv, ps, Composite, damageComposite);
+	wrap (pScrPriv, ps, AddTraps, damageAddTraps);
     }
 #endif
 

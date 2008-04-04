@@ -147,6 +147,7 @@ typedef struct {
     TrianglesProcPtr		 SavedTriangles;
     GlyphsProcPtr                SavedGlyphs;
     TrapezoidsProcPtr            SavedTrapezoids;
+    AddTrapsProcPtr		 SavedAddTraps;
 #endif
   
     Bool			 swappedOut;
@@ -330,6 +331,13 @@ ExaCheckGetSpans (DrawablePtr pDrawable,
 		 int *pwidth,
 		 int nspans,
 		 char *pdstStart);
+
+void
+ExaCheckAddTraps (PicturePtr	pPicture,
+		  INT16		x_off,
+		  INT16		y_off,
+		  int		ntrap,
+		  xTrap		*traps);
 
 /* exa_accel.c */
 
