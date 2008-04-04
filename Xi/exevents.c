@@ -225,7 +225,15 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
         k = &to->kbdfeed;
         for(it = from->kbdfeed; it; it = it->next)
         {
-            *k = xcalloc(1, sizeof(KbdFeedbackClassRec));
+            if (!(*k))
+            {
+                *k = xcalloc(1, sizeof(KbdFeedbackClassRec));
+                if (!*k)
+                {
+                    ErrorF("[Xi] Cannot alloc memory for class copy.");
+                    return;
+                }
+            }
             (*k)->BellProc = it->BellProc;
             (*k)->CtrlProc = it->CtrlProc;
             (*k)->ctrl     = it->ctrl;
@@ -241,7 +249,15 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
         p = &to->ptrfeed;
         for (it = from->ptrfeed; it; it = it->next)
         {
-            *p = xcalloc(1, sizeof(PtrFeedbackClassRec));
+            if (!(*p))
+            {
+                *p = xcalloc(1, sizeof(PtrFeedbackClassRec));
+                if (!*p)
+                {
+                    ErrorF("[Xi] Cannot alloc memory for class copy.");
+                    return;
+                }
+            }
             (*p)->CtrlProc = it->CtrlProc;
             (*p)->ctrl     = it->ctrl;
             /* XXX: xkb_sli needs to be copied */
@@ -256,7 +272,15 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
         i = &to->intfeed;
         for (it = from->intfeed; it; it = it->next)
         {
-            *i = xcalloc(1, sizeof(IntegerFeedbackClassRec));
+            if (!(*i))
+            {
+                *i = xcalloc(1, sizeof(IntegerFeedbackClassRec));
+                if (!(*i))
+                {
+                    ErrorF("[Xi] Cannot alloc memory for class copy.");
+                    return;
+                }
+            }
             (*i)->CtrlProc = it->CtrlProc;
             (*i)->ctrl     = it->ctrl;
 
@@ -270,7 +294,15 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
         s = &to->stringfeed;
         for (it = from->stringfeed; it; it = it->next)
         {
-            *s = xcalloc(1, sizeof(StringFeedbackClassRec));
+            if (!(*s))
+            {
+                *s = xcalloc(1, sizeof(StringFeedbackClassRec));
+                if (!(*s))
+                {
+                    ErrorF("[Xi] Cannot alloc memory for class copy.");
+                    return;
+                }
+            }
             (*s)->CtrlProc = it->CtrlProc;
             (*s)->ctrl     = it->ctrl;
 
@@ -284,7 +316,15 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
         b = &to->bell;
         for (it = from->bell; it; it = it->next)
         {
-            *b = xcalloc(1, sizeof(BellFeedbackClassRec));
+            if (!(*b))
+            {
+                *b = xcalloc(1, sizeof(BellFeedbackClassRec));
+                if (!(*b))
+                {
+                    ErrorF("[Xi] Cannot alloc memory for class copy.");
+                    return;
+                }
+            }
             (*b)->BellProc = it->BellProc;
             (*b)->CtrlProc = it->CtrlProc;
             (*b)->ctrl     = it->ctrl;
@@ -299,7 +339,15 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
         l = &to->leds;
         for (it = from->leds; it; it = it->next)
         {
-            *l = xcalloc(1, sizeof(LedFeedbackClassRec));
+            if (!(*l))
+            {
+                *l = xcalloc(1, sizeof(LedFeedbackClassRec));
+                if (!(*l))
+                {
+                    ErrorF("[Xi] Cannot alloc memory for class copy.");
+                    return;
+                }
+            }
             (*l)->CtrlProc = it->CtrlProc;
             (*l)->ctrl     = it->ctrl;
             /* XXX: xkb_sli needs to be copied */
