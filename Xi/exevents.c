@@ -413,7 +413,6 @@ ChangeMasterDeviceClasses(DeviceIntPtr device,
 
     master->public.devicePrivate = device->public.devicePrivate;
 
-    FreeAllDeviceClasses((ClassesPtr)&master->key);
     DeepCopyDeviceClasses(device, master);
 
     /* event is already correct size, see comment in GetPointerEvents */
