@@ -705,6 +705,15 @@ if test "x$NEED_DBUS" = xyes; then
 fi
 CONFIG_LIB='$(top_builddir)/config/libconfig.a'
 
+AC_MSG_CHECKING([for glibc...])
+AC_PREPROC_IFELSE([
+#include <features.h>
+#ifndef __GLIBC__
+#error
+#endif
+], glibc=yes, glibc=no)
+AC_MSG_RESULT([$glibc])
+
 AC_CHECK_FUNCS([clock_gettime], [have_clock_gettime=yes],
                [AC_CHECK_LIB([rt], [clock_gettime], [have_clock_gettime=-lrt],
                              [have_clock_gettime=no])])
@@ -720,11 +729,13 @@ if ! test "x$have_clock_gettime" = xno; then
 
     LIBS_SAVE="$LIBS"
     LIBS="$CLOCK_LIBS"
+    CPPFLAGS_SAVE="$CPPFLAGS"
+
+    if test x"$glibc" = xyes; then
+        CPPFLAGS="$CPPFLAGS -D_POSIX_C_SOURCE=199309L"
+    fi
 
     AC_RUN_IFELSE([
-#ifdef __linux__
-#define _POSIX_C_SOURCE 199309L
-#endif
 #include <time.h>
 
 int main(int argc, char *argv[[]]) {
@@ -739,6 +750,7 @@ int main(int argc, char *argv[[]]) {
        [MONOTONIC_CLOCK="cross compiling"])
 
     LIBS="$LIBS_SAVE"
+    CPPFLAGS="$CPPFLAGS_SAVE"
 else
     MONOTONIC_CLOCK=no
 fi
