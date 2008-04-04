@@ -385,7 +385,7 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
     if (from->valuator)
     {
         ValuatorClassPtr v;
-        to->valuator = xalloc(sizeof(ValuatorClassRec) +
+        to->valuator = xrealloc(to->valuator, sizeof(ValuatorClassRec) +
                 from->valuator->numAxes * sizeof(AxisInfo) +
                 from->valuator->numAxes * sizeof(unsigned int));
         v = to->valuator;
