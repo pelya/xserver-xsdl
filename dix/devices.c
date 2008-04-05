@@ -873,7 +873,7 @@ CloseDevice(DeviceIntPtr dev)
 	XkbRemoveResourceClient((DevicePtr)dev,dev->xkb_interest->resource);
 #endif
 
-    if (DevHasCursor(dev)) {
+    if (DevHasCursor(dev) && dev->spriteInfo->sprite) {
         xfree(dev->spriteInfo->sprite->spriteTrace);
         xfree(dev->spriteInfo->sprite);
     }
