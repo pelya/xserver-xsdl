@@ -357,6 +357,11 @@ DeepCopyFeedbackClasses(DeviceIntPtr from, DeviceIntPtr to)
     }
 }
 
+/**
+ * Copies the CONTENT of the classes of device from into the classes in device
+ * to. From and to are identical after finishing.
+ */
+
 _X_EXPORT void
 DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
 {
@@ -430,6 +435,12 @@ DeepCopyDeviceClasses(DeviceIntPtr from, DeviceIntPtr to)
     DeepCopyFeedbackClasses(from, to);
 }
 
+/**
+ * Change MD to look like SD by copying all classes over. An event is sent to
+ * all interested clients.
+ * @param device The slave device
+ * @param dcce Pointer to the event struct.
+ */
 static void
 ChangeMasterDeviceClasses(DeviceIntPtr device,
                           deviceClassesChangedEvent *dcce)
